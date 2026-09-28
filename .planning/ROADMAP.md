@@ -1045,24 +1045,27 @@ Plans:
 
 **UI hint**: yes — pay-link "already paid" page, ops refund approval, admin account-settings sign-in methods, class names.
 
-### Phase 26.3: Booking flow simplification (INSERTED)
+### Phase 26.3: Booking flow rebuild (INSERTED)
 
-**Goal**: A customer goes from the home card to paid in two screens. Home asks From, To,
-When and Travellers; on tablet and desktop the card also shows the class prices. One
-checkout page replaces `/checkout/trip`, `/checkout/details` and `/checkout/payment`:
-1 class, 2 who is travelling, 3 payment, with one Pay button. Design source: sketch 001
-Variant A, approved 2026-09-28 (`.planning/sketches/001-simplified-booking-flow/`).
-**Depends on**: 26.1 (payment and pricing integrity) and 26.2 (cleanup) merged first.
-Owner placed it before 27 so the pixel measures the new funnel.
-**Requirements**: TBD in discuss-phase
-**Success Criteria** (draft, signed in discuss):
+**Goal**: A customer goes from the home box to paid in two screens and the booking is right
+everywhere afterwards. Home box asks From (flight number under it for an airport, required),
+To, When, Travellers; SEE PRICES opens ONE checkout page (1 class with prices, 2 who is
+travelling, 3 payment) with one Pay button that sends the customer to Stripe's hosted page
+(card, Apple Pay, Google Pay, TWINT). Stripe returns to `/api/checkout/return` → loading
+screen → confirmation "Booked". Design source: sketch 001 Variant A; decisions signed
+2026-09-29 in `.planning/phases/26.3-booking-flow-simplification/26.3-CONTEXT.md` (D-01…D-42).
+**Depends on**: 26.1 (shipped as cff97a0e + 3 fixes). Starts before 26.2 by owner decision (D-03).
+**Requirements**: from 26.3-CONTEXT.md
+**Success Criteria** (signed in discuss):
 
-  1. Home card has no trip-type tabs; an airport pickup is detected from the From address. Passengers and bags are one control.
-  2. On tablet and desktop, the home card shows each class with its price once From and To are set; Select opens checkout with that class chosen. Phone keeps one SEE PRICES button.
-  3. One checkout page: class cards with prices, contact, flight number only for an airport pickup (asked once in the whole flow), extras / driver note / company receipt / voucher collapsed, wallets above card, one Pay button.
-  4. Desktop has a sticky summary rail; phone and tablet have a sticky Total + Pay bar. Pay scrolls to the first error and names it.
-  5. Unpaid booking row rules, pay-link, 3DS return, refresh and Back still work; server-authoritative quote and idempotent booking unchanged.
-  6. Every string in en, de, fr, ar; checked at 1440, 1024, 768, 390 with no sideways scroll; no glow, no tinted yellow, `CHF 000` until pricing is live.
+  1. Owner's failed 26.1 UAT step 1 passes on the shipped build: test card 4242 → loading screen → confirmation "Booked" → booking on his profile → on the ops board → confirmation e-mail with the full breakdown equal to the Stripe charge → no leftover card, no pay-link e-mail.
+  2. Home box: no trip tabs, airport detected from From, required flight under From only for an airport, one Travellers control, no prices; trip handed to `/checkout` in the URL (no `vamosTrip` storage).
+  3. One checkout page: classes with prices (too-small greyed "Seats up to N"), one contact with sign-in link, extras from the live price book listed unticked and charged and saved when ticked, folded company receipt and driver note, "Have a voucher?" link, no pay link, Pay always visible and jumping to the first missing field.
+  4. Stripe hosted page with exactly card / Apple Pay / Google Pay / TWINT, site language (en/de/fr/ar), adaptive pricing on; Back returns to a filled checkout and reuses the booking; unpaid bookings without a pay link are deleted after 30 minutes; old `/checkout/trip|details|payment` forward to `/checkout`.
+  5. New bookings store the correct pickup instant (Europe/Zurich → UTC); bookings link to the profile when signed in or by the same e-mail; account never shows a local draft; "Add to calendar" removed.
+  6. Server price calc, signed lock, settle, refunds, disputes unchanged except generic extras and pickup instant; a fixed coupon stays off before VAT.
+  7. Every string in en, de, fr, ar; checked at 1440, 1024, 768, 390 with no sideways scroll; no glow, no tinted yellow, `CHF 000` in design only.
+  8. Owner-run copy-then-delete script for the 33 test bookings is delivered; the agent never runs it.
 
 **UI hint**: yes
 
@@ -1160,7 +1163,7 @@ v1.3 Meta measurement (Phases 21–25 stay planned, not current): 26 → 26.1 �
 | 26.0. Main green (INSERTED) | part 1 in 26.1 | Parked | - |
 | 26.1. Payment and pricing integrity (INSERTED) | 30/32 | Waiting for owner Ship (26.1-26), then 26.1-28 |  |
 | 26.2. Codebase audit, bug fix and simplify (INSERTED) | 0/TBD | Not started | - |
-| 26.3. Booking flow simplification (INSERTED) | 0/TBD | Not started | - |
+| 26.3. Booking flow rebuild (INSERTED) | 0/TBD | Context signed | - |
 | 27. Consent record | 0/TBD | Not started | - |
 | 28. Pixel PageView | 0/TBD | Not started | - |
 | 29. Webhook Purchase | 0/TBD | Not started | - |

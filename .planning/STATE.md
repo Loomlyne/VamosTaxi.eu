@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Meta measurement
-status: executing
-stopped_at: Phase 26.1 code complete and verified; waiting for owner Ship (26.1-26 task 3)
-last_updated: "2026-09-28T16:03:02.000Z"
-last_activity: 2026-09-28
+status: planning
+stopped_at: Phase 26.3 context signed 2026-09-29; next UI-SPEC (/gsd-ui-phase 26.3)
+last_updated: "2026-09-28T20:26:15.303Z"
+last_activity: "2026-09-29 - Phase 26.3 discuss signed by the owner (42 decisions, 26.3-CONTEXT.md)"
 progress:
-  total_phases: 31
-  completed_phases: 17
-  total_plans: 248
-  completed_plans: 236
-  percent: 95
+  total_phases: 32
+  completed_phases: 18
+  total_plans: 246
+  completed_plans: 234
+  percent: 56
 ---
 
 # Project State
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-09-23)
 
 ## Current Position
 
-Phase: 26.1 (Payment and pricing integrity) — CODE COMPLETE, WAITING FOR OWNER SHIP
-Plan: 30 of 32 done. Open: 26.1-26 task 3 (owner Ship) and 26.1-28 (post-Ship reconciliation)
-Status: Focused pre-Ship check at 200b153d: 0 gaps, findings 1 and 3 closed; the extras finding is deferred by the owner to the next plan (deferred-items.md)
-Last activity: 2026-09-28 - Completed quick task 260928-lat: a payment-session answer for an older lock is discarded; clearing the payment session resets cardComplete. Owner said Ship for 26.1 with the generic-extras fix as the next plan
+Phase: 26.3 (Booking flow rebuild) — CONTEXT SIGNED 2026-09-29, next UI-SPEC
+Branch/worktree: `gsd/phase-26.3-booking-flow` in `/Users/koss/Developer/vamos-wt/phase-26.3` (cut from 2c8c4592)
+Status: 26.1 shipped (cff97a0e + 550ee4f2, e5a6ddc7, 2c8c4592; live Worker 8285cabb). Owner's repeat of 26.1 UAT step 1 FAILED; folded into 26.3 success criterion 1. 26.2 comes after 26.3 (D-03).
+Last activity: 2026-09-29 - 26.3 discuss signed
 
 Phase 21 execution note (not current): planning complete — 8 plans. Execution started 2026-09-22 on `gsd/phase-21-charge-gate`. That position was Phase 21 EXECUTING, plan 1 of 8. Phase 21 is not complete. Do not execute Phase 16/17/19/20. Do not touch the main checkout from that branch note.
 
@@ -54,9 +54,9 @@ Stripe live keys and Search Console stay owner-gated. Agent does not click Publi
 
 ## Session Continuity
 
-Last session: 2026-09-28T16:03:02.000Z
-Stopped at: Phase 26.1 code complete; waiting for owner Ship
-Resume: owner says Ship for 26.1 (one commit on main, deploy Worker `vamos`, verify https://vamostaxi.site), then 26.1-28, then owner UAT steps 1-19 in 26.1-VERIFICATION.md. Phase 26 legal gate is on main since 2026-09-24 (b2af7ce8). Phase 26.0 is parked, see `.planning/phases/26.0-main-green/26.0-OPEN-ITEMS.md`. After that `/gsd-discuss-phase` for the next phase the owner names. Do not execute 27. Do not load the pixel. Do not execute Phase 21 while v1.3 is current. Payment plans stay on disk. Do not execute Phase 16/17/19/20. Do not `phases.clear`.
+Last session: 2026-09-28T20:26:15.292Z
+Stopped at: Phase 26.3 context signed 2026-09-29; next UI-SPEC (/gsd-ui-phase 26.3)
+Resume: `/gsd-ui-phase 26.3` (UI-SPEC, owner gate), then `/gsd-plan-phase 26.3`. 26.1-28 (owner Stripe resend + reconcile) still open. Only the control session commits on main and deploys. Do not execute 27. Do not load the pixel. Do not execute Phase 16/17/19/20/21. Do not `phases.clear`.
 
 Phase 21 branch session (2026-09-22T19:57:29.795Z, not the resume): Stopped at Phase 21 planning complete — 8 plans. Resume was: Phase 21 executing on gsd/phase-21-charge-gate. Do not execute Phase 16/17/19/20. Do not touch the main checkout.
 
@@ -71,6 +71,7 @@ Phase 21 branch session (2026-09-22T19:57:29.795Z, not the resume): Stopped at P
 - Phases 26–29 approved (2026-09-23): v1.3 Meta measurement. META-01…META-14. Next is discuss-phase 26. Phase 21 is not current.
 - Phase 26 lock shipped (2026-09-24) on `gsd/phase-26-legal-gate`. Empty slots. Flag is the literal false. Policy version stays `2026-09-12`. Not merged. Pixel stays off until the owner pastes the four-language lines.
 - Phase 21 execution on `gsd/phase-21-charge-gate` (2026-09-22): planning complete — 8 plans; execution started. Plans 21-01…21-08 stay checked. Progress stays 10/10 in progress. Phase 21 is not complete. Do not execute Phase 16/17/19/20.
+- Phase 26.3 discuss signed (2026-09-29): renamed Booking flow rebuild; Stripe hosted page, one checkout, URL handover, generic extras, pickup instant, test bookings deleted by owner script. Starts before 26.2.
 - Phase 26.3 inserted (2026-09-28): Booking flow simplification. Sketch 001 Variant A approved by the owner (two screens, home price strip on tablet/desktop, one checkout page). Placed before 27 by owner choice so the pixel measures the new funnel. Depends on 26.1 and 26.2 merging first. Next is discuss-phase 26.3.
 
 ## Decisions
