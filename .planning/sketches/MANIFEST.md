@@ -12,4 +12,4 @@ Current live flow on vamostaxi.site (home card → /checkout/trip → /details �
 
 | # | Name | Design Question | Winner | Tags |
 |---|------|----------------|--------|------|
-| 001 | simplified-booking-flow | How few screens/inputs can home → pay take, adaptive at 390/768/1024/1440? | — | booking, checkout, home, responsive |
+| 001 | simplified-booking-flow | How few screens/inputs can home → pay take, adaptive at 390/768/1024/1440? | A + C price strip (approved 2026-09-28) | booking, checkout, home, responsive |

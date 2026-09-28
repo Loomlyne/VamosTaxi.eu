@@ -2,7 +2,7 @@
 sketch: 001
 name: simplified-booking-flow
 question: "How few screens and inputs can the booking flow (home card → pay) take, while staying adaptive at 390 / 768 / 1024 / 1440?"
-winner: null
+winner: "A"
 tags: [booking, checkout, home, responsive, funnel]
 ---
 
