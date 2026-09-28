@@ -68,7 +68,11 @@ import { lockFlightNoDiffers } from "@/lib/checkout/flight-no";
 import { couponRecoveryOutcome, couponRefusalAction } from "@/lib/checkout/coupon-recovery";
 import { checkoutTraveler } from "@/lib/checkout/checkout-traveler";
 import { pickedClassName } from "@/lib/checkout/picked-class";
-import { readCheckoutSession, writeCheckoutSession } from "@/lib/checkout/checkout-session-store";
+import {
+  clearCheckoutSession,
+  readCheckoutSession,
+  writeCheckoutSession,
+} from "@/lib/checkout/checkout-session-store";
 import { chfRappenToDisplay } from "@/lib/fx/format";
 import { useFx } from "@/lib/fx/use-fx";
 import { useVamosLocale } from "@/lib/locale-shim";
@@ -551,6 +555,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       setClientSecret(null);
       setClientSecretHex(undefined);
       clientSecretRef.current = null;
+      if (stored.quoteId) clearCheckoutSession(stored.quoteId);
       setChildSeat(false);
       setOversized(false);
       setExtraStop(false);
@@ -593,7 +598,9 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
             : stored.idempotencyKey,
     });
     if (step === "payment" && incomingQuote) {
-      const stored = readCheckoutSession(incomingQuote);
+      // Only a session opened for the lock on screen (quick 260928-rld).
+      const screenLock = trip?.lock || readDraft().lock || "";
+      const stored = readCheckoutSession(incomingQuote, screenLock);
       if (stored && !clientSecretRef.current) {
         clientSecretRef.current = stored.clientSecret;
         setClientSecret(stored.clientSecret);
@@ -1057,12 +1064,15 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
             const lockCoupon = peekLockCoupon(readDraft().lock || draft.lock || trip?.lock);
             if (couponRecoveryOutcome({ action: recovery, repriceOk: repriced, lockCoupon }) === "restore_lock_coupon") {
               // The reprice failed: the stored lock still prices the coupon. Show it as
-              // applied (Remove offered, matches the price on screen), let the next Pay
-              // recover again, and stop the automatic intent retry so nothing repeats
-              // without a click.
+              // applied (Remove offered, matches the price on screen) and stop the
+              // automatic intent retry so nothing repeats without a click. Remove
+              // reprices without the coupon; Send pay link recovers again because the
+              // ref is cleared. The stored session is dropped so a reload cannot mount
+              // an older session under the coupon price (260928-rld).
               setCouponApplied(lockCoupon);
               couponRecoveryAttempted.current = false;
               intentAttempts.current = INTENT_AUTO_ATTEMPTS;
+              clearCheckoutSession(quoteId);
             }
             return "fail";
           }
@@ -1094,6 +1104,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       }
       writeCheckoutSession({
         quoteId,
+        lock,
         clientSecret: secret,
         clientSecretHex: json.client_secret_hex,
         publishableKey: json.publishable_key,
@@ -1176,6 +1187,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         setClientSecret(null);
         setClientSecretHex(undefined);
         clientSecretRef.current = null;
+        clearCheckoutSession(quoteId);
         setConfirmPay(null);
         intentStarted.current = false;
         intentAttempts.current = 0;
@@ -1300,6 +1312,8 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       setClientSecret(null);
       setClientSecretHex(undefined);
       clientSecretRef.current = null;
+      // The quote id survives a coupon reprice; the stored session must not (260928-rld).
+      clearCheckoutSession(quoteId);
       setConfirmPay(null);
       intentStarted.current = false;
       intentAttempts.current = 0;
@@ -1399,6 +1413,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
               setCouponApplied(lockCoupon);
               couponRecoveryAttempted.current = false;
               intentAttempts.current = INTENT_AUTO_ATTEMPTS;
+              clearCheckoutSession(quoteId);
             }
             return;
           }
