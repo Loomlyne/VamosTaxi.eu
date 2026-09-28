@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -109,5 +109,117 @@ describe("POST /api/checkout/requote", () => {
     expect(between).not.toContain("{ ok: true }");
     expect(src).not.toContain("createRefund");
     expect(src).not.toContain("sessionId = null");
+  });
+});
+
+// D-20 (26.1-29): requote must not cancel a booking whose pay link is still
+// held — the recipient's link and the traveller's lock share one 24 h clock.
+const h = vi.hoisted(() => ({
+  queries: [] as string[],
+  holdRows: [] as unknown[],
+  holdError: null as unknown,
+  openRows: [] as unknown[],
+  expire: vi.fn(async (_stripe: unknown, _id: string) => undefined),
+}));
+
+vi.mock("@opennextjs/cloudflare", () => ({
+  getCloudflareContext: () => ({ env: { STRIPE_PUBLISHABLE_KEY: "pk_test_route" } }),
+}));
+vi.mock("@/lib/security/origin", () => ({ csrfForbidden: () => null }));
+vi.mock("@/lib/checkout/errors", async () => import("./errors"));
+vi.mock("@/lib/checkout/charge-gate", () => ({ stripeAccountIsLegacyUaeTest: () => false }));
+vi.mock("@/lib/checkout/stripe", () => ({
+  stripeFromEnv: () => ({}),
+  expireCheckoutSession: (stripe: unknown, id: string) => h.expire(stripe, id),
+}));
+vi.mock("@/lib/db/identity", () => ({
+  asCheckout: async (_env: unknown, _claims: unknown, fn: (sql: unknown) => unknown) => {
+    const sql = async (strings: TemplateStringsArray) => {
+      const text = strings.join("?");
+      h.queries.push(text);
+      if (text.includes("checkout_booking_hold_until")) {
+        if (h.holdError) throw h.holdError;
+        return h.holdRows;
+      }
+      if (text.includes("checkout_open_payment")) return h.openRows;
+      return [];
+    };
+    return fn(sql);
+  },
+}));
+
+describe("POST /api/checkout/requote — the pay-link hold (D-20, 26.1-29)", () => {
+  const QUOTE = "21500000-0000-4000-8000-00000000000a";
+  const HOLD = new Date("2026-09-29T10:00:00.000Z");
+
+  function post() {
+    return new Request("https://vamostaxi.site/api/checkout/requote", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ quote_id: QUOTE }),
+    });
+  }
+  async function call() {
+    const { POST } = await import("../../app/api/checkout/requote/route");
+    const res = await POST(post());
+    return { res, body: (await res.json()) as Record<string, unknown> };
+  }
+  const cancelled = () => h.queries.some((q) => q.includes("checkout_requote_cancel"));
+
+  beforeEach(() => {
+    h.queries.length = 0;
+    h.holdRows = [];
+    h.holdError = null;
+    h.openRows = [{ stripe_checkout_session_id: "cs_test_open" }];
+    h.expire.mockClear();
+  });
+
+  it("an open hold keeps the booking: no expire, no cancel, 409 hold_open", async () => {
+    h.holdRows = [{ hold_until: HOLD, held: true }];
+    const { res, body } = await call();
+    expect(res.status).toBe(409);
+    expect(body).toEqual({ ok: false, code: "hold_open", hold_until: HOLD.toISOString() });
+    expect(h.expire).not.toHaveBeenCalled();
+    expect(cancelled()).toBe(false);
+    expect(h.queries.some((q) => q.includes("checkout_open_payment"))).toBe(false);
+  });
+
+  it("a hold already past behaves exactly as before: expire, then cancel, ok true", async () => {
+    h.holdRows = [{ hold_until: new Date("2026-09-01T10:00:00.000Z"), held: false }];
+    const { res, body } = await call();
+    expect(res.status).toBe(200);
+    expect(body).toEqual({ ok: true });
+    expect(h.expire).toHaveBeenCalledWith({}, "cs_test_open");
+    expect(cancelled()).toBe(true);
+  });
+
+  it("no hold behaves exactly as before", async () => {
+    h.holdRows = [{ hold_until: null, held: false }];
+    h.openRows = [];
+    const { res, body } = await call();
+    expect(res.status).toBe(200);
+    expect(body).toEqual({ ok: true });
+    expect(h.expire).not.toHaveBeenCalled();
+    expect(cancelled()).toBe(true);
+  });
+
+  it("a failed hold read fails closed: 503, no expire, no cancel", async () => {
+    h.holdError = Object.assign(new Error("boom"), { code: "08006" });
+    const { res, body } = await call();
+    expect(res.status).toBe(503);
+    expect(body).toEqual({ ok: false, code: "hold_lookup_failed" });
+    expect(h.expire).not.toHaveBeenCalled();
+    expect(cancelled()).toBe(false);
+  });
+
+  it("the hold is judged on the database clock, loaded before the session lookup", () => {
+    const src = readFileSync(join(here, "../../app/api/checkout/requote/route.ts"), "utf8");
+    const post = src.slice(src.indexOf("export async function POST"));
+    const hold = post.indexOf("public.checkout_booking_hold_until(");
+    expect(hold).toBeGreaterThan(post.indexOf("csrfForbidden(request)"));
+    expect(hold).toBeLessThan(post.indexOf("public.checkout_open_payment("));
+    expect(hold).toBeLessThan(post.indexOf("expireCheckoutSession("));
+    expect(src).toMatch(/hold_until\s*>\s*now\(\)/);
+    expect(src).not.toMatch(/body\.hold_until|record\.hold_until/);
   });
 });
