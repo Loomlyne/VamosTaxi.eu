@@ -29,3 +29,30 @@ export function couponRefusalAction({
   if (bodyCoupon !== null) return "drop_body_coupon";
   return "show_refusal";
 }
+
+/**
+ * Quick 260928-cpn: what the client does after acting on a `couponRefusalAction`.
+ *
+ * - `recovered`: the reprice without the coupon stored a new lock, or the
+ *   action was `drop_body_coupon`, which needs no reprice.
+ * - `restore_lock_coupon`: the reprice failed and the stored lock still prices
+ *   `lockCoupon`, so the field must show that coupon as applied again (it
+ *   agrees with the discounted price on screen) and the next Pay may recover again.
+ * - `none`: nothing more to do (`show_refusal`, or no coupon left in the lock).
+ */
+export type CouponRecoveryOutcome = "recovered" | "restore_lock_coupon" | "none";
+
+export function couponRecoveryOutcome({
+  action,
+  repriceOk,
+  lockCoupon,
+}: {
+  action: CouponRefusalAction;
+  repriceOk: boolean;
+  lockCoupon: string | null;
+}): CouponRecoveryOutcome {
+  if (action === "drop_body_coupon") return "recovered";
+  if (action !== "reprice_without_coupon") return "none";
+  if (repriceOk) return "recovered";
+  return lockCoupon !== null ? "restore_lock_coupon" : "none";
+}

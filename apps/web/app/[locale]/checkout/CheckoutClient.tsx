@@ -65,7 +65,7 @@ import { payableRappen } from "@/lib/checkout/payable";
 import { breakdownRappen, breakdownRows, peekLockPriceRows } from "@/lib/checkout/price-rows";
 import { decodeClientSecret } from "@/lib/checkout/client-secret";
 import { lockFlightNoDiffers } from "@/lib/checkout/flight-no";
-import { couponRefusalAction } from "@/lib/checkout/coupon-recovery";
+import { couponRecoveryOutcome, couponRefusalAction } from "@/lib/checkout/coupon-recovery";
 import { checkoutTraveler } from "@/lib/checkout/checkout-traveler";
 import { pickedClassName } from "@/lib/checkout/picked-class";
 import { readCheckoutSession, writeCheckoutSession } from "@/lib/checkout/checkout-session-store";
@@ -96,6 +96,9 @@ const REFUSAL_KEYS: Record<string, string> = {
   invalid_request: "payCouldNotStart",
   email_failed: "emailFailed",
 };
+
+/** Automatic payment-intent attempts on the payment step before it waits for a click. */
+const INTENT_AUTO_ATTEMPTS = 6;
 
 const CLASS_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -665,7 +668,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     }
     setRefusal((current) => (current === "pricingNotLive" ? null : current));
     if (clientSecret) return;
-    if (intentAttempts.current >= 6) return;
+    if (intentAttempts.current >= INTENT_AUTO_ATTEMPTS) return;
     const traveler = checkoutTraveler(contact, trip?.contact);
     if (
       traveler &&
@@ -679,7 +682,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     void startPayment({ silent: true }).then((result) => {
       if (result === "ok") return;
       intentAttempts.current += 1;
-      if (intentAttempts.current >= 6) {
+      if (intentAttempts.current >= INTENT_AUTO_ATTEMPTS) {
         setRefusal((current) => current ?? "payCouldNotStart");
         return;
       }
@@ -1048,9 +1051,19 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
             couponRecoveryAttempted.current = true;
             setCouponInvalid(true);
             setCouponField("couponNoLongerValid");
-            await applyCouponCode(null);
+            const repriced = await applyCouponCode(null);
             setCouponInvalid(true);
             setCouponField("couponNoLongerValid");
+            const lockCoupon = peekLockCoupon(readDraft().lock || draft.lock || trip?.lock);
+            if (couponRecoveryOutcome({ action: recovery, repriceOk: repriced, lockCoupon }) === "restore_lock_coupon") {
+              // The reprice failed: the stored lock still prices the coupon. Show it as
+              // applied (Remove offered, matches the price on screen), let the next Pay
+              // recover again, and stop the automatic intent retry so nothing repeats
+              // without a click.
+              setCouponApplied(lockCoupon);
+              couponRecoveryAttempted.current = false;
+              intentAttempts.current = INTENT_AUTO_ATTEMPTS;
+            }
             return "fail";
           }
           if (recovery === "drop_body_coupon") {
@@ -1187,7 +1200,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     code: string | null,
     extras?: Partial<ExtraToggles>,
     stop: { lng: number; lat: number; text: string } | null = extraStopWaypoint,
-  ) {
+  ): Promise<boolean> {
     const trip = tripSnap ?? readVamosTrip();
     const quoteId = draft.quoteId || tripQuoteId(trip);
     const lock = readDraft().lock || draft.lock || trip?.lock;
@@ -1196,11 +1209,11 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     const stopsOn = extras?.extraStop ?? extraStop;
     if (!quoteId || !lock) {
       setRefusal("quoteExpired");
-      return;
+      return false;
     }
     const nextCode = code == null ? null : code.trim().toUpperCase() || null;
     if (!extras && couponAlreadyOn(couponApplied, nextCode)) {
-      return;
+      return false;
     }
     const beforeRappen = peekLockClassRappen(lock, vehicle);
     setBusy(true);
@@ -1230,7 +1243,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         const key = REFUSAL_KEYS[json.code ?? ""] ?? null;
         if (key && key !== "couponNoLongerValid") {
           setRefusal(key);
-          return;
+          return false;
         }
         if (nextCode) {
           setCouponApplied(null);
@@ -1239,7 +1252,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
           setCouponInvalid(true);
           setCouponField(couponFieldFromEval(json.coupon, true));
         }
-        return;
+        return false;
       }
       if (nextCode && !json.coupon?.applied) {
         if (!couponApplied) {
@@ -1248,7 +1261,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         }
         setCouponInvalid(true);
         setCouponField(couponFieldFromEval(json.coupon, true));
-        return;
+        return false;
       }
       const nextId = json.quote_id ?? quoteId;
       writeDraft({ quoteId: nextId, lock: json.lock });
@@ -1291,11 +1304,13 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       intentStarted.current = false;
       intentAttempts.current = 0;
       setIntentTick((n) => n + 1);
+      return true;
     } catch {
       if (nextCode) {
         setCouponInvalid(true);
         setCouponField("couponNoLongerValid");
       }
+      return false;
     } finally {
       setBusy(false);
     }
@@ -1310,7 +1325,8 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       phone: e164Phone(contact.mobile || saved?.mobile || ""),
     };
     const quoteId = draft.quoteId || tripQuoteId(trip);
-    const lock = draft.lock || trip?.lock;
+    // Newest lock first, like startPayment: a reprice may have re-signed it this tick.
+    const lock = readDraft().lock || draft.lock || trip?.lock;
     const vehicleClass = asClassSlug(resolvePaySlug(lock, trip) || draft.vehicleClass || vehicle);
     const idempotencyKey = draft.idempotencyKey;
     if (!quoteId || !lock || !vehicleClass || !idempotencyKey) {
@@ -1374,9 +1390,16 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
             couponRecoveryAttempted.current = true;
             setCouponInvalid(true);
             setCouponField("couponNoLongerValid");
-            await applyCouponCode(null);
+            const repriced = await applyCouponCode(null);
             setCouponInvalid(true);
             setCouponField("couponNoLongerValid");
+            const lockCoupon = peekLockCoupon(readDraft().lock || draft.lock || trip?.lock);
+            if (couponRecoveryOutcome({ action: recovery, repriceOk: repriced, lockCoupon }) === "restore_lock_coupon") {
+              // Same as startPayment: the failed reprice leaves the coupon-priced lock.
+              setCouponApplied(lockCoupon);
+              couponRecoveryAttempted.current = false;
+              intentAttempts.current = INTENT_AUTO_ATTEMPTS;
+            }
             return;
           }
           if (recovery === "drop_body_coupon") {
