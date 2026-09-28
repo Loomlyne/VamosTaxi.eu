@@ -129,9 +129,12 @@ select set_eq(
        select table_name from information_schema.column_privileges
         where grantee = 'authenticated' and table_schema = 'public'
      ) g $$,
+  -- booking_payments: column-scoped receipt read, no Stripe ids, parent-booking RLS
+  -- (20260911000001_booking_payments_receipt_select).
   $$ values ('customers'),('bookings'),('booking_legs'),('price_snapshots'),('price_snapshot_legs'),
-            ('content_strings'),('reviews'),('vehicle_classes'),('service_zones'),('settings_public') $$,
-  '(34) F-05: authenticated holds a grant (whole-table or column-scoped) on exactly these ten tables/views'
+            ('content_strings'),('reviews'),('vehicle_classes'),('service_zones'),('settings_public'),
+            ('booking_payments') $$,
+  '(34) F-05: authenticated holds a grant (whole-table or column-scoped) on exactly these eleven tables/views'
 );
 
 -- (35) F-01: note is never column-granted to authenticated or vamos_guest on bookings/booking_legs.

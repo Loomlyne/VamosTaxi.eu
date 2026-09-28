@@ -290,12 +290,14 @@ select lives_ok(
   'whitelist: moving requires_payment to succeeded succeeds'
 );
 
+-- now() is constant inside this transaction, so a real change needs a different value; the
+-- 08-05 guard compares values and lets a no-op UPDATE through (20260910170935).
 select throws_ok(
-  $$ update public.booking_payments set captured_at = now()
+  $$ update public.booking_payments set captured_at = now() + interval '1 minute'
       where stripe_payment_intent_id = 'pi_payment_fx_chf' $$,
   '23001',
   null,
-  'whitelist: any UPDATE to a succeeded row raises restrict_violation'
+  'whitelist: any change to a succeeded row raises restrict_violation'
 );
 
 -- booking_refunds untouched (D-12) -----------------------------------------------------------

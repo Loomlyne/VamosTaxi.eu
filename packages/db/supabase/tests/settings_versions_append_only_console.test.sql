@@ -13,9 +13,11 @@ values
   ('06010000-0000-4000-a000-000000000011', 'sss-sv-dispatcher@vamostaxi.eu', 'authenticated', 'authenticated', '{}'::jsonb, '{}'::jsonb, now(), now()),
   ('06010000-0000-4000-a000-000000000012', 'sss-sv-admin@vamostaxi.eu', 'authenticated', 'authenticated', '{}'::jsonb, '{}'::jsonb, now(), now());
 
-insert into public.staff (user_id, role, active) values
-  ('06010000-0000-4000-a000-000000000011', 'dispatcher', true),
-  ('06010000-0000-4000-a000-000000000012', 'admin', true);
+-- 20260901000001: only an accepted invite is staff (is_staff/is_admin and the token hook
+-- all require accepted_at), so fixture staff have already accepted.
+insert into public.staff (user_id, role, active, accepted_at) values
+  ('06010000-0000-4000-a000-000000000011', 'dispatcher', true, now()),
+  ('06010000-0000-4000-a000-000000000012', 'admin', true, now());
 
 insert into public.settings_versions (slug, label)
 values ('sss-console-policy', '06-01 console append-only fixture');

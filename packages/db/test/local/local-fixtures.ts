@@ -70,9 +70,13 @@ export async function seedTwoCustomers(): Promise<{ a: LocalIdentity; b: LocalId
           (${uid}, ${`cr-${label}-${suffix}@example.test`}, 'authenticated', 'authenticated',
            '{}'::jsonb, '{}'::jsonb, now(), now())
       `;
+      // 20260828000001's link_customer_on_signup trigger already created this user's
+      // customers row on the auth.users insert above; name it rather than insert a second one.
       const [{ id: customerId }] = await sql<[{ id: string }]>`
-        insert into public.customers (user_id, full_name, email)
-        values (${uid}, ${`Connection Reuse ${displayLabel}`}, ${`cr-cust-${label}-${suffix}@example.test`})
+        update public.customers
+           set full_name = ${`Connection Reuse ${displayLabel}`},
+               email = ${`cr-cust-${label}-${suffix}@example.test`}
+         where user_id = ${uid}
         returning id
       `;
 

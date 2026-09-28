@@ -70,19 +70,24 @@ select function_privs_are(
 );
 select function_privs_are(
   'public', 'staff_claim_invite', '{}'::text[],
-  'authenticated', '{}'::text[],
-  'authenticated holds no EXECUTE on public.staff_claim_invite()'
+  'authenticated', '{EXECUTE}'::text[],
+  -- 20260901000001: an invitee has no staff claim yet, so the bridge is callable as authenticated
+  'authenticated holds EXECUTE on public.staff_claim_invite() (pre-acceptance bridge)'
 );
 
 insert into auth.users (id, email, aud, role, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values
   ('06010000-0000-4000-a000-000000000001', 'sss-dispatcher@vamostaxi.eu', 'authenticated', 'authenticated', '{}'::jsonb, '{}'::jsonb, now(), now()),
-  ('06010000-0000-4000-a000-000000000002', 'sss-admin@vamostaxi.eu', 'authenticated', 'authenticated', '{}'::jsonb, '{}'::jsonb, now(), now());
+  ('06010000-0000-4000-a000-000000000002', 'sss-admin@vamostaxi.eu', 'authenticated', 'authenticated', '{}'::jsonb, '{}'::jsonb, now(), now()),
+  ('06010000-0000-4000-a000-000000000003', 'sss-invitee@vamostaxi.eu', 'authenticated', 'authenticated', '{}'::jsonb, '{}'::jsonb, now(), now());
 
-insert into public.staff (user_id, role, full_name, phone, lang, digest_email, avatar_path, active)
+-- 20260901000001: only an accepted invite is staff. The dispatcher and admin have accepted;
+-- the invitee has not, and is the subject of the staff_claim_invite checks below.
+insert into public.staff (user_id, role, full_name, phone, lang, digest_email, avatar_path, active, accepted_at)
 values
-  ('06010000-0000-4000-a000-000000000001', 'dispatcher', 'Before', '+41 00', 'en', true, null, true),
-  ('06010000-0000-4000-a000-000000000002', 'admin', 'Admin Fixture', '+41 11', 'fr', true, 'avatars/admin.png', true);
+  ('06010000-0000-4000-a000-000000000001', 'dispatcher', 'Before', '+41 00', 'en', true, null, true, now()),
+  ('06010000-0000-4000-a000-000000000002', 'admin', 'Admin Fixture', '+41 11', 'fr', true, 'avatars/admin.png', true, now()),
+  ('06010000-0000-4000-a000-000000000003', 'dispatcher', 'Invitee', '+41 22', 'en', true, null, true, null);
 
 create temporary table sss_admin_before as
 select * from public.staff where user_id = '06010000-0000-4000-a000-000000000002';
@@ -181,52 +186,52 @@ select is(
   'staff_update_self audit_log.actor_id is the caller uid'
 );
 
--- staff_claim_invite stamps accepted_at once. ---------------------------------------------------
+-- staff_claim_invite stamps accepted_at once (invitee has no vamos_role claim yet). ---------------------------------------------------
 set local role vamos_staff;
 select set_config('request.jwt.claims',
-  jsonb_build_object('sub', '06010000-0000-4000-a000-000000000001', 'role', 'authenticated', 'aal', 'aal2',
-    'app_metadata', jsonb_build_object('vamos_role', 'dispatcher'))::text,
+  jsonb_build_object('sub', '06010000-0000-4000-a000-000000000003', 'role', 'authenticated', 'aal', 'aal2')::text,
   true);
 select lives_ok(
   $$ select public.staff_claim_invite() $$,
-  'dispatcher at aal2 can call staff_claim_invite'
+  'invited, unaccepted user can call staff_claim_invite'
 );
 reset role;
 
 select ok(
-  (select s.accepted_at is not null from public.staff s where s.user_id = '06010000-0000-4000-a000-000000000001'),
+  (select s.accepted_at is not null from public.staff s where s.user_id = '06010000-0000-4000-a000-000000000003'),
   'staff_claim_invite sets accepted_at'
 );
 
 create temporary table sss_first_accept as
-select s.accepted_at from public.staff s where s.user_id = '06010000-0000-4000-a000-000000000001';
+select s.accepted_at from public.staff s where s.user_id = '06010000-0000-4000-a000-000000000003';
 
 set local role vamos_staff;
 select set_config('request.jwt.claims',
-  jsonb_build_object('sub', '06010000-0000-4000-a000-000000000001', 'role', 'authenticated', 'aal', 'aal2',
-    'app_metadata', jsonb_build_object('vamos_role', 'dispatcher'))::text,
+  jsonb_build_object('sub', '06010000-0000-4000-a000-000000000003', 'role', 'authenticated', 'aal', 'aal2')::text,
   true);
 select public.staff_claim_invite();
 reset role;
 
 select is(
-  (select s.accepted_at from public.staff s where s.user_id = '06010000-0000-4000-a000-000000000001'),
+  (select s.accepted_at from public.staff s where s.user_id = '06010000-0000-4000-a000-000000000003'),
   (select accepted_at from sss_first_accept),
   'second staff_claim_invite leaves accepted_at unchanged'
 );
 
--- aal1 / missing claim: staff_self is empty; claim raises. --------------------------------------
+-- Not yet staff / no staff row: staff_self is empty; claim raises. These used aal1; MFA is
+-- paused for V1 (Phase 20 D-09, K10), so accepted_at is the live gate. When plan 20-04
+-- restores MFA, add the aal1 cases back.
 set local role vamos_staff;
 select set_config('request.jwt.claims',
-  jsonb_build_object('sub', '06010000-0000-4000-a000-000000000001', 'role', 'authenticated', 'aal', 'aal1',
+  jsonb_build_object('sub', '06010000-0000-4000-a000-000000000099', 'role', 'authenticated', 'aal', 'aal1',
     'app_metadata', jsonb_build_object('vamos_role', 'dispatcher'))::text,
   true);
 select is((select count(*) from app.staff_self())::int, 0,
-  'dispatcher at aal1 gets zero rows from app.staff_self()');
+  'a user with no staff row gets zero rows from app.staff_self(), even with a vamos_role claim');
 select throws_ok(
   $$ select public.staff_claim_invite() $$,
   '42501', null,
-  'staff_claim_invite at aal1 raises 42501'
+  'staff_claim_invite without an active staff row raises 42501'
 );
 reset role;
 

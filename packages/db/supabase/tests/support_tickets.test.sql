@@ -81,10 +81,14 @@ select throws_ok(
   null,
   'anon cannot SELECT support_inbound_events'
 );
+reset role;
+
+-- Phase 20 (20260920000002): only vamos_system (the Worker) calls the contact RPC.
+set local role vamos_system;
 select lives_ok(
   $$ select * from public.submit_contact_message(
        'k-support-1', 'Anna', 'anna-support@example.test', '', '', 'Need a quote', 'en') $$,
-  'anon can call submit_contact_message'
+  'vamos_system can call submit_contact_message'
 );
 reset role;
 

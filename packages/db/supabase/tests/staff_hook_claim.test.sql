@@ -36,10 +36,12 @@ values
   ('a0000000-0000-0000-0000-000000000001', 'active-dispatcher@vamostaxi.eu', 'authenticated', 'authenticated', '{}'::jsonb, '{}'::jsonb, now(), now()),
   ('a0000000-0000-0000-0000-000000000002', 'inactive-dispatcher@vamostaxi.eu', 'authenticated', 'authenticated', '{}'::jsonb, '{}'::jsonb, now(), now());
 
-insert into public.staff (user_id, role, active)
+-- 20260901000001: only an accepted invite is staff (is_staff/is_admin and the token hook
+-- all require accepted_at), so fixture staff have already accepted.
+insert into public.staff (user_id, role, active, accepted_at)
 values
-  ('a0000000-0000-0000-0000-000000000001', 'dispatcher', true),
-  ('a0000000-0000-0000-0000-000000000002', 'dispatcher', false);
+  ('a0000000-0000-0000-0000-000000000001', 'dispatcher', true, now()),
+  ('a0000000-0000-0000-0000-000000000002', 'dispatcher', false, now());
 
 -- Case 1: active staff row -> app_metadata.vamos_role is minted, top-level role claim
 -- (schema-constrained to anon|authenticated, and the Postgres role, not the app role) is
@@ -170,15 +172,17 @@ select policy_cmd_is(
   'staff_auth_admin_read is a SELECT-only policy'
 );
 
--- D-05: app.is_staff()/app.is_admin() require aal2 + an active staff row — a dispatcher JWT
--- at aal1 is not staff, and revocation (active = false) is immediate.
+-- D-05 originally required aal2. MFA is paused for V1 (Phase 20 D-09, K10; 20260901000001):
+-- is_staff() now needs an active, accepted staff row and the vamos_role claim, at any aal.
+-- When plan 20-04 restores MFA, flip this back to false. Revocation (active = false) stays
+-- immediate.
 select set_config(
   'request.jwt.claims',
   jsonb_build_object('sub', 'a0000000-0000-0000-0000-000000000001', 'role', 'authenticated', 'aal', 'aal1',
     'app_metadata', jsonb_build_object('vamos_role', 'dispatcher'))::text,
   true
 );
-select is(app.is_staff(), false, 'D-05: active dispatcher at aal1 is not staff');
+select is(app.is_staff(), true, 'D-09 MFA paused: active, accepted dispatcher at aal1 is staff');
 
 select set_config(
   'request.jwt.claims',

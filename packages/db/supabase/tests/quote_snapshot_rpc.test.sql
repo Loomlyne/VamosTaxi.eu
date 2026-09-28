@@ -6,7 +6,7 @@
 --
 -- D-46: synthetic unit-free integers only; no CHF figure. Rolled back at end.
 begin;
-select plan(22);
+select plan(23);
 
 -- Fixtures: seeded draft version + launch-baseline policy. Temp table is the
 -- id door — anon cannot select rate_versions / settings_versions.
@@ -67,7 +67,7 @@ select sv.id as settings_version_id
  where sv.slug = 'qsr-null-checkout';
 grant select on qsr_null to public;
 
--- (1) PUBLIC holds no EXECUTE; anon and authenticated hold EXECUTE --------------
+-- (1) Phase 20 K1 (20260919000001): only vamos_edge (the Worker) holds EXECUTE --
 select function_privs_are(
   'public', 'create_quote_snapshot',
   '{uuid,uuid,int8,int8,text,timestamptz,int2,int2,jsonb,jsonb,jsonb,jsonb,display_currency,text,rappen,rappen,rappen,rappen,numeric,int4,int8,text,uuid}'::text[],
@@ -77,14 +77,20 @@ select function_privs_are(
 select function_privs_are(
   'public', 'create_quote_snapshot',
   '{uuid,uuid,int8,int8,text,timestamptz,int2,int2,jsonb,jsonb,jsonb,jsonb,display_currency,text,rappen,rappen,rappen,rappen,numeric,int4,int8,text,uuid}'::text[],
-  'anon', '{EXECUTE}'::text[],
-  '(1b) anon holds EXECUTE on create_quote_snapshot'
+  'anon', '{}'::text[],
+  '(1b) anon holds no EXECUTE on create_quote_snapshot'
 );
 select function_privs_are(
   'public', 'create_quote_snapshot',
   '{uuid,uuid,int8,int8,text,timestamptz,int2,int2,jsonb,jsonb,jsonb,jsonb,display_currency,text,rappen,rappen,rappen,rappen,numeric,int4,int8,text,uuid}'::text[],
-  'authenticated', '{EXECUTE}'::text[],
-  '(1c) authenticated holds EXECUTE on create_quote_snapshot'
+  'authenticated', '{}'::text[],
+  '(1c) authenticated holds no EXECUTE on create_quote_snapshot'
+);
+select function_privs_are(
+  'public', 'create_quote_snapshot',
+  '{uuid,uuid,int8,int8,text,timestamptz,int2,int2,jsonb,jsonb,jsonb,jsonb,display_currency,text,rappen,rappen,rappen,rappen,numeric,int4,int8,text,uuid}'::text[],
+  'vamos_edge', '{EXECUTE}'::text[],
+  '(1d) vamos_edge holds EXECUTE on create_quote_snapshot'
 );
 
 -- (2) definer flag from the catalog --------------------------------------------
@@ -97,8 +103,8 @@ select is(
   '(2) create_quote_snapshot is security definer (prosecdef)'
 );
 
--- (3) launch-state call as anon ------------------------------------------------
-set local role anon;
+-- (3) launch-state call as vamos_edge ------------------------------------------
+set local role vamos_edge;
 select lives_ok(
   $$
     select public.create_quote_snapshot(
@@ -116,7 +122,7 @@ select lives_ok(
       p_legs => (select one_leg from qsr_fx)
     )
   $$,
-  '(3a) anon launch-state create_quote_snapshot lives_ok'
+  '(3a) vamos_edge launch-state create_quote_snapshot lives_ok'
 );
 reset role;
 
@@ -163,7 +169,7 @@ create temporary table qsr_count as
 select count(*)::bigint as n from public.price_snapshots;
 
 -- (6) D-25: past lock raises and inserts nothing --------------------------------
-set local role anon;
+set local role vamos_edge;
 select throws_ok(
   $$
     select public.create_quote_snapshot(
@@ -194,7 +200,7 @@ select is(
 );
 
 -- (7) null checkout_window_minutes raises --------------------------------------
-set local role anon;
+set local role vamos_edge;
 select throws_ok(
   $$
     select public.create_quote_snapshot(
@@ -303,7 +309,7 @@ select is(
 );
 
 -- (10) lines/total identity still fires through the RPC ------------------------
-set local role anon;
+set local role vamos_edge;
 select throws_ok(
   $$
     select public.create_quote_snapshot(
@@ -337,6 +343,8 @@ select throws_ok(
 );
 
 -- (11) the function is the door, not a door ------------------------------------
+reset role;
+set local role anon;
 select throws_ok(
   $$ insert into public.price_snapshots (quote_id) values ('00000000-0000-4000-8000-000000000099'::uuid) $$,
   '42501',

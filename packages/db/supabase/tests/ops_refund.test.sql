@@ -5,7 +5,7 @@
 -- booking.status_changed, no Stripe. EXECUTE vamos_system only.
 -- Rolled back. Synthetic 1-rappen figures only — never a product CHF.
 begin;
-select plan(27);
+select plan(30);
 
 insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity)
 values ('orf-class', 4, 4);
@@ -62,16 +62,19 @@ select
   rv.id,
   false,
   sv.id,
-  'quote-engine@08-05',
+  'quote-engine@08-05-' || k.tag,
   2, 2,
   '[]'::jsonb,
-  '{}'::jsonb,
+  jsonb_build_object('cancellation_tiers', '[]'::jsonb, 'free_cancel_hours', 24,
+      'airport_waiting_minutes', 60, 'city_waiting_minutes', 15, 'settings_version_id', 1,
+      'modification_deadline_hours', 24, 'min_advance_minutes', 180, 'policy_doc', 'test'),
   1, 0, 0, 1,
   now() + interval '1 day',
   now() + interval '1 day'
 from public.vehicle_classes vc
 cross join lateral (select id from public.rate_versions order by id limit 1) rv
 cross join lateral (select id from public.settings_versions order by id limit 1) sv
+cross join (values ('paid'), ('cancel-paid')) k(tag)
 where vc.slug = 'orf-class';
 
 insert into public.booking_payments (
@@ -79,7 +82,7 @@ insert into public.booking_payments (
 )
 select b.id, ps.id, 'pi_orf_paid', 1, 'succeeded', now()
   from public.bookings b
-  cross join lateral (select id from public.price_snapshots order by id desc limit 1) ps
+  join public.price_snapshots ps on ps.engine_version = 'quote-engine@08-05-paid'
  where b.contact_email = 'orf-paid@vamostaxi.eu';
 
 insert into public.booking_payments (
@@ -87,7 +90,7 @@ insert into public.booking_payments (
 )
 select b.id, ps.id, 'pi_orf_cancel_paid', 1, 'succeeded', now()
   from public.bookings b
-  cross join lateral (select id from public.price_snapshots order by id desc limit 1) ps
+  join public.price_snapshots ps on ps.engine_version = 'quote-engine@08-05-cancel-paid'
  where b.contact_email = 'orf-cancel-paid@vamostaxi.eu';
 
 set local session_replication_role = origin;

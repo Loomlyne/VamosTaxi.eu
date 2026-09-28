@@ -102,10 +102,11 @@ select is((select count(*) from public.reviews where locked)::int, 4, '4 importe
 select is((select source::text from public.reviews where external_ref = 'rv-2'), 'tripadvisor', 'rv-2 carries its own source, tripadvisor');
 
 -- ── content_strings ──────────────────────────────────────────────────────────────────────────
-select is((select count(*) from public.content_strings)::int, 1516, 'content_strings row count matches the flattened en.json key count');
-select is((select count(*) from public.content_strings where pending_value)::int, 20, '20 pending-value keys (ADR-011, Law 04 data-tok)');
+-- Counts are what `pnpm db:seed:gen` reports from en.json and its $meta; seed:check keeps them in sync.
+select is((select count(*) from public.content_strings)::int, 2501, 'content_strings row count matches the generator (en.json)');
+select is((select count(*) from public.content_strings where pending_value)::int, 16, '16 pending-value keys (ADR-011, Law 04 data-tok)');
 select is((select count(*) from public.content_strings where non_translatable)::int, 8, '8 non-translatable keys (ADR-012)');
-select is((select count(*) from public.content_strings where no_param_reason is not null)::int, 54, '54 no-param-reason keys (I18N-06)');
+select is((select count(*) from public.content_strings where no_param_reason is not null)::int, 71, '71 no-param-reason keys (I18N-06)');
 select ok(
   (select de is not null and fr is not null and ar is not null from public.content_strings where key = 'price.surcharge.night.rule'),
   'price.surcharge.night.rule (Plan 02-04) has a non-null de/fr/ar translation'

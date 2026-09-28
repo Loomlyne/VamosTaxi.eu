@@ -100,16 +100,19 @@ select
   rv.id,
   false,
   sv.id,
-  'quote-engine@08-04',
+  'quote-engine@08-04-' || k.tag,
   2, 2,
   '[]'::jsonb,
-  '{}'::jsonb,
+  jsonb_build_object('cancellation_tiers', '[]'::jsonb, 'free_cancel_hours', 24,
+      'airport_waiting_minutes', 60, 'city_waiting_minutes', 15, 'settings_version_id', 1,
+      'modification_deadline_hours', 24, 'min_advance_minutes', 180, 'policy_doc', 'test'),
   1, 0, 0, 1,
   now() + interval '1 day',
   now() + interval '1 day'
 from public.vehicle_classes vc
 cross join lateral (select id from public.rate_versions order by id limit 1) rv
 cross join lateral (select id from public.settings_versions order by id limit 1) sv
+cross join (values ('paid-a'), ('paid-b'), ('frozen')) k(tag)
 where vc.slug = 'oal-class';
 
 insert into public.booking_payments (
@@ -117,7 +120,7 @@ insert into public.booking_payments (
 )
 select b.id, ps.id, 'pi_oal_a', 1, 'succeeded', now()
   from public.bookings b
-  cross join lateral (select id from public.price_snapshots order by id desc limit 1) ps
+  join public.price_snapshots ps on ps.engine_version = 'quote-engine@08-04-paid-a'
  where b.contact_email = 'oal-paid-a@vamostaxi.eu';
 
 insert into public.booking_payments (
@@ -125,7 +128,7 @@ insert into public.booking_payments (
 )
 select b.id, ps.id, 'pi_oal_b', 1, 'succeeded', now()
   from public.bookings b
-  cross join lateral (select id from public.price_snapshots order by id desc limit 1) ps
+  join public.price_snapshots ps on ps.engine_version = 'quote-engine@08-04-paid-b'
  where b.contact_email = 'oal-paid-b@vamostaxi.eu';
 
 insert into public.booking_payments (
@@ -133,7 +136,7 @@ insert into public.booking_payments (
 )
 select b.id, ps.id, 'pi_oal_f', 1, 'succeeded', now()
   from public.bookings b
-  cross join lateral (select id from public.price_snapshots order by id desc limit 1) ps
+  join public.price_snapshots ps on ps.engine_version = 'quote-engine@08-04-frozen'
  where b.contact_email = 'oal-frozen@vamostaxi.eu';
 
 set local session_replication_role = origin;
@@ -201,9 +204,14 @@ select lives_ok(
   'paid assign writes both FKs'
 );
 
+-- ops_assign_leg defers the overlap constraints, so production sees 23P01 at the
+-- RPC's own commit. Inside this one test transaction, force the deferred check.
 select throws_ok(
   format(
-    $f$select * from public.ops_assign_leg(%L::uuid, %L::uuid, %L::uuid)$f$,
+    $f$do $d$ begin
+      perform public.ops_assign_leg(%L::uuid, %L::uuid, %L::uuid);
+      set constraints public.booking_legs_chauffeur_no_overlap, public.booking_legs_vehicle_no_overlap immediate;
+    end $d$$f$,
     (select paid_b from fx), (select good from fx), (select actor from fx)
   ),
   '23P01',
