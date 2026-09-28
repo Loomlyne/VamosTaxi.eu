@@ -2,12 +2,7 @@
 //
 // Pure board mapping. Keep Hyperdrive out of this file so vitest can import it.
 
-const CLASS_LABEL: Record<string, string> = {
-  economy: "Economy",
-  business: "Business",
-  first: "First",
-  van: "Van",
-};
+import { classDisplayName } from "./class-slug";
 
 export type OpsBookingRow = {
   id: string;
@@ -131,7 +126,8 @@ function str(value: unknown): string {
 
 function classLabel(slug: string | null): string {
   if (!slug) return "Economy";
-  return CLASS_LABEL[slug.toLowerCase()] ?? slug.charAt(0).toUpperCase() + slug.slice(1);
+  // 26.1-19 D-14: live and legacy slugs read Economy / Business / Van luxury.
+  return classDisplayName(slug) ?? slug.charAt(0).toUpperCase() + slug.slice(1);
 }
 
 function boardParts(scheduledLocal: string | null): { date: string; time: string; dateIso: string } {

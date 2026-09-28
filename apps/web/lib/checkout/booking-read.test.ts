@@ -179,6 +179,9 @@ describe("readBookingForConfirmation / readBookingStatus", () => {
       distanceKm: 10.61,
       paidAt: null,
       paymentStatus: null,
+      refundStatus: null,
+      refundOwedRappen: null,
+      refundedRappen: null,
     });
     const status = await readBookingStatus(ENV, "token", REF);
     expect(status).toEqual({ visible: true, status: "pending", reference: REF, paymentStatus: null });
@@ -224,5 +227,50 @@ describe("readBookingForConfirmation / readBookingStatus", () => {
       distanceKm: 10.61,
       bags: 0,
     });
+  });
+
+  it("carries the refund facts so the voucher refund line survives a reload (26.1-18 deferred)", async () => {
+    const { sql } = makeSql([
+      {
+        id: "b1",
+        reference: REF,
+        status: "cancelled",
+        price_total_rappen: 8000,
+        refund_status: "refunded",
+        refund_owed_rappen: 8000,
+        refunded_rappen: "8000",
+      },
+    ]);
+    asGuest.mockImplementation(async (_env: CloudflareEnv, _hex: string, fn: (s: typeof sql) => unknown) =>
+      fn(sql),
+    );
+    const result = await readBookingForConfirmation(ENV, "token", REF);
+    expect(result.visible).toBe(true);
+    if (!result.visible) return;
+    expect(result.refundStatus).toBe("refunded");
+    expect(result.refundOwedRappen).toBe(8000);
+    expect(result.refundedRappen).toBe(8000);
+  });
+
+  it("keeps pending_ops with no owed amount decided yet", async () => {
+    const { sql } = makeSql([
+      {
+        id: "b1",
+        reference: REF,
+        status: "cancelled",
+        price_total_rappen: 8000,
+        refund_status: "pending_ops",
+        refund_owed_rappen: null,
+        refunded_rappen: 0,
+      },
+    ]);
+    asGuest.mockImplementation(async (_env: CloudflareEnv, _hex: string, fn: (s: typeof sql) => unknown) =>
+      fn(sql),
+    );
+    const result = await readBookingForConfirmation(ENV, "token", REF);
+    if (!result.visible) throw new Error("expected visible");
+    expect(result.refundStatus).toBe("pending_ops");
+    expect(result.refundOwedRappen).toBeNull();
+    expect(result.refundedRappen).toBe(0);
   });
 });

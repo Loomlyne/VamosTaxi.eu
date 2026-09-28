@@ -329,7 +329,8 @@ function mockRates(book: RateBook): Record<string, unknown>[] {
       photoPath: photo,
       sortOrder: cls?.sortOrder ?? 0,
       available: row.available,
-      hideFromPublic: row.hideFromPublic,
+      hideFromPublic: row.hideFromPublic || cls?.hiddenReason != null,
+      hiddenReason: cls?.hiddenReason ?? "",
     };
   });
 }

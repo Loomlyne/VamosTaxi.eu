@@ -7,6 +7,7 @@ import { asStaff, type VamosClaims } from "../db/identity";
 import type { AssertedVehicleClassInput, AssertedVehicleInput } from "./fleet";
 import { persistVehicleSeats } from "./chauffeur-desk";
 import { tripsFromRows, type OpsMustFixTrip } from "./must-fix-mail";
+import type { ClassDeleteResult } from "./vehicle-class-write";
 
 export async function insertVehicle(
   env: CloudflareEnv,
@@ -242,26 +243,24 @@ export async function patchDraftClass(
   });
 }
 
+/**
+ * 26.1-19 D-15: hard delete when nothing but draft rate rows references the class;
+ * otherwise `in-use` (no reason) or `hidden` (reason given). The database checks every
+ * FK and admin rights (public.ops_vehicle_class_delete_or_hide) and removes the class's
+ * draft rate rows itself on a delete.
+ */
 export async function deleteVehicleClassIfUnreferenced(
   env: CloudflareEnv,
   claims: VamosClaims,
   id: string,
-  draftVersionId: number,
-): Promise<"in-use" | "deleted"> {
+  reason: string | null,
+): Promise<ClassDeleteResult> {
   return asStaff(env, claims, async (sql) => {
-    const snaps = await sql<{ n: number }[]>`
-      select count(*)::int as n
-        from public.price_snapshots
-       where vehicle_class_id = ${id}
+    const rows = await sql<{ result: string }[]>`
+      select public.ops_vehicle_class_delete_or_hide(${id}::uuid, ${reason}) as result
     `;
-    if ((snaps[0]?.n ?? 0) > 0) return "in-use";
-    await sql`
-      delete from public.distance_rates
-      where vehicle_class_id = ${id} and rate_version_id = ${draftVersionId}
-    `;
-    await sql`
-      delete from public.vehicle_classes where id = ${id}
-    `;
-    return "deleted";
+    const result = rows[0]?.result;
+    if (result === "deleted" || result === "in-use" || result === "hidden") return result;
+    throw new Error("ops_vehicle_class_delete_or_hide");
   });
 }

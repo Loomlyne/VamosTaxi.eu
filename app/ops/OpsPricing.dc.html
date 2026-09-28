@@ -18,6 +18,11 @@
 [data-price-hist-filters]{display:flex;align-items:center;max-width:220px;min-width:0}
 [data-price-hist-filters] [data-vt-date]{width:100%;gap:0}
 [data-vt-date]{display:flex;flex-direction:column;gap:6px;min-width:0}
+[data-hide-conflict]{display:flex;flex-direction:column;gap:var(--vt-space-3);min-width:0}
+[data-hide-conflict] p{margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);line-height:1.6;color:var(--vt-text-secondary);overflow-wrap:anywhere}
+[data-hide-conflict] [data-hide-class]{font-weight:600;color:var(--vt-text-primary)}
+[data-hide-actions]{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:var(--vt-space-2);margin-top:var(--vt-space-2)}
+[data-hide-actions] > *{min-width:0}
 [data-vt-date-btn]{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:10px;width:100%;height:44px;padding:0 14px;border:1px solid var(--vt-grey-300);border-radius:var(--vt-radius-pill);background:var(--vt-white);color:var(--vt-charcoal-900);font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-medium);cursor:pointer;overflow:hidden}
 [data-vt-date-btn]:hover{border-color:var(--vt-charcoal-900)}
 [data-vt-date-btn][aria-expanded="true"]{border-color:var(--vt-charcoal-900)}
@@ -194,6 +199,20 @@
 <div style="display:flex;flex-wrap:wrap;justify-content:flex-end;gap:var(--vt-space-2);margin-top:var(--vt-space-4)">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" onClick="{{ closeDiscard }}" hint-size="130px,36px">{{ tKeepEditing }}</x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="danger" onClick="{{ discard }}" hint-size="140px,36px">{{ tDiscard }}</x-import>
+</div>
+</x-import>
+</sc-if>
+
+<sc-if value="{{ hideOpen }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" size="sm" title="{{ tHideConflictTitle }}" onClose="{{ keepVisible }}" hint-size="440px,380px">
+<div data-hide-conflict="1">
+<p data-hide-class="1" data-i18n-skip="1">{{ hideClassName }}</p>
+<p data-hide-body="1">{{ tHideConflictBody }}</p>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Textarea" label="{{ tHideReason }}" aria-label="{{ tHideReason }}" rows="{{ n3 }}" max-length="{{ hideReasonMax }}" value="{{ hideReason }}" onChange="{{ setHideReason }}" placeholder="{{ tHideReasonPlaceholder }}" error="{{ hideErrorText }}" hint="{{ hideReasonCount }}" hint-size="100%,130px"></x-import>
+<div data-hide-actions="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" onClick="{{ keepVisible }}" hint-size="150px,44px">{{ tHideConflictKeepVisible }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="primary" onClick="{{ submitHide }}" disabled="{{ hideSubmitDisabled }}" hint-size="180px,44px">{{ tHideWithReason }}</x-import>
+</div>
 </div>
 </x-import>
 </sc-if>
@@ -383,6 +402,7 @@ const T = {
     searchRoutes:'From, to or ID', nounRoute:'route', nounRoutes:'routes',
     hRoutePrice:'Leave empty if this class is not offered on this route.',
     addClass:'Add class', editClass:'Edit class', saveClass:'Save class', deleteClassTitle:'Delete this class from the draft?', deleteClassBody:'Delete this class from the draft? Public does not change until Publish.',
+    hideReason:'Reason', hideReasonPlaceholder:'Why it is hidden, for example: no longer offered', hideConflictTitle:'Can’t delete — still in use', hideConflictBody:'This class has bookings against it. Hide it instead, and say why.', hideConflictKeepVisible:'Keep it visible', hideWithReason:'Hide with a reason', hideError:'The class could not be hidden. Try again.',
     emptyClassesTitle:'No vehicle classes yet', emptyClassesBody:'Add a class with photo, name, start fare, per-kilometre rate, max passengers and max bags.',
     searchDistance:'Class', nounClass:'class', nounClasses:'classes',
     addRule:'Add rule', editRule:'Edit rule', saveRule:'Save rule', deleteRuleTitle:'Delete this rule from the draft?', deleteRuleBody:'Delete this rule from the draft? Public does not change until Publish.',
@@ -470,6 +490,7 @@ const T = {
     searchRoutes:'Von, nach oder ID', nounRoute:'Route', nounRoutes:'Routen',
     hRoutePrice:'Leer lassen, wenn diese Klasse auf dieser Route nicht angeboten wird.',
     addClass:'Klasse hinzufügen', editClass:'Klasse bearbeiten', saveClass:'Klasse speichern', deleteClassTitle:'Diese Klasse aus dem Entwurf löschen?', deleteClassBody:'Diese Klasse aus dem Entwurf löschen? Die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
+    hideReason:'Grund', hideReasonPlaceholder:'Warum sie verborgen ist, zum Beispiel: nicht mehr angeboten', hideConflictTitle:'Löschen nicht möglich — noch in Gebrauch', hideConflictBody:'Diese Klasse hat Buchungen. Verbergen Sie sie stattdessen und nennen Sie den Grund.', hideConflictKeepVisible:'Sichtbar lassen', hideWithReason:'Mit Grund verbergen', hideError:'Die Klasse konnte nicht verborgen werden. Versuchen Sie es erneut.',
     emptyClassesTitle:'Noch keine Fahrzeugklassen', emptyClassesBody:'Klasse mit Foto, Name, Startpreis, Kilometersatz, max. Passagieren und max. Gepäckstücken hinzufügen.',
     searchDistance:'Klasse', nounClass:'Klasse', nounClasses:'Klassen',
     addRule:'Regel hinzufügen', editRule:'Regel bearbeiten', saveRule:'Regel speichern', deleteRuleTitle:'Diese Regel aus dem Entwurf löschen?', deleteRuleBody:'Diese Regel aus dem Entwurf löschen? Die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
@@ -559,6 +580,7 @@ const T = {
     searchRoutes:'De, vers ou ID', nounRoute:'trajet', nounRoutes:'trajets',
     hRoutePrice:'Laissez vide si cette classe n’est pas proposée sur ce trajet.',
     addClass:'Ajouter une classe', editClass:'Modifier la classe', saveClass:'Enregistrer la classe', deleteClassTitle:'Supprimer cette classe du brouillon ?', deleteClassBody:'Supprimer cette classe du brouillon ? Le public ne change qu’après Publier.',
+    hideReason:'Motif', hideReasonPlaceholder:'Pourquoi elle est masquée, par exemple : plus proposée', hideConflictTitle:'Suppression impossible — encore utilisée', hideConflictBody:'Cette classe a des réservations. Masquez-la plutôt, et indiquez pourquoi.', hideConflictKeepVisible:'La laisser visible', hideWithReason:'Masquer avec un motif', hideError:'La classe n’a pas pu être masquée. Réessayez.',
     emptyClassesTitle:'Pas encore de classes', emptyClassesBody:'Ajoutez une classe avec photo, nom, tarif de départ, tarif au kilomètre, passagers max. et bagages max.',
     searchDistance:'Classe', nounClass:'classe', nounClasses:'classes',
     addRule:'Ajouter une règle', editRule:'Modifier la règle', saveRule:'Enregistrer la règle', deleteRuleTitle:'Supprimer cette règle du brouillon ?', deleteRuleBody:'Supprimer cette règle du brouillon ? Le public ne change qu’après Publier.',
@@ -648,6 +670,7 @@ const T = {
     searchRoutes:'من أو إلى أو المعرّف', nounRoute:'مسار', nounRoutes:'مسارات',
     hRoutePrice:'اتركه فارغًا إن لم تُعرض هذه الفئة على هذا المسار.',
     addClass:'إضافة فئة', editClass:'تعديل الفئة', saveClass:'حفظ الفئة', deleteClassTitle:'حذف هذه الفئة من المسودة؟', deleteClassBody:'حذف هذه الفئة من المسودة؟ لا يتغير العام حتى النشر.',
+    hideReason:'السبب', hideReasonPlaceholder:'سبب الإخفاء، مثلاً: لم تعد متاحة', hideConflictTitle:'لا يمكن الحذف — ما زالت مستخدمة', hideConflictBody:'لهذه الفئة حجوزات. أخفِها بدلاً من ذلك، واذكر السبب.', hideConflictKeepVisible:'إبقاؤها ظاهرة', hideWithReason:'إخفاء مع ذكر السبب', hideError:'تعذّر إخفاء الفئة. حاول مرة أخرى.',
     emptyClassesTitle:'لا توجد فئات مركبات بعد', emptyClassesBody:'أضف فئة بالصورة والاسم وأجرة البداية وسعر الكيلومتر وأقصى عدد مسافرين وأقصى حقائب.',
     searchDistance:'الفئة', nounClass:'فئة', nounClasses:'فئات',
     addRule:'إضافة قاعدة', editRule:'تعديل القاعدة', saveRule:'حفظ القاعدة', deleteRuleTitle:'حذف هذه القاعدة من المسودة؟', deleteRuleBody:'حذف هذه القاعدة من المسودة؟ لا يتغير العام حتى النشر.',
@@ -743,6 +766,10 @@ class Component extends DCLogic {
     couponUses: [],
     publishOpen: false,
     discardOpen: false,
+    hideTarget: null,
+    hideReason: '',
+    hideBusy: false,
+    hideError: false,
     changesOpen: false,
     changesBody: '',
     previewFrom: '',
@@ -910,6 +937,45 @@ class Component extends DCLogic {
   };
   closePublish = () => this.setState({ publishOpen: false });
   openDiscard = () => this.setState({ discardOpen: true });
+  /* 26.1-19 D-15: delete a class. Unreferenced -> deleted. Still in use -> this second
+     dialog asks for a reason and hides it everywhere; "Keep it visible" changes nothing. */
+  deleteClassRow = (id, row) => {
+    const ops = window.VamosOps;
+    if (!ops) return null;
+    const classId = row && row.vehicleClassId;
+    if (!classId || !ops.deleteClass) return ops.rates.remove(id);
+    return ops.deleteClass(classId, null).then((json) => {
+      if (json && json.ok === false && json.code === 'in-use') {
+        this.setState({
+          hideTarget: { id: classId, klass: String((row && (row.klass || row.name)) || '') },
+          hideReason: '', hideBusy: false, hideError: false,
+        });
+        return { ok: true };
+      }
+      if (json && json.ok) ops.rates.reset();
+      return json;
+    });
+  };
+  setHideReason = (e) => {
+    const v = e && e.target ? e.target.value : e;
+    this.setState({ hideReason: String(v == null ? '' : v).slice(0, 140), hideError: false });
+  };
+  keepVisible = () => this.setState({ hideTarget: null, hideReason: '', hideBusy: false, hideError: false });
+  submitHide = () => {
+    const ops = window.VamosOps;
+    const target = this.state.hideTarget;
+    const reason = String(this.state.hideReason || '').trim();
+    if (!ops || !ops.deleteClass || !target || !reason || this.state.hideBusy) return;
+    this.setState({ hideBusy: true, hideError: false });
+    ops.deleteClass(target.id, reason).then((json) => {
+      if (json && json.ok) {
+        ops.rates.reset();
+        this.setState({ hideTarget: null, hideReason: '', hideBusy: false, hideError: false });
+        return;
+      }
+      this.setState({ hideBusy: false, hideError: true });
+    }, () => this.setState({ hideBusy: false, hideError: true }));
+  };
   closeDiscard = () => this.setState({ discardOpen: false });
   closeChanges = () => this.setState({ changesOpen: false, changesBody: '' });
   closeToast = () => this.setState({ showToast: false });
@@ -1319,6 +1385,15 @@ class Component extends DCLogic {
       publish: this.publish, discard: this.discard,
       openPublish: this.openPublish, closePublish: this.closePublish,
       openDiscard: this.openDiscard, closeDiscard: this.closeDiscard,
+      hideOpen: !!this.state.hideTarget, hideReason: this.state.hideReason, hideReasonMax: 140,
+      setHideReason: this.setHideReason, keepVisible: this.keepVisible, submitHide: this.submitHide,
+      hideSubmitDisabled: !String(this.state.hideReason || '').trim() || this.state.hideBusy,
+      n3: 3, hideErrorText: this.state.hideError ? t.hideError : '',
+      hideReasonCount: String(String(this.state.hideReason || '').length) + ' / 140',
+      tHideReason: t.hideReason, tHideReasonPlaceholder: t.hideReasonPlaceholder,
+      tHideConflictTitle: t.hideConflictTitle, tHideConflictBody: t.hideConflictBody,
+      tHideConflictKeepVisible: t.hideConflictKeepVisible, tHideWithReason: t.hideWithReason,
+      hideClassName: this.state.hideTarget ? this.state.hideTarget.klass : '',
       publishOpen: this.state.publishOpen, discardOpen: this.state.discardOpen,
       tCompletenessBody: completenessBody,
       tBandOverlapWarn: t.bandOverlapWarn,
@@ -1417,6 +1492,7 @@ class Component extends DCLogic {
         maxBags: r.maxBags || r.luggageCapacity || 3,
         available: r.available !== false,
         hideFromPublic: !!r.hideFromPublic,
+        hiddenReason: String(r.hiddenReason || ''),
       }))),
       distanceColumns: [
         { key:'__order', header:'', width:'44px', kind:'order', upLabel: t.moveClassUp, downLabel: t.moveClassDown },
@@ -1427,7 +1503,7 @@ class Component extends DCLogic {
         { key:'airportStart', header: t.airportStart, lookup:(r) => moneyOrDash(r.airportStart) },
         { key:'maxPax', header: t.maxPax, width:'90px' },
         { key:'maxBags', header: t.maxBags, width:'90px' },
-        { key:'hideFromPublic', header: t.hidePublic, kind:'bool', toggle:true, onLabel:t.hiddenPublic, offLabel:t.shownPublic },
+        { key:'hideFromPublic', header: t.hidePublic, kind:'bool', toggle:true, onLabel:t.hiddenPublic, offLabel:t.shownPublic, subKey:'hiddenReason' },
       ],
       distanceFields: [
         { key:'photo', label:t.fPhoto, editor:'photo', photoKind:'class', photoRecordKey:'vehicleClassId', upload:'/api/photos/upload', clearLabel:t.clearPhoto, chooseLabel:t.choosePhoto, hint:t.hClassPhoto },
@@ -1486,7 +1562,7 @@ class Component extends DCLogic {
         if (out && typeof out.then === 'function') out.then(() => this.loadDraft());
         return out;
       },
-      deleteDistance: (id) => ops ? ops.rates.remove(id) : null,
+      deleteDistance: (id, row) => ops ? this.deleteClassRow(id, row) : null,
       reorderDistance: (rows) => {
         if (!ops || !ops.rates || typeof ops.rates.reorder !== 'function') return null;
         const order = [];

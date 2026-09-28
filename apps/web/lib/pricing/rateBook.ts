@@ -105,6 +105,7 @@ function mapClass(item: unknown): VehicleClassRow {
     active: row.active as boolean,
     name: typeof row.name === "string" ? row.name : null,
     photo_path: typeof row.photo_path === "string" ? row.photo_path : null,
+    hidden_at: typeof row.hidden_at === "string" && row.hidden_at ? row.hidden_at : null,
   };
 }
 
@@ -219,8 +220,10 @@ export function mapRateBook(doc: unknown): MappedRateBook {
   // T-18-01 / D-29 / D-31: quote_rate_book may still jsonb_agg every
   // vehicle_classes row. Drop leftovers the live version does not rate.
   // Do not fall back to economy/business/first/van.
-  const classes = mapList(doc.classes, mapClass).filter((cls) =>
-    ratedIds.has(cls.id),
+  // 26.1-19 D-15: a hidden class is gone from every public board, even while a
+  // frozen live version still rates it.
+  const classes = mapList(doc.classes, mapClass).filter(
+    (cls) => ratedIds.has(cls.id) && !cls.hidden_at,
   );
   return {
     rate_version: mapRateVersion(doc.rate_version),
