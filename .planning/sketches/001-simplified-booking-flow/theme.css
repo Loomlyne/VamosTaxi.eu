@@ -1,0 +1,273 @@
+/* Vamos design-system tokens, copied verbatim from design-system/tokens/ (colors, spacing, typography, elevation, laws) for this throwaway sketch. Fonts: subset of the brand pack. */
+@font-face{font-family:"Qurova";src:url("assets/fonts/Qurova-Medium.ttf") format("truetype");font-weight:500;font-display:swap}
+@font-face{font-family:"Qurova";src:url("assets/fonts/Qurova-SemiBold.ttf") format("truetype");font-weight:600;font-display:swap}
+@font-face{font-family:"Poppins";src:url("assets/fonts/Poppins-Regular.ttf") format("truetype");font-weight:400;font-display:swap}
+@font-face{font-family:"Poppins";src:url("assets/fonts/Poppins-Medium.ttf") format("truetype");font-weight:500;font-display:swap}
+@font-face{font-family:"Poppins";src:url("assets/fonts/Poppins-SemiBold.ttf") format("truetype");font-weight:600;font-display:swap}
+/* ── Colour ───────────────────────────────────────────────────────────────
+   Three colours are fixed by the brand guide (COLORS.pdf / p."COLOR"):
+   #FDC20B yellow, #1E1F1F charcoal, #DEDEDE light grey.
+   Everything else is a tint/shade derived from those three, plus a small
+   semantic set the guide does not define (needed for booking states).
+   ------------------------------------------------------------------------ */
+:root{
+  /* Brand — exact values from the guide */
+  --vt-yellow:#FDC20B;
+  --vt-charcoal:#1E1F1F;
+  --vt-grey:#DEDEDE;
+
+  /* Fourth guideline swatch (COLORS.pdf), parked with no assigned role (D-07).
+     The guide's own body text names only the three colours above; this one
+     is never assigned a job in that text. No surface may reference this
+     token until the designer states what it is for. */
+  --vt-orange:#D4632B;
+
+  /* Yellow scale (derived) */
+  --vt-yellow-50:#FFFBEE;
+  --vt-yellow-100:#FEF3CD;
+  --vt-yellow-200:#FEE79B;
+  --vt-yellow-300:#FDD65A;
+  --vt-yellow-400:#FDC20B;
+  --vt-yellow-500:#EDB306;
+  --vt-yellow-600:#D19C04;
+  --vt-yellow-700:#A67B05;
+
+  /* Charcoal / neutral scale (derived) */
+  --vt-black:#000000;
+  --vt-charcoal-950:#111212;
+  --vt-charcoal-900:#1E1F1F;
+  --vt-charcoal-800:#2B2D2C;
+  --vt-charcoal-700:#3C3E3D;
+  --vt-charcoal-600:#545756;
+  --vt-grey-500:#767877;
+  --vt-grey-400:#9B9D9C;
+  --vt-grey-300:#C2C3C3;
+  --vt-grey-200:#DEDEDE;
+  --vt-grey-100:#ECECEC;
+  --vt-grey-50:#F6F6F6;
+  --vt-white:#FFFFFF;
+
+  /* Semantic — NOT in the brand guide, derived in oklch to sit beside the yellow */
+  --vt-success:oklch(0.60 0.13 152);
+  --vt-success-tint:oklch(0.95 0.04 152);
+  --vt-warning:var(--vt-yellow-500);
+  --vt-warning-tint:var(--vt-yellow-100);
+  --vt-danger:oklch(0.56 0.19 27);
+  --vt-danger-tint:oklch(0.95 0.04 27);
+  --vt-info:oklch(0.55 0.10 240);
+  --vt-info-tint:oklch(0.95 0.03 240);
+
+  /* ── Semantic aliases — use these in components ── */
+  --vt-bg-page:var(--vt-grey-50);
+  --vt-bg-surface:var(--vt-white);
+  --vt-bg-inset:var(--vt-grey-100);
+  --vt-bg-inverse:var(--vt-charcoal-900);
+  --vt-bg-inverse-raised:var(--vt-charcoal-800);
+  --vt-bg-accent:var(--vt-yellow);
+  --vt-bg-accent-tint:var(--vt-yellow-50);
+  --vt-bg-scrim:rgb(17 18 18 / 0.62);
+
+  --vt-text-primary:var(--vt-charcoal-900);
+  --vt-text-secondary:var(--vt-charcoal-600);
+  --vt-text-muted:var(--vt-grey-500);
+  --vt-text-inverse:var(--vt-white);
+  --vt-text-inverse-muted:rgb(255 255 255 / 0.66);
+  --vt-text-on-accent:var(--vt-charcoal-900);
+  --vt-text-link:var(--vt-charcoal-900);
+  --vt-text-link-hover:var(--vt-yellow-700);
+
+  --vt-border-subtle:var(--vt-grey-200);
+  --vt-border-strong:var(--vt-charcoal-900);
+  --vt-border-inverse:rgb(255 255 255 / 0.14);
+  --vt-border-accent:var(--vt-yellow);
+
+  --vt-accent:var(--vt-yellow);
+  --vt-accent-hover:var(--vt-yellow-500);
+  --vt-accent-press:var(--vt-yellow-600);
+  --vt-focus:var(--vt-yellow-400);
+}
+/* ── Space, radius, layout ───────────────────────────────────────────────── */
+:root{
+  --vt-space-0:0;
+  --vt-space-1:4px;
+  --vt-space-2:8px;
+  --vt-space-3:12px;
+  --vt-space-4:16px;
+  --vt-space-5:20px;
+  --vt-space-6:24px;
+  --vt-space-7:32px;
+  --vt-space-8:40px;
+  --vt-space-9:56px;
+  --vt-space-10:72px;
+  --vt-space-11:96px;
+  --vt-space-12:128px;
+
+  --vt-radius-xs:4px;
+  --vt-radius-sm:8px;
+  --vt-radius-md:12px;
+  --vt-radius-lg:16px;
+  --vt-radius-xl:24px;
+  --vt-radius-pill:999px;
+  /* Single-line control radius. Pill by client direction; set to var(--vt-radius-md)
+     to return to the 12px field of the original brand ladder. */
+  --vt-radius-field:var(--vt-radius-pill);
+
+  --vt-control-h-sm:36px;
+  --vt-control-h-md:44px;   /* minimum touch target */
+  --vt-control-h-lg:54px;   /* booking widget fields + primary CTA */
+
+  --vt-border-w:1px;
+  --vt-border-w-strong:2px;
+
+  --vt-container-sm:640px;
+  --vt-container-md:960px;
+  --vt-container-lg:1200px;
+  --vt-container-xl:1360px;
+  --vt-gutter:clamp(20px,5vw,56px); /* @kind spacing */
+
+  /* the 3-square checker pixel — the brand's smallest unit */
+  --vt-checker-px:8px;
+}
+/* ── Type ─────────────────────────────────────────────────────────────────
+   Qurova (the logo typeface) carries headlines and numerals-as-statement.
+   Poppins carries everything a customer has to read. The guide also shows a
+   DM Sans specimen page; it is NOT used here — Qurova + Poppins is the pair.
+   ------------------------------------------------------------------------ */
+:root{
+  --vt-font-display:"Qurova","Poppins",system-ui,sans-serif;
+  --vt-font-body:"Poppins",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --vt-font-mono:ui-monospace,"SFMono-Regular",Menlo,monospace;
+
+  --vt-weight-light:300;
+  --vt-weight-regular:400;
+  --vt-weight-medium:500;
+  --vt-weight-semibold:600;
+  --vt-weight-bold:700;
+  --vt-weight-extrabold:800;
+
+  /* Display — Qurova, tight tracking, sentence case */
+  --vt-display-1:clamp(44px,6vw,76px); /* @kind font */
+  --vt-display-2:clamp(34px,4.4vw,56px); /* @kind font */
+  --vt-display-3:clamp(28px,3.2vw,40px); /* @kind font */
+  --vt-display-leading:1.04;
+  --vt-display-tracking:-0.02em;
+
+  /* Headings — Qurova */
+  --vt-heading-1:32px;
+  --vt-heading-2:26px;
+  --vt-heading-3:20px;
+  --vt-heading-4:17px;
+  --vt-heading-leading:1.18;
+  --vt-heading-tracking:-0.01em;
+
+  /* Body / UI — Poppins */
+  --vt-body-lg:18px;
+  --vt-body-md:16px;
+  --vt-body-sm:14px;
+  --vt-body-xs:13px;
+  --vt-body-leading:1.6;
+  --vt-body-leading-tight:1.45;
+
+  /* Labels, eyebrows, table headers — Poppins, uppercase, wide */
+  --vt-label-md:13px;
+  --vt-label-sm:11px;
+  --vt-label-tracking:0.09em;
+  --vt-label-weight:600;
+
+  /* Price / metric figures — Qurova */
+  --vt-figure-lg:38px;
+  --vt-figure-md:26px;
+  --vt-figure-sm:19px;
+}
+/* ── Elevation, borders, overlays ─────────────────────────────────────────
+   Shadows are neutral-charcoal and low-spread: this is a premium-service
+   brand, not a playful one. Yellow is never used as a shadow colour.
+   ------------------------------------------------------------------------ */
+:root{
+  --vt-shadow-none:none;
+  --vt-shadow-xs:0 1px 2px rgb(17 18 18 / 0.06);
+  --vt-shadow-sm:0 1px 3px rgb(17 18 18 / 0.08),0 1px 2px rgb(17 18 18 / 0.04);
+  --vt-shadow-md:0 4px 14px rgb(17 18 18 / 0.08),0 1px 3px rgb(17 18 18 / 0.05);
+  --vt-shadow-lg:0 12px 32px rgb(17 18 18 / 0.12),0 2px 6px rgb(17 18 18 / 0.06);
+  --vt-shadow-xl:0 24px 64px rgb(17 18 18 / 0.18);
+  --vt-shadow-accent:0 8px 22px rgb(253 194 11 / 0.34);
+  --vt-shadow-inset:inset 0 1px 0 rgb(255 255 255 / 0.06);
+
+  --vt-ring:0 0 0 3px rgb(253 194 11 / 0.45);
+  --vt-ring-inverse:0 0 0 3px rgb(253 194 11 / 0.55);
+
+  --vt-blur-panel:saturate(140%) blur(18px); /* @kind other */
+  --vt-glass-light:rgb(255 255 255 / 0.82);
+  --vt-glass-dark:rgb(30 31 31 / 0.62);
+
+  /* photo protection: bottom-up charcoal veil for white type over imagery */
+  --vt-scrim-bottom:linear-gradient(to top,rgb(17 18 18 / 0.86) 0%,rgb(17 18 18 / 0.55) 34%,rgb(17 18 18 / 0) 78%); /* @kind color */
+  --vt-scrim-left:linear-gradient(to right,rgb(17 18 18 / 0.82) 0%,rgb(17 18 18 / 0.35) 48%,rgb(17 18 18 / 0) 82%); /* @kind color */
+  /* the brand's signature yellow arc veil (social templates) */
+  --vt-veil-yellow:rgb(253 194 11 / 0.88);
+}
+/* ── The four platform laws ───────────────────────────────────────────────
+   Import LAST from styles.css. These are corrections, so they are written as
+   token values and a handful of override rules rather than as advice in a
+   document: a consumer who links styles.css gets them whether or not they
+   read the guide. Every Design Component repeats the same declarations in
+   its own :root so a file still behaves correctly outside this tree.
+
+   01  No glow, ever
+   02  No tinted yellow
+   03  Four languages, same pass
+   04  A pending value is a labelled gap
+   ------------------------------------------------------------------------ */
+
+/* ── 01 · No glow, ever ───────────────────────────────────────────────────
+   No coloured or blurred halo on hover, focus, press or active — not on
+   buttons, cards, icons, links or inputs. Hover is a colour step, press
+   moves 1px, focus shows the ring. The one exception the system used to
+   make (yellow under the primary CTA) is switched off at the token, so
+   every existing `box-shadow:var(--vt-shadow-accent)` resolves to none.
+
+   On a text field the focus signal is the charcoal border, not a ring on
+   top of it — a 3px yellow halo around a pill field reads as an error
+   state. Buttons, checkboxes, rows and cards keep --vt-ring. */
+:root{
+  --vt-shadow-accent:none;
+}
+.vt-input.vt-input--focus{box-shadow:none}
+.vt-dp__field.vt-dp__field:focus-visible{box-shadow:none;border-color:var(--vt-charcoal-900)}
+
+/* ── 02 · No tinted yellow ────────────────────────────────────────────────
+   Full-strength #FDC20B is a small accent. The pale tints read as cream
+   alert strips and the deep steps read brown; neither is the brand. The
+   scale stays in colors.css as reference, but the usable tokens alias to
+   neutrals, so a tinted default inherited from a kit degrades to a clean
+   surface instead of shipping. --vt-yellow-400/500 (the accent and its
+   hover step) are untouched.
+
+   Cascades automatically to everything built on them:
+   --vt-bg-accent-tint · --vt-warning-tint · --vt-text-link-hover
+   · .vt-row__lead · every tinted icon tile. */
+:root{
+  --vt-yellow-50:var(--vt-white);
+  --vt-yellow-100:var(--vt-grey-50);
+  --vt-yellow-200:var(--vt-grey-100);
+  --vt-yellow-300:var(--vt-grey-200);
+  --vt-yellow-600:var(--vt-charcoal-900);
+  --vt-yellow-700:var(--vt-charcoal-800);
+}
+
+/* ── 03 · Four languages, same pass ───────────────────────────────────────
+   English, German, French and Arabic. A surface is not finished until every
+   visible string — including placeholder, aria-label, title and alt —
+   exists in the dictionary. Arabic is RTL and first-class, so direction is
+   a document-level switch (VamosLocale sets dir="rtl"), never a per-block
+   hack. Anything that must not mirror is marked, not excluded. */
+[dir="rtl"]{text-align:start}
+[dir="rtl"] .vt-dir-keep{direction:ltr;unicode-bidi:isolate} /* references, times, CHF figures, flight numbers */
+
+/* ── 04 · A pending value is a labelled gap ───────────────────────────────
+   A number the client still owes us is written as human words in a pill
+   that appends its own TBC tag. Never {TOKEN_NAME}, never a plausible
+   invented figure, and never a CHF price.
+   Usage: <span data-tok>free cancel window</span> */
+[data-tok]{display:inline;padding:1px 7px 2px;border:1px dashed var(--vt-grey-300);border-radius:var(--vt-radius-xs,4px);background:var(--vt-grey-50);color:var(--vt-text-secondary);white-space:nowrap}
+[data-tok]::after{content:" TBC";font-size:11px;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-weight-semibold);color:var(--vt-text-muted)}
