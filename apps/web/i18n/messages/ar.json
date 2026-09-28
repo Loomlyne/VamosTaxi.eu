@@ -510,6 +510,8 @@
     "total": "المجموع",
     "vatIncl": "ضريبة القيمة المضافة ٨٫١٪",
     "fareExVat": "الأجرة",
+    "routePair": "مسار {origin} – {destination}",
+    "routePairPlain": "سعر المسار",
     "yourDriverIsBooked": "تم تأكيد حجزك",
     "needsPayment": "بانتظار الدفع",
     "bookingUnpaidTitle": "أُرسل رابط الدفع",
