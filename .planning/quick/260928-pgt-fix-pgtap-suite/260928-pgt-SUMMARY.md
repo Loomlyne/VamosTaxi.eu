@@ -89,3 +89,17 @@ reworked as follows:
 
 - `check:db-fences` fails on main with 5 identity-wrapper importers and 7 module-scope Maps.
 - `check:legal-claims` and `check:numbers` need owner decisions.
+
+## Follow-up: generated types drift (D-23)
+
+After pgTAP went green in CI, `db:types:check` failed because `packages/db/database.types.ts`
+had fallen behind the schema:
+
+- It was missing the RPCs from the 0923–0927 migrations (checkout_abandon_*,
+  checkout_capture_gate, checkout_booking_is_test*, and others).
+- It was missing `airport_start_rappen` / `city_price_rappen`.
+- It had a hand-placed `vehicle_class_id`.
+
+The file is regenerated with the exact generator the CLI runs, postgres-meta v0.98.0 built from
+source, pointed at the local harness with the CLI's settings: public schema, one-to-one
+detection on, PostgREST 14.5. No hand edits. typecheck and lint pass.
