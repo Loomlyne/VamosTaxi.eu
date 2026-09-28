@@ -212,7 +212,7 @@ describe("OpsPricing class delete-or-hide (26.1-19 D-15, UI-SPEC §6)", () => {
   it("opens a second small dialog with a required 140-character reason", () => {
     const src = html();
     expect(src).toContain('data-hide-conflict="1"');
-    expect(src).toMatch(/maxLength="\{\{ hideReasonMax \}\}"|maxlength="140"|max-length="140"/);
+    expect(src).toContain('max-length="{{ hideReasonMax }}"');
     expect(src).toContain("hideReasonMax: 140");
     expect(src).toContain("disabled=\"{{ hideSubmitDisabled }}\"");
   });

@@ -96,6 +96,8 @@ export type VehicleClassRef = {
   photoPath?: string | null;
   luggageCapacity?: number | null;
   sortOrder?: number;
+  /** 26.1-19 D-15: why an admin hid this class (null while it is not hidden). */
+  hiddenReason?: string | null;
 };
 
 export type RateBook = {
@@ -425,6 +427,8 @@ type ClassSqlRow = {
   photo_path?: string | null;
   luggage_capacity?: number | null;
   sort_order?: number | null;
+  hidden_at?: Date | string | null;
+  hidden_reason?: string | null;
 };
 
 type ZoneSqlRow = {
@@ -541,7 +545,7 @@ export async function loadRateBook(
     `;
 
     const classes = await tx<ClassSqlRow[]>`
-      select id, slug, name, photo_path, luggage_capacity, sort_order
+      select id, slug, name, photo_path, luggage_capacity, sort_order, hidden_at, hidden_reason
         from public.vehicle_classes
        order by sort_order, slug
     `;
@@ -626,6 +630,10 @@ export async function loadRateBook(
         photoPath: typeof row.photo_path === "string" ? row.photo_path : null,
         luggageCapacity: row.luggage_capacity == null ? null : Number(row.luggage_capacity),
         sortOrder: row.sort_order == null ? 0 : Number(row.sort_order),
+        hiddenReason:
+          row.hidden_at != null
+            ? (typeof row.hidden_reason === "string" && row.hidden_reason) || ""
+            : null,
       })),
     };
   });

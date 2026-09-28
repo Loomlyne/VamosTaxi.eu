@@ -812,6 +812,7 @@
       maxBags: num(r.maxBags || r.luggageCapacity, 3),
       available: r.available === false ? false : true,
       hideFromPublic: !!r.hideFromPublic,
+      hiddenReason: str(r.hiddenReason),
       sortOrder: r.sortOrder == null || r.sortOrder === "" ? 0 : num(r.sortOrder, 0)
     };
   }
@@ -964,6 +965,22 @@
           bookFetch.loaded = false;
           bookFetch.json = null;
           emit(null);
+        }
+        return json;
+      });
+    },
+    /* 26.1-19 D-15: delete a class. Nothing but draft rows references it -> deleted.
+       Still in use -> { ok:false, code:"in-use" } without a reason; with a reason it is
+       hidden everywhere. Callers re-read the rate book (rates.reset()). */
+    deleteClass: function (id, reason) {
+      if (id == null || id === "") return Promise.resolve({ ok: false, code: "missing-id" });
+      var body = { id: String(id) };
+      if (reason) body.reason = String(reason);
+      return api("DELETE", "/api/staff/vehicle-classes?id=" + encodeURIComponent(String(id)), body).then(function (json) {
+        json = json || { ok: false, code: "save-failed" };
+        if (json.ok) {
+          bookFetch.loaded = false;
+          bookFetch.json = null;
         }
         return json;
       });

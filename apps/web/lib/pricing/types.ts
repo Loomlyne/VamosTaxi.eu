@@ -70,6 +70,8 @@ export interface VehicleClassRow {
   name?: string | null;
   /** D-30: R2 key under classes/. Optional until owner SQL apply. */
   photo_path?: string | null;
+  /** 26.1-19 D-15: set when an admin hid a class still in use. Never public. */
+  hidden_at?: string | null;
 }
 
 /**

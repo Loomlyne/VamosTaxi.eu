@@ -54,6 +54,8 @@ export function decoratePublicClasses(
 function hiddenPublicSlugs(book: RateBook): Set<string> {
   const byId = new Map(book.classes.map((cls) => [cls.id, cls.slug]));
   const hidden = new Set<string>();
+  // 26.1-19 D-15: an admin-hidden class never reaches a public board.
+  for (const cls of book.classes) if (cls.hidden_at) hidden.add(cls.slug);
   for (const rate of book.distance_rates) {
     if (rate.hide_from_public !== true) continue;
     const slug = byId.get(rate.vehicle_class_id);
