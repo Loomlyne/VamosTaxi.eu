@@ -23,6 +23,7 @@ export default defineConfig({
       "tests/integration/**",
       "**/*.spec.ts",
     ],
+    globalSetup: ["tests/support/sync-public.global-setup.ts"],
     pool: "forks",
     watch: false,
     // Wave 0 may land the runner before any test file exists; empty is green.

@@ -75,15 +75,17 @@ describe("06-09 DC mocks", () => {
     expect(sidebar).toMatch(/\/api\/auth/);
   });
 
-  it("D-12: dispatcher omits #pricing from the painted nav and Staff is deleted", () => {
+  it("D-12: dispatcher omits /pricing from the painted nav and Staff is deleted", () => {
     const sidebar = read("app/ops/OpsSidebar.dc.html");
     expect(sidebar).toMatch(/const NAV_ADMIN = \[/);
-    expect(sidebar).toMatch(/href:'#pricing'/);
+    // The console uses path URLs (history.pushState), not #hash routes.
+    expect(sidebar).toMatch(/href:'\/pricing'/);
+    expect(sidebar).not.toMatch(/href:'#/);
     expect(sidebar).not.toMatch(/key:'staff'/);
-    expect(sidebar).not.toMatch(/href:'#staff'/);
+    expect(sidebar).not.toMatch(/href:'\/staff'/);
     expect(sidebar).not.toMatch(/key:'staff-roster'/);
     const bottom = sidebar.match(/const NAV_BOTTOM = \[[\s\S]*?\];/);
-    expect(bottom?.[0] ?? "").not.toMatch(/#pricing|#staff/);
+    expect(bottom?.[0] ?? "").not.toMatch(/'\/pricing'|'\/staff'/);
     expect(sidebar).toMatch(/role === 'admin'/);
     expect(sidebar).toMatch(/navBottomSrc\.map\(paint\)/);
     expect(sidebar).not.toMatch(/aria-disabled/);
@@ -127,20 +129,22 @@ describe("06-09 DC mocks", () => {
     expect(settings).toMatch(/data-af-eye/);
   });
 
-  it("keeps dashboard hash navigation local and uses the narrow ops UI conventions", () => {
+  it("keeps dashboard path navigation local and uses the narrow ops UI conventions", () => {
     const transition = read("app/vamos-page-transition.js");
     const ops = read("app/ops/ops.dc.html");
     const sidebar = read("app/ops/OpsSidebar.dc.html");
     const settings = read("app/ops/OpsSettings.dc.html");
     const profile = read("app/ops/OpsProfile.dc.html");
 
-    expect(ops).toMatch(/window\.addEventListener\('hashchange', this\._onHash\)/);
-    expect(ops).toMatch(/Object\.assign\(\{ navOpen: false, menuOpen: false \}, readHash\(\)\)/);
+    expect(ops).toMatch(/window\.addEventListener\('popstate', this\._onPop\)/);
+    expect(ops).toMatch(/Object\.assign\(\{ navOpen: false, menuOpen: false \}, readPath\(location\.pathname\)\)/);
+    expect(ops).toMatch(/history\.pushState\(\{\}, '', href\)/);
+    expect(ops).not.toMatch(/addEventListener\('hashchange'/);
     expect(transition).toMatch(/p === '\/app\/ops' \|\| p === '\/app\/ops\/ops'/);
-    expect(transition).toMatch(/function eligible\(a\) \{/);
-    expect(transition).toMatch(/if \(hrefAttr\.charAt\(0\) === '#'\) return false;/);
-    expect(transition).toMatch(/if \(samePage\(u\) && u\.search === location\.search && u\.hash\) return false;/);
-    expect(transition).toMatch(/document\.addEventListener\('click', function \(e\) \{/);
+    // The page transition is retired: it only drops the boot cover and never
+    // intercepts a click, so in-console navigation stays native.
+    expect(transition).toMatch(/function dropBoot\(\)/);
+    expect(transition).not.toMatch(/addEventListener\('click'/);
     expect(transition).not.toMatch(/function isDashboardPage\(/);
     expect(transition).not.toMatch(/function runDashboardHashTransition\(/);
     expect(transition).not.toMatch(/addEventListener\('hashchange', runDashboardHashTransition\)/);

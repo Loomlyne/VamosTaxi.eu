@@ -44,19 +44,19 @@ describe("pay land blocked", () => {
   });
 
   it("returns before startPayment when the class is not selectable or the lock is past", () => {
-    const start = client.indexOf("useEffect(() => {", client.indexOf("intentAttempts"));
-    const end = client.indexOf("async function continueTrip", start);
+    // The payment-step intent effect: from its step/gate guard to the silent startPayment.
+    const start = client.indexOf('if (step !== "payment" || gate !== "ok") return;');
+    const end = client.indexOf("startPayment({ silent: true })", start);
     expect(start).toBeGreaterThan(-1);
     expect(end).toBeGreaterThan(start);
     const effect = client.slice(start, end);
     const gate = effect.indexOf("classIsSelectable");
     const past = effect.indexOf("lockExpired");
-    const pay = effect.indexOf("startPayment(");
     expect(gate).toBeGreaterThan(-1);
     expect(past).toBeGreaterThan(-1);
-    expect(pay).toBeGreaterThan(gate);
-    expect(effect.indexOf("return;", gate)).toBeLessThan(pay);
+    expect(effect.indexOf("return;", gate)).toBeGreaterThan(-1);
     expect(effect).toContain('setRefusal(past ? "quoteExpired" : "pricingNotLive")');
+    // Blocked is never the generic payment failure; that copy is only for six failed intents.
     expect(effect).not.toContain("paymentWindowClosed");
     expect(effect).not.toContain("payCouldNotStart");
   });
@@ -153,6 +153,8 @@ describe("pay lock zero panel", () => {
     expect(stripe).toBeGreaterThan(-1);
     expect(call).toBeGreaterThan(stripe);
     expect(panel.indexOf("loadStripe(", call + 1)).toBe(-1);
-    expect(panel).toContain("NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || publishableKey");
+    expect(panel).toContain(
+      "stripeBrowserKey(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY, publishableKey)",
+    );
   });
 });

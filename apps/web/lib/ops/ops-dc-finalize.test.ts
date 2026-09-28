@@ -74,10 +74,10 @@ describe("Phase 6 finalize — four classes and staff hash", () => {
   it("ops login does not treat a failed invite claim as a bad password", () => {
     const auth = read("app/ops/AuthForm.dc.html");
     expect(auth).toMatch(/try \{ await this\.claimOpsInvite\(\); \} catch \(e\) \{\}/);
-    expect(auth).toMatch(/location\.replace\('\/'\);/);
-    expect(auth).not.toMatch(
-      /if \(await this\.claimOpsInvite\(\)\) \{ location\.replace\('\/'\); return; \}/,
+    expect(auth).toMatch(
+      /try \{ await this\.claimOpsInvite\(\); \} catch \(e\) \{\}\s*location\.replace\('\/dashboard'\);/,
     );
+    expect(auth).not.toMatch(/if \(await this\.claimOpsInvite\(\)\) \{ location\.replace\(/);
   });
 
   it("does not write .dc copies; mocks are Name.dc.html only", () => {

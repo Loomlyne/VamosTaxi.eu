@@ -265,13 +265,13 @@ describe("chauffeurJsonError", () => {
     });
   });
 
-  it("maps unknown SQLSTATE to a sentence that includes the code", async () => {
+  it("maps unknown SQLSTATE to plain copy and keeps the code in the envelope", async () => {
     const result = await readJson(chauffeurJsonError({ code: "42804" }));
     expect(result.status).toBe(500);
     expect(result.body).toEqual({
       ok: false,
       code: "42804",
-      message: "Could not save (Postgres 42804).",
+      message: "The chauffeur could not be saved.",
     });
   });
 });

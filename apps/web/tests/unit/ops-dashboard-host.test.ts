@@ -29,7 +29,16 @@ describe("dashboard host DC login @ops-dashboard-host", () => {
       /serveOpsDc\(request, client\.response, "ops-login\.dc\.html"/,
     );
     expect(middleware).toMatch(/serveOpsDc\(request, client\.response, "ops\.dc\.html"/);
-    expect(middleware).not.toMatch(/NextResponse\.rewrite/);
+    const dashboardFn = middleware.slice(
+      middleware.indexOf("async function dashboardHostMiddleware"),
+      middleware.indexOf("function opsRedirectUrl"),
+    );
+    expect(dashboardFn).toContain("serveOpsDc(");
+    expect(dashboardFn).not.toMatch(/NextResponse\.rewrite/);
+    // The only rewrites left are the public host's 404s — never into Next ops.
+    const rewrites = middleware.match(/NextResponse\.rewrite\([^)]*\)/g) ?? [];
+    expect(rewrites.every((call) => call === "NextResponse.rewrite(gone)")).toBe(true);
+    expect(middleware.match(/gone\.pathname = "\/__vamos_gone";/g)?.length).toBe(rewrites.length);
     expect(middleware).not.toMatch(/\[locale\]\/ops/);
   });
 

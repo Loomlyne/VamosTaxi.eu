@@ -141,7 +141,8 @@ describe("Publish-as-flip public_chf (D-18)", () => {
     expect(publish).toMatch(
       /classified\.kind === "frozen"[\s\S]*if \(gaps\.length > 0\) return "incomplete"/,
     );
-    expect(publish).toMatch(/ok: false, code, gaps/);
+    expect(publish).toMatch(/return jsonErr\(code, status, \{ gaps \}\)/);
+    expect(publish).toMatch(/return jsonFail\(code, status, named\)/);
     expect(publish).toMatch(/row\.status !== "draft"/);
   });
 

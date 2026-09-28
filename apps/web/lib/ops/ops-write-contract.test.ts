@@ -75,7 +75,7 @@ describe("ops write contract", () => {
     expect(table).toMatch(/minDate === 'today'/);
     expect(table).toMatch(/zurichYmdNow/);
     expect(table).toMatch(/kind === 'address' && \(key === 'from' \|\| key === 'to'\)/);
-    expect(table).toMatch(/\[data-fill="1"\] \.vt-table\{width:100%;table-layout:auto\}/);
+    expect(table).toMatch(/\[data-fill="1"\] \.vt-table\{width:max-content;min-width:100%;table-layout:auto\}/);
     expect(table).toMatch(/whiteSpace:'nowrap'/);
     expect(table).toMatch(/Math\.round\(this\.state\.sug\.rect\.width\)/);
     expect(table).toMatch(/text-align:start/);
