@@ -33,10 +33,6 @@ const STRINGS = [
   "6-digit code",
   "Verify",
   "Use another sign-in",
-  "One more step",
-  "This account has a passkey. Use it to finish signing in.",
-  "Use your passkey",
-  "Could not use the passkey. Try again.",
 ];
 
 describe("26.1-23 ops sign-in step-up (AuthForm stage 'mfa')", () => {
@@ -52,37 +48,30 @@ describe("26.1-23 ops sign-in step-up (AuthForm stage 'mfa')", () => {
     expect(form).toMatch(/&quot;verifying&quot;,&quot;mfa&quot;,&quot;returning&quot;/);
   });
 
-  it("asks for the second step after an ops sign-in only when a factor is enrolled", () => {
-    const need = script.match(/async stepUpNeed\(method\) \{[\s\S]*?\n {2}\}/)?.[0] ?? "";
+  it("asks for the second step after an ops sign-in only when an authenticator app is enrolled", () => {
+    const need = script.match(/async stepUpNeed\(\) \{[\s\S]*?\n {2}\}/)?.[0] ?? "";
     expect(need).toMatch(/const status = await this\.liveAuth\(\{ action: 'mfa-status' \}\);/);
-    expect(need).toMatch(/if \(status\.totp\) return 'totp';/);
-    // 26.1-25: a passkey without the app needs a passkey sign-in, unless this sign-in was one.
-    expect(need).toMatch(/if \(status\.passkey && method !== 'passkey'\) return 'passkey';/);
-    expect(need).toMatch(/return null;/);
+    expect(need).toMatch(/return status\.totp \? 'totp' : null;/);
+    // Quick 260928-wg9: a passkey is a sign-in option, never a second step.
+    expect(need).not.toMatch(/passkey/);
     const ops = script.match(/if \(this\.props\.surface === 'ops'\) \{\s*if \(result\.ok\) \{[\s\S]*?\n {6}\}/)?.[0] ?? "";
-    expect(ops).toMatch(/const need = await this\.stepUpNeed\(method\);\s*if \(need\) return this\.openStepUp\(need\);/);
+    expect(ops).toMatch(/if \(await this\.stepUpNeed\(\)\) return this\.openStepUp\(\);/);
     expect(ops).toMatch(/return this\.enterOps\(\);/);
     // No factor → no extra step, no nag: the only path to 'mfa' is openStepUp.
     expect(script.match(/stage: 'mfa'/g)?.length).toBe(1);
-    expect(script).toMatch(/openStepUp\(need\) \{[\s\S]*?this\.go\(\{ stage: 'mfa'/);
+    expect(script).toMatch(/openStepUp\(\) \{[\s\S]*?this\.go\(\{ stage: 'mfa'/);
     expect(script).toMatch(/json\.code === 'needs-mfa' && this\.state\.stage === 'form'\) \{[\s\S]*?this\.openStepUp\(/);
   });
 
-  it("offers the passkey when that is the enrolled factor, and opens /dashboard only after result.ok (26.1-25)", () => {
+  it("offers passkey sign-in on the dashboard form, with no passkey step-up (quick 260928-wg9)", () => {
+    expect(script).toMatch(/showPasskey: isForm && mode === 'signin',/);
+    expect(script).not.toMatch(/stepUpPasskey|mfaPasskey|mfaKind/);
     const start = form.indexOf('<sc-if value="{{ isMfa }}">');
     const view = start < 0 ? "" : form.slice(start, form.indexOf('<sc-if value="{{ isReturning }}">', start));
-    expect(view).toMatch(/<sc-if value="\{\{ mfaTotp \}\}"/);
-    expect(view).toMatch(/<sc-if value="\{\{ mfaPasskey \}\}"/);
-    expect(view).toMatch(/<h1 data-af-h1="1"[^>]*>One more step<\/h1>/);
-    expect(view).toMatch(/icon="shield-check" onClick="\{\{ stepUpPasskey \}\}" disabled="\{\{ mfaBusy \}\}"[^>]*>Use your passkey<\/x-import>/);
-    expect(view).toMatch(/<sc-if value="\{\{ mfaPasskeyFailed \}\}">\s*<x-import [^>]*Alert" tone="danger"[^>]*>Could not use the passkey\. Try again\.<\/x-import>/);
-    const step = script.match(/stepUpPasskey = async \(\) => \{[\s\S]*?\n {2}\};/)?.[0] ?? "";
-    expect(step).toMatch(/await this\.passkeySignIn\(\)/);
-    expect(step).toMatch(/if \(result && result\.ok\) return this\.enterOps\(\);/);
-    expect(step).not.toMatch(/location\./);
-    // One passkey ceremony, shared by the form option and the step-up.
+    expect(view).not.toMatch(/passkey/i);
+    // One passkey ceremony; on ops a passkey sign-in ends in enterOps via applyLive.
     expect(script.match(/action: 'passkey-start'/g)?.length).toBe(1);
-    expect(script).toMatch(/startPasskey = async \(\) => \{[\s\S]*?await this\.passkeySignIn\(\)/);
+    expect(script).toMatch(/startPasskey = async \(\) => \{[\s\S]*?await this\.applyLive\(result, 'signin', 'passkey'\)/);
   });
 
   it("steps up with mfa-step-up and opens /dashboard only after result.ok", () => {

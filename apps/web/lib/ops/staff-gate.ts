@@ -8,11 +8,10 @@
 //   * Only the admin role enters the console (D-16, D-16b). A dispatcher is denied.
 //   * No verified second factor → aal1 (password or magic link) is enough (D-16).
 //   * A verified factor → aal2 is required on every request, not only at sign-in (D-16a).
-//   * A registered passkey (26.1-25) → the session must be aal2 or a passkey sign-in. GoTrue keeps
-//     passkeys in auth.webauthn_credentials, not auth.mfa_factors, and a passkey sign-in is aal1
-//     with amr "passkey" (checked on GoTrue v2.195.0), so neither nextLevel nor SQL sees them —
-//     this app gate is the passkey control. A passkey session never replaces an enrolled
-//     authenticator app: SQL still needs aal2 for that.
+//   * A passkey is a sign-in option, not a second step (owner, 2026-09-28, quick 260928-wg9).
+//     Password, magic link, e-mail code and passkey each let the admin in on their own; adding
+//     a passkey does not force it. A passkey sign-in is aal1 with amr "passkey" (GoTrue
+//     v2.195.0), so it never replaces an enrolled authenticator app: SQL still needs aal2 for that.
 //
 // Pure: no I/O, no module state.
 
@@ -25,8 +24,6 @@ export type StaffGateInput = {
   currentLevel: string | null | undefined;
   /** "aal2" when the user has a verified factor (see effectiveNextLevel). */
   nextLevel: string | null | undefined;
-  /** True when the auth server lists a passkey for this user (see passkeyCheckNeeded). */
-  hasPasskey?: boolean;
   /** `amr[].method` values from the verified access token. */
   amrMethods?: ReadonlyArray<string> | null;
 };
@@ -57,21 +54,8 @@ export function isPasskeySession(amr: ReadonlyArray<AmrLike> | null | undefined)
 /** The gate decision for one request. See the file header for the rules. */
 export function staffGateDecision(input: StaffGateInput): StaffGateDecision {
   if (input.role !== "admin") return "deny";
-  const strong = isAal2OrAbove(input.currentLevel);
-  if (isAal2OrAbove(input.nextLevel)) return strong ? "allow" : "step-up";
-  if (input.hasPasskey !== true) return "allow";
-  return strong || isPasskeySession(input.amrMethods) ? "allow" : "step-up";
-}
-
-/**
- * Whether listing the user's passkeys can change the decision. Saves an auth-server call on
- * every request that is already decided: not the admin, an enrolled factor (aal2 rules), an
- * aal2 session, or a passkey sign-in.
- */
-export function passkeyCheckNeeded(input: Omit<StaffGateInput, "hasPasskey">): boolean {
-  if (input.role !== "admin") return false;
-  if (isAal2OrAbove(input.nextLevel) || isAal2OrAbove(input.currentLevel)) return false;
-  return !isPasskeySession(input.amrMethods);
+  if (isAal2OrAbove(input.nextLevel)) return isAal2OrAbove(input.currentLevel) ? "allow" : "step-up";
+  return "allow";
 }
 
 /**

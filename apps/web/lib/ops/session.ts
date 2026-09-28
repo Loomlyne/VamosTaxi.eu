@@ -10,7 +10,6 @@ import type { VamosClaims } from "@/lib/db/identity";
 import {
   amrMethodsOf,
   effectiveNextLevel,
-  passkeyCheckNeeded,
   staffGateDecision,
   type AmrLike,
   type StaffGateDecision,
@@ -20,13 +19,11 @@ import {
 export const dynamic = "force-dynamic";
 
 /**
- * VamosClaims plus `nextLevel` ("aal2" once a verified factor exists), `hasPasskey` (set only
- * when the passkey list was needed for the decision) and `amrMethods` (from the verified access
- * token). None of them reaches SQL — claimsForSql enumerates its fields by name.
+ * VamosClaims plus `nextLevel` ("aal2" once a verified factor exists) and `amrMethods` (from
+ * the verified access token). None of them reaches SQL — claimsForSql enumerates its fields by name.
  */
 export type StaffSession = VamosClaims & {
   nextLevel?: "aal1" | "aal2";
-  hasPasskey?: boolean;
   amrMethods?: string[];
 };
 
@@ -58,10 +55,6 @@ export type StaffAuthClient = {
       getAuthenticatorAssuranceLevel: () => Promise<{
         data: { currentLevel: string | null; nextLevel?: string | null } | null;
       }>;
-    };
-    /** supabase-js `auth.passkey` (needs `experimental.passkey`); only `list` is used here. */
-    passkey?: {
-      list: () => Promise<{ data: ReadonlyArray<unknown> | null; error: unknown }>;
     };
   };
 };
@@ -123,39 +116,21 @@ export function amrMethodsFromAccessToken(accessToken: string | undefined): stri
 }
 
 /**
- * True when the auth server lists at least one passkey for the signed-in user. A list error
- * or a throw counts as none: SQL never counted passkeys, and failing closed here would send the
- * admin to a step-up that the same broken list cannot offer. The admin's factors stay enforced
- * by aal2 in SQL whatever this returns.
- */
-async function serverListsPasskey(supabase: StaffAuthClient): Promise<boolean> {
-  if (!supabase.auth.passkey) return false;
-  try {
-    const { data, error } = await supabase.auth.passkey.list();
-    return !error && Array.isArray(data) && data.length > 0;
-  } catch {
-    return false;
-  }
-}
-
-/**
- * The passkey half of the gate input (26.1-25, D-16a), shared by getStaffClaims and both
- * middleware gates so every door decides the same way. The amr comes from the access token
- * that getUser() just had the auth server verify (T-26.1-77); the passkey list is fetched only
- * when it can change the decision.
+ * The amr half of the gate input, shared by getStaffClaims and both middleware gates so every
+ * door decides the same way. The amr comes from the access token that getUser() just had the
+ * auth server verify (T-26.1-77). A registered passkey no longer changes the decision (quick
+ * 260928-wg9), so the passkey list is not fetched here.
  */
 export async function passkeyGateInputs(
-  supabase: StaffAuthClient,
+  _supabase: StaffAuthClient,
   input: {
     role: unknown;
     currentLevel: string | null | undefined;
     nextLevel: string | null | undefined;
     accessToken: string | undefined;
   },
-): Promise<{ amrMethods: string[]; hasPasskey?: boolean }> {
-  const amrMethods = amrMethodsFromAccessToken(input.accessToken);
-  if (!passkeyCheckNeeded({ ...input, amrMethods })) return { amrMethods };
-  return { amrMethods, hasPasskey: await serverListsPasskey(supabase) };
+): Promise<{ amrMethods: string[] }> {
+  return { amrMethods: amrMethodsFromAccessToken(input.accessToken) };
 }
 
 export async function getStaffClaims(supabase: StaffAuthClient): Promise<StaffSession | null> {
@@ -189,7 +164,6 @@ export async function getStaffClaims(supabase: StaffAuthClient): Promise<StaffSe
     accessToken,
   });
   if (passkey.amrMethods.length > 0) claims.amrMethods = passkey.amrMethods;
-  if (passkey.hasPasskey !== undefined) claims.hasPasskey = passkey.hasPasskey;
   return claims;
 }
 
@@ -197,13 +171,12 @@ export async function getStaffClaims(supabase: StaffAuthClient): Promise<StaffSe
  * INT-09 / D-16 / D-16a / D-16b: applies staffGateDecision on every call — only the admin, and
  * aal2 once a verified factor exists. Mirrors app.is_staff()/app.is_admin() in SQL.
  */
-/** staffGateDecision for claims from getStaffClaims (passkey inputs included). */
+/** staffGateDecision for claims from getStaffClaims (amr included). */
 export function staffDecisionOf(claims: StaffSession): StaffGateDecision {
   return staffGateDecision({
     role: claims.app_metadata?.vamos_role,
     currentLevel: claims.aal,
     nextLevel: claims.nextLevel,
-    hasPasskey: claims.hasPasskey,
     amrMethods: claims.amrMethods,
   });
 }

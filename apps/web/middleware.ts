@@ -314,7 +314,6 @@ async function dashboardHostMiddleware(request: NextRequest): Promise<NextRespon
     : { data: null };
   const currentLevel = aalData?.currentLevel;
   const nextLevel = effectiveNextLevel(aalData?.nextLevel, user?.factors);
-  // 26.1-25: a registered passkey needs aal2 or a passkey sign-in, as in requireStaffClaims.
   const passkey = user
     ? await passkeyGateInputs(client.supabase as StaffAuthClient, {
         role,
