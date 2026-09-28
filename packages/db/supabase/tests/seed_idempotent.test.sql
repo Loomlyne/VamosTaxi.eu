@@ -108,7 +108,7 @@ select is((select count(*) from public.reviews where published)::int, 0, 'no see
 -- Counts are the generator's own output (pnpm db:seed:gen, 2026-09-27).
 -- 26.1-10: migration 20260928130000_canton_city_zones.sql (not the seed) adds 26 non-translatable
 -- canton display names (zone.canton-<code>); canton_zones.test.sql pins those 26 on their own.
-select is((select count(*) from public.content_strings)::int, 2502 + 26, 'content_strings row count = flattened en.json key count + 26 migration canton names');
+select is((select count(*) from public.content_strings)::int, 2504 + 26, 'content_strings row count = flattened en.json key count + 26 migration canton names');
 select is((select count(*) from public.content_strings where pending_value)::int, 16, '16 pending-value keys (ADR-011, Law 04 data-tok)');
 select is((select count(*) from public.content_strings where non_translatable)::int, 8 + 26, '8 non-translatable seed keys (ADR-012) + 26 migration canton names');
 select is((select count(*) from public.content_strings where no_param_reason is not null)::int, 71, '71 no-param-reason keys (I18N-06)');
