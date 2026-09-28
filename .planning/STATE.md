@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Meta measurement
 status: planning
-stopped_at: Phase 26.3 context signed 2026-09-29; next UI-SPEC (/gsd-ui-phase 26.3)
+stopped_at: Phase 26.3 UI-SPEC signed 2026-09-29; next /gsd-plan-phase 26.3
 last_updated: "2026-09-28T20:26:15.303Z"
 last_activity: "2026-09-29 - Phase 26.3 discuss signed by the owner (42 decisions, 26.3-CONTEXT.md)"
 progress:
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-09-23)
 
 ## Current Position
 
-Phase: 26.3 (Booking flow rebuild) — CONTEXT SIGNED 2026-09-29, next UI-SPEC
+Phase: 26.3 (Booking flow rebuild) — CONTEXT + UI-SPEC SIGNED 2026-09-29, next plan-phase
 Branch/worktree: `gsd/phase-26.3-booking-flow` in `/Users/koss/Developer/vamos-wt/phase-26.3` (cut from 2c8c4592)
 Status: 26.1 shipped (cff97a0e + 550ee4f2, e5a6ddc7, 2c8c4592; live Worker 8285cabb). Owner's repeat of 26.1 UAT step 1 FAILED; folded into 26.3 success criterion 1. 26.2 comes after 26.3 (D-03).
 Last activity: 2026-09-29 - 26.3 discuss signed
@@ -55,8 +55,8 @@ Stripe live keys and Search Console stay owner-gated. Agent does not click Publi
 ## Session Continuity
 
 Last session: 2026-09-28T20:26:15.292Z
-Stopped at: Phase 26.3 context signed 2026-09-29; next UI-SPEC (/gsd-ui-phase 26.3)
-Resume: `/gsd-ui-phase 26.3` (UI-SPEC, owner gate), then `/gsd-plan-phase 26.3`. 26.1-28 (owner Stripe resend + reconcile) still open. Only the control session commits on main and deploys. Do not execute 27. Do not load the pixel. Do not execute Phase 16/17/19/20/21. Do not `phases.clear`.
+Stopped at: Phase 26.3 UI-SPEC signed 2026-09-29; next /gsd-plan-phase 26.3
+Resume: `/gsd-plan-phase 26.3` in the 26.3 worktree (owner signs the plan). 26.1-28 (owner Stripe resend + reconcile) still open. Only the control session commits on main and deploys. Do not execute 27. Do not load the pixel. Do not execute Phase 16/17/19/20/21. Do not `phases.clear`.
 
 Phase 21 branch session (2026-09-22T19:57:29.795Z, not the resume): Stopped at Phase 21 planning complete — 8 plans. Resume was: Phase 21 executing on gsd/phase-21-charge-gate. Do not execute Phase 16/17/19/20. Do not touch the main checkout.
 
