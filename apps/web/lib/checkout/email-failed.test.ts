@@ -12,7 +12,10 @@ const SENTENCES = {
   ar: "لم يُرسل رابط الدفع. الحجز موجود. أعد إرسال الرابط.",
 } as const;
 
-const NOT_OK_LINE = 'REFUSAL_KEYS[json.code ?? json.error ?? ""] ?? "payCouldNotStart"';
+// sendPayLink no longer falls back to payCouldNotStart: an unknown code sets no
+// refusal (b2af7ce). The lookup itself is what must still resolve email_failed.
+const NOT_OK_LINE = 'REFUSAL_KEYS[json.code ?? json.error ?? ""];';
+const NOT_OK_GUARD = 'if (key && key !== "payCouldNotStart") setRefusal(key);';
 
 function checkout(locale: keyof typeof SENTENCES): Record<string, string> {
   const raw = readFileSync(join(here, `../../i18n/messages/${locale}.json`), "utf8");
@@ -73,13 +76,15 @@ describe("email_failed does not select payCouldNotStart", () => {
   it("sendPayLink not-ok line resolves email_failed to emailFailed", () => {
     const line = sendPayLinkNotOkLine(client);
     expect(line).toContain(NOT_OK_LINE);
+    const fnStart = client.indexOf("async function sendPayLink()");
+    const fn = client.slice(fnStart, client.indexOf("async function onPay()", fnStart));
+    expect(fn).toContain(NOT_OK_GUARD);
     const map = refusalMap(client);
     const json = { code: "email_failed", error: "email_failed" };
-    const key = map[json.code ?? json.error ?? ""] ?? "payCouldNotStart";
+    const key = map[json.code ?? json.error ?? ""];
     expect(key).toBe("emailFailed");
     expect(key).not.toBe("payCouldNotStart");
-    const unknown = map["not_a_code"] ?? "payCouldNotStart";
-    expect(unknown).toBe("payCouldNotStart");
+    expect(map["not_a_code"]).toBeUndefined();
   });
 
   it("pay-link route still returns 502 email_failed", () => {

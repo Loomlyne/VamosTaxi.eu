@@ -29,7 +29,12 @@ describe("dashboard host DC login @ops-dashboard-host", () => {
       /serveOpsDc\(request, client\.response, "ops-login\.dc\.html"/,
     );
     expect(middleware).toMatch(/serveOpsDc\(request, client\.response, "ops\.dc\.html"/);
-    expect(middleware).not.toMatch(/NextResponse\.rewrite/);
+    // Public-host leftovers rewrite to the product 404 (`/__vamos_gone`); nothing
+    // rewrites into the Next ops tree.
+    const rewrites = middleware.match(/NextResponse\.rewrite\([^)]*\)/g) ?? [];
+    expect(rewrites.every((call) => call === "NextResponse.rewrite(gone)")).toBe(true);
+    const gonePaths = middleware.match(/gone\.pathname = "[^"]*"/g) ?? [];
+    expect(gonePaths.every((line) => line === 'gone.pathname = "/__vamos_gone"')).toBe(true);
     expect(middleware).not.toMatch(/\[locale\]\/ops/);
   });
 

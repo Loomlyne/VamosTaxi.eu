@@ -8,6 +8,7 @@
     "prebuild": "node ../../scripts/sync-dc-mock-to-public.mjs",
     "build": "next build",
     "typecheck": "tsc --noEmit",
+    "pretest": "node ../../scripts/sync-dc-mock-to-public.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint:css": "stylelint \"**/*.css\" --ignore-path .gitignore --ignore-path .stylelintignore",

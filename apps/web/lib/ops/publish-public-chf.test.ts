@@ -141,7 +141,11 @@ describe("Publish-as-flip public_chf (D-18)", () => {
     expect(publish).toMatch(
       /classified\.kind === "frozen"[\s\S]*if \(gaps\.length > 0\) return "incomplete"/,
     );
-    expect(publish).toMatch(/ok: false, code, gaps/);
+    // Envelope { ok:false, code, gaps } now comes from the shared staff jsonErr.
+    expect(publish).toMatch(/return jsonErr\(code, status, \{ gaps \}\);/);
+    expect(webSource("lib/ops/staff-json.ts")).toMatch(
+      /Response\.json\(\{ ok: false, code, \.\.\.\(extra \?\? \{\}\) \}/,
+    );
     expect(publish).toMatch(/row\.status !== "draft"/);
   });
 

@@ -58,7 +58,10 @@ describe("pay land blocked", () => {
     expect(effect.indexOf("return;", gate)).toBeLessThan(pay);
     expect(effect).toContain('setRefusal(past ? "quoteExpired" : "pricingNotLive")');
     expect(effect).not.toContain("paymentWindowClosed");
-    expect(effect).not.toContain("payCouldNotStart");
+    // payCouldNotStart only after the retry cap on startPayment (b2af7ce), never on the gate.
+    const gateBranch = effect.slice(gate, effect.indexOf("return;", gate));
+    expect(gateBranch).not.toContain("payCouldNotStart");
+    expect(effect.indexOf("payCouldNotStart")).toBeGreaterThan(pay);
   });
 
   it("does not let onPay replace pricingNotLive or quoteExpired", () => {
@@ -153,6 +156,6 @@ describe("pay lock zero panel", () => {
     expect(stripe).toBeGreaterThan(-1);
     expect(call).toBeGreaterThan(stripe);
     expect(panel.indexOf("loadStripe(", call + 1)).toBe(-1);
-    expect(panel).toContain("NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || publishableKey");
+    expect(panel).toContain("stripeBrowserKey(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY, publishableKey)");
   });
 });
