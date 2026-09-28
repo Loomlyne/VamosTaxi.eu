@@ -36,7 +36,7 @@ describe("Phase 6 finalize — class line-up and staff hash", () => {
   it("26.1 D-14: every ops list is the three classes and new-trip quotes live slugs", () => {
     const data = read("app/vamos-ops-data.js");
     const list = data.match(/VEHICLE_CLASSES = (\[[^\]]*\])/);
-    expect(list && JSON.parse(list[1])).toEqual(["Economy", "Business", "Van luxury"]);
+    expect(JSON.parse((list && list[1]) || "null")).toEqual(["Economy", "Business", "Van luxury"]);
 
     const newTrip = read("app/ops/OpsNewTrip.dc.html");
     const block = newTrip.match(/classOptions: \[([\s\S]*?)\]/);
