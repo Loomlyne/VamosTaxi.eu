@@ -7,11 +7,16 @@
 // object is never spread.
 
 import type { VamosClaims } from "@/lib/db/identity";
+import { effectiveNextLevel, staffGateDecision } from "./staff-gate";
 
 // Library module — D-06 greps asStaff/identity importers for this export.
 export const dynamic = "force-dynamic";
 
-export type StaffSession = VamosClaims;
+/**
+ * VamosClaims plus `nextLevel` ("aal2" once a verified factor exists). `nextLevel` never
+ * reaches SQL — claimsForSql enumerates its fields by name — SQL reads auth.mfa_factors itself.
+ */
+export type StaffSession = VamosClaims & { nextLevel?: "aal1" | "aal2" };
 
 export type OpsAuthReason = "no-session" | "not-staff" | "needs-mfa" | "not-admin";
 
@@ -29,6 +34,8 @@ type StaffAuthUser = {
   id: string;
   email?: string | null;
   app_metadata?: Record<string, unknown>;
+  /** Server-answered factor list from getUser(); only `status` is read. */
+  factors?: ReadonlyArray<{ status?: unknown }> | null;
 };
 
 export type StaffAuthClient = {
@@ -37,7 +44,7 @@ export type StaffAuthClient = {
     getSession: () => Promise<{ data: { session: { access_token: string } | null } }>;
     mfa: {
       getAuthenticatorAssuranceLevel: () => Promise<{
-        data: { currentLevel: string | null } | null;
+        data: { currentLevel: string | null; nextLevel?: string | null } | null;
       }>;
     };
   };
@@ -99,6 +106,7 @@ export async function getStaffClaims(supabase: StaffAuthClient): Promise<StaffSe
   const user = data.user;
   const aalResult = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
   const aal = mapAal(aalResult.data?.currentLevel);
+  const nextLevel = effectiveNextLevel(aalResult.data?.nextLevel, user.factors);
 
   const { data: sessionData } = await supabase.auth.getSession();
   const accessToken = sessionData.session?.access_token;
@@ -109,6 +117,7 @@ export async function getStaffClaims(supabase: StaffAuthClient): Promise<StaffSe
     role: "authenticated",
   };
   if (aal) claims.aal = aal;
+  claims.nextLevel = nextLevel;
   if (typeof user.email === "string" && user.email.length > 0) claims.email = user.email;
   if (sessionId) claims.session_id = sessionId;
   const vamosRole =
@@ -117,17 +126,31 @@ export async function getStaffClaims(supabase: StaffAuthClient): Promise<StaffSe
   return claims;
 }
 
-export async function requireStaffClaims(supabase: StaffAuthClient): Promise<StaffSession> {
-  const claims = await getStaffClaims(supabase);
+/**
+ * INT-09 / D-16 / D-16a / D-16b: applies staffGateDecision on every call — only the admin, and
+ * aal2 once a verified factor exists. Mirrors app.is_staff()/app.is_admin() in SQL.
+ */
+function gateClaims(claims: StaffSession | null): StaffSession {
   if (!claims) throw new OpsAuthError("no-session");
-  const role = staffRole(claims.app_metadata?.vamos_role);
-  if (!role) throw new OpsAuthError("not-staff");
-  // MFA paused: only the admin uses the dashboard (Koss 2026-09-01).
+  const decision = staffGateDecision({
+    role: claims.app_metadata?.vamos_role,
+    currentLevel: claims.aal,
+    nextLevel: claims.nextLevel,
+  });
+  if (decision === "deny") throw new OpsAuthError("not-staff");
+  if (decision === "step-up") throw new OpsAuthError("needs-mfa");
   return claims;
 }
 
+export async function requireStaffClaims(supabase: StaffAuthClient): Promise<StaffSession> {
+  return gateClaims(await getStaffClaims(supabase));
+}
+
 export async function requireAdminClaims(supabase: StaffAuthClient): Promise<StaffSession> {
-  const claims = await requireStaffClaims(supabase);
-  if (claims.app_metadata?.vamos_role !== "admin") throw new OpsAuthError("not-admin");
-  return claims;
+  const claims = await getStaffClaims(supabase);
+  // A dispatcher is a known staff role that is not admin: keep the precise reason.
+  if (claims && staffRole(claims.app_metadata?.vamos_role) === "dispatcher") {
+    throw new OpsAuthError("not-admin");
+  }
+  return gateClaims(claims);
 }
