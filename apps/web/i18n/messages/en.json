@@ -510,6 +510,8 @@
     "total": "Total",
     "vatIncl": "8.1% VAT",
     "fareExVat": "Fare",
+    "routePair": "{origin} – {destination} route",
+    "routePairPlain": "Route price",
     "yourDriverIsBooked": "Your booking is confirmed",
     "needsPayment": "waiting payment",
     "bookingUnpaidTitle": "A pay link was emailed",

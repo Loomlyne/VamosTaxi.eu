@@ -510,6 +510,8 @@
     "total": "Total",
     "vatIncl": "TVA 8,1 %",
     "fareExVat": "Course",
+    "routePair": "Trajet {origin} – {destination}",
+    "routePairPlain": "Prix du trajet",
     "yourDriverIsBooked": "Votre réservation est confirmée",
     "needsPayment": "paiement en attente",
     "bookingUnpaidTitle": "Un lien de paiement a été envoyé",

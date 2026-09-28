@@ -38,6 +38,7 @@ import type { QuoteErrorCode } from "./errors";
 import {
   mintLock as defaultMintLock,
   verifyLock as defaultVerifyLock,
+  type LockPriceRow,
   type LockSecrets,
   type QuoteLockPayload,
 } from "./lock";
@@ -172,6 +173,8 @@ export type ResolvedPlace = {
   canton?: string | null;
   /** D-10/26.1-09: Mapbox context.place.mapbox_id — language-independent city identity. */
   cityId?: string | null;
+  /** 26.1-11: Mapbox context.place.name in the request language — display only. */
+  cityName?: string | null;
   /** D-08b/26.1-09: true when the resolved place is a Mapbox airport POI. */
   isAirport?: boolean;
 };
@@ -298,6 +301,7 @@ async function defaultResolvePlace(
     let text = place.text ?? "";
     let canton: string | null = null;
     let cityId: string | null = null;
+    let cityName: string | null = null;
     let isAirport = false;
     try {
       // D-37: Geocoding v6 /reverse on the quote path.
@@ -312,12 +316,13 @@ async function defaultResolvePlace(
       if (got.place) {
         canton = got.place.canton;
         cityId = got.place.cityId;
+        cityName = got.place.cityName;
         isAirport = got.place.isAirport;
       }
     } catch {
       // Pin already carries coordinates — a reverse miss is not unresolved.
     }
-    return { lng: place.lng, lat: place.lat, text, canton, cityId, isAirport };
+    return { lng: place.lng, lat: place.lat, text, canton, cityId, cityName, isAirport };
   }
   const retrieve = deps.retrieve ?? defaultRetrieve;
   // D-37: Search Box /retrieve on the quote path.
@@ -338,6 +343,7 @@ async function defaultResolvePlace(
     place_id: got.place.mapbox_id,
     canton: got.place.canton,
     cityId: got.place.cityId,
+    cityName: got.place.cityName,
     isAirport: got.place.isAirport,
   };
 }
@@ -399,6 +405,9 @@ function toQuoteInput(
         origin_is_airport: origin.isAirport === true,
         origin_city_id: origin.cityId ?? null,
         dest_city_id: dest.cityId ?? null,
+        // 26.1-11: display-only names for the pair row label.
+        origin_city_name: origin.cityName ?? null,
+        dest_city_name: dest.cityName ?? null,
       };
     }),
     extras: extrasToRecord(request.extras),
@@ -446,6 +455,8 @@ function inputFromLock(
         origin_is_airport: leg.origin_is_airport === true,
         origin_city_id: leg.origin_city_id ?? null,
         dest_city_id: leg.dest_city_id ?? null,
+        origin_city_name: leg.origin_city_name ?? null,
+        dest_city_name: leg.dest_city_name ?? null,
       };
     }),
     extras: extrasToRecord(extras ?? lock.extras ?? undefined),
@@ -484,6 +495,43 @@ async function mintSuccess(args: {
     policy: args.quote.policy,
     ...(args.coupon !== undefined ? { coupon: args.coupon } : {}),
   };
+}
+
+/**
+ * 26.1-11 / UI-SPEC §8: the airport pickup fee and the matched route pair per
+ * class, pinned on the lock so checkout can show them as their own rows on
+ * every entry path (home hand-off, relock, reprice). Display only — the charge
+ * still comes from class_totals and the kernel re-run at intent time.
+ */
+function priceRows(
+  classes: ClassBoardEntry[],
+): QuoteLockPayload["price_rows"] {
+  const rows: NonNullable<QuoteLockPayload["price_rows"]> = [];
+  for (const c of classes) {
+    const lines: LockPriceRow[] = [];
+    for (const line of c.lines) {
+      if (line.code !== "airport_fee" && line.code !== "fixed_route") continue;
+      const origin = line.params?.origin;
+      const destination = line.params?.destination;
+      lines.push({
+        code: line.code,
+        leg_seq: line.leg_seq ?? 1,
+        amount_rappen: line.amount_rappen,
+        ...(typeof origin === "string" && typeof destination === "string"
+          ? { params: { origin, destination } }
+          : {}),
+      });
+    }
+    if (lines.length > 0) rows.push({ slug: c.slug, lines });
+  }
+  return rows.length > 0 ? rows : undefined;
+}
+
+function priceRowsField(
+  classes: ClassBoardEntry[],
+): Pick<QuoteLockPayload, "price_rows"> | Record<string, never> {
+  const rows = priceRows(classes);
+  return rows ? { price_rows: rows } : {};
 }
 
 function classTotals(
@@ -743,6 +791,8 @@ export async function runQuotePipeline(
         ...(dest.canton ? { dest_canton: dest.canton } : {}),
         ...(origin.cityId ? { origin_city_id: origin.cityId } : {}),
         ...(dest.cityId ? { dest_city_id: dest.cityId } : {}),
+        ...(origin.cityName ? { origin_city_name: origin.cityName } : {}),
+        ...(dest.cityName ? { dest_city_name: dest.cityName } : {}),
         ...(origin.isAirport ? { origin_is_airport: true } : {}),
         waypoints:
           i === 0
@@ -766,6 +816,7 @@ export async function runQuotePipeline(
       : null,
     coupon: request.coupon ?? null,
     class_totals: classTotals(priced.quote.classes),
+    ...priceRowsField(priced.quote.classes),
   };
 
   return mintSuccess({
@@ -969,6 +1020,8 @@ export async function runRepricePipeline(
     extras,
     coupon: couponCode,
     class_totals: classTotals(priced.quote.classes),
+    // 26.1-11: re-signed from the new board — never inherited from the old lock.
+    price_rows: priceRows(priced.quote.classes),
     legs: lock.legs.map((leg, i) => {
       const live = route.legs[i];
       return {

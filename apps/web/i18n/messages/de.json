@@ -510,6 +510,8 @@
     "total": "Total",
     "vatIncl": "8,1 % MwSt.",
     "fareExVat": "Fahrtpreis",
+    "routePair": "Strecke {origin} – {destination}",
+    "routePairPlain": "Streckenpreis",
     "yourDriverIsBooked": "Ihre Buchung ist bestätigt",
     "needsPayment": "Zahlung offen",
     "bookingUnpaidTitle": "Ein Zahlungslink wurde gesendet",

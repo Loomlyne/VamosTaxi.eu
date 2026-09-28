@@ -61,6 +61,7 @@ import {
 } from "@/lib/checkout/extras-catalog";
 import { CH_VAT_RATE_BPS, payableWithVatRappen, vatOnTopRappen } from "@/lib/checkout/vat";
 import { payableRappen } from "@/lib/checkout/payable";
+import { breakdownRappen, breakdownRows, peekLockPriceRows } from "@/lib/checkout/price-rows";
 import { decodeClientSecret } from "@/lib/checkout/client-secret";
 import { lockFlightNoDiffers } from "@/lib/checkout/flight-no";
 import { checkoutTraveler } from "@/lib/checkout/checkout-traveler";
@@ -296,6 +297,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const tHome = useTranslations("home");
   const tAccount = useTranslations("account");
   const tAuth = useTranslations("auth");
+  const tPriceLine = useTranslations("price.line");
   const router = useRouter();
   const { cur } = useVamosLocale();
   const fx = useFx();
@@ -1564,7 +1566,28 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const chargedRappen =
     netRappen == null || vatRappen == null ? null : netRappen + vatRappen;
   const shown = chfRappenToDisplay(chargedRappen, displayCur, fx.rates?.rates ?? null);
-  const fareRappen = netRappen == null ? null : Math.max(0, netRappen - extraGross);
+  // 26.1-11 / UI-SPEC §8: the airport pickup fee and the matched route pair are
+  // their own rows, read from the signed lock's price_rows for the chosen class.
+  // An unpriced class keeps every row at the CHF 000 mark (Law 04).
+  const breakdown = breakdownRows(
+    peekLockPriceRows(lockToken, paySlug || vehicle),
+    (key, values) => (key === "airport_fee" ? tPriceLine("airport_fee") : t(key, values)),
+    (rappen) =>
+      classRappen == null
+        ? null
+        : chfRappenToDisplay(rappen, displayCur, fx.rates?.rates ?? null).major,
+  );
+  const breakdownLines = breakdown.map((row) => ({
+    label: <span data-checkout-breakdown={row.code}>{row.label}</span>,
+    amount: row.amount,
+    icon: row.icon,
+  }));
+  // The fare row is what is left once extras and the breakdown rows are drawn
+  // on their own, so the rows still add up to the charged total.
+  const fareRappen =
+    netRappen == null
+      ? null
+      : Math.max(0, netRappen - extraGross - breakdownRappen(breakdown));
   const vatShown = chfRappenToDisplay(vatRappen, displayCur, fx.rates?.rates ?? null);
   const wasNet =
     wasRappen != null && netRappen != null && wasRappen > netRappen ? wasRappen : null;
@@ -1582,9 +1605,10 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const couponOffShown = chfRappenToDisplay(couponOffRappen, displayCur, fx.rates?.rates ?? null);
   const priceLines =
     chargedRappen == null
-      ? []
+      ? breakdownLines
       : [
           { label: t("fareExVat"), amount: fareShown.major },
+          ...breakdownLines,
           ...recapFareRows
             .filter((row) => row.amount_rappen != null)
             .map((row) => {

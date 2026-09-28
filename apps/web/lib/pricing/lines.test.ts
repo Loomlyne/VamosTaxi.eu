@@ -64,6 +64,8 @@ function leg(partial: Partial<QuoteLegInput> = {}): QuoteLegInput {
     origin_is_airport: partial.origin_is_airport,
     origin_city_id: partial.origin_city_id,
     dest_city_id: partial.dest_city_id,
+    origin_city_name: partial.origin_city_name,
+    dest_city_name: partial.dest_city_name,
   };
 }
 
@@ -1873,6 +1875,69 @@ describe("Comment 8 city and canton pair extra", () => {
     });
     expect(extra?.basis.matched).toBe("city");
     expect(extra?.amount_rappen).toBe(7_700);
+  });
+});
+
+describe("26.1-11 pair line carries the two place names (UI-SPEC §8)", () => {
+  const berlinZone: ZoneRow = {
+    id: "z-berlin",
+    slug: "berlin",
+    iata: null,
+    active: true,
+    zone_type: "city",
+    tags: ["mapbox_place:place.berlin"],
+  };
+  const parisZone: ZoneRow = {
+    id: "z-paris-city",
+    slug: "paris",
+    iata: null,
+    active: true,
+    zone_type: "city",
+    tags: ["mapbox_place:place.paris"],
+  };
+  const row = fixed({
+    vehicle_class_id: business.id,
+    origin_zone_id: "z-paris-city",
+    dest_zone_id: "z-berlin",
+    price_rappen: 5_000,
+    live: true,
+    kind: "city",
+  });
+  const ids = {
+    origin_zone_id: "z-berlin",
+    dest_zone_id: "z-paris-city",
+    origin_city_id: "place.berlin",
+    dest_city_id: "place.paris",
+  };
+
+  function build(partial: Partial<QuoteLegInput>) {
+    return buildFixedRouteExtraLine({
+      leg: leg({ ...ids, ...partial }),
+      vehicleClass: business,
+      fixedRoutes: [row],
+      rateVersionId: 1,
+      zones: [berlinZone, parisZone],
+    });
+  }
+
+  it("stamps params { origin, destination } in the leg's own direction when both names are known", () => {
+    const extra = build({ origin_city_name: "Berlin", dest_city_name: "Paris" });
+    expect(extra?.code).toBe("fixed_route");
+    expect(extra?.params).toEqual({ origin: "Berlin", destination: "Paris" });
+  });
+
+  it("carries no params when a name is missing or blank", () => {
+    expect(build({ origin_city_name: "Berlin", dest_city_name: null })?.params).toBeUndefined();
+    expect(build({ origin_city_name: "  ", dest_city_name: "Paris" })?.params).toBeUndefined();
+    expect(build({})?.params).toBeUndefined();
+  });
+
+  it("names never change the match or the amount", () => {
+    const named = build({ origin_city_name: "Rome", dest_city_name: "Oslo" });
+    const plain = build({});
+    expect(named?.amount_rappen).toBe(plain?.amount_rappen);
+    expect(named?.basis).toEqual(plain?.basis);
+    expect(named?.source_row).toEqual(plain?.source_row);
   });
 });
 
