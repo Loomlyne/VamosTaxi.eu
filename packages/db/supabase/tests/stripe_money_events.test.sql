@@ -226,7 +226,7 @@ select is(
   1, 'A: exactly one booking_refunds row'
 );
 select is(
-  (select b.refunded_rappen from public.bookings b join sm_a a on a.booking_id = b.id),
+  (select b.refunded_rappen::int from public.bookings b join sm_a a on a.booking_id = b.id),
   2, 'A: booking refund effects applied once'
 );
 
@@ -253,7 +253,7 @@ select is(
   1, 'B: exactly one booking_refunds row'
 );
 select is(
-  (select b.refunded_rappen from public.bookings b join sm_b a on a.booking_id = b.id),
+  (select b.refunded_rappen::int from public.bookings b join sm_b a on a.booking_id = b.id),
   2, 'B: booking refund effects applied once'
 );
 
@@ -271,7 +271,7 @@ select is(
   (select payment_id from sm_c), 'C: row points at the exact payment row'
 );
 select is(
-  (select b.refunded_rappen from public.bookings b join sm_c c on c.booking_id = b.id),
+  (select b.refunded_rappen::int from public.bookings b join sm_c c on c.booking_id = b.id),
   6, 'C: refunded_rappen carries the refund'
 );
 select is(
@@ -287,7 +287,7 @@ select is(
   1, 'C: exactly one row after the replay'
 );
 select is(
-  (select b.refunded_rappen from public.bookings b join sm_c c on c.booking_id = b.id),
+  (select b.refunded_rappen::int from public.bookings b join sm_c c on c.booking_id = b.id),
   6, 'C: replay does not double the booking effect'
 );
 select is(
@@ -306,7 +306,7 @@ select is(
   (select payment_id from sm_d), 'D: session fallback resolves the exact payment row'
 );
 select is(
-  (select b.refunded_rappen from public.bookings b join sm_d d on d.booking_id = b.id),
+  (select b.refunded_rappen::int from public.bookings b join sm_d d on d.booking_id = b.id),
   2, 'D: partial refund adds to refunded_rappen'
 );
 select is(
@@ -318,7 +318,7 @@ select is(
   'recorded', 'D: the second partial refund is recorded'
 );
 select is(
-  (select b.refunded_rappen from public.bookings b join sm_d d on d.booking_id = b.id),
+  (select b.refunded_rappen::int from public.bookings b join sm_d d on d.booking_id = b.id),
   6, 'D: refunded_rappen sums both refunds'
 );
 select is(
@@ -354,7 +354,7 @@ select is(
   'E: row points at the duplicate payment, not the booking''s original'
 );
 select is(
-  (select coalesce(b.refunded_rappen, 0) from public.bookings b join sm_e e on e.booking_id = b.id),
+  (select coalesce(b.refunded_rappen, 0)::int from public.bookings b join sm_e e on e.booking_id = b.id),
   0, 'E: booking refunded_rappen unchanged'
 );
 select is(
