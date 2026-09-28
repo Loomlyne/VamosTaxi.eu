@@ -116,12 +116,12 @@ select has_column(
   'booking_payments.stripe_fee_rappen exists (D-31)'
 );
 
-select function_privs_are('public', 'ops_refund_record', '{uuid,int8,text,uuid,rappen}'::text[], 'anon', '{}'::text[], 'ops_refund_record: anon holds no EXECUTE');
-select function_privs_are('public', 'ops_refund_record', '{uuid,int8,text,uuid,rappen}'::text[], 'authenticated', '{}'::text[], 'ops_refund_record: authenticated holds no EXECUTE');
-select function_privs_are('public', 'ops_refund_record', '{uuid,int8,text,uuid,rappen}'::text[], 'vamos_staff', '{}'::text[], 'ops_refund_record: vamos_staff holds no EXECUTE');
-select function_privs_are('public', 'ops_refund_record', '{uuid,int8,text,uuid,rappen}'::text[], 'vamos_guest', '{}'::text[], 'ops_refund_record: vamos_guest holds no EXECUTE');
-select function_privs_are('public', 'ops_refund_record', '{uuid,int8,text,uuid,rappen}'::text[], 'vamos_public', '{}'::text[], 'ops_refund_record: vamos_public holds no EXECUTE');
-select function_privs_are('public', 'ops_refund_record', '{uuid,int8,text,uuid,rappen}'::text[], 'vamos_system', '{EXECUTE}'::text[], 'ops_refund_record: vamos_system holds EXECUTE');
+select function_privs_are('public', 'ops_refund_record', '{uuid,int8,text,uuid,rappen,text,rappen}'::text[], 'anon', '{}'::text[], 'ops_refund_record: anon holds no EXECUTE');
+select function_privs_are('public', 'ops_refund_record', '{uuid,int8,text,uuid,rappen,text,rappen}'::text[], 'authenticated', '{}'::text[], 'ops_refund_record: authenticated holds no EXECUTE');
+select function_privs_are('public', 'ops_refund_record', '{uuid,int8,text,uuid,rappen,text,rappen}'::text[], 'vamos_staff', '{}'::text[], 'ops_refund_record: vamos_staff holds no EXECUTE');
+select function_privs_are('public', 'ops_refund_record', '{uuid,int8,text,uuid,rappen,text,rappen}'::text[], 'vamos_guest', '{}'::text[], 'ops_refund_record: vamos_guest holds no EXECUTE');
+select function_privs_are('public', 'ops_refund_record', '{uuid,int8,text,uuid,rappen,text,rappen}'::text[], 'vamos_public', '{}'::text[], 'ops_refund_record: vamos_public holds no EXECUTE');
+select function_privs_are('public', 'ops_refund_record', '{uuid,int8,text,uuid,rappen,text,rappen}'::text[], 'vamos_system', '{EXECUTE}'::text[], 'ops_refund_record: vamos_system holds EXECUTE');
 
 select function_privs_are('public', 'ops_cancel_booking', '{uuid,uuid}'::text[], 'anon', '{}'::text[], 'ops_cancel_booking: anon holds no EXECUTE');
 select function_privs_are('public', 'ops_cancel_booking', '{uuid,uuid}'::text[], 'authenticated', '{}'::text[], 'ops_cancel_booking: authenticated holds no EXECUTE');

@@ -3,6 +3,9 @@
 -- 09-01 Wave 0: D-02 windows vs original_scheduled_at AT TIME ZONE Europe/Zurich (D-26).
 -- D-04: auto_full is 100% of captured charged_rappen after coupon, not snapshot list.
 -- Windows: >24h auto_full; 24h–6h pending_ops; ≤6h none. After pickup: none.
+-- 26.1-17 D-24 (owner, 2026-09-27): everything inside 24 h -- including ≤6h and after pickup --
+-- is now pending_ops: the admin approves and sets the percentage. The ≤6h / after-pickup
+-- assertions below were updated to pending_ops, not deleted.
 -- LIFE-02 live percent-inside-24h tier is superseded — D-02 has no such live tier.
 -- Synthetic integer rappen only (comment rolled back, never a real amount). No LX1234. No TRIP.
 begin;
@@ -228,8 +231,8 @@ select is(
 
 select is(
   (select refund_mode from public.compute_cancellation_refund((select none_window from fx))),
-  'none',
-  'D-02: ≤6h → none'
+  'pending_ops',
+  'D-24 (supersedes D-02 ≤6h none): ≤6h → pending_ops, the admin decides'
 );
 
 select is(
@@ -240,13 +243,13 @@ select is(
 
 select is(
   (select refund_mode from public.compute_cancellation_refund((select after_pickup from fx))),
-  'none',
-  'D-02: after original pickup, refund_mode none'
+  'pending_ops',
+  'D-24 (supersedes D-02 after-pickup none): after original pickup, refund_mode pending_ops'
 );
 
 select lives_ok(
   $$ select * from public.manage_booking_cancel(extensions.digest('lc9-d02-afterpickup', 'sha256')) $$,
-  'after original pickup cancel allowed, refund_mode none (D-02)'
+  'after original pickup cancel allowed (D-02); refund is admin-reviewed (D-24)'
 );
 
 select function_privs_are(
