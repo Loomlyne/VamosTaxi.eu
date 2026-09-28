@@ -53,6 +53,7 @@
   text-decoration: none;
   color: var(--vt-charcoal-900);
   overflow: hidden;
+  container-type: inline-size;
 }
 
 [data-svc-cta]:hover,
@@ -78,7 +79,9 @@
   display: block;
   margin-block-start: 10px;
   font-family: var(--vt-font-display);
-  font-size: clamp(22px, 2.2vw, 28px);
+  /* Capped by the card's content width so the long DE headline, the kicker
+     and the pill all fit the 4-up card (259px at 1440, 240px at ~1104). */
+  font-size: min(clamp(22px, 2.2vw, 28px), max(17px, 9cqi));
   font-weight: var(--vt-weight-semibold);
   letter-spacing: var(--vt-heading-tracking);
   line-height: 1.12;
