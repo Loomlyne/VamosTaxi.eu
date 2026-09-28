@@ -1,13 +1,18 @@
 // apps/web/app/[locale]/(ops)/api/staff/bookings/[id]/refund/route.ts
 //
-// POST /api/staff/bookings/:id/refund — Stripe-first full refund.
-// Dual-mounted at app/api/staff/bookings/[id]/refund.
+// POST /api/staff/bookings/:id/refund — Stripe-first refund, admin only (26.1-17).
+//   {}                 full remaining (today's behaviour)
+//   { percent: 0-100 } D-24: the admin's percentage of captured (integer)
+//   { postTrip: true } D-25: accept a post-trip request (full remaining, reason post_trip)
+//   { rappen }         09-05: an exact amount, capped at the remaining capture
+// Decline / reject live on ./refund-decision. Dual-mounted at app/api/staff/bookings/[id]/refund.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { sendRefund, refundMailRecipients } from "@vamos/emails/confirmation";
 import type { EmailLocale } from "@vamos/emails/confirmation";
 import { refundBooking } from "@/lib/ops/refund";
-import { jsonErr, jsonOk, withStaff } from "@/lib/ops/staff-json";
+import { parseRefundBody, type RefundRequest } from "@/lib/ops/refund-map";
+import { jsonErr, jsonOk, withAdmin } from "@/lib/ops/staff-json";
 
 export const dynamic = "force-dynamic";
 
@@ -21,8 +26,16 @@ function bookingKey(request: Request): string | null {
 
 function failStatus(code: string): number {
   if (code === "not-found") return 404;
-  if (code === "csrf") return 403;
-  if (code === "frozen" || code === "not-paid" || code === "already-refunded") return 409;
+  if (code === "csrf" || code === "not-admin") return 403;
+  if (
+    code === "frozen" ||
+    code === "not-paid" ||
+    code === "already-refunded" ||
+    code === "not-post-trip" ||
+    code === "refund-exceeds-remaining"
+  ) {
+    return 409;
+  }
   if (code === "stripe-failed" || code === "stripe-test-only") return 502;
   return 400;
 }
@@ -32,28 +45,19 @@ function emailLocale(raw: string): EmailLocale {
   return "en";
 }
 
-function requestedAmount(body: unknown): { percent?: number; rappen?: number } {
-  if (!body || typeof body !== "object" || Array.isArray(body)) return {};
-  const record = body as Record<string, unknown>;
-  const out: { percent?: number; rappen?: number } = {};
-  if (typeof record.percent === "number" && Number.isFinite(record.percent)) {
-    out.percent = record.percent;
-  }
-  if (typeof record.rappen === "number" && Number.isFinite(record.rappen)) {
-    out.rappen = Math.trunc(record.rappen);
-  }
-  return out;
-}
-
-export const POST = withStaff(async (claims, request) => {
+export const POST = withAdmin(async (claims, request) => {
   const id = bookingKey(request);
   if (!id) return jsonErr("not-found", 404);
-  let requested: { percent?: number; rappen?: number } = {};
+  let body: unknown = {};
   try {
-    requested = requestedAmount(await request.json());
+    body = await request.json();
   } catch {
-    requested = {};
+    body = {};
   }
+  // T-26.1-54: integer percent 0-100 ("invalid-percent"); the amount is computed server-side.
+  const parsed = parseRefundBody(body);
+  if (!parsed.ok) return jsonErr(parsed.code, 400);
+  const requested: RefundRequest = parsed.value;
   const { env } = getCloudflareContext();
   const result = await refundBooking(env, claims, id, requested);
   if (!result.ok) return jsonErr(result.code, failStatus(result.code));
