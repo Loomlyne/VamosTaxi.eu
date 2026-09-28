@@ -23,7 +23,7 @@ Layout uses container queries, so the width buttons show the real phone / tablet
 layouts.
 
 ## Variants
-- **A: Two screens** — home card (From, To, When, Travellers) → one checkout page with three
+- **A: Two screens** (recommended; boards: `variant-A-phone-390.png`, `variant-A-tablet-768.png`) — home card (From, To, When, Travellers) → one checkout page with three
   numbered sections (class with prices, who is travelling, payment). Sticky summary rail on
   desktop, sticky total + Pay bar on phone/tablet. Merges the three checkout routes into one.
   Closest to the current code.

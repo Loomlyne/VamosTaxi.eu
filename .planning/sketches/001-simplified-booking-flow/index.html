@@ -231,8 +231,12 @@ details.more .more-b{padding-block-end:16px}
 .strip{margin-block-start:18px;padding-block-start:18px;border-block-start:1px solid var(--vt-border-subtle);display:grid;gap:12px}
 .strip-h{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
 .strip .clsgrid{grid-template-columns:1fr}
-@container vp (min-width:1080px){.strip .clsgrid{grid-template-columns:repeat(3,minmax(0,1fr))}.strip .cls{grid-template-columns:72px 1fr;padding-inline-end:12px}.strip .cls img{inline-size:72px;block-size:56px}.strip .cls-p{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;text-align:start}}
-.strip .cls-p small{margin-inline-end:auto;margin-inline-start:8px}
+.strip[data-noph]{display:none}
+@container vp (min-width:700px){.strip[data-noph]{display:grid}}
+.strip .cls-p{display:grid;justify-items:end;gap:2px}
+.strip .cls-p .btn{margin-block-start:6px}
+@container vp (min-width:1080px){.strip .clsgrid{grid-template-columns:repeat(3,minmax(0,1fr))}.strip .cls{grid-template-columns:72px 1fr;padding-inline-end:12px}.strip .cls img{inline-size:72px;block-size:56px}.strip .cls-p{grid-column:1/-1;display:flex;gap:0;justify-content:space-between;align-items:center;text-align:start}}
+@container vp (min-width:1080px){.strip .cls-p small{margin-inline-end:auto;margin-inline-start:8px}.strip .cls-p .btn{margin-block-start:0}}
 .strip .cls-p .btn{block-size:36px;padding-inline:14px;font-size:12px}
 
 .below{padding-block:48px 56px}
@@ -406,7 +410,7 @@ const PLACES=[
   {label:'St. Moritz',sub:'Via Maistra, 7500 St. Moritz'}
 ];
 const NOTES={
-  a:['<b>Today:</b> 4 screens, trip typed twice, flight asked up to 3×','<b>A:</b> 2 screens — home, then one checkout page (class → you → pay)','<b>Pay taps:</b> 1 sticky button','<b>Closest to what exists</b> — merges /trip, /details, /payment'],
+  a:['<b>Today:</b> 4 screens, trip typed twice, flight asked up to 3×','<b>A:</b> 2 screens — home, then one checkout page (class → you → pay)','<b>Pay taps:</b> 1 sticky button','<b>Tablet/desktop:</b> prices show in the home card; picking one preselects the class'],
   b:['<b>Today:</b> 4 screens, dense forms on phone','<b>B:</b> 6 short steps, one question each, same on every size','<b>Phone:</b> thumb-reach Next bar, big targets','<b>Desktop:</b> live summary beside the question'],
   c:['<b>Today:</b> 3 page loads before paying','<b>C:</b> 0 page loads — prices appear in the home card, checkout slides in','<b>Phone:</b> bottom sheet · <b>tablet/desktop:</b> side drawer','<b>Biggest change</b> to the funnel']
 };
@@ -579,7 +583,10 @@ function aHome(){
       <div class="bk-route">${fromField()}<button class="swap" data-act="swap" aria-label="Swap pickup and drop-off">${ic('arrow-left-right')}</button>${toField()}</div>
       ${whenField()}${partyField()}
       <button class="btn btn-primary btn-lg bk-cta" data-act="a-go">See prices ${ic('arrow-right','ic-sm')}</button>
-    </div>${trust}</div></div><div style="block-size:56px"></div>`+footer();
+    </div>
+    ${t_ok()?`<div class="strip" data-noph><div class="strip-h"><p class="kick">Fixed prices for this route</p><span class="hint">Pick one to skip a step</span></div>
+      <div class="clsgrid">${CLASSES.map(c=>classCard(c,{act:'a-sel',priceBtn:true})).join('')}</div></div>`:''}
+    ${trust}</div></div><div style="block-size:56px"></div>`+footer();
 }
 function aCheckout(){
   const e=S.errors;
@@ -728,6 +735,7 @@ document.addEventListener('click',ev=>{
     party(){S.ui.party=!S.ui.party;render()},
     step(){const k=t.dataset.k;S.trip[k]=Math.max(k==='pax'?1:0,Math.min(12,S.trip[k]+ +t.dataset.d));if(S.cls&&!fits(cls()))S.cls=null;render()},
     'a-go'(){const e=vTrip();if(any(e))return showErrors(e);S.errors={};S.ui.party=false;S.a.screen='co';render({top:true})},
+    'a-sel'(){const e=vTrip();if(any(e))return showErrors(e);S.errors={};S.cls=t.dataset.id;S.ui.party=false;S.a.screen='co';render({top:true})},
     cls(){S.cls=t.dataset.id;delete S.errors.cls;render()},
     sum(){S.ui.sum=!S.ui.sum;render()},
     voucher(){S.ui.voucher=true;render();$('#f-voucher')?.focus()},
