@@ -2300,6 +2300,8 @@ export type Database = {
       vehicle_classes: {
         Row: {
           active: boolean
+          hidden_at: string | null
+          hidden_reason: string | null
           id: string
           luggage_capacity: number
           name: string | null
@@ -2310,6 +2312,8 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          hidden_at?: string | null
+          hidden_reason?: string | null
           id?: string
           luggage_capacity: number
           name?: string | null
@@ -2320,6 +2324,8 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          hidden_at?: string | null
+          hidden_reason?: string | null
           id?: string
           luggage_capacity?: number
           name?: string | null
@@ -3025,6 +3031,10 @@ export type Database = {
           booking_id: string
           leg_id: string
         }[]
+      }
+      ops_vehicle_class_delete_or_hide: {
+        Args: { p_id: string; p_reason: string }
+        Returns: string
       }
       quote_lock_deadline: {
         Args: { p_settings_version_id: number }

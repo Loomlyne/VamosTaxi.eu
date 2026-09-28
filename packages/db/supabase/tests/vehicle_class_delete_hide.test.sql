@@ -107,7 +107,13 @@ insert into public.price_snapshots (
 select
   gen_random_uuid(), vh.snap, vh.draft_rv, false,
   (select id from public.settings_versions order by id limit 1),
-  'quote-engine@26.1-19-vh', 2, 2, '[]'::jsonb, '{}'::jsonb,
+  'quote-engine@26.1-19-vh', 2, 2, '[]'::jsonb,
+  jsonb_build_object(
+    'cancellation_tiers', '[]'::jsonb, 'free_cancel_hours', 24,
+    'airport_waiting_minutes', 60, 'city_waiting_minutes', 15,
+    'settings_version_id', (select id from public.settings_versions order by id limit 1),
+    'modification_deadline_hours', 24, 'min_advance_minutes', 180, 'policy_doc', 'vh'
+  ),
   8000, 0, 0, 8000,
   now() + interval '1 day', now() + interval '1 day', b.id
 from public.bookings b cross join vh
