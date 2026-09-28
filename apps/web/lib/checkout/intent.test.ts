@@ -904,3 +904,73 @@ describe("18-08 Stripe gates", () => {
     expect(stripe).toMatch(/Do not pass `payment_method_types`/);
   });
 });
+
+describe("runCheckoutIntent — flight number must match the lock (D-08b, 26.1-30)", () => {
+  function flightLock(flight: string | null): QuoteLockPayload {
+    const base = payload();
+    const leg = base.legs[0]!;
+    return payload({ legs: [{ ...leg, flight_no: flight }] });
+  }
+
+  async function run(p: QuoteLockPayload, flightNo: string | null | undefined) {
+    const body = await bodyFor(p);
+    if (flightNo !== undefined) body.flight_no = flightNo;
+    const create = vi.fn(async () => ({
+      id: "cs_test_1",
+      client_secret: "cs_test_1_secret",
+      payment_intent: "pi_test_1",
+      currency: "chf",
+    }));
+    const rpc = vi.fn(async () => ({
+      booking_id: "00000000-0000-4000-8000-000000000099",
+      reference: "VT-10001",
+      snapshot_id: 1,
+      payment_id: 1,
+      replayed: false,
+    }));
+    const res = await runCheckoutIntent(
+      body,
+      deps(p, {
+        createCheckoutSession: create as unknown as CheckoutIntentDeps["createCheckoutSession"],
+        createBooking: rpc as unknown as CheckoutIntentDeps["createBooking"],
+      }),
+    );
+    return { res, create, rpc };
+  }
+
+  it("refuses price_changed when the details flight number is not in the lock — no Stripe, no booking", async () => {
+    const { res, create, rpc } = await run(flightLock(null), "LX1234");
+    expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({ code: "price_changed", action: "requote" });
+    expect(create).not.toHaveBeenCalled();
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("refuses price_changed when the flight number was removed after the lock priced it", async () => {
+    const { res, create } = await run(flightLock("LX1234"), null);
+    expect(res.status).toBe(409);
+    expect(((await res.json()) as { code: string }).code).toBe("price_changed");
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it("refuses price_changed when the flight number differs from the lock's", async () => {
+    const { res, create } = await run(flightLock("LX1234"), "LX999");
+    expect(res.status).toBe(409);
+    expect(((await res.json()) as { code: string }).code).toBe("price_changed");
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it("proceeds when the flight number equals the lock's (case and spacing ignored)", async () => {
+    const { res, create, rpc } = await run(flightLock("LX1234"), "lx 1234");
+    expect(res.status).toBe(200);
+    expect(create).toHaveBeenCalled();
+    expect(rpc).toHaveBeenCalled();
+  });
+
+  it("proceeds when both are empty, and when an older client omits flight_no", async () => {
+    const both = await run(flightLock(null), null);
+    expect(both.res.status).toBe(200);
+    const omitted = await run(flightLock("LX1234"), undefined);
+    expect(omitted.res.status).toBe(200);
+  });
+});

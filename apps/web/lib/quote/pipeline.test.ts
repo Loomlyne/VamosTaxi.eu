@@ -6,7 +6,7 @@
 
 import { describe, expect, it } from "vitest";
 import type { ClassBoardEntry, PolicySnapshot, QuoteInput } from "../pricing/types";
-import { mintLock } from "./lock";
+import { mintLock, verifyLock } from "./lock";
 import type { QuoteLockPayload } from "./lock";
 import {
   QUOTE_STEPS,
@@ -696,5 +696,137 @@ describe("runRepricePipeline", () => {
       baseDeps(),
     );
     expect(result).toEqual({ ok: false, code: "untrusted_input" });
+  });
+});
+
+describe("runRepricePipeline — checkout flight number re-signs the lock (D-08b, 26.1-30)", () => {
+  async function quotedNoFlight() {
+    const deps = baseDeps();
+    const first = await runQuotePipeline(validBody(), deps);
+    if (!first.ok) throw new Error("quote failed");
+    return { first, deps };
+  }
+
+  async function lockLegs(token: string) {
+    const verified = await verifyLock(
+      { current: FAKE_SECRET },
+      token,
+      "2026-08-28T12:00:00.000Z",
+    );
+    if (!verified.ok) throw new Error("lock did not verify");
+    return verified.payload.legs;
+  }
+
+  it("a new leg-1 flight number reaches the kernel and is pinned into the re-signed lock", async () => {
+    const { first, deps } = await quotedNoFlight();
+    expect((await lockLegs(first.lock))[0]?.flight_no).toBeNull();
+
+    let captured: QuoteInput | undefined;
+    const again = await runRepricePipeline(
+      {
+        quote_id: first.quote_id,
+        lock: first.lock,
+        locale: "en",
+        display_currency: "CHF",
+        legs: [{ leg_seq: 1, flight_no: " LX1234 " }],
+      },
+      {
+        ...deps,
+        loadAndPrice: async (_env, input) => {
+          captured = input;
+          return pricedOk();
+        },
+      },
+    );
+    expect(again.ok).toBe(true);
+    if (!again.ok) return;
+    // Kernel sees the flight number → airportFeeApplies (D-08b) fires.
+    expect(captured?.legs[0]?.flight_no).toBe("LX1234");
+    expect((await lockLegs(again.lock))[0]?.flight_no).toBe("LX1234");
+    // No route change: same quote identity, same deadline (like coupon-only).
+    expect(again.quote_id).toBe(first.quote_id);
+    expect(again.expires_at).toBe(first.expires_at);
+  });
+
+  it("an explicit null or blank clears the lock's flight number", async () => {
+    const { first, deps } = await quotedNoFlight();
+    const withFlight = await runRepricePipeline(
+      {
+        quote_id: first.quote_id,
+        lock: first.lock,
+        locale: "en",
+        display_currency: "CHF",
+        legs: [{ leg_seq: 1, flight_no: "LX1234" }],
+      },
+      deps,
+    );
+    if (!withFlight.ok) throw new Error("reprice failed");
+    for (const cleared of [null, "   "]) {
+      let captured: QuoteInput | undefined;
+      const again = await runRepricePipeline(
+        {
+          quote_id: withFlight.quote_id,
+          lock: withFlight.lock,
+          locale: "en",
+          display_currency: "CHF",
+          legs: [{ leg_seq: 1, flight_no: cleared }],
+        },
+        {
+          ...deps,
+          loadAndPrice: async (_env, input) => {
+            captured = input;
+            return pricedOk();
+          },
+        },
+      );
+      expect(again.ok).toBe(true);
+      if (!again.ok) return;
+      expect(captured?.legs[0]?.flight_no).toBeNull();
+      expect((await lockLegs(again.lock))[0]?.flight_no).toBeNull();
+    }
+  });
+
+  it("a reprice without legs keeps the lock's flight number", async () => {
+    const { first, deps } = await quotedNoFlight();
+    const withFlight = await runRepricePipeline(
+      {
+        quote_id: first.quote_id,
+        lock: first.lock,
+        locale: "en",
+        display_currency: "CHF",
+        legs: [{ leg_seq: 1, flight_no: "LX1234" }],
+      },
+      deps,
+    );
+    if (!withFlight.ok) throw new Error("reprice failed");
+    const again = await runRepricePipeline(
+      {
+        quote_id: withFlight.quote_id,
+        lock: withFlight.lock,
+        locale: "en",
+        display_currency: "CHF",
+        coupon: "SAVE10",
+      },
+      deps,
+    );
+    expect(again.ok).toBe(true);
+    if (!again.ok) return;
+    expect((await lockLegs(again.lock))[0]?.flight_no).toBe("LX1234");
+  });
+
+  it("refuses a leg_seq the lock does not have", async () => {
+    const { first, deps } = await quotedNoFlight();
+    const result = await runRepricePipeline(
+      {
+        quote_id: first.quote_id,
+        lock: first.lock,
+        locale: "en",
+        display_currency: "CHF",
+        legs: [{ leg_seq: 2, flight_no: "LX1234" }],
+      },
+      deps,
+    );
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.code).toBe("untrusted_input");
   });
 });
