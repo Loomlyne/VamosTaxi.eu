@@ -227,6 +227,8 @@ button,.vt-btn,.vt-iconbtn{box-shadow:none}
 
 <sc-if value="{{ isMfa }}">
 <div data-af-view="mfa" style="display:flex;flex-direction:column;gap:24px">
+<sc-if value="{{ mfaTotp }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-direction:column;gap:24px">
 <div style="display:flex;flex-direction:column;gap:12px">
 <h1 data-af-h1="1" style="font-size:clamp(28px,3.4vw,36px)">Enter the 6-digit code</h1>
 <p data-af-sub="1">Open your authenticator app and type the code it shows.</p>
@@ -244,6 +246,22 @@ button,.vt-btn,.vt-iconbtn{box-shadow:none}
 <div data-af-cta="1" style="width:100%">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" block="{{ yes }}" onClick="{{ submitMfa }}" disabled="{{ mfaDisabled }}" aria-busy="{{ mfaBusy }}" hint-size="100%,54px">Verify</x-import>
 </div>
+</div>
+</sc-if>
+<sc-if value="{{ mfaPasskey }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:24px">
+<div style="display:flex;flex-direction:column;gap:12px">
+<h1 data-af-h1="1" style="font-size:clamp(28px,3.4vw,36px)">One more step</h1>
+<p data-af-sub="1">This account has a passkey. Use it to finish signing in.</p>
+</div>
+<sc-if value="{{ mfaPasskeyFailed }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" role="alert" hint-size="100%,56px">Could not use the passkey. Try again.</x-import>
+</sc-if>
+<div data-af-cta="1" style="width:100%">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" block="{{ yes }}" icon="shield-check" onClick="{{ stepUpPasskey }}" disabled="{{ mfaBusy }}" aria-busy="{{ mfaBusy }}" hint-size="100%,54px">Use your passkey</x-import>
+</div>
+</div>
+</sc-if>
 <button type="button" data-af-link="1" onClick="{{ leaveMfa }}">Use another sign-in</button>
 </div>
 </sc-if>
@@ -283,21 +301,25 @@ class Component extends DCLogic {
     mfaCode: '',
     mfaError: '',
     mfaBusy: false,
+    mfaKind: 'totp',
   };
   componentDidMount() {
     if (this.state.stage === 'returning') this.armExit();
     if (this.state.stage === 'verifying') this.armPasskey();
     this.resumeStepUp();
   }
-  /* An enrolled admin who arrives with an aal1 session (a magic link, or a reload after
-     the password step) lands straight on the code step. The console answers needs-mfa
-     until the session is aal2 (26.1-20); this page only reads that answer. */
+  /* An enrolled admin who arrives with a session that is not strong enough (a magic link,
+     or a reload after the password step) lands straight on the second step. The console
+     answers needs-mfa until the session passes the gate (26.1-20, 26.1-25); this page only
+     reads that answer, then asks mfa-status which step to show. */
   resumeStepUp() {
     if (this.props.frozen || this.props.surface !== 'ops' || this.state.stage !== 'form') return;
     fetch('/api/staff/me', { credentials: 'same-origin' })
       .then((r) => r.json()).catch(() => null)
       .then((json) => {
-        if (json && json.code === 'needs-mfa' && this.state.stage === 'form') this.go({ stage: 'mfa', banner: null });
+        if (json && json.code === 'needs-mfa' && this.state.stage === 'form') {
+          this.stepUpNeed('').then((need) => this.openStepUp(need || 'totp'));
+        }
       });
   }
   componentDidUpdate(prev) {
@@ -376,6 +398,17 @@ class Component extends DCLogic {
       clientExtensionResults: credential.getClientExtensionResults(),
     };
   }
+  /* The one passkey ceremony: Supabase's challenge, the device prompt, then passkey-verify,
+     whose response carries the new session cookies. Used by the form option and the step-up. */
+  async passkeySignIn() {
+    const start = await this.liveAuth({ action: 'passkey-start' });
+    if (!start || !start.challenge_id || !start.options) throw new Error('passkey-start');
+    const credential = await navigator.credentials.get({ publicKey: this.passkeyOptions(start.options) });
+    if (!credential) throw new Error('passkey-cancelled');
+    return this.liveAuth({
+      action: 'passkey-verify', challengeId: start.challenge_id, credential: this.passkeyCredential(credential),
+    });
+  }
   startPasskey = async () => {
     if (this.props.frozen) return this.go({ stage: 'verifying', banner: null });
     if (!window.PublicKeyCredential || !navigator.credentials || !navigator.credentials.get) {
@@ -383,13 +416,7 @@ class Component extends DCLogic {
     }
     this.go({ stage: 'verifying', banner: null });
     try {
-      const start = await this.liveAuth({ action: 'passkey-start' });
-      if (!start || !start.challenge_id || !start.options) throw new Error('passkey-start');
-      const credential = await navigator.credentials.get({ publicKey: this.passkeyOptions(start.options) });
-      if (!credential) throw new Error('passkey-cancelled');
-      const result = await this.liveAuth({
-        action: 'passkey-verify', challengeId: start.challenge_id, credential: this.passkeyCredential(credential),
-      });
+      const result = await this.passkeySignIn();
       await this.applyLive(result, 'signin', 'passkey');
     } catch (e) {
       this.go({ stage: 'form', method: 'password', banner: 'credentials' });
@@ -444,13 +471,34 @@ class Component extends DCLogic {
     });
     return response.ok;
   }
-  /* D-16 / D-16a: with an authenticator app enrolled, the password or magic link is only
-     the first step — the console needs aal2. Without one there is no extra step and no
-     nag. The server enforces aal2 either way (26.1-20); this step is the way to reach it. */
-  async needsStepUp() {
+  /* D-16 / D-16a: with a factor enrolled, the password or magic link is only the first
+     step. An authenticator app needs the code (aal2, also required by SQL). A passkey without
+     the app needs a passkey sign-in, unless this sign-in already was one (26.1-25). Without a
+     factor there is no extra step and no nag. The server enforces it either way. */
+  async stepUpNeed(method) {
     const status = await this.liveAuth({ action: 'mfa-status' });
-    return !!(status && status.ok && status.totp);
+    if (!status || !status.ok) return null;
+    if (status.totp) return 'totp';
+    if (status.passkey && method !== 'passkey') return 'passkey';
+    return null;
   }
+  openStepUp(need) {
+    this.setState({ mfaCode: '', mfaError: '', mfaBusy: false, mfaKind: need === 'passkey' ? 'passkey' : 'totp' });
+    return this.go({ stage: 'mfa', banner: null, password: '' });
+  }
+  stepUpPasskey = async () => {
+    if (this.state.mfaBusy || this.props.frozen) return;
+    if (!window.PublicKeyCredential || !navigator.credentials || !navigator.credentials.get) {
+      return this.setState({ mfaError: 'passkey' });
+    }
+    this.setState({ mfaBusy: true, mfaError: '' });
+    try {
+      const result = await this.passkeySignIn();
+      // Redirect only after result.ok (CLAUDE.local.md): the passkey session cookies ride on it.
+      if (result && result.ok) return this.enterOps();
+    } catch (e) {}
+    this.setState({ mfaBusy: false, mfaError: 'passkey' });
+  };
   async enterOps() {
     // Stamp accepted_at when the RPC exists. Do not treat a missing/failed
     // claim as a bad password — the sole admin must still reach the console.
@@ -490,10 +538,8 @@ class Component extends DCLogic {
     }
     if (this.props.surface === 'ops') {
       if (result.ok) {
-        if (await this.needsStepUp()) {
-          this.setState({ mfaCode: '', mfaError: '', mfaBusy: false });
-          return this.go({ stage: 'mfa', banner: null, password: '' });
-        }
+        const need = await this.stepUpNeed(method);
+        if (need) return this.openStepUp(need);
         return this.enterOps();
       }
       if (mode === 'signin' && method === 'password') {
@@ -563,6 +609,8 @@ class Component extends DCLogic {
       mfaDisabled: this.state.mfaBusy || !/^\d{6}$/.test(this.state.mfaCode),
       mfaMismatch: this.state.mfaError === 'mismatch', mfaLimited: this.state.mfaError === 'limited',
       mfaFailed: this.state.mfaError === 'failed',
+      mfaTotp: this.state.mfaKind !== 'passkey', mfaPasskey: this.state.mfaKind === 'passkey',
+      mfaPasskeyFailed: this.state.mfaError === 'passkey', stepUpPasskey: this.stepUpPasskey,
       submitMfa: this.submitMfa, mfaKey: this.mfaKey, leaveMfa: this.leaveMfa,
       showPasskey: isForm && mode === 'signin' && !isOps,
       startPasskey: this.startPasskey, cancelPasskey: this.cancelPasskey,
