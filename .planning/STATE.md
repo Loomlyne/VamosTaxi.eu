@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Meta measurement
 status: executing
-stopped_at: Completed 26.1-32-PLAN.md
+stopped_at: Phase 26.1 code complete and verified; waiting for owner Ship (26.1-26 task 3)
 last_updated: "2026-09-28T16:03:02.000Z"
 last_activity: 2026-09-28
 progress:
   total_phases: 31
   completed_phases: 17
-  total_plans: 246
-  completed_plans: 222
-  percent: 55
+  total_plans: 248
+  completed_plans: 236
+  percent: 95
 ---
 
 # Project State
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-09-23)
 
 ## Current Position
 
-Phase: 26.1 (Payment and pricing integrity) — EXECUTING
-Plan: 8 of 31
-Status: Ready to execute
-Last activity: 2026-09-28 - Completed quick task 260928-cpn: coupon recovery after a failed reprice; ops detail wording ar, fr, de
+Phase: 26.1 (Payment and pricing integrity) — CODE COMPLETE, WAITING FOR OWNER SHIP
+Plan: 30 of 32 done. Open: 26.1-26 task 3 (owner Ship) and 26.1-28 (post-Ship reconciliation)
+Status: Verified at 16c36338 with 0 gaps (26.1-VERIFICATION.md); two follow-up fixes after that (quick 260928-rld)
+Last activity: 2026-09-28 - Completed quick task 260928-rld: a reprice invalidates the stored payment session; Pay recovers when no card form is mounted
 
 Phase 21 execution note (not current): planning complete — 8 plans. Execution started 2026-09-22 on `gsd/phase-21-charge-gate`. That position was Phase 21 EXECUTING, plan 1 of 8. Phase 21 is not complete. Do not execute Phase 16/17/19/20. Do not touch the main checkout from that branch note.
 
@@ -47,13 +47,15 @@ Stripe live keys and Search Console stay owner-gated. Agent does not click Publi
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260928-lux | Fix phone booking dead end: Show fixed prices goes to checkout trip | 2026-09-28 | 1ef815c3 | [260928-lux-fix-phone-booking-dead-end-show-fixed-pr](./quick/260928-lux-fix-phone-booking-dead-end-show-fixed-pr/) |
+| 260928-cpn | Coupon recovery after a failed reprice; ops detail wording ar, fr, de | 2026-09-28 | 22c7fb3a | [260928-cpn-coupon-recovery-failed-reprice](./quick/260928-cpn-coupon-recovery-failed-reprice/) |
+| 260928-rld | Reprice invalidates the stored payment session; Pay recovers without a card form | 2026-09-28 | 34e43d9e | [260928-rld-stored-session-and-pay-recovery](./quick/260928-rld-stored-session-and-pay-recovery/) |
 | fast | Services CTA headline scales with the card (9cqi, 17px floor); no clipping at 4-up in any locale | 2026-09-28 | 59d27311 | — |
 
 ## Session Continuity
 
 Last session: 2026-09-28T16:03:02.000Z
-Stopped at: Completed 26.1-32-PLAN.md
-Resume: `/gsd:discuss-phase 27`. Do not execute 27. Do not load the pixel. Do not execute Phase 21 while v1.3 is current. Payment plans stay on disk. Do not execute Phase 16/17/19/20. Do not `phases.clear`.
+Stopped at: Phase 26.1 code complete; waiting for owner Ship
+Resume: owner says Ship for 26.1 (one commit on main, deploy Worker `vamos`, verify https://vamostaxi.site), then 26.1-28, then owner UAT steps 1-19 in 26.1-VERIFICATION.md. Phase 26 legal gate is on main since 2026-09-24 (b2af7ce8). Phase 26.0 is parked, see `.planning/phases/26.0-main-green/26.0-OPEN-ITEMS.md`. After that `/gsd-discuss-phase` for the next phase the owner names. Do not execute 27. Do not load the pixel. Do not execute Phase 21 while v1.3 is current. Payment plans stay on disk. Do not execute Phase 16/17/19/20. Do not `phases.clear`.
 
 Phase 21 branch session (2026-09-22T19:57:29.795Z, not the resume): Stopped at Phase 21 planning complete — 8 plans. Resume was: Phase 21 executing on gsd/phase-21-charge-gate. Do not execute Phase 16/17/19/20. Do not touch the main checkout.
 

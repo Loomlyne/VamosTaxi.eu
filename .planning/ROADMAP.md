@@ -1025,22 +1025,22 @@ Plans:
 - [x] 26.1-13-PLAN.md — Owner: webhook secret, old webhook, event subscriptions
 - [x] 26.1-14-PLAN.md — Owner SQL handoff: pricing wave and canton pair fill
 - [x] 26.1-15-PLAN.md — Pay link 24 h hold from send; pay-link state
-- [ ] 26.1-16-PLAN.md — Pay-link recipient states: already paid, refunded, expired
-- [ ] 26.1-17-PLAN.md — Refund tiers SQL and admin refund API
-- [ ] 26.1-18-PLAN.md — Ops refund review panel, disputes, customer refund words
-- [ ] 26.1-19-PLAN.md — Class delete or hide with reason; public filtering; owner names file
-- [ ] 26.1-20-PLAN.md — aal2 only when a factor is enrolled; admin-only console
-- [ ] 26.1-21-PLAN.md — Owner SQL handoff: pay-link, refunds, classes
-- [ ] 26.1-22-PLAN.md — TOTP, step-up, magic-link switch, re-auth (server)
-- [ ] 26.1-23-PLAN.md — Ops settings and sign-in step-up UI
-- [ ] 26.1-24-PLAN.md — Owner: aal2 SQL; Pro + leaked-password on (D-17a); passkey setting (D-16c)
-- [ ] 26.1-25-PLAN.md — Passkey end to end (skipped per D-16c if unavailable)
+- [x] 26.1-16-PLAN.md — Pay-link recipient states: already paid, refunded, expired
+- [x] 26.1-17-PLAN.md — Refund tiers SQL and admin refund API
+- [x] 26.1-18-PLAN.md — Ops refund review panel, disputes, customer refund words
+- [x] 26.1-19-PLAN.md — Class delete or hide with reason; public filtering; owner names file
+- [x] 26.1-20-PLAN.md — aal2 only when a factor is enrolled; admin-only console
+- [x] 26.1-21-PLAN.md — Owner SQL handoff: pay-link, refunds, classes
+- [x] 26.1-22-PLAN.md — TOTP, step-up, magic-link switch, re-auth (server)
+- [x] 26.1-23-PLAN.md — Ops settings and sign-in step-up UI
+- [x] 26.1-24-PLAN.md — Owner: aal2 SQL; Pro + leaked-password on (D-17a); passkey setting (D-16c)
+- [x] 26.1-25-PLAN.md — Passkey end to end (skipped per D-16c if unavailable)
 - [ ] 26.1-26-PLAN.md — Owner Ship gate: DLQ queue, re-auth secret, Ship
-- [ ] 26.1-27-PLAN.md — Class line-up in every ops/home mock; OpsNewTrip sends live slugs
+- [x] 26.1-27-PLAN.md — Class line-up in every ops/home mock; OpsNewTrip sends live slugs
 - [ ] 26.1-28-PLAN.md — Post-Ship live reconciliation (owner resend + read-only SQL)
 - [x] 26.1-29-PLAN.md — Traveller intent and requote honour the pay-link hold
 - [x] 26.1-30-PLAN.md — Flight number typed at checkout re-prices; intent refuses mismatch
-- [ ] 26.1-31-PLAN.md — Checkout shows DB class name; tests and project rules use the line-up
+- [x] 26.1-31-PLAN.md — Checkout shows DB class name; tests and project rules use the line-up
 - [x] 26.1-32-PLAN.md — Coupon cap at payment: lock's coupon re-evaluated, mismatch refused, client recovers (gap 1, INT-04)
 
 **UI hint**: yes — pay-link "already paid" page, ops refund approval, admin account-settings sign-in methods, class names.
@@ -1150,14 +1150,17 @@ v1.3 Meta measurement (Phases 21–25 stay planned, not current): 26 → 26.1 �
 | 17. Ops chauffeur profile, shift roster, two-driver vehicles | 0/TBD | Not started | - |
 | 18. OPS Pricing source of truth | 7/7 | Complete    | 2026-09-15 |
 | 19. V1 production close-out leftover live gates and 10k booking surge | 0/TBD | Not started | - |
-| 20. Security audit fix-up | 0/4 | In progress | - |
+| 20. Security audit fix-up | 3/5 | In progress | - |
 | 21. Charge gate + visible refusal + payable intent | 10/10 | In Progress|  |
 | 22. Card confirm + thank-you webhook wait | 0/TBD | Not started | - |
 | 23. Wallets + Dashboard methods | 0/TBD | Not started | - |
 | 24. Dual-payer, pay-link, mail split | 0/TBD | Not started | - |
 | 25. /bookings unpaid + TEST UAT + secret-swap design | 0/TBD | Not started | - |
 | 26. Legal gate | 2/2 | Complete    | 2026-09-23 |
-| 26.1. Payment and pricing integrity (INSERTED) | 18/32 | In Progress|  |
+| 26.0. Main green (INSERTED) | part 1 in 26.1 | Parked | - |
+| 26.1. Payment and pricing integrity (INSERTED) | 30/32 | Waiting for owner Ship (26.1-26), then 26.1-28 |  |
+| 26.2. Codebase audit, bug fix and simplify (INSERTED) | 0/TBD | Not started | - |
+| 26.3. Booking flow simplification (INSERTED) | 0/TBD | Not started | - |
 | 27. Consent record | 0/TBD | Not started | - |
 | 28. Pixel PageView | 0/TBD | Not started | - |
 | 29. Webhook Purchase | 0/TBD | Not started | - |
