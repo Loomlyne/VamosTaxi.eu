@@ -53,7 +53,8 @@ function keysOf(block: string): Set<string> {
   const out = new Set<string>();
   let m: RegExpExecArray | null;
   while ((m = re.exec(block))) {
-    if (!META.has(m[1])) out.add(m[1]);
+    const key = m[1];
+    if (key !== undefined && !META.has(key)) out.add(key);
   }
   return out;
 }
