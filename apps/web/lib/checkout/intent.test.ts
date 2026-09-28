@@ -974,3 +974,112 @@ describe("runCheckoutIntent — flight number must match the lock (D-08b, 26.1-3
     expect(omitted.res.status).toBe(200);
   });
 });
+
+describe("runCheckoutIntent — the pay-link hold keeps the traveller's lock payable (D-20, D-21, 26.1-29)", () => {
+  // Lock ran out an hour ago; NOW is 12:00.
+  const EXPIRED = "2026-09-05T11:00:00.000Z";
+
+  async function run(
+    p: QuoteLockPayload,
+    patch: Partial<CheckoutIntentDeps> & { holdUntilIso?: string | null },
+    tamper = false,
+  ) {
+    const body = await bodyFor(p);
+    if (tamper) body.lock = `${body.lock.slice(0, -2)}xx`;
+    const create = vi.fn(async () => ({
+      id: "cs_test_1",
+      client_secret: "cs_test_1_secret",
+      payment_intent: "pi_test_1",
+      currency: "chf",
+    }));
+    const rpc = vi.fn(async () => ({
+      booking_id: "00000000-0000-4000-8000-000000000099",
+      reference: "VT-10001",
+      snapshot_id: 1,
+      payment_id: 1,
+      replayed: false,
+    }));
+    const res = await runCheckoutIntent(
+      body,
+      deps(p, {
+        createCheckoutSession: create as unknown as CheckoutIntentDeps["createCheckoutSession"],
+        createBooking: rpc as unknown as CheckoutIntentDeps["createBooking"],
+        ...patch,
+      } as Partial<CheckoutIntentDeps>),
+    );
+    return { res, create, rpc };
+  }
+
+  it("accepts an expired lock while the hold is still open", async () => {
+    const { res, create } = await run(payload({ exp: EXPIRED }), {
+      holdUntilIso: "2026-09-06T10:00:00.000Z",
+    });
+    expect(res.status).toBe(200);
+    expect(create).toHaveBeenCalled();
+  });
+
+  it("honours the hold on both clocks (Worker and Postgres)", async () => {
+    const { res } = await run(payload({ exp: EXPIRED }), {
+      holdUntilIso: "2026-09-05T12:30:00.000Z",
+      workerNowIso: "2026-09-05T12:10:00.000Z",
+      postgresNowIso: "2026-09-05T12:20:00.000Z",
+    });
+    expect(res.status).toBe(200);
+  });
+
+  it("refuses quote_expired when the lock and the hold are both past", async () => {
+    const { res, create, rpc } = await run(payload({ exp: EXPIRED }), {
+      holdUntilIso: "2026-09-05T11:30:00.000Z",
+    });
+    expect(res.status).toBe(409);
+    expect(((await res.json()) as { code: string }).code).toBe("quote_expired");
+    expect(create).not.toHaveBeenCalled();
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it("refuses quote_expired when the hold is past on the Postgres clock only", async () => {
+    const { res } = await run(payload({ exp: EXPIRED }), {
+      holdUntilIso: "2026-09-05T12:30:00.000Z",
+      workerNowIso: "2026-09-05T12:10:00.000Z",
+      postgresNowIso: "2026-09-05T12:30:00.000Z",
+    });
+    expect(res.status).toBe(409);
+    expect(((await res.json()) as { code: string }).code).toBe("quote_expired");
+  });
+
+  it("still verifies the signature when a hold is open", async () => {
+    const { res, create } = await run(
+      payload({ exp: EXPIRED }),
+      { holdUntilIso: "2026-09-06T10:00:00.000Z" },
+      true,
+    );
+    expect(res.status).toBe(404);
+    expect(((await res.json()) as { code: string }).code).toBe("quote_not_found");
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it("without a hold an expired lock is refused exactly as before", async () => {
+    for (const hold of [undefined, null, "not-a-date"]) {
+      const { res, create } = await run(payload({ exp: EXPIRED }), { holdUntilIso: hold });
+      expect(res.status).toBe(409);
+      expect(((await res.json()) as { code: string }).code).toBe("quote_expired");
+      expect(create).not.toHaveBeenCalled();
+    }
+  });
+
+  it("a hold earlier than the lock never shortens the lock", async () => {
+    const { res } = await run(payload(), { holdUntilIso: "2026-09-05T11:00:00.000Z" });
+    expect(res.status).toBe(200);
+  });
+
+  it("the intent route loads the hold from the database before runCheckoutIntent", () => {
+    const src = readFileSync(join(here, "../../app/api/checkout/intent/route.ts"), "utf8");
+    const read = src.indexOf("public.checkout_booking_hold_until(");
+    expect(read).toBeGreaterThan(-1);
+    expect(read).toBeLessThan(src.indexOf("return runCheckoutIntent("));
+    expect(src).toMatch(/holdUntilIso[,:]/);
+    expect(src).toContain("asCheckout(env, null");
+    // The hold comes from the database, never the request body (T-26.1-90).
+    expect(src).not.toMatch(/body\.hold_until|json\.hold_until/);
+  });
+});
