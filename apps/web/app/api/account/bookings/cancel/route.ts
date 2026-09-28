@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
-import { asCustomer } from "@/lib/db/identity";
+import { cancelUnpaidForCustomer } from "@/lib/checkout/cancel-unpaid";
 import { customerClaims } from "@/lib/account/session";
 import { accountWriteForbidden } from "@/lib/abuse/account-write";
 import { csrfForbidden } from "@/lib/security/origin";
@@ -20,8 +20,7 @@ export async function POST(request: Request): Promise<Response> {
   const limited = await accountWriteForbidden(request);
   if (limited) return limited;
   const claims = await customerClaims(request);
-  const email = claims?.email;
-  if (!email) return json({ ok: false }, 401);
+  if (!claims || !claims.email) return json({ ok: false }, 401);
 
   let ref = "";
   try {
@@ -34,12 +33,8 @@ export async function POST(request: Request): Promise<Response> {
 
   const { env } = await getCloudflareContext({ async: true });
   try {
-    const rows = await asCustomer(env, claims, async (sql) => {
-      return await sql<{ booking_id: string; reference: string }[]>`
-        select * from public.checkout_cancel_unpaid(${ref})
-      `;
-    });
-    return json({ ok: true, cancelled: rows.length > 0 });
+    const result = await cancelUnpaidForCustomer(env, claims, ref);
+    return json({ ok: true, cancelled: result.cancelled });
   } catch {
     return json({ ok: false }, 409);
   }
