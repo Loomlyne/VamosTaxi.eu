@@ -164,7 +164,11 @@ function outcomeFor(
 }
 
 /** Reasons a succeeded settle can carry that must never confirm the trip (D-22/D-03b). */
-const PAID_AFTER_CANCEL_REASONS = new Set(["paid_after_cancel", "test_booking", "requote_superseded"]);
+const PAID_AFTER_CANCEL_REASONS: readonly string[] = Object.freeze([
+  "paid_after_cancel",
+  "test_booking",
+  "requote_superseded",
+]);
 
 export async function handleStripeMessageWithDeps(
   message: StripeQueueMessage,
@@ -275,7 +279,7 @@ export async function handleStripeMessageWithDeps(
             refundRappen: row.charged_rappen,
             reason,
           });
-          if (PAID_AFTER_CANCEL_REASONS.has(reason)) {
+          if (PAID_AFTER_CANCEL_REASONS.includes(reason)) {
             try {
               await deps.alertPaidAfterCancel(row.booking_id);
             } catch {

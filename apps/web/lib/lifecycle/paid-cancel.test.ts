@@ -113,14 +113,20 @@ describe("paid-cancel Stripe-before-record (D-08)", () => {
 
 describe("unpaid cancel route stays D-09", () => {
   it("does not call createRefund", () => {
-    const src = read("apps/web/app/api/account/bookings/cancel/route.ts");
-    const uncommented = src
-      .split("\n")
-      .filter((line) => !line.trim().startsWith("//"))
-      .join("\n");
-    expect(uncommented).toMatch(/checkout_cancel_unpaid/);
-    expect(uncommented).not.toMatch(/createRefund/);
-    expect(uncommented).not.toMatch(/paid-cancel/);
+    // 26.1-06 moved the RPC call into lib/checkout/cancel-unpaid.ts; check both files.
+    const uncomment = (src: string) =>
+      src
+        .split("\n")
+        .filter((line) => !line.trim().startsWith("//"))
+        .join("\n");
+    const route = uncomment(read("apps/web/app/api/account/bookings/cancel/route.ts"));
+    const lib = uncomment(read("apps/web/lib/checkout/cancel-unpaid.ts"));
+    expect(route).toMatch(/cancelUnpaidForCustomer/);
+    expect(lib).toMatch(/checkout_cancel_unpaid/);
+    for (const src of [route, lib]) {
+      expect(src).not.toMatch(/createRefund/);
+      expect(src).not.toMatch(/paid-cancel/);
+    }
   });
 });
 

@@ -106,7 +106,7 @@ select is((select count(*) from public.reviews where published)::int, 0, 'no see
 -- ── content_strings ──────────────────────────────────────────────────────────────────────────
 -- Counts track the generated seed header (packages/db/supabase/seed.sql; regenerated in 8b409c7, Phase 6).
 -- Counts are the generator's own output (pnpm db:seed:gen, 2026-09-27).
-select is((select count(*) from public.content_strings)::int, 2501, 'content_strings row count matches the flattened en.json key count');
+select is((select count(*) from public.content_strings)::int, 2502, 'content_strings row count matches the flattened en.json key count');
 select is((select count(*) from public.content_strings where pending_value)::int, 16, '16 pending-value keys (ADR-011, Law 04 data-tok)');
 select is((select count(*) from public.content_strings where non_translatable)::int, 8, '8 non-translatable keys (ADR-012)');
 select is((select count(*) from public.content_strings where no_param_reason is not null)::int, 71, '71 no-param-reason keys (I18N-06)');
