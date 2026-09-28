@@ -248,6 +248,41 @@ describe("handleStripeMessageWithDeps", () => {
     expect(d.settlePayment).toHaveBeenCalledTimes(1);
   });
 
+  it("a refunded duplicate settle reports settled.duplicate so the return route can say so (D-22, 26.1-16)", async () => {
+    const d = deps({
+      settlePayment: vi.fn(async () =>
+        settleRow({
+          already_settled: true,
+          duplicate: true,
+          refund_required: true,
+          refund_reason: "duplicate_charge",
+        }),
+      ),
+    });
+    const result = await handleStripeMessageWithDeps(message(), d);
+    expect(result).toEqual({ ack: true, settled: { duplicate: true, revived: false } });
+    expect(d.refund).toHaveBeenCalledTimes(1);
+    expect(d.recordDuplicateRefund).toHaveBeenCalledTimes(1);
+  });
+
+  it("a duplicate whose refund failed does not claim a refund to the return route (D-22, 26.1-16)", async () => {
+    const d = deps({
+      refund: vi.fn(async () => {
+        throw new Error("card_declined");
+      }),
+      settlePayment: vi.fn(async () =>
+        settleRow({
+          already_settled: true,
+          duplicate: true,
+          refund_required: true,
+          refund_reason: "duplicate_charge",
+        }),
+      ),
+    });
+    const result = await handleStripeMessageWithDeps(message(), d);
+    expect(result).toEqual({ ack: true });
+  });
+
   it("refund_required duplicate_charge refunds with the booking:payment:reason idempotency key, records it, sends no confirmation (D-22)", async () => {
     const d = deps({
       settlePayment: vi.fn(async () =>
