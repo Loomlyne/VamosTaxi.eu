@@ -670,10 +670,9 @@ const MANAGE_BOOKING_API = '/api/manage/booking';
 const MANAGE_CANCEL_API = '/api/manage/cancel';
 
 const CLASSES = [
-  { id: 'economy', name: 'Economy', ex: 'Sedan or similar', seats: 3, bags: 3 },
-  { id: 'business', name: 'Business', ex: 'Executive sedan', seats: 3, bags: 3 },
-  { id: 'first', name: 'First', ex: 'S-Class or similar', seats: 3, bags: 2 },
-  { id: 'van', name: 'Van', ex: 'Minivan or similar', seats: 7, bags: 8 },
+  { id: 'saden', name: 'Economy', ex: 'Sedan or similar', seats: 3, bags: 3 },
+  { id: 'mercedes-benz-v-class', name: 'Business', ex: 'Executive sedan', seats: 3, bags: 3 },
+  { id: 'van-luxury', name: 'Van luxury', ex: 'Minivan or similar', seats: 7, bags: 8 },
 ];
 const nameOf = (id) => (CLASSES.find((c) => c.id === id) || CLASSES[0]).name;
 
@@ -759,7 +758,7 @@ class Component extends DCLogic {
       authVia: '',
       mDay: 0, mDate: '', mTime: '',
       pickupDraft: '', dropoffDraft: '',
-      vehicle: 'economy', pax: 1, bags: 0,
+      vehicle: 'saden', pax: 1, bags: 0,
       voucher: false, flightMode: 'idle', flightDraft: '', flight: '',
       requested: null, status: 'confirmed',
       toast: null, toastTone: 'neutral',
