@@ -129,3 +129,102 @@ describe("requireAdminClaims", () => {
     expect(claims.app_metadata?.vamos_role).toBe("admin");
   });
 });
+
+// 26.1-25 (D-16a): a registered passkey is an enrolled factor for the app gate. GoTrue keeps
+// passkeys in auth.webauthn_credentials (not auth.mfa_factors) and a passkey sign-in is aal1 with
+// amr "passkey" (verified on local GoTrue v2.195.0), so the gate lists them from the server and
+// reads the amr from the verified access token.
+function passkeyClient(opts: {
+  role?: "admin" | "dispatcher";
+  currentLevel: string;
+  nextLevel?: string;
+  amr?: ReadonlyArray<{ method: string; timestamp?: number }>;
+  passkeys: unknown[] | "error" | "throw";
+}): { client: StaffAuthClient; listCalls: () => number } {
+  let calls = 0;
+  const base = client({ role: opts.role, currentLevel: opts.currentLevel, nextLevel: opts.nextLevel ?? "aal1" });
+  const token = jwt({
+    session_id: "sid-1",
+    ...(opts.role ? { app_metadata: { vamos_role: opts.role } } : {}),
+    ...(opts.amr ? { amr: opts.amr } : {}),
+  });
+  const out: StaffAuthClient = {
+    auth: {
+      ...base.auth,
+      getSession: async () => ({ data: { session: { access_token: token } } }),
+      passkey: {
+        list: async () => {
+          calls += 1;
+          if (opts.passkeys === "throw") throw new Error("network");
+          if (opts.passkeys === "error") return { data: null, error: { code: "unexpected_failure" } };
+          return { data: opts.passkeys, error: null };
+        },
+      },
+    },
+  };
+  return { client: out, listCalls: () => calls };
+}
+
+const PASSKEY = { id: "3f0e8a52-1c4b-4d6e-9a7f-2b3c4d5e6f70", created_at: "2026-09-28T10:00:00Z" };
+
+describe("getStaffClaims and requireStaffClaims know passkeys (26.1-25)", () => {
+  it("admin with a passkey on a password session → needs-mfa", async () => {
+    const { client: sb } = passkeyClient({
+      role: "admin",
+      currentLevel: "aal1",
+      amr: [{ method: "password", timestamp: 1 }],
+      passkeys: [PASSKEY],
+    });
+    const claims = await getStaffClaims(sb);
+    expect(claims?.hasPasskey).toBe(true);
+    expect(claims?.amrMethods).toEqual(["password"]);
+    await expect(requireStaffClaims(sb)).rejects.toMatchObject({ reason: "needs-mfa" });
+    await expect(requireAdminClaims(sb)).rejects.toMatchObject({ reason: "needs-mfa" });
+  });
+
+  it("admin on a passkey sign-in session → allowed, without listing passkeys", async () => {
+    const { client: sb, listCalls } = passkeyClient({
+      role: "admin",
+      currentLevel: "aal1",
+      amr: [{ method: "passkey", timestamp: 1 }],
+      passkeys: [PASSKEY],
+    });
+    const claims = await requireStaffClaims(sb);
+    expect(claims.amrMethods).toEqual(["passkey"]);
+    expect(listCalls()).toBe(0);
+  });
+
+  it("admin with no passkey on a password session → allowed (D-16)", async () => {
+    const { client: sb } = passkeyClient({
+      role: "admin",
+      currentLevel: "aal1",
+      amr: [{ method: "password" }],
+      passkeys: [],
+    });
+    const claims = await requireStaffClaims(sb);
+    expect(claims.hasPasskey).toBe(false);
+  });
+
+  it("a passkey list error or throw is treated as no passkey (documented fail-open; SQL never counted passkeys)", async () => {
+    for (const passkeys of ["error", "throw"] as const) {
+      const { client: sb } = passkeyClient({ role: "admin", currentLevel: "aal1", amr: [{ method: "password" }], passkeys });
+      const claims = await requireStaffClaims(sb);
+      expect(claims.hasPasskey).toBe(false);
+    }
+  });
+
+  it("does not list passkeys for a customer or a dispatcher", async () => {
+    const customer = passkeyClient({ currentLevel: "aal1", amr: [{ method: "password" }], passkeys: [PASSKEY] });
+    await getStaffClaims(customer.client);
+    expect(customer.listCalls()).toBe(0);
+    const dispatcher = passkeyClient({ role: "dispatcher", currentLevel: "aal1", passkeys: [PASSKEY] });
+    await expect(requireStaffClaims(dispatcher.client)).rejects.toMatchObject({ reason: "not-staff" });
+    expect(dispatcher.listCalls()).toBe(0);
+  });
+
+  it("does not list passkeys once aal2 is required or reached", async () => {
+    const enrolled = passkeyClient({ role: "admin", currentLevel: "aal2", nextLevel: "aal2", passkeys: [PASSKEY] });
+    await requireStaffClaims(enrolled.client);
+    expect(enrolled.listCalls()).toBe(0);
+  });
+});

@@ -7,7 +7,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { effectiveNextLevel, staffGateDecision } from "./staff-gate";
+import { effectiveNextLevel, isPasskeySession, passkeyCheckNeeded, staffGateDecision } from "./staff-gate";
 
 describe("staffGateDecision", () => {
   it("admin with no enrolled factor at aal1 is allowed (D-16)", () => {
@@ -61,6 +61,79 @@ describe("effectiveNextLevel", () => {
   });
 });
 
+describe("staffGateDecision with a registered passkey (D-16a, 26.1-25)", () => {
+  const admin = { role: "admin", currentLevel: "aal1", nextLevel: "aal1" } as const;
+
+  it("a password session must step up once a passkey is registered", () => {
+    expect(staffGateDecision({ ...admin, hasPasskey: true, amrMethods: ["password"] })).toBe("step-up");
+  });
+
+  it("a magic-link session must step up once a passkey is registered", () => {
+    expect(staffGateDecision({ ...admin, hasPasskey: true, amrMethods: ["otp"] })).toBe("step-up");
+    expect(staffGateDecision({ ...admin, hasPasskey: true, amrMethods: ["magiclink"] })).toBe("step-up");
+  });
+
+  it("a session with no amr at all must step up once a passkey is registered", () => {
+    expect(staffGateDecision({ ...admin, hasPasskey: true })).toBe("step-up");
+    expect(staffGateDecision({ ...admin, hasPasskey: true, amrMethods: null })).toBe("step-up");
+  });
+
+  it("a passkey sign-in session is allowed (GoTrue records amr passkey at aal1)", () => {
+    expect(staffGateDecision({ ...admin, hasPasskey: true, amrMethods: ["passkey"] })).toBe("allow");
+  });
+
+  it("an aal2 session is allowed with a passkey registered", () => {
+    expect(
+      staffGateDecision({ role: "admin", currentLevel: "aal2", nextLevel: "aal1", hasPasskey: true, amrMethods: ["password", "totp"] }),
+    ).toBe("allow");
+  });
+
+  it("only the exact passkey method counts, not a look-alike", () => {
+    expect(staffGateDecision({ ...admin, hasPasskey: true, amrMethods: ["webauthn"] })).toBe("step-up");
+    expect(staffGateDecision({ ...admin, hasPasskey: true, amrMethods: ["Passkey"] })).toBe("step-up");
+  });
+
+  it("no passkey and no factor: aal1 is still enough (D-16)", () => {
+    expect(staffGateDecision({ ...admin, hasPasskey: false, amrMethods: ["password"] })).toBe("allow");
+  });
+
+  it("a passkey session does not stand in for an enrolled authenticator app (SQL needs aal2)", () => {
+    expect(
+      staffGateDecision({ role: "admin", currentLevel: "aal1", nextLevel: "aal2", hasPasskey: true, amrMethods: ["passkey"] }),
+    ).toBe("step-up");
+  });
+
+  it("a dispatcher is denied even on a passkey session (D-16b)", () => {
+    expect(
+      staffGateDecision({ role: "dispatcher", currentLevel: "aal1", nextLevel: "aal1", hasPasskey: true, amrMethods: ["passkey"] }),
+    ).toBe("deny");
+  });
+});
+
+describe("isPasskeySession", () => {
+  it("reads object and string amr entries", () => {
+    expect(isPasskeySession([{ method: "passkey", timestamp: 1 }])).toBe(true);
+    expect(isPasskeySession(["passkey"])).toBe(true);
+    expect(isPasskeySession([{ method: "password" }, "otp"])).toBe(false);
+    expect(isPasskeySession(null)).toBe(false);
+    expect(isPasskeySession(undefined)).toBe(false);
+  });
+});
+
+describe("passkeyCheckNeeded", () => {
+  it("is true only for an admin whose session is not already strong and has no enrolled factor", () => {
+    expect(passkeyCheckNeeded({ role: "admin", currentLevel: "aal1", nextLevel: "aal1", amrMethods: ["password"] })).toBe(true);
+  });
+
+  it("is false when the passkey cannot change the decision", () => {
+    expect(passkeyCheckNeeded({ role: "dispatcher", currentLevel: "aal1", nextLevel: "aal1" })).toBe(false);
+    expect(passkeyCheckNeeded({ role: undefined, currentLevel: "aal1", nextLevel: "aal1" })).toBe(false);
+    expect(passkeyCheckNeeded({ role: "admin", currentLevel: "aal2", nextLevel: "aal2" })).toBe(false);
+    expect(passkeyCheckNeeded({ role: "admin", currentLevel: "aal1", nextLevel: "aal2" })).toBe(false);
+    expect(passkeyCheckNeeded({ role: "admin", currentLevel: "aal1", nextLevel: "aal1", amrMethods: ["passkey"] })).toBe(false);
+  });
+});
+
 describe("middleware wiring (source contract)", () => {
   const middleware = readFileSync(join(dirname(fileURLToPath(import.meta.url)), "../../middleware.ts"), "utf8");
 
@@ -76,6 +149,21 @@ describe("middleware wiring (source contract)", () => {
       middleware.indexOf("export default async function middleware("),
     );
     expect(ops).toContain("staffGateDecision(");
+  });
+
+  it("both gates pass the passkey inputs to staffGateDecision (26.1-25)", () => {
+    const dash = middleware.slice(
+      middleware.indexOf("async function dashboardHostMiddleware("),
+      middleware.indexOf("function opsRedirectUrl("),
+    );
+    const ops = middleware.slice(
+      middleware.indexOf("async function opsStaffGate("),
+      middleware.indexOf("export default async function middleware("),
+    );
+    for (const gate of [dash, ops]) {
+      expect(gate).toContain("passkeyGateInputs(");
+      expect(gate).toMatch(/\.\.\.passkey/);
+    }
   });
 
   it("the /ops gate never redirects to the missing /ops/mfa-challenge page", () => {
