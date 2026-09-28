@@ -232,11 +232,12 @@ export function PaymentPanel({
         await new Promise((resolve) => setTimeout(resolve, 80));
       }
       if (!checkout) showStripeError(setError, "checkout-not-ready");
-      const email = billingEmail.trim();
       // Card confirm must not pass returnUrl. Stripe then waits for a redirect
       // that a non-redirect card never starts, and the button spins.
+      // It must not pass the customer's address either: the server already sets
+      // customer_email on the Checkout Session (lib/checkout/stripe.ts) and Stripe
+      // refuses a second one, which blocked every card payment.
       const result = await checkout.confirm({
-        email: email || undefined,
         redirect: "if_required",
       });
       if (result.type === "error") showStripeError(setError, result.error.message);
@@ -245,7 +246,7 @@ export function PaymentPanel({
       if (onPaid) await onPaid(destination);
       else window.location.assign(destination);
     });
-  }, [billingEmail, locked, onPaid, onReady, reference, secret]);
+  }, [locked, onPaid, onReady, reference, secret]);
 
   async function onExpress(event: ExpressConfirmEvent) {
     if (lockedRef.current) {
