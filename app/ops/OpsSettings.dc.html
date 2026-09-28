@@ -14,6 +14,15 @@
 [data-af-eye]{appearance:none;-webkit-appearance:none;position:absolute;z-index:2;inset-inline-end:6px;top:50%;transform:translateY(-50%);width:32px;height:32px;margin:0;padding:0;display:inline-flex;align-items:center;justify-content:center;border:0;background:transparent;color:var(--vt-charcoal-700);cursor:pointer;box-shadow:none}
 [data-af-eye]:hover{color:var(--vt-charcoal-900)}
 [data-af-eye]:focus-visible{outline:3px solid rgb(253 194 11/.45);outline-offset:2px;border-radius:var(--vt-radius-xs)}
+[data-totp-enrol]{display:grid;grid-template-columns:auto minmax(0,1fr);gap:20px;align-items:start}
+[data-totp-qr]{box-sizing:border-box;inline-size:200px;block-size:200px;padding:12px;border:1px solid var(--vt-grey-200);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);display:flex;align-items:center;justify-content:center}
+[data-totp-qr] img{display:block;inline-size:100%;block-size:100%}
+[data-totp-side]{display:flex;flex-direction:column;gap:10px;min-width:0;max-width:360px}
+[data-totp-secret]{font-family:var(--vt-font-mono);font-size:var(--vt-body-sm);letter-spacing:.08em;overflow-wrap:anywhere;color:var(--vt-text-primary)}
+[data-sec-row]{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
+[data-reauth]{display:flex;flex-direction:column;gap:12px}
+[data-reauth-actions]{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px;padding-top:4px}
+@media (max-width:680px){[data-totp-enrol]{grid-template-columns:minmax(0,1fr)}[data-totp-side]{max-width:none}[data-sec-pw-grid]{grid-template-columns:minmax(0,1fr)!important}}
 </style>
 <main style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column">
 
@@ -156,13 +165,15 @@
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ saveEmail }}" hint-size="150px,44px">{{ tSecEmailBtn }}</x-import>
 <span style="display:{{ emailSavedShow }};font-size:var(--vt-body-xs);color:var(--vt-text-primary);font-weight:500">{{ tSecUpdated }}</span>
 </div>
+<span role="status" style="display:{{ emailMsgShow }};font-size:var(--vt-body-xs);color:var(--vt-danger)">{{ emailMsg }}</span>
 
+<sc-if value="{{ isPasswordMethod }}" hint-placeholder-val="{{ true }}">
 <div style="display:flex;flex-direction:column;gap:12px;padding-top:16px;border-top:1px solid var(--vt-grey-200)">
 <div>
 <span style="display:block;font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-primary)">{{ tSecPasswordLabel }}</span>
 <p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSecPasswordSub }}</p>
 </div>
-<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px">
+<div data-sec-pw-grid="1" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px">
 <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
 <span data-fld-l="1">{{ tSecNewPw }}</span>
 <div data-af-pw="1">
@@ -185,11 +196,31 @@
 </div>
 </div>
 <span style="display:{{ pwMsgShow }};font-size:var(--vt-body-xs);color:var(--vt-danger)">{{ pwMsg }}</span>
-<div style="display:flex;align-items:center;gap:12px">
+<div data-sec-row="1">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ changePassword }}" hint-size="170px,44px">{{ tSecPasswordBtn }}</x-import>
 <span style="display:{{ pwSavedShow }};font-size:var(--vt-body-xs);color:var(--vt-text-primary);font-weight:500">{{ tSecUpdated }}</span>
 </div>
+<div data-sec-row="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" size="md" sentenceCase="{{ yes }}" onClick="{{ useMagicLink }}" disabled="{{ methodBusy }}" hint-size="290px,44px">{{ tSecMagicLinkSwitch }}</x-import>
+<span style="display:{{ methodSavedShow }};font-size:var(--vt-body-xs);color:var(--vt-text-primary);font-weight:500">{{ tSecUpdated }}</span>
 </div>
+<span role="status" style="display:{{ methodMsgShow }};font-size:var(--vt-body-xs);color:var(--vt-danger)">{{ methodMsg }}</span>
+</div>
+</sc-if>
+
+<sc-if value="{{ isMagicMethod }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:12px;padding-top:16px;border-top:1px solid var(--vt-grey-200)">
+<div>
+<span style="display:block;font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-primary)">{{ tSecMagicLinkLabel }}</span>
+<p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted);overflow-wrap:anywhere">{{ magicPre }}<span class="vt-dir-keep" data-i18n-skip="1" style="color:var(--vt-text-primary);font-weight:500">{{ secEmail }}</span>{{ magicPost }}</p>
+</div>
+<div data-sec-row="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" size="md" sentenceCase="{{ yes }}" onClick="{{ usePassword }}" disabled="{{ methodBusy }}" hint-size="220px,44px">{{ tSecMagicLinkUseInstead }}</x-import>
+<span style="display:{{ methodSavedShow }};font-size:var(--vt-body-xs);color:var(--vt-text-primary);font-weight:500">{{ tSecUpdated }}</span>
+</div>
+<span role="status" style="display:{{ methodMsgShow }};font-size:var(--vt-body-xs);color:var(--vt-danger)">{{ methodMsg }}</span>
+</div>
+</sc-if>
 
 <div style="display:flex;flex-direction:column;gap:12px;padding-top:16px;border-top:1px solid var(--vt-grey-200)">
 <div>
@@ -211,7 +242,83 @@
 <span role="status" style="display:{{ passkeyMsgShow }};font-size:var(--vt-body-xs);color:{{ passkeyMsgColor }}">{{ passkeyMsg }}</span>
 </div>
 
+<div data-sec-totp="1" style="display:flex;flex-direction:column;gap:12px;padding-top:16px;border-top:1px solid var(--vt-grey-200)">
+<div>
+<span style="display:block;font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-primary)">{{ tSecTotpLabel }}</span>
+<p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSecTotpSub }}</p>
+</div>
+<sc-if value="{{ totpIdle }}" hint-placeholder-val="{{ true }}">
+<div data-sec-row="1">
+<span style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSecTotpEmpty }}</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" icon="shield-check" onClick="{{ addTotp }}" disabled="{{ totpBusy }}" aria-busy="{{ totpBusy }}" hint-size="260px,44px">{{ tSecTotpAdd }}</x-import>
+</div>
+</sc-if>
+<sc-if value="{{ totpEnrolling }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+<p style="margin:0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSecTotpQrIntro }}</p>
+<div data-totp-enrol="1">
+<div data-totp-qr="1"><img src="{{ totpQr }}" alt="{{ tSecTotpQrAlt }}" width="176" height="176"></div>
+<div data-totp-side="1">
+<span data-fld-l="1">{{ tSecTotpSecretLabel }}</span>
+<span data-totp-secret="1" class="vt-dir-keep" data-i18n-skip="1" data-vt-no-i18n="1">{{ totpSecret }}</span>
+<span data-fld-l="1">{{ tSecTotpCodeLabel }}</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" type="text" size="md" inputMode="numeric" pattern="[0-9]*" maxLength="{{ n6 }}" autoComplete="one-time-code" aria-label="{{ tSecTotpCodeLabel }}" value="{{ totpCode }}" onChange="{{ setTotpCode }}" hint-size="100%,44px"></x-import>
+<sc-if value="{{ totpFailed }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" role="alert" hint-size="100%,56px">{{ tSecTotpFailed }}</x-import>
+</sc-if>
+<div data-sec-row="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ verifyTotp }}" disabled="{{ totpVerifyDisabled }}" aria-busy="{{ totpBusy }}" hint-size="220px,44px">{{ tSecTotpVerify }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" size="md" onClick="{{ cancelTotp }}" hint-size="120px,44px">{{ tSecCancel }}</x-import>
+</div>
+</div>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ totpOn }}" hint-placeholder-val="{{ false }}">
+<div data-sec-row="1" style="padding:4px 0">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="shield-check" size="{{ n18 }}" color="var(--vt-text-muted)" hint-size="18px,18px"></x-import>
+<span style="flex:1 1 auto;min-width:0;font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-primary)">{{ tSecTotpRegistered }}</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="secondary" size="md" onClick="{{ removeTotp }}" disabled="{{ totpBusy }}" aria-busy="{{ totpBusy }}" hint-size="260px,44px">{{ tSecTotpRemove }}</x-import>
+</div>
+</sc-if>
+<span role="status" style="display:{{ totpMsgShow }};font-size:var(--vt-body-xs);color:{{ totpMsgColor }}">{{ totpMsg }}</span>
+</div>
+
 </section>
+</sc-if>
+
+<sc-if value="{{ reauthOpen }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" size="sm" title="{{ tSecReauthTitle }}" subtitle="{{ reauthSub }}" onClose="{{ closeReauth }}" hint-size="440px,360px">
+<div data-reauth="1">
+<sc-if value="{{ reauthByPassword }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+<span data-fld-l="1">{{ tSecReauthPwLabel }}</span>
+<div data-af-pw="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" type="{{ reauthPwType }}" size="md" aria-label="{{ tSecReauthPwLabel }}" autoComplete="current-password" autoFocus="{{ yes }}" value="{{ reauthPw }}" onChange="{{ setReauthPw }}" onKeyDown="{{ reauthKey }}" hint-size="100%,44px"></x-import>
+<button type="button" data-af-eye="1" aria-label="{{ eyeReauthLabel }}" aria-pressed="{{ showReauthPw }}" onClick="{{ toggleReauthPw }}">
+<sc-if value="{{ showReauthPw }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="eye-off" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></sc-if>
+<sc-if value="{{ hideReauthPw }}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="eye" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></sc-if>
+</button>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ reauthByCode }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+<div data-sec-row="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" size="md" onClick="{{ sendReauthCode }}" disabled="{{ reauthBusy }}" hint-size="160px,44px">{{ tSecReauthSend }}</x-import>
+<span role="status" style="display:{{ reauthSentShow }};font-size:var(--vt-body-xs);color:var(--vt-text-primary);font-weight:500">{{ tSecReauthSent }}</span>
+</div>
+<span data-fld-l="1">{{ tSecTotpCodeLabel }}</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" type="text" size="md" inputMode="numeric" pattern="[0-9]*" maxLength="{{ n6 }}" autoComplete="one-time-code" aria-label="{{ tSecTotpCodeLabel }}" value="{{ reauthCode }}" onChange="{{ setReauthCode }}" onKeyDown="{{ reauthKey }}" hint-size="100%,44px"></x-import>
+</div>
+</sc-if>
+<span role="alert" style="display:{{ reauthErrShow }};font-size:var(--vt-body-xs);color:var(--vt-danger)">{{ reauthErr }}</span>
+<div data-reauth-actions="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" size="md" onClick="{{ closeReauth }}" hint-size="120px,44px">{{ tSecCancel }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ confirmReauth }}" disabled="{{ reauthConfirmDisabled }}" aria-busy="{{ reauthBusy }}" hint-size="230px,44px">{{ tSecReauthConfirm }}</x-import>
+</div>
+</div>
+</x-import>
 </sc-if>
 
 </div>
@@ -269,6 +376,7 @@ const T = {
     secUpdated:'Updated',
     secPasskeyLabel:'Passkeys', secPasskeySub:'Sign in with Face ID, Touch ID or a security key instead of a password.',
     secPasskeyEmpty:'No passkey added yet.', secPasskeyAdd:'Add a passkey', secPasskeyRegistered:'Passkey registered for this account.', secPasskeySuccess:'Passkey added. You can use it to sign in.', secPasskeyUnsupported:'This browser does not support passkeys.', secPasskeyFailed:'Could not add a passkey. Try again.',
+    secTotpLabel:'Authenticator app', secTotpSub:'Sign in with a 6-digit code from an authenticator app after your password or magic link.', secTotpEmpty:'No authenticator app added yet.', secTotpAdd:'Add an authenticator app', secTotpQrIntro:'Scan this code with your authenticator app, or enter the key by hand. Then type the 6-digit code it shows.', secTotpQrAlt:'QR code for your authenticator app', secTotpSecretLabel:'Setup key', secTotpCodeLabel:'6-digit code', secTotpVerify:'Verify and turn on', secTotpRegistered:'Authenticator app turned on.', secTotpRemove:'Remove authenticator app', secTotpRemoved:'Authenticator app removed.', secTotpFailed:'That code didn’t match. Try the next one your app shows.', secTotpError:'Could not add the authenticator app. Try again.', secTotpRemoveFailed:'Could not remove the authenticator app. Try again.', secMagicLinkLabel:'Magic link', secMagicLinkSwitch:'Sign in with a magic link instead', secMagicLinkCurrent:'You sign in with a magic link sent to {email}.', secMagicLinkUseInstead:'Use a password instead', secMethodFailed:'Could not change how you sign in. Try again.', secReauthTitle:'Confirm it’s you', secReauthPwSub:'Enter your password to continue.', secReauthCodeSub:'We send a 6-digit code to your sign-in email.', secReauthPwLabel:'Password', secReauthSend:'Send a code', secReauthSent:'Code sent.', secReauthConfirm:'Confirm and continue', secReauthWrong:'That didn’t match. Try again.', secReauthUnavailable:'This can’t be confirmed right now. Try again later.', secTooMany:'Too many tries. Wait a minute, then try again.', secCancel:'Cancel', secSaveFailed:'Could not save. Try again.',
 
     staff:'Staff', staffSub:'Invite, role and active. Admin only.',
     inviteEmail:'Email', inviteRole:'Role', inviteSend:'Send invite',
@@ -313,6 +421,7 @@ const T = {
     secUpdated:'Aktualisiert',
     secPasskeyLabel:'Passkeys', secPasskeySub:'Anmelden mit Face ID, Touch ID oder einem Sicherheitsschlüssel statt einem Passwort.',
     secPasskeyEmpty:'Noch kein Passkey hinzugefügt.', secPasskeyAdd:'Passkey hinzufügen', secPasskeyRegistered:'Passkey für dieses Konto registriert.', secPasskeySuccess:'Passkey hinzugefügt. Sie können ihn zum Anmelden verwenden.', secPasskeyUnsupported:'Dieser Browser unterstützt keine Passkeys.', secPasskeyFailed:'Passkey konnte nicht hinzugefügt werden. Bitte erneut versuchen.',
+    secTotpLabel:'Authenticator-App', secTotpSub:'Nach Passwort oder Magic Link mit einem 6-stelligen Code aus einer Authenticator-App anmelden.', secTotpEmpty:'Noch keine Authenticator-App hinzugefügt.', secTotpAdd:'Authenticator-App hinzufügen', secTotpQrIntro:'Scannen Sie diesen Code mit Ihrer Authenticator-App oder geben Sie den Schlüssel von Hand ein. Tippen Sie dann den 6-stelligen Code ein, den die App anzeigt.', secTotpQrAlt:'QR-Code für Ihre Authenticator-App', secTotpSecretLabel:'Einrichtungsschlüssel', secTotpCodeLabel:'6-stelliger Code', secTotpVerify:'Prüfen und einschalten', secTotpRegistered:'Authenticator-App eingeschaltet.', secTotpRemove:'Authenticator-App entfernen', secTotpRemoved:'Authenticator-App entfernt.', secTotpFailed:'Dieser Code passt nicht. Versuchen Sie den nächsten, den Ihre App anzeigt.', secTotpError:'Authenticator-App konnte nicht hinzugefügt werden. Bitte erneut versuchen.', secTotpRemoveFailed:'Authenticator-App konnte nicht entfernt werden. Bitte erneut versuchen.', secMagicLinkLabel:'Magic Link', secMagicLinkSwitch:'Stattdessen mit Magic Link anmelden', secMagicLinkCurrent:'Sie melden sich mit einem Magic Link an, den wir an {email} senden.', secMagicLinkUseInstead:'Stattdessen Passwort verwenden', secMethodFailed:'Die Anmeldeart konnte nicht geändert werden. Bitte erneut versuchen.', secReauthTitle:'Bestätigen Sie, dass Sie es sind', secReauthPwSub:'Geben Sie Ihr Passwort ein, um fortzufahren.', secReauthCodeSub:'Wir senden einen 6-stelligen Code an Ihre Anmelde-E-Mail.', secReauthPwLabel:'Passwort', secReauthSend:'Code senden', secReauthSent:'Code gesendet.', secReauthConfirm:'Bestätigen und weiter', secReauthWrong:'Das passt nicht. Bitte erneut versuchen.', secReauthUnavailable:'Das lässt sich gerade nicht bestätigen. Bitte später erneut versuchen.', secTooMany:'Zu viele Versuche. Warten Sie eine Minute und versuchen Sie es erneut.', secCancel:'Abbrechen', secSaveFailed:'Konnte nicht gespeichert werden. Bitte erneut versuchen.',
 
     staff:'Team', staffSub:'Einladen, Rolle und aktiv. Nur Admin.',
     inviteEmail:'E-Mail', inviteRole:'Rolle', inviteSend:'Einladen',
@@ -357,6 +466,7 @@ const T = {
     secUpdated:'Mis à jour',
     secPasskeyLabel:'Clés d’accès', secPasskeySub:'Se connecter avec Face ID, Touch ID ou une clé de sécurité plutôt qu’un mot de passe.',
     secPasskeyEmpty:'Aucune clé d’accès ajoutée.', secPasskeyAdd:'Ajouter une clé d’accès', secPasskeyRegistered:'Clé d’accès enregistrée pour ce compte.', secPasskeySuccess:'Clé d’accès ajoutée. Vous pouvez l’utiliser pour vous connecter.', secPasskeyUnsupported:'Ce navigateur ne prend pas en charge les clés d’accès.', secPasskeyFailed:'Impossible d’ajouter une clé d’accès. Réessayez.',
+    secTotpLabel:'Application d’authentification', secTotpSub:'Se connecter avec un code à 6 chiffres d’une application d’authentification, après le mot de passe ou le lien magique.', secTotpEmpty:'Aucune application d’authentification ajoutée.', secTotpAdd:'Ajouter une application d’authentification', secTotpQrIntro:'Scannez ce code avec votre application d’authentification ou saisissez la clé à la main. Puis tapez le code à 6 chiffres affiché.', secTotpQrAlt:'QR code pour votre application d’authentification', secTotpSecretLabel:'Clé de configuration', secTotpCodeLabel:'Code à 6 chiffres', secTotpVerify:'Vérifier et activer', secTotpRegistered:'Application d’authentification activée.', secTotpRemove:'Retirer l’application d’authentification', secTotpRemoved:'Application d’authentification retirée.', secTotpFailed:'Ce code ne correspond pas. Essayez le suivant affiché par votre application.', secTotpError:'Impossible d’ajouter l’application d’authentification. Réessayez.', secTotpRemoveFailed:'Impossible de retirer l’application d’authentification. Réessayez.', secMagicLinkLabel:'Lien magique', secMagicLinkSwitch:'Se connecter plutôt avec un lien magique', secMagicLinkCurrent:'Vous vous connectez avec un lien magique envoyé à {email}.', secMagicLinkUseInstead:'Utiliser plutôt un mot de passe', secMethodFailed:'Impossible de changer le mode de connexion. Réessayez.', secReauthTitle:'Confirmez votre identité', secReauthPwSub:'Saisissez votre mot de passe pour continuer.', secReauthCodeSub:'Nous envoyons un code à 6 chiffres à votre e-mail de connexion.', secReauthPwLabel:'Mot de passe', secReauthSend:'Envoyer un code', secReauthSent:'Code envoyé.', secReauthConfirm:'Confirmer et continuer', secReauthWrong:'Cela ne correspond pas. Réessayez.', secReauthUnavailable:'Impossible de confirmer pour le moment. Réessayez plus tard.', secTooMany:'Trop de tentatives. Attendez une minute, puis réessayez.', secCancel:'Annuler', secSaveFailed:'Enregistrement impossible. Réessayez.',
 
     staff:'Équipe', staffSub:'Invitation, rôle et actif. Admin seulement.',
     inviteEmail:'E-mail', inviteRole:'Rôle', inviteSend:'Inviter',
@@ -401,6 +511,7 @@ const T = {
     secUpdated:'تم التحديث',
     secPasskeyLabel:'مفاتيح المرور', secPasskeySub:'سجّل الدخول باستخدام Face ID أو Touch ID أو مفتاح أمان بدلاً من كلمة المرور.',
     secPasskeyEmpty:'لم تتم إضافة أي مفتاح مرور بعد.', secPasskeyAdd:'إضافة مفتاح مرور', secPasskeyRegistered:'تم تسجيل مفتاح مرور لهذا الحساب.', secPasskeySuccess:'تمت إضافة مفتاح المرور. يمكنك استخدامه لتسجيل الدخول.', secPasskeyUnsupported:'لا يدعم هذا المتصفح مفاتيح المرور.', secPasskeyFailed:'تعذرت إضافة مفتاح المرور. حاول مرة أخرى.',
+    secTotpLabel:'تطبيق المصادقة', secTotpSub:'سجّل الدخول برمز من 6 أرقام من تطبيق مصادقة بعد كلمة المرور أو رابط الدخول.', secTotpEmpty:'لم تتم إضافة أي تطبيق مصادقة بعد.', secTotpAdd:'إضافة تطبيق مصادقة', secTotpQrIntro:'امسح هذا الرمز بتطبيق المصادقة أو أدخل المفتاح يدويًا. ثم اكتب الرمز المكوّن من 6 أرقام الذي يظهر فيه.', secTotpQrAlt:'رمز QR لتطبيق المصادقة', secTotpSecretLabel:'مفتاح الإعداد', secTotpCodeLabel:'رمز من 6 أرقام', secTotpVerify:'تحقّق وفعّل', secTotpRegistered:'تم تفعيل تطبيق المصادقة.', secTotpRemove:'إزالة تطبيق المصادقة', secTotpRemoved:'تمت إزالة تطبيق المصادقة.', secTotpFailed:'هذا الرمز غير مطابق. جرّب الرمز التالي الذي يعرضه تطبيقك.', secTotpError:'تعذرت إضافة تطبيق المصادقة. حاول مرة أخرى.', secTotpRemoveFailed:'تعذرت إزالة تطبيق المصادقة. حاول مرة أخرى.', secMagicLinkLabel:'رابط الدخول', secMagicLinkSwitch:'سجّل الدخول برابط بدلاً من ذلك', secMagicLinkCurrent:'تسجّل الدخول برابط يُرسل إلى {email}.', secMagicLinkUseInstead:'استخدم كلمة مرور بدلاً من ذلك', secMethodFailed:'تعذر تغيير طريقة تسجيل الدخول. حاول مرة أخرى.', secReauthTitle:'أكّد هويتك', secReauthPwSub:'أدخل كلمة المرور للمتابعة.', secReauthCodeSub:'نرسل رمزًا من 6 أرقام إلى بريد تسجيل الدخول.', secReauthPwLabel:'كلمة المرور', secReauthSend:'أرسل رمزًا', secReauthSent:'تم إرسال الرمز.', secReauthConfirm:'أكّد وتابع', secReauthWrong:'غير مطابق. حاول مرة أخرى.', secReauthUnavailable:'لا يمكن التأكيد الآن. حاول لاحقًا.', secTooMany:'محاولات كثيرة. انتظر دقيقة ثم حاول مرة أخرى.', secCancel:'إلغاء', secSaveFailed:'تعذر الحفظ. حاول مرة أخرى.',
 
     staff:'الفريق', staffSub:'دعوة ودور وحالة. للمسؤول فقط.',
     inviteEmail:'البريد الإلكتروني', inviteRole:'الدور', inviteSend:'إرسال الدعوة',
@@ -411,6 +522,7 @@ const T = {
   },
 };
 
+const REAUTH_FRESH_MS = 270000; // 4.5 min: the server's vt_reauth lives 5 min.
 const POLICY_KEYS = { minAdvance:1, cancelWindow:1, airportWait:1, cityWait:1, policySlug:1, policyLabel:1, policyEffectiveFrom:1 };
 function b64urlToBuf(s) {
   const pad = '='.repeat((4 - (s.length % 4)) % 4);
@@ -458,7 +570,10 @@ function signOutNow() {
   api('POST', '/api/auth', { action: 'signout' }).then(done, done);
 }
 class Component extends DCLogic {
-  state = { lang:'en', draft:null, saved:false, pane:'company', secEmail:'', pw1:'', pw2:'', pwMsg:'', pwSaved:false, emailSaved:false, passkeyAdded:false, passkeyMsg:'', passkeyError:false, showPw1:false, showPw2:false, me:null };
+  state = { lang:'en', draft:null, emailMsg:'', saved:false, pane:'company', secEmail:'', pw1:'', pw2:'', pwMsg:'', pwSaved:false, emailSaved:false, passkeyAdded:false, passkeyMsg:'', passkeyError:false, showPw1:false, showPw2:false, me:null,
+    signInMethod:'password', methodBusy:false, methodSaved:false, methodMsg:'',
+    totpOn:false, totpFactorId:'', totpStage:'idle', totpQr:'', totpSecret:'', totpCode:'', totpFailed:false, totpBusy:false, totpMsg:'', totpError:false,
+    reauthOpen:false, reauthPw:'', showReauthPw:false, reauthCode:'', reauthSent:false, reauthBusy:false, reauthErr:'' };
   bind = () => {
     if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
     if (this._offSettings) this._offSettings();
@@ -476,8 +591,19 @@ class Component extends DCLogic {
       this.setState({ me: me, secEmail: me.email || this.state.secEmail });
     });
   };
+  loadMfa = () => {
+    api('POST', '/api/auth', { action: 'mfa-status' }).then((json) => {
+      if (!json || !json.ok) return;
+      this.setState({
+        totpOn: !!json.totp, totpFactorId: json.totpFactorId || '',
+        passkeyAdded: !!json.passkey || this.state.passkeyAdded,
+        signInMethod: json.signInMethod === 'magic_link' ? 'magic_link' : 'password',
+      });
+    });
+  };
   componentDidMount() {
     this.bind();
+    this.loadMfa();
     this._onLocale = (e) => this.setState({ lang: e.detail.lang, cur: e.detail.cur });
     window.addEventListener('vamos:locale', this._onLocale);
     if (window.VamosLocale) this.setState({ lang: window.VamosLocale.lang() });
@@ -486,28 +612,177 @@ class Component extends DCLogic {
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
     if (this._offSettings) this._offSettings();
 
-    clearTimeout(this._retry); clearTimeout(this._savedT); clearTimeout(this._emailT); clearTimeout(this._pwT);
+    clearTimeout(this._retry); clearTimeout(this._savedT); clearTimeout(this._emailT); clearTimeout(this._pwT); clearTimeout(this._methodT);
   }
-  saveEmail = () => {
-    api('PATCH', '/api/staff/profile', { email: this.state.secEmail }).then((json) => {
+  /* Re-auth gate (D-17, D-17b). Changing the email or password, switching the sign-in
+     method, and adding or removing the authenticator app all ask the admin to confirm it is
+     them first. The server holds the proof (HttpOnly vt_reauth, 5 minutes, bound to this
+     session); the page only remembers when it last confirmed so it does not ask twice in a
+     row. If the server still answers 403 reauth-required, the dialog opens and the action
+     retries once after the admin confirms. */
+  reauthFresh = () => !!this._reauthAt && Date.now() - this._reauthAt < REAUTH_FRESH_MS;
+  withReauth = (call, done) => {
+    const attempt = (retried) => call().then((json) => {
+      if (json && json.code === 'reauth-required' && !retried) {
+        this._reauthAt = 0;
+        this.openReauth(() => attempt(true));
+        return;
+      }
+      done(json || { ok: false, code: 'network' });
+    });
+    if (this.reauthFresh()) attempt(false);
+    else this.openReauth(() => attempt(true));
+  };
+  openReauth = (next) => {
+    this._afterReauth = next;
+    this.setState({ reauthOpen: true, reauthPw: '', showReauthPw: false, reauthCode: '', reauthSent: false, reauthBusy: false, reauthErr: '' });
+  };
+  closeReauth = () => {
+    this._afterReauth = null;
+    this.setState({ reauthOpen: false, reauthPw: '', reauthCode: '', reauthBusy: false, reauthErr: '' });
+  };
+  failText = (json, fallback) => {
+    const t = T[this.state.lang] || T.en;
+    const code = json && json.code;
+    if (code === 'reauth-required' || code === 'reauth-unavailable') return t.secReauthUnavailable;
+    if (code === 'rate_limited') return t.secTooMany;
+    return fallback;
+  };
+  sendReauthCode = () => {
+    if (this.state.reauthBusy) return;
+    this.setState({ reauthBusy: true, reauthErr: '' });
+    api('POST', '/api/auth', { action: 'reauth-code-send' }).then((json) => {
+      const t = T[this.state.lang] || T.en;
+      if (json && json.ok) this.setState({ reauthBusy: false, reauthSent: true });
+      else this.setState({ reauthBusy: false, reauthSent: false, reauthErr: this.failText(json, t.secReauthUnavailable) });
+    });
+  };
+  confirmReauth = () => {
+    const byCode = this.state.signInMethod === 'magic_link';
+    if (this.state.reauthBusy || !this.reauthReady()) return;
+    this.setState({ reauthBusy: true, reauthErr: '' });
+    const body = byCode
+      ? { action: 'reauth-code-verify', code: this.state.reauthCode.replace(/\s+/g, '') }
+      : { action: 'reauth-password', password: this.state.reauthPw };
+    api('POST', '/api/auth', body).then((json) => {
+      const t = T[this.state.lang] || T.en;
       if (json && json.ok) {
-        this.setState({ emailSaved: true });
+        this._reauthAt = Date.now();
+        const next = this._afterReauth;
+        this._afterReauth = null;
+        this.setState({ reauthOpen: false, reauthPw: '', reauthCode: '', reauthBusy: false, reauthErr: '' });
+        if (next) next();
+        return;
+      }
+      this.setState({ reauthBusy: false, reauthPw: '', reauthErr: this.failText(json, t.secReauthWrong) });
+    });
+  };
+  reauthReady = () => (this.state.signInMethod === 'magic_link'
+    ? /^\d{6}$/.test(this.state.reauthCode.replace(/\s+/g, ''))
+    : this.state.reauthPw.length > 0);
+  reauthKey = (e) => { if (e && e.key === 'Enter') { e.preventDefault(); this.confirmReauth(); } };
+
+  saveEmail = () => {
+    const t = T[this.state.lang] || T.en;
+    this.withReauth(() => api('PATCH', '/api/staff/profile', { email: this.state.secEmail }), (json) => {
+      if (json && json.ok) {
+        this.setState({ emailSaved: true, emailMsg: '' });
         clearTimeout(this._emailT);
         this._emailT = setTimeout(() => this.setState({ emailSaved: false }), 2400);
+      } else {
+        this.setState({ emailSaved: false, emailMsg: this.failText(json, t.secSaveFailed) });
       }
     });
   };
   changePassword = () => {
     const t = T[this.state.lang] || T.en;
     if (!this.state.pw1 || this.state.pw1 !== this.state.pw2) { this.setState({ pwMsg: t.secPasswordMismatch, pwSaved: false }); return; }
-    api('PATCH', '/api/staff/profile', { password: this.state.pw1 }).then((json) => {
+    this.withReauth(() => api('PATCH', '/api/staff/profile', { password: this.state.pw1 }), (json) => {
       if (json && json.ok) {
         this.setState({ pw1: '', pw2: '', pwMsg: '', pwSaved: true });
         clearTimeout(this._pwT);
         this._pwT = setTimeout(() => this.setState({ pwSaved: false }), 2400);
       } else {
-        this.setState({ pwMsg: (json && json.code) || t.secPasswordMismatch, pwSaved: false });
+        this.setState({ pwMsg: this.failText(json, t.secSaveFailed), pwSaved: false });
       }
+    });
+  };
+  setMethod = (method) => {
+    const t = T[this.state.lang] || T.en;
+    if (this.state.methodBusy) return;
+    this.setState({ methodMsg: '', methodSaved: false });
+    this.withReauth(() => {
+      this.setState({ methodBusy: true });
+      return api('POST', '/api/auth', { action: 'set-sign-in-method', method: method });
+    }, (json) => {
+      if (json && json.ok) {
+        this.setState({ methodBusy: false, methodSaved: true, signInMethod: json.signInMethod === 'magic_link' ? 'magic_link' : 'password', pw1: '', pw2: '', pwMsg: '' });
+        clearTimeout(this._methodT);
+        this._methodT = setTimeout(() => this.setState({ methodSaved: false }), 2400);
+      } else {
+        this.setState({ methodBusy: false, methodMsg: this.failText(json, t.secMethodFailed) });
+      }
+    });
+  };
+  useMagicLink = () => this.setMethod('magic_link');
+  usePassword = () => this.setMethod('password');
+
+  /* Authenticator app (TOTP, D-16a). Enrol needs a fresh re-auth (D-17b), so a stolen
+     session cannot add its own factor. The QR is Supabase's data: SVG URI rendered as an
+     <img>, never injected as markup; the setup key is shown once and never stored here. */
+  addTotp = () => {
+    const t = T[this.state.lang] || T.en;
+    if (this.state.totpBusy) return;
+    this.setState({ totpMsg: '', totpError: false, totpFailed: false });
+    this.withReauth(() => {
+      this.setState({ totpBusy: true });
+      return api('POST', '/api/auth', { action: 'mfa-totp-enroll' });
+    }, (json) => {
+      const qrOk = json && typeof json.qrSvg === 'string' && json.qrSvg.indexOf('data:image/svg+xml') === 0;
+      if (json && json.ok && json.factorId && json.secret && qrOk) {
+        this._pendingFactor = json.factorId;
+        this.setState({ totpBusy: false, totpStage: 'enrolling', totpQr: json.qrSvg, totpSecret: json.secret, totpCode: '' });
+      } else {
+        this.setState({ totpBusy: false, totpError: true, totpMsg: this.failText(json, t.secTotpError) });
+      }
+    });
+  };
+  verifyTotp = () => {
+    const t = T[this.state.lang] || T.en;
+    const code = this.state.totpCode.replace(/\s+/g, '');
+    if (this.state.totpBusy || !/^\d{6}$/.test(code) || !this._pendingFactor) return;
+    this.setState({ totpBusy: true, totpFailed: false, totpMsg: '' });
+    api('POST', '/api/auth', { action: 'mfa-totp-verify', factorId: this._pendingFactor, code: code }).then((json) => {
+      if (json && json.ok) {
+        const id = json.factorId || this._pendingFactor;
+        this._pendingFactor = '';
+        this.setState({ totpBusy: false, totpOn: true, totpFactorId: id, totpStage: 'idle', totpQr: '', totpSecret: '', totpCode: '', totpError: false, totpMsg: t.secTotpRegistered });
+        return;
+      }
+      if (json && (json.code === 'mfa-code-mismatch' || json.code === 'mfa-invalid-input')) {
+        this.setState({ totpBusy: false, totpFailed: true, totpCode: '' }, () => {
+          const field = document.querySelector('[data-totp-side] input');
+          if (field) field.focus();
+        });
+        return;
+      }
+      this.setState({ totpBusy: false, totpError: true, totpMsg: this.failText(json, t.secTotpError) });
+    });
+  };
+  cancelTotp = () => {
+    this._pendingFactor = '';
+    this.setState({ totpStage: 'idle', totpQr: '', totpSecret: '', totpCode: '', totpFailed: false, totpBusy: false });
+  };
+  removeTotp = () => {
+    const t = T[this.state.lang] || T.en;
+    if (this.state.totpBusy || !this.state.totpFactorId) return;
+    this.setState({ totpMsg: '', totpError: false });
+    this.withReauth(() => {
+      this.setState({ totpBusy: true });
+      return api('POST', '/api/auth', { action: 'mfa-unenroll', factorId: this.state.totpFactorId });
+    }, (json) => {
+      if (json && json.ok) this.setState({ totpBusy: false, totpOn: false, totpFactorId: '', totpError: false, totpMsg: t.secTotpRemoved });
+      else this.setState({ totpBusy: false, totpError: true, totpMsg: this.failText(json, t.secTotpRemoveFailed) });
     });
   };
   addPasskey = async () => {
@@ -611,8 +886,9 @@ class Component extends DCLogic {
       tSecPasskeyAdd: t.secPasskeyAdd, tSecPasskeyRegistered: t.secPasskeyRegistered,
 
       isSecurity: pane === 'security', yes: true,
-      secEmail: this.state.secEmail, setSecEmail: (e) => this.setState({ secEmail: e.target.value }),
+      secEmail: this.state.secEmail, setSecEmail: (e) => this.setState({ secEmail: e.target.value, emailMsg: '' }),
       saveEmail: this.saveEmail, emailSavedShow: this.state.emailSaved ? 'inline' : 'none',
+      emailMsg: this.state.emailMsg, emailMsgShow: this.state.emailMsg ? 'block' : 'none',
       pw1: this.state.pw1, setPw1: (e) => this.setState({ pw1: e.target.value, pwMsg: '' }),
       pw2: this.state.pw2, setPw2: (e) => this.setState({ pw2: e.target.value, pwMsg: '' }),
       changePassword: this.changePassword, pwMsg: this.state.pwMsg, pwMsgShow: this.state.pwMsg ? 'block' : 'none',
@@ -627,6 +903,45 @@ class Component extends DCLogic {
       passkeyMsg: this.state.passkeyMsg, passkeyMsgShow: this.state.passkeyMsg ? 'block' : 'none',
       passkeyMsgColor: this.state.passkeyError ? 'var(--vt-danger)' : 'var(--vt-text-primary)',
       addPasskey: this.addPasskey,
+
+      n6: 6,
+      isPasswordMethod: this.state.signInMethod !== 'magic_link', isMagicMethod: this.state.signInMethod === 'magic_link',
+      tSecMagicLinkLabel: t.secMagicLinkLabel, tSecMagicLinkSwitch: t.secMagicLinkSwitch, tSecMagicLinkUseInstead: t.secMagicLinkUseInstead,
+      magicPre: t.secMagicLinkCurrent.split('{email}')[0], magicPost: t.secMagicLinkCurrent.split('{email}')[1] || '',
+      useMagicLink: this.useMagicLink, usePassword: this.usePassword, methodBusy: this.state.methodBusy,
+      methodSavedShow: this.state.methodSaved ? 'inline' : 'none',
+      methodMsg: this.state.methodMsg, methodMsgShow: this.state.methodMsg ? 'block' : 'none',
+      tSecTotpLabel: t.secTotpLabel, tSecTotpSub: t.secTotpSub, tSecTotpEmpty: t.secTotpEmpty, tSecTotpAdd: t.secTotpAdd,
+      tSecTotpQrIntro: t.secTotpQrIntro, tSecTotpQrAlt: t.secTotpQrAlt, tSecTotpSecretLabel: t.secTotpSecretLabel,
+      tSecTotpCodeLabel: t.secTotpCodeLabel, tSecTotpVerify: t.secTotpVerify, tSecTotpRegistered: t.secTotpRegistered,
+      tSecTotpRemove: t.secTotpRemove, tSecTotpFailed: t.secTotpFailed, tSecCancel: t.secCancel,
+      totpOn: this.state.totpOn && this.state.totpStage === 'idle',
+      totpIdle: !this.state.totpOn && this.state.totpStage === 'idle',
+      totpEnrolling: this.state.totpStage === 'enrolling',
+      totpQr: this.state.totpQr, totpSecret: this.state.totpSecret, totpCode: this.state.totpCode,
+      setTotpCode: (e) => this.setState({ totpCode: e.target.value.replace(/\D/g, '').slice(0, 6), totpFailed: false }),
+      totpFailed: this.state.totpFailed,
+      totpBusy: this.state.totpBusy,
+      totpVerifyDisabled: this.state.totpBusy || !/^\d{6}$/.test(this.state.totpCode.replace(/\s+/g, '')),
+      addTotp: this.addTotp, verifyTotp: this.verifyTotp, cancelTotp: this.cancelTotp, removeTotp: this.removeTotp,
+      totpMsg: this.state.totpMsg, totpMsgShow: this.state.totpMsg ? 'block' : 'none',
+      totpMsgColor: this.state.totpError ? 'var(--vt-danger)' : 'var(--vt-text-primary)',
+      reauthOpen: this.state.reauthOpen, closeReauth: this.closeReauth, confirmReauth: this.confirmReauth, reauthKey: this.reauthKey,
+      tSecReauthTitle: t.secReauthTitle, tSecReauthPwLabel: t.secReauthPwLabel, tSecReauthSend: t.secReauthSend,
+      tSecReauthSent: t.secReauthSent, tSecReauthConfirm: t.secReauthConfirm,
+      reauthByPassword: this.state.signInMethod !== 'magic_link', reauthByCode: this.state.signInMethod === 'magic_link',
+      reauthSub: this.state.signInMethod === 'magic_link' ? t.secReauthCodeSub : t.secReauthPwSub,
+      reauthPw: this.state.reauthPw, setReauthPw: (e) => this.setState({ reauthPw: e.target.value, reauthErr: '' }),
+      showReauthPw: this.state.showReauthPw, hideReauthPw: !this.state.showReauthPw,
+      reauthPwType: this.state.showReauthPw ? 'text' : 'password',
+      eyeReauthLabel: this.state.showReauthPw ? t.eyeHide : t.eyeShow,
+      toggleReauthPw: () => this.setState((s) => ({ showReauthPw: !s.showReauthPw })),
+      reauthCode: this.state.reauthCode,
+      setReauthCode: (e) => this.setState({ reauthCode: e.target.value.replace(/\D/g, '').slice(0, 6), reauthErr: '' }),
+      sendReauthCode: this.sendReauthCode, reauthSentShow: this.state.reauthSent ? 'inline' : 'none',
+      reauthBusy: this.state.reauthBusy,
+      reauthConfirmDisabled: this.state.reauthBusy || !this.reauthReady(),
+      reauthErr: this.state.reauthErr, reauthErrShow: this.state.reauthErr ? 'block' : 'none',
 
       publishedLangs: [
         { code:'EN', label:t.langEn }, { code:'DE', label:t.langDe },
