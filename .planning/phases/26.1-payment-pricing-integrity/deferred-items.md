@@ -31,3 +31,15 @@ next plan to pick up.
 - **What:** `zrh-airport`, `gva-airport`, `zurich-city` have `zone_type = 'other'`.
 - **Impact:** none on the airport fee (Mapbox/flight driven). City pairs created from ops now get Mapbox-typed zones (26.1-10).
 - **Fix (optional):** retype via ops or owner SQL once the owner confirms.
+
+## Customer cancel copy still shows the old ≤6 h "no refund" window (26.1-17)
+
+- **Found during:** 26.1-17 (D-24 SQL tiers).
+- **What:** `apps/web/app/api/manage/booking/route.ts` `cancelWindow()` and `apps/web/app/[locale]/confirmation/[ref]/ConfirmationClient.tsx` `cancelWindowOf()` still classify ≤6 h (and after pickup) as `none`. ConfirmationClient hides the cancel confirm in that window (`canConfirmCancel = … windowKind !== "none"`) and shows `cancelSheetClose` copy. SQL now makes every paid cancel inside 24 h `pending_ops` (admin reviews).
+- **Impact:** a customer inside 6 h is told there is no refund and cannot confirm the cancel from that screen, although the admin would now review it.
+- **Fix:** 26.1-18 (refund UI) or a follow-up: align both helpers with D-24 (>24 h auto_full, else pending_ops for paid bookings) and review the copy in four languages. Owner signs the wording.
+
+## Refunds are now admin-only (26.1-17)
+
+- **What:** `POST /api/staff/bookings/:id/refund` moved from `withStaff` to `withAdmin`. A dispatcher's Refund button in `app/ops/OpsDetail.dc.html` now answers 403 `not-admin`.
+- **Fix:** 26.1-18 hides or disables the button for dispatchers and adds the percentage / decline / post-trip controls.
