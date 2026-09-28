@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-09-23)
 Phase: 26.1 (Payment and pricing integrity) — EXECUTING
 Plan: 8 of 31
 Status: Ready to execute
-Last activity: 2026-09-28
+Last activity: 2026-09-28 - Completed quick task 260928-lux: Fix phone booking dead end: Show fixed prices goes to checkout trip
 
 Phase 21 execution note (not current): planning complete — 8 plans. Execution started 2026-09-22 on `gsd/phase-21-charge-gate`. That position was Phase 21 EXECUTING, plan 1 of 8. Phase 21 is not complete. Do not execute Phase 16/17/19/20. Do not touch the main checkout from that branch note.
 
@@ -41,6 +41,12 @@ Phase 21 execution note (not current): planning complete — 8 plans. Execution 
 ## Blockers
 
 Stripe live keys and Search Console stay owner-gated. Agent does not click Publish. Agent does not `supabase db push`. Never restore onto yaumjzvylngfjhtuffqs. No `vamostaxi.eu`. No `sk_live_`. `11-12` remains owner-gated and does not block Phase 13.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260928-lux | Fix phone booking dead end: Show fixed prices goes to checkout trip | 2026-09-28 | 1ef815c3 | [260928-lux-fix-phone-booking-dead-end-show-fixed-pr](./quick/260928-lux-fix-phone-booking-dead-end-show-fixed-pr/) |
 
 ## Session Continuity
 
@@ -61,6 +67,7 @@ Phase 21 branch session (2026-09-22T19:57:29.795Z, not the resume): Stopped at P
 - Phases 26–29 approved (2026-09-23): v1.3 Meta measurement. META-01…META-14. Next is discuss-phase 26. Phase 21 is not current.
 - Phase 26 lock shipped (2026-09-24) on `gsd/phase-26-legal-gate`. Empty slots. Flag is the literal false. Policy version stays `2026-09-12`. Not merged. Pixel stays off until the owner pastes the four-language lines.
 - Phase 21 execution on `gsd/phase-21-charge-gate` (2026-09-22): planning complete — 8 plans; execution started. Plans 21-01…21-08 stay checked. Progress stays 10/10 in progress. Phase 21 is not complete. Do not execute Phase 16/17/19/20.
+- Phase 26.3 inserted (2026-09-28): Booking flow simplification. Sketch 001 Variant A approved by the owner (two screens, home price strip on tablet/desktop, one checkout page). Placed before 27 by owner choice so the pixel measures the new funnel. Depends on 26.1 and 26.2 merging first. Next is discuss-phase 26.3.
 
 ## Decisions
 

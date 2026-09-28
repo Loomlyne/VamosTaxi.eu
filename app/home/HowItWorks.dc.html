@@ -419,50 +419,124 @@ a{color:inherit;text-decoration:none;border-bottom:0}
   [data-mock="meet"] [data-hiw-sign]{transition:none}
   [data-mock="meet"] [data-hiw-sign-in]{opacity:1;transform:none;animation:none}
 }
-[data-mock="pay"] [data-mock-pane="pay"]{display:flex;flex:1 1 auto;flex-direction:column;gap:16px;min-block-size:0}
-[data-mock="pay"]{container-type:inline-size;container-name:hiw-pay;flex:1 1 auto;min-block-size:0}
-[data-mock="pay"] [data-hiw-pay-route]{
+/* ── Pay step ─────────────────────────────────────────────────────────────
+   Charcoal receipt panel. Brand yellow is the only accent: the route rail,
+   the picked class, the authorisation sweep and the paid stamp. Amounts are
+   catalog holds (CHF 000) — never a typed fare, never a live-looking total.
+   ------------------------------------------------------------------------ */
+[data-hiw-mock][data-mock="pay"]{
+  container-type:inline-size;
+  container-name:hiw-pay;
+  flex:1 1 auto;
+  gap:12px;
+  min-inline-size:0;
+  min-block-size:0;
+  padding:14px;
+  background:var(--vt-charcoal-950);
+  border:var(--vt-border-w) solid var(--vt-border-inverse);
+  border-radius:var(--vt-radius-md);
+  box-shadow:none;
+  color:var(--vt-text-inverse);
+}
+[data-hiw-mock][data-mock="pay"] [data-hiw-mock-kicker]{
   display:flex;
+  align-items:center;
+  gap:10px;
+  color:var(--vt-yellow);
+}
+[data-hiw-mock][data-mock="pay"] [data-hiw-mock-kicker]::after{
+  content:"";
+  flex:1 1 auto;
+  min-inline-size:0;
+  block-size:1px;
+  background:var(--vt-border-inverse);
+}
+[data-mock="pay"] [data-mock-pane="pay"]{
+  display:flex;
+  flex:1 1 auto;
   flex-direction:column;
-  gap:4px;
+  gap:12px;
+  min-inline-size:0;
+  min-block-size:0;
+}
+[data-mock="pay"] [data-hiw-pay-trip]{
+  display:grid;
+  grid-template-columns:10px minmax(0,1fr);
+  column-gap:10px;
+  row-gap:2px;
+  align-items:start;
   min-inline-size:0;
 }
-[data-mock="pay"] [data-hiw-pay-from],
-[data-mock="pay"] [data-hiw-pay-to],
-[data-mock="pay"] [data-hiw-pay-when]{
-  margin:0;
-  min-inline-size:0;
+[data-mock="pay"] [data-hiw-pay-rail]{
+  grid-column:1;
+  grid-row:1 / 3;
+  align-self:stretch;
+  justify-self:center;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding-block:5px 6px;
+}
+[data-mock="pay"] [data-hiw-pay-dot]{
+  display:block;
+  flex:0 0 auto;
+  box-sizing:border-box;
+  inline-size:8px;
+  block-size:8px;
+  border-radius:var(--vt-radius-pill);
+  background:var(--vt-yellow);
+}
+[data-mock="pay"] [data-hiw-pay-dot="b"]{
+  inline-size:9px;
+  block-size:9px;
+  background:transparent;
+  border:2px solid var(--vt-yellow);
+}
+[data-mock="pay"] [data-hiw-pay-line]{
+  display:block;
+  flex:1 1 auto;
+  inline-size:1px;
+  min-block-size:12px;
+  margin-block:3px;
+  overflow:hidden;
+  background:var(--vt-border-inverse);
+}
+[data-mock="pay"] [data-hiw-pay-line-fill]{
+  display:block;
+  inline-size:100%;
+  block-size:100%;
+  background:var(--vt-yellow);
+  transform-origin:50% 0;
 }
 [data-mock="pay"] [data-hiw-pay-from],
 [data-mock="pay"] [data-hiw-pay-to]{
+  grid-column:2;
+  margin:0;
+  min-inline-size:0;
   font-family:var(--vt-font-body);
   font-size:var(--vt-body-sm);
   font-weight:var(--vt-weight-semibold);
   line-height:1.3;
   text-wrap:balance;
   overflow-wrap:break-word;
-  color:var(--s-fg);
+  color:var(--vt-text-inverse);
 }
-[data-mock="pay"] [data-hiw-pay-to]{
-  display:flex;
-  align-items:center;
-  gap:6px;
-  font-weight:var(--vt-weight-medium);
-}
-[data-mock="pay"] [data-hiw-pay-arrow]{
-  flex:0 0 auto;
-  display:block;
-  color:var(--vt-yellow);
-}
-[data-hiw][dir="rtl"] [data-mock="pay"] [data-hiw-pay-arrow]{transform:scaleX(-1)}
+[data-mock="pay"] [data-hiw-pay-from]{grid-row:1}
+[data-mock="pay"] [data-hiw-pay-to]{grid-row:2}
 [data-mock="pay"] [data-hiw-pay-when]{
+  grid-column:2;
+  grid-row:3;
+  margin:0;
+  margin-block-start:4px;
+  min-inline-size:0;
   font-family:var(--vt-font-body);
   font-size:var(--vt-body-xs);
   font-weight:var(--vt-weight-regular);
   line-height:1.4;
   font-variant-numeric:tabular-nums;
   text-wrap:pretty;
-  color:var(--s-sec);
+  overflow-wrap:break-word;
+  color:var(--vt-text-inverse-muted);
 }
 [data-mock="pay"] [data-hiw-pay-list]{
   display:flex;
@@ -470,34 +544,54 @@ a{color:inherit;text-decoration:none;border-bottom:0}
   gap:8px;
   min-inline-size:0;
 }
+[data-mock="pay"] [data-hiw-pay-list]:empty{display:none}
+[data-mock="pay"] [data-hiw-pay-list] > *:nth-child(1){--i:0}
+[data-mock="pay"] [data-hiw-pay-list] > *:nth-child(2){--i:1}
+[data-mock="pay"] [data-hiw-pay-list] > *:nth-child(3){--i:2}
+[data-mock="pay"] [data-hiw-pay-list] > *:nth-child(4){--i:3}
 [data-mock="pay"] [data-hiw-pay-class]{
+  position:relative;
   display:grid;
-  grid-template-columns:16px minmax(0,1fr);
+  grid-template-columns:18px minmax(0,1fr);
   grid-template-areas:"radio copy" ". amt";
   align-items:start;
   column-gap:8px;
-  row-gap:4px;
+  row-gap:2px;
   min-inline-size:0;
   padding-block:8px;
-  padding-inline:10px;
-  background:var(--s-card);
-  border:var(--vt-border-w) solid var(--s-line);
+  padding-inline:12px;
+  overflow:hidden;
+  background:var(--vt-charcoal-900);
+  border:var(--vt-border-w) solid var(--vt-border-inverse);
   border-radius:var(--vt-radius-sm);
   box-shadow:none;
 }
-[data-mock="pay"] [data-hiw-pay-class][data-picked="1"]{
-  border-color:var(--vt-yellow);
-  box-shadow:inset 0 0 0 1px var(--vt-yellow);
+[data-mock="pay"] [data-hiw-pay-class]::before{
+  content:"";
+  position:absolute;
+  inset-block:0;
+  inset-inline-start:0;
+  inline-size:2px;
+  background:var(--vt-yellow);
+  transform:scaleY(0);
+  transform-origin:50% 100%;
+  pointer-events:none;
 }
+[data-mock="pay"] [data-hiw-pay-class][data-picked="1"]{
+  background:var(--vt-charcoal-800);
+  border-color:var(--vt-border-accent);
+}
+[data-mock="pay"] [data-hiw-pay-class][data-picked="1"]::before{transform:scaleY(1)}
 [data-mock="pay"] [data-hiw-pay-radio]{
   grid-area:radio;
   display:flex;
   align-items:center;
   justify-content:center;
-  inline-size:16px;
-  block-size:16px;
-  margin-block-start:1px;
-  border:1.5px solid var(--s-sec);
+  box-sizing:border-box;
+  inline-size:18px;
+  block-size:18px;
+  margin-block-start:0;
+  border:1.5px solid var(--vt-text-inverse-muted);
   border-radius:var(--vt-radius-pill);
   background:transparent;
   color:transparent;
@@ -523,20 +617,23 @@ a{color:inherit;text-decoration:none;border-bottom:0}
   line-height:1.3;
   hyphens:none;
   text-wrap:balance;
-  color:var(--s-fg);
+  overflow-wrap:break-word;
+  color:var(--vt-text-inverse);
 }
 [data-mock="pay"] [data-hiw-pay-cap]{
   font-family:var(--vt-font-body);
   font-size:var(--vt-body-xs);
   font-weight:var(--vt-weight-regular);
   line-height:1.4;
+  font-variant-numeric:tabular-nums;
   text-wrap:pretty;
   overflow-wrap:break-word;
-  color:var(--s-sec);
+  color:var(--vt-text-inverse-muted);
 }
 [data-mock="pay"] [data-hiw-pay-amt]{
   grid-area:amt;
   justify-self:end;
+  align-self:center;
   margin:0;
   font-family:var(--vt-font-display);
   font-size:var(--vt-body-sm);
@@ -545,14 +642,144 @@ a{color:inherit;text-decoration:none;border-bottom:0}
   line-height:1.3;
   white-space:nowrap;
   text-align:end;
-  color:var(--s-fg);
+  color:var(--vt-text-inverse-muted);
 }
-@container hiw-pay (min-width:260px){
+[data-mock="pay"] [data-hiw-pay-class][data-picked="1"] [data-hiw-pay-amt]{color:var(--vt-yellow)}
+[data-mock="pay"] [data-hiw-pay-foot]{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:10px;
+  margin-block-start:auto;
+  min-inline-size:0;
+}
+[data-mock="pay"] [data-hiw-pay-auth]{
+  display:block;
+  inline-size:100%;
+  block-size:2px;
+  overflow:hidden;
+  border-radius:var(--vt-radius-pill);
+  background:var(--vt-border-inverse);
+}
+[data-mock="pay"] [data-hiw-pay-auth-fill]{
+  display:block;
+  inline-size:100%;
+  block-size:100%;
+  background:var(--vt-yellow);
+  transform-origin:0 50%;
+}
+[data-hiw][dir="rtl"] [data-mock="pay"] [data-hiw-pay-auth-fill]{transform-origin:100% 50%}
+[data-mock="pay"] [data-hiw-paid]{
+  margin:0;
+  display:inline-flex;
+  align-items:center;
+  align-self:flex-start;
+  gap:6px;
+  max-inline-size:100%;
+  min-inline-size:0;
+  padding-block:5px;
+  padding-inline:12px;
+  border-radius:var(--vt-radius-pill);
+  background:var(--vt-yellow);
+  color:var(--vt-charcoal-950);
+}
+[data-mock="pay"] [data-hiw-pay-tick]{
+  flex:0 0 auto;
+  display:flex;
+  color:var(--vt-charcoal-950);
+}
+[data-mock="pay"] [data-hiw-pay-tick] svg{display:block}
+[data-mock="pay"] [data-hiw-pay-tick] path{stroke-dasharray:1;stroke-dashoffset:0}
+[data-mock="pay"] [data-hiw-paid-txt]{
+  min-inline-size:0;
+  font-family:var(--vt-font-body);
+  font-size:var(--vt-body-xs);
+  font-weight:var(--vt-weight-semibold);
+  line-height:1.4;
+  text-wrap:pretty;
+  overflow-wrap:break-word;
+}
+@container hiw-pay (min-width:250px){
   [data-mock="pay"] [data-hiw-pay-class]{
-    grid-template-columns:16px minmax(0,1fr) auto;
+    grid-template-columns:18px minmax(0,1fr) auto;
     grid-template-areas:"radio copy amt";
+    align-items:center;
+    column-gap:10px;
     row-gap:0;
   }
+}
+/* Wide card (single-column grid on tablet and below 900px): trip beside the
+   classes so the panel does not stretch into one sparse band. */
+@container hiw-pay (min-width:520px){
+  [data-mock="pay"] [data-mock-pane="pay"]{
+    display:grid;
+    grid-template-columns:minmax(0,0.9fr) minmax(0,1.1fr);
+    column-gap:20px;
+    row-gap:12px;
+    align-items:start;
+  }
+  [data-mock="pay"] [data-hiw-pay-trip]{grid-column:1;grid-row:1}
+  [data-mock="pay"] [data-hiw-pay-list]{grid-column:2;grid-row:1 / 3}
+  [data-mock="pay"] [data-hiw-pay-foot]{grid-column:1;grid-row:2;align-self:end;margin-block-start:0}
+}
+@media (prefers-reduced-motion:no-preference){
+  [data-hiw][data-anim="1"]:not([data-seen="1"]) [data-mock="pay"] [data-hiw-pay-trip],
+  [data-hiw][data-anim="1"]:not([data-seen="1"]) [data-mock="pay"] [data-hiw-pay-class],
+  [data-hiw][data-anim="1"]:not([data-seen="1"]) [data-mock="pay"] [data-hiw-paid]{opacity:0}
+  [data-hiw][data-anim="1"]:not([data-seen="1"]) [data-mock="pay"] [data-hiw-pay-line-fill]{transform:scaleY(0)}
+  [data-hiw][data-anim="1"]:not([data-seen="1"]) [data-mock="pay"] [data-hiw-pay-dot="b"]{transform:scale(0)}
+  [data-hiw][data-anim="1"]:not([data-seen="1"]) [data-mock="pay"] [data-hiw-pay-auth-fill]{transform:scaleX(0)}
+  [data-hiw][data-anim="1"]:not([data-seen="1"]) [data-mock="pay"] [data-hiw-pay-class]::before{transform:scaleY(0)}
+  [data-hiw][data-anim="1"]:not([data-seen="1"]) [data-mock="pay"] [data-hiw-pay-tick] path{stroke-dashoffset:1}
+  [data-hiw][data-anim="1"][data-seen="1"] [data-mock="pay"] [data-hiw-pay-trip]{
+    animation:vt-hiw-pay-rise var(--vt-dur-slow) var(--vt-ease-out) both;
+  }
+  [data-hiw][data-anim="1"][data-seen="1"] [data-mock="pay"] [data-hiw-pay-line-fill]{
+    animation:vt-hiw-pay-draw var(--vt-dur-slow) var(--vt-ease-out) 140ms both;
+  }
+  [data-hiw][data-anim="1"][data-seen="1"] [data-mock="pay"] [data-hiw-pay-dot="b"]{
+    animation:vt-hiw-pay-pop var(--vt-dur-base) var(--vt-ease-out) 400ms both;
+  }
+  [data-hiw][data-anim="1"][data-seen="1"] [data-mock="pay"] [data-hiw-pay-class]{
+    animation:vt-hiw-pay-rise var(--vt-dur-slow) var(--vt-ease-out) both;
+    animation-delay:calc(320ms + var(--i, 0) * 90ms);
+  }
+  [data-hiw][data-anim="1"][data-seen="1"] [data-mock="pay"] [data-hiw-pay-class][data-picked="1"]::before{
+    animation:vt-hiw-pay-draw var(--vt-dur-base) var(--vt-ease-out) 640ms both;
+  }
+  [data-hiw][data-anim="1"][data-seen="1"] [data-mock="pay"] [data-hiw-pay-auth-fill]{
+    animation:vt-hiw-pay-sweep var(--vt-dur-page) var(--vt-ease-standard) 720ms both;
+  }
+  [data-hiw][data-anim="1"][data-seen="1"] [data-mock="pay"] [data-hiw-paid]{
+    animation:vt-hiw-pay-stamp var(--vt-dur-slow) var(--vt-ease-out) 1180ms both;
+  }
+  [data-hiw][data-anim="1"][data-seen="1"] [data-mock="pay"] [data-hiw-pay-tick] path{
+    animation:vt-hiw-pay-tick var(--vt-dur-base) var(--vt-ease-standard) 1360ms both;
+  }
+  [data-mock="pay"] [data-hiw-pay-class]{
+    transition:background-color var(--vt-dur-fast) var(--vt-ease-standard),border-color var(--vt-dur-fast) var(--vt-ease-standard);
+  }
+}
+@keyframes vt-hiw-pay-rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes vt-hiw-pay-draw{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+@keyframes vt-hiw-pay-pop{0%{transform:scale(0)}60%{transform:scale(1.18)}100%{transform:scale(1)}}
+@keyframes vt-hiw-pay-sweep{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes vt-hiw-pay-stamp{0%{opacity:0;transform:scale(0.94)}60%{opacity:1;transform:scale(1.03)}100%{opacity:1;transform:scale(1)}}
+@keyframes vt-hiw-pay-tick{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+@media (prefers-reduced-motion:reduce){
+  [data-mock="pay"] [data-hiw-pay-trip],
+  [data-mock="pay"] [data-hiw-pay-class],
+  [data-mock="pay"] [data-hiw-paid]{opacity:1;transform:none;animation:none}
+  [data-mock="pay"] [data-hiw-pay-class]{transition:none}
+  [data-mock="pay"] [data-hiw-pay-class]::before,
+  [data-mock="pay"] [data-hiw-pay-line-fill],
+  [data-mock="pay"] [data-hiw-pay-dot="b"],
+  [data-mock="pay"] [data-hiw-pay-auth-fill],
+  [data-mock="pay"] [data-hiw-pay-tick] path{animation:none}
+  [data-mock="pay"] [data-hiw-pay-line-fill]{transform:scaleY(1)}
+  [data-mock="pay"] [data-hiw-pay-dot="b"]{transform:none}
+  [data-mock="pay"] [data-hiw-pay-auth-fill]{transform:scaleX(1)}
+  [data-mock="pay"] [data-hiw-pay-tick] path{stroke-dashoffset:0}
 }
 [data-hiw-field]{
   display:flex;
@@ -627,22 +854,6 @@ a{color:inherit;text-decoration:none;border-bottom:0}
   font-weight:var(--vt-weight-semibold);
   font-variant-numeric:tabular-nums;
   color:var(--s-fg);
-}
-[data-hiw-paid]{
-  margin:0;
-  display:inline-flex;
-  align-items:center;
-  align-self:flex-start;
-  gap:6px;
-  padding-block:4px;
-  padding-inline:10px;
-  border-radius:var(--vt-radius-pill);
-  background:var(--vt-yellow);
-  font-family:var(--vt-font-body);
-  font-size:var(--vt-body-sm);
-  font-weight:var(--vt-weight-semibold);
-  line-height:1.4;
-  color:var(--vt-charcoal-950);
 }
 [data-dest-mosaic]{
   display:grid;
@@ -890,24 +1101,45 @@ a{color:inherit;text-decoration:none;border-bottom:0}
   pointer-events:none;
 }
 [data-hiw-mock][data-mock="book"] [data-hiw-map-ground]{fill:var(--vt-charcoal-900)}
-[data-hiw-mock][data-mock="book"] [data-hiw-map-water]{fill:var(--vt-grey-500)}
-[data-hiw-mock][data-mock="book"] [data-hiw-map-link]{
+[data-hiw-mock][data-mock="book"] [data-hiw-map-grid]{
   fill:none;
-  stroke:var(--vt-grey-500);
-  stroke-width:2;
+  stroke:rgb(255 255 255/.05);
+  stroke-width:1;
+}
+[data-hiw-mock][data-mock="book"] [data-hiw-map-water]{fill:var(--vt-charcoal-950)}
+[data-hiw-mock][data-mock="book"] [data-hiw-map-shore]{
+  fill:none;
+  stroke:rgb(255 255 255/.12);
+  stroke-width:1.25;
   stroke-linecap:round;
 }
-[data-hiw-mock][data-mock="book"] [data-hiw-map-runway]{fill:var(--vt-grey-500)}
+[data-hiw-mock][data-mock="book"] [data-hiw-map-park]{fill:var(--vt-charcoal-800)}
+[data-hiw-mock][data-mock="book"] [data-hiw-map-road]{
+  fill:none;
+  stroke:var(--vt-charcoal-800);
+  stroke-width:5;
+  stroke-linecap:round;
+}
+[data-hiw-mock][data-mock="book"] [data-hiw-map-road="minor"]{stroke-width:3}
+[data-hiw-mock][data-mock="book"] [data-hiw-map-apron]{fill:var(--vt-charcoal-800)}
+[data-hiw-mock][data-mock="book"] [data-hiw-map-link]{
+  fill:none;
+  stroke:var(--vt-charcoal-600);
+  stroke-width:2.5;
+  stroke-linecap:round;
+}
+[data-hiw-mock][data-mock="book"] [data-hiw-map-runway]{fill:var(--vt-charcoal-600)}
 [data-hiw-mock][data-mock="book"] [data-hiw-map-runway-mark]{
   fill:none;
-  stroke:var(--vt-grey-300);
+  stroke:var(--vt-grey-400);
   stroke-width:1.25;
   stroke-linecap:butt;
-  stroke-dasharray:6 5;
+  stroke-dasharray:7 6;
 }
-[data-hiw-mock][data-mock="book"] [data-hiw-map-terminal]{fill:var(--vt-grey-300)}
-[data-hiw-mock][data-mock="book"] [data-hiw-map-block]{fill:var(--vt-grey-300)}
-[data-hiw-mock][data-mock="book"] [data-hiw-map-block="b"]{fill:var(--vt-grey-400)}
+[data-hiw-mock][data-mock="book"] [data-hiw-map-terminal]{fill:var(--vt-grey-500)}
+[data-hiw-mock][data-mock="book"] [data-hiw-map-pier]{fill:var(--vt-charcoal-600)}
+[data-hiw-mock][data-mock="book"] [data-hiw-map-block]{fill:var(--vt-charcoal-700)}
+[data-hiw-mock][data-mock="book"] [data-hiw-map-block="b"]{fill:var(--vt-charcoal-600)}
 [data-hiw-mock][data-mock="book"] [data-hiw-map-route]{
   fill:none;
   stroke:var(--vt-yellow);
@@ -917,11 +1149,24 @@ a{color:inherit;text-decoration:none;border-bottom:0}
   stroke-dasharray:1;
   stroke-dashoffset:0;
 }
+[data-hiw-mock][data-mock="book"] [data-hiw-map-start-halo]{
+  fill:none;
+  stroke:var(--vt-charcoal-900);
+  stroke-width:4;
+}
 [data-hiw-mock][data-mock="book"] [data-hiw-map-start]{fill:var(--vt-yellow)}
-[data-hiw-mock][data-mock="book"] [data-hiw-map-end]{
-  fill:var(--vt-charcoal-900);
-  stroke:var(--vt-yellow);
-  stroke-width:2.5;
+[data-hiw-mock][data-mock="book"] [data-hiw-map-pin]{
+  fill:var(--vt-yellow);
+  stroke:var(--vt-charcoal-900);
+  stroke-width:2;
+  stroke-linejoin:round;
+}
+[data-hiw-mock][data-mock="book"] [data-hiw-map-pin-mark]{
+  fill:none;
+  stroke:var(--vt-charcoal-900);
+  stroke-width:3;
+  stroke-linecap:round;
+  stroke-linejoin:round;
 }
 [data-hiw-mock][data-mock="book"] [data-hiw-map-mover],
 [data-hiw-mock][data-mock="book"] [data-hiw-map-mover-ring]{
@@ -993,26 +1238,60 @@ a{color:inherit;text-decoration:none;border-bottom:0}
 <div data-hiw-mock="1" data-mock="{{ s.kind }}" aria-hidden="true">
 <p data-hiw-mock-kicker="1">{{ s.kicker }}</p>
 <div data-mock-pane="book">
-<svg data-hiw-map="1" viewBox="0 0 320 340" preserveAspectRatio="xMidYMid slice" fill="none" focusable="false" aria-hidden="true">
-<rect data-hiw-map-ground="1" width="320" height="340"/>
-<path data-hiw-map-water="1" d="M0 248C40 232 88 216 140 204C176 192 210 186 256 188C292 190 310 196 320 192V340H0Z"/>
-<rect data-hiw-map-runway="1" x="22" y="20" width="104" height="8" rx="2"/>
-<rect data-hiw-map-runway="1" x="34" y="32" width="68" height="5" rx="2"/>
-<path data-hiw-map-runway-mark="1" d="M32 24H116"/>
-<path data-hiw-map-link="1" d="M48 37V78"/>
-<rect data-hiw-map-terminal="1" x="30" y="64" width="10" height="16" rx="2"/>
-<rect data-hiw-map-terminal="1" x="22" y="78" width="86" height="26" rx="4"/>
-<rect data-hiw-map-block="1" x="198" y="108" width="50" height="34" rx="4"/>
-<rect data-hiw-map-block="b" x="254" y="108" width="50" height="34" rx="4"/>
-<rect data-hiw-map-block="b" x="198" y="148" width="50" height="26" rx="4"/>
-<rect data-hiw-map-block="1" x="254" y="148" width="50" height="26" rx="4"/>
-<path data-hiw-map-route="1" pathLength="1" d="M116 91V142C116 168 150 178 186 180"/>
-<path data-hiw-map-mover-ring="1" pathLength="1" d="M116 91V142C116 168 150 178 186 180"/>
-<path data-hiw-map-mover="1" pathLength="1" d="M116 91V142C116 168 150 178 186 180"/>
-<circle data-hiw-map-start="1" cx="116" cy="91" r="5.5"/>
-<circle data-hiw-map-end="1" cx="186" cy="180" r="6.5"/>
-<text data-hiw-map-label="code" x="130" y="90" font-size="13" dominant-baseline="central">ZRH</text>
-<text data-hiw-map-label="city" x="251" y="94" font-size="16" text-anchor="middle" dominant-baseline="central">Zurich</text>
+<svg data-hiw-map="1" viewBox="0 0 320 240" preserveAspectRatio="xMidYMid slice" fill="none" focusable="false" aria-hidden="true">
+<rect data-hiw-map-ground="1" width="320" height="240"/>
+<path data-hiw-map-grid="1" d="M64 0V240M128 0V240M192 0V240M256 0V240M0 52H320M0 104H320M0 156H320M0 208H320"/>
+<path data-hiw-map-water="1" d="M320 148C288 168 252 202 216 240H320Z"/>
+<path data-hiw-map-shore="1" d="M320 148C288 168 252 202 216 240"/>
+<rect data-hiw-map-apron="1" x="12" y="28" width="136" height="86" rx="8"/>
+<rect data-hiw-map-runway="1" x="18" y="38" width="124" height="9" rx="1.5"/>
+<path data-hiw-map-runway-mark="1" d="M24 42.5H136"/>
+<rect data-hiw-map-runway="1" x="34" y="56" width="86" height="6" rx="1.5"/>
+<path data-hiw-map-link="1" d="M62 62V78"/>
+<path data-hiw-map-link="1" d="M100 62V78"/>
+<rect data-hiw-map-terminal="1" x="24" y="78" width="88" height="20" rx="4"/>
+<rect data-hiw-map-pier="1" x="38" y="98" width="9" height="12" rx="2"/>
+<rect data-hiw-map-pier="1" x="62" y="98" width="9" height="12" rx="2"/>
+<rect data-hiw-map-pier="1" x="86" y="98" width="9" height="12" rx="2"/>
+<rect data-hiw-map-park="1" x="76" y="132" width="62" height="36" rx="14"/>
+<path data-hiw-map-road="1" d="M18 118H302"/>
+<path data-hiw-map-road="1" d="M116 96V118"/>
+<path data-hiw-map-road="1" d="M186 96V178"/>
+<path data-hiw-map-road="1" d="M232 100V166"/>
+<path data-hiw-map-road="1" d="M150 150H276"/>
+<path data-hiw-map-road="minor" d="M276 104V146"/>
+<path data-hiw-map-road="minor" d="M56 118V214"/>
+<path data-hiw-map-road="minor" d="M18 176H186"/>
+<rect data-hiw-map-block="1" x="152" y="98" width="26" height="13" rx="2"/>
+<rect data-hiw-map-block="1" x="196" y="98" width="13" height="14" rx="2"/>
+<rect data-hiw-map-block="b" x="213" y="100" width="13" height="12" rx="2"/>
+<rect data-hiw-map-block="1" x="242" y="102" width="26" height="10" rx="2"/>
+<rect data-hiw-map-block="b" x="284" y="104" width="16" height="9" rx="2"/>
+<rect data-hiw-map-block="1" x="152" y="126" width="26" height="18" rx="2"/>
+<rect data-hiw-map-block="b" x="196" y="128" width="16" height="14" rx="2"/>
+<rect data-hiw-map-block="1" x="252" y="126" width="20" height="16" rx="2"/>
+<rect data-hiw-map-block="1" x="284" y="124" width="18" height="14" rx="2"/>
+<rect data-hiw-map-block="1" x="158" y="158" width="22" height="14" rx="2"/>
+<rect data-hiw-map-block="b" x="196" y="156" width="18" height="16" rx="2"/>
+<rect data-hiw-map-block="1" x="242" y="158" width="24" height="12" rx="2"/>
+<rect data-hiw-map-block="1" x="276" y="156" width="14" height="10" rx="2"/>
+<rect data-hiw-map-block="1" x="236" y="182" width="20" height="10" rx="2"/>
+<rect data-hiw-map-block="b" x="196" y="196" width="22" height="12" rx="2"/>
+<rect data-hiw-map-block="1" x="158" y="204" width="20" height="10" rx="2"/>
+<rect data-hiw-map-block="1" x="22" y="132" width="24" height="14" rx="2"/>
+<rect data-hiw-map-block="b" x="22" y="152" width="20" height="12" rx="2"/>
+<rect data-hiw-map-block="1" x="26" y="190" width="22" height="14" rx="2"/>
+<rect data-hiw-map-block="1" x="76" y="186" width="26" height="14" rx="2"/>
+<rect data-hiw-map-block="b" x="112" y="190" width="18" height="12" rx="2"/>
+<path data-hiw-map-route="1" pathLength="1" d="M116 92V110C116 115.5 119.5 118 125 118H180C184.5 118 186 121.5 186 126V142C186 147.5 189.5 150 195 150H232"/>
+<path data-hiw-map-mover-ring="1" pathLength="1" d="M116 92V110C116 115.5 119.5 118 125 118H180C184.5 118 186 121.5 186 126V142C186 147.5 189.5 150 195 150H232"/>
+<path data-hiw-map-mover="1" pathLength="1" d="M116 92V110C116 115.5 119.5 118 125 118H180C184.5 118 186 121.5 186 126V142C186 147.5 189.5 150 195 150H232"/>
+<circle data-hiw-map-start-halo="1" cx="116" cy="92" r="8"/>
+<circle data-hiw-map-start="1" cx="116" cy="92" r="5.5"/>
+<path data-hiw-map-pin="1" d="M232 150C232 150 218 136 218 126A14 14 0 1 1 246 126C246 136 232 150 232 150Z"/>
+<path data-hiw-map-pin-mark="1" d="M225.5 126.5L230 131L238.5 121.5"/>
+<text data-hiw-map-label="code" x="26" y="124" font-size="12" dominant-baseline="central">ZRH</text>
+<text data-hiw-map-label="city" x="246" y="84" font-size="15" text-anchor="middle" dominant-baseline="central">Zurich</text>
 </svg>
 </div>
 <div data-mock-pane="meet">
@@ -1137,21 +1416,25 @@ a{color:inherit;text-decoration:none;border-bottom:0}
 </div>
 </div>
 <div data-mock-pane="pay">
-<div data-hiw-pay-route="1">
+<div data-hiw-pay-trip="1">
+<span data-hiw-pay-rail="1" aria-hidden="true"><i data-hiw-pay-dot="a"></i><i data-hiw-pay-line="1"><i data-hiw-pay-line-fill="1"></i></i><i data-hiw-pay-dot="b"></i></span>
 <p data-hiw-pay-from="1"><bdi>Zurich Airport (ZRH)</bdi></p>
-<p data-hiw-pay-to="1"><svg data-hiw-pay-arrow="1" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg><bdi>Zurich</bdi></p>
+<p data-hiw-pay-to="1"><bdi>Zurich</bdi></p>
 <p data-hiw-pay-when="1"><bdi>08:15</bdi> · {{ flight }} <bdi>LX 54</bdi></p>
 </div>
 <div data-hiw-pay-list="1">
 <sc-for list="{{ payClasses }}" as="c" hint-placeholder-count="2">
 <div data-hiw-pay-class="1" data-picked="{{ c.picked }}" data-slug="{{ c.slug }}">
-<span data-hiw-pay-radio="1" aria-hidden="true"><svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span>
+<span data-hiw-pay-radio="1" aria-hidden="true"><svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span>
 <span data-hiw-pay-copy="1"><span data-hiw-pay-name="1"><bdi>{{ c.name }}</bdi></span><span data-hiw-pay-cap="1"><bdi>{{ c.cap }}</bdi></span></span>
 <b data-hiw-pay-amt="1"><bdi>{{ c.amt }}</bdi></b>
 </div>
 </sc-for>
 </div>
-<p data-hiw-paid="1">{{ paid }} · {{ oneWay }}</p>
+<div data-hiw-pay-foot="1">
+<span data-hiw-pay-auth="1" aria-hidden="true"><i data-hiw-pay-auth-fill="1"></i></span>
+<p data-hiw-paid="1"><span data-hiw-pay-tick="1" aria-hidden="true"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path pathLength="1" d="M20 6 9 17l-5-5"></path></svg></span><span data-hiw-paid-txt="1">{{ paid }} · {{ oneWay }}</span></p>
+</div>
 </div>
 </div>
 <p data-hiw-num="1">{{ s.num }}</p>

@@ -1044,6 +1044,27 @@ Plans:
 
 **UI hint**: yes — pay-link "already paid" page, ops refund approval, admin account-settings sign-in methods, class names.
 
+### Phase 26.3: Booking flow simplification (INSERTED)
+
+**Goal**: A customer goes from the home card to paid in two screens. Home asks From, To,
+When and Travellers; on tablet and desktop the card also shows the class prices. One
+checkout page replaces `/checkout/trip`, `/checkout/details` and `/checkout/payment`:
+1 class, 2 who is travelling, 3 payment, with one Pay button. Design source: sketch 001
+Variant A, approved 2026-09-28 (`.planning/sketches/001-simplified-booking-flow/`).
+**Depends on**: 26.1 (payment and pricing integrity) and 26.2 (cleanup) merged first.
+Owner placed it before 27 so the pixel measures the new funnel.
+**Requirements**: TBD in discuss-phase
+**Success Criteria** (draft, signed in discuss):
+
+  1. Home card has no trip-type tabs; an airport pickup is detected from the From address. Passengers and bags are one control.
+  2. On tablet and desktop, the home card shows each class with its price once From and To are set; Select opens checkout with that class chosen. Phone keeps one SEE PRICES button.
+  3. One checkout page: class cards with prices, contact, flight number only for an airport pickup (asked once in the whole flow), extras / driver note / company receipt / voucher collapsed, wallets above card, one Pay button.
+  4. Desktop has a sticky summary rail; phone and tablet have a sticky Total + Pay bar. Pay scrolls to the first error and names it.
+  5. Unpaid booking row rules, pay-link, 3DS return, refresh and Back still work; server-authoritative quote and idempotent booking unchanged.
+  6. Every string in en, de, fr, ar; checked at 1440, 1024, 768, 390 with no sideways scroll; no glow, no tinted yellow, `CHF 000` until pricing is live.
+
+**UI hint**: yes
+
 ### Phase 27: Consent record
 
 **Goal**: Accept logs Meta on. Dismiss logs Meta off. The latest `consent_log` row

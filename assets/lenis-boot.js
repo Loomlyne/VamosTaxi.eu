@@ -57,6 +57,37 @@
     boot();
   }
 
+  /* The visitor's own hands always beat a programmatic landing. A deep-link glide
+     is requested two frames after mount and then damps in at lerp 0.12, while this
+     boot retries for up to 10s waiting for the library — so a landing asked for on
+     load can still be travelling, or re-converging as late quote/fleet/photo work
+     shifts the target, seconds after the page looked settled. If the visitor scrolls,
+     taps or clicks in the meantime, that landing is abandoned where it stands: a
+     click on a trip-type tab must never yank the page to the top. A jump the visitor
+     asks for still runs, because their pointerdown lands before the request. */
+  var intentAt = 0;
+  var gliding = false;
+
+  function cancelGlide() {
+    if (!gliding) return;
+    gliding = false;
+    if (window.__vtLenis) {
+      var at = typeof window.__vtLenis.actualScroll === 'number' ? window.__vtLenis.actualScroll : window.pageYOffset;
+      try { window.__vtLenis.scrollTo(at, { immediate: true, force: true }); } catch (err) {}
+      return;
+    }
+    try { window.scrollTo({ top: window.pageYOffset, behavior: 'auto' }); } catch (err) {}
+  }
+
+  function noteIntent() {
+    intentAt = Date.now();
+    cancelGlide();
+  }
+
+  ['wheel', 'touchstart', 'pointerdown', 'keydown'].forEach(function (name) {
+    window.addEventListener(name, noteIntent, { passive: true, capture: true });
+  });
+
   /* One way to move the page. Lenis owns the scroll position while it is running,
      so a native window.scrollTo is overwritten on its next frame and the visitor
      stays where they were — every in-page jump goes through here instead. */
@@ -64,9 +95,20 @@
     var el = typeof target === 'string' ? document.getElementById(String(target).replace(/^#/, '')) : target;
     if (!el) return false;
     var off = typeof offset === 'number' ? offset : -24;
+    var reqAt = Date.now();
     requestAnimationFrame(function () {
       requestAnimationFrame(function () {
-        if (window.__vtLenis) { window.__vtLenis.scrollTo(el, { offset: off, immediate: mq.matches }); return; }
+        /* Already taken over between the request and this frame: leave them alone. */
+        if (intentAt > reqAt) return;
+        gliding = true;
+        if (window.__vtLenis) {
+          window.__vtLenis.scrollTo(el, {
+            offset: off,
+            immediate: mq.matches,
+            onComplete: function () { gliding = false; }
+          });
+          return;
+        }
         var top = el.getBoundingClientRect().top + window.pageYOffset + off;
         window.scrollTo({ top: top, behavior: mq.matches ? 'auto' : 'smooth' });
       });
