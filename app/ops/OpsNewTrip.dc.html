@@ -110,7 +110,7 @@ class Component extends DCLogic {
   state = {
     pickupText: '', dropText: '', pickupLoc: null, dropLoc: null,
     pickupHits: [], dropHits: [], pickupOpen: false, dropOpen: false,
-    dateIso: '', time: '10:00', pax: '1', bags: '0', klass: 'economy', locale: 'en',
+    dateIso: '', time: '10:00', pax: '1', bags: '0', klass: 'saden', locale: 'en',
     flight: '', name: '', email: '', phone: '',
     child: false, extraStop: false, oversized: false,
     quoteId: '', lock: '', fareRappen: 0, error: '', saving: false,
@@ -177,14 +177,14 @@ class Component extends DCLogic {
       legs: [{ leg_seq: 1, scheduled_local: when, flight_no: this.state.flight ? String(this.state.flight).slice(0, 16) : null }],
       pax: Math.max(1, parseInt(this.state.pax, 10) || 1),
       bags: Math.max(0, parseInt(this.state.bags, 10) || 0),
-      preferred_class: this.state.klass || 'economy',
+      preferred_class: this.state.klass || 'saden',
       extras: this.extras(),
     };
     fetch('/api/quote', { method: 'POST', credentials: 'include', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
       .then(function (r) { return r.json().catch(function () { return null; }); })
       .then((j) => {
         if (!j || j.ok !== true) { this.setState({ error: 'quote', quoteId: '', lock: '', fareRappen: 0 }); return; }
-        var slug = this.state.klass || 'economy';
+        var slug = this.state.klass || 'saden';
         var row = ((j.classes || []).find(function (c) { return c.slug === slug; })) || (j.classes || [])[0];
         var rappen = row && row.total_rappen != null ? Number(row.total_rappen) : 0;
         this.setState({ quoteId: j.quote_id || '', lock: j.lock || '', fareRappen: rappen, error: '' });
@@ -205,7 +205,7 @@ class Component extends DCLogic {
       body: JSON.stringify({
         quote_id: this.state.quoteId,
         lock: this.state.lock,
-        vehicle_class: this.state.klass || 'economy',
+        vehicle_class: this.state.klass || 'saden',
         extras: this.extras(),
         coupon: null,
         contact: { name: name, email: email, phone: phone },
@@ -240,9 +240,10 @@ class Component extends DCLogic {
       dateIso: this.state.dateIso, time: this.state.time, pax: this.state.pax, bags: this.state.bags,
       klass: this.state.klass, locale: this.state.locale, flight: this.state.flight,
       name: this.state.name, email: this.state.email, phone: this.state.phone,
+      // D-14: values are the live class slugs /api/quote prices, labels the dashboard names.
       classOptions: [
-        { value: 'economy', label: 'Economy' }, { value: 'business', label: 'Business' },
-        { value: 'first', label: 'First' }, { value: 'van', label: 'Van' },
+        { value: 'saden', label: 'Economy' }, { value: 'mercedes-benz-v-class', label: 'Business' },
+        { value: 'van-luxury', label: 'Van luxury' },
       ],
       localeOptions: [
         { value: 'en', label: 'English' }, { value: 'de', label: 'Deutsch' },

@@ -324,7 +324,7 @@ const T = {
     done: 'تم', close: 'إغلاق', notStated: 'غير محدد', starsOf: 'إعطاء %n من 5'
   }
 };
-const CLASSES = ['Economy', 'Business', 'First', 'Van'];
+const CLASSES = ['Economy', 'Business', 'Van luxury'];
 function classSlugOf(v) {
   return String(v || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
@@ -462,7 +462,7 @@ class Component extends DCLogic {
     const cur = this.current();
     const sourceOptions = (store ? store.SOURCES : []).map((s) => ({ value: s.id, label: s.label, logo: s.logo || '' }));
     const liveClasses = (window.VamosOps && window.VamosOps.CLASSES) || [];
-    const classOptions = [{ value: '', label: t.notStated }].concat(CLASSES.map((label) => {
+    const classOptions = [{ value: '', label: t.notStated }].concat(((window.VamosOps && window.VamosOps.VEHICLE_CLASSES) || CLASSES).map((label) => {
       const slug = classSlugOf(label);
       const hit = liveClasses.filter((c) => classSlugOf(c.slug) === slug || classSlugOf(c.label) === slug || classSlugOf(c.name) === slug)[0];
       return { value: slug, label: (hit && (hit.label || hit.name)) || label };

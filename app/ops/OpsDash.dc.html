@@ -169,7 +169,7 @@ const PERIODS = [
   { key:'month', en:'30 days', de:'30 Tage', fr:'30 jours', ar:'٣٠ يومًا' },
   { key:'all', en:'All time', de:'Gesamt', fr:'Tout', ar:'الكل' },
 ];
-const MONEY_IN_CLASSES = ['Economy', 'Business', 'Van'];
+const MONEY_IN_CLASSES = ['Economy', 'Business', 'Van luxury'];
 
 function zurichParts() {
   const p = {};
@@ -319,7 +319,7 @@ class Component extends DCLogic {
         { label:'Pickups', value:String(pickups), of:'', icon:'car-front', href:pickupsHref, foot:'Scheduled to run' },
         { label:'Chauffeurs on shift', value:String(onShift), of:'/ ' + chauffeurs.length, icon:'users', href:'/fleet/chauffeurs', foot:'Available to assign' },
       ],
-      income: (moneyBookings.some((b) => b.klass === 'First') ? MONEY_IN_CLASSES.concat(['First']) : MONEY_IN_CLASSES).map((label) => ({
+      income: MONEY_IN_CLASSES.map((label) => ({
         label,
         amount: fareLabel(moneyBookings.filter((b) => b.klass === label).reduce((n, b) => n + (Number(b.totalRappen) || 0), 0)),
       })).concat(moneyInExtra),

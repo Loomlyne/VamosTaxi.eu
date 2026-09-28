@@ -15,11 +15,11 @@ function read(rel: string): string {
   return readFileSync(join(repoRoot, rel), "utf8");
 }
 
-describe("Phase 6 finalize — four classes and staff hash", () => {
-  it("uses Economy, Business, First, Van on ops fleet data", () => {
+describe("Phase 6 finalize — class line-up and staff hash", () => {
+  it("uses Economy, Business, Van luxury on ops fleet data (26.1 D-14)", () => {
     const data = read("app/vamos-ops-data.js");
     expect(data).toMatch(
-      /VEHICLE_CLASSES = \["Economy", "Business", "First", "Van"\]/,
+      /VEHICLE_CLASSES = \["Economy", "Business", "Van luxury"\]/,
     );
     const rateBook = readFileSync(
       join(webRoot, "app/[locale]/(ops)/api/staff/rate-book/route.ts"),
@@ -30,7 +30,26 @@ describe("Phase 6 finalize — four classes and staff hash", () => {
     );
     expect(rateBook).toMatch(/CLASS_SLUG = \/\^\[a-z0-9\]/);
     const fleet = read("app/ops/OpsFleet.dc.html");
-    expect(fleet).toMatch(/'Economy', 'Business', 'First', 'Van'/);
+    expect(fleet).toMatch(/'Economy', 'Business', 'Van luxury'/);
+  });
+
+  it("26.1 D-14: every ops list is the three classes and new-trip quotes live slugs", () => {
+    const data = read("app/vamos-ops-data.js");
+    const list = data.match(/VEHICLE_CLASSES = (\[[^\]]*\])/);
+    expect(JSON.parse((list && list[1]) || "null")).toEqual(["Economy", "Business", "Van luxury"]);
+
+    const newTrip = read("app/ops/OpsNewTrip.dc.html");
+    const block = newTrip.match(/classOptions: \[([\s\S]*?)\]/);
+    const values = [...((block && block[1]) || "").matchAll(/value: '([^']*)'/g)].map((m) => m[1]);
+    expect(values).toEqual(["saden", "mercedes-benz-v-class", "van-luxury"]);
+    expect(newTrip).not.toMatch(/\|\| 'economy'/);
+
+    for (const name of ["OpsFleet", "OpsBoard", "OpsReviews", "OpsDash", "OpsNewTrip", "OpsPricing", "OpsCalendar", "OpsCalendarBoard"]) {
+      const html = read(`app/ops/${name}.dc.html`);
+      expect(html, name).not.toMatch(/'First'|"First"/);
+      expect(html, name).not.toMatch(/mahaha/);
+    }
+    expect(read("app/home/HowItWorks.dc.html")).not.toMatch(/mahaha/);
   });
 
   it("Support rail goes to /support and Staff stays gone", () => {
