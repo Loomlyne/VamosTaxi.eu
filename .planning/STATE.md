@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Meta measurement
 status: executing
-stopped_at: Phase 26.1 plan 07 complete (checkout fails closed with real pricing_live, D-12; coupon caps enforced at payment with payer identity, extras discounted too, D-11/D-08a); waits for 26.1-05/06/09/11/14/30 and 26.1-12 owner apply/deploy
-last_updated: "2026-09-27T23:39:30.437Z"
-last_activity: 2026-09-27
+stopped_at: Completed 26.1-15-PLAN.md
+last_updated: "2026-09-28T10:25:37.589Z"
+last_activity: 2026-09-28
 progress:
   total_phases: 31
   completed_phases: 17
   total_plans: 246
-  completed_plans: 209
+  completed_plans: 220
   percent: 55
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-09-23)
 ## Current Position
 
 Phase: 26.1 (Payment and pricing integrity) — EXECUTING
-Plan: 6 of 31
+Plan: 7 of 31
 Status: Ready to execute
-Last activity: 2026-09-27
+Last activity: 2026-09-28
 
 Phase 21 execution note (not current): planning complete — 8 plans. Execution started 2026-09-22 on `gsd/phase-21-charge-gate`. That position was Phase 21 EXECUTING, plan 1 of 8. Phase 21 is not complete. Do not execute Phase 16/17/19/20. Do not touch the main checkout from that branch note.
 
@@ -44,8 +44,8 @@ Stripe live keys and Search Console stay owner-gated. Agent does not click Publi
 
 ## Session Continuity
 
-Last session: 2026-09-27T23:39:30.432Z
-Stopped at: Phase 26.1 plan 07 complete (checkout fails closed with real pricing_live, D-12; coupon caps enforced at payment with payer identity, extras discounted too, D-11/D-08a); waits for 26.1-05/06/09/11/14/30 and 26.1-12 owner apply/deploy
+Last session: 2026-09-28T10:25:37.583Z
+Stopped at: Completed 26.1-15-PLAN.md
 Resume: `/gsd:discuss-phase 27`. Do not execute 27. Do not load the pixel. Do not execute Phase 21 while v1.3 is current. Payment plans stay on disk. Do not execute Phase 16/17/19/20. Do not `phases.clear`.
 
 Phase 21 branch session (2026-09-22T19:57:29.795Z, not the resume): Stopped at Phase 21 planning complete — 8 plans. Resume was: Phase 21 executing on gsd/phase-21-charge-gate. Do not execute Phase 16/17/19/20. Do not touch the main checkout.
@@ -86,6 +86,8 @@ Restart 2026-09-14 **supersedes** 2026-09-13 D-01…D-40. Full text: `.planning/
 - [Phase 26.1]: D-06 DLQ consumer alerts info@ once (stuck-payment) and never retries into itself; deliverStuckPaymentAlert bypasses both trips.length gates so it sends even with no matching booking row
 - [Phase 26.1]: Plan 04: kernel prices D-08/D-08a/D-08b/D-09/D-09a — start is always base_fare_rappen, no bands; airport fee is additive (flight_no / origin_is_airport / airport zone), null amount stays null; city/canton pairs match both directions with a same-place guard and city wins over canton on the same leg (D-09a); the city_price_rappen dropdown filter is removed so a published pair applies regardless of fare_kind.
 - [Phase 26.1]: Plan 07: checkout fails closed on rate-book load failure and reads the real pricing_live (derivePricingLive AND public_chf) instead of the hard-coded true; coupon is re-evaluated with the payer's identity at intent and its coupon_id reaches checkout_create_booking so coupon_redemptions/tg_coupon_redemption_caps enforce the cap (D-11); payableRappen makes a percent coupon discount checkout extras too, not just the class fare (D-08a).
+- [Phase 26.1]: 26.1-15: pay-link hold is bookings.hold_until = least(token expiry, first send + 24 h); link lookup, charge gate and unpaid cron read greatest(snapshot clock, hold); resend never restarts it (D-20/D-20a/D-37)
+- [Phase 26.1]: 26.1-15: checkout_pay_link_state answers refunded_duplicate before paid; unknown/revoked/expired/cancelled answer expired with no reference (D-21/D-22)
 
 ## Performance Metrics
 
@@ -98,3 +100,4 @@ Restart 2026-09-14 **supersedes** 2026-09-13 D-01…D-40. Full text: `.planning/
 | Phase 26.1 P03 | 45min | 2 tasks | 10 files |
 | Phase 26.1 P04 | 55min | 3 tasks | 11 files |
 | Phase 26.1 P07 | 40min | 2 tasks | 9 files |
+| Phase 26.1 P15 | 80min | 2 tasks | 11 files |

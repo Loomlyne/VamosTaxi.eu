@@ -1017,14 +1017,14 @@ Plans:
 - [x] 26.1-05-PLAN.md — Consumer revive/auto-refund, expire other sessions; refunds by PaymentIntent
 - [x] 26.1-06-PLAN.md — Account, cron and staff cancel expire Stripe sessions; coupon release
 - [x] 26.1-07-PLAN.md — Checkout fail-closed, pricing_live read, coupon caps at payment
-- [ ] 26.1-08-PLAN.md — charge.refunded and disputes reach the DB (both arrival orders)
+- [x] 26.1-08-PLAN.md — charge.refunded and disputes reach the DB (both arrival orders)
 - [x] 26.1-09-PLAN.md — Mapbox city/canton/airport facts and flight number into the kernel
-- [ ] 26.1-10-PLAN.md — 26 canton zones, draft pair filler, boundary zones in ops
-- [ ] 26.1-11-PLAN.md — Checkout rows: airport fee and route pair
-- [ ] 26.1-12-PLAN.md — Owner SQL handoff: money wave (interim window documented)
-- [ ] 26.1-13-PLAN.md — Owner: webhook secret, old webhook, event subscriptions
-- [ ] 26.1-14-PLAN.md — Owner SQL handoff: pricing wave and canton pair fill
-- [ ] 26.1-15-PLAN.md — Pay link 24 h hold from send; pay-link state
+- [x] 26.1-10-PLAN.md — 26 canton zones, draft pair filler, boundary zones in ops
+- [x] 26.1-11-PLAN.md — Checkout rows: airport fee and route pair
+- [x] 26.1-12-PLAN.md — Owner SQL handoff: money wave (interim window documented)
+- [x] 26.1-13-PLAN.md — Owner: webhook secret, old webhook, event subscriptions
+- [x] 26.1-14-PLAN.md — Owner SQL handoff: pricing wave and canton pair fill
+- [x] 26.1-15-PLAN.md — Pay link 24 h hold from send; pay-link state
 - [ ] 26.1-16-PLAN.md — Pay-link recipient states: already paid, refunded, expired
 - [ ] 26.1-17-PLAN.md — Refund tiers SQL and admin refund API
 - [ ] 26.1-18-PLAN.md — Ops refund review panel, disputes, customer refund words
@@ -1039,7 +1039,7 @@ Plans:
 - [ ] 26.1-27-PLAN.md — Class line-up in every ops/home mock; OpsNewTrip sends live slugs
 - [ ] 26.1-28-PLAN.md — Post-Ship live reconciliation (owner resend + read-only SQL)
 - [ ] 26.1-29-PLAN.md — Traveller intent and requote honour the pay-link hold
-- [ ] 26.1-30-PLAN.md — Flight number typed at checkout re-prices; intent refuses mismatch
+- [x] 26.1-30-PLAN.md — Flight number typed at checkout re-prices; intent refuses mismatch
 - [ ] 26.1-31-PLAN.md — Checkout shows DB class name; tests and project rules use the line-up
 
 **UI hint**: yes — pay-link "already paid" page, ops refund approval, admin account-settings sign-in methods, class names.
@@ -1135,7 +1135,7 @@ v1.3 Meta measurement (Phases 21–25 stay planned, not current): 26 → 26.1 �
 | 24. Dual-payer, pay-link, mail split | 0/TBD | Not started | - |
 | 25. /bookings unpaid + TEST UAT + secret-swap design | 0/TBD | Not started | - |
 | 26. Legal gate | 2/2 | Complete    | 2026-09-23 |
-| 26.1. Payment and pricing integrity (INSERTED) | 8/31 | In Progress|  |
+| 26.1. Payment and pricing integrity (INSERTED) | 16/31 | In Progress|  |
 | 27. Consent record | 0/TBD | Not started | - |
 | 28. Pixel PageView | 0/TBD | Not started | - |
 | 29. Webhook Purchase | 0/TBD | Not started | - |
