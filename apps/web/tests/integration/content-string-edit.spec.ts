@@ -113,22 +113,25 @@ test.describe("content string editor @ops-content", () => {
     }
   });
 
-  async function signInDispatcher(page: import("@playwright/test").Page) {
-    const fixture = await createStaffFixture({ role: "dispatcher", enrolTotp: true });
+  // D-16b: only the admin signs in. With TOTP enrolled, the ops sign-in (AuthForm on
+  // /login, internal /ops/sign-in) shows its 'mfa' stage after the password (26.1-23);
+  // the old separate challenge page is gone (26.1-20).
+  async function signInAdmin(page: import("@playwright/test").Page) {
+    const fixture = await createStaffFixture({ role: "admin", enrolTotp: true });
     if (!fixture.factorSecret) throw new Error("expected factor secret");
     await page.goto(`${baseURL}/ops/sign-in`);
-    await page.locator('input[name="email"]').fill(fixture.email);
-    await page.locator('input[name="password"]').fill(fixture.password);
-    await page.locator('button[type="submit"]').click();
-    await page.waitForURL(/\/ops\/mfa-challenge/);
-    await page.locator('input[name="code"]').fill(totpCode(fixture.factorSecret));
-    await page.locator('button[type="submit"]').click();
-    await page.waitForURL(/\/ops/);
+    await page.getByLabel("Email", { exact: true }).fill(fixture.email);
+    await page.getByLabel("Password", { exact: true }).fill(fixture.password);
+    await page.getByRole("button", { name: "Sign in", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Enter the 6-digit code" })).toBeVisible();
+    await page.getByLabel("6-digit code", { exact: true }).fill(totpCode(fixture.factorSecret));
+    await page.getByRole("button", { name: "Verify", exact: true }).click();
+    await page.waitForURL(/\/(dashboard|ops)(\/|$)/);
     return fixture;
   }
 
   test("table pages 50 rows; namespace rail is present", async ({ page }) => {
-    await signInDispatcher(page);
+    await signInAdmin(page);
     await page.goto(`${baseURL}/ops/content`);
     await expect(page.locator("[data-ops-content]")).toBeVisible();
     const rows = page.locator("[data-ops-content-table] tbody tr[data-content-key]");
@@ -138,7 +141,7 @@ test.describe("content string editor @ops-content", () => {
   });
 
   test("untranslated filter hides pending and non-translatable rows", async ({ page }) => {
-    await signInDispatcher(page);
+    await signInAdmin(page);
     await page.goto(`${baseURL}/ops/content?filter=untranslated`);
     await expect(page.locator("[data-ops-content-table]")).toBeVisible();
     await expect(page.locator('[data-content-key="about.business-bags"]')).toHaveCount(0);
@@ -146,7 +149,7 @@ test.describe("content string editor @ops-content", () => {
   });
 
   test("dispatcher can edit de and stamp updated_by; audit is staff", async ({ page }) => {
-    const fixture = await signInDispatcher(page);
+    const fixture = await signInAdmin(page);
     const target = await withSql(async (sql) => {
       const rows = await sql`
         select key, en, de, fr, ar, pending_value, non_translatable, no_param_reason, updated_by
@@ -199,7 +202,7 @@ test.describe("content string editor @ops-content", () => {
   });
 
   test("pending_value row renders data-tok on language cells", async ({ page }) => {
-    await signInDispatcher(page);
+    await signInAdmin(page);
     await page.goto(`${baseURL}/ops/content?q=${encodeURIComponent("about.business-bags")}`);
     const row = page.locator('[data-content-key="about.business-bags"]');
     await expect(row).toBeVisible();
@@ -207,7 +210,7 @@ test.describe("content string editor @ops-content", () => {
   });
 
   test("three flags are independent controls", async ({ page }) => {
-    await signInDispatcher(page);
+    await signInAdmin(page);
     const target = await withSql(async (sql) => {
       const rows = await sql`
         select key, en, de, fr, ar, pending_value, non_translatable, no_param_reason, updated_by
@@ -239,7 +242,7 @@ test.describe("content string editor @ops-content", () => {
   });
 
   test("non_translatable with a differing de is refused", async ({ page }) => {
-    await signInDispatcher(page);
+    await signInAdmin(page);
     const target = await withSql(async (sql) => {
       const rows = await sql`
         select key, en, de, fr, ar, pending_value, non_translatable, no_param_reason, updated_by
@@ -266,7 +269,7 @@ test.describe("content string editor @ops-content", () => {
   });
 
   test("whitespace-only no_param_reason is refused", async ({ page }) => {
-    await signInDispatcher(page);
+    await signInAdmin(page);
     const target = await withSql(async (sql) => {
       const rows = await sql`
         select key, en, de, fr, ar, pending_value, non_translatable, no_param_reason, updated_by
