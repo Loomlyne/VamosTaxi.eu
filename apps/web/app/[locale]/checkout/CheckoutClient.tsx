@@ -36,6 +36,7 @@ import {
   firstPricedLockSlug,
   peekLockClassRappen,
   peekLockClassTotals,
+  peekLockCoupon,
   peekLockDistanceM,
   peekLockExtras,
   placeMapboxId,
@@ -64,6 +65,7 @@ import { payableRappen } from "@/lib/checkout/payable";
 import { breakdownRappen, breakdownRows, peekLockPriceRows } from "@/lib/checkout/price-rows";
 import { decodeClientSecret } from "@/lib/checkout/client-secret";
 import { lockFlightNoDiffers } from "@/lib/checkout/flight-no";
+import { couponRefusalAction } from "@/lib/checkout/coupon-recovery";
 import { checkoutTraveler } from "@/lib/checkout/checkout-traveler";
 import { pickedClassName } from "@/lib/checkout/picked-class";
 import { readCheckoutSession, writeCheckoutSession } from "@/lib/checkout/checkout-session-store";
@@ -334,6 +336,9 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const [couponInvalid, setCouponInvalid] = useState(false);
   const [couponField, setCouponField] = useState<CouponFieldKey | null>(null);
   const [wasRappen, setWasRappen] = useState<number | null>(null);
+  // 26.1-32: one automatic coupon recovery per lock, so a coupon that keeps
+  // refusing surfaces the refusal instead of looping.
+  const couponRecoveryAttempted = useRef(false);
   const [busy, setBusy] = useState(false);
   const [refusal, setRefusal] = useState<string | null>(null);
   const [payError, setPayError] = useState<string | null>(null);
@@ -451,6 +456,18 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       on = false;
     };
   }, []);
+
+  // 26.1-32 (I1): after a reload, a coupon-priced lock shows its coupon as
+  // applied, so the field agrees with the already-discounted total. The
+  // percent and pre-coupon figure are not recoverable from the code alone.
+  useEffect(() => {
+    if (couponApplied) return;
+    const lockCoupon = peekLockCoupon(draft.lock || readVamosTrip()?.lock);
+    if (lockCoupon) {
+      setCouponApplied(lockCoupon);
+      setCoupon(lockCoupon);
+    }
+  }, [draft.lock]);
 
   useEffect(() => {
     if (step !== "payment") return;
@@ -1019,7 +1036,29 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         intentStarted.current = false;
         const key = REFUSAL_KEYS[json.code ?? json.error ?? ""] ?? "payCouldNotStart";
         if (json.code === "coupon_no_longer_valid") {
+          const bodyCoupon = couponApplied;
           setCouponApplied(null);
+          const recovery = couponRefusalAction({
+            code: json.code,
+            lockCoupon: peekLockCoupon(readDraft().lock || draft.lock || trip?.lock),
+            bodyCoupon,
+            alreadyRecovered: couponRecoveryAttempted.current,
+          });
+          if (recovery === "reprice_without_coupon") {
+            couponRecoveryAttempted.current = true;
+            setCouponInvalid(true);
+            setCouponField("couponNoLongerValid");
+            await applyCouponCode(null);
+            setCouponInvalid(true);
+            setCouponField("couponNoLongerValid");
+            return "fail";
+          }
+          if (recovery === "drop_body_coupon") {
+            couponRecoveryAttempted.current = true;
+            setCouponInvalid(true);
+            setCouponField("couponNoLongerValid");
+            return "fail";
+          }
           setCouponInvalid(true);
           setCouponField("couponNoLongerValid");
           return "fail";
@@ -1151,7 +1190,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   ) {
     const trip = tripSnap ?? readVamosTrip();
     const quoteId = draft.quoteId || tripQuoteId(trip);
-    const lock = draft.lock || trip?.lock;
+    const lock = readDraft().lock || draft.lock || trip?.lock;
     const seats = extras?.childSeat ?? childSeat;
     const bags = extras?.oversized ?? oversized;
     const stopsOn = extras?.extraStop ?? extraStop;
@@ -1322,6 +1361,31 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         error?: string;
       };
       if (!res.ok) {
+        if (json.code === "coupon_no_longer_valid") {
+          const bodyCoupon = couponApplied;
+          setCouponApplied(null);
+          const recovery = couponRefusalAction({
+            code: json.code,
+            lockCoupon: peekLockCoupon(readDraft().lock || draft.lock || trip?.lock),
+            bodyCoupon,
+            alreadyRecovered: couponRecoveryAttempted.current,
+          });
+          if (recovery === "reprice_without_coupon") {
+            couponRecoveryAttempted.current = true;
+            setCouponInvalid(true);
+            setCouponField("couponNoLongerValid");
+            await applyCouponCode(null);
+            setCouponInvalid(true);
+            setCouponField("couponNoLongerValid");
+            return;
+          }
+          if (recovery === "drop_body_coupon") {
+            couponRecoveryAttempted.current = true;
+            setCouponInvalid(true);
+            setCouponField("couponNoLongerValid");
+            return;
+          }
+        }
         // Every refusal is visible: an unknown code or validate-fail falls back to
         // payCouldNotStart instead of leaving the payer with a silent button (plan 21-10).
         const key = REFUSAL_KEYS[json.code ?? json.error ?? ""] ?? "payCouldNotStart";
@@ -1382,6 +1446,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         return;
       }
       await confirm();
+      couponRecoveryAttempted.current = false;
     } catch (err) {
       payInFlight.current = false;
       const message = err instanceof Error ? err.message : "";
@@ -2077,9 +2142,10 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                       variant="ghost"
                       size="md"
                       disabled={busy}
-                      onClick={() =>
-                        void applyCouponCode(couponApplied ? null : coupon.trim().toUpperCase() || null)
-                      }
+                      onClick={() => {
+                        if (!couponApplied) couponRecoveryAttempted.current = false;
+                        void applyCouponCode(couponApplied ? null : coupon.trim().toUpperCase() || null);
+                      }}
                     >
                       {couponApplied ? tCommon("remove") : tCommon("apply")}
                     </Button>
