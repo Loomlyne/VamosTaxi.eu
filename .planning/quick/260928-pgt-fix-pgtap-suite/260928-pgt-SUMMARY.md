@@ -102,4 +102,9 @@ had fallen behind the schema:
 
 The file is regenerated with the exact generator the CLI runs, postgres-meta v0.98.0 built from
 source, pointed at the local harness with the CLI's settings: public schema, one-to-one
-detection on, PostgREST 14.5. No hand edits. typecheck and lint pass.
+detection on. No hand edits. typecheck and lint pass.
+
+The first attempt also passed PG_META_POSTGREST_VERSION=14.5 and still drifted. The CLI's
+`--local` path (apps/cli-go/internal/gen/types/types.go @ v2.115.0) never sets that variable,
+so its output has no `__InternalSupabase` block. The committed file's block came from a
+different generation path, which is why `types:check` could never match it.
