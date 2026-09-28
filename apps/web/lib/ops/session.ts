@@ -7,16 +7,28 @@
 // object is never spread.
 
 import type { VamosClaims } from "@/lib/db/identity";
-import { effectiveNextLevel, staffGateDecision } from "./staff-gate";
+import {
+  amrMethodsOf,
+  effectiveNextLevel,
+  passkeyCheckNeeded,
+  staffGateDecision,
+  type AmrLike,
+  type StaffGateDecision,
+} from "./staff-gate";
 
 // Library module — D-06 greps asStaff/identity importers for this export.
 export const dynamic = "force-dynamic";
 
 /**
- * VamosClaims plus `nextLevel` ("aal2" once a verified factor exists). `nextLevel` never
- * reaches SQL — claimsForSql enumerates its fields by name — SQL reads auth.mfa_factors itself.
+ * VamosClaims plus `nextLevel` ("aal2" once a verified factor exists), `hasPasskey` (set only
+ * when the passkey list was needed for the decision) and `amrMethods` (from the verified access
+ * token). None of them reaches SQL — claimsForSql enumerates its fields by name.
  */
-export type StaffSession = VamosClaims & { nextLevel?: "aal1" | "aal2" };
+export type StaffSession = VamosClaims & {
+  nextLevel?: "aal1" | "aal2";
+  hasPasskey?: boolean;
+  amrMethods?: string[];
+};
 
 export type OpsAuthReason = "no-session" | "not-staff" | "needs-mfa" | "not-admin";
 
@@ -46,6 +58,10 @@ export type StaffAuthClient = {
       getAuthenticatorAssuranceLevel: () => Promise<{
         data: { currentLevel: string | null; nextLevel?: string | null } | null;
       }>;
+    };
+    /** supabase-js `auth.passkey` (needs `experimental.passkey`); only `list` is used here. */
+    passkey?: {
+      list: () => Promise<{ data: ReadonlyArray<unknown> | null; error: unknown }>;
     };
   };
 };
@@ -99,6 +115,49 @@ export function vamosRoleFromAccessToken(
   return staffRole((meta as Record<string, unknown>).vamos_role);
 }
 
+/** `amr[].method` values from the access token (authenticity already decided by getUser()). */
+export function amrMethodsFromAccessToken(accessToken: string | undefined): string[] {
+  if (!accessToken) return [];
+  const amr = jwtPayload(accessToken)?.amr;
+  return Array.isArray(amr) ? amrMethodsOf(amr as AmrLike[]) : [];
+}
+
+/**
+ * True when the auth server lists at least one passkey for the signed-in user. A list error
+ * or a throw counts as none: SQL never counted passkeys, and failing closed here would send the
+ * admin to a step-up that the same broken list cannot offer. The admin's factors stay enforced
+ * by aal2 in SQL whatever this returns.
+ */
+async function serverListsPasskey(supabase: StaffAuthClient): Promise<boolean> {
+  if (!supabase.auth.passkey) return false;
+  try {
+    const { data, error } = await supabase.auth.passkey.list();
+    return !error && Array.isArray(data) && data.length > 0;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * The passkey half of the gate input (26.1-25, D-16a), shared by getStaffClaims and both
+ * middleware gates so every door decides the same way. The amr comes from the access token
+ * that getUser() just had the auth server verify (T-26.1-77); the passkey list is fetched only
+ * when it can change the decision.
+ */
+export async function passkeyGateInputs(
+  supabase: StaffAuthClient,
+  input: {
+    role: unknown;
+    currentLevel: string | null | undefined;
+    nextLevel: string | null | undefined;
+    accessToken: string | undefined;
+  },
+): Promise<{ amrMethods: string[]; hasPasskey?: boolean }> {
+  const amrMethods = amrMethodsFromAccessToken(input.accessToken);
+  if (!passkeyCheckNeeded({ ...input, amrMethods })) return { amrMethods };
+  return { amrMethods, hasPasskey: await serverListsPasskey(supabase) };
+}
+
 export async function getStaffClaims(supabase: StaffAuthClient): Promise<StaffSession | null> {
   const { data, error } = await supabase.auth.getUser();
   if (error || !data.user) return null;
@@ -123,6 +182,14 @@ export async function getStaffClaims(supabase: StaffAuthClient): Promise<StaffSe
   const vamosRole =
     staffRole(user.app_metadata?.vamos_role) ?? vamosRoleFromAccessToken(accessToken);
   if (vamosRole) claims.app_metadata = { vamos_role: vamosRole };
+  const passkey = await passkeyGateInputs(supabase, {
+    role: vamosRole,
+    currentLevel: aal,
+    nextLevel,
+    accessToken,
+  });
+  if (passkey.amrMethods.length > 0) claims.amrMethods = passkey.amrMethods;
+  if (passkey.hasPasskey !== undefined) claims.hasPasskey = passkey.hasPasskey;
   return claims;
 }
 
@@ -130,13 +197,20 @@ export async function getStaffClaims(supabase: StaffAuthClient): Promise<StaffSe
  * INT-09 / D-16 / D-16a / D-16b: applies staffGateDecision on every call — only the admin, and
  * aal2 once a verified factor exists. Mirrors app.is_staff()/app.is_admin() in SQL.
  */
-function gateClaims(claims: StaffSession | null): StaffSession {
-  if (!claims) throw new OpsAuthError("no-session");
-  const decision = staffGateDecision({
+/** staffGateDecision for claims from getStaffClaims (passkey inputs included). */
+export function staffDecisionOf(claims: StaffSession): StaffGateDecision {
+  return staffGateDecision({
     role: claims.app_metadata?.vamos_role,
     currentLevel: claims.aal,
     nextLevel: claims.nextLevel,
+    hasPasskey: claims.hasPasskey,
+    amrMethods: claims.amrMethods,
   });
+}
+
+function gateClaims(claims: StaffSession | null): StaffSession {
+  if (!claims) throw new OpsAuthError("no-session");
+  const decision = staffDecisionOf(claims);
   if (decision === "deny") throw new OpsAuthError("not-staff");
   if (decision === "step-up") throw new OpsAuthError("needs-mfa");
   return claims;

@@ -33,7 +33,10 @@ import {
   checkCodeAttemptLimit,
   enrolTotp,
   listFactors,
+  listPasskeys,
+  passkeyAddGate,
   passwordSignInRefused,
+  removePasskey,
   staffMfaAccess,
   stepUpTotp,
   unenrolFactor,
@@ -57,7 +60,7 @@ import {
   setOwnSignInMethod,
 } from "@/lib/auth/staff-sign-in-method";
 import { asCustomer } from "@/lib/db/identity";
-import { getStaffClaims, type StaffAuthClient } from "@/lib/ops/session";
+import { getStaffClaims, staffDecisionOf, type StaffAuthClient } from "@/lib/ops/session";
 import {
   recordConsent,
   type ConsentLocale,
@@ -110,7 +113,10 @@ function staffJson(
 function isStaffSignInOptionAction(action: unknown): action is string {
   return (
     typeof action === "string" &&
-    (action.startsWith("mfa-") || action.startsWith("reauth-") || action === "set-sign-in-method")
+    (action.startsWith("mfa-") ||
+      action.startsWith("reauth-") ||
+      action === "set-sign-in-method" ||
+      action === "passkey-list" || action === "passkey-remove")
   );
 }
 
@@ -232,6 +238,29 @@ export async function POST(request: Request): Promise<Response> {
     return fresh.ok ? null : staffJson(fresh, [], 403);
   };
 
+  /**
+   * D-17c: a staff session adding a passkey needs a session the staff gate lets in and a
+   * fresh re-auth, checked at both steps of the ceremony. Customers are not gated here.
+   */
+  const staffPasskeyAddGate = async (): Promise<Response | null> => {
+    const staff = await getStaffClaims(supabase as StaffAuthClient);
+    if (!staff?.app_metadata?.vamos_role) return null;
+    const access = staffMfaAccess(staff);
+    if (!access.ok) return staffJson({ ok: false, code: access.code }, [], access.status);
+    const out = passkeyAddGate({
+      decision: staffDecisionOf(staff),
+      reauth: await reauthGate({
+        secret: reauthSecret(env),
+        cookieHeader: request.headers.get("cookie"),
+        userId: access.claims.sub,
+        sessionId: access.claims.session_id,
+      }),
+    });
+    if (out.ok) return null;
+    log("warn", "auth", ctx, { reason: out.code, action: String(action) });
+    return staffJson(out, [], mfaStatus(out.code));
+  };
+
   if (action === "signout") {
     await runSignOut(supabase);
     return json({ ok: true }, 200, [...setCookies.map(authSetCookieHeader), clearReauthCookie()]);
@@ -288,10 +317,13 @@ export async function POST(request: Request): Promise<Response> {
       if (error) log("error", "auth", ctx, { reason: error.code ?? "passkey-verify", action: "passkey-verify" });
       return json(FORM_CREDENTIALS);
     }
-    return json({ ok: true });
+    // The new session's cookies must ride on this response (OpenNext does not attach them).
+    return sessionJson({ ok: true }, setCookies);
   }
 
   if (action === "passkey-register-start") {
+    const blockedAdd = await staffPasskeyAddGate();
+    if (blockedAdd) return blockedAdd;
     const { data, error } = await supabase.auth.passkey.startRegistration();
     if (error || !data) {
       if (error) log("error", "auth", ctx, { reason: error.code ?? "passkey-register-start", action: "passkey-register-start" });
@@ -307,6 +339,8 @@ export async function POST(request: Request): Promise<Response> {
     const challengeId = typeof fields.challengeId === "string" ? fields.challengeId : "";
     const credential = fields.credential;
     if (!challengeId || !credential || typeof credential !== "object") return json(FORM_CREDENTIALS);
+    const blockedAdd = await staffPasskeyAddGate();
+    if (blockedAdd) return blockedAdd;
     const { error } = await supabase.auth.passkey.verifyRegistration({
       challengeId,
       credential: credential as never,
@@ -321,8 +355,11 @@ export async function POST(request: Request): Promise<Response> {
   if (isStaffSignInOptionAction(action)) {
     // D-16a: admin only. Deliberately not requireStaffClaims — the step-up has to
     // work while the session is still aal1.
-    const access = staffMfaAccess(await getStaffClaims(supabase as StaffAuthClient));
-    if (!access.ok) return staffJson({ ok: false, code: access.code }, [], access.status);
+    const staffSession = await getStaffClaims(supabase as StaffAuthClient);
+    const access = staffMfaAccess(staffSession);
+    if (!access.ok || !staffSession) {
+      return staffJson({ ok: false, code: access.ok ? "no-session" : access.code }, [], access.ok ? 401 : access.status);
+    }
     const claims = access.claims;
     const mfa: MfaClient = supabase;
     const secret = reauthSecret(env);
@@ -349,6 +386,23 @@ export async function POST(request: Request): Promise<Response> {
         passkey: status.passkey,
         signInMethod,
       });
+    }
+
+    if (action === "passkey-list") {
+      const out = await listPasskeys(mfa);
+      if (!out.ok) log("error", "auth", ctx, { reason: out.code, action });
+      return staffJson(out);
+    }
+
+    if (action === "passkey-remove") {
+      // D-17 / D-17c: removing a passkey needs the same fresh re-auth as removing the app.
+      const out = await removePasskey(mfa, {
+        passkeyId: fields.passkeyId,
+        decision: staffDecisionOf(staffSession),
+        reauth: await gate(),
+      });
+      if (!out.ok) log("warn", "auth", ctx, { reason: out.code, action });
+      return staffJson(out, setCookies, mfaStatus(out.ok ? "" : out.code));
     }
 
     if (action === "mfa-totp-enroll") {

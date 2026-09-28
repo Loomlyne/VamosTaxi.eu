@@ -15,7 +15,7 @@ import {
   should404MockLeak,
 } from "./lib/dc-mock-urls";
 import { publicDashboardPath } from "./lib/ops/paths";
-import { vamosRoleFromAccessToken } from "./lib/ops/session";
+import { passkeyGateInputs, vamosRoleFromAccessToken, type StaffAuthClient } from "./lib/ops/session";
 import { effectiveNextLevel, staffGateDecision } from "./lib/ops/staff-gate";
 import { MANAGE_COOKIE_NAME } from "./lib/checkout/manage-token";
 import { applySecurityHeaders } from "./lib/security/headers";
@@ -312,11 +312,18 @@ async function dashboardHostMiddleware(request: NextRequest): Promise<NextRespon
   const { data: aalData } = user
     ? await client.supabase.auth.mfa.getAuthenticatorAssuranceLevel()
     : { data: null };
-  const gate = staffGateDecision({
-    role,
-    currentLevel: aalData?.currentLevel,
-    nextLevel: effectiveNextLevel(aalData?.nextLevel, user?.factors),
-  });
+  const currentLevel = aalData?.currentLevel;
+  const nextLevel = effectiveNextLevel(aalData?.nextLevel, user?.factors);
+  // 26.1-25: a registered passkey needs aal2 or a passkey sign-in, as in requireStaffClaims.
+  const passkey = user
+    ? await passkeyGateInputs(client.supabase as StaffAuthClient, {
+        role,
+        currentLevel,
+        nextLevel,
+        accessToken: sessionData.session?.access_token,
+      })
+    : {};
+  const gate = staffGateDecision({ role, currentLevel, nextLevel, ...passkey });
   const inConsole = role === "admin" && gate === "allow";
   const dashPath = normalizeDashboardPath(path);
 
@@ -481,11 +488,15 @@ async function opsStaffGate(request: NextRequest, i18nResponse: NextResponse): P
     // INT-09 / D-16 / D-16a / D-16b: same decision as the dashboard host and requireStaffClaims.
     // Step-up and deny go to sign-in; there is no separate MFA page.
     const { data: aalData } = await client.supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-    const gate = staffGateDecision({
+    const currentLevel = aalData?.currentLevel;
+    const nextLevel = effectiveNextLevel(aalData?.nextLevel, user.factors);
+    const passkey = await passkeyGateInputs(client.supabase as StaffAuthClient, {
       role,
-      currentLevel: aalData?.currentLevel,
-      nextLevel: effectiveNextLevel(aalData?.nextLevel, user.factors),
+      currentLevel,
+      nextLevel,
+      accessToken: sessionData.session?.access_token,
     });
+    const gate = staffGateDecision({ role, currentLevel, nextLevel, ...passkey });
     if (gate !== "allow") {
       return applyStagingNoindex(
         request,

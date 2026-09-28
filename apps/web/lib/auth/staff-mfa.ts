@@ -10,6 +10,7 @@
 // exactly once — in the enrolment result handed to the enrolling admin.
 
 import type { VamosClaims } from "@/lib/db/identity";
+import type { StaffGateDecision } from "@/lib/ops/staff-gate";
 
 // Library module — D-06 greps identity importers for this export.
 export const dynamic = "force-dynamic";
@@ -39,6 +40,7 @@ export type MfaClient = {
     };
     passkey?: {
       list(): Promise<{ data: readonly unknown[] | null; error: MfaError }>;
+      delete?(params: { passkeyId: string }): Promise<{ data: unknown; error: MfaError }>;
     };
   };
 };
@@ -237,6 +239,87 @@ export async function listFactors(
     }
   }
   return { ok: true, totp: Boolean(totp), totpFactorId: totp?.id ?? null, passkey };
+}
+
+/** One of the admin's passkeys as the settings pane sees it. No key material, ever. */
+export type PasskeySummary = {
+  id: string;
+  friendlyName: string | null;
+  createdAt: string | null;
+  lastUsedAt: string | null;
+};
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function stringOrNull(value: unknown): string | null {
+  return typeof value === "string" && value.length > 0 ? value : null;
+}
+
+/** The caller's passkeys from the auth server (26.1-25). Only id, name and dates leave here. */
+export async function listPasskeys(
+  client: MfaClient,
+): Promise<{ ok: true; passkeys: PasskeySummary[] } | MfaFail> {
+  if (!client.auth.passkey) return { ok: false, code: "mfa-status-failed" };
+  try {
+    const { data, error } = await client.auth.passkey.list();
+    if (error || !Array.isArray(data)) return { ok: false, code: "mfa-status-failed" };
+    const passkeys: PasskeySummary[] = [];
+    for (const item of data) {
+      if (!item || typeof item !== "object") continue;
+      const row = item as Record<string, unknown>;
+      if (typeof row.id !== "string" || !UUID_RE.test(row.id)) continue;
+      passkeys.push({
+        id: row.id,
+        friendlyName: stringOrNull(row.friendly_name),
+        createdAt: stringOrNull(row.created_at),
+        lastUsedAt: stringOrNull(row.last_used_at),
+      });
+    }
+    return { ok: true, passkeys };
+  } catch {
+    return { ok: false, code: "mfa-status-failed" };
+  }
+}
+
+/**
+ * D-17c: adding a passkey needs a session the staff gate lets in and a fresh, session-bound
+ * re-auth — the same rule as adding an authenticator app (D-17b), so a stolen session cannot
+ * add its own passkey.
+ */
+export function passkeyAddGate(input: {
+  decision: StaffGateDecision;
+  reauth: ReauthResult;
+}): { ok: true } | MfaFail {
+  if (input.decision !== "allow") return { ok: false, code: "mfa-aal2-required" };
+  if (!input.reauth.ok) return { ok: false, code: input.reauth.code };
+  return { ok: true };
+}
+
+/**
+ * Removes one of the caller's own passkeys. Same checks as adding one (D-17, D-17c), then the
+ * id must be in the caller's own server list before Supabase is asked to delete it.
+ */
+export async function removePasskey(
+  client: MfaClient,
+  input: { passkeyId: unknown; decision: StaffGateDecision; reauth: ReauthResult },
+): Promise<{ ok: true } | MfaFail> {
+  if (typeof input.passkeyId !== "string" || !UUID_RE.test(input.passkeyId)) {
+    return { ok: false, code: "mfa-invalid-input" };
+  }
+  const allowed = passkeyAddGate(input);
+  if (!allowed.ok) return allowed;
+  const listed = await listPasskeys(client);
+  if (!listed.ok) return { ok: false, code: "mfa-unenroll-failed" };
+  if (!listed.passkeys.some((p) => p.id === input.passkeyId)) return { ok: false, code: "mfa-invalid-input" };
+  const api = client.auth.passkey;
+  if (!api?.delete) return { ok: false, code: "mfa-unenroll-failed" };
+  try {
+    const { error } = await api.delete({ passkeyId: input.passkeyId });
+    if (error) return { ok: false, code: "mfa-unenroll-failed" };
+  } catch {
+    return { ok: false, code: "mfa-unenroll-failed" };
+  }
+  return { ok: true };
 }
 
 /** True when the session was established with a password. */

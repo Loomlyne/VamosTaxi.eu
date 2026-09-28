@@ -101,7 +101,7 @@ describe("06-09 DC mocks", () => {
     }
   });
 
-  it("enrols a passkey with Supabase's create and verify ceremony without promising removal", () => {
+  it("enrols a passkey with Supabase's create and verify ceremony", () => {
     const settings = read("app/ops/OpsSettings.dc.html");
     expect(settings).toMatch(/action:\s*'passkey-register-start'/);
     expect(settings).toMatch(/navigator\.credentials\.create\(\{ publicKey: decodeCreate\(start\.options\) \}\)/);
@@ -109,11 +109,8 @@ describe("06-09 DC mocks", () => {
     expect(settings).toMatch(/credential:\s*serializeCreate\(credential\)/);
     expect(settings).toMatch(/function serializeCreate\(cred\)/);
     expect(settings).toMatch(/attestationObject:\s*bufToB64url\(r\.attestationObject\)/);
-    expect(settings).toMatch(/passkeyAdded:\s*this\.state\.passkeyAdded/);
     expect(settings).toMatch(/passkeyMsg/);
     expect(settings).toMatch(/PublicKeyCredential/);
-    expect(settings).not.toMatch(/removePasskey\s*=/);
-    expect(settings).not.toMatch(/tSecPasskeyRemove/);
   });
 
   it("does not hard-code GmbH / Bleicherstrasse or dispatch@ fallbacks, and has no TOTP QR", () => {
@@ -282,5 +279,59 @@ describe("26.1-23 Security: authenticator app, magic link switch, re-auth dialog
     expect(settings).not.toMatch(/--vt-shadow-accent\)/);
     expect(settings).toMatch(/@media \(max-width:680px\)\{\[data-totp-enrol\]\{grid-template-columns:minmax\(0,1fr\)\}/);
     expect(settings).not.toMatch(/margin-left|margin-right|padding-left|padding-right|text-align:left|text-align:right/);
+  });
+});
+
+describe("26.1-25 Security: passkeys from the server, added and removed behind re-auth", () => {
+  const settings = read("app/ops/OpsSettings.dc.html");
+  const script = settings.slice(settings.indexOf('<script type="text/x-dc"'));
+  const method = (name: string) => script.match(new RegExp(`\\n  ${name} = [\\s\\S]*?\\n  \\};`))?.[0] ?? "";
+
+  const KEYS = ["secPasskeyRemove", "secPasskeyRemoved", "secPasskeyRemoveFailed", "secPasskeyConfirm", "secPasskeyConfirmSub"];
+
+  it("ships every new key in en, de, fr and ar (Swiss German, no ß)", () => {
+    for (const key of KEYS) {
+      expect(script.match(new RegExp(`\\b${key}:'`, "g"))?.length, key).toBe(4);
+    }
+    for (const lang of ["de", "fr", "ar"]) {
+      const block = script.match(new RegExp(`\\n  ${lang}: \\{[\\s\\S]*?\\n  \\},`))?.[0] ?? "";
+      for (const key of KEYS) expect(block, `${lang}.${key}`).toMatch(new RegExp(`\\b${key}:'`));
+    }
+    expect(settings).not.toMatch(/ß/);
+    expect(script).toMatch(/secPasskeyRemove:'Remove passkey'/);
+    expect(script).toMatch(/secPasskeyConfirm:'Use your passkey'/);
+    expect(settings.split("\n").filter((l) => l.includes("secPasskeyRemove")).length).toBeGreaterThanOrEqual(5);
+  });
+
+  it("shows the registered state from the server list, never from local state alone", () => {
+    expect(method("loadPasskeys")).toMatch(/action: 'passkey-list'/);
+    expect(method("loadPasskeys")).toMatch(/passkeys: json\.passkeys/);
+    expect(script).toMatch(/componentDidMount\(\) \{[\s\S]*?this\.loadPasskeys\(\);/);
+    expect(script).toMatch(/passkeyAdded: passkeys\.length > 0/);
+    expect(script).not.toMatch(/passkeyAdded:\s*true/);
+    expect(script).not.toMatch(/\|\| this\.state\.passkeyAdded/);
+  });
+
+  it("adds and removes a passkey only through the re-auth dialog (D-17, D-17c)", () => {
+    expect(method("addPasskey")).toMatch(/this\.withReauth\(/);
+    expect(method("addPasskey")).toMatch(/action: 'passkey-register-start'/);
+    expect(method("removePasskey")).toMatch(/this\.withReauth\(/);
+    expect(method("removePasskey")).toMatch(/action: 'passkey-remove', passkeyId: id/);
+    expect(method("removePasskey")).toMatch(/this\.loadPasskeys\(\)/);
+  });
+
+  it("renders one row per server passkey with a secondary Remove passkey button", () => {
+    expect(settings).toMatch(/<sc-for list="\{\{ passkeyRows \}\}" as="pk"/);
+    expect(settings).toMatch(/variant="secondary" size="md" onClick="\{\{ pk\.remove \}\}" disabled="\{\{ passkeyBusy \}\}"[^>]*>\{\{ tSecPasskeyRemove \}\}/);
+    expect(settings).toMatch(/data-i18n-skip="1"[^>]*>\{\{ pk\.name \}\}/);
+  });
+
+  it("after adding, confirms the new passkey with a passkey sign-in so the session passes the gate", () => {
+    const confirm = method("confirmPasskey");
+    expect(confirm).toMatch(/action: 'passkey-start'/);
+    expect(confirm).toMatch(/navigator\.credentials\.get\(\{ publicKey: decodeGet\(start\.options\) \}\)/);
+    expect(confirm).toMatch(/action: 'passkey-verify', challengeId: start\.challenge_id, credential: serializeGet\(credential\)/);
+    expect(method("addPasskey")).toMatch(/this\.confirmPasskey\(\)/);
+    expect(settings).toMatch(/onClick="\{\{ confirmPasskey \}\}"[^>]*>\{\{ tSecPasskeyConfirm \}\}/);
   });
 });
