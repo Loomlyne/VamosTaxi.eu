@@ -325,6 +325,8 @@ describe("zone resolution from a Mapbox pick (D-10, 26.1-10)", () => {
     expect(geoLanguageFromPath("/de/api/staff/rate-book")).toBe("de");
     expect(geoLanguageFromPath("/ar/api/staff/rate-book")).toBe("ar");
     expect(geoLanguageFromPath("/api/staff/rate-book")).toBe("en");
+    expect(geoLanguageFromPath("/api/staff/rate-book", "fr-CH,fr;q=0.9,en;q=0.8")).toBe("fr");
+    expect(geoLanguageFromPath("/api/staff/rate-book", "it-CH")).toBe("en");
   });
 });
 
