@@ -70,4 +70,13 @@ describe("checkout source pin (D-14)", () => {
       expect(raw, lang).not.toMatch(/"classFirst":/);
     }
   });
+
+  it("D-14a: class names are product names, Latin in every language", () => {
+    for (const lang of ["en", "de", "fr", "ar"]) {
+      const raw = readFileSync(join(WEB_ROOT, `i18n/messages/${lang}.json`), "utf8");
+      expect(raw, lang).toContain('"classEconomy": "Economy"');
+      expect(raw, lang).toContain('"classBusiness": "Business"');
+      expect(raw, lang).toContain('"classVanLuxury": "Van luxury"');
+    }
+  });
 });
