@@ -2989,11 +2989,21 @@ export type Database = {
           scheduled_local: string
         }[]
       }
+      ops_refund_decide: {
+        Args: { p_booking_id: string; p_decision: string }
+        Returns: {
+          booking_id: string
+          reference: string
+          refund_status: string
+        }[]
+      }
       ops_refund_record: {
         Args: {
           p_actor_id: string
           p_booking_id: string
           p_payment_id: number
+          p_reason?: string
+          p_refund_rappen?: unknown
           p_stripe_fee_rappen?: unknown
           p_stripe_refund_id: string
         }
