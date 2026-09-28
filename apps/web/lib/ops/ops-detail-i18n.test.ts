@@ -45,23 +45,110 @@ function tBlocks(src: string): Record<Lang, string> {
   };
 }
 
-// Matches `key:'value'` object-literal entries. Every T value in this file
-// is a plain quoted string (no arrow functions, no template literals) —
-// confirmed by grep before writing this test.
+/** Index just past the string literal (', " or `) that opens at `i`. */
+function skipString(src: string, i: number): number {
+  const quote = src[i];
+  let j = i + 1;
+  while (j < src.length) {
+    const c = src[j];
+    if (c === "\\") {
+      j += 2;
+      continue;
+    }
+    if (c === quote) return j + 1;
+    if (quote === "`" && c === "$" && src[j + 1] === "{") {
+      // Template substitution: skip to its matching brace, stepping over nested strings.
+      let depth = 1;
+      j += 2;
+      while (j < src.length && depth > 0) {
+        const d = src[j];
+        if (d === "'" || d === '"' || d === "`") {
+          j = skipString(src, j);
+          continue;
+        }
+        if (d === "{") depth += 1;
+        else if (d === "}") depth -= 1;
+        j += 1;
+      }
+      continue;
+    }
+    j += 1;
+  }
+  return j;
+}
+
+// Collects the property names of the first object literal in `block` (depth 1),
+// whatever their value form: single- or double-quoted string, template literal,
+// arrow or `function` value, or method shorthand. It walks the source instead of
+// pattern-matching `key:'`, so string contents ("a: 'b'") and nested objects
+// inside function bodies are never read as keys. Quoted keys count too.
 function keysOf(block: string): Set<string> {
-  const re = /(?:^|[\s,{])([A-Za-z_][A-Za-z0-9_]*):'/g;
   const out = new Set<string>();
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(block))) {
-    const key = m[1];
-    if (key !== undefined && !META.has(key)) out.add(key);
+  let depth = 0;
+  let expectKey = false;
+  let i = 0;
+  const addIfKey = (key: string, after: number) => {
+    if (expectKey && depth === 1 && /^\s*[:(]/.test(block.slice(after, after + 64)) && !META.has(key)) {
+      out.add(key);
+    }
+  };
+  while (i < block.length) {
+    const c = block[i] as string;
+    if (c === "/" && block[i + 1] === "/") {
+      const nl = block.indexOf("\n", i);
+      i = nl === -1 ? block.length : nl;
+      continue;
+    }
+    if (c === "/" && block[i + 1] === "*") {
+      const close = block.indexOf("*/", i + 2);
+      i = close === -1 ? block.length : close + 2;
+      continue;
+    }
+    if (c === "'" || c === '"' || c === "`") {
+      const end = skipString(block, i);
+      if (c !== "`") addIfKey(block.slice(i + 1, end - 1), end);
+      expectKey = false;
+      i = end;
+      continue;
+    }
+    if (c === "{" || c === "(" || c === "[") {
+      depth += 1;
+      expectKey = depth === 1 && c === "{";
+      i += 1;
+      continue;
+    }
+    if (c === "}" || c === ")" || c === "]") {
+      depth -= 1;
+      if (depth <= 0) break; // the first object literal is closed
+      expectKey = false;
+      i += 1;
+      continue;
+    }
+    if (c === ",") {
+      expectKey = depth === 1;
+      i += 1;
+      continue;
+    }
+    if (/\s/.test(c)) {
+      i += 1;
+      continue;
+    }
+    const id = /^[A-Za-z_$][\w$]*/.exec(block.slice(i, i + 128));
+    if (id) {
+      addIfKey(id[0], i + id[0].length);
+      expectKey = false;
+      i += id[0].length;
+      continue;
+    }
+    expectKey = false;
+    i += 1;
   }
   return out;
 }
 
 function valueOf(block: string, key: string): string | undefined {
-  const m = block.match(new RegExp(`(?:^|[\\s,{])${key}:'((?:[^'\\\\]|\\\\.)*)'`));
-  return m?.[1];
+  const m = block.match(new RegExp(`(?:^|[\\s,{])${key}\\s*:\\s*(['"\`])((?:(?!\\1)[^\\\\]|\\\\.)*)\\1`));
+  return m?.[2];
 }
 
 const blocks = tBlocks(dc);
@@ -92,5 +179,25 @@ describe("OpsDetail T table stays in parity across en, de, fr, ar (26.1-VERIFICA
       if (value.includes("ß")) offending.push(key);
     }
     expect(offending, `German keys containing ß: ${offending.join(", ")}`).toEqual([]);
+  });
+
+  it("extracts keys whose values are double-quoted, template or function valued", () => {
+    const fixture = [
+      "  en: {",
+      "    plain:'Plain', dq:\"Double: 'x', y:'z'\", tpl:`Template ${1 + 1} ${'a:b'}`,",
+      "    arrow:(n) => n + ' min', bare: n => n,",
+      "    fn:function (n) { return { inner:'x' }; }, method(n) { return n; },",
+      "    'quoted':'Q', // note:'comment'",
+      "    last : \"Last\"",
+      "  },",
+      "  de: { other:'no' },",
+    ].join("\n");
+    expect([...keysOf(fixture)].sort()).toEqual(
+      ["arrow", "bare", "dq", "fn", "last", "method", "plain", "quoted", "tpl"].sort(),
+    );
+    expect(valueOf(fixture, "dq")).toBe("Double: 'x', y:'z'");
+    expect(valueOf(fixture, "last")).toBe("Last");
+    // The real table still parses: every block yields its keys.
+    for (const lang of LANGS) expect(keys[lang].size).toBeGreaterThan(100);
   });
 });
