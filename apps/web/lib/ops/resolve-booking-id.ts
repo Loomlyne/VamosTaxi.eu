@@ -3,6 +3,8 @@
 
 import { asStaff, type VamosClaims } from "@/lib/db/identity";
 
+export const dynamic = "force-dynamic";
+
 export async function resolveStaffBookingId(
   env: CloudflareEnv,
   claims: VamosClaims,

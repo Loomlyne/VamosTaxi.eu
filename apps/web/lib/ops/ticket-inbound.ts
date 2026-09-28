@@ -16,6 +16,8 @@ import {
 import { storeInboundFiles } from "./ticket-inbound-files";
 import type { TicketStatus } from "./tickets-map";
 
+export const dynamic = "force-dynamic";
+
 export type { InboundPayload };
 export { inboundBody, readInboundPayload } from "./ticket-mail";
 

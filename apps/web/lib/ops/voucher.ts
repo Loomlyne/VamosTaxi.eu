@@ -10,6 +10,8 @@ import { mintManageToken } from "@/lib/checkout/manage-token";
 import { PUBLIC_SITE_ORIGIN } from "./phone-booking-map";
 import { resolveStaffBookingId } from "./resolve-booking-id";
 
+export const dynamic = "force-dynamic";
+
 export type VoucherResult =
   | { ok: true; email: string }
   | { ok: false; code: "not-found" | "not-paid" | "no-email" | "email-failed" };

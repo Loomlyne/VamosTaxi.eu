@@ -7,7 +7,7 @@ import { clipInboundBody } from "./ticket-mail";
 export const MAX_INBOUND_FILE_BYTES = 5 * 1024 * 1024;
 const MAX_KEPT = 3;
 const INLINE_SKIP_BYTES = 20 * 1024;
-const ALLOWED = new Set([
+const ALLOWED: readonly string[] = Object.freeze([
   "image/jpeg",
   "image/png",
   "image/webp",
@@ -56,7 +56,7 @@ export function classifyInboundFile(
   if (keptSoFar >= MAX_KEPT) {
     return { keep: false, threadLine: d10(filename) };
   }
-  if (!ALLOWED.has(file.contentType) || !Number.isFinite(size) || size < 0 || size > MAX_INBOUND_FILE_BYTES) {
+  if (!ALLOWED.includes(file.contentType) || !Number.isFinite(size) || size < 0 || size > MAX_INBOUND_FILE_BYTES) {
     return { keep: false, threadLine: d10(filename) };
   }
   return { keep: true, threadLine: null };
