@@ -191,6 +191,35 @@ export async function resolvePaymentIntentId(
   return null;
 }
 
+/**
+ * 26.1-08 D-07: charge.refunded is re-read from Stripe, never trusted from the
+ * event body (T-26.1-26). `refunds` is expanded so every refund on the charge,
+ * app-made or dashboard-made, is visible with its metadata.
+ */
+export async function retrieveCharge(stripe: Stripe, chargeId: string): Promise<Stripe.Charge> {
+  return stripe.charges.retrieve(chargeId, { expand: ["refunds"] });
+}
+
+/** 26.1-08 D-07: charge.dispute.* is re-read from Stripe for its current status (T-26.1-26). */
+export async function retrieveDispute(stripe: Stripe, disputeId: string): Promise<Stripe.Dispute> {
+  return stripe.disputes.retrieve(disputeId);
+}
+
+/**
+ * 26.1-08 D-05/D-07: the Checkout Session that owns a PaymentIntent, so a
+ * legacy `booking_payments` row that still stores `cs_...` in
+ * `stripe_payment_intent_id` can be matched by `stripe_checkout_session_id`.
+ * `null` when Stripe has no session for it.
+ */
+export async function findSessionIdForPaymentIntent(
+  stripe: Stripe,
+  paymentIntentId: string,
+): Promise<string | null> {
+  const sessions = await stripe.checkout.sessions.list({ payment_intent: paymentIntentId, limit: 1 });
+  const first = sessions.data[0];
+  return first && typeof first.id === "string" ? first.id : null;
+}
+
 /** D-07: expand charge card country + balance_transaction.available_on. Never invent day counts. */
 export async function retrieveRefund(stripe: Stripe, refundId: string): Promise<Stripe.Refund> {
   return stripe.refunds.retrieve(refundId, {

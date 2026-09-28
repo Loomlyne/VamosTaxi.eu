@@ -89,6 +89,57 @@ export type Database = {
           },
         ]
       }
+      booking_disputes: {
+        Row: {
+          amount_rappen: number | null
+          booking_id: string
+          id: number
+          payment_id: number
+          reason: string | null
+          status: string
+          stripe_created: string
+          stripe_dispute_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount_rappen?: number | null
+          booking_id: string
+          id?: never
+          payment_id: number
+          reason?: string | null
+          status: string
+          stripe_created: string
+          stripe_dispute_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount_rappen?: number | null
+          booking_id?: string
+          id?: never
+          payment_id?: number
+          reason?: string | null
+          status?: string
+          stripe_created?: string
+          stripe_dispute_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_disputes_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_disputes_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "booking_payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_edit_requests: {
         Row: {
           accepted_at: string | null
@@ -3026,6 +3077,36 @@ export type Database = {
           p_phone: string
         }
         Returns: undefined
+      }
+      stripe_charge_refunded_record: {
+        Args: {
+          p_app_source: boolean
+          p_created: string
+          p_payment_intent_id: string
+          p_refund_rappen: unknown
+          p_session_id: string
+          p_stripe_refund_id: string
+        }
+        Returns: {
+          booking_id: string
+          outcome: string
+          refund_id: number
+        }[]
+      }
+      stripe_dispute_upsert: {
+        Args: {
+          p_amount_rappen: unknown
+          p_payment_intent_id: string
+          p_reason: string
+          p_session_id: string
+          p_status: string
+          p_stripe_created: string
+          p_stripe_dispute_id: string
+        }
+        Returns: {
+          booking_id: string
+          dispute_id: number
+        }[]
       }
       stripe_event_begin: {
         Args: {

@@ -21,10 +21,21 @@ import { withRequestContext, type ScalarValue } from "../logger";
 import {
   createRefund,
   expireCheckoutSession,
+  findSessionIdForPaymentIntent,
   fxFromSession,
+  retrieveCharge,
   retrieveCheckoutSession,
+  retrieveDispute,
   stripeFromEnv,
 } from "./stripe";
+import {
+  handleChargeRefundedWithDeps,
+  handleDisputeWithDeps,
+  moneyEventKind,
+  paymentIntentIdOfCharge,
+  paymentIntentIdOfDispute,
+  type MoneyEventDeps,
+} from "./money-events";
 import { stripeAccountIsLegacyUaeTest } from "./charge-gate";
 import type { StripeQueueMessage } from "./webhook";
 import { deliverConfirmation } from "./notify";
@@ -35,7 +46,8 @@ import {
   type StuckPaymentAlertInput,
 } from "../ops/must-fix-mail";
 
-export type HandleResult = { ack: true } | { retry: true };
+/** `delaySeconds` (26.1-08): a retry that must wait, e.g. app_refund_pending, so the retry budget spans minutes. */
+export type HandleResult = { ack: true } | { retry: true; delaySeconds?: number };
 
 export type SettleRow = {
   booking_id: string;
@@ -96,7 +108,7 @@ export type RecordDuplicateRefundInput = {
   reason: string;
 };
 
-export type SettleDeps = {
+export type SettleDeps = MoneyEventDeps & {
   begin: (
     eventId: string,
     objectIds: string[],
@@ -148,7 +160,11 @@ function paymentIntentIdOf(session: Stripe.Checkout.Session | null): string | nu
 function outcomeFor(
   type: string,
   session: Stripe.Checkout.Session | null,
-): "succeeded" | "failed" | "canceled" | "ignore" {
+): "succeeded" | "failed" | "canceled" | "charge_refunded" | "dispute" | "ignore" {
+  // 26.1-08 D-07: "charge.refunded" and "charge.dispute.created|updated|closed"
+  // reach the DB through money-events.ts instead of being ignored.
+  const money = moneyEventKind(type);
+  if (money) return money;
   if (type === "checkout.session.completed") {
     // D-15: payment_status, not payment_intent.succeeded. One path covers an
     // instant card charge and a delayed TWINT redirect.
@@ -183,7 +199,32 @@ export async function handleStripeMessageWithDeps(
     }
   }
 
-  const piId = paymentIntentIdOf(session) ?? (message.objectId.startsWith("pi_") ? message.objectId : null);
+  // 26.1-08: re-read the charge / dispute from Stripe before begin() so its
+  // pi_ joins the ordering window (research Pitfall 3) and the handler never
+  // trusts the event body (T-26.1-26).
+  const money = moneyEventKind(message.type);
+  let charge: Stripe.Charge | null = null;
+  let dispute: Stripe.Dispute | null = null;
+  if (money === "charge_refunded" && message.objectId.startsWith("ch_")) {
+    try {
+      charge = await deps.retrieveCharge(message.objectId);
+    } catch {
+      return { retry: true };
+    }
+  }
+  if (money === "dispute" && message.objectId.startsWith("du_")) {
+    try {
+      dispute = await deps.retrieveDispute(message.objectId);
+    } catch {
+      return { retry: true };
+    }
+  }
+
+  const piId =
+    paymentIntentIdOf(session) ??
+    paymentIntentIdOfCharge(charge) ??
+    paymentIntentIdOfDispute(dispute) ??
+    (message.objectId.startsWith("pi_") ? message.objectId : null);
   // The two ids describe one payment. A window spanning only one of them lets
   // a payment_intent.canceled slip past a checkout.session.completed (plan 07-03).
   const objectIds = [message.objectId, piId].filter((id): id is string => Boolean(id));
@@ -211,7 +252,13 @@ export async function handleStripeMessageWithDeps(
   }
 
   const outcome = outcomeFor(message.type, session);
-  if (outcome === "ignore") {
+  if (outcome === "charge_refunded" && charge) {
+    return handleChargeRefundedWithDeps(message, charge, deps);
+  }
+  if (outcome === "dispute" && dispute) {
+    return handleDisputeWithDeps(message, dispute, deps);
+  }
+  if (outcome === "ignore" || outcome === "charge_refunded" || outcome === "dispute") {
     await deps.eventSettle(message.eventId, null);
     return { ack: true };
   }
@@ -464,6 +511,64 @@ export async function handleStripeMessage(
       if (!publishable || stripeAccountIsLegacyUaeTest(publishable)) return;
       await expireCheckoutSession(stripe, sessionId);
     },
+    retrieveCharge: (id) => retrieveCharge(stripe, id),
+    retrieveDispute: (id) => retrieveDispute(stripe, id),
+    findSessionIdForPaymentIntent: (paymentIntentId) => findSessionIdForPaymentIntent(stripe, paymentIntentId),
+    recordChargeRefund: async (input) => {
+      const rows = await asSystem(env, async (sql) => {
+        return sql`
+          select * from public.stripe_charge_refunded_record(
+            ${input.paymentIntentId},
+            ${input.sessionId},
+            ${input.stripeRefundId},
+            ${input.refundRappen},
+            ${input.created.toISOString()}::timestamptz,
+            ${input.appSource}
+          )
+        `;
+      });
+      return { outcome: String(rows[0]?.outcome ?? "unknown") };
+    },
+    upsertDispute: async (input) => {
+      await asSystem(env, async (sql) => {
+        await sql`
+          select public.stripe_dispute_upsert(
+            ${input.stripeDisputeId},
+            ${input.paymentIntentId},
+            ${input.sessionId},
+            ${input.status},
+            ${input.reason},
+            ${input.amountRappen},
+            ${input.stripeCreated.toISOString()}::timestamptz
+          )
+        `;
+      });
+    },
     emit,
   });
+}
+
+/** The two calls the worker needs from a Cloudflare Queues `Message`. */
+export type QueueMessageControl = {
+  ack: () => void;
+  retry: (options?: { delaySeconds?: number }) => void;
+};
+
+/**
+ * Applies a HandleResult to a queue message (worker.ts). A retry carrying
+ * `delaySeconds` (app_refund_pending, 26.1-08) is passed through so the
+ * retry budget spans minutes before any dead-letter; a plain retry keeps the
+ * queue's default backoff.
+ */
+export function applyHandleResult(message: QueueMessageControl, result: HandleResult): "acked" | "retry" {
+  if ("retry" in result && result.retry) {
+    if (typeof result.delaySeconds === "number") {
+      message.retry({ delaySeconds: result.delaySeconds });
+    } else {
+      message.retry();
+    }
+    return "retry";
+  }
+  message.ack();
+  return "acked";
 }
