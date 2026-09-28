@@ -162,6 +162,16 @@ test("out-of-order canceled is superseded; booking stays confirmed @checkout", a
     alertPaidAfterCancel: async () => undefined,
     alertStuckPayment: async () => undefined,
     expireSession: async () => undefined,
+    // 26.1-08: money-event deps. Neither scenario here is a charge or dispute event.
+    retrieveCharge: async () => {
+      throw new Error("not used: no charge event in this scenario");
+    },
+    retrieveDispute: async () => {
+      throw new Error("not used: no dispute event in this scenario");
+    },
+    findSessionIdForPaymentIntent: async () => null,
+    recordChargeRefund: async () => ({ outcome: "not_used" }),
+    upsertDispute: async () => undefined,
     emit: () => undefined,
   };
 
@@ -222,6 +232,16 @@ test("a second confirmation deliver is not issued when already_settled @checkout
     alertPaidAfterCancel: async () => undefined,
     alertStuckPayment: async () => undefined,
     expireSession: async () => undefined,
+    // 26.1-08: money-event deps. Neither scenario here is a charge or dispute event.
+    retrieveCharge: async () => {
+      throw new Error("not used: no charge event in this scenario");
+    },
+    retrieveDispute: async () => {
+      throw new Error("not used: no dispute event in this scenario");
+    },
+    findSessionIdForPaymentIntent: async () => null,
+    recordChargeRefund: async () => ({ outcome: "not_used" }),
+    upsertDispute: async () => undefined,
     emit: () => undefined,
   };
   await handleStripeMessageWithDeps(

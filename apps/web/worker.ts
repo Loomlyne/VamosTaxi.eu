@@ -21,7 +21,7 @@ import {
 import { withRequestContext } from "./lib/logger";
 import { isZurichDigestTime, runStaffDigest } from "./lib/ops/digest";
 import { createDigestDependencies } from "./lib/supabase/service";
-import { handleStripeMessage } from "./lib/checkout/settle";
+import { applyHandleResult, handleStripeMessage } from "./lib/checkout/settle";
 import { handleDlqMessage } from "./lib/checkout/dlq";
 import { sweepStuckNotifications } from "./lib/checkout/notify";
 import { expireUnpaidBookings } from "./lib/checkout/expire-unpaid";
@@ -174,12 +174,8 @@ export default {
       let ackOutcome: "acked" | "retry" | "ack-failed" = "acked";
       try {
         const result = await handleStripeMessage(env, body);
-        if ("retry" in result && result.retry) {
-          message.retry();
-          ackOutcome = "retry";
-        } else {
-          message.ack();
-        }
+        // 26.1-08: a delayed retry (app_refund_pending) passes delaySeconds through.
+        ackOutcome = applyHandleResult(message, result);
       } catch {
         try {
           message.retry();

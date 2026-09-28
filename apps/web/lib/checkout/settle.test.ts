@@ -406,7 +406,9 @@ describe("handleStripeMessageWithDeps — charge.refunded and charge.dispute.* (
     expect(result).toEqual({ ack: true });
     expect(d.retrieveCharge).toHaveBeenCalledWith("ch_test_1");
     expect(d.begin).toHaveBeenCalledWith("evt_ch_1", ["ch_test_1", "pi_test_1"], expect.any(Date));
-    expect(d.retrieveCharge.mock.invocationCallOrder[0]).toBeLessThan(d.begin.mock.invocationCallOrder[0]);
+    const chargeAt = d.retrieveCharge.mock.invocationCallOrder[0] ?? Number.POSITIVE_INFINITY;
+    const beginAt = d.begin.mock.invocationCallOrder[0] ?? 0;
+    expect(chargeAt).toBeLessThan(beginAt);
     expect(d.recordChargeRefund).toHaveBeenCalledWith(
       expect.objectContaining({ paymentIntentId: "pi_test_1", stripeRefundId: "re_dash_1", appSource: false }),
     );
