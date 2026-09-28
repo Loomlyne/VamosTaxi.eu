@@ -547,6 +547,136 @@ describe("the lock carries and restores boundary facts across reprice (26.1-09)"
     expect(captured?.legs[0]?.origin_city_id).toBeNull();
     expect(captured?.legs[0]?.dest_city_id).toBeNull();
     expect(captured?.legs[0]?.origin_is_airport).toBe(false);
+    // 26.1-11: an old lock has no display names — the pair row falls back to its plain label.
+    expect(captured?.legs[0]?.origin_city_name).toBeNull();
+    expect(captured?.legs[0]?.dest_city_name).toBeNull();
+  });
+
+  it("26.1-11: the Mapbox city name reaches the kernel on quote and survives the lock on reprice", async () => {
+    const deps = baseDeps({
+      reverse: async (input) => ({
+        place: {
+          name: input.lng === ZURICH.lng ? "Zurich HB" : "Zurich Airport",
+          address: "",
+          lng: input.lng,
+          lat: input.lat,
+          canton: "ZH",
+          cityId: input.lng === ZURICH.lng ? "place.zurich" : "place.kloten",
+          cityName: input.lng === ZURICH.lng ? "Zürich" : "Kloten",
+          isAirport: input.lng !== ZURICH.lng,
+        },
+      }),
+    });
+    let quoted: QuoteInput | undefined;
+    const first = await runQuotePipeline(validBody(), {
+      ...deps,
+      loadAndPrice: async (env, input) => {
+        quoted = input;
+        return deps.loadAndPrice(env, input);
+      },
+    });
+    expect(first.ok).toBe(true);
+    if (!first.ok) return;
+    const origin = quoted?.legs[0]?.origin_city_name;
+    const dest = quoted?.legs[0]?.dest_city_name;
+    expect(origin).toBe("Zürich");
+    expect(dest).toBe("Kloten");
+
+    let repriced: QuoteInput | undefined;
+    const again = await runRepricePipeline(
+      {
+        quote_id: first.quote_id,
+        lock: first.lock,
+        locale: "en",
+        display_currency: "CHF",
+        coupon: "SAVE10",
+      },
+      {
+        ...deps,
+        loadAndPrice: async (_env, input) => {
+          repriced = input;
+          return pricedOk();
+        },
+      },
+    );
+    expect(again.ok).toBe(true);
+    expect(repriced?.legs[0]?.origin_city_name).toBe(origin);
+    expect(repriced?.legs[0]?.dest_city_name).toBe(dest);
+  });
+
+  it("26.1-11: the lock pins each class's airport-fee and route-pair lines for display; a reprice re-signs them from the new board", async () => {
+    const withRows = (): LoadAndPriceResult => {
+      const base = pricedOk();
+      if (!base.ok) return base;
+      const classes = board().map((c) =>
+        c.slug === "business"
+          ? {
+              ...c,
+              lines: [
+                {
+                  seq: 1,
+                  leg_seq: 1,
+                  kind: "fare" as const,
+                  code: "distance_fare",
+                  i18n_key: "price.line.transfer",
+                  basis: { rule: "per_km" },
+                  amount_rappen: null,
+                },
+                {
+                  seq: 2,
+                  leg_seq: 1,
+                  kind: "fare" as const,
+                  code: "airport_fee",
+                  i18n_key: "price.line.airport_fee",
+                  basis: { rule: "airport_fee" },
+                  amount_rappen: null,
+                },
+                {
+                  seq: 3,
+                  leg_seq: 1,
+                  kind: "extra" as const,
+                  code: "fixed_route",
+                  i18n_key: "price.line.fixed_route",
+                  params: { origin: "Zürich", destination: "Kloten" },
+                  basis: { rule: "fixed_route", matched: "city" },
+                  amount_rappen: null,
+                },
+              ],
+            }
+          : c,
+      );
+      return { ...base, quote: { ...base.quote, classes } };
+    };
+    const deps = baseDeps({ loadAndPrice: async () => withRows() });
+    const first = await runQuotePipeline(validBody(), deps);
+    expect(first.ok).toBe(true);
+    if (!first.ok) return;
+    const verified = await verifyLock({ current: FAKE_SECRET }, first.lock, "2026-08-28T12:00:00.000Z");
+    if (!verified.ok) throw new Error("lock did not verify");
+    expect(verified.payload.price_rows).toEqual([
+      {
+        slug: "business",
+        lines: [
+          { code: "airport_fee", leg_seq: 1, amount_rappen: null },
+          {
+            code: "fixed_route",
+            leg_seq: 1,
+            amount_rappen: null,
+            params: { origin: "Zürich", destination: "Kloten" },
+          },
+        ],
+      },
+    ]);
+
+    const again = await runRepricePipeline(
+      { quote_id: first.quote_id, lock: first.lock, locale: "en", display_currency: "CHF", coupon: "SAVE10" },
+      { ...deps, loadAndPrice: async () => pricedOk() },
+    );
+    expect(again.ok).toBe(true);
+    if (!again.ok) return;
+    const reverified = await verifyLock({ current: FAKE_SECRET }, again.lock, "2026-08-28T12:00:00.000Z");
+    if (!reverified.ok) throw new Error("re-signed lock did not verify");
+    expect(reverified.payload.price_rows).toBeUndefined();
   });
 });
 
