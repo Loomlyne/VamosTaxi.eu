@@ -18,3 +18,16 @@ next plan to pick up.
 - **Fix (for whichever plan/wave owns it):** `pnpm db:seed:gen` from a
   worktree with local Supabase running, then commit the regenerated
   `packages/db/supabase/seed.sql`.
+
+## Rate-version labels accumulate " draft" words
+
+- **Found during:** 26.1-14 live read-back (2026-09-28).
+- **What:** live v18 and draft v19 labels read "Staging matrix — placeholder, not owner-approved draft draft draft …". The draft-copy/clone path appears to append " draft" to the label on every copy.
+- **Impact:** cosmetic; the "placeholder, not owner-approved" wording is still present.
+- **Fix:** find the clone path in `apps/web/lib/ops` (rate-book draft copy) and stop appending; the owner can reset the label text in the dashboard.
+
+## Legacy zones typed 'other'
+
+- **What:** `zrh-airport`, `gva-airport`, `zurich-city` have `zone_type = 'other'`.
+- **Impact:** none on the airport fee (Mapbox/flight driven). City pairs created from ops now get Mapbox-typed zones (26.1-10).
+- **Fix (optional):** retype via ops or owner SQL once the owner confirms.
