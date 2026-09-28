@@ -34,8 +34,11 @@
   align-items: stretch;
 }
 
+/* Width comes from the track, never back from a stretched row height through
+   aspect-ratio — so a taller CTA grows the row instead of widening every card. */
 [data-svc-track] > * {
   min-inline-size: 0;
+  inline-size: 100%;
 }
 
 [data-svc-cta] {
@@ -45,14 +48,15 @@
   flex-direction: column;
   justify-content: flex-end;
   gap: var(--vt-space-4, 16px);
+  /* 4/5 is the resting shape. Auto min size + visible overflow let the card
+     grow past it when a long headline (German) needs the room — never clip. */
   aspect-ratio: 4 / 5;
-  min-block-size: 0;
+  container-type: inline-size;
   padding: clamp(18px, 2.4vw, 28px);
   background: var(--vt-yellow);
   border-radius: var(--vt-radius-xl);
   text-decoration: none;
   color: var(--vt-charcoal-900);
-  overflow: hidden;
 }
 
 [data-svc-cta]:hover,
@@ -78,7 +82,9 @@
   display: block;
   margin-block-start: 10px;
   font-family: var(--vt-font-display);
-  font-size: clamp(22px, 2.2vw, 28px);
+  /* Viewport clamp as before, capped by the card's own width: the 4-up row at
+     1440 leaves a ~260px card, where 28px ran the headline out of the top. */
+  font-size: max(18px, min(clamp(22px, 2.2vw, 28px), 9.5cqi));
   font-weight: var(--vt-weight-semibold);
   letter-spacing: var(--vt-heading-tracking);
   line-height: 1.12;
