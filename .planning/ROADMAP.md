@@ -1014,11 +1014,11 @@ Plans:
 - [x] 26.1-02-PLAN.md — Settle SQL: revive every cancel (D-03a), requote refund, pi_ write-back, duplicate flag
 - [x] 26.1-03-PLAN.md — DLQ consumer and stuck-payment alert
 - [x] 26.1-04-PLAN.md — Pricing kernel: owner formula, airport fee, pairs both ways (D-09a)
-- [ ] 26.1-05-PLAN.md — Consumer revive/auto-refund, expire other sessions; refunds by PaymentIntent
-- [ ] 26.1-06-PLAN.md — Account, cron and staff cancel expire Stripe sessions; coupon release
+- [x] 26.1-05-PLAN.md — Consumer revive/auto-refund, expire other sessions; refunds by PaymentIntent
+- [x] 26.1-06-PLAN.md — Account, cron and staff cancel expire Stripe sessions; coupon release
 - [x] 26.1-07-PLAN.md — Checkout fail-closed, pricing_live read, coupon caps at payment
 - [ ] 26.1-08-PLAN.md — charge.refunded and disputes reach the DB (both arrival orders)
-- [ ] 26.1-09-PLAN.md — Mapbox city/canton/airport facts and flight number into the kernel
+- [x] 26.1-09-PLAN.md — Mapbox city/canton/airport facts and flight number into the kernel
 - [ ] 26.1-10-PLAN.md — 26 canton zones, draft pair filler, boundary zones in ops
 - [ ] 26.1-11-PLAN.md — Checkout rows: airport fee and route pair
 - [ ] 26.1-12-PLAN.md — Owner SQL handoff: money wave (interim window documented)
@@ -1135,7 +1135,7 @@ v1.3 Meta measurement (Phases 21–25 stay planned, not current): 26 → 26.1 �
 | 24. Dual-payer, pay-link, mail split | 0/TBD | Not started | - |
 | 25. /bookings unpaid + TEST UAT + secret-swap design | 0/TBD | Not started | - |
 | 26. Legal gate | 2/2 | Complete    | 2026-09-23 |
-| 26.1. Payment and pricing integrity (INSERTED) | 5/31 | In Progress|  |
+| 26.1. Payment and pricing integrity (INSERTED) | 8/31 | In Progress|  |
 | 27. Consent record | 0/TBD | Not started | - |
 | 28. Pixel PageView | 0/TBD | Not started | - |
 | 29. Webhook Purchase | 0/TBD | Not started | - |

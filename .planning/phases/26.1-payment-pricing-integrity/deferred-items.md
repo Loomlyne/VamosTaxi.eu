@@ -4,7 +4,7 @@ Out-of-scope discoveries found during plan execution. Not fixed by the plan
 that found them (Scope Boundary rule) — listed here for the phase owner /
 next plan to pick up.
 
-## `pnpm db:seed:check` fails — `price.line.airport_fee` missing from `seed.sql`
+## RESOLVED in wave 3 gate — `pnpm db:seed:check` fails — `price.line.airport_fee` missing from `seed.sql`
 
 - **Found during:** 26.1-06, Task 1 verification (`pnpm db:seed:check`)
 - **Cause:** commit `e413d456` (plan 26.1-04, already on this branch before
