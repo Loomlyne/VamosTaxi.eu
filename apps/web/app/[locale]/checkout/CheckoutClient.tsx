@@ -65,7 +65,7 @@ import { payableRappen } from "@/lib/checkout/payable";
 import { breakdownRappen, breakdownRows, peekLockPriceRows } from "@/lib/checkout/price-rows";
 import { decodeClientSecret } from "@/lib/checkout/client-secret";
 import { lockFlightNoDiffers } from "@/lib/checkout/flight-no";
-import { couponRecoveryOutcome, couponRefusalAction } from "@/lib/checkout/coupon-recovery";
+import { couponRecoveryOutcome, couponRefusalAction, payClickAction } from "@/lib/checkout/coupon-recovery";
 import { checkoutTraveler } from "@/lib/checkout/checkout-traveler";
 import { pickedClassName } from "@/lib/checkout/picked-class";
 import {
@@ -364,6 +364,8 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const [reference, setReference] = useState<string | null>(null);
   const [payUrl, setPayUrl] = useState<string | null>(null);
   const payInFlight = useRef(false);
+  /** One Pay-driven recovery reprice at a time (quick 260928-rld). */
+  const payRecovering = useRef(false);
   const payLinkKept = useRef(false);
   const paymentStay = useRef(0);
   const [billingKind, setBillingKind] = useState<"individual" | "company">("individual");
@@ -1065,8 +1067,9 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
             if (couponRecoveryOutcome({ action: recovery, repriceOk: repriced, lockCoupon }) === "restore_lock_coupon") {
               // The reprice failed: the stored lock still prices the coupon. Show it as
               // applied (Remove offered, matches the price on screen) and stop the
-              // automatic intent retry so nothing repeats without a click. Remove
-              // reprices without the coupon; Send pay link recovers again because the
+              // automatic intent retry so nothing repeats without a click. No card form
+              // is mounted now: Pay (payClickAction "recover_price") and Remove both
+              // reprice without the coupon; Send pay link recovers again because the
               // ref is cleared. The stored session is dropped so a reload cannot mount
               // an older session under the coupon price (260928-rld).
               setCouponApplied(lockCoupon);
@@ -1454,10 +1457,49 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       setRefusal("pricingNotLive");
       return;
     }
-    if (!cardComplete) {
+    // Quick 260928-rld: the card form only mounts with a payment session, so
+    // decide what the click means before asking for a card.
+    const payAction = payClickAction({
+      hasSession: Boolean(clientSecretRef.current),
+      cardComplete,
+      couponInvalid,
+      lockCoupon: peekLockCoupon(readDraft().lock || lock),
+    });
+    if (payAction === "recover_price") {
+      // A failed recovery left the refused coupon priced in the lock: reprice
+      // without it, like Remove. On success applyCouponCode resets the intent
+      // attempts and the effect opens the session. Never charges.
+      if (payRecovering.current) return;
+      payRecovering.current = true;
+      try {
+        const repriced = await applyCouponCode(null);
+        setCouponInvalid(true);
+        setCouponField("couponNoLongerValid");
+        if (!repriced) {
+          setRefusal((current) =>
+            current === "pricingNotLive" || current === "quoteExpired" ? current : "payCouldNotStart",
+          );
+        }
+      } finally {
+        payRecovering.current = false;
+      }
+      return;
+    }
+    if (payAction === "start_session") {
+      // No session yet: let the automatic intent open it so the card form
+      // appears. The effect's expiry and pricing guards still win. Never charges.
+      intentAttempts.current = 0;
+      setRefusal((current) =>
+        current === "pricingNotLive" || current === "quoteExpired" ? current : null,
+      );
+      setIntentTick((n) => n + 1);
+      return;
+    }
+    if (payAction === "ask_card") {
       setRefusal("completeCard");
       return;
     }
+    if (payAction !== "pay") return;
     setBusy(true);
     setRefusal(null);
     setPayError(null);

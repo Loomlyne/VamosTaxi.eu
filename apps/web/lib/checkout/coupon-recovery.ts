@@ -37,7 +37,8 @@ export function couponRefusalAction({
  *   action was `drop_body_coupon`, which needs no reprice.
  * - `restore_lock_coupon`: the reprice failed and the stored lock still prices
  *   `lockCoupon`, so the field must show that coupon as applied again (it
- *   agrees with the discounted price on screen) and the next Pay may recover again.
+ *   agrees with the discounted price on screen); the next Pay recovers through
+ *   `payClickAction` (`recover_price`).
  * - `none`: nothing more to do (`show_refusal`, or no coupon left in the lock).
  */
 export type CouponRecoveryOutcome = "recovered" | "restore_lock_coupon" | "none";
@@ -55,4 +56,36 @@ export function couponRecoveryOutcome({
   if (action !== "reprice_without_coupon") return "none";
   if (repriceOk) return "recovered";
   return lockCoupon !== null ? "restore_lock_coupon" : "none";
+}
+
+/**
+ * Quick 260928-rld: what a click on Pay does. The card form only mounts with a
+ * payment session, so without one there is no card to complete and the click
+ * must not ask for it.
+ *
+ * - `recover_price`: no session, the coupon was refused and the lock on screen
+ *   still prices it (a recovery reprice failed). Reprice without the coupon,
+ *   like Remove; the session and card form follow. Never charges.
+ * - `start_session`: no session otherwise. Let the automatic intent open one so
+ *   the card form appears. Never charges.
+ * - `ask_card`: a session and card form exist but the card is incomplete.
+ * - `pay`: a session exists and the card is complete. The only charging action.
+ */
+export type PayClickAction = "recover_price" | "start_session" | "ask_card" | "pay";
+
+export function payClickAction({
+  hasSession,
+  cardComplete,
+  couponInvalid,
+  lockCoupon,
+}: {
+  hasSession: boolean;
+  cardComplete: boolean;
+  couponInvalid: boolean;
+  lockCoupon: string | null;
+}): PayClickAction {
+  if (!hasSession) {
+    return couponInvalid && lockCoupon !== null ? "recover_price" : "start_session";
+  }
+  return cardComplete ? "pay" : "ask_card";
 }
