@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-23)
 
 **Core value:** quote → pay → confirmation. v1.3 measures ads only. It does not change pay.
-**Current focus:** Phase 26.1 — Payment and pricing integrity
+**Current focus:** Phase 26.3 — Booking flow rebuild
 
 ## Current Position
 
