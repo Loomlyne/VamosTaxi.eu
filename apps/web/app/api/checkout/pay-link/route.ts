@@ -185,7 +185,7 @@ export async function POST(request: Request) {
       companyVat: body.company_vat ?? "",
       payerEmail: body.payer_email,
       tokenHash: payToken.hash,
-      tokenExpiresAt: payLinkTokenExpiresAt(lockPayload.exp),
+      tokenExpiresAt: payLinkTokenExpiresAt(postgresNowIso),
     }),
   );
 
