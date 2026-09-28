@@ -464,6 +464,7 @@
     "paymentWindowClosed": "Das Zahlungsfenster ist geschlossen. Holen Sie ein neues Angebot.",
     "payCouldNotStart": "Die Zahlung hat nicht begonnen. Tippen Sie erneut auf Bezahlen und weiter.",
     "emailFailed": "Der Zahllink wurde nicht gesendet. Die Buchung ist gespeichert. Senden Sie den Link erneut.",
+    "payLinkNotSent": "Der Zahllink wurde nicht gesendet. Versuchen Sie es erneut.",
     "completeCard": "Geben Sie Kartennummer, Ablaufdatum und CVC ein.",
     "requote": "Neues Angebot holen",
     "freeCancelHours": "Kostenlose Stornierung bis {hours} Stunden vor Abholung.",

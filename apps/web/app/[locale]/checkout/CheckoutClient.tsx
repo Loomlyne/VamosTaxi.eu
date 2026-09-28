@@ -1225,15 +1225,18 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         error?: string;
       };
       if (!res.ok) {
-        const key = REFUSAL_KEYS[json.code ?? json.error ?? ""];
-        if (key && key !== "payCouldNotStart") setRefusal(key);
+        // Never a silent no-op (Phase 21). Known codes keep their own copy
+        // (email_failed → emailFailed). The generic fallback is pay-link copy:
+        // payCouldNotStart says "Pay and continue", which this flow never pressed.
+        const mapped = REFUSAL_KEYS[json.code ?? json.error ?? ""];
+        setRefusal(mapped && mapped !== "payCouldNotStart" ? mapped : "payLinkNotSent");
         return;
       }
       payLinkKept.current = true;
       if (json.reference) setReference(json.reference);
       if (json.pay_url) setPayUrl(json.pay_url);
     } catch {
-      return;
+      setRefusal("payLinkNotSent");
     } finally {
       setBusy(false);
     }

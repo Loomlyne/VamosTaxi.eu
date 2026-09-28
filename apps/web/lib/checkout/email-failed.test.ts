@@ -12,7 +12,16 @@ const SENTENCES = {
   ar: "لم يُرسل رابط الدفع. الحجز موجود. أعد إرسال الرابط.",
 } as const;
 
-const NOT_OK_LINE = 'REFUSAL_KEYS[json.code ?? json.error ?? ""] ?? "payCouldNotStart"';
+const NOT_OK_LINE = 'const mapped = REFUSAL_KEYS[json.code ?? json.error ?? ""];';
+const FALLBACK_LINE =
+  'setRefusal(mapped && mapped !== "payCouldNotStart" ? mapped : "payLinkNotSent");';
+
+const NOT_SENT = {
+  en: "The pay link was not sent. Try again.",
+  de: "Der Zahllink wurde nicht gesendet. Versuchen Sie es erneut.",
+  fr: "Le lien de paiement n'a pas été envoyé. Réessayez.",
+  ar: "لم يُرسل رابط الدفع. حاول مرة أخرى.",
+} as const;
 
 function checkout(locale: keyof typeof SENTENCES): Record<string, string> {
   const raw = readFileSync(join(here, `../../i18n/messages/${locale}.json`), "utf8");
@@ -39,7 +48,13 @@ function sendPayLinkNotOkLine(src: string): string {
   const branch = fn.slice(notOk, branchEnd);
   const line = branch.split("\n").find((row) => row.includes(NOT_OK_LINE));
   if (!line) throw new Error("sendPayLink not-ok lookup line missing");
+  if (!branch.includes(FALLBACK_LINE)) throw new Error("sendPayLink not-ok fallback line missing");
   return line;
+}
+
+function sendPayLinkBody(src: string): string {
+  const fnStart = src.indexOf("async function sendPayLink()");
+  return src.slice(fnStart, src.indexOf("async function onPay()", fnStart));
 }
 
 describe("checkout.emailFailed", () => {
@@ -54,7 +69,17 @@ describe("checkout.emailFailed", () => {
 
   it("German has no ß", () => {
     expect(checkout("de").emailFailed).not.toContain("ß");
+    expect(checkout("de").payLinkNotSent).not.toContain("ß");
   });
+
+  for (const locale of ["en", "de", "fr", "ar"] as const) {
+    it(`${locale} payLinkNotSent is pay-link copy, never Pay and continue`, () => {
+      const copy = checkout(locale);
+      expect(copy.payLinkNotSent).toBe(NOT_SENT[locale]);
+      expect(copy.payLinkNotSent).not.toBe(copy.payCouldNotStart);
+      expect(copy.payLinkNotSent).not.toBe(copy.emailFailed);
+    });
+  }
 });
 
 describe("email_failed does not select payCouldNotStart", () => {
@@ -75,11 +100,24 @@ describe("email_failed does not select payCouldNotStart", () => {
     expect(line).toContain(NOT_OK_LINE);
     const map = refusalMap(client);
     const json = { code: "email_failed", error: "email_failed" };
-    const key = map[json.code ?? json.error ?? ""] ?? "payCouldNotStart";
-    expect(key).toBe("emailFailed");
-    expect(key).not.toBe("payCouldNotStart");
-    const unknown = map["not_a_code"] ?? "payCouldNotStart";
-    expect(unknown).toBe("payCouldNotStart");
+    const resolve = (code: string) => {
+      const mapped = map[code];
+      return mapped && mapped !== "payCouldNotStart" ? mapped : "payLinkNotSent";
+    };
+    expect(resolve(json.code ?? json.error ?? "")).toBe("emailFailed");
+    // Unknown codes and the generic invalid_request are visible, never silent.
+    expect(resolve("not_a_code")).toBe("payLinkNotSent");
+    expect(resolve("invalid_request")).toBe("payLinkNotSent");
+  });
+
+  it("sendPayLink paints payLinkNotSent when the request throws", () => {
+    const body = sendPayLinkBody(client);
+    const catchAt = body.indexOf("} catch {");
+    expect(catchAt).toBeGreaterThan(-1);
+    expect(body.slice(catchAt, body.indexOf("} finally {", catchAt))).toContain(
+      'setRefusal("payLinkNotSent")',
+    );
+    expect(body).not.toContain('setRefusal("payCouldNotStart")');
   });
 
   it("pay-link route still returns 502 email_failed", () => {

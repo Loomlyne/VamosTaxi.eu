@@ -464,6 +464,7 @@
     "paymentWindowClosed": "La fenêtre de paiement est close. Demandez un nouveau devis.",
     "payCouldNotStart": "Le paiement n’a pas démarré. Touchez à nouveau Payer et continuer.",
     "emailFailed": "Le lien de paiement n'a pas été envoyé. La réservation est enregistrée. Renvoyez le lien.",
+    "payLinkNotSent": "Le lien de paiement n'a pas été envoyé. Réessayez.",
     "completeCard": "Saisissez le numéro de carte, la date d’expiration et le CVC.",
     "requote": "Nouveau devis",
     "freeCancelHours": "Annulation gratuite jusqu'à {hours} heures avant la prise en charge.",

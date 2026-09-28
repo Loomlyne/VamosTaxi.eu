@@ -464,6 +464,7 @@
     "paymentWindowClosed": "The payment window closed. Get a new quote.",
     "payCouldNotStart": "Payment did not start. Try Pay and continue again.",
     "emailFailed": "The pay link was not sent. The booking is saved. Send the link again.",
+    "payLinkNotSent": "The pay link was not sent. Try again.",
     "completeCard": "Enter the card number, expiry and CVC.",
     "requote": "Get a new quote",
     "freeCancelHours": "Cancel free of charge up to {hours} hours before pickup.",
