@@ -374,3 +374,24 @@ export function formatRailDate(iso: string, locale: string): string {
     return iso;
   }
 }
+
+/**
+ * After a payment went through: drop the local trip draft, its quote lock and the
+ * stored payment session. Without this the account page showed the paid trip as a
+ * leftover "waiting payment" card. Storage can throw in private windows.
+ */
+export function clearPaidTripDraft(): void {
+  if (typeof window === "undefined") return;
+  for (const key of ["vamosTrip", "vamosQuoteLock", "vamosCheckoutSession"]) {
+    try {
+      window.localStorage.removeItem(key);
+    } catch {
+      /* storage blocked */
+    }
+    try {
+      window.sessionStorage.removeItem(key);
+    } catch {
+      /* storage blocked */
+    }
+  }
+}

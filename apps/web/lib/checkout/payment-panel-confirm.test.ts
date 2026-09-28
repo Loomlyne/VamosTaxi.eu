@@ -48,6 +48,41 @@ describe("PaymentPanel confirm (card payment blocked on live, 2026-09-24 to 2026
   });
 });
 
+const tripLib = readFileSync(join(WEB, "lib", "checkout", "vamos-trip.ts"), "utf8");
+const checkoutClient = readFileSync(
+  join(WEB, "app", "[locale]", "checkout", "CheckoutClient.tsx"),
+  "utf8",
+);
+const accountMock = readFileSync(join(WEB, "..", "..", "app", "pages", "account.dc.html"), "utf8");
+
+describe("the local trip draft after a payment", () => {
+  it("vamos-trip exports clearPaidTripDraft and it removes every draft key", () => {
+    expect(tripLib).toContain("export function clearPaidTripDraft");
+    const body = tripLib.slice(tripLib.indexOf("export function clearPaidTripDraft"));
+    for (const key of ["vamosTrip", "vamosQuoteLock", "vamosCheckoutSession"]) {
+      expect(body.slice(0, 900), key).toContain(key);
+    }
+  });
+
+  it("the payment panel clears the draft after both confirm paths, only when asked to", () => {
+    expect(panel).toContain("clearDraftOnPaid");
+    expect(panel.match(/if \(clearDraftOnPaid\) clearPaidTripDraft\(\);/g)?.length).toBe(2);
+  });
+
+  it("the checkout page asks for it; the pay-link page does not", () => {
+    expect(checkoutClient).toContain("clearDraftOnPaid");
+    const payClient = readFileSync(
+      join(WEB, "app", "[locale]", "checkout", "pay", "[token]", "PayClient.tsx"),
+      "utf8",
+    );
+    expect(payClient).not.toContain("clearDraftOnPaid");
+  });
+
+  it("the account page shows a local draft only when it carries a price", () => {
+    expect(accountMock).toContain("if (locked && !hasUnpaid && rappen > 0) {");
+  });
+});
+
 describe("SiteFooter payment row", () => {
   it("shows no internal note to customers", () => {
     expect(footer).not.toContain("marks-awaiting-confirmed-stripe-provider-config");

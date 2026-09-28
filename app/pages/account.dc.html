@@ -800,12 +800,13 @@ class Component extends DCLogic {
       const raw = localStorage.getItem('vamosTrip');
       const trip = raw ? JSON.parse(raw) : null;
       const locked = !!(trip && trip.lock && (trip.quote_id || trip.quoteId));
-      if (locked && !hasUnpaid) {
+      const rappen = trip ? (Number(trip.total_rappen || trip.totalRappen || 0) || 0) : 0;
+      // A local draft without a price is a leftover, not a booking waiting for payment.
+      if (locked && !hasUnpaid && rappen > 0) {
         const pickup = trip.pickup || trip.pickupText || '';
         const dropoff = trip.dropoff || trip.dropoffText || '';
         const pax = Number(trip.pax) || 1;
         const ref = trip.reference || trip.ref || '';
-        const rappen = Number(trip.total_rappen || trip.totalRappen || 0) || 0;
         upcoming.unshift({
           status: 'unpaid',
           href: '/checkout/payment',

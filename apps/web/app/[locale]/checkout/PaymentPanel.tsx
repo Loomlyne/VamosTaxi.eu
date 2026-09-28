@@ -32,6 +32,7 @@ import {
   checkoutSettleUrl,
 } from "@/lib/checkout/return-url";
 import { stripeBrowserKey } from "@/lib/checkout/stripe-browser-key";
+import { clearPaidTripDraft } from "@/lib/checkout/vamos-trip";
 import { VAMOS_STRIPE_APPEARANCE } from "@/lib/checkout/stripe-appearance";
 
 type ExpressConfirmEvent = Parameters<
@@ -179,6 +180,7 @@ export function PaymentPanel({
   onReady,
   onComplete = noopComplete,
   onPaid,
+  clearDraftOnPaid = false,
 }: {
   publishableKey: string;
   clientSecret: string;
@@ -195,6 +197,8 @@ export function PaymentPanel({
    * race before it leaves for the settle route. Absent: go there directly.
    */
   onPaid?: (destination: string) => Promise<void> | void;
+  /** The checkout page sets this: the paid trip's local draft is dropped before leaving. */
+  clearDraftOnPaid?: boolean;
 }) {
   const promise = useMemo(() => browserStripe(publishableKey), [publishableKey]);
   const secret = (decodeClientSecret(clientSecret, clientSecretHex) ?? clientSecret ?? "").trim();
@@ -241,12 +245,13 @@ export function PaymentPanel({
         redirect: "if_required",
       });
       if (result.type === "error") showStripeError(setError, result.error.message);
+      if (clearDraftOnPaid) clearPaidTripDraft();
       const destination = paidDestination(reference, secret);
       if (!destination) return;
       if (onPaid) await onPaid(destination);
       else window.location.assign(destination);
     });
-  }, [locked, onPaid, onReady, reference, secret]);
+  }, [clearDraftOnPaid, locked, onPaid, onReady, reference, secret]);
 
   async function onExpress(event: ExpressConfirmEvent) {
     if (lockedRef.current) {
@@ -270,6 +275,7 @@ export function PaymentPanel({
         event.paymentFailed({ reason: "fail" });
         return;
       }
+      if (clearDraftOnPaid) clearPaidTripDraft();
       if (!destination) return;
       if (onPaid) await onPaid(destination);
       else window.location.assign(destination);

@@ -2366,6 +2366,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                     billingName={`${contact.firstName} ${contact.lastName}`.trim()}
                     billingEmail={contact.email}
                     billingPhone={contact.mobile}
+                    clearDraftOnPaid
                     onReady={onPaymentReady}
                     onComplete={onPaymentComplete}
                   />
