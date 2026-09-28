@@ -29,7 +29,18 @@ import {
   type AuthRunResult,
   type ProfileRunResult,
 } from "@/lib/auth/run";
+import {
+  checkCodeAttemptLimit,
+  enrolTotp,
+  listFactors,
+  staffMfaAccess,
+  stepUpTotp,
+  unenrolFactor,
+  verifyTotpEnrolment,
+  type MfaClient,
+} from "@/lib/auth/staff-mfa";
 import { asCustomer } from "@/lib/db/identity";
+import { getStaffClaims, type StaffAuthClient } from "@/lib/ops/session";
 import {
   recordConsent,
   type ConsentLocale,
@@ -58,6 +69,27 @@ function sessionJson(
   status = 200,
 ): Response {
   return json(result, status, cookies.map(authSetCookieHeader));
+}
+
+/** JSON for the staff sign-in-options actions; same no-store + Set-Cookie copy as sessionJson. */
+function staffJson(
+  body: Record<string, unknown>,
+  cookies: readonly AuthSetCookie[] = [],
+  status = 200,
+  extraCookies: readonly string[] = [],
+): Response {
+  const headers = new Headers({ "Cache-Control": "private, no-store" });
+  for (const cookie of cookies) headers.append("Set-Cookie", authSetCookieHeader(cookie));
+  for (const cookie of extraCookies) headers.append("Set-Cookie", cookie);
+  return Response.json(body, { status, headers });
+}
+
+function mfaStatus(code: string): number {
+  if (code === "reauth-required" || code === "reauth-unavailable" || code === "mfa-aal2-required") {
+    return 403;
+  }
+  if (code === "rate_limited") return 429;
+  return 200;
 }
 
 function localizedHome(locale: string): string {
@@ -219,6 +251,72 @@ export async function POST(request: Request): Promise<Response> {
       return json(FORM_CREDENTIALS);
     }
     return json({ ok: true });
+  }
+
+  if (typeof action === "string" && action.startsWith("mfa-")) {
+    // D-16a: admin only. Deliberately not requireStaffClaims — the step-up has to
+    // work while the session is still aal1.
+    const access = staffMfaAccess(await getStaffClaims(supabase as StaffAuthClient));
+    if (!access.ok) return staffJson({ ok: false, code: access.code }, [], access.status);
+    const claims = access.claims;
+    const mfa: MfaClient = supabase;
+
+    if (action === "mfa-status") {
+      const status = await listFactors(mfa);
+      if (!status.ok) {
+        log("error", "auth", ctx, { reason: status.code, action });
+        return staffJson(status);
+      }
+      return staffJson({
+        ok: true,
+        totp: status.totp,
+        totpFactorId: status.totpFactorId,
+        passkey: status.passkey,
+        signInMethod: null,
+      });
+    }
+
+    if (action === "mfa-totp-enroll") {
+      const out = await enrolTotp(mfa);
+      if (!out.ok) log("error", "auth", ctx, { reason: out.code, action });
+      // The secret is returned once, to the enrolling admin only (T-26.1-71). Never logged.
+      return staffJson(out, setCookies);
+    }
+
+    const codeAction =
+      action === "mfa-totp-verify" || action === "mfa-step-up";
+    if (codeAction && !(await checkCodeAttemptLimit(env.QUOTE_RATE_LIMITER_BARE, claims.sub))) {
+      return staffJson({ ok: false, code: "rate_limited" }, [], 429);
+    }
+
+    if (action === "mfa-totp-verify") {
+      const out = await verifyTotpEnrolment(mfa, { factorId: fields.factorId, code: fields.code });
+      if (!out.ok) log("warn", "auth", ctx, { reason: out.code, action });
+      return staffJson(out, setCookies, mfaStatus(out.ok ? "" : out.code));
+    }
+
+    if (action === "mfa-step-up") {
+      const out = await stepUpTotp(mfa, fields.code);
+      if (!out.ok) {
+        log("warn", "auth", ctx, { reason: out.code, action });
+        return staffJson(out, setCookies);
+      }
+      // The session is aal2 now; the refreshed auth cookies ride on this response.
+      return staffJson({ ok: true }, setCookies);
+    }
+
+    if (action === "mfa-unenroll") {
+      const out = await unenrolFactor(mfa, {
+        factorId: fields.factorId,
+        aal: claims.aal,
+        // Fail closed until the session-bound re-auth gate lands (Task 2).
+        reauth: { ok: false, code: "reauth-required" },
+      });
+      if (!out.ok) log("warn", "auth", ctx, { reason: out.code, action });
+      return staffJson(out, setCookies, mfaStatus(out.ok ? "" : out.code));
+    }
+
+    return staffJson({ ok: false, code: "mfa-invalid-input" }, [], 400);
   }
 
   if (fields.mode === "forgot") {
