@@ -336,7 +336,7 @@ describe("presentChauffeur", () => {
     defaultVehicleId: null,
     defaultVehiclePlate: null,
     vehicleClassId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
-    vehicleClassName: "Saden",
+    vehicleClassName: "Economy",
     licenceExpiresOn: null,
     languages: ["en"],
     status: "off" as const,
@@ -354,8 +354,8 @@ describe("presentChauffeur", () => {
 
   it("puts the saved class name, phone, and licence on the list payload", () => {
     const json = presentChauffeur(saved);
-    expect(json.vehicleClassName).toBe("Saden");
-    expect(json.className).toBe("Saden");
+    expect(json.vehicleClassName).toBe("Economy");
+    expect(json.className).toBe("Economy");
     expect(json.name).toBe("Koussay");
     expect(json.phone).toBe("+971509758018");
     expect(json.licence).toBe("CH 459 821");

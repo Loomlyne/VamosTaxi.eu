@@ -302,7 +302,7 @@ describe("loadChauffeurDetailsList", () => {
               default_vehicle_id: null,
               default_vehicle_plate: null,
               vehicle_class_id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
-              vehicle_class_name: "Saden",
+              vehicle_class_name: "Economy",
               licence_number: "CH 459 821",
               licence_expires_on: null,
               languages: ["en"],
@@ -324,7 +324,7 @@ describe("loadChauffeurDetailsList", () => {
     expect(sqlText).toMatch(/c\.licence_number/);
     expect(rows[0]?.fullName).toBe("Koussay");
     expect(rows[0]?.phone).toBe("+971509758018");
-    expect(rows[0]?.vehicleClassName).toBe("Saden");
+    expect(rows[0]?.vehicleClassName).toBe("Economy");
     expect(rows[0]?.vehicleClassId).toBe("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa");
     expect(rows[0]?.licenceNumber).toBe("CH 459 821");
   });
@@ -335,7 +335,7 @@ describe("loadChauffeurDetailsList", () => {
       fullName: "Koussay",
       phone: "+971509758018",
       vehicleClassId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
-      vehicleClassName: "Saden",
+      vehicleClassName: "Economy",
       licenceNumber: "CH 459 821",
       status: "off",
       languages: ["en"],
@@ -345,7 +345,7 @@ describe("loadChauffeurDetailsList", () => {
       updated_at: "2026-01-01T00:00:00.000Z",
     });
     const rows = await loadChauffeurDetailsList(env, claims);
-    expect(rows[0]?.vehicleClassName).toBe("Saden");
+    expect(rows[0]?.vehicleClassName).toBe("Economy");
     expect(rows[0]?.phone).toBe("+971509758018");
     expect(rows[0]?.licenceNumber).toBe("CH 459 821");
   });
