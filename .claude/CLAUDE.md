@@ -366,7 +366,7 @@ be there. If nothing else works, the booking funnel — quote, pay, confirmation
 - Ops copy is neutral and literal: "Awaiting payment", "Driver assigned", "Refund due"
 - German strings grow ~30%; keep hints short
 - "Ride with class" (tagline is set artwork, never change it)
-- Product names vary (always `Vamos Taxi`, `Economy`, `Business`, `Van`)
+- Product names vary (always `Vamos Taxi`, `Economy`, `Business`, `Van luxury` — Latin in every language, Arabic included, D-14a)
 - Codes/references change (always `ZRH`, `CHF`, `VT-4821`)
 - Copy inside `[data-tok]` pills is deliberately not translated — it stays English in every
   language, matching `design-system/readme.md` §9 (corrected 2026-08-19; see `.planning/ADR-011-data-tok-labels-stay-english.md`)

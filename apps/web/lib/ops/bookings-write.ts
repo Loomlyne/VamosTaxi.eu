@@ -10,6 +10,7 @@ import { expireSessionIds } from "../checkout/cancel-unpaid";
 import { stripeAccountIsLegacyUaeTest } from "../checkout/charge-gate";
 import { expireCheckoutSession, stripeFromEnv } from "../checkout/stripe";
 import { applyStripeRefund } from "../lifecycle/paid-cancel";
+import { liveClassSlug } from "./class-slug";
 import { mapRefundSqlError, sqlErrorCode } from "./refund-map";
 import { resolveStaffBookingId } from "./resolve-booking-id";
 import { OPS_SQLSTATE } from "./sqlstate";
@@ -40,13 +41,6 @@ export type BookingPatch = {
   klass?: string;
 };
 
-function classSlug(label: string): string | null {
-  const value = label.trim().toLowerCase();
-  if (value === "economy" || value === "business" || value === "first" || value === "van") {
-    return value;
-  }
-  return null;
-}
 
 export type CancelResult =
   | { ok: true; booking: CancelledBooking; erased?: boolean }
@@ -241,7 +235,8 @@ export async function updateBooking(
     const pickup = patch.pickup ?? null;
     const dropoff = patch.dropoff ?? null;
     const flight = patch.flight ?? null;
-    const slug = patch.klass ? classSlug(patch.klass) : null;
+    // D-14: Economy / Business / Van luxury (or a live slug) -> live slug; First keeps the stored class.
+    const slug = patch.klass ? liveClassSlug(patch.klass) : null;
     const dateIso = (patch.dateIso ?? "").trim();
     const time = (patch.time ?? "").trim();
     const local = dateIso && time ? `${dateIso}T${time}:00` : null;

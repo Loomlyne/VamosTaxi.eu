@@ -1084,7 +1084,7 @@ const FLIGHT_API = {
   },
 };
 
-/** Live-book card from quote.classes. No hardcoded Economy/Business/First/Van catalog (D-29). */
+/** Live-book card from quote.classes. No hardcoded class catalog (D-29; line-up is Economy / Business / Van luxury, D-14). */
 function classFromQuote(c) {
   const slug = String((c && c.slug) || '');
   const name = String((c && (c.name || c.label)) || slug);
@@ -1127,7 +1127,7 @@ const T = {
     month:'August 2026',
     getting:'Getting your fixed price…', selectHint:'Select a class to continue — details & extras next',
     naPax:'Not available for {n} passengers', naBags:'Not available for {n} bags', quoteErr:'Couldn’t price this — try again', routeErr:'No road route to this destination', europeErr:'We operate in Europe', fixed:'Fixed price', allIn:'total, all inclusive', mostBooked:'Most booked',
-    economy:'Economy', business:'Business', first:'First', van:'Van', exEconomy:'Sedan or similar', exBusiness:'Executive sedan', exFirst:'S-Class or similar', exVan:'Minivan or similar', exDefault:'Fixed price · Meet & greet', seats:'seats', bagsWord:'bags',
+    economy:'Economy', business:'Business', van:'Van luxury', exEconomy:'Sedan or similar', exBusiness:'Executive sedan', exVan:'Minivan or similar', exDefault:'Fixed price · Meet & greet', seats:'seats', bagsWord:'bags',
     upToPax:'Up to {n} passengers', upToBags:'Up to {n} bags', movedTo:'Moved to {v} — {from} fits up to {cap}.', noneFit:'No class fits this party size yet.',
     flightCardTitle:'Flight details', fcTo:'Departs {ap} at {t} — we take you there.', fcFrom:'Arriving at {ap} at {t} — we\'ll meet you there.',
     flightDateLbl:'Which day', today:'Today', tomorrow:'Tomorrow', useFlight:'Use this flight', notMyFlight:'Not my flight',
@@ -1187,7 +1187,7 @@ const T = {
     month:'August 2026',
     getting:'Ihr Festpreis wird berechnet…', selectHint:'Klasse wählen und weiter — Angaben & Extras folgen',
     naPax:'Nicht verfügbar für {n} Passagiere', naBags:'Nicht verfügbar für {n} Gepäckstücke', quoteErr:'Preis nicht verfügbar — erneut versuchen', routeErr:'Kein Strassenweg zu diesem Ziel', europeErr:'Wir fahren in Europa', fixed:'Festpreis', allIn:'gesamt, alles inklusive', mostBooked:'Meistgebucht',
-    economy:'Economy', business:'Business', first:'First', van:'Van', exEconomy:'Limousine oder ähnlich', exBusiness:'Business-Limousine', exFirst:'S-Klasse oder ähnlich', exVan:'Minivan oder ähnlich', exDefault:'Festpreis · Meet & Greet', seats:'Plätze', bagsWord:'Gepäckstücke',
+    economy:'Economy', business:'Business', van:'Van luxury', exEconomy:'Limousine oder ähnlich', exBusiness:'Business-Limousine', exVan:'Minivan oder ähnlich', exDefault:'Festpreis · Meet & Greet', seats:'Plätze', bagsWord:'Gepäckstücke',
     upToPax:'Bis zu {n} Passagiere', upToBags:'Bis zu {n} Gepäckstücke', movedTo:'Zu {v} gewechselt — {from} bietet Platz für bis zu {cap}.', noneFit:'Keine Klasse passt zu dieser Personenzahl.',
     flightCardTitle:'Flugdetails', fcTo:'Abflug {ap} um {t} — wir bringen Sie dorthin.', fcFrom:'Ankunft {ap} um {t} — wir holen Sie dort ab.',
     flightDateLbl:'Welcher Tag', today:'Heute', tomorrow:'Morgen', useFlight:'Diesen Flug verwenden', notMyFlight:'Nicht mein Flug',
@@ -1246,7 +1246,7 @@ const T = {
     month:'Août 2026',
     getting:'Calcul de votre prix fixe…', selectHint:'Choisissez une classe pour continuer — détails & options ensuite',
     naPax:'Indisponible pour {n} passagers', naBags:'Indisponible pour {n} bagages', quoteErr:'Tarif indisponible — réessayez', routeErr:'Pas d’itinéraire routier vers cette destination', europeErr:'Nous circulons en Europe', fixed:'Prix fixe', allIn:'total, tout compris', mostBooked:'Le plus réservé',
-    economy:'Economy', business:'Business', first:'First', van:'Van', exEconomy:'Berline ou similaire', exBusiness:'Berline affaires', exFirst:'Classe S ou similaire', exVan:'Monospace ou similaire', exDefault:'Prix fixe · Accueil', seats:'places', bagsWord:'bagages',
+    economy:'Economy', business:'Business', van:'Van luxury', exEconomy:'Berline ou similaire', exBusiness:'Berline affaires', exVan:'Monospace ou similaire', exDefault:'Prix fixe · Accueil', seats:'places', bagsWord:'bagages',
     signIn:'Connexion', customPin:'Utiliser comme point sur la carte', dowRef:'sam.,dim.,lun.,mar.,mer.,jeu.,ven.', mon:'août',
     menu:'Menu', close:'Fermer', clear:'Effacer', save:'Enregistrer', planTitle:'Planifiez votre transfert', showPrices:'Afficher les prix fixes', trustEmpty:'Les avis s’afficheront ici dès qu’ils seront publiés.', trustScore:'{n}/5', trustCountOne:'1 avis', trustCount:'{n} avis', trustRead:'Lire les avis', trustExcellent:'Excellent', trustGreat:'Très bien', trustGood:'Bien', trustFair:'Correct', trustAria:'Avis des clients', call:'Appeler le +41 79 626 70 82', callNote:'Parler à la centrale', langLabel:'Langue', curLabel:'Devise',
     morning:'Matin', afternoon:'Après-midi', evening:'Soir', pickupTime:'Heure de départ', returnTimeLbl:'Heure du retour',
@@ -1281,7 +1281,7 @@ const T = {
     month:'أغسطس 2026',
     getting:'جارٍ حساب سعرك الثابت…', selectHint:'اختر فئة للمتابعة — التفاصيل والإضافات تاليًا',
     naPax:'غير متاحة لـ {n} ركاب', naBags:'غير متاحة لـ {n} حقائب', quoteErr:'تعذّر التسعير — حاول مجددًا', routeErr:'لا يوجد مسار بري إلى هذه الوجهة', europeErr:'نعمل في أوروبا', fixed:'سعر ثابت', allIn:'الإجمالي، شامل كل شيء', mostBooked:'الأكثر حجزًا',
-    economy:'اكونومي', business:'بيزنس', first:'الأولى', van:'فان', exEconomy:'سيدان أو ما شابه', exBusiness:'سيدان تنفيذية', exFirst:'إس-كلاس أو ما شابه', exVan:'ميني فان أو ما شابه', exDefault:'سعر ثابت · استقبال', seats:'مقاعد', bagsWord:'حقائب',
+    economy:'Economy', business:'Business', van:'Van luxury', exEconomy:'سيدان أو ما شابه', exBusiness:'سيدان تنفيذية', exVan:'ميني فان أو ما شابه', exDefault:'سعر ثابت · استقبال', seats:'مقاعد', bagsWord:'حقائب',
     signIn:'تسجيل الدخول', customPin:'استخدامه كنقطة على الخريطة', dowRef:'السبت,الأحد,الاثنين,الثلاثاء,الأربعاء,الخميس,الجمعة', mon:'أغسطس',
     menu:'القائمة', close:'إغلاق', clear:'مسح', save:'حفظ', planTitle:'خطّط رحلتك', showPrices:'إظهار الأسعار الثابتة', trustEmpty:'تظهر آراء الضيوف هنا بعد نشرها.', trustScore:'{n}/5', trustCountOne:'تقييم واحد', trustCount:'{n} تقييمات', trustRead:'قراءة التقييمات', trustExcellent:'ممتاز', trustGreat:'جيد جداً', trustGood:'جيد', trustFair:'مقبول', trustAria:'آراء الضيوف', call:'اتصل بنا', callNote:'تحدّث مع قسم التوزيع', langLabel:'اللغة', curLabel:'العملة',
     morning:'صباحًا', afternoon:'بعد الظهر', evening:'مساءً', pickupTime:'وقت الانطلاق', returnTimeLbl:'وقت العودة',
@@ -1706,7 +1706,7 @@ class Component extends DCLogic {
     const word = avg >= 4.5 ? (tw.trustExcellent || '') : avg >= 4 ? (tw.trustGreat || '') : avg >= 3 ? (tw.trustGood || '') : (tw.trustFair || '');
     return { has: true, score, count: String(rows.length), href, logo, source, word, showMark: !!logo, showLink: true, s1: star(1), s2: star(2), s3: star(3), s4: star(4), s5: star(5), o1: op(1), o2: op(2), o3: op(3), o4: op(4), o5: op(5) };
   }
-  /** Idle / First-class hold: design-system placeholder. Live quotes use fmtAmount. */
+  /** Idle / unpriced-class hold: design-system placeholder. Live quotes use fmtAmount. */
   fmt() {
     if (window.VamosLocale) return window.VamosLocale.money('000', this.state.cur);
     const c = CURS[this.state.cur] || CURS.CHF; return c.s + '000';
@@ -1836,7 +1836,7 @@ class Component extends DCLogic {
           this._goTripKey = null;
           this.setState({ announce: this.t().needTrip });
         }
-        const t = this.t(); const names = { economy: t.economy, business: t.business, first: t.first, van: t.van };
+        const t = this.t(); const names = { economy: t.economy, business: t.business, van: t.van };
         if (this.state.picked && !res[this.state.picked]) this.setState({ picked: null, capacityMoveNote: null });
         if (this.state.picked && res[this.state.picked] && res[this.state.picked].kind === 'na') {
           const from = names[this.state.picked] || this.state.picked;
@@ -2672,8 +2672,8 @@ class Component extends DCLogic {
   }
   fleetVals() {
     const t = this.t(); const s = this.state;
-    const names = { economy: t.economy, business: t.business, first: t.first, van: t.van };
-    const ex = { economy: t.exEconomy, business: t.exBusiness, first: t.exFirst, van: t.exVan };
+    const names = { economy: t.economy, business: t.business, van: t.van };
+    const ex = { economy: t.exEconomy, business: t.exBusiness, van: t.exVan };
     return (s.fleetOffer || []).map((v) => {
       const lb = this.labelFor(v.id);
       const r = (s.quote.status === 'live' && s.quote.results) ? s.quote.results[v.id] : null;

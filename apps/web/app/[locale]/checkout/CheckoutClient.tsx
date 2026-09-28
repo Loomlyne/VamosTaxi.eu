@@ -65,6 +65,7 @@ import { breakdownRappen, breakdownRows, peekLockPriceRows } from "@/lib/checkou
 import { decodeClientSecret } from "@/lib/checkout/client-secret";
 import { lockFlightNoDiffers } from "@/lib/checkout/flight-no";
 import { checkoutTraveler } from "@/lib/checkout/checkout-traveler";
+import { pickedClassName } from "@/lib/checkout/picked-class";
 import { readCheckoutSession, writeCheckoutSession } from "@/lib/checkout/checkout-session-store";
 import { chfRappenToDisplay } from "@/lib/fx/format";
 import { useFx } from "@/lib/fx/use-fx";
@@ -93,21 +94,6 @@ const REFUSAL_KEYS: Record<string, string> = {
   invalid_request: "payCouldNotStart",
   email_failed: "emailFailed",
 };
-
-function vehicleLabel(id: string, t: (key: string) => string): string {
-  if (id === "economy") return t("classEconomy");
-  if (id === "business") return t("classBusiness");
-  if (id === "first") return t("classFirst");
-  if (id === "van") return t("classVan");
-  return id;
-}
-
-function pickedClassName(slug: string, trip: VamosTrip | null, t: (key: string) => string): string {
-  const named = trip?.classOffers?.find((row) => row.slug === slug)?.name;
-  if (named) return named;
-  if (trip?.vehicle === slug && trip.vehicleName) return trip.vehicleName;
-  return vehicleLabel(slug, t);
-}
 
 const CLASS_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -2291,7 +2277,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         <aside className="vt-checkout__rail" data-checkout-rail>
           <Card padding="lg">
             <Badge tone="accent">{t("charged-now-secured-by-stripe")}</Badge>
-            <p className="vt-checkout__picked">{vehicleLabel(vehicle, t)}</p>
+            <p className="vt-checkout__picked">{pickedClassName(vehicle, tripForPay, t)}</p>
             <RouteSummary pickup={railPickup} dropoff={railDrop} meta={railMeta} />
             <div data-checkout-total>
               <PriceSummary

@@ -139,7 +139,7 @@ describe("liveBookBoard", () => {
       luggage_capacity: 3,
       photo_path: "classes/economy.jpg",
     });
-    const leftover = classRow({ slug: "mahaha", name: "mahaha", sort_order: 0 });
+    const leftover = classRow({ slug: "first", name: "First", sort_order: 0 });
     const fixed: FixedRouteRow = {
       id: 9,
       rate_version_id: 1,
@@ -167,7 +167,7 @@ describe("liveBookBoard", () => {
     ]);
     expect(board.find((c) => c.slug === "economy")?.name).toBe("Economy");
     expect(board.find((c) => c.slug === "economy")?.total_rappen).toBeNull();
-    expect(board.map((c) => c.slug)).not.toContain("mahaha");
+    expect(board.map((c) => c.slug)).not.toContain("first");
   });
 
   it("follows vehicle_classes.sort_order for already-public classes and leaves inactive slugs out", () => {
@@ -185,10 +185,10 @@ describe("liveBookBoard", () => {
     const business = classRow({ slug: "business", name: "Business", sort_order: 1, active: false });
     const first = classRow({ slug: "first", name: "First", sort_order: 2, active: false });
     const vanLegacy = classRow({ slug: "van", name: "Van", sort_order: 3, active: false });
-    const mahaha = classRow({ slug: "mahaha", name: "mahaha", sort_order: 4, active: false });
+    const retiredEconomy = classRow({ slug: "saden", name: "Economy", sort_order: 4, active: false });
     const board = liveBookBoard(
       book({
-        classes: [van, economy, sclass, mahaha, business, first, vanLegacy],
+        classes: [van, economy, sclass, retiredEconomy, business, first, vanLegacy],
         distance_rates: [
           rateRow({ vehicle_class_id: van.id, id: 1 }),
           rateRow({ vehicle_class_id: sclass.id, id: 2 }),
@@ -457,8 +457,8 @@ describe("publicCatalogRoutes", () => {
     const catalog = publicCatalogRoutes(
       book({
         classes: [
-          classRow({ id: "vc-saden", slug: "saden", name: "Saden" }),
-          classRow({ id: "vc-van", slug: "mercedes-benz-v-class", name: "Van" }),
+          classRow({ id: "vc-saden", slug: "saden", name: "Economy" }),
+          classRow({ id: "vc-van", slug: "mercedes-benz-v-class", name: "Business" }),
           classRow({ id: "vc-lux", slug: "van-luxury", name: "Van luxury" }),
         ],
         distance_rates: [
