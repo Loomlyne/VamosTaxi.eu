@@ -2935,6 +2935,10 @@ export type Database = {
           stripe_checkout_session_ids: string[]
         }[]
       }
+      ops_fill_canton_pairs: {
+        Args: { p_price_rappen: unknown; p_rate_version_id: number }
+        Returns: number
+      }
       ops_mark_complete: {
         Args: {
           p_actor_id: string
