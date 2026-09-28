@@ -692,26 +692,29 @@ describe("runCheckoutIntent", () => {
   });
 
   it("refuses coupon_no_longer_valid when the payer-identity re-evaluation refuses (D-11)", async () => {
-    const p = payload();
+    const p = payload({ coupon: "SAVE10" });
     const body = await bodyFor(p);
     body.coupon = "SAVE10";
     const create = vi.fn(async () => {
       throw new Error("must not create Stripe session");
     });
+    const evaluateCoupon = vi.fn(async () => ({ ok: false, i18n_key: "quote.coupon.error.usage_cap" }));
     const res = await runCheckoutIntent(
       body,
       deps(p, {
         createCheckoutSession: create as unknown as CheckoutIntentDeps["createCheckoutSession"],
-        evaluateCoupon: async () => ({ ok: false, i18n_key: "quote.coupon.error.usage_cap" }),
+        evaluateCoupon,
       }),
     );
     expect(res.status).toBe(409);
     expect(((await res.json()) as { code: string }).code).toBe("coupon_no_longer_valid");
     expect(create).not.toHaveBeenCalled();
+    expect(evaluateCoupon).toHaveBeenCalledTimes(1);
+    expect(evaluateCoupon).toHaveBeenCalledWith("SAVE10", { customerId: null, contactEmail: "ada@example.test" });
   });
 
   it("refuses coupon_no_longer_valid (fail closed) when a coupon is typed but evaluateCoupon is not wired", async () => {
-    const p = payload();
+    const p = payload({ coupon: "SAVE10" });
     const body = await bodyFor(p);
     body.coupon = "SAVE10";
     const res = await runCheckoutIntent(body, deps(p, { evaluateCoupon: undefined }));
@@ -720,7 +723,7 @@ describe("runCheckoutIntent", () => {
   });
 
   it("passes the evaluated coupon_id to createBooking and discounts checkout extras too (D-08a, D-11)", async () => {
-    const p = payload({ class_totals: [{ slug: "economy", total_rappen: 9000 }] });
+    const p = payload({ class_totals: [{ slug: "economy", total_rappen: 9000 }], coupon: "SAVE10" });
     const body = await bodyFor(p);
     body.coupon = "SAVE10";
     body.extras = { child_seats: 1 };
@@ -773,11 +776,14 @@ describe("runCheckoutIntent", () => {
   });
 
   it("refuses coupon_no_longer_valid when the cap trigger fires between evaluate and insert (D-11 race)", async () => {
-    const p = payload();
+    const p = payload({ coupon: "SAVE10" });
     const body = await bodyFor(p);
     body.coupon = "SAVE10";
     const createErr = Object.assign(new Error("coupon cap"), { code: "23001" });
     const attachErr = Object.assign(new Error("not found"), { code: "P0002" });
+    const createBooking = vi.fn(async () => {
+      throw createErr;
+    });
     const res = await runCheckoutIntent(
       body,
       deps(p, {
@@ -791,9 +797,7 @@ describe("runCheckoutIntent", () => {
           code: "SAVE10",
         }),
         loadOpenPayment: async () => null,
-        createBooking: async () => {
-          throw createErr;
-        },
+        createBooking: createBooking as unknown as CheckoutIntentDeps["createBooking"],
         attachPayment: async () => {
           throw attachErr;
         },
@@ -801,6 +805,155 @@ describe("runCheckoutIntent", () => {
     );
     expect(res.status).toBe(409);
     expect(((await res.json()) as { code: string }).code).toBe("coupon_no_longer_valid");
+    expect(createBooking).toHaveBeenCalledTimes(1);
+  });
+
+  it("refuses coupon_no_longer_valid when the lock priced a coupon but the body omits it (VERIFICATION probe)", async () => {
+    const p = payload({ coupon: "SAVE10" });
+    const body = await bodyFor(p);
+    body.coupon = null;
+    const create = vi.fn(
+      async () =>
+        ({
+          id: "cs_test_1",
+          client_secret: "cs_test_1_secret",
+          payment_intent: "pi_test_1",
+          currency: "chf",
+        }) as never,
+    );
+    const evaluateCoupon = vi.fn(async () => ({ ok: false, i18n_key: "quote.coupon.error.usage_cap" }));
+    const res = await runCheckoutIntent(
+      body,
+      deps(p, {
+        createCheckoutSession: create as unknown as CheckoutIntentDeps["createCheckoutSession"],
+        evaluateCoupon,
+      }),
+    );
+    expect({ status: res.status, evaluateCalls: evaluateCoupon.mock.calls.length }).toEqual({
+      status: 409,
+      evaluateCalls: 1,
+    });
+    expect(((await res.json()) as { code: string }).code).toBe("coupon_no_longer_valid");
+    expect(evaluateCoupon).toHaveBeenCalledWith("SAVE10", { customerId: null, contactEmail: "ada@example.test" });
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it("refuses coupon_no_longer_valid when the body coupon disagrees with the lock's coupon", async () => {
+    const p = payload({ coupon: "SAVE10" });
+    const body = await bodyFor(p);
+    body.coupon = "OTHER10";
+    const create = vi.fn(async () => {
+      throw new Error("must not create Stripe session");
+    });
+    const createBooking = vi.fn(async () => {
+      throw new Error("must not create a booking");
+    });
+    const evaluateCoupon = vi.fn(async () => ({
+      ok: true,
+      i18n_key: null,
+      coupon_id: 42,
+      kind: "percent",
+      percent: "10.00",
+      amount_rappen: null,
+      code: "OTHER10",
+    }));
+    const res = await runCheckoutIntent(
+      body,
+      deps(p, {
+        createCheckoutSession: create as unknown as CheckoutIntentDeps["createCheckoutSession"],
+        createBooking: createBooking as unknown as CheckoutIntentDeps["createBooking"],
+        evaluateCoupon,
+      }),
+    );
+    expect(res.status).toBe(409);
+    expect(((await res.json()) as { code: string }).code).toBe("coupon_no_longer_valid");
+    expect(evaluateCoupon).not.toHaveBeenCalled();
+    expect(create).not.toHaveBeenCalled();
+    expect(createBooking).not.toHaveBeenCalled();
+  });
+
+  it("refuses coupon_no_longer_valid when the lock priced no coupon but the body attaches one", async () => {
+    const p = payload();
+    const body = await bodyFor(p);
+    body.coupon = "SAVE10";
+    const create = vi.fn(async () => {
+      throw new Error("must not create Stripe session");
+    });
+    const createBooking = vi.fn(async () => {
+      throw new Error("must not create a booking");
+    });
+    const evaluateCoupon = vi.fn(async () => ({
+      ok: true,
+      i18n_key: null,
+      coupon_id: 42,
+      kind: "percent",
+      percent: "10.00",
+      amount_rappen: null,
+      code: "SAVE10",
+    }));
+    const res = await runCheckoutIntent(
+      body,
+      deps(p, {
+        createCheckoutSession: create as unknown as CheckoutIntentDeps["createCheckoutSession"],
+        createBooking: createBooking as unknown as CheckoutIntentDeps["createBooking"],
+        evaluateCoupon,
+      }),
+    );
+    expect(res.status).toBe(409);
+    expect(((await res.json()) as { code: string }).code).toBe("coupon_no_longer_valid");
+    expect(evaluateCoupon).not.toHaveBeenCalled();
+    expect(create).not.toHaveBeenCalled();
+    expect(createBooking).not.toHaveBeenCalled();
+  });
+
+  it("does not evaluate a coupon and creates the booking when neither the lock nor the body carry one", async () => {
+    const p = payload();
+    const body = await bodyFor(p);
+    const evaluateCoupon = vi.fn(async () => {
+      throw new Error("must not evaluate a coupon");
+    });
+    const seenCouponId: (number | null)[] = [];
+    const seenCouponCode: (string | null)[] = [];
+    const res = await runCheckoutIntent(
+      body,
+      deps(p, {
+        evaluateCoupon,
+        createBooking: async (args) => {
+          seenCouponId.push(args.couponId);
+          seenCouponCode.push(args.couponCode);
+          return {
+            booking_id: "00000000-0000-4000-8000-000000000099",
+            reference: "VT-10001",
+            snapshot_id: 1,
+            payment_id: 1,
+            replayed: false,
+          };
+        },
+      }),
+    );
+    expect(res.status).toBe(200);
+    expect(evaluateCoupon).not.toHaveBeenCalled();
+    expect(seenCouponId).toEqual([null]);
+    expect(seenCouponCode).toEqual([null]);
+  });
+
+  it("accepts a lock coupon and body coupon that differ only in case", async () => {
+    const p = payload({ coupon: "save10" });
+    const body = await bodyFor(p);
+    body.coupon = "SAVE10";
+    const evaluateCoupon = vi.fn(async () => ({
+      ok: true,
+      i18n_key: null,
+      coupon_id: 42,
+      kind: "percent",
+      percent: "10.00",
+      amount_rappen: null,
+      code: "SAVE10",
+    }));
+    const res = await runCheckoutIntent(body, deps(p, { evaluateCoupon }));
+    expect(res.status).toBe(200);
+    expect(evaluateCoupon).toHaveBeenCalledTimes(1);
+    expect(evaluateCoupon).toHaveBeenCalledWith("SAVE10", { customerId: null, contactEmail: "ada@example.test" });
   });
 
   it("refuses bookings.is_test and never creates a Stripe session (D-33)", async () => {
