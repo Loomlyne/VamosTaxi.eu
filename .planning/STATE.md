@@ -47,6 +47,7 @@ Stripe live keys and Search Console stay owner-gated. Agent does not click Publi
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260928-lux | Fix phone booking dead end: Show fixed prices goes to checkout trip | 2026-09-28 | 1ef815c3 | [260928-lux-fix-phone-booking-dead-end-show-fixed-pr](./quick/260928-lux-fix-phone-booking-dead-end-show-fixed-pr/) |
+| fast | Services CTA headline scales with the card (9cqi, 17px floor); no clipping at 4-up in any locale | 2026-09-28 | 59d27311 | — |
 
 ## Session Continuity
 
