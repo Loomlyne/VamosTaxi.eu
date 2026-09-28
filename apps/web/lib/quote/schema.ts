@@ -172,6 +172,18 @@ export const QuoteRequestSchema = QuoteBodySchema;
 
 export type QuoteRequest = z.infer<typeof QuoteBodySchema>;
 
+/**
+ * D-08b / 26.1-30: the only per-leg fact a reprice may change is the flight
+ * number the customer typed at /checkout/details. Everything else on the leg
+ * (time, places, boundary facts) stays pinned by the lock.
+ */
+const RepriceLegSchema = z
+  .object({
+    leg_seq: z.union([z.literal(1), z.literal(2)]),
+    flight_no: z.string().max(16).nullable(),
+  })
+  .strict();
+
 /** Reprice is no more permissive than quote — same refusal set, pin from lock. */
 export const RepriceRequestSchema = z
   .object({
@@ -186,6 +198,15 @@ export const RepriceRequestSchema = z
     coupon: z.string().min(1).max(64).nullable().optional(),
     contact_email: z.string().email().max(320).nullable().optional(),
     turnstile_token: z.string().min(1).max(2048).optional(),
+    legs: z
+      .array(RepriceLegSchema)
+      .min(1)
+      .max(2)
+      .refine(
+        (legs) => new Set(legs.map((leg) => leg.leg_seq)).size === legs.length,
+        { message: "duplicate leg_seq" },
+      )
+      .optional(),
   })
   .strict();
 
@@ -347,12 +368,12 @@ export function parseRepriceRequest(
   }
 
   // Reprice must not accept journey fields that belong on /api/quote only.
+  // `legs` is allowed but narrowed to { leg_seq, flight_no } (26.1-30).
   for (const key of [
     "pax",
     "bags",
     "pickup",
     "dropoff",
-    "legs",
     "mode",
     "hours",
     "fare_kind",

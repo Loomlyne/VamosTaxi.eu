@@ -256,6 +256,11 @@ function okIntentResponse(
   );
 }
 
+/** Compare flight numbers ignoring case and spacing; blank means none. */
+function flightKey(value: string | null): string {
+  return (value ?? "").replace(/\s+/g, "").toUpperCase();
+}
+
 export async function runCheckoutIntent(
   body: CheckoutIntentRequest,
   deps: CheckoutIntentDeps,
@@ -284,6 +289,16 @@ export async function runCheckoutIntent(
 
   if (!checked.ok) {
     return refuse(mapQuoteCode(checked.code));
+  }
+
+  // D-08b / T-26.1-91: the airport fee follows the flight number, so a body
+  // whose flight number the signed lock never priced must re-price first.
+  // Before any Stripe call or booking row.
+  if (
+    body.flight_no !== undefined &&
+    flightKey(body.flight_no) !== flightKey(checked.payload.legs[0]?.flight_no ?? null)
+  ) {
+    return refuse("price_changed");
   }
 
   const payGate = await deps.loadQuotePayGate?.(body.quote_id);
