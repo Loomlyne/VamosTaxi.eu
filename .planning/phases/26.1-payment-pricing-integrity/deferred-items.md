@@ -44,11 +44,12 @@ next plan to pick up.
 - **What:** `POST /api/staff/bookings/:id/refund` moved from `withStaff` to `withAdmin`. A dispatcher's Refund button in `app/ops/OpsDetail.dc.html` now answers 403 `not-admin`.
 - **Fix:** 26.1-18 hides or disables the button for dispatchers and adds the percentage / decline / post-trip controls.
 
-## Confirmation page read does not carry refund facts (26.1-18)
+## RESOLVED in 26.1-19 — Confirmation page read does not carry refund facts (26.1-18)
 
 - **Found during:** 26.1-18 Task 3.
 - **What:** `guest_confirmation_read` / `customer_confirmation_read` (`20260924004100_confirmation_read.sql`) return no `refund_status`, `refund_owed_rappen` or `refunded_rappen`. The voucher's refund row (status word + amount, D-23a) is fed only by the cancel response on the same page view; after a reload it is absent. `/api/manage/booking` already carries all three.
 - **Fix:** a migration that adds the three columns to both functions' `booking` object, plus `booking-read.ts` `VisibleBooking` fields. Needs the local Supabase (pgTAP), so it was not done in 26.1-18.
+- **Resolved:** `20260928170000_confirmation_refund_facts.sql` adds `refund_status`, `refund_owed_rappen`, `refunded_rappen` to `confirmation_payload`'s `booking` object (both reads call it; grants unchanged). `VisibleBooking` maps them (`refundStatus`, `refundOwedRappen`, `refundedRappen`). pgTAP `confirmation_refund_facts.test.sql`, vitest `booking-read.test.ts`.
 
 ## Cancellation policy copy still describes the 6 h tier (26.1-18)
 
