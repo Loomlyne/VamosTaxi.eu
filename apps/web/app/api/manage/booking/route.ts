@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
 import { MANAGE_COOKIE_NAME, hashManageToken, rawManageTokenFromRequest } from "@/lib/checkout/manage-token";
+import { customerCancelWindow } from "@/lib/checkout/cancel-window";
 import { asGuest, asSystem } from "@/lib/db/identity";
 
 const NOT_FOUND =
@@ -105,12 +106,6 @@ function hoursBefore(original: string | Date | null, now: Date): number {
   return (stamp - now.getTime()) / 3_600_000;
 }
 
-function cancelWindow(hours: number): "auto_full" | "pending_ops" | "none" {
-  if (hours > 24) return "auto_full";
-  if (hours > 6) return "pending_ops";
-  return "none";
-}
-
 export async function GET(request: Request): Promise<Response> {
   const token = rawManageTokenFromRequest(request);
   const tokenHashHex = token ? await hashManageToken(token) : "";
@@ -167,7 +162,9 @@ export async function GET(request: Request): Promise<Response> {
   const refundStatus = str(row.refund_status) || "none";
   const refunded = refundStatus === "refunded";
   const payoutCountry = str(row.payout_country).toUpperCase() || (refunded ? "CH" : "");
-  const windowKind = cancelWindow(hoursBefore(row.original_scheduled_at, new Date()));
+  // D-23/D-24 (26.1-18): >24 h auto full refund, otherwise the admin reviews it.
+  // Unpaid rows returned "gone" above, so every booking here was paid.
+  const windowKind = customerCancelWindow(hoursBefore(row.original_scheduled_at, new Date()));
   const canCancel = !HIDE_CANCEL.includes(status) && !reviewSubmitted;
 
   return json(

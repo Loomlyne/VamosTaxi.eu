@@ -21,7 +21,12 @@ import {
 } from "@/lib/checkout/confirmation-receipt";
 import { formatAmount } from "@/lib/currency";
 import { isCapturedPayment } from "@/lib/checkout/booking-status";
-import { voucherBadgeStatus, voucherNeedsPayment } from "@/lib/checkout/voucher-badge";
+import {
+  voucherBadgeStatus,
+  voucherNeedsPayment,
+  voucherRefundAmountRappen,
+  voucherRefundLabelKey,
+} from "@/lib/checkout/voucher-badge";
 
 export type BookingVoucherFacts = {
   reference?: string;
@@ -47,6 +52,10 @@ export type BookingVoucherFacts = {
   paidAt?: string | null;
   paymentStatus?: string | null;
   refundStatus?: string | null;
+  /** D-23a: amount the admin decided / the automatic refund owes, in rappen. */
+  refundOwedRappen?: number | null;
+  /** D-23a: amount actually refunded to the card, in rappen. */
+  refundedRappen?: number | null;
   payoutCountry?: string | null;
   availableOn?: string | null;
   reviewSubmitted?: boolean;
@@ -265,16 +274,15 @@ export function BookingVoucher({
         ? t("needsPayment")
         : t("paid");
   const refundStatus = (booking?.refundStatus || "").trim().toLowerCase();
-  const refundLabel =
-    refundStatus === "pending_ops"
-      ? t("refundPendingOps")
-      : refundStatus === "processing"
-        ? t("refundProcessing")
-        : refundStatus === "refunded"
-          ? tBadge("refunded")
-          : refundStatus === "failed"
-            ? t("refundFailedLabel")
-            : "";
+  const refundKey = voucherRefundLabelKey(refundStatus);
+  const refundLabel = refundKey === "refunded" ? tBadge("refunded") : refundKey ? t(refundKey) : "";
+  // D-23a: the refund is a money line, not only a status word.
+  const refundAmountRappen = voucherRefundAmountRappen({
+    refundStatus,
+    refundOwedRappen: booking?.refundOwedRappen ?? null,
+    refundedRappen: booking?.refundedRappen ?? null,
+  });
+  const refundAmountMajor = rappenToMajor(refundAmountRappen);
   const country =
     regionName(booking?.payoutCountry || "", locale) || t("switzerland");
   const onDate = booking?.availableOn ? payoutDate(booking.availableOn) : "";
@@ -439,7 +447,16 @@ export function BookingVoucher({
         ) : null}
         {refundLabel ? (
           <ReceiptRow icon="credit-card" label={t("refund")} data-confirmation-refund>
-            {refundedCopy ? `${refundLabel}. ${refundedCopy}` : refundLabel}
+            {refundLabel}
+            {refundAmountMajor != null ? (
+              <>
+                {" · "}
+                <span className="vt-dir-keep" data-confirmation-refund-amount>
+                  {formatAmount(refundAmountMajor)}
+                </span>
+              </>
+            ) : null}
+            {refundedCopy ? `. ${refundedCopy}` : null}
           </ReceiptRow>
         ) : null}
       </dl>
