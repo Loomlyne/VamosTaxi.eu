@@ -1038,7 +1038,7 @@ Plans:
 - [ ] 26.1-26-PLAN.md — Owner Ship gate: DLQ queue, re-auth secret, Ship
 - [ ] 26.1-27-PLAN.md — Class line-up in every ops/home mock; OpsNewTrip sends live slugs
 - [ ] 26.1-28-PLAN.md — Post-Ship live reconciliation (owner resend + read-only SQL)
-- [ ] 26.1-29-PLAN.md — Traveller intent and requote honour the pay-link hold
+- [x] 26.1-29-PLAN.md — Traveller intent and requote honour the pay-link hold
 - [x] 26.1-30-PLAN.md — Flight number typed at checkout re-prices; intent refuses mismatch
 - [ ] 26.1-31-PLAN.md — Checkout shows DB class name; tests and project rules use the line-up
 
@@ -1135,7 +1135,7 @@ v1.3 Meta measurement (Phases 21–25 stay planned, not current): 26 → 26.1 �
 | 24. Dual-payer, pay-link, mail split | 0/TBD | Not started | - |
 | 25. /bookings unpaid + TEST UAT + secret-swap design | 0/TBD | Not started | - |
 | 26. Legal gate | 2/2 | Complete    | 2026-09-23 |
-| 26.1. Payment and pricing integrity (INSERTED) | 16/31 | In Progress|  |
+| 26.1. Payment and pricing integrity (INSERTED) | 17/31 | In Progress|  |
 | 27. Consent record | 0/TBD | Not started | - |
 | 28. Pixel PageView | 0/TBD | Not started | - |
 | 29. Webhook Purchase | 0/TBD | Not started | - |

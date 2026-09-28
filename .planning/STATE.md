@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Meta measurement
 status: executing
-stopped_at: Completed 26.1-15-PLAN.md
-last_updated: "2026-09-28T10:25:37.589Z"
+stopped_at: Completed 26.1-29-PLAN.md
+last_updated: "2026-09-28T10:39:44.285Z"
 last_activity: 2026-09-28
 progress:
   total_phases: 31
   completed_phases: 17
   total_plans: 246
-  completed_plans: 220
+  completed_plans: 221
   percent: 55
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-09-23)
 ## Current Position
 
 Phase: 26.1 (Payment and pricing integrity) — EXECUTING
-Plan: 7 of 31
+Plan: 8 of 31
 Status: Ready to execute
 Last activity: 2026-09-28
 
@@ -44,8 +44,8 @@ Stripe live keys and Search Console stay owner-gated. Agent does not click Publi
 
 ## Session Continuity
 
-Last session: 2026-09-28T10:25:37.583Z
-Stopped at: Completed 26.1-15-PLAN.md
+Last session: 2026-09-28T10:39:44.279Z
+Stopped at: Completed 26.1-29-PLAN.md
 Resume: `/gsd:discuss-phase 27`. Do not execute 27. Do not load the pixel. Do not execute Phase 21 while v1.3 is current. Payment plans stay on disk. Do not execute Phase 16/17/19/20. Do not `phases.clear`.
 
 Phase 21 branch session (2026-09-22T19:57:29.795Z, not the resume): Stopped at Phase 21 planning complete — 8 plans. Resume was: Phase 21 executing on gsd/phase-21-charge-gate. Do not execute Phase 16/17/19/20. Do not touch the main checkout.
@@ -88,6 +88,7 @@ Restart 2026-09-14 **supersedes** 2026-09-13 D-01…D-40. Full text: `.planning/
 - [Phase 26.1]: Plan 07: checkout fails closed on rate-book load failure and reads the real pricing_live (derivePricingLive AND public_chf) instead of the hard-coded true; coupon is re-evaluated with the payer's identity at intent and its coupon_id reaches checkout_create_booking so coupon_redemptions/tg_coupon_redemption_caps enforce the cap (D-11); payableRappen makes a percent coupon discount checkout extras too, not just the class fare (D-08a).
 - [Phase 26.1]: 26.1-15: pay-link hold is bookings.hold_until = least(token expiry, first send + 24 h); link lookup, charge gate and unpaid cron read greatest(snapshot clock, hold); resend never restarts it (D-20/D-20a/D-37)
 - [Phase 26.1]: 26.1-15: checkout_pay_link_state answers refunded_duplicate before paid; unknown/revoked/expired/cancelled answer expired with no reference (D-21/D-22)
+- [Phase 26.1]: 26.1-29: requote with an open pay-link hold answers 409 hold_open (no expire, no cancel); failed hold read fails closed; intent lock payable until max(exp, hold_until), hold read from DB only
 
 ## Performance Metrics
 
@@ -101,3 +102,4 @@ Restart 2026-09-14 **supersedes** 2026-09-13 D-01…D-40. Full text: `.planning/
 | Phase 26.1 P04 | 55min | 3 tasks | 11 files |
 | Phase 26.1 P07 | 40min | 2 tasks | 9 files |
 | Phase 26.1 P15 | 80min | 2 tasks | 11 files |
+| Phase 26.1 P29 | 10min | 2 tasks | 5 files |
