@@ -27,8 +27,8 @@ See: .planning/PROJECT.md (updated 2026-09-23)
 
 Phase: 26.1 (Payment and pricing integrity) — CODE COMPLETE, WAITING FOR OWNER SHIP
 Plan: 30 of 32 done. Open: 26.1-26 task 3 (owner Ship) and 26.1-28 (post-Ship reconciliation)
-Status: Verified at 16c36338 with 0 gaps (26.1-VERIFICATION.md); two follow-up fixes after that (quick 260928-rld)
-Last activity: 2026-09-28 - Completed quick task 260928-rld: a reprice invalidates the stored payment session; Pay recovers when no card form is mounted
+Status: Focused pre-Ship check at 200b153d: 0 gaps, findings 1 and 3 closed; the extras finding is deferred by the owner to the next plan (deferred-items.md)
+Last activity: 2026-09-28 - Completed quick task 260928-lat: a payment-session answer for an older lock is discarded; clearing the payment session resets cardComplete. Owner said Ship for 26.1 with the generic-extras fix as the next plan
 
 Phase 21 execution note (not current): planning complete — 8 plans. Execution started 2026-09-22 on `gsd/phase-21-charge-gate`. That position was Phase 21 EXECUTING, plan 1 of 8. Phase 21 is not complete. Do not execute Phase 16/17/19/20. Do not touch the main checkout from that branch note.
 
@@ -49,6 +49,7 @@ Stripe live keys and Search Console stay owner-gated. Agent does not click Publi
 | 260928-lux | Fix phone booking dead end: Show fixed prices goes to checkout trip | 2026-09-28 | 1ef815c3 | [260928-lux-fix-phone-booking-dead-end-show-fixed-pr](./quick/260928-lux-fix-phone-booking-dead-end-show-fixed-pr/) |
 | 260928-cpn | Coupon recovery after a failed reprice; ops detail wording ar, fr, de | 2026-09-28 | 22c7fb3a | [260928-cpn-coupon-recovery-failed-reprice](./quick/260928-cpn-coupon-recovery-failed-reprice/) |
 | 260928-rld | Reprice invalidates the stored payment session; Pay recovers without a card form | 2026-09-28 | 34e43d9e | [260928-rld-stored-session-and-pay-recovery](./quick/260928-rld-stored-session-and-pay-recovery/) |
+| 260928-lat | Late payment-session answer discarded; cardComplete reset with the session | 2026-09-28 | 018afd7a | [260928-lat-late-intent-answer](./quick/260928-lat-late-intent-answer/) |
 | fast | Services CTA headline scales with the card (9cqi, 17px floor); no clipping at 4-up in any locale | 2026-09-28 | 59d27311 | — |
 
 ## Session Continuity
