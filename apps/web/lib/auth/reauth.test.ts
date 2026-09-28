@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   REAUTH_COOKIE,
   REAUTH_TTL_SECONDS,
@@ -8,7 +8,11 @@ import {
   reauthGate,
   reauthSecret,
   recentRecovery,
+  sendReauthCode,
   sensitiveProfileChange,
+  verifyOwnPassword,
+  verifyReauthCode,
+  type CredentialClient,
 } from "./reauth";
 
 // Test-only key material. Never a real secret.
@@ -196,5 +200,63 @@ describe("sensitiveProfileChange", () => {
   });
   it("name / phone only is not", () => {
     expect(sensitiveProfileChange({ fullName: "Koss", password: "" }, "a@b.co")).toBe(false);
+  });
+});
+
+function credClient(overrides: Partial<CredentialClient["auth"]> = {}): CredentialClient {
+  return {
+    auth: {
+      signInWithPassword: vi.fn(async () => ({ error: null })),
+      signInWithOtp: vi.fn(async () => ({ error: null })),
+      verifyOtp: vi.fn(async () => ({ error: null })),
+      signOut: vi.fn(async () => ({ error: null })),
+      ...overrides,
+    },
+  };
+}
+
+describe("verifyOwnPassword", () => {
+  it("checks the admin's own email and drops the throwaway session locally", async () => {
+    const sb = credClient();
+    expect(await verifyOwnPassword(sb, "a@b.co", "correct-horse")).toBe(true);
+    expect(sb.auth.signInWithPassword).toHaveBeenCalledWith({ email: "a@b.co", password: "correct-horse" });
+    expect(sb.auth.signOut).toHaveBeenCalledWith({ scope: "local" });
+  });
+  it("wrong password → false, nothing to sign out", async () => {
+    const sb = credClient({
+      signInWithPassword: vi.fn(async () => ({ error: { code: "invalid_credentials" } })),
+    });
+    expect(await verifyOwnPassword(sb, "a@b.co", "nope")).toBe(false);
+    expect(sb.auth.signOut).not.toHaveBeenCalled();
+  });
+  it("no email or no password never calls Supabase", async () => {
+    const sb = credClient();
+    expect(await verifyOwnPassword(sb, undefined, "x")).toBe(false);
+    expect(await verifyOwnPassword(sb, "a@b.co", "")).toBe(false);
+    expect(sb.auth.signInWithPassword).not.toHaveBeenCalled();
+  });
+});
+
+describe("sendReauthCode / verifyReauthCode", () => {
+  it("sends a code without creating a user", async () => {
+    const sb = credClient();
+    expect(await sendReauthCode(sb, "a@b.co")).toBe(true);
+    expect(sb.auth.signInWithOtp).toHaveBeenCalledWith({
+      email: "a@b.co",
+      options: { shouldCreateUser: false },
+    });
+  });
+  it("verifies a 6-digit code and drops the throwaway session", async () => {
+    const sb = credClient();
+    expect(await verifyReauthCode(sb, "a@b.co", "123 456")).toBe(true);
+    expect(sb.auth.verifyOtp).toHaveBeenCalledWith({ email: "a@b.co", token: "123456", type: "email" });
+    expect(sb.auth.signOut).toHaveBeenCalledWith({ scope: "local" });
+  });
+  it("wrong or malformed code → false", async () => {
+    const bad = credClient({ verifyOtp: vi.fn(async () => ({ error: { code: "otp_expired" } })) });
+    expect(await verifyReauthCode(bad, "a@b.co", "123456")).toBe(false);
+    const sb = credClient();
+    expect(await verifyReauthCode(sb, "a@b.co", "12ab56")).toBe(false);
+    expect(sb.auth.verifyOtp).not.toHaveBeenCalled();
   });
 });

@@ -33,12 +33,29 @@ import {
   checkCodeAttemptLimit,
   enrolTotp,
   listFactors,
+  passwordSignInRefused,
   staffMfaAccess,
   stepUpTotp,
   unenrolFactor,
   verifyTotpEnrolment,
   type MfaClient,
+  type SignInMethod,
 } from "@/lib/auth/staff-mfa";
+import {
+  clearReauthCookie,
+  mintReauthCookie,
+  reauthGate,
+  reauthSecret,
+  recentRecovery,
+  sendReauthCode,
+  verifyOwnPassword,
+  verifyReauthCode,
+} from "@/lib/auth/reauth";
+import {
+  parseSignInMethod,
+  readOwnSignInMethod,
+  setOwnSignInMethod,
+} from "@/lib/auth/staff-sign-in-method";
 import { asCustomer } from "@/lib/db/identity";
 import { getStaffClaims, type StaffAuthClient } from "@/lib/ops/session";
 import {
@@ -48,7 +65,12 @@ import {
 } from "@/lib/consent/bind";
 import { mintConsentSubject, readConsentSubject } from "@/lib/consent/cookie";
 import { cfConnectingIp, truncateClientIp } from "@/lib/consent/ip";
-import { authSetCookieHeader, createServerSupabaseClient, type AuthSetCookie } from "@/lib/supabase/server";
+import {
+  authSetCookieHeader,
+  createIsolatedSupabaseClient,
+  createServerSupabaseClient,
+  type AuthSetCookie,
+} from "@/lib/supabase/server";
 import { csrfForbidden, trustedSiteOrigin } from "@/lib/security/origin";
 
 export const dynamic = "force-dynamic";
@@ -82,6 +104,14 @@ function staffJson(
   for (const cookie of cookies) headers.append("Set-Cookie", authSetCookieHeader(cookie));
   for (const cookie of extraCookies) headers.append("Set-Cookie", cookie);
   return Response.json(body, { status, headers });
+}
+
+/** The admin sign-in-options actions (D-16a / D-17). */
+function isStaffSignInOptionAction(action: unknown): action is string {
+  return (
+    typeof action === "string" &&
+    (action.startsWith("mfa-") || action.startsWith("reauth-") || action === "set-sign-in-method")
+  );
 }
 
 function mfaStatus(code: string): number {
@@ -173,14 +203,45 @@ export async function POST(request: Request): Promise<Response> {
   const setCookies: AuthSetCookie[] = [];
   const supabase = await createServerSupabaseClient(request, { cookies: setCookies });
 
+  /** Signs the new session out and answers the generic credentials error (T-26.1-70). */
+  const refuseSignIn = async (): Promise<Response> => {
+    const from = setCookies.length;
+    await runSignOut(supabase);
+    // Only the sign-out's cookie removals go back — never the session just refused.
+    return sessionJson(FORM_CREDENTIALS, setCookies.slice(from));
+  };
+
+  /**
+   * D-17: a staff session changing its password or e-mail needs a fresh re-auth.
+   * Customers are not gated here. `allowRecovery` lets the reset-password flow
+   * through when the session itself came from a recovery link in the last 5 min.
+   */
+  const staffChangeGate = async (allowRecovery: boolean): Promise<Response | null> => {
+    const staff = await getStaffClaims(supabase as StaffAuthClient);
+    if (!staff?.app_metadata?.vamos_role) return null;
+    if (allowRecovery) {
+      const aal = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      if (recentRecovery(aal.data?.currentAuthenticationMethods)) return null;
+    }
+    const fresh = await reauthGate({
+      secret: reauthSecret(env),
+      cookieHeader: request.headers.get("cookie"),
+      userId: staff.sub,
+      sessionId: staff.session_id,
+    });
+    return fresh.ok ? null : staffJson(fresh, [], 403);
+  };
+
   if (action === "signout") {
     await runSignOut(supabase);
-    return sessionJson({ ok: true }, setCookies);
+    return json({ ok: true }, 200, [...setCookies.map(authSetCookieHeader), clearReauthCookie()]);
   }
 
   if (action === "update-password") {
     const parsed = updatePasswordSchema.safeParse({ password: fields.password });
     if (!parsed.success) return json(FORM_CREDENTIALS);
+    const blockedChange = await staffChangeGate(true);
+    if (blockedChange) return blockedChange;
     const { result, reason } = await runUpdatePassword(supabase, parsed.data.password);
     if (reason) log("error", "auth", ctx, { reason, action: "update-password" });
     return json(result);
@@ -189,6 +250,10 @@ export async function POST(request: Request): Promise<Response> {
   if (action === "update-profile") {
     const parsed = parseProfileFields(fields);
     if (!parsed) return json({ ok: false, reason: "invalid" });
+    if ("email" in parsed) {
+      const blockedChange = await staffChangeGate(false);
+      if (blockedChange) return blockedChange;
+    }
     try {
       const { result, reason } = await runUpdateProfile(supabase, parsed);
       if (reason) log("error", "auth", ctx, { reason, action: "update-profile" });
@@ -253,13 +318,17 @@ export async function POST(request: Request): Promise<Response> {
     return json({ ok: true });
   }
 
-  if (typeof action === "string" && action.startsWith("mfa-")) {
+  if (isStaffSignInOptionAction(action)) {
     // D-16a: admin only. Deliberately not requireStaffClaims — the step-up has to
     // work while the session is still aal1.
     const access = staffMfaAccess(await getStaffClaims(supabase as StaffAuthClient));
     if (!access.ok) return staffJson({ ok: false, code: access.code }, [], access.status);
     const claims = access.claims;
     const mfa: MfaClient = supabase;
+    const secret = reauthSecret(env);
+    const cookieHeader = request.headers.get("cookie");
+    const gate = () =>
+      reauthGate({ secret, cookieHeader, userId: claims.sub, sessionId: claims.session_id });
 
     if (action === "mfa-status") {
       const status = await listFactors(mfa);
@@ -267,12 +336,18 @@ export async function POST(request: Request): Promise<Response> {
         log("error", "auth", ctx, { reason: status.code, action });
         return staffJson(status);
       }
+      let signInMethod: SignInMethod | null = null;
+      try {
+        signInMethod = await readOwnSignInMethod(env, claims);
+      } catch {
+        log("error", "auth", ctx, { reason: "sign-in-method-unreadable", action });
+      }
       return staffJson({
         ok: true,
         totp: status.totp,
         totpFactorId: status.totpFactorId,
         passkey: status.passkey,
-        signInMethod: null,
+        signInMethod,
       });
     }
 
@@ -283,9 +358,33 @@ export async function POST(request: Request): Promise<Response> {
       return staffJson(out, setCookies);
     }
 
-    const codeAction =
-      action === "mfa-totp-verify" || action === "mfa-step-up";
-    if (codeAction && !(await checkCodeAttemptLimit(env.QUOTE_RATE_LIMITER_BARE, claims.sub))) {
+    if (action === "set-sign-in-method") {
+      const method = parseSignInMethod(fields.method);
+      if (!method) return staffJson({ ok: false, code: "sign-in-method-invalid" }, [], 400);
+      const fresh = await gate();
+      if (!fresh.ok) return staffJson(fresh, [], 403);
+      try {
+        await setOwnSignInMethod(env, claims, method);
+      } catch {
+        log("error", "auth", ctx, { reason: "sign-in-method-write", action });
+        return staffJson({ ok: false, code: "sign-in-method-failed" });
+      }
+      return staffJson({ ok: true, signInMethod: method });
+    }
+
+    if (action === "mfa-unenroll") {
+      const out = await unenrolFactor(mfa, {
+        factorId: fields.factorId,
+        aal: claims.aal,
+        reauth: await gate(),
+      });
+      if (!out.ok) log("warn", "auth", ctx, { reason: out.code, action });
+      return staffJson(out, setCookies, mfaStatus(out.ok ? "" : out.code));
+    }
+
+    // Everything below checks a code or a password: per-account attempt limit on
+    // top of the per-IP one (T-26.1-69).
+    if (!(await checkCodeAttemptLimit(env.QUOTE_RATE_LIMITER_BARE, claims.sub))) {
       return staffJson({ ok: false, code: "rate_limited" }, [], 429);
     }
 
@@ -301,19 +400,67 @@ export async function POST(request: Request): Promise<Response> {
         log("warn", "auth", ctx, { reason: out.code, action });
         return staffJson(out, setCookies);
       }
-      // The session is aal2 now; the refreshed auth cookies ride on this response.
+      // aal2 now, so the staff row is readable: a password session on a
+      // magic_link account is refused here too (a factor hides the row at aal1).
+      const aal = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      let method: SignInMethod | null;
+      try {
+        method = await readOwnSignInMethod(env, { ...claims, aal: "aal2" });
+      } catch {
+        log("error", "auth", ctx, { reason: "sign-in-method-unreadable", action });
+        return refuseSignIn();
+      }
+      if (passwordSignInRefused(method, aal.data?.currentAuthenticationMethods)) {
+        return refuseSignIn();
+      }
+      // The refreshed aal2 auth cookies ride on this response.
       return staffJson({ ok: true }, setCookies);
     }
 
-    if (action === "mfa-unenroll") {
-      const out = await unenrolFactor(mfa, {
-        factorId: fields.factorId,
-        aal: claims.aal,
-        // Fail closed until the session-bound re-auth gate lands (Task 2).
-        reauth: { ok: false, code: "reauth-required" },
-      });
-      if (!out.ok) log("warn", "auth", ctx, { reason: out.code, action });
-      return staffJson(out, setCookies, mfaStatus(out.ok ? "" : out.code));
+    if (action.startsWith("reauth-")) {
+      if (!secret) return staffJson({ ok: false, code: "reauth-unavailable" }, [], 403);
+      let proven = false;
+      let sessionId = claims.session_id;
+
+      if (action === "reauth-code-send") {
+        const sent = await sendReauthCode(createIsolatedSupabaseClient(), claims.email);
+        if (!sent) log("error", "auth", ctx, { reason: "reauth-code-send", action });
+        return staffJson(sent ? { ok: true } : { ok: false, code: "reauth-send-failed" });
+      }
+
+      if (action === "reauth-password") {
+        let method: SignInMethod | null;
+        try {
+          method = await readOwnSignInMethod(env, claims);
+        } catch {
+          log("error", "auth", ctx, { reason: "sign-in-method-unreadable", action });
+          return staffJson({ ok: false, code: "reauth-failed" });
+        }
+        // A magic_link account re-authenticates with the e-mail code, not a password.
+        if (method !== "magic_link") {
+          proven = await verifyOwnPassword(createIsolatedSupabaseClient(), claims.email, fields.password);
+        }
+      } else if (action === "reauth-code-verify") {
+        proven = await verifyReauthCode(createIsolatedSupabaseClient(), claims.email, fields.code);
+      } else if (action === "reauth-totp") {
+        const out = await stepUpTotp(mfa, fields.code);
+        proven = out.ok;
+        if (proven) {
+          // Same session, new aal2 token: re-read the id the cookie binds to.
+          const after = await getStaffClaims(supabase as StaffAuthClient);
+          sessionId = after?.session_id ?? "";
+        }
+      } else {
+        return staffJson({ ok: false, code: "reauth-failed" }, [], 400);
+      }
+
+      if (!proven) {
+        log("warn", "auth", ctx, { reason: "reauth-failed", action });
+        return staffJson({ ok: false, code: "reauth-failed" }, setCookies);
+      }
+      const reauthCookie = await mintReauthCookie({ secret, userId: claims.sub, sessionId });
+      if (!reauthCookie) return staffJson({ ok: false, code: "reauth-unavailable" }, setCookies, 403);
+      return staffJson({ ok: true }, setCookies, 200, [reauthCookie]);
     }
 
     return staffJson({ ok: false, code: "mfa-invalid-input" }, [], 400);
@@ -374,5 +521,21 @@ export async function POST(request: Request): Promise<Response> {
   if (!parsed.success) return json(FORM_CREDENTIALS);
   const { result, reason } = await runSignInPassword(supabase, parsed.data);
   if (reason) log("error", "auth", ctx, { reason, action: "signin" });
+  if ("ok" in result) {
+    // D-16a: a staff account set to magic_link refuses a password sign-in with the
+    // same generic error as a wrong password. With a factor enrolled the row is
+    // hidden at aal1 (null) and mfa-step-up repeats this check at aal2.
+    const staff = await getStaffClaims(supabase as StaffAuthClient);
+    if (staff?.app_metadata?.vamos_role) {
+      let method: SignInMethod | null;
+      try {
+        method = await readOwnSignInMethod(env, staff);
+      } catch {
+        log("error", "auth", ctx, { reason: "sign-in-method-unreadable", action: "signin" });
+        return refuseSignIn();
+      }
+      if (passwordSignInRefused(method, ["password"])) return refuseSignIn();
+    }
+  }
   return sessionJson(result, setCookies);
 }
