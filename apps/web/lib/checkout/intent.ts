@@ -35,6 +35,12 @@ export type CheckoutIntentDeps = {
   lockSecrets: { current: string; previous?: string };
   workerNowIso: string;
   postgresNowIso: string;
+  /**
+   * D-20/D-21 (26.1-29): the booking's pay-link hold (`bookings.hold_until`),
+   * loaded by the route from `checkout_booking_hold_until`. While it is open
+   * the traveller's own lock stays payable past `exp`. Omitted → exp only.
+   */
+  holdUntilIso?: string | null;
   reprice: (payload: QuoteLockPayload) => IntentRecompute;
   mintManageToken: () => Promise<{ raw: string; hash: Uint8Array }>;
   /** Stores the minted hash on an existing booking. Required on reuse, where createBooking does not run. */
@@ -274,6 +280,7 @@ export async function runCheckoutIntent(
     secrets: deps.lockSecrets,
     workerNowIso: deps.workerNowIso,
     postgresNowIso: deps.postgresNowIso,
+    holdUntilIso: deps.holdUntilIso,
     recompute: (payload) => {
       const result = deps.reprice(payload);
       if (result instanceof Promise) {

@@ -89,6 +89,19 @@ async function postIntent(request: Request) {
     if (code !== "42883") throw err;
   }
 
+  // D-20/D-21 (26.1-29): a sent pay link holds the booking for 24 h; the
+  // traveller's own lock stays payable until then. Read from the database by
+  // quote id — never from the request (T-26.1-90). Null = no link sent.
+  const holdUntilIso = await asCheckout(env, null, async (sql) => {
+    const rows = await sql<{ hold_until: Date | string | null }[]>`
+      select public.checkout_booking_hold_until(${body.quote_id}::uuid) as hold_until
+    `;
+    const value = rows[0]?.hold_until;
+    if (value == null) return null;
+    const at = value instanceof Date ? value : new Date(String(value));
+    return Number.isFinite(at.getTime()) ? at.toISOString() : null;
+  });
+
   // Built only when a session op runs, after the class-id refusal.
   let stripe: ReturnType<typeof stripeFromEnv> | undefined;
   const stripeClient = () => (stripe ??= stripeFromEnv(env));
@@ -117,6 +130,7 @@ async function postIntent(request: Request) {
     lockSecrets: previous ? { current, previous } : { current },
     workerNowIso: new Date().toISOString(),
     postgresNowIso,
+    holdUntilIso,
     reprice: (payload) => ({
       pricing_live: repriced.pricingLive,
       engine_version: payload.engine_version,
