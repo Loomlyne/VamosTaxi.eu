@@ -1006,7 +1006,7 @@ alignment). Source: `docs/audit/2026-vamos-audit.md` Phase A; decisions D-01…D
   8. Only the admin signs in. In account settings the admin can add a passkey, add TOTP, or switch password ↔ magic link, each working end to end; once a factor is enrolled, aal2 is required. Changing password or email requires signing in again. Leaked-password protection is on (owner toggle).
   9. Must-nots: Stripe sandbox `acct_1UIZmqHcNp9GZYjz` only, no `sk_live_`, no `vamostaxi.eu`, no invented CHF or legal copy, no pixel. The agent never writes to live Supabase `yaumjzvylngfjhtuffqs` (migrations are handed to the owner as SQL) and never makes Stripe dashboard changes or `wrangler secret put`. Four languages and the design laws hold on every touched surface.
 
-**Plans**: 31 plans, 18 waves
+**Plans**: 32 plans, 18 waves
 
 Plans:
 
@@ -1041,6 +1041,7 @@ Plans:
 - [x] 26.1-29-PLAN.md — Traveller intent and requote honour the pay-link hold
 - [x] 26.1-30-PLAN.md — Flight number typed at checkout re-prices; intent refuses mismatch
 - [ ] 26.1-31-PLAN.md — Checkout shows DB class name; tests and project rules use the line-up
+- [x] 26.1-32-PLAN.md — Coupon cap at payment: lock's coupon re-evaluated, mismatch refused, client recovers (gap 1, INT-04)
 
 **UI hint**: yes — pay-link "already paid" page, ops refund approval, admin account-settings sign-in methods, class names.
 
@@ -1156,7 +1157,7 @@ v1.3 Meta measurement (Phases 21–25 stay planned, not current): 26 → 26.1 �
 | 24. Dual-payer, pay-link, mail split | 0/TBD | Not started | - |
 | 25. /bookings unpaid + TEST UAT + secret-swap design | 0/TBD | Not started | - |
 | 26. Legal gate | 2/2 | Complete    | 2026-09-23 |
-| 26.1. Payment and pricing integrity (INSERTED) | 17/31 | In Progress|  |
+| 26.1. Payment and pricing integrity (INSERTED) | 18/32 | In Progress|  |
 | 27. Consent record | 0/TBD | Not started | - |
 | 28. Pixel PageView | 0/TBD | Not started | - |
 | 29. Webhook Purchase | 0/TBD | Not started | - |
