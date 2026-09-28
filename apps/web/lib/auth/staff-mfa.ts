@@ -100,14 +100,20 @@ function verifiedTotpOf(factors: MfaFactor[]): MfaFactor | undefined {
   return factors.find((f) => f.factor_type === "totp" && f.status === "verified");
 }
 
+type ReauthResult = { ok: true } | { ok: false; code: "reauth-required" | "reauth-unavailable" };
+
 /**
- * Starts a TOTP enrolment. Stale unverified TOTP factors from an abandoned
- * attempt are cleared first so they cannot pile up. A second TOTP is refused
- * while one is verified — the UI shows one authenticator app.
+ * Starts a TOTP enrolment. Needs a fresh, session-bound re-auth first (D-17b):
+ * a stolen session must not add its own factor and lock the admin out of aal2.
+ * Stale unverified TOTP factors from an abandoned attempt are cleared so they
+ * cannot pile up. A second TOTP is refused while one is verified — the UI shows
+ * one authenticator app.
  */
 export async function enrolTotp(
   client: MfaClient,
+  input: { reauth: ReauthResult },
 ): Promise<{ ok: true; factorId: string; qrSvg: string; secret: string } | MfaFail> {
+  if (!input.reauth.ok) return { ok: false, code: input.reauth.code };
   const factors = await factorsOf(client);
   if (!factors) return { ok: false, code: "mfa-enroll-failed" };
   if (verifiedTotpOf(factors)) return { ok: false, code: "mfa-already-enrolled" };
@@ -200,7 +206,7 @@ export async function unenrolFactor(
   input: {
     factorId: unknown;
     aal: VamosClaims["aal"];
-    reauth: { ok: true } | { ok: false; code: "reauth-required" | "reauth-unavailable" };
+    reauth: ReauthResult;
   },
 ): Promise<{ ok: true } | MfaFail> {
   if (!validFactorId(input.factorId)) return { ok: false, code: "mfa-invalid-input" };

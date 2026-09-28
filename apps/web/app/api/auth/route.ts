@@ -352,10 +352,11 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     if (action === "mfa-totp-enroll") {
-      const out = await enrolTotp(mfa);
-      if (!out.ok) log("error", "auth", ctx, { reason: out.code, action });
+      // D-17b: adding a factor needs the same fresh re-auth as removing one.
+      const out = await enrolTotp(mfa, { reauth: await gate() });
+      if (!out.ok) log(mfaStatus(out.code) === 403 ? "warn" : "error", "auth", ctx, { reason: out.code, action });
       // The secret is returned once, to the enrolling admin only (T-26.1-71). Never logged.
-      return staffJson(out, setCookies);
+      return staffJson(out, setCookies, mfaStatus(out.ok ? "" : out.code));
     }
 
     if (action === "set-sign-in-method") {
