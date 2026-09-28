@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import {
+  applyHandleResult,
   captureAllowed,
   handleStripeMessageWithDeps,
   pgTextArrayLiteral,
@@ -47,6 +48,36 @@ function settleRow(patch: Partial<SettleRow> = {}): SettleRow {
   };
 }
 
+function chargeFixture(patch: Partial<Stripe.Charge> = {}): Stripe.Charge {
+  return {
+    id: "ch_test_1",
+    object: "charge",
+    payment_intent: "pi_test_1",
+    currency: "chf",
+    refunds: {
+      object: "list",
+      data: [{ id: "re_dash_1", amount: 6, currency: "chf", status: "succeeded", created: 1_725_000_050, metadata: {} }],
+      has_more: false,
+      url: "/v1/refunds",
+    },
+    ...patch,
+  } as Stripe.Charge;
+}
+
+function disputeFixture(patch: Partial<Stripe.Dispute> = {}): Stripe.Dispute {
+  return {
+    id: "du_test_1",
+    object: "dispute",
+    payment_intent: "pi_test_1",
+    charge: "ch_test_1",
+    status: "needs_response",
+    reason: "fraudulent",
+    amount: 6,
+    currency: "chf",
+    ...patch,
+  } as Stripe.Dispute;
+}
+
 function deps(patch: Partial<SettleDeps> = {}): SettleDeps & {
   begin: ReturnType<typeof vi.fn>;
   retrieveSession: ReturnType<typeof vi.fn>;
@@ -58,6 +89,10 @@ function deps(patch: Partial<SettleDeps> = {}): SettleDeps & {
   alertPaidAfterCancel: ReturnType<typeof vi.fn>;
   alertStuckPayment: ReturnType<typeof vi.fn>;
   expireSession: ReturnType<typeof vi.fn>;
+  retrieveCharge: ReturnType<typeof vi.fn>;
+  retrieveDispute: ReturnType<typeof vi.fn>;
+  recordChargeRefund: ReturnType<typeof vi.fn>;
+  upsertDispute: ReturnType<typeof vi.fn>;
 } {
   const begin = vi.fn(async () => ({ should_process: true, reason: "ok" }));
   const retrieveSession = vi.fn(async () => session());
@@ -80,6 +115,11 @@ function deps(patch: Partial<SettleDeps> = {}): SettleDeps & {
     alertPaidAfterCancel,
     alertStuckPayment,
     expireSession,
+    retrieveCharge: vi.fn(async () => chargeFixture()),
+    retrieveDispute: vi.fn(async () => disputeFixture()),
+    findSessionIdForPaymentIntent: vi.fn(async () => "cs_test_1"),
+    recordChargeRefund: vi.fn(async () => ({ outcome: "recorded" })),
+    upsertDispute: vi.fn(async () => undefined),
     emit: () => undefined,
     ...patch,
   } as SettleDeps & {
@@ -93,6 +133,10 @@ function deps(patch: Partial<SettleDeps> = {}): SettleDeps & {
     alertPaidAfterCancel: ReturnType<typeof vi.fn>;
     alertStuckPayment: ReturnType<typeof vi.fn>;
     expireSession: ReturnType<typeof vi.fn>;
+    retrieveCharge: ReturnType<typeof vi.fn>;
+    retrieveDispute: ReturnType<typeof vi.fn>;
+    recordChargeRefund: ReturnType<typeof vi.fn>;
+    upsertDispute: ReturnType<typeof vi.fn>;
   };
 }
 
@@ -350,5 +394,135 @@ describe("captureAllowed", () => {
     expect(captureAllowed({ status: "pending", is_test: false, expired: false })).toEqual({
       capture: true,
     });
+  });
+});
+
+describe("handleStripeMessageWithDeps — charge.refunded and charge.dispute.* (26.1-08 D-07)", () => {
+  const refunded = message({ eventId: "evt_ch_1", type: "charge.refunded", objectId: "ch_test_1" });
+
+  it("retrieves the charge before begin so its pi_ joins the ordering window", async () => {
+    const d = deps();
+    const result = await handleStripeMessageWithDeps(refunded, d);
+    expect(result).toEqual({ ack: true });
+    expect(d.retrieveCharge).toHaveBeenCalledWith("ch_test_1");
+    expect(d.begin).toHaveBeenCalledWith("evt_ch_1", ["ch_test_1", "pi_test_1"], expect.any(Date));
+    expect(d.retrieveCharge.mock.invocationCallOrder[0]).toBeLessThan(d.begin.mock.invocationCallOrder[0]);
+    expect(d.recordChargeRefund).toHaveBeenCalledWith(
+      expect.objectContaining({ paymentIntentId: "pi_test_1", stripeRefundId: "re_dash_1", appSource: false }),
+    );
+    expect(d.settlePayment).not.toHaveBeenCalled();
+    expect(d.retrieveSession).not.toHaveBeenCalled();
+    expect(d.eventSettle).toHaveBeenCalledWith("evt_ch_1", null);
+  });
+
+  it("a charge retrieve failure retries without calling begin", async () => {
+    const d = deps({
+      retrieveCharge: vi.fn(async () => {
+        throw new Error("stripe down");
+      }),
+    });
+    const result = await handleStripeMessageWithDeps(refunded, d);
+    expect(result).toEqual({ retry: true });
+    expect(d.begin).not.toHaveBeenCalled();
+  });
+
+  it("app_refund_pending returns retry with delaySeconds 30", async () => {
+    const d = deps({
+      recordChargeRefund: vi.fn(async () => {
+        throw Object.assign(new Error("app_refund_pending"), { code: "P0002" });
+      }),
+    });
+    const result = await handleStripeMessageWithDeps(refunded, d);
+    expect(result).toEqual({ retry: true, delaySeconds: 30 });
+  });
+
+  it("a superseded charge event is acked without recording", async () => {
+    const d = deps({
+      begin: vi.fn(async () => ({ should_process: false, reason: "superseded" })),
+    });
+    const result = await handleStripeMessageWithDeps(refunded, d);
+    expect(result).toEqual({ ack: true });
+    expect(d.recordChargeRefund).not.toHaveBeenCalled();
+  });
+
+  it.each(["charge.dispute.created", "charge.dispute.updated", "charge.dispute.closed"])(
+    "%s retrieves the dispute, joins its pi_ to the window, upserts Stripe's status",
+    async (type) => {
+      const d = deps({
+        retrieveDispute: vi.fn(async () => disputeFixture({ status: "won" })),
+      });
+      const result = await handleStripeMessageWithDeps(
+        message({ eventId: "evt_du_1", type, objectId: "du_test_1" }),
+        d,
+      );
+      expect(result).toEqual({ ack: true });
+      expect(d.retrieveDispute).toHaveBeenCalledWith("du_test_1");
+      expect(d.begin).toHaveBeenCalledWith("evt_du_1", ["du_test_1", "pi_test_1"], expect.any(Date));
+      expect(d.upsertDispute).toHaveBeenCalledWith(
+        expect.objectContaining({ stripeDisputeId: "du_test_1", status: "won", reason: "fraudulent", amountRappen: 6 }),
+      );
+      expect(d.settlePayment).not.toHaveBeenCalled();
+    },
+  );
+
+  it("a dispute retrieve failure retries", async () => {
+    const d = deps({
+      retrieveDispute: vi.fn(async () => {
+        throw new Error("stripe down");
+      }),
+    });
+    const result = await handleStripeMessageWithDeps(
+      message({ eventId: "evt_du_1", type: "charge.dispute.created", objectId: "du_test_1" }),
+      d,
+    );
+    expect(result).toEqual({ retry: true });
+    expect(d.begin).not.toHaveBeenCalled();
+  });
+
+  it("other event types are still ignored (settled, acked, nothing retrieved)", async () => {
+    const d = deps();
+    const result = await handleStripeMessageWithDeps(
+      message({ eventId: "evt_x", type: "charge.succeeded", objectId: "ch_test_9" }),
+      d,
+    );
+    expect(result).toEqual({ ack: true });
+    expect(d.retrieveCharge).not.toHaveBeenCalled();
+    expect(d.recordChargeRefund).not.toHaveBeenCalled();
+    expect(d.eventSettle).toHaveBeenCalledWith("evt_x", null);
+  });
+});
+
+describe("applyHandleResult (worker queue loop)", () => {
+  function queueMessage() {
+    return { ack: vi.fn(), retry: vi.fn() };
+  }
+
+  it("passes delaySeconds through to message.retry for app_refund_pending", () => {
+    const m = queueMessage();
+    expect(applyHandleResult(m, { retry: true, delaySeconds: 30 })).toBe("retry");
+    expect(m.retry).toHaveBeenCalledWith({ delaySeconds: 30 });
+    expect(m.ack).not.toHaveBeenCalled();
+  });
+
+  it("a plain retry keeps the queue's default backoff", () => {
+    const m = queueMessage();
+    expect(applyHandleResult(m, { retry: true })).toBe("retry");
+    expect(m.retry).toHaveBeenCalledWith();
+  });
+
+  it("ack acks", () => {
+    const m = queueMessage();
+    expect(applyHandleResult(m, { ack: true })).toBe("acked");
+    expect(m.ack).toHaveBeenCalledTimes(1);
+    expect(m.retry).not.toHaveBeenCalled();
+  });
+
+  it("worker.ts routes every Stripe-event result through applyHandleResult", async () => {
+    const { readFileSync } = await import("node:fs");
+    const { dirname, join } = await import("node:path");
+    const { fileURLToPath } = await import("node:url");
+    const here = dirname(fileURLToPath(import.meta.url));
+    const src = readFileSync(join(here, "..", "..", "worker.ts"), "utf8");
+    expect(src).toMatch(/applyHandleResult\(message, result\)/);
   });
 });
