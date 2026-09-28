@@ -179,3 +179,51 @@ describe("OpsPricing tabs (D-11 D-12 D-17 D-25)", () => {
     expect(html).toMatch(/key:'limit', label:t.fLimit, editor:'number', min:1/);
   });
 });
+
+describe("OpsPricing class delete-or-hide (26.1-19 D-15, UI-SPEC §6)", () => {
+  const html = () => readFileSync(CANONICAL, "utf8");
+  const OPS_DATA = join(repoRoot, "app/vamos-ops-data.js");
+
+  it("carries the six hide-conflict keys in all four languages", () => {
+    const src = html();
+    for (const key of [
+      "hideReason",
+      "hideReasonPlaceholder",
+      "hideConflictTitle",
+      "hideConflictBody",
+      "hideConflictKeepVisible",
+      "hideWithReason",
+    ]) {
+      const hits = src.match(new RegExp(`\\b${key}:'`, "g")) ?? [];
+      expect(hits.length, key).toBe(4);
+    }
+    expect(src).toContain("hideConflictTitle:'Can’t delete — still in use'");
+    expect(src).toContain("hideWithReason:'Hide with a reason'");
+    expect(src).toContain("hideConflictKeepVisible:'Keep it visible'");
+  });
+
+  it("deleting a class goes through the class delete-or-hide door, not the draft row delete", () => {
+    const src = html();
+    expect(src).toMatch(/deleteDistance: \(id, row\) =>/);
+    expect(src).toContain("ops.deleteClass(");
+    expect(src).toContain("'in-use'");
+  });
+
+  it("opens a second small dialog with a required 140-character reason", () => {
+    const src = html();
+    expect(src).toContain('data-hide-conflict="1"');
+    expect(src).toMatch(/maxLength="\{\{ hideReasonMax \}\}"|maxlength="140"|max-length="140"/);
+    expect(src).toContain("hideReasonMax: 140");
+    expect(src).toContain("disabled=\"{{ hideSubmitDisabled }}\"");
+  });
+
+  it("a hidden class shows its reason under the Hidden from public chip", () => {
+    expect(html()).toContain("hiddenReason");
+  });
+
+  it("VamosOps.deleteClass calls DELETE /api/staff/vehicle-classes with the reason", () => {
+    const src = readFileSync(OPS_DATA, "utf8");
+    expect(src).toMatch(/deleteClass: function \(id, reason\)/);
+    expect(src).toContain('"/api/staff/vehicle-classes?id="');
+  });
+});

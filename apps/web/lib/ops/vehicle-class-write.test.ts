@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { asVehicleClassUuid, planVehicleClassWrite } from "./vehicle-class-write";
+import {
+  asVehicleClassUuid,
+  classDeleteReply,
+  parseClassDeleteReason,
+  planVehicleClassWrite,
+} from "./vehicle-class-write";
 
 const economy = {
   id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
@@ -49,6 +54,40 @@ describe("planVehicleClassWrite", () => {
     expect(planVehicleClassWrite("not-a-uuid", "suv", catalog)).toEqual({
       mode: "insert",
       id: null,
+    });
+  });
+});
+
+describe("class delete-or-hide (26.1-19 D-15)", () => {
+  it("reads the optional hide reason: trimmed, blank means none", () => {
+    expect(parseClassDeleteReason(undefined)).toEqual({ ok: true, reason: null });
+    expect(parseClassDeleteReason(null)).toEqual({ ok: true, reason: null });
+    expect(parseClassDeleteReason("   ")).toEqual({ ok: true, reason: null });
+    expect(parseClassDeleteReason("  Retired from the fleet ")).toEqual({
+      ok: true,
+      reason: "Retired from the fleet",
+    });
+  });
+
+  it("refuses a reason over 140 characters or a non-string", () => {
+    expect(parseClassDeleteReason("x".repeat(140))).toEqual({ ok: true, reason: "x".repeat(140) });
+    expect(parseClassDeleteReason("x".repeat(141))).toEqual({ ok: false });
+    expect(parseClassDeleteReason(42)).toEqual({ ok: false });
+  });
+
+  it("maps the database answer to the JSON door", () => {
+    const id = economy.id;
+    expect(classDeleteReply(id, "deleted")).toEqual({
+      status: 200,
+      body: { ok: true, data: { id, result: "deleted" } },
+    });
+    expect(classDeleteReply(id, "hidden")).toEqual({
+      status: 200,
+      body: { ok: true, data: { id, result: "hidden" } },
+    });
+    expect(classDeleteReply(id, "in-use")).toEqual({
+      status: 409,
+      body: { ok: false, code: "in-use" },
     });
   });
 });
