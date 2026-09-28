@@ -342,7 +342,7 @@ describe("ops live data — comments 8–10", () => {
     expect(row.paid).toBe(false);
     expect(row.totalRappen).toBe(18000);
     expect(row.capturedAt).toBe("");
-    expect(row.klass).toBe("Van");
+    expect(row.klass).toBe("Van luxury");
     expect(row.vehicle).toBe("");
   });
 
