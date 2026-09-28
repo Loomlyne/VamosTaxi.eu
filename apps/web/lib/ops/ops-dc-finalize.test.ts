@@ -15,11 +15,11 @@ function read(rel: string): string {
   return readFileSync(join(repoRoot, rel), "utf8");
 }
 
-describe("Phase 6 finalize — four classes and staff hash", () => {
-  it("uses Economy, Business, First, Van on ops fleet data", () => {
+describe("Phase 6 finalize — class line-up and staff hash", () => {
+  it("uses Economy, Business, Van luxury on ops fleet data (26.1 D-14)", () => {
     const data = read("app/vamos-ops-data.js");
     expect(data).toMatch(
-      /VEHICLE_CLASSES = \["Economy", "Business", "First", "Van"\]/,
+      /VEHICLE_CLASSES = \["Economy", "Business", "Van luxury"\]/,
     );
     const rateBook = readFileSync(
       join(webRoot, "app/[locale]/(ops)/api/staff/rate-book/route.ts"),
@@ -30,7 +30,7 @@ describe("Phase 6 finalize — four classes and staff hash", () => {
     );
     expect(rateBook).toMatch(/CLASS_SLUG = \/\^\[a-z0-9\]/);
     const fleet = read("app/ops/OpsFleet.dc.html");
-    expect(fleet).toMatch(/'Economy', 'Business', 'First', 'Van'/);
+    expect(fleet).toMatch(/'Economy', 'Business', 'Van luxury'/);
   });
 
   it("Support rail goes to /support and Staff stays gone", () => {

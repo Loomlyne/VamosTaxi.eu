@@ -1238,6 +1238,7 @@
       'Business': { de: 'Business', fr: 'Business', ar: 'بيزنس' },
       'First': { de: 'First', fr: 'First', ar: 'الأولى' },
       'Van': { de: 'Van', fr: 'Van', ar: 'فان' },
+      'Van luxury': { de: 'Van luxury', fr: 'Van luxury', ar: 'فان لاكشري' },
       'Sedan or similar': { de: 'Limousine oder ähnlich', fr: 'Berline ou similaire', ar: 'سيدان أو ما شابه' },
       'Executive sedan': { de: 'Business-Limousine', fr: 'Berline affaires', ar: 'سيدان تنفيذية' },
       'S-Class or similar': { de: 'S-Klasse oder ähnlich', fr: 'Classe S ou similaire', ar: 'إس-كلاس أو ما شابه' },

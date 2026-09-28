@@ -331,11 +331,11 @@ class Component extends DCLogic {
     const paired = chauffeurs.filter((c) => c.vehicle).length;
 
     const vehicleLabel = (v) => v.klass + ' · ' + (v.plate || v.id);
-    const classOptions = ((ops && ops.VEHICLE_CLASSES) || ['Economy', 'Business', 'First', 'Van']).map((c) => ({ value: c, label: c }));
+    const classOptions = ((ops && ops.VEHICLE_CLASSES) || ['Economy', 'Business', 'Van luxury']).map((c) => ({ value: c, label: c }));
     const vStatusOptions = (ops ? ops.VEHICLE_STATUS : []).map((s) => ({ value: s, label: VSTATUS[s].label }));
     const vehicleOptions = [{ value:'', label: t.none }].concat(vehicles.map((v) => ({ value: v.id, label: vehicleLabel(v) })));
     const chauffeurOptions = chauffeurs.map((c) => ({ value: c.id, label: c.name || c.id }));
-    const inactiveClass = { economy: 1, business: 1, first: 1, van: 1, mahaha: 1 };
+    const inactiveClass = { economy: 1, business: 1, first: 1, van: 1 };
     const classNameById = {};
     const rememberClass = (id, name) => {
       const key = String(id || '').trim();
@@ -351,7 +351,8 @@ class Component extends DCLogic {
       const id = String(r.vehicleClassId || '').trim();
       const name = String(r.name || classNameById[id] || '').trim();
       rememberClass(id, name);
-      if (!id || !name || inactiveClass[name.toLowerCase()]) return;
+      // Legacy inactive rows are recognised by slug, not name: the live classes are named Economy / Business (D-14).
+      if (!id || !name || inactiveClass[String(r.vehicleClassSlug || '').trim().toLowerCase()]) return;
       if (chauffeurClassOptions.some((o) => o.value === id)) return;
       chauffeurClassOptions.push({ value: id, label: name });
     });

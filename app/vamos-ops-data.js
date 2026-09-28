@@ -567,13 +567,26 @@
     "Zermatt", "St. Moritz", "Chamonix", "Verbier"
   ];
 
-  var VEHICLE_CLASSES = ["Economy", "Business", "First", "Van"];
+  var VEHICLE_CLASSES = ["Economy", "Business", "Van luxury"];
+  // D-14: live slugs and legacy names map onto the three classes (saden -> Economy,
+  // mercedes-benz-v-class -> Business, van-luxury and a stored Van -> Van luxury);
+  // any other unknown class (incl. the dropped First) becomes Economy.
+  var KLASS_ALIASES = {
+    "economy": "Economy", "saden": "Economy",
+    "business": "Business", "mercedes-benz-v-class": "Business",
+    "van": "Van luxury", "van-luxury": "Van luxury"
+  };
+  function cleanKlass(k) {
+    if (VEHICLE_CLASSES.indexOf(k) !== -1) return k;
+    var key = str(k).trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    return KLASS_ALIASES[key] || "Economy";
+  }
   var VEHICLE_STATUS = ["service", "idle", "workshop"];
   function cleanVehicle(v) {
     v = v || {};
     return {
       id: str(v.id),
-      klass: VEHICLE_CLASSES.indexOf(v.klass) === -1 ? "Economy" : v.klass,
+      klass: cleanKlass(v.klass),
       model: str(v.model), plate: str(v.plate), year: str(v.year),
       seats: num(v.seats, 3), bags: num(v.bags, 3),
       status: VEHICLE_STATUS.indexOf(v.status) === -1 ? "service" : v.status,
@@ -619,7 +632,7 @@
       id: str(b.id),
       time: str(b.time), date: str(b.date), customer: str(b.customer),
       pickup: str(b.pickup), dropoff: str(b.dropoff),
-      klass: VEHICLE_CLASSES.indexOf(b.klass) === -1 ? "Economy" : b.klass,
+      klass: cleanKlass(b.klass),
       pax: num(b.pax, 1), bags: num(b.bags, 1),
       status: BOOKING_STATUS.indexOf(b.status) === -1 ? "pending" : b.status,
       chauffeur: str(b.chauffeur),
@@ -770,7 +783,7 @@
     return out;
   }
 
-  var RATE_DEFAULT_PAX = { Economy: 4, Business: 4, First: 4, Van: 7 };
+  var RATE_DEFAULT_PAX = { Economy: 4, Business: 4, "Van luxury": 7 };
   function cleanRate(r) {
     r = r || {};
     var klass = str(r.klass || r.name);

@@ -298,9 +298,9 @@ class Component extends DCLogic {
     });
     const ops = window.VamosOps;
     const DS = window.VamosTaxiDesignSystem_245af1 || {};
-    const classOptions = [{ value: '', label: t.allClasses }].concat(((ops && ops.VEHICLE_CLASSES) || ['Economy', 'Business', 'First', 'Van']).map((c) => ({ value: c, label: c })));
+    const classOptions = [{ value: '', label: t.allClasses }].concat(((ops && ops.VEHICLE_CLASSES) || ['Economy', 'Business', 'Van luxury']).map((c) => ({ value: c, label: c })));
     const statusOptions = [{ value: '', label: t.allStatuses }].concat(((ops && ops.BOOKING_STATUS) || []).map((s) => ({ value: s, label: s })));
-    const formClass = ((ops && ops.VEHICLE_CLASSES) || ['Economy', 'Business', 'First', 'Van']).map((c) => ({ value: c, label: c }));
+    const formClass = ((ops && ops.VEHICLE_CLASSES) || ['Economy', 'Business', 'Van luxury']).map((c) => ({ value: c, label: c }));
     const formStatus = ((ops && ops.BOOKING_STATUS) || []).map((s) => ({ value: s, label: s }));
     const chauffeurOptions = ((ops && ops.chauffeurs && ops.chauffeurs.all) ? ops.chauffeurs.all() : []).map((c) => ({ value: c.id, label: c.name || c.id }));
     const PAGE_SIZE = 20;
