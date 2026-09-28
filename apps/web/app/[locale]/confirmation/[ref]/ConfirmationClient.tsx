@@ -21,6 +21,7 @@ import {
   isVoucherStatus,
 } from "@/lib/checkout/booking-status";
 import { voucherBadgeStatus, voucherNeedsPayment } from "@/lib/checkout/voucher-badge";
+import { customerCancelWindow } from "@/lib/checkout/cancel-window";
 
 export type ConfirmationPhase = "hidden" | "processing" | "confirmed" | "give-up" | "failed";
 
@@ -70,12 +71,6 @@ function hoursBeforePickup(scheduledLocal: string, now: Date): number {
   if (!Number.isFinite(zurichUtc)) return (asUtc - now.getTime()) / 3_600_000;
   const pickup = asUtc + (asUtc - zurichUtc);
   return (pickup - now.getTime()) / 3_600_000;
-}
-
-function cancelWindowOf(hours: number): "auto_full" | "pending_ops" | "none" {
-  if (hours > 24) return "auto_full";
-  if (hours > 6) return "pending_ops";
-  return "none";
 }
 
 function pollOutcome(json: unknown): "confirmed" | "failed" | "wait" {
@@ -146,6 +141,8 @@ export function ConfirmationClient({
   const [cancelling, setCancelling] = useState(false);
   const [refundFailed, setRefundFailed] = useState(false);
   const [refundStatus, setRefundStatus] = useState(booking?.refundStatus ?? null);
+  // D-23a: refund amount from the cancel response, printed on the voucher.
+  const [refundRappen, setRefundRappen] = useState<number | null>(booking?.refundOwedRappen ?? null);
   const [payoutCountry, setPayoutCountry] = useState(booking?.payoutCountry ?? null);
   const [availableOn, setAvailableOn] = useState(booking?.availableOn ?? null);
   const [reviewedStay] = useState(Boolean(booking?.reviewSubmitted));
@@ -240,6 +237,7 @@ export function ConfirmationClient({
         status: liveStatus || booking.status,
         paymentStatus: livePayment ?? booking.paymentStatus,
         refundStatus: refundStatus ?? booking.refundStatus,
+        refundOwedRappen: refundRappen ?? booking.refundOwedRappen ?? null,
         payoutCountry: payoutCountry ?? booking.payoutCountry,
         availableOn: availableOn ?? booking.availableOn,
         reviewSubmitted: reviewedStay,
@@ -262,14 +260,11 @@ export function ConfirmationClient({
     rawStatus === "no_show" ||
     rawStatus === "cancelled";
   const showCancel = Boolean(facts) && !hideCancel;
-  const windowKind = cancelWindowOf(hoursBeforePickup(facts?.scheduledLocal || "", new Date()));
-  const canConfirmCancel = showCancel && windowKind !== "none";
-  const sheetCopy =
-    windowKind === "auto_full"
-      ? t("cancelSheetFull")
-      : windowKind === "pending_ops"
-        ? t("cancelSheetOps")
-        : t("cancelSheetClose");
+  // D-23/D-24 (26.1-18): >24 h auto full refund; every later paid cancel goes to
+  // the admin review. No time-based "too close to cancel" state is left.
+  const windowKind = customerCancelWindow(hoursBeforePickup(facts?.scheduledLocal || "", new Date()));
+  const canConfirmCancel = showCancel;
+  const sheetCopy = windowKind === "auto_full" ? t("cancelSheetFull") : t("cancelSheetOps");
   const reviewHref =
     badge === "completed" && !reviewedStay ? `/${locale}/review` : undefined;
 
@@ -294,6 +289,7 @@ export function ConfirmationClient({
       const rec = json && typeof json === "object" ? (json as Record<string, unknown>) : {};
       setLiveStatus("cancelled");
       setRefundStatus(typeof rec.refundStatus === "string" ? rec.refundStatus : stripeFail ? "failed" : null);
+      setRefundRappen(typeof rec.refundRappen === "number" && rec.refundRappen > 0 ? rec.refundRappen : null);
       setPayoutCountry(typeof rec.payoutCountry === "string" ? rec.payoutCountry : null);
       setAvailableOn(typeof rec.availableOn === "string" ? rec.availableOn : null);
       setRefundFailed(stripeFail);

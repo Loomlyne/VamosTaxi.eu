@@ -32,14 +32,25 @@ next plan to pick up.
 - **Impact:** none on the airport fee (Mapbox/flight driven). City pairs created from ops now get Mapbox-typed zones (26.1-10).
 - **Fix (optional):** retype via ops or owner SQL once the owner confirms.
 
-## Customer cancel copy still shows the old ≤6 h "no refund" window (26.1-17)
+## RESOLVED in 26.1-18 — Customer cancel copy still shows the old ≤6 h "no refund" window (26.1-17)
 
 - **Found during:** 26.1-17 (D-24 SQL tiers).
 - **What:** `apps/web/app/api/manage/booking/route.ts` `cancelWindow()` and `apps/web/app/[locale]/confirmation/[ref]/ConfirmationClient.tsx` `cancelWindowOf()` still classify ≤6 h (and after pickup) as `none`. ConfirmationClient hides the cancel confirm in that window (`canConfirmCancel = … windowKind !== "none"`) and shows `cancelSheetClose` copy. SQL now makes every paid cancel inside 24 h `pending_ops` (admin reviews).
 - **Impact:** a customer inside 6 h is told there is no refund and cannot confirm the cancel from that screen, although the admin would now review it.
 - **Fix:** 26.1-18 (refund UI) or a follow-up: align both helpers with D-24 (>24 h auto_full, else pending_ops for paid bookings) and review the copy in four languages. Owner signs the wording.
 
-## Refunds are now admin-only (26.1-17)
+## RESOLVED in 26.1-18 — Refunds are now admin-only (26.1-17)
 
 - **What:** `POST /api/staff/bookings/:id/refund` moved from `withStaff` to `withAdmin`. A dispatcher's Refund button in `app/ops/OpsDetail.dc.html` now answers 403 `not-admin`.
 - **Fix:** 26.1-18 hides or disables the button for dispatchers and adds the percentage / decline / post-trip controls.
+
+## Confirmation page read does not carry refund facts (26.1-18)
+
+- **Found during:** 26.1-18 Task 3.
+- **What:** `guest_confirmation_read` / `customer_confirmation_read` (`20260924004100_confirmation_read.sql`) return no `refund_status`, `refund_owed_rappen` or `refunded_rappen`. The voucher's refund row (status word + amount, D-23a) is fed only by the cancel response on the same page view; after a reload it is absent. `/api/manage/booking` already carries all three.
+- **Fix:** a migration that adds the three columns to both functions' `booking` object, plus `booking-read.ts` `VisibleBooking` fields. Needs the local Supabase (pgTAP), so it was not done in 26.1-18.
+
+## Cancellation policy copy still describes the 6 h tier (26.1-18)
+
+- **What:** `apps/web/i18n/messages/*.json` keys `24-hours-to-6-hours-before-pickup`, `6-hours-through-pickup-and-after-pickup` and `from-6-hours-before-pickup` (legal/policy table) still describe the pre-D-24 tiers. `checkout.cancelSheetClose` ("Too close to cancel here. Call us.") is no longer rendered.
+- **Fix:** owner legal copy. Not rewritten by an agent.

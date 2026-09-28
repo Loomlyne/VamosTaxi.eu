@@ -39,3 +39,44 @@ describe("staff voucher resend", () => {
     expect(t).toMatch(/data-ops-detail-acts/);
   });
 });
+
+describe("customer refund words and amount (26.1-18, UI-SPEC §2)", () => {
+  const msgs = (lang: string) =>
+    JSON.parse(read(`apps/web/i18n/messages/${lang}.json`)) as { checkout: Record<string, string> };
+
+  it("replaces Pending Ops with Refund under review and adds No refund, in four languages", () => {
+    expect(read("apps/web/i18n/messages/en.json")).not.toContain('"Pending Ops"');
+    const want: Record<string, [string, string]> = {
+      en: ["Refund under review", "No refund"],
+      de: ["Rückerstattung in Prüfung", "Keine Rückerstattung"],
+      fr: ["Remboursement en cours d’examen", "Aucun remboursement"],
+      ar: ["الاسترداد قيد المراجعة", "لا يوجد استرداد"],
+    };
+    for (const [lang, [pending, declined]] of Object.entries(want)) {
+      const c = msgs(lang).checkout;
+      expect(c.refundPendingOps, lang).toBe(pending);
+      expect(c.refundDeclinedLabel, lang).toBe(declined);
+    }
+  });
+
+  it("BookingVoucher maps refund words through the helper and prints the amount with formatAmount", () => {
+    const src = read("apps/web/components/booking/BookingVoucher.tsx");
+    expect(src).toMatch(/voucherRefundLabelKey\(/);
+    expect(src).toMatch(/voucherRefundAmountRappen\(/);
+    expect(src).toMatch(/formatAmount\(refundAmountMajor\)/);
+    expect(src).toMatch(/data-confirmation-refund-amount/);
+    expect(src).toMatch(/refundOwedRappen\?: number \| null/);
+    expect(src).toMatch(/refundedRappen\?: number \| null/);
+  });
+
+  it("customer cancel screens use the shared D-24 window, not a 6 hour cut-off", () => {
+    const route = read("apps/web/app/api/manage/booking/route.ts");
+    const client = read("apps/web/app/[locale]/confirmation/[ref]/ConfirmationClient.tsx");
+    for (const src of [route, client]) {
+      expect(src).toMatch(/customerCancelWindow\(/);
+      expect(src).not.toMatch(/hours > 6/);
+    }
+    expect(client).not.toMatch(/cancelSheetClose/);
+    expect(client).toMatch(/refundRappen/);
+  });
+});

@@ -667,6 +667,14 @@
       extras: Array.isArray(b.extras) ? b.extras.map(str).filter(Boolean) : [],
       fareLines: Array.isArray(b.fareLines) ? b.fareLines : [],
       refundRappen: num(b.refundRappen, 0),
+      // 26.1-18: refund review facts from the staff read model (D-07/D-24/D-25).
+      refundStatus: str(b.refundStatus) || "none",
+      refundOwedRappen: b.refundOwedRappen == null || b.refundOwedRappen === "" ? null : num(b.refundOwedRappen, 0),
+      capturedRappen: num(b.capturedRappen, 0),
+      tripPassed: b.tripPassed === true,
+      dispute: b.dispute && typeof b.dispute === "object" && str(b.dispute.status)
+        ? { status: str(b.dispute.status), reason: str(b.dispute.reason) }
+        : null,
       stripeFeeRappen: b.stripeFeeRappen == null || b.stripeFeeRappen === "" ? null : num(b.stripeFeeRappen, 0),
       events: Array.isArray(b.events) ? b.events : []
     };

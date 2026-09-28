@@ -85,6 +85,12 @@ export async function loadBookings(
         ed.edit_quote_total,
         ed.extra_session_id,
         rf.refund_rappen,
+        b.refund_status,
+        b.refund_owed_rappen,
+        cap.captured_rappen,
+        coalesce(tp.trip_passed, false) as trip_passed,
+        dsp.status as dispute_status,
+        dsp.reason as dispute_reason,
         snap.duration_min,
         snap.distance_km,
         snap.coupon_code,
@@ -135,7 +141,8 @@ export async function loadBookings(
         select
           min(pay.captured_at) filter (where extra.id is null) as captured_at,
           coalesce(sum(pay.charged_rappen) filter (where pay.captured_at is not null and extra.id is null), 0) as charged_rappen,
-          coalesce(sum(pay.charged_rappen) filter (where pay.captured_at is not null and extra.id is not null), 0) as extra_rappen
+          coalesce(sum(pay.charged_rappen) filter (where pay.captured_at is not null and extra.id is not null), 0) as extra_rappen,
+          coalesce(sum(pay.charged_rappen) filter (where pay.captured_at is not null), 0) as captured_rappen
         from public.booking_payments pay
         left join public.booking_edit_requests extra
           on extra.extra_snapshot_id = pay.snapshot_id
@@ -154,6 +161,22 @@ export async function loadBookings(
         order by r.created_at desc
         limit 1
       ) ed on true
+      -- D-25: the trip has happened once the earliest leg's original pickup is past.
+      -- Computed with SQL now() so the Worker clock never decides it.
+      left join lateral (
+        select min(bl.original_scheduled_at) <= now() as trip_passed
+        from public.booking_legs bl
+        where bl.booking_id = b.id
+      ) tp on true
+      -- D-07: latest Stripe dispute only (staff SELECT under RLS). Status word
+      -- and reason code, never evidence text.
+      left join lateral (
+        select d.status, d.reason
+        from public.booking_disputes d
+        where d.booking_id = b.id
+        order by d.stripe_created desc
+        limit 1
+      ) dsp on true
       left join lateral (
         select coalesce(sum(br.refund_rappen), 0) as refund_rappen
         from public.booking_refunds br
