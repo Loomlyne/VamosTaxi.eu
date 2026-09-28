@@ -6,6 +6,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import { useSearchParams } from "next/navigation";
 import { Alert } from "@/components/feedback/Alert";
 import { Dialog } from "@/components/feedback/Dialog";
 import { Button, Card, Icon } from "@/components/core";
@@ -135,6 +136,9 @@ export function ConfirmationClient({
   const t = useTranslations("checkout");
   const tCommon = useTranslations("common");
   const [draft] = useBookingDraft();
+  // 26.1-16 (D-22): the return route adds charge=refunded when this payer's
+  // charge lost the race and was refunded. Display hint only.
+  const chargeRefunded = useSearchParams()?.get("charge") === "refunded";
   const [phase, setPhase] = useState<ConfirmationPhase>(initialPhase);
   const [liveStatus, setLiveStatus] = useState(booking?.status ?? "");
   const [livePayment, setLivePayment] = useState(booking?.paymentStatus ?? null);
@@ -382,6 +386,17 @@ export function ConfirmationClient({
           ) : null}
         </p>
       </div>
+
+      {chargeRefunded ? (
+        <Alert
+          tone="info"
+          role="status"
+          title={t("payLinkRaceRefundedTitle")}
+          data-confirmation-charge-refunded
+        >
+          {t("payLinkRaceRefundedBody")}
+        </Alert>
+      ) : null}
 
       <BookingVoucher
         locale={locale}

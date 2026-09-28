@@ -10,6 +10,7 @@ import {
   payStateFromOpen,
   sessionIdFromClientSecret,
   splitAroundMarker,
+  storedPayLinkSessionId,
 } from "./pay-client-states";
 import { returnSettleOutcome } from "./return-settle";
 
@@ -93,6 +94,17 @@ describe("sessionIdFromClientSecret", () => {
     expect(sessionIdFromClientSecret("")).toBeNull();
     expect(sessionIdFromClientSecret(undefined)).toBeNull();
     expect(sessionIdFromClientSecret(12)).toBeNull();
+  });
+});
+
+describe("storedPayLinkSessionId", () => {
+  it("keeps a Checkout Session id and drops anything else", () => {
+    expect(storedPayLinkSessionId("cs_test_abc")).toBe("cs_test_abc");
+    expect(storedPayLinkSessionId("cs_live_A1")).toBe("cs_live_A1");
+    expect(storedPayLinkSessionId("cs_test_abc_secret_x")).toBeNull();
+    expect(storedPayLinkSessionId("pi_123")).toBeNull();
+    expect(storedPayLinkSessionId(null)).toBeNull();
+    expect(storedPayLinkSessionId("")).toBeNull();
   });
 });
 

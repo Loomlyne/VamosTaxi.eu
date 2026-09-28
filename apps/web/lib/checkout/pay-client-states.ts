@@ -63,6 +63,13 @@ export function sessionIdFromClientSecret(secret: unknown): string | null {
   return checkoutSessionIdFromSecret(secret) || null;
 }
 
+const SESSION_ID = /^cs_(?:test|live)_[A-Za-z0-9]+$/;
+
+/** A session id read back from sessionStorage, or null when it is not one. Display hint only. */
+export function storedPayLinkSessionId(value: unknown): string | null {
+  return typeof value === "string" && SESSION_ID.test(value) ? value : null;
+}
+
 /** sessionStorage key for the recipient's own session id: the token's first 12 characters. */
 export function payLinkSessionKey(token: string): string {
   const normalized = token.trim().replace(/\s+/g, "");

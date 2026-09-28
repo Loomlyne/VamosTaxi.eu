@@ -48,7 +48,10 @@ const COPY = {
 describe("token pay refusal", () => {
   const src = read("../../app/[locale]/checkout/pay/[token]/PayClient.tsx");
   const zero = sliceFunction(src, "onPayLinkLockZero");
-  const gate = sliceFunction(src, "chargeGateAlert");
+  // 26.1-16: the charge-gate table moved into the pure pay-link state mapper
+  // that PayClient now reads every open answer through.
+  const states = read("./pay-client-states.ts");
+  const gate = sliceFunction(states, "chargeGateAlert");
   const pay = sliceFunction(src, "async function onPay");
   const timerStart = src.indexOf("if (!clientSecret || !lockExpiresAt)");
   const timerEnd = src.indexOf("async function onPay");
@@ -92,6 +95,11 @@ describe("token pay refusal", () => {
     expect(src).not.toContain(
       'quote_already_booked" ? "quoteAlreadyBooked" : "paymentWindowClosed"',
     );
+    expect(states).not.toContain(
+      'quote_already_booked" ? "quoteAlreadyBooked" : "paymentWindowClosed"',
+    );
+    expect(src).toContain("payStateFromOpen(json)");
+    expect(src).not.toContain("function chargeGateAlert");
   });
 
   it("locks at lock_expires_at without confirming or restarting the clock", () => {

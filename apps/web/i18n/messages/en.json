@@ -463,6 +463,12 @@
     "quoteAlreadyBooked": "This quote already has a booking.",
     "paymentWindowClosed": "The payment window closed. Get a new quote.",
     "payCouldNotStart": "Payment did not start. Try Pay and continue again.",
+    "payLinkAlreadyPaidTitle": "Already paid",
+    "payLinkAlreadyPaidBody": "No need to pay again — {reference} is confirmed.",
+    "payLinkRaceRefundedTitle": "Payment received twice — refunded",
+    "payLinkRaceRefundedBody": "Your card was charged and automatically refunded because the booking was already paid. No action needed.",
+    "payLinkExpiredTitle": "This payment link has expired",
+    "payLinkExpiredBody": "It was open for 24 hours and closed automatically. Contact the traveller for a new one.",
     "emailFailed": "The pay link was not sent. The booking is saved. Send the link again.",
     "completeCard": "Enter the card number, expiry and CVC.",
     "requote": "Get a new quote",
@@ -2549,6 +2555,7 @@
       "fleet.tesla-model-y"
     ],
     "noParamKeys": {
+      "checkout.payLinkExpiredBody": "fixed 24-hour pay-link hold policy (D-20), not a live count",
       "partner.mercedes-v-class-7-seats": "fixed vehicle-class specification copy, not a live count",
       "partner.professional-driving-licence-category-b121": "fixed licence category code, not a live count",
       "home.your-driver-is-booked-for-your-exact-pickup-time": "fixed example clock time, not a live count",
