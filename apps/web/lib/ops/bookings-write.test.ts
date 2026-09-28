@@ -153,3 +153,42 @@ describe("cancelBooking expires open Stripe Checkout Sessions (D-04)", () => {
     expect(expireCheckoutSession).not.toHaveBeenCalled();
   });
 });
+
+describe("updateBooking class edit (D-14)", () => {
+  const ENV = {} as CloudflareEnv;
+  const CLAIMS = { sub: "staff-1", role: "authenticated" } as VamosClaims;
+  const BOOKING_ID = "00000000-0000-4000-8000-000000000002";
+
+  /** Runs updateBooking with a recording sql tag; returns the slug bound in the class update. */
+  async function classSlugFor(klass: string): Promise<unknown> {
+    const calls: { text: string; values: unknown[] }[] = [];
+    asStaff.mockReset();
+    asStaff.mockImplementation(async (_env: CloudflareEnv, _claims: unknown, fn: (sql: unknown) => unknown) => {
+      const sql = async (strings: TemplateStringsArray, ...values: unknown[]) => {
+        calls.push({ text: strings.join("?"), values });
+        if (calls.length === 1) return [{ id: BOOKING_ID }];
+        if (calls.length === 2) return [{ id: 1 }];
+        return [];
+      };
+      return fn(sql);
+    });
+    const { updateBooking } = await import("./bookings-write");
+    const result = await updateBooking(ENV, CLAIMS, "VT-2", { klass });
+    expect(result).toEqual({ ok: true });
+    const leg = calls.find((c) => c.text.includes("vehicle_class_id = case"));
+    expect(leg).toBeDefined();
+    const at = leg!.text.split("?").findIndex((part) => part.includes("vehicle_class_id = case"));
+    return leg!.values[at];
+  }
+
+  it("resolves Economy, Business and Van luxury to the live slugs", async () => {
+    expect(await classSlugFor("Economy")).toBe("saden");
+    expect(await classSlugFor("Business")).toBe("mercedes-benz-v-class");
+    expect(await classSlugFor("Van luxury")).toBe("van-luxury");
+  });
+
+  it("accepts a live slug and keeps the stored class for First", async () => {
+    expect(await classSlugFor("mercedes-benz-v-class")).toBe("mercedes-benz-v-class");
+    expect(await classSlugFor("First")).toBeNull();
+  });
+});

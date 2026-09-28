@@ -94,7 +94,7 @@ describe("presentVehicles", () => {
         nightChauffeurId: null,
       },
     ]);
-    expect(presented[0]?.klass).toBe("Van");
+    expect(presented[0]?.klass).toBe("Van luxury");
     expect(presented[0]?.year).toBe("2019");
     expect(presented[0]?.photo).toBe("vehicles/11111111-1111-4111-8111-111111111111/a.jpg");
     expect(JSON.stringify(presented)).not.toMatch(/CHF/);
@@ -114,7 +114,7 @@ describe("parseVehicleBody", () => {
       photo: "vehicles/x/y.jpg",
     });
     expect(parsed.id).toBeNull();
-    expect(parsed.classSlug).toBe("business");
+    expect(parsed.classSlug).toBe("mercedes-benz-v-class");
     expect(parsed.input.firstRegistered).toBe(2018);
     expect(parsed.input.photoPath).toBe("vehicles/x/y.jpg");
   });
@@ -135,6 +135,27 @@ describe("parseVehicleBody", () => {
   it("does not treat First as a shipped class", () => {
     expect(klassToSlug("First")).toBeNull();
     expect(slugToKlass("economy")).toBe("Economy");
+  });
+
+  it("D-14: a vehicle save by class name lands on the live class slug", () => {
+    for (const [klass, slug] of [
+      ["Economy", "saden"],
+      ["Business", "mercedes-benz-v-class"],
+      ["Van luxury", "van-luxury"],
+    ] as const) {
+      const parsed = parseVehicleBody({ klass, model: "M", plate: "ZH 1", seats: 3, bags: 3 });
+      expect(parsed.classSlug, klass).toBe(slug);
+      expect(parsed.input.vehicleClassId).toBe("");
+    }
+    expect(parseVehicleBody({ classSlug: "van-luxury", model: "M" }).classSlug).toBe("van-luxury");
+  });
+
+  it("D-14: live and legacy slugs present as the three classes", () => {
+    expect(slugToKlass("saden")).toBe("Economy");
+    expect(slugToKlass("mercedes-benz-v-class")).toBe("Business");
+    expect(slugToKlass("van-luxury")).toBe("Van luxury");
+    expect(slugToKlass("van")).toBe("Van luxury");
+    expect(slugToKlass("business")).toBe("Business");
   });
 });
 
