@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-09-23)
 Phase: 26.1 (Payment and pricing integrity) — EXECUTING
 Plan: 8 of 31
 Status: Ready to execute
-Last activity: 2026-09-28 - Completed quick task 260928-lux: Fix phone booking dead end: Show fixed prices goes to checkout trip
+Last activity: 2026-09-28 - Completed quick task 260928-cpn: coupon recovery after a failed reprice; ops detail wording ar, fr, de
 
 Phase 21 execution note (not current): planning complete — 8 plans. Execution started 2026-09-22 on `gsd/phase-21-charge-gate`. That position was Phase 21 EXECUTING, plan 1 of 8. Phase 21 is not complete. Do not execute Phase 16/17/19/20. Do not touch the main checkout from that branch note.
 
