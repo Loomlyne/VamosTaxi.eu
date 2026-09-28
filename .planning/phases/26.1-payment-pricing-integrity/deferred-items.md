@@ -60,9 +60,9 @@ next plan to pick up.
 
 - **Found during:** pre-Ship verification at f966e25d (`26.1-VERIFICATION.md`, warning 2).
 - **What:** the checkout total adds every selected amount-kind extra from the price book that the lock does not pin (`apps/web/lib/checkout/extras-catalog.ts` `extraRappenOutsideLock`). The intent body sends child seat, oversized luggage and extra stop only (`CheckoutClient.tsx` `quoteExtras`), and the server recognises those three only (`lockHasExtra`; `apps/web/lib/checkout/intent.ts:321-324`). A fourth kind of passenger extra with a price would show in the total and would not be charged or recorded.
-- **State on live, read-only check 2026-09-28 22:45 (+04):** `GET /api/checkout/extras` returns one extra, `child-seat`. The gap cannot occur with today's price book.
-- **Operating rule until fixed:** do not add a new kind of passenger extra in the dashboard.
-- **Owner decision 2026-09-28:** deferred to 26.2, not part of the 26.1 Ship.
+- **State on live, read-only checks 2026-09-28:** the live price book (row 18) and the draft (row 19) each hold one passenger extra, spelled `child-seat` with a hyphen. The code matches `child_seat` with an underscore only (`extraIsOn`, `lockHasExtra`, `quoteExtras`; `normalizeSurchargeCode` maps `ski` and `waiting` only). So the gap DOES occur today, on the live site too (same code on main): a selected child seat is added to the total on screen, is not sent to the server, is not charged and is not recorded on the booking. The tile shows the raw code as its label. An earlier version of this note said the gap could not occur; that was wrong (corrected after the focused pre-Ship check, `26.1-VERIFICATION.md` at 200b153d).
+- **Operating rule until fixed:** do not add a new kind of passenger extra in the dashboard. Treat every booking as "child seat unknown" and ask the customer.
+- **Owner decision 2026-09-28:** deferred to 26.2 on the wrong premise above. Re-asked the same evening with the corrected facts; see the next decision in STATE.md / the Ship report.
 - **Fix:** the server prices every selected catalog extra from the price book (or the screen shows only the extras the server charges); tests on both sides.
 
 ## OPEN for 26.2 — Smaller checkout items from the pre-Ship verification (2026-09-28)
