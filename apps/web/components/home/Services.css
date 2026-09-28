@@ -30,7 +30,7 @@
   display: grid;
   gap: var(--vt-space-5, 20px);
   grid-template-columns: minmax(0, 1fr);
-  width: 100%;
+  inline-size: 100%;
   align-items: stretch;
 }
 
