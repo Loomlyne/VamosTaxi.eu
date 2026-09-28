@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { extraWaitFromArrival } from "./bookings-map";
+import { extraWaitFromArrival, mapBoardBooking, type SqlBoardRow } from "./bookings-map";
 import type { VamosClaims } from "../db/identity";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -190,5 +190,93 @@ describe("updateBooking class edit (D-14)", () => {
   it("accepts a live slug and keeps the stored class for First", async () => {
     expect(await classSlugFor("mercedes-benz-v-class")).toBe("mercedes-benz-v-class");
     expect(await classSlugFor("First")).toBeNull();
+  });
+});
+
+describe("detail read model carries refund review and dispute facts (D-07, D-24, D-25)", () => {
+  const base: SqlBoardRow = {
+    id: "22222222-2222-2222-2222-222222222222",
+    reference: "VT-26-0808",
+    status: "cancelled",
+    contact_name: "Ada",
+    contact_email: "ada@example.com",
+    contact_phone: null,
+    company_name: null,
+    note: null,
+    pay_link_sent_at: null,
+    pickup_text: "Zurich Airport (ZRH)",
+    dropoff_text: "Zurich city",
+    scheduled_local: "2026-09-24T15:50",
+    scheduled_at: "2026-09-24T15:50:00+00",
+    flight_no: null,
+    pax: 1,
+    bags: 0,
+    class_slug: "economy",
+    chauffeur_name: null,
+    payment_status: "succeeded",
+    captured_at: "2026-09-20T10:00:00.000Z",
+    payment_created_at: "2026-09-20T09:59:00.000Z",
+    stripe_checkout_session_id: "cs_test_1",
+    charged_rappen: 12000,
+  };
+
+  it("maps a pending_ops booking with the captured amount and no owed amount yet", () => {
+    const row = mapBoardBooking({
+      ...base,
+      refund_status: "pending_ops",
+      refund_owed_rappen: null,
+      captured_rappen: 12000,
+      trip_passed: false,
+      dispute_status: null,
+      dispute_reason: null,
+    });
+    expect(row.refundStatus).toBe("pending_ops");
+    expect(row.capturedRappen).toBe(12000);
+    expect(row.refundOwedRappen).toBeNull();
+    expect(row.tripPassed).toBe(false);
+    expect(row.dispute).toBeNull();
+  });
+
+  it("maps a completed paid booking as trip passed", () => {
+    const row = mapBoardBooking({
+      ...base,
+      status: "completed",
+      refund_status: "none",
+      refund_owed_rappen: null,
+      captured_rappen: "12000",
+      trip_passed: true,
+    });
+    expect(row.tripPassed).toBe(true);
+    expect(row.refundStatus).toBe("none");
+    expect(row.paid).toBe(true);
+  });
+
+  it("maps a dispute row to status and reason; none maps to null", () => {
+    const row = mapBoardBooking({
+      ...base,
+      status: "completed",
+      dispute_status: "needs_response",
+      dispute_reason: "fraudulent",
+    });
+    expect(row.dispute).toEqual({ status: "needs_response", reason: "fraudulent" });
+    const plain = mapBoardBooking(base);
+    expect(plain.dispute).toBeNull();
+    expect(plain.refundStatus).toBe("none");
+    expect(plain.tripPassed).toBe(false);
+    expect(plain.refundOwedRappen).toBeNull();
+  });
+
+  it("keeps an owed amount once the admin has decided", () => {
+    const row = mapBoardBooking({ ...base, refund_status: "refunded", refund_owed_rappen: 4800 });
+    expect(row.refundOwedRappen).toBe(4800);
+  });
+
+  it("reads the facts from SQL: refund columns, trip passed at now(), latest dispute", () => {
+    const src = read("bookings.ts");
+    expect(src).toMatch(/b\.refund_status/);
+    expect(src).toMatch(/b\.refund_owed_rappen/);
+    expect(src).toMatch(/min\(bl\.original_scheduled_at\) <= now\(\)/);
+    expect(src).toMatch(/from public\.booking_disputes/);
+    expect(src).toMatch(/order by d\.stripe_created desc/);
   });
 });
