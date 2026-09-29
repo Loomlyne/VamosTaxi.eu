@@ -128,6 +128,23 @@ Nothing is sent to Meta by this phase.
   manage-booking, ops/dashboard or any URL carrying a booking reference. Cached marketing HTML
   carries no pixel and no per-visitor state.
 
+### Owner answers at planning (2026-09-30, question form)
+- **D-29 (PS-1):** /cookies section 06: remove the lead "Nothing in this category is running
+  today…"; the table caption becomes "Marketing"; the table row is the §2 Meta text. No new wording.
+- **D-30 (PS-2):** /cookies necessary table: the row name `vamos:cookie-prefs` becomes
+  `consent_subject · vamosCookieConsent`, duration "1 year". Purpose ("Records which categories you
+  allowed, so we can prove it and stop asking") and provider unchanged. Four languages; only the
+  name and "1 year" change.
+- **D-31 (dates):** only the changed pages move. /cookies and /privacy "Last updated" = the ship day
+  = `CONSENT_POLICY_VERSION`. /terms, /cancellation, /imprint keep 30 September 2026. Privacy stops
+  reading the shared `LEGAL_UPDATED` (or gets its own date); the shared one stays for the other three.
+- **D-32:** /coming-soon gets the banner like every other customer page.
+- **D-33 (Claude's discretion, from research):** if the state check fails, the banner shows
+  (fail open to asking, never to "chosen"). Turnstile is required whenever the new row would have
+  marketing on (Accept all, or Save choices with Marketing on); Necessary only never waits.
+  The footer "Cookie preferences" on Next pages must only open the sheet; today it silently writes
+  an all-off row (`SiteFooter.tsx` `CookiePrefsListener`) — fix.
+
 ### Policy version
 - **D-17:** `CONSENT_POLICY_VERSION` becomes the Zurich date of the day the texts ship (Phase 26
   D-13, D-15). Same string shown as the date on the cookies and privacy pages. The two September

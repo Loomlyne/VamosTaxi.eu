@@ -14,6 +14,10 @@
 | 5 | Marco signs up on /sign-up; nothing records his agreement once the cookie row goes. What should happen? | Use the 26.5 record (Recommended) / Record nothing for now | Use the 26.5 record |
 | 6 | Banner code: keep our banner (A) or vanilla-cookieconsent (B)? Example Lena on a pay link | A. Keep our banner (Recommended) / B. vanilla-cookieconsent | B |
 | 7 | Control session relayed "keep our banner"; asked again: A or B? | A. Keep our banner / B. vanilla-cookieconsent | A (replaces 6) |
+| 8 | /cookies section 06 lead sentence and caption | Remove (Recommended) / Keep until 28 | Remove |
+| 9 | /cookies row vamos:cookie-prefs | Fix name and duration (Recommended) / Leave | Fix name and duration |
+| 10 | Last-updated dates | Only changed pages move (Recommended) / All five | Only changed pages |
+| 11 | /coming-soon banner | Yes (Recommended) / No | Yes |
 
 Not asked, already decided: the three texts (decision file 2026-09-30), the version bump and
 re-ask (Phase 26 D-13, D-14), the banner on the pay link (META-04), phase order.
