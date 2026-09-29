@@ -212,8 +212,8 @@ describe("previously untranslated auth strings", () => {
       const src = read(file);
       const tmpl = src.slice(src.indexOf("</helmet>"), src.indexOf('<script type="text/x-dc"'));
       const found = new Set<string>();
-      for (const m of tmpl.matchAll(/>([^<>{}]+)</g)) found.add(m[1].replace(/\s+/g, " ").trim());
-      for (const m of tmpl.matchAll(/\s(?:label|title|hint|aria-label|alt)="([^"{}]+)"/g)) found.add(m[1]);
+      for (const m of tmpl.matchAll(/>([^<>{}]+)</g)) found.add((m[1] ?? "").replace(/\s+/g, " ").trim());
+      for (const m of tmpl.matchAll(/\s(?:label|title|hint|aria-label|alt)="([^"{}]+)"/g)) found.add(m[1] ?? "");
       for (const text of found) {
         if (!/[A-Za-z]/.test(text) || text === "Anna" || text === "Keller") continue;
         if (!dict[text]) missing.push(`${file}: ${text}`);
