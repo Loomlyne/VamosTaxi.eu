@@ -1,5 +1,6 @@
 // apps/web/tests/visual/legal-notice.spec.ts
 import { test, expect } from "../support/test";
+import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 
@@ -12,12 +13,12 @@ test.describe("LanguageCoverageNotice @component", () => {
   test.beforeAll(async ({}, testInfo) => {
     testInfo.setTimeout(90_000);
     const ports: Record<string, number> = {
-      "component-1440": 4130,
-      "component-1024": 4131,
-      "component-768": 4132,
-      "component-390": 4133,
+      "component-1440": testPort(4130),
+      "component-1024": testPort(4131),
+      "component-768": testPort(4132),
+      "component-390": testPort(4133),
     };
-    const port = ports[testInfo.project.name] ?? 4139;
+    const port = ports[testInfo.project.name] ?? testPort(4139);
     baseURL = `http://localhost:${port}`;
     devServer = spawn(NEXT_BIN, ["dev", "-p", String(port)], {
       cwd: WEB_ROOT,

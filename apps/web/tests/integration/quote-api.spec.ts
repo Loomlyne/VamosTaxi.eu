@@ -6,6 +6,7 @@
 // the harness (QUOTE_TEST_STUB_GEO) rather than skipped.
 
 import { test, expect } from "../support/test";
+import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 
@@ -65,7 +66,7 @@ function collectStrings(value: unknown, acc: string[] = []): string[] {
 test.beforeAll(async ({}, testInfo) => {
   if (testInfo.project.name !== RUN_PROJECT) return;
   testInfo.setTimeout(90_000);
-  const port = 4100 + testInfo.workerIndex;
+  const port = testPort(4100) + testInfo.workerIndex;
   baseURL = `http://localhost:${port}`;
   devServer = spawn(NEXT_BIN, ["dev", "-p", String(port)], {
     cwd: WEB_ROOT,

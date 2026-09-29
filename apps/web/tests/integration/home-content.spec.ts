@@ -2,14 +2,15 @@
 // Fail loudly if the local stack is down — never skip.
 
 import { test, expect } from "../support/test";
+import { testPort } from "../support/port";
 import { execFileSync, spawn, type ChildProcess } from "node:child_process";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 
 const RUN_PROJECT = "component-1440";
-const LIVE_PORT = 4260;
-const DEAD_PORT = 4261;
+const LIVE_PORT = testPort(4260);
+const DEAD_PORT = testPort(4261);
 const OWNER_CS = "postgres://postgres:postgres@127.0.0.1:54322/postgres";
 const DEAD_CS = "postgres://vamos_public:***@127.0.0.1:1/postgres";
 const MAIN_NEXT = join("/Users/koss/Developer/VamosTaxi.eu/apps/web/node_modules/.bin/next");

@@ -31,6 +31,7 @@
 // Tagged "@dev-exclusion" per this plan's own artifact list.
 
 import { test, expect } from "../support/test";
+import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { existsSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
@@ -112,7 +113,7 @@ test.describe("Dev gallery production exclusion @dev-exclusion", () => {
 
   test("a genuine production deploy (no DEPLOY_ENV) returns not-found for every walked /dev route, with the noindex header still present", async ({}, testInfo) => {
     testInfo.setTimeout(120_000);
-    const port = 4200 + testInfo.workerIndex;
+    const port = testPort(4200) + testInfo.workerIndex;
     const baseURL = `http://localhost:${port}`;
     // `DEPLOY_ENV` genuinely absent (deleted, not set to an empty string) — matching
     // `apps/web/wrangler.jsonc`'s own documented state under `env.production`, which
@@ -141,7 +142,7 @@ test.describe("Dev gallery production exclusion @dev-exclusion", () => {
 
   test("staging (DEPLOY_ENV=staging) resolves the gallery and /dev/quote normally, with the noindex header present", async ({}, testInfo) => {
     testInfo.setTimeout(60_000);
-    const port = 4300 + testInfo.workerIndex;
+    const port = testPort(4300) + testInfo.workerIndex;
     const baseURL = `http://localhost:${port}`;
     const server = spawn(NEXT, ["start", "-p", String(port)], {
       cwd: WEB_ROOT,

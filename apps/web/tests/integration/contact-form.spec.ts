@@ -4,6 +4,7 @@
 // (D-10 / apps/web restricted-imports).
 
 import { test, expect } from "../support/test";
+import { testPort } from "../support/port";
 import { execFileSync, spawn, type ChildProcess } from "node:child_process";
 import { join } from "node:path";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
@@ -16,8 +17,8 @@ const EDGE_CS = "postgres://vamos_edge:vamos_edge@127.0.0.1:54322/postgres";
 const NEXT = process.env.NEXT_BIN ?? NEXT_BIN;
 const DB_ROOT = join(WEB_ROOT, "..", "..", "packages", "db");
 
-const PASS_PORT = 4200;
-const FAIL_PORT = 4201;
+const PASS_PORT = testPort(4200);
+const FAIL_PORT = testPort(4201);
 
 let passServer: ChildProcess | null = null;
 let failServer: ChildProcess | null = null;

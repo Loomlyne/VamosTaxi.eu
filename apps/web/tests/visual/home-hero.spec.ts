@@ -1,12 +1,13 @@
 import { test, expect } from "../support/test";
+import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 
 const PORTS: Record<string, number> = {
-  "component-1440": 4160,
-  "component-1024": 4161,
-  "component-768": 4162,
-  "component-390": 4163,
+  "component-1440": testPort(4160),
+  "component-1024": testPort(4161),
+  "component-768": testPort(4162),
+  "component-390": testPort(4163),
 };
 
 const LOCALES = ["en", "de", "fr", "ar"] as const;
@@ -24,7 +25,7 @@ test.describe("Home hero @component", () => {
 
   test.beforeAll(async ({}, testInfo) => {
     testInfo.setTimeout(90_000);
-    const port = PORTS[testInfo.project.name] ?? 4169;
+    const port = PORTS[testInfo.project.name] ?? testPort(4169);
     baseURL = `http://localhost:${port}`;
     devServer = spawn(NEXT_BIN, ["dev", "-p", String(port)], {
       cwd: WEB_ROOT,

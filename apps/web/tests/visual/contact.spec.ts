@@ -1,14 +1,15 @@
 import { test, expect, type Page } from "../support/test";
+import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { waitForNextServer, WEB_ROOT } from "../support/server-harness";
 
 const PORTS: Record<string, number> = {
-  "component-1440": 4250,
-  "component-1024": 4251,
-  "component-768": 4252,
-  "component-390": 4253,
+  "component-1440": testPort(4250),
+  "component-1024": testPort(4251),
+  "component-768": testPort(4252),
+  "component-390": testPort(4253),
 };
 
 const LOCALES = ["en", "de", "fr", "ar"] as const;
@@ -45,7 +46,7 @@ test.describe("Contact page and form @component", () => {
 
   test.beforeAll(async ({}, testInfo) => {
     testInfo.setTimeout(240_000);
-    const port = PORTS[testInfo.project.name] ?? 4259;
+    const port = PORTS[testInfo.project.name] ?? testPort(4259);
     baseURL = `http://localhost:${port}`;
     devServer = spawn(NEXT_BIN, ["dev", "-p", String(port)], {
       cwd: WEB_ROOT,

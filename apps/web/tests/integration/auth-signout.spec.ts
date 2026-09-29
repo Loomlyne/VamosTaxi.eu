@@ -3,12 +3,13 @@
 // is down — never skip.
 
 import { test, expect, type Page, type Response } from "../support/test";
+import { testPort } from "../support/port";
 import { execFileSync, spawn, type ChildProcess } from "node:child_process";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 
-const PORT = 4270;
+const PORT = testPort(4270);
 const RUN_PROJECT = "component-1440";
 const PASSWORD = "password1";
 const OWNER_CS = "postgres://postgres:***@127.0.0.1:54322/postgres";

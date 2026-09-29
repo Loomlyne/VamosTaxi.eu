@@ -18,13 +18,14 @@
 // still picks it up as part of the full run.
 
 import { test, expect, type Page, type BrowserContext, pinReducedTransparency } from "../support/test";
+import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 
 const RUN_PROJECT = "component-1440";
-const PORT = 4280;
+const PORT = testPort(4280);
 const MAIN_NEXT = join("/Users/koss/Developer/VamosTaxi.eu/apps/web/node_modules/.bin/next");
 const NEXT = existsSync(NEXT_BIN) ? NEXT_BIN : MAIN_NEXT;
 

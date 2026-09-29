@@ -4,6 +4,7 @@
 // (D-10 / apps/web restricted-imports).
 
 import { test, expect, type Page } from "../support/test";
+import { testPort } from "../support/port";
 import { execFileSync, spawn, type ChildProcess } from "node:child_process";
 import { join } from "node:path";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
@@ -11,7 +12,7 @@ import deMessages from "../../i18n/messages/de.json";
 
 const RUN_PROJECT = "component-1440";
 const MAIL_URL = "http://127.0.0.1:54324";
-const PORT = 4250;
+const PORT = testPort(4250);
 const PASSWORD = "password1";
 const NEW_PASSWORD = "password2";
 const OWNER_CS = "postgres://postgres:postgres@127.0.0.1:54322/postgres";

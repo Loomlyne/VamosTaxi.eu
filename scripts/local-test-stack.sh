@@ -71,19 +71,27 @@ env_lines() {
   echo "export WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE=postgres://vamos_public:vamos_public@127.0.0.1:$DB_PORT/postgres"
   echo "export WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE_NOCACHE=postgres://vamos_edge:vamos_edge@127.0.0.1:$DB_PORT/postgres"
   echo "export REQUIRE_DB=1"
+  echo "export VAMOS_TEST_PORT_OFFSET=$PORT_OFFSET"
 }
+
+# Spec dev-server ports are 4100-4499 plus VAMOS_TEST_PORT_OFFSET (tests/support/port.ts).
+# A session that shares the Mac sets the offset (e.g. 2000 -> 6100-6499); default 0.
+PORT_OFFSET="${VAMOS_TEST_PORT_OFFSET:-0}"
+case "$PORT_OFFSET" in ''|*[!0-9]*) echo "VAMOS_TEST_PORT_OFFSET must be a non-negative integer" >&2; exit 2;; esac
+PORT_LO=$((4100 + PORT_OFFSET))
+PORT_HI=$((4499 + PORT_OFFSET))
 
 preflight() {
   local bad=0 pid cwd
-  for pid in $(lsof -nP -iTCP:4100-4499 -sTCP:LISTEN -t 2>/dev/null | sort -u); do
+  for pid in $(lsof -nP -iTCP:$PORT_LO-$PORT_HI -sTCP:LISTEN -t 2>/dev/null | sort -u); do
     cwd="$(lsof -a -p "$pid" -d cwd -Fn 2>/dev/null | sed -n 's/^n//p')"
     case "$cwd" in
       "$ROOT"|"$ROOT"/*) ;;
-      *) echo "foreign listener pid $pid (cwd $cwd) on 4100-4499" >&2; bad=1;;
+      *) echo "foreign listener pid $pid (cwd $cwd) on $PORT_LO-$PORT_HI" >&2; bad=1;;
     esac
   done
   [ "$bad" = 0 ] || exit 1
-  echo "preflight ok"
+  echo "preflight ok ($PORT_LO-$PORT_HI)"
 }
 
 cmd="${1:-}"

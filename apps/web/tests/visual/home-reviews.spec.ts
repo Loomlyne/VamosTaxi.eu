@@ -1,14 +1,15 @@
 import { test, expect, emulateMedia } from "../support/test";
+import { testPort } from "../support/port";
 import { existsSync } from "node:fs";
 import { spawn, type ChildProcess } from "node:child_process";
 import { join } from "node:path";
 import { waitForNextServer, WEB_ROOT, NEXT_BIN } from "../support/server-harness";
 
 const PORTS: Record<string, number> = {
-  "component-1440": 4260,
-  "component-1024": 4261,
-  "component-768": 4262,
-  "component-390": 4263,
+  "component-1440": testPort(4260),
+  "component-1024": testPort(4261),
+  "component-768": testPort(4262),
+  "component-390": testPort(4263),
 };
 
 const LOCALES = ["en", "de", "fr", "ar"] as const;
@@ -29,7 +30,7 @@ test.describe("Home reviews @component", () => {
 
   test.beforeAll(async ({}, testInfo) => {
     testInfo.setTimeout(240_000);
-    const port = PORTS[testInfo.project.name] ?? 4260;
+    const port = PORTS[testInfo.project.name] ?? testPort(4260);
     baseURL = `http://localhost:${port}`;
     devServer = spawn(NEXT, ["dev", "-p", String(port)], {
       cwd: WEB_ROOT,

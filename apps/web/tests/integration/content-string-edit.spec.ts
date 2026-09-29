@@ -4,6 +4,7 @@
 // Restores every row it edits. Skips when local Auth is down.
 
 import { existsSync } from "node:fs";
+import { testPort } from "../support/port";
 import { createRequire } from "node:module";
 import { spawn, type ChildProcess } from "node:child_process";
 import { test, expect } from "../support/test";
@@ -16,7 +17,7 @@ import {
 } from "../support/ops-fixtures";
 
 const RUN_PROJECT = "component-1440";
-const PORT = 4280;
+const PORT = testPort(4280);
 const MAIN_NEXT = "/Users/koss/Developer/VamosTaxi.eu/apps/web/node_modules/.bin/next";
 const NEXT_BIN = existsSync(HARNESS_BIN) ? HARNESS_BIN : MAIN_NEXT;
 const MAIN_DB_PKG = "/Users/koss/Developer/VamosTaxi.eu/packages/db/package.json";

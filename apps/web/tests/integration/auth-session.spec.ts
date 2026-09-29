@@ -6,6 +6,7 @@
 // leakage, not a live GoTrue round-trip.
 
 import { test, expect } from "../support/test";
+import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 
@@ -26,7 +27,7 @@ function supabaseEnv(): { SUPABASE_URL: string; SUPABASE_ANON_KEY: string } {
 test.beforeAll(async ({}, testInfo) => {
   if (testInfo.project.name !== RUN_PROJECT) return;
   testInfo.setTimeout(90_000);
-  const port = 4120 + testInfo.workerIndex;
+  const port = testPort(4120) + testInfo.workerIndex;
   baseURL = `http://localhost:${port}`;
   const auth = supabaseEnv();
   devServer = spawn(NEXT_BIN, ["dev", "-p", String(port)], {

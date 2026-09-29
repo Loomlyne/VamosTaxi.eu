@@ -1,9 +1,10 @@
 import { test, expect, type Page } from "../support/test";
+import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 
 const RUN_PROJECT = "component-1440";
-const PORT = 4290;
+const PORT = testPort(4290);
 
 let devServer: ChildProcess | null = null;
 let baseURL = "";

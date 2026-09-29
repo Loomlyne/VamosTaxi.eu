@@ -1,12 +1,13 @@
 import { test, expect } from "../support/test";
+import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 
 const PORTS: Record<string, number> = {
-  "component-1440": 4170,
-  "component-1024": 4171,
-  "component-768": 4172,
-  "component-390": 4173,
+  "component-1440": testPort(4170),
+  "component-1024": testPort(4171),
+  "component-768": testPort(4172),
+  "component-390": testPort(4173),
 };
 
 const STATES = [
@@ -35,7 +36,7 @@ test.describe("Auth forms @component", () => {
 
   test.beforeAll(async ({}, testInfo) => {
     testInfo.setTimeout(90_000);
-    const port = PORTS[testInfo.project.name] ?? 4179;
+    const port = PORTS[testInfo.project.name] ?? testPort(4179);
     baseURL = `http://localhost:${port}`;
     devServer = spawn(NEXT_BIN, ["dev", "-p", String(port)], {
       cwd: WEB_ROOT,

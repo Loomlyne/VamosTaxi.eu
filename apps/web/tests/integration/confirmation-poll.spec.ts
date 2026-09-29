@@ -4,6 +4,7 @@
 // processor. Tagged @checkout.
 
 import { test, expect, type Page } from "../support/test";
+import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 
@@ -30,7 +31,7 @@ test.describe.configure({ mode: "serial" });
 test.beforeAll(async ({}, testInfo) => {
   if (testInfo.project.name !== RUN_PROJECT) return;
   testInfo.setTimeout(180_000);
-  const port = 4230 + testInfo.workerIndex;
+  const port = testPort(4230) + testInfo.workerIndex;
   baseURL = `http://127.0.0.1:${port}`;
   devServer = spawn(NEXT_BIN, ["dev", "-p", String(port)], {
     cwd: WEB_ROOT,

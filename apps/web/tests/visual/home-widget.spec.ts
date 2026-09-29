@@ -1,4 +1,5 @@
 import { test, expect, type Page, emulateMedia } from "../support/test";
+import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
@@ -16,10 +17,10 @@ import type { QuoteResponse } from "../../lib/quote/client-contract";
 import type { ClassBoardEntry } from "../../lib/pricing/types";
 
 const PORTS: Record<string, number> = {
-  "component-1440": 4290,
-  "component-1024": 4291,
-  "component-768": 4292,
-  "component-390": 4293,
+  "component-1440": testPort(4290),
+  "component-1024": testPort(4291),
+  "component-768": testPort(4292),
+  "component-390": testPort(4293),
 };
 
 const LOCALES = ["en", "de", "fr", "ar"] as const;
@@ -116,7 +117,7 @@ test.describe("Home widget @component", () => {
 
   test.beforeAll(async ({}, testInfo) => {
     testInfo.setTimeout(240_000);
-    const port = PORTS[testInfo.project.name] ?? 4290;
+    const port = PORTS[testInfo.project.name] ?? testPort(4290);
     baseURL = `http://localhost:${port}`;
     devServer = spawn(NEXT, ["dev", "-p", String(port)], {
       cwd: WEB_ROOT,

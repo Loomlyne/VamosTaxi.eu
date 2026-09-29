@@ -7,13 +7,14 @@
 // produce. Never skip this test. Do not edit config.toml from this spec.
 
 import { test, expect, type Page } from "../support/test";
+import { testPort } from "../support/port";
 import { execFileSync, spawn, type ChildProcess } from "node:child_process";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 
 const MAIL_URL = "http://127.0.0.1:54324";
-const PORT = 4261;
+const PORT = testPort(4261);
 const PASSWORD = "password1";
 const STACK_DOWN = "Local stack is not running. Run `pnpm db:start && pnpm db:reset`.";
 const MAIN_NEXT = join("/Users/koss/Developer/VamosTaxi.eu/apps/web/node_modules/.bin/next");

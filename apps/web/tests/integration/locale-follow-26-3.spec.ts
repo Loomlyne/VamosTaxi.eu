@@ -5,6 +5,7 @@
 // VamosLocale.setLang writes it on home; the page is opened at its unprefixed address.
 
 import { test, expect, type Page } from "../support/test";
+import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -12,7 +13,7 @@ import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness
 import { openInLocale, setChosenLanguage } from "../support/locale";
 
 const RUN_PROJECT = "component-1440";
-const PORT = 4290;
+const PORT = testPort(4290);
 const REF = "VT-26-0001";
 const DRAFT = {
   pickup: "Zurich Airport (ZRH)",

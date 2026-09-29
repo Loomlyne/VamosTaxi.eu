@@ -1,12 +1,13 @@
 import { test, expect } from "../support/test";
+import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 
 const PORTS: Record<string, number> = {
-  "component-1440": 4213,
-  "component-1024": 4211,
-  "component-768": 4212,
-  "component-390": 4210,
+  "component-1440": testPort(4213),
+  "component-1024": testPort(4211),
+  "component-768": testPort(4212),
+  "component-390": testPort(4210),
 };
 
 const LOCALES = ["en", "de", "fr", "ar"] as const;
@@ -63,7 +64,7 @@ test.describe("FAQ page and gallery @component", () => {
 
   test.beforeAll(async ({}, testInfo) => {
     testInfo.setTimeout(240_000);
-    await startServer(PORTS[testInfo.project.name] ?? 4219);
+    await startServer(PORTS[testInfo.project.name] ?? testPort(4219));
   });
 
   test.beforeEach(async () => {
