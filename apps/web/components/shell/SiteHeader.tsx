@@ -324,8 +324,8 @@ function SiteHeaderView({
   };
 
   const serviceLinks = [
-    { href: "/?service=airport#book", label: t("airport-transfers") },
-    { href: "/?service=city#book", label: t("city-to-city") },
+    { href: "/#book", label: t("airport-transfers") },
+    { href: "/#book", label: t("city-to-city") },
   ];
 
   return (

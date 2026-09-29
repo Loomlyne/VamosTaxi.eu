@@ -4,16 +4,16 @@ Kept by the control session. One page: what is live, what is being built, what w
 the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 
-**Last update:** 2026-09-30 00:50 (+04)
+**Last update:** 2026-09-30 00:23 (+04)
 
 ## Live now
 
 | Item | Value |
 |---|---|
 | Site | https://vamostaxi.site and https://dashboard.vamostaxi.site |
-| main = origin/main | `2bd05b0a` plus planning notes |
-| Worker `vamos` | version `df365445` (same code as `80d51730`; made by adding a secret on 2026-09-29 23:56) |
-| Rollback point | Worker `e885dbb6`, git tag `backup/main-pre-ship-auth` |
+| main = origin/main | `0f58ab6d` plus planning notes |
+| Worker `vamos` | version `2b04648a` |
+| Rollback point | Worker `df365445`, git tag `backup/main-pre-ship-26.4` |
 | Database | migrations up to `20260930210000` applied and read back |
 | Who deploys | the control session, from the owner's Mac. GitHub runs checks, never deploys. |
 
@@ -27,7 +27,13 @@ the owner, what comes next. Updated at every ship and every hand-over.
 | 4 | Dashboard New trip Save | `34af1552` | owner has not reported yet |
 | 5 | Worker reads and writes lists; 16 narrow database reads for the hourly jobs | `34af1552` | VT-26-0743 paid, method recorded; VT-26-0734 cleaned at 17:27 |
 | 6 | Planning rewrite of 19, 20, 26.2 | `34af1552` | signed |
-| 7 | Sign-in and sign-up on the site and the dashboard | `2bd05b0a` | waiting: sign up with a fresh address, tap the link, one 4242 payment |
+| 7 | Sign-in and sign-up on the site and the dashboard | `2bd05b0a` | a second account exists since 2026-09-29 18:03; the other sign-in steps not reported yet |
+
+## Shipped on 2026-09-30
+
+| # | What | Commit | Owner test |
+|---|---|---|---|
+| 8 | Phase 26.4 one form, phone and tablet bar, and 26.4.1 laptop bar | `0f58ab6d` | waiting: look at the laptop bar, book on the phone from Zurich Airport with a child seat, 4242 payment |
 
 ## Legal pages, opened 2026-09-30
 
@@ -46,9 +52,7 @@ Source texts and the comparison: `docs/legal-source/vamostaxi-eu-2026-09-30/` (`
 
 | Lane | Session | Folder under `vamos-wt/` | Branch | State |
 |---|---|---|---|---|
-| 26.4 phone bar and one form | Phase 26.3 booking flow rebuild | `phase-26.4` | `gsd/phase-26.4-one-form` | **Handed over** at `c069737e`, control check clean (2,436 unit tests, build, no migration, no new setting). **Held by the owner:** ships together with the desktop bar. Archived as tag `archive/branch-gsd-phase-26.4-one-form-c069737e`. |
-| 26.4.1 laptop bar | same session | `phase-26.4.1` | `gsd/phase-26.4.1-laptop-bar` | Context, UI-SPEC and plan **signed** (`25d8c9b7`). Picture 3, one row from 1272 px, two rows 1081 to 1271. Plan 01 building, plan 02 is checks and hand-over. Hands over together with 26.4. |
-| 26.5 account choice before payment | same session | `phase-26.5` | `gsd/phase-26.5-checkout-account` | Discuss, UI-SPEC and 7-plan plan **signed**. Build starts only when main contains 26.4 and 26.4.1. **Open:** Worker `vamos` has `SUPABASE_URL` but no `SUPABASE_SERVICE_ROLE_KEY` (names read 2026-09-29 23:50). Without it "Create an account" hides itself. Whether that key belongs on the public Worker is an owner decision, see below. |
+| 26.5 account choice before payment | same session | `phase-26.5` | `gsd/phase-26.5-checkout-account` | Discuss, UI-SPEC and 7-plan plan **signed**. Plan revision 2, 8 plans, signed. The build lock is open since the 26.4 ship (2026-09-30 00:20). **Open:** Worker `vamos` has `SUPABASE_URL` but no `SUPABASE_SERVICE_ROLE_KEY` (names read 2026-09-29 23:50). Without it "Create an account" hides itself. Whether that key belongs on the public Worker is an owner decision, see below. |
 | 26.0 main green | Phase 26.0 main green work session | `main-green-2` | `fix/main-green-2` | Plans 01 to 05, 07, 09 done. 06, 08, 10, 11, 12 left. |
 
 ## Ship order
@@ -58,7 +62,6 @@ One at a time into main. Each later branch takes main in before it hands over.
 | Order | What | Why this place |
 |---|---|---|
 | done | Sign-in and sign-up fix | Shipped 17:47 |
-| 1 | Phase 26.4 together with the desktop bar | Owner decision 2026-09-29 23:45: one ship for both. Waits for the desktop bar hand-over. |
 | 3 | Phase 26.5, account choice before payment | Needs the final checkout from 26.4 |
 | 4 | Phase 26.0 | Shares test files with 26.4; lands after it |
 | 5 | 26.2 → 20 → 19 → 27 → 28 → 29 | Signed order |
@@ -86,10 +89,17 @@ Full text: `.planning/decisions/2026-09-29-checkout-account-notice.md`.
 
 | # | Decision |
 |---|---|
-| 1 | The service-role key is on Worker `vamos` since 2026-09-29 23:56, added by the owner in his terminal. Name read by the control session, value never. Nothing on live reads it until 26.5 ships. |
+| 1 | The service-role key is on Worker `vamos` since 2026-09-29 23:56, added by the owner in his terminal. Name read by the control session, value never. **Correction:** the control session first wrote that nothing on live reads it. That was wrong. Two older features read it and are active since then: the staff digest e-mail (daily at 06:00 Zurich time, to staff) and the dashboard staff invite. Owner decision 2026-09-30: both may keep using it (26.5 D-15); plan 08 of 26.5 moves them onto the one server-only module. |
 | 2 | Both notice texts approved in four languages, as drafted. Not read by a lawyer. |
 | 3 | "Create an account" needs a tick box; the tick is logged server-side. |
 | 4 | "Create an account" goes live with 26.5, consent recorded from the first account. |
+
+## Owed by the control session
+
+| What | Why not yet |
+|---|---|
+| The seven ROADMAP lines from the planning rewrite (19, 20, 26.2, order) and the 26.4 / 26.4.1 rows | 26.4 has landed, so the file is free. Next planning note. |
+| Read the first staff digest run | 2026-09-30 06:00 Zurich time |
 
 ## Waiting for the owner
 

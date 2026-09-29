@@ -596,8 +596,8 @@ class Component extends DCLogic {
       menuLabel: (this.state.menuOpen && !this.state.menuClosing) ? t.close : t.menu,
       toggleMenu: this.toggleMenu, closeMenu: this.closeMenu, onSheetAnimEnd: this.onSheetAnimEnd, menuRootRef: this._menuRoot,
       serviceLinks: [
-        { href: '/?service=airport#book', label: t.airport },
-        { href: '/?service=city#book', label: t.city },
+        { href: '/#book', label: t.airport },
+        { href: '/#book', label: t.city },
       ],
     };
   }

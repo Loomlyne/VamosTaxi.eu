@@ -15,10 +15,6 @@ export type ServicesProps = {
   scrollPerStep?: number;
 };
 
-function serviceHref(service: string): string {
-  return `/?service=${service}#book`;
-}
-
 export async function Services({
   showChauffeurByHour = false,
   mediaTone = "light",
@@ -47,7 +43,7 @@ export async function Services({
         />
         <div data-svc-track="1">
           <ServiceCard
-            href={serviceHref("airport")}
+            href={"/#book"}
             titleId="airport-transfers"
             icon="plane-landing"
             tone={tone}
@@ -57,7 +53,7 @@ export async function Services({
             {tServices("fixed-price-rides-to-and-from-the-airport-timed")}
           </ServiceCard>
           <ServiceCard
-            href={serviceHref("city")}
+            href={"/#book"}
             titleId="city-to-city"
             icon="navigation"
             tone={tone}
@@ -78,7 +74,7 @@ export async function Services({
           </ServiceCard>
           {hourly ? (
             <ServiceCard
-              href={serviceHref("hourly")}
+              href={"/#book"}
               titleId="chauffeur-by-the-hour"
               icon="clock"
               tone={tone}

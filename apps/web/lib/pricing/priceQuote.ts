@@ -206,7 +206,6 @@ function buildClassLines(
       rateVersionId,
       zones: book.zones,
       hasExtraStops,
-      fareKind: input.fare_kind,
     });
     raw.push(fare);
 

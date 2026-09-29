@@ -870,7 +870,7 @@ describe("runRepricePipeline — checkout flight number re-signs the lock (D-08b
     );
     expect(again.ok).toBe(true);
     if (!again.ok) return;
-    // Kernel sees the flight number → airportFeeApplies (D-08b) fires.
+    // Kernel still sees the flight number (kept on the lock); it no longer adds a fee (26.4 D-08).
     expect(captured?.legs[0]?.flight_no).toBe("LX1234");
     expect((await lockLegs(again.lock))[0]?.flight_no).toBe("LX1234");
     // No route change: same quote identity, same deadline (like coupon-only).

@@ -44,11 +44,6 @@ function route(path: PublicRoute): PublicRoute {
   return path;
 }
 
-/** Home, with the service the traveller picked pre-selected on the booking card. */
-function serviceHref(service: string): string {
-  return `${route("/")}?service=${service}#book`;
-}
-
 const FACEBOOK = "https://www.facebook.com/VAMOSTAXISWITZERLAND";
 const INSTAGRAM = "https://www.instagram.com/vamos.taxi?utm_source=qr";
 const YOUTUBE = "https://www.youtube.com/@vamostaxi";
@@ -183,10 +178,10 @@ export function SiteFooter({
       items: (
         <>
           <li>
-            <FooterLink href={serviceHref("airport")} label={t("airport-transfers")} rtl={rtl} />
+            <FooterLink href={`${route("/")}#book`} label={t("airport-transfers")} rtl={rtl} />
           </li>
           <li>
-            <FooterLink href={serviceHref("city")} label={t("city-to-city")} rtl={rtl} />
+            <FooterLink href={`${route("/")}#book`} label={t("city-to-city")} rtl={rtl} />
           </li>
         </>
       ),

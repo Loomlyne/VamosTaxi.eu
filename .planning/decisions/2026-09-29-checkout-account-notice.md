@@ -39,3 +39,8 @@ not been read by a lawyer.
 - Whether the Privacy page already covers customer accounts.
 - Whether the guest path (an account made without a tick) needs its own consent record. Text 2
   informs; it does not ask. The 26.5 session puts this to the owner before the build.
+
+## Added 2026-09-30
+
+The key is read on main by `apps/web/lib/supabase/service.ts` (staff digest, daily at 06:00 Europe/Zurich) and `apps/web/app/[locale]/(ops)/api/staff/invite/route.ts` (staff invite). Both were failing without it and are active since 2026-09-29 23:56. Owner decision (question form, 26.5 session): both may keep using it, written exception 26.5 D-15.
+The account tick and the guest "informed" record are stored in their own table, not in `consent_log`: that table holds cookie choices and Phase 27 reads its latest row. Confirmed by the control session.

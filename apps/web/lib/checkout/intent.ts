@@ -27,8 +27,25 @@ import {
   hostedSessionIsPayable,
 } from "./stripe";
 import { CH_VAT_RATE_BPS } from "./vat";
+import enMessages from "../../i18n/messages/en.json";
+import deMessages from "../../i18n/messages/de.json";
+import frMessages from "../../i18n/messages/fr.json";
+import arMessages from "../../i18n/messages/ar.json";
 import { payableRappen } from "./payable";
 import { percentToHundredths, roundHalfUp } from "../pricing/round";
+
+
+const PRODUCT_NAMES: Record<string, string> = {
+  en: enMessages.checkout.stripeProductName,
+  de: deMessages.checkout.stripeProductName,
+  fr: frMessages.checkout.stripeProductName,
+  ar: arMessages.checkout.stripeProductName,
+};
+
+/** The line Stripe's hosted page shows for every ride: neutral, in the checkout locale (D-14). */
+export function stripeProductName(locale: string | null | undefined): string {
+  return PRODUCT_NAMES[locale ?? "en"] ?? PRODUCT_NAMES.en!;
+}
 
 export type CheckoutCreateBookingRow = {
   booking_id: string;
@@ -525,7 +542,7 @@ async function runWebIntent(
       cancelUrl,
       twint: deps.twint === true,
       selectionFingerprint: fingerprint,
-      productName: "Airport transfer",
+      productName: stripeProductName(body.locale),
     });
 
   const saveDetails = (bookingId: string) => {
