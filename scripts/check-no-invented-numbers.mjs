@@ -25,6 +25,8 @@ const CHF_ALLOW = {
   "apps/web/lib/ops/ops-pricing-tabs.test.ts": "asserts the retired 'CHF 0' copy is absent from the ops page",
   "apps/web/lib/ops/rappen.test.ts": "parser test: CHF 0 stays 0 rappen, not a TBC gap",
   "apps/web/lib/ops/rate-book-draft.test.ts": "parser test: a CHF 0 start fare is a value, not a gap",
+  "packages/emails/src/ConfirmationEmail.test.tsx": "formatter test: synthetic amounts to prove the signed CHF line format, not a fare",
+  "app/ops/OpsPricing.dc.html": "meet and greet is locked at CHF 0 (included for the customer), stated in ops copy; not a fare",
   "packages/db/supabase/migrations/20260913180000_ops_pricing_source.sql":
     "internal column comment on free_wait_minutes (no extra charge inside the free wait), not customer copy",
 };
@@ -72,15 +74,24 @@ function checkChfAndRappen() {
     "apps/web/lib",
     "apps/web/components",
     "apps/web/app",
+    "apps/web/i18n", // message files are what customers read
+    "packages/emails/src",
+    "app", // the live DC mocks and the mock dictionary
     "packages/db/supabase/migrations",
     "packages/db/supabase/tests",
     "packages/db/seed",
   ];
   const files = [];
   for (const r of roots) {
-    walk(join(repoRoot, r), files, (p) => /\.(ts|tsx|js|mjs|sql)$/.test(p));
+    walk(join(repoRoot, r), files, (p) => /\.(ts|tsx|js|mjs|sql|json|html)$/.test(p));
   }
-  const chf = /CHF\s+(?!000\b)\d+/;
+  // Top-level entry files (worker.ts, middleware.ts) sit outside every root above.
+  const webRoot = join(repoRoot, "apps/web");
+  for (const name of existsSync(webRoot) ? readdirSync(webRoot) : []) {
+    if (/\.(ts|tsx|mjs)$/.test(name)) files.push(join(repoRoot, "apps/web", name));
+  }
+  // "CHF 12", "CHF12", "CHF&nbsp;12" — only the CHF 000 placeholder is legal.
+  const chf = /CHF(?:\s|&nbsp;)*(?!000\b|00\.00\b)\d/;
   const rappenAssign = /(\w*_rappen)\s*:\s*(-?\d+)/;
   for (const file of files) {
     const pathRel = rel(file);
@@ -120,8 +131,7 @@ function checkPolicyLiterals() {
       if (commentLine(line)) return;
       for (const { token, re } of patterns) {
         if (!re.test(line)) continue;
-        if (allow(pathRel, token) || allow(pathRel, "60")) continue;
-        if (token === "60" && allow(pathRel, "60")) continue;
+        if (allow(pathRel, token)) continue;
         failures.push(
           `${pathRel}:${i + 1}: policy literal ${token} belongs on settings_versions, not TypeScript (D-40)`,
         );
