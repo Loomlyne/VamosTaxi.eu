@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -243,9 +243,8 @@ describe("webhook and email-hook no-store", () => {
     const hook = readFileSync(join(root, "app/api/auth/email-hook/route.ts"), "utf8");
     expect(hook).toContain("private, no-store");
     expect(hook).toContain("function empty");
-    const invite = readFileSync(join(root, "app/api/checkout/invite/[ref]/route.ts"), "utf8");
-    expect(invite).toContain("private, no-store");
-    expect(invite).not.toContain("new Response(null, { status: 404 })");
+    // 26.3 D-30/D-41: the calendar file route is removed.
+    expect(existsSync(join(root, "app/api/checkout/invite/[ref]/route.ts"))).toBe(false);
     const stripe = readFileSync(join(root, "lib/checkout/webhook.ts"), "utf8");
     expect(stripe).toContain("private, no-store");
     expect(stripe).not.toContain("new Response(null, { status: 400 })");

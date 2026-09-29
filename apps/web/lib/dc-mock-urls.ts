@@ -156,13 +156,14 @@ export function should404MockLeak(pathname: string): boolean {
  * address bar.
  *  - /api/checkout/return   after a payment, and Stripe's own return_url
  *  - /api/auth/callback     sign-up, magic-link and password-reset e-mail links
- *  - /api/checkout/invite/* the calendar file on the confirmation page
+ * The calendar file route (/api/checkout/invite/*) is gone (26.3 D-30/D-41): the
+ * confirmation page has no Add to calendar button, and a document GET there is 404.
  */
 const BROWSER_API_EXACT: readonly string[] = Object.freeze([
   "/api/checkout/return",
   "/api/auth/callback",
 ]);
-const BROWSER_API_ONE_SEGMENT: readonly string[] = Object.freeze(["/api/checkout/invite/"]);
+const BROWSER_API_ONE_SEGMENT: readonly string[] = Object.freeze([]);
 
 function isBrowserApiLink(path: string): boolean {
   if (BROWSER_API_EXACT.includes(path)) return true;

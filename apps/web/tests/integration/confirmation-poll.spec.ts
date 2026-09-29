@@ -90,69 +90,95 @@ async function openConfirmation(page: Page) {
   await expect(page.locator("[data-confirmation]")).toBeVisible();
 }
 
-test("pending then confirmed shows the voucher facts @checkout", async ({ page }) => {
-  let hits = 0;
-  await page.route("**/api/checkout/status/**", async (route) => {
-    hits += 1;
-    const status = hits >= 2 ? "confirmed" : "pending";
-    await route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({ status }),
-    });
-  });
+function stubStatus(page: Page, bodyFor: (hit: number) => Record<string, unknown>) {
+  const counter = { hits: 0 };
+  return page
+    .route("**/api/checkout/status/**", async (route) => {
+      counter.hits += 1;
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(bodyFor(counter.hits)),
+      });
+    })
+    .then(() => counter);
+}
+
+test("confirming then booked swaps in place to the confirmation @checkout", async ({ page }) => {
+  await stubStatus(page, (hit) => ({ status: hit >= 3 ? "confirmed" : "pending" }));
   await openConfirmation(page);
-  await expect(page.locator("[data-confirmation-state=processing]")).toBeVisible();
-  await expect(page.locator("[data-confirmation-state=confirmed]")).toBeVisible({ timeout: 20_000 });
-  await expect(page.locator("[data-confirmation-ref]")).toHaveText(REF);
+  await expect(page.locator("[data-confirmation-state=confirming]")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Confirming your booking" })).toBeVisible();
+  await expect(page.locator("[role=progressbar]")).toBeVisible();
+  await expect(page.locator("[data-confirmation-state=booked]")).toBeVisible({ timeout: 20_000 });
+  await expect(page.locator("[data-confirmation-ref]").first()).toHaveText(REF);
+  await expect(page.getByText("Booked", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Zurich Airport (ZRH)")).toBeVisible();
   await expect(page.getByText("Zürich HB")).toBeVisible();
   await expect(page.getByText("10:00")).toBeVisible();
-  await expect(page.getByText("Vehicle", { exact: true })).toBeVisible();
+  await expect(page.getByText("Travellers", { exact: true })).toBeVisible();
   await expect(page.locator("[data-confirmation-voucher]")).toContainText("CHF");
   await expect(page.locator("[data-confirmation-voucher]")).toContainText("000");
+  await expect(page.getByText(/add to calendar/i)).toHaveCount(0);
+  await expect(page.locator('a[href*="/api/checkout/invite"]')).toHaveCount(0);
+  await expect(page.getByRole("link", { name: /manage booking/i })).toBeVisible();
 });
 
-test("pending still paints the transfer ticket, no voucher wait step @checkout", async ({ page }) => {
-  await page.route("**/api/checkout/status/**", async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({ status: "pending" }),
-    });
-  });
+test("never confirmed: Payment received. after 20 s, no error copy, still polling @checkout", async ({ page }) => {
+  await page.clock.install();
+  const counter = await stubStatus(page, () => ({ status: "pending" }));
   await openConfirmation(page);
-  await expect(page.locator("[data-confirmation-voucher]")).toBeVisible();
-  await expect(page.locator("[data-confirmation-wait]")).toHaveCount(0);
-  await expect(page.getByText("Voucher on this page")).toHaveCount(0);
+  await expect(page.locator("[data-confirmation-state=confirming]")).toBeVisible();
+  // The first status GET proves the client hydrated and its timers are running.
+  await expect.poll(() => counter.hits).toBeGreaterThan(0);
+  await page.clock.fastForward(21_000);
+  await expect(page.locator("[data-confirmation-state=received]")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Payment received." })).toBeVisible();
+  await expect(page.getByText("Your confirmation is on its way by e-mail.")).toBeVisible();
+  await expect(page.locator("main").getByText("Questions? Write to info@vamostaxi.site.")).toBeVisible();
+  await expect(page.locator("main")).not.toContainText(/failed|error|try again|retry/i);
+  const before = counter.hits;
+  await page.clock.fastForward(5_000);
+  await expect.poll(() => counter.hits).toBeGreaterThan(before);
+  // Confirmation landing later still swaps in place.
+  await page.unroute("**/api/checkout/status/**");
+  await stubStatus(page, () => ({ status: "confirmed" }));
+  await page.clock.fastForward(3_000);
+  await expect(page.locator("[data-confirmation-state=booked]")).toBeVisible();
 });
 
-test("no cookie is not-visible and still 200 @checkout", async ({ page }) => {
+test("a booking that is not visible yet is the loading screen, never an error @checkout", async ({ page }) => {
+  await stubStatus(page, () => ({ visible: false }));
   const res = await page.goto(`${baseURL}/confirmation/${REF}`);
   expect(res?.status()).toBe(200);
-  await expect(page.locator("[data-confirmation-state=hidden]")).toBeVisible();
-  await expect(page.locator("[data-confirmation-processing]")).toHaveCount(0);
+  await expect(page.locator("[data-confirmation-state=confirming]")).toBeVisible();
+  await expect(page.locator("main")).not.toContainText(/failed|error|not visible/i);
   await expect(page.locator("[data-confirmation-voucher]")).toHaveCount(0);
 });
 
+test("confirmation index with a session id shows Payment received. only @checkout", async ({ page }) => {
+  const res = await page.goto(`${baseURL}/confirmation?session=cs_test_x`);
+  expect(res?.status()).toBe(200);
+  await expect(page.locator("[data-confirmation-state=received]")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Payment received." })).toBeVisible();
+  await expect(page.locator("main")).not.toContainText(/failed|error|not visible/i);
+});
+
+test("the calendar file route is not a document any more @checkout", async ({ page }) => {
+  const res = await page.goto(`${baseURL}/api/checkout/invite/${REF}`);
+  expect(res?.status()).toBe(404);
+});
+
 test("hiding the tab pauses the poller @checkout", async ({ page }) => {
-  let hits = 0;
-  await page.route("**/api/checkout/status/**", async (route) => {
-    hits += 1;
-    await route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({ status: "pending" }),
-    });
-  });
+  const counter = await stubStatus(page, () => ({ status: "pending" }));
   await openConfirmation(page);
-  await expect(page.locator("[data-confirmation-state=processing]")).toBeVisible();
-  await expect.poll(() => hits, { timeout: 8_000 }).toBeGreaterThan(0);
-  const frozen = hits;
+  await expect(page.locator("[data-confirmation-state=confirming]")).toBeVisible();
+  await expect.poll(() => counter.hits, { timeout: 8_000 }).toBeGreaterThan(0);
+  const frozen = counter.hits;
   await page.evaluate(() => {
     Object.defineProperty(document, "hidden", { configurable: true, get: () => true });
     document.dispatchEvent(new Event("visibilitychange"));
   });
   await page.waitForTimeout(6_000);
-  expect(hits).toBe(frozen);
+  expect(counter.hits).toBe(frozen);
 });
