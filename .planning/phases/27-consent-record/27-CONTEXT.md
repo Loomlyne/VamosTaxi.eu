@@ -54,6 +54,14 @@ Nothing is sent to Meta by this phase.
 - **D-03:** Remove the `consent_log` write from `signup-consent.ts` / the callback. Coordinate with
   26.5 (`gsd/phase-26.5-checkout-account`), which owns account consent; do not break its tick box.
   The `signup_consent` metadata flag handling stays harmless (no cookie row).
+- **D-03a (owner, 2026-09-30, second question):** the `/sign-up` page gets the same account notice
+  and tick box that 26.5 builds for checkout; the tick is saved in 26.5's account record table
+  (text version, language, time), never in `consent_log`. Example: Marco signs up on
+  vamostaxi.site/sign-up, ticks, and his agreement is recorded there. Built in Phase 27 after 26.5
+  has shipped (depends on its table and notice text; reuse, do not fork). Until that lands the
+  removed row is not replaced — it never recorded an agreement (it was necessary-only).
+- **D-03b:** Row id 3 (2026-09-29, `reject_all`, customer set) must not decide Meta. It is under
+  `2026-09-12`, so the new version excludes it; a pgTAP test proves it.
 
 ### Which banner, where (owner, 2026-09-30)
 - **D-04:** Today's banner, all three buttons, same look on every customer page: **Accept all**,
@@ -163,8 +171,11 @@ Nothing is sent to Meta by this phase.
 - `readConsentSubject` rejects non-UUID values. The cookie is HttpOnly, so mock JS cannot read it.
 - `MARKETING_CACHE_PATHS` caches mock HTML for `/`, `/about`, … — any per-visitor banner state
   must not be baked into a cached response.
-- Migration numbers: ask the control session for the next free number before writing one
-  (live is at `20260930210000`; 26.5 adds more).
+- Migration numbers (control session, 2026-09-30): Phase 27 owns `20261002100000`–`20261002190000`.
+  The reader is `20261002100000`. SECURITY DEFINER, `search_path = ''`, schema-qualified, EXECUTE
+  only to the calling role, no table grant, pgTAP for grants and for "latest row under the current
+  policy version".
+- Ship order 26.4.2 → 26.5 → 27: plan against 26.5's account record table as it lands on main.
 
 </code_context>
 
