@@ -30,6 +30,7 @@
 <script src="../../assets/lenis-boot.js"></script>
 <script src="../vamos-i18n-dict.js"></script>
 <script src="../vamos-locale.js"></script>
+<script src="../vamos-legal-updated.js"></script>
 <script src="../vamos-page-transition.js"></script>
 <style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
 .vt-input--focus{box-shadow:none}
@@ -99,6 +100,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-tier]{background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-sm);padding:22px;display:flex;flex-direction:column;gap:12px}
 [data-tier] h3{margin:0!important;font-size:var(--vt-heading-4)!important}
 [data-tier] p{margin:0}
+[data-tier] [data-tok]{white-space:normal;overflow-wrap:anywhere}
 [data-paths]{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;margin:4px 0 18px}
 @media (min-width:640px){[data-tiers]{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (min-width:760px){[data-paths]{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -135,7 +137,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <h1 style="margin:0 0 18px;max-width:20ch;font-family:var(--vt-font-display);font-size:var(--vt-display-2);line-height:var(--vt-display-leading);letter-spacing:var(--vt-display-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse);text-wrap:pretty">Cancellation &amp; refunds</h1>
 <p style="margin:0;max-width:58ch;font-size:var(--vt-body-lg);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">Plans change. This page says exactly what happens to your money when they do — and it is the one page that decides.</p>
 <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px 28px;margin-top:32px;padding-top:24px;border-top:1px solid var(--vt-border-inverse)">
-<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Last updated</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">1 September 2026</span></div>
+<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Last updated</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)" data-vt-no-i18n="1">{{ updatedLabel }}</span></div>
 <div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Version</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">1.0</span></div>
 <div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Applies to</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">Every booking made on this site</span></div>
 <button data-lg-noprint="1" type="button" onClick="{{ doPrint }}" style="margin-inline-start:auto;display:inline-flex;align-items:center;gap:9px;height:44px;padding:0 20px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-inverse);background:none;color:var(--vt-text-inverse);font-family:inherit;font-size:var(--vt-body-sm);white-space:nowrap;cursor:pointer">
@@ -164,7 +166,6 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <a data-lg-tl="1" href="#noshow"><i>06</i>No-show</a>
 <a data-lg-tl="1" href="#disruption"><i>07</i>Snow, strikes, closures</a>
 <a data-lg-tl="1" href="#refunds"><i>08</i>How refunds are paid</a>
-<a data-lg-tl="1" href="#vouchers"><i>09</i>Vouchers</a>
 </div>
 
 <div style="margin-top:28px;padding-top:22px;border-top:1px solid var(--vt-border-subtle)">
@@ -194,24 +195,20 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <p style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">More than</p>
 <h3>24 hours before pickup</h3>
 <p><span data-tok-fig="1">100% refunded</span></p>
-<p style="font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Automatic full refund of the amount we captured. Or take the full value as a voucher instead — see section <a href="#vouchers">09</a>.</p>
+<p style="font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Refunded automatically, in full, to the payment method you used. We send the refund when you cancel; your bank may take a few days to show it.</p>
 </div>
 <div data-tier="1">
-<p style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Inside</p>
-<h3>24 hours to 6 hours before pickup</h3>
-<p>Cancelled immediately. Refund pending operations (default 100% of captured).</p>
-<p style="font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">The booking is cancelled now. Operations confirm the refund. The default is the full captured amount.</p>
+<p style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Less than</p>
+<h3>24 hours before pickup</h3>
+<p>Our team decides the refund and tells you by email.</p>
+<p style="font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">The booking is cancelled at once. No refund is sent automatically.</p>
 </div>
 <div data-tier="1">
-<p style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">From 6 hours before pickup</p>
-<h3>6 hours through pickup, and after pickup if not completed</h3>
-<p>No automatic refund. Operations can still refund.</p>
-<p style="font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Completed or no-show: no customer cancel. Operations can still refund. Section <a href="#noshow">06</a> sets out when a booking counts as a no-show.</p>
+<p style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">After the ride</p>
+<h3>Completed ride or no-show</h3>
+<p>Cannot be cancelled</p>
+<p style="font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">When a booking counts as a no-show: see section <a href="#noshow">06</a></p>
 </div>
-</div>
-<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding:16px 18px;border-radius:var(--vt-radius-md);background:var(--vt-grey-50);border:1px solid var(--vt-border-subtle);margin-bottom:16px">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="bus" size="{{ n18 }}" color="var(--vt-charcoal-900)" hint-size="18px,18px"></x-import>
-<p style="margin:0;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)">Vehicles over <span data-tok-fig="1" style="font-size:1em">8</span> seats work to a longer window of <span data-tok-fig="1" style="font-size:1em">72 hours</span>, because a coach cannot be re-sold at short notice.</p>
 </div>
 
 </section>
@@ -237,8 +234,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 
 <section id="modify">
 <h2><span data-lg-n="1">03</span>Changing a booking</h2>
-<p>Time, address, passenger count and vehicle class can be changed up to 24 hours before pickup (72 hours for 8+ seats) before pickup, free of charge. If the change moves the fare, you pay or we refund the difference — never more than the difference.</p>
-<p>A change requested after that deadline is treated as a cancellation and a new booking. It is worth calling us first: if a driver can still be moved, we will move them.</p>
+<p>Time, address, passenger count and vehicle class can be changed before pickup, free of charge. If the change moves the fare, you pay or we refund the difference — never more than the difference.</p>
 </section>
 
 <section id="delays">
@@ -255,6 +251,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <h2><span data-lg-n="1">05</span>If no driver arrives</h2>
 <p>Call the number in your confirmation before you make another arrangement, so we have a chance to fix it.</p>
 <p>Where our records show you were at the pickup point and no vehicle came, you receive full refund back.</p>
+<p>If you and the driver were both at the meeting point at the same time, the transfer did not happen, and this can be proven, we may refund 80 % of the price and keep 20 % to cover costs.</p>
 <div data-vt-no-i18n="1" data-slot="1">
 <p data-slot-k="1">Client legal text · consequential costs</p>
 <sc-if value="{{ slotNotes }}" hint-placeholder-val="{{ true }}">
@@ -265,12 +262,12 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 
 <section id="noshow">
 <h2><span data-lg-n="1">06</span>No-show</h2>
-<p>A booking becomes a no-show once the included waiting time has run out and we have called your number we call the number on the booking times with no answer.</p>
+<p>A booking becomes a no-show when the included waiting time has run out and we have not reached you on the number or email on the booking within 30 minutes of the pickup time, or 60 minutes at an airport.</p>
 <ul>
-<li>Airport pickups: 60 minutes after landing from the actual landing time.</li>
-<li>All other pickups: 15 minutes from the booked time.</li>
+<li>Airport pickups: 60 minutes from the actual landing time.</li>
+<li>All other pickups: 30 minutes from the booked time.</li>
 </ul>
-<p>Answer the phone and the driver waits — the extra time is chargeable at shown on your quote, which is cheaper than losing the transfer.</p>
+<p>Answer the phone and the driver waits — the extra time is charged per commenced hour, which is cheaper than losing the transfer.</p>
 </section>
 
 <section id="disruption">
@@ -288,28 +285,11 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <h2><span data-lg-n="1">08</span>How refunds are paid</h2>
 <ul>
 <li>Always to the original payment method. We cannot redirect a refund to a different card or account.</li>
-<li>Approved within we answer in writing of your cancellation confirmation.</li>
-<li>Paid within once the refund is agreed days. Your bank may take a few days more to show it.</li>
-<li>Bookings paid with a voucher are refunded as a voucher.</li>
+<li>A refund our team decides is paid within 30 days of your written acceptance of the decision. Your bank may take a few days more to show it.</li>
 </ul>
-<p>Unhappy with the outcome? The complaints route is in the <a href="terms.dc.html#complaints">terms</a>, and we answer within we answer in writing days.</p>
+<p>Unhappy with the outcome? The complaints route is in the <a href="terms.dc.html#complaints">terms</a>, and we resolve a complaint within 30 days.</p>
 </section>
 
-<section id="vouchers">
-<h2><span data-lg-n="1">09</span>Vouchers</h2>
-<p>Instead of a refund you can take the full value of the booking as a voucher, valid for shown if a voucher is issued. It is worth more than the refunded share, which is why we offer it.</p>
-<ul>
-<li>Usable on any route we serve, by anyone you pass it to.</li>
-<li>Redeemable against a higher fare — you pay the difference.</li>
-<li>Not exchangeable for cash once issued.</li>
-</ul>
-<div data-vt-no-i18n="1" data-slot="1">
-<p data-slot-k="1">Client legal text · voucher terms</p>
-<sc-if value="{{ slotNotes }}" hint-placeholder-val="{{ true }}">
-<p>Must state validity, transferability, part-redemption and what happens on expiry. Swiss law limits how short an expiry can be, so this needs checking rather than choosing.</p>
-</sc-if>
-</div>
-</section>
 
 </article>
 </div>
@@ -342,6 +322,7 @@ class Component extends DCLogic {
   tocRef = React.createRef();
 
   componentDidMount() {
+    if (window.VamosLocale) this._offLocale = window.VamosLocale.onChange(() => this.forceUpdate());
     const prose = this.proseRef.current, toc = this.tocRef.current;
     if (!prose || !toc || typeof IntersectionObserver === 'undefined') return;
     const links = Array.from(toc.querySelectorAll('[data-lg-tl]'));
@@ -364,13 +345,17 @@ class Component extends DCLogic {
     }, { rootMargin: '-104px 0px -60% 0px' });
     prose.querySelectorAll('section[id]').forEach((s) => this.io.observe(s));
   }
-  componentWillUnmount() { if (this.io) this.io.disconnect(); }
+  componentWillUnmount() {
+    if (this._offLocale) this._offLocale(); if (this.io) this.io.disconnect(); }
 
   toggleToc = () => this.setState((s) => ({ tocOpen: !s.tocOpen }));
   doPrint = () => window.print();
 
   renderVals() {
+    const legalDate = window.VamosLegalUpdated;
+    const lang = window.VamosLocale ? window.VamosLocale.lang() : 'en';
     return {
+      updatedLabel: legalDate ? legalDate.label(lang) : '',
       n14: 14, n16: 16, n18: 18,
       tocOpen: this.state.tocOpen ? '1' : null,
       toggleToc: this.toggleToc, doPrint: this.doPrint,

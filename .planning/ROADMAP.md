@@ -90,15 +90,16 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 16: Staging MX + end-to-end UAT** - Customer Reply-in-Gmail appends to the same ticket; MX only on replies.vamostaxi.site
 - [ ] **Phase 17: Ops chauffeur profile, shift roster, two-driver vehicles** - Fleet row opens a full chauffeur page; shifts auto On/Off; vehicle max 2 drivers (morning/night); Add is idempotent
 - [x] **Phase 18: OPS Pricing source of truth** - `/pricing` is the only fare book; public offers follow Publish (completed 2026-09-15)
-- [ ] **Phase 19: V1 production close-out leftover live gates and 10k booking surge** - Leftover 16/17 live close, then a signed 10k-booking surge proof. No `.eu`. No live Stripe. Agent does not Publish.
-- [ ] **Phase 20: Security audit fix-up** - Close 2026-09-19 ZAP + RLS + grant findings. No `.eu`. No live Stripe. Owner applies SQL.
+- [ ] **Phase 19: 10,000-booking surge proof on the 26.3 checkout** - 10,000 at once on a copy of the database behind a hidden test Worker (fake Stripe), then ~200 real sandbox payments; owner buys Workers Paid and the copy. No .eu, no live Stripe, no Publish.
+- [ ] **Phase 20: Security check of the changed app (2026-10)** - 2026-09-19 list done (20-01…03); new check of the whole app, 26.1/26.3 changes first; serious findings fixed in-phase; rest decided by the owner.
 - [ ] **Phase 21: Charge gate + visible refusal + payable intent** - Unpriced `CHF 000` and expired 24h lock refuse visibly; priced class returns a reusable `client_secret`
 - [ ] **Phase 22: Card confirm + thank-you webhook wait** - TEST `4242…` captures; decline stays unpaid until webhook; thank-you waits on it
 - [ ] **Phase 23: Wallets + Dashboard methods** - Apple Pay, Google Pay (`auto`), Link, TWINT collector on DC pay; Dashboard methods, not a Worker enum
 - [ ] **Phase 24: Dual-payer, pay-link, mail split** - Token recap pay; first charge wins; traveller manage vs payer receipt
 - [ ] **Phase 25: /bookings unpaid + TEST UAT + secret-swap design** - Unpaid row pays the same session; TEST UAT boring; live keys documented not executed
 - [x] **Phase 26: Legal gate** - Pixel and Purchase stay off until owner banner, cookies, and privacy lines exist in en/de/fr/ar; new policy version; flag stays off (completed 2026-09-23)
-- [ ] **Phase 26.1: Payment and pricing integrity (INSERTED)** - A paid session always confirms; refunds, disputes and DLQ reach the DB; the owner fare formula with 26 cantons; pay-link lock and race; refund rules; three classes; admin sign-in options
+- [x] **Phase 26.1: Payment and pricing integrity (INSERTED)** - A paid session always confirms; refunds, disputes and DLQ reach the DB; the owner fare formula with 26 cantons; pay-link lock and race; refund rules; three classes; admin sign-in options (shipped 2026-09-28, cff97a0e)
+- [ ] **Phase 26.2: Codebase audit, bug fix and simplify** - Folder by folder after 26.0; booking path bugs only with owner OK; no visible or pay change.
 - [ ] **Phase 27: Consent record** - Accept logs Meta on; Dismiss logs Meta off; existing banner until a choice, including a pay link
 - [ ] **Phase 28: Pixel PageView** - Pixel `1595596972063765` sends PageView only on allowed customer pages; click ids saved on the unpaid booking
 - [ ] **Phase 29: Webhook Purchase** - One Purchase from the settle queue in the CHF charged; quote, pay, and confirmation unchanged
@@ -808,35 +809,24 @@ History of 2026-09-13: `.planning/phases/18-ops-pricing-source/archive-2026-09-1
 
 **UI hint**: yes — `18-UI-SPEC.md` 2026-09-14 approved (four tabs, VAT-only rail, `--vt-*` only)
 
-### Phase 19: V1 production close-out leftover live gates and 10k booking surge
+### Phase 19: 10,000-booking surge proof on the 26.3 checkout
 
-**Goal**: Leftover V1 is live on `vamostaxi.site` (16 paper matches disk, 17 Worker + SQL + UAT), then the quote→pay funnel is proven under a signed surge definition. Public stays `CHF 000` until owner Publish. Stripe stays test until the owner says live keys.
-**HARD GATE:** Do not `state.begin-phase` onto 19 while 17 live UAT is open. Do not discuss/plan/execute 19 until Koss signs discuss. Do not skip UI-SPEC (frozen-chrome / observation contract). No `vamostaxi.eu` DNS. No `sk_live_`. Agent does not click Publish. Agent does not `supabase db push`. Never restore onto `yaumjzvylngfjhtuffqs`. One plan at a time. Kanban parent-gated.
-**Depends on**: Phase 16 UAT 10/10 (disk). Phase 17 code on `main` (#41) still needs Worker `vamos` deploy + owner SQL apply + live UAT. Phase 11-12 stays owner Publish and does not block 16/17 close.
+**Goal**: The quote, checkout and booking save are proven with 10,000 bookings at once, on a copy of the database behind a hidden test Worker with a fake Stripe, then about 200 real sandbox payments through Stripe's page.
+**Depends on**: 26.0, 26.2, 20. The owner's paid steps: Cloudflare Workers Paid and a copy of the database.
 **Requirements**: Parked until discuss. Do not invent LAUNCH IDs.
-**Success Criteria** (what must be TRUE):
+**Success Criteria** (what must be TRUE): the pass bar of `19-CONTEXT.md` D-03 and its must-nots. Before real launch the guard that refuses automatic refunds with an `sk_live_` key (`lib/lifecycle/paid-cancel.ts`) is settled with the owner.
 
-  1. Live Worker `vamos` serves Phase 17 `OpsFleet` (not stale `OpsFleetBoard`). Hosted SQL has shift columns, `chauffeur_leave_ranges`, `vehicle_seats`. 17-UAT tests 4–8 pass on `dashboard.vamostaxi.site`.
-  2. ROADMAP Phase 16 is ticked to match 16-UAT 10/10.
-  3. A signed surge proof (discuss locks whether that is 10k concurrent **bookings** vs Phase 10’s 10k **browsers**) fail-closes instead of charging invented CHF or exhausting Hyperdrive silently.
-  4. Must-nots: no `.eu` bind, no live Stripe, no GSC submit, no JSON-LD, no driver app, no auto-dispatch, no Staff tab, no practice restore onto live.
+**Plans:** 5 (19-01 test switches · 19-02 busy-and-retry on PAY · 19-03 owner paid setup · 19-04 burst + real sample · 19-05 tear-down). Signed 2026-09-29.
+**UI hint**: PAY on `/checkout` shows "Busy — trying again" and retries by itself, four languages.
 
-**Plans:** 3 drafted (19-01 fail-closed tests · 19-02 owner Hyperdrive · 19-03 10k proof). Not checker-stamped. No execute.
-**UI hint**: yes — frozen chrome / observation. No new public screens. Do not skip `19-UI-SPEC.md`.
+### Phase 20: Security check of the changed app (2026-10)
 
-### Phase 20: Security audit fix-up
+**Goal**: A new security check of the whole app, starting with what 26.1, 26.3, 26.4 and 26.5 changed. Serious findings are fixed in the phase; every other finding is one question to the owner.
+**Depends on**: 26.2
+**Requirements**: SEC-01 … SEC-12 (done), SEC-13 … SEC-16
+**Success Criteria** (what must be TRUE): see `20-CONTEXT.md`. Leads passed in by the control session are listed in `.planning/CONTROL-BOARD.md`, "Passed to Phase 20".
 
-**Goal**: Every confirmed finding from the 2026-09-19 audit is either fixed in code, queued as owner SQL/Auth, or explicitly accepted (DC CSP eval, fail-closed 0-policy tables).
-**Depends on**: live Worker `vamos` (does not block 16/17/19)
-**Requirements**: SEC-01 … SEC-12
-**Success Criteria** (what must be TRUE):
-
-  1. dashboard.vamostaxi.site/login sends HSTS, CSP, XFO DENY, HttpOnly `vamos_dash`.
-  2. `create_quote_snapshot` and `rls_auto_enable` are not executable by anon/PUBLIC (owner SQL).
-  3. Mutating staff/photo APIs refuse empty Origin.
-  4. `/.well-known/security.txt` is 200. 404s have no `X-Powered-By`. workers.dev is noindex.
-
-**Plans:** 20-01 headers/cookies · 20-02 CSRF/photos · 20-03 owner SQL · 20-04 MFA/leaked-password owner gates
+**Plans:** 20-01…03 done · 20-04, 20-05 superseded · 20-06 check · 20-07 serious fixes · 20-08 owner-decided fixes · 20-09 live proof
 **UI hint**: no new screens.
 
 ### Phase 21: Charge gate + visible refusal + payable intent
@@ -1096,23 +1086,39 @@ Plans:
 
 **UI hint**: yes
 
-### Phase 26.5: Checkout — guest, sign in, create account (INSERTED)
+### Phase 26.4: One form + phone booking sheet (INSERTED)
 
-**Goal**: Before Stripe, /checkout asks: continue as guest, sign in, or create an account (top of "Who is travelling"). A guest gets an account from the e-mail automatically and signs in later with a magic link; an e-mail that already has an account must sign in first; nothing is visible until the e-mail is confirmed; consent wording is owner legal copy (data-tok until supplied) and logged server-side.
-**Depends on**: sign-in fix (live 2bd05b0a), 26.4.
-**Requirements**: from 26.5-CONTEXT.md
-**UI hint**: yes
-**Plans:** 8 plans (4 waves). Execution waits for the 26.4 + 26.4.1 ship on origin/main, merged into this branch.
+**Goal**: Owner comments 4–6 after the 26.3 ship. On phone and tablet the home hero shows one bar; a tap opens a full-screen booking sheet in 4 steps (From + flight · To · When · Travellers → SEE PRICES → /checkout). One booking form everywhere: the customer types pickup and destination and the server applies the fare parts automatically (start + per km, airport pickup fee when the pickup is an airport, one city/canton pair, ticked extras) — no calculation change. Service links stay as entry points into the same flow.
+**Depends on**: 26.3 (shipped af93fc8e), the account fix (quick 260929-acl), and the New trip Save hotfix (quick 260929-nts) — rebase before execution.
+**Requirements**: from 26.4-CONTEXT.md (D-01…D-16)
+**Plans:** 10 plans
 
 Plans:
-- [ ] 26.5-01-PLAN.md — DB: guest-accounts switch (default false, set at ship), append-only checkout_account_records (create = consent, guest = informed), five definer functions, pgTAP + Worker-client tests (wave 1)
-- [ ] 26.5-02-PLAN.md — AccountChoice (Text 1 tick box for create, Text 2 line for guest, verbatim) + CheckoutSignIn, gallery, icons, strings in en/de/fr/ar (wave 1)
-- [ ] 26.5-03-PLAN.md — /api/auth checkout sign-in: no account creation, Turnstile, per-address limit, same answer for every e-mail (wave 1)
-- [ ] 26.5-08-PLAN.md — Service-role key: one server-only reader, auth-only admin for checkout, source guards, check:public-env sentinel scan (wave 1)
-- [ ] 26.5-04-PLAN.md — PAY gate in /api/checkout/intent: switch, create tick, known-email sign-in link, consent/informed record (wave 2)
-- [ ] 26.5-05-PLAN.md — Account made only after Stripe settles: createUser unconfirmed + finish mails (wave 2)
-- [ ] 26.5-06-PLAN.md — Wire the panel into /checkout section 2, PAY rules, laws test, 4-width visual spec (wave 3)
-- [ ] 26.5-07-PLAN.md — Worker e2e, full check list incl. real-bundle key proof, HANDOVER + owner UAT phone first (wave 4)
+- [ ] 26.4-01-PLAN.md — TDD: owner fare cases on fixture rows; D-08 airport fee from the pickup only; fare_kind no longer read; dead city-price function removed
+- [ ] 26.4-02-PLAN.md — Dashboard pricing copy (D-16, four languages); dead city-price save path removed
+- [ ] 26.4-03-PLAN.md — Service links (header, footer, Services, HowItWorks) open /#book; no ?service=; dest-pick without mode
+- [ ] 26.4-04-PLAN.md — BookingBar Design Component + states gallery
+- [ ] 26.4-05-PLAN.md — BookingSheet Design Component (4 steps, warnings, history, focus, lock) + states gallery
+- [ ] 26.4-06-PLAN.md — Home: mode leftovers and service kicker removed; laptop box optional flight (D-09)
+- [ ] 26.4-07-PLAN.md — Checkout Edit trip/section 2 optional flight (D-09); Stripe name "Vamos Taxi transfer" in four languages
+- [ ] 26.4-08-PLAN.md — Dashboard New trip: flight rule D-09 (Save body, live extras, re-lock done in quick 260929-nts)
+- [ ] 26.4-09-PLAN.md — Home ≤1080: bar + sheet wired to one trip state, docking, /#book entries, no resume; e2e at 4 widths × en/de/ar
+- [ ] 26.4-10-PLAN.md — Full local gate list on a 583xx stack, laws test, VALIDATION, HANDOVER + owner UAT (phone first)
+
+**UI hint**: yes
+
+### Phase 26.4.1: Laptop booking bar (INSERTED)
+
+**Goal**: At ≥1081 px the home hero shows the owner's picture 3: the pre-26.3 wide bar at the bottom of the hero without trip-type tabs, in the signed order From · flight · To · When · Travellers · SEE PRICES, trust line under it. One row from 1272 px, two rows 1081–1271 px. Phone and tablet keep the 26.4 bar + sheet.
+**Depends on**: 26.4 (branch cut from gsd/phase-26.4-one-form c069737e; ships right after it)
+**Requirements**: from 26.4.1-CONTEXT.md (D-01…D-04)
+**Plans:** 2 plans
+
+Plans:
+- [ ] 26.4.1-01-PLAN.md — Re-layout the home box at ≥1081 (one row ≥1272, two rows 1081–1271, compact travellers, trust line) + unit pins + Playwright at 1440/1280/1181/1081 × en/de/fr/ar and ≤1080 regression
+- [ ] 26.4.1-02-PLAN.md — Local gate list, VALIDATION, HANDOVER in the 26.4 shape + owner UAT at 1440 and 1181
+
+**UI hint**: yes
 
 ### Phase 27: Consent record
 
@@ -1176,7 +1182,7 @@ v1.1 (funnel Phases 7–11 frozen): 12 → 13 → 14 → 15 → 16 → 17
 Close-out one-by-one: 17 deploy → 17 SQL apply → 17 UAT → 16 ROADMAP tick → discuss 19 surge → 11-12 owner Publish (never agent)
 v1.2 Payment (leftovers 16/17/19/20 frozen): 21 → 22 → 23 → 24 → 25
 v1.3 Meta measurement (Phases 21–25 stay planned, not current): 26 → 26.1 → 27 → 28 → 29
-Current order (owner, 2026-09-29): 26.3 → 26.0 → 26.2 → 19/20 rewritten → 27 → 28 → 29
+Current order (owner, 2026-09-30): 26.4.2 → 26.5 → 27 → 28 → 29 → 26.0 → 26.2 → 20 → 19. Shipped: 26.1, 26.3, 26.4, 26.4.1, sign-in fix, legal pages. Source: .planning/CONTROL-BOARD.md and .planning/decisions/2026-09-30-priorities-and-ship-mode.md
 Plan-level states (owner, 2026-09-29; source record .planning/PHASE-CLOSURE-2026-09-29.md on main, commit 37e55d26): plan 04.3 replaced by 26.1/26.3, never build · plan 05-19 dropped · plans 05-24, 05-28 parked · plan 11-12 owner-held, never raise
 
 | Phase | Plans Complete | Status | Completed |
@@ -1199,18 +1205,20 @@ Plan-level states (owner, 2026-09-29; source record .planning/PHASE-CLOSURE-2026
 | 16. Staging MX + end-to-end UAT | UAT 10/10 passed | Complete | - |
 | 17. Ops chauffeur profile, shift roster, two-driver vehicles | - | Closed, feature removed | - |
 | 18. OPS Pricing source of truth | 7/7 | Complete    | 2026-09-15 |
-| 19. V1 production close-out leftover live gates and 10k booking surge | 0/TBD | Parked (to be rewritten, after 26.2) | - |
-| 20. Security audit fix-up | 3/5 | Parked (to be rewritten, after 26.2) | - |
+| 19. 10,000-booking surge proof | 0/5 | Rewritten and signed 2026-09-29; last in the order; needs the owner's paid steps | - |
+| 20. Security check of the changed app | 3/9 | 20-01…03 done; 20-04, 20-05 superseded; 20-06…09 signed 2026-09-29, after 26.2 | - |
 | 21. Charge gate + visible refusal + payable intent | 10/10 | Replaced by 26.1/26.3, never build | - |
 | 22. Card confirm + thank-you webhook wait | 0/TBD | Replaced by 26.1/26.3, never build | - |
 | 23. Wallets + Dashboard methods | 0/TBD | Replaced by 26.1/26.3, never build | - |
 | 24. Dual-payer, pay-link, mail split | 0/TBD | Replaced by 26.1/26.3, never build | - |
 | 25. /bookings unpaid + TEST UAT + secret-swap design | 0/TBD | Replaced by 26.1/26.3, never build | - |
 | 26. Legal gate | 2/2 | Complete    | 2026-09-23 |
-| 26.0. Main green (INSERTED) | part 1 in 26.1 | Parked (after 26.3 live; PR #63 refund fix rides with it) | - |
-| 26.1. Payment and pricing integrity (INSERTED) | 30/32 | Waiting for owner Ship (26.1-26), then 26.1-28 |  |
-| 26.2. Codebase audit, bug fix and simplify (INSERTED) | 0/TBD | Parked (after 26.0) | - |
-| 26.3. Booking flow rebuild (INSERTED) | 0/23 | Planned, awaiting owner sign-off | - |
+| 26.0. Main green (INSERTED) | 9/12 | Executing on fix/main-green-2; lands after the Meta phases | - |
+| 26.1. Payment and pricing integrity (INSERTED) | 30/32 | Shipped cff97a0e; 26.1-28 moot (owner deletes test bookings) | 2026-09-28 |
+| 26.2. Codebase audit, bug fix and simplify (INSERTED) | 0/12 | Planned, signed 2026-09-29; after 26.0 | - |
+| 26.3. Booking flow rebuild (INSERTED) | 22/23 + G1–G9 | Shipped af93fc8e, Worker 839d73fc | 2026-09-29 |
+| 26.4. One form + phone booking sheet (INSERTED) | 10/10 | Shipped 0f58ab6d, Worker 2b04648a | 2026-09-30 |
+| 26.4.1. Laptop booking bar (INSERTED) | 2/2 | Shipped 0f58ab6d, Worker 2b04648a | 2026-09-30 |
 | 27. Consent record | 0/TBD | Not started | - |
 | 28. Pixel PageView | 0/TBD | Not started | - |
 | 29. Webhook Purchase | 0/TBD | Not started | - |

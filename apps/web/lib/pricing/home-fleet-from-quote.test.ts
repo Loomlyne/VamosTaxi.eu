@@ -23,9 +23,10 @@ describe("home hands the trip to checkout and never prices", () => {
   });
 
   it("requires a flight number on airport pickup and leaves other trips optional", () => {
-    expect(home).toMatch(/flightRequired\(\) \{ return this\.state\.mode === 'one-way'; \}/);
-    expect(home).not.toMatch(/flightRequired\(\) \{ return false; \}/);
-    expect(home).toMatch(/flightMissing\(\) \{ return this\.flightRequired\(\) && !this\.flightFilled\(\); \}/);
+    // 26.4 D-09: the rule moved into the booking sheet: required only for an airport pickup.
+    const sheet = readFileSync(join(here, "../../../../app/home/BookingSheet.dc.html"), "utf8");
+    expect(sheet).toMatch(/const flightReq = !!p\.fromAirport;/);
+    expect(sheet).toMatch(/flightOptional: !flightReq/);
     expect(home).toMatch(/flightNeed:'Enter a flight number'/);
     expect(home).toMatch(/flightNeed:'Geben Sie die Flugnummer ein'/);
     expect(home).toMatch(/flightNeed:'Saisissez le numéro de vol'/);

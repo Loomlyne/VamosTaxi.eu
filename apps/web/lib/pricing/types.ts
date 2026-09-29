@@ -277,11 +277,6 @@ export interface QuoteInput {
   legs: QuoteLegInput[];
   extras: Record<string, number>;
   coupon: string | null;
-  /**
-   * Comment 11. Omitted means one_way so older locks keep today's formula.
-   * Airport pickup and city to city change the start or add one city price.
-   */
-  fare_kind?: FareKind;
 }
 
 /** Line kind on the snapshot / board. */

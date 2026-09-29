@@ -30,6 +30,7 @@
 <script src="../../assets/lenis-boot.js"></script>
 <script src="../vamos-i18n-dict.js"></script>
 <script src="../vamos-locale.js"></script>
+<script src="../vamos-legal-updated.js"></script>
 <script src="../vamos-page-transition.js"></script>
 <style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
 .vt-input--focus{box-shadow:none}
@@ -133,7 +134,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <h1 style="margin:0 0 18px;max-width:22ch;font-family:var(--vt-font-display);font-size:var(--vt-display-2);line-height:var(--vt-display-leading);letter-spacing:var(--vt-display-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse);text-wrap:pretty"><span lang="de" data-vt-no-i18n="1">Impressum</span><span lang="en">Imprint</span></h1>
 <p data-hero-sub="1" style="margin:0;max-width:58ch;font-size:var(--vt-body-lg);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)"><span lang="de" data-vt-no-i18n="1">Wer hinter dieser Website steht, wo das Unternehmen eingetragen ist und wie Sie uns erreichen. Deutsch ist die verbindliche Fassung.</span><span lang="en">Who stands behind this site, where the company is registered and how to reach us. The German version is the binding one.</span></p>
 <div style="display:flex;flex-wrap:wrap;align-items:center;gap:16px 28px;margin-top:32px;padding-top:24px;border-top:1px solid var(--vt-border-inverse)">
-<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)"><span lang="de" data-vt-no-i18n="1">Letzte Aktualisierung</span><span lang="en">Last updated</span></span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">1 September 2026</span></div>
+<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)"><span lang="de" data-vt-no-i18n="1">Letzte Aktualisierung</span><span lang="en">Last updated</span></span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)" data-vt-no-i18n="1">{{ updatedLabel }}</span></div>
 <div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)"><span lang="de" data-vt-no-i18n="1">Fassung</span><span lang="en">Version</span></span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">1.0</span></div>
 <button data-lg-noprint="1" type="button" onClick="{{ doPrint }}" style="margin-inline-start:auto;display:inline-flex;align-items:center;gap:9px;height:44px;padding:0 20px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-inverse);background:none;color:var(--vt-text-inverse);font-family:inherit;font-size:var(--vt-body-sm);cursor:pointer">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="printer" size="{{ n16 }}" color="var(--vt-accent)" hint-size="16px,16px"></x-import>Print or save as PDF</button>
@@ -215,13 +216,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <section id="mwst">
 <h2><span data-lg-n="1">04</span><span lang="de" data-vt-no-i18n="1">Mehrwertsteuer</span><span lang="en">VAT</span></h2>
 <div data-dl="1">
-<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">UID / MWST-Nummer</span><span lang="en">UID / VAT number</span></span><span data-dl-v="1">CHE-296.035.710</span></div>
-</div>
-<div data-vt-no-i18n="1" data-slot="1">
-<p data-slot-k="1"><span lang="de" data-vt-no-i18n="1">Kundeneingabe · UID</span><span lang="en">Client input · UID</span></p>
-<sc-if value="{{ slotNotes }}" hint-placeholder-val="{{ true }}">
-<p><span lang="de" data-vt-no-i18n="1">Die Nummer erscheint nirgends auf der bisherigen Website. Sie wird hier nicht erfunden: entweder die echte UID im Format CHE mit MWST-Zusatz, oder die Zeile entfällt, falls das Unternehmen nicht mehrwertsteuerpflichtig ist. Eine falsche UID ist schlimmer als keine.</span><span lang="en">The number appears nowhere on the previous site. It is not invented here: either the real UID in the CHE format with the VAT suffix, or the row comes out if the company is not VAT-registered. A wrong UID is worse than none.</span></p>
-</sc-if>
+<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">UID / MWST-Nummer</span><span lang="en">UID / VAT number</span></span><span data-dl-v="1"><span class="vt-dir-keep" data-vt-no-i18n="1">CHE-296.035.710</span></span></div>
 </div>
 </section>
 
@@ -348,7 +343,10 @@ class Component extends DCLogic {
 
   renderVals() {
     const l = this.state.lang;
+    const legalDate = window.VamosLegalUpdated;
+    const uiLang = window.VamosLocale ? window.VamosLocale.lang() : 'en';
     return {
+      updatedLabel: legalDate ? legalDate.label(uiLang) : '',
       n14: 14, n16: 16, n18: 18,
       lang: l,
       tocOpen: this.state.tocOpen ? '1' : null,

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<!-- Ground colour + cover live in the STATIC head/body on purpose. The DC runtime
+     injects every stylesheet and script from <helmet> only after React has loaded, so
+     without these the arriving document paints uncovered frames before
+     vamos-page-transition.js exists and can build its overlay. That script adopts
+     #vt-boot-cover and removes it once its own sheet is painted at COVER; the 6s
+     animation below is the fallback for when the script never runs. -->
+<style id="vt-boot">html{background:#F6F6F6}body{margin:0}#vt-boot-cover{position:fixed;inset:0;z-index:2147483000;background:#F6F6F6;pointer-events:none;animation:vt-boot-fail 0s linear 6s forwards}@keyframes vt-boot-fail{to{visibility:hidden}}</style>
+</head>
+<body>
+<div id="vt-boot-cover" aria-hidden="true"></div>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
+<link rel="stylesheet" href="../../assets/lenis.css">
+<script src="../../assets/lenis.js"></script>
+<script src="../../assets/lenis-boot.js"></script>
+<script src="../vamos-i18n-dict.js"></script>
+<script src="../vamos-locale.js"></script>
+<script src="../vamos-page-transition.js"></script>
+<style>:root{--vt-icon-base:"../../assets/icons/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}
+body{margin:0;background:var(--vt-grey-100)}
+[data-bs-h1]{margin:0;font-family:var(--vt-font-display);font-size:clamp(26px,4vw,38px);font-weight:var(--vt-weight-semibold);letter-spacing:-.02em;line-height:1.1}
+[data-bs-sub]{margin:0;max-width:80ch;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)}
+[data-bs-grid]{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:20px}
+[data-bs-card]{display:flex;flex-direction:column;min-width:0;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);overflow:hidden}
+[data-bs-cap]{display:flex;align-items:baseline;gap:10px;padding:12px 16px;border-bottom:1px solid var(--vt-border-subtle);background:var(--vt-grey-50);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium)}
+[data-bs-n]{font-family:var(--vt-font-display);color:var(--vt-text-muted)}
+[data-bs-dark]{padding:24px 16px;background:var(--vt-charcoal)}
+[data-bs-light]{padding:24px 16px;background:var(--vt-bg-surface)}
+[data-bs-count]{font-size:var(--vt-body-sm);color:var(--vt-text-secondary)}
+</style>
+</helmet>
+<section style="display:flex;flex-direction:column;gap:28px;padding:48px clamp(20px,4vw,64px) 96px;font-family:var(--vt-font-body);color:var(--vt-text-primary)">
+<div style="display:flex;flex-direction:column;gap:12px"><h1 data-bs-h1="1" data-vt-no-i18n>BookingBar: every state</h1><p data-bs-sub="1" data-vt-no-i18n>Phone and tablet hero bar (26.4, S1). Internal review page. Switch language with the site controls; every bar below follows it.</p><p data-bs-count="1" data-vt-no-i18n>Opens: <span data-bs-opens="1">{{ opens }}</span></p></div>
+<div data-bs-grid="1">
+<div data-bs-card="1">
+<div data-bs-cap="1" data-vt-no-i18n><span data-bs-n="1">1</span><span>Empty</span></div>
+<div data-bs-dark="1"><dc-import name="BookingBar"  onOpen="{{ open }}" hint-size="100%,54px"></dc-import></div>
+</div>
+<div data-bs-card="1">
+<div data-bs-cap="1" data-vt-no-i18n><span data-bs-n="1">2</span><span>Partial: pickup only</span></div>
+<div data-bs-dark="1"><dc-import name="BookingBar" from="Zurich Airport" onOpen="{{ open }}" hint-size="100%,54px"></dc-import></div>
+</div>
+<div data-bs-card="1">
+<div data-bs-cap="1" data-vt-no-i18n><span data-bs-n="1">3</span><span>Partial: pickup and drop-off, no time</span></div>
+<div data-bs-dark="1"><dc-import name="BookingBar" from="Zurich Airport" to="Bahnhofstrasse 1" onOpen="{{ open }}" hint-size="100%,54px"></dc-import></div>
+</div>
+<div data-bs-card="1">
+<div data-bs-cap="1" data-vt-no-i18n><span data-bs-n="1">4</span><span>Filled: 2 passengers, 3 bags</span></div>
+<div data-bs-dark="1"><dc-import name="BookingBar" from="Zurich Airport" to="Bahnhofstrasse 1" whenLabel="Tue 29 Sept, 08:15" pax="2" bags="3" travellersSet="{{ yes }}" complete="{{ yes }}" onOpen="{{ open }}" hint-size="100%,54px"></dc-import></div>
+</div>
+<div data-bs-card="1">
+<div data-bs-cap="1" data-vt-no-i18n><span data-bs-n="1">5</span><span>Filled: 1 passenger, 1 bag</span></div>
+<div data-bs-dark="1"><dc-import name="BookingBar" from="Zurich Airport" to="Bahnhofstrasse 1" whenLabel="Tue 29 Sept, 08:15" pax="1" bags="1" travellersSet="{{ yes }}" complete="{{ yes }}" onOpen="{{ open }}" hint-size="100%,54px"></dc-import></div>
+</div>
+<div data-bs-card="1">
+<div data-bs-cap="1" data-vt-no-i18n><span data-bs-n="1">6</span><span>Filled: long place names</span></div>
+<div data-bs-dark="1"><dc-import name="BookingBar" from="Flughafen Zürich, Terminal 2, Ankunft Ebene 1" to="Hotel Schweizerhof Bern, Bahnhofplatz 11" whenLabel="Tue 29 Sept, 08:15" pax="4" bags="6" travellersSet="{{ yes }}" complete="{{ yes }}" onOpen="{{ open }}" hint-size="100%,54px"></dc-import></div>
+</div>
+<div data-bs-card="1">
+<div data-bs-cap="1" data-vt-no-i18n><span data-bs-n="1">7</span><span>Docked, empty, on white</span></div>
+<div data-bs-light="1"><dc-import name="BookingBar" docked="{{ yes }}" onOpen="{{ open }}" hint-size="100%,54px"></dc-import></div>
+</div>
+<div data-bs-card="1">
+<div data-bs-cap="1" data-vt-no-i18n><span data-bs-n="1">8</span><span>Docked, filled, on white</span></div>
+<div data-bs-light="1"><dc-import name="BookingBar" docked="{{ yes }}" from="Zurich Airport" to="Bahnhofstrasse 1" whenLabel="Tue 29 Sept, 08:15" pax="2" bags="3" travellersSet="{{ yes }}" complete="{{ yes }}" onOpen="{{ open }}" hint-size="100%,54px"></dc-import></div>
+</div>
+<div data-bs-card="1">
+<div data-bs-cap="1" data-vt-no-i18n><span data-bs-n="1">9</span><span>Pressed (forced)</span></div>
+<div data-bs-dark="1"><dc-import name="BookingBar" forceState="pressed" from="Zurich Airport" to="Bahnhofstrasse 1" whenLabel="Tue 29 Sept, 08:15" pax="2" bags="3" travellersSet="{{ yes }}" complete="{{ yes }}" onOpen="{{ open }}" hint-size="100%,54px"></dc-import></div>
+</div>
+<div data-bs-card="1">
+<div data-bs-cap="1" data-vt-no-i18n><span data-bs-n="1">10</span><span>Focus (forced)</span></div>
+<div data-bs-dark="1"><dc-import name="BookingBar" forceState="focus" from="Zurich Airport" to="Bahnhofstrasse 1" whenLabel="Tue 29 Sept, 08:15" pax="2" bags="3" travellersSet="{{ yes }}" complete="{{ yes }}" onOpen="{{ open }}" hint-size="100%,54px"></dc-import></div>
+</div>
+<div data-bs-card="1">
+<div data-bs-cap="1" data-vt-no-i18n><span data-bs-n="1">11</span><span>Hover (forced)</span></div>
+<div data-bs-dark="1"><dc-import name="BookingBar" forceState="hover" from="Zurich Airport" to="Bahnhofstrasse 1" whenLabel="Tue 29 Sept, 08:15" pax="2" bags="3" travellersSet="{{ yes }}" complete="{{ yes }}" onOpen="{{ open }}" hint-size="100%,54px"></dc-import></div>
+</div>
+<div data-bs-card="1">
+<div data-bs-cap="1" data-vt-no-i18n><span data-bs-n="1">12</span><span>Expanded (aria-expanded true)</span></div>
+<div data-bs-dark="1"><dc-import name="BookingBar" expanded="{{ yes }}" from="Zurich Airport" to="Bahnhofstrasse 1" whenLabel="Tue 29 Sept, 08:15" pax="2" bags="3" travellersSet="{{ yes }}" complete="{{ yes }}" onOpen="{{ open }}" hint-size="100%,54px"></dc-import></div>
+</div>
+<div data-bs-card="1">
+<div data-bs-cap="1" data-vt-no-i18n><span data-bs-n="1">13</span><span>Right-to-left, forced (chevrons and arrow mirror)</span></div>
+<div data-bs-dark="1" dir="rtl"><dc-import name="BookingBar" from="Zurich Airport" to="Bahnhofstrasse 1" whenLabel="Tue 29 Sept, 08:15" pax="2" bags="3" travellersSet="{{ yes }}" complete="{{ yes }}" onOpen="{{ open }}" hint-size="100%,54px"></dc-import></div>
+</div>
+<div data-bs-card="1">
+<div data-bs-cap="1" data-vt-no-i18n><span data-bs-n="1">14</span><span>Right-to-left, empty, forced</span></div>
+<div data-bs-dark="1" dir="rtl"><dc-import name="BookingBar"  onOpen="{{ open }}" hint-size="100%,54px"></dc-import></div>
+</div>
+</div>
+</section>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { opens: 0 }; }
+  renderVals() {
+    return { yes: true, opens: this.state.opens, open: () => this.setState({ opens: this.state.opens + 1 }) };
+  }
+}
+
+</script>
+</body>
+</html>

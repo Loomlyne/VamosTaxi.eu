@@ -9,7 +9,7 @@ not been read by a lawyer.
 
 | # | Decision |
 |---|---|
-| 1 | The Supabase service-role key goes on Worker `vamos`. He adds it himself in his terminal, at the 26.5 ship, as `SUPABASE_SERVICE_ROLE_KEY`. Read 2026-09-29 23:50: `SUPABASE_URL` present, `SUPABASE_SERVICE_ROLE_KEY` absent. |
+| 1 | The Supabase service-role key goes on Worker `vamos`. He adds it himself in his terminal, at the 26.5 ship, as `SUPABASE_SERVICE_ROLE_KEY`. Done 2026-09-29 23:56: he added it; the control session read the name on the Worker, never the value. Worker version `df365445`, same code as `80d51730`. |
 | 2 | The two notice texts below are approved in four languages. |
 | 3 | "Create an account" needs a tick box. The button works only when it is ticked. The tick is logged server-side. |
 | 4 | With the texts approved, "Create an account" goes live with 26.5 and consent is recorded from the first account. This replaces 26.5 D-10 (no consent recorded while the notice is TBC). |
@@ -39,3 +39,8 @@ not been read by a lawyer.
 - Whether the Privacy page already covers customer accounts.
 - Whether the guest path (an account made without a tick) needs its own consent record. Text 2
   informs; it does not ask. The 26.5 session puts this to the owner before the build.
+
+## Added 2026-09-30
+
+The key is read on main by `apps/web/lib/supabase/service.ts` (staff digest, daily at 06:00 Europe/Zurich) and `apps/web/app/[locale]/(ops)/api/staff/invite/route.ts` (staff invite). Both were failing without it and are active since 2026-09-29 23:56. Owner decision (question form, 26.5 session): both may keep using it, written exception 26.5 D-15.
+The account tick and the guest "informed" record are stored in their own table, not in `consent_log`: that table holds cookie choices and Phase 27 reads its latest row. Confirmed by the control session.

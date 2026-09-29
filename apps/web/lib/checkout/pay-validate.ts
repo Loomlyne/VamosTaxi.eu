@@ -56,11 +56,10 @@ export function firstPayError(state: PayFormState): PayError | null {
   const mobile = state.mobile.trim();
   if (!mobile) return { field: "mobile", messageKey: "enter-a-mobile-number" };
   if (!isMobileNumber(mobile)) return { field: "mobile", messageKey: "errMobileCheck" };
-  if (state.airport) {
-    const flight = state.flight.trim();
-    if (!flight) return { field: "flight", messageKey: "errFlight" };
-    if (!normaliseFlight(flight)) return { field: "flight", messageKey: "errFlightCheck" };
-  }
+  const flight = state.flight.trim();
+  if (state.airport && !flight) return { field: "flight", messageKey: "errFlight" };
+  // D-09: a filled flight is format-checked whether or not the pickup is an airport.
+  if (flight && !normaliseFlight(flight)) return { field: "flight", messageKey: "errFlightCheck" };
   const anyCompany = [state.companyName, state.companyAddress, state.companyVat].some((v) => v.trim() !== "");
   if (state.companyOpen && anyCompany && !state.companyName.trim()) {
     return { field: "companyName", messageKey: "errCompanyName" };

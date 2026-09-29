@@ -289,7 +289,6 @@ function input(partial: Partial<QuoteInput> = {}): QuoteInput {
     ],
     extras: partial.extras ?? {},
     coupon: partial.coupon ?? null,
-    fare_kind: partial.fare_kind,
   };
 }
 
@@ -688,7 +687,7 @@ describe("priceQuote — owner formula: airport fee additive, pair applies regar
   }
 
   it("D-08b: fare_kind alone does not change the start or add the airport fee", () => {
-    const { eco } = quote(book(), { fare_kind: "airport_pickup" });
+    const { eco } = quote(book());
     const fare = eco.lines.find((l) => l.code === "distance_fare");
     const seat = eco.lines.find((l) => l.code === "child_seat");
     expect(fare?.amount_rappen).toBe(1_000 + 2_000);
@@ -720,7 +719,6 @@ describe("priceQuote — owner formula: airport fee additive, pair applies regar
     };
     const { eco } = quote(
       { ...book(), fixed_routes: [published] },
-      { fare_kind: "one_way" },
     );
     const pairs = eco.lines.filter((l) => l.code === "fixed_route");
     expect(pairs).toHaveLength(1);
@@ -742,7 +740,6 @@ describe("priceQuote — owner formula: airport fee additive, pair applies regar
     // city_price_rappen (999) no longer gates which published row is eligible.
     const { eco } = quote(
       { ...book({ city_price_rappen: 999 }), fixed_routes: [published] },
-      { fare_kind: "one_way" },
     );
     const pairs = eco.lines.filter((l) => l.code === "fixed_route");
     expect(pairs).toHaveLength(1);

@@ -106,9 +106,10 @@ select is((select count(*) from public.reviews where published)::int, 0, 'no see
 -- ── content_strings ──────────────────────────────────────────────────────────────────────────
 -- Counts track the generated seed header (packages/db/supabase/seed.sql; regenerated in 8b409c7, Phase 6).
 -- Counts are the generator's own output (pnpm db:seed:gen; 26.3-22 re-read them from the seed header: 2596 keys, 75 no-param reasons).
+-- 26.4-10: en.json gained 4 keys in 26.4 (trip flight add/optional/hint, Stripe product name): 2600 keys.
 -- 26.1-10: migration 20260928130000_canton_city_zones.sql (not the seed) adds 26 non-translatable
 -- canton display names (zone.canton-<code>); canton_zones.test.sql pins those 26 on their own.
-select is((select count(*) from public.content_strings)::int, 2596 + 26, 'content_strings row count = flattened en.json key count + 26 migration canton names');
+select is((select count(*) from public.content_strings)::int, 2600 + 26, 'content_strings row count = flattened en.json key count + 26 migration canton names');
 select is((select count(*) from public.content_strings where pending_value)::int, 16, '16 pending-value keys (ADR-011, Law 04 data-tok)');
 select is((select count(*) from public.content_strings where non_translatable)::int, 8 + 26, '8 non-translatable seed keys (ADR-012) + 26 migration canton names');
 select is((select count(*) from public.content_strings where no_param_reason is not null)::int, 75, '75 no-param-reason keys (I18N-06; +1 pay-link 24 hours, 26.1-16; count re-read from the seed header in 26.3-22)');

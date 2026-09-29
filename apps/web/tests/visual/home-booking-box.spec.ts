@@ -1,7 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 import { serveMock, waitForMockReady } from "../support/mock-harness";
 
-// Phase 26.3 plan 04 (SC-2). The home booking box on `/` is From, Flight (airport
+// Phase 26.3 plan 04 (SC-2). At >=1081 the box renders as the 26.4.1 laptop bar. The home booking box on `/` is From, Flight (airport
 // pickups only), To, When, Travellers, SEE PRICES. It never prices, never stores the
 // trip and hands it to /checkout in the URL (D-05, D-06).
 
@@ -78,7 +78,13 @@ function order(page: Page) {
 }
 
 test.describe("Home booking box @component", () => {
-  test("DOM order is From, To, When, Travellers, SEE PRICES; an airport adds Flight under From @component", async ({ page }) => {
+  // 26.4 D-01: the box is the laptop layout (>=1081). At 1080px and under home shows the bar and
+  // sheet instead; those are covered by home-booking-sheet.spec.ts.
+  test.beforeEach(async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 0) <= 1080, "26.4 D-01: the box shows at 1081px and over");
+  });
+
+  test("DOM order is From, To, When, Travellers, SEE PRICES; an airport adds Flight beside From @component", async ({ page }) => {
     await openHome(page);
     expect(await order(page)).toEqual(["from", "to", "when", "trav", "cta"]);
     await expect(page.locator('[data-box] [role="tablist"]')).toHaveCount(0);
@@ -87,47 +93,59 @@ test.describe("Home booking box @component", () => {
     await expect(page.locator('[data-bx="flight"]')).toBeVisible();
     expect(await order(page)).toEqual(["from", "flight", "to", "when", "trav", "cta"]);
 
-    // Flight sits directly under From at every width; on the phone the whole box is one column in DOM order.
+    // 26.4.1: laptop geometry is owned by home-laptop-bar.spec.ts
     const pos = await page.evaluate(() => {
       const r = (k: string) => {
         const b = (document.querySelector(`[data-box] > [data-bx="${k}"]`) as HTMLElement).getBoundingClientRect();
-        return { top: Math.round(b.top), left: Math.round(b.left), bottom: Math.round(b.bottom) };
+        return { top: Math.round(b.top), left: Math.round(b.left), right: Math.round(b.right), bottom: Math.round(b.bottom) };
       };
-      return { from: r("from"), flight: r("flight"), to: r("to"), when: r("when"), trav: r("trav"), cta: r("cta"), w: window.innerWidth };
+      return { from: r("from"), flight: r("flight"), to: r("to") };
     });
-    expect(pos.flight.left).toBe(pos.from.left);
-    expect(pos.flight.top).toBeGreaterThanOrEqual(pos.from.bottom - 1);
-    expect(pos.cta.top).toBeGreaterThanOrEqual(pos.trav.bottom - 1);
-    expect(pos.cta.top).toBeGreaterThanOrEqual(pos.when.bottom - 1);
-    if (pos.w <= 680) {
-      expect(pos.to.top).toBeGreaterThanOrEqual(pos.flight.bottom - 1);
-      expect(pos.when.top).toBeGreaterThanOrEqual(pos.to.bottom - 1);
-      expect(pos.trav.top).toBeGreaterThanOrEqual(pos.when.bottom - 1);
-    } else {
-      expect(Math.abs(pos.to.top - pos.from.top)).toBeLessThanOrEqual(1);
-      expect(pos.trav.left).toBeGreaterThan(pos.when.left);
-    }
+    expect(pos.flight.left).toBeGreaterThanOrEqual(pos.from.right - 1);
+    expect(Math.abs(pos.to.top - pos.from.top)).toBeLessThanOrEqual(1);
   });
 
-  test("a street pickup hides Flight and drops its value @component", async ({ page }) => {
+  test("a street pickup offers an optional flight and keeps a typed value @component", async ({ page }) => {
     await openHome(page);
+    await expect(page.getByRole("button", { name: "Add a flight number" })).toHaveCount(0);
     await pickFrom(page, "Fixture Air", "Fixture Airport");
     const flight = page.getByRole("textbox", { name: "Flight number" });
     await flight.fill("lx  318");
     await expect(flight).toHaveValue("LX 318");
     await page.getByRole("combobox", { name: "From", exact: true }).fill("Fixture Street");
     await page.getByRole("option", { name: /Fixture Street 1/ }).click();
-    await expect(page.locator('[data-bx="flight"]')).toHaveCount(0);
-    // Back to an airport: the field is empty again.
-    await pickFrom(page, "Fixture Air", "Fixture Airport");
-    await expect(page.getByRole("textbox", { name: "Flight number" })).toHaveValue("");
+    // The typed flight stays, now optional.
+    await expect(page.getByRole("textbox", { name: "Flight number" })).toHaveValue("LX 318");
+    await expect(page.locator('[data-bx="flight"]').getByText("Optional")).toBeVisible();
+    await expect(page.getByText("It does not change the price.")).toBeVisible();
   });
 
+  test("a street pickup shows the opener, then an optional flight that must be valid @component", async ({ page }) => {
+    await page.route("**/checkout?**", (route) =>
+      route.fulfill({ status: 200, contentType: "text/html", body: "<html><body>checkout</body></html>" }),
+    );
+    await openHome(page);
+    await pickFrom(page, "Fixture Street", "Fixture Street 1");
+    await expect(page.getByRole("textbox", { name: "Flight number" })).toHaveCount(0);
+    await page.getByRole("button", { name: "Add a flight number" }).click();
+    const flight = page.getByRole("textbox", { name: "Flight number" });
+    await expect(flight).toBeFocused();
+    await expect(page.locator('[data-bx="flight"]').getByText("Optional")).toBeVisible();
+    await pickTo(page, "Fixture Air", "Fixture Airport");
+    await pickWhen(page);
+    await flight.fill("X");
+    await page.getByRole("button", { name: /See prices/i }).click();
+    await expect(page.getByRole("alert").filter({ hasText: "Check the flight number" })).toBeVisible();
+    await flight.fill("LX318");
+    const nav = page.waitForRequest((r) => r.isNavigationRequest() && /\/checkout\?/.test(r.url()));
+    await page.getByRole("button", { name: /See prices/i }).click();
+    expect(new URL((await nav).url()).searchParams.get("flight")).toBe("LX318");
+  });
   test("Travellers is one 54px button with Passengers and Bags counters @component", async ({ page }) => {
     await openHome(page);
     const btn = page.locator("[data-trav-btn]");
     expect((await btn.boundingBox())!.height).toBe(54);
-    await expect(btn).toContainText("1 passenger · 0 bags");
+    await expect(btn).toHaveAttribute("aria-label", "1 passenger · 0 bags");
     await btn.click();
     const dialog = page.getByRole("dialog", { name: "Travellers" });
     await expect(dialog).toBeVisible();
@@ -138,7 +156,7 @@ test.describe("Home booking box @component", () => {
     await page.keyboard.press("Escape");
     await expect(dialog).toHaveCount(0);
     await expect(btn).toBeFocused();
-    await expect(btn).toContainText("2 passengers · 2 bags");
+    await expect(btn).toHaveAttribute("aria-label", "2 passengers · 2 bags");
   });
 
   test("SEE PRICES with gaps shows inline errors and focuses From @component", async ({ page }) => {
@@ -227,6 +245,28 @@ test.describe("Home booking box @component", () => {
     const w = await page.evaluate(() => ({ sw: document.scrollingElement!.scrollWidth, iw: window.innerWidth }));
     expect(w.sw).toBeLessThanOrEqual(w.iw);
   });
+
+  for (const lang of ["de", "fr", "ar"] as const) {
+    test(`the optional flight opener and field resolve in ${lang} @component`, async ({ page }) => {
+      await openHome(page);
+      await pickFrom(page, "Fixture Street", "Fixture Street 1");
+      const cov = () =>
+        page.evaluate(
+          (l) =>
+            (window as unknown as { VamosLocale: { coverage(root: Element, l: string): unknown } }).VamosLocale.coverage(
+              document.querySelector("#book")!,
+              l,
+            ),
+          lang,
+        );
+      await page.evaluate((l) => (window as unknown as { VamosLocale: { setLang(v: string): void } }).VamosLocale.setLang(l), lang);
+      await page.waitForTimeout(250);
+      expect(await cov()).toMatchObject({ count: 0, strings: [], attrs: [] });
+      await page.locator('[data-bx="flight"] button').click();
+      await page.waitForTimeout(250);
+      expect(await cov()).toMatchObject({ count: 0, strings: [], attrs: [] });
+    });
+  }
 
   for (const lang of ["de", "fr", "ar"] as const) {
     test(`every string in the box resolves in ${lang} @component`, async ({ page }) => {

@@ -14,6 +14,8 @@ import { useTranslations } from "next-intl";
 import { chfRappenToDisplay } from "@/lib/fx/format";
 import { useFx } from "@/lib/fx/use-fx";
 import { useVamosLocale } from "@/lib/locale-shim";
+import { airportByName } from "@/lib/checkout/trip-editor-rules";
+import { geoLocale } from "@/lib/checkout/geo-locale";
 import { tripIsQuotable } from "@/lib/checkout/checkout-quote";
 import type { ChargeLine } from "@/lib/checkout/checkout-charge";
 import { extraLabel, type ExtraNames } from "@/lib/checkout/extra-label";
@@ -33,7 +35,6 @@ import { useQuoteLabel } from "@/lib/checkout/quote-label";
 import { buildTripQuery, normaliseFlight, parseTripQuery, type Trip } from "@/lib/checkout/trip-url";
 import { useCheckoutFlow } from "./CheckoutPage";
 
-const AIRPORT_NAME = /airport|flughafen|a[eéè]roport|مطار/i;
 
 export type ExtraItem = { code: string; amountRappen: number; names: ExtraNames };
 
@@ -205,7 +206,34 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
   const tripRef = useRef(trip);
   tripRef.current = trip;
 
-  const airport = AIRPORT_NAME.test(trip.from ?? "") || Boolean(trip.flight);
+  // Airport status comes from the pickup place only (D-09), never from a flight being present.
+  const [airportLookup, setAirportLookup] = useState<{ key: string; isAirport: boolean } | null>(null);
+  const placeKey = trip.fid && trip.gs ? `${trip.fid}|${trip.gs}` : null;
+  useEffect(() => {
+    if (!placeKey || !trip.fid || !trip.gs) return;
+    let alive = true;
+    void (async () => {
+      try {
+        const res = await fetch(
+          `/api/geo/retrieve?mapbox_id=${encodeURIComponent(trip.fid as string)}` +
+            `&session_token=${encodeURIComponent(trip.gs as string)}` +
+            `&locale=${encodeURIComponent(geoLocale(locale))}`,
+          { credentials: "same-origin" },
+        );
+        const json = (await res.json()) as { place?: { isAirport?: boolean } | null };
+        if (alive && typeof json.place?.isAirport === "boolean") {
+          setAirportLookup({ key: placeKey, isAirport: json.place.isAirport });
+        }
+      } catch {
+        // the name test stays as the hint
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [placeKey]);
+  const airport =
+    airportLookup && airportLookup.key === placeKey ? airportLookup.isAirport : airportByName(trip.from ?? "");
 
   // Codes the live book actually has. Until it is read nothing is priced.
   const tickedValid = useMemo(
@@ -425,7 +453,8 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
       return;
     }
     const mine = ++priceSeq.current;
-    setPrice({ kind: "updating" });
+    // A flight-only re-sign changes the lock but never the price: refresh without the loading state.
+    if (flow.silentLock.current !== quote.lock) setPrice({ kind: "updating" });
     void (async () => {
       let status = 0;
       let json: Record<string, unknown> | null = null;
@@ -526,12 +555,12 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
     }
     if (parsed.flight === tripRef.current.flight) return;
     void (async () => {
-      const result = await requoteTrip({ ...tripRef.current, flight: parsed.flight, flightDisplay: parsed.display });
+      const result = await flow.resignFlight({ ...tripRef.current, flight: parsed.flight, flightDisplay: parsed.display });
       if (result.kind === "error" && !result.challenge) {
         setFlightError((result.i18nKey ? label(result.i18nKey, result.params ?? undefined) : "") || t("quoteGeneric"));
       }
     })();
-  }, [flight, label, requoteTrip, t]);
+  }, [flight, flow, label, t]);
 
   // ── Totals ────────────────────────────────────────────────────────────────────────────
   const totalView = useMemo(() => {
@@ -595,10 +624,10 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
     }
 
     // The flight the customer typed must be the flight the quote was made for.
-    const typed = airport ? normaliseFlight(flight) : null;
+    const typed = normaliseFlight(flight);
     if (typed && typed.flight !== trip.flight) {
       announce(t("updatingPrice"));
-      void requoteTrip({ ...trip, flight: typed.flight, flightDisplay: typed.display });
+      void flow.resignFlight({ ...trip, flight: typed.flight, flightDisplay: typed.display });
       return;
     }
     if (price.kind === "error") {
