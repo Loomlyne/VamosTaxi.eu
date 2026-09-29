@@ -23,6 +23,7 @@ import {
   emailNext,
   runOtp,
   runPasswordReset,
+  runResendConfirmation,
   runSignInPassword,
   runSignOut,
   runSignUpPassword,
@@ -88,6 +89,9 @@ const RATE_LIMITED: ProfileRunResult = { ok: false, reason: "rate-limited" };
 const NOT_STAFF: ProfileRunResult = { ok: false, reason: "not-staff" };
 
 /** The e-mailed code was wrong, expired or malformed. One answer for all three. */
+/** Password was right but the address was never confirmed (only sent after a correct password). */
+const EMAIL_NOT_CONFIRMED: ProfileRunResult = { ok: false, reason: "email-not-confirmed" };
+
 const CODE_INVALID: ProfileRunResult = { ok: false, reason: "code-invalid" };
 
 function json(
@@ -586,6 +590,20 @@ export async function POST(request: Request): Promise<Response> {
     return sessionJson({ ok: true }, setCookies);
   }
 
+  if (fields.mode === "resend-confirmation") {
+    const parsed = resendConfirmationSchema.safeParse({ email: fields.email });
+    if (!parsed.success) return json(SENT);
+    if (!(await perAddressAllowed("resend", parsed.data.email))) return json(RATE_LIMITED, 429);
+    const { result, reason } = await runResendConfirmation(
+      supabase,
+      parsed.data.email,
+      origin,
+      emailNext(returnToRaw, localizedHome(locale)),
+    );
+    if (reason) log("error", "auth", ctx, { reason, action: "resend-confirmation" });
+    return sessionJson(result, setCookies);
+  }
+
   if (fields.mode === "forgot") {
     const parsed = resetEmailSchema.safeParse({ email: fields.email });
     if (!parsed.success) return json(SENT);
@@ -639,6 +657,8 @@ export async function POST(request: Request): Promise<Response> {
   if (!parsed.success) return json(FORM_CREDENTIALS);
   const { result, reason } = await runSignInPassword(supabase, parsed.data);
   if (reason) log("error", "auth", ctx, { reason, action: "signin" });
+  // Supabase only says this after the password was right, so it leaks nothing.
+  if (reason === "email_not_confirmed") return json(EMAIL_NOT_CONFIRMED, 400);
   if ("ok" in result) {
     const notStaff = await refuseNonStaff();
     if (notStaff) return notStaff;

@@ -42,6 +42,11 @@ export type AuthClient = {
       email: string,
       options: { redirectTo: string },
     ): Promise<{ error: AuthError }>;
+    resend(args: {
+      type: "signup";
+      email: string;
+      options?: { emailRedirectTo?: string };
+    }): Promise<{ error: AuthError }>;
     signOut(): Promise<{ error: AuthError }>;
     getUser(): Promise<{ data: { user: unknown | null }; error: AuthError }>;
     updateUser(args: {
@@ -130,6 +135,21 @@ export async function runOtp(
       emailRedirectTo: callbackUrl(origin, home),
       data,
     },
+  });
+  return { result: SENT, reason: error ? (error.code ?? "auth-failed") : null };
+}
+
+/** Sends the sign-up confirmation mail again. Same answer for every address (enumeration). */
+export async function runResendConfirmation(
+  supabase: AuthClient,
+  email: string,
+  origin: string,
+  home: string,
+): Promise<{ result: AuthRunResult; reason: string | null }> {
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email,
+    options: { emailRedirectTo: callbackUrl(origin, home) },
   });
   return { result: SENT, reason: error ? (error.code ?? "auth-failed") : null };
 }
