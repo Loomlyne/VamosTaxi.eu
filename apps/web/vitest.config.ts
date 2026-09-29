@@ -7,9 +7,12 @@
 // default, no Cloudflare Workers pool tooling — Miniflare cannot see a
 // Hyperdrive binding and Phase 4 unit tests must not need one.
 
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
+  // Same "@/" alias as tsconfig so lib modules that import "@/…" load under test.
+  resolve: { alias: { "@": fileURLToPath(new URL(".", import.meta.url)) } },
   test: {
     environment: "node",
     include: [

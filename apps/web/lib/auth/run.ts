@@ -4,6 +4,7 @@
 // Never distinguishes "user exists" on signup/otp/reset (enumeration).
 
 import type { AuthBanner } from "../../components/auth/types";
+import { safeReturnTo } from "../account/return-to";
 import { AUTH_LOCALE_METADATA_KEY } from "../supabase/constants";
 
 export type AuthRunResult =
@@ -58,6 +59,14 @@ export function callbackUrl(origin: string, next: string): string {
   const url = new URL("/api/auth/callback", origin);
   url.searchParams.set("next", next);
   return url.toString();
+}
+
+/**
+ * Where an e-mail link lands after the callback (D-13): a validated checkout
+ * returnTo (with its query) when given, otherwise `home`. Never off-site.
+ */
+export function emailNext(returnTo: unknown, home: string): string {
+  return safeReturnTo(typeof returnTo === "string" ? returnTo : null) ?? home;
 }
 
 export function fullName(firstName: string, lastName: string): string {

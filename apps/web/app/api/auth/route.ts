@@ -18,6 +18,7 @@ import {
 import {
   FORM_CREDENTIALS,
   parseProfileFields,
+  emailNext,
   runOtp,
   runPasswordReset,
   runSignInPassword,
@@ -199,7 +200,7 @@ export async function POST(request: Request): Promise<Response> {
     return json(FORM_CREDENTIALS, 400);
   }
   const body = raw as Record<string, unknown>;
-  const { locale: localeRaw, action, ...fields } = body;
+  const { locale: localeRaw, action, returnTo: returnToRaw, ...fields } = body;
 
   const locParsed = localeSchema.safeParse(typeof localeRaw === "string" ? localeRaw : "en");
   const locale = locParsed.success ? locParsed.data : routing.defaultLocale;
@@ -549,7 +550,7 @@ export async function POST(request: Request): Promise<Response> {
           }
         : { mode: "signin", email: parsed.data.email, locale },
       origin,
-      localizedHome(locale),
+      emailNext(returnToRaw, localizedHome(locale)),
     );
     if (reason) log("error", "auth", ctx, { reason, action: "otp" });
     if (!reason && parsed.data.mode === "signup") {
@@ -565,7 +566,7 @@ export async function POST(request: Request): Promise<Response> {
       supabase,
       { ...parsed.data, locale },
       origin,
-      localizedHome(locale),
+      emailNext(returnToRaw, localizedHome(locale)),
     );
     if (reason) log("error", "auth", ctx, { reason, action: "signup" });
     if (!reason) await appendSignupConsent(request, locale, ctx);

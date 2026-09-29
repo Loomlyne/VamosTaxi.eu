@@ -354,7 +354,7 @@ class Component extends DCLogic {
      Same rule as apps/web/lib/account/return-to.ts: only /checkout or /{locale}/checkout with
      a query, never // or a scheme or a traversal. Read once from ?returnTo=, kept for the tab
      in sessionStorage so a code or link step on the same tab still lands there. */
-  returnTo() {
+  returnTo(keep) {
     const ok = (v) => {
       if (typeof v !== 'string') return null;
       v = v.trim();
@@ -368,7 +368,7 @@ class Component extends DCLogic {
     try {
       if (v) sessionStorage.setItem('vamosReturnTo', v);
       else v = ok(sessionStorage.getItem('vamosReturnTo'));
-      if (v && !raw) sessionStorage.removeItem('vamosReturnTo');
+      if (v && !raw && !keep) sessionStorage.removeItem('vamosReturnTo');
     } catch (e) {}
     return v;
   }
@@ -457,7 +457,7 @@ class Component extends DCLogic {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       credentials: 'same-origin',
-      body: JSON.stringify(Object.assign({ locale: this.locale() }, body)),
+      body: JSON.stringify(Object.assign({ locale: this.locale() }, this.returnTo(true) ? { returnTo: this.returnTo(true) } : {}, body)),
     }).then((r) => r.json()).catch(() => null);
   }
   applyLive(result, mode, method, skipEnroll) {
