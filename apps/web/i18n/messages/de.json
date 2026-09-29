@@ -569,9 +569,8 @@
     "timeChangeFailed": "Diese Zeitänderung konnte nicht angefragt werden.",
     "flightSaved": "Flugnummer gespeichert.",
     "flightSaveFailed": "Diese Flugnummer konnte nicht gespeichert werden.",
-    "cancelSheetFull": "Diese Fahrt wird storniert. Sie erhalten eine volle Rückerstattung. Das Geld geht zurück auf die Karte, mit der Sie bezahlt haben.",
-    "cancelSheetOps": "Diese Fahrt wird storniert. Die Rückerstattung braucht eine Person — wir schreiben Ihnen.",
-    "cancelSheetClose": "Zu knapp, um hier zu stornieren. Rufen Sie uns an.",
+    "cancelSheetFull": "Diese Fahrt wird storniert. Vollständig und automatisch zurückerstattet.",
+    "cancelSheetOps": "Diese Fahrt wird storniert. Unser Team entscheidet über die Rückerstattung und teilt sie Ihnen per E-Mail mit.",
     "refundPendingOps": "Rückerstattung in Prüfung",
     "refundDeclinedLabel": "Keine Rückerstattung",
     "refundProcessing": "In Bearbeitung",
@@ -1578,7 +1577,10 @@
     "extra-time-per-commenced-hour": "Nehmen Sie ab, wartet der Fahrer — die Zusatzzeit wird pro angefangene Stunde verrechnet, was günstiger ist, als den Transfer zu verlieren.",
     "team-refund-paid-30-days-acceptance": "Eine Rückerstattung, über die unser Team entscheidet, zahlen wir innerhalb von 30 Tagen, nachdem Sie den Entscheid schriftlich angenommen haben. Ihre Bank braucht vielleicht ein paar Tage länger, bis sie sichtbar ist.",
     "and-we-resolve-within-30-days": ", und wir erledigen eine Beschwerde innerhalb von 30 Tagen.",
-    "flight-delayed-allowance-moves": "Bei einer Flugverspätung verschiebt sich das Kontingent mit dem Flug — Sie müssen uns nicht anrufen."
+    "flight-delayed-allowance-moves": "Bei einer Flugverspätung verschiebt sich das Kontingent mit dem Flug — Sie müssen uns nicht anrufen.",
+    "our-team-decides-refund-email": "Unser Team entscheidet über die Rückerstattung und teilt sie Ihnen per E-Mail mit.",
+    "extended-city-stay-15-shown-on-quote": "Verlängerter Stadtaufenthalt, bis zu 15 Minuten: in Ihrem Angebot ausgewiesen.",
+    "changes-free-before-pickup": "Zeit, Adresse, Passagierzahl und Fahrzeugklasse lassen sich vor der Abholung kostenlos ändern. Verschiebt die Änderung den Fahrpreis, zahlen Sie die Differenz oder wir erstatten sie — nie mehr als die Differenz."
   },
   "ops": {
     "add-a-note-visible-to-dispatch-only": "Notiz hinzufügen, nur für die Disposition sichtbar…",
@@ -2747,7 +2749,8 @@
       "legal.airport-pickups-60-minutes-landing": "fixed legal-page figure from the vamostaxi.eu terms or privacy text, owner-approved 2026-09-30 (docs/legal-source/vamostaxi-eu-2026-09-30/MAPPING.md list A), not a live count",
       "legal.all-other-pickups-30-minutes-booked": "fixed legal-page figure from the vamostaxi.eu terms or privacy text, owner-approved 2026-09-30 (docs/legal-source/vamostaxi-eu-2026-09-30/MAPPING.md list A), not a live count",
       "legal.team-refund-paid-30-days-acceptance": "fixed legal-page figure from the vamostaxi.eu terms or privacy text, owner-approved 2026-09-30 (docs/legal-source/vamostaxi-eu-2026-09-30/MAPPING.md list A), not a live count",
-      "legal.and-we-resolve-within-30-days": "fixed legal-page figure from the vamostaxi.eu terms or privacy text, owner-approved 2026-09-30 (docs/legal-source/vamostaxi-eu-2026-09-30/MAPPING.md list A), not a live count"
+      "legal.and-we-resolve-within-30-days": "fixed legal-page figure from the vamostaxi.eu terms or privacy text, owner-approved 2026-09-30 (docs/legal-source/vamostaxi-eu-2026-09-30/MAPPING.md list A), not a live count",
+      "legal.extended-city-stay-15-shown-on-quote": "fixed legal-page figure (owner decision 2026-09-30, .planning/quick/260930-lgl-legal-pages-from-eu/DECISIONS.md), not a live count"
     }
   },
   "quote": {

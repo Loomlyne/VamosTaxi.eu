@@ -569,9 +569,8 @@
     "timeChangeFailed": "تعذر طلب تغيير الوقت.",
     "flightSaved": "حُفظ رقم الرحلة.",
     "flightSaveFailed": "تعذر حفظ رقم الرحلة.",
-    "cancelSheetFull": "ستُلغى هذه الرحلة. تسترد المبلغ كاملًا. ويعود المال إلى البطاقة التي دفعت بها.",
-    "cancelSheetOps": "ستُلغى هذه الرحلة. الاسترداد يحتاج إلى شخص — وسنراسل لك.",
-    "cancelSheetClose": "الوقت ضيق للإلغاء من هنا. اتصل بنا.",
+    "cancelSheetFull": "ستُلغى هذه الرحلة. يُردّ المبلغ كاملًا وتلقائيًا.",
+    "cancelSheetOps": "ستُلغى هذه الرحلة. يقرّر فريقنا مبلغ الاسترداد ويُبلغك به عبر البريد الإلكتروني.",
     "refundPendingOps": "الاسترداد قيد المراجعة",
     "refundDeclinedLabel": "لا يوجد استرداد",
     "refundProcessing": "قيد المعالجة",
@@ -1578,7 +1577,10 @@
     "extra-time-per-commenced-hour": "أجب على الهاتف وسينتظر السائق — ويُحتسب الوقت الإضافي عن كل ساعة بدأت، وهو أرخص من خسارة الرحلة.",
     "team-refund-paid-30-days-acceptance": "يُدفع الاسترداد الذي يقرّره فريقنا خلال 30 يومًا من موافقتك الكتابية على القرار. وقد يستغرق بنكك أيامًا إضافية لإظهاره.",
     "and-we-resolve-within-30-days": "، ونعالج الشكوى خلال 30 يومًا.",
-    "flight-delayed-allowance-moves": "وإذا تأخّرت رحلتك الجوية، تتحرّك المدة مع الرحلة — لا حاجة للاتصال بنا."
+    "flight-delayed-allowance-moves": "وإذا تأخّرت رحلتك الجوية، تتحرّك المدة مع الرحلة — لا حاجة للاتصال بنا.",
+    "our-team-decides-refund-email": "يقرّر فريقنا مبلغ الاسترداد ويُبلغك به عبر البريد الإلكتروني.",
+    "extended-city-stay-15-shown-on-quote": "إقامة ممتدة في المدينة، حتى 15 دقيقة: مبيّنة في عرض السعر الخاص بك.",
+    "changes-free-before-pickup": "يمكن تعديل الوقت والعنوان وعدد الركاب وفئة السيارة قبل الانطلاق، دون رسوم. وإن غيّر التعديل السعر، تدفع الفرق أو نردّه لك — ولا شيء أكثر من الفرق."
   },
   "ops": {
     "add-a-note-visible-to-dispatch-only": "أضف ملاحظة يراها قسم التشغيل وحده…",
@@ -2747,7 +2749,8 @@
       "legal.airport-pickups-60-minutes-landing": "fixed legal-page figure from the vamostaxi.eu terms or privacy text, owner-approved 2026-09-30 (docs/legal-source/vamostaxi-eu-2026-09-30/MAPPING.md list A), not a live count",
       "legal.all-other-pickups-30-minutes-booked": "fixed legal-page figure from the vamostaxi.eu terms or privacy text, owner-approved 2026-09-30 (docs/legal-source/vamostaxi-eu-2026-09-30/MAPPING.md list A), not a live count",
       "legal.team-refund-paid-30-days-acceptance": "fixed legal-page figure from the vamostaxi.eu terms or privacy text, owner-approved 2026-09-30 (docs/legal-source/vamostaxi-eu-2026-09-30/MAPPING.md list A), not a live count",
-      "legal.and-we-resolve-within-30-days": "fixed legal-page figure from the vamostaxi.eu terms or privacy text, owner-approved 2026-09-30 (docs/legal-source/vamostaxi-eu-2026-09-30/MAPPING.md list A), not a live count"
+      "legal.and-we-resolve-within-30-days": "fixed legal-page figure from the vamostaxi.eu terms or privacy text, owner-approved 2026-09-30 (docs/legal-source/vamostaxi-eu-2026-09-30/MAPPING.md list A), not a live count",
+      "legal.extended-city-stay-15-shown-on-quote": "fixed legal-page figure (owner decision 2026-09-30, .planning/quick/260930-lgl-legal-pages-from-eu/DECISIONS.md), not a live count"
     }
   },
   "quote": {
