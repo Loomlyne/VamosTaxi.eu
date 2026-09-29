@@ -168,12 +168,12 @@ select function_privs_are('public', 'stripe_event_settle', '{text,text}'::text[]
 select function_privs_are('public', 'stripe_event_settle', '{text,text}'::text[], 'vamos_public', '{}'::text[], 'stripe_event_settle: vamos_public holds no EXECUTE');
 select function_privs_are('public', 'stripe_event_settle', '{text,text}'::text[], 'vamos_system', '{EXECUTE}'::text[], 'stripe_event_settle: vamos_system holds EXECUTE');
 
-select function_privs_are('public', 'checkout_payment_settle', '{text,text,text,text,text,numeric,text,timestamptz,int8}'::text[], 'anon', '{}'::text[], 'checkout_payment_settle: anon holds no EXECUTE');
-select function_privs_are('public', 'checkout_payment_settle', '{text,text,text,text,text,numeric,text,timestamptz,int8}'::text[], 'authenticated', '{}'::text[], 'checkout_payment_settle: authenticated holds no EXECUTE');
-select function_privs_are('public', 'checkout_payment_settle', '{text,text,text,text,text,numeric,text,timestamptz,int8}'::text[], 'vamos_staff', '{}'::text[], 'checkout_payment_settle: vamos_staff holds no EXECUTE');
-select function_privs_are('public', 'checkout_payment_settle', '{text,text,text,text,text,numeric,text,timestamptz,int8}'::text[], 'vamos_guest', '{}'::text[], 'checkout_payment_settle: vamos_guest holds no EXECUTE');
-select function_privs_are('public', 'checkout_payment_settle', '{text,text,text,text,text,numeric,text,timestamptz,int8}'::text[], 'vamos_public', '{}'::text[], 'checkout_payment_settle: vamos_public holds no EXECUTE');
-select function_privs_are('public', 'checkout_payment_settle', '{text,text,text,text,text,numeric,text,timestamptz,int8}'::text[], 'vamos_system', '{EXECUTE}'::text[], 'checkout_payment_settle: vamos_system holds EXECUTE');
+select function_privs_are('public', 'checkout_payment_settle', '{text,text,text,text,text,numeric,text,timestamptz,int8,text}'::text[], 'anon', '{}'::text[], 'checkout_payment_settle: anon holds no EXECUTE');
+select function_privs_are('public', 'checkout_payment_settle', '{text,text,text,text,text,numeric,text,timestamptz,int8,text}'::text[], 'authenticated', '{}'::text[], 'checkout_payment_settle: authenticated holds no EXECUTE');
+select function_privs_are('public', 'checkout_payment_settle', '{text,text,text,text,text,numeric,text,timestamptz,int8,text}'::text[], 'vamos_staff', '{}'::text[], 'checkout_payment_settle: vamos_staff holds no EXECUTE');
+select function_privs_are('public', 'checkout_payment_settle', '{text,text,text,text,text,numeric,text,timestamptz,int8,text}'::text[], 'vamos_guest', '{}'::text[], 'checkout_payment_settle: vamos_guest holds no EXECUTE');
+select function_privs_are('public', 'checkout_payment_settle', '{text,text,text,text,text,numeric,text,timestamptz,int8,text}'::text[], 'vamos_public', '{}'::text[], 'checkout_payment_settle: vamos_public holds no EXECUTE');
+select function_privs_are('public', 'checkout_payment_settle', '{text,text,text,text,text,numeric,text,timestamptz,int8,text}'::text[], 'vamos_system', '{EXECUTE}'::text[], 'checkout_payment_settle: vamos_system holds EXECUTE');
 
 select function_privs_are('public', 'notification_claim', '{uuid,text,uuid,text,text,text}'::text[], 'anon', '{}'::text[], 'notification_claim: anon holds no EXECUTE');
 select function_privs_are('public', 'notification_claim', '{uuid,text,uuid,text,text,text}'::text[], 'authenticated', '{}'::text[], 'notification_claim: authenticated holds no EXECUTE');

@@ -527,6 +527,7 @@ export type Database = {
           fx_source: string | null
           id: number
           presentment_amount_minor: number | null
+          presentment_currency: string | null
           snapshot_id: number
           status: string
           stripe_checkout_session_id: string | null
@@ -544,6 +545,7 @@ export type Database = {
           fx_source?: string | null
           id?: never
           presentment_amount_minor?: number | null
+          presentment_currency?: string | null
           snapshot_id: number
           status: string
           stripe_checkout_session_id?: string | null
@@ -561,6 +563,7 @@ export type Database = {
           fx_source?: string | null
           id?: never
           presentment_amount_minor?: number | null
+          presentment_currency?: string | null
           snapshot_id?: number
           status?: string
           stripe_checkout_session_id?: string | null
@@ -2576,17 +2579,26 @@ export type Database = {
         Args: { p_booking_id: string }
         Returns: {
           bags: number
+          charged_rappen: number
           contact_email: string
           contact_name: string
+          coupon_code: string
+          coupon_rappen: number
           dropoff_text: string
           flight_no: string
+          lines: Json
           locale: string
           pax: number
           payer_email: string
           pickup_text: string
+          policy_extras: Json
+          presentment_amount_minor: number
+          presentment_currency: string
           price_total_rappen: number
           reference: string
           scheduled_local: string
+          vat_rate_bps: number
+          vehicle_class_name: string
           vehicle_class_slug: string
         }[]
       }
@@ -2734,6 +2746,7 @@ export type Database = {
           p_outcome: string
           p_payment_intent_id: string
           p_presentment_amount_minor: number
+          p_presentment_currency?: string
           p_session_id: string
         }
         Returns: {
@@ -2831,6 +2844,7 @@ export type Database = {
         Args: { p_customer_id: string; p_reference: string }
         Returns: Json
       }
+      customer_id_for_user: { Args: { p_user_id: string }; Returns: string }
       customer_paid_cancel: {
         Args: { p_booking_id: string }
         Returns: {
@@ -2913,6 +2927,13 @@ export type Database = {
           p_template_version: string
         }
         Returns: number
+      }
+      notification_confirmation_missing: {
+        Args: { p_older_than: string }
+        Returns: {
+          booking_id: string
+          locale: string
+        }[]
       }
       notification_settle: {
         Args: { p_error: string; p_id: number; p_provider_message_id: string }

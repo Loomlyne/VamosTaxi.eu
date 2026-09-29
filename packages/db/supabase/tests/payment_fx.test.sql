@@ -7,7 +7,7 @@
 --
 -- Synthetic figures, rolled back at the end of this file — never a real CHF amount (D-34).
 begin;
-select plan(24);
+select plan(28);
 
 -- slug CHECK is economy|business|first|van. Seed occupies the first three; 'first' is free (D-36).
 -- Emails / rate-version slugs stay payment-fx- prefixed so this file does not collide with charge_gate.
@@ -299,6 +299,63 @@ select throws_ok(
   '23001',
   null,
   'whitelist: any column change to a succeeded row raises restrict_violation'
+);
+
+-- 26.3-01 D-21: presentment currency written by the settle RPC ------------------------------
+insert into public.price_snapshots (
+  quote_id, vehicle_class_id, rate_version_id, rate_version_is_live, settings_version_id,
+  engine_version, pax, bags, lines, policy, booking_id,
+  subtotal_rappen, surcharges_rappen, discount_rappen, total_rappen, expires_at, quote_lock_expires_at
+)
+select gen_random_uuid(), fx.vehicle_class_id, fx.rate_version_id, true, fx.settings_version_id,
+       'payment-fx@s3', 1, 0, jsonb_build_array(jsonb_build_object(
+         'seq', 1, 'code', 'distance_fare', 'kind', 'fare',
+         'i18n_key', 'price.line.distance', 'amount_rappen', 6
+       )), pol.policy, b.id, 6, 0, 0, 6,
+       now() + interval '30 minutes', now() + interval '30 minutes'
+  from fx, pol, public.bookings b
+ where b.contact_email = 'payment-fx-booking-2@example.test';
+
+update public.bookings set price_snapshot_id =
+  (select id from public.price_snapshots where engine_version = 'payment-fx@s3')
+ where contact_email = 'payment-fx-booking-2@example.test';
+
+insert into public.booking_payments (
+  booking_id, snapshot_id, stripe_payment_intent_id, stripe_checkout_session_id,
+  charged_rappen, status
+)
+select ps.booking_id, ps.id, 'cs_payment_fx_present', 'cs_payment_fx_present', 6, 'requires_payment'
+  from public.price_snapshots ps where ps.engine_version = 'payment-fx@s3';
+
+select throws_ok(
+  $$ update public.booking_payments set presentment_currency = 'eu'
+      where stripe_checkout_session_id = 'cs_payment_fx_present' $$,
+  '23514',
+  null,
+  'booking_payments_presentment_currency_format: a non-ISO code raises check_violation'
+);
+
+set local role vamos_system;
+select lives_ok(
+  $$ select * from public.checkout_payment_settle(
+       'evt_payment_fx_present', 'cs_payment_fx_present', 'pi_payment_fx_present', 'succeeded',
+       'EUR', 0.92, 'stripe', now(), 9, 'eur') $$,
+  'D-21: settle with p_presentment_currency succeeds as vamos_system'
+);
+reset role;
+
+select is(
+  (select presentment_currency::text from public.booking_payments
+    where stripe_checkout_session_id = 'cs_payment_fx_present'),
+  'EUR',
+  'D-21: settle writes presentment_currency (upper-cased)'
+);
+
+select is(
+  (select presentment_amount_minor from public.booking_payments
+    where stripe_checkout_session_id = 'cs_payment_fx_present'),
+  9::bigint,
+  'D-21: presentment_amount_minor stored next to presentment_currency'
 );
 
 -- booking_refunds untouched (D-12) -----------------------------------------------------------
