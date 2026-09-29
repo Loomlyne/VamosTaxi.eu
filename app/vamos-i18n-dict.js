@@ -1770,6 +1770,10 @@
       "7 passengers": { de: "7 Passagiere", fr: "7 passagers", ar: "7 ركاب" },
       "6 medium cases": { de: "6 mittlere Koffer", fr: "6 valises moyennes", ar: "6 حقائب متوسطة" },
       "Free cancellation until 24 hours before pickup": { de: "Kostenlose Stornierung bis 24 Stunden vor der Abholung", fr: "Annulation gratuite jusqu’à 24 heures avant la prise en charge", ar: "إلغاء مجاني حتى 24 ساعة قبل موعد الانطلاق" },
+      "Driver name, vehicle and plate are sent by email as soon as a driver is assigned, and again in the reminder 24 hours before pickup. The driver's number is on your manage-booking page.": { de: "Fahrername, Fahrzeug und Kennzeichen senden wir per E-Mail, sobald ein Fahrer zugeteilt ist, und nochmals in der Erinnerung 24 Stunden vor der Abholung. Die Nummer des Fahrers steht auf Ihrer Seite «Buchung verwalten».", fr: "Le nom du chauffeur, le véhicule et la plaque sont envoyés par e-mail dès qu’un chauffeur est attribué, puis à nouveau dans le rappel 24 heures avant la prise en charge. Le numéro du chauffeur figure sur votre page de gestion de réservation.", ar: "نرسل اسم السائق والمركبة ولوحتها عبر البريد الإلكتروني فور تعيين السائق، ثم مرة أخرى في التذكير قبل 24 ساعة من موعد الانطلاق. رقم السائق موجود في صفحة إدارة حجزك." },
+      "A roomy executive van for corporate travel and airport pickups where the arrival matters.": { de: "Ein geräumiger Business-Van für Geschäftsreisen und Flughafenabholungen, bei denen die Ankunft zählt.", fr: "Un van haut de gamme spacieux pour les déplacements professionnels et les prises en charge à l’aéroport où l’arrivée compte.", ar: "فان فاخر واسع لرحلات الأعمال والاستقبال في المطار حين تكون لحظة الوصول مهمة." },
+      "12 passengers": { de: "12 Passagiere", fr: "12 passagers", ar: "12 راكبًا" },
+      "9 medium cases": { de: "9 mittlere Koffer", fr: "9 valises moyennes", ar: "9 حقائب متوسطة" },
       /* end legal follow-up */
       'years': { de: 'Jahre', fr: 'ans', ar: 'سنوات' },
       'Payment and tax records': { de: 'Zahlungs- und Steuerbelege', fr: 'Registres de paiement et fiscaux', ar: 'سجلات الدفع والضرائب' },

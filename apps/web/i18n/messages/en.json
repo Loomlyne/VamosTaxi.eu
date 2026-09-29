@@ -1580,7 +1580,8 @@
     "flight-delayed-allowance-moves": "If your flight is delayed, the allowance moves with the flight — you do not need to call us.",
     "our-team-decides-refund-email": "Our team decides the refund and tells you by email.",
     "extended-city-stay-15-shown-on-quote": "Extended city stay, up to 15 minutes: shown on your quote.",
-    "changes-free-before-pickup": "Time, address, passenger count and vehicle class can be changed before pickup, free of charge. If the change moves the fare, you pay or we refund the difference — never more than the difference."
+    "changes-free-before-pickup": "Time, address, passenger count and vehicle class can be changed before pickup, free of charge. If the change moves the fare, you pay or we refund the difference — never more than the difference.",
+    "terms-driver-details-by-email": "Driver name, vehicle and plate are sent by email as soon as a driver is assigned, and again in the reminder 24 hours before pickup. The driver's number is on your manage-booking page."
   },
   "ops": {
     "add-a-note-visible-to-dispatch-only": "Add a note visible to dispatch only…",
@@ -2772,7 +2773,8 @@
       "legal.all-other-pickups-30-minutes-booked": "fixed legal-page figure from the vamostaxi.eu terms or privacy text, owner-approved 2026-09-30 (docs/legal-source/vamostaxi-eu-2026-09-30/MAPPING.md list A), not a live count",
       "legal.team-refund-paid-30-days-acceptance": "fixed legal-page figure from the vamostaxi.eu terms or privacy text, owner-approved 2026-09-30 (docs/legal-source/vamostaxi-eu-2026-09-30/MAPPING.md list A), not a live count",
       "legal.and-we-resolve-within-30-days": "fixed legal-page figure from the vamostaxi.eu terms or privacy text, owner-approved 2026-09-30 (docs/legal-source/vamostaxi-eu-2026-09-30/MAPPING.md list A), not a live count",
-      "legal.extended-city-stay-15-shown-on-quote": "fixed legal-page figure (owner decision 2026-09-30, .planning/quick/260930-lgl-legal-pages-from-eu/DECISIONS.md), not a live count"
+      "legal.extended-city-stay-15-shown-on-quote": "fixed legal-page figure (owner decision 2026-09-30, .planning/quick/260930-lgl-legal-pages-from-eu/DECISIONS.md), not a live count",
+      "legal.terms-driver-details-by-email": "fixed legal-page figure (owner decision 2026-09-30, .planning/quick/260930-lgl-legal-pages-from-eu/DECISIONS.md), not a live count"
     }
   },
   "quote": {
