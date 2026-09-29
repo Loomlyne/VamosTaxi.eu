@@ -2511,6 +2511,14 @@ export type Database = {
     }
     Functions: {
       __seed_apply: { Args: never; Returns: undefined }
+      booking_captured_payment: {
+        Args: { p_booking_id: string }
+        Returns: {
+          charged_rappen: number
+          id: number
+          stripe_payment_intent_id: string
+        }[]
+      }
       booking_edit_apply_payload: {
         Args: {
           p_actor_id: string
@@ -2583,6 +2591,44 @@ export type Database = {
           old_extra_snapshot_id: number
           request_id: string
           superseded_id: string
+        }[]
+      }
+      booking_flight_write: {
+        Args: {
+          p_actor_id: string
+          p_actor_kind: string
+          p_booking_id: string
+          p_flight_no: string
+        }
+        Returns: {
+          booking_id: string
+          booking_leg_id: string
+          chauffeur_email: string
+          contact_email: string
+          dropoff_text: string
+          locale: string
+          pickup_text: string
+          reference: string
+          scheduled_local: string
+        }[]
+      }
+      booking_refund_processing_mark: {
+        Args: { p_booking_id: string }
+        Returns: undefined
+      }
+      booking_snapshot_policy: { Args: { p_booking_id: string }; Returns: Json }
+      booking_trip_for_mail: {
+        Args: { p_booking_id: string }
+        Returns: {
+          booking_id: string
+          booking_leg_id: string
+          chauffeur_email: string
+          contact_email: string
+          dropoff_text: string
+          locale: string
+          pickup_text: string
+          reference: string
+          scheduled_local: string
         }[]
       }
       bookings_set_refund_failed: {
@@ -2954,6 +3000,38 @@ export type Database = {
           stripe_payment_intent_id: string
         }[]
       }
+      edit_request_booking_contact: {
+        Args: { p_booking_id: string }
+        Returns: {
+          contact_email: string
+          locale: string
+          reference: string
+        }[]
+      }
+      edit_request_extra_session: {
+        Args: { p_key: string }
+        Returns: {
+          booking_id: string
+          extra_session_id: string
+        }[]
+      }
+      edit_request_pending_payload: {
+        Args: { p_key: string }
+        Returns: {
+          payload: Json
+        }[]
+      }
+      edit_request_refuse: {
+        Args: { p_key: string }
+        Returns: {
+          booking_id: string
+          request_id: string
+        }[]
+      }
+      edit_request_snapshot_total: {
+        Args: { p_snapshot_id: number }
+        Returns: number
+      }
       evaluate_coupon: {
         Args: {
           p_code: string
@@ -2961,6 +3039,16 @@ export type Database = {
           p_customer_id?: string
         }
         Returns: Json
+      }
+      expired_booking_contact: {
+        Args: { p_booking_id: string }
+        Returns: {
+          contact_email: string
+          id: string
+          is_test: boolean
+          locale: string
+          locked_rappen: number
+        }[]
       }
       extra_labels_read: {
         Args: never
@@ -3034,8 +3122,25 @@ export type Database = {
           status: Database["public"]["Enums"]["booking_status"]
         }[]
       }
+      manage_booking_review_state: {
+        Args: { p_booking_id: string }
+        Returns: {
+          price_total_rappen: number
+          review_submitted: boolean
+        }[]
+      }
       manage_driver_for: { Args: { p_booking_id: string }; Returns: Json }
       manage_money_for: { Args: { p_booking_id: string }; Returns: Json }
+      must_fix_trip_read: {
+        Args: { p_key: string }
+        Returns: {
+          dropoff_text: string
+          locale: string
+          pickup_text: string
+          reference: string
+          scheduled_local: string
+        }[]
+      }
       next_booking_reference: { Args: never; Returns: string }
       notification_claim: {
         Args: {
@@ -3179,6 +3284,60 @@ export type Database = {
       ops_vehicle_class_delete_or_hide: {
         Args: { p_id: string; p_reason: string }
         Returns: string
+      }
+      paid_cancel_mail_read: {
+        Args: { p_booking_id: string }
+        Returns: {
+          assigned_chauffeur_id: string
+          chauffeur_email: string
+          contact_email: string
+          dropoff_text: string
+          locale: string
+          pickup_text: string
+          reference: string
+          scheduled_local: string
+        }[]
+      }
+      phone_booking_unpaid_read: {
+        Args: { p_key: string }
+        Returns: {
+          bags: number
+          billing_kind: string
+          captured_at: string
+          charged_rappen: number
+          class_slug: string
+          company_address: string
+          company_name: string
+          company_vat: string
+          contact_email: string
+          contact_name: string
+          contact_phone: string
+          dropoff_text: string
+          flight_no: string
+          id: string
+          is_test: boolean
+          locale: string
+          pax: number
+          payer_email: string
+          pickup_text: string
+          quote_id: string
+          reference: string
+          scheduled_local: string
+          snap_expires_at: string
+          snap_total_rappen: number
+          status: string
+          stripe_checkout_session_id: string
+        }[]
+      }
+      price_changed_unpaid_contacts: {
+        Args: never
+        Returns: {
+          contact_email: string
+          id: string
+          is_test: boolean
+          locale: string
+          locked_rappen: number
+        }[]
       }
       purge_candidates: {
         Args: { p_older_than: string }
