@@ -4,7 +4,7 @@ Kept by the control session. One page: what is live, what is being built, what w
 the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 
-**Last update:** 2026-09-30 01:07 (+04)
+**Last update:** 2026-09-30 01:12 (+04)
 
 ## Live now
 
@@ -113,7 +113,7 @@ Live is at `20260930210000`.
 
 | Lane | Numbers |
 |---|---|
-| 26.5 | `20261001100000` to `20261001190000` |
+| 26.5 | `20261001100000` to `20261001190000`: account agreement record (shared with /sign-up, D-19), unpaid bookings hidden from customer reads (D-16), paid-only reminder (D-18) |
 | Phase 27 | `20261002100000` to `20261002190000` |
 | Phase 28 | `20261003100000` to `20261003190000` |
 | Phase 29 | `20261004100000` to `20261004190000` |
@@ -125,6 +125,23 @@ Live is at `20260930210000`.
 |---|---|
 | No customer page saves the cookie choice on the server today. The banner customers see is the mock's and saves in the browser only. Checkout, confirmation and the pay link show no banner. | Phase 27 is larger than planned: the live banner has to write to the server and the Next pages need the banner. Nothing is sent to Meta today, so no harm now. |
 | The sign-in ship writes a cookie row when a new customer confirms their e-mail | Owner decision 27 D-01: no cookie row at sign-up. Phase 27 removes it and must say where the sign-up agreement is recorded. |
+
+## Found by the 26.5 session, 2026-09-30, confirmed on live by the control session
+
+| Finding | Detail | Fixed by |
+|---|---|---|
+| A signed-in customer can read their own unpaid booking straight from the database | Policy `bookings_select_own` matches by customer or by the e-mail in the sign-in, with no filter on status. Readable columns include reference, name and phone. The pages hide it; the database does not. Own data only, never another customer's. No unpaid booking exists on live right now. | 26.5 plan 10: a migration hides quotes and pending bookings without a pay link from customer reads |
+| The claim function links pending bookings to the account too | Same rule of the owner: an unpaid booking never follows the customer | 26.5 plan 10 |
+
+## Passed to Phase 20 (security check)
+
+| Point |
+|---|
+| `bookings_select_own` trusts the e-mail inside the sign-in token. Safe only while sign-in requires a confirmed e-mail. |
+| "This e-mail already has an account, sign in first" on checkout can reveal who is a customer. 26.5 uses neutral wording and a limit. |
+| `SUPABASE_SERVICE_ROLE_KEY` is on the public Worker (owner decision). Test where it is read and that it never reaches a browser. |
+| `POST /api/checkout/intent` has no limit per visitor (a lead, not confirmed). |
+| Automatic refunds refuse an `sk_live_` key; to be lifted before real launch (also Phase 19). |
 
 ## Owner feedback after the 26.4 ship, 2026-09-30
 
