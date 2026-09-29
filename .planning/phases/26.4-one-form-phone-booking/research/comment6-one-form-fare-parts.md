@@ -203,11 +203,13 @@ Also add one DC-mock source test if the form work removes the `?service=` paths:
 | A3 | Live price book 18 has no active `airport_pickup` leg surcharge with an amount | If wrong, airport pickups are charged twice today |
 
 ## Open Questions (for the owner or orchestrator; live data)
-- **Q1** Airport fee on "flight number only". Should it stay (today) or become pickup-at-airport only? A drop-off with a departure flight typed in ops New trip is charged the fee today.
-- **Q2** Should an extra stop drop the city/canton amount (today, D-17), or keep it (the owner's one-line formula)?
-- **Q3** Live price book 18: are any `surcharges` rows active with code `airport_pickup` or predicate `pickup_zone_type` and amount > 0?
-- **Q4** Live price book 18: do every live `fixed_routes` row's zones carry `mapbox_place:` tags (city rows) or `canton:` tags (canton rows)? Is `airport_start_rappen` non-null for every public class?
-- **Q5** Keep "City to city" / "Airport transfers" as marketing pages that deep-link into the one form, or remove the `?service=` variants entirely?
+
+> Status 2026-09-29: Q1 RESOLVED by D-08 (fee from an airport pickup address only). Q3 and Q4 RESOLVED by D-11 (live row 18: no airport surcharge row; its 6 city pairs are switched off — owner controls pricing). Q5 RESOLVED by D-13 (service links stay and open the same flow). Q2 remains an OPEN owner question, recorded in 26.4-HANDOVER.md; moot for dashboard New trip because the owner removed "Extra stop".
+- **Q1** [RESOLVED (D-08)] Airport fee on "flight number only". Should it stay (today) or become pickup-at-airport only? A drop-off with a departure flight typed in ops New trip is charged the fee today.
+- **Q2** [OPEN — owner question in 26.4-HANDOVER.md] Should an extra stop drop the city/canton amount (today, D-17), or keep it (the owner's one-line formula)?
+- **Q3** [RESOLVED (D-11)] Live price book 18: are any `surcharges` rows active with code `airport_pickup` or predicate `pickup_zone_type` and amount > 0?
+- **Q4** [RESOLVED (D-11)] Live price book 18: do every live `fixed_routes` row's zones carry `mapbox_place:` tags (city rows) or `canton:` tags (canton rows)? Is `airport_start_rappen` non-null for every public class?
+- **Q5** [RESOLVED (D-13)] Keep "City to city" / "Airport transfers" as marketing pages that deep-link into the one form, or remove the `?service=` variants entirely?
 
 ## Sources
 - Code read in this worktree, file:line as cited. No web sources needed; no packages involved.
