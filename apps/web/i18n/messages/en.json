@@ -468,7 +468,6 @@
     "payLinkRaceRefundedBody": "Your card was charged and automatically refunded because the booking was already paid. No action needed.",
     "payLinkExpiredTitle": "This payment link has expired",
     "payLinkExpiredBody": "It was open for 24 hours and closed automatically. Contact the traveller for a new one.",
-    "emailFailed": "The pay link was not sent. The booking is saved. Send the link again.",
     "completeCard": "Enter the card number, expiry and CVC.",
     "requote": "Get a new quote",
     "freeCancelHours": "Cancel free of charge up to {hours} hours before pickup.",

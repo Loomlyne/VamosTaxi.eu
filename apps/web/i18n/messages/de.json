@@ -468,7 +468,6 @@
     "payLinkRaceRefundedBody": "Ihre Karte wurde belastet und automatisch zurückerstattet, weil die Buchung bereits bezahlt war. Sie müssen nichts tun.",
     "payLinkExpiredTitle": "Dieser Zahlungslink ist abgelaufen",
     "payLinkExpiredBody": "Er war 24 Stunden offen und wurde automatisch geschlossen. Bitten Sie die reisende Person um einen neuen.",
-    "emailFailed": "Der Zahllink wurde nicht gesendet. Die Buchung ist gespeichert. Senden Sie den Link erneut.",
     "completeCard": "Geben Sie Kartennummer, Ablaufdatum und CVC ein.",
     "requote": "Neues Angebot holen",
     "freeCancelHours": "Kostenlose Stornierung bis {hours} Stunden vor Abholung.",

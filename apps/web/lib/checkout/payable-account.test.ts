@@ -20,27 +20,24 @@ describe("payable account reuse pin", () => {
   const stripeSrc = read("stripe.ts");
   const open = read("load-open-payment.ts");
 
-  it("keeps reuse behind the prefix guard and does not create first", () => {
-    expect(intent).toContain("async function payableFromOpen");
-    expect(intent).toContain("sessionIsPayable");
+  it("keeps reuse behind the prefix guard and does not create first (hosted)", () => {
+    expect(intent).toContain("hostedSessionIsPayable");
     expect(intent).toContain("loadOpenPayment");
-    expect(stripeSrc).toContain("export function sessionIsPayable");
+    expect(stripeSrc).toContain("export function hostedSessionIsPayable");
+    expect(stripeSrc).not.toContain("export function sessionIsPayable");
     expect(open).toContain("export async function loadOpenPayment");
     expect(open).toContain("public.checkout_open_payment");
 
-    const prefix = intent.indexOf("stripeAccountIsLegacyUaeTest(");
-    const load = intent.indexOf("loadOpenPayment(");
-    const reuse = intent.indexOf("await payableFromOpen(");
-    const create = intent.indexOf("createCheckoutSession(");
+    const prefix = intent.indexOf("deps.legacyUaeAccount === true");
+    const load = intent.indexOf("deps.loadOpenPayment(");
+    const create = intent.indexOf("openSession(idempotencyKey)");
     expect(prefix).toBeGreaterThan(-1);
     expect(load).toBeGreaterThan(prefix);
-    expect(reuse).toBeGreaterThan(prefix);
-    expect(create).toBeGreaterThan(reuse);
-    expect(intent.slice(prefix, create)).toContain("return legacyUaeAccountStop()");
+    expect(create).toBeGreaterThan(load);
+    expect(intent.slice(prefix, prefix + 80)).toContain("return legacyUaeAccountStop()");
 
     const stopStart = intent.indexOf("function legacyUaeAccountStop");
-    const stopEnd = intent.indexOf("function okIntentResponse", stopStart);
-    const stop = intent.slice(stopStart, stopEnd);
+    const stop = intent.slice(stopStart, stopStart + 400);
     expect(stop).toContain("status: 503");
     expect(stop).not.toContain("code");
     expect(stop).not.toContain("pricing_not_live");
@@ -49,36 +46,14 @@ describe("payable account reuse pin", () => {
     expect(stop).not.toContain("email_failed");
   });
 
-  it("does not return the stored session when retrieve misses", () => {
-    const start = intent.indexOf("async function payableFromOpen");
-    const end = intent.indexOf("function utf8Hex", start);
-    expect(start).toBeGreaterThan(-1);
-    expect(end).toBeGreaterThan(start);
-    const body = intent.slice(start, end);
-    const retrieve = body.indexOf("retrieveCheckoutSession");
-    const miss = body.indexOf(".catch(");
-    expect(retrieve).toBeGreaterThan(-1);
-    expect(miss).toBeGreaterThan(retrieve);
-    expect(body.slice(miss, miss + 40)).toContain("() => null");
-    expect(body).toContain(
-      "const payable = stored ? await sessionWithSecret(stored, deps.retrieveCheckoutSession) : null;",
-    );
-    expect(body).toContain("if (!sessionIsPayable(payable, chargedRappen)) return null;");
-    expect(body).not.toMatch(/return\s+existing\b/);
-    expect(body).not.toMatch(/return\s+stored\b/);
-    const check = body.indexOf("if (!sessionIsPayable(payable, chargedRappen)) return null;");
-    const success = body.indexOf("return { row: existing, payable }");
-    expect(check).toBeGreaterThan(miss);
-    expect(success).toBeGreaterThan(check);
-  });
-
-  it("keeps Checkout ui_mode on elements or hosted_page, never a rejected string", () => {
-    expect(stripeSrc).toContain('ui_mode: "elements"');
+  it("no client secret anywhere: only Stripe's hosted page (D-48)", () => {
     expect(stripeSrc).toContain('ui_mode: "hosted_page"');
+    expect(stripeSrc).not.toContain('ui_mode: "elements"');
     expect(stripeSrc).not.toContain('ui_mode: "hosted"');
     expect(stripeSrc).not.toContain('ui_mode: "custom"');
     expect(stripeSrc).not.toContain('ui_mode: "embedded"');
     expect(intent).not.toContain("ui_mode");
+    expect(intent).not.toContain("client_secret");
     expect(intent).toContain("createCheckoutSession");
     expect(intent).not.toContain("paymentIntents.create");
   });

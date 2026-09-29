@@ -9,7 +9,7 @@ import type Stripe from "stripe";
 import { checkIntentAgainstLock, type IntentBody, type IntentRecompute } from "../quote/intent";
 import type { QuoteLockPayload } from "../quote/lock";
 import type { QuoteErrorCode } from "../quote/errors";
-import { refusalForMissingClassId, stripeAccountIsLegacyUaeTest } from "./charge-gate";
+import { refusalForMissingClassId } from "./charge-gate";
 import { refuse, type CheckoutRefusalCode } from "./errors";
 import type { CheckoutIntentRequest, CheckoutWebIntentRequest } from "./intent-schema";
 import { checkoutCharge, type CheckoutChargeCoupon, type ExtraCatalogRow } from "./checkout-charge";
@@ -25,7 +25,6 @@ import {
   allSessionsExpiredUnpaid,
   checkoutPaymentIntentId,
   hostedSessionIsPayable,
-  sessionIsPayable,
 } from "./stripe";
 import { CH_VAT_RATE_BPS } from "./vat";
 import { payableRappen } from "./payable";
@@ -66,12 +65,11 @@ export type CheckoutIntentDeps = {
     locale: CheckoutIntentRequest["locale"];
     idempotencyKey: string;
     expiresAt: Date;
-    returnUrl?: string;
     productName: string;
-    /** Web mode (26.3 D-02): Stripe-hosted page. */
-    uiMode?: "hosted_page" | "elements";
-    successUrl?: string;
-    cancelUrl?: string;
+    /** 26.3 D-02 / D-48: always Stripe's hosted page. */
+    uiMode?: "hosted_page";
+    successUrl: string;
+    cancelUrl: string;
     twint?: boolean;
     selectionFingerprint?: string;
   }) => Promise<Stripe.Checkout.Session>;
@@ -105,9 +103,6 @@ export type CheckoutIntentDeps = {
     reference: string;
     stripe_checkout_session_id: string;
   } | null>;
-  /** pay_link mode only (Elements client). The hosted page needs no browser key. */
-  publishableKey?: string;
-  returnUrl?: string;
   checkoutWindowMinutes: number;
   actorCustomerId: string | null;
   vehicleClassId: string;
@@ -128,9 +123,9 @@ export type CheckoutIntentDeps = {
     ids: { customerId: string | null; contactEmail: string | null },
   ) => Promise<unknown>;
 
-  // ---- mode "web" (26.3): hosted Stripe page. Unused by "pay_link". ----
-  /** Default "pay_link" keeps /api/checkout/pay-link exactly as it was. */
-  mode?: "web" | "pay_link";
+  // ---- 26.3: hosted Stripe page. ----
+  /** Kept for callers that still pass it; the only mode is "web". */
+  mode?: "web";
   /** D-35: the live catalog of tick-box extras (loadCheckoutCatalog). */
   loadCatalog?: () => Promise<ExtraCatalogRow[]>;
   /** The bound Stripe account is the legacy UAE test one: never mint (web mode). */
@@ -221,37 +216,6 @@ function grossUpBeforeCouponRappen(postCouponRappen: number, percentHundredths: 
   return roundHalfUp(postCouponRappen * 10_000, 10_000 - percentHundredths);
 }
 
-async function sessionWithSecret(
-  session: Stripe.Checkout.Session,
-  retrieve: CheckoutIntentDeps["retrieveCheckoutSession"],
-): Promise<Stripe.Checkout.Session | null> {
-  if (session.client_secret) return session;
-  const stored = await retrieve(session.id).catch(() => null);
-  if (stored?.client_secret) return stored;
-  return null;
-}
-
-async function payableFromOpen(
-  existing: { booking_id: string; reference: string; stripe_checkout_session_id: string } | null,
-  deps: CheckoutIntentDeps,
-  chargedRappen: number,
-): Promise<{
-  row: { booking_id: string; reference: string };
-  payable: Stripe.Checkout.Session;
-} | null> {
-  if (!existing) return null;
-  const stored = await deps.retrieveCheckoutSession(existing.stripe_checkout_session_id).catch(
-    () => null,
-  );
-  const payable = stored ? await sessionWithSecret(stored, deps.retrieveCheckoutSession) : null;
-  if (!sessionIsPayable(payable, chargedRappen)) return null;
-  return { row: existing, payable };
-}
-
-function utf8Hex(value: string): string {
-  return Array.from(new TextEncoder().encode(value), (b) => b.toString(16).padStart(2, "0")).join("");
-}
-
 async function vatRateBpsFromFlags(deps: CheckoutIntentDeps): Promise<number> {
   const load = deps.loadLaunchFlags;
   if (typeof load !== "function") return CH_VAT_RATE_BPS;
@@ -275,359 +239,6 @@ function legacyUaeAccountStop(): Response {
       "cache-control": "private, no-store",
     },
   });
-}
-
-function okIntentResponse(
-  row: { reference: string; booking_id: string },
-  payable: Stripe.Checkout.Session,
-  deps: CheckoutIntentDeps,
-  chargedRappen: number,
-  expiresAt: Date,
-  cookie: string | null,
-  vatRateBps: number,
-): Response {
-  const clientSecret = payable.client_secret;
-  if (!clientSecret) return refuse("invalid_request");
-  const headers: Record<string, string> = {
-    "content-type": "application/json",
-    "cache-control": "private, no-store",
-  };
-  if (cookie) headers["set-cookie"] = cookie;
-  return new Response(
-    JSON.stringify({
-      reference: row.reference,
-      booking_id: row.booking_id,
-      checkout_session_id: payable.id,
-      client_secret: clientSecret,
-      client_secret_hex: utf8Hex(clientSecret),
-      expires_at: expiresAt.toISOString(),
-      currency: CHARGE_CURRENCY.toUpperCase(),
-      amount_rappen: chargedRappen,
-      vat_rate_bps: vatRateBps,
-      publishable_key: deps.publishableKey ?? "",
-    }),
-    { status: 200, headers },
-  );
-}
-
-async function runPayLinkIntent(
-  body: CheckoutIntentRequest,
-  deps: CheckoutIntentDeps,
-): Promise<Response> {
-  const intentBody: IntentBody = {
-    quote_id: body.quote_id,
-    lock: body.lock,
-    vehicle_class: body.vehicle_class,
-    extras: body.extras,
-    coupon: body.coupon,
-    idempotency_key: body.idempotency_key,
-  };
-
-  const checked = await checkIntentAgainstLock(intentBody, {
-    secrets: deps.lockSecrets,
-    workerNowIso: deps.workerNowIso,
-    postgresNowIso: deps.postgresNowIso,
-    holdUntilIso: deps.holdUntilIso,
-    recompute: (payload) => {
-      const result = deps.reprice(payload);
-      if (result instanceof Promise) {
-        throw new Error("reprice must be synchronous for checkIntentAgainstLock");
-      }
-      return result;
-    },
-  });
-
-  if (!checked.ok) {
-    return refuse(mapQuoteCode(checked.code));
-  }
-
-  // D-08b / T-26.1-91: the airport fee follows the flight number, so a body
-  // whose flight number the signed lock never priced must re-price first.
-  // Before any Stripe call or booking row.
-  if (
-    body.flight_no !== undefined &&
-    flightKey(body.flight_no) !== flightKey(checked.payload.legs[0]?.flight_no ?? null)
-  ) {
-    return refuse("price_changed");
-  }
-
-  const payGate = await deps.loadQuotePayGate?.(body.quote_id);
-  if (payGate?.is_test) {
-    return refuse("invalid_request");
-  }
-
-  const payload = checked.payload;
-  const board = await Promise.resolve(deps.reprice(payload));
-  const chosen = board.classes.find((row) => row.slug === body.vehicle_class);
-  const netRappen = chosen?.total_rappen;
-  if (netRappen == null) {
-    return refuse("pricing_not_live");
-  }
-  const catalog = deps.extrasCatalog ?? [];
-  const extraOn = (code: string) =>
-    lockHasExtra(payload.extras, code) || lockHasExtra(body.extras, code);
-  const extraFares = extraFaresOn(catalog, extraOn);
-  const extraAdd = extraRappenOutsideLock(payload.extras, catalog, extraOn);
-  // D-38: waiting extra is 0 at pay. extraFaresOn / extraRappenOutsideLock drop it.
-  const vatRateBps = await vatRateBpsFromFlags(deps);
-
-  // D-11: the coupon code comes from the verified lock's payload.coupon —
-  // a reprice re-signs class_totals and coupon together (lock.ts:112), so the
-  // lock's coupon is the one that priced netRappen. Per-payer eligibility
-  // (cap, prior redemptions) is still re-evaluated right here against the
-  // payer's identity on every request, never trusted from a stale evaluation.
-  // Both sides fold case and whitespace, as the DB lookup does (upper(p_code)).
-  let couponId: number | null = null;
-  let couponPercentHundredths: number | null = null;
-  const lockCoupon = payload.coupon?.trim().toUpperCase() || null;
-  const bodyCoupon = body.coupon?.trim().toUpperCase() || null;
-  if (bodyCoupon !== null && bodyCoupon !== lockCoupon) {
-    return refuse("coupon_no_longer_valid");
-  }
-  if (lockCoupon) {
-    if (typeof deps.evaluateCoupon !== "function") {
-      return refuse("coupon_no_longer_valid");
-    }
-    const raw = await deps.evaluateCoupon(lockCoupon, {
-      customerId: deps.actorCustomerId,
-      contactEmail: body.contact.email,
-    });
-    const evaluated = couponEvalFromRaw(raw);
-    if (!evaluated.ok) {
-      return refuse("coupon_no_longer_valid");
-    }
-    couponId = evaluated.couponId;
-    couponPercentHundredths = evaluated.percentHundredths;
-  }
-  // D-08a: a percent coupon discounts checkout extras too. The lock only
-  // carries the post-coupon class total, so it is grossed back up here.
-  const preCouponRappen =
-    couponPercentHundredths != null
-      ? grossUpBeforeCouponRappen(netRappen, couponPercentHundredths)
-      : null;
-  const chargedRappen = payableRappen({
-    classNetRappen: netRappen,
-    preCouponRappen,
-    extraAddRappen: extraAdd,
-    couponPercent: couponPercentHundredths,
-    vatRateBps,
-  }).chargedRappen;
-  if (!deps.vehicleClassId) {
-    return refuse(refusalForMissingClassId());
-  }
-  if (!deps.snapshotPolicy) {
-    return refuse("invalid_request");
-  }
-  if (stripeAccountIsLegacyUaeTest(deps.publishableKey ?? "")) {
-    return legacyUaeAccountStop();
-  }
-
-  const token = await deps.mintManageToken();
-  const expiresAt = new Date(Date.parse(deps.workerNowIso) + deps.checkoutWindowMinutes * 60_000);
-  const manageExpiresAt = new Date(
-    Math.max(...payload.legs.map((leg) => Date.parse(leg.scheduled_local))) +
-      deps.manageLinkMaxAgeSeconds * 1000,
-  );
-
-  const existingOpen = await deps.loadOpenPayment(body.quote_id);
-  const reused = await payableFromOpen(existingOpen, deps, chargedRappen);
-  if (reused) {
-    await deps.issueManageToken({
-      bookingId: reused.row.booking_id,
-      hash: token.hash,
-      expiresAt: manageExpiresAt,
-    });
-    return okIntentResponse(
-      reused.row,
-      reused.payable,
-      deps,
-      chargedRappen,
-      expiresAt,
-      manageTokenCookie(token.raw, deps.manageLinkMaxAgeSeconds),
-      vatRateBps,
-    );
-  }
-
-  const stripeIdempotencyKey = existingOpen
-    ? `${body.idempotency_key}:after:${existingOpen.stripe_checkout_session_id}`
-    : body.idempotency_key;
-
-  const created = await deps.createCheckoutSession({
-    chargedRappen,
-    bookingId: body.quote_id,
-    bookingReference: body.idempotency_key,
-    customerEmail: body.contact.email,
-    locale: body.locale,
-    idempotencyKey: stripeIdempotencyKey,
-    expiresAt,
-    returnUrl: stripeCheckoutReturnUrl(new URL(deps.returnUrl ?? "").origin, body.locale),
-    productName: "Airport transfer",
-  });
-
-  let session = await sessionWithSecret(created, deps.retrieveCheckoutSession);
-  if (!sessionIsPayable(session, chargedRappen)) {
-    await deps.expireCheckoutSession(created.id).catch(() => undefined);
-    const retry = await deps.createCheckoutSession({
-      chargedRappen,
-      bookingId: body.quote_id,
-      bookingReference: body.idempotency_key,
-      customerEmail: body.contact.email,
-      locale: body.locale,
-      idempotencyKey: `${body.idempotency_key}:open`,
-      expiresAt,
-      returnUrl: stripeCheckoutReturnUrl(new URL(deps.returnUrl ?? "").origin, body.locale),
-      productName: "Airport transfer",
-    });
-    session = await sessionWithSecret(retry, deps.retrieveCheckoutSession);
-    if (!sessionIsPayable(session, chargedRappen)) {
-      await deps.expireCheckoutSession(retry.id).catch(() => undefined);
-      return refuse("invalid_request");
-    }
-  }
-
-  const pi = checkoutPaymentIntentId(session);
-  let row: CheckoutCreateBookingRow;
-  try {
-    row = await deps.createBooking({
-      quoteId: body.quote_id,
-      idempotencyKey: body.idempotency_key,
-      contact: body.contact,
-      locale: body.locale,
-      displayCurrency: body.display_currency,
-      snapshot: snapshotFromLock(
-        payload,
-        body.vehicle_class,
-        deps.vehicleClassId,
-        chargedRappen,
-        deps.snapshotPolicy,
-        extraFares,
-      ),
-      legs: checkoutLegsFromLock(payload, deps.vehicleClassId),
-      couponId,
-      couponCode: lockCoupon,
-      manageTokenHash: token.hash,
-      manageTokenExpiresAt: manageExpiresAt,
-      stripePaymentIntentId: pi,
-      stripeCheckoutSessionId: session.id,
-      chargedRappen,
-      actorCustomerId: deps.actorCustomerId,
-    });
-  } catch (err) {
-    const state = sqlState(err);
-    if (state === "23505" || state === "23001") {
-      const existing = await deps.loadOpenPayment(body.quote_id);
-      const reused = await payableFromOpen(existing, deps, chargedRappen);
-      if (reused) {
-        if (reused.payable.id !== session.id) {
-          await deps.expireCheckoutSession(session.id).catch(() => undefined);
-        }
-        await deps.issueManageToken({
-          bookingId: reused.row.booking_id,
-          hash: token.hash,
-          expiresAt: manageExpiresAt,
-        });
-        return okIntentResponse(
-          reused.row,
-          reused.payable,
-          deps,
-          chargedRappen,
-          expiresAt,
-          manageTokenCookie(token.raw, deps.manageLinkMaxAgeSeconds),
-          vatRateBps,
-        );
-      }
-      try {
-        if (existing && existing.stripe_checkout_session_id !== session.id) {
-          await deps.expireCheckoutSession(existing.stripe_checkout_session_id).catch(
-            () => undefined,
-          );
-        }
-        row = await deps.attachPayment({
-          quoteId: body.quote_id,
-          stripePaymentIntentId: pi,
-          stripeCheckoutSessionId: session.id,
-          chargedRappen,
-        });
-        await deps.issueManageToken({
-          bookingId: row.booking_id,
-          hash: token.hash,
-          expiresAt: manageExpiresAt,
-        });
-        return okIntentResponse(
-          row,
-          session,
-          deps,
-          chargedRappen,
-          expiresAt,
-          manageTokenCookie(token.raw, deps.manageLinkMaxAgeSeconds),
-          vatRateBps,
-        );
-      } catch (attachErr) {
-        await deps.expireCheckoutSession(session.id).catch(() => undefined);
-        const attachState = sqlState(attachErr);
-        if (attachState === "23505" || attachState === "23001") {
-          return refuse("quote_already_booked");
-        }
-        if (attachState === "23P01") return refuse("payment_window_closed");
-        // D-11 race: createBooking's own restrict_violation (23001) is shared
-        // by "quote already booked" and tg_coupon_redemption_caps — both
-        // raise the same SQLSTATE. attachPayment's independent lookup by
-        // quote_id is the tell: a genuine already-booked row is always
-        // there for it to find (23505/23001 above). Not found (P0002) with
-        // a coupon on this attempt means the whole createBooking transaction
-        // rolled back — the cap was hit between evaluate_coupon and the insert.
-        if (attachState === "P0002" && couponId != null) {
-          return refuse("coupon_no_longer_valid");
-        }
-        throw attachErr;
-      }
-    } else {
-      await deps.expireCheckoutSession(session.id).catch(() => undefined);
-      if (state === "23P01") return refuse("payment_window_closed");
-      if (state === "P0002" || state === "23514") return refuse("coupon_no_longer_valid");
-      console.error(
-        "checkout_create_booking_failed",
-        state ?? "no-sqlstate",
-        err instanceof Error ? err.message : String(err),
-      );
-      return new Response(
-        JSON.stringify({
-          ok: false,
-          error: "checkout_rpc_failed",
-        }),
-        {
-          status: 500,
-          headers: {
-            "content-type": "application/json",
-            "cache-control": "private, no-store",
-          },
-        },
-      );
-    }
-  }
-
-  let payable: Stripe.Checkout.Session = session;
-  if (row.replayed) {
-    const stored = await deps.retrieveCheckoutSession(session.id).catch(() => null);
-    if (!stored || stored.status !== "open" || !stored.client_secret) {
-      await deps.expireCheckoutSession(session.id).catch(() => undefined);
-      return refuse("payment_window_closed");
-    }
-    if (stored.id !== session.id) {
-      await deps.expireCheckoutSession(session.id).catch(() => undefined);
-    }
-    payable = stored;
-  }
-
-  return okIntentResponse(
-    row,
-    payable,
-    deps,
-    chargedRappen,
-    expiresAt,
-    manageTokenCookie(token.raw, deps.manageLinkMaxAgeSeconds),
-    vatRateBps,
-  );
 }
 
 // ---------------------------------------------------------------------------
@@ -849,6 +460,7 @@ async function runWebIntent(
   }
 
   // D-19 / D-35: the one charge function, exact extra codes, live catalog.
+  // D-38: the waiting extra is 0 at pay (waiting extra is 0 at pay: never a Stripe amount).
   const charge = checkoutCharge({
     classNetRappen: netRappen,
     preCouponRappen,
@@ -1072,18 +684,10 @@ async function runWebIntent(
   return okWebResponse(row, payable, chargedRappen, expiresAt, cookie);
 }
 
+/** The one intent runner: the hosted-page Pay endpoint (D-48: no client secret, no card form of ours). */
 export function runCheckoutIntent(
   body: CheckoutWebIntentRequest,
-  deps: CheckoutIntentDeps & { mode: "web" },
-): Promise<Response>;
-export function runCheckoutIntent(
-  body: CheckoutIntentRequest,
-  deps: CheckoutIntentDeps,
-): Promise<Response>;
-export function runCheckoutIntent(
-  body: CheckoutWebIntentRequest | CheckoutIntentRequest,
   deps: CheckoutIntentDeps,
 ): Promise<Response> {
-  if (deps.mode === "web") return runWebIntent(body as CheckoutWebIntentRequest, deps);
-  return runPayLinkIntent(body as CheckoutIntentRequest, deps);
+  return runWebIntent(body, deps);
 }

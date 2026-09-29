@@ -84,15 +84,10 @@ describe("injected bps / fallback 81 (D-22)", () => {
 describe("intent / receipt pass settings bps (D-22)", () => {
   const here = dirname(fileURLToPath(import.meta.url));
 
-  it("okIntentResponse JSON includes vat_rate_bps next to amount_rappen", () => {
+  it("the web runner charges through checkoutCharge with the settings vatRateBps and returns amount_rappen", () => {
     const intent = readFileSync(join(here, "intent.ts"), "utf8");
-    expect(intent).toMatch(/amount_rappen:\s*chargedRappen,\s*vat_rate_bps:\s*vatRateBps/s);
-    // D-08a (26.1-07): chargedRappen now goes through payableRappen so a
-    // percent coupon discounts checkout extras too, not the old direct
-    // payableWithVatRappen(netRappen + extraAdd, vatRateBps) call.
-    expect(intent).toMatch(
-      /payableRappen\(\{\s*classNetRappen:\s*netRappen,\s*preCouponRappen,\s*extraAddRappen:\s*extraAdd,\s*couponPercent:\s*couponPercentHundredths,\s*vatRateBps,\s*\}\)\.chargedRappen/s,
-    );
+    expect(intent).toMatch(/checkoutCharge\(\{[^}]*vatRateBps,/s);
+    expect(intent).toMatch(/amount_rappen:\s*charged/);
     expect(intent).toContain("loadLaunchFlags");
   });
 

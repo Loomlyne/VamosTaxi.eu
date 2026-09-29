@@ -468,7 +468,6 @@
     "payLinkRaceRefundedBody": "Votre carte a été débitée puis remboursée automatiquement, car la réservation était déjà payée. Aucune action n’est nécessaire.",
     "payLinkExpiredTitle": "Ce lien de paiement a expiré",
     "payLinkExpiredBody": "Il était ouvert pendant 24 heures et s’est fermé automatiquement. Demandez-en un nouveau au voyageur.",
-    "emailFailed": "Le lien de paiement n'a pas été envoyé. La réservation est enregistrée. Renvoyez le lien.",
     "completeCard": "Saisissez le numéro de carte, la date d’expiration et le CVC.",
     "requote": "Nouveau devis",
     "freeCancelHours": "Annulation gratuite jusqu'à {hours} heures avant la prise en charge.",
