@@ -4,16 +4,16 @@ Kept by the control session. One page: what is live, what is being built, what w
 the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 
-**Last update:** 2026-09-29 17:50 (+04)
+**Last update:** 2026-09-29 17:55 (+04)
 
 ## Live now
 
 | Item | Value |
 |---|---|
 | Site | https://vamostaxi.site and https://dashboard.vamostaxi.site |
-| main = origin/main | `34af1552` |
-| Worker `vamos` | version `e885dbb6` |
-| Rollback point | Worker `839d73fc`, git tag `backup/main-pre-ship-26.3-fixes` |
+| main = origin/main | `2bd05b0a` plus planning notes |
+| Worker `vamos` | version `80d51730` |
+| Rollback point | Worker `e885dbb6`, git tag `backup/main-pre-ship-auth` |
 | Database | migrations up to `20260930210000` applied and read back |
 | Who deploys | the control session, from the owner's Mac. GitHub runs checks, never deploys. |
 
@@ -27,12 +27,12 @@ the owner, what comes next. Updated at every ship and every hand-over.
 | 4 | Dashboard New trip Save | `34af1552` | owner has not reported yet |
 | 5 | Worker reads and writes lists; 16 narrow database reads for the hourly jobs | `34af1552` | VT-26-0743 paid, method recorded; VT-26-0734 cleaned at 17:27 |
 | 6 | Planning rewrite of 19, 20, 26.2 | `34af1552` | signed |
+| 7 | Sign-in and sign-up on the site and the dashboard | `2bd05b0a` | waiting: sign up with a fresh address, tap the link, one 4242 payment |
 
 ## In work
 
 | Lane | Session | Folder under `vamos-wt/` | Branch | State |
 |---|---|---|---|---|
-| Sign-in and sign-up | Sign-in and sign-up fixes | `auth-fix` | `fix/auth-sign-in-sign-up` | **Handed over** at `3ff9195a`. Control check running. No migration. |
 | 26.4 phone bar and one form | Phase 26.3 booking flow rebuild | `phase-26.4` | `gsd/phase-26.4-one-form` | Plan 10 of 10 in work. Discuss and UI-SPEC signed. |
 | 26.0 main green | Phase 26.0 main green work session | `main-green-2` | `fix/main-green-2` | Plans 01 to 05, 07, 09 done. 06, 08, 10, 11, 12 left. |
 
@@ -42,7 +42,7 @@ One at a time into main. Each later branch takes main in before it hands over.
 
 | Order | What | Why this place |
 |---|---|---|
-| 1 | Sign-in and sign-up fix | Sign-up, e-mail link and password reset are broken on live for every customer |
+| done | Sign-in and sign-up fix | Shipped 17:47 |
 | 2 | Phase 26.4 | Ready next. Shares `app/vamos-i18n-dict.js` with 1, so it merges main after 1 |
 | 3 | Phase 26.5, account choice before payment (new, see below) | Needs working sign-up (1) and the final checkout (2) |
 | 4 | Phase 26.0 | Shares test files with 26.4; lands after it |
@@ -61,7 +61,7 @@ One at a time into main. Each later branch takes main in before it hands over.
 |---|---|---|
 | 1 | Open the manage link from the VT-26-0743 e-mail and report what he sees | e-mail |
 | 2 | Dashboard New trip: airport pickup without and with a flight number | dashboard.vamostaxi.site |
-| 3 | Supabase redirect list holds both callback addresses (site and dashboard) | Supabase, before the sign-in ship |
+| 3 | Sign-in UAT, 14 steps, in `.planning/debug/auth-sign-in-sign-up-HANDOVER.md` | phone first |
 | 4 | Should an unpaid booking get the 24-hour reminder? Today it does | decision |
 | 5 | The remaining 26.3 UAT steps, then the test-booking delete script | vamostaxi.site |
 | 6 | Legal lines in four languages for the pixel | blocks 28 and 29 |
@@ -72,12 +72,10 @@ One at a time into main. Each later branch takes main in before it hands over.
 
 | What | Fixed by |
 |---|---|
-| Sign-up, e-mail link, password reset fail | ship 1 |
-| Dashboard password and e-mail change fails | ship 1 |
 | VT-26-0739 and VT-26-0742 are not in the owner's account | Not a bug: they were booked with another e-mail address |
 | ROADMAP progress table is out of date | Applied when 26.4 lands, because that branch edits the same file |
 
 ## Tidy-up candidates, only on the owner's word, one at a time
 
 Folders whose work is on main and archived as a tag: `fix-26.3-followups`, `fix-26.3-manage`,
-`fix-26.3-newtrip`, `fix-26.3-arrays`, `phase-26.3`, `phase-26.1`, `phase-26.0` (old).
+`fix-26.3-newtrip`, `fix-26.3-arrays`, `auth-fix`, `phase-26.3`, `phase-26.1`, `phase-26.0` (old).
