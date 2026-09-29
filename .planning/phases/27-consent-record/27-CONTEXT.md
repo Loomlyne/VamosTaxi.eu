@@ -101,6 +101,8 @@ Nothing is sent to Meta by this phase.
 - **D-16:** Never reword, shorten, re-translate or add a sentence to §1–§3. Arabic in RTL with
   `_fbp`/`_fbc` kept LTR (`.vt-dir-keep`).
 
+- **D-16a (owner, 2026-09-30, UI-SPEC Q-1):** remove "Reset my choice" and the line "Resetting clears the record and brings the banner back…" from /cookies. Lena changes her mind with "Change preferences" / "Necessary only"; each change is a new record.
+
 ### Policy version
 - **D-17:** `CONSENT_POLICY_VERSION` becomes the Zurich date of the day the texts ship (Phase 26
   D-13, D-15). Same string shown as the date on the cookies and privacy pages. The two September
