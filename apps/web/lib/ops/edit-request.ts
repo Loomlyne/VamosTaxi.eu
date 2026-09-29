@@ -21,6 +21,7 @@ import {
 } from "@/lib/checkout/stripe";
 import type { CheckoutLocale } from "@/lib/checkout/currency";
 import { verifyLock } from "@/lib/quote/lock";
+import { zurichLocalToUtcMs } from "../geo/serviceArea";
 import { PUBLIC_SITE_ORIGIN } from "./phone-booking-map";
 import {
   extraCheckoutMetadata,
@@ -532,7 +533,10 @@ export async function requestCustomerTimeChange(
 ): Promise<RequestPaidEditResult> {
   const scheduledLocal = input.scheduledLocal.trim();
   if (!scheduledLocal) return { ok: false, code: "not-found" };
-  const scheduledAt = (input.scheduledAt ?? scheduledLocal).trim();
+  // D-36: the server converts the wall clock; a client-sent instant is ignored.
+  const scheduledMs = zurichLocalToUtcMs(scheduledLocal);
+  if (scheduledMs == null) return { ok: false, code: "not-found" };
+  const scheduledAt = new Date(scheduledMs).toISOString();
   return requestCustomerPaidEdit(env, auth, bookingKey, {
     payload: {
       scheduled_local: scheduledLocal,

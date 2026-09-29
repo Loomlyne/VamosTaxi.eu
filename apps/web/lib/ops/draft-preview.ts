@@ -169,7 +169,7 @@ export function recapForClass(entry: ClassBoardEntry, vatBps: number): RecapLine
   let extras = 0;
   for (const line of entry.lines) {
     if (line.code === "region_premium" && line.amount_rappen != null) region += line.amount_rappen;
-    if (line.kind === "extra" && line.amount_rappen != null) extras += line.amount_rappen;
+    if ((line.kind === "extra" || line.kind === "surcharge") && line.amount_rappen != null) extras += line.amount_rappen;
   }
   const net = entry.total_rappen;
   const vat = vatOnTopRappen(net, vatBps);
