@@ -10,6 +10,7 @@ import { asCheckout } from "@/lib/db/identity";
 import { refuse } from "@/lib/checkout/errors";
 import { hashRawToken } from "@/lib/checkout/manage-token";
 import { payLinkPath } from "@/lib/checkout/pay-link";
+import { payLinkLinesForCharge, payLinkLinesFromRows } from "@/lib/checkout/pay-link-lines";
 import { payLinkSessionId, resolvePayLinkRefusal } from "@/lib/checkout/pay-link-state";
 import { stripeAccountIsLegacyUaeTest } from "@/lib/checkout/charge-gate";
 import { stripeCheckoutReturnUrl } from "@/lib/checkout/return-url";
@@ -59,6 +60,7 @@ function openHostedJson(
   row: Record<string, unknown>,
   session: { id: string; url: string },
   charged: number,
+  lines: unknown[],
 ): Record<string, unknown> {
   return {
     ok: true,
@@ -74,6 +76,8 @@ function openHostedJson(
     amount_rappen: charged,
     billing_email: String(row.payer_email ?? row.contact_email ?? ""),
     quote_id: String(row.quote_id),
+    // G9: the booking's saved fare lines; empty unless they add up to `amount_rappen`.
+    lines,
   };
 }
 
@@ -148,6 +152,12 @@ export async function POST(request: Request) {
     return legacyUaePrefixStop();
   }
 
+  const lineRows = await asCheckout(env, null, (sql) => sql`
+    select kind, code, names, vat_rate_bps, amount_rappen
+      from public.checkout_pay_link_lines(decode(${tokenHex}, 'hex'))
+  `);
+  const lines = payLinkLinesForCharge(payLinkLinesFromRows(lineRows as never), charged);
+
   const origin = publicSiteOrigin(new URL(request.url).host);
   const locale = asLocale(String(row.locale || "en"));
   const reference = String(row.reference);
@@ -171,5 +181,5 @@ export async function POST(request: Request) {
     cancelUrl: `${origin.replace(/\/$/, "")}${payLinkPath(locale, token)}`,
   });
   if (!opened.ok) return opened.response;
-  return Response.json(openHostedJson(row, opened.session, charged), { headers: PAY_JSON });
+  return Response.json(openHostedJson(row, opened.session, charged, lines), { headers: PAY_JSON });
 }

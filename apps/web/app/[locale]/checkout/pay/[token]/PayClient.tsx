@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Button, Card, Icon } from "@/components/core";
 import { Alert } from "@/components/feedback/Alert";
 import { formatAmount } from "@/lib/currency";
-import { PriceSummary, RouteSummary } from "@/components/transfer";
+import { PriceSummary, RouteSummary, type PriceLine } from "@/components/transfer";
+import { hasPayLinkExtras, payLinkExtraName, type PayLinkLine } from "@/lib/checkout/pay-link-lines";
 import {
   payLinkSessionKey,
   payStateFromOpen,
@@ -30,6 +31,8 @@ type PayLinkOpenJson = {
   code?: string;
   lock_expires_at?: string;
   quote_id?: string;
+  /** G9: saved fare lines (fare, extras, voucher, VAT); only sent when they add up to `amount_rappen`. */
+  lines?: PayLinkLine[];
 };
 
 /** Placeholder marker so the reference can sit in its own LTR span inside the sentence. */
@@ -132,6 +135,7 @@ function PayLinkDone({ view, reference }: { view: DoneView; reference: string })
 
 export function PayClient({ token }: { token: string }) {
   const t = useTranslations("checkout");
+  const locale = useLocale();
   const [busy, setBusy] = useState(true);
   const [opening, setOpening] = useState(false);
   const [error, setError] = useState<PayAlertKey | null>(null);
@@ -141,6 +145,7 @@ export function PayClient({ token }: { token: string }) {
   const [pickup, setPickup] = useState("");
   const [dropoff, setDropoff] = useState("");
   const [amountRappen, setAmountRappen] = useState<number | null>(null);
+  const [saved, setSaved] = useState<PayLinkLine[]>([]);
   const [lockExpiresAt, setLockExpiresAt] = useState<string | null>(null);
   const [payLocked, setPayLocked] = useState(false);
   const [storedQuoteId, setStoredQuoteId] = useState<string | null>(null);
@@ -153,6 +158,7 @@ export function PayClient({ token }: { token: string }) {
     setPickup(json.pickup ?? "");
     setDropoff(json.dropoff ?? "");
     setAmountRappen(typeof json.amount_rappen === "number" ? json.amount_rappen : null);
+    setSaved(Array.isArray(json.lines) ? json.lines : []);
   }
 
   /** Paid / refunded / expired come from the server's state read (26.1-15), never from the browser. */
@@ -267,6 +273,24 @@ export function PayClient({ token }: { token: string }) {
   }
 
   const total = amountRappen == null ? null : amountRappen / 100;
+  // G9: with extras on the booking, each saved line is shown above the total. Without, the total alone.
+  const priceLines: PriceLine[] = hasPayLinkExtras(saved)
+    ? saved.map((line): PriceLine => {
+        const amount = line.amountRappen / 100;
+        switch (line.kind) {
+          case "fare":
+            return { label: t("fareExVat"), amount };
+          case "surcharge":
+            return { label: `+ ${payLinkExtraName(line, locale)}`, amount };
+          case "coupon":
+            return { label: t("couponCode", { code: line.code }), amount, credit: true };
+          default: {
+            const rate = line.vatRateBps == null ? "" : String(Number((line.vatRateBps / 100).toFixed(2)));
+            return { label: rate ? t("receiptVat", { rate }) : t("receiptVatPlain"), amount };
+          }
+        }
+      })
+    : [];
   const payDisabled = opening || busy || !ready || payLocked;
   // D-20: on this page a closed lock is the pay link's 24 hours running out —
   // the recipient's copy, not the booker's "get a new price".
@@ -298,7 +322,14 @@ export function PayClient({ token }: { token: string }) {
           ) : null}
           {pickup || dropoff ? <RouteSummary pickup={pickup} dropoff={dropoff} /> : null}
           {amountRappen != null ? (
-            <PriceSummary total={total} totalLabel={t("total")} currency="CHF" />
+            <div data-pay-link-price data-pay-link-lines={priceLines.length > 0 ? "1" : undefined}>
+              <PriceSummary
+                lines={priceLines.length > 0 ? priceLines : undefined}
+                total={total}
+                totalLabel={t("total")}
+                currency="CHF"
+              />
+            </div>
           ) : null}
           {ready ? (
             <p className="vt-checkout__method-note" data-pay-link-method-note>

@@ -157,6 +157,89 @@ for (const L of LANGS) {
   }
 }
 
+// --- 26.3-G9: the saved fare lines, extras included -------------------------------------
+// TEST FIXTURE amounts (never book prices): live row code "child-seat" 1000, invented "pet-crate" 1500.
+const FARE_RAPPEN = 5000;
+const CHILD_SEAT_RAPPEN = 1000;
+const PET_CRATE_RAPPEN = 1500;
+const VAT_RAPPEN = 608;
+const EXTRAS_TOTAL_RAPPEN = FARE_RAPPEN + CHILD_SEAT_RAPPEN + PET_CRATE_RAPPEN + VAT_RAPPEN;
+
+const SAVED_LINES = [
+  { kind: "fare", code: "distance_fare", names: null, vatRateBps: null, amountRappen: FARE_RAPPEN },
+  {
+    kind: "surcharge",
+    code: "child-seat",
+    names: { en: "Child seat", de: "Kindersitz", fr: "Siège enfant", ar: "مقعد أطفال" },
+    vatRateBps: null,
+    amountRappen: CHILD_SEAT_RAPPEN,
+  },
+  // Owner typed only en and de: fr and ar fall back to the English name.
+  { kind: "surcharge", code: "pet-crate", names: { en: "Pet crate", de: "Tierbox" }, vatRateBps: null, amountRappen: PET_CRATE_RAPPEN },
+  { kind: "vat", code: "vat", names: null, vatRateBps: 810, amountRappen: VAT_RAPPEN },
+];
+
+const EXTRA_NAMES: Record<Lang, { seat: string; crate: string }> = {
+  en: { seat: "Child seat", crate: "Pet crate" },
+  de: { seat: "Kindersitz", crate: "Tierbox" },
+  fr: { seat: "Siège enfant", crate: "Pet crate" },
+  ar: { seat: "مقعد أطفال", crate: "Pet crate" },
+};
+
+function figure(text: string | null): number {
+  return Number((text ?? "").replace(/[^0-9.]/g, ""));
+}
+
+function withLines(page: Page, locale: string, lines: unknown[], amount: number): OpenAnswer {
+  const a = hostedAnswer(page, locale);
+  return { body: { ...a.body, amount_rappen: amount, lines } };
+}
+
+for (const lang of ["en", "de", "fr", "ar"] as const) {
+  for (const width of WIDTHS) {
+    test(`@component pay link ${lang} at ${width}: every extra is its own line, lines + fare + VAT = total = Stripe amount`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      const answer = withLines(page, lang, SAVED_LINES, EXTRAS_TOTAL_RAPPEN);
+      await routeOpen(page, () => answer);
+      await openInLocale(page, baseURL, PAY_PATH, lang);
+      await expect(page.locator("html")).toHaveAttribute("dir", lang === "ar" ? "rtl" : "ltr");
+      const rows = page.locator("[data-pay-link-lines] .vt-price__row");
+      await expect(rows).toHaveCount(4);
+      const names = EXTRA_NAMES[lang];
+      await expect(rows.nth(1)).toContainText(names.seat);
+      await expect(rows.nth(2)).toContainText(names.crate);
+      await expect(page.locator("body")).not.toContainText(/child-seat|pet-crate|child_seat|pet_crate/);
+      const shown = await rows.locator(".vt-price__val").allTextContents();
+      expect(shown.map(figure)).toEqual([50, 10, 15, 6.08]);
+      const sum = shown.map(figure).reduce((a, b) => a + b, 0);
+      const total = figure(await page.locator(".vt-price__totalval").textContent());
+      expect(Math.round(sum * 100)).toBe(Math.round(total * 100));
+      // The amount the open call hands to Stripe is the same figure.
+      expect(Math.round(total * 100)).toBe((answer.body as { amount_rappen: number }).amount_rappen);
+      await expect(page.locator("[data-checkout-pay-page] button")).toHaveCount(1);
+      await expectNoCardForm(page);
+      await noSideways(page);
+    });
+  }
+}
+
+test("@component a booking with no extras shows no extras block and no empty heading", async ({ page }) => {
+  const plain = [SAVED_LINES[0], SAVED_LINES[3]];
+  await routeOpen(page, () => withLines(page, "en", plain, FARE_RAPPEN + VAT_RAPPEN));
+  await openInLocale(page, baseURL, PAY_PATH, "en");
+  await expect(page.locator(".vt-price__totalval")).toBeVisible();
+  await expect(page.locator("[data-pay-link-lines]")).toHaveCount(0);
+  await expect(page.locator(".vt-price__row")).toHaveCount(0);
+  await expect(page.locator("[data-pay-link-sheet] h2, [data-pay-link-sheet] h3")).toHaveCount(0);
+});
+
+test("@component an answer without lines (older Worker, unbalanced lines) keeps the plain total", async ({ page }) => {
+  await routeOpen(page, () => hostedAnswer(page, "en"));
+  await openInLocale(page, baseURL, PAY_PATH, "en");
+  await expect(page.locator(".vt-price__totalval")).toBeVisible();
+  await expect(page.locator("[data-pay-link-lines]")).toHaveCount(0);
+});
+
 test("@component PAY opens payment, posts open again, then navigates to the Stripe hosted url", async ({ page }) => {
   await installFakeStripe(page, { outcome: "cancel" });
   const seen = await routeOpen(page, (n) => hostedAnswer(page, "en", n));

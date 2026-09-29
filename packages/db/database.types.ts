@@ -2772,6 +2772,17 @@ export type Database = {
           token_expires_at: string
         }[]
       }
+      checkout_pay_link_lines: {
+        Args: { p_token_hash: string }
+        Returns: {
+          amount_rappen: number
+          code: string
+          kind: string
+          names: Json
+          seq: number
+          vat_rate_bps: number
+        }[]
+      }
       checkout_pay_link_state: {
         Args: { p_session_id?: string; p_token_hash: string }
         Returns: {
