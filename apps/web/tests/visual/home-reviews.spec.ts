@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, emulateMedia } from "../support/test";
 import { existsSync } from "node:fs";
 import { spawn, type ChildProcess } from "node:child_process";
 import { join } from "node:path";
@@ -77,7 +77,7 @@ test.describe("Home reviews @component", () => {
   });
 
   test("reduced motion disables autoplay @component", async ({ page }) => {
-    await page.emulateMedia({ reducedMotion: "reduce" });
+    await emulateMedia(page, { reducedMotion: "reduce" });
     await page.goto(baseURL + pathFor("en"));
     const tile = page.locator('[data-tile="autoplay-on"]');
     await tile.scrollIntoViewIfNeeded();

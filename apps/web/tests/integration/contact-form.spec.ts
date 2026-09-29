@@ -3,7 +3,7 @@
 // Queries go through a child process so this file never imports `postgres`
 // (D-10 / apps/web restricted-imports).
 
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../support/test";
 import { execFileSync, spawn, type ChildProcess } from "node:child_process";
 import { join } from "node:path";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";

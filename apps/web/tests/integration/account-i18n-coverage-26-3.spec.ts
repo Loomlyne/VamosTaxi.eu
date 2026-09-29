@@ -3,7 +3,7 @@
  * and nothing scrolls sideways at 390 px in de and ar.
  * Behavioural, runs once under component-1440 (the 390 check resizes the page itself).
  */
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "../support/test";
 import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 

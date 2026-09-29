@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, emulateMedia } from "../support/test";
 import { spawn, type ChildProcess } from "node:child_process";
 import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -164,7 +164,7 @@ test.describe("Home services @component", () => {
   });
 
   test("reducedMotion disables proximity @component", async ({ page }) => {
-    await page.emulateMedia({ reducedMotion: "reduce" });
+    await emulateMedia(page, { reducedMotion: "reduce" });
     await page.goto(baseURL + pathFor("en"));
     const card = page.locator("[data-state='light-default'] [data-svc-card]");
     await expect(card).toBeVisible();

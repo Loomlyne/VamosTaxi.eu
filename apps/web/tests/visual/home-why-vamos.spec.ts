@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page, emulateMedia } from "../support/test";
 import { spawn, type ChildProcess } from "node:child_process";
 import { join } from "node:path";
 import { waitForNextServer, WEB_ROOT } from "../support/server-harness";
@@ -89,7 +89,7 @@ test.describe("Home why-vamos @component", () => {
   });
 
   test("reduced motion paints every step @component", async ({ page }) => {
-    await page.emulateMedia({ reducedMotion: "reduce" });
+    await emulateMedia(page, { reducedMotion: "reduce" });
     await gotoReady(page, "en");
     const titles = page.locator('[data-state="support-on-driven"] [data-why-t]');
     await expect(titles).toHaveCount(4);

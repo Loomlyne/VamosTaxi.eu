@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, emulateMedia } from "../support/test";
 import { spawn, type ChildProcess } from "node:child_process";
 import { join } from "node:path";
 import { waitForNextServer, WEB_ROOT } from "../support/server-harness";
@@ -74,7 +74,7 @@ test.describe("Home how-it-works @component", () => {
   });
 
   test("reduced motion paints every step @component", async ({ page }) => {
-    await page.emulateMedia({ reducedMotion: "reduce" });
+    await emulateMedia(page, { reducedMotion: "reduce" });
     await page.goto(baseURL + pathFor("en"));
     const cards = page.locator('[data-state="light-reveal"] [data-hiw-card]');
     await expect(cards).toHaveCount(4);

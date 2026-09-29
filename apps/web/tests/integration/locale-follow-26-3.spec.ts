@@ -4,7 +4,7 @@
 // against `next dev`. The choice is the NEXT_LOCALE cookie exactly as
 // VamosLocale.setLang writes it on home; the page is opened at its unprefixed address.
 
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "../support/test";
 import { spawn, type ChildProcess } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";

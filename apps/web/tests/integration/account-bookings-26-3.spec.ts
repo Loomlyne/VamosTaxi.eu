@@ -2,7 +2,7 @@
  * @component 26.3-16 — profile shows "Booked", never a local draft; sign-in returns to checkout (D-13, D-32, D-33).
  * Behavioural, runs once under component-1440 (the 390 overflow check resizes the page itself).
  */
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "../support/test";
 import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 

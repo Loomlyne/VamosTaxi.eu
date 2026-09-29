@@ -6,7 +6,7 @@
 import { existsSync } from "node:fs";
 import { createRequire } from "node:module";
 import { spawn, type ChildProcess } from "node:child_process";
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../support/test";
 import { NEXT_BIN as HARNESS_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 import {
   createStaffFixture,
@@ -116,7 +116,7 @@ test.describe("content string editor @ops-content", () => {
   // D-16b: only the admin signs in. With TOTP enrolled, the ops sign-in (AuthForm on
   // /login, internal /ops/sign-in) shows its 'mfa' stage after the password (26.1-23);
   // the old separate challenge page is gone (26.1-20).
-  async function signInAdmin(page: import("@playwright/test").Page) {
+  async function signInAdmin(page: import("../support/test").Page) {
     const fixture = await createStaffFixture({ role: "admin", enrolTotp: true });
     if (!fixture.factorSecret) throw new Error("expected factor secret");
     await page.goto(`${baseURL}/ops/sign-in`);

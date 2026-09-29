@@ -1,7 +1,7 @@
 // SITE-01: home reviews + FAQ text come from public.reviews / public.content_strings.
 // Fail loudly if the local stack is down — never skip.
 
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../support/test";
 import { execFileSync, spawn, type ChildProcess } from "node:child_process";
 import { existsSync } from "node:fs";
 import { join } from "node:path";

@@ -17,7 +17,7 @@
 // mapping for I18N-03/I18N-04) runs this suite alone, and the plain `pnpm test:visual`
 // still picks it up as part of the full run.
 
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../support/test";
 import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 

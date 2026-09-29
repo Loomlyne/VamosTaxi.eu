@@ -1,5 +1,5 @@
 // apps/web/tests/visual/legal-notice.spec.ts
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../support/test";
 import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 

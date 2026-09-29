@@ -6,7 +6,7 @@
 // Every /api/quote answer is a route fixture in the real response shape; totals are null
 // so cards read `CHF 000` (no book price is ever asserted). Tagged @checkout.
 
-import { test, expect, type Page, type Route } from "@playwright/test";
+import { test, expect, type Page, type Route } from "../support/test";
 import { spawn, type ChildProcess } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";

@@ -30,7 +30,7 @@
 //
 // Tagged "@dev-exclusion" per this plan's own artifact list.
 
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../support/test";
 import { spawn, type ChildProcess } from "node:child_process";
 import { existsSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";

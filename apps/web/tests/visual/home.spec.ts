@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page, emulateMedia } from "../support/test";
 import { spawn, type ChildProcess } from "node:child_process";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
@@ -32,7 +32,7 @@ function pathFor(locale: string) {
 }
 
 async function gotoHome(page: Page, locale: string) {
-  await page.emulateMedia({ reducedMotion: "reduce" });
+  await emulateMedia(page, { reducedMotion: "reduce" });
   const res = await page.goto(baseURL + pathFor(locale), { timeout: 60_000, waitUntil: "domcontentloaded" });
   if (!res || res.status() >= 400) {
     throw new Error(`Home ${locale} returned ${res?.status() ?? "no response"}`);

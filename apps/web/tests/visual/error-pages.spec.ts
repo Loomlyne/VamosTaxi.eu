@@ -46,7 +46,7 @@
 //
 // Tagged `@error-pages` per this plan's own artifact list.
 
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "../support/test";
 import { spawn, type ChildProcess } from "node:child_process";
 import { mountPort, waitForMockReady } from "../support/mock-harness";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";

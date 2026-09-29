@@ -9,7 +9,7 @@
 
 import { createHmac } from "node:crypto";
 import { createRequire } from "node:module";
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../support/test";
 import {
   getStaffClaims,
   requireAdminClaims,

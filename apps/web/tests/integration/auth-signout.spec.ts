@@ -2,7 +2,7 @@
 // entries, session snapshot is public-safe. Fail loudly if the local stack
 // is down — never skip.
 
-import { test, expect, type Page, type Response } from "@playwright/test";
+import { test, expect, type Page, type Response } from "../support/test";
 import { execFileSync, spawn, type ChildProcess } from "node:child_process";
 import { existsSync } from "node:fs";
 import { join } from "node:path";

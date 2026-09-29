@@ -34,7 +34,7 @@
 // regression coverage here, matching this plan's own `verification: backstop` marking for
 // the "second mount reuses the first" truth (01-08-SUMMARY.md has the full note).
 
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page, emulateMedia, pinReducedTransparency } from "../support/test";
 import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 
@@ -115,6 +115,7 @@ test.describe("Lenis smooth scroll @lenis", () => {
   }) => {
     const context = await browser.newContext({ reducedMotion: "reduce" });
     const page = await context.newPage();
+    await pinReducedTransparency(page);
     await page.goto(baseURL + "/");
     // No instance ever boots under reduced motion, so there is no
     // window.__vamosLenisDebug-becomes-a-function moment to wait on the way the other
@@ -125,7 +126,7 @@ test.describe("Lenis smooth scroll @lenis", () => {
 
     // Mid-session: flip the media query after mount (Playwright's emulateMedia changes
     // it live) and confirm an instance still never appears.
-    await page.emulateMedia({ reducedMotion: "reduce" });
+    await emulateMedia(page, { reducedMotion: "reduce" });
     const stillNone = await page.evaluate(() => window.__vamosLenisDebug?.());
     expect(stillNone?.instances ?? 0).toBe(0);
 

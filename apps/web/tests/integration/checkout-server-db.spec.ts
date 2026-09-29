@@ -17,7 +17,7 @@
 
 import { execFileSync } from "node:child_process";
 import { join } from "node:path";
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../support/test";
 import postgres from "postgres";
 import type Stripe from "stripe";
 import { runCheckoutIntent, type CheckoutIntentDeps } from "../../lib/checkout/intent";

@@ -3,7 +3,7 @@
 // Plan 07-09 Task 3. Stubs GET /api/checkout/status/{ref}. Does not talk to a
 // processor. Tagged @checkout.
 
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "../support/test";
 import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 

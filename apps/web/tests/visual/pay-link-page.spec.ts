@@ -7,7 +7,7 @@
 // Stripe is the plan 05 fake, so no key or network is needed. The amount is a TEST
 // FIXTURE, not a price-book number. Tagged @component.
 
-import { test, expect, type Page, type Route } from "@playwright/test";
+import { test, expect, type Page, type Route } from "../support/test";
 import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 import { openInLocale, type Lang } from "../support/locale";

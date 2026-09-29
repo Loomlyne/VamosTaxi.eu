@@ -8,7 +8,7 @@
 // Assertions are against the raw server response (same discipline as
 // ssr-locale.spec.ts), not the hydrated DOM.
 
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../support/test";
 import { spawn, type ChildProcess } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";

@@ -17,7 +17,7 @@
 // own mapping for I18N-02) runs this suite alone, and the plain `pnpm test:visual`
 // still picks it up as part of the full run.
 
-import { test, expect, type Page, type BrowserContext } from "@playwright/test";
+import { test, expect, type Page, type BrowserContext, pinReducedTransparency } from "../support/test";
 import { spawn, type ChildProcess } from "node:child_process";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
@@ -182,6 +182,7 @@ test.describe("Booking draft survives a language switch @lang-switch", () => {
     context: BrowserContext;
   }) => {
     const page1 = await context.newPage();
+    await pinReducedTransparency(page1);
     await page1.goto(baseURL + "/");
     await expect(page1.locator('[data-test-field="pickup"]')).toBeVisible();
     await fillDraft(page1);
@@ -190,6 +191,7 @@ test.describe("Booking draft survives a language switch @lang-switch", () => {
     await page1.close();
 
     const page2 = await context.newPage();
+    await pinReducedTransparency(page2);
     await page2.goto(baseURL + "/");
     await page2.waitForURL("**/de");
     await expect(page2.locator('[data-test-field="pickup"]')).toBeVisible();

@@ -12,7 +12,7 @@
 import { createRequire } from "node:module";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../support/test";
 import { unflattenKeys, type ContentLocale } from "../../lib/content/messages";
 import { WEB_ROOT } from "../support/server-harness";
 

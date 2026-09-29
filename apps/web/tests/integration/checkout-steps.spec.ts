@@ -4,7 +4,7 @@
 // only to forward to the one-page checkout, and home hands the trip over in the
 // URL. Does not spawn Next, Docker, or Supabase — file bytes only.
 
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../support/test";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { WEB_ROOT } from "../support/server-harness";

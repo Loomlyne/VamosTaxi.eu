@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, emulateMedia } from "../support/test";
 import { serveMock, waitForMockReady } from "../support/mock-harness";
 
 test.describe("SiteFooter letter roll @component", () => {
@@ -34,7 +34,7 @@ test.describe("SiteFooter letter roll @component", () => {
     page,
   }, testInfo) => {
     test.skip(testInfo.project.name !== "component-390", "mobile-specific proof");
-    await page.emulateMedia({ reducedMotion: "reduce" });
+    await emulateMedia(page, { reducedMotion: "reduce" });
     const url = await serveMock("app/pages/SiteFooter.dc.html");
     await page.goto(url);
     await waitForMockReady(page);

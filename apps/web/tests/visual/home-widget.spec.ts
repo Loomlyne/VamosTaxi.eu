@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page, emulateMedia } from "../support/test";
 import { spawn, type ChildProcess } from "node:child_process";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
@@ -78,7 +78,7 @@ async function interceptQuote(page: Page, body: unknown, status = 200) {
 }
 
 async function gotoHome(page: Page, locale: string) {
-  await page.emulateMedia({ reducedMotion: "reduce" });
+  await emulateMedia(page, { reducedMotion: "reduce" });
   const res = await page.goto(baseURL + pathFor(locale), {
     timeout: 60_000,
     waitUntil: "domcontentloaded",

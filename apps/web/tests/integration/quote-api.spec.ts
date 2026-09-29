@@ -5,7 +5,7 @@
 // database is the QUOTE-10 launch-state path. Mapbox is stubbed through
 // the harness (QUOTE_TEST_STUB_GEO) rather than skipped.
 
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../support/test";
 import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 

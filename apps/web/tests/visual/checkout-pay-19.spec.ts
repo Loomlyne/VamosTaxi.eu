@@ -8,7 +8,7 @@
 // intercepted by page.route, no bypass in the app). Amounts in this file are arithmetic
 // fixtures (TEST FIXTURES, never a book price). Tagged @checkout.
 
-import { test, expect, type Locator, type Page, type Route } from "@playwright/test";
+import { test, expect, type Locator, type Page, type Route } from "../support/test";
 import { spawn, type ChildProcess } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
