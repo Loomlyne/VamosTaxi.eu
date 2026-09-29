@@ -85,17 +85,3 @@ describe("charge-gate source", () => {
     expect(src).not.toContain("stripeFromEnv");
   });
 });
-
-describe("pay-link email_failed pin", () => {
-  it("stays a 502 named email_failed and is not collapsed", () => {
-    const src = readFileSync(join(here, "../../app/api/checkout/pay-link/route.ts"), "utf8");
-    const line = src.split("\n").find((row) => row.includes("email_failed"));
-    expect(line).toBeDefined();
-    expect(line).toMatch(/error:\s*"email_failed"/);
-    expect(line).toMatch(/status:\s*502/);
-    expect(line).not.toContain("pricing_not_live");
-    expect(line).not.toContain("quote_expired");
-    expect(line).not.toContain("payCouldNotStart");
-    expect(line).not.toMatch(/error:\s*"invalid_request"/);
-  });
-});

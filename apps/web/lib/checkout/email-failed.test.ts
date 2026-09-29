@@ -31,14 +31,3 @@ describe("checkout.emailFailed", () => {
     expect(checkout("de").emailFailed).not.toContain("ß");
   });
 });
-
-describe("email_failed stays a distinct refusal", () => {
-  it("pay-link route still returns 502 email_failed", () => {
-    const src = readFileSync(join(here, "../../app/api/checkout/pay-link/route.ts"), "utf8");
-    const line = src.split("\n").find((row) => row.includes("email_failed"));
-    expect(line).toBeDefined();
-    expect(line).toMatch(/error:\s*"email_failed"/);
-    expect(line).toMatch(/code:\s*"email_failed"/);
-    expect(line).toMatch(/status:\s*502/);
-  });
-});

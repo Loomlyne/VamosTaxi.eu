@@ -66,8 +66,8 @@ describe("resolveActorCustomerIdWithDeps (26.3 D-32)", () => {
 });
 
 describe("checkout routes use the signed-in actor", () => {
-  it("intent and pay-link resolve the actor instead of a hard-coded null", () => {
-    for (const rel of ["app/api/checkout/intent/route.ts", "app/api/checkout/pay-link/route.ts"]) {
+  it("intent resolves the actor instead of a hard-coded null", () => {
+    for (const rel of ["app/api/checkout/intent/route.ts"]) {
       const route = source(rel);
       expect(route).not.toContain("actorCustomerId: null");
       expect(route).toContain("resolveActorCustomerId(env, request)");

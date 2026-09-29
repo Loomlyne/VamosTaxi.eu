@@ -25,7 +25,6 @@ describe("checkout public origin", () => {
     const root = join(dirname(fileURLToPath(import.meta.url)), "../..");
     for (const rel of [
       "app/api/checkout/intent/route.ts",
-      "app/api/checkout/pay-link/route.ts",
       "app/api/checkout/pay-link/open/route.ts",
     ]) {
       const file = readFileSync(join(root, rel), "utf8");
@@ -38,7 +37,6 @@ describe("checkout public origin", () => {
     const root = join(dirname(fileURLToPath(import.meta.url)), "../..");
     for (const rel of [
       "app/api/checkout/intent/route.ts",
-      "app/api/checkout/pay-link/route.ts",
       "app/api/checkout/pay-link/open/route.ts",
     ]) {
       const file = readFileSync(join(root, rel), "utf8");
@@ -157,14 +155,15 @@ describe("account bookings POST cache", () => {
 });
 
 describe("review/photo/invite JSON cache", () => {
-  it("review photo/submit, staff photos, invite, pay-link send private no-store", () => {
+  it("review photo/submit, staff photos, invite, checkout intent and pay-link open private no-store", () => {
     const root = join(dirname(fileURLToPath(import.meta.url)), "../..");
     const files = [
       "app/api/reviews/photo/route.ts",
       "app/api/reviews/submit/route.ts",
       "app/[locale]/(ops)/api/photos/upload/route.ts",
       "app/[locale]/(ops)/api/staff/invite/route.ts",
-      "app/api/checkout/pay-link/route.ts",
+      "app/api/checkout/intent/route.ts",
+      "app/api/checkout/pay-link/open/route.ts",
     ];
     for (const rel of files) {
       const file = readFileSync(join(root, rel), "utf8");

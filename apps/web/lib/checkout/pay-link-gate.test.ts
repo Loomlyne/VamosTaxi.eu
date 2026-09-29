@@ -9,39 +9,28 @@ function read(rel: string): string {
   return readFileSync(join(here, rel), "utf8");
 }
 
-describe("pay-link send gate", () => {
-  const src = read("../../app/api/checkout/pay-link/route.ts");
+describe("checkout intent gate (moved from the removed public pay-link sender)", () => {
+  const route = read("../../app/api/checkout/intent/route.ts");
+  const lib = read("./intent.ts");
 
-  it("D-20: pins token exp to 24 h from the Postgres now at send and keeps email_failed a 502", () => {
-    expect(src).toContain("payLinkTokenExpiresAt(postgresNowIso)");
-    expect(src).not.toContain("payLinkTokenExpiresAt(lockPayload.exp)");
-    expect(src).not.toContain("tokenExpiresAt: new Date(payload.expires_at)");
-    expect(src).not.toContain("checkoutWindowMinutes * 60");
-    const line = src.split("\n").find((row) => row.includes("email_failed"));
-    expect(line).toMatch(/error:\s*"email_failed"/);
-    expect(line).toMatch(/code:\s*"email_failed"/);
-    expect(line).toMatch(/status:\s*502/);
-    expect(line).not.toContain("pricing_not_live");
-    expect(line).not.toContain("invalid_request");
-  });
-
-  it("refuses a missing class id before stripeFromEnv", () => {
-    const classRefuse = src.indexOf("refuse(refusalForMissingClassId())");
-    const stripe = src.indexOf("stripeFromEnv(");
+  it("refuses a missing class id before any Stripe client is built", () => {
+    const classRefuse = route.indexOf("refuse(refusalForMissingClassId())");
+    const stripe = route.indexOf("stripeClient()");
+    const build = route.indexOf("stripeFromEnv(env)");
     expect(classRefuse).toBeGreaterThan(-1);
+    expect(build).toBeGreaterThan(classRefuse);
     expect(stripe).toBeGreaterThan(classRefuse);
-    expect(src.slice(0, stripe)).toContain('refuse("quote_expired")');
-    expect(src.slice(0, stripe)).toContain('refuse("pricing_not_live")');
+    expect(route.slice(0, stripe)).toContain('refuse("pricing_not_live")');
   });
 
-  it("stops the UAE prefix on the payable path before stripeFromEnv", () => {
-    const prefix = src.indexOf("stripeAccountIsLegacyUaeTest(");
-    const stripe = src.indexOf("stripeFromEnv(");
+  it("stops the UAE prefix on the payable path before a token or session", () => {
+    const prefix = lib.indexOf("stripeAccountIsLegacyUaeTest(");
+    const mint = lib.indexOf("deps.mintManageToken()");
     expect(prefix).toBeGreaterThan(-1);
-    expect(prefix).toBeLessThan(stripe);
-    expect(src).toContain("legacyUaePrefixStop()");
-    expect(src).not.toContain("STRIPE_SECRET_KEY");
-    expect(src).not.toMatch(/sk_(test|live)_/);
+    expect(prefix).toBeLessThan(mint);
+    expect(lib).toContain("legacyUaeAccountStop()");
+    expect(route).not.toContain("STRIPE_SECRET_KEY");
+    expect(route).not.toMatch(/sk_(test|live)_/);
   });
 });
 
