@@ -344,3 +344,10 @@ Arabic: `dir="rtl"` from the runtime; banner card sits bottom-right at ≥640px 
 2. FLAG: `[data-tok]::after` uses `--vt-yellow-700` (line 48 of both banner files). Add it to the fix list as `--vt-charcoal-800`.
 3. FLAG: say that weight 500 and the existing off-scale spacing stay (D-04), and that no new code may use them.
 4. To ask the owner at plan sign-off: the removal of the cookies page §06 lead sentence and the "Marketing" caption; the stale `vamos:cookie-prefs` row text on `cookies.dc.html:221`.
+
+## Superseded by D-21…D-27 (2026-09-30)
+The owner chose vanilla-cookieconsent. This spec must be revised: the look contract stays (today's
+banner and sheet, D-23), but the markup is the library's DOM restyled with `--vt-*` tokens; the
+mock and Next banner files are replaced by the vendored library plus one config. Checker run 1
+findings still apply (footer "Cookie preferences" must open the library's preferences on every page
+that shows the footer, including /reset-password and Next error/404).

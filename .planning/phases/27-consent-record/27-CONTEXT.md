@@ -103,6 +103,48 @@ Nothing is sent to Meta by this phase.
 
 - **D-16a (owner, 2026-09-30, UI-SPEC Q-1):** remove "Reset my choice" and the line "Resetting clears the record and brings the banner back…" from /cookies. Lena changes her mind with "Change preferences" / "Necessary only"; each change is a new record.
 
+### Banner code: vanilla-cookieconsent (owner, 2026-09-30, question form)
+- **D-21:** Adopt **vanilla-cookieconsent** (orestbida/cookieconsent). Checked from its repository and
+  docs on 2026-09-30: licence MIT (`LICENSE`, "Copyright (c) 2020-2025 Orest Bida"); version 3.1.0
+  (GitHub latest release 2025-02-04, npm `latest` 3.1.0); right-to-left through `language.rtl`;
+  runs without a build step (`dist/cookieconsent.umd.js` about 23 KB, plus `dist/cookieconsent.css`);
+  asks again when `revision` changes. Option A (keep our own banner) was recommended as shorter;
+  the owner chose B.
+- **D-22:** Vendored into `assets/` like Lenis (`assets/cookieconsent/cookieconsent.umd.js`,
+  `.css`, `LICENSE`, version noted), no CDN, no npm package on the mock pages. The Next pages load
+  the same vendored files from `public/assets`. One config file (`assets/cookieconsent-boot.js`)
+  shared by mock and Next pages; it replaces `app/home/CookieBanner.dc.html`,
+  `app/pages/CookieBanner.dc.html` and `apps/web/components/consent/CookieBanner.tsx`.
+- **D-23:** Look: restyled with `--vt-*` tokens only, to match today's banner and preferences sheet
+  (D-04, D-15): Qurova + Poppins, pill buttons, 16px cards with `#DEDEDE` hairline, no glow, no
+  tinted yellow. The library's own colours, radii and shadows are overridden; nothing from its
+  default theme may show. Three buttons: Accept all / Necessary only / Manage preferences; four
+  categories: necessary (read-only), functional, analytics, marketing.
+- **D-24:** Copy: the four languages go into the library's `language.translations` from
+  `app/vamos-i18n-dict.js` / the Next messages; the owner's §1 (banner) and §2 (Marketing row) are
+  passed verbatim. `language.rtl: 'ar'`. Language follows `VamosLocale` (`setLanguage` on
+  `vamos:locale`), never its own detector.
+- **D-25:** Server is the truth (D-06). `onFirstConsent` / `onChange` POST `/api/consent` with the
+  accepted categories. Accept all first gets the Turnstile token (invisible, `action: consent`);
+  if Turnstile or the POST fails, the library's choice is undone (`acceptCategory([])` / reset),
+  the banner stays, and the error shows. The library's stored choice is only a display cache; it
+  never counts as consent. Storage: `cookie.useLocalStorage: true` under the existing key
+  `vamosCookieConsent`, so no new cookie is added and the cookies-page row stays true (any change
+  in duration or wording goes to the owner first).
+- **D-26:** `revision` = the policy version as a number (Zurich date `YYYYMMDD`, same string as
+  `CONSENT_POLICY_VERSION`, D-17). The banner also shows when the server has no row for this visitor
+  under the current version (D-08), even if the library's cache says chosen.
+- **D-27:** Pixel (Phase 28, recorded here so B is judged whole): the library's script-tag blocking
+  (`type="text/plain" data-category`) is **not** used for the pixel, because it leaves the script in
+  the HTML and META-07 forbids a dismissed person getting a page that contains it. The pixel is never
+  in any HTML. Phase 28 loads it from the library's `onConsent` / `onChange` hook with
+  `CookieConsent.loadScript`, only when marketing is accepted and the server row confirms it, and
+  only on allowed routes. Pay link, manage-booking, ops/dashboard and any URL carrying a booking
+  reference never run the loader (route deny-list checked in the hook and by a test). Marketing
+  pages stay cacheable because the cached HTML carries no pixel and no per-visitor state.
+- **D-28:** Unchanged: owner texts verbatim, four languages, provable on the server, account tick
+  and guest record stay out of `consent_log`, design system is the only visual source.
+
 ### Policy version
 - **D-17:** `CONSENT_POLICY_VERSION` becomes the Zurich date of the day the texts ship (Phase 26
   D-13, D-15). Same string shown as the date on the cookies and privacy pages. The two September
