@@ -2,6 +2,7 @@ import { test, expect } from "../support/test";
 import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { nextDevEnv } from "../support/test-stack";
 
 const PORTS: Record<string, number> = {
   "component-1440": testPort(4160),
@@ -31,6 +32,7 @@ test.describe("Home hero @component", () => {
       cwd: WEB_ROOT,
       stdio: "ignore",
       detached: true,
+      env: nextDevEnv({}, { gallery: true }),
     });
     await waitForNextServer(baseURL);
   });
@@ -117,7 +119,8 @@ test.describe("Home hero @component", () => {
   test("no CHF amount @component", async ({ page }) => {
     await page.goto(baseURL + pathFor("en"));
     const text = await page.locator("main").innerText();
-    expect(text).not.toMatch(/\bCHF\b/);
+    // The header's currency picker prints a bare "CHF" label; only an amount (CHF then digits) is banned.
+    expect(text).not.toMatch(/\bCHF\s*\d/);
     expect(text).not.toMatch(/\d{1,3}['’]\d{3}/);
   });
 });
