@@ -4,7 +4,6 @@
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { routing } from "@/i18n/routing";
-import { customerClaims } from "@/lib/account/session";
 import { checkWriteRateLimit } from "@/lib/abuse/rate-limit";
 import { log } from "@/lib/logger";
 import {
@@ -63,15 +62,7 @@ import {
   readOwnSignInMethod,
   setOwnSignInMethod,
 } from "@/lib/auth/staff-sign-in-method";
-import { asCustomer } from "@/lib/db/identity";
 import { getStaffClaims, staffDecisionOf, type StaffAuthClient } from "@/lib/ops/session";
-import {
-  recordConsent,
-  type ConsentLocale,
-  type ConsentMethod,
-} from "@/lib/consent/bind";
-import { mintConsentSubject, readConsentSubject } from "@/lib/consent/cookie";
-import { cfConnectingIp, truncateClientIp } from "@/lib/consent/ip";
 import {
   authSetCookieHeader,
   createIsolatedSupabaseClient,
@@ -155,40 +146,6 @@ function localizedPath(path: string, locale: string): string {
 
 function requestOrigin(request: Request): string {
   return trustedSiteOrigin(new URL(request.url).host) ?? "https://vamostaxi.site";
-}
-
-const CONSENT_LOCALES = new Set<ConsentLocale>(["en", "de", "fr", "ar"]);
-
-async function appendSignupConsent(
-  request: Request,
-  locale: string,
-  ctx: { requestId: string; route: string; locale: string | null },
-): Promise<void> {
-  const existing = readConsentSubject(request.headers.get("cookie"));
-  const subject = existing ?? mintConsentSubject();
-  const method: ConsentMethod = existing ? "settings_change" : "reject_all";
-  const consentLocale: ConsentLocale = CONSENT_LOCALES.has(locale as ConsentLocale)
-    ? (locale as ConsentLocale)
-    : "en";
-  const claims = await customerClaims(request);
-  if (!claims) {
-    log("warn", "auth", ctx, { reason: "consent-no-session" });
-    return;
-  }
-  try {
-    const { env } = getCloudflareContext();
-    await asCustomer(env, claims, async (tx) => {
-      await recordConsent(tx, {
-        subject,
-        method,
-        locale: consentLocale,
-        userAgent: request.headers.get("user-agent"),
-        ipTruncated: truncateClientIp(cfConnectingIp(request.headers)),
-      });
-    });
-  } catch {
-    log("error", "auth", ctx, { reason: "consent-write" });
-  }
 }
 
 export async function POST(request: Request): Promise<Response> {

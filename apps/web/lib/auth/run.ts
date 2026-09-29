@@ -5,7 +5,7 @@
 
 import type { AuthBanner } from "../../components/auth/types";
 import { safeReturnTo } from "../account/return-to";
-import { AUTH_LOCALE_METADATA_KEY } from "../supabase/constants";
+import { AUTH_LOCALE_METADATA_KEY, SIGNUP_CONSENT_METADATA_KEY } from "../supabase/constants";
 
 export type AuthRunResult =
   | { stage: "form"; banner: AuthBanner }
@@ -104,6 +104,8 @@ export async function runSignUpPassword(
       data: {
         full_name: fullName(input.firstName, input.lastName),
         [AUTH_LOCALE_METADATA_KEY]: input.locale,
+        // Consent is written when the address is confirmed (there is no session before that).
+        [SIGNUP_CONSENT_METADATA_KEY]: "pending",
       },
     },
   });
@@ -127,6 +129,7 @@ export async function runOtp(
   const data: Record<string, string> = { [AUTH_LOCALE_METADATA_KEY]: input.locale };
   if (input.mode === "signup") {
     data.full_name = fullName(input.firstName ?? "", input.lastName ?? "");
+    data[SIGNUP_CONSENT_METADATA_KEY] = "pending";
   }
   const { error } = await supabase.auth.signInWithOtp({
     email: input.email,
