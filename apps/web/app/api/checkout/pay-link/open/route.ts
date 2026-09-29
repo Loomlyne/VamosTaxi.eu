@@ -20,9 +20,9 @@ import {
   checkoutPaymentIntentId,
   createCheckoutSession,
   retrieveCheckoutSession,
-  sessionIsPayable,
+  checkoutPaymentMethodTypes,
+  hostedSessionIsPayable,
   stripeFromEnv,
-  stripePublishableKey,
 } from "@/lib/checkout/stripe";
 import { CHARGE_CURRENCY, type CheckoutLocale } from "@/lib/checkout/currency";
 
@@ -36,10 +36,6 @@ const PAY_JSON = { "cache-control": "private, no-store" };
 
 function bytesToHex(bytes: Uint8Array): string {
   return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
-}
-
-function utf8Hex(value: string): string {
-  return bytesToHex(new TextEncoder().encode(value));
 }
 
 function sqlState(err: unknown): string | undefined {
@@ -67,21 +63,21 @@ function legacyUaePrefixStop(): Response {
   return Response.json({ ok: false }, { status: 503, headers: PAY_JSON });
 }
 
-function openPaidJson(
+/** Hosted answer: the Stripe-hosted page url, never a client secret (D-46). */
+function openHostedJson(
   row: Record<string, unknown>,
-  secret: string,
+  url: string,
   charged: number,
-  publishableKey: string,
 ): Record<string, unknown> {
   return {
+    ok: true,
+    hosted_page: true,
+    url,
     reference: String(row.reference),
     pickup: String(row.pickup_text ?? ""),
     dropoff: String(row.dropoff_text ?? ""),
     expires_at: isoInstant(row.snapshot_expires_at),
     lock_expires_at: isoInstant(row.token_expires_at),
-    client_secret: secret,
-    client_secret_hex: utf8Hex(secret),
-    publishable_key: publishableKey,
     currency: CHARGE_CURRENCY.toUpperCase(),
     amount_rappen: charged,
     billing_email: String(row.payer_email ?? row.contact_email ?? ""),
@@ -170,7 +166,6 @@ export async function POST(request: Request) {
       ? row.snapshot_expires_at
       : new Date(String(row.snapshot_expires_at));
   const payerEmail = String(row.payer_email ?? row.contact_email ?? "");
-  const publishableKey = stripePublishableKey(env);
   const stripe = stripeFromEnv(env);
 
   const existing = await asCheckout(env, null, (sql) => loadOpenPayment(sql, quoteId));
@@ -178,10 +173,8 @@ export async function POST(request: Request) {
     const stored = await retrieveCheckoutSession(stripe, existing.stripe_checkout_session_id).catch(
       () => null,
     );
-    if (sessionIsPayable(stored, charged)) {
-      const secret = stored.client_secret;
-      if (!secret) return refuse("invalid_request");
-      return Response.json(openPaidJson(row, secret, charged, publishableKey), { headers: PAY_JSON });
+    if (hostedSessionIsPayable(stored, charged) && stored.url) {
+      return Response.json(openHostedJson(row, stored.url, charged), { headers: PAY_JSON });
     }
   }
 
@@ -193,12 +186,16 @@ export async function POST(request: Request) {
     locale,
     idempotencyKey: `paylink:${reference}:${Math.floor(expiresAt.getTime() / 1000)}`,
     expiresAt,
-    returnUrl: stripeCheckoutReturnUrl(origin, locale),
+    uiMode: "hosted_page",
+    // D-46: pays on Stripe's page; Back returns to this same pay-link page.
+    successUrl: stripeCheckoutReturnUrl(origin, locale),
+    cancelUrl: `${origin.replace(/\/$/, "")}${payLinkPath(locale, token)}`,
+    twint: checkoutPaymentMethodTypes(env).includes("twint"),
     productName: `Vamos Taxi ${reference}`,
   });
 
   const pi = checkoutPaymentIntentId(session);
-  if (!session.client_secret) return refuse("invalid_request");
+  if (!session.url) return refuse("invalid_request");
 
   try {
     await asCheckout(env, null, (sql) =>
@@ -217,10 +214,8 @@ export async function POST(request: Request) {
         const stored = await retrieveCheckoutSession(stripe, open.stripe_checkout_session_id).catch(
           () => null,
         );
-        if (sessionIsPayable(stored, charged)) {
-          const secret = stored.client_secret;
-          if (!secret) return refuse("invalid_request");
-          return Response.json(openPaidJson(row, secret, charged, publishableKey), { headers: PAY_JSON });
+        if (hostedSessionIsPayable(stored, charged) && stored.url) {
+          return Response.json(openHostedJson(row, stored.url, charged), { headers: PAY_JSON });
         }
       }
       return refuse("quote_already_booked");
@@ -229,7 +224,5 @@ export async function POST(request: Request) {
     throw err;
   }
 
-  return Response.json(openPaidJson(row, session.client_secret, charged, publishableKey), {
-    headers: PAY_JSON,
-  });
+  return Response.json(openHostedJson(row, session.url, charged), { headers: PAY_JSON });
 }
