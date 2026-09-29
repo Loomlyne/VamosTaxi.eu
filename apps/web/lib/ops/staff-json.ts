@@ -31,13 +31,13 @@ export function jsonErr(code: string, status: number, extra?: Record<string, unk
   return Response.json({ ok: false, code, ...(extra ?? {}) }, { status, headers: STAFF_JSON_HEADERS });
 }
 
-const STAFF_CSRF_HOSTS: readonly string[] = Object.freeze([
+const STAFF_CSRF_HOSTS = new Set([
   "dashboard.vamostaxi.site",
   "dashboard.localhost",
 ]);
 
 function staffHostAllowed(hostname: string): boolean {
-  return STAFF_CSRF_HOSTS.includes(hostname);
+  return STAFF_CSRF_HOSTS.has(hostname);
 }
 
 /** CSRF (ASVS L1): mutating staff calls need an allowlisted Origin. Missing Origin is deny. */

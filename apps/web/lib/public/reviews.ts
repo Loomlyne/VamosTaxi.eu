@@ -5,8 +5,6 @@
 
 import { publicSql } from "@/lib/db/public";
 
-export const dynamic = "force-dynamic";
-
 export type PublicReview = {
   id: string;
   source: string;

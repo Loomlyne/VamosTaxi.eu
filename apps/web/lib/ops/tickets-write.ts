@@ -11,8 +11,6 @@ import { contactMessageId, staffSender, threadHeaders } from "@/lib/ops/ticket-m
 import { resolveStaffBookingId } from "@/lib/ops/resolve-booking-id";
 import { staffPatchStatus, type TicketStatus } from "@/lib/ops/tickets-map";
 
-export const dynamic = "force-dynamic";
-
 const STATUSES = new Set<TicketStatus>(["new", "open", "replied", "responded", "closed"]);
 const FROM_ADDRESS = "noreply@vamostaxi.site";
 
