@@ -23,9 +23,10 @@
 // calls Supabase Auth's Admin API.
 
 import postgres from "postgres";
+import { testDbUrl, workerSql } from "../support/worker-client.js";
 import type { VamosClaims } from "../../src/claims.js";
 
-const SUPERUSER_CONNECTION_STRING = "postgres://postgres:postgres@127.0.0.1:54322/postgres";
+const SUPERUSER_CONNECTION_STRING = testDbUrl("owner");
 
 export interface LocalIdentity {
   uid: string;
@@ -39,12 +40,7 @@ export interface LocalIdentity {
  * assertion connection in this plan (D-04) -- callers close it with `sql.end()` when done.
  */
 export function adminSql(): postgres.Sql {
-  return postgres(SUPERUSER_CONNECTION_STRING, {
-    max: 1,
-    fetch_types: false,
-    prepare: true,
-    connect_timeout: 10,
-  });
+  return workerSql(SUPERUSER_CONNECTION_STRING);
 }
 
 /**
