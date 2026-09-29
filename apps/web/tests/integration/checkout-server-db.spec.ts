@@ -14,11 +14,16 @@
 //
 // Amounts here are arithmetic fixtures (class net 600 rappen, child-seat 100), never a book
 // price.
+// Port contract (26.0-09, D-01/D-07): the port is VAMOS_TEST_DB_PORT, default 55322 so the 26.3
+// session's workflow is unchanged (no env = 127.0.0.1:55322, loopback check only, no marker).
+// With the env set (CI, local-test-stack.sh) the throwaway marker is also required. The
+// connection uses the Worker's own client options (workerSql, fetch_types:false), so array
+// bugs like VT-26-0733 show here.
 
-import { execFileSync } from "node:child_process";
-import { join } from "node:path";
 import { test, expect } from "../support/test";
-import postgres from "postgres";
+import type postgres from "postgres";
+import { workerSql } from "../../../../packages/db/test/support/worker-client";
+import { requireTestStack, testDbPort } from "../support/test-stack";
 import type Stripe from "stripe";
 import { runCheckoutIntent, type CheckoutIntentDeps } from "../../lib/checkout/intent";
 import { checkoutIntentSchema } from "../../lib/checkout/intent-schema";
@@ -35,22 +40,24 @@ import { CONFIRMATION_TEMPLATE_VERSION } from "@vamos/emails/confirmation";
 import { mintLock, type QuoteLockPayload } from "../../lib/quote/lock";
 
 const RUN_PROJECT = "component-1440";
-const REPO_ROOT = join(process.cwd(), "..", "..");
 const SECRETS = { current: "lock-secret-server-db-22" };
 const CLASS_NET = 600;
 const CHILD_SEAT = 100;
 const VAT_BPS = 81;
 
 function localUrl(): string {
-  const url = execFileSync("bash", ["scripts/local-stack-263.sh", "url"], {
-    cwd: REPO_ROOT,
-    encoding: "utf8",
-  }).trim();
+  const port = testDbPort("55322");
+  const url = `postgres://postgres:postgres@127.0.0.1:${port}/postgres`;
   const parsed = new URL(url);
-  if (parsed.hostname !== "127.0.0.1" || parsed.port !== "55322") {
-    throw new Error(`refusing to run against ${parsed.host}: only the 127.0.0.1:55322 stack is allowed`);
+  if (parsed.hostname !== "127.0.0.1" || parsed.port !== port) {
+    throw new Error(`refusing to run against ${parsed.host}: only loopback port ${port} is allowed`);
   }
   return url;
+}
+
+/** With VAMOS_TEST_DB_PORT set (CI, $STACK) the throwaway marker is required before any write. */
+async function guardStack(url: string): Promise<void> {
+  if (process.env.VAMOS_TEST_DB_PORT) await requireTestStack(url, testDbPort("55322"));
 }
 
 class Rollback extends Error {}
@@ -75,7 +82,9 @@ type Tx = postgres.TransactionSql;
 async function withStack(
   run: (h: Harness) => Promise<void>,
 ): Promise<void> {
-  const sql = postgres(localUrl(), { max: 1, onnotice: () => undefined });
+  const url = localUrl();
+  await guardStack(url);
+  const sql = workerSql(url, "identity");
   try {
     await sql
       .begin(async (tx) => {

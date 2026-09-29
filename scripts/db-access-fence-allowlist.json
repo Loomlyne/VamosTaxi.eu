@@ -10,9 +10,6 @@
     "packages/db/test/local/local-fixtures.ts",
     "packages/db/test/local/no-begin.test.ts",
     "packages/db/test/fixtures/two-customers.ts",
-    "apps/web/tests/integration/checkout-server-db.spec.ts",
-    "apps/web/tests/integration/intent-supersede-db.spec.ts",
-    "apps/web/tests/integration/extras-charged-recorded-db.spec.ts",
     "packages/db/test/support/test-stack-guard.ts",
     "packages/db/test/support/worker-client.ts",
     "packages/db/test/local/worker-client-parity.test.ts"
