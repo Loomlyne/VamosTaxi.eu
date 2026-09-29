@@ -35,7 +35,9 @@ function wellFormed(overrides: Record<string, unknown> = {}): Record<string, unk
 async function postQuote(body: unknown): Promise<Response> {
   return fetch(`${baseURL}/api/quote`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    // The public quote routes deny a POST with no Origin (CSRF, lib/security/origin.ts); a browser
+    // always sends one, a bare Node fetch does not.
+    headers: { "content-type": "application/json", origin: baseURL },
     body: JSON.stringify(body),
   });
 }
@@ -43,7 +45,9 @@ async function postQuote(body: unknown): Promise<Response> {
 async function postReprice(body: unknown): Promise<Response> {
   return fetch(`${baseURL}/api/quote/reprice`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    // The public quote routes deny a POST with no Origin (CSRF, lib/security/origin.ts); a browser
+    // always sends one, a bare Node fetch does not.
+    headers: { "content-type": "application/json", origin: baseURL },
     body: JSON.stringify(body),
   });
 }
