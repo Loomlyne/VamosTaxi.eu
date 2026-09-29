@@ -12,8 +12,10 @@ import {
   otpRequestSchema,
   resetEmailSchema,
   signInPasswordSchema,
+  resendConfirmationSchema,
   signUpPasswordSchema,
   updatePasswordSchema,
+  verifyCodeSchema,
 } from "@/lib/auth/schemas";
 import {
   FORM_CREDENTIALS,
@@ -84,6 +86,9 @@ const RATE_LIMITED: ProfileRunResult = { ok: false, reason: "rate-limited" };
 
 /** A valid sign-in on the dashboard host for an account that is not accepted staff. */
 const NOT_STAFF: ProfileRunResult = { ok: false, reason: "not-staff" };
+
+/** The e-mailed code was wrong, expired or malformed. One answer for all three. */
+const CODE_INVALID: ProfileRunResult = { ok: false, reason: "code-invalid" };
 
 function json(
   result: AuthRunResult | ProfileRunResult,
@@ -225,6 +230,18 @@ export async function POST(request: Request): Promise<Response> {
     await runSignOut(supabase);
     // Only the sign-out's cookie removals go back — never the session just refused.
     return sessionJson(FORM_CREDENTIALS, setCookies.slice(from));
+  };
+
+  /** One more bucket per e-mail address (code checks and confirmation re-sends). Fail-open like the IP one. */
+  const perAddressAllowed = async (kind: "code" | "resend", email: string): Promise<boolean> => {
+    if (!env.AUTH_RATE_LIMITER) return true;
+    try {
+      const out = await env.AUTH_RATE_LIMITER.limit({ key: `auth-${kind}:${email.toLowerCase()}` });
+      return out.success;
+    } catch {
+      log("warn", "auth", ctx, { reason: "auth-limiter-throw" });
+      return true;
+    }
   };
 
   /**
@@ -547,6 +564,26 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     return staffJson({ ok: false, code: "mfa-invalid-input" }, [], 400);
+  }
+
+  if (fields.mode === "verify-code") {
+    const parsed = verifyCodeSchema.safeParse({ email: fields.email, code: fields.code });
+    if (!parsed.success) return json(CODE_INVALID, 400);
+    // Per-address attempt limit on top of the per-IP one: six digits must not be guessable
+    // from many addresses of one attacker's pool.
+    if (!(await perAddressAllowed("code", parsed.data.email))) return json(RATE_LIMITED, 429);
+    const { error } = await supabase.auth.verifyOtp({
+      email: parsed.data.email,
+      token: parsed.data.code,
+      type: "email",
+    });
+    if (error) {
+      log("warn", "auth", ctx, { reason: error.code ?? "code-invalid", action: "verify-code" });
+      return json(CODE_INVALID, 400);
+    }
+    const notStaff = await refuseNonStaff();
+    if (notStaff) return notStaff;
+    return sessionJson({ ok: true }, setCookies);
   }
 
   if (fields.mode === "forgot") {
