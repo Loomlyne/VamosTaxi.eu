@@ -2,132 +2,39 @@
 phase: 19
 slug: v1-production-close-out-leftover-live-gates-and-10k-booking
 status: draft
-reviewed_at: 2026-09-18
-shadcn_initialized: false
-preset: none
-created: 2026-09-18
+rewritten: 2026-09-29
 ---
 
-# Phase 19 — UI Design Contract
+# Phase 19 — UI contract (rewritten for the 26.3 checkout)
 
-> No new screens. No restyle. Funnel chrome frozen.
-> This phase’s UI is **observation + fail-closed** on existing quote / checkout / wait-room / confirmation.
-> Tokens only `--vt-*`. Lucide via `Icon`. No glow. No tinted yellow. No invented CHF.
-> Four languages same sitting **only if** fail-closed copy is added; otherwise copywriting none this phase.
+One visible change only: the **busy-and-retry state on PAY** on `/checkout` (D-09). Everything
+else on home, `/checkout`, the loading screen and "Booked" stays as 26.3 shipped it.
 
----
-
-## Design System
-
-| Property | Value |
-|----------|-------|
-| Tool | none (DC + `--vt-*`) |
-| Preset | Vamos `--vt-*` |
-| Component library | existing `VamosTaxiDesignSystem` |
-| Icon library | Lucide via `Icon` |
-| Font | `--vt-font-body` / `--vt-font-display` |
-
-Do **not** initialize shadcn. No new registry. No Staff tab. No surge dashboard product.
-
----
-
-## Spacing Scale
-
-Declared values (must be multiples of 4):
-
-| Token | Value | Usage |
-|-------|-------|-------|
-| xs | 4px | existing |
-| sm | 8px | existing |
-| md | 16px | existing |
-| lg | 24px | existing |
-| xl | 32px | existing |
-| 2xl | 48px | existing |
-| 3xl | 64px | existing |
-
-Exceptions: none. Do not add spacing.
-
----
-
-## Typography
-
-Map to existing tokens only. Do not add a fifth size or a third weight.
-
-| Role | Size | Weight | Token |
-|------|------|--------|-------|
-| Body | 16 | 400 | `--vt-body-md` |
-| Label / meta | 14 | 400 | `--vt-body-sm` |
-| Heading 3 | 20 | 600 | `--vt-heading-3` |
-| Heading 2 | 26 | 600 | `--vt-heading-2` |
-
-Weights: 400 + 600 only.
-
----
-
-## Color
-
-| Role | Value | Usage |
-|------|-------|-------|
-| Dominant (60%) | `--vt-bg` | unchanged |
-| Secondary (30%) | `--vt-surface` | unchanged |
-| Accent (10%) | `--vt-accent` | **not used by this phase** |
-| Destructive | `--vt-danger` | existing error / 429 |
-
-Accent reserved for: Publish / active tab / preview total / Live badge — **none of those are added here**. Never “all interactive elements”.
-
----
-
-## Screens
+## Surface
 
 | Screen | Route | What 19 changes |
-|--------|-------|-----------------|
-| Home quote | `https://vamostaxi.site/` | None. Still wipes previous quote. Observe 429 |
-| Trip | `/checkout/trip` | None. Never a booking row |
-| Details | `/checkout/details` | None. Unpaid booking only when travelling fields filled |
-| Pay / wait-room | existing wait-room | Fail-closed if Stripe/Hyperdrive exhausted: voucher **or** error with next step (Phase 7 close). No new layout |
-| Confirmation | `/confirmation` | None. Only after real pay |
-| Ops fleet | `dashboard.vamostaxi.site` Fleet | Leftover 17 observation only — not 19 chrome |
+|---|---|---|
+| Home box | `/` | Nothing |
+| Checkout | `/checkout` | PAY gets a busy state and an out-of-retries state |
+| Payment | Stripe hosted page | Nothing (not ours) |
+| Loading / Booked | `/checkout/return`, `/confirmation/[ref]` | Nothing |
+| Dashboard | `dashboard.vamostaxi.site` | Nothing |
 
-### Desktop (≥861px) / Tablet / Phone
+## States of PAY
 
-Unchanged existing funnel. Do not invent a layout.
+| State | What the customer sees | Rule |
+|---|---|---|
+| Default | PAY, as today | — |
+| Opening payment | "Opening payment" (26.3) | — |
+| Busy | Button stays pressed and disabled, label "Busy — trying again"; everything typed stays; no scroll jump | Shown when the server answers 429 or 503 with a retry hint; retries with back-off |
+| Out of retries | Inline error under PAY: "We are very busy. Try again in a minute, or write to info@vamostaxi.site." + PAY enabled again | Uses the existing checkout error slot; `--vt-danger` text; no new component |
 
----
+Copy above is the English source. It is added to the dictionary in de, fr and ar in the same
+pass (Swiss German, "ss"). The owner may change the wording at the plan gate.
 
-## States
+## Design laws
 
-| State | UI |
-|-------|-----|
-| Happy 10k (after D-04) | Existing confirmation. Public still `CHF 000` until Publish |
-| Rate limited | Existing product error `429 rate_limited`. Next step: wait / retry. Not empty. Not “No data found” |
-| Hyperdrive/Stripe/Mapbox exhausted | Fail closed. Error with next step (contact `info@vamostaxi.site` or retry). No fake success |
-| Wait-room | Existing voucher or error. Link = Stripe native |
-| Load-test URL | **Must not exist** |
-
-No new loading skeleton.
-
----
-
-## Interaction
-
-No new CTAs. Existing overlay verbs (`Save chauffeur`, `Keep editing`, etc.) are **do-not-touch**. Do not put them in a Copywriting CTA table.
-
-Home click still starts a brand-new booking.
-
----
-
-## Copywriting
-
-**None this phase** unless D-07 requires a fail-closed string. If added: en/de/fr/ar same sitting, `--vt-body-md`, no CTA `Save` / `Cancel` / `Submit` / `OK`.
-
-Public phone / WhatsApp unchanged: `+41 79 626 70 82`.
-
----
-
-## Must-nots
-
-- No glow, no tinted yellow, no invented CHF, no `CHF` live totals before Publish
-- No `.eu`, no Staff, no driver app, no auto-dispatch
-- No new Publish control
-- No public `/load-test`
-- Do not restyle Fleet / Support / Pricing
+Tokens only (`--vt-*`). No glow, no tinted yellow, no new colour, no new component when the
+existing checkout error and Button loading state exist. Lucide via `Icon` only if an icon is
+needed (none planned). Arabic RTL with logical properties. Checked at 1440, 1024, 768 and 390,
+nothing scrolls sideways at 390, PAY keeps its 54 px height.

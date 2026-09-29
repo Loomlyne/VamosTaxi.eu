@@ -60,3 +60,40 @@ Advisors also: leaked-password protection disabled; 46 unindexed FKs; duplicate 
 - CSP eval — DC Babel.
 - GET /api/quote public classes — product.
 - Charge currency CHF — product.
+
+---
+
+# 2026-10 check — what changed since 2026-09-19 (read at af93fc8e, 2026-09-29)
+
+## New or changed server surface (26.3, `git diff cff97a0e af93fc8e`)
+
+| Route | State | First questions for the check |
+|---|---|---|
+| `POST /api/checkout/intent` | changed | Origin checked; **no per-visitor limit or Turnstile found** (lead, not yet a finding): can a bot open Stripe sessions and booking rows without limit? Is the total always the server's reprice? |
+| `/api/checkout/price` | new | limiter present; same questions as `/api/quote` |
+| `/api/checkout/resume` | new | who can read a checkout by its link; what personal data comes back |
+| `/api/checkout/me` | new | cookie-bound; no other user's data |
+| `/api/checkout/return` | changed | can the return URL mark a booking paid without the webhook? |
+| `/api/checkout/pay-link/open` | changed | token entropy, expiry, one booking per token |
+| `/api/staff/bookings/[id]/take-card`, `/extra-pay` | new | staff role + Origin; amount from the server only |
+| removed: `/api/checkout/abandon`, `invite/[ref]`, `pay-link` (public), `requote` | deleted | confirm 404 on live |
+| `middleware.ts`, `worker.ts` | changed | language cookie (D-47), hourly purge/resend in `scheduled` |
+
+## New database objects (8 migrations 20260930100000…170000)
+
+`checkout_payment_settle` (new signature), `purge_unpaid_booking` + carve-out in the append-only
+trigger, `customer_claim_guest_bookings` + event `booking.linked`, `checkout_booking_details`
+setter, `extra_labels` (RLS on) with staff upsert, `checkout_resume_read`,
+`confirmation_payload`, `checkout_pay_link_lines(bytea)`. For each: SECURITY DEFINER?
+`search_path` empty? EXECUTE granted to whom? Can a guest claim someone else's booking by
+e-mail? Can the purge carve-out delete a paid booking?
+
+## Other new surface
+
+Workers AI translation of extra names (cost and prompt input from staff only?), Stripe webhook
+now also `checkout.session.expired`, TWINT switch, CSP with Stripe.js hosts removed.
+
+## Regression list
+
+The fixed K-rows of `20-05-PLAN.md` (K16…K83) and SEC-01…SEC-09: headers, cookies, CSRF,
+no-store, noindex, error bodies without SQL detail. Re-check each against live after 26.3.
