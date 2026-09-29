@@ -89,3 +89,51 @@ test("fences gate: type-only postgres imports pass", () => {
   });
   assert.equal(r.code, 0, r.out);
 });
+
+const MSG = (extra = {}) => ({
+  "apps/web/i18n/messages/en.json": JSON.stringify({ a: { one: "One" }, b: { shared: "S" }, ...extra }),
+  "apps/web/i18n/messages/de.json": JSON.stringify({ a: { one: "Eins" }, b: { shared: "S" }, ...extra }),
+  "apps/web/i18n/messages/fr.json": JSON.stringify({ a: { one: "Un" }, b: { shared: "S" }, ...extra }),
+  "apps/web/i18n/messages/ar.json": JSON.stringify({ a: { one: "واحد" }, b: { shared: "S" }, ...extra }),
+});
+
+test("i18n gate: a missing key is caught in object-form getTranslations, t.rich and a second scope", () => {
+  for (const [name, body, miss] of [
+    [
+      "object form",
+      'export async function P({ locale }) {\n  const t = await getTranslations({ locale, namespace: "a" });\n  return t("nope");\n}\n',
+      "a.nope",
+    ],
+    [
+      "t.rich",
+      'export function C() {\n  const t = useTranslations("a");\n  return t.rich("nope", {});\n}\n',
+      "a.nope",
+    ],
+    [
+      "second scope, same variable name",
+      'function A() {\n  const t = useTranslations("a");\n  return t("shared");\n}\nfunction B() {\n  const t = useTranslations("b");\n  return t("shared");\n}\n',
+      "a.shared",
+    ],
+  ]) {
+    const r = runGate("check-i18n-coverage.mjs", { ...MSG(), "apps/web/app/x.tsx": body });
+    assert.equal(r.code, 1, `${name}: ${r.out}`);
+    assert.ok(r.out.includes(`"${miss}"`), `${name}: ${r.out}`);
+  }
+});
+
+test("i18n gate: correct calls in two scopes and t.has pass", () => {
+  const r = runGate("check-i18n-coverage.mjs", {
+    ...MSG(),
+    "apps/web/app/x.tsx":
+      'function A() {\n  const t = useTranslations("a");\n  return t("one");\n}\nfunction B() {\n  const t = useTranslations("b");\n  return t.has("whatever") ? t("shared") : null;\n}\n',
+  });
+  assert.equal(r.code, 0, r.out);
+});
+
+test("i18n gate: an empty translation counts as missing", () => {
+  const files = MSG();
+  files["apps/web/i18n/messages/de.json"] = JSON.stringify({ a: { one: "  " }, b: { shared: "S" } });
+  const r = runGate("check-i18n-coverage.mjs", files);
+  assert.equal(r.code, 1, r.out);
+  assert.match(r.out, /"a\.one"[^\n]*empty[^\n]*de\.json/);
+});

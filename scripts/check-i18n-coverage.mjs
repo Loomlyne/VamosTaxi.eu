@@ -145,25 +145,40 @@ function findUsages(file, relPath) {
   const resolved = [];
   const skipped = [];
 
+  // `useTranslations("ns")`, `getTranslations("ns")` and the server form
+  // `getTranslations({ locale, namespace: "ns" })`. A namespace that is not a literal cannot be
+  // resolved: those bindings are kept (namespace null) so their calls are reported as skipped.
   const bindingRe =
-    /\bconst\s+(\w+)\s*=\s*(?:await\s+)?(?:useTranslations|getTranslations)\s*\(\s*(?:(['"`])([^'"`]*)\2)?\s*\)/g;
-  const bindings = new Map(); // varName -> namespace ('' = no namespace)
+    /\bconst\s+(\w+)\s*=\s*(?:await\s+)?(?:useTranslations|getTranslations)\s*\(\s*(?:(['"`])([^'"`]*)\2|\{([^}]*)\})?\s*\)/g;
+  const bindings = []; // { name, ns, index } - ns '' = no namespace, null = not a literal
   let m;
   while ((m = bindingRe.exec(text))) {
-    bindings.set(m[1], m[3] ?? "");
+    let ns = m[3] ?? "";
+    if (m[4] !== undefined) {
+      const nm = /\bnamespace\s*:\s*(['"`])([^'"`]*)\1/.exec(m[4]);
+      ns = nm ? nm[2] : /\bnamespace\b/.test(m[4]) ? null : "";
+    }
+    bindings.push({ name: m[1], ns, index: m.index });
   }
-  if (bindings.size === 0) return { resolved, skipped };
+  if (bindings.length === 0) return { resolved, skipped };
 
-  for (const [varName, namespace] of bindings) {
-    const callRe = new RegExp(`\\b${varName}\\(\\s*([^)]*?)(?:,|\\))`, "g");
+  // A file can bind the same name in several functions (`const t = useTranslations("a")` here,
+  // `("b")` there): each call belongs to the nearest binding of that name above it.
+  for (const name of new Set(bindings.map((b) => b.name))) {
+    const own = bindings.filter((b) => b.name === name);
+    // t("k"), t.rich("k", ...), t.raw("k"), t.markup("k", ...). t.has() asks whether a key
+    // exists, so a missing key there is legitimate and is not checked.
+    const callRe = new RegExp(`\\b${name}(?:\\.(?:rich|raw|markup))?\\(\\s*([^)]*?)(?:,|\\))`, "g");
     let cm;
     while ((cm = callRe.exec(text))) {
+      const binding = own.filter((b) => b.index < cm.index).pop();
+      if (!binding) continue; // a `t` passed in as a prop: no namespace to read here
       const firstArg = cm[1].trim();
       const line = text.slice(0, cm.index).split("\n").length;
       const literalMatch = /^(['"`])((?:[^\\]|\\.)*?)\1$/.exec(firstArg);
-      if (literalMatch) {
+      if (binding.ns !== null && literalMatch) {
         const subKey = literalMatch[2];
-        const key = namespace ? `${namespace}.${subKey}` : subKey;
+        const key = binding.ns ? `${binding.ns}.${subKey}` : subKey;
         resolved.push({ key, file: relPath, line });
       } else if (firstArg.length > 0) {
         skipped.push({ file: relPath, line, raw: firstArg });
@@ -231,6 +246,10 @@ function main() {
       if (!(key in flattened[locale])) {
         errors.push(
           `[I18N-01] Key "${key}" exists in en.json but is missing from ${locale}.json.`,
+        );
+      } else if (typeof flattened[locale][key] === "string" && !flattened[locale][key].trim()) {
+        errors.push(
+          `[I18N-01] Key "${key}" is empty in ${locale}.json — an empty string renders nothing.`,
         );
       }
     }
