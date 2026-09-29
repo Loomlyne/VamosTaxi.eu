@@ -4,7 +4,7 @@ Kept by the control session. One page: what is live, what is being built, what w
 the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 
-**Last update:** 2026-09-30 02:44 (+04)
+**Last update:** 2026-09-30 02:48 (+04)
 
 ## Live now
 
@@ -130,6 +130,13 @@ Live is at `20260930210000`.
 |---|---|
 | No customer page saves the cookie choice on the server today. The banner customers see is the mock's and saves in the browser only. Checkout, confirmation and the pay link show no banner. | Phase 27 is larger than planned: the live banner has to write to the server and the Next pages need the banner. Nothing is sent to Meta today, so no harm now. |
 | The sign-in ship writes a cookie row when a new customer confirms their e-mail | Owner decision 27 D-01: no cookie row at sign-up. Phase 27 removes it and must say where the sign-up agreement is recorded. |
+
+## Phase 27: our own banner, not a library (owner asked for the shorter path, 2026-09-30)
+
+| Option | Verdict |
+|---|---|
+| Keep our banner and add the server call | **Chosen.** The server route, the record table and both banners exist. Left: the mock banner posts to the server, the banner shows on every customer page, the owner's texts, a new policy version. |
+| Adopt vanilla-cookieconsent 3.1.0 | Rejected. It replaces the banner only, keeps its record in the browser, needs a full restyle to the design system on two surfaces, a second signature, and leaves every server task in place. |
 
 ## Found by the 26.5 session, 2026-09-30, confirmed on live by the control session
 
