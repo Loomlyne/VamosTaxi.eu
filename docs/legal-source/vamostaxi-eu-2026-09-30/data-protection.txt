@@ -1,0 +1,113 @@
+Source: https://www.vamostaxi.eu/informations/data-protection
+Read: 2026-09-30, by the control session, on the owner's instruction.
+Language on the site: English (the imprint is German). Text copied as published, not corrected.
+
+1. Information about the collection of personal data and contact information of the person responsible
+
+1.1 We are pleased that you are visiting our website and thank you for your interest. In the following we inform you about the handling of your personal information when using our website. Personal information is any data with which you could be personally identified.
+
+1.2 The person responsible for the data processing on this website in terms of the data protection regulation (General Data Protection Regulation) is:
+
+Name: Vamos Taxi GmbH
+
+Address: Bleicherstrasse 16, 8953 Dietikon
+
+Email: info@vamostaxi.eu
+
+Telephone: +41 79 626 70 82
+
+The person responsible for the processing of personal data is the natural or legal person who determines the purposes and means of the processing of personal data alone or jointly with others.
+
+1.3 For security reasons and to protect the transmission of personal data and other confidential content (e.g. orders or requests to the person responsible), this website uses SSL or TLS encryption. You can see an encrypted connection to the string "https://" and the lock icon in your protocol.
+
+2. Data collection when you visit our website
+
+When you use our website for information purposes, i.e. if you do not register or otherwise provide us with information, we only collect data that your browser transmits to our server (so-called "server log files"). When you call our website, we collect the following data that are technically necessary for us to display the Web page:
+
+our visited Web page
+
+date and time at the time of the access
+
+quantity of the sent data in byte
+
+source/reference, by which you arrived on the page
+
+used browser
+
+used operating system
+
+IP address
+
+The processing takes place in accordance with Article 6 paragraph 1 lit. f GDPR based on our legitimate interest in improving the stability and functionality of our website. The data will not be passed on or used in any other way. We reserve the right however to check the server log files, later concrete evidence should point to an illegal use.
+
+3. Cookies
+
+In order to make your visit to our website more attractive, and to enable you to use certain functions, we use so-called cookies on certain pages. These are small text files that are stored on your end device. Some of the cookies we use are deleted after the browser session, that is, after you close your browser (so-called session cookies). Other cookies remain on your end device and enable us and our partner companies to recognise your browser on your next visit (persistent cookies). Used cookies, collect and process certain user information, such as browser - and location data, as well as IP address values in individual size. Persistent cookies are automatically deleted after a specified period, which may differ depending on the cookie in question. Partly, the cookies serve to simplify the order process (e.g. saving the contents of a virtual shopping cart for a later visit to the web page) by storing settings. If personal data is also processed by individual cookies implemented by us, the processing is carried out in accordance with Art. 6 Para. 1 lit. b GDPR to the implementation of the contract or in accordance with article 6 paragraph 1 lit. to preserve our legitimate interests in the best possible functionality of the Web site and a customer-friendly and efficient design of the page visit f GDPR.
+
+We work with advertising partners, who help us to make our Internet offer for you interesting circumstances. For this purpose also cookies are stored in this case when you visit our website by partner companies on your hard drive (third-party cookies). You can set your browser so that you are informed about the use of cookies and decide individually on whether to accept them or to deactivate the acceptance of cookies, just in certain cases or completely. Each browser differs in the way it manages the cookie settings. This is described in the Help menu of each browser, which explain how to modify your cookie settings. You can find these for the respective browser at the following links: Internet Explorer , Edge , Firefox , Chrome , Safari or Opera .
+
+Please note that for non-acceptance of cookies, the functionality of our website may be limited.
+
+4. Contact
+
+personal data collected within the framework of the contact with us (e.g., via contact form or email).  Which data is collected in the case of a contact form can be seen from the respective contact form. This data is stored solely for the purpose of answering your request for contact and the associated technical administration and use. Legal basis for the data processing is our legitimate interest in answering your request in accordance with Article 6 paragraph 1 lit. f, GDPR). If your contact is aimed at concluding a contract, the additional legal basis for the processing is Art. 6 (1). 1 lit. b, GDPR). Your data will be deleted after final processing of your inquiry; this is the case if it can be inferred from the circumstances that the facts in question have been conclusively clarified and provided that there are no legal storage obligations to the contrary.
+
+5. Data processing when opening a customer account and for contract processing
+
+pursuant to Art. 6 para. 1 lit. b GDPR, personal data will continue to be collected and processed if you inform us of this for the execution of a contract or when opening a customer account. The type of data that is collected can be seen from the respective input forms. It is possible to delete your customer account at any time and can be done by sending a message to the above-mentioned address of the responsible person. We store and use the data communicated by you to fulfilment of contractual obligations. After complete processing of the contract or deletion of your customer account, your data will be blocked in consideration of tax and commercial retention periods and deleted after expiry of these periods, unless you have expressly consented to further use of your data or a legally permitted further use of data has been reserved by our site, about which we will inform you accordingly below.
+
+6. Data processing for order processing
+
+To process your order we work together with the following service provider(s), which support us wholly or partly in the execution of concluded contracts. Certain personal data is transferred to these service providers in accordance with the following information. The personal data collected by us will be passed on to the transport company commissioned with delivery within the framework of implementing the contract, as far as this is necessary for delivering the goods. We will pass on your payment data to the commissioned credit institution within the framework of payment processing, if this is necessary for payment processing. If payment service provider are used, we inform thereof hereinafter referred to explicitly. The legal basis for the transmission of the data section is Article 6 1 lit. b, GDPR).
+
+6.1 Using PayPal
+
+When paying via PayPal, credit card via PayPal, direct debit via PayPal or - if available - "Purchase on account" or "Installment" via PayPal we give your payment details within the framework of the payment on the PayPal (Europe) S.a.r.l.. et Cie, S.C.A., 22-24 Boulevard Royal, L-2449 Luxembourg (hereafter "PayPal"), further. The data is passed on in accordance with Art. 6 para. 1 lit. b GDPR and only insofar as this is necessary for payment processing. PayPal reserves the right to conduct a credit check for the payment methods credit card via PayPal, direct debit via PayPal or - if offered - "purchase on account" via PayPal. For this purpose, your payment data will be processed, if necessary, in accordance with Art. 6 para. 1 lit. f GDPR on the basis of PayPal's legitimate interest in determining your solvency. PayPal uses the result of the credit check with respect to the statistical probability of debt default for the purpose of deciding on providing the respective payment method. The credit information may contain probability values (so-called. score values). When score values are included in the results of the credit check, they are based on a scientifically recognised mathematical and statistical method. The calculation of the score values includes, but is not limited to, address data. Please refer to the Privacy Policy of PayPal for further information on data protection law, including the credit agencies used. You can object to this processing of your data at any time by sending a message to PayPal. However, PayPal may still be entitled to process your personal data if this is necessary for contractual payment processing.
+
+6.2 Use of Stripe
+
+If you choose a payment method of the payment service provider Stripe, payment is processed by the payment service provider Stripe Payments Europe Ltd, Block 4, Harcourt Centre, Harcourt Road, Dublin 2, Ireland, to whom we pass on your order information (name, address, account number, bank code, possibly credit card number, invoice amount, currency and transaction number). Your data will only be passed on for the purpose of payment processing with the payment service provider Stripe Payments Europe Ltd. For information on the data protection of Stripe,  click here .
+
+6.3 Use of Twint
+
+If you have opted for the Twint payment method, the payment will be processed by the payment service provider Twint AG, Stauffacherstrasse 31, 8004 Zurich, Switzerland, to whom we forward your order information (invoice amount, currency and transaction number) as part of the order process. No personal data will be passed on. Your data will only be passed on for the purpose of payment processing with the payment service provider Twint AG. You can find more information on data protection at Twint AG here .
+
+7. Web analysis services
+
+AWStats
+
+In order to be able to evaluate our website statistically, we use the program AWStats. The program is a free web analysis software. It is used for evaluating log files, create the web server on the basis of visitor requests. The program does not use cookie files for the evaluation. The statistical analysis is carried out via the log files, which also contain IP addresses. This data cannot be used to identify specific people. This information is not merged with other data sources, and the information is deleted after it has been statistically analysed. Unlike other statistics programs transmitted data to a remote server with AWStats. The program is installed on your own hosting package. For example, the transfer of data abroad is avoided because our server is located in Switzerland.
+
+Google Analytics
+
+This website uses Google Analytics, a Web analysis service of Google LLC, 1600 Amphitheatre Parkway, mountain view, CA 94043, USA ("Google"). Google Analytics uses "cookies", which are text files stored on your computer. These enable the analysis of your website use. Cookie-generated information about your use of this website is usually transmitted to and stored in a Google server in the USA. This website uses Google Analytics exclusively with the extension "_anonymizeIp()", which ensures an anonymisation of the IP address by shortening and excludes a direct personal relationship. Your IP address will be truncated by Google within the Member States of the European Union or other parties to the Agreement on the European Economic Area. The full IP address will only be transferred to a Google server in the USA and shortened in exceptional cases. In these exceptional cases, this processing is carried out in accordance with Art. 6 para. 1 lit. f GDPR based on our legitimate interest in statistical analysis of user behaviour for optimisation and marketing purposes. On our behalf, Google will use this information for the purpose of evaluating your use of the website, for compiling reports on website activity, and for providing us other services relating to website activity and internet usage. The IP address transmitted by your browser as part of Google Analytics is not conflated with other Google data. You may refuse the use of cookies by selecting the appropriate settings on your browser. However, please be advised that if you opt out of using cookies, you may not be able to use all the features of this website. Furthermore, you can prevent the collection of data generated by the cookie and related to the usage of the website (incl. your IP address) and the processing of the data by Google by downloading and installing the browser plugin . As an alternative to the browser-plugin or within browsers on mobile devices click on the following link to set an opt-out cookie, future preventing the acquisition by Google Analytics within this Web site (this opt-out cookie works only in this browser and only for this domain, delete your cookies in this browser, you must click this link again):  disable Google Analytics  Google LLC is headquartered in the United States certified for the U.S. European Data Protection Convention "Privacy Shield", which the compliance with the EU data protection guarantees. This website also uses Google Analytics for a device-independent analysis of visitor streams, which is carried out via a user ID. You can disable the device cross-analysis of your use in your account under "My data", "personal data". For more information about how Google Analytics handles user data, see Google's privacy policy .
+
+8. Rights of the affected parties
+
+The applicable data protection law grants you comprehensive rights of data subjects (rights of information and intervention) vis-a-vis the data controller with regard to the processing of your personal data, about which we inform you below:
+
+Right to information in accordance with article 15 GDPR: in particular, a right to receive information, have your personal data processed by us, the purposes of the processing, the categories of processed personal data, the recipients or categories of recipients; to which your data were disclosed or are the existence of a right to correction, cancellation, constraint processing, object to the processing, the planned storage period or the criteria for the determination of the storage period, complaint to a supervisor, the origin of your data, if it is not collected by us when you, the existence of an automated decision making including profiling, and any meaningful information about the involved logic and the specific scope and the intended effects of such processing, as well as your right to be informed as to which guarantees exist in accordance with article 46 GDPR in forwarding your data to third countries;
+
+Right of rectification in accordance with article 16 GDPR: you have the right incorrect data relating to you for immediate rectification and/or completion of your incomplete data stored by us.
+
+Right to cancellation in accordance with article 17 GDPR: you have the right to require the deletion of your personal data when the conditions of article 17 para. 1 GDPR. This right however in particular then does not exist, if the processing to the exercise of the right to freedom of expression and information, to comply with a legal obligation, for reasons of public interest or to claim, exercise or defence of legal claims is required;
+
+The Right to restrict the processing pursuant to Art. 18 GDPR: You have the right to request the restriction of the processing of your personal data as long as the accuracy of your data contested is verified, if you refuse to delete your data due to inadmissible data processing and instead request the restriction of the processing of your data, if you need your data to assert, exercise or defend legal claims, after we no longer need this data after the purpose has been achieved or if you have filed an objection for reasons of your particular situation, as long as it has not yet been determined whether our legitimate reasons predominate;
+
+If you have exercised your right to have the responsible party correct, delete or limit the processing, this party is obliged to inform all recipients to whom the personal data that concerns you has been disclosed of this correction or deletion of the data or restriction on processing, unless this proves impossible or involves a disproportionate effort. It is your right to have the responsible party inform you regarding such recipients.
+
+You have the right to receive the personal data you have provided to us in a structured, current and machine-readable format or to request its transfer to another responsible person, insofar as this is technically feasible.
+
+Right to revoke consents granted in accordance with Art. 7 para. 3 GDPR: You have the right to revoke consent to the processing of data at any time with effect for future for the future. In the event of revocation, we will delete the data concerned without delay, unless further processing can be based on a legal basis for processing without consent. The withdrawal of consent shall not affect the lawfulness of processing based on consent before its revocation.
+
+Right of appeal under Art. 77 GDPR: If you believe that the processing of personal data concerning you is contrary to the GDPR, you have the right of appeal to a supervisory authority, in particular in the Member State where you reside, work or suspected infringement, without prejudice to any other administrative or judicial remedy.
+
+9. Right of objection
+
+When we process your personal data in the framework of interests as a result of our overriding legitimate interest, have you at any time right for reasons arising from your particular situation to the processing to file an opposition with effect for the future. If you exercise your right of objection, we end the processing the affected data. We will however continue processing the data if we have demonstrably compelling reasons for processing which are in need of protection and which outweigh the interests, rights and freedoms of the data subject, or the processing serves to assert, exercise or defend legal claims. If your personal data are processed by us in order to participate in direct marketing, you have the right at any time object to the processing of personal data relating to you for the purpose of such advertising. You can object as described above. If you exercise your right of objection, we end the processing the affected data.
+
+10. Duration of the retention of personal data
+
+The duration of the retention of personal data shall be determined on the basis of the respective statutory retention period (e.g., trade and tax retention periods). After the deadline, the data are routinely deleted when they are no longer necessary for the performance of the contract or contract and/or continues on our part no legitimate interest in the further storage.
+
+Zurich, 13 March 2024

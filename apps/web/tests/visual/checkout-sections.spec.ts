@@ -139,13 +139,15 @@ type Fixture = {
   charged: number[];
   resume: Record<string, unknown> | null;
   stripe: FakeStripeHandle | null;
+  quoteCalls: number;
+  repriceBodies: Record<string, unknown>[];
 };
 
 async function setup(
   page: Page,
   opts: { extras?: typeof EXTRAS; resume?: Record<string, unknown> | null; priceDelayMs?: number } = {},
 ) {
-  const fx: Fixture = { priceBodies: [], charged: [], resume: opts.resume ?? null, stripe: null };
+  const fx: Fixture = { priceBodies: [], charged: [], resume: opts.resume ?? null, stripe: null, quoteCalls: 0, repriceBodies: [] };
   await page.route(
     (url) => url.hostname.includes("cloudflare") || url.hostname.includes("turnstile"),
     (route) => route.abort(),
@@ -156,12 +158,29 @@ async function setup(
   await page.route("**/api/quote", async (route: Route) => {
     if (route.request().method() !== "POST") return route.fallback();
     const body = JSON.parse(route.request().postData() ?? "{}") as Record<string, unknown>;
+    fx.quoteCalls += 1;
     await route.fulfill({
       status: 200,
       contentType: "application/json",
       body: JSON.stringify(quoteBody(Number(body.pax), Number(body.bags))),
     });
   });
+  // A flight-only edit re-signs the lock here: same classes and amounts, a new lock (26.4-07).
+  await page.route("**/api/quote/reprice", async (route: Route) => {
+    fx.repriceBodies.push(JSON.parse(route.request().postData() ?? "{}") as Record<string, unknown>);
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ ...quoteBody(2, 3), lock: "v1.fixture.lock.resigned" }),
+    });
+  });
+  await page.route("**/api/geo/retrieve**", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ place: { isAirport: /airport/i.test(route.request().url()) } }),
+    }),
+  );
   await page.route("**/api/checkout/extras", (route) =>
     route.fulfill({
       status: 200,
@@ -414,6 +433,61 @@ for (const lang of LANGS) {
       await expect(page.locator("[data-co-see-prices]")).toBeVisible();
       await expect(pay(page)).toHaveCount(1);
       await noCardFields(page);
+      await noSidewaysScroll(page);
+    }
+  });
+}
+
+// ── 6. D-09: the flight is optional off-airport, and a flight-only edit never re-quotes ─
+const TRIP_STREET =
+  `from=Bahnhofstrasse%201&fid=dXJuOm1ieHBvaTox&to=Zurich%20Airport&tid=dXJuOm1ieHBvaTox2` +
+  `&gs=${GS}&when=2026-12-15T08:15&pax=2&bags=3`;
+
+for (const lang of ["en", "ar"] as Lang[]) {
+  test(`${lang}: Edit trip offers an optional flight off-airport; a flight-only edit re-signs, never re-quotes @checkout`, async ({ page }) => {
+    const fx = await setup(page);
+    const tr = messages(lang).checkout;
+    for (const key of ["tripFlightAdd", "tripFlightOptional", "tripFlightOptionalHint", "stripeProductName"]) {
+      expect(tr[key], `${lang}.${key}`).toBeTruthy();
+    }
+    for (const width of WIDTHS) {
+      fx.quoteCalls = 0;
+      fx.repriceBodies = [];
+      await open(page, lang, width, `${TRIP_STREET}&class=economy`);
+      await expect(total(page)).toBeVisible({ timeout: 30_000 });
+      fx.quoteCalls = 0; // the opening quote is not the edit's
+      // section 2 shows no flight for a street pickup that carries none
+      await expect(page.locator("[data-co-s2-flight]")).toHaveCount(0);
+
+      await page.locator("[data-co-edit]").click();
+      const opener = page.locator("[data-co-flight-add] button");
+      await expect(opener).toBeVisible();
+      await expect(opener).toContainText(tr.tripFlightAdd!);
+      // the plane icon sits on the inline-start side of the label
+      const iconBox = (await opener.locator("[data-vt-icon]").boundingBox())!;
+      const textBox = (await opener.boundingBox())!;
+      if (lang === "ar") expect(iconBox.x).toBeGreaterThan(textBox.x + textBox.width / 2);
+      else expect(iconBox.x).toBeLessThan(textBox.x + textBox.width / 2);
+      await noSidewaysScroll(page);
+
+      await opener.click();
+      const field = page.locator("[data-co-editor] [data-co-flight-optional]");
+      await expect(field).toContainText(tr.tripFlightOptional!);
+      await expect(field).toContainText(tr.tripFlightOptionalHint!);
+      await expect(field.locator("input")).toBeVisible();
+      await noSidewaysScroll(page);
+
+      await field.locator("input").fill("LX318");
+      await page.locator("[data-co-update]").click();
+      await expect.poll(() => fx.repriceBodies.length).toBe(1);
+      expect(fx.repriceBodies[0]).toMatchObject({ legs: [{ leg_seq: 1, flight_no: "LX318" }] });
+      expect(fx.quoteCalls).toBe(0);
+      await expect(page.locator("[data-co-editor]")).toHaveCount(0);
+      await expect(total(page)).toBeVisible();
+      // section 2 now carries the flight, marked optional
+      await expect(page.locator("[data-co-s2-flight]")).toBeVisible();
+      await expect(page.locator("[data-co-flight-hint]")).toContainText(tr.tripFlightOptionalHint!);
+      await expect(pay(page)).toHaveCount(1);
       await noSidewaysScroll(page);
     }
   });

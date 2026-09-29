@@ -31,8 +31,6 @@ export type DistanceRateRow = {
   minFareRappen: number | null;
   /** Comment 11. NULL until staff set it. */
   airportStartRappen: number | null;
-  /** Comment 11. One city add. NULL until staff set it. */
-  cityPriceRappen: number | null;
   maxPax: number;
   available: boolean;
   hideFromPublic: boolean;
@@ -131,7 +129,6 @@ export type DistanceRateInput = {
   perKmRappen: number | null;
   minFareRappen: number | null;
   airportStartRappen: number | null;
-  cityPriceRappen: number | null;
   maxPax: number;
   available: boolean;
   hideFromPublic: boolean;
@@ -255,7 +252,6 @@ export function assertDistanceRateInput(input: DistanceRateInput): DistanceRateI
       input.airportStartRappen,
       "rateBook.error-rappen",
     ),
-    cityPriceRappen: rejectNegativeRappen(input.cityPriceRappen, "rateBook.error-rappen"),
     maxPax: input.maxPax,
     available: input.available,
     hideFromPublic: input.hideFromPublic === true,
@@ -363,7 +359,6 @@ type DistanceSqlRow = {
   per_km_rappen: number | string | null;
   min_fare_rappen: number | string | null;
   airport_start_rappen: number | string | null;
-  city_price_rappen: number | string | null;
   max_pax: number;
   available: boolean;
   hide_from_public: boolean;
@@ -467,7 +462,6 @@ export async function loadRateBook(
         r.per_km_rappen,
         r.min_fare_rappen,
         r.airport_start_rappen,
-        r.city_price_rappen,
         r.max_pax,
         r.available,
         r.hide_from_public
@@ -567,7 +561,6 @@ export async function loadRateBook(
         perKmRappen: asRappen(row.per_km_rappen),
         minFareRappen: asRappen(row.min_fare_rappen),
         airportStartRappen: asRappen(row.airport_start_rappen),
-        cityPriceRappen: asRappen(row.city_price_rappen),
         maxPax: row.max_pax,
         available: row.available,
         hideFromPublic: row.hide_from_public === true,

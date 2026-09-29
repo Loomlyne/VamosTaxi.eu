@@ -148,7 +148,8 @@ test.describe("Home page @component", () => {
     expect(body).not.toMatch(/CHF\s+[1-9]/);
     expect(body).not.toMatch(/CHF\s+\d+[.,]\d{2}/);
     await expect(page.locator("[data-image-proof]")).toHaveCount(0);
-    await expect(page.locator("[data-home] [href*=\"service=hourly\"]")).toHaveCount(0);
+    // 26.4 D-14: the hidden hourly card no longer has its own href; assert by its title id.
+    await expect(page.locator("[data-home] #svc-t4")).toHaveCount(0);
   });
 
   test("german sections do not overflow their containers @component", async ({ page }) => {

@@ -1096,6 +1096,40 @@ Plans:
 
 **UI hint**: yes
 
+### Phase 26.4: One form + phone booking sheet (INSERTED)
+
+**Goal**: Owner comments 4–6 after the 26.3 ship. On phone and tablet the home hero shows one bar; a tap opens a full-screen booking sheet in 4 steps (From + flight · To · When · Travellers → SEE PRICES → /checkout). One booking form everywhere: the customer types pickup and destination and the server applies the fare parts automatically (start + per km, airport pickup fee when the pickup is an airport, one city/canton pair, ticked extras) — no calculation change. Service links stay as entry points into the same flow.
+**Depends on**: 26.3 (shipped af93fc8e), the account fix (quick 260929-acl), and the New trip Save hotfix (quick 260929-nts) — rebase before execution.
+**Requirements**: from 26.4-CONTEXT.md (D-01…D-16)
+**Plans:** 10 plans
+
+Plans:
+- [ ] 26.4-01-PLAN.md — TDD: owner fare cases on fixture rows; D-08 airport fee from the pickup only; fare_kind no longer read; dead city-price function removed
+- [ ] 26.4-02-PLAN.md — Dashboard pricing copy (D-16, four languages); dead city-price save path removed
+- [ ] 26.4-03-PLAN.md — Service links (header, footer, Services, HowItWorks) open /#book; no ?service=; dest-pick without mode
+- [ ] 26.4-04-PLAN.md — BookingBar Design Component + states gallery
+- [ ] 26.4-05-PLAN.md — BookingSheet Design Component (4 steps, warnings, history, focus, lock) + states gallery
+- [ ] 26.4-06-PLAN.md — Home: mode leftovers and service kicker removed; laptop box optional flight (D-09)
+- [ ] 26.4-07-PLAN.md — Checkout Edit trip/section 2 optional flight (D-09); Stripe name "Vamos Taxi transfer" in four languages
+- [ ] 26.4-08-PLAN.md — Dashboard New trip: flight rule D-09 (Save body, live extras, re-lock done in quick 260929-nts)
+- [ ] 26.4-09-PLAN.md — Home ≤1080: bar + sheet wired to one trip state, docking, /#book entries, no resume; e2e at 4 widths × en/de/ar
+- [ ] 26.4-10-PLAN.md — Full local gate list on a 583xx stack, laws test, VALIDATION, HANDOVER + owner UAT (phone first)
+
+**UI hint**: yes
+
+### Phase 26.4.1: Laptop booking bar (INSERTED)
+
+**Goal**: At ≥1081 px the home hero shows the owner's picture 3: the pre-26.3 wide bar at the bottom of the hero without trip-type tabs, in the signed order From · flight · To · When · Travellers · SEE PRICES, trust line under it. One row from 1272 px, two rows 1081–1271 px. Phone and tablet keep the 26.4 bar + sheet.
+**Depends on**: 26.4 (branch cut from gsd/phase-26.4-one-form c069737e; ships right after it)
+**Requirements**: from 26.4.1-CONTEXT.md (D-01…D-04)
+**Plans:** 2 plans
+
+Plans:
+- [ ] 26.4.1-01-PLAN.md — Re-layout the home box at ≥1081 (one row ≥1272, two rows 1081–1271, compact travellers, trust line) + unit pins + Playwright at 1440/1280/1181/1081 × en/de/fr/ar and ≤1080 regression
+- [ ] 26.4.1-02-PLAN.md — Local gate list, VALIDATION, HANDOVER in the 26.4 shape + owner UAT at 1440 and 1181
+
+**UI hint**: yes
+
 ### Phase 27: Consent record
 
 **Goal**: Accept logs Meta on. Dismiss logs Meta off. The latest `consent_log` row
@@ -1192,7 +1226,9 @@ Plan-level states (owner, 2026-09-29; source record .planning/PHASE-CLOSURE-2026
 | 26.0. Main green (INSERTED) | part 1 in 26.1 | Parked (after 26.3 live; PR #63 refund fix rides with it) | - |
 | 26.1. Payment and pricing integrity (INSERTED) | 30/32 | Waiting for owner Ship (26.1-26), then 26.1-28 |  |
 | 26.2. Codebase audit, bug fix and simplify (INSERTED) | 0/TBD | Parked (after 26.0) | - |
-| 26.3. Booking flow rebuild (INSERTED) | 0/23 | Planned, awaiting owner sign-off | - |
+| 26.3. Booking flow rebuild (INSERTED) | 22/23 + G1–G9 | Shipped af93fc8e, Worker 839d73fc | 2026-09-29 |
+| 26.4. One form + phone booking sheet (INSERTED) | 0/10 | Plan signed 2026-09-29, executing | - |
+| 26.4.1. Laptop booking bar (INSERTED) | 0/2 | Planned 2026-09-29, waiting for owner signature | - |
 | 27. Consent record | 0/TBD | Not started | - |
 | 28. Pixel PageView | 0/TBD | Not started | - |
 | 29. Webhook Purchase | 0/TBD | Not started | - |

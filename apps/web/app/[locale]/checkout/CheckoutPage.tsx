@@ -6,6 +6,7 @@ import { routing } from "@/i18n/routing";
 import {
   fetchQuote,
   keepSelection,
+  parseQuoteJson,
   tripIsQuotable,
   type QuoteOk,
   type QuoteRefusal,
@@ -49,6 +50,13 @@ export type CheckoutFlow = {
   resuming: boolean;
   /** Replace the trip (URL and quote) — the resume flow and SEE CURRENT PRICES use it. */
   applyTrip: (next: Trip, token?: string | null) => Promise<QuoteResult>;
+  /**
+   * A flight-only change: re-sign the lock through /api/quote/reprice. No loading phase,
+   * no Turnstile, no price move. Falls back to applyTrip when the server answers anything else.
+   */
+  resignFlight: (next: Trip) => Promise<QuoteResult>;
+  /** The lock last re-signed for a flight edit: its price call runs silently. */
+  silentLock: MutableRefObject<string | null>;
   /** The editor holds changes that are not applied yet (PAY names it, D-17). */
   editorDirty: MutableRefObject<boolean>;
   /** `resume=` could not refill the page (no cookie, booking purged): open the editor. */
@@ -116,7 +124,10 @@ export function CheckoutPage({
   const started = useRef(false);
   const seq = useRef(0);
   const editorDirty = useRef(false);
+  const quoteRef = useRef<QuoteOk | null>(null);
+  const silentLock = useRef<string | null>(null);
   phaseRef.current = phase;
+  quoteRef.current = quote;
   tripRef.current = trip;
 
   const money = useCallback(
@@ -177,6 +188,43 @@ export function CheckoutPage({
     [runQuote],
   );
 
+  const resignFlight = useCallback(
+    async (next: Trip): Promise<QuoteResult> => {
+      const cur0 = quoteRef.current;
+      const slug = selectedRef.current;
+      if (!cur0) return applyTrip(next);
+      const shown = slug ? cur0.classes.find((c) => c.slug === slug)?.totalRappen : undefined;
+      try {
+        const res = await fetch("/api/quote/reprice", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            quote_id: cur0.quoteId,
+            lock: cur0.lock,
+            locale: geoLocale(locale),
+            display_currency: cur === "EUR" || cur === "USD" || cur === "AED" ? cur : "CHF",
+            ...(slug ? { preferred_class: slug } : {}),
+            legs: [{ leg_seq: 1, flight_no: next.flight ?? null }],
+          }),
+        });
+        const result = parseQuoteJson(res.status, await res.json());
+        const now = slug && result.kind === "ok" ? result.classes.find((c) => c.slug === slug)?.totalRappen : undefined;
+        if (result.kind === "ok" && (shown === undefined || now === shown)) {
+          silentLock.current = result.lock;
+          setQuote(result);
+          setTrip(next);
+          replaceUrl({ ...next, class: slug });
+          return result;
+        }
+      } catch {
+        // fall through to the normal requote
+      }
+      return applyTrip(next);
+    },
+    [applyTrip, locale, cur],
+  );
+
   const onEditorDirty = useCallback((dirty: boolean) => {
     editorDirty.current = dirty;
   }, []);
@@ -187,7 +235,19 @@ export function CheckoutPage({
   }, []);
 
   async function submitEditor(next: Trip, token?: string | null): Promise<QuoteRefusal | null> {
-    const result = await applyTrip({ ...next, class: selectedRef.current }, token);
+    const cur1 = tripRef.current;
+    const flightOnly =
+      !token &&
+      (next.flight ?? null) !== (cur1.flight ?? null) &&
+      next.from === cur1.from &&
+      next.to === cur1.to &&
+      next.fid === cur1.fid &&
+      next.tid === cur1.tid &&
+      next.when === cur1.when &&
+      next.pax === cur1.pax &&
+      next.bags === cur1.bags;
+    const target = { ...next, class: selectedRef.current };
+    const result = flightOnly ? await resignFlight(target) : await applyTrip(target, token);
     if (result.kind === "ok") {
       closeEditor();
       return null;
@@ -220,6 +280,8 @@ export function CheckoutPage({
       setResumeBookingId,
       resuming,
       applyTrip,
+      resignFlight,
+      silentLock,
       editorDirty,
       resumeFailed: () => {
         setPhase({ kind: "idle" });
@@ -228,7 +290,7 @@ export function CheckoutPage({
       money,
     }),
     // choose() reads refs only
-    [locale, trip, quote, phase, selected, editorOpen, resumeBookingId, resuming, applyTrip, money, closeEditor],
+    [locale, trip, quote, phase, selected, editorOpen, resumeBookingId, resuming, applyTrip, resignFlight, money, closeEditor],
   );
   const desktop = useIsDesktop();
 

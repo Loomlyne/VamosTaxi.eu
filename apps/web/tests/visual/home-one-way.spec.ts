@@ -20,7 +20,10 @@ test.describe("Home has no trip-type tabs @component", () => {
     await waitForMockReady(page);
     await dismissCookies(page);
 
-    await expect(page.locator("#book [data-box]")).toBeVisible();
+    // 26.4 (D-01): at 1080px and under the one-line bar replaces the box, so #book is the bar there.
+    const wide = (page.viewportSize()?.width ?? 0) > 1080;
+    if (wide) await expect(page.locator("#book [data-box]")).toBeVisible();
+    else await expect(page.locator("#book")).toBeVisible();
     await expect(page.locator("#book").getByRole("tablist")).toHaveCount(0);
     await expect(page.locator("#book").getByRole("tab", { name: TAB_NAMES })).toHaveCount(0);
     await expect(page.locator("#book")).not.toContainText(/Pick one to skip a step|Fixed prices for this route/);

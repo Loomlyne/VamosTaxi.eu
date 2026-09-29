@@ -300,7 +300,7 @@ function rulePayload(value: unknown): Record<string, unknown> | null {
   return null;
 }
 
-/** Comment 5. Pair id lives in the existing draft rule JSON. The paid row still has one city_price_rappen. */
+/** Comment 5. Pair id lives in the existing draft rule JSON. */
 function cityPairRuleFor(book: RateBook, vehicleClassId: string): { id: number; pairId: string } | null {
   let hit: { id: number; pairId: string } | null = null;
   for (const rule of book.rules) {
@@ -328,7 +328,6 @@ function mockRates(book: RateBook): Record<string, unknown>[] {
       perKm: moneyFromRappen(row.perKmRappen),
       minFare: moneyFromRappen(row.minFareRappen),
       airportStart: moneyFromRappen(row.airportStartRappen),
-      cityPrice: moneyFromRappen(row.cityPriceRappen),
       cityPairId: cityPairRuleFor(book, row.vehicleClassId)?.pairId ?? "",
       maxPax: row.maxPax,
       maxBags: cls?.luggageCapacity ?? "",
@@ -540,10 +539,6 @@ function parseDistanceInput(body: Record<string, unknown>, classes: { id: string
       body.airportStartRappen !== undefined
         ? rappenFromUnknown(body.airportStartRappen)
         : rappenFromMoneySet(body.airportStart),
-    cityPriceRappen:
-      body.cityPriceRappen !== undefined
-        ? rappenFromUnknown(body.cityPriceRappen)
-        : rappenFromMoneySet(body.cityPrice),
     maxPax: maxPax ?? 1,
     available: boolish(body.available, true),
     hideFromPublic: boolish(body.hideFromPublic ?? body.hide_from_public, false),
@@ -883,7 +878,6 @@ export const PUT = withAdmin(async (claims, request) => {
               per_km_rappen = ${parsed.perKmRappen},
               min_fare_rappen = ${parsed.minFareRappen},
               airport_start_rappen = ${parsed.airportStartRappen},
-              city_price_rappen = ${parsed.cityPriceRappen},
               max_pax = ${parsed.maxPax},
               available = ${parsed.available},
               hide_from_public = ${parsed.hideFromPublic}
@@ -893,12 +887,12 @@ export const PUT = withAdmin(async (claims, request) => {
           await tx`
             insert into public.distance_rates (
               rate_version_id, vehicle_class_id, base_fare_rappen, per_km_rappen,
-              min_fare_rappen, airport_start_rappen, city_price_rappen,
+              min_fare_rappen, airport_start_rappen,
               max_pax, available, hide_from_public
             ) values (
               ${versionId}, ${parsed.vehicleClassId}, ${parsed.baseFareRappen},
               ${parsed.perKmRappen}, ${parsed.minFareRappen},
-              ${parsed.airportStartRappen}, ${parsed.cityPriceRappen},
+              ${parsed.airportStartRappen},
               ${parsed.maxPax}, ${parsed.available}, ${parsed.hideFromPublic}
             )
           `;
