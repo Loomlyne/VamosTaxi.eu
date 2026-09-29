@@ -58,7 +58,7 @@ The follow-up shipped 2026-09-30 01:35 as `e27014c1`: the five answers are built
 
 | Known and open | Detail |
 |---|---|
-| Automatic refunds refuse a live Stripe key (`paid-cancel.ts:116`) | True today on test cards. Must be lifted before real launch or /cancellation becomes false. On the Phase 19 list. |
+| Automatic refunds refuse a live Stripe key (`paid-cancel.ts:116`) | True today on test cards. Must be lifted before real launch or /cancellation becomes false. Phase 19 is closed, so Phase 20 carries it (lead 5). |
 | Settings say 15 minutes standard waiting, the pages say 30 | Owner chose 30. He changes the setting on the dashboard if both should agree. |
 | Values live since 2026-09-01 that nobody approved | Left live by his decision, English only in de/fr/ar. Listed in the hand-over, section 6. |
 | Every gap of list C | Stays a labelled gap |
@@ -77,7 +77,7 @@ Prompts for the new sessions: `.planning/prompts/`, with shared rules in `00-com
 | 27 consent record | `phase-27` | `gsd/phase-27-consent-record` | running | Design approved by its checker (run 2). Plan next, then his signature. Session "Meta measurement phases 27-29" keeps running. | none, running |
 | 26.2 audit | `phase-26.2` (new) | `gsd/phase-26.2-audit` (new) | | Started early by the owner. Works only in folders nobody else touches. | `04-phase-26.2-audit.md` |
 | 20 security check | `phase-20` (new) | `gsd/phase-20-security-check` (new) | | Started early. The check runs now; fixes wait for the control session. | `05-phase-20-security.md` |
-| 19 surge proof | `phase-19` (new) | `gsd/phase-19-surge-proof` (new) | | Started early. Owner's paid steps and test switches now; PAY wording and the burst wait for 26.4.2 and 26.5. | `06-phase-19-surge.md` |
+| 19 surge proof | removed | removed | | **Closed by the owner, 2026-09-30** ("no need for test close it"). Nothing committed, nothing created at Cloudflare or Supabase, no paid step. Folder and branch were identical to main `49c51749` and are removed. Read on live by that session: 60 connections allowed, database 24 MB, pg_cron and pg_net not installed. | none |
 
 Legal session: closed by the owner. Both legal ships are live. Its last commit `fe4e37a0`
 (terms: driver details by e-mail, no SMS; About fleet matches the live classes) was never
@@ -92,7 +92,7 @@ main and does not merge cleanly; a session has to redo it on today's main.
 | 2 | 26.5 account choice before payment, with the paid-only reminder | Building |
 | 3 | 27 consent record | Not started |
 | 4 | 28 pixel page view, 29 purchase event | The Meta wording is his since 2026-09-30 (`.planning/decisions/2026-09-30-meta-wording.md`), all three texts, four languages. Not started. |
-| after | 26.0 → 26.2 → 20 → 19 | 26.0 keeps building, lands after the ones above |
+| after | 26.0 → 26.2 → 20 (19 is closed) | 26.0 keeps building, lands after the ones above |
 
 **Ship mode on 2026-09-30 only:** the control session ships 26.4.2, the legal follow-up, 26.5 and
 27 to 29 without asking, when every check of its own passes, and tells him right after.
@@ -167,7 +167,7 @@ Live is at `20260930210000`.
 | "This e-mail already has an account, sign in first" on checkout can reveal who is a customer. 26.5 uses neutral wording and a limit. |
 | `SUPABASE_SERVICE_ROLE_KEY` is on the public Worker (owner decision). Test where it is read and that it never reaches a browser. |
 | `POST /api/checkout/intent` has no limit per visitor (a lead, not confirmed). |
-| Automatic refunds refuse an `sk_live_` key; to be lifted before real launch (also Phase 19). |
+| Automatic refunds refuse an `sk_live_` key; to be lifted before real launch. Phase 19 is closed; this point stays here. |
 
 ## Owner feedback after the 26.4 ship, 2026-09-30
 
@@ -204,7 +204,6 @@ Built by the 26.3 session as `fix/26.4.2-booking-feedback` (folder `fix-26.4.2`)
 | 3 | Sign-in UAT, 14 steps, in `.planning/debug/auth-sign-in-sign-up-HANDOVER.md` | phone first |
 | 4 | Should an unpaid booking get the 24-hour reminder? Today it does | decision |
 | 5 | The remaining 26.3 UAT steps, then the test-booking delete script | vamostaxi.site |
-| 7 | Cloudflare Workers Paid and the database copy | only when Phase 19 starts |
 | 8 | The unsigned Lenis folder `.planning/quick/260928-q4t-…` | decision |
 
 ## Known on live, not fixed yet
