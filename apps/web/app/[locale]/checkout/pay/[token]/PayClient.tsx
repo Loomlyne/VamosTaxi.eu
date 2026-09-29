@@ -219,7 +219,6 @@ export function PayClient({ token }: { token: string }) {
       cancelled = true;
     };
     // rememberSession only reads `token`, the effect's own dependency.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   useEffect(() => {

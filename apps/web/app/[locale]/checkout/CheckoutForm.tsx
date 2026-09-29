@@ -390,7 +390,6 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
       }
     })();
     // one time
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -481,7 +480,6 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
       setPrice({ kind: "error", code });
     })();
     // priceKey covers lock, class, extras and voucher
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [priceKey]);
 
   // ── Extras, voucher ───────────────────────────────────────────────────────────────────

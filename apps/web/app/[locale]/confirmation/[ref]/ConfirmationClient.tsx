@@ -412,7 +412,6 @@ export function ConfirmationClient({
     const clock = window.setInterval(() => setElapsedMs(Date.now() - started), 1000);
     return () => window.clearInterval(clock);
     // elapsedMs is read once on (re)start only.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [waiting]);
 
   useEffect(() => {
