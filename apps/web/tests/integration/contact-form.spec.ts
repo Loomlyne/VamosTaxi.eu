@@ -7,7 +7,7 @@ import { test, expect } from "../support/test";
 import { testPort } from "../support/port";
 import { execFileSync, spawn, type ChildProcess } from "node:child_process";
 import { join } from "node:path";
-import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { NEXT_BIN, settleCloudflareDev, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 import { nextDevEnv, ownerDbUrl, REPO_ROOT, requireTestStack, testDbPort } from "../support/test-stack";
 
 const RUN_PROJECT = "component-1440";
@@ -132,6 +132,7 @@ test.beforeAll(async ({}, testInfo) => {
   failURL = `http://localhost:${FAIL_PORT}`;
   // One workerd at a time — two next-dev share miniflare sqlite and crash with SQLITE_BUSY.
   passServer = spawnDev(PASS_PORT, ALWAYS_PASS_SECRET);
+  await settleCloudflareDev();
   await waitForNextServer(passURL, 180_000);
 });
 
@@ -150,7 +151,7 @@ test.describe("SITE-04 contact form API", () => {
     const payload = contactPayload({ email: `ada.${crypto.randomUUID()}@example.test` });
     const res = await fetch(`${passURL}/api/contact`, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": "application/json", origin: passURL },
       body: JSON.stringify(payload),
     });
     const text = await res.text();
@@ -166,7 +167,7 @@ test.describe("SITE-04 contact form API", () => {
     const post = () =>
       fetch(`${passURL}/api/contact`, {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": "application/json", origin: passURL },
         body: JSON.stringify(payload),
       });
     const first = await post();
@@ -188,7 +189,7 @@ test.describe("SITE-04 contact form API", () => {
     });
     const res = await fetch(`${passURL}/api/contact`, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": "application/json", origin: passURL },
       body: JSON.stringify(payload),
     });
     const text = await res.text();
@@ -206,11 +207,12 @@ test.describe("SITE-04 contact form API", () => {
     killServer(passServer);
     passServer = null;
     failServer = spawnDev(FAIL_PORT, ALWAYS_FAIL_SECRET);
+    await settleCloudflareDev();
     await waitForNextServer(failURL, 180_000);
     const payload = contactPayload({ email: `ada.${crypto.randomUUID()}@example.test` });
     const res = await fetch(`${failURL}/api/contact`, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": "application/json", origin: failURL },
       body: JSON.stringify(payload),
     });
     const text = await res.text();
