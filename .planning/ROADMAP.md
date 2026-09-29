@@ -1200,7 +1200,7 @@ Plan-level states (owner, 2026-09-29; source record .planning/PHASE-CLOSURE-2026
 | 26.1. Payment and pricing integrity (INSERTED) | 30/32 | Waiting for owner Ship (26.1-26), then 26.1-28 |  |
 | 26.2. Codebase audit, bug fix and simplify (INSERTED) | 0/TBD | Parked (after 26.0) | - |
 | 26.3. Booking flow rebuild (INSERTED) | 22/23 + G1–G9 | Shipped af93fc8e, Worker 839d73fc | 2026-09-29 |
-| 26.4. One form + phone booking sheet (INSERTED) | 0/TBD | Discuss | - |
+| 26.4. One form + phone booking sheet (INSERTED) | 0/TBD | Context signed | - |
 | 27. Consent record | 0/TBD | Not started | - |
 | 28. Pixel PageView | 0/TBD | Not started | - |
 | 29. Webhook Purchase | 0/TBD | Not started | - |
