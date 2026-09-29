@@ -271,7 +271,7 @@ describe("runCheckoutIntent mode web (26.3)", () => {
     expect(json).not.toHaveProperty("client_secret");
     expect(json).not.toHaveProperty("publishable_key");
     expect(res.headers.get("set-cookie")).toMatch(/^vt_manage=/);
-    expect(w.created[0]).toMatchObject({ uiMode: "hosted_page" });
+    expect(w.created[0]).toMatchObject({ uiMode: "hosted_page", productName: "Vamos Taxi transfer" });
     expect(String(w.created[0]!.successUrl)).toBe(
       "https://vamostaxi.site/api/checkout/return?locale=en&session_id={CHECKOUT_SESSION_ID}",
     );

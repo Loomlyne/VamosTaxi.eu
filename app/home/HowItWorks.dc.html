@@ -1617,19 +1617,19 @@ const T = {
 };
 /* Served airports plus places already named in the product. No extra catalog. */
 const PLACES = [
-  { id: 'zrh', kind: 'airport', code: 'ZRH', name: 'Zurich Airport (ZRH)', href: '/?service=airport#book', lead: true },
-  { id: 'gva', kind: 'airport', code: 'GVA', name: 'Geneva Airport (GVA)', href: '/?service=airport#book' },
-  { id: 'bsl', kind: 'airport', code: 'BSL', name: 'Basel EuroAirport (BSL)', href: '/?service=airport#book' },
-  { id: 'zurich', kind: 'city', code: '', name: 'Zurich', href: '/?service=one-way#book' },
-  { id: 'geneva', kind: 'city', code: '', name: 'Geneva', href: '/?service=one-way#book' },
-  { id: 'basel', kind: 'city', code: '', name: 'Basel', href: '/?service=one-way#book' },
-  { id: 'bern', kind: 'city', code: '', name: 'Bern', href: '/?service=one-way#book' },
-  { id: 'lucerne', kind: 'city', code: '', name: 'Lucerne', href: '/?service=one-way#book' },
-  { id: 'lausanne', kind: 'city', code: '', name: 'Lausanne', href: '/?service=one-way#book' },
-  { id: 'interlaken', kind: 'city', code: '', name: 'Interlaken', href: '/?service=one-way#book' },
-  { id: 'zermatt', kind: 'city', code: '', name: 'Zermatt', href: '/?service=one-way#book' },
-  { id: 'stmoritz', kind: 'city', code: '', name: 'St. Moritz', href: '/?service=one-way#book' },
-  { id: 'davos', kind: 'city', code: '', name: 'Davos', href: '/?service=one-way#book' },
+  { id: 'zrh', kind: 'airport', code: 'ZRH', name: 'Zurich Airport (ZRH)', href: '/#book', lead: true },
+  { id: 'gva', kind: 'airport', code: 'GVA', name: 'Geneva Airport (GVA)', href: '/#book' },
+  { id: 'bsl', kind: 'airport', code: 'BSL', name: 'Basel EuroAirport (BSL)', href: '/#book' },
+  { id: 'zurich', kind: 'city', code: '', name: 'Zurich', href: '/#book' },
+  { id: 'geneva', kind: 'city', code: '', name: 'Geneva', href: '/#book' },
+  { id: 'basel', kind: 'city', code: '', name: 'Basel', href: '/#book' },
+  { id: 'bern', kind: 'city', code: '', name: 'Bern', href: '/#book' },
+  { id: 'lucerne', kind: 'city', code: '', name: 'Lucerne', href: '/#book' },
+  { id: 'lausanne', kind: 'city', code: '', name: 'Lausanne', href: '/#book' },
+  { id: 'interlaken', kind: 'city', code: '', name: 'Interlaken', href: '/#book' },
+  { id: 'zermatt', kind: 'city', code: '', name: 'Zermatt', href: '/#book' },
+  { id: 'stmoritz', kind: 'city', code: '', name: 'St. Moritz', href: '/#book' },
+  { id: 'davos', kind: 'city', code: '', name: 'Davos', href: '/#book' },
 ];
 function readLang() {
   try {
@@ -1750,16 +1750,11 @@ class Component extends DCLogic {
     if (e && e.preventDefault) e.preventDefault();
     const place = String(name || '').replace(/\s+/g, ' ').trim().slice(0, 200);
     if (place.length < 2) return;
-    const mode = kind === 'airport' ? 'one-way' : 'point';
+    const detail = { name: place, kind: kind || '', handled: false };
     try {
-      window.dispatchEvent(new CustomEvent('vamos:dest-pick', { detail: { name: place, mode: mode, kind: kind || '' } }));
+      window.dispatchEvent(new CustomEvent('vamos:dest-pick', { detail: detail }));
     } catch (err) {}
-    try {
-      const q = mode === 'one-way' ? '?service=airport' : '?service=one-way';
-      if (history.replaceState) {
-        history.replaceState(null, '', (location.pathname || '/') + q + '#book');
-      }
-    } catch (err) {}
+    if (detail.handled === true) return;
     const reduce = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (window.vtScrollTo) { window.vtScrollTo('book', -24); return; }
     const el = document.getElementById('book');

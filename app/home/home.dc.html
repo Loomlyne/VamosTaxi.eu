@@ -114,7 +114,7 @@ return p.href?React.createElement('a',{href:p.href,'aria-label':'Vamos Taxi',sty
 .vt-btn--ghost:active:not([disabled]),.vt-btn--outline:active:not([disabled]),.vt-btn--tertiary:active:not([disabled]){transform:translateY(1px)}
 .vt-btn:focus-visible{box-shadow:var(--vt-ring)!important}
 .vt-btn[disabled],.vt-btn[aria-disabled="true"]{transform:none}.vt-select .vt-input--focus{box-shadow:none}
-input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] input:focus{outline:none;box-shadow:none}body{margin:0}@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}@keyframes vt-skelpulse{0%,100%{opacity:.5}50%{opacity:.85}}
+input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] input:focus{outline:none;box-shadow:none}body{margin:0}a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}@keyframes vt-skelpulse{0%,100%{opacity:.5}50%{opacity:.85}}
 @keyframes vt-fade-in{from{opacity:0}to{opacity:1}}
 @keyframes vt-sheet-in{from{transform:translateY(14px);opacity:.5}to{transform:translateY(0);opacity:1}}
 @keyframes vt-slide-up{from{transform:translateY(100%)}to{transform:translateY(0)}}
@@ -254,19 +254,11 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 [data-party]{grid-template-columns:repeat(2,108px)}
 [data-fleet-strip]{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}[data-fleet-card]{flex:none;width:100%;min-width:0;max-width:none;flex-direction:row;align-items:flex-start}[data-fleet-card] [data-fleet-img]{width:146px;height:146px;flex:0 0 146px;aspect-ratio:1/1}
 [data-dest-strip]{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:10px;justify-content:start}[data-dest-card]{flex:none;width:100%;min-width:0;max-width:none}[data-fx-to]{font-size:var(--vt-heading-3)}}
-[data-shell]{display:block;background:transparent}
-[data-sheetbody]{display:flex;flex-direction:column;gap:14px;background:transparent}
-[data-sheetonly]{display:none}
 [data-swaprot]{display:inline-flex}
-@media (max-width:1079px){[data-shell][data-open="0"]{display:none}
-[data-shell][data-open="1"]{position:fixed;inset:0;z-index:400;background:var(--vt-bg-scrim);display:flex;align-items:flex-end;justify-content:center;animation:vt-fade-in 140ms ease}
-[data-shell][data-open="1"] [data-sheetbody]{width:100%;max-width:640px;max-height:92svh;overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--vt-bg-surface);border-radius:var(--vt-radius-xl) var(--vt-radius-xl) 0 0;box-shadow:var(--vt-shadow-xl);padding:14px 22px 22px;gap:13px;animation:vt-slide-up 280ms cubic-bezier(.16,1,.3,1)}
-[data-shell][data-open="1"] [data-sheetonly="1"]{display:flex}
-[data-shell][data-open="1"] [data-sheetonly="cta"]{display:block}}
-@media (max-width:699px){[data-shell][data-open="1"] [data-sheetbody]{padding:12px 16px 20px}
-[data-swaprot]{transform:rotate(90deg)}}#fleet>strong{color:var(--vt-text-inverse)!important}#fleet>span:last-child{color:var(--vt-text-inverse-muted)!important}@media (min-width:1080px){#book [data-sheetbody]{background:var(--vt-bg-surface);border-radius:var(--vt-radius-xl);box-shadow:var(--vt-shadow-xl);margin:-16px calc(clamp(12px,3vw,18px) * -1) 0;padding:16px clamp(12px,3vw,18px) 14px;box-sizing:border-box}#book [data-sheetbody] [role=tablist]{background:var(--vt-grey-100)}}[data-fleet-card]{transition:box-shadow var(--vt-dur-fast,.2s) ease,border-color var(--vt-dur-fast,.2s) ease}[data-fleet-card] [data-fleet-img]{transition:filter .2s ease}:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}@media (max-width:1079px){#book{background:var(--vt-bg-surface);border-radius:var(--vt-radius-xl);box-shadow:var(--vt-shadow-xl)}#book [role=tablist]{background:var(--vt-grey-100)}#book [data-book-inline]{display:flex;flex-direction:column;gap:10px;min-inline-size:0;box-sizing:border-box;background:transparent;box-shadow:none}}@media (min-width:1080px){#book [data-book-inline]{display:none}}[data-hero] [data-trust]{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--vt-space-4) var(--vt-space-6);margin-block-start:var(--vt-space-4);min-inline-size:0;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);line-height:1.4;color:var(--vt-text-inverse)}[data-hero] [data-trust-word]{font-weight:600;white-space:nowrap}[data-hero] [data-trust-stars]{display:inline-flex;align-items:center;gap:2px;direction:ltr;flex:0 0 auto}[data-hero] [data-trust-score]{font-weight:600;font-variant-numeric:tabular-nums;direction:ltr;white-space:nowrap}[data-hero] [data-trust-count]{color:var(--vt-text-inverse-muted);white-space:nowrap}[data-hero] [data-trust-empty]{color:var(--vt-text-inverse)}[data-hero] [data-trust-lockup]{position:relative;display:block;flex:0 0 auto;block-size:var(--vt-space-8);inline-size:min(100%,calc(var(--vt-space-8) * 1132.8 / 278.2));max-inline-size:100%}[data-hero] [data-trust-mark],[data-hero] [data-trust-mark-word]{display:block;block-size:100%;inline-size:100%;object-fit:fill;object-position:left center;background:transparent;padding:0;border:0;border-radius:0;box-shadow:none}[data-hero] [data-trust-mark-word]{position:absolute;inset:0;clip-path:inset(0 0 0 25.11%);filter:brightness(0) invert(1);pointer-events:none}[data-hero] [data-trust-stars] img{display:block;flex:0 0 auto;block-size:var(--vt-space-5);inline-size:calc(var(--vt-space-5) * 271.3 / 258);object-fit:contain;background:transparent;padding:0;border:0;border-radius:0;box-shadow:none}[data-hero] [data-trust-link]{color:var(--vt-text-inverse);text-decoration:underline;text-underline-offset:3px;white-space:nowrap}[data-hero] [data-trust-link]:hover{color:var(--vt-white)}@media (prefers-reduced-motion:reduce){[data-hero] [data-trust-link]{transition:none}}
+@media (max-width:699px){
+[data-swaprot]{transform:rotate(90deg)}}#fleet>strong{color:var(--vt-text-inverse)!important}#fleet>span:last-child{color:var(--vt-text-inverse-muted)!important}[data-fleet-card]{transition:box-shadow var(--vt-dur-fast,.2s) ease,border-color var(--vt-dur-fast,.2s) ease}[data-fleet-card] [data-fleet-img]{transition:filter .2s ease}:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}@media (max-width:1079px){#book{background:var(--vt-bg-surface);border-radius:var(--vt-radius-xl);box-shadow:var(--vt-shadow-xl)}#book [role=tablist]{background:var(--vt-grey-100)}#book [data-book-inline]{display:flex;flex-direction:column;gap:10px;min-inline-size:0;box-sizing:border-box;background:transparent;box-shadow:none}}@media (min-width:1080px){#book [data-book-inline]{display:none}}[data-hero] [data-trust]{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--vt-space-4) var(--vt-space-6);margin-block-start:var(--vt-space-4);min-inline-size:0;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);line-height:1.4;color:var(--vt-text-inverse)}[data-hero] [data-trust-word]{font-weight:600;white-space:nowrap}[data-hero] [data-trust-stars]{display:inline-flex;align-items:center;gap:2px;direction:ltr;flex:0 0 auto}[data-hero] [data-trust-score]{font-weight:600;font-variant-numeric:tabular-nums;direction:ltr;white-space:nowrap}[data-hero] [data-trust-count]{color:var(--vt-text-inverse-muted);white-space:nowrap}[data-hero] [data-trust-empty]{color:var(--vt-text-inverse)}[data-hero] [data-trust-lockup]{position:relative;display:block;flex:0 0 auto;block-size:var(--vt-space-8);inline-size:min(100%,calc(var(--vt-space-8) * 1132.8 / 278.2));max-inline-size:100%}[data-hero] [data-trust-mark],[data-hero] [data-trust-mark-word]{display:block;block-size:100%;inline-size:100%;object-fit:fill;object-position:left center;background:transparent;padding:0;border:0;border-radius:0;box-shadow:none}[data-hero] [data-trust-mark-word]{position:absolute;inset:0;clip-path:inset(0 0 0 25.11%);filter:brightness(0) invert(1);pointer-events:none}[data-hero] [data-trust-stars] img{display:block;flex:0 0 auto;block-size:var(--vt-space-5);inline-size:calc(var(--vt-space-5) * 271.3 / 258);object-fit:contain;background:transparent;padding:0;border:0;border-radius:0;box-shadow:none}[data-hero] [data-trust-link]{color:var(--vt-text-inverse);text-decoration:underline;text-underline-offset:3px;white-space:nowrap}[data-hero] [data-trust-link]:hover{color:var(--vt-white)}@media (prefers-reduced-motion:reduce){[data-hero] [data-trust-link]{transition:none}}
 /* 26.3 booking box — From, Flight (airport only), To, When, Travellers, SEE PRICES. One DOM order at every width. */
-#book[data-bookcard]{display:block;box-sizing:border-box;min-width:0;max-width:820px;padding:clamp(14px,2.4vw,22px);background:var(--vt-bg-surface);border-radius:var(--vt-radius-xl);box-shadow:var(--vt-shadow-lg)}
+[data-bookcard]{display:block;box-sizing:border-box;min-width:0;max-width:820px;padding:clamp(14px,2.4vw,22px);background:var(--vt-bg-surface);border-radius:var(--vt-radius-xl);box-shadow:var(--vt-shadow-lg)}
 #book [data-box]{display:grid;box-sizing:border-box;min-width:0;gap:14px 12px;grid-template-columns:minmax(0,1fr);grid-template-areas:"from" "to" "when" "trav" "cta" "note";--vt-control-h-md:var(--vt-control-h-lg)}
 #book [data-box][data-air="1"]{grid-template-areas:"from" "flight" "to" "when" "trav" "cta" "note"}
 #book [data-box]>[data-bx]{position:relative;min-width:0}
@@ -277,6 +269,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 #book [data-box] [data-vtcombo] input{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #book [data-bx=when] .sc-host>div>span:first-child{margin:0}
 #book [data-bx-err]{display:block;margin-block-start:6px;font-size:var(--vt-body-sm);line-height:1.4;color:var(--vt-danger)}
+#book [data-bx-kicker-row]{display:flex;align-items:baseline;justify-content:space-between;gap:8px}#book [data-bx-opt]{font-weight:400;text-transform:none;letter-spacing:0;color:var(--vt-text-secondary)}
 #book [data-bx-hint]{display:block;margin-block-start:6px;font-size:var(--vt-body-sm);line-height:1.4;color:var(--vt-text-secondary)}
 #book [data-bx=flight]{animation:vt-fade-in 140ms ease both}
 #book [data-bx=swap]{display:flex;align-items:center;justify-content:center;z-index:2}
@@ -285,7 +278,6 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 #book [data-trav-btn]{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:10px;width:100%;height:var(--vt-control-h-lg);padding-inline:14px;background:var(--vt-bg-surface);border:var(--vt-border-w) solid var(--vt-border-subtle);border-radius:var(--vt-radius-field);cursor:pointer;font-family:var(--vt-font-body);font-size:var(--vt-body-md);color:var(--vt-text-primary);transition:var(--vt-transition-control)}
 #book [data-trav-btn]:hover{border-color:var(--vt-grey-300)}
 #book [data-trav-btn][aria-expanded=true]{border-color:var(--vt-charcoal-900)}
-#book [data-trav-sum]{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:start}
 #book [data-trav-shell]{display:none}
 #book [data-trav-shell][data-open="1"]{display:block;position:absolute;inset-inline:0;top:calc(100% + 8px);z-index:600}
 #book [data-trav-panel]{box-sizing:border-box;display:flex;flex-direction:column;gap:14px;padding:16px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-lg);outline:none}
@@ -311,17 +303,59 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 #book [data-bx=note]{justify-content:flex-start}
 }
 @media (prefers-reduced-motion:reduce){#book [data-bx=flight],#book [data-trav-shell][data-open="1"],#book [data-trav-panel]{animation:none}}
+/* 26.4 home bar + sheet (D-01): one boundary. ≤1080 the bar and sheet, ≥1081 the box. */
+[data-bar-wrap],[data-bar-dock]{display:none}
+@media (max-width:1080px){
+[data-bookcard]{display:none!important}
+[data-bar-wrap]{display:block;box-sizing:border-box;min-width:0;max-width:640px;margin-top:clamp(20px,4vw,34px);scroll-margin-top:24px}
+[data-bar-notes]{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;margin:14px 0 0;min-width:0}
+[data-bar-note]{display:inline-flex;align-items:center;gap:6px;font-size:13px;line-height:1.4;color:var(--vt-text-inverse-muted)}
+[data-bar-dock]{display:block;position:fixed;top:var(--vt-dock-top,84px);inset-inline:clamp(12px,3vw,28px);z-index:190;box-sizing:border-box;opacity:0;visibility:hidden;transform:translateY(-8px);pointer-events:none;transition:opacity 140ms var(--vt-ease-out),transform 140ms var(--vt-ease-out),visibility 0s linear 140ms}
+[data-bar-dock][data-show="1"]{opacity:1;visibility:visible;transform:none;pointer-events:auto;transition:opacity 200ms var(--vt-ease-out),transform 200ms var(--vt-ease-out),visibility 0s}
+}
+@media (prefers-reduced-motion:reduce){[data-bar-dock],[data-bar-dock][data-show="1"]{transition:none}}
+/* 26.4.1 laptop bar (D-01…D-04): ≥1081 two rows, ≥1360 one row. ≤1080 is the 26.4 bar + sheet. */
+#book [data-trav-fig]{font-family:var(--vt-font-display);font-weight:600;font-size:var(--vt-body-md);line-height:1;font-variant-numeric:tabular-nums}
+#book [data-trav-btn]{gap:var(--vt-space-1)}
+#book [data-trav-btn]>[data-trav-fig]:first-of-type{margin-inline-end:var(--vt-space-2)}
+#book [data-trav-btn]>:last-child{margin-inline-start:auto}
+@media (min-width:1081px){
+[data-bookcard]{max-width:none;padding:var(--vt-space-4)}
+#book [data-box]{gap:var(--vt-space-3);align-items:start}
+#book [data-bx=swap]{margin-block-start:29px}
+#book [data-bx=cta]{margin-block-start:var(--vt-space-6);min-inline-size:176px}
+#book [data-bx=cta] .vt-btn{white-space:nowrap}
+#book [data-bx=flight]{min-inline-size:168px;max-inline-size:232px}
+#book [data-bx=flight][data-om-label="Add flight"]{margin-block-start:29px;min-inline-size:0;max-inline-size:none;--vt-control-h-md:44px}
+#book [data-bx=trav]{inline-size:148px}
+#book [data-bx=note]{justify-content:flex-start;margin-block-start:calc(var(--vt-space-2) - var(--vt-space-3))}
+#book [data-trav-shell][data-open="1"]{inset-inline-start:auto;inset-inline-end:0;inline-size:320px}
+#book [data-box] [data-sug]{min-inline-size:360px!important}
+}
+@media (min-width:1081px) and (max-width:1359px){
+#book [data-box]:has(> [data-bx=flight]){grid-template-columns:minmax(0,1fr) auto 44px minmax(0,1fr);grid-template-areas:"from flight swap to" "when tc tc tc" "note note note note"}
+#book [data-box]:not(:has(> [data-bx=flight])){grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr);grid-template-areas:"from swap to" "when tc tc" "note note note"}
+#book [data-bx=trav],#book [data-bx=cta]{grid-area:tc}
+#book [data-bx=trav]{justify-self:start}
+#book [data-bx=cta]{justify-self:end;inline-size:max-content}
+}
+@media (min-width:1360px){
+#book [data-box]:has(> [data-bx=flight]){grid-template-columns:minmax(0,1fr) auto 44px minmax(0,1fr) minmax(180px,.9fr) 148px auto;grid-template-areas:"from flight swap to when trav cta" "note note note note note note note"}
+#book [data-box]:not(:has(> [data-bx=flight])){grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr) minmax(180px,.9fr) 148px auto;grid-template-areas:"from swap to when trav cta" "note note note note note note"}
+#book [data-bx=trav],#book [data-bx=cta]{justify-self:stretch}
+}
+@media (min-width:1360px) and (max-width:1439px){
+#book [data-bx=flight]:not([data-om-label="Add flight"]){max-inline-size:168px}
+}
 </style>
 </helmet>
 <div style="font-family:var(--vt-font-body);color:var(--vt-text-primary);background:var(--vt-bg-page)">
 
 
 
-<div dir="{{ dir }}" data-hero="1" data-hero-mode="{{ mode }}" data-screen-label="Hero" style="position: relative; background: var(--vt-charcoal-900); box-shadow: var(--vt-shadow-xl)" data-om-label="Hero section">
+<div dir="{{ dir }}" data-hero="1" data-screen-label="Hero" style="position: relative; background: var(--vt-charcoal-900); box-shadow: var(--vt-shadow-xl)" data-om-label="Hero section">
 <div aria-hidden="true" data-hero-slides="1">
-<span data-hero-slide="1" data-mode="point" data-on="{{ heroPointOn }}" style="background-image:url(&quot;/photos/site/hero-oneway.jpg&quot;)"></span>
-<span data-hero-slide="1" data-mode="one-way" data-on="{{ heroAirportOn }}" style="background-image:url(&quot;/photos/site/hero-airport.jpg&quot;)"></span>
-<span data-hero-slide="1" data-mode="fixed" data-on="{{ heroCityOn }}" style="background-image:url(&quot;/photos/site/hero-city.jpg&quot;)"></span>
+<span data-hero-slide="1" data-on="1" style="background-image:url(&quot;/photos/site/hero-oneway.jpg&quot;)"></span>
 </div>
 <div aria-hidden="true" style="position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:1"><div aria-hidden="true" style="position:absolute;top:-40px;inset-inline-end:-40px;width:clamp(240px,62vw,620px);height:clamp(240px,62vw,620px);background-image:conic-gradient(from 90deg at 50% 50%, var(--vt-yellow) 0 25%, transparent 0 50%, var(--vt-yellow) 0 75%, transparent 0);background-size:clamp(46px,9.6vw,96px) clamp(46px,9.6vw,96px);opacity:.16;-webkit-mask-image:radial-gradient(72% 72% at 100% 0%, #000 0%, rgb(0 0 0/.35) 46%, transparent 74%);mask-image:radial-gradient(72% 72% at 100% 0%, #000 0%, rgb(0 0 0/.35) 46%, transparent 74%)" data-om-label="Element"></div></div>
 <div aria-hidden="true" style="position:absolute;inset:0;z-index:1;background:linear-gradient(to bottom, rgb(20 21 21/.34) 0%, rgb(20 21 21/.12) 24%, rgb(20 21 21/.82) 100%)"></div>
@@ -333,7 +367,14 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <p style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">{{ tKicker }}</p>
 <h1 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-display-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:var(--vt-display-leading);color:var(--vt-white);max-width:16ch;text-wrap:balance">{{ tH1 }}</h1>
 <p style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-lg);line-height:1.6;color:var(--vt-text-inverse-muted);max-width:52ch;text-wrap:pretty">{{ tSub }}</p>
-</div><div id="book" data-bookcard="1" style="margin-top:clamp(20px,4vw,34px);scroll-margin-top:24px">
+</div><div id="{{ barId }}" data-bar-wrap="1" data-om-label="Booking bar">
+<div ref="{{ barSlotRef }}"><dc-import name="BookingBar" from="{{ barFrom }}" to="{{ barTo }}" whenLabel="{{ whenLabel }}" pax="{{ paxN }}" bags="{{ bagsN }}" travellersSet="{{ travSet }}" complete="{{ tripComplete }}" expanded="{{ sheetOpen }}" onOpen="{{ openFromHero }}" hint-size="100%,54px"></dc-import></div>
+<div data-bar-notes="1" data-om-label="Trust line">
+<span data-bar-note="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span>Price fixed before you pay</span></span>
+<span data-bar-note="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span>Flight tracked</span></span>
+<span data-bar-note="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span data-tok data-vt-no-i18n="1">Free cancellation window</span></span>
+</div>
+</div><div id="{{ boxId }}" data-bookcard="1" style="margin-top:clamp(20px,4vw,34px);scroll-margin-top:24px">
 <div data-box="1" data-air="{{ airAttr }}" ref="{{ boxRef }}" data-om-label="Booking box">
 <div data-bx="from" data-sugroot="1" data-book-field="pickup" data-om-label="From">
 <span data-bx-kicker="1">From</span>
@@ -372,10 +413,10 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </div>
 <sc-if value="{{ showFlight }}" hint-placeholder-val="{{ false }}">
 <div data-bx="flight" data-om-label="Flight">
-<span data-bx-kicker="1">Flight number</span>
+<span data-bx-kicker="1" data-bx-kicker-row="1">Flight number<sc-if value="{{ flightOptional }}" hint-placeholder-val="{{ false }}"><span data-bx-opt="1">Optional</span></sc-if></span>
 <div data-vtcombo="1" data-on="{{ flightOn }}" data-err="{{ flightErrAttr }}">
-<span data-combo-tile="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="plane-landing" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
-<input type="text" class="vt-dir-keep" dir="ltr" aria-label="Flight number" aria-required="true" aria-invalid="{{ flightErrAttr }}" autocomplete="off" spellcheck="false" autocapitalize="characters" maxlength="8" value="{{ fno }}" placeholder="LX 318" onChange="{{ setFno }}" onFocus="{{ focusFno }}" onBlur="{{ blurFno }}">
+<span data-combo-tile="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ flightIcon }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
+<input type="text" class="vt-dir-keep" dir="ltr" aria-label="Flight number" aria-required="{{ flightReq }}" aria-invalid="{{ flightErrAttr }}" autocomplete="off" spellcheck="false" autocapitalize="characters" maxlength="8" value="{{ fno }}" placeholder="LX 318" onChange="{{ setFno }}" onFocus="{{ focusFno }}" onBlur="{{ blurFno }}">
 </div>
 <sc-if value="{{ ferr }}" hint-placeholder-val="{{ false }}">
 <span role="alert" data-bx-err="1">{{ ferr }}</span>
@@ -383,6 +424,14 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <sc-if value="{{ fhint }}" hint-placeholder-val="{{ true }}">
 <span data-bx-hint="1">We track it and move the pickup if you land late</span>
 </sc-if>
+<sc-if value="{{ fhintOpt }}" hint-placeholder-val="{{ false }}">
+<span data-bx-hint="1">It does not change the price.</span>
+</sc-if>
+</div>
+</sc-if>
+<sc-if value="{{ showFlightOpener }}" hint-placeholder-val="{{ false }}">
+<div data-bx="flight" data-om-label="Add flight">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" size="md" icon="plus" onClick="{{ openFlight }}" hint-size="100%,44px">Add a flight number</x-import>
 </div>
 </sc-if>
 <div data-bx="to" data-sugroot="1" data-book-field="dest" data-om-label="To">
@@ -429,9 +478,11 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </div>
 <div data-bx="trav" data-om-label="Travellers">
 <span data-bx-kicker="1">Travellers</span>
-<button type="button" data-trav-btn="1" ref="{{ travBtnRef }}" aria-haspopup="dialog" aria-expanded="{{ travOpenStr }}" onClick="{{ toggleTrav }}">
+<button type="button" data-trav-btn="1" ref="{{ travBtnRef }}" aria-haspopup="dialog" aria-expanded="{{ travOpenStr }}" aria-label="{{ travSummary }}" title="{{ travSummary }}" onClick="{{ toggleTrav }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="users" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
-<span data-trav-sum="1">{{ travSummary }}</span>
+<span data-trav-fig="1" class="vt-dir-keep">{{ paxN }}</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="luggage" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
+<span data-trav-fig="1" class="vt-dir-keep">{{ bagsN }}</span>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-down" size="{{ n16 }}" color="var(--vt-text-muted)" hint-size="16px,16px"></x-import>
 </button>
 <div data-trav-shell="1" data-open="{{ travOpenAttr }}" onClick="{{ travScrim }}">
@@ -528,6 +579,12 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 
 <dc-import name="SiteFooter" hint-size="100%,520px" show-payment-marks="{{ true }}"></dc-import>
 <dc-import name="CookieBanner" hint-size="0,0"></dc-import>
+
+<div data-bar-dock="1" data-show="{{ dockAttr }}" style="{{ dockStyle }}" data-om-label="Docked booking bar">
+<dc-import name="BookingBar" docked="{{ yes }}" from="{{ barFrom }}" to="{{ barTo }}" whenLabel="{{ whenLabel }}" pax="{{ paxN }}" bags="{{ bagsN }}" travellersSet="{{ travSet }}" complete="{{ tripComplete }}" expanded="{{ sheetOpen }}" onOpen="{{ openFromDock }}" hint-size="100%,54px"></dc-import>
+</div>
+
+<dc-import name="BookingSheet" open="{{ sheetOpen }}" step="{{ sheetStep }}" fromText="{{ pickupText }}" fromHits="{{ fromHits }}" fromChosen="{{ fromChosen }}" fromAirport="{{ air }}" toText="{{ dropText }}" toHits="{{ toHits }}" toChosen="{{ toChosen }}" samePlace="{{ samePlace }}" flight="{{ fno }}" flightOpen="{{ flightOpenBool }}" flightValid="{{ flightValid }}" date="{{ sheetDate }}" time="{{ time }}" minDate="{{ minDate }}" whenError="{{ sheetWhenErr }}" whenLabel="{{ whenLabel }}" pax="{{ paxN }}" bags="{{ bagsN }}" onFromInput="{{ shFromInput }}" onFromPick="{{ shFromPick }}" onFromClear="{{ shFromClear }}" onToInput="{{ shToInput }}" onToPick="{{ shToPick }}" onToClear="{{ shToClear }}" onFlight="{{ shFlight }}" onFlightOpen="{{ openFlightSheet }}" onDate="{{ shDate }}" onTime="{{ shTime }}" onPax="{{ setPaxN }}" onBags="{{ setBagsN }}" onStep="{{ shStep }}" onClose="{{ closeSheet }}" onSubmit="{{ shSubmit }}" hint-size="0,0"></dc-import>
 
 </div>
 
@@ -801,7 +858,7 @@ function publicQuoteClass(c) {
 const T = {
   en: {
     kicker:'Pre-booked transfers · Zurich', h1:'Land in Zurich.      Your driver is waiting.', sub:'Reliable, fixed-price airport and corporate rides booked in under one minute.',
-    point:'One way', oneWay:'Airport pickup', fixedRoutes:'City to city', return_:'Return', hourly:'By the hour', flight:'Flight', flightOptional:'Flight (optional)', flightPh:'e.g. LX 54', flightErr:'Check the flight number', flightNeed:'Enter a flight number', flightMiss:'No flight on that number today', tapLookup:'Tap to look up this flight', checking:'Looking up the flight…', lands:'lands', departs:'departs',
+    flight:'Flight', flightOptional:'Flight (optional)', flightPh:'e.g. LX 54', flightErr:'Check the flight number', flightNeed:'Enter a flight number', flightMiss:'No flight on that number today', tapLookup:'Tap to look up this flight', checking:'Looking up the flight…', lands:'lands', departs:'departs',
     st_scheduled:'Scheduled', st_boarding:'Boarding', st_delayed:'Delayed', st_enroute:'En route', st_landed:'Landed', st_cancelled:'Cancelled',
     srcAct:'actual', srcEst:'estimated', srcSched:'scheduled', late:'{n} min late', early:'{n} min early',
     terminalLbl:'Terminal', gateLbl:'Gate', beltLbl:'Belt', aircraftLbl:'Aircraft',
@@ -811,7 +868,6 @@ const T = {
     noteCancelled:'This flight is cancelled, so nothing was filled in. Come back with the new number.',
     noteOff:'We drive Zurich, Geneva and Basel — this flight touches none of them. Set the pickup yourself.',
     noteDeparted:'This flight has already left {ap}, so there is nothing to fill in.',
-    noteHourly:'By the hour has no destination — switch to one way to be driven to the airport.',
     keptOwn:'Kept your own {f}', updatedAt:'Updated {t}', changeNote:'Flight update — {list}',
     chStatus:'status', chEta:'arrival time', chGate:'gate', chTerminal:'terminal', chBelt:'baggage belt',
     liveFeed:'Live · AeroDataBox',
@@ -824,13 +880,11 @@ const T = {
     upToPax:'Up to {n} passengers', upToBags:'Up to {n} bags', movedTo:'Moved to {v} — {from} fits up to {cap}.', noneFit:'No class fits this party size yet.',
     flightCardTitle:'Flight details', fcTo:'Departs {ap} at {t} — we take you there.', fcFrom:'Arriving at {ap} at {t} — we\'ll meet you there.',
     flightDateLbl:'Which day', today:'Today', tomorrow:'Tomorrow', useFlight:'Use this flight', notMyFlight:'Not my flight',
-    removeFlightLbl:'Remove flight', pendingTimeMsg:'Flight time changed to {t} — update?', applyUpdate:'Update', revertTo:'Revert to', tripType:'Trip type',
+    removeFlightLbl:'Remove flight', pendingTimeMsg:'Flight time changed to {t} — update?', applyUpdate:'Update', revertTo:'Revert to', 
     signIn:'Sign in', customPin:'Use as map pin', dowRef:'Sat,Sun,Mon,Tue,Wed,Thu,Fri', mon:'Aug',
     menu:'Menu', close:'Close', clear:'Clear', save:'Save', planTitle:'Plan your transfer', showPrices:'Show fixed prices', trustEmpty:'Guest reviews will show here once they are published.', trustScore:'{n}/5', trustCountOne:'1 review', trustCount:'{n} reviews', trustRead:'Read reviews', trustExcellent:'Excellent', trustGreat:'Great', trustGood:'Good', trustFair:'Fair', trustAria:'Guest reviews', call:'Call +41 79 626 70 82', callNote:'Talk to dispatch', langLabel:'Language', curLabel:'Currency',
     morning:'Morning', afternoon:'Afternoon', evening:'Evening', pickupTime:'Pickup time', returnTimeLbl:'Return time',
     useLoc:'Use my current location', useLocSub:'GPS · fastest way to set pickup', nearYou:'Near you', popular:'Popular destinations', locating:'Locating…', whenBoth:'Pickup & return', flightChip:'Add a flight number', saved:'Saved',
-    modeOne:'One transfer, one fixed price for the route.', modeFixed:'Pick a published route, then passengers, bags and flight.', modeReturn:'Return added — set the return date and time too.', modeHourly:'Car and driver stay with you — no destination needed.',
-    fixedPh:'Choose a route', fixedEmpty:'No live routes yet', fixedMiss:'Couldn’t match that route — try One way',
     fillingFrom:'Filled from {code}', fillPickup:'Pickup', fillWhen:'Date & time', fillDest:'Destination', fillParty:'Passengers & luggage',
     stepTwo:'Step 2', readyTitle:'Choose your class', readySub:'Fixed price, all inclusive — tap a class to continue.', selectCta:'Select', noRoad:'No road', selectedCta:'Selected', unavailableCta:'Not available right now', doesNotFit:'Does not fit your party',
     noFeed:'Flight lookup is unavailable. Enter pickup and time yourself.',
@@ -860,7 +914,7 @@ const T = {
   },
   de: {
     kicker:'Vorausgebuchte Transfers · Zürich', h1:'Landen Sie in Zürich. Ihr Fahrer wartet bereits.', sub:'Zuverlässige Flughafen- und Geschäftsfahrten zum Festpreis — gebucht in unter einer Minute.',
-    point:'Einfache Fahrt', oneWay:'Flughafenabholung', fixedRoutes:'Stadt zu Stadt', return_:'Rückfahrt', hourly:'Stundenweise', flight:'Flug', flightOptional:'Flug (optional)', flightPh:'z. B. LX 54', flightErr:'Prüfen Sie die Flugnummer', flightNeed:'Geben Sie die Flugnummer ein', flightMiss:'Zu dieser Nummer liegt heute kein Flug vor', tapLookup:'Antippen, um den Flug zu prüfen', checking:'Flug wird gesucht…', lands:'landet', departs:'startet',
+    flight:'Flug', flightOptional:'Flug (optional)', flightPh:'z. B. LX 54', flightErr:'Prüfen Sie die Flugnummer', flightNeed:'Geben Sie die Flugnummer ein', flightMiss:'Zu dieser Nummer liegt heute kein Flug vor', tapLookup:'Antippen, um den Flug zu prüfen', checking:'Flug wird gesucht…', lands:'landet', departs:'startet',
     st_scheduled:'Planmässig', st_boarding:'Boarding', st_delayed:'Verspätet', st_enroute:'Unterwegs', st_landed:'Gelandet', st_cancelled:'Annulliert',
     srcAct:'tatsächlich', srcEst:'erwartet', srcSched:'geplant', late:'{n} Min. später', early:'{n} Min. früher',
     terminalLbl:'Terminal', gateLbl:'Gate', beltLbl:'Band', aircraftLbl:'Flugzeug',
@@ -870,7 +924,6 @@ const T = {
     noteCancelled:'Dieser Flug ist annulliert, es wurde nichts ausgefüllt. Kommen Sie mit der neuen Nummer zurück.',
     noteOff:'Wir fahren Zürich, Genf und Basel — dieser Flug berührt keinen davon. Setzen Sie den Abholort selbst.',
     noteDeparted:'Dieser Flug hat {ap} bereits verlassen, es gibt nichts auszufüllen.',
-    noteHourly:'Stundenweise hat kein Ziel — wechseln Sie auf einfache Fahrt für die Fahrt zum Flughafen.',
     keptOwn:'Ihre Eingabe {f} beibehalten', updatedAt:'Aktualisiert {t}', changeNote:'Flug-Update — {list}',
     chStatus:'Status', chEta:'Ankunftszeit', chGate:'Gate', chTerminal:'Terminal', chBelt:'Gepäckband',
     liveFeed:'Live · AeroDataBox',
@@ -884,13 +937,11 @@ const T = {
     upToPax:'Bis zu {n} Passagiere', upToBags:'Bis zu {n} Gepäckstücke', movedTo:'Zu {v} gewechselt — {from} bietet Platz für bis zu {cap}.', noneFit:'Keine Klasse passt zu dieser Personenzahl.',
     flightCardTitle:'Flugdetails', fcTo:'Abflug {ap} um {t} — wir bringen Sie dorthin.', fcFrom:'Ankunft {ap} um {t} — wir holen Sie dort ab.',
     flightDateLbl:'Welcher Tag', today:'Heute', tomorrow:'Morgen', useFlight:'Diesen Flug verwenden', notMyFlight:'Nicht mein Flug',
-    removeFlightLbl:'Flug entfernen', pendingTimeMsg:'Flugzeit geändert auf {t} — aktualisieren?', applyUpdate:'Aktualisieren', revertTo:'Zurücksetzen auf', tripType:'Fahrtart',
+    removeFlightLbl:'Flug entfernen', pendingTimeMsg:'Flugzeit geändert auf {t} — aktualisieren?', applyUpdate:'Aktualisieren', revertTo:'Zurücksetzen auf', 
     signIn:'Anmelden', customPin:'Als Kartenpunkt verwenden', dowRef:'Sa,So,Mo,Di,Mi,Do,Fr', mon:'Aug.',
     menu:'Menü', close:'Schliessen', clear:'Löschen', save:'Speichern', planTitle:'Transfer planen', showPrices:'Festpreise anzeigen', trustEmpty:'Gästebewertungen erscheinen hier, sobald sie veröffentlicht sind.', trustScore:'{n}/5', trustCountOne:'1 Bewertung', trustCount:'{n} Bewertungen', trustRead:'Bewertungen lesen', trustExcellent:'Ausgezeichnet', trustGreat:'Sehr gut', trustGood:'Gut', trustFair:'Ordentlich', trustAria:'Gästebewertungen', call:'+41 79 626 70 82 anrufen', callNote:'Direkt mit der Disposition sprechen', langLabel:'Sprache', curLabel:'Währung',
     morning:'Vormittag', afternoon:'Nachmittag', evening:'Abend', pickupTime:'Abholzeit', returnTimeLbl:'Rückfahrtzeit',
     useLoc:'Aktuellen Standort verwenden', useLocSub:'GPS · schnellster Weg zum Abholort', nearYou:'In Ihrer Nähe', popular:'Beliebte Ziele', locating:'Standort wird ermittelt…', whenBoth:'Hin- & Rückfahrt', flightChip:'Flugnummer hinzufügen', saved:'Gespeichert',
-    modeOne:'Eine Fahrt, ein Festpreis für die Route.', modeFixed:'Wählen Sie eine hinterlegte Strecke, dann Passagiere, Gepäck und Flug.', modeReturn:'Rückfahrt hinzugefügt — Datum und Zeit der Rückfahrt festlegen.', modeHourly:'Fahrzeug und Fahrer bleiben bei Ihnen — kein Ziel nötig.',
-    fixedPh:'Strecke wählen', fixedEmpty:'Noch keine live Strecken', fixedMiss:'Diese Strecke konnte nicht gefunden werden — versuchen Sie Einfache Fahrt',
     fillingFrom:'Aus {code} ausgefüllt', fillPickup:'Abholort', fillWhen:'Datum & Zeit', fillDest:'Ziel', fillParty:'Passagiere & Gepäck',
     stepTwo:'Schritt 2', readyTitle:'Klasse wählen', readySub:'Festpreis, alles inklusive — Klasse antippen zum Fortfahren.', selectCta:'Wählen', noRoad:'Kein Weg', selectedCta:'Gewählt', unavailableCta:'Derzeit nicht verfügbar', doesNotFit:'Passt nicht zu Ihrer Gruppe',
     needTrip:'Fahrt angeben, um Preise zu sehen', emptyTitle:'Transfer planen', emptyMeta:'Abholort, Ziel, Datum & Zeit', whenPh:'Datum & Zeit wählen',
@@ -919,7 +970,7 @@ const T = {
   },
   fr: {
     kicker:'Transferts réservés à l’avance · Zurich', h1:'Vous atterrissez à Zurich. Votre chauffeur vous attend.', sub:'Trajets aéroport et affaires fiables, à prix fixe — réservés en moins d’une minute.',
-    point:'Aller simple', oneWay:'Prise en charge à l’aéroport', fixedRoutes:'De ville en ville', return_:'Aller-retour', hourly:'À l’heure', flight:'Vol', flightOptional:'Vol (facultatif)', flightPh:'ex. LX 54', flightErr:'Vérifiez le numéro de vol', flightNeed:'Saisissez le numéro de vol', flightMiss:'Aucun vol sous ce numéro aujourd’hui', tapLookup:'Touchez pour vérifier ce vol', checking:'Recherche du vol…', lands:'atterrit à', departs:'décolle à',
+    flight:'Vol', flightOptional:'Vol (facultatif)', flightPh:'ex. LX 54', flightErr:'Vérifiez le numéro de vol', flightNeed:'Saisissez le numéro de vol', flightMiss:'Aucun vol sous ce numéro aujourd’hui', tapLookup:'Touchez pour vérifier ce vol', checking:'Recherche du vol…', lands:'atterrit à', departs:'décolle à',
     st_scheduled:'Prévu', st_boarding:'Embarquement', st_delayed:'Retardé', st_enroute:'En vol', st_landed:'Atterri', st_cancelled:'Annulé',
     srcAct:'réel', srcEst:'estimé', srcSched:'prévu', late:'{n} min de retard', early:'{n} min d’avance',
     terminalLbl:'Terminal', gateLbl:'Porte', beltLbl:'Tapis', aircraftLbl:'Appareil',
@@ -929,7 +980,6 @@ const T = {
     noteCancelled:'Ce vol est annulé, rien n’a été prérempli. Revenez avec le nouveau numéro.',
     noteOff:'Nous desservons Zurich, Genève et Bâle — ce vol n’en touche aucun. Indiquez le départ vous-même.',
     noteDeparted:'Ce vol a déjà quitté {ap}, il n’y a rien à préremplir.',
-    noteHourly:'La formule à l’heure n’a pas de destination — passez en aller simple pour être conduit à l’aéroport.',
     keptOwn:'Votre {f} a été conservé', updatedAt:'Mis à jour à {t}', changeNote:'Mise à jour du vol — {list}',
     chStatus:'statut', chEta:'heure d’arrivée', chGate:'porte', chTerminal:'terminal', chBelt:'tapis à bagages',
     liveFeed:'En direct · AeroDataBox',
@@ -944,8 +994,6 @@ const T = {
     menu:'Menu', close:'Fermer', clear:'Effacer', save:'Enregistrer', planTitle:'Planifiez votre transfert', showPrices:'Afficher les prix fixes', trustEmpty:'Les avis s’afficheront ici dès qu’ils seront publiés.', trustScore:'{n}/5', trustCountOne:'1 avis', trustCount:'{n} avis', trustRead:'Lire les avis', trustExcellent:'Excellent', trustGreat:'Très bien', trustGood:'Bien', trustFair:'Correct', trustAria:'Avis des clients', call:'Appeler le +41 79 626 70 82', callNote:'Parler à la centrale', langLabel:'Langue', curLabel:'Devise',
     morning:'Matin', afternoon:'Après-midi', evening:'Soir', pickupTime:'Heure de départ', returnTimeLbl:'Heure du retour',
     useLoc:'Utiliser ma position actuelle', useLocSub:'GPS · le plus rapide pour le départ', nearYou:'À proximité', popular:'Destinations populaires', locating:'Localisation…', whenBoth:'Départ & retour', flightChip:'Ajouter un numéro de vol', saved:'Enregistré',
-    modeOne:'Un trajet, un prix fixe pour l’itinéraire.', modeFixed:'Choisissez un trajet publié, puis passagers, bagages et vol.', modeReturn:'Retour ajouté — indiquez aussi la date et l’heure du retour.', modeHourly:'Voiture et chauffeur restent avec vous — sans destination.',
-    fixedPh:'Choisir un trajet', fixedEmpty:'Aucun trajet en ligne pour l’instant', fixedMiss:'Ce trajet n’a pas pu être trouvé — essayez Aller simple',
     fillingFrom:'Prérempli depuis {code}', fillPickup:'Départ', fillWhen:'Date & heure', fillDest:'Destination', fillParty:'Passagers & bagages',
     stepTwo:'Étape 2', readyTitle:'Choisissez votre classe', readySub:'Prix fixe, tout compris — touchez une classe pour continuer.', selectCta:'Choisir', noRoad:'Sans route', selectedCta:'Choisie', unavailableCta:'Indisponible pour le moment', doesNotFit:'Ne convient pas à votre groupe',
     needTrip:'Renseignez votre trajet pour voir les prix', emptyTitle:'Planifiez votre transfert', emptyMeta:'Départ, destination, date & heure', whenPh:'Choisir date & heure', waiting60:'60 minutes d’attente, incluses',
@@ -954,7 +1002,7 @@ const T = {
   },
   ar: {
     kicker:'نقل محجوز مسبقًا · زيورخ', h1:'تهبط في زيورخ وسائقك في انتظارك.', sub:'مشاوير مطار وشركات موثوقة بسعر ثابت — تُحجز في أقل من دقيقة.',
-    point:'ذهاب فقط', oneWay:'استقبال في المطار', fixedRoutes:'بين المدن', return_:'ذهاب وعودة', hourly:'بالساعة', flight:'رقم الرحلة', flightOptional:'رقم الرحلة (اختياري)', flightPh:'مثال LX 54', flightErr:'تحقق من رقم الرحلة', flightNeed:'أدخل رقم الرحلة', flightMiss:'لا رحلة بهذا الرقم اليوم', tapLookup:'اضغط للتحقق من الرحلة', checking:'جارٍ البحث عن الرحلة…', lands:'يصل', departs:'يقلع',
+    flight:'رقم الرحلة', flightOptional:'رقم الرحلة (اختياري)', flightPh:'مثال LX 54', flightErr:'تحقق من رقم الرحلة', flightNeed:'أدخل رقم الرحلة', flightMiss:'لا رحلة بهذا الرقم اليوم', tapLookup:'اضغط للتحقق من الرحلة', checking:'جارٍ البحث عن الرحلة…', lands:'يصل', departs:'يقلع',
     st_scheduled:'مجدولة', st_boarding:'الصعود', st_delayed:'متأخرة', st_enroute:'في الجو', st_landed:'هبطت', st_cancelled:'ملغاة',
     srcAct:'فعلي', srcEst:'متوقع', srcSched:'مجدول', late:'متأخرة {n} دقيقة', early:'مبكرة {n} دقيقة',
     terminalLbl:'المبنى', gateLbl:'البوابة', beltLbl:'الحزام', aircraftLbl:'الطائرة',
@@ -964,7 +1012,6 @@ const T = {
     noteCancelled:'هذه الرحلة ملغاة، لم يُعبّأ أي حقل. عد برقم الرحلة الجديد.',
     noteOff:'نخدم زيورخ وجنيف وبازل — هذه الرحلة لا تمر بأي منها. حدّد الانطلاق بنفسك.',
     noteDeparted:'أقلعت هذه الرحلة من {ap} بالفعل، لا يوجد ما يُعبّأ.',
-    noteHourly:'الحجز بالساعة بلا وجهة — انتقل إلى ذهاب فقط للتوصيل إلى المطار.',
     keptOwn:'أبقينا {f} كما أدخلته', updatedAt:'تم التحديث {t}', changeNote:'تحديث الرحلة — {list}',
     chStatus:'الحالة', chEta:'وقت الوصول', chGate:'البوابة', chTerminal:'المبنى', chBelt:'حزام الأمتعة',
     liveFeed:'مباشر · AeroDataBox',
@@ -979,21 +1026,12 @@ const T = {
     menu:'القائمة', close:'إغلاق', clear:'مسح', save:'حفظ', planTitle:'خطّط رحلتك', showPrices:'إظهار الأسعار الثابتة', trustEmpty:'تظهر آراء الضيوف هنا بعد نشرها.', trustScore:'{n}/5', trustCountOne:'تقييم واحد', trustCount:'{n} تقييمات', trustRead:'قراءة التقييمات', trustExcellent:'ممتاز', trustGreat:'جيد جداً', trustGood:'جيد', trustFair:'مقبول', trustAria:'آراء الضيوف', call:'اتصل بنا', callNote:'تحدّث مع قسم التوزيع', langLabel:'اللغة', curLabel:'العملة',
     morning:'صباحًا', afternoon:'بعد الظهر', evening:'مساءً', pickupTime:'وقت الانطلاق', returnTimeLbl:'وقت العودة',
     useLoc:'استخدام موقعي الحالي', useLocSub:'GPS · أسرع طريقة لتحديد الانطلاق', nearYou:'بالقرب منك', popular:'وجهات شائعة', locating:'جارٍ تحديد الموقع…', whenBoth:'الذهاب والعودة', flightChip:'إضافة رقم الرحلة', saved:'تم الحفظ',
-    modeOne:'رحلة واحدة بسعر ثابت للمسار.', modeFixed:'اختر مسارًا منشورًا، ثم الركاب والحقائب والرحلة.', modeReturn:'أُضيفت العودة — حدّد تاريخ ووقت العودة أيضًا.', modeHourly:'السيارة والسائق يبقيان معك — دون وجهة.',
-    fixedPh:'اختر مسارًا', fixedEmpty:'لا مسارات مباشرة بعد', fixedMiss:'تعذّر مطابقة هذا المسار — جرّب ذهاب فقط',
     fillingFrom:'مُعبّأ من {code}', fillPickup:'الانطلاق', fillWhen:'التاريخ والوقت', fillDest:'الوجهة', fillParty:'الركاب والأمتعة',
     stepTwo:'الخطوة 2', readyTitle:'اختر الفئة', readySub:'سعر ثابت شامل — اختر فئة للمتابعة.', selectCta:'اختيار', noRoad:'لا طريق', selectedCta:'مختارة', unavailableCta:'غير متاح حاليًا', doesNotFit:'لا يناسب مجموعتك',
     needTrip:'أضف تفاصيل رحلتك لعرض الأسعار', emptyTitle:'خطّط رحلتك', emptyMeta:'الانطلاق، الوجهة، التاريخ والوقت', whenPh:'اختر التاريخ والوقت', waiting60:'60 دقيقة انتظار مشمولة',
     searching:'جارٍ البحث عن الأماكن…', geoErr:'البحث غير متاح — الأماكن المحفوظة فقط', savedPlaces:'أماكن محفوظة', results:'نتائج البحث', routeStat:'{km} كم · نحو {min} دقيقة بالسيارة',
     savedGo:'تم الحفظ — جارٍ فتح حجزك…', savedSub:'{v} · التفاصيل والإضافات تاليًا.',
   },
-};
-const SVC = ['airport','city','one-way','point','oneway','hourly'];
-const SVC_KICKER = {
-  en: { airport:'Airport transfers · Zurich', city:'City to city · Switzerland', hourly:'Chauffeur by the hour · Zurich' },
-  de: { airport:'Flughafentransfers · Zürich', city:'Stadt zu Stadt · Schweiz', hourly:'Chauffeur stundenweise · Zürich' },
-  fr: { airport:'Transferts aéroport · Zurich', city:'De ville en ville · Suisse', hourly:'Chauffeur à l’heure · Zurich' },
-  ar: { airport:'نقل المطار · زيورخ', city:'بين المدن · سويسرا', hourly:'سائق بالساعة · زيورخ' },
 };
 const REDUCED = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 const EASE = (t) => 1 - Math.pow(1 - t, 3);
@@ -1113,11 +1151,16 @@ const DEST_IDS = ['hb', 'dolder', 'zermatt'];
 function dispLang(v) { try { const n = new Intl.DisplayNames([v], { type: 'language' }).of(v); return n.charAt(0).toUpperCase() + n.slice(1); } catch (e) { return v.toUpperCase(); } }
 function dispCur(v, lang) { try { return new Intl.DisplayNames([lang], { type: 'currency' }).of(v); } catch (e) { return v; } }
 function hashXY(s) { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return { x: ((h % 53 + 53) % 53) - 26, y: (((h >> 4) % 37 + 37) % 37) - 18 }; }
-function TIER() {
-  if (typeof matchMedia === 'undefined') return 2;
-  if (matchMedia('(max-width:699px)').matches) return 0;
-  if (matchMedia('(max-width:1079px)').matches) return 1;
-  return 2;
+/** One media boundary (26.4 D-01): at or under 1080 px home shows the bar and sheet, from 1081 px the box. */
+function NARROW() { return typeof matchMedia !== 'undefined' && matchMedia('(max-width:1080px)').matches; }
+const BOOK_HREF = /^(?:\/(?:de|fr|ar))?\/?#book$/;
+const WHEN_TAG = { en: 'en-GB', de: 'de-CH', fr: 'fr-CH', ar: 'ar-u-nu-latn' };
+/** Checkout trip-strip line 2, e.g. "Tue 29 Sept, 08:15" (same format as apps/web/lib/checkout/trip-format.ts). */
+function whenText(y, m, d, time, lang) {
+  if (y == null || m == null || d == null) return '';
+  let day = '';
+  try { day = new Intl.DateTimeFormat(WHEN_TAG[lang] || 'en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }).format(new Date(Date.UTC(y, m, d))); } catch (e) { return ''; }
+  return /^\d{2}:\d{2}$/.test(time || '') ? day + ', ' + time : day;
 }
 class Component extends DCLogic {
   /** The widget starts completely empty — every field is the traveller's own answer. */
@@ -1126,7 +1169,7 @@ class Component extends DCLogic {
     return {
       lang: LANGS.includes(lang) ? lang : 'en',
       cur: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosCurrency')) || 'CHF',
-      mode: 'point', fixedKey: '', fixedRoutes: [], routeOpen: false, routeIdx: -1, pickupText: '', pickupLoc: null, dropText: '', dropLoc: null,
+      pickupText: '', pickupLoc: null, dropText: '', dropLoc: null,
       day: null, time: '', returnDay: null, returnTime: '', dayLabel: null, returnLabel: null, dayY: null, dayM: null, returnY: null, returnM: null,
       pax: 1, bags: 0, hours: 0, geo: 'idle',
       flight: '', flightAsk: false, flightState: 'idle', flightData: null, flightPlan: null, flightSince: '', flightNote: '', changes: [], kept: [],
@@ -1135,16 +1178,16 @@ class Component extends DCLogic {
       sug: CLOSED, sugIdx: -1, sugFlip: false, fsug: { open: false, items: [] }, fsugIdx: -1, fsugFlip: false,
       quote: { status: 'empty', results: null, inflight: false }, announce: '', quoteFail: false,
       fleetOffer: [],
-      tier: TIER(), menuOpen: false, sheetOpen: false,
+      narrow: NARROW(), menuOpen: false, sheetOpen: false, sheetStep: 1, barAbove: false, hdOpen: false, dockTop: 84, travSet: false,
       flightConfirmed: false, flightDateChoice: 'today', pendingTimeUpdate: null,
-      fno: '', errs: { pickup: '', dest: '', when: '', flight: '' }, travOpen: false,
+      fno: '', flightOpen: false, errs: { pickup: '', dest: '', when: '', flight: '' }, travOpen: false,
       focused: { pickup: false, dest: false, when: false, flight: false },
       revert: { pickup: null, dest: null, when: null },
       capacityMoveNote: null,
     };
   })();
   reqSeq = 0; dusts = {}; _refs = {}; _fillTimers = []; _geoSeq = 0; _ac = null; _fseq = 0; _sseq = 0; _poll = null; _ticks = 0;
-  sheetRef = (el) => { this._sheet = el; };
+  barSlotRef = (el) => { this._barSlot = el; };
   fieldsRef = (el) => { this._fields = el; };
   stripRef = (el) => { this._strip = el; };
   modeNoteRef = (el) => { this._note = el; };
@@ -1170,27 +1213,21 @@ class Component extends DCLogic {
       const raw = d.name;
       const name = String(raw || '').replace(/\s+/g, ' ').trim().slice(0, 200);
       if (name.length < 2) return;
-      const modeRaw = String(d.mode || '').trim();
-      const mode = modeRaw === 'one-way' || modeRaw === 'fixed' || modeRaw === 'point' ? modeRaw : null;
-      const label = this.t().pickup || '';
-      this.setState((s) => {
-        const next = {
-          pickupText: name,
-          pickupLoc: null,
-          touched: Object.assign({}, s.touched, { pickup: true }),
-          autofill: Object.assign({}, s.autofill, { pickup: null }),
-          sug: CLOSED,
-          sugIdx: -1,
-          announce: label ? (label + ', ' + name) : name,
-        };
-        if (mode) next.mode = mode;
-        if (mode === 'fixed') next.fixedKey = '';
-        if (mode && mode !== 'one-way') { next.flight = ''; next.flightData = null; next.flightState = 'idle'; next.flightConfirmed = false; next.flightAsk = false; }
-        return next;
-      }, () => this.q());
+      const narrow = NARROW();
+      /* ≤1080 the chip opens the sheet at step 1 with To pre-filled, so HowItWorks must not scroll. */
+      if (narrow) d.handled = true;
+      this.setState((s) => ({
+        dropText: name,
+        dropLoc: null,
+        touched: Object.assign({}, s.touched, { dest: true }),
+        autofill: Object.assign({}, s.autofill, { dest: null }),
+        errs: Object.assign({}, s.errs, { dest: '' }),
+        sug: CLOSED,
+        sugIdx: -1,
+        announce: ((window.VamosLocale && window.VamosLocale.t) ? window.VamosLocale.t('To') : 'To') + ', ' + name,
+      }), () => { if (narrow) this.openSheetAt(1); });
     };
     window.addEventListener('vamos:dest-pick', this._onDestPick);
-    if (this.state.mode === 'return' || (!(this.props.hourlyEnabled ?? false) && this.state.mode === 'hourly')) this.setState({ mode: 'point' });
     /* Arriving from a footer service link: preset the booking card and land on it.
        The logo goes back to a bare home.dc.html, which restores the default hero. */
     if (typeof location !== 'undefined') {
@@ -1203,31 +1240,20 @@ class Component extends DCLogic {
         const top = el.getBoundingClientRect().top + window.pageYOffset + off;
         window.scrollTo({ top, behavior: REDUCED ? 'auto' : 'smooth' });
       };
-      let svc = null;
-      try { if (location.search) svc = new URLSearchParams(location.search).get('service'); } catch (err) {}
-      if (svc && SVC.indexOf(svc) > -1) {
-        const hourlyOn = (this.props.hourlyEnabled ?? false);
-        let mode = 'point';
-        if (svc === 'hourly' && hourlyOn) mode = 'hourly';
-        else if (svc === 'airport') mode = 'one-way';
-        else if (svc === 'city') mode = 'fixed';
-        else if (svc === 'one-way' || svc === 'point' || svc === 'oneway') mode = 'point';
-        this.setState({ service: svc, mode: mode }, () => land('book', -24));
-      } else if (location.hash && location.hash.length > 1) {
+      if (location.hash && location.hash.length > 1) {
         /* The hash arrives before React has mounted the section it names, so the
            browser gives up and leaves you on the hero. Run it again now. */
-        land(location.hash.slice(1), -16);
+        land(location.hash.slice(1), NARROW() && location.hash === '#book' ? -(this.headerBottom() + 16) : -16);
       }
     }
     this._away = (e) => {
       const cl = (sel) => !!(e.target.closest && e.target.closest(sel));
-      if (cl('[data-sug-row]')) return;
+      if (cl('[data-sug-row]') || cl('[data-bs]')) return;
       if (this.state.sug.open && !cl('[data-sugroot]')) {
         this.commitTypedPlace();
         this.setState({ sug: CLOSED, sugIdx: -1 });
       }
       if (this.state.fsug.open && !cl('[data-f="flight"]')) this.setState({ fsug: { open: false, items: [] }, fsugIdx: -1 });
-      if (this.state.routeOpen && !cl('[data-f="route"]')) this.setState({ routeOpen: false, routeIdx: -1 });
       if (this.state.travOpen && !cl('[data-bx="trav"]')) this.closeTrav(false);
       if (this.state.menuOpen && !cl('[data-menuroot]')) this.setState({ menuOpen: false });
     };
@@ -1268,16 +1294,33 @@ class Component extends DCLogic {
     document.addEventListener('pointerup', this._sugPtrUp, true);
     document.addEventListener('pointercancel', this._sugPtrUp, true);
     document.addEventListener('scroll', this._sugBoxScroll, true);
-    this._esc = (e) => { if (e.key !== 'Escape') return; if (this.state.travOpen) this.closeTrav(); else if (this.state.sheetOpen) this.closeSheet(); else if (this.state.routeOpen) this.setState({ routeOpen: false, routeIdx: -1 }); else if (this.state.menuOpen) this.setState({ menuOpen: false }); };
+    this._esc = (e) => { if (e.key !== 'Escape') return; if (this.state.travOpen) this.closeTrav(); else if (this.state.menuOpen) this.setState({ menuOpen: false }); };
     document.addEventListener('keydown', this._esc);
     this._onResize = () => {
-      const tr = TIER(); if (tr === this.state.tier) return;
-      const patch = { tier: tr };
-      if (tr === 2) { patch.menuOpen = false; if (this.state.sheetOpen) { patch.sheetOpen = false; this.lockScroll(false); } }
-      this.setState(patch);
+      const narrow = NARROW();
+      const patch = {};
+      if (narrow !== this.state.narrow) patch.narrow = narrow;
+      /* Crossing to the laptop layout closes the sheet silently; the box shows the same values. */
+      if (!narrow && this.state.sheetOpen) { patch.sheetOpen = false; patch.sug = CLOSED; patch.sugIdx = -1; }
+      /* An open travellers or suggestion panel closes silently when the layout switches (26.4.1). Values and errors stay. */
+      const wide = typeof matchMedia !== 'undefined' && matchMedia('(min-width:1360px)').matches;
+      const flipped = (this._wide !== undefined && wide !== this._wide) || (narrow && !this.state.narrow);
+      this._wide = wide;
+      if (flipped) { patch.travOpen = false; patch.sug = CLOSED; patch.sugIdx = -1; }
+      if (Object.keys(patch).length) this.setState(patch, () => this.setupDock());
+      else this.setupDock();
     };
     window.addEventListener('resize', this._onResize);
-    this._mqs = ['(max-width:699px)', '(max-width:1079px)'].map((q) => { const m = matchMedia(q); m.addEventListener ? m.addEventListener('change', this._onResize) : m.addListener(this._onResize); return m; });
+    this._mqs = ['(max-width:1080px)', '(min-width:1360px)'].map((q) => { const m = matchMedia(q); m.addEventListener ? m.addEventListener('change', this._onResize) : m.addListener(this._onResize); return m; });
+    /* The header's own menu is the one thing that hides the docked bar besides the sheet. */
+    this._hdSeen = false;
+    this._hdMo = typeof MutationObserver !== 'undefined' ? new MutationObserver(() => this.syncHeaderMenu()) : null;
+    if (this._hdMo) this._hdMo.observe(document.body, { subtree: true, attributes: true, attributeFilter: ['data-hd-open'] });
+    this._onBookClick = (e) => this.bookClick(e);
+    document.addEventListener('click', this._onBookClick, true);
+    /* Back from checkout out of the bfcache: home never resumes a trip. */
+    this._onPageShow = (e) => { if (e && e.persisted) this.resetTrip(); };
+    window.addEventListener('pageshow', this._onPageShow);
     this._onResize();
     this.askLocation();
     this._onReviews = () => this.forceUpdate();
@@ -1288,6 +1331,7 @@ class Component extends DCLogic {
     document.fonts && document.fonts.ready ? document.fonts.ready.then(() => this.q()) : this.q();
   }
   componentWillUnmount() {
+    this.teardownSheetBits();
     clearInterval(this._reviewsWait); clearTimeout(this._reviewsStop); if (this._onReviews) window.removeEventListener('vamos:reviews', this._onReviews); if (this._offReviews) this._offReviews();
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale); if (this._onDestPick) window.removeEventListener('vamos:dest-pick', this._onDestPick); document.removeEventListener('mousedown', this._away); document.removeEventListener('pointerdown', this._sugPtrDown, true); document.removeEventListener('pointermove', this._sugPtrMove, true); document.removeEventListener('pointerup', this._sugPtrUp, true); document.removeEventListener('pointercancel', this._sugPtrUp, true); document.removeEventListener('scroll', this._sugBoxScroll, true); document.removeEventListener('keydown', this._esc); window.removeEventListener('resize', this._onResize); clearTimeout(this._sugMovedT); (this._mqs || []).forEach((m) => { m.removeEventListener ? m.removeEventListener('change', this._onResize) : m.removeListener(this._onResize); }); Object.values(this.dusts).forEach((d) => d.destroy()); this.lockScroll(false); this.stopPoll(); clearTimeout(this._deb); clearTimeout(this._ft); clearTimeout(this._geoT); this._geoSeq++; if (this._ac) { try { this._ac.abort(); } catch (e) {} } this.clearFill(); }
   t() { return Object.assign({}, T.en, T[this.state.lang]); }
@@ -1364,8 +1408,7 @@ class Component extends DCLogic {
     const s = this.state;
     const when = !!s.day && !!s.time;
     const a = s.pickupLoc;
-    const complete = when && (!this.flightRequired() || this.flightFilled());
-    if (s.mode === 'hourly') return (a && complete && s.hours >= 1) ? { ok: true, hourly: true, a } : { ok: false, a };
+    const complete = when;
     const b = s.dropLoc;
     if (!a || !b) return { ok: false, a, b };
     const km = (a.lat != null && b.lat != null) ? this.distKm(a, b) : 0;
@@ -1408,7 +1451,6 @@ class Component extends DCLogic {
   snapToFit = (v) => { if (this.state.pax > v.cap) this.setPax(v.cap); if (this.state.bags > v.bags) this.setBags(v.bags); this.setState({ capacityMoveNote: null }); };
   pickLang = (v) => { if (window.VamosLocale) window.VamosLocale.setLang(v); else localStorage.setItem('vamosLang', v); this.setState({ lang: v }, () => this.relabelAll()); };
   pickCur = (v) => { if (window.VamosLocale) window.VamosLocale.setCur(v); else localStorage.setItem('vamosCurrency', v); this.setState({ cur: v }, () => this.relabelAll()); this.q(); };
-  modeNoteFor(m) { const t = this.t(); return m === 'fixed' ? t.modeFixed : m === 'return' ? t.modeReturn : m === 'hourly' ? t.modeHourly : t.modeOne; }
   clearFill() { (this._fillTimers || []).forEach(clearTimeout); this._fillTimers = []; }
   /** IATA shape as you type: two-character airline code, a space, up to four digits. */
   fmtFlightInput(raw) {
@@ -1416,26 +1458,8 @@ class Component extends DCLogic {
     return clean.slice(0, 2) + (clean.length > 2 ? ' ' + clean.slice(2).replace(/\D/g, '').slice(0, 4) : '');
   }
   flightNum() { return this.state.flight.toUpperCase().replace(/[^A-Z0-9]/g, ''); }
-  /** Required on Airport pickup only. One way and City to city stay optional. Never invent a number. */
-  flightRequired() { return this.state.mode === 'one-way'; }
-  flightMissing() { return this.flightRequired() && !this.flightFilled(); }
   flightAskAfter(v) {
     return /^[A-Z0-9]{2}\d{1,4}$/.test(String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, '')) ? false : !!this.state.flightAsk;
-  }
-  flightGateOpen() {
-    if (!this.flightMissing()) return false;
-    const s = this.state;
-    return !!s.flightAsk || !!(s.pickupLoc && s.dropLoc && s.day && s.time);
-  }
-  flightGateMsg() {
-    if (!this.flightGateOpen()) return '';
-    const t = this.t();
-    return String(this.state.flight || '').trim() ? t.flightErr : t.flightNeed;
-  }
-  askFlight() {
-    const t = this.t();
-    const msg = String(this.state.flight || '').trim() ? t.flightErr : t.flightNeed;
-    this.setState({ flightAsk: true, announce: msg });
   }
   /** Resolved place, not typed text. Saved pins set air; Mapbox hits set air or a plane icon. */
   placeIsAirport(loc) {
@@ -1555,17 +1579,12 @@ class Component extends DCLogic {
     if (af.pickup && plan.dir !== 'from-airport') { patch.pickupText = ''; patch.pickupLoc = null; }
     if (af.dest && plan.dir !== 'to-airport') { patch.dropText = ''; patch.dropLoc = null; }
     if (af.when && !(plan.dir === 'from-airport' && plan.when)) { patch.day = null; patch.dayLabel = null; patch.time = ''; }
-    if (plan.dir === 'to-airport' && s.mode !== 'hourly') {
+    if (plan.dir === 'to-airport') {
       if (s.touched.dest && s.dropText) kept.push(t.fillDest);
       else { patch.dropText = plan.ap.n; patch.dropLoc = plan.ap; patch.autofill.dest = code; fills.push('dest'); }
     } else if (plan.dir === 'from-airport') {
       if (s.touched.pickup && s.pickupText) kept.push(t.fillPickup);
       else { patch.pickupText = plan.ap.n; patch.pickupLoc = plan.ap; patch.autofill.pickup = code; fills.push('pickup'); }
-    }
-    if (s.mode === 'point' && ((patch.pickupLoc && this.placeIsAirport(patch.pickupLoc)) || (patch.dropLoc && this.placeIsAirport(patch.dropLoc)))) {
-      patch.mode = 'one-way';
-      patch.picked = null;
-      patch.routeOpen = false;
     }
     patch.kept = kept;
     patch.announce = code + ' · ' + (t['st_' + statusKey(f)] || '') + (fills.length ? ' — ' + this.planNote(f, plan) : '');
@@ -1594,7 +1613,7 @@ class Component extends DCLogic {
     const t = this.t();
     if (plan.dir === 'none') return plan.reason === 'cancelled' ? t.noteCancelled
       : plan.reason === 'departed' ? t.noteDeparted.replace('{ap}', apLabel(plan.leg)) : t.noteOff;
-    if (plan.dir === 'to-airport') return this.state.mode === 'hourly' ? t.noteHourly : t.noteTo.replace('{ap}', apLabel(plan.leg));
+    if (plan.dir === 'to-airport') return t.noteTo.replace('{ap}', apLabel(plan.leg));
     return t.noteFrom.replace('{ap}', apLabel(plan.leg));
   }
   /** Until the booking is placed, keep asking the feed and move the booking with it. */
@@ -1788,56 +1807,162 @@ class Component extends DCLogic {
     patch.touched = Object.assign({}, this.state.touched, { [touch]: true });
     if (f === 'pickup') { patch.pickupText = name; patch.pickupLoc = loc; }
     else { patch.dropText = name; patch.dropLoc = loc; }
-    if (this.state.mode === 'point' && this.placeIsAirport(loc)) {
-      patch.mode = 'one-way';
-      patch.picked = null;
-      patch.routeOpen = false;
-      patch.announce = this.modeNoteFor('one-way');
-    }
-    const switched = patch.mode === 'one-way' && this.state.mode === 'point';
     patch.errs = Object.assign({}, this.state.errs, { [touch === 'pickup' ? 'pickup' : 'dest']: '' });
-    this.setState(patch, () => { if (switched) this.noteDip(); if (f === 'pickup') this.resolveAir(); });
+    this.setState(patch, () => { if (f === 'pickup') this.resolveAir(); });
   };
   lockScroll(on) { try { document.body.style.overflow = on ? 'hidden' : ''; } catch (e) {} }
-  toggleMenu = () => this.setState((s) => ({ menuOpen: !s.menuOpen }));
-  openSheet = (e) => {
-    this._returnFocus = (e && e.currentTarget) || null;
-    this.lockScroll(true);
-    const focus = this._sheetFocus;
-    this.setState({ sheetOpen: true, menuOpen: false }, () => {
-      if (this._sheet && this._sheet.focus) this._sheet.focus();
-      this.focusSheetField(focus);
-      this._sheetFocus = '';
-    });
-  };
-  openSheetPickup = (e) => { this._sheetFocus = 'pickup'; this.openSheet(e); };
-  openSheetDest = (e) => { this._sheetFocus = 'dest'; this.openSheet(e); };
-  openSheetWhen = (e) => { this._sheetFocus = 'when'; this.openSheet(e); };
-  openSheetParty = (e) => { this._sheetFocus = 'party'; this.openSheet(e); };
-  focusSheetField(field) {
-    if (!field) return;
-    const root = this._fields || this._sheet;
-    if (!root || !root.querySelector) return;
-    const sel = {
-      pickup: '[data-f="pickup"] input',
-      dest: '[data-f="dest"] input',
-      when: '[data-f="when"] button, [data-f="when"] input',
-      party: '[data-f="party"] button, [data-f="party"] input',
-      flight: '[data-f="flight"] input',
-    }[field];
-    if (!sel) return;
-    const go = () => {
-      const el = root.querySelector(sel);
-      if (el && typeof el.focus === 'function') try { el.focus(); } catch (err) {}
-    };
-    if (typeof requestAnimationFrame === 'function') requestAnimationFrame(() => setTimeout(go, 40));
-    else setTimeout(go, 80);
+  /* ── 26.4 bar + sheet (≤1080) ─────────────────────────────────────────────
+     The sheet is a view of the same trip state as the laptop box: no copy, no storage.
+     It owns its scroll lock, history entries, focus trap and inert background (BookingSheet). */
+  /** First step still needing an answer, from a silent check of the trip. 4 = everything is valid. */
+  firstStep() {
+    const r = this.checkTrip();
+    if (r.errs.pickup || r.errs.flight) return 1;
+    if (r.errs.dest) return 2;
+    if (r.errs.when) return 3;
+    return 4;
   }
-  closeSheet = () => {
-    this.lockScroll(false);
-    this.setState({ sheetOpen: false, sug: CLOSED, sugIdx: -1 }, () => { const el = this._returnFocus; if (el && el.isConnected) el.focus(); });
+  openSheetAt(step) {
+    const n = Math.min(4, Math.max(1, step | 0));
+    this.setState((s) => ({ sheetOpen: true, sheetStep: n, sug: CLOSED, sugIdx: -1, travSet: s.travSet || n === 4 }), () => this.syncSheetSug(n));
+  }
+  openFromHero = () => this.openSheetAt(this.firstStep());
+  openFromDock = () => this.openSheetAt(this.firstStep());
+  closeSheet = () => this.setState({ sheetOpen: false, sug: CLOSED, sugIdx: -1 });
+  /** Typed but unchosen text keeps its suggestion list when a step is (re)shown. */
+  syncSheetSug(step) {
+    const s = this.state;
+    const field = step === 1 ? 'pickup' : step === 2 ? 'dropoff' : '';
+    const txt = String(field === 'pickup' ? s.pickupText : s.dropText || '').trim();
+    const chosen = field === 'pickup' ? s.pickupLoc : s.dropLoc;
+    if (field && txt.length >= 2 && !chosen) {
+      const items = this.paintSug(field, txt, []);
+      this.setState({ sug: { open: true, field, at: 'a', items, saved: [], geoCount: items.length, custom: false, text: txt, typed: true }, sugIdx: -1 });
+      clearTimeout(this._geoT);
+      this._geoT = setTimeout(() => this.geoSearch(field, txt), 0);
+    } else if (s.sug.open) {
+      this.setState({ sug: CLOSED, sugIdx: -1 });
+    }
+  }
+  shStep = (n) => { const step = Math.min(4, Math.max(1, parseInt(n, 10) || 1)); this.setState((s) => ({ sheetStep: step, travSet: s.travSet || step === 4 }), () => this.syncSheetSug(step)); };
+  shFromInput = (text) => this.editRoute('pickup', 'a')({ target: { value: String(text == null ? '' : text) } });
+  shToInput = (text) => this.editRoute('dropoff', 'a')({ target: { value: String(text == null ? '' : text) } });
+  shFromClear = () => this.clearField('pickup')();
+  shToClear = () => this.clearField('dropoff')();
+  hitAt(field, id) {
+    if (this.state.sug.field !== field) return null;
+    return (this.state.sug.items || []).filter((l) => l && l.n).slice(0, 10)[parseInt(id, 10)] || null;
+  }
+  shFromPick = (id) => { const l = this.hitAt('pickup', id); if (l) this.choose(l); };
+  shToPick = (id) => { const l = this.hitAt('dropoff', id); if (l) this.choose(l); };
+  hitsFor(field) {
+    const s = this.state;
+    const txt = field === 'pickup' ? s.pickupText : s.dropText;
+    if (!s.sug.open || s.sug.field !== field || !String(txt || '').trim()) return [];
+    return (s.sug.items || []).filter((l) => l && l.n).slice(0, 10).map((l, i) => ({ id: String(i), name: l.n, sub: l.s || '', tone: '', icon: l.icon || 'map-pin' }));
+  }
+  shFlight = (text) => { const v = this.normFlight(text); this.setState((s) => ({ fno: v, errs: Object.assign({}, s.errs, { flight: '' }) })); };
+  openFlightSheet = () => this.setState({ flightOpen: true });
+  shDate = (v) => {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(v || ''));
+    this.setState((s) => ({
+      day: m ? +m[3] : null, dayY: m ? +m[1] : null, dayM: m ? +m[2] - 1 : null, dayLabel: null,
+      touched: Object.assign({}, s.touched, { when: true }), autofill: Object.assign({}, s.autofill, { when: null }),
+      errs: Object.assign({}, s.errs, { when: '' }),
+    }));
   };
-  scrimClick = (e) => { if (e.target === e.currentTarget) this.closeSheet(); };
+  shTime = (v) => {
+    const t = /^\d{2}:\d{2}$/.test(String(v || '')) ? String(v) : '';
+    this.setState((s) => ({ time: t, touched: Object.assign({}, s.touched, { when: true }), autofill: Object.assign({}, s.autofill, { when: null }), errs: Object.assign({}, s.errs, { when: '' }) }));
+  };
+  setPaxN = (n) => { const v = parseInt(n, 10); this.setState({ pax: Math.min(8, Math.max(1, Number.isFinite(v) ? v : 1)) }); };
+  setBagsN = (n) => { const v = parseInt(n, 10); this.setState({ bags: Math.min(16, Math.max(0, Number.isFinite(v) ? v : 0)) }); };
+  /** SEE PRICES from the sheet (it has already removed its own history entries). */
+  shSubmit = () => {
+    const r = this.checkTrip();
+    if (r.ok) { this.goCheckout(); return; }
+    const step = r.errs.pickup || r.errs.flight ? 1 : r.errs.dest ? 2 : 3;
+    this.setState({ sheetStep: step, sheetOpen: true }, () => this.syncSheetSug(step));
+  };
+  /** Home starts empty every time it loads or comes back from the bfcache. */
+  resetTrip() {
+    clearTimeout(this._geoT); this._geoSeq = (this._geoSeq || 0) + 1;
+    this.setState({
+      pickupText: '', pickupLoc: null, dropText: '', dropLoc: null,
+      day: null, time: '', dayLabel: null, dayY: null, dayM: null,
+      pax: 1, bags: 0, fno: '', flightOpen: false, travOpen: false, travSet: false,
+      errs: { pickup: '', dest: '', when: '', flight: '' },
+      touched: { pickup: false, dest: false, when: false },
+      sug: CLOSED, sugIdx: -1, sheetOpen: false, sheetStep: 1,
+    });
+  }
+  /** Bottom edge of the floating header, as the docked bar sees it. */
+  headerBottom() {
+    const h = typeof document !== 'undefined' ? document.querySelector('[data-hd]') : null;
+    const top = Math.min(14, Math.max(8, (window.innerWidth || 0) * 0.014));
+    if (!h) return top + 68;
+    const r = h.getBoundingClientRect();
+    /* Height only: the floating header slides while it hides and shows, so its live rect is not a fixed edge. */
+    return top + r.height;
+  }
+  /** Watches the in-hero bar; once it is wholly above the header line the docked twin appears (D-05). */
+  setupDock() {
+    if (!this.state.narrow || !this._barSlot || typeof IntersectionObserver === 'undefined') {
+      if (this._io) { this._io.disconnect(); this._io = null; this._dockKey = ''; }
+      if (this.state.barAbove) this.setState({ barAbove: false });
+      return;
+    }
+    const hb = Math.round(this.headerBottom());
+    const key = String(hb);
+    if (this._io && this._dockKey === key) return;
+    if (this._io) this._io.disconnect();
+    this._dockKey = key;
+    this._io = new IntersectionObserver((entries) => {
+      const e = entries[entries.length - 1];
+      if (!e) return;
+      const above = !e.isIntersecting && e.boundingClientRect.bottom <= hb + 1;
+      const top = Math.round(this.headerBottom()) + 8;
+      if (above !== this.state.barAbove || Math.abs(top - this.state.dockTop) > 1) this.setState({ barAbove: above, dockTop: top });
+    }, { rootMargin: '-' + hb + 'px 0px 0px 0px', threshold: 0 });
+    this._io.observe(this._barSlot);
+  }
+  syncHeaderMenu() {
+    const open = !!document.querySelector('[data-hd][data-hd-open="1"]');
+    if (open !== this.state.hdOpen) this.setState({ hdOpen: open });
+    if (!open && this._pendingBook) this.flushPendingBook();
+  }
+  flushPendingBook() {
+    const step = this._pendingBook; this._pendingBook = 0; clearTimeout(this._pendT);
+    if (step) this.openSheetAt(step);
+  }
+  /** Every /#book link on home: ≤1080 opens the sheet at step 1, ≥1081 scrolls to the box and focuses From (D-13). */
+  bookClick(e) {
+    if (!e || e.defaultPrevented || (e.button && e.button > 0) || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+    if (!a || !BOOK_HREF.test(a.getAttribute('href') || '')) return;
+    /* HowItWorks chips carry their own click handler (vamos:dest-pick, handled below); it opens the sheet with To filled. */
+    if (a.closest('[data-dest-tile],[data-dest-row]')) return;
+    if (NARROW()) {
+      /* Stop here: Lenis' own anchor listener would otherwise scroll to the bar behind the sheet. */
+      e.preventDefault(); e.stopPropagation();
+      if (document.querySelector('[data-hd][data-hd-open="1"]')) {
+        /* Let the header menu finish closing (it releases its own body lock) before the sheet takes the lock. */
+        this._pendingBook = 1;
+        const b = document.querySelector('[data-hd-menu-btn]'); if (b) b.click();
+        clearTimeout(this._pendT); this._pendT = setTimeout(() => this.flushPendingBook(), 900);
+      } else this.openSheetAt(1);
+      return;
+    }
+    clearTimeout(this._focusT);
+    this._focusT = setTimeout(() => { const i = this._box && this._box.querySelector('[data-bx="from"] input'); if (i) { try { i.focus({ preventScroll: true }); } catch (err) {} } }, 500);
+  }
+  teardownSheetBits() {
+    if (this._io) { this._io.disconnect(); this._io = null; }
+    if (this._hdMo) { this._hdMo.disconnect(); this._hdMo = null; }
+    if (this._onBookClick) document.removeEventListener('click', this._onBookClick, true);
+    if (this._onPageShow) window.removeEventListener('pageshow', this._onPageShow);
+    clearTimeout(this._pendT); clearTimeout(this._focusT);
+  }
   /** The list is a child of its field, so it can never drift: only the direction is measured. */
   flipFor(e) {
     try {
@@ -2042,6 +2167,8 @@ class Component extends DCLogic {
   /** Upper-case, single spaces, only the characters a flight number can hold. */
   normFlight(raw) { return String(raw || '').toUpperCase().replace(/[^A-Z0-9 ]/g, '').replace(/\s+/g, ' ').replace(/^ /, '').slice(0, 8); }
   setFno = (e) => { const v = this.normFlight(e && e.target ? e.target.value : ''); this.setState((s) => ({ fno: v, errs: Object.assign({}, s.errs, { flight: '' }) })); };
+  /** D-09: a non-airport pickup may carry a flight; the field opens on demand and never changes the price. */
+  openFlight = () => this.setState({ flightOpen: true }, () => { const i = this._box && this._box.querySelector('[data-bx="flight"] input'); if (i) { try { i.focus(); } catch (err) {} } });
   focusFno = () => this.setState((s) => ({ focused: Object.assign({}, s.focused, { flight: true }) }));
   blurFno = () => this.setState((s) => ({ focused: Object.assign({}, s.focused, { flight: false }) }));
   /** The server resolves the airport from the mapbox_id; home only asks /api/geo/retrieve for the pickup. */
@@ -2064,10 +2191,6 @@ class Component extends DCLogic {
           return { pickupLoc: next };
         });
       });
-  }
-  componentDidUpdate() {
-    const s = this.state;
-    if (!this.pickupAir() && (s.fno || (s.errs && s.errs.flight))) this.setState((st) => ({ fno: '', errs: Object.assign({}, st.errs, { flight: '' }) }));
   }
   isPhoneBox() { return typeof matchMedia !== 'undefined' && matchMedia('(max-width:680px)').matches; }
   openTrav = () => {
@@ -2093,7 +2216,8 @@ class Component extends DCLogic {
     const el = sel ? b.querySelector(sel) : null;
     if (el) { try { el.focus({ preventScroll: false }); } catch (err) {} }
   }
-  submitBox = () => {
+  /** The 26.3 rules plus D-09, as a pure check: nothing is set, nothing is focused. */
+  checkTrip() {
     const s = this.state; const errs = { pickup: '', dest: '', when: '', flight: '' };
     const pl = s.pickupLoc, dl = s.dropLoc;
     const pText = String(s.pickupText || '').replace(/\s+/g, ' ').trim();
@@ -2103,10 +2227,8 @@ class Component extends DCLogic {
     else if (pl && ((pl.mapbox_id && pl.mapbox_id === dl.mapbox_id) || pText.toLowerCase() === dText.toLowerCase())) errs.dest = 'Pickup and drop-off are the same place';
     const air = this.pickupAir();
     const fl = String(s.fno || '').trim();
-    if (air) {
-      if (!fl) errs.flight = 'Enter the flight number';
-      else if (!FLIGHT_RE.test(fl)) errs.flight = 'Check the flight number';
-    }
+    if (air && !fl) errs.flight = 'Enter the flight number';
+    else if (fl && !FLIGHT_RE.test(fl)) errs.flight = 'Check the flight number';
     let when = '';
     if (s.day == null || s.dayY == null || s.dayM == null || !/^\d{2}:\d{2}$/.test(s.time || '')) errs.when = 'Choose a pickup time';
     else {
@@ -2114,23 +2236,31 @@ class Component extends DCLogic {
       const mn = minStamp();
       if (when < scheduledLocal(mn.y, mn.m, mn.d, mn.hm)) errs.when = 'Choose a time at least 3 hours from now';
     }
-    if (errs.pickup || errs.dest || errs.when || errs.flight) {
-      this.setState({ errs: errs, travOpen: false }, () => this.focusFirstErr());
-      return;
-    }
+    const ok = !(errs.pickup || errs.dest || errs.when || errs.flight);
+    return { ok: ok, errs: errs, when: when, air: air, fl: fl, pText: pText, dText: dText, pl: pl, dl: dl };
+  }
+  /** Hands the trip to /checkout in the URL. Used by the box and by the sheet alike. */
+  goCheckout() {
+    const s = this.state; const r = this.checkTrip();
+    if (!r.ok) return;
     const p = new URLSearchParams();
-    p.set('from', pText.slice(0, 200));
-    if (pl.mapbox_id) p.set('fid', String(pl.mapbox_id).slice(0, 256));
+    p.set('from', r.pText.slice(0, 200));
+    if (r.pl.mapbox_id) p.set('fid', String(r.pl.mapbox_id).slice(0, 256));
     p.set('gs', geoSession());
-    p.set('to', dText.slice(0, 200));
-    if (dl.mapbox_id) p.set('tid', String(dl.mapbox_id).slice(0, 256));
-    p.set('when', when);
+    p.set('to', r.dText.slice(0, 200));
+    if (r.dl.mapbox_id) p.set('tid', String(r.dl.mapbox_id).slice(0, 256));
+    p.set('when', r.when);
     p.set('pax', String(Math.min(8, Math.max(1, parseInt(s.pax, 10) || 1))));
     p.set('bags', String(Math.min(16, Math.max(0, parseInt(s.bags, 10) || 0))));
-    if (air) p.set('flight', fl);
+    if (r.fl) p.set('flight', r.fl);
     const prefix = (s.lang === 'de' || s.lang === 'fr' || s.lang === 'ar') ? '/' + s.lang : '';
-    this.setState({ errs: errs });
+    this.setState({ errs: r.errs });
     location.assign(prefix + '/checkout?' + p.toString());
+  }
+  submitBox = () => {
+    const r = this.checkTrip();
+    if (!r.ok) { this.setState({ errs: r.errs, travOpen: false }, () => this.focusFirstErr()); return; }
+    this.goCheckout();
   };
   renderVals() {
     const t = this.t(); const s = this.state;
@@ -2141,17 +2271,35 @@ class Component extends DCLogic {
     const sugRows = this.sugRowsList();
     const sugHasHits = sugRows.some((r) => r.row);
     const air = this.pickupAir();
+    const showFlightField = air || (!!s.pickupLoc && (!!s.flightOpen || !!s.fno));
+    const showOpener = !!s.pickupLoc && !showFlightField;
     const paxN = Math.min(8, Math.max(1, parseInt(s.pax, 10) || 1));
     const bagsN = Math.min(16, Math.max(0, parseInt(s.bags, 10) || 0));
     const e = s.errs || {};
+    const trip = this.checkTrip();
+    const pTxt = String(s.pickupText || '').trim(), dTxt = String(s.dropText || '').trim();
+    const whenSet = s.day != null && s.dayY != null && s.dayM != null;
+    const sheetDate = whenSet ? s.dayY + '-' + pad2(s.dayM + 1) + '-' + pad2(s.day) : '';
+    const zn = zurichNow();
+    const sheetWhenErr = whenSet && /^\d{2}:\d{2}$/.test(s.time || '') && trip.errs.when ? trip.errs.when : '';
+    const sameP = !!(s.pickupLoc && s.dropLoc && ((s.pickupLoc.mapbox_id && s.pickupLoc.mapbox_id === s.dropLoc.mapbox_id) || (pTxt && pTxt.toLowerCase() === dTxt.toLowerCase())));
+    const dockShow = !!(s.narrow && s.barAbove && !s.sheetOpen && !s.hdOpen);
     return {
+      barId: s.narrow ? 'book' : undefined, boxId: s.narrow ? undefined : 'book', barSlotRef: this.barSlotRef,
+      barFrom: pTxt, barTo: dTxt, whenLabel: whenText(s.dayY, s.dayM, s.day, s.time, s.lang), travSet: !!s.travSet, tripComplete: trip.ok,
+      sheetOpen: !!s.sheetOpen, sheetStep: s.sheetStep, openFromHero: this.openFromHero, openFromDock: this.openFromDock, closeSheet: this.closeSheet,
+      dockAttr: dockShow ? '1' : '0', dockStyle: 'top:' + s.dockTop + 'px',
+      fromHits: this.hitsFor('pickup'), toHits: this.hitsFor('dropoff'),
+      fromChosen: !!s.pickupLoc && pTxt.length >= 2, toChosen: !!s.dropLoc && dTxt.length >= 2, samePlace: sameP, air: air,
+      flightOpenBool: !!s.flightOpen, flightValid: !s.fno || FLIGHT_RE.test(s.fno),
+      sheetDate: sheetDate, minDate: zn.y + '-' + pad2(zn.m + 1) + '-' + pad2(zn.d), sheetWhenErr: sheetWhenErr,
+      shFromInput: this.shFromInput, shFromPick: this.shFromPick, shFromClear: this.shFromClear,
+      shToInput: this.shToInput, shToPick: this.shToPick, shToClear: this.shToClear,
+      shFlight: this.shFlight, openFlightSheet: this.openFlightSheet, shDate: this.shDate, shTime: this.shTime,
+      setPaxN: this.setPaxN, setBagsN: this.setBagsN, shStep: this.shStep, shSubmit: this.shSubmit,
       n0: 0, n1: 1, n2: 2, n8: 8, n12: 12, n13: 13, n14: 14, n15: 15, n16: 16, n18: 18, n20: 20, n24: 24, n30: 30,
       yes: true, no: false,
       dir: s.lang === 'ar' ? 'rtl' : 'ltr', lang: s.lang, cur: s.cur, pickLang: this.pickLang, pickCur: this.pickCur,
-      mode: s.mode,
-      heroPointOn: s.mode === 'point' || s.mode === 'hourly' || s.mode === 'return' ? '1' : null,
-      heroAirportOn: s.mode === 'one-way' ? '1' : null,
-      heroCityOn: s.mode === 'fixed' ? '1' : null,
       boxRef: this.boxRef, airAttr: air ? '1' : '0',
       pickupText: s.pickupText, dropText: s.dropText,
       editPickupA: this.editRoute('pickup', 'a'), editDropA: this.editRoute('dropoff', 'a'),
@@ -2170,7 +2318,7 @@ class Component extends DCLogic {
       tClear: t.clear || 'Clear', tSave: t.save || 'Save',
       pickupErr: e.pickup || '', destErr: e.dest || '', whenErr: e.when || '', ferr: e.flight || '',
       pickupErrAttr: e.pickup ? 'true' : 'false', destErrAttr: e.dest ? 'true' : 'false', flightErrAttr: e.flight ? 'true' : 'false',
-      showFlight: air, fno: s.fno || '', setFno: this.setFno, focusFno: this.focusFno, blurFno: this.blurFno, fhint: !e.flight,
+      showFlight: showFlightField, flightOptional: !air, flightReq: air ? 'true' : 'false', flightIcon: air ? 'plane-landing' : 'plane', fhintOpt: !air && !e.flight, showFlightOpener: showOpener, openFlight: this.openFlight, fno: s.fno || '', setFno: this.setFno, focusFno: this.focusFno, blurFno: this.blurFno, fhint: air && !e.flight,
       swap: this.swap,
       date: dateStr, day: s.day, setDay: this.setDay, time: s.time, setTime: this.setTime, timeSlots: slots, tWhenPh: t.whenPh, baseMonth: zurichYm(),
       tGroups: [t.morning, t.afternoon, t.evening], tPickupTime: t.pickupTime, tSaved: t.saved,
@@ -2182,7 +2330,7 @@ class Component extends DCLogic {
       decPax: this.decPax, incPax: this.incPax, decBag: this.decBag, incBag: this.incBag,
       submitBox: this.submitBox,
       announce: s.announce,
-      tKicker: (s.service && (SVC_KICKER[s.lang] || SVC_KICKER.en)[s.service]) || t.kicker, tH1: t.h1, tSub: t.sub, tSignIn: t.signIn,
+      tKicker: t.kicker, tH1: t.h1, tSub: t.sub, tSignIn: t.signIn,
       tTrustEmpty: t.trustEmpty, tTrustRead: t.trustRead, trustWord: trust.word,
       trustEmpty: !trust.has, trustHas: trust.has,
       trustShowMark: trust.showMark, trustLogo: trust.logo, trustSource: trust.source,
