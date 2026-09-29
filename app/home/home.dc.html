@@ -2114,6 +2114,29 @@ class Component extends DCLogic {
     return rows;
   }
   _sugRef = (el) => { this._sug = el; };
+  /** Laptop bar (26.4.2): the bar sits low in the hero, so an address list opened under From or To can start below the fold.
+   *  Scroll just enough to show it (never past the field itself), so the list is always visible below its field. */
+  componentDidUpdate(prevProps, prevState) {
+    const s = this.state;
+    if (s.narrow || !s.sug.open) return;
+    if (prevState && prevState.sug.open && prevState.sug.items === s.sug.items && prevState.sug.field === s.sug.field) return;
+    cancelAnimationFrame(this._revealRaf);
+    this._revealRaf = requestAnimationFrame(() => this.revealSug());
+  }
+  revealSug() {
+    const el = this._sug;
+    if (!el || !el.getBoundingClientRect || typeof window === 'undefined') return;
+    const r = el.getBoundingClientRect();
+    const over = r.bottom - (window.innerHeight - 16);
+    const room = r.top - 110;
+    const dy = Math.round(Math.min(over, room));
+    if (dy < 4) return;
+    const y = (window.scrollY || window.pageYOffset || 0) + dy;
+    try {
+      if (window.__vtLenis && window.__vtLenis.scrollTo) window.__vtLenis.scrollTo(y, { duration: 0.35 });
+      else window.scrollTo({ top: y, behavior: 'smooth' });
+    } catch (err) {}
+  }
   /** Keeps the highlighted row inside the scroll window without touching page scroll. */
   scrollSug(i) {
     const box = this._sug; if (!box || !box.querySelector) return;
