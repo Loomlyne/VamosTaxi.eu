@@ -679,7 +679,8 @@
     "quoteGeneric": "Wir konnten keine Preise für diese Fahrt holen. Versuchen Sie es erneut oder rufen Sie uns an unter +41 79 626 70 82.",
     "tryAgain": "Erneut versuchen",
     "tripMissing": "Fügen Sie Ihre Fahrt hinzu, um Preise zu sehen",
-    "chooseClassAria": "Klassen"
+    "chooseClassAria": "Klassen",
+    "tripWhen": "Wann"
   },
   "common": {
     "4-not-live": "4 nicht live",

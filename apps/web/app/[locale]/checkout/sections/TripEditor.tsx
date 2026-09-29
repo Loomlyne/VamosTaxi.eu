@@ -208,10 +208,12 @@ export function TripEditor({
             clearLabel={tCommon("clear")}
             testField="editor-from"
             locale={geoLocale(locale)}
-            onChange={(v) => setFromShown(v)}
+            onChange={(v) => {
+              setFromShown(v);
+              setFrom(v);
+            }}
             onPlace={(place) => {
               if (!place) {
-                setFrom(fromShown);
                 setFromId(null);
                 return;
               }
@@ -257,10 +259,12 @@ export function TripEditor({
             clearLabel={tCommon("clear")}
             testField="editor-to"
             locale={geoLocale(locale)}
-            onChange={(v) => setToShown(v)}
+            onChange={(v) => {
+              setToShown(v);
+              setTo(v);
+            }}
             onPlace={(place) => {
               if (!place) {
-                setTo(toShown);
                 setToId(null);
                 return;
               }

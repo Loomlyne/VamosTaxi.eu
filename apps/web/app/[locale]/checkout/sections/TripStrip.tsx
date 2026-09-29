@@ -36,9 +36,9 @@ export function TripStrip({
       </span>
       <div className="vt-co__strip-copy">
         <p className="vt-co__strip-route" data-co-route>
-          <span className="vt-co__strip-place">{trip.from}</span>
+          <span className="vt-co__strip-place" dir="auto">{trip.from}</span>
           <Icon name="arrow-right" size={16} color="var(--vt-text-muted)" className="vt-co__strip-arrow" />
-          <span className="vt-co__strip-place">{trip.to}</span>
+          <span className="vt-co__strip-place" dir="auto">{trip.to}</span>
         </p>
         <p className="vt-co__strip-facts" data-co-facts>
           {when ? <span className="vt-dir-keep">{when}</span> : null}

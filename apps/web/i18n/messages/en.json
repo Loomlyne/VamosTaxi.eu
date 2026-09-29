@@ -679,7 +679,8 @@
     "quoteGeneric": "We could not get prices for this trip. Try again, or call us on +41 79 626 70 82.",
     "tryAgain": "Try again",
     "tripMissing": "Add your trip to see prices",
-    "chooseClassAria": "Classes"
+    "chooseClassAria": "Classes",
+    "tripWhen": "When"
   },
   "common": {
     "4-not-live": "4 not live",

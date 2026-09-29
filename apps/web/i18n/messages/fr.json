@@ -679,7 +679,8 @@
     "quoteGeneric": "Nous n’avons pas pu obtenir les prix de ce trajet. Réessayez ou appelez-nous au +41 79 626 70 82.",
     "tryAgain": "Réessayer",
     "tripMissing": "Ajoutez votre trajet pour voir les prix",
-    "chooseClassAria": "Classes"
+    "chooseClassAria": "Classes",
+    "tripWhen": "Quand"
   },
   "common": {
     "4-not-live": "4 non actifs",

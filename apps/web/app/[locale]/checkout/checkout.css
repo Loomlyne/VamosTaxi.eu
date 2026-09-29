@@ -1009,6 +1009,10 @@
     aspect-ratio: auto;
   }
 
+  .vt-co__class .vt-veh__amount {
+    font-size: var(--vt-heading-3);
+  }
+
   .vt-co__class .vt-veh__price {
     grid-column: auto;
     flex-direction: column;

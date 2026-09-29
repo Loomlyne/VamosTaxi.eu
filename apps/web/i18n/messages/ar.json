@@ -679,7 +679,8 @@
     "quoteGeneric": "تعذّر جلب أسعار هذه الرحلة. حاول مرة أخرى أو اتصل بنا على +41 79 626 70 82.",
     "tryAgain": "حاول مرة أخرى",
     "tripMissing": "أضف رحلتك لعرض الأسعار",
-    "chooseClassAria": "الفئات"
+    "chooseClassAria": "الفئات",
+    "tripWhen": "متى"
   },
   "common": {
     "4-not-live": "4 غير مفعّلة",
