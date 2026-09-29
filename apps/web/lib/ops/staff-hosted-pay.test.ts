@@ -32,22 +32,14 @@ vi.mock("../checkout/pay-link-hosted-session", () => ({
 vi.mock("@vamos/emails/confirmation", () => ({ sendPayLink: (...a: unknown[]) => sendPayLink(...a) }));
 vi.mock("@/lib/lifecycle/notify-lifecycle", () => ({ notifyFlightNumber: vi.fn(), notifyTimeChange: vi.fn() }));
 vi.mock("./must-fix-mail", () => ({ deliverOverlapMustFix: vi.fn() }));
-vi.mock("@/lib/checkout/stripe", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/lib/checkout/stripe")>();
-  return {
-    ...actual,
-    stripeFromEnv: () => ({}),
-    retrieveCheckoutSession: (...a: unknown[]) => retrieve(...a),
-    createCheckoutSession: (...a: unknown[]) => createSession(...a),
-    expireCheckoutSession: vi.fn(),
-  };
-});
 vi.mock("../checkout/stripe", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../checkout/stripe")>();
   return {
     ...actual,
     stripeFromEnv: () => ({}),
     retrieveCheckoutSession: (...a: unknown[]) => retrieve(...a),
+    createCheckoutSession: (...a: unknown[]) => createSession(...a),
+    expireCheckoutSession: vi.fn(),
   };
 });
 
@@ -126,12 +118,26 @@ describe("staffPayLink with a hosted session (no client_secret)", () => {
     expect(sendPayLink).not.toHaveBeenCalled();
   });
 
-  it("session-expired only when the hosted session is gone, closed or the amount moved", async () => {
+  it("an expired, unreadable or re-priced stored session still sends the link (the pay page makes a fresh one)", async () => {
     sqlHandler = bookingSql(unpaidRow());
     for (const stored of [null, { ...HOSTED_OPEN, status: "expired" }, { ...HOSTED_OPEN, amount_total: 9000 }, { ...HOSTED_OPEN, url: null }]) {
+      sendPayLink.mockClear();
+      setPayLink.mockClear();
       retrieve.mockResolvedValue(stored);
-      expect(await staffPayLink(env, "VT-26-0001", true)).toEqual({ ok: false, code: "session-expired" });
+      const res = await staffPayLink(env, "VT-26-0001", true);
+      expect(res.ok && res.sent).toBe(true);
+      expect(setPayLink).toHaveBeenCalledTimes(1);
+      expect(sendPayLink).toHaveBeenCalledTimes(1);
     }
+  });
+
+  it("a complete session refuses (money may be in flight), with no token and no e-mail", async () => {
+    sqlHandler = bookingSql(unpaidRow());
+    for (const stored of [{ ...HOSTED_OPEN, status: "complete" }, { ...HOSTED_OPEN, status: "complete", payment_status: "paid" }]) {
+      retrieve.mockResolvedValue(stored);
+      expect(await staffPayLink(env, "VT-26-0001", true)).toEqual({ ok: false, code: "already-paid" });
+    }
+    expect(setPayLink).not.toHaveBeenCalled();
     expect(sendPayLink).not.toHaveBeenCalled();
   });
 

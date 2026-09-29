@@ -12,7 +12,7 @@ import { asCheckout, asSystem } from "../db/identity";
 import { mintManageToken } from "../checkout/manage-token";
 import { confirmationRecipients } from "../checkout/pay-link";
 import { setPayLink } from "../checkout/set-pay-link";
-import { retrieveCheckoutSession, hostedSessionIsPayable, stripeFromEnv } from "../checkout/stripe";
+import { retrieveCheckoutSession, stripeFromEnv } from "../checkout/stripe";
 import { openHostedPayLinkSession } from "../checkout/pay-link-hosted-session";
 import { stripeCheckoutReturnUrl } from "../checkout/return-url";
 import type { CheckoutLocale } from "../checkout/currency";
@@ -223,9 +223,11 @@ export async function staffPayLink(
   const stored = await retrieveCheckoutSession(stripe, loaded.stripeCheckoutSessionId).catch(
     () => null,
   );
-  // Hosted session: open, has a redirect url, amount unchanged. Never a client secret.
-  if (!hostedSessionIsPayable(stored, loaded.chargedRappen)) {
-    return { ok: false, code: "session-expired" };
+  // A stored hosted session that has expired (or cannot be read) does not stop the
+  // link: /checkout/pay/<token> makes or reuses a fresh hosted session on open. Only a
+  // complete session refuses, because money may be in flight.
+  if (stored?.status === "complete" || stored?.payment_status === "paid") {
+    return { ok: false, code: "already-paid" };
   }
 
   const token = await mintManageToken();
