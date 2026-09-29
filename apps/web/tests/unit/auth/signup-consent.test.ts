@@ -87,7 +87,7 @@ describe("sign-up consent on confirmation", () => {
 
 describe("sign-up leaves the flag for the callback", () => {
   it("password sign-up stores signup_consent pending in user_metadata", async () => {
-    const signUp = vi.fn(async () => ({ error: null }));
+    const signUp = vi.fn(async (..._a: unknown[]) => ({ error: null }));
     state.auth.signUp = signUp as never;
     await POST(
       authPost({ mode: "signup", method: "password", email: "a@b.co", password: "12345678", firstName: "A", lastName: "B" }),
@@ -96,7 +96,7 @@ describe("sign-up leaves the flag for the callback", () => {
   });
 
   it("magic-link sign-up stores it too", async () => {
-    const otp = vi.fn(async () => ({ error: null }));
+    const otp = vi.fn(async (..._a: unknown[]) => ({ error: null }));
     state.auth.signInWithOtp = otp as never;
     await POST(authPost({ mode: "signup", method: "magic", email: "a@b.co", firstName: "A", lastName: "B" }));
     expect(otp.mock.calls[0]?.[0]).toMatchObject({ options: { data: { signup_consent: "pending" } } });

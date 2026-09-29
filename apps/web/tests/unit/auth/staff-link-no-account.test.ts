@@ -13,7 +13,7 @@ beforeEach(() => resetHarness());
 
 describe("e-mail link", () => {
   it("dashboard never creates a user and still answers sent", async () => {
-    const otp = vi.fn(async () => ({ error: { code: "otp_disabled" } }));
+    const otp = vi.fn(async (..._a: unknown[]) => ({ error: { code: "otp_disabled" } }));
     state.auth.signInWithOtp = otp as never;
     const res = await POST(authPost(body, "dashboard.vamostaxi.site"));
     expect(await res.json()).toEqual({ stage: "sent" });
@@ -21,7 +21,7 @@ describe("e-mail link", () => {
   });
 
   it("public site keeps creating users", async () => {
-    const otp = vi.fn(async () => ({ error: null }));
+    const otp = vi.fn(async (..._a: unknown[]) => ({ error: null }));
     state.auth.signInWithOtp = otp as never;
     await POST(authPost(body));
     expect(otp.mock.calls[0]?.[0]).toMatchObject({ options: { shouldCreateUser: true } });
