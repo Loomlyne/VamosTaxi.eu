@@ -138,10 +138,12 @@ test.describe("Home laptop booking bar @component", () => {
           const boxes = [g.from!, g.to!, g.when!, g.trav!, g.cta!];
           for (const b of boxes) expect(b.height).toBe(54);
           for (const b of boxes) expect(Math.abs(b.bottom - g.from!.bottom)).toBeLessThanOrEqual(1);
-          const order = [g.from!, g.to!, g.when!, g.trav!, g.cta!];
+          const order = boxes;
           for (let i = 1; i < order.length; i++) {
-            if (g.rtl) expect(order[i].right).toBeLessThan(order[i - 1].right);
-            else expect(order[i].left).toBeGreaterThan(order[i - 1].left);
+            const cur = order[i]!;
+            const prev = order[i - 1]!;
+            if (g.rtl) expect(cur.right).toBeLessThan(prev.right);
+            else expect(cur.left).toBeGreaterThan(prev.left);
           }
           if (lang === "ar") await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
           if (w === 1440) expect(g.card!.width).toBeGreaterThanOrEqual(g.iw - 82);
