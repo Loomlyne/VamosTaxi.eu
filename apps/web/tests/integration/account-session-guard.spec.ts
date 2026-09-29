@@ -1,7 +1,7 @@
 import { test, expect, type Page } from "../support/test";
 import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
-import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { NEXT_BIN, settleCloudflareDev, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 import { nextDevEnv } from "../support/test-stack";
 
 const RUN_PROJECT = "component-1440";
@@ -38,6 +38,7 @@ test.beforeAll(async ({}, testInfo) => {
     detached: true,
     env: nextDevEnv({ SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY ?? "anon-placeholder" }),
   });
+  await settleCloudflareDev();
   await waitForNextServer(baseURL);
 });
 
