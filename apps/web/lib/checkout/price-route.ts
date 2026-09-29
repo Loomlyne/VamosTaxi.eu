@@ -2,7 +2,7 @@
 //
 // POST /api/checkout/price — pure handler. D-19 / D-35: the page shows the
 // total the server computes with the SAME checkoutCharge the intent charges.
-// No Mapbox, no database write. The browser sends the lock, a class slug,
+// No geocoding or routing work, no database write. The browser sends the lock, a class slug,
 // extra codes and an optional voucher; never an amount.
 
 import { z } from "zod";
