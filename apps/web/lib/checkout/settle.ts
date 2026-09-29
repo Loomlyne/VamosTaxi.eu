@@ -23,6 +23,7 @@ import {
   expireCheckoutSession,
   findSessionIdForPaymentIntent,
   fxFromSession,
+  paymentMethodTypeFor,
   retrieveCharge,
   retrieveCheckoutSession,
   retrieveDispute,
@@ -472,6 +473,23 @@ export async function handleStripeMessageWithDeps(
   return { ack: true };
 }
 
+/**
+ * Quick 260929-mbp: store how the customer paid so the manage page can say so. Runs after the
+ * settlement committed and never throws: a Stripe or database failure leaves the method null
+ * and the page then reads "Paid online".
+ */
+async function recordPaymentMethod(env: CloudflareEnv, stripe: Stripe, paymentIntentId: string): Promise<void> {
+  try {
+    const method = await paymentMethodTypeFor(stripe, paymentIntentId);
+    if (!method) return;
+    await asSystem(env, async (sql) => {
+      await sql`select public.checkout_payment_method_record(${paymentIntentId}, ${method})`;
+    });
+  } catch {
+    // Best-effort by design.
+  }
+}
+
 export async function handleStripeMessage(
   env: CloudflareEnv,
   message: StripeQueueMessage,
@@ -545,6 +563,9 @@ export async function handleStripeMessage(
         });
         const row = rows[0];
         if (!row) throw new Error(extra ? "checkout_extra_payment_settle returned no row" : "checkout_payment_settle returned no row");
+        if (!extra && input.outcome === "succeeded") {
+          await recordPaymentMethod(env, stripe, input.paymentIntentId ?? "");
+        }
         return {
           booking_id: String(row.booking_id),
           reference: String(row.reference),

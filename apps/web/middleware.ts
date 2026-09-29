@@ -346,9 +346,15 @@ async function dashboardHostMiddleware(request: NextRequest): Promise<NextRespon
     return opsConsoleNotFound(request, client.response);
   }
 
+  // The email-link callback answers a failed or expired link with /sign-in?error=1. On this
+  // host that path is /login, and the form reads ?error=1 to explain what happened.
+  const loginUrl = dashboardAbs(request, "/login");
+  if (path === "/sign-in" && request.nextUrl.searchParams.get("error") === "1") {
+    loginUrl.searchParams.set("error", "1");
+  }
   return applyStagingNoindex(
     request,
-    copyCookies(client.response, NextResponse.redirect(dashboardAbs(request, "/login"), 308)),
+    copyCookies(client.response, NextResponse.redirect(loginUrl, 308)),
   );
 }
 

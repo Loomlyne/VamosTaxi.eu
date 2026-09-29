@@ -93,6 +93,8 @@ button,.vt-btn,.vt-iconbtn{box-shadow:none}
 [data-af-opt-t]{font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-semibold);color:var(--vt-charcoal-900);line-height:1.35}
 [data-af-opt-c]{font-size:var(--vt-body-xs);color:var(--vt-text-muted);line-height:1.35}
 [data-af-links]{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px}
+[data-af-code]{display:flex;flex-direction:column;gap:12px;padding-top:20px;border-top:1px solid var(--vt-border-subtle)}
+[data-af-err]{margin:0;display:flex;align-items:center;gap:8px;font-size:var(--vt-body-sm);color:var(--vt-danger)}
 @media (prefers-reduced-motion:reduce){[data-af-view],[data-af-fill]{animation:none}[data-af-fill]{transform:scaleX(1)}}</style>
 </helmet>
 <div data-af="1" style="width:100%;display:flex;flex-direction:column;gap:30px;font-family:var(--vt-font-body);color:var(--vt-text-primary)">
@@ -119,6 +121,25 @@ button,.vt-btn,.vt-iconbtn{box-shadow:none}
 <sc-if value="{{ hForgot }}"><p data-af-sub="1">Enter the email you booked with and we send you a link to set a new password.</p></sc-if>
 </div>
 
+<sc-if value="{{ bannerExpired }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" role="alert" hint-size="100%,72px">That link has expired or was already used. Ask for a new one below.</x-import>
+</sc-if>
+
+<sc-if value="{{ bannerRate }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" role="alert" hint-size="100%,56px">Too many tries. Wait a minute and try again.</x-import>
+</sc-if>
+<sc-if value="{{ bannerNotStaff }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" role="alert" hint-size="100%,72px">This account can't open the dashboard. Use your staff sign-in.</x-import>
+</sc-if>
+<sc-if value="{{ bannerUnconfirmed }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" role="alert" title="Confirm your email first" hint-size="100%,88px">We sent you a link when you signed up. <button type="button" data-af-link="1" data-on-alert="1" onClick="{{ resendConfirm }}">Send the link again</button></x-import>
+</sc-if>
+<sc-if value="{{ bannerConfirmSent }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="info" role="status" hint-size="100%,56px">Check your inbox. We sent a new link.</x-import>
+</sc-if>
+<sc-if value="{{ bannerConfirmFail }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" role="alert" hint-size="100%,56px">Could not send the link. Try again.</x-import>
+</sc-if>
 <sc-if value="{{ bannerCred }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" title="That email and password don't match" hint-size="100%,88px">Try again, or <button type="button" data-af-link="1" data-on-alert="1" onClick="{{ useMagic }}">email yourself a sign-in link</button> instead.</x-import>
 </sc-if>
@@ -166,7 +187,7 @@ button,.vt-btn,.vt-iconbtn{box-shadow:none}
 
 <div data-af-links="1">
 <sc-if value="{{ linkSignInPw }}" hint-placeholder-val="{{ true }}"><button type="button" data-af-link="1" onClick="{{ goForgot }}">Forgot password?</button></sc-if>
-<sc-if value="{{ linkSignInPw }}"><button type="button" data-af-link="1" onClick="{{ useMagic }}">Email me a link instead</button></sc-if>
+<sc-if value="{{ linkSignInMagic }}"><button type="button" data-af-link="1" onClick="{{ useMagic }}">Email me a link instead</button></sc-if>
 <sc-if value="{{ linkSignUpPw }}"><button type="button" data-af-link="1" onClick="{{ useMagic }}">Sign up with a link instead</button></sc-if>
 <sc-if value="{{ isMagic }}"><button type="button" data-af-link="1" onClick="{{ usePassword }}">Use a password instead</button></sc-if>
 <sc-if value="{{ hForgot }}"><button type="button" data-af-link="1" onClick="{{ backToSignIn }}">Back to sign in</button></sc-if>
@@ -201,8 +222,20 @@ button,.vt-btn,.vt-iconbtn{box-shadow:none}
 
 <p data-note-b="1">The link works once and expires after 1 hour. Nothing there? Check spam, then send another.</p>
 
+<sc-if value="{{ showCode }}">
+<div data-af-code="1">
+<p data-af-kick="1">Or use the code</p>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="6-digit code" type="text" size="lg" inputMode="numeric" pattern="[0-9 ]*" maxLength="{{ n12 }}" autoComplete="one-time-code" hint="It is in the same email as the link." value="{{ code }}" onChange="{{ setCode }}" onKeyDown="{{ codeKey }}" error="{{ codeErrText }}" hint-size="100%,84px"></x-import>
+<div data-af-cta="1" style="width:100%">
+<sc-if value="{{ codeIdle }}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" block="{{ yes }}" onClick="{{ submitCode }}" disabled="{{ codeDisabled }}" hint-size="100%,54px">Sign in</x-import></sc-if>
+<sc-if value="{{ codeBusy }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" block="{{ yes }}" disabled="{{ yes }}" aria-busy="true" hint-size="100%,54px">Signing in</x-import></sc-if>
+</div>
+</div>
+</sc-if>
+
 <div style="display:flex;flex-direction:column;gap:14px;align-items:stretch">
 <sc-if value="{{ resent }}"><p style="margin:0;display:flex;align-items:center;gap:8px;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n16 }}" color="var(--vt-success)" hint-size="16px,16px"></x-import>Sent again just now.</p></sc-if>
+<sc-if value="{{ resendLimited }}"><p data-af-err="1" role="alert"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-alert" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>Too many tries. Wait a minute and try again.</p></sc-if>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" size="lg" block="{{ yes }}" icon="mail" onClick="{{ resend }}" hint-size="100%,54px">Send another link</x-import>
 <sc-if value="{{ sentForgot }}"><button type="button" data-af-link="1" onClick="{{ backToSignIn }}">Back to sign in</button></sc-if>
 <sc-if value="{{ sentMagicAny }}" hint-placeholder-val="{{ true }}"><button type="button" data-af-link="1" onClick="{{ usePassword }}">Use a password instead</button></sc-if>
@@ -238,7 +271,7 @@ button,.vt-btn,.vt-iconbtn{box-shadow:none}
 </div>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:640},&quot;mode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;signin&quot;,&quot;signup&quot;,&quot;forgot&quot;],&quot;default&quot;:&quot;signin&quot;,&quot;tsType&quot;:&quot;'signin'|'signup'|'forgot'&quot;},&quot;method&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;password&quot;,&quot;magic&quot;],&quot;default&quot;:&quot;password&quot;,&quot;tsType&quot;:&quot;'password'|'magic'&quot;},&quot;stage&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;form&quot;,&quot;sent&quot;,&quot;verifying&quot;,&quot;returning&quot;],&quot;default&quot;:&quot;form&quot;,&quot;tsType&quot;:&quot;'form'|'sent'|'verifying'|'returning'&quot;},&quot;banner&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;&quot;,&quot;credentials&quot;,&quot;registered&quot;],&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;'credentials'|'registered'|null&quot;},&quot;email&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;firstName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;lastName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;frozen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;onState&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(s: {mode:string;method:string;stage:string;banner:string|null}) =&gt; void&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:640},&quot;mode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;signin&quot;,&quot;signup&quot;,&quot;forgot&quot;],&quot;default&quot;:&quot;signin&quot;,&quot;tsType&quot;:&quot;'signin'|'signup'|'forgot'&quot;},&quot;method&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;password&quot;,&quot;magic&quot;],&quot;default&quot;:&quot;password&quot;,&quot;tsType&quot;:&quot;'password'|'magic'&quot;},&quot;stage&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;form&quot;,&quot;sent&quot;,&quot;verifying&quot;,&quot;returning&quot;],&quot;default&quot;:&quot;form&quot;,&quot;tsType&quot;:&quot;'form'|'sent'|'verifying'|'returning'&quot;},&quot;banner&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;&quot;,&quot;credentials&quot;,&quot;registered&quot;,&quot;expired&quot;,&quot;rate-limited&quot;,&quot;not-staff&quot;,&quot;unconfirmed&quot;],&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;'credentials'|'registered'|'expired'|'rate-limited'|'not-staff'|'unconfirmed'|null&quot;},&quot;email&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;firstName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;lastName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;frozen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;onState&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(s: {mode:string;method:string;stage:string;banner:string|null}) =&gt; void&quot;}}">
 const REGISTERED = ['taken@vamostaxi.site'];
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i;
 function b64urlToBuf(s) {
@@ -319,8 +352,20 @@ class Component extends DCLogic {
     errors: {},
     resent: false,
     showPw: false,
+    code: '',
+    codeError: '',
+    codeBusy: false,
+    resendLimited: false,
+    confirmSent: false,
+    confirmFailed: false,
+    confirmBusy: false,
   };
   componentDidMount() {
+    /* The email-link callback sends a failed, expired or already-used link here as ?error=1. */
+    try {
+      if (!this.props.frozen && !this.state.banner && this.state.stage === 'form' &&
+          new URLSearchParams(location.search).get('error') === '1') this.setState({ banner: 'expired' });
+    } catch (e) {}
     if (this.state.stage === 'returning') this.armExit();
     if (this.state.stage === 'verifying' && (this.props.frozen || this.props.surface === 'ops')) this.armPasskey();
   }
@@ -405,6 +450,7 @@ class Component extends DCLogic {
   };
   runPasskeySignIn() {
     this.liveAuth({ action: 'passkey-start' }).then((start) => {
+      if (start && start.reason) return this.applyLive(start, 'signin', 'passkey', true);
       if (!start || !start.options) return this.go({ stage: 'form', banner: 'credentials' });
       return navigator.credentials.get({ publicKey: decodeRequest(start.options) }).then((cred) => {
         if (!cred) return this.go({ stage: 'form', banner: 'credentials' });
@@ -431,7 +477,7 @@ class Component extends DCLogic {
   }
   cancelPasskey = () => { clearTimeout(this.pkTimer); this.go({ stage: 'form', method: 'password', banner: null }); };
   go(patch) {
-    this.setState(Object.assign({ errors: {}, resent: false }, patch), () => {
+    this.setState(Object.assign({ errors: {}, resent: false, code: '', codeError: '', codeBusy: false, resendLimited: false, confirmSent: false, confirmFailed: false }, patch), () => {
       const s = this.state;
       if (this.props.onState) this.props.onState({ mode: s.mode, method: s.method, stage: s.stage, banner: s.banner });
       if (s.stage === 'returning') this.armExit();
@@ -460,10 +506,21 @@ class Component extends DCLogic {
       body: JSON.stringify(Object.assign({ locale: this.locale() }, this.returnTo(true) ? { returnTo: this.returnTo(true) } : {}, body)),
     }).then((r) => r.json()).catch(() => null);
   }
+  /* The reasons POST /api/auth gives instead of a generic failure (429 rate-limited, 403
+     not-staff, 400 email-not-confirmed). Anything else keeps the old credentials handling. */
+  reasonBanner(reason) {
+    return reason === 'rate-limited' ? 'rate-limited'
+      : reason === 'not-staff' ? 'not-staff'
+      : reason === 'email-not-confirmed' ? 'unconfirmed' : null;
+  }
   applyLive(result, mode, method, skipEnroll) {
     if (!result) {
       if (mode === 'signin' && method === 'password') return this.go({ banner: 'credentials' });
       return this.go({ stage: 'sent' });
+    }
+    if (!result.ok) {
+      const shown = this.reasonBanner(result.reason);
+      if (shown) return this.go({ stage: 'form', banner: shown });
     }
     if (result.ok) {
       this.saveSession();
@@ -488,9 +545,47 @@ class Component extends DCLogic {
     return { mode: 'signin', method: 'password', email: addr, password };
   }
   resend = () => {
-    this.setState({ resent: true });
+    this.setState({ resent: true, resendLimited: false });
     if (this.props.frozen || this.props.surface === 'ops') return;
-    this.liveAuth(this.payload());
+    this.liveAuth(this.payload()).then((result) => {
+      if (result && result.reason === 'rate-limited') this.setState({ resent: false, resendLimited: true });
+    });
+  };
+  /* The same email carries a 6-digit code next to the link. Typing it is a sign-in of its
+     own: verify-code answers with the session cookies, then this behaves like any other
+     successful sign-in (applyLive). Spaces from a paste are dropped, never sent. */
+  setCode = (e) => this.setState({ code: String(e.target.value || '').replace(/\D/g, '').slice(0, 6), codeError: '' });
+  codeKey = (e) => { if (e && e.key === 'Enter') { e.preventDefault(); this.submitCode(); } };
+  submitCode = () => {
+    const code = this.state.code.replace(/\s+/g, '');
+    if (this.state.codeBusy || !/^\d{6}$/.test(code)) return;
+    if ((this.props.frozen || this.props.surface === 'ops')) {
+      if (code === '000000') return this.setState({ codeError: 'invalid', code: '' });
+      this.saveSession();
+      return this.go({ stage: 'returning', banner: null });
+    }
+    this.setState({ codeBusy: true, codeError: '' });
+    this.liveAuth({ mode: 'verify-code', email: this.state.email.trim(), code: code }).then((result) => {
+      this.setState({ codeBusy: false });
+      if (result && result.ok) return this.applyLive(result, 'signin', 'code');
+      const reason = result && result.reason;
+      if (reason === 'not-staff') return this.applyLive(result, 'signin', 'code');
+      this.setState({
+        code: reason === 'code-invalid' ? '' : this.state.code,
+        codeError: reason === 'code-invalid' ? 'invalid' : reason === 'rate-limited' ? 'limited' : 'failed',
+      });
+    });
+  };
+  resendConfirm = () => {
+    if (this.state.confirmBusy) return;
+    if ((this.props.frozen || this.props.surface === 'ops')) return this.setState({ confirmSent: true });
+    this.setState({ confirmBusy: true, confirmFailed: false });
+    this.liveAuth({ mode: 'resend-confirmation', email: this.state.email.trim() }).then((result) => {
+      this.setState({ confirmBusy: false });
+      if (result && result.reason === 'rate-limited') return this.go({ banner: 'rate-limited' });
+      if (result && result.stage === 'sent') return this.setState({ confirmSent: true });
+      this.setState({ confirmFailed: true });
+    });
   };
   submit = () => {
     const { mode, method, email, password, firstName, lastName } = this.state;
@@ -551,12 +646,18 @@ class Component extends DCLogic {
       pwType: this.state.showPw ? 'text' : 'password',
       eyeLabel: this.state.showPw ? 'Hide password' : 'Show password',
       togglePw: this.togglePw,
+      bannerExpired: isForm && banner === 'expired',
+      bannerRate: isForm && banner === 'rate-limited', bannerNotStaff: isForm && banner === 'not-staff',
+      bannerUnconfirmed: isForm && banner === 'unconfirmed' && !this.state.confirmSent,
+      bannerConfirmSent: isForm && banner === 'unconfirmed' && this.state.confirmSent,
+      bannerConfirmFail: isForm && banner === 'unconfirmed' && this.state.confirmFailed,
       bannerCred: isForm && banner === 'credentials', bannerTaken: isForm && banner === 'registered',
       ctaSignIn: isForm && mode === 'signin' && !isMagic,
       ctaSignUp: isForm && mode === 'signup' && !isMagic,
       ctaMagic: isForm && isMagic,
       ctaReset: isForm && mode === 'forgot',
       linkSignInPw: isForm && mode === 'signin' && !isMagic,
+      linkSignInMagic: isForm && mode === 'signin' && !isMagic,
       linkSignUpPw: isForm && mode === 'signup' && !isMagic,
       isMagic: isForm && isMagic,
       sentSignIn: isSent && mode === 'signin', sentSignUp: isSent && mode === 'signup', sentForgot: isSent && mode === 'forgot',
@@ -571,6 +672,14 @@ class Component extends DCLogic {
       setMode: this.setMode, useMagic: this.useMagic, usePassword: this.usePassword,
       goForgot: this.goForgot, backToSignIn: this.backToSignIn, signInInstead: this.signInInstead,
       resend: this.resend, submit: this.submit,
+      showCode: isSent && mode !== 'forgot', n12: 12,
+      code: this.state.code, setCode: this.setCode, codeKey: this.codeKey, submitCode: this.submitCode,
+      codeIdle: !this.state.codeBusy, codeBusy: this.state.codeBusy,
+      codeDisabled: !/^\d{6}$/.test(this.state.code),
+      codeErrText: this.state.codeError === 'invalid' ? 'Check the code. It is 6 digits and works for one hour.'
+        : this.state.codeError === 'limited' ? 'Too many tries. Wait a minute and try again.'
+        : this.state.codeError === 'failed' ? 'Could not check the code. Try again.' : undefined,
+      resendLimited: this.state.resendLimited,
     };
   }
 }

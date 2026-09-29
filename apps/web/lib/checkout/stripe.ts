@@ -405,3 +405,25 @@ export function fxFromSession(session: Stripe.Checkout.Session): {
     presentmentCurrency: null,
   };
 }
+
+/**
+ * Quick 260929-mbp: what the customer paid with, as the manage page names it. Read from the
+ * PaymentIntent's latest charge. A card paid through a wallet reads `apple_pay` / `google_pay`,
+ * otherwise the Stripe method type (`card`, `twint`, `link`, ...). Lower-case `[a-z0-9_]` only,
+ * else null. Best-effort: any Stripe error returns null.
+ */
+export async function paymentMethodTypeFor(stripe: Stripe, paymentIntentId: string): Promise<string | null> {
+  if (!paymentIntentId.startsWith("pi_")) return null;
+  try {
+    const pi = await stripe.paymentIntents.retrieve(paymentIntentId, { expand: ["latest_charge"] });
+    const charge = pi.latest_charge && typeof pi.latest_charge === "object" ? pi.latest_charge : null;
+    const details = charge?.payment_method_details;
+    const type = details?.type ?? null;
+    if (!type) return null;
+    const wallet = type === "card" ? details?.card?.wallet?.type : null;
+    const method = wallet === "apple_pay" || wallet === "google_pay" ? wallet : type;
+    return /^[a-z0-9_]{1,40}$/.test(method) ? method : null;
+  } catch {
+    return null;
+  }
+}

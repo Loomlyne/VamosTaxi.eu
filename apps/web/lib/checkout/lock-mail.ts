@@ -5,7 +5,7 @@
 // Unpaid non-test contacts only. Old locked CHF only. is_test: no mails.
 
 import { sendExpired, sendPriceChanged, type EmailLocale } from "@vamos/emails/confirmation";
-import { asSystem } from "../db/identity";
+import { loadExpiredBookingContact, loadPriceChangedUnpaidContacts } from "../db/system-reads";
 
 type ContactRow = {
   id: string;
@@ -49,21 +49,7 @@ async function skipSendContacts(
 }
 
 export async function notifyPriceChangedForUnpaid(env: CloudflareEnv): Promise<number> {
-  const rows = await asSystem(env, async (sql) => {
-    return sql<ContactRow[]>`
-      select
-        b.id,
-        b.contact_email::text as contact_email,
-        b.locale,
-        coalesce(b.is_test, false) as is_test,
-        ps.total_rappen as locked_rappen
-      from public.bookings as b
-      join public.price_snapshots as ps on ps.id = b.price_snapshot_id
-     where b.status = 'pending'
-       and coalesce(b.is_test, false) = false
-       and b.erased_at is null
-    `;
-  });
+  const rows = await loadPriceChangedUnpaidContacts(env);
   return skipSendContacts(env, rows, "price_changed");
 }
 
@@ -74,21 +60,8 @@ export async function notifyExpiredForBookings(
   if (bookingIds.length === 0) return 0;
   const rows: ContactRow[] = [];
   for (const id of bookingIds) {
-    const found = await asSystem(env, async (sql) => {
-      return sql<ContactRow[]>`
-        select
-          b.id,
-          b.contact_email::text as contact_email,
-          b.locale,
-          coalesce(b.is_test, false) as is_test,
-          ps.total_rappen as locked_rappen
-        from public.bookings as b
-        join public.price_snapshots as ps on ps.id = b.price_snapshot_id
-       where b.id = ${id}::uuid
-       limit 1
-      `;
-    });
-    if (found[0]) rows.push(found[0]);
+    const found = await loadExpiredBookingContact(env, id);
+    if (found) rows.push(found);
   }
   return skipSendContacts(env, rows, "expired");
 }

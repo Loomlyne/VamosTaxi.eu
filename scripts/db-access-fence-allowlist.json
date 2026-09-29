@@ -1,7 +1,7 @@
 {
   "_comment": "Plan 03-06 / D-05, D-06, D-08, D-10, D-31 -- the named exceptions scripts/check-db-access-fences.mjs loads, never inlines. Every entry here is a deliberate, reviewed exception naming one file (or, for a directory, one already-reviewed local-simulation area) -- when a check fires on correct code, this list gets a new named entry, the check's own regex never gets loosened.",
 
-  "_allowed_postgres_importers_comment": "Files permitted to `import postgres from \"postgres\"` (or `require`/re-export it) directly (interfaces ban #1, D-10). The two packages/db core modules and the staging probe are the shipped door; packages/db/test/local's four files and one fixture file construct raw postgres.js clients only to drive the SAME shipped `withIdentity` through a pinned/simulated connection for the DATA-06 local proof (D-16) -- there is no second, inlined copy of the identity SQL anywhere in this list. The last three (26.3) run the real checkout code against the port-shifted local stack on 127.0.0.1:55322 in one rolled-back transaction and refuse any other host. 26.0: packages/db/test/support/test-stack-guard.ts opens one max:1 client to read pg_roles for the throwaway-stack marker and ends it itself. 26.0-04: packages/db/test/support/worker-client.ts mirrors the Worker client options for D-07 tests (workerSql); worker-client-parity.test.ts opens a default (fetch_types on) control client and ends its clients.",
+  "_allowed_postgres_importers_comment": "Files permitted to `import postgres from \"postgres\"` (or `require`/re-export it) directly (interfaces ban #1, D-10). The two packages/db core modules and the staging probe are the shipped door; packages/db/test/local's four files and one fixture file construct raw postgres.js clients only to drive the SAME shipped `withIdentity` through a pinned/simulated connection for the DATA-06 local proof (D-16) -- there is no second, inlined copy of the identity SQL anywhere in this list. packages/db/test/local/worker-arrays.test.ts (260929-pga) drives the shipped publicSql/withIdentity clients against a local stack inside one rolled-back transaction (fixture via .unsafe, local host only). The last three (26.3) run the real checkout code against the port-shifted local stack on 127.0.0.1:55322 in one rolled-back transaction and refuse any other host.",
   "allowed_postgres_importers": [
     "packages/db/src/identity.ts",
     "packages/db/src/public.ts",
@@ -9,6 +9,8 @@
     "packages/db/test/local/connection-reuse.test.ts",
     "packages/db/test/local/local-fixtures.ts",
     "packages/db/test/local/no-begin.test.ts",
+    "packages/db/test/local/worker-arrays.test.ts",
+    "apps/web/lib/db/system-reads.local.test.ts",
     "packages/db/test/fixtures/two-customers.ts",
     "packages/db/test/support/test-stack-guard.ts",
     "packages/db/test/support/worker-client.ts",
@@ -36,7 +38,9 @@
     "packages/db/src/identity.ts",
     "apps/isolation-probe/src/index.ts",
     "packages/db/test/local/no-begin.test.ts",
-    "packages/db/test/local/connection-reuse.test.ts"
+    "packages/db/test/local/connection-reuse.test.ts",
+    "packages/db/test/local/worker-arrays.test.ts",
+    "apps/web/lib/db/system-reads.local.test.ts"
   ],
 
   "_allowed_session_set_comment": "Files permitted a `set_config(..., false)` call or a bare `SET ROLE`/`SET SESSION` (interfaces ban #6). apps/isolation-probe/src/index.ts's `bindIdentity()` helper deliberately reproduces the session-scoped (non-transaction-local) SET for NC1/NC2/`session` (D-17); connection-reuse.test.ts's one occurrence is the same negative-control shape reproduced locally. packages/db/src/identity.ts's `resetPooledSession` is the D-01 checkout sanitizer (Hyperdrive RESET is not trusted) -- session-scoped clears of leftover identity GUCs, not a request identity bind.",
@@ -48,6 +52,7 @@
 
   "_force_dynamic_exempt_comment": "D-06's named allow-list for a file that imports an identity wrapper (or `publicSql`) without carrying `force-dynamic` itself or being a Route Handler. Plan 05-18: `apps/web/lib/db/content.ts` is a library (the first `publicSql` consumer) — `force-dynamic` is meaningless on it, and the fence cannot see the consuming page (05-21), which is where D-10's `force-dynamic` belongs. Phase 5 adds entries one at a time, by name, never a wildcard or a whole-directory exemption. fix/main-green: five more libraries, same situation as content.ts (no route of their own; every consumer already carries force-dynamic) -- lib/ops/resolve-booking-id.ts (asStaff booking-ref lookup, called only from lib/ops/{voucher,bookings-write,refund,assign,tickets-write}.ts), lib/ops/voucher.ts (only consumer: app/[locale]/(ops)/api/staff/bookings/[id]/voucher/route.ts), lib/ops/tickets-write.ts (only consumer: app/[locale]/(ops)/api/staff/tickets/[id]/route.ts), lib/ops/ticket-inbound.ts (asSystem, only consumer: app/api/webhooks/resend/route.ts), lib/public/reviews.ts (publicSql, identity-free, consumers: app/api/reviews/route.ts, the staff reviews routes and the 'use server' ops/reviews/actions.ts).",
   "force_dynamic_exempt": [
+    "apps/web/lib/auth/signup-consent.ts",
     "apps/web/lib/db/content.ts",
     "apps/web/lib/ops/resolve-booking-id.ts",
     "apps/web/lib/ops/voucher.ts",

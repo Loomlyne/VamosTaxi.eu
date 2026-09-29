@@ -47,7 +47,7 @@ dropped or parked: do not start it. Tell the owner and point to this file.
 | 20 | Security audit fix-up | After 26.3 (and 26.0) | **Kept open on purpose.** Nothing is left to build from the 2026-09-19 list: 52 items fixed and live, 7 accepted with a written reason, K10 (staff second step) solved by 26.1 (code asked once an authenticator app is enrolled), K11 (leaked-password check) on since the move to Supabase Pro on 2026-09-28. Owner wants a new security check of the changed app, and the phase updated to match it. Plans 20-04 and 20-05 as written are out of date. |
 | 05-24 | Checks that need a person: sign-up e-mails, contact form | After 26.3 | |
 | 05-28 | Four owner comments on vamostaxi.site/contact | After 26.3 | The always-visible Turnstile "Success" box, the resize corner on the message field, social controls, contact mail delivery. |
-| 26.0 | Main green | After 26.3 is live | Owner rulings and open items: `.planning/phases/26.0-main-green/26.0-OPEN-ITEMS.md`. The refund fix in PR #63 rides with it. PRs #62, #63, #64 stay open until then. |
+| 26.0 | Main green | After 26.3 is live | Owner rulings and open items: `.planning/phases/26.0-main-green/26.0-OPEN-ITEMS.md`. The refund fix in PR #63 rides with it. PR #62 stays open. #63 and #64 were closed on 2026-09-29 with a comment and an archive tag. |
 | 26.2 | Codebase audit, bug fix and simplify | After 26.0 | PR #61 was closed unmerged; 26.2 gets a fresh plan. |
 
 ## Owner-held, not a gap
@@ -64,12 +64,14 @@ dropped or parked: do not start it. Tell the owner and point to this file.
 
 ## Order from here
 
-26.3 (running) → 26.0 → 26.2 → 19 and 20, rewritten → 27 to 29 (pixel stays off until the owner
-supplies the legal lines in four languages).
+26.3 (shipped 2026-09-29, af93fc8e) → 26.0 → 26.2 → 20 → 19 → 27 to 29 (pixel stays off until the
+owner supplies the legal lines in four languages). Order of 20 before 19 signed by the owner on
+2026-09-29. Phase 26.4 (owner comments 4 to 6 after the 26.3 ship) and the small fixes after the
+ship run beside 26.0.
 
 ## Not closed by this file
 
-Branches, stashes, worktrees and the open PRs #62, #63, #64 are untouched. Removing any of
+Branches, stashes, worktrees and the open PR #62 are untouched (#63 and #64 closed with archive tags). Removing any of
 them needs the owner's yes and proof that the content is safe elsewhere.
 
 ## Folders removed on 2026-09-29
@@ -85,3 +87,15 @@ no session reads their plans. Git keeps them; the last commit that has them is `
 
 Phases 22 to 25 never had a folder. Their text in `ROADMAP.md`, and the text of 17, 21 and
 04.3, is removed at the 26.3 ship, because the 26.3 branch rewrote that file.
+
+## Rewritten and signed on 2026-09-29
+
+| Phase | State |
+|---|---|
+| 19 | Rewritten for the 26.3 checkout, plans 19-01 to 19-05, signed. Waits for 20 and for the owner's paid steps. |
+| 20 | New security check, plans 20-06 to 20-09, signed. 20-04 and 20-05 superseded. |
+| 26.2 | Fresh plan, 26.2-01 to 26.2-12, signed. Starts after 26.0 has landed. |
+
+The `ROADMAP.md` lines for these are listed in
+`.planning/phases/26.2-codebase-audit-bug-fix-simplify/PLANNING-REWRITE-HANDOVER-2026-09-29.md`.
+They are applied when the 26.4 branch, which also edits `ROADMAP.md`, has landed.

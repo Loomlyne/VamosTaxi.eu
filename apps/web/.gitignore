@@ -1,0 +1,4 @@
+
+# Local auth e2e harness (tests/e2e-worker/mkcfg.mjs)
+wrangler.e2e.jsonc
+.e2e-sb.env

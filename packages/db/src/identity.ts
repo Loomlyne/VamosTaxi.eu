@@ -29,6 +29,7 @@
 //     silent on the first request.
 
 import postgres from "postgres";
+import { pgArrayTypes } from "./pg-types";
 import { claimsForSql, type VamosClaims } from "./claims";
 
 /**
@@ -133,6 +134,7 @@ function client(connectionString: string): postgres.Sql {
   return postgres(connectionString, {
     max: 1,
     fetch_types: false,
+    types: pgArrayTypes,
     prepare: true,
     connect_timeout: 10,
   });

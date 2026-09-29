@@ -8,8 +8,13 @@ import type { EmailOtpType } from "@supabase/supabase-js";
 import { validateAuthRedirectTarget } from "@/lib/auth/redirect-target";
 import { routing } from "@/i18n/routing";
 import { trustedSiteOrigin } from "@/lib/security/origin";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import {
+  authSetCookieHeader,
+  createServerSupabaseClient,
+  type AuthSetCookie,
+} from "@/lib/supabase/server";
 import { log } from "@/lib/logger";
+import { recordSignupConsentOnConfirm } from "@/lib/auth/signup-consent";
 
 export const dynamic = "force-dynamic";
 
@@ -49,10 +54,17 @@ export async function GET(request: Request): Promise<NextResponse> {
   const origin = trustedSiteOrigin(url.host) ?? "https://vamostaxi.site";
   const ctx = { requestId: crypto.randomUUID(), route: "/api/auth/callback", locale };
 
-  const fail = (): NextResponse =>
-    NextResponse.redirect(new URL(signInErrorPath(locale), origin), 302);
+  const setCookies: AuthSetCookie[] = [];
+  // next/headers cookies().set does not attach to a hand-built redirect on the Worker:
+  // every cookie the client wrote goes onto the response by hand.
+  const redirectTo = (path: string): NextResponse => {
+    const response = NextResponse.redirect(new URL(path, origin), 302);
+    for (const cookie of setCookies) response.headers.append("Set-Cookie", authSetCookieHeader(cookie));
+    return response;
+  };
+  const fail = (): NextResponse => redirectTo(signInErrorPath(locale));
 
-  const supabase = await createServerSupabaseClient(request);
+  const supabase = await createServerSupabaseClient(request, { cookies: setCookies });
   let error: { message?: string; code?: string } | null = null;
 
   if (code) {
@@ -72,6 +84,9 @@ export async function GET(request: Request): Promise<NextResponse> {
     return fail();
   }
 
+  // First confirmation of a sign-up: write the consent record now that a session exists.
+  await recordSignupConsentOnConfirm({ request, supabase, fallbackLocale: locale, ctx });
+
   const target = validateAuthRedirectTarget(next, locale);
-  return NextResponse.redirect(new URL(target, origin), 302);
+  return redirectTo(target);
 }

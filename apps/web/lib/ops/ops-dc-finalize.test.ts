@@ -33,15 +33,15 @@ describe("Phase 6 finalize — class line-up and staff hash", () => {
     expect(fleet).toMatch(/'Economy', 'Business', 'Van luxury'/);
   });
 
-  it("26.1 D-14: every ops list is the three classes and new-trip quotes live slugs", () => {
+  it("26.1 D-14: every ops list is the three classes and new-trip takes its classes from the quote", () => {
     const data = read("app/vamos-ops-data.js");
     const list = data.match(/VEHICLE_CLASSES = (\[[^\]]*\])/);
     expect(JSON.parse((list && list[1]) || "null")).toEqual(["Economy", "Business", "Van luxury"]);
 
     const newTrip = read("app/ops/OpsNewTrip.dc.html");
-    const block = newTrip.match(/classOptions: \[([\s\S]*?)\]/);
-    const values = [...((block && block[1]) || "").matchAll(/value: '([^']*)'/g)].map((m) => m[1]);
-    expect(values).toEqual(["saden", "mercedes-benz-v-class", "van-luxury"]);
+    // 260929-nts: class options come from the quote answer, never hard-coded slugs.
+    expect(newTrip).toMatch(/classOptions: classChoices\(s\.classes\)/);
+    expect(newTrip).not.toMatch(/'saden'|'mercedes-benz-v-class'|'van-luxury'/);
     expect(newTrip).not.toMatch(/\|\| 'economy'/);
 
     for (const name of ["OpsFleet", "OpsBoard", "OpsReviews", "OpsDash", "OpsNewTrip", "OpsPricing", "OpsCalendar", "OpsCalendarBoard"]) {

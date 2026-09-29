@@ -4,7 +4,6 @@
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { routing } from "@/i18n/routing";
-import { customerClaims } from "@/lib/account/session";
 import { checkWriteRateLimit } from "@/lib/abuse/rate-limit";
 import { log } from "@/lib/logger";
 import {
@@ -12,8 +11,10 @@ import {
   otpRequestSchema,
   resetEmailSchema,
   signInPasswordSchema,
+  resendConfirmationSchema,
   signUpPasswordSchema,
   updatePasswordSchema,
+  verifyCodeSchema,
 } from "@/lib/auth/schemas";
 import {
   FORM_CREDENTIALS,
@@ -21,6 +22,7 @@ import {
   emailNext,
   runOtp,
   runPasswordReset,
+  runResendConfirmation,
   runSignInPassword,
   runSignOut,
   runSignUpPassword,
@@ -60,24 +62,28 @@ import {
   readOwnSignInMethod,
   setOwnSignInMethod,
 } from "@/lib/auth/staff-sign-in-method";
-import { asCustomer } from "@/lib/db/identity";
 import { getStaffClaims, staffDecisionOf, type StaffAuthClient } from "@/lib/ops/session";
-import {
-  recordConsent,
-  type ConsentLocale,
-  type ConsentMethod,
-} from "@/lib/consent/bind";
-import { mintConsentSubject, readConsentSubject } from "@/lib/consent/cookie";
-import { cfConnectingIp, truncateClientIp } from "@/lib/consent/ip";
 import {
   authSetCookieHeader,
   createIsolatedSupabaseClient,
   createServerSupabaseClient,
   type AuthSetCookie,
 } from "@/lib/supabase/server";
-import { csrfForbidden, trustedSiteOrigin } from "@/lib/security/origin";
+import { csrfForbidden, isDashboardHost, trustedSiteOrigin } from "@/lib/security/origin";
 
 export const dynamic = "force-dynamic";
+
+/** Too many tries from this IP. The UI shows "Too many tries. Wait a minute and try again." */
+const RATE_LIMITED: ProfileRunResult = { ok: false, reason: "rate-limited" };
+
+/** A valid sign-in on the dashboard host for an account that is not accepted staff. */
+const NOT_STAFF: ProfileRunResult = { ok: false, reason: "not-staff" };
+
+/** The e-mailed code was wrong, expired or malformed. One answer for all three. */
+/** Password was right but the address was never confirmed (only sent after a correct password). */
+const EMAIL_NOT_CONFIRMED: ProfileRunResult = { ok: false, reason: "email-not-confirmed" };
+
+const CODE_INVALID: ProfileRunResult = { ok: false, reason: "code-invalid" };
 
 function json(
   result: AuthRunResult | ProfileRunResult,
@@ -142,40 +148,6 @@ function requestOrigin(request: Request): string {
   return trustedSiteOrigin(new URL(request.url).host) ?? "https://vamostaxi.site";
 }
 
-const CONSENT_LOCALES = new Set<ConsentLocale>(["en", "de", "fr", "ar"]);
-
-async function appendSignupConsent(
-  request: Request,
-  locale: string,
-  ctx: { requestId: string; route: string; locale: string | null },
-): Promise<void> {
-  const existing = readConsentSubject(request.headers.get("cookie"));
-  const subject = existing ?? mintConsentSubject();
-  const method: ConsentMethod = existing ? "settings_change" : "reject_all";
-  const consentLocale: ConsentLocale = CONSENT_LOCALES.has(locale as ConsentLocale)
-    ? (locale as ConsentLocale)
-    : "en";
-  const claims = await customerClaims(request);
-  if (!claims) {
-    log("warn", "auth", ctx, { reason: "consent-no-session" });
-    return;
-  }
-  try {
-    const { env } = getCloudflareContext();
-    await asCustomer(env, claims, async (tx) => {
-      await recordConsent(tx, {
-        subject,
-        method,
-        locale: consentLocale,
-        userAgent: request.headers.get("user-agent"),
-        ipTruncated: truncateClientIp(cfConnectingIp(request.headers)),
-      });
-    });
-  } catch {
-    log("error", "auth", ctx, { reason: "consent-write" });
-  }
-}
-
 export async function POST(request: Request): Promise<Response> {
   const blocked = csrfForbidden(request, "auth");
   if (blocked) return blocked;
@@ -183,12 +155,14 @@ export async function POST(request: Request): Promise<Response> {
 
   const { env } = getCloudflareContext();
   const ip = request.headers.get("cf-connecting-ip")?.trim() || "unknown";
-  const limited = await checkWriteRateLimit({
-    limiter: env.QUOTE_RATE_LIMITER_BARE,
-    kind: "auth",
-    ip,
-  });
-  if (!limited.ok) return json(FORM_CREDENTIALS, 429);
+  // Own limiter (10 per 60 s per IP). A missing binding is logged and allowed: a
+  // misconfiguration must not lock everyone out of sign-in.
+  if (!env.AUTH_RATE_LIMITER) {
+    log("error", "auth", ctx, { reason: "auth-limiter-missing" });
+  } else {
+    const limited = await checkWriteRateLimit({ limiter: env.AUTH_RATE_LIMITER, kind: "auth", ip });
+    if (!limited.ok) return json(RATE_LIMITED, 429);
+  }
 
   let raw: unknown;
   try {
@@ -207,6 +181,7 @@ export async function POST(request: Request): Promise<Response> {
   ctx.locale = locale;
 
   const origin = requestOrigin(request);
+  const dashboard = isDashboardHost(new URL(request.url).host);
   const setCookies: AuthSetCookie[] = [];
   const supabase = await createServerSupabaseClient(request, { cookies: setCookies });
 
@@ -216,6 +191,33 @@ export async function POST(request: Request): Promise<Response> {
     await runSignOut(supabase);
     // Only the sign-out's cookie removals go back — never the session just refused.
     return sessionJson(FORM_CREDENTIALS, setCookies.slice(from));
+  };
+
+  /** One more bucket per e-mail address (code checks and confirmation re-sends). Fail-open like the IP one. */
+  const perAddressAllowed = async (kind: "code" | "resend", email: string): Promise<boolean> => {
+    if (!env.AUTH_RATE_LIMITER) return true;
+    try {
+      const out = await env.AUTH_RATE_LIMITER.limit({ key: `auth-${kind}:${email.toLowerCase()}` });
+      return out.success;
+    } catch {
+      log("warn", "auth", ctx, { reason: "auth-limiter-throw" });
+      return true;
+    }
+  };
+
+  /**
+   * Dashboard host only: a sign-in that succeeded for an account that is not accepted staff
+   * (no admin role in the token) is signed out again here, and the person is told why. Returns
+   * null when the account may stay signed in (or on the public site).
+   */
+  const refuseNonStaff = async (): Promise<Response | null> => {
+    if (!dashboard) return null;
+    const staff = await getStaffClaims(supabase as StaffAuthClient);
+    if (staff && staffDecisionOf(staff) !== "deny") return null;
+    const from = setCookies.length;
+    await runSignOut(supabase);
+    // Only the sign-out's cookie removals go back — never the session just refused.
+    return sessionJson(NOT_STAFF, setCookies.slice(from), 403);
   };
 
   /**
@@ -274,7 +276,8 @@ export async function POST(request: Request): Promise<Response> {
     if (blockedChange) return blockedChange;
     const { result, reason } = await runUpdatePassword(supabase, parsed.data.password);
     if (reason) log("error", "auth", ctx, { reason, action: "update-password" });
-    return json(result);
+    // updateUser refreshes the session: its cookies must ride on this response.
+    return sessionJson(result, setCookies);
   }
 
   if (action === "update-profile") {
@@ -287,7 +290,7 @@ export async function POST(request: Request): Promise<Response> {
     try {
       const { result, reason } = await runUpdateProfile(supabase, parsed);
       if (reason) log("error", "auth", ctx, { reason, action: "update-profile" });
-      return json(result);
+      return sessionJson(result, setCookies);
     } catch {
       log("error", "auth", ctx, { reason: "throw", action: "update-profile" });
       return json({ ok: false, reason: "throw" });
@@ -318,6 +321,8 @@ export async function POST(request: Request): Promise<Response> {
       if (error) log("error", "auth", ctx, { reason: error.code ?? "passkey-verify", action: "passkey-verify" });
       return json(FORM_CREDENTIALS);
     }
+    const notStaff = await refuseNonStaff();
+    if (notStaff) return notStaff;
     // The new session's cookies must ride on this response (OpenNext does not attach them).
     return sessionJson({ ok: true }, setCookies);
   }
@@ -350,7 +355,7 @@ export async function POST(request: Request): Promise<Response> {
       log("error", "auth", ctx, { reason: error.code ?? "passkey-register-verify", action: "passkey-register-verify" });
       return json(FORM_CREDENTIALS);
     }
-    return json({ ok: true });
+    return sessionJson({ ok: true }, setCookies);
   }
 
   if (isStaffSignInOptionAction(action)) {
@@ -522,6 +527,40 @@ export async function POST(request: Request): Promise<Response> {
     return staffJson({ ok: false, code: "mfa-invalid-input" }, [], 400);
   }
 
+  if (fields.mode === "verify-code") {
+    const parsed = verifyCodeSchema.safeParse({ email: fields.email, code: fields.code });
+    if (!parsed.success) return json(CODE_INVALID, 400);
+    // Per-address attempt limit on top of the per-IP one: six digits must not be guessable
+    // from many addresses of one attacker's pool.
+    if (!(await perAddressAllowed("code", parsed.data.email))) return json(RATE_LIMITED, 429);
+    const { error } = await supabase.auth.verifyOtp({
+      email: parsed.data.email,
+      token: parsed.data.code,
+      type: "email",
+    });
+    if (error) {
+      log("warn", "auth", ctx, { reason: error.code ?? "code-invalid", action: "verify-code" });
+      return json(CODE_INVALID, 400);
+    }
+    const notStaff = await refuseNonStaff();
+    if (notStaff) return notStaff;
+    return sessionJson({ ok: true }, setCookies);
+  }
+
+  if (fields.mode === "resend-confirmation") {
+    const parsed = resendConfirmationSchema.safeParse({ email: fields.email });
+    if (!parsed.success) return json(SENT);
+    if (!(await perAddressAllowed("resend", parsed.data.email))) return json(RATE_LIMITED, 429);
+    const { result, reason } = await runResendConfirmation(
+      supabase,
+      parsed.data.email,
+      origin,
+      emailNext(returnToRaw, localizedHome(locale)),
+    );
+    if (reason) log("error", "auth", ctx, { reason, action: "resend-confirmation" });
+    return sessionJson(result, setCookies);
+  }
+
   if (fields.mode === "forgot") {
     const parsed = resetEmailSchema.safeParse({ email: fields.email });
     if (!parsed.success) return json(SENT);
@@ -532,7 +571,8 @@ export async function POST(request: Request): Promise<Response> {
       localizedPath("/reset-password", locale),
     );
     if (reason) log("error", "auth", ctx, { reason, action: "reset" });
-    return json(result);
+    // The PKCE verifier cookie rides on the answer, known address or not (same body either way).
+    return sessionJson(result, setCookies);
   }
 
   if (fields.method === "magic") {
@@ -547,19 +587,20 @@ export async function POST(request: Request): Promise<Response> {
             locale,
             firstName: parsed.data.firstName,
             lastName: parsed.data.lastName,
+            createUser: !dashboard,
           }
-        : { mode: "signin", email: parsed.data.email, locale },
+        : { mode: "signin", email: parsed.data.email, locale, createUser: !dashboard },
       origin,
       emailNext(returnToRaw, localizedHome(locale)),
     );
     if (reason) log("error", "auth", ctx, { reason, action: "otp" });
-    if (!reason && parsed.data.mode === "signup") {
-      await appendSignupConsent(request, locale, ctx);
-    }
-    return json(result);
+    return sessionJson(result, setCookies);
   }
 
   if (fields.mode === "signup") {
+    // Staff accounts are invited, never self-made: a sign-up posted to the
+    // dashboard host must not create a customer account there.
+    if (dashboard) return json(SENT);
     const parsed = signUpPasswordSchema.safeParse(fields);
     if (!parsed.success) return json(SENT);
     const { result, reason } = await runSignUpPassword(
@@ -569,15 +610,18 @@ export async function POST(request: Request): Promise<Response> {
       emailNext(returnToRaw, localizedHome(locale)),
     );
     if (reason) log("error", "auth", ctx, { reason, action: "signup" });
-    if (!reason) await appendSignupConsent(request, locale, ctx);
-    return json(result);
+    return sessionJson(result, setCookies);
   }
 
   const parsed = signInPasswordSchema.safeParse(fields);
   if (!parsed.success) return json(FORM_CREDENTIALS);
   const { result, reason } = await runSignInPassword(supabase, parsed.data);
   if (reason) log("error", "auth", ctx, { reason, action: "signin" });
+  // Supabase only says this after the password was right, so it leaks nothing.
+  if (reason === "email_not_confirmed") return json(EMAIL_NOT_CONFIRMED, 400);
   if ("ok" in result) {
+    const notStaff = await refuseNonStaff();
+    if (notStaff) return notStaff;
     // D-16a: a staff account set to magic_link refuses a password sign-in with the
     // same generic error as a wrong password. With a factor enrolled the row is
     // hidden at aal1 (null) and mfa-step-up repeats this check at aal2.

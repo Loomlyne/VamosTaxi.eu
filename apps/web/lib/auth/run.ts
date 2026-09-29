@@ -5,7 +5,7 @@
 
 import type { AuthBanner } from "../../components/auth/types";
 import { safeReturnTo } from "../account/return-to";
-import { AUTH_LOCALE_METADATA_KEY } from "../supabase/constants";
+import { AUTH_LOCALE_METADATA_KEY, SIGNUP_CONSENT_METADATA_KEY } from "../supabase/constants";
 
 export type AuthRunResult =
   | { stage: "form"; banner: AuthBanner }
@@ -42,6 +42,11 @@ export type AuthClient = {
       email: string,
       options: { redirectTo: string },
     ): Promise<{ error: AuthError }>;
+    resend(args: {
+      type: "signup";
+      email: string;
+      options?: { emailRedirectTo?: string };
+    }): Promise<{ error: AuthError }>;
     signOut(): Promise<{ error: AuthError }>;
     getUser(): Promise<{ data: { user: unknown | null }; error: AuthError }>;
     updateUser(args: {
@@ -99,6 +104,8 @@ export async function runSignUpPassword(
       data: {
         full_name: fullName(input.firstName, input.lastName),
         [AUTH_LOCALE_METADATA_KEY]: input.locale,
+        // Consent is written when the address is confirmed (there is no session before that).
+        [SIGNUP_CONSENT_METADATA_KEY]: "pending",
       },
     },
   });
@@ -113,6 +120,8 @@ export async function runOtp(
     locale: string;
     firstName?: string;
     lastName?: string;
+    /** false on the staff dashboard: an e-mail link must never create a customer account there. */
+    createUser?: boolean;
   },
   origin: string,
   home: string,
@@ -120,14 +129,30 @@ export async function runOtp(
   const data: Record<string, string> = { [AUTH_LOCALE_METADATA_KEY]: input.locale };
   if (input.mode === "signup") {
     data.full_name = fullName(input.firstName ?? "", input.lastName ?? "");
+    data[SIGNUP_CONSENT_METADATA_KEY] = "pending";
   }
   const { error } = await supabase.auth.signInWithOtp({
     email: input.email,
     options: {
-      shouldCreateUser: true,
+      shouldCreateUser: input.createUser !== false,
       emailRedirectTo: callbackUrl(origin, home),
       data,
     },
+  });
+  return { result: SENT, reason: error ? (error.code ?? "auth-failed") : null };
+}
+
+/** Sends the sign-up confirmation mail again. Same answer for every address (enumeration). */
+export async function runResendConfirmation(
+  supabase: AuthClient,
+  email: string,
+  origin: string,
+  home: string,
+): Promise<{ result: AuthRunResult; reason: string | null }> {
+  const { error } = await supabase.auth.resend({
+    type: "signup",
+    email,
+    options: { emailRedirectTo: callbackUrl(origin, home) },
   });
   return { result: SENT, reason: error ? (error.code ?? "auth-failed") : null };
 }

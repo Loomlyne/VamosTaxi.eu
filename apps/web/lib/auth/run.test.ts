@@ -23,6 +23,7 @@ function client(overrides: Partial<AuthClient["auth"]> = {}): AuthClient {
       signUp: vi.fn(async () => ({ error: null })),
       signInWithOtp: vi.fn(async () => ({ error: null })),
       resetPasswordForEmail: vi.fn(async () => ({ error: null })),
+      resend: vi.fn(async () => ({ error: null })),
       signOut: vi.fn(async () => ({ error: null })),
       getUser: vi.fn(async () => ({ data: { user: { id: "u" } }, error: null })),
       updateUser: vi.fn(async () => ({ error: null })),
@@ -91,7 +92,7 @@ describe("runSignUpPassword", () => {
       password: "password1",
       options: {
         emailRedirectTo: "https://example.test/api/auth/callback?next=%2F",
-        data: { full_name: "A B", locale: "de" },
+        data: { full_name: "A B", locale: "de", signup_consent: "pending" },
       },
     });
   });

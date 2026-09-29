@@ -80,9 +80,8 @@
       flightNo: "",
       pax: (row && row.pax) || 1,
       bags: 0,
-      chauffeurName: (row && row.chauffeur) || "",
-      vehicle: (row && row.vehicle) || "",
-      plate: "",
+      driver: null,
+      money: null,
       refundStatus: "none",
       reviewSubmitted: false,
       canCancel: false,
@@ -115,7 +114,16 @@
         }
       }
       if (!hit) return { kind: "not-found", error: NOT_FOUND };
-      return { kind: "booking", booking: fromAccount(hit), via: "account" };
+      var booking = fromAccount(hit);
+      var wantRef = encodeURIComponent(booking.reference);
+      // Money and driver for this booking; a failed read leaves both blocks empty.
+      return jsonFetch("/api/account/bookings/details?ref=" + wantRef).then(function (d) {
+        if (d.ok && d.body && d.body.ok) {
+          booking.money = d.body.money || null;
+          booking.driver = d.body.driver || null;
+        }
+        return { kind: "booking", booking: booking, via: "account" };
+      });
     });
   }
 
