@@ -57,6 +57,7 @@ export default async function TermsPage({
       kickerKey="common.legal"
       effectiveDateLabel="Terms effective date"
       versionLabel="Terms version"
+      shipDated
     >
       <LanguageCoverageNotice page="terms" />
 
@@ -145,11 +146,10 @@ export default async function TermsPage({
             {t("additional-stops")} <PendingSlot label="Extra stop fee" /> {t("per-stop")}
           </li>
           <li>
-            {t("waiting-beyond-the-included-allowance")} <PendingSlot label="Extra waiting rate" />.
+            {t("waiting-beyond-per-commenced-hour")}
           </li>
           <li>
-            {t("extended-city-stay-maximum")} <PendingSlot label="City stay minutes" /> {tOps("minutes")}{" "}
-            <PendingSlot label="City stay fee" />.
+            {t("extended-city-stay-15-shown-on-quote")}
           </li>
           <li>
             {t("oversized-or-unusual-items-declared-at-booking")}{" "}
@@ -200,10 +200,7 @@ export default async function TermsPage({
           <span data-lg-n="1">07</span>
           {tCommon("luggage-child-seats")}
         </h2>
-        <p>
-          {t("every-booked-seat-carries-one-medium-case-of")} <PendingSlot label="Case dimensions" />{" "}
-          {t("and-one-piece-of-hand-luggage-a-vehicle-is-assig")}
-        </p>
+        <p>{t("every-seat-one-medium-case-56-45-25")}</p>
         <h3>{t("declare-in-advance")}</h3>
         <p>{t("skis-and-snowboards-folding-bicycles-collapsible")}</p>
         <h3>{t("children")}</h3>
@@ -221,16 +218,11 @@ export default async function TermsPage({
         </h2>
         <p>{t("waiting-is-included-measured-from-the-pickup-tim")}</p>
         <ul>
-          <li>
-            {t("airport-pickups")} <PendingSlot label="Airport waiting" /> {t("counted-from-the-actual-landing-time-we-see-agai")}
-          </li>
-          <li>
-            {t("all-other-pickups")} <PendingSlot label="Standard waiting" /> {t("counted-from-the-booked-time")}
-          </li>
+          <li>{t("airport-pickups-60-minutes-after-landing")}</li>
+          <li>{t("all-other-pickups-30-minutes-counted")}</li>
         </ul>
         <p>
-          {t("beyond-the-allowance-we-charge")} <PendingSlot label="Extra waiting rate" />.{" "}
-          {t("if-your-flight-is-delayed-the-allowance-moves-wi")}
+          {t("beyond-allowance-per-commenced-hour")} {t("flight-delayed-allowance-moves")}
         </p>
       </section>
 
@@ -241,8 +233,7 @@ export default async function TermsPage({
         </h2>
         <p>
           {t("a-booking-counts-as-a-no-show-when-the-waiting-a")} <a href="#waiting">08</a>{" "}
-          {t("has-run-out-and-we-have-called-your-number")}{" "}
-          <PendingSlot label="Noshow call attempts" /> {t("times-without-an-answer")}
+          {t("noshow-not-reached-30-60")}
         </p>
         <p>
           {t("a-no-show-is-not-refunded-what-we-hold-on-record")}{" "}
@@ -294,15 +285,11 @@ export default async function TermsPage({
           {t("complaints")}
         </h2>
         <p>
-          {t("tell-us-within")} <PendingSlot label="Complaint window days" /> {t("days-of-the-journey-by-email-or-telephone-quotin")}
+          {t("complaint-within-10-days")}
         </p>
         <ul>
-          <li>
-            {t("and-we-answer-within")} <PendingSlot label="Complaint resolution days" /> {tCommon("days")}
-          </li>
-          <li>
-            {t("any-refund-we-agree-is-paid-within")} <PendingSlot label="Refund payout days" /> {tCommon("days")}
-          </li>
+          <li>{t("complaint-resolved-within-30-days")}</li>
+          <li>{t("agreed-refund-paid-30-days-acceptance")}</li>
         </ul>
         <div data-slot="1" data-i18n-skip>
           <p data-slot-k="1">Client legal text · escalation & dispute resolution</p>

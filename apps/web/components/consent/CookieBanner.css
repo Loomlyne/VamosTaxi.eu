@@ -48,6 +48,12 @@
   color: var(--vt-text-primary);
 }
 
+/* Owner decision 2026-09-30: no TBC on a live page. While the Meta line is still a labelled
+   gap (Meta legal gate closed), the slot does not show; real text replaces the pill and it shows. */
+.vt-ck-meta:has([data-tok]) {
+  display: none;
+}
+
 .vt-ck-meta {
   display: block;
   margin-block: 0 var(--vt-space-2);

@@ -4,16 +4,16 @@ Kept by the control session. One page: what is live, what is being built, what w
 the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 
-**Last update:** 2026-09-30 00:08 (+04)
+**Last update:** 2026-09-30 02:18 (+04)
 
 ## Live now
 
 | Item | Value |
 |---|---|
 | Site | https://vamostaxi.site and https://dashboard.vamostaxi.site |
-| main = origin/main | `2bd05b0a` plus planning notes |
-| Worker `vamos` | version `df365445` (same code as `80d51730`; made by adding a secret on 2026-09-29 23:56) |
-| Rollback point | Worker `e885dbb6`, git tag `backup/main-pre-ship-auth` |
+| main = origin/main | `e27014c1` plus planning notes |
+| Worker `vamos` | version `a55b2c19` |
+| Rollback point | Worker `6a71df8b`, git tag `backup/main-pre-ship-legal-follow-up` |
 | Database | migrations up to `20260930210000` applied and read back |
 | Who deploys | the control session, from the owner's Mac. GitHub runs checks, never deploys. |
 
@@ -27,41 +27,62 @@ the owner, what comes next. Updated at every ship and every hand-over.
 | 4 | Dashboard New trip Save | `34af1552` | owner has not reported yet |
 | 5 | Worker reads and writes lists; 16 narrow database reads for the hourly jobs | `34af1552` | VT-26-0743 paid, method recorded; VT-26-0734 cleaned at 17:27 |
 | 6 | Planning rewrite of 19, 20, 26.2 | `34af1552` | signed |
-| 7 | Sign-in and sign-up on the site and the dashboard | `2bd05b0a` | waiting: sign up with a fresh address, tap the link, one 4242 payment |
+| 7 | Sign-in and sign-up on the site and the dashboard | `2bd05b0a` | a second account exists since 2026-09-29 18:03; the other sign-in steps not reported yet |
 
-## Legal pages, opened 2026-09-30
+## Shipped on 2026-09-30
 
-Source texts and the comparison: `docs/legal-source/vamostaxi-eu-2026-09-30/` (`MAPPING.md`).
+| # | What | Commit | Owner test |
+|---|---|---|---|
+| 8 | Phase 26.4 one form, phone and tablet bar, and 26.4.1 laptop bar | `0f58ab6d` | waiting: look at the laptop bar, book on the phone from Zurich Airport with a child seat, 4242 payment |
+| 10 | Legal follow-up: no labelled gap on a live page, cancel wording, ship date | `e27014c1` | shipped under the 2026-09-30 ship mode; waiting: 10 steps in `HANDOVER-FOLLOW-UP.md` |
+| 9 | Legal pages from the company's own text: privacy, terms, cancellation, imprint, four languages | `6737f5f8` | waiting: 12 steps in `.planning/quick/260930-lgl-legal-pages-from-eu/HANDOVER.md` |
 
-| Item | State |
+## Legal pages
+
+Shipped 2026-09-30 as `6737f5f8`. The pages customers see are the mocks `app/pages/*.dc.html`
+with `app/vamos-i18n-dict.js` (`apps/web/middleware.ts`), not the Next.js pages. Both were changed.
+No lawyer has read the text.
+
+The follow-up shipped 2026-09-30 01:35 as `e27014c1`: the five answers are built, "Last updated" reads 30 September 2026 from `app/vamos-legal-updated.js`.
+
+| For the owner to confirm (filled from live data, not from his word) | Value on the page |
 |---|---|
-| Privacy page: Vercel becomes Cloudflare, "10 years years" becomes "10 years" | Approved by the owner. Not built. |
-| Privacy paragraph "Your account" | **Approved** in four languages. Ships with 26.5. Text in `.planning/decisions/2026-09-30-legal-pages.md`. |
-| The values of list A (company, waiting times, case size, no-show, complaint and refund days) | **Approved.** A work session fills them in four languages. Not started. |
-| Refund when cancelling more than 24 hours before pickup | **Decided: 100 % back, as the site does.** The pages follow the site. No payment code changes. |
-| 7 more points where the old text and the new site disagree | Each needs his decision |
-| Gaps the old site does not answer | Stay labelled gaps |
+| /about, Business | 7 passengers, 6 medium cases (live class "Business") |
+| /faq, meet and greet | Zurich (ZRH) and Geneva (GVA) (the two active airport zones) |
+| /about, /faq, driver details | by e-mail when a driver is assigned and in the 24-hour reminder; no SMS |
+
+| Still wrong on live, left by his decision | Detail |
+|---|---|
+| /terms section 03 | says driver details come by SMS and e-mail with a phone number; the site sends no SMS |
+| /about fleet | Van row says 8 passengers, 8 cases; live "Van luxury" is 12 and 9. Business is called an executive saloon; live Business is a V-Class |
+
+| Known and open | Detail |
+|---|---|
+| Automatic refunds refuse a live Stripe key (`paid-cancel.ts:116`) | True today on test cards. Must be lifted before real launch or /cancellation becomes false. On the Phase 19 list. |
+| Settings say 15 minutes standard waiting, the pages say 30 | Owner chose 30. He changes the setting on the dashboard if both should agree. |
+| Values live since 2026-09-01 that nobody approved | Left live by his decision, English only in de/fr/ar. Listed in the hand-over, section 6. |
+| Every gap of list C | Stays a labelled gap |
 
 ## In work
 
 | Lane | Session | Folder under `vamos-wt/` | Branch | State |
 |---|---|---|---|---|
-| 26.4 phone bar and one form | Phase 26.3 booking flow rebuild | `phase-26.4` | `gsd/phase-26.4-one-form` | **Handed over** at `c069737e`, control check clean (2,436 unit tests, build, no migration, no new setting). **Held by the owner:** ships together with the desktop bar. Archived as tag `archive/branch-gsd-phase-26.4-one-form-c069737e`. |
-| 26.4.1 laptop bar | same session | `phase-26.4.1` | `gsd/phase-26.4.1-laptop-bar` | Context, UI-SPEC and plan **signed** (`25d8c9b7`). Picture 3, one row from 1272 px, two rows 1081 to 1271. Plan 01 building, plan 02 is checks and hand-over. Hands over together with 26.4. |
-| 26.5 account choice before payment | same session | `phase-26.5` | `gsd/phase-26.5-checkout-account` | Discuss, UI-SPEC and 7-plan plan **signed**. Build starts only when main contains 26.4 and 26.4.1. **Open:** Worker `vamos` has `SUPABASE_URL` but no `SUPABASE_SERVICE_ROLE_KEY` (names read 2026-09-29 23:50). Without it "Create an account" hides itself. Whether that key belongs on the public Worker is an owner decision, see below. |
+| 26.5 account choice before payment | same session | `phase-26.5` | `gsd/phase-26.5-checkout-account` | Discuss, UI-SPEC and 7-plan plan **signed**. Plan revision 2, 8 plans, signed. The build lock is open since the 26.4 ship (2026-09-30 00:20). **Open:** Worker `vamos` has `SUPABASE_URL` but no `SUPABASE_SERVICE_ROLE_KEY` (names read 2026-09-29 23:50). Without it "Create an account" hides itself. Whether that key belongs on the public Worker is an owner decision, see below. |
 | 26.0 main green | Phase 26.0 main green work session | `main-green-2` | `fix/main-green-2` | Plans 01 to 05, 07, 09 done. 06, 08, 10, 11, 12 left. |
 
-## Ship order
+## Ship order (owner, 2026-09-30: booking, payments, account, Meta first)
 
-One at a time into main. Each later branch takes main in before it hands over.
-
-| Order | What | Why this place |
+| Order | What | State |
 |---|---|---|
-| done | Sign-in and sign-up fix | Shipped 17:47 |
-| 1 | Phase 26.4 together with the desktop bar | Owner decision 2026-09-29 23:45: one ship for both. Waits for the desktop bar hand-over. |
-| 3 | Phase 26.5, account choice before payment | Needs the final checkout from 26.4 |
-| 4 | Phase 26.0 | Shares test files with 26.4; lands after it |
-| 5 | 26.2 → 20 → 19 → 27 → 28 → 29 | Signed order |
+| 1 | 26.4.2 booking feedback | Building. He signs three pictures first. |
+| 2 | 26.5 account choice before payment, with the paid-only reminder | Building |
+| 3 | 27 consent record | Not started |
+| 4 | 28 pixel page view, 29 purchase event | The Meta wording is his since 2026-09-30 (`.planning/decisions/2026-09-30-meta-wording.md`), all three texts, four languages. Not started. |
+| after | 26.0 → 26.2 → 20 → 19 | 26.0 keeps building, lands after the ones above |
+
+**Ship mode on 2026-09-30 only:** the control session ships 26.4.2, the legal follow-up, 26.5 and
+27 to 29 without asking, when every check of its own passes, and tells him right after.
+Full text: `.planning/decisions/2026-09-30-priorities-and-ship-mode.md`.
 
 ## New owner requests, 2026-09-29 17:40, not started
 
@@ -91,6 +112,62 @@ Full text: `.planning/decisions/2026-09-29-checkout-account-notice.md`.
 | 3 | "Create an account" needs a tick box; the tick is logged server-side. |
 | 4 | "Create an account" goes live with 26.5, consent recorded from the first account. |
 
+## Migration numbers, reserved 2026-09-30
+
+Live is at `20260930210000`.
+
+| Lane | Numbers |
+|---|---|
+| 26.5 | `20261001100000` to `20261001190000`: account agreement record (shared with /sign-up, D-19), unpaid bookings hidden from customer reads (D-16), paid-only reminder (D-18) |
+| Phase 27 | `20261002100000` to `20261002190000` |
+| Phase 28 | `20261003100000` to `20261003190000` |
+| Phase 29 | `20261004100000` to `20261004190000` |
+| 26.0 and later | from `20261005100000` |
+
+## Found by the Phase 27 session, 2026-09-30
+
+| Finding | Effect |
+|---|---|
+| No customer page saves the cookie choice on the server today. The banner customers see is the mock's and saves in the browser only. Checkout, confirmation and the pay link show no banner. | Phase 27 is larger than planned: the live banner has to write to the server and the Next pages need the banner. Nothing is sent to Meta today, so no harm now. |
+| The sign-in ship writes a cookie row when a new customer confirms their e-mail | Owner decision 27 D-01: no cookie row at sign-up. Phase 27 removes it and must say where the sign-up agreement is recorded. |
+
+## Found by the 26.5 session, 2026-09-30, confirmed on live by the control session
+
+| Finding | Detail | Fixed by |
+|---|---|---|
+| A signed-in customer can read their own unpaid booking straight from the database | Policy `bookings_select_own` matches by customer or by the e-mail in the sign-in, with no filter on status. Readable columns include reference, name and phone. The pages hide it; the database does not. Own data only, never another customer's. No unpaid booking exists on live right now. | 26.5 plan 10: a migration hides quotes and pending bookings without a pay link from customer reads |
+| The claim function links pending bookings to the account too | Same rule of the owner: an unpaid booking never follows the customer | 26.5 plan 10 |
+
+## Passed to Phase 20 (security check)
+
+| Point |
+|---|
+| `bookings_select_own` trusts the e-mail inside the sign-in token. Safe only while sign-in requires a confirmed e-mail. |
+| "This e-mail already has an account, sign in first" on checkout can reveal who is a customer. 26.5 uses neutral wording and a limit. |
+| `SUPABASE_SERVICE_ROLE_KEY` is on the public Worker (owner decision). Test where it is read and that it never reaches a browser. |
+| `POST /api/checkout/intent` has no limit per visitor (a lead, not confirmed). |
+| Automatic refunds refuse an `sk_live_` key; to be lifted before real launch (also Phase 19). |
+
+## Owner feedback after the 26.4 ship, 2026-09-30
+
+Built by the 26.3 session as `fix/26.4.2-booking-feedback` (folder `fix-26.4.2`).
+
+| # | Feedback | State |
+|---|---|---|
+| 1 | Phone and tablet booking becomes one page, no 4 steps; date then time; our own picker, never the phone's | Building |
+| 2 | Laptop: "flight behind From" | **Not a bug.** He wants another order: Flight number, From, To. The flight field stays hidden until From is an airport, then appears before From. Same order on laptop, tablet, phone and checkout Edit trip. The address list opens upward when there is no room below; the bar no longer jumps. |
+| 3 | Laptop home gets "Choose your class" back, with server prices under the bar | Building |
+| 4 | Phone checkout class cards redesigned | Building |
+| 5 | An unpaid booking can never be continued on another device; a paid trip can be shared | Decision recorded in `.planning/decisions/2026-09-30-unpaid-booking-other-device.md`. A pasted checkout link shows the trip only, with an empty form (26.5 D-16, four route tests). |
+| 6 | Sign-off | He sees pictures of the three designs at 390, 768 and 1440 and signs before anything is handed over. |
+
+## Owed by the control session
+
+| What | Why not yet |
+|---|---|
+| The seven ROADMAP lines from the planning rewrite (19, 20, 26.2, order) and the 26.4 / 26.4.1 rows | 26.4 has landed, so the file is free. Next planning note. |
+| Read the first staff digest run | 2026-09-30 06:00 Zurich time |
+
 ## Waiting for the owner
 
 | # | What | Where |
@@ -100,7 +177,6 @@ Full text: `.planning/decisions/2026-09-29-checkout-account-notice.md`.
 | 3 | Sign-in UAT, 14 steps, in `.planning/debug/auth-sign-in-sign-up-HANDOVER.md` | phone first |
 | 4 | Should an unpaid booking get the 24-hour reminder? Today it does | decision |
 | 5 | The remaining 26.3 UAT steps, then the test-booking delete script | vamostaxi.site |
-| 6 | Legal lines in four languages for the pixel | blocks 28 and 29 |
 | 7 | Cloudflare Workers Paid and the database copy | only when Phase 19 starts |
 | 8 | The unsigned Lenis folder `.planning/quick/260928-q4t-…` | decision |
 
