@@ -188,6 +188,13 @@ interface CloudflareEnv {
   QUOTE_RATE_LIMITER_BARE: RateLimit;
 
   /**
+   * Rate-limit binding for /api/auth (10 per 60 s per IP). Own bucket: sign-in must not share
+   * the 4/60 quote allowance. OPTIONAL in types: when the binding is missing the route logs and
+   * allows the attempt, so a misconfiguration never locks everyone out of sign-in.
+   */
+  AUTH_RATE_LIMITER?: RateLimit;
+
+  /**
    * Engineering unit-count sentinel for the daily Mapbox breaker (D-54 / U37).
    * OPTIONAL string parsed with `Number.parseInt` — a UNIT COUNT, never a franc figure.
    * No Mapbox plan exists yet, so no ceiling in francs can be honest. Trips rather than logs.

@@ -90,10 +90,19 @@ async function sendBranded(
   if (error) throw error;
 }
 
-const NO_STORE = { "cache-control": "private, no-store" } as const;
+const HOOK_HEADERS = {
+  "cache-control": "private, no-store",
+  "content-type": "application/json",
+} as const;
 
+/**
+ * Supabase Auth rejects a hook answer without `Content-Type: application/json`
+ * and then rolls back the sign-up or token it just mailed, so the link in the
+ * e-mail is dead. Success is `{}`; failures use the hook error shape.
+ */
 function empty(status: number): Response {
-  return new Response(null, { status, headers: NO_STORE });
+  const body = status === 200 ? {} : { error: { http_code: status, message: "email-hook" } };
+  return new Response(JSON.stringify(body), { status, headers: HOOK_HEADERS });
 }
 
 export async function POST(request: Request) {

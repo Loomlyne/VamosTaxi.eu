@@ -74,3 +74,9 @@ export function publicSiteOrigin(hostHeader: string | null): string {
   }
   return "https://vamostaxi.site";
 }
+
+/** The staff console host. Its e-mail sign-in may only reach existing accounts. */
+export function isDashboardHost(hostHeader: string | null): boolean {
+  const host = hostHeader?.split(",")[0]?.trim().toLowerCase().split(":")[0] ?? "";
+  return host === "dashboard.vamostaxi.site" || host === "dashboard.localhost";
+}

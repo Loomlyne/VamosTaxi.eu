@@ -45,5 +45,5 @@ test("unsigned hook is 401 @email-hook", async ({ request }) => {
     headers: { "content-type": "application/json" },
   });
   expect(res.status()).toBe(401);
-  expect(await res.text()).toBe("");
+  expect(res.headers()["content-type"]).toBe("application/json");
 });
