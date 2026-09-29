@@ -239,7 +239,7 @@ test("loading state shows the sentence and three placeholders, then the cards @c
   await routeQuote(page, (b) => ({ json: quoteBody(Number(b.pax), Number(b.bags)), delayMs: 2500 }));
   await open(page);
   await expect(page.locator("[data-co-classes-loading]")).toBeVisible();
-  await expect(page.getByText("Getting your fixed prices")).toBeVisible();
+  await expect(page.getByText("Getting your fixed prices").first()).toBeVisible();
   await expect(page.locator("[data-co-classes-loading] .vt-veh--loading")).toHaveCount(3);
   await expect(page.locator("[data-co-classes]")).toBeVisible({ timeout: 30_000 });
 });

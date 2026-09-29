@@ -5,6 +5,8 @@ import { useTranslations } from "next-intl";
 import { Alert } from "@/components/feedback/Alert";
 import { Button } from "@/components/core";
 import { Counter, Input, WhenPicker } from "@/components/forms";
+import { TurnstileWidget } from "@/components/forms/TurnstileWidget";
+import { useCheckoutSettings } from "../CheckoutSettings";
 import { PlaceCombo, type PlaceRetrieve } from "@/components/forms/PlaceCombo";
 import { geoLocale } from "@/lib/checkout/vamos-trip";
 import type { QuoteRefusal } from "@/lib/checkout/checkout-quote";
@@ -71,13 +73,18 @@ export function TripEditor({
   initialErrors,
   onSubmit,
   onClose,
+  onDirtyChange,
 }: {
   trip: Trip;
   locale: string;
   initialErrors: readonly TripFieldError[];
-  onSubmit: (next: Trip) => Promise<QuoteRefusal | null>;
+  onSubmit: (next: Trip, token?: string | null) => Promise<QuoteRefusal | null>;
   onClose: () => void;
+  /** True while the fields differ from the applied trip (PAY then says "Update the prices first"). */
+  onDirtyChange?: (dirty: boolean) => void;
 }) {
+  const settings = useCheckoutSettings();
+  const lastNext = useRef<Trip | null>(null);
   const t = useTranslations("checkout");
   const tCommon = useTranslations("common");
   const tBooking = useTranslations("booking");
@@ -107,6 +114,19 @@ export function TripEditor({
   useEffect(() => {
     rootRef.current?.querySelector<HTMLInputElement>('[data-co-field="from"] input')?.focus();
   }, []);
+
+  // Dirty = anything differs from the applied trip. Read by PAY through the flow.
+  const dirty =
+    from.trim() !== (trip.from ?? "") ||
+    to.trim() !== (trip.to ?? "") ||
+    joinWhen(date, time) !== trip.when ||
+    pax !== (trip.pax ?? 1) ||
+    bags !== (trip.bags ?? 0) ||
+    (airport ? (normaliseFlight(flight)?.flight ?? flight.trim()) : "") !== (trip.flight ?? "");
+  useEffect(() => {
+    onDirtyChange?.(dirty);
+    return () => onDirtyChange?.(false);
+  }, [dirty, onDirtyChange]);
 
   function focusField(field: TripField) {
     const box = rootRef.current?.querySelector<HTMLElement>(`[data-co-field="${field}"]`);
@@ -171,8 +191,19 @@ export function TripEditor({
       flight: parsedFlight?.flight ?? null,
       flightDisplay: parsedFlight?.display ?? null,
     };
+    lastNext.current = next;
     setBusy(true);
     const result = await onSubmit(next);
+    setBusy(false);
+    if (result) setRefusal(result);
+  }
+
+  /** The server asked for a challenge: the widget shows here, where the customer is. */
+  async function retryWithToken(token: string | null) {
+    if (!token || busy || !lastNext.current) return;
+    setBusy(true);
+    setRefusal(null);
+    const result = await onSubmit(lastNext.current, token);
     setBusy(false);
     if (result) setRefusal(result);
   }
@@ -332,9 +363,16 @@ export function TripEditor({
       </fieldset>
 
       {refusal ? (
-        <Alert tone="danger" data-co-editor-error role="alert">
-          {refusalText}
-        </Alert>
+        <>
+          <Alert tone="danger" data-co-editor-error role="alert">
+            {refusalText}
+          </Alert>
+          {refusal.challenge ? (
+            <div className="vt-co__challenge" data-co-editor-challenge>
+              <TurnstileWidget siteKey={settings.turnstileSiteKey} action="checkout" onToken={retryWithToken} />
+            </div>
+          ) : null}
+        </>
       ) : null}
 
       <div className="vt-co__editor-actions">

@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type MutableRefObject } from "react";
 import { createNavigation } from "next-intl/navigation";
 import { routing } from "@/i18n/routing";
 import {
@@ -18,7 +18,10 @@ import { geoLocale } from "@/lib/checkout/vamos-trip";
 import { buildTripQuery, type Trip, type TripFieldError } from "@/lib/checkout/trip-url";
 import { useCheckoutSettings } from "./CheckoutSettings";
 import { ClassSection, type ClassPhase } from "./sections/ClassSection";
-import { CheckoutBarSlot, CheckoutRailSlot, CheckoutSectionsSlot } from "./sections/slots";
+import { CheckoutFormProvider } from "./CheckoutForm";
+import { ContactSection } from "./sections/ContactSection";
+import { PaymentSection, TopNotice } from "./sections/PaymentSection";
+import { PayBottomBar, SummaryRail, useIsDesktop } from "./sections/SummaryRail";
 import { TripEditor } from "./sections/TripEditor";
 import { TripStrip } from "./sections/TripStrip";
 
@@ -45,7 +48,11 @@ export type CheckoutFlow = {
   /** `resume=` is in the URL and the trip is not: the resume flow supplies it. */
   resuming: boolean;
   /** Replace the trip (URL and quote) — the resume flow and SEE CURRENT PRICES use it. */
-  applyTrip: (next: Trip) => Promise<QuoteResult>;
+  applyTrip: (next: Trip, token?: string | null) => Promise<QuoteResult>;
+  /** The editor holds changes that are not applied yet (PAY names it, D-17). */
+  editorDirty: MutableRefObject<boolean>;
+  /** `resume=` could not refill the page (no cookie, booking purged): open the editor. */
+  resumeFailed: () => void;
   money: (rappen: number | null) => string;
 };
 
@@ -108,6 +115,7 @@ export function CheckoutPage({
   const editRef = useRef<HTMLButtonElement>(null);
   const started = useRef(false);
   const seq = useRef(0);
+  const editorDirty = useRef(false);
   phaseRef.current = phase;
   tripRef.current = trip;
 
@@ -152,29 +160,34 @@ export function CheckoutPage({
   }, []);
 
   const applyTrip = useCallback(
-    async (next: Trip): Promise<QuoteResult> => {
+    async (next: Trip, token?: string | null): Promise<QuoteResult> => {
       const before = phaseRef.current;
       setPhase({ kind: "loading" });
-      const result = await runQuote(next);
+      const result = await runQuote(next, token);
       if (result.kind === "ok") {
         setTrip(next);
         replaceUrl({ ...next, class: selectedRef.current });
       } else {
-        // The previous trip and prices stay untouched (UI-SPEC S2 error state).
-        setPhase(before);
+        // The previous trip and prices stay untouched (UI-SPEC S2 error state). A first
+        // quote that fails (resume without a trip) keeps its error instead.
+        if (before.kind !== "loading") setPhase(before);
       }
       return result;
     },
     [runQuote],
   );
 
+  const onEditorDirty = useCallback((dirty: boolean) => {
+    editorDirty.current = dirty;
+  }, []);
+
   const closeEditor = useCallback(() => {
     setEditorOpen(false);
     window.setTimeout(() => editRef.current?.focus(), 0);
   }, []);
 
-  async function submitEditor(next: Trip): Promise<QuoteRefusal | null> {
-    const result = await applyTrip({ ...next, class: selectedRef.current });
+  async function submitEditor(next: Trip, token?: string | null): Promise<QuoteRefusal | null> {
+    const result = await applyTrip({ ...next, class: selectedRef.current }, token);
     if (result.kind === "ok") {
       closeEditor();
       return null;
@@ -207,11 +220,17 @@ export function CheckoutPage({
       setResumeBookingId,
       resuming,
       applyTrip,
+      editorDirty,
+      resumeFailed: () => {
+        setPhase({ kind: "idle" });
+        setEditorOpen(true);
+      },
       money,
     }),
     // choose() reads refs only
     [locale, trip, quote, phase, selected, editorOpen, resumeBookingId, resuming, applyTrip, money, closeEditor],
   );
+  const desktop = useIsDesktop();
 
   return (
     <FlowContext.Provider value={flow}>
@@ -224,6 +243,7 @@ export function CheckoutPage({
               initialErrors={tripReady ? [] : errors}
               onSubmit={submitEditor}
               onClose={closeEditor}
+              onDirtyChange={onEditorDirty}
             />
           ) : (
             <TripStrip
@@ -236,6 +256,8 @@ export function CheckoutPage({
           )}
         </div>
 
+        <CheckoutFormProvider>
+        <TopNotice />
         <div className="vt-co__grid">
           <div className="vt-co__main">
             <ClassSection
@@ -254,11 +276,13 @@ export function CheckoutPage({
               }}
               onEditTrip={() => setEditorOpen(true)}
             />
-            <CheckoutSectionsSlot />
+            <ContactSection />
+            <PaymentSection desktop={desktop} />
           </div>
-          <CheckoutRailSlot />
+          {desktop ? <SummaryRail /> : null}
         </div>
-        <CheckoutBarSlot />
+        {desktop ? null : <PayBottomBar />}
+        </CheckoutFormProvider>
       </div>
     </FlowContext.Provider>
   );

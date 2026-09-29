@@ -14,6 +14,7 @@ export function SectionCard({
   done = false,
   error,
   id,
+  headerEnd,
   children,
 }: {
   n: number;
@@ -21,6 +22,8 @@ export function SectionCard({
   done?: boolean;
   error?: string | null;
   id?: string;
+  /** Inline-end of the header row (Section 2: "Have an account? Sign in"). */
+  headerEnd?: ReactNode;
   children: ReactNode;
 }) {
   return (
@@ -30,6 +33,7 @@ export function SectionCard({
           {done ? <Icon name="check" size={16} color="var(--vt-charcoal-900)" /> : <span className="vt-dir-keep">{n}</span>}
         </span>
         <h2 className="vt-co__section-title">{title}</h2>
+        {headerEnd ? <div className="vt-co__section-aside">{headerEnd}</div> : null}
       </header>
       {error ? (
         <p className="vt-co__section-error" role="alert" data-co-section-error>

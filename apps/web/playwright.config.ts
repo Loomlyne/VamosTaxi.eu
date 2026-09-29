@@ -95,6 +95,7 @@ export default defineConfig({
           "**/auth-signout.spec.ts",
           "**/checkout.spec.ts",
           "**/checkout-page.spec.ts",
+          "**/checkout-pay-19.spec.ts",
           "**/pay-link-page.spec.ts",
           "**/checkout-guest.spec.ts",
           "**/confirmation.spec.ts",
