@@ -11,7 +11,7 @@ import { SectionCard } from "./SectionCard";
 /**
  * Section 3 (D-16, D-18, D-02). Phone and tablet carry the summary and the legal lines
  * here (the rail's content); desktop keeps only the method note and the voucher. No wallet
- * buttons, no card fields, no pay-link option: payment happens on Stripe's page.
+ * buttons, no card fields, no emailed-link option: payment happens on Stripe's page.
  */
 export function PaymentSection({ desktop }: { desktop: boolean }) {
   const t = useTranslations("checkout");
