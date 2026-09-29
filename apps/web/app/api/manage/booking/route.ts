@@ -4,6 +4,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
 import { MANAGE_COOKIE_NAME, hashManageToken, rawManageTokenFromRequest } from "@/lib/checkout/manage-token";
 import { customerCancelWindow } from "@/lib/checkout/cancel-window";
+import { manageExtrasFromJson, type ManageExtras } from "@/lib/checkout/manage-money";
 import { asGuest, asSystem } from "@/lib/db/identity";
 
 const NOT_FOUND =
@@ -37,9 +38,6 @@ type ReadRow = {
 };
 
 type ExtraRow = {
-  chauffeur_name: string | null;
-  vehicle: string | null;
-  plate: string | null;
   review_submitted: boolean | null;
   price_total_rappen: number | string | null;
 };
@@ -136,19 +134,11 @@ export async function GET(request: Request): Promise<Response> {
     extra = await asSystem(env, async (sql) => {
       const rows = await sql<ExtraRow[]>`
         select
-          ch.full_name as chauffeur_name,
-          v.model as vehicle,
-          v.plate as plate,
           b.price_total_rappen,
           exists(
             select 1 from public.reviews as r where r.booking_id = b.id
           ) as review_submitted
           from public.bookings as b
-          join public.booking_legs as l
-            on l.booking_id = b.id
-           and l.leg_seq = 1
-          left join public.chauffeurs as ch on ch.id = l.assigned_chauffeur_id
-          left join public.vehicles as v on v.id = l.assigned_vehicle_id
          where b.id = ${row.booking_id}::uuid
          limit 1
       `;
@@ -156,6 +146,21 @@ export async function GET(request: Request): Promise<Response> {
     });
   } catch {
     extra = undefined;
+  }
+
+  // Money and driver: one narrow definer read for this token. The driver is first name, phone,
+  // vehicle model and plate only; a failed read leaves both blocks empty, never the page broken.
+  let extras: ManageExtras = { money: null, driver: null };
+  try {
+    const payload = await asGuest(env, tokenHashHex, async (sql) => {
+      const rows = await sql<{ payload: unknown }[]>`
+        select public.manage_booking_extras(decode(${tokenHashHex}, 'hex')) as payload
+      `;
+      return rows[0]?.payload;
+    });
+    extras = manageExtrasFromJson(payload);
+  } catch {
+    extras = { money: null, driver: null };
   }
 
   const reviewSubmitted = Boolean(extra?.review_submitted);
@@ -184,9 +189,8 @@ export async function GET(request: Request): Promise<Response> {
         flightNo: str(row.flight_no),
         pax: num(row.pax) || 1,
         bags: num(row.bags),
-        chauffeurName: str(extra?.chauffeur_name),
-        vehicle: str(extra?.vehicle),
-        plate: str(extra?.plate),
+        driver: extras.driver,
+        money: extras.money,
         priceTotalRappen: num(extra?.price_total_rappen),
         refundStatus,
         refundOwedRappen: num(row.refund_owed_rappen),
