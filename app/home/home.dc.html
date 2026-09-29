@@ -257,10 +257,10 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 [data-swaprot]{display:inline-flex}
 @media (max-width:699px){
 [data-swaprot]{transform:rotate(90deg)}}#fleet>strong{color:var(--vt-text-inverse)!important}#fleet>span:last-child{color:var(--vt-text-inverse-muted)!important}[data-fleet-card]{transition:box-shadow var(--vt-dur-fast,.2s) ease,border-color var(--vt-dur-fast,.2s) ease}[data-fleet-card] [data-fleet-img]{transition:filter .2s ease}:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}@media (max-width:1079px){#book{background:var(--vt-bg-surface);border-radius:var(--vt-radius-xl);box-shadow:var(--vt-shadow-xl)}#book [role=tablist]{background:var(--vt-grey-100)}#book [data-book-inline]{display:flex;flex-direction:column;gap:10px;min-inline-size:0;box-sizing:border-box;background:transparent;box-shadow:none}}@media (min-width:1080px){#book [data-book-inline]{display:none}}[data-hero] [data-trust]{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--vt-space-4) var(--vt-space-6);margin-block-start:var(--vt-space-4);min-inline-size:0;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);line-height:1.4;color:var(--vt-text-inverse)}[data-hero] [data-trust-word]{font-weight:600;white-space:nowrap}[data-hero] [data-trust-stars]{display:inline-flex;align-items:center;gap:2px;direction:ltr;flex:0 0 auto}[data-hero] [data-trust-score]{font-weight:600;font-variant-numeric:tabular-nums;direction:ltr;white-space:nowrap}[data-hero] [data-trust-count]{color:var(--vt-text-inverse-muted);white-space:nowrap}[data-hero] [data-trust-empty]{color:var(--vt-text-inverse)}[data-hero] [data-trust-lockup]{position:relative;display:block;flex:0 0 auto;block-size:var(--vt-space-8);inline-size:min(100%,calc(var(--vt-space-8) * 1132.8 / 278.2));max-inline-size:100%}[data-hero] [data-trust-mark],[data-hero] [data-trust-mark-word]{display:block;block-size:100%;inline-size:100%;object-fit:fill;object-position:left center;background:transparent;padding:0;border:0;border-radius:0;box-shadow:none}[data-hero] [data-trust-mark-word]{position:absolute;inset:0;clip-path:inset(0 0 0 25.11%);filter:brightness(0) invert(1);pointer-events:none}[data-hero] [data-trust-stars] img{display:block;flex:0 0 auto;block-size:var(--vt-space-5);inline-size:calc(var(--vt-space-5) * 271.3 / 258);object-fit:contain;background:transparent;padding:0;border:0;border-radius:0;box-shadow:none}[data-hero] [data-trust-link]{color:var(--vt-text-inverse);text-decoration:underline;text-underline-offset:3px;white-space:nowrap}[data-hero] [data-trust-link]:hover{color:var(--vt-white)}@media (prefers-reduced-motion:reduce){[data-hero] [data-trust-link]{transition:none}}
-/* 26.3 booking box — From, Flight (airport only), To, When, Travellers, SEE PRICES. One DOM order at every width. */
+/* 26.4.2 booking box — Flight number (airport pickup only, before From), From, To, When, Travellers, SEE PRICES. One DOM order at every width. */
 [data-bookcard]{display:block;box-sizing:border-box;min-width:0;max-width:820px;padding:clamp(14px,2.4vw,22px);background:var(--vt-bg-surface);border-radius:var(--vt-radius-xl);box-shadow:var(--vt-shadow-lg)}
 #book [data-box]{display:grid;box-sizing:border-box;min-width:0;gap:14px 12px;grid-template-columns:minmax(0,1fr);grid-template-areas:"from" "to" "when" "trav" "cta" "note";--vt-control-h-md:var(--vt-control-h-lg)}
-#book [data-box][data-air="1"]{grid-template-areas:"from" "flight" "to" "when" "trav" "cta" "note"}
+#book [data-box][data-flt="1"]{grid-template-areas:"flight" "from" "to" "when" "trav" "cta" "note"}
 #book [data-box]>[data-bx]{position:relative;min-width:0}
 #book [data-bx=from]{grid-area:from}#book [data-bx=flight]{grid-area:flight}#book [data-bx=to]{grid-area:to}#book [data-bx=swap]{grid-area:swap}#book [data-bx=when]{grid-area:when}#book [data-bx=trav]{grid-area:trav}#book [data-bx=cta]{grid-area:cta}#book [data-bx=note]{grid-area:note}
 #book [data-bx-kicker],#book [data-bx=when] .sc-host>div>span:first-child{display:block;margin:0 0 6px;font-family:var(--vt-font-body);font-size:var(--vt-label-md);line-height:18px;font-weight:var(--vt-label-weight);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -270,7 +270,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 #book [data-bx=when] .sc-host>div>span:first-child{margin:0}
 #book [data-bx-err]{display:block;margin-block-start:6px;font-size:var(--vt-body-sm);line-height:1.4;color:var(--vt-danger)}
 #book [data-bx-kicker-row]{display:flex;align-items:baseline;justify-content:space-between;gap:8px}#book [data-bx-opt]{font-weight:400;text-transform:none;letter-spacing:0;color:var(--vt-text-secondary)}
-#book [data-bx-hint]{display:block;margin-block-start:6px;font-size:var(--vt-body-sm);line-height:1.4;color:var(--vt-text-secondary)}
+/* The flight hint is read by screen readers only: showing it would make the row taller the moment the flight field appears (26.4.2). */
+#book [data-bx-hint]{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 #book [data-bx=flight]{animation:vt-fade-in 140ms ease both}
 #book [data-bx=swap]{display:flex;align-items:center;justify-content:center;z-index:2}
 #book [data-bx=note]{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 20px;margin:0}
@@ -291,7 +292,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 #book [data-step-n]{min-width:28px;text-align:center;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);font-variant-numeric:tabular-nums;color:var(--vt-text-primary)}
 @media (min-width:681px){
 #book [data-box]{grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr);grid-template-areas:"from swap to" "when . trav" "cta cta cta" "note note note"}
-#book [data-box][data-air="1"]{grid-template-areas:"from swap to" "flight . ." "when . trav" "cta cta cta" "note note note"}
+#book [data-box][data-flt="1"]{grid-template-areas:"flight . ." "from swap to" "when . trav" "cta cta cta" "note note note"}
 #book [data-bx=swap]{align-self:start;margin-block-start:29px}
 #book [data-swaprot]{transform:none}
 }
@@ -333,20 +334,43 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 #book [data-box] [data-sug]{min-inline-size:360px!important}
 }
 @media (min-width:1081px) and (max-width:1359px){
-#book [data-box]:has(> [data-bx=flight]){grid-template-columns:minmax(0,1fr) auto 44px minmax(0,1fr);grid-template-areas:"from flight swap to" "when tc tc tc" "note note note note"}
-#book [data-box]:not(:has(> [data-bx=flight])){grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr);grid-template-areas:"from swap to" "when tc tc" "note note note"}
+#book [data-box][data-flt="1"]{grid-template-columns:auto minmax(0,1fr) 44px minmax(0,1fr);grid-template-areas:"flight from swap to" "when tc tc tc" "note note note note"}
+#book [data-box]:not([data-flt="1"]){grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr);grid-template-areas:"from swap to" "when tc tc" "note note note"}
 #book [data-bx=trav],#book [data-bx=cta]{grid-area:tc}
 #book [data-bx=trav]{justify-self:start}
 #book [data-bx=cta]{justify-self:end;inline-size:max-content}
 }
 @media (min-width:1360px){
-#book [data-box]:has(> [data-bx=flight]){grid-template-columns:minmax(0,1fr) auto 44px minmax(0,1fr) minmax(180px,.9fr) 148px auto;grid-template-areas:"from flight swap to when trav cta" "note note note note note note note"}
-#book [data-box]:not(:has(> [data-bx=flight])){grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr) minmax(180px,.9fr) 148px auto;grid-template-areas:"from swap to when trav cta" "note note note note note note"}
+#book [data-box][data-flt="1"]{grid-template-columns:auto minmax(0,1fr) 44px minmax(0,1fr) minmax(180px,.9fr) 148px auto;grid-template-areas:"flight from swap to when trav cta" "note note note note note note note"}
+#book [data-box]:not([data-flt="1"]){grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr) minmax(180px,.9fr) 148px auto;grid-template-areas:"from swap to when trav cta" "note note note note note note"}
 #book [data-bx=trav],#book [data-bx=cta]{justify-self:stretch}
 }
 @media (min-width:1360px) and (max-width:1439px){
 #book [data-bx=flight]:not([data-om-label="Add flight"]){max-inline-size:168px}
 }
+/* 26.4.2 laptop "Choose your class" (owner, 2026-09-30): under the bar at >=1081 once From, To and When are valid. Prices are the server quote only. */
+[data-cc]{display:none}
+@media (min-width:1081px){
+[data-cc]{display:flex;flex-direction:column;gap:var(--vt-space-4);margin-top:var(--vt-space-6);min-width:0;font-family:var(--vt-font-body)}
+[data-cc-head]{display:flex;flex-direction:column;gap:var(--vt-space-1)}
+[data-cc-title]{margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-3);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);line-height:var(--vt-heading-leading);color:var(--vt-text-inverse)}
+[data-cc-sub]{margin:0;font-size:var(--vt-body-md);line-height:1.5;color:var(--vt-text-inverse-muted)}
+[data-cc-grid]{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:var(--vt-space-4);min-width:0}
+[data-cc-card]{display:flex;flex-direction:column;gap:var(--vt-space-3);box-sizing:border-box;min-width:0;padding:var(--vt-space-5);background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);color:var(--vt-text-primary)}
+[data-cc-card][data-block="pax"],[data-cc-card][data-block="bags"]{background:var(--vt-grey-50);color:var(--vt-text-muted)}
+[data-cc-name]{font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:-.01em;line-height:1.2}
+[data-cc-meta]{display:flex;flex-wrap:wrap;align-items:center;gap:var(--vt-space-2) var(--vt-space-4);font-size:var(--vt-body-md);color:var(--vt-text-secondary)}
+[data-cc-fig]{display:inline-flex;align-items:center;gap:var(--vt-space-2);font-variant-numeric:tabular-nums}
+[data-cc-price]{font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:var(--vt-weight-semibold);letter-spacing:-.02em;line-height:1.1;font-variant-numeric:tabular-nums;color:var(--vt-text-primary)}
+[data-cc-price][data-muted]{font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-medium);letter-spacing:0;color:var(--vt-text-secondary)}
+[data-cc-card][data-block] [data-cc-price]{color:var(--vt-text-muted)}
+[data-cc-act]{margin-top:auto}
+[data-cc-small]{margin-top:auto;display:flex;align-items:center;min-height:54px;font-size:var(--vt-body-md);font-weight:var(--vt-weight-medium);color:var(--vt-text-secondary)}
+[data-cc-msg]{margin:0;font-size:var(--vt-body-md);line-height:1.5;color:var(--vt-text-inverse-muted)}
+[data-cc-sk]{display:block;border-radius:var(--vt-radius-sm);background:var(--vt-grey-100);animation:vt-cc-pulse 1.2s ease-in-out infinite}
+@keyframes vt-cc-pulse{0%,100%{opacity:1}50%{opacity:.5}}
+}
+@media (prefers-reduced-motion:reduce){[data-cc-sk]{animation:none}}
 </style>
 </helmet>
 <div style="font-family:var(--vt-font-body);color:var(--vt-text-primary);background:var(--vt-bg-page)">
@@ -375,7 +399,30 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <span data-bar-note="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span data-tok data-vt-no-i18n="1">Free cancellation window</span></span>
 </div>
 </div><div id="{{ boxId }}" data-bookcard="1" style="margin-top:clamp(20px,4vw,34px);scroll-margin-top:24px">
-<div data-box="1" data-air="{{ airAttr }}" ref="{{ boxRef }}" data-om-label="Booking box">
+<div data-box="1" data-air="{{ airAttr }}" data-flt="{{ fltAttr }}" ref="{{ boxRef }}" data-om-label="Booking box">
+<sc-if value="{{ showFlight }}" hint-placeholder-val="{{ false }}">
+<div data-bx="flight" data-om-label="Flight">
+<span data-bx-kicker="1" data-bx-kicker-row="1">Flight number<sc-if value="{{ flightOptional }}" hint-placeholder-val="{{ false }}"><span data-bx-opt="1">Optional</span></sc-if></span>
+<div data-vtcombo="1" data-on="{{ flightOn }}" data-err="{{ flightErrAttr }}">
+<span data-combo-tile="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ flightIcon }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
+<input type="text" class="vt-dir-keep" dir="ltr" aria-label="Flight number" aria-required="{{ flightReq }}" aria-invalid="{{ flightErrAttr }}" aria-describedby="bx-flight-hint" autocomplete="off" spellcheck="false" autocapitalize="characters" maxlength="8" value="{{ fno }}" placeholder="LX 318" onChange="{{ setFno }}" onFocus="{{ focusFno }}" onBlur="{{ blurFno }}">
+</div>
+<sc-if value="{{ ferr }}" hint-placeholder-val="{{ false }}">
+<span role="alert" data-bx-err="1">{{ ferr }}</span>
+</sc-if>
+<sc-if value="{{ fhint }}" hint-placeholder-val="{{ true }}">
+<span data-bx-hint="1" id="bx-flight-hint">We track it and move the pickup if you land late</span>
+</sc-if>
+<sc-if value="{{ fhintOpt }}" hint-placeholder-val="{{ false }}">
+<span data-bx-hint="1" id="bx-flight-hint">It does not change the price.</span>
+</sc-if>
+</div>
+</sc-if>
+<sc-if value="{{ showFlightOpener }}" hint-placeholder-val="{{ false }}">
+<div data-bx="flight" data-om-label="Add flight">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" size="md" icon="plus" onClick="{{ openFlight }}" hint-size="100%,44px">Add a flight number</x-import>
+</div>
+</sc-if>
 <div data-bx="from" data-sugroot="1" data-book-field="pickup" data-om-label="From">
 <span data-bx-kicker="1">From</span>
 <div data-vtcombo="1" data-on="{{ pickupOn }}" data-err="{{ pickupErrAttr }}">
@@ -411,29 +458,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <span role="alert" data-bx-err="1">{{ pickupErr }}</span>
 </sc-if>
 </div>
-<sc-if value="{{ showFlight }}" hint-placeholder-val="{{ false }}">
-<div data-bx="flight" data-om-label="Flight">
-<span data-bx-kicker="1" data-bx-kicker-row="1">Flight number<sc-if value="{{ flightOptional }}" hint-placeholder-val="{{ false }}"><span data-bx-opt="1">Optional</span></sc-if></span>
-<div data-vtcombo="1" data-on="{{ flightOn }}" data-err="{{ flightErrAttr }}">
-<span data-combo-tile="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ flightIcon }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
-<input type="text" class="vt-dir-keep" dir="ltr" aria-label="Flight number" aria-required="{{ flightReq }}" aria-invalid="{{ flightErrAttr }}" autocomplete="off" spellcheck="false" autocapitalize="characters" maxlength="8" value="{{ fno }}" placeholder="LX 318" onChange="{{ setFno }}" onFocus="{{ focusFno }}" onBlur="{{ blurFno }}">
-</div>
-<sc-if value="{{ ferr }}" hint-placeholder-val="{{ false }}">
-<span role="alert" data-bx-err="1">{{ ferr }}</span>
-</sc-if>
-<sc-if value="{{ fhint }}" hint-placeholder-val="{{ true }}">
-<span data-bx-hint="1">We track it and move the pickup if you land late</span>
-</sc-if>
-<sc-if value="{{ fhintOpt }}" hint-placeholder-val="{{ false }}">
-<span data-bx-hint="1">It does not change the price.</span>
-</sc-if>
-</div>
-</sc-if>
-<sc-if value="{{ showFlightOpener }}" hint-placeholder-val="{{ false }}">
-<div data-bx="flight" data-om-label="Add flight">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" size="md" icon="plus" onClick="{{ openFlight }}" hint-size="100%,44px">Add a flight number</x-import>
-</div>
-</sc-if>
+<div data-bx="swap" data-om-label="Swap"><span data-swaprot="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.IconButton" icon="arrow-left-right" label="Swap pickup and drop-off" variant="outline" size="md" onClick="{{ swap }}" hint-size="44px,44px"></x-import></span></div>
 <div data-bx="to" data-sugroot="1" data-book-field="dest" data-om-label="To">
 <span data-bx-kicker="1">To</span>
 <div data-vtcombo="1" data-on="{{ dropOn }}" data-err="{{ destErrAttr }}">
@@ -469,7 +494,6 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <span role="alert" data-bx-err="1">{{ destErr }}</span>
 </sc-if>
 </div>
-<div data-bx="swap" data-om-label="Swap"><span data-swaprot="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.IconButton" icon="arrow-left-right" label="Swap pickup and drop-off" variant="outline" size="md" onClick="{{ swap }}" hint-size="44px,44px"></x-import></span></div>
 <div data-bx="when" data-book-field="when" data-om-label="When">
 <dc-import name="WhenPicker" label="When" placeholder="{{ tWhenPh }}" value="{{ date }}" time="{{ time }}" day="{{ day }}" times="{{ timeSlots }}" baseMonth="{{ baseMonth }}" locale="{{ lang }}" groups="{{ tGroups }}" timeTitle="{{ tPickupTime }}" savedLabel="{{ tSaved }}" clearLabel="{{ tClear }}" saveLabel="{{ tSave }}" onClear="{{ whenClear }}" onDay="{{ setDay }}" onTime="{{ setTime }}" onOpenChange="{{ whenOpenChange }}" hint-size="100%,80px"></dc-import>
 <sc-if value="{{ whenErr }}" hint-placeholder-val="{{ false }}">
@@ -519,6 +543,32 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </div>
 </div>
 </div>
+<sc-if value="{{ ccShow }}" hint-placeholder-val="{{ false }}">
+<section data-cc="1" data-state="{{ ccState }}" aria-labelledby="cc-title" data-om-label="Choose your class">
+<div data-cc-head="1"><h2 id="cc-title" data-cc-title="1">Choose your class</h2><p data-cc-sub="1">Fixed price, all inclusive. Pick a class to continue.</p></div>
+<div data-cc-grid="1" aria-busy="{{ ccBusy }}">
+<sc-for list="{{ ccCards }}" as="c" hint-placeholder-count="3">
+<sc-if value="{{ c.skel }}" hint-placeholder-val="{{ false }}">
+<div data-cc-card="1" data-skel="1" aria-hidden="true"><span data-cc-sk="1" style="width:55%;height:22px"></span><span data-cc-sk="1" style="width:35%;height:16px"></span><span data-cc-sk="1" style="width:45%;height:34px"></span><span data-cc-sk="1" style="width:100%;height:54px;border-radius:999px"></span></div>
+</sc-if>
+<sc-if value="{{ c.live }}" hint-placeholder-val="{{ true }}">
+<div data-cc-card="1" data-block="{{ c.block }}" data-slug="{{ c.slug }}" role="group" aria-label="{{ c.name }}">
+<div data-cc-name="1" data-vt-no-i18n="1">{{ c.name }}</div>
+<div data-cc-meta="1">
+<span data-cc-fig="1" aria-label="{{ c.paxLabel }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="users" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import><span class="vt-dir-keep" data-vt-no-i18n="1">{{ c.pax }}</span></span>
+<span data-cc-fig="1" aria-label="{{ c.bagsLabel }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="luggage" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import><span class="vt-dir-keep" data-vt-no-i18n="1">{{ c.bags }}</span></span>
+</div>
+<sc-if value="{{ c.hasPrice }}" hint-placeholder-val="{{ true }}"><div data-cc-price="1" class="vt-dir-keep" data-vt-no-i18n="1">{{ c.price }}</div></sc-if>
+<sc-if value="{{ c.noPrice }}" hint-placeholder-val="{{ false }}"><div data-cc-price="1" data-muted="1">Price at checkout</div></sc-if>
+<sc-if value="{{ c.canPick }}" hint-placeholder-val="{{ true }}"><div data-cc-act="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="secondary" size="lg" block="{{ yes }}" iconEnd="arrow-right" onClick="{{ c.pick }}" hint-size="100%,54px">Select</x-import></div></sc-if>
+<sc-if value="{{ c.tooSmall }}" hint-placeholder-val="{{ false }}"><div data-cc-small="1">{{ c.smallText }}</div></sc-if>
+</div>
+</sc-if>
+</sc-for>
+</div>
+<sc-if value="{{ ccMsg }}" hint-placeholder-val="{{ false }}"><p data-cc-msg="1" role="status">{{ ccMsg }}</p></sc-if>
+</section>
+</sc-if>
 <div data-trust="1">
 <sc-if value="{{ trustEmpty }}" hint-placeholder-val="{{ true }}">
 <span data-trust-empty="1">{{ tTrustEmpty }}</span>
@@ -584,7 +634,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <dc-import name="BookingBar" docked="{{ yes }}" from="{{ barFrom }}" to="{{ barTo }}" whenLabel="{{ whenLabel }}" pax="{{ paxN }}" bags="{{ bagsN }}" travellersSet="{{ travSet }}" complete="{{ tripComplete }}" expanded="{{ sheetOpen }}" onOpen="{{ openFromDock }}" hint-size="100%,54px"></dc-import>
 </div>
 
-<dc-import name="BookingSheet" open="{{ sheetOpen }}" step="{{ sheetStep }}" fromText="{{ pickupText }}" fromHits="{{ fromHits }}" fromChosen="{{ fromChosen }}" fromAirport="{{ air }}" toText="{{ dropText }}" toHits="{{ toHits }}" toChosen="{{ toChosen }}" samePlace="{{ samePlace }}" flight="{{ fno }}" flightOpen="{{ flightOpenBool }}" flightValid="{{ flightValid }}" date="{{ sheetDate }}" time="{{ time }}" minDate="{{ minDate }}" whenError="{{ sheetWhenErr }}" whenLabel="{{ whenLabel }}" pax="{{ paxN }}" bags="{{ bagsN }}" onFromInput="{{ shFromInput }}" onFromPick="{{ shFromPick }}" onFromClear="{{ shFromClear }}" onToInput="{{ shToInput }}" onToPick="{{ shToPick }}" onToClear="{{ shToClear }}" onFlight="{{ shFlight }}" onFlightOpen="{{ openFlightSheet }}" onDate="{{ shDate }}" onTime="{{ shTime }}" onPax="{{ setPaxN }}" onBags="{{ setBagsN }}" onStep="{{ shStep }}" onClose="{{ closeSheet }}" onSubmit="{{ shSubmit }}" hint-size="0,0"></dc-import>
+<dc-import name="BookingSheet" open="{{ sheetOpen }}" fromText="{{ pickupText }}" fromHits="{{ fromHits }}" fromChosen="{{ fromChosen }}" fromAirport="{{ air }}" toText="{{ dropText }}" toHits="{{ toHits }}" toChosen="{{ toChosen }}" samePlace="{{ samePlace }}" flight="{{ fno }}" flightOpen="{{ flightOpenBool }}" flightValid="{{ flightValid }}" dayNum="{{ sheetDay }}" dayY="{{ sheetDayY }}" dayM="{{ sheetDayM }}" dateLabel="{{ date }}" time="{{ time }}" baseMonth="{{ baseMonth }}" lang="{{ lang }}" whenError="{{ sheetWhenErr }}" pax="{{ paxN }}" bags="{{ bagsN }}" onFromInput="{{ shFromInput }}" onFromPick="{{ shFromPick }}" onFromClear="{{ shFromClear }}" onToInput="{{ shToInput }}" onToPick="{{ shToPick }}" onToClear="{{ shToClear }}" onFieldFocus="{{ shFocus }}" onFlight="{{ shFlight }}" onFlightOpen="{{ openFlightSheet }}" onDay="{{ setDay }}" onTime="{{ setTime }}" onWhenClear="{{ whenClear }}" onPax="{{ setPaxN }}" onBags="{{ setBagsN }}" onClose="{{ closeSheet }}" onSubmit="{{ shSubmit }}" hint-size="0,0"></dc-import>
 
 </div>
 
@@ -1137,7 +1187,8 @@ Dust.wake = function () {
   requestAnimationFrame(step);
 };
 const CLOSED = { open: false, field: null, at: null, items: [], custom: false, text: '' };
-const LIST_CSS = () => 'position:absolute;top:calc(100% + 8px);'
+/** flip: no room below the field, so the list opens upward and the bar stays where it is (26.4.2). 24px = the kicker line above the field. */
+const LIST_CSS = (flip) => 'position:absolute;' + (flip ? 'bottom:calc(100% - 24px + 8px);' : 'top:calc(100% + 8px);')
   + 'inset-inline-start:0;width:100%;min-width:min(320px,calc(100vw - 32px));z-index:600;max-height:min(430px,62svh);box-sizing:border-box;'
   + 'background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-lg);padding:6px;display:flex;flex-direction:column;gap:2px;overflow-y:auto';
 /** Old browsers still hold the trip the previous home box wrote; drop it once. The trip now travels in the checkout URL. */
@@ -1175,10 +1226,10 @@ class Component extends DCLogic {
       flight: '', flightAsk: false, flightState: 'idle', flightData: null, flightPlan: null, flightSince: '', flightNote: '', changes: [], kept: [],
       touched: { pickup: false, dest: false, when: false }, here: null, hereLoc: null,
       autofill: { pickup: null, when: null, dest: null, party: null }, fill: null, picked: null,
-      sug: CLOSED, sugIdx: -1, sugFlip: false, fsug: { open: false, items: [] }, fsugIdx: -1, fsugFlip: false,
+      sug: CLOSED, sugIdx: -1, sugFlip: false, fsug: { open: false, items: [] }, fsugIdx: -1, fsugFlip: false, cc: { status: 'idle', cards: [], msg: '' },
       quote: { status: 'empty', results: null, inflight: false }, announce: '', quoteFail: false,
       fleetOffer: [],
-      narrow: NARROW(), menuOpen: false, sheetOpen: false, sheetStep: 1, barAbove: false, hdOpen: false, dockTop: 84, travSet: false,
+      narrow: NARROW(), menuOpen: false, sheetOpen: false, barAbove: false, hdOpen: false, dockTop: 84, travSet: false,
       flightConfirmed: false, flightDateChoice: 'today', pendingTimeUpdate: null,
       fno: '', flightOpen: false, errs: { pickup: '', dest: '', when: '', flight: '' }, travOpen: false,
       focused: { pickup: false, dest: false, when: false, flight: false },
@@ -1814,20 +1865,12 @@ class Component extends DCLogic {
   /* ── 26.4 bar + sheet (≤1080) ─────────────────────────────────────────────
      The sheet is a view of the same trip state as the laptop box: no copy, no storage.
      It owns its scroll lock, history entries, focus trap and inert background (BookingSheet). */
-  /** First step still needing an answer, from a silent check of the trip. 4 = everything is valid. */
-  firstStep() {
-    const r = this.checkTrip();
-    if (r.errs.pickup || r.errs.flight) return 1;
-    if (r.errs.dest) return 2;
-    if (r.errs.when) return 3;
-    return 4;
+  /** The sheet is one page (26.4.2): Where, When and Who are all on it when it opens. */
+  openSheetAt() {
+    this.setState({ sheetOpen: true, sug: CLOSED, sugIdx: -1, travSet: true }, () => this.syncSheetSug(1));
   }
-  openSheetAt(step) {
-    const n = Math.min(4, Math.max(1, step | 0));
-    this.setState((s) => ({ sheetOpen: true, sheetStep: n, sug: CLOSED, sugIdx: -1, travSet: s.travSet || n === 4 }), () => this.syncSheetSug(n));
-  }
-  openFromHero = () => this.openSheetAt(this.firstStep());
-  openFromDock = () => this.openSheetAt(this.firstStep());
+  openFromHero = () => this.openSheetAt();
+  openFromDock = () => this.openSheetAt();
   closeSheet = () => this.setState({ sheetOpen: false, sug: CLOSED, sugIdx: -1 });
   /** Typed but unchosen text keeps its suggestion list when a step is (re)shown. */
   syncSheetSug(step) {
@@ -1844,7 +1887,8 @@ class Component extends DCLogic {
       this.setState({ sug: CLOSED, sugIdx: -1 });
     }
   }
-  shStep = (n) => { const step = Math.min(4, Math.max(1, parseInt(n, 10) || 1)); this.setState((s) => ({ sheetStep: step, travSet: s.travSet || step === 4 }), () => this.syncSheetSug(step)); };
+  /** Focusing From or To re-shows its list for typed-but-unchosen text and closes the other field's list. */
+  shFocus = (field) => this.syncSheetSug(field === 'to' ? 2 : 1);
   shFromInput = (text) => this.editRoute('pickup', 'a')({ target: { value: String(text == null ? '' : text) } });
   shToInput = (text) => this.editRoute('dropoff', 'a')({ target: { value: String(text == null ? '' : text) } });
   shFromClear = () => this.clearField('pickup')();
@@ -1863,26 +1907,13 @@ class Component extends DCLogic {
   }
   shFlight = (text) => { const v = this.normFlight(text); this.setState((s) => ({ fno: v, errs: Object.assign({}, s.errs, { flight: '' }) })); };
   openFlightSheet = () => this.setState({ flightOpen: true });
-  shDate = (v) => {
-    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(v || ''));
-    this.setState((s) => ({
-      day: m ? +m[3] : null, dayY: m ? +m[1] : null, dayM: m ? +m[2] - 1 : null, dayLabel: null,
-      touched: Object.assign({}, s.touched, { when: true }), autofill: Object.assign({}, s.autofill, { when: null }),
-      errs: Object.assign({}, s.errs, { when: '' }),
-    }));
-  };
-  shTime = (v) => {
-    const t = /^\d{2}:\d{2}$/.test(String(v || '')) ? String(v) : '';
-    this.setState((s) => ({ time: t, touched: Object.assign({}, s.touched, { when: true }), autofill: Object.assign({}, s.autofill, { when: null }), errs: Object.assign({}, s.errs, { when: '' }) }));
-  };
   setPaxN = (n) => { const v = parseInt(n, 10); this.setState({ pax: Math.min(8, Math.max(1, Number.isFinite(v) ? v : 1)) }); };
   setBagsN = (n) => { const v = parseInt(n, 10); this.setState({ bags: Math.min(16, Math.max(0, Number.isFinite(v) ? v : 0)) }); };
   /** SEE PRICES from the sheet (it has already removed its own history entries). */
   shSubmit = () => {
     const r = this.checkTrip();
     if (r.ok) { this.goCheckout(); return; }
-    const step = r.errs.pickup || r.errs.flight ? 1 : r.errs.dest ? 2 : 3;
-    this.setState({ sheetStep: step, sheetOpen: true }, () => this.syncSheetSug(step));
+    this.setState({ sheetOpen: true });
   };
   /** Home starts empty every time it loads or comes back from the bfcache. */
   resetTrip() {
@@ -1893,7 +1924,7 @@ class Component extends DCLogic {
       pax: 1, bags: 0, fno: '', flightOpen: false, travOpen: false, travSet: false,
       errs: { pickup: '', dest: '', when: '', flight: '' },
       touched: { pickup: false, dest: false, when: false },
-      sug: CLOSED, sugIdx: -1, sheetOpen: false, sheetStep: 1,
+      sug: CLOSED, sugIdx: -1, sheetOpen: false, cc: { status: 'idle', cards: [], msg: '' },
     });
   }
   /** Bottom edge of the floating header, as the docked bar sees it. */
@@ -2114,28 +2145,25 @@ class Component extends DCLogic {
     return rows;
   }
   _sugRef = (el) => { this._sug = el; };
-  /** Laptop bar (26.4.2): the bar sits low in the hero, so an address list opened under From or To can start below the fold.
-   *  Scroll just enough to show it (never past the field itself), so the list is always visible below its field. */
-  componentDidUpdate(prevProps, prevState) {
-    const s = this.state;
-    if (s.narrow || !s.sug.open) return;
-    if (prevState && prevState.sug.open && prevState.sug.items === s.sug.items && prevState.sug.field === s.sug.field) return;
-    cancelAnimationFrame(this._revealRaf);
-    this._revealRaf = requestAnimationFrame(() => this.revealSug());
-  }
-  revealSug() {
-    const el = this._sug;
-    if (!el || !el.getBoundingClientRect || typeof window === 'undefined') return;
-    const r = el.getBoundingClientRect();
-    const over = r.bottom - (window.innerHeight - 16);
-    const room = r.top - 110;
-    const dy = Math.round(Math.min(over, room));
-    if (dy < 4) return;
-    const y = (window.scrollY || window.pageYOffset || 0) + dy;
-    try {
-      if (window.__vtLenis && window.__vtLenis.scrollTo) window.__vtLenis.scrollTo(y, { duration: 0.35 });
-      else window.scrollTo({ top: y, behavior: 'smooth' });
-    } catch (err) {}
+  /** Laptop bar (26.4.2): the flight field slides in before From when the pickup turns out to be an airport;
+   *  focus goes into it so the traveller (and a screen reader, which reads its label and hint) lands there. */
+  componentDidUpdate() {
+    /* The DC runtime passes previous props only, so the previous airport answer is remembered here. */
+    const st = this.state;
+    const isAir = !!(st.pickupLoc && this.pickupAir());
+    const wasAir = !!this._wasAir;
+    this._wasAir = isAir;
+    this.ccSync();
+    if (st.narrow || wasAir || !isAir) return;
+    cancelAnimationFrame(this._flightFocusRaf);
+    this._flightFocusRaf = requestAnimationFrame(() => {
+      const i = this._box && this._box.querySelector('[data-bx="flight"] input');
+      if (!i || !this.pickupAir()) return;
+      /* Only when focus is still where the pick happened (From) or nowhere; a traveller who already moved on keeps their place. */
+      const a = document.activeElement;
+      if (a && a !== document.body && !(a.closest && a.closest('[data-bx="from"]'))) return;
+      try { i.focus({ preventScroll: true }); } catch (err) {}
+    });
   }
   /** Keeps the highlighted row inside the scroll window without touching page scroll. */
   scrollSug(i) {
@@ -2263,7 +2291,115 @@ class Component extends DCLogic {
     return { ok: ok, errs: errs, when: when, air: air, fl: fl, pText: pText, dText: dText, pl: pl, dl: dl };
   }
   /** Hands the trip to /checkout in the URL. Used by the box and by the sheet alike. */
-  goCheckout() {
+  /* ── 26.4.2 laptop "Choose your class" ────────────────────────────────────
+     Prices come ONLY from the server quote (POST /api/quote); nothing is written into markup.
+     Trigger: laptop (>=1081) and From, To and When all valid (checkTrip().ok). The trip is reduced to a signature
+     (place ids, when, pax, bags, flight); the quote fires 900 ms after the signature settles, never on a keystroke,
+     and never twice for the same signature. At most 4 quotes per rolling minute leave this page (the server allows 4).
+     States: idle (section hidden) · loading (skeleton) · ok (cards with prices) · none (no class fits) ·
+     limit / error (cards without a price, "Price at checkout"; SEE PRICES still goes to checkout).
+     A class the party does not fit is greyed with "Seats up to N" / "Bags up to N" and cannot be picked. */
+  ccBody(r) {
+    const s = this.state;
+    if (!r.ok || !r.pl || !r.dl || !r.pl.mapbox_id || !r.dl.mapbox_id) return null;
+    const token = geoSession();
+    const lang = LANGS.indexOf(s.lang) > -1 ? s.lang : 'en';
+    const cur = ['CHF', 'EUR', 'USD', 'AED'].indexOf(s.cur) > -1 ? s.cur : 'CHF';
+    return {
+      locale: lang, display_currency: cur, mode: 'one_way',
+      pickup: { kind: 'retrieve', mapbox_id: String(r.pl.mapbox_id).slice(0, 256), session_token: token, text: r.pText.slice(0, 200) },
+      dropoff: { kind: 'retrieve', mapbox_id: String(r.dl.mapbox_id).slice(0, 256), session_token: token, text: r.dText.slice(0, 200) },
+      legs: [{ leg_seq: 1, scheduled_local: r.when, flight_no: r.fl ? r.fl.slice(0, 16) : null }],
+      pax: Math.min(8, Math.max(1, parseInt(s.pax, 10) || 1)), bags: Math.min(16, Math.max(0, parseInt(s.bags, 10) || 0)),
+    };
+  }
+  ccSync() {
+    const s = this.state;
+    if (s.narrow) { this.ccReset(); return; }
+    const r = this.checkTrip();
+    const body = this.ccBody(r);
+    if (!body) { this.ccReset(); return; }
+    const sig = [body.pickup.mapbox_id, body.dropoff.mapbox_id, body.legs[0].scheduled_local, body.legs[0].flight_no || '', body.pax, body.bags].join('|');
+    if (sig === this._ccSig) return;
+    this._ccSig = sig;
+    clearTimeout(this._ccT);
+    if (s.cc.status !== 'loading') this.setState({ cc: { status: 'loading', cards: [], msg: '' } }, () => this.ccReveal());
+    this._ccT = setTimeout(() => this.ccFire(sig), 900);
+  }
+  ccReset() {
+    clearTimeout(this._ccT); this._ccSig = ''; this._ccSeq = (this._ccSeq || 0) + 1;
+    if (this.state.cc.status !== 'idle') this.setState({ cc: { status: 'idle', cards: [], msg: '' } });
+  }
+  ccFire(sig) {
+    if (sig !== this._ccSig || this.state.narrow) return;
+    const body = this.ccBody(this.checkTrip());
+    if (!body) return;
+    const now = Date.now();
+    this._ccHits = (this._ccHits || []).filter((t) => now - t < 60000);
+    if (this._ccHits.length >= 4) { this.ccFail('limit'); return; }
+    this._ccHits.push(now);
+    const seq = this._ccSeq = (this._ccSeq || 0) + 1;
+    fetch('/api/quote', { method: 'POST', credentials: 'same-origin', headers: { 'content-type': 'application/json', accept: 'application/json' }, body: JSON.stringify(body) })
+      .then((res) => res.json().catch(() => null).then((j) => ({ status: res.status, j: j })))
+      .then((o) => {
+        if (seq !== this._ccSeq || sig !== this._ccSig) return;
+        const j = o.j;
+        if (o.status === 429 || (j && (j.error === 'rate_limited' || j.error === 'rate_limit'))) { this.ccFail('limit'); return; }
+        if (!j || j.ok !== true) { this.ccFail('error'); return; }
+        const cards = (j.classes || []).filter(publicQuoteClass).map((c) => {
+          const ok = c.eligible === true;
+          const reason = c.ineligible_reason;
+          return {
+            slug: String(c.slug), name: String(c.name || c.label || c.slug),
+            pax: c.effective_max_pax != null ? c.effective_max_pax : 0, bags: c.max_bags != null ? c.max_bags : 0,
+            block: ok ? '' : (reason === 'pax' || reason === 'bags' ? reason : 'gone'),
+            total: typeof c.total_rappen === 'number' && isFinite(c.total_rappen) ? c.total_rappen : null,
+          };
+        }).filter((c) => c.block !== 'gone');
+        if (!cards.length) { this.setState({ cc: { status: 'none', cards: [], msg: 'No class fits this trip. Change the passengers or the bags.' } }); return; }
+        const anyOk = cards.some((c) => !c.block);
+        this.setState({ cc: { status: anyOk ? 'ok' : 'none', cards: cards, msg: anyOk ? '' : 'No class fits this trip. Change the passengers or the bags.' } }, () => this.ccReveal());
+      })
+      .catch(() => { if (seq === this._ccSeq && sig === this._ccSig) this.ccFail('error'); });
+  }
+  /** limit / error: the class line-up without a price. The catalog is the idle GET /api/quote (no Mapbox, no price). */
+  ccFail(kind) {
+    const sig = this._ccSig;
+    const msg = kind === 'limit'
+      ? 'Prices are busy for a moment. Pick a class and you see the price at checkout.'
+      : 'We could not load prices just now. Pick a class and you see the price at checkout.';
+    const show = (list) => {
+      if (sig !== this._ccSig) return;
+      const s = this.state;
+      const pax = Math.min(8, Math.max(1, parseInt(s.pax, 10) || 1)), bags = Math.min(16, Math.max(0, parseInt(s.bags, 10) || 0));
+      const cards = list.map((c) => Object.assign({}, c, { block: pax > c.pax ? 'pax' : (bags > c.bags ? 'bags' : ''), total: null }));
+      this.setState({ cc: { status: kind, cards: cards, msg: msg } }, () => this.ccReveal());
+    };
+    if (this._ccCatalog) { show(this._ccCatalog); return; }
+    fetch('/api/quote', { headers: { accept: 'application/json' }, credentials: 'same-origin' })
+      .then((res) => res.json().catch(() => null))
+      .then((j) => {
+        const list = j && j.ok === true && Array.isArray(j.classes) ? j.classes.filter(publicQuoteClass).map((c) => { const m = classFromQuote(c); return { slug: m.id, name: m.name, pax: m.cap, bags: m.bags }; }) : [];
+        if (list.length) this._ccCatalog = list;
+        show(list);
+      })
+      .catch(() => show([]));
+  }
+  /** The bar sits low in the hero: bring the cards up when they open below the fold. */
+  ccReveal() {
+    cancelAnimationFrame(this._ccRaf);
+    this._ccRaf = requestAnimationFrame(() => {
+      const el = document.querySelector('[data-cc]');
+      if (!el || this.state.narrow) return;
+      const r = el.getBoundingClientRect();
+      const over = r.bottom - (window.innerHeight - 24);
+      if (over <= 4) return;
+      const y = (window.scrollY || 0) + Math.min(over, Math.max(0, r.top - 96));
+      try { if (window.__vtLenis && window.__vtLenis.scrollTo) window.__vtLenis.scrollTo(y, { duration: 0.5 }); else window.scrollTo({ top: y, behavior: REDUCED ? 'auto' : 'smooth' }); } catch (err) {}
+    });
+  }
+  pickClass = (slug) => this.goCheckout(slug);
+  goCheckout(cls) {
     const s = this.state; const r = this.checkTrip();
     if (!r.ok) return;
     const p = new URLSearchParams();
@@ -2276,6 +2412,7 @@ class Component extends DCLogic {
     p.set('pax', String(Math.min(8, Math.max(1, parseInt(s.pax, 10) || 1))));
     p.set('bags', String(Math.min(16, Math.max(0, parseInt(s.bags, 10) || 0))));
     if (r.fl) p.set('flight', r.fl);
+    if (typeof cls === 'string' && /^[a-z0-9][a-z0-9_-]{0,63}$/.test(cls)) p.set('class', cls);
     const prefix = (s.lang === 'de' || s.lang === 'fr' || s.lang === 'ar') ? '/' + s.lang : '';
     this.setState({ errs: r.errs });
     location.assign(prefix + '/checkout?' + p.toString());
@@ -2285,6 +2422,23 @@ class Component extends DCLogic {
     if (!r.ok) { this.setState({ errs: r.errs, travOpen: false }, () => this.focusFirstErr()); return; }
     this.goCheckout();
   };
+  /** Card view models. Money is formatted by the locale runtime from the server's rappen; a null total shows no figure. */
+  ccCards() {
+    const cc = this.state.cc;
+    if (cc.status === 'loading') return [{ skel: true, live: false }, { skel: true, live: false }, { skel: true, live: false }];
+    const loc = typeof window !== 'undefined' ? window.VamosLocale : null;
+    return (cc.cards || []).map((c) => {
+      const hasPrice = c.total != null;
+      const small = c.block === 'pax' || c.block === 'bags';
+      return {
+        skel: false, live: true, slug: c.slug, name: c.name, pax: c.pax, bags: c.bags, block: c.block || '',
+        paxLabel: 'Up to ' + c.pax + ' passengers', bagsLabel: 'Up to ' + c.bags + ' bags',
+        hasPrice: hasPrice, price: hasPrice && loc && loc.fromChf ? loc.fromChf(c.total) : '', noPrice: !hasPrice && !small,
+        canPick: !small, tooSmall: small, smallText: (c.block === 'bags' ? 'Bags up to ' : 'Seats up to ') + (c.block === 'bags' ? c.bags : c.pax),
+        pick: () => this.pickClass(c.slug),
+      };
+    });
+  }
   renderVals() {
     const t = this.t(); const s = this.state;
     const trust = this.trustSummary();
@@ -2302,35 +2456,34 @@ class Component extends DCLogic {
     const trip = this.checkTrip();
     const pTxt = String(s.pickupText || '').trim(), dTxt = String(s.dropText || '').trim();
     const whenSet = s.day != null && s.dayY != null && s.dayM != null;
-    const sheetDate = whenSet ? s.dayY + '-' + pad2(s.dayM + 1) + '-' + pad2(s.day) : '';
-    const zn = zurichNow();
     const sheetWhenErr = whenSet && /^\d{2}:\d{2}$/.test(s.time || '') && trip.errs.when ? trip.errs.when : '';
     const sameP = !!(s.pickupLoc && s.dropLoc && ((s.pickupLoc.mapbox_id && s.pickupLoc.mapbox_id === s.dropLoc.mapbox_id) || (pTxt && pTxt.toLowerCase() === dTxt.toLowerCase())));
     const dockShow = !!(s.narrow && s.barAbove && !s.sheetOpen && !s.hdOpen);
     return {
       barId: s.narrow ? 'book' : undefined, boxId: s.narrow ? undefined : 'book', barSlotRef: this.barSlotRef,
       barFrom: pTxt, barTo: dTxt, whenLabel: whenText(s.dayY, s.dayM, s.day, s.time, s.lang), travSet: !!s.travSet, tripComplete: trip.ok,
-      sheetOpen: !!s.sheetOpen, sheetStep: s.sheetStep, openFromHero: this.openFromHero, openFromDock: this.openFromDock, closeSheet: this.closeSheet,
+      sheetOpen: !!s.sheetOpen, openFromHero: this.openFromHero, openFromDock: this.openFromDock, closeSheet: this.closeSheet,
       dockAttr: dockShow ? '1' : '0', dockStyle: 'top:' + s.dockTop + 'px',
       fromHits: this.hitsFor('pickup'), toHits: this.hitsFor('dropoff'),
       fromChosen: !!s.pickupLoc && pTxt.length >= 2, toChosen: !!s.dropLoc && dTxt.length >= 2, samePlace: sameP, air: air,
       flightOpenBool: !!s.flightOpen, flightValid: !s.fno || FLIGHT_RE.test(s.fno),
-      sheetDate: sheetDate, minDate: zn.y + '-' + pad2(zn.m + 1) + '-' + pad2(zn.d), sheetWhenErr: sheetWhenErr,
+      sheetDay: whenSet ? s.day : 0, sheetDayY: whenSet ? s.dayY : 0, sheetDayM: whenSet ? s.dayM : 0, sheetWhenErr: sheetWhenErr,
       shFromInput: this.shFromInput, shFromPick: this.shFromPick, shFromClear: this.shFromClear,
       shToInput: this.shToInput, shToPick: this.shToPick, shToClear: this.shToClear,
-      shFlight: this.shFlight, openFlightSheet: this.openFlightSheet, shDate: this.shDate, shTime: this.shTime,
-      setPaxN: this.setPaxN, setBagsN: this.setBagsN, shStep: this.shStep, shSubmit: this.shSubmit,
+      shFlight: this.shFlight, openFlightSheet: this.openFlightSheet, shFocus: this.shFocus,
+      setPaxN: this.setPaxN, setBagsN: this.setBagsN, shSubmit: this.shSubmit,
       n0: 0, n1: 1, n2: 2, n8: 8, n12: 12, n13: 13, n14: 14, n15: 15, n16: 16, n18: 18, n20: 20, n24: 24, n30: 30,
       yes: true, no: false,
       dir: s.lang === 'ar' ? 'rtl' : 'ltr', lang: s.lang, cur: s.cur, pickLang: this.pickLang, pickCur: this.pickCur,
-      boxRef: this.boxRef, airAttr: air ? '1' : '0',
+      ccShow: !s.narrow && s.cc.status !== 'idle', ccState: s.cc.status, ccBusy: s.cc.status === 'loading' ? 'true' : 'false', ccMsg: s.cc.msg || '', ccCards: this.ccCards(),
+      boxRef: this.boxRef, airAttr: air ? '1' : '0', fltAttr: (showFlightField || showOpener) ? '1' : '0',
       pickupText: s.pickupText, dropText: s.dropText,
       editPickupA: this.editRoute('pickup', 'a'), editDropA: this.editRoute('dropoff', 'a'),
       focusPickupA: this.focusPickupA, focusDropA: this.focusDropA, blurPickupA: this.blurPickupA, blurDropA: this.blurDropA,
       pickupIcon: (s.pickupLoc && this.placeIsAirport(s.pickupLoc)) ? 'plane-landing' : 'map-pin',
       sugPA: s.sug.open && s.sug.field === 'pickup' && (sugHasHits || s.geo === 'loading'),
       sugDA: s.sug.open && s.sug.field === 'dropoff' && (sugHasHits || s.geo === 'loading'),
-      sugRows: sugRows, sugHasHits: sugHasHits, sugRef: this._sugRef, sugKey: this.sugKey, sugCss: LIST_CSS(),
+      sugRows: sugRows, sugHasHits: sugHasHits, sugRef: this._sugRef, sugKey: this.sugKey, sugCss: LIST_CSS(s.sugFlip),
       sugPAStr: (s.sug.open && s.sug.field === 'pickup') ? 'true' : 'false',
       sugDAStr: (s.sug.open && s.sug.field === 'dropoff') ? 'true' : 'false',
       pickupOn: (s.focused.pickup || (s.sug.open && s.sug.field === 'pickup')) ? '1' : '0',

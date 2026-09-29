@@ -157,15 +157,16 @@ test.describe("Home laptop booking bar @component", () => {
 
     for (const w of LAPTOP) {
       for (const lang of ["en", "de"]) {
-        test(`airport flight field sits beside From at ${w} in ${lang}`, async ({ page }, testInfo) => {
+        test(`airport flight field sits before From at ${w} in ${lang}`, async ({ page }, testInfo) => {
           await open(page, w);
           await pickFrom(page, "Fixture Air", "Fixture Airport");
           await pickTo(page, "Fixture Street", "Fixture Street 1");
           if (lang !== "en") await setLang(page, lang);
           const g = await geom(page);
           expect(g.flight).not.toBeNull();
-          expect(g.flight!.left).toBeGreaterThanOrEqual(g.from!.right - 1);
-          expect(g.flight!.right).toBeLessThanOrEqual(g.swap!.left + 1);
+          expect(g.flight!.right).toBeLessThanOrEqual(g.from!.left + 1);
+          expect(g.from!.right).toBeLessThanOrEqual(g.swap!.left + 1);
+          expect(g.swap!.right).toBeLessThanOrEqual(g.to!.left + 1);
           expect(g.flight!.width).toBeGreaterThanOrEqual(168);
           expect(g.flight!.width).toBeLessThanOrEqual(232);
           expect(g.flight!.height).toBe(54);

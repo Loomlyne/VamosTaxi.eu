@@ -491,3 +491,60 @@ for (const lang of ["en", "ar"] as Lang[]) {
     }
   });
 }
+
+// ── 26.4.2 (owner, 2026-09-30): the phone class cards ───────────────────────────────────
+// At <=680 px one compact card per class: a selection ring, name over seats and bags, the price
+// prominent at the end. Selected = charcoal 2px border + check. Too small = greyed, no price,
+// "Seats up to N". 768 keeps the tile cards. Amounts are arithmetic fixtures.
+const SHOTS_D = "/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/3c6c6056-f11d-41a2-8b13-17a758844e5c/scratchpad";
+for (const [lang, width] of [["en", 390], ["ar", 390], ["en", 768]] as const) {
+  test(`${lang} ${width}: class cards read as one compact row per class on the phone @checkout`, async ({ page }) => {
+    await setup(page);
+    const seats5 = TRIP.replace("pax=2", "pax=5");
+    await open(page, lang, width, seats5);
+    const phone = width <= 680;
+    const economy = card(page, "economy");
+    const van = card(page, "van-luxury");
+    // Too small: Economy and Business take 3, the party is 5.
+    await expect(economy).toHaveAttribute("data-eligible", "false");
+    await expect(economy.locator(".vt-veh")).toBeDisabled();
+    await expect(economy.locator(".vt-veh__note")).toContainText("3");
+    if (phone) {
+      await expect(economy.locator(".vt-veh__amount")).toBeHidden();
+      await expect(economy.locator(".vt-veh__shot")).toBeHidden();
+    } else {
+      await expect(economy.locator(".vt-veh__shot")).toBeVisible();
+    }
+    // Eligible: price prominent, 54 px tap target at least, selectable.
+    await expect(van).toHaveAttribute("data-eligible", "true");
+    await expect(van.locator(".vt-veh__amount")).toBeVisible();
+    const box = (await van.locator(".vt-veh").boundingBox())!;
+    expect(box.height).toBeGreaterThanOrEqual(54);
+    await van.locator(".vt-veh").click();
+    await expect(van).toHaveAttribute("data-selected", "true");
+    const sel = await van.locator(".vt-veh").evaluate((el) => {
+      const cs = getComputedStyle(el);
+      return { w: cs.borderTopWidth, c: cs.borderTopColor };
+    });
+    expect(sel.w).toBe("2px");
+    const charcoal = await page.evaluate(() => {
+      const probe = document.createElement("i");
+      probe.style.color = "var(--vt-charcoal-900)";
+      document.body.appendChild(probe);
+      const c = getComputedStyle(probe).color;
+      probe.remove();
+      return c;
+    });
+    expect(sel.c).toBe(charcoal);
+    await expect(van.locator(".vt-co__class-check")).toBeVisible();
+    if (phone) {
+      // the check sits in the leading slot, level with the card's middle
+      const chk = (await van.locator(".vt-co__class-check").boundingBox())!;
+      const vb = (await van.boundingBox())!;
+      expect(Math.abs(chk.y + chk.height / 2 - (vb.y + vb.height / 2))).toBeLessThanOrEqual(3);
+    }
+    await noSidewaysScroll(page);
+    await page.locator("[data-co-classes]").scrollIntoViewIfNeeded();
+    await page.locator("#co-section-class").screenshot({ path: `${SHOTS_D}/obf-d-checkout-cards-${width}-${lang}.png` });
+  });
+}

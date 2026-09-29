@@ -84,14 +84,14 @@ test.describe("Home booking box @component", () => {
     test.skip((page.viewportSize()?.width ?? 0) <= 1080, "26.4 D-01: the box shows at 1081px and over");
   });
 
-  test("DOM order is From, To, When, Travellers, SEE PRICES; an airport adds Flight beside From @component", async ({ page }) => {
+  test("DOM order is From, To, When, Travellers, SEE PRICES; an airport adds Flight before From @component", async ({ page }) => {
     await openHome(page);
     expect(await order(page)).toEqual(["from", "to", "when", "trav", "cta"]);
     await expect(page.locator('[data-box] [role="tablist"]')).toHaveCount(0);
 
     await pickFrom(page, "Fixture Air", "Fixture Airport");
     await expect(page.locator('[data-bx="flight"]')).toBeVisible();
-    expect(await order(page)).toEqual(["from", "flight", "to", "when", "trav", "cta"]);
+    expect(await order(page)).toEqual(["flight", "from", "to", "when", "trav", "cta"]);
 
     // 26.4.1: laptop geometry is owned by home-laptop-bar.spec.ts
     const pos = await page.evaluate(() => {
@@ -101,7 +101,7 @@ test.describe("Home booking box @component", () => {
       };
       return { from: r("from"), flight: r("flight"), to: r("to") };
     });
-    expect(pos.flight.left).toBeGreaterThanOrEqual(pos.from.right - 1);
+    expect(pos.flight.right).toBeLessThanOrEqual(pos.from.left + 1);
     expect(Math.abs(pos.to.top - pos.from.top)).toBeLessThanOrEqual(1);
   });
 
@@ -117,7 +117,8 @@ test.describe("Home booking box @component", () => {
     // The typed flight stays, now optional.
     await expect(page.getByRole("textbox", { name: "Flight number" })).toHaveValue("LX 318");
     await expect(page.locator('[data-bx="flight"]').getByText("Optional")).toBeVisible();
-    await expect(page.getByText("It does not change the price.")).toBeVisible();
+    // 26.4.2: the hint is read by screen readers only so the bar never grows when the flight field opens.
+    await expect(page.locator("#bx-flight-hint")).toHaveText("It does not change the price.");
   });
 
   test("a street pickup shows the opener, then an optional flight that must be valid @component", async ({ page }) => {

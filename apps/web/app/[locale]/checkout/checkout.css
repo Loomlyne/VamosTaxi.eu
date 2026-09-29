@@ -778,7 +778,7 @@
 }
 
 .vt-co__editor-grid[data-flight-row="true"] {
-  grid-template-areas: "from to" "flight ." "when party";
+  grid-template-areas: "flight ." "from to" "when party";
 }
 
 .vt-co__editor-field {
@@ -997,34 +997,93 @@
     gap: 12px;
   }
 
+  /* 26.4.2 (owner, 2026-09-30): phone class cards. One compact card per class: a selection ring, the
+     name over its seats and bags, the price prominent at the end. No photo tile (it only ate the row).
+     Selected = charcoal border + charcoal check. Too small = greyed, no price, "Seats up to N". */
   .vt-co__class .vt-veh {
-    grid-template-columns: 72px minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
-    gap: 12px;
+    gap: 4px 12px;
+    min-block-size: 72px;
+    padding-block: 14px;
+    padding-inline: 52px 16px;
+  }
+
+  .vt-co__class .vt-veh--selected {
+    padding-block: 13px;
+    padding-inline: 51px 15px;
   }
 
   .vt-co__class .vt-veh__shot {
-    inline-size: 72px;
-    block-size: 54px;
-    aspect-ratio: auto;
+    display: none;
+  }
+
+  .vt-co__class .vt-veh__name {
+    font-size: var(--vt-heading-4);
+    line-height: 1.2;
+  }
+
+  .vt-co__class .vt-veh__headline {
+    margin-block-end: 6px;
+  }
+
+  .vt-co__class .vt-veh__caps {
+    gap: 4px 14px;
   }
 
   .vt-co__class .vt-veh__amount {
     font-size: var(--vt-heading-3);
+    line-height: 1.1;
   }
 
   .vt-co__class .vt-veh__price {
     grid-column: auto;
     flex-direction: column;
     align-items: flex-end;
+    gap: 4px;
     text-align: end;
   }
 
+  /* Selection ring in the leading slot; the check replaces it when selected. */
+  .vt-co__class::before {
+    content: "";
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-start: 16px;
+    inline-size: 24px;
+    block-size: 24px;
+    margin-block-start: -12px;
+    box-sizing: border-box;
+    border: 2px solid var(--vt-grey-300);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .vt-co__class[data-selected="true"]::before {
+    display: none;
+  }
+
+  .vt-co__class[data-eligible="false"]::before {
+    border-color: var(--vt-grey-200);
+  }
+
   .vt-co__class-check {
-    inset-block-start: 22px;
-    inset-inline-start: 22px;
-    inline-size: 22px;
-    block-size: 22px;
+    inset-block-start: 50%;
+    inset-inline-start: 16px;
+    inline-size: 24px;
+    block-size: 24px;
+    margin-block-start: -12px;
+  }
+
+  /* Too small: the price would only say CHF 000; the note is the message. */
+  .vt-co__class[data-eligible="false"] .vt-veh__amount {
+    display: none;
+  }
+
+  .vt-co__class[data-eligible="false"] .vt-veh__note {
+    font-size: var(--vt-body-sm);
+    font-weight: var(--vt-weight-medium);
+    color: var(--vt-text-secondary);
   }
 }
 
