@@ -691,6 +691,7 @@ export type Database = {
       bookings: {
         Row: {
           billing_kind: string
+          checkout_trip_query: string
           company_address: string
           company_name: string
           company_vat: string
@@ -722,6 +723,7 @@ export type Database = {
         }
         Insert: {
           billing_kind?: string
+          checkout_trip_query?: string
           company_address?: string
           company_name?: string
           company_vat?: string
@@ -753,6 +755,7 @@ export type Database = {
         }
         Update: {
           billing_kind?: string
+          checkout_trip_query?: string
           company_address?: string
           company_name?: string
           company_vat?: string
@@ -1397,6 +1400,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      extra_labels: {
+        Row: {
+          code: string
+          id: number
+          label_ar: string | null
+          label_de: string | null
+          label_en: string
+          label_fr: string | null
+          machine_langs: string[]
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          code: string
+          id?: never
+          label_ar?: string | null
+          label_de?: string | null
+          label_en: string
+          label_fr?: string | null
+          machine_langs?: string[]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          code?: string
+          id?: never
+          label_ar?: string | null
+          label_de?: string | null
+          label_en?: string
+          label_fr?: string | null
+          machine_langs?: string[]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
       }
       fixed_routes: {
         Row: {
@@ -2614,6 +2653,10 @@ export type Database = {
         Args: { p_booking_id: string }
         Returns: boolean
       }
+      checkout_booking_session_ids: {
+        Args: { p_booking_id: string }
+        Returns: string[]
+      }
       checkout_cancel_unpaid: {
         Args: { p_reference: string }
         Returns: {
@@ -2777,6 +2820,17 @@ export type Database = {
           reference: string
         }[]
       }
+      checkout_set_booking_details: {
+        Args: {
+          p_booking_id: string
+          p_company_address: string
+          p_company_name: string
+          p_company_vat: string
+          p_driver_note: string
+          p_trip_query: string
+        }
+        Returns: undefined
+      }
       checkout_set_pay_link: {
         Args: {
           p_billing_kind: string
@@ -2840,6 +2894,7 @@ export type Database = {
         Returns: number
       }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
+      customer_claim_guest_bookings: { Args: never; Returns: number }
       customer_confirmation_read: {
         Args: { p_customer_id: string; p_reference: string }
         Returns: Json
@@ -2864,6 +2919,26 @@ export type Database = {
           p_customer_id?: string
         }
         Returns: Json
+      }
+      extra_labels_read: {
+        Args: never
+        Returns: {
+          code: string
+          id: number
+          label_ar: string | null
+          label_de: string | null
+          label_en: string
+          label_fr: string | null
+          machine_langs: string[]
+          updated_at: string
+          updated_by: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "extra_labels"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       finalize_contact_delivery: {
         Args: {
@@ -3060,6 +3135,18 @@ export type Database = {
         Args: { p_id: string; p_reason: string }
         Returns: string
       }
+      purge_candidates: {
+        Args: { p_older_than: string }
+        Returns: {
+          booking_id: string
+          reference: string
+          session_ids: string[]
+        }[]
+      }
+      purge_unpaid_booking: {
+        Args: { p_booking_id: string; p_reason: string }
+        Returns: boolean
+      }
       quote_lock_deadline: {
         Args: { p_settings_version_id: number }
         Returns: string
@@ -3129,6 +3216,33 @@ export type Database = {
           lang: string
           user_id: string
         }[]
+      }
+      staff_extra_label_upsert: {
+        Args: {
+          p_ar: string
+          p_code: string
+          p_de: string
+          p_en: string
+          p_fr: string
+          p_machine_langs: string[]
+        }
+        Returns: {
+          code: string
+          id: number
+          label_ar: string | null
+          label_de: string | null
+          label_en: string
+          label_fr: string | null
+          machine_langs: string[]
+          updated_at: string
+          updated_by: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "extra_labels"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       staff_set_sign_in_method: {
         Args: { p_method: string }
