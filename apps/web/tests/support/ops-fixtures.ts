@@ -4,12 +4,10 @@
 // loopback so a mistyped env cannot create users on the hosted project.
 
 import { createHmac } from "node:crypto";
-import { createRequire } from "node:module";
+import { ownerDbUrl, requireFromWorktree, supabaseApiUrl } from "./test-stack";
 
-const AUTH_URL = process.env.SUPABASE_URL ?? "http://127.0.0.1:54321";
-const DB_URL = process.env.OPS_FIXTURE_DB_URL ?? "postgres://postgres:postgres@127.0.0.1:54322/postgres";
-const MAIN_WEB_PKG = "/Users/koss/Developer/VamosTaxi.eu/apps/web/package.json";
-const MAIN_DB_PKG = "/Users/koss/Developer/VamosTaxi.eu/packages/db/package.json";
+const AUTH_URL = supabaseApiUrl();
+const DB_URL = ownerDbUrl();
 
 function assertLoopback(url: string, label: string): URL {
   let parsed: URL;
@@ -73,8 +71,7 @@ export function totpCode(secret: string, nowMs = Date.now()): string {
 }
 
 function loadCreateClient() {
-  const req = createRequire(MAIN_WEB_PKG);
-  const mod = req("@supabase/supabase-js") as {
+  const mod = requireFromWorktree("@supabase/supabase-js") as {
     createClient: (
       url: string,
       key: string,
@@ -107,8 +104,7 @@ function loadCreateClient() {
 }
 
 function loadSql() {
-  const req = createRequire(MAIN_DB_PKG);
-  const postgres = req("postgres") as (url: string) => {
+  const postgres = requireFromWorktree("postgres") as (url: string) => {
     (strings: TemplateStringsArray, ...values: unknown[]): Promise<unknown>;
     end: (opts?: { timeout?: number }) => Promise<void>;
   };
