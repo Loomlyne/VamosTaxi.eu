@@ -10,3 +10,19 @@ read by a lawyer.
 | 3 | The voucher-instead-of-refund text on /cancellation (the site cannot do it) | **Remove it**, both surfaces |
 | 4 | UID `CHE-296.035.710`, live on /imprint since `ae9165bf` (2026-09-01), no source found | **Correct, keep it**, and put it on the Next.js page too (answers list B point 4) |
 | 5 | Values live since 2026-09-01 that were never in list A (no DPO, no EU representative, log retention, payment records 10 years, Loomlyne credits, "English or German") | **Leave them live**, Next.js pages keep their gaps, list each one in the hand-over |
+| 6 | UID asked again: Phase 11 and 26 tests called CHE-296.035.710 invented. Did you check it? | **Checked, it is correct.** Tests now pin exactly that number. |
+
+## Put to the owner and answered, NOT built (brief step 4: "do not build")
+
+| # | Question (page) | Answer | What a later job builds |
+|---|---|---|---|
+| 7 | Refund when cancelling less than 24 hours before pickup (/cancellation) | **Our team decides** | Replace the gap "Refund within 24 hours" with "Our team decides the refund and tells you by email", four languages, both surfaces |
+| 8 | Payment methods (/terms, list B 2) | **What Stripe shows**, and the owner added: "the payment methods we use are on the footer" | Footer marks today: Visa, Mastercard, Apple Pay, Google Pay, TWINT (= the live terms line). Read Stripe's enabled methods, compare with the footer, put the result to the owner, then fill the Next.js gap "Payment methods" |
+| 9 | City stay fee (/terms, list B 3) | **"Shown on your quote"** | Replace the gap "City stay fee" with "shown on your quote", four languages, both surfaces |
+| 10 | PayPal, AWStats, Google Analytics (/privacy, list B 6) | **Never name them** | Nothing to build: no legal page names them today |
+| 11 | More-than-15-passenger 5-day rule (/cancellation, list B 7) | **No rule** | Nothing to build: the rule is not on the pages (the 8-seat / 72-hour line was removed in this job) |
+| 12 | Part payment and "My Reservations" (/terms, /cancellation, list B 8) | **The new site's way** (full payment, cancel by email link or account) | Nothing to build: that is what the pages say |
+| 13 | The two adviser notes on /privacy (statutory references, transfer mechanism) | **Hide from customers** | The live mock already hides them (`[data-slot]{display:none}`); the Next.js pages still show them: hide there |
+| 14 | "Last updated" date on the legal pages | **The ship day** | The control session sets the date on privacy, terms, cancellation and imprint when it deploys this job |
+
+List B point 4 (UID) is decision 4 and 6. List B point 5 (e-mail and phone) was not asked: `CLAUDE.local.md` already fixes info@vamostaxi.site and +41 79 626 70 82, and the pages use them.
