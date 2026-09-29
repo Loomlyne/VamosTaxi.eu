@@ -34,6 +34,12 @@ Nothing is sent to Meta by this phase.
 - **Live `consent_log`** (read-only query): 3 rows. id 1 and 2: `accept_all`, marketing false,
   `2026-09-12` (12 and 14 Sept, from before home became a mock). id 3: `reject_all`, customer set,
   2026-09-29 14:05 UTC, written by sign-up confirmation.
+- **Checked after merging main (control session's correction):** `app/[locale]/layout.tsx` sets
+  `showBanner = !hasConsent && !onDashboard`, which is already true on `/checkout`, `/confirmation`
+  and the pay link for a visitor without a `consent_subject` cookie. `SiteShell.tsx:64` then drops
+  it with `{isHome ? banner : null}`. So on Next pages it is a **condition to change** (render the
+  banner on every non-ops route; `hasConsent` becomes "row under the current version", D-08), not a
+  mount to add. `checkout/layout.tsx` is nested inside the locale layout and keeps the shell.
 - **Nothing reads `consent_log`.** No SELECT grant for anon/authenticated; no reader function.
 - **Sign-up overwrite.** `apps/web/lib/auth/signup-consent.ts` writes a necessary-only row on
   e-mail confirmation (`settings_change` if a `consent_subject` cookie exists, else `reject_all`).
