@@ -122,6 +122,7 @@ const STATES = [
   { key: 'j', label: 'Forgot password · link sent', mode: 'forgot', method: 'password', stage: 'sent', banner: '' },
   { key: 'k', label: 'Sign in · passkey prompt', mode: 'signin', method: 'password', stage: 'verifying', banner: '' },
   { key: 'l', label: 'Returning you to your booking', mode: 'signin', method: 'password', stage: 'returning', banner: '' },
+  { key: 'm', label: 'Sign in · link expired', mode: 'signin', method: 'password', stage: 'form', banner: 'expired' },
 ];
 class Component extends DCLogic {
   state = { active: 'a', mode: 'signin', method: 'password', stage: 'form', banner: '', email: '', nonce: 0,

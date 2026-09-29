@@ -321,6 +321,8 @@
       '6-digit code': { de: '6-stelliger Code', fr: 'Code à 6 chiffres', ar: 'رمز من 6 أرقام' },
       'Verify': { de: 'Prüfen', fr: 'Vérifier', ar: 'تحقّق' },
       'Use another sign-in': { de: 'Andere Anmeldung verwenden', fr: 'Utiliser une autre connexion', ar: 'استخدم طريقة دخول أخرى' },
+      // auth-ui: expired or used link banner
+      'That link has expired or was already used. Ask for a new one below.': { de: 'Dieser Link ist abgelaufen oder wurde bereits verwendet. Fordern Sie unten einen neuen an.', fr: 'Ce lien a expiré ou a déjà été utilisé. Demandez-en un nouveau ci-dessous.', ar: 'انتهت صلاحية هذا الرابط أو تم استخدامه من قبل. اطلب رابطًا جديدًا أدناه.' },
       // auth-ui: email code box (fix/auth-sign-in-sign-up)
       'Or use the code': { de: 'Oder verwenden Sie den Code', fr: 'Ou utilisez le code', ar: 'أو استخدم الرمز' },
       'It is in the same email as the link.': { de: 'Er steht in derselben E-Mail wie der Link.', fr: 'Il figure dans le même e-mail que le lien.', ar: 'وهو في نفس البريد الإلكتروني الذي يحتوي على الرابط.' },

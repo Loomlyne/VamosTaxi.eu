@@ -110,3 +110,25 @@ describe("dashboard sign-in offers the email link without a wrong password", () 
     expect(html).toMatch(/onClick="\{\{ usePassword \}\}">Use a password instead/);
   });
 });
+
+describe("expired or used email link (?error=1)", () => {
+  const EXPIRED = "That link has expired or was already used. Ask for a new one below.";
+  for (const [name, html] of forms) {
+    it(`${name}: reads ?error=1 and shows the banner`, () => {
+      const script = html.slice(html.indexOf('<script type="text/x-dc"'));
+      expect(script).toMatch(/URLSearchParams\(location\.search\)\.get\('error'\) === '1'\) this\.setState\(\{ banner: 'expired' \}\)/);
+      expect(html).toMatch(/<sc-if value="\{\{ bannerExpired \}\}">\s*<x-import [^>]*Alert" tone="danger" role="alert"[^>]*>That link has expired or was already used\. Ask for a new one below\.<\/x-import>/);
+      expect(script).toMatch(/bannerExpired: isForm && banner === 'expired',/);
+    });
+  }
+
+  it("public sign-in lists the state for review and the dashboard host keeps ?error=1", () => {
+    expect(read("app/pages/sign-in.dc.html")).toMatch(/key: 'm', label: 'Sign in · link expired'.*banner: 'expired'/);
+    expect(read("apps/web/middleware.ts")).toMatch(/loginUrl\.searchParams\.set\("error", "1"\)/);
+    expect(read("apps/web/app/api/auth/callback/route.ts")).toMatch(/\?error=1/);
+  });
+
+  it("the banner text exists in de, fr and ar", () => {
+    expectTranslated([EXPIRED]);
+  });
+});
