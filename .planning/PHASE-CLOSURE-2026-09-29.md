@@ -71,3 +71,17 @@ supplies the legal lines in four languages).
 
 Branches, stashes, worktrees and the open PRs #62, #63, #64 are untouched. Removing any of
 them needs the owner's yes and proof that the content is safe elsewhere.
+
+## Folders removed on 2026-09-29
+
+Owner decision: the folders of three closed items were deleted from `.planning/phases`, so
+no session reads their plans. Git keeps them; the last commit that has them is `37e55d26`.
+
+| Folder | Bring it back with |
+|---|---|
+| `17-ops-chauffeur-profile-shift-roster-two-driver-vehicles` | `git checkout 37e55d26 -- .planning/phases/17-ops-chauffeur-profile-shift-roster-two-driver-vehicles` |
+| `21-charge-gate-visible-refusal-payable-intent` | `git checkout 37e55d26 -- .planning/phases/21-charge-gate-visible-refusal-payable-intent` |
+| `04.3-blended-distance-bands` | `git checkout 37e55d26 -- .planning/phases/04.3-blended-distance-bands` |
+
+Phases 22 to 25 never had a folder. Their text in `ROADMAP.md`, and the text of 17, 21 and
+04.3, is removed at the 26.3 ship, because the 26.3 branch rewrote that file.
