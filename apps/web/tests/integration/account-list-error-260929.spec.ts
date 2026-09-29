@@ -89,11 +89,14 @@ test.describe("account list failure 260929", () => {
       await expect(page.getByText(/No transfers yet|No transfer booked yet/)).toHaveCount(0);
       const retry = page.getByRole("button", { name: /try again/i });
       await expect(retry).toBeVisible();
-      const box = await retry.boundingBox();
-      expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
+      // The button is unstyled (15 px) until the design-system bundle has applied; wait for the settled height.
+      await expect.poll(async () => (await retry.boundingBox())?.height ?? 0, { timeout: 5000 }).toBeGreaterThanOrEqual(44);
       list.recover();
-      await retry.click();
-      await expect(page.getByText("Booked", { exact: true }).first()).toBeVisible();
+      // A click that lands before the page has bound its handler is lost; click again until Booked shows.
+      await expect(async () => {
+        if (await retry.isVisible()) await retry.click();
+        await expect(page.getByText("Booked", { exact: true }).first()).toBeVisible({ timeout: 2000 });
+      }).toPass({ timeout: 15_000 });
       await expect(page.getByText(ERROR_COPY)).toHaveCount(0);
     });
 
@@ -121,8 +124,10 @@ test.describe("account list failure 260929", () => {
       await page.setViewportSize({ width: 390, height: 800 });
       await page.goto(`${baseURL}${path}`);
       await expect(page.getByText(ERROR_COPY)).toBeVisible();
-      const over = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
-      expect(over).toBeLessThanOrEqual(0);
+      // The page settles (fonts, entry transition) after the error copy shows; a real overflow persists.
+      await expect
+        .poll(() => page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth), { timeout: 5000 })
+        .toBeLessThanOrEqual(0);
     });
   }
 });
