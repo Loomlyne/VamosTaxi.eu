@@ -119,7 +119,6 @@ export function TripEditor({
     if (trip.fid && trip.gs) {
       void detectAirport({ mapbox_id: trip.fid, session_token: trip.gs, text: trip.from ?? "" });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function fieldMessage(field: TripField): string | null {

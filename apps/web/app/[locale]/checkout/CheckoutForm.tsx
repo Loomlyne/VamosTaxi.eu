@@ -231,7 +231,6 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
     return () => {
       alive = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [placeKey]);
   const airport =
     airportLookup && airportLookup.key === placeKey ? airportLookup.isAirport : airportByName(trip.from ?? "");
