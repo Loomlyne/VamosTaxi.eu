@@ -6,7 +6,7 @@ import { test, expect, type Page, type Response } from "../support/test";
 import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { existsSync } from "node:fs";
-import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { NEXT_BIN, settleCloudflareDev, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 import { nextDevEnv, requireTestStack, stackKeys } from "../support/test-stack";
 
 const PORT = testPort(4270);
@@ -33,13 +33,13 @@ async function signIn(page: Page, email: string, password: string): Promise<void
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("First name").fill("Ada");
   await page.getByLabel("Last name").fill("Lovelace");
-  await page.getByLabel("Password").fill(password);
-  await page.getByRole("button", { name: "Create an account" }).click();
+  await page.getByLabel("Password", { exact: true }).fill(password);
+  await page.getByRole("button", { name: /create account/i }).click();
   await page.goto(`${baseURL}/sign-in`);
   if (!page.url().includes("/sign-in")) return;
   await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password").fill(password);
-  await page.getByRole("button", { name: "Sign in" }).click();
+  await page.getByLabel("Password", { exact: true }).fill(password);
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(page).not.toHaveURL(/\/sign-in/, { timeout: 15_000 });
 }
 
@@ -74,8 +74,9 @@ test.describe("AUTH-04 auth-signout", () => {
       cwd: WEB_ROOT,
       stdio: "ignore",
       detached: true,
-      env: nextDevEnv({ SUPABASE_URL: stack.apiUrl, SUPABASE_ANON_KEY: stack.anonKey }),
+      env: nextDevEnv({ CLOUDFLARE_ENV: "staging", TEST_DIST_DIR: `test-results/.next-auth-signout-${PORT}`, SUPABASE_URL: stack.apiUrl, SUPABASE_ANON_KEY: stack.anonKey }),
     });
+    await settleCloudflareDev();
     await waitForNextServer(baseURL);
   });
 
@@ -108,7 +109,7 @@ test.describe("AUTH-04 auth-signout", () => {
   });
 
   test("Sign out from terms, contact and home without a full reload", async ({ page }) => {
-    test.fail(true, "KNOWN-RED 26.0: sign-up Password label now matches the field and its show/hide eye button (getByLabel strict-mode violation) — owner to rule");
+    test.fail(true, "KNOWN-RED 26.0: password sign-up now needs the emailed confirmation (D-28), so signing in right after sign-up stays on /sign-in — owner to rule");
     const email = uniqueEmail("pages");
     await signIn(page, email, PASSWORD);
 
@@ -131,7 +132,7 @@ test.describe("AUTH-04 auth-signout", () => {
   });
 
   test("sign-out Set-Cookie values arrive as separate getSetCookie() entries", async ({ page }) => {
-    test.fail(true, "KNOWN-RED 26.0: sign-up Password label now matches the field and its show/hide eye button (getByLabel strict-mode violation) — owner to rule");
+    test.fail(true, "KNOWN-RED 26.0: password sign-up now needs the emailed confirmation (D-28), so signing in right after sign-up stays on /sign-in — owner to rule");
     const email = uniqueEmail("cookies");
     await signIn(page, email, PASSWORD);
     await page.goto(`${baseURL}/contact`);
@@ -145,7 +146,7 @@ test.describe("AUTH-04 auth-signout", () => {
   });
 
   test("Escape closes the account menu and returns focus to the trigger", async ({ page }) => {
-    test.fail(true, "KNOWN-RED 26.0: sign-up Password label now matches the field and its show/hide eye button (getByLabel strict-mode violation) — owner to rule");
+    test.fail(true, "KNOWN-RED 26.0: password sign-up now needs the emailed confirmation (D-28), so signing in right after sign-up stays on /sign-in — owner to rule");
     const email = uniqueEmail("esc");
     await signIn(page, email, PASSWORD);
     await page.goto(`${baseURL}/`);
