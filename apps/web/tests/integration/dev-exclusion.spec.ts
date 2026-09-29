@@ -111,7 +111,6 @@ test.describe("Dev gallery production exclusion @dev-exclusion", () => {
 
   test("a genuine production deploy (no DEPLOY_ENV, VAMOS_DEV_GALLERY=1 in env) returns not-found for every walked /dev route, with the noindex header still present", async ({}, testInfo) => {
     testInfo.setTimeout(240_000);
-    test.fail(true, "KNOWN-RED 26.0: `next build` fails type-check on main: non-route exports (decodeContentKey, readJsonObject, ...) in app/[locale]/(ops)/api/staff/content/[key]/route.ts — owner to rule");
     buildOnce();
     const port = testPort(4200) + testInfo.workerIndex;
     const baseURL = `http://localhost:${port}`;
@@ -142,7 +141,6 @@ test.describe("Dev gallery production exclusion @dev-exclusion", () => {
 
   test("staging (DEPLOY_ENV=staging, VAMOS_DEV_GALLERY=1 in env) returns not-found for the gallery and /dev/quote, with the noindex header present", async ({}, testInfo) => {
     testInfo.setTimeout(240_000);
-    test.fail(true, "KNOWN-RED 26.0: `next build` fails type-check on main: non-route exports (decodeContentKey, readJsonObject, ...) in app/[locale]/(ops)/api/staff/content/[key]/route.ts — owner to rule");
     buildOnce();
     const port = testPort(4300) + testInfo.workerIndex;
     const baseURL = `http://localhost:${port}`;
