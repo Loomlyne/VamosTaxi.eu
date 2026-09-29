@@ -12,7 +12,7 @@ const html = readFileSync(join(here, "../../../../app/ops/OpsBoard.dc.html"), "u
 
 function fn(name: string): string {
   const m = html.match(new RegExp(`function ${name}\\(b\\) \\{([\\s\\S]*?)\\n\\}`));
-  if (!m) throw new Error(`missing ${name}`);
+  if (!m?.[1]) throw new Error(`missing ${name}`);
   return m[1];
 }
 

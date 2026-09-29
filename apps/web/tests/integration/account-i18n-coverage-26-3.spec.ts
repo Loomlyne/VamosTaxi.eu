@@ -76,7 +76,7 @@ async function open(page: Page, path: string, lang: string): Promise<void> {
   await mockSignedIn(page);
   await page.addInitScript((l) => localStorage.setItem("vamosLang", l), lang);
   await page.goto(`${baseURL}/${path}`);
-  await expect(page.getByText(BOOKINGS[0].ref).first()).toBeVisible();
+  await expect(page.getByText(BOOKINGS[0]!.ref).first()).toBeVisible();
   await page.waitForTimeout(600);
 }
 
