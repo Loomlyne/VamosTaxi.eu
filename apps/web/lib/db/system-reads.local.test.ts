@@ -8,6 +8,9 @@
 // `pnpm db:reset` clears it). Host is fixed to 127.0.0.1.
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+// Test-only raw client to seed the disposable local stack as the superuser; named in
+// scripts/db-access-fence-allowlist.json. Never bundled.
+// eslint-disable-next-line @typescript-eslint/no-restricted-imports
 import postgres from "postgres";
 import { describe, expect, it } from "vitest";
 import {

@@ -15,9 +15,41 @@
 ## Checks
 Failing-then-passing integration test through the real clients (8 failed before, 8 pass after); from-zero replay and full pgTAP (75 files, 1706 tests) on a private stack; test:unit, typecheck, lint, lint:css, check:numbers, check:legal-claims, check:public-env, check:db-fences, i18n:check, db:seed:check, types, `pnpm --filter web build`. Audit table below. SUMMARY.md could not be written in this session (the tool refused it); the executor's final report carries the same content.
 
+## Extension: vamos_system table access (coordinator request)
+`vamos_system` is definer-only since 20260827000002 (revoke all on all tables); only contact_submissions, support_inbound_events, support_messages, support_message_files were granted back (20260918120000). Raw table statements inside `asSystem` fail with 42501. Each was replaced by a narrow SECURITY DEFINER function (empty search_path, only the needed columns, EXECUTE vamos_system only, no table grant), all in migration `20260930210000_system_role_narrow_reads.sql`, called through `apps/web/lib/db/system-reads.ts`.
+
+**Migration order on hosted:** 20260930200000_reminder_24h_read.sql, then 20260930210000_system_role_narrow_reads.sql (both verbatim, read back, compare), then deploy the Worker.
+
+New functions (16): paid_cancel_mail_read, booking_captured_payment, price_changed_unpaid_contacts, expired_booking_contact, must_fix_trip_read, booking_snapshot_policy, phone_booking_unpaid_read, manage_booking_review_state, edit_request_snapshot_total, edit_request_booking_contact, edit_request_pending_payload, booking_trip_for_mail, edit_request_extra_session (reads); booking_refund_processing_mark, edit_request_refuse, booking_flight_write (writes). Plus reminder_24h_candidates from 20260930200000.
+
+Proof: pgTAP `system_role_narrow_reads.test.sql` (48: grants per role, definer plus empty search_path, raw read and write still 42501, each function's answer and effect); guard unit test `lib/db/system-reads.test.ts` fails on any asSystem block that reads or writes an ungranted table; local end to end `lib/db/system-reads.local.test.ts` (needs `VAMOS_LOCAL_DB_PORT`, disposable stack, committed fixture) runs every function and the reminder job through the real asSystem with the vamos_edge login. Other definer-only roles checked: asGuest reads only column-granted `bookings.id` (ok); asCheckout, asQuote, asAnon and publicSql use functions or granted tables only.
+
+### asSystem audit (every site that reaches a table)
+| file:line (before) | table(s) | job | fails on live before | fix |
+|---|---|---|---|---|
+| lifecycle/reminder.ts:81 | booking_legs, bookings, chauffeurs, vehicles | hourly 24 h reminder | yes (seen) | reminder_24h_candidates |
+| lifecycle/paid-cancel.ts:151 | bookings, booking_legs, chauffeurs | paid-cancel mails | yes | paid_cancel_mail_read |
+| lifecycle/paid-cancel.ts:290; ops/bookings-write.ts:152 | booking_payments | auto_full refund lookup | yes | booking_captured_payment |
+| lifecycle/paid-cancel.ts:311 | bookings (update) | refund_status processing | yes (swallowed by try/catch) | booking_refund_processing_mark |
+| checkout/lock-mail.ts:52 | bookings, price_snapshots | price-changed mail on rate publish | yes | price_changed_unpaid_contacts |
+| checkout/lock-mail.ts:77 | bookings, price_snapshots | expired-unpaid mail | yes | expired_booking_contact |
+| ops/must-fix-mail.ts:67, :121 | bookings, booking_legs | overlap and paid-after-cancel ops alerts | yes | must_fix_trip_read |
+| ops/voucher.ts:50 | price_snapshots | resend voucher (extras in mail) | yes | booking_snapshot_policy |
+| ops/phone-booking.ts:91 | bookings, booking_legs, price_snapshots, vehicle_classes, booking_payments | staff Send pay link / Take card | yes | phone_booking_unpaid_read |
+| api/manage/booking/route.ts:134 | bookings, reviews | manage page review state and total | yes (caught, review flag wrong) | manage_booking_review_state |
+| ops/edit-request.ts:326 | price_snapshots | extra-fare old snapshot total | yes | edit_request_snapshot_total |
+| ops/edit-request.ts:358 | bookings | extra-fare contact | yes | edit_request_booking_contact |
+| ops/edit-request.ts:569 | bookings, booking_edit_requests (update) | refuse edit request | yes | edit_request_refuse |
+| ops/edit-request.ts:608 | booking_edit_requests, bookings | pending time-change check | yes (caught, false) | edit_request_pending_payload |
+| ops/edit-request.ts:646 | bookings, booking_legs, chauffeurs | time-change outcome mail | yes | booking_trip_for_mail |
+| ops/edit-request.ts:716 | booking_legs (update), booking_events (insert), bookings, chauffeurs | customer flight number write | yes | booking_flight_write |
+| ops/edit-request.ts:798 | bookings, booking_edit_requests | staff extra-fare pay URL | yes | edit_request_extra_session |
+| ops/ticket-inbound.ts:52; api/contact/route.ts:77, :150 | contact_submissions, support_messages, support_inbound_events | support inbound and contact | no (granted to vamos_system) | unchanged |
+| every other asSystem site (settle, purge, notify, dlq, return-settle, webhook, refund, assign, bookings-write cancel/mark, contact, reviews submit, health probe) | none (public.<function>() only) | | no (EXECUTE granted, checked locally) | unchanged |
+
 ## Not verified
 - Live: nothing touched. The hosted database needs migration 20260930200000 applied (verbatim, read back and compare) before the Worker deploy, otherwise the reminder call fails with "function does not exist".
-- Suspects of the same 42501 class, not changed: `lib/lifecycle/paid-cancel.ts:152,291`, `lib/checkout/lock-mail.ts:53,78` (asSystem table reads). Look at live logs.
+- The 42501 suspects from the first hand-over (paid-cancel, lock-mail) are fixed in the extension above; live grants were confirmed read-only by the coordinator, not by me.
 
 ## After deploy (owner or control session)
 1. Apply the migration to hosted Supabase (verbatim), confirm `has_table_privilege('vamos_edge','public.booking_legs','select')` is still false and `vamos_system` has EXECUTE on `reminder_24h_candidates`.
