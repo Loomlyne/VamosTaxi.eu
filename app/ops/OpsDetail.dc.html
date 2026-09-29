@@ -28,8 +28,14 @@
 @media (max-width:860px){
 [data-ops-detail-bar]{grid-template-columns:auto minmax(0,1fr)}
 [data-ops-bar-nav]{grid-column:1;grid-row:1}
-[data-ops-bar-end]{grid-column:2;grid-row:1;justify-self:end}
+[data-ops-bar-end]{grid-column:2;grid-row:1;justify-self:end;min-width:0;flex-wrap:wrap;justify-content:flex-end}
 [data-ops-bar-main]{grid-column:1/-1;grid-row:2}
+}
+@media (max-width:520px){
+[data-ops-detail-bar]{grid-template-columns:minmax(0,1fr)}
+[data-ops-bar-nav]{grid-column:1;grid-row:1}
+[data-ops-bar-end]{grid-column:1;grid-row:2;justify-self:start;margin-inline-start:0}
+[data-ops-bar-main]{grid-column:1;grid-row:3}
 }
 [data-ops-detail-col]{min-width:0;width:100%;display:flex;flex-direction:column;gap:14px}
 [data-ops-route-leg]{display:grid;grid-template-columns:14px minmax(0,1fr);grid-template-rows:auto auto auto;column-gap:12px;align-items:stretch}
@@ -406,12 +412,26 @@ function eventTitle(kind, t) {
   if (kind === 'voucher.sent') return t.evVoucher;
   return kind || '';
 }
-function fareLineLabel(code, klass, t) {
-  if (code === 'distance_fare' || code === 'fare' || code === 'transfer') return t.lineTransfer + (klass || '');
-  if (code === 'child_seat' || code === 'oversized_luggage' || code === 'extra_stop' || code === 'ski' || code === 'ski_rack' || code === 'meet_greet' || code === 'meet-and-greet') return extraLabel(code);
-  if (code === 'coupon' || code === 'discount') return t.coupon;
-  if (code === 'vat' || code === 'mwst') return t.vat;
-  return String(code || '').replace(/_/g, ' ');
+function humaniseCode(code) {
+  const words = String(code || '').replace(/[-_]+/g, ' ').trim().replace(/\s+/g, ' ').toLowerCase();
+  return words ? words.charAt(0).toUpperCase() + words.slice(1) : String(code || '');
+}
+// D-35: an extra is named by the owner, in the ops language when typed, else English, else its humanised code.
+function extraName(booking, code, lang) {
+  const lines = Array.isArray(booking && booking.fareLines) ? booking.fareLines : [];
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (line && line.code === code && line.kind !== 'fare' && line.kind !== 'coupon' && line.kind !== 'vat') {
+      const names = line.names && typeof line.names === 'object' ? line.names : null;
+      return (names && (names[lang] || names.en)) || line.label || humaniseCode(code);
+    }
+  }
+  return humaniseCode(code);
+}
+function fareSigned(rappen) {
+  const n = Number(rappen);
+  if (Number.isFinite(n) && n < 0) return '\u2212' + fareLabel(-n);
+  return fareLabel(n);
 }
 function storedVatRappen(booking) {
   const raw = booking.vatRappen != null ? booking.vatRappen : (booking.vat_rappen != null ? booking.vat_rappen : booking.vat);
@@ -425,42 +445,41 @@ function fareLineHas(lines, codes) {
   }
   return false;
 }
-function fareBreakdown(booking, t) {
+// D-35: rows are the stored snapshot lines as given (fare, one row per extra, voucher negative, VAT).
+// No amount is derived here; legacy bookings without lines show the stored total as one row.
+function fareBreakdown(booking, t, lang) {
   const klass = booking.klass || booking.vehicle || '';
   const stored = Array.isArray(booking.fareLines) ? booking.fareLines : [];
   const extras = Array.isArray(booking.extras) ? booking.extras : [];
-  const extraMoney = Number(booking.extraRappen) || 0;
-  const extraCodes = { child_seat:1, oversized_luggage:1, extra_stop:1, ski:1, ski_rack:1, meet_greet:1, 'meet-and-greet':1, extras:1 };
   const rows = [];
   const push = (code, label, rappen) => {
     rows.push({
       code: code || '',
       label: label,
-      value: rappen == null || !Number.isFinite(Number(rappen)) ? t.included : fareLabel(rappen),
+      value: rappen == null || !Number.isFinite(Number(rappen)) ? t.included : fareSigned(rappen),
     });
   };
   if (stored.length) {
     stored.forEach((line) => {
       const rappen = line.rappen == null || line.rappen === '' ? null : Number(line.rappen);
-      push(line.code, line.label || fareLineLabel(line.code, klass, t), Number.isFinite(rappen) ? rappen : null);
+      const value = Number.isFinite(rappen) ? rappen : null;
+      const kind = line.kind || '';
+      const code = line.code || '';
+      if (kind === 'fare' || code === 'distance_fare' || code === 'fare' || code === 'transfer') {
+        push(code, t.lineTransfer + klass, value);
+      } else if (kind === 'coupon' || code === 'coupon' || code === 'discount') {
+        const coupon = String(booking.couponCode || '').trim();
+        push('coupon', t.coupon + (coupon ? ' ' + coupon : ''), value);
+      } else if (kind === 'vat' || code === 'vat' || code === 'mwst') {
+        push('vat', t.vat, value);
+      } else {
+        push(code, extraName(booking, code, lang), value);
+      }
     });
   } else {
-    const total = Number(booking.totalRappen) || 0;
-    const transfer = extraMoney > 0 && total > extraMoney ? total - extraMoney : total;
-    push('transfer', t.lineTransfer + klass, transfer);
-    if (extraMoney > 0) push('extras', t.extras, extraMoney);
+    push('transfer', t.lineTransfer + klass, Number(booking.totalRappen) || null);
+    extras.forEach((code) => push(code, extraName(booking, code, lang), null));
   }
-  const hasExtraMoney = extraMoney > 0 && (fareLineHas(rows, ['extras']) || rows.some((r) => extraCodes[r.code] && r.value !== t.included));
-  if (extraMoney > 0 && !hasExtraMoney && !fareLineHas(rows, ['extras'])) {
-    push('extras', t.extras, extraMoney);
-  }
-  extras.forEach((code) => {
-    const name = extraLabel(code);
-    if (!name) return;
-    if (rows.some((r) => r.code === code || r.label === name)) return;
-    if (fareLineHas(rows, ['extras']) && extraMoney > 0) return;
-    push(code, name, null);
-  });
   const vat = storedVatRappen(booking);
   if (vat != null && !fareLineHas(rows, ['vat', 'mwst'])) push('vat', t.vat, vat);
   const coupon = String(booking.couponCode || '').trim();
@@ -499,14 +518,6 @@ function addMinutesHhmm(time, minutes) {
   const hh = String(Math.floor(wrapped / 60)).padStart(2, '0');
   const mm = String(wrapped % 60).padStart(2, '0');
   return hh + ':' + mm;
-}
-function extraLabel(code) {
-  if (code === 'child_seat') return 'Child seat';
-  if (code === 'oversized_luggage') return 'Oversized luggage';
-  if (code === 'extra_stop') return 'Extra stop';
-  if (code === 'meet_greet' || code === 'meet-and-greet') return 'Meet and greet';
-  if (code === 'ski' || code === 'ski_rack') return 'Ski rack';
-  return String(code || '');
 }
 function hexToUtf8(hex) {
   const raw = String(hex || '');
@@ -810,7 +821,7 @@ class Component extends DCLogic {
       title: eventTitle(e.kind, t),
       meta: [eventWhen(e.at || e.createdAt), eventActor(e.actorLabel || e.actor_label, e.kind, t)].filter(Boolean).join(' · '),
     }));
-    const fareLines = fareBreakdown(booking, t);
+    const fareLines = fareBreakdown(booking, t, this.state.lang);
     const cancelled = booking.status === 'cancelled' || booking.status === 'refunded';
     // 26.1-18 refund review (D-16b, D-24, D-25, D-07). The server re-validates every
     // decision (withAdmin, percent 0–100, post-trip status); these flags only pick
@@ -888,7 +899,7 @@ class Component extends DCLogic {
     const durationChip = durationMin > 0 ? (durationMin + t.minutes) : '';
     const distanceChip = booking.distanceKm ? (booking.distanceKm + ' km') : '';
     const extras = Array.isArray(booking.extras) ? booking.extras : [];
-    const extrasText = extras.length ? extras.map(extraLabel).filter(Boolean).join(', ') : t.noExtras;
+    const extrasText = extras.length ? extras.map((code) => extraName(booking, code, this.state.lang)).filter(Boolean).join(', ') : t.noExtras;
     const tags = [
       { icon: 'user', k: t.driver, v: assignedDriver || t.unassigned },
       { icon: 'clock', k: t.when, v: pickupWhen || '—' },
