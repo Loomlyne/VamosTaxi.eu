@@ -4,7 +4,7 @@ Kept by the control session. One page: what is live, what is being built, what w
 the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 
-**Last update:** 2026-09-30 00:00 (+04)
+**Last update:** 2026-09-30 00:05 (+04)
 
 ## Live now
 
@@ -12,7 +12,7 @@ the owner, what comes next. Updated at every ship and every hand-over.
 |---|---|
 | Site | https://vamostaxi.site and https://dashboard.vamostaxi.site |
 | main = origin/main | `2bd05b0a` plus planning notes |
-| Worker `vamos` | version `80d51730` |
+| Worker `vamos` | version `df365445` (same code as `80d51730`; made by adding a secret on 2026-09-29 23:56) |
 | Rollback point | Worker `e885dbb6`, git tag `backup/main-pre-ship-auth` |
 | Database | migrations up to `20260930210000` applied and read back |
 | Who deploys | the control session, from the owner's Mac. GitHub runs checks, never deploys. |
@@ -73,7 +73,7 @@ Full text: `.planning/decisions/2026-09-29-checkout-account-notice.md`.
 
 | # | Decision |
 |---|---|
-| 1 | The service-role key goes on Worker `vamos`. He adds it in his terminal at the 26.5 ship. |
+| 1 | The service-role key is on Worker `vamos` since 2026-09-29 23:56, added by the owner in his terminal. Name read by the control session, value never. Nothing on live reads it until 26.5 ships. |
 | 2 | Both notice texts approved in four languages, as drafted. Not read by a lawyer. |
 | 3 | "Create an account" needs a tick box; the tick is logged server-side. |
 | 4 | "Create an account" goes live with 26.5, consent recorded from the first account. |

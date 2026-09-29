@@ -9,7 +9,7 @@ not been read by a lawyer.
 
 | # | Decision |
 |---|---|
-| 1 | The Supabase service-role key goes on Worker `vamos`. He adds it himself in his terminal, at the 26.5 ship, as `SUPABASE_SERVICE_ROLE_KEY`. Read 2026-09-29 23:50: `SUPABASE_URL` present, `SUPABASE_SERVICE_ROLE_KEY` absent. |
+| 1 | The Supabase service-role key goes on Worker `vamos`. He adds it himself in his terminal, at the 26.5 ship, as `SUPABASE_SERVICE_ROLE_KEY`. Done 2026-09-29 23:56: he added it; the control session read the name on the Worker, never the value. Worker version `df365445`, same code as `80d51730`. |
 | 2 | The two notice texts below are approved in four languages. |
 | 3 | "Create an account" needs a tick box. The button works only when it is ticked. The tick is logged server-side. |
 | 4 | With the texts approved, "Create an account" goes live with 26.5 and consent is recorded from the first account. This replaces 26.5 D-10 (no consent recorded while the notice is TBC). |
