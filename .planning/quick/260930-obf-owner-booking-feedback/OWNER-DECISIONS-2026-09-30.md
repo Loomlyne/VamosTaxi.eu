@@ -5,3 +5,8 @@
 2. Laptop address list: when there is no room below the field, the list **opens upward**. The bar stays where it is.
 3. Pasted checkout link on another device: **trip only (addresses, date, time), form empty**. No name, e-mail, phone, company, note, voucher or booking reference. Unpaid bookings never resume on another device (see .planning/decisions/2026-09-30-unpaid-booking-other-device.md).
 4. Sign-off: screenshots at 390, 768 and 1440 go to the owner first. He signs, then the control session ships.
+
+## Screenshot review, 2026-09-30
+5. Laptop bar (flight before From, list opens upward): **signed**.
+6. Class cards: **change**. Every class card shows its photo, on the laptop home and in checkout section 1 on every width. On the laptop home, "Choose your class" is visible from page load; a card can be selected only once the bar is filled. On phone, classes stay on /checkout (with photos).
+7. Phone/tablet one-page sheet: not objected to, but not yet signed. It is shown again with the class change.
