@@ -290,8 +290,10 @@ select lives_ok(
   'whitelist: moving requires_payment to succeeded succeeds'
 );
 
+-- now() is fixed for the whole test transaction, so move captured_at by a real amount:
+-- since 08-05 the whitelist compares old and new, and a same-value SET is not a change.
 select throws_ok(
-  $$ update public.booking_payments set captured_at = now()
+  $$ update public.booking_payments set captured_at = now() + interval '1 minute'
       where stripe_payment_intent_id = 'pi_payment_fx_chf' $$,
   '23001',
   null,

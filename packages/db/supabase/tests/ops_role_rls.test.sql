@@ -23,10 +23,11 @@ values
   ('f0000000-0000-0000-0000-000000000004', 'orr-customer@vamostaxi.eu', 'authenticated', 'authenticated', '{}'::jsonb, '{}'::jsonb, now(), now()),
   ('f0000000-0000-0000-0000-000000000005', 'orr-newhire@vamostaxi.eu', 'authenticated', 'authenticated', '{}'::jsonb, '{}'::jsonb, now(), now());
 
-insert into public.staff (user_id, role, active) values
-  ('f0000000-0000-0000-0000-000000000001', 'dispatcher', true),
-  ('f0000000-0000-0000-0000-000000000002', 'admin', true),
-  ('f0000000-0000-0000-0000-000000000003', 'dispatcher', false);
+-- 20260901000001: a staff row authorizes the console only once accepted.
+insert into public.staff (user_id, role, active, accepted_at) values
+  ('f0000000-0000-0000-0000-000000000001', 'dispatcher', true, now()),
+  ('f0000000-0000-0000-0000-000000000002', 'admin', true, now()),
+  ('f0000000-0000-0000-0000-000000000003', 'dispatcher', false, now());
 
 insert into public.chauffeurs (full_name, phone, licence_number, note)
 values ('Chauffeur ORR', '+41 00 000 00 03', 'LIC-ORR-1', 'Speaks German');

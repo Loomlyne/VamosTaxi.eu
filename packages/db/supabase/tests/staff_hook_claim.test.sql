@@ -28,18 +28,22 @@
 -- proved directly against the catalog instead (function_privs_are / policy_roles_are /
 -- policy_cmd_is), which needs no impersonation at all.
 begin;
-select plan(18);
+select plan(19);
 
--- Fixtures: two auth.users rows and two staff rows — one active dispatcher, one inactive.
+-- Fixtures: three auth.users rows and three staff rows — one active accepted dispatcher,
+-- one inactive, one active but not yet accepted (invited, never claimed).
 insert into auth.users (id, email, aud, role, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values
   ('a0000000-0000-0000-0000-000000000001', 'active-dispatcher@vamostaxi.eu', 'authenticated', 'authenticated', '{}'::jsonb, '{}'::jsonb, now(), now()),
-  ('a0000000-0000-0000-0000-000000000002', 'inactive-dispatcher@vamostaxi.eu', 'authenticated', 'authenticated', '{}'::jsonb, '{}'::jsonb, now(), now());
+  ('a0000000-0000-0000-0000-000000000002', 'inactive-dispatcher@vamostaxi.eu', 'authenticated', 'authenticated', '{}'::jsonb, '{}'::jsonb, now(), now()),
+  ('a0000000-0000-0000-0000-000000000004', 'invited-dispatcher@vamostaxi.eu', 'authenticated', 'authenticated', '{}'::jsonb, '{}'::jsonb, now(), now());
 
-insert into public.staff (user_id, role, active)
+-- 20260901000001: only an ACCEPTED active row mints vamos_role (invite gate).
+insert into public.staff (user_id, role, active, accepted_at)
 values
-  ('a0000000-0000-0000-0000-000000000001', 'dispatcher', true),
-  ('a0000000-0000-0000-0000-000000000002', 'dispatcher', false);
+  ('a0000000-0000-0000-0000-000000000001', 'dispatcher', true, now()),
+  ('a0000000-0000-0000-0000-000000000002', 'dispatcher', false, now()),
+  ('a0000000-0000-0000-0000-000000000004', 'dispatcher', true, null);
 
 -- Case 1: active staff row -> app_metadata.vamos_role is minted, top-level role claim
 -- (schema-constrained to anon|authenticated, and the Postgres role, not the app role) is
@@ -63,6 +67,18 @@ select is(
     ) -> 'claims' ->> 'role' ),
   'authenticated',
   'the top-level role claim is never touched by the hook'
+);
+
+-- Case 1b: active but not yet accepted (invited, never claimed) -> no vamos_role key.
+select is(
+  ( public.custom_access_token_hook(
+      jsonb_build_object(
+        'user_id', 'a0000000-0000-0000-0000-000000000004',
+        'claims', jsonb_build_object('sub', 'a0000000-0000-0000-0000-000000000004', 'role', 'authenticated', 'aal', 'aal1', 'app_metadata', '{}'::jsonb)
+      )
+    ) -> 'claims' -> 'app_metadata' ? 'vamos_role' ),
+  false,
+  'active but unaccepted staff row -> no vamos_role key (invite gate)'
 );
 
 -- Case 2: inactive staff row -> no vamos_role key minted at all (key absence, not a null value).

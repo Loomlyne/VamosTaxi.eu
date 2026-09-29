@@ -87,6 +87,42 @@ values
 create temporary table sss_admin_before as
 select * from public.staff where user_id = '06010000-0000-4000-a000-000000000002';
 
+-- 20260901000001: a staff row is console authorization only after the invitee
+-- claims it (accepted_at). Claim first, as the real invite flow does.
+-- staff_claim_invite stamps accepted_at once. ---------------------------------------------------
+set local role vamos_staff;
+select set_config('request.jwt.claims',
+  jsonb_build_object('sub', '06010000-0000-4000-a000-000000000001', 'role', 'authenticated', 'aal', 'aal2',
+    'app_metadata', jsonb_build_object('vamos_role', 'dispatcher'))::text,
+  true);
+select lives_ok(
+  $$ select public.staff_claim_invite() $$,
+  'dispatcher at aal2 can call staff_claim_invite'
+);
+reset role;
+
+select ok(
+  (select s.accepted_at is not null from public.staff s where s.user_id = '06010000-0000-4000-a000-000000000001'),
+  'staff_claim_invite sets accepted_at'
+);
+
+create temporary table sss_first_accept as
+select s.accepted_at from public.staff s where s.user_id = '06010000-0000-4000-a000-000000000001';
+
+set local role vamos_staff;
+select set_config('request.jwt.claims',
+  jsonb_build_object('sub', '06010000-0000-4000-a000-000000000001', 'role', 'authenticated', 'aal', 'aal2',
+    'app_metadata', jsonb_build_object('vamos_role', 'dispatcher'))::text,
+  true);
+select public.staff_claim_invite();
+reset role;
+
+select is(
+  (select s.accepted_at from public.staff s where s.user_id = '06010000-0000-4000-a000-000000000001'),
+  (select accepted_at from sss_first_accept),
+  'second staff_claim_invite leaves accepted_at unchanged'
+);
+
 -- Dispatcher at aal2: staff_self returns exactly their own row. --------------------------------
 set local role vamos_staff;
 select set_config('request.jwt.claims',
@@ -181,39 +217,6 @@ select is(
   'staff_update_self audit_log.actor_id is the caller uid'
 );
 
--- staff_claim_invite stamps accepted_at once. ---------------------------------------------------
-set local role vamos_staff;
-select set_config('request.jwt.claims',
-  jsonb_build_object('sub', '06010000-0000-4000-a000-000000000001', 'role', 'authenticated', 'aal', 'aal2',
-    'app_metadata', jsonb_build_object('vamos_role', 'dispatcher'))::text,
-  true);
-select lives_ok(
-  $$ select public.staff_claim_invite() $$,
-  'dispatcher at aal2 can call staff_claim_invite'
-);
-reset role;
-
-select ok(
-  (select s.accepted_at is not null from public.staff s where s.user_id = '06010000-0000-4000-a000-000000000001'),
-  'staff_claim_invite sets accepted_at'
-);
-
-create temporary table sss_first_accept as
-select s.accepted_at from public.staff s where s.user_id = '06010000-0000-4000-a000-000000000001';
-
-set local role vamos_staff;
-select set_config('request.jwt.claims',
-  jsonb_build_object('sub', '06010000-0000-4000-a000-000000000001', 'role', 'authenticated', 'aal', 'aal2',
-    'app_metadata', jsonb_build_object('vamos_role', 'dispatcher'))::text,
-  true);
-select public.staff_claim_invite();
-reset role;
-
-select is(
-  (select s.accepted_at from public.staff s where s.user_id = '06010000-0000-4000-a000-000000000001'),
-  (select accepted_at from sss_first_accept),
-  'second staff_claim_invite leaves accepted_at unchanged'
-);
 
 -- aal1 / missing claim: staff_self is empty; claim raises. --------------------------------------
 set local role vamos_staff;

@@ -92,7 +92,7 @@ insert into public.price_snapshots (
   quote_id, vehicle_class_id, rate_version_id, rate_version_is_live, settings_version_id,
   engine_version, pax, bags, lines, policy,
   subtotal_rappen, surcharges_rappen, discount_rappen, total_rappen,
-  expires_at, quote_lock_expires_at
+  expires_at, quote_lock_expires_at, booking_id
 )
 select
   gen_random_uuid(),
@@ -103,21 +103,29 @@ select
   'quote-engine@08-04',
   2, 2,
   '[]'::jsonb,
-  '{}'::jsonb,
+  jsonb_build_object('cancellation_tiers', '[]'::jsonb, 'free_cancel_hours', 24,
+                     'airport_waiting_minutes', 60, 'city_waiting_minutes', 15,
+                     'settings_version_id', sv.id, 'modification_deadline_hours', 24,
+                     'min_advance_minutes', 180, 'policy_doc', 'test'),
   1, 0, 0, 1,
   now() + interval '1 day',
-  now() + interval '1 day'
+  now() + interval '1 day',
+  b.id
 from public.vehicle_classes vc
+-- One snapshot per paid booking: booking_payments_one_success_per_snapshot (08-07)
+-- allows a single succeeded payment per snapshot.
+cross join public.bookings b
 cross join lateral (select id from public.rate_versions order by id limit 1) rv
 cross join lateral (select id from public.settings_versions order by id limit 1) sv
-where vc.slug = 'oal-class';
+where vc.slug = 'oal-class'
+  and b.contact_email in ('oal-paid-a@vamostaxi.eu', 'oal-paid-b@vamostaxi.eu', 'oal-frozen@vamostaxi.eu');
 
 insert into public.booking_payments (
   booking_id, snapshot_id, stripe_payment_intent_id, charged_rappen, status, captured_at
 )
 select b.id, ps.id, 'pi_oal_a', 1, 'succeeded', now()
   from public.bookings b
-  cross join lateral (select id from public.price_snapshots order by id desc limit 1) ps
+  cross join lateral (select id from public.price_snapshots s where s.booking_id = b.id order by s.id desc limit 1) ps
  where b.contact_email = 'oal-paid-a@vamostaxi.eu';
 
 insert into public.booking_payments (
@@ -125,7 +133,7 @@ insert into public.booking_payments (
 )
 select b.id, ps.id, 'pi_oal_b', 1, 'succeeded', now()
   from public.bookings b
-  cross join lateral (select id from public.price_snapshots order by id desc limit 1) ps
+  cross join lateral (select id from public.price_snapshots s where s.booking_id = b.id order by s.id desc limit 1) ps
  where b.contact_email = 'oal-paid-b@vamostaxi.eu';
 
 insert into public.booking_payments (
@@ -133,7 +141,7 @@ insert into public.booking_payments (
 )
 select b.id, ps.id, 'pi_oal_f', 1, 'succeeded', now()
   from public.bookings b
-  cross join lateral (select id from public.price_snapshots order by id desc limit 1) ps
+  cross join lateral (select id from public.price_snapshots s where s.booking_id = b.id order by s.id desc limit 1) ps
  where b.contact_email = 'oal-frozen@vamostaxi.eu';
 
 set local session_replication_role = origin;
@@ -201,9 +209,12 @@ select lives_ok(
   'paid assign writes both FKs'
 );
 
+-- ops_assign_leg defers the GiST exclusions (D-48) so a swap does not trip
+-- mid-statement; in the app the call commits on its own and 23P01 fires there.
+-- pgTAP never commits, so force the deferred check inside the same assertion.
 select throws_ok(
   format(
-    $f$select * from public.ops_assign_leg(%L::uuid, %L::uuid, %L::uuid)$f$,
+    $f$select * from public.ops_assign_leg(%L::uuid, %L::uuid, %L::uuid); set constraints all immediate$f$,
     (select paid_b from fx), (select good from fx), (select actor from fx)
   ),
   '23P01',

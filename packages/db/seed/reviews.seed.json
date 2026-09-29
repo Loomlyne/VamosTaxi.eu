@@ -1,0 +1,72 @@
+[
+  {
+    "id": "rv-1",
+    "url": "",
+    "name": "First L.",
+    "role": "Airport transfer, Zurich",
+    "text": "One verbatim sentence from a real review sits here — pasted from the platform, never rewritten.",
+    "route": "ZRH → Zurich city",
+    "avatar": "",
+    "rating": 5,
+    "source": "google",
+    "verified": true,
+    "published": true,
+    "vehicleClass": "economy"
+  },
+  {
+    "id": "rv-2",
+    "url": "",
+    "name": "First L.",
+    "role": "Ski transfer, Zermatt",
+    "text": "Two or three sentences is the length this block is drawn for. Longer reviews are cut at the end and marked with an ellipsis; nothing inside the quote is edited, reordered or tidied up.",
+    "route": "ZRH → Zermatt",
+    "avatar": "",
+    "rating": 5,
+    "source": "tripadvisor",
+    "verified": true,
+    "published": true,
+    "vehicleClass": "van"
+  },
+  {
+    "id": "rv-3",
+    "url": "",
+    "name": "First L.",
+    "role": "Corporate account",
+    "text": "This is about the longest excerpt the measure holds before it is trimmed. A review that runs past it keeps its opening and loses only its tail, so the words a traveller chose first are the words that show…",
+    "route": "Zurich → Basel EuroAirport",
+    "avatar": "",
+    "rating": 5,
+    "source": "trustpilot",
+    "verified": true,
+    "published": true,
+    "vehicleClass": "business"
+  },
+  {
+    "id": "rv-4",
+    "url": "",
+    "name": "First L.",
+    "role": "Airport pickup, ZRH",
+    "text": "German reviews land here too. Strings grow around 30 per cent and the block takes it without the card reflowing.",
+    "route": "ZRH → Zurich city",
+    "avatar": "",
+    "rating": 5,
+    "source": "google",
+    "verified": true,
+    "published": true,
+    "vehicleClass": "business"
+  },
+  {
+    "id": "rv-5",
+    "url": "",
+    "name": "First L.",
+    "role": "Chauffeur by the hour",
+    "text": "Whichever platform a review came from, that platform’s own mark sits at the top of the card — one review, one source, no borrowed logos.",
+    "route": "Zurich, four hours",
+    "avatar": "",
+    "rating": 5,
+    "source": "manual",
+    "verified": false,
+    "published": true,
+    "vehicleClass": "business"
+  }
+]

@@ -2,7 +2,7 @@
 -- Phase 12: no support_tickets table; five statuses; unique reply_token; FORCE RLS; anon 42501.
 
 begin;
-select plan(20);
+select plan(21);
 
 select hasnt_table('public', 'support_tickets', 'no support_tickets table');
 select has_table('public', 'support_messages', 'support_messages exists');
@@ -81,10 +81,22 @@ select throws_ok(
   null,
   'anon cannot SELECT support_inbound_events'
 );
+-- Phase 20 (20260920000002): the publishable key can no longer skip Turnstile.
+select throws_ok(
+  $$ select * from public.submit_contact_message(
+       'k-support-1', 'Anna', 'anna-support@example.test', '', '', 'Need a quote', 'en') $$,
+  '42501',
+  null,
+  'anon cannot call submit_contact_message (Phase 20)'
+);
+reset role;
+
+-- The Worker submits as vamos_system (asSystem), after Turnstile + CSRF.
+set local role vamos_system;
 select lives_ok(
   $$ select * from public.submit_contact_message(
        'k-support-1', 'Anna', 'anna-support@example.test', '', '', 'Need a quote', 'en') $$,
-  'anon can call submit_contact_message'
+  'vamos_system can call submit_contact_message'
 );
 reset role;
 
