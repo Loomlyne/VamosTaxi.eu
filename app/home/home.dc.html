@@ -1863,7 +1863,8 @@ class Component extends DCLogic {
     const top = Math.min(14, Math.max(8, (window.innerWidth || 0) * 0.014));
     if (!h) return top + 68;
     const r = h.getBoundingClientRect();
-    return h.getAttribute('data-hd-float') === '1' ? r.bottom : top + r.height;
+    /* Height only: the floating header slides while it hides and shows, so its live rect is not a fixed edge. */
+    return top + r.height;
   }
   /** Watches the in-hero bar; once it is wholly above the header line the docked twin appears (D-05). */
   setupDock() {
@@ -1900,8 +1901,11 @@ class Component extends DCLogic {
     if (!e || e.defaultPrevented || (e.button && e.button > 0) || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     const a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
     if (!a || !BOOK_HREF.test(a.getAttribute('href') || '')) return;
+    /* HowItWorks chips carry their own click handler (vamos:dest-pick, handled below); it opens the sheet with To filled. */
+    if (a.closest('[data-dest-tile],[data-dest-row]')) return;
     if (NARROW()) {
-      e.preventDefault();
+      /* Stop here: Lenis' own anchor listener would otherwise scroll to the bar behind the sheet. */
+      e.preventDefault(); e.stopPropagation();
       if (document.querySelector('[data-hd][data-hd-open="1"]')) {
         /* Let the header menu finish closing (it releases its own body lock) before the sheet takes the lock. */
         this._pendingBook = 1;
