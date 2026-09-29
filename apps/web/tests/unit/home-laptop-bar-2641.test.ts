@@ -1,7 +1,7 @@
 // apps/web/tests/unit/home-laptop-bar-2641.test.ts
 //
 // Phase 26.4.1 (D-01..D-04): text pins for the laptop booking bar in home.dc.html.
-// >=1081 two rows, >=1272 one row; <=1080 stays the 26.4 bar + sheet.
+// >=1081 two rows, >=1360 one row; <=1080 stays the 26.4 bar + sheet.
 
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -26,14 +26,14 @@ describe("home.dc.html laptop bar (26.4.1-01)", () => {
     expect(m![0]).toMatch(/\[data-bookcard\]\{[^}]*padding:var\(--vt-space-4\)/);
   });
 
-  it("one row at >=1272", () => {
-    expect(block).toContain("@media (min-width:1272px)");
+  it("one row at >=1360", () => {
+    expect(block).toContain("@media (min-width:1360px)");
     expect(block).toContain('"from flight swap to when trav cta"');
     expect(block).toContain('"from swap to when trav cta"');
   });
 
-  it("two rows at 1081-1271", () => {
-    expect(block).toContain("@media (min-width:1081px) and (max-width:1271px)");
+  it("two rows at 1081-1359", () => {
+    expect(block).toContain("@media (min-width:1081px) and (max-width:1359px)");
     expect(block).toContain('"from flight swap to"');
     expect(block).toContain('"from swap to"');
     expect(block).toMatch(/grid-area:tc/);
@@ -47,8 +47,8 @@ describe("home.dc.html laptop bar (26.4.1-01)", () => {
     expect(raw).toMatch(/name="luggage"/);
   });
 
-  it("lists the 1272 listener", () => {
-    expect(raw).toContain("'(min-width:1272px)'");
+  it("lists the 1360 listener", () => {
+    expect(raw).toContain("'(min-width:1360px)'");
   });
 
   it("block obeys the laws", () => {

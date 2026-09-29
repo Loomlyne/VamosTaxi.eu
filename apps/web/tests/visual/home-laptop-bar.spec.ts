@@ -1,8 +1,8 @@
 import { test, expect, type Page } from "@playwright/test";
 import { serveMock, waitForMockReady } from "../support/mock-harness";
 
-// Phase 26.4.1 plan 01. At >=1081 the home booking box is the laptop bar: one row from 1272,
-// two rows 1081-1271, no tabs, no price, trust line under it. <=1080 stays the 26.4 bar + sheet.
+// Phase 26.4.1 plan 01. At >=1081 the home booking box is the laptop bar: one row from 1360,
+// two rows 1081-1359, no tabs, no price, trust line under it. <=1080 stays the 26.4 bar + sheet.
 
 const SUGGESTIONS = [
   { mapbox_id: "mb-air-1", name: "Fixture Airport", address: "Kloten", is_airport: true },
@@ -110,9 +110,9 @@ async function geom(page: Page) {
 const end = (r: R, rtl: boolean) => (rtl ? r.left : r.right);
 const start = (r: R, rtl: boolean) => (rtl ? r.right : r.left);
 
-const LAPTOP = [1440, 1280, 1272];
-const TWO_ROW = [1181, 1081];
-const ALL_LAPTOP = [1440, 1280, 1181, 1081];
+const LAPTOP = [1440, 1360];
+const TWO_ROW = [1280, 1272, 1181, 1081];
+const ALL_LAPTOP = [1440, 1360, 1280, 1272, 1181, 1081];
 const LANGS = ["en", "de", "fr", "ar"];
 
 test.describe("Home laptop booking bar @component", () => {
