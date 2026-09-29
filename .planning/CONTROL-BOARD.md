@@ -4,7 +4,7 @@ Kept by the control session. One page: what is live, what is being built, what w
 the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 
-**Last update:** 2026-09-30 02:57 (+04)
+**Last update:** 2026-09-30 03:01 (+04)
 
 ## Live now
 
@@ -72,7 +72,7 @@ Prompts for the new sessions: `.planning/prompts/`, with shared rules in `00-com
 | Job | Folder under `vamos-wt/` | Branch | Hand-off commit | State | Prompt |
 |---|---|---|---|---|---|
 | 26.4.2 booking feedback | `fix-26.4.2` | `fix/26.4.2-booking-feedback` | `4a3d3393` | Unfinished. Last full check on `b5f7234f`; three later commits not re-checked; flight-edit bug not started; main not merged. | `01-finish-26.4.2.md` |
-| 26.5 account choice | `phase-26.5` | `gsd/phase-26.5-checkout-account` | `a468a692` | Planning only, no code. Plans 09 to 11 and the D-19 revision of 01, 04, 05, 07 need his signature. | `02-build-26.5.md` |
+| 26.5 account choice | `phase-26.5` | `gsd/phase-26.5-checkout-account` | `a468a692` | **Building** in session "Vamos Taxi build 26.5" since 2026-09-30. Owner signed plans 09, 10, 11 and the D-19 revision (`1de7e39b`). main `49c51749` merged. Migrations: `20261001100000` agreement record, `20261001110000` unpaid hidden, `20261001120000` paid-only reminder. Local stack `vamos-taxi-265`, ports 613xx. Waits for the 26.4.2 ship before it touches `/checkout` files. | `02-build-26.5.md` |
 | 26.0 main green | `main-green-2` | `fix/main-green-2` | `3e19c44f` | Plans 01 to 09 done, 10 half, 11 and 12 open. 14 commits behind main. | `03-finish-26.0.md` |
 | 27 consent record | `phase-27` | `gsd/phase-27-consent-record` | running | Design approved by its checker (run 2). Plan next, then his signature. Session "Meta measurement phases 27-29" keeps running. | none, running |
 | 26.2 audit | `phase-26.2` (new) | `gsd/phase-26.2-audit` (new) | | Started early by the owner. Works only in folders nobody else touches. | `04-phase-26.2-audit.md` |
