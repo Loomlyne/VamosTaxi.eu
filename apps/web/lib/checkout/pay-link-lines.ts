@@ -23,7 +23,7 @@ type LineRow = {
   amount_rappen: unknown;
 };
 
-const KINDS = new Set(["fare", "surcharge", "coupon", "vat"]);
+const KINDS = ["fare", "surcharge", "coupon", "vat"] as const;
 
 /** Rows from checkout_pay_link_lines -> lines. Rows of an unknown kind or with a bad amount are dropped. */
 export function payLinkLinesFromRows(rows: readonly LineRow[]): PayLinkLine[] {
@@ -31,7 +31,7 @@ export function payLinkLinesFromRows(rows: readonly LineRow[]): PayLinkLine[] {
   for (const row of rows) {
     const kind = String(row.kind ?? "");
     const amount = Number(row.amount_rappen);
-    if (!KINDS.has(kind) || !Number.isInteger(amount)) continue;
+    if (!(KINDS as readonly string[]).includes(kind) || !Number.isInteger(amount)) continue;
     const bps = row.vat_rate_bps == null ? null : Number(row.vat_rate_bps);
     out.push({
       kind: kind as PayLinkLine["kind"],
