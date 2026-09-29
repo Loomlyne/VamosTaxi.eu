@@ -83,6 +83,15 @@ test.describe("home content SITE-01", () => {
     if (testInfo.project.name !== RUN_PROJECT) return;
     testInfo.setTimeout(240_000);
     await requireTestStack();
+    // The migrations ship no review rows; seed the one the assertions read (own external_ref, removed after).
+    ownerQuery(`
+      const name = ${JSON.stringify(SEEDED_AUTHOR)};
+      await sql\`
+        insert into public.reviews (external_ref, source, author_name, author_role, body, rating, route_label, published, sort_order)
+        values ('rv-seeded-26-0-06', 'manual', \${name}, 'test', 'seeded by home-content spec', 5, 'ZRH → Zurich city', true, 0)
+        on conflict (external_ref) do update set published = true, sort_order = 0
+      \`;
+    `);
     liveURL = `http://localhost:${LIVE_PORT}`;
     deadURL = `http://localhost:${DEAD_PORT}`;
     liveServer = spawnDev(LIVE_PORT);
@@ -91,12 +100,16 @@ test.describe("home content SITE-01", () => {
   });
 
   test.afterAll(() => {
+    try {
+      ownerQuery(`await sql\`delete from public.reviews where external_ref in ('rv-seeded-26-0-06', 'rv-unpublished-05-18')\`;`);
+    } catch {
+      /* stack gone */
+    }
     killServer(liveServer);
     killServer(deadServer);
   });
 
   test("seeded review authors render from the database", async ({ page }, testInfo) => {
-    test.fail(test.info().project.name === RUN_PROJECT, "KNOWN-RED 26.0: public.reviews is empty after the migrations (no seeded First L. review), so the seeded author never renders — owner to rule");
     if (testInfo.project.name !== RUN_PROJECT) return;
     const res = await page.goto(`${liveURL}/dev/home/reviews?live=1`, { timeout: 60_000 });
     expect(res?.status()).toBe(200);
@@ -106,7 +119,6 @@ test.describe("home content SITE-01", () => {
   });
 
   test("unpublished review does not render", async ({ page }, testInfo) => {
-    test.fail(test.info().project.name === RUN_PROJECT, "KNOWN-RED 26.0: the /dev/home/reviews gallery renders no database content on the mg2 stack (public.reviews empty, strings show as raw keys); cause not diagnosed further — owner to rule");
     if (testInfo.project.name !== RUN_PROJECT) return;
     ownerQuery(`
       const name = ${JSON.stringify(UNPUBLISHED_NAME)};
@@ -151,7 +163,6 @@ test.describe("home content SITE-01", () => {
   });
 
   test("reviews order is sort_order then created_at desc", async ({ page }, testInfo) => {
-    test.fail(test.info().project.name === RUN_PROJECT, "KNOWN-RED 26.0: the /dev/home/reviews gallery renders no database content on the mg2 stack (public.reviews empty, strings show as raw keys); cause not diagnosed further — owner to rule");
     if (testInfo.project.name !== RUN_PROJECT) return;
     const order = ownerQuery(`
       const rows = await sql\`
