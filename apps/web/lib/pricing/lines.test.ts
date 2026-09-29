@@ -10,7 +10,6 @@ import {
   airportFeeApplies,
   attachPlaceZones,
   buildAirportFeeLine,
-  buildCityPriceLine,
   buildExtraLines,
   buildFareLine,
   buildFixedRouteExtraLine,
@@ -1280,18 +1279,9 @@ describe("D-08 / D-08b: fare_kind no longer changes the start; the airport fee i
       distanceRate: priced(),
       fixedRoutes: [],
       rateVersionId: 1,
-      fareKind: "one_way",
     });
     expect(line.amount_rappen).toBe(start + km);
     expect(line.code).toBe("distance_fare");
-    expect(
-      buildCityPriceLine({
-        fareKind: "one_way",
-        cityPriceRappen: 700,
-        distanceRateId: 1,
-        rateVersionId: 1,
-      }),
-    ).toBeNull();
   });
 
   it("D-08b: fare_kind alone (no airport signal) no longer changes the start or adds a fee", () => {
@@ -1301,7 +1291,6 @@ describe("D-08 / D-08b: fare_kind no longer changes the start; the airport fee i
       distanceRate: priced(),
       fixedRoutes: [],
       rateVersionId: 1,
-      fareKind: "airport_pickup",
     });
     expect(line.amount_rappen).toBe(start + km);
     expect(line.basis.start_source).toBe("base_fare_rappen");
@@ -1392,18 +1381,6 @@ describe("D-08 / D-08b: fare_kind no longer changes the start; the airport fee i
       zones: [airportZone, cityZone],
     });
     expect(fee).toBeNull();
-  });
-
-  it("D-08: buildCityPriceLine stays exported but unused by the owner formula — city pairs are fixed_routes", () => {
-    const city = buildCityPriceLine({
-      fareKind: "city_to_city",
-      cityPriceRappen: 700,
-      distanceRateId: 1,
-      rateVersionId: 1,
-    });
-    expect(city).not.toBeNull();
-    expect(city!.code).toBe("city_price");
-    expect(city!.amount_rappen).toBe(700);
   });
 
   it("an omitted fare kind stays on the same base-start formula", () => {
@@ -1505,7 +1482,6 @@ describe("Comment 8 city and canton pair extra", () => {
       distanceRate: distanceRate(),
       fixedRoutes: [cityRow],
       rateVersionId: 1,
-      fareKind: "one_way",
     });
     const extra = buildFixedRouteExtraLine({
       leg: journey,
@@ -1535,14 +1511,6 @@ describe("Comment 8 city and canton pair extra", () => {
     expect(extra!.basis.matched).toBe("city");
     expect(extra!.amount_rappen).toBe(pair);
     expect(seats[0]!.amount_rappen).toBe(seat);
-    expect(
-      buildCityPriceLine({
-        fareKind: "one_way",
-        cityPriceRappen: 700,
-        distanceRateId: 1,
-        rateVersionId: 1,
-      }),
-    ).toBeNull();
     const pre = sumPreCouponTotal(numberLines([fare, extra!, ...seats]));
     const coupon = buildCouponLine({
       coupon: {
@@ -1585,7 +1553,6 @@ describe("Comment 8 city and canton pair extra", () => {
       distanceRate: distanceRate(),
       fixedRoutes: [cityRow],
       rateVersionId: 1,
-      fareKind: "one_way",
     });
     expect(fare.amount_rappen).toBe(start + perKm(per, metres));
     expect(

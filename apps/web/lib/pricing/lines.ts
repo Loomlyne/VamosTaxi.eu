@@ -28,7 +28,6 @@ import { percentOf, percentToHundredths, perKm } from "./round";
 import type {
   DistanceBandRow,
   DistanceRateRow,
-  FareKind,
   FixedRouteRow,
   Line,
   LineKind,
@@ -41,7 +40,6 @@ import type {
   VehicleClassSlug,
   ZoneRow,
 } from "./types";
-import { fareKindOrOneWay } from "./types";
 
 /** Kind rank for deterministic seq — fare < surcharge < included < discount (T5). */
 const KIND_RANK: Record<string, number> = {
@@ -145,12 +143,6 @@ export interface BuildFareLineArgs {
   zones?: ZoneRow[];
   /** D-21: extra stop on the journey → skip fixed_routes, use distance recipe. */
   hasExtraStops?: boolean;
-  /**
-   * Comment 11. Airport pickup uses a different start. Class city price is
-   * a separate line. A Comment 8 pair is not this fare line.
-   * Overlap with comment 10: this does not add a One way tab.
-   */
-  fareKind?: FareKind;
 }
 
 function journeyHasExtraStops(
@@ -229,44 +221,6 @@ function liveClassRows(
   classId: string,
 ): FixedRouteRow[] {
   return rows.filter((r) => r.vehicle_class_id === classId && r.live === true);
-}
-
-/**
- * Comment 11. Exactly one city price, booking-level, like an addon.
- * Not emitted for one way or airport pickup. Null amount when staff have
- * not set the price — never a guessed CHF figure.
- */
-export function buildCityPriceLine(args: {
-  fareKind: FareKind | undefined;
-  cityPriceRappen: number | null;
-  distanceRateId: number | null;
-  rateVersionId: number | null;
-}): Line | null {
-  if (fareKindOrOneWay(args.fareKind) !== "city_to_city") return null;
-  return {
-    seq: 0,
-    leg_seq: null,
-    kind: "extra",
-    code: "city_price",
-    i18n_key: "price.line.city_price",
-    basis: {
-      rule: "city_price",
-      city_price_rappen: args.cityPriceRappen,
-    },
-    ...(args.distanceRateId !== null
-      ? {
-          source_row: {
-            table: "distance_rates",
-            id: args.distanceRateId,
-            ...(args.rateVersionId !== null
-              ? { rate_version_id: args.rateVersionId }
-              : {}),
-          },
-        }
-      : {}),
-    allocation: "pro_rata",
-    amount_rappen: args.cityPriceRappen,
-  };
 }
 
 function isLabelBoundary(ch: string): boolean {
@@ -526,9 +480,8 @@ export function buildFixedRouteExtraLine(args: {
  * min_fare is not a floor. A city or canton pair is buildFixedRouteExtraLine,
  * not this amount. A place pin does not replace this line. The airport
  * pickup fee is buildAirportFeeLine, added on top, never a swap of this
- * start. `fareKind` is accepted for callers that still pass it but no longer
- * changes the amount or the start — a client-sent fare_kind is not a pricing
- * trust boundary (D-08b uses server-resolved airport signals instead).
+ * start. A client-sent fare_kind is never read (26.4 D-14); the airport fee
+ * comes from the server-resolved pickup only.
  */
 export function buildFareLine(args: BuildFareLineArgs): Line {
   const { leg, vehicleClass, distanceRate, rateVersionId } = args;

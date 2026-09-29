@@ -318,7 +318,8 @@ describe("D-14 fare_kind changes nothing", () => {
       JSON.stringify(
         quote(rb, legOv, {
           extras: { child_seats: 1 },
-          fare_kind: kind as QuoteInput["fare_kind"],
+          // Not part of QuoteInput any more (D-14): an old caller may still send it.
+          ...({ fare_kind: kind } as object),
         }).result.classes,
       ),
     );
