@@ -16,12 +16,21 @@ import {
   sendConfirmation,
   type BookingForEmail,
   type EmailLocale,
+  type EmailMoney,
+  type EmailMoneyLine,
   type SendOutcome,
 } from "@vamos/emails/confirmation";
 import { asSystem } from "../db/identity";
 import { withRequestContext } from "../logger";
 import { SUPPORT_EMAIL } from "../contact-channels";
-import { extrasFromPolicy } from "./pay-link";
+import {
+  emailExtrasFromLines,
+  emailExtrasFromPolicy,
+  isSurchargeLine,
+  snapshotLines,
+  surchargeLabel,
+  type SnapshotLineJson,
+} from "./pay-link";
 import { mintManageToken } from "./manage-token";
 
 type SettledBooking = {
@@ -78,6 +87,65 @@ function failureText(err: unknown, fallback: string): string {
   return (text || fallback).slice(0, ERROR_MAX);
 }
 
+function intOrNull(value: unknown): number | null {
+  if (value == null || value === "") return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? Math.round(n) : null;
+}
+
+/**
+ * S6 money block from checkout_booking_for_email. The total is charged_rappen
+ * of the succeeded payment (D-29), never a price snapshot total. Snapshots
+ * without lines fall back to net + VAT derived from the charge and the rate.
+ */
+export function moneyFromRow(row: ConfirmationMailRow, locale: EmailLocale): EmailMoney | undefined {
+  const charged = intOrNull(row.charged_rappen);
+  if (charged == null) return undefined;
+  const vatRateBps = intOrNull(row.vat_rate_bps) ?? 0;
+  const couponCode = String(row.coupon_code ?? "").trim();
+  const className = String(row.vehicle_class_name ?? "");
+  const lines: EmailMoneyLine[] = [];
+  const snapLines = snapshotLines(row.lines);
+
+  if (snapLines.length > 0) {
+    let fare = 0;
+    let vat = 0;
+    let sawVat = false;
+    const surcharges: EmailMoneyLine[] = [];
+    let coupon = 0;
+    let couponLabel = couponCode;
+    for (const line of snapLines as SnapshotLineJson[]) {
+      const amount = intOrNull(line.amount_rappen) ?? 0;
+      const kind = String(line.kind ?? "");
+      const code = String(line.code ?? "");
+      if (kind === "fare") fare += amount;
+      else if (kind === "vat" || code === "vat") {
+        vat += amount;
+        sawVat = true;
+      } else if (kind === "coupon" || kind === "discount" || code === "coupon" || code === "discount") {
+        coupon -= Math.abs(amount);
+        if (!couponLabel) couponLabel = code;
+      } else if (isSurchargeLine(line)) {
+        surcharges.push({ kind: "surcharge", label: surchargeLabel(line, locale), amountRappen: amount });
+      }
+    }
+    lines.push({ kind: "fare", label: className, amountRappen: fare });
+    lines.push(...surcharges);
+    if (coupon !== 0) lines.push({ kind: "coupon", label: couponLabel, amountRappen: coupon });
+    if (sawVat) lines.push({ kind: "vat", label: "", amountRappen: vat });
+  } else {
+    const net = Math.round((charged * 1000) / (1000 + vatRateBps));
+    lines.push({ kind: "fare", label: className, amountRappen: net });
+    lines.push({ kind: "vat", label: "", amountRappen: charged - net });
+  }
+
+  const currency = String(row.presentment_currency ?? "").trim().toUpperCase();
+  const minor = intOrNull(row.presentment_amount_minor);
+  const presentment =
+    currency && currency !== "CHF" && minor != null ? { amountMinor: minor, currency } : null;
+  return { lines, vatRateBps, chargedRappen: charged, presentment };
+}
+
 function payloadFromRow(
   row: ConfirmationMailRow,
   settled: SettledBooking,
@@ -85,18 +153,19 @@ function payloadFromRow(
   manageUrl: string,
 ): BookingForEmail {
   const scheduledLocal = String(row.scheduled_local ?? "");
-  // Plan 26.3-08 replaces this mapping with the full breakdown (lines, VAT,
-  // coupon, presentment). Extras keep the extrasFromPolicy shape for now.
-  const extras = extrasFromPolicy({ extras: row.policy_extras ?? null });
+  const fromLines = emailExtrasFromLines(row.lines, locale);
+  const extras = fromLines.length > 0 ? fromLines : emailExtrasFromPolicy(row.policy_extras ?? null);
+  const money = moneyFromRow(row, locale);
   return {
     reference: String(row.reference ?? settled.reference),
     contactName: String(row.contact_name ?? ""),
     contactEmail: String(row.contact_email ?? settled.contact_email),
     locale,
     displayCurrency: "CHF",
-    totalRappen: row.price_total_rappen == null ? null : Number(row.price_total_rappen),
+    totalRappen: money ? money.chargedRappen : null,
     manageUrl,
     extras,
+    ...(money ? { money } : {}),
     legs: [
       {
         legSeq: 1,
@@ -106,7 +175,7 @@ function payloadFromRow(
         scheduledLocal,
         scheduledAt: scheduledLocal,
         flightNo: row.flight_no ? String(row.flight_no) : null,
-        vehicleClassLabel: String(row.vehicle_class_slug ?? "business"),
+        vehicleClassLabel: String(row.vehicle_class_name ?? ""),
         pax: Number(row.pax ?? 1),
         bags: Number(row.bags ?? 0),
         estimatedDurationMinutes: null,

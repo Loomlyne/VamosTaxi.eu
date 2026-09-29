@@ -3,6 +3,7 @@ import {
   deliverConfirmationWithDeps,
   sweepStuckNotificationsWithDeps,
   type ConfirmationDeps,
+  moneyFromRow,
   type SweepDeps,
 } from "./notify";
 
@@ -19,15 +20,21 @@ const ROW = {
   contact_name: "Guest",
   contact_email: "guest@example.test",
   payer_email: null,
-  price_total_rappen: null,
+  price_total_rappen: 99999,
   pickup_text: "ZRH",
   dropoff_text: "Zurich HB",
   scheduled_local: "2026-10-01T08:15",
   flight_no: null,
   pax: 1,
   bags: 0,
-  vehicle_class_slug: "business",
+  vehicle_class_name: "Business",
   policy_extras: ["child_seat"],
+  lines: null,
+  vat_rate_bps: 81,
+  coupon_code: null,
+  charged_rappen: 10810,
+  presentment_amount_minor: null,
+  presentment_currency: null,
 };
 
 function makeDeps(overrides: Partial<ConfirmationDeps> = {}) {
@@ -147,8 +154,8 @@ describe("deliverConfirmationWithDeps", () => {
   it("builds the payload from RPC columns only (extras from policy_extras)", async () => {
     const d = makeDeps();
     await deliverConfirmationWithDeps(d, SETTLED);
-    const payload = d.send.mock.calls[0]?.[0] as { extras: string[]; manageUrl: string };
-    expect(payload.extras).toEqual(["child_seat"]);
+    const payload = d.send.mock.calls[0]![0];
+    expect(payload.extras?.map((e) => e.name)).toEqual(["Child seat"]);
     expect(payload.manageUrl).toBe("https://vamostaxi.site/de/manage-booking?token=tok");
   });
 });
@@ -207,5 +214,72 @@ describe("sweepStuckNotificationsWithDeps", () => {
     await sweepStuckNotificationsWithDeps(d);
     expect(d.missing).toHaveBeenCalledTimes(1);
     expect(d.deliver).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("confirmation payload money (S6)", () => {
+  const LINES = [
+    { kind: "fare", code: "fare", i18n_key: "price.fare", params: {}, amount_rappen: 10000 },
+    {
+      kind: "surcharge",
+      code: "ski-rack",
+      i18n_key: "price.surcharge.custom",
+      params: { names: { en: "Ski rack", de: "Skiträger" } },
+      amount_rappen: 2000,
+    },
+    { kind: "coupon", code: "coupon", i18n_key: "price.coupon", params: {}, amount_rappen: -1000 },
+    { kind: "vat", code: "vat", i18n_key: "price.vat", params: {}, amount_rappen: 910 },
+  ];
+  const FULL = {
+    ...ROW,
+    lines: LINES,
+    coupon_code: "WELCOME",
+    charged_rappen: 12000,
+    vat_rate_bps: 81,
+  };
+
+  async function sentPayload(row: Record<string, unknown>) {
+    const d = makeDeps({ load: vi.fn(async () => row) });
+    await deliverConfirmationWithDeps(d, SETTLED);
+    return d.send.mock.calls[0]![0];
+  }
+
+  it("maps lines in order, total is charged_rappen, class name from data", async () => {
+    const payload = await sentPayload(FULL);
+    expect(payload.money?.lines).toEqual([
+      { kind: "fare", label: "Business", amountRappen: 10000 },
+      { kind: "surcharge", label: "Skiträger", amountRappen: 2000 },
+      { kind: "coupon", label: "WELCOME", amountRappen: -1000 },
+      { kind: "vat", label: "", amountRappen: 910 },
+    ]);
+    expect(payload.money?.chargedRappen).toBe(12000);
+    expect(payload.totalRappen).toBe(12000);
+    expect(payload.legs[0]?.vehicleClassLabel).toBe("Business");
+    expect(payload.extras).toEqual([
+      { name: "Skiträger", names: { en: "Ski rack", de: "Skiträger" }, amountRappen: 2000 },
+    ]);
+  });
+
+  it("presentment is null for CHF or missing, set for another currency", () => {
+    expect(moneyFromRow(FULL, "de")?.presentment).toBeNull();
+    expect(
+      moneyFromRow({ ...FULL, presentment_currency: "CHF", presentment_amount_minor: 12000 }, "de")?.presentment,
+    ).toBeNull();
+    expect(
+      moneyFromRow({ ...FULL, presentment_currency: "eur", presentment_amount_minor: 13400 }, "de")?.presentment,
+    ).toEqual({ amountMinor: 13400, currency: "EUR" });
+  });
+
+  it("legacy snapshot without lines: net + VAT from the charge, no crash", () => {
+    const money = moneyFromRow({ ...ROW, lines: null, charged_rappen: 10810, vat_rate_bps: 81 }, "en");
+    expect(money?.lines).toEqual([
+      { kind: "fare", label: "Business", amountRappen: 10000 },
+      { kind: "vat", label: "", amountRappen: 810 },
+    ]);
+    expect(money?.chargedRappen).toBe(10810);
+  });
+
+  it("no captured charge: no money block", () => {
+    expect(moneyFromRow({ ...ROW, charged_rappen: null }, "en")).toBeUndefined();
   });
 });

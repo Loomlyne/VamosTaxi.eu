@@ -5,7 +5,7 @@
 
 import { sendConfirmation, type BookingForEmail, type EmailLocale } from "@vamos/emails/confirmation";
 import { asStaff, asSystem, type VamosClaims } from "@/lib/db/identity";
-import { extrasFromPolicy } from "@/lib/checkout/pay-link";
+import { emailExtrasFromPolicy } from "@/lib/checkout/pay-link";
 import { mintManageToken } from "@/lib/checkout/manage-token";
 import { PUBLIC_SITE_ORIGIN } from "./phone-booking-map";
 import { resolveStaffBookingId } from "./resolve-booking-id";
@@ -68,7 +68,12 @@ export async function resendVoucher(
       snaps[0] && typeof snaps[0] === "object" && "policy" in snaps[0]
         ? (snaps[0] as { policy: unknown }).policy
         : null;
-    return { row: rows[0], extras: extrasFromPolicy(policy) };
+    return {
+      row: rows[0],
+      extras: emailExtrasFromPolicy(
+        policy && typeof policy === "object" ? (policy as { extras?: unknown }).extras : null,
+      ),
+    };
   });
 
   if (!loaded?.row) return { ok: false, code: "not-found" };
