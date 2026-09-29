@@ -97,6 +97,22 @@ test.describe("account bookings 26.3", () => {
     await expect(page.getByText("Booked", { exact: true }).first()).toBeVisible();
   });
 
+  test("the booking row's spoken label follows the chosen language (weekday, month, status) @account", async ({ page }) => {
+    await mockSignedIn(page);
+    await page.goto(`${baseURL}/bookings`);
+    const hit = page.locator("[data-bk-hit]").first();
+    await expect(hit).toHaveAttribute("aria-label", /VT-26-0801/);
+    const en = (await hit.getAttribute("aria-label")) ?? "";
+    expect(en).toMatch(/[A-Z][a-z]{2} \d{1,2} [A-Z][a-z]{2}/);
+    await page.evaluate(() => (window as unknown as { VamosLocale: { setLang(v: string): void } }).VamosLocale.setLang("de"));
+    await expect.poll(async () => (await hit.getAttribute("aria-label")) ?? "").not.toBe(en);
+    const de = (await hit.getAttribute("aria-label")) ?? "";
+    expect(de).not.toMatch(/\bBooked\b|\bat\b/);
+    expect(de).toContain("Gebucht");
+    await page.evaluate(() => (window as unknown as { VamosLocale: { setLang(v: string): void } }).VamosLocale.setLang("ar"));
+    await expect.poll(async () => (await hit.getAttribute("aria-label")) ?? "").toMatch(/[؀-ۿ]/);
+  });
+
   test("sign-in with a checkout returnTo lands on that exact checkout URL", async ({ page }) => {
     await page.route("**/api/auth", (route) => route.fulfill({ json: { ok: true } }));
     const target = "/checkout?from=zrh&class=business&extras=roof-box";

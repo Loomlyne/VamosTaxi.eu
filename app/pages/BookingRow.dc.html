@@ -257,11 +257,18 @@ const DATE_RE = /^\s*([^\s,]+)[\s,]+(\d{1,2})\.?\s+([^\s,]+)\s*$/;
 /* Reference stays in the meta line. The stub already has the date. */
 const REF_RE = /^VT-\d+$/i;
 
+/* The row's spoken label is composed here, so the runtime's whole-string lookup never sees it:
+   translate each word (weekday, month, status) through the platform store instead, and leave
+   the reference and the time as they are. No "at" word: the comma reads the same in every language. */
+const tr = (s) => (window.VamosLocale && typeof window.VamosLocale.t === 'function' ? window.VamosLocale.t(s) : s);
+const ariaDate = (raw, m) => (m ? [tr(m[1]), m[2], tr(m[3])].join(' ') : tr(raw));
+
 class Component extends DCLogic {
   state = { open: false };
   rowRef = React.createRef();
 
   componentDidMount() {
+    if (window.VamosLocale && typeof window.VamosLocale.onChange === 'function') this._offLocale = window.VamosLocale.onChange(() => this.forceUpdate());
     this._away = (e) => {
       if (!this.state.open) return;
       const el = this.rowRef.current;
@@ -273,6 +280,7 @@ class Component extends DCLogic {
     document.addEventListener('keydown', this._esc);
   }
   componentWillUnmount() {
+    if (this._offLocale) this._offLocale();
     document.removeEventListener('pointerdown', this._away, true);
     document.removeEventListener('keydown', this._esc);
   }
@@ -330,7 +338,7 @@ class Component extends DCLogic {
       showHead: !railTime,
       hasMid: railTime,
       showTrailBadge: railTime || unpaid,
-      aria: [refCode, date, time && 'at ' + time, LABEL[status]].filter(Boolean).join(', '),
+      aria: [refCode, ariaDate(date, m), time, tr(LABEL[status])].filter(Boolean).join(', '),
       skRoute: p.skRoute || '74%', skMeta: p.skMeta || '46%',
     };
   }
