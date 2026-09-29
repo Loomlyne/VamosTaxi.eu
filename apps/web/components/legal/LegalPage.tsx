@@ -4,7 +4,7 @@
 // Shared by terms/privacy/cookies/cancellation/imprint.
 
 import type { ReactNode } from "react";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { createNavigation } from "next-intl/navigation";
 import { routing } from "@/i18n/routing";
 import { LEGAL_LANGUAGES, type LegalPageId } from "@/lib/legal-languages";
@@ -14,6 +14,9 @@ import { PendingSlot } from "./PendingSlot";
 import "./LegalPage.css";
 
 const { Link } = createNavigation(routing);
+
+/** Same formats as app/vamos-legal-updated.js, so both surfaces print the same date. */
+const DATE_LOCALE: Record<string, string> = { en: "en-GB", de: "de-CH", fr: "fr-CH", ar: "ar-u-nu-latn" };
 
 export type LegalSection = { id: string; number: string; titleKey: string };
 
@@ -32,6 +35,7 @@ export async function LegalPage({
   kickerKey,
   effectiveDateLabel,
   versionLabel,
+  shipDated = false,
   children,
 }: {
   page: LegalPageId;
@@ -41,12 +45,24 @@ export async function LegalPage({
   kickerKey: string;
   effectiveDateLabel: string;
   versionLabel: string;
+  /** Owner decision 14: show the date from app/vamos-legal-updated.js (via next.config env). */
+  shipDated?: boolean;
   children: ReactNode;
 }) {
   const tLegal = await getTranslations("legal");
   const tCommon = await getTranslations("common");
   const tCookies = await getTranslations("cookies");
   const langs = LEGAL_LANGUAGES[page];
+  const locale = await getLocale();
+  const updatedIso = shipDated ? process.env.LEGAL_UPDATED_ISO : undefined;
+  const updatedLabel = updatedIso
+    ? new Intl.DateTimeFormat(DATE_LOCALE[locale] ?? "en-GB", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+        timeZone: "UTC",
+      }).format(new Date(`${updatedIso}T00:00:00Z`))
+    : null;
 
   function msg(key: string): string {
     if (key.startsWith("common.")) return tCommon(key.slice("common.".length));
@@ -73,7 +89,11 @@ export async function LegalPage({
           <div className="vt-legal-meta">
             <div>
               <span>{tLegal("last-updated")}</span>
-              <PendingSlot label={effectiveDateLabel} />
+              {updatedLabel ? (
+                <span data-i18n-skip>{updatedLabel}</span>
+              ) : (
+                <PendingSlot label={effectiveDateLabel} />
+              )}
             </div>
             <div>
               <span>{tLegal("version")}</span>

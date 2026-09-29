@@ -30,6 +30,7 @@
 <script src="../../assets/lenis-boot.js"></script>
 <script src="../vamos-i18n-dict.js"></script>
 <script src="../vamos-locale.js"></script>
+<script src="../vamos-legal-updated.js"></script>
 <script src="../vamos-page-transition.js"></script>
 <style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
 .vt-input--focus{box-shadow:none}
@@ -136,7 +137,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <h1 style="margin:0 0 18px;max-width:20ch;font-family:var(--vt-font-display);font-size:var(--vt-display-2);line-height:var(--vt-display-leading);letter-spacing:var(--vt-display-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse);text-wrap:pretty">Cancellation &amp; refunds</h1>
 <p style="margin:0;max-width:58ch;font-size:var(--vt-body-lg);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">Plans change. This page says exactly what happens to your money when they do — and it is the one page that decides.</p>
 <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px 28px;margin-top:32px;padding-top:24px;border-top:1px solid var(--vt-border-inverse)">
-<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Last updated</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">1 September 2026</span></div>
+<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Last updated</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)" data-vt-no-i18n="1">{{ updatedLabel }}</span></div>
 <div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Version</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">1.0</span></div>
 <div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Applies to</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">Every booking made on this site</span></div>
 <button data-lg-noprint="1" type="button" onClick="{{ doPrint }}" style="margin-inline-start:auto;display:inline-flex;align-items:center;gap:9px;height:44px;padding:0 20px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-inverse);background:none;color:var(--vt-text-inverse);font-family:inherit;font-size:var(--vt-body-sm);white-space:nowrap;cursor:pointer">
@@ -199,7 +200,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div data-tier="1">
 <p style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Less than</p>
 <h3>24 hours before pickup</h3>
-<p><span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Refund within 24 hours</span></p>
+<p>Our team decides the refund and tells you by email.</p>
 <p style="font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">The booking is cancelled at once. No refund is sent automatically.</p>
 </div>
 <div data-tier="1">
@@ -233,8 +234,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 
 <section id="modify">
 <h2><span data-lg-n="1">03</span>Changing a booking</h2>
-<p>Time, address, passenger count and vehicle class can be changed up to 24 hours before pickup (72 hours for 8+ seats) before pickup, free of charge. If the change moves the fare, you pay or we refund the difference — never more than the difference.</p>
-<p>A change requested after that deadline is treated as a cancellation and a new booking. It is worth calling us first: if a driver can still be moved, we will move them.</p>
+<p>Time, address, passenger count and vehicle class can be changed before pickup, free of charge. If the change moves the fare, you pay or we refund the difference — never more than the difference.</p>
 </section>
 
 <section id="delays">
@@ -263,7 +263,6 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <section id="noshow">
 <h2><span data-lg-n="1">06</span>No-show</h2>
 <p>A booking becomes a no-show when the included waiting time has run out and we have not reached you on the number or email on the booking within 30 minutes of the pickup time, or 60 minutes at an airport.</p>
-<p>Calls we make before that: <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Noshow call attempts</span></p>
 <ul>
 <li>Airport pickups: 60 minutes from the actual landing time.</li>
 <li>All other pickups: 30 minutes from the booked time.</li>
@@ -286,7 +285,6 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <h2><span data-lg-n="1">08</span>How refunds are paid</h2>
 <ul>
 <li>Always to the original payment method. We cannot redirect a refund to a different card or account.</li>
-<li>Approved within <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Refund decision days</span></li>
 <li>A refund our team decides is paid within 30 days of your written acceptance of the decision. Your bank may take a few days more to show it.</li>
 </ul>
 <p>Unhappy with the outcome? The complaints route is in the <a href="terms.dc.html#complaints">terms</a>, and we resolve a complaint within 30 days.</p>
@@ -324,6 +322,7 @@ class Component extends DCLogic {
   tocRef = React.createRef();
 
   componentDidMount() {
+    if (window.VamosLocale) this._offLocale = window.VamosLocale.onChange(() => this.forceUpdate());
     const prose = this.proseRef.current, toc = this.tocRef.current;
     if (!prose || !toc || typeof IntersectionObserver === 'undefined') return;
     const links = Array.from(toc.querySelectorAll('[data-lg-tl]'));
@@ -346,13 +345,17 @@ class Component extends DCLogic {
     }, { rootMargin: '-104px 0px -60% 0px' });
     prose.querySelectorAll('section[id]').forEach((s) => this.io.observe(s));
   }
-  componentWillUnmount() { if (this.io) this.io.disconnect(); }
+  componentWillUnmount() {
+    if (this._offLocale) this._offLocale(); if (this.io) this.io.disconnect(); }
 
   toggleToc = () => this.setState((s) => ({ tocOpen: !s.tocOpen }));
   doPrint = () => window.print();
 
   renderVals() {
+    const legalDate = window.VamosLegalUpdated;
+    const lang = window.VamosLocale ? window.VamosLocale.lang() : 'en';
     return {
+      updatedLabel: legalDate ? legalDate.label(lang) : '',
       n14: 14, n16: 16, n18: 18,
       tocOpen: this.state.tocOpen ? '1' : null,
       toggleToc: this.toggleToc, doPrint: this.doPrint,

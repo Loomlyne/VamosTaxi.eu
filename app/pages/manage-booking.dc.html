@@ -498,7 +498,6 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:22px">
 <p data-hint="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="info" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span data-t="1">The change takes effect when we confirm it in writing — not when you send it. Until then the booking stands as it is.</span></p>
 <p data-hint="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="receipt" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span data-t="1">You pay any difference in the fare, or we refund it. We never charge for the change itself.</span></p>
-<p data-hint="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="clock" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span data-t="1">Changes are open until <span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Change deadline</span> before pickup. After that, call us.</span></p>
 </div>
 <div style="display:flex;flex-wrap:wrap;gap:12px">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" iconEnd="arrow-right" onClick="{{ confirmModify }}" hint-size="240px,54px">Request these changes</x-import>
@@ -520,7 +519,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div aria-hidden="true" style="position:absolute;top:0;inset-inline-end:0;width:96px;height:96px;background:url(../../assets/patterns/checker-mark.png) top right / 44px auto no-repeat;opacity:.9"></div>
 <p style="margin:0 0 12px;display:flex;align-items:center;gap:9px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="clock" size="{{ n16 }}" color="var(--vt-accent)" hint-size="16px,16px"></x-import>This change needs a person</p>
 <p data-stop-fig="1">{{ countdown }}</p>
-<p style="margin:14px 0 0;max-width:52ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">A driver is already scheduled against this pickup, and you are inside the <span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Change deadline</span>. Dispatch can still move it. This page cannot.</p>
+<p style="margin:14px 0 0;max-width:52ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">A driver is already scheduled against this pickup. Dispatch can still move it. This page cannot.</p>
 </div>
 
 <p data-grp="1" style="margin-bottom:14px">Two ways forward</p>
@@ -552,19 +551,15 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 
 <div data-refund="1" style="margin-bottom:20px">
 <sc-if value="{{ cancelFull }}" hint-placeholder-val="{{ true }}">
-<p style="margin:0;max-width:56ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">This trip will be cancelled. You get a full refund. The money goes back to the card you paid with.</p>
+<p style="margin:0;max-width:56ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">This trip will be cancelled. Refunded in full, automatically.</p>
 </sc-if>
 <sc-if value="{{ cancelOps }}" hint-placeholder-val="{{ false }}">
-<p style="margin:0;max-width:56ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">This trip will be cancelled. Refund needs a person — we will email you.</p>
-</sc-if>
-<sc-if value="{{ cancelClose }}" hint-placeholder-val="{{ false }}">
-<p style="margin:0;max-width:56ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">Too close to cancel here. Call us.</p>
+<p style="margin:0;max-width:56ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">This trip will be cancelled. Our team decides the refund and tells you by email.</p>
 </sc-if>
 </div>
 
-<p style="margin:0 0 18px;display:flex;align-items:flex-start;gap:9px;max-width:60ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-primary)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="info" size="{{ n18 }}" color="var(--vt-yellow-700)" hint-size="18px,18px"></x-import><span>Every refund is checked by our team before it is sent. Cancelling here stands the driver down straight away; the money follows once that check is done.</span></p>
 
-<p style="margin:0 0 22px;padding-top:18px;border-top:1px solid var(--vt-grey-200);max-width:64ch;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-muted)">If the pickup time passes without you cancelling, the no-show rule applies instead. Coaches and groups have their own window. All of it is in the <a href="cancellation.dc.html">cancellation policy</a>, which governs.</p>
+<p style="margin:0 0 22px;padding-top:18px;border-top:1px solid var(--vt-grey-200);max-width:64ch;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-muted)">If the pickup time passes without you cancelling, the no-show rule applies instead. All of it is in the <a href="cancellation.dc.html">cancellation policy</a>, which governs.</p>
 
 <sc-if value="{{ cancelFull }}" hint-placeholder-val="{{ true }}">
 <p data-grp="1" style="margin-bottom:14px">Before you cancel</p>
@@ -606,12 +601,12 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 </div>
 </div>
 
+<sc-if value="{{ refundReview }}" hint-placeholder-val="{{ true }}">
 <div data-refund="1" style="margin-bottom:20px">
 <p style="margin:0 0 12px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-charcoal-900)">Refund · waiting on review</p>
-<p style="margin:0 0 6px;font-size:var(--vt-body-sm);color:var(--vt-charcoal-800)">You are eligible for</p>
-<p style="margin:0 0 12px;display:flex;flex-wrap:wrap;align-items:baseline;gap:10px"><span data-tok-fig="1"><span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">{{ shareLabel }}</span></span><span style="font-size:var(--vt-body-md);color:var(--vt-charcoal-800)">{{ refundLine }}</span></p>
-<p style="margin:0;max-width:58ch;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">Our team processes this within <span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Refund payout time</span>, back to the card you paid with. Nothing has been sent yet — you will get a second email when it has.</p>
+<p style="margin:0;max-width:58ch;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-charcoal-800)">Our team decides the refund and tells you by email.</p>
 </div>
+</sc-if>
 
 <p data-hint="1" style="margin-bottom:22px"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="info" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span data-t="1">Refunds go back to the original payment method only, and we cannot send one to a different card. If that card is gone, call us.</span></p>
 
@@ -1202,7 +1197,6 @@ class Component extends DCLogic {
       refundedCopy,
       cancelFull: windowKind === 'auto_full',
       cancelOps: windowKind === 'pending_ops',
-      cancelClose: windowKind === 'none',
       canConfirmCancel: !hideCancel && windowKind !== 'none',
 
       modifySub: late
@@ -1235,7 +1229,7 @@ class Component extends DCLogic {
       confirmModify: this.confirmModify, resetChanges: this.resetChanges,
 
       earlyTier: windowKind === 'auto_full', lateTier: windowKind === 'pending_ops',
-      shareLabel: '',
+      refundReview: String(ticket.refundStatus || '').toLowerCase() === 'pending_ops',
       confirmCancel: this.confirmCancel,
 
       voucherOpen: s.voucher, voucherClosed: !s.voucher,
