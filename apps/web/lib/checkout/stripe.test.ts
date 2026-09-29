@@ -56,8 +56,9 @@ describe("stripe module", () => {
       locale: "de",
       idempotencyKey: "idem-1",
       expiresAt,
-      uiMode: "elements",
-      returnUrl: "https://vamostaxi.site/en/confirmation/VT-26-0001",
+      uiMode: "hosted_page",
+      successUrl: "https://vamostaxi.site/api/checkout/return?session_id={CHECKOUT_SESSION_ID}",
+      cancelUrl: "https://vamostaxi.site/checkout",
       productName: "Airport transfer",
     });
     expect(create).toHaveBeenCalledTimes(1);
@@ -67,7 +68,7 @@ describe("stripe module", () => {
       price_data: { currency: string; unit_amount: number };
     }>;
     expect(params.mode).toBe("payment");
-    expect(params.ui_mode).toBe("elements");
+    expect(params.ui_mode).toBe("hosted_page");
     expect(params.adaptive_pricing).toEqual({ enabled: true });
     expect(params.expand).toEqual(["payment_intent"]);
     expect(lineItems[0]?.price_data.currency).toBe(CHARGE_CURRENCY);
@@ -75,7 +76,7 @@ describe("stripe module", () => {
     expect(params.locale).toBe("de");
     expect(params.expires_at).toBe(stripeSessionExpiresAtUnix(expiresAt));
     expect(opts).toEqual({ idempotencyKey: "idem-1" });
-    expect(params).not.toHaveProperty("payment_method_types");
+    expect(params.payment_method_types).toEqual(["card"]);
     const excluded = (params.excluded_payment_method_types ?? []) as string[];
     expect(excluded).not.toContain("paypal");
     expect(excluded).not.toContain("amazon_pay");
@@ -170,8 +171,9 @@ describe("stripe module", () => {
       locale: "en",
       idempotencyKey: "extra-1",
       expiresAt: new Date(Date.now() + 60 * 60 * 1000),
-      uiMode: "elements",
-      returnUrl: "https://vamostaxi.site/en/confirmation/VT-26-0001",
+      uiMode: "hosted_page",
+      successUrl: "https://vamostaxi.site/api/checkout/return?locale=en&session_id={CHECKOUT_SESSION_ID}",
+      cancelUrl: "https://dashboard.vamostaxi.site/bookings/VT-26-0001",
       productName: "Fare difference",
       extra: { extraId: "extra-9" },
     });
@@ -183,7 +185,13 @@ describe("stripe module", () => {
       extra_id: "extra-9",
     });
     expect((params.line_items as Array<{ price_data: { unit_amount: number } }>)[0]?.price_data.unit_amount).toBe(4000);
-    expect(params.ui_mode).toBe("elements");
+    // D-48: the extra-fare session is Stripe's hosted page too, and is settled
+    // by session id (no quote_id on its payment intent).
+    expect(params.ui_mode).toBe("hosted_page");
+    expect(params).not.toHaveProperty("return_url");
+    expect(params.success_url).toContain("session_id={CHECKOUT_SESSION_ID}");
+    expect(params.cancel_url).toBe("https://dashboard.vamostaxi.site/bookings/VT-26-0001");
+    expect(params).not.toHaveProperty("payment_intent_data");
   });
 
   it("clamps Stripe session expiry to 30 minutes–24 hours", () => {

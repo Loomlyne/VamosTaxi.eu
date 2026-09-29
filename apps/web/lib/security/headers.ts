@@ -4,8 +4,10 @@
 // responses. serveOpsDc builds its own Headers() and must apply the same
 // pairs or dashboard.vamostaxi.site/login ships with no HSTS/CSP/XFO.
 //
-// CSP Stripe hosts are the Checkout funnel: ui_mode=elements, Link, and
-// nested card iframes. Do not shrink back to js.stripe.com alone.
+// D-48: card entry happens only on Stripe's hosted page (a top-level
+// navigation, not governed by this policy). No page of ours loads Stripe.js,
+// frames Stripe or calls api.stripe.com from the browser, so no Stripe or Link
+// host is allowlisted. Add one back only with the surface that needs it.
 
 export const SECURITY_HEADER_PAIRS: ReadonlyArray<readonly [string, string]> = [
   ["Strict-Transport-Security", "max-age=31536000; includeSubDomains"],
@@ -15,7 +17,7 @@ export const SECURITY_HEADER_PAIRS: ReadonlyArray<readonly [string, string]> = [
   ["Permissions-Policy", "camera=(), microphone=(), geolocation=()"],
   [
     "Content-Security-Policy",
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' unpkg.com js.stripe.com *.js.stripe.com checkout.stripe.com challenges.cloudflare.com; frame-src js.stripe.com *.js.stripe.com hooks.stripe.com checkout.stripe.com link.com *.link.com challenges.cloudflare.com; connect-src 'self' api.stripe.com checkout.stripe.com link.com *.link.com maps.googleapis.com challenges.cloudflare.com api.mapbox.com events.mapbox.com; img-src 'self' data: blob: https://*.mapbox.com https://*.stripe.com https://*.link.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'",
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' unpkg.com challenges.cloudflare.com; frame-src challenges.cloudflare.com; connect-src 'self' maps.googleapis.com challenges.cloudflare.com api.mapbox.com events.mapbox.com; img-src 'self' data: blob: https://*.mapbox.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'",
   ],
 ];
 

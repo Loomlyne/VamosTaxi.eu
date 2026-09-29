@@ -1,5 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import type Stripe from "stripe";
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   WEB_CHECKOUT_MINUTES,
   allSessionsExpiredUnpaid,
@@ -9,6 +12,7 @@ import {
   hostedSessionIsPayable,
 } from "./stripe";
 
+const here = dirname(fileURLToPath(import.meta.url));
 const SUCCESS = "https://vamostaxi.site/api/checkout/return?locale=en&session_id={CHECKOUT_SESSION_ID}";
 const CANCEL = "https://vamostaxi.site/checkout?resume=q1";
 
@@ -72,18 +76,15 @@ describe("hosted createCheckoutSession", () => {
     ).rejects.toThrow(/CHECKOUT_SESSION_ID/);
   });
 
-  it("keeps elements behaviour for ops extra sessions", async () => {
+  it("no longer offers an embedded (elements) session at all (D-48)", async () => {
     const { client, create } = fake();
-    await createCheckoutSession(client, {
-      ...base({ uiMode: "elements", successUrl: undefined, cancelUrl: undefined }),
-      returnUrl: "https://vamostaxi.site/confirmation/VT-1",
-    });
+    await createCheckoutSession(client, base());
     const p = create.mock.calls[0]![0] as Record<string, any>;
-    expect(p.ui_mode).toBe("elements");
-    expect(p.return_url).toBe("https://vamostaxi.site/confirmation/VT-1");
-    expect(p).not.toHaveProperty("cancel_url");
-    expect(p).not.toHaveProperty("payment_method_types");
-    expect(p).not.toHaveProperty("wallet_options");
+    expect(p.ui_mode).toBe("hosted_page");
+    expect(p).not.toHaveProperty("return_url");
+    expect(p.payment_intent_data).toEqual({ metadata: { quote_id: base().bookingId } });
+    const src = readFileSync(join(here, "stripe.ts"), "utf8");
+    expect(src).not.toMatch(/ui_mode: "elements"|returnUrl/);
   });
 
   it("sends ar first, retries once with en on a locale refusal, same key", async () => {

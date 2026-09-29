@@ -46,20 +46,15 @@ export interface CreateCheckoutSessionInput {
   idempotencyKey: string;
   expiresAt: Date;
   /**
-   * `hosted_page` (Stripe-hosted page, no card form on our site) or `elements`.
-   * Required, no default: every caller says which. Every customer and
-   * staff pay-link session (checkout intent, pay-link open, staff pay-link) is
-   * `hosted_page`; only the ops extra-fare session (lib/ops/edit-request.ts)
-   * asks for `elements`.
+   * Always `hosted_page` (Stripe-hosted page, no card form on our site or the
+   * dashboard: D-48). Kept as a required literal so a caller cannot ask for
+   * an embedded form.
    */
-  uiMode: "hosted_page" | "elements";
-  /** Required for `ui_mode: elements`; never sent for hosted. */
-  returnUrl?: string;
-  /** Required for hosted. Must carry `session_id={CHECKOUT_SESSION_ID}` unencoded. */
-  successUrl?: string;
-  /** Required for hosted; never sent for elements. */
-  cancelUrl?: string;
-  /** Hosted only: offer TWINT next to card (see `checkoutPaymentMethodTypes`). */
+  uiMode: "hosted_page";
+  /** Must carry `session_id={CHECKOUT_SESSION_ID}` unencoded. */
+  successUrl: string;
+  cancelUrl: string;
+  /** Offer TWINT next to card (see `checkoutPaymentMethodTypes`). */
   twint?: boolean;
   productName: string;
   /** Web mode: hash of everything the charge depends on; read back to decide reuse (D-24). */
@@ -119,35 +114,29 @@ export async function createCheckoutSession(
   stripe: Stripe,
   input: CreateCheckoutSessionInput,
 ): Promise<Stripe.Checkout.Session> {
-  const uiMode = input.uiMode;
-  let modeParams: Pick<
+  const successUrl = assertHttpUrl("successUrl", input.successUrl);
+  const cancelUrl = assertHttpUrl("cancelUrl", input.cancelUrl);
+  if (!successUrl.includes("session_id={CHECKOUT_SESSION_ID}")) {
+    throw new Error("successUrl must carry session_id={CHECKOUT_SESSION_ID}");
+  }
+  const modeParams: Pick<
     Stripe.Checkout.SessionCreateParams,
     | "ui_mode"
-    | "return_url"
     | "success_url"
     | "cancel_url"
     | "payment_method_types"
     | "wallet_options"
     | "payment_intent_data"
-  >;
-  if (uiMode === "hosted_page") {
-    const successUrl = assertHttpUrl("successUrl", input.successUrl);
-    const cancelUrl = assertHttpUrl("cancelUrl", input.cancelUrl);
-    if (!successUrl.includes("session_id={CHECKOUT_SESSION_ID}")) {
-      throw new Error("successUrl must carry session_id={CHECKOUT_SESSION_ID}");
-    }
-    modeParams = {
-      ui_mode: "hosted_page",
-      success_url: successUrl,
-      cancel_url: cancelUrl,
-      payment_method_types: input.twint ? ["card", "twint"] : ["card"],
-      wallet_options: { link: { display: "never" } },
-      payment_intent_data: { metadata: { quote_id: input.bookingId } },
-    };
-  } else {
-    if (!input.returnUrl) throw new Error("returnUrl is required for an elements session");
-    modeParams = { ui_mode: "elements", return_url: input.returnUrl };
-  }
+  > = {
+    ui_mode: "hosted_page",
+    success_url: successUrl,
+    cancel_url: cancelUrl,
+    payment_method_types: input.twint ? ["card", "twint"] : ["card"],
+    wallet_options: { link: { display: "never" } },
+    // The main booking session ties its intent to the quote; an extra-fare
+    // session (metadata kind=extra) is settled by session id, not by quote.
+    ...(input.extra ? {} : { payment_intent_data: { metadata: { quote_id: input.bookingId } } }),
+  };
   const build = (locale: CheckoutLocale): Stripe.Checkout.SessionCreateParams => ({
       mode: "payment",
       ...modeParams,
@@ -304,25 +293,12 @@ export async function retrieveRefund(stripe: Stripe, refundId: string): Promise<
   });
 }
 
-/** Elements sessions often have payment_intent=null until confirm. */
+/** The PaymentIntent id, or the session id while the intent is not created yet. */
 export function checkoutPaymentIntentId(session: Stripe.Checkout.Session): string {
   const pi = session.payment_intent;
   if (typeof pi === "string" && pi.length > 0) return pi;
   if (pi && typeof pi === "object" && "id" in pi && typeof pi.id === "string") return pi.id;
   return session.id;
-}
-
-export function sessionIsPayable(
-  session: Stripe.Checkout.Session | null,
-  chargedRappen: number,
-): session is Stripe.Checkout.Session {
-  if (!session?.client_secret) return false;
-  if (session.status && session.status !== "open") return false;
-  if ((session.currency ?? "").toLowerCase() === CHARGE_CURRENCY) {
-    const amount = session.amount_subtotal ?? session.amount_total;
-    if (typeof amount === "number" && amount !== chargedRappen) return false;
-  }
-  return true;
 }
 
 /**

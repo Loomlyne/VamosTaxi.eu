@@ -41,9 +41,8 @@ describe("security headers (D-32…D-38)", () => {
     expect(headers.get("Content-Security-Policy")).toBeTruthy();
   });
 
-  it("CSP allowlists Stripe, Turnstile, Mapbox and does not include sentry.io", () => {
+  it("CSP allowlists Turnstile, Mapbox and does not include sentry.io", () => {
     const csp = headerMap().get("Content-Security-Policy") ?? "";
-    expect(csp).toMatch(/js\.stripe\.com/);
     expect(csp).toMatch(/challenges\.cloudflare\.com/);
     expect(csp).toMatch(/api\.mapbox\.com/);
     // D-33: DC mocks boot React/ReactDOM/Babel from unpkg (app/support.js).
@@ -55,43 +54,12 @@ describe("security headers (D-32…D-38)", () => {
     expect(csp).not.toMatch(/vamostaxi\.eu/);
   });
 
-  it("CSP allows Checkout Elements, Link, and card iframes", () => {
+  it("CSP allows no Stripe or Link host: card entry is Stripe's hosted page only (D-48)", () => {
     const csp = headerMap().get("Content-Security-Policy") ?? "";
-    const tokens = (name: string): string[] => {
-      const part = csp
-        .split(";")
-        .map((row) => row.trim())
-        .find((row) => row === name || row.startsWith(`${name} `));
-      return part ? part.split(/\s+/).slice(1) : [];
-    };
-    // Phase 20 CSP listed only js.stripe.com. Checkout ui_mode=elements,
-    // Link, and nested card iframes need the extra Stripe hosts or Pay
-    // (card / Link / emailed pay-link) dies in the browser.
-    expect(tokens("script-src")).toEqual(
-      expect.arrayContaining(["js.stripe.com", "*.js.stripe.com", "checkout.stripe.com"]),
-    );
-    expect(tokens("frame-src")).toEqual(
-      expect.arrayContaining([
-        "js.stripe.com",
-        "*.js.stripe.com",
-        "hooks.stripe.com",
-        "checkout.stripe.com",
-        "link.com",
-        "*.link.com",
-      ]),
-    );
-    expect(tokens("connect-src")).toEqual(
-      expect.arrayContaining([
-        "api.stripe.com",
-        "checkout.stripe.com",
-        "link.com",
-        "*.link.com",
-        "maps.googleapis.com",
-      ]),
-    );
-    expect(tokens("img-src")).toEqual(
-      expect.arrayContaining(["https://*.stripe.com", "https://*.link.com"]),
-    );
+    expect(csp).not.toMatch(/stripe\.com/);
+    expect(csp).not.toMatch(/link\.com/);
+    expect(csp).toMatch(/frame-src challenges\.cloudflare\.com;/);
+    expect(csp).toMatch(/maps\.googleapis\.com/);
   });
 
   it("keeps /dev noindex rows", () => {
