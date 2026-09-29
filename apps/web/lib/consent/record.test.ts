@@ -134,12 +134,13 @@ describe("POST /api/consent HTTP mapping (D-03, D-11, D-14)", () => {
 
 describe("signup consent row (D-09, T-10-07)", () => {
   it("inserts a new row via asCustomer + recordConsent after password or magic signup", () => {
-    const src = readRepo("apps/web/app/api/auth/route.ts");
+    // The row is written when the address is confirmed (callback), not at sign-up: no session exists before.
+    const src = readRepo("apps/web/lib/auth/signup-consent.ts");
     expect(src).toMatch(/from ["']@\/lib\/db\/identity["']/);
     expect(src).toMatch(/\basCustomer\b/);
     expect(src).toMatch(/recordConsent/);
-    expect(src).toMatch(/runSignUpPassword/);
-    expect(src).toMatch(/mode:\s*["']signup["']|mode === ["']signup["']/);
+    expect(readRepo("apps/web/lib/auth/run.ts")).toMatch(/SIGNUP_CONSENT_METADATA_KEY\]: "pending"/);
+    expect(readRepo("apps/web/app/api/auth/callback/route.ts")).toMatch(/recordSignupConsentOnConfirm/);
     expect(src).not.toMatch(/from ["']@vamos\/db["']/);
     expect(src).not.toMatch(/from ["']@vamos\/db\//);
     expect(src).not.toMatch(/consent_log/);
@@ -156,7 +157,7 @@ describe("signup consent row (D-09, T-10-07)", () => {
   });
 
   it("reuses consent_subject cookie; never forges subject or customer_id from the JSON body", () => {
-    const src = readRepo("apps/web/app/api/auth/route.ts");
+    const src = readRepo("apps/web/lib/auth/signup-consent.ts");
     expect(src).toMatch(/readConsentSubject/);
     expect(src).toMatch(/mintConsentSubject/);
     expect(src).toMatch(/settings_change|reject_all/);
