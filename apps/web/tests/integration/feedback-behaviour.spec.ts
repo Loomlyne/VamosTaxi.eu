@@ -42,8 +42,10 @@
 // `pnpm test:visual` still picks it up as part of the full run.
 
 import { test, expect, type Page } from "../support/test";
+import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { nextDevEnv } from "../support/test-stack";
 
 const RUN_PROJECT = "component-1440";
 
@@ -60,12 +62,13 @@ test.beforeAll(async ({}, testInfo) => {
   // Offset from lenis.spec.ts's own 3500-range by 100 so the two specs' dev servers
   // never contend for the same port even if a worker index is reused across files
   // within the same run.
-  const port = 3600 + testInfo.workerIndex;
+  const port = testPort(3600) + testInfo.workerIndex;
   baseURL = `http://localhost:${port}`;
   devServer = spawn(NEXT_BIN, ["dev", "-p", String(port)], {
     cwd: WEB_ROOT,
     stdio: "ignore",
     detached: true,
+    env: nextDevEnv({}, { gallery: true }),
   });
   await waitForNextServer(baseURL);
 });
