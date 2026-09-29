@@ -4,6 +4,7 @@ import { spawn, type ChildProcess } from "node:child_process";
 import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { NEXT_BIN as LOCAL_NEXT, waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { nextDevEnv } from "../support/test-stack";
 
 const PORTS: Record<string, number> = {
   "component-1440": testPort(4240),
@@ -65,10 +66,7 @@ test.describe("Home services @component", () => {
       cwd: WEB_ROOT,
       stdio: "ignore",
       detached: true,
-      env: {
-        ...process.env,
-        TEST_DIST_DIR: `.next-home-services-${port}`,
-      },
+      env: nextDevEnv({ TEST_DIST_DIR: `.next-home-services-${port}` }, { gallery: true }),
     });
     await waitForNextServer(baseURL);
   });
