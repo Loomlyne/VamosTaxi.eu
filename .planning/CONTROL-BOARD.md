@@ -178,8 +178,8 @@ Reported by that session; not yet re-checked by the control session.
 |---|---|---|---|
 | F1 | A staff pay link also opens Manage booking for 24 hours, even after payment: traveller contact, driver phone, cancel, change time. No active pay link exists on live today. | Serious | Phase 20 builds migration `20261005100000`. Lands after 26.5. |
 | F2 | Dashboard support ticket: the PDF preview loads pdf.js from unpkg without a pin; a crafted PDF mailed to info@ could run script in a signed-in dashboard. | Serious | Phase 20 fixes `app/ops/OpsSupportTicket.dc.html` now. 26.2 keeps off the file. |
-| F3 | `POST /api/checkout/intent` has no limit per visitor: unlimited Stripe sessions from one quote. | Serious | 26.5 plan 04 (owns the file). The numbers are an owner question. |
-| F4 | Account reads trust the e-mail in the sign-in without checking it is confirmed. Safe while Supabase "Confirm email" is on. | Conditional | Phase 20 asks the owner to read the switch. |
+| F3 | `POST /api/checkout/intent` has no limit per visitor: unlimited Stripe sessions from one quote. | Serious | 26.5 plan 04, decision D-20, your answer of 2026-09-30: at most 5 Pay presses per quote, at most 8 per minute per visitor. The Worker gets one new limiter setting at the 26.5 ship. |
+| F4 | Account reads trust the e-mail in the sign-in without checking it is confirmed. Safe while Supabase "Confirm email" is on. | Conditional | Phase 20 asks the owner to read the switch. 26.5 refused the extra check (not in its signed plan); it stays with Phase 20 and needs your yes. |
 | | Service-role key: server-only, never logged or returned. Purge rule: holds. | Dismissed | |
 | | Test booking VT-26-0745 TEST SECURITY, unpaid, left for the hourly clean-up (1 of 10 probes). | | |
 
