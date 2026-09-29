@@ -2,6 +2,7 @@ import { test, expect } from "../support/test";
 import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { nextDevEnv } from "../support/test-stack";
 
 const PORTS: Record<string, number> = {
   "component-1440": testPort(4213),
@@ -35,10 +36,7 @@ async function startServer(port: number): Promise<void> {
     cwd: WEB_ROOT,
     stdio: "ignore",
     detached: true,
-    env: {
-      ...process.env,
-      TEST_DIST_DIR: `test-results/.next-faq-${port}`,
-    },
+    env: nextDevEnv({ TEST_DIST_DIR: `test-results/.next-faq-${port}` }, { gallery: true }),
   });
   await waitForNextServer(baseURL, 180_000);
   for (const path of ["/faq", "/dev/faq"] as const) {
