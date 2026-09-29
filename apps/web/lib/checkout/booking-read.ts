@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 import type { PayLinkExtraCode } from "@vamos/emails/confirmation";
 import { asCustomer, asGuest, type VamosClaims } from "../db/identity";
 import { hashManageToken } from "./manage-token";
-import { extrasFromPolicy } from "./pay-link";
+import { receiptRows, type ReceiptRow } from "./confirmation-receipt";
 import { BOOKING_REFERENCE_RE } from "./booking-status";
 
 export {
@@ -83,6 +83,18 @@ export type ConfirmationFareLine = {
   code: string;
   vehicleClass: string;
   amountRappen: number;
+  /** Snapshot line kind (fare, surcharge, coupon, vat). Absent on very old lines. */
+  kind?: string;
+  i18nKey?: string;
+  params?: Record<string, unknown>;
+};
+
+export type BookingReceipt = {
+  rows: ReceiptRow[];
+  chargedRappen: number | null;
+  /** Set only when the customer paid in a currency other than CHF. */
+  presentment: { amountMinor: number; currency: string } | null;
+  vehicleClassName: string | null;
 };
 
 export type HiddenBooking = { visible: false };
@@ -116,6 +128,8 @@ export type VisibleBooking = {
   refundStatus: string | null;
   refundOwedRappen: number | null;
   refundedRappen: number | null;
+  /** 26.3-09: the receipt, from the snapshot lines only. */
+  receipt: BookingReceipt;
 };
 
 export type BookingRead = HiddenBooking | VisibleBooking;
@@ -135,6 +149,7 @@ type BookingRow = {
   contact_name?: string | null;
   contact_email?: string | null;
   contact_phone?: string | null;
+  locale?: string | null;
 };
 
 type SnapshotRow = {
@@ -152,6 +167,8 @@ type PaymentRow = {
   status?: string | null;
   captured_at?: unknown;
   charged_rappen?: number | string | null;
+  presentment_amount_minor?: number | string | null;
+  presentment_currency?: string | null;
 };
 
 type LegRow = {
@@ -162,6 +179,7 @@ type LegRow = {
   pax: number;
   bags: number;
   flight_no?: string | null;
+  vehicle_class_name?: string | null;
 };
 
 const HIDDEN: HiddenBooking = { visible: false };
@@ -180,7 +198,11 @@ export function parseFareLines(raw: unknown): ConfirmationFareLine[] {
       rec.params && typeof rec.params === "object" ? (rec.params as Record<string, unknown>) : {};
     const vehicleClass = typeof params.vehicleClass === "string" ? params.vehicleClass.trim() : "";
     const code = typeof rec.code === "string" ? rec.code : "";
-    out.push({ code, vehicleClass, amountRappen: Math.round(amount) });
+    const line: ConfirmationFareLine = { code, vehicleClass, amountRappen: Math.round(amount) };
+    if (typeof rec.kind === "string") line.kind = rec.kind;
+    if (typeof rec.i18n_key === "string") line.i18nKey = rec.i18n_key;
+    if (Object.keys(params).length) line.params = params;
+    out.push(line);
   }
   return out;
 }
@@ -211,8 +233,9 @@ function capturedAtIso(value: unknown): string | null {
   return null;
 }
 
-function mergeExtraCodes(policy: PayLinkExtraCode[], lines: ConfirmationFareLine[]): PayLinkExtraCode[] {
-  const out = [...policy];
+/** Legacy three-code extras, read from the snapshot lines only (BookingVoucher until plan 14). */
+function legacyExtraCodes(lines: ConfirmationFareLine[]): PayLinkExtraCode[] {
+  const out: PayLinkExtraCode[] = [];
   for (const line of lines) {
     if (line.code !== "child_seat" && line.code !== "oversized_luggage" && line.code !== "extra_stop") {
       continue;
@@ -222,11 +245,19 @@ function mergeExtraCodes(policy: PayLinkExtraCode[], lines: ConfirmationFareLine
   return out;
 }
 
+function presentmentOrNull(payment: PaymentRow | undefined): BookingReceipt["presentment"] {
+  const currency = asText(payment?.presentment_currency).trim().toUpperCase();
+  const minor = rappenOrNull(payment?.presentment_amount_minor);
+  if (!currency || currency === "CHF" || minor == null || minor <= 0) return null;
+  return { amountMinor: minor, currency };
+}
+
 function firstLeg(rows: LegRow[]): {
   pickupText: string;
   dropoffText: string;
   scheduledLocal: string;
   vehicleClassId: string;
+  vehicleClassName: string;
   pax: number;
   bags: number;
   flightNo: string;
@@ -238,6 +269,7 @@ function firstLeg(rows: LegRow[]): {
       dropoffText: "",
       scheduledLocal: "",
       vehicleClassId: "",
+      vehicleClassName: "",
       pax: 0,
       bags: 0,
       flightNo: "",
@@ -248,6 +280,7 @@ function firstLeg(rows: LegRow[]): {
     dropoffText: asText(row.dropoff_text),
     scheduledLocal: asText(row.scheduled_local),
     vehicleClassId: asText(row.vehicle_class_id),
+    vehicleClassName: asText(row.vehicle_class_name).trim(),
     pax: Number(row.pax) || 0,
     bags: Number(row.bags) || 0,
     flightNo: asText(row.flight_no).trim(),
@@ -268,7 +301,7 @@ function visibleFromPayload(raw: unknown): VisibleBooking | null {
   const snap = payload.snapshot ?? undefined;
   const payment = payload.payment ?? undefined;
   const fareLines = parseFareLines(snap?.lines);
-  const extras = mergeExtraCodes(extrasFromPolicy(snap?.policy), fareLines);
+  const extras = legacyExtraCodes(fareLines);
   const priceTotalRappen =
     rappenOrNull(booking.price_total_rappen) ??
     rappenOrNull(snap?.total_rappen) ??
@@ -276,6 +309,9 @@ function visibleFromPayload(raw: unknown): VisibleBooking | null {
   const vehicleClassSlug = fareLines[0]?.vehicleClass ?? "";
   const couponCode = asText(snap?.coupon_code).trim() || null;
   const leg = firstLeg(legs);
+  const chargedRappen = rappenOrNull(payment?.charged_rappen) ?? priceTotalRappen;
+  const presentment = presentmentOrNull(payment);
+  const locale = asText((booking as { locale?: unknown }).locale).trim() || "en";
   return {
     visible: true as const,
     reference: booking.reference,
@@ -304,6 +340,12 @@ function visibleFromPayload(raw: unknown): VisibleBooking | null {
     refundStatus: typeof booking.refund_status === "string" ? booking.refund_status : null,
     refundOwedRappen: rappenOrNull(booking.refund_owed_rappen),
     refundedRappen: rappenOrNull(booking.refunded_rappen),
+    receipt: {
+      rows: receiptRows(fareLines, locale, chargedRappen, presentment),
+      chargedRappen,
+      presentment,
+      vehicleClassName: leg.vehicleClassName || null,
+    },
   };
 }
 
