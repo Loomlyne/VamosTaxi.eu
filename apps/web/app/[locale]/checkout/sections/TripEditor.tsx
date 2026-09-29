@@ -6,6 +6,7 @@ import { Alert } from "@/components/feedback/Alert";
 import { Button } from "@/components/core";
 import { Counter, Input, WhenPicker } from "@/components/forms";
 import { TurnstileWidget } from "@/components/forms/TurnstileWidget";
+import { airportByName, validateEditor, type EditorFieldErrors } from "@/lib/checkout/trip-editor-rules";
 import { useCheckoutSettings } from "../CheckoutSettings";
 import { PlaceCombo, type PlaceRetrieve } from "@/components/forms/PlaceCombo";
 import { geoLocale } from "@/lib/checkout/geo-locale";
@@ -21,43 +22,6 @@ import {
   type TripField,
   type TripFieldError,
 } from "@/lib/checkout/trip-url";
-
-const AIRPORT_NAME = /airport|flughafen|a[eéè]roport|مطار/i;
-
-export type EditorFieldErrors = Partial<Record<TripField, "required" | "invalid" | "same">>;
-
-/** Pure: the same gaps the home box reports, in the same order (UI-SPEC S2). */
-export function validateEditor(input: {
-  from: string;
-  fromId: string | null;
-  to: string;
-  toId: string | null;
-  airport: boolean;
-  flight: string;
-  when: string | null;
-  pax: number;
-  bags: number;
-}): EditorFieldErrors {
-  const errors: EditorFieldErrors = {};
-  if (!input.from.trim()) errors.from = "required";
-  if (input.airport) {
-    if (!input.flight.trim()) errors.flight = "required";
-    else if (!normaliseFlight(input.flight)) errors.flight = "invalid";
-  }
-  if (!input.to.trim()) errors.to = "required";
-  else if (
-    input.from.trim() &&
-    ((input.fromId && input.fromId === input.toId) ||
-      input.from.trim().toLowerCase() === input.to.trim().toLowerCase())
-  ) {
-    errors.to = "same";
-  }
-  if (!input.when) errors.when = "required";
-  if (input.pax < PAX_MIN || input.pax > PAX_MAX || input.bags < 0 || input.bags > BAGS_MAX) {
-    errors.travellers = "invalid";
-  }
-  return errors;
-}
 
 const FIELD_ORDER: TripField[] = ["from", "flight", "to", "when", "travellers"];
 
@@ -99,7 +63,7 @@ export function TripEditor({
   const [to, setTo] = useState(trip.to ?? "");
   const [toId, setToId] = useState<string | null>(trip.tid);
   const [gs, setGs] = useState<string | null>(trip.gs);
-  const [airport, setAirport] = useState(Boolean(trip.flight));
+  const [airport, setAirport] = useState(airportByName(trip.from ?? ""));
   const [flight, setFlight] = useState(trip.flightDisplay ?? "");
   const [date, setDate] = useState(initialWhen.date);
   const [time, setTime] = useState(initialWhen.time);
@@ -133,8 +97,8 @@ export function TripEditor({
     box?.querySelector<HTMLElement>("input, button")?.focus();
   }
 
-  async function detectAirport(place: PlaceRetrieve) {
-    setAirport(AIRPORT_NAME.test(place.text));
+  async function detectAirport(place: Pick<PlaceRetrieve, "mapbox_id" | "session_token" | "text">) {
+    setAirport(airportByName(place.text));
     try {
       const res = await fetch(
         `/api/geo/retrieve?mapbox_id=${encodeURIComponent(place.mapbox_id)}` +
@@ -148,6 +112,14 @@ export function TripEditor({
       // the name test above stays as the hint
     }
   }
+
+  // Airport status comes from the pickup place only (D-09): settle it on open when the trip has one.
+  useEffect(() => {
+    if (trip.fid && trip.gs) {
+      void detectAirport({ mapbox_id: trip.fid, session_token: trip.gs, text: trip.from ?? "" });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function fieldMessage(field: TripField): string | null {
     const reason = errors[field];
