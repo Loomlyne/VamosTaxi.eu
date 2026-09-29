@@ -113,6 +113,8 @@ export async function runOtp(
     locale: string;
     firstName?: string;
     lastName?: string;
+    /** false on the staff dashboard: an e-mail link must never create a customer account there. */
+    createUser?: boolean;
   },
   origin: string,
   home: string,
@@ -124,7 +126,7 @@ export async function runOtp(
   const { error } = await supabase.auth.signInWithOtp({
     email: input.email,
     options: {
-      shouldCreateUser: true,
+      shouldCreateUser: input.createUser !== false,
       emailRedirectTo: callbackUrl(origin, home),
       data,
     },

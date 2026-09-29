@@ -75,7 +75,7 @@ import {
   createServerSupabaseClient,
   type AuthSetCookie,
 } from "@/lib/supabase/server";
-import { csrfForbidden, trustedSiteOrigin } from "@/lib/security/origin";
+import { csrfForbidden, isDashboardHost, trustedSiteOrigin } from "@/lib/security/origin";
 
 export const dynamic = "force-dynamic";
 
@@ -212,6 +212,7 @@ export async function POST(request: Request): Promise<Response> {
   ctx.locale = locale;
 
   const origin = requestOrigin(request);
+  const dashboard = isDashboardHost(new URL(request.url).host);
   const setCookies: AuthSetCookie[] = [];
   const supabase = await createServerSupabaseClient(request, { cookies: setCookies });
 
@@ -554,8 +555,9 @@ export async function POST(request: Request): Promise<Response> {
             locale,
             firstName: parsed.data.firstName,
             lastName: parsed.data.lastName,
+            createUser: !dashboard,
           }
-        : { mode: "signin", email: parsed.data.email, locale },
+        : { mode: "signin", email: parsed.data.email, locale, createUser: !dashboard },
       origin,
       emailNext(returnToRaw, localizedHome(locale)),
     );
