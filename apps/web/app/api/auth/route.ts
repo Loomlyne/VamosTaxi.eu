@@ -79,6 +79,9 @@ import { csrfForbidden, trustedSiteOrigin } from "@/lib/security/origin";
 
 export const dynamic = "force-dynamic";
 
+/** Too many tries from this IP. The UI shows "Too many tries. Wait a minute and try again." */
+const RATE_LIMITED: ProfileRunResult = { ok: false, reason: "rate-limited" };
+
 function json(
   result: AuthRunResult | ProfileRunResult,
   status = 200,
@@ -183,12 +186,14 @@ export async function POST(request: Request): Promise<Response> {
 
   const { env } = getCloudflareContext();
   const ip = request.headers.get("cf-connecting-ip")?.trim() || "unknown";
-  const limited = await checkWriteRateLimit({
-    limiter: env.QUOTE_RATE_LIMITER_BARE,
-    kind: "auth",
-    ip,
-  });
-  if (!limited.ok) return json(FORM_CREDENTIALS, 429);
+  // Own limiter (10 per 60 s per IP). A missing binding is logged and allowed: a
+  // misconfiguration must not lock everyone out of sign-in.
+  if (!env.AUTH_RATE_LIMITER) {
+    log("error", "auth", ctx, { reason: "auth-limiter-missing" });
+  } else {
+    const limited = await checkWriteRateLimit({ limiter: env.AUTH_RATE_LIMITER, kind: "auth", ip });
+    if (!limited.ok) return json(RATE_LIMITED, 429);
+  }
 
   let raw: unknown;
   try {
