@@ -2,7 +2,7 @@
  * @component 260929-acl — a failed bookings read is an error state with TRY AGAIN, never "no bookings".
  * Behavioural, runs once under component-1440 (the 390 check resizes the page itself).
  */
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "../support/test";
 import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 

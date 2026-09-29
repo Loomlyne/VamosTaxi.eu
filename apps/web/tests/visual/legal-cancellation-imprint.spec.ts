@@ -49,7 +49,7 @@ function killPort(p: number) {
 
 // The mocks take their language from the reader's stored choice (VamosLocale), not from
 // the URL prefix, so a spec picks a language through the runtime's own public API.
-async function openIn(page: import("@playwright/test").Page, lang: string, path: string) {
+async function openIn(page: import("../support/test").Page, lang: string, path: string) {
   await page.goto(baseURL + path, { waitUntil: "domcontentloaded", timeout: 60_000 });
   await expect(page.locator("main")).toBeVisible({ timeout: 60_000 });
   await page.evaluate((l) => (window as unknown as { VamosLocale: { setLang(v: string): void } }).VamosLocale.setLang(l), lang);

@@ -4,7 +4,7 @@
  * component-1440 (the sideways-scroll check resizes the page itself). The API is mocked with
  * exactly the shape /api/manage/booking returns.
  */
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "../support/test";
 import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 

@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "../support/test";
 import { serveMock, waitForMockReady } from "../support/mock-harness";
 
 // Phase 26.4.1 plan 01. At >=1081 the home booking box is the laptop bar: one row from 1360,
