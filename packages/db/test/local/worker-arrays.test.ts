@@ -140,7 +140,7 @@ describe("Worker client array crossings (fetch_types: false)", () => {
     expect(r.nested[0]?.v).toEqual([]);
   });
 
-  it("withIdentity (the Worker's identity client, vamos_edge then SET ROLE vamos_system) parses and serializes text[]", async () => {
+  it("withIdentity (the Worker's identity client, vamos_edge, then the vamos_system role) parses and serializes text[]", async () => {
     const out = await withIdentity(EDGE, "system", undefined, async (tx) => {
       const ids = await tx<{ ids: string[] | null }[]>`
         select public.checkout_booking_session_ids(gen_random_uuid()) as ids`;
