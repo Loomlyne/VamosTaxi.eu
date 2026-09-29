@@ -72,3 +72,21 @@ describe("contact email renderers (D-02 D-04)", () => {
     });
   }
 });
+
+describe("contact renderers keep $ sequences in names and references literal", () => {
+  const tricky = "Ada $& $' $$";
+  for (const locale of locales) {
+    it(`customer greeting in ${locale}`, () => {
+      const rendered = renderContactCustomerEmail(locale, { name: tricky, message: "." });
+      expect(rendered.text).toContain(tricky);
+      expect(rendered.text).not.toContain("{name}");
+    });
+
+    it(`staff reply greeting and booking chip in ${locale}`, () => {
+      const rendered = renderStaffReplyEmail(locale, { reply: ".", name: tricky, bookingRef: "VT-$&-1" });
+      expect(rendered.text).toContain(tricky);
+      expect(rendered.text).toContain("VT-$&-1");
+      expect(rendered.text).not.toMatch(/\{(name|bookingRef)\}/);
+    });
+  }
+});

@@ -181,7 +181,7 @@ function voucherText(heading: string, body: string, quoteLabel: string, quote: s
 export function renderContactCustomerEmail(locale: EmailLocale, data: ContactCustomerEmailData) {
   const copy = COPY[locale];
   const name = data.name.trim();
-  const body = copy.customerBody.replace("{name}", name);
+  const body = copy.customerBody.replace("{name}", () => name);
   return {
     subject: copy.customerSubject,
     html: voucherHtml(
@@ -196,9 +196,9 @@ export function renderContactCustomerEmail(locale: EmailLocale, data: ContactCus
 export function renderStaffReplyEmail(locale: EmailLocale, data: StaffReplyEmailData) {
   const copy = COPY[locale];
   const name = data.name.trim();
-  const hello = copy.staffHello.replace("{name}", name);
+  const hello = copy.staffHello.replace("{name}", () => name);
   const bookingRef = data.bookingRef?.trim() ?? "";
-  const bookingLine = bookingRef ? copy.staffBookingChip.replace("{bookingRef}", bookingRef) : "";
+  const bookingLine = bookingRef ? copy.staffBookingChip.replace("{bookingRef}", () => bookingRef) : "";
   const bookingChip = bookingLine ? mutedHtml(bookingLine) : "";
   const body = bookingLine ? `${hello}\n\n${copy.staffBody}\n\n${bookingLine}` : `${hello}\n\n${copy.staffBody}`;
   return {
