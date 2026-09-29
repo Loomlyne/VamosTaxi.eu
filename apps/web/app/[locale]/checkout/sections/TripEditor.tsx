@@ -8,7 +8,7 @@ import { Counter, Input, WhenPicker } from "@/components/forms";
 import { TurnstileWidget } from "@/components/forms/TurnstileWidget";
 import { useCheckoutSettings } from "../CheckoutSettings";
 import { PlaceCombo, type PlaceRetrieve } from "@/components/forms/PlaceCombo";
-import { geoLocale } from "@/lib/checkout/vamos-trip";
+import { geoLocale } from "@/lib/checkout/geo-locale";
 import type { QuoteRefusal } from "@/lib/checkout/checkout-quote";
 import { useQuoteLabel } from "@/lib/checkout/quote-label";
 import { joinWhen, splitWhen } from "@/lib/checkout/trip-format";

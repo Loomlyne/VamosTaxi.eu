@@ -53,25 +53,17 @@ describe("token pay refusal", () => {
   const states = read("./pay-client-states.ts");
   const gate = sliceFunction(states, "chargeGateAlert");
   const pay = sliceFunction(src, "async function onPay");
-  const timerStart = src.indexOf("if (!clientSecret || !lockExpiresAt)");
+  const timerStart = src.indexOf("if (!ready || !lockExpiresAt) return;");
   const timerEnd = src.indexOf("async function onPay");
   const timer = src.slice(timerStart, timerEnd);
 
-  it("keeps recap refusal on dummy fields and existing alerts", () => {
-    expect(src).toContain("data-checkout-dummy-fields");
+  it("keeps recap refusal on alerts and shows no card fields (hosted Stripe page, 26.3 D-02)", () => {
     expect(src).toContain("quoteExpired");
     expect(src).toContain("pricingNotLive");
     expect(src).toContain('role="alert"');
-    expect(src).toContain('icon="credit-card"');
-    expect(src).toContain('label={t("cardNumber")}');
-    expect(src).toContain('label={t("cardExpiry")}');
-    expect(src).toContain('label={t("cardCvc")}');
-    expect(src).toContain('label={t("cardCountry")}');
-    expect(src).toContain('placeholder="1234 1234 1234 1234"');
-    expect(src).toContain('placeholder="MM / YY"');
-    expect(src).toContain('placeholder="CVC"');
-    expect(src).toContain('value="CH"');
-    expect(src).toContain("disabled");
+    expect(src).not.toContain("data-checkout-dummy-fields");
+    expect(src).not.toContain('placeholder="1234 1234 1234 1234"');
+    expect(src).not.toContain('placeholder="CVC"');
     expect(src).not.toContain('t("requote")');
     expect(src).not.toContain("checkout.requote");
     expect(src).not.toContain("homeHref");
@@ -102,7 +94,7 @@ describe("token pay refusal", () => {
     expect(src).not.toContain("function chargeGateAlert");
   });
 
-  it("locks at lock_expires_at without confirming or restarting the clock", () => {
+  it("locks at lock_expires_at without restarting the clock, then leaves for the hosted page only when open", () => {
     expect(zero).toContain("lock_expires_at");
     expect(zero).toContain("locked");
     expect(zero).not.toContain("confirm");
@@ -124,12 +116,10 @@ describe("token pay refusal", () => {
     expect(expire).not.toContain('t("requote")');
     expect(expire).not.toContain("/api/checkout/intent");
     expect(expire.replaceAll("lock_expires_at", "")).not.toContain("expires_at");
-    expect(src).toContain("panelProps(");
-    expect(sliceFunction(src, "panelProps")).toContain("locked");
-    const guard = pay.indexOf("if (payLocked || !clientSecret) return;");
-    const confirmAt = pay.indexOf("await confirm()");
+    const guard = pay.indexOf("if (payLocked || !ready || opening) return;");
+    const leave = pay.indexOf("window.location.assign(json.url)");
     expect(guard).toBeGreaterThan(-1);
-    expect(confirmAt).toBeGreaterThan(guard);
+    expect(leave).toBeGreaterThan(guard);
   });
 });
 

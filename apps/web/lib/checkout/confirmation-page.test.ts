@@ -22,7 +22,7 @@ describe("confirmation page catch (K35)", () => {
   });
 
   it("local next without env may still show processing", () => {
-    expect(src).toMatch(/if\s*\(!env\)/);
+    expect(src).toMatch(/return getCloudflareContext\(\)\.env;\s*\}\s*catch\s*\{\s*return null;/);
     expect(src).toMatch(/pendingTicket\(ref\)/);
   });
 });

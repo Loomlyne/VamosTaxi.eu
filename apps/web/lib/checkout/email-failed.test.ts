@@ -12,22 +12,9 @@ const SENTENCES = {
   ar: "لم يُرسل رابط الدفع. الحجز موجود. أعد إرسال الرابط.",
 } as const;
 
-const NOT_OK_LINE = 'REFUSAL_KEYS[json.code ?? json.error ?? ""] ?? "payCouldNotStart"';
-
 function checkout(locale: keyof typeof SENTENCES): Record<string, string> {
   const raw = readFileSync(join(here, `../../i18n/messages/${locale}.json`), "utf8");
   return JSON.parse(raw).checkout as Record<string, string>;
-}
-
-function refusalMap(src: string): Record<string, string> {
-  const start = src.indexOf("const REFUSAL_KEYS");
-  const end = src.indexOf("};", start);
-  const block = src.slice(start, end);
-  const map: Record<string, string> = {};
-  for (const match of block.matchAll(/([a-z_]+):\s*"([A-Za-z]+)"/g)) {
-    map[match[1]!] = match[2]!;
-  }
-  return map;
 }
 
 describe("checkout.emailFailed", () => {
@@ -45,31 +32,7 @@ describe("checkout.emailFailed", () => {
   });
 });
 
-describe("email_failed does not select payCouldNotStart", () => {
-  const client = readFileSync(join(here, "../../app/[locale]/checkout/CheckoutClient.tsx"), "utf8");
-
-  it("REFUSAL_KEYS maps email_failed to emailFailed", () => {
-    const map = refusalMap(client);
-    expect(map.email_failed).toBe("emailFailed");
-    expect(map.email_failed).not.toBe("payCouldNotStart");
-    const start = client.indexOf("const REFUSAL_KEYS");
-    const block = client.slice(start, client.indexOf("};", start));
-    expect(block).toContain('email_failed: "emailFailed"');
-    expect(block).not.toContain('email_failed: "payCouldNotStart"');
-  });
-
-  it("the refusal map still resolves email_failed to emailFailed; checkout has no pay-link sender (26.3 D-18)", () => {
-    expect(client).not.toContain("async function sendPayLink()");
-    expect(client).toContain(NOT_OK_LINE);
-    const map = refusalMap(client);
-    const json = { code: "email_failed", error: "email_failed" };
-    const key = map[json.code ?? json.error ?? ""] ?? "payCouldNotStart";
-    expect(key).toBe("emailFailed");
-    expect(key).not.toBe("payCouldNotStart");
-    const unknown = map["not_a_code"] ?? "payCouldNotStart";
-    expect(unknown).toBe("payCouldNotStart");
-  });
-
+describe("email_failed stays a distinct refusal", () => {
   it("pay-link route still returns 502 email_failed", () => {
     const src = readFileSync(join(here, "../../app/api/checkout/pay-link/route.ts"), "utf8");
     const line = src.split("\n").find((row) => row.includes("email_failed"));

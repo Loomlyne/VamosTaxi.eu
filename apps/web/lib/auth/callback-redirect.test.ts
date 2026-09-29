@@ -71,7 +71,8 @@ describe("checkout extras cache", () => {
       join(dirname(fileURLToPath(import.meta.url)), "../../app/api/checkout/extras/route.ts"),
       "utf8",
     );
-    expect(src.match(/Cache-Control\": \"private, no-store\"/g)?.length).toBeGreaterThanOrEqual(2);
+    expect(src).toContain('"Cache-Control": "private, no-store"');
+    expect(src.match(/headers: HEADERS/g)?.length).toBeGreaterThanOrEqual(2);
   });
 });
 

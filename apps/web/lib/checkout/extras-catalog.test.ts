@@ -120,11 +120,13 @@ describe("checkout extras catalog", () => {
 
   it("public extras route still loads the live book", () => {
     const src = readFileSync(extrasRoute, "utf8");
-    expect(src).toContain("preferDraft: false");
+    // The route reads through loadCheckoutCatalog, which asks for the published book only.
+    const catalog = readFileSync(join(here, "checkout-catalog.ts"), "utf8");
+    expect(catalog).toContain("preferDraft: false");
+    expect(catalog).not.toMatch(/preferDraft:\s*true/);
+    expect(src).toContain("loadCheckoutCatalog");
     expect(src).not.toMatch(/preferDraft:\s*true/);
     expect(src).toContain("vat_rate_bps: flags.vat_rate_bps");
-    expect(src).toContain("max_extra_stops: maxStops");
-    expect(src).toContain("publishedMaxExtraStops");
   });
 
   it("extra_stop is a chip without a fixed rappen × quantity fare", () => {

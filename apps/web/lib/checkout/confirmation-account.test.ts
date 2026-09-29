@@ -18,8 +18,11 @@ describe("signed-in account can open confirmation", () => {
 
   it("still hides a guessed VT-ref with no cookie and no session", () => {
     const page = readFileSync(join(WEB_ROOT, "app/[locale]/confirmation/[ref]/page.tsx"), "utf8");
-    const index = readFileSync(join(WEB_ROOT, "app/[locale]/confirmation/page.tsx"), "utf8");
+    const client = readFileSync(join(WEB_ROOT, "app/[locale]/confirmation/[ref]/ConfirmationClient.tsx"), "utf8");
     expect(page).toContain('initialPhase: ConfirmationPhase = "hidden"');
-    expect(index).toContain("notVisibleTitle");
+    // Facts are only read behind the manage cookie or a session (T-26.3-14-01).
+    expect(page).toContain("if (env && (raw || claims))");
+    expect(page).toContain("notVisibleTitle");
+    expect(client).toContain("notVisibleTitle");
   });
 });

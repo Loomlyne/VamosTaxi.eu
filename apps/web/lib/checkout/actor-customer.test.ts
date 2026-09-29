@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { readCheckoutPageSource } from "../../tests/support/checkout-sources";
 import { resolveActorCustomerIdWithDeps } from "./actor-customer";
 
 const USER = "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee";
@@ -73,8 +74,8 @@ describe("checkout routes use the signed-in actor", () => {
     }
   });
 
-  it("the checkout client has no pay-link sender", () => {
-    const client = source("app/[locale]/checkout/CheckoutClient.tsx");
+  it("the checkout page has no pay-link sender", () => {
+    const client = readCheckoutPageSource();
     expect(client).not.toContain("sendPayLink");
     expect(client).not.toContain("/api/checkout/pay-link");
   });

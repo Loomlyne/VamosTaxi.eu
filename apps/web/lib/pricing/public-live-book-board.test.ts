@@ -8,6 +8,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { readCheckoutPageSource } from "../../tests/support/checkout-sources";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const webRoot = join(here, "../..");
@@ -35,15 +36,8 @@ describe("public live-book board catalogs (D-29 D-31)", () => {
     );
   });
 
-  it("CheckoutClassCards.tsx does not keep CLASS_SLUGS four-tuple", () => {
-    const src = web("app/[locale]/checkout/CheckoutClassCards.tsx");
-    expect(src).not.toMatch(
-      /CLASS_SLUGS\s*=\s*\[\s*"economy"\s*,\s*"business"\s*,\s*"first"\s*,\s*"van"\s*\]/,
-    );
-  });
-
-  it("CheckoutClient.tsx does not keep CLASS_SLUGS four-tuple", () => {
-    const src = web("app/[locale]/checkout/CheckoutClient.tsx");
+  it("the checkout page files do not keep CLASS_SLUGS four-tuple", () => {
+    const src = readCheckoutPageSource();
     expect(src).not.toMatch(
       /CLASS_SLUGS\s*=\s*\[\s*"economy"\s*,\s*"business"\s*,\s*"first"\s*,\s*"van"\s*\]/,
     );

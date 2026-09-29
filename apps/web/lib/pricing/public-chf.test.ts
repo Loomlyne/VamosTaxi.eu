@@ -141,7 +141,6 @@ describe("D-40 grep gates: Worker vamos, no .eu, no sk_live_, SQL does not flip 
       (name) => name.endsWith(".ts") && !name.endsWith(".test.ts"),
     );
     expect(files).toContain("stripe.ts");
-    expect(files).toContain("stripe-appearance.ts");
     for (const name of files) {
       const src = source(`lib/checkout/${name}`);
       expect(src, name).not.toMatch(/sk_live_/);
