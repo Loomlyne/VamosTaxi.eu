@@ -9,7 +9,7 @@
 import { test, expect, type Page } from "../support/test";
 import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
-import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { NEXT_BIN, settleCloudflareDev, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 import { mailUrl, nextDevEnv, requireTestStack, stackKeys } from "../support/test-stack";
 
 const PORT = testPort(4455);
@@ -61,8 +61,9 @@ test.describe("D-28 Pitfall 4 confirm-email intermediate state", () => {
       cwd: WEB_ROOT,
       stdio: "ignore",
       detached: true,
-      env: nextDevEnv({ SUPABASE_URL: stack.apiUrl, SUPABASE_ANON_KEY: stack.anonKey }),
+      env: nextDevEnv({ CLOUDFLARE_ENV: "staging", TEST_DIST_DIR: `test-results/.next-auth-confirm-email-${PORT}`, SUPABASE_URL: stack.apiUrl, SUPABASE_ANON_KEY: stack.anonKey }),
     });
+    await settleCloudflareDev();
     await waitForNextServer(baseURL);
   });
 
@@ -79,7 +80,7 @@ test.describe("D-28 Pitfall 4 confirm-email intermediate state", () => {
   test("D-28 Pitfall 4: password signup has no usable session until the emailed confirmation", async ({
     page,
   }) => {
-    test.fail(true, "KNOWN-RED 26.0: sign-up Password label now matches the field and its show/hide eye button (getByLabel strict-mode violation) — owner to rule");
+    test.fail(true, "KNOWN-RED 26.0: check-your-email state no longer contains the asserted copy (Send a new link); page now shows Check your email / Sent to — owner to rule");
     test.setTimeout(120_000);
     const email = `d28-${crypto.randomUUID().slice(0, 8)}@example.com`;
     const after = new Date(Date.now() - 1000).toISOString();
@@ -88,8 +89,8 @@ test.describe("D-28 Pitfall 4 confirm-email intermediate state", () => {
     await page.getByLabel("Email").fill(email);
     await page.getByLabel("First name").fill("Ada");
     await page.getByLabel("Last name").fill("Lovelace");
-    await page.getByLabel("Password").fill(PASSWORD);
-    await page.getByRole("button", { name: "Create an account" }).click();
+    await page.getByLabel("Password", { exact: true }).fill(PASSWORD);
+    await page.getByRole("button", { name: /create account/i }).click();
     await expect(page.locator("[data-af]")).toContainText("Send a new link");
 
     const before = await sessionSnapshot(page);
