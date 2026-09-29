@@ -1254,7 +1254,7 @@ describe("runCheckoutIntent mode web (26.3)", () => {
     class: null, extras: [] as string[], resume: null, pay: null,
   };
 
-  type Sess = { id: string; status: "open" | "expired" | "complete"; payment_status: "unpaid" | "paid"; amount: number };
+  type Sess = { id: string; status: "open" | "expired" | "complete"; payment_status: "unpaid" | "paid"; amount: number; meta: Record<string, string> };
 
   async function webBody(p: QuoteLockPayload, patch: Record<string, unknown> = {}) {
     const lock = await mintLock(SECRETS, p);
@@ -1296,6 +1296,7 @@ describe("runCheckoutIntent mode web (26.3)", () => {
         url: s.status === "open" ? `https://checkout.stripe.test/${s.id}` : null,
         payment_intent: null,
         expires_at: 1_790_000_000,
+        metadata: s.meta,
       }) as never;
     const d = deps(p, {
       mode: "web",
@@ -1306,7 +1307,7 @@ describe("runCheckoutIntent mode web (26.3)", () => {
       createCheckoutSession: (async (input: Record<string, unknown>) => {
         created.push(input);
         n += 1;
-        const s: Sess = { id: `cs_${n}`, status: "open", payment_status: "unpaid", amount: input.chargedRappen as number };
+        const s: Sess = { id: `cs_${n}`, status: "open", payment_status: "unpaid", amount: input.chargedRappen as number, meta: { selection: String(input.selectionFingerprint) } };
         sessions.set(s.id, s);
         calls.push(`create:${s.id}`);
         return asSession(s);
@@ -1552,6 +1553,56 @@ describe("runCheckoutIntent mode web (26.3)", () => {
     );
     expect(((await res.json()) as { code: string }).code).toBe("quote_already_booked");
     expect(w.calls.some((c) => c.startsWith("purge"))).toBe(false);
+    expect(w.bookings.size).toBe(1);
+  });
+
+  it("same total, different extra: not reused, takes the changed-selection path", async () => {
+    const p = payload();
+    const w = world(p, {
+      loadCatalog: async () => [
+        { code: "ext_a", amountRappen: 1000, labels: { en: "A", de: "A", fr: "A", ar: "A" } },
+        { code: "ext_b", amountRappen: 1000, labels: { en: "B", de: "B", fr: "B", ar: "B" } },
+      ],
+    });
+    const first = (await (await runCheckoutIntent(await webBody(p, { extra_codes: ["ext_a"] }), w.d as never)).json()) as Record<string, unknown>;
+    w.calls.length = 0;
+    const res = await runCheckoutIntent(await webBody(p, { extra_codes: ["ext_b"], idempotency_key: "idem-w2" }), w.d as never);
+    const next = (await res.json()) as Record<string, unknown>;
+    expect(next.amount_rappen).toBe(first.amount_rappen);
+    expect(next.booking_id).not.toBe(first.booking_id);
+    expect(w.calls).toContain(`purge:${first.booking_id}:superseded`);
+    expect(w.calls).toContain("createBooking");
+    expect(w.bookings.size).toBe(1);
+  });
+
+  it("same total, different class: not reused, takes the changed-selection path", async () => {
+    const p = payload({ class_totals: [{ slug: "economy", total_rappen: 8000 }, { slug: "business", total_rappen: 8000 }] });
+    const w = world(p, {
+      reprice: () => ({
+        pricing_live: true,
+        engine_version: p.engine_version,
+        classes: [
+          { slug: "economy", total_rappen: 8000, eligible: true },
+          { slug: "business", total_rappen: 8000, eligible: true },
+        ],
+      }),
+    });
+    const first = (await (await runCheckoutIntent(await webBody(p), w.d as never)).json()) as Record<string, unknown>;
+    w.calls.length = 0;
+    const res = await runCheckoutIntent(await webBody(p, { vehicle_class: "business", idempotency_key: "idem-w2" }), w.d as never);
+    const next = (await res.json()) as Record<string, unknown>;
+    expect(next.booking_id).not.toBe(first.booking_id);
+    expect(w.calls).toContain(`purge:${first.booking_id}:superseded`);
+    expect(w.bookings.size).toBe(1);
+  });
+
+  it("a session without a selection fingerprint is never reused", async () => {
+    const p = payload();
+    const w = world(p);
+    const first = (await (await runCheckoutIntent(await webBody(p), w.d as never)).json()) as Record<string, unknown>;
+    w.sessions.get("cs_1")!.meta = {};
+    const next = (await (await runCheckoutIntent(await webBody(p, { idempotency_key: "idem-w2" }), w.d as never)).json()) as Record<string, unknown>;
+    expect(next.booking_id).not.toBe(first.booking_id);
     expect(w.bookings.size).toBe(1);
   });
 

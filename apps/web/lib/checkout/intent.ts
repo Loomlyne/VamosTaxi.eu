@@ -73,6 +73,7 @@ export type CheckoutIntentDeps = {
     successUrl?: string;
     cancelUrl?: string;
     twint?: boolean;
+    selectionFingerprint?: string;
   }) => Promise<Stripe.Checkout.Session>;
   expireCheckoutSession: (sessionId: string) => Promise<void>;
   retrieveCheckoutSession: (sessionId: string) => Promise<Stripe.Checkout.Session>;
@@ -721,6 +722,35 @@ async function supersedeBooking(
   return null;
 }
 
+/**
+ * D-24: deterministic hash of everything the charge and the booking content
+ * depend on — quote, class, sorted extra codes with quantities, voucher, rate
+ * and settings versions, the charged amount. Stored on the Stripe session
+ * (metadata.selection) and compared on Pay again: equal totals do not make two
+ * selections the same booking. Contact, company and note are not part of it.
+ */
+async function selectionFingerprint(parts: {
+  quoteId: string;
+  vehicleClass: string;
+  extraCodes: string[];
+  coupon: string | null;
+  chargedRappen: number;
+  rateVersionId: number | null;
+  settingsVersionId: number;
+}): Promise<string> {
+  const canonical = JSON.stringify({
+    q: parts.quoteId,
+    c: parts.vehicleClass,
+    e: [...parts.extraCodes].sort().map((code) => [code, 1]),
+    v: parts.coupon,
+    a: parts.chargedRappen,
+    r: parts.rateVersionId,
+    s: parts.settingsVersionId,
+  });
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(canonical));
+  return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 function amountMatches(session: Stripe.Checkout.Session, chargedRappen: number): boolean {
   if ((session.currency ?? "").toLowerCase() !== CHARGE_CURRENCY) return false;
   const amount = session.amount_total ?? session.amount_subtotal;
@@ -857,6 +887,18 @@ async function runWebIntent(
   const successUrl = `${deps.origin}/api/checkout/return?locale=${body.locale}&session_id={CHECKOUT_SESSION_ID}`;
   const cancelUrl = `${deps.origin}${prefix}/checkout?${buildTripQuery(tripForUrl, { resume: true })}`;
 
+  const fingerprint = await selectionFingerprint({
+    quoteId: body.quote_id,
+    vehicleClass: body.vehicle_class,
+    extraCodes: body.extra_codes,
+    coupon: lockCoupon,
+    chargedRappen,
+    rateVersionId: payload.rate_version_id,
+    settingsVersionId: payload.settings_version_id,
+  });
+  const sameSelection = (session: Stripe.Checkout.Session) =>
+    session.metadata?.selection === fingerprint;
+
   const openSession = (idempotencyKey: string) =>
     deps.createCheckoutSession({
       chargedRappen,
@@ -870,6 +912,7 @@ async function runWebIntent(
       successUrl,
       cancelUrl,
       twint: deps.twint === true,
+      selectionFingerprint: fingerprint,
       productName: "Airport transfer",
     });
 
@@ -894,17 +937,18 @@ async function runWebIntent(
     const stored = await deps.retrieveCheckoutSession(existingOpen.stripe_checkout_session_id).catch(() => null);
     if (!stored) return refuse("invalid_request");
     if (stored.status === "complete") return refuse("quote_already_booked");
-    if (hostedPayable(stored, chargedRappen)) {
+    if (hostedPayable(stored, chargedRappen) && sameSelection(stored)) {
       // D-24: same selection, session still open → same booking, same page.
       await deps.issueManageToken({ bookingId: existingOpen.booking_id, hash: token.hash, expiresAt: manageExpiresAt });
       await saveDetails(existingOpen.booking_id);
       return okWebResponse(existingOpen, stored, chargedRappen, expiresAt, cookie);
     }
-    if (stored.status === "expired" && amountMatches(stored, chargedRappen)) {
+    if (stored.status === "expired" && amountMatches(stored, chargedRappen) && sameSelection(stored)) {
       attachTo = existingOpen;
       idempotencyKey = `${body.idempotency_key}:after:${stored.id}`;
     } else {
-      // The selection or the price changed: one unpaid row at a time.
+      // The selection (or the price) changed, or the session carries no
+      // fingerprint: one unpaid row at a time.
       const refused = await supersedeBooking(existingOpen.booking_id, deps);
       if (refused) return refused;
       replacedBookingId = existingOpen.booking_id;

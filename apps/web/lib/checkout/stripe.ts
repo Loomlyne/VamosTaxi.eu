@@ -60,6 +60,8 @@ export interface CreateCheckoutSessionInput {
   /** Hosted only: offer TWINT next to card (see `checkoutPaymentMethodTypes`). */
   twint?: boolean;
   productName: string;
+  /** Web mode: hash of everything the charge depends on; read back to decide reuse (D-24). */
+  selectionFingerprint?: string;
   /** 08-07 extra fare-difference session. Metadata kind=extra, extra_id. */
   extra?: { extraId: string };
 }
@@ -161,6 +163,7 @@ export async function createCheckoutSession(
       metadata: {
         booking_id: input.bookingId,
         booking_reference: input.bookingReference,
+        ...(input.selectionFingerprint ? { selection: input.selectionFingerprint } : {}),
         ...(input.extra
           ? { kind: "extra", extra_id: input.extra.extraId }
           : {}),
