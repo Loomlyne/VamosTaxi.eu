@@ -1555,6 +1555,24 @@ describe("runCheckoutIntent mode web (26.3)", () => {
     expect(w.bookings.size).toBe(1);
   });
 
+  it("a purge the database refuses (false) stops the supersede and creates nothing new", async () => {
+    const p = payload();
+    const w = world(p, { purgeUnpaid: async () => false });
+    await runCheckoutIntent(await webBody(p), w.d as never);
+    w.calls.length = 0;
+    const res = await runCheckoutIntent(await webBody(p, { extra_codes: ["ski_bag"], idempotency_key: "idem-w2" }), w.d as never);
+    expect(((await res.json()) as { code: string }).code).toBe("quote_already_booked");
+    expect(w.calls).not.toContain("createBooking");
+  });
+
+  it("the legacy UAE test account never mints a hosted session", async () => {
+    const p = payload();
+    const w = world(p, { legacyUaeAccount: true });
+    const res = await runCheckoutIntent(await webBody(p), w.d as never);
+    expect(res.status).toBe(503);
+    expect(w.created).toHaveLength(0);
+  });
+
   it("pay_link mode (no mode) still takes the old three-code body", async () => {
     const p = payload();
     const body = await bodyFor(p);

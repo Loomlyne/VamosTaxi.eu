@@ -106,7 +106,8 @@ describe("checkout comment pack", () => {
     const payLink = readFileSync(join(WEB_ROOT, "app/api/checkout/pay-link/route.ts"), "utf8");
     const home = readFileSync(join(WEB_ROOT, "../../app/home/home.dc.html"), "utf8");
     expect(intent).toContain("policyHours");
-    expect(intent).toContain("checkoutWindowMinutes: policy.checkoutWindowMinutes");
+    // 26.3 D-02: the hosted web session lasts 31 minutes; the settings window must still be open.
+    expect(intent).toContain("checkoutWindowMinutes: WEB_CHECKOUT_MINUTES");
     expect(intent).not.toMatch(/checkoutWindowMinutes:\s*30/);
     expect(payLink).toContain("checkoutWindowMinutes: policy.checkoutWindowMinutes");
     expect(payLink).not.toMatch(/checkoutWindowMinutes:\s*30/);

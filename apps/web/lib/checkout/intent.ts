@@ -104,8 +104,9 @@ export type CheckoutIntentDeps = {
     reference: string;
     stripe_checkout_session_id: string;
   } | null>;
-  publishableKey: string;
-  returnUrl: string;
+  /** pay_link mode only (Elements client). The hosted page needs no browser key. */
+  publishableKey?: string;
+  returnUrl?: string;
   checkoutWindowMinutes: number;
   actorCustomerId: string | null;
   vehicleClassId: string;
@@ -131,6 +132,8 @@ export type CheckoutIntentDeps = {
   mode?: "web" | "pay_link";
   /** D-35: the live catalog of tick-box extras (loadCheckoutCatalog). */
   loadCatalog?: () => Promise<ExtraCatalogRow[]>;
+  /** The bound Stripe account is the legacy UAE test one: never mint (web mode). */
+  legacyUaeAccount?: boolean;
   /** publicSiteOrigin — never taken from request headers (T-26.3-10-04). */
   origin?: string;
   /** checkoutPaymentMethodTypes(env) includes twint. */
@@ -146,8 +149,12 @@ export type CheckoutIntentDeps = {
   }) => Promise<void>;
   /** checkout_booking_session_ids: every Stripe session of a booking. */
   listSessionIds?: (bookingId: string) => Promise<string[]>;
-  /** purge_unpaid_booking(id, reason). Throws when the database refuses. */
-  purgeUnpaid?: (bookingId: string, reason: "superseded") => Promise<void>;
+  /**
+   * purge_unpaid_booking(id, reason). The function answers false when the row is
+   * not eligible (paid, refunded, pay link sent, …) instead of raising, so false
+   * must stop the supersede.
+   */
+  purgeUnpaid?: (bookingId: string, reason: "superseded") => Promise<boolean | void>;
   /** True only when this request's vt_manage cookie owns that booking. */
   ownsBooking?: (bookingId: string) => Promise<boolean>;
 };
@@ -296,7 +303,7 @@ function okIntentResponse(
       currency: CHARGE_CURRENCY.toUpperCase(),
       amount_rappen: chargedRappen,
       vat_rate_bps: vatRateBps,
-      publishable_key: deps.publishableKey,
+      publishable_key: deps.publishableKey ?? "",
     }),
     { status: 200, headers },
   );
@@ -410,7 +417,7 @@ async function runPayLinkIntent(
   if (!deps.snapshotPolicy) {
     return refuse("invalid_request");
   }
-  if (stripeAccountIsLegacyUaeTest(deps.publishableKey)) {
+  if (stripeAccountIsLegacyUaeTest(deps.publishableKey ?? "")) {
     return legacyUaeAccountStop();
   }
 
@@ -452,7 +459,7 @@ async function runPayLinkIntent(
     locale: body.locale,
     idempotencyKey: stripeIdempotencyKey,
     expiresAt,
-    returnUrl: stripeCheckoutReturnUrl(new URL(deps.returnUrl).origin, body.locale),
+    returnUrl: stripeCheckoutReturnUrl(new URL(deps.returnUrl ?? "").origin, body.locale),
     productName: "Airport transfer",
   });
 
@@ -467,7 +474,7 @@ async function runPayLinkIntent(
       locale: body.locale,
       idempotencyKey: `${body.idempotency_key}:open`,
       expiresAt,
-      returnUrl: stripeCheckoutReturnUrl(new URL(deps.returnUrl).origin, body.locale),
+      returnUrl: stripeCheckoutReturnUrl(new URL(deps.returnUrl ?? "").origin, body.locale),
       productName: "Airport transfer",
     });
     session = await sessionWithSecret(retry, deps.retrieveCheckoutSession);
@@ -705,9 +712,10 @@ async function supersedeBooking(
   const dead = await allSessionsExpiredUnpaid(ids, deps.retrieveCheckoutSession);
   if (!dead) return refuse("quote_already_booked");
   try {
-    await deps.purgeUnpaid(bookingId, "superseded");
+    const purged = await deps.purgeUnpaid(bookingId, "superseded");
+    // purge_unpaid_booking re-checks eligibility; false means not purgeable.
+    if (purged === false) return refuse("quote_already_booked");
   } catch {
-    // purge_unpaid_booking re-checks eligibility; a refusal means not purgeable.
     return refuse("quote_already_booked");
   }
   return null;
@@ -825,7 +833,7 @@ async function runWebIntent(
 
   if (!deps.vehicleClassId) return refuse(refusalForMissingClassId());
   if (!deps.snapshotPolicy) return refuse("invalid_request");
-  if (stripeAccountIsLegacyUaeTest(deps.publishableKey)) return legacyUaeAccountStop();
+  if (deps.legacyUaeAccount === true) return legacyUaeAccountStop();
   if (!deps.origin) return refuse("invalid_request");
 
   // D-36: the pickup wall clock is Europe/Zurich, so the manage link runs 30
