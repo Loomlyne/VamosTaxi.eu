@@ -608,6 +608,42 @@ describe("runCheckoutIntent mode web (26.3)", () => {
       expect(w.calls.some((c) => c.startsWith("expire:"))).toBe(true);
     });
 
+    it("P0002 or 23514 from createBooking is coupon_no_longer_valid and the new session is expired", async () => {
+      for (const sqlstate of ["P0002", "23514"]) {
+        const { res, w } = await run(payload(), {
+          createBooking: async () => {
+            throw Object.assign(new Error("coupon"), { code: sqlstate });
+          },
+        });
+        expect(await code(res)).toBe("coupon_no_longer_valid");
+        expect(w.calls.some((c) => c.startsWith("expire:"))).toBe(true);
+      }
+    });
+
+    it("a replayed booking whose stored session is no longer payable is payment_window_closed and the session is expired", async () => {
+      const { res, w } = await run(payload(), {
+        createBooking: async () => ({
+          booking_id: "booking-replay",
+          reference: "VT-20099",
+          snapshot_id: 1,
+          payment_id: 1,
+          replayed: true,
+        }),
+        retrieveCheckoutSession: (async (id: string) => ({
+          id,
+          status: "expired",
+          payment_status: "unpaid",
+          currency: "chf",
+          amount_total: 8648,
+          url: null,
+          metadata: {},
+        })) as never,
+      });
+      expect(res.status).toBe(409);
+      expect(await code(res)).toBe("payment_window_closed");
+      expect(w.calls.some((c) => c.startsWith("expire:"))).toBe(true);
+    });
+
     describe("the pay-link hold keeps the traveller's lock payable (D-20, D-21)", () => {
       it("accepts an expired lock while the hold is still open", async () => {
         const { res, w } = await run(payload({ exp: EXPIRED }), { holdUntilIso: "2026-09-06T10:00:00.000Z" });

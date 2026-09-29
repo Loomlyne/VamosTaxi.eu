@@ -175,6 +175,25 @@ describe("staffTakeCard", () => {
     expect(openHosted).not.toHaveBeenCalled();
   });
 
+  it("an open pay-link hold keeps Take card working after the snapshot expired; both expired refuses", async () => {
+    // The loader selects greatest(snapshot expiry, hold_until) as snap_expires_at.
+    const held = new Date(Date.now() + 2 * 3600_000);
+    sqlHandler = (text) => {
+      if (text.includes("from public.bookings b")) {
+        expect(text).toContain("greatest(s.expires_at, coalesce(b.hold_until, s.expires_at))");
+      }
+      return bookingSql(unpaidRow({ snap_expires_at: held.toISOString() }))(text);
+    };
+    openHosted.mockResolvedValue({ ok: true, session: { id: "cs_test_h1", url: HOSTED_OPEN.url } });
+    const res = await staffTakeCard(env, "VT-26-0001", "https://dashboard.vamostaxi.site");
+    expect(res).toMatchObject({ ok: true, url: HOSTED_OPEN.url });
+    expect((openHosted.mock.calls[0]![1] as { expiresAt: Date }).expiresAt.getTime()).toBe(held.getTime());
+    openHosted.mockClear();
+    sqlHandler = bookingSql(unpaidRow({ snap_expires_at: new Date(Date.now() - 1000).toISOString() }));
+    expect(await staffTakeCard(env, "VT-26-0001", "https://dashboard.vamostaxi.site")).toEqual({ ok: false, code: "session-expired" });
+    expect(openHosted).not.toHaveBeenCalled();
+  });
+
   it("maps a refusal from the shared builder to a staff code", async () => {
     sqlHandler = bookingSql(unpaidRow());
     openHosted.mockResolvedValue({ ok: false, response: Response.json({ code: "quote_already_booked" }, { status: 409 }) });

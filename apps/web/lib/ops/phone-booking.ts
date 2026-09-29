@@ -65,6 +65,7 @@ type LoadedUnpaid = {
   chargedRappen: number;
   stripeCheckoutSessionId: string;
   quoteId: string;
+  /** greatest(snapshot expiry, bookings.hold_until): the pay window, same rule as pay-link open. */
   snapshotExpiresAt: Date;
   snapshotTotalRappen: number;
 };
@@ -145,7 +146,7 @@ async function loadUnpaid(
         p.stripe_checkout_session_id,
         b.is_test,
         b.quote_id,
-        s.expires_at as snap_expires_at,
+        greatest(s.expires_at, coalesce(b.hold_until, s.expires_at)) as snap_expires_at,
         s.total_rappen as snap_total_rappen
       from public.bookings b
       left join public.price_snapshots s on s.id = b.price_snapshot_id
