@@ -65,6 +65,8 @@ env_lines() {
   anon="$(printf '%s\n' "$status" | sed -n 's/^ANON_KEY="\(.*\)"$/\1/p')"
   svc="$(printf '%s\n' "$status" | sed -n 's/^SERVICE_ROLE_KEY="\(.*\)"$/\1/p')"
   echo "export VAMOS_TEST_DB_PORT=$DB_PORT"
+  # packages/db/test/local/worker-arrays.test.ts (from main, 34af1552) reads this name instead.
+  echo "export VAMOS_LOCAL_DB_PORT=$DB_PORT"
   echo "export VAMOS_TEST_DB_URL=$OWNER_URL"
   echo "export OPS_FIXTURE_DB_URL=$OWNER_URL"
   echo "export SUPABASE_URL=http://127.0.0.1:${P}21"

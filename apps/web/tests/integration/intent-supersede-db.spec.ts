@@ -61,7 +61,6 @@ test.beforeEach(({}, testInfo) => {
 type FakeSession = { id: string; status: "open" | "expired" | "complete"; amount: number };
 
 test("Pay, Back, new quote_id + supersedes leaves exactly one pending booking @checkout", async () => {
-  test.fail(true, "VT-26-0733: Worker client (fetch_types:false) — checkout_booking_session_ids text[] comes back as \"{cs_...}\" string, purge on supersede does not run, intent answers 409 quote_already_booked; flips green when the 26.3 fix lands, then remove this line");
   const url = localUrl();
   await guardStack(url);
   const sql = workerSql(url, "identity");

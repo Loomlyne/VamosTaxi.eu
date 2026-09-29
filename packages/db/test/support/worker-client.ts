@@ -11,10 +11,12 @@
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import postgres from "postgres";
+import { pgArrayTypes } from "../../src/pg-types";
 
 export const WORKER_IDENTITY_CLIENT_OPTIONS = {
   max: 1,
   fetch_types: false,
+  types: pgArrayTypes,
   prepare: true,
   connect_timeout: 10,
 } as const;
@@ -22,6 +24,7 @@ export const WORKER_IDENTITY_CLIENT_OPTIONS = {
 export const WORKER_PUBLIC_CLIENT_OPTIONS = {
   max: 5,
   fetch_types: false,
+  types: pgArrayTypes,
   prepare: true,
   connect_timeout: 10,
 } as const;
@@ -64,12 +67,13 @@ function sourcePath(file: string): string {
 /**
  * Parses the options object literal the source passes to `postgres(connectionString, { ... })`
  * in identity.ts (`function client(`) or public.ts (`export function publicSql(`).
- * Only number and boolean values are parsed.
+ * Number and boolean values are parsed as values; a bare identifier (e.g. `types: pgArrayTypes`)
+ * is returned as its name, so a new or removed option object is caught as drift too.
  */
 export function readSourceClientOptions(
   kind: WorkerClientKind,
   sourceText?: string,
-): Record<string, number | boolean> {
+): Record<string, number | boolean | string> {
   const text =
     sourceText ??
     readFileSync(sourcePath(kind === "identity" ? "identity.ts" : "public.ts"), "utf8");
@@ -78,10 +82,11 @@ export function readSourceClientOptions(
   if (start < 0) throw new Error(`worker-client: cannot find "${marker}" in the ${kind} source`);
   const match = /postgres\(\s*connectionString\s*,\s*\{([^}]*)\}/.exec(text.slice(start));
   if (!match) throw new Error(`worker-client: cannot find the postgres() options literal in the ${kind} source`);
-  const out: Record<string, number | boolean> = {};
-  for (const pair of match[1]!.matchAll(/(\w+)\s*:\s*(true|false|\d+)\s*,?/g)) {
+  const out: Record<string, number | boolean | string> = {};
+  for (const pair of match[1]!.matchAll(/(\w+)\s*:\s*([A-Za-z_$][\w$]*|\d+)\s*,?/g)) {
     const raw = pair[2]!;
-    out[pair[1]!] = raw === "true" ? true : raw === "false" ? false : Number(raw);
+    out[pair[1]!] =
+      raw === "true" ? true : raw === "false" ? false : /^\d+$/.test(raw) ? Number(raw) : raw;
   }
   return out;
 }

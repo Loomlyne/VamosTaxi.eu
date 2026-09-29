@@ -536,7 +536,6 @@ test("intent, paid return settle, confirmation claim: one confirmed booking, scr
 });
 
 test("Back with a new quote_id and supersedes leaves exactly one unpaid row and one non-PII purge line @checkout", async () => {
-  test.fail(true, "VT-26-0733: Worker client (fetch_types:false) — checkout_booking_session_ids text[] comes back as \"{cs_...}\" string, purge on supersede does not run, intent answers 409 quote_already_booked; flips green when the 26.3 fix lands, then remove this line");
   await withStack(async (h) => {
     const { tx } = h;
     const first = await h.intent(Q(2));
@@ -594,7 +593,6 @@ test("Back while the old session is complete and unpaid in the database refuses,
 });
 
 test("checkout.session.expired with a second session complete but unsettled does not purge @checkout", async () => {
-  test.fail(true, "VT-26-0733: Worker client (fetch_types:false) — checkout_booking_session_ids text[] comes back as a string, the second complete session is never seen, so the booking is purged; flips green when the 26.3 fix lands, then remove this line");
   await withStack(async (h) => {
     const { tx } = h;
     const first = await h.intent(Q(6));
