@@ -361,7 +361,13 @@ export async function handleStripeMessageWithDeps(
         }
       }
     } else if (!row.already_settled && !extra) {
-      await deps.deliverConfirmation(row);
+      // 26.3 (D-27): the payment is settled. A mail failure never turns that
+      // into a retry or a failure page; the hourly sweep resends it.
+      try {
+        await deps.deliverConfirmation(row);
+      } catch {
+        deps.emit("error", "confirmation_mail_failed", { bookingId: row.booking_id });
+      }
     }
 
     // D-21/D-22: whoever settled first must expire every other still-open

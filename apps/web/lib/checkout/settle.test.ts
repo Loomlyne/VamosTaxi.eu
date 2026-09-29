@@ -232,6 +232,24 @@ describe("handleStripeMessageWithDeps", () => {
     expect(d.deliverConfirmation).toHaveBeenCalledTimes(1);
   });
 
+  it("a confirmation e-mail failure acks like a success and emits an error (26.3 D-27)", async () => {
+    const emit = vi.fn();
+    const d = deps({
+      deliverConfirmation: vi.fn(async () => {
+        throw new Error("resend down");
+      }),
+      emit,
+    });
+    const result = await handleStripeMessageWithDeps(message(), d);
+    expect(result).toEqual({ ack: true });
+    expect(applyHandleResult({ ack: () => undefined, retry: () => undefined }, result)).toBe("acked");
+    expect(emit).toHaveBeenCalledWith(
+      "error",
+      "confirmation_mail_failed",
+      expect.objectContaining({ bookingId: expect.any(String) }),
+    );
+  });
+
   it("succeeded + revived:true delivers the confirmation once (D-03)", async () => {
     const d = deps({
       settlePayment: vi.fn(async () => settleRow({ revived: true })),

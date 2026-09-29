@@ -167,7 +167,7 @@ describe("return route duplicate (D-22)", () => {
   });
 
   it("sends a duplicate return to the confirmation with charge=refunded", () => {
-    const route = source("app/api/checkout/return/route.ts");
+    const route = source("lib/checkout/return-settle.ts");
     expect(route).toContain('result === "duplicate"');
     expect(route).toContain("?charge=refunded");
     expect(route).toContain("BOOKING_REFERENCE_RE.test(bookingRef)");
