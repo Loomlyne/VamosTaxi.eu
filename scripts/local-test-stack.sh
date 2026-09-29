@@ -47,6 +47,10 @@ prepare() {
     -e "s/127\.0\.0\.1:543([0-9]{2})/127.0.0.1:${P}\1/g" \
     -e "s/localhost:543([0-9]{2})/localhost:${P}\1/g" \
     "$SRC/config.toml" > "$WORK/config.toml"
+  # Specs start next dev on shifted ports (VAMOS_TEST_PORT_OFFSET); Auth only redirects to allow-listed
+  # URLs, so a throwaway stack accepts any localhost port. Scratch copy only, never the repo config.
+  sed -i.bak -E 's#^(additional_redirect_urls = \[)#\1\n  "http://localhost:*/**",#' "$WORK/config.toml"
+  rm -f "$WORK/config.toml.bak"
   if grep -Eq '(^|[^0-9])543[0-9]{2}' "$WORK/config.toml"; then
     echo "refusing: scratch config.toml still mentions a 543xx port" >&2; exit 1
   fi
