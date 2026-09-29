@@ -337,6 +337,8 @@ export async function allSessionsExpiredUnpaid(
   return true;
 }
 
+const FX_CHARGED_CURRENCIES = ["EUR", "USD", "AED"];
+
 export function fxFromSession(session: Stripe.Checkout.Session): {
   chargedCurrency: string;
   fxRate: number | null;
@@ -346,48 +348,59 @@ export function fxFromSession(session: Stripe.Checkout.Session): {
   presentmentCurrency: string | null;
 } {
   const chargedCurrency = (session.currency ?? CHARGE_CURRENCY).toUpperCase();
+  const none = {
+    chargedCurrency,
+    fxRate: null,
+    fxSource: null,
+    fxQuotedAt: null,
+    presentmentAmountMinor: null,
+    presentmentCurrency: null,
+  };
+  // booking_payments_fx_complete: the four fx columns (rate, source, quoted_at, presentment
+  // amount) are all set or all null. A payment the customer made in another currency must
+  // never fail to settle because Stripe omitted one of them, so the rate and the time are
+  // derived here when Stripe does not name them, and the group is dropped (currency kept)
+  // when a rate cannot be derived at all.
+  const quotedAt = new Date((session.created ?? Math.floor(Date.now() / 1000)) * 1000).toISOString();
+  const rateFrom = (presentmentMinor: number): number | null => {
+    const charged = session.amount_total;
+    if (typeof charged !== "number" || charged <= 0 || presentmentMinor <= 0) return null;
+    const rate = Math.round((presentmentMinor / charged) * 1e8) / 1e8;
+    return rate > 0 ? rate : null;
+  };
+
   const pd = session.presentment_details;
   const pdCurrency = pd?.presentment_currency?.toUpperCase() ?? null;
   if (pd && pdCurrency && typeof pd.presentment_amount === "number") {
-    if (pdCurrency === chargedCurrency) {
-      return {
-        chargedCurrency,
-        fxRate: null,
-        fxSource: null,
-        fxQuotedAt: null,
-        presentmentAmountMinor: null,
-        presentmentCurrency: null,
-      };
-    }
+    if (pdCurrency === chargedCurrency) return none;
+    const rate = rateFrom(pd.presentment_amount);
+    // booking_payments_currency_allowed + _fx_currency_pair: charged_currency is the currency
+    // the customer paid in (only CHF, EUR, USD, AED), and it is CHF exactly when there is no
+    // rate. charged_rappen stays the CHF figure. Any other currency keeps CHF and records
+    // only the presentment currency.
+    if (rate === null || !FX_CHARGED_CURRENCIES.includes(pdCurrency)) return { ...none, presentmentCurrency: pdCurrency };
     return {
-      chargedCurrency,
-      fxRate: null,
+      chargedCurrency: pdCurrency,
+      fxRate: rate,
       fxSource: "stripe_adaptive_pricing",
-      fxQuotedAt: null,
+      fxQuotedAt: quotedAt,
       presentmentAmountMinor: pd.presentment_amount,
       presentmentCurrency: pdCurrency,
     };
   }
   const conversion = session.currency_conversion;
-  if (!conversion) {
-    return {
-      chargedCurrency,
-      fxRate: null,
-      fxSource: null,
-      fxQuotedAt: null,
-      presentmentAmountMinor: null,
-      presentmentCurrency: null,
-    };
-  }
+  if (!conversion) return none;
   const rawRate = conversion.fx_rate;
-  const rate = typeof rawRate === "number" ? rawRate : rawRate ? Number(rawRate) : null;
+  const given = typeof rawRate === "number" ? rawRate : rawRate ? Number(rawRate) : null;
+  const amount = typeof conversion.amount_total === "number" ? conversion.amount_total : null;
+  const rate = given !== null && Number.isFinite(given) && given > 0 ? given : amount !== null ? rateFrom(amount) : null;
+  if (rate === null || amount === null || amount <= 0) return none;
   return {
     chargedCurrency,
-    fxRate: rate !== null && Number.isFinite(rate) ? rate : null,
+    fxRate: rate,
     fxSource: "stripe_adaptive_pricing",
-    fxQuotedAt: null,
-    presentmentAmountMinor:
-      typeof conversion.amount_total === "number" ? conversion.amount_total : null,
+    fxQuotedAt: quotedAt,
+    presentmentAmountMinor: amount,
     // Legacy currency_conversion names only the source currency; unknown here.
     presentmentCurrency: null,
   };

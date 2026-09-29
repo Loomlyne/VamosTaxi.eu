@@ -642,6 +642,7 @@ describe("settle stores the presentment currency (D-21)", () => {
 
   it("passes the EUR amount and currency to checkout_payment_settle", async () => {
     const values = await settleWith({
+      amount_total: 8000,
       presentment_details: { presentment_amount: 9000, presentment_currency: "eur" },
     } as Partial<Stripe.Checkout.Session>);
     expect(values.slice(-2)).toEqual([9000, "EUR"]);

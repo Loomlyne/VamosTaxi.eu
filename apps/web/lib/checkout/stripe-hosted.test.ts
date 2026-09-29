@@ -143,8 +143,35 @@ describe("hostedSessionIsPayable", () => {
 describe("fxFromSession presentment", () => {
   const s = (o: Record<string, unknown>) => ({ currency: "chf", ...o }) as unknown as Stripe.Checkout.Session;
   it("reads presentment_details", () => {
-    const fx = fxFromSession(s({ presentment_details: { presentment_amount: 9000, presentment_currency: "eur" } }));
+    const fx = fxFromSession(s({ amount_total: 8000, presentment_details: { presentment_amount: 9000, presentment_currency: "eur" } }));
     expect(fx.presentmentAmountMinor).toBe(9000);
+    expect(fx.presentmentCurrency).toBe("EUR");
+  });
+  it("gives all four fx columns together (booking_payments_fx_complete)", () => {
+    const fx = fxFromSession(
+      s({ amount_total: 8000, created: 1_790_000_000, presentment_details: { presentment_amount: 9000, presentment_currency: "eur" } }),
+    );
+    expect(fx.chargedCurrency).toBe("EUR");
+    expect(fx.fxRate).toBe(1.125);
+    expect(fx.fxSource).toBe("stripe_adaptive_pricing");
+    expect(fx.fxQuotedAt).toBe(new Date(1_790_000_000 * 1000).toISOString());
+    expect(fx.presentmentAmountMinor).toBe(9000);
+  });
+  it("keeps CHF and only the presentment currency for a currency the table does not allow", () => {
+    const fx = fxFromSession(
+      s({ amount_total: 8000, presentment_details: { presentment_amount: 7000, presentment_currency: "gbp" } }),
+    );
+    expect(fx.chargedCurrency).toBe("CHF");
+    expect(fx.fxRate).toBeNull();
+    expect(fx.presentmentAmountMinor).toBeNull();
+    expect(fx.presentmentCurrency).toBe("GBP");
+  });
+  it("drops the group but keeps the currency when no rate can be derived", () => {
+    const fx = fxFromSession(s({ presentment_details: { presentment_amount: 9000, presentment_currency: "eur" } }));
+    expect(fx.fxRate).toBeNull();
+    expect(fx.fxSource).toBeNull();
+    expect(fx.fxQuotedAt).toBeNull();
+    expect(fx.presentmentAmountMinor).toBeNull();
     expect(fx.presentmentCurrency).toBe("EUR");
   });
   it("is null for a CHF presentment", () => {
@@ -156,5 +183,6 @@ describe("fxFromSession presentment", () => {
     const fx = fxFromSession(s({ currency_conversion: { fx_rate: "1.1", amount_total: 8800, source_currency: "chf" } }));
     expect(fx.presentmentAmountMinor).toBe(8800);
     expect(fx.fxRate).toBe(1.1);
+    expect(fx.fxQuotedAt).not.toBeNull();
   });
 });
