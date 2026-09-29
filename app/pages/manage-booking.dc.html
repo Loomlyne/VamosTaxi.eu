@@ -94,6 +94,8 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-row]:last-child{border-bottom:0}
 [data-row-k]{display:block;margin:0 0 3px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
 [data-row-v]{display:block;margin:0;font-size:var(--vt-body-md);line-height:1.4;color:var(--vt-text-primary)}
+[data-tel]{display:inline-flex;align-items:center;min-height:44px;color:var(--vt-text-primary);font-size:var(--vt-body-md);font-weight:var(--vt-weight-medium);text-decoration:underline;text-underline-offset:3px}
+[data-tel]:hover{color:var(--vt-charcoal-800)}
 [data-pill]{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 13px;border-radius:var(--vt-radius-pill);background:var(--vt-grey-100);font-size:var(--vt-body-xs);font-weight:var(--vt-weight-medium);color:var(--vt-text-secondary);white-space:nowrap}
 [data-seg]{display:inline-flex;flex-wrap:wrap;gap:2px;padding:3px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-inverse);background:rgb(255 255 255 / .06)}
 [data-seg] button{appearance:none;border:0;background:none;min-height:38px;padding:0 14px;border-radius:var(--vt-radius-pill);font-family:inherit;font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);color:var(--vt-text-inverse-muted);cursor:pointer;transition:background 140ms var(--vt-ease-standard),color 140ms var(--vt-ease-standard)}
@@ -311,15 +313,21 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <span style="min-width:0"><span data-row-k="1">Confirmation sent to</span><span data-row-v="1">{{ email }}</span></span>
 <span data-pill="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="shield-check" size="{{ n14 }}" color="var(--vt-text-muted)" hint-size="14px,14px"></x-import>Paid in full</span>
 </div>
-<sc-if value="{{ hasChauffeur }}" hint-placeholder-val="{{ false }}">
+<sc-if value="{{ showDriver }}" hint-placeholder-val="{{ true }}">
 <div data-row="1">
-<span style="min-width:0"><span data-row-k="1">Chauffeur</span><span data-row-v="1">{{ chauffeurName }}</span></span>
+<span style="min-width:0"><span data-row-k="1">Your driver</span>
+<sc-if value="{{ hasDriver }}" hint-placeholder-val="{{ false }}"><span data-row-v="1" data-i18n-skip="1">{{ driverName }}</span></sc-if>
+<sc-if value="{{ noDriver }}" hint-placeholder-val="{{ true }}"><span data-row-v="1" style="color:var(--vt-text-secondary)">No driver assigned yet. We will show your driver here once assigned.</span></sc-if>
+</span>
+</div>
+<sc-if value="{{ hasDriver }}" hint-placeholder-val="{{ false }}">
+<div data-row="1">
+<span style="min-width:0"><span data-row-k="1">Phone</span><sc-if value="{{ hasDriverTel }}" hint-placeholder-val="{{ false }}"><a data-tel="1" class="vt-dir-keep" href="{{ driverTel }}">{{ driverPhone }}</a></sc-if></span>
+</div>
+<div data-row="1">
+<span style="min-width:0"><span data-row-k="1">Vehicle</span><span data-row-v="1" data-i18n-skip="1">{{ driverCar }}</span></span>
 </div>
 </sc-if>
-<sc-if value="{{ hasVehicle }}" hint-placeholder-val="{{ false }}">
-<div data-row="1">
-<span style="min-width:0"><span data-row-k="1">Vehicle</span><span data-row-v="1">{{ vehicleLabel }}</span></span>
-</div>
 </sc-if>
 <sc-if value="{{ showRefundLine }}" hint-placeholder-val="{{ false }}">
 <div data-row="1">
@@ -631,6 +639,14 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div data-card="1" style="padding:22px">
 <p style="margin:0 0 14px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">What you paid</p>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.PriceSummary" lines="{{ lines }}" total="{{ total }}" totalLabel="Paid" note="" hint-size="100%,180px"></x-import>
+<dl style="margin:16px 0 0;padding-block-start:14px;border-block-start:1px solid var(--vt-grey-200);display:flex;flex-direction:column;gap:8px">
+<sc-if value="{{ hasMethod }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;justify-content:space-between;gap:16px;align-items:baseline"><dt style="margin:0;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Paid with</dt><dd style="margin:0;text-align:end;font-size:var(--vt-body-sm);color:var(--vt-text-primary)">{{ methodLabel }}</dd></div>
+</sc-if>
+<sc-if value="{{ hasPresentment }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;justify-content:space-between;gap:16px;align-items:baseline"><dt style="margin:0;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Charged as</dt><dd style="margin:0;text-align:end;font-size:var(--vt-body-sm);color:var(--vt-text-primary)" data-i18n-skip="1">{{ presentmentLabel }}</dd></div>
+</sc-if>
+</dl>
 </div>
 </sc-if>
 <div style="background:var(--vt-bg-inverse);color:var(--vt-text-inverse);border-radius:var(--vt-radius-lg);padding:22px">
@@ -694,9 +710,8 @@ function blankTicket() {
     flightNo: '',
     pax: 1,
     bags: 0,
-    chauffeurName: '',
-    vehicle: '',
-    plate: '',
+    driver: null,
+    money: null,
     refundStatus: 'none',
     reviewSubmitted: false,
     canCancel: false,
@@ -1074,15 +1089,44 @@ class Component extends DCLogic {
             : (badge ? badge.charAt(0).toUpperCase() + badge.slice(1).replace('_', ' ') : '');
     const totalLabel = s.status === 'refunded' ? 'Refunded' : unpaid ? 'waiting payment' : 'Paid';
     const paid = francs(ticket.priceTotalRappen);
-    const lines = paid ? [{ label: 'Fare', value: paid }] : [];
-    const chauffeurName = ticket.chauffeurName || '';
-    const vehicleLabel = [ticket.plate, ticket.vehicle].filter(Boolean).join(' · ');
+    const money = ticket.money && typeof ticket.money === 'object' ? ticket.money : null;
+    const lang = window.VamosLocale && window.VamosLocale.lang ? window.VamosLocale.lang() : 'en';
+    const signed = (rappen) => (rappen < 0 ? '\u2212' + francs(-rappen) : francs(rappen));
+    let lines = paid ? [{ label: 'Fare', value: paid }] : [];
+    let total = paid;
+    if (money && money.chargedRappen > 0) {
+      total = francs(money.chargedRappen);
+      // Saved snapshot lines only; the API sends none unless they add up to the amount charged.
+      lines = (money.lines || []).map((l) => {
+        let label = (l.labels && (l.labels[lang] || l.labels.en)) || l.code;
+        if (l.kind === 'fare') label = money.className || 'Fare';
+        else if (l.kind === 'coupon') label = 'Voucher';
+        else if (l.kind === 'vat') label = t('VAT') + (l.vatRateBps ? ' ' + Number((l.vatRateBps / 10).toFixed(1)) + ' %' : '');
+        return { label, value: signed(l.amountRappen) };
+      });
+    }
+    const METHODS = { card: 'Card', twint: 'TWINT', apple_pay: 'Apple Pay', google_pay: 'Google Pay', link: 'Link' };
+    const methodLabel = money ? t(METHODS[money.method] || 'Paid online') : '';
+    let presentmentLabel = '';
+    if (money && money.presentment) {
+      try {
+        presentmentLabel = new Intl.NumberFormat(lang === 'ar' ? 'ar-u-nu-latn' : lang, { style: 'currency', currency: money.presentment.currency })
+          .format(money.presentment.amountMinor / 100);
+      } catch (e) {
+        presentmentLabel = money.presentment.currency + ' ' + (money.presentment.amountMinor / 100).toFixed(2);
+      }
+    }
+    const driver = ticket.driver && typeof ticket.driver === 'object' && ticket.driver.firstName ? ticket.driver : null;
+    const driverDigits = driver ? String(driver.phone || '').replace(/[^\d+]/g, '') : '';
+    const driverTel = /\d/.test(driverDigits) ? 'tel:' + driverDigits : '';
+    const driverCar = driver ? [driver.vehicleModel, driver.plate].filter(Boolean).join(' \u00b7 ') : '';
+    const showDriver = s.status !== 'cancelled' && s.status !== 'refunded';
+    const vehicleLabel = driverCar;
     const meta = [
       { icon: 'calendar', label: ticket.dateLabel },
       { icon: 'clock', label: ticket.timeLabel ? ('Pickup ' + ticket.timeLabel) : '' },
       { icon: 'users', label: ticket.pax ? (ticket.pax + ' passengers') : '' },
     ].filter((row) => row.label);
-    if (vehicleLabel) meta.push({ icon: 'car', label: vehicleLabel });
     if (airport && s.flight) meta.push({ icon: 'plane-landing', label: s.flight });
     const cls = CLASSES.find((c) => c.id === s.vehicle) || CLASSES[0];
     const diffs = this.diffList();
@@ -1131,19 +1175,27 @@ class Component extends DCLogic {
       pickup: ticket.pickupText, pickupDetail: ticket.pickupDetail || ticket.timeLabel, dropoff: ticket.dropoffText,
       pickupTime: ticket.timeLabel, arriveTime: '', durationChip: '',
       routeShort,
-      meta, lines, total: paid, hasPrice: !!paid,
+      meta, lines, total, hasPrice: !!total,
       email: ticket.contactEmail, isAirport: airport,
-      vehicleName: vehicleLabel,
+      vehicleName: vehicleLabel || (money && money.className) || '',
       paxLabel: ticket.pax + ' passengers', bagLabel: ticket.bags + ' bags',
       flightRow: airport && s.status !== 'cancelled' && !!s.flight,
       bookedWhen, newWhen,
       changePending: !!(s.requested && s.requested.length), requested: s.requested || [],
       isReviewed: reviewed,
       showCancel: !hideCancel,
-      hasChauffeur: !!chauffeurName,
-      chauffeurName,
-      hasVehicle: !!vehicleLabel,
-      vehicleLabel,
+      showDriver,
+      hasDriver: !!driver,
+      noDriver: !driver,
+      driverName: driver ? driver.firstName : '',
+      driverPhone: driver ? driver.phone : '',
+      driverTel,
+      hasDriverTel: !!driverTel,
+      driverCar,
+      hasMethod: !!money,
+      methodLabel,
+      hasPresentment: !!presentmentLabel,
+      presentmentLabel,
       showRefundLine: !!refundLine,
       refundLine,
       hasRefundedCopy: !!refundedCopy,

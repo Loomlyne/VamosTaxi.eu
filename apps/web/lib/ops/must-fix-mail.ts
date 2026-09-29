@@ -11,7 +11,7 @@ import {
   type OpsMustFixKind,
   type OpsMustFixTrip,
 } from "@vamos/emails/confirmation";
-import { asSystem } from "../db/identity";
+import { loadMustFixTrip } from "../db/system-reads";
 import { SUPPORT_EMAIL } from "../contact-channels";
 
 export type StuckPaymentAlertInput = {
@@ -64,23 +64,7 @@ export async function deliverOverlapMustFix(
 ): Promise<void> {
   const key = bookingKey.trim();
   if (!key) return;
-  const row = await asSystem(env, async (sql) => {
-    const rows = await sql<TripRow[]>`
-      select
-        b.reference,
-        b.locale,
-        l.pickup_text,
-        l.dropoff_text,
-        l.scheduled_local
-        from public.bookings as b
-        join public.booking_legs as l on l.booking_id = b.id
-       where b.erased_at is null
-         and (b.id::text = ${key} or b.reference = ${key})
-       order by l.leg_seq
-       limit 1
-    `;
-    return rows[0] ?? null;
-  });
+  const row = await loadMustFixTrip(env, key);
   if (!row) return;
   await deliverOpsMustFix(env, "overlap", tripsFromRows([row]), emailLocale(row.locale));
 }
@@ -118,23 +102,7 @@ export async function deliverPaidAfterCancelAlert(
 ): Promise<void> {
   const key = bookingKey.trim();
   if (!key) return;
-  const row = await asSystem(env, async (sql) => {
-    const rows = await sql<TripRow[]>`
-      select
-        b.reference,
-        b.locale,
-        l.pickup_text,
-        l.dropoff_text,
-        l.scheduled_local
-        from public.bookings as b
-        join public.booking_legs as l on l.booking_id = b.id
-       where b.erased_at is null
-         and (b.id::text = ${key} or b.reference = ${key})
-       order by l.leg_seq
-       limit 1
-    `;
-    return rows[0] ?? null;
-  });
+  const row = await loadMustFixTrip(env, key);
   if (!row) return;
   await deliverOpsMustFix(env, "paid-after-cancel", tripsFromRows([row]), emailLocale(row.locale));
 }

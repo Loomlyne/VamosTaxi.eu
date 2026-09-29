@@ -259,7 +259,7 @@ be there. If nothing else works, the booking funnel — quote, pay, confirmation
 - Pattern: `data-*` (hyphenated)
 - Examples: `data-bookcard="1"`, `data-upto-wide="1"`, `data-hide-narrow="true"`, `data-fields="1"`, `data-sugroot="1"`, `data-shell="1"`, `data-sheetbody="1"`, `data-sheetonly="1"`, `data-scroll-native` (native scrolling inside region), `data-lenis-prevent` (nested scroller — Lenis skips it), `data-om-label="Flight"` (observer/instrumentation)
 - **Purpose:** Responsive layout rules hang off these attributes; they are **never class selectors** (CSS classes are design-system only)
-- **Localisation:** `data-i18n-skip` opts a subtree out of translation; `data-vt-legal="<languages>"` marks legal pages with restricted language coverage
+- **Localisation:** `data-vt-no-i18n` (or `translate="no"`) opts a subtree out of translation — the runtime does not read `data-i18n-skip`; `data-vt-legal="<languages>"` marks legal pages with restricted language coverage
 - Pattern: `data-tok`
 - Markup: `<span data-tok>policy number here</span>`
 - CSS in `design-system/tokens/laws.css` appends ` TBC` visually
@@ -328,7 +328,7 @@ be there. If nothing else works, the booking funnel — quote, pay, confirmation
 - The runtime sets `dir="rtl"` on the document; never set it per-element
 - Use logical properties everywhere: `margin-inline-start`, `inset-inline-end`, `padding-inline`, `float: inline-start`
 - Put `.vt-dir-keep` on anything that must stay LTR inside Arabic: references, times, flight numbers, CHF figures, codes like `VT-4821`
-- Use `[data-i18n-skip]` to opt a subtree out of translation (e.g., a language switcher that labels itself in its own language)
+- Use `[data-vt-no-i18n]` (or `translate="no"`) to opt a subtree out of translation (e.g., a language switcher that labels itself in its own language)
 - Check every new surface in Arabic with `dir="rtl"` before saying done; `VamosLocale.coverage(root)` must return empty
 
 ## Lenis Smooth Scrolling
