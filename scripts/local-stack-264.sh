@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # Port-shifted local Supabase stack for the phase 26.4 worktree.
 #
+# Ports moved 583xx -> 593xx on 2026-09-29: another session (vamos-taxi-mg2) already holds 583xx.
 # Safety:
-#   - Never point this at the 5432x, 5532x, 5632x or 5732x stacks: they belong to other sessions.
-#     This script only ever talks to 583xx.
+#   - Never point this at the 5432x, 5532x, 5632x, 5732x or 5832x stacks: they belong to other sessions.
+#     This script only ever talks to 593xx.
 #   - Never point this at a hosted project. It uses --local / --workdir only and
 #     carries no project ref.
 #
@@ -14,7 +15,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SRC="$ROOT/packages/db/supabase"
 SCRATCH="${VAMOS_SB264:-/tmp/vamos-sb264}"
 WORK="$SCRATCH/supabase"
-DB_URL="postgres://postgres:postgres@127.0.0.1:58322/postgres"
+DB_URL="postgres://postgres:postgres@127.0.0.1:59322/postgres"
 SUPABASE="$ROOT/node_modules/.bin/supabase"
 
 prepare() {
@@ -22,20 +23,20 @@ prepare() {
   for name in migrations tests seed.sql; do
     ln -sfn "$SRC/$name" "$WORK/$name"
   done
-  # Copy config, rename the project and shift every 543xx port to 583xx.
+  # Copy config, rename the project and shift every 543xx port to 593xx.
   sed -E \
     -e 's/^project_id = .*/project_id = "vamos-taxi-264"/' \
-    -e 's/(port = )543([0-9]{2})/\1583\2/' \
-    -e 's/^inspector_port = 8083/inspector_port = 8383/' \
-    -e 's/127\.0\.0\.1:543([0-9]{2})/127.0.0.1:583\1/g' \
-    -e 's/localhost:543([0-9]{2})/localhost:583\1/g' \
+    -e 's/(port = )543([0-9]{2})/\1593\2/' \
+    -e 's/^inspector_port = 8083/inspector_port = 8483/' \
+    -e 's/127\.0\.0\.1:543([0-9]{2})/127.0.0.1:593\1/g' \
+    -e 's/localhost:543([0-9]{2})/localhost:593\1/g' \
     "$SRC/config.toml" > "$WORK/config.toml"
   if grep -Eq '(^|[^0-9])543[0-9]{2}' "$WORK/config.toml"; then
     echo "refusing: scratch config.toml still mentions a 543xx port" >&2
     exit 1
   fi
-  if grep -Eq '(^|[^0-9])(543|553|563|573)[0-9]{2}' "$WORK/config.toml"; then
-    echo "refusing: scratch config.toml mentions a 5432x/5532x/5632x/5732x port" >&2
+  if grep -Eq '(^|[^0-9])(543|553|563|573|583)[0-9]{2}' "$WORK/config.toml"; then
+    echo "refusing: scratch config.toml mentions a 5432x/5532x/5632x/5732x/5832x port" >&2
     exit 1
   fi
 }
