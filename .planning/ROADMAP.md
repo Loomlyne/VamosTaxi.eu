@@ -90,15 +90,16 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 16: Staging MX + end-to-end UAT** - Customer Reply-in-Gmail appends to the same ticket; MX only on replies.vamostaxi.site
 - [ ] **Phase 17: Ops chauffeur profile, shift roster, two-driver vehicles** - Fleet row opens a full chauffeur page; shifts auto On/Off; vehicle max 2 drivers (morning/night); Add is idempotent
 - [x] **Phase 18: OPS Pricing source of truth** - `/pricing` is the only fare book; public offers follow Publish (completed 2026-09-15)
-- [ ] **Phase 19: V1 production close-out leftover live gates and 10k booking surge** - Leftover 16/17 live close, then a signed 10k-booking surge proof. No `.eu`. No live Stripe. Agent does not Publish.
-- [ ] **Phase 20: Security audit fix-up** - Close 2026-09-19 ZAP + RLS + grant findings. No `.eu`. No live Stripe. Owner applies SQL.
+- [ ] **Phase 19: 10,000-booking surge proof on the 26.3 checkout** - 10,000 at once on a copy of the database behind a hidden test Worker (fake Stripe), then ~200 real sandbox payments; owner buys Workers Paid and the copy. No .eu, no live Stripe, no Publish.
+- [ ] **Phase 20: Security check of the changed app (2026-10)** - 2026-09-19 list done (20-01…03); new check of the whole app, 26.1/26.3 changes first; serious findings fixed in-phase; rest decided by the owner.
 - [ ] **Phase 21: Charge gate + visible refusal + payable intent** - Unpriced `CHF 000` and expired 24h lock refuse visibly; priced class returns a reusable `client_secret`
 - [ ] **Phase 22: Card confirm + thank-you webhook wait** - TEST `4242…` captures; decline stays unpaid until webhook; thank-you waits on it
 - [ ] **Phase 23: Wallets + Dashboard methods** - Apple Pay, Google Pay (`auto`), Link, TWINT collector on DC pay; Dashboard methods, not a Worker enum
 - [ ] **Phase 24: Dual-payer, pay-link, mail split** - Token recap pay; first charge wins; traveller manage vs payer receipt
 - [ ] **Phase 25: /bookings unpaid + TEST UAT + secret-swap design** - Unpaid row pays the same session; TEST UAT boring; live keys documented not executed
 - [x] **Phase 26: Legal gate** - Pixel and Purchase stay off until owner banner, cookies, and privacy lines exist in en/de/fr/ar; new policy version; flag stays off (completed 2026-09-23)
-- [ ] **Phase 26.1: Payment and pricing integrity (INSERTED)** - A paid session always confirms; refunds, disputes and DLQ reach the DB; the owner fare formula with 26 cantons; pay-link lock and race; refund rules; three classes; admin sign-in options
+- [x] **Phase 26.1: Payment and pricing integrity (INSERTED)** - A paid session always confirms; refunds, disputes and DLQ reach the DB; the owner fare formula with 26 cantons; pay-link lock and race; refund rules; three classes; admin sign-in options (shipped 2026-09-28, cff97a0e)
+- [ ] **Phase 26.2: Codebase audit, bug fix and simplify** - Folder by folder after 26.0; booking path bugs only with owner OK; no visible or pay change.
 - [ ] **Phase 27: Consent record** - Accept logs Meta on; Dismiss logs Meta off; existing banner until a choice, including a pay link
 - [ ] **Phase 28: Pixel PageView** - Pixel `1595596972063765` sends PageView only on allowed customer pages; click ids saved on the unpaid booking
 - [ ] **Phase 29: Webhook Purchase** - One Purchase from the settle queue in the CHF charged; quote, pay, and confirmation unchanged
@@ -808,35 +809,24 @@ History of 2026-09-13: `.planning/phases/18-ops-pricing-source/archive-2026-09-1
 
 **UI hint**: yes — `18-UI-SPEC.md` 2026-09-14 approved (four tabs, VAT-only rail, `--vt-*` only)
 
-### Phase 19: V1 production close-out leftover live gates and 10k booking surge
+### Phase 19: 10,000-booking surge proof on the 26.3 checkout
 
-**Goal**: Leftover V1 is live on `vamostaxi.site` (16 paper matches disk, 17 Worker + SQL + UAT), then the quote→pay funnel is proven under a signed surge definition. Public stays `CHF 000` until owner Publish. Stripe stays test until the owner says live keys.
-**HARD GATE:** Do not `state.begin-phase` onto 19 while 17 live UAT is open. Do not discuss/plan/execute 19 until Koss signs discuss. Do not skip UI-SPEC (frozen-chrome / observation contract). No `vamostaxi.eu` DNS. No `sk_live_`. Agent does not click Publish. Agent does not `supabase db push`. Never restore onto `yaumjzvylngfjhtuffqs`. One plan at a time. Kanban parent-gated.
-**Depends on**: Phase 16 UAT 10/10 (disk). Phase 17 code on `main` (#41) still needs Worker `vamos` deploy + owner SQL apply + live UAT. Phase 11-12 stays owner Publish and does not block 16/17 close.
+**Goal**: The quote, checkout and booking save are proven with 10,000 bookings at once, on a copy of the database behind a hidden test Worker with a fake Stripe, then about 200 real sandbox payments through Stripe's page.
+**Depends on**: 26.0, 26.2, 20. The owner's paid steps: Cloudflare Workers Paid and a copy of the database.
 **Requirements**: Parked until discuss. Do not invent LAUNCH IDs.
-**Success Criteria** (what must be TRUE):
+**Success Criteria** (what must be TRUE): the pass bar of `19-CONTEXT.md` D-03 and its must-nots. Before real launch the guard that refuses automatic refunds with an `sk_live_` key (`lib/lifecycle/paid-cancel.ts`) is settled with the owner.
 
-  1. Live Worker `vamos` serves Phase 17 `OpsFleet` (not stale `OpsFleetBoard`). Hosted SQL has shift columns, `chauffeur_leave_ranges`, `vehicle_seats`. 17-UAT tests 4–8 pass on `dashboard.vamostaxi.site`.
-  2. ROADMAP Phase 16 is ticked to match 16-UAT 10/10.
-  3. A signed surge proof (discuss locks whether that is 10k concurrent **bookings** vs Phase 10’s 10k **browsers**) fail-closes instead of charging invented CHF or exhausting Hyperdrive silently.
-  4. Must-nots: no `.eu` bind, no live Stripe, no GSC submit, no JSON-LD, no driver app, no auto-dispatch, no Staff tab, no practice restore onto live.
+**Plans:** 5 (19-01 test switches · 19-02 busy-and-retry on PAY · 19-03 owner paid setup · 19-04 burst + real sample · 19-05 tear-down). Signed 2026-09-29.
+**UI hint**: PAY on `/checkout` shows "Busy — trying again" and retries by itself, four languages.
 
-**Plans:** 3 drafted (19-01 fail-closed tests · 19-02 owner Hyperdrive · 19-03 10k proof). Not checker-stamped. No execute.
-**UI hint**: yes — frozen chrome / observation. No new public screens. Do not skip `19-UI-SPEC.md`.
+### Phase 20: Security check of the changed app (2026-10)
 
-### Phase 20: Security audit fix-up
+**Goal**: A new security check of the whole app, starting with what 26.1, 26.3, 26.4 and 26.5 changed. Serious findings are fixed in the phase; every other finding is one question to the owner.
+**Depends on**: 26.2
+**Requirements**: SEC-01 … SEC-12 (done), SEC-13 … SEC-16
+**Success Criteria** (what must be TRUE): see `20-CONTEXT.md`. Leads passed in by the control session are listed in `.planning/CONTROL-BOARD.md`, "Passed to Phase 20".
 
-**Goal**: Every confirmed finding from the 2026-09-19 audit is either fixed in code, queued as owner SQL/Auth, or explicitly accepted (DC CSP eval, fail-closed 0-policy tables).
-**Depends on**: live Worker `vamos` (does not block 16/17/19)
-**Requirements**: SEC-01 … SEC-12
-**Success Criteria** (what must be TRUE):
-
-  1. dashboard.vamostaxi.site/login sends HSTS, CSP, XFO DENY, HttpOnly `vamos_dash`.
-  2. `create_quote_snapshot` and `rls_auto_enable` are not executable by anon/PUBLIC (owner SQL).
-  3. Mutating staff/photo APIs refuse empty Origin.
-  4. `/.well-known/security.txt` is 200. 404s have no `X-Powered-By`. workers.dev is noindex.
-
-**Plans:** 20-01 headers/cookies · 20-02 CSRF/photos · 20-03 owner SQL · 20-04 MFA/leaked-password owner gates
+**Plans:** 20-01…03 done · 20-04, 20-05 superseded · 20-06 check · 20-07 serious fixes · 20-08 owner-decided fixes · 20-09 live proof
 **UI hint**: no new screens.
 
 ### Phase 21: Charge gate + visible refusal + payable intent
@@ -1192,7 +1182,7 @@ v1.1 (funnel Phases 7–11 frozen): 12 → 13 → 14 → 15 → 16 → 17
 Close-out one-by-one: 17 deploy → 17 SQL apply → 17 UAT → 16 ROADMAP tick → discuss 19 surge → 11-12 owner Publish (never agent)
 v1.2 Payment (leftovers 16/17/19/20 frozen): 21 → 22 → 23 → 24 → 25
 v1.3 Meta measurement (Phases 21–25 stay planned, not current): 26 → 26.1 → 27 → 28 → 29
-Current order (owner, 2026-09-29): 26.3 → 26.0 → 26.2 → 19/20 rewritten → 27 → 28 → 29
+Current order (owner, 2026-09-30): 26.4.2 → 26.5 → 27 → 28 → 29 → 26.0 → 26.2 → 20 → 19. Shipped: 26.1, 26.3, 26.4, 26.4.1, sign-in fix, legal pages. Source: .planning/CONTROL-BOARD.md and .planning/decisions/2026-09-30-priorities-and-ship-mode.md
 Plan-level states (owner, 2026-09-29; source record .planning/PHASE-CLOSURE-2026-09-29.md on main, commit 37e55d26): plan 04.3 replaced by 26.1/26.3, never build · plan 05-19 dropped · plans 05-24, 05-28 parked · plan 11-12 owner-held, never raise
 
 | Phase | Plans Complete | Status | Completed |
@@ -1215,20 +1205,20 @@ Plan-level states (owner, 2026-09-29; source record .planning/PHASE-CLOSURE-2026
 | 16. Staging MX + end-to-end UAT | UAT 10/10 passed | Complete | - |
 | 17. Ops chauffeur profile, shift roster, two-driver vehicles | - | Closed, feature removed | - |
 | 18. OPS Pricing source of truth | 7/7 | Complete    | 2026-09-15 |
-| 19. V1 production close-out leftover live gates and 10k booking surge | 0/TBD | Parked (to be rewritten, after 26.2) | - |
-| 20. Security audit fix-up | 3/5 | Parked (to be rewritten, after 26.2) | - |
+| 19. 10,000-booking surge proof | 0/5 | Rewritten and signed 2026-09-29; last in the order; needs the owner's paid steps | - |
+| 20. Security check of the changed app | 3/9 | 20-01…03 done; 20-04, 20-05 superseded; 20-06…09 signed 2026-09-29, after 26.2 | - |
 | 21. Charge gate + visible refusal + payable intent | 10/10 | Replaced by 26.1/26.3, never build | - |
 | 22. Card confirm + thank-you webhook wait | 0/TBD | Replaced by 26.1/26.3, never build | - |
 | 23. Wallets + Dashboard methods | 0/TBD | Replaced by 26.1/26.3, never build | - |
 | 24. Dual-payer, pay-link, mail split | 0/TBD | Replaced by 26.1/26.3, never build | - |
 | 25. /bookings unpaid + TEST UAT + secret-swap design | 0/TBD | Replaced by 26.1/26.3, never build | - |
 | 26. Legal gate | 2/2 | Complete    | 2026-09-23 |
-| 26.0. Main green (INSERTED) | part 1 in 26.1 | Parked (after 26.3 live; PR #63 refund fix rides with it) | - |
-| 26.1. Payment and pricing integrity (INSERTED) | 30/32 | Waiting for owner Ship (26.1-26), then 26.1-28 |  |
-| 26.2. Codebase audit, bug fix and simplify (INSERTED) | 0/TBD | Parked (after 26.0) | - |
+| 26.0. Main green (INSERTED) | 9/12 | Executing on fix/main-green-2; lands after the Meta phases | - |
+| 26.1. Payment and pricing integrity (INSERTED) | 30/32 | Shipped cff97a0e; 26.1-28 moot (owner deletes test bookings) | 2026-09-28 |
+| 26.2. Codebase audit, bug fix and simplify (INSERTED) | 0/12 | Planned, signed 2026-09-29; after 26.0 | - |
 | 26.3. Booking flow rebuild (INSERTED) | 22/23 + G1–G9 | Shipped af93fc8e, Worker 839d73fc | 2026-09-29 |
-| 26.4. One form + phone booking sheet (INSERTED) | 0/10 | Plan signed 2026-09-29, executing | - |
-| 26.4.1. Laptop booking bar (INSERTED) | 0/2 | Planned 2026-09-29, waiting for owner signature | - |
+| 26.4. One form + phone booking sheet (INSERTED) | 10/10 | Shipped 0f58ab6d, Worker 2b04648a | 2026-09-30 |
+| 26.4.1. Laptop booking bar (INSERTED) | 2/2 | Shipped 0f58ab6d, Worker 2b04648a | 2026-09-30 |
 | 27. Consent record | 0/TBD | Not started | - |
 | 28. Pixel PageView | 0/TBD | Not started | - |
 | 29. Webhook Purchase | 0/TBD | Not started | - |

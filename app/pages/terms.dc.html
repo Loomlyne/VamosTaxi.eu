@@ -30,6 +30,7 @@
 <script src="../../assets/lenis-boot.js"></script>
 <script src="../vamos-i18n-dict.js"></script>
 <script src="../vamos-locale.js"></script>
+<script src="../vamos-legal-updated.js"></script>
 <script src="../vamos-page-transition.js"></script>
 <style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
 .vt-input--focus{box-shadow:none}
@@ -127,7 +128,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <h1 style="margin:0 0 18px;max-width:20ch;font-family:var(--vt-font-display);font-size:var(--vt-display-2);line-height:var(--vt-display-leading);letter-spacing:var(--vt-display-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse);text-wrap:pretty">Terms &amp; conditions</h1>
 <p style="margin:0;max-width:58ch;font-size:var(--vt-body-lg);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">The rules that apply when you book a transfer with us: how a booking is formed, what the fixed price covers, what we owe you and what we need from you.</p>
 <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px 28px;margin-top:32px;padding-top:24px;border-top:1px solid var(--vt-border-inverse)">
-<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Last updated</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">1 September 2026</span></div>
+<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Last updated</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)" data-vt-no-i18n="1">{{ updatedLabel }}</span></div>
 <div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Version</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">1.0</span></div>
 
 <button data-lg-noprint="1" type="button" onClick="{{ doPrint }}" style="margin-inline-start:auto;display:inline-flex;align-items:center;gap:9px;height:44px;padding:0 20px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-inverse);background:none;color:var(--vt-text-inverse);font-family:inherit;font-size:var(--vt-body-sm);cursor:pointer">
@@ -234,7 +235,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <ul>
 <li>Additional stops: shown on your quote per stop.</li>
 <li>Waiting beyond the included allowance: charged per commenced hour.</li>
-<li>Extended city stay, up to 15 minutes: <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">City stay fee</span></li>
+<li>Extended city stay, up to 15 minutes: shown on your quote.</li>
 <li>Oversized or unusual items declared at booking: shown on your quote.</li>
 </ul>
 
@@ -297,7 +298,6 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <section id="noshow">
 <h2><span data-lg-n="1">09</span>No-show</h2>
 <p>A booking counts as a no-show when the waiting allowance in section <a href="#waiting">08</a> has run out and we have not reached you on the number or email on the booking within 30 minutes of the pickup time, or 60 minutes at an airport.</p>
-<p>Calls we make before that: <span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Noshow call attempts</span></p>
 <p>A no-show is not refunded. What we hold on record as evidence is set out in the <a href="privacy.dc.html#retention">privacy policy</a>.</p>
 <h3>If the driver does not arrive</h3>
 <p>Call us on the number in your confirmation. Where we can see that you were at the pickup point and no vehicle came, the <a href="cancellation.dc.html#driver">cancellation &amp; refund policy</a> sets out what you get back.</p>
@@ -401,6 +401,7 @@ class Component extends DCLogic {
   tocRef = React.createRef();
 
   componentDidMount() {
+    if (window.VamosLocale) this._offLocale = window.VamosLocale.onChange(() => this.forceUpdate());
     const prose = this.proseRef.current, toc = this.tocRef.current;
     if (!prose || !toc || typeof IntersectionObserver === 'undefined') return;
     const links = Array.from(toc.querySelectorAll('[data-lg-tl]'));
@@ -426,13 +427,17 @@ class Component extends DCLogic {
     }, { rootMargin: '-104px 0px -60% 0px' });
     prose.querySelectorAll('section[id]').forEach((s) => this.io.observe(s));
   }
-  componentWillUnmount() { if (this.io) this.io.disconnect(); }
+  componentWillUnmount() {
+    if (this._offLocale) this._offLocale(); if (this.io) this.io.disconnect(); }
 
   toggleToc = () => this.setState((s) => ({ tocOpen: !s.tocOpen }));
   doPrint = () => window.print();
 
   renderVals() {
+    const legalDate = window.VamosLegalUpdated;
+    const lang = window.VamosLocale ? window.VamosLocale.lang() : 'en';
     return {
+      updatedLabel: legalDate ? legalDate.label(lang) : '',
       n14: 14, n16: 16, n18: 18,
       tocOpen: this.state.tocOpen ? '1' : null,
       toggleToc: this.toggleToc,

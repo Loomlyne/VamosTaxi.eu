@@ -57,6 +57,7 @@ export default async function TermsPage({
       kickerKey="common.legal"
       effectiveDateLabel="Terms effective date"
       versionLabel="Terms version"
+      shipDated
     >
       <LanguageCoverageNotice page="terms" />
 
@@ -148,7 +149,7 @@ export default async function TermsPage({
             {t("waiting-beyond-per-commenced-hour")}
           </li>
           <li>
-            {t("extended-city-stay-up-to-15-minutes")} <PendingSlot label="City stay fee" />
+            {t("extended-city-stay-15-shown-on-quote")}
           </li>
           <li>
             {t("oversized-or-unusual-items-declared-at-booking")}{" "}
@@ -233,9 +234,6 @@ export default async function TermsPage({
         <p>
           {t("a-booking-counts-as-a-no-show-when-the-waiting-a")} <a href="#waiting">08</a>{" "}
           {t("noshow-not-reached-30-60")}
-        </p>
-        <p>
-          {t("calls-we-make-before-that")} <PendingSlot label="Noshow call attempts" />
         </p>
         <p>
           {t("a-no-show-is-not-refunded-what-we-hold-on-record")}{" "}

@@ -26,3 +26,10 @@ read by a lawyer.
 | 14 | "Last updated" date on the legal pages | **The ship day** | The control session sets the date on privacy, terms, cancellation and imprint when it deploys this job |
 
 List B point 4 (UID) is decision 4 and 6. List B point 5 (e-mail and phone) was not asked: `CLAUDE.local.md` already fixes info@vamostaxi.site and +41 79 626 70 82, and the pages use them.
+
+## Follow-up session (branch `docs/legal-pages-follow-up`), 2026-09-30
+
+| # | Question | Answer |
+|---|---|---|
+| 15 | The approved cancel sentences also sit on /booking-detail and the /confirmation cancel box. Change them too? | **Yes, all three pages** |
+| 16 | /cancellation §03 "up to 24 hours before pickup (72 hours for 8+ seats) before pickup" | First answer: "I don't want to see any TBC". Then: **no TBC on any live page** (each gap filled with what the site does, or its sentence removed, listed before ship) and §03 **without a deadline**: "can be changed before pickup, free of charge" |

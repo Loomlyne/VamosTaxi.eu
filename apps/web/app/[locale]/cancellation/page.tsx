@@ -71,6 +71,7 @@ export default async function CancellationPage({
       kickerKey="common.legal"
       effectiveDateLabel="Cancellation effective date"
       versionLabel="Cancellation version"
+      shipDated
     >
       {/* LegalPage PendingSlot: Cancellation effective date */}
       {/* LegalPage PendingSlot: Cancellation version */}
@@ -88,7 +89,7 @@ export default async function CancellationPage({
           <span data-lg-n="1">01</span>
           {tLegal("what-you-get-back")}
         </h2>
-        {/* Matches the site (refund_review_tiers.sql): more than 24 hours = automatic full refund; within 24 hours = cancelled, refund decided by an admin (owner decision open). No 6-hour line. */}
+        {/* Matches the site (refund_review_tiers.sql): more than 24 hours = automatic full refund; within 24 hours = cancelled, refund decided by an admin (owner decision 7: "Our team decides"). No 6-hour line. */}
         <p>{tLegal("measured-from-the-pickup-time-in-your-confirmati")}</p>
         <div style={{ maxInlineSize: "100%", overflowInline: "auto" }}>
         <Table
@@ -105,7 +106,7 @@ export default async function CancellationPage({
               slug: "within",
               tier: tLegal("less-than"),
               window: tLegal("24-hours-before-pickup"),
-              outcome: <PendingSlot label="Refund within 24 hours" />,
+              outcome: tLegal("our-team-decides-refund-email"),
             },
             {
               slug: "done",
@@ -218,11 +219,7 @@ export default async function CancellationPage({
           <span data-lg-n="1">03</span>
           {tLegal("changing-a-booking")}
         </h2>
-        <p>
-          {tLegal("time-address-passenger-count-and-vehicle-class-c")}{" "}
-          <PendingSlot label="Modification deadline" /> {tLegal("before-pickup-free-of-charge-if-the-change-moves")}
-        </p>
-        <p>{tLegal("a-change-requested-after-that-deadline-is-treate")}</p>
+        <p>{tLegal("changes-free-before-pickup")}</p>
       </section>
 
       <section id="delays">
@@ -271,9 +268,6 @@ export default async function CancellationPage({
           {tLegal("no-show")}
         </h2>
         <p>{tLegal("noshow-becomes-not-reached-30-60")}</p>
-        <p>
-          {tLegal("calls-we-make-before-that")} <PendingSlot label="Noshow call attempts" />
-        </p>
         <ul>
           <li>{tLegal("airport-pickups-60-minutes-landing")}</li>
           <li>{tLegal("all-other-pickups-30-minutes-booked")}</li>
@@ -304,9 +298,6 @@ export default async function CancellationPage({
         </h2>
         <ul>
           <li>{tLegal("always-to-the-original-payment-method-we-cannot")}</li>
-          <li>
-            {tLegal("approved-within")} <PendingSlot label="Refund decision days" />
-          </li>
           <li>{tLegal("team-refund-paid-30-days-acceptance")}</li>
         </ul>
         <p>

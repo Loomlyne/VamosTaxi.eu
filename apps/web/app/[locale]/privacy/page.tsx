@@ -60,6 +60,7 @@ export default async function PrivacyPage({
       kickerKey="common.legal"
       effectiveDateLabel="Privacy effective date"
       versionLabel="Privacy version"
+      shipDated
     >
       {/* LegalPage PendingSlot: Privacy effective date */}
       {/* LegalPage PendingSlot: Privacy version */}
@@ -109,10 +110,7 @@ export default async function PrivacyPage({
           <li>{t("passenger-and-luggage-count-child-seat-requests")}</li>
           <li>{t("anything-you-type-into-the-notes-field-for-the-d")}</li>
         </ul>
-        {/* Phase 26.5: the approved "Your account" paragraph (.planning/decisions/2026-09-30-legal-pages.md) replaces this gap. */}
-        <p>
-          <PendingSlot label="Your account paragraph" />
-        </p>
+        {/* Phase 26.5: the approved "Your account" paragraph (.planning/decisions/2026-09-30-legal-pages.md) goes here, between the "When you book" list and "When you pay". */}
         <h3>{t("when-you-pay")}</h3>
         <p>{t("payment-metadata-only-the-amount-the-currency-th")}</p>
         <h3>{t("while-you-use-the-site")}</h3>
@@ -157,14 +155,12 @@ export default async function PrivacyPage({
             last
           />
         </List>
-        <div data-slot="1" data-i18n-skip>
-          <p data-slot-k="1">Client legal text · statutory references</p>
-          <p>
+        {/* Owner decision 13 (2026-09-30): hidden from customers, kept for the lawyer.
+            Client legal text · statutory references:
             Your adviser adds the article references for each basis under revFADP and, where a
             customer is in the EU, the GDPR. The layout holds one reference line per row without
             changing.
-          </p>
-        </div>
+        */}
       </section>
 
       <section id="processors">
@@ -239,14 +235,12 @@ export default async function PrivacyPage({
           {t("transfers-abroad")}
         </h2>
         <p>{t("some-of-these-suppliers-process-data-outside-swi")}</p>
-        <div data-slot="1" data-i18n-skip>
-          <p data-slot-k="1">Client legal text · transfer mechanism</p>
-          <p>
+        {/* Owner decision 13 (2026-09-30): hidden from customers, kept for the lawyer.
+            Client legal text · transfer mechanism:
             One current mechanism per destination — an adequacy decision, or standard contractual
             clauses with the Swiss addendum. The archived policy relies on the EU–US Privacy Shield,
             which stopped being a valid basis in 2020; it cannot be carried over.
-          </p>
-        </div>
+        */}
       </section>
 
       <section id="retention">
