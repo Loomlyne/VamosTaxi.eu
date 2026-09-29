@@ -4,7 +4,7 @@ Kept by the control session. One page: what is live, what is being built, what w
 the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 
-**Last update:** 2026-09-30 00:43 (+04)
+**Last update:** 2026-09-30 00:59 (+04)
 
 ## Live now
 
@@ -64,16 +64,20 @@ No lawyer has read the text.
 | 26.5 account choice before payment | same session | `phase-26.5` | `gsd/phase-26.5-checkout-account` | Discuss, UI-SPEC and 7-plan plan **signed**. Plan revision 2, 8 plans, signed. The build lock is open since the 26.4 ship (2026-09-30 00:20). **Open:** Worker `vamos` has `SUPABASE_URL` but no `SUPABASE_SERVICE_ROLE_KEY` (names read 2026-09-29 23:50). Without it "Create an account" hides itself. Whether that key belongs on the public Worker is an owner decision, see below. |
 | 26.0 main green | Phase 26.0 main green work session | `main-green-2` | `fix/main-green-2` | Plans 01 to 05, 07, 09 done. 06, 08, 10, 11, 12 left. |
 
-## Ship order
+## Ship order (owner, 2026-09-30: booking, payments, account, Meta first)
 
-One at a time into main. Each later branch takes main in before it hands over.
-
-| Order | What | Why this place |
+| Order | What | State |
 |---|---|---|
-| done | Sign-in and sign-up fix | Shipped 17:47 |
-| 3 | Phase 26.5, account choice before payment | Needs the final checkout from 26.4 |
-| 4 | Phase 26.0 | Shares test files with 26.4; lands after it |
-| 5 | 26.2 → 20 → 19 → 27 → 28 → 29 | Signed order |
+| 1 | 26.4.2 booking feedback | Building. He signs three pictures first. |
+| 2 | 26.5 account choice before payment, with the paid-only reminder | Building |
+| any time | Legal follow-up | Building |
+| 3 | 27 consent record | Not started |
+| 4 | 28 pixel page view, 29 purchase event | The Meta wording is his since 2026-09-30 (`.planning/decisions/2026-09-30-meta-wording.md`), all three texts, four languages. Not started. |
+| after | 26.0 → 26.2 → 20 → 19 | 26.0 keeps building, lands after the ones above |
+
+**Ship mode on 2026-09-30 only:** the control session ships 26.4.2, the legal follow-up, 26.5 and
+27 to 29 without asking, when every check of its own passes, and tells him right after.
+Full text: `.planning/decisions/2026-09-30-priorities-and-ship-mode.md`.
 
 ## New owner requests, 2026-09-29 17:40, not started
 
@@ -110,10 +114,11 @@ Built by the 26.3 session as `fix/26.4.2-booking-feedback` (folder `fix-26.4.2`)
 | # | Feedback | State |
 |---|---|---|
 | 1 | Phone and tablet booking becomes one page, no 4 steps; date then time; our own picker, never the phone's | Building |
-| 2 | Laptop: flight field behind From, address list not showing | **Not reproduced** by the control session on live in a Chrome-based browser at 1440 and 1280. Waiting for a screenshot from the owner. |
+| 2 | Laptop: "flight behind From" | **Not a bug.** He wants another order: Flight number, From, To. The flight field stays hidden until From is an airport, then appears before From. Same order on laptop, tablet, phone and checkout Edit trip. The address list opens upward when there is no room below; the bar no longer jumps. |
 | 3 | Laptop home gets "Choose your class" back, with server prices under the bar | Building |
 | 4 | Phone checkout class cards redesigned | Building |
-| 5 | An unpaid booking can never be continued on another device; a paid trip can be shared | Decision recorded in `.planning/decisions/2026-09-30-unpaid-booking-other-device.md`. Test owed by 26.5. |
+| 5 | An unpaid booking can never be continued on another device; a paid trip can be shared | Decision recorded in `.planning/decisions/2026-09-30-unpaid-booking-other-device.md`. A pasted checkout link shows the trip only, with an empty form (26.5 D-16, four route tests). |
+| 6 | Sign-off | He sees pictures of the three designs at 390, 768 and 1440 and signs before anything is handed over. |
 
 ## Owed by the control session
 
@@ -131,7 +136,6 @@ Built by the 26.3 session as `fix/26.4.2-booking-feedback` (folder `fix-26.4.2`)
 | 3 | Sign-in UAT, 14 steps, in `.planning/debug/auth-sign-in-sign-up-HANDOVER.md` | phone first |
 | 4 | Should an unpaid booking get the 24-hour reminder? Today it does | decision |
 | 5 | The remaining 26.3 UAT steps, then the test-booking delete script | vamostaxi.site |
-| 6 | Legal lines in four languages for the pixel | blocks 28 and 29 |
 | 7 | Cloudflare Workers Paid and the database copy | only when Phase 19 starts |
 | 8 | The unsigned Lenis folder `.planning/quick/260928-q4t-…` | decision |
 
