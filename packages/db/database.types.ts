@@ -526,6 +526,7 @@ export type Database = {
           fx_rate: number | null
           fx_source: string | null
           id: number
+          payment_method_type: string | null
           presentment_amount_minor: number | null
           presentment_currency: string | null
           snapshot_id: number
@@ -544,6 +545,7 @@ export type Database = {
           fx_rate?: number | null
           fx_source?: string | null
           id?: never
+          payment_method_type?: string | null
           presentment_amount_minor?: number | null
           presentment_currency?: string | null
           snapshot_id: number
@@ -562,6 +564,7 @@ export type Database = {
           fx_rate?: number | null
           fx_source?: string | null
           id?: never
+          payment_method_type?: string | null
           presentment_amount_minor?: number | null
           presentment_currency?: string | null
           snapshot_id?: number
@@ -2790,6 +2793,10 @@ export type Database = {
           state: string
         }[]
       }
+      checkout_payment_method_record: {
+        Args: { p_method: string; p_payment_intent_id: string }
+        Returns: boolean
+      }
       checkout_payment_settle: {
         Args: {
           p_charged_currency: string
@@ -2928,6 +2935,7 @@ export type Database = {
         Returns: number
       }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
+      customer_booking_extras: { Args: { p_reference: string }; Returns: Json }
       customer_claim_guest_bookings: { Args: never; Returns: number }
       customer_confirmation_read: {
         Args: { p_customer_id: string; p_reference: string }
@@ -3000,6 +3008,7 @@ export type Database = {
           stripe_payment_intent_id: string
         }[]
       }
+      manage_booking_extras: { Args: { p_token_hash: string }; Returns: Json }
       manage_booking_read: {
         Args: { p_token_hash: string }
         Returns: {
@@ -3025,6 +3034,8 @@ export type Database = {
           status: Database["public"]["Enums"]["booking_status"]
         }[]
       }
+      manage_driver_for: { Args: { p_booking_id: string }; Returns: Json }
+      manage_money_for: { Args: { p_booking_id: string }; Returns: Json }
       next_booking_reference: { Args: never; Returns: string }
       notification_claim: {
         Args: {
