@@ -1,11 +1,11 @@
 // apps/web/lib/auth/signup-consent.ts
 //
 // Sign-up consent is written when the address is confirmed, not at sign-up: before the
-// confirmation link is followed there is no session, so consent_log (customer_id comes from the
+// confirmation link is followed there is no session, so the consent table (customer_id comes from the
 // verified JWT inside record_consent) cannot be written. The sign-up call leaves
 // user_metadata.signup_consent = "pending"; the callback calls this after a good exchange.
 //
-// Idempotent without reading consent_log (customers have no SELECT on it): after the row is
+// Idempotent without reading the consent table (customers have no SELECT on it): after the row is
 // written the metadata value becomes the policy version, so a second callback finds nothing pending.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
