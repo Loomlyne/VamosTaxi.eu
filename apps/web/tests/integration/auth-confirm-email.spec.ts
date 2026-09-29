@@ -80,7 +80,6 @@ test.describe("D-28 Pitfall 4 confirm-email intermediate state", () => {
   test("D-28 Pitfall 4: password signup has no usable session until the emailed confirmation", async ({
     page,
   }) => {
-    test.fail(true, "KNOWN-RED 26.0: check-your-email state no longer contains the asserted copy (Send a new link); page now shows Check your email / Sent to — owner to rule");
     test.setTimeout(120_000);
     const email = `d28-${crypto.randomUUID().slice(0, 8)}@example.com`;
     const after = new Date(Date.now() - 1000).toISOString();
@@ -91,7 +90,7 @@ test.describe("D-28 Pitfall 4 confirm-email intermediate state", () => {
     await page.getByLabel("Last name").fill("Lovelace");
     await page.getByLabel("Password", { exact: true }).fill(PASSWORD);
     await page.getByRole("button", { name: /create account/i }).click();
-    await expect(page.locator("[data-af]")).toContainText("Send a new link");
+    await expect(page.locator("[data-af]")).toContainText("Send another link");
 
     const before = await sessionSnapshot(page);
     expect(before.signedIn).toBe(false);
