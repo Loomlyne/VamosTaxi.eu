@@ -2,6 +2,7 @@ import { test, expect, emulateMedia } from "../support/test";
 import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { waitForNextServer, WEB_ROOT, NEXT_BIN } from "../support/server-harness";
+import { nextDevEnv } from "../support/test-stack";
 
 const PORTS: Record<string, number> = {
   "component-1440": testPort(4260),
@@ -32,11 +33,7 @@ test.describe("Home reviews @component", () => {
       cwd: WEB_ROOT,
       stdio: "ignore",
       detached: true,
-      env: {
-        ...process.env,
-        TEST_DIST_DIR: `test-results/.next-home-reviews-${port}`,
-        CLOUDFLARE_ENV: "staging",
-      },
+      env: nextDevEnv({ TEST_DIST_DIR: `test-results/.next-home-reviews-${port}`, CLOUDFLARE_ENV: "staging" }, { gallery: true }),
     });
     await waitForNextServer(baseURL, 180_000);
   });
