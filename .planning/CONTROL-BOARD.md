@@ -4,7 +4,7 @@ Kept by the control session. One page: what is live, what is being built, what w
 the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 
-**Last update:** 2026-09-30 00:50 (+04)
+**Last update:** 2026-09-30 00:08 (+04)
 
 ## Live now
 
@@ -86,7 +86,7 @@ Full text: `.planning/decisions/2026-09-29-checkout-account-notice.md`.
 
 | # | Decision |
 |---|---|
-| 1 | The service-role key is on Worker `vamos` since 2026-09-29 23:56, added by the owner in his terminal. Name read by the control session, value never. Nothing on live reads it until 26.5 ships. |
+| 1 | The service-role key is on Worker `vamos` since 2026-09-29 23:56, added by the owner in his terminal. Name read by the control session, value never. **Correction:** the control session first wrote that nothing on live reads it. That was wrong. Two older features read it and are active since then: the staff digest e-mail (daily at 06:00 Zurich time, to staff) and the dashboard staff invite. Owner decision 2026-09-30: both may keep using it (26.5 D-15); plan 08 of 26.5 moves them onto the one server-only module. |
 | 2 | Both notice texts approved in four languages, as drafted. Not read by a lawyer. |
 | 3 | "Create an account" needs a tick box; the tick is logged server-side. |
 | 4 | "Create an account" goes live with 26.5, consent recorded from the first account. |
