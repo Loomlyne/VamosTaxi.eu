@@ -78,6 +78,12 @@ function order(page: Page) {
 }
 
 test.describe("Home booking box @component", () => {
+  // 26.4 D-01: the box is the laptop layout (>=1081). At 1080px and under home shows the bar and
+  // sheet instead; those are covered by home-booking-sheet.spec.ts.
+  test.beforeEach(async ({ page }) => {
+    test.skip((page.viewportSize()?.width ?? 0) <= 1080, "26.4 D-01: the box shows at 1081px and over");
+  });
+
   test("DOM order is From, To, When, Travellers, SEE PRICES; an airport adds Flight under From @component", async ({ page }) => {
     await openHome(page);
     expect(await order(page)).toEqual(["from", "to", "when", "trav", "cta"]);
