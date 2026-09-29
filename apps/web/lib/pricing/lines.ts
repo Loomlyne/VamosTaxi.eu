@@ -575,15 +575,12 @@ export function buildFareLine(args: BuildFareLineArgs): Line {
   };
 }
 
-type AirportFeeTrigger = "flight_no" | "airport_place" | "airport_zone";
+type AirportFeeTrigger = "airport_place" | "airport_zone";
 
 function airportFeeTrigger(
   leg: QuoteLegInput,
   zonesById: Map<string, ZoneRow>,
 ): AirportFeeTrigger | null {
-  if (typeof leg.flight_no === "string" && leg.flight_no.trim().length > 0) {
-    return "flight_no";
-  }
   if (leg.origin_is_airport === true) return "airport_place";
   const zone = leg.origin_zone_id ? zonesById.get(leg.origin_zone_id) : undefined;
   if (zone?.zone_type === "airport") return "airport_zone";
@@ -591,10 +588,10 @@ function airportFeeTrigger(
 }
 
 /**
- * D-08b: the airport fee applies when the pickup is an airport — by
- * server-resolved place (`origin_is_airport`, 26.1-09) or by zone_type — or
- * the customer entered a flight number. A client-sent `fare_kind` never
- * decides this.
+ * The airport fee applies when the pickup is an airport — by
+ * server-resolved place (`origin_is_airport`, 26.1-09) or by zone_type. A
+ * flight number alone never adds it (26.4 D-08), and a drop-off never does.
+ * A client-sent `fare_kind` never decides this.
  */
 export function airportFeeApplies(
   leg: QuoteLegInput,

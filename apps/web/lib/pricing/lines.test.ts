@@ -1344,7 +1344,7 @@ describe("D-08 / D-08b: fare_kind no longer changes the start; the airport fee i
     expect(fee!.basis.trigger).toBe("airport_zone");
   });
 
-  it("D-08b: a flight number alone triggers the fee without an airport zone", () => {
+  it("D-08 (26.4): a flight number alone does not trigger the fee", () => {
     const fee = buildAirportFeeLine({
       leg: leg({
         distance_m: metres,
@@ -1355,9 +1355,7 @@ describe("D-08 / D-08b: fare_kind no longer changes the start; the airport fee i
       rateVersionId: 1,
       zones: [airportZone, cityZone],
     });
-    expect(fee).not.toBeNull();
-    expect(fee!.basis.trigger).toBe("flight_no");
-    expect(fee!.amount_rappen).toBe(2_500);
+    expect(fee).toBeNull();
   });
 
   it("D-08b: origin_is_airport (26.1-09 place resolution) alone triggers the fee", () => {

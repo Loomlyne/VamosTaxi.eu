@@ -23,6 +23,7 @@ import type {
   SurchargeRow,
   VehicleClassRow,
   ZoneRow,
+  ZoneType,
 } from "./types";
 
 const economy: VehicleClassRow = {
@@ -46,7 +47,7 @@ const FARE = BASE + PER_KM * KM;
 function zone(
   id: string,
   slug: string,
-  zone_type: string,
+  zone_type: ZoneType,
   tags: string[] = [],
   iata: string | null = null,
 ): ZoneRow {
@@ -57,8 +58,8 @@ const airportZone = zone("z-airport", "zrh-airport", "airport", [], "ZRH");
 const neutralZone = zone("z-neutral", "hotel", "city");
 const cityA = zone("z-city-a", "city-a", "city", ["mapbox_place:place.a"]);
 const cityB = zone("z-city-b", "city-b", "city", ["mapbox_place:place.b"]);
-const cantonA = zone("z-canton-a", "canton-zh", "region", ["canton:ZH"]);
-const cantonB = zone("z-canton-b", "canton-be", "region", ["canton:BE"]);
+const cantonA = zone("z-canton-a", "canton-zh", "other", ["canton:ZH"]);
+const cantonB = zone("z-canton-b", "canton-be", "other", ["canton:BE"]);
 
 const rate: DistanceRateRow = {
   id: 11,
