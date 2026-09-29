@@ -4,7 +4,7 @@ Kept by the control session. One page: what is live, what is being built, what w
 the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 
-**Last update:** 2026-09-30 00:48 (+04)
+**Last update:** 2026-09-30 00:59 (+04)
 
 ## Live now
 
@@ -72,7 +72,7 @@ No lawyer has read the text.
 | 2 | 26.5 account choice before payment, with the paid-only reminder | Building |
 | any time | Legal follow-up | Building |
 | 3 | 27 consent record | Not started |
-| 4 | 28 pixel page view, 29 purchase event | Wait for the Meta wording: draft owed by the control session, his approval |
+| 4 | 28 pixel page view, 29 purchase event | The Meta wording is his since 2026-09-30 (`.planning/decisions/2026-09-30-meta-wording.md`), all three texts, four languages. Not started. |
 | after | 26.0 → 26.2 → 20 → 19 | 26.0 keeps building, lands after the ones above |
 
 **Ship mode on 2026-09-30 only:** the control session ships 26.4.2, the legal follow-up, 26.5 and
@@ -136,7 +136,6 @@ Built by the 26.3 session as `fix/26.4.2-booking-feedback` (folder `fix-26.4.2`)
 | 3 | Sign-in UAT, 14 steps, in `.planning/debug/auth-sign-in-sign-up-HANDOVER.md` | phone first |
 | 4 | Should an unpaid booking get the 24-hour reminder? Today it does | decision |
 | 5 | The remaining 26.3 UAT steps, then the test-booking delete script | vamostaxi.site |
-| 6 | Legal lines in four languages for the pixel | blocks 28 and 29 |
 | 7 | Cloudflare Workers Paid and the database copy | only when Phase 19 starts |
 | 8 | The unsigned Lenis folder `.planning/quick/260928-q4t-…` | decision |
 
