@@ -197,7 +197,9 @@ describe("pay-link open route, hosted (D-46)", () => {
   });
 
   it("no card-form leftovers in the route source", () => {
-    const src = readFileSync(join(here, "../../app/api/checkout/pay-link/open/route.ts"), "utf8");
+    const src =
+      readFileSync(join(here, "../../app/api/checkout/pay-link/open/route.ts"), "utf8") +
+      readFileSync(join(here, "./pay-link-hosted-session.ts"), "utf8");
     expect(src).toContain('"hosted_page"');
     expect(src).not.toContain("client_secret");
     expect(src).not.toContain("hosted_page: false");

@@ -28,7 +28,7 @@ vi.mock("@/lib/checkout/stripe", () => ({
   createRefund: vi.fn(),
   expireCheckoutSession: vi.fn(),
   retrieveCheckoutSession: vi.fn(),
-  sessionIsPayable: vi.fn(),
+  hostedSessionIsPayable: vi.fn(),
   stripeFromEnv: vi.fn(),
 }));
 vi.mock("@/lib/quote/lock", () => ({ verifyLock: vi.fn() }));

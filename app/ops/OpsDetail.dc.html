@@ -230,6 +230,12 @@
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="primary" onClick="{{ acceptPending }}" hint-size="120px,36px">{{ tAccept }}</x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="secondary" onClick="{{ refusePending }}" hint-size="120px,36px">{{ tRefuse }}</x-import>
 </div>
+<sc-if value="{{ hasExtraPay }}" hint-placeholder-val="{{ false }}">
+<div data-ops-extra-pay style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="primary" icon="external-link" onClick="{{ openExtraPay }}" hint-size="220px,36px">{{ tOpenStripe }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="secondary" onClick="{{ copyExtraPay }}" hint-size="180px,36px">{{ tCopyPayLink }}</x-import>
+</div>
+</sc-if>
 </sc-if>
 <sc-if value="{{ hasFlightBanner }}" hint-placeholder-val="{{ false }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="info" title="{{ tFlightBanner }}" hint-size="100%,70px">{{ booking.flight }}</x-import>
@@ -276,12 +282,6 @@
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="secondary" icon="mail" onClick="{{ sendPayLink }}" hint-size="160px,36px">{{ tSendPayLink }}</x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="primary" onClick="{{ openTakeCard }}" hint-size="130px,36px">{{ tTakeCard }}</x-import>
 </div>
-<sc-if value="{{ takeCardOpen }}" hint-placeholder-val="{{ false }}">
-<div style="margin-top:12px;display:flex;flex-direction:column;gap:12px">
-<div id="ops-stripe-el" style="min-height:80px"></div>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="primary" onClick="{{ confirmCard }}" hint-size="120px,36px">{{ tPayCard }}</x-import>
-</div>
-</sc-if>
 </sc-if>
 <sc-if value="{{ showRefundDue }}" hint-placeholder-val="{{ false }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" title="{{ tRefundTitle }}" hint-size="100%,70px">{{ tRefundBody }}</x-import>
@@ -519,30 +519,13 @@ function addMinutesHhmm(time, minutes) {
   const mm = String(wrapped % 60).padStart(2, '0');
   return hh + ':' + mm;
 }
-function hexToUtf8(hex) {
-  const raw = String(hex || '');
-  if (!raw || raw.length % 2) return '';
-  const bytes = new Uint8Array(raw.length / 2);
-  for (let i = 0; i < bytes.length; i++) bytes[i] = parseInt(raw.substr(i * 2, 2), 16);
-  return new TextDecoder().decode(bytes);
-}
-function loadStripeJs() {
-  if (window.Stripe) return Promise.resolve(window.Stripe);
-  return new Promise((resolve, reject) => {
-    const s = document.createElement('script');
-    s.src = 'https://js.stripe.com/v3/';
-    s.onload = () => resolve(window.Stripe);
-    s.onerror = reject;
-    document.head.appendChild(s);
-  });
-}
 const T = {
   en: { backToBookings:'Back to bookings', bookedBy:'booked by', moreActions:'More actions', details:'Details', history:'History', historyEmpty:'No events yet.',
     assignment:'Assignment', assign:'Assign driver', reassign:'Reassign', unassign:'Unassign', onShift:'On shift', noDriver:'No driver assigned', noDriverSub:'Assign before the pickup reminder goes out',
     passengerTrip:'Passenger & trip', passengers:'Passengers', bags:'bags', vehicleClass:'Vehicle class', flight:'Flight', email:'Email', mobile:'Mobile', payment:'Payment', payLink:'Pay-link', session:'Session',
     fare:'Fare', due:'Due', paid:'Paid', fareNote:'Price snapshot taken at booking; later rule changes do not alter it.',
     outstandingTitle:'Payment outstanding', outstandingBody:'No card capture yet. Send a pay-link or wait for the checkout session to finish.',
-    sendPayLink:'Send pay-link', takeCard:'Take card', payCard:'Pay', payLinkSent:'Pay-link sent to ', payLinkFailed:'Could not send pay-link ', cardFailed:'Card failed ',
+    sendPayLink:'Send pay-link', takeCard:'Take card', openStripe:'Open Stripe payment page', copyPayLink:'Copy payment link', payLinkCopied:'Payment link copied', payLinkSent:'Pay-link sent to ', payLinkFailed:'Could not send pay-link ', cardFailed:'Card failed ',
     refundTitle:'Refund due', refundBody:'Cancelled inside the free window. The customer is emailed that a refund will be issued to their bank account. When you mark it issued, they get a second email.',
     refundedTitle:'Refund issued', refundedBody:'The customer has been emailed that the refund was issued to their bank account.',
     resendVoucher:'Resend voucher', editBooking:'Edit booking', cancelBooking:'Cancel', action:'Action', complete:'Complete', noShow:'No-show', markArrival:'Mark arrival', arrived:'Arrived', extraWait:'Extra wait', arrivalFailed:'Could not mark arrival ', driver:'Driver', manualNote:'Assignment is manual in V1 — there is no driver app and no automatic dispatch.', cancel:'Cancel',
@@ -600,7 +583,7 @@ const T = {
     website:'Website', stripeWebhook:'Stripe-Webhook', resend:'Resend', dispatch:'Dispatch',
     lineTransfer:'Transfer, ', lineAirportFee:'Flughafengebühr',
     coupon:'Gutschein', extras:'Extras', vat:'MwSt.', included:'Inklusive',
-    sendPayLink:'Zahlungslink senden', takeCard:'Karte erfassen', payCard:'Zahlen',
+    sendPayLink:'Zahlungslink senden', takeCard:'Karte erfassen', openStripe:'Stripe-Zahlungsseite öffnen', copyPayLink:'Zahlungslink kopieren', payLinkCopied:'Zahlungslink kopiert',
     payLinkSent:'Zahlungslink gesendet an ', payLinkFailed:'Zahlungslink konnte nicht gesendet werden ', cardFailed:'Karte fehlgeschlagen ',
     evQuoted:'Angebot gespeichert', evCreated:'Buchung erstellt', evPayStarted:'Zahlung gestartet', evStatus:'Status geändert',
     noCoupon:'Keiner', noExtras:'Keine', noFlight:'Keiner', unassigned:'Nicht zugewiesen', dropUnknown:'Nicht gespeichert', minutes:' Min.',
@@ -660,7 +643,7 @@ const T = {
     passengers:'Passagers', bags:'bagages', vehicleClass:'Classe du véhicule', flight:'Vol', email:'E-mail', mobile:'Mobile', payment:'Paiement', payLink:'Lien de paiement', session:'Session',
     fare:'Tarif', due:'Dû', paid:'Payé', fareNote:'Prix figé au moment de la réservation ; les changements de tarif ultérieurs ne le modifient pas.',
     outstandingTitle:'Paiement en attente', outstandingBody:'Aucune carte encore débitée. Envoyez un lien de paiement ou attendez la fin de la session de paiement.',
-    sendPayLink:'Envoyer le lien de paiement', takeCard:'Encaisser par carte', payCard:'Payer', payLinkSent:'Lien de paiement envoyé à ', payLinkFailed:'Impossible d’envoyer le lien de paiement ', cardFailed:'Échec de la carte ',
+    sendPayLink:'Envoyer le lien de paiement', takeCard:'Encaisser par carte', openStripe:'Ouvrir la page de paiement Stripe', copyPayLink:'Copier le lien de paiement', payLinkCopied:'Lien de paiement copié', payLinkSent:'Lien de paiement envoyé à ', payLinkFailed:'Impossible d’envoyer le lien de paiement ', cardFailed:'Échec de la carte ',
     refundTitle:'Remboursement dû', refundBody:'Annulée dans le délai gratuit. Le client reçoit un e-mail indiquant qu’un remboursement sera versé sur son compte bancaire. Quand vous le marquez comme versé, il reçoit un second e-mail.',
     refundedTitle:'Remboursement versé', refundedBody:'Le client a reçu un e-mail confirmant que le remboursement a été versé sur son compte bancaire.',
     resendVoucher:'Renvoyer le bon', editBooking:'Modifier la réservation', cancelBooking:'Annuler', noShow:'Absence', driver:'Chauffeur', manualNote:'L’assignation est manuelle en V1 — il n’y a pas d’application chauffeur ni de répartition automatique.', cancel:'Annuler',
@@ -709,7 +692,7 @@ const T = {
     passengers:'الركاب', bags:'حقائب', vehicleClass:'فئة المركبة', flight:'الرحلة الجوية', email:'البريد الإلكتروني', mobile:'الجوال', payment:'الدفع', payLink:'رابط الدفع', session:'الجلسة',
     fare:'الأجرة', due:'مستحق', paid:'مدفوع', fareNote:'السعر مثبّت عند الحجز؛ تغييرات القواعد لاحقاً لا تُغيّره.',
     outstandingTitle:'الدفع معلّق', outstandingBody:'لم تُحصَّل بطاقة بعد. أرسل رابط دفع أو انتظر انتهاء جلسة الدفع.',
-    sendPayLink:'إرسال رابط الدفع', takeCard:'تحصيل بطاقة', payCard:'دفع', payLinkSent:'أُرسل رابط الدفع إلى ', payLinkFailed:'تعذّر إرسال رابط الدفع ', cardFailed:'فشلت البطاقة ',
+    sendPayLink:'إرسال رابط الدفع', takeCard:'تحصيل بطاقة', openStripe:'فتح صفحة الدفع على Stripe', copyPayLink:'نسخ رابط الدفع', payLinkCopied:'تم نسخ رابط الدفع', payLinkSent:'أُرسل رابط الدفع إلى ', payLinkFailed:'تعذّر إرسال رابط الدفع ', cardFailed:'فشلت البطاقة ',
     refundTitle:'استرداد مستحق', refundBody:'أُلغيت ضمن نافذة الإلغاء المجانية. يُرسَل للعميل بريد إلكتروني بأن الاسترداد سيُحوَّل إلى حسابه المصرفي. عند تحديده كمُحوَّل، يصله بريد إلكتروني ثانٍ.',
     refundedTitle:'تم الاسترداد', refundedBody:'تلقّى العميل بريداً إلكترونياً يؤكد تحويل الاسترداد إلى حسابه المصرفي.',
     resendVoucher:'إعادة إرسال القسيمة', editBooking:'تعديل الحجز', cancelBooking:'إلغاء', noShow:'عدم الحضور', driver:'السائق', manualNote:'التعيين يدوي في الإصدار الأول — لا يوجد تطبيق للسائق ولا توزيع تلقائي.', cancel:'إلغاء',
@@ -727,7 +710,7 @@ const T = {
   },
 };
 class Component extends DCLogic {
-  state = { lang: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en', dialogOpen:false, cancelOpen:false, pickDriver:'', toastMsg:'', showToast:false, editing:false, edit:{}, takeCardOpen:false, historyOpen:false,
+  state = { lang: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en', dialogOpen:false, cancelOpen:false, pickDriver:'', toastMsg:'', showToast:false, editing:false, edit:{}, historyOpen:false,
     // 26.1-18 refund review (UI-SPEC §4): percentage starts empty, never 100.
     percentText: '', percentFor:'', refundBusy:'', refundFailFor:'', refundRetryBody:null, requestedFor:'', declineOpen:false, rejectOpen:false };
   toggleHistory = () => this.setState((s) => ({ historyOpen: !s.historyOpen }));
@@ -772,6 +755,19 @@ class Component extends DCLogic {
     return found || EMPTY_BOOKING;
   }
   notify = (msg) => { this.setState({ toastMsg: msg, showToast: true }); clearTimeout(this._t); this._t = setTimeout(() => this.setState({ showToast: false }), 3600); };
+  // Opens Stripe's hosted page for this booking in a new tab. The tab is opened on the click
+  // (before the request) so the popup blocker allows it, then pointed at the returned URL.
+  openStripePage = (route, booking, failText) => {
+    const id = booking.bookingId || booking.id;
+    const client = window.VamosOpsApi;
+    if (!client || typeof client.request !== 'function') { this.notify(failText + id); return; }
+    const tab = window.open('about:blank', '_blank');
+    client.request('POST', '/api/staff/bookings/' + encodeURIComponent(id) + '/' + route, {}).then((json) => {
+      const url = json && json.ok && json.data && json.data.url;
+      if (!url) { if (tab) tab.close(); this.notify(failText + id); return; }
+      if (tab) { tab.opener = null; tab.location.href = url; } else window.open(url, '_blank', 'noopener');
+    }, () => { if (tab) tab.close(); this.notify(failText + id); });
+  };
   setEditField = (key) => (e) => {
     const value = e && e.target ? e.target.value : e;
     this.setState((s) => ({ edit: Object.assign({}, s.edit, { [key]: value }) }));
@@ -1026,7 +1022,7 @@ class Component extends DCLogic {
       },
       tOutstandingTitle: t.outstandingTitle, tOutstandingBody: t.outstandingBody, tRefundTitle: t.refundTitle, tRefundBody: t.refundBody,
       tRefundedTitle: t.refundedTitle, tRefundedBody: t.refundedBody,
-      tSendPayLink: t.sendPayLink, tTakeCard: t.takeCard, tPayCard: t.payCard, takeCardOpen: !!this.state.takeCardOpen,
+      tSendPayLink: t.sendPayLink, tTakeCard: t.takeCard, tOpenStripe: t.openStripe, tCopyPayLink: t.copyPayLink, hasExtraPay: !!booking.pendingEditExtraSessionId,
       tResendVoucher: t.resendVoucher, tEditBooking: t.editBooking, tCancelBooking: t.cancelBooking,
       tComplete: t.complete, tNoShow: t.noShow, tMarkArrival: t.markArrival, tAction: t.action,
       canMarkArrival: !frozen && !booking.arrivedAt,
@@ -1320,53 +1316,18 @@ class Component extends DCLogic {
           this.notify(t.payLinkFailed + id);
         });
       },
-      openTakeCard: () => {
+      // D-48: no card form of ours. Stripe's hosted page opens in a new tab; staff type the card there.
+      openTakeCard: () => this.openStripePage('take-card', booking, t.cardFailed),
+      openExtraPay: () => this.openStripePage('extra-pay', booking, t.cardFailed),
+      copyExtraPay: () => {
         const id = booking.bookingId || booking.id;
         const client = window.VamosOpsApi;
-        if (!client || typeof client.request !== 'function') {
-          this.notify(t.cardFailed + id);
-          return;
-        }
-        client.request('POST', '/api/staff/bookings/' + encodeURIComponent(id) + '/pay-link', { send: false }).then((json) => {
-          const data = json && json.data;
-          if (!json || !json.ok || !data || !data.client_secret_hex || !data.publishable_key) {
-            this.notify(t.cardFailed + id);
-            return;
-          }
-          const secret = hexToUtf8(data.client_secret_hex);
-          this.setState({ takeCardOpen: true }, () => {
-            loadStripeJs().then((Stripe) => {
-              const root = document.getElementById('ops-stripe-el');
-              if (!root || !secret) return;
-              root.innerHTML = '';
-              this._stripe = Stripe(data.publishable_key);
-              this._elements = this._stripe.elements({ clientSecret: secret });
-              const payment = this._elements.create('payment');
-              payment.mount(root);
-            }).catch(() => this.notify(t.cardFailed + id));
-          });
+        if (!client || typeof client.request !== 'function') { this.notify(t.cardFailed + id); return; }
+        client.request('POST', '/api/staff/bookings/' + encodeURIComponent(id) + '/extra-pay', {}).then((json) => {
+          const url = json && json.ok && json.data && json.data.url;
+          if (!url || !navigator.clipboard) { this.notify(t.cardFailed + id); return; }
+          navigator.clipboard.writeText(url).then(() => this.notify(t.payLinkCopied), () => this.notify(t.cardFailed + id));
         });
-      },
-      confirmCard: () => {
-        const id = booking.bookingId || booking.id;
-        const ops = window.VamosOps;
-        if (!this._stripe || !this._elements) {
-          this.notify(t.cardFailed + id);
-          return;
-        }
-        this._stripe.confirmPayment({
-          elements: this._elements,
-          confirmParams: { return_url: location.href },
-          redirect: 'if_required',
-        }).then((result) => {
-          if (result.error) {
-            this.notify(t.cardFailed + (result.error.message || id));
-            return;
-          }
-          if (ops) ops.bookings.reset();
-          this.setState({ takeCardOpen: false });
-          this.notify(t.evPayment + ' ' + id);
-        }).catch(() => this.notify(t.cardFailed + id));
       },
       dialogOpen: this.state.dialogOpen, tAssignDriver: t.assign, dialogSubtitle: booking.id + ' · ' + booking.time + ' · ' + booking.vehicle,
       closeDialog: () => this.setState({ dialogOpen: false }),

@@ -132,13 +132,14 @@ describe("staff invite origin", () => {
 });
 
 describe("pay-link open cache", () => {
-  it("client_secret JSON sends private no-store", () => {
+  it("hosted-url JSON sends private no-store", () => {
     const src = readFileSync(
       join(dirname(fileURLToPath(import.meta.url)), "../../app/api/checkout/pay-link/open/route.ts"),
       "utf8",
     );
     expect(src).toContain('cache-control": "private, no-store"');
-    expect(src.match(/headers: PAY_JSON/g)?.length).toBeGreaterThanOrEqual(3);
+    expect(src.match(/headers: PAY_JSON/g)?.length).toBeGreaterThanOrEqual(2);
+    expect(src).not.toContain("client_secret");
   });
 });
 

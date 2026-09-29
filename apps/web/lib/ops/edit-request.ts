@@ -16,13 +16,14 @@ import {
   createRefund,
   expireCheckoutSession,
   retrieveCheckoutSession,
-  sessionIsPayable,
+  hostedSessionIsPayable,
   stripeFromEnv,
 } from "@/lib/checkout/stripe";
 import type { CheckoutLocale } from "@/lib/checkout/currency";
 import { verifyLock } from "@/lib/quote/lock";
 import { zurichLocalToUtcMs } from "../geo/serviceArea";
 import { PUBLIC_SITE_ORIGIN } from "./phone-booking-map";
+import { stripeCheckoutReturnUrl } from "@/lib/checkout/return-url";
 import {
   extraCheckoutMetadata,
   fareDifferenceRappen,
@@ -35,6 +36,8 @@ import { deliverOverlapMustFix } from "./must-fix-mail";
 
 export type { AcceptOutcome, EditPayload } from "./edit-request-map";
 export { extraCheckoutMetadata, fareDifferenceRappen, mapEditSqlError, shouldExpireOldExtraSession };
+
+export const DASHBOARD_ORIGIN = "https://dashboard.vamostaxi.site";
 
 export type EditAcceptOk = {
   ok: true;
@@ -108,6 +111,7 @@ export async function acceptPaidEdit(
   claims: VamosClaims,
   bookingKey: string,
   input: AcceptPaidEditInput,
+  dashboardOrigin: string = DASHBOARD_ORIGIN,
 ): Promise<EditAcceptResult> {
   const key = bookingKey.trim();
   if (!key) return { ok: false, code: "not-found" };
@@ -333,7 +337,7 @@ export async function acceptPaidEdit(
   if (oldSessionId && !shouldExpireOldExtraSession(oldExtraTotal, difference)) {
     try {
       const existing = await retrieveCheckoutSession(stripe, oldSessionId);
-      if (sessionIsPayable(existing, difference)) {
+      if (hostedSessionIsPayable(existing, difference)) {
         reuseSessionId = oldSessionId;
       }
     } catch {
@@ -376,8 +380,11 @@ export async function acceptPaidEdit(
         locale,
         idempotencyKey: `extra:${accepted.request_id}:${difference}`,
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-        uiMode: "elements",
-        returnUrl: `${PUBLIC_SITE_ORIGIN}/confirmation/${encodeURIComponent(reference)}`,
+        // D-48: Stripe's hosted page, no card form of ours. Paid returns through
+        // the settle route to the confirmation; Back returns to the ops booking.
+        uiMode: "hosted_page",
+        successUrl: stripeCheckoutReturnUrl(PUBLIC_SITE_ORIGIN, locale),
+        cancelUrl: `${dashboardOrigin.replace(/\/$/, "")}/bookings/${encodeURIComponent(reference)}`,
         productName: "Fare difference",
         extra: { extraId: meta.extra_id },
       });
@@ -772,4 +779,52 @@ export async function writeCustomerFlightNo(
   } catch (err) {
     return mapEditSqlError(err);
   }
+}
+
+export type StaffExtraPayOk = { ok: true; bookingId: string; url: string };
+
+/**
+ * D-48: the Stripe-hosted URL of the open extra-fare (difference) session of
+ * this booking's requested edit. The dashboard opens or copies it. Read-only:
+ * no session is created here, and a session that is not open, not kind=extra
+ * or has no url answers session-expired.
+ */
+export async function staffExtraPayUrl(
+  env: CloudflareEnv,
+  bookingKey: string,
+): Promise<StaffExtraPayOk | EditAcceptFail> {
+  const key = bookingKey.trim();
+  if (!key) return { ok: false, code: "not-found" };
+  const row = await asSystem(env, async (sql) => {
+    const rows = await sql<{ booking_id: string; extra_session_id: string | null }[]>`
+      select b.id as booking_id, r.extra_session_id
+        from public.bookings b
+        left join lateral (
+          select er.extra_session_id
+            from public.booking_edit_requests er
+           where er.booking_id = b.id and er.status = 'requested'
+           order by er.created_at desc
+           limit 1
+        ) r on true
+       where b.erased_at is null
+         and (b.id::text = ${key} or b.reference = ${key})
+       limit 1
+    `;
+    return rows[0] ?? null;
+  });
+  if (!row) return { ok: false, code: "not-found" };
+  if (!row.extra_session_id) return { ok: false, code: "no-session" };
+  const stored = await retrieveCheckoutSession(stripeFromEnv(env), row.extra_session_id).catch(
+    () => null,
+  );
+  if (
+    !stored ||
+    !stored.url ||
+    stored.status !== "open" ||
+    stored.metadata?.kind !== "extra" ||
+    stored.metadata?.booking_id !== String(row.booking_id)
+  ) {
+    return { ok: false, code: "session-expired" };
+  }
+  return { ok: true, bookingId: String(row.booking_id), url: stored.url };
 }

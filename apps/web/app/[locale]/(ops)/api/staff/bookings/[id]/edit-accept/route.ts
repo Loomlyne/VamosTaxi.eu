@@ -4,7 +4,7 @@
 // Dual-mounted at app/api/staff/bookings/[id]/edit-accept.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { acceptPaidEdit, notifyTimeChangeOutcome, pendingEditHasTimeChange } from "@/lib/ops/edit-request";
+import { DASHBOARD_ORIGIN, acceptPaidEdit, notifyTimeChangeOutcome, pendingEditHasTimeChange } from "@/lib/ops/edit-request";
 import { failStatus } from "@/lib/ops/edit-request-map";
 import { jsonErr, jsonOk, withStaff } from "@/lib/ops/staff-json";
 
@@ -65,7 +65,7 @@ export const POST = withStaff(async (claims, request) => {
       bags: num(payloadRaw.bags),
       vehicle_class_slug: str(payloadRaw.vehicle_class_slug) ?? str(payloadRaw.klass),
     },
-  });
+  }, request.headers.get("origin") ?? DASHBOARD_ORIGIN);
   if (!result.ok) return jsonErr(result.code, failStatus(result.code));
   if (timeChange && result.outcome === "applied") {
     await notifyTimeChangeOutcome(env, result.bookingId, "confirmed");

@@ -9,21 +9,12 @@ import { z } from "zod";
 import { asCheckout } from "@/lib/db/identity";
 import { refuse } from "@/lib/checkout/errors";
 import { hashRawToken } from "@/lib/checkout/manage-token";
-import { attachPayment } from "@/lib/checkout/attach-payment";
-import { loadOpenPayment } from "@/lib/checkout/load-open-payment";
 import { payLinkPath } from "@/lib/checkout/pay-link";
 import { payLinkSessionId, resolvePayLinkRefusal } from "@/lib/checkout/pay-link-state";
 import { stripeAccountIsLegacyUaeTest } from "@/lib/checkout/charge-gate";
 import { stripeCheckoutReturnUrl } from "@/lib/checkout/return-url";
 import { publicSiteOrigin, csrfForbidden } from "@/lib/security/origin";
-import {
-  checkoutPaymentIntentId,
-  createCheckoutSession,
-  retrieveCheckoutSession,
-  checkoutPaymentMethodTypes,
-  hostedSessionIsPayable,
-  stripeFromEnv,
-} from "@/lib/checkout/stripe";
+import { openHostedPayLinkSession } from "@/lib/checkout/pay-link-hosted-session";
 import { CHARGE_CURRENCY, type CheckoutLocale } from "@/lib/checkout/currency";
 
 export const dynamic = "force-dynamic";
@@ -167,63 +158,18 @@ export async function POST(request: Request) {
       ? row.snapshot_expires_at
       : new Date(String(row.snapshot_expires_at));
   const payerEmail = String(row.payer_email ?? row.contact_email ?? "");
-  const stripe = stripeFromEnv(env);
-
-  const existing = await asCheckout(env, null, (sql) => loadOpenPayment(sql, quoteId));
-  if (existing) {
-    const stored = await retrieveCheckoutSession(stripe, existing.stripe_checkout_session_id).catch(
-      () => null,
-    );
-    if (hostedSessionIsPayable(stored, charged) && stored.url) {
-      return Response.json(openHostedJson(row, { id: stored.id, url: stored.url }, charged), { headers: PAY_JSON });
-    }
-  }
-
-  const session = await createCheckoutSession(stripe, {
-    chargedRappen: charged,
+  const opened = await openHostedPayLinkSession(env, {
     bookingId,
-    bookingReference: reference,
-    customerEmail: payerEmail,
+    quoteId,
+    reference,
+    payerEmail,
     locale,
-    idempotencyKey: `paylink:${reference}:${Math.floor(expiresAt.getTime() / 1000)}`,
+    charged,
     expiresAt,
-    uiMode: "hosted_page",
     // D-46: pays on Stripe's page; Back returns to this same pay-link page.
     successUrl: stripeCheckoutReturnUrl(origin, locale),
     cancelUrl: `${origin.replace(/\/$/, "")}${payLinkPath(locale, token)}`,
-    twint: checkoutPaymentMethodTypes(env).includes("twint"),
-    productName: `Vamos Taxi ${reference}`,
   });
-
-  const pi = checkoutPaymentIntentId(session);
-  if (!session.url) return refuse("invalid_request");
-
-  try {
-    await asCheckout(env, null, (sql) =>
-      attachPayment(sql, {
-        quoteId,
-        stripePaymentIntentId: pi,
-        stripeCheckoutSessionId: session.id,
-        chargedRappen: charged,
-      }),
-    );
-  } catch (err) {
-    const state = sqlState(err);
-    if (state === "23001" || state === "23505") {
-      const open = await asCheckout(env, null, (sql) => loadOpenPayment(sql, quoteId));
-      if (open) {
-        const stored = await retrieveCheckoutSession(stripe, open.stripe_checkout_session_id).catch(
-          () => null,
-        );
-        if (hostedSessionIsPayable(stored, charged) && stored.url) {
-          return Response.json(openHostedJson(row, { id: stored.id, url: stored.url }, charged), { headers: PAY_JSON });
-        }
-      }
-      return refuse("quote_already_booked");
-    }
-    if (state === "23P01") return refuse("quote_expired");
-    throw err;
-  }
-
-  return Response.json(openHostedJson(row, { id: session.id, url: session.url }, charged), { headers: PAY_JSON });
+  if (!opened.ok) return opened.response;
+  return Response.json(openHostedJson(row, opened.session, charged), { headers: PAY_JSON });
 }
