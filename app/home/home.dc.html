@@ -277,6 +277,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 #book [data-box] [data-vtcombo] input{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #book [data-bx=when] .sc-host>div>span:first-child{margin:0}
 #book [data-bx-err]{display:block;margin-block-start:6px;font-size:var(--vt-body-sm);line-height:1.4;color:var(--vt-danger)}
+#book [data-bx-kicker-row]{display:flex;align-items:baseline;justify-content:space-between;gap:8px}#book [data-bx-opt]{font-weight:400;text-transform:none;letter-spacing:0;color:var(--vt-text-secondary)}
 #book [data-bx-hint]{display:block;margin-block-start:6px;font-size:var(--vt-body-sm);line-height:1.4;color:var(--vt-text-secondary)}
 #book [data-bx=flight]{animation:vt-fade-in 140ms ease both}
 #book [data-bx=swap]{display:flex;align-items:center;justify-content:center;z-index:2}
@@ -370,10 +371,10 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </div>
 <sc-if value="{{ showFlight }}" hint-placeholder-val="{{ false }}">
 <div data-bx="flight" data-om-label="Flight">
-<span data-bx-kicker="1">Flight number</span>
+<span data-bx-kicker="1" data-bx-kicker-row="1">Flight number<sc-if value="{{ flightOptional }}" hint-placeholder-val="{{ false }}"><span data-bx-opt="1">Optional</span></sc-if></span>
 <div data-vtcombo="1" data-on="{{ flightOn }}" data-err="{{ flightErrAttr }}">
-<span data-combo-tile="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="plane-landing" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
-<input type="text" class="vt-dir-keep" dir="ltr" aria-label="Flight number" aria-required="true" aria-invalid="{{ flightErrAttr }}" autocomplete="off" spellcheck="false" autocapitalize="characters" maxlength="8" value="{{ fno }}" placeholder="LX 318" onChange="{{ setFno }}" onFocus="{{ focusFno }}" onBlur="{{ blurFno }}">
+<span data-combo-tile="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ flightIcon }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
+<input type="text" class="vt-dir-keep" dir="ltr" aria-label="Flight number" aria-required="{{ flightReq }}" aria-invalid="{{ flightErrAttr }}" autocomplete="off" spellcheck="false" autocapitalize="characters" maxlength="8" value="{{ fno }}" placeholder="LX 318" onChange="{{ setFno }}" onFocus="{{ focusFno }}" onBlur="{{ blurFno }}">
 </div>
 <sc-if value="{{ ferr }}" hint-placeholder-val="{{ false }}">
 <span role="alert" data-bx-err="1">{{ ferr }}</span>
@@ -381,6 +382,14 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <sc-if value="{{ fhint }}" hint-placeholder-val="{{ true }}">
 <span data-bx-hint="1">We track it and move the pickup if you land late</span>
 </sc-if>
+<sc-if value="{{ fhintOpt }}" hint-placeholder-val="{{ false }}">
+<span data-bx-hint="1">It does not change the price.</span>
+</sc-if>
+</div>
+</sc-if>
+<sc-if value="{{ showFlightOpener }}" hint-placeholder-val="{{ false }}">
+<div data-bx="flight" data-om-label="Add flight">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" size="md" icon="plus" onClick="{{ openFlight }}" hint-size="100%,44px">Add a flight number</x-import>
 </div>
 </sc-if>
 <div data-bx="to" data-sugroot="1" data-book-field="dest" data-om-label="To">
@@ -1116,7 +1125,7 @@ class Component extends DCLogic {
       fleetOffer: [],
       tier: TIER(), menuOpen: false, sheetOpen: false,
       flightConfirmed: false, flightDateChoice: 'today', pendingTimeUpdate: null,
-      fno: '', errs: { pickup: '', dest: '', when: '', flight: '' }, travOpen: false,
+      fno: '', flightOpen: false, errs: { pickup: '', dest: '', when: '', flight: '' }, travOpen: false,
       focused: { pickup: false, dest: false, when: false, flight: false },
       revert: { pickup: null, dest: null, when: null },
       capacityMoveNote: null,
@@ -1972,6 +1981,8 @@ class Component extends DCLogic {
   /** Upper-case, single spaces, only the characters a flight number can hold. */
   normFlight(raw) { return String(raw || '').toUpperCase().replace(/[^A-Z0-9 ]/g, '').replace(/\s+/g, ' ').replace(/^ /, '').slice(0, 8); }
   setFno = (e) => { const v = this.normFlight(e && e.target ? e.target.value : ''); this.setState((s) => ({ fno: v, errs: Object.assign({}, s.errs, { flight: '' }) })); };
+  /** D-09: a non-airport pickup may carry a flight; the field opens on demand and never changes the price. */
+  openFlight = () => this.setState({ flightOpen: true }, () => { const i = this._box && this._box.querySelector('[data-bx="flight"] input'); if (i) { try { i.focus(); } catch (err) {} } });
   focusFno = () => this.setState((s) => ({ focused: Object.assign({}, s.focused, { flight: true }) }));
   blurFno = () => this.setState((s) => ({ focused: Object.assign({}, s.focused, { flight: false }) }));
   /** The server resolves the airport from the mapbox_id; home only asks /api/geo/retrieve for the pickup. */
@@ -1994,10 +2005,6 @@ class Component extends DCLogic {
           return { pickupLoc: next };
         });
       });
-  }
-  componentDidUpdate() {
-    const s = this.state;
-    if (!this.pickupAir() && (s.fno || (s.errs && s.errs.flight))) this.setState((st) => ({ fno: '', errs: Object.assign({}, st.errs, { flight: '' }) }));
   }
   isPhoneBox() { return typeof matchMedia !== 'undefined' && matchMedia('(max-width:680px)').matches; }
   openTrav = () => {
@@ -2033,10 +2040,8 @@ class Component extends DCLogic {
     else if (pl && ((pl.mapbox_id && pl.mapbox_id === dl.mapbox_id) || pText.toLowerCase() === dText.toLowerCase())) errs.dest = 'Pickup and drop-off are the same place';
     const air = this.pickupAir();
     const fl = String(s.fno || '').trim();
-    if (air) {
-      if (!fl) errs.flight = 'Enter the flight number';
-      else if (!FLIGHT_RE.test(fl)) errs.flight = 'Check the flight number';
-    }
+    if (air && !fl) errs.flight = 'Enter the flight number';
+    else if (fl && !FLIGHT_RE.test(fl)) errs.flight = 'Check the flight number';
     let when = '';
     if (s.day == null || s.dayY == null || s.dayM == null || !/^\d{2}:\d{2}$/.test(s.time || '')) errs.when = 'Choose a pickup time';
     else {
@@ -2057,7 +2062,7 @@ class Component extends DCLogic {
     p.set('when', when);
     p.set('pax', String(Math.min(8, Math.max(1, parseInt(s.pax, 10) || 1))));
     p.set('bags', String(Math.min(16, Math.max(0, parseInt(s.bags, 10) || 0))));
-    if (air) p.set('flight', fl);
+    if (fl) p.set('flight', fl);
     const prefix = (s.lang === 'de' || s.lang === 'fr' || s.lang === 'ar') ? '/' + s.lang : '';
     this.setState({ errs: errs });
     location.assign(prefix + '/checkout?' + p.toString());
@@ -2071,6 +2076,8 @@ class Component extends DCLogic {
     const sugRows = this.sugRowsList();
     const sugHasHits = sugRows.some((r) => r.row);
     const air = this.pickupAir();
+    const showFlightField = air || (!!s.pickupLoc && (!!s.flightOpen || !!s.fno));
+    const showOpener = !!s.pickupLoc && !showFlightField;
     const paxN = Math.min(8, Math.max(1, parseInt(s.pax, 10) || 1));
     const bagsN = Math.min(16, Math.max(0, parseInt(s.bags, 10) || 0));
     const e = s.errs || {};
@@ -2096,7 +2103,7 @@ class Component extends DCLogic {
       tClear: t.clear || 'Clear', tSave: t.save || 'Save',
       pickupErr: e.pickup || '', destErr: e.dest || '', whenErr: e.when || '', ferr: e.flight || '',
       pickupErrAttr: e.pickup ? 'true' : 'false', destErrAttr: e.dest ? 'true' : 'false', flightErrAttr: e.flight ? 'true' : 'false',
-      showFlight: air, fno: s.fno || '', setFno: this.setFno, focusFno: this.focusFno, blurFno: this.blurFno, fhint: !e.flight,
+      showFlight: showFlightField, flightOptional: !air, flightReq: air ? 'true' : 'false', flightIcon: air ? 'plane-landing' : 'plane', fhintOpt: !air && !e.flight, showFlightOpener: showOpener, openFlight: this.openFlight, fno: s.fno || '', setFno: this.setFno, focusFno: this.focusFno, blurFno: this.blurFno, fhint: air && !e.flight,
       swap: this.swap,
       date: dateStr, day: s.day, setDay: this.setDay, time: s.time, setTime: this.setTime, timeSlots: slots, tWhenPh: t.whenPh, baseMonth: zurichYm(),
       tGroups: [t.morning, t.afternoon, t.evening], tPickupTime: t.pickupTime, tSaved: t.saved,

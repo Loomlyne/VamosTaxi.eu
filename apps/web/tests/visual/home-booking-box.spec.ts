@@ -109,20 +109,42 @@ test.describe("Home booking box @component", () => {
     }
   });
 
-  test("a street pickup hides Flight and drops its value @component", async ({ page }) => {
+  test("a street pickup offers an optional flight and keeps a typed value @component", async ({ page }) => {
     await openHome(page);
+    await expect(page.getByRole("button", { name: "Add a flight number" })).toHaveCount(0);
     await pickFrom(page, "Fixture Air", "Fixture Airport");
     const flight = page.getByRole("textbox", { name: "Flight number" });
     await flight.fill("lx  318");
     await expect(flight).toHaveValue("LX 318");
     await page.getByRole("combobox", { name: "From", exact: true }).fill("Fixture Street");
     await page.getByRole("option", { name: /Fixture Street 1/ }).click();
-    await expect(page.locator('[data-bx="flight"]')).toHaveCount(0);
-    // Back to an airport: the field is empty again.
-    await pickFrom(page, "Fixture Air", "Fixture Airport");
-    await expect(page.getByRole("textbox", { name: "Flight number" })).toHaveValue("");
+    // The typed flight stays, now optional.
+    await expect(page.getByRole("textbox", { name: "Flight number" })).toHaveValue("LX 318");
+    await expect(page.locator('[data-bx="flight"]').getByText("Optional")).toBeVisible();
+    await expect(page.getByText("It does not change the price.")).toBeVisible();
   });
 
+  test("a street pickup shows the opener, then an optional flight that must be valid @component", async ({ page }) => {
+    await page.route("**/checkout?**", (route) =>
+      route.fulfill({ status: 200, contentType: "text/html", body: "<html><body>checkout</body></html>" }),
+    );
+    await openHome(page);
+    await pickFrom(page, "Fixture Street", "Fixture Street 1");
+    await expect(page.getByRole("textbox", { name: "Flight number" })).toHaveCount(0);
+    await page.getByRole("button", { name: "Add a flight number" }).click();
+    const flight = page.getByRole("textbox", { name: "Flight number" });
+    await expect(flight).toBeFocused();
+    await expect(page.locator('[data-bx="flight"]').getByText("Optional")).toBeVisible();
+    await pickTo(page, "Fixture Air", "Fixture Airport");
+    await pickWhen(page);
+    await flight.fill("X");
+    await page.getByRole("button", { name: /See prices/i }).click();
+    await expect(page.getByRole("alert").filter({ hasText: "Check the flight number" })).toBeVisible();
+    await flight.fill("LX318");
+    const nav = page.waitForRequest((r) => r.isNavigationRequest() && /\/checkout\?/.test(r.url()));
+    await page.getByRole("button", { name: /See prices/i }).click();
+    expect(new URL((await nav).url()).searchParams.get("flight")).toBe("LX318");
+  });
   test("Travellers is one 54px button with Passengers and Bags counters @component", async ({ page }) => {
     await openHome(page);
     const btn = page.locator("[data-trav-btn]");
@@ -227,6 +249,28 @@ test.describe("Home booking box @component", () => {
     const w = await page.evaluate(() => ({ sw: document.scrollingElement!.scrollWidth, iw: window.innerWidth }));
     expect(w.sw).toBeLessThanOrEqual(w.iw);
   });
+
+  for (const lang of ["de", "fr", "ar"] as const) {
+    test(`the optional flight opener and field resolve in ${lang} @component`, async ({ page }) => {
+      await openHome(page);
+      await pickFrom(page, "Fixture Street", "Fixture Street 1");
+      const cov = () =>
+        page.evaluate(
+          (l) =>
+            (window as unknown as { VamosLocale: { coverage(root: Element, l: string): unknown } }).VamosLocale.coverage(
+              document.querySelector("#book")!,
+              l,
+            ),
+          lang,
+        );
+      await page.evaluate((l) => (window as unknown as { VamosLocale: { setLang(v: string): void } }).VamosLocale.setLang(l), lang);
+      await page.waitForTimeout(250);
+      expect(await cov()).toMatchObject({ count: 0, strings: [], attrs: [] });
+      await page.locator('[data-bx="flight"] button').click();
+      await page.waitForTimeout(250);
+      expect(await cov()).toMatchObject({ count: 0, strings: [], attrs: [] });
+    });
+  }
 
   for (const lang of ["de", "fr", "ar"] as const) {
     test(`every string in the box resolves in ${lang} @component`, async ({ page }) => {
