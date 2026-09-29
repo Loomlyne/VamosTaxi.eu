@@ -71,12 +71,12 @@ Prompts for the new sessions: `.planning/prompts/`, with shared rules in `00-com
 
 | Job | Folder under `vamos-wt/` | Branch | Hand-off commit | State | Prompt |
 |---|---|---|---|---|---|
-| 26.4.2 booking feedback | `fix-26.4.2` | `fix/26.4.2-booking-feedback` | `4a3d3393` | Unfinished. Last full check on `b5f7234f`; three later commits not re-checked; flight-edit bug not started; main not merged. | `01-finish-26.4.2.md` |
+| 26.4.2 booking feedback | `fix-26.4.2` | `fix/26.4.2-booking-feedback` | `4a3d3393` | **Running** in session "Vamos Taxi 26.4.2 completion" since 03:00. At hand-off: unfinished. Last full check on `b5f7234f`; three later commits not re-checked; flight-edit bug not started; main not merged. | `01-finish-26.4.2.md` |
 | 26.5 account choice | `phase-26.5` | `gsd/phase-26.5-checkout-account` | `a468a692` | **Building** in session "Vamos Taxi build 26.5" since 2026-09-30. Owner signed plans 09, 10, 11 and the D-19 revision (`1de7e39b`). main `49c51749` merged. Migrations: `20261001100000` agreement record, `20261001110000` unpaid hidden, `20261001120000` paid-only reminder. Local stack `vamos-taxi-265`, ports 613xx. Waits for the 26.4.2 ship before it touches `/checkout` files. | `02-build-26.5.md` |
 | 26.0 main green | `main-green-2` | `fix/main-green-2` | `3e19c44f` | Plans 01 to 09 done, 10 half, 11 and 12 open. 14 commits behind main. | `03-finish-26.0.md` |
 | 27 consent record | `phase-27` | `gsd/phase-27-consent-record` | running | Design approved by its checker (run 2). Plan next, then his signature. Session "Meta measurement phases 27-29" keeps running. | none, running |
-| 26.2 audit | `phase-26.2` (new) | `gsd/phase-26.2-audit` (new) | | Started early by the owner. Works only in folders nobody else touches. | `04-phase-26.2-audit.md` |
-| 20 security check | `phase-20` (new) | `gsd/phase-20-security-check` (new) | | Started early. The check runs now; fixes wait for the control session. | `05-phase-20-security.md` |
+| 26.2 audit | `phase-26.2` | `gsd/phase-26.2-audit` | | **Running** in session "Phase 26.2 audit" since 03:00. Works only in folders nobody else touches. | `04-phase-26.2-audit.md` |
+| 20 security check | `phase-20` | `gsd/phase-20-security-check` | | Session "Vamos Taxi security phase". Check 20-06 done (`fb907a9d`): 3 serious, 1 conditional. Fixing F1 and F2 now. | `05-phase-20-security.md` |
 | 19 surge proof | removed | removed | | **Closed by the owner, 2026-09-30** ("no need for test close it"). Nothing committed, nothing created at Cloudflare or Supabase, no paid step. Folder and branch were identical to main `49c51749` and are removed. Read on live by that session: 60 connections allowed, database 24 MB, pg_cron and pg_net not installed. | none |
 
 Legal session: closed by the owner. Both legal ships are live. Its last commit `fe4e37a0`
@@ -168,6 +168,22 @@ Live is at `20260930210000`.
 | `SUPABASE_SERVICE_ROLE_KEY` is on the public Worker (owner decision). Test where it is read and that it never reaches a browser. |
 | `POST /api/checkout/intent` has no limit per visitor (a lead, not confirmed). |
 | Automatic refunds refuse an `sk_live_` key; to be lifted before real launch. Phase 19 is closed; this point stays here. |
+
+## Found by the Phase 20 check, 2026-09-30 03:20, on live Worker `a55b2c19`
+
+Findings file: branch `gsd/phase-20-security-check`, commit `fb907a9d`, `20-06-FINDINGS.md`.
+Reported by that session; not yet re-checked by the control session.
+
+| # | Finding | Weight | Goes to |
+|---|---|---|---|
+| F1 | A staff pay link also opens Manage booking for 24 hours, even after payment: traveller contact, driver phone, cancel, change time. No active pay link exists on live today. | Serious | Phase 20 builds migration `20261005100000`. Lands after 26.5. |
+| F2 | Dashboard support ticket: the PDF preview loads pdf.js from unpkg without a pin; a crafted PDF mailed to info@ could run script in a signed-in dashboard. | Serious | Phase 20 fixes `app/ops/OpsSupportTicket.dc.html` now. 26.2 keeps off the file. |
+| F3 | `POST /api/checkout/intent` has no limit per visitor: unlimited Stripe sessions from one quote. | Serious | 26.5 plan 04 (owns the file). The numbers are an owner question. |
+| F4 | Account reads trust the e-mail in the sign-in without checking it is confirmed. Safe while Supabase "Confirm email" is on. | Conditional | Phase 20 asks the owner to read the switch. |
+| | Service-role key: server-only, never logged or returned. Purge rule: holds. | Dismissed | |
+| | Test booking VT-26-0745 TEST SECURITY, unpaid, left for the hourly clean-up (1 of 10 probes). | | |
+
+Every Phase 20 ship needs the owner's Ship; today's ship mode does not cover it.
 
 ## Owner feedback after the 26.4 ship, 2026-09-30
 
