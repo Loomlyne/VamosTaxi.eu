@@ -1102,16 +1102,17 @@ Plans:
 **Depends on**: sign-in fix (live 2bd05b0a), 26.4.
 **Requirements**: from 26.5-CONTEXT.md
 **UI hint**: yes
-**Plans:** 7 plans (4 waves). Execution waits for the 26.4 + 26.4.1 ship on origin/main, merged into this branch.
+**Plans:** 8 plans (4 waves). Execution waits for the 26.4 + 26.4.1 ship on origin/main, merged into this branch.
 
 Plans:
-- [ ] 26.5-01-PLAN.md — DB: guest-accounts switch (off), append-only account consent table, four definer functions, pgTAP + Worker-client tests (wave 1)
-- [ ] 26.5-02-PLAN.md — AccountChoice + CheckoutSignIn components with every state, gallery, icons, strings in en/de/fr/ar (wave 1)
+- [ ] 26.5-01-PLAN.md — DB: guest-accounts switch (default false, set at ship), append-only checkout_account_records (create = consent, guest = informed), five definer functions, pgTAP + Worker-client tests (wave 1)
+- [ ] 26.5-02-PLAN.md — AccountChoice (Text 1 tick box for create, Text 2 line for guest, verbatim) + CheckoutSignIn, gallery, icons, strings in en/de/fr/ar (wave 1)
 - [ ] 26.5-03-PLAN.md — /api/auth checkout sign-in: no account creation, Turnstile, per-address limit, same answer for every e-mail (wave 1)
-- [ ] 26.5-04-PLAN.md — PAY gate in /api/checkout/intent: switch, consent tick, known-email sign-in link, server-side consent row (wave 2)
-- [ ] 26.5-05-PLAN.md — Account made only after Stripe settles: createUser unconfirmed + account-ready mail (wave 2)
+- [ ] 26.5-08-PLAN.md — Service-role key: one server-only reader, auth-only admin for checkout, source guards, check:public-env sentinel scan (wave 1)
+- [ ] 26.5-04-PLAN.md — PAY gate in /api/checkout/intent: switch, create tick, known-email sign-in link, consent/informed record (wave 2)
+- [ ] 26.5-05-PLAN.md — Account made only after Stripe settles: createUser unconfirmed + finish mails (wave 2)
 - [ ] 26.5-06-PLAN.md — Wire the panel into /checkout section 2, PAY rules, laws test, 4-width visual spec (wave 3)
-- [ ] 26.5-07-PLAN.md — Worker e2e, full check list, HANDOVER + owner UAT phone first (wave 4)
+- [ ] 26.5-07-PLAN.md — Worker e2e, full check list incl. real-bundle key proof, HANDOVER + owner UAT phone first (wave 4)
 
 ### Phase 27: Consent record
 
