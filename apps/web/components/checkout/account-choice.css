@@ -1,0 +1,285 @@
+/* 26.5-02 — AccountChoice and CheckoutSignIn. Tokens only. No glow, no tinted yellow,
+   no yellow in the panel: selection is a 2px charcoal border. Logical properties only.
+   Hooks are [data-*] attributes, never invented class names (CLAUDE.md). */
+
+[data-acct-choice] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--vt-space-4);
+  min-inline-size: 0;
+}
+
+[data-acct-kicker] {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.45;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--vt-text-secondary);
+}
+
+[data-acct-options] {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--vt-space-3);
+}
+
+@media (max-width: 680px) {
+  [data-acct-options] {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* option card */
+[data-acct-option] {
+  position: relative;
+  min-block-size: 72px;
+  padding: var(--vt-space-4);
+  border: 1px solid var(--vt-border-subtle);
+  border-radius: var(--vt-radius-lg);
+  background: var(--vt-bg-surface);
+  box-sizing: border-box;
+  min-inline-size: 0;
+  transition: border-color 140ms, background-color 140ms;
+}
+
+[data-acct-option][data-selected="true"] {
+  /* 2px without shifting content: 1px border + 1px inset ring of the same colour */
+  border-color: var(--vt-charcoal);
+  box-shadow: inset 0 0 0 1px var(--vt-charcoal);
+}
+
+[data-acct-option][data-selected="false"][data-disabled="false"]:hover {
+  border-color: var(--vt-charcoal-700);
+  background: var(--vt-grey-50);
+}
+
+[data-acct-option][data-disabled="false"]:active {
+  transform: translateY(1px);
+}
+
+[data-acct-option]:has(input:focus-visible) {
+  box-shadow: var(--vt-ring);
+}
+
+[data-acct-option][data-selected="true"]:has(input:focus-visible) {
+  box-shadow: inset 0 0 0 1px var(--vt-charcoal), var(--vt-ring);
+}
+
+[data-acct-option][data-disabled="true"] {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+/* the whole card is the click target: stretch the radio label's text over it */
+[data-acct-option] .vt-check {
+  position: static;
+  display: flex;
+  inline-size: 100%;
+}
+
+[data-acct-option] .vt-check--disabled {
+  opacity: 1;
+}
+
+[data-acct-option] .vt-check__text {
+  min-inline-size: 0;
+  gap: var(--vt-space-1);
+}
+
+[data-acct-option] .vt-check__text::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+[data-acct-title] {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--vt-space-2);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+[data-acct-option] .vt-check__desc {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--vt-text-secondary);
+}
+
+/* expansion under the group */
+[data-acct-expansion] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--vt-space-4);
+  min-inline-size: 0;
+  animation: acct-fade 140ms ease-out;
+}
+
+[data-acct-expansion]:empty {
+  display: none;
+}
+
+@keyframes acct-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-acct-expansion] {
+    animation: none;
+  }
+
+  [data-acct-option] {
+    transition: none;
+  }
+}
+
+[data-acct-note] {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--vt-text-secondary);
+}
+
+[data-acct-consent] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--vt-space-2);
+  min-block-size: 44px;
+}
+
+[data-acct-consent] .vt-check {
+  align-items: center;
+  min-block-size: 44px;
+}
+
+[data-acct-consent] a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+[data-acct-error] {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--vt-space-2);
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--vt-danger);
+}
+
+/* ── CheckoutSignIn ──────────────────────────────────────────────────────── */
+[data-acct-signin] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--vt-space-4);
+  min-inline-size: 0;
+}
+
+[data-acct-row] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--vt-space-3);
+}
+
+[data-acct-row] > [data-acct-grow] {
+  flex: 1 1 240px;
+  min-inline-size: 0;
+}
+
+[data-acct-row] > [data-acct-action] {
+  flex: 0 0 auto;
+  min-block-size: 54px;
+  /* sits level with the field, below its 13px label and 6px gap */
+  margin-block-start: calc(var(--vt-label-md) * var(--vt-body-leading) + 6px);
+}
+
+@media (max-width: 680px) {
+  [data-acct-row] > [data-acct-grow],
+  [data-acct-row] > [data-acct-action] {
+    flex: 1 1 100%;
+    inline-size: 100%;
+    margin-block-start: 0;
+  }
+}
+
+[data-acct-link] {
+  appearance: none;
+  align-self: flex-start;
+  min-block-size: 44px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--vt-text-primary);
+  font: inherit;
+  font-size: 13px;
+  text-decoration: underline;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+}
+
+[data-acct-link]:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
+[data-acct-sent-heading] {
+  display: flex;
+  align-items: center;
+  gap: var(--vt-space-2);
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+[data-acct-sent-heading]:focus-visible {
+  box-shadow: var(--vt-ring);
+  border-radius: var(--vt-radius-xs);
+}
+
+[data-acct-body] {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+[data-acct-kicker-small] {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--vt-text-secondary);
+}
+
+[data-acct-ok] {
+  display: flex;
+  align-items: center;
+  gap: var(--vt-space-2);
+  margin: 0;
+  font-size: 13px;
+  color: var(--vt-text-primary);
+}
+
+[data-acct-code] {
+  font-family: var(--vt-font-display);
+  letter-spacing: 0.2em;
+}
+
+/* Arabic joins letters: tracking would break them */
+[dir="rtl"] [data-acct-kicker],
+[dir="rtl"] [data-acct-kicker-small] {
+  letter-spacing: 0;
+  text-transform: none;
+}
