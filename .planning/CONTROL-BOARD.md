@@ -4,7 +4,7 @@ Kept by the control session. One page: what is live, what is being built, what w
 the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 
-**Last update:** 2026-09-30 02:48 (+04)
+**Last update:** 2026-09-30 02:57 (+04)
 
 ## Live now
 
@@ -63,12 +63,26 @@ The follow-up shipped 2026-09-30 01:35 as `e27014c1`: the five answers are built
 | Values live since 2026-09-01 that nobody approved | Left live by his decision, English only in de/fr/ar. Listed in the hand-over, section 6. |
 | Every gap of list C | Stays a labelled gap |
 
-## In work
+## In work (sessions re-cut by the owner, 2026-09-30 02:55)
 
-| Lane | Session | Folder under `vamos-wt/` | Branch | State |
-|---|---|---|---|---|
-| 26.5 account choice before payment | same session | `phase-26.5` | `gsd/phase-26.5-checkout-account` | Discuss, UI-SPEC and 7-plan plan **signed**. Plan revision 2, 8 plans, signed. The build lock is open since the 26.4 ship (2026-09-30 00:20). **Open:** Worker `vamos` has `SUPABASE_URL` but no `SUPABASE_SERVICE_ROLE_KEY` (names read 2026-09-29 23:50). Without it "Create an account" hides itself. Whether that key belongs on the public Worker is an owner decision, see below. |
-| 26.0 main green | Phase 26.0 main green work session | `main-green-2` | `fix/main-green-2` | Plans 01 to 05, 07, 09 done. 06, 08, 10, 11, 12 left. |
+The owner closed the long sessions and starts fresh ones. Each old session committed its work,
+left a `SESSION-HANDOFF.md` on its branch and stopped. Every hand-off commit is archived on GitHub.
+Prompts for the new sessions: `.planning/prompts/`, with shared rules in `00-common-rules.md`.
+
+| Job | Folder under `vamos-wt/` | Branch | Hand-off commit | State | Prompt |
+|---|---|---|---|---|---|
+| 26.4.2 booking feedback | `fix-26.4.2` | `fix/26.4.2-booking-feedback` | `4a3d3393` | Unfinished. Last full check on `b5f7234f`; three later commits not re-checked; flight-edit bug not started; main not merged. | `01-finish-26.4.2.md` |
+| 26.5 account choice | `phase-26.5` | `gsd/phase-26.5-checkout-account` | `a468a692` | Planning only, no code. Plans 09 to 11 and the D-19 revision of 01, 04, 05, 07 need his signature. | `02-build-26.5.md` |
+| 26.0 main green | `main-green-2` | `fix/main-green-2` | `3e19c44f` | Plans 01 to 09 done, 10 half, 11 and 12 open. 14 commits behind main. | `03-finish-26.0.md` |
+| 27 consent record | `phase-27` | `gsd/phase-27-consent-record` | running | Design approved by its checker (run 2). Plan next, then his signature. Session "Meta measurement phases 27-29" keeps running. | none, running |
+| 26.2 audit | `phase-26.2` (new) | `gsd/phase-26.2-audit` (new) | | Started early by the owner. Works only in folders nobody else touches. | `04-phase-26.2-audit.md` |
+| 20 security check | `phase-20` (new) | `gsd/phase-20-security-check` (new) | | Started early. The check runs now; fixes wait for the control session. | `05-phase-20-security.md` |
+| 19 surge proof | `phase-19` (new) | `gsd/phase-19-surge-proof` (new) | | Started early. Owner's paid steps and test switches now; PAY wording and the burst wait for 26.4.2 and 26.5. | `06-phase-19-surge.md` |
+
+Legal session: closed by the owner. Both legal ships are live. Its last commit `fe4e37a0`
+(terms: driver details by e-mail, no SMS; About fleet matches the live classes) was never
+handed over and is **not live**. Archived as `archive/legal-follow-up-fe4e37a0`. It is behind
+main and does not merge cleanly; a session has to redo it on today's main.
 
 ## Ship order (owner, 2026-09-30: booking, payments, account, Meta first)
 
