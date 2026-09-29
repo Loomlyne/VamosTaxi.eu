@@ -4,7 +4,7 @@ Kept by the control session. One page: what is live, what is being built, what w
 the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 
-**Last update:** 2026-09-29 23:50 (+04)
+**Last update:** 2026-09-29 23:55 (+04)
 
 ## Live now
 
@@ -34,8 +34,8 @@ the owner, what comes next. Updated at every ship and every hand-over.
 | Lane | Session | Folder under `vamos-wt/` | Branch | State |
 |---|---|---|---|---|
 | 26.4 phone bar and one form | Phase 26.3 booking flow rebuild | `phase-26.4` | `gsd/phase-26.4-one-form` | **Handed over** at `c069737e`, control check clean (2,436 unit tests, build, no migration, no new setting). **Held by the owner:** ships together with the desktop bar. Archived as tag `archive/branch-gsd-phase-26.4-one-form-c069737e`. |
-| 26.4 follow-up: desktop bar | same session | same | follow-up branch, not cut yet | Owner chose picture 3: the wide bar from before 26.3 without the tabs, order From, flight (airport), To, When, Travellers, SEE PRICES. Ships right after 26.4 with its own short design signature. |
-| 26.5 account choice before payment | same session | `phase-26.5` | `gsd/phase-26.5-checkout-account` | Discuss **signed** (`2d5959bb`). UI-SPEC in work. Build waits until 26.4 has shipped. |
+| 26.4.1 laptop bar | same session | `phase-26.4.1` | `gsd/phase-26.4.1-laptop-bar` | Context, UI-SPEC and plan **signed** (`25d8c9b7`). Picture 3, one row from 1272 px, two rows 1081 to 1271. Plan 01 building, plan 02 is checks and hand-over. Hands over together with 26.4. |
+| 26.5 account choice before payment | same session | `phase-26.5` | `gsd/phase-26.5-checkout-account` | Discuss, UI-SPEC and 7-plan plan **signed**. Build starts only when main contains 26.4 and 26.4.1. **Open:** Worker `vamos` has `SUPABASE_URL` but no `SUPABASE_SERVICE_ROLE_KEY` (names read 2026-09-29 23:50). Without it "Create an account" hides itself. Whether that key belongs on the public Worker is an owner decision, see below. |
 | 26.0 main green | Phase 26.0 main green work session | `main-green-2` | `fix/main-green-2` | Plans 01 to 05, 07, 09 done. 06, 08, 10, 11, 12 left. |
 
 ## Ship order
@@ -66,6 +66,13 @@ One at a time into main. Each later branch takes main in before it hands over.
 | Reminder and resend jobs | Ran hourly since 18:00 without error |
 | Sign-up | Second account since 18:03, with its customer record |
 | Airport fee | Charged today for an airport pickup, saved inside the fare line (VT-26-0743) |
+
+## Owner decisions open on Phase 26.5
+
+| # | Decision | Why it matters |
+|---|---|---|
+| 1 | Put the Supabase service-role key on Worker `vamos`, or build account creation without it | That key reads and writes every table and skips every access rule. Today the Worker works without it, on purpose. |
+| 2 | "Create an account" while the consent notice is still TBC | The plan creates the account and records no consent until his four texts exist. Consent must be provable server-side under nFADP and GDPR. |
 
 ## Waiting for the owner
 
