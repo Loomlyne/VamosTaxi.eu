@@ -168,7 +168,7 @@ button,.vt-btn,.vt-iconbtn{box-shadow:none}
 
 <div data-af-links="1">
 <sc-if value="{{ linkSignInPw }}" hint-placeholder-val="{{ true }}"><button type="button" data-af-link="1" onClick="{{ goForgot }}">Forgot password?</button></sc-if>
-<sc-if value="{{ linkSignInPw }}"><button type="button" data-af-link="1" onClick="{{ useMagic }}">Email me a link instead</button></sc-if>
+<sc-if value="{{ linkSignInMagic }}"><button type="button" data-af-link="1" onClick="{{ useMagic }}">Email me a link instead</button></sc-if>
 <sc-if value="{{ linkSignUpPw }}"><button type="button" data-af-link="1" onClick="{{ useMagic }}">Sign up with a link instead</button></sc-if>
 <sc-if value="{{ isMagic }}"><button type="button" data-af-link="1" onClick="{{ usePassword }}">Use a password instead</button></sc-if>
 <sc-if value="{{ hForgot }}"><button type="button" data-af-link="1" onClick="{{ backToSignIn }}">Back to sign in</button></sc-if>
@@ -616,6 +616,7 @@ class Component extends DCLogic {
       ctaMagic: isForm && isMagic,
       ctaReset: isForm && mode === 'forgot',
       linkSignInPw: isForm && mode === 'signin' && !isMagic,
+      linkSignInMagic: isForm && mode === 'signin' && !isMagic,
       linkSignUpPw: isForm && mode === 'signup' && !isMagic,
       isMagic: isForm && isMagic,
       sentSignIn: isSent && mode === 'signin', sentSignUp: isSent && mode === 'signup', sentForgot: isSent && mode === 'forgot',

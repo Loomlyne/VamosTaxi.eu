@@ -92,3 +92,21 @@ describe("email code box on the sent step", () => {
     expectTranslated(CODE_STRINGS);
   });
 });
+
+describe("dashboard sign-in offers the email link without a wrong password", () => {
+  const html = FORMS.ops;
+  const script = html.slice(html.indexOf('<script type="text/x-dc"'));
+
+  it("shows 'Email me a link instead' on the ops password form", () => {
+    expect(html).toMatch(/<sc-if value="\{\{ linkSignInMagic \}\}"><button [^>]*onClick="\{\{ useMagic \}\}">Email me a link instead<\/button>/);
+    expect(script).toMatch(/linkSignInMagic: isForm && mode === 'signin' && !isMagic,/);
+    // The old flag hid the option in ops mode; it now only guards 'Forgot password?'.
+    expect(script).toMatch(/linkSignInPw: isForm && mode === 'signin' && !isMagic && !isOps,/);
+    expect(html).toMatch(/<sc-if value="\{\{ linkSignInPw \}\}"[^>]*><button [^>]*onClick="\{\{ goForgot \}\}">Forgot password\?/);
+  });
+
+  it("keeps the passkey option and the way back to the password on the same form", () => {
+    expect(script).toMatch(/showPasskey: isForm && mode === 'signin',/);
+    expect(html).toMatch(/onClick="\{\{ usePassword \}\}">Use a password instead/);
+  });
+});
