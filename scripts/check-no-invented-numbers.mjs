@@ -25,8 +25,6 @@ const CHF_ALLOW = {
   "apps/web/lib/ops/ops-pricing-tabs.test.ts": "asserts the retired 'CHF 0' copy is absent from the ops page",
   "apps/web/lib/ops/rappen.test.ts": "parser test: CHF 0 stays 0 rappen, not a TBC gap",
   "apps/web/lib/ops/rate-book-draft.test.ts": "parser test: a CHF 0 start fare is a value, not a gap",
-  "packages/emails/src/ConfirmationEmail.test.tsx": "formatter test: synthetic amounts to prove the signed CHF line format, not a fare",
-  "app/ops/OpsPricing.dc.html": "meet and greet is locked at CHF 0 (included for the customer), stated in ops copy; not a fare",
   "packages/db/supabase/migrations/20260913180000_ops_pricing_source.sql":
     "internal column comment on free_wait_minutes (no extra charge inside the free wait), not customer copy",
 };
@@ -75,8 +73,7 @@ function checkChfAndRappen() {
     "apps/web/components",
     "apps/web/app",
     "apps/web/i18n", // message files are what customers read
-    "packages/emails/src",
-    "app", // the live DC mocks and the mock dictionary
+    "packages/emails/src", // production files only: its tests hold synthetic amounts, no allow entry yet
     "packages/db/supabase/migrations",
     "packages/db/supabase/tests",
     "packages/db/seed",
@@ -91,10 +88,11 @@ function checkChfAndRappen() {
     if (/\.(ts|tsx|mjs)$/.test(name)) files.push(join(repoRoot, "apps/web", name));
   }
   // "CHF 12", "CHF12", "CHF&nbsp;12" — only the CHF 000 placeholder is legal.
-  const chf = /CHF(?:\s|&nbsp;)*(?!000\b|00\.00\b)\d/;
+  const chf = /CHF(?:\s|&nbsp;)*(?!000\b)\d/;
   const rappenAssign = /(\w*_rappen)\s*:\s*(-?\d+)/;
   for (const file of files) {
     const pathRel = rel(file);
+    if (pathRel.startsWith("packages/emails/") && isTest(pathRel)) continue;
     readFileSync(file, "utf8").split(/\n/).forEach((line, i) => {
       if (commentLine(line)) return;
       if (chf.test(line) && !(CHF_ALLOW[pathRel] && String(CHF_ALLOW[pathRel]).trim())) {

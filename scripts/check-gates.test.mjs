@@ -39,10 +39,10 @@ test("numbers gate: the allowed 60 alone still passes", () => {
   assert.equal(r.code, 0, r.out);
 });
 
-test("numbers gate: a CHF figure in a message file, a DC mock or a root entry file fails", () => {
+test("numbers gate: a CHF figure in a message file, an email file or a root entry file fails", () => {
   for (const [path, body] of [
     ["apps/web/i18n/messages/en.json", '{ "a": { "fare": "From CHF 45" } }\n'],
-    ["app/home/home.dc.html", "<p>CHF&nbsp;45</p>\n"],
+    ["apps/web/i18n/messages/de.json", '{ "a": "ab CHF&nbsp;45" }\n'],
     ["packages/emails/src/x.tsx", "export const a = 'CHF45';\n"],
     ["apps/web/worker.ts", "const fare = 'CHF 45';\n"],
   ]) {
@@ -55,7 +55,7 @@ test("numbers gate: a CHF figure in a message file, a DC mock or a root entry fi
 test("numbers gate: CHF 000 placeholders pass everywhere", () => {
   const r = runGate("check-no-invented-numbers.mjs", {
     "apps/web/i18n/messages/en.json": '{ "a": "CHF 000" }\n',
-    "app/home/home.dc.html": "<p>CHF 000</p>\n",
+    "apps/web/lib/x.ts": "export const a = 'CHF 000';\n",
   });
   assert.equal(r.code, 0, r.out);
 });
