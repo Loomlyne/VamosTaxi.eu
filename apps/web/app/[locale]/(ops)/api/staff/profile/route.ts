@@ -25,6 +25,17 @@ function asString(value: unknown): string {
   return typeof value === "string" ? value : "";
 }
 
+const PROFILE_KEYS = [
+  "fullName",
+  "name",
+  "phone",
+  "lang",
+  "digestEmail",
+  "digest",
+  "avatarPath",
+  "avatar",
+] as const;
+
 export const PATCH = withStaff(async (claims, request) => {
   let raw: unknown;
   try {
@@ -51,20 +62,27 @@ export const PATCH = withStaff(async (claims, request) => {
     if (!fresh) return jsonErr("reauth-required", 403);
   }
 
-  const avatarRaw = body.avatarPath ?? body.avatar;
-  const avatarPath =
-    typeof avatarRaw === "string" && avatarRaw.length > 0 && !avatarRaw.startsWith("data:")
-      ? avatarRaw
-      : null;
+  // A password- or e-mail-only call (Settings > Security) carries no profile
+  // fields. Running updateOwnProfile then fails on the missing name and would
+  // reset phone / lang / digest to defaults. Only save the profile when the
+  // body actually carries profile fields.
+  const carriesProfile = PROFILE_KEYS.some((key) => key in body);
+  if (carriesProfile) {
+    const avatarRaw = body.avatarPath ?? body.avatar;
+    const avatarPath =
+      typeof avatarRaw === "string" && avatarRaw.length > 0 && !avatarRaw.startsWith("data:")
+        ? avatarRaw
+        : null;
 
-  const updated = await updateOwnProfile({
-    fullName: asString(body.fullName ?? body.name),
-    phone: asString(body.phone),
-    lang: asLang(body.lang),
-    digestEmail: body.digestEmail === true || body.digest === true,
-    avatarPath,
-  });
-  if (!updated.ok) return jsonErr(updated.key, 400);
+    const updated = await updateOwnProfile({
+      fullName: asString(body.fullName ?? body.name),
+      phone: asString(body.phone),
+      lang: asLang(body.lang),
+      digestEmail: body.digestEmail === true || body.digest === true,
+      avatarPath,
+    });
+    if (!updated.ok) return jsonErr(updated.key, 400);
+  }
 
   if (typeof body.password === "string" && body.password.length > 0) {
     const password = await changeOwnPassword(body.password);
