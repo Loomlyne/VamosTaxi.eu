@@ -39,18 +39,18 @@ function pageMessages(page: string): string[] {
   const src = read(`apps/web/app/[locale]/${page}/page.tsx`);
   const bindings = new Map<string, string>();
   for (const m of src.matchAll(/const (\w+) = await getTranslations\((?:\{[^}]*namespace: )?"(\w+)"/g)) {
-    bindings.set(m[1], m[2]);
+    if (m[1] && m[2]) bindings.set(m[1], m[2]);
   }
   const out: string[] = [];
   for (const locale of LOCALES) {
     const messages = JSON.parse(read(`apps/web/i18n/messages/${locale}.json`)) as Record<string, Record<string, string>>;
     for (const m of src.matchAll(/\b(\w+)\("([a-z0-9-]+)"\)/g)) {
-      const ns = bindings.get(m[1]);
-      const value = ns ? messages[ns]?.[m[2]] : undefined;
+      const ns = m[1] ? bindings.get(m[1]) : undefined;
+      const value = ns && m[2] ? messages[ns]?.[m[2]] : undefined;
       if (typeof value === "string") out.push(value);
     }
     for (const m of src.matchAll(/(?:titleKey|standfirstKey|kickerKey)[:=]\s*"(\w+)\.([a-z0-9-]+)"/g)) {
-      const value = messages[m[1]]?.[m[2]];
+      const value = m[1] && m[2] ? messages[m[1]]?.[m[2]] : undefined;
       if (typeof value === "string") out.push(value);
     }
   }
@@ -69,7 +69,7 @@ function offences(texts: string[]): string[] {
   for (const text of texts) {
     if (/vercel/i.test(text)) found.push(`names Vercel: ${text.trim().slice(0, 120)}`);
     for (const d of text.matchAll(DOUBLED)) {
-      if (!GRAMMATICAL_REPEATS.has(d[1])) found.push(`doubled word "${d[0]}": ${text.trim().slice(0, 120)}`);
+      if (!GRAMMATICAL_REPEATS.has(d[1] ?? "")) found.push(`doubled word "${d[0]}": ${text.trim().slice(0, 120)}`);
     }
   }
   return found;
