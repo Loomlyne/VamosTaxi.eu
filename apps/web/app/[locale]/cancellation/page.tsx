@@ -19,7 +19,6 @@ const CANCELLATION_SECTIONS: LegalSection[] = [
   { id: "noshow", number: "06", titleKey: "legal.no-show" },
   { id: "disruption", number: "07", titleKey: "legal.snow-strikes-closures" },
   { id: "refunds", number: "08", titleKey: "legal.how-refunds-are-paid" },
-  { id: "vouchers", number: "09", titleKey: "legal.vouchers" },
 ];
 
 type TierRow = {
@@ -89,7 +88,7 @@ export default async function CancellationPage({
           <span data-lg-n="1">01</span>
           {tLegal("what-you-get-back")}
         </h2>
-        {/* D-02: 24 hours full refund. 24 hours to 6 hours pending ops. 6 hours no automatic refund. */}
+        {/* Matches the site (refund_review_tiers.sql): more than 24 hours = automatic full refund; within 24 hours = cancelled, refund decided by an admin (owner decision open). No 6-hour line. */}
         <p>{tLegal("measured-from-the-pickup-time-in-your-confirmati")}</p>
         <div style={{ maxInlineSize: "100%", overflowInline: "auto" }}>
         <Table
@@ -103,34 +102,24 @@ export default async function CancellationPage({
               outcome: tLegal("100-refunded"),
             },
             {
-              slug: "ops",
-              tier: tLegal("inside"),
-              window: tLegal("24-hours-to-6-hours-before-pickup"),
-              outcome: tLegal("refund-pending-operations-default-100-o"),
+              slug: "within",
+              tier: tLegal("less-than"),
+              window: tLegal("24-hours-before-pickup"),
+              outcome: <PendingSlot label="Refund within 24 hours" />,
             },
             {
-              slug: "none",
-              tier: tLegal("from-6-hours-before-pickup"),
-              window: tLegal("6-hours-through-pickup-and-after-pickup"),
-              outcome: tLegal("no-automatic-refund-operations-can-stil"),
+              slug: "done",
+              tier: tLegal("after-the-ride"),
+              window: tLegal("completed-ride-or-no-show"),
+              outcome: tLegal("cannot-be-cancelled"),
             },
           ]}
         />
         </div>
+        <p>{tLegal("tier-full-refund-automatic")}</p>
+        <p>{tLegal("tier-within-24-cancelled-no-auto-refund")}</p>
         <p>
-          {tLegal("refunded-to-the-card-you-paid-with-or-take-the-f")}{" "}
-          <a href="#vouchers">09</a>.
-        </p>
-        <p>{tLegal("from-6-hours-before-pickup-a-driver-may")}</p>
-        <p>{tLegal("completed-or-no-show-no-customer-cancel")}</p>
-        <p>
-          {tLegal("the-vehicle-waited-section")} <a href="#noshow">06</a>{" "}
-          {tLegal("sets-out-when-a-booking-counts-as-a-no-show")}
-        </p>
-        <p>
-          {tLegal("vehicles-over")} <PendingSlot label="8" /> {tLegal("seats-work-to-a-longer-window-of")}{" "}
-          <PendingSlot label="72 hours" />
-          {tLegal("because-a-coach-cannot-be-re-sold-at-short-notic")}
+          {tLegal("when-noshow-see-section")} <a href="#noshow">06</a>
         </p>
       </section>
 
@@ -265,6 +254,7 @@ export default async function CancellationPage({
           {tLegal("where-our-records-show-you-were-at-the-pickup-po")}{" "}
           <PendingSlot label="Driver noshow share" /> {tCommon("back")}
         </p>
+        <p>{tLegal("both-at-meeting-point-80-20")}</p>
         <div data-slot="1" data-i18n-skip>
           <p data-slot-k="1">Client legal text · consequential costs</p>
           <p>
@@ -280,25 +270,15 @@ export default async function CancellationPage({
           <span data-lg-n="1">06</span>
           {tLegal("no-show")}
         </h2>
+        <p>{tLegal("noshow-becomes-not-reached-30-60")}</p>
         <p>
-          {tLegal("a-booking-becomes-a-no-show-once-the-included-wa")}{" "}
-          <PendingSlot label="Noshow call attempts" /> {tLegal("times-without-an-answer")}
+          {tLegal("calls-we-make-before-that")} <PendingSlot label="Noshow call attempts" />
         </p>
         <ul>
-          <li>
-            {tLegal("airport-pickups")} <PendingSlot label="Airport waiting" />{" "}
-            {tLegal("from-the-actual-landing-time")}
-          </li>
-          <li>
-            {tLegal("all-other-pickups")} <PendingSlot label="Standard waiting" />{" "}
-            {tLegal("from-the-booked-time")}
-          </li>
+          <li>{tLegal("airport-pickups-60-minutes-landing")}</li>
+          <li>{tLegal("all-other-pickups-30-minutes-booked")}</li>
         </ul>
-        <p>
-          {tLegal("answer-the-phone-and-the-driver-waits-the-extra")}{" "}
-          <PendingSlot label="Extra waiting rate" />
-          {tLegal("which-is-cheaper-than-losing-the-transfer")}
-        </p>
+        <p>{tLegal("extra-time-per-commenced-hour")}</p>
       </section>
 
       <section id="disruption">
@@ -327,43 +307,15 @@ export default async function CancellationPage({
           <li>
             {tLegal("approved-within")} <PendingSlot label="Refund decision days" />
           </li>
-          <li>
-            {tLegal("paid-within")} <PendingSlot label="Refund payout days" />{" "}
-            {tLegal("days-your-bank-may-take-a-few-days-more-to-show")}
-          </li>
-          <li>{tLegal("bookings-paid-with-a-voucher-are-refunded-as-a-v")}</li>
+          <li>{tLegal("team-refund-paid-30-days-acceptance")}</li>
         </ul>
         <p>
           {tLegal("unhappy-with-the-outcome-the-complaints-route-is")}{" "}
           <Link href="/terms">{tCommon("terms-conditions")}</Link>
-          {tLegal("and-we-answer-within")} <PendingSlot label="Complaint resolution days" />{" "}
-          {tCommon("days")}
+          {tLegal("and-we-resolve-within-30-days")}
         </p>
       </section>
 
-      <section id="vouchers">
-        <h2>
-          <span data-lg-n="1">09</span>
-          {tLegal("vouchers")}
-        </h2>
-        <p>
-          {tLegal("instead-of-a-refund-you-can-take-the-full-value")}{" "}
-          <PendingSlot label="Voucher validity" />
-          {tLegal("it-is-worth-more-than-the-refunded-share-which-i")}
-        </p>
-        <ul>
-          <li>{tLegal("usable-on-any-route-we-serve-by-anyone-you-pass")}</li>
-          <li>{tLegal("redeemable-against-a-higher-fare-you-pay-the-dif")}</li>
-          <li>{tLegal("not-exchangeable-for-cash-once-issued")}</li>
-        </ul>
-        <div data-slot="1" data-i18n-skip>
-          <p data-slot-k="1">Client legal text · voucher terms</p>
-          <p>
-            Must state validity, transferability, part-redemption and what happens on expiry. Swiss
-            law limits how short an expiry can be, so this needs checking rather than choosing.
-          </p>
-        </div>
-      </section>
     </LegalPage>
   );
 }
