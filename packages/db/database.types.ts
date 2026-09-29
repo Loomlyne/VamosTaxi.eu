@@ -2820,6 +2820,29 @@ export type Database = {
           reference: string
         }[]
       }
+      checkout_resume_read: {
+        Args: { p_manage_hash: string; p_quote_id: string }
+        Returns: {
+          booking_id: string
+          charged_rappen: number
+          checkout_trip_query: string
+          class_slug: string
+          company_address: string
+          company_name: string
+          company_vat: string
+          contact_email: string
+          contact_name: string
+          contact_phone: string
+          coupon_code: string
+          extra_codes: string[]
+          latest_session_id: string
+          note: string
+          pay_link_sent: boolean
+          quote_id: string
+          reference: string
+          status: Database["public"]["Enums"]["booking_status"]
+        }[]
+      }
       checkout_set_booking_details: {
         Args: {
           p_booking_id: string
