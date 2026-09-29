@@ -21,24 +21,28 @@ function uniqueEmail(tag: string): string {
   return `auth-signout-${tag}-${crypto.randomUUID().slice(0, 8)}@example.com`;
 }
 
-function setCookieEntries(res: Response): string[] {
-  const raw = (
-    res as unknown as { headersArray: () => Array<{ name: string; value: string }> }
+async function setCookieEntries(res: Response): Promise<string[]> {
+  const raw = await (
+    res as unknown as { headersArray: () => Promise<Array<{ name: string; value: string }>> }
   ).headersArray();
   return raw.filter((h) => h.name.toLowerCase() === "set-cookie").map((h) => h.value);
 }
 
+/** Password sign-up needs the emailed confirmation (D-28), so the account is created confirmed through the Auth admin API. */
+async function createConfirmedUser(email: string, password: string): Promise<void> {
+  const { apiUrl, serviceRoleKey } = stackKeys();
+  const res = await fetch(`${apiUrl}/auth/v1/admin/users`, {
+    method: "POST",
+    headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password, email_confirm: true, user_metadata: { full_name: "Ada Lovelace" } }),
+  });
+  if (!res.ok) throw new Error(`admin create user ${res.status}: ${await res.text()}`);
+}
+
 async function signIn(page: Page, email: string, password: string): Promise<void> {
-  await page.goto(`${baseURL}/sign-up`);
-  await page.getByLabel("Email").fill(email);
-  await page.getByLabel("First name").fill("Ada");
-  await page.getByLabel("Last name").fill("Lovelace");
-  await page.getByLabel("Password", { exact: true }).fill(password);
-  await page.getByRole("button", { name: /create account/i }).click();
   await page.goto(`${baseURL}/sign-in`);
-  if (!page.url().includes("/sign-in")) return;
   await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password", { exact: true }).fill(password);
+  await page.getByRole("textbox", { name: "Password", exact: true }).fill(password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(page).not.toHaveURL(/\/sign-in/, { timeout: 15_000 });
 }
@@ -91,7 +95,16 @@ test.describe("AUTH-04 auth-signout", () => {
     devServer = null;
   });
 
-  test.beforeEach(async ({}, testInfo) => {
+  let testIp = 0;
+  test.beforeEach(async ({ context }, testInfo) => {
+    // The auth write limiter is keyed on cf-connecting-ip (4 per 60 s); rotate the address every 3 POSTs.
+    testIp += 1;
+    let posts = 0;
+    await context.route(`http://localhost:${PORT}/**`, (route) => {
+      if (route.request().method() === "POST") posts += 1;
+      const ip = `198.51.${testIp}.${Math.floor(Math.max(posts - 1, 0) / 3) + 1}`;
+      return route.continue({ headers: { ...route.request().headers(), "cf-connecting-ip": ip } });
+    });
     test.skip(
       testInfo.project.name !== RUN_PROJECT,
       "Behavioural — runs once under component-1440.",
@@ -109,8 +122,9 @@ test.describe("AUTH-04 auth-signout", () => {
   });
 
   test("Sign out from terms, contact and home without a full reload", async ({ page }) => {
-    test.fail(true, "KNOWN-RED 26.0: password sign-up now needs the emailed confirmation (D-28), so signing in right after sign-up stays on /sign-in — owner to rule");
+    test.fail(true, "KNOWN-RED 26.0: the live header is the DC mock SiteHeader; its signOut does location.href = '/sign-in' (app/pages/SiteHeader.dc.html:574), a full navigation with no account pill, so this test's 'no full reload, pill visible' expectation is stale — owner to rule");
     const email = uniqueEmail("pages");
+    await createConfirmedUser(email, PASSWORD);
     await signIn(page, email, PASSWORD);
 
     for (const path of PAGES) {
@@ -132,13 +146,14 @@ test.describe("AUTH-04 auth-signout", () => {
   });
 
   test("sign-out Set-Cookie values arrive as separate getSetCookie() entries", async ({ page }) => {
-    test.fail(true, "KNOWN-RED 26.0: password sign-up now needs the emailed confirmation (D-28), so signing in right after sign-up stays on /sign-in — owner to rule");
+    test.fail(true, "KNOWN-RED 26.0: product — POST /api/auth signout clears the session cookie as 'sb-127-auth-token=; Path=/; SameSite=Lax' with no Max-Age or Expires, so it is emptied but not expired (assertion /max-age=0|expires=/ at the cookie loop) — owner to rule");
     const email = uniqueEmail("cookies");
+    await createConfirmedUser(email, PASSWORD);
     await signIn(page, email, PASSWORD);
     await page.goto(`${baseURL}/contact`);
     await openAccountMenu(page);
     const actionRes = await clickSignOut(page);
-    const getSetCookie = setCookieEntries(actionRes);
+    const getSetCookie = await setCookieEntries(actionRes);
     expect(getSetCookie.length).toBeGreaterThan(1);
     for (const cookie of getSetCookie) {
       expect(cookie.toLowerCase()).toMatch(/max-age=0|expires=/);
@@ -146,8 +161,8 @@ test.describe("AUTH-04 auth-signout", () => {
   });
 
   test("Escape closes the account menu and returns focus to the trigger", async ({ page }) => {
-    test.fail(true, "KNOWN-RED 26.0: password sign-up now needs the emailed confirmation (D-28), so signing in right after sign-up stays on /sign-in — owner to rule");
     const email = uniqueEmail("esc");
+    await createConfirmedUser(email, PASSWORD);
     await signIn(page, email, PASSWORD);
     await page.goto(`${baseURL}/`);
     await openAccountMenu(page);
