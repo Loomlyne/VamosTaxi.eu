@@ -47,8 +47,10 @@ export interface CreateCheckoutSessionInput {
   expiresAt: Date;
   /**
    * `hosted_page` (Stripe-hosted page, no card form on our site) or `elements`.
-   * Required, no default: every caller says which. Customers always get
-   * `hosted_page`; only the ops extra-fare session asks for `elements`.
+   * Required, no default: every caller says which. Every customer and
+   * staff pay-link session (checkout intent, pay-link open, staff pay-link) is
+   * `hosted_page`; only the ops extra-fare session (lib/ops/edit-request.ts)
+   * asks for `elements`.
    */
   uiMode: "hosted_page" | "elements";
   /** Required for `ui_mode: elements`; never sent for hosted. */
