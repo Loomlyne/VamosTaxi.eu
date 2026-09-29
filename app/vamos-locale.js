@@ -63,6 +63,18 @@
   var patterns = (window.VamosI18n && window.VamosI18n.patterns) || [];
 
   var state = read();
+
+  /* D-47: the Next pages (checkout, confirmation, review) read the language from the
+     NEXT_LOCALE cookie, so every choice made here is mirrored into it. */
+  function writeLangCookie() {
+    try {
+      if (isDashboardHost()) return;
+      if (LANGS.indexOf(state.lang) < 0) return;
+      document.cookie = 'NEXT_LOCALE=' + state.lang + '; Path=/; Max-Age=31536000; SameSite=Lax' +
+        (location.protocol === 'https:' ? '; Secure' : '');
+    } catch (e) {}
+  }
+  writeLangCookie();
   var listeners = [];
   var applying = false, queued = false, mo = null;
   var reverse = null;             // any translation -> its English key
@@ -467,6 +479,7 @@
         localStorage.setItem(LS_LANG, state.lang);
         localStorage.setItem(LS_CUR, state.cur);
       } catch (e) {}
+      writeLangCookie();
     }
     chrome();
     pass();
