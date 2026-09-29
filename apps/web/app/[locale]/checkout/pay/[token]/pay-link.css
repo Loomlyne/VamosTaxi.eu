@@ -1,0 +1,19 @@
+/* Pay-link page (26.3-18, D-46): trip, price, one PAY. Layout only; layout uses tokens. */
+[data-pay-link-sheet] {
+  gap: var(--vt-space-4);
+}
+
+[data-pay-link-sheet] > h1,
+[data-pay-link-sheet] > p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+[data-pay-link-sheet] .vt-checkout__method-note {
+  color: var(--vt-text-muted);
+  font-size: var(--vt-body-sm);
+}
+
+[data-pay-link-sheet] .vt-checkout__cta .vt-btn {
+  min-block-size: 54px;
+}

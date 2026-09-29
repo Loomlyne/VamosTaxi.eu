@@ -66,13 +66,14 @@ function legacyUaePrefixStop(): Response {
 /** Hosted answer: the Stripe-hosted page url, never a client secret (D-46). */
 function openHostedJson(
   row: Record<string, unknown>,
-  url: string,
+  session: { id: string; url: string },
   charged: number,
 ): Record<string, unknown> {
   return {
     ok: true,
     hosted_page: true,
-    url,
+    url: session.url,
+    session_id: session.id,
     reference: String(row.reference),
     pickup: String(row.pickup_text ?? ""),
     dropoff: String(row.dropoff_text ?? ""),
@@ -174,7 +175,7 @@ export async function POST(request: Request) {
       () => null,
     );
     if (hostedSessionIsPayable(stored, charged) && stored.url) {
-      return Response.json(openHostedJson(row, stored.url, charged), { headers: PAY_JSON });
+      return Response.json(openHostedJson(row, { id: stored.id, url: stored.url }, charged), { headers: PAY_JSON });
     }
   }
 
@@ -215,7 +216,7 @@ export async function POST(request: Request) {
           () => null,
         );
         if (hostedSessionIsPayable(stored, charged) && stored.url) {
-          return Response.json(openHostedJson(row, stored.url, charged), { headers: PAY_JSON });
+          return Response.json(openHostedJson(row, { id: stored.id, url: stored.url }, charged), { headers: PAY_JSON });
         }
       }
       return refuse("quote_already_booked");
@@ -224,5 +225,5 @@ export async function POST(request: Request) {
     throw err;
   }
 
-  return Response.json(openHostedJson(row, session.url, charged), { headers: PAY_JSON });
+  return Response.json(openHostedJson(row, { id: session.id, url: session.url }, charged), { headers: PAY_JSON });
 }
