@@ -76,3 +76,16 @@ export const otpRequestSchema = z.discriminatedUnion("mode", [
   signInMagicSchema,
   signUpMagicSchema,
 ]);
+
+/** E-mail code sign-in: six digits, spaces allowed while typing ("123 456"). */
+export const verifyCodeSchema = z
+  .object({
+    email: emailSchema,
+    code: z
+      .string()
+      .transform((value) => value.replace(/\s+/g, ""))
+      .pipe(z.string().regex(/^\d{6}$/)),
+  })
+  .strict();
+
+export const resendConfirmationSchema = z.object({ email: emailSchema }).strict();

@@ -6,6 +6,7 @@
 
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { authCookieOptions, isSecureRequest } from "./cookies";
 
 function supabaseAuthEnv(): { url: string; anonKey: string } {
   const url = process.env.SUPABASE_URL;
@@ -16,12 +17,21 @@ function supabaseAuthEnv(): { url: string; anonKey: string } {
   return { url: "http://127.0.0.1:54321", anonKey: "anon-placeholder" };
 }
 
+function secureFor(request: NextRequest): boolean {
+  return isSecureRequest({
+    url: request.url,
+    forwardedProto: request.headers.get("x-forwarded-proto"),
+    host: request.headers.get("host"),
+  });
+}
+
 export async function updateSession(
   request: NextRequest,
   response: NextResponse,
 ): Promise<NextResponse> {
   const { url, anonKey } = supabaseAuthEnv();
   const supabase = createServerClient(url, anonKey, {
+    cookieOptions: authCookieOptions(secureFor(request)),
     cookies: {
       getAll() {
         return request.cookies.getAll();
@@ -56,6 +66,7 @@ export function createSupabaseMiddlewareClient(request: NextRequest) {
   const supabase = createServerClient(url, anonKey, {
     // Passkey sign-in and the settings pane use auth.passkey.
     auth: { experimental: { passkey: true } },
+    cookieOptions: authCookieOptions(secureFor(request)),
     cookies: {
       getAll() {
         return request.cookies.getAll();

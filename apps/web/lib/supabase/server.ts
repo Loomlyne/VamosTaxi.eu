@@ -12,7 +12,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies, headers } from "next/headers";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { authCookiesFrom } from "./cookies";
+import { authCookieOptions, authCookiesFrom, isSecureRequest } from "./cookies";
 
 /** One cookie `setAll` asked the server client to write. */
 export type AuthSetCookie = {
@@ -68,16 +68,23 @@ export async function createServerSupabaseClient(
   }
 
   let cookieHeader: string | null = request?.headers.get("cookie") ?? null;
-  if (!cookieHeader) {
+  let forwardedProto: string | null = request?.headers.get("x-forwarded-proto") ?? null;
+  let host: string | null = request?.headers.get("host") ?? null;
+  if (!cookieHeader || !request) {
     try {
-      cookieHeader = (await headers()).get("cookie");
+      const h = await headers();
+      cookieHeader = cookieHeader ?? h.get("cookie");
+      forwardedProto = forwardedProto ?? h.get("x-forwarded-proto");
+      host = host ?? h.get("host");
     } catch {
-      cookieHeader = null;
+      // no request scope: keep what the request itself gave
     }
   }
+  const secure = isSecureRequest({ url: request?.url, forwardedProto, host });
 
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     auth: { experimental: { passkey: true } },
+    cookieOptions: authCookieOptions(secure),
     cookies: {
       getAll() {
         return authCookiesFrom(cookieStore.getAll(), cookieHeader);

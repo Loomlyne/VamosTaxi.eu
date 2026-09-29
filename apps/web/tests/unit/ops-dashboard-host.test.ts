@@ -22,8 +22,13 @@ describe("dashboard host DC login @ops-dashboard-host", () => {
     expect(middleware).toMatch(/host === "dashboard\.vamostaxi\.site"/);
     expect(middleware).toContain("return dashboardHostMiddleware(request)");
     expect(middleware).toMatch(/NextResponse\.redirect\(dashboardAbs\(request, dest\), 308\)/);
+    expect(middleware).toMatch(/const loginUrl = dashboardAbs\(request, "\/login"\);/);
     expect(middleware).toMatch(
-      /copyCookies\(client\.response, NextResponse\.redirect\(dashboardAbs\(request, "\/login"\), 308\)\)/,
+      /copyCookies\(client\.response, NextResponse\.redirect\(loginUrl, 308\)\)/,
+    );
+    // The link callback answers /sign-in?error=1; on this host the query rides along to /login.
+    expect(middleware).toMatch(
+      /path === "\/sign-in" && request\.nextUrl\.searchParams\.get\("error"\) === "1"[\s\S]{0,80}loginUrl\.searchParams\.set\("error", "1"\)/,
     );
     expect(middleware).toMatch(
       /serveOpsDc\(request, client\.response, "ops-login\.dc\.html"/,
