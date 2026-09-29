@@ -4,6 +4,7 @@ import { spawn, type ChildProcess } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { nextDevEnv } from "../support/test-stack";
 
 const PORTS: Record<string, number> = {
   "component-1440": testPort(4250),
@@ -52,11 +53,7 @@ test.describe("Contact page and form @component", () => {
       cwd: WEB_ROOT,
       stdio: "ignore",
       detached: true,
-      env: {
-        ...process.env,
-        TEST_DIST_DIR: `test-results/.next-contact-${port}`,
-        TURNSTILE_SITE_KEY: "1x00000000000000000000AA",
-      },
+      env: nextDevEnv({ TEST_DIST_DIR: `test-results/.next-contact-${port}`, TURNSTILE_SITE_KEY: "1x00000000000000000000AA" }, { gallery: true }),
     });
     await waitForNextServer(baseURL, 180_000);
   });
