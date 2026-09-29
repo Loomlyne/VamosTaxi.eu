@@ -3,6 +3,7 @@ import {
   callbackUrl,
   FORM_CREDENTIALS,
   fullName,
+  emailNext,
   runOtp,
   runPasswordReset,
   runSignInPassword,
@@ -235,5 +236,30 @@ describe("runUpdateProfile", () => {
     const out = await runUpdateProfile(sb, { firstName: "A", lastName: "B" });
     expect(out.result).toEqual({ ok: false, reason: "auth-failed" });
     expect(out.reason).toBe("unexpected_failure");
+  });
+});
+
+describe("checkout returnTo in e-mail links (D-13)", () => {
+  const rt = "/checkout?from=zrh&to=bern";
+  it("emailNext keeps a checkout returnTo and drops anything else", () => {
+    expect(emailNext(rt, "/")).toBe(rt);
+    expect(emailNext("//evil.com", "/")).toBe("/");
+    expect(emailNext("https://evil", "/")).toBe("/");
+    expect(emailNext(undefined, "/de")).toBe("/de");
+  });
+  it("otp and sign-up put it into emailRedirectTo", async () => {
+    const signInWithOtp = vi.fn(async () => ({ error: null }));
+    const signUp = vi.fn(async () => ({ error: null }));
+    const sb = client({ signInWithOtp, signUp });
+    await runOtp(sb, { mode: "signin", email: "a@b.co", locale: "en" }, "https://example.test", emailNext(rt, "/"));
+    await runSignUpPassword(
+      sb,
+      { email: "a@b.co", password: "password1", firstName: "A", lastName: "B", locale: "en" },
+      "https://example.test",
+      emailNext(rt, "/"),
+    );
+    const want = "https://example.test/api/auth/callback?next=" + encodeURIComponent(rt);
+    expect((signInWithOtp.mock.calls[0] as unknown as [{ options: { emailRedirectTo: string } }])[0].options.emailRedirectTo).toBe(want);
+    expect((signUp.mock.calls[0] as unknown as [{ options: { emailRedirectTo: string } }])[0].options.emailRedirectTo).toBe(want);
   });
 });

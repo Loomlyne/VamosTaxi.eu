@@ -90,7 +90,10 @@ export type {
 export { buildInvite } from "./lib/ics";
 export type {
   BookingForEmail,
+  EmailExtraLine,
   EmailLocale,
+  EmailMoney,
+  EmailMoneyLine,
   PayLinkExtraCode,
   PayLinkForEmail,
   PayLinkVehicle,

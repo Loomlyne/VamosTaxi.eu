@@ -1,7 +1,7 @@
 // apps/web/app/[locale]/(ops)/api/staff/bookings/[id]/pay-link/route.ts
 //
-// POST /api/staff/bookings/:id/pay-link — reuse unpaid Stripe session, email
-// the public vamostaxi.site URL. Dual-mounted at app/api/staff/bookings/[id]/pay-link.
+// POST /api/staff/bookings/:id/pay-link — mint the pay-link token and e-mail
+// the public vamostaxi.site /checkout/pay/<token> URL (D-48; no card form here). Dual-mounted at app/api/staff/bookings/[id]/pay-link.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { staffPayLink } from "@/lib/ops/phone-booking";
@@ -53,8 +53,6 @@ export const POST = withStaff(async (_claims, request) => {
     bookingId: result.bookingId,
     reference: result.reference,
     pay_url: result.payUrl,
-    client_secret_hex: result.clientSecretHex,
-    publishable_key: result.publishableKey,
     sent: result.sent,
   });
 });

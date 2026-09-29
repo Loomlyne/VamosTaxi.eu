@@ -1,10 +1,10 @@
 export const dynamic = "force-dynamic";
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { BOOKING_REFERENCE_RE } from "@/lib/checkout/booking-status";
 import {
-  isCheckoutSessionId,
+  readReturnSession,
   referenceForCheckoutSession,
+  returnRedirectTarget,
   settlePaidReturn,
 } from "@/lib/checkout/return-settle";
 import { localePath } from "@/lib/checkout/steps";
@@ -18,36 +18,37 @@ function redirect(location: string): Response {
   });
 }
 
+/**
+ * Stripe return (26.3 D-27). Paid → confirmation, always; unpaid → the
+ * one-page checkout with its quote; a Stripe read failure → checkout with
+ * `pay=unknown`. Never an error screen after a payment.
+ */
 export async function GET(request: Request): Promise<Response> {
   const url = new URL(request.url);
   const ref = url.searchParams.get("ref") ?? "";
   const sessionId = url.searchParams.get("session") ?? url.searchParams.get("session_id") ?? "";
   const localeRaw = url.searchParams.get("locale") ?? "en";
   const locale = LOCALES.includes(localeRaw) ? localeRaw : "en";
-  const payment = localePath(locale, "/checkout/payment");
-  if (!isCheckoutSessionId(sessionId)) return redirect(payment);
   let env: CloudflareEnv | null = null;
   try {
     env = getCloudflareContext().env as CloudflareEnv;
   } catch {
     env = null;
   }
-  if (!env) return redirect(`${payment}?pay=failed`);
+  if (!env) return redirect(`${localePath(locale, "/checkout")}?pay=unknown`);
+  const bound = env;
   try {
-    const result = await settlePaidReturn(env, sessionId);
-    const bookingRef = BOOKING_REFERENCE_RE.test(ref)
-      ? ref
-      : await referenceForCheckoutSession(env, sessionId);
-    // 26.1-16 (D-22): this payer's charge lost the race and was refunded —
-    // the booking is paid by the other payer; the confirmation says so.
-    if (result === "duplicate" && BOOKING_REFERENCE_RE.test(bookingRef)) {
-      return redirect(localePath(locale, `/confirmation/${bookingRef}?charge=refunded`));
-    }
-    if (result === "paid" && BOOKING_REFERENCE_RE.test(bookingRef)) {
-      return redirect(localePath(locale, `/confirmation/${bookingRef}`));
-    }
-    return redirect(`${payment}?pay=${result === "duplicate" ? "paid" : result}`);
+    return redirect(
+      await returnRedirectTarget(
+        {
+          readSession: (id) => readReturnSession(bound, id),
+          settle: (session) => settlePaidReturn(bound, session),
+          lookupReference: (id) => referenceForCheckoutSession(bound, id),
+        },
+        { sessionId, ref, locale },
+      ),
+    );
   } catch {
-    return redirect(`${payment}?pay=failed`);
+    return redirect(`${localePath(locale, "/checkout")}?pay=unknown`);
   }
 }

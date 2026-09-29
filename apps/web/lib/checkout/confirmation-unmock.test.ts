@@ -32,7 +32,9 @@ describe("confirmation unmock (D-40)", () => {
       expect(src).not.toMatch(/VT-5\d{3}/);
       expect(src).not.toContain("confirmation.dc.html");
     }
-    expect(index).toContain("notVisibleTitle");
+    // 26.3-14 (D-27): the index route is static "Payment received." copy, never an error.
+    expect(index).toContain("receivedTitle");
+    expect(index).not.toMatch(/failed|notVisible/);
   });
 
   it("keeps polling until voucher or error, never a silent stop", () => {
@@ -55,13 +57,15 @@ describe("confirmation unmock (D-40)", () => {
     expect(pageClient).not.toContain('icon="message-circle"');
     expect(pageClient).toContain("if (!waiting) return");
     expect(client).toContain("data-confirmation-voucher");
-    expect(client).toContain("data-confirmation-failed");
+    // 26.3-14 (D-27): no failed room after a Stripe return.
+    expect(client).not.toContain("data-confirmation-failed");
+    expect(client).not.toContain("failedTitle");
+    expect(client).toContain("confirmationPhase");
     expect(client).not.toContain("processingStepEmail");
     expect(client).not.toContain("data-confirmation-wait");
     expect(client).not.toContain("loader-circle");
-    expect(client).toContain("failedTitle");
     expect(client).toContain("setTimeout(tick, 0)");
-    expect(client).toContain("pollOutcome");
+    expect(client).toContain("pollStatus");
     expect(client).not.toContain('status="pending"');
     expect(client).toContain('credentials: "include"');
     expect(client).toContain("isCapturedPayment");

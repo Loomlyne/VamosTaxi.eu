@@ -300,8 +300,15 @@ function tzOffsetMs(utcMs: number, timeZone: string): number {
   return asUTC - utcMs;
 }
 
-function scheduledLocalToMs(scheduledLocal: string): number | null {
-  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(
+/**
+ * D-36: the Europe/Zurich wall clock (`YYYY-MM-DDTHH:MM`, optional `:SS`) as
+ * the UTC instant in ms. Two-pass offset lookup gives PostgreSQL's rules: an
+ * ambiguous fall-back time prefers standard time, a nonexistent spring-forward
+ * time lands one hour later. Min-advance and the stored `scheduled_at` share
+ * this one conversion. Null when the text is not a wall clock.
+ */
+export function zurichLocalToUtcMs(scheduledLocal: string): number | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/.exec(
     scheduledLocal,
   );
   if (!match) return null;
@@ -310,11 +317,17 @@ function scheduledLocalToMs(scheduledLocal: string): number | null {
   const day = Number(match[3]);
   const hour = Number(match[4]);
   const minute = Number(match[5]);
-  const utcGuess = Date.UTC(year, month - 1, day, hour, minute, 0);
+  const second = match[6] ? Number(match[6]) : 0;
+  if (month < 1 || month > 12 || day < 1 || day > 31 || hour > 23 || minute > 59 || second > 59) {
+    return null;
+  }
+  const utcGuess = Date.UTC(year, month - 1, day, hour, minute, second);
   let utc = utcGuess - tzOffsetMs(utcGuess, ZURICH_TZ);
   utc = utcGuess - tzOffsetMs(utc, ZURICH_TZ);
   return utc;
 }
+
+const scheduledLocalToMs = zurichLocalToUtcMs;
 
 export function checkMinAdvance(input: MinAdvanceInput): MinAdvanceResult {
   if (input.minAdvanceMinutes === null) {

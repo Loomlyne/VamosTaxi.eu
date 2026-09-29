@@ -17,8 +17,9 @@ import {
   Section,
   Text,
 } from "@react-email/components";
-import type { BookingForEmail, EmailLocale, PayLinkExtraCode } from "./lib/types";
-import { t } from "./lib/t";
+import type { BookingForEmail, EmailLocale, EmailMoney, EmailMoneyLine } from "./lib/types";
+import { paxBagsLine, t } from "./lib/t";
+import { extraNames } from "./lib/extras";
 import {
   BODY_FONT,
   CHARCOAL,
@@ -56,23 +57,91 @@ function firstLeg(booking: BookingForEmail) {
   return booking.legs[0];
 }
 
-const EXTRA_KEY: Record<PayLinkExtraCode, string> = {
-  child_seat: "payLink.extraChildSeat",
-  oversized_luggage: "payLink.extraOversized",
-  extra_stop: "payLink.extraStop",
-};
+/** Signed CHF amount; negative rows (voucher) read `−CHF 10.00`. */
+function signedChf(rappen: number): string {
+  return rappen < 0 ? `\u2212${formatPaidTotal(-rappen)}` : formatPaidTotal(rappen);
+}
 
-function extraLabels(locale: EmailLocale, extras: PayLinkExtraCode[] | undefined): string[] {
-  if (!extras?.length) return [];
-  return extras.map((code) => t(locale, EXTRA_KEY[code]));
+/** Presentment amount in the customer's currency, minor units to major. */
+export function formatMinor(amountMinor: number, currency: string): string {
+  let digits = 2;
+  try {
+    digits = new Intl.NumberFormat("en", { style: "currency", currency }).resolvedOptions()
+      .maximumFractionDigits ?? 2;
+  } catch {
+    digits = 2;
+  }
+  return `${currency} ${(amountMinor / 10 ** digits).toFixed(digits)}`;
+}
+
+function moneyRowLabel(locale: EmailLocale, line: EmailMoneyLine, vatRateBps: number): string {
+  switch (line.kind) {
+    case "fare":
+      return t(locale, "money.fare", { class: line.label });
+    case "coupon":
+      return t(locale, "money.voucher", { code: line.label });
+    case "vat":
+      return t(locale, "money.vat", { rate: formatRate(vatRateBps) });
+    default:
+      return line.label;
+  }
+}
+
+/**
+ * The booking stores VAT in tenths of a percent (settings.vat_rate_bps: 81 is
+ * 8.1 %, see apps/web/lib/checkout/vat.ts). 81 -> "8.1", 80 -> "8". Never hard-coded.
+ */
+function formatRate(stored: number): string {
+  return String(Number((stored / 10).toFixed(2)));
+}
+
+function presentmentLine(locale: EmailLocale, money: EmailMoney): string | null {
+  if (!money.presentment || money.presentment.currency.toUpperCase() === "CHF") return null;
+  return t(locale, "money.presented", {
+    paid: formatMinor(money.presentment.amountMinor, money.presentment.currency),
+    currency: money.presentment.currency,
+    received: formatPaidTotal(money.chargedRappen),
+  });
+}
+
+const labelStyle = { margin: 0, fontSize: "14px", color: CHARCOAL } as const;
+const figureStyle = { margin: 0, fontFamily: DISPLAY_FONT, fontSize: "14px", color: CHARCOAL, textAlign: "end" } as const;
+
+function MoneyBlock({ locale, money }: { locale: EmailLocale; money: EmailMoney }) {
+  const note = presentmentLine(locale, money);
+  return (
+    <>
+      {money.lines.map((line, i) => (
+        <Row key={i} style={{ borderBottom: `1px solid ${GREY}` }}>
+          <Column style={{ padding: "8px 0" }}>
+            <Text style={labelStyle}>{moneyRowLabel(locale, line, money.vatRateBps)}</Text>
+          </Column>
+          <Column style={{ padding: "8px 0", width: "40%" }}>
+            <Text style={figureStyle}>{ltr(signedChf(line.amountRappen))}</Text>
+          </Column>
+        </Row>
+      ))}
+      <Row style={{ borderTop: `2px solid ${CHARCOAL}` }}>
+        <Column style={{ padding: "10px 0 0" }}>
+          <Text style={{ ...labelStyle, fontWeight: 700 }}>{t(locale, "money.total")}</Text>
+        </Column>
+        <Column style={{ padding: "10px 0 0", width: "40%" }}>
+          <Text style={{ ...figureStyle, fontSize: "22px", fontWeight: 700 }}>
+            {ltr(formatPaidTotal(money.chargedRappen))}
+          </Text>
+        </Column>
+      </Row>
+      {note ? <Text style={{ margin: "8px 0 0", fontSize: "13px", color: MUTED }}>{note}</Text> : null}
+    </>
+  );
 }
 
 export function ConfirmationEmail({ booking }: { booking: BookingForEmail }) {
   const locale: EmailLocale = booking.locale;
   const dir = locale === "ar" ? "rtl" : "ltr";
   const leg = firstLeg(booking);
-  const amount = formatPaidTotal(booking.totalRappen);
-  const extras = extraLabels(locale, booking.extras);
+  const amount = formatPaidTotal(booking.money?.chargedRappen ?? booking.totalRappen);
+  const extras = extraNames(locale, booking.extras);
 
   return (
     <Html lang={locale} dir={dir}>
@@ -94,7 +163,7 @@ export function ConfirmationEmail({ booking }: { booking: BookingForEmail }) {
           </Section>
           <Section style={{ padding: "28px 32px 8px" }}>
             <Text style={{ margin: 0, fontFamily: DISPLAY_FONT, fontSize: "24px", fontWeight: 600, color: CHARCOAL }}>
-              {t(locale, "headline")}
+              {t(locale, "statusWord")}
             </Text>
             <Text style={{ margin: "12px 0 0", fontSize: "14px", color: MUTED }}>
               {t(locale, "referenceLabel")} {ltr(booking.reference)}
@@ -127,7 +196,7 @@ export function ConfirmationEmail({ booking }: { booking: BookingForEmail }) {
                 <Text style={{ margin: "8px 0 0", fontSize: "14px", color: CHARCOAL }}>
                   {t(locale, "vehicleLabel")} {leg.vehicleClassLabel}
                   {" · "}
-                  {t(locale, "paxLine", { pax: leg.pax, bags: leg.bags })}
+                  {paxBagsLine(locale, leg.pax, leg.bags)}
                 </Text>
                 {extras.length > 0 ? (
                   <Text style={{ margin: "8px 0 0", fontSize: "14px", color: CHARCOAL }}>
@@ -137,12 +206,18 @@ export function ConfirmationEmail({ booking }: { booking: BookingForEmail }) {
               </>
             ) : null}
             <Hr style={{ borderColor: GREY, margin: "24px 0" }} />
-            <Text style={{ margin: 0, fontSize: "12px", color: MUTED, textTransform: "uppercase", letterSpacing: "0.06em" }}>
-              {t(locale, "paidTotal")}
-            </Text>
-            <Text style={{ margin: "4px 0 0", fontFamily: DISPLAY_FONT, fontSize: "22px", fontWeight: 700, color: CHARCOAL }}>
-              {ltr(amount)}
-            </Text>
+            {booking.money ? (
+              <MoneyBlock locale={locale} money={booking.money} />
+            ) : (
+              <>
+                <Text style={{ margin: 0, fontSize: "12px", color: MUTED, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                  {t(locale, "paidTotal")}
+                </Text>
+                <Text style={{ margin: "4px 0 0", fontFamily: DISPLAY_FONT, fontSize: "22px", fontWeight: 700, color: CHARCOAL }}>
+                  {ltr(amount)}
+                </Text>
+              </>
+            )}
             <Button
               href={booking.manageUrl}
               style={{
@@ -183,7 +258,7 @@ export function confirmationPlainText(booking: BookingForEmail): string {
   const locale = booking.locale;
   const leg = firstLeg(booking);
   const lines = [
-    t(locale, "headline"),
+    t(locale, "statusWord"),
     `${t(locale, "referenceLabel")} ${booking.reference}`,
   ];
   if (leg) {
@@ -193,13 +268,22 @@ export function confirmationPlainText(booking: BookingForEmail): string {
     lines.push(`${t(locale, "timeLabel")} ${leg.scheduledLocal}`);
     if (leg.flightNo) lines.push(leg.flightNo);
     lines.push(`${t(locale, "vehicleLabel")} ${leg.vehicleClassLabel}`);
-    lines.push(t(locale, "paxLine", { pax: leg.pax, bags: leg.bags }));
-    const extras = extraLabels(locale, booking.extras);
+    lines.push(paxBagsLine(locale, leg.pax, leg.bags));
+    const extras = extraNames(locale, booking.extras);
     if (extras.length > 0) {
       lines.push(`${t(locale, "payLink.extrasLabel")} ${extras.join(" · ")}`);
     }
   }
-  lines.push(`${t(locale, "paidTotal")} ${formatPaidTotal(booking.totalRappen)}`);
+  if (booking.money) {
+    for (const line of booking.money.lines) {
+      lines.push(`${moneyRowLabel(locale, line, booking.money.vatRateBps)}: ${signedChf(line.amountRappen)}`);
+    }
+    lines.push(`${t(locale, "money.total")}: ${formatPaidTotal(booking.money.chargedRappen)}`);
+    const note = presentmentLine(locale, booking.money);
+    if (note) lines.push(note);
+  } else {
+    lines.push(`${t(locale, "paidTotal")} ${formatPaidTotal(booking.totalRappen)}`);
+  }
   lines.push(booking.manageUrl);
   lines.push(t(locale, "calendarNote"));
   lines.push(t(locale, "cancellationLine"));

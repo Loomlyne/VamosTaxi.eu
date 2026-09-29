@@ -38,7 +38,7 @@ export type AccountBooking = {
   chauffeur: string;
   pax: number;
   priceRappen: number;
-  status: "unpaid" | "finished" | "new" | "confirmed" | "assigned" | "completed" | "cancelled";
+  status: "awaiting_payment" | "booked" | "new" | "completed" | "cancelled";
   when: "upcoming" | "past";
   group: string;
   reviewState: "none" | "requested" | "reviewed";
@@ -120,19 +120,13 @@ function reviewOf(
   return { reviewState: "none", reviewHref: "" };
 }
 
-function payLinkSent(value: string | Date | null | undefined): boolean {
-  if (value == null) return false;
-  return String(value).trim() !== "";
-}
-
-function rowStatus(status: string, sent: boolean): AccountBooking["status"] {
+/** D-32/D-28: a paid booking is "booked" whether or not a pay link ever went out; only an unpaid one with a sent link is listed as awaiting payment. */
+function rowStatus(status: string): AccountBooking["status"] {
   const s = status.toLowerCase();
-  if (s === "pending") return "unpaid";
+  if (s === "pending") return "awaiting_payment";
   if (s === "cancelled" || s === "refunded" || s === "no_show") return "cancelled";
   if (s === "completed" || s === "partially_completed") return "completed";
-  if (s === "assigned") return "assigned";
-  if ((s === "confirmed" || s === "paid") && sent) return "finished";
-  if (s === "confirmed" || s === "paid") return "confirmed";
+  if (s === "assigned" || s === "confirmed" || s === "paid") return "booked";
   return "new";
 }
 
@@ -151,8 +145,7 @@ export function mapAccountBooking(row: AccountSqlRow, now = new Date()): Account
   const pickup = str(row.pickup_text);
   const dropoff = str(row.dropoff_text);
   const ref = str(row.reference);
-  const sent = payLinkSent(row.pay_link_sent_at);
-  const uiStatus = rowStatus(status, sent);
+  const uiStatus = rowStatus(status);
   const review = reviewOf(status, row.has_review === true, ref);
   return {
     ref,

@@ -7,15 +7,21 @@
 // default, no Cloudflare Workers pool tooling — Miniflare cannot see a
 // Hyperdrive binding and Phase 4 unit tests must not need one.
 
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
+  // Same "@/" alias as tsconfig so lib modules that import "@/…" load under test.
+  resolve: { alias: { "@": fileURLToPath(new URL(".", import.meta.url)) } },
+  // 26.3-19: component tests render with react-dom/server; tsconfig keeps `jsx: preserve`.
+  oxc: { jsx: { runtime: "automatic" } },
   test: {
     environment: "node",
     include: [
       "lib/**/*.test.ts",
       "tests/unit/**/*.test.ts",
       "components/consent/**/*.test.ts",
+      "components/checkout/**/*.test.tsx",
     ],
     exclude: [
       "node_modules/**",

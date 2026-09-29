@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   companyReady,
   confirmationRecipients,
+  emailExtrasFromLines,
+  emailExtrasFromPolicy,
   extrasFromPolicy,
   payLinkEmailFromLock,
   payLinkExtras,
@@ -98,7 +100,13 @@ describe("payLinkEmailFromLock", () => {
     expect(mail.pickupText).toBe("ZRH Arrivals");
     expect(mail.dropoffText).toBe("Bahnhofstrasse");
     expect(mail.flightNo).toBe("LX123");
-    expect(mail.extras).toEqual(["child_seat"]);
+    expect(mail.extras).toEqual([
+      {
+        name: "Child seat",
+        names: { en: "Child seat", de: "Kindersitz", fr: "Siège enfant", ar: "مقعد طفل" },
+        amountRappen: null,
+      },
+    ]);
     expect(mail.payUrl).toContain("/checkout/pay/");
   });
 });
@@ -117,5 +125,43 @@ describe("extrasFromPolicy", () => {
       "oversized_luggage",
     ]);
     expect(extrasFromPolicy(null)).toEqual([]);
+  });
+});
+
+describe("emailExtrasFromLines", () => {
+  const lines = [
+    { kind: "fare", code: "fare", amount_rappen: 10000 },
+    {
+      kind: "surcharge",
+      code: "ski-rack",
+      params: { names: { en: "Ski rack", de: "Skiträger" } },
+      amount_rappen: 2000,
+    },
+    { kind: "surcharge", code: "baby_seat", params: { name: "Baby seat" }, amount_rappen: 1500 },
+    { kind: "surcharge", code: "night", amount_rappen: 0 },
+    { kind: "coupon", code: "coupon", amount_rappen: -1000 },
+    { kind: "vat", code: "vat", amount_rappen: 950 },
+  ];
+
+  it("returns one entry per surcharge line with its own names, not a closed list", () => {
+    expect(emailExtrasFromLines(lines, "de")).toEqual([
+      { name: "Skiträger", names: { en: "Ski rack", de: "Skiträger" }, amountRappen: 2000 },
+      { name: "Baby seat", names: {}, amountRappen: 1500 },
+    ]);
+  });
+
+  it("falls back to English, then the humanised code", () => {
+    expect(emailExtrasFromLines(lines, "fr")[0]?.name).toBe("Ski rack");
+    expect(emailExtrasFromLines([{ kind: "surcharge", code: "roof-box", amount_rappen: 500 }], "en")[0]?.name).toBe(
+      "Roof box",
+    );
+  });
+
+  it("reads nothing from junk", () => {
+    expect(emailExtrasFromLines(null, "en")).toEqual([]);
+  });
+
+  it("legacy policy codes keep their three-language names", () => {
+    expect(emailExtrasFromPolicy(["extra_stop"])[0]?.names?.de).toBe("Zwischenstopp");
   });
 });

@@ -1,5 +1,6 @@
 import type { PayLinkExtraCode } from "@vamos/emails/confirmation";
 import type { ConfirmationFareLine } from "./booking-read";
+import { humaniseCode } from "./extras-catalog";
 import { vatIncludedRappen, vatOnTopRappen } from "./vat";
 
 const EXTRA_CODES: Record<PayLinkExtraCode, true> = {
@@ -87,6 +88,7 @@ export function formatPaidAt(iso: string, locale: string): string {
   }).format(date);
 }
 
+/** @deprecated 26.3 D-35 — use receiptRows; removed by plan 26.3-14. */
 export function couponOnReceipt(args: {
   couponCode: string | null | undefined;
   discountRappen: number | null | undefined;
@@ -104,20 +106,12 @@ export function couponOnReceipt(args: {
   return { code, rappen };
 }
 
+/** @deprecated 26.3 D-35 — use receiptRows; removed by plan 26.3-14. */
 export function extrasOnReceipt(extras: PayLinkExtraCode[] | null | undefined): PayLinkExtraCode[] {
   return Array.isArray(extras) ? extras.filter((code) => code in EXTRA_CODES) : [];
 }
 
-export function extrasFromFareLines(lines: ConfirmationFareLine[]): PayLinkExtraCode[] {
-  const out: PayLinkExtraCode[] = [];
-  for (const line of lines) {
-    if (!(line.code in EXTRA_CODES)) continue;
-    const code = line.code as PayLinkExtraCode;
-    if (!out.includes(code)) out.push(code);
-  }
-  return out;
-}
-
+/** @deprecated 26.3 D-35 — use receiptRows; removed by plan 26.3-14. */
 export function extraRappenByCode(lines: ConfirmationFareLine[]): Partial<Record<PayLinkExtraCode, number>> {
   const out: Partial<Record<PayLinkExtraCode, number>> = {};
   for (const line of lines) {
@@ -128,6 +122,7 @@ export function extraRappenByCode(lines: ConfirmationFareLine[]): Partial<Record
 }
 
 /** Class fare + extras, then 8.1% VAT on that basket, then coupon. Does not invent extras. */
+/** @deprecated 26.3 D-35 — use receiptRows; removed by plan 26.3-14. */
 export function receiptPriceSplit(args: {
   totalRappen: number | null | undefined;
   extraRappen: Partial<Record<PayLinkExtraCode, number>>;
@@ -160,13 +155,79 @@ export function receiptPriceSplit(args: {
   return { fareRappen, vatRappen, extras, couponRappen, couponPercent };
 }
 
-export function mergeExtras(
-  fromPolicy: PayLinkExtraCode[],
-  fromLines: ConfirmationFareLine[],
-): PayLinkExtraCode[] {
-  const out = extrasOnReceipt(fromPolicy);
-  for (const code of extrasFromFareLines(fromLines)) {
-    if (!out.includes(code)) out.push(code);
+export type ReceiptRow = {
+  kind: "fare" | "extra" | "coupon" | "vat" | "total";
+  /** Text to show. For fare/vat/total this is the English fallback of `labelKey`. */
+  label: string;
+  /** Message key when the UI has one (fare, VAT, total, legacy three-code extras). */
+  labelKey?: string;
+  /** Negative for a voucher. */
+  amountRappen: number;
+};
+
+function listRappen(line: ConfirmationFareLine): number {
+  const list = Number(line.params?.list_rappen);
+  return Number.isFinite(list) && list > 0 ? Math.round(list) : line.amountRappen;
+}
+
+function extraLabel(line: ConfirmationFareLine, locale: string): { label: string; labelKey?: string } {
+  const key = line.i18nKey ?? "";
+  // Legacy three-code lines keep the message key they were written with.
+  if (key && key !== "price.surcharge.custom" && key.startsWith("price.surcharge.")) {
+    return { label: humaniseCode(line.code), labelKey: key };
   }
-  return out;
+  const params = line.params ?? {};
+  const names = params.names && typeof params.names === "object" ? (params.names as Record<string, unknown>) : {};
+  const pick = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : "");
+  const label =
+    pick(names[locale]) || pick(names.en) || pick(params.name) || humaniseCode(line.code);
+  return { label };
+}
+
+/**
+ * The receipt, built only from the booking's price-snapshot lines: fare, every
+ * ticked extra by name, voucher, VAT, total paid. Any extra code renders; the
+ * name comes from the line (its per-language names, then the English name, then
+ * the humanised code). `presentment` is accepted for symmetry with the mail;
+ * the total row is always the CHF figure that was charged.
+ */
+export function receiptRows(
+  lines: ConfirmationFareLine[],
+  locale: string,
+  chargedRappen: number | null,
+  _presentment?: { amountMinor: number; currency: string } | null,
+): ReceiptRow[] {
+  const rows: ReceiptRow[] = [];
+  let fareIndex = -1;
+  let vatRow: ReceiptRow | null = null;
+  let couponRow: ReceiptRow | null = null;
+  for (const line of lines) {
+    const kind = line.kind ?? (line.code === "vat" ? "vat" : line.code === "coupon" || line.code === "discount" ? "coupon" : line.code === "distance_fare" ? "fare" : "surcharge");
+    if (kind === "fare") {
+      if (fareIndex === -1) {
+        fareIndex = rows.length;
+        rows.push({ kind: "fare", label: "Fare", labelKey: "price.line.transfer", amountRappen: listRappen(line) });
+      } else {
+        rows[fareIndex]!.amountRappen += listRappen(line);
+      }
+    } else if (kind === "surcharge") {
+      rows.push({ kind: "extra", ...extraLabel(line, locale), amountRappen: listRappen(line) });
+    } else if (kind === "coupon") {
+      const discount = Number(line.params?.discount_rappen);
+      const amount = Number.isFinite(discount) && discount > 0 ? Math.round(discount) : Math.abs(line.amountRappen);
+      if (amount > 0 && !couponRow) {
+        couponRow = { kind: "coupon", label: line.code, labelKey: "price.line.coupon", amountRappen: -amount };
+      }
+    } else if (kind === "vat") {
+      const bps = Number(line.params?.vatRateBps);
+      const pct = Number.isFinite(bps) && bps > 0 ? ` ${Number((bps / 10).toFixed(1))} %` : "";
+      vatRow = { kind: "vat", label: `VAT${pct}`, labelKey: "price.line.vat", amountRappen: line.amountRappen };
+    }
+  }
+  if (couponRow) rows.push(couponRow);
+  if (vatRow) rows.push(vatRow);
+  if (chargedRappen != null) {
+    rows.push({ kind: "total", label: "Total paid", labelKey: "price.line.total", amountRappen: chargedRappen });
+  }
+  return rows;
 }

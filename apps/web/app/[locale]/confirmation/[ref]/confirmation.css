@@ -126,6 +126,96 @@
   }
 }
 
+/* S3 loading card (D-27). */
+.vt-confirmation__loading {
+  max-inline-size: 560px;
+  margin-inline: auto;
+  padding: 40px;
+}
+
+.vt-confirmation__loading-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  min-inline-size: 0;
+}
+
+.vt-confirmation__loading-body > .vt-prog {
+  inline-size: 100%;
+}
+
+.vt-confirmation__loading .vt-prog__track {
+  overflow: hidden;
+}
+
+.vt-confirmation__loading .vt-prog__fill {
+  inline-size: 40% !important;
+  margin-inline-start: 0;
+  animation: vt-confirmation-slide 1.4s ease-in-out infinite alternate;
+}
+
+@keyframes vt-confirmation-slide {
+  to {
+    margin-inline-start: 60%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vt-confirmation__loading .vt-prog__fill {
+    animation: none;
+  }
+}
+
+@media (max-width: 680px) {
+  .vt-confirmation__loading {
+    padding: 24px;
+  }
+}
+
+/* S4: charcoal disc with the yellow check, then kicker, heading, reference line. */
+.vt-confirmation__disc {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 56px;
+  block-size: 56px;
+  border-radius: 50%;
+  background: var(--vt-charcoal-900);
+}
+
+.vt-confirmation__hero--booked {
+  align-items: flex-start;
+}
+
+.vt-confirmation__kicker--booked {
+  font-size: 13px;
+  font-weight: var(--vt-weight-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--vt-charcoal-900);
+}
+
+.vt-confirmation__booked {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-inline-size: 0;
+}
+
+.vt-confirmation__presentment,
+.vt-confirmation__legal {
+  margin: 0;
+  font-family: var(--vt-font-body);
+  font-size: var(--vt-body-sm);
+  color: var(--vt-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.vt-confirmation__booked-cancel {
+  display: flex;
+}
+
 .vt-confirmation__actions {
   display: flex;
   flex-wrap: wrap;

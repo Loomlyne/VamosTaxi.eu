@@ -1,44 +1,39 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type ComponentProps } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Button, Card, Icon } from "@/components/core";
 import { Alert } from "@/components/feedback/Alert";
-import { Input, Select } from "@/components/forms";
 import { formatAmount } from "@/lib/currency";
-import { decodeClientSecret } from "@/lib/checkout/client-secret";
+import { PriceSummary, RouteSummary, type PriceLine } from "@/components/transfer";
+import { hasPayLinkExtras, payLinkExtraName, type PayLinkLine } from "@/lib/checkout/pay-link-lines";
 import {
-  PAY_LINK_POLL_BUDGET_MS,
-  PAY_LINK_POLL_INTERVAL_MS,
   payLinkSessionKey,
-  payPollStep,
   payStateFromOpen,
-  sessionIdFromClientSecret,
   splitAroundMarker,
   storedPayLinkSessionId,
   type PayAlertKey,
   type PayState,
 } from "@/lib/checkout/pay-client-states";
-import { PaymentPanel } from "../../PaymentPanel";
+import "./pay-link.css";
 
 /** D-21/D-22: the link is settled — no form, a confirmed-state card instead. */
 type DoneView = "alreadyPaid" | "raceRefunded";
 
 type PayLinkOpenJson = {
-  client_secret?: string;
-  client_secret_hex?: string;
-  publishable_key?: string;
+  /** Stripe-hosted page (D-46). Never a client secret: no card form on this site. */
+  url?: string;
+  session_id?: string;
   reference?: string;
   pickup?: string;
   dropoff?: string;
   amount_rappen?: number | null;
-  billing_email?: string;
   code?: string;
   lock_expires_at?: string;
   quote_id?: string;
+  /** G9: saved fare lines (fare, extras, voucher, VAT); only sent when they add up to `amount_rappen`. */
+  lines?: PayLinkLine[];
 };
-
-type PanelProps = ComponentProps<typeof PaymentPanel>;
 
 /** Placeholder marker so the reference can sit in its own LTR span inside the sentence. */
 const REFERENCE_MARKER = "\u0001";
@@ -85,10 +80,6 @@ function onPayLinkLockZero(lock_expires_at: string | null): { locked: boolean } 
   return { locked: false };
 }
 
-function panelProps(props: PanelProps, locked: boolean): PanelProps {
-  return { ...props, locked } as PanelProps;
-}
-
 /** Expire the stored session. Skip when open never stored a quote id. */
 function expireStoredCheckoutSession(quote_id: string | null): void {
   if (!quote_id) return;
@@ -101,64 +92,6 @@ function expireStoredCheckoutSession(quote_id: string | null): void {
 
 function alertTone(key: PayAlertKey): "info" | "danger" {
   return key === "pricingNotLive" ? "info" : "danger";
-}
-
-function TokenDummyFields() {
-  const t = useTranslations("checkout");
-  const locale = useLocale();
-  const country = new Intl.DisplayNames([locale], { type: "region" }).of("CH") ?? "CH";
-  return (
-    <div className="vt-checkout__payblock">
-      <div className="vt-checkout__payhead">
-        <h2>{t("payment")}</h2>
-        <p>{t("card-apple-pay-or-twint")}</p>
-      </div>
-      <div className="vt-checkout__cardblock">
-        <h2 className="vt-checkout__method">{t("payWithCard")}</h2>
-        <div className="vt-checkout__cardfields" data-checkout-dummy-fields>
-          <Input
-            label={t("cardNumber")}
-            icon="credit-card"
-            size="md"
-            disabled
-            readOnly
-            value=""
-            placeholder="1234 1234 1234 1234"
-            autoComplete="off"
-            inputMode="numeric"
-          />
-          <Select
-            className="vt-checkout__card-country"
-            label={t("cardCountry")}
-            size="md"
-            disabled
-            value="CH"
-            options={[{ value: "CH", label: country }]}
-            onChange={() => undefined}
-          />
-          <Input
-            label={t("cardExpiry")}
-            size="md"
-            disabled
-            readOnly
-            value=""
-            placeholder="MM / YY"
-            autoComplete="off"
-          />
-          <Input
-            label={t("cardCvc")}
-            size="md"
-            disabled
-            readOnly
-            value=""
-            placeholder="CVC"
-            autoComplete="off"
-            inputMode="numeric"
-          />
-        </div>
-      </div>
-    </div>
-  );
 }
 
 /**
@@ -202,27 +135,22 @@ function PayLinkDone({ view, reference }: { view: DoneView; reference: string })
 
 export function PayClient({ token }: { token: string }) {
   const t = useTranslations("checkout");
+  const locale = useLocale();
   const [busy, setBusy] = useState(true);
-  const [paying, setPaying] = useState(false);
+  const [opening, setOpening] = useState(false);
   const [error, setError] = useState<PayAlertKey | null>(null);
-  const [stripeError, setStripeError] = useState<string | null>(null);
-  const [clientSecret, setClientSecret] = useState("");
-  const [clientSecretHex, setClientSecretHex] = useState<string | undefined>();
-  const [publishable, setPublishable] = useState("");
+  const [startFailed, setStartFailed] = useState(false);
+  const [ready, setReady] = useState(false);
   const [reference, setReference] = useState("");
   const [pickup, setPickup] = useState("");
   const [dropoff, setDropoff] = useState("");
   const [amountRappen, setAmountRappen] = useState<number | null>(null);
-  const [billingEmail, setBillingEmail] = useState("");
-  const [cardComplete, setCardComplete] = useState(false);
-  const [confirmPay, setConfirmPay] = useState<(() => Promise<void>) | null>(null);
+  const [saved, setSaved] = useState<PayLinkLine[]>([]);
   const [lockExpiresAt, setLockExpiresAt] = useState<string | null>(null);
   const [payLocked, setPayLocked] = useState(false);
   const [storedQuoteId, setStoredQuoteId] = useState<string | null>(null);
   const [linkExpired, setLinkExpired] = useState(false);
   const [done, setDone] = useState<{ view: DoneView; reference: string } | null>(null);
-  const confirmPayRef = useRef(confirmPay);
-  confirmPayRef.current = confirmPay;
   const sessionIdRef = useRef<string | null>(null);
 
   function applyRecap(json: PayLinkOpenJson) {
@@ -230,7 +158,7 @@ export function PayClient({ token }: { token: string }) {
     setPickup(json.pickup ?? "");
     setDropoff(json.dropoff ?? "");
     setAmountRappen(typeof json.amount_rappen === "number" ? json.amount_rappen : null);
-    setBillingEmail(json.billing_email ?? "");
+    setSaved(Array.isArray(json.lines) ? json.lines : []);
   }
 
   /** Paid / refunded / expired come from the server's state read (26.1-15), never from the browser. */
@@ -245,6 +173,15 @@ export function PayClient({ token }: { token: string }) {
       return;
     }
     setError(state.kind === "alert" ? state.key : "paymentWindowClosed");
+  }
+
+  /** Remember the recipient's own session id so a later open can tell a refunded duplicate (D-22). */
+  function rememberSession(json: PayLinkOpenJson) {
+    const own = storedPayLinkSessionId(json.session_id);
+    if (own) {
+      sessionIdRef.current = own;
+      storeSessionId(token, own);
+    }
   }
 
   useEffect(() => {
@@ -265,24 +202,16 @@ export function PayClient({ token }: { token: string }) {
         setStoredQuoteId(openedQuoteId);
         const lockAt = typeof json.lock_expires_at === "string" ? json.lock_expires_at : null;
         const zero = onPayLinkLockZero(lockAt);
-        if (zero.locked || !json.client_secret) {
+        if (zero.locked || !json.url) {
           setPayLocked(true);
           setError(zero.locked ? "quoteExpired" : "paymentWindowClosed");
           if (zero.locked) expireStoredCheckoutSession(openedQuoteId);
           return;
         }
-        const ownSession = sessionIdFromClientSecret(
-          decodeClientSecret(json.client_secret, json.client_secret_hex),
-        );
-        if (ownSession) {
-          sessionIdRef.current = ownSession;
-          storeSessionId(token, ownSession);
-        }
+        rememberSession(json);
         setLockExpiresAt(lockAt);
         setPayLocked(false);
-        setClientSecret(json.client_secret);
-        setClientSecretHex(json.client_secret_hex);
-        setPublishable(json.publishable_key ?? "");
+        setReady(true);
       } catch {
         if (!cancelled) {
           setPayLocked(true);
@@ -295,42 +224,11 @@ export function PayClient({ token }: { token: string }) {
     return () => {
       cancelled = true;
     };
+    // rememberSession only reads `token`, the effect's own dependency.
   }, [token]);
 
-  /**
-   * D-21/D-22: after the recipient's own payment confirms, ask the link whether
-   * that charge settled (paid — continue to the settle route) or lost the race
-   * (refunded duplicate — show the race card). Same budget as the confirmation
-   * page's poll; on timeout the settle route decides.
-   */
-  const afterOwnPayment = useCallback(
-    async (destination: string) => {
-      setPaying(true);
-      const deadline = Date.now() + PAY_LINK_POLL_BUDGET_MS;
-      while (Date.now() < deadline) {
-        try {
-          const { json } = await openPayLink(token, sessionIdRef.current);
-          const state = payStateFromOpen(json);
-          const step = payPollStep(state);
-          if (step === "raceRefunded" && state.kind === "raceRefunded") {
-            setPayLocked(true);
-            setDone({ view: "raceRefunded", reference: state.reference });
-            setPaying(false);
-            return;
-          }
-          if (step === "continue") break;
-        } catch {
-          // Network blip — keep asking until the budget runs out.
-        }
-        await new Promise((resolve) => setTimeout(resolve, PAY_LINK_POLL_INTERVAL_MS));
-      }
-      window.location.assign(destination);
-    },
-    [token],
-  );
-
   useEffect(() => {
-    if (!clientSecret || !lockExpiresAt) return;
+    if (!ready || !lockExpiresAt) return;
     const at = Date.parse(lockExpiresAt);
     if (!Number.isFinite(at)) return;
     const fire = () => {
@@ -347,43 +245,53 @@ export function PayClient({ token }: { token: string }) {
     }
     const timer = window.setTimeout(fire, delay);
     return () => window.clearTimeout(timer);
-  }, [clientSecret, lockExpiresAt, storedQuoteId]);
+  }, [ready, lockExpiresAt, storedQuoteId]);
 
+  /** PAY: ask the server for the (reused or fresh) hosted session, then leave for Stripe's page. */
   async function onPay() {
-    if (payLocked || !clientSecret) return;
-    if (!cardComplete) {
-      setError("completeCard");
-      return;
-    }
-    setPaying(true);
-    setError(null);
-    setStripeError(null);
+    if (payLocked || !ready || opening) return;
+    setOpening(true);
+    setStartFailed(false);
     try {
-      const deadline = Date.now() + 25_000;
-      while (!confirmPayRef.current && Date.now() < deadline) {
-        await new Promise((resolve) => setTimeout(resolve, 80));
-      }
-      const confirm = confirmPayRef.current;
-      if (!confirm) {
-        setError("payCouldNotStart");
+      const { ok, json } = await openPayLink(token, sessionIdRef.current);
+      const state = payStateFromOpen(json);
+      if (!ok || !json.url) {
+        if (state.kind === "alert" && state.key === "paymentWindowClosed") {
+          setStartFailed(true);
+        } else {
+          applyRefusal(state);
+        }
+        setOpening(false);
         return;
       }
-      await confirm();
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "";
-      if (message && message !== "payCouldNotStart" && message !== "checkout-not-ready") {
-        setStripeError(message);
-        setError(null);
-      } else {
-        setError("payCouldNotStart");
-      }
-    } finally {
-      setPaying(false);
+      rememberSession(json);
+      window.location.assign(json.url);
+    } catch {
+      setStartFailed(true);
+      setOpening(false);
     }
   }
 
-  const amount = formatAmount(amountRappen == null ? null : amountRappen / 100, "CHF");
-  const payDisabled = paying || busy || !clientSecret || payLocked;
+  const total = amountRappen == null ? null : amountRappen / 100;
+  // G9: with extras on the booking, each saved line is shown above the total. Without, the total alone.
+  const priceLines: PriceLine[] = hasPayLinkExtras(saved)
+    ? saved.map((line): PriceLine => {
+        const amount = line.amountRappen / 100;
+        switch (line.kind) {
+          case "fare":
+            return { label: t("fareExVat"), amount };
+          case "surcharge":
+            return { label: `+ ${payLinkExtraName(line, locale)}`, amount };
+          case "coupon":
+            return { label: t("couponCode", { code: line.code }), amount, credit: true };
+          default: {
+            const rate = line.vatRateBps == null ? "" : String(Number((line.vatRateBps / 100).toFixed(2)));
+            return { label: rate ? t("receiptVat", { rate }) : t("receiptVatPlain"), amount };
+          }
+        }
+      })
+    : [];
+  const payDisabled = opening || busy || !ready || payLocked;
   // D-20: on this page a closed lock is the pay link's 24 hours running out —
   // the recipient's copy, not the booker's "get a new price".
   const expired = linkExpired || error === "quoteExpired";
@@ -394,60 +302,48 @@ export function PayClient({ token }: { token: string }) {
   return (
     <div className="vt-checkout" data-checkout-pay-page>
       <Card padding="lg">
-        <div className="vt-checkout__sheet">
+        <div className="vt-checkout__sheet" data-pay-link-sheet>
           <h1>{t("finishPayment")}</h1>
-          {reference ? <p>{t("unpaidReference", { reference })}</p> : null}
-          {pickup || dropoff ? (
-            <p>
-              {pickup}
-              {pickup && dropoff ? " → " : ""}
-              {dropoff}
-            </p>
-          ) : null}
-          <p className="vt-checkout__picked">{amount}</p>
-          {stripeError ? <Alert tone="danger">{stripeError}</Alert> : null}
+          {reference ? <p data-pay-link-reference>{t("unpaidReference", { reference })}</p> : null}
           {expired ? (
             <Alert role="alert" tone="danger" title={t("payLinkExpiredTitle")} data-pay-link-expired>
               {t("payLinkExpiredBody")}
             </Alert>
           ) : null}
-          <Alert
-            role="alert"
-            tone={genericError ? alertTone(genericError) : "danger"}
-            hidden={genericError == null}
-          >
-            {genericError ? t(genericError) : ""}
-          </Alert>
-          {clientSecret ? (
-            <div className="vt-checkout__payblock">
-              <div className="vt-checkout__payhead">
-                <h2>{t("payment")}</h2>
-                <p>{t("card-apple-pay-or-twint")}</p>
-              </div>
-              <div className="vt-checkout__paystack">
-                <PaymentPanel
-                  {...panelProps(
-                    {
-                      publishableKey: publishable,
-                      clientSecret,
-                      clientSecretHex,
-                      reference,
-                      billingEmail,
-                      onReady: (fn) => setConfirmPay(() => fn),
-                      onComplete: setCardComplete,
-                      onPaid: afterOwnPayment,
-                    },
-                    payLocked,
-                  )}
-                />
-              </div>
+          {genericError ? (
+            <Alert role="alert" tone={alertTone(genericError)}>
+              {t(genericError)}
+            </Alert>
+          ) : null}
+          {startFailed ? (
+            <Alert role="alert" tone="danger" data-pay-link-start-failed>
+              {t("payStartFailed")}
+            </Alert>
+          ) : null}
+          {pickup || dropoff ? <RouteSummary pickup={pickup} dropoff={dropoff} /> : null}
+          {amountRappen != null ? (
+            <div data-pay-link-price data-pay-link-lines={priceLines.length > 0 ? "1" : undefined}>
+              <PriceSummary
+                lines={priceLines.length > 0 ? priceLines : undefined}
+                total={total}
+                totalLabel={t("total")}
+                currency="CHF"
+              />
             </div>
-          ) : busy ? null : (
-            <TokenDummyFields />
-          )}
-          <div className="vt-checkout__cta" aria-busy={paying || undefined}>
-            <Button size="lg" disabled={payDisabled} onClick={() => void onPay()}>
-              {t("pay-and-continue")}
+          ) : null}
+          {ready ? (
+            <p className="vt-checkout__method-note" data-pay-link-method-note>
+              {t("methodNote")}
+            </p>
+          ) : null}
+          <div className="vt-checkout__cta" aria-busy={opening || undefined}>
+            <Button
+              size="lg"
+              disabled={payDisabled}
+              icon={opening ? undefined : "lock"}
+              onClick={() => void onPay()}
+            >
+              {opening ? t("openingPayment") : t("payTotal", { total: formatAmount(total, "CHF") })}
             </Button>
           </div>
         </div>

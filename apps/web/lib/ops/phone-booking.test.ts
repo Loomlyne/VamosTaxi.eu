@@ -75,6 +75,7 @@ describe("08-06 phone booking file proofs", () => {
     expect(src).toMatch(/setPayLink/);
     expect(src).toMatch(/vamostaxi\.site/);
     expect(src).not.toMatch(/createCheckoutSession/);
+    expect(src).not.toMatch(/client_secret|clientSecret/);
     expect(src).not.toMatch(/asStaff/);
     expect(src).not.toMatch(/:6543/);
     expect(src).toMatch(/is_test/);
@@ -87,7 +88,11 @@ describe("08-06 phone booking file proofs", () => {
     const detail = read("app/ops/OpsDetail.dc.html");
     expect(detail).toMatch(/\/pay-link/);
     expect(detail).toMatch(/Take card/);
-    expect(detail).toMatch(/js\.stripe\.com\/v3/);
+    // D-48: no card form of ours on the dashboard.
+    expect(detail).not.toMatch(/js\.stripe\.com/);
+    expect(detail).not.toMatch(/elements\(|confirmPayment|client_secret/);
+    expect(detail).toMatch(/\/take-card|'take-card'/);
+    expect(detail).toMatch(/'extra-pay'/);
   });
 
   it("i18n dict has New trip in four languages", () => {

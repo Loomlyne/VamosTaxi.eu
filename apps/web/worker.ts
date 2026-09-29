@@ -25,6 +25,7 @@ import { applyHandleResult, handleStripeMessage } from "./lib/checkout/settle";
 import { handleDlqMessage } from "./lib/checkout/dlq";
 import { sweepStuckNotifications } from "./lib/checkout/notify";
 import { expireUnpaidBookings } from "./lib/checkout/expire-unpaid";
+import { purgeExpiredUnpaid } from "./lib/checkout/purge-unpaid";
 import { runReminder24h } from "./lib/lifecycle/reminder";
 import { probeHealth } from "./lib/health/probe";
 import type { StripeQueueMessage } from "./lib/checkout/webhook";
@@ -94,6 +95,14 @@ export default {
       return;
     }
 
+    // 26.3-12 (D-25, D-45): delete unpaid web bookings Stripe confirms expired. Counts only, no PII.
+    try {
+      const purge = await purgeExpiredUnpaid(env);
+      emit("info", "purge_unpaid", purge);
+    } catch {
+      emit("error", "purge_unpaid", { outcome: "failed" });
+    }
+
     try {
       const cancelled = await expireUnpaidBookings(env);
       emit("info", "expire_unpaid", { cancelled });
@@ -106,6 +115,15 @@ export default {
       emit("info", "reminder_24h", reminder);
     } catch {
       emit("error", "reminder_24h", { outcome: "failed" });
+    }
+
+    // 26.3-01 (D-39): a paid booking's confirmation is resent within the hour —
+    // stuck or failed claims, and paid bookings that never got a claim.
+    try {
+      await sweepStuckNotifications(env);
+      emit("info", "notification_sweep", { outcome: "ok" });
+    } catch {
+      emit("error", "notification_sweep", { outcome: "failed" });
     }
 
     // In-process hourly probe (LAUNCH-03). Do not HTTP-loopback to the route.

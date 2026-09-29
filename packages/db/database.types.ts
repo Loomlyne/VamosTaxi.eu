@@ -527,6 +527,7 @@ export type Database = {
           fx_source: string | null
           id: number
           presentment_amount_minor: number | null
+          presentment_currency: string | null
           snapshot_id: number
           status: string
           stripe_checkout_session_id: string | null
@@ -544,6 +545,7 @@ export type Database = {
           fx_source?: string | null
           id?: never
           presentment_amount_minor?: number | null
+          presentment_currency?: string | null
           snapshot_id: number
           status: string
           stripe_checkout_session_id?: string | null
@@ -561,6 +563,7 @@ export type Database = {
           fx_source?: string | null
           id?: never
           presentment_amount_minor?: number | null
+          presentment_currency?: string | null
           snapshot_id?: number
           status?: string
           stripe_checkout_session_id?: string | null
@@ -688,6 +691,7 @@ export type Database = {
       bookings: {
         Row: {
           billing_kind: string
+          checkout_trip_query: string
           company_address: string
           company_name: string
           company_vat: string
@@ -719,6 +723,7 @@ export type Database = {
         }
         Insert: {
           billing_kind?: string
+          checkout_trip_query?: string
           company_address?: string
           company_name?: string
           company_vat?: string
@@ -750,6 +755,7 @@ export type Database = {
         }
         Update: {
           billing_kind?: string
+          checkout_trip_query?: string
           company_address?: string
           company_name?: string
           company_vat?: string
@@ -1394,6 +1400,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      extra_labels: {
+        Row: {
+          code: string
+          id: number
+          label_ar: string | null
+          label_de: string | null
+          label_en: string
+          label_fr: string | null
+          machine_langs: string[]
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          code: string
+          id?: never
+          label_ar?: string | null
+          label_de?: string | null
+          label_en: string
+          label_fr?: string | null
+          machine_langs?: string[]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          code?: string
+          id?: never
+          label_ar?: string | null
+          label_de?: string | null
+          label_en?: string
+          label_fr?: string | null
+          machine_langs?: string[]
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
       }
       fixed_routes: {
         Row: {
@@ -2576,17 +2618,26 @@ export type Database = {
         Args: { p_booking_id: string }
         Returns: {
           bags: number
+          charged_rappen: number
           contact_email: string
           contact_name: string
+          coupon_code: string
+          coupon_rappen: number
           dropoff_text: string
           flight_no: string
+          lines: Json
           locale: string
           pax: number
           payer_email: string
           pickup_text: string
+          policy_extras: Json
+          presentment_amount_minor: number
+          presentment_currency: string
           price_total_rappen: number
           reference: string
           scheduled_local: string
+          vat_rate_bps: number
+          vehicle_class_name: string
           vehicle_class_slug: string
         }[]
       }
@@ -2601,6 +2652,10 @@ export type Database = {
       checkout_booking_is_test_by_id: {
         Args: { p_booking_id: string }
         Returns: boolean
+      }
+      checkout_booking_session_ids: {
+        Args: { p_booking_id: string }
+        Returns: string[]
       }
       checkout_cancel_unpaid: {
         Args: { p_reference: string }
@@ -2717,6 +2772,17 @@ export type Database = {
           token_expires_at: string
         }[]
       }
+      checkout_pay_link_lines: {
+        Args: { p_token_hash: string }
+        Returns: {
+          amount_rappen: number
+          code: string
+          kind: string
+          names: Json
+          seq: number
+          vat_rate_bps: number
+        }[]
+      }
       checkout_pay_link_state: {
         Args: { p_session_id?: string; p_token_hash: string }
         Returns: {
@@ -2734,6 +2800,7 @@ export type Database = {
           p_outcome: string
           p_payment_intent_id: string
           p_presentment_amount_minor: number
+          p_presentment_currency?: string
           p_session_id: string
         }
         Returns: {
@@ -2763,6 +2830,40 @@ export type Database = {
           booking_id: string
           reference: string
         }[]
+      }
+      checkout_resume_read: {
+        Args: { p_manage_hash: string; p_quote_id: string }
+        Returns: {
+          booking_id: string
+          charged_rappen: number
+          checkout_trip_query: string
+          class_slug: string
+          company_address: string
+          company_name: string
+          company_vat: string
+          contact_email: string
+          contact_name: string
+          contact_phone: string
+          coupon_code: string
+          extra_codes: string[]
+          latest_session_id: string
+          note: string
+          pay_link_sent: boolean
+          quote_id: string
+          reference: string
+          status: Database["public"]["Enums"]["booking_status"]
+        }[]
+      }
+      checkout_set_booking_details: {
+        Args: {
+          p_booking_id: string
+          p_company_address: string
+          p_company_name: string
+          p_company_vat: string
+          p_driver_note: string
+          p_trip_query: string
+        }
+        Returns: undefined
       }
       checkout_set_pay_link: {
         Args: {
@@ -2827,10 +2928,12 @@ export type Database = {
         Returns: number
       }
       custom_access_token_hook: { Args: { event: Json }; Returns: Json }
+      customer_claim_guest_bookings: { Args: never; Returns: number }
       customer_confirmation_read: {
         Args: { p_customer_id: string; p_reference: string }
         Returns: Json
       }
+      customer_id_for_user: { Args: { p_user_id: string }; Returns: string }
       customer_paid_cancel: {
         Args: { p_booking_id: string }
         Returns: {
@@ -2850,6 +2953,26 @@ export type Database = {
           p_customer_id?: string
         }
         Returns: Json
+      }
+      extra_labels_read: {
+        Args: never
+        Returns: {
+          code: string
+          id: number
+          label_ar: string | null
+          label_de: string | null
+          label_en: string
+          label_fr: string | null
+          machine_langs: string[]
+          updated_at: string
+          updated_by: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "extra_labels"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       finalize_contact_delivery: {
         Args: {
@@ -2913,6 +3036,13 @@ export type Database = {
           p_template_version: string
         }
         Returns: number
+      }
+      notification_confirmation_missing: {
+        Args: { p_older_than: string }
+        Returns: {
+          booking_id: string
+          locale: string
+        }[]
       }
       notification_settle: {
         Args: { p_error: string; p_id: number; p_provider_message_id: string }
@@ -3039,6 +3169,18 @@ export type Database = {
         Args: { p_id: string; p_reason: string }
         Returns: string
       }
+      purge_candidates: {
+        Args: { p_older_than: string }
+        Returns: {
+          booking_id: string
+          reference: string
+          session_ids: string[]
+        }[]
+      }
+      purge_unpaid_booking: {
+        Args: { p_booking_id: string; p_reason: string }
+        Returns: boolean
+      }
       quote_lock_deadline: {
         Args: { p_settings_version_id: number }
         Returns: string
@@ -3108,6 +3250,33 @@ export type Database = {
           lang: string
           user_id: string
         }[]
+      }
+      staff_extra_label_upsert: {
+        Args: {
+          p_ar: string
+          p_code: string
+          p_de: string
+          p_en: string
+          p_fr: string
+          p_machine_langs: string[]
+        }
+        Returns: {
+          code: string
+          id: number
+          label_ar: string | null
+          label_de: string | null
+          label_en: string
+          label_fr: string | null
+          machine_langs: string[]
+          updated_at: string
+          updated_by: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "extra_labels"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       staff_set_sign_in_method: {
         Args: { p_method: string }

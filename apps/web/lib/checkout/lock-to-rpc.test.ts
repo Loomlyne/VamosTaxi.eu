@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { QuoteLockPayload } from "../quote/lock";
+import { checkoutCharge } from "./checkout-charge";
 import { checkoutLegsFromLock, snapshotFromLock, snapshotPolicyFromSettings } from "./lock-to-rpc";
 
 const CLASS_ID = "00000000-0000-4000-8000-0000000000aa";
@@ -50,7 +51,7 @@ describe("checkoutLegsFromLock", () => {
       pickup_lng: 8.5,
       dropoff_text: "Zurich",
       dropoff_place_id: null,
-      scheduled_at: "2026-09-06T10:00:00",
+      scheduled_at: "2026-09-06T08:00:00.000Z",
       scheduled_local: "2026-09-06T10:00:00",
       flight_no: "LX123",
       vehicle_class_id: CLASS_ID,
@@ -104,7 +105,78 @@ describe("snapshotFromLock", () => {
       expect.objectContaining({ code: "distance_fare", amount_rappen: 10972 }),
       expect.objectContaining({ code: "child_seat", amount_rappen: 2000 }),
     ]);
-    expect(snap.lines.reduce((sum, line) => sum + line.amount_rappen, 0)).toBe(12972);
+    expect(snap.lines.reduce((sum, line) => sum + (line.amount_rappen ?? 0), 0)).toBe(12972);
     expect(snap.policy).toMatchObject({ extras: ["child_seat"] });
+  });
+
+  it("writes every ticked extra as a generic line from the charge lines (D-35)", () => {
+    const policy = snapshotPolicyFromSettings({
+      id: 3,
+      free_cancel_hours: null,
+      modification_deadline_hours: null,
+      min_advance_minutes: null,
+      airport_waiting_minutes: null,
+      city_waiting_minutes: null,
+      cancellation_tiers: [],
+      policy_doc_slug: null,
+      policy_doc_version: null,
+    });
+    const labels = { en: "Owner thing", de: "Owner thing", fr: "Owner thing", ar: "Owner thing" };
+    const charge = checkoutCharge({
+      classNetRappen: 10000,
+      preCouponRappen: null,
+      extraCodes: ["owner-thing"],
+      catalog: [{ code: "owner-thing", amountRappen: 500, labels }],
+      coupon: null,
+      vatRateBps: 81,
+      vehicleClassSlug: "economy",
+    });
+    if (!charge.ok) throw new Error("refused");
+    const snap = snapshotFromLock(payload(), "economy", CLASS_ID, charge.chargedRappen, policy!, [], charge.lines);
+    expect(snap.lines).toEqual([
+      expect.objectContaining({ seq: 1, leg_seq: 1, kind: "fare", amount_rappen: 10000 }),
+      expect.objectContaining({
+        seq: 2,
+        kind: "surcharge",
+        code: "owner-thing",
+        i18n_key: "price.surcharge.custom",
+        params: { name: "Owner thing", names: labels },
+        amount_rappen: 500,
+      }),
+      expect.objectContaining({ seq: 3, kind: "vat", amount_rappen: charge.vatRappen }),
+    ]);
+    expect(snap.lines.reduce((sum, line) => sum + (line.amount_rappen ?? 0), 0)).toBe(snap.total_rappen);
+    expect(snap.policy).toMatchObject({ extras: ["owner-thing"] });
+  });
+
+  it("keeps every snapshot amount non-negative when a coupon applies (price_snapshots rappen >= 0)", () => {
+    const policy = snapshotPolicyFromSettings({
+      id: 3,
+      free_cancel_hours: null,
+      modification_deadline_hours: null,
+      min_advance_minutes: null,
+      airport_waiting_minutes: null,
+      city_waiting_minutes: null,
+      cancellation_tiers: [],
+      policy_doc_slug: null,
+      policy_doc_version: null,
+    });
+    const labels = { en: "Owner thing", de: "Owner thing", fr: "Owner thing", ar: "Owner thing" };
+    const charge = checkoutCharge({
+      classNetRappen: 10000,
+      preCouponRappen: null,
+      extraCodes: ["owner-thing"],
+      catalog: [{ code: "owner-thing", amountRappen: 500, labels }],
+      coupon: { code: "FLAT", kind: "amount", percentHundredths: null, amountRappen: 1000 },
+      vatRateBps: 81,
+      vehicleClassSlug: "economy",
+    });
+    if (!charge.ok) throw new Error("refused");
+    const snap = snapshotFromLock(payload(), "economy", CLASS_ID, charge.chargedRappen, policy!, [], charge.lines);
+    const amounts = snap.lines.map((line) => line.amount_rappen);
+    expect(amounts.every((amount) => amount == null || amount >= 0)).toBe(true);
+    expect(snap.lines.reduce((sum, line) => sum + (line.amount_rappen ?? 0), 0)).toBe(charge.chargedRappen);
+    const coupon = snap.lines.find((line) => line.kind === "coupon");
+    expect(coupon).toMatchObject({ code: "FLAT", amount_rappen: null, params: { discount_rappen: 1000 } });
   });
 });

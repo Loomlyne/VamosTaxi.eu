@@ -53,6 +53,18 @@ function isSupportedLocale(value: string): value is Locale {
   return (routing.locales as readonly string[]).includes(value);
 }
 
+/**
+ * D-47: the language lives in the NEXT_LOCALE cookie (same one `app/vamos-locale.js`
+ * writes on home). Middleware rewrites unprefixed Next pages to /{locale}/... from it,
+ * so a choice is one cookie write plus a server refresh; no prefixed URL is requested
+ * (those 308 back to the unprefixed address).
+ */
+function writeLocaleCookie(next: Locale): void {
+  document.cookie =
+    `NEXT_LOCALE=${next}; Path=/; Max-Age=31536000; SameSite=Lax` +
+    (location.protocol === "https:" ? "; Secure" : "");
+}
+
 function snapshot(): LocaleSnapshot {
   return { lang: activeLocale ?? routing.defaultLocale, cur: getCurrency() };
 }
@@ -88,10 +100,9 @@ export const VamosLocale = {
     return snapshot().cur;
   },
   /**
-   * A soft navigation to the *same path* under the new locale segment — next-intl's own
-   * locale-aware router, which performs a client-side transition. This never assigns
-   * the browser's address bar directly and never invokes its whole-document refresh
-   * API; either would discard exactly the booking-draft state
+   * Writes the NEXT_LOCALE cookie and re-renders the current route on the server
+   * (`router.refresh()`, a soft refresh: it keeps client state, and is not the browser's
+   * whole-document reload). A whole-document reload would discard exactly the booking-draft state
    * `apps/web/lib/booking-draft.ts` exists to survive across this call (ADR-001's
    * acceptance test).
    *
@@ -103,7 +114,8 @@ export const VamosLocale = {
   setLang(next: Locale): void {
     if (!isSupportedLocale(next)) return;
     if (!activeRouter || activePathname == null) return;
-    activeRouter.replace(activePathname, { locale: next });
+    writeLocaleCookie(next);
+    activeRouter.refresh();
   },
   setCur(next: CurrencyCode): void {
     setCurrency(next);
@@ -135,11 +147,11 @@ export function useVamosLocale(): {
   const lang = useLocale() as Locale;
   const { currency, setCurrency: setCur, money } = useCurrency();
   const router = useRouter();
-  const pathname = usePathname();
 
   function setLang(next: Locale): void {
     if (!isSupportedLocale(next)) return;
-    router.replace(pathname, { locale: next });
+    writeLocaleCookie(next);
+    router.refresh();
   }
 
   return { lang, cur: currency, setLang, setCur, money, onChange: VamosLocale.onChange };

@@ -27,7 +27,7 @@ describe("mapAccountBooking", () => {
     expect(row.chauffeur).toBe("");
     expect(row.pax).toBe(1);
     expect(row.priceRappen).toBe(12000);
-    expect(row.status).toBe("confirmed");
+    expect(row.status).toBe("booked");
     expect(row.when).toBe("past");
     expect(row.group).toBe("September 2026");
   });
@@ -61,7 +61,7 @@ describe("mapAccountBooking", () => {
     );
     expect(row.chauffeur).toBe("Lena Meier");
     expect(row.vehicle).toBe("ZH 12345 · V-Class");
-    expect(row.status).toBe("assigned");
+    expect(row.status).toBe("booked");
     expect(row.vehicle).not.toMatch(/Business|Economy|Van|First/);
   });
 
@@ -76,14 +76,14 @@ describe("mapAccountBooking", () => {
       },
       now,
     );
-    expect(row.status).toBe("unpaid");
+    expect(row.status).toBe("awaiting_payment");
     expect(row.href).toBe("/confirmation/VT-26-0720");
     expect(row.pay_url).toBeNull();
     expect(row.payable).toBe(false);
     expect(row.when).toBe("upcoming");
   });
 
-  it("maps a paid pay-link onto finished payment", () => {
+  it("shows a paid booking that once had a pay link as booked, never finished", () => {
     const row = mapAccountBooking(
       {
         ...base,
@@ -92,7 +92,8 @@ describe("mapAccountBooking", () => {
       },
       now,
     );
-    expect(row.status).toBe("finished");
+    expect(row.status).toBe("booked");
+    expect(row.status).not.toBe("finished");
     expect(row.href).toBe("/confirmation/VT-26-0720");
   });
 
@@ -107,7 +108,7 @@ describe("mapAccountBooking", () => {
       },
       now,
     );
-    expect(row.status).toBe("unpaid");
+    expect(row.status).toBe("awaiting_payment");
     expect(row.pay_url).toBeNull();
     expect(row.payable).toBe(false);
     expect(row.href).toBe("/confirmation/VT-26-0720");
@@ -124,7 +125,7 @@ describe("mapAccountBooking", () => {
       },
       now,
     );
-    expect(row.status).toBe("unpaid");
+    expect(row.status).toBe("awaiting_payment");
     expect(row.when).toBe("upcoming");
   });
 
@@ -138,7 +139,7 @@ describe("mapAccountBooking", () => {
       now,
     );
     expect(row.when).toBe("upcoming");
-    expect(row.status).toBe("confirmed");
+    expect(row.status).toBe("booked");
   });
 
   it("does not invent a CHF string or Isolation name", () => {

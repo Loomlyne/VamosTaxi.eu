@@ -114,6 +114,15 @@
         de: '$1 Felder brauchen Ihre Aufmerksamkeit', fr: '$1 champs demandent votre attention', ar: '$1 حقول تحتاج انتباهك' },
       { re: /^Reply within (.+)$/,
         de: 'Antwort innerhalb von $1', fr: 'Réponse sous $1', ar: 'الرد خلال $1' },
+      /* ── 26.3 home booking box · travellers summary ─── */
+      { re: /^(\d+) passengers · (\d+) bags$/,
+        de: '$1 Passagiere · $2 Gepäckstücke', fr: '$1 passagers · $2 bagages', ar: '$1 ركاب · $2 حقائب' },
+      { re: /^1 passenger · (\d+) bags$/,
+        de: '1 Passagier · $1 Gepäckstücke', fr: '1 passager · $1 bagages', ar: 'راكب واحد · $1 حقائب' },
+      { re: /^(\d+) passengers · 1 bag$/,
+        de: '$1 Passagiere · 1 Gepäckstück', fr: '$1 passagers · 1 bagage', ar: '$1 ركاب · حقيبة واحدة' },
+      { re: /^1 passenger · 1 bag$/,
+        de: '1 Passagier · 1 Gepäckstück', fr: '1 passager · 1 bagage', ar: 'راكب واحد · حقيبة واحدة' },
     ],
 
     strings: {
@@ -689,6 +698,9 @@
       'Save trip': { de: 'Fahrt speichern', fr: 'Enregistrer la course', ar: 'حفظ الرحلة' },
       'Send pay-link': { de: 'Zahlungslink senden', fr: 'Envoyer le lien de paiement', ar: 'إرسال رابط الدفع' },
       'Take card': { de: 'Karte aufnehmen', fr: 'Prendre la carte', ar: 'أخذ البطاقة' },
+      'Open Stripe payment page': { de: 'Stripe-Zahlungsseite öffnen', fr: 'Ouvrir la page de paiement Stripe', ar: 'فتح صفحة الدفع على Stripe' },
+      'Copy payment link': { de: 'Zahlungslink kopieren', fr: 'Copier le lien de paiement', ar: 'نسخ رابط الدفع' },
+      'Payment link copied': { de: 'Zahlungslink kopiert', fr: 'Lien de paiement copié', ar: 'تم نسخ رابط الدفع' },
       'Extra stop': { de: 'Zusatzstopp', fr: 'Arrêt extra', ar: 'محطة إضافية' },
       'Oversized luggage': { de: 'Sperrgepäck', fr: 'Bagage hors format', ar: 'أمتعة كبيرة' },
       'Quote failed': { de: 'Offerte fehlgeschlagen', fr: 'Devis impossible', ar: 'فشل التسعير' },
@@ -1022,6 +1034,8 @@
       'Loading your bookings': { de: 'Ihre Buchungen werden geladen', fr: 'Chargement de vos réservations', ar: 'جارٍ تحميل حجوزاتك' },
       'New': { de: 'Neu', fr: 'Nouvelle', ar: 'جديد' },
       'Confirmed': { de: 'Bestätigt', fr: 'Confirmée', ar: 'مؤكَّدة' },
+      'Booked': { de: 'Gebucht', fr: 'Réservée', ar: 'محجوز' },
+      'A pay link was emailed. It stays here until that link is paid.': { de: 'Ein Zahlungslink wurde per E-Mail gesendet. Die Buchung bleibt hier, bis er bezahlt ist.', fr: 'Un lien de paiement a été envoyé par e-mail. La réservation reste ici jusqu’à son règlement.', ar: 'أُرسل رابط الدفع بالبريد الإلكتروني. يبقى الحجز هنا حتى يُدفع الرابط.' },
       'Needs payment': { de: 'Zahlung ausstehend', fr: 'Paiement requis', ar: 'يلزم الدفع' },
       'waiting payment': { de: 'Zahlung offen', fr: 'paiement en attente', ar: 'بانتظار الدفع' },
       'finished payment': { de: 'Zahlung abgeschlossen', fr: 'paiement terminé', ar: 'اكتمل الدفع' },
@@ -1922,8 +1936,77 @@
       /* Design-system control labels that reach the DOM as aria-labels. */
       'Select': { de: 'Auswählen', fr: 'Sélectionner', ar: 'اختر' },
       'Notifications': { de: 'Mitteilungen', fr: 'Notifications', ar: 'الإشعارات' },
+
+      /* ── 26.3 home booking box ─── */
+      'Select date & time': { de: 'Datum & Zeit wählen', fr: 'Choisir date & heure', ar: 'اختر التاريخ والوقت' },
+      'When': { de: 'Wann', fr: 'Quand', ar: 'متى' },
+      'Travellers': { de: 'Reisende', fr: 'Voyageurs', ar: 'المسافرون' },
+      'LX 318': { de: 'LX 318', fr: 'LX 318', ar: 'LX 318' },
+      'Drop-off address': { de: 'Zieladresse', fr: 'Adresse de dépose', ar: 'عنوان الوصول' },
+      'Done': { de: 'Fertig', fr: 'Terminé', ar: 'تم' },
+      'See prices': { de: 'Preise anzeigen', fr: 'Voir les prix', ar: 'عرض الأسعار' },
+      'We track it and move the pickup if you land late': { de: 'Wir verfolgen den Flug und verschieben die Abholung, wenn Sie später landen', fr: 'Nous suivons le vol et décalons la prise en charge si vous atterrissez en retard', ar: 'نتتبّع الرحلة ونؤجّل موعد الاستقبال إذا هبطت متأخرًا' },
+      'Enter a pickup address': { de: 'Abholadresse eingeben', fr: 'Saisissez une adresse de prise en charge', ar: 'أدخل عنوان الانطلاق' },
+      'Enter a drop-off address': { de: 'Zieladresse eingeben', fr: 'Saisissez une adresse de dépose', ar: 'أدخل عنوان الوصول' },
+      'Enter the flight number': { de: 'Flugnummer eingeben', fr: 'Saisissez le numéro de vol', ar: 'أدخل رقم الرحلة' },
+      'Check the flight number': { de: 'Flugnummer prüfen', fr: 'Vérifiez le numéro de vol', ar: 'تحقّق من رقم الرحلة' },
+      'Choose a pickup time': { de: 'Abholzeit wählen', fr: 'Choisissez l’heure de prise en charge', ar: 'اختر وقت الانطلاق' },
+      'Choose a time at least 3 hours from now': { de: 'Wählen Sie eine Zeit, die mindestens 3 Stunden entfernt ist', fr: 'Choisissez une heure à au moins 3 heures d’ici', ar: 'اختر وقتًا بعد ثلاث ساعات على الأقل من الآن' },
+      'Pickup and drop-off are the same place': { de: 'Abholung und Ziel sind derselbe Ort', fr: 'La prise en charge et la dépose sont au même endroit', ar: 'الانطلاق والوصول في المكان نفسه' },
+      'Add a passenger': { de: 'Passagier hinzufügen', fr: 'Ajouter un passager', ar: 'إضافة راكب' },
+      'Remove a passenger': { de: 'Passagier entfernen', fr: 'Retirer un passager', ar: 'إزالة راكب' },
+      'Add a bag': { de: 'Gepäckstück hinzufügen', fr: 'Ajouter un bagage', ar: 'إضافة حقيبة' },
+      'Remove a bag': { de: 'Gepäckstück entfernen', fr: 'Retirer un bagage', ar: 'إزالة حقيبة' },
+      'Swap pickup and drop-off': { de: 'Abholung und Ziel tauschen', fr: 'Inverser la prise en charge et la dépose', ar: 'تبديل الانطلاق والوصول' },
+      'Price fixed before you pay': { de: 'Fixpreis, bevor Sie zahlen', fr: 'Prix fixé avant le paiement', ar: 'سعر ثابت قبل الدفع' },
+      'Flight tracked': { de: 'Flug wird verfolgt', fr: 'Vol suivi', ar: 'الرحلة متابَعة' },
+      /* 26.3-G2 — customer account surfaces (phone, deletion, footer, social labels). */
+      'Your driver calls this number on arrival, so it has to be one you will answer.': { de: 'Ihr Fahrer ruft Sie bei der Ankunft unter dieser Nummer an. Es muss also eine Nummer sein, unter der Sie erreichbar sind.', fr: 'Votre chauffeur appelle ce numéro à votre arrivée : il doit donc s’agir d’un numéro auquel vous répondez.', ar: 'يتصل سائقك بهذا الرقم عند وصولك، لذا يجب أن يكون رقمًا ترد عليه.' },
+      'Save number': { de: 'Nummer speichern', fr: 'Enregistrer le numéro', ar: 'حفظ الرقم' },
+      'We delete your profile and preferences. Booking records we are required to keep stay with us, and nothing else survives.': { de: 'Wir löschen Ihr Profil und Ihre Einstellungen. Buchungsdaten, die wir aufbewahren müssen, bleiben bei uns, sonst bleibt nichts übrig.', fr: 'Nous supprimons votre profil et vos préférences. Les données de réservation que nous devons conserver restent chez nous, et rien d’autre ne subsiste.', ar: 'نحذف ملفك الشخصي وتفضيلاتك. تبقى لدينا سجلات الحجز التي يتعيّن علينا الاحتفاظ بها، ولا يبقى شيء آخر.' },
+      'Receipt and offer preferences, and the passkey, live on this device until the account API exists; language and currency already write to the platform store. Password changes hand off to the existing reset flow rather than asking for the old password, and how long a closed account\'s booking records are kept is the one value still owed.': { de: 'Die Einstellungen für Belege und Angebote sowie der Passkey bleiben auf diesem Gerät, bis die Konto-API besteht; Sprache und Währung werden bereits im Plattformspeicher abgelegt. Passwortänderungen laufen über den bestehenden Ablauf zum Zurücksetzen, statt nach dem alten Passwort zu fragen. Wie lange die Buchungsdaten eines geschlossenen Kontos aufbewahrt werden, ist der einzige Wert, der noch aussteht.', fr: 'Les préférences de reçus et d’offres, ainsi que la clé d’accès, restent sur cet appareil jusqu’à l’arrivée de l’API de compte ; la langue et la devise s’écrivent déjà dans le stockage de la plateforme. Les changements de mot de passe passent par le parcours de réinitialisation existant au lieu de demander l’ancien mot de passe, et la durée de conservation des données de réservation d’un compte fermé est la seule valeur encore attendue.', ar: 'تبقى تفضيلات الإيصالات والعروض ومفتاح المرور على هذا الجهاز إلى أن تتوفر واجهة الحساب البرمجية؛ أما اللغة والعملة فتُحفظان بالفعل في مخزن المنصة. تنتقل تغييرات كلمة المرور إلى مسار إعادة التعيين الحالي بدل طلب كلمة المرور القديمة، ومدة الاحتفاظ ببيانات الحجز لحساب مغلق هي القيمة الوحيدة التي لا تزال مطلوبة.' },
+      'info@vamostaxi.site': { de: 'info@vamostaxi.site', fr: 'info@vamostaxi.site', ar: 'info@vamostaxi.site' },
+      'Explore': { de: 'Entdecken', fr: 'Explorer', ar: 'استكشف' },
+      'WhatsApp': { de: 'WhatsApp', fr: 'WhatsApp', ar: 'WhatsApp' },
+      'Vamos Taxi': { de: 'Vamos Taxi', fr: 'Vamos Taxi', ar: 'Vamos Taxi' },
+      'Vamos Taxi on YouTube': { de: 'Vamos Taxi auf YouTube', fr: 'Vamos Taxi sur YouTube', ar: 'فاموس تاكسي على يوتيوب' },
+      'Vamos Taxi on TikTok': { de: 'Vamos Taxi auf TikTok', fr: 'Vamos Taxi sur TikTok', ar: 'فاموس تاكسي على تيك توك' },
+      'Zurich Airport (ZRH)': { de: 'Flughafen Zürich (ZRH)', fr: 'Aéroport de Zurich (ZRH)', ar: 'مطار زيورخ (ZRH)' },
     },
   };
+
+  /* 26.3-G2 — account surfaces: values the code builds or the API supplies.
+     Generated from the month and status tables so the entries stay plain
+     strings (the runtime also reads them back as templates, so a bare "$1"
+     identity pattern would match every string and is never used). */
+  (function () {
+    var S = DICT.strings, P = DICT.patterns;
+    P.push({ re: /^CHF ([\d'.,]+)$/, de: 'CHF $1', fr: 'CHF $1', ar: 'CHF $1' });
+    P.push({ re: /^(\d+) passengers · (VT-[\w-]+)$/,
+      de: '$1 Passagiere · $2', fr: '$1 passagers · $2', ar: '$1 مسافرين · $2' });
+    P.push({ re: /^1 passenger · (VT-[\w-]+)$/,
+      de: '1 Passagier · $1', fr: '1 passager · $1', ar: 'مسافر واحد · $1' });
+    var months = {
+      January: ['Januar', 'janvier', 'يناير'], February: ['Februar', 'février', 'فبراير'],
+      March: ['März', 'mars', 'مارس'], April: ['April', 'avril', 'أبريل'],
+      May: ['Mai', 'mai', 'مايو'], June: ['Juni', 'juin', 'يونيو'],
+      July: ['Juli', 'juillet', 'يوليو'], August: ['August', 'août', 'أغسطس'],
+      September: ['September', 'septembre', 'سبتمبر'], October: ['Oktober', 'octobre', 'أكتوبر'],
+      November: ['November', 'novembre', 'نوفمبر'], December: ['Dezember', 'décembre', 'ديسمبر']
+    };
+    Object.keys(months).forEach(function (m) {
+      P.push({ re: new RegExp('^' + m + ' (\\d{4})$'),
+        de: months[m][0] + ' $1', fr: months[m][1] + ' $1', ar: months[m][2] + ' $1' });
+    });
+    var status = ['Booked', 'Awaiting payment', 'New', 'Confirmed', 'Driver assigned', 'Completed', 'Cancelled'];
+    status.forEach(function (st) {
+      var e = S[st]; if (!e) return;
+      P.push({ re: new RegExp('^(VT-[\\w-]+), (.+), at (\\d{1,2}:\\d{2}), ' + st + '$'),
+        de: '$1, $2, um $3, ' + e.de, fr: '$1, $2, à $3, ' + e.fr, ar: '$1, $2, الساعة $3, ' + e.ar });
+      P.push({ re: new RegExp('^(VT-[\\w-]+), (.+), ' + st + '$'),
+        de: '$1, $2, ' + e.de, fr: '$1, $2, ' + e.fr, ar: '$1, $2, ' + e.ar });
+    });
+  })();
 
   /* A runtime loaded before this file (the design-system bundle ships one)
      captures VamosI18n.strings by reference at boot, so replacing the object

@@ -8,6 +8,7 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { createBooking } from "@/lib/checkout/create-booking";
 import { snapshotFareLines } from "@/lib/checkout/lock-to-rpc";
+import { zurichLocalToUtcMs } from "@/lib/geo/serviceArea";
 import { mintManageToken } from "@/lib/checkout/manage-token";
 import { payableWithVatRappen } from "@/lib/checkout/vat";
 import { asCheckout, asStaff } from "@/lib/db/identity";
@@ -35,6 +36,9 @@ export const POST = withAdmin(async (claims, request) => {
   if (!body) return jsonErr("invalid", 400);
   const email = body.email;
   if (!emailOk(email)) return jsonErr("email", 400);
+  // D-36: the wall clock is Europe/Zurich; store the real instant.
+  const scheduledAtMs = zurichLocalToUtcMs(body.when);
+  if (scheduledAtMs == null) return jsonErr("invalid", 400);
 
   const { env } = getCloudflareContext();
   const priced = await priceDraftPreview(env, claims, body);
@@ -95,7 +99,7 @@ export const POST = withAdmin(async (claims, request) => {
       dropoff_place_id: body.dropoff_place_id,
       dropoff_lat: body.dropoff_lat,
       dropoff_lng: body.dropoff_lng,
-      scheduled_at: body.when,
+      scheduled_at: new Date(scheduledAtMs).toISOString(),
       scheduled_local: body.when,
       flight_no: null,
       vehicle_class_id: cls.id,

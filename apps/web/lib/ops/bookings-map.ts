@@ -2,6 +2,7 @@
 //
 // Pure board mapping. Keep Hyperdrive out of this file so vitest can import it.
 
+import { humaniseCode } from "../checkout/extras-catalog";
 import { classDisplayName } from "./class-slug";
 
 export type OpsBookingRow = {
@@ -57,7 +58,7 @@ export type OpsBookingRow = {
   distanceKm: number | null;
   couponCode: string;
   extras: string[];
-  fareLines: { code: string; label: string; rappen: number | null }[];
+  fareLines: OpsFareLine[];
   arrivedAt: string;
   extraWaitMinutes: number;
   extraWaitRappen: number;
@@ -226,8 +227,6 @@ export function extraWaitFromArrival(args: {
   return { extraMinutes, extraRappen };
 }
 
-const EXTRA_CODES = ["child_seat", "oversized_luggage", "extra_stop"] as const;
-
 function minutes(primary: number | string | null | undefined, fallback: number | string | null | undefined): number {
   const a = Number(primary);
   if (Number.isFinite(a) && a > 0) return Math.round(a);
@@ -242,36 +241,96 @@ function kmOrNull(value: number | string | null | undefined): number | null {
   return Math.round(n * 10) / 10;
 }
 
-function mapFareLines(raw: unknown, klass: string): { code: string; label: string; rappen: number | null }[] {
+export type OpsFareLine = {
+  kind: string;
+  code: string;
+  label: string;
+  /** Owner-typed names per language (surcharge lines). Ops picks by its own locale. */
+  names: Record<string, string> | null;
+  /** Signed: the voucher is negative. Each amount is shown once, never derived. */
+  rappen: number | null;
+};
+
+function cleanNames(raw: unknown): Record<string, string> | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const out: Record<string, string> = {};
+  for (const lang of ["en", "de", "fr", "ar"]) {
+    const v = (raw as Record<string, unknown>)[lang];
+    if (typeof v === "string" && v.trim()) out[lang] = v.trim();
+  }
+  return Object.keys(out).length ? out : null;
+}
+
+function lineParams(rec: Record<string, unknown>): Record<string, unknown> {
+  const p = rec.params;
+  return p && typeof p === "object" && !Array.isArray(p) ? (p as Record<string, unknown>) : {};
+}
+
+function finite(value: unknown): number | null {
+  if (value == null || value === "") return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+/**
+ * D-35: the snapshot lines as ops prints them. Amounts are copied from the
+ * lines: a fare or surcharge that took part of a voucher shows its list amount
+ * (params.list_rappen) and the coupon line shows the discount, negative, so
+ * the rows add up to the total without any derived arithmetic.
+ */
+function mapFareLines(raw: unknown, klass: string): OpsFareLine[] {
   if (!Array.isArray(raw)) return [];
-  const out: { code: string; label: string; rappen: number | null }[] = [];
+  const out: OpsFareLine[] = [];
   for (const item of raw) {
     if (!item || typeof item !== "object" || Array.isArray(item)) continue;
     const rec = item as Record<string, unknown>;
+    const kind = str(rec.kind);
     const code = str(rec.code || rec.kind);
-    const amount = rec.amount_rappen ?? rec.amountRappen;
-    const n = amount == null || amount === "" ? NaN : Number(amount);
-    const rappenValue = Number.isFinite(n) ? n : null;
-    let label = "";
-    if (code === "distance_fare" || code === "fare" || code === "transfer") label = `Transfer, ${klass}`;
-    else if (code === "child_seat") label = "Child seat";
-    else if (code === "oversized_luggage") label = "Oversized luggage";
-    else if (code === "extra_stop") label = "Extra stop";
-    else if (code === "meet_greet") label = "Meet and greet";
-    else if (code === "coupon") label = "Coupon";
-    else label = code.replace(/_/g, " ");
-    out.push({ code, label, rappen: rappenValue });
+    const params = lineParams(rec);
+    const names = cleanNames(params.names);
+    let rappenValue = finite(rec.amount_rappen ?? rec.amountRappen);
+    if (kind === "coupon" || code === "coupon") {
+      const discount = finite(params.discount_rappen);
+      if (discount != null && discount > 0) rappenValue = -discount;
+    } else {
+      const list = finite(params.list_rappen);
+      if (list != null) rappenValue = list;
+    }
+    let label: string;
+    if (kind === "fare" || code === "distance_fare" || code === "fare" || code === "transfer") {
+      label = `Transfer, ${klass}`;
+    } else if (kind === "coupon" || code === "coupon") label = "Coupon";
+    else if (kind === "vat" || code === "vat") label = "VAT";
+    else {
+      const named = typeof params.name === "string" && params.name.trim() ? params.name.trim() : "";
+      label = names?.en ?? (named || humaniseCode(code));
+    }
+    out.push({ kind, code, label, names, rappen: rappenValue });
   }
   return out;
 }
 
-function extrasFromPolicy(policy: unknown): string[] {
-  if (!policy || typeof policy !== "object") return [];
-  const raw = (policy as { extras?: unknown }).extras;
+/**
+ * D-35: every ticked extra by its own code. Snapshot surcharge lines first
+ * (they are what was charged), policy.extras as the fallback for snapshots
+ * without lines. Nothing is matched against a code list.
+ */
+function extrasFromSnapshot(policy: unknown, lines: unknown): string[] {
   const out: string[] = [];
   const push = (code: string) => {
-    if (EXTRA_CODES.includes(code as (typeof EXTRA_CODES)[number]) && !out.includes(code)) out.push(code);
+    const c = code.trim();
+    if (c && !out.includes(c)) out.push(c);
   };
+  if (Array.isArray(lines)) {
+    for (const item of lines) {
+      if (!item || typeof item !== "object" || Array.isArray(item)) continue;
+      const rec = item as Record<string, unknown>;
+      if (str(rec.kind) === "surcharge") push(str(rec.code));
+    }
+  }
+  if (out.length) return out;
+  if (!policy || typeof policy !== "object") return [];
+  const raw = (policy as { extras?: unknown }).extras;
   if (raw && typeof raw === "object" && !Array.isArray(raw)) {
     for (const [key, val] of Object.entries(raw as Record<string, unknown>)) {
       if (val) push(key);
@@ -370,7 +429,7 @@ export function mapBoardBooking(row: SqlBoardRow): OpsBookingRow {
     durationMin: minutes(row.duration_min, row.estimated_duration_minutes),
     distanceKm: kmOrNull(row.distance_km),
     couponCode: str(row.coupon_code).trim(),
-    extras: extrasFromPolicy(row.policy),
+    extras: extrasFromSnapshot(row.policy, row.lines),
     fareLines: mapFareLines(row.lines, klass),
     arrivedAt: iso(row.arrived_at),
     extraWaitMinutes: extraWait.extraMinutes,

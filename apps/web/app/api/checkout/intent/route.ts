@@ -9,12 +9,18 @@ import { checkoutIntentSchema } from "@/lib/checkout/intent-schema";
 import { refusalForMissingClassId } from "@/lib/checkout/charge-gate";
 import { refuse } from "@/lib/checkout/errors";
 import { runCheckoutIntent } from "@/lib/checkout/intent";
+import { resolveActorCustomerId } from "@/lib/checkout/actor-customer";
 import { createBooking, issueManageToken } from "@/lib/checkout/create-booking";
 import { attachPayment } from "@/lib/checkout/attach-payment";
 import { loadOpenPayment } from "@/lib/checkout/load-open-payment";
 import { quoteWasLeft } from "@/lib/checkout/quote-left";
 import { mintManageToken } from "@/lib/checkout/manage-token";
+import { bookingOwnedByRequest } from "@/lib/checkout/booking-owned";
+import { loadCheckoutCatalog } from "@/lib/checkout/checkout-catalog";
+import { stripeAccountIsLegacyUaeTest } from "@/lib/checkout/charge-gate";
 import {
+  WEB_CHECKOUT_MINUTES,
+  checkoutPaymentMethodTypes,
   createCheckoutSession,
   expireCheckoutSession,
   retrieveCheckoutSession,
@@ -111,6 +117,8 @@ async function postIntent(request: Request) {
 
   const settingsDoc = await loadSettingsVersion(env, postgresNowIso);
   const policy = policyHours(settingsDoc);
+  // D-02: web checkout sessions last 31 minutes (Stripe's minimum is 30). The
+  // settings window still has to be open; the pay-link hold rules are elsewhere.
   if (policy.checkoutWindowMinutes == null) {
     return refuse("payment_window_closed");
   }
@@ -127,6 +135,7 @@ async function postIntent(request: Request) {
   }
 
   return runCheckoutIntent(body, {
+    mode: "web",
     lockSecrets: previous ? { current, previous } : { current },
     workerNowIso: new Date().toISOString(),
     postgresNowIso,
@@ -143,20 +152,53 @@ async function postIntent(request: Request) {
     }),
     mintManageToken,
     manageLinkMaxAgeSeconds: 30 * 24 * 60 * 60,
-    createCheckoutSession: (input) => createCheckoutSession(stripeClient(), input),
+    // D-02: always the Stripe-hosted page; no card form on our site.
+    createCheckoutSession: (input) =>
+      createCheckoutSession(stripeClient(), { ...input, uiMode: "hosted_page" }),
     expireCheckoutSession: (id) => expireCheckoutSession(stripeClient(), id).then(() => undefined),
     retrieveCheckoutSession: (id) => retrieveCheckoutSession(stripeClient(), id),
     createBooking: (args) => asCheckout(env, null, (sql) => createBooking(sql, args)),
     issueManageToken: (args) => asCheckout(env, null, (sql) => issueManageToken(sql, args)),
     attachPayment: (args) => asCheckout(env, null, (sql) => attachPayment(sql, args)),
     loadOpenPayment: (quoteId) => asCheckout(env, null, (sql) => loadOpenPayment(sql, quoteId)),
-    publishableKey: stripePublishableKey(env),
-    returnUrl: `${origin}${body.locale === "en" ? "" : `/${body.locale}`}/checkout/payment`,
-    checkoutWindowMinutes: policy.checkoutWindowMinutes,
-    actorCustomerId: null,
+    origin,
+    twint: checkoutPaymentMethodTypes(env).includes("twint"),
+    legacyUaeAccount: stripeAccountIsLegacyUaeTest(stripePublishableKey(env)),
+    checkoutWindowMinutes: WEB_CHECKOUT_MINUTES,
+    loadCatalog: () => loadCheckoutCatalog(env),
+    setBookingDetails: (args) =>
+      asCheckout(env, null, async (sql) => {
+        await sql`
+          select public.checkout_set_booking_details(
+            ${args.bookingId}::uuid,
+            ${args.companyName},
+            ${args.companyAddress},
+            ${args.companyVat},
+            ${args.driverNote},
+            ${args.tripQuery}
+          )
+        `;
+      }),
+    listSessionIds: (bookingId) =>
+      asCheckout(env, null, async (sql) => {
+        const rows = await sql<{ ids: string[] | null }[]>`
+          select public.checkout_booking_session_ids(${bookingId}::uuid) as ids
+        `;
+        return rows[0]?.ids ?? [];
+      }),
+    purgeUnpaid: (bookingId, reason) =>
+      asCheckout(env, null, async (sql) => {
+        const rows = await sql<{ purged: boolean | null }[]>`
+          select public.purge_unpaid_booking(${bookingId}::uuid, ${reason}) as purged
+        `;
+        return rows[0]?.purged === true;
+      }),
+    // T-26.3-10-03: a booking may be replaced only by the browser that holds
+    // its vt_manage cookie (guest-role RLS shows the row to that hash and no one).
+    ownsBooking: (bookingId) => bookingOwnedByRequest(env, request, bookingId),
+    actorCustomerId: await resolveActorCustomerId(env, request),
     vehicleClassId,
     snapshotPolicy,
-    extrasCatalog: repriced.extrasCatalog,
     loadLaunchFlags: () => loadLaunchFlags(env),
     evaluateCoupon: (code, ids) => evaluateCoupon(env, code, ids),
     loadQuotePayGate: async (quoteId) => {

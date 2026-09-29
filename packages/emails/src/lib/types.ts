@@ -21,7 +21,36 @@ export type BookingLegForEmail = {
 
 export type PayLinkVehicle = string;
 
-export type PayLinkExtraCode = "child_seat" | "oversized_luggage" | "extra_stop";
+/** @deprecated 26.3 — extras are data now; use EmailExtraLine. Plan 21 deletes this alias. */
+export type PayLinkExtraCode = string;
+
+/** One ticked extra. `names` come from the booking's snapshot lines; missing language falls back to `names.en`, then `name`. */
+export type EmailExtraLine = {
+  name: string;
+  names?: Partial<Record<EmailLocale, string>>;
+  amountRappen: number | null;
+};
+
+/**
+ * One row of the S6 money block. `label` is the variable part only:
+ * fare = class name, surcharge = extra name, coupon = voucher code, vat = unused.
+ * The template owns the surrounding words so they translate.
+ */
+export type EmailMoneyLine = {
+  kind: "fare" | "surcharge" | "coupon" | "vat";
+  label: string;
+  amountRappen: number;
+};
+
+export type EmailMoney = {
+  lines: EmailMoneyLine[];
+  /** As stored on the booking: tenths of a percent (81 = 8.1 %). */
+  vatRateBps: number;
+  /** charged_rappen of the succeeded payment — the Stripe charge (D-29). */
+  chargedRappen: number;
+  /** Set only when the customer paid in a currency other than CHF (D-21). */
+  presentment: { amountMinor: number; currency: string } | null;
+};
 
 export type BookingForEmail = {
   reference: string;
@@ -34,7 +63,8 @@ export type BookingForEmail = {
   legs: BookingLegForEmail[];
   /** Caller already assembled this, raw manage token included. */
   manageUrl: string;
-  extras?: PayLinkExtraCode[];
+  extras?: EmailExtraLine[];
+  money?: EmailMoney;
 };
 
 export type PayLinkForEmail = {
@@ -50,7 +80,7 @@ export type PayLinkForEmail = {
   vehicleClass: PayLinkVehicle;
   pax: number;
   bags: number;
-  extras: PayLinkExtraCode[];
+  extras: EmailExtraLine[];
   coupon: string | null;
   contactName: string;
   contactPhone: string;

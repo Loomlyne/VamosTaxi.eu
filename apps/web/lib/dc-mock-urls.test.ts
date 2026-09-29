@@ -89,12 +89,11 @@ describe("dc mock URL gate", () => {
     expect((dev as Response).status).toBe(404);
   });
 
-  it("lets the browser open the three API routes that are links, on both hosts", () => {
+  it("lets the browser open the two API routes that are links, on both hosts", () => {
     for (const path of [
       "/api/checkout/return?ref=VT-26-0001&session=cs_test_x&locale=en",
       "/api/checkout/return?locale=de&session_id=cs_test_x",
       "/api/auth/callback?code=abc&next=%2Faccount",
-      "/api/checkout/invite/VT-26-0001",
     ]) {
       expect(gatePublicRequest(doc(path)), path).toBeNull();
       expect(gatePublicRequest(req(path)), path).toBeNull();
@@ -110,6 +109,7 @@ describe("dc mock URL gate", () => {
       "/api/checkout/return/extra",
       "/api/checkout/returns",
       "/api/checkout/invite",
+      "/api/checkout/invite/VT-26-0001",
       "/api/checkout/status/VT-26-0001",
       "/api/auth",
       "/api/auth/session",

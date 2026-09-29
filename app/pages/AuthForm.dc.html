@@ -347,8 +347,30 @@ class Component extends DCLogic {
   armExit() {
     clearTimeout(this.exitTimer);
     if (this.props.frozen) return;
-    const to = this.props.surface === 'ops' ? '../ops/ops.dc.html' : '/account';
+    const to = this.props.surface === 'ops' ? '../ops/ops.dc.html' : (this.returnTo() || '/account');
     this.exitTimer = setTimeout(() => { location.href = to; }, 2400);
+  }
+  /* D-13: "Have an account? Sign in" on checkout comes back to the same filled checkout.
+     Same rule as apps/web/lib/account/return-to.ts: only /checkout or /{locale}/checkout with
+     a query, never // or a scheme or a traversal. Read once from ?returnTo=, kept for the tab
+     in sessionStorage so a code or link step on the same tab still lands there. */
+  returnTo(keep) {
+    const ok = (v) => {
+      if (typeof v !== 'string') return null;
+      v = v.trim();
+      if (!v || v.length > 2000 || v.indexOf('//') === 0) return null;
+      if (/[\u0000-\u001f\\]/.test(v) || v.indexOf('..') !== -1) return null;
+      return /^\/(?:(?:en|de|fr|ar)\/)?checkout(?:\?[^#\s\\]*)?$/.test(v) ? v : null;
+    };
+    let raw = null;
+    try { raw = new URLSearchParams(location.search).get('returnTo'); } catch (e) {}
+    let v = ok(raw);
+    try {
+      if (v) sessionStorage.setItem('vamosReturnTo', v);
+      else v = ok(sessionStorage.getItem('vamosReturnTo'));
+      if (v && !raw && !keep) sessionStorage.removeItem('vamosReturnTo');
+    } catch (e) {}
+    return v;
   }
   /* Gallery / ops still fake the OS sheet. Live pages run WebAuthn. */
   armPasskey() {
@@ -435,7 +457,7 @@ class Component extends DCLogic {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       credentials: 'same-origin',
-      body: JSON.stringify(Object.assign({ locale: this.locale() }, body)),
+      body: JSON.stringify(Object.assign({ locale: this.locale() }, this.returnTo(true) ? { returnTo: this.returnTo(true) } : {}, body)),
     }).then((r) => r.json()).catch(() => null);
   }
   applyLive(result, mode, method, skipEnroll) {

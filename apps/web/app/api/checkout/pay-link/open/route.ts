@@ -9,21 +9,13 @@ import { z } from "zod";
 import { asCheckout } from "@/lib/db/identity";
 import { refuse } from "@/lib/checkout/errors";
 import { hashRawToken } from "@/lib/checkout/manage-token";
-import { attachPayment } from "@/lib/checkout/attach-payment";
-import { loadOpenPayment } from "@/lib/checkout/load-open-payment";
 import { payLinkPath } from "@/lib/checkout/pay-link";
+import { payLinkLinesForCharge, payLinkLinesFromRows } from "@/lib/checkout/pay-link-lines";
 import { payLinkSessionId, resolvePayLinkRefusal } from "@/lib/checkout/pay-link-state";
 import { stripeAccountIsLegacyUaeTest } from "@/lib/checkout/charge-gate";
 import { stripeCheckoutReturnUrl } from "@/lib/checkout/return-url";
 import { publicSiteOrigin, csrfForbidden } from "@/lib/security/origin";
-import {
-  checkoutPaymentIntentId,
-  createCheckoutSession,
-  retrieveCheckoutSession,
-  sessionIsPayable,
-  stripeFromEnv,
-  stripePublishableKey,
-} from "@/lib/checkout/stripe";
+import { openHostedPayLinkSession } from "@/lib/checkout/pay-link-hosted-session";
 import { CHARGE_CURRENCY, type CheckoutLocale } from "@/lib/checkout/currency";
 
 export const dynamic = "force-dynamic";
@@ -36,10 +28,6 @@ const PAY_JSON = { "cache-control": "private, no-store" };
 
 function bytesToHex(bytes: Uint8Array): string {
   return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
-}
-
-function utf8Hex(value: string): string {
-  return bytesToHex(new TextEncoder().encode(value));
 }
 
 function sqlState(err: unknown): string | undefined {
@@ -67,25 +55,29 @@ function legacyUaePrefixStop(): Response {
   return Response.json({ ok: false }, { status: 503, headers: PAY_JSON });
 }
 
-function openPaidJson(
+/** Hosted answer: the Stripe-hosted page url, never a client secret (D-46). */
+function openHostedJson(
   row: Record<string, unknown>,
-  secret: string,
+  session: { id: string; url: string },
   charged: number,
-  publishableKey: string,
+  lines: unknown[],
 ): Record<string, unknown> {
   return {
+    ok: true,
+    hosted_page: true,
+    url: session.url,
+    session_id: session.id,
     reference: String(row.reference),
     pickup: String(row.pickup_text ?? ""),
     dropoff: String(row.dropoff_text ?? ""),
     expires_at: isoInstant(row.snapshot_expires_at),
     lock_expires_at: isoInstant(row.token_expires_at),
-    client_secret: secret,
-    client_secret_hex: utf8Hex(secret),
-    publishable_key: publishableKey,
     currency: CHARGE_CURRENCY.toUpperCase(),
     amount_rappen: charged,
     billing_email: String(row.payer_email ?? row.contact_email ?? ""),
     quote_id: String(row.quote_id),
+    // G9: the booking's saved fare lines; empty unless they add up to `amount_rappen`.
+    lines,
   };
 }
 
@@ -160,6 +152,12 @@ export async function POST(request: Request) {
     return legacyUaePrefixStop();
   }
 
+  const lineRows = await asCheckout(env, null, (sql) => sql`
+    select kind, code, names, vat_rate_bps, amount_rappen
+      from public.checkout_pay_link_lines(decode(${tokenHex}, 'hex'))
+  `);
+  const lines = payLinkLinesForCharge(payLinkLinesFromRows(lineRows as never), charged);
+
   const origin = publicSiteOrigin(new URL(request.url).host);
   const locale = asLocale(String(row.locale || "en"));
   const reference = String(row.reference);
@@ -170,66 +168,18 @@ export async function POST(request: Request) {
       ? row.snapshot_expires_at
       : new Date(String(row.snapshot_expires_at));
   const payerEmail = String(row.payer_email ?? row.contact_email ?? "");
-  const publishableKey = stripePublishableKey(env);
-  const stripe = stripeFromEnv(env);
-
-  const existing = await asCheckout(env, null, (sql) => loadOpenPayment(sql, quoteId));
-  if (existing) {
-    const stored = await retrieveCheckoutSession(stripe, existing.stripe_checkout_session_id).catch(
-      () => null,
-    );
-    if (sessionIsPayable(stored, charged)) {
-      const secret = stored.client_secret;
-      if (!secret) return refuse("invalid_request");
-      return Response.json(openPaidJson(row, secret, charged, publishableKey), { headers: PAY_JSON });
-    }
-  }
-
-  const session = await createCheckoutSession(stripe, {
-    chargedRappen: charged,
+  const opened = await openHostedPayLinkSession(env, {
     bookingId,
-    bookingReference: reference,
-    customerEmail: payerEmail,
+    quoteId,
+    reference,
+    payerEmail,
     locale,
-    idempotencyKey: `paylink:${reference}:${Math.floor(expiresAt.getTime() / 1000)}`,
+    charged,
     expiresAt,
-    returnUrl: stripeCheckoutReturnUrl(origin, locale),
-    productName: `Vamos Taxi ${reference}`,
+    // D-46: pays on Stripe's page; Back returns to this same pay-link page.
+    successUrl: stripeCheckoutReturnUrl(origin, locale),
+    cancelUrl: `${origin.replace(/\/$/, "")}${payLinkPath(locale, token)}`,
   });
-
-  const pi = checkoutPaymentIntentId(session);
-  if (!session.client_secret) return refuse("invalid_request");
-
-  try {
-    await asCheckout(env, null, (sql) =>
-      attachPayment(sql, {
-        quoteId,
-        stripePaymentIntentId: pi,
-        stripeCheckoutSessionId: session.id,
-        chargedRappen: charged,
-      }),
-    );
-  } catch (err) {
-    const state = sqlState(err);
-    if (state === "23001" || state === "23505") {
-      const open = await asCheckout(env, null, (sql) => loadOpenPayment(sql, quoteId));
-      if (open) {
-        const stored = await retrieveCheckoutSession(stripe, open.stripe_checkout_session_id).catch(
-          () => null,
-        );
-        if (sessionIsPayable(stored, charged)) {
-          const secret = stored.client_secret;
-          if (!secret) return refuse("invalid_request");
-          return Response.json(openPaidJson(row, secret, charged, publishableKey), { headers: PAY_JSON });
-        }
-      }
-      return refuse("quote_already_booked");
-    }
-    if (state === "23P01") return refuse("quote_expired");
-    throw err;
-  }
-
-  return Response.json(openPaidJson(row, session.client_secret, charged, publishableKey), {
-    headers: PAY_JSON,
-  });
+  if (!opened.ok) return opened.response;
+  return Response.json(openHostedJson(row, opened.session, charged, lines), { headers: PAY_JSON });
 }

@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -25,7 +25,6 @@ describe("checkout public origin", () => {
     const root = join(dirname(fileURLToPath(import.meta.url)), "../..");
     for (const rel of [
       "app/api/checkout/intent/route.ts",
-      "app/api/checkout/pay-link/route.ts",
       "app/api/checkout/pay-link/open/route.ts",
     ]) {
       const file = readFileSync(join(root, rel), "utf8");
@@ -38,7 +37,6 @@ describe("checkout public origin", () => {
     const root = join(dirname(fileURLToPath(import.meta.url)), "../..");
     for (const rel of [
       "app/api/checkout/intent/route.ts",
-      "app/api/checkout/pay-link/route.ts",
       "app/api/checkout/pay-link/open/route.ts",
     ]) {
       const file = readFileSync(join(root, rel), "utf8");
@@ -71,7 +69,8 @@ describe("checkout extras cache", () => {
       join(dirname(fileURLToPath(import.meta.url)), "../../app/api/checkout/extras/route.ts"),
       "utf8",
     );
-    expect(src.match(/Cache-Control\": \"private, no-store\"/g)?.length).toBeGreaterThanOrEqual(2);
+    expect(src).toContain('"Cache-Control": "private, no-store"');
+    expect(src.match(/headers: HEADERS/g)?.length).toBeGreaterThanOrEqual(2);
   });
 });
 
@@ -133,13 +132,14 @@ describe("staff invite origin", () => {
 });
 
 describe("pay-link open cache", () => {
-  it("client_secret JSON sends private no-store", () => {
+  it("hosted-url JSON sends private no-store", () => {
     const src = readFileSync(
       join(dirname(fileURLToPath(import.meta.url)), "../../app/api/checkout/pay-link/open/route.ts"),
       "utf8",
     );
     expect(src).toContain('cache-control": "private, no-store"');
-    expect(src.match(/headers: PAY_JSON/g)?.length).toBeGreaterThanOrEqual(3);
+    expect(src.match(/headers: PAY_JSON/g)?.length).toBeGreaterThanOrEqual(2);
+    expect(src).not.toContain("client_secret");
   });
 });
 
@@ -156,14 +156,15 @@ describe("account bookings POST cache", () => {
 });
 
 describe("review/photo/invite JSON cache", () => {
-  it("review photo/submit, staff photos, invite, pay-link send private no-store", () => {
+  it("review photo/submit, staff photos, invite, checkout intent and pay-link open private no-store", () => {
     const root = join(dirname(fileURLToPath(import.meta.url)), "../..");
     const files = [
       "app/api/reviews/photo/route.ts",
       "app/api/reviews/submit/route.ts",
       "app/[locale]/(ops)/api/photos/upload/route.ts",
       "app/[locale]/(ops)/api/staff/invite/route.ts",
-      "app/api/checkout/pay-link/route.ts",
+      "app/api/checkout/intent/route.ts",
+      "app/api/checkout/pay-link/open/route.ts",
     ];
     for (const rel of files) {
       const file = readFileSync(join(root, rel), "utf8");
@@ -243,9 +244,8 @@ describe("webhook and email-hook no-store", () => {
     const hook = readFileSync(join(root, "app/api/auth/email-hook/route.ts"), "utf8");
     expect(hook).toContain("private, no-store");
     expect(hook).toContain("function empty");
-    const invite = readFileSync(join(root, "app/api/checkout/invite/[ref]/route.ts"), "utf8");
-    expect(invite).toContain("private, no-store");
-    expect(invite).not.toContain("new Response(null, { status: 404 })");
+    // 26.3 D-30/D-41: the calendar file route is removed.
+    expect(existsSync(join(root, "app/api/checkout/invite/[ref]/route.ts"))).toBe(false);
     const stripe = readFileSync(join(root, "lib/checkout/webhook.ts"), "utf8");
     expect(stripe).toContain("private, no-store");
     expect(stripe).not.toContain("new Response(null, { status: 400 })");

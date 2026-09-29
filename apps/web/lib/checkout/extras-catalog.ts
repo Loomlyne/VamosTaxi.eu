@@ -2,6 +2,7 @@
 // Automatic codes (night, weekend, …) stay off the passenger extras card.
 
 import { isPassengerExtra, normalizeSurchargeCode } from "../ops/surcharge-codes";
+import type { ExtraCatalogRow } from "./checkout-charge";
 
 export type CheckoutExtraJson = {
   code: string;
@@ -28,6 +29,7 @@ export type ExtraUi = {
 export const FREE_WAIT_CODE = "free_wait";
 export const MEET_GREET_CODE = "meet_greet";
 
+/** @deprecated 26.3 D-35 — removed by plan 26.3-21 */
 const EXTRA_UI: Record<string, ExtraUi> = {
   child_seat: { labelKey: "childSeat", toggle: true },
   meet_greet: { labelKey: "meetGreet", toggle: false },
@@ -39,6 +41,7 @@ const EXTRA_UI: Record<string, ExtraUi> = {
   pet: { labelKey: "extraPet", toggle: true },
 };
 
+/** @deprecated 26.3 D-35 — removed by plan 26.3-21 */
 export function extraUi(code: string): ExtraUi | null {
   return EXTRA_UI[code] ?? EXTRA_UI[normalizeSurchargeCode(code)] ?? null;
 }
@@ -68,7 +71,7 @@ export function airportPickupFromPlace(place: unknown): boolean | undefined {
   return undefined;
 }
 
-/** Recap and tiles follow this booking's toggles. A leftover lock must not paint extras. */
+/** @deprecated 26.3 D-35 — removed by plan 26.3-21 */
 export function extraIsOn(code: string, toggles: ExtraToggles): boolean {
   if (code === "child_seat") return toggles.childSeat;
   if (code === "oversized_luggage") return toggles.oversized;
@@ -77,16 +80,6 @@ export function extraIsOn(code: string, toggles: ExtraToggles): boolean {
   // Included dashboard chips recap when they are on the live book (catalog filter).
   if (code === MEET_GREET_CODE || code === FREE_WAIT_CODE) return true;
   return toggles.extraCodes.includes(code);
-}
-
-/** Extras are chosen on /checkout/details. Trip recap is class fare only. */
-export function extraIsOnForStep(
-  step: "trip" | "details" | "payment",
-  code: string,
-  toggles: ExtraToggles,
-): boolean {
-  if (step === "trip") return false;
-  return extraIsOn(code, toggles);
 }
 
 export type RecapExtraLine = {
@@ -104,6 +97,7 @@ export type LockExtrasPeek = {
   oversized_luggage?: boolean | null;
 };
 
+/** @deprecated 26.3 D-35 — removed by plan 26.3-21 */
 export function lockHasExtra(extras: LockExtrasPeek | null | undefined, code: string): boolean {
   if (!extras) return false;
   if (code === "child_seat") return extras.child_seats === 1;
@@ -122,7 +116,7 @@ function isWaitingPayableCode(code: string): boolean {
   return n === "waiting_airport" || n === "waiting_city" || n === "extra_wait";
 }
 
-/** Selected extras with a book amount — for the snapshot recap, not a live catalog paint. */
+/** @deprecated 26.3 D-35 — removed by plan 26.3-21 */
 export function extraFaresOn(
   catalog: CheckoutExtraJson[],
   on: (code: string) => boolean,
@@ -154,7 +148,7 @@ export function capExtraStops(requested: number, _maxFromBook?: unknown): number
   return Math.min(req, PUBLIC_MAX_EXTRA_STOPS);
 }
 
-/** Selected passenger extras that exist on the live book. Amounts stay the book values. */
+/** @deprecated 26.3 D-35 — removed by plan 26.3-21 */
 export function recapExtraFares(
   catalog: CheckoutExtraJson[],
   on: (code: string) => boolean,
@@ -176,7 +170,7 @@ export function recapExtraFares(
   return out;
 }
 
-/** Selected passenger extras that exist on the live book. No invented rows or CHF. */
+/** @deprecated 26.3 D-35 — removed by plan 26.3-21 */
 export function recapExtras(
   catalog: CheckoutExtraJson[],
   on: (code: string) => boolean,
@@ -184,7 +178,7 @@ export function recapExtras(
   return recapExtraFares(catalog, on).map(({ code, labelKey }) => ({ code, labelKey }));
 }
 
-/** Catalog extras the lock does not already pin — never invent a CHF. */
+/** @deprecated 26.3 D-35 — removed by plan 26.3-21 */
 export function extraRappenOutsideLock(
   extras: LockExtrasPeek | null | undefined,
   catalog: CheckoutExtraJson[],
@@ -203,7 +197,7 @@ export function extraRappenOutsideLock(
   return add;
 }
 
-type SurchargeLike = {
+export type SurchargeLike = {
   code: string;
   kind: "amount" | "percent" | "included";
   amount_rappen: number | null;
@@ -237,7 +231,7 @@ export function extraAmountTimesQty(
   return amountRappen * quantity;
 }
 
-/** Live surcharge chips only. Inactive and automatic kinds are omitted, not CHF 0. */
+/** @deprecated 26.3 D-35 — removed by plan 26.3-21 */
 export function catalogFromSurcharges(rows: SurchargeLike[]): CheckoutExtraJson[] {
   const out: CheckoutExtraJson[] = [];
   for (const row of rows) {
@@ -255,6 +249,65 @@ export function catalogFromSurcharges(rows: SurchargeLike[]): CheckoutExtraJson[
       percent: row.percent,
       toggle: free || inQuote ? false : (ui?.toggle ?? true),
       ...(inQuote ? { pricedInQuote: true } : {}),
+    });
+  }
+  return out;
+}
+
+/** Display names for one extra, any language may be missing (plan 07's extra_labels). */
+export type ExtraLabelsByCode = Record<
+  string,
+  Partial<{ en: string | null; de: string | null; fr: string | null; ar: string | null }> | undefined
+>;
+
+/** `child-seat` → `Child seat`. The fallback name when the owner saved no label. */
+export function humaniseCode(code: string): string {
+  const words = code
+    .replace(/[-_]+/g, " ")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLowerCase();
+  if (!words) return code;
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
+function labelOr(value: string | null | undefined, fallback: string): string {
+  return typeof value === "string" && value.trim() ? value.trim() : fallback;
+}
+
+/**
+ * D-35: the tick-box extras on the live book. Any active passenger surcharge
+ * with a fixed amount ≥ 1 rappen, by its exact code — never matched or renamed.
+ * Automatic codes (night, waiting…), always-on quote rows, extra stop (needs an
+ * address), percent and included rows are not tick boxes.
+ */
+export function selectableExtras(
+  surcharges: SurchargeLike[],
+  labelsByCode: ExtraLabelsByCode,
+): ExtraCatalogRow[] {
+  const out: ExtraCatalogRow[] = [];
+  const seen = new Set<string>();
+  for (const row of surcharges) {
+    if (!row.active) continue;
+    if (row.kind !== "amount") continue;
+    const amount = row.amount_rappen;
+    if (amount == null || !Number.isInteger(amount) || amount < 1) continue;
+    if (!isPassengerExtra(row.code)) continue;
+    if (pricedOnQuote(row)) continue;
+    if (row.code === "extra_stop" || row.quantity_source === "extra_stops") continue;
+    if (seen.has(row.code)) continue;
+    seen.add(row.code);
+    const fallback = humaniseCode(row.code);
+    const named = labelsByCode[row.code] ?? {};
+    out.push({
+      code: row.code,
+      amountRappen: amount,
+      labels: {
+        en: labelOr(named.en, fallback),
+        de: labelOr(named.de, fallback),
+        fr: labelOr(named.fr, fallback),
+        ar: labelOr(named.ar, fallback),
+      },
     });
   }
   return out;

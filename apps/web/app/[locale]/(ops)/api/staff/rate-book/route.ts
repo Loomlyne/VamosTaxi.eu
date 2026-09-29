@@ -25,6 +25,13 @@ import {
   type SurchargeInput,
   type SurchargeKind,
 } from "@/lib/ops/rate-book";
+import {
+  EXTRA_LANGS,
+  planExtraLabels,
+  type AiLike,
+  type ExtraLabelRow,
+  type ExtraLang,
+} from "@/lib/ops/extra-label-translate";
 import { isPlaceholderAmount, rappenFromMoneySet, rappenFromUnknown } from "@/lib/ops/rappen";
 import { extraWriteFields, isPassengerExtra, normalizeSurchargeCode, checkoutExtraKindFromRappen } from "@/lib/ops/surcharge-codes";
 import { jsonErr, jsonOk, withAdmin, withStaff } from "@/lib/ops/staff-json";
@@ -608,6 +615,99 @@ function parseSurchargeInput(body: Record<string, unknown>): SurchargeInput {
   };
 }
 
+
+type ExtraLabelDbRow = {
+  code: string;
+  label_en: string;
+  label_de: string | null;
+  label_fr: string | null;
+  label_ar: string | null;
+  machine_langs: string[] | null;
+};
+
+function labelRowFromDb(row: ExtraLabelDbRow): ExtraLabelRow {
+  return {
+    en: row.label_en,
+    de: row.label_de,
+    fr: row.label_fr,
+    ar: row.label_ar,
+    machineLangs: (row.machine_langs ?? []).filter((l): l is ExtraLang =>
+      (EXTRA_LANGS as readonly string[]).includes(l),
+    ),
+  };
+}
+
+/** D-44: per-language names of checkout extras, keyed by surcharge code. Empty on any read failure. */
+async function readExtraLabels(
+  env: Parameters<typeof loadRateBook>[0],
+  claims: Parameters<typeof loadRateBook>[1],
+): Promise<Record<string, ExtraLabelRow>> {
+  try {
+    const rows = await asStaff(env, claims, async (tx) => {
+      return (await tx`select * from public.extra_labels_read()`) as unknown as ExtraLabelDbRow[];
+    });
+    const out: Record<string, ExtraLabelRow> = {};
+    for (const row of rows) out[row.code] = labelRowFromDb(row);
+    return out;
+  } catch {
+    console.error("extra_label_read");
+    return {};
+  }
+}
+
+function withExtraLabels<T extends { surcharges: Record<string, unknown>[] }>(
+  payload: T,
+  labels: Record<string, ExtraLabelRow>,
+): T {
+  return {
+    ...payload,
+    surcharges: payload.surcharges.map((row) => {
+      const l = labels[String(row.code)];
+      if (!l) return row;
+      return {
+        ...row,
+        labelEn: l.en,
+        labelDe: l.de ?? "",
+        labelFr: l.fr ?? "",
+        labelAr: l.ar ?? "",
+        machineLangs: l.machineLangs,
+      };
+    }),
+  };
+}
+
+/** Save the four-language name of an extra. Never throws: the surcharge save has already succeeded. */
+async function saveExtraLabels(
+  env: Parameters<typeof loadRateBook>[0],
+  claims: Parameters<typeof loadRateBook>[1],
+  code: string,
+  recBody: Record<string, unknown>,
+): Promise<void> {
+  try {
+    const en = String(recBody.name ?? recBody.labelEn ?? recBody.label_en ?? "").trim();
+    if (!en) return;
+    const raw = (recBody.labels && typeof recBody.labels === "object" ? recBody.labels : {}) as Record<string, unknown>;
+    const labels = {
+      de: raw.de ?? recBody.labelDe ?? recBody.label_de,
+      fr: raw.fr ?? recBody.labelFr ?? recBody.label_fr,
+      ar: raw.ar ?? recBody.labelAr ?? recBody.label_ar,
+    };
+    const existingAll = await readExtraLabels(env, claims);
+    const ai = (env as { AI?: AiLike }).AI;
+    const plan = await planExtraLabels(ai, existingAll[code] ?? null, { en, labels });
+    await asStaff(env, claims, async (tx) => {
+      await tx`
+        select * from public.staff_extra_label_upsert(
+          ${code}, ${plan.en}, ${plan.de}, ${plan.fr}, ${plan.ar}, ${pgTextArrayLiteral(plan.machineLangs)}::text[]
+        )
+      `;
+      return null;
+    });
+  } catch {
+    console.error("extra_label_translate");
+  }
+}
+
 export const GET = withStaff(async (claims, request) => {
   const url = new URL(request.url);
   const { env } = getCloudflareContext();
@@ -616,7 +716,7 @@ export const GET = withStaff(async (claims, request) => {
   const book = await loadRateBook(env, claims, versionId);
   if (!book) return jsonErr("not-found", 404);
   const zones = await loadServiceZones(env, claims);
-  return jsonOk(bookPayload(book, zones));
+  return jsonOk(withExtraLabels(bookPayload(book, zones), await readExtraLabels(env, claims)));
 });
 
 function classOrderRows(raw: unknown): { id: string; sortOrder: number }[] {
@@ -911,7 +1011,10 @@ export const PUT = withAdmin(async (claims, request) => {
       const next = await loadRateBook(env, claims, versionId);
       if (!next) return jsonErr("not-found", 404);
       const zones = await loadServiceZones(env, claims);
-      const payload = bookPayload(next, zones);
+      if (recBody.type === "checkout_extra") {
+        await saveExtraLabels(env, claims, parsed.code, recBody);
+      }
+      const payload = withExtraLabels(bookPayload(next, zones), await readExtraLabels(env, claims));
       const saved =
         payload.surcharges.find((row) => row.code === parsed.code) ??
         (id != null ? payload.surcharges.find((row) => row.id === String(id)) : undefined);

@@ -44,6 +44,29 @@ export function t(
   return value;
 }
 
+const PLURAL_SUFFIX = /_(zero|one|two|few|many|other)$/;
+
+/**
+ * Plural lookup: `${key}_${category}` for the locale's CLDR category, falling
+ * back to `_other`. English needs one/other; Arabic adds two/few/many.
+ */
+export function tPlural(
+  locale: EmailLocale,
+  key: string,
+  count: number,
+  vars: Record<string, string | number> = {},
+): string {
+  const table = FLAT[locale] ?? FLAT.en;
+  const category = new Intl.PluralRules(locale).select(count);
+  const chosen = table[`${key}_${category}`] != null ? `${key}_${category}` : `${key}_other`;
+  return t(locale, chosen, { count, ...vars });
+}
+
+/** "2 passengers · 1 bag" in the booking's language. */
+export function paxBagsLine(locale: EmailLocale, pax: number, bags: number): string {
+  return `${tPlural(locale, "pax", pax)} · ${tPlural(locale, "bags", bags)}`;
+}
+
 /** Keys missing from any locale relative to English. Empty list = i18n:check. */
 export function coverage(): string[] {
   const enKeys = Object.keys(FLAT.en).sort();
@@ -54,6 +77,8 @@ export function coverage(): string[] {
       if (!keys.has(key)) missing.push(`${locale}:${key}`);
     }
     for (const key of keys) {
+      // Locales with more plural categories than English carry extra suffixes.
+      if (PLURAL_SUFFIX.test(key) && FLAT.en[key.replace(PLURAL_SUFFIX, "_other")]) continue;
       if (!FLAT.en[key]) missing.push(`${locale}:extra:${key}`);
     }
   }

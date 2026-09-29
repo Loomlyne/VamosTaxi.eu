@@ -3,6 +3,7 @@
 // §6 ladder proofs. Stubs only — no Docker. The D-49 probe is the only
 // database touch in this plan.
 
+import { readCheckoutPageSource } from "../../tests/support/checkout-sources";
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -619,14 +620,10 @@ describe("decorative", () => {
 });
 
 describe("D-21 Select posts the lock, no home layout change", () => {
-  it("home stores vamosQuoteLock and checkout client posts /api/checkout/intent", () => {
+  it("home hands the trip to /checkout in the URL and the checkout page posts /api/checkout/intent", () => {
     const home = readFileSync(join(repoRoot, "app/home/home.dc.html"), "utf8");
-    const client = readFileSync(
-      join(repoRoot, "apps/web/app/[locale]/checkout/CheckoutClient.tsx"),
-      "utf8",
-    );
-    expect(home).toMatch(/vamosQuoteLock/);
-    expect(home).toMatch(/\/checkout\/trip/);
+    const client = readCheckoutPageSource();
+    expect(home).toMatch(/location\.assign\(prefix \+ '\/checkout\?'/);
     expect(client).toMatch(/\/api\/checkout\/intent/);
   });
 });

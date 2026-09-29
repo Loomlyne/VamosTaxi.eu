@@ -186,13 +186,13 @@ grant execute on function pg_temp.rt_book(
 
 -- Grants (D-07 threat T-26.1-07) ------------------------------------------------
 select function_privs_are('public', 'checkout_payment_settle',
-  '{text,text,text,text,text,numeric,text,timestamptz,int8}'::text[], 'anon', '{}'::text[],
+  '{text,text,text,text,text,numeric,text,timestamptz,int8,text}'::text[], 'anon', '{}'::text[],
   'checkout_payment_settle v2: anon holds no EXECUTE');
 select function_privs_are('public', 'checkout_payment_settle',
-  '{text,text,text,text,text,numeric,text,timestamptz,int8}'::text[], 'authenticated', '{}'::text[],
+  '{text,text,text,text,text,numeric,text,timestamptz,int8,text}'::text[], 'authenticated', '{}'::text[],
   'checkout_payment_settle v2: authenticated holds no EXECUTE');
 select function_privs_are('public', 'checkout_payment_settle',
-  '{text,text,text,text,text,numeric,text,timestamptz,int8}'::text[], 'vamos_system', '{EXECUTE}'::text[],
+  '{text,text,text,text,text,numeric,text,timestamptz,int8,text}'::text[], 'vamos_system', '{EXECUTE}'::text[],
   'checkout_payment_settle v2: vamos_system holds EXECUTE');
 select function_privs_are('public', 'checkout_duplicate_refund_record',
   '{int8,text,rappen,text}'::text[], 'anon', '{}'::text[],

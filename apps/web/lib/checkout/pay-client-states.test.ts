@@ -40,9 +40,13 @@ describe("payStateFromOpen (D-20/D-21/D-22)", () => {
     expect(payStateFromOpen({ code: "quote_expired" })).toEqual({ kind: "expired" });
   });
 
-  it("reads a client secret as payable", () => {
-    expect(payStateFromOpen({ client_secret: "cs_test_abc_secret_xyz" })).toEqual({
+  it("reads a Stripe-hosted url as payable, a bare client secret as not (D-46)", () => {
+    expect(payStateFromOpen({ url: "https://checkout.stripe.com/c/pay/cs_test_abc" })).toEqual({
       kind: "payable",
+    });
+    expect(payStateFromOpen({ client_secret: "cs_test_abc_secret_xyz" })).toEqual({
+      kind: "alert",
+      key: "paymentWindowClosed",
     });
   });
 
@@ -76,7 +80,7 @@ describe("payStateFromOpen (D-20/D-21/D-22)", () => {
 
   it("lets a refusal code win over a stray client secret", () => {
     expect(
-      payStateFromOpen({ code: "pay_link_paid", reference: "VT-26-0001", client_secret: "x" }),
+      payStateFromOpen({ code: "pay_link_paid", reference: "VT-26-0001", url: "https://checkout.stripe.com/c/pay/x" }),
     ).toEqual({ kind: "alreadyPaid", reference: "VT-26-0001" });
   });
 });
@@ -167,7 +171,7 @@ describe("return route duplicate (D-22)", () => {
   });
 
   it("sends a duplicate return to the confirmation with charge=refunded", () => {
-    const route = source("app/api/checkout/return/route.ts");
+    const route = source("lib/checkout/return-settle.ts");
     expect(route).toContain('result === "duplicate"');
     expect(route).toContain("?charge=refunded");
     expect(route).toContain("BOOKING_REFERENCE_RE.test(bookingRef)");
@@ -177,5 +181,23 @@ describe("return route duplicate (D-22)", () => {
     const settle = source("lib/checkout/return-settle.ts");
     expect(settle).toContain('Promise<"paid" | "duplicate" | "unpaid" | "failed">');
     expect(settle).toContain("return returnSettleOutcome(handled)");
+  });
+});
+
+describe("PayClient (D-46): trip, price, one PAY, no card form", () => {
+  const client = source("app/[locale]/checkout/pay/[token]/PayClient.tsx");
+
+  it("has no card panel, client secret or card fields", () => {
+    for (const banned of ["PaymentPanel", "client_secret", "TokenDummyFields", "cardNumber", "cardCvc", "cc-"]) {
+      expect(client).not.toContain(banned);
+    }
+  });
+
+  it("opens the hosted session and leaves for Stripe with location.assign", () => {
+    expect(client).toContain("window.location.assign(json.url)");
+    expect(client).toContain('t("openingPayment")');
+    expect(client).toContain('t("payStartFailed")');
+    expect(client).toContain('t("methodNote")');
+    expect(client).toContain('t("payTotal"');
   });
 });

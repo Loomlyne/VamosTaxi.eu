@@ -72,7 +72,8 @@
         // breaker — not a budget, not a franc figure. Trips rather than logs.
         // No Mapbox plan exists yet, so no ceiling in francs can be honest.
         "MAPBOX_DAILY_UNIT_SENTINEL": "5000",
-        "STRIPE_PUBLISHABLE_KEY": "pk_test_51UIZmqHcNp9GZYjzrjt6veTXy3EkAOLiOLfYwc4rXpSxIY7HMLFViyMV7IxirWjmV1OkwVFo1Z5De2YrANVtiB5M002tCIoxfZ"
+        "STRIPE_PUBLISHABLE_KEY": "pk_test_51UIZmqHcNp9GZYjzrjt6veTXy3EkAOLiOLfYwc4rXpSxIY7HMLFViyMV7IxirWjmV1OkwVFo1Z5De2YrANVtiB5M002tCIoxfZ",
+        "STRIPE_CHECKOUT_TWINT": "on"
       },
       "kv_namespaces": [
         { "binding": "GEO_CACHE", "id": "48cd800d63e44c03aa1f49be83d39d7a" },
@@ -85,6 +86,8 @@
           "id": "5080f3d518c24eaeb7b0590c922349c2"
         }
       ],
+      // Workers AI: extra names are machine-translated on save (D-44).
+      "ai": { "binding": "AI" },
       "r2_buckets": [
         { "binding": "PHOTOS", "bucket_name": "vamos-photos-staging" },
         { "binding": "SUPPORT_FILES", "bucket_name": "vamos-support-staging" }
@@ -214,7 +217,8 @@
         // D-54 / U37: engineering UNIT COUNT sentinel — same shape as staging.
         // Not a budget; not a franc figure.
         "MAPBOX_DAILY_UNIT_SENTINEL": "5000",
-        "STRIPE_PUBLISHABLE_KEY": "pk_test_placeholder"
+        "STRIPE_PUBLISHABLE_KEY": "pk_test_placeholder",
+        "STRIPE_CHECKOUT_TWINT": "on"
       },
       "kv_namespaces": [
         { "binding": "GEO_CACHE", "id": "a11bc8c7d13d4eeb9c2dad091e978dcb" },
@@ -225,6 +229,8 @@
           "id": "<quote-abuse production kv id — created by plan 04-13 via wrangler kv namespace create>"
         }
       ],
+      // Workers AI: extra names are machine-translated on save (D-44).
+      "ai": { "binding": "AI" },
       "r2_buckets": [
         { "binding": "PHOTOS", "bucket_name": "vamos-photos-production" }
       ],

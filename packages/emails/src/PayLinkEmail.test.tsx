@@ -19,7 +19,7 @@ function link(locale: EmailLocale, totalRappen: number | null = null): PayLinkFo
     vehicleClass: "business",
     pax: 2,
     bags: 1,
-    extras: ["child_seat"],
+    extras: [{ name: "Child seat", names: { de: "Kindersitz", fr: "Siège enfant", ar: "مقعد طفل" }, amountRappen: null }],
     coupon: null,
     contactName: "Ada",
     contactPhone: "+41 79 000 00 00",

@@ -13,7 +13,6 @@ function read(path: string): string {
 
 const ROUTES = [
   "app/api/checkout/intent/route.ts",
-  "app/api/checkout/pay-link/route.ts",
   "app/api/checkout/pay-link/open/route.ts",
 ] as const;
 

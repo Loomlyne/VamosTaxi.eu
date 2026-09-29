@@ -166,7 +166,7 @@ describe("readBookingForConfirmation / readBookingStatus", () => {
       pax: 2,
       bags: 2,
       flightNo: "LX123",
-      extras: ["child_seat"],
+      extras: [],
       contactName: "koussay zayani",
       contactEmail: "koussayzayeni@gmail.com",
       contactPhone: "+971509758018",
@@ -174,7 +174,9 @@ describe("readBookingForConfirmation / readBookingStatus", () => {
       discountRappen: 0,
       subtotalRappen: 10810,
       priceTotalRappen: 10810,
-      fareLines: [{ code: "distance_fare", vehicleClass: "business", amountRappen: 10810 }],
+      fareLines: [
+        { code: "distance_fare", vehicleClass: "business", amountRappen: 10810, params: { vehicleClass: "business" } },
+      ],
       durationMin: 16,
       distanceKm: 10.61,
       paidAt: null,
@@ -182,6 +184,14 @@ describe("readBookingForConfirmation / readBookingStatus", () => {
       refundStatus: null,
       refundOwedRappen: null,
       refundedRappen: null,
+      receipt: {
+        rows: [{ kind: "fare", label: "Fare", labelKey: "price.line.transfer", amountRappen: 10810 },
+          { kind: "total", label: "Total paid", labelKey: "price.line.total", amountRappen: 10810 },
+        ],
+        chargedRappen: 10810,
+        presentment: null,
+        vehicleClassName: null,
+      },
     });
     const status = await readBookingStatus(ENV, "token", REF);
     expect(status).toEqual({ visible: true, status: "pending", reference: REF, paymentStatus: null });
@@ -272,5 +282,56 @@ describe("readBookingForConfirmation / readBookingStatus", () => {
     expect(result.refundStatus).toBe("pending_ops");
     expect(result.refundOwedRappen).toBeNull();
     expect(result.refundedRappen).toBe(0);
+  });
+});
+
+describe("receipt on the visible booking", () => {
+  beforeEach(() => {
+    asGuest.mockReset();
+  });
+
+  async function read(snapshot: unknown, payment: unknown) {
+    const { sql } = makeSql(
+      [{ id: "b1", reference: REF, status: "confirmed", price_total_rappen: 9800 }],
+      [{ pickup_text: "A", dropoff_text: "B", scheduled_local: "2026-09-11T10:00", vehicle_class_id: "c1", pax: 1, bags: 0, vehicle_class_name: "Business" }],
+      [snapshot],
+      [payment],
+    );
+    asGuest.mockImplementation(async (_e: unknown, _h: unknown, fn: (s: unknown) => unknown) => fn(sql));
+    const minted = await mintManageToken();
+    const out = await readBookingForConfirmation(ENV, minted.raw, REF);
+    if (!out.visible) throw new Error("expected visible");
+    return out;
+  }
+
+  const snapshot = {
+    total_rappen: 9800,
+    lines: [
+      { kind: "fare", code: "distance_fare", i18n_key: "price.line.transfer", params: { vehicleClass: "business" }, amount_rappen: 10000 },
+      { kind: "surcharge", code: "roof-box", i18n_key: "price.surcharge.custom", params: { names: { en: "Roof box" } }, amount_rappen: 2000 },
+    ],
+  };
+
+  it("renders an extra code nobody hard-coded and exposes presentment when not CHF", async () => {
+    const out = await read(snapshot, {
+      status: "captured",
+      charged_rappen: 9800,
+      presentment_amount_minor: 10500,
+      presentment_currency: "EUR",
+    });
+    expect(out.receipt.rows.some((r) => r.label === "Roof box" && r.amountRappen === 2000)).toBe(true);
+    expect(out.receipt.chargedRappen).toBe(9800);
+    expect(out.receipt.presentment).toEqual({ amountMinor: 10500, currency: "EUR" });
+    expect(out.receipt.vehicleClassName).toBe("Business");
+  });
+
+  it("presentment is null when the customer paid in CHF", async () => {
+    const out = await read(snapshot, {
+      status: "captured",
+      charged_rappen: 9800,
+      presentment_amount_minor: 9800,
+      presentment_currency: "CHF",
+    });
+    expect(out.receipt.presentment).toBeNull();
   });
 });

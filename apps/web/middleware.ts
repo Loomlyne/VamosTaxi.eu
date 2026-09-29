@@ -1,6 +1,7 @@
 import createMiddleware from "next-intl/middleware";
 import { NextRequest, NextResponse } from "next/server";
 import { routing } from "./i18n/routing";
+import { LOCALE_COOKIE, localeRewriteResponse, resolveCookieLocale } from "./lib/locale-cookie";
 import {
   mintVamosQs,
   VAMOS_QS_ATTRS,
@@ -413,13 +414,18 @@ function hasAuthTokenCookie(request: NextRequest): boolean {
  * Public-host Cache-Control after locale/auth work. Worker still runs
  * gatePublicRequest — these headers do not skip the Worker.
  */
-function applyPublicCacheHeaders(request: NextRequest, response: NextResponse): NextResponse {
+function applyPublicCacheHeaders(
+  request: NextRequest,
+  response: NextResponse,
+  languageVaries = false,
+): NextResponse {
   const path = stripLocalePath(request.nextUrl.pathname);
   const nocache = request.nextUrl.searchParams.has("nocache");
   const personal = isNoStorePath(path);
   const authed = hasAuthTokenCookie(request);
 
-  if (personal || nocache || authed || isDashboardHost(request)) {
+  const localised = languageVaries && resolveCookieLocale(request.cookies.get(LOCALE_COOKIE)?.value) !== routing.defaultLocale;
+  if (personal || nocache || authed || localised || isDashboardHost(request)) {
     response.headers.set("Cache-Control", "private, no-store");
     return response;
   }
@@ -437,7 +443,7 @@ function applyPublicCacheHeaders(request: NextRequest, response: NextResponse): 
   // D-08 / T-10-12: banner vs no-banner. Boolean presence only — never the UUID.
   const present = readConsentSubject(request.headers.get("cookie")) ? "1" : "0";
   response.headers.set("X-Consent-Present", present);
-  response.headers.set("Vary", "X-Consent-Present");
+  response.headers.append("Vary", "X-Consent-Present");
   response.headers.set(
     "Cache-Control",
     "public, s-maxage=300, stale-while-revalidate=3600",
@@ -613,7 +619,16 @@ export default async function middleware(request: NextRequest) {
     }
   }
 
-  const response = handleI18nRouting(request);
+  // D-47: unprefixed Next page + a chosen non-English language -> internal rewrite to
+  // /{locale}/... (address stays unprefixed). English / no / invalid cookie: next-intl as before.
+  const cookieLocale = resolveCookieLocale(request.cookies.get(LOCALE_COOKIE)?.value);
+  const response =
+    !isDashboardHost(request) &&
+    cookieLocale !== routing.defaultLocale &&
+    !localeStrippedPath(pathname).localePrefix
+      ? localeRewriteResponse(request, cookieLocale)
+      : handleI18nRouting(request);
+  response.headers.append("Vary", "Cookie");
 
   // Checkpoint (D-11/D-12, resolved 2026-08-20, option-a): a request whose
   // path explicitly carries the default locale's prefix (`/en`, `/en/...`)
@@ -688,7 +703,7 @@ export default async function middleware(request: NextRequest) {
     }
   }
 
-  return applyPublicCacheHeaders(request, finalResponse);
+  return applyPublicCacheHeaders(request, finalResponse, true);
 }
 
 export const config = {

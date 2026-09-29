@@ -1045,24 +1045,54 @@ Plans:
 
 **UI hint**: yes — pay-link "already paid" page, ops refund approval, admin account-settings sign-in methods, class names.
 
-### Phase 26.3: Booking flow simplification (INSERTED)
+### Phase 26.3: Booking flow rebuild (INSERTED)
 
-**Goal**: A customer goes from the home card to paid in two screens. Home asks From, To,
-When and Travellers; on tablet and desktop the card also shows the class prices. One
-checkout page replaces `/checkout/trip`, `/checkout/details` and `/checkout/payment`:
-1 class, 2 who is travelling, 3 payment, with one Pay button. Design source: sketch 001
-Variant A, approved 2026-09-28 (`.planning/sketches/001-simplified-booking-flow/`).
-**Depends on**: 26.1 (payment and pricing integrity) and 26.2 (cleanup) merged first.
-Owner placed it before 27 so the pixel measures the new funnel.
-**Requirements**: TBD in discuss-phase
-**Success Criteria** (draft, signed in discuss):
+**Goal**: A customer goes from the home box to paid in two screens and the booking is right
+everywhere afterwards. Home box asks From (flight number under it for an airport, required),
+To, When, Travellers; SEE PRICES opens ONE checkout page (1 class with prices, 2 who is
+travelling, 3 payment) with one Pay button that sends the customer to Stripe's hosted page
+(card, Apple Pay, Google Pay, TWINT). Stripe returns to `/api/checkout/return` → loading
+screen → confirmation "Booked". Design source: sketch 001 Variant A; decisions signed
+2026-09-29 in `.planning/phases/26.3-booking-flow-simplification/26.3-CONTEXT.md` (D-01…D-46).
+**Depends on**: 26.1 (shipped as cff97a0e + 3 fixes). Starts before 26.2 by owner decision (D-03).
+**Requirements**: from 26.3-CONTEXT.md
+**Success Criteria** (signed in discuss):
 
-  1. Home card has no trip-type tabs; an airport pickup is detected from the From address. Passengers and bags are one control.
-  2. On tablet and desktop, the home card shows each class with its price once From and To are set; Select opens checkout with that class chosen. Phone keeps one SEE PRICES button.
-  3. One checkout page: class cards with prices, contact, flight number only for an airport pickup (asked once in the whole flow), extras / driver note / company receipt / voucher collapsed, wallets above card, one Pay button.
-  4. Desktop has a sticky summary rail; phone and tablet have a sticky Total + Pay bar. Pay scrolls to the first error and names it.
-  5. Unpaid booking row rules, pay-link, 3DS return, refresh and Back still work; server-authoritative quote and idempotent booking unchanged.
-  6. Every string in en, de, fr, ar; checked at 1440, 1024, 768, 390 with no sideways scroll; no glow, no tinted yellow, `CHF 000` until pricing is live.
+  1. Owner's failed 26.1 UAT step 1 passes on the shipped build: test card 4242 → loading screen → confirmation "Booked" → booking on his profile → on the ops board → confirmation e-mail with the full breakdown equal to the Stripe charge → no leftover card, no pay-link e-mail.
+  2. Home box: no trip tabs, airport detected from From, required flight under From only for an airport, one Travellers control, no prices; trip handed to `/checkout` in the URL (no `vamosTrip` storage).
+  3. One checkout page: classes with prices (too-small greyed "Seats up to N"), one contact with sign-in link, extras from the live price book listed unticked and charged and saved when ticked, folded company receipt and driver note, "Have a voucher?" link, no pay link, Pay always visible and jumping to the first missing field.
+  4. Stripe hosted page with exactly card / Apple Pay / Google Pay / TWINT, site language (en/de/fr/ar), adaptive pricing on; Back returns to a filled checkout and reuses the booking; unpaid bookings without a pay link are deleted after 30 minutes; old `/checkout/trip|details|payment` forward to `/checkout`.
+  5. New bookings store the correct pickup instant (Europe/Zurich → UTC); bookings link to the profile when signed in or by the same e-mail; account never shows a local draft; "Add to calendar" removed.
+  6. Server price calc, signed lock, settle, refunds, disputes unchanged except generic extras and pickup instant; a fixed coupon stays off before VAT.
+  7. Every string in en, de, fr, ar; checked at 1440, 1024, 768, 390 with no sideways scroll; no glow, no tinted yellow, `CHF 000` in design only.
+  8. Owner-run copy-then-delete script for the 33 test bookings is delivered; the agent never runs it.
+
+**Plans:** 23 plans in 8 waves
+
+Plans:
+- [ ] 26.3-01-PLAN.md — Root cause: confirmation e-mail read via definer RPC, claim-first never-throw delivery, hourly sweep, local 5532x stack
+- [ ] 26.3-02-PLAN.md — Root cause: paid return always reaches confirmation, e-mail isolated from settle, signed-in customer_id, no pay-link button in checkout
+- [ ] 26.3-03-PLAN.md — Pure core (TDD): Zurich→UTC pickup instant, generic extras by exact code, one checkoutCharge, URL trip contract
+- [ ] 26.3-04-PLAN.md — Home booking box: From/Flight-if-airport/To/When/Travellers, no prices, URL hand-off
+- [ ] 26.3-05-PLAN.md — Local harness: fake Stripe hosted page, checkout fixtures, runbook
+- [ ] 26.3-06-PLAN.md — Stripe hosted session layer: methods, TWINT flag, locale, 31 min, presentment currency, one purge-safety rule
+- [ ] 26.3-07-PLAN.md — DB: unpaid purge + audit line, guest-booking claim, company/note/trip query, session list, per-language extra names
+- [ ] 26.3-08-PLAN.md — Confirmation e-mail full breakdown, Booked, generic extras; pay-link e-mail extras
+- [ ] 26.3-09-PLAN.md — Generic receipt rows for the confirmation page; one checkout catalog + extras route
+- [ ] 26.3-10-PLAN.md — Intent on the hosted page: server charge, details, same booking on Back, supersede by booking id with purge safety
+- [ ] 26.3-11-PLAN.md — Price, resume (with booking id and trip) and signed-in prefill routes
+- [ ] 26.3-12-PLAN.md — Purge wiring: expired webhook + hourly sweep, both checking every Stripe session; refund when a paid session has no booking
+- [ ] 26.3-13-PLAN.md — Ops: extra names auto-translated (Workers AI) and editable; board Awaiting payment filter
+- [ ] 26.3-14-PLAN.md — Loading screen + confirmation "Booked"; Add to calendar removed
+- [ ] 26.3-15-PLAN.md — Checkout part 1: trip strip + inline editor, Section 1 classes, old routes forward, all strings
+- [ ] 26.3-16-PLAN.md — Account: Booked, guest bookings linked, no local draft; sign-in returns to checkout
+- [ ] 26.3-17-PLAN.md — D-37 copy-then-delete script (owner runs), proven locally
+- [ ] 26.3-18-PLAN.md — Pay-link page on Stripe's hosted page
+- [ ] 26.3-19-PLAN.md — Checkout part 2: contact, extras, company/note, voucher, one PAY, Back/expired
+- [ ] 26.3-20-PLAN.md — Ops half of generic extras (map, detail, draft preview) and Zurich time change
+- [ ] 26.3-21-PLAN.md — Old client, dead routes and Elements removed; checkout sections spec
+- [ ] 26.3-22-PLAN.md — Full-funnel e2e, server-integration spec on 5532x, four-laws test, every gate
+- [ ] 26.3-23-PLAN.md — Ship gate: Stripe owner steps, live migrations + deploy in one control-session step, owner UAT (D-39 first, D-43 last, D-37)
 
 **UI hint**: yes
 
@@ -1128,6 +1158,8 @@ v1.1 (funnel Phases 7–11 frozen): 12 → 13 → 14 → 15 → 16 → 17
 Close-out one-by-one: 17 deploy → 17 SQL apply → 17 UAT → 16 ROADMAP tick → discuss 19 surge → 11-12 owner Publish (never agent)
 v1.2 Payment (leftovers 16/17/19/20 frozen): 21 → 22 → 23 → 24 → 25
 v1.3 Meta measurement (Phases 21–25 stay planned, not current): 26 → 26.1 → 27 → 28 → 29
+Current order (owner, 2026-09-29): 26.3 → 26.0 → 26.2 → 19/20 rewritten → 27 → 28 → 29
+Plan-level states (owner, 2026-09-29; source record .planning/PHASE-CLOSURE-2026-09-29.md on main, commit 37e55d26): plan 04.3 replaced by 26.1/26.3, never build · plan 05-19 dropped · plans 05-24, 05-28 parked · plan 11-12 owner-held, never raise
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -1141,26 +1173,26 @@ v1.3 Meta measurement (Phases 21–25 stay planned, not current): 26 → 26.1 �
 | 8. Ops Dispatch — Live Board, Assignment & Account Surfaces | 10/10 | Complete    | 2026-09-11 |
 | 9. Booking Lifecycle & Customer Self-Service | 12/12 | Complete    | 2026-09-12 |
 | 10. Hardening — Performance, Security & Compliance | 10/10 | Complete    | 2026-09-12 |
-| 11. Launch Cutover | 11/12 | Complete | 2026-09-13 |
+| 11. Launch Cutover | 11/12 (11-12 owner-held, never raise) | Complete | 2026-09-13 |
 | 12. Ticket schema + #support mock | 3/3 | Complete    | 2026-09-11 |
 | 13. Staff APIs + outbound Resend replies | 10/10 | Complete    | 2026-09-18 |
 | 14. Inbound webhook | 7/7 | Complete    | 2026-09-18 |
 | 15. Wire Ops #support to APIs | 3/3 | Complete    | 2026-09-18 |
-| 16. Staging MX + end-to-end UAT | 0/TBD | Not started | - |
-| 17. Ops chauffeur profile, shift roster, two-driver vehicles | 0/TBD | Not started | - |
+| 16. Staging MX + end-to-end UAT | UAT 10/10 passed | Complete | - |
+| 17. Ops chauffeur profile, shift roster, two-driver vehicles | - | Closed, feature removed | - |
 | 18. OPS Pricing source of truth | 7/7 | Complete    | 2026-09-15 |
-| 19. V1 production close-out leftover live gates and 10k booking surge | 0/TBD | Not started | - |
-| 20. Security audit fix-up | 3/5 | In progress | - |
-| 21. Charge gate + visible refusal + payable intent | 10/10 | In Progress|  |
-| 22. Card confirm + thank-you webhook wait | 0/TBD | Not started | - |
-| 23. Wallets + Dashboard methods | 0/TBD | Not started | - |
-| 24. Dual-payer, pay-link, mail split | 0/TBD | Not started | - |
-| 25. /bookings unpaid + TEST UAT + secret-swap design | 0/TBD | Not started | - |
+| 19. V1 production close-out leftover live gates and 10k booking surge | 0/TBD | Parked (to be rewritten, after 26.2) | - |
+| 20. Security audit fix-up | 3/5 | Parked (to be rewritten, after 26.2) | - |
+| 21. Charge gate + visible refusal + payable intent | 10/10 | Replaced by 26.1/26.3, never build | - |
+| 22. Card confirm + thank-you webhook wait | 0/TBD | Replaced by 26.1/26.3, never build | - |
+| 23. Wallets + Dashboard methods | 0/TBD | Replaced by 26.1/26.3, never build | - |
+| 24. Dual-payer, pay-link, mail split | 0/TBD | Replaced by 26.1/26.3, never build | - |
+| 25. /bookings unpaid + TEST UAT + secret-swap design | 0/TBD | Replaced by 26.1/26.3, never build | - |
 | 26. Legal gate | 2/2 | Complete    | 2026-09-23 |
-| 26.0. Main green (INSERTED) | part 1 in 26.1 | Parked | - |
+| 26.0. Main green (INSERTED) | part 1 in 26.1 | Parked (after 26.3 live; PR #63 refund fix rides with it) | - |
 | 26.1. Payment and pricing integrity (INSERTED) | 30/32 | Waiting for owner Ship (26.1-26), then 26.1-28 |  |
-| 26.2. Codebase audit, bug fix and simplify (INSERTED) | 0/TBD | Not started | - |
-| 26.3. Booking flow simplification (INSERTED) | 0/TBD | Not started | - |
+| 26.2. Codebase audit, bug fix and simplify (INSERTED) | 0/TBD | Parked (after 26.0) | - |
+| 26.3. Booking flow rebuild (INSERTED) | 0/23 | Planned, awaiting owner sign-off | - |
 | 27. Consent record | 0/TBD | Not started | - |
 | 28. Pixel PageView | 0/TBD | Not started | - |
 | 29. Webhook Purchase | 0/TBD | Not started | - |

@@ -1,3 +1,4 @@
+import { readCheckoutPageSource } from "../../tests/support/checkout-sources";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -34,10 +35,7 @@ describe("D-23 grep gate — no off-session extra-wait debit", () => {
   });
 
   it("checkout recap does not paint region or night/weekend/holiday lines", () => {
-    const recap = readFileSync(
-      join(here, "../../app/[locale]/checkout/CheckoutClient.tsx"),
-      "utf8",
-    );
+    const recap = readCheckoutPageSource();
     expect(recap).not.toMatch(/region_premium/);
     expect(recap).not.toMatch(/['"]night['"]/);
     expect(recap).not.toMatch(/['"]weekend['"]/);

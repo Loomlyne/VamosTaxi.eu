@@ -659,3 +659,609 @@
   padding-block-start: 0;
   margin-block-start: 0;
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   26.3-15 — the one-page checkout (D-01). Everything below is `.vt-co*`; the
+   `.vt-checkout*` rules above belong to the retired step pages (plan 19 deletes
+   them). Design tokens only: no glow, no tinted yellow, logical properties.
+   ───────────────────────────────────────────────────────────────────────────── */
+.vt-co {
+  max-inline-size: 1200px;
+  margin-inline: auto;
+  padding-inline: clamp(20px, 5vw, 56px);
+  padding-block-end: 72px;
+}
+
+.vt-co__top {
+  margin-block-end: 24px;
+  padding-block: 12px;
+  border-block-end: var(--vt-border-w) solid var(--vt-border-subtle);
+}
+
+/* Trip strip */
+.vt-co__strip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-block-size: 44px;
+}
+
+.vt-co__strip-back {
+  flex: 0 0 auto;
+  display: inline-flex;
+}
+
+[dir="rtl"] .vt-co__strip-back,
+[dir="rtl"] .vt-co__strip-arrow {
+  transform: scaleX(-1);
+}
+
+.vt-co__strip-copy {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+
+.vt-co__strip-route {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  min-inline-size: 0;
+  font-family: var(--vt-font-display);
+  font-size: var(--vt-heading-4);
+  font-weight: var(--vt-weight-semibold);
+  color: var(--vt-text-primary);
+}
+
+.vt-co__strip-place {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vt-co__strip-arrow {
+  flex: 0 0 auto;
+}
+
+.vt-co__strip-facts {
+  margin: 2px 0 0;
+  font-size: var(--vt-body-sm);
+  color: var(--vt-text-secondary);
+}
+
+.vt-co__link {
+  flex: 0 0 auto;
+  min-block-size: 44px;
+  padding-inline: 4px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-family: var(--vt-font-body);
+  font-size: var(--vt-body-sm);
+  font-weight: var(--vt-weight-semibold);
+  color: var(--vt-text-primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.vt-co__link:hover {
+  color: var(--vt-charcoal-700);
+}
+
+.vt-co__link:focus-visible {
+  outline: none;
+  box-shadow: var(--vt-ring);
+  border-radius: var(--vt-radius-md);
+}
+
+/* Inline trip editor */
+.vt-co__editor {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.vt-co__editor-set {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-inline-size: 0;
+}
+
+.vt-co__editor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-areas: "from to" "when party";
+  gap: 16px;
+  align-items: start;
+}
+
+.vt-co__editor-grid[data-airport="true"] {
+  grid-template-areas: "from to" "flight ." "when party";
+}
+
+.vt-co__editor-field {
+  min-inline-size: 0;
+}
+
+.vt-co__editor-field[data-co-field="from"] { grid-area: from; }
+.vt-co__editor-field[data-co-field="flight"] { grid-area: flight; }
+.vt-co__editor-field[data-co-field="to"] { grid-area: to; }
+.vt-co__editor-field[data-co-field="when"] { grid-area: when; }
+.vt-co__editor-field[data-co-field="travellers"] { grid-area: party; }
+
+.vt-co__editor-party {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.vt-co__field-error {
+  margin: 6px 0 0;
+  font-size: var(--vt-body-sm);
+  color: var(--vt-danger);
+}
+
+.vt-co__editor-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Layout: main column, optional rail (plan 19) */
+.vt-co__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.vt-co__main {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-inline-size: 0;
+}
+
+.vt-co__rail {
+  position: sticky;
+  inset-block-start: 96px;
+}
+
+@media (min-width: 1081px) {
+  .vt-co__grid:has(> .vt-co__rail) {
+    grid-template-columns: minmax(0, 1fr) 360px;
+    gap: 32px;
+  }
+}
+
+/* Section card */
+.vt-co__section {
+  background: var(--vt-bg-surface);
+  border: var(--vt-border-w) solid var(--vt-border-subtle);
+  border-radius: var(--vt-radius-lg);
+  box-shadow: var(--vt-shadow-sm);
+  padding: 24px;
+  min-inline-size: 0;
+}
+
+.vt-co__section-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-block-end: 16px;
+}
+
+.vt-co__disc {
+  flex: 0 0 auto;
+  inline-size: 28px;
+  block-size: 28px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--vt-charcoal-900);
+  color: var(--vt-white);
+  font-family: var(--vt-font-display);
+  font-size: var(--vt-body-sm);
+  font-weight: var(--vt-weight-semibold);
+}
+
+.vt-co__disc[data-done="true"] {
+  background: var(--vt-accent);
+  color: var(--vt-charcoal-900);
+}
+
+.vt-co__section-title {
+  margin: 0;
+  font-family: var(--vt-font-display);
+  font-size: var(--vt-heading-3);
+  font-weight: var(--vt-weight-semibold);
+  color: var(--vt-text-primary);
+}
+
+.vt-co__section-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: -6px 0 16px;
+  font-size: var(--vt-body-sm);
+  color: var(--vt-danger);
+}
+
+.vt-co__stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.vt-co__loading {
+  margin: 0 0 12px;
+  font-size: var(--vt-body-sm);
+  color: var(--vt-text-secondary);
+}
+
+.vt-co__empty-title {
+  margin: 0;
+  font-family: var(--vt-font-display);
+  font-size: var(--vt-heading-4);
+  font-weight: var(--vt-weight-semibold);
+}
+
+.vt-co__empty-body {
+  margin: 0;
+  font-size: var(--vt-body-sm);
+  color: var(--vt-text-secondary);
+}
+
+/* Class cards: VehicleCard, laid out vertical >=681 and as rows <=680 */
+.vt-co__classes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.vt-co__class {
+  position: relative;
+  min-inline-size: 0;
+}
+
+.vt-co__class .vt-veh {
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: 12px;
+  block-size: 100%;
+}
+
+.vt-co__class .vt-veh__shot {
+  inline-size: 100%;
+  block-size: auto;
+  aspect-ratio: 16 / 10;
+}
+
+.vt-co__class .vt-veh__price {
+  align-items: flex-start;
+  text-align: start;
+}
+
+.vt-co__class .vt-veh__body {
+  min-inline-size: 0;
+}
+
+.vt-co__class[data-eligible="false"] .vt-veh,
+.vt-co__classes .vt-veh--loading {
+  opacity: 0.42;
+}
+
+.vt-co__class-check {
+  position: absolute;
+  inset-block-start: 28px;
+  inset-inline-start: 28px;
+  inline-size: 28px;
+  block-size: 28px;
+  border-radius: 50%;
+  background: var(--vt-charcoal-900);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.vt-co__challenge {
+  min-block-size: 0;
+}
+
+@media (max-width: 680px) {
+  .vt-co__section {
+    padding: 20px;
+  }
+
+  .vt-co__editor-grid,
+  .vt-co__editor-grid[data-airport="true"] {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: none;
+  }
+
+  .vt-co__editor-field[data-co-field] {
+    grid-area: auto;
+  }
+
+  .vt-co__editor-actions > :first-child {
+    flex: 1 1 100%;
+  }
+
+  .vt-co__classes {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .vt-co__class .vt-veh {
+    grid-template-columns: 72px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .vt-co__class .vt-veh__shot {
+    inline-size: 72px;
+    block-size: 54px;
+    aspect-ratio: auto;
+  }
+
+  .vt-co__class .vt-veh__amount {
+    font-size: var(--vt-heading-3);
+  }
+
+  .vt-co__class .vt-veh__price {
+    grid-column: auto;
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: end;
+  }
+
+  .vt-co__class-check {
+    inset-block-start: 22px;
+    inset-inline-start: 22px;
+    inline-size: 22px;
+    block-size: 22px;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   26.3-19 — Sections 2 and 3, the rail and the pay bar.
+   ───────────────────────────────────────────────────────────────────────────── */
+.vt-co__link {
+  display: inline-flex;
+  align-items: center;
+}
+
+.vt-co__link--block {
+  padding-inline: 0;
+}
+
+.vt-co__section-aside {
+  margin-inline-start: auto;
+  min-inline-size: 0;
+  text-align: end;
+}
+
+.vt-co__signed {
+  font-size: var(--vt-body-sm);
+  color: var(--vt-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.vt-co__fieldset {
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: grid;
+  gap: 20px;
+}
+
+.vt-co__fieldset:disabled {
+  opacity: 0.7;
+}
+
+/* 54px booking fields (UI-SPEC: booking fields and primary CTAs) */
+.vt-co .vt-input--md,
+.vt-co [data-vt-phone] {
+  block-size: var(--vt-control-h-lg);
+  min-block-size: var(--vt-control-h-lg);
+}
+
+.vt-co .vt-input--area {
+  block-size: auto;
+  min-block-size: 0;
+}
+
+.vt-co__contact .vt-checkout-contact {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.vt-co__block {
+  display: grid;
+  gap: 8px;
+  min-inline-size: 0;
+}
+
+.vt-co__sub {
+  margin: 0;
+  font-family: var(--vt-font-display);
+  font-size: var(--vt-body-lg, 16px);
+  font-weight: var(--vt-weight-semibold);
+  color: var(--vt-text-primary);
+}
+
+.vt-co__hint {
+  margin: 0;
+  font-size: var(--vt-body-sm);
+  color: var(--vt-text-muted);
+}
+
+.vt-co__extras {
+  display: grid;
+  gap: 0;
+}
+
+.vt-co__disclosures {
+  display: grid;
+}
+
+.vt-co__disclosures .vt-codisc:last-child {
+  border-block-end: var(--vt-border-w) solid var(--vt-border-subtle);
+}
+
+.vt-co__method {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  font-size: var(--vt-body-md);
+  line-height: 1.5;
+  color: var(--vt-text-primary);
+}
+
+.vt-co__method svg,
+.vt-co__method .vt-icon {
+  flex: 0 0 auto;
+  margin-block-start: 2px;
+}
+
+.vt-co__voucher-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+}
+
+.vt-co__voucher-form .vt-btn {
+  margin-block-start: 24px;
+}
+
+.vt-co__voucher-applied {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.vt-co__voucher-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  min-inline-size: 0;
+  font-weight: var(--vt-weight-medium);
+  overflow-wrap: anywhere;
+}
+
+.vt-co__section-summary {
+  display: grid;
+  gap: 16px;
+  margin-block-end: 20px;
+  padding-block-end: 20px;
+  border-block-end: var(--vt-border-w) solid var(--vt-border-subtle);
+  scroll-margin-block-start: 88px;
+}
+
+.vt-co__summary {
+  display: grid;
+  gap: 16px;
+  min-inline-size: 0;
+}
+
+.vt-co__legal {
+  display: grid;
+  gap: 4px;
+  margin-block-start: 16px;
+}
+
+.vt-co__legal p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--vt-text-muted);
+}
+
+.vt-co__railcard {
+  display: grid;
+  gap: 16px;
+  padding: 24px;
+  background: var(--vt-bg-surface);
+  border: var(--vt-border-w) solid var(--vt-border-subtle);
+  border-radius: var(--vt-radius-lg);
+  box-shadow: var(--vt-shadow-sm);
+  min-inline-size: 0;
+}
+
+.vt-co__railcard .vt-co__legal {
+  margin-block-start: 0;
+}
+
+.vt-co__notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+  margin-block-end: 20px;
+}
+
+.vt-co__notice .vt-alert {
+  flex: 1 1 320px;
+  min-inline-size: 0;
+}
+
+.vt-co__challenge-block {
+  display: grid;
+  gap: 8px;
+}
+
+/* Sticky pay bar at 1080px and below. It sits at the end of the page content, so the
+   footer follows it and the page needs no extra bottom padding. */
+.vt-co__bar {
+  position: sticky;
+  inset-block-end: 0;
+  z-index: 20;
+  margin-inline: calc(-1 * clamp(20px, 5vw, 56px));
+  margin-block-start: 24px;
+}
+
+.vt-co__bar .vt-copay--bar {
+  padding-inline: clamp(20px, 5vw, 56px);
+}
+
+[data-co-section],
+[data-co-field] {
+  scroll-margin-block-start: 96px;
+}
+
+@media (max-width: 680px) {
+  .vt-co__contact .vt-checkout-contact {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .vt-co__voucher-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .vt-co__voucher-form .vt-btn {
+    margin-block-start: 0;
+  }
+
+  .vt-co__section-aside {
+    flex-basis: 100%;
+    text-align: start;
+    margin-inline-start: 0;
+  }
+
+  .vt-co__section-head {
+    flex-wrap: wrap;
+  }
+}

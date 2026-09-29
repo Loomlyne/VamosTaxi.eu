@@ -38,6 +38,7 @@ import {
 } from "./money-events";
 import { stripeAccountIsLegacyUaeTest } from "./charge-gate";
 import type { StripeQueueMessage } from "./webhook";
+import { purgeDepsFromEnv, purgeOnSessionExpired } from "./purge-unpaid";
 import { deliverConfirmation } from "./notify";
 import {
   deliverOverlapMustFix,
@@ -101,8 +102,10 @@ export function captureAllowed(row: CaptureGateRow): CaptureGate {
 /** D-05: metadata every app-created Stripe refund carries so charge.refunded (26.1-08) can tell app refunds from dashboard refunds. */
 export type RefundInput = {
   paymentIntentId: string;
-  amountRappen: number;
+  /** null refunds the whole charge. */
+  amountRappen: number | null;
   idempotencyKey: string;
+  metadata?: Record<string, string>;
   bookingId: string;
   paymentId: number;
   reason: string;
@@ -141,6 +144,8 @@ export type SettleDeps = MoneyEventDeps & {
   alertStuckPayment: (input: StuckPaymentAlertInput) => Promise<void>;
   /** D-21/D-22: expire the booking's other open Checkout Sessions after a succeeded settle. */
   expireSession: (sessionId: string) => Promise<void>;
+  /** D-25/D-45: after an expired session is recorded, delete the booking if every session of it is expired and unpaid. Never throws. */
+  purgeOnSessionExpired: (sessionId: string, bookingId: string) => Promise<boolean>;
   emit: (level: "debug" | "info" | "warn" | "error", type: string, fields?: Record<string, ScalarValue>) => void;
 };
 
@@ -192,6 +197,58 @@ const PAID_AFTER_CANCEL_REASONS: readonly string[] = Object.freeze([
   "test_booking",
   "requote_superseded",
 ]);
+
+/** A session younger than this may simply be ahead of its intent transaction (P0002 = not committed yet). */
+const MISSING_BOOKING_MIN_AGE_SECONDS = 600;
+
+/**
+ * Research Pitfall 7: money arrived for a quote whose booking (payment row) no longer
+ * exists. Refund the whole charge, alert a human, and let the caller ack. Returns false
+ * (caller retries) when this is not provably that case: not a paid main session, no
+ * PaymentIntent, or a session so young the intent transaction may still commit.
+ */
+async function refundPaidSessionWithoutBooking(
+  message: StripeQueueMessage,
+  session: Stripe.Checkout.Session | null,
+  piId: string | null,
+  outcome: string,
+  deps: SettleDeps,
+): Promise<boolean> {
+  if (outcome !== "succeeded" || !session || session.payment_status !== "paid") return false;
+  if (session.metadata?.kind === "extra") return false;
+  // An unknown age is treated as young: retry, never refund on a guess.
+  const ageSeconds = typeof session.created === "number" ? Date.now() / 1000 - session.created : 0;
+  if (ageSeconds < MISSING_BOOKING_MIN_AGE_SECONDS) return false;
+  const quoteId = session.metadata?.booking_id ?? "";
+  deps.emit("error", "paid_session_without_booking", { eventId: message.eventId, objectId: message.objectId });
+  if (piId) {
+    try {
+      await deps.refund({
+        paymentIntentId: piId,
+        amountRappen: null,
+        idempotencyKey: `refund:missing-booking:${session.id}`,
+        bookingId: quoteId,
+        paymentId: 0,
+        reason: "booking_missing",
+        metadata: { vamos_reason: "booking_missing" },
+      });
+    } catch {
+      deps.emit("error", "refund_failed", { eventId: message.eventId, reason: "booking_missing" });
+    }
+  }
+  try {
+    await deps.alertStuckPayment({
+      eventId: message.eventId,
+      type: message.type,
+      objectId: message.objectId,
+      reference: null,
+    });
+  } catch {
+    // Best-effort alert.
+  }
+  // Refund failed or no PaymentIntent: the alert is the handoff to a human; never loop on it.
+  return true;
+}
 
 export async function handleStripeMessageWithDeps(
   message: StripeQueueMessage,
@@ -281,7 +338,18 @@ export async function handleStripeMessageWithDeps(
     });
   } catch (err) {
     const state = sqlState(err);
-    if (state === "P0002") return { retry: true };
+    if (state === "P0002") {
+      const refunded = await refundPaidSessionWithoutBooking(message, session, piId, outcome, deps);
+      if (refunded) {
+        try {
+          await deps.eventSettle(message.eventId, "booking_missing");
+        } catch {
+          return { retry: true };
+        }
+        return { ack: true };
+      }
+      return { retry: true };
+    }
     // retryable vs permanent: P0002 is the intent transaction not committed
     // yet. 23505 from booking_payments_one_success reproduces forever.
     try {
@@ -290,6 +358,16 @@ export async function handleStripeMessageWithDeps(
       return { retry: true };
     }
     return { ack: true };
+  }
+
+  if (outcome === "failed" && message.type === "checkout.session.expired" && session) {
+    // 26.3 D-25 / D-45: the payment row is marked. A booking with no pay link and no paid
+    // session is deleted, silently. A pay-link booking stays on its 24 h cancel path.
+    try {
+      await deps.purgeOnSessionExpired(session.id, row.booking_id);
+    } catch {
+      deps.emit("warn", "purge_on_expired_failed", { eventId: message.eventId });
+    }
   }
 
   let duplicateRefunded = false;
@@ -361,7 +439,13 @@ export async function handleStripeMessageWithDeps(
         }
       }
     } else if (!row.already_settled && !extra) {
-      await deps.deliverConfirmation(row);
+      // 26.3 (D-27): the payment is settled. A mail failure never turns that
+      // into a retry or a failure page; the hourly sweep resends it.
+      try {
+        await deps.deliverConfirmation(row);
+      } catch {
+        deps.emit("error", "confirmation_mail_failed", { bookingId: row.booking_id });
+      }
     }
 
     // D-21/D-22: whoever settled first must expire every other still-open
@@ -424,6 +508,7 @@ export async function handleStripeMessage(
         fxSource: null,
         fxQuotedAt: null,
         presentmentAmountMinor: null,
+        presentmentCurrency: null,
       };
       const extra = input.session?.metadata?.kind === "extra";
       try {
@@ -453,7 +538,8 @@ export async function handleStripeMessage(
               ${fx.fxRate},
               ${fx.fxSource},
               ${fx.fxQuotedAt}::timestamptz,
-              ${fx.presentmentAmountMinor}
+              ${fx.presentmentAmountMinor},
+              ${fx.presentmentCurrency}
             )
           `;
         });
@@ -520,6 +606,8 @@ export async function handleStripeMessage(
     },
     alertPaidAfterCancel: (bookingKey) => deliverPaidAfterCancelAlert(env, bookingKey),
     alertStuckPayment: (input) => deliverStuckPaymentAlert(env, input),
+    purgeOnSessionExpired: (sessionId, bookingId) =>
+      purgeOnSessionExpired(purgeDepsFromEnv(env), sessionId, bookingId),
     expireSession: async (sessionId) => {
       const publishable = env.STRIPE_PUBLISHABLE_KEY || "";
       if (!publishable || stripeAccountIsLegacyUaeTest(publishable)) return;

@@ -9,9 +9,7 @@ export type PayAlertKey =
   | "pricingNotLive"
   | "quoteExpired"
   | "quoteAlreadyBooked"
-  | "paymentWindowClosed"
-  | "completeCard"
-  | "payCouldNotStart";
+  | "paymentWindowClosed";
 
 export type PayState =
   | { kind: "payable" }
@@ -42,7 +40,8 @@ function safeReference(value: unknown): string {
 /**
  * Reads the open route's JSON into one recipient state. A refusal code wins
  * over anything else in the body: paid (D-21), refunded duplicate (D-22),
- * expired (D-20). A client secret without a code is payable. Every other
+ * expired (D-20). A Stripe-hosted url without a code is payable (D-46; the
+ * open route never sends a client secret). Every other
  * refusal keeps its existing alert key.
  */
 export function payStateFromOpen(json: unknown): PayState {
@@ -53,7 +52,7 @@ export function payStateFromOpen(json: unknown): PayState {
     return { kind: "raceRefunded", reference: safeReference(body.reference) };
   }
   if (code === "pay_link_expired" || code === "quote_expired") return { kind: "expired" };
-  if (!code && typeof body.client_secret === "string" && body.client_secret) return { kind: "payable" };
+  if (!code && typeof body.url === "string" && body.url) return { kind: "payable" };
   return { kind: "alert", key: chargeGateAlert(code) ?? "paymentWindowClosed" };
 }
 

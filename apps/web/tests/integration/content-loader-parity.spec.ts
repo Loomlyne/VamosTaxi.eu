@@ -131,6 +131,9 @@ test.describe("content loader parity @i18n", () => {
       const jsonFlat = flatten(jsonTree);
       const dbFlat: Record<string, string> = {};
       for (const row of rows) {
+        // 26.1-10: migration 20260928130000 adds 26 canton display names that are not in the
+        // JSON catalogue; canton_zones.test.sql pins them. Not part of the seed parity.
+        if (row.key.startsWith("zone.canton-")) continue;
         const value = row[locale];
         if (value == null) continue;
         dbFlat[row.key] = value;

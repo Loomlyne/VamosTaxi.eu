@@ -64,28 +64,13 @@ describe("booking lifecycle", () => {
 });
 
 describe("home starts a new booking", () => {
-  it("payment page posts abandon on leave and does not resume", () => {
-    const client = readFileSync(
-      join(WEB_ROOT, "app/[locale]/checkout/CheckoutClient.tsx"),
-      "utf8",
-    );
-    const route = readFileSync(join(WEB_ROOT, "app/api/checkout/abandon/route.ts"), "utf8");
-    expect(client).toContain('fetch("/api/checkout/abandon"');
-    expect(client).toContain("pagehide");
-    expect(route).toContain("checkout_abandon_gate");
-    expect(route).toContain("checkout_abandon_unpaid");
-    expect(route).toContain("asCheckout");
-    expect(route).not.toContain("asSystem");
-  });
-
-  it("wipes vamosTrip on home mount and abandons the previous unpaid row", () => {
+  it("home drops the stale browser trip and never resumes an old booking", () => {
     const home = readFileSync(join(WEB_ROOT, "../../app/home/home.dc.html"), "utf8");
-    expect(home).toContain("function beginHomeBooking");
+    expect(home).toContain("function cleanStaleTrip");
     expect(home).toContain("localStorage.removeItem('vamosTrip')");
     expect(home).toContain("sessionStorage.removeItem('vamosTrip')");
     expect(home).toContain("sessionStorage.removeItem('vamosQuoteLock')");
-    expect(home).toContain("/api/checkout/abandon");
-    expect(home).toContain("beginHomeBooking()");
+    expect(home).toContain("cleanStaleTrip()");
   });
 });
 
