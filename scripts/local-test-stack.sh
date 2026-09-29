@@ -2,12 +2,12 @@
 # Parameterised port-shifted local Supabase stack for one session's tests.
 #
 # Required env: VAMOS_STACK_ID (project id), VAMOS_STACK_PORTS (3-digit prefix that
-# replaces 543), VAMOS_STACK_INSPECTOR (inspector port). Example (phase 26.0, mg2):
-#   VAMOS_STACK_ID=vamos-taxi-mg2 VAMOS_STACK_PORTS=573 VAMOS_STACK_INSPECTOR=8193
-# gives DB 57322, API 57321, mail 57324, inspector 8193.
+# replaces 543), VAMOS_STACK_INSPECTOR (inspector port). Example (phase 26.0, mg2; 573 was taken by vamos-taxi-auth):
+#   VAMOS_STACK_ID=vamos-taxi-mg2 VAMOS_STACK_PORTS=583 VAMOS_STACK_INSPECTOR=8193
+# gives DB 58322, API 58321, mail 58324, inspector 8193.
 #
 # Safety:
-#   - Refuses the ids vamos-taxi, vamos-taxi-263, vamos-taxi-acct and prefixes 543/553/563
+#   - Refuses the ids vamos-taxi, vamos-taxi-263, vamos-taxi-acct and prefixes 543/553/563/573 (573 = vamos-taxi-auth)
 #     (other sessions' stacks). Never `stop --all`.
 #   - Local only: --local / --workdir, no project ref, no link, no push.
 #   - Roles are cluster-level: they survive `reset`, not `stop`/`start`. Run pgtap BEFORE
@@ -27,7 +27,7 @@ ID="$VAMOS_STACK_ID"
 P="$VAMOS_STACK_PORTS"
 case "$ID" in vamos-taxi|vamos-taxi-263|vamos-taxi-acct)
   echo "refusing: $ID belongs to another session" >&2; exit 1;; esac
-case "$P" in 543|553|563)
+case "$P" in 543|553|563|573)
   echo "refusing: port prefix $P belongs to another session" >&2; exit 1;; esac
 if ! [[ "$P" =~ ^[0-9]{3}$ ]]; then echo "refusing: VAMOS_STACK_PORTS must be 3 digits" >&2; exit 1; fi
 
