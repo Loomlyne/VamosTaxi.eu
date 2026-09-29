@@ -4,16 +4,16 @@ Kept by the control session. One page: what is live, what is being built, what w
 the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 
-**Last update:** 2026-09-30 00:37 (+04)
+**Last update:** 2026-09-30 00:43 (+04)
 
 ## Live now
 
 | Item | Value |
 |---|---|
 | Site | https://vamostaxi.site and https://dashboard.vamostaxi.site |
-| main = origin/main | `0f58ab6d` plus planning notes |
-| Worker `vamos` | version `2b04648a` |
-| Rollback point | Worker `df365445`, git tag `backup/main-pre-ship-26.4` |
+| main = origin/main | `6737f5f8` plus planning notes |
+| Worker `vamos` | version `6a71df8b` |
+| Rollback point | Worker `2b04648a`, git tag `backup/main-pre-ship-legal` |
 | Database | migrations up to `20260930210000` applied and read back |
 | Who deploys | the control session, from the owner's Mac. GitHub runs checks, never deploys. |
 
@@ -34,19 +34,28 @@ the owner, what comes next. Updated at every ship and every hand-over.
 | # | What | Commit | Owner test |
 |---|---|---|---|
 | 8 | Phase 26.4 one form, phone and tablet bar, and 26.4.1 laptop bar | `0f58ab6d` | waiting: look at the laptop bar, book on the phone from Zurich Airport with a child seat, 4242 payment |
+| 9 | Legal pages from the company's own text: privacy, terms, cancellation, imprint, four languages | `6737f5f8` | waiting: 12 steps in `.planning/quick/260930-lgl-legal-pages-from-eu/HANDOVER.md` |
 
-## Legal pages, opened 2026-09-30
+## Legal pages
 
-Source texts and the comparison: `docs/legal-source/vamostaxi-eu-2026-09-30/` (`MAPPING.md`).
+Shipped 2026-09-30 as `6737f5f8`. The pages customers see are the mocks `app/pages/*.dc.html`
+with `app/vamos-i18n-dict.js` (`apps/web/middleware.ts`), not the Next.js pages. Both were changed.
+No lawyer has read the text.
 
-| Item | State |
+| Still to build (owner answered, small follow-up) | Answer |
 |---|---|
-| Privacy page: Vercel becomes Cloudflare, "10 years years" becomes "10 years" | Approved by the owner. Not built. |
-| Privacy paragraph "Your account" | **Approved** in four languages. Ships with 26.5. Text in `.planning/decisions/2026-09-30-legal-pages.md`. |
-| The values of list A (company, waiting times, case size, no-show, complaint and refund days) | **Approved.** A work session fills them in four languages. Not started. |
-| Refund when cancelling more than 24 hours before pickup | **Decided: 100 % back, as the site does.** The pages follow the site. No payment code changes. |
-| 7 more points where the old text and the new site disagree | Each needs his decision |
-| Gaps the old site does not answer | Stay labelled gaps |
+| /cancellation, cancel within 24 hours | "Our team decides the refund and tells you by email" |
+| /terms, city stay fee | "shown on your quote" |
+| Adviser notes on the Next.js privacy page | hidden from customers |
+| "Last updated" date on each legal page | the ship day |
+| /manage-booking: "Every refund is checked by our team" and "Too close to cancel here. Call us." | say what the site does (owner, 2026-09-30) |
+
+| Known and open | Detail |
+|---|---|
+| Automatic refunds refuse a live Stripe key (`paid-cancel.ts:116`) | True today on test cards. Must be lifted before real launch or /cancellation becomes false. On the Phase 19 list. |
+| Settings say 15 minutes standard waiting, the pages say 30 | Owner chose 30. He changes the setting on the dashboard if both should agree. |
+| Values live since 2026-09-01 that nobody approved | Left live by his decision, English only in de/fr/ar. Listed in the hand-over, section 6. |
+| Every gap of list C | Stays a labelled gap |
 
 ## In work
 
