@@ -46,6 +46,7 @@ Stripe live keys and Search Console stay owner-gated. Agent does not click Publi
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 260929-pga | Postgres arrays through the Worker client (text[]/int2[]/int4[]/uuid[] registered, purge/notify/settle fixed) and the 24h reminder read as a definer function | 2026-09-29 | HEAD of fix/26.3-pg-arrays | [260929-pga-pg-text-arrays-and-reminder](./quick/260929-pga-pg-text-arrays-and-reminder/) |
 | 260929-nts | Dashboard New trip Save: current intent body, live price-book extras, classes from the quote, flight re-sign without moving the total | 2026-09-29 | HEAD of fix/26.3-new-trip-save | [260929-nts-dashboard-new-trip-save](./quick/260929-nts-dashboard-new-trip-save/) |
 | 260929-acl | Account bookings list 500 (column grants) and guest link via customers row on demand; list error state with try again | 2026-09-29 | c9a64f9c | [260929-acl-account-bookings-list-and-link](./quick/260929-acl-account-bookings-list-and-link/) |
 | 260929-mbp | Manage-booking page shows price lines, payment method, extras and driver (narrow definer reads, method recorded at settle) | 2026-09-29 | HEAD of fix/26.3-manage-booking | [260929-mbp-manage-booking-price-payment-driver](./quick/260929-mbp-manage-booking-price-payment-driver/) |
