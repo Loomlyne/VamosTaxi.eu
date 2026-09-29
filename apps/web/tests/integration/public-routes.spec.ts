@@ -9,6 +9,7 @@
 // ssr-locale.spec.ts), not the hydrated DOM.
 
 import { test, expect } from "../support/test";
+import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -18,7 +19,7 @@ const RUN_PROJECT = "component-1440";
 const LOCALES = ["en", "de", "fr", "ar"] as const;
 const SITE_URL = "https://vamostaxi.site";
 const UNOWNED = "/coming-soon";
-const PORT = 4410;
+const PORT = testPort(4410);
 
 const NEXT = process.env.NEXT_BIN ?? (existsSync(NEXT_BIN) ? NEXT_BIN : join(WEB_ROOT, "../../../../apps/web/node_modules/.bin/next"));
 
@@ -34,6 +35,17 @@ function loadPhase5Routes(): { path: string; phase: number }[] {
   const entries = [...src.matchAll(/\{\s*path:\s*"([^"]+)",\s*phase:\s*(\d+)/g)];
   if (entries.length === 0) throw new Error("PHASE_5_ROUTES entries not found");
   return entries.map((m) => ({ path: m[1] as string, phase: Number(m[2]) }));
+}
+
+function loadLegalLanguages(): Record<string, string[]> {
+  const src = readFileSync(join(WEB_ROOT, "lib/legal-languages.ts"), "utf8");
+  const block = /export const LEGAL_LANGUAGES[^=]*=\s*\{([\s\S]*?)\n\};/.exec(src);
+  if (!block?.[1]) throw new Error("LEGAL_LANGUAGES not found");
+  const out: Record<string, string[]> = {};
+  for (const m of block[1].matchAll(/^\s*(\w+):\s*\[([^\]]*)\]/gm)) {
+    out[m[1]!] = [...m[2]!.matchAll(/"(\w+)"/g)].map((x) => x[1]!);
+  }
+  return out;
 }
 
 function localePath(locale: string, path: string): string {
@@ -216,17 +228,23 @@ test.describe("Public route contract @public-routes", () => {
     }
   });
 
-  test("no reachable route emits a data-vt-legal attribute", async () => {
+  // Corrected per D-05 (26.0): the served legal mocks carry data-vt-legal on purpose.
+  test("legal routes declare exactly their LEGAL_LANGUAGES; other routes declare nothing", async () => {
     const routes = loadPublicRoutes();
     const phase5 = loadPhase5Routes();
     const later = new Set(
       phase5.filter((r) => r.phase === 7 || r.phase === 8 || r.phase === 9).map((r) => r.path),
     );
+    const legal = loadLegalLanguages();
+    expect(Object.keys(legal).sort()).toEqual(["cancellation", "cookies", "imprint", "privacy", "terms"]);
     for (const path of routes) {
       if (path === UNOWNED || later.has(path)) continue;
       const res = await fetch(baseURL + localePath("en", path));
       const body = await res.text();
-      expect(body, path).not.toMatch(/data-vt-legal/);
+      const declared = /data-vt-legal="([^"]*)"/.exec(body)?.[1];
+      const expected = legal[path.slice(1)];
+      if (expected) expect(declared, path).toBe(expected.join(" "));
+      else expect(declared, path).toBeUndefined();
     }
   });
 });
