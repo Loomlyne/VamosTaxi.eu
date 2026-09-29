@@ -4,7 +4,7 @@ Kept by the control session. One page: what is live, what is being built, what w
 the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 
-**Last update:** 2026-09-30 02:43 (+04)
+**Last update:** 2026-09-30 02:44 (+04)
 
 ## Live now
 
@@ -74,7 +74,7 @@ The follow-up shipped 2026-09-30 01:35 as `e27014c1`: the five answers are built
 
 | Order | What | State |
 |---|---|---|
-| 1 | 26.4.2 booking feedback | Building. He signs three pictures first. |
+| 1 | 26.4.2 booking feedback | Second round after his review of the pictures. Hand-over follows his signature. |
 | 2 | 26.5 account choice before payment, with the paid-only reminder | Building |
 | 3 | 27 consent record | Not started |
 | 4 | 28 pixel page view, 29 purchase event | The Meta wording is his since 2026-09-30 (`.planning/decisions/2026-09-30-meta-wording.md`), all three texts, four languages. Not started. |
@@ -159,7 +159,7 @@ Built by the 26.3 session as `fix/26.4.2-booking-feedback` (folder `fix-26.4.2`)
 | 3 | Laptop home gets "Choose your class" back, with server prices under the bar | Building |
 | 4 | Phone checkout class cards redesigned | Building |
 | 5 | An unpaid booking can never be continued on another device; a paid trip can be shared | Decision recorded in `.planning/decisions/2026-09-30-unpaid-booking-other-device.md`. A pasted checkout link shows the trip only, with an empty form (26.5 D-16, four route tests). |
-| 6 | Sign-off | He sees pictures of the three designs at 390, 768 and 1440 and signs before anything is handed over. |
+| 6 | Sign-off, 2026-09-30 02:50 | Laptop bar: **signed**. Class cards: **changes requested**: a photo on every class card (laptop home and checkout section 1, every width); on the laptop home "Choose your class" shows from page load and becomes selectable once the bar is filled. The When date gets de/fr/ar. The phone sheet is re-signed together with the new class pictures. `b5f7234f` is not the hand-over. |
 
 ## Found by the 26.0 session, 2026-09-30
 
