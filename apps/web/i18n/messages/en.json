@@ -1583,6 +1583,8 @@
     "request-answer-within-30-days": "with the booking reference if there is one. We answer within 30 days; in complex cases we may take up to 60 days more.",
     "gdpr-basis-contract": "Legal basis under the GDPR: Art. 6 (1) (b).",
     "close-account-any-time": "You can close your account at any time by writing to us.",
+    "your-account-lead": "Your account.",
+    "your-account-body": "When you book, we create an account for your email address so you can see and manage your bookings. It has no password. To sign in, we send a link to your email. We keep your name, email, phone number and bookings in it. You can close your account at any time by writing to info@vamostaxi.site. We then delete what we are not required by law to keep.",
     "payment-records-statutory-periods": "Kept for the statutory trade and tax retention periods.",
     "waiting-beyond-per-commenced-hour": "Waiting beyond the included allowance: charged per commenced hour.",
     "extended-city-stay-up-to-15-minutes": "Extended city stay, up to 15 minutes:",

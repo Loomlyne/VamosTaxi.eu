@@ -1583,6 +1583,8 @@
     "request-answer-within-30-days": "mit der Buchungsreferenz, falls vorhanden. Wir antworten innerhalb von 30 Tagen; in komplexen Fällen können wir bis zu 60 Tage länger brauchen.",
     "gdpr-basis-contract": "Rechtsgrundlage nach DSGVO: Art. 6 Abs. 1 lit. b.",
     "close-account-any-time": "Sie können Ihr Konto jederzeit schliessen, indem Sie uns schreiben.",
+    "your-account-lead": "Ihr Konto.",
+    "your-account-body": "Wenn Sie buchen, erstellen wir für Ihre E-Mail-Adresse ein Konto, damit Sie Ihre Buchungen sehen und verwalten können. Es hat kein Passwort. Zum Anmelden senden wir einen Link an Ihre E-Mail-Adresse. Wir speichern darin Ihren Namen, Ihre E-Mail-Adresse, Ihre Telefonnummer und Ihre Buchungen. Sie können Ihr Konto jederzeit schliessen, indem Sie an info@vamostaxi.site schreiben. Wir löschen dann alles, was wir nicht von Gesetzes wegen aufbewahren müssen.",
     "payment-records-statutory-periods": "Aufbewahrt während der gesetzlichen handels- und steuerrechtlichen Aufbewahrungsfristen.",
     "waiting-beyond-per-commenced-hour": "Warten über das inbegriffene Kontingent hinaus: pro angefangene Stunde verrechnet.",
     "extended-city-stay-up-to-15-minutes": "Verlängerter Stadtaufenthalt, bis zu 15 Minuten:",
