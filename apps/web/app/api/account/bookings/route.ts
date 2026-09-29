@@ -25,6 +25,12 @@ export async function GET(request: Request) {
   }
   const { env } = await getCloudflareContext({ async: true });
   const rows = await asCustomer(env, claims, async (sql) => {
+    // D-32: link guest bookings made with this confirmed e-mail before listing. A failure must not break the list.
+    try {
+      await sql`select public.customer_claim_guest_bookings()`;
+    } catch {
+      /* listing continues; the claim retries on the next open */
+    }
     return await sql<AccountSqlRow[]>`
       select
         b.reference,
