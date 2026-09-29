@@ -93,6 +93,8 @@ button,.vt-btn,.vt-iconbtn{box-shadow:none}
 [data-af-opt-t]{font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-semibold);color:var(--vt-charcoal-900);line-height:1.35}
 [data-af-opt-c]{font-size:var(--vt-body-xs);color:var(--vt-text-muted);line-height:1.35}
 [data-af-links]{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px}
+[data-af-code]{display:flex;flex-direction:column;gap:12px;padding-top:20px;border-top:1px solid var(--vt-border-subtle)}
+[data-af-err]{margin:0;display:flex;align-items:center;gap:8px;font-size:var(--vt-body-sm);color:var(--vt-danger)}
 @media (prefers-reduced-motion:reduce){[data-af-view],[data-af-fill]{animation:none}[data-af-fill]{transform:scaleX(1)}}</style>
 </helmet>
 <div data-af="1" style="width:100%;display:flex;flex-direction:column;gap:30px;font-family:var(--vt-font-body);color:var(--vt-text-primary)">
@@ -201,8 +203,20 @@ button,.vt-btn,.vt-iconbtn{box-shadow:none}
 
 <p data-note-b="1">The link works once and expires after 1 hour. Nothing there? Check spam, then send another.</p>
 
+<sc-if value="{{ showCode }}">
+<div data-af-code="1">
+<p data-af-kick="1">Or use the code</p>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="6-digit code" type="text" size="lg" inputMode="numeric" pattern="[0-9 ]*" maxLength="{{ n12 }}" autoComplete="one-time-code" hint="It is in the same email as the link." value="{{ code }}" onChange="{{ setCode }}" onKeyDown="{{ codeKey }}" error="{{ codeErrText }}" hint-size="100%,84px"></x-import>
+<div data-af-cta="1" style="width:100%">
+<sc-if value="{{ codeIdle }}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" block="{{ yes }}" onClick="{{ submitCode }}" disabled="{{ codeDisabled }}" hint-size="100%,54px">Sign in</x-import></sc-if>
+<sc-if value="{{ codeBusy }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" block="{{ yes }}" disabled="{{ yes }}" aria-busy="true" hint-size="100%,54px">Signing in</x-import></sc-if>
+</div>
+</div>
+</sc-if>
+
 <div style="display:flex;flex-direction:column;gap:14px;align-items:stretch">
 <sc-if value="{{ resent }}"><p style="margin:0;display:flex;align-items:center;gap:8px;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n16 }}" color="var(--vt-success)" hint-size="16px,16px"></x-import>Sent again just now.</p></sc-if>
+<sc-if value="{{ resendLimited }}"><p data-af-err="1" role="alert"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-alert" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>Too many tries. Wait a minute and try again.</p></sc-if>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" size="lg" block="{{ yes }}" icon="mail" onClick="{{ resend }}" hint-size="100%,54px">Send another link</x-import>
 <sc-if value="{{ sentForgot }}"><button type="button" data-af-link="1" onClick="{{ backToSignIn }}">Back to sign in</button></sc-if>
 <sc-if value="{{ sentMagicAny }}" hint-placeholder-val="{{ true }}"><button type="button" data-af-link="1" onClick="{{ usePassword }}">Use a password instead</button></sc-if>
@@ -319,6 +333,13 @@ class Component extends DCLogic {
     errors: {},
     resent: false,
     showPw: false,
+    code: '',
+    codeError: '',
+    codeBusy: false,
+    resendLimited: false,
+    confirmSent: false,
+    confirmFailed: false,
+    confirmBusy: false,
   };
   componentDidMount() {
     if (this.state.stage === 'returning') this.armExit();
@@ -431,7 +452,7 @@ class Component extends DCLogic {
   }
   cancelPasskey = () => { clearTimeout(this.pkTimer); this.go({ stage: 'form', method: 'password', banner: null }); };
   go(patch) {
-    this.setState(Object.assign({ errors: {}, resent: false }, patch), () => {
+    this.setState(Object.assign({ errors: {}, resent: false, code: '', codeError: '', codeBusy: false, resendLimited: false, confirmSent: false, confirmFailed: false }, patch), () => {
       const s = this.state;
       if (this.props.onState) this.props.onState({ mode: s.mode, method: s.method, stage: s.stage, banner: s.banner });
       if (s.stage === 'returning') this.armExit();
@@ -488,9 +509,47 @@ class Component extends DCLogic {
     return { mode: 'signin', method: 'password', email: addr, password };
   }
   resend = () => {
-    this.setState({ resent: true });
+    this.setState({ resent: true, resendLimited: false });
     if (this.props.frozen || this.props.surface === 'ops') return;
-    this.liveAuth(this.payload());
+    this.liveAuth(this.payload()).then((result) => {
+      if (result && result.reason === 'rate-limited') this.setState({ resent: false, resendLimited: true });
+    });
+  };
+  /* The same email carries a 6-digit code next to the link. Typing it is a sign-in of its
+     own: verify-code answers with the session cookies, then this behaves like any other
+     successful sign-in (applyLive). Spaces from a paste are dropped, never sent. */
+  setCode = (e) => this.setState({ code: String(e.target.value || '').replace(/\D/g, '').slice(0, 6), codeError: '' });
+  codeKey = (e) => { if (e && e.key === 'Enter') { e.preventDefault(); this.submitCode(); } };
+  submitCode = () => {
+    const code = this.state.code.replace(/\s+/g, '');
+    if (this.state.codeBusy || !/^\d{6}$/.test(code)) return;
+    if ((this.props.frozen || this.props.surface === 'ops')) {
+      if (code === '000000') return this.setState({ codeError: 'invalid', code: '' });
+      this.saveSession();
+      return this.go({ stage: 'returning', banner: null });
+    }
+    this.setState({ codeBusy: true, codeError: '' });
+    this.liveAuth({ mode: 'verify-code', email: this.state.email.trim(), code: code }).then((result) => {
+      this.setState({ codeBusy: false });
+      if (result && result.ok) return this.applyLive(result, 'signin', 'code');
+      const reason = result && result.reason;
+      if (reason === 'not-staff') return this.applyLive(result, 'signin', 'code');
+      this.setState({
+        code: reason === 'code-invalid' ? '' : this.state.code,
+        codeError: reason === 'code-invalid' ? 'invalid' : reason === 'rate-limited' ? 'limited' : 'failed',
+      });
+    });
+  };
+  resendConfirm = () => {
+    if (this.state.confirmBusy) return;
+    if ((this.props.frozen || this.props.surface === 'ops')) return this.setState({ confirmSent: true });
+    this.setState({ confirmBusy: true, confirmFailed: false });
+    this.liveAuth({ mode: 'resend-confirmation', email: this.state.email.trim() }).then((result) => {
+      this.setState({ confirmBusy: false });
+      if (result && result.reason === 'rate-limited') return this.go({ banner: 'rate-limited' });
+      if (result && result.stage === 'sent') return this.setState({ confirmSent: true });
+      this.setState({ confirmFailed: true });
+    });
   };
   submit = () => {
     const { mode, method, email, password, firstName, lastName } = this.state;
@@ -571,6 +630,14 @@ class Component extends DCLogic {
       setMode: this.setMode, useMagic: this.useMagic, usePassword: this.usePassword,
       goForgot: this.goForgot, backToSignIn: this.backToSignIn, signInInstead: this.signInInstead,
       resend: this.resend, submit: this.submit,
+      showCode: isSent && mode !== 'forgot', n12: 12,
+      code: this.state.code, setCode: this.setCode, codeKey: this.codeKey, submitCode: this.submitCode,
+      codeIdle: !this.state.codeBusy, codeBusy: this.state.codeBusy,
+      codeDisabled: !/^\d{6}$/.test(this.state.code),
+      codeErrText: this.state.codeError === 'invalid' ? 'Check the code. It is 6 digits and works for one hour.'
+        : this.state.codeError === 'limited' ? 'Too many tries. Wait a minute and try again.'
+        : this.state.codeError === 'failed' ? 'Could not check the code. Try again.' : undefined,
+      resendLimited: this.state.resendLimited,
     };
   }
 }

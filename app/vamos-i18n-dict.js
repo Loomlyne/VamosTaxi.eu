@@ -321,6 +321,12 @@
       '6-digit code': { de: '6-stelliger Code', fr: 'Code à 6 chiffres', ar: 'رمز من 6 أرقام' },
       'Verify': { de: 'Prüfen', fr: 'Vérifier', ar: 'تحقّق' },
       'Use another sign-in': { de: 'Andere Anmeldung verwenden', fr: 'Utiliser une autre connexion', ar: 'استخدم طريقة دخول أخرى' },
+      // auth-ui: email code box (fix/auth-sign-in-sign-up)
+      'Or use the code': { de: 'Oder verwenden Sie den Code', fr: 'Ou utilisez le code', ar: 'أو استخدم الرمز' },
+      'It is in the same email as the link.': { de: 'Er steht in derselben E-Mail wie der Link.', fr: 'Il figure dans le même e-mail que le lien.', ar: 'وهو في نفس البريد الإلكتروني الذي يحتوي على الرابط.' },
+      'Signing in': { de: 'Anmeldung läuft', fr: 'Connexion en cours', ar: 'جارٍ تسجيل الدخول' },
+      'Check the code. It is 6 digits and works for one hour.': { de: 'Prüfen Sie den Code. Er hat 6 Ziffern und gilt eine Stunde lang.', fr: 'Vérifiez le code. Il compte 6 chiffres et reste valable une heure.', ar: 'تحقق من الرمز. يتكوّن من 6 أرقام ويصلح لمدة ساعة.' },
+      'Too many tries. Wait a minute and try again.': { de: 'Zu viele Versuche. Warten Sie eine Minute und versuchen Sie es erneut.', fr: 'Trop de tentatives. Attendez une minute, puis réessayez.', ar: 'محاولات كثيرة. انتظر دقيقة ثم حاول مرة أخرى.' },
       'One more step': { de: 'Noch ein Schritt', fr: 'Encore une étape', ar: 'خطوة أخيرة' },
       'This account has a passkey. Use it to finish signing in.': { de: 'Dieses Konto hat einen Passkey. Verwenden Sie ihn, um die Anmeldung abzuschliessen.', fr: 'Ce compte a une clé d’accès. Utilisez-la pour terminer la connexion.', ar: 'لهذا الحساب مفتاح مرور. استخدمه لإكمال تسجيل الدخول.' },
       'Use your passkey': { de: 'Passkey verwenden', fr: 'Utiliser votre clé d’accès', ar: 'استخدم مفتاح المرور' },
