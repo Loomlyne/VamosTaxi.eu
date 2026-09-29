@@ -4,7 +4,7 @@ Kept by the control session. One page: what is live, what is being built, what w
 the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 
-**Last update:** 2026-09-30 02:18 (+04)
+**Last update:** 2026-09-30 02:43 (+04)
 
 ## Live now
 
@@ -161,11 +161,17 @@ Built by the 26.3 session as `fix/26.4.2-booking-feedback` (folder `fix-26.4.2`)
 | 5 | An unpaid booking can never be continued on another device; a paid trip can be shared | Decision recorded in `.planning/decisions/2026-09-30-unpaid-booking-other-device.md`. A pasted checkout link shows the trip only, with an empty form (26.5 D-16, four route tests). |
 | 6 | Sign-off | He sees pictures of the three designs at 390, 768 and 1440 and signs before anything is handed over. |
 
+## Found by the 26.0 session, 2026-09-30
+
+| Finding | State |
+|---|---|
+| Checkout, flight edit: when Turnstile challenges the re-quote, no challenge is shown and the price stays on "Updating price" (`CheckoutForm.tsx` flightBlur) | Confirmed in code by the control session. Not reproduced on live. Sent to the 26.3 session to fix inside 26.4.2. |
+| The public pages (mocks) carry no hreflang links in their HTML | For the owner. Not assigned. Search engines cannot tell the language versions apart. |
+
 ## Owed by the control session
 
 | What | Why not yet |
 |---|---|
-| The seven ROADMAP lines from the planning rewrite (19, 20, 26.2, order) and the 26.4 / 26.4.1 rows | 26.4 has landed, so the file is free. Next planning note. |
 | Read the first staff digest run | 2026-09-30 06:00 Zurich time |
 
 ## Waiting for the owner
@@ -185,7 +191,6 @@ Built by the 26.3 session as `fix/26.4.2-booking-feedback` (folder `fix-26.4.2`)
 | What | Fixed by |
 |---|---|
 | VT-26-0739 and VT-26-0742 are not in the owner's account | Not a bug: they were booked with another e-mail address |
-| ROADMAP progress table is out of date | Applied when 26.4 lands, because that branch edits the same file |
 
 ## Tidy-up candidates, only on the owner's word, one at a time
 
