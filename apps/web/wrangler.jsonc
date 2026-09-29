@@ -86,6 +86,8 @@
           "id": "5080f3d518c24eaeb7b0590c922349c2"
         }
       ],
+      // Workers AI: extra names are machine-translated on save (D-44).
+      "ai": { "binding": "AI" },
       "r2_buckets": [
         { "binding": "PHOTOS", "bucket_name": "vamos-photos-staging" },
         { "binding": "SUPPORT_FILES", "bucket_name": "vamos-support-staging" }
@@ -227,6 +229,8 @@
           "id": "<quote-abuse production kv id — created by plan 04-13 via wrangler kv namespace create>"
         }
       ],
+      // Workers AI: extra names are machine-translated on save (D-44).
+      "ai": { "binding": "AI" },
       "r2_buckets": [
         { "binding": "PHOTOS", "bucket_name": "vamos-photos-production" }
       ],
