@@ -116,6 +116,8 @@ test.describe("Home laptop class cards @component", () => {
     await expect(cards(page).nth(0).locator("[data-cc-price]")).toHaveText("CHF 111");
     await expect(cards(page).nth(1).locator("[data-cc-price]")).toHaveText("CHF 222");
     await expect(cards(page).nth(2).locator("[data-cc-price]")).toHaveText("CHF 333");
+    // an eligible card carries data-block="" and must read in the primary text colour, not the muted one
+    await expect(cards(page).nth(0).locator("[data-cc-price]")).toHaveCSS("color", "rgb(30, 31, 31)");
     const body = c.bodies[0] as { pickup: { mapbox_id: string }; dropoff: { mapbox_id: string }; pax: number; bags: number; mode: string };
     expect(body.mode).toBe("one_way");
     expect(body.pickup.mapbox_id).toBe("mb-street-1");
