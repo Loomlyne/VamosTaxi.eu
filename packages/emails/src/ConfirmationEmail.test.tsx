@@ -7,7 +7,7 @@ import {
   formatPaidTotal,
 } from "./ConfirmationEmail";
 import { coverage } from "./lib/t";
-import type { BookingForEmail, EmailLocale } from "./lib/types";
+import type { BookingForEmail, EmailLocale, EmailMoney } from "./lib/types";
 
 const LOCALES: EmailLocale[] = ["en", "de", "fr", "ar"];
 
@@ -90,20 +90,124 @@ describe("ConfirmationEmail", () => {
   it("does not claim a driver is booked before assignment", async () => {
     const html = await render(ConfirmationEmail({ booking: booking("en") }));
     const text = confirmationPlainText(booking("en"));
-    expect(html).toContain("Your booking is confirmed");
+    expect(html).toContain("Booked");
     expect(html).not.toMatch(/driver is booked/i);
-    expect(text).toContain("Your booking is confirmed");
+    expect(text).toContain("Booked");
     expect(text).not.toMatch(/driver is booked/i);
-    expect(confirmationSubject(booking("en"))).toMatch(/is confirmed/);
+    expect(confirmationSubject(booking("en"))).toMatch(/^Booked/);
   });
 
   it("lists extras on the voucher when they were booked", async () => {
-    const withExtras = { ...booking("en"), extras: ["child_seat" as const] };
+    const withExtras = { ...booking("en"), extras: [{ name: "Child seat", amountRappen: null }] };
     const html = await render(ConfirmationEmail({ booking: withExtras }));
     const text = confirmationPlainText(withExtras);
     expect(html).toContain("Child seat");
     expect(html).toContain("Extras");
     expect(text).toContain("Child seat");
     expect(text).toContain("Extras");
+  });
+
+  it("has no Confirmed / Booking confirmed status text in any language", async () => {
+    for (const locale of LOCALES) {
+      const html = await render(ConfirmationEmail({ booking: booking(locale) }));
+      expect(html).not.toMatch(/Booking confirmed|is confirmed|Confirmed/);
+    }
+    expect(confirmationSubject(booking("de"))).toMatch(/^Gebucht/);
+    expect(confirmationSubject(booking("fr"))).toMatch(/^Réservé/);
+    expect(confirmationSubject(booking("ar"))).toContain("تم الحجز");
+  });
+
+  it("uses plural forms for travellers and bags", () => {
+    const one = booking("en");
+    one.legs = one.legs.map((l) => ({ ...l, pax: 1, bags: 1 }));
+    expect(confirmationPlainText(one)).toContain("1 passenger · 1 bag");
+    expect(confirmationPlainText(booking("en"))).toContain("2 passengers · 1 bag");
+    expect(confirmationPlainText(booking("de"))).toContain("2 Passagiere");
+    const arOne = booking("ar");
+    arOne.legs = arOne.legs.map((l) => ({ ...l, pax: 1 }));
+    expect(confirmationPlainText(arOne)).toContain("راكب واحد");
+    const arFew = booking("ar");
+    arFew.legs = arFew.legs.map((l) => ({ ...l, pax: 3 }));
+    expect(confirmationPlainText(arFew)).toContain("3 ركاب");
+  });
+
+  it("renders the class name as given, not a slug", async () => {
+    const b = booking("en");
+    b.legs = b.legs.map((l) => ({ ...l, vehicleClassLabel: "Business" }));
+    const html = await render(ConfirmationEmail({ booking: b }));
+    expect(html).toContain("Business");
+    expect(html).not.toMatch(/saden/i);
+  });
+
+  it("shows the extra name in the booking language, falling back to English", async () => {
+    const b = {
+      ...booking("de"),
+      extras: [
+        { name: "Child seat", names: { en: "Child seat", de: "Kindersitz" }, amountRappen: null },
+        { name: "Skis", names: { en: "Skis" }, amountRappen: null },
+      ],
+    };
+    const html = await render(ConfirmationEmail({ booking: b }));
+    expect(html).toContain("Kindersitz");
+    expect(html).toContain("Skis");
+  });
+
+  it("escapes markup in extra and contact names", async () => {
+    const b = {
+      ...booking("en"),
+      contactName: "<b>Ada</b>",
+      extras: [{ name: "<b>x</b>", amountRappen: null }],
+    };
+    const html = await render(ConfirmationEmail({ booking: b }));
+    expect(html).not.toContain("<b>x</b>");
+    expect(html).toContain("&lt;b&gt;x&lt;/b&gt;");
+  });
+});
+
+describe("money block (S6)", () => {
+  const money: EmailMoney = {
+    lines: [
+      { kind: "fare", label: "Business", amountRappen: 10000 },
+      { kind: "surcharge", label: "Child seat", amountRappen: 1500 },
+      { kind: "surcharge", label: "Skis", amountRappen: 2000 },
+      { kind: "coupon", label: "WELCOME", amountRappen: -1000 },
+      { kind: "vat", label: "", amountRappen: 950 },
+    ],
+    vatRateBps: 810,
+    chargedRappen: 12500,
+    presentment: null,
+  };
+
+  it("lists rows in order and the total equals chargedRappen", async () => {
+    const b = { ...booking("en", 99999), money };
+    const html = await render(ConfirmationEmail({ booking: b }));
+    const order = ["Fare · Business", "Child seat", "Skis", "Voucher WELCOME", "VAT 8.1 %", "Total paid"];
+    let at = -1;
+    for (const label of order) {
+      const idx = html.indexOf(label, at + 1);
+      expect(idx, label).toBeGreaterThan(at);
+      at = idx;
+    }
+    expect(html).toContain("CHF 125.00");
+    expect(html).toContain("\u2212CHF 10.00");
+    expect(html).not.toContain("999.99");
+    expect(html).not.toMatch(/You paid/);
+    expect(html).not.toMatch(/\{[a-zA-Z.]+\}/);
+  });
+
+  it("adds the muted presentment line only when the currency is not CHF", async () => {
+    const b = { ...booking("en"), money: { ...money, presentment: { amountMinor: 13400, currency: "EUR" } } };
+    const html = await render(ConfirmationEmail({ booking: b }));
+    expect(html).toContain("You paid EUR 134.00 in EUR. Vamos received CHF 125.00.");
+    const chf = { ...booking("en"), money: { ...money, presentment: { amountMinor: 12500, currency: "CHF" } } };
+    expect(await render(ConfirmationEmail({ booking: chf }))).not.toMatch(/You paid/);
+  });
+
+  it.each(LOCALES)("renders %s money block with no placeholder left", async (locale) => {
+    const b = { ...booking(locale), money: { ...money, presentment: { amountMinor: 13400, currency: "EUR" } } };
+    const html = await render(ConfirmationEmail({ booking: b }));
+    expect(html).not.toMatch(/\{[a-zA-Z.]+\}/);
+    expect(confirmationPlainText(b)).not.toMatch(/\{[a-zA-Z.]+\}/);
+    expect(html).toContain("8.1");
   });
 });

@@ -20,8 +20,9 @@ import {
   Section,
   Text,
 } from "@react-email/components";
-import type { EmailLocale, PayLinkExtraCode, PayLinkForEmail } from "./lib/types";
-import { t } from "./lib/t";
+import type { EmailExtraLine, EmailLocale, PayLinkForEmail } from "./lib/types";
+import { extraNames } from "./lib/extras";
+import { paxBagsLine, t } from "./lib/t";
 import { formatPaidTotal } from "./ConfirmationEmail";
 import {
   BODY_FONT,
@@ -49,12 +50,6 @@ function vehicleLabel(locale: EmailLocale, slug: string): string {
   return key ? t(locale, key) : slug;
 }
 
-const EXTRA_KEY: Record<PayLinkExtraCode, string> = {
-  child_seat: "payLink.extraChildSeat",
-  oversized_luggage: "payLink.extraOversized",
-  extra_stop: "payLink.extraStop",
-};
-
 const kicker = {
   margin: 0,
   fontSize: "11px",
@@ -80,8 +75,8 @@ function ltr(value: string) {
   );
 }
 
-function extraLabels(locale: EmailLocale, extras: PayLinkExtraCode[]): string[] {
-  return extras.map((code) => t(locale, EXTRA_KEY[code]));
+function extraLabels(locale: EmailLocale, extras: EmailExtraLine[]): string[] {
+  return extraNames(locale, extras);
 }
 
 function telHref(display: string): string {
@@ -293,7 +288,7 @@ export function PayLinkEmail({ link }: { link: PayLinkForEmail }) {
               {link.pax > 0 ? (
                 <>
                   <br />
-                  {t(locale, "paxLine", { pax: link.pax, bags: link.bags })}
+                  {paxBagsLine(locale, link.pax, link.bags)}
                 </>
               ) : null}
             </Fact>
@@ -375,7 +370,7 @@ export function payLinkPlainText(link: PayLinkForEmail): string {
   }
   if (link.flightNo) lines.push(`${t(locale, "payLink.flightLabel")} ${link.flightNo}`);
   lines.push(`${t(locale, "vehicleLabel")} ${vehicleLabel(locale, link.vehicleClass)}`);
-  if (link.pax > 0) lines.push(t(locale, "paxLine", { pax: link.pax, bags: link.bags }));
+  if (link.pax > 0) lines.push(paxBagsLine(locale, link.pax, link.bags));
   if (extras.length > 0) lines.push(`${t(locale, "payLink.extrasLabel")} ${extras.join(" · ")}`);
   if (link.coupon) lines.push(`${t(locale, "payLink.couponLabel")} ${link.coupon}`);
   if (link.contactName) {
