@@ -150,8 +150,8 @@ describe("signup consent row (D-09, T-10-07)", () => {
     expect(src).not.toMatch(/marketing:\s*true/);
     expect(src).not.toMatch(/sk_live_/);
     expect(src).not.toMatch(/Google|Apple|LinkedIn/);
-    const customerAt = src.indexOf("asCustomer");
-    const recordAt = src.indexOf("recordConsent");
+    const customerAt = src.indexOf("asCustomer(");
+    const recordAt = src.indexOf("recordConsent(tx");
     expect(customerAt).toBeGreaterThan(-1);
     expect(recordAt).toBeGreaterThan(customerAt);
   });
