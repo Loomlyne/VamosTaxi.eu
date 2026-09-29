@@ -46,3 +46,14 @@ No new packages. No `sk_live_`. No booking POST.
 ## Dimension 8
 
 Nyquist: each SEC-* is claimed by a plan frontmatter `requirements` list.
+
+---
+
+## 2026-10 check (plans 20-06 … 20-09)
+
+| Plan | Req | Automated | Manual / owner |
+|---|---|---|---|
+| 20-06 | SEC-13 | advisors + grant readback (read-only SQL); passive scan output saved | ≤ 10 live test bookings, listed by reference |
+| 20-07 | SEC-14 | one failing-then-passing test per serious finding; `pnpm test:unit`, `typecheck`, `lint`, `check:db-fences`, pgTAP for SQL fixes | — |
+| 20-08 | SEC-15 | same gates per fix | Owner decides each non-serious finding through the question form |
+| 20-09 | SEC-16 | curl/readback script against both hosts | After the owner's Ship; one 4242 payment first (CLAUDE.local.md rule 8) |
