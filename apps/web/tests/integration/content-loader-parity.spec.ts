@@ -3,25 +3,27 @@
 // I18N-07 loader half. Tagged @i18n. component-1440 only.
 // Builds the message object from content_strings and from the JSON files,
 // strips $meta on the JSON side, and asserts deep equality. A mismatch names
-// the offending keys. Skips when local Postgres is down — do not start Docker
-// from this spec; run `pnpm db:start && pnpm db:reset` from packages/db.
+// the offending keys.
+//
+// D-03: reads only a database it was explicitly given (VAMOS_TEST_DB_URL or OPS_FIXTURE_DB_URL,
+// exported by scripts/local-test-stack.sh), after proving loopback + expected port + the
+// throwaway marker role. Under CI or REQUIRE_DB=1 a missing/unreachable/unmarked/empty DB
+// FAILS; otherwise only the "no URL given" case skips, with the reason visible.
 //
 // JSON kill-switch and unreachable-DB fallback are asserted in
 // apps/web/lib/content/messages.test.ts (no Hyperdrive, no Docker).
 
-import { createRequire } from "node:module";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { test, expect } from "../support/test";
 import { unflattenKeys, type ContentLocale } from "../../lib/content/messages";
 import { WEB_ROOT } from "../support/server-harness";
+import { dbRequired, explicitDbUrl, requireTestStack, testDbPort } from "../support/test-stack";
+import { workerSql } from "../../../../packages/db/test/support/worker-client";
 
 const RUN_PROJECT = "component-1440";
 const LOCALES: ContentLocale[] = ["en", "de", "fr", "ar"];
-const MAIN_DB_PKG = "/Users/koss/Developer/VamosTaxi.eu/packages/db/package.json";
-const DB_URL =
-  process.env.OPS_FIXTURE_DB_URL ?? "postgres://postgres:postgres@127.0.0.1:54322/postgres";
-const SKIP_HINT = "local Postgres is down — run pnpm db:start && pnpm db:reset from packages/db";
+const NO_URL = "D-03: set VAMOS_TEST_DB_URL (use scripts/local-test-stack.sh e2e) to run the DB parity proof";
 
 type ContentStringRow = {
   key: string;
@@ -73,27 +75,6 @@ function leafDiff(jsonFlat: Record<string, string>, dbFlat: Record<string, strin
   return bad;
 }
 
-function loadSql() {
-  const req = createRequire(MAIN_DB_PKG);
-  const postgres = req("postgres") as (url: string) => {
-    (strings: TemplateStringsArray, ...values: unknown[]): Promise<ContentStringRow[]>;
-    end: (opts?: { timeout?: number }) => Promise<void>;
-  };
-  return postgres;
-}
-
-async function pingDb(): Promise<boolean> {
-  const sql = loadSql()(DB_URL);
-  try {
-    await sql`select 1`;
-    return true;
-  } catch {
-    return false;
-  } finally {
-    await sql.end({ timeout: 5 }).catch(() => undefined);
-  }
-}
-
 test.beforeEach(async ({}, testInfo) => {
   test.skip(testInfo.project.name !== RUN_PROJECT, "Parity proofs run once under component-1440.");
 });
@@ -106,24 +87,26 @@ test.describe("content loader parity @i18n", () => {
   });
 
   test("DB-derived messages equal JSON-derived messages for en, de, fr, ar", async () => {
-    const up = await pingDb();
-    test.skip(!up, SKIP_HINT);
+    const url = explicitDbUrl();
+    if (!url) {
+      if (dbRequired()) throw new Error(NO_URL);
+      test.skip(true, NO_URL);
+      return;
+    }
+    await requireTestStack(url, testDbPort());
 
-    const sql = loadSql()(DB_URL);
+    const sql = workerSql(url, "public");
     let rows: ContentStringRow[] = [];
     try {
-      rows = await sql`
+      rows = (await sql`
         select key, en, de, fr, ar
           from public.content_strings
-      `;
+      `) as unknown as ContentStringRow[];
     } finally {
       await sql.end({ timeout: 5 }).catch(() => undefined);
     }
 
-    test.skip(
-      rows.length === 0,
-      "content_strings is empty — run pnpm db:start && pnpm db:reset from packages/db",
-    );
+    expect(rows.length, "content_strings is empty — reset the test stack").toBeGreaterThan(0);
 
     const mismatches: string[] = [];
     for (const locale of LOCALES) {

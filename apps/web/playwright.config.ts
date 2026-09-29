@@ -86,6 +86,8 @@ export default defineConfig({
   ...(process.env.CI
     ? {
         testIgnore: [
+          // D-03: needs a database; runs in the Linux e2e job (plan 26.0-11), not on macOS
+          "**/content-loader-parity.spec.ts",
           "**/about.spec.ts",
           "**/account-session-guard.spec.ts",
           "**/auth-confirm-email.spec.ts",

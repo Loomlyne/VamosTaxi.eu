@@ -8,8 +8,8 @@
 // src/public.ts) is frozen for phase 26.0. The drift check below (`readSourceClientOptions`)
 // compares this mirror with the source text, so a change there turns the parity test red.
 // If the options change, update the mirror in the same change and tell the owner.
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
 import postgres from "postgres";
 
 export const WORKER_IDENTITY_CLIENT_OPTIONS = {
@@ -45,6 +45,23 @@ export function testDbUrl(role: "owner" | "edge" | "public" = "owner"): string {
 }
 
 /**
+ * Finds packages/db/src/<file> by walking up from the cwd. No import.meta, so the helper also
+ * loads under Playwright's CommonJS transform (apps/web specs).
+ */
+function sourcePath(file: string): string {
+  let dir = process.cwd();
+  for (;;) {
+    const candidate = join(dir, "packages/db/src", file);
+    if (existsSync(candidate)) return candidate;
+    const local = join(dir, "src", file);
+    if (existsSync(local) && existsSync(join(dir, "test/support/worker-client.ts"))) return local;
+    const up = dirname(dir);
+    if (up === dir) throw new Error(`worker-client: cannot locate packages/db/src/${file}`);
+    dir = up;
+  }
+}
+
+/**
  * Parses the options object literal the source passes to `postgres(connectionString, { ... })`
  * in identity.ts (`function client(`) or public.ts (`export function publicSql(`).
  * Only number and boolean values are parsed.
@@ -55,10 +72,7 @@ export function readSourceClientOptions(
 ): Record<string, number | boolean> {
   const text =
     sourceText ??
-    readFileSync(
-      fileURLToPath(new URL(kind === "identity" ? "../../src/identity.ts" : "../../src/public.ts", import.meta.url)),
-      "utf8",
-    );
+    readFileSync(sourcePath(kind === "identity" ? "identity.ts" : "public.ts"), "utf8");
   const marker = kind === "identity" ? "function client(" : "export function publicSql(";
   const start = text.indexOf(marker);
   if (start < 0) throw new Error(`worker-client: cannot find "${marker}" in the ${kind} source`);
