@@ -82,6 +82,9 @@ export const dynamic = "force-dynamic";
 /** Too many tries from this IP. The UI shows "Too many tries. Wait a minute and try again." */
 const RATE_LIMITED: ProfileRunResult = { ok: false, reason: "rate-limited" };
 
+/** A valid sign-in on the dashboard host for an account that is not accepted staff. */
+const NOT_STAFF: ProfileRunResult = { ok: false, reason: "not-staff" };
+
 function json(
   result: AuthRunResult | ProfileRunResult,
   status = 200,
@@ -225,6 +228,21 @@ export async function POST(request: Request): Promise<Response> {
   };
 
   /**
+   * Dashboard host only: a sign-in that succeeded for an account that is not accepted staff
+   * (no admin role in the token) is signed out again here, and the person is told why. Returns
+   * null when the account may stay signed in (or on the public site).
+   */
+  const refuseNonStaff = async (): Promise<Response | null> => {
+    if (!dashboard) return null;
+    const staff = await getStaffClaims(supabase as StaffAuthClient);
+    if (staff && staffDecisionOf(staff) !== "deny") return null;
+    const from = setCookies.length;
+    await runSignOut(supabase);
+    // Only the sign-out's cookie removals go back — never the session just refused.
+    return sessionJson(NOT_STAFF, setCookies.slice(from), 403);
+  };
+
+  /**
    * D-17: a staff session changing its password or e-mail needs a fresh re-auth.
    * Customers are not gated here. `allowRecovery` lets the reset-password flow
    * through when the session itself came from a recovery link in the last 5 min.
@@ -325,6 +343,8 @@ export async function POST(request: Request): Promise<Response> {
       if (error) log("error", "auth", ctx, { reason: error.code ?? "passkey-verify", action: "passkey-verify" });
       return json(FORM_CREDENTIALS);
     }
+    const notStaff = await refuseNonStaff();
+    if (notStaff) return notStaff;
     // The new session's cookies must ride on this response (OpenNext does not attach them).
     return sessionJson({ ok: true }, setCookies);
   }
@@ -583,6 +603,8 @@ export async function POST(request: Request): Promise<Response> {
   const { result, reason } = await runSignInPassword(supabase, parsed.data);
   if (reason) log("error", "auth", ctx, { reason, action: "signin" });
   if ("ok" in result) {
+    const notStaff = await refuseNonStaff();
+    if (notStaff) return notStaff;
     // D-16a: a staff account set to magic_link refuses a password sign-in with the
     // same generic error as a wrong password. With a factor enrolled the row is
     // hidden at aal1 (null) and mfa-step-up repeats this check at aal2.
