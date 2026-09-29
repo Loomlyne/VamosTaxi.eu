@@ -4,7 +4,7 @@ Kept by the control session. One page: what is live, what is being built, what w
 the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 
-**Last update:** 2026-09-29 17:55 (+04)
+**Last update:** 2026-09-29 18:02 (+04)
 
 ## Live now
 
@@ -33,7 +33,9 @@ the owner, what comes next. Updated at every ship and every hand-over.
 
 | Lane | Session | Folder under `vamos-wt/` | Branch | State |
 |---|---|---|---|---|
-| 26.4 phone bar and one form | Phase 26.3 booking flow rebuild | `phase-26.4` | `gsd/phase-26.4-one-form` | Plan 10 of 10 in work. Discuss and UI-SPEC signed. |
+| 26.4 phone bar and one form | Phase 26.3 booking flow rebuild | `phase-26.4` | `gsd/phase-26.4-one-form` | Plan 10 of 10 (final checks and hand-over) in work. Today's main merged in as `ede7f0ce`. No migration. |
+| 26.4 follow-up: desktop bar | same session | same | follow-up branch, not cut yet | Owner chose picture 3: the wide bar from before 26.3 without the tabs, order From, flight (airport), To, When, Travellers, SEE PRICES. Ships right after 26.4 with its own short design signature. |
+| 26.5 account choice before payment | same session | `phase-26.5` | `gsd/phase-26.5-checkout-account` | Discuss **signed** (`2d5959bb`). UI-SPEC in work. Build waits until 26.4 has shipped. |
 | 26.0 main green | Phase 26.0 main green work session | `main-green-2` | `fix/main-green-2` | Plans 01 to 05, 07, 09 done. 06, 08, 10, 11, 12 left. |
 
 ## Ship order
@@ -43,8 +45,9 @@ One at a time into main. Each later branch takes main in before it hands over.
 | Order | What | Why this place |
 |---|---|---|
 | done | Sign-in and sign-up fix | Shipped 17:47 |
-| 2 | Phase 26.4 | Ready next. Shares `app/vamos-i18n-dict.js` with 1, so it merges main after 1 |
-| 3 | Phase 26.5, account choice before payment (new, see below) | Needs working sign-up (1) and the final checkout (2) |
+| 1 | Phase 26.4 | Hand-over expected next |
+| 2 | 26.4 follow-up: desktop bar | Small, right after 26.4 |
+| 3 | Phase 26.5, account choice before payment | Needs the final checkout from 26.4 |
 | 4 | Phase 26.0 | Shares test files with 26.4; lands after it |
 | 5 | 26.2 → 20 → 19 → 27 → 28 → 29 | Signed order |
 
@@ -52,8 +55,9 @@ One at a time into main. Each later branch takes main in before it hands over.
 
 | # | Request | Goes to | Needs from the owner |
 |---|---|---|---|
-| A | Desktop home booking bar: the old one, without the one-way tabs | Phase 26.4, as a change to decision D-01 | Which old bar: he confirms on a picture |
-| B | Before Stripe's page the customer chooses: continue as guest, sign in, or create an account. A guest's e-mail creates an account automatically | New Phase 26.5 | The end of his sentence ("… but"), and the consent wording, which is legal copy |
+| A | Desktop home booking bar: the old one, without the one-way tabs | Follow-up right after 26.4 | Decided: picture 3. His signature on the short design note. |
+| B | Before Stripe's page the customer chooses: continue as guest, sign in, or create an account | Phase 26.5 | Decided in discuss: the choice sits at the top of "Who is travelling"; a guest gets an account without a password and signs in later by e-mail link; an e-mail that already has an account must sign in first; nothing is shown until the e-mail is confirmed. Still owed by him: the consent wording in four languages. |
+| C | Later, its own job: passwords off on the whole site, e-mail link or passkey only | Not scheduled | His word when to start |
 
 ## Waiting for the owner
 
