@@ -1096,6 +1096,13 @@ Plans:
 
 **UI hint**: yes
 
+### Phase 26.5: Checkout — guest, sign in, create account (INSERTED)
+
+**Goal**: Before Stripe, /checkout asks: continue as guest, sign in, or create an account (top of "Who is travelling"). A guest gets an account from the e-mail automatically and signs in later with a magic link; an e-mail that already has an account must sign in first; nothing is visible until the e-mail is confirmed; consent wording is owner legal copy (data-tok until supplied) and logged server-side.
+**Depends on**: sign-in fix (live 2bd05b0a), 26.4.
+**Requirements**: from 26.5-CONTEXT.md
+**UI hint**: yes
+
 ### Phase 27: Consent record
 
 **Goal**: Accept logs Meta on. Dismiss logs Meta off. The latest `consent_log` row
