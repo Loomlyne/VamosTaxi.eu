@@ -107,6 +107,9 @@ export function nextDevEnv(
 ): NodeJS.ProcessEnv {
   return {
     ...process.env,
+    // Playwright workers run with NODE_ENV=test; `next dev` under that value 500s on routes and
+    // static files, so a spawned dev server always runs as development.
+    NODE_ENV: "development",
     ...hyperdriveEnv(),
     SUPABASE_URL: supabaseApiUrl(),
     ...(opts.gallery ? { VAMOS_DEV_GALLERY: "1" } : {}),
