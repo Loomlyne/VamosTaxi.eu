@@ -387,8 +387,10 @@ export async function sweepStuckNotifications(
     {
       stuck: (interval, k) =>
         asSystem(env, async (sql) => {
+          // A plain JS array is typed 0 by postgres.js and would be sent as "a,b" (malformed array
+          // literal). 1009 is text[]; its serializer is registered in @vamos/db pg-types (260929-pga).
           const rows = await sql`
-            select * from public.notification_sweep(${interval}::interval, ${k}::text[])
+            select * from public.notification_sweep(${interval}::interval, ${sql.array(k, 1009)}::text[])
           `;
           return rows as unknown as SweepRow[];
         }),

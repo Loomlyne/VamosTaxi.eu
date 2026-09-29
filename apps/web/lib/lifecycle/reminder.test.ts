@@ -54,6 +54,25 @@ describe("24h reminder claim-then-send (D-29)", () => {
   });
 });
 
+describe("reminder read is the definer function, not table SELECTs (260929-pga)", () => {
+  it("reminder.ts reads through reminder_24h_candidates and touches no table", () => {
+    const src = read("apps/web/lib/lifecycle/reminder.ts");
+    expect(src).toContain("public.reminder_24h_candidates(");
+    expect(src).not.toMatch(/from\s+public\.(booking_legs|bookings|chauffeurs|vehicles)\b/i);
+  });
+
+  it("the definer read keeps the D-29 filters and the original-pickup clock", () => {
+    const sql = read("packages/db/supabase/migrations/20260930200000_reminder_24h_read.sql");
+    expect(sql).toMatch(/security definer/);
+    expect(sql).toMatch(/set search_path = ''/);
+    expect(sql).toMatch(/l\.original_scheduled_at >= p_from/);
+    expect(sql).toMatch(/not in \('cancelled', 'completed', 'no_show'\)/);
+    expect(sql).toMatch(/erased_at is null/);
+    expect(sql).toMatch(/to vamos_system;/);
+    expect(sql).not.toMatch(/grant select/i);
+  });
+});
+
 describe("hourly worker (LIFE-05 / LIFE-07)", () => {
   it("calls expireUnpaidBookings then runReminder24h; no no-show sweep", () => {
     const worker = read("apps/web/worker.ts");

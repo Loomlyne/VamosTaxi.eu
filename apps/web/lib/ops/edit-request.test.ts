@@ -196,7 +196,10 @@ describe("09-10 time-change request/confirm (D-23–D-26)", () => {
   it("refuse stays original, mails customer, does not call accept RPC", () => {
     const lib = read("apps/web/lib/ops/edit-request.ts");
     const refuse = fnBody(lib, "refuseEditRequest");
-    expect(refuse).toMatch(/status = 'superseded'/);
+    expect(refuse).toMatch(/supersedePendingEditRequest/);
+    expect(read("packages/db/supabase/migrations/20260930210000_system_role_narrow_reads.sql")).toMatch(
+      /set status = 'superseded'/,
+    );
     expect(refuse).not.toMatch(/booking_edit_request_accept/);
     expect(refuse).not.toMatch(/scheduled_at/);
     expect(refuse).not.toMatch(/booking_edit_apply_payload/);
@@ -241,10 +244,11 @@ describe("09-10 flight write-through (D-27)", () => {
   it("updates booking_legs.flight_no via asSystem after ownership; no AeroDataBox", () => {
     const lib = read("apps/web/lib/ops/edit-request.ts");
     const write = fnBody(lib, "writeCustomerFlightNo");
-    expect(write).toMatch(/asSystem/);
-    expect(write).toMatch(/flight_no/);
-    expect(write).toMatch(/booking_events/);
-    expect(write).toMatch(/booking\.modified/);
+    expect(write).toMatch(/writeFlightNumber/);
+    const def = read("packages/db/supabase/migrations/20260930210000_system_role_narrow_reads.sql");
+    expect(def).toMatch(/set flight_no = p_flight_no/);
+    expect(def).toMatch(/insert into public\.booking_events/);
+    expect(def).toMatch(/booking\.modified/);
     expect(write).toMatch(/notifyFlightNumber/);
     expect(write).not.toMatch(/AeroDataBox|LX1234/i);
     expect(write).not.toMatch(/info@vamostaxi/);

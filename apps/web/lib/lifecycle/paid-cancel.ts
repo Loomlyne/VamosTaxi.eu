@@ -10,6 +10,7 @@ export const dynamic = "force-dynamic";
 import { CHARGE_CURRENCY } from "../checkout/currency";
 import { createRefund, resolvePaymentIntentId, retrieveRefund, stripeFromEnv } from "../checkout/stripe";
 import { asCustomer, asGuest, asSystem, type VamosClaims } from "../db/identity";
+import { loadCapturedPaymentRow, loadPaidCancelMail, markRefundProcessing } from "../db/system-reads";
 import { notifyCancellation, notifyRefundFailed } from "./notify-lifecycle";
 
 export type PaidCancelOk = {
@@ -148,26 +149,7 @@ function refundLineOf(mode: string): "pending_ops" | "full_captured" | "none" {
 }
 
 async function loadCancelMail(env: CloudflareEnv, bookingId: string): Promise<CancelMailRow | null> {
-  return asSystem(env, async (sql) => {
-    const rows = await sql<CancelMailRow[]>`
-      select
-        b.reference,
-        b.locale,
-        b.contact_email::text as contact_email,
-        l.pickup_text,
-        l.dropoff_text,
-        l.scheduled_local,
-        l.assigned_chauffeur_id,
-        c.email as chauffeur_email
-        from public.bookings as b
-        join public.booking_legs as l on l.booking_id = b.id
-        left join public.chauffeurs as c on c.id = l.assigned_chauffeur_id
-       where b.id = ${bookingId}::uuid
-       order by l.leg_seq
-       limit 1
-    `;
-    return rows[0] ?? null;
-  });
+  return loadPaidCancelMail(env, bookingId);
 }
 
 async function notifyPaidCancelMails(
@@ -287,35 +269,18 @@ export async function applyStripeRefund(
 }
 
 async function loadCapturedPayment(env: CloudflareEnv, bookingId: string): Promise<LoadedPayment | null> {
-  return asSystem(env, async (sql) => {
-    const rows = await sql<{ id: number; stripe_payment_intent_id: string; charged_rappen: number }[]>`
-      select p.id, p.stripe_payment_intent_id, p.charged_rappen
-        from public.booking_payments as p
-       where p.booking_id = ${bookingId}::uuid
-         and p.captured_at is not null
-       order by p.id
-       limit 1
-    `;
-    const row = rows[0];
-    if (!row) return null;
-    return {
-      paymentId: Number(row.id),
-      paymentIntentId: String(row.stripe_payment_intent_id),
-      chargedRappen: Number(row.charged_rappen),
-    };
-  });
+  const row = await loadCapturedPaymentRow(env, bookingId);
+  if (!row) return null;
+  return {
+    paymentId: Number(row.id),
+    paymentIntentId: String(row.stripe_payment_intent_id),
+    chargedRappen: Number(row.charged_rappen),
+  };
 }
 
 async function setRefundProcessing(env: CloudflareEnv, bookingId: string): Promise<void> {
   try {
-    await asSystem(env, async (sql) => {
-      await sql`
-        update public.bookings
-           set refund_status = 'processing',
-               updated_at = now()
-         where id = ${bookingId}::uuid
-      `;
-    });
+    await markRefundProcessing(env, bookingId);
   } catch {
     // Cancel already committed. Stripe still runs; D-08 never restores status.
   }

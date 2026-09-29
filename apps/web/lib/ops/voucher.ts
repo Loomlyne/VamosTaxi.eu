@@ -58,16 +58,10 @@ export async function resendVoucher(
     const rows = await sql`
       select * from public.checkout_booking_for_email(${bookingId}::uuid)
     `;
-    const snaps = await sql`
-      select policy
-        from public.price_snapshots
-       where booking_id = ${bookingId}
-       limit 1
+    const snaps = await sql<{ policy: unknown }[]>`
+      select public.booking_snapshot_policy(${bookingId}::uuid) as policy
     `;
-    const policy =
-      snaps[0] && typeof snaps[0] === "object" && "policy" in snaps[0]
-        ? (snaps[0] as { policy: unknown }).policy
-        : null;
+    const policy = snaps[0]?.policy ?? null;
     return {
       row: rows[0],
       extras: emailExtrasFromPolicy(

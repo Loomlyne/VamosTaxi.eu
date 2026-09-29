@@ -3,6 +3,8 @@
 // G8 (D-48): staff pay-link, Take card and the extra-fare payment all run on
 // Stripe-hosted sessions, which have a url and no client secret. Fakes only.
 
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const openHosted = vi.fn();
@@ -83,8 +85,7 @@ function unpaidRow(over: Record<string, unknown> = {}) {
 
 function bookingSql(row: Record<string, unknown>) {
   return (text: string) => {
-    if (text.includes("select id\n      from public.bookings")) return [{ id: row.id }];
-    if (text.includes("from public.bookings b")) return [row];
+    if (text.includes("phone_booking_unpaid_read")) return [row];
     return [];
   };
 }
@@ -179,8 +180,11 @@ describe("staffTakeCard", () => {
     // The loader selects greatest(snapshot expiry, hold_until) as snap_expires_at.
     const held = new Date(Date.now() + 2 * 3600_000);
     sqlHandler = (text) => {
-      if (text.includes("from public.bookings b")) {
-        expect(text).toContain("greatest(s.expires_at, coalesce(b.hold_until, s.expires_at))");
+      if (text.includes("phone_booking_unpaid_read")) {
+        // The pay window rule lives in the definer function.
+        expect(readFileSync(join(__dirname, "../../../../packages/db/supabase/migrations/20260930210000_system_role_narrow_reads.sql"), "utf8")).toContain(
+          "greatest(s.expires_at, coalesce(b.hold_until, s.expires_at))",
+        );
       }
       return bookingSql(unpaidRow({ snap_expires_at: held.toISOString() }))(text);
     };
@@ -209,7 +213,7 @@ describe("extra-fare payment on a hosted session", () => {
       if (text.includes("booking_edit_request_accept")) {
         return [{ request_id: "00000000-0000-4000-8000-0000000000e1", booking_id: BOOKING, outcome: "extra_required", difference_rappen: 3000, extra_snapshot_id: 5, extra_session_id: null, hours_before: 48, original_payment_id: 1, original_intent_id: "pi_1" }];
       }
-      if (text.includes("from public.bookings")) return [{ reference: "VT-26-0001", contact_email: "ada@example.test", locale: "en" }];
+      if (text.includes("edit_request_booking_contact")) return [{ reference: "VT-26-0001", contact_email: "ada@example.test", locale: "en" }];
       return [];
     };
     createSession.mockResolvedValue({ id: "cs_test_extra1", url: "https://checkout.stripe.test/c/pay/cs_test_extra1" });

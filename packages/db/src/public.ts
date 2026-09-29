@@ -13,6 +13,7 @@
 // 1) — enforced at compile time by plan 03-06's ESLint rule and CI grep.
 
 import postgres from "postgres";
+import { pgArrayTypes } from "./pg-types";
 
 /** The exact five tables/views this binding may read. Nothing else is granted to vamos_public. */
 export const PUBLIC_TABLES = [
@@ -34,6 +35,7 @@ export function publicSql(connectionString: string): postgres.Sql {
   return postgres(connectionString, {
     max: 5,
     fetch_types: false,
+    types: pgArrayTypes,
     prepare: true,
     connect_timeout: 10,
   });
