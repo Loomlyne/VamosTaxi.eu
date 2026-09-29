@@ -838,7 +838,9 @@
       rule: str(s.rule),
       ruleId: str(s.ruleId),
       kind: SURCHARGE_KINDS.indexOf(s.kind) === -1 ? "amount" : s.kind,
-      amounts: cleanMoneySet(s.amounts), pct: str(s.pct)
+      amounts: cleanMoneySet(s.amounts), pct: str(s.pct),
+      labelDe: str(s.labelDe), labelFr: str(s.labelFr), labelAr: str(s.labelAr),
+      machineLangs: Array.isArray(s.machineLangs) ? s.machineLangs.slice() : []
     };
   }
 
