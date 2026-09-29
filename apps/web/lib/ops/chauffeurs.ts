@@ -114,15 +114,6 @@ export function normalizeChauffeurEmail(email: string | null | undefined): strin
   return trimmed || null;
 }
 
-export function emailsMatch(
-  left: string | null | undefined,
-  right: string | null | undefined,
-): boolean {
-  const a = normalizeChauffeurEmail(left);
-  const b = normalizeChauffeurEmail(right);
-  return a !== null && a === b;
-}
-
 export function assertChauffeurInput(input: ChauffeurInput): AssertedChauffeurInput {
   const fullName = input.fullName.trim();
   if (!fullName) {
@@ -281,9 +272,10 @@ function applyDeskDetail(row: ChauffeurDetail, extras: DeskExtras): ChauffeurDet
   return { ...applyDesk(row, extras), licenceNumber: row.licenceNumber };
 }
 
-// List projection omits the licence number on purpose: no component change
-// and no accidental column spread can put it into a table, a CSV export or
-// a client payload. loadChauffeur is the only reader that selects it.
+// loadChauffeurDetailsList selects the licence number for the detail-bearing
+// list. loadChauffeurs below omits it on purpose: no component change and no
+// accidental column spread can put it into a table, a CSV export or a client
+// payload.
 export async function loadChauffeurDetailsList(
   env: CloudflareEnv,
   claims: VamosClaims,

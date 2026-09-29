@@ -48,11 +48,6 @@ export type VehicleRow = {
   nightChauffeurId: string | null;
 };
 
-export type VehicleOption = {
-  id: string;
-  label: string;
-};
-
 export type VehicleInput = {
   vehicleClassId: string;
   model: string;
@@ -282,12 +277,6 @@ type VehicleSqlRow = {
   updated_at: Date | string;
 };
 
-type OptionSqlRow = {
-  id: string;
-  plate: string;
-  model: string;
-};
-
 function mapClassRow(row: ClassSqlRow): VehicleClassRow {
   const slug = isClassSlug(row.slug) ? row.slug : "economy";
   return {
@@ -386,22 +375,5 @@ export async function loadVehicles(
         nightChauffeurId: seats?.nightId ?? null,
       };
     });
-  });
-}
-
-export async function loadVehicleOptions(
-  env: CloudflareEnv,
-  claims: VamosClaims,
-): Promise<VehicleOption[]> {
-  return asStaff(env, claims, async (sql) => {
-    const rows = await sql<OptionSqlRow[]>`
-      select id, plate, model
-      from public.vehicles
-      order by plate
-    `;
-    return rows.map((row: OptionSqlRow) => ({
-      id: row.id,
-      label: `${row.plate} ${row.model}`,
-    }));
   });
 }
