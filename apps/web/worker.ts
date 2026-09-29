@@ -108,6 +108,15 @@ export default {
       emit("error", "reminder_24h", { outcome: "failed" });
     }
 
+    // 26.3-01 (D-39): a paid booking's confirmation is resent within the hour —
+    // stuck or failed claims, and paid bookings that never got a claim.
+    try {
+      await sweepStuckNotifications(env);
+      emit("info", "notification_sweep", { outcome: "ok" });
+    } catch {
+      emit("error", "notification_sweep", { outcome: "failed" });
+    }
+
     // In-process hourly probe (LAUNCH-03). Do not HTTP-loopback to the route.
     try {
       const health = await probeHealth(env);
