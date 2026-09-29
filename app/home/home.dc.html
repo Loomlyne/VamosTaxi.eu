@@ -114,7 +114,7 @@ return p.href?React.createElement('a',{href:p.href,'aria-label':'Vamos Taxi',sty
 .vt-btn--ghost:active:not([disabled]),.vt-btn--outline:active:not([disabled]),.vt-btn--tertiary:active:not([disabled]){transform:translateY(1px)}
 .vt-btn:focus-visible{box-shadow:var(--vt-ring)!important}
 .vt-btn[disabled],.vt-btn[aria-disabled="true"]{transform:none}.vt-select .vt-input--focus{box-shadow:none}
-input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] input:focus{outline:none;box-shadow:none}body{margin:0}@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}@keyframes vt-skelpulse{0%,100%{opacity:.5}50%{opacity:.85}}
+input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] input:focus{outline:none;box-shadow:none}body{margin:0}a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}@keyframes vt-skelpulse{0%,100%{opacity:.5}50%{opacity:.85}}
 @keyframes vt-fade-in{from{opacity:0}to{opacity:1}}
 @keyframes vt-sheet-in{from{transform:translateY(14px);opacity:.5}to{transform:translateY(0);opacity:1}}
 @keyframes vt-slide-up{from{transform:translateY(100%)}to{transform:translateY(0)}}
@@ -254,19 +254,11 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 [data-party]{grid-template-columns:repeat(2,108px)}
 [data-fleet-strip]{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}[data-fleet-card]{flex:none;width:100%;min-width:0;max-width:none;flex-direction:row;align-items:flex-start}[data-fleet-card] [data-fleet-img]{width:146px;height:146px;flex:0 0 146px;aspect-ratio:1/1}
 [data-dest-strip]{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:10px;justify-content:start}[data-dest-card]{flex:none;width:100%;min-width:0;max-width:none}[data-fx-to]{font-size:var(--vt-heading-3)}}
-[data-shell]{display:block;background:transparent}
-[data-sheetbody]{display:flex;flex-direction:column;gap:14px;background:transparent}
-[data-sheetonly]{display:none}
 [data-swaprot]{display:inline-flex}
-@media (max-width:1079px){[data-shell][data-open="0"]{display:none}
-[data-shell][data-open="1"]{position:fixed;inset:0;z-index:400;background:var(--vt-bg-scrim);display:flex;align-items:flex-end;justify-content:center;animation:vt-fade-in 140ms ease}
-[data-shell][data-open="1"] [data-sheetbody]{width:100%;max-width:640px;max-height:92svh;overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--vt-bg-surface);border-radius:var(--vt-radius-xl) var(--vt-radius-xl) 0 0;box-shadow:var(--vt-shadow-xl);padding:14px 22px 22px;gap:13px;animation:vt-slide-up 280ms cubic-bezier(.16,1,.3,1)}
-[data-shell][data-open="1"] [data-sheetonly="1"]{display:flex}
-[data-shell][data-open="1"] [data-sheetonly="cta"]{display:block}}
-@media (max-width:699px){[data-shell][data-open="1"] [data-sheetbody]{padding:12px 16px 20px}
-[data-swaprot]{transform:rotate(90deg)}}#fleet>strong{color:var(--vt-text-inverse)!important}#fleet>span:last-child{color:var(--vt-text-inverse-muted)!important}@media (min-width:1080px){#book [data-sheetbody]{background:var(--vt-bg-surface);border-radius:var(--vt-radius-xl);box-shadow:var(--vt-shadow-xl);margin:-16px calc(clamp(12px,3vw,18px) * -1) 0;padding:16px clamp(12px,3vw,18px) 14px;box-sizing:border-box}#book [data-sheetbody] [role=tablist]{background:var(--vt-grey-100)}}[data-fleet-card]{transition:box-shadow var(--vt-dur-fast,.2s) ease,border-color var(--vt-dur-fast,.2s) ease}[data-fleet-card] [data-fleet-img]{transition:filter .2s ease}:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}@media (max-width:1079px){#book{background:var(--vt-bg-surface);border-radius:var(--vt-radius-xl);box-shadow:var(--vt-shadow-xl)}#book [role=tablist]{background:var(--vt-grey-100)}#book [data-book-inline]{display:flex;flex-direction:column;gap:10px;min-inline-size:0;box-sizing:border-box;background:transparent;box-shadow:none}}@media (min-width:1080px){#book [data-book-inline]{display:none}}[data-hero] [data-trust]{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--vt-space-4) var(--vt-space-6);margin-block-start:var(--vt-space-4);min-inline-size:0;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);line-height:1.4;color:var(--vt-text-inverse)}[data-hero] [data-trust-word]{font-weight:600;white-space:nowrap}[data-hero] [data-trust-stars]{display:inline-flex;align-items:center;gap:2px;direction:ltr;flex:0 0 auto}[data-hero] [data-trust-score]{font-weight:600;font-variant-numeric:tabular-nums;direction:ltr;white-space:nowrap}[data-hero] [data-trust-count]{color:var(--vt-text-inverse-muted);white-space:nowrap}[data-hero] [data-trust-empty]{color:var(--vt-text-inverse)}[data-hero] [data-trust-lockup]{position:relative;display:block;flex:0 0 auto;block-size:var(--vt-space-8);inline-size:min(100%,calc(var(--vt-space-8) * 1132.8 / 278.2));max-inline-size:100%}[data-hero] [data-trust-mark],[data-hero] [data-trust-mark-word]{display:block;block-size:100%;inline-size:100%;object-fit:fill;object-position:left center;background:transparent;padding:0;border:0;border-radius:0;box-shadow:none}[data-hero] [data-trust-mark-word]{position:absolute;inset:0;clip-path:inset(0 0 0 25.11%);filter:brightness(0) invert(1);pointer-events:none}[data-hero] [data-trust-stars] img{display:block;flex:0 0 auto;block-size:var(--vt-space-5);inline-size:calc(var(--vt-space-5) * 271.3 / 258);object-fit:contain;background:transparent;padding:0;border:0;border-radius:0;box-shadow:none}[data-hero] [data-trust-link]{color:var(--vt-text-inverse);text-decoration:underline;text-underline-offset:3px;white-space:nowrap}[data-hero] [data-trust-link]:hover{color:var(--vt-white)}@media (prefers-reduced-motion:reduce){[data-hero] [data-trust-link]{transition:none}}
+@media (max-width:699px){
+[data-swaprot]{transform:rotate(90deg)}}#fleet>strong{color:var(--vt-text-inverse)!important}#fleet>span:last-child{color:var(--vt-text-inverse-muted)!important}[data-fleet-card]{transition:box-shadow var(--vt-dur-fast,.2s) ease,border-color var(--vt-dur-fast,.2s) ease}[data-fleet-card] [data-fleet-img]{transition:filter .2s ease}:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}@media (max-width:1079px){#book{background:var(--vt-bg-surface);border-radius:var(--vt-radius-xl);box-shadow:var(--vt-shadow-xl)}#book [role=tablist]{background:var(--vt-grey-100)}#book [data-book-inline]{display:flex;flex-direction:column;gap:10px;min-inline-size:0;box-sizing:border-box;background:transparent;box-shadow:none}}@media (min-width:1080px){#book [data-book-inline]{display:none}}[data-hero] [data-trust]{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--vt-space-4) var(--vt-space-6);margin-block-start:var(--vt-space-4);min-inline-size:0;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);line-height:1.4;color:var(--vt-text-inverse)}[data-hero] [data-trust-word]{font-weight:600;white-space:nowrap}[data-hero] [data-trust-stars]{display:inline-flex;align-items:center;gap:2px;direction:ltr;flex:0 0 auto}[data-hero] [data-trust-score]{font-weight:600;font-variant-numeric:tabular-nums;direction:ltr;white-space:nowrap}[data-hero] [data-trust-count]{color:var(--vt-text-inverse-muted);white-space:nowrap}[data-hero] [data-trust-empty]{color:var(--vt-text-inverse)}[data-hero] [data-trust-lockup]{position:relative;display:block;flex:0 0 auto;block-size:var(--vt-space-8);inline-size:min(100%,calc(var(--vt-space-8) * 1132.8 / 278.2));max-inline-size:100%}[data-hero] [data-trust-mark],[data-hero] [data-trust-mark-word]{display:block;block-size:100%;inline-size:100%;object-fit:fill;object-position:left center;background:transparent;padding:0;border:0;border-radius:0;box-shadow:none}[data-hero] [data-trust-mark-word]{position:absolute;inset:0;clip-path:inset(0 0 0 25.11%);filter:brightness(0) invert(1);pointer-events:none}[data-hero] [data-trust-stars] img{display:block;flex:0 0 auto;block-size:var(--vt-space-5);inline-size:calc(var(--vt-space-5) * 271.3 / 258);object-fit:contain;background:transparent;padding:0;border:0;border-radius:0;box-shadow:none}[data-hero] [data-trust-link]{color:var(--vt-text-inverse);text-decoration:underline;text-underline-offset:3px;white-space:nowrap}[data-hero] [data-trust-link]:hover{color:var(--vt-white)}@media (prefers-reduced-motion:reduce){[data-hero] [data-trust-link]{transition:none}}
 /* 26.3 booking box — From, Flight (airport only), To, When, Travellers, SEE PRICES. One DOM order at every width. */
-#book[data-bookcard]{display:block;box-sizing:border-box;min-width:0;max-width:820px;padding:clamp(14px,2.4vw,22px);background:var(--vt-bg-surface);border-radius:var(--vt-radius-xl);box-shadow:var(--vt-shadow-lg)}
+[data-bookcard]{display:block;box-sizing:border-box;min-width:0;max-width:820px;padding:clamp(14px,2.4vw,22px);background:var(--vt-bg-surface);border-radius:var(--vt-radius-xl);box-shadow:var(--vt-shadow-lg)}
 #book [data-box]{display:grid;box-sizing:border-box;min-width:0;gap:14px 12px;grid-template-columns:minmax(0,1fr);grid-template-areas:"from" "to" "when" "trav" "cta" "note";--vt-control-h-md:var(--vt-control-h-lg)}
 #book [data-box][data-air="1"]{grid-template-areas:"from" "flight" "to" "when" "trav" "cta" "note"}
 #book [data-box]>[data-bx]{position:relative;min-width:0}
@@ -312,6 +304,17 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 #book [data-bx=note]{justify-content:flex-start}
 }
 @media (prefers-reduced-motion:reduce){#book [data-bx=flight],#book [data-trav-shell][data-open="1"],#book [data-trav-panel]{animation:none}}
+/* 26.4 home bar + sheet (D-01): one boundary. ≤1080 the bar and sheet, ≥1081 the box. */
+[data-bar-wrap],[data-bar-dock]{display:none}
+@media (max-width:1080px){
+[data-bookcard]{display:none!important}
+[data-bar-wrap]{display:block;box-sizing:border-box;min-width:0;max-width:640px;margin-top:clamp(20px,4vw,34px);scroll-margin-top:24px}
+[data-bar-notes]{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;margin:14px 0 0;min-width:0}
+[data-bar-note]{display:inline-flex;align-items:center;gap:6px;font-size:13px;line-height:1.4;color:var(--vt-text-inverse-muted)}
+[data-bar-dock]{display:block;position:fixed;top:var(--vt-dock-top,84px);inset-inline:clamp(12px,3vw,28px);z-index:190;box-sizing:border-box;opacity:0;visibility:hidden;transform:translateY(-8px);pointer-events:none;transition:opacity 140ms var(--vt-ease-out),transform 140ms var(--vt-ease-out),visibility 0s linear 140ms}
+[data-bar-dock][data-show="1"]{opacity:1;visibility:visible;transform:none;pointer-events:auto;transition:opacity 200ms var(--vt-ease-out),transform 200ms var(--vt-ease-out),visibility 0s}
+}
+@media (prefers-reduced-motion:reduce){[data-bar-dock],[data-bar-dock][data-show="1"]{transition:none}}
 </style>
 </helmet>
 <div style="font-family:var(--vt-font-body);color:var(--vt-text-primary);background:var(--vt-bg-page)">
@@ -332,7 +335,14 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <p style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">{{ tKicker }}</p>
 <h1 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-display-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:var(--vt-display-leading);color:var(--vt-white);max-width:16ch;text-wrap:balance">{{ tH1 }}</h1>
 <p style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-lg);line-height:1.6;color:var(--vt-text-inverse-muted);max-width:52ch;text-wrap:pretty">{{ tSub }}</p>
-</div><div id="book" data-bookcard="1" style="margin-top:clamp(20px,4vw,34px);scroll-margin-top:24px">
+</div><div id="{{ barId }}" data-bar-wrap="1" data-om-label="Booking bar">
+<div ref="{{ barSlotRef }}"><dc-import name="BookingBar" from="{{ barFrom }}" to="{{ barTo }}" whenLabel="{{ whenLabel }}" pax="{{ paxN }}" bags="{{ bagsN }}" travellersSet="{{ travSet }}" complete="{{ tripComplete }}" expanded="{{ sheetOpen }}" onOpen="{{ openFromHero }}" hint-size="100%,54px"></dc-import></div>
+<div data-bar-notes="1" data-om-label="Trust line">
+<span data-bar-note="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span>Price fixed before you pay</span></span>
+<span data-bar-note="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span>Flight tracked</span></span>
+<span data-bar-note="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span data-tok data-vt-no-i18n="1">Free cancellation window</span></span>
+</div>
+</div><div id="{{ boxId }}" data-bookcard="1" style="margin-top:clamp(20px,4vw,34px);scroll-margin-top:24px">
 <div data-box="1" data-air="{{ airAttr }}" ref="{{ boxRef }}" data-om-label="Booking box">
 <div data-bx="from" data-sugroot="1" data-book-field="pickup" data-om-label="From">
 <span data-bx-kicker="1">From</span>
@@ -535,6 +545,12 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 
 <dc-import name="SiteFooter" hint-size="100%,520px" show-payment-marks="{{ true }}"></dc-import>
 <dc-import name="CookieBanner" hint-size="0,0"></dc-import>
+
+<div data-bar-dock="1" data-show="{{ dockAttr }}" style="{{ dockStyle }}" data-om-label="Docked booking bar">
+<dc-import name="BookingBar" docked="{{ yes }}" from="{{ barFrom }}" to="{{ barTo }}" whenLabel="{{ whenLabel }}" pax="{{ paxN }}" bags="{{ bagsN }}" travellersSet="{{ travSet }}" complete="{{ tripComplete }}" expanded="{{ sheetOpen }}" onOpen="{{ openFromDock }}" hint-size="100%,54px"></dc-import>
+</div>
+
+<dc-import name="BookingSheet" open="{{ sheetOpen }}" step="{{ sheetStep }}" fromText="{{ pickupText }}" fromHits="{{ fromHits }}" fromChosen="{{ fromChosen }}" fromAirport="{{ air }}" toText="{{ dropText }}" toHits="{{ toHits }}" toChosen="{{ toChosen }}" samePlace="{{ samePlace }}" flight="{{ fno }}" flightOpen="{{ flightOpenBool }}" flightValid="{{ flightValid }}" date="{{ sheetDate }}" time="{{ time }}" minDate="{{ minDate }}" whenError="{{ sheetWhenErr }}" whenLabel="{{ whenLabel }}" pax="{{ paxN }}" bags="{{ bagsN }}" onFromInput="{{ shFromInput }}" onFromPick="{{ shFromPick }}" onFromClear="{{ shFromClear }}" onToInput="{{ shToInput }}" onToPick="{{ shToPick }}" onToClear="{{ shToClear }}" onFlight="{{ shFlight }}" onFlightOpen="{{ openFlightSheet }}" onDate="{{ shDate }}" onTime="{{ shTime }}" onPax="{{ setPaxN }}" onBags="{{ setBagsN }}" onStep="{{ shStep }}" onClose="{{ closeSheet }}" onSubmit="{{ shSubmit }}" hint-size="0,0"></dc-import>
 
 </div>
 
@@ -1101,11 +1117,16 @@ const DEST_IDS = ['hb', 'dolder', 'zermatt'];
 function dispLang(v) { try { const n = new Intl.DisplayNames([v], { type: 'language' }).of(v); return n.charAt(0).toUpperCase() + n.slice(1); } catch (e) { return v.toUpperCase(); } }
 function dispCur(v, lang) { try { return new Intl.DisplayNames([lang], { type: 'currency' }).of(v); } catch (e) { return v; } }
 function hashXY(s) { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return { x: ((h % 53 + 53) % 53) - 26, y: (((h >> 4) % 37 + 37) % 37) - 18 }; }
-function TIER() {
-  if (typeof matchMedia === 'undefined') return 2;
-  if (matchMedia('(max-width:699px)').matches) return 0;
-  if (matchMedia('(max-width:1079px)').matches) return 1;
-  return 2;
+/** One media boundary (26.4 D-01): at or under 1080 px home shows the bar and sheet, from 1081 px the box. */
+function NARROW() { return typeof matchMedia !== 'undefined' && matchMedia('(max-width:1080px)').matches; }
+const BOOK_HREF = /^(?:\/(?:de|fr|ar))?\/?#book$/;
+const WHEN_TAG = { en: 'en-GB', de: 'de-CH', fr: 'fr-CH', ar: 'ar-u-nu-latn' };
+/** Checkout trip-strip line 2, e.g. "Tue 29 Sept, 08:15" (same format as apps/web/lib/checkout/trip-format.ts). */
+function whenText(y, m, d, time, lang) {
+  if (y == null || m == null || d == null) return '';
+  let day = '';
+  try { day = new Intl.DateTimeFormat(WHEN_TAG[lang] || 'en-GB', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' }).format(new Date(Date.UTC(y, m, d))); } catch (e) { return ''; }
+  return /^\d{2}:\d{2}$/.test(time || '') ? day + ', ' + time : day;
 }
 class Component extends DCLogic {
   /** The widget starts completely empty — every field is the traveller's own answer. */
@@ -1123,7 +1144,7 @@ class Component extends DCLogic {
       sug: CLOSED, sugIdx: -1, sugFlip: false, fsug: { open: false, items: [] }, fsugIdx: -1, fsugFlip: false,
       quote: { status: 'empty', results: null, inflight: false }, announce: '', quoteFail: false,
       fleetOffer: [],
-      tier: TIER(), menuOpen: false, sheetOpen: false,
+      narrow: NARROW(), menuOpen: false, sheetOpen: false, sheetStep: 1, barAbove: false, hdOpen: false, dockTop: 84, travSet: false,
       flightConfirmed: false, flightDateChoice: 'today', pendingTimeUpdate: null,
       fno: '', flightOpen: false, errs: { pickup: '', dest: '', when: '', flight: '' }, travOpen: false,
       focused: { pickup: false, dest: false, when: false, flight: false },
@@ -1132,7 +1153,7 @@ class Component extends DCLogic {
     };
   })();
   reqSeq = 0; dusts = {}; _refs = {}; _fillTimers = []; _geoSeq = 0; _ac = null; _fseq = 0; _sseq = 0; _poll = null; _ticks = 0;
-  sheetRef = (el) => { this._sheet = el; };
+  barSlotRef = (el) => { this._barSlot = el; };
   fieldsRef = (el) => { this._fields = el; };
   stripRef = (el) => { this._strip = el; };
   modeNoteRef = (el) => { this._note = el; };
@@ -1158,19 +1179,19 @@ class Component extends DCLogic {
       const raw = d.name;
       const name = String(raw || '').replace(/\s+/g, ' ').trim().slice(0, 200);
       if (name.length < 2) return;
-      const label = this.t().pickup || '';
-      this.setState((s) => {
-        const next = {
-          pickupText: name,
-          pickupLoc: null,
-          touched: Object.assign({}, s.touched, { pickup: true }),
-          autofill: Object.assign({}, s.autofill, { pickup: null }),
-          sug: CLOSED,
-          sugIdx: -1,
-          announce: label ? (label + ', ' + name) : name,
-        };
-        return next;
-      }, () => this.q());
+      const narrow = NARROW();
+      /* ≤1080 the chip opens the sheet at step 1 with To pre-filled, so HowItWorks must not scroll. */
+      if (narrow) d.handled = true;
+      this.setState((s) => ({
+        dropText: name,
+        dropLoc: null,
+        touched: Object.assign({}, s.touched, { dest: true }),
+        autofill: Object.assign({}, s.autofill, { dest: null }),
+        errs: Object.assign({}, s.errs, { dest: '' }),
+        sug: CLOSED,
+        sugIdx: -1,
+        announce: ((window.VamosLocale && window.VamosLocale.t) ? window.VamosLocale.t('To') : 'To') + ', ' + name,
+      }), () => { if (narrow) this.openSheetAt(1); });
     };
     window.addEventListener('vamos:dest-pick', this._onDestPick);
     /* Arriving from a footer service link: preset the booking card and land on it.
@@ -1188,12 +1209,12 @@ class Component extends DCLogic {
       if (location.hash && location.hash.length > 1) {
         /* The hash arrives before React has mounted the section it names, so the
            browser gives up and leaves you on the hero. Run it again now. */
-        land(location.hash.slice(1), -16);
+        land(location.hash.slice(1), NARROW() && location.hash === '#book' ? -(this.headerBottom() + 16) : -16);
       }
     }
     this._away = (e) => {
       const cl = (sel) => !!(e.target.closest && e.target.closest(sel));
-      if (cl('[data-sug-row]')) return;
+      if (cl('[data-sug-row]') || cl('[data-bs]')) return;
       if (this.state.sug.open && !cl('[data-sugroot]')) {
         this.commitTypedPlace();
         this.setState({ sug: CLOSED, sugIdx: -1 });
@@ -1239,16 +1260,28 @@ class Component extends DCLogic {
     document.addEventListener('pointerup', this._sugPtrUp, true);
     document.addEventListener('pointercancel', this._sugPtrUp, true);
     document.addEventListener('scroll', this._sugBoxScroll, true);
-    this._esc = (e) => { if (e.key !== 'Escape') return; if (this.state.travOpen) this.closeTrav(); else if (this.state.sheetOpen) this.closeSheet(); else if (this.state.menuOpen) this.setState({ menuOpen: false }); };
+    this._esc = (e) => { if (e.key !== 'Escape') return; if (this.state.travOpen) this.closeTrav(); else if (this.state.menuOpen) this.setState({ menuOpen: false }); };
     document.addEventListener('keydown', this._esc);
     this._onResize = () => {
-      const tr = TIER(); if (tr === this.state.tier) return;
-      const patch = { tier: tr };
-      if (tr === 2) { patch.menuOpen = false; if (this.state.sheetOpen) { patch.sheetOpen = false; this.lockScroll(false); } }
-      this.setState(patch);
+      const narrow = NARROW();
+      const patch = {};
+      if (narrow !== this.state.narrow) patch.narrow = narrow;
+      /* Crossing to the laptop layout closes the sheet silently; the box shows the same values. */
+      if (!narrow && this.state.sheetOpen) { patch.sheetOpen = false; patch.sug = CLOSED; patch.sugIdx = -1; }
+      if (Object.keys(patch).length) this.setState(patch, () => this.setupDock());
+      else this.setupDock();
     };
     window.addEventListener('resize', this._onResize);
-    this._mqs = ['(max-width:699px)', '(max-width:1079px)'].map((q) => { const m = matchMedia(q); m.addEventListener ? m.addEventListener('change', this._onResize) : m.addListener(this._onResize); return m; });
+    this._mqs = ['(max-width:1080px)'].map((q) => { const m = matchMedia(q); m.addEventListener ? m.addEventListener('change', this._onResize) : m.addListener(this._onResize); return m; });
+    /* The header's own menu is the one thing that hides the docked bar besides the sheet. */
+    this._hdSeen = false;
+    this._hdMo = typeof MutationObserver !== 'undefined' ? new MutationObserver(() => this.syncHeaderMenu()) : null;
+    if (this._hdMo) this._hdMo.observe(document.body, { subtree: true, attributes: true, attributeFilter: ['data-hd-open'] });
+    this._onBookClick = (e) => this.bookClick(e);
+    document.addEventListener('click', this._onBookClick, true);
+    /* Back from checkout out of the bfcache: home never resumes a trip. */
+    this._onPageShow = (e) => { if (e && e.persisted) this.resetTrip(); };
+    window.addEventListener('pageshow', this._onPageShow);
     this._onResize();
     this.askLocation();
     this._onReviews = () => this.forceUpdate();
@@ -1259,6 +1292,7 @@ class Component extends DCLogic {
     document.fonts && document.fonts.ready ? document.fonts.ready.then(() => this.q()) : this.q();
   }
   componentWillUnmount() {
+    this.teardownSheetBits();
     clearInterval(this._reviewsWait); clearTimeout(this._reviewsStop); if (this._onReviews) window.removeEventListener('vamos:reviews', this._onReviews); if (this._offReviews) this._offReviews();
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale); if (this._onDestPick) window.removeEventListener('vamos:dest-pick', this._onDestPick); document.removeEventListener('mousedown', this._away); document.removeEventListener('pointerdown', this._sugPtrDown, true); document.removeEventListener('pointermove', this._sugPtrMove, true); document.removeEventListener('pointerup', this._sugPtrUp, true); document.removeEventListener('pointercancel', this._sugPtrUp, true); document.removeEventListener('scroll', this._sugBoxScroll, true); document.removeEventListener('keydown', this._esc); window.removeEventListener('resize', this._onResize); clearTimeout(this._sugMovedT); (this._mqs || []).forEach((m) => { m.removeEventListener ? m.removeEventListener('change', this._onResize) : m.removeListener(this._onResize); }); Object.values(this.dusts).forEach((d) => d.destroy()); this.lockScroll(false); this.stopPoll(); clearTimeout(this._deb); clearTimeout(this._ft); clearTimeout(this._geoT); this._geoSeq++; if (this._ac) { try { this._ac.abort(); } catch (e) {} } this.clearFill(); }
   t() { return Object.assign({}, T.en, T[this.state.lang]); }
@@ -1738,45 +1772,154 @@ class Component extends DCLogic {
     this.setState(patch, () => { if (f === 'pickup') this.resolveAir(); });
   };
   lockScroll(on) { try { document.body.style.overflow = on ? 'hidden' : ''; } catch (e) {} }
-  toggleMenu = () => this.setState((s) => ({ menuOpen: !s.menuOpen }));
-  openSheet = (e) => {
-    this._returnFocus = (e && e.currentTarget) || null;
-    this.lockScroll(true);
-    const focus = this._sheetFocus;
-    this.setState({ sheetOpen: true, menuOpen: false }, () => {
-      if (this._sheet && this._sheet.focus) this._sheet.focus();
-      this.focusSheetField(focus);
-      this._sheetFocus = '';
-    });
-  };
-  openSheetPickup = (e) => { this._sheetFocus = 'pickup'; this.openSheet(e); };
-  openSheetDest = (e) => { this._sheetFocus = 'dest'; this.openSheet(e); };
-  openSheetWhen = (e) => { this._sheetFocus = 'when'; this.openSheet(e); };
-  openSheetParty = (e) => { this._sheetFocus = 'party'; this.openSheet(e); };
-  focusSheetField(field) {
-    if (!field) return;
-    const root = this._fields || this._sheet;
-    if (!root || !root.querySelector) return;
-    const sel = {
-      pickup: '[data-f="pickup"] input',
-      dest: '[data-f="dest"] input',
-      when: '[data-f="when"] button, [data-f="when"] input',
-      party: '[data-f="party"] button, [data-f="party"] input',
-      flight: '[data-f="flight"] input',
-    }[field];
-    if (!sel) return;
-    const go = () => {
-      const el = root.querySelector(sel);
-      if (el && typeof el.focus === 'function') try { el.focus(); } catch (err) {}
-    };
-    if (typeof requestAnimationFrame === 'function') requestAnimationFrame(() => setTimeout(go, 40));
-    else setTimeout(go, 80);
+  /* ── 26.4 bar + sheet (≤1080) ─────────────────────────────────────────────
+     The sheet is a view of the same trip state as the laptop box: no copy, no storage.
+     It owns its scroll lock, history entries, focus trap and inert background (BookingSheet). */
+  /** First step still needing an answer, from a silent check of the trip. 4 = everything is valid. */
+  firstStep() {
+    const r = this.checkTrip();
+    if (r.errs.pickup || r.errs.flight) return 1;
+    if (r.errs.dest) return 2;
+    if (r.errs.when) return 3;
+    return 4;
   }
-  closeSheet = () => {
-    this.lockScroll(false);
-    this.setState({ sheetOpen: false, sug: CLOSED, sugIdx: -1 }, () => { const el = this._returnFocus; if (el && el.isConnected) el.focus(); });
+  openSheetAt(step) {
+    const n = Math.min(4, Math.max(1, step | 0));
+    this.setState((s) => ({ sheetOpen: true, sheetStep: n, sug: CLOSED, sugIdx: -1, travSet: s.travSet || n === 4 }), () => this.syncSheetSug(n));
+  }
+  openFromHero = () => this.openSheetAt(this.firstStep());
+  openFromDock = () => this.openSheetAt(this.firstStep());
+  closeSheet = () => this.setState({ sheetOpen: false, sug: CLOSED, sugIdx: -1 });
+  /** Typed but unchosen text keeps its suggestion list when a step is (re)shown. */
+  syncSheetSug(step) {
+    const s = this.state;
+    const field = step === 1 ? 'pickup' : step === 2 ? 'dropoff' : '';
+    const txt = String(field === 'pickup' ? s.pickupText : s.dropText || '').trim();
+    const chosen = field === 'pickup' ? s.pickupLoc : s.dropLoc;
+    if (field && txt.length >= 2 && !chosen) {
+      const items = this.paintSug(field, txt, []);
+      this.setState({ sug: { open: true, field, at: 'a', items, saved: [], geoCount: items.length, custom: false, text: txt, typed: true }, sugIdx: -1 });
+      clearTimeout(this._geoT);
+      this._geoT = setTimeout(() => this.geoSearch(field, txt), 0);
+    } else if (s.sug.open) {
+      this.setState({ sug: CLOSED, sugIdx: -1 });
+    }
+  }
+  shStep = (n) => { const step = Math.min(4, Math.max(1, parseInt(n, 10) || 1)); this.setState((s) => ({ sheetStep: step, travSet: s.travSet || step === 4 }), () => this.syncSheetSug(step)); };
+  shFromInput = (text) => this.editRoute('pickup', 'a')({ target: { value: String(text == null ? '' : text) } });
+  shToInput = (text) => this.editRoute('dropoff', 'a')({ target: { value: String(text == null ? '' : text) } });
+  shFromClear = () => this.clearField('pickup')();
+  shToClear = () => this.clearField('dropoff')();
+  hitAt(field, id) {
+    if (this.state.sug.field !== field) return null;
+    return (this.state.sug.items || []).filter((l) => l && l.n).slice(0, 10)[parseInt(id, 10)] || null;
+  }
+  shFromPick = (id) => { const l = this.hitAt('pickup', id); if (l) this.choose(l); };
+  shToPick = (id) => { const l = this.hitAt('dropoff', id); if (l) this.choose(l); };
+  hitsFor(field) {
+    const s = this.state;
+    const txt = field === 'pickup' ? s.pickupText : s.dropText;
+    if (!s.sug.open || s.sug.field !== field || !String(txt || '').trim()) return [];
+    return (s.sug.items || []).filter((l) => l && l.n).slice(0, 10).map((l, i) => ({ id: String(i), name: l.n, sub: l.s || '', tone: '', icon: l.icon || 'map-pin' }));
+  }
+  shFlight = (text) => { const v = this.normFlight(text); this.setState((s) => ({ fno: v, errs: Object.assign({}, s.errs, { flight: '' }) })); };
+  openFlightSheet = () => this.setState({ flightOpen: true });
+  shDate = (v) => {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(v || ''));
+    this.setState((s) => ({
+      day: m ? +m[3] : null, dayY: m ? +m[1] : null, dayM: m ? +m[2] - 1 : null, dayLabel: null,
+      touched: Object.assign({}, s.touched, { when: true }), autofill: Object.assign({}, s.autofill, { when: null }),
+      errs: Object.assign({}, s.errs, { when: '' }),
+    }));
   };
-  scrimClick = (e) => { if (e.target === e.currentTarget) this.closeSheet(); };
+  shTime = (v) => {
+    const t = /^\d{2}:\d{2}$/.test(String(v || '')) ? String(v) : '';
+    this.setState((s) => ({ time: t, touched: Object.assign({}, s.touched, { when: true }), autofill: Object.assign({}, s.autofill, { when: null }), errs: Object.assign({}, s.errs, { when: '' }) }));
+  };
+  setPaxN = (n) => { const v = parseInt(n, 10); this.setState({ pax: Math.min(8, Math.max(1, Number.isFinite(v) ? v : 1)) }); };
+  setBagsN = (n) => { const v = parseInt(n, 10); this.setState({ bags: Math.min(16, Math.max(0, Number.isFinite(v) ? v : 0)) }); };
+  /** SEE PRICES from the sheet (it has already removed its own history entries). */
+  shSubmit = () => {
+    const r = this.checkTrip();
+    if (r.ok) { this.goCheckout(); return; }
+    const step = r.errs.pickup || r.errs.flight ? 1 : r.errs.dest ? 2 : 3;
+    this.setState({ sheetStep: step, sheetOpen: true }, () => this.syncSheetSug(step));
+  };
+  /** Home starts empty every time it loads or comes back from the bfcache. */
+  resetTrip() {
+    clearTimeout(this._geoT); this._geoSeq = (this._geoSeq || 0) + 1;
+    this.setState({
+      pickupText: '', pickupLoc: null, dropText: '', dropLoc: null,
+      day: null, time: '', dayLabel: null, dayY: null, dayM: null,
+      pax: 1, bags: 0, fno: '', flightOpen: false, travOpen: false, travSet: false,
+      errs: { pickup: '', dest: '', when: '', flight: '' },
+      touched: { pickup: false, dest: false, when: false },
+      sug: CLOSED, sugIdx: -1, sheetOpen: false, sheetStep: 1,
+    });
+  }
+  /** Bottom edge of the floating header, as the docked bar sees it. */
+  headerBottom() {
+    const h = typeof document !== 'undefined' ? document.querySelector('[data-hd]') : null;
+    const top = Math.min(14, Math.max(8, (window.innerWidth || 0) * 0.014));
+    if (!h) return top + 68;
+    const r = h.getBoundingClientRect();
+    return h.getAttribute('data-hd-float') === '1' ? r.bottom : top + r.height;
+  }
+  /** Watches the in-hero bar; once it is wholly above the header line the docked twin appears (D-05). */
+  setupDock() {
+    if (!this.state.narrow || !this._barSlot || typeof IntersectionObserver === 'undefined') {
+      if (this._io) { this._io.disconnect(); this._io = null; this._dockKey = ''; }
+      if (this.state.barAbove) this.setState({ barAbove: false });
+      return;
+    }
+    const hb = Math.round(this.headerBottom());
+    const key = String(hb);
+    if (this._io && this._dockKey === key) return;
+    if (this._io) this._io.disconnect();
+    this._dockKey = key;
+    this._io = new IntersectionObserver((entries) => {
+      const e = entries[entries.length - 1];
+      if (!e) return;
+      const above = !e.isIntersecting && e.boundingClientRect.bottom <= hb + 1;
+      const top = Math.round(this.headerBottom()) + 8;
+      if (above !== this.state.barAbove || Math.abs(top - this.state.dockTop) > 1) this.setState({ barAbove: above, dockTop: top });
+    }, { rootMargin: '-' + hb + 'px 0px 0px 0px', threshold: 0 });
+    this._io.observe(this._barSlot);
+  }
+  syncHeaderMenu() {
+    const open = !!document.querySelector('[data-hd][data-hd-open="1"]');
+    if (open !== this.state.hdOpen) this.setState({ hdOpen: open });
+    if (!open && this._pendingBook) this.flushPendingBook();
+  }
+  flushPendingBook() {
+    const step = this._pendingBook; this._pendingBook = 0; clearTimeout(this._pendT);
+    if (step) this.openSheetAt(step);
+  }
+  /** Every /#book link on home: ≤1080 opens the sheet at step 1, ≥1081 scrolls to the box and focuses From (D-13). */
+  bookClick(e) {
+    if (!e || e.defaultPrevented || (e.button && e.button > 0) || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+    if (!a || !BOOK_HREF.test(a.getAttribute('href') || '')) return;
+    if (NARROW()) {
+      e.preventDefault();
+      if (document.querySelector('[data-hd][data-hd-open="1"]')) {
+        /* Let the header menu finish closing (it releases its own body lock) before the sheet takes the lock. */
+        this._pendingBook = 1;
+        const b = document.querySelector('[data-hd-menu-btn]'); if (b) b.click();
+        clearTimeout(this._pendT); this._pendT = setTimeout(() => this.flushPendingBook(), 900);
+      } else this.openSheetAt(1);
+      return;
+    }
+    clearTimeout(this._focusT);
+    this._focusT = setTimeout(() => { const i = this._box && this._box.querySelector('[data-bx="from"] input'); if (i) { try { i.focus({ preventScroll: true }); } catch (err) {} } }, 500);
+  }
+  teardownSheetBits() {
+    if (this._io) { this._io.disconnect(); this._io = null; }
+    if (this._hdMo) { this._hdMo.disconnect(); this._hdMo = null; }
+    if (this._onBookClick) document.removeEventListener('click', this._onBookClick, true);
+    if (this._onPageShow) window.removeEventListener('pageshow', this._onPageShow);
+    clearTimeout(this._pendT); clearTimeout(this._focusT);
+  }
   /** The list is a child of its field, so it can never drift: only the direction is measured. */
   flipFor(e) {
     try {
@@ -2030,7 +2173,8 @@ class Component extends DCLogic {
     const el = sel ? b.querySelector(sel) : null;
     if (el) { try { el.focus({ preventScroll: false }); } catch (err) {} }
   }
-  submitBox = () => {
+  /** The 26.3 rules plus D-09, as a pure check: nothing is set, nothing is focused. */
+  checkTrip() {
     const s = this.state; const errs = { pickup: '', dest: '', when: '', flight: '' };
     const pl = s.pickupLoc, dl = s.dropLoc;
     const pText = String(s.pickupText || '').replace(/\s+/g, ' ').trim();
@@ -2049,23 +2193,31 @@ class Component extends DCLogic {
       const mn = minStamp();
       if (when < scheduledLocal(mn.y, mn.m, mn.d, mn.hm)) errs.when = 'Choose a time at least 3 hours from now';
     }
-    if (errs.pickup || errs.dest || errs.when || errs.flight) {
-      this.setState({ errs: errs, travOpen: false }, () => this.focusFirstErr());
-      return;
-    }
+    const ok = !(errs.pickup || errs.dest || errs.when || errs.flight);
+    return { ok: ok, errs: errs, when: when, air: air, fl: fl, pText: pText, dText: dText, pl: pl, dl: dl };
+  }
+  /** Hands the trip to /checkout in the URL. Used by the box and by the sheet alike. */
+  goCheckout() {
+    const s = this.state; const r = this.checkTrip();
+    if (!r.ok) return;
     const p = new URLSearchParams();
-    p.set('from', pText.slice(0, 200));
-    if (pl.mapbox_id) p.set('fid', String(pl.mapbox_id).slice(0, 256));
+    p.set('from', r.pText.slice(0, 200));
+    if (r.pl.mapbox_id) p.set('fid', String(r.pl.mapbox_id).slice(0, 256));
     p.set('gs', geoSession());
-    p.set('to', dText.slice(0, 200));
-    if (dl.mapbox_id) p.set('tid', String(dl.mapbox_id).slice(0, 256));
-    p.set('when', when);
+    p.set('to', r.dText.slice(0, 200));
+    if (r.dl.mapbox_id) p.set('tid', String(r.dl.mapbox_id).slice(0, 256));
+    p.set('when', r.when);
     p.set('pax', String(Math.min(8, Math.max(1, parseInt(s.pax, 10) || 1))));
     p.set('bags', String(Math.min(16, Math.max(0, parseInt(s.bags, 10) || 0))));
-    if (fl) p.set('flight', fl);
+    if (r.fl) p.set('flight', r.fl);
     const prefix = (s.lang === 'de' || s.lang === 'fr' || s.lang === 'ar') ? '/' + s.lang : '';
-    this.setState({ errs: errs });
+    this.setState({ errs: r.errs });
     location.assign(prefix + '/checkout?' + p.toString());
+  }
+  submitBox = () => {
+    const r = this.checkTrip();
+    if (!r.ok) { this.setState({ errs: r.errs, travOpen: false }, () => this.focusFirstErr()); return; }
+    this.goCheckout();
   };
   renderVals() {
     const t = this.t(); const s = this.state;
@@ -2081,7 +2233,27 @@ class Component extends DCLogic {
     const paxN = Math.min(8, Math.max(1, parseInt(s.pax, 10) || 1));
     const bagsN = Math.min(16, Math.max(0, parseInt(s.bags, 10) || 0));
     const e = s.errs || {};
+    const trip = this.checkTrip();
+    const pTxt = String(s.pickupText || '').trim(), dTxt = String(s.dropText || '').trim();
+    const whenSet = s.day != null && s.dayY != null && s.dayM != null;
+    const sheetDate = whenSet ? s.dayY + '-' + pad2(s.dayM + 1) + '-' + pad2(s.day) : '';
+    const zn = zurichNow();
+    const sheetWhenErr = whenSet && /^\d{2}:\d{2}$/.test(s.time || '') && trip.errs.when ? trip.errs.when : '';
+    const sameP = !!(s.pickupLoc && s.dropLoc && ((s.pickupLoc.mapbox_id && s.pickupLoc.mapbox_id === s.dropLoc.mapbox_id) || (pTxt && pTxt.toLowerCase() === dTxt.toLowerCase())));
+    const dockShow = !!(s.narrow && s.barAbove && !s.sheetOpen && !s.hdOpen);
     return {
+      barId: s.narrow ? 'book' : undefined, boxId: s.narrow ? undefined : 'book', barSlotRef: this.barSlotRef,
+      barFrom: pTxt, barTo: dTxt, whenLabel: whenText(s.dayY, s.dayM, s.day, s.time, s.lang), travSet: !!s.travSet, tripComplete: trip.ok,
+      sheetOpen: !!s.sheetOpen, sheetStep: s.sheetStep, openFromHero: this.openFromHero, openFromDock: this.openFromDock, closeSheet: this.closeSheet,
+      dockAttr: dockShow ? '1' : '0', dockStyle: 'top:' + s.dockTop + 'px',
+      fromHits: this.hitsFor('pickup'), toHits: this.hitsFor('dropoff'),
+      fromChosen: !!s.pickupLoc && pTxt.length >= 2, toChosen: !!s.dropLoc && dTxt.length >= 2, samePlace: sameP, air: air,
+      flightOpenBool: !!s.flightOpen, flightValid: !s.fno || FLIGHT_RE.test(s.fno),
+      sheetDate: sheetDate, minDate: zn.y + '-' + pad2(zn.m + 1) + '-' + pad2(zn.d), sheetWhenErr: sheetWhenErr,
+      shFromInput: this.shFromInput, shFromPick: this.shFromPick, shFromClear: this.shFromClear,
+      shToInput: this.shToInput, shToPick: this.shToPick, shToClear: this.shToClear,
+      shFlight: this.shFlight, openFlightSheet: this.openFlightSheet, shDate: this.shDate, shTime: this.shTime,
+      setPaxN: this.setPaxN, setBagsN: this.setBagsN, shStep: this.shStep, shSubmit: this.shSubmit,
       n0: 0, n1: 1, n2: 2, n8: 8, n12: 12, n13: 13, n14: 14, n15: 15, n16: 16, n18: 18, n20: 20, n24: 24, n30: 30,
       yes: true, no: false,
       dir: s.lang === 'ar' ? 'rtl' : 'ltr', lang: s.lang, cur: s.cur, pickLang: this.pickLang, pickCur: this.pickCur,
