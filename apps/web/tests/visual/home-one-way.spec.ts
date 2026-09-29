@@ -1,9 +1,10 @@
 import { test, expect, type Page } from "@playwright/test";
 import { serveMock, waitForMockReady } from "../support/mock-harness";
 
-const RETURN_NAME = /^(Return|Rückfahrt|Aller-retour|ذهاب وعودة)$/;
-const ONE_WAY = /^(Airport pickup|Flughafenabholung|Prise en charge à l’aéroport|استقبال في المطار)$/;
-const FIXED = /^(City to city|Stadt zu Stadt|De ville en ville|بين المدن)$/;
+// Phase 26.3 plan 04 (D-04): the home booking box has no trip-type tabs any more. One box,
+// one flow. What the box does is proven in home-booking-box.spec.ts.
+
+const TAB_NAMES = /^(One way|Airport pickup|City to city|Return|Einfache Fahrt|Flughafenabholung|Stadt zu Stadt|Rückfahrt|Aller simple|Aller-retour|De ville en ville)$/;
 
 async function dismissCookies(page: Page) {
   const accept = page.getByRole("button", { name: /Accept all/i });
@@ -12,17 +13,16 @@ async function dismissCookies(page: Page) {
   }
 }
 
-test.describe("Home one-way and fixed-route tabs @component", () => {
-  test("booking box has One way and Fixed routes, never Return @component", async ({ page }) => {
+test.describe("Home has no trip-type tabs @component", () => {
+  test("the booking box carries no tablist and no trip-type tab @component", async ({ page }) => {
     const url = await serveMock("app/home/home.dc.html");
     await page.goto(url);
     await waitForMockReady(page);
     await dismissCookies(page);
-    // The booking card is inline at every width since 8575959 (no phone sheet to open).
 
-    await expect(page.getByRole("tab", { name: RETURN_NAME })).toHaveCount(0);
-    await expect(page.getByRole("tablist", { name: /Trip type|Fahrtart|Type de trajet|نوع الرحلة/i })).toHaveCount(1);
-    await expect(page.getByRole("tab", { name: ONE_WAY })).toHaveCount(1);
-    await expect(page.getByRole("tab", { name: FIXED })).toHaveCount(1);
+    await expect(page.locator("#book [data-box]")).toBeVisible();
+    await expect(page.locator("#book").getByRole("tablist")).toHaveCount(0);
+    await expect(page.locator("#book").getByRole("tab", { name: TAB_NAMES })).toHaveCount(0);
+    await expect(page.locator("#book")).not.toContainText(/Pick one to skip a step|Fixed prices for this route/);
   });
 });

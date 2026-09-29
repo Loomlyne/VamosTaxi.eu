@@ -114,6 +114,15 @@
         de: '$1 Felder brauchen Ihre Aufmerksamkeit', fr: '$1 champs demandent votre attention', ar: '$1 حقول تحتاج انتباهك' },
       { re: /^Reply within (.+)$/,
         de: 'Antwort innerhalb von $1', fr: 'Réponse sous $1', ar: 'الرد خلال $1' },
+      /* ── 26.3 home booking box · travellers summary ─── */
+      { re: /^(\d+) passengers · (\d+) bags$/,
+        de: '$1 Passagiere · $2 Gepäckstücke', fr: '$1 passagers · $2 bagages', ar: '$1 ركاب · $2 حقائب' },
+      { re: /^1 passenger · (\d+) bags$/,
+        de: '1 Passagier · $1 Gepäckstücke', fr: '1 passager · $1 bagages', ar: 'راكب واحد · $1 حقائب' },
+      { re: /^(\d+) passengers · 1 bag$/,
+        de: '$1 Passagiere · 1 Gepäckstück', fr: '$1 passagers · 1 bagage', ar: '$1 ركاب · حقيبة واحدة' },
+      { re: /^1 passenger · 1 bag$/,
+        de: '1 Passagier · 1 Gepäckstück', fr: '1 passager · 1 bagage', ar: 'راكب واحد · حقيبة واحدة' },
     ],
 
     strings: {
@@ -1922,6 +1931,30 @@
       /* Design-system control labels that reach the DOM as aria-labels. */
       'Select': { de: 'Auswählen', fr: 'Sélectionner', ar: 'اختر' },
       'Notifications': { de: 'Mitteilungen', fr: 'Notifications', ar: 'الإشعارات' },
+
+      /* ── 26.3 home booking box ─── */
+      'Select date & time': { de: 'Datum & Zeit wählen', fr: 'Choisir date & heure', ar: 'اختر التاريخ والوقت' },
+      'When': { de: 'Wann', fr: 'Quand', ar: 'متى' },
+      'Travellers': { de: 'Reisende', fr: 'Voyageurs', ar: 'المسافرون' },
+      'LX 318': { de: 'LX 318', fr: 'LX 318', ar: 'LX 318' },
+      'Drop-off address': { de: 'Zieladresse', fr: 'Adresse de dépose', ar: 'عنوان الوصول' },
+      'Done': { de: 'Fertig', fr: 'Terminé', ar: 'تم' },
+      'See prices': { de: 'Preise anzeigen', fr: 'Voir les prix', ar: 'عرض الأسعار' },
+      'We track it and move the pickup if you land late': { de: 'Wir verfolgen den Flug und verschieben die Abholung, wenn Sie später landen', fr: 'Nous suivons le vol et décalons la prise en charge si vous atterrissez en retard', ar: 'نتتبّع الرحلة ونؤجّل موعد الاستقبال إذا هبطت متأخرًا' },
+      'Enter a pickup address': { de: 'Abholadresse eingeben', fr: 'Saisissez une adresse de prise en charge', ar: 'أدخل عنوان الانطلاق' },
+      'Enter a drop-off address': { de: 'Zieladresse eingeben', fr: 'Saisissez une adresse de dépose', ar: 'أدخل عنوان الوصول' },
+      'Enter the flight number': { de: 'Flugnummer eingeben', fr: 'Saisissez le numéro de vol', ar: 'أدخل رقم الرحلة' },
+      'Check the flight number': { de: 'Flugnummer prüfen', fr: 'Vérifiez le numéro de vol', ar: 'تحقّق من رقم الرحلة' },
+      'Choose a pickup time': { de: 'Abholzeit wählen', fr: 'Choisissez l’heure de prise en charge', ar: 'اختر وقت الانطلاق' },
+      'Choose a time at least 3 hours from now': { de: 'Wählen Sie eine Zeit, die mindestens 3 Stunden entfernt ist', fr: 'Choisissez une heure à au moins 3 heures d’ici', ar: 'اختر وقتًا بعد ثلاث ساعات على الأقل من الآن' },
+      'Pickup and drop-off are the same place': { de: 'Abholung und Ziel sind derselbe Ort', fr: 'La prise en charge et la dépose sont au même endroit', ar: 'الانطلاق والوصول في المكان نفسه' },
+      'Add a passenger': { de: 'Passagier hinzufügen', fr: 'Ajouter un passager', ar: 'إضافة راكب' },
+      'Remove a passenger': { de: 'Passagier entfernen', fr: 'Retirer un passager', ar: 'إزالة راكب' },
+      'Add a bag': { de: 'Gepäckstück hinzufügen', fr: 'Ajouter un bagage', ar: 'إضافة حقيبة' },
+      'Remove a bag': { de: 'Gepäckstück entfernen', fr: 'Retirer un bagage', ar: 'إزالة حقيبة' },
+      'Swap pickup and drop-off': { de: 'Abholung und Ziel tauschen', fr: 'Inverser la prise en charge et la dépose', ar: 'تبديل الانطلاق والوصول' },
+      'Price fixed before you pay': { de: 'Fixpreis, bevor Sie zahlen', fr: 'Prix fixé avant le paiement', ar: 'سعر ثابت قبل الدفع' },
+      'Flight tracked': { de: 'Flug wird verfolgt', fr: 'Vol suivi', ar: 'الرحلة متابَعة' },
     },
   };
 
