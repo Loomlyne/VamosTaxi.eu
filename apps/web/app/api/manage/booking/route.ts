@@ -5,7 +5,8 @@ import { NextResponse } from "next/server";
 import { MANAGE_COOKIE_NAME, hashManageToken, rawManageTokenFromRequest } from "@/lib/checkout/manage-token";
 import { customerCancelWindow } from "@/lib/checkout/cancel-window";
 import { manageExtrasFromJson, type ManageExtras } from "@/lib/checkout/manage-money";
-import { asGuest, asSystem } from "@/lib/db/identity";
+import { asGuest } from "@/lib/db/identity";
+import { loadManageReviewState } from "@/lib/db/system-reads";
 
 const NOT_FOUND =
   "We could not find this booking. Check the link in your confirmation email.";
@@ -131,19 +132,7 @@ export async function GET(request: Request): Promise<Response> {
 
   let extra: ExtraRow | undefined;
   try {
-    extra = await asSystem(env, async (sql) => {
-      const rows = await sql<ExtraRow[]>`
-        select
-          b.price_total_rappen,
-          exists(
-            select 1 from public.reviews as r where r.booking_id = b.id
-          ) as review_submitted
-          from public.bookings as b
-         where b.id = ${row.booking_id}::uuid
-         limit 1
-      `;
-      return rows[0];
-    });
+    extra = (await loadManageReviewState(env, String(row.booking_id))) ?? undefined;
   } catch {
     extra = undefined;
   }

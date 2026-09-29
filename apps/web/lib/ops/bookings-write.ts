@@ -6,6 +6,7 @@
 
 import { mintManageToken } from "@/lib/checkout/manage-token";
 import { asStaff, asSystem, type VamosClaims } from "@/lib/db/identity";
+import { loadCapturedPaymentRow } from "@/lib/db/system-reads";
 import { expireSessionIds } from "../checkout/cancel-unpaid";
 import { stripeAccountIsLegacyUaeTest } from "../checkout/charge-gate";
 import { expireCheckoutSession, stripeFromEnv } from "../checkout/stripe";
@@ -149,19 +150,7 @@ export async function cancelBooking(
   if (refundMode === "pending_ops" || refundMode === "none") {
     // Stripe lives in the Worker, not SQL. pending_ops / none skip createRefund.
   } else if (refundMode === "auto_full") {
-    const payment = await asSystem(env, async (sql) => {
-      const pays = await sql<
-        { id: number; stripe_payment_intent_id: string; charged_rappen: number }[]
-      >`
-        select p.id, p.stripe_payment_intent_id, p.charged_rappen
-          from public.booking_payments as p
-         where p.booking_id = ${bookingId}::uuid
-           and p.captured_at is not null
-         order by p.id
-         limit 1
-      `;
-      return pays[0] ?? null;
-    });
+    const payment = await loadCapturedPaymentRow(env, bookingId);
     if (payment) {
       const refundRappen = Number(row.refund_rappen ?? 0);
       const amountRappen =
