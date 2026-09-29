@@ -56,6 +56,8 @@ export function trustedSiteOrigin(hostHeader: string | null): string | null {
   if (!hostHeader) return null;
   const host = hostHeader.split(",")[0]?.trim().toLowerCase() ?? "";
   if (!host || host.includes("/") || host.includes("\\") || host.includes(" ")) return null;
+  // hostname, optional numeric port — nothing else (no "host:1@other" userinfo).
+  if (!/^[a-z0-9.-]+(?::\d{1,5})?$/.test(host)) return null;
   const hostname = host.split(":")[0] ?? "";
   if (!hostname || !hostnameAllowed(hostname, AUTH_CSRF_HOSTS)) return null;
   const http = hostname === "localhost" || hostname === "dashboard.localhost";
