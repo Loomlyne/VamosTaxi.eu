@@ -375,6 +375,7 @@ export async function acceptPaidEdit(
         locale,
         idempotencyKey: `extra:${accepted.request_id}:${difference}`,
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        uiMode: "elements",
         returnUrl: `${PUBLIC_SITE_ORIGIN}/confirmation/${encodeURIComponent(reference)}`,
         productName: "Fare difference",
         extra: { extraId: meta.extra_id },

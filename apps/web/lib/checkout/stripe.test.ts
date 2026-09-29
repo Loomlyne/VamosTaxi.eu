@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type Stripe from "stripe";
 import {
-  CHECKOUT_UI_MODE,
   createCheckoutSession,
   createRefund,
   expireCheckoutSession,
@@ -36,10 +35,6 @@ function fakeStripe() {
 }
 
 describe("stripe module", () => {
-  it("uses elements ui_mode (Dahlia rename of custom)", () => {
-    expect(CHECKOUT_UI_MODE).toBe("elements");
-  });
-
   it("throws when STRIPE_SECRET_KEY is missing", () => {
     expect(() => stripeFromEnv({} as CloudflareEnv)).toThrow(missingEnvError("STRIPE_SECRET_KEY"));
   });

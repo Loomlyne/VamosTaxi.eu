@@ -7,18 +7,6 @@
 import Stripe from "stripe";
 import { CHARGE_CURRENCY, stripeLocale, type CheckoutLocale } from "./currency";
 
-/**
- * Checkout Session `ui_mode`.
- *
- * Research (2026-08-24) named this `custom` (Payment Element on our page, not a
- * Stripe-hosted redirect). Stripe API version 2026-03-25.dahlia renamed that
- * value to `elements` and rejects the legacy strings:
- * https://docs.stripe.com/changelog/dahlia/2026-03-25/updates-available-checkout-session-ui-modes
- * Resolved 2026-09-05 against stripe@22.6.1 (`SessionCreateParams.UiMode`) and
- * that changelog. Product is unchanged: Payment Element on vamostaxi chrome.
- */
-export const CHECKOUT_UI_MODE = "elements" as const;
-
 const STRIPE_API_VERSION: Stripe.LatestApiVersion = "2026-08-26.dahlia";
 
 export function missingEnvError(name: string): Error {
@@ -57,8 +45,20 @@ export interface CreateCheckoutSessionInput {
   locale: CheckoutLocale;
   idempotencyKey: string;
   expiresAt: Date;
-  /** Required for `ui_mode: elements`. */
-  returnUrl: string;
+  /**
+   * `hosted_page` (Stripe-hosted page, no card form on our site) or `elements`.
+   * Defaults to `elements` until plans 10 and 18 pass `hosted_page`; plan 21
+   * makes it required. Ops extra-fare sessions pass `elements` explicitly.
+   */
+  uiMode?: "hosted_page" | "elements";
+  /** Required for `ui_mode: elements`; never sent for hosted. */
+  returnUrl?: string;
+  /** Required for hosted. Must carry `session_id={CHECKOUT_SESSION_ID}` unencoded. */
+  successUrl?: string;
+  /** Required for hosted; never sent for elements. */
+  cancelUrl?: string;
+  /** Hosted only: offer TWINT next to card (see `checkoutPaymentMethodTypes`). */
+  twint?: boolean;
   productName: string;
   /** 08-07 extra fare-difference session. Metadata kind=extra, extra_id. */
   extra?: { extraId: string };
@@ -76,31 +76,87 @@ export function stripeSessionExpiresAtUnix(expiresAt: Date, nowMs = Date.now()):
   return Math.min(max, Math.max(min, exp));
 }
 
+/** Stripe's 30-minute floor plus a 60 s skew buffer; web checkout sessions live this long (D-25). */
+export const WEB_CHECKOUT_MINUTES = 31;
+
+/**
+ * Payment methods on the hosted page: card (Apple Pay and Google Pay come with
+ * it) plus TWINT only once `STRIPE_CHECKOUT_TWINT` is "on" (D-20). Default off:
+ * TWINT is not activated on the sandbox account, and listing it would make
+ * session creation fail for everyone.
+ */
+export function checkoutPaymentMethodTypes(env: {
+  STRIPE_CHECKOUT_TWINT?: string;
+}): Array<"card" | "twint"> {
+  return env.STRIPE_CHECKOUT_TWINT === "on" ? ["card", "twint"] : ["card"];
+}
+
+function assertHttpUrl(name: string, value: string | undefined): string {
+  if (!value) throw new Error(`${name} is required for a hosted checkout session`);
+  let u: URL;
+  try {
+    u = new URL(value);
+  } catch {
+    throw new Error(`${name} must be an absolute URL`);
+  }
+  if (u.protocol !== "https:" && u.protocol !== "http:") {
+    throw new Error(`${name} must be http(s)`);
+  }
+  return value;
+}
+
+function isLocaleRefusal(err: unknown): boolean {
+  if (!err || typeof err !== "object") return false;
+  const e = err as { type?: unknown; param?: unknown };
+  return e.type === "StripeInvalidRequestError" && e.param === "locale";
+}
+
 export async function createCheckoutSession(
   stripe: Stripe,
   input: CreateCheckoutSessionInput,
 ): Promise<Stripe.Checkout.Session> {
-  return stripe.checkout.sessions.create(
-    {
+  const uiMode = input.uiMode ?? "elements";
+  let modeParams: Pick<
+    Stripe.Checkout.SessionCreateParams,
+    | "ui_mode"
+    | "return_url"
+    | "success_url"
+    | "cancel_url"
+    | "payment_method_types"
+    | "wallet_options"
+    | "payment_intent_data"
+  >;
+  if (uiMode === "hosted_page") {
+    const successUrl = assertHttpUrl("successUrl", input.successUrl);
+    const cancelUrl = assertHttpUrl("cancelUrl", input.cancelUrl);
+    if (!successUrl.includes("session_id={CHECKOUT_SESSION_ID}")) {
+      throw new Error("successUrl must carry session_id={CHECKOUT_SESSION_ID}");
+    }
+    modeParams = {
+      ui_mode: "hosted_page",
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+      payment_method_types: input.twint ? ["card", "twint"] : ["card"],
+      wallet_options: { link: { display: "never" } },
+      payment_intent_data: { metadata: { quote_id: input.bookingId } },
+    };
+  } else {
+    if (!input.returnUrl) throw new Error("returnUrl is required for an elements session");
+    modeParams = { ui_mode: "elements", return_url: input.returnUrl };
+  }
+  const build = (locale: CheckoutLocale): Stripe.Checkout.SessionCreateParams => ({
       mode: "payment",
-      ui_mode: CHECKOUT_UI_MODE,
-      return_url: input.returnUrl,
+      ...modeParams,
       client_reference_id: input.bookingReference,
       customer_email: input.customerEmail,
-      locale: stripeLocale(input.locale),
+      locale: stripeLocale(locale),
       expires_at: stripeSessionExpiresAtUnix(input.expiresAt),
       adaptive_pricing: { enabled: true },
       // Charge is always CHF. Stripe has no Checkout Session presentment pin
       // for EUR/USD/AED — Adaptive Pricing may show another currency; our
       // chrome converts with /api/fx. Do not invent a charge currency.
-      // Checkout Sessions have no PaymentIntent `automatic_payment_methods`
-      // field. Dashboard-configured methods + Adaptive Pricing are the gate
-      // (D-09/D-10). Do not pass `payment_method_types`.
-      // Do not exclude paypal, amazon_pay, or twint. Express Checkout can
-      // then show Amazon Pay and PayPal. TWINT is not an Express Checkout
-      // wallet — Stripe shows it on the Payment Element for a Switzerland
-      // customer. The charge is already CHF. Card, Link, and Apple Pay stay.
-      // Apple Pay is a wallet, not a type in this list.
+      // Hosted sessions pin the method set (card + optional TWINT, Link off).
+      // allow_promotion_codes is never set (D-19).
       expand: ["payment_intent"],
       metadata: {
         booking_id: input.bookingId,
@@ -119,9 +175,20 @@ export async function createCheckoutSession(
           },
         },
       ],
-    },
-    { idempotencyKey: input.idempotencyKey },
-  );
+  });
+  try {
+    return await stripe.checkout.sessions.create(build(input.locale), {
+      idempotencyKey: input.idempotencyKey,
+    });
+  } catch (err) {
+    // Stripe's Checkout locale enum may lack "ar": retry once with "en", same key.
+    if (input.locale === "ar" && isLocaleRefusal(err)) {
+      return stripe.checkout.sessions.create(build("en"), {
+        idempotencyKey: input.idempotencyKey,
+      });
+    }
+    throw err;
+  }
 }
 
 export async function expireCheckoutSession(
@@ -248,14 +315,73 @@ export function sessionIsPayable(
   return true;
 }
 
+/**
+ * Hosted sessions: open, has a redirect url, CHF, and the amount still equals
+ * what the server computed (T-26.3-06-01).
+ */
+export function hostedSessionIsPayable(
+  session: Stripe.Checkout.Session | null,
+  chargedRappen: number,
+): session is Stripe.Checkout.Session {
+  if (!session?.url) return false;
+  if (session.status !== "open") return false;
+  if ((session.currency ?? "").toLowerCase() !== CHARGE_CURRENCY) return false;
+  const amount = session.amount_total ?? session.amount_subtotal;
+  return typeof amount === "number" && amount === chargedRappen;
+}
+
+/**
+ * The single purge-safety rule (webhook purge, supersede, hourly sweep): a
+ * booking's sessions may be treated as dead only when every one is expired and
+ * unpaid. Anything open, complete (paid or not yet settled by us), or
+ * unreadable keeps the booking alive. An empty list is trivially true.
+ */
+export async function allSessionsExpiredUnpaid(
+  ids: readonly string[],
+  retrieve: (id: string) => Promise<Pick<Stripe.Checkout.Session, "status" | "payment_status">>,
+): Promise<boolean> {
+  for (const id of ids) {
+    try {
+      const s = await retrieve(id);
+      if (s.status !== "expired" || s.payment_status !== "unpaid") return false;
+    } catch {
+      return false;
+    }
+  }
+  return true;
+}
+
 export function fxFromSession(session: Stripe.Checkout.Session): {
   chargedCurrency: string;
   fxRate: number | null;
   fxSource: string | null;
   fxQuotedAt: string | null;
   presentmentAmountMinor: number | null;
+  presentmentCurrency: string | null;
 } {
   const chargedCurrency = (session.currency ?? CHARGE_CURRENCY).toUpperCase();
+  const pd = session.presentment_details;
+  const pdCurrency = pd?.presentment_currency?.toUpperCase() ?? null;
+  if (pd && pdCurrency && typeof pd.presentment_amount === "number") {
+    if (pdCurrency === chargedCurrency) {
+      return {
+        chargedCurrency,
+        fxRate: null,
+        fxSource: null,
+        fxQuotedAt: null,
+        presentmentAmountMinor: null,
+        presentmentCurrency: null,
+      };
+    }
+    return {
+      chargedCurrency,
+      fxRate: null,
+      fxSource: "stripe_adaptive_pricing",
+      fxQuotedAt: null,
+      presentmentAmountMinor: pd.presentment_amount,
+      presentmentCurrency: pdCurrency,
+    };
+  }
   const conversion = session.currency_conversion;
   if (!conversion) {
     return {
@@ -264,6 +390,7 @@ export function fxFromSession(session: Stripe.Checkout.Session): {
       fxSource: null,
       fxQuotedAt: null,
       presentmentAmountMinor: null,
+      presentmentCurrency: null,
     };
   }
   const rawRate = conversion.fx_rate;
@@ -275,5 +402,7 @@ export function fxFromSession(session: Stripe.Checkout.Session): {
     fxQuotedAt: null,
     presentmentAmountMinor:
       typeof conversion.amount_total === "number" ? conversion.amount_total : null,
+    // Legacy currency_conversion names only the source currency; unknown here.
+    presentmentCurrency: null,
   };
 }

@@ -1048,13 +1048,13 @@ describe("runCheckoutIntent", () => {
 });
 
 describe("18-08 Stripe gates", () => {
-  it("has no sk_live_ and does not filter payment methods (D-26)", () => {
+  it("has no sk_live_ and pins hosted methods only through the TWINT flag (D-20)", () => {
     for (const name of ["intent.ts", "settle.ts", "webhook.ts", "stripe.ts"]) {
       const src = readFileSync(join(here, name), "utf8");
       expect(src, name).not.toMatch(/sk_live_/);
     }
     const stripe = readFileSync(join(here, "stripe.ts"), "utf8");
-    expect(stripe).toMatch(/Do not pass `payment_method_types`/);
+    expect(stripe).toMatch(/checkoutPaymentMethodTypes/);
   });
 });
 

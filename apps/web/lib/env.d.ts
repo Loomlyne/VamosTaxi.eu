@@ -308,6 +308,8 @@ interface CloudflareEnv {
    * `pk_test_` placeholder until the owner binds a real test key. Never `pk_live_`.
    */
   STRIPE_PUBLISHABLE_KEY: string;
+  /** "on" adds TWINT to the hosted Checkout page; anything else is card only (D-20). */
+  STRIPE_CHECKOUT_TWINT?: string;
 
   /**
    * Health probe secret (LAUNCH-03 / D-19). OPTIONAL — absence fail-closes

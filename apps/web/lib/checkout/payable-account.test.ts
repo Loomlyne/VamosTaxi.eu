@@ -72,9 +72,9 @@ describe("payable account reuse pin", () => {
     expect(success).toBeGreaterThan(check);
   });
 
-  it("keeps Checkout ui_mode on elements through CHECKOUT_UI_MODE", () => {
-    expect(stripeSrc).toContain('export const CHECKOUT_UI_MODE = "elements" as const;');
-    expect(stripeSrc).toContain("ui_mode: CHECKOUT_UI_MODE");
+  it("keeps Checkout ui_mode on elements or hosted_page, never a rejected string", () => {
+    expect(stripeSrc).toContain('ui_mode: "elements"');
+    expect(stripeSrc).toContain('ui_mode: "hosted_page"');
     expect(stripeSrc).not.toContain('ui_mode: "hosted"');
     expect(stripeSrc).not.toContain('ui_mode: "custom"');
     expect(stripeSrc).not.toContain('ui_mode: "embedded"');
