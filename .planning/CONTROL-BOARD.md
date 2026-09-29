@@ -4,7 +4,7 @@ Kept by the control session. One page: what is live, what is being built, what w
 the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 
-**Last update:** 2026-09-29 17:55 (+04)
+**Last update:** 2026-09-30 00:00 (+04)
 
 ## Live now
 
@@ -33,7 +33,9 @@ the owner, what comes next. Updated at every ship and every hand-over.
 
 | Lane | Session | Folder under `vamos-wt/` | Branch | State |
 |---|---|---|---|---|
-| 26.4 phone bar and one form | Phase 26.3 booking flow rebuild | `phase-26.4` | `gsd/phase-26.4-one-form` | Plan 10 of 10 in work. Discuss and UI-SPEC signed. |
+| 26.4 phone bar and one form | Phase 26.3 booking flow rebuild | `phase-26.4` | `gsd/phase-26.4-one-form` | **Handed over** at `c069737e`, control check clean (2,436 unit tests, build, no migration, no new setting). **Held by the owner:** ships together with the desktop bar. Archived as tag `archive/branch-gsd-phase-26.4-one-form-c069737e`. |
+| 26.4.1 laptop bar | same session | `phase-26.4.1` | `gsd/phase-26.4.1-laptop-bar` | Context, UI-SPEC and plan **signed** (`25d8c9b7`). Picture 3, one row from 1272 px, two rows 1081 to 1271. Plan 01 building, plan 02 is checks and hand-over. Hands over together with 26.4. |
+| 26.5 account choice before payment | same session | `phase-26.5` | `gsd/phase-26.5-checkout-account` | Discuss, UI-SPEC and 7-plan plan **signed**. Build starts only when main contains 26.4 and 26.4.1. **Open:** Worker `vamos` has `SUPABASE_URL` but no `SUPABASE_SERVICE_ROLE_KEY` (names read 2026-09-29 23:50). Without it "Create an account" hides itself. Whether that key belongs on the public Worker is an owner decision, see below. |
 | 26.0 main green | Phase 26.0 main green work session | `main-green-2` | `fix/main-green-2` | Plans 01 to 05, 07, 09 done. 06, 08, 10, 11, 12 left. |
 
 ## Ship order
@@ -43,8 +45,8 @@ One at a time into main. Each later branch takes main in before it hands over.
 | Order | What | Why this place |
 |---|---|---|
 | done | Sign-in and sign-up fix | Shipped 17:47 |
-| 2 | Phase 26.4 | Ready next. Shares `app/vamos-i18n-dict.js` with 1, so it merges main after 1 |
-| 3 | Phase 26.5, account choice before payment (new, see below) | Needs working sign-up (1) and the final checkout (2) |
+| 1 | Phase 26.4 together with the desktop bar | Owner decision 2026-09-29 23:45: one ship for both. Waits for the desktop bar hand-over. |
+| 3 | Phase 26.5, account choice before payment | Needs the final checkout from 26.4 |
 | 4 | Phase 26.0 | Shares test files with 26.4; lands after it |
 | 5 | 26.2 → 20 → 19 → 27 → 28 → 29 | Signed order |
 
@@ -52,8 +54,29 @@ One at a time into main. Each later branch takes main in before it hands over.
 
 | # | Request | Goes to | Needs from the owner |
 |---|---|---|---|
-| A | Desktop home booking bar: the old one, without the one-way tabs | Phase 26.4, as a change to decision D-01 | Which old bar: he confirms on a picture |
-| B | Before Stripe's page the customer chooses: continue as guest, sign in, or create an account. A guest's e-mail creates an account automatically | New Phase 26.5 | The end of his sentence ("… but"), and the consent wording, which is legal copy |
+| A | Desktop home booking bar: the old one, without the one-way tabs | Follow-up right after 26.4 | Decided: picture 3. His signature on the short design note. |
+| B | Before Stripe's page the customer chooses: continue as guest, sign in, or create an account | Phase 26.5 | Decided in discuss: the choice sits at the top of "Who is travelling"; a guest gets an account without a password and signs in later by e-mail link; an e-mail that already has an account must sign in first; nothing is shown until the e-mail is confirmed. Still owed by him: the consent wording in four languages. |
+| C | Later, its own job: passwords off on the whole site, e-mail link or passkey only | Not scheduled | His word when to start |
+
+## Read on live, 2026-09-29 23:35
+
+| What | Result |
+|---|---|
+| Hourly clean-up | Works. VT-26-0733, 0740, 0741 deleted at 18:01, VT-26-0744 at 21:57. No unpaid booking left. |
+| Reminder and resend jobs | Ran hourly since 18:00 without error |
+| Sign-up | Second account since 18:03, with its customer record |
+| Airport fee | Charged today for an airport pickup, saved inside the fare line (VT-26-0743) |
+
+## Owner decisions on Phase 26.5, 2026-09-29 23:58
+
+Full text: `.planning/decisions/2026-09-29-checkout-account-notice.md`.
+
+| # | Decision |
+|---|---|
+| 1 | The service-role key goes on Worker `vamos`. He adds it in his terminal at the 26.5 ship. |
+| 2 | Both notice texts approved in four languages, as drafted. Not read by a lawyer. |
+| 3 | "Create an account" needs a tick box; the tick is logged server-side. |
+| 4 | "Create an account" goes live with 26.5, consent recorded from the first account. |
 
 ## Waiting for the owner
 
