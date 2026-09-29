@@ -1117,6 +1117,19 @@ Plans:
 
 **UI hint**: yes
 
+### Phase 26.4.1: Laptop booking bar (INSERTED)
+
+**Goal**: At ≥1081 px the home hero shows the owner's picture 3: the pre-26.3 wide bar at the bottom of the hero without trip-type tabs, in the signed order From · flight · To · When · Travellers · SEE PRICES, trust line under it. One row from 1272 px, two rows 1081–1271 px. Phone and tablet keep the 26.4 bar + sheet.
+**Depends on**: 26.4 (branch cut from gsd/phase-26.4-one-form c069737e; ships right after it)
+**Requirements**: from 26.4.1-CONTEXT.md (D-01…D-04)
+**Plans:** 2 plans
+
+Plans:
+- [ ] 26.4.1-01-PLAN.md — Re-layout the home box at ≥1081 (one row ≥1272, two rows 1081–1271, compact travellers, trust line) + unit pins + Playwright at 1440/1280/1181/1081 × en/de/fr/ar and ≤1080 regression
+- [ ] 26.4.1-02-PLAN.md — Local gate list, VALIDATION, HANDOVER in the 26.4 shape + owner UAT at 1440 and 1181
+
+**UI hint**: yes
+
 ### Phase 27: Consent record
 
 **Goal**: Accept logs Meta on. Dismiss logs Meta off. The latest `consent_log` row
@@ -1215,6 +1228,7 @@ Plan-level states (owner, 2026-09-29; source record .planning/PHASE-CLOSURE-2026
 | 26.2. Codebase audit, bug fix and simplify (INSERTED) | 0/TBD | Parked (after 26.0) | - |
 | 26.3. Booking flow rebuild (INSERTED) | 22/23 + G1–G9 | Shipped af93fc8e, Worker 839d73fc | 2026-09-29 |
 | 26.4. One form + phone booking sheet (INSERTED) | 0/10 | Plan signed 2026-09-29, executing | - |
+| 26.4.1. Laptop booking bar (INSERTED) | 0/2 | Planned 2026-09-29, waiting for owner signature | - |
 | 27. Consent record | 0/TBD | Not started | - |
 | 28. Pixel PageView | 0/TBD | Not started | - |
 | 29. Webhook Purchase | 0/TBD | Not started | - |
