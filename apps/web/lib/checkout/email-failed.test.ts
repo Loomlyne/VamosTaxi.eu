@@ -30,18 +30,6 @@ function refusalMap(src: string): Record<string, string> {
   return map;
 }
 
-function sendPayLinkNotOkLine(src: string): string {
-  const fnStart = src.indexOf("async function sendPayLink()");
-  const fnEnd = src.indexOf("async function onPay()", fnStart);
-  const fn = src.slice(fnStart, fnEnd);
-  const notOk = fn.indexOf("if (!res.ok)");
-  const branchEnd = fn.indexOf("if (json.reference)", notOk);
-  const branch = fn.slice(notOk, branchEnd);
-  const line = branch.split("\n").find((row) => row.includes(NOT_OK_LINE));
-  if (!line) throw new Error("sendPayLink not-ok lookup line missing");
-  return line;
-}
-
 describe("checkout.emailFailed", () => {
   for (const locale of ["en", "de", "fr", "ar"] as const) {
     it(`${locale} is the email-failed sentence, not payCouldNotStart`, () => {
@@ -70,9 +58,9 @@ describe("email_failed does not select payCouldNotStart", () => {
     expect(block).not.toContain('email_failed: "payCouldNotStart"');
   });
 
-  it("sendPayLink not-ok line resolves email_failed to emailFailed", () => {
-    const line = sendPayLinkNotOkLine(client);
-    expect(line).toContain(NOT_OK_LINE);
+  it("the refusal map still resolves email_failed to emailFailed; checkout has no pay-link sender (26.3 D-18)", () => {
+    expect(client).not.toContain("async function sendPayLink()");
+    expect(client).toContain(NOT_OK_LINE);
     const map = refusalMap(client);
     const json = { code: "email_failed", error: "email_failed" };
     const key = map[json.code ?? json.error ?? ""] ?? "payCouldNotStart";

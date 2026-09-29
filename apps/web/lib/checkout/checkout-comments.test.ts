@@ -43,13 +43,12 @@ describe("checkout comment pack", () => {
     expect(contact).toContain("CHECKOUT_EMAIL_RE");
   });
 
-  it("uses block tabs for guest on details and keeps pay-link on payment", () => {
+  it("uses block tabs for guest on details; checkout has no pay-link sender (26.3 D-18)", () => {
     expect(client).toContain("continue-as-guest");
     expect(client).not.toContain("billingIndividual");
     expect(client).toContain("businessDetails");
-    expect(client).toContain("sendPayLink");
-    expect(client).toContain("data-checkout-pay-result");
-    expect(css).toContain("vt-checkout__payresult");
+    expect(client).not.toContain("sendPayLink");
+    expect(client).not.toContain("data-checkout-pay-result");
     expect(client).toContain("pay-and-continue");
     expect(client).toContain("block");
     expect(client).not.toContain("payNow");
@@ -60,16 +59,10 @@ describe("checkout comment pack", () => {
     expect(client.indexOf("continue-as-guest")).toBeLessThan(client.indexOf("businessDetails"));
   });
 
-  it("emails the payer and does not charge the card", () => {
-    const send = client.slice(
-      client.indexOf("async function sendPayLink"),
-      client.indexOf("async function onPay"),
-    );
-    expect(send).toContain('"/api/checkout/pay-link"');
-    expect(send).toContain("payer_email: payer");
-    expect(send).toContain("trip?.contact");
-    expect(send).not.toContain("validate()");
-    expect(send).not.toContain('setRefusal("payCouldNotStart")');
+  it("never sends a 'Not paid yet' pay-link e-mail from checkout (26.3 D-18)", () => {
+    expect(client).not.toContain('"/api/checkout/pay-link"');
+    expect(client).not.toContain("payer_email");
+    expect(client).not.toContain("payerEmail");
   });
 
   it("drops the flight card and paints extras from the live book", () => {
@@ -187,10 +180,9 @@ describe("checkout comment pack", () => {
     expect(client).toContain("aria-busy={busy || undefined}");
     expect(client).not.toContain('refusal !== "payCouldNotStart"');
     expect(client).not.toContain("companyReady");
-    expect(client).toContain("disabled={busy || classFareRappen == null || Boolean(paySheetAlert) || payLocked || !isCheckoutEmail(payerEmail)}");
+    expect(client).toContain("disabled={busy || classFareRappen == null || Boolean(paySheetAlert) || payLocked}");
     expect(client).toContain("couponAlreadyOn");
-    expect(client).toContain("billingKindFromFields");
-    expect(client).toContain("isCheckoutEmail(payerEmail)");
+    expect(client).not.toContain("isCheckoutEmail(payerEmail)");
     expect(client.indexOf("vt-checkout__company")).toBeGreaterThan(client.indexOf("vt-checkout__recap"));
     expect(client.indexOf("vt-checkout__company")).toBeLessThan(client.indexOf("vt-checkout__payhead"));
     expect(client).toContain("applyCouponCode");

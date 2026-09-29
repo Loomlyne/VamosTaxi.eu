@@ -127,13 +127,6 @@ describe("CheckoutClient coupon refusal recovery wiring (26.1-32)", () => {
     start.indexOf('if (!opts?.silent || step === "payment") setRefusal(key);', startBranchAt),
   );
 
-  const sendAt = client.indexOf("async function sendPayLink(");
-  const send = client.slice(sendAt, client.indexOf("async function onPay(", sendAt));
-  const sendFailAt = send.indexOf("if (!res.ok) {");
-  const sendGenericAt = send.indexOf("setRefusal(key);", sendFailAt);
-  const sendBranchAt = send.indexOf(BRANCH, sendFailAt);
-  const sendBranch = send.slice(sendBranchAt, send.indexOf("const key = REFUSAL_KEYS", sendBranchAt));
-
   /** Assert one branch's reaction order for each couponRefusalAction result. */
   function expectRecoveryOrder(branch: string) {
     const reprice = branch.slice(
@@ -187,42 +180,15 @@ describe("CheckoutClient coupon refusal recovery wiring (26.1-32)", () => {
     expect(cleared).toBeLessThan(startBranch.indexOf('"drop_body_coupon"'));
   });
 
-  it("sendPayLink's failure branch special-cases coupon_no_longer_valid the same way as startPayment, before the generic setRefusal(key) fallback", () => {
-    expect(sendFailAt).toBeGreaterThan(-1);
-    expect(sendBranchAt).toBeGreaterThan(sendFailAt);
-    expect(sendBranchAt).toBeLessThan(sendGenericAt);
-    expect(sendBranch).toContain("const bodyCoupon = couponApplied;");
-    expect(sendBranch).toContain("couponRefusalAction({");
-    expect(sendBranch).toContain("code: json.code,");
-    expect(sendBranch).toContain(PEEK);
-    expect(sendBranch).toContain("alreadyRecovered: couponRecoveryAttempted.current,");
-    expectRecoveryOrder(sendBranch);
-    // Only the two recovery results return early; show_refusal and every other
-    // refusal code fall through to the unchanged generic fallback.
-    expect(sendBranch.match(/\breturn;/g)?.length).toBe(2);
-    expect(sendBranch).not.toContain("setRefusal(");
-    const generic = send.slice(send.indexOf("const key = REFUSAL_KEYS", sendBranchAt), sendGenericAt + 20);
-    expect(generic).toContain('const key = REFUSAL_KEYS[json.code ?? json.error ?? ""] ?? "payCouldNotStart";');
-    expect(generic).toContain("setRefusal(key);");
-  });
-
-  it("sendPayLink's coupon_no_longer_valid branch sets couponApplied to null before branching on couponRefusalAction's result", () => {
-    const cleared = sendBranch.indexOf("setCouponApplied(null);");
-    expect(cleared).toBeGreaterThan(-1);
-    expect(cleared).toBeLessThan(sendBranch.indexOf("couponRefusalAction({"));
-    expect(cleared).toBeLessThan(sendBranch.indexOf('"reprice_without_coupon"'));
-    expect(cleared).toBeLessThan(sendBranch.indexOf('"drop_body_coupon"'));
-  });
-
   it("a reprice_without_coupon or drop_body_coupon result sets the recovery ref before acting, and the ref is only cleared by a hand-applied coupon, a succeeded payment intent or a failed recovery reprice", () => {
     expect(client).toContain("const couponRecoveryAttempted = useRef(false);");
-    expect(client.match(/couponRecoveryAttempted\.current = true;/g)?.length).toBe(4);
+    // One refusal branch: the checkout pay-link sender is gone (26.3 D-18).
+    expect(client.match(/couponRecoveryAttempted\.current = true;/g)?.length).toBe(2);
     expect(startBranch.match(/couponRecoveryAttempted\.current = true;/g)?.length).toBe(2);
-    expect(sendBranch.match(/couponRecoveryAttempted\.current = true;/g)?.length).toBe(2);
-    // 2 hand-driven resets + 1 per refusal branch when the recovery reprice failed.
-    expect(client.match(/couponRecoveryAttempted\.current = false;/g)?.length).toBe(4);
-    // Both refusal branches plus the Pay recover_price action (quick 260928-rld).
-    expect(client.match(/await applyCouponCode\(null\)/g)?.length).toBe(3);
+    // 2 hand-driven resets + 1 for the refusal branch when the recovery reprice failed.
+    expect(client.match(/couponRecoveryAttempted\.current = false;/g)?.length).toBe(3);
+    // The refusal branch plus the Pay recover_price action (quick 260928-rld).
+    expect(client.match(/await applyCouponCode\(null\)/g)?.length).toBe(2);
 
     // (a) the Apply button, only when it applies a typed code (not Remove).
     const applyAt = client.indexOf('{couponApplied ? tCommon("remove") : tCommon("apply")}');
@@ -241,7 +207,7 @@ describe("CheckoutClient coupon refusal recovery wiring (26.1-32)", () => {
 
     // applyCouponCode resolves the newest lock first, like startPayment (W5).
     const applyFnAt = client.indexOf("async function applyCouponCode(");
-    const applyFn = client.slice(applyFnAt, client.indexOf("async function sendPayLink(", applyFnAt));
+    const applyFn = client.slice(applyFnAt, client.indexOf("async function onPay(", applyFnAt));
     expect(applyFn).toContain("const lock = readDraft().lock || draft.lock || trip?.lock;");
     expect(applyFn).not.toContain("couponRecoveryAttempted");
   });
@@ -275,10 +241,10 @@ describe("CheckoutClient coupon refusal recovery wiring (26.1-32)", () => {
     return reprice.slice(at, reprice.indexOf("}", at));
   }
 
-  it("both refusal branches await applyCouponCode(null) into a result and pass it to couponRecoveryOutcome", () => {
+  it("the refusal branch awaits applyCouponCode(null) into a result and pass it to couponRecoveryOutcome", () => {
     expect(client).toContain('from "@/lib/checkout/coupon-recovery"');
     expect(client).toMatch(/import \{[^}]*\bcouponRecoveryOutcome\b[^}]*\} from "@\/lib\/checkout\/coupon-recovery";/);
-    for (const branch of [startBranch, sendBranch]) {
+    for (const branch of [startBranch]) {
       const reprice = repriceBlock(branch);
       const awaited = reprice.indexOf("const repriced = await applyCouponCode(null);");
       expect(awaited).toBeGreaterThan(-1);
@@ -298,8 +264,8 @@ describe("CheckoutClient coupon refusal recovery wiring (26.1-32)", () => {
     }
   });
 
-  it("a restore_lock_coupon outcome re-applies the lock's coupon and clears the recovery ref in both branches", () => {
-    for (const branch of [startBranch, sendBranch]) {
+  it("a restore_lock_coupon outcome re-applies the lock's coupon and clears the recovery ref", () => {
+    for (const branch of [startBranch]) {
       const reprice = repriceBlock(branch);
       const restore = restoreBlock(reprice);
       expect(restore.length).toBeGreaterThan(0);
@@ -326,7 +292,7 @@ describe("CheckoutClient coupon refusal recovery wiring (26.1-32)", () => {
 
   it("applyCouponCode resolves false on its failure path and in its catch, and true only after the new lock is stored", () => {
     const applyFnAt = client.indexOf("async function applyCouponCode(");
-    const applyFn = client.slice(applyFnAt, client.indexOf("async function sendPayLink(", applyFnAt));
+    const applyFn = client.slice(applyFnAt, client.indexOf("async function onPay(", applyFnAt));
     expect(applyFn.slice(0, applyFn.indexOf("{\n"))).toContain("): Promise<boolean>");
     expect(applyFn).not.toMatch(/\breturn;/);
 
@@ -352,11 +318,6 @@ describe("CheckoutClient coupon refusal recovery wiring (26.1-32)", () => {
     expect(applyFn.indexOf("return true;")).toBeLessThan(catchAt);
   });
 
-  it("sendPayLink resolves its lock as readDraft().lock || draft.lock || trip?.lock", () => {
-    const head = send.slice(0, send.indexOf("setBusy(true);"));
-    expect(head).toContain("const lock = readDraft().lock || draft.lock || trip?.lock;");
-    expect(head).not.toContain("const lock = draft.lock || trip?.lock;");
-  });
 });
 
 describe("payClickAction (quick 260928-rld)", () => {
@@ -509,7 +470,7 @@ describe("CheckoutClient card form unmount resets cardComplete (quick 260928-lat
     // Flight reprice and coupon/extras reprice: after the new lock is stored, before success.
     for (const [fn, until] of [
       ["async function syncFlightToLock(", "async function applyCouponCode("],
-      ["async function applyCouponCode(", "async function sendPayLink("],
+      ["async function applyCouponCode(", "async function onPay("],
     ] as const) {
       const body = fnBody(fn, until);
       const stored = body.indexOf("writeDraft({ quoteId: nextId, lock: json.lock });");
@@ -522,15 +483,6 @@ describe("CheckoutClient card form unmount resets cardComplete (quick 260928-lat
     const start = fnBody("async function startPayment(", "async function syncFlightToLock(");
     const startRestoreAt = start.indexOf('=== "restore_lock_coupon"');
     expect(start.slice(startRestoreAt, start.indexOf("}", startRestoreAt))).toContain("dropPaymentSession(quoteId);");
-    // Failed recovery in sendPayLink keeps a mounted card form (the lock did not
-    // change), so it drops only the stored session and leaves cardComplete to the
-    // form that is still on screen.
-    const send = fnBody("async function sendPayLink(", "async function onPay(");
-    const sendRestoreAt = send.indexOf('=== "restore_lock_coupon"');
-    const sendRestore = send.slice(sendRestoreAt, send.indexOf("}", sendRestoreAt));
-    expect(sendRestore).toContain("clearCheckoutSession(quoteId);");
-    expect(sendRestore).not.toContain("dropPaymentSession");
-    expect(send).not.toContain("setClientSecret(");
   });
 
   it("the payment session is cleared through one helper", () => {
@@ -549,8 +501,8 @@ describe("CheckoutClient card form unmount resets cardComplete (quick 260928-lat
     // Nothing else in the file clears these by hand.
     expect(client.match(/setClientSecretHex\(undefined\)/g)?.length).toBe(1);
     expect(client.match(/setConfirmPay\(null\)/g)?.length).toBe(1);
-    // clearCheckoutSession: the helper, plus sendPayLink's stored-session-only drop.
-    expect(client.match(/clearCheckoutSession\(quoteId\);/g)?.length).toBe(2);
+    // clearCheckoutSession: the helper only (the checkout pay-link sender is gone, 26.3 D-18).
+    expect(client.match(/clearCheckoutSession\(quoteId\);/g)?.length).toBe(1);
     expect(client.match(/clearCheckoutSession\(stored\.quoteId\)/g)).toBeNull();
     // Definition + new quote + flight reprice + coupon/extras reprice + startPayment recovery.
     expect(client.match(/dropPaymentSession\(/g)?.length).toBe(5);

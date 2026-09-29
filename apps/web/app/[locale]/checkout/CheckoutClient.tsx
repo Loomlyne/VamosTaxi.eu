@@ -211,10 +211,6 @@ const EMPTY_CONTACT: ContactFieldsValue = {
   mobile: "",
 };
 
-function billingKindFromFields(name: string, address: string, vat: string): "individual" | "company" {
-  return name.trim() || address.trim() || vat.trim() ? "company" : "individual";
-}
-
 function scheduledLocalFor(trip: VamosTrip | null, date: string, time: string): string | null {
   const base = trip?.scheduled_local;
   if (time && /^\d{2}:\d{2}$/.test(time) && base && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(base)) {
@@ -363,17 +359,14 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const flightSyncGate = useRef<Promise<boolean> | null>(null);
   const [publishable, setPublishable] = useState(publishableKey);
   const [reference, setReference] = useState<string | null>(null);
-  const [payUrl, setPayUrl] = useState<string | null>(null);
   const payInFlight = useRef(false);
   /** One Pay-driven recovery reprice at a time (quick 260928-rld). */
   const payRecovering = useRef(false);
-  const payLinkKept = useRef(false);
   const paymentStay = useRef(0);
   const [billingKind, setBillingKind] = useState<"individual" | "company">("individual");
   const [companyName, setCompanyName] = useState("");
   const [companyAddress, setCompanyAddress] = useState("");
   const [companyVat, setCompanyVat] = useState("");
-  const [payerEmail, setPayerEmail] = useState("");
   const [confirmPay, setConfirmPay] = useState<(() => Promise<void>) | null>(null);
   const [cardComplete, setCardComplete] = useState(false);
   const [tripSnap, setTripSnap] = useState<VamosTrip | null>(null);
@@ -473,7 +466,6 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
             mobile: e164Phone(base.mobile).length >= 10 ? e164Phone(base.mobile) : next.mobile,
           };
         });
-        setPayerEmail((email) => email || next.email);
         setGuest(false);
       })
       .catch(() => {});
@@ -498,7 +490,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     if (step !== "payment") return;
     const token = ++paymentStay.current;
     const abandon = () => {
-      if (payInFlight.current || payLinkKept.current) return;
+      if (payInFlight.current) return;
       const quoteId = tripQuoteId(readVamosTrip());
       if (!quoteId) return;
       try {
@@ -558,7 +550,6 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         mobile: e164Phone(trip.contact.mobile),
         email: trip.contact.email.trim(),
       });
-      setPayerEmail((email) => email || trip.contact?.email || "");
     }
     if (typeof trip?.guest === "boolean") setGuest(trip.guest);
     if (trip?.airline) setAirline(trip.airline);
@@ -1351,119 +1342,6 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         setCouponField("couponNoLongerValid");
       }
       return false;
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function sendPayLink() {
-    const trip = tripSnap ?? readVamosTrip();
-    const saved = trip?.contact;
-    const traveler = {
-      name: `${(contact.firstName || saved?.firstName || "").trim()} ${(contact.lastName || saved?.lastName || "").trim()}`.trim(),
-      email: (contact.email || saved?.email || "").trim(),
-      phone: e164Phone(contact.mobile || saved?.mobile || ""),
-    };
-    const quoteId = draft.quoteId || tripQuoteId(trip);
-    // Newest lock first, like startPayment: a reprice may have re-signed it this tick.
-    const lock = readDraft().lock || draft.lock || trip?.lock;
-    const vehicleClass = asClassSlug(resolvePaySlug(lock, trip) || draft.vehicleClass || vehicle);
-    const idempotencyKey = draft.idempotencyKey;
-    if (!quoteId || !lock || !vehicleClass || !idempotencyKey) {
-      setRefusal("quoteExpired");
-      return;
-    }
-    if (peekLockClassRappen(lock, vehicleClass) == null) {
-      setRefusal("pricingNotLive");
-      return;
-    }
-    const payer = payerEmail.trim();
-    if (!isCheckoutEmail(payer) || !traveler.name || !isCheckoutEmail(traveler.email) || traveler.phone.length < 10) {
-      return;
-    }
-    setBusy(true);
-    setRefusal(null);
-    try {
-      const res = await fetch("/api/checkout/pay-link", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          quote_id: quoteId,
-          lock,
-          vehicle_class: vehicleClass,
-          extras: quoteExtras({ childSeat, oversized, extraStop }, extraStopWaypoint),
-          coupon: couponApplied,
-          flight_no: draft.flightNumber.trim() || null,
-          contact: {
-            name: traveler.name,
-            email: traveler.email,
-            phone: traveler.phone,
-          },
-          locale,
-          display_currency: displayCur,
-          idempotency_key: idempotencyKey,
-          billing_kind: billingKindFromFields(companyName, companyAddress, companyVat),
-          company_name: companyName,
-          company_address: companyAddress,
-          company_vat: companyVat,
-          payer_email: payer,
-        }),
-      });
-      const json = (await res.json()) as {
-        ok?: boolean;
-        reference?: string;
-        pay_url?: string;
-        code?: string;
-        error?: string;
-      };
-      if (!res.ok) {
-        if (json.code === "coupon_no_longer_valid") {
-          const bodyCoupon = couponApplied;
-          setCouponApplied(null);
-          const recovery = couponRefusalAction({
-            code: json.code,
-            lockCoupon: peekLockCoupon(readDraft().lock || draft.lock || trip?.lock),
-            bodyCoupon,
-            alreadyRecovered: couponRecoveryAttempted.current,
-          });
-          if (recovery === "reprice_without_coupon") {
-            couponRecoveryAttempted.current = true;
-            setCouponInvalid(true);
-            setCouponField("couponNoLongerValid");
-            const repriced = await applyCouponCode(null);
-            setCouponInvalid(true);
-            setCouponField("couponNoLongerValid");
-            const lockCoupon = peekLockCoupon(readDraft().lock || draft.lock || trip?.lock);
-            if (couponRecoveryOutcome({ action: recovery, repriceOk: repriced, lockCoupon }) === "restore_lock_coupon") {
-              // Same as startPayment: the failed reprice leaves the coupon-priced lock.
-              // Only the stored session is dropped: the lock did not change, so a card
-              // form already on screen stays mounted and keeps reporting cardComplete.
-              setCouponApplied(lockCoupon);
-              couponRecoveryAttempted.current = false;
-              intentAttempts.current = INTENT_AUTO_ATTEMPTS;
-              clearCheckoutSession(quoteId);
-            }
-            return;
-          }
-          if (recovery === "drop_body_coupon") {
-            couponRecoveryAttempted.current = true;
-            setCouponInvalid(true);
-            setCouponField("couponNoLongerValid");
-            return;
-          }
-        }
-        // Every refusal is visible: an unknown code or validate-fail falls back to
-        // payCouldNotStart instead of leaving the payer with a silent button (plan 21-10).
-        const key = REFUSAL_KEYS[json.code ?? json.error ?? ""] ?? "payCouldNotStart";
-        setRefusal(key);
-        return;
-      }
-      payLinkKept.current = true;
-      if (json.reference) setReference(json.reference);
-      if (json.pay_url) setPayUrl(json.pay_url);
-    } catch {
-      // A network drop means the link was not sent: say so, never stay silent.
-      setRefusal("emailFailed");
     } finally {
       setBusy(false);
     }
@@ -2282,11 +2160,6 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                   value={companyVat}
                   onChange={(e) => setCompanyVat(e.target.value)}
                 />
-                <Input
-                  label={t("payerEmail")}
-                  value={payerEmail}
-                  onChange={(e) => setPayerEmail(e.target.value)}
-                />
               </div>
               <div className="vt-checkout__payblock">
                 {paySheetAlert ? (
@@ -2404,38 +2277,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                   >
                     {t("pay-and-continue")}
                   </Button>
-                  <Button
-                    size="lg"
-                    disabled={busy || classFareRappen == null || Boolean(paySheetAlert) || payLocked || !isCheckoutEmail(payerEmail)}
-                    onClick={() => void sendPayLink()}
-                  >
-                    {t("sendPayLink")}
-                  </Button>
                 </div>
-                {payUrl ? (
-                  <div className="vt-checkout__payresult" role="status" data-checkout-pay-result>
-                    <p>{t("payLinkSent")}</p>
-                    {reference ? <p>{t("unpaidReference", { reference })}</p> : null}
-                    <div className="vt-checkout__paylink">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          void navigator.clipboard.writeText(payUrl);
-                        }}
-                      >
-                        {t("copyPayLink")}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        href={`https://wa.me/?text=${encodeURIComponent(payUrl)}`}
-                      >
-                        {t("whatsappPayLink")}
-                      </Button>
-                    </div>
-                  </div>
-                ) : null}
                 <p className="vt-checkout__terms">
                   <Icon name="shield-check" size={16} /> {t("by-continuing-you-accept-the-terms-and-the-cance")}
                 </p>

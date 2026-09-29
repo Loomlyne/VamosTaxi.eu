@@ -10,6 +10,7 @@ import { asCheckout, asQuote } from "@/lib/db/identity";
 import { checkoutPayLinkSchema } from "@/lib/checkout/intent-schema";
 import { refuse } from "@/lib/checkout/errors";
 import { runCheckoutIntent } from "@/lib/checkout/intent";
+import { resolveActorCustomerId } from "@/lib/checkout/actor-customer";
 import { createBooking, issueManageToken } from "@/lib/checkout/create-booking";
 import { attachPayment } from "@/lib/checkout/attach-payment";
 import { loadOpenPayment } from "@/lib/checkout/load-open-payment";
@@ -148,7 +149,7 @@ export async function POST(request: Request) {
     publishableKey: stripePublishableKey(env),
     returnUrl: `${origin}${body.locale === "en" ? "" : `/${body.locale}`}/checkout/payment`,
     checkoutWindowMinutes: policy.checkoutWindowMinutes,
-    actorCustomerId: null,
+    actorCustomerId: await resolveActorCustomerId(env, request),
     vehicleClassId,
     snapshotPolicy,
     extrasCatalog: repriced.extrasCatalog,

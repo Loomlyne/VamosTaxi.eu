@@ -159,22 +159,16 @@ describe("CheckoutClient stored session wiring (quick 260928-rld)", () => {
     expect(quoteChanged).toContain('dropPaymentSession(stored.quoteId ?? "");');
   });
 
-  it("a restore_lock_coupon outcome clears the stored session in both refusal branches", () => {
+  it("a restore_lock_coupon outcome clears the stored session in the startPayment refusal branch", () => {
     const startAt = client.indexOf("async function startPayment(");
-    const sendAt = client.indexOf("async function sendPayLink(");
-    const bodies = [
-      client.slice(startAt, client.indexOf("async function syncFlightToLock(", startAt)),
-      client.slice(sendAt, client.indexOf("async function onPay(", sendAt)),
-    ];
-    // startPayment clears through dropPaymentSession (quick 260928-lat); sendPayLink
-    // drops only the stored session because its card form stays mounted.
-    const expected = ["dropPaymentSession(quoteId);", "clearCheckoutSession(quoteId);"];
-    bodies.forEach((body, i) => {
-      const at = body.indexOf('=== "restore_lock_coupon"');
-      expect(at).toBeGreaterThan(-1);
-      const restore = body.slice(at, body.indexOf("}", at));
-      expect(restore).toContain(expected[i]);
-    });
+    const body = client.slice(startAt, client.indexOf("async function syncFlightToLock(", startAt));
+    // startPayment clears through dropPaymentSession (quick 260928-lat). The
+    // checkout pay-link sender is gone (26.3 D-18), so there is one branch.
+    expect(client).not.toContain("async function sendPayLink(");
+    const at = body.indexOf('=== "restore_lock_coupon"');
+    expect(at).toBeGreaterThan(-1);
+    const restore = body.slice(at, body.indexOf("}", at));
+    expect(restore).toContain("dropPaymentSession(quoteId);");
   });
 
   it("the restore effect passes the current lock to the session store", () => {
