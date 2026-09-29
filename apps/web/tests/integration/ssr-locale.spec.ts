@@ -18,8 +18,10 @@
 // still picks it up as part of the full run.
 
 import { test, expect } from "../support/test";
+import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { nextDevEnv } from "../support/test-stack";
 
 const RUN_PROJECT = "component-1440";
 
@@ -34,12 +36,13 @@ test.beforeAll(async ({}, testInfo) => {
 
   testInfo.setTimeout(90_000);
 
-  const port = 4000 + testInfo.workerIndex;
+  const port = testPort(4000) + testInfo.workerIndex;
   baseURL = `http://localhost:${port}`;
   devServer = spawn("pnpm", ["exec", "next", "dev", "-p", String(port)], {
     cwd: WEB_ROOT,
     stdio: "ignore",
     detached: true,
+    env: nextDevEnv({}, { gallery: true }),
   });
   await waitForNextServer(baseURL);
 });
