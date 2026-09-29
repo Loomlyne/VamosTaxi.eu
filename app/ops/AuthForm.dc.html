@@ -125,6 +125,21 @@ button,.vt-btn,.vt-iconbtn{box-shadow:none}
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" role="alert" hint-size="100%,72px">That link has expired or was already used. Ask for a new one below.</x-import>
 </sc-if>
 
+<sc-if value="{{ bannerRate }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" role="alert" hint-size="100%,56px">Too many tries. Wait a minute and try again.</x-import>
+</sc-if>
+<sc-if value="{{ bannerNotStaff }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" role="alert" hint-size="100%,72px">This account can't open the dashboard. Use your staff sign-in.</x-import>
+</sc-if>
+<sc-if value="{{ bannerUnconfirmed }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" role="alert" title="Confirm your email first" hint-size="100%,88px">We sent you a link when you signed up. <button type="button" data-af-link="1" data-on-alert="1" onClick="{{ resendConfirm }}">Send the link again</button></x-import>
+</sc-if>
+<sc-if value="{{ bannerConfirmSent }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="info" role="status" hint-size="100%,56px">Check your inbox. We sent a new link.</x-import>
+</sc-if>
+<sc-if value="{{ bannerConfirmFail }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" role="alert" hint-size="100%,56px">Could not send the link. Try again.</x-import>
+</sc-if>
 <sc-if value="{{ bannerCred }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" title="That email and password don't match" hint-size="100%,88px">Try again, or <button type="button" data-af-link="1" data-on-alert="1" onClick="{{ useMagic }}">email yourself a sign-in link</button> instead.</x-import>
 </sc-if>
@@ -282,7 +297,7 @@ button,.vt-btn,.vt-iconbtn{box-shadow:none}
 </div>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:640},&quot;mode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;signin&quot;,&quot;signup&quot;,&quot;forgot&quot;],&quot;default&quot;:&quot;signin&quot;,&quot;tsType&quot;:&quot;'signin'|'signup'|'forgot'&quot;},&quot;method&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;password&quot;,&quot;magic&quot;],&quot;default&quot;:&quot;password&quot;,&quot;tsType&quot;:&quot;'password'|'magic'&quot;},&quot;stage&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;form&quot;,&quot;sent&quot;,&quot;verifying&quot;,&quot;mfa&quot;,&quot;returning&quot;],&quot;default&quot;:&quot;form&quot;,&quot;tsType&quot;:&quot;'form'|'sent'|'verifying'|'mfa'|'returning'&quot;},&quot;banner&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;&quot;,&quot;credentials&quot;,&quot;registered&quot;,&quot;expired&quot;],&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;'credentials'|'registered'|'expired'|null&quot;},&quot;email&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;firstName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;lastName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;frozen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;onState&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(s: {mode:string;method:string;stage:string;banner:string|null}) =&gt; void&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:640},&quot;mode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;signin&quot;,&quot;signup&quot;,&quot;forgot&quot;],&quot;default&quot;:&quot;signin&quot;,&quot;tsType&quot;:&quot;'signin'|'signup'|'forgot'&quot;},&quot;method&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;password&quot;,&quot;magic&quot;],&quot;default&quot;:&quot;password&quot;,&quot;tsType&quot;:&quot;'password'|'magic'&quot;},&quot;stage&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;form&quot;,&quot;sent&quot;,&quot;verifying&quot;,&quot;mfa&quot;,&quot;returning&quot;],&quot;default&quot;:&quot;form&quot;,&quot;tsType&quot;:&quot;'form'|'sent'|'verifying'|'mfa'|'returning'&quot;},&quot;banner&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;&quot;,&quot;credentials&quot;,&quot;registered&quot;,&quot;expired&quot;,&quot;rate-limited&quot;,&quot;not-staff&quot;,&quot;unconfirmed&quot;],&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;'credentials'|'registered'|'expired'|'rate-limited'|'not-staff'|'unconfirmed'|null&quot;},&quot;email&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;firstName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;lastName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;frozen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;onState&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(s: {mode:string;method:string;stage:string;banner:string|null}) =&gt; void&quot;}}">
 const REGISTERED = ['taken@vamostaxi.site'];
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i;
 class Component extends DCLogic {
@@ -413,6 +428,7 @@ class Component extends DCLogic {
      whose response carries the new session cookies. Used by the form option and the step-up. */
   async passkeySignIn() {
     const start = await this.liveAuth({ action: 'passkey-start' });
+    if (start && start.reason) return start;
     if (!start || !start.challenge_id || !start.options) throw new Error('passkey-start');
     const credential = await navigator.credentials.get({ publicKey: this.passkeyOptions(start.options) });
     if (!credential) throw new Error('passkey-cancelled');
@@ -527,10 +543,21 @@ class Component extends DCLogic {
     const back = () => this.go({ stage: 'form', method: 'password', banner: null, password: '' });
     this.liveAuth({ action: 'signout' }).then(back, back);
   };
+  /* The reasons POST /api/auth gives instead of a generic failure (429 rate-limited, 403
+     not-staff, 400 email-not-confirmed). Anything else keeps the old credentials handling. */
+  reasonBanner(reason) {
+    return reason === 'rate-limited' ? 'rate-limited'
+      : reason === 'not-staff' ? 'not-staff'
+      : reason === 'email-not-confirmed' ? 'unconfirmed' : null;
+  }
   async applyLive(result, mode, method) {
     if (!result) {
       if (mode === 'signin' && method === 'password') return this.go({ banner: 'credentials' });
       return this.go({ stage: 'sent' });
+    }
+    if (!result.ok) {
+      const shown = this.reasonBanner(result.reason);
+      if (shown) return this.go({ stage: 'form', banner: shown });
     }
     if (this.props.surface === 'ops') {
       if (result.ok) {
@@ -659,6 +686,10 @@ class Component extends DCLogic {
       eyeLabel: this.state.showPw ? 'Hide password' : 'Show password',
       togglePw: this.togglePw,
       bannerExpired: isForm && banner === 'expired',
+      bannerRate: isForm && banner === 'rate-limited', bannerNotStaff: isForm && banner === 'not-staff',
+      bannerUnconfirmed: isForm && banner === 'unconfirmed' && !this.state.confirmSent,
+      bannerConfirmSent: isForm && banner === 'unconfirmed' && this.state.confirmSent,
+      bannerConfirmFail: isForm && banner === 'unconfirmed' && this.state.confirmFailed,
       bannerCred: isForm && banner === 'credentials', bannerTaken: isForm && banner === 'registered',
       ctaSignIn: isForm && mode === 'signin' && !isMagic,
       ctaSignUp: isForm && mode === 'signup' && !isMagic,

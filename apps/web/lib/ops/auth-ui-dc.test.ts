@@ -132,3 +132,93 @@ describe("expired or used email link (?error=1)", () => {
     expectTranslated([EXPIRED]);
   });
 });
+
+describe("sign-in answers from POST /api/auth", () => {
+  const REASON_STRINGS = [
+    "Too many tries. Wait a minute and try again.",
+    "This account can't open the dashboard. Use your staff sign-in.",
+    "Confirm your email first",
+    "We sent you a link when you signed up.",
+    "Send the link again",
+    "Check your inbox. We sent a new link.",
+    "Could not send the link. Try again.",
+  ];
+
+  for (const [name, html] of forms) {
+    const script = html.slice(html.indexOf('<script type="text/x-dc"'));
+
+    it(`${name}: maps rate-limited, not-staff and email-not-confirmed to their own banner`, () => {
+      expect(script).toMatch(/reason === 'rate-limited' \? 'rate-limited'\s*: reason === 'not-staff' \? 'not-staff'\s*: reason === 'email-not-confirmed' \? 'unconfirmed' : null/);
+      // Reasons are read before the generic credentials handling.
+      const apply = script.slice(script.search(/\n {2}(async )?applyLive\(result, mode, method/));
+      expect(apply.indexOf("this.reasonBanner(result.reason)")).toBeGreaterThan(-1);
+      expect(apply.indexOf("this.reasonBanner(result.reason)")).toBeLessThan(apply.indexOf("result.banner === 'credentials'"));
+      expect(html).toMatch(/<sc-if value="\{\{ bannerRate \}\}">[\s\S]*?Too many tries\. Wait a minute and try again\./);
+      expect(html).toMatch(/<sc-if value="\{\{ bannerNotStaff \}\}">[\s\S]*?This account can't open the dashboard\. Use your staff sign-in\./);
+      expect(html).toMatch(/<sc-if value="\{\{ bannerUnconfirmed \}\}">[\s\S]*?title="Confirm your email first"[^>]*>We sent you a link when you signed up\. <button [^>]*onClick="\{\{ resendConfirm \}\}">Send the link again<\/button>/);
+      expect(html).toMatch(/Check your inbox\. We sent a new link\./);
+    });
+
+    it(`${name}: resend-confirmation posts the address and answers 200 and 429`, () => {
+      const resend = script.match(/resendConfirm = \(\) => \{[\s\S]*?\n {2}\};/)?.[0] ?? "";
+      expect(resend).toMatch(/liveAuth\(\{ mode: 'resend-confirmation', email: this\.state\.email\.trim\(\) \}\)/);
+      expect(resend).toMatch(/result\.reason === 'rate-limited'\) return this\.go\(\{ banner: 'rate-limited' \}\)/);
+      expect(resend).toMatch(/result\.stage === 'sent'\) return this\.setState\(\{ confirmSent: true \}\)/);
+    });
+
+    it(`${name}: the resend button and the passkey start report a rate limit`, () => {
+      expect(script).toMatch(/result\.reason === 'rate-limited'\) this\.setState\(\{ resent: false, resendLimited: true \}\)/);
+      expect(script).toMatch(/start && start\.reason/);
+      expect(html).toMatch(/<sc-if value="\{\{ resendLimited \}\}">/);
+    });
+  }
+
+  it("dashboard: a non-staff answer never enters the console", () => {
+    const script = FORMS.ops.slice(FORMS.ops.indexOf('<script type="text/x-dc"'));
+    // not-staff is handled before the ops branch that calls enterOps / openStepUp.
+    const apply = script.slice(script.indexOf("async applyLive("));
+    expect(apply.indexOf("this.reasonBanner")).toBeLessThan(apply.indexOf("this.enterOps()"));
+    expect(script).toMatch(/if \(result && result\.ok\) return this\.applyLive\(result, 'signin', 'code'\)/);
+  });
+
+  it("every reason string exists in de, fr and ar", () => {
+    expectTranslated(REASON_STRINGS);
+  });
+});
+
+describe("previously untranslated auth strings", () => {
+  it("exist in de, fr and ar", () => {
+    expectTranslated([
+      "Use at least 8 characters",
+      "Choose a password",
+      "Enter your password",
+      "The two entries are different",
+      "Type the password again",
+      "Choose a new password",
+      "At least 8 characters.",
+      "Hide password",
+      "Show password",
+      "The link works once and expires after 1 hour. Nothing there? Check spam, then send another.",
+      "Link expired",
+      "Reset links work once, and expire after 1 hour. Ask for a new one and it arrives in the same inbox.",
+      "A Vamos Taxi V-Class waiting at the curb",
+    ]);
+  });
+
+  it("every visible literal in the auth forms resolves (placeholders excepted)", () => {
+    const files = ["app/pages/AuthForm.dc.html", "app/ops/AuthForm.dc.html", "app/pages/ResetForm.dc.html"];
+    const missing: string[] = [];
+    for (const file of files) {
+      const src = read(file);
+      const tmpl = src.slice(src.indexOf("</helmet>"), src.indexOf('<script type="text/x-dc"'));
+      const found = new Set<string>();
+      for (const m of tmpl.matchAll(/>([^<>{}]+)</g)) found.add(m[1].replace(/\s+/g, " ").trim());
+      for (const m of tmpl.matchAll(/\s(?:label|title|hint|aria-label|alt)="([^"{}]+)"/g)) found.add(m[1]);
+      for (const text of found) {
+        if (!/[A-Za-z]/.test(text) || text === "Anna" || text === "Keller") continue;
+        if (!dict[text]) missing.push(`${file}: ${text}`);
+      }
+    }
+    expect(missing).toEqual([]);
+  });
+});
