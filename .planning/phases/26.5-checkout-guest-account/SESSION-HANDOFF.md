@@ -92,3 +92,7 @@ Written 2026-09-30 ~03:00 by the orchestrating session. The owner moved this wor
 - **Accepted risk:** plan 04's "sign in first" e-mails a link carrying the trip (no contact data) to the typed address. This is accepted under D-16.
 - **No staging exists.** The control session ships to vamostaxi.site. After a checkout deploy it makes one 4242 payment, then reads booking_payments.
 - **Checks last run:** none for 26.5 (no code).
+
+## Signatures added 2026-09-30 (build session, question form)
+- Owner signed plans 09, 10 and 11, and the D-19 revision of plans 01, 04, 05 and 07. All 11 plans are signed.
+- origin/main `49c51749` merged into the branch; ROADMAP conflict taken from main.
