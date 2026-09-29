@@ -15,7 +15,8 @@ import {
   should404MockLeak,
 } from "./lib/dc-mock-urls";
 import { publicDashboardPath } from "./lib/ops/paths";
-import { vamosRoleFromAccessToken } from "./lib/ops/session";
+import { passkeyGateInputs, vamosRoleFromAccessToken, type StaffAuthClient } from "./lib/ops/session";
+import { effectiveNextLevel, staffGateDecision } from "./lib/ops/staff-gate";
 import { MANAGE_COOKIE_NAME } from "./lib/checkout/manage-token";
 import { applySecurityHeaders } from "./lib/security/headers";
 import {
@@ -85,7 +86,8 @@ function publicPathFromDcFile(pathname: string): string | null {
   return route;
 }
 
-const OPS_EXEMPT = new Set(["/ops/sign-in", "/ops/mfa-challenge", "/ops/accept-invite"]);
+// Frozen array, not a module-scope Set (no module-scope collections in apps/web).
+const OPS_EXEMPT: readonly string[] = Object.freeze(["/ops/sign-in", "/ops/accept-invite"]);
 
 function stripLocalePath(pathname: string): string {
   let path = pathname;
@@ -197,7 +199,7 @@ function isOpsRequest(pathname: string): boolean {
 
 function isOpsExempt(pathname: string): boolean {
   const { path } = localeStrippedPath(pathname);
-  return OPS_EXEMPT.has(path);
+  return OPS_EXEMPT.includes(path);
 }
 
 /**
@@ -305,7 +307,23 @@ async function dashboardHostMiddleware(request: NextRequest): Promise<NextRespon
     ? (vamosRoleFromAccessToken(sessionData.session?.access_token) ??
         (typeof user.app_metadata?.vamos_role === "string" ? user.app_metadata.vamos_role : ""))
     : "";
-  const inConsole = role === "admin" || role === "dispatcher";
+  // INT-09 / D-16 / D-16a / D-16b: admin only; aal2 on every request once a factor is verified.
+  // Step-up and deny both fall through to /login, which hosts the step-up (26.1-23).
+  const { data: aalData } = user
+    ? await client.supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+    : { data: null };
+  const currentLevel = aalData?.currentLevel;
+  const nextLevel = effectiveNextLevel(aalData?.nextLevel, user?.factors);
+  const passkey = user
+    ? await passkeyGateInputs(client.supabase as StaffAuthClient, {
+        role,
+        currentLevel,
+        nextLevel,
+        accessToken: sessionData.session?.access_token,
+      })
+    : {};
+  const gate = staffGateDecision({ role, currentLevel, nextLevel, ...passkey });
+  const inConsole = role === "admin" && gate === "allow";
   const dashPath = normalizeDashboardPath(path);
 
   // /login is the staff sign-in document even with a leftover console session.
@@ -455,18 +473,33 @@ async function opsStaffGate(request: NextRequest, i18nResponse: NextResponse): P
         copyCookies(client.response, NextResponse.redirect(opsRedirectUrl(request, "/ops/sign-in"))),
       );
     }
-    const role = user.app_metadata?.vamos_role;
-    if (typeof role !== "string" || role.length === 0) {
+    // vamos_role is hook-minted into the access token; getUser()'s app_metadata does not carry it.
+    const { data: sessionData } = await client.supabase.auth.getSession();
+    const role =
+      vamosRoleFromAccessToken(sessionData.session?.access_token) ??
+      (typeof user.app_metadata?.vamos_role === "string" ? user.app_metadata.vamos_role : "");
+    if (role.length === 0) {
       return applyStagingNoindex(
         request,
         copyCookies(client.response, NextResponse.redirect(opsRedirectUrl(request, "/"))),
       );
     }
-    const { data: aal } = await client.supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-    if (aal?.currentLevel !== "aal2") {
+    // INT-09 / D-16 / D-16a / D-16b: same decision as the dashboard host and requireStaffClaims.
+    // Step-up and deny go to sign-in; there is no separate MFA page.
+    const { data: aalData } = await client.supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    const currentLevel = aalData?.currentLevel;
+    const nextLevel = effectiveNextLevel(aalData?.nextLevel, user.factors);
+    const passkey = await passkeyGateInputs(client.supabase as StaffAuthClient, {
+      role,
+      currentLevel,
+      nextLevel,
+      accessToken: sessionData.session?.access_token,
+    });
+    const gate = staffGateDecision({ role, currentLevel, nextLevel, ...passkey });
+    if (gate !== "allow") {
       return applyStagingNoindex(
         request,
-        copyCookies(client.response, NextResponse.redirect(opsRedirectUrl(request, "/ops/mfa-challenge"))),
+        copyCookies(client.response, NextResponse.redirect(opsRedirectUrl(request, "/ops/sign-in"))),
       );
     }
   }

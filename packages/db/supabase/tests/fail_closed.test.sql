@@ -129,8 +129,8 @@ select set_eq(
        select table_name from information_schema.column_privileges
         where grantee = 'authenticated' and table_schema = 'public'
      ) g $$,
-  -- booking_payments: column-scoped receipt read, no Stripe ids, parent-booking RLS
-  -- (20260911000001_booking_payments_receipt_select).
+  -- booking_payments: column-scoped receipt read (no Stripe ids), RLS via parent booking --
+  -- e1260da / 20260911000001_booking_payments_receipt_select.sql.
   $$ values ('customers'),('bookings'),('booking_legs'),('price_snapshots'),('price_snapshot_legs'),
             ('content_strings'),('reviews'),('vehicle_classes'),('service_zones'),('settings_public'),
             ('booking_payments') $$,

@@ -4,7 +4,7 @@
 
 import { asSystem } from "../db/identity";
 import { BOOKING_REFERENCE_RE } from "./booking-status";
-import { handleStripeMessage } from "./settle";
+import { handleStripeMessage, type HandleResult } from "./settle";
 import { retrieveCheckoutSession, stripeFromEnv } from "./stripe";
 
 const SESSION_ID = /^cs_(?:test|live)_[A-Za-z0-9]+$/;
@@ -32,10 +32,19 @@ export async function referenceForCheckoutSession(
   }
 }
 
+/**
+ * 26.1-16 (D-22): a settle that reports a refunded duplicate is "duplicate",
+ * so the return route can tell the payer their charge was reversed.
+ */
+export function returnSettleOutcome(handled: HandleResult): "paid" | "duplicate" | "failed" {
+  if ("retry" in handled) return "failed";
+  return handled.settled?.duplicate ? "duplicate" : "paid";
+}
+
 export async function settlePaidReturn(
   env: CloudflareEnv,
   sessionId: string,
-): Promise<"paid" | "unpaid" | "failed"> {
+): Promise<"paid" | "duplicate" | "unpaid" | "failed"> {
   if (!isCheckoutSessionId(sessionId)) return "failed";
   const stripe = stripeFromEnv(env);
   const session = await retrieveCheckoutSession(stripe, sessionId);
@@ -59,5 +68,5 @@ export async function settlePaidReturn(
     objectId: session.id,
     stripeCreated: session.created ?? Math.floor(Date.now() / 1000),
   });
-  return "retry" in handled ? "failed" : "paid";
+  return returnSettleOutcome(handled);
 }

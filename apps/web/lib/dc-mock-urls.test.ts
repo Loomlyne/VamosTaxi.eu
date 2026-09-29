@@ -89,6 +89,38 @@ describe("dc mock URL gate", () => {
     expect((dev as Response).status).toBe(404);
   });
 
+  it("lets the browser open the three API routes that are links, on both hosts", () => {
+    for (const path of [
+      "/api/checkout/return?ref=VT-26-0001&session=cs_test_x&locale=en",
+      "/api/checkout/return?locale=de&session_id=cs_test_x",
+      "/api/auth/callback?code=abc&next=%2Faccount",
+      "/api/checkout/invite/VT-26-0001",
+    ]) {
+      expect(gatePublicRequest(doc(path)), path).toBeNull();
+      expect(gatePublicRequest(req(path)), path).toBeNull();
+    }
+    expect(
+      gatePublicRequest(doc("/api/auth/callback?code=abc", { host: "dashboard.vamostaxi.site" })),
+    ).toBeNull();
+  });
+
+  it("keeps every other API route hidden from document navigation", () => {
+    for (const path of [
+      "/api/checkout/intent",
+      "/api/checkout/return/extra",
+      "/api/checkout/returns",
+      "/api/checkout/invite",
+      "/api/checkout/status/VT-26-0001",
+      "/api/auth",
+      "/api/auth/session",
+      "/api/auth/callback/extra",
+      "/api/stripe/webhook",
+      "/api/account/bookings",
+    ]) {
+      expect(gatePublicRequest(doc(path)), path).toBe("not-found");
+    }
+  });
+
   it("lets same-origin fetch hit product APIs", () => {
     expect(gatePublicRequest(req("/api/quote", { method: "POST" }))).toBeNull();
     expect(gatePublicRequest(req("/api/geo/suggest"))).toBeNull();

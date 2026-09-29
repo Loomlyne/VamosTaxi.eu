@@ -47,7 +47,7 @@ const place = {
   color: CHARCOAL,
 };
 
-export type OpsMustFixKind = "off-road" | "overlap";
+export type OpsMustFixKind = "off-road" | "overlap" | "stuck-payment" | "paid-after-cancel";
 
 export type OpsMustFixTrip = {
   reference: string;
@@ -56,10 +56,18 @@ export type OpsMustFixTrip = {
   scheduledLocal: string;
 };
 
+/** D-06: identifiers only — never a payload read. No card, name, or address. */
+export type OpsMustFixDetail = {
+  eventId: string;
+  eventType: string;
+  objectId: string;
+};
+
 export type OpsMustFixForEmail = {
   locale: EmailLocale;
   kind: OpsMustFixKind;
   trips: OpsMustFixTrip[];
+  detail?: OpsMustFixDetail;
 };
 
 function ltr(value: string) {
@@ -94,11 +102,33 @@ function refs(payload: OpsMustFixForEmail): string {
 }
 
 function headlineKey(kind: OpsMustFixKind): string {
-  return kind === "overlap" ? "opsMustFix.overlapHeadline" : "opsMustFix.offRoadHeadline";
+  switch (kind) {
+    case "overlap":
+      return "opsMustFix.overlapHeadline";
+    case "stuck-payment":
+      return "opsMustFix.stuckHeadline";
+    case "paid-after-cancel":
+      return "opsMustFix.paidAfterCancelHeadline";
+    default:
+      return "opsMustFix.offRoadHeadline";
+  }
 }
 
 function bodyKey(kind: OpsMustFixKind): string {
-  return kind === "overlap" ? "opsMustFix.overlapBody" : "opsMustFix.offRoadBody";
+  switch (kind) {
+    case "overlap":
+      return "opsMustFix.overlapBody";
+    case "stuck-payment":
+      return "opsMustFix.stuckBody";
+    case "paid-after-cancel":
+      return "opsMustFix.paidAfterCancelBody";
+    default:
+      return "opsMustFix.offRoadBody";
+  }
+}
+
+function detailLine(detail: OpsMustFixDetail): string {
+  return `${detail.eventType} · ${detail.objectId} · ${detail.eventId}`;
 }
 
 export function OpsMustFixEmail({ payload }: { payload: OpsMustFixForEmail }) {
@@ -150,16 +180,28 @@ export function OpsMustFixEmail({ payload }: { payload: OpsMustFixForEmail }) {
             &nbsp;
           </Section>
 
+          {payload.detail ? (
+            <Section style={{ backgroundColor: WHITE, padding: "24px 32px 8px" }}>
+              <Fact label={t(locale, "opsMustFix.stuckEventLabel")} first>
+                {ltr(detailLine(payload.detail))}
+              </Fact>
+            </Section>
+          ) : null}
+
           {payload.trips.map((trip, index) => {
             const when = trip.scheduledLocal ? formatPickup(trip.scheduledLocal, locale) : "";
+            const hasContent = Boolean(trip.reference || trip.pickupText || trip.dropoffText || when);
+            if (!hasContent) return null;
             return (
               <Section
                 key={`${trip.reference}-${index}`}
                 style={{ backgroundColor: WHITE, padding: "24px 32px 8px" }}
               >
-                <Fact label={t(locale, "referenceLabel")} first>
-                  {ltr(trip.reference)}
-                </Fact>
+                {trip.reference ? (
+                  <Fact label={t(locale, "referenceLabel")} first>
+                    {ltr(trip.reference)}
+                  </Fact>
+                ) : null}
                 {trip.pickupText ? (
                   <Fact label={t(locale, "fromLabel")}>{trip.pickupText}</Fact>
                 ) : null}
@@ -181,8 +223,11 @@ export function OpsMustFixEmail({ payload }: { payload: OpsMustFixForEmail }) {
 export function opsMustFixPlainText(payload: OpsMustFixForEmail): string {
   const locale = payload.locale;
   const lines = [t(locale, headlineKey(payload.kind)), t(locale, bodyKey(payload.kind))];
+  if (payload.detail) {
+    lines.push(`${t(locale, "opsMustFix.stuckEventLabel")} ${detailLine(payload.detail)}`);
+  }
   for (const trip of payload.trips) {
-    lines.push(`${t(locale, "referenceLabel")} ${trip.reference}`);
+    if (trip.reference) lines.push(`${t(locale, "referenceLabel")} ${trip.reference}`);
     if (trip.pickupText) lines.push(`${t(locale, "fromLabel")}: ${trip.pickupText}`);
     if (trip.dropoffText) lines.push(`${t(locale, "toLabel")}: ${trip.dropoffText}`);
     if (trip.scheduledLocal) {

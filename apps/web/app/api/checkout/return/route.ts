@@ -38,10 +38,15 @@ export async function GET(request: Request): Promise<Response> {
     const bookingRef = BOOKING_REFERENCE_RE.test(ref)
       ? ref
       : await referenceForCheckoutSession(env, sessionId);
+    // 26.1-16 (D-22): this payer's charge lost the race and was refunded —
+    // the booking is paid by the other payer; the confirmation says so.
+    if (result === "duplicate" && BOOKING_REFERENCE_RE.test(bookingRef)) {
+      return redirect(localePath(locale, `/confirmation/${bookingRef}?charge=refunded`));
+    }
     if (result === "paid" && BOOKING_REFERENCE_RE.test(bookingRef)) {
       return redirect(localePath(locale, `/confirmation/${bookingRef}`));
     }
-    return redirect(`${payment}?pay=${result}`);
+    return redirect(`${payment}?pay=${result === "duplicate" ? "paid" : result}`);
   } catch {
     return redirect(`${payment}?pay=failed`);
   }

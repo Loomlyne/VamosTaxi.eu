@@ -2,12 +2,7 @@
 //
 // Pure board mapping. Keep Hyperdrive out of this file so vitest can import it.
 
-const CLASS_LABEL: Record<string, string> = {
-  economy: "Economy",
-  business: "Business",
-  first: "First",
-  van: "Van",
-};
+import { classDisplayName } from "./class-slug";
 
 export type OpsBookingRow = {
   id: string;
@@ -43,6 +38,16 @@ export type OpsBookingRow = {
   totalRappen: number;
   extraRappen: number;
   refundRappen: number;
+  /** bookings.refund_status: none | pending_ops | processing | refunded | failed | declined. */
+  refundStatus: string;
+  /** Amount the admin decided to refund; null until decided (D-24). */
+  refundOwedRappen: number | null;
+  /** Every captured charge on the booking (base + extras). */
+  capturedRappen: number;
+  /** Earliest leg's original pickup is at or before SQL now() (D-25). */
+  tripPassed: boolean;
+  /** Latest Stripe dispute mirror (D-07); status word and reason code only. */
+  dispute: OpsBookingDispute | null;
   stripeFeeRappen: number | null;
   pendingEditId: string;
   pendingEditActor: string;
@@ -57,6 +62,8 @@ export type OpsBookingRow = {
   extraWaitMinutes: number;
   extraWaitRappen: number;
 };
+
+export type OpsBookingDispute = { status: string; reason: string };
 
 export type SqlBoardRow = {
   id: string;
@@ -90,6 +97,12 @@ export type SqlBoardRow = {
   snapshot_total_rappen?: number | string | null;
   extra_rappen?: number | string | null;
   refund_rappen?: number | string | null;
+  refund_status?: string | null;
+  refund_owed_rappen?: number | string | null;
+  captured_rappen?: number | string | null;
+  trip_passed?: boolean | null;
+  dispute_status?: string | null;
+  dispute_reason?: string | null;
   stripe_fee_rappen?: number | string | null;
   edit_request_id?: string | null;
   edit_actor?: string | null;
@@ -113,7 +126,8 @@ function str(value: unknown): string {
 
 function classLabel(slug: string | null): string {
   if (!slug) return "Economy";
-  return CLASS_LABEL[slug.toLowerCase()] ?? slug.charAt(0).toUpperCase() + slug.slice(1);
+  // 26.1-19 D-14: live and legacy slugs read Economy / Business / Van luxury.
+  return classDisplayName(slug) ?? slug.charAt(0).toUpperCase() + slug.slice(1);
 }
 
 function boardParts(scheduledLocal: string | null): { date: string; time: string; dateIso: string } {
@@ -338,6 +352,16 @@ export function mapBoardBooking(row: SqlBoardRow): OpsBookingRow {
     totalRappen: rappen(row.snapshot_total_rappen) || rappen(row.charged_rappen),
     extraRappen: rappen(row.extra_rappen),
     refundRappen: rappen(row.refund_rappen),
+    refundStatus: str(row.refund_status) || "none",
+    refundOwedRappen:
+      row.refund_owed_rappen == null || String(row.refund_owed_rappen).trim() === ""
+        ? null
+        : rappen(row.refund_owed_rappen),
+    capturedRappen: rappen(row.captured_rappen),
+    tripPassed: row.trip_passed === true,
+    dispute: str(row.dispute_status)
+      ? { status: str(row.dispute_status), reason: str(row.dispute_reason) }
+      : null,
     stripeFeeRappen,
     pendingEditId: str(row.edit_request_id),
     pendingEditActor: str(row.edit_actor),

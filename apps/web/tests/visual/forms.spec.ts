@@ -46,6 +46,7 @@
 
 import { test, expect, type Page } from "@playwright/test";
 import { mountBundle, mountPort, waitForMockReady } from "../support/mock-harness";
+import enMessages from "../../i18n/messages/en.json";
 
 const REDUCED_VIEWPORT_PROJECTS = new Set(["component-1440", "component-390"]);
 
@@ -105,7 +106,7 @@ test.describe("Input @component", () => {
     await waitForMockReady(page);
     await expect(page.locator("#root")).toHaveScreenshot("input-default.png");
 
-    const portUrl = await mountPort(portPath("Input"), props);
+    const portUrl = await mountPort(portPath("Input"), props, { messages: enMessages });
     await page.goto(portUrl);
     await waitForMockReady(page);
     await expect(page.locator("#root")).toHaveScreenshot("input-default.png");
@@ -121,7 +122,7 @@ test.describe("Input @component", () => {
     await page.locator("#root .vt-input").hover();
     await expect(page.locator("#root")).toHaveScreenshot(name);
 
-    const portUrl = await mountPort(portPath("Input"), props);
+    const portUrl = await mountPort(portPath("Input"), props, { messages: enMessages });
     await page.goto(portUrl);
     await waitForMockReady(page);
     await page.locator("#root .vt-input").hover();
@@ -140,7 +141,7 @@ test.describe("Input @component", () => {
     await focusTextField(page, "#root .vt-input", "#root input", false);
     await expect(page.locator("#root")).toHaveScreenshot(name);
 
-    const portUrl = await mountPort(portPath("Input"), props);
+    const portUrl = await mountPort(portPath("Input"), props, { messages: enMessages });
     await page.goto(portUrl);
     await waitForMockReady(page);
     await focusTextField(page, "#root .vt-input", "#root input", true);
@@ -156,7 +157,7 @@ test.describe("Input @component", () => {
     await waitForMockReady(page);
     await expect(page.locator("#root")).toHaveScreenshot(name);
 
-    const portUrl = await mountPort(portPath("Input"), props);
+    const portUrl = await mountPort(portPath("Input"), props, { messages: enMessages });
     await page.goto(portUrl);
     await waitForMockReady(page);
     await expect(page.locator("#root")).toHaveScreenshot(name);
@@ -176,7 +177,7 @@ test.describe("Input @component", () => {
     await waitForMockReady(page);
     await expect(page.locator("#root")).toHaveScreenshot(name);
 
-    const portUrl = await mountPort(portPath("Input"), props);
+    const portUrl = await mountPort(portPath("Input"), props, { messages: enMessages });
     await page.goto(portUrl);
     await waitForMockReady(page);
     await expect(page.locator("#root")).toHaveScreenshot(name);

@@ -39,10 +39,13 @@ export function FlightField({
   value,
   date,
   onChange,
+  onBlur,
 }: {
   value: string;
   date?: string;
   onChange: (value: string) => void;
+  /** Checkout details re-prices on blur when the flight number changed (D-08b). */
+  onBlur?: () => void;
 }) {
   const t = useTranslations("quote.flight");
   const locale = useLocale();
@@ -151,6 +154,7 @@ export function FlightField({
         placeholder={t("placeholder")}
         error={state === "err" ? t("malformed") : undefined}
         onChange={(e) => typed(e.target.value)}
+        onBlur={onBlur ? () => onBlur() : undefined}
         onKeyDown={(e) => {
           if (e.key !== "Enter") return;
           e.preventDefault();

@@ -18,6 +18,17 @@ const POLICY_ALLOW = {
   },
 };
 
+// Owner decision 2026-09-27 (docs/audit §6): formatter and parser tests may use synthetic
+// CHF amounts to prove arithmetic; each file needs a written reason. Not for production code.
+const CHF_ALLOW = {
+  "apps/web/lib/fx/convert.test.ts": "formatter test: synthetic rappen to prove CHF formatting, not a fare",
+  "apps/web/lib/ops/ops-pricing-tabs.test.ts": "asserts the retired 'CHF 0' copy is absent from the ops page",
+  "apps/web/lib/ops/rappen.test.ts": "parser test: CHF 0 stays 0 rappen, not a TBC gap",
+  "apps/web/lib/ops/rate-book-draft.test.ts": "parser test: a CHF 0 start fare is a value, not a gap",
+  "packages/db/supabase/migrations/20260913180000_ops_pricing_source.sql":
+    "internal column comment on free_wait_minutes (no extra charge inside the free wait), not customer copy",
+};
+
 const failures = [];
 
 function walk(dir, out, pred) {
@@ -75,7 +86,7 @@ function checkChfAndRappen() {
     const pathRel = rel(file);
     readFileSync(file, "utf8").split(/\n/).forEach((line, i) => {
       if (commentLine(line)) return;
-      if (chf.test(line)) {
+      if (chf.test(line) && !(CHF_ALLOW[pathRel] && String(CHF_ALLOW[pathRel]).trim())) {
         failures.push(`${pathRel}:${i + 1}: invented CHF figure (Law 04 / D-46)`);
       }
       if (isTest(pathRel)) return;

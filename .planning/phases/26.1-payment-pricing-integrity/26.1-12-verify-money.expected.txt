@@ -1,0 +1,128 @@
+object | attribute | value
+public.checkout_abandon_gate | overloads | 1
+public.checkout_abandon_gate | args | p_quote_id uuid
+public.checkout_abandon_gate | returns | TABLE(cancellable boolean, stripe_checkout_session_id text)
+public.checkout_abandon_gate | security_definer | true
+public.checkout_abandon_gate | config | search_path=""
+public.checkout_abandon_gate | grants | postgres=X/postgres,vamos_checkout=X/postgres
+public.checkout_abandon_gate | body_md5 | 28970883edd6156c47f6c6ce47a695cc
+public.checkout_quote_left | overloads | 1
+public.checkout_quote_left | args | p_quote_id uuid
+public.checkout_quote_left | returns | boolean
+public.checkout_quote_left | security_definer | true
+public.checkout_quote_left | config | search_path=""
+public.checkout_quote_left | grants | postgres=X/postgres,vamos_checkout=X/postgres
+public.checkout_quote_left | body_md5 | a4cff5c682a9f228c2a5c518c1108d48
+public.checkout_abandon_unpaid | overloads | 1
+public.checkout_abandon_unpaid | args | p_quote_id uuid
+public.checkout_abandon_unpaid | returns | TABLE(booking_id uuid, reference text)
+public.checkout_abandon_unpaid | security_definer | true
+public.checkout_abandon_unpaid | config | search_path=""
+public.checkout_abandon_unpaid | grants | postgres=X/postgres,vamos_checkout=X/postgres
+public.checkout_abandon_unpaid | body_md5 | c644d351c772875be3022e386c629d50
+public.ops_refund_record | overloads | 1
+public.ops_refund_record | args | p_booking_id uuid, p_payment_id bigint, p_stripe_refund_id text, p_actor_id uuid, p_stripe_fee_rappen rappen
+public.ops_refund_record | returns | TABLE(booking_id uuid, refund_id bigint, payment_id bigint, refund_rappen integer, contact_email text, payer_email text, contact_name text, locale text, reference text)
+public.ops_refund_record | security_definer | true
+public.ops_refund_record | config | search_path=""
+public.ops_refund_record | grants | postgres=X/postgres,vamos_system=X/postgres
+public.ops_refund_record | body_md5 | 43f8365969ae265626094f02bf3b656c
+public.ops_refund_record | rappen_casts_to_int4 | 2
+public.tg_payment_update_whitelist | overloads | 1
+public.tg_payment_update_whitelist | args | 
+public.tg_payment_update_whitelist | returns | trigger
+public.tg_payment_update_whitelist | security_definer | false
+public.tg_payment_update_whitelist | config | search_path=""
+public.tg_payment_update_whitelist | grants | postgres=X/postgres
+public.tg_payment_update_whitelist | body_md5 | 69d5cebc306be3bdd53a82bc99e14a27
+public.checkout_payment_settle | overloads | 1
+public.checkout_payment_settle | args | p_event_id text, p_session_id text, p_payment_intent_id text, p_outcome text, p_charged_currency text, p_fx_rate numeric, p_fx_source text, p_fx_quoted_at timestamp with time zone, p_presentment_amount_minor bigint
+public.checkout_payment_settle | returns | TABLE(booking_id uuid, reference text, locale text, contact_email text, already_settled boolean, revived boolean, duplicate boolean, refund_required boolean, refund_reason text, payment_id bigint, charged_rappen integer, snapshot_id bigint, other_open_session_ids text[])
+public.checkout_payment_settle | security_definer | true
+public.checkout_payment_settle | config | search_path=""
+public.checkout_payment_settle | grants | postgres=X/postgres,vamos_system=X/postgres
+public.checkout_payment_settle | body_md5 | 70d570bab5f6e5e083933e2f13541659
+public.checkout_duplicate_refund_record | overloads | 1
+public.checkout_duplicate_refund_record | args | p_payment_id bigint, p_stripe_refund_id text, p_refund_rappen rappen, p_reason text
+public.checkout_duplicate_refund_record | returns | TABLE(booking_id uuid, refund_id bigint)
+public.checkout_duplicate_refund_record | security_definer | true
+public.checkout_duplicate_refund_record | config | search_path=""
+public.checkout_duplicate_refund_record | grants | postgres=X/postgres,vamos_system=X/postgres
+public.checkout_duplicate_refund_record | body_md5 | 4d1fc7f7bb62d5b69bb0a7794bef2e2e
+app.release_unpaid_coupon | overloads | 1
+app.release_unpaid_coupon | args | p_booking_id uuid, p_reason text
+app.release_unpaid_coupon | returns | void
+app.release_unpaid_coupon | security_definer | true
+app.release_unpaid_coupon | config | search_path=""
+app.release_unpaid_coupon | grants | postgres=X/postgres
+app.release_unpaid_coupon | body_md5 | 194db1267ba6130967749ae76ef3c211
+public.checkout_cancel_unpaid | overloads | 1
+public.checkout_cancel_unpaid | args | p_reference text
+public.checkout_cancel_unpaid | returns | TABLE(booking_id uuid, reference text, stripe_checkout_session_ids text[])
+public.checkout_cancel_unpaid | security_definer | true
+public.checkout_cancel_unpaid | config | search_path=""
+public.checkout_cancel_unpaid | grants | authenticated=X/postgres,postgres=X/postgres
+public.checkout_cancel_unpaid | body_md5 | d2eb3e9ceb3632e1162ddb42156f4e41
+public.checkout_expire_unpaid | overloads | 1
+public.checkout_expire_unpaid | args | 
+public.checkout_expire_unpaid | returns | TABLE(booking_id uuid, reference text, stripe_checkout_session_ids text[])
+public.checkout_expire_unpaid | security_definer | true
+public.checkout_expire_unpaid | config | search_path=""
+public.checkout_expire_unpaid | grants | postgres=X/postgres,vamos_system=X/postgres
+public.checkout_expire_unpaid | body_md5 | 1889236fbefadfbbc88d81b1a928b6a6
+public.ops_cancel_booking | overloads | 1
+public.ops_cancel_booking | args | p_booking_id uuid, p_actor_id uuid
+public.ops_cancel_booking | returns | TABLE(booking_id uuid, reference text, email text, name text, locale text, paid boolean, refund_mode text, refund_rappen integer, stripe_checkout_session_ids text[])
+public.ops_cancel_booking | security_definer | true
+public.ops_cancel_booking | config | search_path=""
+public.ops_cancel_booking | grants | postgres=X/postgres,vamos_system=X/postgres
+public.ops_cancel_booking | body_md5 | 49403ea3b9b978c401a95404358d9078
+public.checkout_requote_cancel | overloads | 1
+public.checkout_requote_cancel | args | p_quote_id uuid
+public.checkout_requote_cancel | returns | TABLE(booking_id uuid, reference text)
+public.checkout_requote_cancel | security_definer | true
+public.checkout_requote_cancel | config | search_path=""
+public.checkout_requote_cancel | grants | postgres=X/postgres,vamos_checkout=X/postgres
+public.checkout_requote_cancel | body_md5 | 90398cd5349d7fd4ebe4099b7cc26776
+public.stripe_charge_refunded_record | overloads | 1
+public.stripe_charge_refunded_record | args | p_payment_intent_id text, p_session_id text, p_stripe_refund_id text, p_refund_rappen rappen, p_created timestamp with time zone, p_app_source boolean
+public.stripe_charge_refunded_record | returns | TABLE(booking_id uuid, refund_id bigint, outcome text)
+public.stripe_charge_refunded_record | security_definer | true
+public.stripe_charge_refunded_record | config | search_path=""
+public.stripe_charge_refunded_record | grants | postgres=X/postgres,vamos_system=X/postgres
+public.stripe_charge_refunded_record | body_md5 | 756c88c55ed3cb318ffd1fc686f6ed5a
+public.stripe_dispute_upsert | overloads | 1
+public.stripe_dispute_upsert | args | p_stripe_dispute_id text, p_payment_intent_id text, p_session_id text, p_status text, p_reason text, p_amount_rappen rappen, p_stripe_created timestamp with time zone
+public.stripe_dispute_upsert | returns | TABLE(booking_id uuid, dispute_id bigint)
+public.stripe_dispute_upsert | security_definer | true
+public.stripe_dispute_upsert | config | search_path=""
+public.stripe_dispute_upsert | grants | postgres=X/postgres,vamos_system=X/postgres
+public.stripe_dispute_upsert | body_md5 | d90f0bd8fcd3833298d5e822e530e7a3
+public.ops_fill_canton_pairs | overloads | 1
+public.ops_fill_canton_pairs | args | p_rate_version_id bigint, p_price_rappen rappen
+public.ops_fill_canton_pairs | returns | integer
+public.ops_fill_canton_pairs | security_definer | true
+public.ops_fill_canton_pairs | config | search_path=""
+public.ops_fill_canton_pairs | grants | postgres=X/postgres,vamos_staff=X/postgres
+public.ops_fill_canton_pairs | body_md5 | 4cb60fa43d56563abab231f72204b495
+public.checkout_capture_gate | overloads | 1
+public.checkout_capture_gate | args | p_session_id text, p_payment_intent_id text
+public.checkout_capture_gate | returns | TABLE(status text, is_test boolean, expired boolean)
+public.checkout_capture_gate | security_definer | true
+public.checkout_capture_gate | config | search_path=""
+public.checkout_capture_gate | grants | postgres=X/postgres,vamos_system=X/postgres
+public.checkout_capture_gate | body_md5 | d93d1f3179a7534a88b8ebfb4af3b91d
+public.booking_payments.booking_payments_status_check | definition | CHECK ((status = ANY (ARRAY['requires_payment'::text, 'succeeded'::text, 'failed'::text, 'canceled'::text, 'duplicate'::text])))
+public.booking_refunds.booking_refunds_reason_check | definition | CHECK ((reason = ANY (ARRAY['customer_cancel'::text, 'ops_cancel'::text, 'no_driver'::text, 'modification_credit'::text, 'no_show'::text, 'duplicate_charge'::text, 'paid_after_cancel'::text, 'test_booking'::text, 'requote_superseded'::text, 'stripe_dashboard'::text])))
+public.booking_events.booking_events_kind_check | definition | CHECK ((kind = ANY (ARRAY['booking.created'::text, 'booking.status_changed'::text, 'booking.modified'::text, 'booking.claimed'::text, 'booking.revived'::text, 'price.quoted'::text, 'price.repriced'::text, 'price.superseded'::text, 'payment.intent_created'::text, 'payment.succeeded'::text, 'payment.failed'::text, 'payment.duplicate'::text, 'refund.requested'::text, 'refund.issued'::text, 'assignment.chauffeur_set'::text, 'assignment.vehicle_set'::text, 'assignment.cleared'::text, 'flight.delayed'::text, 'note.added'::text, 'flight.autofilled'::text, 'review.submitted'::text])))
+public.service_zones.service_zones_zone_type_check | definition | CHECK ((zone_type = ANY (ARRAY['airport'::text, 'city'::text, 'canton'::text, 'ski'::text, 'other'::text])))
+public.booking_disputes | table_exists | true
+public.booking_disputes | columns | id bigint not null, booking_id uuid not null, payment_id bigint not null, stripe_dispute_id text not null, status text not null, reason text, amount_rappen integer, stripe_created timestamp with time zone not null, updated_at timestamp with time zone not null
+public.booking_disputes | rls_enabled | true
+public.booking_disputes | rls_forced | true
+public.booking_disputes | table_grants | postgres=arwdDxtm/postgres,service_role=xtm/postgres,vamos_staff=r/postgres
+public.booking_disputes | indexes | booking_disputes_booking_idx,booking_disputes_pkey,booking_disputes_stripe_dispute_id_key
+public.booking_disputes | policy_count | 2
+policy booking_disputes_staff_gate | definition | RESTRICTIVE ALL to vamos_staff using (( SELECT app.is_staff() AS is_staff)) check (false)
+policy booking_disputes_staff_read | definition | PERMISSIVE SELECT to vamos_staff using (true) check ()
+public.service_zones | canton_zone_count | 26

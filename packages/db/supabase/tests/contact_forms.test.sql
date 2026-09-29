@@ -1,10 +1,8 @@
 -- contact_forms.test.sql
--- SITE-04 / D-23: nobody touches the tables directly. Phase 20 (20260920000002) moved
--- submit_contact_message off the Data API: only vamos_system (the Worker, behind
--- Turnstile + CSRF) holds EXECUTE; anon/authenticated do not.
+-- SITE-04 / D-23: anon can call submit RPCs and cannot touch the tables.
 
 begin;
-select plan(22);
+select plan(20);
 
 select has_table('public', 'contact_submissions', 'contact_submissions exists');
 select hasnt_table('public', 'partner_applications', 'partner_applications dropped');
@@ -31,19 +29,13 @@ select function_privs_are(
   'public', 'submit_contact_message',
   '{text,text,citext,text,text,text,text}'::text[],
   'anon', '{}'::text[],
-  'anon holds no EXECUTE on submit_contact_message (Phase 20)'
+  'anon holds no EXECUTE on submit_contact_message (20260920000002)'
 );
 select function_privs_are(
   'public', 'submit_contact_message',
   '{text,text,citext,text,text,text,text}'::text[],
   'authenticated', '{}'::text[],
-  'authenticated holds no EXECUTE on submit_contact_message (Phase 20)'
-);
-select function_privs_are(
-  'public', 'submit_contact_message',
-  '{text,text,citext,text,text,text,text}'::text[],
-  'vamos_system', '{EXECUTE}'::text[],
-  'vamos_system EXECUTE on submit_contact_message'
+  'authenticated holds no EXECUTE on submit_contact_message (20260920000002)'
 );
 
 select table_privs_are('public', 'contact_submissions', 'anon', '{}'::text[], 'anon no table priv contact');
@@ -66,15 +58,10 @@ select throws_ok(
   'anon cannot SELECT contact_submissions'
 );
 
-select throws_ok(
-  $$ select * from public.submit_contact_message(
-       'k-contact-anon', 'Anna', 'anna@example.test', '', '', 'Need a quote', 'en') $$,
-  '42501',
-  null,
-  'anon cannot call submit_contact_message'
-);
 reset role;
 
+-- Phase 20 (20260920000001/2): the Worker calls the RPC as vamos_system after
+-- Turnstile; anon/authenticated lost EXECUTE (asserted above).
 set local role vamos_system;
 select lives_ok(
   $$ select * from public.submit_contact_message(

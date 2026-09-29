@@ -13,8 +13,7 @@ values
   ('06010000-0000-4000-a000-000000000011', 'sss-sv-dispatcher@vamostaxi.eu', 'authenticated', 'authenticated', '{}'::jsonb, '{}'::jsonb, now(), now()),
   ('06010000-0000-4000-a000-000000000012', 'sss-sv-admin@vamostaxi.eu', 'authenticated', 'authenticated', '{}'::jsonb, '{}'::jsonb, now(), now());
 
--- 20260901000001: only an accepted invite is staff (is_staff/is_admin and the token hook
--- all require accepted_at), so fixture staff have already accepted.
+-- accepted_at: app.is_staff()/is_admin() ignore unaccepted invites (20260901000001).
 insert into public.staff (user_id, role, active, accepted_at) values
   ('06010000-0000-4000-a000-000000000011', 'dispatcher', true, now()),
   ('06010000-0000-4000-a000-000000000012', 'admin', true, now());

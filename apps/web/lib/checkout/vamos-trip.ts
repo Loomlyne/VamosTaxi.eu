@@ -272,6 +272,26 @@ export function rappenToFrancs(rappen: number | null): number | null {
   return rappen / 100;
 }
 
+/**
+ * The coupon code the lock was priced with, for display and the reload
+ * restore only. Display-only. Does not verify HMAC — the server re-derives the
+ * coupon from the verified lock at payment (26.1-32, D-11).
+ */
+export function peekLockCoupon(lock: string | undefined): string | null {
+  if (!lock) return null;
+  const parts = lock.split(".");
+  if (parts.length !== 3 || !parts[1]) return null;
+  try {
+    const json = new TextDecoder().decode(base64urlDecode(parts[1]));
+    const payload: unknown = JSON.parse(json);
+    if (!payload || typeof payload !== "object") return null;
+    const coupon = (payload as { coupon?: unknown }).coupon;
+    return typeof coupon === "string" && coupon.trim() ? coupon : null;
+  } catch {
+    return null;
+  }
+}
+
 export function peekLockExtras(lock: string | undefined): {
   child_seats?: number | null;
   extra_stops?: number | null;
@@ -352,5 +372,26 @@ export function formatRailDate(iso: string, locale: string): string {
       .replace(/,/g, "");
   } catch {
     return iso;
+  }
+}
+
+/**
+ * After a payment went through: drop the local trip draft, its quote lock and the
+ * stored payment session. Without this the account page showed the paid trip as a
+ * leftover "waiting payment" card. Storage can throw in private windows.
+ */
+export function clearPaidTripDraft(): void {
+  if (typeof window === "undefined") return;
+  for (const key of ["vamosTrip", "vamosQuoteLock", "vamosCheckoutSession"]) {
+    try {
+      window.localStorage.removeItem(key);
+    } catch {
+      /* storage blocked */
+    }
+    try {
+      window.sessionStorage.removeItem(key);
+    } catch {
+      /* storage blocked */
+    }
   }
 }

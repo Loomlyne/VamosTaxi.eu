@@ -32,6 +32,7 @@ import {
   checkoutSettleUrl,
 } from "@/lib/checkout/return-url";
 import { stripeBrowserKey } from "@/lib/checkout/stripe-browser-key";
+import { clearPaidTripDraft } from "@/lib/checkout/vamos-trip";
 import { VAMOS_STRIPE_APPEARANCE } from "@/lib/checkout/stripe-appearance";
 
 type ExpressConfirmEvent = Parameters<
@@ -178,6 +179,8 @@ export function PaymentPanel({
   locked = false,
   onReady,
   onComplete = noopComplete,
+  onPaid,
+  clearDraftOnPaid = false,
 }: {
   publishableKey: string;
   clientSecret: string;
@@ -189,6 +192,13 @@ export function PaymentPanel({
   locked?: boolean;
   onReady: (confirm: () => Promise<void>) => void;
   onComplete?: (complete: boolean) => void;
+  /**
+   * 26.1-16: the pay-link page checks whether this charge settled or lost the
+   * race before it leaves for the settle route. Absent: go there directly.
+   */
+  onPaid?: (destination: string) => Promise<void> | void;
+  /** The checkout page sets this: the paid trip's local draft is dropped before leaving. */
+  clearDraftOnPaid?: boolean;
 }) {
   const promise = useMemo(() => browserStripe(publishableKey), [publishableKey]);
   const secret = (decodeClientSecret(clientSecret, clientSecretHex) ?? clientSecret ?? "").trim();
@@ -226,18 +236,22 @@ export function PaymentPanel({
         await new Promise((resolve) => setTimeout(resolve, 80));
       }
       if (!checkout) showStripeError(setError, "checkout-not-ready");
-      const email = billingEmail.trim();
       // Card confirm must not pass returnUrl. Stripe then waits for a redirect
       // that a non-redirect card never starts, and the button spins.
+      // It must not pass the customer's address either: the server already sets
+      // customer_email on the Checkout Session (lib/checkout/stripe.ts) and Stripe
+      // refuses a second one, which blocked every card payment.
       const result = await checkout.confirm({
-        email: email || undefined,
         redirect: "if_required",
       });
       if (result.type === "error") showStripeError(setError, result.error.message);
+      if (clearDraftOnPaid) clearPaidTripDraft();
       const destination = paidDestination(reference, secret);
-      if (destination) window.location.assign(destination);
+      if (!destination) return;
+      if (onPaid) await onPaid(destination);
+      else window.location.assign(destination);
     });
-  }, [billingEmail, locked, onReady, reference, secret]);
+  }, [clearDraftOnPaid, locked, onPaid, onReady, reference, secret]);
 
   async function onExpress(event: ExpressConfirmEvent) {
     if (lockedRef.current) {
@@ -261,7 +275,10 @@ export function PaymentPanel({
         event.paymentFailed({ reason: "fail" });
         return;
       }
-      if (destination) window.location.assign(destination);
+      if (clearDraftOnPaid) clearPaidTripDraft();
+      if (!destination) return;
+      if (onPaid) await onPaid(destination);
+      else window.location.assign(destination);
     } catch (err) {
       setError(err instanceof Error ? err.message : "");
       event.paymentFailed({ reason: "fail" });

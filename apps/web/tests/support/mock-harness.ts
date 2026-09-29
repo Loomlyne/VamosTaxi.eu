@@ -428,6 +428,12 @@ function loadTsModule(absPath: string): Record<string, unknown> {
     // instead of the importing file's own directory.
     if (spec.startsWith("@/")) return loadTsModule(resolveLocal(WEB_ROOT, `./${spec.slice(2)}`));
     if (spec === "next-intl/navigation") return navigationShim();
+    // Outside a Next router `usePathname()` returns null, which SiteHeader reads as the
+    // home route and forces the overlay variant (78edebb). A port is mounted as an
+    // ordinary inner page; a spec that wants the home look passes `variant: "overlay"`.
+    if (spec === "next/navigation") {
+      return { ...(webRequire(spec) as Record<string, unknown>), usePathname: () => "/about" };
+    }
     return webRequire(spec);
   };
 

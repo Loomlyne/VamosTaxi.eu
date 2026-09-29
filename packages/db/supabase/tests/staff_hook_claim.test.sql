@@ -36,8 +36,8 @@ values
   ('a0000000-0000-0000-0000-000000000001', 'active-dispatcher@vamostaxi.eu', 'authenticated', 'authenticated', '{}'::jsonb, '{}'::jsonb, now(), now()),
   ('a0000000-0000-0000-0000-000000000002', 'inactive-dispatcher@vamostaxi.eu', 'authenticated', 'authenticated', '{}'::jsonb, '{}'::jsonb, now(), now());
 
--- 20260901000001: only an accepted invite is staff (is_staff/is_admin and the token hook
--- all require accepted_at), so fixture staff have already accepted.
+-- Both rows have accepted their invite (20260901000001 staff_invitation_acceptance_gate: the hook
+-- and app.is_staff() ignore unaccepted rows), so `active` is the only variable under test.
 insert into public.staff (user_id, role, active, accepted_at)
 values
   ('a0000000-0000-0000-0000-000000000001', 'dispatcher', true, now()),
@@ -172,17 +172,18 @@ select policy_cmd_is(
   'staff_auth_admin_read is a SELECT-only policy'
 );
 
--- D-05 originally required aal2. MFA is paused for V1 (Phase 20 D-09, K10; 20260901000001):
--- is_staff() now needs an active, accepted staff row and the vamos_role claim, at any aal.
--- When plan 20-04 restores MFA, flip this back to false. Revocation (active = false) stays
--- immediate.
+-- D-05: app.is_staff()/app.is_admin() require aal2 + an active staff row — a dispatcher JWT
+-- at aal1 is not staff, and revocation (active = false) is immediate.
 select set_config(
   'request.jwt.claims',
   jsonb_build_object('sub', 'a0000000-0000-0000-0000-000000000001', 'role', 'authenticated', 'aal', 'aal1',
     'app_metadata', jsonb_build_object('vamos_role', 'dispatcher'))::text,
   true
 );
-select is(app.is_staff(), true, 'D-09 MFA paused: active, accepted dispatcher at aal1 is staff');
+-- Owner decision 2026-09-27 (26.1 D-16/D-16a): only the admin signs in and a second factor is
+-- optional; aal2 is required only once a factor is enrolled (that half lands with Phase 26.1).
+-- An accepted, active staff row at aal1 with no enrolled factor is therefore staff.
+select is(app.is_staff(), true, 'active, accepted staff at aal1 with no enrolled factor is staff');
 
 select set_config(
   'request.jwt.claims',

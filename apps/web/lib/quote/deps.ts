@@ -161,6 +161,9 @@ export function buildQuotePipelineDeps(
             lng: 8.5417,
             lat: 47.3769,
             canton: null,
+            cityId: null,
+            cityName: null,
+            isAirport: false,
           },
         })
       : undefined,

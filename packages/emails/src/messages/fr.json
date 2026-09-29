@@ -56,7 +56,12 @@
     "offRoadHeadline": "Véhicule hors service",
     "offRoadBody": "Les courses assignées à venir restent au tableau — elles ne sont pas annulées. Corrigez-les sous Needs attention.",
     "overlapHeadline": "Une modification payée casse le chauffeur assigné",
-    "overlapBody": "La course reste. Réassignez cette course ou la course en chevauchement sous Needs attention."
+    "overlapBody": "La course reste. Réassignez cette course ou la course en chevauchement sous Needs attention.",
+    "stuckHeadline": "Un événement de paiement Stripe est bloqué",
+    "stuckBody": "Stripe a envoyé cet événement et il a échoué 8 fois. La réservation est peut-être payée mais non confirmée. Vérifiez la réservation dans le tableau de bord et l'événement dans Stripe.",
+    "stuckEventLabel": "Événement Stripe",
+    "paidAfterCancelHeadline": "Payé après annulation — remboursé",
+    "paidAfterCancelBody": "Un paiement est arrivé pour une réservation qui ne pouvait pas avoir lieu. Le montant a été remboursé automatiquement. Aucune action n'est nécessaire, sauf si le client écrit."
   },
   "cancellation": {
     "subject": "Réservation {reference} annulée",

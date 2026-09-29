@@ -3,8 +3,8 @@
 //
 // D-22: generates the committed `packages/db/supabase/seed.sql` deterministically from the
 // same source-of-truth files the mocks/product already ship —
-// `apps/web/i18n/messages/{en,de,fr,ar}.json` (content_strings) and `packages/db/seed/reviews.json`
-// (reviews) — plus the hard-coded reference data the schema draft's §17 lists:
+// `apps/web/i18n/messages/{en,de,fr,ar}.json` (content_strings) and `app/vamos-reviews.js`'s
+// `SEED` array (reviews) — plus the hard-coded reference data the schema draft's §17 lists:
 // vehicle classes, service zones, settings, one settings version, one draft rate version, the
 // per-class distance-rate skeletons and the eight surcharges.
 //
@@ -55,6 +55,7 @@
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import vm from "node:vm";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 // packages/db/seed/ -> packages/db/ -> packages/ -> repo root: one level deeper than
@@ -63,7 +64,7 @@ const repoRoot = join(scriptDir, "..", "..", "..");
 const CHECK = process.argv.includes("--check");
 
 const MESSAGES_DIR = join(repoRoot, "apps/web/i18n/messages");
-const REVIEWS_PATH = join(repoRoot, "packages/db/seed/reviews.json");
+const REVIEWS_PATH = join(repoRoot, "app/vamos-reviews.js");
 const OUT_PATH = join(repoRoot, "packages/db/supabase/seed.sql");
 
 // ── SQL value quoting ───────────────────────────────────────────────────────────────────────
@@ -143,20 +144,43 @@ function loadLocale(locale) {
   return JSON.parse(readFileSync(p, "utf8"));
 }
 
-// ── Reviews: packages/db/seed/reviews.json ─────────────────────────────────────────────────
-// app/vamos-reviews.js no longer carries a SEED array: the public site and ops read reviews
-// from the database through /api/reviews. The five local-dev rows it used to hold are frozen
-// here, verbatim, so the seed does not change. They are layout placeholders, not real reviews.
+// ── Reviews: load app/vamos-reviews.js's SEED array via a sandboxed vm run ───────────────────
+// The IIFE assigns `window.VamosReviews = { …, all: function () { return read().slice(); }, … }`
+// and `read()` falls back to the module's own `SEED` array whenever no `vamosReviews` key
+// exists in `localStorage` — which is exactly the state of a bare vm sandbox with no
+// `localStorage` global at all (the `try { raw = localStorage.getItem(KEY); } catch (e) {}`
+// swallows the ReferenceError and `parsed` stays null). `all()` already runs every row through
+// the module's own `clean()`, which fills every default and derives `locked` — the same
+// derivation `reviews.locked generated always as (source <> 'manual') stored` performs in SQL,
+// so this generator never seeds `locked` itself (the truths this plan proves say so
+// explicitly). `window.addEventListener` must exist before the IIFE runs — it registers a
+// `storage` listener unconditionally at module load — so the sandbox stubs it as a no-op; no
+// other window/DOM API is exercised by the `all()` code path.
 function loadReviews() {
-  const rows = JSON.parse(readFileSync(REVIEWS_PATH, "utf8"));
-  if (!Array.isArray(rows)) throw new Error(`${REVIEWS_PATH} must be a JSON array`);
-  return rows;
+  const src = readFileSync(REVIEWS_PATH, "utf8");
+  // 29aa137 (06-08): the store no longer ships a SEED array and hydrates from
+  // /api/staff/reviews; "empty list is the shipping state". A bare sandbox has no
+  // network, so fetch rejects and all() stays [] — the seed carries no reviews.
+  const sandbox = {
+    window: { addEventListener() {} },
+    fetch: () => Promise.reject(new Error("no network in the seed generator")),
+  };
+  sandbox.window.fetch = sandbox.fetch;
+  vm.createContext(sandbox);
+  vm.runInContext(src, sandbox, { filename: REVIEWS_PATH });
+  const api = sandbox.window.VamosReviews;
+  if (!api || typeof api.all !== "function") {
+    throw new Error(`Could not load window.VamosReviews.all() from ${REVIEWS_PATH}`);
+  }
+  return api.all();
 }
 
 // ── One emitter per seed target — each hard-codes its own ON CONFLICT target (02-PATTERNS.md
 // P7: "The generator's SQL-emitting functions should each hard-code their own conflict target
 // as a constant, not infer it.") ────────────────────────────────────────────────────────────
 function emitInsert({ table, columns, rows, conflictCols, doNothing = false, updateCols }) {
+  // An empty table (e.g. reviews since 29aa137) has no VALUES list; emit a marker, not SQL.
+  if (rows.length === 0) return `-- ${table}: no seed rows`;
   const colList = columns.join(",\n  ");
   const valuesLines = rows.map((r) => `  (${r.join(", ")})`).join(",\n");
   const lines = [];

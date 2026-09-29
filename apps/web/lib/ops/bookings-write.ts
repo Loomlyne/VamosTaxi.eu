@@ -6,7 +6,11 @@
 
 import { mintManageToken } from "@/lib/checkout/manage-token";
 import { asStaff, asSystem, type VamosClaims } from "@/lib/db/identity";
+import { expireSessionIds } from "../checkout/cancel-unpaid";
+import { stripeAccountIsLegacyUaeTest } from "../checkout/charge-gate";
+import { expireCheckoutSession, stripeFromEnv } from "../checkout/stripe";
 import { applyStripeRefund } from "../lifecycle/paid-cancel";
+import { liveClassSlug } from "./class-slug";
 import { mapRefundSqlError, sqlErrorCode } from "./refund-map";
 import { resolveStaffBookingId } from "./resolve-booking-id";
 import { OPS_SQLSTATE } from "./sqlstate";
@@ -37,13 +41,6 @@ export type BookingPatch = {
   klass?: string;
 };
 
-function classSlug(label: string): string | null {
-  const value = label.trim().toLowerCase();
-  if (value === "economy" || value === "business" || value === "first" || value === "van") {
-    return value;
-  }
-  return null;
-}
 
 export type CancelResult =
   | { ok: true; booking: CancelledBooking; erased?: boolean }
@@ -100,6 +97,7 @@ export async function cancelBooking(
     paid: boolean;
     refund_mode: string | null;
     refund_rappen: number | string | null;
+    stripe_checkout_session_ids: string[] | null;
   };
 
   const cancelled = await asSystem(env, async (sql): Promise<CancelResult | CancelRow> => {
@@ -126,6 +124,27 @@ export async function cancelBooking(
   if ("ok" in cancelled && cancelled.ok === false) return cancelled;
   const row = cancelled as CancelRow;
   const refundMode = String(row.refund_mode ?? "");
+
+  // D-04: expire every open Stripe Checkout Session this booking still has,
+  // after the cancel above already committed. A Stripe failure is logged;
+  // the cancel stands regardless (same guard as account cancel/abandon —
+  // the legacy UAE test account's sessions are never touched, D-01).
+  const publishable = env.STRIPE_PUBLISHABLE_KEY || "";
+  const canExpireSessions = Boolean(publishable) && !stripeAccountIsLegacyUaeTest(publishable);
+  const stripeForExpiry = canExpireSessions ? stripeFromEnv(env) : null;
+  await expireSessionIds(
+    {
+      expireSession: (sessionId) =>
+        stripeForExpiry
+          ? expireCheckoutSession(stripeForExpiry, sessionId).then(() => undefined)
+          : Promise.resolve(),
+      canExpire: canExpireSessions,
+      emit: (message, sessionId, err) => {
+        console.error(message, sessionId, err instanceof Error ? err.message : String(err));
+      },
+    },
+    row.stripe_checkout_session_ids ?? [],
+  );
 
   if (refundMode === "pending_ops" || refundMode === "none") {
     // Stripe lives in the Worker, not SQL. pending_ops / none skip createRefund.
@@ -216,7 +235,8 @@ export async function updateBooking(
     const pickup = patch.pickup ?? null;
     const dropoff = patch.dropoff ?? null;
     const flight = patch.flight ?? null;
-    const slug = patch.klass ? classSlug(patch.klass) : null;
+    // D-14: Economy / Business / Van luxury (or a live slug) -> live slug; First keeps the stored class.
+    const slug = patch.klass ? liveClassSlug(patch.klass) : null;
     const dateIso = (patch.dateIso ?? "").trim();
     const time = (patch.time ?? "").trim();
     const local = dateIso && time ? `${dateIso}T${time}:00` : null;

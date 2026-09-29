@@ -53,6 +53,7 @@
   text-decoration: none;
   color: var(--vt-charcoal-900);
   overflow: hidden;
+  container-type: inline-size;
 }
 
 [data-svc-cta]:hover,
@@ -78,7 +79,9 @@
   display: block;
   margin-block-start: 10px;
   font-family: var(--vt-font-display);
-  font-size: clamp(22px, 2.2vw, 28px);
+  /* Capped by the card's content width so the long DE headline, the kicker
+     and the pill all fit the 4-up card (259px at 1440, 240px at ~1104). */
+  font-size: min(clamp(22px, 2.2vw, 28px), max(17px, 9cqi));
   font-weight: var(--vt-weight-semibold);
   letter-spacing: var(--vt-heading-tracking);
   line-height: 1.12;
@@ -91,9 +94,14 @@
   align-self: flex-start;
   align-items: center;
   gap: 10px;
-  block-size: 48px;
-  min-block-size: 44px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  max-inline-size: 100%;
+  /* Grows past 48px when a long label wraps inside a narrow 4-up card. */
+  min-block-size: 48px;
+  padding-block: var(--vt-space-2, 8px);
   padding-inline: 22px;
+  line-height: 1.2;
   border-radius: 999px;
   background: var(--vt-charcoal-900);
   color: var(--vt-white);
@@ -101,6 +109,10 @@
   font-weight: var(--vt-weight-semibold);
   letter-spacing: var(--vt-label-tracking);
   text-transform: uppercase;
+}
+
+[data-svc-cta-btn] > * {
+  flex-shrink: 0;
 }
 
 [data-svc-cta]:hover [data-svc-cta-btn] {

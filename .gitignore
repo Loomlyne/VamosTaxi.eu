@@ -80,3 +80,12 @@ apps/web/public/assets/
 apps/web/public/hero-arrivals.jpg
 apps/web/public/rectangle-*.png
 apps/web/public/_redirects
+
+# Personal Hermes→Claude rules (account ids, phones). Do not commit.
+CLAUDE.local.md
+
+# Local-only: Hermes profile data, a Framer export, personal Claude rules
+.hermes/
+archive/framer-export-2026-08-31/
+.claude/rules/
+.claude/worktrees/

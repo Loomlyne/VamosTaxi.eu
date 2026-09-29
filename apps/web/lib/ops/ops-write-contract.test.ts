@@ -75,7 +75,7 @@ describe("ops write contract", () => {
     expect(table).toMatch(/minDate === 'today'/);
     expect(table).toMatch(/zurichYmdNow/);
     expect(table).toMatch(/kind === 'address' && \(key === 'from' \|\| key === 'to'\)/);
-    // Fill keeps bool columns at max-content and still spans the panel (5a4b0eb).
+    // 5a4b0eb: fill still spans the scroller (min-width:100%) but grows to max-content so bool columns keep their width.
     expect(table).toMatch(/\[data-fill="1"\] \.vt-table\{width:max-content;min-width:100%;table-layout:auto\}/);
     expect(table).toMatch(/whiteSpace:'nowrap'/);
     expect(table).toMatch(/Math\.round\(this\.state\.sug\.rect\.width\)/);

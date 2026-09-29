@@ -6,6 +6,13 @@ name: Deploy Staging
 on:
   push:
     branches: [main]
+    # A docs- or planning-only merge changes nothing that deploys; skip the gate,
+    # the macOS visual job and the deploy so it spends no Actions minutes.
+    paths-ignore:
+      - "docs/**"
+      - ".planning/**"
+      - "deliverables/**"
+      - "**/*.md"
 
 # A second deploy queues behind the first instead of racing it — cancelling a
 # half-finished deploy is worse than waiting (T-01-07).

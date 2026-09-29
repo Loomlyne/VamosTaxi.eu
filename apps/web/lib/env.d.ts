@@ -121,6 +121,13 @@ interface CloudflareEnv {
    * Never appears in wrangler.jsonc `vars`.
    */
   VAMOS_QS_SECRET: string;
+  /**
+   * HMAC key for the 26.1 D-17 staff re-auth cookie `vt_reauth` (`lib/auth/reauth.ts`).
+   * `wrangler secret put STAFF_REAUTH_SECRET` (owner step, 26.1-26). Its own value — never a
+   * quote, visitor or Supabase secret. At least 32 characters. Absent → password/email change,
+   * sign-in method switch and factor removal are refused with `reauth-unavailable`.
+   */
+  STAFF_REAUTH_SECRET?: string;
 
   /**
    * Mapbox access token (D-47 owner-gated). OPTIONAL — feature degrades when absent

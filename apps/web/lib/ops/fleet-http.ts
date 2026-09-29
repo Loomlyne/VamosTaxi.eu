@@ -23,6 +23,7 @@ import {
   type VehicleInput,
   type VehicleRow,
 } from "./fleet";
+import { classDisplayName, liveClassSlug } from "./class-slug";
 import { jsonErr } from "./staff-json";
 import { mapSqlState } from "./sqlstate";
 
@@ -54,17 +55,14 @@ export function isUuid(value: string): boolean {
   return UUID_RE.test(value);
 }
 
+/** D-14 display name for a live or legacy class slug; unknown slugs read Economy. */
 export function slugToKlass(slug: string): string {
-  if (slug === "economy") return "Economy";
-  if (slug === "business") return "Business";
-  if (slug === "van") return "Van";
-  return "Economy";
+  return classDisplayName(slug) ?? "Economy";
 }
 
+/** Live class slug for a DC klass name or slug (D-14); First and unknown values are null. */
 export function klassToSlug(klass: string): VehicleClassSlug | null {
-  const n = klass.trim().toLowerCase();
-  if (n === "economy" || n === "business" || n === "van") return n;
-  return null;
+  return liveClassSlug(klass);
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {

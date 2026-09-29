@@ -57,6 +57,9 @@ function pendingTicket(ref: string): VisibleBooking {
     distanceKm: null,
     paidAt: null,
     paymentStatus: null,
+    refundStatus: null,
+    refundOwedRappen: null,
+    refundedRappen: null,
   };
 }
 

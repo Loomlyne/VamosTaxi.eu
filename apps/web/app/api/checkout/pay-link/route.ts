@@ -31,10 +31,9 @@ import {
   stripeFromEnv,
   stripePublishableKey,
 } from "@/lib/checkout/stripe";
-import { loadLaunchFlags, loadRateBook, loadSettingsVersion } from "@/lib/db/quote";
-import { catalogFromSurcharges } from "@/lib/checkout/extras-catalog";
+import { evaluateCoupon, loadLaunchFlags, loadSettingsVersion } from "@/lib/db/quote";
 import { policyHours } from "@/lib/checkout/policy-settings";
-import { mapRateBook } from "@/lib/pricing/rateBook";
+import { loadCheckoutReprice } from "@/lib/checkout/reprice";
 import type { IntentRecompute } from "@/lib/quote/intent";
 import { publicSiteOrigin, csrfForbidden } from "@/lib/security/origin";
 
@@ -98,16 +97,11 @@ export async function POST(request: Request) {
     return refuse("invalid_request");
   }
 
-  let extrasCatalog: ReturnType<typeof catalogFromSurcharges> = [];
-  let liveRateVersionId: number | null = null;
-  try {
-    const liveBook = mapRateBook(await loadRateBook(env, { preferDraft: false }));
-    extrasCatalog = catalogFromSurcharges(liveBook.surcharges);
-    const live = liveBook.rate_version;
-    liveRateVersionId =
-      live && live.status === "live" && typeof live.id === "number" ? live.id : null;
-  } catch {
-    extrasCatalog = [];
+  // D-12: fail closed when the live book cannot load — never fall back to an
+  // empty extras catalog with pricing left on.
+  const repriced = await loadCheckoutReprice(env);
+  if (!repriced.ok) {
+    return refuse("pricing_not_live");
   }
 
   const workerNowIso = new Date().toISOString();
@@ -133,9 +127,9 @@ export async function POST(request: Request) {
     workerNowIso,
     postgresNowIso,
     reprice: (payload) => ({
-      pricing_live: true,
+      pricing_live: repriced.pricingLive,
       engine_version: payload.engine_version,
-      live_rate_version_id: liveRateVersionId,
+      live_rate_version_id: repriced.liveRateVersionId,
       classes: payload.class_totals.map((row) => ({
         slug: row.slug as IntentRecompute["classes"][number]["slug"],
         total_rappen: row.total_rappen,
@@ -157,8 +151,9 @@ export async function POST(request: Request) {
     actorCustomerId: null,
     vehicleClassId,
     snapshotPolicy,
-    extrasCatalog,
+    extrasCatalog: repriced.extrasCatalog,
     loadLaunchFlags: () => loadLaunchFlags(env),
+    evaluateCoupon: (code, ids) => evaluateCoupon(env, code, ids),
     loadQuotePayGate: async (quoteId) => {
       const rows = await asCheckout(env, null, (sql) => sql<{ is_test: boolean | null }[]>`
         select public.checkout_booking_is_test(${quoteId}::uuid) as is_test
@@ -190,7 +185,7 @@ export async function POST(request: Request) {
       companyVat: body.company_vat ?? "",
       payerEmail: body.payer_email,
       tokenHash: payToken.hash,
-      tokenExpiresAt: payLinkTokenExpiresAt(lockPayload.exp),
+      tokenExpiresAt: payLinkTokenExpiresAt(postgresNowIso),
     }),
   );
 
@@ -206,7 +201,7 @@ export async function POST(request: Request) {
       payload: lockPayload,
       vehicleClass: body.vehicle_class,
       extras: body.extras,
-      coupon: body.coupon ?? null,
+      coupon: lockPayload.coupon,
       contactName: body.contact.name,
       contactPhone: body.contact.phone,
       companyName: body.company_name ?? "",

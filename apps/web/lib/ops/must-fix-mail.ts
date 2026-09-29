@@ -14,6 +14,13 @@ import {
 import { asSystem } from "../db/identity";
 import { SUPPORT_EMAIL } from "../contact-channels";
 
+export type StuckPaymentAlertInput = {
+  eventId: string;
+  type: string;
+  objectId: string;
+  reference: string | null;
+};
+
 export type { OpsMustFixKind, OpsMustFixTrip };
 
 type TripRow = {
@@ -76,4 +83,58 @@ export async function deliverOverlapMustFix(
   });
   if (!row) return;
   await deliverOpsMustFix(env, "overlap", tripsFromRows([row]), emailLocale(row.locale));
+}
+
+/**
+ * D-06: a Stripe event that exhausted its retries and landed on the DLQ. Sends even when no
+ * booking row can be resolved (a `pi_`/`ch_` id, or a `cs_` id with no matching payment row) —
+ * deliberately does not route through `deliverOpsMustFix`'s `trips.length === 0` early return,
+ * because the DLQ alert's whole purpose is to reach a human when the ordinary trip lookup has
+ * nothing to show. Always builds one placeholder trip entry so `sendOpsMustFix`'s own
+ * "no must-fix trips" guard never fires either.
+ */
+export async function deliverStuckPaymentAlert(
+  env: CloudflareEnv,
+  input: StuckPaymentAlertInput,
+): Promise<void> {
+  const key = env.RESEND_API_KEY ?? "";
+  if (!key) return;
+  const trips: OpsMustFixTrip[] = [
+    { reference: input.reference ?? "", pickupText: "", dropoffText: "", scheduledLocal: "" },
+  ];
+  const payload: OpsMustFixForEmail = {
+    locale: "en",
+    kind: "stuck-payment",
+    trips,
+    detail: { eventId: input.eventId, eventType: input.type, objectId: input.objectId },
+  };
+  await sendOpsMustFix({ RESEND_API_KEY: key }, payload, SUPPORT_EMAIL);
+}
+
+/** D-22/D-25a: a payment landed on a booking that cannot run; the charge was refunded. */
+export async function deliverPaidAfterCancelAlert(
+  env: CloudflareEnv,
+  bookingKey: string,
+): Promise<void> {
+  const key = bookingKey.trim();
+  if (!key) return;
+  const row = await asSystem(env, async (sql) => {
+    const rows = await sql<TripRow[]>`
+      select
+        b.reference,
+        b.locale,
+        l.pickup_text,
+        l.dropoff_text,
+        l.scheduled_local
+        from public.bookings as b
+        join public.booking_legs as l on l.booking_id = b.id
+       where b.erased_at is null
+         and (b.id::text = ${key} or b.reference = ${key})
+       order by l.leg_seq
+       limit 1
+    `;
+    return rows[0] ?? null;
+  });
+  if (!row) return;
+  await deliverOpsMustFix(env, "paid-after-cancel", tripsFromRows([row]), emailLocale(row.locale));
 }

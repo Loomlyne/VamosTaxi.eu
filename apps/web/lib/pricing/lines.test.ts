@@ -7,7 +7,9 @@
 import { describe, expect, it } from "vitest";
 import * as fc from "fast-check";
 import {
+  airportFeeApplies,
   attachPlaceZones,
+  buildAirportFeeLine,
   buildCityPriceLine,
   buildExtraLines,
   buildFareLine,
@@ -58,6 +60,12 @@ function leg(partial: Partial<QuoteLegInput> = {}): QuoteLegInput {
     dest_place: partial.dest_place,
     road: partial.road,
     waypoints: partial.waypoints ?? [],
+    flight_no: partial.flight_no,
+    origin_is_airport: partial.origin_is_airport,
+    origin_city_id: partial.origin_city_id,
+    dest_city_id: partial.dest_city_id,
+    origin_city_name: partial.origin_city_name,
+    dest_city_name: partial.dest_city_name,
   };
 }
 
@@ -692,7 +700,7 @@ describe("buildFareLine — D-11 D-12 D-13 D-14 live distance recipe", () => {
     expect(line.amount_rappen).not.toBe(99_999);
   });
 
-  it("D-11 D-14: per-class band extras sit on top of class per-km for metres in that slice", () => {
+  it("D-08: distance bands for the class never enter the fare amount", () => {
     const line = buildFareLine({
       leg: leg({ distance_m: 40_000 }),
       vehicleClass: economy,
@@ -721,11 +729,11 @@ describe("buildFareLine — D-11 D-12 D-13 D-14 live distance recipe", () => {
         }),
       ],
     });
-    // start + all 40 km × 200 + 20 km of [20, 40) extra 100. Business band ignored.
-    expect(line.amount_rappen).toBe(1000 + perKm(200, 40_000) + perKm(100, 20_000));
+    // D-08: start + all 40 km × 200 only — the [20, 50) band extra is ignored.
+    expect(line.amount_rappen).toBe(1000 + perKm(200, 40_000));
   });
 
-  it("D-14: From inclusive / To exclusive except open last band (to_km null)", () => {
+  it("D-08: an overlapping band book still ignores every band — no floor, no minimum", () => {
     const bands = [
       band({
         id: 1,
@@ -737,72 +745,24 @@ describe("buildFareLine — D-11 D-12 D-13 D-14 live distance recipe", () => {
       band({
         id: 2,
         vehicle_class_id: economy.id,
-        from_km: 50,
-        to_km: null,
-        per_km_rappen: 200,
+        from_km: 30,
+        to_km: 60,
+        per_km_rappen: 180,
       }),
     ];
-    const atFifty = buildFareLine({
-      leg: leg({ distance_m: 50_000 }),
-      vehicleClass: economy,
-      distanceRate: rate({
-        vehicle_class_id: economy.id,
-        base_fare_rappen: 0,
-        per_km_rappen: 0,
-      }),
-      fixedRoutes: [],
-      rateVersionId: 1,
-      distanceBands: bands,
-    });
-    // To exclusive: 30 km in [20, 50), zero in the open last at exactly 50 km.
-    expect(atFifty.amount_rappen).toBe(perKm(1000, 30_000));
-
-    const openLast = buildFareLine({
-      leg: leg({ distance_m: 70_000 }),
-      vehicleClass: economy,
-      distanceRate: rate({
-        vehicle_class_id: economy.id,
-        base_fare_rappen: 0,
-        per_km_rappen: 0,
-      }),
-      fixedRoutes: [],
-      rateVersionId: 1,
-      distanceBands: bands,
-    });
-    expect(openLast.amount_rappen).toBe(perKm(1000, 30_000) + perKm(200, 20_000));
-  });
-
-  it("corrupt overlapping book still prices; Publish must refuse overlap", () => {
     const line = buildFareLine({
       leg: leg({ distance_m: 70_000 }),
       vehicleClass: economy,
       distanceRate: rate({
         vehicle_class_id: economy.id,
         base_fare_rappen: 0,
-        per_km_rappen: 0,
+        per_km_rappen: 100,
       }),
       fixedRoutes: [],
       rateVersionId: 1,
-      distanceBands: [
-        band({
-          id: 1,
-          vehicle_class_id: economy.id,
-          from_km: 20,
-          to_km: 50,
-          per_km_rappen: 100,
-        }),
-        band({
-          id: 2,
-          vehicle_class_id: economy.id,
-          from_km: 30,
-          to_km: 60,
-          per_km_rappen: 180,
-        }),
-      ],
+      distanceBands: bands,
     });
-    expect(line.amount_rappen).toBe(
-      perKm(100, 10_000) + perKm(180, 20_000) + perKm(180, 10_000),
-    );
+    expect(line.amount_rappen).toBe(perKm(100, 70_000));
   });
 
   it("D-11 D-12: no DISTANCE_FLOOR_KM and no min_fare_rappen floor on the live path", () => {
@@ -1296,7 +1256,7 @@ describe("numberLines (T5)", () => {
   });
 });
 
-describe("Comment 11 fare kinds", () => {
+describe("D-08 / D-08b: fare_kind no longer changes the start; the airport fee is additive", () => {
   const metres = 10_000;
   const start = 1_000;
   const per = 200;
@@ -1334,40 +1294,109 @@ describe("Comment 11 fare kinds", () => {
     ).toBeNull();
   });
 
-  it("airport pickup uses a different start and the same per-km, with no fallback", () => {
+  it("D-08b: fare_kind alone (no airport signal) no longer changes the start or adds a fee", () => {
     const line = buildFareLine({
-      leg: leg({ distance_m: metres }),
+      leg: leg({ distance_m: metres, origin_zone_id: "z-hotel" }),
       vehicleClass: business,
       distanceRate: priced(),
       fixedRoutes: [],
       rateVersionId: 1,
       fareKind: "airport_pickup",
-    });
-    expect(line.amount_rappen).toBe(2_500 + km);
-    expect(line.basis.start_rappen).toBe(2_500);
-    expect(line.basis.start_source).toBe("airport_start_rappen");
-
-    const unset = buildFareLine({
-      leg: leg({ distance_m: metres }),
-      vehicleClass: business,
-      distanceRate: priced({ airport_start_rappen: null }),
-      fixedRoutes: [],
-      rateVersionId: 1,
-      fareKind: "airport_pickup",
-    });
-    expect(unset.amount_rappen).toBeNull();
-  });
-
-  it("city to city keeps the one-way start and adds exactly one city price", () => {
-    const line = buildFareLine({
-      leg: leg({ distance_m: metres }),
-      vehicleClass: business,
-      distanceRate: priced(),
-      fixedRoutes: [],
-      rateVersionId: 1,
-      fareKind: "city_to_city",
     });
     expect(line.amount_rappen).toBe(start + km);
+    expect(line.basis.start_source).toBe("base_fare_rappen");
+    expect(
+      buildAirportFeeLine({
+        leg: leg({ distance_m: metres, origin_zone_id: "z-hotel" }),
+        distanceRate: priced(),
+        rateVersionId: 1,
+        zones: [airportZone, cityZone],
+      }),
+    ).toBeNull();
+    expect(
+      airportFeeApplies(
+        leg({ distance_m: metres, origin_zone_id: "z-hotel" }),
+        new Map([[airportZone.id, airportZone], [cityZone.id, cityZone]]),
+      ),
+    ).toBe(false);
+  });
+
+  it("D-08b: an airport-zone pickup adds the fee on top of the unchanged start", () => {
+    const line = buildFareLine({
+      leg: leg({ distance_m: metres, origin_zone_id: airportZone.id }),
+      vehicleClass: business,
+      distanceRate: priced(),
+      fixedRoutes: [],
+      rateVersionId: 1,
+    });
+    const fee = buildAirportFeeLine({
+      leg: leg({ distance_m: metres, origin_zone_id: airportZone.id }),
+      distanceRate: priced(),
+      rateVersionId: 1,
+      zones: [airportZone, cityZone],
+    });
+    expect(line.amount_rappen).toBe(start + km);
+    expect(fee).not.toBeNull();
+    expect(fee!.kind).toBe("surcharge");
+    expect(fee!.code).toBe("airport_fee");
+    expect(fee!.i18n_key).toBe("price.line.airport_fee");
+    expect(fee!.amount_rappen).toBe(2_500);
+    expect(fee!.basis.trigger).toBe("airport_zone");
+  });
+
+  it("D-08b: a flight number alone triggers the fee without an airport zone", () => {
+    const fee = buildAirportFeeLine({
+      leg: leg({
+        distance_m: metres,
+        origin_zone_id: "z-hotel",
+        flight_no: "LX1234",
+      }),
+      distanceRate: priced(),
+      rateVersionId: 1,
+      zones: [airportZone, cityZone],
+    });
+    expect(fee).not.toBeNull();
+    expect(fee!.basis.trigger).toBe("flight_no");
+    expect(fee!.amount_rappen).toBe(2_500);
+  });
+
+  it("D-08b: origin_is_airport (26.1-09 place resolution) alone triggers the fee", () => {
+    const fee = buildAirportFeeLine({
+      leg: leg({
+        distance_m: metres,
+        origin_zone_id: "z-hotel",
+        origin_is_airport: true,
+      }),
+      distanceRate: priced(),
+      rateVersionId: 1,
+      zones: [airportZone, cityZone],
+    });
+    expect(fee).not.toBeNull();
+    expect(fee!.basis.trigger).toBe("airport_place");
+  });
+
+  it("D-13: an airport signal with airport_start_rappen null prices null, never 0", () => {
+    const fee = buildAirportFeeLine({
+      leg: leg({ distance_m: metres, origin_zone_id: airportZone.id }),
+      distanceRate: priced({ airport_start_rappen: null }),
+      rateVersionId: 1,
+      zones: [airportZone, cityZone],
+    });
+    expect(fee).not.toBeNull();
+    expect(fee!.amount_rappen).toBeNull();
+  });
+
+  it("not an airport, no flight number — no airport fee line", () => {
+    const fee = buildAirportFeeLine({
+      leg: leg({ distance_m: metres, origin_zone_id: "z-hotel" }),
+      distanceRate: priced(),
+      rateVersionId: 1,
+      zones: [airportZone, cityZone],
+    });
+    expect(fee).toBeNull();
+  });
+
+  it("D-08: buildCityPriceLine stays exported but unused by the owner formula — city pairs are fixed_routes", () => {
     const city = buildCityPriceLine({
       fareKind: "city_to_city",
       cityPriceRappen: 700,
@@ -1376,12 +1405,10 @@ describe("Comment 11 fare kinds", () => {
     });
     expect(city).not.toBeNull();
     expect(city!.code).toBe("city_price");
-    expect(city!.leg_seq).toBeNull();
     expect(city!.amount_rappen).toBe(700);
-    expect(city!.i18n_key).toBe("price.line.city_price");
   });
 
-  it("an omitted fare kind stays on the one-way formula", () => {
+  it("an omitted fare kind stays on the same base-start formula", () => {
     const line = buildFareLine({
       leg: leg({ distance_m: metres }),
       vehicleClass: business,
@@ -1390,6 +1417,52 @@ describe("Comment 11 fare kinds", () => {
       rateVersionId: 1,
     });
     expect(line.amount_rappen).toBe(start + km);
+  });
+});
+
+describe("D-08 owner worked example — ZRH Airport → Swiss National Museum, 10.19 km", () => {
+  it("2000 start + 3000 airport fee + 2548 per-km = 7548 rappen net; 10% coupon = -755", () => {
+    const distanceRate = rate({
+      vehicle_class_id: business.id,
+      base_fare_rappen: 2_000,
+      per_km_rappen: 250,
+      airport_start_rappen: 3_000,
+    });
+    const journey = leg({ origin_zone_id: airportZone.id, distance_m: 10_190 });
+    const fare = buildFareLine({
+      leg: journey,
+      vehicleClass: business,
+      distanceRate,
+      fixedRoutes: [],
+      rateVersionId: 1,
+    });
+    const fee = buildAirportFeeLine({
+      leg: journey,
+      distanceRate,
+      rateVersionId: 1,
+      zones: [airportZone, cityZone],
+    });
+    expect(fare.amount_rappen).toBe(4_548);
+    expect(fee?.amount_rappen).toBe(3_000);
+    const net = fare.amount_rappen! + fee!.amount_rappen!;
+    expect(net).toBe(7_548);
+
+    const pre = sumPreCouponTotal(numberLines([fare, fee!]));
+    expect(pre).toBe(7_548);
+    const tenPercent = buildCouponLine({
+      coupon: { id: 1, code: "TEN", kind: "percent", percent: "10", amount_rappen: null },
+      preCouponTotal: pre,
+    });
+    // Amount is a positive magnitude; the discount sign lives on the line's kind (D-07).
+    expect(tenPercent.amount_rappen).toBe(755);
+    expect(pre! - tenPercent.amount_rappen!).toBe(7_548 - 755);
+    expect(pre! - tenPercent.amount_rappen!).toBeGreaterThanOrEqual(0);
+
+    const hundredPercent = buildCouponLine({
+      coupon: { id: 2, code: "ALL", kind: "percent", percent: "100", amount_rappen: null },
+      preCouponTotal: pre,
+    });
+    expect(pre! - hundredPercent.amount_rappen!).toBe(0);
   });
 });
 
@@ -1527,7 +1600,129 @@ describe("Comment 8 city and canton pair extra", () => {
     ).toBeNull();
   });
 
-  it("a canton pair is an extra on the distance fare, and the reverse row does not match", () => {
+  it("D-09: a city pair covers both directions — a Paris→Germany row matches a Germany→Paris leg", () => {
+    const reverseRow = fixed({
+      vehicle_class_id: business.id,
+      origin_zone_id: "z-paris",
+      dest_zone_id: "z-de",
+      price_rappen: pair,
+      live: true,
+      kind: "city",
+      origin_label: "Paris",
+      dest_label: "Germany",
+    });
+    const journey = leg({
+      origin_place: "Hotel, Berlin, Germany",
+      dest_place: "Gare de Lyon, Paris, France",
+      distance_m: metres,
+    });
+    const extra = buildFixedRouteExtraLine({
+      leg: journey,
+      vehicleClass: business,
+      fixedRoutes: [reverseRow],
+      rateVersionId: 1,
+    });
+    expect(extra?.basis.matched).toBe("city");
+    expect(extra?.amount_rappen).toBe(pair);
+  });
+
+  it("D-09: the same place both ends is no pair — label same-place guard", () => {
+    const cityRow = fixed({
+      vehicle_class_id: business.id,
+      origin_zone_id: "z-de",
+      dest_zone_id: "z-de",
+      price_rappen: pair,
+      live: true,
+      kind: "city",
+      origin_label: "Berlin",
+      dest_label: "Berlin",
+    });
+    const journey = leg({
+      origin_place: "Hotel, Berlin",
+      dest_place: "hotel, berlin",
+      distance_m: metres,
+    });
+    expect(
+      buildFixedRouteExtraLine({
+        leg: journey,
+        vehicleClass: business,
+        fixedRoutes: [cityRow],
+        rateVersionId: 1,
+      }),
+    ).toBeNull();
+  });
+
+  it("D-09 / 26.1-09: Mapbox city ids match both directions and are preferred over the label", () => {
+    const berlinZone: ZoneRow = {
+      id: "z-berlin",
+      slug: "berlin",
+      iata: null,
+      active: true,
+      zone_type: "city",
+      tags: ["mapbox_place:place.berlin"],
+    };
+    const parisZone: ZoneRow = {
+      id: "z-paris-city",
+      slug: "paris",
+      iata: null,
+      active: true,
+      zone_type: "city",
+      tags: ["mapbox_place:place.paris"],
+    };
+    const row = fixed({
+      vehicle_class_id: business.id,
+      origin_zone_id: "z-paris-city",
+      dest_zone_id: "z-berlin",
+      price_rappen: pair,
+      live: true,
+      kind: "city",
+    });
+    const journey = leg({
+      origin_zone_id: "z-berlin",
+      dest_zone_id: "z-paris-city",
+      origin_city_id: "place.berlin",
+      dest_city_id: "place.paris",
+      distance_m: metres,
+    });
+    const extra = buildFixedRouteExtraLine({
+      leg: journey,
+      vehicleClass: business,
+      fixedRoutes: [row],
+      rateVersionId: 1,
+      zones: [berlinZone, parisZone],
+    });
+    expect(extra?.basis.matched).toBe("city");
+    expect(extra?.amount_rappen).toBe(pair);
+  });
+
+  it("D-09: same Mapbox city id both ends is no pair even with a stray matching row", () => {
+    const berlinZone: ZoneRow = {
+      id: "z-berlin",
+      slug: "berlin",
+      iata: null,
+      active: true,
+      zone_type: "city",
+      tags: ["mapbox_place:place.berlin"],
+    };
+    const journey = leg({
+      origin_zone_id: "z-berlin",
+      dest_zone_id: "z-berlin",
+      origin_city_id: "place.berlin",
+      dest_city_id: "place.berlin",
+      distance_m: metres,
+    });
+    expect(
+      buildFixedRouteExtraLine({
+        leg: journey,
+        vehicleClass: business,
+        fixedRoutes: [],
+        rateVersionId: 1,
+        zones: [berlinZone],
+      }),
+    ).toBeNull();
+  });
+
+  it("D-09: a canton pair covers both directions — a BE→ZH row matches a ZH→BE leg", () => {
     const zones: ZoneRow[] = [
       {
         id: "z-zh",
@@ -1546,21 +1741,12 @@ describe("Comment 8 city and canton pair extra", () => {
         tags: ["canton:VS"],
       },
     ];
-    const forward = fixed({
-      id: 4,
-      vehicle_class_id: business.id,
-      origin_zone_id: "z-zh",
-      dest_zone_id: "z-vs",
-      price_rappen: pair,
-      live: true,
-      kind: "canton",
-    });
     const reverse = fixed({
       id: 5,
       vehicle_class_id: business.id,
       origin_zone_id: "z-vs",
       dest_zone_id: "z-zh",
-      price_rappen: 9_900,
+      price_rappen: pair,
       live: true,
       kind: "canton",
     });
@@ -1583,17 +1769,59 @@ describe("Comment 8 city and canton pair extra", () => {
     const extra = buildFixedRouteExtraLine({
       leg: journey,
       vehicleClass: business,
-      fixedRoutes: [forward, reverse],
+      fixedRoutes: [reverse],
       rateVersionId: 1,
       zones,
     });
     expect(fare.amount_rappen).toBe(start + perKm(per, metres));
     expect(extra?.basis.matched).toBe("canton");
     expect(extra?.amount_rappen).toBe(pair);
-    expect(extra?.amount_rappen).not.toBe(9_900);
   });
 
-  it("inside Switzerland a canton pair wins over a city label on the same trip", () => {
+  it("D-09: same canton both ends is no pair — the guard, not a match", () => {
+    const zones: ZoneRow[] = [
+      {
+        id: "z-zh-a",
+        slug: "zh-a",
+        iata: null,
+        active: true,
+        zone_type: "other",
+        tags: ["canton:ZH"],
+      },
+      {
+        id: "z-zh-b",
+        slug: "zh-b",
+        iata: null,
+        active: true,
+        zone_type: "other",
+        tags: ["canton:ZH"],
+      },
+    ];
+    const cantonRow = fixed({
+      vehicle_class_id: business.id,
+      origin_zone_id: "z-zh-a",
+      dest_zone_id: "z-zh-a",
+      price_rappen: pair,
+      live: true,
+      kind: "canton",
+    });
+    const extra = buildFixedRouteExtraLine({
+      leg: leg({
+        origin_zone_id: "z-zh-a",
+        dest_zone_id: "z-zh-b",
+        origin_canton: "ZH",
+        dest_canton: "ZH",
+        distance_m: metres,
+      }),
+      vehicleClass: business,
+      fixedRoutes: [cantonRow],
+      rateVersionId: 1,
+      zones,
+    });
+    expect(extra).toBeNull();
+  });
+
+  it("D-09a: a city pair wins over a canton pair on the same trip", () => {
     const zones: ZoneRow[] = [
       {
         id: "z-zh",
@@ -1645,8 +1873,71 @@ describe("Comment 8 city and canton pair extra", () => {
       rateVersionId: 1,
       zones,
     });
-    expect(extra?.basis.matched).toBe("canton");
-    expect(extra?.amount_rappen).toBe(pair);
+    expect(extra?.basis.matched).toBe("city");
+    expect(extra?.amount_rappen).toBe(7_700);
+  });
+});
+
+describe("26.1-11 pair line carries the two place names (UI-SPEC §8)", () => {
+  const berlinZone: ZoneRow = {
+    id: "z-berlin",
+    slug: "berlin",
+    iata: null,
+    active: true,
+    zone_type: "city",
+    tags: ["mapbox_place:place.berlin"],
+  };
+  const parisZone: ZoneRow = {
+    id: "z-paris-city",
+    slug: "paris",
+    iata: null,
+    active: true,
+    zone_type: "city",
+    tags: ["mapbox_place:place.paris"],
+  };
+  const row = fixed({
+    vehicle_class_id: business.id,
+    origin_zone_id: "z-paris-city",
+    dest_zone_id: "z-berlin",
+    price_rappen: 5_000,
+    live: true,
+    kind: "city",
+  });
+  const ids = {
+    origin_zone_id: "z-berlin",
+    dest_zone_id: "z-paris-city",
+    origin_city_id: "place.berlin",
+    dest_city_id: "place.paris",
+  };
+
+  function build(partial: Partial<QuoteLegInput>) {
+    return buildFixedRouteExtraLine({
+      leg: leg({ ...ids, ...partial }),
+      vehicleClass: business,
+      fixedRoutes: [row],
+      rateVersionId: 1,
+      zones: [berlinZone, parisZone],
+    });
+  }
+
+  it("stamps params { origin, destination } in the leg's own direction when both names are known", () => {
+    const extra = build({ origin_city_name: "Berlin", dest_city_name: "Paris" });
+    expect(extra?.code).toBe("fixed_route");
+    expect(extra?.params).toEqual({ origin: "Berlin", destination: "Paris" });
+  });
+
+  it("carries no params when a name is missing or blank", () => {
+    expect(build({ origin_city_name: "Berlin", dest_city_name: null })?.params).toBeUndefined();
+    expect(build({ origin_city_name: "  ", dest_city_name: "Paris" })?.params).toBeUndefined();
+    expect(build({})?.params).toBeUndefined();
+  });
+
+  it("names never change the match or the amount", () => {
+    const named = build({ origin_city_name: "Rome", dest_city_name: "Oslo" });
+    const plain = build({});
+    expect(named?.amount_rappen).toBe(plain?.amount_rappen);
+    expect(named?.basis).toEqual(plain?.basis);
+    expect(named?.source_row).toEqual(plain?.source_row);
   });
 });
 

@@ -567,13 +567,26 @@
     "Zermatt", "St. Moritz", "Chamonix", "Verbier"
   ];
 
-  var VEHICLE_CLASSES = ["Economy", "Business", "First", "Van"];
+  var VEHICLE_CLASSES = ["Economy", "Business", "Van luxury"];
+  // D-14: live slugs and legacy names map onto the three classes (saden -> Economy,
+  // mercedes-benz-v-class -> Business, van-luxury and a stored Van -> Van luxury);
+  // any other unknown class (incl. the dropped First) becomes Economy.
+  var KLASS_ALIASES = {
+    "economy": "Economy", "saden": "Economy",
+    "business": "Business", "mercedes-benz-v-class": "Business",
+    "van": "Van luxury", "van-luxury": "Van luxury"
+  };
+  function cleanKlass(k) {
+    if (VEHICLE_CLASSES.indexOf(k) !== -1) return k;
+    var key = str(k).trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    return KLASS_ALIASES[key] || "Economy";
+  }
   var VEHICLE_STATUS = ["service", "idle", "workshop"];
   function cleanVehicle(v) {
     v = v || {};
     return {
       id: str(v.id),
-      klass: VEHICLE_CLASSES.indexOf(v.klass) === -1 ? "Economy" : v.klass,
+      klass: cleanKlass(v.klass),
       model: str(v.model), plate: str(v.plate), year: str(v.year),
       seats: num(v.seats, 3), bags: num(v.bags, 3),
       status: VEHICLE_STATUS.indexOf(v.status) === -1 ? "service" : v.status,
@@ -619,7 +632,7 @@
       id: str(b.id),
       time: str(b.time), date: str(b.date), customer: str(b.customer),
       pickup: str(b.pickup), dropoff: str(b.dropoff),
-      klass: VEHICLE_CLASSES.indexOf(b.klass) === -1 ? "Economy" : b.klass,
+      klass: cleanKlass(b.klass),
       pax: num(b.pax, 1), bags: num(b.bags, 1),
       status: BOOKING_STATUS.indexOf(b.status) === -1 ? "pending" : b.status,
       chauffeur: str(b.chauffeur),
@@ -654,6 +667,14 @@
       extras: Array.isArray(b.extras) ? b.extras.map(str).filter(Boolean) : [],
       fareLines: Array.isArray(b.fareLines) ? b.fareLines : [],
       refundRappen: num(b.refundRappen, 0),
+      // 26.1-18: refund review facts from the staff read model (D-07/D-24/D-25).
+      refundStatus: str(b.refundStatus) || "none",
+      refundOwedRappen: b.refundOwedRappen == null || b.refundOwedRappen === "" ? null : num(b.refundOwedRappen, 0),
+      capturedRappen: num(b.capturedRappen, 0),
+      tripPassed: b.tripPassed === true,
+      dispute: b.dispute && typeof b.dispute === "object" && str(b.dispute.status)
+        ? { status: str(b.dispute.status), reason: str(b.dispute.reason) }
+        : null,
       stripeFeeRappen: b.stripeFeeRappen == null || b.stripeFeeRappen === "" ? null : num(b.stripeFeeRappen, 0),
       events: Array.isArray(b.events) ? b.events : []
     };
@@ -770,7 +791,7 @@
     return out;
   }
 
-  var RATE_DEFAULT_PAX = { Economy: 4, Business: 4, First: 4, Van: 7 };
+  var RATE_DEFAULT_PAX = { Economy: 4, Business: 4, "Van luxury": 7 };
   function cleanRate(r) {
     r = r || {};
     var klass = str(r.klass || r.name);
@@ -791,6 +812,7 @@
       maxBags: num(r.maxBags || r.luggageCapacity, 3),
       available: r.available === false ? false : true,
       hideFromPublic: !!r.hideFromPublic,
+      hiddenReason: str(r.hiddenReason),
       sortOrder: r.sortOrder == null || r.sortOrder === "" ? 0 : num(r.sortOrder, 0)
     };
   }
@@ -943,6 +965,22 @@
           bookFetch.loaded = false;
           bookFetch.json = null;
           emit(null);
+        }
+        return json;
+      });
+    },
+    /* 26.1-19 D-15: delete a class. Nothing but draft rows references it -> deleted.
+       Still in use -> { ok:false, code:"in-use" } without a reason; with a reason it is
+       hidden everywhere. Callers re-read the rate book (rates.reset()). */
+    deleteClass: function (id, reason) {
+      if (id == null || id === "") return Promise.resolve({ ok: false, code: "missing-id" });
+      var body = { id: String(id) };
+      if (reason) body.reason = String(reason);
+      return api("DELETE", "/api/staff/vehicle-classes?id=" + encodeURIComponent(String(id)), body).then(function (json) {
+        json = json || { ok: false, code: "save-failed" };
+        if (json.ok) {
+          bookFetch.loaded = false;
+          bookFetch.json = null;
         }
         return json;
       });

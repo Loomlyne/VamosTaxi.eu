@@ -64,6 +64,18 @@ const checkoutIntentObject = z
         const trimmed = value.trim();
         return trimmed.length > 0 ? trimmed : null;
       }),
+    // D-08b / 26.1-30: the flight number shown at /checkout/details. Compared
+    // with the lock's leg-1 flight_no; a mismatch is price_changed, because the
+    // airport fee depends on it. Optional so an older client stays payable.
+    flight_no: z
+      .string()
+      .max(16)
+      .nullable()
+      .transform((value) => {
+        const trimmed = value?.trim() ?? "";
+        return trimmed.length > 0 ? trimmed : null;
+      })
+      .optional(),
     contact: z
       .object({
         name: z.string().min(1),

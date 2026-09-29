@@ -8,9 +8,10 @@
 //
 // Three checks, each naming the requirement it enforces:
 //
-//   1. Declaration (D-12)     — LEGAL_LANGUAGES.imprint is exactly ["en","de"].
-//                                A four-language claim is the verified false claim
-//                                at app/pages/imprint.dc.html:124.
+//   1. Declaration (D-27)     — LEGAL_LANGUAGES.imprint is exactly ["en","de","fr","ar"],
+//                                matching the served mock's data-vt-legal on
+//                                app/pages/imprint.dc.html. Owner confirmed all four
+//                                imprint texts on 2026-09-27 (docs/audit §6), superseding D-12.
 //   2. Positive coverage (D-29)— every key the page source actually renders exists
 //                                and is non-empty in every language the page claims.
 //   3. No over-claim (I18N-08) — a claimed language whose derived keys (excluding
@@ -213,17 +214,23 @@ function main() {
 
   // ── Check 1: D-12 imprint declaration ────────────────────────────────────────
   const imprintLangs = LEGAL_LANGUAGES.imprint || [];
+  const IMPRINT_LANGS = ["en", "de", "fr", "ar"];
   const imprintOk =
-    imprintLangs.length === 2 && imprintLangs[0] === "en" && imprintLangs[1] === "de";
+    imprintLangs.length === IMPRINT_LANGS.length &&
+    IMPRINT_LANGS.every((lang, i) => imprintLangs[i] === lang);
   const d12 = [];
   if (!imprintOk) {
     d12.push(
       `apps/web/lib/legal-languages.ts LEGAL_LANGUAGES.imprint is ${JSON.stringify(imprintLangs)}, ` +
-        `must be exactly ["en","de"] (D-12). Restoring a four-language claim repeats the verified ` +
-        `false claim at app/pages/imprint.dc.html:124.`,
+        `must be exactly ${JSON.stringify(IMPRINT_LANGS)} (D-27, owner-confirmed 2026-09-27).`,
     );
   }
-  const check1 = reportCheck("declaration matches known facts (D-12)", d12);
+  const imprintMock = readFileSync(join(repoRoot, "app/pages/imprint.dc.html"), "utf8");
+  const declared = (imprintMock.match(/data-vt-legal="([^"]*)"/) || [])[1] || "";
+  if (declared.split(/\s+/).join(",") !== IMPRINT_LANGS.join(",")) {
+    d12.push(`app/pages/imprint.dc.html declares data-vt-legal="${declared}", not "${IMPRINT_LANGS.join(" ")}".`);
+  }
+  const check1 = reportCheck("declaration matches known facts (D-27)", d12);
 
   // ── Check 2: D-29 positive key coverage ──────────────────────────────────────
   const d29 = [];

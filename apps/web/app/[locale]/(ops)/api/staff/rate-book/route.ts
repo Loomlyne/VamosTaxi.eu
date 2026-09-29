@@ -36,12 +36,15 @@ import {
   updateCouponRecord,
 } from "@/lib/ops/coupons";
 import {
+  geoLanguageFromPath,
   mapboxIdFromPin,
-  placeLabelFromPin,
-  skiZoneType,
-  zoneSlugFromPlace,
   pgTextArrayLiteral,
+  resolveZoneFromPin,
+  type ZoneStore,
+  type ZoneStoreRow,
 } from "@/lib/ops/mapbox-zone";
+import { retrieve, type GeoLanguage } from "@/lib/geo/mapbox";
+import { countMapboxUnit } from "@/lib/abuse/breaker";
 
 export const dynamic = "force-dynamic";
 
@@ -160,71 +163,88 @@ function zoneDisplay(zone: ServiceZoneRow): string {
   return name;
 }
 
-function matchZone(zones: ServiceZoneRow[], value: unknown): ServiceZoneRow | undefined {
-  if (typeof value !== "string" || value.trim() === "") return undefined;
-  const raw = value.trim();
-  const byId = zones.find((z) => z.id === raw);
-  if (byId) return byId;
-  const iata = /\(([A-Z]{3})\)/.exec(raw)?.[1];
-  if (iata) {
-    const byIata = zones.find((z) => z.iata === iata);
-    if (byIata) return byIata;
-  }
-  const slug = raw.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-  const bySlug = zones.find((z) => z.slug === slug);
-  if (bySlug) return bySlug;
-  const exactDisplay = zones.find((z) => zoneDisplay(z) === raw);
-  if (exactDisplay) return exactDisplay;
-  const lower = raw.toLowerCase();
-  return zones.find((z) => {
-    const label = (z.label || z.slug || "").toLowerCase();
-    if (label && lower.includes(label)) return true;
-    if (z.iata && raw.toUpperCase().includes(z.iata)) return true;
-    const slugWords = (z.slug || "").replace(/-/g, " ");
-    if (slugWords && lower.includes(slugWords)) return true;
-    return false;
-  });
-}
-
+/**
+ * D-10 (26.1-10): a Fixed-routes pick becomes the official zone it sits in — the city
+ * (tag mapbox_place:<id>), the canton for a region pick (canton-<code>), or the airport for an
+ * airport POI (tag mapbox:<id>) — never the street or point of interest itself. Mapbox
+ * Search Box retrieve runs first with a server-minted session token in the staff locale; a
+ * failed or unresolvable retrieve returns undefined and writes nothing (the caller answers
+ * `mapbox`). Free-text matching against zone labels is gone: with canton names on file,
+ * "Bahnhofstrasse 1, Zürich" would have matched the Zürich canton.
+ */
 async function ensureMapboxZone(
   env: CloudflareEnv,
   claims: VamosClaims,
-  zones: ServiceZoneRow[],
   pin: unknown,
-  text: unknown,
+  language: GeoLanguage,
 ): Promise<ServiceZoneRow | undefined> {
-  const label = placeLabelFromPin(pin, text);
-  const mapboxId = mapboxIdFromPin(pin);
-  if (!label && !mapboxId) return undefined;
-  const slug = zoneSlugFromPlace(label || mapboxId, mapboxId);
-  const existing = zones.find((z) => z.slug === slug) ?? matchZone(zones, label);
-  if (existing) return existing;
-  const zoneType = skiZoneType(label);
-  const tags = mapboxId ? [`mapbox:${mapboxId}`] : [];
-  const name = label || slug;
-  const inserted = await asStaff(env, claims, async (tx) => {
-    const rows = await tx<Array<{ id: string; slug: string; iata: string | null; active: boolean }>>`
-      insert into public.service_zones (slug, iata, active, zone_type, tags)
-      values (${slug}, null, true, ${zoneType}, ${pgTextArrayLiteral(tags)}::text[])
-      on conflict (slug) do update set active = true
-      returning id, slug, iata, active
-    `;
-    const row = rows[0];
-    if (!row) return null;
-    await tx`
-      insert into public.content_strings (key, en, de, fr, ar, non_translatable)
-      values (${`zone.${row.slug}`}, ${name}, ${name}, ${name}, ${name}, true)
-      on conflict (key) do nothing
-    `;
-    return row;
+  const resolved = await resolveZoneFromPin(pin, {
+    retrieve: async (mapboxId) => {
+      // D-37: Search Box /retrieve counts against the daily Mapbox budget like the quote path.
+      await countMapboxUnit(env);
+      const got = await retrieve({ mapboxId, sessionToken: crypto.randomUUID(), language }, env);
+      return got.place;
+    },
+    withStore: (fn) =>
+      asStaff(env, claims, async (tx) => {
+        const store: ZoneStore = {
+          async findActiveByTag(tag) {
+            const rows = await tx<ZoneStoreRow[]>`
+              select id, slug, iata, active, tags
+                from public.service_zones
+               where active and ${tag} = any(tags)
+               order by slug
+               limit 1
+            `;
+            return rows[0] ?? null;
+          },
+          async findBySlug(slug) {
+            const rows = await tx<ZoneStoreRow[]>`
+              select id, slug, iata, active, tags
+                from public.service_zones
+               where slug = ${slug}
+            `;
+            return rows[0] ?? null;
+          },
+          async tagAndActivate(id, tag) {
+            const rows = await tx<ZoneStoreRow[]>`
+              update public.service_zones
+                 set active = true,
+                     tags = case when ${tag} = any(tags) then tags else array_append(tags, ${tag}::text) end
+               where id = ${id}
+               returning id, slug, iata, active, tags
+            `;
+            return rows[0] ?? null;
+          },
+          async insert(target, slug) {
+            const rows = await tx<ZoneStoreRow[]>`
+              insert into public.service_zones (slug, iata, active, zone_type, tags)
+              values (${slug}, null, true, ${target.zoneType}, ${pgTextArrayLiteral(target.tags)}::text[])
+              on conflict (slug) do nothing
+              returning id, slug, iata, active, tags
+            `;
+            const row = rows[0];
+            if (!row) return null;
+            // Proper names are non-translatable (ADR-012): the same string in every language.
+            await tx`
+              insert into public.content_strings (key, en, de, fr, ar, non_translatable)
+              values (${`zone.${row.slug}`}, ${target.name}, ${target.name}, ${target.name}, ${target.name}, true)
+              on conflict (key) do nothing
+            `;
+            return row;
+          },
+        };
+        return fn(store);
+      }),
   });
-  if (!inserted) return undefined;
+  if (!resolved.ok) return undefined;
+  const zone = resolved.zone;
   return {
-    id: inserted.id,
-    slug: inserted.slug,
-    iata: inserted.iata,
-    active: inserted.active,
-    label: name,
+    id: zone.id,
+    slug: zone.slug,
+    iata: zone.iata,
+    active: zone.active,
+    label: resolved.target.name,
   };
 }
 
@@ -309,7 +329,8 @@ function mockRates(book: RateBook): Record<string, unknown>[] {
       photoPath: photo,
       sortOrder: cls?.sortOrder ?? 0,
       available: row.available,
-      hideFromPublic: row.hideFromPublic,
+      hideFromPublic: row.hideFromPublic || cls?.hiddenReason != null,
+      hiddenReason: cls?.hiddenReason ?? "",
     };
   });
 }
@@ -1032,28 +1053,26 @@ export const PUT = withAdmin(async (claims, request) => {
     const book = await loadRateBook(env, claims, versionId);
     if (!book) return jsonErr("not-found", 404);
     const zones = await loadServiceZones(env, claims);
-    const origin =
-      (typeof recBody.originZoneId === "string" && recBody.originZoneId
-        ? zones.find((z) => z.id === recBody.originZoneId)
-        : matchZone(zones, recBody.from)) ??
-      (await ensureMapboxZone(
-        env,
-        claims,
-        zones,
-        recBody.fromMapbox ?? recBody.from_mapbox_id ?? recBody.originMapbox,
-        recBody.from,
-      ));
-    const dest =
-      (typeof recBody.destZoneId === "string" && recBody.destZoneId
-        ? zones.find((z) => z.id === recBody.destZoneId)
-        : matchZone(zones, recBody.to)) ??
-      (await ensureMapboxZone(
-        env,
-        claims,
-        zones,
-        recBody.toMapbox ?? recBody.to_mapbox_id ?? recBody.destMapbox,
-        recBody.to,
-      ));
+    // D-10 (26.1-10): a fresh Mapbox pick always resolves server-side to its official zone —
+    // a zone id the client matched from the pick's text is ignored. A zone id alone (that end
+    // was not re-picked) still selects that zone.
+    const language = geoLanguageFromPath(
+      new URL(request.url).pathname,
+      request.headers.get("accept-language"),
+    );
+    const zoneFor = async (pin: unknown, zoneId: unknown): Promise<ServiceZoneRow | undefined> => {
+      if (mapboxIdFromPin(pin)) return ensureMapboxZone(env, claims, pin, language);
+      if (typeof zoneId === "string" && zoneId) return zones.find((z) => z.id === zoneId);
+      return undefined;
+    };
+    const origin = await zoneFor(
+      recBody.fromMapbox ?? recBody.from_mapbox_id ?? recBody.originMapbox,
+      recBody.originZoneId,
+    );
+    const dest = await zoneFor(
+      recBody.toMapbox ?? recBody.to_mapbox_id ?? recBody.destMapbox,
+      recBody.destZoneId,
+    );
     if (!origin || !dest) return jsonErr("mapbox", 400);
     const live = boolish(recBody.live, false);
     const slugSet = new Set<string>();

@@ -70,6 +70,8 @@ export interface VehicleClassRow {
   name?: string | null;
   /** D-30: R2 key under classes/. Optional until owner SQL apply. */
   photo_path?: string | null;
+  /** 26.1-19 D-15: set when an admin hid a class still in use. Never public. */
+  hidden_at?: string | null;
 }
 
 /**
@@ -238,6 +240,28 @@ export interface QuoteLegInput {
    */
   road?: boolean;
   waypoints: unknown[];
+  /** D-08b: customer-entered flight number. A non-empty value triggers the airport fee. */
+  flight_no?: string | null;
+  /**
+   * 26.1-09: true when the pickup resolves to an airport place (Mapbox), independent
+   * of origin_zone_id's zone_type. D-08b airport-fee trigger.
+   */
+  origin_is_airport?: boolean;
+  /**
+   * 26.1-09: Mapbox context.place.mapbox_id for the pickup — language-independent
+   * city identity for D-09 pair matching. Preferred over the label match in lines.ts.
+   */
+  origin_city_id?: string | null;
+  /** 26.1-09: Mapbox context.place.mapbox_id for the destination. */
+  dest_city_id?: string | null;
+  /**
+   * 26.1-11: Mapbox context.place.name for the pickup, in the quote language.
+   * Display only — stamped on the pair line's params for the checkout row
+   * ("{origin} – {destination} route"). Never used for matching or amounts.
+   */
+  origin_city_name?: string | null;
+  /** 26.1-11: Mapbox context.place.name for the destination. Display only. */
+  dest_city_name?: string | null;
 }
 
 /**

@@ -12,6 +12,8 @@ import {
 
 const here = dirname(fileURLToPath(import.meta.url));
 const LOCK_EXP = "2026-09-05T13:00:00.000Z";
+// Sent late in the quote lock (under 4 h left): the pay link still gets 24 h (D-20a).
+const POSTGRES_NOW = "2026-09-05T09:15:00.000Z";
 
 describe("classIsSelectable", () => {
   it("rejects null and negative displayed rappen", () => {
@@ -38,13 +40,20 @@ describe("stripeAccountIsLegacyUaeTest", () => {
 });
 
 describe("payLinkTokenExpiresAt", () => {
-  it("returns the lock instant on first send and on resend", () => {
-    const first = payLinkTokenExpiresAt(LOCK_EXP);
-    const resend = payLinkTokenExpiresAt(LOCK_EXP);
-    expect(first.toISOString()).toBe(LOCK_EXP);
-    expect(resend.getTime()).toBe(first.getTime());
-    const windowEnd = Date.now() + 1440 * 60 * 1000;
-    expect(Math.abs(first.getTime() - windowEnd)).toBeGreaterThan(60_000);
+  it("D-20/D-20a: holds exactly 24 hours after the Postgres now it is given", () => {
+    const at = payLinkTokenExpiresAt(POSTGRES_NOW);
+    expect(at.toISOString()).toBe("2026-09-06T09:15:00.000Z");
+    expect(at.getTime() - Date.parse(POSTGRES_NOW)).toBe(24 * 60 * 60 * 1000);
+  });
+
+  it("D-20: does not return the quote lock exp — a link sent late in the lock still gets 24 hours", () => {
+    const at = payLinkTokenExpiresAt(POSTGRES_NOW);
+    expect(at.toISOString()).not.toBe(LOCK_EXP);
+    expect(at.getTime()).toBeGreaterThan(Date.parse(LOCK_EXP));
+  });
+
+  it("D-20: is pure — the same Postgres now gives the same instant, independent of the Worker clock", () => {
+    expect(payLinkTokenExpiresAt(POSTGRES_NOW).getTime()).toBe(payLinkTokenExpiresAt(POSTGRES_NOW).getTime());
   });
 });
 

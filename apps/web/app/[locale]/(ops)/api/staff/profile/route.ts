@@ -2,6 +2,7 @@
 //
 // PATCH /api/staff/profile — own row via updateOwnProfile / staff_update_self.
 // Dispatcher can edit self, not others. Dual-mounted at app/api/staff/profile.
+// Password / e-mail changes need a fresh session-bound re-auth (26.1 D-17).
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import {
@@ -9,6 +10,7 @@ import {
   changeOwnPassword,
   updateOwnProfile,
 } from "../../../ops/profile/actions";
+import { hasFreshReauth, reauthSecret, sensitiveProfileChange } from "@/lib/auth/reauth";
 import { loadOwnProfile, type StaffLang } from "@/lib/ops/staff";
 import { jsonErr, jsonOk, withStaff } from "@/lib/ops/staff-json";
 
@@ -34,6 +36,20 @@ export const PATCH = withStaff(async (claims, request) => {
     return jsonErr("staff-invalid-input", 400);
   }
   const body = raw as Record<string, unknown>;
+
+  // D-17 / S2: a password or e-mail change needs a re-auth in the last 5 minutes,
+  // bound to this session. Checked before anything is written.
+  if (sensitiveProfileChange(body, claims.email)) {
+    const secret = reauthSecret(getCloudflareContext().env);
+    if (!secret) return jsonErr("reauth-unavailable", 403);
+    const fresh = await hasFreshReauth({
+      secret,
+      cookieHeader: request.headers.get("cookie"),
+      userId: claims.sub,
+      sessionId: claims.session_id,
+    });
+    if (!fresh) return jsonErr("reauth-required", 403);
+  }
 
   const avatarRaw = body.avatarPath ?? body.avatar;
   const avatarPath =

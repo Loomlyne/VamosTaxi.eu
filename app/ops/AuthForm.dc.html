@@ -225,6 +225,29 @@ button,.vt-btn,.vt-iconbtn{box-shadow:none}
 </div>
 </sc-if>
 
+<sc-if value="{{ isMfa }}">
+<div data-af-view="mfa" style="display:flex;flex-direction:column;gap:24px">
+<div style="display:flex;flex-direction:column;gap:12px">
+<h1 data-af-h1="1" style="font-size:clamp(28px,3.4vw,36px)">Enter the 6-digit code</h1>
+<p data-af-sub="1">Open your authenticator app and type the code it shows.</p>
+</div>
+<sc-if value="{{ mfaMismatch }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" role="alert" hint-size="100%,56px">That code didn't match. Try the next one your app shows.</x-import>
+</sc-if>
+<sc-if value="{{ mfaLimited }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" role="alert" hint-size="100%,56px">Too many tries. Wait a minute, then try again.</x-import>
+</sc-if>
+<sc-if value="{{ mfaFailed }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" role="alert" hint-size="100%,56px">Could not check the code. Try again.</x-import>
+</sc-if>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="6-digit code" type="text" size="lg" inputMode="numeric" pattern="[0-9]*" maxLength="{{ n6 }}" autoComplete="one-time-code" autoFocus="{{ yes }}" value="{{ mfaCode }}" onChange="{{ setMfaCode }}" onKeyDown="{{ mfaKey }}" hint-size="100%,84px"></x-import>
+<div data-af-cta="1" style="width:100%">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" block="{{ yes }}" onClick="{{ submitMfa }}" disabled="{{ mfaDisabled }}" aria-busy="{{ mfaBusy }}" hint-size="100%,54px">Verify</x-import>
+</div>
+<button type="button" data-af-link="1" onClick="{{ leaveMfa }}">Use another sign-in</button>
+</div>
+</sc-if>
+
 <sc-if value="{{ isReturning }}">
 <div data-af-view="returning" style="display:flex;flex-direction:column;gap:24px;align-items:flex-start">
 <div style="display:flex;flex-direction:column;gap:12px">
@@ -241,7 +264,7 @@ button,.vt-btn,.vt-iconbtn{box-shadow:none}
 </div>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:640},&quot;mode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;signin&quot;,&quot;signup&quot;,&quot;forgot&quot;],&quot;default&quot;:&quot;signin&quot;,&quot;tsType&quot;:&quot;'signin'|'signup'|'forgot'&quot;},&quot;method&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;password&quot;,&quot;magic&quot;],&quot;default&quot;:&quot;password&quot;,&quot;tsType&quot;:&quot;'password'|'magic'&quot;},&quot;stage&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;form&quot;,&quot;sent&quot;,&quot;verifying&quot;,&quot;returning&quot;],&quot;default&quot;:&quot;form&quot;,&quot;tsType&quot;:&quot;'form'|'sent'|'verifying'|'returning'&quot;},&quot;banner&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;&quot;,&quot;credentials&quot;,&quot;registered&quot;],&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;'credentials'|'registered'|null&quot;},&quot;email&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;firstName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;lastName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;frozen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;onState&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(s: {mode:string;method:string;stage:string;banner:string|null}) =&gt; void&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:640},&quot;mode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;signin&quot;,&quot;signup&quot;,&quot;forgot&quot;],&quot;default&quot;:&quot;signin&quot;,&quot;tsType&quot;:&quot;'signin'|'signup'|'forgot'&quot;},&quot;method&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;password&quot;,&quot;magic&quot;],&quot;default&quot;:&quot;password&quot;,&quot;tsType&quot;:&quot;'password'|'magic'&quot;},&quot;stage&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;form&quot;,&quot;sent&quot;,&quot;verifying&quot;,&quot;mfa&quot;,&quot;returning&quot;],&quot;default&quot;:&quot;form&quot;,&quot;tsType&quot;:&quot;'form'|'sent'|'verifying'|'mfa'|'returning'&quot;},&quot;banner&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;&quot;,&quot;credentials&quot;,&quot;registered&quot;],&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;'credentials'|'registered'|null&quot;},&quot;email&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;firstName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;lastName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;frozen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;onState&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(s: {mode:string;method:string;stage:string;banner:string|null}) =&gt; void&quot;}}">
 const REGISTERED = ['taken@vamostaxi.site'];
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i;
 class Component extends DCLogic {
@@ -257,10 +280,28 @@ class Component extends DCLogic {
     errors: {},
     resent: false,
     showPw: false,
+    mfaCode: '',
+    mfaError: '',
+    mfaBusy: false,
   };
   componentDidMount() {
     if (this.state.stage === 'returning') this.armExit();
     if (this.state.stage === 'verifying') this.armPasskey();
+    this.resumeStepUp();
+  }
+  /* An enrolled admin who arrives with a session that is not strong enough (a magic link,
+     or a reload after the password step) lands straight on the second step. The console
+     answers needs-mfa until the session passes the gate (26.1-20, 26.1-25); this page only
+     reads that answer, then asks mfa-status which step to show. */
+  resumeStepUp() {
+    if (this.props.frozen || this.props.surface !== 'ops' || this.state.stage !== 'form') return;
+    fetch('/api/staff/me', { credentials: 'same-origin' })
+      .then((r) => r.json()).catch(() => null)
+      .then((json) => {
+        if (json && json.code === 'needs-mfa' && this.state.stage === 'form') {
+          this.stepUpNeed().then(() => this.openStepUp());
+        }
+      });
   }
   componentDidUpdate(prev) {
     const keys = ['mode', 'method', 'stage', 'banner', 'email', 'nonce'];
@@ -338,6 +379,17 @@ class Component extends DCLogic {
       clientExtensionResults: credential.getClientExtensionResults(),
     };
   }
+  /* The one passkey ceremony: Supabase's challenge, the device prompt, then passkey-verify,
+     whose response carries the new session cookies. Used by the form option and the step-up. */
+  async passkeySignIn() {
+    const start = await this.liveAuth({ action: 'passkey-start' });
+    if (!start || !start.challenge_id || !start.options) throw new Error('passkey-start');
+    const credential = await navigator.credentials.get({ publicKey: this.passkeyOptions(start.options) });
+    if (!credential) throw new Error('passkey-cancelled');
+    return this.liveAuth({
+      action: 'passkey-verify', challengeId: start.challenge_id, credential: this.passkeyCredential(credential),
+    });
+  }
   startPasskey = async () => {
     if (this.props.frozen) return this.go({ stage: 'verifying', banner: null });
     if (!window.PublicKeyCredential || !navigator.credentials || !navigator.credentials.get) {
@@ -345,13 +397,7 @@ class Component extends DCLogic {
     }
     this.go({ stage: 'verifying', banner: null });
     try {
-      const start = await this.liveAuth({ action: 'passkey-start' });
-      if (!start || !start.challenge_id || !start.options) throw new Error('passkey-start');
-      const credential = await navigator.credentials.get({ publicKey: this.passkeyOptions(start.options) });
-      if (!credential) throw new Error('passkey-cancelled');
-      const result = await this.liveAuth({
-        action: 'passkey-verify', challengeId: start.challenge_id, credential: this.passkeyCredential(credential),
-      });
+      const result = await this.passkeySignIn();
       await this.applyLive(result, 'signin', 'passkey');
     } catch (e) {
       this.go({ stage: 'form', method: 'password', banner: 'credentials' });
@@ -406,6 +452,51 @@ class Component extends DCLogic {
     });
     return response.ok;
   }
+  /* D-16 / D-16a: with an authenticator app enrolled, the password, magic link or passkey is
+     only the first step — the app code lifts the session to aal2 (also required by SQL). A
+     passkey is a sign-in option on its own, never a second step (quick 260928-wg9). Without an
+     app there is no extra step and no nag. The server enforces it either way. */
+  async stepUpNeed() {
+    const status = await this.liveAuth({ action: 'mfa-status' });
+    if (!status || !status.ok) return null;
+    return status.totp ? 'totp' : null;
+  }
+  openStepUp() {
+    this.setState({ mfaCode: '', mfaError: '', mfaBusy: false });
+    return this.go({ stage: 'mfa', banner: null, password: '' });
+  }
+  async enterOps() {
+    // Stamp accepted_at when the RPC exists. Do not treat a missing/failed
+    // claim as a bad password — the sole admin must still reach the console.
+    try { await this.claimOpsInvite(); } catch (e) {}
+    location.replace('/dashboard');
+  }
+  submitMfa = () => {
+    const code = this.state.mfaCode.replace(/\s+/g, '');
+    if (this.state.mfaBusy || !/^\d{6}$/.test(code)) return;
+    if (this.props.frozen) return this.setState({ mfaError: code === '000000' ? 'mismatch' : '', mfaCode: '' });
+    this.setState({ mfaBusy: true, mfaError: '' });
+    this.liveAuth({ action: 'mfa-step-up', code: code }).then((result) => {
+      // Redirect only after result.ok (CLAUDE.local.md): the aal2 cookies ride on this response.
+      if (result && result.ok) return this.enterOps();
+      if (result && result.banner === 'credentials') {
+        this.setState({ mfaBusy: false, mfaCode: '' });
+        return this.go({ stage: 'form', banner: 'credentials', password: '' });
+      }
+      const code2 = result && result.code;
+      const kind = code2 === 'mfa-code-mismatch' || code2 === 'mfa-invalid-input' ? 'mismatch'
+        : code2 === 'rate_limited' ? 'limited' : 'failed';
+      this.setState({ mfaBusy: false, mfaError: kind, mfaCode: '' });
+    });
+  };
+  mfaKey = (e) => { if (e && e.key === 'Enter') { e.preventDefault(); this.submitMfa(); } };
+  leaveMfa = () => {
+    this.setState({ mfaCode: '', mfaError: '', mfaBusy: false });
+    if (this.props.frozen) return this.go({ stage: 'form', method: 'password', banner: null, password: '' });
+    // Drop the half-signed-in session so the form starts clean.
+    const back = () => this.go({ stage: 'form', method: 'password', banner: null, password: '' });
+    this.liveAuth({ action: 'signout' }).then(back, back);
+  };
   async applyLive(result, mode, method) {
     if (!result) {
       if (mode === 'signin' && method === 'password') return this.go({ banner: 'credentials' });
@@ -413,11 +504,8 @@ class Component extends DCLogic {
     }
     if (this.props.surface === 'ops') {
       if (result.ok) {
-        // Stamp accepted_at when the RPC exists. Do not treat a missing/failed
-        // claim as a bad password — the sole admin must still reach the console.
-        try { await this.claimOpsInvite(); } catch (e) {}
-        location.replace('/dashboard');
-        return;
+        if (await this.stepUpNeed()) return this.openStepUp();
+        return this.enterOps();
       }
       if (mode === 'signin' && method === 'password') {
         return this.go({ stage: 'form', banner: 'credentials' });
@@ -480,7 +568,14 @@ class Component extends DCLogic {
       tabItems: [{ value: 'signin', label: 'Sign in' }, { value: 'signup', label: 'Sign up' }],
       mode, showTabs: isForm && mode !== 'forgot' && !isOps,
       isForm, isSent, isReturning: stage === 'returning', isVerifying: stage === 'verifying',
-      showPasskey: isForm && mode === 'signin' && !isOps,
+      isMfa: stage === 'mfa' && isOps, n6: 6,
+      mfaCode: this.state.mfaCode, mfaBusy: this.state.mfaBusy,
+      setMfaCode: (e) => this.setState({ mfaCode: e.target.value.replace(/\D/g, '').slice(0, 6), mfaError: '' }),
+      mfaDisabled: this.state.mfaBusy || !/^\d{6}$/.test(this.state.mfaCode),
+      mfaMismatch: this.state.mfaError === 'mismatch', mfaLimited: this.state.mfaError === 'limited',
+      mfaFailed: this.state.mfaError === 'failed',
+      submitMfa: this.submitMfa, mfaKey: this.mfaKey, leaveMfa: this.leaveMfa,
+      showPasskey: isForm && mode === 'signin',
       startPasskey: this.startPasskey, cancelPasskey: this.cancelPasskey,
       hSignIn: isForm && mode === 'signin' && !isOps, hSignUp: isForm && mode === 'signup', hForgot: isForm && mode === 'forgot',
       sSignInPw: isForm && mode === 'signin' && !isMagic && !isOps,

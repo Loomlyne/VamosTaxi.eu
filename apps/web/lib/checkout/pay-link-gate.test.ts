@@ -12,8 +12,9 @@ function read(rel: string): string {
 describe("pay-link send gate", () => {
   const src = read("../../app/api/checkout/pay-link/route.ts");
 
-  it("pins token exp to the lock and keeps email_failed a 502", () => {
-    expect(src).toContain("payLinkTokenExpiresAt(lockPayload.exp)");
+  it("D-20: pins token exp to 24 h from the Postgres now at send and keeps email_failed a 502", () => {
+    expect(src).toContain("payLinkTokenExpiresAt(postgresNowIso)");
+    expect(src).not.toContain("payLinkTokenExpiresAt(lockPayload.exp)");
     expect(src).not.toContain("tokenExpiresAt: new Date(payload.expires_at)");
     expect(src).not.toContain("checkoutWindowMinutes * 60");
     const line = src.split("\n").find((row) => row.includes("email_failed"));
@@ -47,17 +48,22 @@ describe("pay-link send gate", () => {
 describe("pay-link open gate", () => {
   const src = read("../../app/api/checkout/pay-link/open/route.ts");
 
-  it("treats a hash miss as quote_expired and does not open Stripe", () => {
+  it("D-21/D-22: a hash miss reads the pay-link state and does not open Stripe", () => {
     const miss = src.indexOf("if (!found)");
     const stripe = src.indexOf("stripeFromEnv(");
     expect(miss).toBeGreaterThan(-1);
     expect(stripe).toBeGreaterThan(miss);
     const missSlice = src.slice(miss, src.indexOf("catch", miss));
-    expect(missSlice).toContain('refuse("quote_expired")');
+    expect(missSlice).toContain("refusePayLink()");
     expect(missSlice).not.toContain("payment_window_closed");
     const catchSlice = src.slice(src.indexOf("catch", miss), stripe);
+    expect(catchSlice).toMatch(/state === "P0002"\)\s*return refusePayLink\(\)/);
     expect(catchSlice).toContain('refuse("quote_expired")');
     expect(catchSlice).not.toContain("payment_window_closed");
+    const helper = src.slice(src.indexOf("const refusePayLink"), miss);
+    expect(helper).toContain("resolvePayLinkRefusal(");
+    expect(helper).toContain("public.checkout_pay_link_state(");
+    expect(helper).not.toContain("stripeFromEnv(");
     expect(src).toContain('refuse("quote_already_booked")');
   });
 

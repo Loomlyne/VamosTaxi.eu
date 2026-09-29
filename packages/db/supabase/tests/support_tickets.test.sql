@@ -83,7 +83,8 @@ select throws_ok(
 );
 reset role;
 
--- Phase 20 (20260920000002): only vamos_system (the Worker) calls the contact RPC.
+-- Phase 20 (20260920000001/2): anon/authenticated lost EXECUTE; the Worker calls the RPC as
+-- vamos_system after Turnstile (contact_forms.test.sql asserts the revoke).
 set local role vamos_system;
 select lives_ok(
   $$ select * from public.submit_contact_message(

@@ -6,7 +6,7 @@
 --
 -- D-46: synthetic unit-free integers only; no CHF figure. Rolled back at end.
 begin;
-select plan(23);
+select plan(22);
 
 -- Fixtures: seeded draft version + launch-baseline policy. Temp table is the
 -- id door — anon cannot select rate_versions / settings_versions.
@@ -67,7 +67,8 @@ select sv.id as settings_version_id
  where sv.slug = 'qsr-null-checkout';
 grant select on qsr_null to public;
 
--- (1) Phase 20 K1 (20260919000001): only vamos_edge (the Worker) holds EXECUTE --
+-- (1) PUBLIC, anon and authenticated hold no EXECUTE (Phase 20, 20260919000001:
+-- the Data API cannot mint snapshots; vamos_edge is the only grantee) ---------
 select function_privs_are(
   'public', 'create_quote_snapshot',
   '{uuid,uuid,int8,int8,text,timestamptz,int2,int2,jsonb,jsonb,jsonb,jsonb,display_currency,text,rappen,rappen,rappen,rappen,numeric,int4,int8,text,uuid}'::text[],
@@ -86,12 +87,6 @@ select function_privs_are(
   'authenticated', '{}'::text[],
   '(1c) authenticated holds no EXECUTE on create_quote_snapshot'
 );
-select function_privs_are(
-  'public', 'create_quote_snapshot',
-  '{uuid,uuid,int8,int8,text,timestamptz,int2,int2,jsonb,jsonb,jsonb,jsonb,display_currency,text,rappen,rappen,rappen,rappen,numeric,int4,int8,text,uuid}'::text[],
-  'vamos_edge', '{EXECUTE}'::text[],
-  '(1d) vamos_edge holds EXECUTE on create_quote_snapshot'
-);
 
 -- (2) definer flag from the catalog --------------------------------------------
 select is(
@@ -103,7 +98,7 @@ select is(
   '(2) create_quote_snapshot is security definer (prosecdef)'
 );
 
--- (3) launch-state call as vamos_edge ------------------------------------------
+-- (3) launch-state call as vamos_edge (the remaining grantee) -------------------
 set local role vamos_edge;
 select lives_ok(
   $$

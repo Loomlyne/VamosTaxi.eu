@@ -36,6 +36,7 @@ import {
   firstPricedLockSlug,
   peekLockClassRappen,
   peekLockClassTotals,
+  peekLockCoupon,
   peekLockDistanceM,
   peekLockExtras,
   placeMapboxId,
@@ -60,9 +61,19 @@ import {
   type CheckoutExtraJson,
 } from "@/lib/checkout/extras-catalog";
 import { CH_VAT_RATE_BPS, payableWithVatRappen, vatOnTopRappen } from "@/lib/checkout/vat";
+import { payableRappen } from "@/lib/checkout/payable";
+import { breakdownRappen, breakdownRows, peekLockPriceRows } from "@/lib/checkout/price-rows";
 import { decodeClientSecret } from "@/lib/checkout/client-secret";
+import { lockFlightNoDiffers } from "@/lib/checkout/flight-no";
+import { couponRecoveryOutcome, couponRefusalAction, payClickAction } from "@/lib/checkout/coupon-recovery";
+import { intentAnswerAction } from "@/lib/checkout/intent-answer";
 import { checkoutTraveler } from "@/lib/checkout/checkout-traveler";
-import { readCheckoutSession, writeCheckoutSession } from "@/lib/checkout/checkout-session-store";
+import { pickedClassName } from "@/lib/checkout/picked-class";
+import {
+  clearCheckoutSession,
+  readCheckoutSession,
+  writeCheckoutSession,
+} from "@/lib/checkout/checkout-session-store";
 import { chfRappenToDisplay } from "@/lib/fx/format";
 import { useFx } from "@/lib/fx/use-fx";
 import { useVamosLocale } from "@/lib/locale-shim";
@@ -91,20 +102,8 @@ const REFUSAL_KEYS: Record<string, string> = {
   email_failed: "emailFailed",
 };
 
-function vehicleLabel(id: string, t: (key: string) => string): string {
-  if (id === "economy") return t("classEconomy");
-  if (id === "business") return t("classBusiness");
-  if (id === "first") return t("classFirst");
-  if (id === "van") return t("classVan");
-  return id;
-}
-
-function pickedClassName(slug: string, trip: VamosTrip | null, t: (key: string) => string): string {
-  const named = trip?.classOffers?.find((row) => row.slug === slug)?.name;
-  if (named) return named;
-  if (trip?.vehicle === slug && trip.vehicleName) return trip.vehicleName;
-  return vehicleLabel(slug, t);
-}
+/** Automatic payment-intent attempts on the payment step before it waits for a click. */
+const INTENT_AUTO_ATTEMPTS = 6;
 
 const CLASS_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -153,7 +152,12 @@ type CouponEvalJson = {
   percent?: number | string | null;
 };
 
-type CouponRuleState = { kind: "percent" | "amount"; percent: string | null };
+type CouponRuleState = {
+  kind: "percent" | "amount";
+  percent: string | null;
+  /** Hundredths of one percent, for payableRappen (D-08a) — never the display string. */
+  percentHundredths: number | null;
+};
 
 function formatCouponPercent(raw: number | string | null | undefined): string | null {
   if (raw == null || raw === "") return null;
@@ -162,12 +166,23 @@ function formatCouponPercent(raw: number | string | null | undefined): string | 
   return String(Number(n.toFixed(2)));
 }
 
+function couponPercentHundredthsFromRaw(raw: number | string | null | undefined): number | null {
+  if (raw == null || raw === "") return null;
+  const n = typeof raw === "number" ? raw : Number(raw);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  return Math.round(n * 100);
+}
+
 function couponRuleFromEval(coupon: CouponEvalJson | undefined): CouponRuleState | null {
   if (!coupon?.applied) return null;
   if (coupon.kind === "percent") {
-    return { kind: "percent", percent: formatCouponPercent(coupon.percent) };
+    return {
+      kind: "percent",
+      percent: formatCouponPercent(coupon.percent),
+      percentHundredths: couponPercentHundredthsFromRaw(coupon.percent),
+    };
   }
-  if (coupon.kind === "amount") return { kind: "amount", percent: null };
+  if (coupon.kind === "amount") return { kind: "amount", percent: null, percentHundredths: null };
   return null;
 }
 
@@ -278,6 +293,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const tHome = useTranslations("home");
   const tAccount = useTranslations("account");
   const tAuth = useTranslations("auth");
+  const tPriceLine = useTranslations("price.line");
   const router = useRouter();
   const { cur } = useVamosLocale();
   const fx = useFx();
@@ -328,6 +344,9 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const [couponInvalid, setCouponInvalid] = useState(false);
   const [couponField, setCouponField] = useState<CouponFieldKey | null>(null);
   const [wasRappen, setWasRappen] = useState<number | null>(null);
+  // 26.1-32: one automatic coupon recovery per lock, so a coupon that keeps
+  // refusing surfaces the refusal instead of looping.
+  const couponRecoveryAttempted = useRef(false);
   const [busy, setBusy] = useState(false);
   const [refusal, setRefusal] = useState<string | null>(null);
   const [payError, setPayError] = useState<string | null>(null);
@@ -340,11 +359,14 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [clientSecretHex, setClientSecretHex] = useState<string | undefined>();
   const clientSecretRef = useRef<string | null>(null);
-  const intentGate = useRef<Promise<"ok" | "skip" | "fail"> | null>(null);
+  const intentGate = useRef<Promise<"ok" | "skip" | "fail" | "stale"> | null>(null);
+  const flightSyncGate = useRef<Promise<boolean> | null>(null);
   const [publishable, setPublishable] = useState(publishableKey);
   const [reference, setReference] = useState<string | null>(null);
   const [payUrl, setPayUrl] = useState<string | null>(null);
   const payInFlight = useRef(false);
+  /** One Pay-driven recovery reprice at a time (quick 260928-rld). */
+  const payRecovering = useRef(false);
   const payLinkKept = useRef(false);
   const paymentStay = useRef(0);
   const [billingKind, setBillingKind] = useState<"individual" | "company">("individual");
@@ -368,6 +390,21 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const onPaymentComplete = useCallback((complete: boolean) => {
     setCardComplete(complete);
   }, []);
+
+  /**
+   * Quick 260928-lat: drop the payment session in one place. The card form only
+   * mounts with a client secret, so clearing it unmounts the form; the next form
+   * starts empty and reports completeness only on its first change, so
+   * cardComplete is reset here too. Every path that clears the secret uses this.
+   */
+  function dropPaymentSession(quoteId: string): void {
+    setClientSecret(null);
+    setClientSecretHex(undefined);
+    clientSecretRef.current = null;
+    clearCheckoutSession(quoteId);
+    setConfirmPay(null);
+    setCardComplete(false);
+  }
 
   useEffect(() => {
     let on = true;
@@ -445,6 +482,18 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     };
   }, []);
 
+  // 26.1-32 (I1): after a reload, a coupon-priced lock shows its coupon as
+  // applied, so the field agrees with the already-discounted total. The
+  // percent and pre-coupon figure are not recoverable from the code alone.
+  useEffect(() => {
+    if (couponApplied) return;
+    const lockCoupon = peekLockCoupon(draft.lock || readVamosTrip()?.lock);
+    if (lockCoupon) {
+      setCouponApplied(lockCoupon);
+      setCoupon(lockCoupon);
+    }
+  }, [draft.lock]);
+
   useEffect(() => {
     if (step !== "payment") return;
     const token = ++paymentStay.current;
@@ -521,9 +570,8 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     const stored = readDraft();
     const quoteChanged = Boolean(incomingQuote && stored.quoteId && incomingQuote !== stored.quoteId);
     if (quoteChanged) {
-      setClientSecret(null);
-      setClientSecretHex(undefined);
-      clientSecretRef.current = null;
+      // quoteChanged implies stored.quoteId; an empty id clears no stored entry.
+      dropPaymentSession(stored.quoteId ?? "");
       setChildSeat(false);
       setOversized(false);
       setExtraStop(false);
@@ -532,8 +580,6 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       setMeetGreet(false);
       setFreeWait(false);
       setReference(null);
-      setConfirmPay(null);
-      setCardComplete(false);
       intentStarted.current = false;
       intentAttempts.current = 0;
     } else if (step !== "trip") {
@@ -566,7 +612,9 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
             : stored.idempotencyKey,
     });
     if (step === "payment" && incomingQuote) {
-      const stored = readCheckoutSession(incomingQuote);
+      // Only a session opened for the lock on screen (quick 260928-rld).
+      const screenLock = trip?.lock || readDraft().lock || "";
+      const stored = readCheckoutSession(incomingQuote, screenLock);
       if (stored && !clientSecretRef.current) {
         clientSecretRef.current = stored.clientSecret;
         setClientSecret(stored.clientSecret);
@@ -641,7 +689,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     }
     setRefusal((current) => (current === "pricingNotLive" ? null : current));
     if (clientSecret) return;
-    if (intentAttempts.current >= 6) return;
+    if (intentAttempts.current >= INTENT_AUTO_ATTEMPTS) return;
     const traveler = checkoutTraveler(contact, trip?.contact);
     if (
       traveler &&
@@ -653,9 +701,11 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       setContact(traveler);
     }
     void startPayment({ silent: true }).then((result) => {
-      if (result === "ok") return;
+      // "stale": the answer was for a lock no longer on screen (quick 260928-lat).
+      // Not a failure; the discard already bumped the tick for a fresh run.
+      if (result === "ok" || result === "stale") return;
       intentAttempts.current += 1;
-      if (intentAttempts.current >= 6) {
+      if (intentAttempts.current >= INTENT_AUTO_ATTEMPTS) {
         setRefusal((current) => current ?? "payCouldNotStart");
         return;
       }
@@ -864,6 +914,9 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       return;
     }
     if (!validate()) return;
+    // D-08b: the airport fee for a flight number typed here is in the lock
+    // before the payment step opens a Stripe session.
+    if (!(await syncFlightToLock())) return;
     setPasswordError(undefined);
     if (!guest && !signedIn) {
       if (password.length < 8) {
@@ -923,14 +976,16 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     router.push(checkoutStepPath("payment"));
   }
 
-  async function startPayment(opts?: { silent?: boolean }): Promise<"ok" | "skip" | "fail"> {
+  async function startPayment(opts?: { silent?: boolean }): Promise<"ok" | "skip" | "fail" | "stale"> {
     if (clientSecretRef.current) return "ok";
     if (intentGate.current) return intentGate.current;
-    const run = (async (): Promise<"ok" | "skip" | "fail"> => {
+    const run = (async (): Promise<"ok" | "skip" | "fail" | "stale"> => {
     if (clientSecretRef.current) return "ok";
     const trip = tripSnap ?? readVamosTrip();
-    const quoteId = draft.quoteId || tripQuoteId(trip);
-    const lock = draft.lock || trip?.lock;
+    // readDraft(): a flight re-price may have re-signed the lock this tick.
+    const liveDraft = readDraft();
+    const quoteId = liveDraft.quoteId || draft.quoteId || tripQuoteId(trip);
+    const lock = liveDraft.lock || draft.lock || trip?.lock;
     const vehicleClass = asClassSlug(
       resolvePaySlug(lock, trip) || draft.vehicleClass || vehicle || tripVehicle(trip),
     );
@@ -982,6 +1037,8 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
           vehicle_class: vehicleClass,
           extras: quoteExtras({ childSeat, oversized, extraStop }, extraStopWaypoint),
           coupon: couponApplied || null,
+          // D-08b: the server refuses price_changed if the lock never priced it.
+          flight_no: liveDraft.flightNumber.trim() || null,
           contact: {
             name,
             email,
@@ -1001,11 +1058,64 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         code?: string;
         error?: string;
       };
+      // Quick 260928-lat: a reprice may have re-signed the lock while this request
+      // was in flight. Decide on the lock on screen now, not the one captured above.
+      const answerLock = readDraft().lock || draft.lock || trip?.lock;
+      if (intentAnswerAction({ sentLock: lock, currentLock: answerLock }) === "discard") {
+        // Success or refusal, the answer is for an amount no longer on screen.
+        // Nothing went wrong for the customer: no card form, no stored session,
+        // no refusal, no coupon recovery. Release the gate (no other run can hold
+        // it) and bump the tick once so the automatic intent starts one run for
+        // the lock on screen. "stale" never counts toward INTENT_AUTO_ATTEMPTS.
+        // The server expires this lock's session when the next one opens.
+        intentStarted.current = false;
+        intentGate.current = null;
+        setIntentTick((n) => n + 1);
+        return "stale";
+      }
       if (!res.ok) {
         intentStarted.current = false;
         const key = REFUSAL_KEYS[json.code ?? json.error ?? ""] ?? "payCouldNotStart";
         if (json.code === "coupon_no_longer_valid") {
+          const bodyCoupon = couponApplied;
           setCouponApplied(null);
+          const recovery = couponRefusalAction({
+            code: json.code,
+            lockCoupon: peekLockCoupon(readDraft().lock || draft.lock || trip?.lock),
+            bodyCoupon,
+            alreadyRecovered: couponRecoveryAttempted.current,
+          });
+          if (recovery === "reprice_without_coupon") {
+            couponRecoveryAttempted.current = true;
+            setCouponInvalid(true);
+            setCouponField("couponNoLongerValid");
+            const repriced = await applyCouponCode(null);
+            setCouponInvalid(true);
+            setCouponField("couponNoLongerValid");
+            const lockCoupon = peekLockCoupon(readDraft().lock || draft.lock || trip?.lock);
+            if (couponRecoveryOutcome({ action: recovery, repriceOk: repriced, lockCoupon }) === "restore_lock_coupon") {
+              // The reprice failed: the stored lock still prices the coupon. Show it as
+              // applied (Remove offered, matches the price on screen) and stop the
+              // automatic intent retry so nothing repeats without a click. No card form
+              // is mounted now: Pay (payClickAction "recover_price") and Remove both
+              // reprice without the coupon; Send pay link recovers again because the
+              // ref is cleared. The stored session is dropped so a reload cannot mount
+              // an older session under the coupon price (260928-rld). startPayment runs
+              // only without a secret, so the helper unmounts nothing here; it keeps
+              // cardComplete in step with the missing card form (260928-lat).
+              setCouponApplied(lockCoupon);
+              couponRecoveryAttempted.current = false;
+              intentAttempts.current = INTENT_AUTO_ATTEMPTS;
+              dropPaymentSession(quoteId);
+            }
+            return "fail";
+          }
+          if (recovery === "drop_body_coupon") {
+            couponRecoveryAttempted.current = true;
+            setCouponInvalid(true);
+            setCouponField("couponNoLongerValid");
+            return "fail";
+          }
           setCouponInvalid(true);
           setCouponField("couponNoLongerValid");
           return "fail";
@@ -1028,6 +1138,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       }
       writeCheckoutSession({
         quoteId,
+        lock,
         clientSecret: secret,
         clientSecretHex: json.client_secret_hex,
         publishableKey: json.publishable_key,
@@ -1048,24 +1159,103 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
     }
   }
 
+  /**
+   * D-08b / 26.1-30: the airport fee follows the flight number. When the
+   * details flight number is not the one the lock priced, re-price with it so
+   * the fee is in the re-signed lock before payment. Returns false when the
+   * re-price was refused; the existing refusal copy is shown.
+   */
+  async function syncFlightToLock(): Promise<boolean> {
+    if (flightSyncGate.current) await flightSyncGate.current;
+    const live = readDraft();
+    const trip = tripSnap ?? readVamosTrip();
+    const quoteId = live.quoteId || tripQuoteId(trip);
+    const lock = live.lock || trip?.lock;
+    const flight = live.flightNumber.trim();
+    if (!quoteId || !lock || !lockFlightNoDiffers(lock, flight)) return true;
+    const run = (async (): Promise<boolean> => {
+      setBusy(true);
+      try {
+        const res = await fetch("/api/quote/reprice", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            quote_id: quoteId,
+            lock,
+            locale,
+            display_currency: displayCur,
+            legs: [{ leg_seq: 1, flight_no: flight || null }],
+            contact_email: contact.email.trim() || null,
+          }),
+        });
+        const json = (await res.json()) as {
+          ok?: boolean;
+          lock?: string;
+          quote_id?: string;
+          expires_at?: string;
+          code?: string;
+        };
+        if (!res.ok || !json.ok || !json.lock) {
+          setRefusal(REFUSAL_KEYS[json.code ?? ""] ?? "priceChanged");
+          return false;
+        }
+        const nextId = json.quote_id ?? quoteId;
+        writeDraft({ quoteId: nextId, lock: json.lock });
+        writeVamosTrip({
+          quoteId: nextId,
+          quote_id: nextId,
+          lock: json.lock,
+          expires_at: json.expires_at,
+          flightNumber: flight,
+          flight,
+        });
+        setTripSnap((prev) => ({
+          ...(prev ?? {}),
+          quoteId: nextId,
+          quote_id: nextId,
+          lock: json.lock,
+          expires_at: json.expires_at,
+        }));
+        setRefusal(null);
+        // A Stripe session opened on the old lock no longer matches the price.
+        dropPaymentSession(quoteId);
+        intentStarted.current = false;
+        intentAttempts.current = 0;
+        setIntentTick((n) => n + 1);
+        return true;
+      } catch {
+        setRefusal("priceChanged");
+        return false;
+      } finally {
+        setBusy(false);
+      }
+    })();
+    flightSyncGate.current = run;
+    try {
+      return await run;
+    } finally {
+      if (flightSyncGate.current === run) flightSyncGate.current = null;
+    }
+  }
+
   async function applyCouponCode(
     code: string | null,
     extras?: Partial<ExtraToggles>,
     stop: { lng: number; lat: number; text: string } | null = extraStopWaypoint,
-  ) {
+  ): Promise<boolean> {
     const trip = tripSnap ?? readVamosTrip();
     const quoteId = draft.quoteId || tripQuoteId(trip);
-    const lock = draft.lock || trip?.lock;
+    const lock = readDraft().lock || draft.lock || trip?.lock;
     const seats = extras?.childSeat ?? childSeat;
     const bags = extras?.oversized ?? oversized;
     const stopsOn = extras?.extraStop ?? extraStop;
     if (!quoteId || !lock) {
       setRefusal("quoteExpired");
-      return;
+      return false;
     }
     const nextCode = code == null ? null : code.trim().toUpperCase() || null;
     if (!extras && couponAlreadyOn(couponApplied, nextCode)) {
-      return;
+      return false;
     }
     const beforeRappen = peekLockClassRappen(lock, vehicle);
     setBusy(true);
@@ -1095,7 +1285,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         const key = REFUSAL_KEYS[json.code ?? ""] ?? null;
         if (key && key !== "couponNoLongerValid") {
           setRefusal(key);
-          return;
+          return false;
         }
         if (nextCode) {
           setCouponApplied(null);
@@ -1104,7 +1294,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
           setCouponInvalid(true);
           setCouponField(couponFieldFromEval(json.coupon, true));
         }
-        return;
+        return false;
       }
       if (nextCode && !json.coupon?.applied) {
         if (!couponApplied) {
@@ -1113,7 +1303,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         }
         setCouponInvalid(true);
         setCouponField(couponFieldFromEval(json.coupon, true));
-        return;
+        return false;
       }
       const nextId = json.quote_id ?? quoteId;
       writeDraft({ quoteId: nextId, lock: json.lock });
@@ -1149,18 +1339,18 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         setWasRappen(null);
       }
       setRefusal(null);
-      setClientSecret(null);
-      setClientSecretHex(undefined);
-      clientSecretRef.current = null;
-      setConfirmPay(null);
+      // The quote id survives a coupon reprice; the stored session must not (260928-rld).
+      dropPaymentSession(quoteId);
       intentStarted.current = false;
       intentAttempts.current = 0;
       setIntentTick((n) => n + 1);
+      return true;
     } catch {
       if (nextCode) {
         setCouponInvalid(true);
         setCouponField("couponNoLongerValid");
       }
+      return false;
     } finally {
       setBusy(false);
     }
@@ -1175,7 +1365,8 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       phone: e164Phone(contact.mobile || saved?.mobile || ""),
     };
     const quoteId = draft.quoteId || tripQuoteId(trip);
-    const lock = draft.lock || trip?.lock;
+    // Newest lock first, like startPayment: a reprice may have re-signed it this tick.
+    const lock = readDraft().lock || draft.lock || trip?.lock;
     const vehicleClass = asClassSlug(resolvePaySlug(lock, trip) || draft.vehicleClass || vehicle);
     const idempotencyKey = draft.idempotencyKey;
     if (!quoteId || !lock || !vehicleClass || !idempotencyKey) {
@@ -1202,6 +1393,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
           vehicle_class: vehicleClass,
           extras: quoteExtras({ childSeat, oversized, extraStop }, extraStopWaypoint),
           coupon: couponApplied,
+          flight_no: draft.flightNumber.trim() || null,
           contact: {
             name: traveler.name,
             email: traveler.email,
@@ -1225,15 +1417,53 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         error?: string;
       };
       if (!res.ok) {
-        const key = REFUSAL_KEYS[json.code ?? json.error ?? ""];
-        if (key && key !== "payCouldNotStart") setRefusal(key);
+        if (json.code === "coupon_no_longer_valid") {
+          const bodyCoupon = couponApplied;
+          setCouponApplied(null);
+          const recovery = couponRefusalAction({
+            code: json.code,
+            lockCoupon: peekLockCoupon(readDraft().lock || draft.lock || trip?.lock),
+            bodyCoupon,
+            alreadyRecovered: couponRecoveryAttempted.current,
+          });
+          if (recovery === "reprice_without_coupon") {
+            couponRecoveryAttempted.current = true;
+            setCouponInvalid(true);
+            setCouponField("couponNoLongerValid");
+            const repriced = await applyCouponCode(null);
+            setCouponInvalid(true);
+            setCouponField("couponNoLongerValid");
+            const lockCoupon = peekLockCoupon(readDraft().lock || draft.lock || trip?.lock);
+            if (couponRecoveryOutcome({ action: recovery, repriceOk: repriced, lockCoupon }) === "restore_lock_coupon") {
+              // Same as startPayment: the failed reprice leaves the coupon-priced lock.
+              // Only the stored session is dropped: the lock did not change, so a card
+              // form already on screen stays mounted and keeps reporting cardComplete.
+              setCouponApplied(lockCoupon);
+              couponRecoveryAttempted.current = false;
+              intentAttempts.current = INTENT_AUTO_ATTEMPTS;
+              clearCheckoutSession(quoteId);
+            }
+            return;
+          }
+          if (recovery === "drop_body_coupon") {
+            couponRecoveryAttempted.current = true;
+            setCouponInvalid(true);
+            setCouponField("couponNoLongerValid");
+            return;
+          }
+        }
+        // Every refusal is visible: an unknown code or validate-fail falls back to
+        // payCouldNotStart instead of leaving the payer with a silent button (plan 21-10).
+        const key = REFUSAL_KEYS[json.code ?? json.error ?? ""] ?? "payCouldNotStart";
+        setRefusal(key);
         return;
       }
       payLinkKept.current = true;
       if (json.reference) setReference(json.reference);
       if (json.pay_url) setPayUrl(json.pay_url);
     } catch {
-      return;
+      // A network drop means the link was not sent: say so, never stay silent.
+      setRefusal("emailFailed");
     } finally {
       setBusy(false);
     }
@@ -1252,16 +1482,60 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
       setRefusal("pricingNotLive");
       return;
     }
-    if (!cardComplete) {
+    // Quick 260928-rld: the card form only mounts with a payment session, so
+    // decide what the click means before asking for a card.
+    const payAction = payClickAction({
+      hasSession: Boolean(clientSecretRef.current),
+      cardComplete,
+      couponInvalid,
+      lockCoupon: peekLockCoupon(readDraft().lock || lock),
+    });
+    if (payAction === "recover_price") {
+      // A failed recovery left the refused coupon priced in the lock: reprice
+      // without it, like Remove. On success applyCouponCode resets the intent
+      // attempts and the effect opens the session. Never charges.
+      if (payRecovering.current) return;
+      payRecovering.current = true;
+      try {
+        const repriced = await applyCouponCode(null);
+        setCouponInvalid(true);
+        setCouponField("couponNoLongerValid");
+        if (!repriced) {
+          setRefusal((current) =>
+            current === "pricingNotLive" || current === "quoteExpired" ? current : "payCouldNotStart",
+          );
+        }
+      } finally {
+        payRecovering.current = false;
+      }
+      return;
+    }
+    if (payAction === "start_session") {
+      // No session yet: let the automatic intent open it so the card form
+      // appears. The effect's expiry and pricing guards still win. Never charges.
+      intentAttempts.current = 0;
+      setRefusal((current) =>
+        current === "pricingNotLive" || current === "quoteExpired" ? current : null,
+      );
+      setIntentTick((n) => n + 1);
+      return;
+    }
+    if (payAction === "ask_card") {
       setRefusal("completeCard");
       return;
     }
+    if (payAction !== "pay") return;
     setBusy(true);
     setRefusal(null);
     setPayError(null);
     payInFlight.current = true;
     try {
       const started = await startPayment();
+      if (started === "stale") {
+        // The lock changed under this click; the automatic intent opens the new session.
+        payInFlight.current = false;
+        return;
+      }
       if (started !== "ok") {
         payInFlight.current = false;
         setRefusal((current) =>
@@ -1282,6 +1556,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         return;
       }
       await confirm();
+      couponRecoveryAttempted.current = false;
     } catch (err) {
       payInFlight.current = false;
       const message = err instanceof Error ? err.message : "";
@@ -1431,12 +1706,49 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   );
   const classRappen = peekLockClassRappen(lockToken, paySlug || vehicle);
   const extraAdd = extraRappenOutsideLock(peekLockExtras(lockToken), extrasCatalog, extraOn);
-  const netRappen = classRappen == null ? null : classRappen + extraAdd;
+  // D-08a: a percent coupon discounts checkout extras too. classRappen is
+  // already post-coupon (the signed lock); wasRappen is the class total
+  // from just before this coupon was applied — the same pre-coupon figure
+  // payableRappen needs to gross checkout extras into the discount.
+  const couponPercentHundredths =
+    couponApplied && couponRule?.kind === "percent" ? couponRule.percentHundredths : null;
+  const preCouponRappen = couponPercentHundredths != null ? wasRappen : null;
+  const netRappen =
+    classRappen == null
+      ? null
+      : payableRappen({
+          classNetRappen: classRappen,
+          preCouponRappen,
+          extraAddRappen: extraAdd,
+          couponPercent: couponPercentHundredths,
+          vatRateBps,
+        }).netRappen;
   const vatRappen = netRappen == null ? null : vatOnTopRappen(netRappen, vatRateBps);
   const chargedRappen =
     netRappen == null || vatRappen == null ? null : netRappen + vatRappen;
   const shown = chfRappenToDisplay(chargedRappen, displayCur, fx.rates?.rates ?? null);
-  const fareRappen = netRappen == null ? null : Math.max(0, netRappen - extraGross);
+  // 26.1-11 / UI-SPEC §8: the airport pickup fee and the matched route pair are
+  // their own rows, read from the signed lock's price_rows for the chosen class.
+  // An unpriced class keeps every row at the CHF 000 mark (Law 04).
+  const breakdown = breakdownRows(
+    peekLockPriceRows(lockToken, paySlug || vehicle),
+    (key, values) => (key === "airport_fee" ? tPriceLine("airport_fee") : t(key, values)),
+    (rappen) =>
+      classRappen == null
+        ? null
+        : chfRappenToDisplay(rappen, displayCur, fx.rates?.rates ?? null).major,
+  );
+  const breakdownLines = breakdown.map((row) => ({
+    label: <span data-checkout-breakdown={row.code}>{row.label}</span>,
+    amount: row.amount,
+    icon: row.icon,
+  }));
+  // The fare row is what is left once extras and the breakdown rows are drawn
+  // on their own, so the rows still add up to the charged total.
+  const fareRappen =
+    netRappen == null
+      ? null
+      : Math.max(0, netRappen - extraGross - breakdownRappen(breakdown));
   const vatShown = chfRappenToDisplay(vatRappen, displayCur, fx.rates?.rates ?? null);
   const wasNet =
     wasRappen != null && netRappen != null && wasRappen > netRappen ? wasRappen : null;
@@ -1454,9 +1766,10 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
   const couponOffShown = chfRappenToDisplay(couponOffRappen, displayCur, fx.rates?.rates ?? null);
   const priceLines =
     chargedRappen == null
-      ? []
+      ? breakdownLines
       : [
           { label: t("fareExVat"), amount: fareShown.major },
+          ...breakdownLines,
           ...recapFareRows
             .filter((row) => row.amount_rappen != null)
             .map((row) => {
@@ -1743,6 +2056,9 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                     writeDraft({ flightNumber: next });
                     writeVamosTrip({ flightNumber: next, flight: next });
                   }}
+                  onBlur={() => {
+                    void syncFlightToLock();
+                  }}
                 />
                 <ContactFields
                   value={contact}
@@ -1936,9 +2252,10 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                       variant="ghost"
                       size="md"
                       disabled={busy}
-                      onClick={() =>
-                        void applyCouponCode(couponApplied ? null : coupon.trim().toUpperCase() || null)
-                      }
+                      onClick={() => {
+                        if (!couponApplied) couponRecoveryAttempted.current = false;
+                        void applyCouponCode(couponApplied ? null : coupon.trim().toUpperCase() || null);
+                      }}
                     >
                       {couponApplied ? tCommon("remove") : tCommon("apply")}
                     </Button>
@@ -2049,6 +2366,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
                     billingName={`${contact.firstName} ${contact.lastName}`.trim()}
                     billingEmail={contact.email}
                     billingPhone={contact.mobile}
+                    clearDraftOnPaid
                     onReady={onPaymentReady}
                     onComplete={onPaymentComplete}
                   />
@@ -2136,7 +2454,7 @@ export function CheckoutClient({ step }: CheckoutClientProps) {
         <aside className="vt-checkout__rail" data-checkout-rail>
           <Card padding="lg">
             <Badge tone="accent">{t("charged-now-secured-by-stripe")}</Badge>
-            <p className="vt-checkout__picked">{vehicleLabel(vehicle, t)}</p>
+            <p className="vt-checkout__picked">{pickedClassName(vehicle, tripForPay, t)}</p>
             <RouteSummary pickup={railPickup} dropoff={railDrop} meta={railMeta} />
             <div data-checkout-total>
               <PriceSummary

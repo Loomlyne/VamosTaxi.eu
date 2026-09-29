@@ -14,11 +14,14 @@ import { refuse, type CheckoutRefusalCode } from "./errors";
 import type { CheckoutIntentRequest } from "./intent-schema";
 import { extraFaresOn, extraRappenOutsideLock, lockHasExtra, type CheckoutExtraJson } from "./extras-catalog";
 import { checkoutLegsFromLock, snapshotFromLock } from "./lock-to-rpc";
+import { flightKey } from "./flight-no";
 import { manageTokenCookie } from "./manage-token";
 import { CHARGE_CURRENCY } from "./currency";
 import { stripeCheckoutReturnUrl } from "./return-url";
 import { checkoutPaymentIntentId, sessionIsPayable } from "./stripe";
-import { CH_VAT_RATE_BPS, payableWithVatRappen } from "./vat";
+import { CH_VAT_RATE_BPS } from "./vat";
+import { payableRappen } from "./payable";
+import { percentToHundredths, roundHalfUp } from "../pricing/round";
 
 export type CheckoutCreateBookingRow = {
   booking_id: string;
@@ -32,6 +35,12 @@ export type CheckoutIntentDeps = {
   lockSecrets: { current: string; previous?: string };
   workerNowIso: string;
   postgresNowIso: string;
+  /**
+   * D-20/D-21 (26.1-29): the booking's pay-link hold (`bookings.hold_until`),
+   * loaded by the route from `checkout_booking_hold_until`. While it is open
+   * the traveller's own lock stays payable past `exp`. Omitted → exp only.
+   */
+  holdUntilIso?: string | null;
   reprice: (payload: QuoteLockPayload) => IntentRecompute;
   mintManageToken: () => Promise<{ raw: string; hash: Uint8Array }>;
   /** Stores the minted hash on an existing booking. Required on reuse, where createBooking does not run. */
@@ -93,6 +102,16 @@ export type CheckoutIntentDeps = {
   loadLaunchFlags?: () => Promise<{ vat_rate_bps: number }>;
   /** D-33: test unpaid never opens Stripe. Omitted → not a test booking. */
   loadQuotePayGate?: (quoteId: string) => Promise<{ is_test: boolean } | null>;
+  /**
+   * D-11: re-evaluated with the payer's identity at payment, never the
+   * quote-time evaluation. Required whenever the verified lock's
+   * payload.coupon is set — its absence there is a `coupon_no_longer_valid`
+   * refusal, not a silent skip.
+   */
+  evaluateCoupon?: (
+    code: string,
+    ids: { customerId: string | null; contactEmail: string | null },
+  ) => Promise<unknown>;
 };
 
 function mapQuoteCode(code: QuoteErrorCode): CheckoutRefusalCode {
@@ -117,6 +136,43 @@ function sqlState(err: unknown): string | undefined {
     return (err as { code: string }).code;
   }
   return undefined;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+type CouponEval =
+  | { ok: true; couponId: number; percentHundredths: number | null }
+  | { ok: false };
+
+/**
+ * D-30/D-08a: evaluate_coupon's jsonb — ok:true plus coupon_id always means
+ * apply it; percentHundredths is null for an amount-kind coupon or an
+ * unparseable percent (payableRappen then leaves extras undiscounted for
+ * that coupon rather than guessing).
+ */
+function couponEvalFromRaw(raw: unknown): CouponEval {
+  if (!isRecord(raw) || raw.ok !== true) return { ok: false };
+  const idRaw = raw.coupon_id;
+  const couponId = typeof idRaw === "number" ? idRaw : Number(idRaw);
+  if (!Number.isFinite(couponId)) return { ok: false };
+  if (raw.kind === "percent" && typeof raw.percent === "string" && /^\d{1,3}(?:\.\d{1,2})?$/.test(raw.percent)) {
+    return { ok: true, couponId, percentHundredths: percentToHundredths(raw.percent) };
+  }
+  return { ok: true, couponId, percentHundredths: null };
+}
+
+/**
+ * Inverse of payableRappen's discount: the lock only ever carries the
+ * post-coupon class total, so a percent coupon re-evaluated at intent must
+ * gross it back up before checkout extras can be discounted too (D-08a).
+ * >=100% grossing is skipped — the net is already 0 and any base value
+ * maps to the same 0 through payableRappen's own floor.
+ */
+function grossUpBeforeCouponRappen(postCouponRappen: number, percentHundredths: number): number {
+  if (percentHundredths <= 0 || percentHundredths >= 10_000) return postCouponRappen;
+  return roundHalfUp(postCouponRappen * 10_000, 10_000 - percentHundredths);
 }
 
 async function sessionWithSecret(
@@ -225,6 +281,7 @@ export async function runCheckoutIntent(
     secrets: deps.lockSecrets,
     workerNowIso: deps.workerNowIso,
     postgresNowIso: deps.postgresNowIso,
+    holdUntilIso: deps.holdUntilIso,
     recompute: (payload) => {
       const result = deps.reprice(payload);
       if (result instanceof Promise) {
@@ -236,6 +293,16 @@ export async function runCheckoutIntent(
 
   if (!checked.ok) {
     return refuse(mapQuoteCode(checked.code));
+  }
+
+  // D-08b / T-26.1-91: the airport fee follows the flight number, so a body
+  // whose flight number the signed lock never priced must re-price first.
+  // Before any Stripe call or booking row.
+  if (
+    body.flight_no !== undefined &&
+    flightKey(body.flight_no) !== flightKey(checked.payload.legs[0]?.flight_no ?? null)
+  ) {
+    return refuse("price_changed");
   }
 
   const payGate = await deps.loadQuotePayGate?.(body.quote_id);
@@ -257,7 +324,48 @@ export async function runCheckoutIntent(
   const extraAdd = extraRappenOutsideLock(payload.extras, catalog, extraOn);
   // D-38: waiting extra is 0 at pay. extraFaresOn / extraRappenOutsideLock drop it.
   const vatRateBps = await vatRateBpsFromFlags(deps);
-  const chargedRappen = payableWithVatRappen(netRappen + extraAdd, vatRateBps);
+
+  // D-11: the coupon code comes from the verified lock's payload.coupon —
+  // a reprice re-signs class_totals and coupon together (lock.ts:112), so the
+  // lock's coupon is the one that priced netRappen. Per-payer eligibility
+  // (cap, prior redemptions) is still re-evaluated right here against the
+  // payer's identity on every request, never trusted from a stale evaluation.
+  // Both sides fold case and whitespace, as the DB lookup does (upper(p_code)).
+  let couponId: number | null = null;
+  let couponPercentHundredths: number | null = null;
+  const lockCoupon = payload.coupon?.trim().toUpperCase() || null;
+  const bodyCoupon = body.coupon?.trim().toUpperCase() || null;
+  if (bodyCoupon !== null && bodyCoupon !== lockCoupon) {
+    return refuse("coupon_no_longer_valid");
+  }
+  if (lockCoupon) {
+    if (typeof deps.evaluateCoupon !== "function") {
+      return refuse("coupon_no_longer_valid");
+    }
+    const raw = await deps.evaluateCoupon(lockCoupon, {
+      customerId: deps.actorCustomerId,
+      contactEmail: body.contact.email,
+    });
+    const evaluated = couponEvalFromRaw(raw);
+    if (!evaluated.ok) {
+      return refuse("coupon_no_longer_valid");
+    }
+    couponId = evaluated.couponId;
+    couponPercentHundredths = evaluated.percentHundredths;
+  }
+  // D-08a: a percent coupon discounts checkout extras too. The lock only
+  // carries the post-coupon class total, so it is grossed back up here.
+  const preCouponRappen =
+    couponPercentHundredths != null
+      ? grossUpBeforeCouponRappen(netRappen, couponPercentHundredths)
+      : null;
+  const chargedRappen = payableRappen({
+    classNetRappen: netRappen,
+    preCouponRappen,
+    extraAddRappen: extraAdd,
+    couponPercent: couponPercentHundredths,
+    vatRateBps,
+  }).chargedRappen;
   if (!deps.vehicleClassId) {
     return refuse(refusalForMissingClassId());
   }
@@ -349,8 +457,8 @@ export async function runCheckoutIntent(
         extraFares,
       ),
       legs: checkoutLegsFromLock(payload, deps.vehicleClassId),
-      couponId: null,
-      couponCode: body.coupon ?? null,
+      couponId,
+      couponCode: lockCoupon,
       manageTokenHash: token.hash,
       manageTokenExpiresAt: manageExpiresAt,
       stripePaymentIntentId: pi,
@@ -415,6 +523,16 @@ export async function runCheckoutIntent(
           return refuse("quote_already_booked");
         }
         if (attachState === "23P01") return refuse("payment_window_closed");
+        // D-11 race: createBooking's own restrict_violation (23001) is shared
+        // by "quote already booked" and tg_coupon_redemption_caps — both
+        // raise the same SQLSTATE. attachPayment's independent lookup by
+        // quote_id is the tell: a genuine already-booked row is always
+        // there for it to find (23505/23001 above). Not found (P0002) with
+        // a coupon on this attempt means the whole createBooking transaction
+        // rolled back — the cap was hit between evaluate_coupon and the insert.
+        if (attachState === "P0002" && couponId != null) {
+          return refuse("coupon_no_longer_valid");
+        }
         throw attachErr;
       }
     } else {

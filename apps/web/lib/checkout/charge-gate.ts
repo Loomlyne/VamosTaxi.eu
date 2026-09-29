@@ -20,9 +20,17 @@ export function stripeAccountIsLegacyUaeTest(publishableKey: string): boolean {
   return publishableKey.startsWith("pk_test_51U65pW");
 }
 
-/** Pay-link token expiry is the verified lock exp. Does not add a window and does not max with now. */
-export function payLinkTokenExpiresAt(lockExpIso: string): Date {
-  return new Date(lockExpIso);
+/** 24-hour pay-link hold (D-20/D-20a). The database also caps it at first send + 24 h. */
+export const PAY_LINK_HOLD_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Pay-link token expiry: exactly 24 hours after the Postgres now at send time
+ * (D-20a — the hold starts when the link is sent, not when the quote was locked).
+ * Takes the database clock, never the Worker clock, so the token, the charge gate
+ * and the unpaid cron share one clock (`bookings.hold_until`).
+ */
+export function payLinkTokenExpiresAt(postgresNowIso: string): Date {
+  return new Date(Date.parse(postgresNowIso) + PAY_LINK_HOLD_MS);
 }
 
 /** Missing class id is the existing pricing-not-live refusal, never a bad request. */

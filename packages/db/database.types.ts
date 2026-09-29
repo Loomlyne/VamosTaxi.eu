@@ -89,6 +89,57 @@ export type Database = {
           },
         ]
       }
+      booking_disputes: {
+        Row: {
+          amount_rappen: number | null
+          booking_id: string
+          id: number
+          payment_id: number
+          reason: string | null
+          status: string
+          stripe_created: string
+          stripe_dispute_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount_rappen?: number | null
+          booking_id: string
+          id?: never
+          payment_id: number
+          reason?: string | null
+          status: string
+          stripe_created: string
+          stripe_dispute_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount_rappen?: number | null
+          booking_id?: string
+          id?: never
+          payment_id?: number
+          reason?: string | null
+          status?: string
+          stripe_created?: string
+          stripe_dispute_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_disputes_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_disputes_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "booking_payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_edit_requests: {
         Row: {
           accepted_at: string | null
@@ -647,6 +698,7 @@ export type Database = {
           customer_id: string | null
           display_currency: Database["public"]["Enums"]["display_currency"]
           erased_at: string | null
+          hold_until: string | null
           id: string
           idempotency_key: string | null
           is_return: boolean
@@ -677,6 +729,7 @@ export type Database = {
           customer_id?: string | null
           display_currency?: Database["public"]["Enums"]["display_currency"]
           erased_at?: string | null
+          hold_until?: string | null
           id?: string
           idempotency_key?: string | null
           is_return?: boolean
@@ -707,6 +760,7 @@ export type Database = {
           customer_id?: string | null
           display_currency?: Database["public"]["Enums"]["display_currency"]
           erased_at?: string | null
+          hold_until?: string | null
           id?: string
           idempotency_key?: string | null
           is_return?: boolean
@@ -1971,6 +2025,7 @@ export type Database = {
           mfa_enrolled: boolean
           phone: string
           role: Database["public"]["Enums"]["staff_role"]
+          sign_in_method: string
           user_id: string
         }
         Insert: {
@@ -1985,6 +2040,7 @@ export type Database = {
           mfa_enrolled?: boolean
           phone?: string
           role: Database["public"]["Enums"]["staff_role"]
+          sign_in_method?: string
           user_id: string
         }
         Update: {
@@ -1999,6 +2055,7 @@ export type Database = {
           mfa_enrolled?: boolean
           phone?: string
           role?: Database["public"]["Enums"]["staff_role"]
+          sign_in_method?: string
           user_id?: string
         }
         Relationships: []
@@ -2246,6 +2303,8 @@ export type Database = {
       vehicle_classes: {
         Row: {
           active: boolean
+          hidden_at: string | null
+          hidden_reason: string | null
           id: string
           luggage_capacity: number
           name: string | null
@@ -2256,6 +2315,8 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          hidden_at?: string | null
+          hidden_reason?: string | null
           id?: string
           luggage_capacity: number
           name?: string | null
@@ -2266,6 +2327,8 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          hidden_at?: string | null
+          hidden_reason?: string | null
           id?: string
           luggage_capacity?: number
           name?: string | null
@@ -2527,6 +2590,10 @@ export type Database = {
           vehicle_class_slug: string
         }[]
       }
+      checkout_booking_hold_until: {
+        Args: { p_quote_id: string }
+        Returns: string
+      }
       checkout_booking_is_test: {
         Args: { p_quote_id: string }
         Returns: boolean
@@ -2540,6 +2607,7 @@ export type Database = {
         Returns: {
           booking_id: string
           reference: string
+          stripe_checkout_session_ids: string[]
         }[]
       }
       checkout_capture_gate: {
@@ -2576,11 +2644,24 @@ export type Database = {
           snapshot_id: number
         }[]
       }
+      checkout_duplicate_refund_record: {
+        Args: {
+          p_payment_id: number
+          p_reason: string
+          p_refund_rappen: unknown
+          p_stripe_refund_id: string
+        }
+        Returns: {
+          booking_id: string
+          refund_id: number
+        }[]
+      }
       checkout_expire_unpaid: {
         Args: never
         Returns: {
           booking_id: string
           reference: string
+          stripe_checkout_session_ids: string[]
         }[]
       }
       checkout_extra_payment_settle: {
@@ -2636,6 +2717,13 @@ export type Database = {
           token_expires_at: string
         }[]
       }
+      checkout_pay_link_state: {
+        Args: { p_session_id?: string; p_token_hash: string }
+        Returns: {
+          reference: string
+          state: string
+        }[]
+      }
       checkout_payment_settle: {
         Args: {
           p_charged_currency: string
@@ -2651,9 +2739,17 @@ export type Database = {
         Returns: {
           already_settled: boolean
           booking_id: string
+          charged_rappen: number
           contact_email: string
+          duplicate: boolean
           locale: string
+          other_open_session_ids: string[]
+          payment_id: number
           reference: string
+          refund_reason: string
+          refund_required: boolean
+          revived: boolean
+          snapshot_id: number
         }[]
       }
       checkout_quote_left: { Args: { p_quote_id: string }; Returns: boolean }
@@ -2859,7 +2955,12 @@ export type Database = {
           reference: string
           refund_mode: string
           refund_rappen: number
+          stripe_checkout_session_ids: string[]
         }[]
+      }
+      ops_fill_canton_pairs: {
+        Args: { p_price_rappen: unknown; p_rate_version_id: number }
+        Returns: number
       }
       ops_mark_complete: {
         Args: {
@@ -2897,11 +2998,21 @@ export type Database = {
           scheduled_local: string
         }[]
       }
+      ops_refund_decide: {
+        Args: { p_booking_id: string; p_decision: string }
+        Returns: {
+          booking_id: string
+          reference: string
+          refund_status: string
+        }[]
+      }
       ops_refund_record: {
         Args: {
           p_actor_id: string
           p_booking_id: string
           p_payment_id: number
+          p_reason?: string
+          p_refund_rappen?: unknown
           p_stripe_fee_rappen?: unknown
           p_stripe_refund_id: string
         }
@@ -2923,6 +3034,10 @@ export type Database = {
           booking_id: string
           leg_id: string
         }[]
+      }
+      ops_vehicle_class_delete_or_hide: {
+        Args: { p_id: string; p_reason: string }
+        Returns: string
       }
       quote_lock_deadline: {
         Args: { p_settings_version_id: number }
@@ -2994,6 +3109,10 @@ export type Database = {
           user_id: string
         }[]
       }
+      staff_set_sign_in_method: {
+        Args: { p_method: string }
+        Returns: undefined
+      }
       staff_update_self: {
         Args: {
           p_avatar_path: string
@@ -3003,6 +3122,36 @@ export type Database = {
           p_phone: string
         }
         Returns: undefined
+      }
+      stripe_charge_refunded_record: {
+        Args: {
+          p_app_source: boolean
+          p_created: string
+          p_payment_intent_id: string
+          p_refund_rappen: unknown
+          p_session_id: string
+          p_stripe_refund_id: string
+        }
+        Returns: {
+          booking_id: string
+          outcome: string
+          refund_id: number
+        }[]
+      }
+      stripe_dispute_upsert: {
+        Args: {
+          p_amount_rappen: unknown
+          p_payment_intent_id: string
+          p_reason: string
+          p_session_id: string
+          p_status: string
+          p_stripe_created: string
+          p_stripe_dispute_id: string
+        }
+        Returns: {
+          booking_id: string
+          dispute_id: number
+        }[]
       }
       stripe_event_begin: {
         Args: {

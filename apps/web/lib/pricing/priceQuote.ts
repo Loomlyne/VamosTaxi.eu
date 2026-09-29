@@ -18,6 +18,7 @@
 
 import { evaluateEligibility } from "./eligibility";
 import {
+  buildAirportFeeLine,
   buildExtraLines,
   buildFareLine,
   buildFixedRouteExtraLine,
@@ -44,7 +45,6 @@ import type {
   SurchargeRow,
   VehicleClassRow,
 } from "./types";
-import { fareKindOrOneWay } from "./types";
 
 /** Placeholder until plan 04-11 injects quote-engine@<git-sha> from build metadata. */
 export const ENGINE_VERSION_PLACEHOLDER = "quote-engine@dev";
@@ -173,6 +173,11 @@ function returnTripSurcharge(book: RateBook): SurchargeRow | null {
   );
 }
 
+/**
+ * D-08: no distance band and no zone-based percent surcharge on top of the
+ * fare ever enters a total — that lines.ts export stays uncalled here on
+ * purpose (d15-recipe.test.ts pins this by source grep).
+ */
 function buildClassLines(
   cls: VehicleClassRow,
   book: RateBook,
@@ -199,30 +204,35 @@ function buildClassLines(
       distanceRate,
       fixedRoutes: classFixed,
       rateVersionId,
-      distanceBands: book.distance_bands,
       zones: book.zones,
       hasExtraStops,
       fareKind: input.fare_kind,
     });
     raw.push(fare);
 
-    // Comment 18. City-to-city uses one matching published pair. The class
-    // city_price_rappen is not a second line. Other modes keep the dropdown
-    // amount as a filter so an unselected pair is not added. No match adds nothing.
-    const cityToCity = fareKindOrOneWay(input.fare_kind) === "city_to_city";
-    const selectedExtra = distanceRate?.city_price_rappen ?? null;
-    const eligibleRoutes =
-      cityToCity || selectedExtra == null
-        ? classFixed
-        : classFixed.filter((route) => route.price_rappen === selectedExtra);
+    // D-08b: airport pickup fee, additive on top of the fare line above —
+    // decided by the leg's server-resolved place/zone fields, never by
+    // fare_kind (a client-sent value is not a pricing trust boundary).
+    const airportFee = buildAirportFeeLine({
+      leg: journeyLeg,
+      distanceRate,
+      rateVersionId,
+      zones: book.zones,
+    });
+    if (airportFee) raw.push(airportFee);
+
+    // D-09/D-09a: a city or canton pair applies whenever it matches, in
+    // either direction, regardless of fare_kind — the old dropdown filter
+    // (distance_rates.city_price_rappen as an eligibility gate) and the
+    // city_to_city-only restriction are gone (D-08). No match adds nothing.
     const pairExtra = buildFixedRouteExtraLine({
       leg: journeyLeg,
       vehicleClass: cls,
-      fixedRoutes: eligibleRoutes,
+      fixedRoutes: classFixed,
       rateVersionId,
       zones: book.zones,
       hasExtraStops,
-      publishedPairs: cityToCity,
+      publishedPairs: true,
     });
     if (pairExtra) raw.push(pairExtra);
 

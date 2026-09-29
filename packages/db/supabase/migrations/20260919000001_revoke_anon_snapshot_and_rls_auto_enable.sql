@@ -2,17 +2,14 @@
 -- Agent does not `supabase db push`. No DROP FUNCTION. No row writes.
 
 REVOKE ALL ON FUNCTION public.create_quote_snapshot FROM PUBLIC, anon, authenticated;
-
--- rls_auto_enable() is the hosted Supabase project's event-trigger helper. No
--- migration here creates it, so a local `supabase start` / db reset from zero
--- has no such function. Revoke only where it exists; hosted behaviour is unchanged.
+-- rls_auto_enable() exists only on the hosted project (created outside migrations),
+-- so a from-zero replay must skip it instead of failing with 42883.
 DO $$
 BEGIN
   IF to_regprocedure('public.rls_auto_enable()') IS NOT NULL THEN
     REVOKE ALL ON FUNCTION public.rls_auto_enable() FROM PUBLIC, anon, authenticated;
   END IF;
 END $$;
-
 REVOKE ALL ON FUNCTION public.quote_rate_book FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.evaluate_coupon FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.quote_lock_deadline FROM PUBLIC, anon, authenticated;

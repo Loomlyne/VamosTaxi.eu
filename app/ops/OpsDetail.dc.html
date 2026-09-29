@@ -11,6 +11,13 @@
 <main data-ops-detail="1" style="flex:1 1 auto;min-width:0;padding:22px 28px 48px">
 <style>
 [data-ops-detail]{--vt-shadow-accent:none;display:flex;flex-direction:column;gap:14px}
+[data-ops-detail] .vt-input--focus{box-shadow:none}
+[data-ops-refund-region]{display:flex;flex-direction:column;gap:12px;margin-top:12px}
+[data-ops-refund-row]{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px}
+[data-ops-refund-pct]{flex:0 1 160px;min-width:120px}
+[data-ops-refund-pct] .vt-field{margin:0}
+[data-ops-decide-body]{margin:0;font-size:var(--vt-body-sm);line-height:1.6;color:var(--vt-text-secondary);text-wrap:pretty}
+[data-ops-decide-foot]{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--vt-border-subtle)}
 [data-ops-detail-bar]{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:start;column-gap:12px;row-gap:10px;width:100%}
 [data-ops-bar-nav]{grid-column:1;display:flex;flex-wrap:nowrap;align-items:center}
 [data-ops-bar-main]{grid-column:2;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px}
@@ -86,8 +93,11 @@
 <sc-if value="{{ canCancel }}" hint-placeholder-val="{{ true }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="danger" icon="x" onClick="{{ openCancel }}" hint-size="110px,36px">{{ tCancelBooking }}</x-import>
 </sc-if>
-<sc-if value="{{ isCancelled }}" hint-placeholder-val="{{ false }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="primary" onClick="{{ markRefund }}" hint-size="200px,36px">{{ tMarkRefund }}</x-import>
+<sc-if value="{{ canFullRefund }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="primary" disabled="{{ refundBusy }}" onClick="{{ markRefund }}" hint-size="200px,36px">{{ tMarkRefund }}</x-import>
+</sc-if>
+<sc-if value="{{ postTripEligible }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="primary" disabled="{{ refundBusy }}" onClick="{{ openRequested }}" hint-size="200px,36px">{{ tMarkRefund }}</x-import>
 </sc-if>
 </sc-if>
 <sc-if value="{{ editing }}" hint-placeholder-val="{{ false }}">
@@ -267,11 +277,46 @@
 </div>
 </sc-if>
 </sc-if>
-<sc-if value="{{ isCancelled }}" hint-placeholder-val="{{ false }}">
+<sc-if value="{{ showRefundDue }}" hint-placeholder-val="{{ false }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" title="{{ tRefundTitle }}" hint-size="100%,70px">{{ tRefundBody }}</x-import>
 </sc-if>
 <sc-if value="{{ isRefunded }}" hint-placeholder-val="{{ false }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="success" title="{{ tRefundedTitle }}" hint-size="100%,70px">{{ tRefundedBody }}</x-import>
+</sc-if>
+<!-- 26.1-18 refund review region (UI-SPEC §4). Admin only (D-16b); the API re-checks. -->
+<sc-if value="{{ hasDispute }}" hint-placeholder-val="{{ false }}">
+<div data-ops-refund-region>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" title="{{ tDisputeTitle }}" hint-size="100%,70px">{{ disputeLine }}</x-import>
+</div>
+</sc-if>
+<sc-if value="{{ reviewNeeded }}" hint-placeholder-val="{{ false }}">
+<div data-ops-refund-region>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="info" title="{{ tReviewTitle }}" hint-size="100%,70px">{{ tReviewBody }}</x-import>
+<div data-ops-refund-row>
+<div data-ops-refund-pct>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" type="number" min="0" max="100" size="md" step="1" inputMode="numeric" suffix="%" placeholder="{{ tPercentPlaceholder }}" aria-label="{{ tReviewBody }}" value="{{ percentText }}" onChange="{{ setPercent }}" disabled="{{ refundBusy }}" hint-size="160px,44px"></x-import>
+</div>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="primary" disabled="{{ confirmDisabled }}" aria-busy="{{ confirmBusy }}" onClick="{{ confirmPercent }}" hint-size="170px,44px">{{ tConfirmRefund }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" disabled="{{ refundBusy }}" onClick="{{ openDecline }}" hint-size="170px,44px">{{ tDeclineRefund }}</x-import>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ requestedShown }}" hint-placeholder-val="{{ false }}">
+<div data-ops-refund-region>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="info" title="{{ tRequestedTitle }}" hint-size="100%,70px">{{ tRequestedBody }}</x-import>
+<div data-ops-refund-row>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="primary" disabled="{{ refundBusy }}" aria-busy="{{ acceptBusy }}" onClick="{{ acceptPostTrip }}" hint-size="170px,44px">{{ tAcceptRefund }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="danger" disabled="{{ refundBusy }}" onClick="{{ openReject }}" hint-size="170px,44px">{{ tRejectRefund }}</x-import>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ refundFailedShown }}" hint-placeholder-val="{{ false }}">
+<div data-ops-refund-region>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" title="{{ tRefundFailedTitle }}" hint-size="100%,70px">{{ tRefundFailedBody }}</x-import>
+<div data-ops-refund-row>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" disabled="{{ refundBusy }}" onClick="{{ retryRefund }}" hint-size="140px,44px">{{ tTryAgain }}</x-import>
+</div>
+</div>
 </sc-if>
 </div>
 </x-import>
@@ -296,6 +341,26 @@
 <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--vt-border-subtle)">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="outline" onClick="{{ closeCancel }}" hint-size="110px,44px">{{ tKeepBooking }}</x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="danger" onClick="{{ confirmCancel }}" hint-size="150px,44px">{{ tConfirmCancel }}</x-import>
+</div>
+</x-import>
+</sc-if>
+
+<sc-if value="{{ declineOpen }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" title="{{ tDeclineConfirmTitle }}" size="sm" onClose="{{ closeDecide }}" hint-size="400px,240px">
+<p data-ops-decide-body>{{ decidePre }}<span class="vt-dir-keep" data-vt-no-i18n="1">{{ decideRef }}</span>{{ decidePost }}</p>
+<div data-ops-decide-foot>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" autoFocus="{{ yes }}" onClick="{{ closeDecide }}" disabled="{{ refundBusy }}" hint-size="150px,44px">{{ tKeepReviewing }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="danger" disabled="{{ refundBusy }}" aria-busy="{{ decideBusy }}" onClick="{{ confirmDecline }}" hint-size="160px,44px">{{ tDeclineRefund }}</x-import>
+</div>
+</x-import>
+</sc-if>
+
+<sc-if value="{{ rejectOpen }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" title="{{ tRejectConfirmTitle }}" size="sm" onClose="{{ closeDecide }}" hint-size="400px,240px">
+<p data-ops-decide-body>{{ decidePre }}<span class="vt-dir-keep" data-vt-no-i18n="1">{{ decideRef }}</span>{{ decidePost }}</p>
+<div data-ops-decide-foot>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" autoFocus="{{ yes }}" onClick="{{ closeDecide }}" disabled="{{ refundBusy }}" hint-size="150px,44px">{{ tKeepReviewing }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="danger" disabled="{{ refundBusy }}" aria-busy="{{ decideBusy }}" onClick="{{ confirmReject }}" hint-size="160px,44px">{{ tRejectRefund }}</x-import>
 </div>
 </x-import>
 </sc-if>
@@ -498,6 +563,12 @@ const T = {
     refuse:'Refuse',
     refuseFailed:'Could not refuse edit ',
     flightBanner:'Flight number updated',
+    reviewTitle:'Refund review needed', reviewBody:'Cancelled inside 24 hours of pickup. Set the percentage to refund.', percentPlaceholder:'0–100',
+    confirmRefund:'Confirm refund', declineRefund:'Decline refund', declineConfirmTitle:'Decline this refund?', declineConfirmBody:'{ref} stays charged in full — the customer gets nothing back.', keepReviewing:'Keep reviewing',
+    requestedTitle:'Refund requested', requestedBody:'Asked after the trip. Accept or reject the refund.', acceptRefund:'Accept refund', rejectRefund:'Reject refund',
+    rejectConfirmTitle:'Reject this refund?', rejectConfirmBody:'The customer is told no money will be returned for {ref}.',
+    disputeTitle:'Payment disputed', disputeManage:'Manage in the Stripe dashboard.', disputeNeedsResponse:'Needs response', disputeUnderReview:'Under review', disputeWon:'Won', disputeLost:'Lost',
+    refundFailedTitle:'Refund failed', refundFailedBody:'Stripe did not accept the refund. You can try again.', tryAgain:'Try again',
  },
   de: { backToBookings:'Zurück zu Buchungen', bookedBy:'gebucht von', moreActions:'Weitere Aktionen', details:'Details', history:'Verlauf', historyEmpty:'Noch keine Ereignisse.',
     assignment:'Zuweisung', assign:'Fahrer zuweisen', reassign:'Neu zuweisen', unassign:'Zuweisung aufheben', onShift:'Im Dienst', noDriver:'Kein Fahrer zugewiesen', noDriverSub:'Vor der Abholerinnerung zuweisen',
@@ -518,6 +589,12 @@ const T = {
     website:'Website', stripeWebhook:'Stripe-Webhook', resend:'Resend', dispatch:'Dispatch',
     lineTransfer:'Transfer, ', lineAirportFee:'Flughafengebühr',
     coupon:'Gutschein', extras:'Extras', vat:'MwSt.', included:'Inklusive',
+    sendPayLink:'Zahlungslink senden', takeCard:'Karte erfassen', payCard:'Zahlen',
+    payLinkSent:'Zahlungslink gesendet an ', payLinkFailed:'Zahlungslink konnte nicht gesendet werden ', cardFailed:'Karte fehlgeschlagen ',
+    evQuoted:'Angebot gespeichert', evCreated:'Buchung erstellt', evPayStarted:'Zahlung gestartet', evStatus:'Status geändert',
+    noCoupon:'Keiner', noExtras:'Keine', noFlight:'Keiner', unassigned:'Nicht zugewiesen', dropUnknown:'Nicht gespeichert', minutes:' Min.',
+    vehicleAssigned:'Fahrzeug', when:'Wann',
+    cardPaid:'Kartenzahlung', cardRefund:'Rückerstattung auf die Karte', bookedSite:'Auf der Website gebucht', emailed:'E-Mail gesendet', dispatcher:'Disponent',
     saveEdit:'Änderungen speichern', cancelEdit:'Abbrechen', markRefund:'Rückerstatten',
     customer:'Name', pickup:'Abholung', dropoff:'Ziel', date:'Datum', time:'Uhrzeit', bagsLabel:'Gepäck',
  continue:'Weiter', accept:'Annehmen',
@@ -532,6 +609,12 @@ const T = {
     refuse:'Ablehnen',
     refuseFailed:'Änderung abgelehnt fehlgeschlagen für ',
     flightBanner:'Flugnummer aktualisiert',
+    reviewTitle:'Rückerstattung prüfen', reviewBody:'Innerhalb von 24 Stunden vor der Abholung storniert. Legen Sie den Prozentsatz der Rückerstattung fest.', percentPlaceholder:'0–100',
+    confirmRefund:'Rückerstattung bestätigen', declineRefund:'Rückerstattung ablehnen', declineConfirmTitle:'Diese Rückerstattung ablehnen?', declineConfirmBody:'{ref} bleibt voll belastet — der Kunde erhält nichts zurück.', keepReviewing:'Weiter prüfen',
+    requestedTitle:'Rückerstattung angefragt', requestedBody:'Nach der Fahrt angefragt. Rückerstattung annehmen oder zurückweisen.', acceptRefund:'Rückerstattung annehmen', rejectRefund:'Rückerstattung zurückweisen',
+    rejectConfirmTitle:'Diese Rückerstattung zurückweisen?', rejectConfirmBody:'Der Kunde erfährt, dass für {ref} kein Geld zurückerstattet wird.',
+    disputeTitle:'Zahlung angefochten', disputeManage:'Im Stripe-Dashboard bearbeiten.', disputeNeedsResponse:'Antwort nötig', disputeUnderReview:'In Prüfung', disputeWon:'Gewonnen', disputeLost:'Verloren',
+    refundFailedTitle:'Rückerstattung fehlgeschlagen', refundFailedBody:'Stripe hat die Rückerstattung nicht angenommen. Sie können es erneut versuchen.', tryAgain:'Erneut versuchen',
  },
   fr: {
     unassign:'Désassigner', action:'Action', complete:'Terminer', historyEmpty:'Aucun événement.', passengerTrip:'Passager et trajet',
@@ -555,6 +638,32 @@ const T = {
     cancelBodyUnpaid:'Cette course non payée est supprimée. Elle n’apparaît pas sous Annulé.',
     confirmCancelUnpaid:'Supprimer la réservation', bookingRemoved:'Supprimé ',
     coupon:'Code promo', extras:'Extras', vat:'TVA', included:'Inclus',
+    reviewTitle:'Remboursement à examiner', reviewBody:'Annulé moins de 24 heures avant la prise en charge. Fixez le pourcentage à rembourser.', percentPlaceholder:'0–100',
+    confirmRefund:'Confirmer le remboursement', declineRefund:'Refuser le remboursement', declineConfirmTitle:'Refuser ce remboursement ?', declineConfirmBody:'{ref} reste débité en totalité — le client ne récupère rien.', keepReviewing:'Continuer l’examen',
+    requestedTitle:'Remboursement demandé', requestedBody:'Demandé après la course. Acceptez ou rejetez le remboursement.', acceptRefund:'Accepter le remboursement', rejectRefund:'Rejeter le remboursement',
+    rejectConfirmTitle:'Rejeter ce remboursement ?', rejectConfirmBody:'Le client est informé qu’aucun montant ne sera remboursé pour {ref}.',
+    disputeTitle:'Paiement contesté', disputeManage:'À gérer dans le tableau de bord Stripe.', disputeNeedsResponse:'Réponse requise', disputeUnderReview:'En cours d’examen', disputeWon:'Gagné', disputeLost:'Perdu',
+    refundFailedTitle:'Échec du remboursement', refundFailedBody:'Stripe n’a pas accepté le remboursement. Vous pouvez réessayer.', tryAgain:'Réessayer',
+    backToBookings:'Retour aux réservations', bookedBy:'réservé par', moreActions:'Plus d’actions', details:'Détails', history:'Historique', historyEmpty:'Aucun événement.',
+    assignment:'Assignation', assign:'Assigner un chauffeur', reassign:'Réassigner', onShift:'En service', noDriver:'Aucun chauffeur assigné', noDriverSub:'Assignez avant l’envoi du rappel de prise en charge',
+    passengers:'Passagers', bags:'bagages', vehicleClass:'Classe du véhicule', flight:'Vol', email:'E-mail', mobile:'Mobile', payment:'Paiement', payLink:'Lien de paiement', session:'Session',
+    fare:'Tarif', due:'Dû', paid:'Payé', fareNote:'Prix figé au moment de la réservation ; les changements de tarif ultérieurs ne le modifient pas.',
+    outstandingTitle:'Paiement en attente', outstandingBody:'Aucune carte encore débitée. Envoyez un lien de paiement ou attendez la fin de la session de paiement.',
+    sendPayLink:'Envoyer le lien de paiement', takeCard:'Encaisser par carte', payCard:'Payer', payLinkSent:'Lien de paiement envoyé à ', payLinkFailed:'Impossible d’envoyer le lien de paiement ', cardFailed:'Échec de la carte ',
+    refundTitle:'Remboursement dû', refundBody:'Annulée dans le délai gratuit. Le client reçoit un e-mail indiquant qu’un remboursement sera versé sur son compte bancaire. Quand vous le marquez comme versé, il reçoit un second e-mail.',
+    refundedTitle:'Remboursement versé', refundedBody:'Le client a reçu un e-mail confirmant que le remboursement a été versé sur son compte bancaire.',
+    resendVoucher:'Renvoyer le bon', editBooking:'Modifier la réservation', cancelBooking:'Annuler', noShow:'Absence', driver:'Chauffeur', manualNote:'L’assignation est manuelle en V1 — il n’y a pas d’application chauffeur ni de répartition automatique.', cancel:'Annuler',
+    cancelTitle:'Annuler cette réservation ?', cancelBody:'Elle sera marquée comme annulée. Vous la retrouverez sous Annulées.',
+    keepBooking:'Conserver', confirmCancel:'Annuler la réservation', bookingCancelled:'Annulée ', cancelFailed:'Impossible d’annuler ', refundFailed:'Impossible de rembourser ',
+    voucherResent:'Bon renvoyé à ', driverAssigned:'Chauffeur assigné à ',
+    evPayment:'Paiement capturé', evRefund:'Remboursement versé', evVoucher:'Bon envoyé', evAssigned:'Chauffeur assigné', evQuoted:'Devis enregistré', evCreated:'Réservation créée', evPayStarted:'Paiement démarré', evStatus:'Statut modifié',
+    website:'Site web', stripeWebhook:'Webhook Stripe', resend:'Resend', dispatch:'Dispatch',
+    lineTransfer:'Transfert, ', lineAirportFee:'Frais de prise en charge à l’aéroport',
+    noCoupon:'Aucun', noExtras:'Aucun', noFlight:'Aucun', unassigned:'Non assigné', dropUnknown:'Non enregistré', minutes:' min',
+    vehicleAssigned:'Véhicule', when:'Quand',
+    cardPaid:'Paiement par carte', cardRefund:'Remboursement sur la carte', bookedSite:'Réservé sur le site', emailed:'E-mail envoyé', dispatcher:'Répartiteur',
+    saveEdit:'Enregistrer les modifications', cancelEdit:'Annuler', markRefund:'Rembourser',
+    customer:'Nom', pickup:'Prise en charge', dropoff:'Destination', date:'Date', time:'Heure', bagsLabel:'Bagages',
   },
   ar: {
     unassign:'إلغاء التعيين', action:'إجراء', complete:'إكمال', historyEmpty:'لا أحداث بعد.', passengerTrip:'الراكب والرحلة',
@@ -578,18 +687,46 @@ const T = {
     cancelBodyUnpaid:'تُحذف هذه الرحلة غير المدفوعة. لن تبقى ضمن الملغاة.',
     confirmCancelUnpaid:'حذف الحجز', bookingRemoved:'حُذف ',
     coupon:'قسيمة', extras:'إضافات', vat:'ضريبة القيمة المضافة', included:'مشمول',
+    reviewTitle:'مراجعة الاسترداد مطلوبة', reviewBody:'أُلغي خلال 24 ساعة من موعد الاستلام. حدّد نسبة الاسترداد.', percentPlaceholder:'0–100',
+    confirmRefund:'تأكيد الاسترداد', declineRefund:'رفض الاسترداد', declineConfirmTitle:'رفض هذا الاسترداد؟', declineConfirmBody:'يبقى {ref} مدفوعاً بالكامل — لن يسترد العميل شيئاً.', keepReviewing:'متابعة المراجعة',
+    requestedTitle:'طلب استرداد', requestedBody:'طُلب بعد الرحلة. اقبل طلب الاسترداد أو ارفضه.', acceptRefund:'قبول الاسترداد', rejectRefund:'رفض طلب الاسترداد',
+    rejectConfirmTitle:'رفض طلب الاسترداد هذا؟', rejectConfirmBody:'سيُبلَّغ العميل بأنه لن يُعاد أي مبلغ عن {ref}.',
+    disputeTitle:'دفعة متنازع عليها', disputeManage:'تُدار من لوحة تحكم Stripe.', disputeNeedsResponse:'بحاجة إلى رد', disputeUnderReview:'قيد المراجعة', disputeWon:'رابح', disputeLost:'خاسر',
+    refundFailedTitle:'فشل الاسترداد', refundFailedBody:'لم تقبل Stripe الاسترداد. يمكنك المحاولة مرة أخرى.', tryAgain:'حاول مرة أخرى',
+    backToBookings:'الرجوع إلى الحجوزات', bookedBy:'تم الحجز بواسطة', moreActions:'المزيد من الإجراءات', details:'التفاصيل', history:'السجل', historyEmpty:'لا أحداث بعد.',
+    assignment:'التعيين', assign:'تعيين سائق', reassign:'إعادة التعيين', onShift:'في الدورية', noDriver:'لا يوجد سائق معيّن', noDriverSub:'عيّن سائقاً قبل إرسال تذكير الانطلاق',
+    passengers:'الركاب', bags:'حقائب', vehicleClass:'فئة المركبة', flight:'الرحلة الجوية', email:'البريد الإلكتروني', mobile:'الجوال', payment:'الدفع', payLink:'رابط الدفع', session:'الجلسة',
+    fare:'الأجرة', due:'مستحق', paid:'مدفوع', fareNote:'السعر مثبّت عند الحجز؛ تغييرات القواعد لاحقاً لا تُغيّره.',
+    outstandingTitle:'الدفع معلّق', outstandingBody:'لم تُحصَّل بطاقة بعد. أرسل رابط دفع أو انتظر انتهاء جلسة الدفع.',
+    sendPayLink:'إرسال رابط الدفع', takeCard:'تحصيل بطاقة', payCard:'دفع', payLinkSent:'أُرسل رابط الدفع إلى ', payLinkFailed:'تعذّر إرسال رابط الدفع ', cardFailed:'فشلت البطاقة ',
+    refundTitle:'استرداد مستحق', refundBody:'أُلغيت ضمن نافذة الإلغاء المجانية. يُرسَل للعميل بريد إلكتروني بأن الاسترداد سيُحوَّل إلى حسابه المصرفي. عند تحديده كمُحوَّل، يصله بريد إلكتروني ثانٍ.',
+    refundedTitle:'تم الاسترداد', refundedBody:'تلقّى العميل بريداً إلكترونياً يؤكد تحويل الاسترداد إلى حسابه المصرفي.',
+    resendVoucher:'إعادة إرسال القسيمة', editBooking:'تعديل الحجز', cancelBooking:'إلغاء', noShow:'عدم الحضور', driver:'السائق', manualNote:'التعيين يدوي في الإصدار الأول — لا يوجد تطبيق للسائق ولا توزيع تلقائي.', cancel:'إلغاء',
+    cancelTitle:'إلغاء هذا الحجز؟', cancelBody:'سيُوسم بأنه ملغى. ستظل تراه ضمن الملغاة.',
+    keepBooking:'الاحتفاظ به', confirmCancel:'إلغاء الحجز', bookingCancelled:'أُلغي ', cancelFailed:'تعذّر الإلغاء ', refundFailed:'تعذّر الاسترداد ',
+    voucherResent:'أُعيد إرسال القسيمة إلى ', driverAssigned:'عُيّن السائق لـ ',
+    evPayment:'تم تحصيل الدفع', evRefund:'تم الاسترداد', evVoucher:'أُرسلت القسيمة', evAssigned:'عُيّن السائق', evQuoted:'حُفظ العرض', evCreated:'أُنشئ الحجز', evPayStarted:'بدأ الدفع', evStatus:'تغيّرت الحالة',
+    website:'الموقع', stripeWebhook:'ويب هوك Stripe', resend:'Resend', dispatch:'التشغيل',
+    lineTransfer:'نقل، ', lineAirportFee:'رسوم الاستقبال من المطار',
+    noCoupon:'لا يوجد', noExtras:'لا يوجد', noFlight:'لا يوجد', unassigned:'غير معيّن', dropUnknown:'غير مخزّن', minutes:' دقيقة',
+    vehicleAssigned:'المركبة', when:'متى',
+    cardPaid:'الدفع بالبطاقة', cardRefund:'استرداد إلى البطاقة', bookedSite:'حُجز عبر الموقع', emailed:'أُرسل البريد الإلكتروني', dispatcher:'المُوزّع',
+    saveEdit:'حفظ التغييرات', cancelEdit:'إلغاء', markRefund:'استرداد',
+    customer:'الاسم', pickup:'مكان الانطلاق', dropoff:'الوجهة', date:'التاريخ', time:'الوقت', bagsLabel:'الحقائب',
   },
 };
 class Component extends DCLogic {
-  state = { lang: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en', dialogOpen:false, cancelOpen:false, pickDriver:'', toastMsg:'', showToast:false, editing:false, edit:{}, takeCardOpen:false, historyOpen:false };
+  state = { lang: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en', dialogOpen:false, cancelOpen:false, pickDriver:'', toastMsg:'', showToast:false, editing:false, edit:{}, takeCardOpen:false, historyOpen:false,
+    // 26.1-18 refund review (UI-SPEC §4): percentage starts empty, never 100.
+    percentText: '', percentFor:'', refundBusy:'', refundFailFor:'', refundRetryBody:null, requestedFor:'', declineOpen:false, rejectOpen:false };
   toggleHistory = () => this.setState((s) => ({ historyOpen: !s.historyOpen }));
   componentDidUpdate(prevProps, prevState) {
-    const overlay = !!(this.state.dialogOpen || this.state.cancelOpen);
-    const was = !!(prevState.dialogOpen || prevState.cancelOpen);
+    const overlay = !!(this.state.dialogOpen || this.state.cancelOpen || this.state.declineOpen || this.state.rejectOpen);
+    const was = !!(prevState.dialogOpen || prevState.cancelOpen || prevState.declineOpen || prevState.rejectOpen);
     if (was !== overlay) { try { document.body.style.overflow = overlay ? 'hidden' : ''; } catch (e) {} }
   }
   componentWillUnmount() {
-    try { if (this.state.dialogOpen || this.state.cancelOpen) document.body.style.overflow = ''; } catch (e) {}
+    try { if (this.state.dialogOpen || this.state.cancelOpen || this.state.declineOpen || this.state.rejectOpen) document.body.style.overflow = ''; } catch (e) {}
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
     if (this._off) this._off();
     clearTimeout(this._retry);
@@ -610,6 +747,10 @@ class Component extends DCLogic {
     if (window.VamosOps.vehicles) {
       offs.push(window.VamosOps.vehicles.onChange(() => this.forceUpdate()));
       window.VamosOps.vehicles.all();
+    }
+    // D-16b: refund controls follow the signed-in role from /api/staff/me.
+    if (window.VamosOps.profile && typeof window.VamosOps.profile.onChange === 'function') {
+      offs.push(window.VamosOps.profile.onChange(() => this.forceUpdate()));
     }
     this._off = () => offs.forEach((fn) => { try { fn(); } catch (e) {} });
     this.forceUpdate();
@@ -671,6 +812,74 @@ class Component extends DCLogic {
     }));
     const fareLines = fareBreakdown(booking, t);
     const cancelled = booking.status === 'cancelled' || booking.status === 'refunded';
+    // 26.1-18 refund review (D-16b, D-24, D-25, D-07). The server re-validates every
+    // decision (withAdmin, percent 0–100, post-trip status); these flags only pick
+    // which controls to show.
+    const profile = window.VamosOps && window.VamosOps.profile ? window.VamosOps.profile.get() : {};
+    const role = (profile && profile.role) || '';
+    const isAdmin = role === 'admin';
+    const refundKey = booking.bookingId || booking.id || '';
+    const refundStatus = String(booking.refundStatus || 'none');
+    const postTripStatus = ['completed','partially_completed','no_show','no-show'].indexOf(booking.status) !== -1;
+    const reviewNeeded = isAdmin && !!booking.paid && refundStatus === 'pending_ops';
+    const postTripEligible = isAdmin && !!booking.paid && booking.tripPassed === true && refundStatus === 'none' && postTripStatus;
+    const canFullRefund = isAdmin && booking.status === 'cancelled' && refundStatus !== 'pending_ops' && refundStatus !== 'declined';
+    const percentText = this.state.percentFor === refundKey ? String(this.state.percentText || '') : '';
+    const percentValid = /^\d{1,3}$/.test(percentText) && Number(percentText) <= 100;
+    const refundBusy = this.state.refundBusy || '';
+    const refundFailedShown = isAdmin && !!refundKey && (this.state.refundFailFor === refundKey || refundStatus === 'failed');
+    const dispute = booking.dispute && typeof booking.dispute === 'object' ? booking.dispute : null;
+    const disputeWord = (status) => {
+      const st = String(status || '');
+      if (st === 'needs_response' || st === 'warning_needs_response') return t.disputeNeedsResponse;
+      if (st === 'under_review' || st === 'warning_under_review') return t.disputeUnderReview;
+      if (st === 'won') return t.disputeWon;
+      if (st === 'lost') return t.disputeLost;
+      return st;
+    };
+    const splitRef = (str) => {
+      const at = String(str || '').indexOf('{ref}');
+      return at < 0 ? [String(str || ''), ''] : [str.slice(0, at), str.slice(at + 5)];
+    };
+    const decideParts = splitRef(this.state.rejectOpen ? t.rejectConfirmBody : t.declineConfirmBody);
+    const postRefund = (kind, body) => {
+      const client = window.VamosOpsApi;
+      const ops = window.VamosOps;
+      if (!client || typeof client.request !== 'function' || !refundKey) {
+        this.notify(t.refundFailed + booking.id);
+        return;
+      }
+      this.setState({ refundBusy: kind });
+      client.request('POST', '/api/staff/bookings/' + encodeURIComponent(refundKey) + '/refund', body).then((json) => {
+        if (json && json.ok) {
+          this.setState({ refundBusy: '', refundFailFor: '', refundRetryBody: null, requestedFor: '', percentText: '', percentFor: '' });
+          if (ops) ops.bookings.reset();
+        } else if (json && (json.code === 'stripe-failed' || json.code === 'network')) {
+          this.setState({ refundBusy: '', refundFailFor: refundKey, refundRetryBody: body });
+        } else {
+          this.setState({ refundBusy: '' });
+          this.notify(t.refundFailed + booking.id);
+        }
+      });
+    };
+    const postDecision = (kind) => {
+      const client = window.VamosOpsApi;
+      const ops = window.VamosOps;
+      if (!client || typeof client.request !== 'function' || !refundKey) {
+        this.notify(t.refundFailed + booking.id);
+        return;
+      }
+      this.setState({ refundBusy: kind });
+      client.request('POST', '/api/staff/bookings/' + encodeURIComponent(refundKey) + '/refund-decision', { decision: kind }).then((json) => {
+        if (json && json.ok) {
+          this.setState({ refundBusy: '', declineOpen: false, rejectOpen: false, requestedFor: '', percentText: '', percentFor: '' });
+          if (ops) ops.bookings.reset();
+        } else {
+          this.setState({ refundBusy: '' });
+          this.notify(t.refundFailed + booking.id);
+        }
+      });
+    };
     const durationMin = Number(booking.durationMin) || 0;
     const pickupWhen = [booking.date, booking.time].filter(Boolean).join(' · ');
     const dropTime = durationMin > 0 ? addMinutesHhmm(booking.time, durationMin) : '';
@@ -762,6 +971,48 @@ class Component extends DCLogic {
       tHistory: t.history, tHistoryEmpty: t.historyEmpty, historyRows, historyEmpty: historyRows.length === 0, historyHas: historyRows.length > 0,
       historyOpen: !!this.state.historyOpen, historyClosed: !this.state.historyOpen, toggleHistory: this.toggleHistory,
       isPending: !booking.paid && !cancelled, isCancelled: booking.status === 'cancelled', isRefunded: booking.status === 'refunded',
+      showRefundDue: booking.status === 'cancelled' && !reviewNeeded && refundStatus !== 'declined',
+      canFullRefund, postTripEligible, reviewNeeded,
+      requestedShown: postTripEligible && this.state.requestedFor === refundKey,
+      refundFailedShown, hasDispute: !!dispute,
+      disputeLine: dispute ? [disputeWord(dispute.status), t.disputeManage].filter(Boolean).join(' · ') : '',
+      percentText, refundBusy: !!refundBusy,
+      confirmDisabled: !percentValid || !!refundBusy,
+      confirmBusy: refundBusy === 'percent' ? 'true' : 'false',
+      acceptBusy: refundBusy === 'post-trip' ? 'true' : 'false',
+      decideBusy: refundBusy === 'decline' || refundBusy === 'reject' ? 'true' : 'false',
+      declineOpen: !!this.state.declineOpen, rejectOpen: !!this.state.rejectOpen,
+      decidePre: decideParts[0], decideRef: booking.id, decidePost: decideParts[1],
+      tReviewTitle: t.reviewTitle, tReviewBody: t.reviewBody, tPercentPlaceholder: t.percentPlaceholder,
+      tConfirmRefund: t.confirmRefund, tDeclineRefund: t.declineRefund, tDeclineConfirmTitle: t.declineConfirmTitle, tKeepReviewing: t.keepReviewing,
+      tRequestedTitle: t.requestedTitle, tRequestedBody: t.requestedBody, tAcceptRefund: t.acceptRefund, tRejectRefund: t.rejectRefund,
+      tRejectConfirmTitle: t.rejectConfirmTitle, tDisputeTitle: t.disputeTitle,
+      tRefundFailedTitle: t.refundFailedTitle, tRefundFailedBody: t.refundFailedBody, tTryAgain: t.tryAgain,
+      setPercent: (e) => {
+        const raw = e && e.target ? e.target.value : e;
+        this.setState({ percentText: String(raw == null ? '' : raw).trim(), percentFor: refundKey });
+      },
+      // D-24: 0 % means nothing back, which is a decline — send it through the decline dialog.
+      confirmPercent: () => {
+        if (!percentValid || refundBusy) return;
+        if (Number(percentText) === 0) { this.setState({ declineOpen: true, rejectOpen: false }); return; }
+        postRefund('percent', { percent: Number(percentText) });
+      },
+      openDecline: () => { if (!refundBusy) this.setState({ declineOpen: true, rejectOpen: false }); },
+      openReject: () => { if (!refundBusy) this.setState({ rejectOpen: true, declineOpen: false }); },
+      closeDecide: () => { if (!refundBusy) this.setState({ declineOpen: false, rejectOpen: false }); },
+      confirmDecline: () => { if (!refundBusy) postDecision('decline'); },
+      confirmReject: () => { if (!refundBusy) postDecision('reject'); },
+      openRequested: () => this.setState({ requestedFor: refundKey }),
+      acceptPostTrip: () => { if (!refundBusy) postRefund('post-trip', { postTrip: true }); },
+      retryRefund: () => {
+        if (refundBusy) return;
+        const owed = Number(booking.refundOwedRappen);
+        const body = this.state.refundFailFor === refundKey && this.state.refundRetryBody
+          ? this.state.refundRetryBody
+          : (Number.isFinite(owed) && owed > 0 ? { rappen: owed } : {});
+        postRefund('retry', body);
+      },
       tOutstandingTitle: t.outstandingTitle, tOutstandingBody: t.outstandingBody, tRefundTitle: t.refundTitle, tRefundBody: t.refundBody,
       tRefundedTitle: t.refundedTitle, tRefundedBody: t.refundedBody,
       tSendPayLink: t.sendPayLink, tTakeCard: t.takeCard, tPayCard: t.payCard, takeCardOpen: !!this.state.takeCardOpen,
@@ -869,22 +1120,7 @@ class Component extends DCLogic {
           }
         });
       },
-      markRefund: () => {
-        const id = booking.bookingId || booking.id;
-        const client = window.VamosOpsApi;
-        const ops = window.VamosOps;
-        if (!client || typeof client.request !== 'function') {
-          this.notify(t.refundFailed + id);
-          return;
-        }
-        client.request('POST', '/api/staff/bookings/' + encodeURIComponent(id) + '/refund', {}).then((json) => {
-          if (json && json.ok) {
-            if (ops) ops.bookings.reset();
-          } else {
-            this.notify(t.refundFailed + id);
-          }
-        });
-      },
+      markRefund: () => { if (!refundBusy) postRefund('full', {}); },
       canCancel: !cancelled && booking.status !== 'completed',
       canComplete: !frozen,
       canNoShow: !frozen,

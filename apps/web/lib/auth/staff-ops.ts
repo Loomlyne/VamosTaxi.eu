@@ -3,13 +3,11 @@
 // dynamic = "force-dynamic" — D-06 fence. A real export is illegal in a "use server" module.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { emailSchema, passwordSchema } from "@/lib/auth/schemas";
 import { asStaff } from "@/lib/db/identity";
 import { log } from "@/lib/logger";
 import { getStaffClaims } from "@/lib/ops/session";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
-export type StaffSignInResult = { ok: true } | { ok: false };
 export type StaffFactorResult =
   | { enrolled: true; factorId: string }
   | { enrolled: false };
@@ -20,29 +18,6 @@ export type StaffVerifyResult = { ok: true; href: string } | { ok: false };
 
 function authLog(action: string, reason: string): void {
   log("error", "ops-auth", { requestId: crypto.randomUUID(), route: action, locale: null }, { reason });
-}
-
-export async function staffSignInAction(input: {
-  email: string;
-  password: string;
-}): Promise<StaffSignInResult> {
-  const email = emailSchema.safeParse(input.email);
-  const password = passwordSchema.safeParse(input.password);
-  if (!email.success || !password.success) {
-    authLog("staffSignInAction", "invalid-input");
-    return { ok: false };
-  }
-
-  const supabase = await createServerSupabaseClient();
-  const { error } = await supabase.auth.signInWithPassword({
-    email: email.data,
-    password: password.data,
-  });
-  if (error) {
-    authLog("staffSignInAction", error.code ?? "auth-failed");
-    return { ok: false };
-  }
-  return { ok: true };
 }
 
 export async function staffListVerifiedFactor(): Promise<StaffFactorResult> {

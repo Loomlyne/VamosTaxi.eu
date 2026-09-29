@@ -74,7 +74,7 @@
 }
 
 .vt-ck-link:hover {
-  color: var(--vt-charcoal-900);
+  color: var(--vt-charcoal-800);
   text-decoration-color: currentColor;
 }
 

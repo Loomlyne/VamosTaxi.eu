@@ -371,9 +371,6 @@ export function SiteFooter({
             <span data-ft-paymark="1">{tFooter("payment-mastercard")}</span>
             <span data-ft-paymark="1">{tFooter("payment-twint")}</span>
             <span data-ft-paymark="1">{tFooter("payment-apple-pay")}</span>
-            <span data-ft-paynote="1">
-              {tFooter("marks-awaiting-confirmed-stripe-provider-config")}
-            </span>
           </div>
         ) : null}
 

@@ -63,6 +63,10 @@ describe("staffStatus", () => {
   it("maps not-admin to 403", () => {
     expect(staffStatus("not-admin")).toEqual({ code: "not-admin", status: 403 });
   });
+
+  it("maps needs-mfa to its own 403 code so the sign-in shows the code step (26.1-23)", () => {
+    expect(staffStatus("needs-mfa")).toEqual({ code: "needs-mfa", status: 403 });
+  });
 });
 
 describe("jsonOk / jsonErr", () => {

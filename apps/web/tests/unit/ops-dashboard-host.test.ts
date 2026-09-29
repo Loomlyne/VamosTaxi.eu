@@ -29,12 +29,19 @@ describe("dashboard host DC login @ops-dashboard-host", () => {
       /serveOpsDc\(request, client\.response, "ops-login\.dc\.html"/,
     );
     expect(middleware).toMatch(/serveOpsDc\(request, client\.response, "ops\.dc\.html"/);
-    // Public-host leftovers rewrite to the product 404 (`/__vamos_gone`); nothing
-    // rewrites into the Next ops tree.
+    // The dashboard branch never rewrites into Next ops. 4d38a03 added rewrites only on the
+    // public host (D-01a leftover /ops and mock leaks), and only to the /__vamos_gone 404.
+    const dashStart = middleware.indexOf("async function dashboardHostMiddleware(");
+    const dashEnd = middleware.indexOf("export default async function middleware(", dashStart);
+    expect(dashStart).toBeGreaterThan(-1);
+    expect(dashEnd).toBeGreaterThan(dashStart);
+    expect(middleware.slice(dashStart, dashEnd)).not.toMatch(/NextResponse\.rewrite/);
     const rewrites = middleware.match(/NextResponse\.rewrite\([^)]*\)/g) ?? [];
     expect(rewrites.every((call) => call === "NextResponse.rewrite(gone)")).toBe(true);
-    const gonePaths = middleware.match(/gone\.pathname = "[^"]*"/g) ?? [];
-    expect(gonePaths.every((line) => line === 'gone.pathname = "/__vamos_gone"')).toBe(true);
+    expect(middleware.split('gone.pathname = "/__vamos_gone";').length - 1).toBe(rewrites.length);
+    expect(middleware).toMatch(
+      /if \(!isDashboardHost\(request\) && isOpsRequest\(pathname\)\) \{\s*const gone = request\.nextUrl\.clone\(\);\s*gone\.pathname = "\/__vamos_gone";/,
+    );
     expect(middleware).not.toMatch(/\[locale\]\/ops/);
   });
 

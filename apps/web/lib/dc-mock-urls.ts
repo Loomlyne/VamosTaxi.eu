@@ -151,6 +151,29 @@ export function should404MockLeak(pathname: string): boolean {
 }
 
 /**
+ * API routes that are links: the browser opens them as a document and they answer
+ * with a redirect or a file. Everything else under /api stays hidden from the
+ * address bar.
+ *  - /api/checkout/return   after a payment, and Stripe's own return_url
+ *  - /api/auth/callback     sign-up, magic-link and password-reset e-mail links
+ *  - /api/checkout/invite/* the calendar file on the confirmation page
+ */
+const BROWSER_API_EXACT: readonly string[] = Object.freeze([
+  "/api/checkout/return",
+  "/api/auth/callback",
+]);
+const BROWSER_API_ONE_SEGMENT: readonly string[] = Object.freeze(["/api/checkout/invite/"]);
+
+function isBrowserApiLink(path: string): boolean {
+  if (BROWSER_API_EXACT.includes(path)) return true;
+  return BROWSER_API_ONE_SEGMENT.some((prefix) => {
+    if (!path.startsWith(prefix)) return false;
+    const rest = path.slice(prefix.length);
+    return rest.length > 0 && !rest.includes("/");
+  });
+}
+
+/**
  * Worker/middleware gate.
  * `"not-found"` → serve the product 404 page (document leftovers / browsed APIs).
  */
@@ -163,6 +186,7 @@ export function gatePublicRequest(request: Request): Response | "not-found" | nu
   if (path === "/api" || path.startsWith("/api/")) {
     const hiddenDev = path === "/api/dev" || path.startsWith("/api/dev/");
     if (hiddenDev) return isDocumentNav(request) ? "not-found" : empty404();
+    if (isBrowserApiLink(path)) return null;
     if (isDocumentNav(request)) {
       if (
         dashboard &&

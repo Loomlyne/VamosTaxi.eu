@@ -1,8 +1,8 @@
 // apps/web/tests/integration/ops-claims-bridge.spec.ts
 //
 // Proof that getStaffClaims / requireStaffClaims / requireAdminClaims map a
-// session into the VamosClaims object asStaff expects, and refuse aal1 and
-// non-staff with distinguishable reasons. Tagged @ops-claims. Runs under
+// session into the VamosClaims object asStaff expects, and refuse aal1 once a factor is enrolled (D-16a) and
+// non-admin staff (D-16b) with distinguishable reasons. Tagged @ops-claims. Runs under
 // component-1440 only. Live local-auth cases skip (not fail) when
 // http://127.0.0.1:54321/auth/v1/health is down — this spec never starts
 // supabase.
@@ -43,6 +43,7 @@ function mockClient(opts: {
     app_metadata?: { vamos_role?: unknown; extra?: unknown };
   } | null;
   aal?: string | null;
+  nextLevel?: string | null;
   sessionId?: string;
 }): StaffAuthClient {
   return {
@@ -55,7 +56,7 @@ function mockClient(opts: {
       }),
       mfa: {
         getAuthenticatorAssuranceLevel: async () => ({
-          data: { currentLevel: opts.aal ?? null },
+          data: { currentLevel: opts.aal ?? null, nextLevel: opts.nextLevel ?? opts.aal ?? null },
         }),
       },
     },
@@ -88,14 +89,19 @@ test.describe("ops claims bridge @ops-claims", () => {
       sub,
       role: "authenticated",
       aal: "aal2",
+      nextLevel: "aal2",
       email: "dispatcher@vamos.test",
       session_id: "sid-dispatcher-1",
       app_metadata: { vamos_role: "dispatcher" },
     });
-    expect(await requireStaffClaims(supabase)).toEqual(claims);
+    // D-16/D-16b (26.1-20): only the admin signs in; a dispatcher session is refused even at aal2.
+    await expect(requireStaffClaims(supabase)).rejects.toMatchObject({ reason: "not-staff" });
   });
 
-  test("aal1 staff session is returned by getStaffClaims and refused by requireStaffClaims with needs-mfa", async () => {
+  // Owner decision 2026-09-27 (26.1 D-16/D-16a): only the admin signs in and a second factor is
+  // optional. With no enrolled factor an aal1 admin session is accepted; once a factor is
+  // enrolled, aal2 is required on every request (26.1-20, staffGateDecision).
+  test("aal1 admin session with no enrolled factor is accepted by requireStaffClaims", async () => {
     const supabase = mockClient({
       user: {
         id: "22222222-2222-4222-8222-222222222222",
@@ -108,7 +114,7 @@ test.describe("ops claims bridge @ops-claims", () => {
     const claims = await getStaffClaims(supabase);
     expect(claims?.aal).toBe("aal1");
     expect(claims?.app_metadata?.vamos_role).toBe("admin");
-    await expect(requireStaffClaims(supabase)).rejects.toMatchObject({ reason: "needs-mfa" });
+    expect(await requireStaffClaims(supabase)).toEqual(claims);
   });
 
   test("a session with no vamos_role is not staff", async () => {
@@ -137,9 +143,23 @@ test.describe("ops claims bridge @ops-claims", () => {
       sessionId: "sid-disp",
     });
     await expect(requireAdminClaims(supabase)).rejects.toMatchObject({ reason: "not-admin" });
-    expect(await requireStaffClaims(supabase)).toMatchObject({
-      app_metadata: { vamos_role: "dispatcher" },
+    // D-16b (26.1-20): a dispatcher is refused by requireStaffClaims too.
+    await expect(requireStaffClaims(supabase)).rejects.toMatchObject({ reason: "not-staff" });
+  });
+
+  test("admin at aal1 with an enrolled factor is needs-mfa (D-16a)", async () => {
+    const supabase = mockClient({
+      user: {
+        id: "66666666-6666-4666-8666-666666666666",
+        email: "admin-mfa@vamos.test",
+        app_metadata: { vamos_role: "admin" },
+      },
+      aal: "aal1",
+      nextLevel: "aal2",
+      sessionId: "sid-admin-mfa",
     });
+    await expect(requireStaffClaims(supabase)).rejects.toMatchObject({ reason: "needs-mfa" });
+    await expect(requireAdminClaims(supabase)).rejects.toMatchObject({ reason: "needs-mfa" });
   });
 
   test("admin at aal2 is accepted by requireAdminClaims", async () => {
@@ -300,13 +320,17 @@ test.describe("ops claims bridge live local auth @ops-claims", () => {
     if (!res.ok) throw new Error(`insert staff ${res.status}: ${await res.text()}`);
   }
 
-  test("aal1 staff is needs-mfa; after TOTP verify aal is aal2 and vamos_role matches the staff row", async () => {
+  // D-16/D-16a/D-16b (26.1-20): this case used to sign in a dispatcher and expect needs-mfa at
+  // aal1 unconditionally. Only the admin signs in now, a factor is optional, and aal2 is required
+  // once a factor is verified — so the same TOTP walk runs as the admin, and the dispatcher is
+  // proven refused in the case below.
+  test("admin with no factor is allowed at aal1; after TOTP verify aal2 is required on a fresh aal1 sign-in", async () => {
     const createClient = loadCreateClient();
     const stamp = Date.now();
-    const email = `ops-bridge-disp-${stamp}@vamos.test`;
+    const email = `ops-bridge-admin-${stamp}@vamos.test`;
     const password = "Ops-bridge-pass-1";
     const userId = await adminCreateUser(email, password);
-    await insertStaff(userId, "dispatcher");
+    await insertStaff(userId, "admin");
 
     const supabase = createClient(url, anonKey, {
       auth: { persistSession: false, autoRefreshToken: false },
@@ -317,16 +341,18 @@ test.describe("ops claims bridge live local auth @ops-claims", () => {
     }
 
     const aal1 = await getStaffClaims(supabase);
-    expect(aal1?.app_metadata?.vamos_role).toBe("dispatcher");
+    expect(aal1?.app_metadata?.vamos_role).toBe("admin");
     expect(aal1?.aal).toBe("aal1");
+    expect(aal1?.nextLevel).toBe("aal1");
     expect(aal1?.sub).toBe(userId);
-    await expect(requireStaffClaims(supabase)).rejects.toBeInstanceOf(OpsAuthError);
-    await expect(requireStaffClaims(supabase)).rejects.toMatchObject({ reason: "needs-mfa" });
+    expect((await requireStaffClaims(supabase)).aal).toBe("aal1");
 
     const enrolled = await supabase.auth.mfa.enroll({ factorType: "totp" });
     if (enrolled.error || !enrolled.data) {
       throw new Error(`mfa enroll failed: ${enrolled.error?.message ?? "no data"}`);
     }
+    // An unverified factor does not lock the admin out.
+    expect((await requireStaffClaims(supabase)).aal).toBe("aal1");
     const challenged = await supabase.auth.mfa.challenge({ factorId: enrolled.data.id });
     if (challenged.error || !challenged.data) {
       throw new Error(`mfa challenge failed: ${challenged.error?.message ?? "no data"}`);
@@ -343,10 +369,45 @@ test.describe("ops claims bridge live local auth @ops-claims", () => {
 
     const aal2 = await getStaffClaims(supabase);
     expect(aal2?.aal).toBe("aal2");
-    expect(aal2?.app_metadata?.vamos_role).toBe("dispatcher");
+    expect(aal2?.app_metadata?.vamos_role).toBe("admin");
     expect(aal2?.session_id).toEqual(expect.any(String));
     const required = await requireStaffClaims(supabase);
     expect(required.aal).toBe("aal2");
+    expect((await requireAdminClaims(supabase)).aal).toBe("aal2");
+
+    // A fresh password-only sign-in now sits at aal1 with a verified factor: step-up required.
+    const second = createClient(url, anonKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const again = await second.auth.signInWithPassword({ email, password });
+    if (again.error || !again.data.session) {
+      throw new Error(`second sign-in failed: ${again.error?.message ?? "no session"}`);
+    }
+    const stepUp = await getStaffClaims(second);
+    expect(stepUp?.aal).toBe("aal1");
+    expect(stepUp?.nextLevel).toBe("aal2");
+    await expect(requireStaffClaims(second)).rejects.toBeInstanceOf(OpsAuthError);
+    await expect(requireStaffClaims(second)).rejects.toMatchObject({ reason: "needs-mfa" });
+  });
+
+  test("a dispatcher staff row is refused at sign-in (D-16b)", async () => {
+    const createClient = loadCreateClient();
+    const stamp = Date.now();
+    const email = `ops-bridge-disp-${stamp}@vamos.test`;
+    const password = "Ops-bridge-pass-3";
+    const userId = await adminCreateUser(email, password);
+    await insertStaff(userId, "dispatcher");
+
+    const supabase = createClient(url, anonKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const signedIn = await supabase.auth.signInWithPassword({ email, password });
+    if (signedIn.error || !signedIn.data.session) {
+      throw new Error(`sign-in failed: ${signedIn.error?.message ?? "no session"}`);
+    }
+    const claims = await getStaffClaims(supabase);
+    expect(claims?.app_metadata?.vamos_role).toBe("dispatcher");
+    await expect(requireStaffClaims(supabase)).rejects.toMatchObject({ reason: "not-staff" });
     await expect(requireAdminClaims(supabase)).rejects.toMatchObject({ reason: "not-admin" });
   });
 

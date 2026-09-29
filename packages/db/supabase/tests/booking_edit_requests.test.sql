@@ -3,21 +3,19 @@
 -- 08-07: paid-edit requests, extra difference snapshot, extra settle does not
 -- rewind pending→paid→confirmed. Charge gate unchanged. EXECUTE vamos_system
 -- only. Rolled back. Synthetic 1-rappen figures only — never a product CHF.
+--
+-- Rows share created_at inside one transaction (now()), so "latest request"
+-- filters out superseded rows instead of relying on created_at order.
 begin;
 select plan(27);
 
 insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity)
 values ('ber-class', 4, 4);
 
--- The charge gate only accepts a snapshot on a live rate version, and the extra
--- difference snapshot is minted with triggers on. Synthetic figures, rolled back.
-insert into public.rate_versions (slug, label) values ('ber-rv', 'BER live fixture');
-insert into public.distance_rates (
-  rate_version_id, vehicle_class_id, max_pax, base_fare_rappen, per_km_rappen, min_fare_rappen
-)
-select rv.id, vc.id, 4, 1, 2, 3
-  from public.rate_versions rv, public.vehicle_classes vc
- where rv.slug = 'ber-rv' and vc.slug = 'ber-class';
+-- The seed's only rate version is a draft (D-34), so the extra snapshot that
+-- booking_edit_request_accept inserts would be frozen rate_version_is_live=false
+-- and the charge gate would refuse it. Publish a fixture version instead.
+insert into public.rate_versions (slug, label) values ('ber-rv', 'BER fixture');
 update public.rate_versions set status = 'live' where slug = 'ber-rv';
 
 insert into auth.users (id, email, aud, role, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
@@ -73,9 +71,11 @@ select
   'quote-engine@08-07',
   2, 2,
   jsonb_build_array(jsonb_build_object('seq', 1, 'code', 'distance_fare', 'kind', 'fare', 'i18n_key', 'price.line.transfer', 'amount_rappen', 8)),
+  -- eight-key policy: price_snapshots_policy_shape (20260825000003)
   jsonb_build_object('cancellation_tiers', '[]'::jsonb, 'free_cancel_hours', 24,
-      'airport_waiting_minutes', 60, 'city_waiting_minutes', 15, 'settings_version_id', 1,
-      'modification_deadline_hours', 24, 'min_advance_minutes', 180, 'policy_doc', 'test'),
+                     'airport_waiting_minutes', 60, 'city_waiting_minutes', 15,
+                     'settings_version_id', sv.id, 'modification_deadline_hours', 24,
+                     'min_advance_minutes', 180, 'policy_doc', 'test'),
   8, 0, 0, 8,
   now() + interval '1 day',
   now() + interval '1 day',
@@ -116,9 +116,11 @@ select
   'quote-engine@08-07-new',
   2, 2,
   jsonb_build_array(jsonb_build_object('seq', 1, 'code', 'distance_fare', 'kind', 'fare', 'i18n_key', 'price.line.transfer', 'amount_rappen', 11)),
+  -- eight-key policy: price_snapshots_policy_shape (20260825000003)
   jsonb_build_object('cancellation_tiers', '[]'::jsonb, 'free_cancel_hours', 24,
-      'airport_waiting_minutes', 60, 'city_waiting_minutes', 15, 'settings_version_id', 1,
-      'modification_deadline_hours', 24, 'min_advance_minutes', 180, 'policy_doc', 'test'),
+                     'airport_waiting_minutes', 60, 'city_waiting_minutes', 15,
+                     'settings_version_id', sv.id, 'modification_deadline_hours', 24,
+                     'min_advance_minutes', 180, 'policy_doc', 'test'),
   11, 0, 0, 11,
   now() + interval '1 day',
   now() + interval '1 day',
@@ -234,10 +236,10 @@ select lives_ok(
 );
 
 select is(
-  (select extra.total_rappen from public.booking_edit_requests r
+  (select extra.total_rappen::int from public.booking_edit_requests r
      join public.price_snapshots extra on extra.id = r.extra_snapshot_id
-    where r.booking_id = (select paid from fx)
-    order by r.created_at desc limit 1)::integer,
+    where r.booking_id = (select paid from fx) and r.status <> 'superseded'
+    order by r.created_at desc limit 1),
   3,
   'extra snapshot total_rappen is the difference (11-8)'
 );

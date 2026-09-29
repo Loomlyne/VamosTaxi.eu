@@ -87,7 +87,12 @@ describe("intent / receipt pass settings bps (D-22)", () => {
   it("okIntentResponse JSON includes vat_rate_bps next to amount_rappen", () => {
     const intent = readFileSync(join(here, "intent.ts"), "utf8");
     expect(intent).toMatch(/amount_rappen:\s*chargedRappen,\s*vat_rate_bps:\s*vatRateBps/s);
-    expect(intent).toMatch(/payableWithVatRappen\(netRappen \+ extraAdd, vatRateBps\)/);
+    // D-08a (26.1-07): chargedRappen now goes through payableRappen so a
+    // percent coupon discounts checkout extras too, not the old direct
+    // payableWithVatRappen(netRappen + extraAdd, vatRateBps) call.
+    expect(intent).toMatch(
+      /payableRappen\(\{\s*classNetRappen:\s*netRappen,\s*preCouponRappen,\s*extraAddRappen:\s*extraAdd,\s*couponPercent:\s*couponPercentHundredths,\s*vatRateBps,\s*\}\)\.chargedRappen/s,
+    );
     expect(intent).toContain("loadLaunchFlags");
   });
 

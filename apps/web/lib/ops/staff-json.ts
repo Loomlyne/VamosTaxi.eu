@@ -2,8 +2,9 @@
 //
 // Envelope + staff/admin wrappers every later /api/staff/* route uses.
 // Auth goes through requireStaffClaims / requireAdminClaims then the
-// handler; data access stays in the handler via asStaff (D-02). MFA is
-// paused (D-37) — this file does not redirect.
+// handler; data access stays in the handler via asStaff (D-02). This file
+// does not redirect: a session that still needs its second factor gets
+// 403 needs-mfa, and the /login form turns that into the code step.
 
 import {
   OpsAuthError,
@@ -55,6 +56,8 @@ export function staffOriginAllowed(origin: string | null): boolean {
 export function staffStatus(reason: OpsAuthReason): { code: string; status: number } {
   if (reason === "no-session") return { code: "no-session", status: 401 };
   if (reason === "not-admin") return { code: "not-admin", status: 403 };
+  // aal1 with a factor enrolled: the sign-in shows the code step on this, not "not staff".
+  if (reason === "needs-mfa") return { code: "needs-mfa", status: 403 };
   return { code: "not-staff", status: 403 };
 }
 

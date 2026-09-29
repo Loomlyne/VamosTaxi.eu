@@ -141,10 +141,11 @@ describe("Publish-as-flip public_chf (D-18)", () => {
     expect(publish).toMatch(
       /classified\.kind === "frozen"[\s\S]*if \(gaps\.length > 0\) return "incomplete"/,
     );
-    // Envelope { ok:false, code, gaps } now comes from the shared staff jsonErr.
+    // 8e8ea9c (K70): the envelope goes through jsonErr so it carries private, no-store;
+    // jsonErr still spreads { ok: false, code, ...extra }, so gaps stays on it.
     expect(publish).toMatch(/return jsonErr\(code, status, \{ gaps \}\);/);
     expect(webSource("lib/ops/staff-json.ts")).toMatch(
-      /Response\.json\(\{ ok: false, code, \.\.\.\(extra \?\? \{\}\) \}/,
+      /Response\.json\(\{ ok: false, code, \.\.\.\(extra \?\? \{\}\) \}, \{ status, headers: STAFF_JSON_HEADERS \}\)/,
     );
     expect(publish).toMatch(/row\.status !== "draft"/);
   });

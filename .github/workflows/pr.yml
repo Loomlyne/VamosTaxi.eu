@@ -5,6 +5,14 @@ name: Pull Request
 # build or upload step so a leaked credential never reaches a published artifact.
 on:
   pull_request:
+    # `labeled` lets adding the `visual` label start the macOS job below.
+    types: [opened, synchronize, reopened, ready_for_review, labeled]
+    # Docs and planning changes run no code; skip CI so they spend no Actions minutes.
+    paths-ignore:
+      - "docs/**"
+      - ".planning/**"
+      - "deliverables/**"
+      - "**/*.md"
 
 # Two pushes to the same branch must not race two overlapping runs of this workflow —
 # the second push cancels the first's in-flight run (01-CONTEXT.md's edge-coverage
@@ -94,6 +102,9 @@ jobs:
   # macOS until linux baselines exist.
   visual:
     name: Visual + integration tests (D-25)
+    # macOS minutes count 10x on a private repo. On a PR this job runs only when the PR
+    # carries the `visual` label; every push to main still runs it before the staging deploy.
+    if: contains(github.event.pull_request.labels.*.name, 'visual')
     runs-on: macos-latest
     permissions:
       contents: read
