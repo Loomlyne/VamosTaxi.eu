@@ -451,7 +451,7 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
     await page.getByLabel(deMessages.common.email).fill(email);
     await page.getByLabel(deMessages.common["first-name"]).fill("Ada");
     await page.getByLabel(deMessages.common["last-name"]).fill("Lovelace");
-    await page.getByLabel(deMessages.common.password).fill(PASSWORD);
+    await page.getByLabel(deMessages.common.password, { exact: true }).fill(PASSWORD);
     const response = page.waitForResponse((res) =>
       new URL(res.url()).pathname === "/api/auth" && res.request().method() === "POST",
     );
