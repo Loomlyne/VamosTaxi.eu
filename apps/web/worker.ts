@@ -25,6 +25,7 @@ import { applyHandleResult, handleStripeMessage } from "./lib/checkout/settle";
 import { handleDlqMessage } from "./lib/checkout/dlq";
 import { sweepStuckNotifications } from "./lib/checkout/notify";
 import { expireUnpaidBookings } from "./lib/checkout/expire-unpaid";
+import { purgeExpiredUnpaid } from "./lib/checkout/purge-unpaid";
 import { runReminder24h } from "./lib/lifecycle/reminder";
 import { probeHealth } from "./lib/health/probe";
 import type { StripeQueueMessage } from "./lib/checkout/webhook";
@@ -92,6 +93,14 @@ export default {
         emit("error", "notification_sweep", { outcome: "failed" });
       }
       return;
+    }
+
+    // 26.3-12 (D-25, D-45): delete unpaid web bookings Stripe confirms expired. Counts only, no PII.
+    try {
+      const purge = await purgeExpiredUnpaid(env);
+      emit("info", "purge_unpaid", purge);
+    } catch {
+      emit("error", "purge_unpaid", { outcome: "failed" });
     }
 
     try {
