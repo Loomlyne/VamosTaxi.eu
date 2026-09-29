@@ -1,9 +1,8 @@
 import { test, expect, type Page, emulateMedia } from "../support/test";
 import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
-import { existsSync } from "node:fs";
-import { join } from "node:path";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { nextDevEnv } from "../support/test-stack";
 import {
   LOCK_DANGER_THRESHOLD_S,
   REFUSAL_BINDINGS,
@@ -24,8 +23,6 @@ const PORTS: Record<string, number> = {
 };
 
 const LOCALES = ["en", "de", "fr", "ar"] as const;
-const MAIN_NEXT = join("/Users/koss/Developer/VamosTaxi.eu/apps/web/node_modules/.bin/next");
-const NEXT = existsSync(NEXT_BIN) ? NEXT_BIN : MAIN_NEXT;
 
 const TRIP = {
   pickup: "12 Exampleweg, 8000 Musterstadt",
@@ -119,19 +116,14 @@ test.describe("Home widget @component", () => {
     testInfo.setTimeout(240_000);
     const port = PORTS[testInfo.project.name] ?? testPort(4290);
     baseURL = `http://localhost:${port}`;
-    devServer = spawn(NEXT, ["dev", "-p", String(port)], {
+    devServer = spawn(NEXT_BIN, ["dev", "-p", String(port)], {
       cwd: WEB_ROOT,
       stdio: "ignore",
       detached: true,
-      env: {
-        ...process.env,
+      env: nextDevEnv({
         TEST_DIST_DIR: `test-results/.next-home-widget-${port}`,
         CLOUDFLARE_ENV: "staging",
-        WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE:
-          "postgres://vamos_public:vamos_public@127.0.0.1:54322/postgres",
-        WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE_NOCACHE:
-          "postgres://vamos_edge:vamos_edge@127.0.0.1:54322/postgres",
-      },
+      }),
     });
     await waitForNextServer(baseURL, 180_000);
   });

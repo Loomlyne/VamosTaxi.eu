@@ -5,7 +5,7 @@ import { existsSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { waitForNextServer, WEB_ROOT } from "../support/server-harness";
 
-const PORT = testPort(4260);
+const PORT = testPort(4456);
 const LOCALES = ["en", "de", "fr", "ar"] as const;
 const LOCAL_NEXT = join(WEB_ROOT, "node_modules", ".bin", "next");
 const MAIN_NEXT = join(WEB_ROOT, "..", "..", "..", "..", "apps", "web", "node_modules", ".bin", "next");

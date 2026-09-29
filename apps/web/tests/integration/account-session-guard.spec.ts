@@ -2,9 +2,10 @@ import { test, expect, type Page } from "../support/test";
 import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { nextDevEnv } from "../support/test-stack";
 
 const RUN_PROJECT = "component-1440";
-const PORT = testPort(4290);
+const PORT = testPort(4442);
 
 let devServer: ChildProcess | null = null;
 let baseURL = "";
@@ -35,11 +36,7 @@ test.beforeAll(async ({}, testInfo) => {
     cwd: WEB_ROOT,
     stdio: "ignore",
     detached: true,
-    env: {
-      ...process.env,
-      SUPABASE_URL: process.env.SUPABASE_URL ?? "http://127.0.0.1:54321",
-      SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY ?? "anon-placeholder",
-    },
+    env: nextDevEnv({ SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY ?? "anon-placeholder" }),
   });
   await waitForNextServer(baseURL);
 });

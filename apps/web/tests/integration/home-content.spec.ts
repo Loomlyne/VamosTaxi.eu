@@ -4,18 +4,15 @@
 import { test, expect } from "../support/test";
 import { testPort } from "../support/port";
 import { execFileSync, spawn, type ChildProcess } from "node:child_process";
-import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { nextDevEnv, ownerDbUrl, REPO_ROOT, requireTestStack } from "../support/test-stack";
 
 const RUN_PROJECT = "component-1440";
-const LIVE_PORT = testPort(4260);
-const DEAD_PORT = testPort(4261);
-const OWNER_CS = "postgres://postgres:postgres@127.0.0.1:54322/postgres";
+const LIVE_PORT = testPort(4453);
+const DEAD_PORT = testPort(4454);
 const DEAD_CS = "postgres://vamos_public:***@127.0.0.1:1/postgres";
-const MAIN_NEXT = join("/Users/koss/Developer/VamosTaxi.eu/apps/web/node_modules/.bin/next");
-const NEXT = existsSync(NEXT_BIN) ? NEXT_BIN : MAIN_NEXT;
-const DB_ROOT = join(WEB_ROOT, "..", "..", "packages", "db");
+const DB_ROOT = join(REPO_ROOT, "packages", "db");
 
 const SEEDED_AUTHOR = "First L.";
 const UNPUBLISHED_NAME = "Unpublished U.";
@@ -44,7 +41,7 @@ function ownerQuery(sqlJs: string): string {
         "--input-type=module",
         "-e",
         `import postgres from "postgres";
-         const sql = postgres(${JSON.stringify(OWNER_CS)}, { max: 1, connect_timeout: 5 });
+         const sql = postgres(${JSON.stringify(ownerDbUrl())}, { max: 1, connect_timeout: 5 });
          try {
            ${sqlJs}
          } finally {
@@ -64,24 +61,18 @@ function ownerQuery(sqlJs: string): string {
   }
 }
 
-function requireLocalDb(): void {
-  const out = ownerQuery(`const rows = await sql\`select 1 as ok\`; console.log(String(rows[0].ok));`);
-  if (out !== "1") {
-    throw new Error("Local stack is not running. Run `pnpm db:start && pnpm db:reset`.");
-  }
-}
-
 function spawnDev(port: number, extraEnv: Record<string, string | undefined> = {}): ChildProcess {
-  return spawn(NEXT, ["dev", "-p", String(port)], {
+  const extra: Record<string, string> = {
+    CLOUDFLARE_ENV: "staging",
+    TEST_DIST_DIR: `test-results/.next-home-content-${port}`,
+  };
+  for (const [k, v] of Object.entries(extraEnv)) if (v !== undefined) extra[k] = v;
+  return spawn(NEXT_BIN, ["dev", "-p", String(port)], {
     cwd: WEB_ROOT,
     stdio: "ignore",
     detached: true,
-    env: {
-      ...process.env,
-      CLOUDFLARE_ENV: "staging",
-      TEST_DIST_DIR: `test-results/.next-home-content-${port}`,
-      ...extraEnv,
-    },
+    // /dev/* is the component gallery: reachable in this spawned server only (D-02).
+    env: nextDevEnv(extra, { gallery: true }),
   });
 }
 
@@ -91,7 +82,7 @@ test.describe("home content SITE-01", () => {
   test.beforeAll(async ({}, testInfo) => {
     if (testInfo.project.name !== RUN_PROJECT) return;
     testInfo.setTimeout(240_000);
-    requireLocalDb();
+    await requireTestStack();
     liveURL = `http://localhost:${LIVE_PORT}`;
     deadURL = `http://localhost:${DEAD_PORT}`;
     liveServer = spawnDev(LIVE_PORT);

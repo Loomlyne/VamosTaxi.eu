@@ -12,7 +12,7 @@ import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 import { mailUrl, nextDevEnv, requireTestStack, stackKeys } from "../support/test-stack";
 
-const PORT = testPort(4261);
+const PORT = testPort(4455);
 const PASSWORD = "password1";
 
 let devServer: ChildProcess | null = null;

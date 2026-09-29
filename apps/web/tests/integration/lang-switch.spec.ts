@@ -20,14 +20,11 @@
 import { test, expect, type Page, type BrowserContext, pinReducedTransparency } from "../support/test";
 import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
-import { existsSync } from "node:fs";
-import { join } from "node:path";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { nextDevEnv } from "../support/test-stack";
 
 const RUN_PROJECT = "component-1440";
-const PORT = testPort(4280);
-const MAIN_NEXT = join("/Users/koss/Developer/VamosTaxi.eu/apps/web/node_modules/.bin/next");
-const NEXT = existsSync(NEXT_BIN) ? NEXT_BIN : MAIN_NEXT;
+const PORT = testPort(4440);
 
 let devServer: ChildProcess | null = null;
 let baseURL = "";
@@ -38,15 +35,14 @@ test.beforeAll(async ({}, testInfo) => {
   testInfo.setTimeout(90_000);
 
   baseURL = `http://localhost:${PORT}`;
-  devServer = spawn(NEXT, ["dev", "-p", String(PORT)], {
+  devServer = spawn(NEXT_BIN, ["dev", "-p", String(PORT)], {
     cwd: WEB_ROOT,
     stdio: "ignore",
     detached: true,
-    env: {
-      ...process.env,
+    env: nextDevEnv({
       TEST_DIST_DIR: `test-results/.next-lang-switch-${PORT}`,
       CLOUDFLARE_ENV: "staging",
-    },
+    }),
   });
   await waitForNextServer(baseURL);
 });

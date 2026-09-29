@@ -8,17 +8,16 @@ import { testPort } from "../support/port";
 import { execFileSync, spawn, type ChildProcess } from "node:child_process";
 import { join } from "node:path";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { nextDevEnv, ownerDbUrl, REPO_ROOT, requireTestStack, testDbPort } from "../support/test-stack";
 
 const RUN_PROJECT = "component-1440";
 const ALWAYS_PASS_SECRET = "1x0000000000000000000000000000000AA";
 const ALWAYS_FAIL_SECRET = "2x0000000000000000000000000000000AA";
 const DUMMY_TOKEN = "XXXX.DUMMY.TOKEN.XXXX";
-const EDGE_CS = "postgres://vamos_edge:vamos_edge@127.0.0.1:54322/postgres";
-const NEXT = process.env.NEXT_BIN ?? NEXT_BIN;
-const DB_ROOT = join(WEB_ROOT, "..", "..", "packages", "db");
+const DB_ROOT = join(REPO_ROOT, "packages", "db");
 
-const PASS_PORT = testPort(4200);
-const FAIL_PORT = testPort(4201);
+const PASS_PORT = testPort(4450);
+const FAIL_PORT = testPort(4451);
 
 let passServer: ChildProcess | null = null;
 let failServer: ChildProcess | null = null;
@@ -38,24 +37,17 @@ function killServer(child: ChildProcess | null): void {
 function ownerQuery(script: string): string {
   let ownerConnection: string;
   try {
-    const status = JSON.parse(
-      execFileSync("pnpm", ["--filter", "@vamos/db", "exec", "supabase", "status", "-o", "json"], {
-        cwd: join(WEB_ROOT, "..", ".."),
-        encoding: "utf8",
-        stdio: ["ignore", "pipe", "ignore"],
-      }),
-    ) as { DB_URL?: string };
-    ownerConnection = status.DB_URL ?? "";
+    ownerConnection = ownerDbUrl();
     const parsed = new URL(ownerConnection);
     if (
       !["127.0.0.1", "localhost"].includes(parsed.hostname) ||
-      parsed.port !== "54322" ||
+      parsed.port !== testDbPort() ||
       parsed.username !== "postgres"
     ) {
       throw new Error("unexpected local database target");
     }
   } catch {
-    throw new Error("Local stack is not running. Run `pnpm db:start && pnpm db:reset`.");
+    throw new Error("Local stack is not running. Run `scripts/local-test-stack.sh start`.");
   }
 
   try {
@@ -85,13 +77,6 @@ function ownerQuery(script: string): string {
   }
 }
 
-function requireLocalDb(): void {
-  const out = ownerQuery(`const rows = await sql\`select 1 as ok\`; console.log(String(rows[0].ok));`);
-  if (out !== "1") {
-    throw new Error("Local stack is not running. Run `pnpm db:start && pnpm db:reset`.");
-  }
-}
-
 function contactRows(key: string): number {
   const out = ownerQuery(
     `const key = ${JSON.stringify(key)};
@@ -102,22 +87,18 @@ function contactRows(key: string): number {
 }
 
 function spawnDev(port: number, secret: string): ChildProcess {
-  const env = { ...process.env };
-  delete env.RESEND_API_KEY;
-  return spawn(NEXT, ["dev", "-p", String(port)], {
+  return spawn(NEXT_BIN, ["dev", "-p", String(port)], {
     cwd: WEB_ROOT,
     stdio: "ignore",
     detached: true,
-    env: {
-      ...env,
+    env: nextDevEnv({
       CLOUDFLARE_ENV: "staging",
       TEST_DIST_DIR: `test-results/.next-contact-${port}`,
       TURNSTILE_SECRET_KEY: secret,
       // Cloudflare's documented test Siteverify record binds its test token to example.com.
       CONTACT_TURNSTILE_ALLOWED_HOSTNAMES: "example.com",
-      WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE_NOCACHE: EDGE_CS,
       RESEND_API_KEY: "",
-    },
+    }),
   });
 }
 
@@ -146,7 +127,7 @@ function assertHygiene(body: string, email: string): void {
 test.beforeAll(async ({}, testInfo) => {
   if (testInfo.project.name !== RUN_PROJECT) return;
   testInfo.setTimeout(180_000);
-  requireLocalDb();
+  await requireTestStack();
   passURL = `http://localhost:${PASS_PORT}`;
   failURL = `http://localhost:${FAIL_PORT}`;
   // One workerd at a time — two next-dev share miniflare sqlite and crash with SQLITE_BUSY.

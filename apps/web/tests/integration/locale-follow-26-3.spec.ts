@@ -10,10 +10,11 @@ import { spawn, type ChildProcess } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { nextDevEnv } from "../support/test-stack";
 import { openInLocale, setChosenLanguage } from "../support/locale";
 
 const RUN_PROJECT = "component-1440";
-const PORT = testPort(4290);
+const PORT = testPort(4443);
 const REF = "VT-26-0001";
 const DRAFT = {
   pickup: "Zurich Airport (ZRH)",
@@ -51,7 +52,7 @@ test.beforeAll(async ({}, testInfo) => {
     cwd: WEB_ROOT,
     stdio: "ignore",
     detached: true,
-    env: { ...process.env, NODE_ENV: "development", TEST_DIST_DIR: ".next-locale-follow" },
+    env: nextDevEnv({ NODE_ENV: "development", TEST_DIST_DIR: ".next-locale-follow" }),
   });
   await waitForNextServer(baseURL, 180_000);
 });

@@ -12,7 +12,7 @@ import { join } from "node:path";
 import deMessages from "../../i18n/messages/de.json";
 
 const RUN_PROJECT = "component-1440";
-const PORT = testPort(4250);
+const PORT = testPort(4452);
 const PASSWORD = "password1";
 const NEW_PASSWORD = "password2";
 const DB_ROOT = join(REPO_ROOT, "packages", "db");

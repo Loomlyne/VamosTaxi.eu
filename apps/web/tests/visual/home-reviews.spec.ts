@@ -1,8 +1,6 @@
 import { test, expect, emulateMedia } from "../support/test";
 import { testPort } from "../support/port";
-import { existsSync } from "node:fs";
 import { spawn, type ChildProcess } from "node:child_process";
-import { join } from "node:path";
 import { waitForNextServer, WEB_ROOT, NEXT_BIN } from "../support/server-harness";
 
 const PORTS: Record<string, number> = {
@@ -15,8 +13,6 @@ const PORTS: Record<string, number> = {
 const LOCALES = ["en", "de", "fr", "ar"] as const;
 const STATES = ["default", "loading", "empty", "error"] as const;
 
-const MAIN_NEXT = join("/Users/koss/Developer/VamosTaxi.eu/apps/web/node_modules/.bin/next");
-const NEXT = existsSync(NEXT_BIN) ? NEXT_BIN : MAIN_NEXT;
 
 let devServer: ChildProcess | null = null;
 let baseURL = "";
@@ -32,7 +28,7 @@ test.describe("Home reviews @component", () => {
     testInfo.setTimeout(240_000);
     const port = PORTS[testInfo.project.name] ?? testPort(4260);
     baseURL = `http://localhost:${port}`;
-    devServer = spawn(NEXT, ["dev", "-p", String(port)], {
+    devServer = spawn(NEXT_BIN, ["dev", "-p", String(port)], {
       cwd: WEB_ROOT,
       stdio: "ignore",
       detached: true,

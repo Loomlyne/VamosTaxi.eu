@@ -3,12 +3,11 @@
 // I18N-07 editor half. Tagged @ops-content. component-1440 only.
 // Restores every row it edits. Skips when local Auth is down.
 
-import { existsSync } from "node:fs";
 import { testPort } from "../support/port";
-import { createRequire } from "node:module";
 import { spawn, type ChildProcess } from "node:child_process";
 import { test, expect } from "../support/test";
-import { NEXT_BIN as HARNESS_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { dbRequired, nextDevEnv, ownerDbUrl, requireFromWorktree } from "../support/test-stack";
 import {
   createStaffFixture,
   localAuthUp,
@@ -17,12 +16,7 @@ import {
 } from "../support/ops-fixtures";
 
 const RUN_PROJECT = "component-1440";
-const PORT = testPort(4280);
-const MAIN_NEXT = "/Users/koss/Developer/VamosTaxi.eu/apps/web/node_modules/.bin/next";
-const NEXT_BIN = existsSync(HARNESS_BIN) ? HARNESS_BIN : MAIN_NEXT;
-const MAIN_DB_PKG = "/Users/koss/Developer/VamosTaxi.eu/packages/db/package.json";
-const DB_URL =
-  process.env.OPS_FIXTURE_DB_URL ?? "postgres://postgres:postgres@127.0.0.1:54322/postgres";
+const PORT = testPort(4441);
 
 let devServer: ChildProcess | null = null;
 let baseURL = "";
@@ -42,8 +36,9 @@ type Snapshot = {
 const snapshots: Snapshot[] = [];
 
 function loadSql() {
-  const req = createRequire(MAIN_DB_PKG);
-  const postgres = req("postgres") as (url: string) => {
+  // Fixture snapshot/restore as superuser: a plain client from this worktree (D-07 covers
+  // Worker SQL only; these statements are not Worker code).
+  const postgres = requireFromWorktree("postgres") as (url: string) => {
     (strings: TemplateStringsArray, ...values: unknown[]): Promise<Snapshot[]>;
     end: (opts?: { timeout?: number }) => Promise<void>;
   };
@@ -51,7 +46,7 @@ function loadSql() {
 }
 
 async function withSql<T>(fn: (sql: ReturnType<ReturnType<typeof loadSql>>) => Promise<T>): Promise<T> {
-  const sql = loadSql()(DB_URL);
+  const sql = loadSql()(ownerDbUrl());
   try {
     return await fn(sql);
   } finally {
@@ -69,16 +64,18 @@ test.describe("content string editor @ops-content", () => {
   test.beforeAll(async ({}, testInfo) => {
     testInfo.setTimeout(120_000);
     const up = await localAuthUp();
-    test.skip(!up, "local auth health is down — run pnpm db:start && pnpm db:reset");
-    test.skip(
-      !process.env.SUPABASE_ANON_KEY || !process.env.SUPABASE_SERVICE_ROLE_KEY,
-      "SUPABASE_ANON_KEY / SUPABASE_SERVICE_ROLE_KEY unset — live proofs skipped",
-    );
+    const keys = !!process.env.SUPABASE_ANON_KEY && !!process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if ((!up || !keys) && dbRequired()) {
+      throw new Error("test stack (auth + keys) is not available — run through scripts/local-test-stack.sh e2e");
+    }
+    test.skip(!up, "local auth health is down — start the test stack");
+    test.skip(!keys, "SUPABASE_ANON_KEY / SUPABASE_SERVICE_ROLE_KEY unset — live proofs skipped");
     baseURL = `http://localhost:${PORT}`;
     devServer = spawn(NEXT_BIN, ["dev", "-p", String(PORT)], {
       cwd: WEB_ROOT,
       stdio: "ignore",
       detached: true,
+      env: nextDevEnv(),
     });
     await waitForNextServer(baseURL);
   });
