@@ -401,6 +401,25 @@ test.describe("Home laptop booking bar @component", () => {
       await expect(page.locator("[data-bar-wrap] [data-bb]")).toBeVisible();
     });
 
+    const EN_DAY = /\b(Mon|Tue|Wed|Thu|Fri|Sat|Sun)\b|\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/;
+    for (const lang of ["de", "fr", "ar"]) {
+      test(`the chosen date is written in ${lang}, not English, and follows a language switch`, async ({ page }) => {
+        await open(page, 1440);
+        await pickWhen(page);
+        const btn = page.locator('#book [data-bx="when"] button[aria-haspopup="dialog"]');
+        const en = (await btn.innerText()).trim();
+        expect(en).toMatch(EN_DAY);
+        await setLang(page, lang);
+        const txt = (await btn.innerText()).trim();
+        expect(txt).not.toMatch(EN_DAY);
+        expect(txt).not.toBe(en);
+        const cov = await page.evaluate((l) => (window as unknown as Loc).VamosLocale.coverage(document.querySelector("#book")!, l) as { count?: number }, lang);
+        expect(cov.count ?? 0).toBe(0);
+        await setLang(page, "en");
+        expect((await btn.innerText()).trim()).toMatch(EN_DAY);
+      });
+    }
+
     // 26.4.2 owner order: Flight, From, To, When, Travellers, SEE PRICES. Tab order equals the
     // visual order in LTR and RTL; focus lands in the flight field the moment it appears.
     for (const lang of ["en", "ar"]) {

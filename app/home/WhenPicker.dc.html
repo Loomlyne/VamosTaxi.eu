@@ -265,7 +265,7 @@ class Component extends DCLogic {
     const has = (v) => v !== undefined && v !== null && v !== '' && isFinite(+v);
     return { y: has(p.dayY) && +p.dayY > 0 ? +p.dayY : s.selY, m: has(p.dayM) && +p.dayY > 0 ? +p.dayM : s.selM };
   }
-  loc() { const l = this.props.locale || 'en'; return l === 'en' ? 'en-GB' : l; }
+  loc() { const l = this.props.locale || 'en'; return { en: 'en-GB', de: 'de-CH', fr: 'fr-CH', ar: 'ar-u-nu-latn' }[l] || l; }
   fmt(opts, d) { try { return new Intl.DateTimeFormat(this.loc(), opts).format(d); } catch (e) { return ''; } }
   dayLabel(y, m, d) { return this.fmt({ weekday: 'short', day: 'numeric', month: 'short' }, new Date(y, m, d)).replace(/,/g, ''); }
   shift(n) {
@@ -392,8 +392,9 @@ class Component extends DCLogic {
     }
     const activeTime = this.parseHm(leg === 1 ? p.time2 : p.time);
     const timeRows = [];
-    const full1 = p.value || (hasDay ? this.dayLabel(sel1.y, sel1.m, d1) : '');
-    const full2 = p.value2 || (d2 ? this.dayLabel(s.selY2, s.selM2, d2) : '');
+    // A known day is always formatted in the active language (a label stored at pick time would stay in the old one).
+    const full1 = hasDay ? this.dayLabel(sel1.y, sel1.m, d1) : (p.value || '');
+    const full2 = d2 ? this.dayLabel(s.selY2, s.selM2, d2) : (p.value2 || '');
     const short = (v) => String(v).replace(/^\S+\s/, '');
     const names = (p.legLabels && p.legLabels.length === 2) ? p.legLabels : ['Pickup', 'Return'];
     const titles = [p.timeTitle || 'Time', p.timeTitle2 || p.timeTitle || 'Time'];

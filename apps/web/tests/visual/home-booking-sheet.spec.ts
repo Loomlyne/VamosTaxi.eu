@@ -254,6 +254,25 @@ test.describe("Home bar and sheet @component", () => {
     });
   }
 
+  for (const lang of ["de", "fr", "ar"] as const) {
+    test(`the sheet writes the chosen date in ${lang}, not English, and follows a switch @component`, async ({ page }) => {
+      test.skip(width(page) > 1080, "tablet and phone only");
+      const EN_DAY = /\b(Mon|Tue|Wed|Thu|Fri|Sat|Sun)\b|\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/;
+      await openHome(page);
+      await openSheet(page);
+      await fillWhen(page);
+      const btn = sheet(page).locator("[data-bs-date] button[aria-haspopup]");
+      const en = (await btn.innerText()).trim();
+      expect(en).toMatch(EN_DAY);
+      await setLang(page, lang);
+      const txt = (await btn.innerText()).trim();
+      expect(txt).not.toMatch(EN_DAY);
+      expect(txt).not.toBe(en);
+      const cov = await page.evaluate((l) => (window as unknown as { VamosLocale: Locale }).VamosLocale.coverage(document.querySelector("[data-bs]")!, l), lang);
+      expect(cov.count).toBe(0);
+    });
+  }
+
   test("close keeps the entries in the bar; reopening shows them; a reload starts empty and stores nothing @component", async ({ page }) => {
     test.skip(width(page) > 1080, "tablet and phone only");
     await openHome(page);
