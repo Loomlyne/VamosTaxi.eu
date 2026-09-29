@@ -1,19 +1,29 @@
-"use client";
+import { setRequestLocale } from "next-intl/server";
+import { parseTripQuery } from "@/lib/checkout/trip-url";
+import { CheckoutPage } from "./CheckoutPage";
 
-import { useEffect } from "react";
-import { createNavigation } from "next-intl/navigation";
-import { routing } from "@/i18n/routing";
-import { bareCheckoutPath } from "@/lib/checkout/steps";
-import { readVamosTrip } from "@/lib/checkout/vamos-trip";
+type Search = Record<string, string | string[] | undefined>;
 
-const { useRouter } = createNavigation(routing);
-
-export default function CheckoutIndexPage() {
-  const router = useRouter();
-
-  useEffect(() => {
-    router.replace(bareCheckoutPath(readVamosTrip()));
-  }, [router]);
-
-  return <div data-checkout-redirect aria-busy="true" />;
+/**
+ * D-01/D-05: the one-page checkout. The server only parses the URL trip (zod, length
+ * caps, regexes — T-26.3-15-01); it never quotes. The client quotes through /api/quote
+ * so the abuse guards (Turnstile, rate limit, breaker) stay on the one route that
+ * spends Mapbox (T-26.3-15-03).
+ */
+export default async function CheckoutRoute({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<Search>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const query = await searchParams;
+  const flat: Record<string, string | undefined> = {};
+  for (const [key, value] of Object.entries(query)) {
+    flat[key] = Array.isArray(value) ? value[0] : value;
+  }
+  const { trip, errors } = parseTripQuery(flat);
+  return <CheckoutPage initialTrip={trip} errors={errors} locale={locale} />;
 }
