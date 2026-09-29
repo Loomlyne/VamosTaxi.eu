@@ -522,11 +522,7 @@ for (const [lang, width] of [["en", 390], ["ar", 390], ["en", 768]] as const) {
     expect(box.height).toBeGreaterThanOrEqual(54);
     await van.locator(".vt-veh").click();
     await expect(van).toHaveAttribute("data-selected", "true");
-    const sel = await van.locator(".vt-veh").evaluate((el) => {
-      const cs = getComputedStyle(el);
-      return { w: cs.borderTopWidth, c: cs.borderTopColor };
-    });
-    expect(sel.w).toBe("2px");
+    await expect(van.locator(".vt-veh")).toHaveCSS("border-top-width", "2px");
     const charcoal = await page.evaluate(() => {
       const probe = document.createElement("i");
       probe.style.color = "var(--vt-charcoal-900)";
@@ -535,7 +531,8 @@ for (const [lang, width] of [["en", 390], ["ar", 390], ["en", 768]] as const) {
       probe.remove();
       return c;
     });
-    expect(sel.c).toBe(charcoal);
+    // the design-system card transitions its border colour, so wait for it to settle
+    await expect(van.locator(".vt-veh")).toHaveCSS("border-top-color", charcoal);
     await expect(van.locator(".vt-co__class-check")).toBeVisible();
     if (phone) {
       // the check sits in the leading slot, level with the card's middle
