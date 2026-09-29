@@ -3230,6 +3230,23 @@ export type Database = {
         }
         Returns: undefined
       }
+      reminder_24h_candidates: {
+        Args: { p_from: string; p_to: string }
+        Returns: {
+          assigned_chauffeur_id: string
+          booking_id: string
+          booking_leg_id: string
+          chauffeur_name: string
+          contact_email: string
+          dropoff_text: string
+          locale: string
+          pickup_text: string
+          plate: string
+          reference: string
+          scheduled_local: string
+          vehicle: string
+        }[]
+      }
       staff_claim_invite: { Args: never; Returns: undefined }
       staff_digest_claim: {
         Args: { p_digest_date: string; p_staff_user_id: string }
