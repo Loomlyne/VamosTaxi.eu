@@ -59,3 +59,33 @@ test("numbers gate: CHF 000 placeholders pass everywhere", () => {
   });
   assert.equal(r.code, 0, r.out);
 });
+
+const ALLOWLIST = JSON.stringify({
+  allowed_postgres_importers: [], allowed_reserve: [], allowed_end: [], allowed_unsafe: [],
+  allowed_session_set: [], force_dynamic_exempt: [], isolate_memoisation_exempt: [],
+});
+
+test("fences gate: a value import of postgres fails however it is written", () => {
+  for (const body of [
+    'import postgres from "postgres";\n',
+    'import postgres, {\n  type Sql,\n} from "postgres";\n',
+    'export { default as pg } from "postgres";\n',
+    'const pg = require("postgres");\n',
+    'const pg = await import("postgres");\n',
+  ]) {
+    const r = runGate("check-db-access-fences.mjs", {
+      "scripts/db-access-fence-allowlist.json": ALLOWLIST,
+      "apps/web/lib/x.ts": body,
+    });
+    assert.equal(r.code, 1, `${body}\n${r.out}`);
+    assert.match(r.out, /raw `postgres` import[^\n]*FAIL/);
+  }
+});
+
+test("fences gate: type-only postgres imports pass", () => {
+  const r = runGate("check-db-access-fences.mjs", {
+    "scripts/db-access-fence-allowlist.json": ALLOWLIST,
+    "apps/web/lib/x.ts": 'import type postgres from "postgres";\nimport type {\n  Sql,\n} from "postgres";\nimport a from "a"\nimport type b from "postgres"\n',
+  });
+  assert.equal(r.code, 0, r.out);
+});
