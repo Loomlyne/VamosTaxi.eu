@@ -31,3 +31,21 @@ describe("D-16 emptyRoutesBody copy", () => {
     expect(dc).not.toContain("ß");
   });
 });
+
+describe("D-14 dead city-price path", () => {
+  const route = read(join(webRoot, "app/[locale]/(ops)/api/staff/rate-book/route.ts"));
+  const actions = read(join(webRoot, "app/[locale]/(ops)/ops/pricing/[versionId]/actions.ts"));
+  const book = read(join(webRoot, "lib/ops/rate-book.ts"));
+  it("dashboard page has no city price logic", () => {
+    expect(dc).not.toMatch(/cityPair|cityPrice/);
+  });
+  it("server writes no longer touch city_price_rappen", () => {
+    for (const src of [route, actions]) {
+      expect(src).not.toMatch(/city_price_rappen/);
+      expect(src).not.toMatch(/cityPriceRappen/);
+    }
+  });
+  it("version copy still carries city_price_rappen verbatim", () => {
+    expect((book.match(/city_price_rappen/g) ?? []).length).toBeGreaterThanOrEqual(2);
+  });
+});

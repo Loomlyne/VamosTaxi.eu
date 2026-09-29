@@ -253,81 +253,6 @@ function surchargeTypeOf(code) {
 function classSlugOf(name) {
   return String(name || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
-/* Comment 5. City-to-city pair for the class draft. The paid row has one
-   city_price_rappen, so the pair id rides the same save and the extra is that
-   pair's price for this class. No invented amounts. */
-const cityPairMemory = {};
-function cityPairIdOf(route) {
-  if (!route) return '';
-  if (route.originZoneId && route.destZoneId) return String(route.originZoneId) + '::' + String(route.destZoneId);
-  if (route.id) return 'id:' + String(route.id);
-  const from = String(route.from || '').trim();
-  const to = String(route.to || '').trim();
-  if (!from || !to) return '';
-  return 'name:' + from + '::' + to;
-}
-function cityPairLabelOf(route) {
-  const from = String((route && route.from) || '').trim();
-  const to = String((route && route.to) || '').trim();
-  if (!from || !to) return '';
-  return from + ' \u2013 ' + to;
-}
-function chfPacked(packed) {
-  if (packed == null || packed === '') return '';
-  if (typeof packed === 'number' || typeof packed === 'string') return String(packed);
-  if (typeof packed === 'object' && packed.CHF != null && String(packed.CHF) !== '') return String(packed.CHF);
-  return '';
-}
-function cityPairExtra(route, slug) {
-  if (!route || !slug) return '';
-  return chfPacked(route[slug] || (route.prices && route.prices[slug]) || '');
-}
-function cityPairsFrom(routes) {
-  const out = [];
-  const seen = {};
-  (routes || []).forEach((route) => {
-    const id = cityPairIdOf(route);
-    const label = cityPairLabelOf(route);
-    if (!id || !label || seen[id]) return;
-    seen[id] = 1;
-    out.push({ id: id, label: label, route: route });
-  });
-  return out;
-}
-function cityPairIdFromRules(rate, rules) {
-  if (!rate) return '';
-  const classId = String(rate.vehicleClassId || '');
-  if (!classId) return '';
-  let hit = '';
-  (rules || []).forEach((rule) => {
-    if (!rule || rule.kind !== 'city_pair') return;
-    let payload = rule.payload;
-    if (typeof payload === 'string') {
-      try { payload = JSON.parse(payload); } catch (e) { payload = null; }
-    }
-    if (payload && String(payload.vehicleClassId || '') === classId && payload.pairId) hit = String(payload.pairId);
-  });
-  return hit;
-}
-function cityPairIdForRate(rate, pairs, rules) {
-  if (!rate || !pairs || !pairs.length) return '';
-  const stored = String(rate.cityPairId || cityPairIdFromRules(rate, rules) || '');
-  if (stored && pairs.some((p) => p.id === stored)) return stored;
-  const keys = [
-    String(rate.vehicleClassId || ''),
-    String(rate.id || ''),
-    'name:' + classSlugOf(rate.klass || rate.name),
-  ].filter(Boolean);
-  for (let i = 0; i < keys.length; i++) {
-    const hit = cityPairMemory[keys[i]];
-    if (hit && pairs.some((p) => p.id === hit)) return hit;
-  }
-  const slug = classSlugOf(rate.klass || rate.name);
-  const want = chfPacked(rate.cityPrice);
-  if (!want || !slug) return '';
-  const hits = pairs.filter((p) => cityPairExtra(p.route, slug) === want);
-  return hits.length === 1 ? hits[0].id : '';
-}
 function uniqueByClass(rows) {
   const byKey = {};
   const order = [];
@@ -392,7 +317,7 @@ const PANES = [
 const T = {
   en: { title:'Pricing & routes', subtitle:'City to city, distance rules, surcharges and coupons',
     tabRoutes:'City to city', tabDistance:'Distance rules', tabSurcharges:'Surcharges & extras', tabCoupons:'Coupons',
-    hintRoutes:'One pair covers both directions. Click a row and it goes live.', hintDistance:'Start, per kilometre, airport pickup fee', airportStart:'Airport pickup fee (added to start)', cityPrice:'City price and per kilometre', cityPairPick:'Select a city pair', hintSurcharges:'Checkout extras, wait, meet and greet', hintCoupons:'Percent or fixed CHF',
+    hintRoutes:'One pair covers both directions. Click a row and it goes live.', hintDistance:'Start, per kilometre, airport pickup fee', airportStart:'Airport pickup fee (added to start)', hintSurcharges:'Checkout extras, wait, meet and greet', hintCoupons:'Percent or fixed CHF',
     colId:'ID', colFrom:'From', colTo:'To', colEconomy:'Economy', colBusiness:'Business', colLive:'Live', live:'Live', draft:'Draft',
     colClass:'Class', colPhoto:'Photo', moveClassUp:'Move class up', moveClassDown:'Move class down', colName:'Name', startFare:'Start', perKm:'Per kilometre', maxPax:'Max passengers', maxBags:'Max bags', hidePublic:'Hide from public', hiddenPublic:'Hidden from public', showPublic:'Show on public', shownPublic:'Shown on public',
     fPhoto:'Photo', choosePhoto:'Choose photo', clearPhoto:'Remove', hClassPhoto:'Required to Publish. Stored on R2, not on this machine.',
@@ -481,7 +406,7 @@ const T = {
   },
   de: { title:'Preise & Routen', subtitle:'Stadt zu Stadt, Distanzregeln, Zuschläge und Gutscheine',
     tabRoutes:'Stadt zu Stadt', tabDistance:'Distanzregeln', tabSurcharges:'Zuschläge & Extras', tabCoupons:'Gutscheine',
-    hintRoutes:'Ein Paar gilt in beide Richtungen. Zeile anklicken, dann ist sie live.', hintDistance:'Start, pro Kilometer, Flughafen-Abholgebühr', airportStart:'Flughafen-Abholgebühr (zum Start addiert)', cityPrice:'Stadtpreis und pro Kilometer', cityPairPick:'Stadtpaar wählen', hintSurcharges:'Checkout-Extras, Warten, Meet and greet', hintCoupons:'Prozent oder fester CHF',
+    hintRoutes:'Ein Paar gilt in beide Richtungen. Zeile anklicken, dann ist sie live.', hintDistance:'Start, pro Kilometer, Flughafen-Abholgebühr', airportStart:'Flughafen-Abholgebühr (zum Start addiert)', hintSurcharges:'Checkout-Extras, Warten, Meet and greet', hintCoupons:'Prozent oder fester CHF',
     colId:'ID', colFrom:'Von', colTo:'Nach', colEconomy:'Economy', colBusiness:'Business', colLive:'Live', live:'Live', draft:'Entwurf',
     colClass:'Klasse', colPhoto:'Foto', moveClassUp:'Klasse nach oben', moveClassDown:'Klasse nach unten', colName:'Name', startFare:'Start', perKm:'Pro Kilometer', maxPax:'Max. Passagiere', maxBags:'Max. Gepäckstücke', hidePublic:'Vor der Öffentlichkeit verbergen', hiddenPublic:'Vor der Öffentlichkeit verborgen', showPublic:'Öffentlich zeigen', shownPublic:'Öffentlich sichtbar',
     fPhoto:'Foto', choosePhoto:'Foto wählen', clearPhoto:'Entfernen', hClassPhoto:'Pflicht vor dem Veröffentlichen. Liegt auf R2, nicht auf diesem Gerät.',
@@ -572,7 +497,7 @@ const T = {
   },
   fr: { title:'Tarifs & trajets', subtitle:'De ville en ville, règles de distance, suppléments et codes promo',
     tabRoutes:'De ville en ville', tabDistance:'Règles de distance', tabSurcharges:'Suppléments & extras', tabCoupons:'Codes promo',
-    hintRoutes:'Une paire vaut dans les deux sens. Cliquez une ligne pour la passer live.', hintDistance:'Départ, au kilomètre, frais aéroport', airportStart:'Frais aéroport (ajoutés au départ)', cityPrice:'Prix ville et par kilomètre', cityPairPick:'Choisir une paire de villes', hintSurcharges:'Extras de paiement, attente, accueil', hintCoupons:'Pourcent ou CHF fixe',
+    hintRoutes:'Une paire vaut dans les deux sens. Cliquez une ligne pour la passer live.', hintDistance:'Départ, au kilomètre, frais aéroport', airportStart:'Frais aéroport (ajoutés au départ)', hintSurcharges:'Extras de paiement, attente, accueil', hintCoupons:'Pourcent ou CHF fixe',
     colId:'ID', colFrom:'De', colTo:'Vers', colEconomy:'Economy', colBusiness:'Business', colLive:'Live', live:'Live', draft:'Brouillon',
     colClass:'Classe', colPhoto:'Photo', moveClassUp:'Monter la classe', moveClassDown:'Descendre la classe', colName:'Nom', startFare:'Départ', perKm:'Par kilomètre', maxPax:'Passagers max.', maxBags:'Bagages max.', hidePublic:'Masquer au public', hiddenPublic:'Masqué au public', showPublic:'Afficher au public', shownPublic:'Visible au public',
     fPhoto:'Photo', choosePhoto:'Choisir une photo', clearPhoto:'Retirer', hClassPhoto:'Obligatoire pour Publier. Stockée sur R2, pas sur cet appareil.',
@@ -663,7 +588,7 @@ const T = {
   },
   ar: { title:'الأسعار والمسارات', subtitle:'بين المدن وقواعد مسافة ورسوم وقسائم',
     tabRoutes:'بين المدن', tabDistance:'قواعد المسافة', tabSurcharges:'الرسوم والإضافات', tabCoupons:'القسائم',
-    hintRoutes:'الزوج الواحد يغطي الاتجاهين. انقر الصف ليصبح مباشرًا.', hintDistance:'البداية، لكل كيلومتر، رسوم الاستقبال من المطار', airportStart:'رسوم الاستقبال من المطار (تُضاف إلى البداية)', cityPrice:'سعر المدينة ولكل كيلومتر', cityPairPick:'اختر زوج مدن', hintSurcharges:'إضافات الدفع والانتظار والاستقبال', hintCoupons:'نسبة أو فرنك ثابت',
+    hintRoutes:'الزوج الواحد يغطي الاتجاهين. انقر الصف ليصبح مباشرًا.', hintDistance:'البداية، لكل كيلومتر، رسوم الاستقبال من المطار', airportStart:'رسوم الاستقبال من المطار (تُضاف إلى البداية)', hintSurcharges:'إضافات الدفع والانتظار والاستقبال', hintCoupons:'نسبة أو فرنك ثابت',
     colId:'المعرّف', colFrom:'من', colTo:'إلى', colEconomy:'اقتصادي', colBusiness:'أعمال', colLive:'مباشر', live:'مباشر', draft:'مسودة',
     colClass:'الفئة', colPhoto:'الصورة', moveClassUp:'تحريك الفئة لأعلى', moveClassDown:'تحريك الفئة لأسفل', colName:'الاسم', startFare:'البداية', perKm:'لكل كيلومتر', maxPax:'أقصى عدد مسافرين', maxBags:'أقصى حقائب', hidePublic:'إخفاء عن العامة', hiddenPublic:'مخفي عن العامة', showPublic:'إظهار للعامة', shownPublic:'ظاهر للعامة',
     fPhoto:'الصورة', choosePhoto:'اختيار صورة', clearPhoto:'إزالة', hClassPhoto:'مطلوبة للنشر. تُحفظ على R2 وليس على هذا الجهاز.',
@@ -1257,9 +1182,6 @@ class Component extends DCLogic {
       return hit ? (hit.vehicleClassId || hit.id) : '';
     };
     const routesRaw = ops ? ops.routes.all() : [];
-    const cityPairs = cityPairsFrom(routesRaw);
-    const cityPairOptions = cityPairs.map((p) => ({ value: p.id, label: p.label }));
-    const cityPairEmpty = cityPairs.length ? t.cityPairPick : t.emptyRoutesTitle;
     const surchargesRaw = ops ? ops.surcharges.all() : [];
     const bandRowsRaw = ops ? ops.bands.all() : [];
     const couponRaw = ops ? ops.coupons.all() : [];
@@ -1490,8 +1412,6 @@ class Component extends DCLogic {
         baseFare: chfOf(r.baseFare),
         perKm: chfOf(r.perKm),
         airportStart: chfOf(r.airportStart),
-        cityPrice: cityPairIdForRate(r, cityPairs, ops ? ops.rules.all() : []),
-        cityPairLabel: (cityPairs.filter((p) => p.id === cityPairIdForRate(r, cityPairs, ops ? ops.rules.all() : []))[0] || {}).label || '',
         maxPax: r.maxPax || 3,
         maxBags: r.maxBags || r.luggageCapacity || 3,
         available: r.available !== false,
@@ -1520,7 +1440,7 @@ class Component extends DCLogic {
       ],
       distanceBlank: () => {
         const blank = ops ? ops.rates.blank() : { klass:'', baseFare:{}, perKm:{}, maxPax:3, maxBags:3, hideFromPublic:false, photo:'' };
-        return Object.assign({}, blank, { baseFare:'', perKm:'', airportStart:'', cityPrice:'', photo:'', maxBags: blank.maxBags || 3 });
+        return Object.assign({}, blank, { baseFare:'', perKm:'', airportStart:'', photo:'', maxBags: blank.maxBags || 3 });
       },
       saveDistance: (rec) => {
         if (!ops) return null;
@@ -1528,22 +1448,9 @@ class Component extends DCLogic {
         const id = (existing && existing.id) || rec.id;
         const photo = (rec.photo || rec.photoPath || '') && String(rec.photo || rec.photoPath).indexOf('data:') !== 0
           ? (rec.photo || rec.photoPath) : '';
-        const pairId = String(rec.cityPrice || '');
-        const pair = cityPairs.filter((p) => p.id === pairId)[0];
         const classId = String(rec.vehicleClassId || (existing && existing.vehicleClassId) || classIdFor(rec.klass) || '');
         const fromBook = ((ops && ops.CLASSES) || []).filter((c) => String(c.id || c.vehicleClassId || '') === classId)[0];
         const classSlug = (fromBook && fromBook.slug) || classSlugOf(rec.klass) || ((ratedClasses.filter((c) => c.vehicleClassId && c.vehicleClassId === classId)[0] || {}).slug) || '';
-        const pairExtra = pair ? cityPairExtra(pair.route, classSlug) : '';
-        const classKey = String(rec.vehicleClassId || (existing && existing.vehicleClassId) || classIdFor(rec.klass) || id || '');
-        const nameKey = 'name:' + classSlugOf(rec.klass);
-        if (classKey) {
-          if (pairId) cityPairMemory[classKey] = pairId;
-          else delete cityPairMemory[classKey];
-        }
-        if (nameKey !== 'name:') {
-          if (pairId) cityPairMemory[nameKey] = pairId;
-          else delete cityPairMemory[nameKey];
-        }
         const out = ops.rates.upsert({
           id: id,
           klass: rec.klass,
@@ -1558,8 +1465,6 @@ class Component extends DCLogic {
           baseFare: Object.assign({}, (existing && existing.baseFare) || {}, { CHF: rec.baseFare }),
           perKm: Object.assign({}, (existing && existing.perKm) || {}, { CHF: rec.perKm }),
           airportStart: Object.assign({}, (existing && existing.airportStart) || {}, { CHF: rec.airportStart }),
-          cityPrice: Object.assign({}, (existing && existing.cityPrice) || {}, { CHF: pairExtra }),
-          cityPairId: pairId,
           sortOrder: existing && existing.sortOrder != null ? existing.sortOrder : 0,
           vehicleClassSlug: classSlug,
         });
