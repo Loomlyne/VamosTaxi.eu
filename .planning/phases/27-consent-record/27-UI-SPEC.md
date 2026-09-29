@@ -42,7 +42,8 @@ customer page. The Next banner is rebuilt to look exactly like it.
 | D-15 | Kicker "Cookies", title "You choose what we measure", button labels, the other three sheet rows: unchanged. |
 | D-16 | Never reword, shorten, re-translate or add to §1–§3. Arabic RTL, `_fbp` / `_fbc` stay LTR. |
 | D-17 | Cookies and privacy "Last updated" show the ship day (Zurich), the same day as `CONSENT_POLICY_VERSION`. |
-| UI-D1 (owner, 2026-09-30) | Cookies page: the "Reset my choice" button and the line "Resetting clears the record and brings the banner back…" are removed. Lena changes her mind with "Change preferences" or "Necessary only"; each change is a new record. |
+| D-21 / D-22 | Our own banner stays (option A); vanilla-cookieconsent is **not** adopted. The mock banner posts to `/api/consent` and learns "already chosen" from the server reader; `reset-password.dc.html` gets the banner; on Next the banner is held back by a condition, not a missing mount. |
+| UI-D1 = CONTEXT D-16a (owner, 2026-09-30) | Cookies page: the "Reset my choice" button and the line "Resetting clears the record and brings the banner back…" are removed. Lena changes her mind with "Change preferences" or "Necessary only"; each change is a new record. |
 
 ---
 
@@ -52,8 +53,9 @@ customer page. The Next banner is rebuilt to look exactly like it.
 |---------|---------------|-------------------|
 | `/` (home mock) | `app/home/CookieBanner.dc.html` | Copy swap, server write, states |
 | about, faq, contact, terms, privacy, cookies, cancellation, imprint, sitemap, manage-booking, booking-detail (mocks) | `app/pages/CookieBanner.dc.html` | Same |
-| sign-in, account, bookings (mocks) | `app/pages/CookieBanner.dc.html` | **Add** `<dc-import name="CookieBanner" hint-size="0,0">` after `SiteFooter`, as on `cookies.dc.html` |
-| `/checkout/*`, `/confirmation/*`, `/checkout/pay/[token]` (Next) | `apps/web/components/consent/CookieBanner.tsx` | **Rebuild** to the mock (three controls + sheet), mount on these routes |
+| sign-in (also served as `/sign-up`), account, bookings, reset-password (mocks) | `app/pages/CookieBanner.dc.html` | **Add** `<dc-import name="CookieBanner" hint-size="0,0">` after `SiteFooter`, as on `cookies.dc.html` |
+| `checkout.dc.html`, `confirmation.dc.html` (mocks) | — | Not served to customers (Next owns `/checkout`, `/confirmation` in `middleware.ts`). No change. |
+| Every Next route where `SiteShell` renders the footer and it is not ops/dashboard/dev: `/checkout/*`, `/confirmation/*`, `/checkout/pay/[token]`, `error.tsx`, `not-found.tsx` | `apps/web/components/consent/CookieBanner.tsx` | **Rebuild** to the mock (three controls + sheet). **No new mounts:** change `SiteShell.tsx` `{isHome ? banner : null}` to render `banner` wherever `footer` renders (the ops/dev early return already excludes staff). `layout.tsx` `showBanner` stops meaning "no `consent_subject` cookie" and means "no row under the current version" (D-08). |
 | Ops, dashboard, `/dev` | none | Never mounted |
 
 The banner shows when the server has no row for this visitor's `consent_subject` under the current
@@ -61,6 +63,15 @@ policy version (D-08). A cached marketing HTML response must never carry one vis
 another; how the page learns it is the planner's choice (CONTEXT, Claude's discretion). Until the page
 knows, the banner stays hidden rather than flashing and disappearing: no banner paint before the
 answer.
+
+**The footer link always works.** Rule: wherever a footer renders, "Cookie preferences"
+(`vamos:cookie-prefs`) opens the preferences sheet. So on every page in the table above the
+banner component is mounted even after the visitor has chosen; in the `hidden` state only the
+card is not rendered — the `vamos:cookie-prefs` listener and the sheet stay mounted (mock:
+`showBanner` false, `showPrefs` still reachable, as the mock already does; Next: the component
+renders `null` for the card only, never unmounts itself, and `layout.tsx` passes it whether or not
+a row exists). Pass check: on `/reset-password`, on a Next 404, and on an error page, after a
+choice, clicking "Cookie preferences" in the footer opens the sheet with the saved choice.
 
 ---
 
@@ -90,8 +101,11 @@ progress bar, a busy label, a Meta logo or Meta blue, glow, `--vt-shadow-accent`
 | both `CookieBanner.dc.html` | `[data-ck-banner]{left:16px;right:16px;bottom:16px}` and `@media(min-width:640px){left:32px;right:auto;bottom:32px}` | `inset-inline:16px; inset-block-end:16px`; at ≥640px `inset-inline-start:32px; inset-inline-end:auto; inset-block-end:32px; inline-size:452px` (as Next already does) |
 | both `CookieBanner.dc.html` | sheet footer note `margin-left:auto` | `margin-inline-start:auto` |
 | both `CookieBanner.dc.html` | `[data-ck-link]:hover{color:var(--vt-yellow-700)}` | `color:var(--vt-charcoal-800)` (Law 02; matches Next `.vt-ck-link:hover`) |
+| both `CookieBanner.dc.html` line 48 | `[data-tok]::after{…color:var(--vt-yellow-700)…}` | `color:var(--vt-charcoal-800)` (Law 02). The other TBC colour rule stays charcoal. |
+| `CookieBanner.css` (6 lines from main, 4e1e49bf) | `.vt-ck-meta:has([data-tok]){display:none}` — owner rule 2026-09-30: no TBC pill on a live page | Honour the owner rule: the rebuilt banner never shows a TBC pill. The Phase 26 `.vt-ck-meta` slot and its `PendingSlot` are removed from the banner because §1 now fills the body (D-11); that rule and the `.vt-ck-meta` block are deleted in the same change, since nothing matches them any more. Do not reintroduce a visible pill. |
 | `CookieBanner.tsx` | title "Necessary cookies only", `PendingSlot` "Meta banner line", `banner-body`, two buttons "Accept" / "Dismiss" | Mock structure: kicker, "You choose what we measure", §1 + Cookie policy link, three controls, sheet |
 | `CookieBanner.tsx` `CookiePrefsListener` | footer event silently POSTs `settings_change` | Opens the sheet (D-10). The silent write goes. |
+| `SiteShell.tsx:64` | `{isHome ? banner : null}` | Render `banner` on every non-ops shell route (see Surfaces). |
 
 ---
 
@@ -110,7 +124,7 @@ already use.
 | 2xl | 48px | not used |
 | 3xl | 64px | not used |
 
-Exceptions (already shipped, keep exactly, do not "round"):
+Locked exceptions (D-04: no new layout). They stay exactly as shipped and **new code may not use them** — every new gap, padding or offset in this phase comes from the scale above:
 - Kicker margin 10px, acts gap 10px, body margin-block-end 18px, sheet header padding `26px 26px 20px`, sheet rows `padding:22px 0`, row gap 20px, footer bar `padding:20px 26px` gap 12px, `.vt-ck-alert` 12px.
 - Touch targets: every control ≥44px block size (Buttons `size="md"` 44px, Manage preferences `min-height:44px`, close 44×44, Switch rows `min-height:44px`). Banner buttons stay `md` 44px even on checkout — the 54px rule is for booking fields and the booking CTA, not this banner.
 
@@ -122,6 +136,7 @@ This phase extends that one mechanism; no second mechanism.
 1. While the banner is visible, the banner sets `--vt-ck-reserve` on `document.documentElement` to
    `measured banner height + inset + 16px`, and clears it (removes the property) when hidden.
    - Mock pages: below 640px, as today.
+   - Next `error.tsx` / `not-found.tsx`: below 640px, as on the mocks.
    - Next pages (`/checkout/*`, `/confirmation/*`, `/checkout/pay/[token]`): below **1081px**,
      because the sticky pay bar `.vt-co__bar` exists up to 1080px and the 452px card at 640–1080px
      would sit over its start side.
@@ -153,7 +168,7 @@ four:
 | Heading | 20px | `--vt-heading-3` | 600 | 1.18 | Banner title "You choose what we measure" (existing) |
 | Label | 11px | `--vt-label-sm` | 600, uppercase, `--vt-label-tracking` | 1.2 | Kicker "Cookies" (existing) |
 
-Weights: 400 and 600 only. Bold in §2 (**Meta**) and §3 (**Meta Platforms Ireland Ltd. Advert
+Weights: 400 and 600 only for anything new. **Locked exception:** the existing weight 500 on "Manage preferences" (`--vt-weight-medium`) stays as shipped (D-04); new code may not use 500. Bold in §2 (**Meta**) and §3 (**Meta Platforms Ireland Ltd. Advert
 measurement, only with your consent.** and its three translations) is `<strong>` at 600, nothing else
 bold. `_fbp` and `_fbc`: `<code class="vt-dir-keep">`, `font-family:var(--vt-font-mono)`,
 `font-size:.92em`, colour inherited, no background, no border, no padding.
@@ -190,13 +205,13 @@ a prop; the mock's `startState` review prop gains `busy` and `error` for the sta
 
 | State | Banner | Preferences sheet |
 |-------|--------|-------------------|
-| hidden | Not rendered. Server has a current-version row, or the page does not know yet. | — |
+| hidden | Card not rendered. Server has a current-version row, or the page does not know yet. The component, its `vamos:cookie-prefs` listener and the sheet stay mounted. | Opens from the footer link or the cookies-page button with the saved choice. |
 | default | Kicker, title, §1, Cookie policy link, Accept all · Necessary only · Manage preferences. | Four rows. Switches show the saved choice (D-10); all off if none. Save choices · Accept all. |
 | busy | The pressed control keeps its label; all three controls `disabled`; the card gets `aria-busy="true"`. No spinner, no label change. | Save choices and Accept all `disabled`, switches `disabled`, close ×, Escape and veil click inert; sheet `aria-busy="true"`. |
 | Accept all waiting for Turnstile | Same as busy. Turnstile renders `appearance:"interaction-only"`, `action:"consent"`, in the slot above the controls. Idle slot has `min-block-size:0`; when Cloudflare shows a challenge it takes its own height and the reserve re-measures. | Same slot, placed at the top of the footer bar, `flex-basis:100%`. |
 | save failed | `Alert tone="danger"` between the Cookie policy line and the controls, `role="alert"`, title = save-failed copy. Controls enabled again; pressing any control is the retry. Turnstile resets after a failed Accept all. | Same Alert at the top of the footer bar, `flex-basis:100%`. Switches keep what the visitor set. |
 | check failed (Turnstile error, expired, or no site key when the route needs one) | Alert with check-failed copy. **Necessary only and Manage preferences stay enabled** — refusing never waits on Turnstile. | Same. |
-| saved | Banner unmounts (no exit animation, as today); reserve clears; display cache updated. | Sheet closes, focus returns to the control that opened it (footer link, cookies-page button, or banner). |
+| saved | The banner card stops rendering (no exit animation, as today); the component and its `vamos:cookie-prefs` listener stay mounted; reserve clears; display cache updated. | Sheet closes, focus returns to the control that opened it (footer link, cookies-page button, or banner). |
 
 Rules:
 - Necessary only never renders or waits for Turnstile.
@@ -219,12 +234,17 @@ Rules:
 - Section 06 lead paragraph "Nothing in this category is running today. It is here because…" is
   **removed**, and the caption "Marketing — off, and currently unused" becomes **"Marketing"**
   (existing string). Derived from D-13, which removes the same sentence from the sheet because it
-  contradicts §2. Flag for the owner at plan sign-off; no replacement sentence is written.
+  contradicts §2. No replacement sentence is written. **Question for plan sign-off (PS-1).**
 - "Reset my choice" (owner decision UI-D1): the Button in the "Your current choice" panel and the
   `<p>Resetting clears the record and brings the banner back, …</p>` under the panel are removed,
   together with the `resetConsent` handler. The panel keeps one control, **Change preferences**
   (secondary). No replacement text. Withdrawal is "Change preferences" → Marketing off → Save
   choices, or Necessary only; each writes a new row.
+- Strictly necessary table, row `vamos:cookie-prefs` (`cookies.dc.html:221`): that name is the
+  footer event, not a stored item. What this phase actually stores is `localStorage`
+  `vamosCookieConsent` (display cache) and the HttpOnly cookie `consent_subject` (1 year), and the
+  record itself is on the server. The row is stale. **Question for plan sign-off (PS-2).** Until
+  answered the row is left untouched; no replacement wording is written here.
 - "Last updated": the ship day in the existing display format ("1 September 2026" style), with
   `de`/`fr`/`ar` entries in `app/vamos-i18n-dict.js` (today's date string has none — add them in the
   same pass).
@@ -317,6 +337,15 @@ Arabic: `dir="rtl"` from the runtime; banner card sits bottom-right at ≥640px 
 
 ---
 
+## Questions for plan sign-off (owner, question form)
+
+| ID | Page | Question | Default if he agrees |
+|----|------|----------|----------------------|
+| PS-1 | vamostaxi.site/cookies, section 06 Marketing | Remove the lead "Nothing in this category is running today. It is here because…" and shorten the table caption to "Marketing", because they contradict your Meta row? Example: Lena reads "nothing is running" right above "Cookies `_fbp` and `_fbc`. Set only after you accept." | Remove both; no new sentence. |
+| PS-2 | vamostaxi.site/cookies, section 03 table | The row named `vamos:cookie-prefs` ("Records which categories you allowed…, until you change it") names something we do not store. Replace it with the two real items, `vamosCookieConsent` (this browser) and `consent_subject` (1 year), with wording you approve? Example: Marco looks for `vamos:cookie-prefs` in his browser and finds nothing. | Owner supplies or approves the wording; nothing written by the agent. |
+
+---
+
 ## Registry Safety
 
 | Registry | Blocks Used | Safety Gate |
@@ -336,12 +365,4 @@ Arabic: `dir="rtl"` from the runtime; banner card sits bottom-right at ≥640px 
 - [ ] Dimension 6 Registry Safety: PASS
 
 **Approval:** pending
-
----
-## Checker run 1 (2026-09-30): BLOCKED — open before plan
-
-1. BLOCK: the footer "Cookie preferences" button does nothing on `/reset-password` (mock, no banner) and on Next `error.tsx` / `not-found.tsx`. Fix: add the banner to `reset-password.dc.html`; mount the Next banner and its listener wherever `SiteShell` renders the footer; state that in `hidden` the card is gone but the listener and sheet stay mounted.
-2. FLAG: `[data-tok]::after` uses `--vt-yellow-700` (line 48 of both banner files). Add it to the fix list as `--vt-charcoal-800`.
-3. FLAG: say that weight 500 and the existing off-scale spacing stay (D-04), and that no new code may use them.
-4. To ask the owner at plan sign-off: the removal of the cookies page §06 lead sentence and the "Marketing" caption; the stale `vamos:cookie-prefs` row text on `cookies.dc.html:221`.
 
