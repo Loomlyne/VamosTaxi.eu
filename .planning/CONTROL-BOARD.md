@@ -4,7 +4,7 @@ Kept by the control session. One page: what is live, what is being built, what w
 the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 
-**Last update:** 2026-09-30 02:18 (+04)
+**Last update:** 2026-09-30 02:57 (+04)
 
 ## Live now
 
@@ -63,18 +63,32 @@ The follow-up shipped 2026-09-30 01:35 as `e27014c1`: the five answers are built
 | Values live since 2026-09-01 that nobody approved | Left live by his decision, English only in de/fr/ar. Listed in the hand-over, section 6. |
 | Every gap of list C | Stays a labelled gap |
 
-## In work
+## In work (sessions re-cut by the owner, 2026-09-30 02:55)
 
-| Lane | Session | Folder under `vamos-wt/` | Branch | State |
-|---|---|---|---|---|
-| 26.5 account choice before payment | same session | `phase-26.5` | `gsd/phase-26.5-checkout-account` | Discuss, UI-SPEC and 7-plan plan **signed**. Plan revision 2, 8 plans, signed. The build lock is open since the 26.4 ship (2026-09-30 00:20). **Open:** Worker `vamos` has `SUPABASE_URL` but no `SUPABASE_SERVICE_ROLE_KEY` (names read 2026-09-29 23:50). Without it "Create an account" hides itself. Whether that key belongs on the public Worker is an owner decision, see below. |
-| 26.0 main green | Phase 26.0 main green work session | `main-green-2` | `fix/main-green-2` | Plans 01 to 05, 07, 09 done. 06, 08, 10, 11, 12 left. |
+The owner closed the long sessions and starts fresh ones. Each old session committed its work,
+left a `SESSION-HANDOFF.md` on its branch and stopped. Every hand-off commit is archived on GitHub.
+Prompts for the new sessions: `.planning/prompts/`, with shared rules in `00-common-rules.md`.
+
+| Job | Folder under `vamos-wt/` | Branch | Hand-off commit | State | Prompt |
+|---|---|---|---|---|---|
+| 26.4.2 booking feedback | `fix-26.4.2` | `fix/26.4.2-booking-feedback` | `4a3d3393` | Unfinished. Last full check on `b5f7234f`; three later commits not re-checked; flight-edit bug not started; main not merged. | `01-finish-26.4.2.md` |
+| 26.5 account choice | `phase-26.5` | `gsd/phase-26.5-checkout-account` | `a468a692` | Planning only, no code. Plans 09 to 11 and the D-19 revision of 01, 04, 05, 07 need his signature. | `02-build-26.5.md` |
+| 26.0 main green | `main-green-2` | `fix/main-green-2` | `3e19c44f` | Plans 01 to 09 done, 10 half, 11 and 12 open. 14 commits behind main. | `03-finish-26.0.md` |
+| 27 consent record | `phase-27` | `gsd/phase-27-consent-record` | running | Design approved by its checker (run 2). Plan next, then his signature. Session "Meta measurement phases 27-29" keeps running. | none, running |
+| 26.2 audit | `phase-26.2` (new) | `gsd/phase-26.2-audit` (new) | | Started early by the owner. Works only in folders nobody else touches. | `04-phase-26.2-audit.md` |
+| 20 security check | `phase-20` (new) | `gsd/phase-20-security-check` (new) | | Started early. The check runs now; fixes wait for the control session. | `05-phase-20-security.md` |
+| 19 surge proof | `phase-19` (new) | `gsd/phase-19-surge-proof` (new) | | Started early. Owner's paid steps and test switches now; PAY wording and the burst wait for 26.4.2 and 26.5. | `06-phase-19-surge.md` |
+
+Legal session: closed by the owner. Both legal ships are live. Its last commit `fe4e37a0`
+(terms: driver details by e-mail, no SMS; About fleet matches the live classes) was never
+handed over and is **not live**. Archived as `archive/legal-follow-up-fe4e37a0`. It is behind
+main and does not merge cleanly; a session has to redo it on today's main.
 
 ## Ship order (owner, 2026-09-30: booking, payments, account, Meta first)
 
 | Order | What | State |
 |---|---|---|
-| 1 | 26.4.2 booking feedback | Building. He signs three pictures first. |
+| 1 | 26.4.2 booking feedback | Second round after his review of the pictures. Hand-over follows his signature. |
 | 2 | 26.5 account choice before payment, with the paid-only reminder | Building |
 | 3 | 27 consent record | Not started |
 | 4 | 28 pixel page view, 29 purchase event | The Meta wording is his since 2026-09-30 (`.planning/decisions/2026-09-30-meta-wording.md`), all three texts, four languages. Not started. |
@@ -131,6 +145,13 @@ Live is at `20260930210000`.
 | No customer page saves the cookie choice on the server today. The banner customers see is the mock's and saves in the browser only. Checkout, confirmation and the pay link show no banner. | Phase 27 is larger than planned: the live banner has to write to the server and the Next pages need the banner. Nothing is sent to Meta today, so no harm now. |
 | The sign-in ship writes a cookie row when a new customer confirms their e-mail | Owner decision 27 D-01: no cookie row at sign-up. Phase 27 removes it and must say where the sign-up agreement is recorded. |
 
+## Phase 27: our own banner, not a library (owner asked for the shorter path, 2026-09-30)
+
+| Option | Verdict |
+|---|---|
+| Keep our banner and add the server call | **Chosen.** The server route, the record table and both banners exist. Left: the mock banner posts to the server, the banner shows on every customer page, the owner's texts, a new policy version. |
+| Adopt vanilla-cookieconsent 3.1.0 | Rejected. It replaces the banner only, keeps its record in the browser, needs a full restyle to the design system on two surfaces, a second signature, and leaves every server task in place. |
+
 ## Found by the 26.5 session, 2026-09-30, confirmed on live by the control session
 
 | Finding | Detail | Fixed by |
@@ -159,13 +180,19 @@ Built by the 26.3 session as `fix/26.4.2-booking-feedback` (folder `fix-26.4.2`)
 | 3 | Laptop home gets "Choose your class" back, with server prices under the bar | Building |
 | 4 | Phone checkout class cards redesigned | Building |
 | 5 | An unpaid booking can never be continued on another device; a paid trip can be shared | Decision recorded in `.planning/decisions/2026-09-30-unpaid-booking-other-device.md`. A pasted checkout link shows the trip only, with an empty form (26.5 D-16, four route tests). |
-| 6 | Sign-off | He sees pictures of the three designs at 390, 768 and 1440 and signs before anything is handed over. |
+| 6 | Sign-off, 2026-09-30 02:50 | Laptop bar: **signed**. Class cards: **changes requested**: a photo on every class card (laptop home and checkout section 1, every width); on the laptop home "Choose your class" shows from page load and becomes selectable once the bar is filled. The When date gets de/fr/ar. The phone sheet is re-signed together with the new class pictures. `b5f7234f` is not the hand-over. |
+
+## Found by the 26.0 session, 2026-09-30
+
+| Finding | State |
+|---|---|
+| Checkout, flight edit: when Turnstile challenges the re-quote, no challenge is shown and the price stays on "Updating price" (`CheckoutForm.tsx` flightBlur) | Confirmed in code by the control session. Not reproduced on live. Sent to the 26.3 session to fix inside 26.4.2. |
+| The public pages (mocks) carry no hreflang links in their HTML | For the owner. Not assigned. Search engines cannot tell the language versions apart. |
 
 ## Owed by the control session
 
 | What | Why not yet |
 |---|---|
-| The seven ROADMAP lines from the planning rewrite (19, 20, 26.2, order) and the 26.4 / 26.4.1 rows | 26.4 has landed, so the file is free. Next planning note. |
 | Read the first staff digest run | 2026-09-30 06:00 Zurich time |
 
 ## Waiting for the owner
@@ -185,7 +212,6 @@ Built by the 26.3 session as `fix/26.4.2-booking-feedback` (folder `fix-26.4.2`)
 | What | Fixed by |
 |---|---|
 | VT-26-0739 and VT-26-0742 are not in the owner's account | Not a bug: they were booked with another e-mail address |
-| ROADMAP progress table is out of date | Applied when 26.4 lands, because that branch edits the same file |
 
 ## Tidy-up candidates, only on the owner's word, one at a time
 
