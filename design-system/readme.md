@@ -662,7 +662,7 @@ product names (`Vamos Taxi`, `Economy`, `Business`, `Van`), codes and references
 
 **Arabic.** Direction is a document-level switch, never a per-block hack. Put
 `.vt-dir-keep` on anything that must stay LTR inside Arabic text — references,
-times, flight numbers, CHF figures. `[data-i18n-skip]` opts a subtree out
+times, flight numbers, CHF figures. `[data-vt-no-i18n]` opts a subtree out
 entirely (a language switcher labels itself in its own language).
 
 Run `VamosLocale.coverage(root)` before calling a surface finished; it returns
