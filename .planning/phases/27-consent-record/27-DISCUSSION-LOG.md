@@ -13,6 +13,7 @@
 | 4 | What happens to the cookie policy link under his banner text? | Link, no sentence (Recommended) / No link | Link, no sentence |
 | 5 | Marco signs up on /sign-up; nothing records his agreement once the cookie row goes. What should happen? | Use the 26.5 record (Recommended) / Record nothing for now | Use the 26.5 record |
 | 6 | Banner code: keep our banner (A) or vanilla-cookieconsent (B)? Example Lena on a pay link | A. Keep our banner (Recommended) / B. vanilla-cookieconsent | B |
+| 7 | Control session relayed "keep our banner"; asked again: A or B? | A. Keep our banner / B. vanilla-cookieconsent | A (replaces 6) |
 
 Not asked, already decided: the three texts (decision file 2026-09-30), the version bump and
 re-ask (Phase 26 D-13, D-14), the banner on the pay link (META-04), phase order.
