@@ -317,6 +317,9 @@ select ok(
   'expire: coupon_redemptions row exists, unreleased, right after booking'
 );
 
+-- 26.3-07 D-25: the cron only cancels a booking that has a pay link.
+update public.bookings set pay_link_sent_at = now() - interval '2 days'
+ where id = (select booking_id from ucs_out_expire);
 alter table public.price_snapshots disable trigger price_snapshots_append_only;
 update public.price_snapshots ps
    set quote_lock_expires_at = now() - interval '1 hour'

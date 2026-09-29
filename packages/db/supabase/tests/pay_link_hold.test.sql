@@ -459,8 +459,8 @@ select ok(
   'cron: returns the expired booking''s open session ids to expire (D-04)'
 );
 select ok(
-  exists (select 1 from plh_cron c join plh_n n on n.booking_id = c.booking_id),
-  'cron: a booking with no pay link still expires on its quote lock'
+  not exists (select 1 from plh_cron c join plh_n n on n.booking_id = c.booking_id),
+  'cron: a booking with no pay link is not cancelled (26.3-07 D-25: the purge removes it)'
 );
 select is(
   (select state || '|' || coalesce(reference, '') from public.checkout_pay_link_state(decode(repeat('c3', 32), 'hex'))),

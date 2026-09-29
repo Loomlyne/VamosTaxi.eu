@@ -13,7 +13,7 @@
 --
 -- Run as `postgres` by `supabase test db`.
 begin;
-select plan(44);
+select plan(47);
 
 -- Fixtures ------------------------------------------------------------------------------------
 insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity)
@@ -317,6 +317,16 @@ select ok(
   (select rolbypassrls or rolsuper from pg_roles where rolname = current_user),
   '(L1) the definer functions'' owner (current_user) carries BYPASSRLS or is a superuser -- F-22: a future re-owning to a minimal role fails HERE, not silently'
 );
+
+-- Section M: 26.3-07 carve-out 3 (unpaid purge) stays closed for everything else. -------------
+select set_config('vamos.purge_unpaid', 'on', true);
+select throws_ok($$ delete from public.audit_log $$, '23001', null,
+  '(M1) purge flag on: audit_log delete still throws');
+select throws_ok($$ delete from public.consent_log $$, '23001', null,
+  '(M2) purge flag on: consent_log delete still throws (only the booking_id detach is opened)');
+select throws_ok($$ truncate public.booking_events $$, '23001', null,
+  '(M3) purge flag on: TRUNCATE of booking_events still throws');
+select set_config('vamos.purge_unpaid', 'off', true);
 
 select * from finish();
 rollback;
