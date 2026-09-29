@@ -107,7 +107,7 @@ async function openScreen(page: Page, path: string, screen: Screen) {
     await page.clock.fastForward(21_000);
     await expect
       .poll(async () => {
-        await page.clock.runFor(1_000);
+        await page.clock.fastForward(1_000);
         return page.locator("[data-confirmation-state=received]").count();
       })
       .toBe(1);
