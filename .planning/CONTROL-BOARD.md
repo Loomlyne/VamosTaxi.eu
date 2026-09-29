@@ -4,7 +4,7 @@ Kept by the control session. One page: what is live, what is being built, what w
 the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 
-**Last update:** 2026-09-30 00:05 (+04)
+**Last update:** 2026-09-30 00:40 (+04)
 
 ## Live now
 
@@ -28,6 +28,18 @@ the owner, what comes next. Updated at every ship and every hand-over.
 | 5 | Worker reads and writes lists; 16 narrow database reads for the hourly jobs | `34af1552` | VT-26-0743 paid, method recorded; VT-26-0734 cleaned at 17:27 |
 | 6 | Planning rewrite of 19, 20, 26.2 | `34af1552` | signed |
 | 7 | Sign-in and sign-up on the site and the dashboard | `2bd05b0a` | waiting: sign up with a fresh address, tap the link, one 4242 payment |
+
+## Legal pages, opened 2026-09-30
+
+Source texts and the comparison: `docs/legal-source/vamostaxi-eu-2026-09-30/` (`MAPPING.md`).
+
+| Item | State |
+|---|---|
+| Privacy page: Vercel becomes Cloudflare, "10 years years" becomes "10 years" | Approved by the owner. Not built. |
+| Privacy paragraph on guest accounts and e-mail link sign-in | Draft owed by the control session, for his approval |
+| About 20 values the old site states plainly (company, waiting times, case size, complaint and refund days) | Waiting for his yes, then a work session fills them in four languages |
+| 8 points where the old text and the new site disagree | Each needs his decision. The refund rule is the largest. |
+| Gaps the old site does not answer | Stay labelled gaps |
 
 ## In work
 
