@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<!-- Ground colour + cover live in the STATIC head/body on purpose. The DC runtime
+     injects every stylesheet and script from <helmet> only after React has loaded, so
+     without these the arriving document paints uncovered frames before
+     vamos-page-transition.js exists and can build its overlay. That script adopts
+     #vt-boot-cover and removes it once its own sheet is painted at COVER; the 6s
+     animation below is the fallback for when the script never runs. -->
+<style id="vt-boot">html{background:#F6F6F6}body{margin:0}#vt-boot-cover{position:fixed;inset:0;z-index:2147483000;background:#F6F6F6;pointer-events:none;animation:vt-boot-fail 0s linear 6s forwards}@keyframes vt-boot-fail{to{visibility:hidden}}</style>
+</head>
+<body>
+<div id="vt-boot-cover" aria-hidden="true"></div>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
+<link rel="stylesheet" href="../../assets/lenis.css">
+<script src="../../assets/lenis.js"></script>
+<script src="../../assets/lenis-boot.js"></script>
+<script src="../vamos-i18n-dict.js"></script>
+<script src="../vamos-locale.js"></script>
+<script src="../vamos-page-transition.js"></script>
+<style>:root{--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}
+:root{--vt-icon-base:"../../assets/icons/"}body{margin:0}
+[data-bb]{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:12px;width:100%;height:var(--vt-control-h-lg);padding-inline:16px;background:var(--vt-bg-surface);border-radius:var(--vt-radius-field);box-shadow:var(--vt-shadow-lg);cursor:pointer;font-family:var(--vt-font-body);color:var(--vt-text-primary);transition:background-color 140ms var(--vt-ease-standard),transform 80ms var(--vt-ease-standard),box-shadow 140ms var(--vt-ease-standard)}
+[data-bb][data-docked="1"]{box-shadow:var(--vt-shadow-md);border:1px solid var(--vt-border-subtle)}
+[data-bb]:hover,[data-bb][data-force="hover"]{background:var(--vt-grey-50)}
+[data-bb]:active,[data-bb][data-force="pressed"]{transform:translateY(1px);background:var(--vt-grey-50)}
+[data-bb]:focus-visible,[data-bb][data-force="focus"]{outline:none;box-shadow:var(--vt-shadow-lg),var(--vt-ring)}
+[data-bb][data-docked="1"]:focus-visible,[data-bb][data-docked="1"][data-force="focus"]{box-shadow:var(--vt-shadow-md),var(--vt-ring)}
+[data-bb-icon]{flex:0 0 20px;display:flex;align-items:center;justify-content:center;width:20px;height:20px;color:var(--vt-text-primary)}
+html[dir="rtl"] [data-bb-mirror]{transform:scaleX(-1)}
+[data-bb-text]{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:1px}
+[data-bb-l1],[data-bb-l2]{display:flex;align-items:center;min-width:0;white-space:nowrap}
+[data-bb-l1]{gap:6px;font-size:16px;font-weight:600;line-height:20px}
+[data-bb-l2]{gap:5px;font-size:13px;font-weight:400;line-height:18px;color:var(--vt-text-secondary)}
+[data-bb-e]{min-width:0;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto}
+[data-bb-muted]{color:var(--vt-text-muted)}
+[data-bb-hide]{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+@media (prefers-reduced-motion:reduce){[data-bb]{transition:none}[data-bb]:active,[data-bb][data-force="pressed"]{transform:none}}</style>
+</helmet>
+<div style="position:relative;width:100%;min-width:0">
+<button type="button" data-bb="1" data-docked="{{ dockedAttr }}" data-force="{{ force }}" aria-label="{{ ariaLabel }}" aria-labelledby="{{ labelledBy }}" aria-haspopup="dialog" aria-expanded="{{ expandedAttr }}" onClick="{{ open }}">
+<sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ true }}">
+<span data-bb-icon aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="search" size="{{ n20 }}" color="currentColor" hint-size="20px,20px"></x-import></span>
+</sc-if>
+<sc-if value="{{ notEmpty }}" hint-placeholder-val="{{ false }}">
+<span data-bb-icon aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="map-pin" size="{{ n20 }}" color="currentColor" hint-size="20px,20px"></x-import></span>
+</sc-if>
+<span data-bb-hide="1" id="{{ idPre }}">Edit trip:</span>
+<span data-bb-text="1">
+<sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ true }}">
+<span data-bb-l1="1"><span data-bb-e="1">Where to?</span></span>
+<span data-bb-l2="1"><span data-bb-e="1">Pickup, drop-off, time and travellers</span></span>
+</sc-if>
+<sc-if value="{{ notEmpty }}" hint-placeholder-val="{{ false }}">
+<span data-bb-l1="1" id="{{ id1 }}">
+<sc-if value="{{ hasFrom }}" hint-placeholder-val="{{ true }}"><span data-bb-e="1" data-vt-no-i18n>{{ from }}</span></sc-if>
+<sc-if value="{{ noFrom }}" hint-placeholder-val="{{ false }}"><span data-bb-e="1" data-bb-muted="1">Pickup</span></sc-if>
+<span data-bb-icon="1" data-bb-mirror="1" aria-hidden="true" style="flex:0 0 16px;width:16px;height:16px"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
+<sc-if value="{{ hasTo }}" hint-placeholder-val="{{ true }}"><span data-bb-e="1" data-vt-no-i18n>{{ to }}</span></sc-if>
+<sc-if value="{{ noTo }}" hint-placeholder-val="{{ false }}"><span data-bb-e="1" data-bb-muted="1">Drop-off</span></sc-if>
+</span>
+<span data-bb-l2="1" id="{{ id2 }}">
+<sc-if value="{{ hasWhen }}" hint-placeholder-val="{{ true }}"><span data-bb-e="1" class="vt-dir-keep" data-vt-no-i18n>{{ whenLabel }}</span></sc-if>
+<sc-if value="{{ noWhen }}" hint-placeholder-val="{{ false }}"><span data-bb-e="1" data-bb-muted="1">Add date and time</span></sc-if>
+<sc-if value="{{ showTravellers }}" hint-placeholder-val="{{ true }}"><span aria-hidden="true">·</span><span data-bb-e="1">{{ paxText }}</span><span aria-hidden="true">·</span><span data-bb-e="1">{{ bagsText }}</span></sc-if>
+</span>
+</sc-if>
+</span>
+<sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ true }}">
+<span data-bb-icon data-bb-mirror="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-right" size="{{ n20 }}" color="currentColor" hint-size="20px,20px"></x-import></span>
+</sc-if>
+<sc-if value="{{ notEmpty }}" hint-placeholder-val="{{ false }}">
+<span data-bb-icon aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="pencil" size="{{ n20 }}" color="currentColor" hint-size="20px,20px"></x-import></span>
+</sc-if>
+</button>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:54},&quot;docked&quot;:{&quot;editor&quot;:&quot;bool&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;expanded&quot;:{&quot;editor&quot;:&quot;bool&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;from&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;to&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;whenLabel&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;pax&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:1,&quot;min&quot;:1,&quot;max&quot;:99,&quot;tsType&quot;:&quot;number&quot;},&quot;bags&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:0,&quot;min&quot;:0,&quot;max&quot;:99,&quot;tsType&quot;:&quot;number&quot;},&quot;travellersSet&quot;:{&quot;editor&quot;:&quot;bool&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;complete&quot;:{&quot;editor&quot;:&quot;bool&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;forceState&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;&#x27;&#x27; | &#x27;hover&#x27; | &#x27;pressed&#x27; | &#x27;focus&#x27;&quot;},&quot;onOpen&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;()=&gt;void&quot;}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    window.__vtBB = (window.__vtBB || 0) + 1;
+    this._uid = 'vtbb' + window.__vtBB;
+  }
+  renderVals() {
+    const p = this.props;
+    const from = p.from ? String(p.from) : '';
+    const to = p.to ? String(p.to) : '';
+    const when = p.whenLabel ? String(p.whenLabel) : '';
+    const empty = !from && !to && !when;
+    const pax = Math.max(1, Number.isFinite(+p.pax) ? +p.pax : 1);
+    const bags = Math.max(0, Number.isFinite(+p.bags) ? +p.bags : 0);
+    const showTravellers = !empty && (!!p.complete || !!p.travellersSet);
+    const t = (s) => (window.VamosLocale && window.VamosLocale.t ? window.VamosLocale.t(s) : s);
+    const paxText = pax === 1 ? '1 passenger' : pax + ' passengers';
+    const bagsText = bags === 1 ? '1 bag' : bags + ' bags';
+    const line1 = (from || t('Pickup')) + ' ' + (to || t('Drop-off'));
+    const line2 = [when || t('Add date and time')].concat(showTravellers ? [t(paxText), t(bagsText)] : []).join(', ');
+    const onOpen = () => { if (typeof p.onOpen === 'function') p.onOpen(); };
+    return {
+      n16: 16, n20: 20,
+      isEmpty: empty, notEmpty: !empty,
+      hasFrom: !!from, noFrom: !from, hasTo: !!to, noTo: !to,
+      hasWhen: !!when, noWhen: !when,
+      from: from, to: to, whenLabel: when,
+      showTravellers: showTravellers, paxText: paxText, bagsText: bagsText,
+      dockedAttr: p.docked ? '1' : '0',
+      expandedAttr: p.expanded ? 'true' : 'false',
+      force: p.forceState || '',
+      /* aria-label is the English source (the runtime translates the "Edit trip:" wrapper);
+         aria-labelledby points at the translated visible lines so the name is fully localised. */
+      ariaLabel: empty ? 'Book a transfer' : 'Edit trip: ' + line1 + ', ' + line2,
+      labelledBy: empty ? undefined : this._uid + '-p ' + this._uid + '-1 ' + this._uid + '-2',
+      idPre: this._uid + '-p', id1: this._uid + '-1', id2: this._uid + '-2',
+      open: onOpen,
+    };
+  }
+}
+
+</script>
+</body>
+</html>

@@ -123,6 +123,9 @@
         de: '$1 Passagiere · 1 Gepäckstück', fr: '$1 passagers · 1 bagage', ar: '$1 ركاب · حقيبة واحدة' },
       { re: /^1 passenger · 1 bag$/,
         de: '1 Passagier · 1 Gepäckstück', fr: '1 passager · 1 bagage', ar: 'راكب واحد · حقيبة واحدة' },
+      /* 26.4 BookingBar */
+      { re: /^Edit trip: (.+)$/,
+        de: 'Reise bearbeiten: $1', fr: 'Modifier le trajet : $1', ar: 'تعديل الرحلة: $1' },
     ],
 
     strings: {
@@ -1984,6 +1987,14 @@
       'Vamos Taxi on YouTube': { de: 'Vamos Taxi auf YouTube', fr: 'Vamos Taxi sur YouTube', ar: 'فاموس تاكسي على يوتيوب' },
       'Vamos Taxi on TikTok': { de: 'Vamos Taxi auf TikTok', fr: 'Vamos Taxi sur TikTok', ar: 'فاموس تاكسي على تيك توك' },
       'Zurich Airport (ZRH)': { de: 'Flughafen Zürich (ZRH)', fr: 'Aéroport de Zurich (ZRH)', ar: 'مطار زيورخ (ZRH)' },
+      /* 26.4 BookingBar */
+      'Where to?': { de: 'Wohin?', fr: 'Où allez-vous ?', ar: 'إلى أين؟' },
+      'Pickup, drop-off, time and travellers': { de: 'Abholung, Ziel, Zeit und Reisende', fr: 'Départ, arrivée, heure et voyageurs', ar: 'الانطلاق والوصول والوقت والمسافرون' },
+      'Add date and time': { de: 'Datum und Uhrzeit hinzufügen', fr: 'Ajouter la date et l’heure', ar: 'أضف التاريخ والوقت' },
+      'Drop-off': { de: 'Ziel', fr: 'Arrivée', ar: 'الوصول' },
+      'Edit trip:': { de: 'Reise bearbeiten:', fr: 'Modifier le trajet :', ar: 'تعديل الرحلة:' },
+      '1 passenger': { de: '1 Passagier', fr: '1 passager', ar: 'راكب واحد' },
+      '1 bag': { de: '1 Gepäckstück', fr: '1 bagage', ar: 'حقيبة واحدة' },
     },
   };
 
