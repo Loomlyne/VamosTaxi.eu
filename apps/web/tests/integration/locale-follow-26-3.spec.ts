@@ -9,7 +9,7 @@ import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { NEXT_BIN, settleCloudflareDev, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 import { nextDevEnv } from "../support/test-stack";
 import { openInLocale, setChosenLanguage } from "../support/locale";
 
@@ -54,6 +54,7 @@ test.beforeAll(async ({}, testInfo) => {
     detached: true,
     env: nextDevEnv({ NODE_ENV: "development", TEST_DIST_DIR: ".next-locale-follow" }),
   });
+  await settleCloudflareDev();
   await waitForNextServer(baseURL, 180_000);
 });
 
