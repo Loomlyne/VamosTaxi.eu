@@ -56,6 +56,7 @@ describe("stripe module", () => {
       locale: "de",
       idempotencyKey: "idem-1",
       expiresAt,
+      uiMode: "elements",
       returnUrl: "https://vamostaxi.site/en/confirmation/VT-26-0001",
       productName: "Airport transfer",
     });
@@ -169,6 +170,7 @@ describe("stripe module", () => {
       locale: "en",
       idempotencyKey: "extra-1",
       expiresAt: new Date(Date.now() + 60 * 60 * 1000),
+      uiMode: "elements",
       returnUrl: "https://vamostaxi.site/en/confirmation/VT-26-0001",
       productName: "Fare difference",
       extra: { extraId: "extra-9" },

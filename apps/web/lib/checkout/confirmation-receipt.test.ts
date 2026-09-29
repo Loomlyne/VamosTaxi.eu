@@ -4,7 +4,6 @@ import {
   addMinutesLocal,
   couponOnReceipt,
   extraRappenByCode,
-  extrasFromFareLines,
   formatPaidAt,
   formatTripDate,
   formatTripTime,
@@ -32,12 +31,11 @@ describe("confirmation receipt", () => {
     expect(addMinutesLocal("2026-09-11T00:55", 16)).toBe("01:11");
   });
 
-  it("reads extra codes and amounts from fare lines", () => {
+  it("reads extra amounts from fare lines", () => {
     const lines = [
       { code: "distance_fare", vehicleClass: "business", amountRappen: 10810 },
       { code: "child_seat", vehicleClass: "", amountRappen: 2162 },
     ];
-    expect(extrasFromFareLines(lines)).toEqual(["child_seat"]);
     expect(extraRappenByCode(lines).child_seat).toBe(2162);
   });
 

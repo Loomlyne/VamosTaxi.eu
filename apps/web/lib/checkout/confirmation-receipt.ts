@@ -112,17 +112,6 @@ export function extrasOnReceipt(extras: PayLinkExtraCode[] | null | undefined): 
 }
 
 /** @deprecated 26.3 D-35 — use receiptRows; removed by plan 26.3-14. */
-export function extrasFromFareLines(lines: ConfirmationFareLine[]): PayLinkExtraCode[] {
-  const out: PayLinkExtraCode[] = [];
-  for (const line of lines) {
-    if (!(line.code in EXTRA_CODES)) continue;
-    const code = line.code as PayLinkExtraCode;
-    if (!out.includes(code)) out.push(code);
-  }
-  return out;
-}
-
-/** @deprecated 26.3 D-35 — use receiptRows; removed by plan 26.3-14. */
 export function extraRappenByCode(lines: ConfirmationFareLine[]): Partial<Record<PayLinkExtraCode, number>> {
   const out: Partial<Record<PayLinkExtraCode, number>> = {};
   for (const line of lines) {
@@ -164,18 +153,6 @@ export function receiptPriceSplit(args: {
   const couponPercent =
     discount > 0 && fareRappen > 0 ? Math.round((discount / fareRappen) * 100) : null;
   return { fareRappen, vatRappen, extras, couponRappen, couponPercent };
-}
-
-/** @deprecated 26.3 D-35 — use receiptRows; removed by plan 26.3-14. */
-export function mergeExtras(
-  fromPolicy: PayLinkExtraCode[],
-  fromLines: ConfirmationFareLine[],
-): PayLinkExtraCode[] {
-  const out = extrasOnReceipt(fromPolicy);
-  for (const code of extrasFromFareLines(fromLines)) {
-    if (!out.includes(code)) out.push(code);
-  }
-  return out;
 }
 
 export type ReceiptRow = {

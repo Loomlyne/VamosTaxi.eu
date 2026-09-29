@@ -139,7 +139,9 @@ export async function POST(request: Request) {
     }),
     mintManageToken,
     manageLinkMaxAgeSeconds: 30 * 24 * 60 * 60,
-    createCheckoutSession: (input) => createCheckoutSession(stripe, input),
+    // This route only mints the booking and the link; the customer pays through
+    // /api/checkout/pay-link/open, which is always the Stripe-hosted page.
+    createCheckoutSession: (input) => createCheckoutSession(stripe, { ...input, uiMode: "elements" }),
     expireCheckoutSession: (id) => expireCheckoutSession(stripe, id).then(() => undefined),
     retrieveCheckoutSession: (id) => retrieveCheckoutSession(stripe, id),
     createBooking: (args) => asCheckout(env, null, (sql) => createBooking(sql, args)),

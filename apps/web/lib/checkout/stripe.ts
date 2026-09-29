@@ -47,10 +47,10 @@ export interface CreateCheckoutSessionInput {
   expiresAt: Date;
   /**
    * `hosted_page` (Stripe-hosted page, no card form on our site) or `elements`.
-   * Defaults to `elements` until plans 10 and 18 pass `hosted_page`; plan 21
-   * makes it required. Ops extra-fare sessions pass `elements` explicitly.
+   * Required, no default: every caller says which. Customers always get
+   * `hosted_page`; only the ops extra-fare session asks for `elements`.
    */
-  uiMode?: "hosted_page" | "elements";
+  uiMode: "hosted_page" | "elements";
   /** Required for `ui_mode: elements`; never sent for hosted. */
   returnUrl?: string;
   /** Required for hosted. Must carry `session_id={CHECKOUT_SESSION_ID}` unencoded. */
@@ -117,7 +117,7 @@ export async function createCheckoutSession(
   stripe: Stripe,
   input: CreateCheckoutSessionInput,
 ): Promise<Stripe.Checkout.Session> {
-  const uiMode = input.uiMode ?? "elements";
+  const uiMode = input.uiMode;
   let modeParams: Pick<
     Stripe.Checkout.SessionCreateParams,
     | "ui_mode"

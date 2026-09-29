@@ -16,8 +16,6 @@
     "deploy:dashboard": "wrangler deploy -c wrangler.dashboard.jsonc"
   },
   "dependencies": {
-    "@stripe/react-stripe-js": "6.9.0",
-    "@stripe/stripe-js": "9.15.0",
     "@supabase/ssr": "0.12.5",
     "@supabase/supabase-js": "2.112.4",
     "@vamos/db": "workspace:*",
