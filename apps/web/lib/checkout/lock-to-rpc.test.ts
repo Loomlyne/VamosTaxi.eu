@@ -105,7 +105,7 @@ describe("snapshotFromLock", () => {
       expect.objectContaining({ code: "distance_fare", amount_rappen: 10972 }),
       expect.objectContaining({ code: "child_seat", amount_rappen: 2000 }),
     ]);
-    expect(snap.lines.reduce((sum, line) => sum + line.amount_rappen, 0)).toBe(12972);
+    expect(snap.lines.reduce((sum, line) => sum + (line.amount_rappen ?? 0), 0)).toBe(12972);
     expect(snap.policy).toMatchObject({ extras: ["child_seat"] });
   });
 

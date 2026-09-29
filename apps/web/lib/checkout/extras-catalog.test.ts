@@ -264,21 +264,12 @@ describe("checkout extras catalog", () => {
     };
     expect(extraIsOn("meet_greet", defaults)).toBe(true);
     expect(extraIsOn("free_wait", defaults)).toBe(true);
-    expect(extraIsOnForStep("trip", "meet_greet", defaults)).toBe(false);
-    expect(extraIsOnForStep("trip", "free_wait", { ...defaults, airportPickup: true })).toBe(
-      false,
-    );
-    expect(extraIsOnForStep("details", "meet_greet", defaults)).toBe(true);
-    expect(extraIsOnForStep("details", "free_wait", defaults)).toBe(true);
     expect(
-      recapExtras(catalog, (code) => extraIsOnForStep("details", code, defaults)),
+      recapExtras(catalog, (code) => extraIsOn(code, defaults)),
     ).toEqual([
       expect.objectContaining({ code: "meet_greet" }),
       expect.objectContaining({ code: "free_wait" }),
     ]);
-    expect(
-      recapExtras(catalog, (code) => extraIsOnForStep("trip", code, defaults)),
-    ).toEqual([]);
     expect(airportPickupFromPlace({ zone_type: "airport" })).toBe(true);
     expect(airportPickupFromPlace({ zone_type: "city" })).toBe(false);
     expect(airportPickupFromPlace(null)).toBeUndefined();
