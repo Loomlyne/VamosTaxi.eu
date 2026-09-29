@@ -37,14 +37,14 @@ export type ResumeDeps = {
 };
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const PAID = new Set([
+const PAID: readonly string[] = [
   "paid",
   "confirmed",
   "assigned",
   "completed",
   "partially_cancelled",
   "partially_completed",
-]);
+];
 
 export type ResumeAnswer =
   | { state: "none" }
@@ -92,7 +92,7 @@ export async function resumeCheckoutWithDeps(
 
   const row = await deps.readRow(quoteId.toLowerCase(), hashHex);
   if (!row) return { state: "purged" };
-  if (PAID.has(row.status)) return { state: "paid", reference: row.reference };
+  if (PAID.includes(row.status)) return { state: "paid", reference: row.reference };
   if (row.status !== "pending") return { state: "purged" };
 
   let session: Stripe.Checkout.Session | null = null;

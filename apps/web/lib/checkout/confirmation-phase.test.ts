@@ -77,10 +77,10 @@ describe("post-payment strings in four languages (D-27, D-28)", () => {
       const noMail = String(t.rich("bookedLedeNoEmail", { reference: "VT-26-0001", ref: tag } as never));
       expect(noMail).toContain("[VT-26-0001]");
       const pres = String(
-        t.rich("receiptPresentment", { paid: "EUR 10", currency: "EUR", received: "CHF 9", fig: tag } as never),
+        t.rich("receiptPresentment", { paid: "EUR 10", currency: "EUR", received: "CHF 000", fig: tag } as never),
       );
       expect(pres).toContain("[EUR 10]");
-      expect(pres).toContain("[CHF 9]");
+      expect(pres).toContain("[CHF 000]");
     });
   }
 

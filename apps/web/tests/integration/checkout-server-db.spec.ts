@@ -112,9 +112,11 @@ async function buildHarness(tx: Tx) {
   const day = new Date(now.getTime() + 3 * 86_400_000).toISOString().slice(0, 10);
   const when = `${day}T10:00`;
 
-  const asRole = async <T,>(role: string, fn: () => Promise<T>): Promise<T> => {
+  const asRole = async <T,>(role: "owner" | "vamos_checkout" | "vamos_system" | "vamos_guest", fn: () => Promise<T>): Promise<T> => {
     await tx`reset role`;
-    if (role !== "owner") await tx.unsafe(`set local role ${role}`);
+    if (role === "vamos_checkout") await tx`set local role vamos_checkout`;
+    else if (role === "vamos_system") await tx`set local role vamos_system`;
+    else if (role === "vamos_guest") await tx`set local role vamos_guest`;
     return fn();
   };
 

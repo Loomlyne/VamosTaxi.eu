@@ -6,6 +6,8 @@
 // /api/checkout/pay-link/open and by the dashboard's Take card. Never a
 // client secret, never a card form of ours.
 
+export const dynamic = "force-dynamic";
+
 import { asCheckout } from "@/lib/db/identity";
 import { refuse } from "@/lib/checkout/errors";
 import { attachPayment } from "@/lib/checkout/attach-payment";

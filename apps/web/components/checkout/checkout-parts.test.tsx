@@ -105,13 +105,13 @@ describe("DisclosureRow", () => {
 });
 
 describe("ExtraRow", () => {
-  const row = { code: "child-seat", name: "Child seat", amount: "CHF 10.00", onChange: () => {} };
+  const row = { code: "child-seat", name: "Child seat", amount: "CHF 000", onChange: () => {} };
 
   it("unchecked: name from props, plus amount", () => {
     const html = renderToString(<ExtraRow {...row} checked={false} />);
     expect(html).toContain('data-state="unchecked"');
     expect(html).toContain("Child seat");
-    expect(html).toContain("+ <!-- -->CHF 10.00");
+    expect(html).toContain("+ <!-- -->CHF 000");
     expect(html).not.toContain(">child-seat<");
   });
 
