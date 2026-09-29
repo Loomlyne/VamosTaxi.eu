@@ -371,7 +371,10 @@
   }
 
   /* Long-form legal copy is not machine-translated — a page marked
-     data-vt-legal says so in the reader's language instead of pretending. */
+     data-vt-legal says so in the reader's language instead of pretending.
+     A page declaring exactly "en de" (the imprint, D-05) gets its own note,
+     looked up in the dictionary by its English source. */
+  var LEGAL_NOTE_EN_DE_SOURCE = 'This page exists in English and German. The English text is binding.';
   var LEGAL_NOTE = {
     de: 'Diese Rechtsseite liegt bisher nur auf Englisch vor. Die deutsche Fassung wird von der Rechtsberatung geprüft; verbindlich ist bis dahin der englische Text.',
     fr: 'Cette page juridique n’existe pour l’instant qu’en anglais. La version française est en cours de validation juridique ; le texte anglais fait foi jusque-là.',
@@ -397,7 +400,10 @@
       el.appendChild(inner);
       host.insertBefore(el, host.firstChild);
     }
-    (document.getElementById('vt-legal-note-text') || el).textContent = LEGAL_NOTE[state.lang] || '';
+    var enDe = have.length === 2 && have.indexOf('en') > -1 && have.indexOf('de') > -1;
+    (document.getElementById('vt-legal-note-text') || el).textContent = enDe
+      ? (lookup(LEGAL_NOTE_EN_DE_SOURCE, state.lang) || LEGAL_NOTE_EN_DE_SOURCE)
+      : (LEGAL_NOTE[state.lang] || '');
   }
 
   /* ── observation ──────────────────────────────────────────────────────── */
