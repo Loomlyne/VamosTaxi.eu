@@ -4,16 +4,16 @@ Kept by the control session. One page: what is live, what is being built, what w
 the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 
-**Last update:** 2026-09-30 01:12 (+04)
+**Last update:** 2026-09-30 02:18 (+04)
 
 ## Live now
 
 | Item | Value |
 |---|---|
 | Site | https://vamostaxi.site and https://dashboard.vamostaxi.site |
-| main = origin/main | `6737f5f8` plus planning notes |
-| Worker `vamos` | version `6a71df8b` |
-| Rollback point | Worker `2b04648a`, git tag `backup/main-pre-ship-legal` |
+| main = origin/main | `e27014c1` plus planning notes |
+| Worker `vamos` | version `a55b2c19` |
+| Rollback point | Worker `6a71df8b`, git tag `backup/main-pre-ship-legal-follow-up` |
 | Database | migrations up to `20260930210000` applied and read back |
 | Who deploys | the control session, from the owner's Mac. GitHub runs checks, never deploys. |
 
@@ -34,6 +34,7 @@ the owner, what comes next. Updated at every ship and every hand-over.
 | # | What | Commit | Owner test |
 |---|---|---|---|
 | 8 | Phase 26.4 one form, phone and tablet bar, and 26.4.1 laptop bar | `0f58ab6d` | waiting: look at the laptop bar, book on the phone from Zurich Airport with a child seat, 4242 payment |
+| 10 | Legal follow-up: no labelled gap on a live page, cancel wording, ship date | `e27014c1` | shipped under the 2026-09-30 ship mode; waiting: 10 steps in `HANDOVER-FOLLOW-UP.md` |
 | 9 | Legal pages from the company's own text: privacy, terms, cancellation, imprint, four languages | `6737f5f8` | waiting: 12 steps in `.planning/quick/260930-lgl-legal-pages-from-eu/HANDOVER.md` |
 
 ## Legal pages
@@ -42,13 +43,18 @@ Shipped 2026-09-30 as `6737f5f8`. The pages customers see are the mocks `app/pag
 with `app/vamos-i18n-dict.js` (`apps/web/middleware.ts`), not the Next.js pages. Both were changed.
 No lawyer has read the text.
 
-| Still to build (owner answered, small follow-up) | Answer |
+The follow-up shipped 2026-09-30 01:35 as `e27014c1`: the five answers are built, "Last updated" reads 30 September 2026 from `app/vamos-legal-updated.js`.
+
+| For the owner to confirm (filled from live data, not from his word) | Value on the page |
 |---|---|
-| /cancellation, cancel within 24 hours | "Our team decides the refund and tells you by email" |
-| /terms, city stay fee | "shown on your quote" |
-| Adviser notes on the Next.js privacy page | hidden from customers |
-| "Last updated" date on each legal page | the ship day |
-| /manage-booking: "Every refund is checked by our team" and "Too close to cancel here. Call us." | say what the site does (owner, 2026-09-30) |
+| /about, Business | 7 passengers, 6 medium cases (live class "Business") |
+| /faq, meet and greet | Zurich (ZRH) and Geneva (GVA) (the two active airport zones) |
+| /about, /faq, driver details | by e-mail when a driver is assigned and in the 24-hour reminder; no SMS |
+
+| Still wrong on live, left by his decision | Detail |
+|---|---|
+| /terms section 03 | says driver details come by SMS and e-mail with a phone number; the site sends no SMS |
+| /about fleet | Van row says 8 passengers, 8 cases; live "Van luxury" is 12 and 9. Business is called an executive saloon; live Business is a V-Class |
 
 | Known and open | Detail |
 |---|---|
@@ -70,7 +76,6 @@ No lawyer has read the text.
 |---|---|---|
 | 1 | 26.4.2 booking feedback | Building. He signs three pictures first. |
 | 2 | 26.5 account choice before payment, with the paid-only reminder | Building |
-| any time | Legal follow-up | Building |
 | 3 | 27 consent record | Not started |
 | 4 | 28 pixel page view, 29 purchase event | The Meta wording is his since 2026-09-30 (`.planning/decisions/2026-09-30-meta-wording.md`), all three texts, four languages. Not started. |
 | after | 26.0 → 26.2 → 20 → 19 | 26.0 keeps building, lands after the ones above |
