@@ -4,26 +4,38 @@
 // TWINT and 3DS may never return to this tab — the poller is the only
 // observer, and it is read-only.
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Alert } from "@/components/feedback/Alert";
 import { Dialog } from "@/components/feedback/Dialog";
+import { ProgressIndicator } from "@/components/feedback/ProgressIndicator";
 import { Button, Card, Icon } from "@/components/core";
-import { StatusBadge } from "@/components/transfer";
+import type { IconName } from "@/components/core";
+import { PriceSummary, RouteSummary, StatusBadge } from "@/components/transfer";
+import type { PriceLine } from "@/components/transfer/PriceSummary";
 import { BookingVoucher, type BookingVoucherFacts } from "@/components/booking/BookingVoucher";
 import { useBookingDraft } from "@/lib/booking-draft";
 import { PHONE_DISPLAY, PHONE_HREF, WHATSAPP_HREF } from "@/lib/contact-channels";
+import { isFailedStatus } from "@/lib/checkout/booking-status";
+import { confirmationPhase } from "@/lib/checkout/confirmation-phase";
 import {
-  isCapturedPayment,
-  isFailedPayment,
-  isFailedStatus,
-  isVoucherStatus,
-} from "@/lib/checkout/booking-status";
+  addMinutesLocal,
+  formatTripDate,
+  formatTripTime,
+  rappenToMajor,
+} from "@/lib/checkout/confirmation-receipt";
+import type { ReceiptRow } from "@/lib/checkout/confirmation-receipt";
+import type { BookingReceipt } from "@/lib/checkout/booking-read";
+import { formatAmount } from "@/lib/currency";
 import { voucherBadgeStatus, voucherNeedsPayment } from "@/lib/checkout/voucher-badge";
 import { customerCancelWindow } from "@/lib/checkout/cancel-window";
 
-export type ConfirmationPhase = "hidden" | "processing" | "confirmed" | "give-up" | "failed";
+/**
+ * Where the server left the page. "processing" is the return path from Stripe
+ * (S3 loading screen until the booking is confirmed); the rest are later visits.
+ */
+export type ConfirmationPhase = "hidden" | "processing" | "confirmed" | "failed";
 
 /**
  * First status GET is immediate so a fast webhook paints the voucher
@@ -31,19 +43,12 @@ export type ConfirmationPhase = "hidden" | "processing" | "confirmed" | "give-up
  */
 export const POLL_INTERVAL_MS = 1000;
 
-/**
- * Cap kept for tests that import the name. The wait room polls on a
- * fixed 1s beat so a late webhook still paints the voucher.
- */
-export const POLL_BACKOFF_MAX_MS = 1000;
-
-/**
- * Visual "still confirming" copy only. Polling does not stop here.
- */
-export const POLL_GIVE_UP_MS = 12_000;
+/** Loading screen phase A to B switch lives in confirmationPhase (D-27). */
 
 export type ConfirmationFacts = BookingVoucherFacts & {
   reference: string;
+  /** 26.3-09: rows, presentment and class name for the S4 money block. */
+  receipt?: BookingReceipt;
 };
 
 export type ConfirmationClientProps = {
@@ -73,14 +78,10 @@ function hoursBeforePickup(scheduledLocal: string, now: Date): number {
   return (pickup - now.getTime()) / 3_600_000;
 }
 
-function pollOutcome(json: unknown): "confirmed" | "failed" | "wait" {
-  if (!json || typeof json !== "object") return "wait";
-  if ("visible" in json && (json as { visible: unknown }).visible === false) return "wait";
-  const status = asStringField(json, "status");
-  const paymentStatus = asStringField(json, "paymentStatus");
-  if (isVoucherStatus(status) || isCapturedPayment(paymentStatus)) return "confirmed";
-  if (isFailedPayment(paymentStatus) || isFailedStatus(status)) return "failed";
-  return "wait";
+function pollStatus(json: unknown): { status: string; paymentStatus: string } | null {
+  if (!json || typeof json !== "object") return null;
+  if ("visible" in json && (json as { visible: unknown }).visible === false) return null;
+  return { status: asStringField(json, "status"), paymentStatus: asStringField(json, "paymentStatus") };
 }
 
 function HelpRow() {
@@ -99,25 +100,266 @@ function HelpRow() {
   );
 }
 
-function FailedRoom({ reference }: { reference: string }) {
+const SUPPORT_EMAIL = "info@vamostaxi.site";
+
+function firstName(full: string | undefined): string {
+  return (full ?? "").trim().split(/\s+/)[0] ?? "";
+}
+
+/** The reference from the URL is the only fact shown until the booking is readable. */
+function RefLine({ reference }: { reference: string }) {
   const t = useTranslations("checkout");
   return (
-    <main className="vt-confirmation" data-confirmation data-confirmation-state="failed">
-      <Card padding="lg" className="vt-confirmation__wait" data-confirmation-failed>
-        <div className="vt-confirmation__wait-head">
-          <StatusBadge status="cancelled" />
+    <p className="vt-confirmation__wait-ref">
+      {t("bookingPrefix")}{" "}
+      <span className="vt-confirmation__ref vt-dir-keep" data-confirmation-ref>
+        {reference}
+      </span>
+    </p>
+  );
+}
+
+/**
+ * S3: after Stripe returns. Phase A shows a charcoal progress bar; phase B (after
+ * ~20 s) says the payment was received. Neither shows an error, failed or retry copy.
+ */
+function LoadingScreen({
+  received,
+  reference,
+  locale,
+}: {
+  received: boolean;
+  reference: string;
+  locale: string;
+}) {
+  const t = useTranslations("checkout");
+  return (
+    <main
+      className="vt-confirmation"
+      data-confirmation
+      data-confirmation-state={received ? "received" : "confirming"}
+    >
+      <Card padding="lg" className="vt-confirmation__wait vt-confirmation__loading">
+        <div aria-live="polite" aria-busy={received ? "false" : "true"} className="vt-confirmation__loading-body">
+          {received ? (
+            <span className="vt-confirmation__disc" aria-hidden="true">
+              <Icon name="check" size={28} color="var(--vt-yellow)" />
+            </span>
+          ) : (
+            <ProgressIndicator tone="charcoal" aria-label={t("confirmingTitle")} aria-valuenow={undefined} />
+          )}
+          <h1 className="vt-confirmation__title">{received ? t("receivedTitle") : t("confirmingTitle")}</h1>
+          <p className="vt-confirmation__lede">{received ? t("receivedBody") : t("confirmingBody")}</p>
+          <RefLine reference={reference} />
         </div>
-        <h1 className="vt-confirmation__title">{t("failedTitle")}</h1>
-        <p className="vt-confirmation__lede">{t("failedBody", { reference })}</p>
-        <p className="vt-confirmation__wait-ref">
-          {t("bookingPrefix")}{" "}
-          <span className="vt-confirmation__ref vt-dir-keep" data-confirmation-ref>
-            {reference}
-          </span>
-        </p>
-        <HelpRow />
+        {received ? (
+          <>
+            <div className="vt-confirmation__actions">
+              <Button variant="secondary" href={`/${locale}`}>
+                {t("book-another-transfer")}
+              </Button>
+            </div>
+            <p className="vt-confirmation__wait-ref">{t("receivedContact", { email: SUPPORT_EMAIL })}</p>
+          </>
+        ) : null}
       </Card>
     </main>
+  );
+}
+
+/** S4 head: disc, kicker, display heading, reference and e-mail line, status badge. */
+function BookedHero({
+  firstName: name,
+  reference,
+  email,
+}: {
+  firstName: string;
+  reference: string;
+  email: string;
+}) {
+  const t = useTranslations("checkout");
+  const refTag = (chunks: ReactNode) => (
+    <span className="vt-confirmation__ref vt-dir-keep" data-confirmation-ref>
+      {chunks}
+    </span>
+  );
+  return (
+    <div className="vt-confirmation__hero vt-confirmation__hero--booked">
+      <span className="vt-confirmation__disc" aria-hidden="true">
+        <Icon name="check" size={28} color="var(--vt-yellow)" />
+      </span>
+      <p className="vt-confirmation__kicker vt-confirmation__kicker--booked">{t("statusBooked")}</p>
+      <h1 className="vt-confirmation__title">
+        {name ? t("bookedTitle", { firstName: name }) : t("bookedTitleNoName")}
+      </h1>
+      <p className="vt-confirmation__lede">
+        {email
+          ? t.rich("bookedLede", {
+              reference,
+              email,
+              ref: refTag,
+              mail: (chunks) => <span className="vt-dir-keep">{chunks}</span>,
+            })
+          : t.rich("bookedLedeNoEmail", { reference, ref: refTag })}
+      </p>
+      <div>
+        <StatusBadge status="confirmed" label={t("statusBooked")} />
+      </div>
+    </div>
+  );
+}
+
+function classNameOf(
+  booking: ConfirmationFacts | null,
+  tCommon: ReturnType<typeof useTranslations>,
+): string {
+  const named = booking?.receipt?.vehicleClassName?.trim();
+  if (named) return named;
+  const slug = (booking?.vehicleClassSlug || "").trim();
+  if (slug === "economy") return tCommon("vehicleClassEconomy");
+  if (slug === "business") return tCommon("vehicleClassBusiness");
+  if (slug === "van") return tCommon("vehicleClassVan");
+  return "";
+}
+
+function FactRow({ icon, label, children }: { icon: IconName; label: string; children: ReactNode }) {
+  return (
+    <div className="vt-confirmation__receipt-row">
+      <dt>
+        <Icon name={icon} size={12} />
+        {label}
+      </dt>
+      <dd>{children}</dd>
+    </div>
+  );
+}
+
+/** Same money rows as the confirmation e-mail: fare, extras, voucher, VAT, total paid. */
+function moneyLines(
+  rows: ReceiptRow[],
+  className: string,
+  t: ReturnType<typeof useTranslations>,
+): { lines: PriceLine[]; total: number | null } {
+  const lines: PriceLine[] = [];
+  let total: number | null = null;
+  for (const row of rows) {
+    const amount = rappenToMajor(row.amountRappen);
+    if (row.kind === "total") {
+      total = amount;
+    } else if (row.kind === "fare") {
+      lines.push({ label: className ? t("receiptFare", { class: className }) : t("receiptFarePlain"), amount });
+    } else if (row.kind === "extra") {
+      lines.push({ label: row.label, amount });
+    } else if (row.kind === "coupon") {
+      lines.push({
+        label: <span data-confirmation-coupon={row.label}>{t("receiptVoucher", { code: row.label })}</span>,
+        amount,
+        credit: true,
+      });
+    } else if (row.kind === "vat") {
+      const rate = /([0-9]+(?:\.[0-9]+)?)\s*%/.exec(row.label)?.[1];
+      lines.push({ label: rate ? t("receiptVat", { rate }) : t("receiptVatPlain"), amount });
+    }
+  }
+  return { lines, total };
+}
+
+/** S4 body: route, trip facts, the e-mail's money rows, the legal line. */
+function BookedCard({
+  locale,
+  booking,
+  fallback,
+  cancelSlot,
+}: {
+  locale: string;
+  booking: ConfirmationFacts | null;
+  fallback: { pickup: string; dropoff: string; date: string; time: string; passengers: number };
+  cancelSlot: ReactNode;
+}) {
+  const t = useTranslations("checkout");
+  const tCommon = useTranslations("common");
+  const pickup = (booking?.pickupText || "").trim() || fallback.pickup;
+  const dropoff = (booking?.dropoffText || "").trim() || fallback.dropoff;
+  const scheduled = booking?.scheduledLocal || "";
+  const dateLabel = scheduled ? formatTripDate(scheduled, locale) : fallback.date;
+  const timeLabel = scheduled ? formatTripTime(scheduled) : fallback.time;
+  const durationMin = booking?.durationMin ?? null;
+  const arriveLabel = scheduled && durationMin != null ? addMinutesLocal(scheduled, durationMin) : "";
+  const pax = booking && booking.pax > 0 ? booking.pax : fallback.passengers;
+  const flightNo = (booking?.flightNo || "").trim();
+  const cls = classNameOf(booking, tCommon);
+  const receipt = booking?.receipt;
+  const { lines, total } = moneyLines(receipt?.rows ?? [], cls, t);
+  const totalMajor = total ?? rappenToMajor(booking?.priceTotalRappen ?? null);
+  const presentment = receipt?.presentment ?? null;
+  let paidIn = "";
+  if (presentment) {
+    try {
+      paidIn = new Intl.NumberFormat(locale, { style: "currency", currency: presentment.currency }).format(
+        presentment.amountMinor / 100,
+      );
+    } catch {
+      paidIn = `${presentment.currency} ${(presentment.amountMinor / 100).toFixed(2)}`;
+    }
+  }
+  return (
+    <Card padding="lg" className="vt-confirmation__booked" data-confirmation-voucher>
+      <RouteSummary
+        pickup={pickup}
+        dropoff={dropoff}
+        pickupDetail={
+          timeLabel ? (
+            <span className="vt-confirmation__when vt-dir-keep" data-confirmation-pickup-at>
+              <Icon name="clock" size={14} />
+              {timeLabel}
+            </span>
+          ) : undefined
+        }
+        dropoffDetail={
+          arriveLabel ? (
+            <span className="vt-confirmation__when vt-dir-keep" data-confirmation-arrive>
+              <Icon name="clock" size={14} />
+              {arriveLabel}
+            </span>
+          ) : undefined
+        }
+      />
+      <dl className="vt-confirmation__receipt" data-confirmation-receipt>
+        {dateLabel ? (
+          <FactRow icon="calendar" label={t("factWhen")}>
+            <span className="vt-dir-keep">{dateLabel}</span>
+          </FactRow>
+        ) : null}
+        {pax > 0 ? (
+          <FactRow icon="users" label={t("factTravellers")}>
+            {t("passengersCount", { n: pax })}
+          </FactRow>
+        ) : null}
+        {cls ? (
+          <FactRow icon="car" label={t("factClass")}>
+            {cls}
+          </FactRow>
+        ) : null}
+        {flightNo ? (
+          <FactRow icon="plane" label={tCommon("flight-number")}>
+            <span className="vt-dir-keep">{flightNo}</span>
+          </FactRow>
+        ) : null}
+      </dl>
+      <PriceSummary lines={lines} total={totalMajor} totalLabel={t("receiptTotalPaid")} />
+      {presentment ? (
+        <p className="vt-confirmation__presentment" data-confirmation-presentment>
+          {t.rich("receiptPresentment", {
+            paid: paidIn,
+            currency: presentment.currency,
+            received: formatAmount(rappenToMajor(receipt?.chargedRappen ?? null)),
+            fig: (chunks) => <span className="vt-dir-keep">{chunks}</span>,
+          })}
+        </p>
+      ) : null}
+      <p className="vt-confirmation__legal">{t("by-continuing-you-accept-the-terms-and-the-cance")}</p>
+      {cancelSlot ? <div className="vt-confirmation__booked-cancel">{cancelSlot}</div> : null}
+    </Card>
   );
 }
 
@@ -134,7 +376,8 @@ export function ConfirmationClient({
   // 26.1-16 (D-22): the return route adds charge=refunded when this payer's
   // charge lost the race and was refunded. Display hint only.
   const chargeRefunded = useSearchParams()?.get("charge") === "refunded";
-  const [phase, setPhase] = useState<ConfirmationPhase>(initialPhase);
+  const router = useRouter();
+  const [elapsedMs, setElapsedMs] = useState(0);
   const [liveStatus, setLiveStatus] = useState(booking?.status ?? "");
   const [livePayment, setLivePayment] = useState(booking?.paymentStatus ?? null);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -150,12 +393,27 @@ export function ConfirmationClient({
   const [flightNo, setFlightNo] = useState("");
   const [lifeMsg, setLifeMsg] = useState("");
   const [lifeBusy, setLifeBusy] = useState(false);
-  const waiting = phase === "processing" || phase === "give-up";
+  // Return path: S3 until booked. Later visits skip straight to the page.
+  const onReturnPath = initialPhase === "processing";
+  const returnPhase = onReturnPath
+    ? confirmationPhase({ elapsedMs, status: liveStatus, paymentStatus: livePayment })
+    : null;
+  const waiting = returnPhase === "confirming" || returnPhase === "received";
+  const refreshed = useRef(false);
 
   useEffect(() => {
     setLiveStatus(booking?.status ?? "");
     setLivePayment(booking?.paymentStatus ?? null);
   }, [booking?.status, booking?.paymentStatus]);
+
+  useEffect(() => {
+    if (!waiting) return;
+    const started = Date.now() - elapsedMs;
+    const clock = window.setInterval(() => setElapsedMs(Date.now() - started), 1000);
+    return () => window.clearInterval(clock);
+    // elapsedMs is read once on (re)start only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [waiting]);
 
   useEffect(() => {
     if (!waiting) return;
@@ -171,24 +429,13 @@ export function ConfirmationClient({
             cache: "no-store",
             credentials: "include",
           });
-          const json: unknown = await res.json();
-          const outcome = pollOutcome(json);
-          if (json && typeof json === "object") {
-            const nextStatus = asStringField(json, "status");
-            const nextPayment = asStringField(json, "paymentStatus");
-            if (nextStatus) setLiveStatus(nextStatus);
-            if (nextPayment) setLivePayment(nextPayment);
-          }
-          if (outcome === "confirmed") {
-            setPhase("confirmed");
-            return;
-          }
-          if (outcome === "failed") {
-            setPhase("failed");
-            return;
+          const seen = pollStatus(await res.json());
+          if (seen) {
+            if (seen.status) setLiveStatus(seen.status);
+            if (seen.paymentStatus) setLivePayment(seen.paymentStatus);
           }
         } catch {
-          // Network blip — keep polling until the voucher or an error lands.
+          // Network blip: keep polling quietly. No error copy on this path.
         }
       }
       if (stopped) return;
@@ -213,7 +460,15 @@ export function ConfirmationClient({
     };
   }, [waiting, reference]);
 
-  if (phase === "hidden") {
+  // The booking was not readable when the page rendered (cookie race). Once it
+  // is booked, ask the server component for the facts once.
+  useEffect(() => {
+    if (returnPhase !== "booked" || booking?.receipt?.rows?.length || refreshed.current) return;
+    refreshed.current = true;
+    router.refresh();
+  }, [returnPhase, booking, router]);
+
+  if (initialPhase === "hidden") {
     return (
       <main className="vt-confirmation" data-confirmation data-confirmation-state="hidden">
         <div className="vt-confirmation__hero">
@@ -224,8 +479,14 @@ export function ConfirmationClient({
     );
   }
 
-  if (phase === "failed" && !isFailedStatus(liveStatus || booking?.status || "")) {
-    return <FailedRoom reference={reference} />;
+  if (waiting) {
+    return (
+      <LoadingScreen
+        received={returnPhase === "received"}
+        reference={reference}
+        locale={locale}
+      />
+    );
   }
 
   // Pay already confirms the booking. There is no coupon/voucher
@@ -245,7 +506,10 @@ export function ConfirmationClient({
     : null;
   const badge = voucherBadgeStatus(facts?.status, facts?.paymentStatus ?? null);
   const unpaid = voucherNeedsPayment(badge);
-  const pageState = waiting && badge !== "paid" && badge !== "confirmed" ? "processing" : badge;
+  const isBookedBadge = badge === "paid" || badge === "confirmed" || badge === "assigned";
+  // S4: the booked page. Cancelled, refunded and finished trips keep their own headings.
+  const booked = isBookedBadge && (returnPhase === "booked" || !onReturnPath);
+  const pageState = booked ? "booked" : badge;
   const rawStatus = (facts?.status || "").toLowerCase();
   const hideCancel =
     unpaid ||
@@ -371,17 +635,25 @@ export function ConfirmationClient({
 
   return (
     <main className="vt-confirmation" data-confirmation data-confirmation-state={pageState}>
-      <div className="vt-confirmation__hero">
-        <h1 className="vt-confirmation__title">{title}</h1>
-        <p className="vt-confirmation__lede">
-          {lede}
-          {typeof lede === "string" ? (
-            <span className="vt-confirmation__ref vt-dir-keep" hidden data-confirmation-ref>
-              {reference}
-            </span>
-          ) : null}
-        </p>
-      </div>
+      {booked ? (
+        <BookedHero
+          firstName={firstName(facts?.contactName)}
+          reference={reference}
+          email={(facts?.contactEmail || "").trim()}
+        />
+      ) : (
+        <div className="vt-confirmation__hero">
+          <h1 className="vt-confirmation__title">{title}</h1>
+          <p className="vt-confirmation__lede">
+            {lede}
+            {typeof lede === "string" ? (
+              <span className="vt-confirmation__ref vt-dir-keep" hidden data-confirmation-ref>
+                {reference}
+              </span>
+            ) : null}
+          </p>
+        </div>
+      )}
 
       {chargeRefunded ? (
         <Alert
@@ -394,26 +666,47 @@ export function ConfirmationClient({
         </Alert>
       ) : null}
 
-      <BookingVoucher
-        locale={locale}
-        reference={reference}
-        booking={facts}
-        fallback={{
-          pickup: draft.pickup,
-          dropoff: draft.destination,
-          date: draft.date,
-          time: draft.time,
-          passengers: draft.passengers,
-        }}
-        reviewHref={reviewHref}
-        cancelSlot={
-          showCancel ? (
-            <Button variant="ghost" size="md" onClick={() => setSheetOpen(true)}>
-              {t("cancelBooking")}
-            </Button>
-          ) : null
-        }
-      />
+      {booked ? (
+        <BookedCard
+          locale={locale}
+          booking={facts}
+          fallback={{
+            pickup: draft.pickup,
+            dropoff: draft.destination,
+            date: draft.date,
+            time: draft.time,
+            passengers: draft.passengers,
+          }}
+          cancelSlot={
+            showCancel ? (
+              <Button variant="ghost" size="md" onClick={() => setSheetOpen(true)}>
+                {t("cancelBooking")}
+              </Button>
+            ) : null
+          }
+        />
+      ) : (
+        <BookingVoucher
+          locale={locale}
+          reference={reference}
+          booking={facts}
+          fallback={{
+            pickup: draft.pickup,
+            dropoff: draft.destination,
+            date: draft.date,
+            time: draft.time,
+            passengers: draft.passengers,
+          }}
+          reviewHref={reviewHref}
+          cancelSlot={
+            showCancel ? (
+              <Button variant="ghost" size="md" onClick={() => setSheetOpen(true)}>
+                {t("cancelBooking")}
+              </Button>
+            ) : null
+          }
+        />
+      )}
 
       {showConfirmedChrome && facts ? (
         <div className="vt-confirmation__actions" data-time-change data-flight>
@@ -462,30 +755,31 @@ export function ConfirmationClient({
         <p>{sheetCopy}</p>
       </Dialog>
 
-      <div className="vt-confirmation__actions">
-        {unpaid ? (
-          <Button icon="credit-card" href={`/${locale}/checkout/payment`}>
-            {t("finishPayment")}
+      {booked ? (
+        <div className="vt-confirmation__actions">
+          <Button variant="secondary" href={`/${locale}/manage-booking`}>
+            {t("manageBooking")}
           </Button>
-        ) : (
-          <Button icon="printer" variant="secondary" onClick={() => window.print()}>
-            {t("download-voucher")}
+          <Button variant="ghost" href={`/${locale}`}>
+            {t("book-another-transfer")}
           </Button>
-        )}
-        {showConfirmedChrome ? (
-          <Button icon="calendar-days" variant="ghost" href={`/api/checkout/invite/${encodeURIComponent(reference)}`}>
-            {t("add-to-calendar")}
+        </div>
+      ) : (
+        <div className="vt-confirmation__actions">
+          {unpaid ? (
+            <Button icon="credit-card" href={`/${locale}/checkout`}>
+              {t("finishPayment")}
+            </Button>
+          ) : (
+            <Button icon="printer" variant="secondary" onClick={() => window.print()}>
+              {t("download-voucher")}
+            </Button>
+          )}
+          <Button icon="pencil" variant="ghost" href={`/${locale}/manage-booking`}>
+            {t("manageBooking")}
           </Button>
-        ) : null}
-        <Button icon="pencil" variant="ghost" href={`/${locale}/manage-booking`}>
-          {t("manageBooking")}
-        </Button>
-        {showConfirmedChrome ? (
-          <Button icon="mail" variant="ghost" disabled title={t("resendEmailSoon")}>
-            {t("resendEmail")}
-          </Button>
-        ) : null}
-      </div>
+        </div>
+      )}
 
       <HelpRow />
 
@@ -510,11 +804,13 @@ export function ConfirmationClient({
         </div>
       ) : null}
 
-      <div className="vt-confirmation__footer">
-        <Button variant="ghost" iconEnd="arrow-right" href={`/${locale}`}>
-          {t("book-another-transfer")}
-        </Button>
-      </div>
+      {booked ? null : (
+        <div className="vt-confirmation__footer">
+          <Button variant="ghost" iconEnd="arrow-right" href={`/${locale}`}>
+            {t("book-another-transfer")}
+          </Button>
+        </div>
+      )}
     </main>
   );
 }

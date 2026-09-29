@@ -60,6 +60,7 @@ function pendingTicket(ref: string): VisibleBooking {
     refundStatus: null,
     refundOwedRappen: null,
     refundedRappen: null,
+    receipt: { rows: [], chargedRappen: null, presentment: null, vehicleClassName: null },
   };
 }
 
@@ -96,13 +97,13 @@ export default async function ConfirmationPage({
   let initialPhase: ConfirmationPhase = "hidden";
   let booking: VisibleBooking | null = null;
 
-  if (BOOKING_REFERENCE_RE.test(ref) && (raw || claims)) {
-    if (!env) {
-      // Local next has no Hyperdrive. Cookie present → processing; the
-      // poller is the source of truth for status.
-      initialPhase = "processing";
-      booking = pendingTicket(ref);
-    } else {
+  // Return path (D-27): a well-formed reference always opens the loading screen
+  // first. The poller reads status; nothing here reveals whether the booking
+  // exists (T-26.3-14-01). Facts are read only behind the manage cookie or claims.
+  if (BOOKING_REFERENCE_RE.test(ref)) {
+    initialPhase = "processing";
+    booking = pendingTicket(ref);
+    if (env && (raw || claims)) {
       try {
         const read = await readBookingForConfirmation(env, raw, ref, claims);
         if (read.visible) {
@@ -114,8 +115,8 @@ export default async function ConfirmationPage({
               : "processing";
         }
       } catch {
-        // Worker env is present. A throw is not "this booking is pending".
-        // Same as checkout status HIDDEN — stay hidden, never invent pending.
+        // A throw is not "this booking is pending" and not an error screen either:
+        // the loading screen keeps polling.
       }
     }
   }
