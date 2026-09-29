@@ -199,6 +199,8 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <li>Passenger and luggage count, child seat requests, declared items.</li>
 <li>Anything you type into the notes field for the driver.</li>
 </ul>
+<!-- Phase 26.5: the approved "Your account" paragraph (.planning/decisions/2026-09-30-legal-pages.md) replaces this gap. -->
+<p><span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Your account paragraph</span></p>
 <h3>When you pay</h3>
 <p>Payment metadata only: the amount, the currency, the method, the last four digits, and whether it succeeded. Card numbers are entered on Stripe's own form and never reach our systems.</p>
 <h3>While you use the site</h3>
@@ -210,7 +212,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <section id="basis">
 <h2><span data-lg-n="1">03</span>Why we may use it</h2>
 <div data-dl="1">
-<div data-dl-r="1"><span data-dl-k="1">To perform the contract</span><span data-dl-v="1">Taking a booking, assigning a driver, collecting payment, sending your confirmation and driver details, handling a change or a cancellation.</span></div>
+<div data-dl-r="1"><span data-dl-k="1">To perform the contract</span><span data-dl-v="1">Taking a booking, assigning a driver, collecting payment, sending your confirmation and driver details, handling a change or a cancellation. <span>Legal basis under the GDPR: Art. 6 (1) (b).</span></span></div>
 <div data-dl-r="1"><span data-dl-k="1">Legal obligation</span><span data-dl-v="1">Accounting, tax, and the trip records Swiss archiving law requires us to hold — see section <a href="#retention">06</a>.</span></div>
 <div data-dl-r="1"><span data-dl-k="1">Legitimate interest</span><span data-dl-v="1">Fraud prevention, service quality, evidence of a no-show, and defending a claim.</span></div>
 <div data-dl-r="1"><span data-dl-k="1">Consent</span><span data-dl-v="1">Analytics and marketing cookies, and any newsletter. You can withdraw it at any time without giving a reason.</span></div>
@@ -230,7 +232,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div data-dl="1">
 <div data-dl-r="1"><span data-dl-k="1">Stripe Payments Europe Ltd</span><span data-dl-v="1">Card payments · Dublin, Ireland</span></div>
 <div data-dl-r="1"><span data-dl-k="1">Supabase</span><span data-dl-v="1">Booking database and sign-in · Zurich</span></div>
-<div data-dl-r="1"><span data-dl-k="1">Vercel</span><span data-dl-v="1">Website hosting and delivery · Cloudflare Workers (global edge)</span></div>
+<div data-dl-r="1"><span data-dl-k="1">Cloudflare</span><span data-dl-v="1">Website hosting and delivery · Cloudflare Workers (global edge)</span></div>
 <div data-dl-r="1"><span data-dl-k="1">Mapbox</span><span data-dl-v="1">Address lookup and route distance · United States</span></div>
 <div data-dl-r="1"><span data-dl-k="1">Resend</span><span data-dl-v="1">Confirmation and driver-detail emails · used when transactional mail is on</span></div>
 <div data-dl-r="1"><span data-dl-k="1">Sentry</span><span data-dl-v="1">Error diagnostics · not in use</span></div>
@@ -254,9 +256,9 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <section id="retention">
 <h2><span data-lg-n="1">06</span>How long we keep it</h2>
 <div data-dl="1">
-<div data-dl-r="1"><span data-dl-k="1">Trip records</span><span data-dl-v="1">Lead passenger name, passenger count, email, start and destination — 10 years years, because Swiss archiving law requires it.</span></div>
+<div data-dl-r="1"><span data-dl-k="1">Trip records</span><span data-dl-v="1">Lead passenger name, passenger count, email, start and destination — 10 years, because Swiss archiving law requires it.</span></div>
 <div data-dl-r="1"><span data-dl-k="1">Payment records</span><span data-dl-v="1">10 years (Swiss books) for accounting and tax.</span></div>
-<div data-dl-r="1"><span data-dl-k="1">Account and marketing preferences</span><span data-dl-v="1">Until you close the account or withdraw consent.</span></div>
+<div data-dl-r="1"><span data-dl-k="1">Account and marketing preferences</span><span data-dl-v="1">Until you close the account or withdraw consent. <span>You can close your account at any time by writing to us.</span></span></div>
 <div data-dl-r="1"><span data-dl-k="1">Server logs</span><span data-dl-v="1">as long as needed to run the service</span></div>
 <div data-dl-r="1"><span data-dl-k="1">Consent record</span><span data-dl-v="1">as long as needed to show consent — proof of what you chose, and when.</span></div>
 </div>
@@ -280,7 +282,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div style="background:var(--vt-bg-inverse);color:var(--vt-text-inverse);border-radius:var(--vt-radius-lg);padding:22px">
 <p style="margin:0 0 14px;display:flex;align-items:center;gap:8px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">We have to keep</p>
 <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading-tight);color:rgb(255 255 255 / .84)">
-<li>Trip records for 10 years years</li>
+<li>Trip records for 10 years</li>
 <li>Payment and tax records</li>
 <li>The record of your cookie choice</li>
 <li>Evidence relating to an open claim</li>
@@ -299,7 +301,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 
 <section id="requests">
 <h2><span data-lg-n="1">09</span>Making a request</h2>
-<p>Email <a href="mailto:info@vamostaxi.site">info@vamostaxi.site</a> with the booking reference if there is one. We answer within 30 days days.</p>
+<p>Email <a href="mailto:info@vamostaxi.site">info@vamostaxi.site</a> with the booking reference if there is one. We answer within 30 days; in complex cases we may take up to 60 days more.</p>
 <p>We may ask you to confirm who you are before we send data anywhere — for your protection, not as an obstacle.</p>
 
 </section>

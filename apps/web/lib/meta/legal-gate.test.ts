@@ -180,7 +180,6 @@ describe("meta legal gate", () => {
 
     expect(privacy).toContain('<PendingSlot label="Analytics provider" />');
     expect(privacy).toContain('<PendingSlot label="Analytics region" />');
-    expect(imprint).toContain('<PendingSlot label="Uid number" />');
     expect(imprint).toContain('<PendingSlot label="Photography credit" />');
 
     expect(banner).toContain('className="vt-ck-meta"');

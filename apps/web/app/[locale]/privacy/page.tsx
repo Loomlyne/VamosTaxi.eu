@@ -48,7 +48,6 @@ export default async function PrivacyPage({
   const t = await getTranslations("legal");
   const tCommon = await getTranslations("common");
   const tHome = await getTranslations("home");
-  const tAccount = await getTranslations("account");
   const contactHref = getPathname({ href: "/contact", locale });
   const cookiesHref = getPathname({ href: "/cookies", locale });
 
@@ -110,6 +109,10 @@ export default async function PrivacyPage({
           <li>{t("passenger-and-luggage-count-child-seat-requests")}</li>
           <li>{t("anything-you-type-into-the-notes-field-for-the-d")}</li>
         </ul>
+        {/* Phase 26.5: the approved "Your account" paragraph (.planning/decisions/2026-09-30-legal-pages.md) replaces this gap. */}
+        <p>
+          <PendingSlot label="Your account paragraph" />
+        </p>
         <h3>{t("when-you-pay")}</h3>
         <p>{t("payment-metadata-only-the-amount-the-currency-th")}</p>
         <h3>{t("while-you-use-the-site")}</h3>
@@ -129,7 +132,11 @@ export default async function PrivacyPage({
         <List>
           <ListRow
             title={t("to-perform-the-contract")}
-            subtitle={t("taking-a-booking-assigning-a-driver-collecting-p")}
+            subtitle={
+              <>
+                {t("taking-a-booking-assigning-a-driver-collecting-p")} {t("gdpr-basis-contract")}
+              </>
+            }
           />
           <ListRow
             title={t("legal-obligation")}
@@ -252,22 +259,21 @@ export default async function PrivacyPage({
             title={t("trip-records")}
             subtitle={
               <>
-                {t("lead-passenger-name-passenger-count-email-start")}{" "}
-                <PendingSlot label="Archiving years" /> {t("years-because-swiss-archiving-law-requires-it")}
+                {t("trip-records-kept-10-years")}
               </>
             }
           />
           <ListRow
             title={t("payment-records")}
-            subtitle={
-              <>
-                <PendingSlot label="Finance retention" /> {t("for-accounting-and-tax")}
-              </>
-            }
+            subtitle={t("payment-records-statutory-periods")}
           />
           <ListRow
             title={t("account-and-marketing-preferences")}
-            subtitle={t("until-you-close-the-account-or-withdraw-consent")}
+            subtitle={
+              <>
+                {t("until-you-close-the-account-or-withdraw-consent")} {t("close-account-any-time")}
+              </>
+            }
           />
           <ListRow title={t("server-logs")} subtitle={<PendingSlot label="Log retention" />} />
           <ListRow
@@ -336,7 +342,7 @@ export default async function PrivacyPage({
                 inverse
                 title={
                   <>
-                    {t("trip-records-for")} <PendingSlot label="Archiving years" /> {tAccount("years")}
+                    {t("trip-records-for-10-years")}
                   </>
                 }
               />
@@ -373,8 +379,7 @@ export default async function PrivacyPage({
         </h2>
         <p>
           {tCommon("email")} <a href={SUPPORT_EMAIL_HREF}>{SUPPORT_EMAIL}</a>{" "}
-          {t("with-the-booking-reference-if-there-is-one-we-an")}{" "}
-          <span data-i18n-skip>30</span> {tCommon("days")}
+          {t("request-answer-within-30-days")}
         </p>
         <p>{t("we-may-ask-you-to-confirm-who-you-are-before-we")}</p>
       </section>
