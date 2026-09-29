@@ -274,7 +274,8 @@ export async function POST(request: Request): Promise<Response> {
     if (blockedChange) return blockedChange;
     const { result, reason } = await runUpdatePassword(supabase, parsed.data.password);
     if (reason) log("error", "auth", ctx, { reason, action: "update-password" });
-    return json(result);
+    // updateUser refreshes the session: its cookies must ride on this response.
+    return sessionJson(result, setCookies);
   }
 
   if (action === "update-profile") {
@@ -287,7 +288,7 @@ export async function POST(request: Request): Promise<Response> {
     try {
       const { result, reason } = await runUpdateProfile(supabase, parsed);
       if (reason) log("error", "auth", ctx, { reason, action: "update-profile" });
-      return json(result);
+      return sessionJson(result, setCookies);
     } catch {
       log("error", "auth", ctx, { reason: "throw", action: "update-profile" });
       return json({ ok: false, reason: "throw" });
@@ -350,7 +351,7 @@ export async function POST(request: Request): Promise<Response> {
       log("error", "auth", ctx, { reason: error.code ?? "passkey-register-verify", action: "passkey-register-verify" });
       return json(FORM_CREDENTIALS);
     }
-    return json({ ok: true });
+    return sessionJson({ ok: true }, setCookies);
   }
 
   if (isStaffSignInOptionAction(action)) {
@@ -532,7 +533,8 @@ export async function POST(request: Request): Promise<Response> {
       localizedPath("/reset-password", locale),
     );
     if (reason) log("error", "auth", ctx, { reason, action: "reset" });
-    return json(result);
+    // The PKCE verifier cookie rides on the answer, known address or not (same body either way).
+    return sessionJson(result, setCookies);
   }
 
   if (fields.method === "magic") {
@@ -553,10 +555,7 @@ export async function POST(request: Request): Promise<Response> {
       emailNext(returnToRaw, localizedHome(locale)),
     );
     if (reason) log("error", "auth", ctx, { reason, action: "otp" });
-    if (!reason && parsed.data.mode === "signup") {
-      await appendSignupConsent(request, locale, ctx);
-    }
-    return json(result);
+    return sessionJson(result, setCookies);
   }
 
   if (fields.mode === "signup") {
@@ -569,8 +568,7 @@ export async function POST(request: Request): Promise<Response> {
       emailNext(returnToRaw, localizedHome(locale)),
     );
     if (reason) log("error", "auth", ctx, { reason, action: "signup" });
-    if (!reason) await appendSignupConsent(request, locale, ctx);
-    return json(result);
+    return sessionJson(result, setCookies);
   }
 
   const parsed = signInPasswordSchema.safeParse(fields);
