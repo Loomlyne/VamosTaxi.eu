@@ -3,6 +3,7 @@ import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { join } from "node:path";
 import { waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { nextDevEnv } from "../support/test-stack";
 
 const PORTS: Record<string, number> = {
   "component-1440": testPort(4220),
@@ -34,10 +35,7 @@ test.describe("Home how-it-works @component", () => {
       cwd: WEB_ROOT,
       stdio: "ignore",
       detached: true,
-      env: {
-        ...process.env,
-        TEST_DIST_DIR: `test-results/.next-how-it-works-${port}`,
-      },
+      env: nextDevEnv({ TEST_DIST_DIR: `test-results/.next-how-it-works-${port}` }, { gallery: true }),
     });
     await waitForNextServer(baseURL, 180_000);
   });
