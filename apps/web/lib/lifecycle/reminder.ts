@@ -79,29 +79,11 @@ export async function runReminder24h(
 ): Promise<Reminder24hResult> {
   const { fromIso, toIso } = reminder24hWindow(scheduledAt);
   const rows = await asSystem(env, async (sql) => {
+    // vamos_system has no table SELECT; the read is the definer function
+    // public.reminder_24h_candidates (20260930200000): original pickup in [from, to), not
+    // erased, cancelled, completed or no_show.
     return sql<ReminderRow[]>`
-      select
-        b.id as booking_id,
-        l.id as booking_leg_id,
-        b.reference,
-        b.locale,
-        b.contact_email::text as contact_email,
-        l.pickup_text,
-        l.dropoff_text,
-        l.scheduled_local,
-        l.assigned_chauffeur_id,
-        ch.full_name as chauffeur_name,
-        v.model as vehicle,
-        v.plate as plate
-        from public.booking_legs as l
-        join public.bookings as b on b.id = l.booking_id
-        left join public.chauffeurs as ch on ch.id = l.assigned_chauffeur_id
-        left join public.vehicles as v on v.id = l.assigned_vehicle_id
-       where l.original_scheduled_at >= ${fromIso}::timestamptz
-         and l.original_scheduled_at < ${toIso}::timestamptz
-         and b.erased_at is null
-         and b.status not in ('cancelled', 'completed', 'no_show')
-       order by l.original_scheduled_at, l.id
+      select * from public.reminder_24h_candidates(${fromIso}::timestamptz, ${toIso}::timestamptz)
     `;
   });
 
