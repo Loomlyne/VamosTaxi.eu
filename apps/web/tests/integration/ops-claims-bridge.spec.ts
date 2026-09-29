@@ -8,7 +8,7 @@
 
 import { createHmac } from "node:crypto";
 import { test, expect } from "../support/test";
-import { dbRequired, requireFromWorktree, stackKeys, supabaseApiUrl } from "../support/test-stack";
+import { dbRequired, ownerDbUrl, requireFromWorktree, stackKeys, supabaseApiUrl } from "../support/test-stack";
 import {
   getStaffClaims,
   requireAdminClaims,
@@ -297,23 +297,18 @@ test.describe("ops claims bridge live local auth @ops-claims", () => {
     return body.id;
   }
 
+  // public.staff has no INSERT grant for service_role (by design); the fixture writes it as the owner role.
   async function insertStaff(userId: string, role: "dispatcher" | "admin"): Promise<void> {
-    const res = await fetch(`${url}/rest/v1/staff`, {
-      method: "POST",
-      headers: {
-        apikey: serviceKey,
-        Authorization: `Bearer ${serviceKey}`,
-        "Content-Type": "application/json",
-        Prefer: "return=minimal",
-      },
-      body: JSON.stringify({
-        user_id: userId,
-        role,
-        full_name: role,
-        accepted_at: new Date().toISOString(),
-      }),
-    });
-    if (!res.ok) throw new Error(`insert staff ${res.status}: ${await res.text()}`);
+    const postgres = requireFromWorktree("postgres") as (u: string) => {
+      (strings: TemplateStringsArray, ...v: unknown[]): Promise<unknown>;
+      end(o?: { timeout?: number }): Promise<void>;
+    };
+    const sql = postgres(ownerDbUrl());
+    try {
+      await sql`insert into public.staff (user_id, role, full_name, accepted_at) values (${userId}::uuid, ${role}, ${role}, now())`;
+    } finally {
+      await sql.end({ timeout: 5 });
+    }
   }
 
   // D-16/D-16a/D-16b (26.1-20): this case used to sign in a dispatcher and expect needs-mfa at
@@ -321,7 +316,6 @@ test.describe("ops claims bridge live local auth @ops-claims", () => {
   // once a factor is verified — so the same TOTP walk runs as the admin, and the dispatcher is
   // proven refused in the case below.
   test("admin with no factor is allowed at aal1; after TOTP verify aal2 is required on a fresh aal1 sign-in", async () => {
-    test.fail(true, "KNOWN-RED 26.0: the test inserts public.staff over REST as service_role, which has no INSERT privilege on public.staff in the migrations (42501) — owner to rule");
     const createClient = loadCreateClient();
     const stamp = Date.now();
     const email = `ops-bridge-admin-${stamp}@vamos.test`;
@@ -388,7 +382,6 @@ test.describe("ops claims bridge live local auth @ops-claims", () => {
   });
 
   test("a dispatcher staff row is refused at sign-in (D-16b)", async () => {
-    test.fail(true, "KNOWN-RED 26.0: the test inserts public.staff over REST as service_role, which has no INSERT privilege on public.staff in the migrations (42501) — owner to rule");
     const createClient = loadCreateClient();
     const stamp = Date.now();
     const email = `ops-bridge-disp-${stamp}@vamos.test`;
