@@ -1,7 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 import { serveMock, waitForMockReady } from "../support/mock-harness";
 
-// Phase 26.3 plan 04 (SC-2). The home booking box on `/` is From, Flight (airport
+// Phase 26.3 plan 04 (SC-2). At >=1081 the box renders as the 26.4.1 laptop bar. The home booking box on `/` is From, Flight (airport
 // pickups only), To, When, Travellers, SEE PRICES. It never prices, never stores the
 // trip and hands it to /checkout in the URL (D-05, D-06).
 
@@ -84,7 +84,7 @@ test.describe("Home booking box @component", () => {
     test.skip((page.viewportSize()?.width ?? 0) <= 1080, "26.4 D-01: the box shows at 1081px and over");
   });
 
-  test("DOM order is From, To, When, Travellers, SEE PRICES; an airport adds Flight under From @component", async ({ page }) => {
+  test("DOM order is From, To, When, Travellers, SEE PRICES; an airport adds Flight beside From @component", async ({ page }) => {
     await openHome(page);
     expect(await order(page)).toEqual(["from", "to", "when", "trav", "cta"]);
     await expect(page.locator('[data-box] [role="tablist"]')).toHaveCount(0);
@@ -93,26 +93,16 @@ test.describe("Home booking box @component", () => {
     await expect(page.locator('[data-bx="flight"]')).toBeVisible();
     expect(await order(page)).toEqual(["from", "flight", "to", "when", "trav", "cta"]);
 
-    // Flight sits directly under From at every width; on the phone the whole box is one column in DOM order.
+    // 26.4.1: laptop geometry is owned by home-laptop-bar.spec.ts
     const pos = await page.evaluate(() => {
       const r = (k: string) => {
         const b = (document.querySelector(`[data-box] > [data-bx="${k}"]`) as HTMLElement).getBoundingClientRect();
-        return { top: Math.round(b.top), left: Math.round(b.left), bottom: Math.round(b.bottom) };
+        return { top: Math.round(b.top), left: Math.round(b.left), right: Math.round(b.right), bottom: Math.round(b.bottom) };
       };
-      return { from: r("from"), flight: r("flight"), to: r("to"), when: r("when"), trav: r("trav"), cta: r("cta"), w: window.innerWidth };
+      return { from: r("from"), flight: r("flight"), to: r("to") };
     });
-    expect(pos.flight.left).toBe(pos.from.left);
-    expect(pos.flight.top).toBeGreaterThanOrEqual(pos.from.bottom - 1);
-    expect(pos.cta.top).toBeGreaterThanOrEqual(pos.trav.bottom - 1);
-    expect(pos.cta.top).toBeGreaterThanOrEqual(pos.when.bottom - 1);
-    if (pos.w <= 680) {
-      expect(pos.to.top).toBeGreaterThanOrEqual(pos.flight.bottom - 1);
-      expect(pos.when.top).toBeGreaterThanOrEqual(pos.to.bottom - 1);
-      expect(pos.trav.top).toBeGreaterThanOrEqual(pos.when.bottom - 1);
-    } else {
-      expect(Math.abs(pos.to.top - pos.from.top)).toBeLessThanOrEqual(1);
-      expect(pos.trav.left).toBeGreaterThan(pos.when.left);
-    }
+    expect(pos.flight.left).toBeGreaterThanOrEqual(pos.from.right - 1);
+    expect(Math.abs(pos.to.top - pos.from.top)).toBeLessThanOrEqual(1);
   });
 
   test("a street pickup offers an optional flight and keeps a typed value @component", async ({ page }) => {
@@ -155,7 +145,7 @@ test.describe("Home booking box @component", () => {
     await openHome(page);
     const btn = page.locator("[data-trav-btn]");
     expect((await btn.boundingBox())!.height).toBe(54);
-    await expect(btn).toContainText("1 passenger · 0 bags");
+    await expect(btn).toHaveAttribute("aria-label", "1 passenger · 0 bags");
     await btn.click();
     const dialog = page.getByRole("dialog", { name: "Travellers" });
     await expect(dialog).toBeVisible();
@@ -166,7 +156,7 @@ test.describe("Home booking box @component", () => {
     await page.keyboard.press("Escape");
     await expect(dialog).toHaveCount(0);
     await expect(btn).toBeFocused();
-    await expect(btn).toContainText("2 passengers · 2 bags");
+    await expect(btn).toHaveAttribute("aria-label", "2 passengers · 2 bags");
   });
 
   test("SEE PRICES with gaps shows inline errors and focuses From @component", async ({ page }) => {

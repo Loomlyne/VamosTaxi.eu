@@ -326,23 +326,26 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 #book [data-bx=cta]{margin-block-start:var(--vt-space-6);min-inline-size:176px}
 #book [data-bx=cta] .vt-btn{white-space:nowrap}
 #book [data-bx=flight]{min-inline-size:168px;max-inline-size:232px}
-#book [data-bx=flight][data-om-label="Add flight"]{margin-block-start:29px;min-inline-size:0;max-inline-size:none}
+#book [data-bx=flight][data-om-label="Add flight"]{margin-block-start:29px;min-inline-size:0;max-inline-size:none;--vt-control-h-md:44px}
 #book [data-bx=trav]{inline-size:148px}
 #book [data-bx=note]{justify-content:flex-start;margin-block-start:calc(var(--vt-space-2) - var(--vt-space-3))}
 #book [data-trav-shell][data-open="1"]{inset-inline-start:auto;inset-inline-end:0;inline-size:320px}
 #book [data-box] [data-sug]{min-inline-size:360px!important}
 }
 @media (min-width:1081px) and (max-width:1271px){
-#book [data-box]:has(> [data-bx=flight]){grid-template-columns:minmax(0,1fr) auto 44px minmax(0,1fr);grid-template-areas:"from flight swap to" "when when tc tc" "note note note note"}
+#book [data-box]:has(> [data-bx=flight]){grid-template-columns:minmax(0,1fr) auto 44px minmax(0,1fr);grid-template-areas:"from flight swap to" "when tc tc tc" "note note note note"}
 #book [data-box]:not(:has(> [data-bx=flight])){grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr);grid-template-areas:"from swap to" "when tc tc" "note note note"}
 #book [data-bx=trav],#book [data-bx=cta]{grid-area:tc}
 #book [data-bx=trav]{justify-self:start}
-#book [data-bx=cta]{justify-self:end}
+#book [data-bx=cta]{justify-self:end;inline-size:max-content}
 }
 @media (min-width:1272px){
 #book [data-box]:has(> [data-bx=flight]){grid-template-columns:minmax(0,1fr) auto 44px minmax(0,1fr) minmax(180px,.9fr) 148px auto;grid-template-areas:"from flight swap to when trav cta" "note note note note note note note"}
 #book [data-box]:not(:has(> [data-bx=flight])){grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr) minmax(180px,.9fr) 148px auto;grid-template-areas:"from swap to when trav cta" "note note note note note note"}
 #book [data-bx=trav],#book [data-bx=cta]{justify-self:stretch}
+}
+@media (min-width:1272px) and (max-width:1439px){
+#book [data-bx=flight]:not([data-om-label="Add flight"]){max-inline-size:168px}
 }
 </style>
 </helmet>
