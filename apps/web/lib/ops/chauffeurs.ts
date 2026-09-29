@@ -87,7 +87,8 @@ function toIso(value: Date | string): string {
 function normalizePhone(raw: string): string {
   const trimmed = raw.trim();
   if (!trimmed) return "";
-  let compact = trimmed.replace(/[^\d+]/g, "");
+  // "+41 (0)79 ..." writes the national trunk zero in brackets; it is not dialled after the country code.
+  let compact = trimmed.replace(/\(\s*0\s*\)/g, "").replace(/[^\d+]/g, "");
   if (compact.startsWith("00")) compact = `+${compact.slice(2)}`;
   else if (compact.startsWith("0")) compact = `+41${compact.slice(1)}`;
   else if (!compact.startsWith("+")) compact = `+${compact}`;
