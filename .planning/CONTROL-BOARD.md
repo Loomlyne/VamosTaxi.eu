@@ -4,7 +4,7 @@ Kept by the control session. One page: what is live, what is being built, what w
 the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 
-**Last update:** 2026-09-29 23:55 (+04)
+**Last update:** 2026-09-30 00:00 (+04)
 
 ## Live now
 
@@ -67,12 +67,16 @@ One at a time into main. Each later branch takes main in before it hands over.
 | Sign-up | Second account since 18:03, with its customer record |
 | Airport fee | Charged today for an airport pickup, saved inside the fare line (VT-26-0743) |
 
-## Owner decisions open on Phase 26.5
+## Owner decisions on Phase 26.5, 2026-09-29 23:58
 
-| # | Decision | Why it matters |
-|---|---|---|
-| 1 | Put the Supabase service-role key on Worker `vamos`, or build account creation without it | That key reads and writes every table and skips every access rule. Today the Worker works without it, on purpose. |
-| 2 | "Create an account" while the consent notice is still TBC | The plan creates the account and records no consent until his four texts exist. Consent must be provable server-side under nFADP and GDPR. |
+Full text: `.planning/decisions/2026-09-29-checkout-account-notice.md`.
+
+| # | Decision |
+|---|---|
+| 1 | The service-role key goes on Worker `vamos`. He adds it in his terminal at the 26.5 ship. |
+| 2 | Both notice texts approved in four languages, as drafted. Not read by a lawyer. |
+| 3 | "Create an account" needs a tick box; the tick is logged server-side. |
+| 4 | "Create an account" goes live with 26.5, consent recorded from the first account. |
 
 ## Waiting for the owner
 
