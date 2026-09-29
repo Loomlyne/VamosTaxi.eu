@@ -1,7 +1,7 @@
 import { test, expect, type Page, emulateMedia } from "../support/test";
 import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
-import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { NEXT_BIN, settleCloudflareDev, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 import { nextDevEnv } from "../support/test-stack";
 
 const PORTS: Record<string, number> = {
@@ -60,6 +60,7 @@ test.describe("Home page @component", () => {
         CLOUDFLARE_ENV: "staging",
       }),
     });
+    await settleCloudflareDev();
     await waitForNextServer(baseURL, 180_000);
   });
 
