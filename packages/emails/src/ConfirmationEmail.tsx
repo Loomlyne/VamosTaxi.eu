@@ -87,9 +87,12 @@ function moneyRowLabel(locale: EmailLocale, line: EmailMoneyLine, vatRateBps: nu
   }
 }
 
-/** 810 bps -> "8.1"; 800 -> "8". Never hard-coded. */
-function formatRate(bps: number): string {
-  return String(Number((bps / 100).toFixed(2)));
+/**
+ * The booking stores VAT in tenths of a percent (settings.vat_rate_bps: 81 is
+ * 8.1 %, see apps/web/lib/checkout/vat.ts). 81 -> "8.1", 80 -> "8". Never hard-coded.
+ */
+function formatRate(stored: number): string {
+  return String(Number((stored / 10).toFixed(2)));
 }
 
 function presentmentLine(locale: EmailLocale, money: EmailMoney): string | null {

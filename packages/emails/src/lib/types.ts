@@ -44,6 +44,7 @@ export type EmailMoneyLine = {
 
 export type EmailMoney = {
   lines: EmailMoneyLine[];
+  /** As stored on the booking: tenths of a percent (81 = 8.1 %). */
   vatRateBps: number;
   /** charged_rappen of the succeeded payment — the Stripe charge (D-29). */
   chargedRappen: number;

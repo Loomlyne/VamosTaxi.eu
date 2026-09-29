@@ -173,7 +173,7 @@ describe("money block (S6)", () => {
       { kind: "coupon", label: "WELCOME", amountRappen: -1000 },
       { kind: "vat", label: "", amountRappen: 950 },
     ],
-    vatRateBps: 810,
+    vatRateBps: 81,
     chargedRappen: 12500,
     presentment: null,
   };
