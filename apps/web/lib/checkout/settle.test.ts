@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 
 const sqlCalls: Array<{ text: string; values: unknown[] }> = [];
@@ -132,6 +133,7 @@ function deps(patch: Partial<SettleDeps> = {}): SettleDeps & {
   alertPaidAfterCancel: ReturnType<typeof vi.fn>;
   alertStuckPayment: ReturnType<typeof vi.fn>;
   expireSession: ReturnType<typeof vi.fn>;
+  purgeOnSessionExpired: ReturnType<typeof vi.fn>;
   retrieveCharge: ReturnType<typeof vi.fn>;
   retrieveDispute: ReturnType<typeof vi.fn>;
   recordChargeRefund: ReturnType<typeof vi.fn>;
@@ -158,6 +160,7 @@ function deps(patch: Partial<SettleDeps> = {}): SettleDeps & {
     alertPaidAfterCancel,
     alertStuckPayment,
     expireSession,
+    purgeOnSessionExpired: vi.fn(async () => false),
     retrieveCharge: vi.fn(async () => chargeFixture()),
     retrieveDispute: vi.fn(async () => disputeFixture()),
     findSessionIdForPaymentIntent: vi.fn(async () => "cs_test_1"),
@@ -176,6 +179,7 @@ function deps(patch: Partial<SettleDeps> = {}): SettleDeps & {
     alertPaidAfterCancel: ReturnType<typeof vi.fn>;
     alertStuckPayment: ReturnType<typeof vi.fn>;
     expireSession: ReturnType<typeof vi.fn>;
+    purgeOnSessionExpired: ReturnType<typeof vi.fn>;
     retrieveCharge: ReturnType<typeof vi.fn>;
     retrieveDispute: ReturnType<typeof vi.fn>;
     recordChargeRefund: ReturnType<typeof vi.fn>;
@@ -648,5 +652,79 @@ describe("settle stores the presentment currency (D-21)", () => {
       presentment_details: { presentment_amount: 8000, presentment_currency: "chf" },
     } as Partial<Stripe.Checkout.Session>);
     expect(values.slice(-2)).toEqual([null, null]);
+  });
+});
+
+describe("26.3-12 purge on expired, refund when the booking is gone (D-25, Pitfall 7)", () => {
+  const expiredMsg = () => message({ type: "checkout.session.expired" } as Partial<StripeQueueMessage>);
+
+  it("purges after the payment row is marked failed, and acks", async () => {
+    const d = deps({
+      retrieveSession: vi.fn(async () => session({ status: "expired", payment_status: "unpaid" } as Partial<Stripe.Checkout.Session>)),
+    });
+    expect(await handleStripeMessageWithDeps(expiredMsg(), d)).toEqual({ ack: true });
+    expect(d.settlePayment.mock.calls[0]?.[0].outcome).toBe("failed");
+    expect(d.purgeOnSessionExpired).toHaveBeenCalledWith("cs_test_1", "11111111-1111-1111-1111-111111111111");
+    expect(d.deliverConfirmation).not.toHaveBeenCalled();
+  });
+
+  it("acks even when the purge helper throws", async () => {
+    const d = deps({
+      retrieveSession: vi.fn(async () => session({ status: "expired", payment_status: "unpaid" } as Partial<Stripe.Checkout.Session>)),
+      purgeOnSessionExpired: vi.fn(async () => {
+        throw new Error("x");
+      }),
+    });
+    expect(await handleStripeMessageWithDeps(expiredMsg(), d)).toEqual({ ack: true });
+  });
+
+  it("does not purge on a completed event", async () => {
+    const d = deps();
+    await handleStripeMessageWithDeps(message(), d);
+    expect(d.purgeOnSessionExpired).not.toHaveBeenCalled();
+  });
+
+  function missing(created: number | undefined, patch: Partial<Stripe.Checkout.Session> = {}) {
+    return deps({
+      retrieveSession: vi.fn(async () =>
+        session({ created, metadata: { booking_id: "quote-1" }, ...patch } as Partial<Stripe.Checkout.Session>),
+      ),
+      settlePayment: vi.fn(async () => {
+        throw Object.assign(new Error("payment_not_found"), { code: "P0002" });
+      }),
+    });
+  }
+  const OLD = Math.floor(Date.now() / 1000) - 3600;
+
+  it("refunds a paid session whose booking is gone, with a valid reason, alerts and acks", async () => {
+    const d = missing(OLD);
+    expect(await handleStripeMessageWithDeps(message(), d)).toEqual({ ack: true });
+    const arg = d.refund.mock.calls[0]?.[0];
+    expect(arg.paymentIntentId).toBe("pi_test_1");
+    expect(arg.metadata).toEqual({ vamos_reason: "booking_missing" });
+    expect(d.alertStuckPayment).toHaveBeenCalled();
+    expect(d.eventSettle).toHaveBeenCalledWith("evt_1", "booking_missing");
+  });
+
+  it("still acks (no infinite retry) when the refund itself fails", async () => {
+    const d = missing(OLD);
+    d.refund.mockRejectedValueOnce(new Error("stripe down"));
+    expect(await handleStripeMessageWithDeps(message(), d)).toEqual({ ack: true });
+    expect(d.alertStuckPayment).toHaveBeenCalled();
+  });
+
+  it("retries a young session (intent transaction may not be committed)", async () => {
+    const d = missing(Math.floor(Date.now() / 1000) - 5);
+    expect(await handleStripeMessageWithDeps(message(), d)).toEqual({ retry: true });
+    expect(d.refund).not.toHaveBeenCalled();
+  });
+
+  it("never refunds an ops extra session or an unpaid one", async () => {
+    const extra = missing(OLD, { metadata: { kind: "extra" } } as Partial<Stripe.Checkout.Session>);
+    expect(await handleStripeMessageWithDeps(message(), extra)).toEqual({ retry: true });
+    const unpaid = missing(OLD, { payment_status: "unpaid" } as Partial<Stripe.Checkout.Session>);
+    await handleStripeMessageWithDeps(message(), unpaid);
+    expect(extra.refund).not.toHaveBeenCalled();
+    expect(unpaid.refund).not.toHaveBeenCalled();
   });
 });

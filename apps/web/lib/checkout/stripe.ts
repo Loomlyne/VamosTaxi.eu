@@ -211,8 +211,11 @@ export async function createRefund(
   stripe: Stripe,
   input: {
     paymentIntentId: string;
-    amountRappen: number;
+    /** null refunds the whole charge (26.3-12: a paid session with no booking, no row to read the amount from). */
+    amountRappen: number | null;
     idempotencyKey: string;
+    /** Extra metadata keys merged after the D-05 ones (26.3-12 vamos_reason). */
+    metadata?: Record<string, string>;
     /** D-05: every app-created refund carries metadata so charge.refunded (26.1-08) can tell app refunds from dashboard refunds. */
     bookingId: string;
     paymentId: number;
@@ -222,13 +225,15 @@ export async function createRefund(
   return stripe.refunds.create(
     {
       payment_intent: input.paymentIntentId,
-      amount: input.amountRappen,
+      ...(input.amountRappen == null ? {} : { amount: input.amountRappen }),
+      // Stripe only accepts duplicate / fraudulent / requested_by_customer here; our own reason lives in metadata.
       reason: "requested_by_customer",
       metadata: {
         vamos_source: "app",
         booking_id: input.bookingId,
         payment_id: String(input.paymentId),
         reason: input.reason,
+        ...(input.metadata ?? {}),
       },
     },
     { idempotencyKey: input.idempotencyKey },
