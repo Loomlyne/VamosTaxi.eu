@@ -278,7 +278,6 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 #book [data-trav-btn]{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:10px;width:100%;height:var(--vt-control-h-lg);padding-inline:14px;background:var(--vt-bg-surface);border:var(--vt-border-w) solid var(--vt-border-subtle);border-radius:var(--vt-radius-field);cursor:pointer;font-family:var(--vt-font-body);font-size:var(--vt-body-md);color:var(--vt-text-primary);transition:var(--vt-transition-control)}
 #book [data-trav-btn]:hover{border-color:var(--vt-grey-300)}
 #book [data-trav-btn][aria-expanded=true]{border-color:var(--vt-charcoal-900)}
-#book [data-trav-sum]{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:start}
 #book [data-trav-shell]{display:none}
 #book [data-trav-shell][data-open="1"]{display:block;position:absolute;inset-inline:0;top:calc(100% + 8px);z-index:600}
 #book [data-trav-panel]{box-sizing:border-box;display:flex;flex-direction:column;gap:14px;padding:16px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-lg);outline:none}
@@ -315,6 +314,36 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 [data-bar-dock][data-show="1"]{opacity:1;visibility:visible;transform:none;pointer-events:auto;transition:opacity 200ms var(--vt-ease-out),transform 200ms var(--vt-ease-out),visibility 0s}
 }
 @media (prefers-reduced-motion:reduce){[data-bar-dock],[data-bar-dock][data-show="1"]{transition:none}}
+/* 26.4.1 laptop bar (D-01…D-04): ≥1081 two rows, ≥1272 one row. ≤1080 is the 26.4 bar + sheet. */
+#book [data-trav-fig]{font-family:var(--vt-font-display);font-weight:600;font-size:var(--vt-body-md);line-height:1;font-variant-numeric:tabular-nums}
+#book [data-trav-btn]{gap:var(--vt-space-1)}
+#book [data-trav-btn]>[data-trav-fig]:first-of-type{margin-inline-end:var(--vt-space-2)}
+#book [data-trav-btn]>:last-child{margin-inline-start:auto}
+@media (min-width:1081px){
+[data-bookcard]{max-width:none;padding:var(--vt-space-4)}
+#book [data-box]{gap:var(--vt-space-3);align-items:start}
+#book [data-bx=swap]{margin-block-start:29px}
+#book [data-bx=cta]{margin-block-start:var(--vt-space-6);min-inline-size:176px}
+#book [data-bx=cta] .vt-btn{white-space:nowrap}
+#book [data-bx=flight]{min-inline-size:168px;max-inline-size:232px}
+#book [data-bx=flight][data-om-label="Add flight"]{margin-block-start:29px;min-inline-size:0;max-inline-size:none}
+#book [data-bx=trav]{inline-size:148px}
+#book [data-bx=note]{justify-content:flex-start;margin-block-start:calc(var(--vt-space-2) - var(--vt-space-3))}
+#book [data-trav-shell][data-open="1"]{inset-inline-start:auto;inset-inline-end:0;inline-size:320px}
+#book [data-box] [data-sug]{min-inline-size:360px!important}
+}
+@media (min-width:1081px) and (max-width:1271px){
+#book [data-box]:has(> [data-bx=flight]){grid-template-columns:minmax(0,1fr) auto 44px minmax(0,1fr);grid-template-areas:"from flight swap to" "when when tc tc" "note note note note"}
+#book [data-box]:not(:has(> [data-bx=flight])){grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr);grid-template-areas:"from swap to" "when tc tc" "note note note"}
+#book [data-bx=trav],#book [data-bx=cta]{grid-area:tc}
+#book [data-bx=trav]{justify-self:start}
+#book [data-bx=cta]{justify-self:end}
+}
+@media (min-width:1272px){
+#book [data-box]:has(> [data-bx=flight]){grid-template-columns:minmax(0,1fr) auto 44px minmax(0,1fr) minmax(180px,.9fr) 148px auto;grid-template-areas:"from flight swap to when trav cta" "note note note note note note note"}
+#book [data-box]:not(:has(> [data-bx=flight])){grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr) minmax(180px,.9fr) 148px auto;grid-template-areas:"from swap to when trav cta" "note note note note note note"}
+#book [data-bx=trav],#book [data-bx=cta]{justify-self:stretch}
+}
 </style>
 </helmet>
 <div style="font-family:var(--vt-font-body);color:var(--vt-text-primary);background:var(--vt-bg-page)">
@@ -446,9 +475,11 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </div>
 <div data-bx="trav" data-om-label="Travellers">
 <span data-bx-kicker="1">Travellers</span>
-<button type="button" data-trav-btn="1" ref="{{ travBtnRef }}" aria-haspopup="dialog" aria-expanded="{{ travOpenStr }}" onClick="{{ toggleTrav }}">
+<button type="button" data-trav-btn="1" ref="{{ travBtnRef }}" aria-haspopup="dialog" aria-expanded="{{ travOpenStr }}" aria-label="{{ travSummary }}" title="{{ travSummary }}" onClick="{{ toggleTrav }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="users" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
-<span data-trav-sum="1">{{ travSummary }}</span>
+<span data-trav-fig="1" class="vt-dir-keep">{{ paxN }}</span>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="luggage" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
+<span data-trav-fig="1" class="vt-dir-keep">{{ bagsN }}</span>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-down" size="{{ n16 }}" color="var(--vt-text-muted)" hint-size="16px,16px"></x-import>
 </button>
 <div data-trav-shell="1" data-open="{{ travOpenAttr }}" onClick="{{ travScrim }}">
@@ -1268,11 +1299,16 @@ class Component extends DCLogic {
       if (narrow !== this.state.narrow) patch.narrow = narrow;
       /* Crossing to the laptop layout closes the sheet silently; the box shows the same values. */
       if (!narrow && this.state.sheetOpen) { patch.sheetOpen = false; patch.sug = CLOSED; patch.sugIdx = -1; }
+      /* An open travellers or suggestion panel closes silently when the layout switches (26.4.1). Values and errors stay. */
+      const wide = typeof matchMedia !== 'undefined' && matchMedia('(min-width:1272px)').matches;
+      const flipped = (this._wide !== undefined && wide !== this._wide) || (narrow && !this.state.narrow);
+      this._wide = wide;
+      if (flipped) { patch.travOpen = false; patch.sug = CLOSED; patch.sugIdx = -1; }
       if (Object.keys(patch).length) this.setState(patch, () => this.setupDock());
       else this.setupDock();
     };
     window.addEventListener('resize', this._onResize);
-    this._mqs = ['(max-width:1080px)'].map((q) => { const m = matchMedia(q); m.addEventListener ? m.addEventListener('change', this._onResize) : m.addListener(this._onResize); return m; });
+    this._mqs = ['(max-width:1080px)', '(min-width:1272px)'].map((q) => { const m = matchMedia(q); m.addEventListener ? m.addEventListener('change', this._onResize) : m.addListener(this._onResize); return m; });
     /* The header's own menu is the one thing that hides the docked bar besides the sheet. */
     this._hdSeen = false;
     this._hdMo = typeof MutationObserver !== 'undefined' ? new MutationObserver(() => this.syncHeaderMenu()) : null;
