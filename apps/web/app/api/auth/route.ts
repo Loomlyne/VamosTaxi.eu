@@ -598,6 +598,9 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   if (fields.mode === "signup") {
+    // Staff accounts are invited, never self-made: a sign-up posted to the
+    // dashboard host must not create a customer account there.
+    if (dashboard) return json(SENT);
     const parsed = signUpPasswordSchema.safeParse(fields);
     if (!parsed.success) return json(SENT);
     const { result, reason } = await runSignUpPassword(
