@@ -24,41 +24,47 @@ export async function GET(request: Request) {
     );
   }
   const { env } = await getCloudflareContext({ async: true });
-  const rows = await asCustomer(env, claims, async (sql) => {
-    // D-32: link guest bookings made with this confirmed e-mail before listing. A failure must not break the list.
-    try {
-      await sql`select public.customer_claim_guest_bookings()`;
-    } catch {
-      /* listing continues; the claim retries on the next open */
-    }
-    return await sql<AccountSqlRow[]>`
-      select
-        b.reference,
-        b.status::text as status,
-        b.price_total_rappen,
-        l.pickup_text,
-        l.dropoff_text,
-        l.scheduled_local,
-        l.scheduled_at,
-        l.pax,
-        b.is_test,
-        b.pay_link_sent_at,
-        exists (select 1 from public.reviews r where r.booking_id = b.id) as has_review
-      from public.bookings b
-      inner join public.booking_legs l
-        on l.booking_id = b.id
-       and l.leg_seq = 1
-      where b.status::text <> 'quote'
-        and (
-          b.status::text <> 'pending'
-          or b.pay_link_sent_at is not null
-        )
-        and lower(b.contact_email::text) = lower(${email})
-      order by case when b.status::text = 'pending' then 0 else 1 end,
-               l.scheduled_at desc nulls last
-      limit 50
-    `;
-  });
+  let rows: AccountSqlRow[];
+  try {
+    rows = await asCustomer(env, claims, async (sql) => {
+      // D-32: link guest bookings made with this confirmed e-mail before listing. A failure must not break the list.
+      try {
+        await sql`select public.customer_claim_guest_bookings()`;
+      } catch {
+        /* listing continues; the claim retries on the next open */
+      }
+      return await sql<AccountSqlRow[]>`
+        select
+          b.reference,
+          b.status::text as status,
+          b.price_total_rappen,
+          l.pickup_text,
+          l.dropoff_text,
+          l.scheduled_local,
+          l.scheduled_at,
+          l.pax,
+          b.is_test,
+          b.pay_link_sent_at,
+          exists (select 1 from public.reviews r where r.booking_id = b.id) as has_review
+        from public.bookings b
+        inner join public.booking_legs l
+          on l.booking_id = b.id
+         and l.leg_seq = 1
+        where b.status::text <> 'quote'
+          and (
+            b.status::text <> 'pending'
+            or b.pay_link_sent_at is not null
+          )
+          and lower(b.contact_email::text) = lower(${email})
+        order by case when b.status::text = 'pending' then 0 else 1 end,
+                 l.scheduled_at desc nulls last
+        limit 50
+      `;
+    });
+  } catch {
+    /* Never let a failed read look like an empty list: the pages show an error state on 500. */
+    return NextResponse.json({ error: "list_failed" }, { status: 500, headers: noStore });
+  }
   return NextResponse.json(
     { bookings: rows.map((row) => mapAccountBooking(row)) },
     { headers: noStore },

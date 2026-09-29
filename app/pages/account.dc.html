@@ -283,6 +283,12 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 </sc-if>
 </div>
 </sc-for>
+<sc-if value="{{ listError }}" hint-placeholder-val="{{ false }}">
+<div role="alert" style="padding:18px 0;border-top:1px solid var(--vt-border-subtle);display:flex;flex-direction:column;gap:12px;align-items:flex-start">
+<p data-ac-sub="1" style="margin:0">We could not load your bookings. Try again.</p>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ retryList }}" hint-size="170px,44px">Try again</x-import>
+</div>
+</sc-if>
 <sc-if value="{{ noBookings }}" hint-placeholder-val="{{ false }}">
 <p data-ac-sub="1" style="padding:18px 0;border-top:1px solid var(--vt-border-subtle)">No transfers yet. Your next booking appears here the moment it is paid.</p>
 </sc-if>
@@ -543,10 +549,7 @@ class Component extends DCLogic {
         this.setState({ auth });
         /* A checkout draft is not a booking (D-33): drop leftovers, never render them. */
         try { localStorage.removeItem('vamosTrip'); sessionStorage.removeItem('vamosTrip'); localStorage.removeItem('vamosQuoteLock'); sessionStorage.removeItem('vamosQuoteLock'); } catch (e) {}
-        fetch('/api/account/bookings', { credentials: 'same-origin' })
-          .then((r) => r.json())
-          .then((j) => this.setState({ liveBookings: (j && Array.isArray(j.bookings)) ? j.bookings : [] }))
-          .catch(() => this.setState({ liveBookings: [] }));
+        this.loadUpcoming();
         fetch('/api/account/prefs', { credentials: 'same-origin' })
           .then((r) => r.json())
           .then((j) => {
@@ -762,10 +765,16 @@ class Component extends DCLogic {
   loadUpcoming = () => {
     /* A checkout draft is not a booking: drop leftovers once per load. */
     try { localStorage.removeItem('vamosTrip'); sessionStorage.removeItem('vamosTrip'); localStorage.removeItem('vamosQuoteLock'); sessionStorage.removeItem('vamosQuoteLock'); } catch (e) {}
+    this.setState({ listError: false });
     fetch('/api/account/bookings', { credentials: 'same-origin', cache: 'no-store' })
-      .then((r) => r.json())
-      .then((j) => this.setState({ liveBookings: (j && Array.isArray(j.bookings)) ? j.bookings : [] }))
-      .catch(() => this.setState({ liveBookings: [] }));
+      .then((r) => {
+        /* 401 is a signed-out visitor (the session check redirects). Any other failure is an error, never "no bookings". */
+        if (r.ok) return r.json();
+        if (r.status === 401) return { bookings: [] };
+        throw new Error('list_failed');
+      })
+      .then((j) => this.setState({ liveBookings: (j && Array.isArray(j.bookings)) ? j.bookings : [], listError: false }))
+      .catch(() => this.setState({ liveBookings: [], listError: true }));
   };
 
   cancelUnpaid = (ref) => {
@@ -840,7 +849,8 @@ class Component extends DCLogic {
       phoneTodo: phoneStage !== 'verified',
       savedPhone: readPhone(),
 
-      bookings, noBookings: bookings.length === 0,
+      bookings, noBookings: bookings.length === 0 && !s.listError,
+      listError: !!s.listError, retryList: this.loadUpcoming,
       cancelCheckout: this.cancelCheckout,
       cancelUnpaid: this.cancelUnpaid,
 
