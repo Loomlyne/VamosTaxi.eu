@@ -110,10 +110,11 @@ Built by the 26.3 session as `fix/26.4.2-booking-feedback` (folder `fix-26.4.2`)
 | # | Feedback | State |
 |---|---|---|
 | 1 | Phone and tablet booking becomes one page, no 4 steps; date then time; our own picker, never the phone's | Building |
-| 2 | Laptop: flight field behind From, address list not showing | **Not reproduced** by the control session on live in a Chrome-based browser at 1440 and 1280. Waiting for a screenshot from the owner. |
+| 2 | Laptop: "flight behind From" | **Not a bug.** He wants another order: Flight number, From, To. The flight field stays hidden until From is an airport, then appears before From. Same order on laptop, tablet, phone and checkout Edit trip. The address list opens upward when there is no room below; the bar no longer jumps. |
 | 3 | Laptop home gets "Choose your class" back, with server prices under the bar | Building |
 | 4 | Phone checkout class cards redesigned | Building |
-| 5 | An unpaid booking can never be continued on another device; a paid trip can be shared | Decision recorded in `.planning/decisions/2026-09-30-unpaid-booking-other-device.md`. Test owed by 26.5. |
+| 5 | An unpaid booking can never be continued on another device; a paid trip can be shared | Decision recorded in `.planning/decisions/2026-09-30-unpaid-booking-other-device.md`. A pasted checkout link shows the trip only, with an empty form (26.5 D-16, four route tests). |
+| 6 | Sign-off | He sees pictures of the three designs at 390, 768 and 1440 and signs before anything is handed over. |
 
 ## Owed by the control session
 
