@@ -1,7 +1,50 @@
 import { describe, expect, it, vi } from "vitest";
+
+const sqlCalls: Array<{ text: string; values: unknown[] }> = [];
+const retrieved: { session: unknown } = { session: null };
+
+vi.mock("../db/identity", () => ({
+  asSystem: async (_env: unknown, fn: (sql: unknown) => Promise<unknown>) => {
+    const sql = (strings: TemplateStringsArray, ...values: unknown[]) => {
+      const text = strings.join("?");
+      sqlCalls.push({ text, values });
+      if (text.includes("stripe_event_begin")) return Promise.resolve([{ should_process: true, reason: "ok" }]);
+      if (text.includes("checkout_payment_settle")) {
+        return Promise.resolve([
+          {
+            booking_id: "b1",
+            reference: "VT-1",
+            locale: "en",
+            contact_email: "a@example.test",
+            already_settled: true,
+            revived: false,
+            duplicate: false,
+            refund_required: false,
+            refund_reason: null,
+            payment_id: 1,
+            charged_rappen: 8000,
+            other_open_session_ids: [],
+          },
+        ]);
+      }
+      return Promise.resolve([]);
+    };
+    return fn(sql);
+  },
+}));
+
+vi.mock("./stripe", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./stripe")>();
+  return {
+    ...actual,
+    stripeFromEnv: () => ({}),
+    retrieveCheckoutSession: async () => retrieved.session,
+  };
+});
 import {
   applyHandleResult,
   captureAllowed,
+  handleStripeMessage,
   handleStripeMessageWithDeps,
   pgTextArrayLiteral,
   type SettleDeps,
@@ -579,5 +622,31 @@ describe("applyHandleResult (worker queue loop)", () => {
     const here = dirname(fileURLToPath(import.meta.url));
     const src = readFileSync(join(here, "..", "..", "worker.ts"), "utf8");
     expect(src).toMatch(/applyHandleResult\(message, result\)/);
+  });
+});
+
+
+describe("settle stores the presentment currency (D-21)", () => {
+  async function settleWith(patch: Partial<Stripe.Checkout.Session>) {
+    sqlCalls.length = 0;
+    retrieved.session = session(patch);
+    await handleStripeMessage({} as CloudflareEnv, message());
+    const call = sqlCalls.find((c) => c.text.includes("checkout_payment_settle"));
+    expect(call).toBeDefined();
+    return call!.values;
+  }
+
+  it("passes the EUR amount and currency to checkout_payment_settle", async () => {
+    const values = await settleWith({
+      presentment_details: { presentment_amount: 9000, presentment_currency: "eur" },
+    } as Partial<Stripe.Checkout.Session>);
+    expect(values.slice(-2)).toEqual([9000, "EUR"]);
+  });
+
+  it("passes null and null for a CHF presentment", async () => {
+    const values = await settleWith({
+      presentment_details: { presentment_amount: 8000, presentment_currency: "chf" },
+    } as Partial<Stripe.Checkout.Session>);
+    expect(values.slice(-2)).toEqual([null, null]);
   });
 });

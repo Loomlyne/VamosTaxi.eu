@@ -430,6 +430,7 @@ export async function handleStripeMessage(
         fxSource: null,
         fxQuotedAt: null,
         presentmentAmountMinor: null,
+        presentmentCurrency: null,
       };
       const extra = input.session?.metadata?.kind === "extra";
       try {
@@ -459,7 +460,8 @@ export async function handleStripeMessage(
               ${fx.fxRate},
               ${fx.fxSource},
               ${fx.fxQuotedAt}::timestamptz,
-              ${fx.presentmentAmountMinor}
+              ${fx.presentmentAmountMinor},
+              ${fx.presentmentCurrency}
             )
           `;
         });

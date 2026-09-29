@@ -73,7 +73,7 @@
         // No Mapbox plan exists yet, so no ceiling in francs can be honest.
         "MAPBOX_DAILY_UNIT_SENTINEL": "5000",
         "STRIPE_PUBLISHABLE_KEY": "pk_test_51UIZmqHcNp9GZYjzrjt6veTXy3EkAOLiOLfYwc4rXpSxIY7HMLFViyMV7IxirWjmV1OkwVFo1Z5De2YrANVtiB5M002tCIoxfZ",
-        "STRIPE_CHECKOUT_TWINT": "off",
+        "STRIPE_CHECKOUT_TWINT": "off"
       },
       "kv_namespaces": [
         { "binding": "GEO_CACHE", "id": "48cd800d63e44c03aa1f49be83d39d7a" },
@@ -216,7 +216,7 @@
         // Not a budget; not a franc figure.
         "MAPBOX_DAILY_UNIT_SENTINEL": "5000",
         "STRIPE_PUBLISHABLE_KEY": "pk_test_placeholder",
-        "STRIPE_CHECKOUT_TWINT": "off",
+        "STRIPE_CHECKOUT_TWINT": "off"
       },
       "kv_namespaces": [
         { "binding": "GEO_CACHE", "id": "a11bc8c7d13d4eeb9c2dad091e978dcb" },
