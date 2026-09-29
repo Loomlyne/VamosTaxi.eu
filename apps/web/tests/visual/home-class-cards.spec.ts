@@ -12,7 +12,8 @@ const PLACES = [
 ];
 
 // FIXTURE amounts (rappen). Not real prices.
-const FIXTURE_CLASSES = [
+type FixtureClass = { slug: string; name: string; eligible: boolean; ineligible_reason: string | null; effective_max_pax: number; max_bags: number; total_rappen: number | null };
+const FIXTURE_CLASSES: FixtureClass[] = [
   { slug: "economy", name: "Economy", eligible: true, ineligible_reason: null, effective_max_pax: 3, max_bags: 3, total_rappen: 11100 },
   { slug: "business", name: "Business", eligible: true, ineligible_reason: null, effective_max_pax: 3, max_bags: 3, total_rappen: 22200 },
   { slug: "van-luxury", name: "Van luxury", eligible: true, ineligible_reason: null, effective_max_pax: 7, max_bags: 7, total_rappen: 33300 },
