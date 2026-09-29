@@ -1096,6 +1096,13 @@ Plans:
 
 **UI hint**: yes
 
+### Phase 26.4: One form + phone booking sheet (INSERTED)
+
+**Goal**: Owner comments 4–6 after the 26.3 ship. On phone and tablet the home hero shows one bar; a tap opens a full-screen booking sheet in 4 steps (From + flight · To · When · Travellers → SEE PRICES → /checkout). One booking form everywhere: the customer types pickup and destination and the server applies the fare parts automatically (start + per km, airport pickup fee when the pickup is an airport, one city/canton pair, ticked extras) — no calculation change. Service links stay as entry points into the same flow.
+**Depends on**: 26.3 (shipped af93fc8e) and the account fix (quick 260929-acl).
+**Requirements**: from 26.4-CONTEXT.md
+**UI hint**: yes
+
 ### Phase 27: Consent record
 
 **Goal**: Accept logs Meta on. Dismiss logs Meta off. The latest `consent_log` row
@@ -1192,7 +1199,8 @@ Plan-level states (owner, 2026-09-29; source record .planning/PHASE-CLOSURE-2026
 | 26.0. Main green (INSERTED) | part 1 in 26.1 | Parked (after 26.3 live; PR #63 refund fix rides with it) | - |
 | 26.1. Payment and pricing integrity (INSERTED) | 30/32 | Waiting for owner Ship (26.1-26), then 26.1-28 |  |
 | 26.2. Codebase audit, bug fix and simplify (INSERTED) | 0/TBD | Parked (after 26.0) | - |
-| 26.3. Booking flow rebuild (INSERTED) | 0/23 | Planned, awaiting owner sign-off | - |
+| 26.3. Booking flow rebuild (INSERTED) | 22/23 + G1–G9 | Shipped af93fc8e, Worker 839d73fc | 2026-09-29 |
+| 26.4. One form + phone booking sheet (INSERTED) | 0/TBD | Discuss | - |
 | 27. Consent record | 0/TBD | Not started | - |
 | 28. Pixel PageView | 0/TBD | Not started | - |
 | 29. Webhook Purchase | 0/TBD | Not started | - |
