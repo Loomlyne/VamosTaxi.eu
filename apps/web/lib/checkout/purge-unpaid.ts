@@ -37,8 +37,8 @@ export async function purgeExpiredUnpaidWithDeps(deps: PurgeSweepDeps): Promise<
   const result: PurgeSweepResult = { purged: 0, skipped: 0, errors: 0 };
   const rows = await deps.candidates();
   for (const row of rows) {
-    const ids = (row.session_ids ?? []).filter((id) => Boolean(id));
     try {
+      const ids = (row.session_ids ?? []).filter((id) => Boolean(id));
       if (ids.length === 0) {
         result.skipped += 1;
         continue;
@@ -76,6 +76,8 @@ export type PurgeOnExpiredDeps = {
   sessionIdsFor: (bookingId: string) => Promise<string[]>;
   retrieve: (sessionId: string) => Promise<SessionView>;
   purge: (bookingId: string, reason: string) => Promise<boolean>;
+  /** Failure log. A failed purge must leave a trace; the webhook still acks (settle owns retries). */
+  emit?: (message: string, fields: Record<string, string | number>) => void;
 };
 
 /**
@@ -98,6 +100,7 @@ export async function purgeOnSessionExpired(
     if (!(await allSessionsExpiredUnpaid(ids, deps.retrieve))) return false;
     return await deps.purge(bookingId, PURGE_REASON);
   } catch {
+    deps.emit?.("purge_unpaid_failed", { bookingId });
     return false;
   }
 }
@@ -106,6 +109,9 @@ export async function purgeOnSessionExpired(
 export function purgeDepsFromEnv(env: CloudflareEnv): PurgeOnExpiredDeps {
   const stripe = stripeFromEnv(env);
   return {
+    emit: (message, fields) => {
+      console.error(message, JSON.stringify(fields));
+    },
     retrieve: (id) => retrieveCheckoutSession(stripe, id),
     sessionIdsFor: (bookingId) =>
       asSystem(env, async (sql) => {

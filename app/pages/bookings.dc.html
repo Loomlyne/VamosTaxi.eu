@@ -202,6 +202,14 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 </div>
 </sc-if>
 
+<sc-if value="{{ listError }}" hint-placeholder-val="{{ false }}">
+<div data-card="1" role="alert" style="padding:clamp(24px,3vw,34px);display:flex;flex-direction:column;gap:14px;align-items:flex-start">
+<span style="width:44px;height:44px;border-radius:var(--vt-radius-pill);background:var(--vt-grey-100);display:grid;place-items:center"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-alert" size="{{ n20 }}" color="var(--vt-danger)" hint-size="20px,20px"></x-import></span>
+<p style="margin:0;max-width:52ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-primary)">We could not load your bookings. Try again.</p>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ retryList }}" hint-size="170px,44px">Try again</x-import>
+</div>
+</sc-if>
+
 <sc-if value="{{ tabEmpty }}" hint-placeholder-val="{{ false }}">
 <div data-card="1" style="padding:clamp(24px,3vw,34px);display:flex;flex-direction:column;gap:14px;align-items:flex-start">
 <span style="width:44px;height:44px;border-radius:var(--vt-radius-pill);background:var(--vt-grey-100);display:grid;place-items:center"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="calendar" size="{{ n20 }}" color="var(--vt-charcoal-900)" hint-size="20px,20px"></x-import></span>
@@ -373,18 +381,25 @@ class Component extends DCLogic {
     this._fetching = true;
     this.dropTripIfRef();
     fetch('/api/account/bookings', { credentials: 'same-origin', cache: 'no-store' })
-      .then((r) => (r.ok ? r.json() : { bookings: [] }))
+      .then((r) => {
+        /* 401 is a signed-out visitor: an empty list. Any other failure is an error, never "no bookings". */
+        if (r.ok) return r.json();
+        if (r.status === 401) return { bookings: [] };
+        throw new Error('list_failed');
+      })
       .then((data) => {
         const rows = Array.isArray(data.bookings) ? data.bookings : [];
         clearTimeout(this._t);
-        this.setState({ live: true, rows, view: rows.length ? 'populated' : 'empty' });
+        this.setState({ live: true, rows, listError: false, view: rows.length ? 'populated' : 'empty' });
       })
       .catch(() => {
         clearTimeout(this._t);
-        this.setState({ live: true, rows: [], view: 'empty' });
+        this.setState({ live: true, rows: [], listError: true, view: 'empty' });
       })
       .then(() => { this._fetching = false; });
   };
+
+  retryList = () => { this.setState({ listError: false }); this.loadBookings(); };
 
   /* A checkout draft is never a booking (D-33): leftovers are dropped, never read. */
   dropTripIfRef = () => {
@@ -554,7 +569,8 @@ class Component extends DCLogic {
       isLoading: v === 'loading',
       hasRows: v !== 'loading' && v !== 'empty' && groups.length > 0,
       noMatch: v !== 'loading' && v !== 'empty' && groups.length === 0 && all.length > 0,
-      tabEmpty: v !== 'loading' && groups.length === 0 && all.length === 0,
+      tabEmpty: v !== 'loading' && groups.length === 0 && all.length === 0 && !s.listError,
+      listError: !!s.listError, retryList: this.retryList,
 
       q: s.q, hasQ: !!s.q, onQ: this.onQ, clearQ: this.clearQ,
       showSearch: v !== 'loading' && all.length > 8,

@@ -114,3 +114,34 @@ describe("D-45 silence", () => {
     expect(src).not.toMatch(/sendConfirmation|sendPayLink|notifyExpired|resend/i);
   });
 });
+
+describe("one bad row never stops the sweep", () => {
+  it("a row whose session list is not an array is counted as an error and the next row still runs", async () => {
+    const t = sweep({ cs_2: EXP }, [
+      { booking_id: "b1", session_ids: "{cs_1}" as unknown as string[] },
+      { booking_id: "b2", session_ids: ["cs_2"] },
+    ]);
+    const r = await purgeExpiredUnpaidWithDeps(t.deps);
+    expect(r).toEqual({ purged: 1, skipped: 0, errors: 1 });
+    expect(t.emit).toHaveBeenCalledWith("purge_unpaid_failed", { bookingId: "b1" });
+    expect(t.purgeFn).toHaveBeenCalledWith("b2", "unpaid_expired");
+  });
+});
+
+describe("purgeOnSessionExpired failure log", () => {
+  it("logs purge_unpaid_failed when the session-id read throws, and returns false", async () => {
+    const emit = vi.fn();
+    const ok = await purgeOnSessionExpired(
+      {
+        retrieve: async () => EXP as never,
+        sessionIdsFor: async () => "{cs_1}" as unknown as string[],
+        purge: async () => true,
+        emit,
+      },
+      "cs_1",
+      "b1",
+    );
+    expect(ok).toBe(false);
+    expect(emit).toHaveBeenCalledWith("purge_unpaid_failed", { bookingId: "b1" });
+  });
+});

@@ -10,6 +10,15 @@ export const dynamic = "force-dynamic";
 
 import type { VamosClaims } from "@/lib/db/identity";
 import { asCustomer, asGuest, asSystem } from "@/lib/db/identity";
+import {
+  loadEditBookingContact,
+  loadEditExtraSession,
+  loadEditPendingPayload,
+  loadEditSnapshotTotal,
+  loadTripForMail,
+  supersedePendingEditRequest,
+  writeFlightNumber,
+} from "@/lib/db/system-reads";
 import { notifyFlightNumber, notifyTimeChange } from "@/lib/lifecycle/notify-lifecycle";
 import {
   createCheckoutSession,
@@ -323,15 +332,7 @@ export async function acceptPaidEdit(
   const oldSessionId = upsert?.old_extra_session_id ?? null;
   let oldExtraTotal: number | null = null;
   if (upsert?.old_extra_snapshot_id != null) {
-    oldExtraTotal = await asSystem(env, async (sql) => {
-      const rows = await sql<{ total_rappen: number }[]>`
-        select total_rappen
-          from public.price_snapshots
-         where id = ${upsert.old_extra_snapshot_id}::bigint
-      `;
-      const total = rows[0]?.total_rappen;
-      return total == null ? null : Number(total);
-    });
+    oldExtraTotal = await loadEditSnapshotTotal(env, upsert.old_extra_snapshot_id);
   }
 
   if (oldSessionId && !shouldExpireOldExtraSession(oldExtraTotal, difference)) {
@@ -355,16 +356,7 @@ export async function acceptPaidEdit(
 
   let extraSessionId = reuseSessionId;
   if (!extraSessionId) {
-    const booking = await asSystem(env, async (sql) => {
-      const rows = await sql<
-        { reference: string; contact_email: string | null; locale: string | null }[]
-      >`
-        select reference, contact_email, locale
-          from public.bookings
-         where id = ${accepted.booking_id}::uuid
-      `;
-      return rows[0] ?? null;
-    });
+    const booking = await loadEditBookingContact(env, accepted.booking_id);
     if (!booking) return { ok: false, code: "not-found" };
     const email = String(booking.contact_email ?? "").trim();
     if (!email) return { ok: false, code: "not-found" };
@@ -566,33 +558,9 @@ export async function refuseEditRequest(
   if (!key) return { ok: false, code: "not-found" };
   if (!claims.sub) return { ok: false, code: "not-found" };
   try {
-    return await asSystem(env, async (sql) => {
-      const found = await sql<{ id: string }[]>`
-        select id
-          from public.bookings
-         where erased_at is null
-           and (id::text = ${key} or reference = ${key})
-         limit 1
-      `;
-      const bookingId = found[0]?.id;
-      if (!bookingId) return { ok: false, code: "not-found" };
-      const pending = await sql<{ id: string }[]>`
-        select id
-          from public.booking_edit_requests
-         where booking_id = ${bookingId}::uuid
-           and status = 'requested'
-         limit 1
-      `;
-      const requestId = pending[0]?.id;
-      if (!requestId) return { ok: false, code: "not-found" };
-      await sql`
-        update public.booking_edit_requests
-           set status = 'superseded'
-         where id = ${requestId}::uuid
-           and status = 'requested'
-      `;
-      return { ok: true, bookingId, requestId };
-    });
+    const done = await supersedePendingEditRequest(env, key);
+    if (!done) return { ok: false, code: "not-found" };
+    return { ok: true, bookingId: done.booking_id, requestId: done.request_id };
   } catch (err) {
     return mapEditSqlError(err);
   }
@@ -605,21 +573,10 @@ export async function pendingEditHasTimeChange(
   const key = bookingKey.trim();
   if (!key) return false;
   try {
-    return await asSystem(env, async (sql) => {
-      const rows = await sql<{ payload: unknown }[]>`
-        select r.payload
-          from public.booking_edit_requests r
-          join public.bookings b on b.id = r.booking_id
-         where r.status = 'requested'
-           and b.erased_at is null
-           and (b.id::text = ${key} or b.reference = ${key})
-         limit 1
-      `;
-      const payload = rows[0]?.payload;
-      if (!payload || typeof payload !== "object" || Array.isArray(payload)) return false;
-      const rec = payload as Record<string, unknown>;
-      return typeof rec.scheduled_local === "string" && rec.scheduled_local.trim().length > 0;
-    });
+    const payload = await loadEditPendingPayload(env, key);
+    if (!payload || typeof payload !== "object" || Array.isArray(payload)) return false;
+    const rec = payload as Record<string, unknown>;
+    return typeof rec.scheduled_local === "string" && rec.scheduled_local.trim().length > 0;
   } catch {
     return false;
   }
@@ -633,37 +590,7 @@ export async function notifyTimeChangeOutcome(
 ): Promise<void> {
   const id = bookingId.trim();
   if (!id) return;
-  type Row = {
-    reference: string;
-    contact_email: string | null;
-    locale: string | null;
-    pickup_text: string | null;
-    dropoff_text: string | null;
-    scheduled_local: string | Date | null;
-    chauffeur_email: string | null;
-    booking_leg_id: string | null;
-  };
-  const row = await asSystem(env, async (sql) => {
-    const rows = await sql<Row[]>`
-      select
-        b.reference,
-        b.contact_email::text as contact_email,
-        b.locale,
-        l.pickup_text,
-        l.dropoff_text,
-        l.scheduled_local,
-        l.id::text as booking_leg_id,
-        ch.email as chauffeur_email
-      from public.bookings b
-      join public.booking_legs l
-        on l.booking_id = b.id
-       and l.leg_seq = 1
-      left join public.chauffeurs ch on ch.id = l.assigned_chauffeur_id
-      where b.id = ${id}::uuid
-      limit 1
-    `;
-    return rows[0] ?? null;
-  });
+  const row = await loadTripForMail(env, id);
   if (!row?.contact_email) return;
   const scheduledLocal =
     row.scheduled_local instanceof Date
@@ -701,64 +628,12 @@ export async function writeCustomerFlightNo(
   const owned = await loadOwnedBooking(env, auth, key);
   if (!owned) return { ok: false, code: "not-found" };
 
-  type Trip = {
-    booking_id: string;
-    reference: string;
-    locale: string | null;
-    pickup_text: string | null;
-    dropoff_text: string | null;
-    scheduled_local: string | Date | null;
-    chauffeur_email: string | null;
-    booking_leg_id: string;
-  };
-
   try {
-    const trip = await asSystem(env, async (sql) => {
-      const legs = await sql<{ id: string }[]>`
-        update public.booking_legs
-           set flight_no = ${no}
-         where booking_id = ${owned.id}::uuid
-           and leg_seq = (
-             select min(leg_seq) from public.booking_legs where booking_id = ${owned.id}::uuid
-           )
-         returning id
-      `;
-      const legId = legs[0]?.id;
-      if (!legId) throw Object.assign(new Error("not-found"), { code: "P0002" });
-      const actorKind = auth.kind === "customer" ? "customer" : "guest";
-      const actorId = auth.kind === "customer" ? auth.claims.sub : null;
-      await sql`
-        insert into public.booking_events (
-          booking_id, booking_leg_id, kind, actor_kind, actor_id, actor_label, payload
-        ) values (
-          ${owned.id}::uuid,
-          ${legId}::uuid,
-          ${"booking.modified"},
-          ${actorKind},
-          ${actorId},
-          ${actorKind},
-          ${JSON.stringify({ flight_no: no })}::jsonb
-        )
-      `;
-      const rows = await sql<Trip[]>`
-        select
-          b.id as booking_id,
-          b.reference,
-          b.locale,
-          l.pickup_text,
-          l.dropoff_text,
-          l.scheduled_local,
-          l.id::text as booking_leg_id,
-          ch.email as chauffeur_email
-        from public.bookings b
-        join public.booking_legs l
-          on l.booking_id = b.id
-         and l.leg_seq = 1
-        left join public.chauffeurs ch on ch.id = l.assigned_chauffeur_id
-        where b.id = ${owned.id}::uuid
-        limit 1
-      `;
-      return rows[0] ?? null;
+    const trip = await writeFlightNumber(env, {
+      bookingId: owned.id,
+      flightNo: no,
+      actorKind: auth.kind === "customer" ? "customer" : "guest",
+      actorId: auth.kind === "customer" ? auth.claims.sub : null,
     });
     if (!trip) return { ok: false, code: "not-found" };
     const scheduledLocal =
@@ -795,23 +670,7 @@ export async function staffExtraPayUrl(
 ): Promise<StaffExtraPayOk | EditAcceptFail> {
   const key = bookingKey.trim();
   if (!key) return { ok: false, code: "not-found" };
-  const row = await asSystem(env, async (sql) => {
-    const rows = await sql<{ booking_id: string; extra_session_id: string | null }[]>`
-      select b.id as booking_id, r.extra_session_id
-        from public.bookings b
-        left join lateral (
-          select er.extra_session_id
-            from public.booking_edit_requests er
-           where er.booking_id = b.id and er.status = 'requested'
-           order by er.created_at desc
-           limit 1
-        ) r on true
-       where b.erased_at is null
-         and (b.id::text = ${key} or b.reference = ${key})
-       limit 1
-    `;
-    return rows[0] ?? null;
-  });
+  const row = await loadEditExtraSession(env, key);
   if (!row) return { ok: false, code: "not-found" };
   if (!row.extra_session_id) return { ok: false, code: "no-session" };
   const stored = await retrieveCheckoutSession(stripeFromEnv(env), row.extra_session_id).catch(
