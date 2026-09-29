@@ -4,7 +4,7 @@ Kept by the control session. One page: what is live, what is being built, what w
 the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 
-**Last update:** 2026-09-30 00:23 (+04)
+**Last update:** 2026-09-30 00:37 (+04)
 
 ## Live now
 
@@ -93,6 +93,18 @@ Full text: `.planning/decisions/2026-09-29-checkout-account-notice.md`.
 | 2 | Both notice texts approved in four languages, as drafted. Not read by a lawyer. |
 | 3 | "Create an account" needs a tick box; the tick is logged server-side. |
 | 4 | "Create an account" goes live with 26.5, consent recorded from the first account. |
+
+## Owner feedback after the 26.4 ship, 2026-09-30
+
+Built by the 26.3 session as `fix/26.4.2-booking-feedback` (folder `fix-26.4.2`).
+
+| # | Feedback | State |
+|---|---|---|
+| 1 | Phone and tablet booking becomes one page, no 4 steps; date then time; our own picker, never the phone's | Building |
+| 2 | Laptop: flight field behind From, address list not showing | **Not reproduced** by the control session on live in a Chrome-based browser at 1440 and 1280. Waiting for a screenshot from the owner. |
+| 3 | Laptop home gets "Choose your class" back, with server prices under the bar | Building |
+| 4 | Phone checkout class cards redesigned | Building |
+| 5 | An unpaid booking can never be continued on another device; a paid trip can be shared | Decision recorded in `.planning/decisions/2026-09-30-unpaid-booking-other-device.md`. Test owed by 26.5. |
 
 ## Owed by the control session
 
