@@ -4,98 +4,18 @@
 
 import { test, expect, type Page, type Response } from "../support/test";
 import { testPort } from "../support/port";
-import { execFileSync, spawn, type ChildProcess } from "node:child_process";
+import { spawn, type ChildProcess } from "node:child_process";
 import { existsSync } from "node:fs";
-import { join } from "node:path";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { nextDevEnv, requireTestStack, stackKeys } from "../support/test-stack";
 
 const PORT = testPort(4270);
 const RUN_PROJECT = "component-1440";
 const PASSWORD = "password1";
-const OWNER_CS = "postgres://postgres:***@127.0.0.1:54322/postgres";
-const DB_ROOT_CANDIDATES = [
-  join(WEB_ROOT, "..", "..", "packages", "db"),
-  join(WEB_ROOT, "..", "..", "..", "..", "packages", "db"),
-];
-
-const STACK_DOWN = "Local stack is not running. Run `pnpm db:start && pnpm db:reset`.";
-
-function dbRoot(): string {
-  for (const dir of DB_ROOT_CANDIDATES) {
-    if (existsSync(join(dir, "node_modules", "postgres"))) return dir;
-  }
-  throw new Error(STACK_DOWN);
-}
 const PAGES = ["/terms", "/contact", "/"] as const;
-
-function nextBin(): string {
-  const candidates = [
-    NEXT_BIN,
-    join(WEB_ROOT, "..", "..", "..", "..", "apps/web/node_modules/.bin/next"),
-  ];
-  for (const bin of candidates) {
-    if (existsSync(bin)) return bin;
-  }
-  throw new Error(`next binary missing`);
-}
 
 let devServer: ChildProcess | null = null;
 let baseURL = "";
-
-function ownerQuery(sqlJs: string): string {
-  try {
-    return execFileSync(
-      process.execPath,
-      [
-        "--input-type=module",
-        "-e",
-        `import postgres from "postgres";
-         const sql = postgres(${JSON.stringify(OWNER_CS)}, { max: 1, connect_timeout: 5 });
-         try {
-           ${sqlJs}
-         } finally {
-           await sql.end({ timeout: 2 });
-         }`,
-      ],
-      { encoding: "utf8", cwd: dbRoot() },
-    ).trim();
-  } catch {
-    throw new Error(STACK_DOWN);
-  }
-}
-
-function requireLocalDb(): void {
-  const out = ownerQuery(`const rows = await sql\`select 1 as ok\`; console.log(rows[0].ok);`);
-  if (out !== "1") throw new Error(STACK_DOWN);
-}
-
-function requireLocalStack(): { apiUrl: string; anonKey: string } {
-  requireLocalDb();
-  let raw: string;
-  try {
-    raw = execFileSync("pnpm", ["exec", "supabase", "status", "-o", "env"], {
-      cwd: dbRoot(),
-      encoding: "utf8",
-      timeout: 30_000,
-    });
-  } catch {
-    throw new Error(STACK_DOWN);
-  }
-  const env: Record<string, string> = {};
-  for (const line of raw.split("\n")) {
-    const trimmed = line.replace(/^export\s+/, "");
-    const eq = trimmed.indexOf("=");
-    if (eq === -1) continue;
-    const key = trimmed.slice(0, eq);
-    let value = trimmed.slice(eq + 1);
-    if (value.startsWith('"') && value.endsWith('"')) value = value.slice(1, -1);
-    env[key] = value;
-  }
-  const apiUrl = env.API_URL ?? env.SUPABASE_URL;
-  const key = env.ANON_KEY ?? env.SUPABASE_ANON_KEY;
-  if (!apiUrl || !key) throw new Error(STACK_DOWN);
-  return { apiUrl, anonKey: key };
-}
 
 function uniqueEmail(tag: string): string {
   return `auth-signout-${tag}-${crypto.randomUUID().slice(0, 8)}@example.com`;
@@ -146,19 +66,15 @@ test.describe("AUTH-04 auth-signout", () => {
   test.beforeAll(async ({}, testInfo) => {
     if (testInfo.project.name !== RUN_PROJECT) return;
     testInfo.setTimeout(180_000);
-    const stack = requireLocalStack();
+    await requireTestStack();
+    const stack = stackKeys();
     baseURL = `http://localhost:${PORT}`;
-    const bin = nextBin();
-    if (!existsSync(bin)) throw new Error(`next binary missing at ${bin}`);
-    devServer = spawn(bin, ["dev", "-p", String(PORT)], {
+    if (!existsSync(NEXT_BIN)) throw new Error(`next binary missing at ${NEXT_BIN}`);
+    devServer = spawn(NEXT_BIN, ["dev", "-p", String(PORT)], {
       cwd: WEB_ROOT,
       stdio: "ignore",
       detached: true,
-      env: {
-        ...process.env,
-        SUPABASE_URL: stack.apiUrl,
-        SUPABASE_ANON_KEY: stack.anonKey,
-      },
+      env: nextDevEnv({ SUPABASE_URL: stack.apiUrl, SUPABASE_ANON_KEY: stack.anonKey }),
     });
     await waitForNextServer(baseURL);
   });
