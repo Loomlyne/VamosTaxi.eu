@@ -1,7 +1,5 @@
 /** Public dashboard URLs vs internal Next.js `/ops` routes. */
 
-export const OPS_ROOT = "/ops";
-
 // The second factor is the 'mfa' stage of the /login form (AuthForm, 26.1-23), not a page.
 export const OPS_AUTH_INTERNAL: readonly string[] = Object.freeze([
   "/ops/sign-in",
