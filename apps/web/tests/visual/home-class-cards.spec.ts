@@ -11,11 +11,11 @@ const PLACES = [
   { mapbox_id: "mb-street-1", name: "Fixture Street 1", address: "Zurich", is_airport: false },
 ];
 
-// FIXTURE amounts (rappen). Not real prices.
-type FixtureClass = { slug: string; name: string; eligible: boolean; ineligible_reason: string | null; effective_max_pax: number; max_bags: number; total_rappen: number | null };
+// FIXTURE amounts (rappen) and FIXTURE photos (neutral grey SVG, never a real class photo). Van luxury has no photo on purpose: it shows the empty state.
+type FixtureClass = { slug: string; name: string; eligible: boolean; ineligible_reason: string | null; effective_max_pax: number; max_bags: number; total_rappen: number | null; photo_url?: string };
 const FIXTURE_CLASSES: FixtureClass[] = [
-  { slug: "economy", name: "Economy", eligible: true, ineligible_reason: null, effective_max_pax: 3, max_bags: 3, total_rappen: 11100 },
-  { slug: "business", name: "Business", eligible: true, ineligible_reason: null, effective_max_pax: 3, max_bags: 3, total_rappen: 22200 },
+  { slug: "economy", name: "Economy", eligible: true, ineligible_reason: null, effective_max_pax: 3, max_bags: 3, total_rappen: 11100, photo_url: "/photos/classes/fixture-economy.svg" },
+  { slug: "business", name: "Business", eligible: true, ineligible_reason: null, effective_max_pax: 3, max_bags: 3, total_rappen: 22200, photo_url: "/photos/classes/fixture-business.svg" },
   { slug: "van-luxury", name: "Van luxury", eligible: true, ineligible_reason: null, effective_max_pax: 7, max_bags: 7, total_rappen: 33300 },
 ];
 const CATALOG = FIXTURE_CLASSES.map((c) => ({ ...c, total_rappen: null }));
@@ -24,6 +24,9 @@ type Counter = { posts: number; bodies: unknown[] };
 
 async function stub(page: Page, mode: "ok" | "slow" | "error" | "limit" | "none" | "toosmall" = "ok"): Promise<Counter> {
   const counter: Counter = { posts: 0, bodies: [] };
+  await page.route("**/photos/classes/**", (route) =>
+    route.fulfill({ status: 200, contentType: "image/svg+xml", body: '<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360"><rect width="640" height="360" fill="#c9cacb"/><rect x="170" y="150" width="300" height="90" rx="30" fill="#e4e5e5"/></svg>' }),
+  );
   await page.route("**/api/geo/suggest**", async (route) => {
     const q = (new URL(route.request().url()).searchParams.get("q") ?? "").toLowerCase();
     const hits = PLACES.filter((s) => s.name.toLowerCase().includes(q)).map(({ mapbox_id, name, address }) => ({ mapbox_id, name, address }));
@@ -92,28 +95,45 @@ test.describe("Home laptop class cards @component", () => {
     test.skip(testInfo.project.name !== "component-1440", "laptop widths run in the 1440 project");
   });
 
-  test("nothing is quoted or shown until From, To and When are valid; then one quote, then the three classes with server prices", async ({ page }) => {
+  test("the three classes show from the start without a price; one quote once From, To and When are valid, then the server prices", async ({ page }) => {
     const c = await stub(page);
     await openHome(page, 1440);
-    await expect(section(page)).toHaveCount(0);
+    await expect(cards(page)).toHaveCount(3, { timeout: 6000 });
+    await expect(section(page).getByRole("heading", { name: "Choose your class" })).toBeVisible();
+    await expect(cards(page).nth(0)).toContainText("Economy");
+    await expect(cards(page).nth(1)).toContainText("Business");
+    await expect(cards(page).nth(2)).toContainText("Van luxury");
+    // no figure that looks like a price before the trip is complete; seats and bags only
+    await expect(section(page).locator("[data-cc-price]:not([data-cc-need])")).toHaveCount(0);
+    expect(await section(page).innerText()).not.toMatch(/CHF|\d\s*\.\s*\d\d/);
+    for (let i = 0; i < 3; i++) await expect(cards(page).nth(i).locator("[data-cc-need]")).toHaveText("Fill in the trip to see prices");
+    await page.screenshot({ path: `${SHOTS}/obf-c-cards-empty-1440.png` });
+    // Select is not silently disabled: it is aria-disabled, and clicking it names what is missing
+    const sel = cards(page).nth(1).getByRole("button", { name: "Select" });
+    await expect(sel).toHaveAttribute("aria-disabled", "true");
+    await sel.click({ force: true }); // aria-disabled, not native disabled: a real click must reach the warning
+    const warn = section(page).locator("[data-cc-warn]");
+    await expect(warn).toBeVisible();
+    await expect(warn).toContainText("Enter a pickup address");
+    await expect(warn).toContainText("Enter a drop-off address");
+    await expect(warn).toContainText("Choose a pickup time");
+    await expect(page.getByRole("combobox", { name: "From", exact: true })).toBeFocused();
+    expect(c.posts).toBe(0);
     await fillTrip(page, { skipWhen: true });
     await page.waitForTimeout(1300);
     expect(c.posts, "no quote while When is missing").toBe(0);
-    await expect(section(page)).toHaveCount(0);
+    await expect(warn).toContainText("Choose a pickup time");
+    await expect(warn).not.toContainText("Enter a pickup address");
     await page.locator('[data-bx="when"] button[aria-haspopup="dialog"]').click();
     const dialog = page.getByRole("dialog", { name: "When" });
     await dialog.getByRole("button", { name: "Next month" }).click();
     await dialog.getByRole("button", { name: "5", exact: true }).click();
     await page.keyboard.press("Escape");
-    await expect(cards(page)).toHaveCount(3, { timeout: 6000 });
+    await expect(cards(page).nth(0).locator("[data-cc-price]:not([data-cc-need])")).toHaveText("CHF 111", { timeout: 6000 });
+    await expect(warn).toHaveCount(0);
     expect(c.posts, "exactly one quote for one trip").toBe(1);
     await page.waitForTimeout(1500);
     expect(c.posts, "never re-fired for the same trip").toBe(1);
-    await expect(section(page).getByRole("heading", { name: "Choose your class" })).toBeVisible();
-    await expect(cards(page).nth(0)).toContainText("Economy");
-    await expect(cards(page).nth(1)).toContainText("Business");
-    await expect(cards(page).nth(2)).toContainText("Van luxury");
-    await expect(cards(page).nth(0).locator("[data-cc-price]")).toHaveText("CHF 111");
     await expect(cards(page).nth(1).locator("[data-cc-price]")).toHaveText("CHF 222");
     await expect(cards(page).nth(2).locator("[data-cc-price]")).toHaveText("CHF 333");
     // an eligible card carries data-block="" and must read in the primary text colour, not the muted one
@@ -123,6 +143,56 @@ test.describe("Home laptop class cards @component", () => {
     expect(body.pickup.mapbox_id).toBe("mb-street-1");
     expect(body.dropoff.mapbox_id).toBe("mb-air-1");
     await page.screenshot({ path: `${SHOTS}/obf-c-cards-1440.png` });
+  });
+
+  test("photos: the owner's class photo when the server sends one, the car icon when it does not; same card height; no layout shift; correct img attributes", async ({ page }) => {
+    await stub(page);
+    // the photo arrives late, so the box is measured before and after it loads
+    await page.route("**/photos/classes/**", async (route) => {
+      await new Promise((r) => setTimeout(r, 1200));
+      await route.fulfill({ status: 200, contentType: "image/svg+xml", body: '<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360"><rect width="640" height="360" fill="#c9cacb"/></svg>' });
+    });
+    await openHome(page, 1440, 1400);
+    await expect(cards(page)).toHaveCount(3, { timeout: 6000 });
+    const eco = cards(page).nth(0), van = cards(page).nth(2);
+    const box = async (l: ReturnType<typeof cards>) => (await l.boundingBox())!;
+    const before = [await box(cards(page).nth(0)), await box(cards(page).nth(1)), await box(van)];
+    const shotBefore = await eco.locator("[data-cc-shot]").boundingBox();
+    const img = eco.locator("[data-cc-shot] img");
+    await expect(img).toHaveAttribute("src", "/photos/classes/fixture-economy.svg");
+    await expect(img).toHaveAttribute("alt", "Economy");
+    await expect(img).toHaveAttribute("width", "640");
+    await expect(img).toHaveAttribute("height", "360");
+    await expect(img).toHaveAttribute("loading", "lazy");
+    await expect(img).toHaveAttribute("decoding", "async");
+    await expect.poll(() => img.evaluate((e: HTMLImageElement) => e.complete && e.naturalWidth > 0), { timeout: 8000 }).toBe(true);
+    const after = [await box(cards(page).nth(0)), await box(cards(page).nth(1)), await box(van)];
+    for (let i = 0; i < 3; i++) expect(after[i], `card ${i} did not move or resize when the photo arrived`).toEqual(before[i]);
+    expect(await eco.locator("[data-cc-shot]").boundingBox()).toEqual(shotBefore);
+    // Van luxury has no photo: the Lucide car icon on a neutral surface, no img, no text, same height as a card with a photo
+    await expect(van.locator("[data-cc-shot] img")).toHaveCount(0);
+    await expect(van.locator("[data-cc-shot] > *").first()).toBeVisible();
+    expect((await van.locator("[data-cc-shot]").innerText()).trim()).toBe("");
+    expect((await van.locator("[data-cc-shot]").boundingBox())!.height).toBe((await eco.locator("[data-cc-shot]").boundingBox())!.height);
+    expect(after[2]!.height).toBe(after[0]!.height);
+    const neutral = await page.evaluate(() => {
+      const probe = document.createElement("i");
+      probe.style.color = "var(--vt-grey-100)";
+      document.body.appendChild(probe);
+      const c = getComputedStyle(probe).color;
+      probe.remove();
+      return c;
+    });
+    await expect(van.locator("[data-cc-shot]")).toHaveCSS("background-color", neutral);
+  });
+
+  test("a photo that fails to load falls back to the car icon, never a broken image", async ({ page }) => {
+    await stub(page);
+    await page.route("**/photos/classes/fixture-economy.svg", (route) => route.fulfill({ status: 404, body: "" }));
+    await openHome(page, 1440, 1400);
+    await expect(cards(page)).toHaveCount(3, { timeout: 6000 });
+    await expect(cards(page).nth(0).locator("[data-cc-shot] img")).toHaveCount(0, { timeout: 6000 });
+    await expect(cards(page).nth(0).locator("[data-cc-shot]")).toBeVisible();
   });
 
   test("the prices are not in the page source: the home file carries no amount", async ({ page }) => {
@@ -136,9 +206,13 @@ test.describe("Home laptop class cards @component", () => {
     await stub(page, "slow");
     await openHome(page, 1440);
     await fillTrip(page);
-    await expect(page.locator("[data-cc-card][data-skel]")).toHaveCount(3, { timeout: 4000 });
+    // loading: the price area is the skeleton; name, seats, bags and photo stay
+    await expect(page.locator("[data-cc-price-sk]")).toHaveCount(3, { timeout: 4000 });
     await expect(page.locator("[data-cc-grid]")).toHaveAttribute("aria-busy", "true");
-    await expect(cards(page)).toHaveCount(3, { timeout: 6000 });
+    await expect(cards(page).nth(0)).toContainText("Economy");
+    await expect(cards(page).nth(0).locator("[data-cc-price]:not([data-cc-need])")).toHaveCount(0);
+    await expect(cards(page).nth(0).locator("[data-cc-shot]")).toBeVisible();
+    await expect(cards(page).nth(0).locator("[data-cc-price]:not([data-cc-need])")).toHaveText(/CHF/, { timeout: 6000 });
     await page.screenshot({ path: `${SHOTS}/obf-c-cards-loading-then-ok-1440.png` });
     const nav = page.waitForRequest((r) => r.isNavigationRequest() && /\/checkout\?/.test(r.url()));
     await cards(page).nth(1).getByRole("button", { name: "Select" }).click();
@@ -181,7 +255,8 @@ test.describe("Home laptop class cards @component", () => {
       await stub(page, mode);
       await openHome(page, 1440);
       await fillTrip(page);
-      await expect(cards(page)).toHaveCount(3, { timeout: 6000 });
+      await expect(section(page)).toHaveAttribute("data-state", /^(ok|none|limit|error)$/, { timeout: 8000 });
+      await expect(cards(page)).toHaveCount(3);
       await expect(section(page).locator("[data-cc-price]")).toHaveCount(3);
       for (const t of await section(page).locator("[data-cc-price]").allInnerTexts()) expect(t).toBe("Price at checkout");
       await expect(section(page).locator("[data-cc-msg]")).toBeVisible();
@@ -197,7 +272,8 @@ test.describe("Home laptop class cards @component", () => {
     const c = await stub(page);
     await openHome(page, 1440);
     await fillTrip(page);
-    await expect(cards(page)).toHaveCount(3, { timeout: 6000 });
+    await expect(section(page)).toHaveAttribute("data-state", /^(ok|none|limit|error)$/, { timeout: 8000 });
+      await expect(cards(page)).toHaveCount(3);
     const trav = page.locator("[data-trav-btn]");
     for (let i = 0; i < 4; i++) {
       await trav.click();
@@ -224,7 +300,8 @@ test.describe("Home laptop class cards @component", () => {
       await stub(page, "toosmall");
       await openHome(page, 1440);
       await fillTrip(page);
-      await expect(cards(page)).toHaveCount(3, { timeout: 6000 });
+      await expect(section(page)).toHaveAttribute("data-state", /^(ok|none|limit|error)$/, { timeout: 8000 });
+      await expect(cards(page)).toHaveCount(3);
       await page.evaluate((l) => (window as unknown as { VamosLocale: { setLang(v: string): void } }).VamosLocale.setLang(l), lang);
       await page.waitForTimeout(300);
       const cov = await page.evaluate(
