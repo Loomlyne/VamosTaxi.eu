@@ -237,15 +237,16 @@
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:900,&quot;height&quot;:180},&quot;state&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;ready&quot;,&quot;loading&quot;],&quot;default&quot;:&quot;ready&quot;,&quot;tsType&quot;:&quot;'ready'|'loading'&quot;,&quot;section&quot;:&quot;State&quot;},&quot;status&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;unpaid&quot;,&quot;new&quot;,&quot;confirmed&quot;,&quot;assigned&quot;,&quot;completed&quot;,&quot;cancelled&quot;],&quot;default&quot;:&quot;assigned&quot;,&quot;tsType&quot;:&quot;'unpaid'|'new'|'confirmed'|'assigned'|'completed'|'cancelled'&quot;,&quot;section&quot;:&quot;State&quot;},&quot;variant&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;card&quot;,&quot;inset&quot;,&quot;grid&quot;],&quot;default&quot;:&quot;card&quot;,&quot;tsType&quot;:&quot;'card'|'inset'|'grid'&quot;,&quot;section&quot;:&quot;State&quot;},&quot;actions&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;State&quot;},&quot;showNote&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;State&quot;},&quot;date&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Thu 6 Aug&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;time&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;08:15&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;rel&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;In 14 hours&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;route&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Zurich Airport (ZRH), Terminal 2 → Zurich, Bahnhofstrasse 1&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;meta&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Business · 2 passengers · VT-4821&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;reference&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;price&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;CHF 000.00&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;note&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;href&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;booking-detail.dc.html&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;skRoute&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;string&quot;},&quot;skMeta&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;string&quot;}}">
 /* The statuses of the booking lifecycle, and the only place this product maps them
    to a treatment — a page cannot invent another, or relabel one, by copying a row. */
-const LABEL = { unpaid: 'waiting payment', finished: 'finished payment', new: 'New', confirmed: 'Confirmed', assigned: 'Driver assigned', completed: 'Completed', cancelled: 'Cancelled' };
-const BADGE = { unpaid: 'pending', finished: 'confirmed', new: 'pending', confirmed: 'confirmed', assigned: 'assigned', completed: 'completed', cancelled: 'cancelled' };
+const LABEL = { booked: 'Booked', awaiting_payment: 'Awaiting payment', unpaid: 'waiting payment', finished: 'finished payment', new: 'New', confirmed: 'Confirmed', assigned: 'Driver assigned', completed: 'Completed', cancelled: 'Cancelled' };
+const BADGE = { booked: 'confirmed', awaiting_payment: 'pending', unpaid: 'pending', finished: 'confirmed', new: 'pending', confirmed: 'confirmed', assigned: 'assigned', completed: 'completed', cancelled: 'cancelled' };
 /* Brand colours carry the states — yellow for the one that still wants
    attention, charcoal for the strongest, grey for the quiet ones. Cancelled is the single
    semantic tone, because red is the only thing that reads as "this is not happening". */
-const TONE = { unpaid: 'accent', finished: 'success', new: 'accent', confirmed: 'success', assigned: 'inverse', completed: 'neutral', cancelled: 'danger' };
+const TONE = { booked: 'success', awaiting_payment: 'accent', unpaid: 'accent', finished: 'success', new: 'accent', confirmed: 'success', assigned: 'inverse', completed: 'neutral', cancelled: 'danger' };
 /* Tense drives the stub: ahead of you, behind you, or never happening. */
-const TENSE = { unpaid: 'future', finished: 'future', new: 'future', confirmed: 'future', assigned: 'future', completed: 'past', cancelled: 'void' };
+const TENSE = { booked: 'future', awaiting_payment: 'future', unpaid: 'future', finished: 'future', new: 'future', confirmed: 'future', assigned: 'future', completed: 'past', cancelled: 'void' };
 const NOTE = {
+  awaiting_payment: 'A pay link was emailed. It stays here until that link is paid.',
   unpaid: 'A pay link was emailed. It stays here until that link is paid.',
   new: 'We are still confirming this one. You get an email as soon as the driver is set.',
   cancelled: 'Cancelled by you. The refund is with our team for review.',
@@ -299,8 +300,8 @@ class Component extends DCLogic {
     const tail = parts[parts.length - 1] || '';
     const refCode = p.reference || (REF_RE.test(tail) ? tail : '');
     /* Quick actions only where they mean anything: a trip that has not happened yet. */
-    const actionable = status === 'new' || status === 'confirmed' || status === 'assigned' || status === 'finished';
-    const unpaid = status === 'unpaid';
+    const actionable = status === 'booked' || status === 'new' || status === 'confirmed' || status === 'assigned' || status === 'finished';
+    const unpaid = status === 'unpaid' || status === 'awaiting_payment';
     const railTime = hasTo && !!time;
     this._ref = refCode;
     return {

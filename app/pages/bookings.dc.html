@@ -302,15 +302,15 @@ class Component extends DCLogic {
   liveGroups() {
     const tab = this.state.tab;
     const rows = (this.state.rows || []).filter((r) => r.when === tab).slice().sort((a, b) => {
-      const au = a.status === 'unpaid' ? 0 : 1;
-      const bu = b.status === 'unpaid' ? 0 : 1;
+      const au = a.status === 'awaiting_payment' ? 1 : 0;
+      const bu = b.status === 'awaiting_payment' ? 1 : 0;
       return au - bu;
     });
     const order = [];
     const map = {};
     rows.sort((a, b) => {
-      const au = a.status === 'unpaid' ? 0 : 1;
-      const bu = b.status === 'unpaid' ? 0 : 1;
+      const au = a.status === 'awaiting_payment' ? 1 : 0;
+      const bu = b.status === 'awaiting_payment' ? 1 : 0;
       if (au !== bu) return au - bu;
       return 0;
     });
@@ -371,6 +371,7 @@ class Component extends DCLogic {
   loadBookings = () => {
     if (this._fetching) return;
     this._fetching = true;
+    this.dropTripIfRef();
     fetch('/api/account/bookings', { credentials: 'same-origin', cache: 'no-store' })
       .then((r) => (r.ok ? r.json() : { bookings: [] }))
       .then((data) => {
@@ -385,13 +386,9 @@ class Component extends DCLogic {
       .then(() => { this._fetching = false; });
   };
 
-  dropTripIfRef = (ref) => {
-    if (!ref) return;
+  /* A checkout draft is never a booking (D-33): leftovers are dropped, never read. */
+  dropTripIfRef = () => {
     try {
-      const raw = localStorage.getItem('vamosTrip') || sessionStorage.getItem('vamosTrip');
-      const trip = raw ? JSON.parse(raw) : null;
-      const hit = trip && (trip.reference === ref || trip.ref === ref);
-      if (!hit) return;
       localStorage.removeItem('vamosTrip');
       sessionStorage.removeItem('vamosTrip');
       localStorage.removeItem('vamosQuoteLock');

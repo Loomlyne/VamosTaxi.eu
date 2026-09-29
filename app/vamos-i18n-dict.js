@@ -1031,6 +1031,8 @@
       'Loading your bookings': { de: 'Ihre Buchungen werden geladen', fr: 'Chargement de vos réservations', ar: 'جارٍ تحميل حجوزاتك' },
       'New': { de: 'Neu', fr: 'Nouvelle', ar: 'جديد' },
       'Confirmed': { de: 'Bestätigt', fr: 'Confirmée', ar: 'مؤكَّدة' },
+      'Booked': { de: 'Gebucht', fr: 'Réservée', ar: 'محجوز' },
+      'A pay link was emailed. It stays here until that link is paid.': { de: 'Ein Zahlungslink wurde per E-Mail gesendet. Die Buchung bleibt hier, bis er bezahlt ist.', fr: 'Un lien de paiement a été envoyé par e-mail. La réservation reste ici jusqu’à son règlement.', ar: 'أُرسل رابط الدفع بالبريد الإلكتروني. يبقى الحجز هنا حتى يُدفع الرابط.' },
       'Needs payment': { de: 'Zahlung ausstehend', fr: 'Paiement requis', ar: 'يلزم الدفع' },
       'waiting payment': { de: 'Zahlung offen', fr: 'paiement en attente', ar: 'بانتظار الدفع' },
       'finished payment': { de: 'Zahlung abgeschlossen', fr: 'paiement terminé', ar: 'اكتمل الدفع' },
