@@ -400,6 +400,37 @@ test.describe("Home laptop booking bar @component", () => {
       await expect(page.locator("[data-bookcard]")).toBeHidden();
       await expect(page.locator("[data-bar-wrap] [data-bb]")).toBeVisible();
     });
+
+    // 26.4.2 owner order: Flight, From, To, When, Travellers, SEE PRICES. Tab order equals the
+    // visual order in LTR and RTL; focus lands in the flight field the moment it appears.
+    for (const lang of ["en", "ar"]) {
+      test(`Tab order is Flight, From, To, When, Travellers, SEE PRICES in ${lang}`, async ({ page }) => {
+        await open(page, 1440);
+        if (lang !== "en") await setLang(page, lang);
+        const from = page.locator('#book [data-bx="from"] input');
+        await from.fill("Fixture Air");
+        await page.getByRole("option", { name: /Fixture Airport/ }).click();
+        const flight = page.locator('#book [data-bx="flight"] input');
+        await expect(flight).toBeFocused();
+        const kind = () =>
+          page.evaluate(() => {
+            const a = document.activeElement as HTMLElement | null;
+            const cell = a && a.closest ? (a.closest("[data-bx]") as HTMLElement | null) : null;
+            return cell ? (cell.getAttribute("data-bx") ?? "other") : "other";
+          });
+        const seen: string[] = [await kind()];
+        for (let i = 0; i < 14; i++) {
+          await page.keyboard.press("Tab");
+          seen.push(await kind());
+        }
+        const order = seen.filter((c, i, arr) => c !== "other" && c !== "swap" && (i === 0 || c !== arr[i - 1]));
+        expect(order.slice(0, 6)).toEqual(["flight", "from", "to", "when", "trav", "cta"]);
+        // the visual order agrees: flight sits before From on the start side
+        const g = await geom(page);
+        if (g.rtl) expect(g.flight!.left).toBeGreaterThanOrEqual(g.from!.right - 1);
+        else expect(g.flight!.right).toBeLessThanOrEqual(g.from!.left + 1);
+      });
+    }
   });
 
   test.describe("26.4 bar unchanged at 1080 and under", () => {
