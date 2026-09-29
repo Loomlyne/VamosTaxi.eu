@@ -777,7 +777,7 @@
   align-items: start;
 }
 
-.vt-co__editor-grid[data-airport="true"] {
+.vt-co__editor-grid[data-flight-row="true"] {
   grid-template-areas: "from to" "flight ." "when party";
 }
 
@@ -979,7 +979,7 @@
   }
 
   .vt-co__editor-grid,
-  .vt-co__editor-grid[data-airport="true"] {
+  .vt-co__editor-grid[data-flight-row="true"] {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas: none;
   }
@@ -1096,6 +1096,12 @@
   font-size: var(--vt-body-lg, 16px);
   font-weight: var(--vt-weight-semibold);
   color: var(--vt-text-primary);
+}
+
+.vt-co__optional {
+  margin-inline-start: 8px;
+  font-weight: 400;
+  color: var(--vt-text-muted);
 }
 
 .vt-co__hint {

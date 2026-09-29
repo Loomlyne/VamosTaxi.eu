@@ -65,6 +65,7 @@ export function TripEditor({
   const [gs, setGs] = useState<string | null>(trip.gs);
   const [airport, setAirport] = useState(airportByName(trip.from ?? ""));
   const [flight, setFlight] = useState(trip.flightDisplay ?? "");
+  const [flightOpen, setFlightOpen] = useState(Boolean(trip.flight));
   const [date, setDate] = useState(initialWhen.date);
   const [time, setTime] = useState(initialWhen.time);
   const [pax, setPax] = useState(trip.pax ?? 1);
@@ -86,7 +87,7 @@ export function TripEditor({
     joinWhen(date, time) !== trip.when ||
     pax !== (trip.pax ?? 1) ||
     bags !== (trip.bags ?? 0) ||
-    (airport ? (normaliseFlight(flight)?.flight ?? flight.trim()) : "") !== (trip.flight ?? "");
+    (normaliseFlight(flight)?.flight ?? flight.trim()) !== (trip.flight ?? "");
   useEffect(() => {
     onDirtyChange?.(dirty);
     return () => onDirtyChange?.(false);
@@ -149,7 +150,7 @@ export function TripEditor({
       focusField(first);
       return;
     }
-    const parsedFlight = airport ? normaliseFlight(flight) : null;
+    const parsedFlight = flight.trim() ? normaliseFlight(flight) : null;
     const next: Trip = {
       ...trip,
       from: from.trim(),
@@ -191,6 +192,9 @@ export function TripEditor({
     ? (refusal.i18nKey ? quoteLabel(refusal.i18nKey, refusal.params ?? undefined) : "") || t("quoteGeneric")
     : "";
   const when = joinWhen(date, time);
+  // D-09: an airport pickup needs the flight; any other pickup may add one, and a typed one stays.
+  const showFlight = airport || flightOpen || flight.trim() !== "";
+  const canAddFlight = !showFlight && from.trim() !== "";
 
   return (
     <div
@@ -201,7 +205,7 @@ export function TripEditor({
       onKeyDown={onKeyDown}
     >
       <fieldset className="vt-co__editor-set" disabled={busy}>
-      <div className="vt-co__editor-grid" data-airport={airport ? "true" : "false"}>
+      <div className="vt-co__editor-grid" data-flight-row={showFlight || canAddFlight ? "true" : "false"}>
         <div className="vt-co__editor-field" data-co-field="from">
           <PlaceCombo
             label={t("tripFrom")}
@@ -231,25 +235,38 @@ export function TripEditor({
               setFrom("");
               setFromId(null);
               setAirport(false);
-              setFlight("");
             }}
           />
           {fieldMessage("from") ? <p className="vt-co__field-error">{fieldMessage("from")}</p> : null}
         </div>
 
-        {airport ? (
-          <div className="vt-co__editor-field" data-co-field="flight" data-co-flight>
+        {showFlight ? (
+          <div className="vt-co__editor-field" data-co-field="flight" data-co-flight data-co-flight-optional={airport ? "false" : "true"}>
             <Input
-              label={t("tripFlight")}
+              label={
+                airport ? (
+                  t("tripFlight")
+                ) : (
+                  <>
+                    {t("tripFlight")} <span className="vt-co__optional">{t("tripFlightOptional")}</span>
+                  </>
+                )
+              }
               value={flight}
               placeholder={t("tripFlightPlaceholder")}
-              hint={t("tripFlightHint")}
+              hint={airport ? t("tripFlightHint") : t("tripFlightOptionalHint")}
               error={fieldMessage("flight") ?? undefined}
-              icon="plane-landing"
+              icon="plane"
               size="lg"
               autoComplete="off"
               onChange={(e) => setFlight(e.target.value.toUpperCase().replace(/\s+/g, " "))}
             />
+          </div>
+        ) : canAddFlight ? (
+          <div className="vt-co__editor-field" data-co-field="flight" data-co-flight-add>
+            <Button variant="ghost" size="md" icon="plane" onClick={() => setFlightOpen(true)}>
+              {t("tripFlightAdd")}
+            </Button>
           </div>
         ) : null}
 
