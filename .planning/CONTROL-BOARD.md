@@ -4,7 +4,7 @@ Kept by the control session. One page: what is live, what is being built, what w
 the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 
-**Last update:** 2026-09-30 00:59 (+04)
+**Last update:** 2026-09-30 01:07 (+04)
 
 ## Live now
 
@@ -106,6 +106,25 @@ Full text: `.planning/decisions/2026-09-29-checkout-account-notice.md`.
 | 2 | Both notice texts approved in four languages, as drafted. Not read by a lawyer. |
 | 3 | "Create an account" needs a tick box; the tick is logged server-side. |
 | 4 | "Create an account" goes live with 26.5, consent recorded from the first account. |
+
+## Migration numbers, reserved 2026-09-30
+
+Live is at `20260930210000`.
+
+| Lane | Numbers |
+|---|---|
+| 26.5 | `20261001100000` to `20261001190000` |
+| Phase 27 | `20261002100000` to `20261002190000` |
+| Phase 28 | `20261003100000` to `20261003190000` |
+| Phase 29 | `20261004100000` to `20261004190000` |
+| 26.0 and later | from `20261005100000` |
+
+## Found by the Phase 27 session, 2026-09-30
+
+| Finding | Effect |
+|---|---|
+| No customer page saves the cookie choice on the server today. The banner customers see is the mock's and saves in the browser only. Checkout, confirmation and the pay link show no banner. | Phase 27 is larger than planned: the live banner has to write to the server and the Next pages need the banner. Nothing is sent to Meta today, so no harm now. |
+| The sign-in ship writes a cookie row when a new customer confirms their e-mail | Owner decision 27 D-01: no cookie row at sign-up. Phase 27 removes it and must say where the sign-up agreement is recorded. |
 
 ## Owner feedback after the 26.4 ship, 2026-09-30
 
