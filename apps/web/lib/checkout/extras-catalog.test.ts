@@ -7,7 +7,6 @@ import {
   extraAmountTimesQty,
   extraFaresOn,
   extraIsOn,
-  extraIsOnForStep,
   extraRappenOutsideLock,
   extraUi,
   airportPickupFromPlace,
@@ -15,6 +14,8 @@ import {
   publishedMaxExtraStops,
   recapExtraFares,
   recapExtras,
+  humaniseCode,
+  selectableExtras,
   type CheckoutExtraJson,
 } from "./extras-catalog";
 
@@ -221,7 +222,7 @@ describe("checkout extras catalog", () => {
     ).toEqual([]);
   });
 
-  it("does not price extras on /checkout/trip", () => {
+  it("a code the owner added is on by its extra code list", () => {
     const on = {
       childSeat: true,
       oversized: true,
@@ -229,9 +230,6 @@ describe("checkout extras catalog", () => {
       skiRack: true,
       extraCodes: [],
     };
-    expect(extraIsOnForStep("trip", "child_seat", on)).toBe(false);
-    expect(extraIsOnForStep("details", "child_seat", on)).toBe(true);
-    expect(extraIsOnForStep("payment", "child_seat", on)).toBe(true);
     expect(extraIsOn("pet", { ...on, extraCodes: ["pet"] })).toBe(true);
   });
 
@@ -315,5 +313,78 @@ describe("checkout extras catalog", () => {
     expect(priced?.pricedInQuote).toBe(true);
     expect(extraFaresOn(catalog, () => true)).toEqual([]);
     expect(extraRappenOutsideLock(null, catalog, () => true)).toBe(0);
+  });
+});
+
+// D-35: generic extras. Any active passenger amount row is a tick box by its
+// exact code; the name the owner typed is the label (humanised code fallback).
+describe("selectableExtras (D-35)", () => {
+  type Row = Parameters<typeof selectableExtras>[0][number];
+  function sur(partial: Partial<Row> & Pick<Row, "code">): Row {
+    return {
+      kind: "amount",
+      amount_rappen: 100,
+      percent: null,
+      active: true,
+      quantity_source: null,
+      predicate: null,
+      ...partial,
+    };
+  }
+
+  it("keeps active passenger amount rows only, by exact code", () => {
+    const rows = selectableExtras(
+      [
+        sur({ code: "child-seat" }),
+        sur({ code: "anything-owner-typed", amount_rappen: 1 }),
+        sur({ code: "ski" }),
+        sur({ code: "night" }),
+        sur({ code: "waiting" }),
+        sur({ code: "return_trip" }),
+        sur({ code: "extra_stop" }),
+        sur({ code: "stop-by-count", quantity_source: "extra_stops" }),
+        sur({ code: "inactive", active: false }),
+        sur({ code: "zero", amount_rappen: 0 }),
+        sur({ code: "empty", amount_rappen: null }),
+        sur({ code: "pct", kind: "percent", amount_rappen: null, percent: "10.00" }),
+        sur({ code: "meet_greet", kind: "included", amount_rappen: null }),
+        sur({ code: "always-on", predicate: { kind: "always" } }),
+      ],
+      {},
+    );
+    expect(rows.map((row) => row.code)).toEqual(["child-seat", "anything-owner-typed", "ski"]);
+    expect(rows[0]?.amountRappen).toBe(100);
+    expect(rows[1]?.amountRappen).toBe(1);
+  });
+
+  it("an owner-typed code is selectable; label falls back to the humanised code in every language", () => {
+    const [row] = selectableExtras([sur({ code: "anything-owner-typed" })], {});
+    expect(row?.labels).toEqual({
+      en: "Anything owner typed",
+      de: "Anything owner typed",
+      fr: "Anything owner typed",
+      ar: "Anything owner typed",
+    });
+    const [seat] = selectableExtras([sur({ code: "child-seat" })], {});
+    expect(seat?.labels.en).toBe("Child seat");
+    expect(seat?.labels.ar).toBe("Child seat");
+  });
+
+  it("uses a label row when one exists, per language, falling back per missing language", () => {
+    const [row] = selectableExtras([sur({ code: "child-seat" })], {
+      "child-seat": { en: "Child seat", de: "Kindersitz", fr: "Siège enfant" },
+    });
+    expect(row?.labels).toEqual({
+      en: "Child seat",
+      de: "Kindersitz",
+      fr: "Siège enfant",
+      ar: "Child seat",
+    });
+  });
+
+  it("humaniseCode turns a slug into sentence case", () => {
+    expect(humaniseCode("child-seat")).toBe("Child seat");
+    expect(humaniseCode("oversized_luggage")).toBe("Oversized luggage");
+    expect(humaniseCode("pet")).toBe("Pet");
   });
 });
