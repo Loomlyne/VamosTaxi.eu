@@ -62,20 +62,6 @@ export function isPassengerExtra(code: string): boolean {
   return !isAutomaticSurcharge(n);
 }
 
-/**
- * Checkout extra amount rule. Stated CHF 0 is included and not charged.
- * Any positive price, including 1 CHF, is an extra. Empty is unfilled — do not invent 0.
- * `rappen` is already converted (1 CHF = 100).
- */
-export function checkoutExtraKindFromRappen(
-  rappen: number | null,
-): "included" | "amount" | null {
-  if (rappen == null) return null;
-  if (rappen === 0) return "included";
-  if (rappen > 0) return "amount";
-  return null;
-}
-
 export function extraWriteFields(code: string): {
   predicate: { kind: "quantity" | "always" };
   quantitySource: "child_seats" | "extra_stops" | "oversize_bags" | null;
