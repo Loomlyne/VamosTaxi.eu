@@ -5,7 +5,6 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { routing } from "@/i18n/routing";
 import { checkWriteRateLimit } from "@/lib/abuse/rate-limit";
-import { safeReturnTo } from "@/lib/account/return-to";
 import { holdCheckoutFloor, sendCheckoutSignInLink } from "@/lib/auth/checkout-sign-in";
 import { log } from "@/lib/logger";
 import { verifyTurnstile } from "@/lib/turnstile";
@@ -641,14 +640,15 @@ export async function POST(request: Request): Promise<Response> {
             mode: "signin",
             email: parsed.data.email,
             locale,
-            // "More ways to sign in" from checkout (returnTo is a checkout URL) never creates an account.
-            createUser:
-              !dashboard
-              && !safeReturnTo(typeof returnToRaw === "string" ? returnToRaw : null),
+            // 27 D-36: the sign-in link never creates an account; sign-up does, with the notice and the tick.
+            createUser: false,
           },
       origin,
       emailNext(returnToRaw, localizedHome(locale)),
     );
+    // Sign-in: an unknown address gets no mail and would answer faster than a known one.
+    // The checkout branch's floor makes both answers take the same minimum time (T-27-57).
+    if (parsed.data.mode !== "signup") await holdCheckoutFloor({ startedAt });
     if (reason) log("error", "auth", ctx, { reason, action: "otp" });
     return sessionJson(result, setCookies);
   }

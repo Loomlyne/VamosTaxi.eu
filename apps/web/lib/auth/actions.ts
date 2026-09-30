@@ -158,7 +158,7 @@ export async function requestOtpAction(
           firstName: body.data.firstName,
           lastName: body.data.lastName,
         }
-      : { mode: "signin", email: body.data.email, locale: loc.data },
+      : { mode: "signin", email: body.data.email, locale: loc.data, createUser: false },
     origin,
     localizedHome(loc.data),
   );
