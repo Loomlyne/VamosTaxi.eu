@@ -16,11 +16,10 @@ function pathIds(request: Request): { ticketId: string; fileId: string } | null 
   return { ticketId, fileId };
 }
 
-function contentDisposition(contentType: string, filename: string): string {
+// Phase 20 F2: a kept file is only ever downloaded, never rendered on the dashboard origin.
+function contentDisposition(filename: string): string {
   const safe = filename.replace(/["\\\r\n]/g, "_");
-  const type = contentType.toLowerCase();
-  const kind = type.startsWith("image/") || type === "application/pdf" ? "inline" : "attachment";
-  return `${kind}; filename="${safe}"`;
+  return `attachment; filename="${safe}"`;
 }
 
 export const GET = withStaff(async (claims, request) => {
@@ -62,7 +61,9 @@ export const GET = withStaff(async (claims, request) => {
   return new Response(object.body, {
     headers: {
       "Content-Type": row.content_type,
-      "Content-Disposition": contentDisposition(row.content_type, row.filename),
+      "Content-Disposition": contentDisposition(row.filename),
+      "X-Content-Type-Options": "nosniff",
+      "Content-Security-Policy": "sandbox; default-src 'none'",
       "Cache-Control": "private, no-store",
     },
   });

@@ -92,7 +92,7 @@ main and does not merge cleanly; a session has to redo it on today's main.
 
 | Order | What | State |
 |---|---|---|
-| 1 | 26.4.2 booking feedback | Second round after his review of the pictures. Hand-over follows his signature. |
+| 1 | 26.4.2 booking feedback | **Live since 2026-09-30 12:22.** main `37ba5b62`, Worker `59c18372` (rollback `a55b2c19`). Shipped under the day's ship mode after the owner's signatures (02:50, 11:50) and a green full check of `58eb48c7` in a clean clone. Live read: mock files identical to the build, laptop home shows the three class cards with photos. Owed by the owner: 15 UAT steps in the hand-over, 4242 payment first. |
 | 2 | 26.5 account choice before payment, with the paid-only reminder | Building |
 | 3 | 27 consent record | **Held by the owner until 26.5 is live** (27 D-34, 2026-09-30). Discuss signed. 13 plans written; their checker found 3 blockers and 11 warnings, revision running. Then the owner signs design and plan together. The /sign-up tick box is built inside 27 on 26.5's account record. 28 and 29 wait too. The control session tells it when 26.5's migration `20261001100000` is on main. |
 | 4 | 28 pixel page view, 29 purchase event | The Meta wording is his since 2026-09-30 (`.planning/decisions/2026-09-30-meta-wording.md`), all three texts, four languages. Not started. |
@@ -132,7 +132,7 @@ Full text: `.planning/decisions/2026-09-29-checkout-account-notice.md`.
 
 ## Migration numbers, reserved 2026-09-30
 
-Live is at `20260930210000`.
+Live is at `20260930210000` plus Phase 20's `20261005100000` and `20261005110000` (applied 2026-09-30, function replacements only).
 
 | Lane | Numbers |
 |---|---|
@@ -193,7 +193,7 @@ Owner decided every finding F1 to F14 on 2026-09-30 (table at the end of `20-06-
 
 | Batch | When | What |
 |---|---|---|
-| A | Now | F1 pay link no longer opens Manage booking. F2 reworked by his decision: dashboard Support becomes read-only, file names only, one button opens his e-mail. F5, F10, F14 database items. F13: the page engine (React, Babel) served from our own host, not unpkg. |
+| A | **Live since 2026-09-30 12:38** (owner said Ship). main `e8aaad0b`, Worker `a0d38f64` (rollback `59c18372`). Migrations `20261005100000` and `20261005110000` applied, 9 function bodies read back identical. Live read: home, FAQ and dashboard sign-in boot with the engine from our own host, no request to unpkg, security header no longer lists unpkg. Not checked: dashboard Support signed in. | F1 pay link no longer opens Manage booking. F2 reworked by his decision: dashboard Support becomes read-only, file names only, one button opens his e-mail. F5, F10, F14 database items. F13: the page engine (React, Babel) served from our own host, not unpkg. |
 | B | After 26.5 is on main | Limit on the payment return address, F8, remaining F14 items, and **F11: refunds by hand** (customer cancels, booking shows "Refund due", admin presses Refund). F11 needs a signed plan and a check of every refund promise on /cancellation, /terms, FAQ and the mails. |
 | C | After Phase 27 is on main | F12: the sign-in link opens a confirm screen "Sign in as <e-mail>?". Design first. |
 
@@ -218,6 +218,13 @@ Built by the 26.3 session as `fix/26.4.2-booking-feedback` (folder `fix-26.4.2`)
 |---|---|
 | Checkout, flight edit: when Turnstile challenges the re-quote, no challenge is shown and the price stays on "Updating price" (`CheckoutForm.tsx` flightBlur) | Confirmed in code by the control session. Not reproduced on live. Sent to the 26.3 session to fix inside 26.4.2. |
 | The public pages (mocks) carry no hreflang links in their HTML | For the owner. Not assigned. Search engines cannot tell the language versions apart. |
+
+## Follow-up jobs, not assigned
+
+| Job | From |
+|---|---|
+| Serve a smaller version of each class photo (today 2.3 to 2.8 MB PNG each, about 7.6 MB on the laptop home) | Owner decision 10 of 26.4.2, 2026-09-30 |
+| Cloudflare Web Analytics script is blocked by our own security header on every page (seen in the browser console; older than this ship) | Control session, 2026-09-30 |
 
 ## Owed by the control session
 

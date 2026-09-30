@@ -8,7 +8,7 @@
 //                                          left alone so the production raw-source parse
 //                                          path runs (`parseDcText`, camelCase dc-import
 //                                          attrs). When a `support.js` copy is read, its
-//                                          three unpkg URL constants are rewritten on the
+//                                          three vendor URL constants are rewritten on the
 //                                          wire (never on disk — D-03) to the vendored
 //                                          files in `apps/web/tests/vendor/`. SRI hashes
 //                                          stay. `window.__resources` is not injected:
@@ -91,15 +91,15 @@ const MIME: Record<string, string> = {
 };
 const TEXT_EXT = new Set([".html", ".css", ".js", ".mjs", ".json", ".svg", ".txt"]);
 
-// The exact unpkg URLs `app/support.js`'s `src/cdn.ts` pins by SRI. `serveMock` rewrites
+// The same-origin /assets/vendor URLs `app/support.js`'s `src/cdn.ts` pins by SRI (F13). `serveMock` rewrites
 // these constants inside served `support.js` copies so `cdnScriptFor()` loads vendor
 // files locally while keeping integrity hashes (see tests/vendor/README.md).
 const VENDOR_MAP: Record<string, string> = {
-  "https://unpkg.com/react@18.3.1/umd/react.production.min.js":
+  "/assets/vendor/react-18.3.1.production.min.js":
     "apps/web/tests/vendor/react.production.min.js",
-  "https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js":
+  "/assets/vendor/react-dom-18.3.1.production.min.js":
     "apps/web/tests/vendor/react-dom.production.min.js",
-  "https://unpkg.com/@babel/standalone@7.29.0/babel.min.js":
+  "/assets/vendor/babel-standalone-7.29.0.min.js":
     "apps/web/tests/vendor/babel.min.js",
 };
 
@@ -198,7 +198,7 @@ function handleRequest(url: string, res: ServerResponse) {
   res.end(TEXT_EXT.has(ext) ? readFileSync(absPath, "utf8") : readFileSync(absPath));
 }
 
-/** Rewrites the three unpkg constants in a generated `support.js` copy to the vendored
+/** Rewrites the three vendor constants in a generated `support.js` copy to the vendored
  *  local paths. Disk is never written (D-03). SRI hashes stay so `cdnScriptFor()` still
  *  attaches integrity. */
 function rewriteSupportCdnUrls(src: string): string {
@@ -635,8 +635,8 @@ window.addEventListener('DOMContentLoaded', function () {
 });`;
 
   const scripts = [
-    `/${VENDOR_MAP["https://unpkg.com/react@18.3.1/umd/react.production.min.js"]}`,
-    `/${VENDOR_MAP["https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"]}`,
+    `/${VENDOR_MAP["/assets/vendor/react-18.3.1.production.min.js"]}`,
+    `/${VENDOR_MAP["/assets/vendor/react-dom-18.3.1.production.min.js"]}`,
     "/design-system/_ds_bundle.js",
   ]
     .map((src) => `<script src="${src}"></script>`)
