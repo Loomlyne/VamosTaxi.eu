@@ -269,3 +269,23 @@ export function withOpsAssetHeaders(res: Response): Response {
   headers.set("X-Robots-Tag", "noindex");
   return new Response(res.body, { status: res.status, statusText: res.statusText, headers });
 }
+
+/**
+ * F16: answer a dashboard screen file straight from the assets binding. A named entrypoint
+ * (`Dashboard`) does not pass through the asset layer, so the file is fetched here. Call only
+ * after `guardOpsAsset` let the request through. A missing file stays a private no-store 404
+ * that carries the security headers.
+ */
+export async function serveOpsAsset(
+  request: Request,
+  assets: { fetch(request: Request): Promise<Response> },
+): Promise<Response> {
+  const res = await assets.fetch(request);
+  if (res.status === 404) {
+    const headers = new Headers({ "cache-control": "private, no-store" });
+    applySecurityHeaders(headers);
+    headers.set("X-Robots-Tag", "noindex");
+    return new Response(null, { status: 404, headers });
+  }
+  return withOpsAssetHeaders(res);
+}

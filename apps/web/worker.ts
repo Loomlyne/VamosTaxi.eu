@@ -14,7 +14,7 @@ import {
   gatePublicRequest,
   guardOpsAsset,
   isOpsAssetRequest,
-  withOpsAssetHeaders,
+  serveOpsAsset,
 } from "./lib/dc-mock-urls";
 import {
   pinRequestToApexAssets,
@@ -47,7 +47,8 @@ async function handleFetch(
   // apex asset pin rewrites the host, and before the internal-asset header bypass.
   const hiddenOps = guardOpsAsset(surfaced);
   if (hiddenOps) return hiddenOps;
-  const opsAsset = isOpsAssetRequest(surfaced);
+  // The Dashboard entrypoint skips the asset layer, so the screen file is read from ASSETS here.
+  if (isOpsAssetRequest(surfaced)) return serveOpsAsset(surfaced, env.ASSETS);
   const inbound = pinRequestToApexAssets(surfaced);
   const gated = gatePublicRequest(inbound);
   if (gated === "not-found") {
@@ -57,8 +58,7 @@ async function handleFetch(
     return handler.fetch(new Request(gone, inbound), env, ctx);
   }
   if (gated) return gated;
-  const res: Response = await handler.fetch(inbound, env, ctx);
-  return opsAsset ? withOpsAssetHeaders(res) : res;
+  return handler.fetch(inbound, env, ctx);
 }
 
 /**

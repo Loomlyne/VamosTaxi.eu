@@ -69,6 +69,9 @@ describe("F16: dashboard screen files", () => {
     expect(surfaced).toBeGreaterThan(-1);
     expect(guard).toBeGreaterThan(surfaced);
     expect(apex).toBeGreaterThan(guard);
-    expect(src).toContain("withOpsAssetHeaders(");
+    // F16: the screen file is read from ASSETS (after the guard, before the apex pin).
+    const serve = src.indexOf("serveOpsAsset(surfaced, env.ASSETS)");
+    expect(serve).toBeGreaterThan(guard);
+    expect(apex).toBeGreaterThan(serve);
   });
 });
