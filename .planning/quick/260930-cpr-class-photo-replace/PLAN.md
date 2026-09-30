@@ -26,7 +26,13 @@
 
 Write paths that change `photo_path`: `apps/web/app/[locale]/(ops)/api/staff/rate-book/route.ts` (distance save, `coalesce`), `apps/web/lib/ops/fleet-write.ts` `insertVehicleClassOnDraft` and `patchDraftClass` (via `api/staff/vehicle-classes` PATCH/POST), and the class delete `deleteVehicleClassIfUnreferenced` (database function `ops_vehicle_class_delete_or_hide`).
 
-## Part B — how the delete works
+## Part B — how the delete works (as built; replaces the first draft below)
+- No bookkeeping table and no migration. At every successful Publish, `removeUnusedClassPhotos` lists `classes/` in R2 and deletes every stored class photo that no `vehicle_classes` row points to, with its small copies. A photo uploaded in the last 24 hours is kept (a Save may still be on its way).
+- After a class hard delete (`deleted`, not `hidden`/`in-use`): only that class's folder `classes/<id>/` is emptied, no grace.
+- Never throws; logs `class_photos_deleted` or `class_photo_delete_failed`. The publish or delete answer is unchanged.
+- Files: new `apps/web/lib/ops/class-photo-sweep.ts` (+ test); one call in `rate-versions/[id]/publish/route.ts`; one call in `vehicle-classes/route.ts` DELETE. `rate-book/route.ts`, `fleet-write.ts` and `photos.ts` are not touched.
+
+## First draft (superseded)
 - One helper in `apps/web/lib/ops/photos.ts`: `deleteReplacedPhoto(env, oldKey, stillUsed)` removes `oldKey`, `oldKey.w640.webp`, `oldKey.w1280.webp` from R2 `PHOTOS`.
 - Called only AFTER the transaction that changed `photo_path` has committed, with the old key read inside that transaction (`select photo_path ... for update` before the update).
 - Never deletes: the key the row points to now; a key another class row still points to (checked after commit); a key outside `classes/`; an empty key.
@@ -34,8 +40,8 @@ Write paths that change `photo_path`: `apps/web/app/[locale]/(ops)/api/staff/rat
 - Class hard delete: when the database answers `deleted`, the class's last `photo_path` (read before) is deleted the same way. `hidden` or `in-use`: nothing is deleted.
 - Vehicle, chauffeur, review and staff photos: not deleted by this job (his decision was about class photos).
 
-## Open question for the owner
-The new photo is live at Save (no Publish needed for photos). Delete the old one at that Save?
+## Owner's answer on timing (question form)
+Told that the new photo is live at Save: **"At Publish"**. So a replaced photo stays in storage until the price book is published.
 
 ## Tests first
 Unit (route and helper, R2 and SQL faked through the Worker client options): replace → three objects gone, new key untouched; same key saved again → nothing deleted; key still used by another class → kept; R2 failure → save still 200, log line; class hard delete → its photo gone; hidden/in-use → nothing gone; keys outside `classes/` refused.
