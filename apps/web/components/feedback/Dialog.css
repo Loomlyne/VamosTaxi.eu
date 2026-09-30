@@ -7,12 +7,9 @@
    01-UI-SPEC.md).
 
    The scrim + panel structure, `position:fixed;inset:0` and `overflow:auto` on
-   `.vt-dialog`, are unchanged — `.vt-dialog` is the element Dialog.tsx marks
-   `data-lenis-prevent` on (it is the actual scrolling region, not a separate
+   `.vt-dialog`, are unchanged — `.vt-dialog` is the actual scrolling region (not a separate
    `.vt-dialog__body` — confirmed by reading `function Dialog` directly, there is no
-   independent scroll container inside it), and the element document.body's scroll
-   lock (Dialog.tsx) cooperates with, never fights, `apps/web/lib/lenis-provider.tsx`'s
-   own inline-style lock detector (see Dialog.tsx's header comment). */
+   independent scroll container inside it); the body scroll lock lives in Dialog.tsx. */
 .vt-dialog__scrim{position:fixed;inset:0;background:var(--vt-bg-scrim);display:flex;align-items:center;justify-content:center;padding:24px;z-index:70;animation:vt-fade var(--vt-dur-base) var(--vt-ease-standard)}
 .vt-dialog{background:var(--vt-bg-surface);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-xl);inline-size:100%;max-block-size:88vh;overflow:auto;animation:vt-rise var(--vt-dur-base) var(--vt-ease-out)}
 .vt-dialog--sm{max-inline-size:400px}

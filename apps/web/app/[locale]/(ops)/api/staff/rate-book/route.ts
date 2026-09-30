@@ -14,6 +14,7 @@ import {
   classifyPricingFailure,
   loadRateBook,
   loadServiceZones,
+  pruneExtraLabels,
   RateBookInputError,
   forkLiveRateVersion,
   type DistanceRateInput,
@@ -1301,6 +1302,9 @@ export const DELETE = withAdmin(async (claims, request) => {
       }
       return null;
     });
+    // 26.2-p4 A6: a deleted extra takes its four-language names with it once no live or
+    // draft book uses its code any more.
+    if (table === "surcharges") await pruneExtraLabels(env, claims);
     const next = await loadRateBook(env, claims, versionId);
     if (!next) return jsonErr("not-found", 404);
     const zones = await loadServiceZones(env, claims);
