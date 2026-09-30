@@ -1,6 +1,6 @@
 # Phase 20 hand-over, plan 20-10: refunds by hand
 
-**Branch:** `fix/phase-20-refunds-by-hand`, origin/main merged at `6796032b`. Not deployed, no hosted SQL.
+**Branch:** `fix/phase-20-refunds-by-hand`, origin/main merged at `12c22322`. Not deployed, no hosted SQL.
 Plan, the five texts, the answers and the picker design: signed by the owner 2026-09-30
 (`.planning/decisions/2026-09-30-refunds-by-hand.md`, build spec section E). Needs his Ship.
 
@@ -28,14 +28,14 @@ The three Next strings also live in the hosted `content_strings` table (keys
 
 Database `26503661`, `bf3afabd` · Worker `c0d0dd35`, `a98e89b3` · texts `c8b12492`, `4c4527ce`, `c2b26b7f` ·
 review fixes `85a3a594` (staff cancel), `4067842b` (retry key), `f02ecaec` (account refund row) ·
-tests `c3984e3f`, `06cb1c30`, `660fec9d`, `b812873d` · dashboard `c41cdff8` · mail once: the latest commit before the merge.
+tests `c3984e3f`, `06cb1c30`, `660fec9d`, `b812873d` · dashboard `c41cdff8` · mail once `6796032b`. Merge with main `12c22322`: one conflict in `lib/legal/privacy-account-paragraph.test.ts` (main kept the manage-booking "untouched" guard; resolved by removing it, as this plan is the approved change to that page).
 
 ## Checks
 
 | Check | Result |
 |---|---|
-| typecheck, lint, lint:css, i18n:check, check:legal-claims, check:numbers, check:public-env, check:db-fences, db:seed:check, build | exit 0 (run once on the final code, before the last one-line mail fix and the main merge) |
-| Unit tests | 2861 pass, 0 fail; emails 151 pass |
+| typecheck, lint, lint:css, i18n:check, check:legal-claims, check:numbers, check:public-env, check:db-fences, db:seed:check, build | exit 0, re-run on the merged tree `12c22322` (lint:css after removing a stale generated `public/assets/lenis.css` left from before main removed Lenis) |
+| Unit tests (merged tree) | 2867 pass, 0 fail |
 | pgTAP (isolated stack) | 84 files, 2001 tests pass; new `refunds_by_hand.test.sql` 102 |
 | DB-backed Worker test (`refund-by-hand.local.test.ts`, real client options) | green on an isolated stack |
 | Texts | byte-identical to the decisions file in all four languages (pinned by `lib/legal/refund-texts-20-10.test.ts`) |
