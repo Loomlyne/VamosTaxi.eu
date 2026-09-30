@@ -8,10 +8,10 @@
 
 import { sendPayLink } from "@vamos/emails/confirmation";
 import type { PayLinkVehicle } from "@vamos/emails/confirmation";
-import { asCheckout } from "../db/identity";
+import { asCheckout, asSystem } from "../db/identity";
 import { loadPhoneBookingUnpaid } from "../db/system-reads";
 import { mintManageToken } from "../checkout/manage-token";
-import { confirmationRecipients } from "../checkout/pay-link";
+import { confirmationRecipients, emailExtrasFromLines, emailExtrasFromPolicy } from "../checkout/pay-link";
 import { setPayLink } from "../checkout/set-pay-link";
 import { retrieveCheckoutSession, stripeFromEnv } from "../checkout/stripe";
 import { openHostedPayLinkSession } from "../checkout/pay-link-hosted-session";
@@ -155,6 +155,17 @@ export async function staffPayLink(
 
   let sent = false;
   if (sendEmail) {
+    // The charged total includes the ticked extras and the coupon, so the mail names them.
+    const mailRow = await asSystem(env, async (sql) => {
+      const rows = await sql`
+        select * from public.checkout_booking_for_email(${loaded.bookingId}::uuid)
+      `;
+      return (rows[0] ?? null) as Record<string, unknown> | null;
+    });
+    const fromLines = emailExtrasFromLines(mailRow?.lines, locale);
+    const mailExtras =
+      fromLines.length > 0 ? fromLines : emailExtrasFromPolicy(mailRow?.policy_extras ?? null);
+    const mailCoupon = String(mailRow?.coupon_code ?? "").trim();
     const outcome = await sendPayLink(
       { RESEND_API_KEY: env.RESEND_API_KEY ?? "" },
       {
@@ -169,8 +180,8 @@ export async function staffPayLink(
         vehicleClass: loaded.vehicleClass,
         pax: loaded.pax,
         bags: loaded.bags,
-        extras: [],
-        coupon: null,
+        extras: mailExtras,
+        coupon: mailCoupon || null,
         contactName: loaded.contactName,
         contactPhone: loaded.contactPhone,
         companyName: loaded.companyName,
