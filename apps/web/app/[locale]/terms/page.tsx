@@ -143,9 +143,6 @@ export default async function TermsPage({
         <h4>{t("charged-separately-only-if-you-ask-for-it")}</h4>
         <ul>
           <li>
-            {t("additional-stops")} <PendingSlot label="Extra stop fee" /> {t("per-stop")}
-          </li>
-          <li>
             {t("waiting-beyond-per-commenced-hour")}
           </li>
           <li>
