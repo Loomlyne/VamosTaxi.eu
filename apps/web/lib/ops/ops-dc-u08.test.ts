@@ -130,3 +130,94 @@ describe("BrandSelect open list", () => {
     expect(closed).toBe(2);
   });
 });
+
+// Four languages (platform law): English that a dashboard screen writes straight into the
+// page, without a copy table of its own, has to resolve in app/vamos-i18n-dict.js.
+type DictEntry = { de?: string; fr?: string; ar?: string };
+type Dict = {
+  strings: Record<string, DictEntry>;
+  patterns: { re: RegExp; de?: string; fr?: string; ar?: string }[];
+};
+
+function loadDict(): Dict {
+  const code = readFileSync(join(repoRoot, "app/vamos-i18n-dict.js"), "utf8");
+  const win: { VamosI18n?: Dict } = {};
+  new Function("window", code)(win);
+  if (!win.VamosI18n) throw new Error("dictionary did not load");
+  return win.VamosI18n;
+}
+
+const LITERALS: Record<string, string[]> = {
+  "OpsDash.dc.html": [
+    "None recorded",
+    "Income minus fees and refunds",
+    "Per captured fare",
+    "Last seven days",
+    "Last thirty days",
+    "All captured fares",
+    "Stripe fee",
+    "Paid, no chauffeur yet",
+    "Pay link sent, not paid",
+    "Pending edits",
+    "Paid trips waiting for accept",
+  ],
+  "OpsTable.dc.html": [
+    "Unsaved changes",
+    "Keep editing",
+    "Discard",
+    "Decrease",
+    "Increase",
+    "Move up",
+    "Move down",
+    "Nothing yet",
+  ],
+  "OpsCalendarBoard.dc.html": ["Pending"],
+};
+
+describe("dashboard literals resolve in the platform dictionary", () => {
+  const dict = loadDict();
+
+  for (const [file, strings] of Object.entries(LITERALS)) {
+    it(`${file}: every literal has de, fr and ar`, () => {
+      const src = readDc(file);
+      const missing: string[] = [];
+      for (const s of strings) {
+        expect(src, `${s} is still in ${file}`).toContain(s);
+        const e = dict.strings[s];
+        if (!e?.de || !e.fr || !e.ar) missing.push(s);
+        else expect(e.de, s).not.toContain("ß");
+      }
+      expect(missing).toEqual([]);
+    });
+  }
+
+  it("OpsTable write errors: every fixed sentence and the coded fallback resolve", () => {
+    const src = readDc("OpsTable.dc.html");
+    const body = grab(src, /\n  writeError\(json\) \{\n([\s\S]*?)\n  \}\n/, "OpsTable writeError");
+    const sentences = [...body.matchAll(/return '([^']+)';/g)].map((m) => m[1] as string);
+    expect(sentences.length).toBeGreaterThan(20);
+    const missing = sentences.filter((s) => {
+      const e = dict.strings[s];
+      return !e?.de || !e.fr || !e.ar;
+    });
+    expect(missing).toEqual([]);
+    const coded = "Could not save (chauffeurs-failure-x).";
+    const hit = dict.patterns.find((p) => p.re.test(coded));
+    expect(hit?.de && hit.fr && hit.ar).toBeTruthy();
+  });
+
+  it("no new entry reuses a translation another English key already owns (language switch maps back by first owner)", () => {
+    const mine = new Set<string>(Object.values(LITERALS).flat());
+    const owner = new Map<string, string>();
+    const clashes: string[] = [];
+    for (const [key, e] of Object.entries(dict.strings)) {
+      for (const v of [e.de, e.fr, e.ar]) {
+        if (!v) continue;
+        const first = owner.get(v);
+        if (first === undefined) owner.set(v, key);
+        else if (first !== key && mine.has(key) && v !== key) clashes.push(`${key} -> ${v} (owned by ${first})`);
+      }
+    }
+    expect(clashes).toEqual([]);
+  });
+});
