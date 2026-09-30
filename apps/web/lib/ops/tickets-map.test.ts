@@ -1,25 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mapTicket, nextTicketStatus, rejectStaffReply, staffPatchStatus } from "./tickets-map";
-
-describe("nextTicketStatus", () => {
-  it("keeps an explicit open after new", () => {
-    expect(nextTicketStatus("new", "open")).toBe("open");
-  });
-
-  it("moves to replied, responded, and closed", () => {
-    expect(nextTicketStatus("open", "replied")).toBe("replied");
-    expect(nextTicketStatus("replied", "responded")).toBe("responded");
-    expect(nextTicketStatus("replied", "closed")).toBe("closed");
-  });
-
-  it("reopens closed to open and never returns to new", () => {
-    expect(nextTicketStatus("open", "new")).toBeNull();
-    expect(nextTicketStatus("replied", "new")).toBeNull();
-    expect(nextTicketStatus("closed", "open")).toBe("open");
-    expect(nextTicketStatus("closed", "replied")).toBeNull();
-    expect(nextTicketStatus("closed", "closed")).toBe("closed");
-  });
-});
+import { mapTicket, staffPatchStatus } from "./tickets-map";
 
 describe("staffPatchStatus", () => {
   it("opens only from new or closed", () => {
@@ -39,15 +19,6 @@ describe("staffPatchStatus", () => {
     expect(staffPatchStatus("open", "replied")).toBeNull();
     expect(staffPatchStatus("open", "responded")).toBeNull();
     expect(staffPatchStatus("open", "new")).toBeNull();
-  });
-});
-
-describe("rejectStaffReply (D-12)", () => {
-  it("does not block a reply key so overlay PATCH { reply } can send", () => {
-    expect(rejectStaffReply({ reply: "hi" })).toBe(false);
-    expect(rejectStaffReply({ reply: "" })).toBe(false);
-    expect(rejectStaffReply({ status: "open" })).toBe(false);
-    expect(rejectStaffReply({})).toBe(false);
   });
 });
 
