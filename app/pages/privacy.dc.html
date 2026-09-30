@@ -31,6 +31,7 @@
 <script src="../vamos-i18n-dict.js"></script>
 <script src="../vamos-locale.js"></script>
 <script src="../vamos-legal-updated.js"></script>
+<script src="../vamos-meta-texts.js"></script>
 <script src="../vamos-page-transition.js"></script>
 <style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
 .vt-input--focus{box-shadow:none}
@@ -239,6 +240,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div data-dl-r="1"><span data-dl-k="1">Cloudflare Web Analytics (cookieless)</span><span data-dl-v="1">Site analytics, only with your consent · Cloudflare</span></div>
 <div data-dl-r="1"><span data-dl-k="1">Partner carriers</span><span data-dl-v="1">The driver assigned to your journey receives your name, mobile number, pickup and drop-off address and the time. Nothing else.</span></div>
 </div>
+<p data-vt-no-i18n="1" data-privacy-line="1"><sc-for list="{{ lineSegs }}" as="g" hint-placeholder-count="2"><sc-if value="{{ g.isText }}" hint-placeholder-val="{{ true }}"><span>{{ g.t }}</span></sc-if><sc-if value="{{ g.isB }}" hint-placeholder-val="{{ false }}"><strong style="font-weight:var(--vt-weight-semibold)">{{ g.t }}</strong></sc-if></sc-for></p>
 
 </section>
 
@@ -369,6 +371,13 @@ class Component extends DCLogic {
     if (this._offLocale) this._offLocale(); if (this.io) this.io.disconnect(); }
 
   toggleToc = () => this.setState((s) => ({ tocOpen: !s.tocOpen }));
+  segs(key, lang) {
+    if (!window.VamosMetaTexts || typeof window.VamosMetaTexts.segments !== 'function') return [];
+    return window.VamosMetaTexts.segments(key, lang).map((s) => {
+      if (typeof s === 'string') return { t: s, isText: true, isB: false };
+      return { t: s && s.b, isText: false, isB: true };
+    });
+  }
   doPrint = () => window.print();
   openCookiePrefs = (e) => {
     if (e && e.preventDefault) e.preventDefault();
@@ -379,7 +388,8 @@ class Component extends DCLogic {
     const legalDate = window.VamosLegalUpdated;
     const lang = window.VamosLocale ? window.VamosLocale.lang() : 'en';
     return {
-      updatedLabel: legalDate ? legalDate.label(lang) : '',
+      updatedLabel: legalDate ? legalDate.consentLabel(lang) : '',
+      lineSegs: this.segs('privacyLine', lang),
       n14: 14, n16: 16, n18: 18,
       tocOpen: this.state.tocOpen ? '1' : null,
       toggleToc: this.toggleToc, doPrint: this.doPrint, openCookiePrefs: this.openCookiePrefs,
