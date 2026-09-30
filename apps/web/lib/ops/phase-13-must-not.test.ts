@@ -36,11 +36,11 @@ function stripLineComments(src: string): string {
 const listed = Object.values(FILES);
 
 describe("phase 13 must-not greps (RPLY-01 RPLY-02 D-01 D-05 D-08 D-09)", () => {
-  it("RPLY-01 RPLY-02 tickets-write bccs SUPPORT_EMAIL with allowEmailFallback false and no EMAIL/Message-ID", () => {
+  // G27: the staff reply send path is gone; tickets-write must stay mail-free.
+  it("G27 tickets-write sends no mail and uses no EMAIL/Message-ID", () => {
     const src = read(FILES.ticketsWrite);
     const code = stripLineComments(src);
-    expect(code).toMatch(/allowEmailFallback:\s*false/);
-    expect(code).toMatch(/bcc:\s*SUPPORT_EMAIL/);
+    expect(code).not.toMatch(/sendContactMessage/);
     expect(code).not.toMatch(/env\.EMAIL/);
     expect(code).not.toMatch(/Message-ID/);
   });
