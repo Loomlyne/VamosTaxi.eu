@@ -237,7 +237,7 @@ Disk free: 11.4 GB before, 34.7 GB after. `vamos-wt` went from 39 GB to 22 GB. U
 |---|---|---|---|---|
 | `phase-26.5` | `gsd/phase-26.5-checkout-account` | Vamos Taxi build 26.5 | running; stack `vamos-taxi-265` | 2.6 GB |
 | `phase-26.2` | `gsd/phase-26.2-audit` | Phase 26.2 audit | running | 1.8 GB |
-| `phase-26.2-u02`, `u03a`, `u03b`, `u07`, `u08`, `u09`, `u10`, `u13` | `gsd/phase-26.2-u*` | units of 26.2 | removed after the 26.2 ship, when 26.2 confirms each is merged; `u13` holds the gate scripts | 1.3 GB each |
+| `phase-26.2-u13` | `gsd/phase-26.2-u13` | unit of 26.2 | holds the four gate-script commits, not handed over; stays until then | 1.3 GB |
 | `phase-27` | `gsd/phase-27-consent-record` | Meta measurement phases 27-29 | open, held until 26.5 is live; stack `vamos-taxi-270`; a process runs in it | 2.7 GB |
 | `class-photo-small` | `feat/class-photo-small` | Vamos Taxi 26.4.2 completion | running | 1.3 GB |
 | `site-speed` | `fix/site-speed` | Vamos Taxi SEO and browser settings | running | 0.2 GB |
@@ -247,6 +247,7 @@ Disk free: 11.4 GB before, 34.7 GB after. `vamos-wt` went from 39 GB to 22 GB. U
 | `fix-26.3-followups` | `fix/26.3-account-link` | none | shipped; kept because it holds 2 unsaved research files, waits for the owner | 0.2 GB |
 
 Removed on 2026-09-30, branches kept, every tip on GitHub as a branch or an `archive/*` tag: `auth-fix`, `fix-26.3-arrays`, `fix-26.3-manage`, `fix-26.3-newtrip`, `phase-26.0`, `phase-26.1`, `phase-26.3`, `phase-26.4`, `phase-26.4.1`, `legal-pages`, `seo-head`, `fix-26.4.2` (new tag `archive/26.4.2-after-ship-62497c11`), `.claude/worktrees/cool-golick-0a43ce`.
+Removed at 14:10 by the owner's word, after pushing every 26.2 branch to GitHub as a branch: `phase-26.2-u02`, `u03a`, `u03b`, `u07`, `u08`, `u09`, `u10` (each fully merged into `gsd/phase-26.2-audit`).
 Docker: stacks `vamos-taxi-263`, `-acct`, `-auth`, `-pga` removed with their volumes; leftover volumes `-260`, `-264`, `-63`, `-mbp` removed. Running: `vamos-taxi` (default), `-265`, `-270`. The `twenty-crm` stack is another product and was not touched.
 Main checkout: build output cleared (the next deploy rebuilds). Left for the owner: `brag-output` 1.3 GB (videos, not in git), `.pnpm-store` 0.9 GB.
 
