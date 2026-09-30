@@ -1808,6 +1808,7 @@
       'Nothing except the strictly necessary category is set before you choose. If you never choose, nothing else is ever set.': { de: 'Ausser der unbedingt erforderlichen Kategorie wird nichts gesetzt, bevor Sie wählen. Wählen Sie nie, wird auch nie etwas anderes gesetzt.', fr: 'Rien, hormis la catégorie strictement nécessaire, n’est déposé avant votre choix. Si vous ne choisissez jamais, rien d’autre ne sera jamais déposé.', ar: 'لا يُضبط شيء قبل اختيارك سوى الفئة الضرورية. وإن لم تختر أبدًا، فلن يُضبط أي شيء آخر أبدًا.' },
       'Read from this browser, so it is the real state, not an example.': { de: 'Aus diesem Browser ausgelesen — also der tatsächliche Stand, kein Beispiel.', fr: 'Lu depuis ce navigateur : c’est l’état réel, pas un exemple.', ar: 'مقروء من هذا المتصفّح، فهو الحالة الفعلية لا مثالًا.' },
       'Necessary · on': { de: 'Notwendig · ein', fr: 'Nécessaires · activés', ar: 'ضرورية · مفعّلة' },
+      '1 year': { de: '1 Jahr', fr: '1 an', ar: 'سنة واحدة' },
       'Change preferences': { de: 'Einstellungen ändern', fr: 'Modifier les préférences', ar: 'غيّر التفضيلات' },
       'Reset my choice': { de: 'Meine Wahl zurücksetzen', fr: 'Réinitialiser mon choix', ar: 'أعد ضبط اختياري' },
       'Saved': { de: 'Gespeichert', fr: 'Enregistré', ar: 'تم الحفظ' },
