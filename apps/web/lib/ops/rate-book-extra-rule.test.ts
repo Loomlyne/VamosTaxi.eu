@@ -6,14 +6,19 @@
 // object, not as a JSON string.
 //
 // The route runs for real; only the database is an in-memory stand-in. The
-// stand-in stores the rule exactly as Postgres would: it runs the installed
-// driver's own jsonb serializer over the parameter the route hands over. The
-// driver is built with the Worker client's options (`fetch_types: false`,
-// `prepare: true`) and never connects.
+// stand-in stores the rule the way Postgres does with the Worker's driver:
+// a value bound through the JSON helper (`tx.json`) lands as a JSON object;
+// a plain string bound to a jsonb parameter is serialised once more and lands
+// as a JSON STRING (that is how the live child-seat row got its rule). Both
+// were run against a real Postgres with the Worker client options on
+// 2026-09-30 (PART-A-RECORD.md, "Run against Postgres"). The driver itself is
+// not imported here: `postgres` is fenced to packages/db (D-10).
 //
 // The only amount used is the live figure: child-seat, amount_rappen 1000.
 
-import postgres from "postgres";
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { loadCheckoutCatalog } from "../checkout/checkout-catalog";
 import { buildExtraLines, buildLegSurchargeLines } from "../pricing/lines";
@@ -21,14 +26,17 @@ import { mapRateBook } from "../pricing/rateBook";
 import type { Line, QuoteLegInput } from "../pricing/types";
 
 const JSONB_OID = 3802;
-const driver = postgres({ max: 1, fetch_types: false, prepare: true });
-const DriverJson = driver.json({}).constructor;
+
+/** What the driver's JSON helper returns: the value plus the jsonb type. */
+class DriverJson {
+  readonly type = JSONB_OID;
+  constructor(readonly value: unknown) {}
+}
 
 /** The text the driver sends for one parameter bound to a jsonb column. */
 function wireText(param: unknown): string {
-  const value = param instanceof DriverJson ? (param as { value: unknown }).value : param;
-  const serialize = driver.options.serializers[JSONB_OID] as (value: unknown) => string;
-  return serialize(value);
+  const value = param instanceof DriverJson ? param.value : param;
+  return JSON.stringify(value);
 }
 
 type Extra = {
@@ -85,8 +93,7 @@ function applyWrite(row: Extra, cols: Record<string, unknown>): void {
   row.amount = cols.amount_rappen == null ? null : Number(cols.amount_rappen);
   if ("predicate" in cols) {
     row.predicate = JSON.parse(wireText(cols.predicate));
-    row.predicateBoundAsJson =
-      cols.predicate instanceof DriverJson && (cols.predicate as { type: unknown }).type === JSONB_OID;
+    row.predicateBoundAsJson = cols.predicate instanceof DriverJson && cols.predicate.type === JSONB_OID;
   }
   if ("quantity_source" in cols) row.quantitySource = cols.quantity_source;
 }
@@ -128,7 +135,7 @@ async function fakeTx(strings: TemplateStringsArray, ...values: unknown[]): Prom
   }
   return [];
 }
-fakeTx.json = driver.json;
+fakeTx.json = (value: unknown) => new DriverJson(value);
 
 vi.mock("@opennextjs/cloudflare", () => ({
   getCloudflareContext: () => ({ env: {} }),
@@ -330,15 +337,25 @@ describe("an extra saved on the pricing page gets the rule 'chosen by the custom
     expect(await tickBoxesForStoredRows()).toEqual([[code, 1000]]);
   });
 
-  it("the rule is stored as a JSON object; the old write stored a JSON string", () => {
-    // The old write: `${JSON.stringify(rule)}::jsonb`. The driver serialises the text again.
-    const oldWire = wireText(JSON.stringify({ kind: "always" }));
-    expect(typeof JSON.parse(oldWire)).toBe("string");
-    expect(JSON.parse(oldWire)).toBe("{\"kind\":\"always\"}");
-    // The new write: the driver's JSON helper.
-    const newWire = wireText(driver.json({ kind: "manual" }));
-    expect(newWire).toBe("{\"kind\":\"manual\"}");
-    expect(JSON.parse(newWire)).toEqual({ kind: "manual" });
+  it("the route binds the rule through the JSON helper, never as stringified text", () => {
+    const here = dirname(fileURLToPath(import.meta.url));
+    const route = readFileSync(
+      join(here, "../../app/[locale]/(ops)/api/staff/rate-book/route.ts"),
+      "utf8",
+    );
+    // The old write, `${JSON.stringify(rule)}::jsonb`, is serialised a second time by the
+    // driver and lands as a JSON string. It must not come back.
+    const code = route
+      .split("\n")
+      .filter((line) => !line.trim().startsWith("//"))
+      .join("\n");
+    expect(code).not.toMatch(/predicate[^\n]*JSON\.stringify/);
+    expect(code).not.toMatch(/JSON\.stringify\([^)]*predicate[^)]*\)/);
+    expect(code).toMatch(/tx\.json\(MANUAL_PREDICATE\)/);
+    expect(code).toMatch(/predicate = \$\{rule\}/);
+    // The stand-in keeps the two forms apart the way Postgres does.
+    expect(JSON.parse(wireText(JSON.stringify({ kind: "always" })))).toBe("{\"kind\":\"always\"}");
+    expect(JSON.parse(wireText(new DriverJson({ kind: "manual" })))).toEqual({ kind: "manual" });
   });
 
   it("saving an existing extra again rewrites its rule as the manual object", async () => {

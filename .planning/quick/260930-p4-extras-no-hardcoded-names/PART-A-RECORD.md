@@ -319,3 +319,58 @@ is not touched. Two optional things for a later migration number: the comment on
 names five rule kinds and `manual` is a sixth; and the draft book's `child-seat` row could have its string
 rule rewritten to the object (`where jsonb_typeof(predicate) = 'string'`), although the reader covers it
 without that.
+
+## Lead review (2026-09-30)
+
+### Run against Postgres
+
+Isolated local stack `vamos-taxi-262` (ports 6232x, from-zero replay of 116 migrations plus seed,
+stopped afterwards), with the Worker client options (`max 1`, `fetch_types false`, `prepare true`),
+inside one transaction that was rolled back:
+
+| Write | `jsonb_typeof(predicate)` | Stored text |
+|---|---|---|
+| `${tx.json({ kind: "manual" })}` (the new write) | `object` | `{"kind": "manual"}` |
+| `${JSON.stringify({ kind: "always" })}::jsonb` (the old write) | `string` | `"{\"kind\":\"always\"}"` — the same form the live child-seat row has |
+| update of that old row with `predicate = ${tx.json(...)}`, `quantity_source = null` | `object` | `{"kind": "manual"}` |
+
+The insert with the manual rule and no quantity source passed every check constraint of
+`public.surcharges`.
+
+### Changed by the lead
+
+`apps/web/lib/ops/rate-book-extra-rule.test.ts` imported the `postgres` driver to reuse its jsonb
+serializer. That import is fenced (D-10): lint, `check:db-fences` and the build failed. The test now
+carries a small stand-in for the driver's JSON helper and cites the run above; no fence was
+loosened, no allow-list entry added.
+
+### Checks on the branch after that change
+
+typecheck, lint (5 old warnings), lint:css, i18n:check, check:numbers, check:db-fences,
+check:public-env, check:legal-claims, seed:check, build: pass. Unit set before the test change:
+web 2816 + 1 skipped, emails 151, db 13 (the changed file re-run alone: green).
+pgTAP on the isolated stack: 83 files, 1899 tests, **1 fails, on main too**:
+`seed_idempotent.test.sql` test 33 wants 2696 content strings, the seed has 2698. This branch
+changes neither the seed nor the message files.
+
+### Found on the way: the same double encoding elsewhere (not changed here)
+
+Every `${JSON.stringify(x)}::jsonb` bound by the Worker's driver stores a JSON string, not an object.
+
+| Where | Column | Live today (read-only) | Effect |
+|---|---|---|---|
+| `apps/web/app/api/stripe/webhook/route.ts:38`, `apps/web/lib/checkout/return-settle.ts:101` | `stripe_events.payload` | all 68 rows are JSON strings | Stored for the record only, as far as read; any SQL that reads a field of it gets nothing. |
+| `apps/web/lib/ops/edit-request.ts:189`, `:498` | `booking_edit_requests.payload` | no rows yet | The apply function reads `p_payload ->> 'scheduled_local'` and the other fields (migration 20260910175309:107-140). On a string they are all empty, so an accepted change would apply nothing. **Blocks P1**, which uses this machine; fixed there, reader and writer together. |
+| `rate-book/route.ts:912, 918, 1093, 1099` | `rate_version_rules.payload` | no rows | A saved rule would be unreadable. |
+| `rate-versions/[id]/publish/route.ts:141` | service area | not written in practice (live values are objects or empty) | none seen |
+
+`apps/web/lib/checkout/create-booking.ts:59-63` already avoids it (hex-encoded text decoded in SQL).
+
+### Still to do in Part A
+
+| Item | Why it waits |
+|---|---|
+| A4 dashboard half: the "Extra wait" tag on booking detail (`app/ops/OpsDetail.dc.html:928-930`, `lib/ops/bookings.ts` query by code) | Screen change: picture and the owner's signature first. |
+| A5: the Type column and the leftover words on Pricing > Extras (`OpsPricing.dc.html:240-251, 339-350, 1503-1515`), `surchargeTypeFromCode` in the route, the mirror in `app/vamos-ops-data.js` | Screen change: picture and signature first. |
+| A6: deleting an extra deletes its four-language names | Migration `20261007110000` (number from the control session). |
+| Until A4 and A5 land, an extra named exactly "Waiting" would show the Type "Extra wait" and feed the "Extra wait" tag. Part A is handed over only as a whole. | |
