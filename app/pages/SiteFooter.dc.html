@@ -27,9 +27,6 @@
 <link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/components/mobile/fig-assets.css">
 <link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
 <script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
-<link rel="stylesheet" href="../../assets/lenis.css">
-<script src="../../assets/lenis.js"></script>
-<script src="../../assets/lenis-boot.js"></script>
 <script src="../vamos-i18n-dict.js"></script>
 <script src="../vamos-locale.js"></script>
 <script src="../vamos-page-transition.js"></script>
@@ -316,12 +313,9 @@ class Component extends DCLogic {
     const el = document.getElementById('faq');
     if (!el) return;
     e.preventDefault();
-    if (window.vtScrollTo) window.vtScrollTo(el, -88);
-    else {
-      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const top = el.getBoundingClientRect().top + window.pageYOffset - 88;
-      window.scrollTo({ top, behavior: reduce ? 'auto' : 'smooth' });
-    }
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const top = el.getBoundingClientRect().top + window.pageYOffset - 88;
+    window.scrollTo({ top, behavior: reduce ? 'auto' : 'smooth' });
     if (history.replaceState) history.replaceState(null, '', '#faq');
   };
   // Every page carries CookieBanner, which listens for this event.

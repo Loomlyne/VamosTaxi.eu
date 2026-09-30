@@ -85,9 +85,6 @@
      mobile fig-tokens; linking the tokens separately as well would inline every font twice. -->
 <link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
 <script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
-<link rel="stylesheet" href="../../assets/lenis.css">
-<script src="../../assets/lenis.js"></script>
-<script src="../../assets/lenis-boot.js"></script>
 <script src="../vamos-i18n-dict.js"></script>
 <script src="../vamos-locale.js?v=10"></script>
 <script src="../vamos-reviews.js"></script>
@@ -1335,10 +1332,8 @@ class Component extends DCLogic {
     /* Arriving from a footer service link: preset the booking card and land on it.
        The logo goes back to a bare home.dc.html, which restores the default hero. */
     if (typeof location !== 'undefined') {
-      /* Lenis owns the scroll position, so a native scrollTo is undone on its next
-         frame — which is why the footer links used to land back on the hero. */
+      /* A native in-page jump: smooth unless the visitor prefers reduced motion. */
       const land = (id, off) => {
-        if (window.vtScrollTo) { window.vtScrollTo(id, off); return; }
         const el = document.getElementById(id);
         if (!el) return;
         const top = el.getBoundingClientRect().top + window.pageYOffset + off;
@@ -2027,7 +2022,7 @@ class Component extends DCLogic {
     /* HowItWorks chips carry their own click handler (vamos:dest-pick, handled below); it opens the sheet with To filled. */
     if (a.closest('[data-dest-tile],[data-dest-row]')) return;
     if (NARROW()) {
-      /* Stop here: Lenis' own anchor listener would otherwise scroll to the bar behind the sheet. */
+      /* Stop here: the browser's own #book anchor jump would otherwise scroll to the bar behind the sheet. */
       e.preventDefault(); e.stopPropagation();
       if (document.querySelector('[data-hd][data-hd-open="1"]')) {
         /* Let the header menu finish closing (it releases its own body lock) before the sheet takes the lock. */
@@ -2461,7 +2456,7 @@ class Component extends DCLogic {
       const over = r.bottom - (window.innerHeight - 24);
       if (over <= 4) return;
       const y = (window.scrollY || 0) + Math.min(over, Math.max(0, r.top - 96));
-      try { if (window.__vtLenis && window.__vtLenis.scrollTo) window.__vtLenis.scrollTo(y, { duration: 0.5 }); else window.scrollTo({ top: y, behavior: REDUCED ? 'auto' : 'smooth' }); } catch (err) {}
+      try { window.scrollTo({ top: y, behavior: REDUCED ? 'auto' : 'smooth' }); } catch (err) {}
     });
   }
   pickClass = (slug) => this.goCheckout(slug);
