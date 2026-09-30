@@ -12,7 +12,7 @@ const PHOTOS = {
     const hit = bucket.get(key);
     if (!hit) return null;
     return {
-      body: new Response(hit.bytes).body,
+      body: new Response(hit.bytes as unknown as BodyInit).body,
       arrayBuffer: async () => hit.bytes.buffer.slice(hit.bytes.byteOffset, hit.bytes.byteOffset + hit.bytes.byteLength),
       writeHttpMetadata: (h: Headers) => h.set("content-type", hit.contentType),
     };
