@@ -368,6 +368,9 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 [data-cc-head]{display:flex;flex-direction:column;gap:var(--vt-space-1)}
 [data-cc-title]{margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-3);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);line-height:var(--vt-heading-leading);color:var(--vt-text-inverse)}
 [data-cc-sub]{margin:0;font-size:var(--vt-body-md);line-height:1.5;color:var(--vt-text-inverse-muted)}
+/* Trip distance (booking polish): the server's quote distance, once, beside the line that introduces the prices. A figure, so Qurova. */
+[data-cc-km]{font-family:var(--vt-font-display);font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse);white-space:nowrap}
+[data-cc-dot]{margin-inline:var(--vt-space-2)}
 [data-cc-grid]{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;min-width:0}
 [data-cc-shot]{position:relative;display:flex;align-items:center;justify-content:center;flex:0 0 146px;inline-size:146px;aspect-ratio:1/1;align-self:center;overflow:hidden;box-sizing:border-box;border-radius:var(--vt-radius-md);background:var(--vt-grey-100);border:1px solid var(--vt-border-subtle)}
 [data-cc-shot] img{position:absolute;inset:0;inline-size:100%;block-size:100%;object-fit:cover;object-position:50% 72%;display:block}
@@ -583,7 +586,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </div>
 <sc-if value="{{ ccShow }}" hint-placeholder-val="{{ false }}">
 <section data-cc="1" data-state="{{ ccState }}" aria-labelledby="cc-title" data-om-label="Choose your class">
-<div data-cc-head="1"><h2 id="cc-title" data-cc-title="1">Choose your class</h2><p data-cc-sub="1">Fixed price, all inclusive. Pick a class to continue.</p></div>
+<div data-cc-head="1"><h2 id="cc-title" data-cc-title="1">Choose your class</h2><p data-cc-sub="1"><sc-if value="{{ ccKmShow }}" hint-placeholder-val="{{ false }}"><span data-cc-km="1">{{ ccKm }}</span><span data-cc-dot="1" data-vt-no-i18n="1" aria-hidden="true">·</span></sc-if><span>Fixed price, all inclusive. Pick a class to continue.</span></p></div>
 <div data-cc-grid="1" aria-busy="{{ ccBusy }}">
 <sc-for list="{{ ccCards }}" as="c" hint-placeholder-count="3">
 <sc-if value="{{ c.skel }}" hint-placeholder-val="{{ false }}">
@@ -950,6 +953,19 @@ function classFromQuote(c) {
 }
 function classOnFleet(offer, slug) {
   return (offer || []).filter((x) => x.id === slug)[0] || null;
+}
+/** "148.2": the server's quote distance (route.legs[].distance_m, the metres the fare uses) as km with one decimal.
+    Display only. '' when the answer has no road distance; nothing is measured in the browser. */
+function ccRouteKm(route) {
+  const legs = route && Array.isArray(route.legs) ? route.legs : [];
+  if (!legs.length) return '';
+  let m = 0;
+  for (let i = 0; i < legs.length; i++) {
+    const d = legs[i] ? legs[i].distance_m : null;
+    if (!legs[i] || legs[i].road === false || typeof d !== 'number' || !isFinite(d) || d <= 0) return '';
+    m += d;
+  }
+  return (Math.round(m / 100) / 10).toFixed(1);
 }
 function publicQuoteClass(c) {
   return !!(c && c.slug && c.ineligible_reason !== 'no_rate');
@@ -2430,7 +2446,7 @@ class Component extends DCLogic {
         }).filter((c) => c.block !== 'gone');
         if (!cards.length) { this.setState({ cc: { status: 'none', cards: [], msg: 'No class fits this trip. Change the passengers or the bags.' } }); return; }
         const anyOk = cards.some((c) => !c.block);
-        this.setState({ cc: { status: anyOk ? 'ok' : 'none', cards: cards, msg: anyOk ? '' : 'No class fits this trip. Change the passengers or the bags.' } }, () => this.ccReveal());
+        this.setState({ cc: { status: anyOk ? 'ok' : 'none', cards: cards, km: ccRouteKm(j.route), msg: anyOk ? '' : 'No class fits this trip. Change the passengers or the bags.' } }, () => this.ccReveal());
       })
       .catch(() => { if (seq === this._ccSeq && sig === this._ccSig) this.ccFail('error'); });
   }
@@ -2565,7 +2581,7 @@ class Component extends DCLogic {
       n0: 0, n1: 1, n2: 2, n8: 8, n12: 12, n13: 13, n14: 14, n15: 15, n16: 16, n18: 18, n20: 20, n24: 24, n30: 30, n34: 34,
       yes: true, no: false,
       dir: s.lang === 'ar' ? 'rtl' : 'ltr', lang: s.lang, cur: s.cur, pickLang: this.pickLang, pickCur: this.pickCur,
-      ccShow: !s.narrow && (s.cc.status !== 'idle' || s.ccCat === null || (s.ccCat && s.ccCat.length > 0)), ccWarnShow: !s.narrow && !!s.ccWarn && !trip.ok, ccMissing: [trip.errs.pickup, trip.errs.dest, trip.errs.flight, trip.errs.when].filter(Boolean).map((m) => ({ text: m })), ccState: s.cc.status, ccBusy: s.cc.status === 'loading' ? 'true' : 'false', ccMsg: s.cc.msg || '', ccCards: this.ccCards(),
+      ccShow: !s.narrow && (s.cc.status !== 'idle' || s.ccCat === null || (s.ccCat && s.ccCat.length > 0)), ccWarnShow: !s.narrow && !!s.ccWarn && !trip.ok, ccMissing: [trip.errs.pickup, trip.errs.dest, trip.errs.flight, trip.errs.when].filter(Boolean).map((m) => ({ text: m })), ccKmShow: s.cc.status === 'ok' && !!s.cc.km, ccKm: s.cc.km ? s.cc.km + ' km' : '', ccState: s.cc.status, ccBusy: s.cc.status === 'loading' ? 'true' : 'false', ccMsg: s.cc.msg || '', ccCards: this.ccCards(),
       boxRef: this.boxRef, airAttr: air ? '1' : '0', fltAttr: (showFlightField || showOpener) ? '1' : '0',
       pickupText: s.pickupText, dropText: s.dropText,
       editPickupA: this.editRoute('pickup', 'a'), editDropA: this.editRoute('dropoff', 'a'),

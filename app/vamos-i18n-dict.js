@@ -146,6 +146,8 @@
       /* 26.2-u08 — dashboard table: write error that carries its code. */
       { re: /^Could not save \((.+)\)\.$/,
         de: 'Speichern nicht möglich ($1).', fr: 'Enregistrement impossible ($1).', ar: 'تعذّر الحفظ ($1).' },
+      { re: /^(\d+\.\d) km$/,
+        de: '$1 km', fr: '$1 km', ar: '$1 كم' },
     ],
 
     strings: {
