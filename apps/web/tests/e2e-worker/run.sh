@@ -38,5 +38,6 @@ pnpm exec wrangler dev -c wrangler.e2e.jsonc --port "$E2E_PORT" --ip 0.0.0.0 --l
 P1=$!
 for _ in $(seq 40); do sleep 2; curl -s -o /dev/null http://localhost:$E2E_PORT/api/auth/session && break; done
 MAIL_ROOT="$WEB/.wrangler/tmp/email" OUT="$WEB/.wrangler/e2e-$LABEL-checkout-account.json" node "$TREE/apps/web/tests/e2e-worker/checkout-account.e2e.mjs" "$LABEL"
+MAIL_ROOT="$WEB/.wrangler/tmp/email" OUT="$WEB/.wrangler/e2e-$LABEL-checkout-german.json" node "$TREE/apps/web/tests/e2e-worker/checkout-german.e2e.mjs" "$LABEL"
 kill $P1 $P2 $PF 2>/dev/null
 rm -f "$WEB/.e2e-sb.env" "$WEB/.dev.vars"

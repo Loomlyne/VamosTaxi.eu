@@ -24,6 +24,7 @@ if (process.argv[5] === "phase2") {
     STRIPE_SECRET_KEY: "sk_test_e2e_fake_local_only",
     QUOTE_LOCK_SECRET: "e2e-local-lock-secret-0123456789abcdef",
     TURNSTILE_SECRET_KEY: "e2e-local-turnstile-fake",
+    TURNSTILE_SITE_KEY: "1x00000000000000000000AA", // Cloudflare's public always-pass test site key; the page then renders its (stubbed) widget
     CONTACT_TURNSTILE_ALLOWED_HOSTNAMES: "localhost",
   });
   fs.writeFileSync(dir+"/.dev.vars", Object.entries(v).map(([k,x])=>`${k}="${x}"`).join("\n")+"\n",{mode:0o600});

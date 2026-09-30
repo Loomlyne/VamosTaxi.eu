@@ -57,5 +57,45 @@ that runs the CLI for that workdir, because `run.sh` calls `supabase status`.
 
 Known: a3 is refused with `payment_window_closed` on a stack with no settings version, which is checked before
 the lock; the lock-versus-quote rule itself is pinned by `apps/web/lib/checkout/other-device.test.ts`.
-Scenario 7 (rate limit) depends on the limiter state kept in `.wrangler/e2e`; it can fail or pass on a
-re-run without any change.
+Scenario 7 (rate limit) used to pass on one run and fail on the next. Cause: the local limiter (miniflare) counts in fixed
+windows aligned to the wall-clock minute (`epoch = floor(now / period)`), and its counters are kept in `.wrangler/e2e`. A burst of
+11 tries that crosses a minute boundary starts a new count, so the 11th answer is not 429. The scenario (and the 26.5 burst tests)
+now wait for a window with at least 15 to 20 seconds left, and every run draws its own block of IP addresses.
+
+## Ports
+
+Another session may hold 4290/4291. `run.sh` reads `E2E_PORT`, `E2E_DASH_PORT`, `E2E_INSPECT`, `E2E_DASH_INSPECT`; the Supabase
+workdir's hook uri (`host.docker.internal:<E2E_PORT>`) and its redirect list (`http://localhost:<E2E_PORT>/**`) must name the same
+port. The 26.5 run used 4295/4296 and a workdir for `vamos-taxi-265` (API 61321, db 61322).
+
+## 26.5 scenarios (plan 07)
+
+Run by `run.sh` after the auth and other-device scenarios, on a second start of the Worker that also holds local stand-in secrets
+(`mkcfg.mjs ... phase2`: a fake Stripe key, the lock secret, a fake Turnstile secret, Cloudflare's always-pass test site key).
+Two outside services are replaced by `fakes.mjs` on `E2E_FAKE_PORT` (4297): `run.sh` prepends a fetch rewrite to the built
+`.open-next/worker.js` (build output only, never source) so `api.stripe.com` and `challenges.cloudflare.com` reach it. The fake
+Stripe stores Checkout Sessions in memory; the fake Turnstile accepts any token except `fail` and echoes action and hostname.
+The e2e mints locks with the same HMAC as the quote route (`lib/crypto/hmac.ts`) and creates its own live rate version, settings
+version and vehicle class `e2e265` on the local stack.
+
+`checkout-account.e2e.mjs` (HTTP, cookie jars):
+
+| Line | Proves |
+|---|---|
+| 1-3 | checkout sign-in: known and unknown e-mail give the same status and body; the unknown one creates no user and sends no mail; both wait at least 1200 ms |
+| 4, 4a, 4b | an unconfirmed checkout-made user gets the `account_signin` template; the link lands on the exact checkout path and query with a session and a confirmed e-mail; the 6-digit code signs in (`type: email`) |
+| 5, 6 | a provisioned account (created unconfirmed, no password) has no session and nothing linked until the link is followed; after the link the paid booking is listed; no consent_log row, no signup_consent |
+| 7a-7d | PAY through the real route (fake Stripe): guest writes one `informed` record, create with the tick writes one `consent` record, create without the tick is refused, a known e-mail gets `sign_in_first`; none sets a session cookie |
+| 8 | neither PAY writes a consent_log row |
+| 9, 10 | switch off: guest PAY goes to Stripe with no record and no notice; switch on: Text 2 is rendered on /checkout, verbatim |
+| 11a, 11b | the 6th press on one price and the 9th press from one address in a minute are refused |
+
+`checkout-german.e2e.mjs` (Chromium via `@playwright/test`, real page, real Worker): /de sets the language, the panel and both
+notices are the approved German texts, a guest PAY with the page's own button writes a record with locale `de`, sign-in by e-mail
+link from the German checkout returns to the same checkout (every trip parameter) in German and signed in, /de/privacy shows
+"Ihr Konto". Stubbed in the browser: the challenge script, `/api/quote` (needs Mapbox; answers with a signed lock), place lookups,
+and the navigation to checkout.stripe.com.
+
+Found by this run: on the Worker a route handler sees the request query already decoded once. A sign-in link target such as
+`/checkout?from=Zurich%20Airport` reached the callback with a space, failed the return-path check and landed on /checkout with no
+trip. `callbackUrl` now sends a target with a query as base64url (`nextb`).
