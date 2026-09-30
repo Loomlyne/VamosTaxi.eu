@@ -236,8 +236,12 @@ export async function assignBooking(
   if (!key || !chauffeur) return { ok: false, code: "not-found" };
   const bookingId = await resolveStaffBookingId(env, claims, key);
   if (!bookingId) return { ok: false, code: "not-found" };
-  const result = await asSystem(env, async (sql) => {
-    try {
+  // 260930-dash-assign: map the refusal AROUND asSystem, never inside it. postgres.js begin()
+  // rethrows a query error the callback caught, and the deferred GiST overlap (23P01) only fails
+  // at COMMIT — a catch inside the callback let both escape as a 500 (generic "Could not assign").
+  let result: AssignResult;
+  try {
+    result = await asSystem<AssignResult>(env, async (sql) => {
       const rows = await sql<
         { booking_id: string; leg_id: string; chauffeur_id: string; vehicle_id: string }[]
       >`
@@ -248,18 +252,18 @@ export async function assignBooking(
         )
       `;
       const row = rows[0];
-      if (!row) return { ok: false, code: "unknown" } as const;
+      if (!row) return { ok: false, code: "unknown" };
       return {
-        ok: true as const,
+        ok: true,
         bookingId: String(row.booking_id),
         legId: String(row.leg_id),
         chauffeurId: String(row.chauffeur_id),
         vehicleId: String(row.vehicle_id),
       };
-    } catch (err) {
-      return mapAssignSqlError(err);
-    }
-  });
+    });
+  } catch (err) {
+    result = mapAssignSqlError(err);
+  }
   if (!result.ok && result.code === "overlap") {
     try {
       const overlap = await asStaff(env, claims, (sql) =>
@@ -302,8 +306,10 @@ export async function unassignBooking(
   } catch {
     mail = null;
   }
-  const result = await asSystem(env, async (sql) => {
-    try {
+  // Same rule as assignBooking: the refusal is mapped around asSystem.
+  let result: AssignResult;
+  try {
+    result = await asSystem<AssignResult>(env, async (sql) => {
       const rows = await sql<{ booking_id: string; leg_id: string }[]>`
         select * from public.ops_unassign_leg(
           ${bookingId}::uuid,
@@ -311,16 +317,16 @@ export async function unassignBooking(
         )
       `;
       const row = rows[0];
-      if (!row) return { ok: false, code: "unknown" } as const;
+      if (!row) return { ok: false, code: "unknown" };
       return {
-        ok: true as const,
+        ok: true,
         bookingId: String(row.booking_id),
         legId: String(row.leg_id),
       };
-    } catch (err) {
-      return mapAssignSqlError(err);
-    }
-  });
+    });
+  } catch (err) {
+    result = mapAssignSqlError(err);
+  }
   if (result.ok) {
     try {
       await notifyChauffeur(env, "unassign", mail);

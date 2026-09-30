@@ -1,5 +1,5 @@
 ---
-status: investigating
+status: verifying
 trigger: "Dashboard booking detail of a paid booking: Assign, pick a driver, confirm -> generic 'Could not assign VT-...' (assignFailed)."
 created: 2026-09-30
 updated: 2026-09-30
@@ -9,7 +9,7 @@ branch: gsd/26.2-dash-assign (cut from origin/main 316606ee)
 ## Current Focus
 
 hypothesis: CONFIRMED (see Evidence). postgres.js `sql.begin` rethrows a query error the callback caught; assignBooking maps SQL errors inside asSystem, so 'no-vehicle' escapes as a throw -> 500 -> generic toast.
-next_action: fix apps/web/lib/ops/assign.ts — run the RPC inside asSystem without try/catch and map the error around asSystem (assign + unassign); rerun both new tests green.
+next_action: run the end gates (typecheck, lint, i18n:check, check:numbers, check:db-fences, touched tests after sync-dc-mock-to-public), stop the isolated stack, write owner decisions.
 
 reasoning_checkpoint:
   hypothesis: "The owner saw the generic toast because ops_assign_leg raised P0001 'no-vehicle' (chauffeur default_vehicle_id NULL) and assignBooking's in-transaction catch cannot stop postgres.js begin() from rethrowing it, so the route threw and answered a non-JSON 500."
@@ -81,7 +81,30 @@ live shape (lead, read-only): one chauffeur (active, status off, default_vehicle
 
 ## Resolution
 
-root_cause:
-fix:
-verification:
-files_changed: []
+root_cause: |
+  ops_assign_leg raises P0001 'no-vehicle' for the owner's only chauffeur (default_vehicle_id NULL;
+  packages/db/supabase/migrations/20260910164004_ops_assign_leg.sql:96-98). assignBooking caught that
+  error INSIDE the asSystem callback (apps/web/lib/ops/assign.ts:239-262 before the fix), but
+  postgres.js begin() rethrows any failed query after the callback resolves (postgres@3.4.9
+  cf/src/index.js:266-267, 293), so the raw PostgresError escaped assignBooking, the route
+  (route.ts:55, no catch) threw, the Worker answered 500 without JSON, vamos-ops-api.js:32 turned it
+  into {ok:false, code:'http'} and OpsDetail.dc.html:1374 showed "Could not assign VT-...".
+  Same defect in unassignBooking. Every specific assign/unassign message was unreachable since 08-04.
+  Underneath: since a1393c93 (2026-09-25) the dashboard has no control that gives a chauffeur a
+  vehicle, so with the owner's data assign can only answer no-vehicle.
+fix: |
+  assign.ts: the RPC runs inside asSystem without try/catch; the error is mapped around asSystem with
+  mapAssignSqlError (assign and unassign). This also catches the deferred GiST overlap (23P01), which
+  fails at COMMIT. The page already has the no-vehicle message in en/de/fr/ar
+  (OpsDetail.dc.html:546/588/623/672) — unchanged. No SQL change, no migration.
+verification: |
+  assign-rpc-errors.test.ts 5/5 green (was 4 red); assign.test.ts green;
+  assign.local.test.ts green on the isolated stack: owner's shape -> {ok:false, code:'no-vehicle'};
+  after a vehicle link (vehicle_seats + default_vehicle_id, as persistVehicleSeats writes) -> ok with
+  that vehicle, leg 'assigned'; same chauffeur, same time, second paid trip -> overlap with the first
+  trip's reference and time.
+files_changed:
+  - apps/web/lib/ops/assign.ts
+  - apps/web/lib/ops/assign-rpc-errors.test.ts (new)
+  - apps/web/lib/ops/assign.local.test.ts (new)
+  - scripts/db-access-fence-allowlist.json
