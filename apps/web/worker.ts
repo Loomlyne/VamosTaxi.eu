@@ -10,7 +10,12 @@ import { WorkerEntrypoint } from "cloudflare:workers";
 // @ts-expect-error `.open-next/worker.js` is generated at build time by
 // `opennextjs-cloudflare build` and does not exist in source control.
 import { default as handler } from "./.open-next/worker.js";
-import { gatePublicRequest } from "./lib/dc-mock-urls";
+import {
+  gatePublicRequest,
+  guardOpsAsset,
+  isOpsAssetRequest,
+  withOpsAssetHeaders,
+} from "./lib/dc-mock-urls";
 import {
   pinRequestToApexAssets,
   pinRequestToSurface,
@@ -37,9 +42,13 @@ async function handleFetch(
   surface: VamosSurface,
 ): Promise<Response> {
   const sni = sniFromCf((request as { cf?: unknown }).cf);
-  const inbound = pinRequestToApexAssets(
-    pinRequestToSurface(request, surface, sni),
-  );
+  const surfaced = pinRequestToSurface(request, surface, sni);
+  // F16: dashboard screen files exist on the dashboard host only. Decide before the
+  // apex asset pin rewrites the host, and before the internal-asset header bypass.
+  const hiddenOps = guardOpsAsset(surfaced);
+  if (hiddenOps) return hiddenOps;
+  const opsAsset = isOpsAssetRequest(surfaced);
+  const inbound = pinRequestToApexAssets(surfaced);
   const gated = gatePublicRequest(inbound);
   if (gated === "not-found") {
     const gone = new URL(inbound.url);
@@ -48,7 +57,8 @@ async function handleFetch(
     return handler.fetch(new Request(gone, inbound), env, ctx);
   }
   if (gated) return gated;
-  return handler.fetch(inbound, env, ctx);
+  const res: Response = await handler.fetch(inbound, env, ctx);
+  return opsAsset ? withOpsAssetHeaders(res) : res;
 }
 
 /**
