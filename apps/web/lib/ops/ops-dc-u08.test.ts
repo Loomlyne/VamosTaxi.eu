@@ -107,3 +107,26 @@ describe("OpsDash 'Unassigned bookings' count", () => {
     }
   });
 });
+
+describe("BrandSelect open list", () => {
+  it("scrolling inside the list keeps it open; scrolling the page still closes it", () => {
+    const src = readDc("BrandSelect.dc.html");
+    const arrow = grab(src, /\n\s*this\._bail = ([^\n]*);\n/, "BrandSelect _bail");
+    const inner = { nodeType: 1 };
+    let closed = 0;
+    const self = {
+      state: { open: true },
+      _pop: { contains: (n: unknown) => n === inner },
+      close: () => {
+        closed += 1;
+      },
+    };
+    const bail = new Function(`return ${arrow};`).call(self) as (e?: unknown) => void;
+    bail({ target: inner });
+    expect(closed).toBe(0);
+    bail({ target: { nodeType: 9 } });
+    expect(closed).toBe(1);
+    bail({ target: {} });
+    expect(closed).toBe(2);
+  });
+});
