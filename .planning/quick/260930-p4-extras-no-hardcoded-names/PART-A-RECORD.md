@@ -374,3 +374,164 @@ Every `${JSON.stringify(x)}::jsonb` bound by the Worker's driver stores a JSON s
 | A5: the Type column and the leftover words on Pricing > Extras (`OpsPricing.dc.html:240-251, 339-350, 1503-1515`), `surchargeTypeFromCode` in the route, the mirror in `app/vamos-ops-data.js` | Screen change: picture and signature first. |
 | A6: deleting an extra deletes its four-language names | Migration `20261007110000` (number from the control session). |
 | Until A4 and A5 land, an extra named exactly "Waiting" would show the Type "Extra wait" and feed the "Extra wait" tag. Part A is handed over only as a whole. | |
+
+---
+
+## A4 and A5 draft (2026-09-30)
+
+Branch `gsd/26.2-p4-a45-draft`, cut from `gsd/26.2-p4-extras` at `ff09120c`. Owner decisions, question form,
+2026-09-30: A4 "Remove the tag", A5 "Remove column and old words". **Draft for his picture signature: not
+merged, not pushed, not deployed.**
+
+| Commit | What |
+|---|---|
+| `28491388` | A4: the "Extra wait" tag and its data source go |
+| `dc371bd0` | A5: the Type column, the type list and the old words go |
+| `5ccfdea7` | A5 test: expected amount read from its fixture (check-no-invented-numbers flagged a CHF literal) |
+| this commit | pictures and this section |
+
+### A4 — what changed
+
+| File | Change |
+|---|---|
+| `app/ops/OpsDetail.dc.html` | The tag `extraWait` ("Extra wait: N min · CHF …") is deleted, and its copy key in en/de/fr/ar (`Extra wait`, `Extra-Wartezeit`, `Attente extra`, `انتظار إضافي`). `extraWaitMinutes` / `extraWaitRappen` leave `EMPTY_BOOKING`. The "Arrived HH:MM" tag is unchanged. |
+| `apps/web/lib/ops/bookings.ts` | The board query's `live` lateral join is deleted: it read the live book's `free_wait_minutes` and a surcharge row by code (`waiting_airport`, `waiting`, `waiting_city`). `l.arrived_at` stays. |
+| `apps/web/lib/ops/bookings-map.ts` | `extraWaitFromArrival`, the fields `extraWaitMinutes` / `extraWaitRappen` and the row fields `free_wait_minutes` / `waiting_amount_rappen` are deleted. `arrivedAt` stays. |
+
+Everything else the board and the detail use is unchanged. `rate_versions.free_wait_minutes` is still read by
+`lib/ops/rate-book.ts` for the Pricing page (not part of A4).
+
+### A5 — what changed
+
+| File | Change |
+|---|---|
+| `app/ops/OpsPricing.dc.html` | Deleted: `SURCHARGE_TYPES`, `surchargeTypeOf`, the Type column (`surchargeColumns` key `type`), every branch on `meet_greet` / `free_wait` / `extra_wait` (a `meet_greet` row was forced to 0, a `free_wait` row showed hours instead of its amount), the free-wait `hours` field in the row mapping and in the blank row, `'type'` in the search keys. Every row now shows its own name and amount. |
+| same file, copy table en/de/fr/ar | Deleted keys: `surchargeType` (the column header), `typeCheckoutExtra`, `typeMeet`, `typeFreeWait`, `typeExtraWait`, `notDeletableMeet`. Changed: `hintSurcharges`, `emptySurchargesBody` (table below). |
+| `apps/web/app/[locale]/(ops)/api/staff/rate-book/route.ts` | `surchargeTypeFromCode` deleted; the GET payload's surcharge rows lose `type` and `hours` (`hours` was `type === "free_wait" ? "" : ""`, always empty). Grep: nothing else reads either from the payload. **Kept:** the save path's `recBody.type === "checkout_extra"` (lines 934, 983): it gates the amount check and the saving of the four-language names, and the Pricing page still sends `type: 'checkout_extra'` on save. |
+| `app/vamos-ops-data.js` | `cleanSurcharge` no longer derives a type from the code (the mirror at old lines 822-829) and drops the `hours` field; `type` is passed through as sent, for the save path above. |
+| `app/vamos-i18n-dict.js` | Append only. The old words stay where they are: `'Checkout extra'`, `'Meet and greet'`, `'Free airport wait'`, `'Extra wait'` (lines 959-962) and the old empty-list body (line 966). Two entries appended after line 966: the new empty-list body and `'Checkout extras'`, each with de/fr/ar as below, so `VamosLocale.coverage()` resolves the new text. |
+
+### The four-language texts
+
+| Key | Language | Before (`ff09120c`) | After |
+|---|---|---|---|
+| `emptySurchargesBody` | en | Add a checkout extra, extra-wait rate, or edit meet and greet and free wait. Meet and greet and free wait stay on for the customer. | Add an extra. Customers choose it at checkout. |
+| | de | Checkout-Extra, Extra-Wartepreis oder Meet and greet und Freiwarten bearbeiten. Meet and greet und Freiwarten bleiben für den Kunden an. | Fügen Sie ein Extra hinzu. Kundinnen und Kunden wählen es beim Checkout. |
+| | fr | Ajoutez un extra de paiement, un tarif d’attente extra, ou modifiez l’accueil et l’attente libre. L’accueil et l’attente libre restent activés pour le client. | Ajoutez un extra. Les clients le choisissent au paiement. |
+| | ar | أضف إضافة دفع أو سعر انتظار إضافي أو عدّل الاستقبال والانتظار المجاني. يبقى الاستقبال والانتظار المجاني مفعّلين للعميل. | أضف إضافة. يختارها العملاء عند الدفع. |
+| `hintSurcharges` (the line under "Surcharges & extras" in the tab list) | en | Checkout extras, wait, meet and greet | Checkout extras |
+| | de | Checkout-Extras, Warten, Meet and greet | Checkout-Extras |
+| | fr | Extras de paiement, attente, accueil | Extras de paiement |
+| | ar | إضافات الدفع والانتظار والاستقبال | إضافات الدفع |
+
+The hint kept its first part word for word; only the words about waiting and meet and greet were dropped. The
+empty-list body is the owner's text verbatim (Swiss German, no "ß").
+
+Deleted, all four languages: `surchargeType` (Type / Typ / Type / النوع), `typeCheckoutExtra` (Checkout extra /
+Checkout-Extra / Extra de paiement / إضافة الدفع), `typeMeet` (Meet and greet / Meet and greet / Accueil /
+الاستقبال), `typeFreeWait` (Free airport wait / Freiwarten am Flughafen / Attente libre à l’aéroport / انتظار مجاني
+في المطار), `typeExtraWait` (Extra wait / Extra-Warten / Attente extra / انتظار إضافي), `notDeletableMeet`
+("Meet and greet stays on. …" and its three translations; it was already unused).
+
+### Tests
+
+New file `apps/web/lib/ops/ops-dc-p4.test.ts` (technique of `ops-dc-u08` / `ops-dc-bp`: the DC script block runs
+against a stub `DCLogic`, the real `renderVals` and the real copy table are asserted). Before the change:
+`Tests 20 failed (20)`, every one on an assertion:
+
+| Test | Failure line before |
+|---|---|
+| A4: a trip that arrived after pickup shows Arrived and no Extra wait (en, de, fr, ar — four tests) | `expected [ 'Driver', 'When', …(9) ] to not include 'Extra wait'` · de `… to not include 'Extra-Wartezeit'` · fr `… 'Attente extra'` · ar `… 'انتظار إضافي'` |
+| A4: the copy table has no extraWait key in any language | `en: expected { …(154) } to not have property "extraWait"` |
+| A4: the board mapper sends no extra-wait figure, and still sends the arrival time | `expected { id: 'VT-26-4821', …(50) } to not have property "extraWaitMinutes"` |
+| A4: the board query reads no surcharge row by its code and no free-wait setting | `expected '// apps/web/lib/ops/bookings.ts …' not to match /waiting_airport\|waiting_city\|'waiting'/` |
+| A5: the Extras table has two columns: name and amount | `expected [ 'type', 'label', 'value' ] to deeply equal [ 'label', 'value' ]` |
+| A5: an extra stored under the code meet_greet / free_wait / extra_wait / waiting / waiting_city / waiting_airport shows its own name and price, like any other extra (six tests) | meet_greet: `expected [ Array(3) ] to deeply equal [ Array(3) ]` · free_wait: `expected [ 'Free airport wait', …(2) ] to deeply equal [ Array(3) ]` · the four waiting codes: `expected [ 'Extra wait', 'Child seat', …(1) ] to deeply equal [ Array(3) ]` |
+| A5: search does not index a type | `expected [ 'label', 'type', 'name' ] to not include 'type'` |
+| A5: the copy table holds none of the type words or the meet-and-greet line, in four languages | `en.surchargeType: expected { title: 'Pricing & routes', …(202) } to not have property "surchargeType"` |
+| A5: the Extras hint no longer talks about waiting or meet and greet; the rest stays | `en: expected 'Checkout extras, wait, meet and greet' not to match /wait\|meet and greet/i` |
+| A5: the empty list says: add an extra, customers choose it at checkout — in four languages | `en: expected 'Add a checkout extra, extra-wait rate…' not to match /wait\|meet and greet/i` |
+| A5: the rate-book payload carries no type derived from the code and no free-wait hours | `expected '// apps/web/app/[locale]/(ops)/api/st…' not to match /surchargeTypeFromCode/` |
+| A5: the dashboard data layer derives no type from the code | `expected '\n    s = s \|\| {};\n    var type = st…' not to match /meet_greet\|free_wait\|extra_wait\|waiti…/` |
+
+After: `Tests 20 passed (20)`.
+
+Existing tests changed, each only where it pinned exactly what the owner removed:
+
+| File | Was | Now |
+|---|---|---|
+| `lib/ops/bookings-write.test.ts` | `computes extra wait from published free_wait_minutes, not 60` (called `extraWaitFromArrival`) | deleted with its import; the arrival-clock test beside it is unchanged |
+| `lib/checkout/extra-wait-no-offsession.test.ts` | `ops extra wait is display-only …` pinned the doc comment `Display only — never a Stripe amount` of `extraWaitFromArrival` | `ops board mapper never opens a PaymentIntent`: the mapper holds no `extraWait`; the four no-PaymentIntent checks are unchanged |
+| `lib/ops/ops-dc-finalize.test.ts:81` | `toMatch(/typeCheckoutExtra/)` | `not.toMatch` |
+| `lib/ops/ops-pricing-tabs.test.ts:58` | `toContain("SURCHARGE_TYPES")` | `not.toContain` |
+
+Nothing under `apps/web/tests/**` names any removed piece (searched: the four old type words, `surchargeType`,
+`Type or name`, `Extra-Wartezeit`, `extraWait`); nothing there was edited.
+
+### Checks run once at the end
+
+| Check | Result |
+|---|---|
+| `pnpm typecheck` | exit 0 (db, emails, isolation-probe, web) |
+| `pnpm lint` | exit 0, 5 warnings, all in files this branch does not touch (the 5 old ones) |
+| `pnpm i18n:check` | passed — 2664 keys, 1036 literal call sites, 2664 messages |
+| `node scripts/sync-dc-mock-to-public.mjs`, then `lib/ops/ops-dc-*.test.ts` (bp, finalize, p4, settings, u08) plus bookings-write, ops-pricing-tabs, extra-wait-no-offsession, customers-board | `Test Files 9 passed (9)`, `Tests 135 passed (135)` |
+| During work, three runs over every test file that imports or reads a touched file (A4: 20 files, 220 tests; A5: 22 files, 226 tests; dictionary readers: 13 files, 180 tests) | green, except the one `origin/main` test below |
+| `node scripts/check-no-invented-numbers.mjs` | ok (after `5ccfdea7`) |
+
+One red test that is **not** from this branch: `lib/legal/privacy-account-paragraph.test.ts` > "manage-booking
+mock is untouched relative to origin/main" diffs `app/pages/manage-booking.dc.html` against `origin/main`, which
+has moved since `ff09120c` (native scrolling, `561d1647`, removes three Lenis lines there). This branch does not
+touch that file (`git diff ff09120c -- app/pages/manage-booking.dc.html` is empty). Bringing main into the branch
+before hand-over clears it.
+
+### Pictures (for the owner's signature)
+
+Folder `.planning/quick/260930-p4-extras-no-hardcoded-names/screens/`, 68 PNGs.
+
+How they were made: the real dashboard shell `app/ops/ops.dc.html`, served the way the Worker serves it
+(`<base href="/app/ops/">` and the signed-in flag, as `apps/web/middleware.ts` `serveOpsDc` does), with the real
+`vamos-ops-api.js` / `vamos-ops-data.js` and the real screens. "Before" is served from `git archive ff09120c`,
+"after" from this branch. Every `/api/*` call is answered inside the script; nothing left the Mac. Headless
+Chromium from the Playwright cache, 1× scale, reduced motion. The one-off scripts lived in the session scratchpad
+and are not committed; nothing under `apps/web/tests` or `apps/web/playwright.config.ts` was edited.
+
+- Pricing: the rate-book answer carries one row shaped like the live child-seat row (code `child-seat`, 1000
+  rappen through the route's own `moneyFromRappen`, English name as `labelEn`); the "before" row also carries
+  `type` and `hours`, as `ff09120c`'s route sent them.
+- Booking detail: the bookings answer is the output of each version's own `mapBoardBooking` (run from the file at
+  `ff09120c` and on the branch) over the same row: paid, confirmed, Economy, pickup 08:00 Zurich, the driver marked
+  arrival at 08:25. No amounts (the total reads CHF 000). The live free-wait setting was not read, so the fixture
+  leaves it empty; the "before" mapper therefore gives `extraWaitMinutes: 25`.
+
+| Set | Files | What it shows |
+|---|---|---|
+| A5, one extra | `a5-{before,after}-{en,ar}-{1440,1024,768,390}.png`, `a5-sheet.png` | Before: a TYPE column reading "Checkout extra" / "إضافة الدفع"; the tab hint reads "Checkout extras, wait, meet and greet". After: NAME and AMOUNT only; hint "Checkout extras" / "إضافات الدفع". At 390 px "before" the amount is pushed out of the visible table; "after" name and amount both fit. |
+| A5, empty list | `a5-empty-{before,after}-{en,ar}-{…}.png`, `a5-empty-sheet.png` | Added because the empty-list body is the owner's new text: before the old body about extra-wait rates and meet and greet, after "Add an extra. Customers choose it at checkout." / "أضف إضافة. يختارها العملاء عند الدفع." |
+| A4, real shell | `a4-{before,after}-{en,ar}-{…}.png`, `a4-sheet.png` | **Before and after are byte-identical at every width in both languages** (md5 compared). See F1: on the live dashboard neither "Extra wait" nor "Arrived" ever reached this screen. |
+| A4, data layer bypassed | `a4-direct-{before,after}-{en,ar}-{…}.png`, `a4-direct-sheet.png` | Same shell, but the three fields the data layer drops (`arrivedAt`, `extraWaitMinutes`, `extraWaitRappen`) are handed from the API row to the screen, so the removed tag can be seen at all. Before: "ARRIVED 08:25" and "EXTRA WAIT 25 min". After: "ARRIVED 08:25" only. |
+
+All 64 page renders: `dir="rtl"` in Arabic, no sideways scroll (`scrollWidth − clientWidth = 0`) at 1440, 1024,
+768 and 390.
+
+### Found on the way (not changed)
+
+| # | What | Where | Effect |
+|---|---|---|---|
+| F1 | The dashboard data layer drops `arrivedAt`, `extraWaitMinutes` and `extraWaitRappen`: `cleanBooking` copies a fixed list of fields and these three are not in it (since `e55a6243`, 2026-09-14). The detail screen reads its booking only from that store. | `app/vamos-ops-data.js` `cleanBooking` | On live the "Extra wait" tag never showed, so A4 changes nothing a user sees (pictures prove it). It also means **"Arrived HH:MM" never shows on live either**, although Mark arrival saves the time. Passing `arrivedAt` through is one line, but it is a screen change: his word first. |
+| F2 | The Pricing Name cell shows the stored code "child-seat", not "Child seat". The route sends the English name as `labelEn`; the table reads `name`, then `label`. | route `withExtraLabels`, `cleanSurcharge`, `OpsPricing` | Same before and after; not part of A5. |
+| F3 | The search field on Pricing > Extras still says "Type or name" (and its three translations) although the Type column is gone. Not in the owner's list, left as it was. | `OpsPricing` `searchSurcharges` | Question for him: should it read "Name"? |
+| F4 | Unused copy keys on the same subject stay in the Pricing copy table in four languages: `whatThisDoes`, `doesMeet`, `doesFreeWait`, `doesExtraWait`, `extraHours`, `extraWaitRate`, `meetAmount`, `meetAmountHint`, `notDeletableWait`. Not read by any code, never on screen. The Rules pane keys `kindWaiting`, `kindFreeWait`, `emptyRulesBody`, `hRulePayload` are also unread here. | `OpsPricing` copy table | None on screen. Left because they were not in the list; one line each to remove on his word. |
+| F5 | Every booking-detail render logs `TypeError: Cannot read properties of undefined (reading 'dialogOpen')`: `componentDidUpdate` reads `prevState.dialogOpen` when the runtime passes no `prevState`. | `OpsDetail.dc.html:725-727` | Before and after alike; the page still renders. |
+| F6 | Arabic booking detail: "Paid by card" is not translated, and the mobile number reads reversed ("00 00 000 79 41+", no `vt-dir-keep`). | `OpsDetail` | Before and after alike. |
+| F7 | In these renders the amount cell reads "CHF 10": the route's `moneyFromRappen(1000)` sends "10". | route, `VamosLocale.money` | Same before and after; not compared with the live page. |
+
+### Not verified
+
+| # | Item |
+|---|---|
+| N1 | Nothing was looked at on the live site or in the Hermes browser; the pictures are local renders with answered API calls. |
+| N2 | The live book's `free_wait_minutes` was not read (no hosted SQL). Only the "data layer bypassed" before-pictures depend on it. |
+| N3 | German and French were not photographed (the job asked for English and Arabic); their strings are pinned by the tests. |
+| N4 | The full unit suite, the integration, visual and database suites were not run (the lead runs them once). |
+| N5 | No database change and no migration in A4/A5; the hosted database was not touched. |
