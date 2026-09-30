@@ -98,8 +98,20 @@ export function TripEditor({
     box?.querySelector<HTMLElement>("input, button")?.focus();
   }
 
-  async function detectAirport(place: Pick<PlaceRetrieve, "mapbox_id" | "session_token" | "text">) {
-    setAirport(airportByName(place.text));
+  /** After a pick that makes the pickup an airport, the flight field opens before From: focus goes into it (26.4.2). */
+  function focusFlightSoon() {
+    window.setTimeout(() => {
+      const active = document.activeElement as HTMLElement | null;
+      const inFrom = !!active?.closest('[data-co-field="from"]');
+      if (!active || active === document.body || inFrom) focusField("flight");
+    }, 80);
+  }
+
+  async function detectAirport(place: Pick<PlaceRetrieve, "mapbox_id" | "session_token" | "text">, focusFlight = false) {
+    const wasAirport = airport;
+    const byName = airportByName(place.text);
+    setAirport(byName);
+    let now = byName;
     try {
       const res = await fetch(
         `/api/geo/retrieve?mapbox_id=${encodeURIComponent(place.mapbox_id)}` +
@@ -108,10 +120,14 @@ export function TripEditor({
         { credentials: "same-origin" },
       );
       const json = (await res.json()) as { place?: { isAirport?: boolean } | null };
-      if (typeof json.place?.isAirport === "boolean") setAirport(json.place.isAirport);
+      if (typeof json.place?.isAirport === "boolean") {
+        now = json.place.isAirport;
+        setAirport(now);
+      }
     } catch {
       // the name test above stays as the hint
     }
+    if (focusFlight && now && !wasAirport) focusFlightSoon();
   }
 
   // Airport status comes from the pickup place only (D-09): settle it on open when the trip has one.
@@ -205,40 +221,6 @@ export function TripEditor({
     >
       <fieldset className="vt-co__editor-set" disabled={busy}>
       <div className="vt-co__editor-grid" data-flight-row={showFlight || canAddFlight ? "true" : "false"}>
-        <div className="vt-co__editor-field" data-co-field="from">
-          <PlaceCombo
-            label={t("tripFrom")}
-            value={fromShown}
-            placeholder={t("tripPickupPlaceholder")}
-            icon="map-pin"
-            clearLabel={tCommon("clear")}
-            testField="editor-from"
-            locale={geoLocale(locale)}
-            onChange={(v) => {
-              setFromShown(v);
-              setFrom(v);
-            }}
-            onPlace={(place) => {
-              if (!place) {
-                setFromId(null);
-                return;
-              }
-              setFrom(place.text);
-              setFromId(place.mapbox_id);
-              setGs(place.session_token);
-              setErrors((e) => ({ ...e, from: undefined }));
-              void detectAirport(place);
-            }}
-            onClear={() => {
-              setFromShown("");
-              setFrom("");
-              setFromId(null);
-              setAirport(false);
-            }}
-          />
-          {fieldMessage("from") ? <p className="vt-co__field-error">{fieldMessage("from")}</p> : null}
-        </div>
-
         {showFlight ? (
           <div className="vt-co__editor-field" data-co-field="flight" data-co-flight data-co-flight-optional={airport ? "false" : "true"}>
             <Input
@@ -268,6 +250,40 @@ export function TripEditor({
             </Button>
           </div>
         ) : null}
+
+        <div className="vt-co__editor-field" data-co-field="from">
+          <PlaceCombo
+            label={t("tripFrom")}
+            value={fromShown}
+            placeholder={t("tripPickupPlaceholder")}
+            icon="map-pin"
+            clearLabel={tCommon("clear")}
+            testField="editor-from"
+            locale={geoLocale(locale)}
+            onChange={(v) => {
+              setFromShown(v);
+              setFrom(v);
+            }}
+            onPlace={(place) => {
+              if (!place) {
+                setFromId(null);
+                return;
+              }
+              setFrom(place.text);
+              setFromId(place.mapbox_id);
+              setGs(place.session_token);
+              setErrors((e) => ({ ...e, from: undefined }));
+              void detectAirport(place, true);
+            }}
+            onClear={() => {
+              setFromShown("");
+              setFrom("");
+              setFromId(null);
+              setAirport(false);
+            }}
+          />
+          {fieldMessage("from") ? <p className="vt-co__field-error">{fieldMessage("from")}</p> : null}
+        </div>
 
         <div className="vt-co__editor-field" data-co-field="to">
           <PlaceCombo
