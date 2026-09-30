@@ -10,7 +10,7 @@ COMPLETE: D-03a built (grant)
 
 ## Commits
 - 7b142afb feat(27-17): grant record_account_agreement to vamos_system for /sign-up
-- test commit for the local test (see git log)
+- cea2a685 test(27-17): sign-up agreement write through the Worker client options
 
 ## Commands and results
 - `local-stack-27.sh start`: ok. `migrate`: refused (LegacyMigrationMissingRemoteError, ordering). `reset` (59322 stack only) was needed and applied all migrations.

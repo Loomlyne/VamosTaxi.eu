@@ -1,7 +1,7 @@
 // packages/db/test/local/signup-agreement.test.ts
 //
 // Phase 27 plan 17 (D-03a). The /sign-up agreement write as vamos_system, through the SAME client
-// options the Worker uses (`publicSql`; fetch_types false). account_agreement_records is
+// options the Worker uses (`publicSql`). account_agreement_records is
 // append-only, so every write runs inside ONE rolled-back transaction: nothing is committed.
 // Local only: 127.0.0.1, port from VAMOS_LOCAL_DB_PORT (the phase 27 stack is 59322).
 import { describe, expect, it } from "vitest";
