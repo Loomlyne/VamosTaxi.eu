@@ -171,13 +171,10 @@ test("trip strip and three class cards at 1440, 1024, 768 and 390 @checkout", as
         return { top: Math.round(r.top), left: Math.round(r.left), w: Math.round(r.width) };
       }),
     );
-    if (width >= 768) {
-      // >=681: cards sit side by side in one row.
-      expect(new Set(boxes.map((b) => b.top)).size).toBe(1);
-    } else {
-      // <=680: stacked rows at the full width of the section.
-      expect(new Set(boxes.map((b) => b.top)).size).toBe(3);
-    }
+    // 26.0: layout E (f7a3528b) stacks the class cards in one column at every width: three rows,
+    // one left edge.
+    expect(new Set(boxes.map((b) => b.top)).size).toBe(3);
+    expect(new Set(boxes.map((b) => b.left)).size).toBe(1);
     await page.screenshot({ path: join(process.env.TMPDIR ?? "/tmp", `26.3-15-cards-${width}.png`) });
   }
   // The server got retrieve kinds and never an airport flag or a price.

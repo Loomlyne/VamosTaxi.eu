@@ -537,10 +537,6 @@ test("Have an account? Sign in carries class and extras in returnTo; voucher, co
 
 // ── 6. A challenge shows where the customer is ──────────────────────────────────────────
 test("a Turnstile challenge on a re-quote shows above PAY, not only in Section 1 @checkout", async ({ page }) => {
-  test.fail(
-    true,
-    "KNOWN-RED 26.0: a flight edit re-signs through resignFlight (26.4); when the fallback re-quote answers turnstile_required, flightBlur ignores result.challenge (CheckoutForm.tsx:559), so no [data-co-page-challenge] mounts and the summary stays on Updating price — owner to rule",
-  );
   const fx = await setup(page);
   fx.quoteAnswer = (b) => {
     const leg = (b.legs as { flight_no: string | null }[])[0];
