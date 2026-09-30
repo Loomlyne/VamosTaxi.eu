@@ -626,6 +626,9 @@
   });
 
   function start() {
+    /* A stored language the server did not know about (no cookie, or an old one) makes the
+       first view English in the head only: bring the address and the tab title to it. */
+    followAddress();
     chrome();
     pass();
     legalNotice();

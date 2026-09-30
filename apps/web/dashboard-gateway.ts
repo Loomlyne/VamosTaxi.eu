@@ -53,6 +53,17 @@ export default {
       });
     }
     const path = new URL(request.url).pathname;
+    // robots.txt is a dotted file, so the asset rule below would answer it from the apex
+    // with the public site's rules. The console is closed to crawlers outright.
+    if (path === "/robots.txt") {
+      return new Response("User-agent: *\nDisallow: /\n", {
+        headers: {
+          "content-type": "text/plain; charset=utf-8",
+          "x-robots-tag": "noindex",
+          "cache-control": "public, max-age=3600",
+        },
+      });
+    }
     if (isApexAssetPath(path)) {
       return env.PUBLIC.fetch(apexAssetRequest(request));
     }
