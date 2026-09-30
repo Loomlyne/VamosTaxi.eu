@@ -1,3 +1,5 @@
+CLOSED BY THE OWNER ON 2026-09-30. Do not start this phase. Kept for the record only.
+
 You run Phase 19, the 10,000-booking surge proof, for Vamos Taxi.
 
 Read `.planning/prompts/00-common-rules.md` on main first and follow it.
