@@ -189,6 +189,16 @@ Reported by that session; not yet re-checked by the control session.
 
 Every Phase 20 ship needs the owner's Ship; today's ship mode does not cover it.
 
+Owner decided every finding F1 to F14 on 2026-09-30 (table at the end of `20-06-FINDINGS.md`, branch pushed at `f372f7fe`). Phase 20 builds all of it, in three batches:
+
+| Batch | When | What |
+|---|---|---|
+| A | Now | F1 pay link no longer opens Manage booking. F2 reworked by his decision: dashboard Support becomes read-only, file names only, one button opens his e-mail. F5, F10, F14 database items. F13: the page engine (React, Babel) served from our own host, not unpkg. |
+| B | After 26.5 is on main | Limit on the payment return address, F8, remaining F14 items, and **F11: refunds by hand** (customer cancels, booking shows "Refund due", admin presses Refund). F11 needs a signed plan and a check of every refund promise on /cancellation, /terms, FAQ and the mails. |
+| C | After Phase 27 is on main | F12: the sign-in link opens a confirm screen "Sign in as <e-mail>?". Design first. |
+
+Accepted by him, no work: F4, F7, F9. GitHub lists 41 known weaknesses in dependencies (15 high); Phase 20 reads which ones matter.
+
 ## Owner feedback after the 26.4 ship, 2026-09-30
 
 Built by the 26.3 session as `fix/26.4.2-booking-feedback` (folder `fix-26.4.2`).
