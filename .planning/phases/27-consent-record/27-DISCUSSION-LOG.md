@@ -19,6 +19,10 @@
 | 10 | Last-updated dates | Only changed pages move (Recommended) / All five | Only changed pages |
 | 11 | /coming-soon banner | Yes (Recommended) / No | Yes |
 | 12 | 26.5 not on main: ship 27 without the sign-up tick, or hold? | Ship without, follow-up (Recommended) / Hold 27 until 26.5 is live | Hold 27 until 26.5 is live |
+| 13 | /cookies line "Read from this browser…" | Remove (Recommended) / Keep | Remove |
+| 14 | Sign-in link for an unknown address | No account from sign-in (Recommended) / Keep as today | Own words: after verifying he goes to the create-account page to add name, last name, phone |
+| 15 | Does that step hold the 27 ship? | Ship 27 first, then this (Recommended) / Build inside 27 | Ship 27 first |
+| 16 | Phone on the normal Sign up form? | Yes on both (Recommended) / Only after a sign-in link | Own words: it asks for the phone number but optional |
 
 Not asked, already decided: the three texts (decision file 2026-09-30), the version bump and
 re-ask (Phase 26 D-13, D-14), the banner on the pay link (META-04), phase order.

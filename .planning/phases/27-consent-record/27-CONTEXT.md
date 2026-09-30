@@ -155,6 +155,17 @@ Nothing is sent to Meta by this phase.
   this browser, so it is the real state, not an example." is removed (the panel now reads the
   server record). No new wording. The dictionary entry stays (shared file, no deletions).
 
+- **D-36 (owner, 2026-09-30, gap plan check):** in Phase 27 the sign-in link ("Email me a link" on
+  /sign-in) creates **no** account for an unknown address (`createUser: false` for sign-in on the
+  public host). Marco gets the same "check your e-mail" answer as today (no address probing) and
+  uses Sign up, with the notice and the tick. Existing accounts sign in as before.
+- **D-37 (owner, same day) — FOLLOW-UP JOB, not in Phase 27:** his words: "It will follow the
+  structure on creating an account and take him back to the create account page after he verify to
+  add his name and last name and phone number". A person who verifies a sign-in link without an
+  account lands on a finish-your-account step: first name, last name, phone number (optional),
+  the account notice and tick. The normal Sign up form also asks for the phone number, optional.
+  Own job right after the 27 ship, with its own UI-SPEC for him to sign. Until it ships, D-36 holds.
+
 ### Policy version
 - **D-17:** `CONSENT_POLICY_VERSION` becomes the Zurich date of the day the texts ship (Phase 26
   D-13, D-15). Same string shown as the date on the cookies and privacy pages. The two September
