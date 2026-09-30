@@ -300,8 +300,7 @@ class Component extends DCLogic {
   tocRef = React.createRef();
 
   componentDidMount() {
-    this.readConsent();
-    if (window.VamosConsent) this._offConsent = window.VamosConsent.onChange(() => this.readConsent());
+    this.bindConsent(0);
     if (window.VamosLocale) {
       this.setState({ lang: window.VamosLocale.lang() });
       this._offLocale = window.VamosLocale.onChange((v) => this.setState({ lang: (v && v.lang) || window.VamosLocale.lang() }));
@@ -329,6 +328,14 @@ class Component extends DCLogic {
     prose.querySelectorAll('section[id]').forEach((s) => this.io.observe(s));
   }
   componentWillUnmount() { if (this.io) this.io.disconnect(); if (this._offConsent) this._offConsent(); if (this._offLocale) this._offLocale(); this._gone = true; }
+
+  // vamos-consent.js can land after this mount; wait for it (up to 5s) before reading.
+  bindConsent(tries) {
+    if (this._gone) return;
+    if (!window.VamosConsent) { if (tries < 100) setTimeout(() => this.bindConsent(tries + 1), 50); return; }
+    this._offConsent = window.VamosConsent.onChange(() => this.readConsent());
+    this.readConsent();
+  }
 
   // The server holds the record; this page shows what VamosConsent.state() returns (no local poll).
   readConsent = () => {

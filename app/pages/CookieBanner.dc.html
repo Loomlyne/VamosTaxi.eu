@@ -275,27 +275,37 @@ class Component extends DCLogic {
     if (L && typeof L.onChange === 'function') {
       this._offLocale = L.onChange((v) => this.setState({ lang: (v && v.lang) || this.curLang() }));
     }
-    if (window.VamosConsent) {
-      this._offConsent = window.VamosConsent.onChange((c) => {
-        if (this.forced || !c) return;
-        this.setState({
-          decided: true, known: true, busy: false, alert: null, mode: 'hidden',
-          functional: !!c.functional, analytics: !!c.analytics, marketing: !!c.marketing,
-        });
-      });
-      if (!this.forced) this.readServer();
-    }
+    this.bindConsent(0);
     window.addEventListener('vamos:cookie-prefs', this.openPrefs);
     document.addEventListener('keydown', this.onKey);
     window.addEventListener('resize', this.syncReserve);
     this.observe();
     this.syncReserve();
   }
+  // vamos-consent.js comes from this component's own <helmet>, so it can land after the
+  // mount. Wait for it (up to 5s); if it never arrives the banner asks (D-33), never hides.
+  bindConsent(tries) {
+    if (this.unmounted) return;
+    if (!window.VamosConsent) {
+      if (tries >= 100) { if (!this.forced) this.setState({ known: true, mode: 'banner' }); return; }
+      this._bindTimer = setTimeout(() => this.bindConsent(tries + 1), 50);
+      return;
+    }
+    this._offConsent = window.VamosConsent.onChange((c) => {
+      if (this.forced || !c) return;
+      this.setState({
+        decided: true, known: true, busy: false, alert: null, mode: 'hidden',
+        functional: !!c.functional, analytics: !!c.analytics, marketing: !!c.marketing,
+      });
+    });
+    if (!this.forced) this.readServer();
+  }
   componentDidUpdate() { this.observe(); this.syncReserve(); }
   componentWillUnmount() {
     this.unmounted = true;
     if (this._offLocale) this._offLocale();
     if (this._offConsent) this._offConsent();
+    if (this._bindTimer) clearTimeout(this._bindTimer);
     this.destroyTs();
     if (this._ro) this._ro.disconnect();
     window.removeEventListener('vamos:cookie-prefs', this.openPrefs);
