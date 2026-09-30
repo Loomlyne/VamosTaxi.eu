@@ -221,3 +221,46 @@ describe("dashboard literals resolve in the platform dictionary", () => {
     expect(clashes).toEqual([]);
   });
 });
+
+describe("OpsDetail edit form save", () => {
+  const src = readDc("OpsDetail.dc.html");
+  const saveEdit = grab(src, /\n      saveEdit: \(\) => \{\n([\s\S]*?)\n      \},\n      markRefund:/, "OpsDetail saveEdit");
+  const literal = grab(
+    saveEdit,
+    /client\.request\('PATCH', '\/api\/staff\/bookings\/' \+ encodeURIComponent\(id\), \{\n([\s\S]*?)\n        \}\)\.then/,
+    "OpsDetail saveEdit body",
+  );
+  // `scheduled` is a local the pre-fix body used; harmless to supply.
+  const bodyOf = new Function("draft", "keep", "scheduled", `return {${literal}};`) as (
+    draft: Record<string, unknown>,
+    keep: (v: unknown) => string | undefined,
+  ) => Record<string, unknown>;
+  const keepSrc = saveEdit.match(/const keep = ([^\n]*);\n/)?.[1];
+  const keep = (keepSrc ? new Function(`return ${keepSrc};`)() : (v: unknown) => v) as (
+    v: unknown,
+  ) => string | undefined;
+  const route = readFileSync(
+    join(repoRoot, "apps/web/app/[locale]/(ops)/api/staff/bookings/[id]/route.ts"),
+    "utf8",
+  );
+  const read = new Set([...route.matchAll(/record\.(\w+)/g)].map((m) => m[1]));
+  const draft = {
+    customer: "Ada Example", email: "ada@example.com", phone: "+41 00 000 00 00",
+    pickup: "A", dropoff: "B", dateIso: "2026-10-01", time: "08:15", pax: "2", bags: "1", flight: "",
+  };
+
+  it("sends the contact under the names PATCH /api/staff/bookings/:id reads", () => {
+    const body = JSON.parse(JSON.stringify(bodyOf(draft, keep))) as Record<string, unknown>;
+    expect(body.customer).toBe("Ada Example");
+    expect(body.email).toBe("ada@example.com");
+    expect(body.phone).toBe("+41 00 000 00 00");
+    expect(Object.keys(body).filter((k) => !read.has(k))).toEqual([]);
+  });
+
+  it("an emptied contact field is left out, so the stored value stays", () => {
+    const body = JSON.parse(JSON.stringify(bodyOf({ ...draft, email: "  ", phone: "" }, keep))) as Record<string, unknown>;
+    expect("email" in body).toBe(false);
+    expect("phone" in body).toBe(false);
+    expect(body.customer).toBe("Ada Example");
+  });
+});
