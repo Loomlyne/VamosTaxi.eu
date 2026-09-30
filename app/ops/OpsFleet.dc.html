@@ -424,14 +424,7 @@ class Component extends DCLogic {
       if (detail.name && (b.chauffeur === detail.name || b.driver === detail.name)) return true;
       return false;
     };
-    const liveTrips = !detail ? [] : bookings.filter((b) => {
-      if (ended[b.status]) return false;
-      if (detail.id && b.assignedChauffeurId === detail.id) return true;
-      const email = String(detail.email || '').trim().toLowerCase();
-      if (email && String(b.chauffeurEmail || '').trim().toLowerCase() === email) return true;
-      if (detail.name && (b.chauffeur === detail.name || b.driver === detail.name)) return true;
-      return false;
-    }).filter(matchesChauffeur).map(tripHref);
+    const liveTrips = !detail ? [] : bookings.filter((b) => !ended[b.status] && matchesChauffeur(b)).map(tripHref);
     const pastBookings = !detail ? [] : bookings.filter((b) => ended[b.status] && matchesChauffeur(b)).map(tripHref);
     const className = detail ? classLabel(detail) : '';
     const profileName = detail ? (detail.name || '—') : '';
