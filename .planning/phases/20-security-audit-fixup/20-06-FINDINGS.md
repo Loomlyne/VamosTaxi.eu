@@ -94,3 +94,22 @@ APIs 401 without a session; dashboard `/` and `/dashboard` 308 to `/login`.
 
 - Serious → 20-07: F1, F2, F3. F4: owner read "Confirm email" = ON (question form, 2026-09-30); defence in depth goes with 26.5 plan 10.
 - The rest → 20-08, one question each to the owner.
+
+## Owner decisions (20-08), question form and chat, 2026-09-30
+
+| id | Decision | Built by |
+|---|---|---|
+| F1 | Fix: a pay link must not open the booking. | Phase 20, migration `20261005100000` |
+| F2 | Dashboard Support becomes read-only. No reply box, no files shown in the dashboard (file names only); one button opens the admin's own e-mail to read the file and answer. The PDF viewer is removed completely. Replaces commit `6480ec08` (kept until the rework lands). | Phase 20 |
+| F3 | Already built on the 26.5 branch (`2f82572a`, `9dc9b97d`: 8 per minute per IP, 5 presses per price, pgTAP + unit tests). Live with the 26.5 ship. Re-probed in 20-09. | 26.5 |
+| F4 | Keep. "Confirm email" is on. | — |
+| F5 | Fix: the function works out the customer itself. | Phase 20, migration |
+| F6 | Fix: limit on the return route. | routing asked |
+| F7 | Accepted: an unfinished booking that is left is cancelled anyway; the customer books again. | — |
+| F8 | Fix: ownership before a new manage token is issued. | routing asked (intent.ts is 26.5's) |
+| F9 | Keep 31 minutes. Accepted: the rare gap ends in an automatic refund. | — |
+| F10 | Fix: date cut-off and no test bookings in the resend job. | Phase 20, migration |
+| F11 | Refunds are made by hand: the customer's cancel goes through, the booking shows "Refund due", the admin presses Refund on the dashboard. Nothing goes to Stripe without his click. | routing asked (touches /cancellation wording) |
+| F12 | Fix with a confirm screen: the link opens "Sign in as <e-mail>?" with one button; works on any device. | routing asked (new screen, design first) |
+| F13 | Proposed: serve React, ReactDOM and Babel from our own host and remove unpkg.com from the allowed script hosts. | routing asked (shared `support.js`, CSP) |
+| F14 | Fix them all. | Phase 20 for the database items; routing asked for the rest |
