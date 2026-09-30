@@ -1,4 +1,4 @@
-import { test, expect, webkit, chromium, devices, type Page, type Browser } from "@playwright/test";
+import { test, expect, webkit, chromium, devices, type Page, type Browser } from "../support/test";
 import { serveMock, waitForMockReady } from "../support/mock-harness";
 
 // Quick 260930-bp2 item 4. The phone booking page (BookingSheet) owns one history entry while open and walks
