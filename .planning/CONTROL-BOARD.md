@@ -81,7 +81,7 @@ Prompts for the new sessions: `.planning/prompts/`, with shared rules in `00-com
 
 State read 2026-09-30 11:33 (all sessions stopped about 05:15 and were reopened at 11:29):
 26.4.2 last work 05:14 (class photos), merged main 11:32, no hand-over yet. 26.5 plans 01, 02, 03, 05, 08, 09, 11 committed, plan 04 building, 06 and 10 wait for 26.4.2. Phase 20: F2 fixed in `6480ec08`, F1 not built yet, F4 closed (owner confirmed "Confirm email" is on). Phase 27: 13 plans written 03:28, waits for the owner's signature. 26.0: no new session.
-New session "Vamos Taxi SEO and browser settings", folder `seo-head`, branch `feat/seo-head-and-favicon`: nothing committed. Test booking VT-26-0745 was removed by the hourly clean-up.
+New session "Vamos Taxi SEO and browser settings", folder `seo-head`, branch `feat/seo-head-and-favicon`: title, description, canonical, share picture, favicon, JSON-LD, sitemap and robots on every public page. Owner chose: each language on its own address with hreflang (this also closes the open hreflang finding). Wording goes to him for approval. It shares `apps/web/middleware.ts` (serveDcHtml) with Phase 27 plan 04, so it lands after 27, with one call only in that function. Nothing committed yet. Test booking VT-26-0745 was removed by the hourly clean-up.
 
 Legal session: closed by the owner. Both legal ships are live. Its last commit `fe4e37a0`
 (terms: driver details by e-mail, no SMS; About fleet matches the live classes) was never
