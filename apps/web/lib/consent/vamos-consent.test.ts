@@ -82,7 +82,7 @@ describe("app/vamos-consent.js", () => {
     const r = await ok.api.state();
     expect(r.ok).toBe(true);
     expect(r.chosen).toBe(false);
-    expect(ok.calls[0].url).toBe("/api/consent/state");
+    expect(ok.calls[0]!.url).toBe("/api/consent/state");
 
     const down = load({ status: 503, body: { ok: false } });
     expect(await down.api.state()).toEqual({ ok: false });
@@ -105,7 +105,7 @@ describe("app/vamos-consent.js", () => {
     expect(body.analytics).toBe(false);
     expect(body.marketing).toBe(false);
     expect("turnstileToken" in body).toBe(false);
-    const cache = JSON.parse(h.store.vamosCookieConsent);
+    const cache = JSON.parse(h.store.vamosCookieConsent!);
     expect(cache.v).toBe("2026-09-30");
     expect(cache.method).toBe("reject_all");
     expect(cache.marketing).toBe(false);
