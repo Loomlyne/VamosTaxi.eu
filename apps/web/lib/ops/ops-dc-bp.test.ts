@@ -230,3 +230,54 @@ describe("OpsNewTrip address search is debounced (C3b)", () => {
     expect(suggestCalls(calls)).toEqual([]);
   });
 });
+
+// ── Four languages (platform law) ──────────────────────────────────────────────────────────
+type DictEntry = { de?: string; fr?: string; ar?: string };
+type Dict = { strings: Record<string, DictEntry> };
+
+function loadDict(): Dict {
+  const code = readFileSync(join(repoRoot, "app/vamos-i18n-dict.js"), "utf8");
+  const win: { VamosI18n?: Dict } = {};
+  new Function("window", code)(win);
+  if (!win.VamosI18n) throw new Error("dictionary did not load");
+  return win.VamosI18n;
+}
+
+// English these screens write straight into the page (no copy table of their own).
+const BP_LITERALS: Record<string, string[]> = {
+  "OpsNewTrip.dc.html": ["Quote first"], // the "need a quote" error title
+  "OpsDetail.dc.html": ["Not paid yet", "Paid by card"], // Payment tag and cancel dialog
+};
+
+describe("New trip and Booking detail literals resolve in the platform dictionary (C4)", () => {
+  const dict = loadDict();
+
+  for (const [file, strings] of Object.entries(BP_LITERALS)) {
+    it(`${file}: every literal has de, fr and ar`, () => {
+      const src = readDc(file);
+      const missing: string[] = [];
+      for (const s of strings) {
+        expect(src, `${s} is still in ${file}`).toContain(s);
+        const e = dict.strings[s];
+        if (!e?.de || !e.fr || !e.ar) missing.push(s);
+        else expect(e.de, s).not.toContain("ß");
+      }
+      expect(missing).toEqual([]);
+    });
+  }
+
+  it("no new entry reuses a translation another English key already owns (the language switch maps back by first owner)", () => {
+    const mine = new Set(Object.values(BP_LITERALS).flat());
+    const owner = new Map<string, string>();
+    const clashes: string[] = [];
+    for (const [key, e] of Object.entries(dict.strings)) {
+      for (const v of [e.de, e.fr, e.ar]) {
+        if (!v) continue;
+        const first = owner.get(v);
+        if (first === undefined) owner.set(v, key);
+        else if (first !== key && mine.has(key) && v !== key) clashes.push(`${key} -> ${v} (owned by ${first})`);
+      }
+    }
+    expect(clashes).toEqual([]);
+  });
+});
