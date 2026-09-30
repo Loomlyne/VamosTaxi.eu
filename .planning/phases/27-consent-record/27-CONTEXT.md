@@ -151,6 +151,10 @@ Nothing is sent to Meta by this phase.
   not run until the D-03a plan is complete. The D-03a plan is re-planned against 26.5's real code
   once it is on origin/main.
 
+- **D-35 (owner, 2026-09-30, during build):** /cookies, "Your current choice": the line "Read from
+  this browser, so it is the real state, not an example." is removed (the panel now reads the
+  server record). No new wording. The dictionary entry stays (shared file, no deletions).
+
 ### Policy version
 - **D-17:** `CONSENT_POLICY_VERSION` becomes the Zurich date of the day the texts ship (Phase 26
   D-13, D-15). Same string shown as the date on the cookies and privacy pages. The two September
