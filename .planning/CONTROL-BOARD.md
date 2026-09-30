@@ -88,6 +88,7 @@ Prompts for sessions: `.planning/prompts/`, shared rules in `00-common-rules.md`
 | 14:22 | Trustpilot block under the phone bar: smaller, redesigned, inside the white area | 26.4.2 session, `fix/phone-home` | Pictures, signature |
 | 14:22 | Phone menu opens as a full page, not a side panel (shared header, every page) | same | Same |
 | 14:22 | Hero fills the screen; no white strips at the top and bottom of Safari | same | Same |
+| 14:27 | Support e-mail button must open the exact e-mail in the mail app he is signed in to, and his answer must stay in that thread. Today it is a plain new mail to the customer | Security session, `fix/support-open-in-mail` | Find out, propose, his signature, then build |
 | 09-29 | Later, its own job: passwords off on the whole site, e-mail link or passkey only | Not scheduled | His word when to start |
 
 ## Security (Phase 20)
@@ -146,14 +147,19 @@ Full texts in `.planning/decisions/`.
 | Class photos are 2.3 to 2.8 MB each | `feat/class-photo-small` |
 | VT-26-0739 and VT-26-0742 are not in the owner's account | Not a bug: booked with another e-mail address |
 
+## Owner checks passed, 2026-09-30 14:27
+
+| What | Result |
+|---|---|
+| 4242 payment on the current version | Passed. VT-26-0746, 14:24, confirmed, payment succeeded, method card, CHF 35.56, linked to his account, confirmation mail claimed (read on live by the control session) |
+| 26.4.2 UAT | He works through it with the 26.4.2 session; what is left is design |
+| Dashboard Support read-only | Accepted, with one requirement (next table) |
+| Tab title, icon, share preview, language addresses | Approved |
+
 ## Waiting for the owner
 
 | # | What | Where |
 |---|---|---|
-| 1 | One 4242 payment: three ships went out since the last one | vamostaxi.site |
-| 2 | 26.4.2 UAT, 15 steps | hand-over in `.planning/quick/260930-obf-owner-booking-feedback/` |
-| 3 | Dashboard Support: open a ticket, read-only with the e-mail button | dashboard.vamostaxi.site |
-| 4 | Tab title and icon, WhatsApp preview, `/de/faq` | vamostaxi.site |
 | 5 | Signatures as they come: phone home pictures, scroll and speed plan, refunds-by-hand plan | the sessions |
 | 6 | Two switches in Meta Events Manager before Phase 28 (Automatic advanced matching off; Track events automatically without code off) | Meta |
 | 7 | Older UAT not reported: manage link of VT-26-0743, dashboard New trip, sign-in 14 steps | e-mail, dashboard, phone |
