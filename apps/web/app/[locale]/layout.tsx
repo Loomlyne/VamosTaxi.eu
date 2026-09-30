@@ -1,11 +1,12 @@
 import type { ReactNode } from "react";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { hasLocale } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { routing } from "@/i18n/routing";
+import { SEO_SITE_URL } from "@/lib/seo/head";
 import { CookieBanner } from "@/components/consent/CookieBanner";
 import { SiteFooter, SiteHeader, SiteShell } from "@/components/shell";
 import { CONSENT_COOKIE, readConsentSubject } from "@/lib/consent/cookie";
@@ -31,7 +32,20 @@ export function generateStaticParams() {
 }
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SEO_SITE_URL),
   title: "Vamos Taxi",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "48x48" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
+  manifest: "/site.webmanifest",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#1E1F1F",
 };
 
 export default async function LocaleLayout({

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2071 2071" width="512" height="512"><rect width="2071" height="2071" rx="0" fill="#1E1F1F"/><g transform="translate(513.5 393.5) scale(0.62000)" style="fill-rule:evenodd;clip-rule:evenodd">
+    <g transform="matrix(1,0,0,1,-11533.36625,-1214.6125)">
+        <g transform="matrix(4.166667,0,0,4.166667,10125,0)">
+            <g transform="matrix(-1,0,0,1,1340.745,-468.229)">
+                <rect x="656.1" y="759.736" width="28.545" height="28.757" style="fill:#FDC20B;"></rect>
+            </g>
+        </g>
+        <g transform="matrix(4.166667,0,0,4.166667,10125,0)">
+            <g transform="matrix(-1,0,0,1,1397.959,-410.844)">
+                <rect x="684.65" y="731.092" width="28.659" height="28.66" style="fill:#FDC20B;"></rect>
+            </g>
+        </g>
+        <g transform="matrix(4.166667,0,0,4.166667,10125,0)">
+            <g transform="matrix(-1,0,0,1,1455.274,-468.235)">
+                <rect x="713.298" y="759.754" width="28.678" height="28.727" style="fill:#FDC20B;"></rect>
+            </g>
+        </g>
+        <g transform="matrix(4.166667,0,0,4.166667,10125,0)">
+            <g transform="matrix(-1,0,0,1,1340.751,-353.44)">
+                <rect x="656.103" y="702.342" width="28.545" height="28.756" style="fill:#FDC20B;"></rect>
+            </g>
+        </g>
+        <g transform="matrix(4.166667,0,0,4.166667,10125,0)">
+            <g transform="matrix(1,0,0,1,741.9919,731.1064)">
+                <path d="M0,-382.205L0,-262.063C0,-54.763 -114.306,57.386 -326.553,57.386L-403.984,57.386L-403.984,-439.591L-318.73,-439.591L-318.73,-22.836L-300.969,-22.836C-161.162,-22.836 -85.888,-108.005 -85.888,-256.481L-85.888,-324.777L-57.301,-324.777L-57.301,-353.449L-28.672,-353.449L-28.672,-382.205L0,-382.205Z" style="fill:#FDC20B;fill-rule:nonzero;"></path>
+            </g>
+        </g>
+    </g>
+</g></svg>

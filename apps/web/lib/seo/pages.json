@@ -1,0 +1,268 @@
+{
+ "siteUrl": "https://vamostaxi.site",
+ "siteName": "Vamos Taxi",
+ "themeColor": "#1E1F1F",
+ "languages": [
+  "en",
+  "de",
+  "fr",
+  "ar"
+ ],
+ "locales": {
+  "en": "en_GB",
+  "de": "de_CH",
+  "fr": "fr_CH",
+  "ar": "ar_AR"
+ },
+ "organization": {
+  "name": "Vamos Taxi GmbH",
+  "streetAddress": "Bleicherstrasse 16",
+  "postalCode": "8953",
+  "addressLocality": "Dietikon",
+  "addressCountry": "CH",
+  "email": "info@vamostaxi.site",
+  "telephone": "+41796267082",
+  "logo": "/icon-512.png"
+ },
+ "pages": [
+  {
+   "key": "home",
+   "path": "/",
+   "indexable": true,
+   "title": {
+    "en": "Vamos Taxi – Pre-booked taxi transfers in Switzerland",
+    "de": "Vamos Taxi – Vorbestellte Taxifahrten in der Schweiz",
+    "fr": "Vamos Taxi – Transferts en taxi réservés en Suisse",
+    "ar": "Vamos Taxi – توصيل بسيارة أجرة بحجز مسبق في سويسرا"
+   },
+   "description": {
+    "en": "Book your airport or city transfer ahead of time. See a fixed price, pay online, and your driver is waiting at the agreed pickup.",
+    "de": "Buchen Sie Ihre Flughafen- oder Stadtfahrt im Voraus. Sie sehen den Festpreis, zahlen online und Ihr Fahrer wartet am vereinbarten Abholort.",
+    "fr": "Réservez votre trajet aéroport ou ville à l’avance. Vous voyez un prix fixe, vous payez en ligne et votre chauffeur vous attend au lieu convenu.",
+    "ar": "احجز رحلتك من المطار أو داخل المدينة مسبقًا. سترى سعرًا ثابتًا، وتدفع عبر الإنترنت، وسيكون السائق بانتظارك في نقطة الاستلام المتفق عليها."
+   },
+   "shareImage": "/og-image.jpg"
+  },
+  {
+   "key": "about",
+   "path": "/about",
+   "indexable": true,
+   "title": {
+    "en": "About Vamos Taxi | Pre-booked transfers",
+    "de": "Über Vamos Taxi | Vorbestellte Fahrten",
+    "fr": "À propos de Vamos Taxi | Trajets réservés",
+    "ar": "عن Vamos Taxi | رحلات بحجز مسبق"
+   },
+   "description": {
+    "en": "Vamos Taxi is a Swiss company that runs pre-booked airport and city transfers. See the service, the vehicle classes and how a booking works.",
+    "de": "Vamos Taxi ist ein Schweizer Unternehmen für vorbestellte Flughafen- und Stadtfahrten. Lernen Sie Service, Fahrzeugklassen und Buchungsablauf kennen.",
+    "fr": "Vamos Taxi est une entreprise suisse de transferts aéroport et ville réservés à l’avance. Découvrez le service, les classes de véhicules et la réservation.",
+    "ar": "Vamos Taxi شركة سويسرية لرحلات المطار والمدينة بحجز مسبق. تعرّف على الخدمة وفئات السيارات وكيف يتم الحجز."
+   },
+   "shareImage": "/og-image.jpg"
+  },
+  {
+   "key": "faq",
+   "path": "/faq",
+   "indexable": true,
+   "title": {
+    "en": "Booking and ride questions | Vamos Taxi",
+    "de": "Fragen zu Buchung und Fahrt | Vamos Taxi",
+    "fr": "Questions sur la réservation | Vamos Taxi",
+    "ar": "أسئلة عن الحجز والرحلة | Vamos Taxi"
+   },
+   "description": {
+    "en": "Answers on booking, fixed prices, payment, meeting your driver, changes and cancellations for your Vamos Taxi transfer.",
+    "de": "Antworten zu Buchung, Festpreis, Zahlung, Treffpunkt mit Ihrem Fahrer, Änderungen und Stornierung Ihrer Vamos-Taxi-Fahrt.",
+    "fr": "Réponses sur la réservation, le prix fixe, le paiement, la rencontre avec votre chauffeur, les modifications et l’annulation de votre transfert Vamos Taxi.",
+    "ar": "إجابات عن الحجز والسعر الثابت والدفع ولقاء السائق وتعديل الرحلة وإلغائها لرحلتك مع Vamos Taxi."
+   },
+   "shareImage": "/og-image.jpg"
+  },
+  {
+   "key": "contact",
+   "path": "/contact",
+   "indexable": true,
+   "title": {
+    "en": "Contact Vamos Taxi | Email, phone, WhatsApp",
+    "de": "Kontakt Vamos Taxi | E-Mail, Telefon, WhatsApp",
+    "fr": "Contacter Vamos Taxi | E-mail, téléphone, WhatsApp",
+    "ar": "اتصل بـ Vamos Taxi | بريد، هاتف، واتساب"
+   },
+   "description": {
+    "en": "Write, call or send a WhatsApp message to Vamos Taxi. Ask about a booking or a transfer and tell us what you need.",
+    "de": "Schreiben Sie Vamos Taxi, rufen Sie an oder senden Sie eine WhatsApp-Nachricht. Fragen Sie zu einer Buchung oder Fahrt.",
+    "fr": "Écrivez à Vamos Taxi, appelez ou envoyez un message WhatsApp. Posez votre question sur une réservation ou un transfert.",
+    "ar": "راسل Vamos Taxi أو اتصل أو أرسل رسالة واتساب. اسأل عن حجز أو رحلة وأخبرنا بما تحتاجه."
+   },
+   "shareImage": "/og-image.jpg"
+  },
+  {
+   "key": "terms",
+   "path": "/terms",
+   "indexable": true,
+   "title": {
+    "en": "Terms and conditions | Vamos Taxi",
+    "de": "Allgemeine Geschäftsbedingungen | Vamos Taxi",
+    "fr": "Conditions générales | Vamos Taxi",
+    "ar": "الشروط والأحكام | Vamos Taxi"
+   },
+   "description": {
+    "en": "The terms that apply when you book a transfer with Vamos Taxi GmbH. Read them before you pay.",
+    "de": "Die Bedingungen, die gelten, wenn Sie eine Fahrt bei der Vamos Taxi GmbH buchen. Lesen Sie sie vor der Zahlung.",
+    "fr": "Les conditions qui s’appliquent lorsque vous réservez un transfert auprès de Vamos Taxi GmbH. Lisez-les avant de payer.",
+    "ar": "الشروط التي تسري عند حجز رحلة لدى Vamos Taxi GmbH. اقرأها قبل الدفع."
+   },
+   "shareImage": "/og-image.jpg"
+  },
+  {
+   "key": "privacy",
+   "path": "/privacy",
+   "indexable": true,
+   "title": {
+    "en": "Privacy policy | Vamos Taxi",
+    "de": "Datenschutzerklärung | Vamos Taxi",
+    "fr": "Politique de confidentialité | Vamos Taxi",
+    "ar": "سياسة الخصوصية | Vamos Taxi"
+   },
+   "description": {
+    "en": "How Vamos Taxi GmbH collects and uses your data when you book a transfer or use this site, and how to contact us about it.",
+    "de": "Wie die Vamos Taxi GmbH Ihre Daten bei einer Buchung oder beim Besuch dieser Website erhebt und nutzt, und wie Sie uns dazu erreichen.",
+    "fr": "Comment Vamos Taxi GmbH collecte et utilise vos données lors d’une réservation ou de l’usage du site, et comment nous contacter à ce sujet.",
+    "ar": "كيف تجمع Vamos Taxi GmbH بياناتك وتستخدمها عند الحجز أو استخدام هذا الموقع، وكيف تتواصل معنا بشأنها."
+   },
+   "shareImage": "/og-image.jpg"
+  },
+  {
+   "key": "cookies",
+   "path": "/cookies",
+   "indexable": true,
+   "title": {
+    "en": "Cookies | Vamos Taxi",
+    "de": "Cookies | Vamos Taxi",
+    "fr": "Cookies | Vamos Taxi",
+    "ar": "ملفات تعريف الارتباط | Vamos Taxi"
+   },
+   "description": {
+    "en": "Which cookies Vamos Taxi uses, what each one is for, and how you change your choice.",
+    "de": "Welche Cookies Vamos Taxi verwendet, wozu jedes dient und wie Sie Ihre Auswahl ändern.",
+    "fr": "Quels cookies Vamos Taxi utilise, à quoi sert chacun et comment modifier votre choix.",
+    "ar": "ما ملفات تعريف الارتباط التي يستخدمها Vamos Taxi، ولأي غرض، وكيف تغيّر اختيارك."
+   },
+   "shareImage": "/og-image.jpg"
+  },
+  {
+   "key": "cancellation",
+   "path": "/cancellation",
+   "indexable": true,
+   "title": {
+    "en": "Cancellation and changes | Vamos Taxi",
+    "de": "Stornierung und Änderungen | Vamos Taxi",
+    "fr": "Annulation et modifications | Vamos Taxi",
+    "ar": "الإلغاء والتعديل | Vamos Taxi"
+   },
+   "description": {
+    "en": "How to cancel or change a Vamos Taxi booking and what happens to your payment.",
+    "de": "So stornieren oder ändern Sie eine Vamos-Taxi-Buchung und was mit Ihrer Zahlung geschieht.",
+    "fr": "Comment annuler ou modifier une réservation Vamos Taxi et ce qu’il advient de votre paiement.",
+    "ar": "كيف تلغي حجزًا لدى Vamos Taxi أو تعدّله، وماذا يحدث لدفعتك."
+   },
+   "shareImage": "/og-image.jpg"
+  },
+  {
+   "key": "imprint",
+   "path": "/imprint",
+   "indexable": true,
+   "title": {
+    "en": "Imprint | Vamos Taxi",
+    "de": "Impressum | Vamos Taxi",
+    "fr": "Mentions légales | Vamos Taxi",
+    "ar": "البيانات القانونية | Vamos Taxi"
+   },
+   "description": {
+    "en": "Company details of Vamos Taxi GmbH, Bleicherstrasse 16, 8953 Dietikon: registered office and contact.",
+    "de": "Firmenangaben der Vamos Taxi GmbH, Bleicherstrasse 16, 8953 Dietikon: Sitz und Kontakt.",
+    "fr": "Coordonnées de Vamos Taxi GmbH, Bleicherstrasse 16, 8953 Dietikon : siège et contact.",
+    "ar": "بيانات شركة Vamos Taxi GmbH، Bleicherstrasse 16، 8953 Dietikon: المقر والتواصل."
+   },
+   "shareImage": "/og-image.jpg"
+  },
+  {
+   "key": "sign-in",
+   "path": "/sign-in",
+   "indexable": false,
+   "title": {
+    "en": "Sign in | Vamos Taxi",
+    "de": "Anmelden | Vamos Taxi",
+    "fr": "Se connecter | Vamos Taxi",
+    "ar": "تسجيل الدخول | Vamos Taxi"
+   }
+  },
+  {
+   "key": "sign-up",
+   "path": "/sign-up",
+   "indexable": false,
+   "title": {
+    "en": "Create your account | Vamos Taxi",
+    "de": "Konto erstellen | Vamos Taxi",
+    "fr": "Créer votre compte | Vamos Taxi",
+    "ar": "أنشئ حسابك | Vamos Taxi"
+   }
+  },
+  {
+   "key": "reset-password",
+   "path": "/reset-password",
+   "indexable": false,
+   "title": {
+    "en": "Reset your password | Vamos Taxi",
+    "de": "Passwort zurücksetzen | Vamos Taxi",
+    "fr": "Réinitialiser le mot de passe | Vamos Taxi",
+    "ar": "إعادة تعيين كلمة المرور | Vamos Taxi"
+   }
+  },
+  {
+   "key": "manage-booking",
+   "path": "/manage-booking",
+   "indexable": false,
+   "title": {
+    "en": "Manage your booking | Vamos Taxi",
+    "de": "Ihre Buchung verwalten | Vamos Taxi",
+    "fr": "Gérer votre réservation | Vamos Taxi",
+    "ar": "إدارة حجزك | Vamos Taxi"
+   }
+  },
+  {
+   "key": "booking-detail",
+   "path": "/booking-detail",
+   "indexable": false,
+   "title": {
+    "en": "Your booking | Vamos Taxi",
+    "de": "Ihre Buchung | Vamos Taxi",
+    "fr": "Votre réservation | Vamos Taxi",
+    "ar": "حجزك | Vamos Taxi"
+   }
+  },
+  {
+   "key": "account",
+   "path": "/account",
+   "indexable": false,
+   "title": {
+    "en": "Your account | Vamos Taxi",
+    "de": "Ihr Konto | Vamos Taxi",
+    "fr": "Votre compte | Vamos Taxi",
+    "ar": "حسابك | Vamos Taxi"
+   }
+  },
+  {
+   "key": "bookings",
+   "path": "/bookings",
+   "indexable": false,
+   "title": {
+    "en": "Your bookings | Vamos Taxi",
+    "de": "Ihre Buchungen | Vamos Taxi",
+    "fr": "Vos réservations | Vamos Taxi",
+    "ar": "حجوزاتك | Vamos Taxi"
+   }
+  }
+ ]
+}
