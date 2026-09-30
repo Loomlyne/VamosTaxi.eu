@@ -45,9 +45,9 @@ describe("security headers (D-32…D-38)", () => {
     const csp = headerMap().get("Content-Security-Policy") ?? "";
     expect(csp).toMatch(/challenges\.cloudflare\.com/);
     expect(csp).toMatch(/api\.mapbox\.com/);
-    // D-33: DC mocks boot React/ReactDOM/Babel from unpkg (app/support.js).
-    // Babel standalone needs eval. Funnel wins over a tight script-src.
-    expect(csp).toMatch(/unpkg\.com/);
+    // F13: React/ReactDOM/Babel are served from /assets/vendor (same origin), so no unpkg.
+    // Babel standalone still needs eval. Funnel wins over a tight script-src.
+    expect(csp).not.toMatch(/unpkg\.com/);
     expect(csp).toMatch(/unsafe-eval/);
     expect(csp).toMatch(/unsafe-inline/);
     expect(csp).not.toMatch(/sentry\.io/);
