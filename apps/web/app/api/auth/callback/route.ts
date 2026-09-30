@@ -14,7 +14,8 @@ import { confirmPathFor } from "@/lib/auth/confirm-link";
 import { decodeNextParam, validateAuthRedirectTarget } from "@/lib/auth/redirect-target";
 import { openAddress, sealSecretFrom } from "@/lib/auth/sealed-address";
 import { routing } from "@/i18n/routing";
-import { csrfForbidden, trustedSiteOrigin } from "@/lib/security/origin";
+import { getStaffClaims, staffDecisionOf, type StaffAuthClient } from "@/lib/ops/session";
+import { csrfForbidden, isDashboardHost, trustedSiteOrigin } from "@/lib/security/origin";
 import {
   authSetCookieHeader,
   createServerSupabaseClient,
@@ -175,6 +176,18 @@ export async function POST(request: Request): Promise<Response> {
     log("error", "auth-callback", ctx, { reason: "address-mismatch" });
     await supabase.auth.signOut({ scope: "local" });
     return expired();
+  }
+
+  // Dashboard host: same refusal as password and code sign-in (api/auth/route.ts refuseNonStaff).
+  // An account without an accepted staff role is signed straight back out; the session cookie
+  // verifyOtp just made is overwritten by the sign-out's removal (last write per name wins).
+  if (isDashboardHost(new URL(request.url).host)) {
+    const staff = await getStaffClaims(supabase as unknown as StaffAuthClient);
+    if (!staff || staffDecisionOf(staff) === "deny") {
+      log("warn", "auth-callback", ctx, { reason: "not-staff" });
+      await supabase.auth.signOut({ scope: "local" });
+      return answer(403, { ok: false, code: "not-staff" });
+    }
   }
 
   return answer(200, { ok: true, target: validateAuthRedirectTarget(nextRaw, locale) });

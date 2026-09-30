@@ -14,12 +14,21 @@ const auth = {
 vi.mock("@opennextjs/cloudflare", () => ({
   getCloudflareContext: () => ({ env: { SEND_EMAIL_HOOK_SECRET: SECRET } }),
 }));
+const staff = { claims: null as unknown, decision: "allow" as string };
+vi.mock("@/lib/ops/session", () => ({
+  getStaffClaims: async () => staff.claims,
+  staffDecisionOf: () => staff.decision,
+}));
 vi.mock("@/lib/supabase/server", () => ({
   authSetCookieHeader: (c: { name: string; value: string }) => `${c.name}=${c.value}; Path=/`,
   createServerSupabaseClient: async (_r: Request, sink?: { cookies: { name: string; value: string }[] }) => {
     auth.verifyOtp.mockImplementation(async () => {
       sink?.cookies.push({ name: "sb-test-auth-token", value: "session" });
       return { data: { user: { email: "mia@example.com" } }, error: null };
+    });
+    auth.signOut.mockImplementation(async () => {
+      sink?.cookies.push({ name: "sb-test-auth-token", value: "" });
+      return { error: null };
     });
     return { auth };
   },
@@ -72,6 +81,8 @@ describe("callback POST (confirm)", () => {
     vi.clearAllMocks();
     auth.getUser.mockResolvedValue({ data: { user: null }, error: null });
     auth.signOut.mockResolvedValue({ error: null });
+    staff.claims = null;
+    staff.decision = "allow";
   });
 
   it("refuses a cross-site or missing Origin", async () => {
@@ -130,5 +141,36 @@ describe("callback POST (confirm)", () => {
     const res = await POST(post({ token_hash: "abc", type: "magiclink", e }));
     expect(res.status).toBe(200);
     expect(auth.signOut).toHaveBeenCalledWith({ scope: "local" });
+  });
+
+  it("dashboard host: a non-staff account is signed straight back out and told why", async () => {
+    staff.claims = null;
+    const e = await sealAddress("mia@example.com", "abc", SECRET);
+    const res = await POST(
+      post({ token_hash: "abc", type: "magiclink", e }, "https://dashboard.vamostaxi.site", "dashboard.vamostaxi.site"),
+    );
+    expect(res.status).toBe(403);
+    expect(await res.json()).toMatchObject({ ok: false, code: "not-staff" });
+    expect(auth.signOut).toHaveBeenCalled();
+    // The refused session's cookie must not ride on the answer.
+    expect(res.headers.get("set-cookie")).toContain("sb-test-auth-token=;");
+    expect(res.headers.get("set-cookie")).not.toContain("sb-test-auth-token=session");
+  });
+
+  it("dashboard host: a staff account signs in", async () => {
+    staff.claims = { sub: "u1" };
+    staff.decision = "step-up";
+    const e = await sealAddress("mia@example.com", "abc", SECRET);
+    const res = await POST(
+      post({ token_hash: "abc", type: "magiclink", e }, "https://dashboard.vamostaxi.site", "dashboard.vamostaxi.site"),
+    );
+    expect(res.status).toBe(200);
+    expect(res.headers.get("set-cookie")).toContain("sb-test-auth-token=session");
+  });
+
+  it("public host: no staff check (customers sign in)", async () => {
+    const e = await sealAddress("mia@example.com", "abc", SECRET);
+    const res = await POST(post({ token_hash: "abc", type: "magiclink", e }));
+    expect(res.status).toBe(200);
   });
 });
