@@ -196,13 +196,10 @@ describe("09-05 D-12 remaining refund", () => {
     expect(refund.indexOf("if (!result.ok)")).toBeLessThan(refund.indexOf("sendRefund("));
   });
 
-  it("cancelBooking auto_full uses paid-cancel Stripe helper; pending_ops skips Stripe", () => {
+  it("cancelBooking goes through ops_cancel_booking and never calls Stripe to refund (20-10)", () => {
     const w = read("apps/web/lib/ops/bookings-write.ts");
     expect(w).toMatch(/ops_cancel_booking/);
-    expect(w).toMatch(/applyStripeRefund/);
-    expect(w).toMatch(/auto_full/);
-    expect(w).toMatch(/pending_ops/);
-    expect(w).toMatch(/record_booking_refund|applyStripeRefund/);
+    expect(w).not.toMatch(/applyStripeRefund|createRefund|record_booking_refund/);
     expect(w).not.toMatch(/status:\s*['\"]refunded['\"]/);
   });
 });

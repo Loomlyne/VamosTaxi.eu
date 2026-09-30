@@ -3,13 +3,9 @@
 // 20-10 refunds by hand: a cancel sends the mail and calls no Stripe. The admin sends the refund.
 // D-08 never restores a prior status. 09-07 D-11/D-14: notifyCancellation after success;
 // assigned chauffeur → URGENT ops.
-// applyStripeRefund stays only for the staff cancel in lib/ops/bookings-write.ts until the
-// 20-10 patch (staff cancel, no Stripe) is applied; it is deleted with that patch.
 
 export const dynamic = "force-dynamic";
 
-import { CHARGE_CURRENCY } from "../checkout/currency";
-import { createRefund, resolvePaymentIntentId, retrieveRefund, stripeFromEnv } from "../checkout/stripe";
 import { asCustomer, asGuest, asSystem, type VamosClaims } from "../db/identity";
 import { loadPaidCancelMail } from "../db/system-reads";
 import { notifyCancellation } from "./notify-lifecycle";
@@ -27,25 +23,6 @@ export type PaidCancelOk = {
 export type PaidCancelFail = { ok: false; code: string };
 
 export type PaidCancelResult = PaidCancelOk | PaidCancelFail;
-
-export type ApplyStripeRefundInput = {
-  bookingId: string;
-  paymentId: number;
-  paymentIntentId: string;
-  amountRappen: number;
-  idempotencyKey: string;
-  /** D-05: Stripe refund metadata reason. Defaults to "customer_cancel" for the existing customer/staff cancel callers. */
-  reason?: string;
-};
-
-export type ApplyStripeRefundOk = {
-  ok: true;
-  stripeRefundId: string;
-  payoutCountry: string;
-  availableOn: string | null;
-};
-
-export type ApplyStripeRefundResult = ApplyStripeRefundOk | PaidCancelFail;
 
 type CancelledRow = {
   booking_id: string;
@@ -107,20 +84,6 @@ export function payoutFactsFromRefund(refund: {
   return { payoutCountry, availableOn };
 }
 
-function liveKeyRefused(env: CloudflareEnv): boolean {
-  return (env.STRIPE_SECRET_KEY ?? "").startsWith("sk_live_");
-}
-
-async function markRefundFailed(env: CloudflareEnv, bookingId: string): Promise<void> {
-  try {
-    await asSystem(env, async (sql) => {
-      await sql`select public.bookings_set_refund_failed(${bookingId}::uuid)`;
-    });
-  } catch {
-    // D-08: stay cancelled even if the failed stamp misses.
-  }
-}
-
 type CancelMailRow = {
   reference: string;
   locale: string | null;
@@ -169,81 +132,6 @@ async function notifyPaidCancelMails(
   } catch {
     // Cancel already committed. Mail is best-effort.
   }
-}
-
-export async function applyStripeRefund(
-  env: CloudflareEnv,
-  input: ApplyStripeRefundInput,
-): Promise<ApplyStripeRefundResult> {
-  if (liveKeyRefused(env)) {
-    return { ok: false, code: "stripe-test-only" };
-  }
-  if (!input.paymentIntentId || input.amountRappen <= 0) {
-    await markRefundFailed(env, input.bookingId);
-    return { ok: false, code: "stripe-failed" };
-  }
-
-  let stripeRefundId = "";
-  let facts = { payoutCountry: "CH", availableOn: null as string | null };
-  try {
-    const stripe = stripeFromEnv(env);
-    const paymentIntentId = await resolvePaymentIntentId(stripe, input.paymentIntentId);
-    if (!paymentIntentId) {
-      await markRefundFailed(env, input.bookingId);
-      return { ok: false, code: "stripe-failed" };
-    }
-    const created = await createRefund(stripe, {
-      paymentIntentId,
-      amountRappen: input.amountRappen,
-      idempotencyKey: input.idempotencyKey,
-      bookingId: input.bookingId,
-      paymentId: input.paymentId,
-      reason: input.reason ?? "customer_cancel",
-    });
-    if (!created?.id) {
-      await markRefundFailed(env, input.bookingId);
-      return { ok: false, code: "stripe-failed" };
-    }
-    stripeRefundId = created.id;
-    const currency = created.currency?.toLowerCase();
-    if (currency && currency !== CHARGE_CURRENCY) {
-      await markRefundFailed(env, input.bookingId);
-      return { ok: false, code: "stripe-failed" };
-    }
-    let expanded = created;
-    try {
-      expanded = await retrieveRefund(stripe, created.id);
-    } catch {
-      expanded = created;
-    }
-    facts = payoutFactsFromRefund(expanded);
-  } catch {
-    await markRefundFailed(env, input.bookingId);
-    return { ok: false, code: "stripe-failed" };
-  }
-
-  try {
-    await asSystem(env, async (sql) => {
-      await sql`
-        select * from public.record_booking_refund(
-          ${input.bookingId}::uuid,
-          ${stripeRefundId}::text,
-          ${facts.payoutCountry}::text,
-          ${facts.availableOn}::timestamptz,
-          ${input.amountRappen}
-        )
-      `;
-    });
-  } catch {
-    return { ok: false, code: "unknown" };
-  }
-
-  return {
-    ok: true,
-    stripeRefundId,
-    payoutCountry: facts.payoutCountry,
-    availableOn: facts.availableOn,
-  };
 }
 
 /**
