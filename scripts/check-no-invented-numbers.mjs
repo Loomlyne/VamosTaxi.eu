@@ -35,6 +35,8 @@ function walk(dir, out, pred) {
   if (!existsSync(dir)) return;
   for (const name of readdirSync(dir)) {
     if (name === "node_modules" || name === ".git" || name === ".worktrees") continue;
+    // Next build output (`.next`, `.next-<name>`, `.open-next`) is git-ignored, never source.
+    if (name.startsWith(".next") || name === ".open-next") continue;
     const p = join(dir, name);
     const st = statSync(p);
     if (st.isDirectory()) walk(p, out, pred);
