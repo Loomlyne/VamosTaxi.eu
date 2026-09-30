@@ -416,6 +416,7 @@
     "couponNotFound": "No coupon with that code.",
     "couponAppliedOk": "Coupon applied.",
     "distanceKm": "{km} km",
+    "noRoadRoute": "No road route",
     "download-voucher": "Download voucher",
     "driverWaitingAt": "Your driver is waiting at {location}",
     "enter-a-first-name": "Enter a first name",
