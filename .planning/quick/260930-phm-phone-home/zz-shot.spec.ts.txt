@@ -1,0 +1,50 @@
+import { test, devices, webkit, type Page } from "@playwright/test";
+import { serveMock, waitForMockReady } from "../support/mock-harness";
+const Q = "/Users/koss/Developer/vamos-wt/phone-home/.planning/quick/260930-phm-phone-home";
+const TAG = process.env.SHOT_TAG ?? "new";
+async function open(page: Page, file: string, lang: string) {
+  await page.goto(await serveMock(file));
+  await waitForMockReady(page);
+  const a = page.getByRole("button", { name: /Accept all/i });
+  if (await a.isVisible().catch(() => false)) await a.click({ timeout: 3000 }).catch(() => {});
+  await page.evaluate((l) => {
+    const w = window as any;
+    // the figures published on vamostaxi.site today: 5 reviews, 5.0
+    if (w.VamosReviews) { const rows = [1, 2, 3, 4, 5].map((i) => ({ id: "r" + i, rating: 5, published: true, source: "trustpilot", url: "https://www.trustpilot.com/review/vamostaxi.eu" })); w.VamosReviews.published = () => rows; window.dispatchEvent(new Event("vamos:reviews")); }
+    w.VamosLocale.setLang(l);
+  }, lang);
+  await page.evaluate(() => window.dispatchEvent(new Event("resize")));
+  await page.waitForTimeout(900);
+}
+test("phone home shots @component", async ({}, ti) => {
+  test.skip(ti.project.name !== "component-390");
+  test.setTimeout(300_000);
+  const br = await webkit.launch();
+  try {
+    for (const [w, h] of [[390, 844], [768, 1024]] as const) {
+      const ctx = await br.newContext({ ...devices["iPhone 14"], viewport: { width: w, height: h } });
+      const page = await ctx.newPage();
+      await page.route("**/api/**", (r) => r.fulfill({ status: 200, contentType: "application/json", body: '{"ok":true,"suggestions":[],"classes":[]}' }));
+      await page.route("**/photos/site/**", (r) => r.fulfill({ path: "/Users/koss/Developer/vamos-wt/phone-home/assets/photography/" + (process.env.HERO ?? "missing.jpg") }).catch(() => r.abort()));
+      for (const lang of w === 390 ? ["en", "de", "ar"] : ["en"]) {
+        await open(page, "app/home/home.dc.html", lang);
+        await page.screenshot({ path: `${Q}/screens/${TAG}-home-${w}-${lang}.png` });
+        if (lang === "en") {
+          await page.addStyleTag({ content: '[data-bar-wrap][data-trust-in="1"] [data-bar-notes]{display:flex!important;padding-block-start:2px!important}' });
+          await page.waitForTimeout(200);
+          await page.screenshot({ path: `${Q}/screens/${TAG}-home-${w}-${lang}-with-notes.png` });
+        }
+        if (lang !== "de") {
+          await page.locator("[data-hd-menu-btn]").click({ timeout: 5000 });
+          await page.waitForTimeout(700);
+          await page.screenshot({ path: `${Q}/screens/${TAG}-menu-home-${w}-${lang}.png` });
+        }
+      }
+      await open(page, "app/pages/terms.dc.html", "en");
+      await page.locator("[data-hd-menu-btn]").click({ timeout: 5000 });
+      await page.waitForTimeout(700);
+      await page.screenshot({ path: `${Q}/screens/${TAG}-menu-terms-${w}-en.png` });
+      await ctx.close();
+    }
+  } finally { await br.close(); }
+});
