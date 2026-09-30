@@ -104,6 +104,8 @@ Prompts for sessions: `.planning/prompts/`, shared rules in `00-common-rules.md`
 | 14:22 | Phone menu opens as a full page, not a side panel (shared header, every page) | same | Same |
 | 14:22 | Hero fills the screen; no white strips at the top and bottom of Safari | same | Same |
 | 14:27 | Support e-mail button must open the exact e-mail in the mail app he is signed in to, and his answer must stay in that thread. Today it is a plain new mail to the customer | Security session, `fix/support-open-in-mail` | Owner answered 14:32: always the mail of that ticket's customer, never mixed; mail app automatic for now, admin choice if cheap; build it; **ship when the control session's checks pass** (his word, this job only) |
+| 16:30 | The trip distance (km) is not shown on /checkout or anywhere in the booking flow, especially on the phone | 26.5 session, `fix/booking-polish`, prompt `10-booking-polish.md`, hand-over 1 | Pictures, his signature |
+| 16:30 | Four small items, decided by the control session on his word: German "Koffer"; SELECT 54 px; dark band under the phone footer; Safari Back after closing the sheet | same, hand-over 2 | Not started |
 | 16:25 | Signed plans in the 26.2 session: **P4 extras** (a paid extra is a tick box; a CHF 0 extra shows as included; per extra an optional number with a maximum; night, weekend, holiday, waiting and extra stop removed; airport fee stays inside the fare) and **P1 class change on a paid trip** (dearer class only after the difference is paid by an e-mailed pay link, priced with today's price book; cheaper class = Refund due). New decision **P6**: place and time changes on a paid trip get the same treatment | 26.2 session. P4 part A is being built. Order on main: hand-over 2, security B1, erased pay link, P4-A, refunds by hand, P1, P6 | P4-A building; P1 signed, waits; P6 plan after P1 |
 | 16:20 | Class photo: Remove link goes; a replaced photo and its small copies are deleted at publish (`.planning/decisions/2026-09-30-class-photo-replace.md`) | **Needs a new session**: the 26.4.2 session reached its context limit and wrote a hand-off. Prompt `09-class-photo-replace.md`, branch `feat/class-photo-replace` | Not started |
 | 15:40 | Five owner decisions from the 26.2 questions that need a signed plan before code: P1 class change on a paid trip re-prices; P2 refund across both payments; P3 class photo Remove link goes, replaced photo deleted from storage; P4 a deleted extra is deleted completely (hard-coded Ski/Waiting names go); P5 pay link for an erased booking | P1, P4: 26.2 session, own jobs, P4 first. P2, P5: security session (with refunds by hand). P3: 26.4.2 session (photo job) | Plans for his signature |
@@ -157,10 +159,10 @@ Full texts in `.planning/decisions/`.
 
 | What | Carried by |
 |---|---|
-| Safari: Back pressed within a second after closing the phone booking page with the X does nothing | not assigned |
-| German class card says "Gepäckstücke"; the signed picture said "Koffer" | not assigned; wording is the owner's |
-| SELECT on the home class card is 44 px high, the rule for primary booking buttons is 54 | not assigned |
-| An empty dark band of about 400 px sits under the footer on the phone home page | not assigned |
+| Safari: Back pressed within a second after closing the phone booking page with the X does nothing | `fix/booking-polish` |
+| German class card says "Gepäckstücke"; the signed picture said "Koffer" | `fix/booking-polish` |
+| SELECT on the home class card is 44 px high, the rule for primary booking buttons is 54 | `fix/booking-polish` |
+| An empty dark band of about 400 px sits under the footer on the phone home page | `fix/booking-polish` |
 | On a laptop the page behind an open booking page or dialog scrolls by mouse wheel | native scrolling job |
 | /terms section 03 mentions SMS; /about fleet numbers differ from the live classes (archived work `archive/legal-follow-up-fe4e37a0`, never shipped) | 26.2 list, not assigned |
 | Settings say 15 minutes standard waiting, the pages say 30 | Owner changes the setting if both should agree |
@@ -178,6 +180,14 @@ Full texts in `.planning/decisions/`.
 | 26.4.2 UAT | He works through it with the 26.4.2 session; what is left is design |
 | Dashboard Support read-only | Accepted, with one requirement (next table) |
 | Tab title, icon, share preview, language addresses | Approved |
+
+## Owner checks passed, 2026-09-30 16:30
+
+| What | Result |
+|---|---|
+| Payment through the 26.5 checkout | Passed. VT-26-0747, 16:29, confirmed, payment succeeded by Apple Pay, linked to his account (he was signed in), confirmation mail claimed, one pay press counted. Read on live by the control session. The guest path and "Create an account" have not been paid through yet: no account agreement record exists |
+| Class cards in layout E | "All good as I wanted" |
+| iPhone: hero, Trustpilot row, menu, scrolling | "All good" |
 
 ## Waiting for the owner
 
