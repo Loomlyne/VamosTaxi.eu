@@ -36,7 +36,9 @@
 :root{--vt-icon-base:"../../assets/icons/"}body{margin:0}
 /* Sheet frame. Fixed and full-screen when open; relative inside a frame in the states gallery. */
 [data-bs]{box-sizing:border-box;display:flex;flex-direction:column;min-width:0;background:var(--vt-bg-surface);color:var(--vt-text-primary);font-family:var(--vt-font-body);z-index:400;overflow:hidden}
-[data-bs][data-inline="0"]{position:fixed;inset-inline:0;top:0;height:100dvh;animation:vt-bs-in 320ms var(--vt-ease-out) both}
+/* The sheet always covers the whole layout viewport, keyboard or not; only its content is sized to what is visible
+   (--bs-h, --bs-top from visualViewport), so the page behind never shows under the footer. */
+[data-bs][data-inline="0"]{position:fixed;inset-inline:0;top:0;height:100vh;height:100lvh;padding-block-start:var(--bs-top,0px);padding-block-end:max(0px,calc(100lvh - var(--bs-h,100dvh) - var(--bs-top,0px)));animation:vt-bs-in 320ms var(--vt-ease-out) both}
 [data-bs][data-inline="1"]{position:relative;height:100%;width:100%}
 [data-bs][data-leaving="1"]{animation:vt-bs-out 200ms var(--vt-ease-in) both;pointer-events:none}
 @keyframes vt-bs-in{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
@@ -352,6 +354,10 @@ class Component extends DCLogic {
     const de = document.documentElement, b = document.body;
     de.style.overflow = this._ov[0]; b.style.overflow = this._ov[1];
     this._inerted.forEach((c) => c.removeAttribute('inert')); this._inerted = [];
+    /* A stopped Lenis clips <html> itself (lenis.css .lenis-stopped), which the boot script then reads as "still locked"
+       and never restarts it. Start it here once our own lock is gone, unless something else still locks the page. */
+    const ln = window.__vtLenis;
+    if (ln && ln.isStopped && de.style.overflow !== 'hidden' && b.style.overflow !== 'hidden') { try { ln.start(); } catch (e) {} }
     window.scrollTo(0, this._y);
     const o = this._opener; this._opener = null;
     if (o && o.focus && document.contains(o)) o.focus({ preventScroll: true });
@@ -360,7 +366,14 @@ class Component extends DCLogic {
     if (this.props.inline) return;
     const v = window.visualViewport; if (!v) return;
     const h = Math.round(v.height), t = Math.round(v.offsetTop);
-    if (h !== this.state.vvh || t !== this.state.vvTop) this.setState({ vvh: h, vvTop: t });
+    if (h !== this.state.vvh || t !== this.state.vvTop) this.setState({ vvh: h, vvTop: t }, () => this._keepFocusVisible());
+  }
+  /** When the keyboard takes space, the field being typed in stays inside the visible part of the sheet. */
+  _keepFocusVisible() {
+    const a = document.activeElement, body = this._bodyEl;
+    if (!a || !body || !body.contains(a) || !a.getBoundingClientRect) return;
+    const r = a.getBoundingClientRect(), b = body.getBoundingClientRect();
+    if (r.top < b.top || r.bottom > b.bottom) a.scrollIntoView({ block: 'center' });
   }
 
   /* ---------- history: one entry, removed on close or submit ---------- */
@@ -485,7 +498,7 @@ class Component extends DCLogic {
       inlineAttr: inline ? '1' : '0',
       leavingAttr: s.leaving && !p.open ? '1' : '0',
       rootRef: this._rootRef, bodyRef: this._bodyRef,
-      rootCss: !inline && s.vvh > 0 ? 'height:' + s.vvh + 'px;top:' + s.vvTop + 'px' : '',
+      rootCss: !inline && s.vvh > 0 ? '--bs-h:' + s.vvh + 'px;--bs-top:' + s.vvTop + 'px' : '',
       titleId: u + '-title', msgId: u + '-msg',
       secWhere: u + '-sec-where', secWhen: u + '-sec-when', secWho: u + '-sec-who',
       idFrom: u + '-from', idTo: u + '-to', idFlight: u + '-flight',
