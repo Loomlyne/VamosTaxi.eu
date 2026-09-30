@@ -155,7 +155,9 @@ describe("sign-up writes no cookie row (27 D-01)", () => {
     expect(existsSync(join(repoRoot, "apps/web/lib/auth/signup-consent.ts"))).toBe(false);
   });
 
-  it("the pending flag is still set at sign-up (harmless, D-03)", () => {
-    expect(readRepo("apps/web/lib/auth/run.ts")).toMatch(/SIGNUP_CONSENT_METADATA_KEY\]: "pending"/);
+  it("the pending flag is gone", () => {
+    for (const f of ["apps/web/lib/auth/run.ts", "apps/web/lib/supabase/constants.ts"]) {
+      expect(readRepo(f), f).not.toMatch(/signup_consent|SIGNUP_CONSENT_METADATA_KEY/);
+    }
   });
 });

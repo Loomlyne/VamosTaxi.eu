@@ -71,20 +71,20 @@ describe("confirming a sign-up writes no cookie row (27 D-01)", () => {
   });
 });
 
-describe("sign-up leaves the flag for the callback", () => {
-  it("password sign-up stores signup_consent pending in user_metadata", async () => {
+describe("sign-up sets no consent flag", () => {
+  it("password sign-up sets no signup_consent key", async () => {
     const signUp = vi.fn(async (..._a: unknown[]) => ({ error: null }));
     state.auth.signUp = signUp as never;
     await POST(
       authPost({ mode: "signup", method: "password", email: "a@b.co", password: "12345678", firstName: "A", lastName: "B" }),
     );
-    expect(signUp.mock.calls[0]?.[0]).toMatchObject({ options: { data: { signup_consent: "pending" } } });
+    expect((signUp.mock.calls[0]?.[0] as { options: { data: object } }).options.data).not.toHaveProperty("signup_consent");
   });
 
-  it("magic-link sign-up stores it too", async () => {
+  it("magic-link sign-up sets none either", async () => {
     const otp = vi.fn(async (..._a: unknown[]) => ({ error: null }));
     state.auth.signInWithOtp = otp as never;
     await POST(authPost({ mode: "signup", method: "magic", email: "a@b.co", firstName: "A", lastName: "B" }));
-    expect(otp.mock.calls[0]?.[0]).toMatchObject({ options: { data: { signup_consent: "pending" } } });
+    expect((otp.mock.calls[0]?.[0] as { options: { data: object } }).options.data).not.toHaveProperty("signup_consent");
   });
 });
