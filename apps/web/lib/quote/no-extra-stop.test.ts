@@ -12,6 +12,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { EXTRAS_OFF } from "../checkout/booking-lifecycle";
 import { checkoutPayLinkSchema } from "../checkout/intent-schema";
 import { buildExtraLines, buildFixedRouteExtraLine } from "../pricing/lines";
 import { checkIntentAgainstLock, type CheckIntentDeps } from "./intent";
@@ -392,5 +393,35 @@ describe("26.2-p4 D4: no \"at most one stop\" cap, and the setting is no longer 
     const fork = code("lib", "ops", "rate-book.ts");
     expect(fork).not.toMatch(/max_extra_stops/);
     expect(fork).toMatch(/vat_rate_bps, quote_lock_minutes, service_area_geojson,\s+free_wait_minutes\s*\n/);
+  });
+});
+
+const REPO = join(WEB, "..", "..");
+
+function keysDeep(value: unknown, out: string[] = []): string[] {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    for (const [key, inner] of Object.entries(value)) {
+      out.push(key);
+      keysDeep(inner, out);
+    }
+  }
+  return out;
+}
+
+describe("26.2-p4 D5: no stop word in the e-mail package, the dashboard mock or the booking defaults", () => {
+  it.each(["en", "de", "fr", "ar"])("e-mail messages %s have no extraStop label (no e-mail code reads it)", (lang) => {
+    const messages = JSON.parse(
+      readFileSync(join(REPO, "packages", "emails", "src", "messages", `${lang}.json`), "utf8"),
+    ) as unknown;
+    expect(keysDeep(messages)).not.toContain("extraStop");
+  });
+
+  it("the dashboard Pricing mock has no max-stops label in any language", () => {
+    const mock = readFileSync(join(REPO, "app", "ops", "OpsPricing.dc.html"), "utf8");
+    expect(mock).not.toMatch(/kindMaxStops/);
+  });
+
+  it("the public booking's extras-off defaults have no stop count", () => {
+    expect(EXTRAS_OFF).not.toHaveProperty("stops");
   });
 });

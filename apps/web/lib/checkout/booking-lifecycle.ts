@@ -14,14 +14,12 @@ export type ExtraOff = {
   childSeat: false;
   oversizedLuggage: false;
   skiRack: false;
-  stops: 0;
 };
 
 export const EXTRAS_OFF: ExtraOff = {
   childSeat: false,
   oversizedLuggage: false,
   skiRack: false,
-  stops: 0,
 };
 
 export function isTravelerComplete(contact: TravelerFields): boolean {
