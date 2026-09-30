@@ -358,7 +358,7 @@ class Component extends DCLogic {
     document.addEventListener('click', this._onClick);
     this._onLocale = (e) => this.setState({ lang: e.detail.lang });
     window.addEventListener('vamos:locale', this._onLocale);
-    if (window.VamosLocale) this.setState({ lang: window.VamosLocale.lang || 'en' });
+    if (window.VamosLocale) this.setState({ lang: window.VamosLocale.lang() || 'en' });
     this._onKey = (e) => { if (e.key === 'Escape' && this.state.menuOpen) this.setState({ menuOpen: false }); };
     window.addEventListener('keydown', this._onKey);
     this.bindOps();

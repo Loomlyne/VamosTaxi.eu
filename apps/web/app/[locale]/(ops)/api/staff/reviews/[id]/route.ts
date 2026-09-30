@@ -23,6 +23,33 @@ function actionStatus(result: Extract<ReviewActionResult, { ok: false }>): numbe
   return 400;
 }
 
+/** Body keys (canonical name first, then the DC aliases) that set each ReviewInput field. */
+const BODY_KEYS: Record<keyof ReviewInput, readonly string[]> = {
+  externalRef: ["externalRef"],
+  source: ["source"],
+  authorName: ["authorName", "name"],
+  authorRole: ["authorRole", "role"],
+  body: ["body", "text"],
+  rating: ["rating"],
+  routeLabel: ["routeLabel", "route"],
+  vehicleClassId: ["vehicleClassId", "vehicleClassSlug", "vehicleClass"],
+  avatarPath: ["avatarPath", "avatar"],
+  sourceUrl: ["sourceUrl", "url"],
+  verified: ["verified"],
+  published: ["published"],
+  sortOrder: ["sortOrder"],
+};
+
+/** The stored row, with only the fields the body actually names replaced. */
+function mergePatch(row: Parameters<typeof rowToInput>[0], body: Record<string, unknown>): ReviewInput {
+  const merged: Record<string, unknown> = { ...rowToInput(row) };
+  const fromBody: Record<string, unknown> = { ...reviewInputFromBody(body) };
+  for (const field of Object.keys(BODY_KEYS) as (keyof ReviewInput)[]) {
+    if (BODY_KEYS[field].some((key) => key in body)) merged[field] = fromBody[field];
+  }
+  return merged as ReviewInput;
+}
+
 function rowToInput(row: {
   externalRef: string | null;
   source: ReviewInput["source"];
@@ -88,7 +115,7 @@ export function PATCH(request: Request, context: { params: Promise<{ id: string 
     const rows = await loadReviews(env, claims);
     const row = rows.find((item) => item.id === id);
     if (!row) return jsonErr("reviews-error", 404);
-    const merged = { ...rowToInput(row), ...reviewInputFromBody(body) };
+    const merged = mergePatch(row, body);
     const updated = await updateReview(id, merged);
     if (!updated.ok) return jsonErr(updated.key, actionStatus(updated));
     return jsonOk(await loadReviews(env, claims));

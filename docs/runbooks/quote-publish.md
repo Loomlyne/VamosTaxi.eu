@@ -5,7 +5,7 @@ Owner action. Not a merge.
 
 ## What must be true first
 
-1. The owner's matrix is seeded into a **DRAFT** `rate_versions` row (`packages/db/scripts/seed-draft-rate-book.mjs`, local/staging only). Numbers live in `docs/build/OWNER-ANSWERS.md` D-46. No live numbers until this procedure says so.
+1. The owner's matrix sits in a **DRAFT** `rate_versions` row, edited by the owner on the dashboard Pricing page (there is no seed script; `packages/db/scripts/seed-draft-rate-book.mjs` never existed in git). No live numbers until this procedure says so.
 2. Every **active** surcharge carries a non-blank `predicate`. The five U38 rows
    (airport-zone and ski-tag) still need owner confirmation. The publish gate
    refuses `draft → live` until they land (`20260825000001_surcharge_predicate.sql`).
@@ -34,7 +34,7 @@ UPDATE public.rate_versions SET status = 'live' WHERE id = :draft_id;
 UPDATE public.settings SET public_chf = true WHERE id = 1;
 ```
 
-A live `rate_versions` row is not enough. Hosted id 5 already live is **not**
+A live `rate_versions` row is not enough. An already-live price book row (row 18 on 2026-09-30) is **not**
 the flip (D-23). Public amounts stay **CHF 000** until this Publish click
 sets `public_chf`.
 

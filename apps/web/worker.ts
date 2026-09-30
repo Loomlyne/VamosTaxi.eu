@@ -40,16 +40,6 @@ async function handleFetch(
   const inbound = pinRequestToApexAssets(
     pinRequestToSurface(request, surface, sni),
   );
-  // The dashboard host is closed to crawlers outright (HTTP noindex already covers its pages).
-  const inboundUrl = new URL(request.url);
-  if (
-    inboundUrl.pathname === "/robots.txt" &&
-    (inboundUrl.hostname === "dashboard.vamostaxi.site" || inboundUrl.hostname === "dashboard.localhost")
-  ) {
-    return new Response("User-agent: *\nDisallow: /\n", {
-      headers: { "content-type": "text/plain; charset=utf-8", "x-robots-tag": "noindex" },
-    });
-  }
   const gated = gatePublicRequest(inbound);
   if (gated === "not-found") {
     const gone = new URL(inbound.url);

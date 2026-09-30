@@ -105,8 +105,9 @@ class Component extends DCLogic {
     };
     this._esc = (e) => { if (e.key === 'Escape' && this.state.open) this.close(); };
     /* A fixed list has to follow its button or leave the screen — simplest correct
-       answer is to close on any scroll or resize. */
-    this._bail = () => { if (this.state.open) this.close(); };
+       answer is to close on any scroll or resize. The list's own scroll is not one of
+       those: it is how a long list (nine statuses) is read. */
+    this._bail = (e) => { if (!this.state.open) return; const n = e && e.target; if (n && n.nodeType === 1 && this._pop && this._pop.contains(n)) return; this.close(); };
     document.addEventListener('mousedown', this._away);
     document.addEventListener('keydown', this._esc);
     window.addEventListener('resize', this._bail);

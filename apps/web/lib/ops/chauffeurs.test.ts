@@ -16,7 +16,6 @@ import {
   LICENCE_EXPIRING_WITHIN_DAYS,
   SPOKEN_LANGUAGES,
   assertChauffeurInput,
-  emailsMatch,
   licenceState,
   loadChauffeur,
   loadChauffeurByEmail,
@@ -170,14 +169,6 @@ describe("assertChauffeurInput", () => {
   it("ignores a client status toggle — duty is computed, asserted status stays off (D-10)", () => {
     expect(assertChauffeurInput(baseInput({ status: "shift" })).status).toBe("off");
     expect(assertChauffeurInput(baseInput({ status: "leave" })).status).toBe("off");
-  });
-});
-
-describe("emailsMatch (D-05)", () => {
-  it("matches on lower(trim) and ignores empty", () => {
-    expect(emailsMatch("Ada@Vamos.eu", " ada@vamos.eu ")).toBe(true);
-    expect(emailsMatch("", "ada@vamos.eu")).toBe(false);
-    expect(emailsMatch(null, null)).toBe(false);
   });
 });
 

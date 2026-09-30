@@ -19,14 +19,15 @@
 // skipped on a machine with no staging deploy.
 
 import { describe, expect, it } from "vitest";
-import { adjacencySet, drive, ITERATION_DEFAULTS, type DriveIdentity } from "../support/drive";
+import { adjacencySet, drive, ITERATION_DEFAULTS } from "../support/drive";
 import { cacheStatusWindow } from "../support/hyperdrive-metrics";
 import {
   assertNoLiveRateVersion,
+  pairIdentities,
   seedFixtures,
-  type FixtureIdentity,
   type FixturePairs,
 } from "../fixtures/two-customers";
+import { expectNoForeignReference } from "../fixtures/leak-check";
 import allowlistRaw from "../support/config-allowlist.json";
 
 const BASE = process.env["PROBE_BASE_URL"] ?? "";
@@ -37,13 +38,6 @@ const CONCURRENCY = ITERATION_DEFAULTS.concurrency;
 const allowlist = allowlistRaw as unknown as {
   probe_identity: { id: string | null; expected_caching_disabled: boolean };
 };
-
-function pairIdentities(pair: [FixtureIdentity, FixtureIdentity]): { a: DriveIdentity; b: DriveIdentity } {
-  return {
-    a: { label: "a", accessToken: pair[0].accessToken, manageTokenHash: pair[0].manageTokenHashHex },
-    b: { label: "b", accessToken: pair[1].accessToken, manageTokenHash: pair[1].manageTokenHashHex },
-  };
-}
 
 /** The three D-45 pairings this gate must cover -- not only two customers. Without the guest
  *  and staff pairings, DATA-03 and AUTH-05 are unproven under the pool. */
@@ -236,10 +230,11 @@ describe.skipIf(!process.env["PROBE_BASE_URL"])("DATA-06 isolation gate (adjacen
       ).toEqual(expect.arrayContaining(mine.references));
 
       const other = byLabel[r.customer === "a" ? "b" : "a"];
-      expect(
+      expectNoForeignReference(
         refs,
+        other.references,
         `A1 failed: ${r.customer}'s probe received a row belonging to the other identity`,
-      ).not.toEqual(expect.arrayContaining(other.references));
+      );
     }
   }, 360_000);
 });
