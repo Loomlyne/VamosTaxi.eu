@@ -625,7 +625,12 @@ class Component extends DCLogic {
     const tickets = this.state.tickets.map((t) => t.id === id ? Object.assign({}, t, { status: 'closed', last: stamp() }) : t);
     this.setState({ tickets: tickets });
     publishBadge(tickets);
-    this.persistTicket(id, { status: 'closed' }, () => this.setState({ overlayError: true }));
+    // Refused or lost: back to what it was, the same way reopen and first-open undo themselves.
+    this.persistTicket(id, { status: 'closed' }, () => {
+      const reverted = this.state.tickets.map((t) => t.id === id ? Object.assign({}, t, { status: current.status, last: current.last }) : t);
+      this.setState({ tickets: reverted, overlayError: true });
+      publishBadge(reverted);
+    });
   };
   reopenTicket = () => {
     const id = this.state.openId;

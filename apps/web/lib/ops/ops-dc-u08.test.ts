@@ -423,3 +423,19 @@ describe("OpsSupportTicket unsaved fields", () => {
     expect(comp.state.tickets[0]?.note).toBe("edited elsewhere");
   });
 });
+
+describe("OpsSupportTicket close that the server refuses", () => {
+  it("puts the ticket back to its status and the badge back to its count", async () => {
+    const { comp, badges, settle } = supportHarness((m) =>
+      m === "GET" ? { ok: true, data: [serverTicket({ status: "open" })] } : { ok: false },
+    );
+    comp.hydrate();
+    await settle();
+    comp.openTicket("t1");
+    comp.closeTicket();
+    await settle();
+    expect(comp.state.overlayError).toBe(true);
+    expect(comp.state.tickets[0]?.status).toBe("open");
+    expect(badges[badges.length - 1]).toBe(1);
+  });
+});
