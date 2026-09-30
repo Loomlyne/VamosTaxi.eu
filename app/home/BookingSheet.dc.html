@@ -338,6 +338,7 @@ class Component extends DCLogic {
         this._staleT = null;
         if (!this._stale) return;
         this._stale = false;
+        this._depth = 1;
         this._flush(() => this._unlistenIfIdle());
       }, 1500);
     }
