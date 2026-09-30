@@ -7,7 +7,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { effectiveNextLevel, isPasskeySession, staffGateDecision } from "./staff-gate";
+import { effectiveNextLevel, staffGateDecision } from "./staff-gate";
 
 describe("staffGateDecision", () => {
   it("admin with no enrolled factor at aal1 is allowed (D-16)", () => {
@@ -77,16 +77,6 @@ describe("staffGateDecision: a passkey is a sign-in option, not a forced step (q
 
   it("a dispatcher is denied even on a passkey session (D-16b)", () => {
     expect(staffGateDecision({ role: "dispatcher", currentLevel: "aal1", nextLevel: "aal1", amrMethods: ["passkey"] })).toBe("deny");
-  });
-});
-
-describe("isPasskeySession", () => {
-  it("reads object and string amr entries", () => {
-    expect(isPasskeySession([{ method: "passkey", timestamp: 1 }])).toBe(true);
-    expect(isPasskeySession(["passkey"])).toBe(true);
-    expect(isPasskeySession([{ method: "password" }, "otp"])).toBe(false);
-    expect(isPasskeySession(null)).toBe(false);
-    expect(isPasskeySession(undefined)).toBe(false);
   });
 });
 
