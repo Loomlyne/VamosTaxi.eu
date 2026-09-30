@@ -78,19 +78,15 @@ function onlySlot(src: string, className: string, hook: string, label: string): 
 }
 
 describe("meta legal gate", () => {
-  it("necessary-cookies-only remains", () => {
+  it("banner title is you-choose-what-we-measure and body is meta-banner", () => {
     const banner = source("components/consent/CookieBanner.tsx");
-    expect(banner).toContain(
-      '<h2 className="vt-ck-title">{t("necessary-cookies-only")}</h2>',
-    );
+    expect(banner).toContain('{t("you-choose-what-we-measure")}');
+    expect(banner).toContain('t.rich("meta-banner"');
     for (const locale of ["en", "de", "fr", "ar"]) {
-      expect(source(`i18n/messages/${locale}.json`), locale).toContain(
-        '"necessary-cookies-only"',
-      );
+      const messages = source(`i18n/messages/${locale}.json`);
+      expect(messages, locale).toContain('"you-choose-what-we-measure"');
+      expect(messages, locale).toContain('"meta-banner"');
     }
-    expect(source("i18n/messages/en.json")).toContain(
-      '"necessary-cookies-only": "Necessary cookies only"',
-    );
   });
 
   it("policy version unchanged", () => {
@@ -165,7 +161,6 @@ describe("meta legal gate", () => {
   });
 
   it("slots exist", () => {
-    const banner = source("components/consent/CookieBanner.tsx");
     const cookies = source("app/[locale]/cookies/page.tsx");
     const privacy = source("app/[locale]/privacy/page.tsx");
     const imprint = source("app/[locale]/imprint/page.tsx");
@@ -181,11 +176,6 @@ describe("meta legal gate", () => {
     expect(privacy).toContain('<PendingSlot label="Analytics provider" />');
     expect(privacy).toContain('<PendingSlot label="Analytics region" />');
     expect(imprint).toContain('<PendingSlot label="Photography credit" />');
-
-    expect(banner).toContain('className="vt-ck-meta"');
-    expect(banner).toContain('data-meta-slot="banner"');
-    expect(banner).toContain('<PendingSlot label="Meta banner line" />');
-    expect(classNameOf(openTag(banner, "banner"))).toBe("vt-ck-meta");
 
     expect(cookies.match(/Meta cookie row/g) ?? []).toHaveLength(1);
     expect(cookies).toContain('className="vt-legal-blank--row"');
@@ -212,7 +202,6 @@ describe("meta legal gate", () => {
         expect(src, rel).not.toContain(needle);
       }
     }
-    onlySlot(source("components/consent/CookieBanner.tsx"), "vt-ck-meta", "banner", "Meta banner line");
     onlySlot(source("app/[locale]/cookies/page.tsx"), "vt-legal-blank--row", "cookies", "Meta cookie row");
     onlySlot(source("app/[locale]/privacy/page.tsx"), "vt-legal-blank", "privacy", "Meta privacy line");
   });
