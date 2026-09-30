@@ -1,0 +1,1022 @@
+{
+ "base": "http://localhost:4300",
+ "at": "2026-09-30T11:45:30.916Z",
+ "rows": [
+  {
+   "page": "/",
+   "size": "laptop",
+   "variant": "base",
+   "runs": 3,
+   "ok": 3,
+   "median": {
+    "fcp": 172,
+    "lcp": 172,
+    "load": 123,
+    "tbt": 0,
+    "cls": 0.1447,
+    "transferKB": 4745,
+    "scrollP95": 16.8,
+    "scrollOver25": 0,
+    "scrollMax": 17,
+    "scrollHandlers": 300,
+    "scrollTbt": 0
+   },
+   "detail": {
+    "page": "/",
+    "size": "laptop",
+    "variant": "base",
+    "loadMs": 154,
+    "ttfb": 18,
+    "dcl": 130,
+    "load": 130,
+    "fcp": 172,
+    "lcp": 172,
+    "cls": 0.1452,
+    "longtasks": 0,
+    "tbt": 0,
+    "loaf": [
+     {
+      "t": 177,
+      "d": 66,
+      "block": 0,
+      "scripts": [
+       [
+        "home/support.js",
+        "Response.text.then",
+        6
+       ],
+       [
+        "vendor/react-18.3.1.production.min.js",
+        "MessagePort.onmessage",
+        28
+       ],
+       [
+        "user-callback",
+        "FrameRequestCallback",
+        6
+       ]
+      ]
+     }
+    ],
+    "docH": 5412,
+    "lenis": false,
+    "transferKB": 4745,
+    "bytesKB": {
+     "document": 214,
+     "stylesheet": 44,
+     "script": 2978,
+     "image": 172,
+     "fetch": 616,
+     "font": 721,
+     "other": 0
+    },
+    "counts": {
+     "document": 1,
+     "stylesheet": 11,
+     "script": 9,
+     "image": 25,
+     "fetch": 18,
+     "font": 6,
+     "other": 1
+    },
+    "big": [
+     [
+      "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js",
+      2256
+     ],
+     [
+      "/app/vamos-i18n-dict.js",
+      448
+     ],
+     [
+      "/",
+      214
+     ],
+     [
+      "/",
+      214
+     ],
+     [
+      "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/assets/fonts/Poppins-Regular.ttf",
+      155
+     ],
+     [
+      "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/assets/fonts/Poppins-Medium.ttf",
+      153
+     ]
+    ],
+    "scroll": {
+     "frames": 272,
+     "p50": 16.7,
+     "p95": 16.8,
+     "max": 17,
+     "over25": 0,
+     "over50": 0,
+     "handlers": 300,
+     "longtasks": 0,
+     "tbt": 0,
+     "cls": 0,
+     "loaf": [],
+     "endY": 2124
+    }
+   }
+  },
+  {
+   "page": "/",
+   "size": "phone",
+   "variant": "base",
+   "runs": 3,
+   "ok": 3,
+   "median": {
+    "fcp": 468,
+    "lcp": 468,
+    "load": 339,
+    "tbt": 133,
+    "cls": 0,
+    "transferKB": 4593,
+    "scrollP95": 16.8,
+    "scrollOver25": 2,
+    "scrollMax": 33,
+    "scrollHandlers": 349,
+    "scrollTbt": 0
+   },
+   "detail": {
+    "page": "/",
+    "size": "phone",
+    "variant": "base",
+    "loadMs": 340,
+    "ttfb": 11,
+    "dcl": 336,
+    "load": 339,
+    "fcp": 456,
+    "lcp": 456,
+    "cls": 0,
+    "longtasks": 2,
+    "tbt": 120,
+    "loaf": [
+     {
+      "t": 679,
+      "d": 164,
+      "block": 97,
+      "scripts": [
+       [
+        "vendor/react-18.3.1.production.min.js",
+        "MessagePort.onmessage",
+        120
+       ],
+       [
+        "user-callback",
+        "FrameRequestCallback",
+        22
+       ]
+      ]
+     },
+     {
+      "t": 338,
+      "d": 107,
+      "block": 53,
+      "scripts": [
+       [
+        "vendor/react-18.3.1.production.min.js",
+        "MessagePort.onmessage",
+        101
+       ]
+      ]
+     },
+     {
+      "t": 29,
+      "d": 79,
+      "block": 0,
+      "scripts": [
+       [
+        "home/support.js",
+        "http://localhost:4300/app/home/support.j",
+        7
+       ]
+      ]
+     },
+     {
+      "t": 565,
+      "d": 75,
+      "block": 0,
+      "scripts": [
+       [
+        "vendor/react-18.3.1.production.min.js",
+        "MessagePort.onmessage",
+        7
+       ],
+       [
+        "home/support.js",
+        "Response.text.then",
+        11
+       ],
+       [
+        "home/support.js",
+        "Response.text.then",
+        7
+       ],
+       [
+        "home/support.js",
+        "Response.text.then",
+        9
+       ],
+       [
+        "home/support.js",
+        "Response.text.then",
+        24
+       ]
+      ]
+     }
+    ],
+    "docH": 7938,
+    "lenis": false,
+    "transferKB": 4593,
+    "bytesKB": {
+     "document": 214,
+     "stylesheet": 44,
+     "script": 2978,
+     "image": 170,
+     "font": 570,
+     "fetch": 616,
+     "other": 0
+    },
+    "counts": {
+     "document": 1,
+     "stylesheet": 11,
+     "script": 9,
+     "image": 21,
+     "font": 5,
+     "fetch": 17,
+     "other": 1
+    },
+    "big": [
+     [
+      "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js",
+      2256
+     ],
+     [
+      "/app/vamos-i18n-dict.js",
+      448
+     ],
+     [
+      "/",
+      214
+     ],
+     [
+      "/",
+      214
+     ],
+     [
+      "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/assets/fonts/Poppins-Regular.ttf",
+      155
+     ],
+     [
+      "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/assets/fonts/Poppins-Medium.ttf",
+      153
+     ]
+    ],
+    "scroll": {
+     "frames": 271,
+     "p50": 16.7,
+     "p95": 16.7,
+     "max": 33,
+     "over25": 1,
+     "over50": 0,
+     "handlers": 353,
+     "longtasks": 0,
+     "tbt": 0,
+     "cls": 0,
+     "loaf": [],
+     "endY": 901
+    }
+   }
+  },
+  {
+   "page": "/faq",
+   "size": "laptop",
+   "variant": "base",
+   "runs": 3,
+   "ok": 3,
+   "median": {
+    "fcp": 172,
+    "lcp": 172,
+    "load": 123,
+    "tbt": 0,
+    "cls": 0.0024,
+    "transferKB": 4009,
+    "scrollP95": 16.7,
+    "scrollOver25": 1,
+    "scrollMax": 33,
+    "scrollHandlers": 161,
+    "scrollTbt": 0
+   },
+   "detail": {
+    "page": "/faq",
+    "size": "laptop",
+    "variant": "base",
+    "loadMs": 155,
+    "ttfb": 14,
+    "dcl": 123,
+    "load": 123,
+    "fcp": 172,
+    "lcp": 172,
+    "cls": 0.003,
+    "longtasks": 0,
+    "tbt": 0,
+    "loaf": [],
+    "docH": 3240,
+    "lenis": false,
+    "transferKB": 4009,
+    "bytesKB": {
+     "document": 32,
+     "script": 2951,
+     "stylesheet": 44,
+     "image": 148,
+     "fetch": 169,
+     "font": 665,
+     "other": 0
+    },
+    "counts": {
+     "document": 1,
+     "script": 8,
+     "stylesheet": 11,
+     "image": 11,
+     "fetch": 8,
+     "font": 5,
+     "other": 1
+    },
+    "big": [
+     [
+      "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js",
+      2256
+     ],
+     [
+      "/app/vamos-i18n-dict.js",
+      448
+     ],
+     [
+      "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/assets/fonts/Poppins-Regular.ttf",
+      155
+     ],
+     [
+      "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/assets/fonts/Poppins-Medium.ttf",
+      153
+     ],
+     [
+      "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/assets/fonts/Poppins-SemiBold.ttf",
+      152
+     ],
+     [
+      "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/assets/fonts/Poppins-Bold.ttf",
+      150
+     ]
+    ],
+    "scroll": {
+     "frames": 271,
+     "p50": 16.7,
+     "p95": 16.7,
+     "max": 33,
+     "over25": 1,
+     "over50": 0,
+     "handlers": 161,
+     "longtasks": 0,
+     "tbt": 0,
+     "cls": 0,
+     "loaf": [],
+     "endY": 0
+    }
+   }
+  },
+  {
+   "page": "/faq",
+   "size": "phone",
+   "variant": "base",
+   "runs": 3,
+   "ok": 3,
+   "median": {
+    "fcp": 468,
+    "lcp": 468,
+    "load": 340,
+    "tbt": 7,
+    "cls": 0.0165,
+    "transferKB": 3859,
+    "scrollP95": 16.7,
+    "scrollOver25": 0,
+    "scrollMax": 17,
+    "scrollHandlers": 140,
+    "scrollTbt": 0
+   },
+   "detail": {
+    "page": "/faq",
+    "size": "phone",
+    "variant": "base",
+    "loadMs": 391,
+    "ttfb": 20,
+    "dcl": 376,
+    "load": 377,
+    "fcp": 468,
+    "lcp": 468,
+    "cls": 0.0165,
+    "longtasks": 1,
+    "tbt": 13,
+    "loaf": [
+     {
+      "t": 135,
+      "d": 215,
+      "block": 0,
+      "scripts": [
+       [
+        "vendor/react-dom-18.3.1.production.min.js",
+        "http://localhost:4300/assets/vendor/reac",
+        6
+       ]
+      ]
+     },
+     {
+      "t": 598,
+      "d": 118,
+      "block": 23,
+      "scripts": [
+       [
+        "pages/support.js",
+        "Response.text.then",
+        11
+       ],
+       [
+        "pages/support.js",
+        "Response.text.then",
+        13
+       ],
+       [
+        "vendor/react-18.3.1.production.min.js",
+        "MessagePort.onmessage",
+        63
+       ]
+      ]
+     },
+     {
+      "t": 461,
+      "d": 107,
+      "block": 6,
+      "scripts": [
+       [
+        "vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js",
+        "http://localhost:4300/_ds/vamos-taxi-des",
+        26
+       ],
+       [
+        "app/vamos-i18n-dict.js",
+        "http://localhost:4300/app/vamos-i18n-dic",
+        47
+       ]
+      ]
+     },
+     {
+      "t": 377,
+      "d": 78,
+      "block": 26,
+      "scripts": [
+       [
+        "vendor/react-18.3.1.production.min.js",
+        "MessagePort.onmessage",
+        30
+       ]
+      ]
+     }
+    ],
+    "docH": 5340,
+    "lenis": false,
+    "transferKB": 3859,
+    "bytesKB": {
+     "document": 32,
+     "script": 2951,
+     "stylesheet": 44,
+     "image": 148,
+     "font": 515,
+     "fetch": 169,
+     "other": 0
+    },
+    "counts": {
+     "document": 1,
+     "script": 8,
+     "stylesheet": 11,
+     "image": 10,
+     "font": 4,
+     "fetch": 8,
+     "other": 1
+    },
+    "big": [
+     [
+      "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js",
+      2256
+     ],
+     [
+      "/app/vamos-i18n-dict.js",
+      448
+     ],
+     [
+      "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/assets/fonts/Poppins-Regular.ttf",
+      155
+     ],
+     [
+      "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/assets/fonts/Poppins-Medium.ttf",
+      153
+     ],
+     [
+      "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/assets/fonts/Poppins-SemiBold.ttf",
+      152
+     ]
+    ],
+    "scroll": {
+     "frames": 272,
+     "p50": 16.7,
+     "p95": 16.7,
+     "max": 17,
+     "over25": 0,
+     "over50": 0,
+     "handlers": 136,
+     "longtasks": 0,
+     "tbt": 0,
+     "cls": 0,
+     "loaf": [],
+     "endY": 894
+    }
+   }
+  },
+  {
+   "page": "/about",
+   "size": "laptop",
+   "variant": "base",
+   "runs": 3,
+   "ok": 3,
+   "median": {
+    "fcp": 172,
+    "lcp": 172,
+    "load": 125,
+    "tbt": 0,
+    "cls": 0.0012,
+    "transferKB": 4391,
+    "scrollP95": 16.8,
+    "scrollOver25": 0,
+    "scrollMax": 17,
+    "scrollHandlers": 178,
+    "scrollTbt": 0
+   },
+   "detail": {
+    "page": "/about",
+    "size": "laptop",
+    "variant": "base",
+    "loadMs": 159,
+    "ttfb": 8,
+    "dcl": 124,
+    "load": 125,
+    "fcp": 172,
+    "lcp": 172,
+    "cls": 0.0012,
+    "longtasks": 0,
+    "tbt": 0,
+    "loaf": [],
+    "docH": 5245,
+    "lenis": false,
+    "transferKB": 4391,
+    "bytesKB": {
+     "document": 29,
+     "script": 2951,
+     "stylesheet": 44,
+     "image": 535,
+     "fetch": 166,
+     "font": 665,
+     "other": 0
+    },
+    "counts": {
+     "document": 1,
+     "script": 8,
+     "stylesheet": 11,
+     "image": 20,
+     "fetch": 8,
+     "font": 5,
+     "other": 1
+    },
+    "big": [
+     [
+      "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js",
+      2256
+     ],
+     [
+      "/app/vamos-i18n-dict.js",
+      448
+     ],
+     [
+      "/assets/photography/fleet-van-street-1200.jpg",
+      385
+     ],
+     [
+      "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/assets/fonts/Poppins-Regular.ttf",
+      155
+     ],
+     [
+      "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/assets/fonts/Poppins-Medium.ttf",
+      153
+     ],
+     [
+      "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/assets/fonts/Poppins-SemiBold.ttf",
+      152
+     ]
+    ],
+    "scroll": {
+     "frames": 272,
+     "p50": 16.7,
+     "p95": 16.7,
+     "max": 17,
+     "over25": 0,
+     "over50": 0,
+     "handlers": 178,
+     "longtasks": 0,
+     "tbt": 0,
+     "cls": 0,
+     "loaf": [],
+     "endY": 1963
+    }
+   }
+  },
+  {
+   "page": "/about",
+   "size": "phone",
+   "variant": "base",
+   "runs": 3,
+   "ok": 3,
+   "median": {
+    "fcp": 556,
+    "lcp": 556,
+    "load": 423,
+    "tbt": 9,
+    "cls": 0.0165,
+    "transferKB": 4240,
+    "scrollP95": 16.7,
+    "scrollOver25": 0,
+    "scrollMax": 17,
+    "scrollHandlers": 136,
+    "scrollTbt": 0
+   },
+   "detail": {
+    "page": "/about",
+    "size": "phone",
+    "variant": "base",
+    "loadMs": 425,
+    "ttfb": 20,
+    "dcl": 420,
+    "load": 423,
+    "fcp": 532,
+    "lcp": 532,
+    "cls": 0.0165,
+    "longtasks": 1,
+    "tbt": 8,
+    "loaf": [
+     {
+      "t": 139,
+      "d": 210,
+      "block": 0,
+      "scripts": []
+     },
+     {
+      "t": 522,
+      "d": 103,
+      "block": 0,
+      "scripts": [
+       [
+        "vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js",
+        "http://localhost:4300/_ds/vamos-taxi-des",
+        26
+       ],
+       [
+        "app/vamos-i18n-dict.js",
+        "http://localhost:4300/app/vamos-i18n-dic",
+        19
+       ],
+       [
+        "pages/support.js",
+        "Response.text.then",
+        11
+       ]
+      ]
+     },
+     {
+      "t": 423,
+      "d": 91,
+      "block": 39,
+      "scripts": [
+       [
+        "vendor/react-18.3.1.production.min.js",
+        "MessagePort.onmessage",
+        27
+       ]
+      ]
+     },
+     {
+      "t": 349,
+      "d": 71,
+      "block": 9,
+      "scripts": [
+       [
+        "vendor/react-dom-18.3.1.production.min.js",
+        "http://localhost:4300/assets/vendor/reac",
+        6
+       ],
+       [
+        "app/vamos-locale.js",
+        "#document.onDOMContentLoaded",
+        38
+       ],
+       [
+        "pages/support.js",
+        "#document.onDOMContentLoaded",
+        20
+       ]
+      ]
+     }
+    ],
+    "docH": 8715,
+    "lenis": false,
+    "transferKB": 4240,
+    "bytesKB": {
+     "document": 29,
+     "script": 2951,
+     "stylesheet": 44,
+     "image": 535,
+     "fetch": 166,
+     "font": 515,
+     "other": 0
+    },
+    "counts": {
+     "document": 1,
+     "script": 8,
+     "stylesheet": 11,
+     "image": 20,
+     "fetch": 8,
+     "font": 4,
+     "other": 1
+    },
+    "big": [
+     [
+      "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js",
+      2256
+     ],
+     [
+      "/app/vamos-i18n-dict.js",
+      448
+     ],
+     [
+      "/assets/photography/fleet-van-street-1200.jpg",
+      385
+     ],
+     [
+      "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/assets/fonts/Poppins-Regular.ttf",
+      155
+     ],
+     [
+      "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/assets/fonts/Poppins-Medium.ttf",
+      153
+     ],
+     [
+      "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/assets/fonts/Poppins-SemiBold.ttf",
+      152
+     ]
+    ],
+    "scroll": {
+     "frames": 272,
+     "p50": 16.7,
+     "p95": 16.7,
+     "max": 17,
+     "over25": 0,
+     "over50": 0,
+     "handlers": 136,
+     "longtasks": 0,
+     "tbt": 0,
+     "cls": 0,
+     "loaf": [],
+     "endY": 899
+    }
+   }
+  },
+  {
+   "page": "/checkout",
+   "size": "laptop",
+   "variant": "base",
+   "runs": 3,
+   "ok": 3,
+   "median": {
+    "fcp": 208,
+    "lcp": 208,
+    "load": 343,
+    "tbt": 0,
+    "cls": 0.0003,
+    "transferKB": 2028,
+    "scrollP95": 16.7,
+    "scrollOver25": 0,
+    "scrollMax": 17,
+    "scrollHandlers": 147,
+    "scrollTbt": 0
+   },
+   "detail": {
+    "page": "/checkout",
+    "size": "laptop",
+    "variant": "base",
+    "loadMs": 346,
+    "ttfb": 155,
+    "dcl": 225,
+    "load": 343,
+    "fcp": 232,
+    "lcp": 232,
+    "cls": 0.0003,
+    "longtasks": 0,
+    "tbt": 0,
+    "loaf": [
+     {
+      "t": 160,
+      "d": 57,
+      "block": 0,
+      "scripts": []
+     }
+    ],
+    "docH": 2356,
+    "lenis": false,
+    "transferKB": 2028,
+    "bytesKB": {
+     "document": 228,
+     "stylesheet": 122,
+     "image": 31,
+     "script": 642,
+     "font": 515,
+     "fetch": 490
+    },
+    "counts": {
+     "document": 1,
+     "stylesheet": 15,
+     "image": 23,
+     "script": 18,
+     "font": 4,
+     "fetch": 15
+    },
+    "big": [
+     [
+      "/checkout",
+      228
+     ],
+     [
+      "/?_rsc=dS437bsuFJvSS2SJ",
+      214
+     ],
+     [
+      "/_next/static/chunks/217-8485c127a3519a67.js",
+      170
+     ],
+     [
+      "/_next/static/chunks/df8076bd-6749708357647ebb.js",
+      169
+     ],
+     [
+      "/_next/static/media/Poppins-Regular.4b4ebe20.ttf",
+      155
+     ],
+     [
+      "/_next/static/media/Poppins-Medium.a52d0bf0.ttf",
+      153
+     ]
+    ],
+    "scroll": {
+     "frames": 272,
+     "p50": 16.7,
+     "p95": 16.7,
+     "max": 17,
+     "over25": 0,
+     "over50": 0,
+     "handlers": 147,
+     "longtasks": 0,
+     "tbt": 0,
+     "cls": 0,
+     "loaf": [],
+     "endY": 0
+    }
+   }
+  },
+  {
+   "page": "/checkout",
+   "size": "phone",
+   "variant": "base",
+   "runs": 3,
+   "ok": 3,
+   "median": {
+    "fcp": 192,
+    "lcp": 192,
+    "load": 302,
+    "tbt": 0,
+    "cls": 0,
+    "transferKB": 1780,
+    "scrollP95": 16.7,
+    "scrollOver25": 0,
+    "scrollMax": 17,
+    "scrollHandlers": 140,
+    "scrollTbt": 0
+   },
+   "detail": {
+    "page": "/checkout",
+    "size": "phone",
+    "variant": "base",
+    "loadMs": 302,
+    "ttfb": 14,
+    "dcl": 301,
+    "load": 302,
+    "fcp": 192,
+    "lcp": 192,
+    "cls": 0,
+    "longtasks": 0,
+    "tbt": 0,
+    "loaf": [
+     {
+      "t": 31,
+      "d": 145,
+      "block": 50,
+      "scripts": [
+       [
+        "chunks/main-app-879efcefcd7fc459.js",
+        "http://localhost:4300/_next/static/chunk",
+        41
+       ]
+      ]
+     },
+     {
+      "t": 187,
+      "d": 88,
+      "block": 0,
+      "scripts": [
+       [
+        "checkout/page-755fdbb810195c32.js",
+        "http://localhost:4300/_next/static/chunk",
+        22
+       ]
+      ]
+     }
+    ],
+    "docH": 4067,
+    "lenis": false,
+    "transferKB": 1751,
+    "bytesKB": {
+     "stylesheet": 122,
+     "document": 228,
+     "image": 31,
+     "script": 642,
+     "font": 515,
+     "fetch": 214
+    },
+    "counts": {
+     "stylesheet": 15,
+     "document": 1,
+     "image": 22,
+     "script": 18,
+     "font": 4,
+     "fetch": 5
+    },
+    "big": [
+     [
+      "/checkout",
+      228
+     ],
+     [
+      "/?_rsc=dS437bsuFJvSS2SJ",
+      214
+     ],
+     [
+      "/_next/static/chunks/217-8485c127a3519a67.js",
+      170
+     ],
+     [
+      "/_next/static/chunks/df8076bd-6749708357647ebb.js",
+      169
+     ],
+     [
+      "/_next/static/media/Poppins-Regular.4b4ebe20.ttf",
+      155
+     ],
+     [
+      "/_next/static/media/Poppins-Medium.a52d0bf0.ttf",
+      153
+     ]
+    ],
+    "scroll": {
+     "frames": 272,
+     "p50": 16.7,
+     "p95": 16.7,
+     "max": 17,
+     "over25": 0,
+     "over50": 0,
+     "handlers": 140,
+     "longtasks": 0,
+     "tbt": 0,
+     "cls": 0,
+     "loaf": [],
+     "endY": 888
+    }
+   }
+  }
+ ]
+}

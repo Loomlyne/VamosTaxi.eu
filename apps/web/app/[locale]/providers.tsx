@@ -2,7 +2,6 @@
 
 import type { ReactNode } from "react";
 import { NextIntlClientProvider, type AbstractIntlMessages } from "next-intl";
-import { LenisProvider } from "@/lib/lenis-provider";
 import { LocaleShimBootstrap } from "@/lib/locale-shim";
 
 /**
@@ -25,7 +24,7 @@ export function Providers({
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
       <LocaleShimBootstrap />
-      <LenisProvider>{children}</LenisProvider>
+      {children}
     </NextIntlClientProvider>
   );
 }

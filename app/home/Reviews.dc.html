@@ -25,9 +25,6 @@
 <link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
 <link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
 <script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
-<link rel="stylesheet" href="../../assets/lenis.css">
-<script src="../../assets/lenis.js"></script>
-<script src="../../assets/lenis-boot.js"></script>
 <script src="../vamos-i18n-dict.js"></script>
 <script src="../vamos-locale.js"></script>
 <script src="../vamos-reviews.js"></script>
@@ -323,9 +320,8 @@ class Component extends DCLogic {
     const ay = Math.abs(dy);
     /* One gesture keeps one axis. A trackpad or a finger never swipes perfectly
        straight, so a vertical page scroll emits stray deltaX frames; judging every
-       frame on its own let those frames read as horizontal, cancel the wheel, and
-       hand a cancelled event to Lenis — which is what stopped the page mid-scroll
-       whenever the pointer crossed the row. The axis is decided once per gesture
+       frame on its own let those frames read as horizontal and cancel the wheel,
+       which is what stopped the page mid-scroll whenever the pointer crossed the row. The axis is decided once per gesture
        and held until the visitor lifts off, and horizontal has to win clearly. */
     const now = e.timeStamp || Date.now();
     if (!this._axisAt || now - this._axisAt > 180) {
