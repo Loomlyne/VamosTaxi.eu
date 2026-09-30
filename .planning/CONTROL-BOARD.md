@@ -244,10 +244,10 @@ Disk free: 11.4 GB before, 34.7 GB after. `vamos-wt` went from 39 GB to 22 GB. U
 | `seo-head-2` | `fix/seo-head-followup` | same | parked behind 26.5 | 1.3 GB |
 | `phase-20` | `gsd/phase-20-security-check` | Vamos Taxi security phase | session not running; slimmed (reinstall needed); stack `vamos-taxi-20` stopped | 0.2 GB |
 | `main-green-2` | `fix/main-green-2` | none (26.0) | idle; slimmed (reinstall needed); stack `vamos-taxi-mg2` stopped | 1.4 GB |
-| `fix-26.3-followups` | `fix/26.3-account-link` | none | shipped; kept because it holds 2 unsaved research files, waits for the owner | 0.2 GB |
 
 Removed on 2026-09-30, branches kept, every tip on GitHub as a branch or an `archive/*` tag: `auth-fix`, `fix-26.3-arrays`, `fix-26.3-manage`, `fix-26.3-newtrip`, `phase-26.0`, `phase-26.1`, `phase-26.3`, `phase-26.4`, `phase-26.4.1`, `legal-pages`, `seo-head`, `fix-26.4.2` (new tag `archive/26.4.2-after-ship-62497c11`), `.claude/worktrees/cool-golick-0a43ce`.
 Removed at 14:10 by the owner's word, after pushing every 26.2 branch to GitHub as a branch: `phase-26.2-u02`, `u03a`, `u03b`, `u07`, `u08`, `u09`, `u10` (each fully merged into `gsd/phase-26.2-audit`).
+Removed at 14:13: `fix-26.3-followups`, after its two research notes were committed (`defb63a9`) and branch `fix/26.3-account-link` was pushed to GitHub by the owner's word.
 Docker: stacks `vamos-taxi-263`, `-acct`, `-auth`, `-pga` removed with their volumes; leftover volumes `-260`, `-264`, `-63`, `-mbp` removed. Running: `vamos-taxi` (default), `-265`, `-270`. The `twenty-crm` stack is another product and was not touched.
 Main checkout: build output cleared (the next deploy rebuilds). Left for the owner: `brag-output` 1.3 GB (videos, not in git), `.pnpm-store` 0.9 GB.
 
