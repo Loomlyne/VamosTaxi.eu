@@ -231,6 +231,9 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 @container bookcompact (max-width:400px){#book [data-book-slots]:has([data-book-field="flight"]){grid-template-columns:minmax(0,1fr);grid-template-areas:"pickup" "dest" "when" "flight" "party"}}
 @media (min-width:1080px){[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]){grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"pickup pickup" "dest dest" "when flight" "party party";align-items:end}[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]) [data-book-field="pickup"]{grid-area:pickup}[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]) [data-book-field="dest"]{grid-area:dest}[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]) [data-book-field="when"]{grid-area:when}[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]) [data-book-field="flight"]{grid-area:flight}[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]) [data-book-field="party"]{grid-area:party}[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]) [data-book-field],[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]) [data-vtcombo]{min-width:0;max-width:100%}[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]) [data-vtcombo]{width:100%;box-sizing:border-box}[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]) [data-vtcombo] input{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]) [data-party]{grid-template-columns:repeat(2,minmax(0,1fr));width:100%}}
 [data-hero],[data-hero-inner]{min-height:100vh;min-height:100svh}
+/* Phone and tablet: the hero's dark ground reaches behind Safari's own bars (100lvh), the content stays inside the small
+   viewport, and the page ground is charcoal so Safari tints its status and address bars dark instead of white. */
+@media (max-width:1080px){[data-hero]{min-height:100lvh}html:root,html:root body{background:var(--vt-charcoal-900)}}
 [data-hero-slides]{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
 [data-hero-slide]{position:absolute;inset:0;background-position:center top;background-size:cover;background-repeat:no-repeat;opacity:0;transform:scale(1.02);transition:opacity .55s cubic-bezier(.2,0,.2,1),transform .7s cubic-bezier(.2,0,.2,1)}
 [data-hero-slide][data-on="1"]{opacity:1;transform:scale(1)}
@@ -309,8 +312,18 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 @media (max-width:1080px){
 [data-bookcard]{display:none!important}
 [data-bar-wrap]{display:block;box-sizing:border-box;min-width:0;max-width:640px;margin-top:clamp(20px,4vw,34px);scroll-margin-top:24px}
-[data-bar-notes]{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;margin:14px 0 0;min-width:0}
-[data-bar-note]{display:inline-flex;align-items:center;gap:6px;font-size:13px;line-height:1.4;color:var(--vt-text-inverse-muted)}
+[data-bar-notes]{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;margin:0;padding:10px 18px 12px;min-width:0}
+[data-bar-note]{display:inline-flex;align-items:center;gap:6px;font-size:13px;line-height:1.4;color:var(--vt-text-secondary)}
+[data-bar-wrap][data-trust-in="1"] [data-bar-notes]{display:none}
+[data-bar-trust]{display:flex;align-items:center;gap:10px;min-width:0;min-block-size:44px;padding:4px 14px 6px 18px;padding-inline:18px 14px;box-sizing:border-box;color:var(--vt-text-primary);text-decoration:none;font-family:var(--vt-font-body);font-size:13px;line-height:1.2}
+[data-bar-trust] [data-bt-mark]{block-size:20px;inline-size:auto;flex:0 0 auto}
+[data-bar-trust] [data-bt-stars]{display:inline-flex;gap:2px;flex:0 0 auto}
+[data-bar-trust] [data-bt-stars] img{inline-size:14px;block-size:14px;display:block}
+[data-bar-trust] [data-bt-score]{font-family:var(--vt-font-display);font-weight:var(--vt-weight-semibold);font-size:var(--vt-body-md);font-variant-numeric:tabular-nums}
+[data-bar-trust] [data-bt-count]{color:var(--vt-text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+[data-bar-trust] [data-bt-go]{margin-inline-start:auto;display:inline-flex;color:var(--vt-text-secondary);flex:0 0 auto}
+[dir="rtl"] [data-bar-trust] [data-bt-go]{transform:scaleX(-1)}
+[data-trust][data-in-bar="1"]{display:none!important}
 [data-bar-dock]{display:block;position:fixed;top:var(--vt-dock-top,84px);inset-inline:clamp(12px,3vw,28px);z-index:190;box-sizing:border-box;opacity:0;visibility:hidden;transform:translateY(-8px);pointer-events:none;transition:opacity 140ms var(--vt-ease-out),transform 140ms var(--vt-ease-out),visibility 0s linear 140ms}
 [data-bar-dock][data-show="1"]{opacity:1;visibility:visible;transform:none;pointer-events:auto;transition:opacity 200ms var(--vt-ease-out),transform 200ms var(--vt-ease-out),visibility 0s}
 }
@@ -401,8 +414,23 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <p style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">{{ tKicker }}</p>
 <h1 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-display-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:var(--vt-display-leading);color:var(--vt-white);max-width:16ch;text-wrap:balance">{{ tH1 }}</h1>
 <p style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-lg);line-height:1.6;color:var(--vt-text-inverse-muted);max-width:52ch;text-wrap:pretty">{{ tSub }}</p>
-</div><div id="{{ barId }}" data-bar-wrap="1" data-om-label="Booking bar">
+</div><div id="{{ barId }}" data-bar-wrap="1" data-trust-in="{{ trustInBar }}" data-om-label="Booking bar">
 <div ref="{{ barSlotRef }}"><dc-import name="BookingBar" from="{{ barFrom }}" to="{{ barTo }}" whenLabel="{{ whenLabel }}" pax="{{ paxN }}" bags="{{ bagsN }}" travellersSet="{{ travSet }}" complete="{{ tripComplete }}" expanded="{{ sheetOpen }}" onOpen="{{ openFromHero }}" hint-size="100%,54px"></dc-import></div>
+<sc-if value="{{ trustHas }}" hint-placeholder-val="{{ false }}">
+<a data-bar-trust="1" data-vt-no-i18n="1" href="{{ trustHref }}" target="_blank" rel="noopener noreferrer" aria-label="{{ trustAria }}" data-om-label="Reviews">
+<img data-bt-mark="1" data-vt-no-i18n="1" src="/assets/reviews/trustpilot.svg" alt="Trustpilot" width="82" height="20">
+<span data-bt-stars="1" aria-hidden="true">
+<img data-vt-no-i18n="1" src="/assets/reviews/trustpilot-star.svg" alt="" width="14" height="14" style="opacity:{{ trustO1 }}">
+<img data-vt-no-i18n="1" src="/assets/reviews/trustpilot-star.svg" alt="" width="14" height="14" style="opacity:{{ trustO2 }}">
+<img data-vt-no-i18n="1" src="/assets/reviews/trustpilot-star.svg" alt="" width="14" height="14" style="opacity:{{ trustO3 }}">
+<img data-vt-no-i18n="1" src="/assets/reviews/trustpilot-star.svg" alt="" width="14" height="14" style="opacity:{{ trustO4 }}">
+<img data-vt-no-i18n="1" src="/assets/reviews/trustpilot-star.svg" alt="" width="14" height="14" style="opacity:{{ trustO5 }}">
+</span>
+<span data-bt-score="1" class="vt-dir-keep" data-vt-no-i18n="1">{{ trustScoreNum }}</span>
+<span data-bt-count="1">{{ trustCountText }}</span>
+<span data-bt-go="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-right" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
+</a>
+</sc-if>
 <div data-bar-notes="1" data-om-label="Trust line">
 <span data-bar-note="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span>Price fixed before you pay</span></span>
 <span data-bar-note="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span>Flight tracked</span></span>
@@ -590,7 +618,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <sc-if value="{{ ccMsg }}" hint-placeholder-val="{{ false }}"><p data-cc-msg="1" role="status">{{ ccMsg }}</p></sc-if>
 </section>
 </sc-if>
-<div data-trust="1">
+<div data-trust="1" data-in-bar="{{ trustInBar }}">
 <sc-if value="{{ trustEmpty }}" hint-placeholder-val="{{ true }}">
 <span data-trust-empty="1">{{ tTrustEmpty }}</span>
 </sc-if>
@@ -2570,7 +2598,7 @@ class Component extends DCLogic {
       announce: s.announce,
       tKicker: t.kicker, tH1: t.h1, tSub: t.sub, tSignIn: t.signIn,
       tTrustEmpty: t.trustEmpty, tTrustRead: t.trustRead, trustWord: trust.word,
-      trustEmpty: !trust.has, trustHas: trust.has,
+      trustEmpty: !trust.has, trustHas: trust.has, trustInBar: s.narrow && trust.has ? '1' : '0', trustScoreNum: trust.has ? trust.score : '', trustAria: trust.has ? (trust.source + ' ' + trust.score + '/5') : '',
       trustShowMark: trust.showMark, trustLogo: trust.logo, trustSource: trust.source,
       trustS1: trust.s1, trustS2: trust.s2, trustS3: trust.s3, trustS4: trust.s4, trustS5: trust.s5, trustO1: trust.o1, trustO2: trust.o2, trustO3: trust.o3, trustO4: trust.o4, trustO5: trust.o5,
       trustScoreText: trust.has ? (t.trustScore || '{n}/5').replace('{n}', trust.score) : '',
