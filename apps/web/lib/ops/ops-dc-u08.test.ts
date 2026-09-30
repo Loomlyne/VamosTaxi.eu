@@ -292,3 +292,25 @@ describe("OpsFleet chauffeur languages", () => {
     }
   });
 });
+
+describe("OpsDetail history time", () => {
+  const src = readDc("OpsDetail.dc.html");
+  const eventWhen = new Function(
+    "at",
+    grab(src, /\nfunction eventWhen\(at\) \{\n([\s\S]*?)\n\}\n/, "OpsDetail eventWhen"),
+  ) as (at: unknown) => string;
+
+  it("shows a booking event at Zurich time, as the rest of the dashboard does", () => {
+    // booking_events.at is timestamptz; Postgres hands it to JSON in the session zone (UTC).
+    expect(eventWhen("2026-09-30T06:15:00.123456+00:00")).toBe("2026-09-30 08:15");
+    expect(eventWhen("2026-01-15T23:30:00Z")).toBe("2026-01-16 00:30");
+    expect(eventWhen("2026-09-30T08:15:00+02:00")).toBe("2026-09-30 08:15");
+  });
+
+  it("keeps a value without a zone, or one it cannot read, as written", () => {
+    expect(eventWhen("2026-09-30T08:15")).toBe("2026-09-30 08:15");
+    expect(eventWhen("2026-09-30")).toBe("2026-09-30");
+    expect(eventWhen("")).toBe("");
+    expect(eventWhen(null)).toBe("");
+  });
+});
