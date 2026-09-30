@@ -968,6 +968,24 @@ export type Database = {
           },
         ]
       }
+      checkout_pay_presses: {
+        Row: {
+          idempotency_key: string
+          pressed_at: string
+          quote_id: string
+        }
+        Insert: {
+          idempotency_key: string
+          pressed_at?: string
+          quote_id: string
+        }
+        Update: {
+          idempotency_key?: string
+          pressed_at?: string
+          quote_id?: string
+        }
+        Relationships: []
+      }
       consent_log: {
         Row: {
           analytics: boolean
@@ -2870,6 +2888,10 @@ export type Database = {
           p_token_hash: string
         }
         Returns: undefined
+      }
+      checkout_note_pay_press: {
+        Args: { p_idempotency_key: string; p_quote_id: string }
+        Returns: string
       }
       checkout_open_payment: {
         Args: { p_quote_id: string }
