@@ -13,7 +13,7 @@ describe("checkout class-card bag words", () => {
     expect(de.classSeats).toContain("Plätze");
     expect(de.classBags).toBe("{n} Koffer");
     expect(de.takesUpToBags).toBe("Nimmt bis zu {n} Koffer auf");
-    expect(de.classBags + de.takesUpToBags).not.toMatch(/Gepäck/);
+    expect(`${de.classBags}${de.takesUpToBags}`).not.toMatch(/Gepäck/);
   });
   it("Arabic class cards keep the signed words", () => {
     const ar = msg("ar");
