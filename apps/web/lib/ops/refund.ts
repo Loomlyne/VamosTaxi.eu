@@ -524,8 +524,11 @@ export async function decideRefund(
     const state = await readRefundState(env, claims, bookingId);
     if (state?.fullTier) return { ok: false, code: "full-refund-only" };
   }
-  return asStaff(env, claims, async (sql): Promise<DecideRefundResult> => {
-    try {
+  // 261001-refusal-messages: map the refusal AROUND asStaff, never inside it. postgres.js begin()
+  // rethrows a query error the callback caught, so a catch inside let not-pending / not-open /
+  // not-post-trip leave as a 500 without JSON and the page showed "Could not refund VT-…".
+  try {
+    return await asStaff(env, claims, async (sql): Promise<DecideRefundResult> => {
       const rows = await sql<{ booking_id: string; refund_status: string; reference: string }[]>`
         select * from public.ops_refund_decide(${bookingId}::uuid, ${decision}::text)
       `;
@@ -537,8 +540,8 @@ export async function decideRefund(
         refundStatus: String(row.refund_status),
         reference: String(row.reference),
       };
-    } catch (err) {
-      return mapRefundSqlError(err);
-    }
-  });
+    });
+  } catch (err) {
+    return mapRefundSqlError(err);
+  }
 }

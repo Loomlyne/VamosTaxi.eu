@@ -1205,22 +1205,24 @@ Plan-level states (owner, 2026-09-29; source record .planning/PHASE-CLOSURE-2026
 | 16. Staging MX + end-to-end UAT | UAT 10/10 passed | Complete | - |
 | 17. Ops chauffeur profile, shift roster, two-driver vehicles | - | Closed, feature removed | - |
 | 18. OPS Pricing source of truth | 7/7 | Complete    | 2026-09-15 |
-| 19. 10,000-booking surge proof | 0/5 | Rewritten and signed 2026-09-29; last in the order; needs the owner's paid steps | - |
-| 20. Security check of the changed app | 3/9 | 20-01…03 done; 20-04, 20-05 superseded; 20-06…09 signed 2026-09-29, after 26.2 | - |
+| 19. 10,000-booking surge proof | 0/5 | Closed by the owner 2026-09-30, no test needed | - |
+| 20. Security check of the changed app | check + batches A, B1, 20-12, 20-10, C1 shipped | Live 2026-09-30 / 10-01; left: part 2 (sign-in confirm screen F12, dashboard files off the public host F16), live-key refund proof | - |
 | 21. Charge gate + visible refusal + payable intent | 10/10 | Replaced by 26.1/26.3, never build | - |
 | 22. Card confirm + thank-you webhook wait | 0/TBD | Replaced by 26.1/26.3, never build | - |
 | 23. Wallets + Dashboard methods | 0/TBD | Replaced by 26.1/26.3, never build | - |
 | 24. Dual-payer, pay-link, mail split | 0/TBD | Replaced by 26.1/26.3, never build | - |
 | 25. /bookings unpaid + TEST UAT + secret-swap design | 0/TBD | Replaced by 26.1/26.3, never build | - |
 | 26. Legal gate | 2/2 | Complete    | 2026-09-23 |
-| 26.0. Main green (INSERTED) | 9/12 | Executing on fix/main-green-2; lands after the Meta phases | - |
+| 26.0. Main green (INSERTED) | 9/12 | Session restarted 2026-10-01 on fix/main-green-2; plans 10-12 and the stale-test list | - |
 | 26.1. Payment and pricing integrity (INSERTED) | 30/32 | Shipped cff97a0e; 26.1-28 moot (owner deletes test bookings) | 2026-09-28 |
-| 26.2. Codebase audit, bug fix and simplify (INSERTED) | 0/12 | Planned, signed 2026-09-29; after 26.0 | - |
+| 26.2. Codebase audit, bug fix and simplify (INSERTED) | hand-overs 1, 2, extras A and D, refusal fix shipped | Live 2026-09-30 / 10-01; left: extras B and C, dashboard design, P1 class change, P6 place/time change, gate scripts (last) | - |
 | 26.3. Booking flow rebuild (INSERTED) | 22/23 + G1–G9 | Shipped af93fc8e, Worker 839d73fc | 2026-09-29 |
 | 26.4. One form + phone booking sheet (INSERTED) | 10/10 | Shipped 0f58ab6d, Worker 2b04648a | 2026-09-30 |
 | 26.4.1. Laptop booking bar (INSERTED) | 2/2 | Shipped 0f58ab6d, Worker 2b04648a | 2026-09-30 |
-| 27. Consent record | 0/TBD | Not started | - |
-| 28. Pixel PageView | 0/TBD | Not started | - |
+| 26.4.2. Owner booking feedback (INSERTED) | done | Shipped 37ba5b62 plus repairs; class cards layout E, phone home, home without class section | 2026-09-30 |
+| 26.5. Checkout guest / sign in / create account (INSERTED) | 11/11 | Shipped 9a5263cd, Worker 2d5906ce; guest accounts on | 2026-09-30 |
+| 27. Consent record | 17/17 | Shipped ce55cd75, Worker c45d2782; Meta gate still closed | 2026-10-01 |
+| 28. Pixel PageView | 0/TBD | Started 2026-10-01 (gsd/phase-28-pixel-pageview); both Meta switches confirmed off; discuss next | - |
 | 29. Webhook Purchase | 0/TBD | Not started | - |
 
 ---

@@ -4,10 +4,8 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   airportPickupFromPlace,
-  capExtraStops,
   extraAmountTimesQty,
   humaniseCode,
-  publishedMaxExtraStops,
   selectableExtras,
 } from "./extras-catalog";
 
@@ -34,16 +32,6 @@ describe("checkout extras catalog", () => {
     expect(extraAmountTimesQty(1000, 2)).toBe(2000);
     expect(extraAmountTimesQty(null, 2)).toBeNull();
     expect(extraAmountTimesQty(1000, 0)).toBeNull();
-  });
-
-  it("caps extra-stop places at 1 (D-21)", () => {
-    expect(publishedMaxExtraStops(3)).toBe(1);
-    expect(publishedMaxExtraStops("2")).toBe(1);
-    expect(publishedMaxExtraStops(0)).toBe(1);
-    expect(publishedMaxExtraStops(null)).toBe(1);
-    expect(capExtraStops(4, 3)).toBe(1);
-    expect(capExtraStops(1, null)).toBe(1);
-    expect(capExtraStops(0, 9)).toBe(0);
   });
 
   it("reads an airport pickup from the place's zone type", () => {

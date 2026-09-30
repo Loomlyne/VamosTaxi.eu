@@ -195,9 +195,6 @@ function buildClassLines(
 
   // 4 FARE + 5 SURCHARGE — per leg
   for (const journeyLeg of input.legs) {
-    const extraStopsQty = input.extras.extra_stops;
-    const hasExtraStops =
-      typeof extraStopsQty === "number" && extraStopsQty > 0;
     const fare = buildFareLine({
       leg: journeyLeg,
       vehicleClass: cls,
@@ -205,7 +202,6 @@ function buildClassLines(
       fixedRoutes: classFixed,
       rateVersionId,
       zones: book.zones,
-      hasExtraStops,
     });
     raw.push(fare);
 
@@ -230,7 +226,6 @@ function buildClassLines(
       fixedRoutes: classFixed,
       rateVersionId,
       zones: book.zones,
-      hasExtraStops,
       publishedPairs: true,
     });
     if (pairExtra) raw.push(pairExtra);

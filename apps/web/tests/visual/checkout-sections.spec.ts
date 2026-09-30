@@ -17,6 +17,7 @@ import { join } from "node:path";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 import { openInLocale, type Lang } from "../support/locale";
 import { installFakeStripe, type FakeStripeHandle } from "../support/fake-stripe";
+import { stubConsentChosen } from "../support/consent-state";
 
 const RUN_PROJECT = "component-1440";
 const GS = "11111111-1111-4111-8111-111111111111";
@@ -58,7 +59,8 @@ test.afterAll(() => {
   devServer = null;
 });
 
-test.beforeEach(async ({}, testInfo) => {
+test.beforeEach(async ({ page }, testInfo) => {
+  await stubConsentChosen(page);
   test.skip(testInfo.project.name !== RUN_PROJECT, "checkout page specs run once under component-1440.");
   test.setTimeout(300_000);
 });

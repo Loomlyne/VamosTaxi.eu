@@ -6,17 +6,46 @@
 // assertion after signup fails. That is the signal this spec exists to
 // produce. Never skip this test. Do not edit config.toml from this spec.
 
-import { test, expect, type Page } from "../support/test";
-import { testPort } from "../support/port";
-import { spawn, type ChildProcess } from "node:child_process";
-import { NEXT_BIN, settleCloudflareDev, waitForNextServer, WEB_ROOT } from "../support/server-harness";
-import { mailUrl, nextDevEnv, requireTestStack, stackKeys } from "../support/test-stack";
+import { test, expect, type Page } from "@playwright/test";
+import { execFileSync, spawn, type ChildProcess } from "node:child_process";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
+import { devBindingEnv, ownClientIpHeaders, waitForDevBindings, warmAuthPages, MAIL_URL, supabaseStatusArgs } from "../support/dev-binding";
+import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 
-const PORT = testPort(4455);
+const RUN_PROJECT = "component-1440"; // one fixed port and one mailbox: run once, not per viewport project
+const PORT = 4261;
 const PASSWORD = "password1";
 
 let devServer: ChildProcess | null = null;
 let baseURL = "";
+
+function requireLocalStack(): { apiUrl: string; anonKey: string } {
+  let raw: string;
+  try {
+    raw = execFileSync("pnpm", supabaseStatusArgs(), {
+      cwd: DB_ROOT,
+      encoding: "utf8",
+      timeout: 30_000,
+    });
+  } catch {
+    throw new Error(STACK_DOWN);
+  }
+  const env: Record<string, string> = {};
+  for (const line of raw.split("\n")) {
+    const trimmed = line.replace(/^export\s+/, "");
+    const eq = trimmed.indexOf("=");
+    if (eq === -1) continue;
+    const key = trimmed.slice(0, eq);
+    let value = trimmed.slice(eq + 1);
+    if (value.startsWith('"') && value.endsWith('"')) value = value.slice(1, -1);
+    env[key] = value;
+  }
+  const apiUrl = env.API_URL ?? env.SUPABASE_URL;
+  const key = env.ANON_KEY ?? env.SUPABASE_ANON_KEY;
+  if (!apiUrl || !key) throw new Error(STACK_DOWN);
+  return { apiUrl, anonKey: key };
+}
 
 async function waitForMail(address: string, afterIso: string, timeoutMs = 25_000) {
   const start = Date.now();
@@ -53,6 +82,7 @@ test.describe("D-28 Pitfall 4 confirm-email intermediate state", () => {
   test.describe.configure({ mode: "serial" });
 
   test.beforeAll(async ({}, testInfo) => {
+    if (testInfo.project.name !== RUN_PROJECT) return;
     testInfo.setTimeout(180_000);
     await requireTestStack();
     const stack = stackKeys();
@@ -61,10 +91,17 @@ test.describe("D-28 Pitfall 4 confirm-email intermediate state", () => {
       cwd: WEB_ROOT,
       stdio: "ignore",
       detached: true,
-      env: nextDevEnv({ CLOUDFLARE_ENV: "staging", TEST_DIST_DIR: `test-results/.next-auth-confirm-email-${PORT}`, SUPABASE_URL: stack.apiUrl, SUPABASE_ANON_KEY: stack.anonKey }),
+      env: {
+        ...process.env,
+        ...devBindingEnv(),
+        SUPABASE_URL: stack.apiUrl,
+        SUPABASE_ANON_KEY: stack.anonKey,
+      },
     });
     await settleCloudflareDev();
     await waitForNextServer(baseURL);
+    await waitForDevBindings(baseURL);
+    await warmAuthPages(baseURL);
   });
 
   test.afterAll(() => {
@@ -77,6 +114,11 @@ test.describe("D-28 Pitfall 4 confirm-email intermediate state", () => {
     }
   });
 
+  test.beforeEach(async ({ context }, testInfo) => {
+    test.skip(testInfo.project.name !== RUN_PROJECT);
+    await context.setExtraHTTPHeaders(ownClientIpHeaders());
+  });
+
   test("D-28 Pitfall 4: password signup has no usable session until the emailed confirmation", async ({
     page,
   }) => {
@@ -85,11 +127,13 @@ test.describe("D-28 Pitfall 4 confirm-email intermediate state", () => {
     const after = new Date(Date.now() - 1000).toISOString();
     await page.goto(`${baseURL}/sign-up`, { timeout: 60_000, waitUntil: "domcontentloaded" });
     await expect(page.locator("[data-af]")).toBeVisible({ timeout: 30_000 });
+    await page.waitForLoadState("networkidle"); // fields filled before the page re-renders are cleared
     await page.getByLabel("Email").fill(email);
     await page.getByLabel("First name").fill("Ada");
     await page.getByLabel("Last name").fill("Lovelace");
-    await page.getByLabel("Password", { exact: true }).fill(PASSWORD);
-    await page.getByRole("button", { name: /create account/i }).click();
+    await page.getByRole("textbox", { name: "Password" }).fill(PASSWORD);
+    await page.locator("[data-af-consent] .vt-check__box").click();
+    await page.getByRole("button", { name: "CREATE ACCOUNT" }).click();
     await expect(page.locator("[data-af]")).toContainText("Send another link");
 
     const before = await sessionSnapshot(page);

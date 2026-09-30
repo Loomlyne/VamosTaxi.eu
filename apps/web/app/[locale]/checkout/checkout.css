@@ -1280,7 +1280,7 @@
    footer follows it and the page needs no extra bottom padding. */
 .vt-co__bar {
   position: sticky;
-  inset-block-end: 0;
+  inset-block-end: var(--vt-ck-reserve, 0px);
   z-index: 20;
   margin-inline: calc(-1 * clamp(20px, 5vw, 56px));
   margin-block-start: 24px;

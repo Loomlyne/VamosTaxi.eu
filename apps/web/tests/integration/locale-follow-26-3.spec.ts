@@ -12,6 +12,7 @@ import { join } from "node:path";
 import { NEXT_BIN, settleCloudflareDev, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 import { nextDevEnv } from "../support/test-stack";
 import { openInLocale, setChosenLanguage } from "../support/locale";
+import { stubConsentChosen } from "../support/consent-state";
 
 const RUN_PROJECT = "component-1440";
 const PORT = testPort(4443);
@@ -70,6 +71,7 @@ test.afterAll(() => {
 });
 
 test.beforeEach(async ({ page }, testInfo) => {
+  await stubConsentChosen(page);
   test.skip(testInfo.project.name !== RUN_PROJECT, "runs once; sets its own widths.");
   await page.route(
     (url) => /stripe|cloudflare|turnstile/.test(url.hostname),

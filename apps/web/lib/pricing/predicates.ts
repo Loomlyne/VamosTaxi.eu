@@ -25,7 +25,7 @@ export interface PredicateContext {
   originZoneId: string | null;
   destZoneId: string | null;
   zones: Map<string, ZoneRow>;
-  /** Quantity resolved from surcharges.quantity_source (extras / stops / bags). */
+  /** Quantity resolved from surcharges.quantity_source (child seats / bags). */
   quantity: number;
 }
 

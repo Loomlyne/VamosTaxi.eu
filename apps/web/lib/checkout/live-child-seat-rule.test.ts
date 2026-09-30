@@ -99,7 +99,6 @@ const INPUT: QuoteInput = {
       duration_s: 900,
       origin_zone_id: null,
       dest_zone_id: null,
-      waypoints: [],
     },
   ],
   extras: {},

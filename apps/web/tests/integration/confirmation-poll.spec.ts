@@ -7,6 +7,7 @@ import { test, expect, type Page } from "../support/test";
 import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { stubConsentChosen } from "../support/consent-state";
 
 const RUN_PROJECT = "component-1440";
 const REF = "VT-26-0001";
@@ -58,6 +59,7 @@ test.afterAll(() => {
 });
 
 test.beforeEach(async ({ page }, testInfo) => {
+  await stubConsentChosen(page);
   test.skip(
     testInfo.project.name !== RUN_PROJECT,
     "confirmation-poll runs once under component-1440.",

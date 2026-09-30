@@ -19,6 +19,7 @@ import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 import { FAKE_STRIPE_HOST } from "../support/fake-stripe";
+import { stubConsentChosen } from "../support/consent-state";
 
 const RUN_PROJECT = "component-1440";
 const QID = "22222222-2222-4222-8222-222222222222";
@@ -55,7 +56,8 @@ test.afterAll(() => {
   devServer = null;
 });
 
-test.beforeEach(async ({}, testInfo) => {
+test.beforeEach(async ({ page }, testInfo) => {
+  await stubConsentChosen(page);
   test.skip(testInfo.project.name !== RUN_PROJECT, "the funnel spec runs once under component-1440; widths are set inside.");
 });
 

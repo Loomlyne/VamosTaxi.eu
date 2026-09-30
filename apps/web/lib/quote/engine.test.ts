@@ -159,7 +159,6 @@ function input(computedAt = "2026-09-04T12:00:00.000Z"): QuoteInput {
         duration_s: 900,
         origin_zone_id: "z-a",
         dest_zone_id: "z-b",
-        waypoints: [],
       },
     ],
     extras: {},

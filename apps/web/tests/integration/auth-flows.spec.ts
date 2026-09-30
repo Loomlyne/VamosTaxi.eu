@@ -9,14 +9,16 @@ import { execFileSync, spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, settleCloudflareDev, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 import { mailUrl, nextDevEnv, ownerDbUrl, REPO_ROOT, requireTestStack, stackKeys } from "../support/test-stack";
 import { join } from "node:path";
+import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { devBindingEnv, ownClientIpHeaders, waitForDevBindings, warmAuthPages, MAIL_URL, OWNER_CS, supabaseStatusArgs } from "../support/dev-binding";
 import deMessages from "../../i18n/messages/de.json";
 
 const RUN_PROJECT = "component-1440";
-const PORT = testPort(4452);
+const PORT = 4250;
 const PASSWORD = "password1";
 const NEW_PASSWORD = "password2";
-const DB_ROOT = join(REPO_ROOT, "packages", "db");
-const STACK_DOWN = "Local stack is not running. Run `scripts/local-test-stack.sh start`.";
+const DB_ROOT = join(WEB_ROOT, "..", "..", "packages", "db");
+const STACK_DOWN = "Local stack is not running. Run `pnpm db:start && pnpm db:reset`.";
 
 let devServer: ChildProcess | null = null;
 let baseURL = "";
@@ -47,6 +49,41 @@ function ownerQuery(sqlJs: string): string {
   } catch {
     throw new Error(STACK_DOWN);
   }
+}
+
+function requireLocalDb(): void {
+  const out = ownerQuery(`const rows = await sql\`select 1 as ok\`; console.log(String(rows[0].ok));`);
+  if (out !== "1") {
+    throw new Error(STACK_DOWN);
+  }
+}
+
+function requireLocalStack(): { apiUrl: string; anonKey: string } {
+  requireLocalDb();
+  let raw: string;
+  try {
+    raw = execFileSync("pnpm", supabaseStatusArgs(), {
+      cwd: DB_ROOT,
+      encoding: "utf8",
+      timeout: 30_000,
+    });
+  } catch {
+    throw new Error(STACK_DOWN);
+  }
+  const env: Record<string, string> = {};
+  for (const line of raw.split("\n")) {
+    const trimmed = line.replace(/^export\s+/, "");
+    const eq = trimmed.indexOf("=");
+    if (eq === -1) continue;
+    const key = trimmed.slice(0, eq);
+    let value = trimmed.slice(eq + 1);
+    if (value.startsWith('"') && value.endsWith('"')) value = value.slice(1, -1);
+    env[key] = value;
+  }
+  const apiUrl = env.API_URL ?? env.SUPABASE_URL;
+  const key = env.ANON_KEY ?? env.SUPABASE_ANON_KEY;
+  if (!apiUrl || !key) throw new Error(STACK_DOWN);
+  return { apiUrl, anonKey: key };
 }
 
 async function waitForMail(
@@ -107,10 +144,20 @@ function uniqueEmail(tag: string): string {
 }
 
 async function fillSignup(page: Page, email: string, first: string, last: string, password: string) {
+  // The page re-renders once its scripts have loaded; fields filled before that are cleared.
+  await page.waitForLoadState("networkidle");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("First name").fill(first);
   await page.getByLabel("Last name").fill(last);
   await page.getByRole("textbox", { name: "Password" }).fill(password);
+  await tickAccountNotice(page);
+}
+
+/** Sign-up needs the account notice ticked (27-16). The design-system input is hidden; its box takes the click. */
+async function tickAccountNotice(page: Page) {
+  const box = page.locator("[data-af-consent] .vt-check__box");
+  await expect(box).toBeVisible({ timeout: 30_000 });
+  if (!(await page.locator('[data-af-consent] input[type="checkbox"]').isChecked())) await box.click();
 }
 
 function customerRow(email: string): { user_id: string | null; full_name: string | null; n: number } {
@@ -154,27 +201,22 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
       cwd: WEB_ROOT,
       stdio: "ignore",
       detached: true,
-      env: nextDevEnv({ CLOUDFLARE_ENV: "staging", TEST_DIST_DIR: `test-results/.next-auth-flows-${PORT}`, SUPABASE_URL: stack.apiUrl, SUPABASE_ANON_KEY: stack.anonKey }),
+      env: {
+        ...process.env,
+        ...devBindingEnv(),
+        SUPABASE_URL: stack.apiUrl,
+        SUPABASE_ANON_KEY: stack.anonKey,
+      },
     });
     await settleCloudflareDev();
     await waitForNextServer(baseURL);
+    await waitForDevBindings(baseURL);
+    await warmAuthPages(baseURL);
   });
 
-  let testIp = 0;
   test.beforeEach(async ({ context }, testInfo) => {
     test.skip(testInfo.project.name !== RUN_PROJECT);
-    // The auth write limiter is keyed on cf-connecting-ip (4 per 60 s bare); every test gets its
-    // own address so one test's sign-ups do not use up the next test's allowance.
-    testIp += 1;
-    // A test can post more than 4 auth actions, so the address rotates every 3 POSTs.
-    let posts = 0;
-    // Only this app's own requests (an extra header on the CDN scripts would fail their CORS preflight).
-    // Sign-in and sign-up are server actions posted to the page URL, not /api/auth, so the whole origin is covered.
-    await context.route(`http://localhost:${PORT}/**`, (route) => {
-      if (route.request().method() === "POST") posts += 1;
-      const ip = `198.51.${testIp}.${Math.floor(Math.max(posts - 1, 0) / 3) + 1}`;
-      return route.continue({ headers: { ...route.request().headers(), "cf-connecting-ip": ip } });
-    });
+    await context.setExtraHTTPHeaders(ownClientIpHeaders());
   });
 
   test.afterAll(() => {
@@ -261,6 +303,21 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
   test("AUTH-01 magic sign-in link from the mail catcher establishes a session", async ({ page, context }) => {
     page.setDefaultTimeout(15_000);
     const email = uniqueEmail("otp");
+    // 27 D-36: the sign-in link never creates an account, so make a confirmed one first.
+    const signupAfter = new Date(Date.now() - 1000).toISOString();
+    await page.goto(`${baseURL}/sign-up`);
+    await fillSignup(page, email, "Ada", "Lovelace", PASSWORD);
+    await page.getByRole("button", { name: "CREATE ACCOUNT" }).click();
+    await expect(page.locator("[data-af]")).toContainText("Send another link");
+    const confirmMail = await waitForMail(email, signupAfter);
+    const confirmLink = extractLinks(confirmMail.html, confirmMail.text).find(
+      (u) => u.includes("token") || u.includes("code=") || u.includes("/api/auth/callback"),
+    );
+    expect(confirmLink, "confirmation link in mail").toBeTruthy();
+    await page.goto(confirmLink!);
+    await page.waitForURL((url) => !url.pathname.includes("/api/auth/callback"), { timeout: 15_000 });
+    await context.clearCookies();
+
     const after = new Date(Date.now() - 1000).toISOString();
     await page.goto(`${baseURL}/sign-in`);
     await page.getByRole("button", { name: "Email me a link instead" }).click();
@@ -279,6 +336,21 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
     expect(session.ok()).toBe(true);
     expect((await session.json()).signedIn).toBe(true);
     await context.clearCookies();
+  });
+
+  test("AUTH-01 sign-in link for an unknown address shows the same view and makes no account (27 D-36)", async ({ page }) => {
+    const email = uniqueEmail("nolink");
+    await page.goto(`${baseURL}/sign-in`);
+    await page.getByRole("button", { name: "Email me a link instead" }).click();
+    await page.getByLabel("Email").fill(email);
+    await page.getByRole("button", { name: "Email me a link" }).click();
+    await expect(page.locator("[data-af]")).toContainText("Send another link");
+    const n = ownerQuery(
+      `const email = ${JSON.stringify(email)};
+       const rows = await sql\`select count(*)::int as n from auth.users where email = \${email}\`;
+       console.log(String(rows[0].n));`,
+    );
+    expect(n).toBe("0");
   });
 
   test("AUTH-01 enumeration: two signups with the same address look the same", async ({ page }) => {
@@ -451,7 +523,8 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
     await page.getByLabel(deMessages.common.email).fill(email);
     await page.getByLabel(deMessages.common["first-name"]).fill("Ada");
     await page.getByLabel(deMessages.common["last-name"]).fill("Lovelace");
-    await page.getByLabel(deMessages.common.password, { exact: true }).fill(PASSWORD);
+    await page.getByRole("textbox", { name: deMessages.common.password }).fill(PASSWORD);
+    await tickAccountNotice(page);
     const response = page.waitForResponse((res) =>
       new URL(res.url()).pathname === "/api/auth" && res.request().method() === "POST",
     );

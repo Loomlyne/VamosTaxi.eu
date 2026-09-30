@@ -90,20 +90,24 @@ export interface QuoteLockLeg {
    * as not-an-airport, never a guess in the other direction).
    */
   origin_is_airport?: boolean;
-  waypoints: Array<{ lng: number; lat: number; text: string }>;
+  /**
+   * Legacy, before 26.2-p4 D: an old lock carries an empty stop list here.
+   * There is no stop on the way; nothing writes this any more. verifyLock
+   * refuses a lock whose list is not empty and drops the empty one.
+   */
+  waypoints?: [];
   flight_no: string | null;
   landing_source: string | null;
 }
 
 /**
- * Extras pin (D-27 / D-18). Quantity-only at MVP; waypoints optional and only
- * meaningful when extra_stops > 0.
+ * Extras pin (D-27). Quantity-only. No stop on the way (26.2-p4 D): a lock
+ * minted before that may still name `extra_stops` / `waypoints` here;
+ * verifyLock accepts it only with no stop in them and drops both.
  */
 export interface QuoteLockExtras {
   child_seats?: 0 | 1;
-  extra_stops?: 0 | 1;
   oversized_luggage?: boolean;
-  waypoints?: Array<{ lng: number; lat: number; text: string }>;
 }
 
 /**
@@ -248,6 +252,12 @@ export async function verifyLock(
     return INVALID;
   }
 
+  const withoutStops = withoutLegacyStopFields(payload);
+  if (!withoutStops) {
+    return INVALID;
+  }
+  payload = withoutStops;
+
   // Decorative Worker check against the injected clock — authoritative expiry
   // is Postgres now() at checkout (plan 04-05 / 04-06).
   if (payload.exp <= nowIso) {
@@ -259,6 +269,52 @@ export async function verifyLock(
     return { ok: true, payload, rotated: true };
   }
   return { ok: true, payload };
+}
+
+function isEmptyList(value: unknown): boolean {
+  return Array.isArray(value) && value.length === 0;
+}
+
+/**
+ * 26.2-p4 D: there is no stop on the way. A lock minted before that change
+ * carries the old stop fields: an empty `waypoints` list on every leg and,
+ * when the request sent extras, `extra_stops` / `waypoints` inside `extras`.
+ * Such a lock stays valid for as long as it lives (its own `exp`, or a
+ * pay-link hold) when it carries NO stop: the empty fields are dropped here,
+ * so nothing after verifyLock ever reads them. A lock that carries a stop is
+ * refused (null → INVALID); nothing can honour a stop any more.
+ * Runs after the MAC check on the original segment, so the signed bytes, the
+ * secret and the algorithm are untouched. Removable in a later cleanup once
+ * no lock minted before the ship can still be presented.
+ */
+function withoutLegacyStopFields(payload: QuoteLockPayload): QuoteLockPayload | null {
+  const legs: QuoteLockLeg[] = [];
+  for (const leg of payload.legs as unknown[]) {
+    if (leg === null || typeof leg !== "object" || Array.isArray(leg) || !("waypoints" in leg)) {
+      legs.push(leg as QuoteLockLeg);
+      continue;
+    }
+    const rec: Record<string, unknown> = { ...(leg as Record<string, unknown>) };
+    if (!isEmptyList(rec.waypoints)) return null;
+    delete rec.waypoints;
+    legs.push(rec as unknown as QuoteLockLeg);
+  }
+
+  let extras: QuoteLockExtras | null = payload.extras;
+  if (extras !== null && typeof extras === "object" && !Array.isArray(extras)) {
+    const rec: Record<string, unknown> = { ...(extras as Record<string, unknown>) };
+    if ("extra_stops" in rec) {
+      if (rec.extra_stops !== 0) return null;
+      delete rec.extra_stops;
+    }
+    if ("waypoints" in rec) {
+      if (!isEmptyList(rec.waypoints)) return null;
+      delete rec.waypoints;
+    }
+    extras = rec as QuoteLockExtras;
+  }
+
+  return { ...payload, legs, extras };
 }
 
 /** Structural guard so a signed but empty/wrong-shape object is still invalid. */

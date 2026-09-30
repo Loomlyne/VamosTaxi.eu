@@ -284,7 +284,6 @@ function input(partial: Partial<QuoteInput> = {}): QuoteInput {
         duration_s: 900,
         origin_zone_id: "z-a",
         dest_zone_id: "z-b",
-        waypoints: [],
       },
     ],
     extras: partial.extras ?? {},
@@ -486,7 +485,6 @@ describe("priceQuote — determinism (QUOTE-05 / T2)", () => {
           duration_s: 900,
           origin_zone_id: "z-a",
           dest_zone_id: "z-b",
-          waypoints: [],
         },
         {
           leg_seq: 2,
@@ -495,7 +493,6 @@ describe("priceQuote — determinism (QUOTE-05 / T2)", () => {
           duration_s: 900,
           origin_zone_id: "z-b",
           dest_zone_id: "z-a",
-          waypoints: [],
         },
       ],
     });
@@ -548,7 +545,6 @@ describe("priceQuote — return + coupon reconstruction", () => {
             duration_s: 600,
             origin_zone_id: "z-a",
             dest_zone_id: "z-b",
-            waypoints: [],
           },
           {
             leg_seq: 2,
@@ -557,7 +553,6 @@ describe("priceQuote — return + coupon reconstruction", () => {
             duration_s: 600,
             origin_zone_id: "z-b",
             dest_zone_id: "z-a",
-            waypoints: [],
           },
         ],
         extras: { child_seats: 1 },
@@ -667,7 +662,6 @@ describe("priceQuote — owner formula: airport fee additive, pair applies regar
       duration_s: 900,
       origin_zone_id: neutralZone.id,
       dest_zone_id: zoneB.id,
-      waypoints: [],
     };
   }
 

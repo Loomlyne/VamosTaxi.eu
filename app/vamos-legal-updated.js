@@ -4,19 +4,24 @@
    Next.js pages. Format: ISO date, YYYY-MM-DD. The cookie policy keeps its own date. */
 (function () {
   var LEGAL_UPDATED = '2026-09-30';
+  // Consent date shown on /cookies and /privacy (D-31); plan 27-10 sets it equal to CONSENT_POLICY_VERSION.
+  var CONSENT_UPDATED = '2026-10-01';
 
   var LOCALES = { en: 'en-GB', de: 'de-CH', fr: 'fr-CH', ar: 'ar-u-nu-latn' };
 
-  function label(lang) {
-    var d = new Date(LEGAL_UPDATED + 'T00:00:00Z');
+  function fmt(iso, lang) {
+    var d = new Date(iso + 'T00:00:00Z');
     try {
       return new Intl.DateTimeFormat(LOCALES[lang] || 'en-GB', {
         day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC',
       }).format(d);
     } catch (e) {
-      return LEGAL_UPDATED;
+      return iso;
     }
   }
 
-  window.VamosLegalUpdated = { iso: LEGAL_UPDATED, label: label };
+  function label(lang) { return fmt(LEGAL_UPDATED, lang); }
+  function consentLabel(lang) { return fmt(CONSENT_UPDATED, lang); }
+
+  window.VamosLegalUpdated = { iso: LEGAL_UPDATED, label: label, consentIso: CONSENT_UPDATED, consentLabel: consentLabel };
 })();
