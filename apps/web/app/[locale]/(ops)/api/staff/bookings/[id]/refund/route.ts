@@ -79,18 +79,22 @@ export const POST = withAdmin(async (claims, request) => {
     return jsonErr(result.code, failStatus(result.code));
   }
 
-  const recipients = refundMailRecipients(result.contactEmail, result.payerEmail);
-  for (const to of recipients) {
-    await sendRefund(
-      { RESEND_API_KEY: env.RESEND_API_KEY ?? "" },
-      {
-        locale: emailLocale(result.locale),
-        kind: "issued",
-        to,
-        name: result.contactName || "there",
-        reference: result.reference,
-      },
-    );
+  // 20-10: "Refund issued" goes once, when nothing is owed any more. A full refund sent one
+  // payment at a time stays pending_ops until the last one, so the customer gets one mail.
+  if (result.refundStatus === "refunded") {
+    const recipients = refundMailRecipients(result.contactEmail, result.payerEmail);
+    for (const to of recipients) {
+      await sendRefund(
+        { RESEND_API_KEY: env.RESEND_API_KEY ?? "" },
+        {
+          locale: emailLocale(result.locale),
+          kind: "issued",
+          to,
+          name: result.contactName || "there",
+          reference: result.reference,
+        },
+      );
+    }
   }
 
   return jsonOk({

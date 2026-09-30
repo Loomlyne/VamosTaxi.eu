@@ -343,3 +343,14 @@ describe("26.1-17 D-24/D-25 admin refund decisions", () => {
     expect(json).toMatch(/withAdmin[\s\S]*requireAdminClaims/);
   });
 });
+
+describe("20-10: Refund issued mail only when nothing is owed any more", () => {
+  it("the route mails 'issued' only when the booking's refund status is refunded", () => {
+    const route = readFileSync(
+      join(repoRoot, "apps/web/app/[locale]/(ops)/api/staff/bookings/[id]/refund/route.ts"),
+      "utf8",
+    );
+    expect(route).toMatch(/if \(result\.refundStatus === "refunded"\) \{[\s\S]*?sendRefund\(/);
+  });
+
+});
