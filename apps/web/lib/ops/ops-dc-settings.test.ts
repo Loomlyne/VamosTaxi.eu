@@ -217,7 +217,7 @@ describe("26.1-23 Security: authenticator app, magic link switch, re-auth dialog
     expect(settings).toMatch(/icon="shield-check" onClick="\{\{ addTotp \}\}"[^>]*>\{\{ tSecTotpAdd \}\}/);
     expect(settings).toMatch(/<div data-totp-qr="1"><img src="\{\{ totpQr \}\}" alt="\{\{ tSecTotpQrAlt \}\}"/);
     expect(settings).toMatch(/\[data-totp-qr\]\{[^}]*border:1px solid var\(--vt-grey-200\);border-radius:var\(--vt-radius-lg\)/);
-    expect(settings).toMatch(/data-totp-secret="1" class="vt-dir-keep" data-i18n-skip="1"/);
+    expect(settings).toMatch(/data-totp-secret="1" class="vt-dir-keep" data-vt-no-i18n="1"/);
     expect(settings).toMatch(/\[data-totp-secret\]\{font-family:var\(--vt-font-mono\)/);
     expect(settings.match(/inputMode="numeric" pattern="\[0-9\]\*" maxLength="\{\{ n6 \}\}"/g)?.length).toBe(2);
     expect(settings).toMatch(/onClick="\{\{ verifyTotp \}\}"[^>]*>\{\{ tSecTotpVerify \}\}/);
@@ -268,7 +268,7 @@ describe("26.1-23 Security: authenticator app, magic link switch, re-auth dialog
 
   it("switches password and magic link, and hides the password fields for a magic-link admin", () => {
     expect(settings).toMatch(/<sc-if value="\{\{ isPasswordMethod \}\}"[\s\S]*?\{\{ tSecPasswordBtn \}\}[\s\S]*?onClick="\{\{ useMagicLink \}\}"[^>]*>\{\{ tSecMagicLinkSwitch \}\}/);
-    expect(settings).toMatch(/<sc-if value="\{\{ isMagicMethod \}\}"[\s\S]*?\{\{ magicPre \}\}<span class="vt-dir-keep" data-i18n-skip="1"[^>]*>\{\{ secEmail \}\}<\/span>\{\{ magicPost \}\}[\s\S]*?onClick="\{\{ usePassword \}\}"[^>]*>\{\{ tSecMagicLinkUseInstead \}\}/);
+    expect(settings).toMatch(/<sc-if value="\{\{ isMagicMethod \}\}"[\s\S]*?\{\{ magicPre \}\}<span class="vt-dir-keep" data-vt-no-i18n="1"[^>]*>\{\{ secEmail \}\}<\/span>\{\{ magicPost \}\}[\s\S]*?onClick="\{\{ usePassword \}\}"[^>]*>\{\{ tSecMagicLinkUseInstead \}\}/);
     expect(settings.match(/variant="ghost" size="md" sentenceCase="\{\{ yes \}\}" onClick="\{\{ use(MagicLink|Password) \}\}"/g)?.length).toBe(2);
     expect(settings.match(/display:\{\{ methodSavedShow \}\}[^>]*>\{\{ tSecUpdated \}\}/g)?.length).toBe(2);
   });
@@ -323,7 +323,7 @@ describe("26.1-25 Security: passkeys from the server, added and removed behind r
   it("renders one row per server passkey with a secondary Remove passkey button", () => {
     expect(settings).toMatch(/<sc-for list="\{\{ passkeyRows \}\}" as="pk"/);
     expect(settings).toMatch(/variant="secondary" size="md" onClick="\{\{ pk\.remove \}\}" disabled="\{\{ passkeyBusy \}\}"[^>]*>\{\{ tSecPasskeyRemove \}\}/);
-    expect(settings).toMatch(/data-i18n-skip="1"[^>]*>\{\{ pk\.name \}\}/);
+    expect(settings).toMatch(/data-vt-no-i18n="1"[^>]*>\{\{ pk\.name \}\}/);
   });
 
   it("after adding, confirms the new passkey with a passkey sign-in so the session passes the gate", () => {

@@ -206,7 +206,7 @@
 <sc-if value="{{ hideOpen }}" hint-placeholder-val="{{ false }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" size="sm" title="{{ tHideConflictTitle }}" onClose="{{ keepVisible }}" hint-size="440px,380px">
 <div data-hide-conflict="1">
-<p data-hide-class="1" data-i18n-skip="1">{{ hideClassName }}</p>
+<p data-hide-class="1" data-vt-no-i18n="1">{{ hideClassName }}</p>
 <p data-hide-body="1">{{ tHideConflictBody }}</p>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Textarea" label="{{ tHideReason }}" aria-label="{{ tHideReason }}" rows="{{ n3 }}" max-length="{{ hideReasonMax }}" value="{{ hideReason }}" onChange="{{ setHideReason }}" placeholder="{{ tHideReasonPlaceholder }}" error="{{ hideErrorText }}" hint="{{ hideReasonCount }}" hint-size="100%,130px"></x-import>
 <div data-hide-actions="1">

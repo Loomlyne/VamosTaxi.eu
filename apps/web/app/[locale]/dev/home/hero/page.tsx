@@ -59,9 +59,9 @@ export default async function HomeHeroGalleryPage({
         <HomeHero>
           <BookingCard
             lockedDraft={FILLED}
-            board={<p data-i18n-skip>BOARD SLOT</p>}
-            price={<p data-i18n-skip>PRICE SLOT</p>}
-            status={<p data-i18n-skip>STATUS SLOT</p>}
+            board={<p data-vt-no-i18n>BOARD SLOT</p>}
+            price={<p data-vt-no-i18n>PRICE SLOT</p>}
+            status={<p data-vt-no-i18n>STATUS SLOT</p>}
           />
         </HomeHero>
       </section>
