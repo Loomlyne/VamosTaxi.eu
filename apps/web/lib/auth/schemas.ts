@@ -40,6 +40,8 @@ export const signUpPasswordSchema = z
     password: passwordSchema,
     firstName: nameSchema,
     lastName: nameSchema,
+    /** 27 D-03a: the account-agreement tick; a sign-up without it is refused. */
+    consent: z.literal(true),
   })
   .strict();
 
@@ -50,6 +52,7 @@ export const signUpMagicSchema = z
     email: emailSchema,
     firstName: nameSchema,
     lastName: nameSchema,
+    consent: z.literal(true),
   })
   .strict();
 

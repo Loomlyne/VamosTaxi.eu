@@ -1,6 +1,6 @@
 // apps/web/lib/quote/pipeline.test.ts
 //
-// Ordered §2 walk, coupon-only lock identity, extra_stops count-only, and
+// Ordered §2 walk, reprice lock identity, the refused stop fields, and
 // injected-clock proofs. Geo, the database wrappers and the clock are
 // stubs — no Docker, no network.
 
@@ -693,7 +693,7 @@ describe("runRepricePipeline", () => {
     return { ok: result, deps, directionsRuns, deadlineRuns };
   }
 
-  it("with unchanged waypoints returns the SAME quote_id and expires_at and re-runs neither step 10 nor 11", async () => {
+  it("returns the SAME quote_id and expires_at and re-runs neither step 10 nor 11", async () => {
     const { ok: first, deps, directionsRuns, deadlineRuns } = await quoted();
     const afterQuoteDirections = directionsRuns.n;
     const afterQuoteDeadline = deadlineRuns.n;
@@ -715,50 +715,72 @@ describe("runRepricePipeline", () => {
     expect(deadlineRuns.n).toBe(afterQuoteDeadline);
   });
 
-  it("with changed waypoints returns a DIFFERENT quote_id, a later expires_at, and re-runs step 10", async () => {
-    let quoteN = 0;
-    let deadlineN = 0;
-    const directionsRuns = { n: 0 };
-    const deps = baseDeps({
-      directionsRuns,
-      mintQuoteId: () => {
-        quoteN += 1;
-        return quoteN === 1
-          ? "11111111-1111-4111-8111-111111111111"
-          : "22222222-2222-4222-8222-222222222222";
-      },
-      quoteLockDeadline: async () => {
-        deadlineN += 1;
-        return deadlineN === 1
-          ? "2099-01-01T12:00:00.000Z"
-          : "2099-06-01T12:00:00.000Z";
-      },
-    });
-    const first = await runQuotePipeline(validBody(), deps);
+  it("26.2-p4 D: a new quote's lock carries no stop fields", async () => {
+    const first = await runQuotePipeline(
+      validBody({ extras: { child_seats: 1 } }),
+      baseDeps(),
+    );
     expect(first.ok).toBe(true);
     if (!first.ok) return;
-    const afterQuote = directionsRuns.n;
+    const signed = Buffer.from(first.lock.split(".")[1]!, "base64url").toString("utf8");
+    expect(signed).not.toMatch(/waypoints|extra_stops/);
+    expect(JSON.parse(signed).extras).toEqual({ child_seats: 1 });
+  });
+
+  it("26.2-p4 D: a lock minted before the change (empty stop fields) reprices with the SAME quote_id and hold and is re-signed without them", async () => {
+    const legacy = {
+      v: 1,
+      quote_id: "44444444-4444-4444-8444-444444444444",
+      exp: "2099-01-01T12:00:00.000Z",
+      engine_version: "quote-engine@test",
+      rate_version_id: null,
+      settings_version_id: 1,
+      computed_at: "2026-08-28T12:00:00.000Z",
+      display_currency: "CHF",
+      mode: "one_way",
+      pax: 2,
+      bags: 1,
+      legs: [
+        {
+          leg_seq: 1,
+          pickup: { lng: ZURICH.lng, lat: ZURICH.lat, text: "Zurich HB" },
+          dropoff: { lng: ZRH.lng, lat: ZRH.lat, text: "ZRH" },
+          scheduled_local: "2026-09-01T10:30",
+          distance_m: 12_000,
+          duration_s: 1_200,
+          origin_zone_id: null,
+          dest_zone_id: null,
+          waypoints: [],
+          flight_no: null,
+          landing_source: null,
+        },
+      ],
+      extras: { child_seats: 0, extra_stops: 0, waypoints: [] },
+      coupon: null,
+      class_totals: [],
+    } as unknown as QuoteLockPayload;
+    const token = await mintLock({ current: FAKE_SECRET }, legacy);
+    const directionsRuns = { n: 0 };
     const again = await runRepricePipeline(
       {
-        quote_id: first.quote_id,
-        lock: first.lock,
+        quote_id: legacy.quote_id,
+        lock: token,
         locale: "en",
         display_currency: "CHF",
-        extras: {
-          extra_stops: 1,
-          waypoints: [{ lng: 8.55, lat: 47.38, text: "stop" }],
-        },
+        coupon: "SAVE10",
       },
-      deps,
+      baseDeps({ directionsRuns }),
     );
     expect(again.ok).toBe(true);
     if (!again.ok) return;
-    expect(again.quote_id).not.toBe(first.quote_id);
-    expect(again.expires_at > first.expires_at).toBe(true);
-    expect(directionsRuns.n).toBeGreaterThan(afterQuote);
+    expect(again.quote_id).toBe(legacy.quote_id);
+    expect(again.expires_at).toBe(legacy.exp);
+    expect(directionsRuns.n).toBe(0);
+    const signed = Buffer.from(again.lock.split(".")[1]!, "base64url").toString("utf8");
+    expect(signed).not.toMatch(/waypoints|extra_stops/);
   });
 
-  it("with changed waypoints counts the extra Directions call in the daily Mapbox breaker", async () => {
+  it("26.2-p4 D: a reprice body that carries a stop list is refused before any Directions call or Mapbox unit", async () => {
     const store = new Map<string, string>();
     const env = {
       QUOTE_ABUSE: {
@@ -769,12 +791,12 @@ describe("runRepricePipeline", () => {
       },
     } as unknown as CloudflareEnv;
     const units = () => Number([...store.values()][0] ?? "0");
-    const deps = baseDeps({ env });
+    const directionsRuns = { n: 0 };
+    const deps = baseDeps({ env, directionsRuns });
     const first = await runQuotePipeline(validBody(), deps);
     expect(first.ok).toBe(true);
     if (!first.ok) return;
-    const afterQuote = units();
-    expect(afterQuote).toBeGreaterThan(0);
+    const afterQuote = { units: units(), directions: directionsRuns.n };
     const again = await runRepricePipeline(
       {
         quote_id: first.quote_id,
@@ -788,9 +810,24 @@ describe("runRepricePipeline", () => {
       },
       deps,
     );
-    expect(again.ok).toBe(true);
-    // One Directions call was made for the changed stop, so one unit is spent.
-    expect(units()).toBe(afterQuote + 1);
+    expect(again).toEqual({ ok: false, code: "extras_max_stops" });
+    expect(units()).toBe(afterQuote.units);
+    expect(directionsRuns.n).toBe(afterQuote.directions);
+  });
+
+  it("26.2-p4 D: a reprice body with extra_stops: 0 is refused too (there is no stop)", async () => {
+    const { ok: first, deps } = await quoted();
+    const again = await runRepricePipeline(
+      {
+        quote_id: first.quote_id,
+        lock: first.lock,
+        locale: "en",
+        display_currency: "CHF",
+        extras: { extra_stops: 0 },
+      },
+      deps,
+    );
+    expect(again).toEqual({ ok: false, code: "extras_max_stops" });
   });
 
   it("with extra_stops: 2 and no waypoints key returns extras_max_stops (D-21)", async () => {

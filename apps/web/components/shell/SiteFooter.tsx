@@ -15,7 +15,6 @@ import {
   WHATSAPP_HREF,
 } from "@/lib/contact-channels";
 import { Button, Icon } from "../core";
-import { CookiePrefsListener } from "@/components/consent/CookieBanner";
 
 // Ported from `app/pages/SiteFooter.dc.html`. CLAUDE.md makes this mandatory on every
 // public page and forbids hand-rolling a footer anywhere;
@@ -244,7 +243,7 @@ export function SiteFooter({
             <FooterLink href={route("/imprint")} label={t("imprint")} rtl={rtl} />
           </li>
           <li>
-            {/* POST settings_change via CookiePrefsListener — not a prefs grid. */}
+            {/* Opens the cookie preferences sheet (CookieBanner listens); writes nothing. */}
             <button
               type="button"
               data-ft-btnlink="1"
@@ -283,7 +282,6 @@ export function SiteFooter({
 
   return (
     <>
-    <CookiePrefsListener />
     <footer data-ft="1" data-screen-label="Footer">
       {wordmark ? (
         <div data-ft-pad="band">

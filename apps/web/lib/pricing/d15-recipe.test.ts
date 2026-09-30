@@ -48,7 +48,6 @@ function leg(distance_m: number): QuoteLegInput {
     duration_s: 900,
     origin_zone_id: "z-a",
     dest_zone_id: "z-b",
-    waypoints: [],
   };
 }
 

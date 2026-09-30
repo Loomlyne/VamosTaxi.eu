@@ -20,10 +20,10 @@ describe("e-mail link", () => {
     expect(otp.mock.calls[0]?.[0]).toMatchObject({ options: { shouldCreateUser: false } });
   });
 
-  it("public site keeps creating users", async () => {
+  it("public site sign-in link never creates users either (27 D-36)", async () => {
     const otp = vi.fn(async (..._a: unknown[]) => ({ error: null }));
     state.auth.signInWithOtp = otp as never;
     await POST(authPost(body));
-    expect(otp.mock.calls[0]?.[0]).toMatchObject({ options: { shouldCreateUser: true } });
+    expect(otp.mock.calls[0]?.[0]).toMatchObject({ options: { shouldCreateUser: false } });
   });
 });

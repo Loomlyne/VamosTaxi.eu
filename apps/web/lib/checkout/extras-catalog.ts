@@ -16,17 +16,6 @@ export type SnapshotExtraFare = {
   amount_rappen: number;
 };
 
-/** Public extra-stop cap is hardcoded 1 (D-21). Ignore the live-book column. */
-export const PUBLIC_MAX_EXTRA_STOPS = 1;
-
-/**
- * Cap extra-stop places at 1 (D-21). Book max_extra_stops is not the public cap.
- */
-export function capExtraStops(requested: number, _maxFromBook?: unknown): number {
-  const req = Number.isFinite(requested) ? Math.max(0, Math.trunc(requested)) : 0;
-  return Math.min(req, PUBLIC_MAX_EXTRA_STOPS);
-}
-
 export type SurchargeLike = {
   code: string;
   kind: "amount" | "percent" | "included";
@@ -36,11 +25,6 @@ export type SurchargeLike = {
   quantity_source?: string | null;
   predicate?: { kind?: string } | null;
 };
-
-/** Public extra-stop cap is hardcoded 1 (D-21). The live-book column is ignored. */
-export function publishedMaxExtraStops(_value?: unknown): number {
-  return PUBLIC_MAX_EXTRA_STOPS;
-}
 
 /** Book amount × quantity. */
 export function extraAmountTimesQty(

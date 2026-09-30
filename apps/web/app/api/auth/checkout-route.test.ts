@@ -19,6 +19,11 @@ vi.mock("@opennextjs/cloudflare", () => ({
     },
   }),
 }));
+vi.mock("@/lib/db/identity", () => ({
+  asSystem: async (_env: unknown, fn: (tx: unknown) => Promise<void>) => {
+    await fn(async () => []);
+  },
+}));
 vi.mock("@/lib/turnstile", () => ({ verifyTurnstile: (...a: unknown[]) => state.turnstile(...a) }));
 vi.mock("@/lib/supabase/server", async () => {
   const actual = await vi.importActual<typeof import("@/lib/supabase/server")>("@/lib/supabase/server");
@@ -154,13 +159,13 @@ describe("POST /api/auth magic from /sign-in", () => {
     expect((state.otp.mock.calls[0]?.[0] as { options: { shouldCreateUser: boolean } }).options.shouldCreateUser).toBe(false);
   });
 
-  it("keeps today's behaviour without a checkout returnTo", async () => {
+  it("never creates an account without a checkout returnTo either (27 D-36)", async () => {
     await run(plain);
-    expect((state.otp.mock.calls[0]?.[0] as { options: { shouldCreateUser: boolean } }).options.shouldCreateUser).toBe(true);
+    expect((state.otp.mock.calls[0]?.[0] as { options: { shouldCreateUser: boolean } }).options.shouldCreateUser).toBe(false);
   });
 
   it("sign-up is never affected", async () => {
-    await run({ locale: "en", method: "magic", mode: "signup", email: "n@example.com", firstName: "A", lastName: "B", returnTo: "/checkout?class=economy" });
+    await run({ locale: "en", method: "magic", mode: "signup", email: "n@example.com", firstName: "A", lastName: "B", consent: true, returnTo: "/checkout?class=economy" });
     expect((state.otp.mock.calls[0]?.[0] as { options: { shouldCreateUser: boolean } }).options.shouldCreateUser).toBe(true);
   });
 });

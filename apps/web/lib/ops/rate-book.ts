@@ -703,14 +703,14 @@ async function cloneRateVersionFrom(
     insert into public.rate_versions (
       slug, label, status,
       vat_rate_bps, quote_lock_minutes, service_area_geojson,
-      free_wait_minutes, max_extra_stops
+      free_wait_minutes
     )
     select
       ${slug},
       ${`${source.label} draft`},
       'draft',
       vat_rate_bps, quote_lock_minutes, service_area_geojson,
-      free_wait_minutes, max_extra_stops
+      free_wait_minutes
       from public.rate_versions
      where id = ${source.id}
     returning id

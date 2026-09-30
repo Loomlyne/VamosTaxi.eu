@@ -1,5 +1,6 @@
 // POST /api/consent — record_consent after GUC bind (SITE-08 / D-03 / D-14).
-// Accept is fail-closed Turnstile action consent. Dismiss writes without Turnstile.
+// The row carries the categories the visitor chose (27 D-05). Turnstile is fail-closed
+// whenever that row has marketing true (27 D-33); rows with marketing false never wait on it.
 // Guest writes use asAnon only (D-08). Do not import @vamos/db.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
@@ -9,6 +10,7 @@ import {
   type ConsentLocale,
   type ConsentMethod,
 } from "@/lib/consent/bind";
+import { categoriesForChoice, needsTurnstile } from "@/lib/consent/choice";
 import {
   consentSubjectSetCookie,
   mintConsentSubject,
@@ -69,6 +71,9 @@ export async function POST(request: Request): Promise<Response> {
     method = "reject_all";
   } else if (body.method === "settings_change") method = "settings_change";
   if (!method) return json({ ok: false, code: "invalid_input" }, 400);
+  const chosen = categoriesForChoice(method, body);
+  if (!chosen.ok) return json({ ok: false, code: "invalid_input" }, 400);
+  const categories = chosen.categories;
   const locale = parseLocale(body.locale);
 
   const existing = readConsentSubject(request.headers.get("cookie"));
@@ -85,7 +90,7 @@ export async function POST(request: Request): Promise<Response> {
   });
   if (!limited.ok) return json({ ok: false, code: "rate_limited" }, 429);
 
-  if (method === "accept_all") {
+  if (needsTurnstile(categories)) {
     const token = typeof body.turnstileToken === "string" ? body.turnstileToken : "";
     const idempotencyKey = typeof body.idempotencyKey === "string" ? body.idempotencyKey : "";
     const challenge = await verifyTurnstile(
@@ -109,6 +114,7 @@ export async function POST(request: Request): Promise<Response> {
         subject,
         method,
         locale,
+        categories,
         userAgent: request.headers.get("user-agent"),
         ipTruncated,
       });

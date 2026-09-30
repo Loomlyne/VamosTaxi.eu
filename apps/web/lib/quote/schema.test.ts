@@ -186,48 +186,16 @@ describe("parseQuoteRequest — extras (D-45, D-56)", () => {
     ).toBe(true);
   });
 
-  it("extra_stops: 2 → extras_max_stops (D-21)", () => {
-    const result = parseQuoteRequest(
-      validBody({ extras: { extra_stops: 2 } }),
-    );
-    expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.code).toBe("extras_max_stops");
-  });
-
-  it.each([0, 1])("extra_stops: %i parses", (n) => {
-    expect(
-      parseQuoteRequest(validBody({ extras: { extra_stops: n } })).ok,
-    ).toBe(true);
-  });
-
-  it("extra_stops: 1 with NO waypoints parses (count-only)", () => {
-    const result = parseQuoteRequest(
-      validBody({ extras: { extra_stops: 1 } }),
-    );
-    expect(result.ok).toBe(true);
-  });
-
-  it("extra_stops: 1 with waypoints length 2 fails", () => {
-    const wp = { lng: 8.5, lat: 47.3, text: "Stop" };
-    const result = parseQuoteRequest(
-      validBody({
-        extras: { extra_stops: 1, waypoints: [wp, wp] },
-      }),
-    );
-    expect(result.ok).toBe(false);
-  });
-
-  it("extra_stops: 1 with waypoints length 1 parses", () => {
-    const wp = { lng: 8.5, lat: 47.3, text: "Stop A" };
-    const result = parseQuoteRequest(
-      validBody({
-        extras: {
-          extra_stops: 1,
-          waypoints: [wp],
-        },
-      }),
-    );
-    expect(result.ok).toBe(true);
+  it("26.2-p4 D: any stop field is extras_max_stops — there is no stop on the way", () => {
+    for (const extras of [
+      { extra_stops: 2 },
+      { extra_stops: 0 },
+      { waypoints: [{ lng: 8.5, lat: 47.3, text: "Stop" }] },
+    ]) {
+      const result = parseQuoteRequest(validBody({ extras }));
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.code).toBe("extras_max_stops");
+    }
   });
 
   it("oversized_luggage accepts only boolean", () => {

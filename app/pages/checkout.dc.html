@@ -89,9 +89,6 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <h2 style="margin:0 0 16px;font-family:var(--vt-font-display);font-size:var(--vt-heading-3);font-weight:var(--vt-weight-semibold)">{{ tExtras }}</h2>
 <div style="display:flex;flex-direction:column;gap:16px">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Checkbox" label="{{ tChildSeat }}" description="{{ tChildSeatDesc }}" checked="{{ childSeat }}" onChange="{{ toggleChildSeat }}" hint-size="260px,24px"></x-import>
-<div style="max-width:220px">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Counter" label="{{ tAdditionalStops }}" icon="map-pin" value="{{ stops }}" min="{{ n0 }}" max="{{ n3 }}" onChange="{{ setStops }}" hint-size="100%,68px"></x-import>
-</div>
 </div>
 </x-import>
 
@@ -170,7 +167,7 @@ const T = {
     account:'Create an account', accountDesc:'Keeps your booking history and addresses',
     flightDetails:'Flight and pickup details', flightNumber:'Flight number', airline:'Airline',
     flightHint:'We track the flight and hold the driver if you land late', notes:'Notes for the driver', notesPh:'Meeting point, gate code, ski equipment…',
-    extras:'Extras', childSeat:'Child seat', childSeatDesc:'Price pending — child-seat fee is a client input', additionalStops:'Additional stops',
+    extras:'Extras', childSeat:'Child seat', childSeatDesc:'Price pending — child-seat fee is a client input',
     payment:'Payment', payCard:'Card, Apple Pay or TWINT', payCardDesc:'Charged now, secured by Stripe',
     payPaypal:'PayPal', payPaypalDesc:'You are redirected to PayPal to approve',
     payCash:'Cash to the driver', payCashDesc:'Approved routes only — dispatch confirms by email',
@@ -181,7 +178,7 @@ const T = {
     terms:'By continuing you accept the terms and the cancellation policy.',
     callDispatch:'Need something unusual — a bus, a wedding, an overnight? Call dispatch on +41 79 626 70 82.',
     lineTransfer:'Transfer, ', lineTransferClass:' class', lineAirportFee:'Airport pickup fee', lineChildSeat:'Child seat × 1',
-    lineStop:'Additional stop × ', lineWaiting:'60 min airport waiting', lineIncluded:'included', lineCoupon:'Coupon ',
+    lineWaiting:'60 min airport waiting', lineIncluded:'included', lineCoupon:'Coupon ',
     reqFirstName:'Enter a first name', reqLastName:'Enter a last name', reqEmail:'Enter an email address', reqMobile:'Enter a mobile number',
     pax:'passengers', bags:'bags',
   },
@@ -193,7 +190,7 @@ const T = {
     account:'Konto erstellen', accountDesc:'Speichert Buchungsverlauf und Adressen',
     flightDetails:'Flug- und Abholdetails', flightNumber:'Flugnummer', airline:'Fluggesellschaft',
     flightHint:'Wir verfolgen den Flug und halten den Fahrer bei Verspätung', notes:'Hinweise für den Fahrer', notesPh:'Treffpunkt, Torcode, Skiausrüstung…',
-    extras:'Extras', childSeat:'Kindersitz', childSeatDesc:'Preis ausstehend — Kindersitzgebühr ist noch offen', additionalStops:'Zusätzliche Stopps',
+    extras:'Extras', childSeat:'Kindersitz', childSeatDesc:'Preis ausstehend — Kindersitzgebühr ist noch offen',
     payment:'Zahlung', payCard:'Karte, Apple Pay oder TWINT', payCardDesc:'Wird jetzt belastet, gesichert durch Stripe',
     payPaypal:'PayPal', payPaypalDesc:'Sie werden zur Bestätigung zu PayPal weitergeleitet',
     payCash:'Bar beim Fahrer', payCashDesc:'Nur auf freigegebenen Strecken — Dispatch bestätigt per E-Mail',
@@ -204,7 +201,7 @@ const T = {
     terms:'Mit dem Fortfahren akzeptieren Sie die AGB und die Stornobedingungen.',
     callDispatch:'Etwas Ausgefallenes — ein Bus, eine Hochzeit, eine Übernachtung? Rufen Sie den Dispatch unter +41 79 626 70 82 an.',
     lineTransfer:'Transfer, ', lineTransferClass:'-Klasse', lineAirportFee:'Flughafengebühr', lineChildSeat:'Kindersitz × 1',
-    lineStop:'Zusätzlicher Stopp × ', lineWaiting:'60 Min. Wartezeit am Flughafen', lineIncluded:'inklusive', lineCoupon:'Gutschein ',
+    lineWaiting:'60 Min. Wartezeit am Flughafen', lineIncluded:'inklusive', lineCoupon:'Gutschein ',
     reqFirstName:'Vornamen eingeben', reqLastName:'Nachnamen eingeben', reqEmail:'E-Mail-Adresse eingeben', reqMobile:'Mobilnummer eingeben',
     pax:'Passagiere', bags:'Gepäckstücke',
   },
@@ -215,7 +212,7 @@ class Component extends DCLogic {
     trip: readTrip(),
     firstName:'', lastName:'', email:'', mobile:'', guest:true,
     flight:'', airline:'', notes:'',
-    childSeat:false, stops:0,
+    childSeat:false,
     pay:'card', coupon:'', couponApplied:null,
     errors:{},
   };
@@ -239,7 +236,7 @@ class Component extends DCLogic {
     saveTrip({
       firstName: this.state.firstName, lastName: this.state.lastName, email: this.state.email, mobile: this.state.mobile,
       flight: this.state.flight, airline: this.state.airline, notes: this.state.notes,
-      childSeat: this.state.childSeat, stops: this.state.stops,
+      childSeat: this.state.childSeat,
       pay: this.state.pay, couponApplied: this.state.couponApplied,
       bookingRef: ref, status: 'confirmed',
     });
@@ -255,7 +252,6 @@ class Component extends DCLogic {
     ];
     if (isAirport) lines.push({ label: t.lineAirportFee, value: 'CHF 00.00' });
     if (this.state.childSeat) lines.push({ label: t.lineChildSeat, value: 'CHF 00.00' });
-    if (this.state.stops > 0) lines.push({ label: t.lineStop + this.state.stops, value: 'CHF 00.00' });
     lines.push({ label: t.lineWaiting, value: t.lineIncluded, muted: true });
     if (this.state.couponApplied) lines.push({ label: t.lineCoupon + this.state.couponApplied, value: '− CHF 00.00', credit: true });
     return {
@@ -275,9 +271,8 @@ class Component extends DCLogic {
       tNotes: t.notes, tNotesPh: t.notesPh,
       flight: this.state.flight, setFlight: this.setField('flight'), airline: this.state.airline, setAirline: this.setField('airline'),
       notes: this.state.notes, setNotes: this.setField('notes'),
-      tExtras: t.extras, tChildSeat: t.childSeat, tChildSeatDesc: t.childSeatDesc, tAdditionalStops: t.additionalStops,
+      tExtras: t.extras, tChildSeat: t.childSeat, tChildSeatDesc: t.childSeatDesc,
       childSeat: this.state.childSeat, toggleChildSeat: () => this.setState((s) => ({ childSeat: !s.childSeat })),
-      stops: this.state.stops, setStops: (n) => this.setState({ stops: n }),
       tPayment: t.payment, tPayCard: t.payCard, tPayCardDesc: t.payCardDesc, tPayPaypal: t.payPaypal, tPayPaypalDesc: t.payPaypalDesc,
       tPayCash: t.payCash, tPayCashDesc: t.payCashDesc,
       payCard: this.state.pay === 'card', payPaypal: this.state.pay === 'paypal', payCash: this.state.pay === 'cash',
