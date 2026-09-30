@@ -743,7 +743,8 @@
     row.languages = languageCodes(c.languages);
     row.defaultVehicleId = vehicleId;
     row.vehicle = vehicleId;
-    row.vehicleClassId = classId;
+    // Signed 2026-10-01: the driver form sends no class; without the key the server keeps the column.
+    if (Object.prototype.hasOwnProperty.call(c, "vehicleClassId")) row.vehicleClassId = classId;
     return row;
   }
 
