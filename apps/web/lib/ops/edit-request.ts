@@ -41,6 +41,7 @@ import {
   type EditAcceptFail,
   type EditPayload,
 } from "./edit-request-map";
+import { lockSecretPresent } from "../quote/lock-secret";
 import { deliverOverlapMustFix } from "./must-fix-mail";
 
 export type { AcceptOutcome, EditPayload } from "./edit-request-map";
@@ -125,6 +126,11 @@ export async function acceptPaidEdit(
   const key = bookingKey.trim();
   if (!key) return { ok: false, code: "not-found" };
 
+  // F14: a lock token is checked against the secret; an empty secret is refused up front.
+  if ((input.lock ?? "").trim() && !lockSecretPresent(env.QUOTE_LOCK_SECRET, "edit-request/accept")) {
+    return { ok: false, code: "temporarily_unavailable" };
+  }
+
   const secret = env.STRIPE_SECRET_KEY ?? "";
   if (secret.startsWith("sk_live_")) {
     return { ok: false, code: "stripe-test-only" };
@@ -152,7 +158,7 @@ export async function acceptPaidEdit(
           let quoteId: string | null = null;
           const lockToken = (input.lock ?? "").trim();
           if (lockToken) {
-            const current = env.QUOTE_LOCK_SECRET || "";
+            const current = env.QUOTE_LOCK_SECRET ?? "";
             const previous = env.QUOTE_LOCK_SECRET_PREVIOUS;
             const verified = await verifyLock(
               previous ? { current, previous } : { current },
@@ -448,6 +454,10 @@ export async function requestCustomerPaidEdit(
   const key = bookingKey.trim();
   if (!key) return { ok: false, code: "not-found" };
 
+  if ((input.lock ?? "").trim() && !lockSecretPresent(env.QUOTE_LOCK_SECRET, "edit-request/customer")) {
+    return { ok: false, code: "temporarily_unavailable" };
+  }
+
   const owned = await loadOwnedBooking(env, auth, key);
   if (!owned) return { ok: false, code: "not-found" };
 
@@ -461,7 +471,7 @@ export async function requestCustomerPaidEdit(
         let quoteId: string | null = null;
         const lockToken = (input.lock ?? "").trim();
         if (lockToken) {
-          const current = env.QUOTE_LOCK_SECRET || "";
+          const current = env.QUOTE_LOCK_SECRET ?? "";
           const previous = env.QUOTE_LOCK_SECRET_PREVIOUS;
           const verified = await verifyLock(
             previous ? { current, previous } : { current },
