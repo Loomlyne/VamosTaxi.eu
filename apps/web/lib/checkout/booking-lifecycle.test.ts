@@ -28,7 +28,6 @@ describe("booking lifecycle", () => {
       childSeat: false,
       oversizedLuggage: false,
       skiRack: false,
-      stops: 0,
     });
   });
 

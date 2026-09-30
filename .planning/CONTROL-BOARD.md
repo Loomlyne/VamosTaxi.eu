@@ -12,10 +12,10 @@ Rewritten short on 2026-09-30 14:25; the long version is in git history (`823022
 | Item | Value |
 |---|---|
 | Site | https://vamostaxi.site and https://dashboard.vamostaxi.site |
-| main = origin/main | `ce55cd75` plus planning notes |
-| Worker `vamos` | version `c45d2782` |
+| main = origin/main | `4dc72078` plus planning notes |
+| Worker `vamos` | version `f58cd68e` |
 | Worker `vamos-dashboard` (gateway) | version `58c6e541`, deployed 15:22 by the owner's word; before: `5ea4fe65` |
-| Rollback point | Worker `dfba8779`, git tag `backup/main-before-27-a8948162` (the two Phase 27 migrations are additive and can stay); before polish 2: Worker `832b884e`; before batch C1: Worker `24945bab`; before extras A: Worker `2f303d16`; before refunds: Worker `1e1fd4a6`, tag `backup/main-before-refunds-3a486eaa` (note: rolling the Worker back alone re-enables automatic refunds on cancel; the migration stays); before the home change: Worker `852de5f4`; before the three pieces: Worker `d0c427c2`; before native scrolling: Worker `f3f7d929`; before the queue: Worker `92504970`; before class cards: Worker `d80e6577`; before speed A: Worker `8adb148c`; before phone home: Worker `d43e467b`; before 26.2: Worker `0d1806ce`; before the Support button: Worker `2d5906ce` (before 26.5: Worker `fe9314d0`, tag `backup/main-before-26.5-e09f90cb`). Guest accounts off without a deploy: `settings.guest_accounts_live = false` |
+| Rollback point | Worker `e2c53324`, git tag `backup/main-before-dash-design-93dd2264`; before D and the refusal fix: Worker `c45d2782`; before 27: Worker `dfba8779`, tag `backup/main-before-27-a8948162` (the two Phase 27 migrations are additive and can stay); before polish 2: Worker `832b884e`; before batch C1: Worker `24945bab`; before extras A: Worker `2f303d16`; before refunds: Worker `1e1fd4a6`, tag `backup/main-before-refunds-3a486eaa` (note: rolling the Worker back alone re-enables automatic refunds on cancel; the migration stays); before the home change: Worker `852de5f4`; before the three pieces: Worker `d0c427c2`; before native scrolling: Worker `f3f7d929`; before the queue: Worker `92504970`; before class cards: Worker `d80e6577`; before speed A: Worker `8adb148c`; before phone home: Worker `d43e467b`; before 26.2: Worker `0d1806ce`; before the Support button: Worker `2d5906ce` (before 26.5: Worker `fe9314d0`, tag `backup/main-before-26.5-e09f90cb`). Guest accounts off without a deploy: `settings.guest_accounts_live = false` |
 | Database | migrations up to `20260930210000`, 26.5's `20261001100000` to `130000`, Phase 20's `20261005100000` and `110000`, 26.2's `20261007100000`, Phase 20's `20261005120000`, `130000`, `140000` (refunds by hand), 26.2's `20261007110000` (extra names prune), Phase 20's `20261005150000` (last-admin guard), Phase 27's `20261002100000` and `110000`, all applied and read back. `guest_accounts_live` = true since 14:58 (owner's answer) |
 | Who deploys | the control session, from the owner's Mac. GitHub runs checks, never deploys. |
 
@@ -46,6 +46,8 @@ Rewritten short on 2026-09-30 14:25; the long version is in git history (`823022
 | 10-01 | 02:42 | Security batch C part 1: Arabic font from our host, four hardening fixes, last-admin guard | `1a105d25` | `832b884e` |
 | 10-01 | 02:51 | Booking polish 2: Koffer, Safari Back and the sheet race, footer-band guard, dead leftovers | `5557f6d3` | `dfba8779` |
 | 10-01 | 03:02 | **Phase 27 consent record**: cookie choice saved on the server, banner on every customer page, sign-up tick box; Meta still off | `ce55cd75` | `c45d2782` |
+| 10-01 | 03:10 | Extras part D (no stop on the way; terms and privacy lines) and dashboard refusal messages + My bookings shows anyway | `0edf87d9` | `e2c53324` |
+| 10-01 | 03:24 | Dashboard design: one Actions menu, short phone bar, Assign without a pop-up, driver Car field, edit-box buttons | `4dc72078` | `f58cd68e` |
 
 ## Ship order from here
 
@@ -91,6 +93,18 @@ Full text: `.planning/decisions/2026-09-30-priorities-and-ship-mode.md`.
 | 3 | Security batch C part 1 | **Live 02:42** (owner said Ship). Trigger function read back identical, trigger on `staff`; live has 1 active admin (the owner), so his own account can no longer be removed. Live serves the Arabic font files from our host; the Google link is gone. Owner check: /ar on the phone | done |
 | 4 | Phase 27 consent record | **Live 03:02** (owner said Ship). Both migrations applied and read back before the deploy (reader body identical, anon EXECUTE only; record_account_agreement now vamos_checkout and vamos_system). Live: /api/consent/state answers policy 2026-10-01; banner mounted on home and checkout. Meta gate closed. Owner UAT: banner in a private window; one sign-up with the tick | done |
 | 5 | Booking polish 2 | **Live 02:51** (owner said Ship). Owner check: iPhone, open the booking page, close, reopen at once, Back closes it | done |
+
+## Queue after 03:10
+
+| # | Job | State |
+|---|---|---|
+| 1 | Phase 28 pixel page view | Started (folder `phase-28`, branch `gsd/phase-28-pixel-pageview`); both Meta Events Manager switches confirmed OFF by the owner (`.planning/decisions/2026-10-01-meta-events-manager-switches.md`); discuss next |
+| 2 | Dashboard design | **Live 03:24** (owner said Ship). Live OpsDetail mock identical to the source. Owner UAT: 5 steps in `.planning/quick/260930-dash-design/HANDOVER.md`, Assign first once the driver has a car |
+| 3 | Security part 2 (sign-in confirm screen, dashboard files off the public host) | Released 03:02 |
+| 4 | P1 class change, P6 place/time change | 26.2, plans after the design |
+| 5 | 26.0 main green | Working |
+| 6 | Phase 29, then the finish-your-account follow-up (27 D-37) | After 28 |
+| 7 | Stricter check scripts (u13) | Last |
 
 ## Sessions and folders on this Mac
 

@@ -137,7 +137,7 @@ export function assertChauffeurInput(input: ChauffeurInput): AssertedChauffeurIn
   }
 
   const classRaw = input.vehicleClassId == null ? "" : input.vehicleClassId.trim();
-  const vehicleClassId = classRaw === "" ? null : classRaw;
+  const vehicleClassId = input.vehicleClassId === undefined ? undefined : classRaw === "" ? null : classRaw;
   if (
     vehicleClassId &&
     !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(vehicleClassId)

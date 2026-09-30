@@ -91,8 +91,10 @@
 <div style="margin-inline-start:auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:10px">
 <p data-publish-ok="1" style="display:{{ publishOkDisplay }};margin:0;width:100%;font-size:var(--vt-body-xs);color:var(--vt-success);text-align:end">{{ tPublishOk }}</p>
 <p data-publish-error="1" style="display:{{ headerPublishErrorDisplay }};margin:0;width:100%;font-size:var(--vt-body-xs);color:var(--vt-danger);text-align:end">{{ tPublishError }}</p>
+<span data-ops-fold="1" style="display:contents">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="danger" onClick="{{ openDiscard }}" disabled="{{ discardDisabled }}" hint-size="130px,44px">{{ tDiscard }}</x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ openPublish }}" disabled="{{ publishBusyDisabled }}" hint-size="170px,44px">{{ tPublish }}</x-import>
+</span>
 </div>
 </header>
 
@@ -269,6 +271,14 @@ const MON_EN = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov
 const MON_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const YEAR_MIN = 1900;
 const YEAR_MAX = 2100;
+/* 260930-dash-design: at phone width the header's two buttons fold into the console bar's Actions
+   menu (app/vamos-ops-bar.js). Publish first; Discard last and set apart as the destructive one. */
+function pricingBarItems(t, discardOff, publishOff) {
+  return [
+    { value: 'publish', label: t.publish, icon: 'check', disabled: !!publishOff },
+    { value: 'discard', label: t.discard, icon: 'trash-2', tone: 'danger', disabled: !!discardOff },
+  ];
+}
 function pad2(n) { return (n < 10 ? '0' : '') + n; }
 function clampYear(n) {
   const y = parseInt(n, 10);
@@ -302,7 +312,7 @@ const PANES = [
   { key:'coupons', icon:'ticket', tab:'tabCoupons', hint:'hintCoupons' },
 ];
 const T = {
-  en: { title:'Pricing & routes', subtitle:'City to city, distance rules, surcharges and coupons',
+  en: { actions:'Actions', title:'Pricing & routes', subtitle:'City to city, distance rules, surcharges and coupons',
     tabRoutes:'City to city', tabDistance:'Distance rules', tabSurcharges:'Surcharges & extras', tabCoupons:'Coupons',
     hintRoutes:'One pair covers both directions. Click a row and it goes live.', hintDistance:'Start, per kilometre, airport pickup fee', airportStart:'Airport pickup fee (added to start)', hintSurcharges:'Checkout extras', hintCoupons:'Percent or fixed CHF',
     colId:'ID', colFrom:'From', colTo:'To', colEconomy:'Economy', colBusiness:'Business', colLive:'Live', live:'Live', draft:'Draft',
@@ -320,7 +330,7 @@ const T = {
     addRule:'Add rule', editRule:'Edit rule', saveRule:'Save rule', deleteRuleTitle:'Delete this rule from the draft?', deleteRuleBody:'Delete this rule from the draft? Public does not change until Publish.',
     emptyRulesTitle:'No rules yet', emptyRulesBody:'Waiting unit, free-wait hours, or Mapbox service area.',
     searchRules:'Kind', nounRule:'rule', nounRules:'rules',
-    kindWaiting:'Waiting unit', kindLock:'Quote-lock hours', kindFreeWait:'Free-wait hours', kindMaxStops:'Max extra stops', kindServiceArea:'Service area',
+    kindWaiting:'Waiting unit', kindLock:'Quote-lock hours', kindFreeWait:'Free-wait hours', kindServiceArea:'Service area',
     fPayload:'Value', hRulePayload:'Waiting unit, hours, or Mapbox area. Timezone is Europe/Zurich.',
     addSurcharge:'Add surcharge', editSurcharge:'Edit surcharge', saveSurcharge:'Save surcharge', deleteSurchargeTitle:'Delete this surcharge from the draft?', deleteSurchargeBody:'Delete this surcharge from the draft? Public does not change until Publish.',
     emptySurchargesTitle:'No surcharges in this draft', emptySurchargesBody:'Add an extra. Customers choose it at checkout.',
@@ -389,7 +399,7 @@ const T = {
     emptyHistoryFilterBody:'Clear the date to see every published book.',
     whoUnknown:'Unknown',
   },
-  de: { title:'Preise & Routen', subtitle:'Stadt zu Stadt, Distanzregeln, Zuschläge und Gutscheine',
+  de: { actions:'Aktionen', title:'Preise & Routen', subtitle:'Stadt zu Stadt, Distanzregeln, Zuschläge und Gutscheine',
     tabRoutes:'Stadt zu Stadt', tabDistance:'Distanzregeln', tabSurcharges:'Zuschläge & Extras', tabCoupons:'Gutscheine',
     hintRoutes:'Ein Paar gilt in beide Richtungen. Zeile anklicken, dann ist sie live.', hintDistance:'Start, pro Kilometer, Flughafen-Abholgebühr', airportStart:'Flughafen-Abholgebühr (zum Start addiert)', hintSurcharges:'Checkout-Extras', hintCoupons:'Prozent oder fester CHF',
     colId:'ID', colFrom:'Von', colTo:'Nach', colEconomy:'Economy', colBusiness:'Business', colLive:'Live', live:'Live', draft:'Entwurf',
@@ -407,7 +417,7 @@ const T = {
     addRule:'Regel hinzufügen', editRule:'Regel bearbeiten', saveRule:'Regel speichern', deleteRuleTitle:'Diese Regel aus dem Entwurf löschen?', deleteRuleBody:'Diese Regel aus dem Entwurf löschen? Die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
     emptyRulesTitle:'Noch keine Regeln', emptyRulesBody:'Warteeinheit, Freiwarte-Stunden oder Mapbox-Servicegebiet.',
     searchRules:'Art', nounRule:'Regel', nounRules:'Regeln',
-    kindWaiting:'Warteeinheit', kindLock:'Quote-Lock-Stunden', kindFreeWait:'Freiwarte-Stunden', kindMaxStops:'Max. Extra-Stops', kindServiceArea:'Servicegebiet',
+    kindWaiting:'Warteeinheit', kindLock:'Quote-Lock-Stunden', kindFreeWait:'Freiwarte-Stunden', kindServiceArea:'Servicegebiet',
     fPayload:'Wert', hRulePayload:'Warteeinheit, Stunden oder Mapbox-Gebiet. Zeitzone ist Europe/Zurich.',
     addSurcharge:'Zuschlag hinzufügen', editSurcharge:'Zuschlag bearbeiten', saveSurcharge:'Zuschlag speichern', deleteSurchargeTitle:'Diesen Zuschlag aus dem Entwurf löschen?', deleteSurchargeBody:'Diesen Zuschlag aus dem Entwurf löschen? Die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
     emptySurchargesTitle:'Keine Zuschläge in diesem Entwurf', emptySurchargesBody:'Fügen Sie ein Extra hinzu. Kundinnen und Kunden wählen es beim Checkout.',
@@ -478,7 +488,7 @@ const T = {
     emptyHistoryFilterBody:'Datum löschen, um jedes veröffentlichte Buch zu sehen.',
     whoUnknown:'Unbekannt',
   },
-  fr: { title:'Tarifs & trajets', subtitle:'De ville en ville, règles de distance, suppléments et codes promo',
+  fr: { actions:'Actions', title:'Tarifs & trajets', subtitle:'De ville en ville, règles de distance, suppléments et codes promo',
     tabRoutes:'De ville en ville', tabDistance:'Règles de distance', tabSurcharges:'Suppléments & extras', tabCoupons:'Codes promo',
     hintRoutes:'Une paire vaut dans les deux sens. Cliquez une ligne pour la passer live.', hintDistance:'Départ, au kilomètre, frais aéroport', airportStart:'Frais aéroport (ajoutés au départ)', hintSurcharges:'Extras de paiement', hintCoupons:'Pourcent ou CHF fixe',
     colId:'ID', colFrom:'De', colTo:'Vers', colEconomy:'Economy', colBusiness:'Business', colLive:'Live', live:'Live', draft:'Brouillon',
@@ -496,7 +506,7 @@ const T = {
     addRule:'Ajouter une règle', editRule:'Modifier la règle', saveRule:'Enregistrer la règle', deleteRuleTitle:'Supprimer cette règle du brouillon ?', deleteRuleBody:'Supprimer cette règle du brouillon ? Le public ne change qu’après Publier.',
     emptyRulesTitle:'Pas encore de règles', emptyRulesBody:'Unité d’attente, heures d’attente libre ou zone de service Mapbox.',
     searchRules:'Type', nounRule:'règle', nounRules:'règles',
-    kindWaiting:'Unité d’attente', kindLock:'Heures de verrouillage', kindFreeWait:'Heures d’attente libre', kindMaxStops:'Max d’arrêts extra', kindServiceArea:'Zone de service',
+    kindWaiting:'Unité d’attente', kindLock:'Heures de verrouillage', kindFreeWait:'Heures d’attente libre', kindServiceArea:'Zone de service',
     fPayload:'Valeur', hRulePayload:'Unité d’attente, heures ou zone Mapbox. Fuseau : Europe/Zurich.',
     addSurcharge:'Ajouter un supplément', editSurcharge:'Modifier le supplément', saveSurcharge:'Enregistrer le supplément', deleteSurchargeTitle:'Supprimer ce supplément du brouillon ?', deleteSurchargeBody:'Supprimer ce supplément du brouillon ? Le public ne change qu’après Publier.',
     emptySurchargesTitle:'Aucun supplément dans ce brouillon', emptySurchargesBody:'Ajoutez un extra. Les clients le choisissent au paiement.',
@@ -567,7 +577,7 @@ const T = {
     emptyHistoryFilterBody:'Effacez la date pour voir chaque livre publié.',
     whoUnknown:'Inconnu',
   },
-  ar: { title:'الأسعار والمسارات', subtitle:'بين المدن وقواعد مسافة ورسوم وقسائم',
+  ar: { actions:'الإجراءات', title:'الأسعار والمسارات', subtitle:'بين المدن وقواعد مسافة ورسوم وقسائم',
     tabRoutes:'بين المدن', tabDistance:'قواعد المسافة', tabSurcharges:'الرسوم والإضافات', tabCoupons:'القسائم',
     hintRoutes:'الزوج الواحد يغطي الاتجاهين. انقر الصف ليصبح مباشرًا.', hintDistance:'البداية، لكل كيلومتر، رسوم الاستقبال من المطار', airportStart:'رسوم الاستقبال من المطار (تُضاف إلى البداية)', hintSurcharges:'إضافات الدفع', hintCoupons:'نسبة أو فرنك ثابت',
     colId:'المعرّف', colFrom:'من', colTo:'إلى', colEconomy:'اقتصادي', colBusiness:'أعمال', colLive:'مباشر', live:'مباشر', draft:'مسودة',
@@ -585,7 +595,7 @@ const T = {
     addRule:'إضافة قاعدة', editRule:'تعديل القاعدة', saveRule:'حفظ القاعدة', deleteRuleTitle:'حذف هذه القاعدة من المسودة؟', deleteRuleBody:'حذف هذه القاعدة من المسودة؟ لا يتغير العام حتى النشر.',
     emptyRulesTitle:'لا توجد قواعد بعد', emptyRulesBody:'وحدة انتظار أو ساعات انتظار مجاني أو منطقة خدمة مابوكس.',
     searchRules:'النوع', nounRule:'قاعدة', nounRules:'قواعد',
-    kindWaiting:'وحدة الانتظار', kindLock:'ساعات قفل العرض', kindFreeWait:'ساعات الانتظار المجاني', kindMaxStops:'أقصى توقفات إضافية', kindServiceArea:'منطقة الخدمة',
+    kindWaiting:'وحدة الانتظار', kindLock:'ساعات قفل العرض', kindFreeWait:'ساعات الانتظار المجاني', kindServiceArea:'منطقة الخدمة',
     fPayload:'القيمة', hRulePayload:'وحدة الانتظار أو الساعات أو منطقة مابوكس. المنطقة الزمنية Europe/Zurich.',
     addSurcharge:'إضافة رسم', editSurcharge:'تعديل الرسم', saveSurcharge:'حفظ الرسم', deleteSurchargeTitle:'حذف هذا الرسم من المسودة؟', deleteSurchargeBody:'حذف هذا الرسم من المسودة؟ لا يتغير العام حتى النشر.',
     emptySurchargesTitle:'لا رسوم في هذه المسودة', emptySurchargesBody:'أضف إضافة. يختارها العملاء عند الدفع.',
@@ -711,6 +721,7 @@ class Component extends DCLogic {
   _datePopRef = (el) => { this._datePop = el; };
   componentDidMount() {
     this.bind();
+    this.publishBar();
     if (window.VamosLocale && typeof window.VamosLocale.onChange === 'function') {
       this._offLocale = window.VamosLocale.onChange((v) => this.setState({ lang: v.lang, cur: v.cur }));
     }
@@ -724,7 +735,20 @@ class Component extends DCLogic {
     document.addEventListener('mousedown', this._dateAway);
     document.addEventListener('keydown', this._dateEsc);
   }
+  // 260930-dash-design: hand the header's buttons to the phone bar after every render.
+  publishBar = () => {
+    if (!window.VamosOpsBar || typeof window.VamosOpsBar.set !== 'function') return;
+    const v = this._barVals || { title: '', label: '', items: [] };
+    window.VamosOpsBar.set('pricing', { title: v.title, label: v.label, items: v.items, onPick: (value) => {
+      if (value === 'publish') this.openPublish();
+      else if (value === 'discard') this.openDiscard();
+    } });
+  };
+  componentDidUpdate() {
+    this.publishBar();
+  }
   componentWillUnmount() {
+    if (window.VamosOpsBar && typeof window.VamosOpsBar.clear === 'function') window.VamosOpsBar.clear('pricing');
     if (this._offLocale) this._offLocale();
     if (this._off) this._off();
     if (this._dateAway) document.removeEventListener('mousedown', this._dateAway);
@@ -1244,6 +1268,11 @@ class Component extends DCLogic {
       done(run);
     };
 
+    this._barVals = {
+      title: t.title,
+      label: t.actions,
+      items: pricingBarItems(t, role !== 'admin' || !hasDraft || this.state.publishing, role !== 'admin' || !hasDraft || this.state.publishing),
+    };
     return {
       yes: true, n18: 18, n16: 16,
       tTitle: t.title,

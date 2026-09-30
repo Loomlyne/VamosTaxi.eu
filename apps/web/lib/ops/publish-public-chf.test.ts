@@ -114,7 +114,9 @@ describe("Publish-as-flip public_chf (D-18)", () => {
     expect(fork).toMatch(
       /vat_rate_bps, quote_lock_minutes, service_area_geojson/,
     );
-    expect(fork).toMatch(/free_wait_minutes, max_extra_stops/);
+    expect(fork).toMatch(/service_area_geojson,\s+free_wait_minutes\s*\n/);
+    // 26.2-p4 D: the stop cap column stays in the database but is no longer read or copied.
+    expect(fork).not.toMatch(/max_extra_stops/);
     expect(fork.match(/export async function fork/g)?.length).toBe(1);
   });
 

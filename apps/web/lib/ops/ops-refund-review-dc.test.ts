@@ -155,7 +155,8 @@ describe("OpsDetail refund review panel (UI-SPEC §4)", () => {
     expect(dc).toMatch(/const paidAdmin = isAdmin && !!booking\.paid;/);
     expect(dc).toMatch(/const reviewNeeded = paidAdmin && /);
     expect(dc).toMatch(/const postTripEligible = isAdmin && /);
-    expect(dc).toMatch(/sc-if value="\{\{ canFullRefund \}\}"/);
+    // 260930-dash-design: Refund is an item of the Actions menu, still admin-only through canFullRefund.
+    expect(dc).toMatch(/canFullRefund \|\| postTripEligible \? \{ value: 'refund'/);
     expect(dc).not.toMatch(/sc-if value="\{\{ isCancelled \}\}"[^>]*>\s*<x-import[^>]*onClick="\{\{ markRefund \}\}"/);
   });
 

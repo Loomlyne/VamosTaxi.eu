@@ -135,7 +135,6 @@ function input(partial: Partial<QuoteInput> = {}): QuoteInput {
         duration_s: 900,
         origin_zone_id: "z-a",
         dest_zone_id: "z-b",
-        waypoints: [],
       },
     ],
     extras: {},
@@ -288,7 +287,6 @@ describe("evaluateEligibility", () => {
             duration_s: 900,
             origin_zone_id: "z-a",
             dest_zone_id: "z-b",
-            waypoints: [],
           },
           {
             leg_seq: 2,
@@ -297,7 +295,6 @@ describe("evaluateEligibility", () => {
             duration_s: 900,
             origin_zone_id: "z-b",
             dest_zone_id: "z-a",
-            waypoints: [],
           },
         ],
       }),

@@ -155,7 +155,6 @@ function leg(overrides: Partial<QuoteLegInput> = {}): QuoteLegInput {
     duration_s: 900,
     origin_zone_id: neutralZone.id,
     dest_zone_id: neutralZone.id,
-    waypoints: [],
     ...overrides,
   };
 }

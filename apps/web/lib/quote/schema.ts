@@ -112,24 +112,16 @@ export const PlaceInputSchema = z.discriminatedUnion("kind", [
 
 export type PlaceInput = z.infer<typeof PlaceInputSchema>;
 
-const WaypointSchema = z
-  .object({
-    lng: z.number().finite(),
-    lat: z.number().finite(),
-    text: placeText,
-  })
-  .strict();
-
 /**
  * Extras on quote/reprice. Range refusals with their OWN error codes are applied
  * in `parseQuoteRequest` post-guards (readable assignment), not buried in zod max messages.
+ * 26.2-p4 D: there is no stop on the way — a body that still names a stop field
+ * is refused before this schema runs (`stopFieldIn`).
  */
 export const ExtrasSchema = z
   .object({
     child_seats: z.number().int().optional(),
-    extra_stops: z.number().int().optional(),
     oversized_luggage: z.boolean().optional(),
-    waypoints: z.array(WaypointSchema).max(1).optional(),
   })
   .strict();
 
@@ -259,20 +251,26 @@ function checkExtrasGuards(
     }
   }
 
-  if (extras.extra_stops !== undefined) {
-    if (extras.extra_stops < 0 || extras.extra_stops > 1) {
-      return { ok: false, code: "extras_max_stops", field: "extra_stops" };
+  return null;
+}
+
+/** The two request fields a stop on the way used to travel in (removed 26.2-p4 D). */
+const STOP_FIELDS = ["extra_stops", "waypoints"] as const;
+
+/**
+ * 26.2-p4 D: there is no stop on the way. A quote or reprice body whose
+ * `extras` still names a stop field — any value, even 0 or an empty list — is
+ * refused with the named extras code, so a caller that still sends one learns
+ * why instead of reading a generic shape error. No screen sends one.
+ */
+function stopFieldIn(body: Record<string, unknown>): ParseFailure | null {
+  const extras = body.extras;
+  if (!isPlainObject(extras)) return null;
+  for (const field of STOP_FIELDS) {
+    if (Object.prototype.hasOwnProperty.call(extras, field)) {
+      return { ok: false, code: "extras_max_stops", field };
     }
   }
-
-  // D-56 / D-18: count-only payload is legal; when waypoints ARE sent, lengths must match.
-  if (extras.waypoints !== undefined) {
-    const stops = extras.extra_stops ?? 0;
-    if (extras.waypoints.length !== stops) {
-      return { ok: false, code: "untrusted_input", field: "waypoints" };
-    }
-  }
-
   return null;
 }
 
@@ -313,6 +311,9 @@ export function parseQuoteRequest(body: unknown): ParseQuoteResult {
   if (forbidden) {
     return { ok: false, code: "untrusted_input", field: forbidden };
   }
+
+  const stop = stopFieldIn(body);
+  if (stop) return stop;
 
   const modeResult = preprocessMode(body);
   if (!modeResult.ok) {
@@ -366,6 +367,9 @@ export function parseRepriceRequest(
   if (forbidden) {
     return { ok: false, code: "untrusted_input", field: forbidden };
   }
+
+  const stop = stopFieldIn(body);
+  if (stop) return stop;
 
   // Reprice must not accept journey fields that belong on /api/quote only.
   // `legs` is allowed but narrowed to { leg_seq, flight_no } (26.1-30).

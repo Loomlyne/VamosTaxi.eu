@@ -129,7 +129,6 @@ function quoteInputOf(body: PreviewBody, computedAt: string): QuoteInput {
         duration_s: body.duration_s,
         origin_zone_id: body.origin_zone_id,
         dest_zone_id: body.dest_zone_id,
-        waypoints: [],
       },
     ],
   };

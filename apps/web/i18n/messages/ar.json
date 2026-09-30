@@ -1441,7 +1441,7 @@
     "payment-metadata-only-the-amount-the-currency-th": "بيانات الدفع الوصفية فقط: المبلغ والعملة والوسيلة وآخر أربعة أرقام ونتيجة العملية. تُدخَل أرقام البطاقات في نموذج Stripe ولا تصل أنظمتنا إطلاقًا.",
     "payment-records": "سجلات الدفع",
     "per-stop": "لكل محطة.",
-    "pickup-and-drop-off-address-and-any-additional-s": "عنوان الانطلاق والوجهة وأي محطة إضافية.",
+    "pickup-and-drop-off-address-and-any-additional-s": "عنوان الانطلاق والوصول.",
     "pickup-and-drop-off-address-date-and-time-passen": "عنوان الانطلاق والوجهة، والتاريخ والوقت، وعدد الركاب والحقائب. هذا يكفي لتسعير الرحلة ولا شيء منه يحدّد هويتك.",
     "plans-change-this-page-says-exactly-what-happens": "الخطط تتغيّر. وهذه الصفحة تقول بالضبط ما يحدث لأموالك عندئذٍ — وهي الصفحة التي تحسم الأمر.",
     "postal-address": "العنوان البريدي",

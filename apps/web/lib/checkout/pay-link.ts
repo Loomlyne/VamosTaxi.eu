@@ -132,8 +132,15 @@ export function companyReady(input: {
   return Boolean(input.name.trim() && input.address.trim() && input.vat.trim());
 }
 
+/**
+ * An old booking's policy `extras` object (before 26.3). It may still name a
+ * stop from before 26.2-p4 D: history only, read to print that old booking's
+ * lines. A new lock never carries one (verifyLock refuses it).
+ */
+type LegacyPolicyExtras = QuoteLockExtras & { extra_stops?: number };
+
 /** @deprecated 26.3 — closed three-code list; plan 09/21 remove the remaining readers. */
-export function payLinkExtras(extras: QuoteLockExtras | null | undefined): PayLinkExtraCode[] {
+export function payLinkExtras(extras: LegacyPolicyExtras | null | undefined): PayLinkExtraCode[] {
   const out: PayLinkExtraCode[] = [];
   if (extras?.child_seats === 1) out.push("child_seat");
   if (extras?.oversized_luggage) out.push("oversized_luggage");
@@ -152,7 +159,7 @@ export function extrasFromPolicy(policy: unknown): PayLinkExtraCode[] {
   if (!policy || typeof policy !== "object") return [];
   const raw = (policy as { extras?: unknown }).extras;
   if (raw && typeof raw === "object" && !Array.isArray(raw)) {
-    return payLinkExtras(raw as QuoteLockExtras);
+    return payLinkExtras(raw as LegacyPolicyExtras);
   }
   if (!Array.isArray(raw)) return [];
   const out: PayLinkExtraCode[] = [];

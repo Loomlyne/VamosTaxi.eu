@@ -123,7 +123,9 @@ describe("dedicated chauffeur desk (D-15 D-16 D-17 D-18)", () => {
     expect(fields).not.toMatch(/key:'end'/);
     const licence = (fields.split("key:'licence'")[1] || "").split("},")[0];
     expect(licence).not.toMatch(/required/);
-    expect(fields).toMatch(/key:'vehicleClassId'/);
+    // Signed 2026-10-01 (260930-dash-design): no Class field; the driver's class is his car's class.
+    expect(fields).not.toMatch(/key:'vehicleClassId'/);
+    expect(fields).toMatch(/key:'defaultVehicleId'/);
     expect(html).toMatch(/shiftWeekdays/);
     expect(html).toMatch(/c\.status === ['"]shift['"]/);
   });

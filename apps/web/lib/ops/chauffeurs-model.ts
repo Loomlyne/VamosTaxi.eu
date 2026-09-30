@@ -104,7 +104,8 @@ export type AssertedChauffeurInput = {
   phone: string;
   email: string | null;
   defaultVehicleId: string | null;
-  vehicleClassId: string | null;
+  /** undefined = keep the stored class (the driver form no longer sends one, signed 2026-10-01). */
+  vehicleClassId: string | null | undefined;
   licenceNumber: string;
   licenceExpiresOn: string | null;
   languages: string[];
