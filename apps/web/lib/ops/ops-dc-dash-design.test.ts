@@ -521,12 +521,18 @@ describe("3 · each driver has his own car", () => {
     ]);
   });
 
-  it("the button waits for a driver; picking one enables it", () => {
+  it("the button is never a pale-yellow disabled pill: without a pick it asks for one, in words, and sends nothing", async () => {
     const d = detail();
-    expect(d.vals().assignDisabled).toBe(true);
+    expect(d.vals().assignDisabled).toBe(false);
+    d.vals().confirmAssign();
+    await flush();
+    expect(d.request).not.toHaveBeenCalled();
+    expect(d.vals().assignError).toBe("Pick a chauffeur first.");
     (d.vals().assignRows as { pick: () => void }[])[0]!.pick();
     expect(d.logic.state.pickDriver).toBe(MARCO);
-    expect(d.vals().assignDisabled).toBe(false);
+    expect(d.vals().hasAssignError).toBe(false);
+    const css = readDc("OpsDetail.dc.html");
+    expect(css).toMatch(/\[data-ops-assign-pick\]\{[^}]*max-inline-size:\d+px/);
   });
 
   it("refusals in plain words, on the box: no car, and a car of another class", async () => {

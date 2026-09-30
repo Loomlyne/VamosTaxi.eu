@@ -38,7 +38,7 @@
 [data-ops-tags]{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
 [data-ops-tag]{display:inline-flex;align-items:center;gap:6px;min-height:28px;padding:4px 10px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-pill);background:var(--vt-bg-surface);font-family:var(--vt-font-body);font-size:var(--vt-body-xs);line-height:1.3;color:var(--vt-text-primary)}
 [data-ops-tag] b{font-weight:600;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-muted);font-size:10px}
-[data-ops-assign-pick]{grid-column:2;min-width:0;display:flex;flex-direction:column;gap:12px;margin-top:4px}
+[data-ops-assign-pick]{grid-column:2;min-width:0;max-inline-size:560px;display:flex;flex-direction:column;gap:12px;margin-top:4px}
 [data-ops-drv-list]{display:flex;flex-direction:column;gap:8px;min-width:0}
 [data-ops-drv]{box-sizing:border-box;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-bg-surface);transition:background 140ms cubic-bezier(.2,0,.2,1),border-color 140ms cubic-bezier(.2,0,.2,1)}
 [data-ops-drv]:hover{background:var(--vt-grey-50)}
@@ -1010,7 +1010,8 @@ class Component extends DCLogic {
       showAssignPicker, assignCancelable: showAssignPicker && !!assignedDriver,
       closeAssign: () => this.setState({ assignOpen: false, pickDriver: '', assignError: '' }),
       assignRows, noDrivers: assignRows.length === 0,
-      assignDisabled: !this.state.pickDriver,
+      // Never a disabled primary: at 42 % the yellow reads as a cream pill (law 02). No pick → the box says so.
+      assignDisabled: false,
       assignError: this.state.assignError || '', hasAssignError: !!this.state.assignError,
       tNoDriver: t.noDriver, tNoDriverSub: t.noDriverSub,
       tPassengerTrip: t.passengerTrip, tPassengers: t.passengers, tBags: t.bags, tVehicleClass: t.vehicleClass,
