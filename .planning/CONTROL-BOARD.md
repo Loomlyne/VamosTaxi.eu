@@ -79,6 +79,10 @@ Prompts for the new sessions: `.planning/prompts/`, with shared rules in `00-com
 | 20 security check | `phase-20` | `gsd/phase-20-security-check` | | Session "Vamos Taxi security phase". Check 20-06 done (`fb907a9d`): 3 serious, 1 conditional. Fixing F1 and F2 now. | `05-phase-20-security.md` |
 | 19 surge proof | removed | removed | | **Closed by the owner, 2026-09-30** ("no need for test close it"). Nothing committed, nothing created at Cloudflare or Supabase, no paid step. Folder and branch were identical to main `49c51749` and are removed. Read on live by that session: 60 connections allowed, database 24 MB, pg_cron and pg_net not installed. | none |
 
+State read 2026-09-30 11:33 (all sessions stopped about 05:15 and were reopened at 11:29):
+26.4.2 last work 05:14 (class photos), merged main 11:32, no hand-over yet. 26.5 plans 01, 02, 03, 05, 08, 09, 11 committed, plan 04 building, 06 and 10 wait for 26.4.2. Phase 20: F2 fixed in `6480ec08`, F1 not built yet, F4 closed (owner confirmed "Confirm email" is on). Phase 27: 13 plans written 03:28, waits for the owner's signature. 26.0: no new session.
+New session "Vamos Taxi SEO and browser settings", folder `seo-head`, branch `feat/seo-head-and-favicon`: nothing committed. Test booking VT-26-0745 was removed by the hourly clean-up.
+
 Legal session: closed by the owner. Both legal ships are live. Its last commit `fe4e37a0`
 (terms: driver details by e-mail, no SMS; About fleet matches the live classes) was never
 handed over and is **not live**. Archived as `archive/legal-follow-up-fe4e37a0`. It is behind
@@ -209,7 +213,7 @@ Built by the 26.3 session as `fix/26.4.2-booking-feedback` (folder `fix-26.4.2`)
 
 | What | Why not yet |
 |---|---|
-| Read the first staff digest run | 2026-09-30 06:00 Zurich time |
+| Nothing open | Staff digest read on 2026-09-30: first run at 06:01 Zurich time, status sent, one attempt, one staff member. |
 
 ## Waiting for the owner
 
