@@ -53,9 +53,9 @@ test.afterAll(() => {
 });
 
 const CAPS = [
-  { slug: "economy", name: "Economy", pax: 3, bags: 3 },
-  { slug: "business", name: "Business", pax: 7, bags: 6 },
-  { slug: "van-luxury", name: "Van luxury", pax: 12, bags: 9 },
+  { slug: "economy", name: "Economy", pax: 3, bags: 3, photo: "/assets/photography/class-economy.jpg" },
+  { slug: "business", name: "Business", pax: 7, bags: 6, photo: "/assets/photography/class-business.jpg" },
+  { slug: "van-luxury", name: "Van luxury", pax: 12, bags: 9, photo: "/assets/photography/class-van.jpg" },
 ];
 
 function quoteBody() {
@@ -88,7 +88,7 @@ function quoteBody() {
       fixed_route: false,
       total_rappen: null,
       lines: [],
-      photo_url: null,
+      photo_url: c.photo,
     })),
   };
 }
@@ -127,7 +127,7 @@ test("booking polish pictures: checkout distance @bp-capture", async ({ page }, 
       await page.evaluate(() => document.fonts.ready);
       await page.waitForTimeout(400);
       await page.screenshot({ path: join(OUT, `checkout-${width}-${lang}-top.png`) });
-      const summary = page.locator("[data-co-summary]").first();
+      const summary = page.locator(width >= 1081 ? ".vt-co__railcard" : "[data-co-section='3']").first();
       await summary.scrollIntoViewIfNeeded();
       await expect(summary.locator("[data-co-distance]")).toContainText("148.2");
       await summary.screenshot({ path: join(OUT, `checkout-${width}-${lang}-summary.png`) });
