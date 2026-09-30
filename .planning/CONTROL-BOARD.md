@@ -4,7 +4,7 @@ Kept by the control session. One page: what is live, what is being built, what w
 the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 
-**Last update:** 2026-09-30 02:48 (+04)
+**Last update:** 2026-09-30 03:01 (+04)
 
 ## Live now
 
@@ -58,17 +58,35 @@ The follow-up shipped 2026-09-30 01:35 as `e27014c1`: the five answers are built
 
 | Known and open | Detail |
 |---|---|
-| Automatic refunds refuse a live Stripe key (`paid-cancel.ts:116`) | True today on test cards. Must be lifted before real launch or /cancellation becomes false. On the Phase 19 list. |
+| Automatic refunds refuse a live Stripe key (`paid-cancel.ts:116`) | True today on test cards. Must be lifted before real launch or /cancellation becomes false. Phase 19 is closed, so Phase 20 carries it (lead 5). |
 | Settings say 15 minutes standard waiting, the pages say 30 | Owner chose 30. He changes the setting on the dashboard if both should agree. |
 | Values live since 2026-09-01 that nobody approved | Left live by his decision, English only in de/fr/ar. Listed in the hand-over, section 6. |
 | Every gap of list C | Stays a labelled gap |
 
-## In work
+## In work (sessions re-cut by the owner, 2026-09-30 02:55)
 
-| Lane | Session | Folder under `vamos-wt/` | Branch | State |
-|---|---|---|---|---|
-| 26.5 account choice before payment | same session | `phase-26.5` | `gsd/phase-26.5-checkout-account` | Discuss, UI-SPEC and 7-plan plan **signed**. Plan revision 2, 8 plans, signed. The build lock is open since the 26.4 ship (2026-09-30 00:20). **Open:** Worker `vamos` has `SUPABASE_URL` but no `SUPABASE_SERVICE_ROLE_KEY` (names read 2026-09-29 23:50). Without it "Create an account" hides itself. Whether that key belongs on the public Worker is an owner decision, see below. |
-| 26.0 main green | Phase 26.0 main green work session | `main-green-2` | `fix/main-green-2` | Plans 01 to 05, 07, 09 done. 06, 08, 10, 11, 12 left. |
+The owner closed the long sessions and starts fresh ones. Each old session committed its work,
+left a `SESSION-HANDOFF.md` on its branch and stopped. Every hand-off commit is archived on GitHub.
+Prompts for the new sessions: `.planning/prompts/`, with shared rules in `00-common-rules.md`.
+
+| Job | Folder under `vamos-wt/` | Branch | Hand-off commit | State | Prompt |
+|---|---|---|---|---|---|
+| 26.4.2 booking feedback | `fix-26.4.2` | `fix/26.4.2-booking-feedback` | `4a3d3393` | **Running** in session "Vamos Taxi 26.4.2 completion" since 03:00. At hand-off: unfinished. Last full check on `b5f7234f`; three later commits not re-checked; flight-edit bug not started; main not merged. | `01-finish-26.4.2.md` |
+| 26.5 account choice | `phase-26.5` | `gsd/phase-26.5-checkout-account` | `a468a692` | **Building** in session "Vamos Taxi build 26.5" since 2026-09-30. Owner signed plans 09, 10, 11 and the D-19 revision (`1de7e39b`). main `49c51749` merged. Migrations: `20261001100000` agreement record, `20261001110000` unpaid hidden, `20261001120000` paid-only reminder. Local stack `vamos-taxi-265`, ports 613xx. Waits for the 26.4.2 ship before it touches `/checkout` files. | `02-build-26.5.md` |
+| 26.0 main green | `main-green-2` | `fix/main-green-2` | `3e19c44f` | Plans 01 to 09 done, 10 half, 11 and 12 open. 14 commits behind main. | `03-finish-26.0.md` |
+| 27 consent record | `phase-27` | `gsd/phase-27-consent-record` | running | Design approved by its checker (run 2). Plan next, then his signature. Session "Meta measurement phases 27-29" keeps running. | none, running |
+| 26.2 audit | `phase-26.2` | `gsd/phase-26.2-audit` | | **Running** in session "Phase 26.2 audit" since 03:00. Baseline green on `49c51749`; you agreed the changed order; 8 units build in sub-folders `phase-26.2-u*`. It tightens three check scripts (numbers, database fences, translations): these come as their own hand-over and land last, after 27 to 29. Works only in folders nobody else touches. | `04-phase-26.2-audit.md` |
+| 20 security check | `phase-20` | `gsd/phase-20-security-check` | | Session "Vamos Taxi security phase". Check 20-06 done (`fb907a9d`): 3 serious, 1 conditional. Fixing F1 and F2 now. | `05-phase-20-security.md` |
+| 19 surge proof | removed | removed | | **Closed by the owner, 2026-09-30** ("no need for test close it"). Nothing committed, nothing created at Cloudflare or Supabase, no paid step. Folder and branch were identical to main `49c51749` and are removed. Read on live by that session: 60 connections allowed, database 24 MB, pg_cron and pg_net not installed. | none |
+
+State read 2026-09-30 11:33 (all sessions stopped about 05:15 and were reopened at 11:29):
+26.4.2 last work 05:14 (class photos), merged main 11:32, no hand-over yet. 26.5 plans 01, 02, 03, 05, 08, 09, 11 committed, plan 04 building, 06 and 10 wait for 26.4.2. Phase 20: F2 fixed in `6480ec08`, F1 not built yet, F4 closed (owner confirmed "Confirm email" is on). Phase 27: 13 plans written 03:28, waits for the owner's signature. 26.0: no new session.
+New session "Vamos Taxi SEO and browser settings", folder `seo-head`, branch `feat/seo-head-and-favicon`: title, description, canonical, share picture, favicon, JSON-LD, sitemap and robots on every public page. Owner chose: each language on its own address with hreflang (this also closes the open hreflang finding). Wording goes to him for approval. It shares `apps/web/middleware.ts` (serveDcHtml) with Phase 27 plan 04, so it lands after 27, with one call only in that function. Nothing committed yet. Test booking VT-26-0745 was removed by the hourly clean-up.
+
+Legal session: closed by the owner. Both legal ships are live. Its last commit `fe4e37a0`
+(terms: driver details by e-mail, no SMS; About fleet matches the live classes) was never
+handed over and is **not live**. Archived as `archive/legal-follow-up-fe4e37a0`. It is behind
+main and does not merge cleanly; a session has to redo it on today's main.
 
 ## Ship order (owner, 2026-09-30: booking, payments, account, Meta first)
 
@@ -78,7 +96,7 @@ The follow-up shipped 2026-09-30 01:35 as `e27014c1`: the five answers are built
 | 2 | 26.5 account choice before payment, with the paid-only reminder | Building |
 | 3 | 27 consent record | Not started |
 | 4 | 28 pixel page view, 29 purchase event | The Meta wording is his since 2026-09-30 (`.planning/decisions/2026-09-30-meta-wording.md`), all three texts, four languages. Not started. |
-| after | 26.0 → 26.2 → 20 → 19 | 26.0 keeps building, lands after the ones above |
+| after | 26.0 → 26.2 → 20 (19 is closed) | 26.0 keeps building, lands after the ones above |
 
 **Ship mode on 2026-09-30 only:** the control session ships 26.4.2, the legal follow-up, 26.5 and
 27 to 29 without asking, when every check of its own passes, and tells him right after.
@@ -153,7 +171,23 @@ Live is at `20260930210000`.
 | "This e-mail already has an account, sign in first" on checkout can reveal who is a customer. 26.5 uses neutral wording and a limit. |
 | `SUPABASE_SERVICE_ROLE_KEY` is on the public Worker (owner decision). Test where it is read and that it never reaches a browser. |
 | `POST /api/checkout/intent` has no limit per visitor (a lead, not confirmed). |
-| Automatic refunds refuse an `sk_live_` key; to be lifted before real launch (also Phase 19). |
+| Automatic refunds refuse an `sk_live_` key; to be lifted before real launch. Phase 19 is closed; this point stays here. |
+
+## Found by the Phase 20 check, 2026-09-30 03:20, on live Worker `a55b2c19`
+
+Findings file: branch `gsd/phase-20-security-check`, commit `fb907a9d`, `20-06-FINDINGS.md`.
+Reported by that session; not yet re-checked by the control session.
+
+| # | Finding | Weight | Goes to |
+|---|---|---|---|
+| F1 | A staff pay link also opens Manage booking for 24 hours, even after payment: traveller contact, driver phone, cancel, change time. No active pay link exists on live today. | Serious | Phase 20 builds migration `20261005100000`. Lands after 26.5. |
+| F2 | Dashboard support ticket: the PDF preview loads pdf.js from unpkg without a pin; a crafted PDF mailed to info@ could run script in a signed-in dashboard. | Serious | Phase 20 fixes `app/ops/OpsSupportTicket.dc.html` now. 26.2 keeps off the file. |
+| F3 | `POST /api/checkout/intent` has no limit per visitor: unlimited Stripe sessions from one quote. | Serious | 26.5 plan 04, decision D-20, your answer of 2026-09-30: at most 5 Pay presses per quote, at most 8 per minute per visitor. The Worker gets one new limiter setting at the 26.5 ship. |
+| F4 | Account reads trust the e-mail in the sign-in without checking it is confirmed. Safe while Supabase "Confirm email" is on. | Conditional | Phase 20 asks the owner to read the switch. 26.5 refused the extra check (not in its signed plan); it stays with Phase 20 and needs your yes. |
+| | Service-role key: server-only, never logged or returned. Purge rule: holds. | Dismissed | |
+| | Test booking VT-26-0745 TEST SECURITY, unpaid, left for the hourly clean-up (1 of 10 probes). | | |
+
+Every Phase 20 ship needs the owner's Ship; today's ship mode does not cover it.
 
 ## Owner feedback after the 26.4 ship, 2026-09-30
 
@@ -179,7 +213,7 @@ Built by the 26.3 session as `fix/26.4.2-booking-feedback` (folder `fix-26.4.2`)
 
 | What | Why not yet |
 |---|---|
-| Read the first staff digest run | 2026-09-30 06:00 Zurich time |
+| Nothing open | Staff digest read on 2026-09-30: first run at 06:01 Zurich time, status sent, one attempt, one staff member. |
 
 ## Waiting for the owner
 
@@ -190,7 +224,6 @@ Built by the 26.3 session as `fix/26.4.2-booking-feedback` (folder `fix-26.4.2`)
 | 3 | Sign-in UAT, 14 steps, in `.planning/debug/auth-sign-in-sign-up-HANDOVER.md` | phone first |
 | 4 | Should an unpaid booking get the 24-hour reminder? Today it does | decision |
 | 5 | The remaining 26.3 UAT steps, then the test-booking delete script | vamostaxi.site |
-| 7 | Cloudflare Workers Paid and the database copy | only when Phase 19 starts |
 | 8 | The unsigned Lenis folder `.planning/quick/260928-q4t-…` | decision |
 
 ## Known on live, not fixed yet
