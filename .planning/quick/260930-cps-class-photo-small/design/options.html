@@ -1,0 +1,152 @@
+<!doctype html>
+<!-- Design options for the class cards (quick 260930-cps). Review scaffold, never shipped.
+     ?opt=A|B|C  &lang=en|de|ar  &part=home|checkout
+     Vamos tokens only. Prices are FIXTURES (CHF 111 / 222 / 333), never rates. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="/design-system/styles.css">
+<style>
+:root{--vt-shadow-accent:none}
+*{box-sizing:border-box}
+body{margin:0;font-family:var(--vt-font-body);color:var(--vt-text-primary);background:var(--vt-bg-page,#fff)}
+.tag{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--vt-grey-500);margin:0 0 8px}
+.home{background:var(--vt-charcoal-900);padding:28px clamp(20px,5vw,56px) 36px}
+.home .tag{color:var(--vt-grey-400)}
+.home h2{margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-3);font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse)}
+.home p.sub{margin:4px 0 16px;font-size:var(--vt-body-md);color:var(--vt-text-inverse-muted)}
+.home .wrap{max-width:1200px;margin:0 auto}
+.state{margin-block-start:28px}
+.co{background:var(--vt-grey-50);padding:28px clamp(16px,4vw,40px) 36px}
+.co .sec{background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);padding:var(--vt-space-5);max-width:696px;margin:0 auto 24px}
+.co h2{margin:0 0 16px;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);display:flex;align-items:center;gap:12px}
+.co h2 i{inline-size:28px;block-size:28px;border-radius:999px;background:var(--vt-accent);display:inline-flex;align-items:center;justify-content:center}
+.ic{display:inline-block;inline-size:16px;block-size:16px;background:currentColor;-webkit-mask:var(--u) center/contain no-repeat;mask:var(--u) center/contain no-repeat;flex:0 0 auto}
+.grid{display:grid;gap:var(--vt-space-3);min-width:0}
+.card{position:relative;display:grid;min-width:0;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);color:var(--vt-text-primary);text-align:start}
+.card.sel{border:2px solid var(--vt-charcoal-900);box-shadow:var(--vt-shadow-md)}
+.card.off{background:var(--vt-grey-50);color:var(--vt-text-muted)}
+.shot{position:relative;overflow:hidden;background:var(--vt-grey-100);border-radius:var(--vt-radius-md);display:flex;align-items:center;justify-content:center;color:var(--vt-grey-400)}
+.shot img{position:absolute;inset:0;inline-size:100%;block-size:100%;object-fit:cover;object-position:50% 72%;display:block}
+.card.off .shot img{opacity:.55}
+.name{font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:-.01em;line-height:1.2}
+.meta{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:var(--vt-body-sm);color:var(--vt-text-secondary);margin-block-start:4px}
+.meta span{display:inline-flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums}
+.price{font-family:var(--vt-font-display);font-size:var(--vt-heading-3);font-weight:var(--vt-weight-semibold);letter-spacing:-.02em;line-height:1.1;white-space:nowrap;direction:ltr;unicode-bidi:isolate;display:inline-block}
+.note{font-size:var(--vt-body-sm);color:var(--vt-text-secondary);line-height:1.35}
+.small{font-size:var(--vt-body-xs);color:var(--vt-text-muted)}
+.sk{display:block;block-size:26px;inline-size:96px;border-radius:var(--vt-radius-sm);background:var(--vt-grey-100)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;block-size:44px;padding:0 22px;border-radius:var(--vt-radius-pill);background:var(--vt-charcoal-900);color:var(--vt-text-inverse);font-weight:var(--vt-weight-semibold);font-size:13px;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;white-space:nowrap;border:0}
+.btn.dis{opacity:.42}
+[dir=rtl] .btn .ic{transform:scaleX(-1)}
+.chk{position:absolute;inset-block-start:10px;inset-inline-end:10px;inline-size:24px;block-size:24px;border-radius:999px;background:var(--vt-charcoal-900);color:var(--vt-accent);display:flex;align-items:center;justify-content:center}
+.chk .ic{inline-size:14px;block-size:14px}
+
+/* ── Option A: one low row per class ─────────────────────────────────────────── */
+.A .grid{grid-template-columns:minmax(0,1fr)}
+.A .card{grid-template-columns:132px minmax(0,1fr) auto auto;align-items:center;gap:var(--vt-space-4);padding:12px 16px 12px 12px;padding-inline:12px 16px}
+.A .shot{inline-size:132px;aspect-ratio:3/2}
+.A .pr{text-align:end}
+.A .co-only .pr{padding-inline-end:36px}
+.A .chk{inset-block-start:50%;transform:translateY(-50%);inset-inline-end:14px}
+
+/* ── Option B: three across, small photo beside the name ─────────────────────── */
+.B .grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.B .card{grid-template-columns:96px minmax(0,1fr);grid-template-areas:"shot body" "pr act";align-items:center;gap:12px 14px;padding:14px}
+.B .shot{grid-area:shot;inline-size:96px;aspect-ratio:4/3}
+.B .body{grid-area:body}.B .pr{grid-area:pr;grid-column:1/-1}.B .act{grid-area:act;grid-column:1/-1}
+.B .card{grid-template-areas:"shot body" "pr pr" "act act"}
+.B .home-only .card{grid-template-areas:"shot body" "foot foot"}
+.B .foot{grid-area:foot;display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0}
+.B .co-only .grid{grid-template-columns:minmax(0,1fr)}
+.B .co-only .card{grid-template-columns:96px minmax(0,1fr) auto;grid-template-areas:"shot body pr";padding:12px 52px 12px 12px;padding-inline:12px 52px}
+.B .co-only .pr{grid-column:auto;text-align:end}
+.B .co-only .chk{inset-block-start:50%;transform:translateY(-50%);inset-inline-end:14px}
+
+/* ── Option C: three across, photo fills the side of the card ────────────────── */
+.C .grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.C .card{grid-template-columns:42% minmax(0,1fr);overflow:hidden;min-block-size:148px}
+.C .shot{border-radius:0;block-size:100%;min-block-size:148px}
+.C .side{display:flex;flex-direction:column;gap:8px;padding:14px;min-width:0;justify-content:center}
+.C .btn{block-size:40px;padding:0 16px;align-self:flex-start}
+.C .card.sel{border-width:2px}
+.C .co-only .grid{grid-template-columns:minmax(0,1fr)}
+.C .co-only .card{grid-template-columns:168px minmax(0,1fr);min-block-size:112px}
+.C .co-only .shot{min-block-size:112px}
+.C .co-only .side{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;padding:12px 52px 12px 16px;padding-inline:16px 52px}
+.C .co-only .side>div:last-child{text-align:end}
+.C .co-only .chk{inset-block-start:50%;transform:translateY(-50%);inset-inline-end:14px}
+
+/* narrow: every option becomes a row with the photo at the side */
+@media (max-width:1080px){
+  .B .grid,.C .grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media (max-width:700px){
+  .grid{grid-template-columns:minmax(0,1fr)!important}
+  .A .card{grid-template-columns:96px minmax(0,1fr);grid-template-areas:"shot body" "shot pr";gap:2px 12px;padding:10px 40px 10px 10px;padding-inline:10px 40px}
+  .A .shot{grid-area:shot;inline-size:96px}
+  .A .body{grid-area:body}.A .pr{grid-area:pr;text-align:start;padding:0!important}
+  .B .card,.B .co-only .card{grid-template-columns:76px minmax(0,1fr);grid-template-areas:"shot body" "shot pr";gap:2px 12px;padding:12px 44px 12px 12px;padding-inline:12px 44px}
+  .B .shot{inline-size:76px}
+  .B .pr,.B .co-only .pr{grid-column:auto;text-align:start}
+  .C .card,.C .co-only .card{grid-template-columns:34% minmax(0,1fr);min-block-size:112px}
+  .C .shot{min-block-size:112px}
+  .C .co-only .side{display:flex;padding:12px 44px 12px 14px;padding-inline:14px 44px;gap:6px}
+  .C .co-only .side>div:last-child{text-align:start}
+  .price{font-size:var(--vt-heading-4)}
+}
+@media (min-width:701px) and (max-width:1080px){
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+const q = new URLSearchParams(location.search);
+const opt = (q.get('opt') || 'A').toUpperCase(), lang = q.get('lang') || 'en', part = q.get('part') || 'home';
+document.documentElement.lang = lang; document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+const T = {
+  en: { h: 'Choose your class', sub: 'Fixed price, all inclusive. Pick a class to continue.', fill: 'Fill in the trip to see prices', sel: 'Select', fixed: 'fixed price', seats: 'Seats up to 3', before: 'Before the trip is filled', loading: 'Loading the prices', priced: 'Trip filled', co1: 'Checkout step 1 · Business chosen', co2: 'Checkout step 1 · 5 passengers' },
+  de: { h: 'Wählen Sie Ihre Klasse', sub: 'Fixpreis, alles inklusive. Wählen Sie eine Klasse, um fortzufahren.', fill: 'Fahrt ausfüllen, um Preise zu sehen', sel: 'Auswählen', fixed: 'Fixpreis', seats: 'Plätze bis 3', before: 'Before the trip is filled', loading: 'Loading the prices', priced: 'Trip filled', co1: 'Checkout step 1 · Business chosen', co2: 'Checkout step 1 · 5 passengers' },
+  ar: { h: 'اختر فئتك', sub: 'سعر ثابت شامل كل شيء. اختر فئة للمتابعة.', fill: 'أكمل تفاصيل الرحلة لعرض الأسعار', sel: 'اختر', fixed: 'سعر ثابت', seats: 'مقاعد حتى 3', before: 'Before the trip is filled', loading: 'Loading the prices', priced: 'Trip filled', co1: 'Checkout step 1 · Business chosen', co2: 'Checkout step 1 · 5 passengers' },
+}[lang];
+const CLS = [
+  { slug: 'economy', name: 'Economy', pax: 3, bags: 3, p: 'CHF 111' },
+  { slug: 'business', name: 'Business', pax: 7, bags: 6, p: 'CHF 222' },
+  { slug: 'van-luxury', name: 'Van luxury', pax: 12, bags: 9, p: 'CHF 333' },
+];
+const ic = (n) => `<span class="ic" style="--u:url(/assets/icons/${n}.svg)"></span>`;
+const shot = (c) => `<div class="shot"><img src="ph/${c.slug}.jpg" alt="${c.name}"></div>`;
+const body = (c) => `<div class="body"><div class="name">${c.name}</div><div class="meta"><span>${ic('users')}${c.pax}</span><span>${ic('luggage')}${c.bags}</span></div></div>`;
+function homeCard(c, st) {
+  const price = st === 'priced' ? `<div class="price">${c.p}</div>` : st === 'loading' ? `<span class="sk"></span>` : `<div class="note">${T.fill}</div>`;
+  const btn = st === 'loading' ? `<span class="sk" style="inline-size:120px;block-size:${opt === 'C' ? 40 : 44}px;border-radius:999px"></span>` : `<span class="btn ${st === 'idle' ? 'dis' : ''}">${T.sel} ${ic('arrow-right')}</span>`;
+  if (opt === 'A') return `<div class="card">${shot(c)}${body(c)}<div class="pr">${price}</div><div class="act">${btn}</div></div>`;
+  if (opt === 'B') return `<div class="card">${shot(c)}${body(c)}<div class="foot">${price}${btn}</div></div>`;
+  return `<div class="card">${shot(c)}<div class="side">${body(c)}${price}${btn}</div></div>`;
+}
+function coCard(c, selected, off) {
+  const pr = off ? `<div class="note">${T.seats}</div>` : `<div class="price">${c.p}.00</div><div class="small">${T.fixed}</div>`;
+  const chk = selected ? `<span class="chk">${ic('check')}</span>` : '';
+  const cl = `card ${selected ? 'sel' : ''} ${off ? 'off' : ''}`;
+  if (opt === 'C') return `<div class="${cl}">${shot(c)}<div class="side">${body(c)}<div>${pr}</div></div>${chk}</div>`;
+  return `<div class="${cl}">${shot(c)}${body(c)}<div class="pr">${pr}</div>${chk}</div>`;
+}
+let html = '';
+if (part === 'home') {
+  html += `<div class="home ${opt}"><div class="wrap home-only">`;
+  for (const [st, label] of [['idle', T.before], ['loading', T.loading], ['priced', T.priced]]) {
+    html += `<div class="state"><p class="tag">${label}</p><h2>${T.h}</h2><p class="sub">${T.sub}</p><div class="grid">${CLS.map((c) => homeCard(c, st)).join('')}</div></div>`;
+  }
+  html += `</div></div>`;
+} else {
+  html += `<div class="co ${opt}"><div class="co-only">`;
+  html += `<p class="tag" style="max-width:696px;margin-inline:auto">${T.co1}</p><div class="sec"><h2><i>${ic('check')}</i>${T.h}</h2><div class="grid">${CLS.map((c) => coCard(c, c.slug === 'business', false)).join('')}</div></div>`;
+  html += `<p class="tag" style="max-width:696px;margin-inline:auto">${T.co2}</p><div class="sec"><h2><i>${ic('check')}</i>${T.h}</h2><div class="grid">${CLS.map((c) => coCard(c, c.slug === 'van-luxury', c.pax < 5)).join('')}</div></div>`;
+  html += `</div></div>`;
+}
+document.getElementById('root').innerHTML = html;
+</script>
+</body>
+</html>
