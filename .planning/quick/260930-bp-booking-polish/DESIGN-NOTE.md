@@ -110,7 +110,7 @@ Nothing in this table was changed except the three prototype rows.
 
 ## Not built yet
 
-- Nothing is merged, pushed or deployed. The prototype is five small commits.
+- Nothing is merged, pushed or deployed. The prototype is small commits on the branch, easy to change.
 - No French pictures (French strings exist: the checkout reuses the existing key
   `checkout.distanceKm`; the home dictionary has one new pattern with de, fr, ar).
 - No new visual gate test; the two capture specs only run with `BP_CAPTURE=1`.
