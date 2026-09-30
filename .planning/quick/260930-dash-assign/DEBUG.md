@@ -1,5 +1,5 @@
 ---
-status: verifying
+status: awaiting_human_verify
 trigger: "Dashboard booking detail of a paid booking: Assign, pick a driver, confirm -> generic 'Could not assign VT-...' (assignFailed)."
 created: 2026-09-30
 updated: 2026-09-30
@@ -9,7 +9,7 @@ branch: gsd/26.2-dash-assign (cut from origin/main 316606ee)
 ## Current Focus
 
 hypothesis: CONFIRMED (see Evidence). postgres.js `sql.begin` rethrows a query error the callback caught; assignBooking maps SQL errors inside asSystem, so 'no-vehicle' escapes as a throw -> 500 -> generic toast.
-next_action: run the end gates (typecheck, lint, i18n:check, check:numbers, check:db-fences, touched tests after sync-dc-mock-to-public), stop the isolated stack, write owner decisions.
+next_action: hand over to the control session (commits 5bd190c5, 0c83bdd0 + this record); owner answers the vehicle decision below; after a deploy, one Assign click on the paid booking must show the no-vehicle text, not the generic one.
 
 reasoning_checkpoint:
   hypothesis: "The owner saw the generic toast because ops_assign_leg raised P0001 'no-vehicle' (chauffeur default_vehicle_id NULL) and assignBooking's in-transaction catch cannot stop postgres.js begin() from rethrowing it, so the route threw and answered a non-JSON 500."
@@ -108,3 +108,40 @@ files_changed:
   - apps/web/lib/ops/assign-rpc-errors.test.ts (new)
   - apps/web/lib/ops/assign.local.test.ts (new)
   - scripts/db-access-fence-allowlist.json
+
+## Tests
+
+| File | Before the fix | After |
+|---|---|---|
+| apps/web/lib/ops/assign-rpc-errors.test.ts (new, always runs) | 4 failed, 1 passed — `AssertionError: promise rejected "PostgresError: no-vehicle { code: 'P…' }" instead of resolving` | 5 passed |
+| apps/web/lib/ops/assign.local.test.ts (new, needs VAMOS_LOCAL_DB_PORT) | failed — `PostgresError: no-vehicle ❯ lib/ops/assign.ts:243:8` | passed on vamos-taxi-262 (port 62322): no-vehicle, then ok after the vehicle link, then overlap with the first trip |
+| apps/web/lib/ops/assign.test.ts | passed | passed |
+
+Gates (2026-10-01, once, at the end): pnpm typecheck 0; pnpm lint 0 errors (5 warnings, none in touched files, all pre-existing); pnpm i18n:check pass; pnpm check:numbers ok; pnpm check:db-fences 8/8 pass; `node scripts/sync-dc-mock-to-public.mjs` then vitest assign.test.ts, assign-rpc-errors.test.ts, ops-detail-i18n.test.ts 25 passed, assign.local.test.ts skipped (stack stopped; green run recorded above). No migration, so no pgTAP run.
+
+Isolated stack: started with `npx supabase db start --workdir …/scratchpad/sb262u`, local dev password `vamos_edge` set on that container only (the committed local credential from packages/db/scripts/local-role-passwords.mjs), stopped with `npx supabase stop --workdir … --no-backup`. No other Docker project touched. No hosted SQL, no push, no deploy.
+
+## Owner decision needed (no rule invented)
+
+After this fix, Assign on the owner's paid booking shows "Cannot assign until this chauffeur has a vehicle." (en/de/fr/ar already in OpsDetail). That is true, but the dashboard has no place to give a chauffeur a vehicle: on 2026-09-25 (a1393c93) the chauffeur form's Vehicle field became a Class field, and there is no vehicle list page. So assignment cannot succeed for his setup until he chooses how a trip gets its car:
+
+- A. Put a Vehicle field back on the chauffeur form (pick one car or add one). Assign keeps using that car. Example: Chauffeurs → the driver → Vehicle "Business · ZH 000 000". No database change; the look comes with his new design pictures.
+- B. The Assign dialog asks for the car as well as the driver. Needs his new dialog design and a database change.
+- C. Assign sets the driver only; the trip has no car (the customer mail has no plate, no check that one car is booked twice). Database change.
+- D. The system picks the car itself (for example a car in service, free at that time). Which car is his rule to set.
+
+Second question, same area: today nothing checks that the car's class matches the trip's class or the chauffeur's class. His only car is a different class from his only chauffeur. Should assign refuse that, or allow it?
+
+## Same defect elsewhere (not fixed here, outside this job)
+
+A catch inside an identity callback, so the refusal leaves as a 500 and the page shows its generic text:
+- apps/web/lib/ops/bookings-write.ts:139 (ops_cancel_booking: frozen / not-found)
+- apps/web/lib/ops/bookings-write.ts:423 (ops_mark_complete / ops_mark_no_show: frozen)
+- apps/web/lib/ops/refund.ts:152 (ops_refund_record)
+- apps/web/lib/ops/refund.ts:214 (ops_refund_decide, asStaff)
+
+## Not verified
+
+- No live click: nothing is deployed from this branch. The owner's exact HTTP answer is inferred (throw in route → 500 without JSON → code 'http'); Worker logs were not available.
+- The lead saw no Postgres ERROR line in 24 h; a plpgsql RAISE is normally logged, so the click time or the log filter is unreconciled. A refusal before the SQL (csrf 403, not-found) would also show the generic text and is not changed by this fix.
+- The success path was proven on the local stack only, with a vehicle linked by SQL (the dashboard cannot link one today).
