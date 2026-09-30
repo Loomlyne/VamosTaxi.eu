@@ -304,7 +304,7 @@ function okWebResponse(
   session: Stripe.Checkout.Session,
   chargedRappen: number,
   fallbackExpiresAt: Date,
-  cookie: string,
+  cookie: string | null,
 ): Response {
   const url = session.url;
   if (!url) return refuse("invalid_request");
@@ -321,7 +321,7 @@ function okWebResponse(
       expires_at: expiresAt.toISOString(),
       amount_rappen: chargedRappen,
     }),
-    { status: 200, headers: { ...JSON_HEADERS, "set-cookie": cookie } },
+    { status: 200, headers: cookie ? { ...JSON_HEADERS, "set-cookie": cookie } : JSON_HEADERS },
   );
 }
 
@@ -575,12 +575,20 @@ async function runWebIntent(
   let attachTo: { booking_id: string; reference: string; stripe_checkout_session_id: string } | null = null;
   let replacedBookingId: string | null = null;
   const existingOpen = await deps.loadOpenPayment(body.quote_id);
+  // F8: a manage token (and cookie, detail write) for an EXISTING booking goes only to the request whose
+  // vt_manage cookie already owns it. Anyone else with quote + lock gets the Stripe page, nothing that manages it.
+  const ownsExisting = existingOpen
+    ? deps.ownsBooking
+      ? await deps.ownsBooking(existingOpen.booking_id).catch(() => false)
+      : false
+    : false;
   if (existingOpen) {
     const stored = await deps.retrieveCheckoutSession(existingOpen.stripe_checkout_session_id).catch(() => null);
     if (!stored) return refuse("invalid_request");
     if (stored.status === "complete") return refuse("quote_already_booked");
     if (hostedPayable(stored, chargedRappen) && sameSelection(stored)) {
       // D-24: same selection, session still open → same booking, same page.
+      if (!ownsExisting) return okWebResponse(existingOpen, stored, chargedRappen, expiresAt, null);
       await deps.issueManageToken({ bookingId: existingOpen.booking_id, hash: token.hash, expiresAt: manageExpiresAt });
       await saveDetails(existingOpen.booking_id);
       await afterBooking(existingOpen.booking_id);
@@ -629,6 +637,7 @@ async function runWebIntent(
         stripeCheckoutSessionId: created.id,
         chargedRappen,
       });
+      if (!ownsExisting) return okWebResponse(row, created, chargedRappen, expiresAt, null);
       await deps.issueManageToken({ bookingId: row.booking_id, hash: token.hash, expiresAt: manageExpiresAt });
       await saveDetails(row.booking_id);
       await afterBooking(row.booking_id);
