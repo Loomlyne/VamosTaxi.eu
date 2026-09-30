@@ -41,7 +41,7 @@ async function handleFetch(
     pinRequestToSurface(request, surface, sni),
   );
   // The dashboard host is closed to crawlers outright (HTTP noindex already covers its pages).
-  const inboundUrl = new URL(inbound.url);
+  const inboundUrl = new URL(request.url);
   if (
     inboundUrl.pathname === "/robots.txt" &&
     (inboundUrl.hostname === "dashboard.vamostaxi.site" || inboundUrl.hostname === "dashboard.localhost")
