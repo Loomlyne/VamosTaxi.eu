@@ -12,8 +12,7 @@
 // pathname and active locale are only reachable through hooks, inside a component render
 // — but the old `VamosLocale` was a plain global object, callable from anywhere
 // (`VamosLocale.setLang('de')`, no component required). `LocaleShimBootstrap` below
-// closes that gap the same way `apps/web/lib/lenis-provider.tsx`'s `activeLenis`
-// singleton does: a small set of module-scoped "active" refs, kept current by one
+// closes that gap with a small set of module-scoped "active" refs, kept current by one
 // component mounted once in the client boundary (`app/[locale]/providers.tsx`), so the
 // imperative `VamosLocale.*` methods have something live to call.
 
@@ -157,10 +156,8 @@ export function useVamosLocale(): {
   return { lang, cur: currency, setLang, setCur, money, onChange: VamosLocale.onChange };
 }
 
-/** Debug/test hooks live only under this flag, mirroring
- *  `apps/web/lib/lenis-provider.tsx`'s own `TEST_HOOKS_ENABLED` convention: dead-code
- *  eliminated from a production bundle (`next build` inlines `NODE_ENV`), never
- *  referenced by any product component. */
+/** Debug/test hooks live only under this flag: dead-code eliminated from a production
+ *  bundle (`next build` inlines `NODE_ENV`), never referenced by any product component. */
 const TEST_HOOKS_ENABLED = process.env.NODE_ENV !== "production";
 
 type VamosLocaleDebug = () => LocaleSnapshot;
@@ -175,8 +172,7 @@ declare global {
 }
 
 /**
- * Mounted once in the client boundary (`app/[locale]/providers.tsx`), alongside
- * `LenisProvider` — keeps the module-scoped refs `VamosLocale`'s imperative methods
+ * Mounted once in the client boundary (`app/[locale]/providers.tsx`) — keeps the module-scoped refs `VamosLocale`'s imperative methods
  * read current every render, and emits `onChange` whenever the active locale actually
  * changes (a `<Link>` navigation or a browser back/forward, not only a
  * `VamosLocale.setLang` call, which already emits via the router transition itself).

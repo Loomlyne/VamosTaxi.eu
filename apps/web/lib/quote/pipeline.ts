@@ -938,6 +938,8 @@ export async function runRepricePipeline(
             },
           ]
         : [outbound];
+    // D-37: the same Directions call the quote path counts; a changed stop is a new one.
+    await countMapboxUnit(deps.env, deps.nowMs);
     const routed = await deps.routeLegs(inputs);
     if (!routed.ok) {
       routedPublic = inputs.map((input, i) => ({

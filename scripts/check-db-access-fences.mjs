@@ -50,7 +50,8 @@ const ROOTS = ["apps/web", "apps/isolation-probe", "packages/db/src", "packages/
 function walk(dir, files = []) {
   if (!existsSync(dir)) return files;
   for (const entry of readdirSync(dir)) {
-    if (EXCLUDED_DIRS.has(entry)) continue;
+    // `.next-<name>`: extra Next build output (git-ignored), never source.
+    if (EXCLUDED_DIRS.has(entry) || entry.startsWith(".next")) continue;
     const full = join(dir, entry);
     const stats = statSync(full);
     if (stats.isDirectory()) {

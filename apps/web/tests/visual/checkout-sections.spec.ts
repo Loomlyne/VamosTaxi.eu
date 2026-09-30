@@ -507,12 +507,14 @@ for (const lang of ["en", "ar"] as Lang[]) {
 // seats and bags, then the price row. Selected = charcoal 2px border + check. Too small = greyed, no price,
 // "Seats up to N". 768 keeps the tile cards. Amounts are arithmetic fixtures.
 const SHOTS_D = "/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/3c6c6056-f11d-41a2-8b13-17a758844e5c/scratchpad";
-for (const [lang, width] of [["en", 390], ["ar", 390], ["en", 768]] as const) {
-  test(`${lang} ${width}: class cards read as one compact row per class on the phone @checkout`, async ({ page }) => {
+// Quick 260930-cps, owner-signed layout E: the same row card at every width. Square photo on the inline-start side,
+// name, price, "N seats / N bags" in words, the check in the top inline-end corner.
+for (const [lang, width] of [["en", 390], ["ar", 390], ["en", 768], ["ar", 768], ["en", 1024], ["en", 1440]] as const) {
+  test(`${lang} ${width}: class cards are one row per class, photo at the side @checkout`, async ({ page }) => {
     await setup(page);
     const seats5 = TRIP.replace("pax=2", "pax=5");
     await open(page, lang, width, seats5);
-    const phone = width <= 680;
+    const phone = true;
     const economy = card(page, "economy");
     const van = card(page, "van-luxury");
     // Too small: Economy and Business take 3, the party is 5.
@@ -533,6 +535,14 @@ for (const [lang, width] of [["en", 390], ["ar", 390], ["en", 768]] as const) {
     const vb0 = (await van.locator(".vt-veh__shot").boundingBox())!;
     expect(Math.abs(vb0.width - eb.width)).toBeLessThanOrEqual(0.5);
     expect(Math.abs(vb0.height - eb.height)).toBeLessThanOrEqual(0.5);
+    // square photo, one card per row, seats and bags in words
+    expect(Math.abs(eb.width - eb.height)).toBeLessThanOrEqual(0.5);
+    expect(eb.width).toBe(width <= 680 ? 104 : 120);
+    const eBox = (await economy.boundingBox())!, vBox = (await van.boundingBox())!;
+    expect(vBox.y).toBeGreaterThanOrEqual(eBox.y + eBox.height);
+    expect(Math.abs(vBox.x - eBox.x)).toBeLessThanOrEqual(0.5);
+    if (lang === "en") await expect(economy.locator(".vt-veh__caps")).toHaveText(/3 seats\s*3 bags/);
+    else await expect(economy.locator(".vt-veh__caps")).not.toContainText("seats");
     if (phone) {
       // on the inline-start side of the card, the card fits the viewport, 44 px target at least
       const cardBox = (await economy.boundingBox())!;
@@ -563,16 +573,18 @@ for (const [lang, width] of [["en", 390], ["ar", 390], ["en", 768]] as const) {
     await expect(van.locator(".vt-veh")).toHaveCSS("border-top-color", charcoal);
     await expect(van.locator(".vt-co__class-check")).toBeVisible();
     if (phone) {
-      // the check sits on the photo's corner (inside the photo box)
+      // the check sits in the card's top inline-end corner, clear of the photo and of the name
       const chk = (await van.locator(".vt-co__class-check").boundingBox())!;
+      const vc = (await van.boundingBox())!;
       const vs = (await van.locator(".vt-veh__shot").boundingBox())!;
-      expect(chk.x).toBeGreaterThanOrEqual(vs.x - 1);
-      expect(chk.x + chk.width).toBeLessThanOrEqual(vs.x + vs.width + 1);
-      expect(chk.y).toBeGreaterThanOrEqual(vs.y - 1);
-      expect(chk.y + chk.height).toBeLessThanOrEqual(vs.y + vs.height + 1);
+      const nm = (await van.locator(".vt-veh__name").boundingBox())!;
+      const rtl = lang === "ar";
+      if (rtl) { expect(chk.x - vc.x).toBeLessThanOrEqual(14); expect(chk.x + chk.width).toBeLessThanOrEqual(vs.x); expect(nm.x).toBeGreaterThanOrEqual(chk.x + chk.width - 1); }
+      else { expect(vc.x + vc.width - (chk.x + chk.width)).toBeLessThanOrEqual(14); expect(chk.x).toBeGreaterThanOrEqual(vs.x + vs.width); expect(nm.x + nm.width).toBeLessThanOrEqual(chk.x + 1); }
+      expect(chk.y - vc.y).toBeLessThanOrEqual(14);
     }
     await noSidewaysScroll(page);
     await page.locator("[data-co-classes]").scrollIntoViewIfNeeded();
-    await page.locator("#co-section-class").screenshot({ path: `${SHOTS_D}/obf-d-checkout-cards-${width}-${lang}.png` });
+    
   });
 }

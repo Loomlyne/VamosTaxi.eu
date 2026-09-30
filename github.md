@@ -17,6 +17,10 @@ date: 2026-08-09T22:42:57Z
 
 ## Sync history
 
+### 2026-09-30 — Lenis removed
+
+- `assets/lenis.js`, `assets/lenis.css` and `assets/lenis-boot.js` deleted, the `lenis` npm package removed from `apps/web`, and the design system's own `VamosScroll` removed from `design-system/_ds_bundle.js`. Scrolling is native (see `CLAUDE.md`, "Scrolling is native"). The older entries below are kept as provenance history.
+
 ### 2026-08-04T20:30:29Z — darkroomengineering/lenis@main
 
 - Re-read `darkroomengineering/lenis` README (no-code setup, `data-lenis-prevent`, nested
@@ -27,16 +31,6 @@ date: 2026-08-09T22:42:57Z
   `AuthStates`, `PhoneVerify`, `ResetForm`, `ops-login`. All 36 now load them.
 - Unrelated to GitHub but shipped this turn: `app/vamos-locale.js` + `app/vamos-i18n-dict.js`,
   the platform-wide language/currency runtime (see `CLAUDE.md`).
-
-## Vendored libraries
-
-| Library | Source | Version | Files |
-|---|---|---|---|
-| Lenis | github.com/darkroomengineering/lenis (MIT) | 1.3.23 | `assets/lenis.js` (published `dist/lenis.mjs`, ESM export swapped for `window.Lenis`, plus a `if (window.Lenis) return` load guard), `assets/lenis.css` (`packages/core/lenis.css` verbatim + one `scroll-behavior` override) |
-
-The repo ships no prebuilt bundle on `main` (source TS only), so the vendored file is the
-published 1.3.23 dist, not a build of the checked-in source. To upgrade: take the new dist
-(1.3.25 is current), keep the three documented edits, leave `assets/lenis-boot.js` alone.
 
 ## Sync history
 
@@ -67,11 +61,10 @@ published 1.3.23 dist, not a build of the checked-in source. To upgrade: take th
 
 | Screen | Taken from these repos |
 |---|---|
-| every `app/*.dc.html` | Lenis smooth scroll (`assets/lenis.js`, `lenis.css`, `lenis-boot.js`) — all 36 surfaces |
 | `app/faq.dc.html` | `chevron-up` (expand-all control), `file-text` (deference blocks) |
 | `app/contact.dc.html` | `message-circle` (WhatsApp, live chat), `circle-alert` (field errors), `loader-circle` (sending state), `youtube` (social row) |
 | `app/terms.dc.html`, `privacy`, `cookies`, `cancellation`, `imprint` | pre-existing Lucide subset only |
 
-Note: only icon assets and the Lenis runtime are imported from GitHub. Nothing else in the
+Note: only icon assets are imported from GitHub. Nothing else in the
 project derives from those repos — the product source of truth is the Vamos Taxi design
 system and the `docs/SPEC-*.md` set.

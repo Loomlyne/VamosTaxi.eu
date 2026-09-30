@@ -2195,6 +2195,10 @@
       'The chauffeur could not be saved.': { de: 'Der Chauffeur konnte nicht gespeichert werden.', fr: 'Le chauffeur n’a pas pu être enregistré.', ar: 'تعذّر حفظ السائق.' },
       'Customer details could not be saved.': { de: 'Die Kundendaten konnten nicht gespeichert werden.', fr: 'Les coordonnées du client n’ont pas pu être enregistrées.', ar: 'تعذّر حفظ بيانات العميل.' },
       'Save failed. Try again.': { de: 'Speichern fehlgeschlagen. Versuchen Sie es erneut.', fr: 'Échec de l’enregistrement. Réessayez.', ar: 'فشل الحفظ. أعد المحاولة.' },
+      /* 26.2-bp C4: written straight into New trip (error title) and Booking detail (Payment tag, cancel dialog). */
+      'Quote first': { de: 'Zuerst quoten', fr: 'Devis d’abord', ar: 'سعّر أولاً' },
+      'Not paid yet': { de: 'Noch nicht bezahlt', fr: 'Pas encore payé', ar: 'لم يُدفع بعد' },
+      'Paid by card': { de: 'Mit Karte bezahlt', fr: 'Payé par carte', ar: 'مدفوع بالبطاقة' },
     },
   };
 
@@ -2205,6 +2209,7 @@
     P.push({ re: /^Up to (\d+) bags$/, de: 'Bis zu $1 Gepäckstücke', fr: 'Jusqu’à $1 bagages', ar: 'حتى $1 حقائب' });
     P.push({ re: /^Seats up to (\d+)$/, de: 'Plätze bis $1', fr: 'Jusqu’à $1 places', ar: 'مقاعد حتى $1' });
     P.push({ re: /^Bags up to (\d+)$/, de: 'Gepäck bis $1', fr: 'Jusqu’à $1 bagages', ar: 'حقائب حتى $1' });
+    P.push({ re: /^(\d+) seats$/, de: '$1 Plätze', fr: '$1 places', ar: '$1 مقاعد' });
   })();
 
   /* 26.3-G2 — account surfaces: values the code builds or the API supplies.

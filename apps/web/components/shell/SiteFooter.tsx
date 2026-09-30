@@ -6,7 +6,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { createNavigation } from "next-intl/navigation";
 import { routing, type Locale } from "@/i18n/routing";
 import { PUBLIC_ROUTES, type PublicRoute } from "@/lib/metadata";
-import { useVamosScroll } from "@/lib/lenis-provider";
+import { scrollToElement } from "@/lib/scroll";
 import {
   PHONE_DISPLAY,
   PHONE_HREF,
@@ -157,7 +157,6 @@ export function SiteFooter({
   const tFooter = useTranslations("footer");
   const locale = useLocale() as Locale;
   const rtl = locale === "ar";
-  const { scrollTo } = useVamosScroll();
 
   const groups: { key: string; heading: string; social?: boolean; items: ReactNode }[] = [
     {
@@ -201,7 +200,7 @@ export function SiteFooter({
                 const el = document.getElementById("faq");
                 if (!el) return;
                 event.preventDefault();
-                scrollTo(el);
+                scrollToElement(el);
                 if (history.replaceState) history.replaceState(null, "", "#faq");
               }}
             />

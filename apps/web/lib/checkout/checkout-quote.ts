@@ -8,6 +8,7 @@
 // Pure functions plus one fetch wrapper that takes its `fetch`, so the whole
 // path is testable without a browser.
 
+import { smallPhotoUrl } from "@/lib/photos/variant";
 import type { Trip } from "./trip-url";
 
 export type DisplayCurrency = "CHF" | "EUR" | "USD" | "AED";
@@ -60,6 +61,17 @@ export type QuoteOk = {
   classes: ClassView[];
   /** No class is eligible for this party (D-11 empty state). */
   noneFit: boolean;
+  /**
+   * The server's routed distance for the trip in metres (`route.legs[].distance_m`,
+   * the same number the fare uses). Display only. `null` when the answer carries no
+   * road distance (older answer, or a leg measured without a road).
+   */
+  distanceM: number | null;
+  /**
+   * True when any leg has no road line (`route.legs[].road === false`): the fare is a
+   * straight-line one, so the page writes "No road route" instead of a figure. Never a partial sum.
+   */
+  noRoad: boolean;
 };
 
 export type QuoteRefusal = {
@@ -130,13 +142,40 @@ function classView(raw: unknown): ClassView | null {
   return {
     slug: c.slug,
     name: typeof c.name === "string" && c.name ? c.name : c.slug,
-    photo: typeof c.photo_url === "string" ? c.photo_url : "",
+    // the class cards are at most ~210px wide: the 640 version covers 3x screens
+    photo: typeof c.photo_url === "string" ? smallPhotoUrl(c.photo_url, 640) : "",
     eligible,
     block: eligible ? null : (block ?? "unavailable"),
     pax: typeof c.effective_max_pax === "number" ? c.effective_max_pax : 0,
     bags: typeof c.max_bags === "number" ? c.max_bags : 0,
     totalRappen: typeof c.total_rappen === "number" && Number.isFinite(c.total_rappen) ? c.total_rappen : null,
   };
+}
+
+/** True when the answer has legs and any one of them has no road line. */
+function routeHasNoRoad(raw: unknown): boolean {
+  const legs = asRecord(raw).legs;
+  return Array.isArray(legs) && legs.some((item) => asRecord(item).road === false);
+}
+
+/** Sum of the server's road metres; null when a leg is missing, zero or not a road. */
+function routeDistanceM(raw: unknown): number | null {
+  const legs = asRecord(raw).legs;
+  if (!Array.isArray(legs) || legs.length === 0) return null;
+  let sum = 0;
+  for (const item of legs) {
+    const leg = asRecord(item);
+    const m = leg.distance_m;
+    if (leg.road === false || typeof m !== "number" || !Number.isFinite(m) || m <= 0) return null;
+    sum += m;
+  }
+  return sum;
+}
+
+/** "18.4": the server's metres as kilometres, one decimal, as the design system writes figures. */
+export function kmFigure(distanceM: number | null | undefined): string | null {
+  if (distanceM == null || !Number.isFinite(distanceM) || distanceM <= 0) return null;
+  return (Math.round(distanceM / 100) / 10).toFixed(1);
 }
 
 export function parseQuoteJson(status: number, json: unknown): QuoteResult {
@@ -153,6 +192,8 @@ export function parseQuoteJson(status: number, json: unknown): QuoteResult {
       pricingLive: body.pricing_live !== false,
       classes,
       noneFit: classes.length === 0 || classes.every((c) => !c.eligible),
+      distanceM: routeDistanceM(body.route),
+      noRoad: routeHasNoRoad(body.route),
     };
   }
   const code = typeof body.error === "string" ? body.error : status >= 500 ? "unavailable" : "unknown";

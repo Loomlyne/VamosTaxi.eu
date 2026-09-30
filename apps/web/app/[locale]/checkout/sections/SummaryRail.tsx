@@ -7,10 +7,12 @@ import { PayBar } from "@/components/checkout/PayBar";
 import { TurnstileWidget } from "@/components/forms/TurnstileWidget";
 import { PriceSummary, RouteSummary, type PriceLine, type RouteMetaItem } from "@/components/transfer";
 import { extraLabel } from "@/lib/checkout/extra-label";
+import { kmFigure } from "@/lib/checkout/checkout-quote";
 import { formatTripWhen } from "@/lib/checkout/trip-format";
 import { useCheckoutSettings } from "../CheckoutSettings";
 import { useCheckoutFlow } from "../CheckoutPage";
 import { useCheckoutForm } from "../CheckoutForm";
+import { TripDistance } from "./TripDistance";
 
 const DESKTOP_QUERY = "(min-width: 1081px)";
 
@@ -47,7 +49,17 @@ export function OrderSummary() {
 
   const className = quote?.classes.find((c) => c.slug === selectedClass)?.name ?? null;
   const when = formatTripWhen(trip.when, locale);
+  const km = flow.phase.kind === "ready" ? kmFigure(quote?.distanceM) : null;
+  const noRoad = flow.phase.kind === "ready" && quote?.noRoad === true;
   const meta: RouteMetaItem[] = [
+    ...(km || noRoad
+      ? [
+          {
+            icon: "navigation" as const,
+            label: <TripDistance km={km} noRoad={noRoad} className="vt-co__km" />,
+          },
+        ]
+      : []),
     ...(when ? [{ icon: "calendar" as const, label: <span className="vt-dir-keep">{when}</span> }] : []),
     {
       icon: "users" as const,

@@ -50,10 +50,8 @@ export function Tabs({
     .join(" ");
 
   return (
-    // data-lenis-prevent: this row owns its own horizontal scroll (Tabs.css's Rule 2
-    // overflow-x:auto addition) — the smooth-scroll instance (apps/web/lib/lenis-
-    // provider.tsx) must never intercept a wheel/touch gesture meant for this region.
-    <div className={cls} role="tablist" data-lenis-prevent {...rest}>
+    // This row owns its own horizontal scroll (Tabs.css's Rule 2 overflow-x:auto addition).
+    <div className={cls} role="tablist" {...rest}>
       {items.map((it) => {
         const id = typeof it === "string" ? it : it.value;
         const label = typeof it === "string" ? it : it.label;

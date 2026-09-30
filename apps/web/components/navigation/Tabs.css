@@ -8,11 +8,10 @@
    must not wrap to a second row, so `.vt-tabs`/`.vt-tabs--block` gain `overflow-x:auto`
    and `.vt-tab` gains `min-inline-size:max-content` (a tab can still flex to share the
    row evenly when everything fits, but can never shrink below its own content — the
-   standard technique for "grow freely, never truncate"). Marked `data-lenis-prevent`
-   in Tabs.tsx so the smooth-scroll instance never intercepts this region's own
-   horizontal scroll. */
-.vt-tabs{display:inline-flex;gap:4px;padding:4px;background:var(--vt-grey-100);border-radius:var(--vt-radius-pill);overflow-x:auto}
-.vt-tabs--block{display:flex;inline-size:100%;overflow-x:auto}
+   standard technique for "grow freely, never truncate"). `overscroll-behavior:contain`
+   keeps a horizontal swipe at the end of the row from chaining into browser back. */
+.vt-tabs{display:inline-flex;gap:4px;padding:4px;background:var(--vt-grey-100);border-radius:var(--vt-radius-pill);overflow-x:auto;overscroll-behavior:contain}
+.vt-tabs--block{display:flex;inline-size:100%;overflow-x:auto;overscroll-behavior:contain}
 .vt-tabs--inverse{background:var(--vt-charcoal-800)}
 .vt-tab{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:8px;flex:1 1 auto;min-inline-size:max-content;block-size:40px;padding:0 20px;border-radius:var(--vt-radius-pill);cursor:pointer;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);color:var(--vt-text-secondary);white-space:nowrap;transition:var(--vt-transition-control)}
 .vt-tab:hover{color:var(--vt-text-primary)}

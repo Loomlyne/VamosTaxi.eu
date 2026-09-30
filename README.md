@@ -33,7 +33,7 @@ This repo has three parts, kept visibly separate:
   - `docs/build/` — the incoming design package's build docs: launch plan, gap audit, per-screen specs, i18n backlog, legal-placeholder checklist, and review scaffolds.
 - **`archive/`** — two frozen historical snapshots (`ds-upgrade/`, `design_handoff_file_architecture/`), kept for history and never edited or path-rewritten.
 
-Also at root: `assets/` (shared icons/logo/patterns/photography/Lenis the app loads, plus `assets/brand/` with the supplied brand guideline PDF), `deliverables/` and `scripts/` (client-facing Scope of Work + invoice and the scripts that generated them), `CLAUDE.md` (product rules), `HANDOFF-CLAUDE-CODE.md` (handoff notes), `github.md` (vendored-asset provenance for Lucide/Lenis), and the root hero/rectangle images used on the home page.
+Also at root: `assets/` (shared icons/logo/patterns/photography the app loads, plus `assets/brand/` with the supplied brand guideline PDF), `deliverables/` and `scripts/` (client-facing Scope of Work + invoice and the scripts that generated them), `CLAUDE.md` (product rules), `HANDOFF-CLAUDE-CODE.md` (handoff notes), `github.md` (vendored-asset provenance for Lucide), and the root hero/rectangle images used on the home page.
 
 ## Running the mocks
 
