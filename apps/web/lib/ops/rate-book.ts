@@ -17,7 +17,6 @@ type StaffTx = postgres.TransactionSql;
 
 export type { RateVersionStatus };
 
-export { SURCHARGE_CODES, type SurchargeCode } from "./surcharge-codes";
 export type SurchargeKind = "amount" | "percent" | "included";
 export type SurchargeAppliesTo = "leg" | "booking";
 
