@@ -86,8 +86,9 @@ describe("banner hosts (D-07)", () => {
     expect(src).toMatch(/isDevScaffold/);
   });
 
-  it("shows the cookie sheet on home only, not checkout", () => {
+  it("renders the banner wherever the footer renders", () => {
     const src = readRepo("apps/web/components/shell/SiteShell.tsx");
-    expect(src).toMatch(/isHome \? banner : null/);
+    expect(src).not.toMatch(/isHome \? banner/);
+    expect(src).toMatch(/\{banner\}/);
   });
 });
