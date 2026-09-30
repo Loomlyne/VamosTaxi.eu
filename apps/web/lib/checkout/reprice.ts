@@ -2,15 +2,15 @@
 //
 // D-12: checkout fails closed when the live price book cannot load. Both
 // /api/checkout/intent and /api/checkout/pay-link go through this one
-// loader instead of each swallowing a rate-book load failure into an empty
-// extras catalog and a hard-coded `pricing_live: true`.
+// loader instead of each swallowing a rate-book load failure into a
+// hard-coded `pricing_live: true`. The tick-box extras are not loaded here:
+// loadCheckoutCatalog (checkout-catalog.ts) is their one reader.
 //
 // pricing_live here follows the quote path's own rule (lib/quote/engine.ts):
 // derivePricingLive(rate_version) AND the public_chf launch flag. It is
 // never the literal true.
 
 import { loadLaunchFlags as dbLoadLaunchFlags, loadRateBook as dbLoadRateBook, type LaunchFlags } from "../db/quote";
-import { catalogFromSurcharges, type CheckoutExtraJson } from "./extras-catalog";
 import { derivePricingLive, mapRateBook } from "../pricing/rateBook";
 
 export type CheckoutRepriceDeps = {
@@ -28,7 +28,6 @@ export type CheckoutReprice =
       ok: true;
       pricingLive: boolean;
       liveRateVersionId: number | null;
-      extrasCatalog: CheckoutExtraJson[];
     }
   | { ok: false };
 
@@ -52,7 +51,6 @@ export async function loadCheckoutReprice(
       ok: true,
       pricingLive: derivePricingLive(book.rate_version) && flags.public_chf,
       liveRateVersionId,
-      extrasCatalog: catalogFromSurcharges(book.surcharges),
     };
   } catch {
     return { ok: false };

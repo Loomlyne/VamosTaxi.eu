@@ -39,6 +39,7 @@ import type {
   ZoneRow,
   ZoneType,
 } from "./types";
+import { MANUAL_PREDICATE } from "./types";
 
 /** Version handle as the RPC emits it — status is required for QUOTE-10. */
 export type RateVersionRef = {
@@ -170,9 +171,21 @@ function mapFixedRoute(item: unknown): FixedRouteRow {
   };
 }
 
+/**
+ * 26.2-p4: a rule that arrives as a string is a row the old dashboard write
+ * stored (it encoded the rule twice, so Postgres holds a JSON string; the live
+ * `child-seat` row is one). That write only ever made extras the customer
+ * chooses, so the string means the manual rule — whatever text it holds.
+ * Parsing the text instead would add such a row to every quote.
+ */
+function mapPredicate(value: unknown): SurchargeRow["predicate"] {
+  if (typeof value === "string") return { ...MANUAL_PREDICATE };
+  return isRecord(value) ? (value as SurchargeRow["predicate"]) : {};
+}
+
 function mapSurcharge(item: unknown): SurchargeRow {
   const row = isRecord(item) ? item : {};
-  const predicate = isRecord(row.predicate) ? row.predicate : {};
+  const predicate = mapPredicate(row.predicate);
   return {
     id: row.id as number,
     rate_version_id: row.rate_version_id as number,
@@ -182,7 +195,7 @@ function mapSurcharge(item: unknown): SurchargeRow {
     percent: (row.percent ?? null) as number | string | null,
     applies_to: row.applies_to as SurchargeRow["applies_to"],
     active: row.active as boolean,
-    predicate: predicate as SurchargeRow["predicate"],
+    predicate,
     quantity_source: (row.quantity_source ?? null) as string | null,
   };
 }

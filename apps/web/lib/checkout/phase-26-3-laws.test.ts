@@ -102,12 +102,12 @@ const PRE_EXISTING_YELLOW: Record<string, string[]> = {
 const PRE_EXISTING_MISSING_LAW_LINES = ["app/ops/OpsBoard.dc.html"];
 // A row component with no text input at all; it never carried the input-focus line.
 const NO_INPUT_COMPONENTS = ["app/pages/BookingRow.dc.html"];
-// The legacy closed three-code reader of OLD quote locks (payload.extras) and the rate book's own
-// engine-surcharge names. Not the owner's catalog; removing them is not a 26.3 change.
+// The legacy closed three-code readers of OLD quote locks and OLD bookings (payload.extras).
+// Not the owner's catalog: they print history and decide nothing for a new booking.
+// 26.2-p4 A3: lib/ops/surcharge-codes.ts (the name lists) is deleted and left this list.
 const LEGACY_CODE_READERS = [
   "apps/web/lib/checkout/booking-read.ts",
   "apps/web/lib/checkout/pay-link.ts",
-  "apps/web/lib/ops/surcharge-codes.ts",
 ];
 const PRE_EXISTING_ESZETT = ['"error-size": "Dieses Foto ist zu groß"'];
 
@@ -195,8 +195,9 @@ describe("D-35: the owner's extras are never matched by a literal code", () => {
   );
   it("no child_seat / oversized_luggage / extra_stop literal in checkout, e-mail or ops code paths", () => {
     const bad = offenders(files, (t, f) => {
-      // The dictionary and the extras-catalog compatibility exports are the only homes of these words.
-      if (/vamos-i18n-dict\.js$|extras-catalog\.ts$|\/messages\//.test(f)) return [];
+      // The dictionary and the message files are the only homes of these words.
+      // 26.2-p4 A3: extras-catalog.ts lost its name-based exports and is scanned like any file.
+      if (/vamos-i18n-dict\.js$|\/messages\//.test(f)) return [];
       if (LEGACY_CODE_READERS.includes(rel(f))) return [];
       const m = t.match(/["'`](child_seat|oversized_luggage|extra_stop)["'`]/);
       return m ? [m[0]] : [];
