@@ -77,12 +77,6 @@
 [data-msg][data-from="staff"] [data-files]{align-items:flex-end}
 [data-files] .vt-btn{max-inline-size:100%}
 [data-msg][data-from="staff"] [data-files] .vt-btn{color:var(--vt-text-inverse);border-color:rgb(255 255 255 / .28);background:transparent}
-.vt-dialog__scrim:has(.vt-file-preview){z-index:80}
-.vt-dialog.vt-file-preview{display:flex;flex-direction:column;max-block-size:min(80vh,calc(100dvh - 48px))}
-.vt-file-preview .vt-dialog__body{flex:1 1 auto;min-block-size:0;overflow:hidden;padding:12px 16px 20px}
-[data-preview-img]{display:block;max-inline-size:100%;max-block-size:min(70vh,720px);object-fit:contain;margin-inline:auto}
-[data-preview-pages]{overflow:auto;max-block-size:min(70vh,720px);display:flex;flex-direction:column;gap:12px;min-width:0;min-block-size:0}
-[data-preview-pages] canvas{display:block;inline-size:100%;height:auto;background:var(--vt-bg-page);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md)}
 [data-toolbar]{display:flex;flex-wrap:nowrap;align-items:center;gap:8px;min-width:0}
 [data-filters-btn]{display:block;flex:0 0 auto}
 [data-filters-tags]{display:none}
@@ -232,7 +226,7 @@
 <p data-vt-no-i18n="1" style="margin:0;font-size:var(--vt-body-sm);line-height:1.55;text-wrap:pretty">{{ m.body }}</p>
 <div data-files="1">
 <sc-for list="{{ m.files }}" as="f" hint-placeholder-count="0">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" sentenceCase="{{ yes }}" icon="{{ f.icon }}" onClick="{{ f.open }}" hint-size="220px,36px">{{ f.filename }}</x-import>
+<span data-chip="1" data-file-name="1" data-vt-no-i18n="1">{{ f.filename }}</span>
 </sc-for>
 </div>
 </div>
@@ -243,7 +237,7 @@
 <p data-ov-err="1">{{ tSendError }}</p>
 </sc-if>
 <sc-if value="{{ canReply }}" hint-placeholder-val="{{ true }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Textarea" label="{{ tReply }}" rows="{{ nReply }}" value="{{ draft }}" onChange="{{ setDraft }}" placeholder="{{ tReplyPh }}" hint-size="100%,72px"></x-import>
+<p data-hint="1" style="margin:0">{{ tMailHint }}</p>
 </sc-if>
 <sc-if value="{{ isClosed }}" hint-placeholder-val="{{ false }}">
 <p data-hint="1" style="margin:0">{{ tClosedBody }}</p>
@@ -254,7 +248,7 @@
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ reopenTicket }}" hint-size="120px,44px">{{ tReopen }}</x-import>
 </sc-if>
 <sc-if value="{{ canReply }}" hint-placeholder-val="{{ true }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" icon="mail" disabled="{{ sendOff }}" onClick="{{ sendReply }}" hint-size="120px,44px">{{ tSend }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" icon="mail" href="{{ mailHref }}" hint-size="220px,44px">{{ tAnswer }}</x-import>
 </sc-if>
 </div>
 </div>
@@ -327,19 +321,6 @@
 </x-import>
 </sc-if>
 
-<sc-if value="{{ previewOpen }}" hint-placeholder-val="{{ false }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" size="lg" className="vt-file-preview" title="{{ previewTitle }}" onClose="{{ closePreview }}" closeLabel="{{ tClose }}" hint-size="960px,720px">
-<sc-if value="{{ previewHasHref }}" hint-placeholder-val="{{ false }}">
-<sc-if value="{{ previewIsImage }}" hint-placeholder-val="{{ false }}">
-<img data-preview-img="1" src="{{ previewHref }}" alt="{{ previewTitle }}" />
-</sc-if>
-<sc-if value="{{ previewIsPdf }}" hint-placeholder-val="{{ false }}">
-<div data-preview-pdf="1" data-preview-pages="1" data-scroll-native="1"></div>
-</sc-if>
-</sc-if>
-</x-import>
-</sc-if>
-
 </main>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:900}}">
@@ -353,9 +334,9 @@ const T = {
     emptyTitle:'No tickets', emptyBody:'Contact-page messages land here.', colEmpty:'No tickets',
     status:'Status', close:'Close', closeTicket:'Close Ticket', reopen:'Reopen', customer:'Customer', staff:'Dispatcher', noteWho:'Note',
     kanban:'Kanban', table:'Table', colName:'Customer', colEmail:'Email', colPhone:'Phone', colRef:'Ref', colWhen:'When', colLocale:'Locale',
-    reply:'Reply', replyPh:'Write a reply…', send:'Send', closedBody:'This ticket is closed. Reopen it to keep working.',
+    answer:'Answer by e-mail', mailHint:'Read only. Attached files and your answer are in your e-mail inbox.', closedBody:'This ticket is closed. Reopen it to keep working.',
     loadError:'Could not load tickets. Try again.',
-    sendError:'Couldn’t send. Try again.',
+    sendError:'Couldn’t save. Try again.',
     footNew:'Waiting on dispatch', footOpen:'In progress', footMsgs:'Across every ticket', footAll:'On the board',
     cntMsgs:'Messages', cntAll:'Tickets', msgCount:'%n messages',
     ticket:'Ticket', channel:'Channel', channelForm:'Contact form', opened:'Opened', lastAct:'Last activity',
@@ -369,9 +350,9 @@ const T = {
     emptyTitle:'Keine Tickets', emptyBody:'Nichts in diesem Filter.', colEmpty:'Keine Tickets',
     status:'Status', close:'Schliessen', closeTicket:'Ticket schliessen', reopen:'Wieder öffnen', customer:'Kunde', staff:'Disponent', noteWho:'Notiz',
     kanban:'Kanban', table:'Tabelle', colName:'Kunde', colEmail:'E-Mail', colPhone:'Telefon', colRef:'Ref.', colWhen:'Wann', colLocale:'Sprache',
-    reply:'Antwort', replyPh:'Antwort schreiben…', send:'Senden', closedBody:'Dieses Ticket ist geschlossen. Öffnen Sie es erneut, um weiterzuarbeiten.',
+    answer:'Per E-Mail antworten', mailHint:'Nur lesen. Anhänge und Ihre Antwort finden Sie in Ihrem E-Mail-Postfach.', closedBody:'Dieses Ticket ist geschlossen. Öffnen Sie es erneut, um weiterzuarbeiten.',
     loadError:'Tickets konnten nicht geladen werden. Bitte erneut versuchen.',
-    sendError:'Senden fehlgeschlagen. Bitte erneut versuchen.',
+    sendError:'Speichern fehlgeschlagen. Bitte erneut versuchen.',
     footNew:'Wartet auf Dispatch', footOpen:'In Bearbeitung', footMsgs:'Über alle Tickets', footAll:'Auf dem Board',
     cntMsgs:'Nachrichten', cntAll:'Tickets', msgCount:'%n Nachrichten',
     ticket:'Ticket', channel:'Kanal', channelForm:'Kontaktformular', opened:'Geöffnet', lastAct:'Letzte Aktivität',
@@ -385,9 +366,9 @@ const T = {
     emptyTitle:'Aucun ticket', emptyBody:'Rien dans ce filtre.', colEmpty:'Aucun ticket',
     status:'Statut', close:'Fermer', closeTicket:'Fermer le ticket', reopen:'Réouvrir', customer:'Client', staff:'Régulateur', noteWho:'Note',
     kanban:'Kanban', table:'Tableau', colName:'Client', colEmail:'E-mail', colPhone:'Téléphone', colRef:'Réf.', colWhen:'Quand', colLocale:'Langue',
-    reply:'Réponse', replyPh:'Écrire une réponse…', send:'Envoyer', closedBody:'Ce ticket est fermé. Réouvrez-le pour continuer.',
+    answer:'Répondre par e-mail', mailHint:'Lecture seule. Les pièces jointes et votre réponse se trouvent dans votre boîte e-mail.', closedBody:'Ce ticket est fermé. Réouvrez-le pour continuer.',
     loadError:'Impossible de charger les tickets. Réessayez.',
-    sendError:'Impossible d’envoyer. Réessayez.',
+    sendError:'Impossible d’enregistrer. Réessayez.',
     footNew:'En attente dispatch', footOpen:'En cours', footMsgs:'Tous tickets confondus', footAll:'Sur le tableau',
     cntMsgs:'Messages', cntAll:'Tickets', msgCount:'%n messages',
     ticket:'Ticket', channel:'Canal', channelForm:'Formulaire de contact', opened:'Ouvert le', lastAct:'Dernière activité',
@@ -401,9 +382,9 @@ const T = {
     emptyTitle:'لا تذاكر', emptyBody:'لا شيء في هذا التصفية.', colEmpty:'لا تذاكر',
     status:'الحالة', close:'إغلاق', closeTicket:'إغلاق التذكرة', reopen:'إعادة الفتح', customer:'العميل', staff:'الموزّع', noteWho:'ملاحظة',
     kanban:'كانبان', table:'جدول', colName:'العميل', colEmail:'البريد', colPhone:'الهاتف', colRef:'المرجع', colWhen:'متى', colLocale:'اللغة',
-    reply:'رد', replyPh:'اكتب رداً…', send:'إرسال', closedBody:'هذه التذكرة مغلقة. أعد فتحها للمتابعة.',
+    answer:'الرد عبر البريد الإلكتروني', mailHint:'للقراءة فقط. الملفات المرفقة وردّك في بريدك الإلكتروني.', closedBody:'هذه التذكرة مغلقة. أعد فتحها للمتابعة.',
     loadError:'تعذر تحميل التذاكر. حاول مرة أخرى.',
-    sendError:'تعذر الإرسال. حاول مرة أخرى.',
+    sendError:'تعذر الحفظ. حاول مرة أخرى.',
     footNew:'بانتظار التوزيع', footOpen:'قيد المعالجة', footMsgs:'عبر كل التذاكر', footAll:'على اللوحة',
     cntMsgs:'رسائل', cntAll:'تذاكر', msgCount:'%n رسائل',
     ticket:'التذكرة', channel:'القناة', channelForm:'نموذج التواصل', opened:'فُتحت', lastAct:'آخر نشاط',
@@ -428,13 +409,6 @@ function stamp() {
   new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Zurich', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })
     .formatToParts(new Date()).forEach((x) => { p[x.type] = x.value; });
   return p.day + ' ' + p.month + ' ' + p.year + ' · ' + p.hour + ':' + p.minute;
-}
-function replyRows(draft) {
-  const text = String(draft || '');
-  if (!text) return 2;
-  const lines = text.split('\n').length;
-  const wrapped = Math.ceil(text.length / 42);
-  return Math.min(8, Math.max(2, lines, wrapped));
 }
 function initialsOf(name) {
   const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
@@ -464,18 +438,7 @@ function fileItems(ticketId, files) {
   for (let i = 0; i < list.length; i++) {
     const f = list[i];
     if (!f || f.kept === false || !f.id) continue;
-    const href = '/api/staff/tickets/' + ticketId + '/files/' + f.id;
-    const type = String(f.contentType || '').toLowerCase();
-    const isImage = type.indexOf('image/') === 0;
-    const isPdf = type === 'application/pdf' || /\.pdf$/i.test(String(f.filename || ''));
-    out.push({
-      id: f.id,
-      filename: f.filename || '',
-      href: href,
-      isImage: isImage,
-      isPdf: isPdf,
-      icon: isImage ? 'image' : 'file-text',
-    });
+    out.push({ id: f.id, filename: f.filename || '' });
   }
   return out;
 }
@@ -506,7 +469,7 @@ function opsHand() {
 class Component extends DCLogic {
   state = {
     lang: 'en', filter: 'all', view: opsPhone() ? 'table' : 'kanban', query: '', tickets: [],
-    openId: null, draft: '', sending: false, filterOpen: false, metaOpen: true, loadError: false, overlayError: false, preview: null,
+    openId: null, filterOpen: false, metaOpen: true, loadError: false, overlayError: false,
     sortNewest: Object.assign({}, SORT_NEWEST),
     colOpen: { new: true, open: true, replied: true, responded: true, closed: true },
   };
@@ -541,7 +504,6 @@ class Component extends DCLogic {
     publishBadge(this.state.tickets);
   }
   componentDidUpdate() {
-    this.paintPdfPages();
     if (!this._focusTable) return;
     this._focusTable = false;
     const table = document.querySelector('[data-vt-support] [data-tbl-scroll]');
@@ -554,7 +516,6 @@ class Component extends DCLogic {
     if (this._onFocus) window.removeEventListener('focus', this._onFocus);
     if (this._onVis) document.removeEventListener('visibilitychange', this._onVis);
     clearTimeout(this._retry);
-    this.revokePreview();
   }
   setFilter = (key) => this.setState({ filter: key || 'all', filterOpen: false });
   toggleMeta = () => { if (!opsHand()) return; this.setState({ metaOpen: !this.state.metaOpen }); };
@@ -562,7 +523,6 @@ class Component extends DCLogic {
   setTable = () => this.setState({ view: 'table' });
   setView = (v) => this.setState({ view: v === 'table' ? 'table' : 'kanban' });
   setQuery = (e) => this.setState({ query: e && e.target ? e.target.value : '' });
-  setDraft = (e) => this.setState({ draft: e && e.target ? e.target.value : '' });
   toggleSort = (status) => {
     const next = Object.assign({}, this.state.sortNewest);
     next[status] = !next[status];
@@ -618,10 +578,9 @@ class Component extends DCLogic {
   openTicket = (id) => {
     const current = this.state.tickets.find((t) => t.id === id);
     if (!current) return;
-    this.revokePreview();
     if (current.status === 'new') {
       const tickets = this.state.tickets.map((t) => t.id === id ? Object.assign({}, t, { status: 'open' }) : t);
-      this.setState({ openId: id, draft: '', tickets: tickets, overlayError: false, preview: null, metaOpen: !opsHand() }, () => {
+      this.setState({ openId: id, tickets: tickets, overlayError: false, metaOpen: !opsHand() }, () => {
         publishBadge(tickets);
         requestAnimationFrame(() => this.scrollThread());
       });
@@ -632,119 +591,13 @@ class Component extends DCLogic {
       });
       return;
     }
-    this.setState({ openId: id, draft: '', overlayError: false, preview: null, metaOpen: !opsHand() }, () => {
+    this.setState({ openId: id, overlayError: false, metaOpen: !opsHand() }, () => {
       requestAnimationFrame(() => this.scrollThread());
     });
   };
   openRow = (row) => { if (row && row.id) this.openTicket(row.id); };
-  revokePreview = () => {
-    if (this._previewUrl) {
-      try { URL.revokeObjectURL(this._previewUrl); } catch (err) {}
-      this._previewUrl = null;
-    }
-    if (this._pdfDoc) {
-      try { this._pdfDoc.destroy(); } catch (err) {}
-      this._pdfDoc = null;
-    }
-  };
   closeOverlay = () => {
-    this.revokePreview();
-    this.setState({ openId: null, draft: '', overlayError: false, preview: null });
-  };
-  loadPdfJs = () => {
-    if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
-    if (this._pdfJsWait) return this._pdfJsWait;
-    this._pdfJsWait = new Promise((resolve, reject) => {
-      // F2 (Phase 20): pdf.js is served from our own host with an integrity pin, never from
-      // unpkg, and getDocument runs with isEvalSupported:false (CVE-2024-4367 mitigation).
-      const src = '/assets/pdfjs/3.11.174/pdf.min.js';
-      const worker = location.origin + '/assets/pdfjs/3.11.174/pdf.worker.min.js';
-      const s = document.createElement('script');
-      s.src = src;
-      s.integrity = 'sha384-/1qUCSGwTur9vjf/z9lmu/eCUYbpOTgSjmpbMQZ1/CtX2v/WcAIKqRv+U1DUCG6e';
-      s.crossOrigin = 'anonymous';
-      s.onload = () => {
-        const lib = window.pdfjsLib;
-        if (!lib) { reject(new Error('pdfjs')); return; }
-        lib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob(
-          ['importScripts("' + worker + '");'],
-          { type: 'application/javascript' }
-        ));
-        resolve(lib);
-      };
-      s.onerror = () => reject(new Error('pdfjs'));
-      document.head.appendChild(s);
-    });
-    return this._pdfJsWait;
-  };
-  paintPdfPages = () => {
-    const root = document.querySelector('[data-vt-support] [data-preview-pages]');
-    const pdf = this._pdfDoc;
-    if (!root || !pdf) return;
-    const width = root.clientWidth;
-    if (width < 40) {
-      requestAnimationFrame(() => this.paintPdfPages());
-      return;
-    }
-    const mark = String(pdf.numPages);
-    if (root.getAttribute('data-painted') === mark) return;
-    while (root.firstChild) root.removeChild(root.firstChild);
-    root.setAttribute('data-painted', mark);
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const canvas = document.createElement('canvas');
-      canvas.setAttribute('data-preview-page', String(i));
-      root.appendChild(canvas);
-      pdf.getPage(i).then((page) => {
-        if (this._pdfDoc !== pdf) return;
-        const base = page.getViewport({ scale: 1 });
-        const scale = width / base.width;
-        const viewport = page.getViewport({ scale: scale });
-        const ratio = window.devicePixelRatio || 1;
-        canvas.width = Math.floor(viewport.width * ratio);
-        canvas.height = Math.floor(viewport.height * ratio);
-        canvas.style.width = '100%';
-        canvas.style.height = 'auto';
-        const ctx = canvas.getContext('2d');
-        ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
-        return page.render({ canvasContext: ctx, viewport: viewport }).promise;
-      });
-    }
-  };
-  openPreview = (file) => {
-    if (!file || !file.href) return;
-    this.revokePreview();
-    const filename = file.filename || '';
-    const isImage = !!file.isImage;
-    const isPdf = !!file.isPdf;
-    this.setState({
-      overlayError: false,
-      preview: { href: '', filename: filename, isImage: isImage, isPdf: isPdf },
-    });
-    fetch(file.href, { credentials: 'include' }).then((res) => {
-      if (!res.ok) throw new Error('file');
-      return res.blob();
-    }).then((blob) => {
-      if (isPdf) {
-        return this.loadPdfJs().then((lib) => blob.arrayBuffer().then((data) => lib.getDocument({ data: data, isEvalSupported: false }).promise)).then((pdf) => {
-          this._pdfDoc = pdf;
-          this.setState({
-            preview: { href: 'pages', filename: filename, isImage: false, isPdf: true },
-          });
-        });
-      }
-      const url = URL.createObjectURL(blob);
-      this._previewUrl = url;
-      this.setState({
-        preview: { href: url, filename: filename, isImage: isImage, isPdf: false },
-      });
-    }).catch(() => {
-      this.revokePreview();
-      this.setState({ overlayError: true, preview: null });
-    });
-  };
-  closePreview = () => {
-    this.revokePreview();
-    this.setState({ preview: null });
+    this.setState({ openId: null, overlayError: false });
   };
   scrollThread = () => {
     const root = document.querySelector('[data-vt-support] [data-thread]');
@@ -774,36 +627,6 @@ class Component extends DCLogic {
       this.setState({ tickets: reverted, overlayError: true });
       publishBadge(reverted);
     });
-  };
-  sendReply = () => {
-    const body = String(this.state.draft || '').trim();
-    const id = this.state.openId;
-    if (!body || !id || this.state.sending) return;
-    const current = this.state.tickets.find((t) => t.id === id);
-    if (current && current.status === 'closed') return;
-    const api = window.VamosOpsApi;
-    if (!api || typeof api.request !== 'function') return;
-    this.setState({ sending: true, overlayError: false });
-    api.request('PATCH', '/api/staff/tickets/' + id, { reply: body }).then((json) => {
-      if (!json || json.ok !== true) {
-        this.setState({ sending: false, overlayError: true });
-        return;
-      }
-      const now = stamp();
-      const tickets = this.state.tickets.map((t) => {
-        if (t.id !== id || t.status === 'closed') return t;
-        return Object.assign({}, t, {
-          status: 'replied',
-          last: now,
-          messages: t.messages.concat([{ whoKey: 'staff', when: now, body: body }]),
-        });
-      });
-      this.setState({ tickets: tickets, draft: '', sending: false }, () => {
-        requestAnimationFrame(() => this.scrollThread());
-      });
-      publishBadge(tickets);
-      this.hydrate();
-    }, () => this.setState({ sending: false, overlayError: true }));
   };
   renderVals() {
     const t = T[this.state.lang] || T.en;
@@ -848,17 +671,17 @@ class Component extends DCLogic {
     });
     const phoneDigits = open ? digitsOf(open.phone) : '';
     return {
-      yes: true, n16: 16, n18: 18, n3: 3, n6: 6, nReply: replyRows(this.state.draft),
+      yes: true, n16: 16, n18: 18, n3: 3, n6: 6,
       tTitle: t.title, tSubtitle: t.subtitle, tEmptyTitle: t.emptyTitle, tEmptyBody: t.emptyBody,
       tStatus: t.status, tClose: t.close, tCloseTicket: t.closeTicket, tReopen: t.reopen, tKanban: t.kanban, tTable: t.table, tColEmpty: t.colEmpty, tSeeAll: t.seeAll,
-      tReply: t.reply, tReplyPh: t.replyPh, tSend: t.send, tClosedBody: t.closedBody, tLoadError: t.loadError, tSendError: t.sendError,
+      tAnswer: t.answer, tMailHint: t.mailHint, tClosedBody: t.closedBody, tLoadError: t.loadError, tSendError: t.sendError,
       tTicket: t.ticket, tChannel: t.channel, tChannelForm: t.channelForm, tOpened: t.opened, tLastAct: t.lastAct,
       tBooking: t.booking, tBookingPh: t.bookingPh, tMsgs: t.msgs, tMail: t.mail, tCall: t.call, tWhatsApp: t.whatsApp,
       tPhone: t.phone, tPhonePh: t.phonePh, tNote: t.note, tNotePh: t.notePh, tSearchPh: t.searchPh, tFilter: t.filter,
       tSaveNote: t.saveNote, metaOpenAttr: opsHand() ? (this.state.metaOpen ? '1' : '0') : '1',
       showMetaToggle: opsHand(),
       metaToggleLabel: this.state.metaOpen ? t.collapse : t.expand, toggleMeta: this.toggleMeta,
-      noteOff: !open || !!this.state.sending, saveNote: this.saveNote,
+      noteOff: !open, saveNote: this.saveNote,
       filter: filter, filterOptions: filterOptions, setFilter: this.setFilter,
       query: this.state.query || '', setQuery: this.setQuery,
       loadError: !!this.state.loadError,
@@ -915,24 +738,13 @@ class Component extends DCLogic {
       setBooking: this.setBooking,
       setNote: this.setNote,
       closeOverlay: this.closeOverlay,
-      previewOpen: !!this.state.preview,
-      previewTitle: this.state.preview ? this.state.preview.filename : '',
-      previewHref: this.state.preview ? this.state.preview.href : '',
-      previewIsImage: !!(this.state.preview && this.state.preview.isImage),
-      previewIsPdf: !!(this.state.preview && this.state.preview.isPdf),
-      previewHasHref: !!(this.state.preview && this.state.preview.href),
-      closePreview: this.closePreview,
       canReply: !!(open && open.status !== 'closed'),
       isClosed: !!(open && open.status === 'closed'),
-      draft: this.state.draft || '',
-      setDraft: this.setDraft,
-      sendReply: this.sendReply,
       closeTicket: this.closeTicket,
       reopenTicket: this.reopenTicket,
-      sendOff: !!this.state.sending || !(this.state.draft && String(this.state.draft).trim()) || !!(open && open.status === 'closed'),
       thread: open ? open.messages.map((m) => ({
         from: m.whoKey, who: whoLabel[m.whoKey] || m.whoKey, when: m.when, body: m.body,
-        files: fileItems(open.id, m.files).map((f) => Object.assign({}, f, { open: () => this.openPreview(f) })),
+        files: fileItems(open.id, m.files),
       })) : [],
     };
   }

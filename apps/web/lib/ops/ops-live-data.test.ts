@@ -483,7 +483,8 @@ describe("Support overlay sendError (D-07)", () => {
     expect(existsSync(SUPPORT_WRITER)).toBe(true);
     const html = readFileSync(SUPPORT_WRITER, "utf8");
     const en = langBlock(html, "en");
-    const sendErrorEn = "Couldn’t send. Try again.";
+    // Phase 20 F2: the dashboard sends no reply; this line now covers a failed close or reopen.
+    const sendErrorEn = "Couldn’t save. Try again.";
     expect(
       en.includes(`sendError:'${sendErrorEn}'`) || en.includes(`sendError:"${sendErrorEn}"`),
       "T.en sendError",
