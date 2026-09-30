@@ -132,7 +132,7 @@ Full text: `.planning/decisions/2026-09-29-checkout-account-notice.md`.
 
 ## Migration numbers, reserved 2026-09-30
 
-Live is at `20260930210000`.
+Live is at `20260930210000` plus Phase 20's `20261005100000` and `20261005110000` (applied 2026-09-30, function replacements only).
 
 | Lane | Numbers |
 |---|---|
@@ -193,7 +193,7 @@ Owner decided every finding F1 to F14 on 2026-09-30 (table at the end of `20-06-
 
 | Batch | When | What |
 |---|---|---|
-| A | Now | F1 pay link no longer opens Manage booking. F2 reworked by his decision: dashboard Support becomes read-only, file names only, one button opens his e-mail. F5, F10, F14 database items. F13: the page engine (React, Babel) served from our own host, not unpkg. |
+| A | **Live since 2026-09-30 12:38** (owner said Ship). main `e8aaad0b`, Worker `a0d38f64` (rollback `59c18372`). Migrations `20261005100000` and `20261005110000` applied, 9 function bodies read back identical. Live read: home, FAQ and dashboard sign-in boot with the engine from our own host, no request to unpkg, security header no longer lists unpkg. Not checked: dashboard Support signed in. | F1 pay link no longer opens Manage booking. F2 reworked by his decision: dashboard Support becomes read-only, file names only, one button opens his e-mail. F5, F10, F14 database items. F13: the page engine (React, Babel) served from our own host, not unpkg. |
 | B | After 26.5 is on main | Limit on the payment return address, F8, remaining F14 items, and **F11: refunds by hand** (customer cancels, booking shows "Refund due", admin presses Refund). F11 needs a signed plan and a check of every refund promise on /cancellation, /terms, FAQ and the mails. |
 | C | After Phase 27 is on main | F12: the sign-in link opens a confirm screen "Sign in as <e-mail>?". Design first. |
 
