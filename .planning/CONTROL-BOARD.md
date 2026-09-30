@@ -12,10 +12,10 @@ Rewritten short on 2026-09-30 14:25; the long version is in git history (`823022
 | Item | Value |
 |---|---|
 | Site | https://vamostaxi.site and https://dashboard.vamostaxi.site |
-| main = origin/main | `f7a3528b` plus planning notes |
-| Worker `vamos` | version `92504970` |
+| main = origin/main | `561d1647` plus planning notes |
+| Worker `vamos` | version `d0c427c2` |
 | Worker `vamos-dashboard` (gateway) | version `58c6e541`, deployed 15:22 by the owner's word; before: `5ea4fe65` |
-| Rollback point | Worker `d80e6577`, git tag `backup/main-before-class-cards-ac01b413`; before speed A: Worker `8adb148c`; before phone home: Worker `d43e467b`; before 26.2: Worker `0d1806ce`; before the Support button: Worker `2d5906ce` (before 26.5: Worker `fe9314d0`, tag `backup/main-before-26.5-e09f90cb`). Guest accounts off without a deploy: `settings.guest_accounts_live = false` |
+| Rollback point | Worker `f3f7d929`, git tag `backup/main-before-native-scroll-af96e59d`; before the queue: Worker `92504970`; before class cards: Worker `d80e6577`; before speed A: Worker `8adb148c`; before phone home: Worker `d43e467b`; before 26.2: Worker `0d1806ce`; before the Support button: Worker `2d5906ce` (before 26.5: Worker `fe9314d0`, tag `backup/main-before-26.5-e09f90cb`). Guest accounts off without a deploy: `settings.guest_accounts_live = false` |
 | Database | migrations up to `20260930210000`, 26.5's `20261001100000` to `130000`, Phase 20's `20261005100000` and `110000`, 26.2's `20261007100000`, all applied and read back. `guest_accounts_live` = true since 14:58 (owner's answer) |
 | Who deploys | the control session, from the owner's Mac. GitHub runs checks, never deploys. |
 
@@ -37,6 +37,8 @@ Rewritten short on 2026-09-30 14:25; the long version is in git history (`823022
 | 09-30 | 15:20 | SEO follow-up (dashboard robots closed, first view follows a stored language) and phone home (Trustpilot row in the booking card, full-page menu, hero behind Safari's bars) | `51b851e3` | `8adb148c` + gateway `58c6e541` |
 | 09-30 | 15:28 | Site speed A: static files cached, reviews cached 5 min, About photo 4.0 MB to 385 KB | `02c1bd3d` | `d80e6577` |
 | 09-30 | 16:12 | Class cards in layout E on home and checkout; small photo versions (2.77 MB to 0.14 MB); check-script fix | `f7a3528b` | `92504970` |
+| 09-30 | 16:39 | Booking-path queue: 26.2 hand-over 2 (16 bugs), security batch B1, erased-booking pay link; migrations `20261005120000` and `130000` applied and read back | `a81e194e` | `f3f7d929` |
+| 09-30 | 23:26 | Native scrolling: Lenis and the design-system scroll script removed everywhere | `561d1647` | `d0c427c2` |
 
 ## Ship order from here
 
@@ -59,7 +61,7 @@ Owner's order: booking, payments, account, Meta first.
 | 10a | Phase 20 batch B1 (return-route limit, F8, lock-secret 503, ticket reply refused, staff e-mail check, reviews column grants `20261005120000`) | Handed over `75b0aba0`; touches checkout files | Owner's 26.5 test first, then his Ship, then a 4242 payment |
 | 10b | Site speed A | **Live 15:28** (owner said Ship). Live read: scripts and page parts 5 minutes, engine and photos one year, reviews 5 minutes with 5 rows; checkout, account, manage booking, sign-in and the per-visitor APIs stay `private, no-store`. A deploy now reaches a returning visitor within 5 minutes. B (native scrolling) is built on `fix/native-scroll`, hands over after class cards and Phase 27 | |
 | 10c | 26.2 hand-over 2: 16 booking-path bugs, each approved by the owner through the form (mails, dashboard booking edit, New trip, price book, address search, re-price) | Handed over `975c3ab4`; checked green by the control session on main `3b4f86d8` | Owner's 26.5 test first, then his Ship, then a 4242 payment |
-| 10d | Native scrolling (both scroll scripts out) | Built and proved on `fix/native-scroll`. **Owner said in the control chat 16:00: ship after the class cards**; not gated on Phase 27 | Merge main, control check, ship |
+| 10d | Native scrolling | **Live 23:26** (owner's word 16:00). Live read: no Lenis file or global on /faq, the bundle writes no --vt-scroll, page scrolls by script at 390, phone menu locks and releases. Note: the sync script leaves old copies in `apps/web/public/assets`; the control session removed the three Lenis copies by hand before the deploy | Owner: scroll the site on his phone and laptop |
 | 11 | Scroll and speed | Measuring on live | A plan for the owner's signature |
 | 12 | 26.0 main green | No session. 9 of 12 plans done, 35 behind main | Prompt `03-finish-26.0.md` |
 | 13 | 26.2 gate scripts (stricter checks) | On `gsd/phase-26.2-u13` | Last, after 27 to 29 |
@@ -188,6 +190,16 @@ Full texts in `.planning/decisions/`.
 | Payment through the 26.5 checkout | Passed. VT-26-0747, 16:29, confirmed, payment succeeded by Apple Pay, linked to his account (he was signed in), confirmation mail claimed, one pay press counted. Read on live by the control session. The guest path and "Create an account" have not been paid through yet: no account agreement record exists |
 | Class cards in layout E | "All good as I wanted" |
 | iPhone: hero, Trustpilot row, menu, scrolling | "All good" |
+
+## Open at the control session's stop, 2026-09-30 16:40 (usage limit)
+
+| What | State |
+|---|---|
+| Native scrolling | Shipped 23:26 |
+| Owner payment after the 16:39 ship | Owed: checkout files changed (intent.ts, return route) |
+| Folders to remove after proof | `phase-20` branches shipped (keep folder: refunds by hand is building there), `native-scroll` after its ship, `main-check` (ask the SEO session) |
+| 26.2 session | Stopped at its usage limit; P4 part A core built on `gsd/26.2-p4-extras` `d72c934d`, not a hand-over. Findings: pgTAP `seed_idempotent` test 33 fails on main again (wants 2696, seed has 2698); the JSON double encoding also affects `stripe_events.payload` (68 live rows), `booking_edit_requests.payload` (an accepted customer time change would apply nothing) and `rate_version_rules.payload` |
+| Live reviews | The 5 published reviews on live carry placeholder text ("One verbatim sentence from a real review sits here"). For the owner |
 
 ## Waiting for the owner
 

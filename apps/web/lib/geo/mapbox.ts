@@ -351,7 +351,7 @@ export async function suggest(
   deps: MapboxDeps = {},
 ): Promise<SuggestResult> {
   const emit = emitFor("geo.suggest", input.language);
-  if (input.q.length < MIN_SUGGEST_Q) {
+  if (input.q.trim().length < MIN_SUGGEST_Q) {
     return { suggestions: [] };
   }
   const access = tokenOf(env);

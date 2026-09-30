@@ -95,7 +95,7 @@ export async function resendVoucher(
         scheduledLocal,
         scheduledAt: scheduledLocal,
         flightNo: booking.flight_no ? String(booking.flight_no) : null,
-        vehicleClassLabel: String(booking.vehicle_class_slug ?? "business"),
+        vehicleClassLabel: String(booking.vehicle_class_name || booking.vehicle_class_slug || "business"),
         pax: Number(booking.pax ?? 1),
         bags: Number(booking.bags ?? 0),
         estimatedDurationMinutes: null,

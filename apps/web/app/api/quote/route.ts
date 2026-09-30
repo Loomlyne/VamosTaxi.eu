@@ -23,6 +23,7 @@ import {
 } from "@/lib/quote/pipeline";
 import { errorResponse, quoteResponse } from "@/lib/quote/respond";
 import { csrfForbidden } from "@/lib/security/origin";
+import { lockSecretPresent } from "@/lib/quote/lock-secret";
 
 export const dynamic = "force-dynamic";
 
@@ -82,6 +83,9 @@ export async function POST(request: Request) {
   const csrf = csrfForbidden(request, "auth");
   if (csrf) return csrf;
   const { env } = getCloudflareContext();
+  if (!lockSecretPresent(env.QUOTE_LOCK_SECRET || process.env.QUOTE_LOCK_SECRET, "/api/quote")) {
+    return errorResponse("temporarily_unavailable");
+  }
   let locale: string | null = null;
   const emit = withRequestContext({
     requestId: crypto.randomUUID(),

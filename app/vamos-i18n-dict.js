@@ -2193,6 +2193,10 @@
       'The chauffeur could not be saved.': { de: 'Der Chauffeur konnte nicht gespeichert werden.', fr: 'Le chauffeur n’a pas pu être enregistré.', ar: 'تعذّر حفظ السائق.' },
       'Customer details could not be saved.': { de: 'Die Kundendaten konnten nicht gespeichert werden.', fr: 'Les coordonnées du client n’ont pas pu être enregistrées.', ar: 'تعذّر حفظ بيانات العميل.' },
       'Save failed. Try again.': { de: 'Speichern fehlgeschlagen. Versuchen Sie es erneut.', fr: 'Échec de l’enregistrement. Réessayez.', ar: 'فشل الحفظ. أعد المحاولة.' },
+      /* 26.2-bp C4: written straight into New trip (error title) and Booking detail (Payment tag, cancel dialog). */
+      'Quote first': { de: 'Zuerst quoten', fr: 'Devis d’abord', ar: 'سعّر أولاً' },
+      'Not paid yet': { de: 'Noch nicht bezahlt', fr: 'Pas encore payé', ar: 'لم يُدفع بعد' },
+      'Paid by card': { de: 'Mit Karte bezahlt', fr: 'Payé par carte', ar: 'مدفوع بالبطاقة' },
     },
   };
 

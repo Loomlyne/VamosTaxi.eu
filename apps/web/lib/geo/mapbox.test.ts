@@ -79,6 +79,17 @@ describe("suggest", () => {
     expect(fetchFn).not.toHaveBeenCalled();
   });
 
+  it("returns an empty list without calling fetch when q is only spaces", async () => {
+    const fetchFn = vi.fn();
+    const result = await suggest(
+      { q: "  ", sessionToken: SESSION, language: "en" },
+      TOKEN_ENV,
+      { fetch: fetchFn },
+    );
+    expect(result).toEqual({ suggestions: [] });
+    expect(fetchFn).not.toHaveBeenCalled();
+  });
+
   it("returns the degraded shape and never fetches when MAPBOX_TOKEN is absent (D-47)", async () => {
     const fetchFn = vi.fn();
     const result = await suggest(

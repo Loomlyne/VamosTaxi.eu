@@ -77,9 +77,9 @@ const wideTileStyle: CSSProperties = {
 // not something this gallery's scaffolding may paper over by inventing new CSS
 // behaviour for StepIndicator.css itself (out of this task's scope — Task 1, already
 // committed, is the port). This wrapper is presentational-only, scoped to the
-// gallery: it gives a StepIndicator tile its own horizontal scroll, the same
-// data-lenis-prevent contract Tabs' own overflow row already establishes, so the
-// *page* never scrolls sideways even when one tile's natural content does not fit.
+// gallery: it gives a StepIndicator tile its own horizontal scroll, the way Tabs' own
+// overflow row already has one, so the *page* never scrolls sideways even when one
+// tile's natural content does not fit.
 const wideScrollStyle: CSSProperties = {
   overflowX: "auto",
   maxInlineSize: "100%",
@@ -125,7 +125,7 @@ function Tile({
   return (
     <div style={wide ? wideTileStyle : tileStyle}>
       {wide ? (
-        <div style={wideScrollStyle} data-lenis-prevent>
+        <div style={wideScrollStyle}>
           {children}
         </div>
       ) : (
@@ -174,7 +174,7 @@ export function NavigationGallery() {
             <Tabs block items={["One way", "Round trip"]} value="One way" />
           </div>
         </Tile>
-        <Tile caption="overflow — row scrolls horizontally rather than wrapping (German-length labels, data-lenis-prevent)">
+        <Tile caption="overflow — row scrolls horizontally rather than wrapping (German-length labels)">
           {/* `.vt-tabs` is `display:inline-flex` (sizes to its own content, like any
               inline-level box) — a plain width on this wrapper alone does nothing to
               constrain it, since an inline-flex child never stretches to fill a

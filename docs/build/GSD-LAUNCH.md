@@ -168,7 +168,7 @@ Goal: every mock page becomes a route, pixel-faithful, reading real data.
 | ops/* | `/ops/*` | staff-gated; Supabase **Realtime** on `bookings` for the live board |
 
 Rules: SSR/ISR for everything public (SEO), `hreflang` for en/de/fr/ar routes (`/de/…`),
-locale + currency in a cookie mirroring `VamosLocale`; keep Lenis, keep the checker mark,
+locale + currency in a cookie mirroring `VamosLocale`; keep the checker mark,
 keep the four laws. Delete nothing from the mock visually without a design decision.
 
 Done when: route-by-route visual diff vs mocks approved at 1440/1024/768/390, in German and

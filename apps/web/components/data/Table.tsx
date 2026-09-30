@@ -52,10 +52,8 @@ export function Table<Row extends Record<string, unknown> = Record<string, unkno
   const colSpan = columns.length || 1;
 
   return (
-    // The narrow-viewport horizontal-scroll region owns its own scroll (CLAUDE.md §
-    // Lenis: "put data-lenis-prevent on any panel that owns its own scroll" — Table is
-    // named there explicitly alongside "the ops board, code blocks").
-    <div className={["vt-tablewrap", className].filter(Boolean).join(" ")} data-lenis-prevent>
+    // The narrow-viewport horizontal-scroll region owns its own scroll.
+    <div className={["vt-tablewrap", className].filter(Boolean).join(" ")}>
       <table className={"vt-table" + (onRowClick ? " vt-table--rows" : "")}>
         <thead>
           <tr>

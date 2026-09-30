@@ -17,6 +17,11 @@ export function staffPatchStatus(current: TicketStatus, requested: TicketStatus)
   return null;
 }
 
+/** The dashboard Support page is read-only (owner, 2026-09-30): a body with a `reply` key is refused. */
+export function rejectStaffReply(input: object | null | undefined): boolean {
+  return !!input && Object.prototype.hasOwnProperty.call(input, "reply");
+}
+
 export type OpsTicketFile = {
   id: string;
   filename: string;

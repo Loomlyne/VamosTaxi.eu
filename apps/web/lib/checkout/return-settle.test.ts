@@ -129,3 +129,22 @@ describe("sessionFacts", () => {
     expect(facts).toMatchObject({ status: "unpaid", quoteId: null, reference: null });
   });
 });
+
+describe("returnRedirectTarget per-visitor limit (F6)", () => {
+  it("refused → pay=unknown and no Stripe read", async () => {
+    const d = deps({ allowRead: vi.fn(async () => false) });
+    expect(await returnRedirectTarget(d, { sessionId: CS, ref: "", locale: "de" })).toBe("/de/checkout?pay=unknown");
+    expect(d.readSession).not.toHaveBeenCalled();
+    expect(d.settle).not.toHaveBeenCalled();
+  });
+  it("allowed → unchanged", async () => {
+    const d = deps({ allowRead: vi.fn(async () => true) });
+    expect(await returnRedirectTarget(d, { sessionId: CS, ref: "", locale: "en" })).toBe(`/confirmation/${REF}`);
+    expect(d.readSession).toHaveBeenCalledTimes(1);
+  });
+  it("a malformed id never spends the limit", async () => {
+    const allowRead = vi.fn(async () => true);
+    await returnRedirectTarget(deps({ allowRead }), { sessionId: "nope", ref: "", locale: "en" });
+    expect(allowRead).not.toHaveBeenCalled();
+  });
+});

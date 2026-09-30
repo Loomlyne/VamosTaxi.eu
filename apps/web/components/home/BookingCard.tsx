@@ -236,7 +236,6 @@ export function BookingCard({
           <div
             ref={sheetRef}
             data-sheetbody="1"
-            data-lenis-prevent
             role={open ? "dialog" : undefined}
             aria-modal={open ? true : undefined}
             aria-labelledby={titleId}

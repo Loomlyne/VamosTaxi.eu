@@ -80,8 +80,8 @@ select ok(not has_table_privilege('vamos_edge', 'public.reviews', 'select'), '(2
 select set_eq(
   $$ select table_name::text from information_schema.role_table_grants
       where grantee = 'vamos_public' and table_schema = 'public' and privilege_type = 'SELECT' $$,
-  $$ values ('content_strings'),('reviews'),('vehicle_classes'),('service_zones'),('settings_public') $$,
-  '(30) vamos_public holds SELECT on exactly the four public-content tables plus settings_public'
+  $$ values ('content_strings'),('vehicle_classes'),('service_zones'),('settings_public') $$,
+  '(30) vamos_public holds table-wide SELECT on content_strings, vehicle_classes, service_zones and settings_public; reviews is column-granted (20261005120000)'
 );
 
 -- (31) authenticated has no grant at all on any ops/ledger table ------------------------------
