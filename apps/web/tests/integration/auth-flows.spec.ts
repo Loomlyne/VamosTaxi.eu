@@ -7,14 +7,13 @@ import { test, expect, type Page } from "@playwright/test";
 import { execFileSync, spawn, type ChildProcess } from "node:child_process";
 import { join } from "node:path";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { devBindingEnv, ownClientIpHeaders, waitForDevBindings, warmAuthPages, MAIL_URL, OWNER_CS, supabaseStatusArgs } from "../support/dev-binding";
 import deMessages from "../../i18n/messages/de.json";
 
 const RUN_PROJECT = "component-1440";
-const MAIL_URL = "http://127.0.0.1:54324";
 const PORT = 4250;
 const PASSWORD = "password1";
 const NEW_PASSWORD = "password2";
-const OWNER_CS = "postgres://postgres:postgres@127.0.0.1:54322/postgres";
 const DB_ROOT = join(WEB_ROOT, "..", "..", "packages", "db");
 const STACK_DOWN = "Local stack is not running. Run `pnpm db:start && pnpm db:reset`.";
 
@@ -60,7 +59,7 @@ function requireLocalStack(): { apiUrl: string; anonKey: string } {
   requireLocalDb();
   let raw: string;
   try {
-    raw = execFileSync("pnpm", ["exec", "supabase", "status", "-o", "env"], {
+    raw = execFileSync("pnpm", supabaseStatusArgs(), {
       cwd: DB_ROOT,
       encoding: "utf8",
       timeout: 30_000,
@@ -142,6 +141,8 @@ function uniqueEmail(tag: string): string {
 }
 
 async function fillSignup(page: Page, email: string, first: string, last: string, password: string) {
+  // The page re-renders once its scripts have loaded; fields filled before that are cleared.
+  await page.waitForLoadState("networkidle");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("First name").fill(first);
   await page.getByLabel("Last name").fill(last);
@@ -198,15 +199,19 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
       detached: true,
       env: {
         ...process.env,
+        ...devBindingEnv(),
         SUPABASE_URL: stack.apiUrl,
         SUPABASE_ANON_KEY: stack.anonKey,
       },
     });
     await waitForNextServer(baseURL);
+    await waitForDevBindings(baseURL);
+    await warmAuthPages(baseURL);
   });
 
-  test.beforeEach(({}, testInfo) => {
+  test.beforeEach(async ({ context }, testInfo) => {
     test.skip(testInfo.project.name !== RUN_PROJECT);
+    await context.setExtraHTTPHeaders(ownClientIpHeaders());
   });
 
   test.afterAll(() => {
@@ -509,7 +514,7 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
     await page.getByLabel(deMessages.common.email).fill(email);
     await page.getByLabel(deMessages.common["first-name"]).fill("Ada");
     await page.getByLabel(deMessages.common["last-name"]).fill("Lovelace");
-    await page.getByLabel(deMessages.common.password).fill(PASSWORD);
+    await page.getByRole("textbox", { name: deMessages.common.password }).fill(PASSWORD);
     await tickAccountNotice(page);
     const response = page.waitForResponse((res) =>
       new URL(res.url()).pathname === "/api/auth" && res.request().method() === "POST",

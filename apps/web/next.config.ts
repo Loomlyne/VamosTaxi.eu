@@ -188,7 +188,11 @@ const nextConfig: NextConfig = {
 // Hyperdrive's local connection string, not wired until Phase 3) and fail the
 // build outright.
 if (process.env.NODE_ENV === "development") {
-  initOpenNextCloudflareForDev();
+  // Dev-only: specs that need the database through the Worker bindings (sign-up writes
+  // the agreement record) start the server on the `staging` wrangler env, which declares
+  // Hyperdrive. Unset = the top-level config, as before.
+  const wranglerEnv = process.env.VAMOS_DEV_WRANGLER_ENV;
+  initOpenNextCloudflareForDev(wranglerEnv ? { environment: wranglerEnv } : undefined);
 }
 
 export default withNextIntl(nextConfig);

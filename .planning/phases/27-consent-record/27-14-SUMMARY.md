@@ -45,3 +45,7 @@ See "Not verified" in 27-HANDOVER.md.
 ## Self-Check: PASSED
 
 27-HANDOVER.md exists; no push, deploy or hosted write.
+
+## Follow-up (2026-10-01)
+
+The two auth specs now reach the database through the `staging` dev binding (`VAMOS_DEV_WRANGLER_ENV`), ports come from `VAMOS_TEST_*` variables, and the three selector faults are fixed. Gate 18c passes 12 of 12 on the 59322 stack, five runs in a row. Details in the "Blocker closed" section of 27-HANDOVER.md. Commit: `test(27-14): auth specs reach the database through the staging dev binding`.

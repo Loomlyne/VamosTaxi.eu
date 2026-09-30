@@ -1,19 +1,18 @@
 # Phase 27 hand-over: consent record
 
-Read this first. One gate is red and it is ours.
+Read this first. No gate is red. The one that was (18c) is closed, see the section below.
 
-## BLOCKER (ours, stated first)
+## Blocker closed: the two auth specs (was: red as committed)
 
-`apps/web/tests/integration/auth-flows.spec.ts` and `auth-confirm-email.spec.ts` do not pass as committed.
+`auth-flows.spec.ts` and `auth-confirm-email.spec.ts` now pass as committed on this worktree's own stack (port 59322, Mailpit 59324). Cause and fix:
 
-- Cause: since 27-15 (D-03a) a sign-up first writes the agreement record through the database. `next dev` has no database binding in `apps/web/wrangler.jsonc` (the top level has no `hyperdrive` block; `getPlatformProxy` returned `undefined` for both bindings). So under `next dev` every sign-up answers 503 `signup-unavailable` and the page says "Could not send the link. Try again." This is the same fail-closed rule that is right on the live Worker.
-- Proof it is only the missing binding: with a temporary top-level Hyperdrive block pointing at the port 59322 stack (reverted afterwards, not committed), the tick and the record work in a real browser.
-- The specs also hard-code ports 54322 and 54324 and expect mail in Mailpit. This worktree may not touch those ports, and the 59322 stack sends mail through the hook (not Mailpit). So I ran temporary copies with the ports, the hook and the binding changed. The copies are deleted. What is committed was never run as it stands.
-- Not a one-line fix. It needs a decision by the control session: give `next dev` a dev database binding, or point these two specs at a stub for the record. The Worker e2e (row 17) is unaffected and proves D-03a on a real Worker build.
-- Three more faults in the same two specs are older than Phase 27 (main has the same code and the same page): `getByLabel("Password")` matches the show/hide eye button too (strict-mode error; the eye is on main), the button is now "CREATE ACCOUNT" (confirm-email still looks for "Create an account"), and the sent page says "Send another link" (confirm-email looks for "Send a new link"). With those three swapped in the temporary copy the confirm-email test passes. The D-09 German test has the same eye clash.
-- The tests are also flaky under `next dev`: the form is filled before the page has hydrated and the fields are cleared. With `--retries=3` every test in `auth-flows` passed at least once, one run needed retries.
-
-Result of the temporary copies (component-1440, one worker): auth-flows 11 of 11 passed across attempts (two flaky, D-09 only after the selector swap); auth-confirm-email 1 of 1 passed after the three selector swaps.
+- Cause: since 27-15 (D-03a) a sign-up writes the agreement record through `asSystem` -> `env.HYPERDRIVE_NOCACHE`, and `next dev` read only the top-level wrangler config, which has no hyperdrive block. Every sign-up answered 503 `signup-unavailable`. The fail-closed rule is right on the live Worker and stays.
+- Fix: `apps/web/next.config.ts` passes `{ environment: process.env.VAMOS_DEV_WRANGLER_ENV }` to `initOpenNextCloudflareForDev` only when that variable is set (dev only; unset is the old call). Both specs start Next with `VAMOS_DEV_WRANGLER_ENV=staging`, whose env declares HYPERDRIVE and HYPERDRIVE_NOCACHE. Ports are overridable: `VAMOS_TEST_DB_PORT` (default 54322), `VAMOS_TEST_MAIL_PORT` (default 54324), `VAMOS_TEST_SUPABASE_WORKDIR` (for `supabase status`). When `VAMOS_TEST_DB_PORT` is set the two `CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_*` variables point the bindings at that port. Shared code: `apps/web/tests/support/dev-binding.ts`.
+- Mail: the stack script has a new subcommand `bash scripts/local-stack-27.sh start-mailpit` (same stack, send_email hook off, so auth mail lands in Mailpit on 59324). Stop and start again to switch back to `start`.
+- Selector faults fixed (same code on main): the Password field is `getByRole("textbox", { name: "Password" })` (the show/hide eye also matched the label; the same clash in the D-09 German test in `auth-flows`), the button is "CREATE ACCOUNT", the sent page says "Send another link".
+- Other test-side faults found on the way, fixed in the two specs: `auth-confirm-email` had no project guard (it ran once per viewport project on one port); the staging env adds `AUTH_RATE_LIMITER` (10 auth posts per 60 s per IP), so each test now presents its own `cf-connecting-ip`; `next dev` starts the Worker bindings without awaiting them, so the first request can get a 500 (probe `waitForDevBindings` before the tests); pages are warmed and sign-up waits for `networkidle` because fields filled before the page re-renders are cleared (the old hydration flake).
+- Run the two files one after the other (`--workers=1`). Together in parallel they start two `next dev` in the same `apps/web/.next` and one of them never becomes ready (seen once: confirm-email "did not become ready"). Not changed here.
+- Also verified after the change: `pnpm typecheck`, `pnpm lint` (0 errors, 6 warnings as before) and `pnpm build` (passes; the init is gated on `NODE_ENV=development`, so a build never selects the staging env).
 
 ## Final commit
 
@@ -49,7 +48,7 @@ Run once, on the merged tree, by this plan only. Stack: local port 59322 only. D
 | 17 | `apps/web/tests/e2e-worker/run.sh /Users/koss/Developer/vamos-wt/phase-27 /tmp/vamos-sb27 <hook-secret-path> p27` (with `SB_API_PORT=59321 SB_DB_PORT=59322 SB_DB_CONTAINER=supabase_db_vamos-taxi-270` and a `supabase` wrapper on PATH) | pass: 50 PASS, 0 FAIL, 1 N/A (d2: no Stripe key on the local Worker, expected). 1a0 pass: sign-up without the tick refused, no account, no record. 1a pass: exactly 1 agreement record, matching. 1b pass: confirm link gives a session, 0 consent_log rows (D-01). 3b pass: unknown address on the sign-in link, same answer, no mail, 0 accounts (D-36). 3 and 4 pass: known address gets a session. Also pass: checkout scenarios 7a-7d, 8-11b, German G1-G8 | n/a |
 | 18a | `pnpm exec playwright test tests/integration/consent-banner-27.spec.ts --project=component-390 --workers=1` | pass, 9 of 9 | n/a |
 | 18b | `pnpm exec playwright test tests/integration/signup-agreement-27.spec.ts` (all four projects) | pass, 56 of 56 | n/a |
-| 18c | `auth-flows.spec.ts` and `auth-confirm-email.spec.ts` | FAIL as committed, see BLOCKER. Passed only as temporary modified copies | the three selector faults are on main; the missing binding is ours |
+| 18c | `cd apps/web && VAMOS_TEST_DB_PORT=59322 VAMOS_TEST_MAIL_PORT=59324 VAMOS_TEST_SUPABASE_WORKDIR=/tmp/vamos-sb27 pnpm exec playwright test tests/integration/auth-confirm-email.spec.ts tests/integration/auth-flows.spec.ts --workers=1` (stack started with `bash scripts/local-stack-27.sh start-mailpit`) | pass: 12 of 12 (1 confirm-email + 11 auth-flows), five runs in a row, no retries. Same command without `--workers=1`: one run failed because both files started `next dev` in the same folder | the three selector faults are on main; the missing binding was ours |
 | 19 | must-not greps, added lines of `git diff origin/main...HEAD` | pass: `sk_live_`, `vamostaxi.eu`, `1595596972063765`, `fbq(` appear only in planning documents that forbid them; `fbevents` appears in planning documents and in one test assertion that forbids it (`vamos-consent.test.ts`). No code line | n/a |
 | 20 | `git grep` `META_LEGAL_GATE_OPEN = false as const` in `apps/web/lib/meta` | pass, still false (`legal-gate.ts:6`) | n/a |
 | 21 | `git grep` `record_consent\|recordConsent` in `apps/web/lib/auth`, `apps/web/app/api/auth` (no tests) | pass, empty | n/a |
@@ -69,7 +68,7 @@ Two things I changed to get a clean run, both ignored build output, nothing comm
 | SiteHeader 390 | macOS effect, not run |
 | `locale-follow-26-3.spec.ts:164` "DC pages still 308 away from a locale prefix" | not fixed on main: the spec on main still expects 308 from `/de/about`, and main's SEO ship (`1fd43a51`) made `/de/about` a real address. Not run here |
 | `packages/db/test/local/checkout-account.test.ts` (3 tests) | `vamos_edge` has no password until set by hand; local-only |
-| `auth-confirm-email.spec.ts` three selectors, `auth-flows.spec.ts` D-09 eye clash | same code on main, see BLOCKER |
+| `auth-confirm-email.spec.ts` three selectors, `auth-flows.spec.ts` D-09 eye clash | same code on main; fixed in the specs, see "Blocker closed" |
 
 I could not run these on origin/main (no second stack allowed), so "on main too" rests on the unchanged code and the reasons above.
 
@@ -88,7 +87,7 @@ I could not run these on origin/main (no second stack allowed), so "on main too"
 
 - Owner UAT below, on staging.
 - No lawyer has read the texts (decision file `.planning/decisions/2026-09-30-meta-wording.md`).
-- The two committed Playwright specs `auth-flows` and `auth-confirm-email` (see BLOCKER).
+- The two Playwright specs `auth-flows` and `auth-confirm-email` were run only against the 59322 stack; never against the default 54322 stack (not allowed here). On that stack, with no `VAMOS_TEST_DB_PORT`, the bindings come from the staging `localConnectionString` in `wrangler.jsonc`, whose password is not the local role password, so a sign-up would answer 503 there. Set `VAMOS_TEST_DB_PORT=54322` to get the local role passwords.
 - The three tests in `packages/db/test/local/checkout-account.test.ts` were red in this run (role passwords). Those functions are covered by pgTAP and by the Worker e2e.
 - Hosted database: nothing read or written.
 - D-03a: built by 27-17 (grant), 27-15 (server) and 27-16 (page). Proven by unit tests, pgTAP, the Worker e2e (1a0, 1a, 1b) and `signup-agreement-27.spec.ts` (56 of 56). D-36: built by 27-18, proven by unit tests, the Worker e2e (3b) and, in the modified copy, the browser test for an unknown address.
@@ -175,7 +174,7 @@ The banner now sits on checkout, so the payment path gets its own proof (CLAUDE.
 - `apps/web/app/api/auth/checkout-route.test.ts`: the sign-in link case expects no account (D-36).
 - `apps/web/tests/unit/auth/dashboard-no-signup.test.ts`, `cookies-dropped.test.ts`: sign-up bodies carry the tick.
 - Worker e2e `1a0`, `1a`, `1b`, `3b`.
-- `auth-flows.spec.ts` (tick the box; the sign-in link test uses an existing account) and `auth-confirm-email.spec.ts` (tick the box). See BLOCKER.
+- `auth-flows.spec.ts` (tick the box; the sign-in link test uses an existing account) and `auth-confirm-email.spec.ts` (tick the box). See "Blocker closed".
 - `packages/db/supabase/tests/seed_idempotent.test.sql`: counts follow the regenerated seed (27-11). No drift now, so no change in this plan.
 
 ## Owner UAT

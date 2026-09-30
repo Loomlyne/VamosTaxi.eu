@@ -6,7 +6,9 @@
 #     This script only ever talks to 593xx.
 #   - Never point this at a hosted project. It uses --local / --workdir only and carries no project ref.
 #
-# Usage: scripts/local-stack-27.sh start|stop|reset|migrate|test|types|url|status|hook-secret-path
+# Usage: scripts/local-stack-27.sh start|start-mailpit|stop|reset|migrate|test|types|url|status|hook-secret-path
+#   start-mailpit: same stack with the send_email hook off, so auth mail lands in Mailpit (59324) for the
+#   Playwright specs that read mail. Stop and start again to switch (config is read at start).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -36,13 +38,13 @@ prepare() {
     -e 's/localhost:543([0-9]{2})/localhost:593\1/g' \
     -e 's#^(  "http://localhost:4270/\*\*",)$#\1\n  "http://localhost:4290/**",#' \
     "$SRC/config.toml" > "$WORK/config.toml"
-  {
+  if [ "${VAMOS_SB27_HOOK:-on}" = "on" ]; then {
     echo
     echo "[auth.hook.send_email]"
     echo "enabled = true"
     echo 'uri = "http://host.docker.internal:4290/api/auth/email-hook"'
     printf 'secrets = "%s"\n' "$(cat "$HOOK_SECRET")"
-  } >> "$WORK/config.toml"
+  } >> "$WORK/config.toml"; fi
   if grep -Eq '(^|[^0-9])543[0-9]{2}|55322|56322|57322|58322|60322' "$WORK/config.toml"; then
     echo "refusing: scratch config.toml still mentions another session's port" >&2
     exit 1
@@ -54,6 +56,7 @@ sb() { "$SUPABASE" "$@" --workdir "$SCRATCH"; }
 cmd="${1:-}"
 case "$cmd" in
   start) prepare; sb start ;;
+  start-mailpit) VAMOS_SB27_HOOK=off; prepare; sb start ;;
   stop) prepare; sb stop ;;
   reset) prepare; sb db reset --local ;;
   migrate) prepare; sb migration up --local ;;
@@ -66,7 +69,7 @@ case "$cmd" in
   url) echo "$DB_URL" ;;
   hook-secret-path) echo "$HOOK_SECRET" ;;
   *)
-    echo "usage: $0 start|stop|reset|migrate|test|types|url|status|hook-secret-path" >&2
+    echo "usage: $0 start|start-mailpit|stop|reset|migrate|test|types|url|status|hook-secret-path" >&2
     exit 2
     ;;
 esac

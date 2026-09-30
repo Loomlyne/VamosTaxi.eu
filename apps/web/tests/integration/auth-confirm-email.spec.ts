@@ -10,9 +10,10 @@ import { test, expect, type Page } from "@playwright/test";
 import { execFileSync, spawn, type ChildProcess } from "node:child_process";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
+import { devBindingEnv, ownClientIpHeaders, waitForDevBindings, warmAuthPages, MAIL_URL, supabaseStatusArgs } from "../support/dev-binding";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 
-const MAIL_URL = "http://127.0.0.1:54324";
+const RUN_PROJECT = "component-1440"; // one fixed port and one mailbox: run once, not per viewport project
 const PORT = 4261;
 const PASSWORD = "password1";
 const STACK_DOWN = "Local stack is not running. Run `pnpm db:start && pnpm db:reset`.";
@@ -26,7 +27,7 @@ let baseURL = "";
 function requireLocalStack(): { apiUrl: string; anonKey: string } {
   let raw: string;
   try {
-    raw = execFileSync("pnpm", ["exec", "supabase", "status", "-o", "env"], {
+    raw = execFileSync("pnpm", supabaseStatusArgs(), {
       cwd: DB_ROOT,
       encoding: "utf8",
       timeout: 30_000,
@@ -85,6 +86,7 @@ test.describe("D-28 Pitfall 4 confirm-email intermediate state", () => {
   test.describe.configure({ mode: "serial" });
 
   test.beforeAll(async ({}, testInfo) => {
+    if (testInfo.project.name !== RUN_PROJECT) return;
     testInfo.setTimeout(180_000);
     const stack = requireLocalStack();
     baseURL = `http://localhost:${PORT}`;
@@ -94,11 +96,14 @@ test.describe("D-28 Pitfall 4 confirm-email intermediate state", () => {
       detached: true,
       env: {
         ...process.env,
+        ...devBindingEnv(),
         SUPABASE_URL: stack.apiUrl,
         SUPABASE_ANON_KEY: stack.anonKey,
       },
     });
     await waitForNextServer(baseURL);
+    await waitForDevBindings(baseURL);
+    await warmAuthPages(baseURL);
   });
 
   test.afterAll(() => {
@@ -111,6 +116,11 @@ test.describe("D-28 Pitfall 4 confirm-email intermediate state", () => {
     }
   });
 
+  test.beforeEach(async ({ context }, testInfo) => {
+    test.skip(testInfo.project.name !== RUN_PROJECT);
+    await context.setExtraHTTPHeaders(ownClientIpHeaders());
+  });
+
   test("D-28 Pitfall 4: password signup has no usable session until the emailed confirmation", async ({
     page,
   }) => {
@@ -119,13 +129,14 @@ test.describe("D-28 Pitfall 4 confirm-email intermediate state", () => {
     const after = new Date(Date.now() - 1000).toISOString();
     await page.goto(`${baseURL}/sign-up`, { timeout: 60_000, waitUntil: "domcontentloaded" });
     await expect(page.locator("[data-af]")).toBeVisible({ timeout: 30_000 });
+    await page.waitForLoadState("networkidle"); // fields filled before the page re-renders are cleared
     await page.getByLabel("Email").fill(email);
     await page.getByLabel("First name").fill("Ada");
     await page.getByLabel("Last name").fill("Lovelace");
-    await page.getByLabel("Password").fill(PASSWORD);
+    await page.getByRole("textbox", { name: "Password" }).fill(PASSWORD);
     await page.locator("[data-af-consent] .vt-check__box").click();
-    await page.getByRole("button", { name: "Create an account" }).click();
-    await expect(page.locator("[data-af]")).toContainText("Send a new link");
+    await page.getByRole("button", { name: "CREATE ACCOUNT" }).click();
+    await expect(page.locator("[data-af]")).toContainText("Send another link");
 
     const before = await sessionSnapshot(page);
     expect(before.signedIn).toBe(false);
