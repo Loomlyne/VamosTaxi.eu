@@ -38,8 +38,13 @@ created: 2026-09-30
 Expected temporary red: `pnpm db:seed:check` between plan 27-03 (new message keys) and plan 27-11
 (seed regenerated). Nothing else may stay red across a wave boundary.
 
-Phase hold (D-34): plan 27-13 stops the phase if 26.5 is not on origin/main; plan 27-14 refuses to
-run unless 27-13's SUMMARY says "COMPLETE: D-03a built".
+Phase hold (D-34): plan 27-13 stops the phase if 26.5 is not on origin/main. The hold is lifted: 26.5
+is live (origin/main 9a5263cd, merged at c037c6dd). D-03a and D-36 are built by the gap plans: wave 10
+= 27-17 (grant) and 27-18 (sign-in link, flag removal), wave 11 = 27-15 (server), wave 12 = 27-16
+(page), wave 13 = 27-14 (hand-over). Each gap plan's Task 1 checks the first line of the SUMMARY it
+depends on and stops otherwise. Plan 27-14 refuses to run unless 27-13's SUMMARY starts with
+"PRECONDITION MET", the 27-17, 27-15 and 27-16 SUMMARYs with "COMPLETE: D-03a built" and 27-18's with
+"COMPLETE: D-36 built". The Worker e2e and the full suites run once, in 27-14 only.
 
 Server start for browser tests in this sandbox: mock pages from a `node:http` static server over
 `apps/web/public` inside the spec; Next pages through `tests/support/server-harness.ts` (real
@@ -81,8 +86,17 @@ Server start for browser tests in this sandbox: mock pages from a `node:http` st
 | 27-11-01 | 11 | 8 | META-04 | T-27-43 | Unused Next keys removed only at zero users; mock dict never deleted from (list for control session) | gate | `pnpm i18n:check` | ✅ | ⬜ pending |
 | 27-11-02 | 11 | 8 | META-03 | T-27-44 | Seed generated, counts aligned, pgTAP full | pgTAP | `pnpm db:seed:check && bash scripts/local-stack-27.sh test` | ✅ | ⬜ pending |
 | 27-13-01 | 13 | 9 | META-03 | T-27-46 | Gate: 26.5 table + notice/tick on origin/main, else PHASE STOPPED (D-34) | git checks | `head -1 27-13-SUMMARY.md` status line | ❌ (written by the task) | ⬜ pending |
-| 27-13-02 | 13 | 9 | META-03 | T-27-47..49 | D-03a built only by gap plans (`/gsd-plan-phase 27 --gaps`) against 26.5's real code; not autonomous | checkpoint | SUMMARY first line "COMPLETE: D-03a built" + `27-1[5-9]-SUMMARY.md` exists | ❌ (gap plans) | ⬜ pending |
-| 27-14-01..03 | 14 | 10 | META-03..05 | T-27-50..53 | Refuses unless D-03a complete; merged tree passes the 17-item gate (auth e2e and Playwright not skippable); must-not diff allows only one `checkout.css` line; hand-over complete incl. 4242 payment step | all | 17 gate commands in plan 27-14 | ✅ | ⬜ pending |
+| 27-17-01 | 17 | 10 | META-03 | T-27-55, T-27-61, T-27-62 | EXECUTE for vamos_system only; checkout grant kept; anon/authenticated 42501; no table grant; sign-up shape; consent_log untouched; local apply only | pgTAP | `bash scripts/local-stack-27.sh test` (`signup_agreement_grant.test.sql`, `account_agreement_records.test.sql`) | ❌ (created by the task) | ⬜ pending |
+| 27-17-02 | 17 | 10 | META-03 | T-27-60 | Write through the Worker client options as vamos_system; int8 as string; anon/authenticated refused | local vitest | `VAMOS_LOCAL_DB_PORT=59322 pnpm --filter @vamos/db exec vitest run test/local/signup-agreement.test.ts test/local/checkout-account.test.ts` | ❌ (created by the task) | ⬜ pending |
+| 27-18-01 | 18 | 10 | META-03 (D-36) | T-27-54, T-27-57 | Sign-in link: shouldCreateUser false on every host; same answer for known and unknown address; sign-up mode still creates | unit | `pnpm --filter web exec vitest run tests/unit/auth app/api/auth lib/auth` | ❌ (`signin-link-no-account.test.ts`) | ⬜ pending |
+| 27-18-02 | 18 | 10 | META-03 | T-27-71 | signup_consent flag gone; D-01 pins green | unit + grep | `pnpm --filter web exec vitest run lib/auth tests/unit/auth lib/consent/record.test.ts` | ✅ (rewrite) | ⬜ pending |
+| 27-18-03 | 18 | 10 | META-03 (D-36) | T-27-57 | e2e 3b and browser spec expect no account for an unknown address | parse + typecheck (run in 27-14) | `node --check apps/web/tests/e2e-worker/auth-worker.e2e.mjs` | ✅ | ⬜ pending |
+| 27-15-01 | 15 | 11 | META-03 (D-03a) | T-27-54, T-27-56..60 | Sign-up refused without consent true (400); record before Supabase as vamos_system; failed record = 503, no account; no e-mail in logs; no consent_log write | unit | `pnpm --filter web exec vitest run lib/auth tests/unit/auth app/api/auth lib/consent/record.test.ts lib/db` + `pnpm check:db-fences` | ❌ (`signup-agreement.test.ts`, `signup-agreement-route.test.ts`) | ⬜ pending |
+| 27-15-02 | 15 | 11 | META-03 (D-03a) | T-27-54 | e2e 1a0 refusal, 1a one agreement row, 1b no consent row | parse (run in 27-14) | `node --check apps/web/tests/e2e-worker/auth-worker.e2e.mjs` | ✅ | ⬜ pending |
+| 27-16-01 | 16 | 12 | META-03 (D-03a) | T-27-63 | Mock notice = 26.5 message files, four languages; error line in the dictionary, insert only | unit | `pnpm --filter web exec vitest run lib/auth/signup-notice-mock.test.ts lib/checkout/phase-26-5-laws.test.ts` | ❌ (created by the task) | ⬜ pending |
+| 27-16-02 | 16 | 12 | META-03 (D-03a) | T-27-64, T-27-67 | Tick row on sign-up (both methods), never on sign-in or the dashboard; fail closed without the text; design laws | source pin + gate | same vitest file + `lib/ops/auth-ui-dc.test.ts`; `pnpm i18n:check` | ✅ | ⬜ pending |
+| 27-16-03 | 16 | 12 | META-03 (D-03a) | T-27-64..66 | Browser: unticked sends nothing, ticked sends consent true; de/fr/ar text and `VamosLocale.coverage` empty; 1440/1024/768/390; no yellow ring; ops has no tick | Playwright | `pnpm --filter web exec playwright test tests/integration/signup-agreement-27.spec.ts` | ❌ (created by the task) | ⬜ pending |
+| 27-14-01..03 | 14 | 13 | META-03..05 | T-27-50..53, T-27-68, T-27-69, T-27-72 | Refuses unless 27-17, 27-18, 27-15, 27-16 complete; main wins, D-03a/D-36 files hand-merged; version = ship day; merged tree passes the 17-item gate once (auth e2e incl. 1a0/1a/1b/3b and both Playwright specs not skippable); must-not checks on added lines / tree; hand-over complete incl. 4242 payment step, hosted grant order, D-37 under "Not in this phase" | all | 17 gate commands in plan 27-14 | ✅ | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -93,6 +107,8 @@ Server start for browser tests in this sandbox: mock pages from a `node:http` st
 | META-03 | Accept -> all categories true; Necessary only -> all false; Save -> exact switches; bad booleans -> 400 | `tests/unit/consent/route.test.ts`, `lib/consent/choice.test.ts` |
 | META-03 | Latest row under current version wins; tie by id; older version ignored (D-03b); other subject invisible | pgTAP R1-R4, R7, R8, R2 |
 | META-03 | Sign-up confirm writes no consent_log row | `tests/unit/auth/signup-consent.test.ts`, e2e check 1b `=== 0` |
+| META-03 (D-03a) | Sign-up needs the tick; the agreement is stored in `account_agreement_records` (surface sign-up), never in consent_log | `signup-agreement-route.test.ts`, `signup_agreement_grant.test.sql`, `test/local/signup-agreement.test.ts`, `signup-agreement-27.spec.ts`, e2e 1a0 / 1a |
+| META-03 (D-36) | The sign-in link makes no account for an unknown address; same answer for every address | `signin-link-no-account.test.ts`, `checkout-route.test.ts`, e2e 3b |
 | META-04 | Banner on every customer page incl. pay link; never ops | `mock-mounts.test.ts`, `banner-hosts.test.ts`, Playwright spec |
 | META-04 | Pixel never loads on a pay link (nothing loads it in 27) | `legal-gate.test.ts` "no fbevents.js", "flag off"; Playwright case B; must-not greps in 27-14 |
 | META-05 | Accept t1, Necessary only t3: now -> off; as of t2 -> on | pgTAP R3, R5 |
@@ -125,7 +141,9 @@ Server start for browser tests in this sandbox: mock pages from a `node:http` st
 | A real Accept then a Necessary only on staging produce two consent_log rows under the new version | META-03, META-05 | Needs the hosted DB after the control session applies the migration | Control session reads consent_log read-only after the owner's clicks |
 | Hosted `postgres` has `rolbypassrls` and anon has EXECUTE on `consent_choice` | META-04 | Hosted is off-limits to this worktree | Read-only SQL listed in 27-HANDOVER "Pre-ship hosted read-only checks" |
 | After deploy: one 4242 test payment, then `booking_payments` by status | META-04 | Banner now sits on checkout; CLAUDE.local.md rule 8 | Control-session step in 27-HANDOVER "Control session after deploy" |
-| /sign-up tick reads like checkout and lands in `account_agreement_records` | META-03 (D-03a) | Owner UAT replaces the former control-session checkpoint | Owner UAT step 12 in 27-HANDOVER |
+| /sign-up tick reads like checkout and lands in `account_agreement_records` | META-03 (D-03a) | Owner UAT replaces the former control-session checkpoint | Owner UAT steps 12-17 in 27-HANDOVER |
+| Sign-in link with an unknown address: same page, no mail, no account | META-03 (D-36) | Needs the deployed Worker and a real inbox | Owner UAT steps 18-19 in 27-HANDOVER |
+| Hosted: `vamos_system` has EXECUTE on `record_account_agreement` before the Worker deploy | META-03 (D-03a) | Hosted is off-limits to this worktree | Read-only SQL in 27-HANDOVER "Pre-ship hosted read-only checks" |
 
 ---
 
