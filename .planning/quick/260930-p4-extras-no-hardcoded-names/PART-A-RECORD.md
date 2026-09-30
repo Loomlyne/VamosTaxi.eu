@@ -125,7 +125,60 @@ lists it). Its fixture default rule changed from `null` to `{ kind: "manual" }`.
 
 | Row | Before | After |
 |---|---|---|
-| Old-style `child_seat` (rule `quantity`, source `child_seats`; books 13, 14 and any draft cloned from them) | A tick box, by accident | Not a tick box. The quote adds it only when a request sends a count, and no screen does. Saving it once on the Pricing page makes it an ordinary tick box (`child-seat`, manual). |
+| Old-style `child_seat` (rule `quantity`, source `child_seats`; books 13, 14 and any draft cloned from them) | A tick box, by accident | Not a tick box. The quote adds it only when a request sends a count, and no screen does. Saving it once on the Pricing page rewrites it with the manual rule and no quantity source (read from the route code, not run on such a row). |
 | A row with the empty rule `{}` | A tick box if its name was allowed | Not a tick box. Such a row cannot be published from the dashboard (Publish gate, unchanged). |
 
 Live book 18 holds neither.
+
+---
+
+## A3 — the name lists, the renaming and the dead name-based helpers are deleted
+
+Commit: `fdd45c6f`
+
+### What changed
+
+| File | Change |
+|---|---|
+| `apps/web/lib/ops/surcharge-codes.ts`, `surcharge-codes.test.ts` | Deleted (`SURCHARGE_CODES`, `SurchargeCode`, `PASSENGER_EXTRA_CODES`, `AUTOMATIC_SURCHARGE_CODES`, `normalizeSurchargeCode`, `isAutomaticSurcharge`, `isPassengerExtra`, `extraWriteFields`). `checkoutExtraKindFromRappen` had moved in A1. |
+| `apps/web/lib/checkout/extras-catalog.ts` | Deleted: `EXTRA_UI`, `extraUi`, `ExtraUi`, `extraIsOn`, `ExtraToggles`, `lockHasExtra`, `LockExtrasPeek`, `isWaitingPayableCode`, `extraFaresOn`, `isExtraStopCode`, `recapExtraFares`, `recapExtras`, `RecapExtraLine`, `RecapExtraFare`, `extraRappenOutsideLock`, `catalogFromSurcharges`, `pricedOnQuote`, `FREE_WAIT_CODE`, `MEET_GREET_CODE`, `CheckoutExtraJson`, and the import of the deleted file. |
+| `apps/web/lib/ops/rate-book.ts` | The re-export of `SURCHARGE_CODES` / `SurchargeCode` is gone (no user). |
+| `apps/web/lib/checkout/intent.ts` | The unused import and the unused `extrasCatalog` dependency field are gone. |
+| `apps/web/lib/checkout/reprice.ts` | No longer builds `extrasCatalog` (nothing read it). |
+
+Kept, as RESEARCH 5c says: `selectableExtras`, `humaniseCode`, `ExtraLabelsByCode`, `SurchargeLike`,
+`SnapshotExtraFare` (imported by `lock-to-rpc.ts`), `PUBLIC_MAX_EXTRA_STOPS`, `capExtraStops`,
+`publishedMaxExtraStops` (Part D owns the stop), the quantity machinery, and every old-booking reader
+(`LEGACY_EXTRA_NAMES`, `payLinkExtras`, `extrasFromPolicy`, `legacyExtraCodes`, `EXTRA_CODES`,
+`receiptPriceSplit`, the `BookingVoucher` label table, the `price.surcharge.<code>` messages). Also left in
+place because they are not name-based: `airportPickupFromPlace` and `extraAmountTimesQty` (each used only
+by a test today; Part C may want the second).
+
+### Tests
+
+New law test, failing before the change: `lib/checkout/extras-no-name-lists.test.ts`.
+
+| Test | Failure line before |
+|---|---|
+| `lib/ops/surcharge-codes.ts does not exist` | `AssertionError: expected true to be false // Object.is equality` |
+| `no source file imports it or uses one of its helpers` | `AssertionError: expected [ …(3) ] to deeply equal []` |
+| `the tick-box module has no name-based helper left` | `AssertionError: expected [ 'EXTRA_UI', 'extraUi', …(15) ] to deeply equal []` |
+| `the tick-box module compares no code to a quoted name` | `AssertionError: expected [ 'free_wait', 'meet_greet', …(12) ] to deeply equal []` |
+| `no source file reads the dead extras catalog of the checkout re-price` | `AssertionError: expected [ 'lib/checkout/intent.ts', …(1) ] to deeply equal []` |
+
+Before: `Tests 5 failed | 4 passed (9)`. The four that were green before are guards: the route binds the
+rule through `tx.json(MANUAL_PREDICATE)` and writes `predicate` and `quantity_source` on both statements
+(true since A1); the kept exports and the old-booking readers are still there.
+
+After: green. `npx vitest run lib/checkout` → `Test Files 83 passed (83)`, `Tests 782 passed (782)`.
+`rate-book-draft`, `rate-book-live-row-id`, `rate-book-stored-codes`, `rate-book-extra-rule`,
+`ops-write-contract` → `Test Files 5 passed (5)`, `Tests 48 passed (48)`.
+
+Existing tests changed or deleted, each because it pinned exactly what the plan removes:
+
+| Test | Change |
+|---|---|
+| `lib/ops/surcharge-codes.test.ts` › `maps ops aliases onto book codes`, `treats passenger extras as the checkout catalog, not night`, `pairs quantity extras with the quote source` | Deleted with the file. |
+| `lib/checkout/extras-catalog.test.ts` › `keeps ops extras and drops night`, `omits a surcharge after it is deleted from the published book`, `omits automatic night/weekend/holiday/waiting chips`, `lists a new published chip (pet, ski, unknown slug) and skips inactive`, `extra_stop is a chip without a fixed rappen × quantity fare`, `lists only selected extras on the recap, using book amounts`, `puts selected extras on the fare with the book amount`, `recap extras follow this booking's toggles, not a leftover lock`, `a code the owner added is on by its extra code list`, `does not invent meet & greet or free wait unless they are on the live book`, `shows amount 0 as included and does not charge it; a price is on the quote once` | Deleted: each tested a deleted helper. The name-free assertions inside them were kept as `an amount times a quantity…` and `reads an airport pickup from the place's zone type`; `public extras route still loads the live book` and `caps extra-stop places at 1 (D-21)` are unchanged. |
+| `lib/checkout/reprice.test.ts` › `is ok with pricingLive true when the live rate version is live and public_chf is on` | The expected object lost `extrasCatalog: []`. |
+| `lib/checkout/phase-26-3-laws.test.ts` › `no child_seat / oversized_luggage / extra_stop literal in checkout, e-mail or ops code paths` | Tightened: the deleted file left its allow-list and `extras-catalog.ts` is no longer exempt. Still green. |
