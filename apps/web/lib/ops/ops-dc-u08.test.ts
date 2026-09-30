@@ -1,0 +1,35 @@
+// apps/web/lib/ops/ops-dc-u08.test.ts
+//
+// 26.2-u08 regression tests for the live dashboard DC surfaces (app/ops/*.dc.html).
+// Each test pulls one expression out of the DC source and runs it, so the test fails
+// on the pre-fix source and passes on the fixed one. No DOM, no network.
+
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { describe, expect, it } from "vitest";
+
+const here = dirname(fileURLToPath(import.meta.url));
+const repoRoot = join(here, "../../../..");
+
+function readDc(name: string): string {
+  return readFileSync(join(repoRoot, "app/ops", name), "utf8");
+}
+
+function grab(src: string, re: RegExp, label: string): string {
+  const m = src.match(re);
+  if (!m?.[1]) throw new Error(`missing ${label}`);
+  return m[1];
+}
+
+describe("OpsFleet chauffeur delete", () => {
+  it("onDelete hands the store promise back to OpsTable (else the dialog reports a failure)", () => {
+    const src = readDc("OpsFleet.dc.html");
+    const body = grab(src, /\n\s*onDelete: (\(id\) => [^\n]*),\n/, "OpsFleet onDelete");
+    const answer = Promise.resolve({ ok: true });
+    const onDelete = new Function("store", `return ${body};`)({ remove: () => answer }) as (
+      id: string,
+    ) => unknown;
+    expect(onDelete("c1")).toBe(answer);
+  });
+});
