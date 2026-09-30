@@ -96,6 +96,30 @@ body{margin:0;font-family:var(--vt-font-body);color:var(--vt-text-primary);backg
   .D .body{grid-area:body}.D .pr{grid-area:pr;text-align:start}
 }
 
+/* ── Option E (owner's screenshot, 2026-09-30): the earlier home fleet card. Square inset photo,
+      name, price, "N seats · N bags", outlined SELECT across the text column. Rows with A's check in checkout. ── */
+.E .home-only .grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.E .home-only .card{display:flex;align-items:stretch;gap:12px;padding:8px}
+.E .shot{inline-size:146px;flex:0 0 146px;aspect-ratio:1/1}
+.E .home-only .side{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1 1 auto;padding-block:2px}
+.E .home-only .name{font-size:var(--vt-heading-4);line-height:1.2}
+.E .caps{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:var(--vt-body-sm);color:var(--vt-text-secondary);margin-block-start:auto}
+.E .caps span{display:inline-flex;align-items:center;gap:6px}
+.E .home-only .btn{inline-size:100%;block-size:44px;background:transparent;color:var(--vt-text-primary);border:1px solid var(--vt-border-subtle);margin-block-start:6px}
+.E .home-only .btn.dis{opacity:.42}
+.E .home-only .sk.b{inline-size:100%;block-size:44px;border-radius:999px;margin-block-start:6px}
+.E .co-only .grid{grid-template-columns:minmax(0,1fr)}
+.E .co-only .card{grid-template-columns:96px minmax(0,1fr) auto;align-items:center;gap:var(--vt-space-4);padding:8px 52px 8px 8px;padding-inline:8px 52px}
+.E .co-only .shot{inline-size:96px;flex:none}
+.E .co-only .pr{text-align:end}
+.E .co-only .chk{inset-block-start:50%;transform:translateY(-50%);inset-inline-end:14px}
+@media (max-width:1240px){.E .shot{inline-size:120px;flex-basis:120px}}
+@media (max-width:700px){
+  .E .co-only .card{grid-template-columns:88px minmax(0,1fr);grid-template-areas:"shot body" "shot pr";gap:2px 12px;padding:8px 44px 8px 8px;padding-inline:8px 44px}
+  .E .co-only .shot{grid-area:shot;inline-size:88px}
+  .E .body{grid-area:body}.E .co-only .pr{grid-area:pr;text-align:start}
+}
+
 /* narrow: every option becomes a row with the photo at the side */
 @media (max-width:1080px){
   .B .grid,.C .grid{grid-template-columns:repeat(3,minmax(0,1fr))}
@@ -137,7 +161,14 @@ const CLS = [
 const ic = (n) => `<span class="ic" style="--u:url(/assets/icons/${n}.svg)"></span>`;
 const shot = (c) => `<div class="shot"><img src="ph/${c.slug}.jpg" alt="${c.name}"></div>`;
 const body = (c) => `<div class="body"><div class="name">${c.name}</div><div class="meta"><span>${ic('users')}${c.pax}</span><span>${ic('luggage')}${c.bags}</span></div></div>`;
+const CAP = { en: ['seats', 'bags'], de: ['Plätze', 'Gepäckstücke'], ar: ['مقاعد', 'حقائب'] }[lang];
+function homeCardE(c, st) {
+  const price = st === 'priced' ? `<div class="price">${c.p}</div>` : st === 'loading' ? `<span class="sk"></span>` : `<div class="note">${T.fill}</div>`;
+  const btn = st === 'loading' ? `<span class="sk b"></span>` : `<span class="btn ${st === 'idle' ? 'dis' : ''}">${T.sel} ${ic('arrow-right')}</span>`;
+  return `<div class="card">${shot(c)}<div class="side"><div class="name">${c.name}</div>${price}<div class="caps"><span>${ic('users')}${c.pax} ${CAP[0]}</span><span>${ic('luggage')}${c.bags} ${CAP[1]}</span></div>${btn}</div></div>`;
+}
 function homeCard(c, st) {
+  if (opt === 'E') return homeCardE(c, st);
   const price = st === 'priced' ? `<div class="price">${c.p}</div>` : st === 'loading' ? `<span class="sk"></span>` : `<div class="note">${T.fill}</div>`;
   const btn = st === 'loading' ? `<span class="sk" style="inline-size:120px;block-size:${opt === 'C' || opt === 'D' ? 40 : 44}px;border-radius:999px"></span>` : `<span class="btn ${st === 'idle' ? 'dis' : ''}">${T.sel} ${ic('arrow-right')}</span>`;
   if (opt === 'A') return `<div class="card">${shot(c)}${body(c)}<div class="pr">${price}</div><div class="act">${btn}</div></div>`;

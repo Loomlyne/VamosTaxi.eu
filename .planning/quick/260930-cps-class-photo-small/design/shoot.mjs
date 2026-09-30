@@ -18,7 +18,7 @@ await new Promise((r) => srv.listen(PORT, "127.0.0.1", r));
 const br = await chromium.launch();
 const only = process.argv[2];
 try {
-  for (const opt of ["A", "B", "C", "D"]) {
+  for (const opt of ["A", "B", "C", "D", "E"]) {
     if (only && only !== opt) continue;
     const shots = [
       ["home", 1440, "en"], ["home", 1100, "en"], ["home", 1440, "de"], ["home", 1440, "ar"],
