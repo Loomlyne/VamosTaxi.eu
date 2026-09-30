@@ -30,10 +30,19 @@ import {
   type CompanyInput,
   type ContactInput,
 } from "@/lib/checkout/pay-flow";
-import { firstPayError, type PayErrorKey, type PayField } from "@/lib/checkout/pay-validate";
+import {
+  firstSectionError,
+  type AccountPayField,
+  type PayErrorKey,
+  type PayField,
+} from "@/lib/checkout/pay-validate";
+import { accountIntentBlock, mapAccountCode } from "@/lib/checkout/account-pay";
+import type { AccountChoiceValue } from "@/components/checkout/AccountChoice";
+import type { CheckoutSignInStage } from "@/components/checkout/CheckoutSignIn";
 import { useQuoteLabel } from "@/lib/checkout/quote-label";
 import { buildTripQuery, normaliseFlight, parseTripQuery, type Trip } from "@/lib/checkout/trip-url";
 import { useCheckoutFlow } from "./CheckoutPage";
+import { useCheckoutSettings } from "./CheckoutSettings";
 
 
 export type ExtraItem = { code: string; amountRappen: number; names: ExtraNames };
@@ -79,6 +88,21 @@ export type CheckoutForm = {
   signInHref: string;
   /** Called on the sign-in click: parks voucher, company and note in this tab. */
   stashForSignIn: () => void;
+  // account choice (26.5)
+  accountChoice: AccountChoiceValue;
+  changeAccountChoice: (v: AccountChoiceValue) => void;
+  createConsent: boolean;
+  setCreateConsent: (on: boolean) => void;
+  createConsentError: string | null;
+  createHidden: boolean;
+  accountError: string | null;
+  signInStage: CheckoutSignInStage;
+  onSignInStage: (s: CheckoutSignInStage) => void;
+  sentBlockError: string | null;
+  returnPath: string;
+  refreshSignedIn: () => void;
+  accountResetNonce: number;
+  setAccountTurnstile: (token: string | null) => void;
   // flight
   airport: boolean;
   flight: string;
@@ -139,7 +163,7 @@ export function useCheckoutForm(): CheckoutForm {
   return value;
 }
 
-const FIELD_SELECTOR: Record<PayField, string> = {
+const FIELD_SELECTOR: Record<PayField | AccountPayField, string> = {
   class: "#co-section-class [data-co-class][data-eligible='true'] button, #co-section-class",
   firstName: '[data-co-contact] input[autocomplete="given-name"]',
   lastName: '[data-co-contact] input[autocomplete="family-name"]',
@@ -147,6 +171,9 @@ const FIELD_SELECTOR: Record<PayField, string> = {
   mobile: "[data-co-contact] [data-vt-phone] input",
   flight: "[data-co-s2-flight] input",
   companyName: "[data-co-company-name] input",
+  account: "[data-co-account] input[type=radio]:checked, [data-co-account]",
+  accountSent: "[data-co-account] [data-acct-sent-heading]",
+  accountConsent: "[data-co-account] [data-acct-consent] input[type=checkbox]",
 };
 
 function scrollAndFocus(selector: string): void {
@@ -172,10 +199,20 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
   const label = useQuoteLabel();
   const { cur } = useVamosLocale();
   const fx = useFx();
+  const settings = useCheckoutSettings();
   const { trip, quote, phase, selectedClass, locale } = flow;
 
   const [contact, setContactState] = useState<ContactInput>({ firstName: "", lastName: "", email: "", mobile: "" });
   const [signedInEmail, setSignedInEmail] = useState<string | null>(null);
+  const [accountChoice, setAccountChoice] = useState<AccountChoiceValue>("guest"); // owner: guest preselected
+  const [createConsent, setCreateConsent] = useState(false);
+  const [signInStage, setSignInStage] = useState<CheckoutSignInStage>("form");
+  const [accountError, setAccountError] = useState<string | null>(null);
+  const [createConsentError, setCreateConsentError] = useState<string | null>(null);
+  const [sentBlockError, setSentBlockError] = useState<string | null>(null);
+  const [createHidden, setCreateHidden] = useState(false);
+  const [accountTurnstile, setAccountTurnstile] = useState<string | null>(null);
+  const [accountResetNonce, setAccountResetNonce] = useState(0);
   const [flight, setFlightState] = useState(trip.flightDisplay ?? "");
   const [flightError, setFlightError] = useState<string | null>(null);
   const [extras, setExtras] = useState<ExtraItem[]>([]);
@@ -204,6 +241,8 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
   const started = useRef(false);
   const idem = useRef<{ sel: string; id: string } | null>(null);
   const tripRef = useRef(trip);
+  const contactRef = useRef(contact);
+  contactRef.current = contact;
   tripRef.current = trip;
 
   // Airport status comes from the pickup place only (D-09), never from a flight being present.
@@ -251,6 +290,11 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
 
   const setContact = useCallback((patch: Partial<ContactInput>) => {
     setContactState((prev) => ({ ...prev, ...patch }));
+    if ("email" in patch) {
+      // The tick belongs to the e-mail it was given for (checker rec. 5, T-26.5-31).
+      setCreateConsent(false);
+      setCreateConsentError(null);
+    }
     setFieldErrors((prev) => {
       const next = { ...prev };
       if ("firstName" in patch) delete next.firstName;
@@ -326,6 +370,55 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
     [challenge, requoteTrip, label, t],
   );
 
+  // Signed-in state comes only from the server session (T-26.5-28). Prefill fills empty
+  // fields only, from this customer's own row (D-01, T-26.5-30).
+  const refreshSignedIn = useCallback(
+    async (announceIt = true) => {
+      try {
+        const res = await fetch("/api/checkout/me", { credentials: "same-origin" });
+        const me = (await res.json()) as {
+          signed_in?: boolean;
+          email?: string;
+          first_name?: string;
+          last_name?: string;
+          phone?: string;
+        };
+        if (me.signed_in && me.email) {
+          setSignedInEmail(me.email);
+          const next = {
+            firstName: contactRef.current.firstName || me.first_name || "",
+            lastName: contactRef.current.lastName || me.last_name || "",
+            email: contactRef.current.email || me.email || "",
+            mobile: contactRef.current.mobile || (me.phone ?? ""),
+          };
+          setContactState(next);
+          if (announceIt) {
+            setLiveMessage(t("signedInAs", { email: me.email }));
+            const missing = !next.firstName
+              ? FIELD_SELECTOR.firstName
+              : !next.lastName
+                ? FIELD_SELECTOR.lastName
+                : !next.mobile
+                  ? FIELD_SELECTOR.mobile
+                  : "[data-co-pay]";
+            window.setTimeout(() => scrollAndFocus(missing), 50);
+          }
+        }
+      } catch {
+        // guest: nothing to prefill
+      }
+    },
+    [t],
+  );
+
+  // The tab that started a sign-in picks the session up when the customer comes back to it (D-07).
+  useEffect(() => {
+    if (signedInEmail) return;
+    const onFocus = () => void refreshSignedIn();
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [signedInEmail, refreshSignedIn]);
+
   // ── Mount: catalogue, signed-in prefill, sign-in return stash, resume ─────────────────
   useEffect(() => {
     if (started.current) return;
@@ -349,29 +442,7 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    void (async () => {
-      try {
-        const res = await fetch("/api/checkout/me", { credentials: "same-origin" });
-        const me = (await res.json()) as {
-          signed_in?: boolean;
-          email?: string;
-          first_name?: string;
-          last_name?: string;
-          phone?: string;
-        };
-        if (me.signed_in && me.email) {
-          setSignedInEmail(me.email);
-          setContactState((prev) => ({
-            firstName: prev.firstName || me.first_name || "",
-            lastName: prev.lastName || me.last_name || "",
-            email: prev.email || me.email || "",
-            mobile: prev.mobile || (me.phone ?? ""),
-          }));
-        }
-      } catch {
-        // guest: nothing to prefill
-      }
-    })();
+    void refreshSignedIn(false);
 
     const resumeId = trip.resume;
     if (!resumeId) return;
@@ -402,6 +473,7 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
       // open or expired: refill everything
       const { first, last } = splitName(answer.contact.name);
       setContactState({ firstName: first, lastName: last, email: answer.contact.email, mobile: answer.contact.phone });
+      setCreateConsent(false);
       setCompanyState({ name: answer.company.name, address: answer.company.address, vat: answer.company.vat });
       setCompanyOpen(Boolean(answer.company.name || answer.company.address || answer.company.vat));
       setNote(answer.note);
@@ -600,6 +672,9 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
   const pay = useCallback(() => {
     if (payStatus === "loading") return;
     setPayError(null);
+    setAccountError(null);
+    setCreateConsentError(null);
+    setSentBlockError(null);
 
     if (flow.editorOpen) {
       if (flow.editorDirty.current) {
@@ -613,7 +688,7 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
       flow.closeEditor();
     }
 
-    const found = firstPayError({
+    const found = firstSectionError({
       classChosen: Boolean(selectedClass),
       firstName: contact.firstName,
       lastName: contact.lastName,
@@ -625,11 +700,18 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
       companyName: company.name,
       companyAddress: company.address,
       companyVat: company.vat,
+      account: { signedIn: Boolean(signedInEmail), choice: accountChoice, stage: signInStage, createConsent },
     });
     if (found) {
       setPayStatus("idle");
       if (found.field === "class") {
         flow.setClassError(true);
+      } else if (found.field === "account") {
+        setAccountError(t("acctPayBlockSignIn"));
+      } else if (found.field === "accountSent") {
+        setSentBlockError(t("acctPayBlockSent"));
+      } else if (found.field === "accountConsent") {
+        setCreateConsentError(t("acctCreateConsentError"));
       } else {
         setFieldErrors({ [found.field]: found.messageKey });
       }
@@ -704,6 +786,18 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
       idempotencyKey: idem.current.id,
     });
 
+    const account = accountIntentBlock({
+      signedIn: Boolean(signedInEmail),
+      choice: accountChoice,
+      guestAccountsOn: settings.guestAccountsOn,
+      createAvailable: settings.accountCreateAvailable && !createHidden,
+      createConsent,
+      turnstileToken: accountTurnstile ?? undefined,
+      idempotencyKey: idem.current.id,
+      returnTo: window.location.pathname + window.location.search,
+    });
+    const payload = account ? { ...body, account } : body;
+
     void (async () => {
       const fail = (text: string) => {
         setPayStatus("error");
@@ -715,7 +809,7 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
           method: "POST",
           credentials: "same-origin",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify(body),
+          body: JSON.stringify(payload),
         });
         const json = (await res.json()) as { ok?: boolean; url?: string; code?: string };
         if (json.ok === true && isStripeCheckoutUrl(json.url)) {
@@ -723,6 +817,30 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
           return;
         }
         const code = json.code ?? "";
+        const effect = mapAccountCode(code);
+        if (effect) {
+          setPayStatus(effect.payError ? "error" : "idle");
+          if (effect.stage) {
+            setSignInStage("sent");
+            setAccountChoice("signin");
+            window.setTimeout(() => scrollAndFocus(FIELD_SELECTOR.accountSent), 60);
+          }
+          if (effect.createConsentError) {
+            setCreateConsentError(t(effect.createConsentError));
+            scrollAndFocus(FIELD_SELECTOR.accountConsent);
+          }
+          if (effect.payError) {
+            setPayError(t(effect.payError));
+            announce(t(effect.payError));
+          }
+          if (effect.resetTurnstile) {
+            setAccountTurnstile(null);
+            setAccountResetNonce((n) => n + 1);
+          }
+          if (effect.hideCreate) setCreateHidden(true);
+          if (effect.choice) setAccountChoice(effect.choice);
+          return;
+        }
         if (code === "quote_expired" || code === "quote_not_found" || code === "payment_window_closed") {
           setQuoteExpired(true);
           setPayStatus("idle");
@@ -779,6 +897,13 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
     trip,
     voucher,
     loadExtras,
+    accountChoice,
+    accountTurnstile,
+    createConsent,
+    createHidden,
+    settings,
+    signInStage,
+    signedInEmail,
   ]);
 
   // A page restored from the back/forward cache must not stay in "Opening payment".
@@ -811,6 +936,27 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
     [pathname, trip, selectedClass, tickedValid, ticked],
   );
 
+  const changeAccountChoice = useCallback((v: AccountChoiceValue) => {
+    setAccountChoice(v);
+    setAccountError(null);
+    setCreateConsentError(null);
+    setSentBlockError(null);
+  }, []);
+
+  const onSignInStage = useCallback(
+    (s: CheckoutSignInStage) => {
+      if (s === "sent") stashForSignIn();
+      setSignInStage(s);
+      setSentBlockError(null);
+    },
+    [stashForSignIn],
+  );
+
+  const returnPath = useMemo(
+    () => checkoutReturnPath(pathname, trip, selectedClass, tickedValid.length > 0 ? tickedValid : ticked),
+    [pathname, trip, selectedClass, tickedValid, ticked],
+  );
+
   const paying = payStatus === "loading";
   const payDisabled = flow.pricingNotLive || quoteExpired;
 
@@ -820,6 +966,20 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
     signedInEmail,
     signInHref: signIn,
     stashForSignIn,
+    accountChoice,
+    changeAccountChoice,
+    createConsent,
+    setCreateConsent,
+    createConsentError,
+    createHidden,
+    accountError,
+    signInStage,
+    onSignInStage,
+    sentBlockError,
+    returnPath,
+    refreshSignedIn: () => void refreshSignedIn(),
+    accountResetNonce,
+    setAccountTurnstile,
     airport,
     flight,
     setFlight,

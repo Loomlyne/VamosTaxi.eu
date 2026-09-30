@@ -1333,3 +1333,17 @@
     flex-wrap: wrap;
   }
 }
+
+/* 26.5: account choice at the top of section 2. Tokens and logical properties only. */
+[data-co-account] {
+  display: grid;
+  gap: var(--vt-space-6);
+  min-inline-size: 0;
+  margin-block-end: var(--vt-space-6);
+}
+
+[data-co-account-divider] {
+  margin: 0;
+  border: 0;
+  border-block-start: 1px solid var(--vt-border-subtle);
+}
