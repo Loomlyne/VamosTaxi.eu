@@ -13,7 +13,6 @@
 [data-rail-profile]{display:block}
 @media (max-width:899px){
   [data-rail-toggle]{display:none!important}
-  [data-rail-profile]{display:none!important}
 }
 @media (min-width:900px){
   [data-rail-profile]{display:block!important}
@@ -299,7 +298,8 @@ class Component extends DCLogic {
     return {
       n14: 14, n16: 16, n18: 18, n22: 22, n26: 26,
       toggleShow: drawer ? 'none' : 'flex',
-      profileShow: drawer ? 'none' : 'block',
+      // 260930-dash-design: the phone bar has no avatar any more, so the drawer carries the profile row.
+      profileShow: 'block',
       railWidth: col ? '76px' : '236px',
       labelShow: col ? 'none' : 'inline-flex',
       kickerShow: col ? 'none' : 'block',

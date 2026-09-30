@@ -380,6 +380,7 @@ describe("2 · phone: compact bar and folded page buttons", () => {
     const phone = mediaBlocks(side, "(max-width:899px)");
     expect(phone).toContain("[data-rail-toggle]{display:none!important}");
     expect(phone).not.toContain("[data-rail-profile]{display:none!important}");
+    expect(side).not.toMatch(/profileShow: drawer \? 'none'/);
   });
 
   it("Pricing: Discard draft and Publish fare book fold into the bar at phone width", () => {

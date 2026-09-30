@@ -26,6 +26,7 @@
 <script src="../vamos-locale.js"></script>
 <script src="../vamos-reviews.js"></script>
 <script src="../vamos-ops-api.js?vt=09-11-write"></script>
+<script src="../vamos-ops-bar.js"></script>
 <script src="../vamos-ops-data.js?vt=09-27-c12"></script>
 <style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
 .vt-input--focus{box-shadow:none}
@@ -151,23 +152,24 @@ button[data-vt-count]{appearance:none;-webkit-appearance:none;cursor:pointer;fon
 [data-ops-nav]{flex:0 0 auto;position:sticky;top:0;align-self:flex-start;height:100vh;z-index:30}
 [data-ops-scrim]{display:none}
 [data-ops-topbar]{display:none}
+[data-ops-top-acts]{display:none}
 [data-ops-main]{flex:1 1 auto;min-width:0;display:flex;flex-direction:column}
+@media (max-width:767px){
+[data-ops-fold]{display:none!important}
+[data-ops-top-acts]{display:flex}
+}
 @media (max-width:899px){
 [data-ops-nav]{position:fixed;inset-block:0;inset-inline-start:0;z-index:70;transform:translateX(-110%);transition:transform 260ms cubic-bezier(.2,0,.2,1);box-shadow:var(--vt-shadow-xl)}
 [dir="rtl"] [data-ops-nav]{transform:translateX(110%)}
 [data-ops-nav][data-open="1"],[dir="rtl"] [data-ops-nav][data-open="1"]{transform:none}
 [data-ops-scrim][data-open="1"]{display:block;position:fixed;inset:0;z-index:60;background:rgb(30 31 31/.5)}
-[data-ops-topbar]{display:grid;grid-template-columns:40px minmax(0,1fr) auto;align-items:center;min-height:56px;padding:8px 12px;padding-top:max(8px,env(safe-area-inset-top,0px));background:var(--vt-bg-inverse);position:sticky;top:0;z-index:40;border-bottom:1px solid rgb(255 255 255 / .12)}
-[data-ops-top-start],[data-ops-top-end]{display:flex;align-items:center;justify-content:center}
-[data-ops-top-end]{justify-content:flex-end}
-[data-ops-top-logo]{display:flex;align-items:center;justify-content:center;min-width:0}
-[data-ops-prof]{position:relative}
-[data-ops-prof-btn]{all:unset;box-sizing:border-box;display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:999px;cursor:pointer;overflow:hidden;background:var(--vt-charcoal-800)}
-[data-ops-prof-btn] img{width:100%;height:100%;object-fit:cover;display:block}
-[data-ops-prof-menu]{position:absolute;inset-inline-end:0;top:calc(100% + 6px);z-index:50;display:flex;flex-direction:column;gap:2px;min-width:196px;padding:6px;background:var(--vt-charcoal-800);border:1px solid var(--vt-border-inverse);border-radius:var(--vt-radius-md);box-shadow:var(--vt-shadow-xl)}
-[data-ops-prof-menu] a,[data-ops-prof-menu] button{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:10px;height:40px;padding:0 10px;border-radius:999px;cursor:pointer;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-inverse)}
-[data-ops-prof-menu] a:hover,[data-ops-prof-menu] button:hover{background:var(--vt-charcoal-700)}
-[data-ops-prof-out]{color:oklch(0.68 0.17 27)!important}
+/* 260930-dash-design (owner, 2026-10-01): one compact row — menu, the page title or the
+   wordmark, and at phone width one Actions button with the page's own buttons in it. */
+[data-ops-topbar]{display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;column-gap:8px;min-height:48px;padding-block:2px;padding-inline:4px 8px;padding-top:max(2px,env(safe-area-inset-top,0px));background:var(--vt-bg-inverse);position:sticky;top:0;z-index:40;border-bottom:1px solid rgb(255 255 255 / .12)}
+[data-ops-top-start]{display:flex;align-items:center;justify-content:center}
+[data-ops-top-title]{display:flex;align-items:center;min-width:0}
+[data-ops-top-name]{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);line-height:1.2;color:var(--vt-text-inverse)}
+[data-ops-top-end]{display:flex;align-items:center;justify-content:flex-end;min-width:0}
 }</style>
 </helmet>
 <div style="display:flex;min-height:100vh;font-family:var(--vt-font-body);color:var(--vt-text-primary)">
@@ -178,30 +180,22 @@ button[data-vt-count]{appearance:none;-webkit-appearance:none;cursor:pointer;fon
 <div data-ops-main="1">
 <div data-ops-topbar="1">
 <div data-ops-top-start="1">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.IconButton" icon="menu" label="{{ tMenu }}" variant="inverse" size="sm" onClick="{{ toggleNav }}" hint-size="36px,36px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.IconButton" icon="menu" label="{{ tMenu }}" variant="inverse" size="md" onClick="{{ toggleNav }}" hint-size="44px,44px"></x-import>
 </div>
-<div data-ops-top-logo="1">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Logo" variant="reversed" form="wordmark" height="{{ n22 }}" hint-size="110px,22px"></x-import>
+<div data-ops-top-title="1">
+<sc-if value="{{ hasBarTitle }}" hint-placeholder-val="{{ false }}">
+<span data-ops-top-name="1" data-vt-no-i18n="1">{{ barTitle }}</span>
+</sc-if>
+<sc-if value="{{ noBarTitle }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Logo" variant="reversed" form="wordmark" height="{{ n20 }}" hint-size="100px,20px"></x-import>
+</sc-if>
 </div>
 <div data-ops-top-end="1">
-<div data-ops-prof="1">
-<sc-if value="{{ menuOpen }}" hint-placeholder-val="{{ false }}">
-<div onClick="{{ closeMenu }}" style="position:fixed;inset:0;z-index:4;background:transparent"></div>
-<div data-ops-prof-menu="1" role="menu">
-<a href="/profile" role="menuitem" onClick="{{ goPath }}">{{ tProfile }}</a>
-<a href="/settings" role="menuitem" onClick="{{ goPath }}">{{ tSettings }}</a>
-<button type="button" role="menuitem" data-ops-prof-out="1" onClick="{{ signOut }}">{{ tSignOut }}</button>
+<sc-if value="{{ hasBarItems }}" hint-placeholder-val="{{ false }}">
+<div data-ops-top-acts="1">
+<dc-import name="ActionsMenu" label="{{ barLabel }}" tone="inverse" size="md" items="{{ barItems }}" onPick="{{ pickBar }}" hint-size="130px,44px"></dc-import>
 </div>
 </sc-if>
-<button type="button" data-ops-prof-btn="1" onClick="{{ toggleMenu }}" title="{{ tProfile }}" aria-haspopup="menu" aria-expanded="{{ menuExpanded }}">
-<sc-if value="{{ hasPhoto }}" hint-placeholder-val="{{ false }}">
-<img src="{{ profilePhoto }}" alt="">
-</sc-if>
-<sc-if value="{{ noPhoto }}" hint-placeholder-val="{{ true }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="user" size="{{ n16 }}" color="var(--vt-accent)" hint-size="16px,16px"></x-import>
-</sc-if>
-</button>
-</div>
 </div>
 </div>
 <sc-if value="{{ isDash }}" hint-placeholder-val="{{ true }}">
@@ -358,6 +352,9 @@ class Component extends DCLogic {
     if (window.VamosLocale) this.setState({ lang: window.VamosLocale.lang() || 'en' });
     this._onKey = (e) => { if (e.key === 'Escape' && this.state.menuOpen) this.setState({ menuOpen: false }); };
     window.addEventListener('keydown', this._onKey);
+    if (window.VamosOpsBar && typeof window.VamosOpsBar.onChange === 'function') {
+      this._offBar = window.VamosOpsBar.onChange(() => this.forceUpdate());
+    }
     this.bindOps();
   }
   componentWillUnmount() {
@@ -366,6 +363,7 @@ class Component extends DCLogic {
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
     if (this._onKey) window.removeEventListener('keydown', this._onKey);
     if (this._offOps) this._offOps();
+    if (this._offBar) this._offBar();
     clearTimeout(this._retry);
   }
   bindOps = () => {
@@ -419,7 +417,15 @@ class Component extends DCLogic {
     const role = me.role || profile.role || '';
     const isAdmin = role === 'admin';
     const pricingDenied = r === 'pricing' && !isAdmin;
+    // 260930-dash-design: what the open screen hands the phone bar (app/vamos-ops-bar.js).
+    const bar = (window.VamosOpsBar && typeof window.VamosOpsBar.get === 'function' && window.VamosOpsBar.get()) || null;
+    const barItems = bar && Array.isArray(bar.items) ? bar.items : [];
+    const barTitle = bar && bar.title ? String(bar.title) : '';
     return {
+      barTitle, hasBarTitle: !!barTitle, noBarTitle: !barTitle,
+      barLabel: (bar && bar.label) || 'Actions',
+      barItems, hasBarItems: barItems.length > 0,
+      pickBar: (value) => { if (window.VamosOpsBar && typeof window.VamosOpsBar.pick === 'function') window.VamosOpsBar.pick(value); },
       n16: 16, n20: 20, n22: 22,
       route: r === 'detail' || r === 'newTrip' ? 'bookings' : (pricingDenied ? 'dashboard' : r),
       detailId: this.state.detailId || '',
