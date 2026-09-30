@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "../support/test";
 import { serveMock, waitForMockReady } from "../support/mock-harness";
 
 // Quick 260930-phm (owner, 2026-09-30). Phone and tablet (<=1080): the Trustpilot figures sit as one row inside the
