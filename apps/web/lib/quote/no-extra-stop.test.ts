@@ -379,3 +379,18 @@ describe("26.2-p4 D3: the signed lock has no stop; old locks without a stop stil
     expect(code("lib", "quote", "pipeline.ts")).not.toMatch(/waypoints/);
   });
 });
+
+describe("26.2-p4 D4: no \"at most one stop\" cap, and the setting is no longer read", () => {
+  it("the checkout extras module has no stop cap", async () => {
+    const catalog = await import("../checkout/extras-catalog");
+    for (const name of ["PUBLIC_MAX_EXTRA_STOPS", "capExtraStops", "publishedMaxExtraStops"]) {
+      expect(Object.keys(catalog), name).not.toContain(name);
+    }
+  });
+
+  it("a draft forked from the live book no longer copies max_extra_stops; the other settings still are", () => {
+    const fork = code("lib", "ops", "rate-book.ts");
+    expect(fork).not.toMatch(/max_extra_stops/);
+    expect(fork).toMatch(/vat_rate_bps, quote_lock_minutes, service_area_geojson,\s+free_wait_minutes\s*\n/);
+  });
+});
