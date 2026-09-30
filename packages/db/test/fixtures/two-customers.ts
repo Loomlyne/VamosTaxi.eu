@@ -36,6 +36,7 @@
 
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import postgres from "postgres";
+import type { DriveIdentity } from "../support/drive";
 
 export type FixtureKind = "customer" | "guest" | "staff";
 
@@ -52,6 +53,14 @@ export interface FixturePairs {
   customer: [FixtureIdentity, FixtureIdentity];
   guest: [FixtureIdentity, FixtureIdentity];
   staff: [FixtureIdentity, FixtureIdentity];
+}
+
+/** Turns a D-45 fixture pair into `drive()`'s `{ a, b }` identity shape. */
+export function pairIdentities(pair: [FixtureIdentity, FixtureIdentity]): { a: DriveIdentity; b: DriveIdentity } {
+  return {
+    a: { label: "a", accessToken: pair[0].accessToken, manageTokenHash: pair[0].manageTokenHashHex },
+    b: { label: "b", accessToken: pair[1].accessToken, manageTokenHash: pair[1].manageTokenHashHex },
+  };
 }
 
 export interface SeedFixturesOptions {

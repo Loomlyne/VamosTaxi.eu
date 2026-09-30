@@ -204,9 +204,9 @@ export async function withIdentity<K extends IdentityKind, T>(
     //    `packages/db/supabase/tests/identity_helpers.test.sql` (lines 50-56), re-proved on
     //    every `supabase db reset` — this is not new work to re-check.
     //
-    //    If that ever reopens, the fallback is a closed-map SWITCH over five literal
-    //    "set local role <name>" statements, issued through a raw-SQL call one case at a time
-    //    for each PG_ROLE value — never string concatenation, which would turn PG_ROLE's
+    //    If that ever reopens, the fallback is a closed-map SWITCH over one literal
+    //    "set local role <name>" statement per PG_ROLE value, issued through a raw-SQL call
+    //    one case at a time — never string concatenation, which would turn PG_ROLE's
     //    values into an injection surface. Described here, not implemented: this fallback
     //    stays unused unless D-33's re-check above ever comes back negative.
     await tx`select set_config('role', ${PG_ROLE[kind]}, true)`;

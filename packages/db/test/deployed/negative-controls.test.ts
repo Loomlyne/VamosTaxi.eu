@@ -24,19 +24,11 @@
 // below reports every test skipped on a machine with no staging deploy.
 
 import { describe, expect, it } from "vitest";
-import { drive, type DriveIdentity, type ProbeResult } from "../support/drive";
-import { seedFixtures, type FixtureIdentity, type FixturePairs } from "../fixtures/two-customers";
+import { drive, type ProbeResult } from "../support/drive";
+import { pairIdentities, seedFixtures, type FixturePairs } from "../fixtures/two-customers";
 
 const BASE = process.env.PROBE_BASE_URL ?? "";
 const SECRET = process.env.PROBE_SECRET ?? "";
-
-/** Turns a D-45 fixture pair into `drive()`'s `{ a, b }` identity shape. */
-function pairIdentities(pair: [FixtureIdentity, FixtureIdentity]): { a: DriveIdentity; b: DriveIdentity } {
-  return {
-    a: { label: "a", accessToken: pair[0].accessToken, manageTokenHash: pair[0].manageTokenHashHex },
-    b: { label: "b", accessToken: pair[1].accessToken, manageTokenHash: pair[1].manageTokenHashHex },
-  };
-}
 
 async function fetchProbe(
   params: Record<string, string>,
