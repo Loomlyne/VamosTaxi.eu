@@ -25,9 +25,6 @@
 <link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
 <link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
 <script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
-<link rel="stylesheet" href="../../assets/lenis.css">
-<script src="../../assets/lenis.js"></script>
-<script src="../../assets/lenis-boot.js"></script>
 <script src="../vamos-i18n-dict.js"></script>
 <script src="../vamos-locale.js"></script>
 <script src="../vamos-page-transition.js"></script>
@@ -354,10 +351,6 @@ class Component extends DCLogic {
     const de = document.documentElement, b = document.body;
     de.style.overflow = this._ov[0]; b.style.overflow = this._ov[1];
     this._inerted.forEach((c) => c.removeAttribute('inert')); this._inerted = [];
-    /* A stopped Lenis clips <html> itself (lenis.css .lenis-stopped), which the boot script then reads as "still locked"
-       and never restarts it. Start it here once our own lock is gone, unless something else still locks the page. */
-    const ln = window.__vtLenis;
-    if (ln && ln.isStopped && de.style.overflow !== 'hidden' && b.style.overflow !== 'hidden') { try { ln.start(); } catch (e) {} }
     window.scrollTo(0, this._y);
     const o = this._opener; this._opener = null;
     if (o && o.focus && document.contains(o)) o.focus({ preventScroll: true });

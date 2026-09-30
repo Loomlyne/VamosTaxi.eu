@@ -88,7 +88,7 @@ export default async function CookiesPage({
         </h2>
         <p>{tCookies("necessary-only-standfirst")}</p>
         <h4>{tCookies("strictly-necessary")}</h4>
-        <div data-lenis-prevent>
+        <div>
           <Table
             columns={columns}
             rowKey="slug"
