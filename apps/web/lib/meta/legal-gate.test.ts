@@ -154,14 +154,14 @@ describe("meta legal gate", () => {
     expect(count).toBe(1);
   });
 
-  it("marketing stays false", () => {
+  it("categories come from the choice, one policy version (27 D-05, D-18)", () => {
     const bind = source("lib/consent/bind.ts");
-    expect(bind).toContain("marketing: false");
-    expect(bind).toContain(
-      "policyVersion = input.policyVersion ?? CONSENT_POLICY_VERSION",
-    );
+    expect(bind).not.toContain("marketing: false");
+    expect(bind).not.toContain("policyVersion");
+    expect(bind).toContain("CONSENT_POLICY_VERSION");
     expect(bind).toContain("record_consent");
     expect(bind).not.toMatch(/update\s+consent_log/i);
+    expect(source("app/api/consent/route.ts")).toContain("categoriesForChoice(");
   });
 
   it("slots exist", () => {
