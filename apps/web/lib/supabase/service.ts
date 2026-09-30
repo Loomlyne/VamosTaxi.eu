@@ -1,5 +1,6 @@
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
+import { legacyServiceClient } from "./service-role";
 import { mapDigestLeg, mapDigestRecipient, type DigestDependencies, type DigestLeg, type DigestRecipient } from "../ops/digest";
 
 function requireData<T>(result: { data: T | null; error: { message: string } | null }): T {
@@ -17,12 +18,11 @@ function requireOk(result: { error: { message: string } | null }): void {
  * paths keep using the identity doors; this client reaches SECURITY DEFINER digest RPCs only.
  */
 export function createServiceClient(env: CloudflareEnv): SupabaseClient {
-  if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
+  try {
+    return legacyServiceClient(env);
+  } catch {
     throw new Error("missing scheduled digest service credentials");
   }
-  return createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
 }
 
 export function createDigestDependencies(env: CloudflareEnv): DigestDependencies {

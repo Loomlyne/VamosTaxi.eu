@@ -1,6 +1,8 @@
+import { decodeNextParam, validateAuthRedirectTarget } from "./redirect-target";
 import { describe, expect, it, vi } from "vitest";
 import {
   callbackUrl,
+  toBase64Url,
   FORM_CREDENTIALS,
   fullName,
   emailNext,
@@ -37,6 +39,36 @@ describe("callbackUrl", () => {
     expect(callbackUrl("https://vamos-web-staging.koussayzayeni.workers.dev", "/")).toBe(
       "https://vamos-web-staging.koussayzayeni.workers.dev/api/auth/callback?next=%2F",
     );
+  });
+});
+
+describe("callbackUrl with a checkout return path (26.5-07)", () => {
+  const co = "/checkout?from=Zurich%20Airport&to=Bahnhofstrasse%201&when=2026-12-15T08%3A15&class=business&extras=child_seat%2Cwifi";
+
+  it("sends a target with a query as base64url, which survives a second decode on the Worker", () => {
+    const url = new URL(callbackUrl("https://vamostaxi.site", co));
+    expect(url.searchParams.has("next")).toBe(false);
+    const nextb = url.searchParams.get("nextb") ?? "";
+    expect(nextb).toMatch(/^[A-Za-z0-9_-]+$/);
+    // A second decode of the query changes nothing in it.
+    expect(decodeURIComponent(nextb)).toBe(nextb);
+    expect(decodeNextParam(nextb)).toBe(co);
+    expect(validateAuthRedirectTarget(decodeNextParam(nextb), "en")).toBe(co);
+  });
+
+  it("keeps plain paths on next", () => {
+    expect(new URL(callbackUrl("https://vamostaxi.site", "/de/account")).searchParams.get("next")).toBe("/de/account");
+  });
+
+  it("decodeNextParam refuses anything that is not base64url of UTF-8", () => {
+    expect(decodeNextParam(null)).toBeNull();
+    expect(decodeNextParam("not base64!")).toBeNull();
+    expect(decodeNextParam("__8")).toBeNull();
+  });
+
+  it("an off-site target sent as nextb still falls back to the account page", () => {
+    const evil = toBase64Url("//evil.example/x?a=b c");
+    expect(validateAuthRedirectTarget(decodeNextParam(evil), "en")).toBe("/account");
   });
 });
 
@@ -259,7 +291,8 @@ describe("checkout returnTo in e-mail links (D-13)", () => {
       "https://example.test",
       emailNext(rt, "/"),
     );
-    const want = "https://example.test/api/auth/callback?next=" + encodeURIComponent(rt);
+    const want = callbackUrl("https://example.test", rt);
+    expect(want).toContain("nextb=");
     expect((signInWithOtp.mock.calls[0] as unknown as [{ options: { emailRedirectTo: string } }])[0].options.emailRedirectTo).toBe(want);
     expect((signUp.mock.calls[0] as unknown as [{ options: { emailRedirectTo: string } }])[0].options.emailRedirectTo).toBe(want);
   });

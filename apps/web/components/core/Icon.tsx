@@ -45,6 +45,7 @@ export type IconName =
   | "list"
   | "loader-circle"
   | "lock"
+  | "log-in"
   | "log-out"
   | "luggage"
   | "mail"
@@ -71,6 +72,7 @@ export type IconName =
   | "triangle-alert"
   | "upload"
   | "user"
+  | "user-plus"
   | "users"
   | "x"
   | "youtube";

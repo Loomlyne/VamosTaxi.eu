@@ -5,8 +5,12 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { routing } from "@/i18n/routing";
 import { checkWriteRateLimit } from "@/lib/abuse/rate-limit";
+import { safeReturnTo } from "@/lib/account/return-to";
+import { holdCheckoutFloor, sendCheckoutSignInLink } from "@/lib/auth/checkout-sign-in";
 import { log } from "@/lib/logger";
+import { verifyTurnstile } from "@/lib/turnstile";
 import {
+  checkoutSignInSchema,
   localeSchema,
   otpRequestSchema,
   resetEmailSchema,
@@ -85,8 +89,11 @@ const EMAIL_NOT_CONFIRMED: ProfileRunResult = { ok: false, reason: "email-not-co
 
 const CODE_INVALID: ProfileRunResult = { ok: false, reason: "code-invalid" };
 
+/** Checkout sign-in send refused (Turnstile failed). Read by the checkout UI, not the sign-in page. */
+type CheckoutSendRefused = { stage: "form"; banner: "send_failed" };
+
 function json(
-  result: AuthRunResult | ProfileRunResult,
+  result: AuthRunResult | ProfileRunResult | CheckoutSendRefused,
   status = 200,
   setCookies?: readonly string[],
 ): Response {
@@ -149,6 +156,7 @@ function requestOrigin(request: Request): string {
 }
 
 export async function POST(request: Request): Promise<Response> {
+  const startedAt = Date.now();
   const blocked = csrfForbidden(request, "auth");
   if (blocked) return blocked;
   const ctx = { requestId: crypto.randomUUID(), route: "/api/auth", locale: null as string | null };
@@ -194,7 +202,7 @@ export async function POST(request: Request): Promise<Response> {
   };
 
   /** One more bucket per e-mail address (code checks and confirmation re-sends). Fail-open like the IP one. */
-  const perAddressAllowed = async (kind: "code" | "resend", email: string): Promise<boolean> => {
+  const perAddressAllowed = async (kind: "code" | "resend" | "checkout", email: string): Promise<boolean> => {
     if (!env.AUTH_RATE_LIMITER) return true;
     try {
       const out = await env.AUTH_RATE_LIMITER.limit({ key: `auth-${kind}:${email.toLowerCase()}` });
@@ -575,6 +583,46 @@ export async function POST(request: Request): Promise<Response> {
     return sessionJson(result, setCookies);
   }
 
+  if (fields.method === "magic" && fields.origin === "checkout") {
+    // Checkout sign-in link (26.5-03): existing customers only. Same answer and same
+    // timing for every address; never creates an account. Not for the staff host.
+    if (dashboard) {
+      await holdCheckoutFloor({ startedAt });
+      return json(SENT);
+    }
+    const bindings = env as unknown as Record<string, string | undefined>;
+    const challenge = await verifyTurnstile(
+      env.TURNSTILE_SECRET_KEY ?? process.env.TURNSTILE_SECRET_KEY,
+      typeof fields.turnstileToken === "string" ? fields.turnstileToken : "",
+      {
+        action: "account",
+        idempotencyKey: typeof fields.idempotencyKey === "string" ? fields.idempotencyKey : "",
+        // Reuses the contact form's hostname binding (no separate checkout binding exists).
+        allowedHostnames:
+          bindings.CONTACT_TURNSTILE_ALLOWED_HOSTNAMES ?? process.env.CONTACT_TURNSTILE_ALLOWED_HOSTNAMES,
+        remoteip: request.headers.get("cf-connecting-ip") ?? undefined,
+      },
+    );
+    if (!challenge.ok) return json({ stage: "form", banner: "send_failed" }, 403);
+    const checkoutParsed = checkoutSignInSchema.safeParse(fields);
+    if (!checkoutParsed.success) {
+      await holdCheckoutFloor({ startedAt });
+      return json(SENT);
+    }
+    if (!(await perAddressAllowed("checkout", checkoutParsed.data.email))) return json(RATE_LIMITED, 429);
+    const { result, reason } = await sendCheckoutSignInLink(supabase, {
+      email: checkoutParsed.data.email,
+      locale,
+      origin,
+      returnTo: returnToRaw,
+      home: localizedHome(locale),
+      startedAt,
+    });
+    // No e-mail in the log line.
+    if (reason) log("error", "auth", ctx, { reason, action: "checkout-otp" });
+    return sessionJson(result, setCookies);
+  }
+
   if (fields.method === "magic") {
     const parsed = otpRequestSchema.safeParse(fields);
     if (!parsed.success) return json(SENT);
@@ -589,7 +637,15 @@ export async function POST(request: Request): Promise<Response> {
             lastName: parsed.data.lastName,
             createUser: !dashboard,
           }
-        : { mode: "signin", email: parsed.data.email, locale, createUser: !dashboard },
+        : {
+            mode: "signin",
+            email: parsed.data.email,
+            locale,
+            // "More ways to sign in" from checkout (returnTo is a checkout URL) never creates an account.
+            createUser:
+              !dashboard
+              && !safeReturnTo(typeof returnToRaw === "string" ? returnToRaw : null),
+          },
       origin,
       emailNext(returnToRaw, localizedHome(locale)),
     );

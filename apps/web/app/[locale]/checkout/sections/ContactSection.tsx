@@ -5,9 +5,13 @@ import { ContactFields, FlightField } from "@/components/booking";
 import { DisclosureRow } from "@/components/checkout/DisclosureRow";
 import { ExtraRow } from "@/components/checkout/ExtraRow";
 import { Input, Textarea } from "@/components/forms";
+import { AccountChoice } from "@/components/checkout/AccountChoice";
+import { CheckoutSignIn } from "@/components/checkout/CheckoutSignIn";
+import { TurnstileWidget } from "@/components/forms/TurnstileWidget";
 import { firstPayError } from "@/lib/checkout/pay-validate";
 import { useCheckoutFlow } from "../CheckoutPage";
 import { useCheckoutForm } from "../CheckoutForm";
+import { useCheckoutSettings } from "../CheckoutSettings";
 import { SectionCard } from "./SectionCard";
 
 /**
@@ -20,6 +24,7 @@ export function ContactSection() {
   const t = useTranslations("checkout");
   const flow = useCheckoutFlow();
   const f = useCheckoutForm();
+  const settings = useCheckoutSettings();
 
   const msg = (key: keyof typeof f.fieldErrors) => {
     const k = f.fieldErrors[key];
@@ -45,16 +50,57 @@ export function ContactSection() {
     <span className="vt-co__signed" data-co-signed-in>
       {t("signedInAs", { email: f.signedInEmail })}
     </span>
-  ) : (
-    <a className="vt-co__link" href={f.signInHref} onClick={f.stashForSignIn} data-co-sign-in>
-      {t("signInLink")}
-    </a>
-  );
+  ) : undefined;
+
+  const createAvailable = settings.accountCreateAvailable && !f.createHidden;
+  const signinOpen = !f.signedInEmail && f.accountChoice === "signin";
+  const checkRuns =
+    !f.signedInEmail &&
+    ((f.accountChoice === "guest" && settings.guestAccountsOn) || (f.accountChoice === "create" && createAvailable));
 
   const updating = f.price.kind === "updating";
 
   return (
     <SectionCard n={2} title={t("who-is-travelling")} done={done} headerEnd={aside} id="co-section-contact">
+      {f.signedInEmail ? null : (
+        <div data-co-account>
+          <AccountChoice
+            value={f.accountChoice}
+            onChange={f.changeAccountChoice}
+            guestAccountsOn={settings.guestAccountsOn}
+            createAvailable={createAvailable}
+            createConsent={f.createConsent}
+            onCreateConsent={f.setCreateConsent}
+            createConsentError={f.createConsentError}
+            error={f.accountError}
+            disabled={f.paying}
+          >
+            <CheckoutSignIn
+              email={f.contact.email}
+              onEmail={(email) => f.setContact({ email })}
+              locale={settings.locale}
+              returnTo={f.returnPath}
+              turnstileSiteKey={settings.turnstileSiteKey}
+              stage={f.signInStage}
+              onStage={f.onSignInStage}
+              onSignedIn={f.refreshSignedIn}
+              payBlockError={f.sentBlockError}
+              disabled={f.paying}
+              onMoreWays={f.stashForSignIn}
+            />
+          </AccountChoice>
+          {checkRuns ? (
+            <TurnstileWidget
+              siteKey={settings.turnstileSiteKey}
+              action="account"
+              resetNonce={f.accountResetNonce}
+              onToken={f.setAccountTurnstile}
+            />
+          ) : null}
+          <hr data-co-account-divider />
+        </div>
+      )}
+      {signinOpen ? null : (
       <fieldset className="vt-co__fieldset" disabled={f.paying}>
         <div data-co-contact className="vt-co__contact">
           <ContactFields
@@ -174,6 +220,7 @@ export function ContactSection() {
           </DisclosureRow>
         </div>
       </fieldset>
+      )}
     </SectionCard>
   );
 }

@@ -80,8 +80,9 @@ export async function runReminder24h(
   const { fromIso, toIso } = reminder24hWindow(scheduledAt);
   const rows = await asSystem(env, async (sql) => {
     // vamos_system has no table SELECT; the read is the definer function
-    // public.reminder_24h_candidates (20260930200000): original pickup in [from, to), not
-    // erased, cancelled, completed or no_show.
+    // public.reminder_24h_candidates (20260930200000; status filter replaced by 20261001120000):
+    // original pickup in [from, to), not erased, paid bookings only (confirmed or assigned), never
+    // pending, cancelled, completed or no_show.
     return sql<ReminderRow[]>`
       select * from public.reminder_24h_candidates(${fromIso}::timestamptz, ${toIso}::timestamptz)
     `;

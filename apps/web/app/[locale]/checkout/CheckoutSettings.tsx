@@ -8,6 +8,9 @@ export type CheckoutSettings = {
   checkoutWindowMinutes: number | null;
   turnstileSiteKey: string | undefined;
   publishableKey: string;
+  /** 26.5: server-decided booleans only (D-14). */
+  guestAccountsOn: boolean;
+  accountCreateAvailable: boolean;
 };
 
 const CheckoutSettingsContext = createContext<CheckoutSettings | null>(null);

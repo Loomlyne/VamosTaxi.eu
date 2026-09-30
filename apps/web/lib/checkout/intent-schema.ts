@@ -136,6 +136,20 @@ const tripField = z
     return parsed.trip;
   });
 
+/**
+ * 26.5 D-12/D-13: the account choice at PAY. Absent = today's guest flow.
+ * `consent` is the Text 1 tick and only counts for "create".
+ */
+const accountField = z
+  .object({
+    choice: z.enum(["guest", "create"]),
+    consent: z.boolean(),
+    turnstile_token: z.string().max(4096).optional(),
+    idempotency_key: z.string().max(200).optional(),
+    return_to: z.string().max(500).optional(),
+  })
+  .strict();
+
 const webIntentObject = z
   .object({
     quote_id: z.string().uuid(),
@@ -160,6 +174,7 @@ const webIntentObject = z
     /** A BOOKING id (not a quote id): the unpaid booking this Pay replaces. */
     supersedes: z.string().uuid().optional(),
     trip: tripField,
+    account: accountField.optional(),
     idempotency_key: z.string().min(1),
   })
   .strict();
