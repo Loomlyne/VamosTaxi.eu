@@ -324,7 +324,7 @@ const T = {
     fPayload:'Value', hRulePayload:'Waiting unit, hours, or Mapbox area. Timezone is Europe/Zurich.',
     addSurcharge:'Add surcharge', editSurcharge:'Edit surcharge', saveSurcharge:'Save surcharge', deleteSurchargeTitle:'Delete this surcharge from the draft?', deleteSurchargeBody:'Delete this surcharge from the draft? Public does not change until Publish.',
     emptySurchargesTitle:'No surcharges in this draft', emptySurchargesBody:'Add an extra. Customers choose it at checkout.',
-    searchSurcharges:'Type or name', nounSurcharge:'surcharge', nounSurcharges:'surcharges',
+    searchSurcharges:'Search by name', nounSurcharge:'surcharge', nounSurcharges:'surcharges',
     whatThisDoes:'What this does',
     doesCheckout:'0 is free and included on checkout. It is not added to the fare. A price, including 1, is an extra and is added to the quoted price.',
     doesMeet:'Always on for the customer. Amount stays CHF 0. You cannot turn it off.',
@@ -411,7 +411,7 @@ const T = {
     fPayload:'Wert', hRulePayload:'Warteeinheit, Stunden oder Mapbox-Gebiet. Zeitzone ist Europe/Zurich.',
     addSurcharge:'Zuschlag hinzufügen', editSurcharge:'Zuschlag bearbeiten', saveSurcharge:'Zuschlag speichern', deleteSurchargeTitle:'Diesen Zuschlag aus dem Entwurf löschen?', deleteSurchargeBody:'Diesen Zuschlag aus dem Entwurf löschen? Die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
     emptySurchargesTitle:'Keine Zuschläge in diesem Entwurf', emptySurchargesBody:'Fügen Sie ein Extra hinzu. Kundinnen und Kunden wählen es beim Checkout.',
-    searchSurcharges:'Typ oder Name', nounSurcharge:'Zuschlag', nounSurcharges:'Zuschläge',
+    searchSurcharges:'Nach Name suchen', nounSurcharge:'Zuschlag', nounSurcharges:'Zuschläge',
     whatThisDoes:'Was das bewirkt',
     doesCheckout:'0 ist gratis und inbegriffen. Es wird nicht zum Fahrpreis addiert. Ein Preis, auch 1, ist ein Extra und wird zum Angebot addiert.',
     doesMeet:'Für den Kunden immer an. Betrag bleibt CHF 0. Du kannst es nicht ausschalten.',
@@ -500,7 +500,7 @@ const T = {
     fPayload:'Valeur', hRulePayload:'Unité d’attente, heures ou zone Mapbox. Fuseau : Europe/Zurich.',
     addSurcharge:'Ajouter un supplément', editSurcharge:'Modifier le supplément', saveSurcharge:'Enregistrer le supplément', deleteSurchargeTitle:'Supprimer ce supplément du brouillon ?', deleteSurchargeBody:'Supprimer ce supplément du brouillon ? Le public ne change qu’après Publier.',
     emptySurchargesTitle:'Aucun supplément dans ce brouillon', emptySurchargesBody:'Ajoutez un extra. Les clients le choisissent au paiement.',
-    searchSurcharges:'Type ou nom', nounSurcharge:'supplément', nounSurcharges:'suppléments',
+    searchSurcharges:'Rechercher par nom', nounSurcharge:'supplément', nounSurcharges:'suppléments',
     whatThisDoes:'Ce que cela fait',
     doesCheckout:'0 est offert et inclus. Il n’est pas ajouté au tarif. Un prix, même 1, est un extra et s’ajoute au devis.',
     doesMeet:'Toujours activé pour le client. Le montant reste CHF 0. Vous ne pouvez pas le couper.',
@@ -589,7 +589,7 @@ const T = {
     fPayload:'القيمة', hRulePayload:'وحدة الانتظار أو الساعات أو منطقة مابوكس. المنطقة الزمنية Europe/Zurich.',
     addSurcharge:'إضافة رسم', editSurcharge:'تعديل الرسم', saveSurcharge:'حفظ الرسم', deleteSurchargeTitle:'حذف هذا الرسم من المسودة؟', deleteSurchargeBody:'حذف هذا الرسم من المسودة؟ لا يتغير العام حتى النشر.',
     emptySurchargesTitle:'لا رسوم في هذه المسودة', emptySurchargesBody:'أضف إضافة. يختارها العملاء عند الدفع.',
-    searchSurcharges:'النوع أو الاسم', nounSurcharge:'رسم', nounSurcharges:'رسوم',
+    searchSurcharges:'ابحث بالاسم', nounSurcharge:'رسم', nounSurcharges:'رسوم',
     whatThisDoes:'ماذا يفعل هذا',
     doesCheckout:'0 مجاني ومشمول. لا يُضاف إلى الأجرة. أي سعر، بما فيه 1، إضافة تُضاف إلى السعر المعروض.',
     doesMeet:'دائمًا مفعّل للعميل. المبلغ يبقى فرنك 0. لا يمكنك إيقافه.',
@@ -1084,6 +1084,7 @@ class Component extends DCLogic {
 
   renderVals() {
     const t = T[this.state.lang] || T.en;
+    const lang = this.state.lang || 'en';
     const ops = window.VamosOps;
     const pane = this.state.pane;
     const money = (v) => this.money(v);
@@ -1478,7 +1479,7 @@ class Component extends DCLogic {
         });
       }),
       surchargeColumns: [
-        { key:'label', header: t.colName, lookup:(r) => r.name || r.label || r.code || '' },
+        { key:'label', header: t.colName, lookup:(r) => (lang === 'de' && r.labelDe) || (lang === 'fr' && r.labelFr) || (lang === 'ar' && r.labelAr) || r.name || r.label || r.code || '' },
         { key:'value', header: t.colAmount,
           lookup:(r) => {
             if (r.kind === 'included' || r.value === '0' || r.value === 0) return money('0');

@@ -642,6 +642,8 @@
       assignedVehicleId: str(b.assignedVehicleId),
       vehicle: str(b.vehicle),
       flight: str(b.flight),
+      // The admin's Mark arrival time; booking detail shows "Arrived HH:MM" from it.
+      arrivedAt: str(b.arrivedAt),
       note: str(b.note),
       email: str(b.email),
       phone: str(b.phone),
@@ -824,14 +826,14 @@
     return {
       id: str(s.id),
       label: str(s.label || s.code || s.name),
-      name: str(s.name || s.label),
+      name: str(s.name || s.labelEn || s.label),
       code: str(s.code || s.label),
       type: str(s.type),
       rule: str(s.rule),
       ruleId: str(s.ruleId),
       kind: SURCHARGE_KINDS.indexOf(s.kind) === -1 ? "amount" : s.kind,
       amounts: cleanMoneySet(s.amounts), pct: str(s.pct),
-      labelDe: str(s.labelDe), labelFr: str(s.labelFr), labelAr: str(s.labelAr),
+      labelEn: str(s.labelEn), labelDe: str(s.labelDe), labelFr: str(s.labelFr), labelAr: str(s.labelAr),
       machineLangs: Array.isArray(s.machineLangs) ? s.machineLangs.slice() : []
     };
   }
