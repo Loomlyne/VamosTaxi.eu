@@ -179,7 +179,7 @@ class Component extends DCLogic {
     extrasList: [], extrasState: 'loading', ticked: [],
     quoteId: '', lock: '', quotedFlight: '', fareRappen: 0, priceBusy: false, error: '', saving: false,
   };
-  _geoSeq = 0;
+  _geoSeq = { pickup: 0, drop: 0 }; // one counter per field (26.2-bp C3a): a Drop-off keystroke must not void the Pickup answer
   _quoteSeq = 0;
   _priceSeq = 0;
   _timer = null;
@@ -216,12 +216,12 @@ class Component extends DCLogic {
       this.setState(field === 'pickup' ? { pickupHits: [], pickupOpen: false } : { dropHits: [], dropOpen: false });
       return;
     }
-    var seq = ++this._geoSeq;
+    var seq = ++this._geoSeq[field];
     var lang = this.state.locale || 'en';
     fetch('/api/geo/suggest?q=' + encodeURIComponent(q) + '&session_token=' + encodeURIComponent(token) + '&locale=' + encodeURIComponent(lang))
       .then(function (r) { return r.json().catch(function () { return {}; }); })
       .then((j) => {
-        if (seq !== this._geoSeq) return;
+        if (seq !== this._geoSeq[field]) return;
         var hits = ((j && j.suggestions) || []).map((hit) => ({
           label: [hit.name, hit.address || hit.context].filter(Boolean).join(' — '),
           pick: () => this.pickPlace(field, {

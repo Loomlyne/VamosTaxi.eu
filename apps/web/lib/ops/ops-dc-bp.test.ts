@@ -158,3 +158,29 @@ describe("OpsNewTrip Save while the price is updating (C1)", () => {
     expect(intents[0]?.body?.extra_codes).toEqual(["child-seat"]);
   });
 });
+
+describe("OpsNewTrip address suggestions, one answer per field (C3a)", () => {
+  const suggestion = (name: string) => ({ suggestions: [{ name, address: "Somewhere", mapbox_id: `mb-${name}` }] });
+
+  it("a slow Pickup answer still lands when Drop-off is typed before it arrives", async () => {
+    vi.useFakeTimers();
+    let answerPickup!: (json: Json) => void;
+    const pickupAnswer = new Promise<Json>((resolve) => {
+      answerPickup = resolve;
+    });
+    const { comp } = newTripHarness((c) => {
+      if (c.url.includes("q=Zurich")) return pickupAnswer;
+      if (c.url.startsWith("/api/geo/suggest")) return suggestion("Basel SBB");
+      return {};
+    });
+    comp.setPickup("Zurich");
+    await vi.advanceTimersByTimeAsync(500);
+    comp.setDrop("Basel");
+    await vi.advanceTimersByTimeAsync(500);
+    answerPickup(suggestion("Zurich HB"));
+    await settle();
+    expect(comp.state.dropHits.map((h) => h.label)).toEqual(["Basel SBB \u2014 Somewhere"]);
+    expect(comp.state.pickupHits.map((h) => h.label)).toEqual(["Zurich HB \u2014 Somewhere"]);
+    expect(comp.state.pickupOpen).toBe(true);
+  });
+});
