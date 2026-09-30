@@ -49,6 +49,30 @@ export type CancelResult =
 const BOOKING_UUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+/**
+ * 261001-refusal-messages: the SQL error of ops_cancel_booking / ops_mark_complete /
+ * ops_mark_no_show as the staff refusal the dashboard shows. Call it AROUND asSystem, never
+ * inside its callback: postgres.js begin() rethrows a query error the callback caught
+ * (postgres@3.4.9 cf/src/index.js 266-267, 293), so a catch inside let the refusal leave as a
+ * 500 without JSON and the page showed its generic "Could not …" text.
+ */
+function mapOutcomeSqlError(
+  err: unknown,
+  what: string,
+  bookingId: string,
+): { ok: false; code: "not-found" | "frozen" | "unknown" } {
+  if (sqlErrorCode(err) === OPS_SQLSTATE.noData) return { ok: false, code: "not-found" };
+  if (mapRefundSqlError(err).code === "frozen") return { ok: false, code: "frozen" };
+  // Not a named refusal: keep a trace (the throw used to be the only one), answer "unknown".
+  console.error(
+    what,
+    bookingId,
+    sqlErrorCode(err) ?? "",
+    err instanceof Error ? err.message : String(err),
+  );
+  return { ok: false, code: "unknown" };
+}
+
 export async function cancelBooking(
   env: CloudflareEnv,
   claims: VamosClaims,
@@ -135,8 +159,10 @@ export async function cancelBooking(
     stripe_checkout_session_ids: string[] | null;
   };
 
-  const cancelled = await asSystem(env, async (sql): Promise<CancelResult | CancelRow> => {
-    try {
+  // 261001-refusal-messages: the refusal is mapped around asSystem (see mapOutcomeSqlError).
+  let cancelled: CancelResult | CancelRow;
+  try {
+    cancelled = await asSystem(env, async (sql): Promise<CancelResult | CancelRow> => {
       const rows = await sql<CancelRow[]>`
         select * from public.ops_cancel_booking(
           ${bookingId}::uuid,
@@ -146,15 +172,10 @@ export async function cancelBooking(
       const row = rows[0];
       if (!row) return { ok: false, code: "unknown" };
       return row;
-    } catch (err) {
-      if (sqlErrorCode(err) === OPS_SQLSTATE.noData) {
-        return { ok: false, code: "not-found" };
-      }
-      const mapped = mapRefundSqlError(err);
-      if (mapped.code === "frozen") return { ok: false, code: "frozen" };
-      return { ok: false, code: "unknown" };
-    }
-  });
+    });
+  } catch (err) {
+    cancelled = mapOutcomeSqlError(err, "ops_cancel_sql_failed", bookingId);
+  }
 
   if ("ok" in cancelled && cancelled.ok === false) return cancelled;
   const row = cancelled as CancelRow;
@@ -412,8 +433,10 @@ async function markOutcome(
   const minted = await mintManageToken();
   const hex = tokenHex(minted.hash);
 
-  const marked = await asSystem(env, async (sql): Promise<MarkResult | MarkRow> => {
-    try {
+  // 261001-refusal-messages: the refusal is mapped around asSystem (see mapOutcomeSqlError).
+  let marked: MarkResult | MarkRow;
+  try {
+    marked = await asSystem(env, async (sql): Promise<MarkResult | MarkRow> => {
       const rows =
         rpc === "ops_mark_complete"
           ? await sql<MarkRow[]>`
@@ -433,15 +456,10 @@ async function markOutcome(
       const row = rows[0];
       if (!row) return { ok: false, code: "unknown" };
       return row;
-    } catch (err) {
-      if (sqlErrorCode(err) === OPS_SQLSTATE.noData) {
-        return { ok: false, code: "not-found" };
-      }
-      const mapped = mapRefundSqlError(err);
-      if (mapped.code === "frozen") return { ok: false, code: "frozen" };
-      return { ok: false, code: "unknown" };
-    }
-  });
+    });
+  } catch (err) {
+    marked = mapOutcomeSqlError(err, `${rpc}_sql_failed`, bookingId);
+  }
 
   if ("ok" in marked && marked.ok === false) return marked;
   return { ok: true, booking: markedFrom(marked as MarkRow, minted.raw) };

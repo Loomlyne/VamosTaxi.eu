@@ -643,6 +643,8 @@ const T = {
     errNotPaid:'This booking has no captured payment.',
     errNothing:'There is nothing to try again. The page now shows what is due.',
     errTestOnly:'Refunds can only be sent on the Stripe test account for now.',
+    errDecided:'This refund is no longer waiting for a decision. The page now shows where it stands.',
+    errNotPostTrip:'A refund can only be rejected after a completed trip or a no-show.',
  },
   de: { backToBookings:'Zurück zu Buchungen', bookedBy:'gebucht von', moreActions:'Weitere Aktionen', details:'Details', history:'Verlauf', historyEmpty:'Noch keine Ereignisse.',
     assignment:'Zuweisung', assign:'Fahrer zuweisen', reassign:'Neu zuweisen', unassign:'Zuweisung aufheben', onShift:'Im Dienst', noDriver:'Kein Fahrer zugewiesen', noDriverSub:'Vor der Abholerinnerung zuweisen',
@@ -709,6 +711,8 @@ const T = {
     errNotPaid:'Diese Buchung hat keine erfasste Zahlung.',
     errNothing:'Es gibt nichts zu wiederholen. Die Seite zeigt jetzt, was offen ist.',
     errTestOnly:'Rückerstattungen können vorerst nur im Stripe-Testkonto gesendet werden.',
+    errDecided:'Diese Rückerstattung wartet nicht mehr auf einen Entscheid. Die Seite zeigt jetzt den aktuellen Stand.',
+    errNotPostTrip:'Eine Rückerstattung kann nur nach einer abgeschlossenen Fahrt oder einem No-show zurückgewiesen werden.',
  },
   fr: {
     unassign:'Désassigner', action:'Action', complete:'Terminer', historyEmpty:'Aucun événement.', passengerTrip:'Passager et trajet',
@@ -758,6 +762,8 @@ const T = {
     errNotPaid:'Cette réservation n’a aucun paiement capturé.',
     errNothing:'Il n’y a rien à réessayer. La page montre maintenant ce qui est dû.',
     errTestOnly:'Les remboursements ne peuvent être envoyés que sur le compte de test Stripe pour le moment.',
+    errDecided:'Ce remboursement n’attend plus de décision. La page montre maintenant où il en est.',
+    errNotPostTrip:'Un remboursement ne peut être rejeté qu’après une course terminée ou une absence.',
     backToBookings:'Retour aux réservations', bookedBy:'réservé par', moreActions:'Plus d’actions', details:'Détails', history:'Historique', historyEmpty:'Aucun événement.',
     assignment:'Assignation', assign:'Assigner un chauffeur', reassign:'Réassigner', onShift:'En service', noDriver:'Aucun chauffeur assigné', noDriverSub:'Assignez avant l’envoi du rappel de prise en charge',
     passengers:'Passagers', bags:'bagages', vehicleClass:'Classe du véhicule', flight:'Vol', email:'E-mail', mobile:'Mobile', payment:'Paiement', payLink:'Lien de paiement', session:'Session',
@@ -827,6 +833,8 @@ const T = {
     errNotPaid:'لا توجد دفعة محصّلة لهذا الحجز.',
     errNothing:'لا يوجد ما يُعاد. تعرض الصفحة الآن ما هو مستحق.',
     errTestOnly:'لا يمكن إرسال المبالغ المستردة حاليًا إلا على حساب Stripe التجريبي.',
+    errDecided:'لم يعد هذا الاسترداد بانتظار قرار. تعرض الصفحة الآن وضعه الحالي.',
+    errNotPostTrip:'لا يمكن رفض الاسترداد إلا بعد رحلة مكتملة أو عدم الحضور.',
     backToBookings:'الرجوع إلى الحجوزات', bookedBy:'تم الحجز بواسطة', moreActions:'المزيد من الإجراءات', details:'التفاصيل', history:'السجل', historyEmpty:'لا أحداث بعد.',
     assignment:'التعيين', assign:'تعيين سائق', reassign:'إعادة التعيين', onShift:'في الدورية', noDriver:'لا يوجد سائق معيّن', noDriverSub:'عيّن سائقاً قبل إرسال تذكير الانطلاق',
     passengers:'الركاب', bags:'حقائب', vehicleClass:'فئة المركبة', flight:'الرحلة الجوية', email:'البريد الإلكتروني', mobile:'الجوال', payment:'الدفع', payLink:'رابط الدفع', session:'الجلسة',
@@ -1054,6 +1062,8 @@ class Component extends DCLogic {
     const errByCode = {
       'full-refund-only': t.errFullOnly, 'refund-exceeds-remaining': t.errExceeds, 'invalid-percent': t.errInvalid, 'invalid-amount': t.errInvalid,
       'invalid-body': t.errInvalid, 'already-refunded': t.errAlready, 'not-paid': t.errNotPaid, 'nothing-to-retry': t.errNothing, 'stripe-test-only': t.errTestOnly,
+      // 261001-refusal-messages: Decline / Reject refusals from ops_refund_decide.
+      'not-pending': t.errDecided, 'not-open': t.errDecided, 'not-post-trip': t.errNotPostTrip,
     };
     const refundErrorText = refundErr ? (errByCode[refundErr] || (t.refundFailed + booking.id)) : '';
     const refundFormShown = (fullShown || reviewNeeded) && !refundFailedShown;
@@ -1506,6 +1516,9 @@ class Component extends DCLogic {
                 window.dispatchEvent(new PopStateEvent('popstate'));
               } catch (e) {}
             }
+          } else if (json && json.code === 'frozen') {
+            // 261001-refusal-messages: ops_cancel_booking refuses a finished or cancelled trip.
+            this.notify(t.frozen);
           } else {
             this.notify(t.cancelFailed + id);
           }
