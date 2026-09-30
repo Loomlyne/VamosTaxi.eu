@@ -28,13 +28,13 @@ describe("home.dc.html laptop bar (26.4.1-01)", () => {
 
   it("one row at >=1360", () => {
     expect(block).toContain("@media (min-width:1360px)");
-    expect(block).toContain('"from flight swap to when trav cta"');
+    expect(block).toContain('"flight from swap to when trav cta"');
     expect(block).toContain('"from swap to when trav cta"');
   });
 
   it("two rows at 1081-1359", () => {
     expect(block).toContain("@media (min-width:1081px) and (max-width:1359px)");
-    expect(block).toContain('"from flight swap to"');
+    expect(block).toContain('"flight from swap to"');
     expect(block).toContain('"from swap to"');
     expect(block).toMatch(/grid-area:tc/);
   });

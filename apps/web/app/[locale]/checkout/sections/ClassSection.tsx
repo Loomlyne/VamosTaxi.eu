@@ -142,6 +142,8 @@ export function ClassSection({
                   passengers={c.pax || undefined}
                   luggage={c.bags || undefined}
                   image={c.photo || undefined}
+                  imageAlt={c.name}
+                  icon="car"
                   selected={isSelected}
                   disabled={!c.eligible}
                   onSelect={() => onSelect(c.slug)}

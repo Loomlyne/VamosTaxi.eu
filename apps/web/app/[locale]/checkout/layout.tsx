@@ -57,7 +57,7 @@ export default async function CheckoutLayout({
         locale,
         freeCancelHours,
         checkoutWindowMinutes,
-        turnstileSiteKey: env?.TURNSTILE_SITE_KEY,
+        turnstileSiteKey: env?.TURNSTILE_SITE_KEY ?? process.env.TURNSTILE_SITE_KEY,
         publishableKey,
       }}
     >

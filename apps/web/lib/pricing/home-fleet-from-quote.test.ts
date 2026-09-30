@@ -14,12 +14,26 @@ const home = readFileSync(
   "utf8",
 );
 
-describe("home hands the trip to checkout and never prices", () => {
-  it("does not fetch the fleet, keep a class ladder or invent hold cards", () => {
-    expect(home).not.toMatch(/\/api\/quote/);
+describe("home hands the trip to checkout and prices only from the server quote", () => {
+  it("keeps no class ladder, no hold cards and no amount in markup", () => {
     expect(home).not.toMatch(/VEHICLE_CLASSES\s*=\s*\[/);
     expect(home).not.toMatch(/kind: 'hold'/);
     expect(home).toMatch(/location\.assign\(prefix \+ '\/checkout\?'/);
+    // Every CHF figure the class cards show goes through the locale runtime from the server's rappen.
+    expect(home).toMatch(/loc\.fromChf\(c\.total\)/);
+    expect(home).not.toMatch(/data-cc-price[^>]*>\s*CHF\s*\d/);
+  });
+
+  it("quotes only on the laptop, only once From, To and When are valid, debounced, once per trip, at most 4 a minute (26.4.2)", () => {
+    // The one POST lives in ccFire; ccSync guards it.
+    expect((home.match(/fetch\('\/api\/quote', \{ method: 'POST'/g) ?? []).length).toBe(1);
+    expect(home).toMatch(/ccSync\(\) \{[\s\S]*?if \(s\.narrow\) \{ this\.ccReset\(\); return; \}/);
+    expect(home).toMatch(/const body = this\.ccBody\(r\);\n    if \(!body\) \{ this\.ccReset\(\); return; \}/);
+    expect(home).toMatch(/if \(sig === this\._ccSig\) return;/);
+    expect(home).toMatch(/setTimeout\(\(\) => this\.ccFire\(sig\), 900\)/);
+    expect(home).toMatch(/this\._ccHits\.length >= 4/);
+    // A class card carries the class slug to checkout.
+    expect(home).toMatch(/p\.set\('class', cls\)/);
   });
 
   it("requires a flight number on airport pickup and leaves other trips optional", () => {
