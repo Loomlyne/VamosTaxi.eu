@@ -160,10 +160,10 @@ test.describe("Home laptop class cards @component", () => {
     const shotBefore = await eco.locator("[data-cc-shot]").boundingBox();
     const img = eco.locator("[data-cc-shot] img");
     await expect(img).toHaveAttribute("src", "/photos/classes/fixture-economy.svg?w=640");
-    await expect(img).toHaveAttribute("srcset", "/photos/classes/fixture-economy.svg?w=640 640w, /photos/classes/fixture-economy.svg?w=1280 1280w");
+    await expect(img).toHaveAttribute("srcset", "/photos/classes/fixture-economy.svg?w=640 640w");
     await expect(img).toHaveAttribute("alt", "Economy");
     await expect(img).toHaveAttribute("width", "640");
-    await expect(img).toHaveAttribute("height", "427");
+    await expect(img).toHaveAttribute("height", "640");
     await expect(img).toHaveAttribute("loading", "lazy");
     await expect(img).toHaveAttribute("decoding", "async");
     await expect.poll(() => img.evaluate((e: HTMLImageElement) => e.complete && e.naturalWidth > 0), { timeout: 8000 }).toBe(true);

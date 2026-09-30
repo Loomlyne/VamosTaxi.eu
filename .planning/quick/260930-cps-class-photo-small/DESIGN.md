@@ -25,3 +25,16 @@ Chauffeur, vehicle, review and staff photos keep the route as it is (the `?w=` w
 
 ## Checks
 Unit tests for the width rule, the saved-name rule and the fallback. A local Worker run that shows a real WebP at both widths and the saved file being reused. Visual specs for the class cards unchanged. No migration, no setting, no secret.
+
+## Card layout (added 2026-09-30, replaces the layout signed at 11:50)
+
+Owner, 12:55 and 13:52: photo on the side, smaller card, laptop home and checkout step 1, every size.
+Options A to D were shown and refused (`screens/opt-A…D-*`). He sent his own reference, `screens/owner-reference-2026-09-30.png`: the earlier home fleet card.
+
+**Signed: layout E, second pass** (question form, 2026-09-30, pictures `screens/opt-E-*`).
+- Laptop home: three cards across. Square inset photo on the side (146 px, 120 px under 1241 px, never stretched), name, price, "7 seats · 6 bags", outlined SELECT across the text column.
+- Before the trip is filled: "Fill in the trip to see prices" in the price line, SELECT pale. Loading: grey blocks for price and button.
+- Checkout step 1 at every width, tablet and phone included: the same card as rows, with the round check when chosen. No SELECT button there; the card is the control.
+- His two corrections on the first pass: the German card's photo was stretched upward (fixed: the photo stays square), and tablet and phone cards must follow the desktop card (done).
+
+Built differently from the picture, on purpose: the German bags word is the dictionary's existing "Gepäckstücke" (the picture said "Koffer"); the line wraps under 1241 px and the photo stays square.
