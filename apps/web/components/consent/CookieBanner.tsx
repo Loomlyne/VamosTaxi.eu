@@ -61,11 +61,6 @@ export async function postConsentRecord(input: {
   return { ok: false, code: json?.code ?? "unavailable", status: res.status };
 }
 
-/** Footer mount is removed in 27-08; inert until then (the banner owns the event now). */
-export function CookiePrefsListener() {
-  return null;
-}
-
 /** Cookies-page style button: only opens the preferences sheet, never writes a row (D-10). */
 export function CookieSettingsChangeButton({ label }: { label: string }) {
   return (

@@ -65,9 +65,7 @@ describe("production cookie banner (27 contract, D-04 D-09)", () => {
     expect(btn).toContain("PREFS_EVENT");
     expect(src).toContain('const PREFS_EVENT = "vamos:cookie-prefs"');
     expect(btn).not.toMatch(/fetch\(|postConsentRecord\(/);
-    const listener = block(src, "export function CookiePrefsListener");
-    const lEnd = listener.indexOf("/** Cookies-page");
-    expect(listener.slice(0, lEnd)).not.toMatch(/fetch\(|addEventListener/);
+    expect(src).not.toContain("export function CookiePrefsListener");
   });
 
   it("writes the three categories to /api/consent", () => {
