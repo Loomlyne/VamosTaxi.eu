@@ -12,7 +12,7 @@ import crypto from "node:crypto";
 import { execFileSync } from "node:child_process";
 
 const LABEL = process.argv[2] ?? "run";
-const PORT = 4290;
+const PORT = Number(process.env.E2E_PORT ?? 4290);
 const MAIL_ROOT = process.env.MAIL_ROOT;
 const DB = process.env.SB_DB_CONTAINER ?? "supabase_db_vamos-taxi-auth";
 const API = `http://127.0.0.1:${process.env.SB_API_PORT ?? "57321"}`;

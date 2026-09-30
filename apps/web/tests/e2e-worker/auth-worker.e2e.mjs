@@ -8,8 +8,8 @@ import path from "node:path";
 import { execFileSync } from "node:child_process";
 
 const LABEL = process.argv[2] ?? "run";
-const PORT = 4290;
-const DASH_PORT = Number(process.env.DASH_PORT ?? 4291); // second instance of the same build with VAMOS_SURFACE=auto, so Host dashboard.localhost is honoured
+const PORT = Number(process.env.E2E_PORT ?? 4290);
+const DASH_PORT = Number(process.env.E2E_DASH_PORT ?? process.env.DASH_PORT ?? 4291); // second instance of the same build with VAMOS_SURFACE=auto, so Host dashboard.localhost is honoured
 const MAIL_ROOT = process.env.MAIL_ROOT;
 const DB = process.env.SB_DB_CONTAINER ?? "supabase_db_vamos-taxi-auth";
 const RUN = Date.now().toString(36);
