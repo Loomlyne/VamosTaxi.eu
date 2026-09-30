@@ -25,10 +25,13 @@ const openNextAssets =
     : join(webRoot, ".open-next/assets");
 
 const EXCLUDED_DIRS = new Set(["node_modules", ".next", ".open-next", ".git", ".wrangler"]);
+// `.next-<name>` folders are extra Next build output (the visual specs write them; git-ignored).
+// They are not source, hold multi-megabyte bundles and once kept this check busy for 35 minutes.
+const isExcludedDir = (name) => EXCLUDED_DIRS.has(name) || name.startsWith(".next");
 const BINARY_EXT = new Set([
   ".ttf", ".otf", ".woff", ".woff2",
   ".png", ".jpg", ".jpeg", ".gif", ".ico", ".webp", ".avif",
-  ".mp4", ".mov", ".pdf",
+  ".mp4", ".mov", ".webm", ".pdf", ".gz", ".zip",
 ]);
 const NEXT_PUBLIC_RE = /\bNEXT_PUBLIC_[A-Z0-9_]+\b/g;
 const USE_CLIENT_RE = /^\s*(?:\/\/[^\n]*\n\s*|\/\*[\s\S]*?\*\/\s*)*["']use client["']/;
@@ -37,7 +40,7 @@ const USE_CLIENT_RE = /^\s*(?:\/\/[^\n]*\n\s*|\/\*[\s\S]*?\*\/\s*)*["']use clien
 function walk(dir, files = []) {
   if (!existsSync(dir)) return files;
   for (const entry of readdirSync(dir)) {
-    if (EXCLUDED_DIRS.has(entry)) continue;
+    if (isExcludedDir(entry)) continue;
     const full = join(dir, entry);
     const stats = statSync(full);
     if (stats.isDirectory()) {

@@ -368,28 +368,31 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 [data-cc-head]{display:flex;flex-direction:column;gap:var(--vt-space-1)}
 [data-cc-title]{margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-3);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);line-height:var(--vt-heading-leading);color:var(--vt-text-inverse)}
 [data-cc-sub]{margin:0;font-size:var(--vt-body-md);line-height:1.5;color:var(--vt-text-inverse-muted)}
-[data-cc-grid]{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:var(--vt-space-4);min-width:0}
-[data-cc-shot]{position:relative;display:flex;align-items:center;justify-content:center;inline-size:100%;aspect-ratio:3/2;overflow:hidden;box-sizing:border-box;border-radius:var(--vt-radius-md);background:var(--vt-grey-100);border:1px solid var(--vt-border-subtle)}
+[data-cc-grid]{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;min-width:0}
+[data-cc-shot]{position:relative;display:flex;align-items:center;justify-content:center;flex:0 0 146px;inline-size:146px;aspect-ratio:1/1;align-self:center;overflow:hidden;box-sizing:border-box;border-radius:var(--vt-radius-md);background:var(--vt-grey-100);border:1px solid var(--vt-border-subtle)}
 [data-cc-shot] img{position:absolute;inset:0;inline-size:100%;block-size:100%;object-fit:cover;object-position:50% 72%;display:block}
-[data-cc-price-sk]{display:block;block-size:34px;inline-size:45%;border-radius:var(--vt-radius-sm);background:var(--vt-grey-100);animation:vt-cc-pulse 1.2s ease-in-out infinite}
-[data-cc-price-slot]{display:flex;align-items:center;min-block-size:34px}
+[data-cc-price-sk]{display:block;block-size:26px;inline-size:96px;border-radius:var(--vt-radius-sm);background:var(--vt-grey-100);animation:vt-cc-pulse 1.2s ease-in-out infinite}
+[data-cc-price-slot]{display:flex;align-items:center;min-block-size:28px}
 [data-cc-act][data-locked] .vt-btn,[data-cc-act][data-locked] button{opacity:.5}
 [data-cc-warn]{display:flex;flex-wrap:wrap;align-items:center;gap:var(--vt-space-1) var(--vt-space-3);margin:0;font-size:var(--vt-body-md);line-height:1.5;font-weight:var(--vt-weight-medium);color:var(--vt-text-inverse)}
 [data-cc-warn] [data-cc-warn-item]::before{content:"\00B7";margin-inline-end:var(--vt-space-3)}
-[data-cc-card]{display:flex;flex-direction:column;gap:var(--vt-space-3);box-sizing:border-box;min-width:0;padding:var(--vt-space-5);background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);color:var(--vt-text-primary)}
+[data-cc-card]{display:flex;align-items:stretch;gap:var(--vt-space-3);box-sizing:border-box;min-width:0;padding:var(--vt-space-2);background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);color:var(--vt-text-primary)}
 [data-cc-card][data-block="pax"],[data-cc-card][data-block="bags"]{background:var(--vt-grey-50);color:var(--vt-text-muted)}
+[data-cc-side]{display:flex;flex-direction:column;gap:var(--vt-space-1);flex:1 1 auto;min-width:0;padding-block:2px}
 [data-cc-name]{font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:-.01em;line-height:1.2}
-[data-cc-meta]{display:flex;flex-wrap:wrap;align-items:center;gap:var(--vt-space-2) var(--vt-space-4);font-size:var(--vt-body-md);color:var(--vt-text-secondary)}
+[data-cc-meta]{display:flex;flex-wrap:wrap;align-items:center;gap:var(--vt-space-1) 14px;margin-block-start:auto;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)}
 [data-cc-fig]{display:inline-flex;align-items:center;gap:var(--vt-space-2);font-variant-numeric:tabular-nums}
-[data-cc-price]{font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:var(--vt-weight-semibold);letter-spacing:-.02em;line-height:1.1;font-variant-numeric:tabular-nums;color:var(--vt-text-primary)}
-[data-cc-price][data-muted]{font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-medium);letter-spacing:0;color:var(--vt-text-secondary)}
+[data-cc-price]{align-self:flex-start;min-block-size:28px;font-family:var(--vt-font-display);font-size:var(--vt-heading-3);font-weight:var(--vt-weight-semibold);letter-spacing:-.02em;line-height:1.1;font-variant-numeric:tabular-nums;color:var(--vt-text-primary)}
+[data-cc-price][data-muted]{font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-regular);line-height:1.35;letter-spacing:0;color:var(--vt-text-secondary)}
 [data-cc-card][data-block="pax"] [data-cc-price],[data-cc-card][data-block="bags"] [data-cc-price]{color:var(--vt-text-muted)}
-[data-cc-act]{margin-top:auto}
-[data-cc-small]{margin-top:auto;display:flex;align-items:center;min-height:54px;font-size:var(--vt-body-md);font-weight:var(--vt-weight-medium);color:var(--vt-text-secondary)}
+[data-cc-act]{margin-block-start:6px;min-block-size:44px}
+[dir="rtl"] [data-cc-act] .vt-btn>span:last-child{transform:scaleX(-1)}
+[data-cc-small]{margin-block-start:6px;display:flex;align-items:center;min-height:44px;font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);color:var(--vt-text-secondary)}
 [data-cc-msg]{margin:0;font-size:var(--vt-body-md);line-height:1.5;color:var(--vt-text-inverse-muted)}
 [data-cc-sk]{display:block;border-radius:var(--vt-radius-sm);background:var(--vt-grey-100);animation:vt-cc-pulse 1.2s ease-in-out infinite}
 @keyframes vt-cc-pulse{0%,100%{opacity:1}50%{opacity:.5}}
 }
+@media (min-width:1081px) and (max-width:1240px){[data-cc-shot]{flex-basis:120px;inline-size:120px}}
 @media (prefers-reduced-motion:reduce){[data-cc-sk]{animation:none}}
 </style>
 </helmet>
@@ -584,27 +587,29 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <div data-cc-grid="1" aria-busy="{{ ccBusy }}">
 <sc-for list="{{ ccCards }}" as="c" hint-placeholder-count="3">
 <sc-if value="{{ c.skel }}" hint-placeholder-val="{{ false }}">
-<div data-cc-card="1" data-skel="1" aria-hidden="true"><span data-cc-sk="1" style="width:100%;aspect-ratio:3/2;height:auto"></span><span data-cc-sk="1" style="width:55%;height:22px"></span><span data-cc-sk="1" style="width:35%;height:16px"></span><span data-cc-sk="1" style="width:45%;height:34px"></span><span data-cc-sk="1" style="width:100%;height:54px;border-radius:999px"></span></div>
+<div data-cc-card="1" data-skel="1" aria-hidden="true"><span data-cc-shot="1" data-cc-sk="1" style="border:0"></span><div data-cc-side="1"><span data-cc-sk="1" style="width:55%;height:22px"></span><span data-cc-sk="1" style="width:96px;height:26px"></span><span data-cc-sk="1" style="width:60%;height:16px;margin-block-start:auto"></span><span data-cc-sk="1" style="width:100%;height:44px;border-radius:999px;margin-block-start:6px"></span></div></div>
 </sc-if>
 <sc-if value="{{ c.live }}" hint-placeholder-val="{{ true }}">
 <div data-cc-card="1" data-block="{{ c.block }}" data-slug="{{ c.slug }}" role="group" aria-label="{{ c.name }}">
 <div data-cc-shot="1">
-<sc-if value="{{ c.hasPhoto }}" hint-placeholder-val="{{ false }}"><img src="{{ c.photo }}" alt="{{ c.name }}" width="640" height="427" loading="lazy" decoding="async" data-vt-no-i18n="1" onError="{{ c.imgErr }}"></sc-if>
+<sc-if value="{{ c.hasPhoto }}" hint-placeholder-val="{{ false }}"><img src="{{ c.photoSmall }}" srcSet="{{ c.photoSet }}" sizes="146px" alt="{{ c.name }}" width="640" height="640" loading="lazy" decoding="async" data-vt-no-i18n="1" onError="{{ c.imgErr }}"></sc-if>
 <sc-if value="{{ c.noPhoto }}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="car" size="{{ n34 }}" color="var(--vt-grey-400)" hint-size="34px,34px"></x-import></sc-if>
 </div>
+<div data-cc-side="1">
 <div data-cc-name="1" data-vt-no-i18n="1">{{ c.name }}</div>
-<div data-cc-meta="1">
-<span data-cc-fig="1" aria-label="{{ c.paxLabel }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="users" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import><span class="vt-dir-keep" data-vt-no-i18n="1">{{ c.pax }}</span></span>
-<span data-cc-fig="1" aria-label="{{ c.bagsLabel }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="luggage" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import><span class="vt-dir-keep" data-vt-no-i18n="1">{{ c.bags }}</span></span>
-</div>
 <sc-if value="{{ c.hasPrice }}" hint-placeholder-val="{{ true }}"><div data-cc-price="1" class="vt-dir-keep" data-vt-no-i18n="1">{{ c.price }}</div></sc-if>
 <sc-if value="{{ c.noPrice }}" hint-placeholder-val="{{ false }}"><div data-cc-price="1" data-muted="1">Price at checkout</div></sc-if>
 <sc-if value="{{ c.needTrip }}" hint-placeholder-val="{{ false }}"><div data-cc-price-slot="1"><div data-cc-price="1" data-muted="1" data-cc-need="1">Fill in the trip to see prices</div></div></sc-if>
 <sc-if value="{{ c.priceLoading }}" hint-placeholder-val="{{ false }}"><div data-cc-price-slot="1"><span data-cc-price-sk="1" role="status" aria-label="Loading prices"></span></div></sc-if>
-<sc-if value="{{ c.canPick }}" hint-placeholder-val="{{ true }}"><div data-cc-act="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="secondary" size="lg" block="{{ yes }}" iconEnd="arrow-right" onClick="{{ c.pick }}" hint-size="100%,54px">Select</x-import></div></sc-if>
-<sc-if value="{{ c.locked }}" hint-placeholder-val="{{ false }}"><div data-cc-act="1" data-locked="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="secondary" size="lg" block="{{ yes }}" iconEnd="arrow-right" onClick="{{ c.warn }}" hint-size="100%,54px">Select</x-import></div></sc-if>
-<sc-if value="{{ c.loadingAct }}" hint-placeholder-val="{{ false }}"><div data-cc-act="1"><span data-cc-sk="1" style="width:100%;height:54px;border-radius:999px" aria-hidden="true"></span></div></sc-if>
+<div data-cc-meta="1">
+<span data-cc-fig="1" aria-label="{{ c.paxLabel }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="users" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import><span>{{ c.paxText }}</span></span>
+<span data-cc-fig="1" aria-label="{{ c.bagsLabel }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="luggage" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import><span>{{ c.bagsText }}</span></span>
+</div>
+<sc-if value="{{ c.canPick }}" hint-placeholder-val="{{ true }}"><div data-cc-act="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" size="md" block="{{ yes }}" iconEnd="arrow-right" onClick="{{ c.pick }}" hint-size="100%,44px">Select</x-import></div></sc-if>
+<sc-if value="{{ c.locked }}" hint-placeholder-val="{{ false }}"><div data-cc-act="1" data-locked="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" size="md" block="{{ yes }}" iconEnd="arrow-right" onClick="{{ c.warn }}" hint-size="100%,44px">Select</x-import></div></sc-if>
+<sc-if value="{{ c.loadingAct }}" hint-placeholder-val="{{ false }}"><div data-cc-act="1"><span data-cc-sk="1" style="width:100%;height:44px;border-radius:999px" aria-hidden="true"></span></div></sc-if>
 <sc-if value="{{ c.tooSmall }}" hint-placeholder-val="{{ false }}"><div data-cc-small="1">{{ c.smallText }}</div></sc-if>
+</div>
 </div>
 </sc-if>
 </sc-for>
@@ -949,7 +954,8 @@ function classOnFleet(offer, slug) {
 function publicQuoteClass(c) {
   return !!(c && c.slug && c.ineligible_reason !== 'no_rate');
 }
-/** The photo the owner uploaded for a class, as the server serves it (/photos/<key>). Nothing else is ever used. */
+/** The photo the owner uploaded for a class, as the server serves it (/photos/<key>). Nothing else is ever used.
+    The cards ask for its small versions (?w=640, ?w=1280); the server answers the original if it cannot make one. */
 function ccPhotoUrl(c) {
   const u = c && typeof c.photo_url === 'string' ? c.photo_url : '';
   return /^\/photos\/[A-Za-z0-9._\/-]+$/.test(u) && u.indexOf('..') === -1 ? u : '';
@@ -2513,8 +2519,8 @@ class Component extends DCLogic {
       const photo = c.photo && !bad[c.slug] ? c.photo : '';
       return {
         skel: false, live: true, slug: c.slug, name: c.name, pax: c.pax, bags: c.bags, block: block,
-        photo: photo, hasPhoto: !!photo, noPhoto: !photo, imgErr: () => this.ccImgFail(c.slug),
-        paxLabel: 'Up to ' + c.pax + ' passengers', bagsLabel: 'Up to ' + c.bags + ' bags',
+        photo: photo, photoSmall: photo ? photo + '?w=640' : '', photoSet: photo ? photo + '?w=640 640w' : '', hasPhoto: !!photo, noPhoto: !photo, imgErr: () => this.ccImgFail(c.slug),
+        paxLabel: 'Up to ' + c.pax + ' passengers', bagsLabel: 'Up to ' + c.bags + ' bags', paxText: c.pax + ' seats', bagsText: c.bags + ' bags',
         hasPrice: hasPrice, price: hasPrice && loc && loc.fromChf ? loc.fromChf(c.total) : '', noPrice: showing && !hasPrice && !small,
         needTrip: idle && !small, priceLoading: loading && !small,
         canPick: showing && !small, locked: idle && !small, loadingAct: loading && !small,

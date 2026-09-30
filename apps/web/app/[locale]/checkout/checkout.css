@@ -916,11 +916,14 @@
   color: var(--vt-text-secondary);
 }
 
-/* Class cards: VehicleCard, laid out vertical >=681 and as rows <=680 */
+/* Class cards (quick 260930-cps, owner-signed layout E): one row per class at every width. A square inset photo
+   on the inline-start side; beside it the name, the price with its note, and "N seats / N bags" at the bottom.
+   Selected = 2 px charcoal border + a charcoal check in the top inline-end corner. Too small = greyed, no price,
+   "Seats up to N". The whole card is the control. */
 .vt-co__classes {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
 }
 
 .vt-co__class {
@@ -929,30 +932,72 @@
 }
 
 .vt-co__class .vt-veh {
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: 120px minmax(0, 1fr);
+  grid-template-rows: auto auto 1fr;
+  grid-template-areas:
+    "shot name"
+    "shot price"
+    "shot caps";
   align-items: start;
-  gap: 12px;
-  block-size: 100%;
+  gap: 2px 12px;
+  padding-block: 8px;
+  padding-inline: 8px;
+}
+
+.vt-co__class .vt-veh--selected {
+  padding-block: 7px;
+  padding-inline: 7px;
 }
 
 .vt-co__class .vt-veh__shot {
-  inline-size: 100%;
+  grid-area: shot;
+  align-self: center;
+  inline-size: 120px;
   block-size: auto;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 1 / 1;
 }
 
-/* Owner photos are portrait with the car in the lower part: keep the car in the landscape crop. */
+/* Owner photos are portrait with the car in the lower part: keep the car in the square crop. */
 .vt-co__class .vt-veh__shot img {
   object-position: 50% 72%;
 }
 
-.vt-co__class .vt-veh__price {
-  align-items: flex-start;
-  text-align: start;
+.vt-co__class .vt-veh__body {
+  display: contents;
 }
 
-.vt-co__class .vt-veh__body {
+.vt-co__class .vt-veh__headline {
+  grid-area: name;
+  margin-block: 2px 0;
   min-inline-size: 0;
+  /* room for the check in the top inline-end corner */
+  padding-inline-end: 34px;
+}
+
+.vt-co__class .vt-veh__name {
+  font-size: var(--vt-heading-4);
+  line-height: 1.2;
+}
+
+.vt-co__class .vt-veh__price {
+  grid-area: price;
+  grid-column: auto;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: start;
+  gap: 0;
+}
+
+.vt-co__class .vt-veh__amount {
+  font-size: var(--vt-heading-3);
+  line-height: 1.15;
+}
+
+.vt-co__class .vt-veh__caps {
+  grid-area: caps;
+  align-self: end;
+  gap: 4px 14px;
+  margin-block-end: 2px;
 }
 
 .vt-co__class[data-eligible="false"] .vt-veh,
@@ -960,12 +1005,23 @@
   opacity: 0.42;
 }
 
+/* Too small: the price would only say CHF 000; the note is the message. */
+.vt-co__class[data-eligible="false"] .vt-veh__amount {
+  display: none;
+}
+
+.vt-co__class[data-eligible="false"] .vt-veh__note {
+  font-size: var(--vt-body-sm);
+  font-weight: var(--vt-weight-medium);
+  color: var(--vt-text-secondary);
+}
+
 .vt-co__class-check {
   position: absolute;
-  inset-block-start: 28px;
-  inset-inline-start: 28px;
-  inline-size: 28px;
-  block-size: 28px;
+  inset-block-start: 10px;
+  inset-inline-end: 10px;
+  inline-size: 24px;
+  block-size: 24px;
   border-radius: 50%;
   background: var(--vt-charcoal-900);
   display: inline-flex;
@@ -997,96 +1053,16 @@
     flex: 1 1 100%;
   }
 
-  .vt-co__classes {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 12px;
-  }
-
-  /* 26.4.2 (owner, 2026-09-30): phone class cards. The class photo (or the car icon) sits on the inline-start
-     side spanning two rows; beside it the name over seats and bags, then the price row (amount at the start,
-     its note at the end). Selected = 2 px charcoal border + a charcoal check on the photo's corner.
-     Too small = greyed, no price, "Seats up to N". The card is the tap target: 72 px minimum, full width. */
   .vt-co__class .vt-veh {
-    grid-template-columns: 76px minmax(0, 1fr);
-    grid-template-areas:
-      "shot body"
-      "shot price";
-    align-items: center;
-    gap: 4px 12px;
-    min-block-size: 96px;
-    padding-block: 12px;
-    padding-inline: 12px;
-  }
-
-  .vt-co__class .vt-veh--selected {
-    padding-block: 11px;
-    padding-inline: 11px;
+    grid-template-columns: 104px minmax(0, 1fr);
   }
 
   .vt-co__class .vt-veh__shot {
-    grid-area: shot;
-    align-self: center;
-    inline-size: 76px;
-    block-size: auto;
-    aspect-ratio: 3 / 2;
-  }
-
-  .vt-co__class .vt-veh__body {
-    grid-area: body;
-    align-self: end;
-  }
-
-  .vt-co__class .vt-veh__name {
-    font-size: var(--vt-heading-4);
-    line-height: 1.2;
-  }
-
-  .vt-co__class .vt-veh__headline {
-    margin-block-end: 4px;
-  }
-
-  .vt-co__class .vt-veh__caps {
-    gap: 4px 14px;
+    inline-size: 104px;
   }
 
   .vt-co__class .vt-veh__amount {
     font-size: var(--vt-heading-4);
-    line-height: 1.1;
-  }
-
-  .vt-co__class .vt-veh__price {
-    grid-area: price;
-    align-self: start;
-    grid-column: auto;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 2px 10px;
-    text-align: start;
-  }
-
-  .vt-co__class::before {
-    display: none;
-  }
-
-  /* The check sits on the photo's inline-start corner, level with the photo (the photo is centred in the card). */
-  .vt-co__class-check {
-    inset-block-start: calc(50% - 22px);
-    inset-inline-start: 16px;
-    inline-size: 22px;
-    block-size: 22px;
-  }
-
-  /* Too small: the price would only say CHF 000; the note is the message. */
-  .vt-co__class[data-eligible="false"] .vt-veh__amount {
-    display: none;
-  }
-
-  .vt-co__class[data-eligible="false"] .vt-veh__note {
-    font-size: var(--vt-body-sm);
-    font-weight: var(--vt-weight-medium);
-    color: var(--vt-text-secondary);
   }
 }
 
