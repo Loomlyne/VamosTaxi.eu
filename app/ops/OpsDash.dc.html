@@ -285,7 +285,7 @@ class Component extends DCLogic {
     const zeroMoney = fareLabel(0);
     const onShift = chauffeurs.filter((c) => c.status === 'shift').length;
     const pickups = periodBookings.filter((b) => b.status !== 'cancelled' && b.status !== 'refunded').length;
-    const unassignedPaid = periodBookings.filter((b) => b.paid && !b.driver && b.status !== 'cancelled' && b.status !== 'completed').length;
+    const unassignedPaid = periodBookings.filter((b) => b.paid && !b.driver && ['cancelled', 'refunded', 'completed', 'no-show', 'no_show'].indexOf(b.status) === -1).length;
     const extraRappen = moneyBookings.reduce((n, b) => n + (Number(b.extraRappen) || 0), 0);
     const unpaidPending = periodBookings.filter((b) => b.payLinkSent && !b.paid && b.status !== 'cancelled' && b.status !== 'refunded' && b.status !== 'completed').length;
     const pendingEdits = periodBookings.filter((b) => b.paid && b.pendingEditId).length;

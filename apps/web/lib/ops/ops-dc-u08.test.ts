@@ -90,3 +90,20 @@ describe("OpsSettings save", () => {
     expect(win.VamosOps.settings.get().company).toBe("New AG");
   });
 });
+
+describe("OpsDash 'Unassigned bookings' count", () => {
+  it("counts what the board's Unassigned filter lists: a refunded or no-show trip is not waiting for a chauffeur", () => {
+    const src = readDc("OpsDash.dc.html");
+    const arrow = grab(
+      src,
+      /const unassignedPaid = periodBookings\.filter\((\(b\) => [^\n]*)\)\.length;/,
+      "OpsDash unassignedPaid",
+    );
+    const counted = new Function(`return ${arrow};`)() as (b: Record<string, unknown>) => boolean;
+    const row = (status: string) => ({ paid: true, driver: "", status });
+    expect(Boolean(counted(row("confirmed")))).toBe(true);
+    for (const closed of ["cancelled", "completed", "refunded", "no-show", "no_show"]) {
+      expect(Boolean(counted(row(closed))), closed).toBe(false);
+    }
+  });
+});
