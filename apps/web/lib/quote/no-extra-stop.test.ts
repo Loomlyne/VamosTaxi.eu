@@ -12,7 +12,9 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { checkoutPayLinkSchema } from "../checkout/intent-schema";
 import { buildExtraLines, buildFixedRouteExtraLine } from "../pricing/lines";
+import { parseQuoteRequest, parseRepriceRequest } from "./schema";
 import type {
   FixedRouteRow,
   QuoteLegInput,
@@ -153,5 +155,89 @@ describe("26.2-p4 D1: the fare engine has no stop branch", () => {
       const text = code(...file);
       expect(text, file.join("/")).not.toMatch(/extra_stops?\b|hasExtraStops|ExtraStops|waypoints/);
     }
+  });
+});
+
+const STOP = { lng: 8.55, lat: 47.38, text: "Stop" };
+
+function quoteBody(extras: Record<string, unknown>): Record<string, unknown> {
+  return {
+    locale: "en",
+    display_currency: "CHF",
+    mode: "one_way",
+    pickup: { kind: "pin", lng: 8.5417, lat: 47.3769, text: "Zurich HB" },
+    dropoff: { kind: "pin", lng: 8.5624, lat: 47.4504, text: "ZRH" },
+    legs: [{ leg_seq: 1, scheduled_local: "2026-10-04T10:30" }],
+    pax: 2,
+    bags: 1,
+    extras,
+  };
+}
+
+function repriceBody(extras: Record<string, unknown>): Record<string, unknown> {
+  return { quote_id: "q", lock: "v1.x.y", locale: "en", display_currency: "CHF", extras };
+}
+
+describe("26.2-p4 D2: a quote or reprice request carries no stop", () => {
+  it.each([
+    [{ extra_stops: 0 }, "extra_stops"],
+    [{ extra_stops: 1 }, "extra_stops"],
+    [{ waypoints: [] }, "waypoints"],
+    [{ waypoints: [STOP] }, "waypoints"],
+    [{ extra_stops: 1, waypoints: [STOP] }, "extra_stops"],
+  ])("quote refuses %j", (extras, field) => {
+    expect(parseQuoteRequest(quoteBody(extras))).toEqual({
+      ok: false,
+      code: "extras_max_stops",
+      field,
+    });
+  });
+
+  it.each([
+    [{ extra_stops: 0 }, "extra_stops"],
+    [{ waypoints: [STOP] }, "waypoints"],
+  ])("reprice refuses %j", (extras, field) => {
+    expect(parseRepriceRequest(repriceBody(extras))).toEqual({
+      ok: false,
+      code: "extras_max_stops",
+      field,
+    });
+  });
+
+  it("the other extras still parse", () => {
+    expect(parseQuoteRequest(quoteBody({ child_seats: 1, oversized_luggage: true })).ok).toBe(true);
+    expect(parseRepriceRequest(repriceBody({ child_seats: 0 })).ok).toBe(true);
+  });
+
+  it("the pay-link body's three-code extras object has no stop", () => {
+    const body = {
+      quote_id: "00000000-0000-4000-8000-000000000001",
+      lock: "v1.payload.mac",
+      vehicle_class: "economy",
+      contact: { name: "Ada", email: "ada@example.test", phone: "+41790000000" },
+      locale: "en",
+      display_currency: "CHF",
+      idempotency_key: "idem-1",
+      billing_kind: "individual",
+      payer_email: "ada@example.test",
+    };
+    expect(checkoutPayLinkSchema.safeParse({ ...body, extras: { child_seats: 1 } }).success).toBe(true);
+    expect(checkoutPayLinkSchema.safeParse({ ...body, extras: { extra_stops: 0 } }).success).toBe(false);
+    expect(checkoutPayLinkSchema.safeParse({ ...body, extras: { waypoints: [] } }).success).toBe(false);
+  });
+
+  it("the request code has no stop fields and the reprice spends no Directions call", () => {
+    const schema = code("lib", "quote", "schema.ts");
+    expect(schema).not.toMatch(/WaypointSchema|extras\.extra_stops|extras\.waypoints/);
+    expect(code("lib", "checkout", "intent-schema.ts")).not.toMatch(/extra_stops|waypoints/);
+    const pipeline = code("lib", "quote", "pipeline.ts");
+    expect(pipeline).not.toMatch(/extra_stops|waypointsChanged|extraStopsWaypointMismatch/);
+    const reprice = pipeline.slice(
+      pipeline.indexOf("export async function runRepricePipeline"),
+      pipeline.indexOf("export async function defaultQuoteLockDeadline"),
+    );
+    expect(reprice.length).toBeGreaterThan(100);
+    expect(reprice).not.toMatch(/countMapboxUnit|routeLegs|quoteLockDeadline|mintQuoteId/);
+    expect(code("lib", "geo", "mapbox.ts")).not.toMatch(/waypoints/);
   });
 });
