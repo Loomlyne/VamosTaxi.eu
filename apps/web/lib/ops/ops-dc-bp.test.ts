@@ -184,3 +184,49 @@ describe("OpsNewTrip address suggestions, one answer per field (C3a)", () => {
     expect(comp.state.pickupOpen).toBe(true);
   });
 });
+
+describe("OpsNewTrip address search is debounced (C3b)", () => {
+  const suggestCalls = (calls: Call[]) => calls.filter((c) => c.url.startsWith("/api/geo/suggest"));
+  const queryOf = (c: Call) => new URL(c.url, "http://x").searchParams.get("q");
+
+  it("typing an address sends one suggest call for the finished text, not one per keystroke", async () => {
+    vi.useFakeTimers();
+    const { comp, calls } = newTripHarness(() => ({ suggestions: [] }));
+    for (const typed of ["Ba", "Bas", "Base", "Basel"]) {
+      comp.setDrop(typed);
+      await vi.advanceTimersByTimeAsync(40);
+    }
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(suggestCalls(calls).map(queryOf)).toEqual(["Basel"]);
+  });
+
+  it("each field waits on its own pause: a Drop-off keystroke does not cancel the Pickup search", async () => {
+    vi.useFakeTimers();
+    const { comp, calls } = newTripHarness(() => ({ suggestions: [] }));
+    comp.setPickup("Zurich");
+    await vi.advanceTimersByTimeAsync(40);
+    comp.setDrop("Basel");
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(suggestCalls(calls).map(queryOf).sort()).toEqual(["Basel", "Zurich"]);
+  });
+
+  it("picking a suggestion cancels the search still waiting, so the list does not reopen", async () => {
+    vi.useFakeTimers();
+    const { comp, calls } = newTripHarness(() => ({ suggestions: [{ name: "Basel SBB", mapbox_id: "mb-2" }] }));
+    comp.setDrop("Basel S");
+    await vi.advanceTimersByTimeAsync(40);
+    comp.pickPlace("drop", { n: "Basel SBB", mapbox_id: "mb-2", session_token: "s-1" }, "Basel SBB");
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(suggestCalls(calls)).toEqual([]);
+    expect(comp.state.dropOpen).toBe(false);
+  });
+
+  it("leaving the page cancels a search still waiting", async () => {
+    vi.useFakeTimers();
+    const { comp, calls } = newTripHarness(() => ({ suggestions: [] }));
+    comp.setDrop("Basel");
+    comp.componentWillUnmount();
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(suggestCalls(calls)).toEqual([]);
+  });
+});

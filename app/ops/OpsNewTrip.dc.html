@@ -183,8 +183,9 @@ class Component extends DCLogic {
   _quoteSeq = 0;
   _priceSeq = 0;
   _timer = null;
+  _geoT = { pickup: null, drop: null };
   componentDidMount() { this.loadExtras(); }
-  componentWillUnmount() { if (this._timer) clearTimeout(this._timer); }
+  componentWillUnmount() { if (this._timer) clearTimeout(this._timer); clearTimeout(this._geoT.pickup); clearTimeout(this._geoT.drop); }
   goBack = () => {
     history.pushState({}, '', '/bookings');
     window.dispatchEvent(new PopStateEvent('popstate'));
@@ -212,26 +213,30 @@ class Component extends DCLogic {
   };
   search = (field, q) => {
     var token = geoSession();
+    clearTimeout(this._geoT[field]);
     if (!token || String(q || '').trim().length < 2) {
       this.setState(field === 'pickup' ? { pickupHits: [], pickupOpen: false } : { dropHits: [], dropOpen: false });
       return;
     }
-    var seq = ++this._geoSeq[field];
-    var lang = this.state.locale || 'en';
-    fetch('/api/geo/suggest?q=' + encodeURIComponent(q) + '&session_token=' + encodeURIComponent(token) + '&locale=' + encodeURIComponent(lang))
-      .then(function (r) { return r.json().catch(function () { return {}; }); })
-      .then((j) => {
-        if (seq !== this._geoSeq[field]) return;
-        var hits = ((j && j.suggestions) || []).map((hit) => ({
-          label: [hit.name, hit.address || hit.context].filter(Boolean).join(' — '),
-          pick: () => this.pickPlace(field, {
-            n: hit.name, mapbox_id: hit.mapbox_id, session_token: token,
-          }, [hit.name, hit.address || hit.context].filter(Boolean).join(', ')),
-        })).filter((x) => x.label);
-        if (field === 'pickup') this.setState({ pickupHits: hits, pickupOpen: hits.length > 0 });
-        else this.setState({ dropHits: hits, dropOpen: hits.length > 0 });
-      })
-      .catch(() => {});
+    // 26.2-bp C3b: ask after a pause in typing (160 ms, as the customer box does), not once per keystroke
+    this._geoT[field] = setTimeout(() => {
+      var seq = ++this._geoSeq[field];
+      var lang = this.state.locale || 'en';
+      fetch('/api/geo/suggest?q=' + encodeURIComponent(q) + '&session_token=' + encodeURIComponent(token) + '&locale=' + encodeURIComponent(lang))
+        .then(function (r) { return r.json().catch(function () { return {}; }); })
+        .then((j) => {
+          if (seq !== this._geoSeq[field]) return;
+          var hits = ((j && j.suggestions) || []).map((hit) => ({
+            label: [hit.name, hit.address || hit.context].filter(Boolean).join(' — '),
+            pick: () => this.pickPlace(field, {
+              n: hit.name, mapbox_id: hit.mapbox_id, session_token: token,
+            }, [hit.name, hit.address || hit.context].filter(Boolean).join(', ')),
+          })).filter((x) => x.label);
+          if (field === 'pickup') this.setState({ pickupHits: hits, pickupOpen: hits.length > 0 });
+          else this.setState({ dropHits: hits, dropOpen: hits.length > 0 });
+        })
+        .catch(() => {});
+    }, 160);
   };
   /** The flight is required for an airport pickup; the server names the airport, the form does not guess. */
   checkAirport = (loc) => {
@@ -249,6 +254,7 @@ class Component extends DCLogic {
       });
   };
   pickPlace = (field, loc, text) => {
+    clearTimeout(this._geoT[field]);
     if (field === 'pickup') {
       this.setState({ pickupLoc: loc, pickupText: text, pickupOpen: false, pickupHits: [], pickupAir: false }, this.fireQuote);
       this.checkAirport(loc);
