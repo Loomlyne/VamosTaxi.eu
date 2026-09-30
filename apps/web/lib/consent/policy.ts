@@ -6,4 +6,4 @@
 // It is a separate constant from LEGAL_UPDATED (terms, cancellation, imprint), even when the
 // two dates coincide (D-31).
 
-export const CONSENT_POLICY_VERSION = "2026-09-30";
+export const CONSENT_POLICY_VERSION = "2026-10-01";

@@ -5,7 +5,7 @@
 (function () {
   var LEGAL_UPDATED = '2026-09-30';
   // Consent date shown on /cookies and /privacy (D-31); plan 27-10 sets it equal to CONSENT_POLICY_VERSION.
-  var CONSENT_UPDATED = '2026-09-30';
+  var CONSENT_UPDATED = '2026-10-01';
 
   var LOCALES = { en: 'en-GB', de: 'de-CH', fr: 'fr-CH', ar: 'ar-u-nu-latn' };
 
