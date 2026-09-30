@@ -238,6 +238,19 @@ describe("refundBooking across payments (20-10 B.2)", () => {
     expect(result.ok).toBe(true);
   });
 
+  it("(d2) second press after Stripe accepted and the database failed: intended, attempts 0, resumed: zero creates, recorded as sent", async () => {
+    planRows = [intent(11, 1, 10000, { state: "intended", attempts: 0, resumed: true })];
+    staff = state({ pays: [{ id: 1, charged: 10000, open: { amount: 10000, state: "intended" } }] });
+    findRefundByIntent.mockResolvedValue({ id: "re_at_stripe", status: "succeeded", metadata: { vamos_intent: "11" } });
+    sentImpl = () => [sentRow(10000, 10000, 0)];
+    const { refundBooking } = await import("./refund");
+    const result = await refundBooking(ENV, CLAIMS, "VT-26-0101", {});
+    expect(findRefundByIntent).toHaveBeenCalledTimes(1);
+    expect(createRefund).not.toHaveBeenCalled();
+    expect(calls).toEqual(["plan", "sent:11"]);
+    expect(result).toMatchObject({ ok: true, dueRappen: 0, parts: [{ paymentId: 1, state: "sent" }] });
+  });
+
   it("(d) Stripe accepted but ops_refund_intent_sent throws: part unrecorded, ops_refund_intent_failed NOT called", async () => {
     planRows = [intent(11, 1, 10000)];
     staff = state({ pays: [{ id: 1, charged: 10000 }] });
