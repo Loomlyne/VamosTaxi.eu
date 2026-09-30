@@ -916,7 +916,7 @@ class Component extends DCLogic {
       { icon: 'credit-card', k: t.payment, v: booking.pay },
     ];
     if (booking.arrivedAt) {
-      tags.push({ icon: 'clock', k: t.arrived, v: String(booking.arrivedAt).slice(11, 16) || '—' });
+      tags.push({ icon: 'clock', k: t.arrived, v: eventWhen(booking.arrivedAt).slice(11, 16) || '—' });
     }
     if (Number(booking.extraWaitMinutes) > 0) {
       const waitPay = Number(booking.extraWaitRappen) > 0 ? (' · ' + fareLabel(Number(booking.extraWaitRappen))) : '';

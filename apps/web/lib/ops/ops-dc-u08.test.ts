@@ -307,6 +307,16 @@ describe("OpsDetail history time", () => {
     expect(eventWhen("2026-09-30T08:15:00+02:00")).toBe("2026-09-30 08:15");
   });
 
+  it("the Arrived tag is the Zurich clock time of the arrival", () => {
+    // bookings-map iso() hands arrivedAt over as a UTC ISO string.
+    const expr = grab(src, /k: t\.arrived, v: ([^\n]*?) \}\);\n/, "OpsDetail arrived tag");
+    const shown = new Function("booking", "eventWhen", `return ${expr};`) as (
+      b: { arrivedAt: string },
+      f: typeof eventWhen,
+    ) => string;
+    expect(shown({ arrivedAt: "2026-09-30T06:15:00.000Z" }, eventWhen)).toBe("08:15");
+  });
+
   it("keeps a value without a zone, or one it cannot read, as written", () => {
     expect(eventWhen("2026-09-30T08:15")).toBe("2026-09-30 08:15");
     expect(eventWhen("2026-09-30")).toBe("2026-09-30");
