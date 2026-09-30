@@ -80,3 +80,14 @@ of the difference by the owner, then `booking_payments` read by status.
 | This plan | **Signed by the owner, question form, 2026-09-30** ("Signed") |
 | Designs (Edit form, price box, confirm step, waiting state) and the e-mail wording | After the plan is signed, before code |
 | UAT and Ship | His word |
+
+## From the control session (2026-09-30)
+
+- Migration number for this job: `20261007140000`.
+- Build order on main for this area: 26.2 hand-over 2, Phase 20 B1, Phase 20 20-12, P4 part A,
+  Phase 20 20-10 (refunds by hand), then this job (P1), then P6.
+- P6 (place and time change on a paid trip): own branch `gsd/26.2-p6-paid-trip-edit`, migration
+  number `20261007150000`. It reuses this job's functions for the pay link for the difference and
+  the "Refund due" path; no second set.
+- The new e-mail text is the owner's to approve word for word in four languages and is recorded
+  in `.planning/decisions/`.
