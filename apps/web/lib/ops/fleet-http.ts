@@ -24,7 +24,8 @@ import {
   type VehicleRow,
 } from "./fleet";
 import { classDisplayName, liveClassSlug } from "./class-slug";
-import { jsonErr } from "./staff-json";
+import type { VehicleDeleteResult } from "./fleet-write";
+import { jsonErr, jsonOk } from "./staff-json";
 import { mapSqlState } from "./sqlstate";
 
 export const UUID_RE =
@@ -357,6 +358,32 @@ export function fleetJsonError(err: unknown): Response {
   if (fleet.kind === "fk") return jsonErr("23503", 409);
   if (fleet.kind === "check") return jsonErr("23514", 400);
   return jsonErr("error", 500);
+}
+
+/**
+ * DELETE /api/staff/vehicles/:id answer (quick 261001-cars-page). A refusal carries the driver
+ * names and trip references so the dashboard can say it in the owner's language; `message` is
+ * the English sentence for any other caller.
+ */
+export function vehicleDeleteJson(result: VehicleDeleteResult, id: string): Response {
+  if (result.kind === "gone") {
+    return jsonErr("fleet-car-gone", 404, { message: "That car is gone." });
+  }
+  if (result.kind === "in-use") {
+    const parts: string[] = [];
+    if (result.drivers.length > 0) {
+      parts.push(`Driven by ${result.drivers.join(", ")}. Change the car on Chauffeurs first.`);
+    }
+    if (result.references.length > 0) {
+      parts.push(`In use on trips not finished: ${result.references.join(", ")}. Reassign or close them first.`);
+    }
+    return jsonErr("fleet-car-in-use", 409, {
+      drivers: result.drivers,
+      references: result.references,
+      message: parts.join(" "),
+    });
+  }
+  return jsonOk({ id });
 }
 
 export function chauffeurJsonError(err: unknown): Response {

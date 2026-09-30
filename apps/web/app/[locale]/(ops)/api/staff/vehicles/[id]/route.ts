@@ -1,6 +1,9 @@
 // apps/web/app/[locale]/(ops)/api/staff/vehicles/[id]/route.ts
 //
 // PATCH + DELETE /api/staff/vehicles/:id. Dual-mounted at app/api/staff/vehicles/[id].
+// Quick 261001-cars-page: PATCH of a missing car answers 404; DELETE follows the owner's rule
+// (refuse while a driver has the car or an open trip uses it, else delete completely); a photo
+// that no car points at any more is deleted from storage.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import {
@@ -14,10 +17,12 @@ import {
   parseVehicleBody,
   presentVehicle,
   readJsonBody,
+  vehicleDeleteJson,
 } from "@/lib/ops/fleet-http";
 import { deleteVehicleRow, updateVehicleRow } from "@/lib/ops/fleet-write";
 import { deliverOpsMustFix } from "@/lib/ops/must-fix-mail";
 import { jsonErr, jsonOk, withStaff } from "@/lib/ops/staff-json";
+import { removeVehiclePhoto } from "@/lib/ops/vehicle-photo";
 
 export const dynamic = "force-dynamic";
 
@@ -42,14 +47,16 @@ export async function PATCH(
         vehicleClassId = match.id;
       }
       const input = assertVehicleInput({ ...parsed.input, vehicleClassId });
-      const mustFixTrips = await updateVehicleRow(env, claims, id, input);
-      if (mustFixTrips.length > 0) {
+      const saved = await updateVehicleRow(env, claims, id, input);
+      if (!saved.found) return jsonErr("fleet-car-gone", 404, { message: "That car is gone." });
+      if (saved.mustFix.length > 0) {
         try {
-          await deliverOpsMustFix(env, "off-road", mustFixTrips);
+          await deliverOpsMustFix(env, "off-road", saved.mustFix);
         } catch {
           // Vehicle is already off the road. Mail is best-effort. Do not cancel.
         }
       }
+      await removeVehiclePhoto(env, saved.oldPhoto, "photo-replaced");
       const rows = await loadVehicles(env, claims);
       const updated = rows.find((row) => row.id === id);
       return jsonOk(updated ? presentVehicle(updated) : { id });
@@ -68,8 +75,9 @@ export async function DELETE(
     if (!isUuid(id)) return jsonErr("fleet-failure-error", 400);
     try {
       const { env } = getCloudflareContext();
-      await deleteVehicleRow(env, claims, id);
-      return jsonOk({ id });
+      const result = await deleteVehicleRow(env, claims, id);
+      if (result.kind === "deleted") await removeVehiclePhoto(env, result.photoPath, "car-deleted");
+      return vehicleDeleteJson(result, id);
     } catch (err) {
       return fleetJsonError(err);
     }
