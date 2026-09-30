@@ -120,6 +120,18 @@ if (link) { const f = await follow(link, jar3); s = await session(jar3);
   rec("3 magic link", s?.signedIn === true, `request ${r.status}; hops=${f.hops.join(">")} final=${f.final}; verifier=${jar3.has(/code-verifier/)}; signedIn=${s?.signedIn}`);
 } else rec("3 magic link", false, `request ${r.status}; no mail`);
 
+// 3b sign-in link for an unknown address (27 D-36): same answer, no mail, no account
+{
+  const known3 = r; // check 3's request for the known address A
+  const UL = `e2e-nolink-${Date.now()}@example.com`;
+  const seen3b = before();
+  const r3b = await auth({ mode: "signin", method: "magic", email: UL }, new Jar(), { ip: newIp() });
+  const mail3b = await newMail(seen3b, 3000);
+  rec("3b sign-in link for an unknown address makes no account (27 D-36)",
+    r3b.status === known3.status && JSON.stringify(r3b.json) === JSON.stringify(known3.json) && !mail3b && users(UL) === 0,
+    `status ${r3b.status} vs known ${known3.status}; body equal=${JSON.stringify(r3b.json) === JSON.stringify(known3.json)}; mail=${!!mail3b}; auth.users=${users(UL)}`);
+}
+
 // 4 e-mail code (fresh request, code from mail)
 await nap(1500); const jar4 = new Jar(); seen = before();
 r = await auth({ mode: "signin", method: "magic", email: A }, jar4, { ip: newIp() });

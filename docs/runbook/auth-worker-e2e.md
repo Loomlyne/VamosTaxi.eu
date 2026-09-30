@@ -33,6 +33,12 @@ Result on 2026-09-29: `af93fc8e` fails 8 of 10 lines (the sign-up is rolled
 back, `hook_payload_invalid_content_type`); `fix/auth-sign-in-sign-up` passes
 all 9 scenarios.
 
+### Line 3b (27 D-36)
+
+| Line | Proves |
+|---|---|
+| 3b | the public-host sign-in link for an unknown address answers with the same status and body as check 3's known address, sends no mail and leaves no `auth.users` row. Checks 3 and 4 (known address A, created by check 1) still sign in |
+
 ## 26.5 other-device scenarios (D-16)
 
 `other-device.e2e.mjs` runs right after the auth scenarios in `run.sh` (same Worker on 4290, same env).
