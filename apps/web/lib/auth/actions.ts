@@ -14,6 +14,7 @@ import { getLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import type { AuthBanner, AuthSubmitPayload } from "@/components/auth/types";
 import { checkWriteRateLimit } from "@/lib/abuse/rate-limit";
+import { recordSignupAgreement } from "./signup-agreement";
 import { log } from "@/lib/logger";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { trustedSiteOrigin } from "@/lib/security/origin";
@@ -122,6 +123,10 @@ export async function signUpAction(
   }
   if (!(await authWriteAllowed())) return { stage: "sent" };
 
+  const { env } = getCloudflareContext();
+  if (!(await recordSignupAgreement(env, { email: body.data.email, locale: loc.data, headers: await headers() }))) {
+    return { stage: "sent" };
+  }
   const origin = await requestOrigin();
   const supabase = await createServerSupabaseClient();
   const { result, reason } = await runSignUpPassword(
@@ -146,6 +151,12 @@ export async function requestOtpAction(
   }
   if (!(await authWriteAllowed())) return { stage: "sent" };
 
+  if (body.data.mode === "signup") {
+    const { env } = getCloudflareContext();
+    if (!(await recordSignupAgreement(env, { email: body.data.email, locale: loc.data, headers: await headers() }))) {
+      return { stage: "sent" };
+    }
+  }
   const origin = await requestOrigin();
   const supabase = await createServerSupabaseClient();
   const { result, reason } = await runOtp(
@@ -158,7 +169,7 @@ export async function requestOtpAction(
           firstName: body.data.firstName,
           lastName: body.data.lastName,
         }
-      : { mode: "signin", email: body.data.email, locale: loc.data },
+      : { mode: "signin", email: body.data.email, locale: loc.data, createUser: false },
     origin,
     localizedHome(loc.data),
   );

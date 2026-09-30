@@ -8,6 +8,11 @@
 import { test, expect, type Page } from "@playwright/test";
 import { mountPort } from "../support/mock-harness";
 import { waitForMockReady } from "../support/mock-harness";
+import { stubConsentChosen } from "../support/consent-state";
+
+test.beforeEach(async ({ page }) => {
+  await stubConsentChosen(page);
+});
 
 const GALLERY = "apps/web/tests/support/CheckoutStatesGallery.tsx";
 

@@ -5,8 +5,8 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { routing } from "@/i18n/routing";
 import { checkWriteRateLimit } from "@/lib/abuse/rate-limit";
-import { safeReturnTo } from "@/lib/account/return-to";
 import { holdCheckoutFloor, sendCheckoutSignInLink } from "@/lib/auth/checkout-sign-in";
+import { CONSENT_REQUIRED, SIGNUP_UNAVAILABLE, recordSignupAgreement, signupConsentGiven } from "@/lib/auth/signup-agreement";
 import { log } from "@/lib/logger";
 import { verifyTurnstile } from "@/lib/turnstile";
 import {
@@ -624,8 +624,18 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   if (fields.method === "magic") {
+    // 27 D-03a: a public sign-up needs the tick before anything else happens.
+    if (fields.mode === "signup" && !dashboard && !signupConsentGiven(fields)) {
+      return json(CONSENT_REQUIRED, 400);
+    }
     const parsed = otpRequestSchema.safeParse(fields);
     if (!parsed.success) return json(SENT);
+    if (parsed.data.mode === "signup" && !dashboard) {
+      // The record comes first: no record, no account request. Same for known and unknown addresses.
+      if (!(await recordSignupAgreement(env, { email: parsed.data.email, locale, headers: request.headers }))) {
+        return json(SIGNUP_UNAVAILABLE, 503);
+      }
+    }
     const { result, reason } = await runOtp(
       supabase,
       parsed.data.mode === "signup"
@@ -641,14 +651,15 @@ export async function POST(request: Request): Promise<Response> {
             mode: "signin",
             email: parsed.data.email,
             locale,
-            // "More ways to sign in" from checkout (returnTo is a checkout URL) never creates an account.
-            createUser:
-              !dashboard
-              && !safeReturnTo(typeof returnToRaw === "string" ? returnToRaw : null),
+            // 27 D-36: the sign-in link never creates an account; sign-up does, with the notice and the tick.
+            createUser: false,
           },
       origin,
       emailNext(returnToRaw, localizedHome(locale)),
     );
+    // Sign-in: an unknown address gets no mail and would answer faster than a known one.
+    // The checkout branch's floor makes both answers take the same minimum time (T-27-57).
+    if (parsed.data.mode !== "signup") await holdCheckoutFloor({ startedAt });
     if (reason) log("error", "auth", ctx, { reason, action: "otp" });
     return sessionJson(result, setCookies);
   }
@@ -657,8 +668,12 @@ export async function POST(request: Request): Promise<Response> {
     // Staff accounts are invited, never self-made: a sign-up posted to the
     // dashboard host must not create a customer account there.
     if (dashboard) return json(SENT);
+    if (!signupConsentGiven(fields)) return json(CONSENT_REQUIRED, 400);
     const parsed = signUpPasswordSchema.safeParse(fields);
     if (!parsed.success) return json(SENT);
+    if (!(await recordSignupAgreement(env, { email: parsed.data.email, locale, headers: request.headers }))) {
+      return json(SIGNUP_UNAVAILABLE, 503);
+    }
     const { result, reason } = await runSignUpPassword(
       supabase,
       { ...parsed.data, locale },

@@ -3,7 +3,7 @@
 // Wave 0 (10-01): D-03 record_consent contract. Bind helper lands in 10-02.
 // customer_id is never an RPC argument. No sk_live_. No invented CHF.
 
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -50,12 +50,15 @@ describe("bind helper + policy stamp (D-03, D-04)", () => {
     expect(src).not.toMatch(/save_choices/);
   });
 
-  it("always records necessary true and functional/analytics/marketing false (D-03, D-05)", () => {
-    const src = readRepo("apps/web/lib/consent/bind.ts");
-    expect(src).toMatch(/necessary:\s*true|p_necessary:\s*true|true,\s*false,\s*false,\s*false/);
-    expect(src).toMatch(/functional:\s*false|p_functional:\s*false/);
-    expect(src).toMatch(/analytics:\s*false|p_analytics:\s*false/);
-    expect(src).toMatch(/marketing:\s*false|p_marketing:\s*false/);
+  it("passes the categories from the choice, necessary always true (27 D-05, D-18)", () => {
+    const bind = readRepo("apps/web/lib/consent/bind.ts");
+    expect(bind).toMatch(/input\.categories\.functional/);
+    expect(bind).toMatch(/input\.categories\.analytics/);
+    expect(bind).toMatch(/input\.categories\.marketing/);
+    expect(bind).toMatch(/\$\{true\}/);
+    const route = readRepo("apps/web/app/api/consent/route.ts");
+    expect(route).toMatch(/categoriesForChoice\(/);
+    expect(route).toMatch(/categories/);
   });
 
   it("policy_version is a dated stamp constant, not legal prose", () => {
@@ -83,7 +86,7 @@ describe("POST /api/consent HTTP mapping (D-03, D-11, D-14)", () => {
     expect(src).not.toMatch(/save_choices/);
   });
 
-  it("Accept verifies Turnstile action consent; Dismiss and settings_change do not", () => {
+  it("Turnstile iff the row will have marketing true; reject_all never (27 D-33)", () => {
     const route = readRepo("apps/web/app/api/consent/route.ts");
     const turnstile = readRepo("apps/web/lib/turnstile.ts");
     const post = route.slice(route.indexOf("export async function POST"));
@@ -99,7 +102,10 @@ describe("POST /api/consent HTTP mapping (D-03, D-11, D-14)", () => {
     const verifyAt = post.indexOf("verifyTurnstile");
     expect(verifyAt).toBeGreaterThan(-1);
     const verifyBlock = post.slice(post.lastIndexOf("if", verifyAt), verifyAt);
-    expect(verifyBlock).toMatch(/accept_all/);
+    expect(verifyBlock).toMatch(/needsTurnstile\(categories\)/);
+    expect(verifyBlock).not.toMatch(/reject_all/);
+    const choice = readRepo("apps/web/lib/consent/choice.ts");
+    expect(choice).toMatch(/marketing === true/);
   });
 
   it("rate-limits consent:${ip} and consent:${ip}:${subject} before write", () => {
@@ -132,35 +138,26 @@ describe("POST /api/consent HTTP mapping (D-03, D-11, D-14)", () => {
   });
 });
 
-describe("signup consent row (D-09, T-10-07)", () => {
-  it("inserts a new row via asCustomer + recordConsent after password or magic signup", () => {
-    // The row is written when the address is confirmed (callback), not at sign-up: no session exists before.
-    const src = readRepo("apps/web/lib/auth/signup-consent.ts");
-    expect(src).toMatch(/from ["']@\/lib\/db\/identity["']/);
-    expect(src).toMatch(/\basCustomer\b/);
-    expect(src).toMatch(/recordConsent/);
-    expect(readRepo("apps/web/lib/auth/run.ts")).toMatch(/SIGNUP_CONSENT_METADATA_KEY\]: "pending"/);
-    expect(readRepo("apps/web/app/api/auth/callback/route.ts")).toMatch(/recordSignupConsentOnConfirm/);
-    expect(src).not.toMatch(/from ["']@vamos\/db["']/);
-    expect(src).not.toMatch(/from ["']@vamos\/db\//);
-    expect(src).not.toMatch(/consent_log/);
-    expect(src).not.toMatch(/\bUPDATE\b/);
-    expect(src).not.toMatch(/save_choices/);
-    expect(src).not.toMatch(/p_customer_id|customer_id\s*:/);
-    expect(src).not.toMatch(/marketing:\s*true/);
-    expect(src).not.toMatch(/sk_live_/);
-    expect(src).not.toMatch(/Google|Apple|LinkedIn/);
-    const customerAt = src.indexOf("asCustomer(");
-    const recordAt = src.indexOf("recordConsent(tx");
-    expect(customerAt).toBeGreaterThan(-1);
-    expect(recordAt).toBeGreaterThan(customerAt);
+describe("sign-up writes no cookie row (27 D-01)", () => {
+  it("no file under app/api/auth or lib/auth references recordConsent or record_consent", () => {
+    const walk = (dir: string): string[] =>
+      readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
+        e.isDirectory() ? walk(join(dir, e.name)) : [join(dir, e.name)],
+      );
+    const files = [
+      ...walk(join(repoRoot, "apps/web/app/api/auth")),
+      ...walk(join(repoRoot, "apps/web/lib/auth")),
+    ].filter((f) => /\.(ts|tsx)$/.test(f) && !/\.test\.tsx?$/.test(f));
+    expect(files.length).toBeGreaterThan(0);
+    for (const f of files) {
+      expect(readFileSync(f, "utf8"), f).not.toMatch(/recordConsent|record_consent/);
+    }
+    expect(existsSync(join(repoRoot, "apps/web/lib/auth/signup-consent.ts"))).toBe(false);
   });
 
-  it("reuses consent_subject cookie; never forges subject or customer_id from the JSON body", () => {
-    const src = readRepo("apps/web/lib/auth/signup-consent.ts");
-    expect(src).toMatch(/readConsentSubject/);
-    expect(src).toMatch(/mintConsentSubject/);
-    expect(src).toMatch(/settings_change|reject_all/);
-    expect(src).not.toMatch(/body\.(subject|customerId|customer_id|consent_subject)/);
+  it("the pending flag is gone", () => {
+    for (const f of ["apps/web/lib/auth/run.ts", "apps/web/lib/supabase/constants.ts"]) {
+      expect(readRepo(f), f).not.toMatch(/signup_consent|SIGNUP_CONSENT_METADATA_KEY/);
+    }
   });
 });
