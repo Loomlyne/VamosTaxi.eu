@@ -44,18 +44,16 @@
 @keyframes vt-bs-fade{from{opacity:0}to{opacity:1}}
 [data-bs] *{box-sizing:border-box}
 [data-bs-head]{flex:0 0 auto;padding:calc(8px + env(safe-area-inset-top)) 8px 0;border-block-end:1px solid var(--vt-border-subtle);background:var(--vt-bg-surface)}
-[data-bs-row]{display:flex;align-items:center;justify-content:space-between;height:44px}
+[data-bs-row]{display:flex;align-items:center;justify-content:flex-end;height:44px}
 [data-bs-slot]{display:inline-flex;width:44px;height:44px;align-items:center;justify-content:center}
-[data-bs-prog]{padding:8px 8px 12px}
-[data-bs-prog] .vt-prog__seg{height:4px}
 [dir="rtl"] [data-bs-mirror]{transform:scaleX(-1)}
 [dir="rtl"] [data-bs-next] .vt-btn>span:last-child{transform:scaleX(-1)}
-[data-bs-body]{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:24px 16px 32px}
-[data-bs-col]{max-inline-size:560px;margin-inline:auto;display:flex;flex-direction:column;gap:16px;min-width:0}
+[data-bs-sec]{display:flex;flex-direction:column;gap:16px;min-width:0;padding-block-start:24px;border-block-start:1px solid var(--vt-border-subtle)}
+[data-bs-sec]:first-of-type{padding-block-start:0;border-block-start:0}
+[data-bs-sech]{margin:0;font-family:var(--vt-font-display);font-size:18px;font-weight:600;line-height:1.2;letter-spacing:-.01em;color:var(--vt-text-primary)}
+[data-bs-body]{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:8px 16px 32px}
+[data-bs-col]{max-inline-size:560px;margin-inline:auto;display:flex;flex-direction:column;gap:24px;min-width:0}
 [data-bs-title]{margin:0;font-family:var(--vt-font-display);font-size:20px;font-weight:600;line-height:1.18;letter-spacing:-.01em;color:var(--vt-text-primary);outline:none}
-[data-bs-recap]{margin:-8px 0 0;display:flex;flex-wrap:wrap;align-items:center;gap:2px 6px;min-width:0;font-size:13px;font-weight:400;line-height:1.45;color:var(--vt-text-secondary)}
-[data-bs-recap] [data-bs-e]{min-width:0;overflow-wrap:anywhere;flex:0 1 auto}
-[data-bs-recap] [data-bs-fix]{flex:0 0 auto}
 [data-bs-pane]{display:flex;flex-direction:column;gap:16px;min-width:0;animation:vt-bs-fade 140ms var(--vt-ease-standard) both}
 [data-bs-field]{display:flex;flex-direction:column;min-width:0}
 [data-bs-fade]{animation:vt-bs-fade 140ms var(--vt-ease-standard) both}
@@ -81,16 +79,9 @@
 [data-sug-name],[data-sug-sub]{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 [data-sug-tile]{width:28px;height:28px;flex:0 0 auto;border-radius:8px;background:var(--vt-grey-100);color:var(--vt-text-secondary);display:inline-flex;align-items:center;justify-content:center}
 [data-sug-row][data-tone=geo] [data-sug-tile],[data-sug-row][data-tone=pin] [data-sug-tile]{background:var(--vt-charcoal-900);color:var(--vt-white)}
-/* Date and time: native pickers in DS Input, side by side even at 390. */
-[data-bs-when]{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+/* Date and time: the laptop box picker (WhenPicker), stacked, 54px pill triggers. */
+[data-bs-when]{display:flex;flex-direction:column;gap:16px;min-width:0}
 [data-bs-when]>div{min-width:0}
-[data-bs-when] .vt-input,[data-bs-when] .vt-input input{min-width:0}
-[data-bs-when] .vt-input{gap:8px;padding-inline:12px}
-[data-bs-when] .vt-input input{position:relative;font-size:16px;direction:ltr}
-/* The native picker glyph stretches over the whole field (invisible) so a tap anywhere opens the picker; the DS icon is the visible cue. */
-[data-bs-when] input::-webkit-calendar-picker-indicator{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;opacity:0;cursor:pointer}
-[data-bs-when] [data-err="true"] .vt-input{border-color:var(--vt-danger)}
-[data-bs-when] .vt-field__label{text-transform:uppercase;letter-spacing:var(--vt-label-tracking);font-size:13px;font-weight:600;color:var(--vt-text-secondary)}
 /* Travellers steppers (26.3 box pattern). */
 [data-trav-row]{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:54px}
 [data-trav-label]{display:inline-flex;align-items:center;gap:10px;font-size:16px;font-weight:600;color:var(--vt-text-primary)}
@@ -108,54 +99,22 @@
 [data-bs-msg] [data-bs-warn]>span:first-child{margin-block-start:1px}
 [data-bs-next]{max-inline-size:560px;width:100%;margin-inline:auto}
 [data-bs-hide]{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
-@media (min-width:681px){[data-bs-body]{padding-inline:24px}[data-bs-foot]{padding-inline:24px}[data-bs-prog]{padding-inline:16px}}
+@media (min-width:681px){[data-bs-body]{padding-inline:24px}[data-bs-foot]{padding-inline:24px}}
 @media (prefers-reduced-motion:reduce){[data-bs],[data-bs-pane],[data-bs-fade]{animation:none!important}[data-bs] *{transition:none!important}}</style>
 </helmet>
 <sc-if value="{{ visible }}" hint-placeholder-val="{{ true }}">
 <div data-bs="1" data-inline="{{ inlineAttr }}" data-leaving="{{ leavingAttr }}" ref="{{ rootRef }}" role="dialog" aria-modal="true" aria-labelledby="{{ titleId }}" style="{{ rootCss }}" onKeyDown="{{ onKey }}" data-lenis-prevent="1" data-om-label="Booking sheet">
 <div data-bs-head="1">
 <div data-bs-row="1">
-<span data-bs-slot="1">
-<sc-if value="{{ canBack }}" hint-placeholder-val="{{ false }}">
-<span data-bs-mirror="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.IconButton" icon="chevron-left" label="Previous step" variant="plain" size="md" onClick="{{ back }}" hint-size="44px,44px"></x-import></span>
-</sc-if>
-</span>
 <span data-bs-slot="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.IconButton" icon="x" label="Close booking" variant="plain" size="md" onClick="{{ close }}" hint-size="44px,44px"></x-import></span>
 </div>
-<div data-bs-prog="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.ProgressIndicator" segments="{{ n4 }}" value="{{ step }}" max="{{ n4 }}" size="sm" valueLabel="{{ progLabel }}" aria-label="{{ progAria }}" aria-valuetext="{{ progText }}" hint-size="100%,32px"></x-import></div>
 </div>
 <div data-bs-body="1" data-lenis-prevent="1" data-scroll-native="1" ref="{{ bodyRef }}" onFocus="{{ bodyFocus }}">
 <div data-bs-col="1">
-<h2 data-bs-title="1" id="{{ titleId }}" tabindex="-1">{{ title }}</h2>
-<sc-if value="{{ recapFrom }}" hint-placeholder-val="{{ false }}">
-<p data-bs-recap="1" title="{{ recapTitle }}"><span data-bs-fix="1">From</span><span data-bs-e="1" data-vt-no-i18n>{{ fromText }}</span></p>
-</sc-if>
-<sc-if value="{{ recapRoute }}" hint-placeholder-val="{{ false }}">
-<p data-bs-recap="1"><span data-bs-e="1" data-vt-no-i18n>{{ fromText }}</span><span data-bs-fix="1" data-bs-mirror="1" aria-hidden="true" style="display:inline-flex"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span><span data-bs-e="1" data-vt-no-i18n>{{ toText }}</span><sc-if value="{{ recapWhen }}" hint-placeholder-val="{{ false }}"><span data-bs-fix="1" aria-hidden="true">·</span><span data-bs-e="1" class="vt-dir-keep" data-vt-no-i18n>{{ whenLabel }}</span></sc-if></p>
-</sc-if>
+<h2 data-bs-title="1" id="{{ titleId }}" tabindex="-1">Book a transfer</h2>
 
-<sc-if value="{{ isStep1 }}" hint-placeholder-val="{{ true }}">
-<div data-bs-pane="1" data-om-label="Step 1">
-<div data-bs-field="1" data-sugroot="1">
-<div data-bs-kr="1"><span data-bs-kicker="1">From</span></div>
-<div data-vtcombo="1" data-err="{{ errFrom }}">
-<span data-combo-tile="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="map-pin" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
-<input id="{{ idFrom }}" type="text" role="combobox" aria-expanded="{{ sugOpenStr }}" aria-controls="{{ listId }}" aria-activedescendant="{{ activeId }}" aria-autocomplete="list" aria-label="From" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="next" value="{{ fromText }}" placeholder="Pickup address" onChange="{{ inFrom }}" onKeyDown="{{ comboKey }}">
-<sc-if value="{{ fromHasText }}" hint-placeholder-val="{{ false }}">
-<button data-combo-x="1" type="button" aria-label="Clear" title="Clear" onClick="{{ clearFrom }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="x" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></button>
-</sc-if>
-</div>
-<sc-if value="{{ sugOpen }}" hint-placeholder-val="{{ false }}">
-<div data-bs-sug="1" id="{{ listId }}" role="listbox" aria-label="From">
-<sc-for list="{{ rows }}" as="s" hint-placeholder-count="3">
-<div data-sug-row="1" data-tone="{{ s.tone }}" role="option" id="{{ s.id }}" aria-selected="{{ s.sel }}" onMouseDown="{{ s.hold }}" onClick="{{ s.pick }}" style="{{ s.css }}">
-<span data-sug-tile="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ s.icon }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
-<span style="display:flex;flex-direction:column;min-width:0;flex:1 1 auto" data-vt-no-i18n><span data-sug-name="1" style="font-size:14px;font-weight:600;color:var(--vt-text-primary)">{{ s.name }}</span><span data-sug-sub="1" style="font-size:13px;color:var(--vt-text-muted)">{{ s.sub }}</span></span>
-</div>
-</sc-for>
-</div>
-</sc-if>
-</div>
+<section data-bs-sec="1" data-om-label="Where" aria-labelledby="{{ secWhere }}">
+<h3 data-bs-sech="1" id="{{ secWhere }}">Where</h3>
 <sc-if value="{{ flightShown }}" hint-placeholder-val="{{ false }}">
 <div data-bs-field="1" data-bs-fade="1">
 <div data-bs-kr="1"><span data-bs-kicker="1">Flight number</span><sc-if value="{{ flightOptional }}" hint-placeholder-val="{{ false }}"><span data-bs-opt="1">Optional</span></sc-if></div>
@@ -169,23 +128,18 @@
 <sc-if value="{{ opener }}" hint-placeholder-val="{{ false }}">
 <div data-bs-field="1" data-bs-fade="1" style="align-items:flex-start"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" size="md" icon="plus" sentenceCase="{{ yes }}" onClick="{{ openFlight }}" hint-size="auto,44px">Add a flight number</x-import></div>
 </sc-if>
-</div>
-</sc-if>
-
-<sc-if value="{{ isStep2 }}" hint-placeholder-val="{{ false }}">
-<div data-bs-pane="1" data-om-label="Step 2">
 <div data-bs-field="1" data-sugroot="1">
-<div data-bs-kr="1"><span data-bs-kicker="1">To</span></div>
-<div data-vtcombo="1" data-err="{{ errTo }}">
+<div data-bs-kr="1"><span data-bs-kicker="1">From</span></div>
+<div data-vtcombo="1" data-err="{{ errFrom }}">
 <span data-combo-tile="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="map-pin" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
-<input id="{{ idTo }}" type="text" role="combobox" aria-expanded="{{ sugOpenStr }}" aria-controls="{{ listId }}" aria-activedescendant="{{ activeId }}" aria-autocomplete="list" aria-label="To" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="next" value="{{ toText }}" placeholder="Drop-off address" onChange="{{ inTo }}" onKeyDown="{{ comboKey }}">
-<sc-if value="{{ toHasText }}" hint-placeholder-val="{{ false }}">
-<button data-combo-x="1" type="button" aria-label="Clear" title="Clear" onClick="{{ clearTo }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="x" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></button>
+<input id="{{ idFrom }}" type="text" role="combobox" aria-expanded="{{ sugFromStr }}" aria-controls="{{ listFrom }}" aria-activedescendant="{{ activeFrom }}" aria-autocomplete="list" aria-label="From" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="next" value="{{ fromText }}" placeholder="Pickup address" onChange="{{ inFrom }}" onFocus="{{ focFrom }}" onKeyDown="{{ comboKey }}">
+<sc-if value="{{ fromHasText }}" hint-placeholder-val="{{ false }}">
+<button data-combo-x="1" type="button" aria-label="Clear" title="Clear" onClick="{{ clearFrom }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="x" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></button>
 </sc-if>
 </div>
-<sc-if value="{{ sugOpen }}" hint-placeholder-val="{{ false }}">
-<div data-bs-sug="1" id="{{ listId }}" role="listbox" aria-label="To">
-<sc-for list="{{ rows }}" as="s" hint-placeholder-count="3">
+<sc-if value="{{ sugFrom }}" hint-placeholder-val="{{ false }}">
+<div data-bs-sug="1" id="{{ listFrom }}" role="listbox" aria-label="From">
+<sc-for list="{{ rowsFrom }}" as="s" hint-placeholder-count="3">
 <div data-sug-row="1" data-tone="{{ s.tone }}" role="option" id="{{ s.id }}" aria-selected="{{ s.sel }}" onMouseDown="{{ s.hold }}" onClick="{{ s.pick }}" style="{{ s.css }}">
 <span data-sug-tile="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ s.icon }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
 <span style="display:flex;flex-direction:column;min-width:0;flex:1 1 auto" data-vt-no-i18n><span data-sug-name="1" style="font-size:14px;font-weight:600;color:var(--vt-text-primary)">{{ s.name }}</span><span data-sug-sub="1" style="font-size:13px;color:var(--vt-text-muted)">{{ s.sub }}</span></span>
@@ -194,20 +148,39 @@
 </div>
 </sc-if>
 </div>
+<div data-bs-field="1" data-sugroot="1">
+<div data-bs-kr="1"><span data-bs-kicker="1">To</span></div>
+<div data-vtcombo="1" data-err="{{ errTo }}">
+<span data-combo-tile="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="map-pin" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
+<input id="{{ idTo }}" type="text" role="combobox" aria-expanded="{{ sugToStr }}" aria-controls="{{ listTo }}" aria-activedescendant="{{ activeTo }}" aria-autocomplete="list" aria-label="To" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="next" value="{{ toText }}" placeholder="Drop-off address" onChange="{{ inTo }}" onFocus="{{ focTo }}" onKeyDown="{{ comboKey }}">
+<sc-if value="{{ toHasText }}" hint-placeholder-val="{{ false }}">
+<button data-combo-x="1" type="button" aria-label="Clear" title="Clear" onClick="{{ clearTo }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="x" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></button>
+</sc-if>
+</div>
+<sc-if value="{{ sugTo }}" hint-placeholder-val="{{ false }}">
+<div data-bs-sug="1" id="{{ listTo }}" role="listbox" aria-label="To">
+<sc-for list="{{ rowsTo }}" as="s" hint-placeholder-count="3">
+<div data-sug-row="1" data-tone="{{ s.tone }}" role="option" id="{{ s.id }}" aria-selected="{{ s.sel }}" onMouseDown="{{ s.hold }}" onClick="{{ s.pick }}" style="{{ s.css }}">
+<span data-sug-tile="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ s.icon }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
+<span style="display:flex;flex-direction:column;min-width:0;flex:1 1 auto" data-vt-no-i18n><span data-sug-name="1" style="font-size:14px;font-weight:600;color:var(--vt-text-primary)">{{ s.name }}</span><span data-sug-sub="1" style="font-size:13px;color:var(--vt-text-muted)">{{ s.sub }}</span></span>
+</div>
+</sc-for>
 </div>
 </sc-if>
+</div>
+</section>
 
-<sc-if value="{{ isStep3 }}" hint-placeholder-val="{{ false }}">
-<div data-bs-pane="1" data-om-label="Step 3">
+<section data-bs-sec="1" data-om-label="When" aria-labelledby="{{ secWhen }}">
+<h3 data-bs-sech="1" id="{{ secWhen }}">When</h3>
 <div data-bs-when="1">
-<div data-err="{{ errDate }}" class="vt-dir-keep"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" id="{{ idDate }}" label="Date" type="date" icon="calendar" size="lg" min="{{ minDate }}" value="{{ date }}" onChange="{{ inDate }}" hint-size="100%,80px"></x-import></div>
-<div data-err="{{ errTime }}" class="vt-dir-keep"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" id="{{ idTime }}" label="Time" type="time" icon="clock" size="lg" step="{{ n300 }}" value="{{ time }}" onChange="{{ inTime }}" hint-size="100%,80px"></x-import></div>
+<div data-bs-date="1" data-om-label="Date"><dc-import name="WhenPicker" part="date" size="lg" label="Date" placeholder="Select a date" value="{{ dateLabel }}" time="{{ time }}" day="{{ dayNum }}" dayY="{{ dayY }}" dayM="{{ dayM }}" baseMonth="{{ baseMonth }}" locale="{{ lang }}" timeTitle="Pickup time" savedLabel="Saved" clearLabel="Clear" saveLabel="Save" error="{{ errDate }}" onClear="{{ whenClear }}" onDay="{{ pickDay }}" onTime="{{ pickTime }}" hint-size="100%,80px"></dc-import></div>
+<div data-bs-time="1" data-om-label="Time"><dc-import name="WhenPicker" part="time" size="lg" label="Time" placeholder="Select a time" value="{{ dateLabel }}" time="{{ time }}" day="{{ dayNum }}" dayY="{{ dayY }}" dayM="{{ dayM }}" baseMonth="{{ baseMonth }}" locale="{{ lang }}" timeTitle="Pickup time" savedLabel="Saved" clearLabel="Clear" saveLabel="Save" error="{{ errTime }}" onClear="{{ whenClear }}" onDay="{{ pickDay }}" onTime="{{ pickTime }}" hint-size="100%,80px"></dc-import></div>
 </div>
-</div>
-</sc-if>
+<span data-bs-hint="1" style="margin-block-start:-8px">Times are Swiss local time.</span>
+</section>
 
-<sc-if value="{{ isStep4 }}" hint-placeholder-val="{{ false }}">
-<div data-bs-pane="1" data-om-label="Step 4">
+<section data-bs-sec="1" data-om-label="Who" aria-labelledby="{{ secWho }}">
+<h3 data-bs-sech="1" id="{{ secWho }}">Who</h3>
 <div data-trav-row="1">
 <span data-trav-label="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="users" size="{{ n20 }}" color="currentColor" hint-size="20px,20px"></x-import>Passengers</span>
 <div data-stepper="1">
@@ -224,84 +197,74 @@
 <button type="button" data-step="1" aria-label="Add a bag" disabled="{{ bagsAtMax }}" onClick="{{ incBag }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="plus" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></button>
 </div>
 </div>
-</div>
-</sc-if>
+</section>
 </div>
 </div>
 <div data-bs-foot="1">
 <div data-bs-msg="1" id="{{ msgId }}" aria-live="polite">
 <sc-if value="{{ showIssue }}" hint-placeholder-val="{{ false }}"><span data-bs-warn="1"><span aria-hidden="true" style="display:inline-flex"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-alert" size="{{ n16 }}" color="var(--vt-danger)" hint-size="16px,16px"></x-import></span><span>{{ issueMsg }}</span></span></sc-if>
-<sc-if value="{{ noIssue }}" hint-placeholder-val="{{ true }}"><span>{{ hint }}</span></sc-if>
+<sc-if value="{{ noIssue }}" hint-placeholder-val="{{ true }}"><span>You see the fixed prices next.</span></sc-if>
 </div>
-<div data-bs-next="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="primary" size="lg" block="{{ yes }}" iconEnd="arrow-right" onClick="{{ next }}" hint-size="100%,54px">{{ nextLabel }}</x-import></div>
+<div data-bs-next="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="primary" size="lg" block="{{ yes }}" iconEnd="arrow-right" onClick="{{ submit }}" hint-size="100%,54px">See prices</x-import></div>
 </div>
 <span data-bs-hide="1" role="status" aria-live="polite">{{ announce }}</span>
 </div>
 </sc-if>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:780},&quot;open&quot;:{&quot;editor&quot;:&quot;bool&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;step&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:1,&quot;min&quot;:1,&quot;max&quot;:4,&quot;tsType&quot;:&quot;1 | 2 | 3 | 4&quot;},&quot;inline&quot;:{&quot;editor&quot;:&quot;bool&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;showIssues&quot;:{&quot;editor&quot;:&quot;bool&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;fromText&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;fromHits&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;Array&lt;{ id: string; name: string; sub: string; tone?: string; icon?: string }&gt;&quot;},&quot;fromChosen&quot;:{&quot;editor&quot;:&quot;bool&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;fromAirport&quot;:{&quot;editor&quot;:&quot;bool&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;toText&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;toHits&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;Array&lt;{ id: string; name: string; sub: string; tone?: string; icon?: string }&gt;&quot;},&quot;toChosen&quot;:{&quot;editor&quot;:&quot;bool&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;samePlace&quot;:{&quot;editor&quot;:&quot;bool&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;flight&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;flightOpen&quot;:{&quot;editor&quot;:&quot;bool&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;flightValid&quot;:{&quot;editor&quot;:&quot;bool&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;date&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;YYYY-MM-DD&quot;},&quot;time&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;HH:MM&quot;},&quot;minDate&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;YYYY-MM-DD&quot;},&quot;whenError&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;whenLabel&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;pax&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:1,&quot;min&quot;:1,&quot;max&quot;:8,&quot;tsType&quot;:&quot;number&quot;},&quot;bags&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:0,&quot;min&quot;:0,&quot;max&quot;:16,&quot;tsType&quot;:&quot;number&quot;},&quot;onFromInput&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(text: string)=&gt;void&quot;},&quot;onFromPick&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(id: string)=&gt;void&quot;},&quot;onFromClear&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;()=&gt;void&quot;},&quot;onToInput&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(text: string)=&gt;void&quot;},&quot;onToPick&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(id: string)=&gt;void&quot;},&quot;onToClear&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;()=&gt;void&quot;},&quot;onFlight&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(text: string)=&gt;void&quot;},&quot;onFlightOpen&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;()=&gt;void&quot;},&quot;onDate&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(value: string)=&gt;void&quot;},&quot;onTime&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(value: string)=&gt;void&quot;},&quot;onPax&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(n: number)=&gt;void&quot;},&quot;onBags&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(n: number)=&gt;void&quot;},&quot;onStep&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(n: number)=&gt;void&quot;},&quot;onClose&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;()=&gt;void&quot;},&quot;onSubmit&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;()=&gt;void&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:390,&quot;height&quot;:780},&quot;open&quot;:{&quot;editor&quot;:&quot;bool&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;inline&quot;:{&quot;editor&quot;:&quot;bool&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;showIssues&quot;:{&quot;editor&quot;:&quot;bool&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;fromText&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;fromHits&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;Array&lt;{ id: string; name: string; sub: string; tone?: string; icon?: string }&gt;&quot;},&quot;fromChosen&quot;:{&quot;editor&quot;:&quot;bool&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;fromAirport&quot;:{&quot;editor&quot;:&quot;bool&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;toText&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;toHits&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;Array&lt;{ id: string; name: string; sub: string; tone?: string; icon?: string }&gt;&quot;},&quot;toChosen&quot;:{&quot;editor&quot;:&quot;bool&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;samePlace&quot;:{&quot;editor&quot;:&quot;bool&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;flight&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;flightOpen&quot;:{&quot;editor&quot;:&quot;bool&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;flightValid&quot;:{&quot;editor&quot;:&quot;bool&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;dayNum&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:0,&quot;min&quot;:0,&quot;max&quot;:31,&quot;tsType&quot;:&quot;number&quot;},&quot;dayY&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:0,&quot;tsType&quot;:&quot;number&quot;},&quot;dayM&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:0,&quot;tsType&quot;:&quot;number&quot;},&quot;dateLabel&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;time&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;HH:MM&quot;},&quot;baseMonth&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;YYYY-MM&quot;},&quot;lang&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;en&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;whenError&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;pax&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:1,&quot;min&quot;:1,&quot;max&quot;:8,&quot;tsType&quot;:&quot;number&quot;},&quot;bags&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:0,&quot;min&quot;:0,&quot;max&quot;:16,&quot;tsType&quot;:&quot;number&quot;},&quot;onFromInput&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(text: string)=&gt;void&quot;},&quot;onFromPick&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(id: string)=&gt;void&quot;},&quot;onFromClear&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;()=&gt;void&quot;},&quot;onToInput&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(text: string)=&gt;void&quot;},&quot;onToPick&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(id: string)=&gt;void&quot;},&quot;onToClear&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;()=&gt;void&quot;},&quot;onFieldFocus&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(field: \&quot;from\&quot; | \&quot;to\&quot;)=&gt;void&quot;},&quot;onFlight&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(text: string)=&gt;void&quot;},&quot;onFlightOpen&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;()=&gt;void&quot;},&quot;onDay&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(day: number, label: string, year: number, month: number)=&gt;void&quot;},&quot;onTime&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(value: string)=&gt;void&quot;},&quot;onWhenClear&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;()=&gt;void&quot;},&quot;onPax&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(n: number)=&gt;void&quot;},&quot;onBags&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(n: number)=&gt;void&quot;},&quot;onClose&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;()=&gt;void&quot;},&quot;onSubmit&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;()=&gt;void&quot;}}">
 /**
- * BookingSheet: full-screen four-step booking sheet (phone and tablet home, 26.4 S2).
+ * BookingSheet: full-screen ONE-page booking sheet (phone and tablet home, 26.4.2).
+ * Where (From, flight number, To), When (Date, then Time, both the laptop box's WhenPicker) and Who (passengers, bags)
+ * are all on the page when it opens; one SEE PRICES button at the bottom.
  * Holds no trip data. Every value arrives as a prop and every change leaves through a callback,
  * so home's single trip state feeds both this sheet and the laptop box. No storage APIs.
- * Mechanics (skipped when `inline`): scroll lock, history entries, focus trap, visualViewport sizing.
+ * Mechanics (skipped when `inline`): scroll lock, one history entry, focus trap, visualViewport sizing.
  */
 class Component extends DCLogic {
   constructor(props) {
     super(props);
     window.__vtBS = (window.__vtBS || 0) + 1;
     this._uid = 'vtbs' + window.__vtBS;
-    this.state = { pressedStep: 0, sugIdx: -1, leaving: false, vvh: 0, vvTop: 0 };
+    this.state = { pressed: false, sugIdx: -1, sugField: '', leaving: false, vvh: 0, vvTop: 0 };
     this._depth = 0;
-    this._base = 1;
     this._selfPop = null;
     this._locked = false;
     this._inerted = [];
-    this._focusAfter = '';
     this._listening = false;
     this._onPop = (e) => this._popstate(e);
     this._onVV = () => this._vv();
   }
 
   /* ---------- helpers ---------- */
-  _cb(name, a) { const f = this.props[name]; if (typeof f === 'function') f(a); }
-  _step() { const n = parseInt(this.props.step, 10); return n >= 1 && n <= 4 ? n : 1; }
+  _cb(name, a, b, c, d) { const f = this.props[name]; if (typeof f === 'function') f(a, b, c, d); }
   _flightVisible(p) { return !!(p.fromAirport || p.flightOpen || (p.flight && String(p.flight).trim())); }
   _el(field) { return document.getElementById(this._uid + '-' + field); }
   _reduced() { return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); }
 
   /**
-   * Pure check of one step against the current props. Returns null or { msg, field }.
-   * Order is the UI-SPEC S2 order; msg is the English source string (the runtime translates it).
+   * Pure check of the whole page against the current props. Returns null or { msg, field }.
+   * The first missing answer wins, in page order: From, flight, To, date, time. msg is the English source string.
    */
-  stepIssue(step) {
+  tripIssue() {
     const p = this.props;
     const has = (v) => !!(v && String(v).trim());
-    if (step === 1) {
-      if (!has(p.fromText)) return { msg: 'Enter a pickup address', field: 'from' };
-      if (!p.fromChosen) return { msg: 'Choose a pickup address from the list', field: 'from' };
-      if (p.fromAirport && !has(p.flight)) return { msg: 'Enter the flight number', field: 'flight' };
-      if (has(p.flight) && !p.flightValid) return { msg: 'Check the flight number', field: 'flight' };
-      return null;
-    }
-    if (step === 2) {
-      if (!has(p.toText)) return { msg: 'Enter a drop-off address', field: 'to' };
-      if (!p.toChosen) return { msg: 'Choose a drop-off address from the list', field: 'to' };
-      if (p.samePlace) return { msg: 'Pickup and drop-off are the same place', field: 'to' };
-      return null;
-    }
-    if (step === 3) {
-      if (!p.date && !p.time) return { msg: 'Choose a date and a pickup time', field: 'date' };
-      if (!p.date) return { msg: 'Choose a date', field: 'date' };
-      if (!p.time) return { msg: 'Choose a pickup time', field: 'time' };
-      if (p.whenError) return { msg: String(p.whenError), field: 'time' };
-      return null;
-    }
+    if (!has(p.fromText)) return { msg: 'Enter a pickup address', field: 'from' };
+    if (!p.fromChosen) return { msg: 'Choose a pickup address from the list', field: 'from' };
+    if (p.fromAirport && !has(p.flight)) return { msg: 'Enter the flight number', field: 'flight' };
+    if (has(p.flight) && !p.flightValid) return { msg: 'Check the flight number', field: 'flight' };
+    if (!has(p.toText)) return { msg: 'Enter a drop-off address', field: 'to' };
+    if (!p.toChosen) return { msg: 'Choose a drop-off address from the list', field: 'to' };
+    if (p.samePlace) return { msg: 'Pickup and drop-off are the same place', field: 'to' };
+    const day = +p.dayNum || 0;
+    if (!day && !p.time) return { msg: 'Choose a date and a pickup time', field: 'date' };
+    if (!day) return { msg: 'Choose a date', field: 'date' };
+    if (!p.time) return { msg: 'Choose a pickup time', field: 'time' };
+    if (p.whenError) return { msg: String(p.whenError), field: 'time' };
     return null;
   }
 
-  _showing(step) { return this.state.pressedStep === step || !!this.props.showIssues; }
+  _showing() { return this.state.pressed || !!this.props.showIssues; }
 
   /* ---------- lifecycle ---------- */
   componentDidMount() {
@@ -319,8 +282,7 @@ class Component extends DCLogic {
         this._onClosed();
       }
     }
-    if (prev.step !== p.step && (p.inline || p.open)) this._onStepChange();
-    if (!p.inline && p.open && prev.open && !this._flightVisible(prev) && this._flightVisible(p) && this._step() === 1) {
+    if (!p.inline && p.open && prev.open && !this._flightVisible(prev) && this._flightVisible(p) && p.fromChosen) {
       const el = this._el('flight'); if (el) el.focus();
     }
     this._syncAria();
@@ -348,16 +310,15 @@ class Component extends DCLogic {
   }
 
   _onOpen() {
-    const step = this._step();
     this._opener = document.activeElement;
     this._lock();
     this._listen();
-    this._base = step;
     this._depth = 1;
-    history.pushState({ vtSheet: step }, '');
+    history.pushState({ vtSheet: 1 }, '');
     this._vv();
-    if (this.state.pressedStep) this.setState({ pressedStep: 0 });
-    this._focusTarget(step, '');
+    if (this.state.pressed) this.setState({ pressed: false });
+    /* Everything is on the page; the title takes focus so no keyboard hides the rest. */
+    const t = this._el('title'); if (t && t.focus) t.focus();
   }
   _onClosed() {
     this._unlock();
@@ -367,18 +328,6 @@ class Component extends DCLogic {
       this.setState({ leaving: true });
       this._leaveT = setTimeout(() => this.setState({ leaving: false }), 200);
     }
-  }
-  _onStepChange() {
-    const step = this._step();
-    const after = this._focusAfter; this._focusAfter = '';
-    if (!after && this.state.pressedStep) this.setState({ pressedStep: 0 });
-    if (this.state.sugIdx !== -1) this.setState({ sugIdx: -1 });
-    if (!this.props.inline) this._focusTarget(step, after);
-  }
-  _focusTarget(step, field) {
-    const id = field || (step === 1 ? 'from' : step === 2 ? 'to' : 'title');
-    const el = document.getElementById(this._uid + '-' + id);
-    if (el && el.focus) el.focus();
   }
 
   /* ---------- scroll lock, inert background, viewport ---------- */
@@ -414,8 +363,8 @@ class Component extends DCLogic {
     if (h !== this.state.vvh || t !== this.state.vvTop) this.setState({ vvh: h, vvTop: t });
   }
 
-  /* ---------- history ---------- */
-  /** Walks the browser back over every entry the sheet pushed; cb runs once the resulting popstate lands. */
+  /* ---------- history: one entry, removed on close or submit ---------- */
+  /** Walks the browser back over the entry the sheet pushed; cb runs once the resulting popstate lands. */
   _flush(cb) {
     const d = this._depth; this._depth = 0;
     if (d <= 0) { if (cb) cb(); return; }
@@ -423,21 +372,11 @@ class Component extends DCLogic {
     this._selfPop = { cb: cb, t: t };
     history.go(-d);
   }
-  _popstate(e) {
+  _popstate() {
     if (this._selfPop) { const s = this._selfPop; this._selfPop = null; clearTimeout(s.t); if (s.cb) s.cb(); return; }
     if (!this.props.open || this.props.inline) return;
-    const st = e.state;
-    if (st && typeof st.vtSheet === 'number') {
-      this._depth = st.vtSheet - this._base + 1;
-      if (st.vtSheet !== this._step()) this._cb('onStep', st.vtSheet);
-    } else {
-      this._depth = 0;
-      this._cb('onClose');
-    }
-  }
-  _pushEntry(n) {
-    if (this.props.inline) return;
-    history.pushState({ vtSheet: n }, ''); this._depth += 1;
+    this._depth = 0;
+    this._cb('onClose');
   }
   _closeSelf() {
     if (this.props.inline) { this._cb('onClose'); return; }
@@ -446,61 +385,46 @@ class Component extends DCLogic {
   }
 
   /* ---------- actions ---------- */
-  _goBack = () => {
-    const step = this._step();
-    if (this.props.inline) { if (step > 1) this._cb('onStep', step - 1); return; }
-    if (this._depth > 1) { history.back(); return; }
-    if (step > 1) { history.replaceState({ vtSheet: step - 1 }, ''); this._base = step - 1; this._cb('onStep', step - 1); }
-  };
-  _next = () => {
-    const step = this._step();
-    const issue = this.stepIssue(step);
-    if (issue) { this.setState({ pressedStep: step }); this._focusField(issue.field); return; }
-    if (step < 4) { this._pushEntry(step + 1); this._cb('onStep', step + 1); return; }
-    this._submit();
-  };
-  _submit() {
-    const step = this._step();
-    for (let f = 1; f <= 3; f++) {
-      const issue = this.stepIssue(f);
-      if (!issue) continue;
-      this.setState({ pressedStep: f });
-      this._focusAfter = issue.field;
-      if (this.props.inline) { this._cb('onStep', f); }
-      else if (f >= this._base && this._depth >= step - f + 1) { history.go(f - step); }
-      else { history.replaceState({ vtSheet: f }, ''); this._cb('onStep', f); }
-      return;
-    }
+  _submit = () => {
+    const issue = this.tripIssue();
+    if (issue) { this.setState({ pressed: true }); this._focusField(issue.field); return; }
     if (this.props.inline || this._depth === 0) { this._cb('onSubmit'); return; }
     this._flush(() => this._cb('onSubmit'));
+  };
+  _focusField(field) {
+    let el = this._el(field);
+    if (!el && this._root && (field === 'date' || field === 'time')) el = this._root.querySelector('[data-bs-' + field + '] button[aria-haspopup]');
+    if (el && el.focus) { el.focus(); if (el.scrollIntoView) el.scrollIntoView({ block: 'center' }); }
   }
-  _focusField(field) { const el = this._el(field); if (el && el.focus) el.focus(); }
-  _pick(step, id) {
-    this._cb(step === 1 ? 'onFromPick' : 'onToPick', id);
-    const el = this._el(step === 1 ? 'from' : 'to'); if (el && el.blur) el.blur();
+  _pick(field, id) {
+    this._cb(field === 'from' ? 'onFromPick' : 'onToPick', id);
+    const el = this._el(field); if (el && el.blur) el.blur();
     this.setState({ sugIdx: -1 });
   }
-  _hits() { const p = this.props; const h = this._step() === 1 ? p.fromHits : p.toHits; return Array.isArray(h) ? h : []; }
-  _sugOpen() {
-    const p = this.props, step = this._step();
-    if (step !== 1 && step !== 2) return false;
-    const chosen = step === 1 ? p.fromChosen : p.toChosen;
-    return this._hits().length > 0 && !chosen;
+  _hits(field) { const p = this.props; const h = field === 'from' ? p.fromHits : p.toHits; return Array.isArray(h) ? h : []; }
+  _sugOpen(field) {
+    const chosen = field === 'from' ? this.props.fromChosen : this.props.toChosen;
+    return this._hits(field).length > 0 && !chosen;
   }
-  _comboKey = (e) => {
-    if (!this._sugOpen()) return;
-    const n = this._hits().length; const i = this.state.sugIdx;
-    if (e.key === 'ArrowDown') { e.preventDefault(); this.setState({ sugIdx: (i + 1) % n }); }
-    else if (e.key === 'ArrowUp') { e.preventDefault(); this.setState({ sugIdx: i <= 0 ? n - 1 : i - 1 }); }
-    else if (e.key === 'Enter') { e.preventDefault(); const h = this._hits()[i >= 0 ? i : 0]; if (h) this._pick(this._step(), h.id); }
+  _comboKey = (field) => (e) => {
+    if (!this._sugOpen(field)) return;
+    const n = this._hits(field).length;
+    const i = this.state.sugField === field ? this.state.sugIdx : -1;
+    if (e.key === 'ArrowDown') { e.preventDefault(); this.setState({ sugField: field, sugIdx: (i + 1) % n }); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); this.setState({ sugField: field, sugIdx: i <= 0 ? n - 1 : i - 1 }); }
+    else if (e.key === 'Enter') { e.preventDefault(); const h = this._hits(field)[i >= 0 ? i : 0]; if (h) this._pick(field, h.id); }
   };
   _onKey = (e) => {
     if (this.props.inline) return;
-    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); this._closeSelf(); return; }
+    if (e.key === 'Escape') {
+      /* The date and time picker close on their own Escape first. */
+      if (this._root && this._root.querySelector('[role="dialog"][aria-label]:not([data-bs])')) return;
+      e.preventDefault(); e.stopPropagation(); this._closeSelf(); return;
+    }
     if (e.key !== 'Tab' || !this._root) return;
     const list = Array.prototype.filter.call(
       this._root.querySelectorAll('button,[href],input,select,textarea,[tabindex]'),
-      (x) => !x.disabled && x.getAttribute('tabindex') !== '-1' && x.offsetParent !== null
+      (x) => !x.disabled && x.getAttribute('tabindex') !== '-1' && x.getClientRects().length > 0
     );
     if (!list.length) return;
     const first = list[0], last = list[list.length - 1], a = document.activeElement;
@@ -513,9 +437,8 @@ class Component extends DCLogic {
     setTimeout(() => { if (t && t.scrollIntoView && document.contains(t)) t.scrollIntoView({ block: 'nearest' }); }, 60);
   };
   _syncAria() {
-    const step = this._step();
-    const issue = this._showing(step) ? this.stepIssue(step) : null;
-    ['from', 'flight', 'to', 'date', 'time'].forEach((f) => {
+    const issue = this._showing() ? this.tripIssue() : null;
+    ['from', 'flight', 'to'].forEach((f) => {
       const el = this._el(f); if (!el) return;
       if (issue && issue.field === f) { el.setAttribute('aria-invalid', 'true'); el.setAttribute('aria-describedby', this._uid + '-msg'); }
       else { el.removeAttribute('aria-invalid'); el.removeAttribute('aria-describedby'); }
@@ -524,78 +447,79 @@ class Component extends DCLogic {
   _rootRef = (el) => { this._root = el; };
   _bodyRef = (el) => { this._bodyEl = el; };
 
+  _rowsFor(field) {
+    const u = this._uid, s = this.state;
+    if (!this._sugOpen(field)) return [];
+    return this._hits(field).map((h, i) => {
+      const sel = s.sugField === field && i === s.sugIdx;
+      return {
+        id: u + '-' + field + '-o' + i, name: String(h.name || ''), sub: String(h.sub || ''),
+        icon: h.icon || 'map-pin', tone: h.tone || '', sel: sel ? 'true' : 'false',
+        css: sel ? 'background:var(--vt-grey-50)' : '',
+        hold: (e) => e.preventDefault(),
+        pick: () => this._pick(field, h.id),
+      };
+    });
+  }
+
   renderVals() {
     const p = this.props, s = this.state, u = this._uid;
-    const step = this._step();
-    const titles = ['From', 'To', 'When', 'Travellers'];
     const has = (v) => !!(v && String(v).trim());
-    const issue = this.stepIssue(step);
-    const show = !!issue && this._showing(step);
-    const hints = ['An address, a hotel or an airport.', 'An address, a hotel or an airport.', 'Times are Swiss local time.', 'You see the fixed prices next.'];
+    const issue = this.tripIssue();
+    const show = !!issue && this._showing();
     const pax = Math.min(8, Math.max(1, Number.isFinite(+p.pax) ? +p.pax : 1));
     const bags = Math.min(16, Math.max(0, Number.isFinite(+p.bags) ? +p.bags : 0));
     const inline = !!p.inline;
     const fieldErr = (f) => (show && issue.field === f ? 'true' : 'false');
+    const errBool = (f) => show && issue.field === f;
     const flightReq = !!p.fromAirport;
     const flightVis = this._flightVisible(p);
-    const sugOpen = this._sugOpen();
-    const rows = sugOpen ? this._hits().map((h, i) => {
-      const sel = i === s.sugIdx;
-      return {
-        id: u + '-o' + i, name: String(h.name || ''), sub: String(h.sub || ''),
-        icon: h.icon || 'map-pin', tone: h.tone || '', sel: sel ? 'true' : 'false',
-        css: sel ? 'background:var(--vt-grey-50)' : '',
-        hold: (e) => e.preventDefault(),
-        pick: () => this._pick(step, h.id),
-      };
-    }) : [];
+    const sugFrom = this._sugOpen('from'), sugTo = this._sugOpen('to');
     const setPax = (n) => () => this._cb('onPax', n);
     const setBags = (n) => () => this._cb('onBags', n);
     const ed = (name) => (e) => this._cb(name, e && e.target ? e.target.value : e);
+    const active = (field, open) => (open && s.sugField === field && s.sugIdx >= 0 ? u + '-' + field + '-o' + s.sugIdx : undefined);
     return {
-      n4: 4, n16: 16, n20: 20, n300: 300, yes: true,
+      n16: 16, n20: 20, yes: true,
       visible: inline || !!p.open || s.leaving,
       inlineAttr: inline ? '1' : '0',
       leavingAttr: s.leaving && !p.open ? '1' : '0',
       rootRef: this._rootRef, bodyRef: this._bodyRef,
       rootCss: !inline && s.vvh > 0 ? 'height:' + s.vvh + 'px;top:' + s.vvTop + 'px' : '',
       titleId: u + '-title', msgId: u + '-msg',
-      idFrom: u + '-from', idTo: u + '-to', idFlight: u + '-flight', idDate: u + '-date', idTime: u + '-time',
-      listId: u + '-list',
-      activeId: s.sugIdx >= 0 && sugOpen ? u + '-o' + s.sugIdx : undefined,
-      title: titles[step - 1], step: step,
-      progLabel: step + ' of 4',
-      progAria: 'Step ' + step + ' of 4',
-      progText: 'Step ' + step + ' of 4, ' + titles[step - 1],
-      announce: 'Step ' + step + ' of 4, ' + titles[step - 1],
-      canBack: step > 1,
-      back: this._goBack, close: () => this._closeSelf(), onKey: this._onKey, bodyFocus: this._bodyFocus,
-      isStep1: step === 1, isStep2: step === 2, isStep3: step === 3, isStep4: step === 4,
-      recapFrom: step === 2 && has(p.fromText), recapTitle: 'From ' + (p.fromText || ''),
-      recapRoute: step >= 3 && has(p.fromText), recapWhen: step === 4 && has(p.whenLabel),
-      fromText: p.fromText || '', toText: p.toText || '', whenLabel: p.whenLabel || '',
+      secWhere: u + '-sec-where', secWhen: u + '-sec-when', secWho: u + '-sec-who',
+      idFrom: u + '-from', idTo: u + '-to', idFlight: u + '-flight',
+      listFrom: u + '-list-from', listTo: u + '-list-to',
+      activeFrom: active('from', sugFrom), activeTo: active('to', sugTo),
+      announce: show ? issue.msg : '',
+      close: () => this._closeSelf(), onKey: this._onKey, bodyFocus: this._bodyFocus,
+      fromText: p.fromText || '', toText: p.toText || '',
       fromHasText: has(p.fromText), toHasText: has(p.toText),
       inFrom: ed('onFromInput'), inTo: ed('onToInput'),
+      focFrom: () => this._cb('onFieldFocus', 'from'), focTo: () => this._cb('onFieldFocus', 'to'),
       clearFrom: () => { this._cb('onFromClear'); const el = this._el('from'); if (el) el.focus(); },
       clearTo: () => { this._cb('onToClear'); const el = this._el('to'); if (el) el.focus(); },
-      comboKey: this._comboKey, rows: rows, sugOpen: sugOpen, sugOpenStr: sugOpen ? 'true' : 'false',
-      errFrom: fieldErr('from'), errTo: fieldErr('to'), errFlight: fieldErr('flight'), errDate: fieldErr('date'), errTime: fieldErr('time'),
+      comboKey: (e) => { const f = e && e.target && e.target.id === u + '-to' ? 'to' : 'from'; this._comboKey(f)(e); },
+      rowsFrom: this._rowsFor('from'), rowsTo: this._rowsFor('to'),
+      sugFrom: sugFrom, sugTo: sugTo, sugFromStr: sugFrom ? 'true' : 'false', sugToStr: sugTo ? 'true' : 'false',
+      errFrom: fieldErr('from'), errTo: fieldErr('to'), errFlight: fieldErr('flight'),
+      errDate: errBool('date'), errTime: errBool('time'),
       flightShown: flightVis, flightOptional: !flightReq, flightRequiredStr: flightReq ? 'true' : 'false',
       flightIcon: flightReq ? 'plane-landing' : 'plane',
       flightHint: flightReq ? 'We track it and move the pickup if you land late' : 'It does not change the price.',
       flight: p.flight || '', inFlight: ed('onFlight'),
       opener: !flightVis && !!p.fromChosen, openFlight: () => this._cb('onFlightOpen'),
-      date: p.date || '', time: p.time || '', minDate: p.minDate || undefined,
-      inDate: ed('onDate'), inTime: ed('onTime'),
+      dateLabel: p.dateLabel || '', dayNum: +p.dayNum || 0, dayY: +p.dayY || 0, dayM: +p.dayM || 0, time: p.time || '', baseMonth: p.baseMonth || '', lang: p.lang || 'en',
+      pickDay: (d, label, y, m) => this._cb('onDay', d, label, y, m),
+      pickTime: (v) => this._cb('onTime', v),
+      whenClear: () => this._cb('onWhenClear'),
       paxN: pax, bagsN: bags, paxAtMin: pax <= 1, paxAtMax: pax >= 8, bagsAtMin: bags <= 0, bagsAtMax: bags >= 16,
       decPax: setPax(pax - 1), incPax: setPax(pax + 1), decBag: setBags(bags - 1), incBag: setBags(bags + 1),
-      showIssue: show, noIssue: !show, issueMsg: show ? issue.msg : '', hint: hints[step - 1],
-      nextLabel: step === 4 ? 'See prices' : 'Next',
-      next: this._next,
+      showIssue: show, noIssue: !show, issueMsg: show ? issue.msg : '',
+      submit: this._submit,
     };
   }
 }
-
 </script>
 </body>
 </html>

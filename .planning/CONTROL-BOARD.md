@@ -79,6 +79,10 @@ Prompts for the new sessions: `.planning/prompts/`, with shared rules in `00-com
 | 20 security check | `phase-20` | `gsd/phase-20-security-check` | | Session "Vamos Taxi security phase". Check 20-06 done (`fb907a9d`): 3 serious, 1 conditional. Fixing F1 and F2 now. | `05-phase-20-security.md` |
 | 19 surge proof | removed | removed | | **Closed by the owner, 2026-09-30** ("no need for test close it"). Nothing committed, nothing created at Cloudflare or Supabase, no paid step. Folder and branch were identical to main `49c51749` and are removed. Read on live by that session: 60 connections allowed, database 24 MB, pg_cron and pg_net not installed. | none |
 
+State read 2026-09-30 11:33 (all sessions stopped about 05:15 and were reopened at 11:29):
+26.4.2 last work 05:14 (class photos), merged main 11:32, no hand-over yet. 26.5 plans 01, 02, 03, 05, 08, 09, 11 committed, plan 04 building, 06 and 10 wait for 26.4.2. Phase 20: F2 fixed in `6480ec08`, F1 not built yet, F4 closed (owner confirmed "Confirm email" is on). Phase 27: 13 plans written 03:28, waits for the owner's signature. 26.0: no new session.
+New session "Vamos Taxi SEO and browser settings", folder `seo-head`, branch `feat/seo-head-and-favicon`: title, description, canonical, share picture, favicon, JSON-LD, sitemap and robots on every public page. Owner chose: each language on its own address with hreflang (this also closes the open hreflang finding). Wording goes to him for approval. It shares `apps/web/middleware.ts` (serveDcHtml) with Phase 27 plan 04, so it lands after 27, with one call only in that function. Nothing committed yet. Test booking VT-26-0745 was removed by the hourly clean-up.
+
 Legal session: closed by the owner. Both legal ships are live. Its last commit `fe4e37a0`
 (terms: driver details by e-mail, no SMS; About fleet matches the live classes) was never
 handed over and is **not live**. Archived as `archive/legal-follow-up-fe4e37a0`. It is behind
@@ -88,9 +92,9 @@ main and does not merge cleanly; a session has to redo it on today's main.
 
 | Order | What | State |
 |---|---|---|
-| 1 | 26.4.2 booking feedback | Second round after his review of the pictures. Hand-over follows his signature. |
+| 1 | 26.4.2 booking feedback | **Live since 2026-09-30 12:22.** main `37ba5b62`, Worker `59c18372` (rollback `a55b2c19`). Shipped under the day's ship mode after the owner's signatures (02:50, 11:50) and a green full check of `58eb48c7` in a clean clone. Live read: mock files identical to the build, laptop home shows the three class cards with photos. Owed by the owner: 15 UAT steps in the hand-over, 4242 payment first. |
 | 2 | 26.5 account choice before payment, with the paid-only reminder | Building |
-| 3 | 27 consent record | Not started |
+| 3 | 27 consent record | **Held by the owner until 26.5 is live** (27 D-34, 2026-09-30). Discuss signed. 13 plans written; their checker found 3 blockers and 11 warnings, revision running. Then the owner signs design and plan together. The /sign-up tick box is built inside 27 on 26.5's account record. 28 and 29 wait too. The control session tells it when 26.5's migration `20261001100000` is on main. |
 | 4 | 28 pixel page view, 29 purchase event | The Meta wording is his since 2026-09-30 (`.planning/decisions/2026-09-30-meta-wording.md`), all three texts, four languages. Not started. |
 | after | 26.0 → 26.2 → 20 (19 is closed) | 26.0 keeps building, lands after the ones above |
 
@@ -185,6 +189,16 @@ Reported by that session; not yet re-checked by the control session.
 
 Every Phase 20 ship needs the owner's Ship; today's ship mode does not cover it.
 
+Owner decided every finding F1 to F14 on 2026-09-30 (table at the end of `20-06-FINDINGS.md`, branch pushed at `f372f7fe`). Phase 20 builds all of it, in three batches:
+
+| Batch | When | What |
+|---|---|---|
+| A | Now | F1 pay link no longer opens Manage booking. F2 reworked by his decision: dashboard Support becomes read-only, file names only, one button opens his e-mail. F5, F10, F14 database items. F13: the page engine (React, Babel) served from our own host, not unpkg. |
+| B | After 26.5 is on main | Limit on the payment return address, F8, remaining F14 items, and **F11: refunds by hand** (customer cancels, booking shows "Refund due", admin presses Refund). F11 needs a signed plan and a check of every refund promise on /cancellation, /terms, FAQ and the mails. |
+| C | After Phase 27 is on main | F12: the sign-in link opens a confirm screen "Sign in as <e-mail>?". Design first. |
+
+Accepted by him, no work: F4, F7, F9. GitHub lists 41 known weaknesses in dependencies (15 high); Phase 20 reads which ones matter.
+
 ## Owner feedback after the 26.4 ship, 2026-09-30
 
 Built by the 26.3 session as `fix/26.4.2-booking-feedback` (folder `fix-26.4.2`).
@@ -205,11 +219,18 @@ Built by the 26.3 session as `fix/26.4.2-booking-feedback` (folder `fix-26.4.2`)
 | Checkout, flight edit: when Turnstile challenges the re-quote, no challenge is shown and the price stays on "Updating price" (`CheckoutForm.tsx` flightBlur) | Confirmed in code by the control session. Not reproduced on live. Sent to the 26.3 session to fix inside 26.4.2. |
 | The public pages (mocks) carry no hreflang links in their HTML | For the owner. Not assigned. Search engines cannot tell the language versions apart. |
 
+## Follow-up jobs, not assigned
+
+| Job | From |
+|---|---|
+| Serve a smaller version of each class photo (today 2.3 to 2.8 MB PNG each, about 7.6 MB on the laptop home) | Owner decision 10 of 26.4.2, 2026-09-30 |
+| Cloudflare Web Analytics script is blocked by our own security header on every page (seen in the browser console; older than this ship) | Control session, 2026-09-30 |
+
 ## Owed by the control session
 
 | What | Why not yet |
 |---|---|
-| Read the first staff digest run | 2026-09-30 06:00 Zurich time |
+| Nothing open | Staff digest read on 2026-09-30: first run at 06:01 Zurich time, status sent, one attempt, one staff member. |
 
 ## Waiting for the owner
 
