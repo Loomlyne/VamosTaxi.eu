@@ -561,7 +561,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <sc-if value="{{ c.live }}" hint-placeholder-val="{{ true }}">
 <div data-cc-card="1" data-block="{{ c.block }}" data-slug="{{ c.slug }}" role="group" aria-label="{{ c.name }}">
 <div data-cc-shot="1">
-<sc-if value="{{ c.hasPhoto }}" hint-placeholder-val="{{ false }}"><img src="{{ c.photo }}" alt="{{ c.name }}" width="640" height="427" loading="lazy" decoding="async" data-vt-no-i18n="1" onError="{{ c.imgErr }}"></sc-if>
+<sc-if value="{{ c.hasPhoto }}" hint-placeholder-val="{{ false }}"><img src="{{ c.photoSmall }}" srcSet="{{ c.photoSet }}" sizes="(min-width: 1081px) 400px, 100vw" alt="{{ c.name }}" width="640" height="427" loading="lazy" decoding="async" data-vt-no-i18n="1" onError="{{ c.imgErr }}"></sc-if>
 <sc-if value="{{ c.noPhoto }}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="car" size="{{ n34 }}" color="var(--vt-grey-400)" hint-size="34px,34px"></x-import></sc-if>
 </div>
 <div data-cc-name="1" data-vt-no-i18n="1">{{ c.name }}</div>
@@ -921,7 +921,8 @@ function classOnFleet(offer, slug) {
 function publicQuoteClass(c) {
   return !!(c && c.slug && c.ineligible_reason !== 'no_rate');
 }
-/** The photo the owner uploaded for a class, as the server serves it (/photos/<key>). Nothing else is ever used. */
+/** The photo the owner uploaded for a class, as the server serves it (/photos/<key>). Nothing else is ever used.
+    The cards ask for its small versions (?w=640, ?w=1280); the server answers the original if it cannot make one. */
 function ccPhotoUrl(c) {
   const u = c && typeof c.photo_url === 'string' ? c.photo_url : '';
   return /^\/photos\/[A-Za-z0-9._\/-]+$/.test(u) && u.indexOf('..') === -1 ? u : '';
@@ -2485,7 +2486,7 @@ class Component extends DCLogic {
       const photo = c.photo && !bad[c.slug] ? c.photo : '';
       return {
         skel: false, live: true, slug: c.slug, name: c.name, pax: c.pax, bags: c.bags, block: block,
-        photo: photo, hasPhoto: !!photo, noPhoto: !photo, imgErr: () => this.ccImgFail(c.slug),
+        photo: photo, photoSmall: photo ? photo + '?w=640' : '', photoSet: photo ? photo + '?w=640 640w, ' + photo + '?w=1280 1280w' : '', hasPhoto: !!photo, noPhoto: !photo, imgErr: () => this.ccImgFail(c.slug),
         paxLabel: 'Up to ' + c.pax + ' passengers', bagsLabel: 'Up to ' + c.bags + ' bags',
         hasPrice: hasPrice, price: hasPrice && loc && loc.fromChf ? loc.fromChf(c.total) : '', noPrice: showing && !hasPrice && !small,
         needTrip: idle && !small, priceLoading: loading && !small,
