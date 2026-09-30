@@ -360,23 +360,3 @@ export async function loadCurrentPolicyVersion(
   });
   return row ? mapPolicy(row) : null;
 }
-
-export async function loadPolicyHistory(
-  env: CloudflareEnv,
-  claims: VamosClaims,
-): Promise<PolicyVersionRow[]> {
-  const rows = await asStaff(env, claims, async (sql) => {
-    return sql<PolicySql[]>`
-      select
-        id, slug, label, effective_from, created_by,
-        free_cancel_hours, modification_deadline_hours, min_advance_minutes,
-        airport_waiting_minutes, city_waiting_minutes, manage_link_validity_days,
-        round_trip_discount_percent, night_window_start, night_window_end, night_window_tz,
-        quote_lock_minutes, checkout_window_minutes, cancellation_tiers,
-        policy_doc_slug, policy_doc_version
-      from public.settings_versions
-      order by effective_from desc
-    `;
-  });
-  return rows.map(mapPolicy);
-}

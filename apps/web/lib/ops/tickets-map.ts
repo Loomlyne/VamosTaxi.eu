@@ -8,24 +8,12 @@ const STATUSES: readonly string[] = Object.freeze(["new", "open", "replied", "re
 
 export type TicketStatus = "new" | "open" | "replied" | "responded" | "closed";
 
-export function nextTicketStatus(current: TicketStatus, requested: TicketStatus): TicketStatus | null {
-  if (current === requested) return current;
-  if (requested === "new") return null;
-  if (current === "closed") return requested === "open" ? "open" : null;
-  return requested;
-}
-
 export function staffPatchStatus(current: TicketStatus, requested: TicketStatus): TicketStatus | null {
   if (requested === "open") {
     if (current === "new" || current === "closed") return "open";
     return null;
   }
-  if (requested === "closed") {
-    if (current === "new" || current === "open" || current === "replied" || current === "responded" || current === "closed") {
-      return "closed";
-    }
-    return null;
-  }
+  if (requested === "closed") return "closed";
   return null;
 }
 

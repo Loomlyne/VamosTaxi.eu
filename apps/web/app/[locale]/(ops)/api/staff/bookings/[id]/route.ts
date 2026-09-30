@@ -35,11 +35,9 @@ function asEmailLocale(value: string): "en" | "de" | "fr" | "ar" {
 async function afterOpsMark(
   env: CloudflareEnv,
   booking: MarkedBooking,
-  status: "completed" | "no_show",
 ): Promise<void> {
   if (!booking.email.trim()) return;
   if (!booking.paid) return;
-  if (status === "no_show" && !booking.paid) return;
   try {
     await notifyReviewRequest(env, {
       bookingId: booking.bookingId,
@@ -103,7 +101,7 @@ export const PATCH = withStaff(async (claims, request) => {
       if (result.code === "unknown") return jsonErr("unknown", 500);
       return jsonErr("not-found", 404);
     }
-    await afterOpsMark(env, result.booking, status);
+    await afterOpsMark(env, result.booking);
     return jsonOk({ id, status });
   }
 

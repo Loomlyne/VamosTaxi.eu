@@ -617,6 +617,15 @@
   }
 
   var BOOKING_STATUS = ["quote", "pending", "paid", "confirmed", "assigned", "completed", "cancelled", "refunded", "no-show"];
+  /* The database enum says no_show; the console spells it "no-show". The two
+     partial roll-ups are not offered in any status select, but a row that carries
+     one keeps it: falling back to "pending" put an ended trip back on the board. */
+  var BOOKING_STATUS_PASS = ["partially_cancelled", "partially_completed"];
+  function bookingStatus(value) {
+    if (value === "no_show") return "no-show";
+    if (BOOKING_STATUS.indexOf(value) !== -1 || BOOKING_STATUS_PASS.indexOf(value) !== -1) return value;
+    return "pending";
+  }
   function cleanBooking(b) {
     b = b || {};
     return {
@@ -625,7 +634,7 @@
       pickup: str(b.pickup), dropoff: str(b.dropoff),
       klass: cleanKlass(b.klass),
       pax: num(b.pax, 1), bags: num(b.bags, 1),
-      status: BOOKING_STATUS.indexOf(b.status) === -1 ? "pending" : b.status,
+      status: bookingStatus(b.status),
       chauffeur: str(b.chauffeur),
       driver: str(b.driver || b.chauffeur),
       chauffeurEmail: str(b.chauffeurEmail),
