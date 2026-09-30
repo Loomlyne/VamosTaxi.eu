@@ -41,11 +41,8 @@ export function publicSuggestion(hit: PublicSuggestion): PublicSuggestion {
 
 /** Rate-limit bucket for the session key — IP, never a customer id. */
 export function sessionBucket(request: Request): string {
-  return (
-    request.headers.get("cf-connecting-ip") ??
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    "unknown"
-  );
+  // Cloudflare's visitor address only; x-forwarded-for is client-settable.
+  return request.headers.get("cf-connecting-ip")?.trim() || "unknown";
 }
 
 function bytesToHex(bytes: ArrayBuffer): string {
