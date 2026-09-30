@@ -12,10 +12,9 @@
 // customer entered a flight number. A city or canton pair (D-09) is a
 // separate extra on top: it applies in both directions and never when pickup
 // and destination resolve to the same place; when both a city and a canton
-// pair match the same leg, only the city pair applies (D-09a). Extra stops
-// skip that pair extra. Child seat / oversized luggage emit one line per
-// leg_seq on a return. Extra stop is Mapbox places on the D-11 distance
-// recipe, not a chip fare (D-37).
+// pair match the same leg, only the city pair applies (D-09a). Quantity rows
+// emit one line per leg_seq on a return. There is no stop on the way in this
+// product (26.2-p4 D): nothing here lengthens a route or drops the pair.
 //
 // Negative space: this module reads no clock, performs no I/O, formats nothing,
 // and never decides IF a surcharge applies — that is predicates.ts, called from
@@ -141,16 +140,6 @@ export interface BuildFareLineArgs {
   distanceBands?: DistanceBandRow[];
   /** D-20: airport identity and canton tags live on service_zones. */
   zones?: ZoneRow[];
-  /** D-21: extra stop on the journey → skip fixed_routes, use distance recipe. */
-  hasExtraStops?: boolean;
-}
-
-function journeyHasExtraStops(
-  leg: QuoteLegInput,
-  hasExtraStops?: boolean,
-): boolean {
-  if (hasExtraStops === true) return true;
-  return Array.isArray(leg.waypoints) && leg.waypoints.length > 0;
 }
 
 export function cantonOfZone(zone: ZoneRow | undefined): string | null {
@@ -412,7 +401,6 @@ export function buildFixedRouteExtraLine(args: {
   fixedRoutes: FixedRouteRow[];
   rateVersionId: number | null;
   zones?: ZoneRow[];
-  hasExtraStops?: boolean;
   /**
    * Comment 18. City-to-city booking reads this tab's published rows.
    * Untyped rows are city pairs (zone slug as the label). A place pin stays
@@ -420,8 +408,7 @@ export function buildFixedRouteExtraLine(args: {
    */
   publishedPairs?: boolean;
 }): Line | null {
-  const { leg, vehicleClass, rateVersionId, zones, hasExtraStops } = args;
-  if (journeyHasExtraStops(leg, hasExtraStops)) return null;
+  const { leg, vehicleClass, rateVersionId, zones } = args;
   const zoneRows = zones ?? [];
   const fixedRoutes = args.publishedPairs
     ? publishedCityToCityRoutes(args.fixedRoutes, zoneRows)
@@ -784,11 +771,16 @@ export function buildLegSurchargeLines(
 export interface BuildExtraLinesArgs {
   legs: QuoteLegInput[];
   surcharges: SurchargeRow[];
-  /** Client quantities — child_seats, extra_stops, oversized_luggage / oversize_bags. */
+  /** Client quantities — child_seats, oversized_luggage / oversize_bags. */
   extras: Record<string, number | boolean | undefined>;
   rateVersionId: number | null;
 }
 
+/**
+ * 26.2-p4 D: there is no stop on the way. A row whose quantity source is not
+ * one of the two below (an old row still marked with the stop source among
+ * them) resolves to 0 and emits nothing.
+ */
 function resolveQuantity(
   source: string,
   extras: Record<string, number | boolean | undefined>,
@@ -796,11 +788,6 @@ function resolveQuantity(
   if (source === "child_seats") {
     const v = extras.child_seats;
     if (typeof v === "boolean") return v ? 1 : 0;
-    if (typeof v === "number") return v;
-    return 0;
-  }
-  if (source === "extra_stops") {
-    const v = extras.extra_stops;
     if (typeof v === "number") return v;
     return 0;
   }
@@ -816,10 +803,9 @@ function resolveQuantity(
 }
 
 /**
- * D-45: child_seat and oversized_luggage → one line per leg_seq on a return.
- * extra_stop is not a surcharge fare (D-37) — Mapbox places re-run the D-11
- * distance recipe via hasExtraStops. Quantity zero emits nothing. Always pass
- * ICU `n`, including n=1.
+ * D-45: a quantity row → one line per leg_seq on a return. The row's own
+ * quantity_source decides, never its code. Quantity zero emits nothing.
+ * Always pass ICU `n`, including n=1.
  */
 export function buildExtraLines(args: BuildExtraLinesArgs): Line[] {
   const { legs, surcharges, extras, rateVersionId } = args;
@@ -828,10 +814,6 @@ export function buildExtraLines(args: BuildExtraLinesArgs): Line[] {
   for (const row of surcharges) {
     if (!row.active) continue;
     if (row.quantity_source === null || row.quantity_source === undefined) {
-      continue;
-    }
-    if (row.quantity_source === "extra_stops" || row.code === "extra_stop") {
-      // D-37: extra stop is Mapbox places on the D-11 distance recipe, not amount × qty.
       continue;
     }
     if (row.kind === "included" || row.amount_rappen === 0) continue;

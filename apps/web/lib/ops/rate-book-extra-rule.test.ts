@@ -258,7 +258,6 @@ const LEG: QuoteLegInput = {
   duration_s: 900,
   origin_zone_id: null,
   dest_zone_id: null,
-  waypoints: [],
 };
 const FARE_LINE: Line = {
   seq: 1,

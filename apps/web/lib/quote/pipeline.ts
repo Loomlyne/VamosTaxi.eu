@@ -396,7 +396,6 @@ function toQuoteInput(
         origin_place: origin.text,
         dest_place: dest.text,
         road: routedLeg.road !== false,
-        waypoints: i === 0 ? (request.extras?.waypoints ?? []) : [],
         // D-08b/D-10: server-resolved boundary facts — never accepted from the
         // client body (schema.ts forbids origin_city_id/is_airport/etc).
         flight_no: leg.flight_no ?? null,
@@ -443,8 +442,6 @@ function inputFromLock(
           live != null
             ? live.road !== false
             : !(leg.distance_m === 0 && leg.duration_s === 0),
-        waypoints:
-          i === 0 ? (extras?.waypoints ?? leg.waypoints) : leg.waypoints,
         // 26.1-09: restore server-resolved facts from the lock. A lock minted
         // before this field existed verifies with these undefined/false/null —
         // never re-derived from the reprice body (schema.ts forbids it).
