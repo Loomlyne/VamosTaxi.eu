@@ -412,12 +412,18 @@ function isPrivateNoindexPath(path: string): boolean {
   return PRIVATE_NOINDEX_PREFIXES.some((prefix) => path === prefix || path.startsWith(`${prefix}/`));
 }
 
-function applyStagingNoindex(request: NextRequest, response: NextResponse): NextResponse {
+function applyStagingNoindex(
+  request: NextRequest,
+  response: NextResponse,
+  // A rewrite to /__vamos_gone is rendered by Next, and next.config headers() already
+  // adds the security pairs to it; setting them here too sent each one twice.
+  securityHeaders = true,
+): NextResponse {
   // D-03: public vamostaxi.site and www.vamostaxi.site stay indexable on Worker
   // vamos (DEPLOY_ENV staging). D-04: dashboard / ops-changes always noindex.
   // D-08: env.production is unused — host-split is the indexable path, not an
   // undefined DEPLOY_ENV.
-  applySecurityHeaders(response.headers);
+  if (securityHeaders) applySecurityHeaders(response.headers);
   if (isDashboardHost(request) || process.env.DEPLOY_ENV === "ops-changes") {
     response.headers.set("X-Robots-Tag", "noindex");
   }
@@ -611,7 +617,7 @@ export default async function middleware(request: NextRequest) {
     const gone = request.nextUrl.clone();
     gone.pathname = "/__vamos_gone";
     gone.search = "";
-    return applyStagingNoindex(request, NextResponse.rewrite(gone));
+    return applyStagingNoindex(request, NextResponse.rewrite(gone), false);
   }
 
   // Named dashboard host: public URLs have no /ops prefix.
@@ -635,7 +641,7 @@ export default async function middleware(request: NextRequest) {
       const gone = request.nextUrl.clone();
       gone.pathname = "/__vamos_gone";
       gone.search = "";
-      return applyStagingNoindex(request, NextResponse.rewrite(gone));
+      return applyStagingNoindex(request, NextResponse.rewrite(gone), false);
     }
     const mock = dcMockPath(pathname);
     if (mock) {
