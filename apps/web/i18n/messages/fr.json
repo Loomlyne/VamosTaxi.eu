@@ -1441,7 +1441,7 @@
     "payment-metadata-only-the-amount-the-currency-th": "Uniquement les métadonnées de paiement : le montant, la devise, le moyen, les quatre derniers chiffres et le résultat. Les numéros de carte sont saisis sur le formulaire de Stripe et n’atteignent jamais nos systèmes.",
     "payment-records": "Registres de paiement",
     "per-stop": "par arrêt.",
-    "pickup-and-drop-off-address-and-any-additional-s": "Adresse de prise en charge et de destination, ainsi que tout arrêt supplémentaire.",
+    "pickup-and-drop-off-address-and-any-additional-s": "Adresse de prise en charge et de destination.",
     "pickup-and-drop-off-address-date-and-time-passen": "Adresse de prise en charge et de destination, date et heure, nombre de passagers et de bagages. Cela suffit à tarifer un trajet et rien ici ne vous identifie.",
     "plans-change-this-page-says-exactly-what-happens": "Les plans changent. Cette page dit exactement ce qu’il advient de votre argent dans ce cas — et c’est elle qui tranche.",
     "postal-address": "Adresse postale",

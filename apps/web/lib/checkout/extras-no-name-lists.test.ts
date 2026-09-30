@@ -120,9 +120,6 @@ describe("what stays: the tick-box list and the readers of old bookings", () => 
       "ExtraLabelsByCode",
       "SurchargeLike",
       "SnapshotExtraFare",
-      "PUBLIC_MAX_EXTRA_STOPS",
-      "capExtraStops",
-      "publishedMaxExtraStops",
     ]) {
       expect(text, name).toMatch(new RegExp(`export (function|const|type) ${name}\\b`));
     }

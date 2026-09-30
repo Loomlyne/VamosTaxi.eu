@@ -15,23 +15,11 @@ const FORBIDDEN_SERVER_FIELDS = [
   "expires_at",
 ] as const;
 
+// 26.2-p4 D: no stop on the way — the strict object refuses the old stop fields.
 const extrasSchema = z
   .object({
     child_seats: z.union([z.literal(0), z.literal(1)]).optional(),
-    extra_stops: z.union([z.literal(0), z.literal(1)]).optional(),
     oversized_luggage: z.boolean().optional(),
-    waypoints: z
-      .array(
-        z
-          .object({
-            lng: z.number().finite(),
-            lat: z.number().finite(),
-            text: z.string().min(1),
-          })
-          .strict(),
-      )
-      .max(1)
-      .optional(),
   })
   .strict()
   .optional();

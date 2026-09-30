@@ -59,7 +59,6 @@ function leg(partial: Partial<QuoteLegInput> = {}): QuoteLegInput {
     origin_place: partial.origin_place,
     dest_place: partial.dest_place,
     road: partial.road,
-    waypoints: partial.waypoints ?? [],
     flight_no: partial.flight_no,
     origin_is_airport: partial.origin_is_airport,
     origin_city_id: partial.origin_city_id,
@@ -335,44 +334,6 @@ describe("buildFareLine — fixed route (D-08)", () => {
       [zermatt],
     );
     expect(attached.legs[0]?.dest_zone_id).toBe("z-zermatt");
-  });
-
-  it("D-17: extra stops drop the fixed route and use the distance recipe", () => {
-    const fr = fixed({
-      vehicle_class_id: business.id,
-      origin_zone_id: "z-a",
-      dest_zone_id: "z-b",
-      price_rappen: 5000,
-      live: true,
-    });
-    const viaWaypoints = buildFareLine({
-      leg: leg({ waypoints: [{ mapbox_id: "stop-1" }] }),
-      vehicleClass: business,
-      distanceRate: rate({
-        vehicle_class_id: business.id,
-        base_fare_rappen: 100,
-        per_km_rappen: 50,
-      }),
-      fixedRoutes: [fr],
-      rateVersionId: 1,
-    });
-    expect(viaWaypoints.basis.rule).toBe("per_km");
-    expect(viaWaypoints.amount_rappen).toBe(100 + perKm(50, 10_000));
-
-    const viaFlag = buildFareLine({
-      leg: leg(),
-      vehicleClass: business,
-      distanceRate: rate({
-        vehicle_class_id: business.id,
-        base_fare_rappen: 100,
-        per_km_rappen: 50,
-      }),
-      fixedRoutes: [fr],
-      rateVersionId: 1,
-      hasExtraStops: true,
-    });
-    expect(viaFlag.basis.rule).toBe("per_km");
-    expect(viaFlag.amount_rappen).toBe(100 + perKm(50, 10_000));
   });
 
   it("D-20: a place pin does not replace the fare; the canton pair is the extra", () => {
@@ -1106,24 +1067,6 @@ describe("buildExtraLines (D-45)", () => {
     expect(lines.every((l) => l.params?.n === 1)).toBe(true);
     expect(lines.every((l) => l.leg_seq !== null)).toBe(true);
     expect(lines.every((l) => l.amount_rappen === 200)).toBe(true);
-  });
-
-  it("extra_stops do not emit a fixed rappen × quantity fare (D-37)", () => {
-    const stop = surcharge({
-      code: "extra_stop",
-      kind: "amount",
-      amount_rappen: 150,
-      quantity_source: "extra_stops",
-      predicate: { kind: "quantity" },
-      id: 15,
-    });
-    const lines = buildExtraLines({
-      legs: legsTwo,
-      surcharges: [stop],
-      extras: { extra_stops: 1 },
-      rateVersionId: 1,
-    });
-    expect(lines).toHaveLength(0);
   });
 
   it("child_seats and oversized still multiply amount × quantity", () => {

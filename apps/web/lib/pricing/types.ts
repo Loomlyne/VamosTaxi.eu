@@ -248,7 +248,6 @@ export interface QuoteLegInput {
    * Mapbox (snapped driving, or WGS84 metres between the same pins).
    */
   road?: boolean;
-  waypoints: unknown[];
   /** D-08b: customer-entered flight number. A non-empty value triggers the airport fee. */
   flight_no?: string | null;
   /**

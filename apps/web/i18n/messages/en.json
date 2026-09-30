@@ -1441,7 +1441,7 @@
     "payment-metadata-only-the-amount-the-currency-th": "Payment metadata only: the amount, the currency, the method, the last four digits, and whether it succeeded. Card numbers are entered on Stripe's own form and never reach our systems.",
     "payment-records": "Payment records",
     "per-stop": "per stop.",
-    "pickup-and-drop-off-address-and-any-additional-s": "Pickup and drop-off address, and any additional stop.",
+    "pickup-and-drop-off-address-and-any-additional-s": "Pickup and drop-off address.",
     "pickup-and-drop-off-address-date-and-time-passen": "Pickup and drop-off address, date and time, passenger and luggage count. This is enough to price a journey and nothing here identifies you.",
     "plans-change-this-page-says-exactly-what-happens": "Plans change. This page says exactly what happens to your money when they do — and it is the one page that decides.",
     "postal-address": "Postal address",
