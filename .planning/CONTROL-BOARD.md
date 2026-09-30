@@ -229,7 +229,14 @@ Built by the 26.3 session as `fix/26.4.2-booking-feedback` (folder `fix-26.4.2`)
 
 SEO live read: `/`, `/de`, `/fr`, `/ar`, `/de/faq`, `/ar/faq`, `/fr/about` 200 with the right language, title, canonical and hreflang; sitemap 36 addresses; favicon, share picture, manifest 200; the language switch moves the address; checkout follows the language. Three differences from its hand-over went back to the SEO session: the dashboard address still serves the public robots file; language addresses are served uncached; a stored language and the cookie can disagree. Tests in 26.0's folder that expect the old redirect are red until 26.0 updates them.
 
-## Follow-up jobs
+## Owner requests, 2026-09-30 12:55
+
+| # | Request, his words in short | Scope he chose | Goes to | State |
+|---|---|---|---|---|
+| 1 | He does not like the class cards as they are: photo on the side, card smaller | Both places: laptop home and step 1 of /checkout, every size | Session "Vamos Taxi 26.4.2 completion", job `feat/class-photo-small`, together with the smaller photo files | Design pictures with options, his signature first. Replaces the layout signed at 11:50. Checkout side builds after 26.5 is on main. |
+| 2 | Scrolling glitches and breaks; the site must be faster | Everywhere | Session "Vamos Taxi SEO and browser settings", folder `site-speed`, branch `fix/site-speed` | Measure first on live, name the cause with numbers, then a plan for his signature. Suspects: smooth scroll (Lenis), in-browser compile of every page, heavy photos, the language runtime, uncached language addresses. |
+
+
 
 | Job | From |
 |---|---|
