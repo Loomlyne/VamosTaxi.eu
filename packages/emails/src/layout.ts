@@ -1,4 +1,4 @@
-import type { EmailLocale } from "./messages";
+import { t, type EmailLocale } from "./messages";
 import {
   BODY_FONT,
   CHARCOAL,
@@ -11,11 +11,12 @@ import {
   YELLOW,
 } from "./chrome";
 
-export type EmailLayoutOptions = { footer?: string };
+/** `locale` picks the default footer line of the plain-text layout (English when absent). */
+export type EmailLayoutOptions = { footer?: string; locale?: EmailLocale };
 
 export function layoutHtml(locale: EmailLocale, inner: string, options: EmailLayoutOptions = {}): string {
   const dir = locale === "ar" ? "rtl" : "ltr";
-  const footer = options.footer ?? "This link works once and expires after 1 hour.<br/>\n            Vamos Taxi · +41 79 626 70 82";
+  const footer = options.footer ?? `${t(locale, "auth", "email-footer-link")}<br/>\n            Vamos Taxi · +41 79 626 70 82`;
   return `<!doctype html>
 <html lang="${locale}" dir="${dir}">
 <head>
@@ -57,7 +58,7 @@ export function layoutHtml(locale: EmailLocale, inner: string, options: EmailLay
 }
 
 export function layoutText(inner: string, options: EmailLayoutOptions = {}): string {
-  const footer = options.footer ?? "This link works once and expires after 1 hour.\n+41 79 626 70 82";
+  const footer = options.footer ?? `${t(options.locale ?? "en", "auth", "email-footer-link")}\n+41 79 626 70 82`;
   return `Vamos Taxi\n\n${inner}\n\n${footer}`;
 }
 
@@ -71,7 +72,7 @@ export function ctaButton(href: string, label: string): string {
 </table>`;
 }
 
-export function codeBlock(code: string): string {
-  return `<p style="margin:20px 0 0 0;font-size:13px;color:${MUTED};">Or enter this code</p>
+export function codeBlock(code: string, locale: EmailLocale): string {
+  return `<p style="margin:20px 0 0 0;font-size:13px;color:${MUTED};">${t(locale, "auth", "email-code-label")}</p>
 <p style="margin:8px 0 0 0;font-size:28px;line-height:36px;letter-spacing:6px;font-weight:700;color:${CHARCOAL};font-family:${BODY_FONT};">${code}</p>`;
 }

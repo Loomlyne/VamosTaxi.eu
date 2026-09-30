@@ -5,6 +5,8 @@
 -- (bookings_require_identity), not merely an unmatched permissive policy; and `authenticated`
 -- holds no INSERT and no UPDATE grant on `bookings` at all (a quote becomes a booking through a
 -- server-authoritative route, never the browser).
+-- 26.5-10: fixture bookings are 'confirmed'; a pending row without a pay link is hidden from
+-- authenticated by bookings_customer_hide_unpaid (customer_hide_unpaid_bookings.test.sql).
 begin;
 select plan(8);
 
@@ -26,10 +28,10 @@ update public.customers
    set full_name = 'Customer B', email = 'bcr-cust-b@example.test'
  where user_id = 'b0000000-0000-0000-0000-00000000000b';
 
-insert into public.bookings (contact_name, contact_email, customer_id)
-select 'Booking A', 'bcr-booking-a@example.test', c.id from public.customers c where c.email = 'bcr-cust-a@example.test';
-insert into public.bookings (contact_name, contact_email, customer_id)
-select 'Booking B', 'bcr-booking-b@example.test', c.id from public.customers c where c.email = 'bcr-cust-b@example.test';
+insert into public.bookings (contact_name, contact_email, customer_id, status)
+select 'Booking A', 'bcr-booking-a@example.test', c.id, 'confirmed' from public.customers c where c.email = 'bcr-cust-a@example.test';
+insert into public.bookings (contact_name, contact_email, customer_id, status)
+select 'Booking B', 'bcr-booking-b@example.test', c.id, 'confirmed' from public.customers c where c.email = 'bcr-cust-b@example.test';
 
 insert into public.booking_legs (booking_id, leg_seq, direction, pickup_text, dropoff_text,
                                   scheduled_at, scheduled_local, vehicle_class_id)

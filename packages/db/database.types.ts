@@ -9,6 +9,56 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      account_agreement_records: {
+        Row: {
+          booking_id: string | null
+          choice: string
+          email: string
+          id: number
+          ip_truncated: unknown
+          locale: string
+          record_kind: string
+          recorded_at: string
+          surface: string
+          text_version: string
+          user_agent: string | null
+        }
+        Insert: {
+          booking_id?: string | null
+          choice: string
+          email: string
+          id?: never
+          ip_truncated?: unknown
+          locale: string
+          record_kind: string
+          recorded_at?: string
+          surface: string
+          text_version: string
+          user_agent?: string | null
+        }
+        Update: {
+          booking_id?: string | null
+          choice?: string
+          email?: string
+          id?: never
+          ip_truncated?: unknown
+          locale?: string
+          record_kind?: string
+          recorded_at?: string
+          surface?: string
+          text_version?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "account_agreement_records_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_log: {
         Row: {
           action: string
@@ -917,6 +967,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      checkout_pay_presses: {
+        Row: {
+          idempotency_key: string
+          pressed_at: string
+          quote_id: string
+        }
+        Insert: {
+          idempotency_key: string
+          pressed_at?: string
+          quote_id: string
+        }
+        Update: {
+          idempotency_key?: string
+          pressed_at?: string
+          quote_id?: string
+        }
+        Relationships: []
       }
       consent_log: {
         Row: {
@@ -1930,6 +1998,7 @@ export type Database = {
           email: string
           email_confirmation: boolean
           email_reminder: boolean
+          guest_accounts_live: boolean
           id: number
           ops_alerts: boolean
           phone: string
@@ -1952,6 +2021,7 @@ export type Database = {
           email?: string
           email_confirmation?: boolean
           email_reminder?: boolean
+          guest_accounts_live?: boolean
           id?: number
           ops_alerts?: boolean
           phone?: string
@@ -1974,6 +2044,7 @@ export type Database = {
           email?: string
           email_confirmation?: boolean
           email_reminder?: boolean
+          guest_accounts_live?: boolean
           id?: number
           ops_alerts?: boolean
           phone?: string
@@ -2649,6 +2720,24 @@ export type Database = {
           reference: string
         }[]
       }
+      checkout_account_request_for_booking: {
+        Args: { p_booking_id: string }
+        Returns: {
+          choice: string
+          email: string
+          full_name: string
+          locale: string
+        }[]
+      }
+      checkout_account_settings: { Args: never; Returns: boolean }
+      checkout_account_user_state: {
+        Args: { p_email: string }
+        Returns: {
+          checkout_origin: boolean
+          confirmed: boolean
+          user_exists: boolean
+        }[]
+      }
       checkout_attach_payment: {
         Args: {
           p_charged_rappen: unknown
@@ -2760,6 +2849,10 @@ export type Database = {
           refund_id: number
         }[]
       }
+      checkout_email_has_account: {
+        Args: { p_email: string }
+        Returns: boolean
+      }
       checkout_expire_unpaid: {
         Args: never
         Returns: {
@@ -2795,6 +2888,10 @@ export type Database = {
           p_token_hash: string
         }
         Returns: undefined
+      }
+      checkout_note_pay_press: {
+        Args: { p_idempotency_key: string; p_quote_id: string }
+        Returns: string
       }
       checkout_open_payment: {
         Args: { p_quote_id: string }
@@ -3360,6 +3457,19 @@ export type Database = {
       recompute_booking_status: {
         Args: { p_booking_id: string }
         Returns: undefined
+      }
+      record_account_agreement: {
+        Args: {
+          p_booking_id: string
+          p_choice: string
+          p_email: string
+          p_ip_truncated: unknown
+          p_locale: string
+          p_surface: string
+          p_text_version: string
+          p_user_agent: string
+        }
+        Returns: number
       }
       record_booking_refund: {
         Args: {

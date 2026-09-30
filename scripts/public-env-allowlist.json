@@ -5,11 +5,13 @@
     "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"
   ],
   "_forbidden_substrings_comment": "Credential names from docs/build/GSD-LAUNCH.md § Secrets and its Cloudflare CI entries. None of these may ever appear in the built client bundle (.open-next/assets/**) — every one reaches the Worker via `wrangler secret put`, never a client-exposed variable.",
+  "_d14_comment": "26.5 D-14: SUPABASE_SERVICE_ROLE_KEY is read only in apps/web/lib/supabase/service-role.ts; its name and value must never reach the client bundle.",
   "forbidden_substrings": [
     "HYPERDRIVE",
     "SUPABASE_URL",
     "SUPABASE_ANON_KEY",
     "SUPABASE_SERVICE_ROLE",
+    "SUPABASE_SERVICE_ROLE_KEY",
     "STRIPE_SECRET_KEY",
     "STRIPE_WEBHOOK_SECRET",
     "RESEND_API_KEY",
