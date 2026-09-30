@@ -33,6 +33,7 @@ import { fxFromSession } from "../../lib/checkout/stripe";
 import { purgeOnSessionExpired } from "../../lib/checkout/purge-unpaid";
 import { CONFIRMATION_TEMPLATE_VERSION } from "@vamos/emails/confirmation";
 import { mintLock, type QuoteLockPayload } from "../../lib/quote/lock";
+import { stubConsentChosen } from "../support/consent-state";
 
 const RUN_PROJECT = "component-1440";
 const REPO_ROOT = join(process.cwd(), "..", "..");
@@ -56,7 +57,8 @@ function localUrl(): string {
 class Rollback extends Error {}
 
 test.describe.configure({ mode: "serial" });
-test.beforeEach(({}, testInfo) => {
+test.beforeEach(async ({ page }, testInfo) => {
+  await stubConsentChosen(page);
   test.skip(testInfo.project.name !== RUN_PROJECT, "once");
 });
 

@@ -12,6 +12,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 import { openInLocale } from "../support/locale";
+import { stubConsentChosen } from "../support/consent-state";
 
 const RUN_PROJECT = "component-1440";
 const GS = "11111111-1111-4111-8111-111111111111";
@@ -51,6 +52,7 @@ test.afterAll(() => {
 });
 
 test.beforeEach(async ({ page }, testInfo) => {
+  await stubConsentChosen(page);
   test.skip(testInfo.project.name !== RUN_PROJECT, "checkout page specs run once under component-1440.");
   await page.route(
     (url) => {

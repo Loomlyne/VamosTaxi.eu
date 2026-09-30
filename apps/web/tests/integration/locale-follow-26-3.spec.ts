@@ -10,6 +10,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 import { openInLocale, setChosenLanguage } from "../support/locale";
+import { stubConsentChosen } from "../support/consent-state";
 
 const RUN_PROJECT = "component-1440";
 const PORT = 4290;
@@ -67,6 +68,7 @@ test.afterAll(() => {
 });
 
 test.beforeEach(async ({ page }, testInfo) => {
+  await stubConsentChosen(page);
   test.skip(testInfo.project.name !== RUN_PROJECT, "runs once; sets its own widths.");
   await page.route(
     (url) => /stripe|cloudflare|turnstile/.test(url.hostname),
