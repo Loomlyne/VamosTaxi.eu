@@ -24,15 +24,21 @@ export async function GET(request: Request) {
     );
   }
   const { env } = await getCloudflareContext({ async: true });
+  // D-32: link guest bookings made with this confirmed e-mail before listing. A failure must not
+  // break the list, so the claim runs in its own transaction: a failed query aborts the transaction
+  // it runs in, and postgres.js begin() throws it again after the callback even when caught inside.
+  // Owner, 2026-10-01: show the bookings anyway; the claim retries on the next open.
+  try {
+    await asCustomer(env, claims, async (sql) => {
+      await sql`select public.customer_claim_guest_bookings()`;
+      return null;
+    });
+  } catch (err) {
+    console.error("account_claim_guest_bookings_failed", err instanceof Error ? err.message : String(err));
+  }
   let rows: AccountSqlRow[];
   try {
     rows = await asCustomer(env, claims, async (sql) => {
-      // D-32: link guest bookings made with this confirmed e-mail before listing. A failure must not break the list.
-      try {
-        await sql`select public.customer_claim_guest_bookings()`;
-      } catch {
-        /* listing continues; the claim retries on the next open */
-      }
       return await sql<AccountSqlRow[]>`
         select
           b.reference,
