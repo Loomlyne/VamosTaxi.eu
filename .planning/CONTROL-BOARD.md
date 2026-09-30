@@ -12,10 +12,10 @@ Rewritten short on 2026-09-30 14:25; the long version is in git history (`823022
 | Item | Value |
 |---|---|
 | Site | https://vamostaxi.site and https://dashboard.vamostaxi.site |
-| main = origin/main | `02c1bd3d` plus planning notes |
-| Worker `vamos` | version `d80e6577` |
+| main = origin/main | `f7a3528b` plus planning notes |
+| Worker `vamos` | version `92504970` |
 | Worker `vamos-dashboard` (gateway) | version `58c6e541`, deployed 15:22 by the owner's word; before: `5ea4fe65` |
-| Rollback point | Worker `8adb148c`, git tag `backup/main-before-speed-a-8cd3a746`; before phone home: Worker `d43e467b`; before 26.2: Worker `0d1806ce`; before the Support button: Worker `2d5906ce` (before 26.5: Worker `fe9314d0`, tag `backup/main-before-26.5-e09f90cb`). Guest accounts off without a deploy: `settings.guest_accounts_live = false` |
+| Rollback point | Worker `d80e6577`, git tag `backup/main-before-class-cards-ac01b413`; before speed A: Worker `8adb148c`; before phone home: Worker `d43e467b`; before 26.2: Worker `0d1806ce`; before the Support button: Worker `2d5906ce` (before 26.5: Worker `fe9314d0`, tag `backup/main-before-26.5-e09f90cb`). Guest accounts off without a deploy: `settings.guest_accounts_live = false` |
 | Database | migrations up to `20260930210000`, 26.5's `20261001100000` to `130000`, Phase 20's `20261005100000` and `110000`, 26.2's `20261007100000`, all applied and read back. `guest_accounts_live` = true since 14:58 (owner's answer) |
 | Who deploys | the control session, from the owner's Mac. GitHub runs checks, never deploys. |
 
@@ -36,6 +36,7 @@ Rewritten short on 2026-09-30 14:25; the long version is in git history (`823022
 | 09-30 | 15:09 | 26.2 audit hand-over 1: 17 bug fixes in dashboard, mails and helpers; sign-in mails clean in de/fr/ar; staff price preview permission | `3142a6e8` | `d43e467b` |
 | 09-30 | 15:20 | SEO follow-up (dashboard robots closed, first view follows a stored language) and phone home (Trustpilot row in the booking card, full-page menu, hero behind Safari's bars) | `51b851e3` | `8adb148c` + gateway `58c6e541` |
 | 09-30 | 15:28 | Site speed A: static files cached, reviews cached 5 min, About photo 4.0 MB to 385 KB | `02c1bd3d` | `d80e6577` |
+| 09-30 | 16:12 | Class cards in layout E on home and checkout; small photo versions (2.77 MB to 0.14 MB); check-script fix | `f7a3528b` | `92504970` |
 
 ## Ship order from here
 
@@ -49,7 +50,7 @@ Owner's order: booking, payments, account, Meta first.
 | 2 | 26.5 account choice before payment | **Live 14:57**, under the day's ship mode. Clean-clone gates and 2831 unit tests green on the merged tree; 7 function bodies read back identical; the key name is in 0 client files. Live read: /checkout shows the three options and the guest line, no password field. Not checked: a payment, a mail, the sign-in link | Owner UAT, 11 steps in the 26.5 HANDOVER, 4242 as guest first |
 | 3 | 26.2 audit, hand-over 1 | **Live 15:09** (owner said Ship). Next from 26.2: booking-path rows, one owner question per confirmed bug; gate scripts last | Owner UAT, 13 dashboard steps in `26.2-HANDOVER-1.md` |
 | 4 | SEO follow-up | **Live 15:20**, gateway 15:22. Live read: dashboard robots.txt is `Disallow: /`, dashboard sign-in opens; a stored Arabic language without a cookie lands on `/ar` on the first view | |
-| 5 | Class cards: layout E (signed), small photo files | Home side built (`1c9d4aba`); checkout side waits for 26.5 | Hand-over, owner's Ship |
+| 5 | Class cards: layout E, small photo files | **Live 16:12** (owner said Ship). Live read at 1440: photo on the side, small card; `?w=640` answers a 138 KB WebP in about 1 second, original 2.77 MB | Owner: look, then one 4242 (checkout class step changed) |
 | 6 | 27 consent record | Plans 01 to 12 built (`84ac72ec`), owner signed design and plan; plan 13 (sign-up tick box) waits for 26.5's account record on main | Then hand-over. `CONSENT_POLICY_VERSION` follows the ship day |
 | 7 | 28 pixel page view, 29 purchase event | Not started. Meta wording is the owner's (`.planning/decisions/2026-09-30-meta-wording.md`) | After 27. Two switches in Meta Events Manager first |
 | 8 | Phase 20 batch B | Waits | After 26.5. Includes refunds by hand (F11): signed plan first |
@@ -57,6 +58,8 @@ Owner's order: booking, payments, account, Meta first.
 | 10 | Phone home design | **Live 15:20** (owner signed and said Ship). Live read at 375: hero fills the screen, Trustpilot row inside the booking card. Full-page menu and Safari bar colour: the owner's iPhone check | Owner's iPhone |
 | 10a | Phase 20 batch B1 (return-route limit, F8, lock-secret 503, ticket reply refused, staff e-mail check, reviews column grants `20261005120000`) | Handed over `75b0aba0`; touches checkout files | Owner's 26.5 test first, then his Ship, then a 4242 payment |
 | 10b | Site speed A | **Live 15:28** (owner said Ship). Live read: scripts and page parts 5 minutes, engine and photos one year, reviews 5 minutes with 5 rows; checkout, account, manage booking, sign-in and the per-visitor APIs stay `private, no-store`. A deploy now reaches a returning visitor within 5 minutes. B (native scrolling) is built on `fix/native-scroll`, hands over after class cards and Phase 27 | |
+| 10c | 26.2 hand-over 2: 16 booking-path bugs, each approved by the owner through the form (mails, dashboard booking edit, New trip, price book, address search, re-price) | Handed over `975c3ab4`; checked green by the control session on main `3b4f86d8` | Owner's 26.5 test first, then his Ship, then a 4242 payment |
+| 10d | Native scrolling (both scroll scripts out) | Built and proved on `fix/native-scroll`. **Owner said in the control chat 16:00: ship after the class cards**; not gated on Phase 27 | Merge main, control check, ship |
 | 11 | Scroll and speed | Measuring on live | A plan for the owner's signature |
 | 12 | 26.0 main green | No session. 9 of 12 plans done, 35 behind main | Prompt `03-finish-26.0.md` |
 | 13 | 26.2 gate scripts (stricter checks) | On `gsd/phase-26.2-u13` | Last, after 27 to 29 |
@@ -100,6 +103,7 @@ Prompts for sessions: `.planning/prompts/`, shared rules in `00-common-rules.md`
 | 14:22 | Phone menu opens as a full page, not a side panel (shared header, every page) | same | Same |
 | 14:22 | Hero fills the screen; no white strips at the top and bottom of Safari | same | Same |
 | 14:27 | Support e-mail button must open the exact e-mail in the mail app he is signed in to, and his answer must stay in that thread. Today it is a plain new mail to the customer | Security session, `fix/support-open-in-mail` | Owner answered 14:32: always the mail of that ticket's customer, never mixed; mail app automatic for now, admin choice if cheap; build it; **ship when the control session's checks pass** (his word, this job only) |
+| 15:40 | Five owner decisions from the 26.2 questions that need a signed plan before code: P1 class change on a paid trip re-prices; P2 refund across both payments; P3 class photo Remove link goes, replaced photo deleted from storage; P4 a deleted extra is deleted completely (hard-coded Ski/Waiting names go); P5 pay link for an erased booking | P1, P4: 26.2 session, own jobs, P4 first. P2, P5: security session (with refunds by hand). P3: 26.4.2 session (photo job) | Plans for his signature |
 | 09-29 | Later, its own job: passwords off on the whole site, e-mail link or passkey only | Not scheduled | His word when to start |
 
 ## Security (Phase 20)

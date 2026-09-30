@@ -637,6 +637,8 @@
     "editorCancel": "Annuler",
     "fixedPrice": "prix fixe",
     "seatsUpTo": "Jusqu’à {n} places",
+    "classSeats": "{n, plural, one {# place} other {# places}}",
+    "classBags": "{n, plural, one {# bagage} other {# bagages}}",
     "takesUpToBags": "Jusqu’à {n, plural, one {# bagage} other {# bagages}}",
     "sectionClass": "Choisissez votre classe",
     "gettingPrices": "Nous récupérons vos prix fixes",
