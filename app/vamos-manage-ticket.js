@@ -83,6 +83,7 @@
       driver: null,
       money: null,
       refundStatus: "none",
+      refundOwedRappen: 0,
       reviewSubmitted: false,
       canCancel: false,
       cancelWindow: "none",
@@ -121,6 +122,9 @@
         if (d.ok && d.body && d.body.ok) {
           booking.money = d.body.money || null;
           booking.driver = d.body.driver || null;
+          // 20-10: the refund row and box survive a reload.
+          booking.refundStatus = d.body.refundStatus || "none";
+          booking.refundOwedRappen = Number(d.body.refundOwedRappen) || 0;
         }
         return { kind: "booking", booking: booking, via: "account" };
       });
