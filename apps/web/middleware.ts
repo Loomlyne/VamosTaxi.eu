@@ -42,6 +42,7 @@ const DC_PAGES: Record<string, string> = {
   "/imprint": "/app/pages/imprint.html",
   "/sign-in": "/app/pages/sign-in.html",
   "/sign-up": "/app/pages/sign-in.html",
+  "/sign-in/confirm": "/app/pages/sign-in-confirm.html",
   "/reset-password": "/app/pages/reset-password.html",
   "/manage-booking": "/app/pages/manage-booking.html",
   "/booking-detail": "/app/pages/booking-detail.html",
@@ -180,6 +181,16 @@ async function serveOpsDc(
   return applyStagingNoindex(request, await updateSession(request, out));
 }
 
+/**
+ * F12: the e-mail link's confirm page on the staff host. Same DC page as /sign-in/confirm (it picks the
+ * ops look from the path); private, never indexed, and never a console session by itself.
+ */
+async function serveDashboardConfirm(request: NextRequest, cookieSource: NextResponse): Promise<NextResponse> {
+  const res = await serveDcHtml(request, "/app/pages/sign-in-confirm.html");
+  res.headers.set("Cache-Control", "private, no-store");
+  return applyStagingNoindex(request, copyCookies(cookieSource, res));
+}
+
 function qsSecret(): string {
   const value = process.env.VAMOS_QS_SECRET;
   return typeof value === "string" ? value : "";
@@ -307,6 +318,9 @@ async function dashboardHostMiddleware(request: NextRequest): Promise<NextRespon
   }
 
   if (process.env.DEPLOY_ENV === "ops-changes") {
+    if (normalizeDashboardPath(path) === "/login/confirm") {
+      return serveDashboardConfirm(request, new NextResponse());
+    }
     if (path === "/login") {
       return serveOpsDc(request, new NextResponse(), "ops-login.dc.html", false);
     }
@@ -346,6 +360,11 @@ async function dashboardHostMiddleware(request: NextRequest): Promise<NextRespon
   const gate = staffGateDecision({ role, currentLevel, nextLevel, ...passkey });
   const inConsole = role === "admin" && gate === "allow";
   const dashPath = normalizeDashboardPath(path);
+
+  // F12: the e-mailed link's confirm page, whatever the session state (it may switch accounts).
+  if (dashPath === "/login/confirm") {
+    return serveDashboardConfirm(request, client.response);
+  }
 
   // /login is the staff sign-in document even with a leftover console session.
   // Putting it after inConsole made signed-in /login return plain "Not Found".

@@ -38,6 +38,7 @@ export const DC_MOCK_CANONICAL: Record<string, string> = {
   "/app/pages/cancellation": "/cancellation",
   "/app/pages/imprint": "/imprint",
   "/app/pages/sign-in": "/sign-in",
+  "/app/pages/sign-in-confirm": "/sign-in/confirm",
   "/app/pages/reset-password": "/reset-password",
   "/app/pages/manage-booking": "/manage-booking",
   "/app/pages/booking-detail": "/booking-detail",
@@ -51,6 +52,7 @@ export const DC_MOCK_CANONICAL: Record<string, string> = {
 const LEFTOVER_EXACT: readonly string[] = Object.freeze([
   "/become-a-partner",
   "/login",
+  "/login/confirm",
   "/ops",
 ]);
 

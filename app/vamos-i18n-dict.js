@@ -14,6 +14,8 @@
     /* Concatenated strings the code builds at runtime. Applied only when no
        exact entry matches; $1 is the captured tail. */
     patterns: [
+      { re: /^You are signed in as (.+)\. Continuing signs you out of that account\.$/,
+        de: 'Sie sind als $1 angemeldet. Wenn Sie fortfahren, werden Sie dort abgemeldet.', fr: 'Vous êtes connecté en tant que $1. Continuer vous déconnecte de ce compte.', ar: 'أنت مسجّل الدخول باسم $1. المتابعة تسجّل خروجك من هذا الحساب.' },
       { re: /^Saved on (.+)$/,
         de: 'Gespeichert am $1', fr: 'Enregistré le $1', ar: 'تم الحفظ في $1' },
       { re: /^Your driver is waiting at (.+)$/,
@@ -2194,6 +2196,18 @@
       'Quote first': { de: 'Zuerst quoten', fr: 'Devis d’abord', ar: 'سعّر أولاً' },
       'Not paid yet': { de: 'Noch nicht bezahlt', fr: 'Pas encore payé', ar: 'لم يُدفع بعد' },
       'Paid by card': { de: 'Mit Karte bezahlt', fr: 'Payé par carte', ar: 'مدفوع بالبطاقة' },
+      /* F12: the confirm screen an e-mailed sign-in link opens (/sign-in/confirm, /login/confirm). */
+      'Sign in to Vamos Taxi': { de: 'Bei Vamos Taxi anmelden', fr: 'Connexion à Vamos Taxi', ar: 'تسجيل الدخول إلى Vamos Taxi' },
+      'You are signing in as': { de: 'Sie melden sich an als', fr: 'Vous vous connectez en tant que', ar: 'أنت تسجّل الدخول باسم' },
+      'Only continue if this is your e-mail address.': { de: 'Fahren Sie nur fort, wenn dies Ihre E-Mail-Adresse ist.', fr: 'Continuez uniquement s’il s’agit de votre adresse e-mail.', ar: 'تابع فقط إذا كان هذا عنوان بريدك الإلكتروني.' },
+      'SIGN IN': { de: 'ANMELDEN', fr: 'SE CONNECTER', ar: 'تسجيل الدخول' },
+      'Not you?': { de: 'Nicht Sie?', fr: 'Ce n’est pas vous ?', ar: 'لست أنت؟' },
+      'Request a new link': { de: 'Neuen Link anfordern', fr: 'Demander un nouveau lien', ar: 'اطلب رابطًا جديدًا' },
+      'REQUEST A NEW LINK': { de: 'NEUEN LINK ANFORDERN', fr: 'DEMANDER UN NOUVEAU LIEN', ar: 'اطلب رابطًا جديدًا' },
+      'This link has expired or was already used.': { de: 'Dieser Link ist abgelaufen oder wurde bereits verwendet.', fr: 'Ce lien a expiré ou a déjà été utilisé.', ar: 'انتهت صلاحية هذا الرابط أو سبق استخدامه.' },
+      'Confirm your new e-mail address': { de: 'Neue E-Mail-Adresse bestätigen', fr: 'Confirmez votre nouvelle adresse e-mail', ar: 'أكّد عنوان بريدك الإلكتروني الجديد' },
+      'CONFIRM': { de: 'BESTÄTIGEN', fr: 'CONFIRMER', ar: 'تأكيد' },
+      'Could not sign you in. Try again.': { de: 'Die Anmeldung hat nicht geklappt. Bitte erneut versuchen.', fr: 'Connexion impossible. Réessayez.', ar: 'تعذّر تسجيل دخولك. حاول مرة أخرى.' },
     },
   };
 
