@@ -104,9 +104,9 @@ describe("T4 and T5 cancellation e-mail", () => {
 
   it("T5 is the second sentence of checkout.cancelSheetOps in every language, and in the dict", () => {
     for (const lang of LANGS) {
-      const ops = (JSON.parse(read(`apps/web/i18n/messages/${lang}.json`)) as { checkout: Record<string, string> }).checkout
+      const ops = (JSON.parse(read(`apps/web/i18n/messages/${lang}.json`)) as { checkout: Record<string, string | undefined> }).checkout
         .cancelSheetOps;
-      expect(ops.endsWith(T5[lang]), `${lang} cancelSheetOps`).toBe(true);
+      expect(ops?.endsWith(T5[lang]), `${lang} cancelSheetOps`).toBe(true);
     }
     expectInDict(T5);
   });
