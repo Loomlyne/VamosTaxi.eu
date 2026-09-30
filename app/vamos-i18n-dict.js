@@ -964,6 +964,9 @@
       'Max bags': { de: 'Max. Gepäckstücke', fr: 'Bagages max.', ar: 'أقصى حقائب' },
       'Choose photo': { de: 'Foto wählen', fr: 'Choisir une photo', ar: 'اختيار صورة' },
       'Add a checkout extra, extra-wait rate, or edit meet and greet and free wait. Meet and greet and free wait stay on for the customer.': { de: 'Checkout-Extra, Extra-Wartepreis oder Meet and greet und Freiwarten bearbeiten. Meet and greet und Freiwarten bleiben für den Kunden an.', fr: 'Ajoutez un extra de paiement, un tarif d’attente extra, ou modifiez l’accueil et l’attente libre. L’accueil et l’attente libre restent activés pour le client.', ar: 'أضف إضافة دفع أو سعر انتظار إضافي أو عدّل الاستقبال والانتظار المجاني. يبقى الاستقبال والانتظار المجاني مفعّلين للعميل.' },
+      // 26.2-p4 A5 (owner, 2026-09-30): Pricing > Extras empty list and tab hint.
+      'Add an extra. Customers choose it at checkout.': { de: 'Fügen Sie ein Extra hinzu. Kundinnen und Kunden wählen es beim Checkout.', fr: 'Ajoutez un extra. Les clients le choisissent au paiement.', ar: 'أضف إضافة. يختارها العملاء عند الدفع.' },
+      'Checkout extras': { de: 'Checkout-Extras', fr: 'Extras de paiement', ar: 'إضافات الدفع' },
       'Pick a row from the rules table above.': { de: 'Eine Zeile aus der Regel-Tabelle oben wählen.', fr: 'Choisissez une ligne dans le tableau des règles ci-dessus.', ar: 'اختر صفًا من جدول القواعد أعلاه.' },
       'Add a rule in the table above first.': { de: 'Zuerst eine Regel in der Tabelle oben hinzufügen.', fr: 'Ajoutez d’abord une règle dans le tableau ci-dessus.', ar: 'أضف قاعدة في الجدول أعلاه أولًا.' },
       'Applies when': { de: 'Gilt wenn', fr: 'S’applique quand', ar: 'تنطبق عندما' },

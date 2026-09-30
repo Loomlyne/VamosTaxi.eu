@@ -167,3 +167,138 @@ describe("A4 booking detail: the Extra wait tag is gone, Arrived stays", () => {
     expect(src).not.toMatch(/free_wait_minutes|waiting_amount_rappen/);
   });
 });
+
+// ── A5: Pricing > Extras ────────────────────────────────────────────────────────────────────
+
+type Column = { key: string; header: string; lookup: (r: Json) => string };
+type PricingVals = {
+  surcharges: Json[];
+  surchargeColumns: Column[];
+  surchargeSearchKeys: string[];
+  tEmptySurchargesBody: string;
+  panes: { label: string; hint: string }[];
+};
+type PricingComp = { state: Json; renderVals(): PricingVals };
+
+function pricing(rows: Json[]): { comp: PricingComp; T: Copy } {
+  const win = {
+    VamosLocale: locale,
+    VamosOpsApi: { request: () => Promise.resolve({ ok: true, data: [] }) },
+    VamosOps: {
+      CLASSES: [],
+      LOCATIONS: [],
+      routes: coll([]),
+      rates: coll([]),
+      bands: coll([]),
+      coupons: coll([]),
+      surcharges: coll(rows),
+      profile: { get: () => ({ role: "admin" }), onChange: () => noop },
+      onAny: () => noop,
+    },
+    innerWidth: 1440,
+    addEventListener: noop,
+    removeEventListener: noop,
+  };
+  const out = new Function(
+    "DCLogic", "window", "document",
+    `${scriptOf("OpsPricing.dc.html")}\nreturn { Component, T };`,
+  )(StubLogic, win, { addEventListener: noop, removeEventListener: noop }) as {
+    Component: new () => PricingComp;
+    T: Copy;
+  };
+  return { comp: new out.Component(), T: out.T };
+}
+
+/** The owner's one live extra: "Child seat", CHF 10.00 (his figure on /pricing, PLAN.md). */
+const childSeat: Json = {
+  id: "1",
+  code: "child-seat",
+  label: "child-seat",
+  name: "Child seat",
+  kind: "amount",
+  amounts: { CHF: "10.00" },
+  pct: "",
+};
+
+function cells(vals: PricingVals, row: Json): string[] {
+  return vals.surchargeColumns.map((c) => c.lookup(row));
+}
+
+describe("A5 Pricing > Extras: the Type column and the old type words are gone", () => {
+  it("the Extras table has two columns: name and amount", () => {
+    const vals = pricing([childSeat]).comp.renderVals();
+    expect(vals.surchargeColumns.map((c) => c.key)).toEqual(["label", "value"]);
+    expect(cells(vals, vals.surcharges[0]!)).toEqual(["Child seat", "CHF 10.00"]);
+  });
+
+  const OLD_CODES = ["meet_greet", "free_wait", "extra_wait", "waiting", "waiting_city", "waiting_airport"];
+  for (const code of OLD_CODES) {
+    it(`an extra stored under the code ${code} shows its own name and price, like any other extra`, () => {
+      const vals = pricing([childSeat, { ...childSeat, id: "2", code, label: code }]).comp.renderVals();
+      expect(cells(vals, vals.surcharges[1]!)).toEqual(cells(vals, vals.surcharges[0]!));
+      expect(vals.surcharges[1]).not.toHaveProperty("hours");
+    });
+  }
+
+  it("search does not index a type", () => {
+    const vals = pricing([childSeat]).comp.renderVals();
+    expect(vals.surchargeSearchKeys).not.toContain("type");
+  });
+
+  it("the copy table holds none of the type words or the meet-and-greet line, in four languages", () => {
+    const { T } = pricing([]);
+    const gone = ["surchargeType", "typeCheckoutExtra", "typeMeet", "typeFreeWait", "typeExtraWait", "notDeletableMeet"];
+    for (const lang of LANGS) for (const key of gone) expect(T[lang], `${lang}.${key}`).not.toHaveProperty(key);
+    const src = scriptOf("OpsPricing.dc.html");
+    expect(src).not.toMatch(/SURCHARGE_TYPES|surchargeTypeOf/);
+    expect(src).not.toMatch(/meet_greet|free_wait|extra_wait|waiting_city|waiting_airport/);
+  });
+
+  // Words about waiting, meet and greet or free wait, per language, as they stood at ff09120c.
+  const OLD_WORDS: Record<(typeof LANGS)[number], RegExp> = {
+    en: /wait|meet and greet/i,
+    de: /wart|meet and greet/i,
+    fr: /attente|accueil/i,
+    ar: /انتظار|استقبال/,
+  };
+
+  it("the Extras hint no longer talks about waiting or meet and greet; the rest stays", () => {
+    const { T } = pricing([]);
+    const want = { en: "Checkout extras", de: "Checkout-Extras", fr: "Extras de paiement", ar: "إضافات الدفع" };
+    for (const lang of LANGS) {
+      expect(T[lang].hintSurcharges, lang).not.toMatch(OLD_WORDS[lang]);
+      expect(T[lang].hintSurcharges, lang).toBe(want[lang]);
+    }
+  });
+
+  it("the empty list says: add an extra, customers choose it at checkout — in four languages", () => {
+    const want = {
+      en: "Add an extra. Customers choose it at checkout.",
+      de: "Fügen Sie ein Extra hinzu. Kundinnen und Kunden wählen es beim Checkout.",
+      fr: "Ajoutez un extra. Les clients le choisissent au paiement.",
+      ar: "أضف إضافة. يختارها العملاء عند الدفع.",
+    };
+    for (const lang of LANGS) {
+      const { comp, T } = pricing([]);
+      expect(T[lang].emptySurchargesBody, lang).not.toMatch(OLD_WORDS[lang]);
+      comp.state = { ...comp.state, lang, pane: "surcharges" };
+      expect(comp.renderVals().tEmptySurchargesBody, lang).toBe(want[lang]);
+    }
+    expect(want.de).not.toMatch(/ß/);
+  });
+
+  it("the rate-book payload carries no type derived from the code and no free-wait hours", () => {
+    const route = read("apps/web/app/[locale]/(ops)/api/staff/rate-book/route.ts");
+    expect(route).not.toMatch(/surchargeTypeFromCode/);
+    const m = route.match(/function mockSurcharges\([^)]*\)[^{]*\{([\s\S]*?)\n\}\n/);
+    expect(m?.[1]).toBeTruthy();
+    expect(m![1]).not.toMatch(/\btype\b|hours:/);
+  });
+
+  it("the dashboard data layer derives no type from the code", () => {
+    const data = read("app/vamos-ops-data.js");
+    const m = data.match(/function cleanSurcharge\(s\) \{([\s\S]*?)\n  \}\n/);
+    expect(m?.[1]).toBeTruthy();
+    expect(m![1]).not.toMatch(/meet_greet|free_wait|extra_wait|waiting|hours/);
+  });
+});

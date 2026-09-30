@@ -347,13 +347,12 @@ function mockRates(book: RateBook): Record<string, unknown>[] {
 }
 
 function mockSurcharges(book: RateBook): Record<string, unknown>[] {
+  // 26.2-p4 A5 (owner, 2026-09-30): the code decides nothing on the Pricing table; every row is an extra.
   return book.surcharges.map((row) => {
-    const type = surchargeTypeFromCode(row.code);
     return {
       id: String(row.id),
       code: row.code,
       label: row.code,
-      type,
       rule: row.appliesTo,
       ruleId: row.ruleId == null ? "" : String(row.ruleId),
       kind: row.kind,
@@ -364,18 +363,8 @@ function mockSurcharges(book: RateBook): Record<string, unknown>[] {
       pct: row.percent == null ? "" : String(row.percent),
       appliesTo: row.appliesTo,
       active: row.active,
-      hours: type === "free_wait" ? "" : "",
     };
   });
-}
-
-function surchargeTypeFromCode(code: string): string {
-  if (code === "meet_greet") return "meet_greet";
-  if (code === "free_wait") return "free_wait";
-  if (code === "extra_wait" || code === "waiting" || code === "waiting_city" || code === "waiting_airport") {
-    return "extra_wait";
-  }
-  return "checkout_extra";
 }
 
 function mockBands(book: RateBook): Record<string, unknown>[] {
