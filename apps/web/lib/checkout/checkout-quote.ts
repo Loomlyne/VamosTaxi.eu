@@ -8,6 +8,7 @@
 // Pure functions plus one fetch wrapper that takes its `fetch`, so the whole
 // path is testable without a browser.
 
+import { smallPhotoUrl } from "@/lib/photos/variant";
 import type { Trip } from "./trip-url";
 
 export type DisplayCurrency = "CHF" | "EUR" | "USD" | "AED";
@@ -130,7 +131,8 @@ function classView(raw: unknown): ClassView | null {
   return {
     slug: c.slug,
     name: typeof c.name === "string" && c.name ? c.name : c.slug,
-    photo: typeof c.photo_url === "string" ? c.photo_url : "",
+    // the class cards are at most ~210px wide: the 640 version covers 3x screens
+    photo: typeof c.photo_url === "string" ? smallPhotoUrl(c.photo_url, 640) : "",
     eligible,
     block: eligible ? null : (block ?? "unavailable"),
     pax: typeof c.effective_max_pax === "number" ? c.effective_max_pax : 0,

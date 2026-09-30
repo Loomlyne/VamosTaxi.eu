@@ -159,10 +159,11 @@ test.describe("Home laptop class cards @component", () => {
     const before = [await box(cards(page).nth(0)), await box(cards(page).nth(1)), await box(van)];
     const shotBefore = await eco.locator("[data-cc-shot]").boundingBox();
     const img = eco.locator("[data-cc-shot] img");
-    await expect(img).toHaveAttribute("src", "/photos/classes/fixture-economy.svg");
+    await expect(img).toHaveAttribute("src", "/photos/classes/fixture-economy.svg?w=640");
+    await expect(img).toHaveAttribute("srcset", "/photos/classes/fixture-economy.svg?w=640 640w");
     await expect(img).toHaveAttribute("alt", "Economy");
     await expect(img).toHaveAttribute("width", "640");
-    await expect(img).toHaveAttribute("height", "427");
+    await expect(img).toHaveAttribute("height", "640");
     await expect(img).toHaveAttribute("loading", "lazy");
     await expect(img).toHaveAttribute("decoding", "async");
     await expect.poll(() => img.evaluate((e: HTMLImageElement) => e.complete && e.naturalWidth > 0), { timeout: 8000 }).toBe(true);
@@ -188,7 +189,7 @@ test.describe("Home laptop class cards @component", () => {
 
   test("a photo that fails to load falls back to the car icon, never a broken image", async ({ page }) => {
     await stub(page);
-    await page.route("**/photos/classes/fixture-economy.svg", (route) => route.fulfill({ status: 404, body: "" }));
+    await page.route("**/photos/classes/fixture-economy.svg*", (route) => route.fulfill({ status: 404, body: "" }));
     await openHome(page, 1440, 1400);
     await expect(cards(page)).toHaveCount(3, { timeout: 6000 });
     await expect(cards(page).nth(0).locator("[data-cc-shot] img")).toHaveCount(0, { timeout: 6000 });

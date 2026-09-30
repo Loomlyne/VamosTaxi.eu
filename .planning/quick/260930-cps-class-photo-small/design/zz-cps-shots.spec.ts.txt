@@ -1,0 +1,90 @@
+// SCRATCH for quick 260930-cps: real-page pictures of the laptop home class cards. Copy to apps/web/tests/visual/zz-cps-shots.spec.ts, run with
+// --project=component-1440 --workers=1, then remove it. Real class photos (owner uploads, reduced copies in design/ph), FIXTURE prices.
+import { test, expect, type Page, type Route } from "@playwright/test";
+import { readFileSync } from "node:fs";
+import { serveMock, waitForMockReady } from "../support/mock-harness";
+
+const Q = "/Users/koss/Developer/vamos-wt/class-photo-small/.planning/quick/260930-cps-class-photo-small";
+const CLS = [
+  { slug: "economy", name: "Economy", pax: 3, bags: 3, t: 11100 },
+  { slug: "business", name: "Business", pax: 7, bags: 6, t: 22200 },
+  { slug: "van-luxury", name: "Van luxury", pax: 12, bags: 9, t: 33300 },
+];
+const PLACES = [
+  { mapbox_id: "mb-air-1", name: "Zurich Airport", address: "8058 Kloten", is_airport: true },
+  { mapbox_id: "mb-street-1", name: "Hotel Baur au Lac", address: "Talstrasse 1 · 8001", is_airport: false },
+];
+const cls = (priced: boolean) => CLS.map((c) => ({ slug: c.slug, name: c.name, eligible: true, ineligible_reason: null, effective_max_pax: c.pax, max_bags: c.bags, fixed_route: false, total_rappen: priced ? c.t : null, lines: [], photo_url: `/photos/classes/${c.slug}/x.png` }));
+async function stub(page: Page, slow = false) {
+  await page.route("**/photos/classes/**", (route) => {
+    const slug = new URL(route.request().url()).pathname.split("/")[3]!;
+    route.fulfill({ status: 200, contentType: "image/jpeg", body: readFileSync(`${Q}/design/ph/${slug}.jpg`) });
+  });
+  await page.route("**/api/geo/suggest**", async (route) => {
+    const q = (new URL(route.request().url()).searchParams.get("q") ?? "").toLowerCase();
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ suggestions: PLACES.filter((s) => s.name.toLowerCase().includes(q)) }) });
+  });
+  await page.route("**/api/geo/retrieve**", async (route) => {
+    const id = new URL(route.request().url()).searchParams.get("mapbox_id");
+    const hit = PLACES.find((s) => s.mapbox_id === id);
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, place: hit ? { mapbox_id: id, name: hit.name, isAirport: hit.is_airport } : null }) });
+  });
+  await page.route("**/api/flight/**", (r) => r.fulfill({ status: 200, contentType: "application/json", body: '{"ok":false}' }));
+  await page.route("**/api/quote", async (route: Route) => {
+    if (route.request().method() === "GET") return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, classes: cls(false), fixed_routes: [] }) });
+    if (slow) await new Promise((r) => setTimeout(r, 4000));
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, quote_id: "q", lock: "l", expires_at: "2099-01-01T00:00:00Z", pricing_live: true, display_currency: "CHF", classes: cls(true) }) });
+  });
+}
+async function fill(page: Page) {
+  await page.getByRole("combobox", { name: "From", exact: true }).fill("Zurich Air");
+  await page.getByRole("option").filter({ hasText: "8058 Kloten" }).first().click();
+  await page.locator('#book input[id$="-flight"], #book [data-bx="flight"] input').first().fill("LX318");
+  await page.getByRole("combobox", { name: "To", exact: true }).fill("Baur");
+  await page.getByRole("option").filter({ hasText: "Talstrasse 1 · 8001" }).first().click();
+  await page.locator('[data-bx="when"] button[aria-haspopup="dialog"]').click();
+  const d = page.getByRole("dialog", { name: "When" });
+  await d.getByRole("button", { name: "Next month" }).click();
+  await d.getByRole("button", { name: "5", exact: true }).click();
+  const saved = d.getByRole("button", { name: "Saved" });
+  if (await saved.isVisible().catch(() => false)) await saved.click();
+  await page.keyboard.press("Escape");
+}
+const settle = async (page: Page) => { await page.waitForFunction(() => [...document.images].every((i) => i.complete), null, { timeout: 20000 }); await page.waitForTimeout(500); };
+
+for (const w of [1440, 1100]) {
+  test(`cps home ${w} @component`, async ({ page }, ti) => {
+    test.skip(ti.project.name !== "component-1440");
+    test.setTimeout(180_000);
+    await stub(page, true);
+    await page.setViewportSize({ width: w, height: 900 });
+    await page.goto(await serveMock("app/home/home.dc.html"));
+    await waitForMockReady(page);
+    const a = page.getByRole("button", { name: /Accept all/i });
+    if (await a.isVisible().catch(() => false)) await a.click();
+    const cc = page.locator("[data-cc]");
+    await expect(page.locator("[data-cc-card]:not([data-skel])")).toHaveCount(3, { timeout: 8000 });
+    await cc.scrollIntoViewIfNeeded();
+    await settle(page);
+    await page.screenshot({ path: `${Q}/screens/built-home-${w}-page-from-load.png` });
+    for (const l of ["en", "de", "ar"]) {
+      await page.evaluate((x) => (window as any).VamosLocale.setLang(x), l);
+      await page.waitForTimeout(500);
+      await cc.screenshot({ path: `${Q}/screens/built-home-${w}-before-trip-${l}.png` });
+    }
+    await page.evaluate(() => (window as any).VamosLocale.setLang("en"));
+    await page.waitForTimeout(400);
+    await fill(page);
+    await expect(page.locator("[data-cc-price-sk]").first()).toBeVisible({ timeout: 6000 });
+    await cc.screenshot({ path: `${Q}/screens/built-home-${w}-loading-en.png` });
+    await expect(page.locator("[data-cc-card]").first().locator("[data-cc-price]:not([data-cc-need])")).toBeVisible({ timeout: 10000 });
+    await settle(page);
+    for (const l of ["en", "de", "ar"]) {
+      await page.evaluate((x) => (window as any).VamosLocale.setLang(x), l);
+      await page.waitForTimeout(500);
+      await cc.screenshot({ path: `${Q}/screens/built-home-${w}-priced-${l}.png` });
+    }
+    const over = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(over).toBeLessThanOrEqual(0);
+  });
+}

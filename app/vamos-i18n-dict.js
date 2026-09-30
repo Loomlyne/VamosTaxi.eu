@@ -2201,6 +2201,7 @@
     P.push({ re: /^Up to (\d+) bags$/, de: 'Bis zu $1 Gepäckstücke', fr: 'Jusqu’à $1 bagages', ar: 'حتى $1 حقائب' });
     P.push({ re: /^Seats up to (\d+)$/, de: 'Plätze bis $1', fr: 'Jusqu’à $1 places', ar: 'مقاعد حتى $1' });
     P.push({ re: /^Bags up to (\d+)$/, de: 'Gepäck bis $1', fr: 'Jusqu’à $1 bagages', ar: 'حقائب حتى $1' });
+    P.push({ re: /^(\d+) seats$/, de: '$1 Plätze', fr: '$1 places', ar: '$1 مقاعد' });
   })();
 
   /* 26.3-G2 — account surfaces: values the code builds or the API supplies.
