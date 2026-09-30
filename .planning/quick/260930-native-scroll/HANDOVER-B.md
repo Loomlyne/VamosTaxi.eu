@@ -1,6 +1,6 @@
 # Site speed, hand-over B: native scrolling
 
-Branch `fix/native-scroll`, cut from `origin/main` `51b851e3`; `origin/main` `3b4f86d8` (site speed A live) merged, no conflict. Commits by name: `8e55ef0a` (mock side), `4cc006cb` (design-system bundle), `a334bab2` (Next side), `c66ac56e` (rules and docs), then the merge and one test fix (see the last commits on the branch). No push, no deploy, no database change.
+Branch `fix/native-scroll`, cut from `origin/main` `51b851e3`; `origin/main` `3b4f86d8` (site speed A live) merged, no conflict. Commits by name: `8e55ef0a` (mock side), `4cc006cb` (design-system bundle), `a334bab2` (Next side), `c66ac56e` (rules and docs), `657c638f` (merge of main), `bb9021f0` (guard test), `1314bae6` (this hand-over). No push, no deploy, no database change.
 **Waits for the class cards and Phase 27 to land on `main`** (control session's order); merge `main` again and re-run before it is taken. Expect conflicts only in `app/home/home.dc.html`, `app/home/BookingSheet.dc.html` and any file those sessions still edit; each of my edits there is one removed Lenis line or comment.
 Owner's word: "Remove both, native scrolling" (question form, 2026-09-30), which also changes the Lenis rule in root `CLAUDE.md`.
 
@@ -41,7 +41,7 @@ What remains on home (1000 style recalcs laptop) is home's own scroll listeners 
 ## Proof (local Worker build, `native.mjs`, all PASS)
 
 For `/`, `/faq`, `/about`, `/contact`, `/sign-in`: no request for a Lenis file, no `VamosScroll`/`Lenis`/`__vtLenis` global, no `--vt-scroll` on `<html>` after scrolling, wheel moves the page (1440 px after 12 ticks on the four long pages). `/faq` with a body lock: wheel does **not** move the page (scrollY 0; before, `VamosScroll` moved it 714 px behind a lock), and moves it again once the lock is released. Phone `/faq` at 390 with touch: swipe moves the page; the real menu locks the body and the page behind does not move; Escape releases the lock and the swipe works again.
-`git grep -n -i "VamosScroll\|vt-scroll\|vamos:scroll" -- . ':!archive' ':!.planning'` now finds only the readme's removal note and `.claude/CLAUDE.md`'s rule text; nothing in `app/`, `assets/` or `apps/web` reads the property, the event or the global.
+`git grep -n -i "VamosScroll\|vt-scroll\|vamos:scroll" -- . ':!archive' ':!.planning'` now finds only the readme's removal note and the `github.md` removal entry; nothing in `app/`, `assets/` or `apps/web` reads the property, the event or the global.
 
 ## Checks
 
