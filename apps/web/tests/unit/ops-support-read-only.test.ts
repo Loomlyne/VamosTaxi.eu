@@ -32,6 +32,17 @@ describe("dashboard support is read-only @security F2", () => {
     expect(ticket).toContain("mailHref: open ? ('mailto:' + open.email) : ''");
   });
 
+  it("the ticket file route only ever downloads, sandboxed and nosniff", () => {
+    const route = readFileSync(
+      join(repoRoot, "apps/web/app/[locale]/(ops)/api/staff/tickets/[id]/files/[fileId]/route.ts"),
+      "utf8",
+    );
+    expect(route).not.toMatch(/"inline"/);
+    expect(route).toContain('return `attachment; filename="${safe}"`;');
+    expect(route).toContain('"X-Content-Type-Options": "nosniff"');
+    expect(route).toContain(`"Content-Security-Policy": "sandbox; default-src 'none'"`);
+  });
+
   it("has the new strings in en, de, fr and ar", () => {
     expect((ticket.match(/answer:'/g) ?? []).length).toBe(4);
     expect((ticket.match(/mailHint:'/g) ?? []).length).toBe(4);
