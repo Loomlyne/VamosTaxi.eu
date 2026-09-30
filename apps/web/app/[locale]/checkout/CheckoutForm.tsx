@@ -457,6 +457,14 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
         answer = null;
       }
       const quotable = tripIsQuotable(tripRef.current);
+      if (!answer || answer.state === "none" || answer.state === "purged") {
+        // D-16 / G2: this browser cannot resume that booking, so it must not pass the other
+        // browser's quote id on. The link keeps the trip, class and extras (D-16a).
+        const kept = buildTripQuery(tripRef.current);
+        if (window.location.search.replace(/^\?/, "") !== kept) {
+          window.history.replaceState(window.history.state, "", `${window.location.pathname}?${kept}`);
+        }
+      }
       if (!answer || answer.state === "none") {
         if (!quotable) flow.resumeFailed();
         return;
