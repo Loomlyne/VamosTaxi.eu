@@ -342,6 +342,8 @@ class Component extends DCLogic {
     if (st.pickupAir && !flight) { this.setState({ flightError: 'Enter the flight number' }); return; }
     var shown = st.fareRappen;
     if (!(shown > 0)) { this.setState({ error: 'need-quote' }); return; }
+    // 26.2-bp C1: a ticked extra or a new class keeps the old fare on screen while the new one is priced; wait for it
+    if (st.priceBusy) { this.setState({ error: 'price-changed' }); return; }
     this.setState({ saving: true, error: '', flightError: '' });
     var flightKeyNow = flight ? flight.flight : '';
     var ready = Promise.resolve({ quoteId: st.quoteId, lock: st.lock });
