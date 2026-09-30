@@ -33,6 +33,12 @@ import { policyHours } from "@/lib/checkout/policy-settings";
 import { loadCheckoutReprice } from "@/lib/checkout/reprice";
 import type { IntentRecompute } from "@/lib/quote/intent";
 import { publicSiteOrigin, csrfForbidden } from "@/lib/security/origin";
+import {
+  intentIpAllowed,
+  intentLimitResponse,
+  notePayPressFromEnv,
+  payPressAllowed,
+} from "@/lib/checkout/intent-limits";
 import { gateAccountForRequest } from "@/lib/checkout/account-gate";
 import { truncateClientIp, cfConnectingIp } from "@/lib/consent/ip";
 
@@ -65,6 +71,11 @@ async function postIntent(request: Request) {
   if (blocked) return blocked;
   const { env } = getCloudflareContext();
 
+  // D-20 (a): 8 Pay presses per minute per IP, before anything is read or checked.
+  if (!(await intentIpAllowed(env.INTENT_RATE_LIMITER, cfConnectingIp(request.headers) ?? "unknown"))) {
+    return intentLimitResponse("rate_limited");
+  }
+
   let json: unknown;
   try {
     json = await request.json();
@@ -77,6 +88,11 @@ async function postIntent(request: Request) {
     return refuse("invalid_request");
   }
   const body = parsed.data;
+
+  // D-20 (b): at most 5 Pay presses per price. A replay (same idempotency key) is not counted.
+  if (!(await payPressAllowed(notePayPressFromEnv(env), body.quote_id, body.idempotency_key))) {
+    return intentLimitResponse("pay_limit");
+  }
 
   const { postgresNowIso, vehicleClassId } = await asQuote(env, async (sql) => {
     const rows = await sql`select now() as now`;

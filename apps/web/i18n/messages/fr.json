@@ -690,6 +690,8 @@
     "acctGuestNotice": "Nous créons un compte pour cette adresse e-mail afin que vous puissiez consulter votre réservation plus tard. Aucun mot de passe requis. Nous vous envoyons un lien pour vous connecter.",
     "acctCreateConsentError": "Cochez la case pour accepter les conditions générales et confirmer la déclaration de confidentialité.",
     "acctEmailHint": "Utilisez l’adresse e-mail de votre compte",
+    "payLimit": "Trop d'essais. Obtenez un nouveau prix et réessayez.",
+    "payRateLimited": "Trop d'essais. Attendez une minute et réessayez.",
     "acctSendLink": "M’envoyer un lien de connexion",
     "acctSending": "Envoi du lien",
     "acctMoreWays": "Autres moyens de connexion",

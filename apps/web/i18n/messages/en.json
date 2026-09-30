@@ -690,6 +690,8 @@
     "acctGuestNotice": "We create an account for this email so you can see your booking later. No password needed. We send you a link to sign in.",
     "acctCreateConsentError": "Tick the box to accept the Terms and confirm the Privacy notice.",
     "acctEmailHint": "Use the email on your account",
+    "payLimit": "Too many tries. Get a new price and try again.",
+    "payRateLimited": "Too many tries. Wait a minute and try again.",
     "acctSendLink": "Email me a sign-in link",
     "acctSending": "Sending link",
     "acctMoreWays": "More ways to sign in",
