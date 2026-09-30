@@ -38,6 +38,9 @@ const catalogs: Record<EmailLocale, Catalog> = {
       "email-reauth-heading": "Confirm it's you",
       "email-reauth-lead": "Enter the code below to continue. It expires after 1 hour.",
       "email-reauth-cta": "Continue",
+      "email-hello": "Hello {name}.",
+      "email-footer-link": "This link works once and expires after 1 hour.",
+      "email-code-label": "Or enter this code",
     },
   },
   de: {
@@ -74,6 +77,9 @@ const catalogs: Record<EmailLocale, Catalog> = {
       "email-reauth-heading": "Bestätigen Sie, dass Sie es sind",
       "email-reauth-lead": "Geben Sie den Code unten ein, um fortzufahren. Er läuft nach 1 Stunde ab.",
       "email-reauth-cta": "Weiter",
+      "email-hello": "Hallo {name}.",
+      "email-footer-link": "Der Link gilt einmal und läuft nach 1 Stunde ab.",
+      "email-code-label": "Oder geben Sie diesen Code ein",
     },
   },
   fr: {
@@ -110,6 +116,9 @@ const catalogs: Record<EmailLocale, Catalog> = {
       "email-reauth-heading": "Confirmez que c'est bien vous",
       "email-reauth-lead": "Saisissez le code ci-dessous pour continuer. Il expire après 1 heure.",
       "email-reauth-cta": "Continuer",
+      "email-hello": "Bonjour {name}.",
+      "email-footer-link": "Le lien fonctionne une fois et expire après 1 heure.",
+      "email-code-label": "Ou saisissez ce code",
     },
   },
   ar: {
@@ -146,6 +155,9 @@ const catalogs: Record<EmailLocale, Catalog> = {
       "email-reauth-heading": "أكد أنك أنت",
       "email-reauth-lead": "أدخل الرمز أدناه للمتابعة. ينتهي بعد ساعة.",
       "email-reauth-cta": "متابعة",
+      "email-hello": "مرحبا {name}.",
+      "email-footer-link": "الرابط يعمل مرة واحدة وينتهي بعد ساعة.",
+      "email-code-label": "أو أدخل هذا الرمز",
     },
   },
 };
