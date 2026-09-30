@@ -232,6 +232,9 @@ describe("2 · OpsCars — the list and the edit box", () => {
     expect(f.map((x) => x.key)).toEqual(["photo", "plate", "model", "vehicleClassId", "seats", "bags", "status"]);
     expect(f.filter((x) => x.required).map((x) => x.key)).toEqual(["plate", "model", "vehicleClassId"]);
     expect(f.find((x) => x.key === "photo")).toMatchObject({ editor: "photo", photoKind: "vehicle", upload: "/api/photos/upload" });
+    // Pictures at 390 (en and ar): half-width Plate and Model cut "ZH 000 000" and the model name.
+    expect(f.find((x) => x.key === "plate")).not.toHaveProperty("half");
+    expect(f.find((x) => x.key === "model")).not.toHaveProperty("half");
     expect(f.find((x) => x.key === "seats")).toMatchObject({ editor: "number", min: 1, max: 16 });
     expect(f.find((x) => x.key === "bags")).toMatchObject({ editor: "number", min: 0, max: 16 });
     expect(f.find((x) => x.key === "status")?.options).toEqual([
@@ -413,6 +416,13 @@ describe("5 · the store keeps the seat ids; the page keeps the platform laws", 
     await new Promise((r) => setImmediate(r));
     expect(calls).toBe(1);
     expect(heard).toBeGreaterThan(0);
+  });
+
+  it("Arabic: the shared table's headers sit over their own column (the kit's th is text-align:left)", () => {
+    // Pictures (Cars, and main's Chauffeurs) in Arabic: every header sat at the physical left of its
+    // column while the cells sat at the right. OpsTable only fixed it for a table that fills its box.
+    const table = read("app/ops/OpsTable.dc.html");
+    expect(table).toMatch(/\[data-vt-table-scroll\] \.vt-table th\{text-align:start\}/);
   });
 
   it("no glow, no tinted yellow, logical properties only, the two law lines in its helmet", () => {
