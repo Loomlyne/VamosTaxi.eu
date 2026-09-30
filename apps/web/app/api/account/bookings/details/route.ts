@@ -22,9 +22,11 @@ export async function GET(request: Request) {
   if (!/^[A-Z0-9-]{4,32}$/.test(reference)) {
     return NextResponse.json({ ok: false }, { status: 404, headers: noStore });
   }
+  const email = claims.email;
   const { env } = await getCloudflareContext({ async: true });
   try {
-    const payload = await asCustomer(env, claims, async (sql) => {
+    type Answer = { extras: unknown; refundStatus: string; refundOwedRappen: number } | null;
+    const payload = await asCustomer(env, claims, async (sql): Promise<Answer> => {
       const rows = await sql<{ payload: unknown }[]>`
         select public.customer_booking_extras(${reference}) as payload
       `;
@@ -37,7 +39,7 @@ export async function GET(request: Request) {
         select b.refund_status::text as refund_status, b.refund_owed_rappen
           from public.bookings as b
          where b.reference = ${reference}
-           and lower(b.contact_email::text) = lower(${claims.email})
+           and lower(b.contact_email::text) = lower(${email})
          limit 1
       `;
       const owed = Number(refund[0]?.refund_owed_rappen ?? 0);
