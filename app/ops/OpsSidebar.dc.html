@@ -11,11 +11,10 @@
 <style>
 [data-nav-badge]{margin-inline-start:auto;min-width:18px;height:18px;padding:0 5px;border-radius:999px;font-size:11px;font-weight:600;line-height:18px;align-items:center;justify-content:center}
 [data-rail-profile]{display:block}
-@media (max-width:899px){
+@media (max-width:1080px){
   [data-rail-toggle]{display:none!important}
-  [data-rail-profile]{display:none!important}
 }
-@media (min-width:900px){
+@media (min-width:1081px){
   [data-rail-profile]{display:block!important}
 }
 </style>
@@ -257,7 +256,7 @@ class Component extends DCLogic {
   renderVals() {
     const active = this.props.active || 'dashboard';
     const lang = this.state.lang;
-    const drawer = (typeof window !== 'undefined' && window.matchMedia) ? window.matchMedia('(max-width: 899px)').matches : false;
+    const drawer = (typeof window !== 'undefined' && window.matchMedia) ? window.matchMedia('(max-width: 1080px)').matches : false;
     const col = drawer ? false : this.state.collapsed;
     const t = COPY[lang] || COPY.en;
     const profile = window.VamosOps ? window.VamosOps.profile.get() : {};
@@ -299,7 +298,8 @@ class Component extends DCLogic {
     return {
       n14: 14, n16: 16, n18: 18, n22: 22, n26: 26,
       toggleShow: drawer ? 'none' : 'flex',
-      profileShow: drawer ? 'none' : 'block',
+      // 260930-dash-design: the phone bar has no avatar any more, so the drawer carries the profile row.
+      profileShow: 'block',
       railWidth: col ? '76px' : '236px',
       labelShow: col ? 'none' : 'inline-flex',
       kickerShow: col ? 'none' : 'block',

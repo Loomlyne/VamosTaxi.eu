@@ -26,25 +26,10 @@
 [data-ops-refund-unit] .vt-tab{height:44px;min-width:72px}
 [data-ops-decide-body]{margin:0;font-size:var(--vt-body-sm);line-height:1.6;color:var(--vt-text-secondary);text-wrap:pretty}
 [data-ops-decide-foot]{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--vt-border-subtle)}
-[data-ops-detail-bar]{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:start;column-gap:12px;row-gap:10px;width:100%}
-[data-ops-bar-nav]{grid-column:1;display:flex;flex-wrap:nowrap;align-items:center}
-[data-ops-bar-main]{grid-column:2;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px}
-[data-ops-bar-end]{grid-column:3;justify-self:end;margin-inline-start:auto;display:flex;flex-wrap:nowrap;align-items:center;gap:8px}
-[data-ops-bar-cluster]{display:flex;flex-wrap:nowrap;align-items:center;gap:8px}
-[data-ops-bar-cluster]:not(:has(x-import,button,.vt-btn)){display:none}
-[data-ops-bar-cluster]:has(.vt-btn)~[data-ops-bar-cluster]:has(.vt-btn),[data-ops-bar-cluster]:has(x-import)~[data-ops-bar-cluster]:has(x-import){padding-inline-start:16px;border-inline-start:1px solid var(--vt-border-subtle)}
-@media (max-width:860px){
-[data-ops-detail-bar]{grid-template-columns:auto minmax(0,1fr)}
-[data-ops-bar-nav]{grid-column:1;grid-row:1}
-[data-ops-bar-end]{grid-column:2;grid-row:1;justify-self:end;min-width:0;flex-wrap:wrap;justify-content:flex-end}
-[data-ops-bar-main]{grid-column:1/-1;grid-row:2}
-}
-@media (max-width:520px){
-[data-ops-detail-bar]{grid-template-columns:minmax(0,1fr)}
-[data-ops-bar-nav]{grid-column:1;grid-row:1}
-[data-ops-bar-end]{grid-column:1;grid-row:2;justify-self:start;margin-inline-start:0}
-[data-ops-bar-main]{grid-column:1;grid-row:3}
-}
+[data-ops-detail-bar]{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 12px;width:100%}
+[data-ops-bar-nav]{display:flex;flex-wrap:nowrap;align-items:center;min-width:0}
+[data-ops-bar-end]{margin-inline-start:auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:8px;min-width:0}
+[data-ops-bar-end]:not(:has(x-import,dc-import,button,.vt-btn)){display:none}
 [data-ops-detail-col]{min-width:0;width:100%;display:flex;flex-direction:column;gap:14px}
 [data-ops-route-leg]{display:grid;grid-template-columns:14px minmax(0,1fr);grid-template-rows:auto auto auto;column-gap:12px;align-items:stretch}
 [data-ops-route-pip]{grid-column:1;grid-row:1;align-self:start;margin-top:4px;position:relative;z-index:1;inline-size:10px;block-size:10px;border-radius:var(--vt-radius-pill);background:var(--vt-accent);border:2px solid var(--vt-charcoal-900);box-sizing:content-box}
@@ -61,11 +46,21 @@
 [data-ops-tags]{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
 [data-ops-tag]{display:inline-flex;align-items:center;gap:6px;min-height:28px;padding:4px 10px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-pill);background:var(--vt-bg-surface);font-family:var(--vt-font-body);font-size:var(--vt-body-xs);line-height:1.3;color:var(--vt-text-primary)}
 [data-ops-tag] b{font-weight:600;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-muted);font-size:10px}
-[data-ops-assign-head]{display:flex;align-items:center;gap:12px;padding-bottom:12px;border-bottom:1px solid var(--vt-border-subtle)}
-[data-ops-assign-body]{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:12px}
-[data-ops-assign-list]{flex:1 1 220px;min-width:0}
-[data-ops-assign-side]{flex:0 0 auto;display:flex;align-items:center;gap:8px}
-[data-ops-assign-side]:not(:has(.vt-btn,x-import)){display:none}
+[data-ops-assign-pick]{grid-column:2;min-width:0;max-inline-size:560px;display:flex;flex-direction:column;gap:12px;margin-top:4px}
+[data-ops-drv-list]{display:flex;flex-direction:column;gap:8px;min-width:0}
+[data-ops-drv]{box-sizing:border-box;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-bg-surface);transition:background 140ms cubic-bezier(.2,0,.2,1),border-color 140ms cubic-bezier(.2,0,.2,1)}
+[data-ops-drv]:hover{background:var(--vt-grey-50)}
+[data-ops-drv][data-sel="1"]{border:2px solid var(--vt-charcoal-900)}
+[data-ops-drv] .vt-check{display:flex;box-sizing:border-box;width:100%;min-height:48px;padding:11px 13px}
+[data-ops-drv][data-sel="1"] .vt-check{padding:10px 12px}
+[data-ops-drv] .vt-check__text > span:first-child{font-weight:600;overflow-wrap:anywhere}
+[data-ops-assign-note]{margin:0;font-size:var(--vt-body-sm);line-height:1.5;color:var(--vt-text-muted)}
+[data-ops-assign-err]{margin:0;display:flex;align-items:flex-start;gap:8px;font-size:var(--vt-body-sm);line-height:1.5;color:var(--vt-danger);text-wrap:pretty}
+[data-ops-assign-err] > :first-child{flex:0 0 auto;margin-top:2px}
+[data-ops-assign-foot]{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+@media (max-width:520px){
+[data-ops-assign-pick]{grid-column:1/-1}
+}
 [data-ops-pax] > h3{overflow:visible;white-space:normal}
 [data-ops-pax-grid]{display:grid;grid-template-columns:minmax(7rem,132px) minmax(0,1fr);gap:8px 14px;align-items:start;font-family:var(--vt-font-body);font-size:var(--vt-body-sm)}
 [data-ops-pax-k]{color:var(--vt-text-muted);min-width:0;padding-top:2px}
@@ -77,42 +72,11 @@
 <div data-ops-bar-nav>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" icon="chevron-left" onClick="{{ goBack }}" hint-size="auto,36px">{{ tBackToBookings }}</x-import>
 </div>
-<div data-ops-bar-main>
-<sc-if value="{{ viewing }}" hint-placeholder-val="{{ true }}">
-<div data-ops-bar-cluster data-ops-bar-assign>
-<sc-if value="{{ canAssign }}" hint-placeholder-val="{{ true }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="{{ assignVariant }}" onClick="{{ openAssignDialog }}" hint-size="170px,36px">{{ assignLabel }}</x-import>
-</sc-if>
-<sc-if value="{{ canUnassign }}" hint-placeholder-val="{{ false }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ confirmUnassign }}" hint-size="110px,36px">{{ tUnassign }}</x-import>
-</sc-if>
-</div>
-<div data-ops-bar-cluster data-ops-bar-utils>
-<sc-if value="{{ canEdit }}" hint-placeholder-val="{{ true }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" icon="pencil" onClick="{{ openEdit }}" hint-size="140px,36px">{{ tEditBooking }}</x-import>
-</sc-if>
-</div>
-<div data-ops-bar-cluster data-ops-bar-trip>
-<sc-if value="{{ canAction }}" hint-placeholder-val="{{ true }}">
-<dc-import name="BrandSelect" size="compact" icon="settings" placeholder="{{ tAction }}" value="{{ actionValue }}" options="{{ actionOptions }}" onSelect="{{ pickAction }}" a11y-label="{{ tAction }}" hint-size="160px,36px"></dc-import>
-</sc-if>
-<sc-if value="{{ canNoShow }}" hint-placeholder-val="{{ true }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ markNoShow }}" hint-size="120px,36px">{{ tNoShow }}</x-import>
-</sc-if>
-</div>
-</sc-if>
-</div>
 <div data-ops-bar-end>
-<sc-if value="{{ viewing }}" hint-placeholder-val="{{ true }}">
-<sc-if value="{{ canCancel }}" hint-placeholder-val="{{ true }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="danger" icon="x" onClick="{{ openCancel }}" hint-size="110px,36px">{{ tCancelBooking }}</x-import>
-</sc-if>
-<sc-if value="{{ canFullRefund }}" hint-placeholder-val="{{ false }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="primary" disabled="{{ refundBusy }}" onClick="{{ markRefund }}" hint-size="200px,36px">{{ tMarkRefund }}</x-import>
-</sc-if>
-<sc-if value="{{ postTripEligible }}" hint-placeholder-val="{{ false }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="primary" disabled="{{ refundBusy }}" onClick="{{ openRequested }}" hint-size="200px,36px">{{ tMarkRefund }}</x-import>
-</sc-if>
+<sc-if value="{{ showActions }}" hint-placeholder-val="{{ true }}">
+<div data-ops-fold="1">
+<dc-import name="ActionsMenu" label="{{ tActions }}" items="{{ actionItems }}" onPick="{{ pickAction }}" tone="light" size="sm" hint-size="130px,36px"></dc-import>
+</div>
 </sc-if>
 <sc-if value="{{ editing }}" hint-placeholder-val="{{ false }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ cancelEdit }}" hint-size="110px,36px">{{ tCancelEdit }}</x-import>
@@ -172,29 +136,43 @@
 </sc-for>
 </div>
 
-<div data-ops-assign>
-<div data-ops-assign-head>
-<span style="flex:1 1 auto;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:600;color:var(--vt-text-muted)">{{ tAssignment }}</span>
-</div>
-<div data-ops-assign-body>
-<div data-ops-assign-list>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.List" hint-size="100%,72px">
+<div data-ops-assign ref="{{ assignRef }}">
+<h3 style="margin:0 0 12px;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:600;color:var(--vt-text-muted)">{{ tAssignment }}</h3>
+<div data-ops-pax-grid>
+<span data-ops-pax-k>{{ tDriver }}</span>
 <sc-if value="{{ hasDriver }}" hint-placeholder-val="{{ false }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.ListRow" icon="car-front" title="{{ driverName }}" subtitle="{{ driverVehicle }}" hint-size="100%,60px"></x-import>
+<span data-ops-pax-v data-vt-no-i18n="1" style="font-weight:600">{{ driverName }}</span>
 </sc-if>
 <sc-if value="{{ noDriver }}" hint-placeholder-val="{{ true }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.ListRow" icon="triangle-alert" title="{{ tNoDriver }}" subtitle="{{ tNoDriverSub }}" hint-size="100%,60px"></x-import>
+<span data-ops-pax-v style="display:flex;flex-direction:column;gap:2px"><span>{{ tNoDriver }}</span><span style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tNoDriverSub }}</span></span>
 </sc-if>
-</x-import>
+<sc-if value="{{ hasDriver }}" hint-placeholder-val="{{ false }}">
+<span data-ops-pax-k>{{ tCar }}</span>
+<span data-ops-pax-v data-vt-no-i18n="1">{{ carLine }}</span>
+</sc-if>
+<sc-if value="{{ showAssignPicker }}" hint-placeholder-val="{{ true }}">
+<div data-ops-assign-pick>
+<div data-ops-drv-list role="radiogroup" aria-label="{{ tChooseDriver }}" data-vt-no-i18n="1">
+<sc-for list="{{ assignRows }}" as="d" hint-placeholder-count="2">
+<div data-ops-drv data-sel="{{ d.selAttr }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Radio" name="ops-assign-driver" value="{{ d.id }}" label="{{ d.name }}" description="{{ d.car }}" checked="{{ d.checked }}" onChange="{{ d.pick }}" hint-size="100%,56px"></x-import>
 </div>
-<div data-ops-assign-side>
-<sc-if value="{{ showAssignSide }}" hint-placeholder-val="{{ true }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="primary" onClick="{{ openAssignDialog }}" hint-size="140px,36px">{{ tAssign }}</x-import>
-</sc-if>
-<sc-if value="{{ canUnassign }}" hint-placeholder-val="{{ false }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ confirmUnassign }}" hint-size="110px,36px">{{ tUnassign }}</x-import>
+</sc-for>
+<sc-if value="{{ noDrivers }}" hint-placeholder-val="{{ false }}">
+<p data-ops-assign-note>{{ tNoDrivers }}</p>
 </sc-if>
 </div>
+<sc-if value="{{ hasAssignError }}" hint-placeholder-val="{{ false }}">
+<p data-ops-assign-err role="alert"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="triangle-alert" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import><span data-vt-no-i18n="1">{{ assignError }}</span></p>
+</sc-if>
+<div data-ops-assign-foot>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="primary" disabled="{{ assignDisabled }}" onClick="{{ confirmAssign }}" hint-size="170px,44px">{{ tAssign }}</x-import>
+<sc-if value="{{ assignCancelable }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" onClick="{{ closeAssign }}" hint-size="110px,44px">{{ tCancel }}</x-import>
+</sc-if>
+</div>
+</div>
+</sc-if>
 </div>
 </div>
 
@@ -304,7 +282,7 @@
 </div>
 </sc-if>
 <sc-if value="{{ refundFormShown }}" hint-placeholder-val="{{ false }}">
-<div data-ops-refund-region>
+<div data-ops-refund-region ref="{{ refundRef }}">
 <sc-if value="{{ reviewShown }}" hint-placeholder-val="{{ false }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="info" title="{{ tReviewTitle }}" hint-size="100%,70px">{{ tReviewBody }}</x-import>
 </sc-if>
@@ -350,7 +328,7 @@
 </div>
 </sc-if>
 <sc-if value="{{ requestedShown }}" hint-placeholder-val="{{ false }}">
-<div data-ops-refund-region>
+<div data-ops-refund-region ref="{{ refundRef }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="info" title="{{ tRequestedTitle }}" hint-size="100%,70px">{{ tRequestedBody }}</x-import>
 <div data-ops-refund-row>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="primary" disabled="{{ refundBusy }}" aria-busy="{{ acceptBusy }}" onClick="{{ acceptPostTrip }}" hint-size="170px,44px">{{ tAcceptRefund }}</x-import>
@@ -359,7 +337,7 @@
 </div>
 </sc-if>
 <sc-if value="{{ refundFailedShown }}" hint-placeholder-val="{{ false }}">
-<div data-ops-refund-region>
+<div data-ops-refund-region ref="{{ refundRef }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" title="{{ tRefundFailedTitle }}" hint-size="100%,70px">{{ tRefundFailedBody }}</x-import>
 <div data-ops-refund-row>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" disabled="{{ refundBusy }}" onClick="{{ retryRefund }}" hint-size="140px,44px">{{ tTryAgain }}</x-import>
@@ -368,17 +346,6 @@
 </sc-if>
 </div>
 </x-import>
-
-<sc-if value="{{ dialogOpen }}" hint-placeholder-val="{{ false }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" title="{{ tAssignDriver }}" size="sm" subtitle="{{ dialogSubtitle }}" onClose="{{ closeDialog }}" hint-size="400px,280px">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Select" label="{{ tDriver }}" options="{{ driverOptions }}" value="{{ pickDriver }}" onChange="{{ setPickDriver }}" hint-size="100%,78px"></x-import>
-<p style="font-family:var(--vt-font-body);font-size:var(--vt-body-xs);color:var(--vt-text-muted);margin:16px 0 0">{{ tManualNote }}</p>
-<div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--vt-border-subtle)">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" onClick="{{ closeDialog }}" hint-size="90px,44px">{{ tCancel }}</x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" onClick="{{ confirmAssign }}" hint-size="90px,44px">{{ tAssign }}</x-import>
-</div>
-</x-import>
-</sc-if>
 
 <sc-if value="{{ cancelOpen }}" hint-placeholder-val="{{ false }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" title="{{ tCancelTitle }}" size="sm" subtitle="{{ cancelSubtitle }}" onClose="{{ closeCancel }}" hint-size="400px,320px">
@@ -443,13 +410,33 @@ function isolate(s) { return '⁦' + s + '⁩'; }
 function fillAmounts(str, map) {
   return String(str || '').replace(/\{(\w+)\}/g, (m, k) => (Object.prototype.hasOwnProperty.call(map, k) ? isolate(map[k]) : m));
 }
-function assignableChauffeurOptions() {
+function assignableChauffeurs() {
   const ops = window.VamosOps;
   if (!ops || !ops.chauffeurs) return [];
-  return (ops.chauffeurs.all() || []).filter((c) => c && c.id).map((c) => ({
-    value: String(c.id),
-    label: String(c.name || c.fullName || c.email || c.id),
-  }));
+  return (ops.chauffeurs.all() || []).filter((c) => c && c.id);
+}
+/* 260930-dash-design: each driver has his own car (chauffeurs.default_vehicle_id). The Assign box
+   shows it under the name as "Class · Model · Plate", the order the chauffeur form lists cars in. */
+function carText(v) {
+  const classes = (window.VamosOps && window.VamosOps.CLASSES) || [];
+  const own = v && v.vehicleClassId ? classes.filter((c) => c && c.id === v.vehicleClassId)[0] : null;
+  const klass = (own && String(own.name || own.label || '').trim()) || (v && v.klass);
+  return [klass, v && v.model, v && v.plate].filter(Boolean).join(' \u00b7 ');
+}
+/* Signed 2026-10-01: Complete and No-show are offered once the pickup time has passed (Zurich).
+   pickupAt is the instant; without it, the row's Zurich date and time are turned into one. */
+function pickupMs(booking) {
+  const at = Date.parse(String((booking && booking.pickupAt) || ''));
+  if (Number.isFinite(at)) return at;
+  const d = String((booking && booking.dateIso) || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+  const hm = String((booking && booking.time) || '').match(/^(\d{2}):(\d{2})/);
+  if (!d || !hm) return NaN;
+  const guess = Date.UTC(+d[1], +d[2] - 1, +d[3], +hm[1], +hm[2]);
+  const p = {};
+  new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Zurich', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+    .formatToParts(new Date(guess)).forEach((x) => { p[x.type] = x.value; });
+  const wall = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute);
+  return guess - (wall - guess);
 }
 function eventTitle(kind, t) {
   if (kind === 'assignment.chauffeur_set') return t.evAssigned;
@@ -595,7 +582,8 @@ const T = {
     voucherResent:'Voucher re-sent to ', driverAssigned:'Driver assigned to ', unassignedOk:'Assignment cleared for ',
     evPayment:'Payment captured', evRefund:'Refund issued', evVoucher:'Voucher sent', evAssigned:'Driver assigned', evVehicle:'Vehicle assigned', evCleared:'Assignment cleared',
     evQuoted:'Quote saved', evCreated:'Booking created', evPayStarted:'Payment started', evStatus:'Status changed', included:'Included',
-    overlap:'Overlaps {ref} at {time}', noEmail:'Cannot assign until this chauffeur has an email on file.', noVehicle:'Cannot assign until this chauffeur has a vehicle.',
+    overlap:'Overlaps {ref} at {time}', noEmail:'Cannot assign until this chauffeur has an email on file.', noVehicle:'Give this driver a car first: Chauffeurs, then the driver, then Car.', classMismatch:'This driver’s car is {car}; the trip is {trip}.',
+    actions:'Actions', car:'Car', noCarYet:'No car yet', noDrivers:'No drivers yet. Add one on Chauffeurs.', chooseDriver:'Choose the driver',
     notPaid:'Unpaid trips cannot be assigned.', frozen:'This trip is frozen.', capacity:'This vehicle cannot take this trip’s passengers and bags.', assignFailed:'Could not assign ',
     pickChauffeur:'Pick a chauffeur first.', voucherFailed:'Could not resend voucher ',
     website:'Website', stripeWebhook:'Stripe webhook', resend:'Resend', dispatch:'Dispatch',
@@ -659,7 +647,8 @@ const T = {
     keepBooking:'Behalten', confirmCancel:'Buchung stornieren', confirmCancelUnpaid:'Buchung entfernen', bookingCancelled:'Storniert ', bookingRemoved:'Entfernt ', cancelFailed:'Konnte nicht stornieren ', refundFailed:'Konnte nicht erstatten ',
     voucherResent:'Gutschein erneut gesendet an ', driverAssigned:'Fahrer zugewiesen zu ', unassignedOk:'Zuweisung aufgehoben für ',
     evPayment:'Zahlung erfasst', evRefund:'Rückerstattung ausgezahlt', evVoucher:'Gutschein gesendet', evAssigned:'Fahrer zugewiesen', evVehicle:'Fahrzeug zugewiesen', evCleared:'Zuweisung aufgehoben',
-    overlap:'Überschneidet sich mit {ref} um {time}', noEmail:'Zuweisung erst, wenn dieser Chauffeur eine E-Mail hat.', noVehicle:'Zuweisung erst, wenn dieser Chauffeur ein Fahrzeug hat.',
+    overlap:'Überschneidet sich mit {ref} um {time}', noEmail:'Zuweisung erst, wenn dieser Chauffeur eine E-Mail hat.', noVehicle:'Geben Sie diesem Fahrer zuerst ein Auto: Chauffeure, dann den Fahrer, dann Auto.', classMismatch:'Das Auto dieses Fahrers ist {car}; die Fahrt ist {trip}.',
+    actions:'Aktionen', car:'Auto', noCarYet:'Noch kein Auto', noDrivers:'Noch keine Fahrer. Unter Chauffeure hinzufügen.', chooseDriver:'Fahrer wählen',
     notPaid:'Unbezahlte Fahrten können nicht zugewiesen werden.', frozen:'Diese Fahrt ist gesperrt.', capacity:'Dieses Fahrzeug kann Passagiere und Gepäck dieser Fahrt nicht aufnehmen.', assignFailed:'Zuweisung fehlgeschlagen für ',
     pickChauffeur:'Zuerst einen Fahrer wählen.', voucherFailed:'Gutschein konnte nicht gesendet werden ',
     website:'Website', stripeWebhook:'Stripe-Webhook', resend:'Resend', dispatch:'Dispatch',
@@ -716,7 +705,8 @@ const T = {
  },
   fr: {
     unassign:'Désassigner', action:'Action', complete:'Terminer', historyEmpty:'Aucun événement.', passengerTrip:'Passager et trajet',
-    overlap:'Chevauche {ref} à {time}', noEmail:'Impossible d’assigner tant que ce chauffeur n’a pas d’e-mail.', noVehicle:'Impossible d’assigner tant que ce chauffeur n’a pas de véhicule.',
+    overlap:'Chevauche {ref} à {time}', noEmail:'Impossible d’assigner tant que ce chauffeur n’a pas d’e-mail.', noVehicle:'Donnez d’abord une voiture à ce chauffeur : Chauffeurs, puis le chauffeur, puis Voiture.', classMismatch:'La voiture de ce chauffeur est {car} ; la course est {trip}.',
+    actions:'Actions', car:'Voiture', noCarYet:'Pas encore de voiture', noDrivers:'Aucun chauffeur. Ajoutez-en un sous Chauffeurs.', chooseDriver:'Choisir le chauffeur',
     notPaid:'Les courses non payées ne peuvent pas être assignées.', frozen:'Cette course est gelée.', capacity:'Ce véhicule ne peut pas prendre les passagers et bagages de cette course.', assignFailed:'Assignation impossible pour ',
     pickChauffeur:'Choisissez d’abord un chauffeur.', voucherFailed:'Impossible de renvoyer le bon ',
     unassignedOk:'Assignation retirée pour ', evVehicle:'Véhicule assigné', evCleared:'Assignation retirée',
@@ -787,7 +777,8 @@ const T = {
   },
   ar: {
     unassign:'إلغاء التعيين', action:'إجراء', complete:'إكمال', historyEmpty:'لا أحداث بعد.', passengerTrip:'الراكب والرحلة',
-    overlap:'يتداخل مع {ref} عند {time}', noEmail:'لا يمكن التعيين قبل وجود بريد إلكتروني لهذا السائق.', noVehicle:'لا يمكن التعيين قبل وجود مركبة لهذا السائق.',
+    overlap:'يتداخل مع {ref} عند {time}', noEmail:'لا يمكن التعيين قبل وجود بريد إلكتروني لهذا السائق.', noVehicle:'أعطِ هذا السائق سيارة أولًا: السائقون، ثم السائق، ثم السيارة.', classMismatch:'سيارة هذا السائق من فئة {car}، والرحلة من فئة {trip}.',
+    actions:'الإجراءات', car:'السيارة', noCarYet:'لا سيارة بعد', noDrivers:'لا يوجد سائقون بعد. أضف سائقًا من صفحة السائقين.', chooseDriver:'اختر السائق',
     notPaid:'لا يمكن تعيين الرحلات غير المدفوعة.', frozen:'هذه الرحلة مجمّدة.', capacity:'هذه المركبة لا تتسع لركاب وأمتعة هذه الرحلة.', assignFailed:'تعذّر التعيين لـ ',
     pickChauffeur:'اختر سائقاً أولاً.', voucherFailed:'تعذّر إعادة إرسال القسيمة ',
     unassignedOk:'أُلغي التعيين لـ ', evVehicle:'عُيّنت المركبة', evCleared:'أُلغي التعيين',
@@ -858,20 +849,43 @@ const T = {
   },
 };
 class Component extends DCLogic {
-  state = { lang: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en', dialogOpen:false, cancelOpen:false, pickDriver:'', toastMsg:'', showToast:false, editing:false, edit:{}, historyOpen:false,
+  state = { lang: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en', assignOpen:false, assignError:'', cancelOpen:false, pickDriver:'', toastMsg:'', showToast:false, editing:false, edit:{}, historyOpen:false,
     // 26.1-18 refund review (UI-SPEC §4): percentage starts empty, never 100.
     percentText: '', percentFor:'', refundBusy:'', requestedFor:'', declineOpen:false, rejectOpen:false,
     // 20-10: GET …/refund answer, the last partial/failed POST answer, an inline error, the %/CHF switch and the payment choice.
     refundData:null, refundAnswer:null, refundError:null, refundUnit:'pct', refundPick:'all', refundPickFor:'' };
   toggleHistory = () => this.setState((s) => ({ historyOpen: !s.historyOpen }));
+  // The dc-runtime hands componentDidUpdate the previous props only (support.js), so the overlay
+  // scroll lock keeps its own last value instead of reading a prevState that never arrives.
+  // (The assign dialog is gone — 260930-dash-design — so dialogOpen no longer counts.)
   componentDidUpdate() {
-    // The DC runtime calls this with prevProps only, so the previous overlay state is kept on the instance.
-    const overlay = !!(this.state.dialogOpen || this.state.cancelOpen || this.state.declineOpen || this.state.rejectOpen);
+    this.publishBar();
+    const overlay = !!(this.state.cancelOpen || this.state.declineOpen || this.state.rejectOpen);
     const was = !!this._overlayWas;
     this._overlayWas = overlay;
     if (was !== overlay) { try { document.body.style.overflow = overlay ? 'hidden' : ''; } catch (e) {} }
     this.syncRefund();
   }
+  // 260930-dash-design: at phone width the console's top bar lists this page's actions
+  // (app/vamos-ops-bar.js); the page's own Actions button is folded there ([data-ops-fold]).
+  publishBar = () => {
+    const bar = window.VamosOpsBar;
+    if (!bar || typeof bar.set !== 'function') return;
+    const v = this._barVals || { title: '', label: '', items: [] };
+    bar.set('detail', { title: v.title, label: v.label, items: v.items, onPick: (value) => { if (this._barPick) this._barPick(value); } });
+  };
+  _assignRef = (el) => { this._assignEl = el; };
+  // Merge with 20-10 (refunds by hand): Actions → Refund brings the admin to main's refund panel.
+  _refundRef = (el) => { if (el) this._refundEl = el; };
+  goRefund = () => {
+    setTimeout(() => {
+      const el = this._refundEl;
+      if (!el || el.isConnected === false) return;
+      try { el.scrollIntoView({ block: 'center' }); } catch (e) {}
+      const first = el.querySelector && el.querySelector('input:not([disabled]), button:not([disabled])');
+      if (first) { try { first.focus({ preventScroll: true }); } catch (e) {} }
+    }, 0);
+  };
   // 20-10: the payment list and the amounts come from GET …/refund. Load it when the booking has a refund
   // due, processing or failed (and again after every refund answer).
   syncRefund = () => {
@@ -893,13 +907,15 @@ class Component extends DCLogic {
     });
   };
   componentWillUnmount() {
-    try { if (this.state.dialogOpen || this.state.cancelOpen || this.state.declineOpen || this.state.rejectOpen) document.body.style.overflow = ''; } catch (e) {}
+    if (window.VamosOpsBar && typeof window.VamosOpsBar.clear === 'function') window.VamosOpsBar.clear('detail');
+    try { if (this.state.cancelOpen || this.state.declineOpen || this.state.rejectOpen) document.body.style.overflow = ''; } catch (e) {}
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
     if (this._off) this._off();
     clearTimeout(this._retry);
   }
   componentDidMount() {
     this.bind();
+    this.publishBar();
     this._onLocale = (e) => this.setState({ lang: e.detail.lang, cur: e.detail.cur });
     window.addEventListener('vamos:locale', this._onLocale);
     this.syncRefund();
@@ -915,6 +931,12 @@ class Component extends DCLogic {
     if (window.VamosOps.vehicles) {
       offs.push(window.VamosOps.vehicles.onChange(() => this.forceUpdate()));
       window.VamosOps.vehicles.all();
+    }
+    // 260930-dash-design: the rate book carries the class names the owner typed (VamosOps.CLASSES),
+    // so a car of his own class reads its name under the driver in the Assign box.
+    if (window.VamosOps.rates) {
+      offs.push(window.VamosOps.rates.onChange(() => this.forceUpdate()));
+      window.VamosOps.rates.all();
     }
     // D-16b: refund controls follow the signed-in role from /api/staff/me.
     if (window.VamosOps.profile && typeof window.VamosOps.profile.onChange === 'function') {
@@ -988,7 +1010,7 @@ class Component extends DCLogic {
     } else {
       booking.sessionLeft = 'No open session';
     }
-    const drivers = assignableChauffeurOptions();
+    const drivers = assignableChauffeurs();
     const assignedDriver = booking.driver || booking.chauffeur || null;
     const frozen = ['completed','cancelled','refunded','no-show','no_show','partially_cancelled','partially_completed'].indexOf(booking.status) !== -1;
     const canAssign = !!booking.paid && !frozen;
@@ -1130,6 +1152,47 @@ class Component extends DCLogic {
     const distanceChip = booking.distanceKm ? (booking.distanceKm + ' km') : '';
     const extras = Array.isArray(booking.extras) ? booking.extras : [];
     const extrasText = extras.length ? extras.map((code) => extraName(booking, code, this.state.lang)).filter(Boolean).join(', ') : t.noExtras;
+    // 260930-dash-design: the Assign box asks only for the driver; each row shows his own car.
+    const vehicles = (window.VamosOps && window.VamosOps.vehicles) ? (window.VamosOps.vehicles.all() || []) : [];
+    const carById = {};
+    vehicles.forEach((v) => { if (v && v.id) carById[v.id] = v; });
+    const assignedCar = booking.assignedVehicleId ? (carById[booking.assignedVehicleId] || null) : null;
+    const showAssignPicker = canAssign && (!assignedDriver || !!this.state.assignOpen);
+    const assignRows = drivers.map((c) => {
+      const id = String(c.id);
+      const carId = String(c.defaultVehicleId || c.vehicle || '');
+      const car = carId ? carById[carId] : null;
+      const picked = this.state.pickDriver === id;
+      return {
+        id,
+        name: String(c.name || c.fullName || c.email || c.id),
+        car: car ? carText(car) : (carId ? '\u2014' : t.noCarYet),
+        checked: picked,
+        selAttr: picked ? '1' : '0',
+        pick: () => this.setState({ pickDriver: id, assignError: '' }),
+      };
+    });
+    const canEdit = !!booking.paid && !cancelled;
+    const canCancel = !cancelled && booking.status !== 'completed';
+    // Item 1 (owner, 2026-09-30): every action valid for this booking, in one menu. Cancel is last
+    // and set apart (danger). Each value runs the handler its old button ran (pickAction).
+    // A trip with no readable time keeps both (the owner can still close a broken row).
+    const pickAt = pickupMs(booking);
+    const pickupReached = !Number.isFinite(pickAt) || pickAt <= Date.now();
+    const actionItems = [
+      canAssign ? { value: 'assign', label: assignedDriver ? t.reassign : t.assign, icon: assignedDriver ? 'users' : 'user-plus' } : null,
+      canUnassign ? { value: 'unassign', label: t.unassign, icon: 'minus' } : null,
+      canEdit ? { value: 'edit', label: t.editBooking, icon: 'pencil' } : null,
+      !!booking.paid && !cancelled ? { value: 'resend', label: t.resendVoucher, icon: 'mail' } : null,
+      !frozen && !booking.arrivedAt ? { value: 'arrival', label: t.markArrival, icon: 'map-pin' } : null,
+      !frozen && pickupReached ? { value: 'complete', label: t.complete, icon: 'circle-check' } : null,
+      !frozen && pickupReached ? { value: 'noShow', label: t.noShow, icon: 'circle-alert' } : null,
+      // Merge with 20-10: Refund is offered for main's refund panel (due, review, failed) as well as
+      // for an old cancelled row and a post-trip request.
+      refundFormShown || refundFailedShown || canFullRefund || postTripEligible ? { value: 'refund', label: t.markRefund, icon: 'receipt', disabled: !!refundBusy } : null,
+      canCancel ? { value: 'cancel', label: booking.paid ? t.confirmCancel : t.confirmCancelUnpaid, icon: 'x', tone: 'danger' } : null,
+    ].filter(Boolean);
+    const viewing = !this.state.editing;
     const tags = [
       { icon: 'user', k: t.driver, v: assignedDriver || t.unassigned },
       { icon: 'clock', k: t.when, v: pickupWhen || '—' },
@@ -1147,8 +1210,9 @@ class Component extends DCLogic {
     if (booking.vehicle && booking.vehicle !== booking.klass) {
       tags.splice(3, 0, { icon: 'car', k: t.vehicleAssigned, v: booking.vehicle });
     }
-    return {
+    const vals = {
       n14:14, n15:15, n16:16, yes:true,
+      tActions: t.actions, actionItems, showActions: viewing && actionItems.length > 0,
       tBackToBookings: t.backToBookings, tMoreActions: t.moreActions, tBookedBy: t.bookedBy,
       goBack: () => {
         history.pushState({}, '', '/bookings');
@@ -1164,14 +1228,8 @@ class Component extends DCLogic {
       hasRouteMid: !!(durationChip || distanceChip),
       tags,
       tAssignment: t.assignment,
-      assignVariant: assignedDriver ? 'ghost' : 'primary',
-      assignLabel: assignedDriver ? t.reassign : t.assign,
       canAssign, canUnassign, tUnassign: t.unassign,
       canResend: !!booking.paid && !cancelled,
-      openAssignDialog: () => {
-        if (!canAssign) return;
-        this.setState({ dialogOpen: true, pickDriver: (drivers[0] && drivers[0].value) || '' });
-      },
       confirmUnassign: () => {
         const id = booking.bookingId || booking.id;
         const client = window.VamosOpsApi;
@@ -1188,8 +1246,16 @@ class Component extends DCLogic {
           }
         });
       },
-      hasDriver: !!assignedDriver, noDriver: !assignedDriver, showAssignSide: !assignedDriver && canAssign,
-      driverName: assignedDriver || '', driverVehicle: booking.vehicle || '',
+      hasDriver: !!assignedDriver, noDriver: !assignedDriver,
+      driverName: assignedDriver || '', carLine: assignedCar ? carText(assignedCar) : (booking.vehicle || '\u2014'),
+      tCar: t.car, tChooseDriver: t.chooseDriver, tNoDrivers: t.noDrivers,
+      assignRef: this._assignRef, refundRef: this._refundRef,
+      showAssignPicker, assignCancelable: showAssignPicker && !!assignedDriver,
+      closeAssign: () => this.setState({ assignOpen: false, pickDriver: '', assignError: '' }),
+      assignRows, noDrivers: assignRows.length === 0,
+      // Never a disabled primary: at 42 % the yellow reads as a cream pill (law 02). No pick → the box says so.
+      assignDisabled: false,
+      assignError: this.state.assignError || '', hasAssignError: !!this.state.assignError,
       tNoDriver: t.noDriver, tNoDriverSub: t.noDriverSub,
       tPassengerTrip: t.passengerTrip, tPassengers: t.passengers, tBags: t.bags, tVehicleClass: t.vehicleClass,
       tFlight: t.flight, tEmail: t.email, tMobile: t.mobile, tPayment: t.payment, tPayLink: t.payLink, tSession: t.session,
@@ -1265,8 +1331,8 @@ class Component extends DCLogic {
       tSaveEdit: t.saveEdit, tContinue: t.continue, tAccept: t.accept, tRefuse: t.refuse, tCancelEdit: t.cancelEdit, tMarkRefund: t.markRefund,
       tCustomer: t.customer, tPickup: t.pickup, tDropoff: t.dropoff, tDate: t.date, tTime: t.time, tBagsLabel: t.bagsLabel,
       tPendingEditTitle: t.pendingEditTitle, tUnpaidNoEditTitle: t.unpaidNoEditTitle, tUnpaidNoEditBody: t.unpaidNoEditBody, tUnpaidNewTrip: t.unpaidNewTrip,
-      editing: !!this.state.editing, viewing: !this.state.editing,
-      canEdit: !!booking.paid && !cancelled,
+      editing: !!this.state.editing, viewing,
+      canEdit,
       unpaidNoEdit: !booking.paid && !cancelled,
       hasPendingEdit: !!booking.pendingEditId,
       hasFlightBanner: !!(booking.flight && String(booking.flight).trim()),
@@ -1365,17 +1431,36 @@ class Component extends DCLogic {
         });
       },
       markRefund: () => { if (!refundBusy) postRefund('full', {}); },
-      canCancel: !cancelled && booking.status !== 'completed',
+      canCancel,
       canComplete: !frozen,
       canNoShow: !frozen,
-      canAction: !frozen || (!!booking.paid && !cancelled),
-      actionValue: '',
-      actionOptions: [
-        !!booking.paid && !cancelled ? { value: 'resend', label: t.resendVoucher } : null,
-        !frozen && !booking.arrivedAt ? { value: 'arrival', label: t.markArrival } : null,
-        !frozen ? { value: 'complete', label: t.complete } : null,
-      ].filter(Boolean),
       pickAction: (v) => {
+        if (v === 'assign') {
+          if (!canAssign) return;
+          this.setState({ assignOpen: true, pickDriver: '', assignError: '' });
+          setTimeout(() => {
+            const el = this._assignEl;
+            if (!el) return;
+            try { el.scrollIntoView({ block: 'center' }); } catch (e) {}
+            const first = el.querySelector && el.querySelector('input[type="radio"]');
+            if (first) { try { first.focus({ preventScroll: true }); } catch (e) {} }
+          }, 0);
+          return;
+        }
+        if (v === 'unassign') { vals.confirmUnassign(); return; }
+        if (v === 'edit') { if (canEdit) vals.openEdit(); return; }
+        if (v === 'noShow') { vals.markNoShow(); return; }
+        if (v === 'refund') {
+          if (refundBusy) return;
+          // 20-10 (main): a refund due, a review or a failed refund has its panel on this page — the
+          // menu takes the admin there; nothing is sent until he presses the panel's own button.
+          if (refundFormShown || refundFailedShown) { this.goRefund(); return; }
+          // An old cancelled row (refund_status none) keeps main's one-press full refund.
+          if (canFullRefund) { vals.markRefund(); return; }
+          if (postTripEligible) { vals.openRequested(); this.goRefund(); }
+          return;
+        }
+        if (v === 'cancel') { if (canCancel) vals.openCancel(); return; }
         if (v === 'resend') {
           const id = booking.bookingId || booking.id;
           const client = window.VamosOpsApi;
@@ -1569,37 +1654,41 @@ class Component extends DCLogic {
           navigator.clipboard.writeText(url).then(() => this.notify(t.payLinkCopied), () => this.notify(t.cardFailed + id));
         });
       },
-      dialogOpen: this.state.dialogOpen, tAssignDriver: t.assign, dialogSubtitle: booking.id + ' · ' + booking.time + ' · ' + booking.vehicle,
-      closeDialog: () => this.setState({ dialogOpen: false }),
-      tDriver: t.driver, driverOptions: drivers, pickDriver: this.state.pickDriver, setPickDriver: (e) => this.setState({ pickDriver: e.target.value }),
-      tManualNote: t.manualNote, tCancel: t.cancel, tAssign: t.assign,
+      tDriver: t.driver, pickDriver: this.state.pickDriver,
+      tCancel: t.cancel, tAssign: t.assign,
       confirmAssign: () => {
         const chosen = this.state.pickDriver;
         const id = booking.bookingId || booking.id;
         const client = window.VamosOpsApi;
         const ops = window.VamosOps;
         if (!canAssign || !client || typeof client.request !== 'function') return;
-        if (!chosen) { this.notify(t.pickChauffeur); return; }
+        if (!chosen) { this.setState({ assignError: t.pickChauffeur }); return; }
+        this.setState({ assignError: '' });
         this.once(() => client.request('POST', '/api/staff/bookings/' + encodeURIComponent(id) + '/assign', { chauffeurId: chosen }), (json) => {
           if (json && json.ok) {
             if (ops) ops.bookings.reset();
-            this.setState({ dialogOpen: false });
+            this.setState({ assignOpen: false, pickDriver: '', assignError: '' });
             this.notify(t.driverAssigned + booking.id);
             return;
           }
+          // A refusal stays on the Assign box, in plain words, until the next pick.
           const code = json && json.code;
-          if (code === 'overlap') {
-            this.notify((t.overlap || '').replace('{ref}', json.otherRef || '').replace('{time}', json.otherLocal || ''));
-          } else if (code === 'no-email') this.notify(t.noEmail);
-          else if (code === 'no-vehicle') this.notify(t.noVehicle);
-          else if (code === 'not-paid') this.notify(t.notPaid);
-          else if (code === 'frozen') this.notify(t.frozen);
-          else if (code === 'capacity') this.notify(t.capacity);
-          else this.notify(t.assignFailed + booking.id);
+          let msg = t.assignFailed + booking.id;
+          if (code === 'overlap') msg = (t.overlap || '').replace('{ref}', json.otherRef || '').replace('{time}', json.otherLocal || '');
+          else if (code === 'no-email') msg = t.noEmail;
+          else if (code === 'no-vehicle') msg = t.noVehicle;
+          else if (code === 'class-mismatch') msg = (t.classMismatch || '').replace('{car}', json.carClass || '\u2014').replace('{trip}', json.tripClass || booking.klass || '\u2014');
+          else if (code === 'not-paid') msg = t.notPaid;
+          else if (code === 'frozen') msg = t.frozen;
+          else if (code === 'capacity') msg = t.capacity;
+          this.setState({ assignError: msg });
         });
       },
       showToast: this.state.showToast, toastMsg: this.state.toastMsg, closeToast: () => this.setState({ showToast: false }),
     };
+    this._barVals = { title: booking.id, label: t.actions, items: viewing ? actionItems : [] };
+    this._barPick = vals.pickAction;
+    return vals;
   }
 }
 </script>

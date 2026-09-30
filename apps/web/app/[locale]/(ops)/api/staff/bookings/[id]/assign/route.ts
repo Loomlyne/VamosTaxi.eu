@@ -28,7 +28,8 @@ function failStatus(code: string): number {
     code === "not-paid" ||
     code === "no-email" ||
     code === "no-vehicle" ||
-    code === "capacity"
+    code === "capacity" ||
+    code === "class-mismatch"
   ) {
     return 409;
   }
@@ -58,6 +59,12 @@ export const POST = withStaff(async (claims, request) => {
       return jsonErr("overlap", 409, {
         otherRef: result.otherRef ?? "",
         otherLocal: result.otherLocal ?? "",
+      });
+    }
+    if (result.code === "class-mismatch") {
+      return jsonErr("class-mismatch", 409, {
+        carClass: result.carClass ?? "",
+        tripClass: result.tripClass ?? "",
       });
     }
     return jsonErr(result.code, failStatus(result.code));

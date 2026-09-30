@@ -268,7 +268,10 @@ export function parseChauffeurBody(body: unknown): { id: string | null; input: C
       phone: asString(rec.phone),
       email: asString(rec.email) || null,
       defaultVehicleId: asString(rec.defaultVehicleId || rec.vehicle) || null,
-      vehicleClassId: asString(rec.vehicleClassId) || null,
+      // Signed 2026-10-01: the driver form no longer carries a class; absent means keep the column.
+      vehicleClassId: Object.prototype.hasOwnProperty.call(rec, "vehicleClassId")
+        ? asString(rec.vehicleClassId) || null
+        : undefined,
       licenceNumber: asString(rec.licenceNumber || rec.licence),
       licenceExpiresOn: asString(rec.licenceExpiresOn) || null,
       languages: languageCodes(rec.languages),

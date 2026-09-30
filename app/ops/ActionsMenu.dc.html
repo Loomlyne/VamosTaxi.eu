@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+/* One "Actions" button that lists what a screen can do (260930-dash-design, owner decision
+   2026-10-01). The trigger is the kit Button; the list is positioned against the viewport so a
+   sticky bar or a scrolling panel never clips it. A destructive item is set apart by a hairline
+   and the danger colour — never a glow, never a tint. */
+[data-am-root]{position:relative;display:inline-flex;flex:0 0 auto;min-width:0}
+[data-am-pop]{position:fixed;z-index:210;box-sizing:border-box;display:flex;flex-direction:column;gap:2px;padding:6px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-lg);overflow-y:auto;overscroll-behavior:contain}
+[data-am-item]{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:12px;width:100%;min-height:44px;padding-block:8px;padding-inline:12px;border-radius:var(--vt-radius-md);cursor:pointer;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);line-height:1.3;color:var(--vt-text-primary);text-align:start;transition:background 140ms cubic-bezier(.2,0,.2,1)}
+[data-am-item]:hover,[data-am-item]:focus-visible{background:var(--vt-grey-50)}
+[data-am-item]:active{transform:translateY(1px)}
+[data-am-item][data-tone="danger"]{color:var(--vt-danger)}
+[data-am-item][aria-disabled="true"]{opacity:.42;cursor:not-allowed}
+[data-am-item][aria-disabled="true"]:hover{background:none}
+[data-am-item][aria-disabled="true"]:active{transform:none}
+[data-am-sep]{flex:0 0 auto;height:1px;margin-block:4px;margin-inline:6px;background:var(--vt-border-subtle)}
+[data-am-label]{flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
+</style>
+</helmet>
+<div data-am-root="1" data-tone="{{ toneAttr }}" ref="{{ rootRef }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="{{ btnSize }}" variant="{{ btnVariant }}" iconEnd="chevron-down" disabled="{{ btnDisabled }}" aria-haspopup="menu" aria-expanded="{{ expanded }}" onClick="{{ toggle }}" hint-size="130px,36px">{{ label }}</x-import>
+<sc-if value="{{ open }}" hint-placeholder-val="{{ false }}">
+<div data-am-pop="1" data-lenis-prevent="1" role="menu" aria-label="{{ label }}" ref="{{ popRef }}" onKeyDown="{{ onPopKey }}" style="top:{{ popTop }};left:{{ popLeft }};width:{{ popWidth }};max-height:{{ popMaxH }}">
+<sc-for list="{{ rows }}" as="o" hint-placeholder-count="5">
+<sc-if value="{{ o.sepBefore }}" hint-placeholder-val="{{ false }}"><div data-am-sep="1" role="separator"></div></sc-if>
+<button type="button" data-am-item="1" data-value="{{ o.value }}" role="menuitem" data-tone="{{ o.tone }}" aria-disabled="{{ o.disabledStr }}" tabindex="-1" onClick="{{ o.pick }}">
+<sc-if value="{{ o.hasIcon }}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ o.icon }}" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></sc-if>
+<span data-am-label="1">{{ o.label }}</span>
+</button>
+</sc-for>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:360,&quot;height&quot;:420},&quot;label&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Actions&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;items&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;{value:string,label:string,icon?:string,tone?:'danger',disabled?:boolean}[]&quot;},&quot;tone&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;inverse&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;'light'|'inverse'&quot;},&quot;size&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;sm&quot;,&quot;md&quot;],&quot;default&quot;:&quot;sm&quot;,&quot;tsType&quot;:&quot;'sm'|'md'&quot;},&quot;onPick&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(value:string)=&gt;void&quot;}}">
+/* Props: label, items [{ value, label, icon?, tone?: 'danger', disabled? }], onPick(value),
+   tone 'light' (charcoal button on a white page) | 'inverse' (yellow button on the charcoal bar),
+   size 'sm' (36px, the page bars) | 'md' (44px, the phone bar).
+   States: closed, hover and press (the kit Button), open, focused item (keyboard: arrows, Home,
+   End, Escape returns to the button), disabled item (42 %, not pickable), no items (button
+   disabled). The list opens under the button, or over it when there is no room below, and lines
+   up with the button's end edge in either writing direction. */
+function cleanItems(raw) {
+  return (Array.isArray(raw) ? raw : []).filter((i) => i && i.value && i.label);
+}
+function listLayout(rect, count, seps, dir, vw, vh) {
+  const width = Math.min(Math.max(rect.width, 232), vw - 24);
+  let left = dir === 'rtl' ? rect.left : rect.right - width;
+  left = Math.max(12, Math.min(left, vw - 12 - width));
+  const est = 14 + count * 46 + seps * 9;
+  const below = vh - rect.bottom - 8;
+  const up = below < est && rect.top - 8 > below;
+  const room = Math.max(120, (up ? rect.top - 8 : below) - 12);
+  const height = Math.min(est, room);
+  return {
+    top: up ? Math.max(12, rect.top - 8 - height) : rect.bottom + 8,
+    left,
+    width,
+    maxHeight: room,
+  };
+}
+class Component extends DCLogic {
+  state = { open: false, rect: null, dir: 'ltr' };
+  _rootRef = (el) => { this._root = el; };
+  _popRef = (el) => { this._pop = el; };
+
+  componentDidMount() {
+    this._away = (e) => {
+      if (!this.state.open) return;
+      const inRoot = this._root && this._root.contains(e.target);
+      const inPop = this._pop && this._pop.contains(e.target);
+      if (!inRoot && !inPop) this.close(false);
+    };
+    this._esc = (e) => { if (e.key === 'Escape' && this.state.open) this.close(true); };
+    /* A fixed list follows nothing: close it on a page scroll or a resize. Its own scroll is
+       how a long list is read, so that one keeps it open. */
+    this._bail = (e) => {
+      if (!this.state.open) return;
+      const n = e && e.target;
+      if (n && n.nodeType === 1 && this._pop && this._pop.contains(n)) return;
+      this.close(false);
+    };
+    document.addEventListener('mousedown', this._away);
+    document.addEventListener('touchstart', this._away, { passive: true });
+    document.addEventListener('keydown', this._esc);
+    window.addEventListener('resize', this._bail);
+    window.addEventListener('scroll', this._bail, true);
+  }
+  componentDidUpdate() {
+    if (this.state.open && !this._focused && this._pop) {
+      this._focused = true;
+      this.focusAt(0, 1);
+    }
+    if (!this.state.open) this._focused = false;
+  }
+  componentWillUnmount() {
+    document.removeEventListener('mousedown', this._away);
+    document.removeEventListener('touchstart', this._away);
+    document.removeEventListener('keydown', this._esc);
+    window.removeEventListener('resize', this._bail);
+    window.removeEventListener('scroll', this._bail, true);
+  }
+  buttons() {
+    if (!this._pop) return [];
+    return Array.prototype.slice.call(this._pop.querySelectorAll('[data-am-item]'));
+  }
+  focusAt(start, step) {
+    const all = this.buttons();
+    if (!all.length) return;
+    for (let k = 0; k < all.length; k++) {
+      const i = ((start + k * step) % all.length + all.length) % all.length;
+      if (all[i].getAttribute('aria-disabled') !== 'true') { all[i].focus(); return; }
+    }
+  }
+  close = (refocus) => {
+    this.setState({ open: false, rect: null });
+    if (refocus && this._root) {
+      const btn = this._root.querySelector('button');
+      if (btn) btn.focus();
+    }
+  };
+  toggle = () => {
+    if (this.state.open) return this.close(false);
+    if (!cleanItems(this.props.items).length || !this._root) return;
+    const r = this._root.getBoundingClientRect();
+    const dir = (window.getComputedStyle && window.getComputedStyle(this._root).direction) || 'ltr';
+    this.setState({ open: true, rect: { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width }, dir });
+  };
+  onPopKey = (e) => {
+    const all = this.buttons();
+    const at = all.indexOf(document.activeElement);
+    if (e.key === 'ArrowDown') { e.preventDefault(); this.focusAt(at + 1, 1); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); this.focusAt(at < 0 ? all.length - 1 : at - 1, -1); }
+    else if (e.key === 'Home') { e.preventDefault(); this.focusAt(0, 1); }
+    else if (e.key === 'End') { e.preventDefault(); this.focusAt(all.length - 1, -1); }
+    else if (e.key === 'Tab') { this.close(false); }
+  };
+
+  renderVals() {
+    const items = cleanItems(this.props.items);
+    const inverse = this.props.tone === 'inverse';
+    const r = this.state.rect;
+    const firstDanger = items.findIndex((i) => i.tone === 'danger');
+    const seps = firstDanger > 0 ? 1 : 0;
+    const vw = typeof window !== 'undefined' ? window.innerWidth : 1024;
+    const vh = typeof window !== 'undefined' ? window.innerHeight : 768;
+    const lay = r ? listLayout(r, items.length, seps, this.state.dir, vw, vh) : null;
+    return {
+      n18: 18,
+      label: this.props.label || 'Actions',
+      toneAttr: inverse ? 'inverse' : 'light',
+      btnVariant: inverse ? 'primary' : 'secondary',
+      btnSize: this.props.size === 'md' ? 'md' : 'sm',
+      btnDisabled: items.length === 0,
+      open: !!this.state.open && items.length > 0,
+      expanded: this.state.open ? 'true' : 'false',
+      rootRef: this._rootRef, popRef: this._popRef,
+      toggle: this.toggle, onPopKey: this.onPopKey,
+      popTop: lay ? lay.top + 'px' : '0px',
+      popLeft: lay ? lay.left + 'px' : '0px',
+      popWidth: lay ? lay.width + 'px' : '232px',
+      popMaxH: lay ? lay.maxHeight + 'px' : 'none',
+      rows: items.map((o, i) => ({
+        value: String(o.value),
+        label: String(o.label),
+        icon: o.icon || '',
+        hasIcon: !!o.icon,
+        tone: o.tone === 'danger' ? 'danger' : 'default',
+        sepBefore: i > 0 && i === firstDanger,
+        disabledStr: o.disabled ? 'true' : 'false',
+        pick: () => {
+          if (o.disabled) return;
+          this.close(false);
+          if (this.props.onPick) this.props.onPick(String(o.value));
+        },
+      })),
+    };
+  }
+}
+</script>
+</body>
+</html>
