@@ -19,6 +19,10 @@
    /api/staff/rate-versions/:id/{publish,discard} and PUT rate-book for VAT.
    OpsPricing does not call Preview or test unpaid. Never sets public preferDraft. */
 (function () {
+  // 261001-cars-page: the shell's helmet runs this file twice (parser, then the dc-runtime). A
+  // second store replaced the first while screens were still subscribed to it, so a list could
+  // stay empty (Cars, Chauffeurs: 4 to 6 of 12 offline loads). Keep the first store.
+  if (window.VamosOps) return;
   var subs = [];
 
   function emit(name) {

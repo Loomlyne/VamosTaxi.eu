@@ -390,6 +390,31 @@ describe("5 · the store keeps the seat ids; the page keeps the platform laws", 
     expect(ops.vehicles.blank({ id: CAR_A, morning: "c3", night: "" })).toMatchObject({ morning: "c3", night: "" });
   });
 
+  it("the store loads once: a second run of the file keeps the first store and its listeners", async () => {
+    // The shell's helmet runs vamos-ops-data.js twice (parser, then the dc-runtime). The second run
+    // replaced window.VamosOps, so a screen that had subscribed to the first store never heard the
+    // second store's list arrive: the Cars list (and main's Chauffeurs list) stayed at "0" in 4 to 6
+    // of 12 offline loads of the real shell.
+    let calls = 0;
+    const windowStub: Record<string, unknown> = {
+      VamosOpsApi: { request: () => { calls++; return Promise.resolve({ ok: true, data: [{ id: CAR_A, plate: "ZH 000 000" }] }); } },
+      dispatchEvent: () => true,
+      addEventListener: () => undefined,
+    };
+    const context = vm.createContext({ window: windowStub, CustomEvent: class {}, setTimeout: () => 0, clearTimeout: () => undefined, console });
+    const source = read("app/vamos-ops-data.js");
+    vm.runInContext(source, context);
+    const first = windowStub.VamosOps as { vehicles: { all: () => unknown[] }; onAny: (fn: () => void) => () => void };
+    let heard = 0;
+    first.onAny(() => { heard++; });
+    vm.runInContext(source, context);
+    expect(windowStub.VamosOps).toBe(first);
+    (windowStub.VamosOps as typeof first).vehicles.all();
+    await new Promise((r) => setImmediate(r));
+    expect(calls).toBe(1);
+    expect(heard).toBeGreaterThan(0);
+  });
+
   it("no glow, no tinted yellow, logical properties only, the two law lines in its helmet", () => {
     const src = read("app/ops/OpsCars.dc.html");
     expect(src).toMatch(/:root\{--vt-shadow-accent:none\}/);
