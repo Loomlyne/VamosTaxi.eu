@@ -358,39 +358,6 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 @media (min-width:1360px) and (max-width:1439px){
 #book [data-bx=flight]:not([data-om-label="Add flight"]){max-inline-size:168px}
 }
-/* 26.4.2 laptop "Choose your class" (owner, 2026-09-30): under the bar at >=1081 once From, To and When are valid. Prices are the server quote only. */
-[data-cc]{display:none}
-@media (min-width:1081px){
-[data-cc]{display:flex;flex-direction:column;gap:var(--vt-space-4);margin-top:var(--vt-space-6);min-width:0;font-family:var(--vt-font-body)}
-[data-cc-head]{display:flex;flex-direction:column;gap:var(--vt-space-1)}
-[data-cc-title]{margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-3);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);line-height:var(--vt-heading-leading);color:var(--vt-text-inverse)}
-[data-cc-sub]{margin:0;font-size:var(--vt-body-md);line-height:1.5;color:var(--vt-text-inverse-muted)}
-[data-cc-grid]{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;min-width:0}
-[data-cc-shot]{position:relative;display:flex;align-items:center;justify-content:center;flex:0 0 146px;inline-size:146px;aspect-ratio:1/1;align-self:center;overflow:hidden;box-sizing:border-box;border-radius:var(--vt-radius-md);background:var(--vt-grey-100);border:1px solid var(--vt-border-subtle)}
-[data-cc-shot] img{position:absolute;inset:0;inline-size:100%;block-size:100%;object-fit:cover;object-position:50% 72%;display:block}
-[data-cc-price-sk]{display:block;block-size:26px;inline-size:96px;border-radius:var(--vt-radius-sm);background:var(--vt-grey-100);animation:vt-cc-pulse 1.2s ease-in-out infinite}
-[data-cc-price-slot]{display:flex;align-items:center;min-block-size:28px}
-[data-cc-act][data-locked] .vt-btn,[data-cc-act][data-locked] button{opacity:.5}
-[data-cc-warn]{display:flex;flex-wrap:wrap;align-items:center;gap:var(--vt-space-1) var(--vt-space-3);margin:0;font-size:var(--vt-body-md);line-height:1.5;font-weight:var(--vt-weight-medium);color:var(--vt-text-inverse)}
-[data-cc-warn] [data-cc-warn-item]::before{content:"\00B7";margin-inline-end:var(--vt-space-3)}
-[data-cc-card]{display:flex;align-items:stretch;gap:var(--vt-space-3);box-sizing:border-box;min-width:0;padding:var(--vt-space-2);background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);color:var(--vt-text-primary)}
-[data-cc-card][data-block="pax"],[data-cc-card][data-block="bags"]{background:var(--vt-grey-50);color:var(--vt-text-muted)}
-[data-cc-side]{display:flex;flex-direction:column;gap:var(--vt-space-1);flex:1 1 auto;min-width:0;padding-block:2px}
-[data-cc-name]{font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);letter-spacing:-.01em;line-height:1.2}
-[data-cc-meta]{display:flex;flex-wrap:wrap;align-items:center;gap:var(--vt-space-1) 14px;margin-block-start:auto;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)}
-[data-cc-fig]{display:inline-flex;align-items:center;gap:var(--vt-space-2);font-variant-numeric:tabular-nums}
-[data-cc-price]{align-self:flex-start;min-block-size:28px;font-family:var(--vt-font-display);font-size:var(--vt-heading-3);font-weight:var(--vt-weight-semibold);letter-spacing:-.02em;line-height:1.1;font-variant-numeric:tabular-nums;color:var(--vt-text-primary)}
-[data-cc-price][data-muted]{font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-regular);line-height:1.35;letter-spacing:0;color:var(--vt-text-secondary)}
-[data-cc-card][data-block="pax"] [data-cc-price],[data-cc-card][data-block="bags"] [data-cc-price]{color:var(--vt-text-muted)}
-[data-cc-act]{margin-block-start:6px;min-block-size:44px}
-[dir="rtl"] [data-cc-act] .vt-btn>span:last-child{transform:scaleX(-1)}
-[data-cc-small]{margin-block-start:6px;display:flex;align-items:center;min-height:44px;font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);color:var(--vt-text-secondary)}
-[data-cc-msg]{margin:0;font-size:var(--vt-body-md);line-height:1.5;color:var(--vt-text-inverse-muted)}
-[data-cc-sk]{display:block;border-radius:var(--vt-radius-sm);background:var(--vt-grey-100);animation:vt-cc-pulse 1.2s ease-in-out infinite}
-@keyframes vt-cc-pulse{0%,100%{opacity:1}50%{opacity:.5}}
-}
-@media (min-width:1081px) and (max-width:1240px){[data-cc-shot]{flex-basis:120px;inline-size:120px}}
-@media (prefers-reduced-motion:reduce){[data-cc-sk]{animation:none}}
 </style>
 </helmet>
 <div style="font-family:var(--vt-font-body);color:var(--vt-text-primary);background:var(--vt-bg-page)">
@@ -578,43 +545,6 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </div>
 </div>
 </div>
-<sc-if value="{{ ccShow }}" hint-placeholder-val="{{ false }}">
-<section data-cc="1" data-state="{{ ccState }}" aria-labelledby="cc-title" data-om-label="Choose your class">
-<div data-cc-head="1"><h2 id="cc-title" data-cc-title="1">Choose your class</h2><p data-cc-sub="1">Fixed price, all inclusive. Pick a class to continue.</p></div>
-<div data-cc-grid="1" aria-busy="{{ ccBusy }}">
-<sc-for list="{{ ccCards }}" as="c" hint-placeholder-count="3">
-<sc-if value="{{ c.skel }}" hint-placeholder-val="{{ false }}">
-<div data-cc-card="1" data-skel="1" aria-hidden="true"><span data-cc-shot="1" data-cc-sk="1" style="border:0"></span><div data-cc-side="1"><span data-cc-sk="1" style="width:55%;height:22px"></span><span data-cc-sk="1" style="width:96px;height:26px"></span><span data-cc-sk="1" style="width:60%;height:16px;margin-block-start:auto"></span><span data-cc-sk="1" style="width:100%;height:44px;border-radius:999px;margin-block-start:6px"></span></div></div>
-</sc-if>
-<sc-if value="{{ c.live }}" hint-placeholder-val="{{ true }}">
-<div data-cc-card="1" data-block="{{ c.block }}" data-slug="{{ c.slug }}" role="group" aria-label="{{ c.name }}">
-<div data-cc-shot="1">
-<sc-if value="{{ c.hasPhoto }}" hint-placeholder-val="{{ false }}"><img src="{{ c.photoSmall }}" srcSet="{{ c.photoSet }}" sizes="146px" alt="{{ c.name }}" width="640" height="640" loading="lazy" decoding="async" data-vt-no-i18n="1" onError="{{ c.imgErr }}"></sc-if>
-<sc-if value="{{ c.noPhoto }}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="car" size="{{ n34 }}" color="var(--vt-grey-400)" hint-size="34px,34px"></x-import></sc-if>
-</div>
-<div data-cc-side="1">
-<div data-cc-name="1" data-vt-no-i18n="1">{{ c.name }}</div>
-<sc-if value="{{ c.hasPrice }}" hint-placeholder-val="{{ true }}"><div data-cc-price="1" class="vt-dir-keep" data-vt-no-i18n="1">{{ c.price }}</div></sc-if>
-<sc-if value="{{ c.noPrice }}" hint-placeholder-val="{{ false }}"><div data-cc-price="1" data-muted="1">Price at checkout</div></sc-if>
-<sc-if value="{{ c.needTrip }}" hint-placeholder-val="{{ false }}"><div data-cc-price-slot="1"><div data-cc-price="1" data-muted="1" data-cc-need="1">Fill in the trip to see prices</div></div></sc-if>
-<sc-if value="{{ c.priceLoading }}" hint-placeholder-val="{{ false }}"><div data-cc-price-slot="1"><span data-cc-price-sk="1" role="status" aria-label="Loading prices"></span></div></sc-if>
-<div data-cc-meta="1">
-<span data-cc-fig="1" aria-label="{{ c.paxLabel }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="users" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import><span>{{ c.paxText }}</span></span>
-<span data-cc-fig="1" aria-label="{{ c.bagsLabel }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="luggage" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import><span>{{ c.bagsText }}</span></span>
-</div>
-<sc-if value="{{ c.canPick }}" hint-placeholder-val="{{ true }}"><div data-cc-act="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" size="md" block="{{ yes }}" iconEnd="arrow-right" onClick="{{ c.pick }}" hint-size="100%,44px">Select</x-import></div></sc-if>
-<sc-if value="{{ c.locked }}" hint-placeholder-val="{{ false }}"><div data-cc-act="1" data-locked="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" size="md" block="{{ yes }}" iconEnd="arrow-right" onClick="{{ c.warn }}" hint-size="100%,44px">Select</x-import></div></sc-if>
-<sc-if value="{{ c.loadingAct }}" hint-placeholder-val="{{ false }}"><div data-cc-act="1"><span data-cc-sk="1" style="width:100%;height:44px;border-radius:999px" aria-hidden="true"></span></div></sc-if>
-<sc-if value="{{ c.tooSmall }}" hint-placeholder-val="{{ false }}"><div data-cc-small="1">{{ c.smallText }}</div></sc-if>
-</div>
-</div>
-</sc-if>
-</sc-for>
-</div>
-<sc-if value="{{ ccWarnShow }}" hint-placeholder-val="{{ false }}"><p data-cc-warn="1" role="alert"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-alert" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import><span>Add the missing details to see prices:</span><sc-for list="{{ ccMissing }}" as="m" hint-placeholder-count="1"><span data-cc-warn-item="1">{{ m.text }}</span></sc-for></p></sc-if>
-<sc-if value="{{ ccMsg }}" hint-placeholder-val="{{ false }}"><p data-cc-msg="1" role="status">{{ ccMsg }}</p></sc-if>
-</section>
-</sc-if>
 <div data-trust="1" data-in-bar="{{ trustInBar }}">
 <sc-if value="{{ trustEmpty }}" hint-placeholder-val="{{ true }}">
 <span data-trust-empty="1">{{ tTrustEmpty }}</span>
@@ -930,36 +860,8 @@ const FLIGHT_API = {
   },
 };
 
-/** Live-book card from quote.classes. No hardcoded class catalog (D-29; line-up is Economy / Business / Van luxury, D-14). */
-function classFromQuote(c) {
-  const slug = String((c && c.slug) || '');
-  const name = String((c && (c.name || c.label)) || slug);
-  const blurb = String((c && (c.blurb || c.subtitle || c.tagline || c.examples || c.description)) || '').trim();
-  return {
-    id: slug,
-    name: name,
-    icon: 'car',
-    cap: c && c.effective_max_pax != null ? c.effective_max_pax : 0,
-    bags: c && c.max_bags != null ? c.max_bags : 0,
-    image: String((c && (c.photo_url || c.photo_path || c.image)) || ''),
-    examples: blurb,
-  };
-}
 function classOnFleet(offer, slug) {
   return (offer || []).filter((x) => x.id === slug)[0] || null;
-}
-function publicQuoteClass(c) {
-  return !!(c && c.slug && c.ineligible_reason !== 'no_rate');
-}
-/** The photo the owner uploaded for a class, as the server serves it (/photos/<key>). Nothing else is ever used.
-    The cards ask for its small versions (?w=640, ?w=1280); the server answers the original if it cannot make one. */
-function ccPhotoUrl(c) {
-  const u = c && typeof c.photo_url === 'string' ? c.photo_url : '';
-  return /^\/photos\/[A-Za-z0-9._\/-]+$/.test(u) && u.indexOf('..') === -1 ? u : '';
-}
-function ccCatalogEntry(c) {
-  const m = classFromQuote(c);
-  return { slug: m.id, name: m.name, pax: m.cap, bags: m.bags, photo: ccPhotoUrl(c) };
 }
 const T = {
   en: {
@@ -1282,7 +1184,7 @@ class Component extends DCLogic {
       flight: '', flightAsk: false, flightState: 'idle', flightData: null, flightPlan: null, flightSince: '', flightNote: '', changes: [], kept: [],
       touched: { pickup: false, dest: false, when: false }, here: null, hereLoc: null,
       autofill: { pickup: null, when: null, dest: null, party: null }, fill: null, picked: null,
-      sug: CLOSED, sugIdx: -1, sugFlip: false, fsug: { open: false, items: [] }, fsugIdx: -1, fsugFlip: false, cc: { status: 'idle', cards: [], msg: '' }, ccCat: null, ccWarn: false, ccImgBad: {},
+      sug: CLOSED, sugIdx: -1, sugFlip: false, fsug: { open: false, items: [] }, fsugIdx: -1, fsugFlip: false,
       quote: { status: 'empty', results: null, inflight: false }, announce: '', quoteFail: false,
       fleetOffer: [],
       narrow: NARROW(), menuOpen: false, sheetOpen: false, barAbove: false, hdOpen: false, dockTop: 84, travSet: false,
@@ -1978,7 +1880,7 @@ class Component extends DCLogic {
       pax: 1, bags: 0, fno: '', flightOpen: false, travOpen: false, travSet: false,
       errs: { pickup: '', dest: '', when: '', flight: '' },
       touched: { pickup: false, dest: false, when: false },
-      sug: CLOSED, sugIdx: -1, sheetOpen: false, cc: { status: 'idle', cards: [], msg: '' },
+      sug: CLOSED, sugIdx: -1, sheetOpen: false,
     });
   }
   /** Bottom edge of the floating header, as the docked bar sees it. */
@@ -2207,8 +2109,6 @@ class Component extends DCLogic {
     const isAir = !!(st.pickupLoc && this.pickupAir());
     const wasAir = !!this._wasAir;
     this._wasAir = isAir;
-    this.ccSync();
-    try { document.querySelectorAll('[data-cc-act][data-locked] button').forEach((b) => b.setAttribute('aria-disabled', 'true')); } catch (e) {}
     if (st.narrow || wasAir || !isAir) return;
     cancelAnimationFrame(this._flightFocusRaf);
     this._flightFocusRaf = requestAnimationFrame(() => {
@@ -2346,127 +2246,7 @@ class Component extends DCLogic {
     return { ok: ok, errs: errs, when: when, air: air, fl: fl, pText: pText, dText: dText, pl: pl, dl: dl };
   }
   /** Hands the trip to /checkout in the URL. Used by the box and by the sheet alike. */
-  /* ── 26.4.2 laptop "Choose your class" ────────────────────────────────────
-     Prices come ONLY from the server quote (POST /api/quote); nothing is written into markup.
-     Trigger: laptop (>=1081) and From, To and When all valid (checkTrip().ok). The trip is reduced to a signature
-     (place ids, when, pax, bags, flight); the quote fires 900 ms after the signature settles, never on a keystroke,
-     and never twice for the same signature. At most 4 quotes per rolling minute leave this page (the server allows 4).
-     States: idle (section hidden) · loading (skeleton) · ok (cards with prices) · none (no class fits) ·
-     limit / error (cards without a price, "Price at checkout"; SEE PRICES still goes to checkout).
-     A class the party does not fit is greyed with "Seats up to N" / "Bags up to N" and cannot be picked. */
-  ccBody(r) {
-    const s = this.state;
-    if (!r.ok || !r.pl || !r.dl || !r.pl.mapbox_id || !r.dl.mapbox_id) return null;
-    const token = geoSession();
-    const lang = LANGS.indexOf(s.lang) > -1 ? s.lang : 'en';
-    const cur = ['CHF', 'EUR', 'USD', 'AED'].indexOf(s.cur) > -1 ? s.cur : 'CHF';
-    return {
-      locale: lang, display_currency: cur, mode: 'one_way',
-      pickup: { kind: 'retrieve', mapbox_id: String(r.pl.mapbox_id).slice(0, 256), session_token: token, text: r.pText.slice(0, 200) },
-      dropoff: { kind: 'retrieve', mapbox_id: String(r.dl.mapbox_id).slice(0, 256), session_token: token, text: r.dText.slice(0, 200) },
-      legs: [{ leg_seq: 1, scheduled_local: r.when, flight_no: r.fl ? r.fl.slice(0, 16) : null }],
-      pax: Math.min(8, Math.max(1, parseInt(s.pax, 10) || 1)), bags: Math.min(16, Math.max(0, parseInt(s.bags, 10) || 0)),
-    };
-  }
-  /** The class line-up (name, seats, bags, dashboard photo URL) from the idle GET /api/quote: no Mapbox call, no price. Loaded once. */
-  ccLoadCatalog() {
-    if (this._ccCatReq) return;
-    this._ccCatReq = true;
-    const done = (list) => { if (list.length) this._ccCatalog = list; this.setState({ ccCat: list }); };
-    fetch('/api/quote', { headers: { accept: 'application/json' }, credentials: 'same-origin' })
-      .then((res) => res.json().catch(() => null))
-      .then((j) => done(j && j.ok === true && Array.isArray(j.classes) ? j.classes.filter(publicQuoteClass).map(ccCatalogEntry) : []))
-      .catch(() => done([]));
-  }
-  ccSync() {
-    const s = this.state;
-    if (s.narrow) { this.ccReset(); return; }
-    this.ccLoadCatalog();
-    const r = this.checkTrip();
-    if (r.ok && s.ccWarn) this.setState({ ccWarn: false });
-    const body = this.ccBody(r);
-    if (!body) { this.ccReset(); return; }
-    const sig = [body.pickup.mapbox_id, body.dropoff.mapbox_id, body.legs[0].scheduled_local, body.legs[0].flight_no || '', body.pax, body.bags].join('|');
-    if (sig === this._ccSig) return;
-    this._ccSig = sig;
-    clearTimeout(this._ccT);
-    if (s.cc.status !== 'loading') this.setState({ cc: { status: 'loading', cards: [], msg: '' } }, () => this.ccReveal());
-    this._ccT = setTimeout(() => this.ccFire(sig), 900);
-  }
-  ccReset() {
-    clearTimeout(this._ccT); this._ccSig = ''; this._ccSeq = (this._ccSeq || 0) + 1;
-    if (this.state.cc.status !== 'idle') this.setState({ cc: { status: 'idle', cards: [], msg: '' } });
-  }
-  ccFire(sig) {
-    if (sig !== this._ccSig || this.state.narrow) return;
-    const body = this.ccBody(this.checkTrip());
-    if (!body) return;
-    const now = Date.now();
-    this._ccHits = (this._ccHits || []).filter((t) => now - t < 60000);
-    if (this._ccHits.length >= 4) { this.ccFail('limit'); return; }
-    this._ccHits.push(now);
-    const seq = this._ccSeq = (this._ccSeq || 0) + 1;
-    fetch('/api/quote', { method: 'POST', credentials: 'same-origin', headers: { 'content-type': 'application/json', accept: 'application/json' }, body: JSON.stringify(body) })
-      .then((res) => res.json().catch(() => null).then((j) => ({ status: res.status, j: j })))
-      .then((o) => {
-        if (seq !== this._ccSeq || sig !== this._ccSig) return;
-        const j = o.j;
-        if (o.status === 429 || (j && (j.error === 'rate_limited' || j.error === 'rate_limit'))) { this.ccFail('limit'); return; }
-        if (!j || j.ok !== true) { this.ccFail('error'); return; }
-        const cards = (j.classes || []).filter(publicQuoteClass).map((c) => {
-          const ok = c.eligible === true;
-          const reason = c.ineligible_reason;
-          return {
-            slug: String(c.slug), name: String(c.name || c.label || c.slug), photo: ccPhotoUrl(c),
-            pax: c.effective_max_pax != null ? c.effective_max_pax : 0, bags: c.max_bags != null ? c.max_bags : 0,
-            block: ok ? '' : (reason === 'pax' || reason === 'bags' ? reason : 'gone'),
-            total: typeof c.total_rappen === 'number' && isFinite(c.total_rappen) ? c.total_rappen : null,
-          };
-        }).filter((c) => c.block !== 'gone');
-        if (!cards.length) { this.setState({ cc: { status: 'none', cards: [], msg: 'No class fits this trip. Change the passengers or the bags.' } }); return; }
-        const anyOk = cards.some((c) => !c.block);
-        this.setState({ cc: { status: anyOk ? 'ok' : 'none', cards: cards, msg: anyOk ? '' : 'No class fits this trip. Change the passengers or the bags.' } }, () => this.ccReveal());
-      })
-      .catch(() => { if (seq === this._ccSeq && sig === this._ccSig) this.ccFail('error'); });
-  }
-  /** limit / error: the class line-up without a price. The catalog is the idle GET /api/quote (no Mapbox, no price). */
-  ccFail(kind) {
-    const sig = this._ccSig;
-    const msg = kind === 'limit'
-      ? 'Prices are busy for a moment. Pick a class and you see the price at checkout.'
-      : 'We could not load prices just now. Pick a class and you see the price at checkout.';
-    const show = (list) => {
-      if (sig !== this._ccSig) return;
-      const s = this.state;
-      const pax = Math.min(8, Math.max(1, parseInt(s.pax, 10) || 1)), bags = Math.min(16, Math.max(0, parseInt(s.bags, 10) || 0));
-      const cards = list.map((c) => Object.assign({}, c, { block: pax > c.pax ? 'pax' : (bags > c.bags ? 'bags' : ''), total: null }));
-      this.setState({ cc: { status: kind, cards: cards, msg: msg } }, () => this.ccReveal());
-    };
-    if (this._ccCatalog) { show(this._ccCatalog); return; }
-    fetch('/api/quote', { headers: { accept: 'application/json' }, credentials: 'same-origin' })
-      .then((res) => res.json().catch(() => null))
-      .then((j) => {
-        const list = j && j.ok === true && Array.isArray(j.classes) ? j.classes.filter(publicQuoteClass).map(ccCatalogEntry) : [];
-        if (list.length) this._ccCatalog = list;
-        show(list);
-      })
-      .catch(() => show([]));
-  }
-  /** The bar sits low in the hero: bring the cards up when they open below the fold. */
-  ccReveal() {
-    cancelAnimationFrame(this._ccRaf);
-    this._ccRaf = requestAnimationFrame(() => {
-      const el = document.querySelector('[data-cc]');
-      if (!el || this.state.narrow) return;
-      const r = el.getBoundingClientRect();
-      const over = r.bottom - (window.innerHeight - 24);
-      if (over <= 4) return;
-      const y = (window.scrollY || 0) + Math.min(over, Math.max(0, r.top - 96));
-      try { window.scrollTo({ top: y, behavior: REDUCED ? 'auto' : 'smooth' }); } catch (err) {}
-    });
-  }
-  pickClass = (slug) => this.goCheckout(slug);
-  goCheckout(cls) {
+  goCheckout() {
     const s = this.state; const r = this.checkTrip();
     if (!r.ok) return;
     const p = new URLSearchParams();
@@ -2479,7 +2259,6 @@ class Component extends DCLogic {
     p.set('pax', String(Math.min(8, Math.max(1, parseInt(s.pax, 10) || 1))));
     p.set('bags', String(Math.min(16, Math.max(0, parseInt(s.bags, 10) || 0))));
     if (r.fl) p.set('flight', r.fl);
-    if (typeof cls === 'string' && /^[a-z0-9][a-z0-9_-]{0,63}$/.test(cls)) p.set('class', cls);
     const prefix = (s.lang === 'de' || s.lang === 'fr' || s.lang === 'ar') ? '/' + s.lang : '';
     this.setState({ errs: r.errs });
     location.assign(prefix + '/checkout?' + p.toString());
@@ -2489,41 +2268,6 @@ class Component extends DCLogic {
     if (!r.ok) { this.setState({ errs: r.errs, travOpen: false }, () => this.focusFirstErr()); return; }
     this.goCheckout();
   };
-  /** Clicking a locked Select: name what is missing (the bar's own field errors show too) and focus the first missing field. */
-  ccWarnMissing = () => {
-    const r = this.checkTrip();
-    if (r.ok) { this.goCheckout(); return; }
-    this.setState({ errs: r.errs, ccWarn: true, travOpen: false }, () => this.focusFirstErr());
-  };
-  ccImgFail(slug) { this.setState((st) => ({ ccImgBad: Object.assign({}, st.ccImgBad, { [slug]: true }) })); }
-  /** Card view models. Money is formatted by the locale runtime from the server's rappen; a null total shows no figure.
-      Idle and loading show the class line-up from the catalog (photo, seats, bags) and never a price. */
-  ccCards() {
-    const st = this.state, cc = st.cc, cat = st.ccCat;
-    const showing = cc.status === 'ok' || cc.status === 'none' || cc.status === 'limit' || cc.status === 'error';
-    const list = showing ? (cc.cards || []) : (cat || []);
-    if (!showing && cat === null) return [{ skel: true, live: false }, { skel: true, live: false }, { skel: true, live: false }];
-    const loc = typeof window !== 'undefined' ? window.VamosLocale : null;
-    const pax = Math.min(8, Math.max(1, parseInt(st.pax, 10) || 1)), bags = Math.min(16, Math.max(0, parseInt(st.bags, 10) || 0));
-    const bad = st.ccImgBad || {};
-    const idle = cc.status === 'idle', loading = cc.status === 'loading';
-    return list.map((c) => {
-      const block = showing ? (c.block || '') : (pax > c.pax ? 'pax' : (bags > c.bags ? 'bags' : ''));
-      const hasPrice = showing && c.total != null;
-      const small = block === 'pax' || block === 'bags';
-      const photo = c.photo && !bad[c.slug] ? c.photo : '';
-      return {
-        skel: false, live: true, slug: c.slug, name: c.name, pax: c.pax, bags: c.bags, block: block,
-        photo: photo, photoSmall: photo ? photo + '?w=640' : '', photoSet: photo ? photo + '?w=640 640w' : '', hasPhoto: !!photo, noPhoto: !photo, imgErr: () => this.ccImgFail(c.slug),
-        paxLabel: 'Up to ' + c.pax + ' passengers', bagsLabel: 'Up to ' + c.bags + ' bags', paxText: c.pax + ' seats', bagsText: c.bags + ' bags',
-        hasPrice: hasPrice, price: hasPrice && loc && loc.fromChf ? loc.fromChf(c.total) : '', noPrice: showing && !hasPrice && !small,
-        needTrip: idle && !small, priceLoading: loading && !small,
-        canPick: showing && !small, locked: idle && !small, loadingAct: loading && !small,
-        tooSmall: small, smallText: (block === 'bags' ? 'Bags up to ' : 'Seats up to ') + (block === 'bags' ? c.bags : c.pax),
-        pick: () => this.pickClass(c.slug), warn: this.ccWarnMissing,
-      };
-    });
-  }
   renderVals() {
     const t = this.t(); const s = this.state;
     const trust = this.trustSummary();
@@ -2557,10 +2301,9 @@ class Component extends DCLogic {
       shToInput: this.shToInput, shToPick: this.shToPick, shToClear: this.shToClear,
       shFlight: this.shFlight, openFlightSheet: this.openFlightSheet, shFocus: this.shFocus,
       setPaxN: this.setPaxN, setBagsN: this.setBagsN, shSubmit: this.shSubmit,
-      n0: 0, n1: 1, n2: 2, n8: 8, n12: 12, n13: 13, n14: 14, n15: 15, n16: 16, n18: 18, n20: 20, n24: 24, n30: 30, n34: 34,
+      n0: 0, n1: 1, n2: 2, n8: 8, n12: 12, n13: 13, n14: 14, n15: 15, n16: 16, n18: 18, n20: 20, n24: 24, n30: 30,
       yes: true, no: false,
       dir: s.lang === 'ar' ? 'rtl' : 'ltr', lang: s.lang, cur: s.cur, pickLang: this.pickLang, pickCur: this.pickCur,
-      ccShow: !s.narrow && (s.cc.status !== 'idle' || s.ccCat === null || (s.ccCat && s.ccCat.length > 0)), ccWarnShow: !s.narrow && !!s.ccWarn && !trip.ok, ccMissing: [trip.errs.pickup, trip.errs.dest, trip.errs.flight, trip.errs.when].filter(Boolean).map((m) => ({ text: m })), ccState: s.cc.status, ccBusy: s.cc.status === 'loading' ? 'true' : 'false', ccMsg: s.cc.msg || '', ccCards: this.ccCards(),
       boxRef: this.boxRef, airAttr: air ? '1' : '0', fltAttr: (showFlightField || showOpener) ? '1' : '0',
       pickupText: s.pickupText, dropText: s.dropText,
       editPickupA: this.editRoute('pickup', 'a'), editDropA: this.editRoute('dropoff', 'a'),

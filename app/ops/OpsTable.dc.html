@@ -357,7 +357,6 @@
 <input type="file" accept="image/jpeg,image/png,image/webp" onChange="{{ f.pickFile }}" aria-label="{{ f.chooseLabel }}">
 <span data-vt-photo-cta="1" style="display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 14px;border:1px solid var(--vt-grey-300);border-radius:var(--vt-radius-pill);background:var(--vt-white);font-family:var(--vt-font-body);font-size:13px;font-weight:600;color:var(--vt-charcoal-900);cursor:pointer">{{ f.chooseLabel }}</span>
 </label>
-<button type="button" data-linkbtn="1" onClick="{{ f.clearPhoto }}" style="display:{{ f.clearShow }}">{{ f.clearLabel }}</button>
 </div>
 </div>
 <span style="display:{{ f.hintShow }};font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ f.hint }}</span>
@@ -1615,8 +1614,6 @@ class Component extends DCLogic {
         photoSrc: (val && String(val).indexOf('data:') !== 0) ? ('/photos/' + val) : '',
         hasPhoto: !!(val && String(val).indexOf('data:') !== 0),
         noPhoto: !(val && String(val).indexOf('data:') !== 0),
-        clearShow: (val && String(val).indexOf('data:') !== 0) ? 'inline' : 'none',
-        clearLabel: f.clearLabel || 'Remove',
         fromSug: false,
         fromSugItems: [],
         toSug: false,
@@ -1632,7 +1629,6 @@ class Component extends DCLogic {
         },
         pick: (v) => { this.setField(f.key, v); if (f.onSelect) f.onSelect(v); },
         toggle: (e) => this.setField(f.key, e.target.checked),
-        clearPhoto: () => this.setField(f.key, ''),
         pickFile: (e) => {
           const file = e.target && e.target.files && e.target.files[0];
           if (!file) return;

@@ -70,13 +70,28 @@ const CAPS: Cap[] = [
 ];
 
 /** A real-shape /api/quote body for a party; `null` totals read `CHF 000`. */
-function quoteBody(pax: number, bags: number, opts: { live?: boolean } = {}) {
+function quoteBody(pax: number, bags: number, opts: { live?: boolean; legs?: { distance_m: number; road?: boolean }[] } = {}) {
   return {
     ok: true,
     quote_id: "22222222-2222-4222-8222-222222222222",
     lock: "v1.fixture.lock",
     expires_at: new Date(Date.now() + 30 * 60_000).toISOString(),
     pricing_live: opts.live ?? false,
+    ...(opts.legs
+      ? {
+          route: {
+            legs: opts.legs.map((l, i) => ({
+              leg_seq: i + 1,
+              distance_m: l.distance_m,
+              duration_s: 0,
+              geometry: { type: "LineString", coordinates: [] },
+              origin_zone_id: null,
+              dest_zone_id: null,
+              ...(l.road === undefined ? {} : { road: l.road }),
+            })),
+          },
+        }
+      : {}),
     classes: CAPS.map((c) => {
       const eligible = pax <= c.pax && bags <= c.bags;
       return {
@@ -294,6 +309,43 @@ test("empty: 'No class fits this trip' with EDIT TRIP opening the editor @checko
   await expect(empty).toContainText("+41 79 626 70 82");
   await page.locator("[data-co-empty-edit]").click();
   await expect(page.locator("[data-co-editor]")).toBeVisible();
+});
+
+test("trip distance: the server's km lead the strip and open the summary, at four widths @checkout", async ({ page }) => {
+  await routeQuote(page, (b) => ({ json: quoteBody(Number(b.pax), Number(b.bags), { legs: [{ distance_m: 148_230, road: true }] }) }));
+  for (const width of WIDTHS) {
+    await open(page, TRIP, width);
+    await expect(page.locator("[data-co-classes]")).toBeVisible({ timeout: 30_000 });
+    await expect(page.locator("[data-co-facts]")).toHaveText(/^148\.2 km · .*08:15 · 2 passengers · 3 bags$/);
+    await expect(page.locator("[data-co-facts] [data-co-distance] .vt-dir-keep")).toHaveText("148.2");
+    const summary = page.locator(width >= 1081 ? ".vt-co__railcard" : "[data-co-section='3']").first();
+    await expect(summary.locator("[data-co-distance]")).toContainText("148.2 km");
+    await noSidewaysScroll(page);
+  }
+});
+
+test("trip distance: a leg with no road writes the words in all places, never a partial sum @checkout", async ({ page }) => {
+  await routeQuote(page, (b) => ({
+    json: quoteBody(Number(b.pax), Number(b.bags), {
+      legs: [
+        { distance_m: 100_000, road: true },
+        { distance_m: 9_000, road: false },
+      ],
+    }),
+  }));
+  await open(page, TRIP, 1440);
+  await expect(page.locator("[data-co-classes]")).toBeVisible({ timeout: 30_000 });
+  await expect(page.locator("[data-co-facts] [data-co-no-road]")).toHaveText("No road route");
+  await expect(page.locator(".vt-co__railcard [data-co-no-road]")).toHaveText("No road route");
+  await expect(page.locator("[data-co-facts]")).not.toContainText("km");
+  await expect(page.locator(".vt-co__railcard [data-co-distance]")).not.toContainText("km");
+});
+
+test("trip distance: an answer without a route shows neither figure nor words @checkout", async ({ page }) => {
+  await routeQuote(page, byParty);
+  await open(page, TRIP, 1440);
+  await expect(page.locator("[data-co-classes]")).toBeVisible({ timeout: 30_000 });
+  await expect(page.locator("[data-co-distance]")).toHaveCount(0);
 });
 
 test("Edit trip: fields in home order, UPDATE PRICES re-quotes, replaces the URL and clears a class that became too small @checkout", async ({

@@ -6,6 +6,7 @@ import { routing } from "@/i18n/routing";
 import {
   fetchQuote,
   keepSelection,
+  kmFigure,
   parseQuoteJson,
   tripIsQuotable,
   type QuoteOk,
@@ -311,6 +312,8 @@ export function CheckoutPage({
             <TripStrip
               trip={trip}
               locale={locale}
+              distanceKm={phase.kind === "ready" ? kmFigure(quote?.distanceM) : null}
+              noRoad={phase.kind === "ready" && quote?.noRoad === true}
               onBack={() => router.push("/")}
               onEdit={() => setEditorOpen(true)}
               editRef={editRef}

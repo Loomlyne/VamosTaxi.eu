@@ -1,0 +1,80 @@
+// apps/web/tests/integration/ops-26-3-widths.spec.ts
+//
+// 26.3-13: the extra editor (four name fields) and the board's "Awaiting payment" filter with its
+// empty state, each rendered from the DC source at 1440/1024/768/390 (one run per project).
+// No sideways scroll, German and Arabic strings present, Arabic sets dir=rtl. No network.
+
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { test, expect, type Page } from "@playwright/test";
+import { serveMock, waitForMockReady } from "../support/mock-harness";
+
+const APP = join(__dirname, "../../../../app");
+// The ops shell (ops.dc.html) loads the locale runtime; a screen served alone does not, so the
+// spec injects the same two files before the page boots.
+const DS = "../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786";
+const DS_HEAD = [
+  ...["fonts", "colors", "typography", "spacing", "elevation", "motion", "base"].map(
+    (f) => `<link rel="stylesheet" href="${DS}/tokens/${f}.css">`,
+  ),
+  `<link rel="stylesheet" href="${DS}/styles.css">`,
+  `<script src="${DS}/_ds_bundle.js"></script>`,
+  `<style>:root{--vt-icon-base:"../../assets/icons/";--vt-shadow-accent:none}.vt-input--focus{box-shadow:none}</style>`,
+].join("\n");
+const LOCALE_JS = [readFileSync(join(APP, "vamos-i18n-dict.js"), "utf8"), readFileSync(join(APP, "vamos-locale.js"), "utf8"), readFileSync(join(APP, "vamos-ops-api.js"), "utf8"), readFileSync(join(APP, "vamos-ops-data.js"), "utf8")];
+
+async function open(page: Page, rel: string, lang: "en" | "de" | "ar", extra?: () => Promise<void>): Promise<void> {
+  await page.addInitScript((l) => {
+    try {
+      localStorage.setItem("vamosLang", l);
+    } catch {}
+  }, lang);
+  for (const src of LOCALE_JS) await page.addInitScript(src);
+  // The ops shell loads the design-system bundle for its screens; a screen served alone needs it too.
+  await page.route(/\/app\/ops\/Ops(Board|Pricing)\.dc\.html/, async (route) => {
+    const res = await route.fetch();
+    const body = (await res.text()).replace("</head>", `${DS_HEAD}\n</head>`);
+    await route.fulfill({ response: res, body });
+  });
+  await page.route("**/api/staff/**", (route) =>
+    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, data: [] }) }),
+  );
+  if (extra) await extra();
+  await page.goto(await serveMock(rel));
+  await waitForMockReady(page);
+}
+
+
+const Q = "/Users/koss/Developer/vamos-wt/class-photo-replace/.planning/quick/260930-cpr-class-photo-replace";
+const PRICING = "app/ops/OpsPricing.dc.html";
+for (const lang of ["en", "de", "ar"] as const) {
+  test(`class photo field ${lang} @ops-shot`, async ({ page }, ti) => {
+    test.setTimeout(120_000);
+    const w = page.viewportSize()!.width;
+    if (lang !== "en" && w !== 1440 && w !== 390) test.skip();
+    await page.route("**/photos/**", (r) => r.fulfill({ status: 200, contentType: "image/jpeg", body: readFileSync("/private/tmp/claude-501/business.jpg") }));
+    const CLASSES = [
+      { id: "r-eco", vehicleClassId: "11111111-1111-4111-8111-111111111111", klass: "Economy", name: "Economy", slug: "saden", photo: "classes/11111111-1111-4111-8111-111111111111/a.png", maxPax: 3, maxBags: 3, sortOrder: 1 },
+      { id: "r-bus", vehicleClassId: "22222222-2222-4222-8222-222222222222", klass: "Business", name: "Business", slug: "business", photo: "classes/22222222-2222-4222-8222-222222222222/b.png", maxPax: 7, maxBags: 6, sortOrder: 2 },
+    ];
+    await open(page, PRICING, lang, async () => {
+      await page.route(/\/api\/staff\/rate-book(\?.*)?$/, (route) => route.request().method() === "GET"
+        ? route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, data: { distance: CLASSES, rates: CLASSES, classes: CLASSES.map((c) => ({ id: c.vehicleClassId, slug: c.slug, name: c.name })), zones: [], routes: [], surcharges: [], coupons: [] } }) })
+        : route.fallback());
+    });
+    const tabs = await page.locator("nav button").allInnerTexts();
+    console.log("TABS", JSON.stringify(tabs));
+    await page.locator("nav button").nth(1).click();
+    await page.waitForTimeout(400);
+    const rows = await page.evaluate(() => { const o = (window as any).VamosOps; return o && o.rates ? o.rates.all().map((r: any) => ({ id: r.id, klass: r.klass, photo: r.photo })) : null; });
+    console.log("RATES", JSON.stringify(rows));
+    await page.waitForTimeout(600);
+    await page.locator("tr", { hasText: "Business" }).locator("button").nth(-2).click();
+    await page.waitForTimeout(900);
+    await page.locator("[data-vt-photo-pick]").first().scrollIntoViewIfNeeded().catch(() => {});
+    await page.screenshot({ path: `${Q}/screens/after-${w}-${lang}.png` });
+    await page.addStyleTag({ content: "button[data-linkbtn]{display:inline!important}" });
+    await page.waitForTimeout(200);
+    await page.screenshot({ path: `${Q}/screens/before-${w}-${lang}.png` });
+  });
+}

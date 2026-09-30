@@ -111,7 +111,8 @@ select is((select count(*) from public.reviews where published)::int, 0, 'no see
 -- canton display names (zone.canton-<code>); canton_zones.test.sql pins those 26 on their own.
 -- 26.0: re-pinned to the seed header (content_strings=2672) after the dictionary appends on main; re-read it from the header, never from en.json.
 -- 26.5: re-pinned to the generated seed after 26.5's 36 new strings: 2670 keys (main had 2634 before 26.5).
-select is((select count(*) from public.content_strings)::int, 2672 + 26, 'content_strings row count = seed header content_strings count + 26 migration canton names');
+-- booking polish: +1 key (checkout.noRoadRoute), pinned to the generated seed header: 2673 keys.
+select is((select count(*) from public.content_strings)::int, 2673 + 26, 'content_strings row count = flattened en.json key count + 26 migration canton names');
 select is((select count(*) from public.content_strings where pending_value)::int, 16, '16 pending-value keys (ADR-011, Law 04 data-tok)');
 select is((select count(*) from public.content_strings where non_translatable)::int, 8 + 26, '8 non-translatable seed keys (ADR-012) + 26 migration canton names');
 select is((select count(*) from public.content_strings where no_param_reason is not null)::int, 94, '94 no-param-reason keys (I18N-06; count re-read from the seed header in 26.5)');
