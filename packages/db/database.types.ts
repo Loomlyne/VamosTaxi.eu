@@ -2952,6 +2952,17 @@ export type Database = {
         }[]
       }
       confirmation_payload: { Args: { p_booking_id: string }; Returns: Json }
+      consent_choice: {
+        Args: { p_as_of?: string; p_policy_version: string }
+        Returns: {
+          analytics: boolean
+          functional: boolean
+          marketing: boolean
+          method: string
+          necessary: boolean
+          recorded_at: string
+        }[]
+      }
       create_quote_snapshot: {
         Args: {
           p_bags: number
