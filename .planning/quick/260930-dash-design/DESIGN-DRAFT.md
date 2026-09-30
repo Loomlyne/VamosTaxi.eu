@@ -208,3 +208,80 @@ pre-existing warnings); `pnpm lint:css` 0; `pnpm i18n:check` pass; `pnpm check:n
 - Follow-ups: the "keep the class" UPDATE was proven with a recorded statement, not on a database.
   The 1080 px drawer switch reads `matchMedia` at render; rotating a tablet across 1080 re-renders
   on the next update only (same as the old 899 switch).
+
+## Merged with main (2026-10-01)
+
+Two merge commits, nothing pushed, nothing deployed:
+
+- `3d7cacb0` — origin/main `0881800e`: refunds by hand (`f29623da`, plan 20-10), extras part A
+  (`9acfdb51`), security batch C part 1. Conflicts in two files.
+- `46f1bdf4` — origin/main moved to `a8948162` while the first merge was open (booking polish 2:
+  home booking sheet, German class-card words, seed). No file of this branch touched; no conflict.
+
+### How each conflict was resolved
+
+1. `app/ops/OpsDetail.dc.html`
+   - Helpers: main's `chfText` / `isolate` / `fillAmounts` kept as they are; one driver helper,
+     `assignableChauffeurs` (this branch's; main's `assignableChauffeurOptions` had no other caller).
+   - `componentDidUpdate`: `publishBar()` (design), the overlay scroll lock with main's
+     `_overlayWas` (cancel / decline / reject — `dialogOpen` dropped because the assign dialog is
+     gone), then `syncRefund()` (main). `syncRefund` / `loadRefund` as on main; `componentDidMount`
+     keeps both `publishBar()` and `syncRefund()`.
+   - Layout (auto-merged, checked): the bar is the signed one — Back to bookings and one ACTIONS;
+     main's old Refund button in the bar is not brought back. Main's whole refund region (Refund due,
+     payment list, Full refund line, %/CHF, Confirm refund, Decline, inline errors, Try again,
+     post-trip Accept / Reject) is unchanged and shows where it showed on main.
+   - Refund in Actions (new wiring): the item is offered when main shows its refund panel (refund
+     due, review, failed / processing), for an old cancelled row (refund_status none) and for a
+     post-trip request — admin only, disabled while a refund is being sent. Picking it:
+     main's panel on the page → scrolls to it and focuses its first control (nothing is sent until
+     the panel's own CONFIRM REFUND / Try again); old cancelled row → main's one-press full refund
+     (`markRefund`, POST `{}`), as main's button did; post-trip → main's Accept / Reject panel
+     (`openRequested`), then scrolls to it. Same handler for the phone bar's ACTIONS.
+   - Copy: both sets of keys kept in en / de / fr / ar (main's 20-10 keys verbatim; this branch's
+     `actions`, `car`, `classMismatch`, …). Main's removal of `extraWait` kept.
+2. `scripts/db-access-fence-allowlist.json`: main's `refund-by-hand.local.test.ts` entries kept; this
+   branch's `assign.local.test.ts` line added; its comment sentence was already in (auto-merged).
+
+Auto-merged and checked by reading: `app/ops/OpsPricing.dc.html` (one `componentDidUpdate`,
+publishBar), `app/vamos-ops-data.js` (main's `arrivedAt` / surcharge `labelEn`, this branch's
+`vehicleClassId`), `apps/web/lib/ops/ops-refund-review-dc.test.ts` (main's pins plus this branch's
+Refund-in-menu pin).
+
+### Tests
+
+- Changed tests of main: none needed. No test of main pins the old Refund button position (the one
+  pin, `sc-if canFullRefund`, was already moved to the menu on this branch and merged cleanly).
+- New: `ops-dc-dash-design.test.ts` "1b · Actions → Refund opens main's refunds-by-hand panel", 8
+  cases. Against the merge before the wiring: 6 failed (`expected false to be true` — no ACTIONS on a
+  refund-due booking; `expected [] to deeply equal [ 'refund' ]`; `expected [] to include 'refund'`;
+  `expected undefined to be true` (disabled); the scroll was never called; no `ref` on main's panels);
+  after: 33 passed in the file.
+
+Gates (after both merges, once): `node scripts/sync-dc-mock-to-public.mjs` ok; `pnpm typecheck` 0;
+`pnpm lint` 0 errors (the same 5 pre-existing warnings, none in touched files); `pnpm lint:css` 0;
+`pnpm i18n:check` pass; `pnpm check:numbers` ok; `pnpm check:db-fences` 8/8; `pnpm check:legal-claims`
+3/3. `vitest run lib/ops/ops-dc-*.test.ts lib/ops/*refund*.test.ts lib/ops/assign*.test.ts` plus
+`tests/unit/checkout-class-card-words-bp2.test.ts`: 232 passed, 2 skipped (`assign.local.test.ts`,
+`refund-by-hand.local.test.ts` — no local stack). The other 15 files that read OpsDetail or were
+touched by this branch: 174 passed.
+
+### Pictures — `screens/refund-merge-sheet.png` (16 + sheet, real shell, offline, API stubbed)
+
+`refund-merge-{before|after}-{en|ar}-{1440|390}-…`: before = origin/main `a8948162` (`page`, then
+`panel` scrolled into view); after = this branch (`actions` = ACTIONS open, `panel` = after
+Actions › Refund). Booking VT-26-0042 cancelled more than 24 hours ahead, two payments, refund due;
+made by the real `mapBoardBooking` (byte-identical on both sides); GET …/refund answered in the
+`RefundPicker` shape. Amounts are the fixture amounts of main's own 20-10 pictures (100.00 + 20.00),
+not prices. Every picture opened and looked at: the panel reads exactly as on main (same controls, amounts and texts); the menu lists
+only Refund; after the pick the first control (All payments) has focus; no POST was sent; 0 px
+sideways at every width. The before tree logs one 404 (`{{ profilePhoto }}`, main's old bar avatar;
+this branch removed that avatar).
+
+### Not verified / open
+
+- Nothing pushed or deployed; no live click; no refund sent; no Worker build.
+- Choice made in the merge, for the owner to confirm: main's refund panel stays visible on the page
+  (as on main), and Actions › Refund brings the admin to it. The alternative — panel hidden until
+  Refund is picked — would hide the "inside 24 hours" review from an admin who does not open the
+  menu, so it was not built.
