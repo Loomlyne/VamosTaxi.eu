@@ -17,8 +17,11 @@ import {
 import { asStaff, asSystem, type VamosClaims } from "../db/identity";
 import { notifyAssignmentCustomer } from "../lifecycle/notify-lifecycle";
 import { resolveStaffBookingId } from "./resolve-booking-id";
+import { classDisplayName } from "./class-slug";
 import {
+  assignClassRefusal,
   mapAssignSqlError,
+  type AssignClassFacts,
   type AssignOverlap,
   type AssignResult,
 } from "./assign-map";
@@ -26,7 +29,9 @@ import {
 export const dynamic = "force-dynamic";
 
 export {
+  assignClassRefusal,
   mapAssignSqlError,
+  type AssignClassFacts,
   type AssignFail,
   type AssignOk,
   type AssignOverlap,
@@ -210,6 +215,65 @@ async function loadOverlap(
   return { otherRef: String(row.reference), otherLocal: String(row.scheduled_local) };
 }
 
+type ClassFactsRow = {
+  car_id: string | null;
+  car_class_id: string | null;
+  car_class_name: string | null;
+  car_class_slug: string | null;
+  trip_class_id: string | null;
+  trip_class_name: string | null;
+  trip_class_slug: string | null;
+};
+
+/** A class as the owner names it: his typed name, else the D-14 name of the slug, else the slug. */
+function className(name: string | null, slug: string | null): string {
+  const typed = String(name ?? "").trim();
+  if (typed) return typed;
+  const raw = String(slug ?? "").trim();
+  if (!raw) return "";
+  return classDisplayName(raw) ?? raw.charAt(0).toUpperCase() + raw.slice(1).replace(/-/g, " ");
+}
+
+/**
+ * 260930-dash-design: the driver's own car (chauffeurs.default_vehicle_id, the car ops_assign_leg
+ * puts on the trip) with its class, and the class of the trip's first leg (the leg the RPC
+ * assigns). Null when the booking or the driver is not there — the RPC then answers not-found.
+ */
+export async function loadAssignClassFacts(
+  sql: OpsSql,
+  bookingId: string,
+  chauffeurId: string,
+): Promise<AssignClassFacts | null> {
+  const rows = await sql<ClassFactsRow[]>`
+    select
+      c.default_vehicle_id as car_id,
+      v.vehicle_class_id as car_class_id,
+      car_cls.name as car_class_name,
+      car_cls.slug as car_class_slug,
+      l.vehicle_class_id as trip_class_id,
+      trip_cls.name as trip_class_name,
+      trip_cls.slug as trip_class_slug
+      from public.bookings as b
+      join public.booking_legs as l on l.booking_id = b.id
+      join public.chauffeurs as c on c.id = ${chauffeurId}::uuid
+      left join public.vehicles as v on v.id = c.default_vehicle_id
+      left join public.vehicle_classes as car_cls on car_cls.id = v.vehicle_class_id
+      left join public.vehicle_classes as trip_cls on trip_cls.id = l.vehicle_class_id
+     where b.id = ${bookingId}::uuid
+     order by l.leg_seq
+     limit 1
+  `;
+  const row = rows[0];
+  if (!row) return null;
+  return {
+    carId: row.car_id ? String(row.car_id) : null,
+    carClassId: row.car_class_id ? String(row.car_class_id) : null,
+    carClassName: className(row.car_class_name, row.car_class_slug),
+    tripClassId: row.trip_class_id ? String(row.trip_class_id) : null,
+    tripClassName: className(row.trip_class_name, row.trip_class_slug),
+  };
+}
+
 async function notifyChauffeur(
   env: CloudflareEnv,
   kind: "assign" | "unassign",
@@ -236,6 +300,16 @@ export async function assignBooking(
   if (!key || !chauffeur) return { ok: false, code: "not-found" };
   const bookingId = await resolveStaffBookingId(env, claims, key);
   if (!bookingId) return { ok: false, code: "not-found" };
+  // 260930-dash-design (owner rule 2026-10-01): a car of another class than the trip's is refused
+  // before the database call, so nothing is written. A read that fails answers a refusal, not a 500.
+  let facts: AssignClassFacts | null;
+  try {
+    facts = await asStaff(env, claims, (sql) => loadAssignClassFacts(sql, bookingId, chauffeur));
+  } catch {
+    return { ok: false, code: "unknown" };
+  }
+  const refusal = assignClassRefusal(facts);
+  if (refusal) return refusal;
   // 260930-dash-assign: map the refusal AROUND asSystem, never inside it. postgres.js begin()
   // rethrows a query error the callback caught, and the deferred GiST overlap (23P01) only fails
   // at COMMIT — a catch inside the callback let both escape as a 500 (generic "Could not assign").

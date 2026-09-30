@@ -11,6 +11,18 @@ export type AssignFail = {
   code: string;
   otherRef?: string;
   otherLocal?: string;
+  /** class-mismatch only: the driver's car class and the trip's class, as the owner names them. */
+  carClass?: string;
+  tripClass?: string;
+};
+
+/** The driver's car and the trip's class, read before assigning (260930-dash-design). */
+export type AssignClassFacts = {
+  carId: string | null;
+  carClassId: string | null;
+  carClassName: string;
+  tripClassId: string | null;
+  tripClassName: string;
 };
 
 export type AssignOk = {
@@ -60,4 +72,17 @@ export function mapAssignSqlError(err: unknown, overlap?: AssignOverlap | null):
   }
   if (code === OPS_SQLSTATE.noData) return { ok: false, code: "not-found" };
   return { ok: false, code: "unknown" };
+}
+
+/**
+ * Owner rule 2026-10-01: each driver has his own car, and a car of another class than the trip's
+ * is refused ("This driver's car is {car class}; the trip is {trip class}."). A driver without a
+ * car is left to ops_assign_leg, which answers no-vehicle; an unknown class is never guessed.
+ */
+export function assignClassRefusal(facts: AssignClassFacts | null | undefined): AssignFail | null {
+  if (!facts || !facts.carId) return null;
+  const car = facts.carClassId ? String(facts.carClassId) : "";
+  const trip = facts.tripClassId ? String(facts.tripClassId) : "";
+  if (!car || !trip || car === trip) return null;
+  return { ok: false, code: "class-mismatch", carClass: facts.carClassName, tripClass: facts.tripClassName };
 }
