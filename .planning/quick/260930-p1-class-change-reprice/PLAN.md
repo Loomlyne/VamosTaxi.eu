@@ -53,7 +53,9 @@ Same price: the class changes when staff confirm; she gets her confirmation agai
 
 Edit also changes pickup, drop-off, date and time of a paid trip in place, with no new price, no
 record of the change and no e-mail to the customer. A customer's time change is never re-priced
-either. Same treatment as the class, or leave? I ask once this job is signed.
+either. **His answer, question form, 2026-09-30: "Yes, its own job after this one".** Place and
+time changes on a paid trip get the same treatment (new price, difference paid or refunded,
+customer told), with their own short plan for his signature after the class change (P6).
 
 ## What it depends on
 
@@ -75,6 +77,6 @@ of the difference by the owner, then `booking_payments` read by status.
 | Gate | State |
 |---|---|
 | Discuss (DECISIONS.md) | Answered through the question form, 2026-09-30 |
-| This plan | **Waiting for his signature** |
+| This plan | **Signed by the owner, question form, 2026-09-30** ("Signed") |
 | Designs (Edit form, price box, confirm step, waiting state) and the e-mail wording | After the plan is signed, before code |
 | UAT and Ship | His word |
