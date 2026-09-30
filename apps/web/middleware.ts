@@ -112,10 +112,8 @@ async function serveDcHtml(request: NextRequest, mock: string): Promise<NextResp
   const asset = new URL(mock, request.url);
   const res = await fetch(asset, { headers: { [INTERNAL_ASSET_HEADER]: "1" } });
   let html = await res.text();
-  if (mock === DC_PAGES["/contact"]) {
-    const siteKey = process.env.TURNSTILE_SITE_KEY ?? "";
-    html = html.replace(/<head([^>]*)>/i, `<head$1><meta name="vt-turnstile-site-key" content="${siteKey.replace(/&/g, "&amp;").replace(/\"/g, "&quot;")}">`);
-  }
+  const siteKey = process.env.TURNSTILE_SITE_KEY ?? "";
+  html = html.replace(/<head([^>]*)>/i, `<head$1><meta name="vt-turnstile-site-key" content="${siteKey.replace(/&/g, "&amp;").replace(/\"/g, "&quot;")}">`);
   const headers = new Headers(res.headers);
   for (const header of [
     "content-length",
