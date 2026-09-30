@@ -114,7 +114,7 @@
 </aside>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:236,&quot;height&quot;:860},&quot;active&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;dashboard&quot;,&quot;options&quot;:[&quot;dashboard&quot;,&quot;bookings&quot;,&quot;calendar&quot;,&quot;chauffeurs&quot;,&quot;pricing&quot;,&quot;customers&quot;,&quot;support&quot;,&quot;pages&quot;,&quot;legal&quot;,&quot;reviews&quot;,&quot;settings&quot;,&quot;profile&quot;],&quot;tsType&quot;:&quot;string&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:236,&quot;height&quot;:860},&quot;active&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;dashboard&quot;,&quot;options&quot;:[&quot;dashboard&quot;,&quot;bookings&quot;,&quot;calendar&quot;,&quot;chauffeurs&quot;,&quot;cars&quot;,&quot;pricing&quot;,&quot;customers&quot;,&quot;support&quot;,&quot;pages&quot;,&quot;legal&quot;,&quot;reviews&quot;,&quot;settings&quot;,&quot;profile&quot;],&quot;tsType&quot;:&quot;string&quot;}}">
 /* One rail for the whole console. The bottom row collapses it to icons and remembers
    that choice; Content is a group; the profile row is a menu, not a link. */
 const NAV_TOP = [
@@ -122,6 +122,7 @@ const NAV_TOP = [
   { key:'bookings', href:'/bookings', icon:'receipt', en:'Bookings', de:'Buchungen', fr:'Réservations', ar:'الحجوزات' },
   { key:'calendar', href:'/calendar', icon:'calendar-days', en:'Calendar', de:'Kalender', fr:'Calendrier', ar:'التقويم' },
   { key:'chauffeurs', href:'/fleet/chauffeurs', icon:'users', en:'Chauffeurs', de:'Chauffeure', fr:'Chauffeurs', ar:'السائقون' },
+  { key:'cars', href:'/fleet', icon:'car', en:'Cars', de:'Autos', fr:'Voitures', ar:'السيارات' },
 ];
 const NAV_BOTTOM = [
   { key:'customers', href:'/customers', icon:'user', en:'Customers', de:'Kunden', fr:'Clients', ar:'العملاء' },

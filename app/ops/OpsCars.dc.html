@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+:root{--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}
+</style>
+</helmet>
+<main style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column">
+
+<header style="display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px;padding:18px 32px;background:var(--vt-bg-surface);border-bottom:1px solid var(--vt-border-subtle)">
+<div style="min-width:0">
+<h1 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking)">{{ title }}</h1>
+<p style="margin:4px 0 0;max-width:78ch;font-size:var(--vt-body-xs);line-height:1.5;color:var(--vt-text-muted);text-wrap:pretty">{{ subtitle }}</p>
+</div>
+</header>
+
+<div style="padding:26px 32px 48px;display:flex;flex-direction:column;gap:20px;min-width:0">
+
+<sc-if value="{{ hasClassMsg }}" hint-placeholder-val="{{ false }}">
+<p role="status" style="margin:0;max-width:78ch;font-size:var(--vt-body-sm);line-height:1.6;color:var(--vt-danger);text-wrap:pretty">{{ classMsg }}</p>
+</sc-if>
+
+<dc-import name="OpsTable" rows="{{ rows }}" columns="{{ columns }}" fields="{{ fields }}" blank="{{ blank }}" onSave="{{ onSave }}" onUpdate="{{ onUpdate }}" onDelete="{{ onDelete }}" save-label="{{ saveLabel }}" add-save-label="{{ addSaveLabel }}" noun="{{ noun }}" noun-plural="{{ nounPlural }}" add-title="{{ addTitle }}" edit-title="{{ editTitle }}" delete-title="{{ deleteTitle }}" delete-body="{{ deleteBody }}" label-key="{{ labelKey }}" add-label="{{ addLabel }}" search-placeholder="{{ searchPlaceholder }}" search-keys="{{ searchKeys }}" empty-title="{{ emptyTitle }}" empty-body="{{ emptyBody }}" required-message="{{ requiredMessage }}" hint-size="100%,460px"></dc-import>
+
+<p style="margin:0;max-width:78ch;font-size:var(--vt-body-xs);line-height:1.6;color:var(--vt-text-muted);text-wrap:pretty">{{ note }}</p>
+
+</div>
+</main>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:900}}">
+/* Cars — quick 261001-cars-page (owner, 2026-10-01): list, add, edit and delete the fleet's cars.
+   Each driver has his own car (Chauffeurs › Car); a driver's class is his car's class, and Assign
+   refuses a car of another class than the trip. The class list is the live fare book's classes,
+   read from the server, never a fixed list. Delete is refused by the server, in plain words here,
+   while a driver has the car or a trip that is not finished uses it. */
+const STATUSES = ['service', 'idle', 'workshop'];
+const STATUS_TONE = { service: 'success', idle: 'neutral', workshop: 'outline' };
+const LIST_ONLY = ['className', 'driverNames'];
+const T = {
+  en: {
+    title:'Cars',
+    sub:'Each car, its class and what it takes. A driver gets his car on Chauffeurs.',
+    note:'Assign puts the driver’s car on the trip. It refuses a car of another class than the trip, or one with fewer seats or bags than the trip needs.',
+    colCar:'Car', colClass:'Class', colSeats:'Seats', colBags:'Bags', colDriver:'Driver', colStatus:'Status',
+    noDriver:'No driver',
+    fPhoto:'Photo', fPlate:'Plate', fModel:'Model', fClass:'Class', fSeats:'Seats', fBags:'Bags', fStatus:'Status',
+    choosePhoto:'Choose photo', pickClass:'Pick a class',
+    hPhoto:'Optional. Kept for this car only and deleted with it.',
+    hPlate:'As it reads on the plate.',
+    hModel:'Make and model.',
+    hClass:'The classes of the live fare book. A new class shows here once it is published on Pricing & routes.',
+    hSeats:'Travellers it takes. Assign refuses a bigger party.',
+    hBags:'Bags it takes. Assign refuses more bags.',
+    hStatus:'In the workshop: its assigned trips stay booked, and the support inbox gets a mail that lists them.',
+    sService:'In service', sIdle:'Free', sWorkshop:'In the workshop',
+    add:'Add a car', editTitle:'Edit car', saveCar:'Save car',
+    delTitle:'Delete this car?',
+    delBody:'The car and its photo are deleted for good. Finished trips keep their driver, without this car.',
+    noun:'car', nouns:'cars',
+    search:'Plate, model, class or driver',
+    emptyTitle:'No cars yet', emptyBody:'Add the first car, then give it to its driver on Chauffeurs.',
+    inUseDriver:'Driven by {names}. Change the car on Chauffeurs first.',
+    inUseTrips:'In use on trips not finished: {refs}. Reassign or close them first.',
+    gone:'This car is gone. Reload the page.',
+    dupPlate:'This plate is already on file.',
+    needPlate:'Plate is required.', needModel:'Model is required.', needClass:'Class is required.',
+    badSeats:'Seats must be 1 to 16.', badBags:'Bags must be 0 to 16.',
+    saveFailed:'Save failed. Try again.', deleteFailed:'Delete failed. Try again.',
+    noLiveBook:'There is no live fare book yet, so there is no class to pick. Publish one on Pricing & routes first.',
+    classesFailed:'The classes did not load. Reload the page.',
+    required:'Needed', sep:', ',
+  },
+  de: {
+    title:'Autos',
+    sub:'Jedes Auto, seine Klasse und was es mitnimmt. Sein Auto bekommt ein Fahrer unter Chauffeure.',
+    note:'Beim Zuweisen kommt das Auto des Fahrers auf die Fahrt. Abgelehnt wird ein Auto einer anderen Klasse als die Fahrt oder mit weniger Plätzen oder Gepäck, als die Fahrt braucht.',
+    colCar:'Auto', colClass:'Klasse', colSeats:'Plätze', colBags:'Gepäck', colDriver:'Fahrer', colStatus:'Status',
+    noDriver:'Kein Fahrer',
+    fPhoto:'Foto', fPlate:'Kennzeichen', fModel:'Modell', fClass:'Klasse', fSeats:'Plätze', fBags:'Gepäck', fStatus:'Status',
+    choosePhoto:'Foto wählen', pickClass:'Klasse wählen',
+    hPhoto:'Freiwillig. Gehört nur zu diesem Auto und wird mit ihm gelöscht.',
+    hPlate:'So, wie es auf dem Kennzeichen steht.',
+    hModel:'Marke und Modell.',
+    hClass:'Die Klassen des Live-Tarifbuchs. Eine neue Klasse erscheint hier, sobald sie unter Preise & Routen veröffentlicht ist.',
+    hSeats:'Reisende, die es mitnimmt. Eine grössere Gruppe wird beim Zuweisen abgelehnt.',
+    hBags:'Gepäckstücke, die es mitnimmt. Mehr Gepäck wird beim Zuweisen abgelehnt.',
+    hStatus:'In der Werkstatt: Die zugewiesenen Fahrten bleiben gebucht, und das Support-Postfach bekommt eine Mail mit der Liste.',
+    sService:'Im Einsatz', sIdle:'Frei', sWorkshop:'In der Werkstatt',
+    add:'Auto hinzufügen', editTitle:'Auto bearbeiten', saveCar:'Auto speichern',
+    delTitle:'Dieses Auto löschen?',
+    delBody:'Das Auto und sein Foto werden endgültig gelöscht. Abgeschlossene Fahrten behalten ihren Fahrer, ohne dieses Auto.',
+    noun:'Auto', nouns:'Autos',
+    search:'Kennzeichen, Modell, Klasse oder Fahrer',
+    emptyTitle:'Noch keine Autos', emptyBody:'Fügen Sie das erste Auto hinzu und geben Sie es unter Chauffeure seinem Fahrer.',
+    inUseDriver:'Gefahren von {names}. Ändern Sie zuerst das Auto unter Chauffeure.',
+    inUseTrips:'Im Einsatz auf offenen Fahrten: {refs}. Weisen Sie diese zuerst neu zu oder schliessen Sie sie ab.',
+    gone:'Dieses Auto gibt es nicht mehr. Laden Sie die Seite neu.',
+    dupPlate:'Dieses Kennzeichen ist schon erfasst.',
+    needPlate:'Kennzeichen fehlt.', needModel:'Modell fehlt.', needClass:'Klasse fehlt.',
+    badSeats:'Plätze: 1 bis 16.', badBags:'Gepäck: 0 bis 16.',
+    saveFailed:'Speichern fehlgeschlagen. Bitte erneut versuchen.', deleteFailed:'Löschen fehlgeschlagen. Bitte erneut versuchen.',
+    noLiveBook:'Es gibt noch kein Live-Tarifbuch, also keine Klasse zur Auswahl. Veröffentlichen Sie zuerst eines unter Preise & Routen.',
+    classesFailed:'Die Klassen wurden nicht geladen. Laden Sie die Seite neu.',
+    required:'Erforderlich', sep:', ',
+  },
+  fr: {
+    title:'Voitures',
+    sub:'Chaque voiture, sa classe et ce qu’elle prend. Un chauffeur reçoit sa voiture sous Chauffeurs.',
+    note:'L’attribution met la voiture du chauffeur sur la course. Elle refuse une voiture d’une autre classe que la course, ou avec moins de places ou de bagages que la course n’en demande.',
+    colCar:'Voiture', colClass:'Classe', colSeats:'Places', colBags:'Bagages', colDriver:'Chauffeur', colStatus:'Statut',
+    noDriver:'Aucun chauffeur',
+    fPhoto:'Photo', fPlate:'Plaque', fModel:'Modèle', fClass:'Classe', fSeats:'Places', fBags:'Bagages', fStatus:'Statut',
+    choosePhoto:'Choisir une photo', pickClass:'Choisir une classe',
+    hPhoto:'Facultative. Gardée pour cette voiture seule et supprimée avec elle.',
+    hPlate:'Tel qu’il figure sur la plaque.',
+    hModel:'Marque et modèle.',
+    hClass:'Les classes du livre tarifaire en ligne. Une nouvelle classe apparaît ici une fois publiée sous Tarifs & trajets.',
+    hSeats:'Voyageurs qu’elle prend. L’attribution refuse un groupe plus grand.',
+    hBags:'Bagages qu’elle prend. L’attribution refuse plus de bagages.',
+    hStatus:'À l’atelier : ses courses attribuées restent réservées, et la boîte du support reçoit un e-mail qui les liste.',
+    sService:'En service', sIdle:'Libre', sWorkshop:'À l’atelier',
+    add:'Ajouter une voiture', editTitle:'Modifier la voiture', saveCar:'Enregistrer la voiture',
+    delTitle:'Supprimer cette voiture ?',
+    delBody:'La voiture et sa photo sont supprimées pour de bon. Les courses terminées gardent leur chauffeur, sans cette voiture.',
+    noun:'voiture', nouns:'voitures',
+    search:'Plaque, modèle, classe ou chauffeur',
+    emptyTitle:'Aucune voiture', emptyBody:'Ajoutez la première voiture, puis donnez-la à son chauffeur sous Chauffeurs.',
+    inUseDriver:'Conduite par {names}. Changez d’abord la voiture sous Chauffeurs.',
+    inUseTrips:'Utilisée sur des courses non terminées : {refs}. Réattribuez-les ou clôturez-les d’abord.',
+    gone:'Cette voiture n’existe plus. Rechargez la page.',
+    dupPlate:'Cette plaque est déjà enregistrée.',
+    needPlate:'La plaque est requise.', needModel:'Le modèle est requis.', needClass:'La classe est requise.',
+    badSeats:'Places : de 1 à 16.', badBags:'Bagages : de 0 à 16.',
+    saveFailed:'L’enregistrement a échoué. Réessayez.', deleteFailed:'La suppression a échoué. Réessayez.',
+    noLiveBook:'Il n’y a pas encore de livre tarifaire en ligne, donc aucune classe à choisir. Publiez-en un d’abord sous Tarifs & trajets.',
+    classesFailed:'Les classes ne se sont pas chargées. Rechargez la page.',
+    required:'Requis', sep:', ',
+  },
+  ar: {
+    title:'السيارات',
+    sub:'كل سيارة وفئتها وما تتسع له. يحصل السائق على سيارته من صفحة السائقين.',
+    note:'عند الإسناد توضع سيارة السائق على الرحلة. ويُرفض الإسناد إذا كانت السيارة من فئة غير فئة الرحلة، أو فيها مقاعد أو أماكن حقائب أقل مما تحتاجه الرحلة.',
+    colCar:'السيارة', colClass:'الفئة', colSeats:'المقاعد', colBags:'الحقائب', colDriver:'السائق', colStatus:'الحالة',
+    noDriver:'بلا سائق',
+    fPhoto:'الصورة', fPlate:'اللوحة', fModel:'الطراز', fClass:'الفئة', fSeats:'المقاعد', fBags:'الحقائب', fStatus:'الحالة',
+    choosePhoto:'اختيار صورة', pickClass:'اختر فئة',
+    hPhoto:'اختيارية. تُحفظ لهذه السيارة وحدها وتُحذف معها.',
+    hPlate:'كما هو مكتوب على اللوحة.',
+    hModel:'الماركة والطراز.',
+    hClass:'فئات دفتر الأسعار المباشر. تظهر الفئة الجديدة هنا بعد نشرها في صفحة الأسعار والمسارات.',
+    hSeats:'عدد المسافرين الذي تتسع له. يُرفض الإسناد لمجموعة أكبر.',
+    hBags:'عدد الحقائب الذي تتسع له. يُرفض الإسناد إذا كانت الحقائب أكثر.',
+    hStatus:'في الورشة: تبقى رحلاتها المُسندة محجوزة، ويصل إلى بريد الدعم بريد يسردها.',
+    sService:'في الخدمة', sIdle:'متاحة', sWorkshop:'في الورشة',
+    add:'إضافة سيارة', editTitle:'تعديل السيارة', saveCar:'حفظ السيارة',
+    delTitle:'حذف هذه السيارة؟',
+    delBody:'تُحذف السيارة وصورتها نهائيًا. وتحتفظ الرحلات المنتهية بسائقها، من دون هذه السيارة.',
+    noun:'سيارة', nouns:'سيارات',
+    search:'اللوحة أو الطراز أو الفئة أو السائق',
+    emptyTitle:'لا سيارات بعد', emptyBody:'أضف أول سيارة، ثم أعطها لسائقها من صفحة السائقين.',
+    inUseDriver:'يقودها {names}. غيّر السيارة أولًا في صفحة السائقين.',
+    inUseTrips:'مستخدمة في رحلات لم تنتهِ: {refs}. أعد إسنادها أو أغلقها أولًا.',
+    gone:'هذه السيارة لم تعد موجودة. أعد تحميل الصفحة.',
+    dupPlate:'هذه اللوحة مسجّلة من قبل.',
+    needPlate:'اللوحة مطلوبة.', needModel:'الطراز مطلوب.', needClass:'الفئة مطلوبة.',
+    badSeats:'المقاعد: من 1 إلى 16.', badBags:'الحقائب: من 0 إلى 16.',
+    saveFailed:'تعذّر الحفظ. حاول مرة أخرى.', deleteFailed:'تعذّر الحذف. حاول مرة أخرى.',
+    noLiveBook:'لا يوجد دفتر أسعار مباشر بعد، فلا توجد فئة للاختيار. انشر دفترًا أولًا في صفحة الأسعار والمسارات.',
+    classesFailed:'لم تُحمَّل الفئات. أعد تحميل الصفحة.',
+    required:'مطلوب', sep:'، ',
+  },
+};
+
+/** A store answer with its message in the owner's language (OpsTable shows `message`). */
+function localize(json, t, fallback) {
+  if (json && json.ok === true) return json;
+  const code = String((json && (json.code || json.error)) || '');
+  let message = '';
+  if (code === 'fleet-car-in-use') {
+    const drivers = Array.isArray(json.drivers) ? json.drivers : [];
+    const refs = Array.isArray(json.references) ? json.references : [];
+    const parts = [];
+    if (drivers.length) parts.push(t.inUseDriver.replace('{names}', drivers.join(t.sep)));
+    if (refs.length) parts.push(t.inUseTrips.replace('{refs}', refs.join(t.sep)));
+    message = parts.join(' ');
+  } else if (code === 'fleet-car-gone' || code === 'not-found') message = t.gone;
+  else if (code === '23505') message = t.dupPlate;
+  else if (code === 'fleet-failure-plate-required') message = t.needPlate;
+  else if (code === 'fleet-failure-model-required') message = t.needModel;
+  else if (code === 'fleet-failure-class-required' || code === '23503') message = t.needClass;
+  else if (code === 'fleet-failure-seats') message = t.badSeats;
+  else if (code === 'fleet-failure-bags') message = t.badBags;
+  return Object.assign({}, json || {}, { ok: false, message: message || fallback });
+}
+
+/** The record the server gets: the row without the list-only keys. */
+function carRecord(rec) {
+  const out = {};
+  for (const k in (rec || {})) if (LIST_ONLY.indexOf(k) === -1) out[k] = rec[k];
+  return out;
+}
+
+class Component extends DCLogic {
+  state = { lang: 'en', liveClasses: null, classNames: {}, classLoad: 'pending' };
+  bind = () => {
+    if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
+    this._off = window.VamosOps.onAny(() => this.forceUpdate());
+    this.forceUpdate();
+  };
+  /* The live fare book's classes: GET rate-versions → the one with status live → its rate book.
+     A draft's new class is not offered until it is published (a trip is only ever of a live
+     class, and Assign refuses a car of another class). All class names come from
+     vehicle-classes, so a car whose class left the live book still reads its own name. */
+  loadClasses = () => {
+    const api = window.VamosOpsApi;
+    if (!api || typeof api.request !== 'function') { this._classRetry = setTimeout(this.loadClasses, 120); return null; }
+    const names = api.request('GET', '/api/staff/vehicle-classes').then((json) => {
+      const map = {};
+      const rows = (json && json.ok && Array.isArray(json.data)) ? json.data : [];
+      rows.forEach((c) => {
+        const id = String((c && c.id) || '');
+        const name = String((c && (c.name || c.klass)) || '').trim();
+        if (id && name) map[id] = name;
+      });
+      return map;
+    });
+    const live = api.request('GET', '/api/staff/rate-versions').then((json) => {
+      const versions = (json && json.ok && json.data && Array.isArray(json.data.versions)) ? json.data.versions : null;
+      if (!versions) return { failed: true };
+      const on = versions.filter((v) => v && v.status === 'live')[0];
+      if (!on) return { classes: [] };
+      return api.request('GET', '/api/staff/rate-book?versionId=' + encodeURIComponent(String(on.id))).then((book) => {
+        if (!book || !book.ok || !book.data || !Array.isArray(book.data.classes)) return { failed: true };
+        return {
+          classes: book.data.classes
+            .map((c) => ({ id: String((c && c.id) || ''), name: String((c && (c.label || c.name)) || '').trim() }))
+            .filter((c) => c.id && c.name),
+        };
+      });
+    });
+    return Promise.all([names, live]).then((both) => {
+      const res = both[1] || { failed: true };
+      this.setState({
+        classNames: both[0] || {},
+        liveClasses: res.failed ? [] : res.classes,
+        classLoad: res.failed ? 'failed' : (res.classes.length ? 'ok' : 'none'),
+      });
+    }, () => this.setState({ liveClasses: [], classLoad: 'failed' }));
+  };
+  componentDidMount() {
+    this.bind();
+    this._onLocale = (e) => this.setState({ lang: e.detail.lang });
+    window.addEventListener('vamos:locale', this._onLocale);
+    if (window.VamosLocale) this.setState({ lang: window.VamosLocale.lang() || 'en' });
+    this.loadClasses();
+  }
+  componentWillUnmount() {
+    if (this._off) this._off();
+    if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
+    clearTimeout(this._retry);
+    clearTimeout(this._classRetry);
+  }
+
+  renderVals() {
+    const t = T[this.state.lang] || T.en;
+    const ops = window.VamosOps;
+    const store = ops ? ops.vehicles : null;
+    const cars = store ? store.all() : [];
+    const drivers = (ops && ops.chauffeurs) ? ops.chauffeurs.all() : [];
+    const live = this.state.liveClasses || [];
+
+    const names = Object.assign({}, this.state.classNames || {});
+    live.forEach((c) => { names[c.id] = c.name; });
+    const classNameOf = (v) => names[String((v && v.vehicleClassId) || '')] || '';
+
+    const driversOf = {};
+    drivers.forEach((c) => {
+      const id = String((c && (c.defaultVehicleId || c.vehicle)) || '');
+      if (!id) return;
+      (driversOf[id] = driversOf[id] || []).push(String(c.name || c.fullName || '').trim());
+    });
+
+    const classOptions = live.map((c) => ({ value: c.id, label: c.name }));
+    cars.forEach((v) => {
+      const id = String((v && v.vehicleClassId) || '');
+      if (!id || classOptions.some((o) => o.value === id)) return;
+      classOptions.push({ value: id, label: names[id] || id });
+    });
+    const statusLabel = { service: t.sService, idle: t.sIdle, workshop: t.sWorkshop };
+    const tones = {};
+    STATUSES.forEach((s) => { tones[s] = { tone: STATUS_TONE[s], label: statusLabel[s] }; });
+
+    const rows = cars.map((v) => Object.assign({}, v, {
+      className: classNameOf(v),
+      driverNames: (driversOf[String(v.id)] || []).filter(Boolean).join(t.sep),
+    }));
+
+    const columns = [
+      { key:'model', header:t.colCar, lookup:(r) => React.createElement('span', {
+          style: { display:'flex', flexDirection:'column', gap:2, lineHeight:1.3, minWidth:0 },
+        },
+        React.createElement('span', { style: { fontWeight:500 } }, r.model || '—'),
+        React.createElement('span', {
+          dir: 'ltr',
+          style: { alignSelf:'flex-start', unicodeBidi:'isolate', fontSize:'var(--vt-body-xs)', color:'var(--vt-text-muted)', letterSpacing:'.02em' },
+        }, r.plate || '')) },
+      { key:'className', header:t.colClass, width:'170px', lookup:(r) => r.className || '—' },
+      { key:'seats', header:t.colSeats, width:'96px' },
+      { key:'bags', header:t.colBags, width:'96px' },
+      { key:'driverNames', header:t.colDriver, width:'180px',
+        lookup:(r) => r.driverNames || React.createElement('span', { style: { color:'var(--vt-text-muted)' } }, t.noDriver) },
+      { key:'status', header:t.colStatus, width:'160px', kind:'badge', tones },
+    ];
+
+    const fields = [
+      { key:'photo', label:t.fPhoto, editor:'photo', photoKind:'vehicle', upload:'/api/photos/upload', chooseLabel:t.choosePhoto, hint:t.hPhoto },
+      { key:'plate', label:t.fPlate, half:true, required:true, placeholder:'ZH 000 000', hint:t.hPlate },
+      { key:'model', label:t.fModel, half:true, required:true, hint:t.hModel },
+      { key:'vehicleClassId', label:t.fClass, editor:'select', options:classOptions, icon:'car', required:true, emptyLabel:t.pickClass, hint:t.hClass },
+      { key:'seats', label:t.fSeats, editor:'number', min:1, max:16, half:true, hint:t.hSeats },
+      { key:'bags', label:t.fBags, editor:'number', min:0, max:16, half:true, hint:t.hBags },
+      { key:'status', label:t.fStatus, editor:'select', icon:'settings', hint:t.hStatus,
+        options: STATUSES.map((s) => ({ value: s, label: statusLabel[s] })) },
+    ];
+
+    const load = this.state.classLoad;
+    const classMsg = load === 'none' ? t.noLiveBook : (load === 'failed' ? t.classesFailed : '');
+
+    return {
+      title: t.title,
+      subtitle: t.sub,
+      note: t.note,
+      hasClassMsg: !!classMsg,
+      classMsg,
+      rows,
+      columns,
+      fields,
+      blank: () => (store ? store.blank() : {}),
+      // OpsTable gives a new row a UUID (the photo is stored under it), and the store PATCHes any
+      // UUID — so a new car goes to add (POST, keeping that id) and an edit to update (PATCH).
+      onSave: (rec) => {
+        if (!store) return Promise.resolve(localize({ ok: false }, t, t.saveFailed));
+        return store.add(carRecord(rec)).then((json) => localize(json, t, t.saveFailed));
+      },
+      onUpdate: (id, rec) => {
+        if (!store) return Promise.resolve(localize({ ok: false }, t, t.saveFailed));
+        return store.update(id, carRecord(rec)).then((json) => localize(json, t, t.saveFailed));
+      },
+      onDelete: (id) => {
+        if (!store) return Promise.resolve(localize({ ok: false }, t, t.deleteFailed));
+        return store.remove(id).then((json) => localize(json, t, t.deleteFailed));
+      },
+      saveLabel: t.saveCar,
+      addSaveLabel: t.saveCar,
+      noun: t.noun,
+      nounPlural: t.nouns,
+      addTitle: t.add,
+      editTitle: t.editTitle,
+      deleteTitle: t.delTitle,
+      deleteBody: t.delBody,
+      labelKey: 'plate',
+      addLabel: t.add,
+      searchPlaceholder: t.search,
+      searchKeys: ['plate', 'model', 'className', 'driverNames'],
+      emptyTitle: t.emptyTitle,
+      emptyBody: t.emptyBody,
+      requiredMessage: t.required,
+    };
+  }
+}
+</script>
+</body>
+</html>

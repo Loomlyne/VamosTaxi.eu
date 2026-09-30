@@ -585,7 +585,11 @@
       seats: num(v.seats, 3), bags: num(v.bags, 3),
       status: VEHICLE_STATUS.indexOf(v.status) === -1 ? "service" : v.status,
       photo: (str(v.photo || v.photoPath).indexOf("data:") === 0) ? "" : str(v.photo || v.photoPath),
-      note: str(v.note)
+      note: str(v.note),
+      // 261001-cars-page: the old Morning/Night seat ids ride along, so a car edit on the Cars page
+      // does not empty vehicle_seats (the server rewrites the seats from every save).
+      morning: str(v.morning || v.morningChauffeurId),
+      night: str(v.night || v.nightChauffeurId)
     };
   }
 

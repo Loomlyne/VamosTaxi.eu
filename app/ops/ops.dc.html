@@ -27,7 +27,7 @@
 <script src="../vamos-reviews.js"></script>
 <script src="../vamos-ops-api.js?vt=09-11-write"></script>
 <script src="../vamos-ops-bar.js"></script>
-<script src="../vamos-ops-data.js?vt=09-27-c12"></script>
+<script src="../vamos-ops-data.js?vt=10-01-cars"></script>
 <style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
 .vt-input--focus{box-shadow:none}
 /* Button hover/press — colour step only, no shadow, no glow */
@@ -212,6 +212,9 @@ button[data-vt-count]{appearance:none;-webkit-appearance:none;cursor:pointer;fon
 <sc-if value="{{ isFleet }}" hint-placeholder-val="{{ false }}">
 <dc-import name="OpsFleet" chauffeur-id="{{ chauffeurId }}" hint-size="100%,900px"></dc-import>
 </sc-if>
+<sc-if value="{{ isCars }}" hint-placeholder-val="{{ false }}">
+<dc-import name="OpsCars" hint-size="100%,900px"></dc-import>
+</sc-if>
 <sc-if value="{{ isDetail }}" hint-placeholder-val="{{ false }}">
 <dc-import name="OpsDetail" id="{{ detailId }}" hint-size="100%,900px"></dc-import>
 </sc-if>
@@ -256,12 +259,12 @@ button[data-vt-count]{appearance:none;-webkit-appearance:none;cursor:pointer;fon
 </div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;start&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;dashboard&quot;,&quot;options&quot;:[&quot;dashboard&quot;,&quot;bookings&quot;,&quot;calendar&quot;,&quot;chauffeurs&quot;,&quot;pricing&quot;,&quot;customers&quot;,&quot;support&quot;,&quot;reviews&quot;,&quot;settings&quot;,&quot;profile&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Console&quot;},&quot;requireSignIn&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Console&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:900},&quot;start&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;dashboard&quot;,&quot;options&quot;:[&quot;dashboard&quot;,&quot;bookings&quot;,&quot;calendar&quot;,&quot;chauffeurs&quot;,&quot;cars&quot;,&quot;pricing&quot;,&quot;customers&quot;,&quot;support&quot;,&quot;reviews&quot;,&quot;settings&quot;,&quot;profile&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Console&quot;},&quot;requireSignIn&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Console&quot;}}">
 const FLEET = ['chauffeurs'];
 const CONTENT = ['pages', 'legal'];
 const HASH_TO_PATH = {
   dashboard: '/dashboard', bookings: '/bookings', calendar: '/calendar',
-  customers: '/customers', vehicles: '/fleet/chauffeurs', chauffeurs: '/fleet/chauffeurs',
+  customers: '/customers', vehicles: '/fleet', chauffeurs: '/fleet/chauffeurs',
   support: '/support', pricing: '/pricing', profile: '/profile', settings: '/settings',
   reviews: '/reviews', pages: '/pages', legal: '/legal',
   staff: '/dashboard',
@@ -302,7 +305,10 @@ function readPath(pathname) {
       return { route: 'customers', detailId: null, customerEmail: decodeURIComponent(email) };
     }
   }
-  if (path === '/fleet' || path === '/fleet/chauffeurs') return { route: 'chauffeurs', detailId: null };
+  // 261001-cars-page: Cars lives at /fleet — already on the middleware's console list, so no
+  // middleware change; /fleet was only an unlinked alias of Chauffeurs before.
+  if (path === '/fleet') return { route: 'cars', detailId: null };
+  if (path === '/fleet/chauffeurs') return { route: 'chauffeurs', detailId: null };
   if (path.indexOf('/fleet/chauffeurs/') === 0) {
     const id = path.slice('/fleet/chauffeurs/'.length);
     if (id && id.indexOf('/') === -1) return { route: 'chauffeurs', detailId: decodeURIComponent(id) };
@@ -438,7 +444,7 @@ class Component extends DCLogic {
       chauffeurId: r === 'chauffeurs' ? (this.state.detailId || '') : '',
       contentSection: r === 'legal' ? 'legal' : 'pages',
       isContent: CONTENT.indexOf(r) !== -1,
-      isDash: r === 'dashboard', isFleet: FLEET.indexOf(r) !== -1,
+      isDash: r === 'dashboard', isFleet: FLEET.indexOf(r) !== -1, isCars: r === 'cars',
       isBookings: r === 'bookings', isNewTrip: r === 'newTrip', isDetail: r === 'detail',
       isPricing: r === 'pricing' && isAdmin,
       isNotFound: pricingDenied || r === 'notFound',
