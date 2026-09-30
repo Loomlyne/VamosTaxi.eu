@@ -16,3 +16,15 @@ const env = Object.fromEntries(fs.readFileSync(process.argv[3],"utf8").split("\n
 const secret = fs.readFileSync(process.argv[4],"utf8").trim();
 const v = {SUPABASE_URL:`http://127.0.0.1:${API_PORT}`,SUPABASE_ANON_KEY:env.ANON_KEY,SUPABASE_SERVICE_ROLE_KEY:env.SERVICE_ROLE_KEY,SEND_EMAIL_HOOK_SECRET:secret,STAFF_REAUTH_SECRET:"e2e-local-reauth-secret-0123456789abcdef"};
 fs.writeFileSync(dir+"/.dev.vars", Object.entries(v).map(([k,x])=>`${k}="${x}"`).join("\n")+"\n",{mode:0o600});
+
+// 26.5-07: phase 2 (checkout-account scenarios) adds local stand-in secrets. Never real keys: the Stripe key is
+// a fake that only the local fake server (fakes.mjs) ever sees, and the lock secret signs locks minted by the e2e itself.
+if (process.argv[5] === "phase2") {
+  Object.assign(v, {
+    STRIPE_SECRET_KEY: "sk_test_e2e_fake_local_only",
+    QUOTE_LOCK_SECRET: "e2e-local-lock-secret-0123456789abcdef",
+    TURNSTILE_SECRET_KEY: "e2e-local-turnstile-fake",
+    CONTACT_TURNSTILE_ALLOWED_HOSTNAMES: "localhost",
+  });
+  fs.writeFileSync(dir+"/.dev.vars", Object.entries(v).map(([k,x])=>`${k}="${x}"`).join("\n")+"\n",{mode:0o600});
+}

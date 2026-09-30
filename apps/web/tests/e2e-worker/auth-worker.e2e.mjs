@@ -165,6 +165,9 @@ const s8 = `pw signup on dashboard: ${r.status}, auth.users=${users(U2)}`;
 rec("8 dashboard host", r.status && users(U) === 0 && users(U2) === 0 && r8a.includes("403") && !jar8.has(/^sb-.*-auth-token/), `${r8a}; ${m8}; ${s8}`);
 
 // 7 rate limit (last: same ip bucket)
+// The local limiter (miniflare) counts in fixed windows aligned to the wall-clock minute and keeps its state in .wrangler/e2e:
+// a burst that crosses a minute boundary restarts the count. That was the flip of this line between runs.
+{ const left = 60000 - (Date.now() % 60000); if (left < 20000) await nap(left + 300); }
 const ip7 = newIp(); const codes = [];
 for (let i = 0; i < 11; i++) { const x = await auth({ mode: "signin", method: "password", email: A, password: "wrong-pass-" + i }, new Jar(), { ip: ip7 }); codes.push(x.status); }
 rec("7 rate limit (11 wrong tries, same IP)", codes.at(-1) === 429, `statuses=${codes.join(",")}`);
