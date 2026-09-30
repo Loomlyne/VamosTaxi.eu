@@ -1,6 +1,6 @@
 # Phase 27 hand-over: consent record
 
-Read this first. No gate is red. The one that was (18c) is closed, see the section below.
+Read this first. One gate is red and not ours: Worker e2e `a3` (see the table, row 17). The auth specs (18c) are closed, see the section below.
 
 ## Blocker closed: the two auth specs (was: red as committed)
 
@@ -16,49 +16,47 @@ Read this first. No gate is red. The one that was (18c) is closed, see the secti
 
 ## Final commit
 
-- Branch: `gsd/phase-27-consent-record` in `/Users/koss/Developer/vamos-wt/phase-27`.
-- Code tip before this hand-over: `e6c606cb` (the merge of origin/main). The hand-over commit is the tip of the branch (`git log -1`).
-- origin/main merged: `3b4f86d826829c7f7031e95624c1e6876b3a7a4a` (`git merge-base --is-ancestor origin/main HEAD` exits 0 after a fetch).
-- Ship day: 2026-09-30 (Zurich). `CONSENT_POLICY_VERSION` and `CONSENT_UPDATED` are both `2026-09-30`. If the ship slips, change both, the test enforces equality.
-- 85 commits ahead of origin/main. Nothing pushed, deployed or applied to the hosted database.
+- Branch: `gsd/phase-27-consent-record` in `/Users/koss/Developer/vamos-wt/phase-27`. The hand-over commit `docs(27-14): gate run after the 2026-10-01 merge` is the tip (`git log -1`); the code tip before it is `46ab9d1e` (merge of origin/main `f37cc0b4`).
+- origin/main merged: `f37cc0b4373cf6c0cfbdd63aebe896529a2c199e`, no conflict (`git merge-base --is-ancestor origin/main HEAD` exits 0 after a fetch).
+- Ship day: 2026-10-01 (Zurich). `CONSENT_POLICY_VERSION` and `CONSENT_UPDATED` are both `2026-10-01` (b69d0593). `LEGAL_UPDATED` stays `2026-09-30`. If the ship slips, the control session moves both constants; a test forces them equal.
+- Lenis merge note: main removed Lenis from every mock and the Next pages (561d1647, native scrolling). The merge had no conflict in Phase 27 files. The banner still shows on mock /about: `consent-banner-27.spec.ts` case D passes in the browser, and so does case G (/de/about).
+- 78cb0e1b dev-binding note: `next.config.ts` passes the `staging` wrangler env to `initOpenNextCloudflareForDev` only when `VAMOS_DEV_WRANGLER_ENV` is set (opt-in, dev only; the default call is unchanged; `pnpm build` never selects it). The two auth specs set it. Pending the control session's yes or no to keep it.
+- Nothing pushed, deployed or applied to the hosted database.
 
 ## Checks
 
-Run once, on the merged tree, by this plan only. Stack: local port 59322 only. Docker, port binds and the browser needed the sandbox off. All commands from `/Users/koss/Developer/vamos-wt/phase-27`.
+Gate run 2026-10-01 (00:15 to 00:45 Zurich) on the tree after the merge of `f37cc0b4`, once, by this plan only. Stack: local port 59322 only. Docker, port binds and the browser needed the sandbox off. All commands from `/Users/koss/Developer/vamos-wt/phase-27`.
 
 | # | Command | Result | On origin/main too? |
 |---|---|---|---|
 | 1 | `pnpm install --frozen-lockfile` | pass, already up to date | n/a |
-| 2 | `pnpm test:unit` | pass: web 290 files passed, 1 skipped, 2914 tests passed, 1 skipped; emails 9 files, 138 tests; db 2 files, 13 tests | n/a |
-| 3 | `bash scripts/local-stack-27.sh reset` (from-zero replay) | pass: 118 migrations applied in order, seed loaded | n/a |
-| 4 | `bash scripts/local-stack-27.sh test` (full pgTAP) | pass: 85 files, 1938 tests, "Result: PASS". `signup_agreement_grant`, `account_agreement_records`, `consent_choice_reader` ok. `extensions.test.sql` ok too (role passwords were unset at that point) | n/a |
-| 5 | `VAMOS_LOCAL_DB_PORT=59322 pnpm --filter @vamos/db exec vitest run test/local/consent-reader.test.ts test/local/signup-agreement.test.ts test/local/checkout-account.test.ts` | consent-reader and signup-agreement pass (6 tests). checkout-account: 3 tests fail with `password authentication failed for user "vamos_edge"`, run before the role passwords were set. Local-only, known (27-01, 27-15) | local-only: the roles have no password by design |
+| 2 | `pnpm test:unit` | pass: web 304 files passed, 1 skipped, 3009 tests passed, 1 skipped; emails 12 files, 151 tests; db 2 files, 13 tests | n/a |
+| 3 | `bash scripts/local-stack-27.sh reset` (from-zero replay) | pass: 120 migration files applied in order, seed loaded | n/a |
+| 4 | `bash scripts/local-stack-27.sh test` (full pgTAP) | pass: 87 files, 1975 tests, "Result: PASS" (run before role passwords were set) | n/a |
+| 5 | `VAMOS_LOCAL_DB_PORT=59322 pnpm --filter @vamos/db exec vitest run test/local/consent-reader.test.ts test/local/signup-agreement.test.ts test/local/checkout-account.test.ts` | consent-reader and signup-agreement pass (6 tests). checkout-account: 3 tests fail with the `vamos_edge` password, run before the passwords were set. Known, local-only | local-only |
 | 6 | `pnpm typecheck` | pass | n/a |
-| 7 | `pnpm lint` | pass, 0 errors, 6 warnings (unused eslint-disable lines in files 27 did not add, plus `vamos-consent.test.ts:12`) | n/a |
+| 7 | `pnpm lint` | pass, 0 errors, 6 warnings | n/a |
 | 8 | `pnpm lint:css` | pass | n/a |
 | 9 | `pnpm check:numbers` | pass | n/a |
 | 10 | `pnpm check:legal-claims` | pass (3 checks) | n/a |
 | 11 | `pnpm check:public-env` | pass | n/a |
-| 12 | `pnpm check:db-fences` | pass (8 checks, 966 files) | n/a |
-| 13 | `pnpm i18n:check` | pass (2673 keys) | n/a |
-| 14 | `pnpm db:seed:check` | pass, no drift, so no seed regeneration and no count change | n/a |
-| 15 | `node_modules/.bin/supabase gen types typescript --local --schema public --workdir /tmp/vamos-sb27 \| diff -q - packages/db/database.types.ts` | pass, identical (not `pnpm db:types:check`) | n/a |
+| 12 | `pnpm check:db-fences` | pass (8 checks, 985 files) | n/a |
+| 13 | `pnpm i18n:check` | pass (2676 keys) | n/a |
+| 14 | `pnpm db:seed:check` | pass, no drift | n/a |
+| 15 | `node_modules/.bin/supabase gen types typescript --local --schema public --workdir /tmp/vamos-sb27 \| diff -q - packages/db/database.types.ts` | pass, identical | n/a |
 | 16a | `pnpm build` | pass | n/a |
 | 16b | `pnpm --filter web exec opennextjs-cloudflare build` | pass, `.open-next/worker.js` built | n/a |
-| 17 | `apps/web/tests/e2e-worker/run.sh /Users/koss/Developer/vamos-wt/phase-27 /tmp/vamos-sb27 <hook-secret-path> p27` (with `SB_API_PORT=59321 SB_DB_PORT=59322 SB_DB_CONTAINER=supabase_db_vamos-taxi-270` and a `supabase` wrapper on PATH) | pass: 50 PASS, 0 FAIL, 1 N/A (d2: no Stripe key on the local Worker, expected). 1a0 pass: sign-up without the tick refused, no account, no record. 1a pass: exactly 1 agreement record, matching. 1b pass: confirm link gives a session, 0 consent_log rows (D-01). 3b pass: unknown address on the sign-in link, same answer, no mail, 0 accounts (D-36). 3 and 4 pass: known address gets a session. Also pass: checkout scenarios 7a-7d, 8-11b, German G1-G8 | n/a |
-| 18a | `pnpm exec playwright test tests/integration/consent-banner-27.spec.ts --project=component-390 --workers=1` | pass, 9 of 9 | n/a |
+| 17 | `apps/web/tests/e2e-worker/run.sh <tree> /tmp/vamos-sb27 /tmp/vamos-sb27/hook-secret.txt p27` (`SB_API_PORT=59321 SB_DB_PORT=59322 SB_DB_CONTAINER=supabase_db_vamos-taxi-270`, `supabase` wrapper on PATH, `vamos_edge` and `vamos_public` passwords set to their own names on the 59322 container first) | 49 PASS, 1 FAIL, 1 N/A. 1a0, 1a, 1b, 3b pass. FAIL `a3` (other-device.e2e.mjs): `POST /api/checkout/intent` answers 503 `quote_lock_secret_missing`, the script expects 4xx. Cause is main's 88e6b827 (Phase 20 B1, "lock-secret 503"): phase 1 of run.sh has no `QUOTE_LOCK_SECRET` (mkcfg.mjs sets it only for phase2). Harness fault on main's code, not Phase 27; not fixed (files outside Phase 27). N/A `d2`: no Stripe key on the local Worker, as before. A first run before the passwords were set showed 10 FAILs, all `password authentication failed for user "vamos_edge"` | a3: the 503 comes from main; the harness gap would show on main too |
+| 18a | `pnpm exec playwright test tests/integration/consent-banner-27.spec.ts --project=component-390 --workers=1` | pass, 9 of 9 (case D: banner shows on mock /about without Lenis; G: /de/about) | n/a |
 | 18b | `pnpm exec playwright test tests/integration/signup-agreement-27.spec.ts` (all four projects) | pass, 56 of 56 | n/a |
-| 18c | `cd apps/web && VAMOS_TEST_DB_PORT=59322 VAMOS_TEST_MAIL_PORT=59324 VAMOS_TEST_SUPABASE_WORKDIR=/tmp/vamos-sb27 pnpm exec playwright test tests/integration/auth-confirm-email.spec.ts tests/integration/auth-flows.spec.ts --workers=1` (stack started with `bash scripts/local-stack-27.sh start-mailpit`) | pass: 12 of 12 (1 confirm-email + 11 auth-flows), five runs in a row, no retries. Same command without `--workers=1`: one run failed because both files started `next dev` in the same folder | the three selector faults are on main; the missing binding was ours |
-| 19 | must-not greps, added lines of `git diff origin/main...HEAD` | pass: `sk_live_`, `vamostaxi.eu`, `1595596972063765`, `fbq(` appear only in planning documents that forbid them; `fbevents` appears in planning documents and in one test assertion that forbids it (`vamos-consent.test.ts`). No code line | n/a |
+| 18c | `VAMOS_TEST_DB_PORT=59322 VAMOS_TEST_MAIL_PORT=59324 VAMOS_TEST_SUPABASE_WORKDIR=/tmp/vamos-sb27 pnpm exec playwright test <file> --workers=1`, `auth-flows.spec.ts` then `auth-confirm-email.spec.ts`, stack from `start-mailpit` | pass: 11 of 11, then 1 of 1 | n/a |
+| 19 | must-not greps, added lines of `git diff origin/main...HEAD` | pass: `sk_live_`, `vamostaxi.eu`, `1595596972063765`, `fbq(`, `fbevents` only in planning documents that forbid them, plus one test assertion forbidding `fbevents` (`vamos-consent.test.ts`). No code line | n/a |
 | 20 | `git grep` `META_LEGAL_GATE_OPEN = false as const` in `apps/web/lib/meta` | pass, still false (`legal-gate.ts:6`) | n/a |
 | 21 | `git grep` `record_consent\|recordConsent` in `apps/web/lib/auth`, `apps/web/app/api/auth` (no tests) | pass, empty | n/a |
 | 22 | `git grep` `signup_consent` in `apps/web/lib`, `apps/web/app` (no tests) | pass, empty | n/a |
-| 23 | `git diff --numstat origin/main...HEAD` on quote, checkout, stripe webhook, pricing, checkout page, confirmation, checkout components | pass, exactly `1 1 apps/web/app/[locale]/checkout/checkout.css` and nothing else | n/a |
+| 23 | `git diff --numstat origin/main...HEAD` on quote, checkout, stripe, pricing, checkout page, confirmation, checkout components | pass, exactly `1 1 apps/web/app/[locale]/checkout/checkout.css` | n/a |
 
-Two things I changed to get a clean run, both ignored build output, nothing committed:
-
-- `apps/web/lib/supabase/service-role-laws.test.ts` walks every `.js` file under `apps/web` except a short skip list. Leftover Next build folders (`.next-consent-27-*`, `.next-locale-follow`, `.next-pay-link-visual`, 4 MB pages) made one regex spin forever and the whole unit run hung. I deleted those folders; the test then passed. Any executor that runs Playwright leaves them behind again. The test should skip `.next-*`. Not fixed here (not one line in a Phase 27 file).
-- Playwright rewrites `apps/web/tsconfig.json` and `apps/web/next-env.d.ts`; both restored.
+Stack stopped (`docker ps | grep -c 270` is 0), `tsconfig.json` and `next-env.d.ts` restored, no process left in the worktree. Build folders under `apps/web` are ignored output; `service-role-laws.test.ts` now skips `.next-*` (73c394c3).
 
 ### Known reds that are not ours
 
@@ -68,6 +66,7 @@ Two things I changed to get a clean run, both ignored build output, nothing comm
 | SiteHeader 390 | macOS effect, not run |
 | `locale-follow-26-3.spec.ts:164` "DC pages still 308 away from a locale prefix" | not fixed on main: the spec on main still expects 308 from `/de/about`, and main's SEO ship (`1fd43a51`) made `/de/about` a real address. Not run here |
 | `packages/db/test/local/checkout-account.test.ts` (3 tests) | `vamos_edge` has no password until set by hand; local-only |
+| Worker e2e `a3` (other-device.e2e.mjs) | main's 88e6b827 makes a missing quote-lock secret a 503; run.sh phase 1 sets none. Test harness, not Phase 27 |
 | `auth-confirm-email.spec.ts` three selectors, `auth-flows.spec.ts` D-09 eye clash | same code on main; fixed in the specs, see "Blocker closed" |
 
 I could not run these on origin/main (no second stack allowed), so "on main too" rests on the unchanged code and the reasons above.
@@ -132,7 +131,7 @@ For the control session, read-only SQL on the hosted project:
 
 ## New settings
 
-- `CONSENT_POLICY_VERSION` = `2026-09-30` (`apps/web/lib/consent/policy.ts`) and `CONSENT_UPDATED` = `2026-09-30` (`app/vamos-legal-updated.js`). If the ship day differs, change both.
+- `CONSENT_POLICY_VERSION` = `2026-10-01` (`apps/web/lib/consent/policy.ts`) and `CONSENT_UPDATED` = `2026-10-01` (`app/vamos-legal-updated.js`). If the ship day differs, change both.
 - `ACCOUNT_NOTICE_VERSION` stays `2026-09-29` (its text did not change). `LEGAL_UPDATED` for terms, cancellation and imprint stays.
 - No new environment variable, no new secret.
 - The Turnstile site key is now injected on every mock page.
