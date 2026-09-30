@@ -29,7 +29,8 @@ function failStatus(code: string): number {
     code === "not-pending" ||
     code === "not-post-trip" ||
     code === "not-open" ||
-    code === "not-paid"
+    code === "not-paid" ||
+    code === "full-refund-only"
   ) {
     return 409;
   }

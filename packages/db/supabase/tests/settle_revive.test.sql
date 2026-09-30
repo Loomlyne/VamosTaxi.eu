@@ -770,6 +770,10 @@ select ok(
 );
 
 -- 11. checkout_duplicate_refund_record -------------------------------------------
+-- 20-10: a paid booking cancelled > 24 h ahead is now left pending_ops (refund due), no longer none;
+-- what this section pins is that the duplicate-charge recorder does not change the status.
+create temporary table rt_dup_rs as
+  select b.refund_status from public.bookings b join rt_out_dup o on o.booking_id = b.id;
 select lives_ok(
   $$
     select * from public.checkout_duplicate_refund_record(
@@ -786,7 +790,7 @@ select is(
 );
 select is(
   (select b.refund_status from public.bookings b join rt_out_dup o on o.booking_id = b.id),
-  'none', 'refund_record: duplicate_charge does not touch bookings.refund_status'
+  (select refund_status from rt_dup_rs), 'refund_record: duplicate_charge does not touch bookings.refund_status'
 );
 
 select lives_ok(
