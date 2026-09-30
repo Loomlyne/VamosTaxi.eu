@@ -28,9 +28,11 @@ async function loadStore(collection: "bookings" | "surcharges", rows: unknown[])
     vm.createContext({ window: windowStub, CustomEvent: class {}, setTimeout: () => 0, clearTimeout: () => undefined, console }),
   );
   const ops = windowStub.VamosOps as Record<string, { all: () => Array<Record<string, unknown>> }>;
-  ops[collection].all();
+  const list = ops[collection];
+  if (!list) throw new Error(`no collection ${collection}`);
+  list.all();
   await new Promise((resolve) => setImmediate(resolve));
-  return ops[collection].all();
+  return list.all();
 }
 
 describe("booking detail shows the arrival time", () => {
