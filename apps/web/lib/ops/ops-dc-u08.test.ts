@@ -33,3 +33,20 @@ describe("OpsFleet chauffeur delete", () => {
     expect(onDelete("c1")).toBe(answer);
   });
 });
+
+// VamosLocale.lang is a function (app/vamos-locale.js); reading it as a value stores the
+// function itself, which no copy table has a key for, so the surface stays English.
+const fakeLocale = { lang: () => "de" };
+
+describe("ops shell language on mount", () => {
+  it("ops.dc.html starts in the stored language, not the function object", () => {
+    const src = readDc("ops.dc.html");
+    const expr = grab(
+      src,
+      /if \(window\.VamosLocale\) this\.setState\(\{ lang: ([^}]*) \}\);/,
+      "ops.dc.html mount lang",
+    );
+    const lang = new Function("window", `return ${expr};`)({ VamosLocale: fakeLocale });
+    expect(lang).toBe("de");
+  });
+});
