@@ -94,7 +94,7 @@ main and does not merge cleanly; a session has to redo it on today's main.
 |---|---|---|
 | 1 | 26.4.2 booking feedback | Second round after his review of the pictures. Hand-over follows his signature. |
 | 2 | 26.5 account choice before payment, with the paid-only reminder | Building |
-| 3 | 27 consent record | Not started |
+| 3 | 27 consent record | **Held by the owner until 26.5 is live** (27 D-34, 2026-09-30). Discuss signed. 13 plans written; their checker found 3 blockers and 11 warnings, revision running. Then the owner signs design and plan together. The /sign-up tick box is built inside 27 on 26.5's account record. 28 and 29 wait too. The control session tells it when 26.5's migration `20261001100000` is on main. |
 | 4 | 28 pixel page view, 29 purchase event | The Meta wording is his since 2026-09-30 (`.planning/decisions/2026-09-30-meta-wording.md`), all three texts, four languages. Not started. |
 | after | 26.0 → 26.2 → 20 (19 is closed) | 26.0 keeps building, lands after the ones above |
 
