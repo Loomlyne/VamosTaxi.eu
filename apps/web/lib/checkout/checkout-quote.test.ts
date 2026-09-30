@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { parseTripQuery } from "./trip-url";
-import { buildQuoteBody, fetchQuote, keepSelection, parseQuoteJson, tripIsQuotable } from "./checkout-quote";
+import { buildQuoteBody, fetchQuote, keepSelection, kmFigure, parseQuoteJson, tripIsQuotable } from "./checkout-quote";
 
 const GS = "11111111-1111-4111-8111-111111111111";
 const url = (extra: Record<string, string> = {}) =>
@@ -113,5 +113,29 @@ describe("fetchQuote", () => {
       throw new Error("offline");
     });
     expect(await fetchQuote(boom, url(), ctx)).toMatchObject({ kind: "error", code: "network" });
+  });
+});
+
+describe("trip distance (booking polish)", () => {
+  const ok = (route: unknown) =>
+    parseQuoteJson(200, { ok: true, quote_id: "q", lock: "l", classes: [], ...(route === undefined ? {} : { route }) });
+
+  it("reads the server's route metres and never makes one up", () => {
+    const withRoute = ok({ legs: [{ leg_seq: 1, distance_m: 148_230, road: true }] });
+    expect(withRoute.kind === "ok" && withRoute.distanceM).toBe(148_230);
+    const none = ok(undefined);
+    expect(none.kind === "ok" && none.distanceM).toBeNull();
+    const notRoad = ok({ legs: [{ leg_seq: 1, distance_m: 9_000, road: false }] });
+    expect(notRoad.kind === "ok" && notRoad.distanceM).toBeNull();
+    const zero = ok({ legs: [{ leg_seq: 1, distance_m: 0 }] });
+    expect(zero.kind === "ok" && zero.distanceM).toBeNull();
+  });
+
+  it("writes the figure with one decimal", () => {
+    expect(kmFigure(148_230)).toBe("148.2");
+    expect(kmFigure(18_000)).toBe("18.0");
+    expect(kmFigure(18_449)).toBe("18.4");
+    expect(kmFigure(null)).toBeNull();
+    expect(kmFigure(0)).toBeNull();
   });
 });

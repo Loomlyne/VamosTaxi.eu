@@ -12,6 +12,7 @@ import { formatTripWhen } from "@/lib/checkout/trip-format";
 import { useCheckoutSettings } from "../CheckoutSettings";
 import { useCheckoutFlow } from "../CheckoutPage";
 import { useCheckoutForm } from "../CheckoutForm";
+import { TripDistance } from "./TripDistance";
 
 const DESKTOP_QUERY = "(min-width: 1081px)";
 
@@ -54,11 +55,7 @@ export function OrderSummary() {
       ? [
           {
             icon: "navigation" as const,
-            label: (
-              <span className="vt-co__km" data-co-distance>
-                {t.rich("distanceKm", { km: <span className="vt-dir-keep">{km}</span> })}
-              </span>
-            ),
+            label: <TripDistance km={km} className="vt-co__km" />,
           },
         ]
       : []),

@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Icon, IconButton } from "@/components/core";
 import { formatTripWhen } from "@/lib/checkout/trip-format";
 import type { Trip } from "@/lib/checkout/trip-url";
+import { TripDistance } from "./TripDistance";
 
 /**
  * UI-SPEC S2 trip strip: back chevron (home always opens empty), route on line 1,
@@ -46,9 +47,7 @@ export function TripStrip({
         <p className="vt-co__strip-facts" data-co-facts>
           {distanceKm ? (
             <>
-              <span className="vt-co__strip-km" data-co-distance>
-                {t.rich("distanceKm", { km: <span className="vt-dir-keep">{distanceKm}</span> })}
-              </span>
+              <TripDistance km={distanceKm} className="vt-co__strip-km" />
               {" · "}
             </>
           ) : null}
