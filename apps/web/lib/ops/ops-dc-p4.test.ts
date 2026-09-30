@@ -228,7 +228,8 @@ describe("A5 Pricing > Extras: the Type column and the old type words are gone",
   it("the Extras table has two columns: name and amount", () => {
     const vals = pricing([childSeat]).comp.renderVals();
     expect(vals.surchargeColumns.map((c) => c.key)).toEqual(["label", "value"]);
-    expect(cells(vals, vals.surcharges[0]!)).toEqual(["Child seat", "CHF 10.00"]);
+    // The amount cell is the page's money() over the row's own figure (fixture above), unchanged.
+    expect(cells(vals, vals.surcharges[0]!)).toEqual(["Child seat", locale.money((childSeat.amounts as Json).CHF)]);
   });
 
   const OLD_CODES = ["meet_greet", "free_wait", "extra_wait", "waiting", "waiting_city", "waiting_airport"];
