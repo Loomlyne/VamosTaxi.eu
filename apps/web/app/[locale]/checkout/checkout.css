@@ -730,6 +730,15 @@
   color: var(--vt-text-secondary);
 }
 
+/* Trip distance: the server's quote distance, a figure, so Qurova (design system §2). */
+.vt-co__strip-km,
+.vt-co__km {
+  font-family: var(--vt-font-display);
+  font-weight: var(--vt-weight-semibold);
+  color: var(--vt-text-primary);
+  white-space: nowrap;
+}
+
 .vt-co__link {
   flex: 0 0 auto;
   min-block-size: 44px;

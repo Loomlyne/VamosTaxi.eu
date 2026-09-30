@@ -416,6 +416,7 @@
     "couponNotFound": "Diesen Gutscheincode gibt es nicht.",
     "couponAppliedOk": "Gutschein angewendet.",
     "distanceKm": "{km} km",
+    "noRoadRoute": "Keine Strassenroute",
     "download-voucher": "Gutschein herunterladen",
     "driverWaitingAt": "Ihr Fahrer wartet in {location}",
     "enter-a-first-name": "Vornamen eingeben",

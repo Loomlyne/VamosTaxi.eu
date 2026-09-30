@@ -12,10 +12,10 @@ Rewritten short on 2026-09-30 14:25; the long version is in git history (`823022
 | Item | Value |
 |---|---|
 | Site | https://vamostaxi.site and https://dashboard.vamostaxi.site |
-| main = origin/main | `561d1647` plus planning notes |
-| Worker `vamos` | version `d0c427c2` |
+| main = origin/main | `4da95e14` plus planning notes |
+| Worker `vamos` | version `852de5f4` |
 | Worker `vamos-dashboard` (gateway) | version `58c6e541`, deployed 15:22 by the owner's word; before: `5ea4fe65` |
-| Rollback point | Worker `f3f7d929`, git tag `backup/main-before-native-scroll-af96e59d`; before the queue: Worker `92504970`; before class cards: Worker `d80e6577`; before speed A: Worker `8adb148c`; before phone home: Worker `d43e467b`; before 26.2: Worker `0d1806ce`; before the Support button: Worker `2d5906ce` (before 26.5: Worker `fe9314d0`, tag `backup/main-before-26.5-e09f90cb`). Guest accounts off without a deploy: `settings.guest_accounts_live = false` |
+| Rollback point | Worker `d0c427c2`, git tag `backup/main-before-three-244b3c09`; before native scrolling: Worker `f3f7d929`; before the queue: Worker `92504970`; before class cards: Worker `d80e6577`; before speed A: Worker `8adb148c`; before phone home: Worker `d43e467b`; before 26.2: Worker `0d1806ce`; before the Support button: Worker `2d5906ce` (before 26.5: Worker `fe9314d0`, tag `backup/main-before-26.5-e09f90cb`). Guest accounts off without a deploy: `settings.guest_accounts_live = false` |
 | Database | migrations up to `20260930210000`, 26.5's `20261001100000` to `130000`, Phase 20's `20261005100000` and `110000`, 26.2's `20261007100000`, all applied and read back. `guest_accounts_live` = true since 14:58 (owner's answer) |
 | Who deploys | the control session, from the owner's Mac. GitHub runs checks, never deploys. |
 
@@ -39,6 +39,7 @@ Rewritten short on 2026-09-30 14:25; the long version is in git history (`823022
 | 09-30 | 16:12 | Class cards in layout E on home and checkout; small photo versions (2.77 MB to 0.14 MB); check-script fix | `f7a3528b` | `92504970` |
 | 09-30 | 16:39 | Booking-path queue: 26.2 hand-over 2 (16 bugs), security batch B1, erased-booking pay link; migrations `20261005120000` and `130000` applied and read back | `a81e194e` | `f3f7d929` |
 | 09-30 | 23:26 | Native scrolling: Lenis and the design-system scroll script removed everywhere | `561d1647` | `d0c427c2` |
+| 09-30 | 23:54 | Class photos (no Remove link; unused photos deleted at Publish), sync prune, distance on /checkout | `4da95e14` | `852de5f4` |
 
 ## Ship order from here
 
@@ -61,7 +62,10 @@ Owner's order: booking, payments, account, Meta first.
 | 10a | Phase 20 batch B1 (return-route limit, F8, lock-secret 503, ticket reply refused, staff e-mail check, reviews column grants `20261005120000`) | Handed over `75b0aba0`; touches checkout files | Owner's 26.5 test first, then his Ship, then a 4242 payment |
 | 10b | Site speed A | **Live 15:28** (owner said Ship). Live read: scripts and page parts 5 minutes, engine and photos one year, reviews 5 minutes with 5 rows; checkout, account, manage booking, sign-in and the per-visitor APIs stay `private, no-store`. A deploy now reaches a returning visitor within 5 minutes. B (native scrolling) is built on `fix/native-scroll`, hands over after class cards and Phase 27 | |
 | 10c | 26.2 hand-over 2: 16 booking-path bugs, each approved by the owner through the form (mails, dashboard booking edit, New trip, price book, address search, re-price) | Handed over `975c3ab4`; checked green by the control session on main `3b4f86d8` | Owner's 26.5 test first, then his Ship, then a 4242 payment |
-| 10e | Sync prune: the copy step removes stale files under `public/assets` and `public/_ds` (scripts only) | Handed over `615c65bc`; control check green (its tests, sync run, gates) | Owner's Ship, bundled with the next ship question |
+| 10f | **Refunds by hand** (Phase 20 plan 20-10, owner-signed): no automatic Stripe refund on a cancel; "Refund due"; admin picks payment and amount; five approved texts in four languages | Handed over `0ca067bb`; not yet checked by the control session | Tomorrow: control check, owner's Ship; migration `20261005140000` and deploy back to back; three hosted content strings updated; UAT: booking, cancel, manual refund |
+| 10g | Distance on /checkout | **Live 23:54** (owner said Ship). The km shows once a route is priced; not exercised by the control session | Owner: one booking to see it, and it counts as the owed 4242 |
+| 10h | Class photos: no Remove link anywhere; unused class photos deleted at Publish | **Live 23:54** (owner said Ship). Live dashboard file carries no Remove link. **First Publish deletes old unused class photos for good**; the control session reads the Worker log after it | Owner: look at /pricing photo field |
+| 10e | Sync prune (scripts only) | **On main 23:54** (owner said Ship) | |
 | 10d | Native scrolling | **Live 23:26** (owner's word 16:00). Live read: no Lenis file or global on /faq, the bundle writes no --vt-scroll, page scrolls by script at 390, phone menu locks and releases. Note: the sync script leaves old copies in `apps/web/public/assets`; the control session removed the three Lenis copies by hand before the deploy | Owner: scroll the site on his phone and laptop |
 | 11 | Scroll and speed | Measuring on live | A plan for the owner's signature |
 | 12 | 26.0 main green | No session. 9 of 12 plans done, 35 behind main | Prompt `03-finish-26.0.md` |
@@ -79,13 +83,12 @@ as a branch, then the folder, its Docker stack and build output are removed the 
 
 | Session | Folder under `vamos-wt/` | Branch | State |
 |---|---|---|---|
-| Vamos Taxi 26.4.2 completion | none | all four jobs shipped | at its context limit; can be closed |
-| new session needed | `class-photo-replace` | `feat/class-photo-replace` | hand-off written, prompt `09-class-photo-replace.md` |
+| Vamos Taxi 26.4.2 completion | none | five jobs shipped, class photo replace last (23:54) | stopped, end-of-day hand-off on its branch; can be closed |
 | Vamos Taxi SEO and browser settings | `site-speed`, `seo-head-2` | `fix/site-speed`, `fix/seo-head-followup` | running / parked |
 | Meta measurement phases 27-29 | `phase-27` | `gsd/phase-27-consent-record` | running; stack `vamos-taxi-270` stopped |
 | Phase 26.2 audit | `phase-26.2`, `phase-26.2-u13` | `gsd/phase-26.2-audit`, `gsd/phase-26.2-u13` | waiting for 26.5; stack `vamos-taxi-262` stopped |
 | Vamos Taxi security phase | `phase-20` (slimmed, reinstall needed) | `gsd/phase-20-security-check` | idle; stack `vamos-taxi-20` stopped |
-| none (26.0) | `main-green-2` (slimmed, reinstall needed) | `fix/main-green-2` | idle; stack `vamos-taxi-mg2` stopped |
+| Phase 26.0 main green completion (started 23:43) | `main-green-2` | `fix/main-green-2` | merging main, then plans 10 to 12 |
 
 Removed on 2026-09-30, every tip on GitHub as a branch or an `archive/*` tag: 13 shipped folders,
 7 unit folders of 26.2, `fix-26.3-followups` (its two research notes committed, branch pushed),
