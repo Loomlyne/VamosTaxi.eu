@@ -96,3 +96,12 @@ Written 2026-09-30 ~03:00 by the orchestrating session. The owner moved this wor
 ## Signatures added 2026-09-30 (build session, question form)
 - Owner signed plans 09, 10 and 11, and the D-19 revision of plans 01, 04, 05 and 07. All 11 plans are signed.
 - origin/main `49c51749` merged into the branch; ROADMAP conflict taken from main.
+
+## Build state, 2026-09-30 (build session, stopped at usage limit)
+- Done and committed: plans 01, 02, 03, 05, 08, 09 (each has a SUMMARY.md, except 01, whose summary may be missing).
+- Were running at the stop: plan 11 (paid-only reminder) and plan 04 (with the owner's D-20 Pay limits, 5 per quote and 8 per minute per IP, own binding INTENT_RATE_LIMITER namespace 1004, optional migration 20261001130000). Check `git log` and `git status` for half-done work before continuing.
+- Waiting: plans 06 and 10 until the control session says 26.4.2 shipped; then plan 07 (e2e and HANDOVER).
+- Local stack vamos-taxi-265 on ports 613xx (db 61322).
+- Known: tests/visual/legal-privacy-cookies.spec.ts "rtl and English data-tok" expects 17 pills and gets 0. It was stale before 26.5 (the legal ship removed the pills), not yet confirmed on main. About 15 lib/ops test failures seen by plan 08's builder, not yet compared with main.
+- origin/main has moved by docs-only commits; merge before hand-over.
+- Control session told: F3 taken as D-20, F4 refused (stays with Phase 20), resume uses the purpose 'manage' token from intent.
