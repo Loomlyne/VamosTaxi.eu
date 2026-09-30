@@ -182,3 +182,140 @@ Existing tests changed or deleted, each because it pinned exactly what the plan 
 | `lib/checkout/extras-catalog.test.ts` › `keeps ops extras and drops night`, `omits a surcharge after it is deleted from the published book`, `omits automatic night/weekend/holiday/waiting chips`, `lists a new published chip (pet, ski, unknown slug) and skips inactive`, `extra_stop is a chip without a fixed rappen × quantity fare`, `lists only selected extras on the recap, using book amounts`, `puts selected extras on the fare with the book amount`, `recap extras follow this booking's toggles, not a leftover lock`, `a code the owner added is on by its extra code list`, `does not invent meet & greet or free wait unless they are on the live book`, `shows amount 0 as included and does not charge it; a price is on the quote once` | Deleted: each tested a deleted helper. The name-free assertions inside them were kept as `an amount times a quantity…` and `reads an airport pickup from the place's zone type`; `public extras route still loads the live book` and `caps extra-stop places at 1 (D-21)` are unchanged. |
 | `lib/checkout/reprice.test.ts` › `is ok with pricingLive true when the live rate version is live and public_chf is on` | The expected object lost `extrasCatalog: []`. |
 | `lib/checkout/phase-26-3-laws.test.ts` › `no child_seat / oversized_luggage / extra_stop literal in checkout, e-mail or ops code paths` | Tightened: the deleted file left its allow-list and `extras-catalog.ts` is no longer exempt. Still green. |
+
+---
+
+## A4 (engine half) — the fare engine no longer treats rows named "waiting" differently
+
+Commit: `90a109ea`
+
+### What changed
+
+| File | Change |
+|---|---|
+| `apps/web/lib/pricing/lines.ts` | Deleted `isWaitingSurcharge` and the branch that turned every row coded `waiting`, `waiting_airport` or `waiting_city` into an included line with payable 0. Deleted `includedMinutes` (the lookup of `airport_waiting_minutes` / `city_waiting_minutes` by code). An included line keeps its three fields, empty (`params.minutes: null`, `basis.included_minutes: null`, `basis.source: "settings_versions"`) — exactly what every non-waiting code already emitted, so no existing line changes shape. `settings` stays in the function's argument type, unread, so callers do not change. |
+
+Not touched, as instructed: the dashboard "extra wait" figure (`apps/web/lib/ops/bookings.ts` query by code,
+`bookings-map.ts`, `app/ops/OpsDetail.dc.html`). `row.code === "extra_stop"` in `buildExtraLines` is Part D.
+
+### The lead's stop condition: does any amount change for a row that can exist on live?
+
+No. The deleted branch ran only for a row that (1) is coded `waiting`, `waiting_airport` or `waiting_city`
+and (2) has a rule that applies in the quote (`always`, a zone rule, a time window). Live book 18 holds one
+extra, `child-seat`; its rule reads as `manual` and never applies. The Pricing page can now save the code
+`waiting`, but always with the manual rule, so it never reaches that code path either (test below). The
+local seed's `waiting_airport` / `waiting_city` rows carry the empty rule `{}` and no amount: no line before,
+no line after.
+
+What does change, for a row nobody can make from the dashboard: a hand-written row coded `waiting*` with
+the rule `always` and an amount is now charged like any other `always` row. Before, it was shown as
+included with nothing to pay.
+
+### Tests
+
+New, failing before the change (`lib/pricing/lines.test.ts`):
+
+| Test | Failure line before |
+|---|---|
+| `an included row emits kind included and a null amount; no minutes are looked up by its code` | `AssertionError: waiting_airport: expected 7 to be null` |
+| `a row coded waiting gives exactly the lines of the same row under any other code` | `AssertionError: waiting {"kind":"included"}: expected [ { seq: 102, leg_seq: 1, …(7) } ] to deeply equal [ { seq: 102, leg_seq: 1, …(7) } ]` |
+| `a row coded waiting with an amount and an applying rule is charged like any other row` | `AssertionError: waiting: expected 'included' to be 'surcharge' // Object.is equality` |
+
+Before: `Tests 3 failed | 54 passed (57)`.
+
+Green before and after, on purpose: `an extra the owner names 'Waiting' (manual rule) is never added by the
+quote` (codes `waiting`, `waiting_airport`, `waiting_city`, amount 1000, rule manual → no line).
+
+After: green. `npx vitest run lib/pricing lib/quote lib/checkout/live-child-seat-rule.test.ts
+lib/ops/rate-book-extra-rule.test.ts lib/ops/draft-preview-unpaid.test.ts` → `Test Files 27 passed (27)`,
+`Tests 459 passed (459)`.
+
+Existing tests replaced, each pinned exactly what the plan removes (RESEARCH Answer 6 lists both):
+`included surcharge emits kind included, null amount, minutes from settings` and `amount-kind waiting is
+included with payable 0 at pay (D-38)`.
+
+---
+
+## Checks run once at the end
+
+| Check | Result |
+|---|---|
+| `pnpm --filter web exec tsc --noEmit -p .` (once, after the A4 code, before its commit) | exit 0, no output |
+| `node scripts/check-no-invented-numbers.mjs` | `check-no-invented-numbers: ok` |
+
+Not run, by instruction: `pnpm test:unit`, `pnpm typecheck`, `pnpm lint`, the integration, visual and
+database suites.
+
+---
+
+## Proof that the live row is unchanged
+
+File: `apps/web/lib/checkout/live-child-seat-rule.test.ts`. The row is the live row: code `child-seat`,
+`amount_rappen 1000`, and the rule as the string value the database returns, `"{\"kind\":\"always\"}"`
+(the test asserts `typeof` is `string`). Class fares are left empty, so no figure is invented.
+
+| Step | Real code that runs | Result |
+|---|---|---|
+| Reader | `mapRateBook` | rule is `{ kind: "manual" }`, quantity source `null` |
+| Quote | `mapRateBook` → `priceQuote` | lines exist for the class; none has code `child-seat`; no `surcharge` or `included` line at all |
+| Tick box | `loadCheckoutCatalog` (→ `mapRateBook` → `selectableExtras`) | `[["child-seat", 1000]]` |
+| Charge | `checkoutCharge` | unticked: no surcharge line, net 0 · ticked: one line `child-seat` 1000, net 1000 (amount × 1) |
+| Contrast | same row, rule as the object `{ kind: "always" }` | one `surcharge` line of 1000 on the quote, no tick box — what "just fix the encoding" would have done to live |
+
+The same four steps are green at every commit of this part (A1, A2, A3, A4).
+
+---
+
+## Stopped on
+
+| # | Item | Why | What is left as it was |
+|---|---|---|---|
+| S1 | Deleting `surchargeTypeFromCode` (`ROUTE`) | The lead's condition: "if reachable, stop and report". It is reachable since commit `5f7dd5a9` (26.2-bp B4) lists rows whose stored code has an underscore: a row coded `meet_greet` in book 13 or 14, or in a draft cloned from one, gets the Type cell "Meet and greet" from this function. Deleting it changes that cell to "Checkout extra": a change on the Pricing page, which needs his signature (A5). | The function and its call. |
+| S2 | Mirroring the type mapping in `app/ops/OpsPricing.dc.html` (`SURCHARGE_TYPES`, `surchargeTypeOf`) and `app/vamos-ops-data.js` (`cleanSurcharge`) | Same reason: it changes the Type cell, and the list names the copy keys `typeMeet`, `typeFreeWait`, `typeExtraWait` that A5 removes in four languages. Not script-only. | Both files untouched. |
+
+**One visible consequence of S1 the owner should know before UAT:** an extra he names exactly "Waiting" is
+now saved (code `waiting`), is a tick box at his price, and is never added by the quote — but on the
+Pricing table its Type cell reads "Extra wait", because `surchargeTypeFromCode` and the mock still map the
+code `waiting` to that type. Every other name reads "Checkout extra". It goes away with A5. Before this
+part "Waiting" could not be saved at all.
+
+---
+
+## Not verified
+
+| # | Item | Why it matters |
+|---|---|---|
+| V1 | The write was not run against a real Postgres (no Docker, no hosted SQL in this task). The proof is the installed driver's own jsonb serializer, with the Worker client's options, run over the parameter the real route hands over. | One check on the local stack closes it: save an extra on the Pricing page, then `select code, jsonb_typeof(predicate), predicate, quantity_source from public.surcharges where rate_version_id = <draft>` must show `object`, `{"kind": "manual"}`, `null`. |
+| V2 | The `surcharges_quantity_source_pairing` check and the Publish gate were read (`20260825000001_surcharge_predicate.sql`), not run, against `{"kind":"manual"}` with no quantity source. Read: the pairing check passes (kind is not `quantity`, source is null) and the gate passes (the rule is not `{}`). | "Night / Weekend / Holiday no longer block Publish" rests on this. |
+| V3 | Integration, visual and database suites (`apps/web/tests/**`, `packages/db/**`) were not run. By reading: the specs stub `/api/checkout/extras` or use fixtures with the manual rule already. | — |
+| V4 | The full unit suite, lint and the repo typecheck script were not run (the lead runs them once). Run here: the touched files, all of `lib/checkout`, `lib/pricing`, `lib/quote`, the rate-book tests, and `tsc --noEmit` once. | — |
+| V5 | A draft row saved before this part under the name "Night", "Weekend" or "Holiday" holds the empty rule `{}` and still blocks Publish until it is saved once more or deleted. The lead's data says draft 19 holds only `child-seat`, so none should exist; not read from the database. | Publish of an existing draft. |
+| V6 | Nothing was looked at in a browser. No screen was meant to change; the only on-screen effect known is the Type cell for "Waiting" (S1). | — |
+| V7 | Hosted books below 13 (RESEARCH N2) were not read. If one holds a hand-written row coded `waiting*` with an applying rule and an amount, and is cloned and published, that row would now be charged (A4). | Only if such a row exists; the seed's rows have the empty rule. |
+
+---
+
+## Needs a change in files I may not edit
+
+None found for this part. `apps/web/tests/**` was searched for everything removed or changed
+(`rateBook.error-surcharge-code`, `ski_rack`, `waiting_city`, `waiting_airport`, `extrasCatalog`,
+`included_minutes`, `payable_rappen`, the deleted helper names, rules compared to `always`): the only hit is
+`tests/integration/extras-charged-recorded-db.spec.ts:131`, whose fixture already uses
+`{ kind: "manual" }` and should stay green. Not run (V3).
+
+For the parts that are not mine:
+
+| Where | What |
+|---|---|
+| A4 dashboard half (needs his signature) | `apps/web/lib/ops/bookings.ts` still reads a live row coded `waiting_airport` / `waiting` / `waiting_city` for the "extra wait" figure. After A1 the code `waiting` can exist as his own extra. If he names an extra exactly "Waiting" and publishes it, the booking detail's "extra wait" figure takes that extra's price whenever a driver's arrival is later than the pickup time plus the free wait (`extraWaitFromArrival`, `bookings-map.ts`). Display only, staff only, never charged — but a wrong figure. Before this part it was always empty because no such row could be saved. It goes with the signed A4 picture; until then this is the second visible consequence of the name "Waiting" (the first is S1). |
+| A5 (needs his signature) | `surchargeTypeFromCode` in `ROUTE`, `SURCHARGE_TYPES` / `surchargeTypeOf` in `app/ops/OpsPricing.dc.html`, the type derivation in `app/vamos-ops-data.js` (S1, S2). |
+| Part D | `row.code === "extra_stop"` in `apps/web/lib/pricing/lines.ts`, `PUBLIC_MAX_EXTRA_STOPS`, `capExtraStops`, `publishedMaxExtraStops`. |
+| Nobody yet | `upsertSurcharge` in `apps/web/app/[locale]/(ops)/ops/pricing/[versionId]/actions.ts` is a second extra writer with no caller. It writes no rule; a row saved through it would be no tick box and would block Publish. Dead today. |
+
+## Database, in words (no migration in this part)
+
+Nothing is needed for this part to work: the column takes the new rule as it is, and live price book row 18
+is not touched. Two optional things for a later migration number: the comment on `surcharges.predicate`
+names five rule kinds and `manual` is a sixth; and the draft book's `child-seat` row could have its string
+rule rewritten to the object (`where jsonb_typeof(predicate) = 'string'`), although the reader covers it
+without that.
