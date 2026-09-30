@@ -50,3 +50,17 @@ describe("ops shell language on mount", () => {
     expect(lang).toBe("de");
   });
 });
+
+describe("AuthForm locale sent to /api/auth", () => {
+  it("locale() answers the language code, so JSON.stringify keeps the key", () => {
+    const src = readDc("AuthForm.dc.html");
+    const body = grab(src, /\n  locale\(\) \{\n([\s\S]*?)\n  \}\n/, "AuthForm locale()");
+    const locale = new Function("window", "localStorage", body) as (
+      w: unknown,
+      ls: unknown,
+    ) => unknown;
+    const got = locale({ VamosLocale: fakeLocale }, { getItem: () => null });
+    expect(got).toBe("de");
+    expect(JSON.parse(JSON.stringify({ locale: got }))).toEqual({ locale: "de" });
+  });
+});
