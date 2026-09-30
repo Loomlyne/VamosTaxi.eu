@@ -92,7 +92,7 @@ main and does not merge cleanly; a session has to redo it on today's main.
 
 | Order | What | State |
 |---|---|---|
-| 1 | 26.4.2 booking feedback | Second round after his review of the pictures. Hand-over follows his signature. |
+| 1 | 26.4.2 booking feedback | **Live since 2026-09-30 12:22.** main `37ba5b62`, Worker `59c18372` (rollback `a55b2c19`). Shipped under the day's ship mode after the owner's signatures (02:50, 11:50) and a green full check of `58eb48c7` in a clean clone. Live read: mock files identical to the build, laptop home shows the three class cards with photos. Owed by the owner: 15 UAT steps in the hand-over, 4242 payment first. |
 | 2 | 26.5 account choice before payment, with the paid-only reminder | Building |
 | 3 | 27 consent record | **Held by the owner until 26.5 is live** (27 D-34, 2026-09-30). Discuss signed. 13 plans written; their checker found 3 blockers and 11 warnings, revision running. Then the owner signs design and plan together. The /sign-up tick box is built inside 27 on 26.5's account record. 28 and 29 wait too. The control session tells it when 26.5's migration `20261001100000` is on main. |
 | 4 | 28 pixel page view, 29 purchase event | The Meta wording is his since 2026-09-30 (`.planning/decisions/2026-09-30-meta-wording.md`), all three texts, four languages. Not started. |
@@ -218,6 +218,13 @@ Built by the 26.3 session as `fix/26.4.2-booking-feedback` (folder `fix-26.4.2`)
 |---|---|
 | Checkout, flight edit: when Turnstile challenges the re-quote, no challenge is shown and the price stays on "Updating price" (`CheckoutForm.tsx` flightBlur) | Confirmed in code by the control session. Not reproduced on live. Sent to the 26.3 session to fix inside 26.4.2. |
 | The public pages (mocks) carry no hreflang links in their HTML | For the owner. Not assigned. Search engines cannot tell the language versions apart. |
+
+## Follow-up jobs, not assigned
+
+| Job | From |
+|---|---|
+| Serve a smaller version of each class photo (today 2.3 to 2.8 MB PNG each, about 7.6 MB on the laptop home) | Owner decision 10 of 26.4.2, 2026-09-30 |
+| Cloudflare Web Analytics script is blocked by our own security header on every page (seen in the browser console; older than this ship) | Control session, 2026-09-30 |
 
 ## Owed by the control session
 
