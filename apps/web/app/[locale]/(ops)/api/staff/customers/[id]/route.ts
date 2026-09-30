@@ -1,6 +1,7 @@
 // apps/web/app/[locale]/(ops)/api/staff/customers/[id]/route.ts
 //
 // GET /api/staff/customers/:id — one customer + booking history.
+// PATCH /api/staff/customers/:id — upsert the details.
 // DELETE /api/staff/customers/:id — tombstone. Dual-mounted at
 // app/api/staff/customers/[id].
 
@@ -10,28 +11,11 @@ import {
   loadCustomerHistory,
   parseCustomerWrite,
   upsertCustomer,
-  type CustomerRow,
 } from "@/lib/ops/customers";
 import { jsonErr, jsonOk, withStaff } from "@/lib/ops/staff-json";
+import { toOpsCustomer } from "../ops-customer";
 
 export const dynamic = "force-dynamic";
-
-function toOpsCustomer(row: CustomerRow) {
-  return {
-    id: row.id,
-    name: row.fullName,
-    fullName: row.fullName,
-    type: row.type,
-    since: row.since,
-    trips: row.tripCount,
-    tripCount: row.tripCount,
-    redacted: row.redacted,
-    ...(row.email !== undefined ? { email: row.email } : {}),
-    ...(row.phone !== undefined ? { phone: row.phone } : {}),
-    ...(row.company !== undefined ? { company: row.company } : {}),
-    ...(row.note !== undefined ? { note: row.note } : {}),
-  };
-}
 
 export async function GET(
   request: Request,

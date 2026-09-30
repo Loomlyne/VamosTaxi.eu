@@ -71,6 +71,18 @@ describe("reminder read is the definer function, not table SELECTs (260929-pga)"
     expect(sql).toMatch(/to vamos_system;/);
     expect(sql).not.toMatch(/grant select/i);
   });
+
+  it("the paid-only replacement (D-18) filters to confirmed or assigned and keeps the rest", () => {
+    const sql = read("packages/db/supabase/migrations/20261001120000_reminder_24h_paid_only.sql");
+    expect(sql).toContain("in ('confirmed', 'assigned')");
+    expect(sql).not.toContain("not in ('cancelled'");
+    expect(sql).toMatch(/security definer/);
+    expect(sql).toMatch(/set search_path = ''/);
+    expect(sql).toMatch(/l\.original_scheduled_at >= p_from/);
+    expect(sql).toMatch(/erased_at is null/);
+    expect(sql).toMatch(/to vamos_system;/);
+    expect(sql).not.toMatch(/grant select/i);
+  });
 });
 
 describe("hourly worker (LIFE-05 / LIFE-07)", () => {

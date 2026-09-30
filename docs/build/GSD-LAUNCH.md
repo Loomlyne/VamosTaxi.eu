@@ -1,5 +1,7 @@
 # GSD — Vamos Taxi V1 on Cloudflare + Supabase (no Vercel)
 
+> **Status, 2026-09-30:** The public site is https://vamostaxi.site (Worker `vamos` on Cloudflare); `vamostaxi.eu` is not used and is never bound. This file is the original launch plan: its `staging.vamostaxi.eu`, `ops-staging.` and DNS-cutover steps were not carried out on that domain. Vehicle classes are Economy / Business / Van luxury.
+
 Execution file, start → finish. Work top to bottom; every phase has **Goal → Steps → Done when**.
 The design mocks in `app/` are the spec: every screen, state, and the `VamosOps` /
 `VamosLocale` JS contracts are what the production app must reproduce. Amounts stay

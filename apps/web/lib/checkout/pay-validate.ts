@@ -66,3 +66,46 @@ export function firstPayError(state: PayFormState): PayError | null {
   }
   return null;
 }
+
+// ── 26.5 section-2 account rules (plan 06) ─────────────────────────────────────────────
+// Kept apart from PayField / PayErrorKey / firstPayError so the existing contact rules and
+// their callers keep their types; the form calls firstSectionError instead of firstPayError
+// once the panel is wired. Order: class, then the account choice, then the contact rules.
+
+export type AccountPayField = "account" | "accountSent" | "accountConsent";
+export type AccountPayErrorKey = "acctPayBlockSignIn" | "acctPayBlockSent" | "acctCreateConsentError";
+export type AccountPayError = { field: AccountPayField; messageKey: AccountPayErrorKey };
+
+/** D-01/D-12/D-13: what section 2 knows about the account choice. */
+export type PayAccountState = {
+  signedIn: boolean;
+  choice: "guest" | "signin" | "create";
+  stage: "form" | "sent";
+  /** The Text 1 tick. Only "create" reads it; guest never has a consent rule (D-13). */
+  createConsent: boolean;
+};
+
+export type SectionFormState = PayFormState & { account?: PayAccountState };
+
+/**
+ * The account rule alone. The button is never disabled (D-12): an unfinished choice is
+ * named here and the caller scrolls, focuses and announces it. Signed in or absent: null.
+ */
+export function firstAccountError(account: PayAccountState | undefined): AccountPayError | null {
+  if (!account || account.signedIn) return null;
+  if (account.choice === "signin") {
+    return account.stage === "sent"
+      ? { field: "accountSent", messageKey: "acctPayBlockSent" }
+      : { field: "account", messageKey: "acctPayBlockSignIn" };
+  }
+  if (account.choice === "create" && !account.createConsent) {
+    return { field: "accountConsent", messageKey: "acctCreateConsentError" };
+  }
+  return null;
+}
+
+/** class, then account (26.5), then the contact rules of firstPayError. */
+export function firstSectionError(state: SectionFormState): PayError | AccountPayError | null {
+  if (!state.classChosen) return { field: "class", messageKey: "chooseClass" };
+  return firstAccountError(state.account) ?? firstPayError(state);
+}

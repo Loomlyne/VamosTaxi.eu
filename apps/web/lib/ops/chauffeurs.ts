@@ -87,7 +87,8 @@ function toIso(value: Date | string): string {
 function normalizePhone(raw: string): string {
   const trimmed = raw.trim();
   if (!trimmed) return "";
-  let compact = trimmed.replace(/[^\d+]/g, "");
+  // "+41 (0)79 ..." writes the national trunk zero in brackets; it is not dialled after the country code.
+  let compact = trimmed.replace(/\(\s*0\s*\)/g, "").replace(/[^\d+]/g, "");
   if (compact.startsWith("00")) compact = `+${compact.slice(2)}`;
   else if (compact.startsWith("0")) compact = `+41${compact.slice(1)}`;
   else if (!compact.startsWith("+")) compact = `+${compact}`;
@@ -111,15 +112,6 @@ function normalizeLanguages(input: string[] | undefined): string[] {
 export function normalizeChauffeurEmail(email: string | null | undefined): string | null {
   const trimmed = (email ?? "").trim().toLowerCase();
   return trimmed || null;
-}
-
-export function emailsMatch(
-  left: string | null | undefined,
-  right: string | null | undefined,
-): boolean {
-  const a = normalizeChauffeurEmail(left);
-  const b = normalizeChauffeurEmail(right);
-  return a !== null && a === b;
 }
 
 export function assertChauffeurInput(input: ChauffeurInput): AssertedChauffeurInput {
@@ -280,9 +272,10 @@ function applyDeskDetail(row: ChauffeurDetail, extras: DeskExtras): ChauffeurDet
   return { ...applyDesk(row, extras), licenceNumber: row.licenceNumber };
 }
 
-// List projection omits the licence number on purpose: no component change
-// and no accidental column spread can put it into a table, a CSV export or
-// a client payload. loadChauffeur is the only reader that selects it.
+// loadChauffeurDetailsList selects the licence number for the detail-bearing
+// list. loadChauffeurs below omits it on purpose: no component change and no
+// accidental column spread can put it into a table, a CSV export or a client
+// payload.
 export async function loadChauffeurDetailsList(
   env: CloudflareEnv,
   claims: VamosClaims,

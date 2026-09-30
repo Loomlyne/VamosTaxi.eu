@@ -25,11 +25,23 @@ describe("dashboard support is read-only @security F2", () => {
     expect(ticket).toContain('data-file-name="1"');
   });
 
-  it("sends no reply from the dashboard; the answer button is a mailto link", () => {
-    expect(ticket).not.toMatch(/\{\s*reply:/);
+  it("sends no reply from the dashboard; the answer button opens this ticket's own link", () => {
+    expect(ticket).not.toMatch(/\{\s*reply:\s*body/);
     expect(ticket).not.toMatch(/sendReply|Textarea/);
-    expect(ticket).toMatch(/icon="mail" href="\{\{ mailHref \}\}"[^>]*>\{\{ tAnswer \}\}/);
-    expect(ticket).toContain("mailHref: open ? ('mailto:' + open.email) : ''");
+    expect(ticket).toMatch(/icon="mail" disabled="\{\{ answerOff \}\}" onClick="\{\{ answerByMail \}\}"[^>]*>\{\{ tAnswer \}\}/);
+    // The links come from the server for the open ticket only; the page never builds one from another row.
+    expect(ticket).toContain("const open = this.state.tickets.find((t) => t.id === this.state.openId);");
+    expect(ticket).toContain("reply: replyOf(t.reply),");
+    expect(ticket).toContain("x.mailto.indexOf('mailto:') === 0");
+    expect(ticket).toContain("x.gmail.indexOf('https://mail.google.com/') === 0");
+  });
+
+  it("the admin chooses the mail app; the choice is kept on the device", () => {
+    expect(ticket).toMatch(/name="BrandSelect" icon="settings" value="\{\{ mailApp \}\}" options="\{\{ mailAppOptions \}\}" onSelect="\{\{ setMailApp \}\}"/);
+    expect(ticket).toContain("const MAIL_APP_KEY = 'vamosOpsMailApp';");
+    for (const key of ["mailApp:'", "mailAuto:'", "mailGmail:'"]) {
+      expect((ticket.split(key).length - 1), key).toBe(4);
+    }
   });
 
   it("the ticket file route only ever downloads, sandboxed and nosniff", () => {

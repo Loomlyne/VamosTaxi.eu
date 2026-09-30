@@ -2,7 +2,7 @@ import { escapeHtml } from "./escape";
 import { codeBlock, ctaButton, layoutHtml, layoutText } from "./layout";
 import { t, type EmailLocale } from "./messages";
 
-export type AuthEmailType = "signup" | "recovery" | "otp" | "email_change" | "invite" | "reauthentication";
+export type AuthEmailType = "signup" | "recovery" | "otp" | "email_change" | "invite" | "reauthentication" | "account_ready" | "account_signin";
 export type AuthEmailData = { code: string; link: string; name: string };
 
 const KEYS: Record<AuthEmailType, { subject: string; heading: string; body: string; cta: string }> = {
@@ -36,6 +36,18 @@ const KEYS: Record<AuthEmailType, { subject: string; heading: string; body: stri
     body: "email-change-lead",
     cta: "email-change-cta",
   },
+  account_ready: {
+    subject: "email-account-ready-subject",
+    heading: "email-account-ready-heading",
+    body: "email-account-ready-lead",
+    cta: "email-account-ready-cta",
+  },
+  account_signin: {
+    subject: "email-account-signin-subject",
+    heading: "email-account-signin-heading",
+    body: "email-account-signin-lead",
+    cta: "email-account-signin-cta",
+  },
   reauthentication: {
     subject: "email-reauth-subject",
     heading: "email-reauth-heading",
@@ -58,12 +70,12 @@ export function renderAuthEmail(
   const heading = t(locale, "auth", keys.heading, params);
   const lead = t(locale, "auth", keys.body, params);
   const cta = t(locale, "auth", keys.cta, params);
-  const hello = name ? `<p style="margin:0 0 16px 0;">Hello ${name}.</p>` : "";
-  const inner = `${hello}<p style="margin:0 0 8px 0;font-size:22px;line-height:28px;font-weight:700;">${heading}</p><p style="margin:0;">${lead}</p>${ctaButton(link, cta)}${code ? codeBlock(code) : ""}`;
-  const textLead = name ? `Hello ${data.name.trim()}.\n\n` : "";
+  const hello = name ? `<p style="margin:0 0 16px 0;">${t(locale, "auth", "email-hello", { name })}</p>` : "";
+  const inner = `${hello}<p style="margin:0 0 8px 0;font-size:22px;line-height:28px;font-weight:700;">${heading}</p><p style="margin:0;">${lead}</p>${ctaButton(link, cta)}${code ? codeBlock(code, locale) : ""}`;
+  const textLead = name ? `${t(locale, "auth", "email-hello", { name: data.name.trim() })}\n\n` : "";
   return {
     subject,
     html: layoutHtml(locale, inner),
-    text: layoutText(`${textLead}${heading}\n\n${t(locale, "auth", keys.body, { name: data.name.trim(), link: data.link, code: data.code })}\n\n${cta}: ${data.link}\n${data.code}`),
+    text: layoutText(`${textLead}${heading}\n\n${t(locale, "auth", keys.body, { name: data.name.trim(), link: data.link, code: data.code })}\n\n${cta}: ${data.link}\n${data.code}`, { locale }),
   };
 }

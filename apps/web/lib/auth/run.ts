@@ -60,9 +60,20 @@ export type AuthClient = {
 export const FORM_CREDENTIALS: AuthRunResult = { stage: "form", banner: "credentials" };
 export const SENT: AuthRunResult = { stage: "sent" };
 
+/** base64url of a UTF-8 string; survives any number of URL decodes (no %, +, & or space in it). */
+export function toBase64Url(text: string): string {
+  let binary = "";
+  for (const byte of new TextEncoder().encode(text)) binary += String.fromCharCode(byte);
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
 export function callbackUrl(origin: string, next: string): string {
   const url = new URL("/api/auth/callback", origin);
-  url.searchParams.set("next", next);
+  // 26.5-07: a checkout return path carries a query full of %XX escapes ("Zurich%20Airport"). On the Worker a route
+  // handler sees the URL with its query already decoded once, so the escape became a space, the target failed its
+  // check and the customer landed on /checkout with no trip. Such a target travels as base64url instead.
+  if (/[%+&#\s?]/.test(next)) url.searchParams.set("nextb", toBase64Url(next));
+  else url.searchParams.set("next", next);
   return url.toString();
 }
 

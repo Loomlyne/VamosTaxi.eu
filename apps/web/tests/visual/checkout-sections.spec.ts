@@ -337,16 +337,20 @@ test("no extras section at all when the dashboard has no extras, at four widths 
 
 // ── 3. Sign in carries class and extras ─────────────────────────────────────────────────
 for (const lang of LANGS) {
-  test(`${lang}: Have an account? Sign in carries class and extras in returnTo and no contact @checkout`, async ({ page }) => {
+  test(`${lang}: the Sign in option carries class and extras in returnTo and no contact @checkout`, async ({ page }) => {
     await setup(page);
+    await page.route("**/api/auth", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, stage: "sent" }) }),
+    );
     for (const width of WIDTHS) {
       await open(page, lang, width, `${TRIP}&class=business`);
       await page.locator('[data-co-extra="child-seat"] label').click();
       await fillContact(page);
-      const href = (await page.locator("[data-co-sign-in]").getAttribute("href"))!;
-      const match = /sign-in\?returnTo=(.+)$/.exec(href);
-      expect(match, href).toBeTruthy();
-      const returnTo = decodeURIComponent(match![1]!);
+      // 26.5: the Sign in option sends the link request with this checkout as returnTo.
+      const sent = page.waitForRequest((r) => r.url().endsWith("/api/auth") && r.method() === "POST");
+      await page.locator('[data-acct-option="signin"]').click();
+      await page.locator("[data-acct-signin='form'] [data-acct-action]").click();
+      const returnTo = (JSON.parse((await sent).postData() ?? "{}") as { returnTo: string }).returnTo;
       expect(returnTo).toMatch(/\/checkout\?/);
       const params = new URLSearchParams(returnTo.split("?")[1]);
       expect(params.get("class")).toBe("business");

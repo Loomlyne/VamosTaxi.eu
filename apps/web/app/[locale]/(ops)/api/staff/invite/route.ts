@@ -5,7 +5,7 @@
 // is an aal2 admin, THEN construct the admin client, then invite, then
 // write public.staff yourself. user_metadata is never authoritative (D-06).
 
-import { createClient } from "@supabase/supabase-js";
+import { legacyServiceClient, serviceRoleConfigured } from "@/lib/supabase/service-role";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { emailSchema } from "@/lib/auth/schemas";
 import { log } from "@/lib/logger";
@@ -98,16 +98,12 @@ export async function POST(request: Request): Promise<Response> {
   const email = emailParsed.data;
 
   const { env } = getCloudflareContext();
-  const serviceRoleKey = env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const supabaseUrl = env.SUPABASE_URL ?? process.env.SUPABASE_URL;
-  if (!serviceRoleKey || !supabaseUrl) {
+  if (!serviceRoleConfigured(env)) {
     log("error", "ops-invite", ctx, { reason: "missing-service-role" });
     return jsonError(INVITE_ERROR.invite_failed, 500);
   }
 
-  const admin = createClient(supabaseUrl, serviceRoleKey, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
+  const admin = legacyServiceClient(env);
 
   const invited = await admin.auth.admin.inviteUserByEmail(email, {
     redirectTo: opsInviteRedirectUrl(),

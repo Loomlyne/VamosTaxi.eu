@@ -154,12 +154,16 @@ export async function POST(request: Request) {
     return empty(200);
   }
 
+  const origin = parsed.user.user_metadata?.vamos_account_origin;
+  const finalKind =
+    kind === "signup" && typeof origin === "string" && origin.startsWith("checkout") ? "account_signin" : kind;
+
   const link = verifyLink(env.SUPABASE_URL, parsed.email_data);
   const name =
     typeof parsed.user.user_metadata?.full_name === "string"
       ? parsed.user.user_metadata.full_name
       : "";
-  const rendered = renderAuthEmail(kind, locale, {
+  const rendered = renderAuthEmail(finalKind, locale, {
     code: parsed.email_data.token,
     link,
     name,

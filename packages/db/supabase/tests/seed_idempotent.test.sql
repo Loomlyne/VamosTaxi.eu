@@ -109,10 +109,11 @@ select is((select count(*) from public.reviews where published)::int, 0, 'no see
 -- 26.4-10: en.json gained 4 keys in 26.4 (trip flight add/optional/hint, Stripe product name): 2600 keys.
 -- 26.1-10: migration 20260928130000_canton_city_zones.sql (not the seed) adds 26 non-translatable
 -- canton display names (zone.canton-<code>); canton_zones.test.sql pins those 26 on their own.
-select is((select count(*) from public.content_strings)::int, 2600 + 26, 'content_strings row count = flattened en.json key count + 26 migration canton names');
+-- 26.5: re-pinned to the generated seed after 26.5's 36 new strings: 2670 keys (main had 2634 before 26.5).
+select is((select count(*) from public.content_strings)::int, 2670 + 26, 'content_strings row count = flattened en.json key count + 26 migration canton names');
 select is((select count(*) from public.content_strings where pending_value)::int, 16, '16 pending-value keys (ADR-011, Law 04 data-tok)');
 select is((select count(*) from public.content_strings where non_translatable)::int, 8 + 26, '8 non-translatable seed keys (ADR-012) + 26 migration canton names');
-select is((select count(*) from public.content_strings where no_param_reason is not null)::int, 75, '75 no-param-reason keys (I18N-06; +1 pay-link 24 hours, 26.1-16; count re-read from the seed header in 26.3-22)');
+select is((select count(*) from public.content_strings where no_param_reason is not null)::int, 94, '94 no-param-reason keys (I18N-06; count re-read from the seed header in 26.5)');
 select ok(
   (select de is not null and fr is not null and ar is not null from public.content_strings where key = 'price.surcharge.night.rule'),
   'price.surcharge.night.rule (Plan 02-04) has a non-null de/fr/ar translation'

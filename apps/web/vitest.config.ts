@@ -19,6 +19,7 @@ export default defineConfig({
     environment: "node",
     include: [
       "lib/**/*.test.ts",
+      "app/api/auth/**/*.test.ts",
       "tests/unit/**/*.test.ts",
       "components/consent/**/*.test.ts",
       "components/checkout/**/*.test.tsx",

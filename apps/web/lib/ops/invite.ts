@@ -40,23 +40,3 @@ export function assertInviteRole(value: unknown): InviteRole {
   if (value === "dispatcher" || value === "admin") return value;
   throw new Error(INVITE_ERROR.invalid_input);
 }
-
-export type EstablishInviteSession = (input: {
-  accessToken?: string;
-  refreshToken?: string;
-  code?: string;
-}) => Promise<{ ok: boolean }>;
-
-export type SetInvitePassword = (password: string) => Promise<{ ok: boolean }>;
-
-export type StartTotpEnrol = () => Promise<
-  { ok: true; factorId: string; qrCode: string; secret: string } | { ok: false }
->;
-
-export type ChallengeTotp = (factorId: string) => Promise<{ ok: true; challengeId: string } | { ok: false }>;
-
-export type VerifyTotpAndClaim = (input: {
-  factorId: string;
-  challengeId: string;
-  code: string;
-}) => Promise<{ ok: true; claimed: boolean } | { ok: false }>;

@@ -68,7 +68,7 @@ function loadTurnstile(): Promise<TurnstileApi> {
 
 export type TurnstileWidgetProps = {
   siteKey: string | undefined;
-  action: "contact" | "checkout" | "consent";
+  action: "contact" | "checkout" | "consent" | "account";
   onToken: (token: string | null) => void;
   labelKey?: string;
   resetNonce?: number;

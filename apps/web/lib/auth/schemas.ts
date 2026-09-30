@@ -72,6 +72,18 @@ export const updatePasswordSchema = z
   })
   .strict();
 
+/** Checkout "sign-in link" send (26.5-03): existing customers only, behind Turnstile, never creates an account. */
+export const checkoutSignInSchema = z
+  .object({
+    mode: z.literal("signin"),
+    method: z.literal("magic"),
+    email: emailSchema,
+    origin: z.literal("checkout"),
+    turnstileToken: z.string().min(1),
+    idempotencyKey: z.string().max(100).optional(),
+  })
+  .strict();
+
 export const otpRequestSchema = z.discriminatedUnion("mode", [
   signInMagicSchema,
   signUpMagicSchema,

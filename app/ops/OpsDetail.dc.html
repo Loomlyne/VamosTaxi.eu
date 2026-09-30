@@ -491,9 +491,17 @@ function fareBreakdown(booking, t, lang) {
   }
   return rows.map((r) => ({ label: r.label, value: r.value }));
 }
+// booking_events.at is a timestamptz that reaches us in the database session zone (UTC).
+// Every other time on this screen is Europe/Zurich, so the history is shown there too.
+// A value with no zone, or one Date cannot read, is shown as written.
 function eventWhen(at) {
   const raw = String(at || '');
-  return raw.slice(0, 16).replace('T', ' ');
+  const ms = /\d{2}:\d{2}.*(Z|[+-]\d{2}(:?\d{2})?)$/.test(raw) ? Date.parse(raw) : NaN;
+  if (!Number.isFinite(ms)) return raw.slice(0, 16).replace('T', ' ');
+  const p = {};
+  new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Zurich', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+    .formatToParts(new Date(ms)).forEach((x) => { p[x.type] = x.value; });
+  return p.year + '-' + p.month + '-' + p.day + ' ' + p.hour + ':' + p.minute;
 }
 function eventActor(label, kind, t) {
   const raw = String(label || '').trim();
@@ -908,7 +916,7 @@ class Component extends DCLogic {
       { icon: 'credit-card', k: t.payment, v: booking.pay },
     ];
     if (booking.arrivedAt) {
-      tags.push({ icon: 'clock', k: t.arrived, v: String(booking.arrivedAt).slice(11, 16) || '—' });
+      tags.push({ icon: 'clock', k: t.arrived, v: eventWhen(booking.arrivedAt).slice(11, 16) || '—' });
     }
     if (Number(booking.extraWaitMinutes) > 0) {
       const waitPay = Number(booking.extraWaitRappen) > 0 ? (' · ' + fareLabel(Number(booking.extraWaitRappen))) : '';
@@ -1110,14 +1118,15 @@ class Component extends DCLogic {
           this.notify(t.editFailed + id);
           return;
         }
-        const scheduled = (draft.dateIso && draft.time) ? (String(draft.dateIso) + 'T' + String(draft.time)) : '';
+        // The route reads customer / email / phone (26.2-u08: contact_* was never read, so these edits were dropped).
+        // An emptied contact field is left out: the stored value stays rather than being blanked.
+        const keep = (v) => { const s = String(v == null ? '' : v).trim(); return s ? s : undefined; };
         client.request('PATCH', '/api/staff/bookings/' + encodeURIComponent(id), {
-          contact_name: draft.customer,
-          contact_email: draft.email,
-          contact_phone: draft.phone,
+          customer: keep(draft.customer),
+          email: keep(draft.email),
+          phone: keep(draft.phone),
           pickup: draft.pickup, dropoff: draft.dropoff, dateIso: draft.dateIso, time: draft.time,
           pax: Number(draft.pax), bags: Number(draft.bags), flight: draft.flight,
-          scheduled_local: scheduled,
         }).then((json) => {
           if (json && json.ok) {
             if (ops) ops.bookings.reset();
