@@ -715,6 +715,71 @@ describe("runRepricePipeline", () => {
     expect(deadlineRuns.n).toBe(afterQuoteDeadline);
   });
 
+  it("26.2-p4 D: a new quote's lock carries no stop fields", async () => {
+    const first = await runQuotePipeline(
+      validBody({ extras: { child_seats: 1 } }),
+      baseDeps(),
+    );
+    expect(first.ok).toBe(true);
+    if (!first.ok) return;
+    const signed = Buffer.from(first.lock.split(".")[1]!, "base64url").toString("utf8");
+    expect(signed).not.toMatch(/waypoints|extra_stops/);
+    expect(JSON.parse(signed).extras).toEqual({ child_seats: 1 });
+  });
+
+  it("26.2-p4 D: a lock minted before the change (empty stop fields) reprices with the SAME quote_id and hold and is re-signed without them", async () => {
+    const legacy = {
+      v: 1,
+      quote_id: "44444444-4444-4444-8444-444444444444",
+      exp: "2099-01-01T12:00:00.000Z",
+      engine_version: "quote-engine@test",
+      rate_version_id: null,
+      settings_version_id: 1,
+      computed_at: "2026-08-28T12:00:00.000Z",
+      display_currency: "CHF",
+      mode: "one_way",
+      pax: 2,
+      bags: 1,
+      legs: [
+        {
+          leg_seq: 1,
+          pickup: { lng: ZURICH.lng, lat: ZURICH.lat, text: "Zurich HB" },
+          dropoff: { lng: ZRH.lng, lat: ZRH.lat, text: "ZRH" },
+          scheduled_local: "2026-09-01T10:30",
+          distance_m: 12_000,
+          duration_s: 1_200,
+          origin_zone_id: null,
+          dest_zone_id: null,
+          waypoints: [],
+          flight_no: null,
+          landing_source: null,
+        },
+      ],
+      extras: { child_seats: 0, extra_stops: 0, waypoints: [] },
+      coupon: null,
+      class_totals: [],
+    } as unknown as QuoteLockPayload;
+    const token = await mintLock({ current: FAKE_SECRET }, legacy);
+    const directionsRuns = { n: 0 };
+    const again = await runRepricePipeline(
+      {
+        quote_id: legacy.quote_id,
+        lock: token,
+        locale: "en",
+        display_currency: "CHF",
+        coupon: "SAVE10",
+      },
+      baseDeps({ directionsRuns }),
+    );
+    expect(again.ok).toBe(true);
+    if (!again.ok) return;
+    expect(again.quote_id).toBe(legacy.quote_id);
+    expect(again.expires_at).toBe(legacy.exp);
+    expect(directionsRuns.n).toBe(0);
+    const signed = Buffer.from(again.lock.split(".")[1]!, "base64url").toString("utf8");
+    expect(signed).not.toMatch(/waypoints|extra_stops/);
+  });
+
   it("26.2-p4 D: a reprice body that carries a stop list is refused before any Directions call or Mapbox unit", async () => {
     const store = new Map<string, string>();
     const env = {

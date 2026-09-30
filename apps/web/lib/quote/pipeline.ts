@@ -743,7 +743,6 @@ export async function runQuotePipeline(
         ...(origin.cityName ? { origin_city_name: origin.cityName } : {}),
         ...(dest.cityName ? { dest_city_name: dest.cityName } : {}),
         ...(origin.isAirport ? { origin_is_airport: true } : {}),
-        waypoints: [],
         flight_no: src?.flight_no ?? null,
         landing_source: null,
       };
