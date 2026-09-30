@@ -49,7 +49,10 @@ describe("cookie banner mounts (D-07, D-32)", () => {
 
 describe("serveDcHtml carries no per-visitor state (D-23, T-27-16)", () => {
   const start = middleware.indexOf("async function serveDcHtml");
-  const end = middleware.indexOf("async function", start + 10);
+  // The function ends at the next top-level declaration (main added plain functions after it).
+  const rest = middleware.slice(start + 10);
+  const next = rest.search(/\n(?:async )?function /);
+  const end = next === -1 ? middleware.length : start + 10 + next;
   const body = middleware.slice(start, end);
 
   it("injects the public Turnstile site key", () => {
