@@ -1,10 +1,7 @@
 // apps/web/tests/visual/checkout-account.spec.ts
 //
 // Plan 26.5-06 Task 3: the account choice at the top of section 2 "Who is travelling",
-// at 1440 / 1024 / 768 / 390 in en, de and ar. SCAFFOLD: every test is `test.fixme` until
-// the panel is wired into ContactSection/CheckoutForm (plan 06 Task 2, held while 26.4.2
-// owns those files). To release: replace `test.fixme(` with `test(`, run the spec, fix the
-// selectors the wiring chose (data-co-account*), and check the per-width counts:
+// at 1440 / 1024 / 768 / 390 in en, de and ar. Run it and check the per-width counts:
 //   npx playwright test tests/visual/checkout-account.spec.ts --project=component-1440 --reporter=list
 // Every title ends in "@<width> @checkout" so a width that did not run is visible.
 // Runs once under component-1440 with its own `next dev`, like checkout-sections.spec.ts.
@@ -40,7 +37,7 @@ test.beforeAll(async ({}, testInfo) => {
     cwd: WEB_ROOT,
     stdio: "ignore",
     detached: true,
-    env: { ...process.env, NODE_ENV: "development", TEST_DIST_DIR: ".next-checkout-account-visual" },
+    env: { ...process.env, NODE_ENV: "development", TURNSTILE_SITE_KEY: "1x00000000000000000000AA", TEST_DIST_DIR: ".next-checkout-account-visual" },
   });
   await waitForNextServer(baseURL, 180_000);
 });
@@ -79,9 +76,16 @@ async function setup(
   opts: { signedInEmail?: string; intentCode?: "sign_in_first" | "account_consent_required" | "pay_limit" | "rate_limited" } = {},
 ) {
   const fx: Fx = { intentBodies: [], authBodies: [] };
+  // The challenge script is a stub that solves at once, so the widgets stay invisible as in production.
   await page.route(
     (url) => url.hostname.includes("cloudflare") || url.hostname.includes("turnstile"),
-    (route) => route.abort(),
+    (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: "application/javascript",
+        body:
+          "window.turnstile={render:function(el,o){setTimeout(function(){o.callback('fixture-token')},0);return 'w1'},remove:function(){},reset:function(){}};",
+      }),
   );
   await page.route("**/api/flight/**", (route) =>
     route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: false }) }),
@@ -141,7 +145,7 @@ async function setup(
   );
   await page.route("**/api/auth", async (route) => {
     fx.authBodies.push(JSON.parse(route.request().postData() ?? "{}") as Record<string, unknown>);
-    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true }) });
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, stage: "sent" }) });
   });
   await page.route("**/api/checkout/intent", async (route) => {
     fx.intentBodies.push(JSON.parse(route.request().postData() ?? "{}") as Record<string, unknown>);
@@ -189,7 +193,7 @@ async function chooseClass(page: Page) {
 // ── 1. Layout: panel first in section 2, columns, targets, RTL, no sideways scroll ──────
 for (const lang of LANGS) {
   for (const width of WIDTHS) {
-    test.fixme(`${lang} @${width}: panel first in section 2, layout, targets, no sideways scroll @checkout`, async ({ page }) => {
+    test(`${lang} @${width}: panel first in section 2, layout, targets, no sideways scroll @checkout`, async ({ page }) => {
       await setup(page);
       const m = tr(lang);
       await open(page, lang, width);
@@ -228,7 +232,7 @@ for (const lang of LANGS) {
       // Sign in option: email field / send button >= 54 px, links/ghost >= 44 px.
       await option(page, "signin").click();
       await expect(page.locator("[data-acct-signin='form']")).toBeVisible();
-      expect(await height(page, "[data-acct-signin] input[type=email]")).toBeGreaterThanOrEqual(54);
+      expect(await height(page, "[data-acct-signin] .vt-input")).toBeGreaterThanOrEqual(54);
       expect(await height(page, "[data-acct-signin='form'] [data-acct-action]")).toBeGreaterThanOrEqual(54);
       expect(await height(page, "[data-acct-signin='form'] [data-acct-link]")).toBeGreaterThanOrEqual(44);
 
@@ -248,7 +252,7 @@ for (const lang of LANGS) {
 // ── 2. Guest and Create: the tick box, links, PAY rules ──────────────────────────────────
 for (const lang of LANGS) {
   for (const width of WIDTHS) {
-    test.fixme(`${lang} @${width}: guest has no checkbox; Create has one tick with Text 1 and working links; PAY never disabled @checkout`, async ({ page }) => {
+    test(`${lang} @${width}: guest has no checkbox; Create has one tick with Text 1 and working links; PAY never disabled @checkout`, async ({ page }) => {
       const fx = await setup(page);
       const m = tr(lang);
       await open(page, lang, width);
@@ -281,7 +285,7 @@ for (const lang of LANGS) {
 // ── 3. Sent stage: after Send and after a sign_in_first PAY they look the same ───────────
 for (const lang of LANGS) {
   for (const width of WIDTHS) {
-    test.fixme(`${lang} @${width}: sent stage after Send and after a sign_in_first PAY is identical @checkout`, async ({ page }) => {
+    test(`${lang} @${width}: sent stage after Send and after a sign_in_first PAY is identical @checkout`, async ({ page }) => {
       const fx = await setup(page, { intentCode: "sign_in_first" });
       await open(page, lang, width);
       await chooseClass(page);
@@ -313,7 +317,7 @@ for (const lang of LANGS) {
 // ── 4. D-20 messages ─────────────────────────────────────────────────────────────────────
 for (const lang of LANGS) {
   for (const code of ["pay_limit", "rate_limited"] as const) {
-    test.fixme(`${lang} @390: ${code} shows its own message and leaves PAY usable @checkout`, async ({ page }) => {
+    test(`${lang} @390: ${code} shows its own message and leaves PAY usable @checkout`, async ({ page }) => {
       await setup(page, { intentCode: code });
       const m = tr(lang);
       await open(page, lang, 390);
@@ -332,7 +336,7 @@ for (const lang of LANGS) {
 // ── 5. Signed in: no panel ───────────────────────────────────────────────────────────────
 for (const lang of LANGS) {
   for (const width of WIDTHS) {
-    test.fixme(`${lang} @${width}: signed in has no panel, shows Signed in as, prefills @checkout`, async ({ page }) => {
+    test(`${lang} @${width}: signed in has no panel, shows Signed in as, prefills @checkout`, async ({ page }) => {
       await setup(page, { signedInEmail: "amira@example.com" });
       await open(page, lang, width);
       await expect(page.locator("[data-acct-choice]")).toHaveCount(0);
@@ -341,4 +345,27 @@ for (const lang of LANGS) {
       await noSidewaysScroll(page);
     });
   }
+}
+
+// ── 6. Screenshots for the review (only when SHOT_DIR is set) ────────────────────────────
+// One per width in English (Create expanded, so the panel, the tick and the contact fields
+// show), plus 390 in German and Arabic. Written to $SHOT_DIR, committed by name.
+const SHOTS: { lang: Lang; width: number }[] = [
+  { lang: "en", width: 1440 },
+  { lang: "en", width: 1024 },
+  { lang: "en", width: 768 },
+  { lang: "en", width: 390 },
+  { lang: "de", width: 390 },
+  { lang: "ar", width: 390 },
+];
+for (const { lang, width } of SHOTS) {
+  test(`${lang} @${width}: screenshot of section 2 @checkout`, async ({ page }) => {
+    const dir = process.env.SHOT_DIR;
+    test.skip(!dir, "set SHOT_DIR to write screenshots");
+    await setup(page);
+    await open(page, lang, width);
+    await option(page, "create").click();
+    await page.locator("[data-co-section='2']").scrollIntoViewIfNeeded();
+    await page.locator("[data-co-section='2']").screenshot({ path: join(dir!, `checkout-account-${lang}-${width}.png`) });
+  });
 }

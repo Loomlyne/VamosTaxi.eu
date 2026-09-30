@@ -1,9 +1,7 @@
 // apps/web/lib/checkout/phase-26-5-laws.test.ts
 //
 // Plan 26.5-06 Task 3: source guards for the account choice on /checkout.
-// Reads files as text. Laws that need the wiring in CheckoutForm / ContactSection /
-// checkout.css (plan 06 Task 2, held while 26.4.2 owns those files) are `it.todo` with the
-// exact assertion in a comment; turn each into a real `it` when the wiring lands.
+// Reads files as text.
 
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
@@ -89,13 +87,19 @@ describe("26.5 laws: no glow, no tint, no yellow, tokens only", () => {
     }
   });
 
-  it.todo(
-    "checkout.css account rules use logical properties only: within the blocks selecting [data-co-account*], " +
-      "expect(block).not.toMatch(/(^|[;{\\s])(margin|padding)-(left|right)\\b|(^|[;{\\s])(left|right)\\s*:|text-align\\s*:\\s*(left|right)/)",
-  );
-  it.todo(
-    "checkout.css has at least one [data-co-account] rule once wired: expect(css).toMatch(/\\[data-co-account/)",
-  );
+  it("checkout.css account rules use logical properties only", () => {
+    const css = stripComments(read(join(CHECKOUT_APP, "checkout.css")));
+    const blocks = css.match(/[^{}]*data-co-account[^{}]*\{[^}]*\}/g) ?? [];
+    expect(blocks.length).toBeGreaterThan(0);
+    for (const block of blocks) {
+      expect(block).not.toMatch(
+        /(^|[;{\s])(margin|padding)-(left|right)\b|(^|[;{\s])(left|right)\s*:|text-align\s*:\s*(left|right)/,
+      );
+    }
+  });
+  it("checkout.css has a [data-co-account] rule", () => {
+    expect(read(join(CHECKOUT_APP, "checkout.css"))).toMatch(/\[data-co-account/);
+  });
 });
 
 describe("26.5 laws: no data-tok pill in the panel (D-11)", () => {
@@ -180,47 +184,68 @@ describe("26.5 laws: server-only boundaries (D-14)", () => {
   });
 });
 
-describe("26.5 laws: needs the plan 06 wiring (held while 26.4.2 owns the checkout files)", () => {
-  it.todo(
-    "ContactSection mounts the panel: expect(read(ContactSection.tsx)).toMatch(/<AccountChoice/) and /<CheckoutSignIn/, " +
-      "and the AccountChoice element appears before the first contact <Input in the file",
-  );
-  it.todo(
-    "the header sign-in link is dropped while the panel shows: in ContactSection.tsx the signInLink anchor is only " +
-      "rendered inside a branch guarded by the signed-in / no-panel condition (assert signInLink is not passed to SectionCard headerEnd when signedInEmail is null)",
-  );
-  it.todo(
-    "CheckoutSettings carries both switches as booleans: expect(read(CheckoutSettings.tsx)).toMatch(/guestAccountsOn:\\s*boolean/) " +
-      "and /accountCreateAvailable:\\s*boolean/",
-  );
-  it.todo(
-    "CheckoutPage fills them from the server helpers and never imports lib/supabase: " +
-      "expect(src).toMatch(/guestAccountsOn\\(/) and /accountCreateAvailable\\(/) and expect(src).not.toMatch(/lib\\/supabase/)",
-  );
-  it.todo(
-    "PAY builds the account block through the tested helper: expect(read(CheckoutForm.tsx)).toMatch(/accountIntentBlock\\(/) " +
-      "and /mapAccountCode\\(/ and /firstSectionError\\(/ (called with an `account:` state)",
-  );
-  it.todo(
-    "FIELD_SELECTOR names the three new fields: expect(src).toMatch(/\\[data-co-account\\]/), /\\[data-co-account-sent\\]/, /\\[data-co-account-consent\\]/",
-  );
-  it.todo(
-    "PAY is never disabled by the tick: in ContactSection/CheckoutForm no `disabled={...createConsent...}` on the PAY button " +
-      "(expect(src).not.toMatch(/disabled=\\{[^}]*createConsent/))",
-  );
-  it.todo(
-    "return_to comes from this page: expect(read(CheckoutForm.tsx)).toMatch(/location\\.pathname\\s*\\+\\s*location\\.search|returnTo:/)",
-  );
-  it.todo(
-    "changing the e-mail resets the Create tick: setContact({ email }) path calls setCreateConsent(false) " +
-      "(expect(src).toMatch(/setCreateConsent\\(false\\)/) at least twice: e-mail change and Use a different email)",
-  );
-  it.todo(
-    "signed-in state is re-read on window focus: expect(src).toMatch(/addEventListener\\(\\s*[\"']focus[\"']/) near /api/checkout/me",
-  );
-  it.todo(
-    "D-20 messages are shown: expect(src).toMatch(/payLimit/) and /payRateLimited/ (via mapAccountCode's payError key)",
-  );
+describe("26.5 laws: the plan 06 wiring", () => {
+  const contact = () => stripComments(read(join(CHECKOUT_APP, "sections", "ContactSection.tsx")));
+  const form = () => stripComments(read(join(CHECKOUT_APP, "CheckoutForm.tsx")));
+
+  it("ContactSection mounts the panel before the first contact field", () => {
+    const src = contact();
+    expect(src).toMatch(/<AccountChoice/);
+    expect(src).toMatch(/<CheckoutSignIn/);
+    expect(src.indexOf("<AccountChoice")).toBeLessThan(src.indexOf("<ContactFields"));
+  });
+  it("the header sign-in link is gone while the panel shows", () => {
+    const src = contact();
+    expect(src).not.toMatch(/signInLink/);
+    expect(src).not.toMatch(/data-co-sign-in/);
+    expect(src).toMatch(/f\.signedInEmail \? null/);
+  });
+  it("CheckoutSettings carries both switches as booleans", () => {
+    const src = read(join(CHECKOUT_APP, "CheckoutSettings.tsx"));
+    expect(src).toMatch(/guestAccountsOn:\s*boolean/);
+    expect(src).toMatch(/accountCreateAvailable:\s*boolean/);
+  });
+  it("the layout fills them from the server helpers and the client files never import lib/supabase", () => {
+    const src = stripComments(read(join(CHECKOUT_APP, "layout.tsx")));
+    expect(src).toMatch(/guestAccountsOn\(/);
+    expect(src).toMatch(/accountCreateAvailable\(/);
+    expect(src).not.toMatch(/lib\/supabase/);
+    expect(stripComments(read(join(CHECKOUT_APP, "CheckoutPage.tsx")))).not.toMatch(/lib\/supabase/);
+  });
+  it("PAY builds the account block through the tested helpers", () => {
+    const src = form();
+    expect(src).toMatch(/accountIntentBlock\(/);
+    expect(src).toMatch(/mapAccountCode\(/);
+    expect(src).toMatch(/firstSectionError\(/);
+    expect(src).toMatch(/account:\s*\{\s*signedIn/);
+  });
+  it("FIELD_SELECTOR names the three account fields", () => {
+    const src = form();
+    expect(src).toMatch(/\[data-co-account\]/);
+    expect(src).toMatch(/data-acct-sent-heading/);
+    expect(src).toMatch(/data-acct-consent/);
+  });
+  it("PAY is never disabled by the tick or the choice", () => {
+    expect(form()).not.toMatch(/payDisabled\s*=[^;]*(createConsent|accountChoice)/);
+    expect(contact()).not.toMatch(/disabled=\{[^}]*createConsent/);
+  });
+  it("return_to comes from this page", () => {
+    expect(form()).toMatch(/location\.pathname\s*\+\s*window\.location\.search|location\.pathname\s*\+\s*location\.search/);
+  });
+  it("changing the e-mail resets the Create tick", () => {
+    expect((form().match(/setCreateConsent\(false\)/g) ?? []).length).toBeGreaterThanOrEqual(2);
+  });
+  it("signed-in state is re-read on window focus", () => {
+    const src = form();
+    expect(src).toMatch(/addEventListener\(\s*["']focus["']/);
+    expect(src).toMatch(/api\/checkout\/me/);
+  });
+  it("D-20 messages are mapped and shown", () => {
+    const pay = stripComments(read(join(WEB, "lib", "checkout", "account-pay.ts")));
+    expect(pay).toMatch(/payLimit/);
+    expect(pay).toMatch(/payRateLimited/);
+    expect(form()).toMatch(/setPayError\(t\(effect\.payError\)\)/);
+  });
 });
 
 describe("26.5 laws: fixture sanity", () => {

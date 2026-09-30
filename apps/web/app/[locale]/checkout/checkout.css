@@ -1347,3 +1347,9 @@
   border: 0;
   border-block-start: 1px solid var(--vt-border-subtle);
 }
+
+/* The invisible account check reserves no space; an interactive challenge grows the host itself. */
+[data-co-account] .vt-turnstile {
+  min-block-size: 0;
+  min-inline-size: 0;
+}

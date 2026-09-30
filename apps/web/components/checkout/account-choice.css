@@ -283,3 +283,9 @@
   letter-spacing: 0;
   text-transform: none;
 }
+
+/* Links in the notice read in charcoal: the brand link underline is yellow, and the panel carries no yellow (UI-SPEC). */
+[data-acct-choice] a {
+  color: var(--vt-text-primary);
+  border-block-end-color: currentColor;
+}
