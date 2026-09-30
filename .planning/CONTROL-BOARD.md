@@ -12,10 +12,10 @@ Rewritten short on 2026-09-30 14:25; the long version is in git history (`823022
 | Item | Value |
 |---|---|
 | Site | https://vamostaxi.site and https://dashboard.vamostaxi.site |
-| main = origin/main | `f7a3528b` plus planning notes |
-| Worker `vamos` | version `92504970` |
+| main = origin/main | `a81e194e` plus planning notes |
+| Worker `vamos` | version `f3f7d929` |
 | Worker `vamos-dashboard` (gateway) | version `58c6e541`, deployed 15:22 by the owner's word; before: `5ea4fe65` |
-| Rollback point | Worker `d80e6577`, git tag `backup/main-before-class-cards-ac01b413`; before speed A: Worker `8adb148c`; before phone home: Worker `d43e467b`; before 26.2: Worker `0d1806ce`; before the Support button: Worker `2d5906ce` (before 26.5: Worker `fe9314d0`, tag `backup/main-before-26.5-e09f90cb`). Guest accounts off without a deploy: `settings.guest_accounts_live = false` |
+| Rollback point | Worker `92504970`, git tag `backup/main-before-bp-queue-6d2ea3a8`; before class cards: Worker `d80e6577`; before speed A: Worker `8adb148c`; before phone home: Worker `d43e467b`; before 26.2: Worker `0d1806ce`; before the Support button: Worker `2d5906ce` (before 26.5: Worker `fe9314d0`, tag `backup/main-before-26.5-e09f90cb`). Guest accounts off without a deploy: `settings.guest_accounts_live = false` |
 | Database | migrations up to `20260930210000`, 26.5's `20261001100000` to `130000`, Phase 20's `20261005100000` and `110000`, 26.2's `20261007100000`, all applied and read back. `guest_accounts_live` = true since 14:58 (owner's answer) |
 | Who deploys | the control session, from the owner's Mac. GitHub runs checks, never deploys. |
 
@@ -37,6 +37,7 @@ Rewritten short on 2026-09-30 14:25; the long version is in git history (`823022
 | 09-30 | 15:20 | SEO follow-up (dashboard robots closed, first view follows a stored language) and phone home (Trustpilot row in the booking card, full-page menu, hero behind Safari's bars) | `51b851e3` | `8adb148c` + gateway `58c6e541` |
 | 09-30 | 15:28 | Site speed A: static files cached, reviews cached 5 min, About photo 4.0 MB to 385 KB | `02c1bd3d` | `d80e6577` |
 | 09-30 | 16:12 | Class cards in layout E on home and checkout; small photo versions (2.77 MB to 0.14 MB); check-script fix | `f7a3528b` | `92504970` |
+| 09-30 | 16:39 | Booking-path queue: 26.2 hand-over 2 (16 bugs), security batch B1, erased-booking pay link; migrations `20261005120000` and `130000` applied and read back | `a81e194e` | `f3f7d929` |
 
 ## Ship order from here
 
@@ -76,7 +77,8 @@ as a branch, then the folder, its Docker stack and build output are removed the 
 
 | Session | Folder under `vamos-wt/` | Branch | State |
 |---|---|---|---|
-| Vamos Taxi 26.4.2 completion | `class-photo-small`; new: `phone-sheet-bugs`, `phone-home` | `feat/class-photo-small`, `fix/phone-sheet-bugs`, `fix/phone-home` | running |
+| Vamos Taxi 26.4.2 completion | none | all four jobs shipped | at its context limit; can be closed |
+| new session needed | `class-photo-replace` | `feat/class-photo-replace` | hand-off written, prompt `09-class-photo-replace.md` |
 | Vamos Taxi SEO and browser settings | `site-speed`, `seo-head-2` | `fix/site-speed`, `fix/seo-head-followup` | running / parked |
 | Meta measurement phases 27-29 | `phase-27` | `gsd/phase-27-consent-record` | running; stack `vamos-taxi-270` stopped |
 | Phase 26.2 audit | `phase-26.2`, `phase-26.2-u13` | `gsd/phase-26.2-audit`, `gsd/phase-26.2-u13` | waiting for 26.5; stack `vamos-taxi-262` stopped |
@@ -103,6 +105,10 @@ Prompts for sessions: `.planning/prompts/`, shared rules in `00-common-rules.md`
 | 14:22 | Phone menu opens as a full page, not a side panel (shared header, every page) | same | Same |
 | 14:22 | Hero fills the screen; no white strips at the top and bottom of Safari | same | Same |
 | 14:27 | Support e-mail button must open the exact e-mail in the mail app he is signed in to, and his answer must stay in that thread. Today it is a plain new mail to the customer | Security session, `fix/support-open-in-mail` | Owner answered 14:32: always the mail of that ticket's customer, never mixed; mail app automatic for now, admin choice if cheap; build it; **ship when the control session's checks pass** (his word, this job only) |
+| 16:30 | The trip distance (km) is not shown on /checkout or anywhere in the booking flow, especially on the phone | 26.5 session, `fix/booking-polish`, prompt `10-booking-polish.md`, hand-over 1 | Pictures, his signature |
+| 16:30 | Four small items, decided by the control session on his word: German "Koffer"; SELECT 54 px; dark band under the phone footer; Safari Back after closing the sheet | same, hand-over 2 | Not started |
+| 16:25 | Signed plans in the 26.2 session: **P4 extras** (a paid extra is a tick box; a CHF 0 extra shows as included; per extra an optional number with a maximum; night, weekend, holiday, waiting and extra stop removed; airport fee stays inside the fare) and **P1 class change on a paid trip** (dearer class only after the difference is paid by an e-mailed pay link, priced with today's price book; cheaper class = Refund due). New decision **P6**: place and time changes on a paid trip get the same treatment | 26.2 session. P4 part A is being built. Order on main: hand-over 2, security B1, erased pay link, P4-A, refunds by hand, P1, P6 | P4-A building; P1 signed, waits; P6 plan after P1 |
+| 16:20 | Class photo: Remove link goes; a replaced photo and its small copies are deleted at publish (`.planning/decisions/2026-09-30-class-photo-replace.md`) | **Needs a new session**: the 26.4.2 session reached its context limit and wrote a hand-off. Prompt `09-class-photo-replace.md`, branch `feat/class-photo-replace` | Not started |
 | 15:40 | Five owner decisions from the 26.2 questions that need a signed plan before code: P1 class change on a paid trip re-prices; P2 refund across both payments; P3 class photo Remove link goes, replaced photo deleted from storage; P4 a deleted extra is deleted completely (hard-coded Ski/Waiting names go); P5 pay link for an erased booking | P1, P4: 26.2 session, own jobs, P4 first. P2, P5: security session (with refunds by hand). P3: 26.4.2 session (photo job) | Plans for his signature |
 | 09-29 | Later, its own job: passwords off on the whole site, e-mail link or passkey only | Not scheduled | His word when to start |
 
@@ -131,7 +137,8 @@ The owner decided every finding F1 to F14. Every Phase 20 ship needs his Ship.
 | Phase 29 | `20261004100000` to `190000` |
 | Phase 20 | `20261005100000`, `110000` (live) |
 | Class photos | `20261006100000` to `190000` |
-| 26.2 | `20261007100000` to `190000` |
+| 26.2 | `20261007100000` staff price preview (live); P4-A `110000`, trigger clean-up `120000`, P4-C `130000`; P1 `140000`; P6 `150000` |
+| Phase 20 (more) | `20261005120000` reviews column grants (B1), `130000` erased-booking pay link (20-12), `140000` refunds by hand (20-10) |
 
 ## Decisions that stand
 
@@ -153,7 +160,11 @@ Full texts in `.planning/decisions/`.
 
 | What | Carried by |
 |---|---|
-| The two phone booking bugs above | `fix/phone-sheet-bugs` |
+| Safari: Back pressed within a second after closing the phone booking page with the X does nothing | `fix/booking-polish` |
+| German class card says "Gepäckstücke"; the signed picture said "Koffer" | `fix/booking-polish` |
+| SELECT on the home class card is 44 px high, the rule for primary booking buttons is 54 | `fix/booking-polish` |
+| An empty dark band of about 400 px sits under the footer on the phone home page | `fix/booking-polish` |
+| On a laptop the page behind an open booking page or dialog scrolls by mouse wheel | native scrolling job |
 | /terms section 03 mentions SMS; /about fleet numbers differ from the live classes (archived work `archive/legal-follow-up-fe4e37a0`, never shipped) | 26.2 list, not assigned |
 | Settings say 15 minutes standard waiting, the pages say 30 | Owner changes the setting if both should agree |
 | The airport fee is saved inside the fare line, not as its own line | 26.2 list |
@@ -170,6 +181,24 @@ Full texts in `.planning/decisions/`.
 | 26.4.2 UAT | He works through it with the 26.4.2 session; what is left is design |
 | Dashboard Support read-only | Accepted, with one requirement (next table) |
 | Tab title, icon, share preview, language addresses | Approved |
+
+## Owner checks passed, 2026-09-30 16:30
+
+| What | Result |
+|---|---|
+| Payment through the 26.5 checkout | Passed. VT-26-0747, 16:29, confirmed, payment succeeded by Apple Pay, linked to his account (he was signed in), confirmation mail claimed, one pay press counted. Read on live by the control session. The guest path and "Create an account" have not been paid through yet: no account agreement record exists |
+| Class cards in layout E | "All good as I wanted" |
+| iPhone: hero, Trustpilot row, menu, scrolling | "All good" |
+
+## Open at the control session's stop, 2026-09-30 16:40 (usage limit)
+
+| What | State |
+|---|---|
+| Native scrolling (`fix/native-scroll`, last commit after `87ed040c`) | Handed over, owner said ship after the class cards. NOT yet checked in a clean clone, NOT shipped. Next: merge main `a81e194e`, clean-clone gates, squash, deploy, live check (no `/assets/lenis*.js`, /faq scrolls, phone menu) |
+| Owner payment after the 16:39 ship | Owed: checkout files changed (intent.ts, return route) |
+| Folders to remove after proof | `phase-20` branches shipped (keep folder: refunds by hand is building there), `native-scroll` after its ship, `main-check` (ask the SEO session) |
+| 26.2 session | Stopped at its usage limit; P4 part A core built on `gsd/26.2-p4-extras` `d72c934d`, not a hand-over. Findings: pgTAP `seed_idempotent` test 33 fails on main again (wants 2696, seed has 2698); the JSON double encoding also affects `stripe_events.payload` (68 live rows), `booking_edit_requests.payload` (an accepted customer time change would apply nothing) and `rate_version_rules.payload` |
+| Live reviews | The 5 published reviews on live carry placeholder text ("One verbatim sentence from a real review sits here"). For the owner |
 
 ## Waiting for the owner
 

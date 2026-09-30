@@ -228,6 +228,10 @@ function isSurchargeCode(value: string): boolean {
   return KEBAB_SLUG.test(value);
 }
 
+// 26.2-bp B4: what the database accepts for a stored code (extra_labels check,
+// 20260930140000). The reader uses this so a stored row is never left out.
+const STORED_SURCHARGE_CODE = /^[a-z0-9_-]{1,64}$/;
+
 function rejectNegativeRappen(value: number | null, key: string): number | null {
   if (value == null) return null;
   if (!Number.isInteger(value) || value < 0) {
@@ -580,7 +584,7 @@ export async function loadRateBook(
         live: row.live,
       })),
       surcharges: surcharges.flatMap((row) => {
-        if (!isSurchargeCode(row.code)) return [];
+        if (!STORED_SURCHARGE_CODE.test(row.code)) return [];
         return [
           {
             id: asId(row.id),

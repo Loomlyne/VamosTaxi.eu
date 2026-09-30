@@ -36,12 +36,13 @@ export function t(
   vars: Record<string, string | number> = {},
 ): string {
   const table = FLAT[locale] ?? FLAT.en;
-  let value = table[key] ?? FLAT.en[key];
+  const value = table[key] ?? FLAT.en[key];
   if (value == null) return `{${key}}`;
-  for (const [name, replacement] of Object.entries(vars)) {
-    value = value.replaceAll(`{${name}}`, String(replacement));
-  }
-  return value;
+  // One pass with a function replacer: a value is never read as a `$&` pattern and is
+  // never searched again for another placeholder.
+  return value.replace(/\{([^{}]+)\}/g, (match, name: string) =>
+    Object.prototype.hasOwnProperty.call(vars, name) ? String(vars[name]) : match,
+  );
 }
 
 const PLURAL_SUFFIX = /_(zero|one|two|few|many|other)$/;

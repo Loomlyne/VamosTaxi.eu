@@ -75,6 +75,41 @@ export async function cancelBooking(
   if (!captured) {
     const erased = await eraseBooking(env, claims, bookingId);
     if (!erased) return { ok: false, code: "not-found" };
+    // 26.2-bp B1: the erase leaves the booking pending, so a Stripe Checkout
+    // Session the customer still has open stayed payable and settle would
+    // confirm a booking the board no longer lists. Expire them here, same
+    // guard as the paid path below. A failure is logged; the erase stands.
+    const unpaidPublishable = env.STRIPE_PUBLISHABLE_KEY || "";
+    const canExpireUnpaid =
+      Boolean(unpaidPublishable) && !stripeAccountIsLegacyUaeTest(unpaidPublishable);
+    if (canExpireUnpaid) {
+      try {
+        const sessionIds = await asSystem(env, async (sql) => {
+          const rows = await sql<{ ids: string[] | null }[]>`
+            select public.checkout_booking_session_ids(${bookingId}::uuid) as ids
+          `;
+          return rows[0]?.ids ?? [];
+        });
+        const stripeForUnpaid = stripeFromEnv(env);
+        await expireSessionIds(
+          {
+            expireSession: (sessionId) =>
+              expireCheckoutSession(stripeForUnpaid, sessionId).then(() => undefined),
+            canExpire: true,
+            emit: (message, sessionId, err) => {
+              console.error(message, sessionId, err instanceof Error ? err.message : String(err));
+            },
+          },
+          sessionIds,
+        );
+      } catch (err) {
+        console.error(
+          "ops_unpaid_cancel_session_read_failed",
+          bookingId,
+          err instanceof Error ? err.message : String(err),
+        );
+      }
+    }
     return {
       ok: true,
       erased: true,

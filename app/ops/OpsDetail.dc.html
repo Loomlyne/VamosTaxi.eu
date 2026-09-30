@@ -762,6 +762,13 @@ class Component extends DCLogic {
     const found = listBookings().find((b) => b.id === id || b.bookingId === id);
     return found || EMPTY_BOOKING;
   }
+  // 26.2-bp C6: one staff request at a time from this page. A second click while one is in flight is ignored
+  // (a double click sent two pay-link e-mails, and a second Complete came back "frozen" after the first had worked).
+  once = (send, done) => {
+    if (this._busy) return;
+    this._busy = true;
+    send().then((json) => { this._busy = false; done(json); }, (err) => { this._busy = false; throw err; });
+  };
   notify = (msg) => { this.setState({ toastMsg: msg, showToast: true }); clearTimeout(this._t); this._t = setTimeout(() => this.setState({ showToast: false }), 3600); };
   // Opens Stripe's hosted page for this booking in a new tab. The tab is opened on the click
   // (before the request) so the popup blocker allows it, then pointed at the returned URL.
@@ -1172,7 +1179,7 @@ class Component extends DCLogic {
             this.notify(t.arrivalFailed + id);
             return;
           }
-          client.request('PATCH', '/api/staff/bookings/' + encodeURIComponent(id), { arrived: true }).then((json) => {
+          this.once(() => client.request('PATCH', '/api/staff/bookings/' + encodeURIComponent(id), { arrived: true }), (json) => {
             if (json && json.ok) {
               if (ops) ops.bookings.reset();
             } else if (json && json.code === 'frozen') {
@@ -1191,7 +1198,7 @@ class Component extends DCLogic {
             this.notify(t.editFailed + id);
             return;
           }
-          client.request('PATCH', '/api/staff/bookings/' + encodeURIComponent(id), { status: 'completed' }).then((json) => {
+          this.once(() => client.request('PATCH', '/api/staff/bookings/' + encodeURIComponent(id), { status: 'completed' }), (json) => {
             if (json && json.ok) {
               if (ops) ops.bookings.reset();
             } else if (json && json.code === 'frozen') {
@@ -1210,7 +1217,7 @@ class Component extends DCLogic {
           this.notify(t.arrivalFailed + id);
           return;
         }
-        client.request('PATCH', '/api/staff/bookings/' + encodeURIComponent(id), { arrived: true }).then((json) => {
+        this.once(() => client.request('PATCH', '/api/staff/bookings/' + encodeURIComponent(id), { arrived: true }), (json) => {
           if (json && json.ok) {
             if (ops) ops.bookings.reset();
           } else if (json && json.code === 'frozen') {
@@ -1228,7 +1235,7 @@ class Component extends DCLogic {
           this.notify(t.editFailed + id);
           return;
         }
-        client.request('PATCH', '/api/staff/bookings/' + encodeURIComponent(id), { status: 'completed' }).then((json) => {
+        this.once(() => client.request('PATCH', '/api/staff/bookings/' + encodeURIComponent(id), { status: 'completed' }), (json) => {
           if (json && json.ok) {
             if (ops) ops.bookings.reset();
           } else if (json && json.code === 'frozen') {
@@ -1246,7 +1253,7 @@ class Component extends DCLogic {
           this.notify(t.editFailed + id);
           return;
         }
-        client.request('PATCH', '/api/staff/bookings/' + encodeURIComponent(id), { status: 'no_show' }).then((json) => {
+        this.once(() => client.request('PATCH', '/api/staff/bookings/' + encodeURIComponent(id), { status: 'no_show' }), (json) => {
           if (json && json.ok) {
             if (ops) ops.bookings.reset();
           } else if (json && json.code === 'frozen') {
@@ -1316,7 +1323,7 @@ class Component extends DCLogic {
           this.notify(t.payLinkFailed + id);
           return;
         }
-        client.request('POST', '/api/staff/bookings/' + encodeURIComponent(id) + '/pay-link', { send: true }).then((json) => {
+        this.once(() => client.request('POST', '/api/staff/bookings/' + encodeURIComponent(id) + '/pay-link', { send: true }), (json) => {
           if (json && json.ok) {
             if (ops) ops.bookings.reset();
             this.notify(t.payLinkSent + (booking.email || id));
@@ -1349,7 +1356,7 @@ class Component extends DCLogic {
         const ops = window.VamosOps;
         if (!canAssign || !client || typeof client.request !== 'function') return;
         if (!chosen) { this.notify(t.pickChauffeur); return; }
-        client.request('POST', '/api/staff/bookings/' + encodeURIComponent(id) + '/assign', { chauffeurId: chosen }).then((json) => {
+        this.once(() => client.request('POST', '/api/staff/bookings/' + encodeURIComponent(id) + '/assign', { chauffeurId: chosen }), (json) => {
           if (json && json.ok) {
             if (ops) ops.bookings.reset();
             this.setState({ dialogOpen: false });
