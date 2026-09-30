@@ -228,6 +228,9 @@ class Component extends DCLogic {
     this.state = { pressed: false, sugIdx: -1, sugField: '', leaving: false, vvh: 0, vvTop: 0 };
     this._depth = 0;
     this._selfPop = null;
+    this._stale = false;      /* closed with the page's own entry still on the stack (see _onClosed) */
+    this._staleT = null;
+    this._afterPop = null;    /* history work that waits for the sheet's own pop to land */
     this._locked = false;
     this._inerted = [];
     this._listening = false;
@@ -288,6 +291,7 @@ class Component extends DCLogic {
   }
   componentWillUnmount() {
     clearTimeout(this._leaveT);
+    clearTimeout(this._staleT);
     if (this._selfPop) { clearTimeout(this._selfPop.t); this._selfPop = null; }
     this._unlisten();
     this._unlock();
@@ -300,6 +304,7 @@ class Component extends DCLogic {
     if (v) { v.addEventListener('resize', this._onVV); v.addEventListener('scroll', this._onVV); }
     window.addEventListener('resize', this._onVV);
   }
+  _unlistenIfIdle() { if (!this.props.open && !this._stale && !this._selfPop) this._unlisten(); }
   _unlisten() {
     if (!this._listening) return; this._listening = false;
     window.removeEventListener('popstate', this._onPop);
@@ -312,8 +317,7 @@ class Component extends DCLogic {
     this._opener = document.activeElement;
     this._lock();
     this._listen();
-    this._depth = 1;
-    history.pushState({ vtSheet: 1 }, '');
+    this._enter();
     this._vv();
     if (this.state.pressed) this.setState({ pressed: false });
     /* Everything is on the page; the title takes focus so no keyboard hides the rest. */
@@ -321,8 +325,24 @@ class Component extends DCLogic {
   }
   _onClosed() {
     this._unlock();
-    if (this._depth > 0) this._flush(null);
-    this._unlisten();
+    this._afterPop = null;
+    if (this._depth > 0) {
+      /* The entry is not walked back at once: a Back pressed in the next moments (Safari is slow to settle a
+         history step of its own) must still go to the page before, as after any normal close. So the entry stays
+         as a spare, and a Back that lands on it hops on (see _popstate). If nobody presses Back it is removed
+         quietly after a pause. */
+      this._depth = 0;
+      this._stale = true;
+      clearTimeout(this._staleT);
+      this._staleT = setTimeout(() => {
+        this._staleT = null;
+        if (!this._stale) return;
+        this._stale = false;
+        this._depth = 1;
+        this._flush(() => this._unlistenIfIdle());
+      }, 1500);
+    }
+    this._unlistenIfIdle();
     if (!this._reduced()) {
       this.setState({ leaving: true });
       this._leaveT = setTimeout(() => this.setState({ leaving: false }), 200);
@@ -374,19 +394,41 @@ class Component extends DCLogic {
   _flush(cb) {
     const d = this._depth; this._depth = 0;
     if (d <= 0) { if (cb) cb(); return; }
-    const t = setTimeout(() => { if (this._selfPop) { const c = this._selfPop.cb; this._selfPop = null; if (c) c(); } }, 800);
+    const t = setTimeout(() => this._landed(), 800);
     this._selfPop = { cb: cb, t: t };
     history.go(-d);
   }
+  /** The sheet's own step back has landed (its popstate or the fallback timer). */
+  _landed() {
+    const s = this._selfPop; if (!s) return;
+    this._selfPop = null; clearTimeout(s.t);
+    if (s.cb) s.cb();
+    const a = this._afterPop; this._afterPop = null;
+    if (a) a();
+  }
+  /** Takes the sheet's history entry: a new one, the spare left by the last close, or none until a pending pop lands. */
+  _enter() {
+    if (this._selfPop) { this._afterPop = () => { if (this.props.open && this._depth === 0) this._enter(); }; return; }
+    clearTimeout(this._staleT);
+    this._depth = 1;
+    if (this._stale) { this._stale = false; history.replaceState({ vtSheet: 1 }, ''); return; }
+    history.pushState({ vtSheet: 1 }, '');
+  }
   _popstate() {
-    if (this._selfPop) { const s = this._selfPop; this._selfPop = null; clearTimeout(s.t); if (s.cb) s.cb(); return; }
+    if (this._selfPop) { this._landed(); this._unlistenIfIdle(); return; }
+    if (this._stale && !this.props.open) {
+      /* Back landed on the spare entry: one more step, to the page before. */
+      this._stale = false; clearTimeout(this._staleT);
+      this._unlistenIfIdle();
+      history.back();
+      return;
+    }
     if (!this.props.open || this.props.inline) return;
     this._depth = 0;
     this._cb('onClose');
   }
   _closeSelf() {
     if (this.props.inline) { this._cb('onClose'); return; }
-    if (this._depth > 0) this._flush(null);
     this._cb('onClose');
   }
 
