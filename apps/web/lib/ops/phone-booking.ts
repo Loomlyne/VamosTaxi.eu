@@ -156,11 +156,15 @@ export async function staffPayLink(
   let sent = false;
   if (sendEmail) {
     // The charged total includes the ticked extras and the coupon, so the mail names them.
+    // A failed read never stops the pay link: the mail then goes out without those two rows.
     const mailRow = await asSystem(env, async (sql) => {
       const rows = await sql`
         select * from public.checkout_booking_for_email(${loaded.bookingId}::uuid)
       `;
       return (rows[0] ?? null) as Record<string, unknown> | null;
+    }).catch((err: unknown) => {
+      console.error("ops_pay_link_mail_rows_failed", loaded.bookingId, err instanceof Error ? err.message : String(err));
+      return null;
     });
     const fromLines = emailExtrasFromLines(mailRow?.lines, locale);
     const mailExtras =

@@ -9,12 +9,16 @@ const sendPayLink = vi.fn();
 const retrieve = vi.fn();
 let unpaid: Record<string, unknown> = {};
 let mailRow: Record<string, unknown> | null = null;
+let mailReadFails = false;
 
 function fakeSql() {
   return (strings: TemplateStringsArray) => {
     const text = strings.join("?");
     if (text.includes("phone_booking_unpaid_read")) return Promise.resolve([unpaid]);
-    if (text.includes("checkout_booking_for_email")) return Promise.resolve(mailRow ? [mailRow] : []);
+    if (text.includes("checkout_booking_for_email")) {
+      if (mailReadFails) return Promise.reject(new Error("permission denied for function checkout_booking_for_email"));
+      return Promise.resolve(mailRow ? [mailRow] : []);
+    }
     return Promise.resolve([]);
   };
 }
@@ -83,6 +87,7 @@ beforeEach(() => {
   retrieve.mockResolvedValue({ id: "cs_test_h1", status: "open" });
   unpaid = unpaidRow();
   mailRow = null;
+  mailReadFails = false;
 });
 
 describe("staffPayLink mail lines (A6)", () => {
@@ -120,6 +125,16 @@ describe("staffPayLink mail lines (A6)", () => {
     };
     await staffPayLink(env, "VT-26-0001", true);
     const link = sentLink();
+    expect(link.extras).toEqual([]);
+    expect(link.coupon).toBeNull();
+  });
+
+  it("still sends the pay link when the mail rows cannot be read", async () => {
+    mailReadFails = true;
+    const res = await staffPayLink(env, "VT-26-0001", true);
+    expect(res.ok && res.sent).toBe(true);
+    const link = sentLink();
+    expect(link.totalRappen).toBe(10500);
     expect(link.extras).toEqual([]);
     expect(link.coupon).toBeNull();
   });
