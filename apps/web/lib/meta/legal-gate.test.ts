@@ -71,10 +71,12 @@ function classNameOf(tag: string): string {
   return found![1]!;
 }
 
-function onlySlot(src: string, className: string, hook: string, label: string): void {
-  const pattern = `<div\\s+(?:className="${className}"\\s+data-meta-slot="${hook}"|data-meta-slot="${hook}"\\s+className="${className}")\\s*>\\s*<PendingSlot\\s+label="${label}"\\s*/>\\s*</div>`;
-  const matches = src.match(new RegExp(pattern, "g"));
-  expect(matches ?? [], hook).toHaveLength(1);
+/** Inner markup of the one Meta slot wrapper (the wrapper holds a single paragraph). */
+function slotBody(src: string, className: string, hook: string): string {
+  const pattern = `<div\\s+(?:className="${className}"\\s+data-meta-slot="${hook}"|data-meta-slot="${hook}"\\s+className="${className}")\\s*>([\\s\\S]*?)</div>`;
+  const found = src.match(new RegExp(pattern));
+  expect(found, hook).not.toBeNull();
+  return found![1]!.trim();
 }
 
 describe("meta legal gate", () => {
@@ -177,21 +179,20 @@ describe("meta legal gate", () => {
     expect(privacy).toContain('<PendingSlot label="Analytics region" />');
     expect(imprint).toContain('<PendingSlot label="Photography credit" />');
 
-    expect(cookies.match(/Meta cookie row/g) ?? []).toHaveLength(1);
+    expect(cookies).not.toContain('label="Meta cookie row"');
+    expect(privacy).not.toContain('label="Meta privacy line"');
     expect(cookies).toContain('className="vt-legal-blank--row"');
     expect(cookies).toContain('data-meta-slot="cookies"');
     expect(classNameOf(openTag(cookies, "cookies"))).toBe("vt-legal-blank--row");
+    expect(slotBody(cookies, "vt-legal-blank--row", "cookies")).toContain('"meta-row"');
 
     expect(privacy).toContain('className="vt-legal-blank"');
     expect(privacy).toContain('data-meta-slot="privacy"');
-    expect(privacy).toContain('<PendingSlot label="Meta privacy line" />');
     expect(classNameOf(openTag(privacy, "privacy"))).toBe("vt-legal-blank");
+    expect(slotBody(privacy, "vt-legal-blank", "privacy")).toContain('"meta-privacy-line"');
   });
 
-  it("no sentence", () => {
-    for (const label of ["Meta banner line", "Meta cookie row", "Meta privacy line"]) {
-      expect(label).not.toMatch(/[.!?]/);
-    }
+  it("owner texts, not agent sentences", () => {
     for (const rel of [
       "components/consent/CookieBanner.tsx",
       "app/[locale]/cookies/page.tsx",
@@ -202,7 +203,16 @@ describe("meta legal gate", () => {
         expect(src, rel).not.toContain(needle);
       }
     }
-    onlySlot(source("app/[locale]/cookies/page.tsx"), "vt-legal-blank--row", "cookies", "Meta cookie row");
-    onlySlot(source("app/[locale]/privacy/page.tsx"), "vt-legal-blank", "privacy", "Meta privacy line");
+    for (const [rel, cls, hook, key] of [
+      ["app/[locale]/cookies/page.tsx", "vt-legal-blank--row", "cookies", "meta-row"],
+      ["app/[locale]/privacy/page.tsx", "vt-legal-blank", "privacy", "meta-privacy-line"],
+    ] as const) {
+      const body = slotBody(source(rel), cls, hook);
+      // Only the t.rich call: no literal prose in the slot.
+      const flat = body.replace(/\s+/g, " ");
+      expect(flat).toMatch(new RegExp(`^<p> \\{t(?:Cookies)?\\.rich\\("${key}", \\{ `));
+      expect(flat.endsWith(", })} </p>")).toBe(true);
+      expect(flat.match(/\.rich\(/g)).toHaveLength(1);
+    }
   });
 });

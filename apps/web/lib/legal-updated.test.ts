@@ -45,11 +45,21 @@ describe("legal pages Last updated", () => {
       expect(mock).toContain('<script src="../vamos-legal-updated.js"></script>');
       expect(mock).toContain("{{ updatedLabel }}");
       expect(mock).not.toMatch(/\b\d{1,2} (January|February|March|April|May|June|July|August|September|October|November|December) 20\d\d\b/);
-      expect(read(`apps/web/app/[locale]/${page}/page.tsx`)).toMatch(/\n\s+shipDated\n/);
+      const flag = page === "privacy" ? "consentDated" : "shipDated";
+      expect(read(`apps/web/app/[locale]/${page}/page.tsx`)).toMatch(new RegExp(`\\n\\s+${flag}\\n`));
     });
   }
 
   it("next.config reads the same file", () => {
     expect(read("apps/web/next.config.ts")).toContain("../../app/vamos-legal-updated.js");
+  });
+
+  it("next.config reads CONSENT_UPDATED; cookies and privacy pages show it", () => {
+    const cfg = read("apps/web/next.config.ts");
+    expect(cfg).toContain("CONSENT_UPDATED_ISO");
+    expect(cfg).toContain("var CONSENT_UPDATED = ");
+    for (const page of ["cookies", "privacy"]) {
+      expect(read(`apps/web/app/[locale]/${page}/page.tsx`)).toMatch(/\n\s+consentDated\n/);
+    }
   });
 });

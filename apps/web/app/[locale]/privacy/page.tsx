@@ -60,7 +60,7 @@ export default async function PrivacyPage({
       kickerKey="common.legal"
       effectiveDateLabel="Privacy effective date"
       versionLabel="Privacy version"
-      shipDated
+      consentDated
     >
       {/* LegalPage PendingSlot: Privacy effective date */}
       {/* LegalPage PendingSlot: Privacy version */}
@@ -357,7 +357,11 @@ export default async function PrivacyPage({
         </h2>
         <p>{t("strictly-necessary-cookies-keep-a-booking-workin")}</p>
         <div className="vt-legal-blank" data-meta-slot="privacy">
-          <PendingSlot label="Meta privacy line" />
+          <p>
+            {t.rich("meta-privacy-line", {
+              b: (chunks) => <strong>{chunks}</strong>,
+            })}
+          </p>
         </div>
         <p>
           <Link href="/cookies">{t("read-the-cookie-policy")}</Link>

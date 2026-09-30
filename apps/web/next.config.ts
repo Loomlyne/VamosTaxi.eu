@@ -33,6 +33,14 @@ function legalUpdatedIso(): string {
   return match[1];
 }
 
+// D-31: consent date shown on /cookies and /privacy; a separate constant from LEGAL_UPDATED.
+function consentUpdatedIso(): string {
+  const src = readFileSync(join(process.cwd(), "../../app/vamos-legal-updated.js"), "utf8");
+  const match = /var CONSENT_UPDATED = '(\d{4}-\d{2}-\d{2})';/.exec(src);
+  if (!match?.[1]) throw new Error("app/vamos-legal-updated.js: CONSENT_UPDATED is not a YYYY-MM-DD date");
+  return match[1];
+}
+
 const nextConfig: NextConfig = {
   poweredByHeader: false,
 
@@ -43,6 +51,7 @@ const nextConfig: NextConfig = {
   // visible in a lock payload rather than indistinguishable from a real one.
   env: {
     LEGAL_UPDATED_ISO: legalUpdatedIso(),
+    CONSENT_UPDATED_ISO: consentUpdatedIso(),
     QUOTE_ENGINE_VERSION: resolveEngineVersion({
       cfPagesCommitSha: process.env.CF_PAGES_COMMIT_SHA,
       githubSha: process.env.GITHUB_SHA,
