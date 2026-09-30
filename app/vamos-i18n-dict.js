@@ -2118,6 +2118,25 @@
       'It does not change the price.': { de: 'Der Preis ändert sich dadurch nicht.', fr: 'Cela ne change pas le prix.', ar: 'لا يغيّر ذلك السعر.' },
       'Optional. It does not change the price.': { de: 'Optional. Der Preis ändert sich dadurch nicht.', fr: 'Facultatif. Cela ne change pas le prix.', ar: 'اختياري. لا يغيّر ذلك السعر.' },
       'Close booking': { de: 'Buchung schliessen', fr: 'Fermer la réservation', ar: 'إغلاق الحجز' },
+      /* 26.4.2 one-page booking sheet */
+      'Where': { de: 'Wo', fr: 'Où', ar: 'أين' },
+      'Who': { de: 'Wer', fr: 'Qui', ar: 'من' },
+      'Select a date': { de: 'Datum wählen', fr: 'Choisir une date', ar: 'اختر التاريخ' },
+      'Hour up': { de: 'Stunde später', fr: 'Heure suivante', ar: 'ساعة لاحقة' },
+      'Hour down': { de: 'Stunde früher', fr: 'Heure précédente', ar: 'ساعة سابقة' },
+      'Minute up': { de: 'Minuten später', fr: 'Minutes suivantes', ar: 'دقائق لاحقة' },
+      'Minute down': { de: 'Minuten früher', fr: 'Minutes précédentes', ar: 'دقائق سابقة' },
+      'Select a time': { de: 'Uhrzeit wählen', fr: 'Choisir une heure', ar: 'اختر الوقت' },
+      /* 26.4.2 laptop class cards */
+      'Choose your class': { de: 'Wählen Sie Ihre Klasse', fr: 'Choisissez votre classe', ar: 'اختر فئتك' },
+      'Fixed price, all inclusive. Pick a class to continue.': { de: 'Fixpreis, alles inklusive. Wählen Sie eine Klasse, um fortzufahren.', fr: 'Prix fixe, tout compris. Choisissez une classe pour continuer.', ar: 'سعر ثابت شامل كل شيء. اختر فئة للمتابعة.' },
+      'Price at checkout': { de: 'Preis an der Kasse', fr: 'Prix au paiement', ar: 'السعر عند الدفع' },
+      'No class fits this trip. Change the passengers or the bags.': { de: 'Keine Klasse passt zu dieser Fahrt. Ändern Sie die Passagiere oder das Gepäck.', fr: 'Aucune classe ne convient à ce trajet. Modifiez les passagers ou les bagages.', ar: 'لا توجد فئة تناسب هذه الرحلة. غيّر عدد الركاب أو الحقائب.' },
+      'Prices are busy for a moment. Pick a class and you see the price at checkout.': { de: 'Die Preise sind kurz nicht verfügbar. Wählen Sie eine Klasse, den Preis sehen Sie an der Kasse.', fr: 'Les prix sont momentanément indisponibles. Choisissez une classe, vous verrez le prix au paiement.', ar: 'الأسعار غير متاحة للحظة. اختر فئة وسترى السعر عند الدفع.' },
+      'We could not load prices just now. Pick a class and you see the price at checkout.': { de: 'Die Preise konnten gerade nicht geladen werden. Wählen Sie eine Klasse, den Preis sehen Sie an der Kasse.', fr: 'Impossible de charger les prix pour le moment. Choisissez une classe, vous verrez le prix au paiement.', ar: 'تعذّر تحميل الأسعار الآن. اختر فئة وسترى السعر عند الدفع.' },
+      'Fill in the trip to see prices': { de: 'Fahrt ausfüllen, um Preise zu sehen', fr: 'Renseignez le trajet pour voir les prix', ar: 'أكمل تفاصيل الرحلة لعرض الأسعار' },
+      'Add the missing details to see prices:': { de: 'Ergänzen Sie die fehlenden Angaben, um Preise zu sehen:', fr: 'Ajoutez les informations manquantes pour voir les prix :', ar: 'أضف التفاصيل الناقصة لعرض الأسعار:' },
+      'Loading prices': { de: 'Preise werden geladen', fr: 'Chargement des prix', ar: 'جارٍ تحميل الأسعار' },
       'Previous step': { de: 'Vorheriger Schritt', fr: 'Étape précédente', ar: 'الخطوة السابقة' },
       'Next': { de: 'Weiter', fr: 'Suivant', ar: 'التالي' },
       'Time': { de: 'Uhrzeit', fr: 'Heure', ar: 'الوقت' },
@@ -2171,6 +2190,15 @@
       'Save failed. Try again.': { de: 'Speichern fehlgeschlagen. Versuchen Sie es erneut.', fr: 'Échec de l’enregistrement. Réessayez.', ar: 'فشل الحفظ. أعد المحاولة.' },
     },
   };
+
+  /* 26.4.2 laptop class cards: figures the code builds. */
+  (function () {
+    var P = DICT.patterns;
+    P.push({ re: /^Up to (\d+) passengers$/, de: 'Bis zu $1 Passagiere', fr: 'Jusqu’à $1 passagers', ar: 'حتى $1 ركاب' });
+    P.push({ re: /^Up to (\d+) bags$/, de: 'Bis zu $1 Gepäckstücke', fr: 'Jusqu’à $1 bagages', ar: 'حتى $1 حقائب' });
+    P.push({ re: /^Seats up to (\d+)$/, de: 'Plätze bis $1', fr: 'Jusqu’à $1 places', ar: 'مقاعد حتى $1' });
+    P.push({ re: /^Bags up to (\d+)$/, de: 'Gepäck bis $1', fr: 'Jusqu’à $1 bagages', ar: 'حقائب حتى $1' });
+  })();
 
   /* 26.3-G2 — account surfaces: values the code builds or the API supplies.
      Generated from the month and status tables so the entries stay plain

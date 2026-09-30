@@ -38,7 +38,13 @@ test.beforeAll(async ({}, testInfo) => {
     cwd: WEB_ROOT,
     stdio: "ignore",
     detached: true,
-    env: { ...process.env, NODE_ENV: "development", TEST_DIST_DIR: ".next-checkout-pay-19-visual" },
+    env: {
+      ...process.env,
+      NODE_ENV: "development",
+      TEST_DIST_DIR: ".next-checkout-pay-19-visual",
+      // Cloudflare's public always-pass test key, so the page renders its challenge widget.
+      TURNSTILE_SITE_KEY: "1x00000000000000000000AA",
+    },
   });
   await waitForNextServer(baseURL, 180_000);
 });
@@ -172,6 +178,11 @@ async function setup(page: Page, opts: { resume?: Record<string, unknown> | null
     const json = fx.quoteAnswer?.(body) ?? quoteBody(Number(body.pax), Number(body.bags));
     await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(json) });
   });
+  // A flight edit first tries the silent re-sign; here it always falls back to the full re-quote,
+  // so the answer does not depend on a cold dev compile of the reprice route.
+  await page.route("**/api/quote/reprice", (route) =>
+    route.fulfill({ status: 409, contentType: "application/json", body: JSON.stringify({ ok: false, error: "quote_expired" }) }),
+  );
   await page.route("**/api/checkout/extras", (route) => {
     fx.extrasCalls += 1;
     return route.fulfill({
@@ -597,3 +608,42 @@ for (const lang of ["de", "fr", "ar"] as const) {
     }
   });
 }
+
+// ── 8. Solving the flight-edit challenge re-signs once with the token (26.4.2) ───────────
+test("a solved challenge after a flight edit re-quotes once with the token and clears the challenge @checkout", async ({ page }) => {
+  // A stand-in Turnstile: the page renders the widget, the test solves it.
+  await page.addInitScript(() => {
+    const w = window as unknown as { turnstile: unknown; __solve?: (t: string) => void };
+    w.turnstile = {
+      render: (_el: HTMLElement, o: { callback: (t: string) => void }) => {
+        w.__solve = o.callback;
+        return "w1";
+      },
+      remove: () => {},
+      reset: () => {},
+    };
+  });
+  const fx = await setup(page);
+  fx.quoteAnswer = (b) => {
+    const leg = (b.legs as { flight_no: string | null }[])[0];
+    if (leg?.flight_no === "LX999" && !b.turnstile_token) {
+      return { ok: false, error: "turnstile_required", i18n_key: "quote.error.turnstile_required" };
+    }
+    return quoteBody(Number(b.pax), Number(b.bags));
+  };
+  await open(page, `${TRIP}&class=economy`);
+  await expect(total(page)).toBeVisible();
+  await page.locator("[data-co-s2-flight] input").fill("LX 999");
+  await page.locator('[data-co-contact] input[autocomplete="given-name"]').focus();
+  await expect(page.locator("[data-co-page-challenge]")).toBeVisible({ timeout: 15_000 });
+  await expect.poll(() => page.evaluate(() => typeof (window as unknown as { __solve?: unknown }).__solve)).toBe("function");
+  const before = fx.quoteBodies.length;
+  await page.evaluate(() => (window as unknown as { __solve: (t: string) => void }).__solve("tok-solved"));
+  await expect(page.locator("[data-co-page-challenge]")).toHaveCount(0, { timeout: 15_000 });
+  const after = fx.quoteBodies.slice(before);
+  expect(after).toHaveLength(1);
+  expect(after[0]).toMatchObject({ turnstile_token: "tok-solved" });
+  expect((after[0]!.legs as { flight_no: string | null }[])[0]?.flight_no).toBe("LX999");
+  await expect(total(page)).not.toContainText(/Updating price/i);
+  await expect(card(page, "economy")).toHaveAttribute("data-selected", "true");
+});
