@@ -55,10 +55,10 @@ Owner's order: booking, payments, account, Meta first.
 | 3 | 26.2 audit, hand-over 1 | **Live 15:09** (owner said Ship). Next from 26.2: booking-path rows, one owner question per confirmed bug; gate scripts last | Owner UAT, 13 dashboard steps in `26.2-HANDOVER-1.md` |
 | 4 | SEO follow-up | **Live 15:20**, gateway 15:22. Live read: dashboard robots.txt is `Disallow: /`, dashboard sign-in opens; a stored Arabic language without a cookie lands on `/ar` on the first view | |
 | 5 | Class cards: layout E, small photo files | **Live 16:12** (owner said Ship). Live read at 1440: photo on the side, small card; `?w=640` answers a 138 KB WebP in about 1 second, original 2.77 MB | Owner: look, then one 4242 (checkout class step changed) |
-| 6 | 27 consent record | Plans 01 to 12 built (`84ac72ec`), owner signed design and plan; plan 13 (sign-up tick box) waits for 26.5's account record on main | Then hand-over. `CONSENT_POLICY_VERSION` follows the ship day |
+| 6 | 27 consent record | **Handed over** `2e691add` (main f37cc0b4 merged). Its gates all pass; one Worker e2e case is red because of a harness gap (QUOTE_LOCK_SECRET unset in the e2e config since Phase 20 B1), not product. `CONSENT_POLICY_VERSION` = 2026-10-01 | Control check; apply `20261002100000` and `20261002110000` BEFORE the deploy; owner's Ship |
 | 7 | 28 pixel page view, 29 purchase event | Not started. Meta wording is the owner's (`.planning/decisions/2026-09-30-meta-wording.md`) | After 27. Two switches in Meta Events Manager first |
 | 8 | Phase 20 batch B | Waits | After 26.5. Includes refunds by hand (F11): signed plan first |
-| 9 | Phase 20 batch C | Waits | After 27. Sign-in confirm screen (F12), dashboard files off the public address (F16), Arabic font from our own host (F17) |
+| 9 | Phase 20 batch C part 1 (Arabic font from our host; four hardening fixes approved 2026-10-01; last-admin guard `20261005150000`) | **Handed over** `dcfcc64c` | Control check, owner's Ship. Part 2 (F12 confirm screen, F16) after 27 |
 | 10 | Phone home design | **Live 15:20** (owner signed and said Ship). Live read at 375: hero fills the screen, Trustpilot row inside the booking card. Full-page menu and Safari bar colour: the owner's iPhone check | Owner's iPhone |
 | 10a | Phase 20 batch B1 (return-route limit, F8, lock-secret 503, ticket reply refused, staff e-mail check, reviews column grants `20261005120000`) | Handed over `75b0aba0`; touches checkout files | Owner's 26.5 test first, then his Ship, then a 4242 payment |
 | 10b | Site speed A | **Live 15:28** (owner said Ship). Live read: scripts and page parts 5 minutes, engine and photos one year, reviews 5 minutes with 5 rows; checkout, account, manage booking, sign-in and the per-visitor APIs stay `private, no-store`. A deploy now reaches a returning visitor within 5 minutes. B (native scrolling) is built on `fix/native-scroll`, hands over after class cards and Phase 27 | |
@@ -76,6 +76,16 @@ Owner's order: booking, payments, account, Meta first.
 27 to 29 without asking, when every check of its own passes, and tells him right after.
 Everything else, and everything from 2026-10-01, needs his Ship.
 Full text: `.planning/decisions/2026-09-30-priorities-and-ship-mode.md`.
+
+## Queue for 2026-10-01, in order (each: control check in a clean clone, then the owner's Ship)
+
+| # | Job | Database | After the ship |
+|---|---|---|---|
+| 1 | Refunds by hand (20-10, `117ff88b`) | `20261005140000`, back to back with the deploy | Owner: booking, cancel, refund by hand |
+| 2 | Extras part A (26.2, after `f9b7c53e`) | `20261007110000` before the deploy | Owner: one 4242 (checkout extras list) |
+| 3 | Security batch C part 1 (`dcfcc64c`) | `20261005150000` | Owner: /ar on the phone; last-admin refusal |
+| 4 | Phase 27 consent record (`2e691add`) | `20261002100000`, `20261002110000` before the deploy | Owner: banner and sign-up tick box; then 28 and 29 |
+| 5 | Booking polish 2 (26.5) when handed over | none | |
 
 ## Sessions and folders on this Mac
 
