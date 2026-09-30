@@ -2135,6 +2135,7 @@
       /* 26.4.2 laptop class cards */
       'Choose your class': { de: 'Wählen Sie Ihre Klasse', fr: 'Choisissez votre classe', ar: 'اختر فئتك' },
       'Fixed price, all inclusive. Pick a class to continue.': { de: 'Fixpreis, alles inklusive. Wählen Sie eine Klasse, um fortzufahren.', fr: 'Prix fixe, tout compris. Choisissez une classe pour continuer.', ar: 'سعر ثابت شامل كل شيء. اختر فئة للمتابعة.' },
+      'No road route': { de: 'Keine Strassenroute', fr: "Pas d'itinéraire routier", ar: 'لا يوجد طريق بري' },
       'Price at checkout': { de: 'Preis an der Kasse', fr: 'Prix au paiement', ar: 'السعر عند الدفع' },
       'No class fits this trip. Change the passengers or the bags.': { de: 'Keine Klasse passt zu dieser Fahrt. Ändern Sie die Passagiere oder das Gepäck.', fr: 'Aucune classe ne convient à ce trajet. Modifiez les passagers ou les bagages.', ar: 'لا توجد فئة تناسب هذه الرحلة. غيّر عدد الركاب أو الحقائب.' },
       'Prices are busy for a moment. Pick a class and you see the price at checkout.': { de: 'Die Preise sind kurz nicht verfügbar. Wählen Sie eine Klasse, den Preis sehen Sie an der Kasse.', fr: 'Les prix sont momentanément indisponibles. Choisissez une classe, vous verrez le prix au paiement.', ar: 'الأسعار غير متاحة للحظة. اختر فئة وسترى السعر عند الدفع.' },

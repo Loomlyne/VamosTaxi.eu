@@ -50,12 +50,13 @@ export function OrderSummary() {
   const className = quote?.classes.find((c) => c.slug === selectedClass)?.name ?? null;
   const when = formatTripWhen(trip.when, locale);
   const km = flow.phase.kind === "ready" ? kmFigure(quote?.distanceM) : null;
+  const noRoad = flow.phase.kind === "ready" && quote?.noRoad === true;
   const meta: RouteMetaItem[] = [
-    ...(km
+    ...(km || noRoad
       ? [
           {
             icon: "navigation" as const,
-            label: <TripDistance km={km} className="vt-co__km" />,
+            label: <TripDistance km={km} noRoad={noRoad} className="vt-co__km" />,
           },
         ]
       : []),

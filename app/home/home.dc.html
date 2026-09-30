@@ -951,6 +951,12 @@ function classFromQuote(c) {
 function classOnFleet(offer, slug) {
   return (offer || []).filter((x) => x.id === slug)[0] || null;
 }
+/** True when any leg of the answer has no road line (straight-line fare): the line then says "No road route", never a partial sum. */
+function ccRouteNoRoad(route) {
+  const legs = route && Array.isArray(route.legs) ? route.legs : [];
+  for (let i = 0; i < legs.length; i++) if (legs[i] && legs[i].road === false) return true;
+  return false;
+}
 /** "148.2": the server's quote distance (route.legs[].distance_m, the metres the fare uses) as km with one decimal.
     Display only. '' when the answer has no road distance; nothing is measured in the browser. */
 function ccRouteKm(route) {
@@ -2441,7 +2447,7 @@ class Component extends DCLogic {
         }).filter((c) => c.block !== 'gone');
         if (!cards.length) { this.setState({ cc: { status: 'none', cards: [], msg: 'No class fits this trip. Change the passengers or the bags.' } }); return; }
         const anyOk = cards.some((c) => !c.block);
-        this.setState({ cc: { status: anyOk ? 'ok' : 'none', cards: cards, km: ccRouteKm(j.route), msg: anyOk ? '' : 'No class fits this trip. Change the passengers or the bags.' } }, () => this.ccReveal());
+        this.setState({ cc: { status: anyOk ? 'ok' : 'none', cards: cards, km: ccRouteKm(j.route), noRoad: ccRouteNoRoad(j.route), msg: anyOk ? '' : 'No class fits this trip. Change the passengers or the bags.' } }, () => this.ccReveal());
       })
       .catch(() => { if (seq === this._ccSeq && sig === this._ccSig) this.ccFail('error'); });
   }
@@ -2576,7 +2582,7 @@ class Component extends DCLogic {
       n0: 0, n1: 1, n2: 2, n8: 8, n12: 12, n13: 13, n14: 14, n15: 15, n16: 16, n18: 18, n20: 20, n24: 24, n30: 30, n34: 34,
       yes: true, no: false,
       dir: s.lang === 'ar' ? 'rtl' : 'ltr', lang: s.lang, cur: s.cur, pickLang: this.pickLang, pickCur: this.pickCur,
-      ccShow: !s.narrow && (s.cc.status !== 'idle' || s.ccCat === null || (s.ccCat && s.ccCat.length > 0)), ccWarnShow: !s.narrow && !!s.ccWarn && !trip.ok, ccMissing: [trip.errs.pickup, trip.errs.dest, trip.errs.flight, trip.errs.when].filter(Boolean).map((m) => ({ text: m })), ccKmShow: s.cc.status === 'ok' && !!s.cc.km, ccKm: s.cc.km ? s.cc.km + ' km' : '', ccState: s.cc.status, ccBusy: s.cc.status === 'loading' ? 'true' : 'false', ccMsg: s.cc.msg || '', ccCards: this.ccCards(),
+      ccShow: !s.narrow && (s.cc.status !== 'idle' || s.ccCat === null || (s.ccCat && s.ccCat.length > 0)), ccWarnShow: !s.narrow && !!s.ccWarn && !trip.ok, ccMissing: [trip.errs.pickup, trip.errs.dest, trip.errs.flight, trip.errs.when].filter(Boolean).map((m) => ({ text: m })), ccKmShow: s.cc.status === 'ok' && (!!s.cc.noRoad || !!s.cc.km), ccKm: s.cc.noRoad ? 'No road route' : (s.cc.km ? s.cc.km + ' km' : ''), ccState: s.cc.status, ccBusy: s.cc.status === 'loading' ? 'true' : 'false', ccMsg: s.cc.msg || '', ccCards: this.ccCards(),
       boxRef: this.boxRef, airAttr: air ? '1' : '0', fltAttr: (showFlightField || showOpener) ? '1' : '0',
       pickupText: s.pickupText, dropText: s.dropText,
       editPickupA: this.editRoute('pickup', 'a'), editDropA: this.editRoute('dropoff', 'a'),

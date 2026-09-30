@@ -67,6 +67,11 @@ export type QuoteOk = {
    * road distance (older answer, or a leg measured without a road).
    */
   distanceM: number | null;
+  /**
+   * True when any leg has no road line (`route.legs[].road === false`): the fare is a
+   * straight-line one, so the page writes "No road route" instead of a figure. Never a partial sum.
+   */
+  noRoad: boolean;
 };
 
 export type QuoteRefusal = {
@@ -147,6 +152,12 @@ function classView(raw: unknown): ClassView | null {
   };
 }
 
+/** True when the answer has legs and any one of them has no road line. */
+function routeHasNoRoad(raw: unknown): boolean {
+  const legs = asRecord(raw).legs;
+  return Array.isArray(legs) && legs.some((item) => asRecord(item).road === false);
+}
+
 /** Sum of the server's road metres; null when a leg is missing, zero or not a road. */
 function routeDistanceM(raw: unknown): number | null {
   const legs = asRecord(raw).legs;
@@ -182,6 +193,7 @@ export function parseQuoteJson(status: number, json: unknown): QuoteResult {
       classes,
       noneFit: classes.length === 0 || classes.every((c) => !c.eligible),
       distanceM: routeDistanceM(body.route),
+      noRoad: routeHasNoRoad(body.route),
     };
   }
   const code = typeof body.error === "string" ? body.error : status >= 500 ? "unavailable" : "unknown";

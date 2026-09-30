@@ -416,6 +416,7 @@
     "couponNotFound": "لا توجد قسيمة بهذا الرمز.",
     "couponAppliedOk": "تم تطبيق القسيمة.",
     "distanceKm": "{km} كم",
+    "noRoadRoute": "لا يوجد طريق بري",
     "download-voucher": "تنزيل القسيمة",
     "driverWaitingAt": "سائقك في انتظارك في {location}",
     "enter-a-first-name": "أدخل الاسم الأول",

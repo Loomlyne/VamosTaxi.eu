@@ -138,4 +138,26 @@ describe("trip distance (booking polish)", () => {
     expect(kmFigure(null)).toBeNull();
     expect(kmFigure(0)).toBeNull();
   });
+
+  it("no road on any leg: the words, never a partial sum", () => {
+    const one = ok({ legs: [{ leg_seq: 1, distance_m: 9_000, road: false }] });
+    expect(one.kind === "ok" && one.noRoad).toBe(true);
+    const mixed = ok({
+      legs: [
+        { leg_seq: 1, distance_m: 100_000, road: true },
+        { leg_seq: 2, distance_m: 9_000, road: false },
+      ],
+    });
+    expect(mixed.kind === "ok" && mixed.noRoad).toBe(true);
+    expect(mixed.kind === "ok" && mixed.distanceM).toBeNull();
+  });
+
+  it("road legs or no route at all are not a no-road trip", () => {
+    const road = ok({ legs: [{ leg_seq: 1, distance_m: 148_230, road: true }] });
+    expect(road.kind === "ok" && road.noRoad).toBe(false);
+    const legacy = ok({ legs: [{ leg_seq: 1, distance_m: 148_230 }] });
+    expect(legacy.kind === "ok" && legacy.noRoad).toBe(false);
+    const none = ok(undefined);
+    expect(none.kind === "ok" && none.noRoad).toBe(false);
+  });
 });

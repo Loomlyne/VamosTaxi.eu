@@ -313,6 +313,7 @@ export function CheckoutPage({
               trip={trip}
               locale={locale}
               distanceKm={phase.kind === "ready" ? kmFigure(quote?.distanceM) : null}
+              noRoad={phase.kind === "ready" && quote?.noRoad === true}
               onBack={() => router.push("/")}
               onEdit={() => setEditorOpen(true)}
               editRef={editRef}

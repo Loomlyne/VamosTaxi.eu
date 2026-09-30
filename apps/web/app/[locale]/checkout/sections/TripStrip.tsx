@@ -15,6 +15,7 @@ export function TripStrip({
   trip,
   locale,
   distanceKm,
+  noRoad = false,
   onBack,
   onEdit,
   editRef,
@@ -23,6 +24,8 @@ export function TripStrip({
   locale: string;
   /** The server's quote distance, already written as "18.4"; null while there is none. */
   distanceKm?: string | null;
+  /** Any leg has no road line: the words "No road route" stand where the figure would. */
+  noRoad?: boolean;
   onBack: () => void;
   onEdit: () => void;
   editRef: Ref<HTMLButtonElement>;
@@ -45,9 +48,9 @@ export function TripStrip({
           <span className="vt-co__strip-place" dir="auto">{trip.to}</span>
         </p>
         <p className="vt-co__strip-facts" data-co-facts>
-          {distanceKm ? (
+          {distanceKm || noRoad ? (
             <>
-              <TripDistance km={distanceKm} className="vt-co__strip-km" />
+              <TripDistance km={distanceKm} noRoad={noRoad} className="vt-co__strip-km" />
               {" · "}
             </>
           ) : null}
