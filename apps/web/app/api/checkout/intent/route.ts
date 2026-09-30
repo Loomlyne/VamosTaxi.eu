@@ -41,6 +41,7 @@ import {
 } from "@/lib/checkout/intent-limits";
 import { gateAccountForRequest } from "@/lib/checkout/account-gate";
 import { truncateClientIp, cfConnectingIp } from "@/lib/consent/ip";
+import { lockSecretMissingResponse, lockSecretPresent } from "@/lib/quote/lock-secret";
 
 export const dynamic = "force-dynamic";
 
@@ -70,6 +71,7 @@ async function postIntent(request: Request) {
   const blocked = csrfForbidden(request);
   if (blocked) return blocked;
   const { env } = getCloudflareContext();
+  if (!lockSecretPresent(env.QUOTE_LOCK_SECRET, "/api/checkout/intent")) return lockSecretMissingResponse();
 
   // D-20 (a): 8 Pay presses per minute per IP, before anything is read or checked.
   if (!(await intentIpAllowed(env.INTENT_RATE_LIMITER, cfConnectingIp(request.headers) ?? "unknown"))) {

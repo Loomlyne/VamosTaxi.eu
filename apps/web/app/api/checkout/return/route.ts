@@ -8,6 +8,9 @@ import {
   settlePaidReturn,
 } from "@/lib/checkout/return-settle";
 import { localePath } from "@/lib/checkout/steps";
+import { checkWriteRateLimit } from "@/lib/abuse/rate-limit";
+import { cfConnectingIp } from "@/lib/consent/ip";
+import { log } from "@/lib/logger";
 
 const LOCALES: readonly string[] = Object.freeze(["en", "de", "fr", "ar"]);
 
@@ -37,6 +40,17 @@ export async function GET(request: Request): Promise<Response> {
   }
   if (!env) return redirect(`${localePath(locale, "/checkout")}?pay=unknown`);
   const bound = env;
+  // F6: one Stripe read per valid-looking id is a free lookup for anyone; limit per IP (INTENT_RATE_LIMITER,
+  // 8 per 60 s, key "return:<ip>"). Stripe redirects once per payment. Refusal is the same soft redirect.
+  const ip = cfConnectingIp(request.headers) ?? "unknown";
+  const allowRead = async (): Promise<boolean> => {
+    const limiter = bound.INTENT_RATE_LIMITER;
+    if (!limiter) {
+      log("error", "checkout_return", { requestId: "return", route: "/api/checkout/return", locale: null }, { reason: "return-limiter-missing" });
+      return true;
+    }
+    return (await checkWriteRateLimit({ limiter, kind: "return", ip })).ok;
+  };
   try {
     return redirect(
       await returnRedirectTarget(
@@ -44,6 +58,7 @@ export async function GET(request: Request): Promise<Response> {
           readSession: (id) => readReturnSession(bound, id),
           settle: (session) => settlePaidReturn(bound, session),
           lookupReference: (id) => referenceForCheckoutSession(bound, id),
+          allowRead,
         },
         { sessionId, ref, locale },
       ),

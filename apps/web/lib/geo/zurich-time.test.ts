@@ -33,6 +33,19 @@ describe("zurichLocalToUtcMs", () => {
     expect(zurichLocalToUtcMs("tomorrow")).toBeNull();
     expect(zurichLocalToUtcMs("")).toBeNull();
   });
+
+  it("refuses a day the month does not have instead of rolling into the next month", () => {
+    expect(zurichLocalToUtcMs("2026-02-31T10:00")).toBeNull();
+    expect(zurichLocalToUtcMs("2026-04-31T10:00")).toBeNull();
+    expect(zurichLocalToUtcMs("2026-02-29T10:00")).toBeNull();
+  });
+
+  it("still reads the last real day of a month, including 29 February in a leap year", () => {
+    expect(iso("2026-02-28T10:00")).toBe("2026-02-28T09:00:00.000Z");
+    expect(iso("2028-02-29T10:00")).toBe("2028-02-29T09:00:00.000Z");
+    expect(iso("2026-04-30T10:00")).toBe("2026-04-30T08:00:00.000Z");
+    expect(iso("2026-12-31T10:00")).toBe("2026-12-31T09:00:00.000Z");
+  });
 });
 
 function lock(scheduledLocal: string): QuoteLockPayload {
@@ -80,6 +93,10 @@ describe("checkoutLegsFromLock scheduled_at (D-36)", () => {
     expect(gap?.scheduled_at).toBe("2027-03-28T01:30:00.000Z");
     const [overlap] = checkoutLegsFromLock(lock("2026-10-25T02:30"), "cls");
     expect(overlap?.scheduled_at).toBe("2026-10-25T01:30:00.000Z");
+  });
+
+  it("refuses a lock whose day does not exist, so no booking is saved for another date", () => {
+    expect(() => checkoutLegsFromLock(lock("2026-02-31T10:00"), "cls")).toThrow(InvalidScheduleError);
   });
 
   it("refuses a lock whose wall clock cannot be read, as invalid_request", () => {

@@ -637,6 +637,8 @@
     "editorCancel": "إلغاء",
     "fixedPrice": "سعر ثابت",
     "seatsUpTo": "يتّسع حتى {n}",
+    "classSeats": "{n} مقاعد",
+    "classBags": "{n} حقائب",
     "takesUpToBags": "يتّسع حتى {n, plural, one {# حقيبة} two {حقيبتين} few {# حقائب} many {# حقيبة} other {# حقيبة}}",
     "sectionClass": "اختر فئتك",
     "gettingPrices": "نجلب أسعارك الثابتة",
