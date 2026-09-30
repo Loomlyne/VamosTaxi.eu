@@ -1,16 +1,22 @@
 // apps/web/app/[locale]/(ops)/api/staff/bookings/[id]/refund/route.ts
 //
-// POST /api/staff/bookings/:id/refund — Stripe-first refund, admin only (26.1-17).
-//   {}                 full remaining (today's behaviour)
-//   { percent: 0-100 } D-24: the admin's percentage of captured (integer)
-//   { postTrip: true } D-25: accept a post-trip request (full remaining, reason post_trip)
-//   { rappen }         09-05: an exact amount, capped at the remaining capture
+// POST /api/staff/bookings/:id/refund — the admin's refund, by hand (26.1-17, 20-10). Admin only.
+//   {}                          everything left on every payment
+//   { percent: 0-100 }          the percent of what was paid on each chosen payment (integer)
+//   { amountRappen }            an exact amount, one payment only (legacy name: rappen); never with percent
+//   { paymentId }               only that payment (with percent or amountRappen, or alone = all that is left)
+//   { postTrip: true }          D-25: accept a post-trip request (all that is left, reason post_trip)
+//   { retry: true }             resume the open parts only; 409 nothing-to-retry when none
+// A booking cancelled more than 24 h ahead takes 100 % only (409 full-refund-only otherwise).
+// Some parts failed: 502 refund-partial | stripe-failed with refundedRappen, dueRappen, parts.
+// The "Refund issued" mail goes once, when the batch is complete.
+// GET returns the payments, open parts and the due amount for the picker and after a reload.
 // Decline / reject live on ./refund-decision. Dual-mounted at app/api/staff/bookings/[id]/refund.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { sendRefund, refundMailRecipients } from "@vamos/emails/confirmation";
 import type { EmailLocale } from "@vamos/emails/confirmation";
-import { refundBooking } from "@/lib/ops/refund";
+import { loadRefundPicker, refundBooking } from "@/lib/ops/refund";
 import { parseRefundBody, type RefundRequest } from "@/lib/ops/refund-map";
 import { jsonErr, jsonOk, withAdmin } from "@/lib/ops/staff-json";
 
@@ -32,7 +38,9 @@ function failStatus(code: string): number {
     code === "not-paid" ||
     code === "already-refunded" ||
     code === "not-post-trip" ||
-    code === "refund-exceeds-remaining"
+    code === "refund-exceeds-remaining" ||
+    code === "nothing-to-retry" ||
+    code === "full-refund-only"
   ) {
     return 409;
   }
@@ -60,7 +68,16 @@ export const POST = withAdmin(async (claims, request) => {
   const requested: RefundRequest = parsed.value;
   const { env } = getCloudflareContext();
   const result = await refundBooking(env, claims, id, requested);
-  if (!result.ok) return jsonErr(result.code, failStatus(result.code));
+  if (!result.ok) {
+    if ("parts" in result) {
+      return jsonErr(result.code, 502, {
+        refundedRappen: result.refundedRappen,
+        dueRappen: result.dueRappen,
+        parts: result.parts,
+      });
+    }
+    return jsonErr(result.code, failStatus(result.code));
+  }
 
   const recipients = refundMailRecipients(result.contactEmail, result.payerEmail);
   for (const to of recipients) {
@@ -79,7 +96,20 @@ export const POST = withAdmin(async (claims, request) => {
   return jsonOk({
     id,
     bookingId: result.bookingId,
-    status: "refunded",
+    status: result.refundStatus,
     refundId: result.refundId,
+    refundedRappen: result.refundedRappen,
+    dueRappen: result.dueRappen,
+    parts: result.parts,
   });
+});
+
+export const GET = withAdmin(async (claims, request) => {
+  const id = bookingKey(request);
+  if (!id) return jsonErr("not-found", 404);
+  const { env } = getCloudflareContext();
+  const picker = await loadRefundPicker(env, claims, id);
+  if (!picker.ok) return jsonErr(picker.code, failStatus(picker.code));
+  const { ok: _ok, ...data } = picker;
+  return jsonOk({ id, ...data });
 });
