@@ -14,6 +14,7 @@
 
 import type { Metadata } from "next";
 import { routing } from "@/i18n/routing";
+import { isSeoLang, seoAddress, seoPageFor } from "@/lib/seo/head";
 
 /** D-33: the published production domain. Staging serves the same alternates under its
  *  own host with `X-Robots-Tag: noindex` (middleware.ts) — the canonical URLs declared
@@ -65,8 +66,10 @@ export const PUBLIC_ROUTES = [
 export type PublicRoute = (typeof PUBLIC_ROUTES)[number];
 
 function localizedUrl(locale: string, path: PublicRoute): string {
-  // Languages are the on-page switcher, not /de /fr /ar URL prefixes.
-  void locale;
+  // Option B (2026-09-30): the nine indexable pages live at /de /fr /ar. Every other
+  // route keeps its one unprefixed address.
+  const page = seoPageFor(path);
+  if (page?.indexable && isSeoLang(locale)) return seoAddress(path, locale);
   const suffix = path === "/" ? "" : path;
   return `${SITE_URL}${suffix}` || `${SITE_URL}/`;
 }

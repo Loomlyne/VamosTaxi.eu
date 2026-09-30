@@ -19,6 +19,7 @@ import { publicDashboardPath } from "./lib/ops/paths";
 import { passkeyGateInputs, vamosRoleFromAccessToken, type StaffAuthClient } from "./lib/ops/session";
 import { effectiveNextLevel, staffGateDecision } from "./lib/ops/staff-gate";
 import { MANAGE_COOKIE_NAME } from "./lib/checkout/manage-token";
+import { applySeoToHtml, iconHeadTags, isSeoLang, seoPageFor, seoRoute, type SeoLang } from "./lib/seo/head";
 import { applySecurityHeaders } from "./lib/security/headers";
 import {
   createSupabaseMiddlewareClient,
@@ -131,6 +132,26 @@ async function serveDcHtml(request: NextRequest, mock: string): Promise<NextResp
   return new NextResponse(html, { status: res.status, headers });
 }
 
+/** Address decision for a mock page with a row in lib/seo/pages.json. */
+function seoMockRoute(request: NextRequest, pathname: string) {
+  const { localePrefix, path } = localeStrippedPath(pathname);
+  const cookie = request.cookies.get(LOCALE_COOKIE)?.value;
+  const cookieLang: SeoLang = isSeoLang(cookie) ? cookie : "en";
+  return seoRoute(path, isSeoLang(localePrefix) ? localePrefix : null, cookieLang);
+}
+
+/** Put the table's head into the mock HTML the server sends (first paint, before any script). */
+async function withSeoHead(
+  res: NextResponse,
+  seo: ReturnType<typeof seoMockRoute>,
+): Promise<NextResponse> {
+  if (seo?.kind !== "serve" || res.status !== 200) return res;
+  const html = applySeoToHtml(await res.text(), seo.page, seo.lang, seo.prefixed);
+  const headers = new Headers(res.headers);
+  headers.delete("content-length");
+  return new NextResponse(html, { status: res.status, headers });
+}
+
 async function serveOpsDc(
   request: NextRequest,
   cookieSource: NextResponse,
@@ -142,6 +163,7 @@ async function serveOpsDc(
   let html = await res.text();
   const boot = [
     html.includes('href="/app/ops/"') ? "" : '<base href="/app/ops/">',
+    iconHeadTags(),
     injectAuth ? '<script>try{localStorage.setItem("vamosOpsAuth","1")}catch(e){}</script>' : "",
   ].join("");
   html = html.replace(/<head([^>]*)>/i, `<head$1>${boot}`);
@@ -542,7 +564,9 @@ export default async function middleware(request: NextRequest) {
   // Languages live on the page switcher, not /de /fr /ar /en.
   if (!isDashboardHost(request)) {
     const { localePrefix, path } = localeStrippedPath(pathname);
-    if (localePrefix) {
+    // Option B (owner, 2026-09-30): /de /fr /ar are real addresses on the indexable pages.
+    const seoAddressable = localePrefix !== "en" && Boolean(seoPageFor(path)?.indexable);
+    if (localePrefix && !seoAddressable) {
       const url = request.nextUrl.clone();
       url.pathname = path;
       const res = NextResponse.redirect(url, 308);
@@ -617,10 +641,16 @@ export default async function middleware(request: NextRequest) {
     }
     const mock = dcMockPath(pathname);
     if (mock) {
+      const seo = seoMockRoute(request, pathname);
+      if (seo?.kind === "redirect") {
+        const url = request.nextUrl.clone();
+        url.pathname = seo.to;
+        return applyPublicCacheHeaders(request, applyStagingNoindex(request, NextResponse.redirect(url, 302)));
+      }
       const html = await serveDcHtml(request, mock);
       return applyPublicCacheHeaders(
         request,
-        applyStagingNoindex(request, await updateSession(request, html)),
+        applyStagingNoindex(request, await updateSession(request, await withSeoHead(html, seo))),
       );
     }
   }
