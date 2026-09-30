@@ -27,6 +27,7 @@ import {
   type FixtureIdentity,
   type FixturePairs,
 } from "../fixtures/two-customers";
+import { expectNoForeignReference } from "../fixtures/leak-check";
 import allowlistRaw from "../support/config-allowlist.json";
 
 const BASE = process.env["PROBE_BASE_URL"] ?? "";
@@ -236,10 +237,11 @@ describe.skipIf(!process.env["PROBE_BASE_URL"])("DATA-06 isolation gate (adjacen
       ).toEqual(expect.arrayContaining(mine.references));
 
       const other = byLabel[r.customer === "a" ? "b" : "a"];
-      expect(
+      expectNoForeignReference(
         refs,
+        other.references,
         `A1 failed: ${r.customer}'s probe received a row belonging to the other identity`,
-      ).not.toEqual(expect.arrayContaining(other.references));
+      );
     }
   }, 360_000);
 });
