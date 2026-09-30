@@ -19,6 +19,14 @@
 
   function locked(el) {
     if (!el) return false;
+    // <html> carries Lenis's own stop: lenis.stop() adds .lenis-stopped and lenis.css turns
+    // that class into overflow: clip. Reading that clip back as a lock meant a stopped Lenis
+    // never started again. Every screen sets its lock inline, so on <html> only the inline
+    // value counts.
+    if (el === document.documentElement) {
+      var own = el.style.overflowY || el.style.overflow;
+      return own === 'hidden' || own === 'clip';
+    }
     var o = getComputedStyle(el);
     var v = o.overflowY === 'visible' ? o.overflow : o.overflowY;
     return v === 'hidden' || v === 'clip';
