@@ -91,9 +91,7 @@ describe("meta legal gate", () => {
     }
   });
 
-  it("policy version unchanged", () => {
-    const policy = source("lib/consent/policy.ts");
-    expect(policy).toContain('export const CONSENT_POLICY_VERSION = "2026-09-12"');
+  it("policy version is the consent date", () => {
     const assignment = /CONSENT_POLICY_VERSION\s*=(?!=)\s*(["'])([^"']+)\1/g;
     const found: string[] = [];
     for (const rel of walk("")) {
@@ -102,7 +100,14 @@ describe("meta legal gate", () => {
         found.push(`${rel} ${match[2]}`);
       }
     }
-    expect(found).toEqual(["lib/consent/policy.ts 2026-09-12"]);
+    expect(found).toHaveLength(1);
+    const [file, version] = found[0]!.split(" ");
+    expect(file).toBe("lib/consent/policy.ts");
+    expect(version).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(version! > "2026-09-12").toBe(true);
+    const mock = readFileSync(join(webRoot, "../../app/vamos-legal-updated.js"), "utf8");
+    const consent = /var CONSENT_UPDATED = '(\d{4}-\d{2}-\d{2})';/.exec(mock);
+    expect(consent?.[1]).toBe(version);
   });
 
   it("no fbevents.js", () => {

@@ -22,6 +22,22 @@ describe("legal pages Last updated", () => {
     expect(Number.isNaN(Date.parse(`${matches[0]?.[1]}T00:00:00Z`))).toBe(false);
   });
 
+  it("consent date equals CONSENT_POLICY_VERSION (compared with CONSENT_UPDATED only, never LEGAL_UPDATED)", () => {
+    const policy = /export const CONSENT_POLICY_VERSION\s*=\s*.(\d{4}-\d{2}-\d{2})./.exec(
+      read("apps/web/lib/consent/policy.ts"),
+    );
+    const consent = /var CONSENT_UPDATED = '(\d{4}-\d{2}-\d{2})';/.exec(read("app/vamos-legal-updated.js"));
+    expect(policy?.[1]).toBeTruthy();
+    expect(consent?.[1]).toBe(policy?.[1]);
+  });
+
+  it("LEGAL_UPDATED and CONSENT_UPDATED are two separate assignments (D-31)", () => {
+    const src = read("app/vamos-legal-updated.js");
+    expect(src).toContain("var LEGAL_UPDATED = ");
+    expect(src).toContain("var CONSENT_UPDATED = ");
+    expect(src).not.toMatch(/CONSENT_UPDATED = LEGAL_UPDATED|LEGAL_UPDATED = CONSENT_UPDATED/);
+  });
+
   it("cookies mock reads consentLabel, no hard-coded date", () => {
     const mock = read("app/pages/cookies.dc.html");
     expect(mock).toContain('<script src="../vamos-legal-updated.js"></script>');
