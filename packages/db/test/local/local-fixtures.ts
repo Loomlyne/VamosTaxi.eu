@@ -93,7 +93,7 @@ export async function seedTwoCustomers(): Promise<{ a: LocalIdentity; b: LocalId
             ${`Connection Reuse ${displayLabel}${i}`},
             ${`cr-booking-${label}-${i}-${suffix}@example.test`},
             ${customerId},
-            'quote'
+            'confirmed' -- 26.0: customers no longer read quote rows (migration 20261001110000), so fixtures use a paid state
           )
           returning reference
         `;
