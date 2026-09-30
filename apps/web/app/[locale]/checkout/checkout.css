@@ -941,6 +941,11 @@
   aspect-ratio: 16 / 10;
 }
 
+/* Owner photos are portrait with the car in the lower part: keep the car in the landscape crop. */
+.vt-co__class .vt-veh__shot img {
+  object-position: 50% 72%;
+}
+
 .vt-co__class .vt-veh__price {
   align-items: flex-start;
   text-align: start;

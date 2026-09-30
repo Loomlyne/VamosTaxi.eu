@@ -356,8 +356,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 [data-cc-title]{margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-3);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);line-height:var(--vt-heading-leading);color:var(--vt-text-inverse)}
 [data-cc-sub]{margin:0;font-size:var(--vt-body-md);line-height:1.5;color:var(--vt-text-inverse-muted)}
 [data-cc-grid]{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:var(--vt-space-4);min-width:0}
-[data-cc-shot]{position:relative;display:flex;align-items:center;justify-content:center;inline-size:100%;aspect-ratio:16/9;overflow:hidden;box-sizing:border-box;border-radius:var(--vt-radius-md);background:var(--vt-grey-100);border:1px solid var(--vt-border-subtle)}
-[data-cc-shot] img{position:absolute;inset:0;inline-size:100%;block-size:100%;object-fit:cover;display:block}
+[data-cc-shot]{position:relative;display:flex;align-items:center;justify-content:center;inline-size:100%;aspect-ratio:3/2;overflow:hidden;box-sizing:border-box;border-radius:var(--vt-radius-md);background:var(--vt-grey-100);border:1px solid var(--vt-border-subtle)}
+[data-cc-shot] img{position:absolute;inset:0;inline-size:100%;block-size:100%;object-fit:cover;object-position:50% 72%;display:block}
 [data-cc-price-sk]{display:block;block-size:34px;inline-size:45%;border-radius:var(--vt-radius-sm);background:var(--vt-grey-100);animation:vt-cc-pulse 1.2s ease-in-out infinite}
 [data-cc-price-slot]{display:flex;align-items:center;min-block-size:34px}
 [data-cc-act][data-locked] .vt-btn,[data-cc-act][data-locked] button{opacity:.5}
@@ -556,12 +556,12 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <div data-cc-grid="1" aria-busy="{{ ccBusy }}">
 <sc-for list="{{ ccCards }}" as="c" hint-placeholder-count="3">
 <sc-if value="{{ c.skel }}" hint-placeholder-val="{{ false }}">
-<div data-cc-card="1" data-skel="1" aria-hidden="true"><span data-cc-sk="1" style="width:100%;aspect-ratio:16/9;height:auto"></span><span data-cc-sk="1" style="width:55%;height:22px"></span><span data-cc-sk="1" style="width:35%;height:16px"></span><span data-cc-sk="1" style="width:45%;height:34px"></span><span data-cc-sk="1" style="width:100%;height:54px;border-radius:999px"></span></div>
+<div data-cc-card="1" data-skel="1" aria-hidden="true"><span data-cc-sk="1" style="width:100%;aspect-ratio:3/2;height:auto"></span><span data-cc-sk="1" style="width:55%;height:22px"></span><span data-cc-sk="1" style="width:35%;height:16px"></span><span data-cc-sk="1" style="width:45%;height:34px"></span><span data-cc-sk="1" style="width:100%;height:54px;border-radius:999px"></span></div>
 </sc-if>
 <sc-if value="{{ c.live }}" hint-placeholder-val="{{ true }}">
 <div data-cc-card="1" data-block="{{ c.block }}" data-slug="{{ c.slug }}" role="group" aria-label="{{ c.name }}">
 <div data-cc-shot="1">
-<sc-if value="{{ c.hasPhoto }}" hint-placeholder-val="{{ false }}"><img src="{{ c.photo }}" alt="{{ c.name }}" width="640" height="360" loading="lazy" decoding="async" data-vt-no-i18n="1" onError="{{ c.imgErr }}"></sc-if>
+<sc-if value="{{ c.hasPhoto }}" hint-placeholder-val="{{ false }}"><img src="{{ c.photo }}" alt="{{ c.name }}" width="640" height="427" loading="lazy" decoding="async" data-vt-no-i18n="1" onError="{{ c.imgErr }}"></sc-if>
 <sc-if value="{{ c.noPhoto }}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="car" size="{{ n34 }}" color="var(--vt-grey-400)" hint-size="34px,34px"></x-import></sc-if>
 </div>
 <div data-cc-name="1" data-vt-no-i18n="1">{{ c.name }}</div>

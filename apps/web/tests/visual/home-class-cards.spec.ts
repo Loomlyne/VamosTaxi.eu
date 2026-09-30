@@ -162,7 +162,7 @@ test.describe("Home laptop class cards @component", () => {
     await expect(img).toHaveAttribute("src", "/photos/classes/fixture-economy.svg");
     await expect(img).toHaveAttribute("alt", "Economy");
     await expect(img).toHaveAttribute("width", "640");
-    await expect(img).toHaveAttribute("height", "360");
+    await expect(img).toHaveAttribute("height", "427");
     await expect(img).toHaveAttribute("loading", "lazy");
     await expect(img).toHaveAttribute("decoding", "async");
     await expect.poll(() => img.evaluate((e: HTMLImageElement) => e.complete && e.naturalWidth > 0), { timeout: 8000 }).toBe(true);
