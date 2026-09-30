@@ -104,6 +104,7 @@ Prompts for sessions: `.planning/prompts/`, shared rules in `00-common-rules.md`
 | 14:22 | Phone menu opens as a full page, not a side panel (shared header, every page) | same | Same |
 | 14:22 | Hero fills the screen; no white strips at the top and bottom of Safari | same | Same |
 | 14:27 | Support e-mail button must open the exact e-mail in the mail app he is signed in to, and his answer must stay in that thread. Today it is a plain new mail to the customer | Security session, `fix/support-open-in-mail` | Owner answered 14:32: always the mail of that ticket's customer, never mixed; mail app automatic for now, admin choice if cheap; build it; **ship when the control session's checks pass** (his word, this job only) |
+| 16:25 | Signed plans in the 26.2 session: **P4 extras** (a paid extra is a tick box; a CHF 0 extra shows as included; per extra an optional number with a maximum; night, weekend, holiday, waiting and extra stop removed; airport fee stays inside the fare) and **P1 class change on a paid trip** (dearer class only after the difference is paid by an e-mailed pay link, priced with today's price book; cheaper class = Refund due). New decision **P6**: place and time changes on a paid trip get the same treatment | 26.2 session. P4 part A is being built. Order on main: hand-over 2, security B1, erased pay link, P4-A, refunds by hand, P1, P6 | P4-A building; P1 signed, waits; P6 plan after P1 |
 | 16:20 | Class photo: Remove link goes; a replaced photo and its small copies are deleted at publish (`.planning/decisions/2026-09-30-class-photo-replace.md`) | **Needs a new session**: the 26.4.2 session reached its context limit and wrote a hand-off. Prompt `09-class-photo-replace.md`, branch `feat/class-photo-replace` | Not started |
 | 15:40 | Five owner decisions from the 26.2 questions that need a signed plan before code: P1 class change on a paid trip re-prices; P2 refund across both payments; P3 class photo Remove link goes, replaced photo deleted from storage; P4 a deleted extra is deleted completely (hard-coded Ski/Waiting names go); P5 pay link for an erased booking | P1, P4: 26.2 session, own jobs, P4 first. P2, P5: security session (with refunds by hand). P3: 26.4.2 session (photo job) | Plans for his signature |
 | 09-29 | Later, its own job: passwords off on the whole site, e-mail link or passkey only | Not scheduled | His word when to start |
@@ -133,7 +134,8 @@ The owner decided every finding F1 to F14. Every Phase 20 ship needs his Ship.
 | Phase 29 | `20261004100000` to `190000` |
 | Phase 20 | `20261005100000`, `110000` (live) |
 | Class photos | `20261006100000` to `190000` |
-| 26.2 | `20261007100000` to `190000` |
+| 26.2 | `20261007100000` staff price preview (live); P4-A `110000`, trigger clean-up `120000`, P4-C `130000`; P1 `140000`; P6 `150000` |
+| Phase 20 (more) | `20261005120000` reviews column grants (B1), `130000` erased-booking pay link (20-12), `140000` refunds by hand (20-10) |
 
 ## Decisions that stand
 
