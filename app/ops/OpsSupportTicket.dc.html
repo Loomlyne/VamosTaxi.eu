@@ -439,7 +439,7 @@ function ticketHay(row) {
   (row.messages || []).forEach((m) => { parts.push(m.body); });
   return parts.join(' ').toLowerCase();
 }
-function fileItems(ticketId, files) {
+function fileItems(files) {
   const list = Array.isArray(files) ? files : [];
   const out = [];
   for (let i = 0; i < list.length; i++) {
@@ -527,8 +527,6 @@ class Component extends DCLogic {
   }
   setFilter = (key) => this.setState({ filter: key || 'all', filterOpen: false });
   toggleMeta = () => { if (!opsHand()) return; this.setState({ metaOpen: !this.state.metaOpen }); };
-  setKanban = () => this.setState({ view: 'kanban' });
-  setTable = () => this.setState({ view: 'table' });
   setView = (v) => this.setState({ view: v === 'table' ? 'table' : 'kanban' });
   setQuery = (e) => this.setState({ query: e && e.target ? e.target.value : '' });
   toggleSort = (status) => {
@@ -690,12 +688,12 @@ class Component extends DCLogic {
     });
     const phoneDigits = open ? digitsOf(open.phone) : '';
     return {
-      yes: true, n16: 16, n18: 18, n3: 3, n6: 6,
-      tTitle: t.title, tSubtitle: t.subtitle, tEmptyTitle: t.emptyTitle, tEmptyBody: t.emptyBody,
-      tStatus: t.status, tClose: t.close, tCloseTicket: t.closeTicket, tReopen: t.reopen, tKanban: t.kanban, tTable: t.table, tColEmpty: t.colEmpty, tSeeAll: t.seeAll,
+      yes: true, n16: 16,
+      tTitle: t.title, tSubtitle: t.subtitle,
+      tCloseTicket: t.closeTicket, tReopen: t.reopen, tColEmpty: t.colEmpty, tSeeAll: t.seeAll,
       tAnswer: t.answer, tMailHint: t.mailHint, tClosedBody: t.closedBody, tLoadError: t.loadError, tSendError: t.sendError,
       tTicket: t.ticket, tChannel: t.channel, tChannelForm: t.channelForm, tOpened: t.opened, tLastAct: t.lastAct,
-      tBooking: t.booking, tBookingPh: t.bookingPh, tMsgs: t.msgs, tMail: t.mail, tCall: t.call, tWhatsApp: t.whatsApp,
+      tBooking: t.booking, tBookingPh: t.bookingPh, tMail: t.mail, tCall: t.call, tWhatsApp: t.whatsApp,
       tPhone: t.phone, tPhonePh: t.phonePh, tNote: t.note, tNotePh: t.notePh, tSearchPh: t.searchPh, tFilter: t.filter,
       tSaveNote: t.saveNote, metaOpenAttr: opsHand() ? (this.state.metaOpen ? '1' : '0') : '1',
       showMetaToggle: opsHand(),
@@ -711,12 +709,11 @@ class Component extends DCLogic {
         { label: t.cntMsgs, value: String(nMsgs), icon: 'message-circle', foot: t.footMsgs },
         { label: t.cntAll, value: String(this.state.tickets.length), icon: 'users', foot: t.footAll },
       ],
-      isEmpty: false,
       showKanban: !this.state.loadError && view === 'kanban',
       showTable: !this.state.loadError && view === 'table',
       tView: t.view, view: view,
       viewOptions: [{ value: 'table', label: t.table }, { value: 'kanban', label: t.kanban }],
-      setKanban: this.setKanban, setTable: this.setTable, setView: this.setView,
+      setView: this.setView,
       columns: columns,
       tableColumns: [
         { key:'name', header: t.colName },
@@ -750,9 +747,6 @@ class Component extends DCLogic {
       openBooking: open ? (open.bookingRef || '') : '',
       openNote: open ? (open.note || '') : '',
       openLocale: open && open.locale ? String(open.locale).toUpperCase() : '',
-      openMsgCount: open ? t.msgCount.replace('%n', String(open.messages.length)) : '',
-      openStatus: open ? open.status : 'new',
-      openStatusLabel: open ? (labels[open.status] || open.status) : '',
       setPhone: this.setPhone,
       setBooking: this.setBooking,
       setNote: this.setNote,
@@ -763,7 +757,7 @@ class Component extends DCLogic {
       reopenTicket: this.reopenTicket,
       thread: open ? open.messages.map((m) => ({
         from: m.whoKey, who: whoLabel[m.whoKey] || m.whoKey, when: m.when, body: m.body,
-        files: fileItems(open.id, m.files),
+        files: fileItems(m.files),
       })) : [],
     };
   }
