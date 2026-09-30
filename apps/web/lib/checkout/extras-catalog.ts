@@ -1,5 +1,5 @@
 // Checkout extras tiles follow the live rate book — the same rows ops priced.
-// Automatic codes (night, weekend, …) stay off the passenger extras card.
+// 26.2-p4: a row is a tick box by its own columns (selectableExtras), never by its name.
 
 import { isPassengerExtra, normalizeSurchargeCode } from "../ops/surcharge-codes";
 import type { ExtraCatalogRow } from "./checkout-charge";
@@ -276,10 +276,14 @@ function labelOr(value: string | null | undefined, fallback: string): string {
 }
 
 /**
- * D-35: the tick-box extras on the live book. Any active passenger surcharge
- * with a fixed amount ≥ 1 rappen, by its exact code — never matched or renamed.
- * Automatic codes (night, waiting…), always-on quote rows, extra stop (needs an
- * address), percent and included rows are not tick boxes.
+ * D-35, 26.2-p4: the tick-box extras on the live book. The row decides, never
+ * its name: active, a fixed amount ≥ 1 rappen, the rule "manual" (chosen by the
+ * customer; the pricing page writes it for every extra, and the reader hands the
+ * old string-stored rule on as the same), and no quantity source. The code is
+ * used exactly as stored — never matched or renamed.
+ * Rows with any other rule (always, zone, time window, quantity) are the fare
+ * engine's; rows without a rule, percent rows, included rows and amount 0 are
+ * not tick boxes.
  */
 export function selectableExtras(
   surcharges: SurchargeLike[],
@@ -292,9 +296,8 @@ export function selectableExtras(
     if (row.kind !== "amount") continue;
     const amount = row.amount_rappen;
     if (amount == null || !Number.isInteger(amount) || amount < 1) continue;
-    if (!isPassengerExtra(row.code)) continue;
-    if (pricedOnQuote(row)) continue;
-    if (row.code === "extra_stop" || row.quantity_source === "extra_stops") continue;
+    if (row.predicate?.kind !== "manual") continue;
+    if (row.quantity_source) continue;
     if (seen.has(row.code)) continue;
     seen.add(row.code);
     const fallback = humaniseCode(row.code);

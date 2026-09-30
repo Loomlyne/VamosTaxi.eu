@@ -15,6 +15,7 @@
 
 import postgres from "postgres";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { loadCheckoutCatalog } from "../checkout/checkout-catalog";
 import { buildExtraLines, buildLegSurchargeLines } from "../pricing/lines";
 import { mapRateBook } from "../pricing/rateBook";
 import type { Line, QuoteLegInput } from "../pricing/types";
@@ -278,6 +279,15 @@ function quoteLinesForStoredRows(): Line[] {
   ];
 }
 
+/** The tick boxes /checkout offers for the stored rows: [code, amount]. */
+async function tickBoxesForStoredRows(): Promise<Array<[string, number]>> {
+  const rows = await loadCheckoutCatalog({} as CloudflareEnv, {
+    loadBook: async () => bookDoc(),
+    loadLabels: async () => ({}),
+  });
+  return rows.map((row) => [row.code, row.amountRappen]);
+}
+
 // RESEARCH "Answer 4": the ten names, each with the code it must be stored under.
 const TEN_NAMES: Array<[name: string, code: string]> = [
   ["Ski", "ski"],
@@ -316,6 +326,8 @@ describe("an extra saved on the pricing page gets the rule 'chosen by the custom
     expect(db.labelCodes).toEqual([code]);
     // The quote never adds it by itself.
     expect(quoteLinesForStoredRows()).toEqual([]);
+    // 26.2-p4 A2: with a price it is a tick box on /checkout, by its row alone.
+    expect(await tickBoxesForStoredRows()).toEqual([[code, 1000]]);
   });
 
   it("the rule is stored as a JSON object; the old write stored a JSON string", () => {
@@ -355,5 +367,6 @@ describe("an extra saved on the pricing page gets the rule 'chosen by the custom
     expect(saved.predicate).toEqual({ kind: "manual" });
     expect(saved.quantitySource).toBeNull();
     expect(quoteLinesForStoredRows()).toEqual([]);
+    expect(await tickBoxesForStoredRows()).toEqual([["child-seat", 1000]]);
   });
 });
