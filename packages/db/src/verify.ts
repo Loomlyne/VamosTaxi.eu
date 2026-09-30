@@ -95,9 +95,9 @@ export async function verifyAccessToken(
   const sessionIdValue = payload.session_id;
   const sessionId = typeof sessionIdValue === "string" ? sessionIdValue : undefined;
 
-  // `app_metadata` is passed through as-is here; `claimsForSql` downstream is the place that
-  // re-enumerates it field by field before it ever reaches SQL — this function's own job is
-  // only "verified or thrown", not re-shaping the claim for the GUC.
+  // `app_metadata` is passed through as one object, here and in `claimsForSql` downstream
+  // (which names the top-level claims but does not pick fields inside `app_metadata`). Only
+  // the Auth server can write `app_metadata`; this function's own job is "verified or thrown".
   const appMetadataValue = payload.app_metadata;
   const appMetadata: VamosClaims["app_metadata"] =
     typeof appMetadataValue === "object" && appMetadataValue !== null

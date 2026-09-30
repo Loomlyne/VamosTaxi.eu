@@ -19,12 +19,12 @@
 // skipped on a machine with no staging deploy.
 
 import { describe, expect, it } from "vitest";
-import { adjacencySet, drive, ITERATION_DEFAULTS, type DriveIdentity } from "../support/drive";
+import { adjacencySet, drive, ITERATION_DEFAULTS } from "../support/drive";
 import { cacheStatusWindow } from "../support/hyperdrive-metrics";
 import {
   assertNoLiveRateVersion,
+  pairIdentities,
   seedFixtures,
-  type FixtureIdentity,
   type FixturePairs,
 } from "../fixtures/two-customers";
 import { expectNoForeignReference } from "../fixtures/leak-check";
@@ -38,13 +38,6 @@ const CONCURRENCY = ITERATION_DEFAULTS.concurrency;
 const allowlist = allowlistRaw as unknown as {
   probe_identity: { id: string | null; expected_caching_disabled: boolean };
 };
-
-function pairIdentities(pair: [FixtureIdentity, FixtureIdentity]): { a: DriveIdentity; b: DriveIdentity } {
-  return {
-    a: { label: "a", accessToken: pair[0].accessToken, manageTokenHash: pair[0].manageTokenHashHex },
-    b: { label: "b", accessToken: pair[1].accessToken, manageTokenHash: pair[1].manageTokenHashHex },
-  };
-}
 
 /** The three D-45 pairings this gate must cover -- not only two customers. Without the guest
  *  and staff pairings, DATA-03 and AUTH-05 are unproven under the pool. */
