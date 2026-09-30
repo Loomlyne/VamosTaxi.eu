@@ -44,3 +44,9 @@ The same file also ships a second wheel smoother (`VamosScroll`, lerp 0.12) on t
 ## Not measured
 
 A real phone or a real GPU (headless raster, frame times cap at 16.7 ms), Safari, a slow mobile network, the time a human feels the glide. CPU slowdown is an emulation. Live network varied between runs (first-paint cells move by up to 1 s between runs), so judge by the recalc counters in `cost.mjs`, which do not depend on the network. The Transfer KB column of `live.json` is not comparable between `base` and `nolenis` on home: images load as the trace scrolls.
+
+## Server side (read-only, added after the owner's answer on caching)
+
+- **Postgres is not the cost.** `pg_stat_statements`, app queries only: `quote_rate_book` 1293 calls at 17.3 ms mean, `quote_settings_version` 321 calls at 8.3 ms, published-reviews read 132 calls at 1.5 ms, booking reads 9-11 ms. The database is 24 MB. Performance advisors: 48 foreign keys without an index (INFO, all on small tables), 21 unused indexes, one duplicate index on `distance_bands`, one double SELECT policy on `reviews`. Nothing serious; nothing that shows on a page.
+- **Calls per page view** (live, laptop): home 4 API calls plus 14 component files; /faq and /about 3 API calls plus 4 component files each. `/api/fx` is cached (1 h). `/api/reviews` (same rows for every visitor, one database read each time) and `/api/auth/session` answer `private, no-store`. Home calls `/api/quote` twice at 0.9-1.0 s each.
+- Every `.dc.html` component file (14 on home) answers `max-age=0, must-revalidate`.
