@@ -245,7 +245,14 @@ export async function findRefundByIntent(
   intentId: number | string,
 ): Promise<Stripe.Refund | null> {
   const list = await stripe.refunds.list({ payment_intent: paymentIntentId, limit: 100 });
-  return list.data.find((r) => r.metadata?.vamos_intent === String(intentId)) ?? null;
+  // A refund Stripe gave up on ("failed" / "canceled") never sent the money: treat it as not sent so a
+  // Retry makes a new one. "succeeded", "pending" and "requires_action" (and an unknown status) count as sent.
+  return (
+    list.data.find(
+      (r) =>
+        r.metadata?.vamos_intent === String(intentId) && r.status !== "failed" && r.status !== "canceled",
+    ) ?? null
+  );
 }
 
 /**

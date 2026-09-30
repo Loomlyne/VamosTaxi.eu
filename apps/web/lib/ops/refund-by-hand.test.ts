@@ -424,3 +424,114 @@ describe("findRefundByIntent", () => {
     expect(list).toHaveBeenCalledWith({ payment_intent: "pi_2", limit: 100 });
   });
 });
+
+describe("Retry and Stripe idempotency keys (20-10 B2)", () => {
+  /** staff reads as before, plus the stored last_error of an intent (what ops_refund_intent_failed kept). */
+  function withLastError(lastError: string | null) {
+    const base = staffSql;
+    staffSql = async (strings, ...values) => {
+      if (strings.join(" ").includes("last_error")) return lastError === null ? [] : [{ last_error: lastError }];
+      return base(strings, ...values);
+    };
+  }
+  /** system calls of ops_refund_intent_failed, with the stored error text. */
+  function captureFailedText() {
+    const texts: string[] = [];
+    const base = systemSql;
+    systemSql = async (strings, ...values) => {
+      if (strings.join(" ").includes("ops_refund_intent_failed")) texts.push(String(values[1]));
+      return base(strings, ...values);
+    };
+    return texts;
+  }
+  const retryState = () => {
+    staff = state({ pays: [{ id: 2, charged: 2000, extra: true, open: { amount: 2000, state: "failed" } }] });
+    planRows = [intent(12, 2, 2000, { state: "failed", attempts: 1, resumed: true })];
+    sentImpl = () => [sentRow(2000, 2000, 0, { payment_id: 2 })];
+  };
+
+  it("a Stripe refusal is stored as 'stripe:'; a timeout as 'transport:'", async () => {
+    planRows = [intent(11, 1, 10000)];
+    staff = state({ pays: [{ id: 1, charged: 10000 }] });
+    const texts = captureFailedText();
+    const { refundBooking } = await import("./refund");
+    createRefund.mockRejectedValueOnce(Object.assign(new Error("insufficient balance"), { statusCode: 400, code: "balance_insufficient" }));
+    await refundBooking(ENV, CLAIMS, "VT-26-0101", {});
+    createRefund.mockRejectedValueOnce(Object.assign(new Error("socket hang up"), { type: "StripeConnectionError" }));
+    await refundBooking(ENV, CLAIMS, "VT-26-0101", {});
+    expect(texts[0]).toMatch(/^stripe: insufficient balance/);
+    expect(texts[1]).toMatch(/^transport: socket hang up/);
+  });
+
+  it("first attempt keeps refund-intent:<id>; after a Stripe refusal, Retry sends refund-intent:<id>:<attempts>", async () => {
+    retryState();
+    withLastError("stripe: insufficient balance");
+    const { refundBooking } = await import("./refund");
+    const result = await refundBooking(ENV, CLAIMS, "VT-26-0101", { retry: true });
+    expect(createRefund).toHaveBeenCalledTimes(1);
+    expect(createRefund.mock.calls[0]![1]).toMatchObject({ idempotencyKey: "refund-intent:12:1" });
+    expect(result.ok).toBe(true);
+  });
+
+  it("after a timeout, Retry keeps the same key (the first request may still be in flight)", async () => {
+    retryState();
+    withLastError("transport: socket hang up");
+    const { refundBooking } = await import("./refund");
+    await refundBooking(ENV, CLAIMS, "VT-26-0101", { retry: true });
+    expect(createRefund.mock.calls[0]![1]).toMatchObject({ idempotencyKey: "refund-intent:12" });
+  });
+
+  it("an old row without a prefix, or no readable error, keeps the same key", async () => {
+    retryState();
+    withLastError("card refused");
+    const { refundBooking } = await import("./refund");
+    await refundBooking(ENV, CLAIMS, "VT-26-0101", { retry: true });
+    withLastError(null);
+    await refundBooking(ENV, CLAIMS, "VT-26-0101", { retry: true });
+    const keys = createRefund.mock.calls.map((c) => (c[1] as { idempotencyKey: string }).idempotencyKey);
+    expect(keys).toEqual(["refund-intent:12", "refund-intent:12"]);
+  });
+
+  it("a second refusal bumps again: attempts 2 sends refund-intent:<id>:2", async () => {
+    retryState();
+    planRows = [intent(12, 2, 2000, { state: "failed", attempts: 2, resumed: true })];
+    withLastError("stripe: still refused");
+    const { refundBooking } = await import("./refund");
+    await refundBooking(ENV, CLAIMS, "VT-26-0101", { retry: true });
+    expect(createRefund.mock.calls[0]![1]).toMatchObject({ idempotencyKey: "refund-intent:12:2" });
+  });
+
+  it("a failed refund of the intent found at Stripe is not taken as sent: a new create is made", async () => {
+    retryState();
+    withLastError("stripe: stripe-refund-not-created");
+    const sentRefundIds: string[] = [];
+    const baseSystem = systemSql;
+    systemSql = async (strings, ...values) => {
+      if (strings.join(" ").includes("ops_refund_intent_sent")) sentRefundIds.push(String(values[1]));
+      return baseSystem(strings, ...values);
+    };
+    const { findRefundByIntent: real } = await vi.importActual<typeof import("../checkout/stripe")>("../checkout/stripe");
+    const list = vi.fn().mockResolvedValue({
+      data: [{ id: "re_dead", status: "failed", metadata: { vamos_intent: "12" } }],
+    });
+    findRefundByIntent.mockImplementation((_s: unknown, pi: string, id: number) => real({ refunds: { list } } as never, pi, id));
+    const { refundBooking } = await import("./refund");
+    const result = await refundBooking(ENV, CLAIMS, "VT-26-0101", { retry: true });
+    expect(createRefund).toHaveBeenCalledTimes(1);
+    expect(createRefund.mock.calls[0]![1]).toMatchObject({ idempotencyKey: "refund-intent:12:1" });
+    expect(calls).toEqual(["plan", "sent:12"]);
+    expect(sentRefundIds).not.toContain("re_dead");
+    expect(result.ok).toBe(true);
+  });
+
+  it("findRefundByIntent: failed and canceled are not sent; succeeded, pending and requires_action are", async () => {
+    const { findRefundByIntent: real } = await vi.importActual<typeof import("../checkout/stripe")>("../checkout/stripe");
+    const find = async (status: string) => {
+      const list = vi.fn().mockResolvedValue({ data: [{ id: "re_x", status, metadata: { vamos_intent: "12" } }] });
+      return real({ refunds: { list } } as never, "pi_2", 12);
+    };
+    expect(await find("failed")).toBeNull();
+    expect(await find("canceled")).toBeNull();
+    for (const ok of ["succeeded", "pending", "requires_action"]) expect((await find(ok))?.id).toBe("re_x");
+  });
+});

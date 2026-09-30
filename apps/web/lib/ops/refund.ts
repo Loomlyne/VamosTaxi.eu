@@ -221,12 +221,38 @@ type SentRow = {
   refund_status: string;
 };
 
+/**
+ * Stored in booking_refund_intents.last_error. The prefix tells Retry what happened:
+ * "stripe:" = Stripe answered and refused (an API error with a response, or a refund it marked failed /
+ * canceled); "transport:" = no answer (timeout, network, our own error). Stripe replays a stored refusal
+ * for 24 h under the same idempotency key, so only after "stripe:" does a Retry use a new key.
+ */
 function errorText(err: unknown): string {
+  let message = "stripe-error";
   if (typeof err === "object" && err !== null && "message" in err) {
     const m = (err as { message: unknown }).message;
-    if (typeof m === "string") return m.slice(0, 500);
+    if (typeof m === "string") message = m;
   }
-  return "stripe-error";
+  const answered =
+    (typeof err === "object" &&
+      err !== null &&
+      typeof (err as { statusCode?: unknown }).statusCode === "number") ||
+    message === "stripe-refund-not-created";
+  return `${answered ? "stripe" : "transport"}: ${message}`.slice(0, 500);
+}
+
+/** What ops_refund_intent_failed kept for this intent, or null. A read failure means "unknown" (same key). */
+async function lastErrorOf(env: CloudflareEnv, claims: VamosClaims, intentId: number): Promise<string | null> {
+  try {
+    return await asStaff(env, claims, async (sql) => {
+      const rows = await sql<{ last_error: string | null }[]>`
+        select i.last_error from public.booking_refund_intents as i where i.id = ${intentId}::int8 limit 1
+      `;
+      return rows[0]?.last_error ?? null;
+    });
+  } catch {
+    return null;
+  }
 }
 
 function stripeCodeOf(err: unknown): string {
@@ -356,6 +382,13 @@ export async function refundBooking(
       const stripe = stripeFromEnv(env);
       const paymentIntentId = await resolvePaymentIntentId(stripe, String(intent.stripe_payment_intent_id));
       if (!paymentIntentId) throw new Error("no-payment-intent");
+      // Stripe keeps the answer to an idempotency key for 24 h, errors included. After a refusal the
+      // retry is a new request (key:<attempts>); after a timeout it stays the same one.
+      const attempts = n(intent.attempts);
+      const idempotencyKey =
+        attempts > 0 && (await lastErrorOf(env, claims, intentId))?.startsWith("stripe:")
+          ? `${String(intent.idempotency_key)}:${attempts}`
+          : String(intent.idempotency_key);
       // A retry, or a resumed press, may have a refund at Stripe already (its 24 h key window may be over).
       const existing =
         intent.resumed === true || n(intent.attempts) > 0
@@ -366,7 +399,7 @@ export async function refundBooking(
         (await createRefund(stripe, {
           paymentIntentId,
           amountRappen,
-          idempotencyKey: String(intent.idempotency_key),
+          idempotencyKey,
           bookingId,
           paymentId,
           reason: planArgs.reason === "post_trip" ? "post_trip" : "ops_refund",
