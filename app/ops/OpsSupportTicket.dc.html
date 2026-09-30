@@ -507,8 +507,9 @@ class Component extends DCLogic {
     document.addEventListener('visibilitychange', this._onVis);
     if (window.VamosLocale) this.setState({ lang: window.VamosLocale.lang() });
     if (opsPhone() && this.state.view === 'kanban') this.setState({ view: 'table' });
+    // The badge is set when the list has loaded (hydrate). Publishing the empty start list here
+    // showed "no tickets" until then, and for good when the load failed.
     this.hydrate();
-    publishBadge(this.state.tickets);
   }
   componentDidUpdate() {
     if (!this._focusTable) return;

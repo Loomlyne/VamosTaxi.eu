@@ -439,3 +439,25 @@ describe("OpsSupportTicket close that the server refuses", () => {
     expect(badges[badges.length - 1]).toBe(1);
   });
 });
+
+describe("OpsSupportTicket sidebar badge", () => {
+  it("opening Support does not wipe the count before the tickets have loaded", async () => {
+    const { comp, win, badges, settle } = supportHarness(() => ({ ok: false }));
+    win.__vamosSupportNew = 3;
+    comp.componentDidMount();
+    await settle();
+    expect(comp.state.loadError).toBe(true);
+    expect(win.__vamosSupportNew).toBe(3);
+    expect(badges).toEqual([]);
+  });
+
+  it("a loaded list still sets it: new and open tickets only", async () => {
+    const { comp, win, settle } = supportHarness(() => ({
+      ok: true,
+      data: [serverTicket({ id: "a", status: "new" }), serverTicket({ id: "b", status: "open" }), serverTicket({ id: "c", status: "closed" })],
+    }));
+    comp.componentDidMount();
+    await settle();
+    expect(win.__vamosSupportNew).toBe(2);
+  });
+});
