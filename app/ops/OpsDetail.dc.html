@@ -380,7 +380,7 @@
 </main>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:900},&quot;id&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
-const EMPTY_BOOKING = { id:'', time:'', date:'', pickup:'', dropoff:'', vehicle:'', pax:0, bags:0, status:'', total:'CHF 000', totalRappen:0, driver:null, customer:'', email:'', phone:'', flight:'', pay:'', channel:'', km:'', arrivedAt:'', extraWaitMinutes:0, extraWaitRappen:0 };
+const EMPTY_BOOKING = { id:'', time:'', date:'', pickup:'', dropoff:'', vehicle:'', pax:0, bags:0, status:'', total:'CHF 000', totalRappen:0, driver:null, customer:'', email:'', phone:'', flight:'', pay:'', channel:'', km:'', arrivedAt:'' };
 function listBookings() {
   return window.VamosOps ? window.VamosOps.bookings.all() : [];
 }
@@ -536,7 +536,7 @@ const T = {
     sendPayLink:'Send pay-link', takeCard:'Take card', openStripe:'Open Stripe payment page', copyPayLink:'Copy payment link', payLinkCopied:'Payment link copied', payLinkSent:'Pay-link sent to ', payLinkFailed:'Could not send pay-link ', cardFailed:'Card failed ',
     refundTitle:'Refund due', refundBody:'Cancelled inside the free window. The customer is emailed that a refund will be issued to their bank account. When you mark it issued, they get a second email.',
     refundedTitle:'Refund issued', refundedBody:'The customer has been emailed that the refund was issued to their bank account.',
-    resendVoucher:'Resend voucher', editBooking:'Edit booking', cancelBooking:'Cancel', action:'Action', complete:'Complete', noShow:'No-show', markArrival:'Mark arrival', arrived:'Arrived', extraWait:'Extra wait', arrivalFailed:'Could not mark arrival ', driver:'Driver', manualNote:'Assignment is manual in V1 — there is no driver app and no automatic dispatch.', cancel:'Cancel',
+    resendVoucher:'Resend voucher', editBooking:'Edit booking', cancelBooking:'Cancel', action:'Action', complete:'Complete', noShow:'No-show', markArrival:'Mark arrival', arrived:'Arrived', arrivalFailed:'Could not mark arrival ', driver:'Driver', manualNote:'Assignment is manual in V1 — there is no driver app and no automatic dispatch.', cancel:'Cancel',
     cancelTitle:'Cancel this booking?', cancelBody:'It is marked cancelled. You will still see it under Cancelled.',
     cancelBodyUnpaid:'This unpaid trip is removed. It does not stay under Cancelled.',
     keepBooking:'Keep it', confirmCancel:'Cancel booking', confirmCancelUnpaid:'Remove booking', bookingCancelled:'Cancelled ', bookingRemoved:'Removed ', cancelFailed:'Could not cancel ', refundFailed:'Could not refund ',
@@ -579,7 +579,7 @@ const T = {
     outstandingTitle:'Zahlung ausstehend', outstandingBody:'Keine Kartenzahlung. Zahlungslink senden oder die Checkout-Session abwarten.',
     refundTitle:'Rückerstattung fällig', refundBody:'Storniert innerhalb des kostenlosen Fensters. Der Kunde erhält eine E-Mail, dass die Rückerstattung auf sein Bankkonto ausgezahlt wird. Wenn Sie sie als ausgezahlt markieren, folgt eine zweite E-Mail.',
     refundedTitle:'Rückerstattung ausgezahlt', refundedBody:'Der Kunde wurde per E-Mail informiert, dass die Rückerstattung auf sein Bankkonto ausgezahlt wurde.',
-    resendVoucher:'Gutschein erneut senden', editBooking:'Buchung bearbeiten', cancelBooking:'Stornieren', action:'Aktion', complete:'Abgeschlossen', noShow:'No-show', markArrival:'Ankunft markieren', arrived:'Angekommen', extraWait:'Extra-Wartezeit', arrivalFailed:'Ankunft konnte nicht markiert werden ', driver:'Fahrer', manualNote:'Die Zuweisung erfolgt in V1 manuell — es gibt keine Fahrer-App und keine automatische Vermittlung.', cancel:'Abbrechen',
+    resendVoucher:'Gutschein erneut senden', editBooking:'Buchung bearbeiten', cancelBooking:'Stornieren', action:'Aktion', complete:'Abgeschlossen', noShow:'No-show', markArrival:'Ankunft markieren', arrived:'Angekommen', arrivalFailed:'Ankunft konnte nicht markiert werden ', driver:'Fahrer', manualNote:'Die Zuweisung erfolgt in V1 manuell — es gibt keine Fahrer-App und keine automatische Vermittlung.', cancel:'Abbrechen',
     cancelTitle:'Diese Buchung stornieren?', cancelBody:'Sie wird als storniert markiert. Unter Storniert bleibt sie sichtbar.',
     cancelBodyUnpaid:'Diese unbezahlte Fahrt wird entfernt. Unter Storniert bleibt sie nicht.',
     keepBooking:'Behalten', confirmCancel:'Buchung stornieren', confirmCancelUnpaid:'Buchung entfernen', bookingCancelled:'Storniert ', bookingRemoved:'Entfernt ', cancelFailed:'Konnte nicht stornieren ', refundFailed:'Konnte nicht erstatten ',
@@ -636,7 +636,7 @@ const T = {
     refuse:'Refuser',
     refuseFailed:'Impossible de refuser la modification pour ',
     flightBanner:'Numéro de vol mis à jour',
-    markArrival:'Marquer l’arrivée', arrived:'Arrivé', extraWait:'Attente extra', arrivalFailed:'Impossible de marquer l’arrivée ',
+    markArrival:'Marquer l’arrivée', arrived:'Arrivé', arrivalFailed:'Impossible de marquer l’arrivée ',
     cancelBodyUnpaid:'Cette course non payée est supprimée. Elle n’apparaît pas sous Annulé.',
     confirmCancelUnpaid:'Supprimer la réservation', bookingRemoved:'Supprimé ',
     coupon:'Code promo', extras:'Extras', vat:'TVA', included:'Inclus',
@@ -685,7 +685,7 @@ const T = {
     refuse:'رفض',
     refuseFailed:'تعذّر رفض التعديل لـ ',
     flightBanner:'تم تحديث رقم الرحلة',
-    markArrival:'تسجيل الوصول', arrived:'وصل', extraWait:'انتظار إضافي', arrivalFailed:'تعذّر تسجيل الوصول لـ ',
+    markArrival:'تسجيل الوصول', arrived:'وصل', arrivalFailed:'تعذّر تسجيل الوصول لـ ',
     cancelBodyUnpaid:'تُحذف هذه الرحلة غير المدفوعة. لن تبقى ضمن الملغاة.',
     confirmCancelUnpaid:'حذف الحجز', bookingRemoved:'حُذف ',
     coupon:'قسيمة', extras:'إضافات', vat:'ضريبة القيمة المضافة', included:'مشمول',
@@ -924,10 +924,6 @@ class Component extends DCLogic {
     ];
     if (booking.arrivedAt) {
       tags.push({ icon: 'clock', k: t.arrived, v: eventWhen(booking.arrivedAt).slice(11, 16) || '—' });
-    }
-    if (Number(booking.extraWaitMinutes) > 0) {
-      const waitPay = Number(booking.extraWaitRappen) > 0 ? (' · ' + fareLabel(Number(booking.extraWaitRappen))) : '';
-      tags.push({ icon: 'clock', k: t.extraWait, v: String(booking.extraWaitMinutes) + t.minutes + waitPay });
     }
     if (booking.vehicle && booking.vehicle !== booking.klass) {
       tags.splice(3, 0, { icon: 'car', k: t.vehicleAssigned, v: booking.vehicle });

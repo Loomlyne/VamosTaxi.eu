@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { extraWaitFromArrival, mapBoardBooking, type SqlBoardRow } from "./bookings-map";
+import { mapBoardBooking, type SqlBoardRow } from "./bookings-map";
 import type { VamosClaims } from "../db/identity";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -51,27 +51,6 @@ describe("bookings-write arrival clock (D-38)", () => {
     );
     expect(route).toMatch(/markArrival/);
     expect(route).toMatch(/arrived === true/);
-  });
-
-  it("computes extra wait from published free_wait_minutes, not 60", () => {
-    const wait = extraWaitFromArrival({
-      arrivedAt: "2026-09-14T11:20:00.000Z",
-      scheduledAt: "2026-09-14T10:00:00.000Z",
-      freeWaitMinutes: 45,
-      unitMinutes: 15,
-      amountRappen: 1500,
-    });
-    expect(wait.extraMinutes).toBe(35);
-    expect(wait.extraRappen).toBe(3 * 1500);
-    const noFree = extraWaitFromArrival({
-      arrivedAt: "2026-09-14T10:10:00.000Z",
-      scheduledAt: "2026-09-14T10:00:00.000Z",
-      freeWaitMinutes: null,
-      amountRappen: 2000,
-    });
-    expect(noFree.extraMinutes).toBe(10);
-    expect(noFree.extraRappen).toBe(2000);
-    expect(wait.extraMinutes).not.toBe(60);
   });
 });
 
