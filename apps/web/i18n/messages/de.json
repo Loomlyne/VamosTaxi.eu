@@ -1430,7 +1430,7 @@
     "payment-metadata-only-the-amount-the-currency-th": "Nur Zahlungsmetadaten: Betrag, Währung, Zahlungsmittel, die letzten vier Ziffern und ob die Zahlung erfolgreich war. Kartennummern werden im Formular von Stripe eingegeben und erreichen unsere Systeme nie.",
     "payment-records": "Zahlungsbelege",
     "per-stop": "pro Stopp.",
-    "pickup-and-drop-off-address-and-any-additional-s": "Abhol- und Zieladresse sowie allfällige Zwischenstopps.",
+    "pickup-and-drop-off-address-and-any-additional-s": "Abhol- und Zieladresse.",
     "pickup-and-drop-off-address-date-and-time-passen": "Abhol- und Zieladresse, Datum und Uhrzeit, Zahl der Passagiere und Gepäckstücke. Das genügt, um eine Fahrt zu berechnen, und nichts davon identifiziert Sie.",
     "plans-change-this-page-says-exactly-what-happens": "Pläne ändern sich. Diese Seite sagt genau, was dann mit Ihrem Geld geschieht — und sie ist die Seite, die entscheidet.",
     "postal-address": "Postadresse",

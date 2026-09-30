@@ -143,9 +143,6 @@ export default async function TermsPage({
         <h4>{t("charged-separately-only-if-you-ask-for-it")}</h4>
         <ul>
           <li>
-            {t("waiting-beyond-per-commenced-hour")}
-          </li>
-          <li>
             {t("extended-city-stay-15-shown-on-quote")}
           </li>
           <li>
