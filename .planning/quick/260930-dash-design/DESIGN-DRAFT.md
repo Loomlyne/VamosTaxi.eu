@@ -1,5 +1,5 @@
 ---
-status: draft — waiting for the owner's picture signature (nothing pushed, nothing deployed)
+status: signed 2026-10-01 (question form); follow-ups built — nothing pushed, nothing deployed
 branch: gsd/26.2-dash-design (on top of gsd/26.2-dash-assign 0c83bdd0 / 455d04f8)
 created: 2026-10-01
 before: origin/main 316606ee (git archive) · after: this branch
@@ -133,7 +133,58 @@ CHF 000). Assign answers are the route's own: 409 `class-mismatch` (Economy / Bu
 
 Every picture was opened and looked at. No sideways scroll at any width (report: 0 px).
 
-## Open questions for the owner
+## Signed 2026-10-01
+
+The owner signed the design (question form) and answered the six questions:
+
+1. Refund stays inside Actions — no change.
+2. Complete and No-show appear in Actions only once the pickup time has passed (Zurich). Built:
+   `pickupMs` in OpsDetail uses the row's `pickupAt`, else its Zurich date and time; a row with no
+   readable time keeps both (a broken row can still be closed). Mark arrival, Cancel and the rest
+   are unchanged. The old handlers are untouched; only the menu hides the two items.
+3. "Tablets too": the drawer, the compact bar with ACTIONS and the folded page buttons now apply
+   up to 1080 px (tablet range 681–1080); above 1080 the rail and the page's own Actions stay.
+   `ops.dc.html` and `OpsSidebar.dc.html` moved from 899/900 and 767 to 1080/1081.
+4. Profile, Settings, Sign out in the drawer on phone and tablet — yes, no change.
+5. Driver form: Class dropped, Car kept. A driver's class is his car's class. The
+   `chauffeurs.vehicle_class_id` column stays (no migration); the form sends no class and the
+   server keeps the stored value when the body has none (`parseChauffeurBody` → undefined,
+   `UPDATE … vehicle_class_id = case when keep then vehicle_class_id else … end`, insert → null);
+   an explicit empty class from another caller still clears it. Every dashboard reader of the
+   driver's class now uses the car: the Chauffeurs list column (key `carClassName`), its search,
+   the driver profile fact, and the Assign list (already car-based). No car: "No car yet" /
+   "Noch kein Auto" / "Pas encore de voiture" / "لا سيارة بعد" (the words OpsDetail already had).
+   Readers found by grep: only `app/ops/OpsFleet.dc.html` (list, search, profile) and the staff
+   read in `apps/web/lib/ops/chauffeurs.ts` (still returns `vehicleClassName` from the column; no
+   dashboard screen shows it any more).
+6. An "Add a car" page is NOT in this job — it becomes its own job. Note: today the Car list only
+   offers cars that already exist, and the dashboard has no place to add one.
+
+### Follow-up tests (red before, green after)
+
+| file | before | after |
+|---|---|---|
+| ops-dc-dash-design.test.ts (changed and new cases) | `expected [ 'assign', 'edit', 'resend', …(4) ] to not include 'complete'`; `expected '' to contain '[data-ops-fold]{display:none!importan…'` (1080 block); `…to contain 'window.matchMedia('(max-width: 1080p…'`; `expected { key: 'vehicleClassId', … } to be undefined`; `expected undefined to be 'Business'`; `expected { name: 'Marco', … } to not have property "vehicleClassId"` | 25 passed |
+| chauffeur-class-keep.test.ts (new) | 3 failed — `expected null to be undefined`; `…to match /vehicle_class_id = case when \$::bool…/`; `expected [ 'Marco', … ] to include false` | 3 passed |
+
+Existing tests changed because they pinned the old form: `fleet-http.test.ts` (a body without a
+class now parses to undefined = keep), `ops-chauffeur-desk.test.ts` (fields no longer hold
+`vehicleClassId`; they hold `defaultVehicleId`).
+
+### Follow-up pictures — `screens/followup-sheet.png`
+
+- `fu-detail-{en|ar}-{1024|768}-open.png` — tablet: compact bar, ACTIONS open, page buttons folded
+- `fu-future-en-1440-open.png` (trip next week: no Complete / No-show), `fu-past-en-1440-open.png` (an hour ago: both)
+- `fu-driver-form-{en|ar}-{1440|390}.png` — driver form without Class
+- `fu-driver-profile-{en|ar}-1440.png`, `fu-driver-list-en-1440.png` — Class shows the car's class
+
+Gates (2026-10-01, once, after the follow-ups): `pnpm typecheck` 0; `pnpm lint` 0 errors (the same 5
+pre-existing warnings); `pnpm lint:css` 0; `pnpm i18n:check` pass; `pnpm check:numbers` ok;
+`pnpm check:db-fences` 8/8; sync script then 39 touched/related test files: 444 passed, 1 skipped
+(`assign.local.test.ts`, no local stack).
+
+## Questions asked before the signature (answered above)
+
 
 1. Refund (cancelled trip, admin) is now an item of the Actions menu, not its own yellow button. Keep it in the menu?
    Example: VT-… cancelled → Actions → Refund.
@@ -154,3 +205,6 @@ Every picture was opened and looked at. No sideways scroll at any width (report:
 - Pictures use stubbed API answers; the Worker build (OpenNext) was not run.
 - Pre-existing, not touched: RTL "Back to bookings" chevron points left; the Arabic phone number
   reads reversed; the "catch inside an identity callback" cases listed in 260930-dash-assign/DEBUG.md.
+- Follow-ups: the "keep the class" UPDATE was proven with a recorded statement, not on a database.
+  The 1080 px drawer switch reads `matchMedia` at render; rotating a tablet across 1080 re-renders
+  on the next update only (same as the old 899 switch).
