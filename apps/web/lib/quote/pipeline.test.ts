@@ -758,6 +758,41 @@ describe("runRepricePipeline", () => {
     expect(directionsRuns.n).toBeGreaterThan(afterQuote);
   });
 
+  it("with changed waypoints counts the extra Directions call in the daily Mapbox breaker", async () => {
+    const store = new Map<string, string>();
+    const env = {
+      QUOTE_ABUSE: {
+        get: async (key: string) => store.get(key) ?? null,
+        put: async (key: string, value: string) => {
+          store.set(key, value);
+        },
+      },
+    } as unknown as CloudflareEnv;
+    const units = () => Number([...store.values()][0] ?? "0");
+    const deps = baseDeps({ env });
+    const first = await runQuotePipeline(validBody(), deps);
+    expect(first.ok).toBe(true);
+    if (!first.ok) return;
+    const afterQuote = units();
+    expect(afterQuote).toBeGreaterThan(0);
+    const again = await runRepricePipeline(
+      {
+        quote_id: first.quote_id,
+        lock: first.lock,
+        locale: "en",
+        display_currency: "CHF",
+        extras: {
+          extra_stops: 1,
+          waypoints: [{ lng: 8.55, lat: 47.38, text: "stop" }],
+        },
+      },
+      deps,
+    );
+    expect(again.ok).toBe(true);
+    // One Directions call was made for the changed stop, so one unit is spent.
+    expect(units()).toBe(afterQuote + 1);
+  });
+
   it("with extra_stops: 2 and no waypoints key returns extras_max_stops (D-21)", async () => {
     const { ok: first, deps } = await quoted();
     const again = await runRepricePipeline(

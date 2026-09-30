@@ -154,6 +154,95 @@ describe("cancelBooking expires open Stripe Checkout Sessions (D-04)", () => {
   });
 });
 
+describe("cancelBooking on an unpaid booking expires its open Stripe Checkout Sessions (26.2-bp B1)", () => {
+  beforeEach(() => {
+    asStaff.mockReset();
+    asSystem.mockReset();
+    stripeFromEnv.mockReset();
+    expireCheckoutSession.mockReset();
+    stripeFromEnv.mockReturnValue({});
+  });
+
+  const ENV = {
+    STRIPE_SECRET_KEY: "sk_test_bw",
+    STRIPE_PUBLISHABLE_KEY: "pk_test_normal",
+  } as CloudflareEnv;
+  const CLAIMS = { sub: "staff-1", role: "authenticated" } as VamosClaims;
+  const BOOKING_ID = "00000000-0000-4000-8000-000000000002";
+
+  /** No captured payment, the erase update returns the row, the system read returns the session ids. */
+  function mockUnpaidErase(sessionIds: string[] | Error): string[] {
+    const systemSql: string[] = [];
+    asStaff.mockImplementation(async (_env: CloudflareEnv, _claims: unknown, fn: (sql: unknown) => unknown) => {
+      const sql = async (strings: TemplateStringsArray) => {
+        const text = strings.join("?");
+        if (text.includes("erased_at = now()")) return [{ id: BOOKING_ID }];
+        return [];
+      };
+      return fn(sql);
+    });
+    asSystem.mockImplementation(async (_env: CloudflareEnv, fn: (sql: unknown) => unknown) => {
+      const sql = async (strings: TemplateStringsArray) => {
+        systemSql.push(strings.join("?"));
+        if (sessionIds instanceof Error) throw sessionIds;
+        return [{ ids: sessionIds }];
+      };
+      return fn(sql);
+    });
+    return systemSql;
+  }
+
+  it("erases the booking and expires every Stripe session it owns", async () => {
+    const systemSql = mockUnpaidErase(["cs_1", "cs_2"]);
+    expireCheckoutSession.mockResolvedValue({});
+    const { cancelBooking } = await import("./bookings-write");
+
+    const result = await cancelBooking(ENV, CLAIMS, BOOKING_ID);
+
+    expect(result).toMatchObject({ ok: true, erased: true });
+    expect(expireCheckoutSession).toHaveBeenCalledTimes(2);
+    expect(expireCheckoutSession).toHaveBeenNthCalledWith(1, expect.anything(), "cs_1");
+    expect(expireCheckoutSession).toHaveBeenNthCalledWith(2, expect.anything(), "cs_2");
+    expect(systemSql.join("\n")).toMatch(/public\.checkout_booking_session_ids\(/);
+  });
+
+  it("a Stripe expire failure is logged and the erase still stands", async () => {
+    mockUnpaidErase(["cs_1"]);
+    expireCheckoutSession.mockRejectedValue(new Error("stripe_down"));
+    const { cancelBooking } = await import("./bookings-write");
+
+    const result = await cancelBooking(ENV, CLAIMS, BOOKING_ID);
+
+    expect(result).toMatchObject({ ok: true, erased: true });
+    expect(expireCheckoutSession).toHaveBeenCalledTimes(1);
+  });
+
+  it("a failed read of the session ids is logged and the erase still stands", async () => {
+    mockUnpaidErase(new Error("db_down"));
+    const { cancelBooking } = await import("./bookings-write");
+
+    const result = await cancelBooking(ENV, CLAIMS, BOOKING_ID);
+
+    expect(result).toMatchObject({ ok: true, erased: true });
+    expect(expireCheckoutSession).not.toHaveBeenCalled();
+  });
+
+  it("never calls Stripe on the legacy UAE test publishable key", async () => {
+    mockUnpaidErase(["cs_1"]);
+    const legacyEnv = {
+      STRIPE_SECRET_KEY: "sk_test_bw",
+      STRIPE_PUBLISHABLE_KEY: "pk_test_51U65pWlegacy",
+    } as CloudflareEnv;
+    const { cancelBooking } = await import("./bookings-write");
+
+    const result = await cancelBooking(legacyEnv, CLAIMS, BOOKING_ID);
+
+    expect(result).toMatchObject({ ok: true, erased: true });
+    expect(stripeFromEnv).not.toHaveBeenCalled();
+    expect(expireCheckoutSession).not.toHaveBeenCalled();
+  });
+});
+
 describe("updateBooking class edit (D-14)", () => {
   const ENV = {} as CloudflareEnv;
   const CLAIMS = { sub: "staff-1", role: "authenticated" } as VamosClaims;
