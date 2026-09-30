@@ -8,7 +8,12 @@
 import { isCheckoutEmail } from "./contact-validate";
 import { normaliseFlight } from "./trip-url";
 
-export type PayField = "class" | "firstName" | "lastName" | "email" | "mobile" | "flight" | "companyName";
+export type PayField =
+  | "class"
+  | "account"
+  | "accountSent"
+  | "accountConsent"
+  | "firstName" | "lastName" | "email" | "mobile" | "flight" | "companyName";
 
 /** Keys of the `checkout` message namespace (all exist since plan 15). */
 export type PayErrorKey =
@@ -21,7 +26,20 @@ export type PayErrorKey =
   | "errMobileCheck"
   | "errFlight"
   | "errFlightCheck"
-  | "errCompanyName";
+  | "errCompanyName"
+  // 26.5 section-2 account rules (message keys added by plan 02).
+  | "acctPayBlockSignIn"
+  | "acctPayBlockSent"
+  | "acctCreateConsentError";
+
+/** 26.5 D-01/D-12/D-13: what section 2 knows about the account choice. */
+export type PayAccountState = {
+  signedIn: boolean;
+  choice: "guest" | "signin" | "create";
+  stage: "form" | "sent";
+  /** The Text 1 tick. Only "create" reads it; guest never has a consent rule (D-13). */
+  createConsent: boolean;
+};
 
 export type PayFormState = {
   classChosen: boolean;
@@ -36,6 +54,8 @@ export type PayFormState = {
   companyName: string;
   companyAddress: string;
   companyVat: string;
+  /** Optional: absent means no account rule applies (signed-in equivalent). */
+  account?: PayAccountState;
 };
 
 export type PayError = { field: PayField; messageKey: PayErrorKey };
@@ -48,6 +68,18 @@ export function isMobileNumber(value: string): boolean {
 
 export function firstPayError(state: PayFormState): PayError | null {
   if (!state.classChosen) return { field: "class", messageKey: "chooseClass" };
+  const account = state.account;
+  if (account && !account.signedIn) {
+    // The button is never disabled: an unticked or unfinished choice is named here (D-12).
+    if (account.choice === "signin") {
+      return account.stage === "sent"
+        ? { field: "accountSent", messageKey: "acctPayBlockSent" }
+        : { field: "account", messageKey: "acctPayBlockSignIn" };
+    }
+    if (account.choice === "create" && !account.createConsent) {
+      return { field: "accountConsent", messageKey: "acctCreateConsentError" };
+    }
+  }
   if (!state.firstName.trim()) return { field: "firstName", messageKey: "enter-a-first-name" };
   if (!state.lastName.trim()) return { field: "lastName", messageKey: "enter-a-last-name" };
   const email = state.email.trim();

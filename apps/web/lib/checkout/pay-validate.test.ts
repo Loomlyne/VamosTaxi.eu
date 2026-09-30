@@ -70,3 +70,60 @@ describe("firstPayError", () => {
     expect(firstPayError({ ...ok, companyOpen: true, companyName: "Vamos AG", companyVat: "CHE-123" })).toBeNull();
   });
 });
+
+describe("firstPayError: 26.5 account rules (section 2)", () => {
+  const out = { signedIn: false, choice: "guest" as const, stage: "form" as const, createConsent: false };
+
+  it("class still wins over the account rules", () => {
+    const s = { ...ok, classChosen: false, account: { ...out, choice: "create" as const } };
+    expect(firstPayError(s)?.field).toBe("class");
+  });
+
+  it("sign in, form stage: names the sign-in step", () => {
+    expect(firstPayError({ ...ok, account: { ...out, choice: "signin" } })).toEqual({
+      field: "account",
+      messageKey: "acctPayBlockSignIn",
+    });
+  });
+
+  it("sign in, sent stage: names the link that was sent", () => {
+    expect(firstPayError({ ...ok, account: { ...out, choice: "signin", stage: "sent" } })).toEqual({
+      field: "accountSent",
+      messageKey: "acctPayBlockSent",
+    });
+  });
+
+  it("sign in beats contact fields (account rules come right after class)", () => {
+    const s = { ...ok, firstName: "", account: { ...out, choice: "signin" as const } };
+    expect(firstPayError(s)?.field).toBe("account");
+  });
+
+  it("create without the Text 1 tick names the tick (D-12)", () => {
+    expect(firstPayError({ ...ok, account: { ...out, choice: "create" } })).toEqual({
+      field: "accountConsent",
+      messageKey: "acctCreateConsentError",
+    });
+  });
+
+  it("create with the tick passes to the contact rules", () => {
+    expect(firstPayError({ ...ok, account: { ...out, choice: "create", createConsent: true } })).toBeNull();
+    expect(
+      firstPayError({ ...ok, firstName: "", account: { ...out, choice: "create", createConsent: true } })?.field,
+    ).toBe("firstName");
+  });
+
+  it("guest never has a consent rule, ticked or not (D-13)", () => {
+    expect(firstPayError({ ...ok, account: { ...out, createConsent: false } })).toBeNull();
+    expect(firstPayError({ ...ok, account: { ...out, createConsent: true } })).toBeNull();
+  });
+
+  it("signed in: no account rule applies, whatever the stale choice state", () => {
+    for (const choice of ["guest", "signin", "create"] as const) {
+      expect(firstPayError({ ...ok, account: { signedIn: true, choice, stage: "sent", createConsent: false } })).toBeNull();
+    }
+  });
+
+  it("absent account state changes nothing", () => {
+    expect(firstPayError(ok)).toBeNull();
+  });
+});
