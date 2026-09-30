@@ -18,6 +18,7 @@
 | 9 | /cookies row vamos:cookie-prefs | Fix name and duration (Recommended) / Leave | Fix name and duration |
 | 10 | Last-updated dates | Only changed pages move (Recommended) / All five | Only changed pages |
 | 11 | /coming-soon banner | Yes (Recommended) / No | Yes |
+| 12 | 26.5 not on main: ship 27 without the sign-up tick, or hold? | Ship without, follow-up (Recommended) / Hold 27 until 26.5 is live | Hold 27 until 26.5 is live |
 
 Not asked, already decided: the three texts (decision file 2026-09-30), the version bump and
 re-ask (Phase 26 D-13, D-14), the banner on the pay link (META-04), phase order.

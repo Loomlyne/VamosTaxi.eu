@@ -145,6 +145,12 @@ Nothing is sent to Meta by this phase.
   The footer "Cookie preferences" on Next pages must only open the sheet; today it silently writes
   an all-off row (`SiteFooter.tsx` `CookiePrefsListener`) — fix.
 
+- **D-34 (owner, 2026-09-30, plan check):** Phase 27 is **held until 26.5 is live**. The /sign-up
+  tick box (D-03a) is built inside Phase 27 and everything ships together; 28 and 29 wait too.
+  Plans that do not need 26.5 may be built on the branch meanwhile; the hand-over (last plan) may
+  not run until the D-03a plan is complete. The D-03a plan is re-planned against 26.5's real code
+  once it is on origin/main.
+
 ### Policy version
 - **D-17:** `CONSENT_POLICY_VERSION` becomes the Zurich date of the day the texts ship (Phase 26
   D-13, D-15). Same string shown as the date on the cookies and privacy pages. The two September
