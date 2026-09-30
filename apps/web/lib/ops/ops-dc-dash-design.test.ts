@@ -427,7 +427,7 @@ describe("2 · phone: compact bar and folded page buttons", () => {
 describe("3 · each driver has his own car", () => {
   function fleet(lang = "en") {
     const on = () => () => undefined;
-    const upsert = vi.fn(async () => ({ ok: true }));
+    const upsert = vi.fn(async (_rec: Record<string, unknown>) => ({ ok: true }));
     const win = {
       VamosOps: {
         onAny: on,
