@@ -123,7 +123,11 @@ describe("cancelBooking answers the RPC's refusal instead of throwing", () => {
 
   it("any other database error → unknown (the route answers JSON, not a bare 500)", async () => {
     asSystem.mockImplementation(beginLike({ queryError: pgError("canceling statement due to statement timeout", "57014") }));
+    const log = vi.spyOn(console, "error").mockImplementation(() => undefined);
     await expect(cancelBooking(env, claims, BOOKING)).resolves.toEqual({ ok: false, code: "unknown" });
+    // The throw used to be the only trace in the Worker log; the unnamed error is logged instead.
+    expect(log).toHaveBeenCalledWith("ops_cancel_sql_failed", BOOKING, "57014", "canceling statement due to statement timeout");
+    log.mockRestore();
   });
 
   it("a clean run still cancels", async () => {
