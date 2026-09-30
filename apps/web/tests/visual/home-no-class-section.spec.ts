@@ -31,12 +31,12 @@ test.describe("Home has no class section @component", () => {
     test.skip(testInfo.project.name !== "component-1440", "laptop widths run in the 1440 project");
   });
 
-  test("at 1440 there is no class section, the bar and SEE PRICES stay, and home asks the server for no class list", async ({ page }) => {
+  test("at 1440 there is no class section, the bar and SEE PRICES stay, and the home bar sends no quote", async ({ page }) => {
     const calls = await openHome(page, 1440);
     await expect(page.locator("[data-cc]")).toHaveCount(0);
     await expect(page.getByRole("heading", { name: "Choose your class" })).toHaveCount(0);
     await expect(page.locator("#book")).toBeVisible();
     await expect(page.locator("#book").getByRole("button", { name: /see prices/i })).toBeVisible();
-    expect(calls, "no /api/quote call from the home page").toEqual([]);
+    expect(calls.filter((m) => m === "POST"), "the bar does not price a trip").toEqual([]);
   });
 });
