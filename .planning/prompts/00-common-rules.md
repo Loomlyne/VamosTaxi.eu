@@ -57,3 +57,11 @@ check:public-env, check:db-fences, i18n:check, seed:check, types:check, build); 
 verified, in plain words; new migrations and whether each is safe on real paid bookings; new
 settings; numbered owner UAT with expected results, the 4242 payment first when checkout is
 touched. Then stop and tell the owner and the control session.
+
+DISK AND LOCAL DATABASES (owner rule, 2026-09-30)
+- One local database stack per session. Stop it when the session is idle.
+- When your job has shipped, your last step is to tell the control session. It removes your
+  folder and your Docker stack the same day, after checking the branch tip is on GitHub. You
+  never remove a folder, a branch or a stash yourself.
+- Do not run the full test set from several agents at once; agents run the tests they touched,
+  the lead runs the full set once.

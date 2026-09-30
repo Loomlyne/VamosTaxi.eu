@@ -229,6 +229,27 @@ Built by the 26.3 session as `fix/26.4.2-booking-feedback` (folder `fix-26.4.2`)
 
 SEO live read: `/`, `/de`, `/fr`, `/ar`, `/de/faq`, `/ar/faq`, `/fr/about` 200 with the right language, title, canonical and hreflang; sitemap 36 addresses; favicon, share picture, manifest 200; the language switch moves the address; checkout follows the language. Three differences from its hand-over went back to the SEO session: the dashboard address still serves the public robots file; language addresses are served uncached; a stored language and the cookie can disagree. Tests in 26.0's folder that expect the old redirect are red until 26.0 updates them.
 
+## Folders on this Mac (read 2026-09-30 14:03, after the clean-up)
+
+Disk free: 11.4 GB before, 34.7 GB after. `vamos-wt` went from 39 GB to 22 GB. Updated at every ship.
+
+| Folder under `vamos-wt/` | Branch | Session | State | Size |
+|---|---|---|---|---|
+| `phase-26.5` | `gsd/phase-26.5-checkout-account` | Vamos Taxi build 26.5 | running; stack `vamos-taxi-265` | 2.6 GB |
+| `phase-26.2` | `gsd/phase-26.2-audit` | Phase 26.2 audit | running | 1.8 GB |
+| `phase-26.2-u02`, `u03a`, `u03b`, `u07`, `u08`, `u09`, `u10`, `u13` | `gsd/phase-26.2-u*` | units of 26.2 | removed after the 26.2 ship, when 26.2 confirms each is merged; `u13` holds the gate scripts | 1.3 GB each |
+| `phase-27` | `gsd/phase-27-consent-record` | Meta measurement phases 27-29 | open, held until 26.5 is live; stack `vamos-taxi-270`; a process runs in it | 2.7 GB |
+| `class-photo-small` | `feat/class-photo-small` | Vamos Taxi 26.4.2 completion | running | 1.3 GB |
+| `site-speed` | `fix/site-speed` | Vamos Taxi SEO and browser settings | running | 0.2 GB |
+| `seo-head-2` | `fix/seo-head-followup` | same | parked behind 26.5 | 1.3 GB |
+| `phase-20` | `gsd/phase-20-security-check` | Vamos Taxi security phase | session not running; slimmed (reinstall needed); stack `vamos-taxi-20` stopped | 0.2 GB |
+| `main-green-2` | `fix/main-green-2` | none (26.0) | idle; slimmed (reinstall needed); stack `vamos-taxi-mg2` stopped | 1.4 GB |
+| `fix-26.3-followups` | `fix/26.3-account-link` | none | shipped; kept because it holds 2 unsaved research files, waits for the owner | 0.2 GB |
+
+Removed on 2026-09-30, branches kept, every tip on GitHub as a branch or an `archive/*` tag: `auth-fix`, `fix-26.3-arrays`, `fix-26.3-manage`, `fix-26.3-newtrip`, `phase-26.0`, `phase-26.1`, `phase-26.3`, `phase-26.4`, `phase-26.4.1`, `legal-pages`, `seo-head`, `fix-26.4.2` (new tag `archive/26.4.2-after-ship-62497c11`), `.claude/worktrees/cool-golick-0a43ce`.
+Docker: stacks `vamos-taxi-263`, `-acct`, `-auth`, `-pga` removed with their volumes; leftover volumes `-260`, `-264`, `-63`, `-mbp` removed. Running: `vamos-taxi` (default), `-265`, `-270`. The `twenty-crm` stack is another product and was not touched.
+Main checkout: build output cleared (the next deploy rebuilds). Left for the owner: `brag-output` 1.3 GB (videos, not in git), `.pnpm-store` 0.9 GB.
+
 ## Owner requests, 2026-09-30 12:55
 
 | # | Request, his words in short | Scope he chose | Goes to | State |
