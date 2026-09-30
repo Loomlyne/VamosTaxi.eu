@@ -101,6 +101,6 @@ Hand-over per part, small.
 | Gate | State |
 |---|---|
 | Discuss (DECISIONS.md) | Answered through the question form, 2026-09-30 |
-| This plan and the order A → D → B → C | **Waiting for his signature** |
+| This plan and the order A → D → B → C | **Signed by the owner, question form, 2026-09-30** ("Signed, order A D B C") |
 | Designs for A4, A5, B1, B2, C1, C3 | After the plan is signed, before code of that part |
 | UAT and Ship per part | His word |
