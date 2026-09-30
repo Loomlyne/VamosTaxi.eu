@@ -33,7 +33,8 @@ describe("staff voucher resend", () => {
     const t = read("app/ops/OpsDetail.dc.html");
     expect(t).toMatch(/\/voucher/);
     expect(t).not.toMatch(/resendVoucher: \(\) => this\.notify/);
-    expect(t).toMatch(/sc-if value="\{\{ dialogOpen \}\}"/);
+    // 260930-dash-design: Assign is the box on the page (no dialog any more).
+    expect(t).toMatch(/sc-if value="\{\{ showAssignPicker \}\}"/);
     expect(t).toMatch(/sc-if value="\{\{ cancelOpen \}\}"/);
     expect(t).toMatch(/chauffeurs\.onChange/);
     expect(t).toMatch(/data-ops-detail-acts/);
