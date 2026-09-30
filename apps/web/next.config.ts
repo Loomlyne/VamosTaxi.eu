@@ -79,7 +79,7 @@ const nextConfig: NextConfig = {
   // real `next build` + two sequential `next start` processes to prove D-28's
   // exclusion against a genuine production artifact — Playwright's `fullyParallel`
   // config runs it alongside every other integration spec that spins up its own
-  // `next dev` (`lenis.spec.ts`, `ssr-locale.spec.ts`, `lang-switch.spec.ts`,
+  // `next dev` (`ssr-locale.spec.ts`, `lang-switch.spec.ts`,
   // `currency.spec.ts`), all of which default to the SAME `apps/web/.next` output
   // directory — a `next build` wiping and regenerating that directory while another
   // worker's `next dev` is mid-compile against it is a real, reproduced conflict

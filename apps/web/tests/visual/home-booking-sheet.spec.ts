@@ -301,7 +301,7 @@ test.describe("Home bar and sheet @component", () => {
     await expect(heroBar(page)).not.toContainText("Fixture Street 1");
   });
 
-  test("the sheet locks scroll, inerts the page, stops Lenis and restores the scroll position @component", async ({ page }) => {
+  test("the sheet locks scroll, inerts the page and restores the scroll position @component", async ({ page }) => {
     test.skip(width(page) > 1080, "tablet and phone only");
     await openHome(page);
     await page.evaluate(() => window.scrollTo(0, 900));
@@ -313,8 +313,6 @@ test.describe("Home bar and sheet @component", () => {
     expect(await page.evaluate(() => getComputedStyle(document.documentElement).overflow)).toBe("hidden");
     expect(await page.evaluate(() => document.body.style.overflow)).toBe("hidden");
     await expect(page.locator("[data-hero]")).toHaveAttribute("inert", "");
-    const lenis = await page.evaluate(() => document.documentElement.classList.contains("lenis"));
-    if (lenis) await expect(page.locator("html")).toHaveClass(/lenis-stopped/);
     await expect(page.locator("[data-bar-dock]")).toHaveAttribute("data-show", "0");
 
     await page.keyboard.press("Escape");
@@ -327,7 +325,7 @@ test.describe("Home bar and sheet @component", () => {
     await expect(page.locator("[data-bar-dock]")).toHaveAttribute("data-show", "1");
   });
 
-  test("after the sheet closes the page scrolls again: Lenis is running and the wheel moves the page @component", async ({ page }) => {
+  test("after the sheet closes the page scrolls again: the lock is released and the wheel moves the page @component", async ({ page }) => {
     test.skip(width(page) > 1080, "tablet and phone only");
     await openHome(page);
     for (const how of ["escape", "close", "back"] as const) {
@@ -339,15 +337,11 @@ test.describe("Home bar and sheet @component", () => {
       await expect(sheet(page)).toHaveCount(0);
       await page.waitForTimeout(300);
       const st = await page.evaluate(() => ({
-        cls: document.documentElement.className,
         de: getComputedStyle(document.documentElement).overflowY,
         body: getComputedStyle(document.body).overflowY,
-        stopped: (window as unknown as { __vtLenis?: { isStopped: boolean } }).__vtLenis?.isStopped ?? null,
       }));
-      expect(st.cls, how).not.toContain("lenis-stopped");
       expect(["visible", "auto", "scroll"], `${how} html ${st.de}`).toContain(st.de);
       expect(["visible", "auto", "scroll"], `${how} body ${st.body}`).toContain(st.body);
-      if (st.stopped !== null) expect(st.stopped, how).toBe(false);
       await page.mouse.move(200, 300);
       await page.mouse.wheel(0, 600);
       await expect.poll(() => page.evaluate(() => window.scrollY), { message: how }).toBeGreaterThan(200);
@@ -369,12 +363,10 @@ test.describe("Home bar and sheet @component", () => {
     await expect(sheet(page)).toHaveCount(0);
     await page.waitForTimeout(400);
     const st = await page.evaluate(() => ({
-      cls: document.documentElement.className,
       de: getComputedStyle(document.documentElement).overflowY,
       body: getComputedStyle(document.body).overflowY,
       inert: document.querySelectorAll("[inert]").length,
     }));
-    expect(st.cls).not.toContain("lenis-stopped");
     expect(["visible", "auto", "scroll"]).toContain(st.de);
     expect(["visible", "auto", "scroll"]).toContain(st.body);
     expect(st.inert).toBe(0);
