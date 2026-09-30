@@ -6,8 +6,8 @@
 // choice. Both halves are asserted directly here rather than assumed from the store's
 // own implementation.
 //
-// Runs against the real Next.js app (`next dev`, spawned in beforeAll), the same
-// dev-server pattern tests/integration/lenis.spec.ts established — the dev-only
+// Runs against the real Next.js app (`next dev`, spawned in beforeAll; one dev server
+// per worker, as in ssr-locale.spec.ts) — the dev-only
 // `window.__vamosMoney` / `window.__vamosSetCurrency` test hooks
 // (apps/web/lib/locale-shim.ts's `LocaleShimBootstrap`) only exist on a hydrated page.
 //

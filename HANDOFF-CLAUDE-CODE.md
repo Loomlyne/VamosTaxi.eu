@@ -21,7 +21,7 @@ the build plan is written. Your job is to turn the mocks into the production pla
    **No Vercel anywhere** — not for hosting, not for preview deploys.
 3. **The hard rules in `CLAUDE.md` are product rules, not style preferences** (§5). No
    glow, no tinted yellow, `CHF 000` until the price matrix lands, `data-tok` stays a
-   labelled TBC pill, four languages in the same pass, Lenis scroll, responsive at four
+   labelled TBC pill, four languages in the same pass, native scrolling, responsive at four
    widths. A PR that breaks one of these is wrong even if it looks fine.
 
 ---
@@ -52,7 +52,7 @@ Notes:
   Moving a file breaks it.
 - **First load needs internet.** `app/support.js` pulls React 18.3.1, ReactDOM and
   `@babel/standalone` from unpkg (SRI-pinned). Everything else — fonts, icons, logos,
-  Lenis, the design-system bundle — is local.
+  the design-system bundle — is local.
 - All state is `localStorage`. Nothing talks to a server. `VamosOps.resetAll()` in the
   console restores ops seed data.
 - Cross-links between `app/home/`, `app/pages/` and `app/ops/` all resolve, so you can
@@ -68,7 +68,7 @@ changes during the build. Anatomy of a `.dc.html`:
   and read them back from `window.__resources`).
 - `<script src="./support.js">` — the small runtime that compiles the page. One copy sits
   in each folder (`app/`, `app/home/`, `app/pages/`, `app/ops/`); they are identical.
-- A `<helmet>` block loading `design-system/styles.css`, `design-system/_ds_bundle.js`, Lenis, then
+- A `<helmet>` block loading `design-system/styles.css`, `design-system/_ds_bundle.js`, then
   `vamos-i18n-dict.js` + `vamos-locale.js`, plus a `:root` override block (this is where
   `--vt-shadow-accent:none` and `.vt-input--focus{box-shadow:none}` live — keep them).
 - The page markup, **styled with inline styles only** plus a few `[data-*]` layout rules.
@@ -84,7 +84,7 @@ changes during the build. Anatomy of a `.dc.html`:
 CLAUDE.md                     project rules — the hard constraints, read in full
 HANDOFF-CLAUDE-CODE.md        this file
 README.md                     repo orientation after the reorganisation
-github.md                     provenance of vendored third-party code (Lucide, Lenis)
+github.md                     provenance of vendored third-party code (Lucide)
 
 app/                          ← THE LIVE MOCKS. This is the spec.
   home/                       home page + its sections and shared shell components
@@ -110,7 +110,6 @@ assets/                       what the pages actually load
   logo/                       9 brand SVGs (wordmark/lockup/mark × primary/reversed/white)
   patterns/                   checker mark + checker tile
   photography/                supplied V-Class photograph (the only clean photo we have)
-  lenis.js / lenis.css / lenis-boot.js   vendored Lenis 1.3.23 (MIT) + house settings
 
 docs/build/                   ← what you build from
   GSD-LAUNCH.md               ← the build plan. Phases 0–9, Goal → Steps → Done when.
@@ -259,12 +258,10 @@ type and gutters, `minmax()`/`auto-fit` grids, `flex-wrap`, `min-width:0` on fle
 holding text. Nothing scrolls sideways at 390. The booking widget stacks first on mobile.
 Touch targets ≥ 44px (54px for booking-widget fields and primary CTAs).
 
-**Lenis owns scrolling, everywhere.** Keep `assets/lenis.js` + `lenis.css` +
-`lenis-boot.js` (or the npm package configured identically: `lerp 0.12`, no bounce,
-`anchors:true`, `allowNestedScroll:true`, native touch, `prefers-reduced-motion` honoured,
-stopped while a sheet locks the body). One instance per page — never a second `Lenis`,
-never re-add `scroll-behavior:smooth`, and put `data-lenis-prevent` on any panel that owns
-its own scroll.
+**Scrolling is native.** No smooth-scroll library and no custom scroller: wheel, trackpad,
+touch and keyboard move the page the way the browser does. In-page jumps call
+`window.scrollTo` (`smooth`, or `auto` under `prefers-reduced-motion`); a panel that owns its
+own scroll uses plain `overflow` plus `overscroll-behavior: contain`.
 
 **Also:** two background colours per page maximum (white and charcoal). The closing CTA is
 a charcoal band, never yellow. One checker mark per surface, flush to a top-right corner.
@@ -393,7 +390,7 @@ up front, driver waiting* — copy and UI must never imply "arriving in 3 minute
 - The four laws hold: no glow, no tinted yellow, `CHF 000`/`data-tok` intact, four
   languages present.
 - Real data through Hyperdrive; no localStorage left except UI preferences.
-- Lenis running, one instance, `data-lenis-prevent` on nested scrollers.
+- Native scrolling only, no smooth-scroll library.
 - Keyboard focus visible everywhere; touch targets ≥ 44px.
 - The matching 🔴 items in `docs/build/MISSING-FEATURES.md` for that surface are closed.
 
@@ -416,5 +413,5 @@ up front, driver waiting* — copy and UI must never imply "arriving in 3 minute
   (§3), components (§4), iconography (§5), pending inputs (§7), the four laws (§8),
   localisation (§9). Read §2 before writing a single line of customer-facing copy.
 - `design-system/components/*/*.prompt.md` — per-component usage rules.
-- `github.md` — provenance of the vendored Lucide icons and Lenis (licences, edits made,
+- `github.md` — provenance of the vendored Lucide icons (licences, edits made,
   how to upgrade).

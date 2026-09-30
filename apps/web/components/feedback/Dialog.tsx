@@ -9,20 +9,13 @@
 // `if (!open) return null` render with no focus management or scroll lock of its own
 // at all (confirmed by reading `function Dialog` directly) — everything below is new,
 // required by this plan's own must_haves ("Focus stays inside an open dialog and
-// returns to the trigger when it closes", "Body scroll and the smooth-scroll instance
-// are both stopped while a dialog is open and both restored when it closes").
+// returns to the trigger when it closes", "Body scroll is locked while a dialog is open
+// and restored when it closes").
 //
-// Scroll lock cooperates with, never fights, apps/web/lib/lenis-provider.tsx: that
-// provider's own `isLocked()` reads the *inline* style of `document.body`/
-// `document.documentElement` (a deliberate fix over a literal computed-style port —
-// see lenis-provider.tsx's header comment for the deadlock it avoids). Setting
-// `document.body.style.overflow = "hidden"` here is exactly the signal its
-// MutationObserver already watches for — the same mechanism the mocks' own
-// `lockScroll()` (app/home/home.dc.html:1549) uses, and the one
-// tests/integration/lenis.spec.ts's "body lock" test already proves stops/restarts
-// the Lenis instance from the provider's side. This file's own
-// tests/integration/feedback-behaviour.spec.ts proves the same cycle from the
-// dialog's side.
+// The scroll lock is a plain inline `document.body.style.overflow = "hidden"` on open,
+// with the prior inline value restored on close: the same mechanism the mocks' own
+// `lockScroll()` (app/home/home.dc.html) uses. tests/integration/feedback-behaviour.spec.ts
+// proves the lock and its release.
 
 import "./Dialog.css";
 import { useEffect, useId, useRef } from "react";
@@ -162,7 +155,6 @@ export function Dialog({
         className={["vt-dialog", `vt-dialog--${size}`, className].filter(Boolean).join(" ")}
         onClick={(e) => e.stopPropagation()}
         onKeyDown={handleKeyDown}
-        data-lenis-prevent
       >
         <div className="vt-dialog__head">
           <div className="vt-dialog__titles">

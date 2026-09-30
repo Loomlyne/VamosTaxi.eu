@@ -189,7 +189,7 @@ describe("Law 03: four languages", () => {
     expect(offenders(DC_26_4.filter((f) => !f.endsWith("OpsPricing.dc.html")), (t) => (t.includes("data-i18n-skip") ? ["data-i18n-skip"] : []))).toEqual([]);
   });
 
-  it("no second Lenis, no scroll-behavior:smooth in the 26.4 DC files", () => {
+  it("no Lenis, no scroll-behavior:smooth in the 26.4 DC files", () => {
     const bad = offenders(DC_26_4, (t) => {
       const hits: string[] = [];
       if (/new\s+Lenis\b/.test(t)) hits.push("new Lenis");

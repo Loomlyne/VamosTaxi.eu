@@ -50,7 +50,6 @@ be there. If nothing else works, the booking funnel — quote, pay, confirmation
 - React 18.3.1 (from unpkg, SRI-pinned in `app/support.js`)
 - ReactDOM 18.3.1 (from unpkg, SRI-pinned)
 - @babel/standalone 7.29.0 (for JSX-to-JS compilation at load time)
-- Lenis 1.3.23 (`assets/lenis.js`, `assets/lenis.css`, `assets/lenis-boot.js`) — smooth scroll runtime
 
 ### Frameworks & Build
 
@@ -257,7 +256,7 @@ be there. If nothing else works, the booking funnel — quote, pay, confirmation
 ### Data Attributes
 
 - Pattern: `data-*` (hyphenated)
-- Examples: `data-bookcard="1"`, `data-upto-wide="1"`, `data-hide-narrow="true"`, `data-fields="1"`, `data-sugroot="1"`, `data-shell="1"`, `data-sheetbody="1"`, `data-sheetonly="1"`, `data-scroll-native` (native scrolling inside region), `data-lenis-prevent` (nested scroller — Lenis skips it), `data-om-label="Flight"` (observer/instrumentation)
+- Examples: `data-bookcard="1"`, `data-upto-wide="1"`, `data-hide-narrow="true"`, `data-fields="1"`, `data-sugroot="1"`, `data-shell="1"`, `data-sheetbody="1"`, `data-sheetonly="1"`, `data-scroll-native` (native scrolling inside region), `data-om-label="Flight"` (observer/instrumentation)
 - **Purpose:** Responsive layout rules hang off these attributes; they are **never class selectors** (CSS classes are design-system only)
 - **Localisation:** `data-vt-no-i18n` (or `translate="no"`) opts a subtree out of translation — the runtime does not read `data-i18n-skip`; `data-vt-legal="<languages>"` marks legal pages with restricted language coverage
 - Pattern: `data-tok`
@@ -331,21 +330,9 @@ be there. If nothing else works, the booking funnel — quote, pay, confirmation
 - Use `[data-vt-no-i18n]` (or `translate="no"`) to opt a subtree out of translation (e.g., a language switcher that labels itself in its own language)
 - Check every new surface in Arabic with `dir="rtl"` before saying done; `VamosLocale.coverage(root)` must return empty
 
-## Lenis Smooth Scrolling
+## Scrolling is native
 
-### Implementation
-
-- Lerp: `0.12` (smooth but responsive)
-- No bounce
-- `anchors: true` (auto-navigate to `#hash` links)
-- `allowNestedScroll: true` (regions can own their scroll)
-- Native touch + keyboard + scrollbar drag
-- `prefers-reduced-motion` honoured globally
-- Put `data-lenis-prevent` on any panel that owns its own scroll (tables, the ops board, code blocks)
-- Lenis skips these regions
-- Construct a second `Lenis()` instance
-- Re-add `scroll-behavior: smooth` anywhere
-- Use `Lenis` for programmatic scrolling instead of `VamosScroll.scrollTo('#anchor', { offset: -96 })` (adjusts for sticky header)
+Scrolling is native. No smooth-scroll library: Lenis and the design system's own scroller were removed on 2026-09-30 because they made scrolling glitch (the design-system scroller restyled the whole page on every scroll event). Wheel, trackpad, touch and keyboard scrolling stay browser-native on every surface; never add Lenis or any scroll-hijacking library, and never write a custom property on `<html>` from a scroll handler. In-page jumps call `window.scrollTo` with `behavior: 'auto'` under `prefers-reduced-motion` and `'smooth'` otherwise, offset -88 for the sticky header; `home.dc.html` keeps its own `html{scroll-behavior:smooth}` (no-preference only). A panel that owns its own scroll uses plain `overflow` plus `overscroll-behavior: contain`.
 
 ## Copy Voice
 
@@ -465,7 +452,6 @@ be there. If nothing else works, the booking funnel — quote, pay, confirmation
 - **Centralized state management** — `VamosLocale` (language/currency), `VamosOps` (collections), `VamosReviews` (published reviews)
 - **localStorage persistence** — mock data survives page reloads; no server calls
 - **Realtime locale dispatch** — `vamos:locale` custom event broadcasts lang/cur changes to all pages in-place (no reload)
-- **Lenis scroll unified** — single global instance owned by `assets/lenis-boot.js`; all pages share it
 - **Inline CSS only** — no CSS-in-JS, no CSS modules; styles live in `<style>` tags and as `var(--vt-*)` tokens
 
 ## Layers
@@ -476,7 +462,7 @@ be there. If nothing else works, the booking funnel — quote, pay, confirmation
 - Depends on: `support.js` (DC runtime), design-system bundle, shared runtimes (vamos-locale, etc.)
 - Used by: Pages import components via `<dc-import>`, production Next.js will port these as React components
 - Purpose: Cross-page state & broadcast layer that survives page transitions without reloading
-- Location: `app/vamos-*.js`, `assets/lenis-boot.js`
+- Location: `app/vamos-*.js`
 - Pattern: Factory function or singleton that exports a public API; listens to custom events + localStorage changes
 - Lifecycle: Loaded once in the `<helmet>` of every page; persists for the lifetime of the tab
 - Purpose: UMD bundle exposing 50+ React components + token values + utilities
@@ -504,7 +490,6 @@ be there. If nothing else works, the booking funnel — quote, pay, confirmation
 - **Signed-in user**: `localStorage.vamosAuthUser` (mock); production uses Supabase Auth cookie
 - **Ops data**: `VamosOps.{collection}` API; reads/writes `localStorage` by collection key; fires `vamos:ops` event on write
 - **Reviews**: `VamosReviews` singleton; reads from localStorage; shared by home + ops
-- **Scroll state**: `assets/lenis-boot.js` owns single Lenis instance; `data-lenis-prevent` on nested scrollers
 
 ## Key Abstractions
 
@@ -541,7 +526,6 @@ be there. If nothing else works, the booking funnel — quote, pay, confirmation
 - **Global scope pollution (by design):** Design-system components live on `window.VamosTaxiDesignSystem_245af1.*`; shared runtimes on `window.Vamos*`
 - **localStorage only:** No server calls; no real database until production; mock data resets via `VamosOps.resetAll()`
 - **No async/await:** All code is ES5-compatible (Babel transpiles in-browser); no Promise chains visible in mocks
-- **Lenis instance singleton:** Multiple Lenis constructors = conflict; `assets/lenis-boot.js` is the sole owner
 - **Custom events for broadcast:** `vamos:locale` + `vamos:ops` + `storage` event (cross-tab); no internal event bus
 - **No circular imports:** Design component imports are acyclic (home → sections → header/footer, pages → header/footer, ops → sidebar → screens); production must preserve this
 - **Inline CSS only:** All styling in `<style>` or `var(--vt-*)`; no external `.css` file per component; exception: design-system bundle includes its own CSS
@@ -588,7 +572,6 @@ be there. If nothing else works, the booking funnel — quote, pay, confirmation
 - `VamosLocale`, `VamosOps`, `VamosReviews` runtimes → API routes + Supabase queries
 - Design-system `.dc.html` components → React components imported from `@/components`
 - Design tokens (CSS custom properties) → same, but now served from Cloudflare edge
-- Lenis → stays, same vendored copy
 - i18n dict → moves to `content_strings` table + admin edit UI (ops Content screen)
 - Ops Realtime → Supabase Realtime subscription on `bookings` table
 - Pricing → Phase 4 `/api/quote` endpoint (Mapbox geocoding + distance matrix + rate lookup)
