@@ -330,12 +330,17 @@ test.describe("Home bar and sheet @component", () => {
     await openHome(page);
     for (const how of ["escape", "close", "back"] as const) {
       await page.evaluate(() => window.scrollTo(0, 0));
+      // home.dc.html scrolls smoothly (native scroll-behavior): let the jump settle before the sheet opens.
+      await page.waitForFunction(() => window.scrollY === 0);
       await openSheet(page);
       if (how === "escape") await page.keyboard.press("Escape");
       else if (how === "close") await sheet(page).locator("[data-bs-head] button").last().click();
       else await page.goBack();
-      await expect(sheet(page)).toHaveCount(0);
-      await page.waitForTimeout(300);
+      await expect(sheet(page), how).toHaveCount(0);
+      // The sheet walks the history back over its own entry when it closes (BookingSheet _flush,
+      // 800 ms fallback); reopening before that popstate lands races it, which has nothing to do
+      // with scrolling, so let it finish.
+      await page.waitForTimeout(900);
       const st = await page.evaluate(() => ({
         de: getComputedStyle(document.documentElement).overflowY,
         body: getComputedStyle(document.body).overflowY,
