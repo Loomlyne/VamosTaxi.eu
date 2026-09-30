@@ -264,3 +264,31 @@ describe("OpsDetail edit form save", () => {
     expect(body.customer).toBe("Ada Example");
   });
 });
+
+describe("OpsFleet chauffeur languages", () => {
+  const src = readDc("OpsFleet.dc.html");
+  // Everything between the script tag and the component class: constants and the copy table.
+  const head = grab(src, /<script type="text\/x-dc" data-dc-script[^>]*>\n([\s\S]*?)\nclass Component extends DCLogic/, "OpsFleet head");
+  const optionsExpr = grab(src, /key:'languages',[^\n]*options:([^,\n]+(?:\([^\n]*?\)\))?), icon:'globe'/, "languages options");
+  const build = new Function(
+    "lang",
+    `${head}\nconst t = T[lang] || T.en;\nreturn ${optionsExpr};`,
+  ) as (lang: string) => { value: string; label: string }[];
+
+  it("the select offers the codes the database stores, so a saved chauffeur's languages show as picked", () => {
+    const stored = "de, fr".split(",").map((s) => s.trim()); // chauffeurs.languages is text[] of ISO codes
+    const values = build("en").map((o) => o.value);
+    for (const code of stored) expect(values).toContain(code);
+    expect(values.sort()).toEqual(["ar", "de", "en", "fr", "it"]);
+  });
+
+  it("labels the languages in en, de, fr and ar", () => {
+    const en = build("en").map((o) => o.label);
+    expect(en).toEqual(["German", "French", "Italian", "English", "Arabic"]);
+    for (const lang of ["de", "fr", "ar"]) {
+      const labels = build(lang).map((o) => o.label);
+      expect(labels.every((l) => typeof l === "string" && l.length > 0), lang).toBe(true);
+      expect(labels, lang).not.toEqual(en);
+    }
+  });
+});

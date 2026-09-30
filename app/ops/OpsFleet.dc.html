@@ -143,7 +143,10 @@ const CSTATUS = {
   off: { tone:'neutral', label:'Off duty' },
   leave: { tone:'outline', label:'On leave' },
 };
-const LANGUAGE_OPTIONS = ['German', 'French', 'Italian', 'English', 'Arabic'].map((l) => ({ value: l, label: l }));
+/* chauffeurs.languages holds ISO codes, so the select's values are the codes (a name as the
+   value never matched a stored row); the label comes from the copy table. */
+const LANGUAGE_CODES = ['de', 'fr', 'it', 'en', 'ar'];
+function languageOptions(t) { return LANGUAGE_CODES.map((code) => ({ value: code, label: t['lang_' + code] || code })); }
 const T = {
   en: {
     vehicles:'Vehicles', chauffeurs:'Chauffeurs',
@@ -165,6 +168,7 @@ const T = {
     delCBody:'The chauffeur leaves the console. Their vehicle stays in the fleet.',
     fClass:'Class', fModel:'Model', fPlate:'Plate', fSeats:'Seats', fBags:'Bags', fYear:'Year', fStatus:'Status', fNote:'Note',
     fName:'Name', fPhone:'Phone', fEmail:'Email', fLicence:'Licence number', fLanguages:'Languages', fVehicle:'Vehicle',
+    lang_de:'German', lang_fr:'French', lang_it:'Italian', lang_en:'English', lang_ar:'Arabic',
     fPhoto:'Photo', clearPhoto:'Remove photo', choosePhoto:'Choose photo',
     fChauffeurs:'Associated with chauffeur',
     hClass:'Sets the price — a class is priced once, on the Pricing screen.',
@@ -202,6 +206,7 @@ const T = {
     delCBody:'Der Chauffeur verlässt die Konsole. Sein Fahrzeug bleibt in der Flotte.',
     fClass:'Klasse', fModel:'Modell', fPlate:'Kennzeichen', fSeats:'Plätze', fBags:'Gepäck', fYear:'Jahr', fStatus:'Status', fNote:'Notiz',
     fName:'Name', fPhone:'Telefon', fEmail:'E-Mail', fLicence:'Ausweisnummer', fLanguages:'Sprachen', fVehicle:'Fahrzeug',
+    lang_de:'Deutsch', lang_fr:'Französisch', lang_it:'Italienisch', lang_en:'Englisch', lang_ar:'Arabisch',
     fPhoto:'Foto', clearPhoto:'Foto entfernen', choosePhoto:'Foto wählen',
     fChauffeurs:'Zugeordnete Chauffeure',
     hClass:'Bestimmt den Preis — eine Klasse wird einmal auf dem Preis-Bildschirm bepreist.',
@@ -239,6 +244,7 @@ const T = {
     delCBody:'Le chauffeur quitte la console. Son véhicule reste dans la flotte.',
     fClass:'Classe', fModel:'Modèle', fPlate:'Plaque', fSeats:'Places', fBags:'Bagages', fYear:'Année', fStatus:'Statut', fNote:'Note',
     fName:'Nom', fPhone:'Téléphone', fEmail:'E-mail', fLicence:'Numéro de permis', fLanguages:'Langues', fVehicle:'Véhicule',
+    lang_de:'Allemand', lang_fr:'Français', lang_it:'Italien', lang_en:'Anglais', lang_ar:'Arabe',
     fPhoto:'Photo', clearPhoto:'Retirer la photo', choosePhoto:'Choisir une photo',
     fChauffeurs:'Associé au chauffeur',
     hClass:'Détermine le tarif — une classe est tarifée une fois, sur l’écran Tarifs.',
@@ -276,6 +282,7 @@ const T = {
     delCBody:'يخرج السائق من لوحة التحكم، وتبقى مركبته في الأسطول.',
     fClass:'الفئة', fModel:'الطراز', fPlate:'اللوحة', fSeats:'المقاعد', fBags:'الحقائب', fYear:'السنة', fStatus:'الحالة', fNote:'ملاحظة',
     fName:'الاسم', fPhone:'الهاتف', fEmail:'البريد الإلكتروني', fLicence:'رقم الرخصة', fLanguages:'اللغات', fVehicle:'المركبة',
+    lang_de:'الألمانية', lang_fr:'الفرنسية', lang_it:'الإيطالية', lang_en:'الإنجليزية', lang_ar:'العربية',
     fPhoto:'الصورة', clearPhoto:'إزالة الصورة', choosePhoto:'اختيار صورة',
     fChauffeurs:'مرتبط بالسائق',
     hClass:'تحدّد السعر — تُسعَّر الفئة مرة واحدة في شاشة الأسعار.',
@@ -400,7 +407,7 @@ class Component extends DCLogic {
       { key:'email', label:t.fEmail, half:true, placeholder:'name@example.com' },
       { key:'licence', label:t.fLicence, editor:'licence', half:true, placeholder:'CH 000 000' },
       { key:'vehicleClassId', label:t.fClass, editor:'select', options:chauffeurClassOptions, icon:'car', hint:t.hChauffeurClass, emptyLabel:t.noClass, half:true, pair:'class-lang' },
-      { key:'languages', label:t.fLanguages, editor:'select', multi:true, options:LANGUAGE_OPTIONS, icon:'globe', half:true, pair:'class-lang' },
+      { key:'languages', label:t.fLanguages, editor:'select', multi:true, options:languageOptions(t), icon:'globe', half:true, pair:'class-lang' },
       { key:'note', label:t.fNote, editor:'area', placeholder:'' },
     ];
 
