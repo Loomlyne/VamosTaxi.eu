@@ -168,3 +168,20 @@ remote branch does not exist yet — `git log origin/gsd/phase-27-consent-record
 5. **Staff invite.** Today the invite link only confirms the address; the new staff member then signs in on /login. With the
    screen it can sign them in straight away. Example: new dispatcher opens the invite, sees "Sign in as sam@…?", lands on the
    set-up step. Change it, or keep invite as it is (confirm only)?
+
+---
+
+## 6. Owner answers (question form, 2026-09-30) — BINDING
+
+| Question | Answer |
+|---|---|
+| The screen (section 3) | **Signed** as drawn, en/de/fr/ar, all widths |
+| Links already in inboxes on release day | **OK** — they show "expired" and "Request a new link" |
+| Dashboard | **Yes, same screen** at `/login/confirm` |
+| Already signed in as someone else | **Say it and switch** ("Continuing signs you out of that account.") |
+
+Session decisions (not put to the owner, reversible):
+- The key that seals the address in the link is derived from the existing e-mail-hook secret with its own label (HKDF), so the owner has no terminal step. A separate secret can replace it later.
+- The staff invite stays confirm-only (no automatic sign-in), as today.
+
+Build waits for Phase 27 on `apps/web/app/api/auth/callback/route.ts` (27 removes the sign-up consent call there; this build must not bring it back). Needs his Ship.
