@@ -458,7 +458,8 @@ test.describe("Home bar and sheet @component", () => {
       if (lang === "ar") expect(tf).toBe("matrix(-1, 0, 0, 1, 0, 0)");
       else expect(tf).toBe("none");
       await pickFrom(page, "Fixture Air", "Fixture Airport");
-      await expect(sheet(page).getByRole("textbox", { name: "Flight number" })).toBeVisible();
+      // by id: the field's accessible name is translated, so an English name only matched before the runtime relabelled it
+      await expect(sheet(page).locator('input[id$="-flight"]')).toBeVisible();
       await nextBtn(page).click();
       await page.waitForTimeout(250);
       expect(await cov("[data-bs]")).toMatchObject({ count: 0, strings: [], attrs: [] });

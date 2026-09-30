@@ -1,42 +1,83 @@
-# Handover: quick 260930-obf (owner booking feedback)
+# Hand-over: quick 260930-obf (26.4.2, owner booking feedback)
 
-Branch `fix/26.4.2-booking-feedback` in `/Users/koss/Developer/vamos-wt/fix-26.4.2`. Not pushed, not deployed. Main has been merged into it. Control session: after the owner signs, land it on main in one commit and deploy.
+Written 2026-09-30 12:35 (+04). Branch `fix/26.4.2-booking-feedback`, folder `/Users/koss/Developer/vamos-wt/fix-26.4.2`.
+Final commit: the one carrying this file (`git log -1`). Folder clean. origin/main `e6e69704` merged (planning files only, no conflict).
+Not pushed, no PR, not deployed. The owner signed everything (below). The control session lands it on main and deploys.
 
-Screenshots for the owner: `/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/3c6c6056-f11d-41a2-8b13-17a758844e5c/scratchpad/sign-*.png` (list in SUMMARY.md).
+## Signatures (OWNER-DECISIONS-2026-09-30.md)
+- Laptop bar (flight before From, list opens upward): signed 2026-09-30 02:50.
+- Class cards with his photos, laptop home and checkout section 1 at every width: signed 2026-09-30 11:50. Pictures `screens/sign2-c-*`, `sign2-d-*`.
+- One-page phone and tablet booking: signed 2026-09-30 11:50. Pictures `screens/sign2-a-*`.
+- Prices in every picture are fixtures (CHF 111/222/333). Never rates.
 
-## Owner UAT (on a staging or local build, control session provides the URL)
+## What changed since the session hand-off (4a3d3393)
+- `6e415f97` Flight-edit challenge bug. `CheckoutForm.tsx`: flightBlur and the PAY re-sign now mount the page challenge when the re-quote answers `turnstile_required`; the solved token re-quotes once with the new flight; any other refusal shows on the flight field. `checkout/layout.tsx` reads the Turnstile site key from `process.env` when the Cloudflare env has none (same as the root layout).
+- `cfab7b34` Photo crop. The owner's uploads are portrait with the car in the lower part. Laptop home card photo is 3:2 (was 16:9); both surfaces use `object-position: 50% 72%` so the whole car shows.
+- Test fix in `home-booking-sheet.spec.ts`: the flight field is found by id, not by its English name (the name is translated; the old locator failed in de/ar when the runtime relabelled first).
 
-Phone (width 390), home page:
+## Checks
+Run on `c2e9ed47`. After it: one test-file locator fix (re-run twice, green), planning files, and a planning-only merge of main. No product file changed after the run.
 
-1. Tap the "Where to?" bar. Expected: one page opens with Where, When and Who. No steps, no Back.
-2. Type "Zurich Air" in From and pick Zurich Airport. Expected: a Flight number field appears above From and your cursor is in it.
-3. Tap SEE PRICES with nothing else filled. Expected: a message names what is missing and the first empty field is focused.
-4. Fill To, tap Date. Expected: the Vamos calendar opens, not the phone's own picker. Pick a day.
-5. Tap Time. Expected: the Vamos hour and minute picker opens, Time sits below Date.
-6. Tap SEE PRICES. Expected: you go to checkout with the trip filled.
+| Check | Result |
+|---|---|
+| typecheck | pass |
+| unit tests (`pnpm test:unit`, web + db + emails) | pass |
+| lint, lint:css | pass |
+| check:numbers, check:legal-claims, check:public-env, check:db-fences | pass |
+| i18n:check | pass |
+| seed:check | pass |
+| build | pass |
+| visual booking-sheet-states | 39 passed |
+| visual home-booking-sheet | 64 passed (twice, after the locator fix; before it 3 of 64 failed on the English-name race) |
+| visual home-booking-box | 14 passed |
+| visual home-laptop-bar | 81 passed |
+| visual home-desktop-fixes | 14 passed |
+| visual home-class-cards | 14 passed |
+| visual checkout-sections | 21 passed |
+| visual checkout-pay-19 | 10 passed. The flight-edit challenge case is green and was red with the old `CheckoutForm.tsx`. New case: a solved challenge makes exactly one re-quote carrying the token. |
+| pgTAP, from-zero replay, types:check | not run. The branch changes nothing under `packages/db`. |
 
-Tablet (width 768): repeat 1 to 6. Expected: same single page.
+Cross-browser, laptop bar at 1081, 1280, 1360, 1440 in WebKit, Firefox and Chromium (Playwright builds): no two fields overlap, the address option is the top element and clickable, focus lands in the flight field, the bar's height and position are the same before and after the flight field appears, no sideways scroll. Boxes equal across engines within 1 px.
 
-Laptop (width 1440):
+`:has()` is used for the laptop bar's flight layout and once in `checkout.css`. Oldest browsers that support it: Safari 15.4 (March 2022), Chrome and Edge 105 (August 2022), Firefox 121 (December 2023). Older browsers: not tested; the bar there keeps the layout without the flight column rule.
 
-7. Look at the bar. Expected: From, To, When, Travellers, SEE PRICES. No flight field.
-8. Type "Zurich Air" in From and pick the airport. Expected: the Flight field slides in to the left of From, the bar does not jump up or down, your cursor is in Flight.
-9. Press Tab repeatedly. Expected: Flight, From, To, When, Travellers, SEE PRICES, in that order.
-10. Scroll the page so the bar sits at the bottom of the window, type in From. Expected: the address list opens upward.
-11. Fill From, To and When. Expected: three cards appear under the bar (Economy, Business, Van luxury) after about one second, with skeletons first, then the prices from the server.
-12. Change the date. Expected: the skeletons return and new prices arrive. Nothing fires while you type.
-13. Click Select on Business. Expected: checkout opens with the trip and Business chosen.
+## Not verified
+- Nothing was seen on live or on a Worker build. Visual tests run the mock and `next dev` with route fixtures.
+- The challenge fix was never seen against real Turnstile; the test uses a stand-in widget.
+- No real payment. The 4242 payment is the owner's first UAT step after deploy.
+- Real Safari and real phones: not tested, only Playwright WebKit and a 390 px viewport.
+- The full visual suite outside the eight files above was not run.
 
-Checkout on a phone (width 390):
+## Class photos: served size (read from vamostaxi.site, 2026-09-30)
+| Class | Bytes | Pixels | Type |
+|---|---|---|---|
+| Economy (saden) | 2,768,149 | 1122 x 1402 | PNG |
+| Business (mercedes-benz-v-class) | 2,339,051 | 1122 x 1402 | PNG |
+| Van luxury | 2,478,165 | 1122 x 1402 | PNG |
 
-14. Open a trip with 5 passengers. Expected: Economy and Business are greyed with "Seats up to 3", Van luxury shows its price and can be picked.
-15. Tap Van luxury. Expected: dark 2 px border and a check.
-16. Tap Edit trip. Expected: the fields are in the order Flight, From, To, When, Travellers.
+Served as uploaded, `cache-control: public, max-age=31536000, immutable`. About 7.6 MB together on the laptop home; `loading="lazy"` with fixed width and height, so no layout shift.
+Owner decision 10: the site serves a smaller version of every class photo. That is a follow-up job, not in this branch. Until it lands the heavy photos show.
 
-Arabic: switch language to Arabic and repeat 2, 8, 9 and 11. Expected: the layout mirrors, Tab order follows the mirrored order, cards read right to left.
+## Migrations and settings
+None. No new setting, no new secret. Dictionary: appended strings only; seed check passes.
 
-## What the control session must know
+## For other sessions
+- 26.0: `checkout-pay-19.spec.ts` changed here. `setup()` mocks `/api/quote/reprice`, the spec's dev server gets Cloudflare's public test site key, one test appended at the end. The `test.fail` on the flight-edit case can go. Main wins a conflict; keep the reprice mock or the case is red on a cold dev server.
+- 26.5: `CheckoutForm.tsx` and `checkout/layout.tsx` changed (see above).
 
-- The `pnpm db:seed:gen` output is committed (dictionary changed).
-- Merge was done as `-s ours` plus main's diff because main squashed the 26.4 phase; a normal merge conflicts in 13 files.
-- Open points are listed under "Not done" in SUMMARY.md.
+## Owner UAT on vamostaxi.site after the deploy
+1. Laptop, home: fill Zurich Airport, flight LX 318, a hotel, a date. Click Select on Business, fill "Who is travelling", PAY, card 4242 4242 4242 4242. Expected: the confirmation page with a VT reference. (The control session then reads `booking_payments`.)
+2. Laptop, home, fresh load. Expected: "Choose your class" is there at once: three cards with your photos, "Fill in the trip to see prices", grey SELECT, no price anywhere.
+3. Click a grey SELECT. Expected: a line names what is missing and the cursor goes to the first empty field.
+4. Type "Zurich Air" in From and pick the airport. Expected: Flight number slides in left of From, the bar does not jump, the cursor is in Flight number.
+5. Fill To and When. Expected: about a second later the three prices appear and SELECT turns black.
+6. Press Tab from Flight number. Expected: Flight number, From, To, When, Travellers, SEE PRICES.
+7. Scroll so the bar sits at the bottom of the window and type in From. Expected: the address list opens upward.
+8. Phone, home: tap "Where to?". Expected: one page: From, To, Date, Time below it, Passengers, Bags, SEE PRICES. No steps.
+9. Pick Zurich Airport in From. Expected: Flight number appears above From with the cursor in it.
+10. Tap Date, then Time. Expected: our calendar and our time list, never the phone's own picker.
+11. Switch to Deutsch, then العربية. Expected: the chosen date reads in that language; in Arabic the page mirrors.
+12. Tap SEE PRICES. Expected: /checkout, step 1 shows the three classes each with its photo beside the name and price.
+13. Tablet: repeat 8 to 12. Expected: the same single page; checkout shows three photo cards in a row.
+14. On /checkout change the flight to LX 999 and tap another field. Expected: the price stays or updates; if a "confirm you are human" box appears above PAY, solve it and the price returns. It never hangs on "Updating price".
+15. Copy the /checkout address into another browser. Expected: the trip and the class, an empty form, no name, e-mail or phone.
