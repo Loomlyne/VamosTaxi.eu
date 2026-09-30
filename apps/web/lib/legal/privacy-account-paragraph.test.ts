@@ -81,14 +81,15 @@ describe("privacy 'Your account' paragraph (D-17)", () => {
     expect(src).not.toContain('PendingSlot label="Your account paragraph"');
   });
 
-  it("manage-booking mock is untouched relative to origin/main", () => {
+  it("manage-booking mock is untouched relative to origin/main (except the three Lenis tags removed on 2026-09-30)", () => {
     let diff = "skip";
     try {
-      diff = execFileSync("git", ["diff", "origin/main", "--", "app/pages/manage-booking.dc.html"], { cwd: repoRoot, encoding: "utf8" });
+      diff = execFileSync("git", ["diff", "-U0", "origin/main", "--", "app/pages/manage-booking.dc.html"], { cwd: repoRoot, encoding: "utf8" });
     } catch {
       console.warn("git unavailable, manage-booking guard skipped");
       return;
     }
-    expect(diff).toBe("");
+    const changed = diff.split("\n").filter((l) => /^[-+]/.test(l) && !/^(---|\+\+\+)/.test(l));
+    expect(changed.filter((l) => !/assets\/lenis/.test(l))).toEqual([]);
   });
 });

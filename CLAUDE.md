@@ -171,17 +171,6 @@ the start and checked at 1440, 1024, 768 and 390 px before it is called done.
 - German strings grow ~30 % and Arabic reverses direction — a layout that only fits
   English is not finished.
 
-## Smooth scrolling is Lenis, everywhere
-Every page loads the vendored Lenis (darkroomengineering/lenis, MIT) from `assets/`:
+## Scrolling is native
+Scrolling is native. No smooth-scroll library: Lenis and the design system's own scroller were removed on 2026-09-30 because they made scrolling glitch (the design-system scroller restyled the whole page on every scroll event). Wheel, trackpad, touch and keyboard scrolling stay browser-native on every surface; never add Lenis or any scroll-hijacking library, and never write a custom property on `<html>` from a scroll handler. In-page jumps call `window.scrollTo` with `behavior: 'auto'` under `prefers-reduced-motion` and `'smooth'` otherwise, offset -88 for the sticky header; `home.dc.html` keeps its own `html{scroll-behavior:smooth}` (no-preference only). A panel that owns its own scroll uses plain `overflow` plus `overscroll-behavior: contain`.
 
-```html
-<link rel="stylesheet" href="../assets/lenis.css">
-<script src="../assets/lenis.js"></script>
-<script src="../assets/lenis-boot.js"></script>
-```
-
-`assets/lenis-boot.js` owns the single instance and the house settings (lerp 0.12, no
-bounce, `anchors:true`, `allowNestedScroll:true`, native touch, `prefers-reduced-motion`
-honoured, and it stops the instance while a sheet locks the body). Never construct a
-second `Lenis`, never re-add `scroll-behavior:smooth`, and put `data-lenis-prevent` on any
-panel that owns its own scroll.

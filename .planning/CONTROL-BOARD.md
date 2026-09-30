@@ -12,10 +12,10 @@ Rewritten short on 2026-09-30 14:25; the long version is in git history (`823022
 | Item | Value |
 |---|---|
 | Site | https://vamostaxi.site and https://dashboard.vamostaxi.site |
-| main = origin/main | `a81e194e` plus planning notes |
-| Worker `vamos` | version `f3f7d929` |
+| main = origin/main | `561d1647` plus planning notes |
+| Worker `vamos` | version `d0c427c2` |
 | Worker `vamos-dashboard` (gateway) | version `58c6e541`, deployed 15:22 by the owner's word; before: `5ea4fe65` |
-| Rollback point | Worker `92504970`, git tag `backup/main-before-bp-queue-6d2ea3a8`; before class cards: Worker `d80e6577`; before speed A: Worker `8adb148c`; before phone home: Worker `d43e467b`; before 26.2: Worker `0d1806ce`; before the Support button: Worker `2d5906ce` (before 26.5: Worker `fe9314d0`, tag `backup/main-before-26.5-e09f90cb`). Guest accounts off without a deploy: `settings.guest_accounts_live = false` |
+| Rollback point | Worker `f3f7d929`, git tag `backup/main-before-native-scroll-af96e59d`; before the queue: Worker `92504970`; before class cards: Worker `d80e6577`; before speed A: Worker `8adb148c`; before phone home: Worker `d43e467b`; before 26.2: Worker `0d1806ce`; before the Support button: Worker `2d5906ce` (before 26.5: Worker `fe9314d0`, tag `backup/main-before-26.5-e09f90cb`). Guest accounts off without a deploy: `settings.guest_accounts_live = false` |
 | Database | migrations up to `20260930210000`, 26.5's `20261001100000` to `130000`, Phase 20's `20261005100000` and `110000`, 26.2's `20261007100000`, all applied and read back. `guest_accounts_live` = true since 14:58 (owner's answer) |
 | Who deploys | the control session, from the owner's Mac. GitHub runs checks, never deploys. |
 
@@ -38,6 +38,7 @@ Rewritten short on 2026-09-30 14:25; the long version is in git history (`823022
 | 09-30 | 15:28 | Site speed A: static files cached, reviews cached 5 min, About photo 4.0 MB to 385 KB | `02c1bd3d` | `d80e6577` |
 | 09-30 | 16:12 | Class cards in layout E on home and checkout; small photo versions (2.77 MB to 0.14 MB); check-script fix | `f7a3528b` | `92504970` |
 | 09-30 | 16:39 | Booking-path queue: 26.2 hand-over 2 (16 bugs), security batch B1, erased-booking pay link; migrations `20261005120000` and `130000` applied and read back | `a81e194e` | `f3f7d929` |
+| 09-30 | 23:26 | Native scrolling: Lenis and the design-system scroll script removed everywhere | `561d1647` | `d0c427c2` |
 
 ## Ship order from here
 
@@ -60,7 +61,8 @@ Owner's order: booking, payments, account, Meta first.
 | 10a | Phase 20 batch B1 (return-route limit, F8, lock-secret 503, ticket reply refused, staff e-mail check, reviews column grants `20261005120000`) | Handed over `75b0aba0`; touches checkout files | Owner's 26.5 test first, then his Ship, then a 4242 payment |
 | 10b | Site speed A | **Live 15:28** (owner said Ship). Live read: scripts and page parts 5 minutes, engine and photos one year, reviews 5 minutes with 5 rows; checkout, account, manage booking, sign-in and the per-visitor APIs stay `private, no-store`. A deploy now reaches a returning visitor within 5 minutes. B (native scrolling) is built on `fix/native-scroll`, hands over after class cards and Phase 27 | |
 | 10c | 26.2 hand-over 2: 16 booking-path bugs, each approved by the owner through the form (mails, dashboard booking edit, New trip, price book, address search, re-price) | Handed over `975c3ab4`; checked green by the control session on main `3b4f86d8` | Owner's 26.5 test first, then his Ship, then a 4242 payment |
-| 10d | Native scrolling (both scroll scripts out) | Built and proved on `fix/native-scroll`. **Owner said in the control chat 16:00: ship after the class cards**; not gated on Phase 27 | Merge main, control check, ship |
+| 10e | Sync prune: the copy step removes stale files under `public/assets` and `public/_ds` (scripts only) | Handed over `615c65bc`; control check green (its tests, sync run, gates) | Owner's Ship, bundled with the next ship question |
+| 10d | Native scrolling | **Live 23:26** (owner's word 16:00). Live read: no Lenis file or global on /faq, the bundle writes no --vt-scroll, page scrolls by script at 390, phone menu locks and releases. Note: the sync script leaves old copies in `apps/web/public/assets`; the control session removed the three Lenis copies by hand before the deploy | Owner: scroll the site on his phone and laptop |
 | 11 | Scroll and speed | Measuring on live | A plan for the owner's signature |
 | 12 | 26.0 main green | No session. 9 of 12 plans done, 35 behind main | Prompt `03-finish-26.0.md` |
 | 13 | 26.2 gate scripts (stricter checks) | On `gsd/phase-26.2-u13` | Last, after 27 to 29 |
@@ -105,6 +107,7 @@ Prompts for sessions: `.planning/prompts/`, shared rules in `00-common-rules.md`
 | 14:22 | Phone menu opens as a full page, not a side panel (shared header, every page) | same | Same |
 | 14:22 | Hero fills the screen; no white strips at the top and bottom of Safari | same | Same |
 | 14:27 | Support e-mail button must open the exact e-mail in the mail app he is signed in to, and his answer must stay in that thread. Today it is a plain new mail to the customer | Security session, `fix/support-open-in-mail` | Owner answered 14:32: always the mail of that ticket's customer, never mixed; mail app automatic for now, admin choice if cheap; build it; **ship when the control session's checks pass** (his word, this job only) |
+| 23:28 | Remove the "Choose your class" section from the laptop home: SEE PRICES already leads to the page that shows the classes | 26.5 session, `fix/home-no-class-section`, first in its queue | His order counts as Ship once the control session's checks pass |
 | 16:30 | The trip distance (km) is not shown on /checkout or anywhere in the booking flow, especially on the phone | 26.5 session, `fix/booking-polish`, prompt `10-booking-polish.md`, hand-over 1 | Pictures, his signature |
 | 16:30 | Four small items, decided by the control session on his word: German "Koffer"; SELECT 54 px; dark band under the phone footer; Safari Back after closing the sheet | same, hand-over 2 | Not started |
 | 16:25 | Signed plans in the 26.2 session: **P4 extras** (a paid extra is a tick box; a CHF 0 extra shows as included; per extra an optional number with a maximum; night, weekend, holiday, waiting and extra stop removed; airport fee stays inside the fare) and **P1 class change on a paid trip** (dearer class only after the difference is paid by an e-mailed pay link, priced with today's price book; cheaper class = Refund due). New decision **P6**: place and time changes on a paid trip get the same treatment | 26.2 session. P4 part A is being built. Order on main: hand-over 2, security B1, erased pay link, P4-A, refunds by hand, P1, P6 | P4-A building; P1 signed, waits; P6 plan after P1 |
@@ -194,7 +197,7 @@ Full texts in `.planning/decisions/`.
 
 | What | State |
 |---|---|
-| Native scrolling (`fix/native-scroll`, last commit after `87ed040c`) | Handed over, owner said ship after the class cards. NOT yet checked in a clean clone, NOT shipped. Next: merge main `a81e194e`, clean-clone gates, squash, deploy, live check (no `/assets/lenis*.js`, /faq scrolls, phone menu) |
+| Native scrolling | Shipped 23:26 |
 | Owner payment after the 16:39 ship | Owed: checkout files changed (intent.ts, return route) |
 | Folders to remove after proof | `phase-20` branches shipped (keep folder: refunds by hand is building there), `native-scroll` after its ship, `main-check` (ask the SEO session) |
 | 26.2 session | Stopped at its usage limit; P4 part A core built on `gsd/26.2-p4-extras` `d72c934d`, not a hand-over. Findings: pgTAP `seed_idempotent` test 33 fails on main again (wants 2696, seed has 2698); the JSON double encoding also affects `stripe_events.payload` (68 live rows), `booking_edit_requests.payload` (an accepted customer time change would apply nothing) and `rate_version_rules.payload` |

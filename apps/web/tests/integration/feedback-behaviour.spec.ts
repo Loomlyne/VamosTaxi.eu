@@ -7,25 +7,15 @@
 //   - focus trap: tabbing repeatedly never lets focus leave the open dialog
 //   - focus restoration: closing the dialog returns focus to the element that
 //     opened it
-//   - the document and the Lenis smooth-scroll instance both stop while the dialog
-//     is open, and both restart once it closes — the same cycle
-//     tests/integration/lenis.spec.ts's own "body lock" test already asserts from
-//     the provider's side; asserting it here too, from the dialog's side, is what
-//     proves the two mechanisms (Dialog.tsx's inline `document.body.style.overflow`
-//     write, apps/web/lib/lenis-provider.tsx's inline-style-reading
-//     MutationObserver) actually meet rather than merely coexist
+//   - the page behind an open dialog is locked (inline `document.body.style.overflow`
+//     is "hidden") and the lock is released once it closes
 //   - the dialog's own tall body scrolls inside itself while the page behind it
-//     does not move — the same nested-scroll methodology
-//     tests/integration/lenis.spec.ts's own "nested scroll" test uses for a
-//     `data-lenis-prevent` region, applied here to `.vt-dialog` itself (the element
-//     Dialog.tsx marks `data-lenis-prevent` on)
+//     does not move
 //   - a toast renders inside a live region, so assistive technology announces it
 //
-// Runs against the real Next.js app (`next dev`, spawned in beforeAll), the same
-// pattern tests/integration/lenis.spec.ts already established — these behaviours
-// depend on the real [locale]/providers.tsx client boundary (the actual
-// LenisProvider instance Dialog's scroll lock cooperates with) and real React
-// effects (Dialog's focus-trap/restoration/scroll-lock useEffect chain), neither of
+// Runs against the real Next.js app (`next dev`, spawned in beforeAll, one dev server
+// per worker, the same pattern as ssr-locale.spec.ts) — these behaviours depend on the
+// real React effects (Dialog's focus-trap/restoration/scroll-lock useEffect chain),
 // which tests/support/mock-harness.ts's static-render rig can exercise — the same
 // "mountPort renders fully static, non-hydrated markup" boundary
 // tests/visual/feedback.spec.ts's own Tooltip note documents.
@@ -52,14 +42,13 @@ let baseURL = "";
 
 test.beforeAll(async ({}, testInfo) => {
   // Only the one project this spec actually runs under spends the cost of a dev
-  // server — same reasoning lenis.spec.ts's own beforeAll documents.
+  // server — the other dev-server specs do the same.
   if (testInfo.project.name !== RUN_PROJECT) return;
 
   testInfo.setTimeout(90_000);
 
-  // Offset from lenis.spec.ts's own 3500-range by 100 so the two specs' dev servers
-  // never contend for the same port even if a worker index is reused across files
-  // within the same run.
+  // A port range of its own, so this spec's dev server never contends with another
+  // spec's even if a worker index is reused across files within the same run.
   const port = 3600 + testInfo.workerIndex;
   baseURL = `http://localhost:${port}`;
   devServer = spawn(NEXT_BIN, ["dev", "-p", String(port)], {
@@ -106,7 +95,7 @@ test.describe("Feedback behaviour @feedback-behaviour", () => {
   // One dev server per worker (Playwright's beforeAll/afterAll are worker-scoped,
   // not suite-scoped) is the whole cost this spec exists to avoid — force every
   // test here into the same worker so exactly one `next dev` process ever gets
-  // spawned, same reasoning lenis.spec.ts's own describe.configure carries.
+  // spawned, the other dev-server specs do the same.
   test.describe.configure({ mode: "serial" });
 
   test("focus trap: tabbing repeatedly never lets focus leave the open dialog", async ({ page }) => {
@@ -144,28 +133,20 @@ test.describe("Feedback behaviour @feedback-behaviour", () => {
     expect(restoredToTrigger).toBe(true);
   });
 
-  test("scroll lock: the document and the Lenis instance both stop while the dialog is open, and both restart once it closes", async ({
+  test("scroll lock: the page behind the dialog is locked while it is open, and released once it closes", async ({
     page,
   }) => {
     await gotoFeedbackGallery(page);
 
-    // The same inline-style signal apps/web/lib/lenis-provider.tsx's own
-    // MutationObserver watches for (Dialog.tsx sets it directly on open) —
-    // asserted here from the dialog's side, meeting the cycle
-    // tests/integration/lenis.spec.ts's own "body lock" test already asserts from
-    // the provider's side.
+    // Dialog.tsx sets the lock inline on open and restores the previous value on close.
     await page.waitForFunction(() => document.body.style.overflow === "hidden");
-    await page.waitForFunction(() => window.__vamosLenisDebug?.().isStopped === true);
     expect(await page.evaluate(() => document.body.style.overflow)).toBe("hidden");
-    expect((await page.evaluate(() => window.__vamosLenisDebug?.()))?.isStopped).toBe(true);
 
     await page.keyboard.press("Escape");
     await page.locator(DIALOG_SELECTOR).waitFor({ state: "hidden" });
 
     await page.waitForFunction(() => document.body.style.overflow === "");
-    await page.waitForFunction(() => window.__vamosLenisDebug?.().isStopped === false);
     expect(await page.evaluate(() => document.body.style.overflow)).toBe("");
-    expect((await page.evaluate(() => window.__vamosLenisDebug?.()))?.isStopped).toBe(false);
   });
 
   test("dialog body: scrolls inside itself while the page behind it does not move", async ({ page }) => {
