@@ -461,6 +461,36 @@ describe("3 · each driver has his own car", () => {
     expect(f.upsert.mock.calls.at(-1)?.[0]).toMatchObject({ defaultVehicleId: null, vehicle: null });
   });
 
+  it("a car of a class the owner named himself reads that name, never the Economy fallback", () => {
+    const data = read("app/vamos-ops-data.js");
+    expect(data).toMatch(/vehicleClassId: str\(v\.vehicleClassId \|\| v\.vehicle_class_id\)/);
+    const own = { id: "cls-own", name: "Van luxury XL" };
+    const car = { id: ECON_CAR, vehicleClassId: "cls-own", klass: "Economy", model: "Sprinter", plate: "ZH 7" };
+    const fl = loadLogic("OpsFleet.dc.html", {
+      VamosOps: {
+        onAny: () => () => undefined,
+        VEHICLE_STATUS: ["service"],
+        VEHICLE_CLASSES: ["Economy"],
+        CLASSES: [own],
+        vehicles: { all: () => [car], blank: () => ({}) },
+        chauffeurs: { all: () => [], blank: () => ({}), upsert: async () => ({ ok: true }) },
+        rates: { all: () => [] },
+        bookings: { all: () => [] },
+      },
+      addEventListener() {},
+      removeEventListener() {},
+    });
+    const opts = fl.renderVals().fields.find((x: { key: string }) => x.key === "defaultVehicleId").options;
+    expect(opts[1].label).toBe("Van luxury XL \u00b7 Sprinter \u00b7 ZH 7");
+    const b = booking();
+    const { win: dw } = detailWindow(b);
+    (dw.VamosOps as Record<string, unknown>).CLASSES = [own];
+    (dw.VamosOps as { chauffeurs: { all: () => unknown[] } }).chauffeurs.all = () => [{ id: MARCO, name: "Marco", defaultVehicleId: ECON_CAR }];
+    (dw.VamosOps as { vehicles: { all: () => unknown[] } }).vehicles.all = () => [car];
+    const d = loadLogic("OpsDetail.dc.html", dw, "en", { id: b.id });
+    expect((d.renderVals().assignRows as { car: string }[])[0]!.car).toBe("Van luxury XL \u00b7 Sprinter \u00b7 ZH 7");
+  });
+
   it("the Assign box: no dialog, the drivers as a radio list with their car under the name, one primary button", () => {
     const tpl = templateOf(readDc("OpsDetail.dc.html"));
     expect(tpl).not.toContain('title="{{ tAssignDriver }}"');

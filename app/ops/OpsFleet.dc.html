@@ -346,10 +346,7 @@ class Component extends DCLogic {
     const vStatusOptions = (ops ? ops.VEHICLE_STATUS : []).map((s) => ({ value: s, label: VSTATUS[s].label }));
     const vehicleOptions = [{ value:'', label: t.none }].concat(vehicles.map((v) => ({ value: v.id, label: vehicleLabel(v) })));
     const chauffeurOptions = chauffeurs.map((c) => ({ value: c.id, label: c.name || c.id }));
-    // 260930-dash-design (owner, 2026-10-01): each driver has his own car. The Car field writes
-    // chauffeurs.default_vehicle_id, the car Assign puts on the trip. Class first, as Assign shows it.
-    const carLabel = (v) => [v.klass, v.model, v.plate].filter(Boolean).join(' \u00b7 ') || v.id;
-    const carOptions = [{ value: '', label: t.noCar }].concat(vehicles.map((v) => ({ value: v.id, label: carLabel(v) })));
+
     const inactiveClass = { economy: 1, business: 1, first: 1, van: 1 };
     const classNameById = {};
     const rememberClass = (id, name) => {
@@ -372,6 +369,11 @@ class Component extends DCLogic {
       chauffeurClassOptions.push({ value: id, label: name });
     });
     chauffeurClassOptions.unshift({ value: '', label: t.noClass });
+    // 260930-dash-design (owner, 2026-10-01): each driver has his own car. The Car field writes
+    // chauffeurs.default_vehicle_id, the car Assign puts on the trip. Class first, as Assign shows
+    // it; a class the owner named reads his name, not the Economy fallback of klass.
+    const carLabel = (v) => [classNameById[v.vehicleClassId] || v.klass, v.model, v.plate].filter(Boolean).join(' \u00b7 ') || v.id;
+    const carOptions = [{ value: '', label: t.noCar }].concat(vehicles.map((v) => ({ value: v.id, label: carLabel(v) })));
     const classLabel = (r) => {
       const saved = String((r && (r.vehicleClassName || r.className || r.vehicle_class_name)) || '').trim();
       if (saved) return saved;

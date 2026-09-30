@@ -366,7 +366,10 @@ function assignableChauffeurs() {
 /* 260930-dash-design: each driver has his own car (chauffeurs.default_vehicle_id). The Assign box
    shows it under the name as "Class · Model · Plate", the order the chauffeur form lists cars in. */
 function carText(v) {
-  return [v && v.klass, v && v.model, v && v.plate].filter(Boolean).join(' \u00b7 ');
+  const classes = (window.VamosOps && window.VamosOps.CLASSES) || [];
+  const own = v && v.vehicleClassId ? classes.filter((c) => c && c.id === v.vehicleClassId)[0] : null;
+  const klass = (own && String(own.name || own.label || '').trim()) || (v && v.klass);
+  return [klass, v && v.model, v && v.plate].filter(Boolean).join(' \u00b7 ');
 }
 function eventTitle(kind, t) {
   if (kind === 'assignment.chauffeur_set') return t.evAssigned;
@@ -739,6 +742,12 @@ class Component extends DCLogic {
     if (window.VamosOps.vehicles) {
       offs.push(window.VamosOps.vehicles.onChange(() => this.forceUpdate()));
       window.VamosOps.vehicles.all();
+    }
+    // 260930-dash-design: the rate book carries the class names the owner typed (VamosOps.CLASSES),
+    // so a car of his own class reads its name under the driver in the Assign box.
+    if (window.VamosOps.rates) {
+      offs.push(window.VamosOps.rates.onChange(() => this.forceUpdate()));
+      window.VamosOps.rates.all();
     }
     // D-16b: refund controls follow the signed-in role from /api/staff/me.
     if (window.VamosOps.profile && typeof window.VamosOps.profile.onChange === 'function') {

@@ -578,6 +578,9 @@
     return {
       id: str(v.id),
       klass: cleanKlass(v.klass),
+      // 260930-dash-design: the class row itself, so a class the owner named reads its own name
+      // (klass falls back to Economy for any slug outside the D-14 three).
+      vehicleClassId: str(v.vehicleClassId || v.vehicle_class_id),
       model: str(v.model), plate: str(v.plate), year: str(v.year),
       seats: num(v.seats, 3), bags: num(v.bags, 3),
       status: VEHICLE_STATUS.indexOf(v.status) === -1 ? "service" : v.status,
