@@ -3723,6 +3723,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      staff_extra_labels_prune: { Args: never; Returns: number }
       staff_set_sign_in_method: {
         Args: { p_method: string }
         Returns: undefined
