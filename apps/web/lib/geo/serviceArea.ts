@@ -321,6 +321,8 @@ export function zurichLocalToUtcMs(scheduledLocal: string): number | null {
   if (month < 1 || month > 12 || day < 1 || day > 31 || hour > 23 || minute > 59 || second > 59) {
     return null;
   }
+  // A day the month does not have (31 February) would roll into the next month.
+  if (day > new Date(Date.UTC(year, month, 0)).getUTCDate()) return null;
   const utcGuess = Date.UTC(year, month - 1, day, hour, minute, second);
   let utc = utcGuess - tzOffsetMs(utcGuess, ZURICH_TZ);
   utc = utcGuess - tzOffsetMs(utc, ZURICH_TZ);

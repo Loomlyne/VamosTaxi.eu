@@ -79,7 +79,7 @@ export async function GET(request: Request) {
   // validated one — short q is an empty list, not an error. Do not
   // rememberSession here: a one-character 200 must not unlock /retrieve
   // (AM-03). The session is recorded only after a real suggest attempt below.
-  if (parsed.data.q.length < 2) {
+  if (parsed.data.q.trim().length < 2) {
     return Response.json({ ok: true, suggestions: [] }, { headers: GEO_JSON });
   }
 
