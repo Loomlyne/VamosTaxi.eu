@@ -1,0 +1,213 @@
+// SCRATCH — sign-off pictures and cross-browser pass for 26.4.2. Not committed. Real class photos (owner uploads, copied from live), FIXTURE prices.
+import { test, expect, webkit, firefox, chromium, type Page, type Route } from "@playwright/test";
+import { spawn, type ChildProcess } from "node:child_process";
+import { readFileSync, appendFileSync } from "node:fs";
+import { serveMock, waitForMockReady } from "../support/mock-harness";
+import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
+
+const OUT = "/Users/koss/Developer/vamos-wt/fix-26.4.2/.planning/quick/260930-obf-owner-booking-feedback/screens";
+const PHD = "/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/ad41034b-ec01-4105-ac1e-1eb887753ff0/scratchpad/ph";
+const XB = "/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/ad41034b-ec01-4105-ac1e-1eb887753ff0/scratchpad/xb.jsonl";
+const CLS = [
+  { slug: "economy", name: "Economy", pax: 3, bags: 3, t: 11100 },
+  { slug: "business", name: "Business", pax: 7, bags: 6, t: 22200 },
+  { slug: "van-luxury", name: "Van luxury", pax: 12, bags: 9, t: 33300 },
+];
+const PLACES = [
+  { mapbox_id: "mb-air-1", name: "Zurich Airport", address: "8058 Kloten", is_airport: true },
+  { mapbox_id: "mb-street-1", name: "Hotel Baur au Lac", address: "Talstrasse 1 · 8001", is_airport: false },
+];
+async function photos(page: Page) {
+  await page.route("**/photos/classes/**", (route) => {
+    const slug = new URL(route.request().url()).pathname.split("/")[3]!;
+    route.fulfill({ status: 200, contentType: "image/png", body: readFileSync(`${PHD}/${slug}.png`) });
+  });
+}
+function cls(priced: boolean) {
+  return CLS.map((c) => ({ slug: c.slug, name: c.name, eligible: true, ineligible_reason: null, effective_max_pax: c.pax, max_bags: c.bags, fixed_route: false, total_rappen: priced ? c.t : null, lines: [], photo_url: `/photos/classes/${c.slug}/x.png` }));
+}
+async function geo(page: Page) {
+  await page.route("**/api/geo/suggest**", async (route) => {
+    const q = (new URL(route.request().url()).searchParams.get("q") ?? "").toLowerCase();
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ suggestions: PLACES.filter((s) => s.name.toLowerCase().includes(q)) }) });
+  });
+  await page.route("**/api/geo/retrieve**", async (route) => {
+    const id = new URL(route.request().url()).searchParams.get("mapbox_id");
+    const hit = PLACES.find((s) => s.mapbox_id === id);
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, place: hit ? { mapbox_id: id, name: hit.name, isAirport: hit.is_airport } : null }) });
+  });
+  await page.route("**/api/flight/**", (r) => r.fulfill({ status: 200, contentType: "application/json", body: '{"ok":false}' }));
+  await page.route("**/checkout?**", (route) => route.fulfill({ status: 200, contentType: "text/html", body: "<html><body>checkout</body></html>" }));
+  await page.route("**/api/quote", async (route: Route) => {
+    if (route.request().method() === "GET") return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, classes: cls(false), fixed_routes: [] }) });
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, quote_id: "q", lock: "l", expires_at: "2099-01-01T00:00:00Z", pricing_live: true, display_currency: "CHF", classes: cls(true) }) });
+  });
+}
+async function home(page: Page, w: number, h = 900) {
+  await page.setViewportSize({ width: w, height: h });
+  await photos(page); await geo(page);
+  await page.goto(await serveMock("app/home/home.dc.html"));
+  await waitForMockReady(page);
+  const a = page.getByRole("button", { name: /Accept all/i });
+  if (await a.isVisible().catch(() => false)) await a.click();
+}
+async function settle(page: Page) {
+  await page.waitForFunction(() => [...document.images].every((i) => i.complete), null, { timeout: 20000 });
+  await page.waitForTimeout(600);
+}
+async function fillBar(page: Page) {
+  await page.getByRole("combobox", { name: "From", exact: true }).fill("Zurich Air");
+  await page.getByRole("option").filter({ hasText: "8058 Kloten" }).first().click();
+  await page.getByRole("textbox", { name: "Flight number" }).fill("LX318");
+  await page.getByRole("combobox", { name: "To", exact: true }).fill("Baur");
+  await page.getByRole("option").filter({ hasText: "Talstrasse 1 · 8001" }).first().click();
+  await page.locator('[data-bx="when"] button[aria-haspopup="dialog"]').click();
+  const d = page.getByRole("dialog", { name: "When" });
+  await d.getByRole("button", { name: "Next month" }).click();
+  await d.getByRole("button", { name: "5", exact: true }).click();
+  const saved = d.getByRole("button", { name: "Saved" });
+  if (await saved.isVisible().catch(() => false)) await saved.click();
+  await page.keyboard.press("Escape");
+}
+
+test.describe("sign obf @component", () => {
+  test.beforeEach(async ({}, ti) => { test.skip(ti.project.name !== "component-1440"); test.setTimeout(240_000); });
+
+  test("home laptop class cards", async ({ page }) => {
+    await home(page, 1440);
+    await expect(page.locator("[data-cc-card]:not([data-skel])")).toHaveCount(3, { timeout: 8000 });
+    await page.locator("[data-cc]").scrollIntoViewIfNeeded();
+    await settle(page);
+    await page.screenshot({ path: `${OUT}/sign2-c-home-1440-from-load.png` });
+    await page.locator("[data-cc]").screenshot({ path: `${OUT}/sign2-c-home-1440-classes-before-trip.png` });
+    await fillBar(page);
+    await expect(page.locator("[data-cc-card]").first().locator("[data-cc-price]:not([data-cc-need])")).toBeVisible({ timeout: 8000 });
+    await settle(page);
+    await page.screenshot({ path: `${OUT}/sign2-c-home-1440-trip-filled.png` });
+    await page.locator("[data-cc]").screenshot({ path: `${OUT}/sign2-c-home-1440-classes-priced.png` });
+    await page.evaluate(() => (window as any).VamosLocale.setLang("ar"));
+    await page.waitForTimeout(500);
+    await page.locator("[data-cc]").screenshot({ path: `${OUT}/sign2-c-home-1440-classes-priced-ar.png` });
+  });
+
+  for (const w of [390, 768]) {
+    test(`phone page ${w}`, async ({ page }) => {
+      await home(page, w, w === 390 ? 844 : 1024);
+      await page.locator("[data-bar-wrap] [data-bb]").click();
+      const sh = page.locator("[data-bs]");
+      await expect(sh).toBeVisible();
+      await page.waitForTimeout(400);
+      await page.screenshot({ path: `${OUT}/sign2-a-page-${w}-empty.png` });
+      await sh.locator('input[id$="-from"]').fill("Zurich Air");
+      await sh.locator('[id$="-list-from"] [role="option"]').filter({ hasText: "8058 Kloten" }).first().click();
+      await sh.getByRole("textbox", { name: "Flight number" }).fill("LX318");
+      await sh.locator('input[id$="-to"]').fill("Baur");
+      await sh.locator('[id$="-list-to"] [role="option"]').filter({ hasText: "Talstrasse 1 · 8001" }).first().click();
+      await sh.locator("[data-bs-date] button[aria-haspopup]").click();
+      const cal = page.getByRole("dialog", { name: "Date" });
+      await cal.getByRole("button", { name: "Next month" }).click();
+      await page.waitForTimeout(300);
+      await page.screenshot({ path: `${OUT}/sign2-a-page-${w}-date-picker.png` });
+      await cal.getByRole("button", { name: "5", exact: true }).click();
+      await sh.locator("[data-bs-time] button[aria-haspopup]").click();
+      await page.waitForTimeout(300);
+      await page.screenshot({ path: `${OUT}/sign2-a-page-${w}-time-picker.png` });
+      await page.keyboard.press("Escape");
+      await page.setViewportSize({ width: w, height: 1300 });
+      await page.waitForTimeout(400);
+      await page.screenshot({ path: `${OUT}/sign2-a-page-${w}-filled.png` });
+      for (const l of ["de", "ar"]) {
+        await page.evaluate((x) => (window as any).VamosLocale.setLang(x), l);
+        await page.waitForTimeout(500);
+        await page.screenshot({ path: `${OUT}/sign2-a-page-${w}-filled-${l}.png` });
+      }
+    });
+  }
+});
+
+// ── WebKit and Firefox at the four laptop widths ────────────────────────────────────────
+for (const browserName of ["webkit", "firefox", "chromium"] as const) {
+  test.describe(`xb ${browserName} @component`, () => {
+    for (const w of [1081, 1280, 1360, 1440]) {
+      test(`laptop bar ${browserName} ${w}`, async ({}, ti) => {
+        test.skip(ti.project.name !== "component-1440");
+        test.setTimeout(120_000);
+        const br = await { webkit, firefox, chromium }[browserName].launch();
+        const page = await br.newPage();
+        try {
+        await home(page, w);
+        const rects = () => page.evaluate(() => {
+          const o: Record<string, number[]> = {};
+          document.querySelectorAll<HTMLElement>("#book [data-bx]").forEach((e) => { const r = e.getBoundingClientRect(); if (r.width) o[e.getAttribute("data-bx")!] = [Math.round(r.left), Math.round(r.top), Math.round(r.right), Math.round(r.bottom)]; });
+          const b = document.querySelector("#book")!.getBoundingClientRect();
+          return { o, bar: [Math.round(b.left), Math.round(b.top), Math.round(b.width), Math.round(b.height)], sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth };
+        });
+        const before = await rects();
+        const from = page.getByRole("combobox", { name: "From", exact: true });
+        await from.fill("Zurich Air");
+        const opt = page.getByRole("option").filter({ hasText: "8058 Kloten" }).first();
+        await expect(opt).toBeVisible();
+        const ob = (await opt.boundingBox())!;
+        const topEl = await page.evaluate(([x, y]) => !!document.elementFromPoint(x!, y!)?.closest('[role="option"]'), [ob.x + ob.width / 2, ob.y + ob.height / 2]);
+        await opt.click();
+        const flight = page.getByRole("textbox", { name: "Flight number" });
+        await expect(flight).toBeVisible();
+        await page.waitForTimeout(400);
+        const focused = await flight.evaluate((e) => e === document.activeElement);
+        const after = await rects();
+        const names = ["flight", "from", "to", "when", "trav", "cta"].filter((n) => after.o[n]);
+        const row = names.map((n) => after.o[n]!);
+        let overlap = 0;
+        for (let i = 0; i < row.length; i++) for (let j = i + 1; j < row.length; j++) {
+          const a = row[i]!, b = row[j]!;
+          const ox = Math.min(a[2]!, b[2]!) - Math.max(a[0]!, b[0]!), oy = Math.min(a[3]!, b[3]!) - Math.max(a[1]!, b[1]!);
+          if (ox > 1 && oy > 1) overlap++;
+        }
+        const sameRow = row.every((r) => Math.abs(r[1]! - row[0]![1]!) <= 1);
+        const order = sameRow ? row.every((r, i) => i === 0 || r[0]! >= row[i - 1]![2]! - 1) : null;
+        const rec = { browser: browserName, w, overlap, listOptionOnTop: topEl, flightFocused: focused, flightBeforeFrom: after.o.flight && after.o.from ? after.o.flight[0]! < after.o.from[0]! || after.o.flight[1]! < after.o.from[1]! : null, sameRow, orderLTR: order, barHeightBefore: before.bar[3], barHeightAfter: after.bar[3], barTopBefore: before.bar[1], barTopAfter: after.bar[1], sideways: after.sw > after.cw, rects: after.o };
+        appendFileSync(XB, JSON.stringify(rec) + "\n");
+        expect(overlap).toBe(0);
+        expect(topEl).toBe(true);
+        expect(after.sw).toBeLessThanOrEqual(after.cw);
+        } finally { await br.close(); }
+      });
+    }
+  });
+}
+
+// ── checkout section 1 ────────────────────────────────────────────────────────────────
+let dev: ChildProcess | null = null;
+let base = "";
+test.describe("sign obf checkout @checkout", () => {
+  test.describe.configure({ mode: "serial" });
+  test.beforeAll(async ({}, ti) => {
+    if (ti.project.name !== "component-1440") return;
+    ti.setTimeout(200_000);
+    base = "http://127.0.0.1:4377";
+    dev = spawn(NEXT_BIN, ["dev", "-p", "4377"], { cwd: WEB_ROOT, stdio: "ignore", detached: true, env: { ...process.env, NODE_ENV: "development", TEST_DIST_DIR: ".next-sign-obf" } });
+    await waitForNextServer(base, 180_000);
+  });
+  test.afterAll(() => { if (dev?.pid) try { process.kill(-dev.pid, "SIGTERM"); } catch {} });
+  test("checkout classes", async ({ page }, ti) => {
+    test.skip(ti.project.name !== "component-1440");
+    test.setTimeout(400_000);
+    await photos(page);
+    await page.route((u) => u.hostname.includes("cloudflare") || u.hostname.includes("turnstile"), (r) => r.abort());
+    await page.route("**/api/quote/reprice", (r) => r.fulfill({ status: 409, contentType: "application/json", body: '{"ok":false,"error":"quote_expired"}' }));
+    await page.route("**/api/quote", (r) => r.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, quote_id: "22222222-2222-4222-8222-222222222222", lock: "v1.l", expires_at: new Date(Date.now() + 1800000).toISOString(), pricing_live: true, classes: cls(true) }) }));
+    await page.route("**/api/checkout/extras", (r) => r.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, extras: [], vat_rate_bps: 810 }) }));
+    await page.route("**/api/checkout/price", (r) => { const b = JSON.parse(r.request().postData() ?? "{}"); const t = CLS.find((c) => c.slug === b.vehicle_class)!.t; r.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, lines: [{ kind: "fare", code: "distance_fare", i18n_key: "price.line.transfer", params: {}, amount_rappen: t }], net_rappen: t, vat_rappen: 0, charged_rappen: t }) }); });
+    await page.route("**/api/checkout/me", (r) => r.fulfill({ status: 200, contentType: "application/json", body: '{"signed_in":false}' }));
+    await page.route("**/api/checkout/resume**", (r) => r.fulfill({ status: 200, contentType: "application/json", body: '{"state":"none"}' }));
+    const q = "from=Zurich%20Airport&fid=dXJuOm1ieHBvaTox&to=Hotel%20Baur%20au%20Lac&tid=dXJuOm1ieHBvaTox2&gs=11111111-1111-4111-8111-111111111111&when=2026-12-15T08:15&pax=2&bags=3&flight=LX318&class=business";
+    for (const w of [390, 768, 1440]) {
+      await page.setViewportSize({ width: w, height: w === 390 ? 844 : 1000 });
+      await page.goto(`${base}/checkout?${q}`);
+      await expect(page.locator("[data-co-classes]")).toBeVisible({ timeout: 90_000 });
+      await settle(page);
+      await page.locator('[data-co-section="1"]').screenshot({ path: `${OUT}/sign2-d-checkout-${w}-classes.png` });
+      await page.screenshot({ path: `${OUT}/sign2-d-checkout-${w}-page.png` });
+    }
+  });
+});

@@ -1,109 +1,51 @@
 # Session hand-off — quick 260930-obf (26.4.2, owner booking feedback)
 
-Written 2026-09-30 ~03:00 by the orchestrating session. The owner moved this work to a new session. Plain facts. "not verified" = not checked.
+Written 2026-09-30 by the "26.4.2 completion" session. Replaces the 03:00 hand-off. "not verified" = not checked.
 
-## Branch
-- Folder: `/Users/koss/Developer/vamos-wt/fix-26.4.2`
-- Branch: `fix/26.4.2-booking-feedback`. Cut from ccf74454. Last code commit is `62345fef`; the hand-off commit comes after it (see `git log -1`).
-- Last main merge: a8411a40 (origin/main 520176c0).
-  - origin/main is now 76b53ca8 and is NOT merged. Merge it before hand-over; main wins.
-  - The earlier merge was recorded as a real merge commit, with main's diff applied on top. Main had squashed 26.4 and 26.4.1, which gave 13 add/add conflicts.
-- Not pushed, no PR, not deployed. Only the control session ships.
+## Prompt for the new session
 
-## Built and proven (checks on commit 6c6f6f4a / b5f7234f, after the main merge)
-- A. Phone and tablet (<1081): the 4-step sheet is ONE page.
-  - Order: Flight (only after a Swiss-airport From) → From → To → When (date, then time below, both through the Vamos WhenPicker) → Who → one SEE PRICES.
-- B. Laptop bar order: Flight → From → To → When → Travellers.
-  - Flight slides in before From after an airport pick. From moves 0 px, and focus moves into Flight.
-  - A non-airport From shows an optional "Add a flight number" button.
-  - The address list opens upward when there is no room below.
-  - Tab order equals the visual order, en + ar (test `00d9f71d`).
-- Cross-browser: Chromium, Firefox and WebKit at 1081/1280/1360/1440. No overlap, list clickable, engines within 1 px.
-  - Raw results: `/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/3c6c6056-f11d-41a2-8b13-17a758844e5c/scratchpad/xb-keep.jsonl`. That is a temp folder; it may be gone.
-- Class cards (first version, prices after the bar is filled) and quote trigger: see SUMMARY.md.
-- Bug fixed: every class price was grey (`6c6f6f4a`).
-- Checks passed on b5f7234f:
-  - typecheck
-  - unit tests (247 files / 2465 tests)
-  - lint (0 errors)
-  - lint:css
-  - seed gen/check
-  - visual specs, run one file at a time with `--workers=2`:
-    - booking-sheet-states 39
-    - home-booking-sheet 55
-    - home-booking-box 14
-    - home-laptop-bar 78
-    - home-desktop-fixes 14
-    - home-class-cards 12
-    - checkout-sections 21
-  - de/fr/ar coverage empty.
+You are a Vamos Taxi work session, not the control session.
+Repo `/Users/koss/Developer/VamosTaxi.eu` (main). This job's folder: `/Users/koss/Developer/vamos-wt/fix-26.4.2`, branch `fix/26.4.2-booking-feedback`.
+Never: push main, open a PR, deploy, change a row on Supabase `yaumjzvylngfjhtuffqs`, invent a price or legal copy, use the stash. The owner signs discuss, design, plan and UAT. Every choice goes to him through the question form.
+Read first: `.planning/prompts/00-common-rules.md` on main, `CLAUDE.local.md`, `.planning/CONTROL-BOARD.md`, then this file and `HANDOVER.md` beside it.
+26.4.2 is finished and live. Do not rebuild it. Your work is only what "What to do next" lists, and only when the owner or the control session asks.
 
-## Built after the last full check. Checks NOT re-run: not verified
-- `4c8f8f20`: the When date is written in the active language (de/fr/ar) and follows a language switch.
-- `e8e8f144`: laptop "Choose your class" is visible from page load.
-  - Catalog comes from an idle GET /api/quote: name, seats, bags, dashboard `photo_url` only.
-  - Before the bar is filled: "Fill in the trip to see prices", no price, SELECT is aria-disabled, and a click names what is missing.
-  - Loading shows a skeleton on the price only.
-  - No photo, or a failed photo, shows a Lucide car on grey-100 at the same height.
-- `62345fef`: checkout section-1 class cards carry the class photo (phone, tablet, laptop). The photo comes only from the quote's `photo_url`. img has width/height, lazy, async, and alt = class name.
-- The executor was stopped mid-step ("JS side of cc"). The step it was on is unknown and may be half done: not verified.
-  - Re-run every check above on the tip before anything else.
-  - Read `git show 62345fef e8e8f144` for what landed.
+## Where things stand
 
-## Not started
-- **Open bug: CheckoutForm flightBlur challenge.** From the control session; confirmed in code on main and on this branch; not seen on live.
-  - Where: `apps/web/app/[locale]/checkout/CheckoutForm.tsx` flightBlur (~548-563).
-  - A flight edit re-signs via `flow.resignFlight`. When the re-quote answers `turnstile_required`, the result is kind "error" with `challenge`. flightBlur only handles `kind==="error" && !challenge`, so no `[data-co-page-challenge]` mounts and the price stays on "Updating price".
-  - Fix: mount the page challenge; after it is solved, re-sign once; otherwise show an error with a way forward.
-  - The 26.0 test `checkout-pay-19` (flight-edit case) is KNOWN-RED under D-09 at 482fa0d6, on the 26.0 branch. It must go green. Tell the 26.0 session when this lands.
-- Tests for the photo rules: no layout shift when the photo loads (card box measured before/after), and the car empty state keeps the height. Whether e8e8f144/62345fef include these: not verified.
-- Served size (bytes, pixels) of the three live class photos, for the hand-over. Not measured.
-- Fresh signing screenshots of the current tip.
-- Merge origin/main 76b53ca8, then a final check run on the final commit.
+- **Live.** 26.4.2 shipped 2026-09-30 12:22 by the control session: main `37ba5b62`, Worker `59c18372`, rollback `a55b2c19` (control board, ship order row 1).
+- Branch tip with product code: `58eb48c7`. The control session ran its own full check of it in a clean clone before shipping.
+- Done in this session, with proof:
+  - Flight-edit challenge bug (`6e415f97`): `checkout-pay-19` 10 of 10 green; the flight-edit case was red with the old `CheckoutForm.tsx`; a new case proves one re-quote with the solved token.
+  - Class photo crop (`cfab7b34`): laptop home photo 3:2, `object-position: 50% 72%` on both surfaces.
+  - Checks on `c2e9ed47`: typecheck, unit, lint, lint:css, check:numbers, check:legal-claims, check:public-env, check:db-fences, i18n:check, seed:check, build, eight visual files. Table in `HANDOVER.md`.
+  - WebKit, Firefox, Chromium at 1081, 1280, 1360, 1440: raw results in `scratch/xb-results.jsonl`.
+- Signed by the owner: laptop bar (02:50), class cards and the one-page phone sheet (11:50). Pictures `screens/sign2-*.png`.
+- Not verified by this session: anything on live, real Turnstile, a payment, real Safari or a real phone.
 
-## Owner decisions (source: OWNER-DECISIONS-2026-09-30.md)
-1. Field order everywhere (laptop, phone/tablet, checkout Edit trip): Flight → From → To → When → Travellers. Flight is hidden until From is a Swiss airport, then slides in BEFORE From. Required for an airport pickup.
-2. Phone/tablet booking is one page, not 4 steps.
-3. When: date and time stacked, using the Vamos picker (like desktop), never the native one.
-4. Laptop address list opens upward when there is no room below. The bar stays where it is.
-5. Laptop home "Choose your class" is visible from page load, with a photo on each card. It is selectable only once From, To and When are filled.
-6. No price before the bar is filled: no CHF figure, no "from" price, nothing that looks like a price. Prices come only from the server quote. The quote fires once per trip, debounced, respecting 4/min.
-7. Class photos: only the owner's dashboard upload (`vehicle_classes.photo_path` via /photos/…). Never assets/photography/class-*.jpg, stock or generated pictures, or another class's photo.
-   - No photo: Lucide car on a neutral surface, same height.
-   - Fixed ratio, width/height set, lazy below the fold, alt text = class name in 4 languages.
-8. Phone: classes live on /checkout section 1, with photos.
-9. Date in four languages (Law 03).
-10. Pasted checkout link: trip + class + extras only, empty form (26.5 D-16/D-16a).
+## Owner decisions (OWNER-DECISIONS-2026-09-30.md, items 8 to 10)
 
-## Signatures
-- Signed: laptop bar (flight before From, list opens upward). Picture: `screens/sign-b-*.png`.
-- NOT signed: class cards (laptop home + checkout), which he asked to change (photos, visible from load); and the phone/tablet one-page sheet (not objected to, not signed). Show both again from the current tip.
+- Class cards: signed. One-page phone and tablet booking: signed.
+- Photo weight: the site serves a smaller version of every class photo. Follow-up job, on the control board, not started, not assigned.
 
-## Pictures
-`screens/` in this folder (copies of the scratchpad `sign-*.png`, taken 02:31–02:33):
-- Current: `sign-b-bar-1440-empty.png`, `sign-b-bar-1440-airport.png` and `sign-b-list-up-1440.png` (the signed laptop bar).
-- Superseded:
-  - `sign-a-*` (the date was still English; the layout is otherwise current).
-  - `sign-c-*` and `sign-d-*` (no photos, no always-visible state).
-- Prices in pictures are fixtures (CHF 111/222/333, checkout 216.20 = fixture × 1.081). Never real.
+## What to do next
 
-## Local database
-- 26.4.2 visual tests mock the network (`page.route`). This task used no local Supabase stack as far as known: not verified.
-- Stacks running at 03:00 belong to other sessions; do not use them: `vamos-taxi-mg2` (58321/58322/58324) and `vamos-taxi-auth` (57322).
+1. Nothing in this branch. It is on main; the folder is a tidy-up candidate, on the owner's word only.
+2. Owed by the owner: the 15 UAT steps in `HANDOVER.md`, the 4242 payment first. Then the control session reads `booking_payments`.
+3. If asked to build "site serves smaller class photos": it is a new job, a new branch from origin/main, design signed first. Facts: the three photos are PNG, 1122 x 1402, 2.3 to 2.8 MB, served from `/photos/classes/...` with a one-year immutable cache. Cloudflare is on Workers Free (no paid image resizing assumed: ask). Open question for him: make the small version at upload in the dashboard, or on the fly.
+4. Tell the 26.0 session if it has not merged main yet: `checkout-pay-19.spec.ts` now mocks `/api/quote/reprice` and its `test.fail` on the flight-edit case must go.
 
-## Live facts read (read-only, 2026-09-30)
-- Active classes and their dashboard photo_path (all PNG):
-  - saden = Economy `classes/34ac8983…/0975620a….png`
-  - mercedes-benz-v-class = Business `classes/7f4a6dd2…/458aece6….png`
-  - van-luxury = Van luxury `classes/66f5fbcd…/64c03f0d….png`
-- Inactive rows (mahaha, economy, business, first, van) also have photos. Never show inactive classes.
+## How to work
 
-## Known broken / flaky / worth knowing
-- The mock's built-in demo places (e.g. "Zurich, Bahnhofstrasse 1") carry no Mapbox id, so they get no quote and no prices. Whether live shows that list: not verified.
-- The previous executor stalled twice (600 s watchdog) on long Playwright runs. Run one spec file at a time, `--workers=2 --timeout=60000 --reporter=line`, piped to a log, and tail it.
-- `app/pages/manage-booking.dc.html` belongs to the legal follow-up session. Do not touch it.
-- `app/vamos-i18n-dict.js`, the message files, the seed and `privacy.dc.html` are shared with the legal and Meta (27–29) sessions. Edit them append-only, keep the "Legal pages from vamostaxi.eu" block intact, and regenerate the seed (`pnpm db:seed:gen` / `pnpm db:seed:check`); never hand-edit it.
-- Twin tests need `node scripts/sync-dc-mock-to-public.mjs` first.
-- There is no staging. After the owner signs, the control session ships to vamostaxi.site; the owner's UAT (HANDOVER.md) runs on live. After deploy: one 4242 test payment, then read booking_payments.
-- HANDOVER.md still points at the scratchpad pictures and predates the photo and date commits. Update it.
-- For the owner, not this job: the served mock pages carry no hreflang links (found by 26.0).
+- Visual specs: `node scripts/sync-dc-mock-to-public.mjs` first, then one file at a time from `apps/web`: `npx playwright test tests/visual/<file>.spec.ts --workers=2 --timeout=60000 --reporter=line`, output to a log, sandbox off. `checkout-sections` takes about 11 minutes.
+- `next dev` inside a spec rewrites `apps/web/tsconfig.json` and `next-env.d.ts`. Restore both with `git checkout --` before committing.
+- `/private/tmp` is emptied when the Mac restarts. Keep pictures and raw results in the repo.
+- Signing pictures: copy `scratch/zz-sign-obf.spec.ts.txt` to `apps/web/tests/visual/zz-sign-obf.spec.ts`, fix the three paths at the top (OUT, PHD, XB), download the three class photos into PHD as `economy.png`, `business.png`, `van-luxury.png`, run with `--project=component-1440 --workers=1`, then remove the spec. It also holds the three-engine laptop bar pass.
+- The home mock's own demo places carry no Mapbox id and get no quote. In fixtures pick the stub option by its address text, not by name.
+- A field's accessible name is translated by the locale runtime. In de/fr/ar tests find fields by id, not by the English name.
+- The Read tool's hook timed out several times on PNG files around 04:15; a retry later worked.
+
+## Open small items
+
+- The challenge text and widget after a flight edit were never seen with real Turnstile.
+- `:has()` fallback on browsers older than Safari 15.4, Chrome 105, Firefox 121: not tested.
+- Old pictures `screens/sign-a-*`, `sign-c-*`, `sign-d-*` are superseded by `sign2-*`; left in place.
