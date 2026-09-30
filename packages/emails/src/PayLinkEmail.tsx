@@ -24,6 +24,7 @@ import type { EmailExtraLine, EmailLocale, PayLinkForEmail } from "./lib/types";
 import { extraNames } from "./lib/extras";
 import { paxBagsLine, t } from "./lib/t";
 import { formatPaidTotal } from "./ConfirmationEmail";
+import { formatPickup } from "./lib/pickup-time";
 import {
   BODY_FONT,
   CHARCOAL,
@@ -87,22 +88,6 @@ function stripPhone(templateKey: string, locale: EmailLocale): string {
   return t(locale, templateKey, { phone: "" }).replace(/\s+/g, " ").trim();
 }
 
-/** `scheduledLocal` is already a Zurich wall clock, not a UTC instant. */
-export function formatPickup(iso: string, locale: EmailLocale): string {
-  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(iso.trim());
-  if (!m) return iso;
-  const dt = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]), Number(m[4]), Number(m[5])));
-  if (Number.isNaN(dt.getTime())) return iso;
-  const tag = locale === "ar" ? "ar" : locale === "de" ? "de-CH" : locale === "fr" ? "fr-CH" : "en-GB";
-  const date = new Intl.DateTimeFormat(tag, {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    timeZone: "UTC",
-  }).format(dt);
-  return `${date} · ${m[4]}:${m[5]}`;
-}
 
 function Pip({ fill }: { fill: string }) {
   return <Text style={{ margin: 0, fontSize: "10px", lineHeight: "14px", color: fill }}>●</Text>;
@@ -394,3 +379,5 @@ export function payLinkPlainText(link: PayLinkForEmail): string {
 export function payLinkSubject(link: PayLinkForEmail): string {
   return t(link.locale, "payLink.subject", { reference: link.reference });
 }
+
+export { formatPickup };

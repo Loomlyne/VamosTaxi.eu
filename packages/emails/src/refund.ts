@@ -63,8 +63,10 @@ const COPY: Record<EmailLocale, Copy> = {
 
 const FOOTER = "+41 79 626 70 82";
 
+// One pass with a function replacer: a name or reference is never read as a `$&` pattern
+// and is never searched again for the other placeholder.
 function fill(template: string, data: RefundEmailData): string {
-  return template.replaceAll("{name}", data.name).replaceAll("{reference}", data.reference);
+  return template.replace(/\{(name|reference)\}/g, (_match, key: "name" | "reference") => data[key]);
 }
 
 export function renderRefundEmail(locale: EmailLocale, kind: RefundKind, data: RefundEmailData) {

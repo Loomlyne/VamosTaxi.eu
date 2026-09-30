@@ -169,7 +169,7 @@ const T = {
     fClass:'Class', fModel:'Model', fPlate:'Plate', fSeats:'Seats', fBags:'Bags', fYear:'Year', fStatus:'Status', fNote:'Note',
     fName:'Name', fPhone:'Phone', fEmail:'Email', fLicence:'Licence number', fLanguages:'Languages', fVehicle:'Vehicle',
     lang_de:'German', lang_fr:'French', lang_it:'Italian', lang_en:'English', lang_ar:'Arabic',
-    fPhoto:'Photo', clearPhoto:'Remove photo', choosePhoto:'Choose photo',
+    fPhoto:'Photo', choosePhoto:'Choose photo',
     fChauffeurs:'Associated with chauffeur',
     hClass:'Sets the price — a class is priced once, on the Pricing screen.',
     hPlate:'As it reads on the plate.', hVehicle:'The vehicle this chauffeur drives.', hChauffeurClass:'The class this chauffeur has.',
@@ -184,6 +184,7 @@ const T = {
     saveFailed:'Save failed. Try again.',
     offRoadStay:'This vehicle is off the road. Upcoming assigned trips stay on the board — they are not cancelled. Fix them on Needs attention.',
     backChauffeurs:'All chauffeurs',
+    fCar:'Car', noCar:'No car', noCarYet:'No car yet', hCar:'The car this driver drives. Assign puts it on the trip.',
     statusOff:'Off duty', statusLeave:'On leave',
   },
   de: {
@@ -207,7 +208,7 @@ const T = {
     fClass:'Klasse', fModel:'Modell', fPlate:'Kennzeichen', fSeats:'Plätze', fBags:'Gepäck', fYear:'Jahr', fStatus:'Status', fNote:'Notiz',
     fName:'Name', fPhone:'Telefon', fEmail:'E-Mail', fLicence:'Ausweisnummer', fLanguages:'Sprachen', fVehicle:'Fahrzeug',
     lang_de:'Deutsch', lang_fr:'Französisch', lang_it:'Italienisch', lang_en:'Englisch', lang_ar:'Arabisch',
-    fPhoto:'Foto', clearPhoto:'Foto entfernen', choosePhoto:'Foto wählen',
+    fPhoto:'Foto', choosePhoto:'Foto wählen',
     fChauffeurs:'Zugeordnete Chauffeure',
     hClass:'Bestimmt den Preis — eine Klasse wird einmal auf dem Preis-Bildschirm bepreist.',
     hPlate:'So, wie es auf dem Kennzeichen steht.', hVehicle:'Das Fahrzeug, das dieser Chauffeur fährt.', hChauffeurClass:'Die Klasse, die dieser Chauffeur hat.',
@@ -222,6 +223,7 @@ const T = {
     saveFailed:'Speichern fehlgeschlagen. Bitte erneut versuchen.',
     offRoadStay:'Dieses Fahrzeug ist nicht auf der Strasse. Zugewiesene kommende Fahrten bleiben auf dem Board — sie werden nicht storniert. Beheben unter Needs attention.',
     backChauffeurs:'Alle Chauffeure',
+    fCar:'Auto', noCar:'Kein Auto', noCarYet:'Noch kein Auto', hCar:'Das Auto, das dieser Fahrer fährt. Beim Zuweisen kommt es auf die Fahrt.',
     statusOff:'Außer Dienst', statusLeave:'Abwesend',
   },
   fr: {
@@ -245,7 +247,7 @@ const T = {
     fClass:'Classe', fModel:'Modèle', fPlate:'Plaque', fSeats:'Places', fBags:'Bagages', fYear:'Année', fStatus:'Statut', fNote:'Note',
     fName:'Nom', fPhone:'Téléphone', fEmail:'E-mail', fLicence:'Numéro de permis', fLanguages:'Langues', fVehicle:'Véhicule',
     lang_de:'Allemand', lang_fr:'Français', lang_it:'Italien', lang_en:'Anglais', lang_ar:'Arabe',
-    fPhoto:'Photo', clearPhoto:'Retirer la photo', choosePhoto:'Choisir une photo',
+    fPhoto:'Photo', choosePhoto:'Choisir une photo',
     fChauffeurs:'Associé au chauffeur',
     hClass:'Détermine le tarif — une classe est tarifée une fois, sur l’écran Tarifs.',
     hPlate:'Tel qu’il figure sur la plaque.', hVehicle:'Le véhicule que ce chauffeur conduit.', hChauffeurClass:'La classe de ce chauffeur.',
@@ -260,6 +262,7 @@ const T = {
     saveFailed:'Enregistrement impossible. Réessayez.',
     offRoadStay:'Ce véhicule n’est plus en service. Les courses assignées à venir restent au tableau — elles ne sont pas annulées. Corrigez-les sous Needs attention.',
     backChauffeurs:'Tous les chauffeurs',
+    fCar:'Voiture', noCar:'Aucune voiture', noCarYet:'Pas encore de voiture', hCar:'La voiture que conduit ce chauffeur. L’attribution la met sur la course.',
     statusOff:'Hors service', statusLeave:'Absent',
   },
   ar: {
@@ -283,7 +286,7 @@ const T = {
     fClass:'الفئة', fModel:'الطراز', fPlate:'اللوحة', fSeats:'المقاعد', fBags:'الحقائب', fYear:'السنة', fStatus:'الحالة', fNote:'ملاحظة',
     fName:'الاسم', fPhone:'الهاتف', fEmail:'البريد الإلكتروني', fLicence:'رقم الرخصة', fLanguages:'اللغات', fVehicle:'المركبة',
     lang_de:'الألمانية', lang_fr:'الفرنسية', lang_it:'الإيطالية', lang_en:'الإنجليزية', lang_ar:'العربية',
-    fPhoto:'الصورة', clearPhoto:'إزالة الصورة', choosePhoto:'اختيار صورة',
+    fPhoto:'الصورة', choosePhoto:'اختيار صورة',
     fChauffeurs:'مرتبط بالسائق',
     hClass:'تحدّد السعر — تُسعَّر الفئة مرة واحدة في شاشة الأسعار.',
     hPlate:'كما هو مكتوب على اللوحة.', hVehicle:'المركبة التي يقودها هذا السائق.', hChauffeurClass:'الفئة التي يملكها هذا السائق.',
@@ -298,6 +301,7 @@ const T = {
     saveFailed:'فشل الحفظ. حاول مرة أخرى.',
     offRoadStay:'هذه المركبة خارج الخدمة. الرحلات المسندة القادمة تبقى على اللوحة — لا تُلغى. عالجها في Needs attention.',
     backChauffeurs:'كل السائقين',
+    fCar:'السيارة', noCar:'بلا سيارة', noCarYet:'لا سيارة بعد', hCar:'السيارة التي يقودها هذا السائق. عند الإسناد تُسجَّل على الرحلة.',
     statusOff:'خارج الدورية', statusLeave:'في إجازة',
   },
 };
@@ -342,7 +346,7 @@ class Component extends DCLogic {
     const vStatusOptions = (ops ? ops.VEHICLE_STATUS : []).map((s) => ({ value: s, label: VSTATUS[s].label }));
     const vehicleOptions = [{ value:'', label: t.none }].concat(vehicles.map((v) => ({ value: v.id, label: vehicleLabel(v) })));
     const chauffeurOptions = chauffeurs.map((c) => ({ value: c.id, label: c.name || c.id }));
-    const inactiveClass = { economy: 1, business: 1, first: 1, van: 1 };
+
     const classNameById = {};
     const rememberClass = (id, name) => {
       const key = String(id || '').trim();
@@ -351,24 +355,22 @@ class Component extends DCLogic {
       classNameById[key] = label;
     };
     ((ops && ops.CLASSES) || []).forEach((c) => rememberClass(c && c.id, c && (c.name || c.label)));
-    const chauffeurClassOptions = [];
     const rates = (ops && ops.rates) ? ops.rates.all() : [];
     rates.forEach((r) => {
       if (!r || r.available !== true) return;
       const id = String(r.vehicleClassId || '').trim();
-      const name = String(r.name || classNameById[id] || '').trim();
-      rememberClass(id, name);
-      // Legacy inactive rows are recognised by slug, not name: the live classes are named Economy / Business (D-14).
-      if (!id || !name || inactiveClass[String(r.vehicleClassSlug || '').trim().toLowerCase()]) return;
-      if (chauffeurClassOptions.some((o) => o.value === id)) return;
-      chauffeurClassOptions.push({ value: id, label: name });
+      rememberClass(id, String(r.name || classNameById[id] || '').trim());
     });
-    chauffeurClassOptions.unshift({ value: '', label: t.noClass });
-    const classLabel = (r) => {
-      const saved = String((r && (r.vehicleClassName || r.className || r.vehicle_class_name)) || '').trim();
-      if (saved) return saved;
-      const id = String((r && (r.vehicleClassId || r.vehicle_class_id)) || '').trim();
-      return id && classNameById[id] ? classNameById[id] : '';
+    // 260930-dash-design (owner, 2026-10-01): each driver has his own car. The Car field writes
+    // chauffeurs.default_vehicle_id, the car Assign puts on the trip. Class first, as Assign shows
+    // it; a class the owner named reads his name, not the Economy fallback of klass.
+    const carLabel = (v) => [classNameById[v.vehicleClassId] || v.klass, v.model, v.plate].filter(Boolean).join(' \u00b7 ') || v.id;
+    const carOptions = [{ value: '', label: t.noCar }].concat(vehicles.map((v) => ({ value: v.id, label: carLabel(v) })));
+    // Signed 2026-10-01: a driver's class is his car's class. The chauffeurs.vehicle_class_id column
+    // is kept (no migration) but nothing here reads or writes it any more. No car: ''.
+    const carClassOf = (r) => {
+      const car = vehicleById[String((r && (r.defaultVehicleId || r.vehicle)) || '')];
+      return car ? String(classNameById[car.vehicleClassId] || car.klass || '').trim() : '';
     };
 
     const chauffeurColumns = [
@@ -381,14 +383,14 @@ class Component extends DCLogic {
         }, r.name || r.fullName || r.full_name || r.id),
         (r.phone || r.phoneNumber) ? React.createElement('span', { style:{ fontSize:'var(--vt-body-xs)', color:'var(--vt-text-muted)' } }, r.phone || r.phoneNumber) : null,
       ) },
-      { key:'vehicleClassName', header:t.fClass, width:'190px', kind:'need', emptyLabel:t.noClass,
-        lookup:(r) => classLabel(r) },
+      { key:'carClassName', header:t.fClass, width:'190px', kind:'need', emptyLabel:t.noCarYet,
+        lookup:(r) => carClassOf(r) },
       { key:'licence', header:t.colLicence, width:'140px', kind:'mono',
         lookup:(r) => String((r && (r.licence || r.licenceNumber || r.licence_number)) || '').trim() },
     ];
 
     const vehicleFields = [
-      { key:'photo', label:t.fPhoto, editor:'photo', photoKind:'vehicle', upload:'/api/photos/upload', clearLabel:t.clearPhoto, chooseLabel:t.choosePhoto, hint:t.hPhoto },
+      { key:'photo', label:t.fPhoto, editor:'photo', photoKind:'vehicle', upload:'/api/photos/upload', chooseLabel:t.choosePhoto, hint:t.hPhoto },
       { key:'klass', label:t.fClass, editor:'select', options:classOptions, icon:'car', half:true, hint:t.hClass, required:true },
       { key:'model', label:t.fModel, half:true, placeholder:'Sedan or similar' },
       { key:'plate', label:t.fPlate, half:true, placeholder:'ZH 000 000', required:true },
@@ -401,13 +403,13 @@ class Component extends DCLogic {
       { key:'note', label:t.fNote, editor:'area', placeholder:'' },
     ];
     const chauffeurFields = [
-      { key:'photo', label:t.fPhoto, editor:'photo', photoKind:'chauffeur', upload:'/api/photos/upload', clearLabel:t.clearPhoto, chooseLabel:t.choosePhoto, hint:t.hPhoto },
+      { key:'photo', label:t.fPhoto, editor:'photo', photoKind:'chauffeur', upload:'/api/photos/upload', chooseLabel:t.choosePhoto, hint:t.hPhoto },
       { key:'name', label:t.fName, half:true, required:true },
       { key:'phone', label:t.fPhone, editor:'phone', half:true, placeholder:'+41 00 000 00 00' },
       { key:'email', label:t.fEmail, half:true, placeholder:'name@example.com' },
       { key:'licence', label:t.fLicence, editor:'licence', half:true, placeholder:'CH 000 000' },
-      { key:'vehicleClassId', label:t.fClass, editor:'select', options:chauffeurClassOptions, icon:'car', hint:t.hChauffeurClass, emptyLabel:t.noClass, half:true, pair:'class-lang' },
-      { key:'languages', label:t.fLanguages, editor:'select', multi:true, options:languageOptions(t), icon:'globe', half:true, pair:'class-lang' },
+      { key:'defaultVehicleId', label:t.fCar, editor:'select', options:carOptions, icon:'car', hint:t.hCar, emptyLabel:t.noCar },
+      { key:'languages', label:t.fLanguages, editor:'select', multi:true, options:languageOptions(t), icon:'globe' },
       { key:'note', label:t.fNote, editor:'area', placeholder:'' },
     ];
 
@@ -433,7 +435,7 @@ class Component extends DCLogic {
     };
     const liveTrips = !detail ? [] : bookings.filter((b) => !ended[b.status] && matchesChauffeur(b)).map(tripHref);
     const pastBookings = !detail ? [] : bookings.filter((b) => ended[b.status] && matchesChauffeur(b)).map(tripHref);
-    const className = detail ? classLabel(detail) : '';
+    const className = detail ? carClassOf(detail) : '';
     const profileName = detail ? (detail.name || '—') : '';
     const profilePhone = detail ? (detail.phone || '—') : '';
     const initials = String((detail && detail.name) || '').trim().split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w.charAt(0)).join('').toUpperCase() || '—';
@@ -441,7 +443,7 @@ class Component extends DCLogic {
     const photoSrc = (!photoRaw || photoRaw.indexOf('data:') === 0) ? '' : (photoRaw.charAt(0) === '/' ? photoRaw : '/photos/' + photoRaw);
     const profileFacts = !detail ? [] : [
       { icon:'mail', label:t.fEmail, value: detail.email || '—', dir: detail.email ? 'ltr' : 'auto' },
-      { icon:'car', label:t.fClass, value: className || t.noClass, dir: className ? 'ltr' : 'auto' },
+      { icon:'car', label:t.fClass, value: className || t.noCarYet, dir: className ? 'ltr' : 'auto' },
       { icon:'shield-check', label:t.fLicence, value: detail.licence || '—', dir: detail.licence ? 'ltr' : 'auto' },
       { icon:'globe', label:t.fLanguages, value: detail.languages || '—', dir:'auto' },
     ];
@@ -500,7 +502,7 @@ class Component extends DCLogic {
         { label:t.cntOnShift, value:String(onShift), of:'/ ' + chauffeurs.length, icon:'clock', foot:t.footShift },
         { label:t.cntWithVehicle, value:String(paired), of:'/ ' + chauffeurs.length, icon:'car', foot:t.footPaired },
       ],
-      rows: chauffeurs,
+      rows: chauffeurs.map((c) => Object.assign({}, c, { carClassName: carClassOf(c) })),
       columns: chauffeurColumns,
       fields: chauffeurFields,
       blank: () => (store ? store.blank() : {}),
@@ -522,13 +524,14 @@ class Component extends DCLogic {
           });
           return out;
         };
-        const classId = uuidOrNull(rec.vehicleClassId);
-        const keptVehicle = uuidOrNull(rec.defaultVehicleId);
+        const classId = uuidOrNull(rec.vehicleClassId); // only to tell a legacy "vehicle" that held a class id
+        // The Car field is the truth once the form carries it: "No car" clears the car even though
+        // the record still holds the old one under the legacy "vehicle" key.
         const legacyVehicle = uuidOrNull(rec.vehicle);
-        const vehicleId = keptVehicle || (legacyVehicle && legacyVehicle !== classId ? legacyVehicle : null);
+        const vehicleId = Object.prototype.hasOwnProperty.call(rec, 'defaultVehicleId')
+          ? uuidOrNull(rec.defaultVehicleId)
+          : (legacyVehicle && legacyVehicle !== classId ? legacyVehicle : null);
         const payload = Object.assign({}, rec, {
-          vehicleClassId: classId,
-          vehicleClassName: (classId && classNameById[classId]) || rec.vehicleClassName || '',
           vehicle: vehicleId,
           defaultVehicleId: vehicleId,
           languages: langCodes(rec.languages),
@@ -536,6 +539,11 @@ class Component extends DCLogic {
           shiftStart: rec.shiftStart || rec.start || null,
           shiftEnd: rec.shiftEnd || rec.end || null,
         });
+        // Signed 2026-10-01: the form has no Class; send none, so the server keeps the stored column.
+        delete payload.vehicleClassId;
+        delete payload.vehicleClassName;
+        delete payload.className;
+        delete payload.carClassName;
         return store.upsert(payload).then((json) => {
           if (!json || json.ok !== true) {
             const reason = (json && (json.message || json.error || json.detail)) || t.saveFailed;
@@ -557,7 +565,7 @@ class Component extends DCLogic {
       labelKey: 'name',
       addLabel: t.addChauffeur,
       searchPlaceholder: t.searchChauffeurs,
-      searchKeys: ['name','phone','email','licence','languages','vehicleClassName'],
+      searchKeys: ['name','phone','email','licence','languages','carClassName'],
       emptyTitle: t.emptyCTitle,
       emptyBody: t.emptyCBody,
       deleteBody: t.delCBody,

@@ -8,10 +8,15 @@ import { test, expect } from "@playwright/test";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { WEB_ROOT } from "../support/server-harness";
+import { stubConsentChosen } from "../support/consent-state";
 
 const REPO = join(WEB_ROOT, "..", "..");
 
 test.describe("checkout step URLs @checkout-steps", () => {
+  test.beforeEach(async ({ page }) => {
+    await stubConsentChosen(page);
+  });
+
   test("the three old step routes forward to the one page and are not DC mocks", () => {
     for (const step of ["trip", "details", "payment"]) {
       const file = join(WEB_ROOT, `app/[locale]/checkout/${step}/page.tsx`);

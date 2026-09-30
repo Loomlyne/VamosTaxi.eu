@@ -227,49 +227,14 @@ type StepResult = StepOk | StepFail;
 
 const passGuard: InjectedGuard = () => ({ ok: true });
 
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
 function extrasToRecord(
   extras: ExtrasInput | QuoteLockPayload["extras"] | undefined,
 ): Record<string, number> {
   const out: Record<string, number> = {};
   if (!extras) return out;
-  if (typeof extras.extra_stops === "number") out.extra_stops = extras.extra_stops;
   if (typeof extras.child_seats === "number") out.child_seats = extras.child_seats;
   if (extras.oversized_luggage === true) out.oversized_luggage = 1;
   return out;
-}
-
-/**
- * D-18 / D-56: a count without waypoints is a LEGAL payload the mock's own
- * checkout produces. When waypoints ARE sent, length must equal extra_stops
- * or 422 extras_max_stops. Extra-stop money is the D-11 distance recipe on
- * the new path (D-37), not amount_rappen × extra_stops.
- */
-function extraStopsWaypointMismatch(body: unknown): boolean {
-  if (!isPlainObject(body)) return false;
-  const extras = body.extras;
-  if (!isPlainObject(extras)) return false;
-  if (!("waypoints" in extras) || extras.waypoints === undefined) return false;
-  if (!Array.isArray(extras.waypoints)) return false;
-  const stops = typeof extras.extra_stops === "number" ? extras.extra_stops : 0;
-  return extras.waypoints.length !== stops;
-}
-
-function waypointsChanged(
-  lock: QuoteLockPayload,
-  extras: ExtrasInput | undefined,
-): boolean {
-  if (!extras || extras.waypoints === undefined) return false;
-  const previous =
-    lock.extras?.waypoints ?? lock.legs[0]?.waypoints ?? [];
-  if (extras.waypoints.length !== previous.length) return true;
-  return extras.waypoints.some((w, i) => {
-    const prev = previous[i];
-    return !prev || prev.lng !== w.lng || prev.lat !== w.lat;
-  });
 }
 
 async function coordsAllowed(deps: QuotePipelineDeps): Promise<boolean> {
@@ -396,7 +361,6 @@ function toQuoteInput(
         origin_place: origin.text,
         dest_place: dest.text,
         road: routedLeg.road !== false,
-        waypoints: i === 0 ? (request.extras?.waypoints ?? []) : [],
         // D-08b/D-10: server-resolved boundary facts — never accepted from the
         // client body (schema.ts forbids origin_city_id/is_airport/etc).
         flight_no: leg.flight_no ?? null,
@@ -418,7 +382,6 @@ function inputFromLock(
   extras: ExtrasInput | undefined,
   coupon: string | null,
   computedAt: string,
-  routed: QuoteRouteLeg[] | null,
 ): QuoteInput {
   return {
     mode: lock.mode,
@@ -426,25 +389,19 @@ function inputFromLock(
     bags: lock.bags,
     display_currency: lock.display_currency,
     computed_at: computedAt,
-    legs: lock.legs.map((leg, i) => {
-      const live = routed?.[i];
+    legs: lock.legs.map((leg) => {
       return {
         leg_seq: leg.leg_seq,
         scheduled_local: leg.scheduled_local,
-        distance_m: live?.distance_m ?? leg.distance_m,
-        duration_s: live?.duration_s ?? leg.duration_s,
-        origin_zone_id: live?.origin_zone_id ?? leg.origin_zone_id,
-        dest_zone_id: live?.dest_zone_id ?? leg.dest_zone_id,
+        distance_m: leg.distance_m,
+        duration_s: leg.duration_s,
+        origin_zone_id: leg.origin_zone_id,
+        dest_zone_id: leg.dest_zone_id,
         origin_canton: leg.origin_canton ?? null,
         dest_canton: leg.dest_canton ?? null,
         origin_place: leg.pickup?.text ?? null,
         dest_place: leg.dropoff?.text ?? null,
-        road:
-          live != null
-            ? live.road !== false
-            : !(leg.distance_m === 0 && leg.duration_s === 0),
-        waypoints:
-          i === 0 ? (extras?.waypoints ?? leg.waypoints) : leg.waypoints,
+        road: !(leg.distance_m === 0 && leg.duration_s === 0),
         // 26.1-09: restore server-resolved facts from the lock. A lock minted
         // before this field existed verifies with these undefined/false/null —
         // never re-derived from the reprice body (schema.ts forbids it).
@@ -662,10 +619,6 @@ async function runStep(
       const outbound: RouteLegInput = {
         origin: { lng: pickup.lng, lat: pickup.lat },
         destination: { lng: dropoff.lng, lat: dropoff.lat },
-        waypoints: request.extras?.waypoints?.map((w) => ({
-          lng: w.lng,
-          lat: w.lat,
-        })),
       };
       const inputs: RouteLegInput[] =
         request.mode === "return"
@@ -790,14 +743,6 @@ export async function runQuotePipeline(
         ...(origin.cityName ? { origin_city_name: origin.cityName } : {}),
         ...(dest.cityName ? { dest_city_name: dest.cityName } : {}),
         ...(origin.isAirport ? { origin_is_airport: true } : {}),
-        waypoints:
-          i === 0
-            ? (request.extras?.waypoints ?? []).map((w) => ({
-                lng: w.lng,
-                lat: w.lat,
-                text: w.text,
-              }))
-            : [],
         flight_no: src?.flight_no ?? null,
         landing_source: null,
       };
@@ -805,9 +750,7 @@ export async function runQuotePipeline(
     extras: request.extras
       ? {
           child_seats: request.extras.child_seats as 0 | 1 | undefined,
-          extra_stops: request.extras.extra_stops as 0 | 1 | undefined,
           oversized_luggage: request.extras.oversized_luggage,
-          waypoints: request.extras.waypoints,
         }
       : null,
     coupon: request.coupon ?? null,
@@ -858,14 +801,8 @@ export async function runRepricePipeline(
   body: unknown,
   deps: QuotePipelineDeps,
 ): Promise<PipelineResult> {
-  // D-18 / D-56: count-only extra_stops is legal; a present waypoints[]
-  // whose length disagrees with extra_stops is extras_max_stops, not a
-  // generic shape complaint. Checked before the strict parse so the
-  // code the widget switches on is the extras one.
-  if (extraStopsWaypointMismatch(body)) {
-    return { ok: false, code: "extras_max_stops" };
-  }
-
+  // 26.2-p4 D: a body that still names a stop field is extras_max_stops
+  // (parseRepriceRequest) — refused before any lock, Directions or Mapbox work.
   const parsed = parseRepriceRequest(body);
   if (!parsed.ok) return { ok: false, code: parsed.code };
   const request: RepriceRequest = parsed.value;
@@ -891,145 +828,45 @@ export async function runRepricePipeline(
   const lock = withRepriceFlightNumbers(verified.payload, request.legs);
   if (!lock) return { ok: false, code: "untrusted_input" };
 
-  // D-27: the lock pins extras AND coupon. A waypoint-changing reprice
-  // mints a NEW quote_id and a NEW expires_at and re-signs class_totals.
-  // A coupon-only reprice KEEPS the original quote_id, expires_at and
-  // metres and only rebuilds lines. Mixing follows the stricter rule
-  // (new lock). Re-minting the lock on a coupon-only reprice would
-  // reset the 30 minutes on every keystroke in the coupon field, and
-  // no existing test would notice.
-  const changed = waypointsChanged(lock, request.extras);
-
-  let routedPublic: QuoteRouteLeg[] | null = null;
-  let quoteId = lock.quote_id;
-  let exp = lock.exp;
-
-  if (changed) {
-    for (const id of ["turnstile", "daily_mapbox_breaker"] as const) {
-      const outcome = await runStep(id, { body }, deps);
-      if (!outcome.ok) return outcome;
-    }
-    const outboundLeg = lock.legs[0];
-    if (!outboundLeg) return { ok: false, code: "untrusted_input" };
-    const outbound: RouteLegInput = {
-      origin: { lng: outboundLeg.pickup.lng, lat: outboundLeg.pickup.lat },
-      destination: {
-        lng: outboundLeg.dropoff.lng,
-        lat: outboundLeg.dropoff.lat,
-      },
-      waypoints: request.extras?.waypoints?.map((w) => ({
-        lng: w.lng,
-        lat: w.lat,
-      })),
-    };
-    const inputs: RouteLegInput[] =
-      lock.mode === "return" && lock.legs[1]
-        ? [
-            outbound,
-            {
-              origin: {
-                lng: outboundLeg.dropoff.lng,
-                lat: outboundLeg.dropoff.lat,
-              },
-              destination: {
-                lng: outboundLeg.pickup.lng,
-                lat: outboundLeg.pickup.lat,
-              },
-            },
-          ]
-        : [outbound];
-    const routed = await deps.routeLegs(inputs);
-    if (!routed.ok) {
-      routedPublic = inputs.map((input, i) => ({
-        leg_seq: (i === 0 ? 1 : 2) as 1 | 2,
-        distance_m: 0,
-        duration_s: 0,
-        geometry: {
-          type: "LineString" as const,
-          coordinates: [
-            [input.origin.lng, input.origin.lat],
-            [input.destination.lng, input.destination.lat],
-          ],
-        },
-        origin_zone_id: lock.legs[i]?.origin_zone_id ?? null,
-        dest_zone_id: lock.legs[i]?.dest_zone_id ?? null,
-        road: false,
-      }));
-    } else {
-      routedPublic = routed.legs.map((leg, i) => ({
-        leg_seq: leg.leg_seq,
-        distance_m: leg.distance_m,
-        duration_s: leg.duration_s,
-        geometry: leg.geometry,
-        origin_zone_id: lock.legs[i]?.origin_zone_id ?? null,
-        dest_zone_id: lock.legs[i]?.dest_zone_id ?? null,
-        road: leg.road !== false,
-      }));
-    }
-    const freshExp = await deps.quoteLockDeadline(lock.settings_version_id);
-    if (freshExp === null) return { ok: false, code: "no_settings_version" };
-    exp = freshExp;
-    quoteId = (deps.mintQuoteId ?? crypto.randomUUID.bind(crypto))();
-  }
-
+  // D-27: the lock pins extras AND coupon. A reprice KEEPS the original
+  // quote_id, expires_at and metres and only rebuilds lines: the route never
+  // changes on a reprice (26.2-p4 D: there is no stop on the way), so no
+  // Directions call and no Mapbox unit. Re-minting the lock here would reset
+  // the hold on every keystroke in the coupon field.
   const couponCode =
     request.coupon === undefined ? lock.coupon : request.coupon;
 
   const priced = await deps.loadAndPrice(
     deps.env,
-    inputFromLock(
-      lock,
-      request.extras,
-      couponCode,
-      deps.computedAt,
-      routedPublic,
-    ),
+    inputFromLock(lock, request.extras, couponCode, deps.computedAt),
   );
   if (!priced.ok) return { ok: false, code: priced.code };
 
-  const route: { legs: QuoteRouteLeg[] } = routedPublic
-    ? { legs: routedPublic }
-    : {
-        legs: lock.legs.map((leg) => ({
-          leg_seq: leg.leg_seq,
-          distance_m: leg.distance_m,
-          duration_s: leg.duration_s,
-          geometry: { type: "LineString", coordinates: [] },
-          origin_zone_id: leg.origin_zone_id,
-          dest_zone_id: leg.dest_zone_id,
-        })),
-      };
+  const route: { legs: QuoteRouteLeg[] } = {
+    legs: lock.legs.map((leg) => ({
+      leg_seq: leg.leg_seq,
+      distance_m: leg.distance_m,
+      duration_s: leg.duration_s,
+      geometry: { type: "LineString", coordinates: [] },
+      origin_zone_id: leg.origin_zone_id,
+      dest_zone_id: leg.dest_zone_id,
+    })),
+  };
 
   const extras = request.extras
     ? {
         child_seats: request.extras.child_seats as 0 | 1 | undefined,
-        extra_stops: request.extras.extra_stops as 0 | 1 | undefined,
         oversized_luggage: request.extras.oversized_luggage,
-        waypoints: request.extras.waypoints ?? lock.extras?.waypoints,
       }
     : lock.extras;
 
   const payload: QuoteLockPayload = {
     ...lock,
-    quote_id: quoteId,
-    exp,
     extras,
     coupon: couponCode,
     class_totals: classTotals(priced.quote.classes),
     // 26.1-11: re-signed from the new board — never inherited from the old lock.
     price_rows: priceRows(priced.quote.classes),
-    legs: lock.legs.map((leg, i) => {
-      const live = route.legs[i];
-      return {
-        ...leg,
-        distance_m: live?.distance_m ?? leg.distance_m,
-        duration_s: live?.duration_s ?? leg.duration_s,
-        waypoints:
-          i === 0
-            ? (request.extras?.waypoints ?? leg.waypoints)
-            : leg.waypoints,
-      };
-    }),
   };
 
   const coupon: CouponInfo | null = couponInfoFromEval(couponCode, priced.coupon);

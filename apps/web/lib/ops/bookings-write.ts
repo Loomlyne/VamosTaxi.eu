@@ -1,16 +1,15 @@
 // apps/web/lib/ops/bookings-write.ts
 //
 // Staff cancel, delete, and in-place field updates. Refund is lib/ops/refund.ts
-// (Stripe first). Board `id` is the public reference; bookingId is the uuid.
+// (by hand, 20-10: a cancel never calls Stripe). Board `id` is the public reference; bookingId is the uuid.
 // DATA-08: ops_cancel_booking writes booking_events (booking.status_changed) in the same tx.
 
 import { mintManageToken } from "@/lib/checkout/manage-token";
 import { asStaff, asSystem, type VamosClaims } from "@/lib/db/identity";
-import { loadCapturedPaymentRow } from "@/lib/db/system-reads";
 import { expireSessionIds } from "../checkout/cancel-unpaid";
 import { stripeAccountIsLegacyUaeTest } from "../checkout/charge-gate";
 import { expireCheckoutSession, stripeFromEnv } from "../checkout/stripe";
-import { applyStripeRefund } from "../lifecycle/paid-cancel";
+import { finishPaidCancel } from "../lifecycle/paid-cancel";
 import { liveClassSlug } from "./class-slug";
 import { mapRefundSqlError, sqlErrorCode } from "./refund-map";
 import { resolveStaffBookingId } from "./resolve-booking-id";
@@ -50,6 +49,30 @@ export type CancelResult =
 const BOOKING_UUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+/**
+ * 261001-refusal-messages: the SQL error of ops_cancel_booking / ops_mark_complete /
+ * ops_mark_no_show as the staff refusal the dashboard shows. Call it AROUND asSystem, never
+ * inside its callback: postgres.js begin() rethrows a query error the callback caught
+ * (postgres@3.4.9 cf/src/index.js 266-267, 293), so a catch inside let the refusal leave as a
+ * 500 without JSON and the page showed its generic "Could not …" text.
+ */
+function mapOutcomeSqlError(
+  err: unknown,
+  what: string,
+  bookingId: string,
+): { ok: false; code: "not-found" | "frozen" | "unknown" } {
+  if (sqlErrorCode(err) === OPS_SQLSTATE.noData) return { ok: false, code: "not-found" };
+  if (mapRefundSqlError(err).code === "frozen") return { ok: false, code: "frozen" };
+  // Not a named refusal: keep a trace (the throw used to be the only one), answer "unknown".
+  console.error(
+    what,
+    bookingId,
+    sqlErrorCode(err) ?? "",
+    err instanceof Error ? err.message : String(err),
+  );
+  return { ok: false, code: "unknown" };
+}
+
 export async function cancelBooking(
   env: CloudflareEnv,
   claims: VamosClaims,
@@ -75,6 +98,41 @@ export async function cancelBooking(
   if (!captured) {
     const erased = await eraseBooking(env, claims, bookingId);
     if (!erased) return { ok: false, code: "not-found" };
+    // 26.2-bp B1: the erase leaves the booking pending, so a Stripe Checkout
+    // Session the customer still has open stayed payable and settle would
+    // confirm a booking the board no longer lists. Expire them here, same
+    // guard as the paid path below. A failure is logged; the erase stands.
+    const unpaidPublishable = env.STRIPE_PUBLISHABLE_KEY || "";
+    const canExpireUnpaid =
+      Boolean(unpaidPublishable) && !stripeAccountIsLegacyUaeTest(unpaidPublishable);
+    if (canExpireUnpaid) {
+      try {
+        const sessionIds = await asSystem(env, async (sql) => {
+          const rows = await sql<{ ids: string[] | null }[]>`
+            select public.checkout_booking_session_ids(${bookingId}::uuid) as ids
+          `;
+          return rows[0]?.ids ?? [];
+        });
+        const stripeForUnpaid = stripeFromEnv(env);
+        await expireSessionIds(
+          {
+            expireSession: (sessionId) =>
+              expireCheckoutSession(stripeForUnpaid, sessionId).then(() => undefined),
+            canExpire: true,
+            emit: (message, sessionId, err) => {
+              console.error(message, sessionId, err instanceof Error ? err.message : String(err));
+            },
+          },
+          sessionIds,
+        );
+      } catch (err) {
+        console.error(
+          "ops_unpaid_cancel_session_read_failed",
+          bookingId,
+          err instanceof Error ? err.message : String(err),
+        );
+      }
+    }
     return {
       ok: true,
       erased: true,
@@ -101,8 +159,10 @@ export async function cancelBooking(
     stripe_checkout_session_ids: string[] | null;
   };
 
-  const cancelled = await asSystem(env, async (sql): Promise<CancelResult | CancelRow> => {
-    try {
+  // 261001-refusal-messages: the refusal is mapped around asSystem (see mapOutcomeSqlError).
+  let cancelled: CancelResult | CancelRow;
+  try {
+    cancelled = await asSystem(env, async (sql): Promise<CancelResult | CancelRow> => {
       const rows = await sql<CancelRow[]>`
         select * from public.ops_cancel_booking(
           ${bookingId}::uuid,
@@ -112,19 +172,13 @@ export async function cancelBooking(
       const row = rows[0];
       if (!row) return { ok: false, code: "unknown" };
       return row;
-    } catch (err) {
-      if (sqlErrorCode(err) === OPS_SQLSTATE.noData) {
-        return { ok: false, code: "not-found" };
-      }
-      const mapped = mapRefundSqlError(err);
-      if (mapped.code === "frozen") return { ok: false, code: "frozen" };
-      return { ok: false, code: "unknown" };
-    }
-  });
+    });
+  } catch (err) {
+    cancelled = mapOutcomeSqlError(err, "ops_cancel_sql_failed", bookingId);
+  }
 
   if ("ok" in cancelled && cancelled.ok === false) return cancelled;
   const row = cancelled as CancelRow;
-  const refundMode = String(row.refund_mode ?? "");
 
   // D-04: expire every open Stripe Checkout Session this booking still has,
   // after the cancel above already committed. A Stripe failure is logged;
@@ -147,24 +201,18 @@ export async function cancelBooking(
     row.stripe_checkout_session_ids ?? [],
   );
 
-  if (refundMode === "pending_ops" || refundMode === "none") {
-    // Stripe lives in the Worker, not SQL. pending_ops / none skip createRefund.
-  } else if (refundMode === "auto_full") {
-    const payment = await loadCapturedPaymentRow(env, bookingId);
-    if (payment) {
-      const refundRappen = Number(row.refund_rappen ?? 0);
-      const amountRappen =
-        Number.isFinite(refundRappen) && refundRappen > 0
-          ? refundRappen
-          : Number(payment.charged_rappen);
-      await applyStripeRefund(env, {
-        bookingId,
-        paymentId: Number(payment.id),
-        paymentIntentId: String(payment.stripe_payment_intent_id),
-        amountRappen,
-        idempotencyKey: `refund:${bookingId}:${payment.id}:ops-cancel`,
-      });
-    }
+  // 20-10 refunds by hand: no Stripe call on a staff cancel. The booking keeps "Refund due"
+  // (pending_ops; the owed amount for a cancel more than 24 h ahead) and the customer gets the
+  // normal cancellation mail at once, with the approved refund sentence. The admin sends the
+  // refund from the dashboard. The mail is best-effort; the cancel already committed.
+  // Only a PAID booking gets this mail; an unpaid cancel has no refund sentence to send.
+  if (row.paid === true) {
+    await finishPaidCancel(env, {
+      booking_id: String(row.booking_id),
+      refund_mode: String(row.refund_mode ?? ""),
+      refund_rappen: row.refund_rappen,
+      stripe_payment_intent_id: null,
+    });
   }
 
   return {
@@ -385,8 +433,10 @@ async function markOutcome(
   const minted = await mintManageToken();
   const hex = tokenHex(minted.hash);
 
-  const marked = await asSystem(env, async (sql): Promise<MarkResult | MarkRow> => {
-    try {
+  // 261001-refusal-messages: the refusal is mapped around asSystem (see mapOutcomeSqlError).
+  let marked: MarkResult | MarkRow;
+  try {
+    marked = await asSystem(env, async (sql): Promise<MarkResult | MarkRow> => {
       const rows =
         rpc === "ops_mark_complete"
           ? await sql<MarkRow[]>`
@@ -406,15 +456,10 @@ async function markOutcome(
       const row = rows[0];
       if (!row) return { ok: false, code: "unknown" };
       return row;
-    } catch (err) {
-      if (sqlErrorCode(err) === OPS_SQLSTATE.noData) {
-        return { ok: false, code: "not-found" };
-      }
-      const mapped = mapRefundSqlError(err);
-      if (mapped.code === "frozen") return { ok: false, code: "frozen" };
-      return { ok: false, code: "unknown" };
-    }
-  });
+    });
+  } catch (err) {
+    marked = mapOutcomeSqlError(err, `${rpc}_sql_failed`, bookingId);
+  }
 
   if ("ok" in marked && marked.ok === false) return marked;
   return { ok: true, booking: markedFrom(marked as MarkRow, minted.raw) };

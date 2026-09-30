@@ -57,6 +57,20 @@
 [data-vt-order][disabled]{opacity:.35;cursor:default;pointer-events:none}
 [data-vt-table-scroll] .vt-table td:has([data-vt-order-pair]){padding-block:8px;padding-inline:6px;width:44px;white-space:nowrap}
 [data-vt-editor-foot]{position:sticky;bottom:0;z-index:3;display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:20px;margin-inline:-24px;padding:18px 24px var(--vt-space-6);border-top:1px solid var(--vt-border-subtle);background:var(--vt-bg-surface)}
+/* Owner, 2026-10-01 ("one row at the bottom"): Delete is a red text button at the start (kit ghost
+   Button, danger token, no fill, no border, no glow); Cancel and Save sit together at the end. */
+[data-vt-foot-del]{flex:0 0 auto;min-width:0}
+[data-vt-foot-del] .vt-btn{color:var(--vt-danger);background:transparent;border-color:transparent;padding-inline:12px;margin-inline-start:-12px}
+[data-vt-foot-del] .vt-btn.vt-btn--ghost:hover:not([disabled]){color:var(--vt-danger);background:var(--vt-grey-50);border-color:transparent}
+[data-vt-foot-main]{margin-inline-start:auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:10px;min-width:0}
+/* Phone: Save full width on top, Cancel under it, Delete centred at the very bottom. */
+@media (max-width:680px){
+[data-vt-editor-foot]{flex-direction:column;align-items:stretch;gap:6px}
+[data-vt-foot-main]{flex-direction:column-reverse;align-items:stretch;margin-inline-start:0}
+[data-vt-foot-main] .vt-btn{width:100%}
+[data-vt-foot-del]{order:2;align-self:center}
+[data-vt-foot-del] .vt-btn{margin-inline-start:0}
+}
 [data-vt-save-err]{box-sizing:border-box;display:flex;align-items:center;gap:10px;padding:8px 14px;margin-bottom:16px;border:1px solid var(--vt-danger);border-radius:var(--vt-radius-pill);background:var(--vt-danger-tint);font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-danger)}
 [data-vt-time-wrap] input{all:unset;flex:1 1 auto;min-width:0;width:100%;font:inherit;color:inherit;background:transparent;caret-color:var(--vt-charcoal-900)}
 [data-vt-date-pop]{position:fixed;z-index:220;box-sizing:border-box;width:280px;padding:12px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-lg)}
@@ -357,7 +371,6 @@
 <input type="file" accept="image/jpeg,image/png,image/webp" onChange="{{ f.pickFile }}" aria-label="{{ f.chooseLabel }}">
 <span data-vt-photo-cta="1" style="display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 14px;border:1px solid var(--vt-grey-300);border-radius:var(--vt-radius-pill);background:var(--vt-white);font-family:var(--vt-font-body);font-size:13px;font-weight:600;color:var(--vt-charcoal-900);cursor:pointer">{{ f.chooseLabel }}</span>
 </label>
-<button type="button" data-linkbtn="1" onClick="{{ f.clearPhoto }}" style="display:{{ f.clearShow }}">{{ f.clearLabel }}</button>
 </div>
 </div>
 <span style="display:{{ f.hintShow }};font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ f.hint }}</span>
@@ -420,12 +433,12 @@
 </div>
 </sc-if>
 <div data-vt-editor-foot>
-<span style="display:{{ deleteShow }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" icon="trash-2" onClick="{{ askDeleteCurrent }}" hint-size="110px,44px">Delete</x-import>
+<span data-vt-foot-del="1" style="display:{{ deleteShow }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" onClick="{{ askDeleteCurrent }}" hint-size="90px,44px">Delete</x-import>
 </span>
-<span style="margin-inline-start:auto;display:flex;flex-wrap:wrap;gap:10px">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="outline" onClick="{{ requestClose }}" hint-size="110px,44px">Cancel</x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ save }}" disabled="{{ saveOff }}" hint-size="130px,44px">{{ saveLabel }}</x-import>
+<span data-vt-foot-main="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" onClick="{{ requestClose }}" hint-size="110px,44px">Cancel</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="primary" onClick="{{ save }}" disabled="{{ saveOff }}" hint-size="130px,44px">{{ saveLabel }}</x-import>
 </span>
 </div>
 </x-import>
@@ -1615,8 +1628,6 @@ class Component extends DCLogic {
         photoSrc: (val && String(val).indexOf('data:') !== 0) ? ('/photos/' + val) : '',
         hasPhoto: !!(val && String(val).indexOf('data:') !== 0),
         noPhoto: !(val && String(val).indexOf('data:') !== 0),
-        clearShow: (val && String(val).indexOf('data:') !== 0) ? 'inline' : 'none',
-        clearLabel: f.clearLabel || 'Remove',
         fromSug: false,
         fromSugItems: [],
         toSug: false,
@@ -1632,7 +1643,6 @@ class Component extends DCLogic {
         },
         pick: (v) => { this.setField(f.key, v); if (f.onSelect) f.onSelect(v); },
         toggle: (e) => this.setField(f.key, e.target.checked),
-        clearPhoto: () => this.setField(f.key, ''),
         pickFile: (e) => {
           const file = e.target && e.target.files && e.target.files[0];
           if (!file) return;

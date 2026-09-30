@@ -25,7 +25,7 @@ export interface PredicateContext {
   originZoneId: string | null;
   destZoneId: string | null;
   zones: Map<string, ZoneRow>;
-  /** Quantity resolved from surcharges.quantity_source (extras / stops / bags). */
+  /** Quantity resolved from surcharges.quantity_source (child seats / bags). */
   quantity: number;
 }
 
@@ -182,6 +182,15 @@ export function evaluatePredicate(
           predicate: "quantity",
           quantity: q,
         },
+      };
+    }
+
+    case "manual": {
+      // Chosen by the customer on /checkout and charged there. Never added by the quote.
+      return {
+        applies: false,
+        quantity: 0,
+        why: { predicate: "manual" },
       };
     }
 

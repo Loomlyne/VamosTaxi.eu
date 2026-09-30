@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mapTicket, staffPatchStatus } from "./tickets-map";
+import { mapTicket, rejectStaffReply, staffPatchStatus } from "./tickets-map";
 
 describe("staffPatchStatus", () => {
   it("opens only from new or closed", () => {
@@ -19,6 +19,16 @@ describe("staffPatchStatus", () => {
     expect(staffPatchStatus("open", "replied")).toBeNull();
     expect(staffPatchStatus("open", "responded")).toBeNull();
     expect(staffPatchStatus("open", "new")).toBeNull();
+  });
+});
+
+describe("rejectStaffReply (D-12)", () => {
+  it("blocks a reply key: the dashboard Support page is read-only (G27)", () => {
+    expect(rejectStaffReply({ reply: "hi" })).toBe(true);
+    expect(rejectStaffReply({ reply: "" })).toBe(true);
+    expect(rejectStaffReply(null)).toBe(false);
+    expect(rejectStaffReply({ status: "open" })).toBe(false);
+    expect(rejectStaffReply({})).toBe(false);
   });
 });
 

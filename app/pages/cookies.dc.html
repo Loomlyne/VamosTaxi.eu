@@ -25,11 +25,11 @@
 <link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
 <link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
 <script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
-<link rel="stylesheet" href="../../assets/lenis.css">
-<script src="../../assets/lenis.js"></script>
-<script src="../../assets/lenis-boot.js"></script>
 <script src="../vamos-i18n-dict.js"></script>
 <script src="../vamos-locale.js"></script>
+<script src="../vamos-legal-updated.js"></script>
+<script src="../vamos-meta-texts.js"></script>
+<script src="../vamos-consent.js"></script>
 <script src="../vamos-page-transition.js"></script>
 <style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
 .vt-input--focus{box-shadow:none}
@@ -139,7 +139,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <h1 style="margin:0 0 18px;max-width:20ch;font-family:var(--vt-font-display);font-size:var(--vt-display-2);line-height:var(--vt-display-leading);letter-spacing:var(--vt-display-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse);text-wrap:pretty">Cookie policy</h1>
 <p style="margin:0;max-width:58ch;font-size:var(--vt-body-lg);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">Four categories, one of which you cannot switch off because the booking would stop working. The other three are off until you say otherwise.</p>
 <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px 28px;margin-top:32px;padding-top:24px;border-top:1px solid var(--vt-border-inverse)">
-<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Last updated</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">1 September 2026</span></div>
+<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Last updated</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)" data-vt-no-i18n="1">{{ updatedLabel }}</span></div>
 <div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Version</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">1.0</span></div>
 <div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Consent model</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">Opt-in by category</span></div>
 <button data-lg-noprint="1" type="button" onClick="{{ openCookiePrefs }}" style="margin-inline-start:auto;display:inline-flex;align-items:center;gap:9px;height:44px;padding:0 20px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-inverse);background:none;color:var(--vt-text-inverse);font-family:inherit;font-size:var(--vt-body-sm);white-space:nowrap;cursor:pointer">
@@ -193,7 +193,6 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 
 <section id="choice">
 <h2><span data-lg-n="1">02</span>Your current choice</h2>
-<p>Read from this browser, so it is the real state, not an example.</p>
 <div style="background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-sm);padding:22px;margin:4px 0 18px">
 <p style="margin:0 0 16px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">{{ stateLabel }}</p>
 <div data-state-row="1" style="margin-bottom:18px">
@@ -204,10 +203,8 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 </div>
 <div style="display:flex;flex-wrap:wrap;gap:12px">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" onClick="{{ openCookiePrefs }}" hint-size="200px,44px">Change preferences</x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" onClick="{{ resetConsent }}" hint-size="180px,44px">Reset my choice</x-import>
 </div>
 </div>
-<p>Resetting clears the record and brings the banner back, which is also how you check what a first-time visitor sees.</p>
 </section>
 
 <section id="necessary">
@@ -218,7 +215,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <thead><tr><th scope="col">Name</th><th scope="col">Purpose</th><th scope="col">Provider</th><th scope="col">Duration</th></tr></thead>
 <tbody>
 <tr><td data-l="Name">sb-yaumjzvylngfjhtuffqs-auth-token</td><td data-l="Purpose">Keeps you signed in and holds the booking while you fill it in</td><td data-l="Provider">Vamos Taxi · Supabase</td><td data-l="Duration">session / refresh as issued by Supabase Auth</td></tr>
-<tr><td data-l="Name">vamos:cookie-prefs</td><td data-l="Purpose">Records which categories you allowed, so we can prove it and stop asking</td><td data-l="Provider">Vamos Taxi</td><td data-l="Duration">until you change it</td></tr>
+<tr><td data-l="Name"><span class="vt-dir-keep" data-vt-no-i18n="1">consent_subject · vamosCookieConsent</span></td><td data-l="Purpose">Records which categories you allowed, so we can prove it and stop asking</td><td data-l="Provider">Vamos Taxi</td><td data-l="Duration">1 year</td></tr>
 <tr><td data-l="Name">__stripe_mid · __stripe_sid</td><td data-l="Purpose">Fraud checks on the payment step</td><td data-l="Provider">Stripe</td><td data-l="Duration">not in use until live payments</td></tr>
 <tr><td data-l="Name">cf_clearance</td><td data-l="Purpose">Routes your request and keeps the site available</td><td data-l="Provider">Cloudflare</td><td data-l="Duration">as set by Cloudflare</td></tr>
 </tbody>
@@ -254,12 +251,11 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 
 <section id="marketing">
 <h2><span data-lg-n="1">06</span>Marketing</h2>
-<p>Nothing in this category is running today. It is here because the moment a paid campaign starts, something will be, and a category added later looks like a category that was hidden.</p>
 <div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table data-ct="1">
-<caption>Marketing — off, and currently unused</caption>
+<caption>Marketing</caption>
 <thead><tr><th scope="col">Name</th><th scope="col">Purpose</th><th scope="col">Provider</th><th scope="col">Duration</th></tr></thead>
 <tbody>
-<tr><td data-l="Name">none</td><td data-l="Purpose">Measures which advert or campaign led to a booking</td><td data-l="Provider">none</td><td data-l="Duration">not used</td></tr>
+<tr data-cookies-row="1"><td colspan="4" data-vt-no-i18n="1" style="font-family:var(--vt-font-body)"><sc-for list="{{ rowSegs }}" as="g" hint-placeholder-count="3"><sc-if value="{{ g.isText }}" hint-placeholder-val="{{ true }}"><span>{{ g.t }}</span></sc-if><sc-if value="{{ g.isB }}" hint-placeholder-val="{{ false }}"><strong style="font-weight:var(--vt-weight-semibold)">{{ g.t }}</strong></sc-if><sc-if value="{{ g.isCode }}" hint-placeholder-val="{{ false }}"><code class="vt-dir-keep" style="font-family:var(--vt-font-mono);font-size:.92em;background:none">{{ g.t }}</code></sc-if></sc-for></td></tr>
 </tbody>
 </table></div>
 </section>
@@ -295,16 +291,17 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;showSlotNotes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Review&quot;},&quot;cookieState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;auto&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;banner&quot;,&quot;prefs&quot;,&quot;hidden&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Review&quot;}}">
-const KEY = 'vamosCookieConsent';
-
 class Component extends DCLogic {
-  state = { tocOpen: false, consent: null };
+  state = { tocOpen: false, consent: null, lang: 'en' };
   proseRef = React.createRef();
   tocRef = React.createRef();
 
   componentDidMount() {
-    this.readConsent();
-    this.poll = setInterval(this.readConsent, 700);
+    this.bindConsent(0);
+    if (window.VamosLocale) {
+      this.setState({ lang: window.VamosLocale.lang() });
+      this._offLocale = window.VamosLocale.onChange((v) => this.setState({ lang: (v && v.lang) || window.VamosLocale.lang() }));
+    }
     const prose = this.proseRef.current, toc = this.tocRef.current;
     if (!prose || !toc || typeof IntersectionObserver === 'undefined') return;
     const links = Array.from(toc.querySelectorAll('[data-lg-tl]'));
@@ -327,20 +324,24 @@ class Component extends DCLogic {
     }, { rootMargin: '-104px 0px -60% 0px' });
     prose.querySelectorAll('section[id]').forEach((s) => this.io.observe(s));
   }
-  componentWillUnmount() { if (this.io) this.io.disconnect(); if (this.poll) clearInterval(this.poll); }
+  componentWillUnmount() { if (this.io) this.io.disconnect(); if (this._offConsent) this._offConsent(); if (this._offLocale) this._offLocale(); this._gone = true; }
 
-  // The banner writes the record; this page mirrors it, so the two never disagree.
+  // vamos-consent.js can land after this mount; wait for it (up to 5s) before reading.
+  bindConsent(tries) {
+    if (this._gone) return;
+    if (!window.VamosConsent) { if (tries < 100) setTimeout(() => this.bindConsent(tries + 1), 50); return; }
+    this._offConsent = window.VamosConsent.onChange(() => this.readConsent());
+    this.readConsent();
+  }
+
+  // The server holds the record; this page shows what VamosConsent.state() returns (no local poll).
   readConsent = () => {
-    let c = null;
-    try { c = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { c = null; }
-    const a = JSON.stringify(c), b = JSON.stringify(this.state.consent);
-    if (a !== b) this.setState({ consent: c });
-  };
-
-  resetConsent = () => {
-    try { localStorage.removeItem(KEY); } catch (e) { /* nothing to clear */ }
-    this.setState({ consent: null });
-    window.location.reload();
+    if (!window.VamosConsent) return;
+    window.VamosConsent.state().then((r) => {
+      if (this._gone) return;
+      const c = r && r.ok && r.chosen && r.choice ? r.choice : null;
+      if (JSON.stringify(c) !== JSON.stringify(this.state.consent)) this.setState({ consent: c });
+    });
   };
 
   openCookiePrefs = (e) => {
@@ -350,20 +351,31 @@ class Component extends DCLogic {
 
   toggleToc = () => this.setState((s) => ({ tocOpen: !s.tocOpen }));
 
+  segs(key) {
+    if (!window.VamosMetaTexts || typeof window.VamosMetaTexts.segments !== 'function') return [];
+    return window.VamosMetaTexts.segments(key, this.state.lang).map((s) => {
+      if (typeof s === 'string') return { t: s, isText: true, isB: false, isCode: false };
+      if (s && s.b != null) return { t: s.b, isText: false, isB: true, isCode: false };
+      return { t: s && s.code, isText: false, isB: false, isCode: true };
+    });
+  }
+
   fmt(name, on) { return name + ' · ' + (on ? 'on' : 'off'); }
 
   renderVals() {
     const c = this.state.consent;
     const f = !!(c && c.functional), an = !!(c && c.analytics), m = !!(c && c.marketing);
     let when = '';
-    if (c && c.ts) {
-      const d = new Date(c.ts);
+    if (c && c.recordedAt) {
+      const d = new Date(c.recordedAt);
       if (!isNaN(d)) when = ' on ' + d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
     }
     return {
       n14: 14, n16: 16, n18: 18,
+      updatedLabel: window.VamosLegalUpdated ? window.VamosLegalUpdated.consentLabel(this.state.lang) : '',
+      rowSegs: this.segs('cookiesRow'),
       tocOpen: this.state.tocOpen ? '1' : null,
-      toggleToc: this.toggleToc, openCookiePrefs: this.openCookiePrefs, resetConsent: this.resetConsent,
+      toggleToc: this.toggleToc, openCookiePrefs: this.openCookiePrefs,
       proseRef: this.proseRef, tocRef: this.tocRef,
       stateLabel: c ? ('Saved' + when) : 'Nothing chosen yet — only strictly necessary cookies are set',
       toneFunctional: f ? 'success' : 'neutral',

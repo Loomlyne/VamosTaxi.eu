@@ -12,7 +12,8 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { asStaff } from "@/lib/db/identity";
 import { loadCompleteness, type CompletenessGap } from "@/lib/ops/pricing";
 import { notifyPriceChangedForUnpaid } from "@/lib/checkout/lock-mail";
-import { classifyPricingFailure } from "@/lib/ops/rate-book";
+import { removeUnusedClassPhotos } from "@/lib/ops/class-photo-sweep";
+import { classifyPricingFailure, pruneExtraLabels } from "@/lib/ops/rate-book";
 import { jsonErr, jsonOk, withAdmin } from "@/lib/ops/staff-json";
 import { QUOTE_LOCK_MINUTES } from "@/lib/quote/lock";
 
@@ -172,6 +173,10 @@ export async function POST(
     } catch {
       // Skip-send is best-effort. The book is already live.
     }
+    // Quick 260930-cpr: replaced class photos leave storage once the book is published. Never throws.
+    await removeUnusedClassPhotos(env, claims, "publish");
+    // 26.2-p4 A6: names of extras that no live or draft book uses any more go with them.
+    await pruneExtraLabels(env, claims);
     return jsonOk({ id, status: "live" });
   })(request);
 }

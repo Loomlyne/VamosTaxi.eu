@@ -1,7 +1,7 @@
 /* Bottom-end contact overlay. Tokens only. No glow. */
 .vt-contact-fab {
   position: fixed;
-  inset-block-end: 24px;
+  inset-block-end: calc(24px + var(--vt-ck-reserve, 0px));
   inset-inline-end: 24px;
   z-index: 80;
 }

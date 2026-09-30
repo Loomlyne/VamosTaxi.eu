@@ -33,6 +33,20 @@ Result on 2026-09-29: `af93fc8e` fails 8 of 10 lines (the sign-up is rolled
 back, `hook_payload_invalid_content_type`); `fix/auth-sign-in-sign-up` passes
 all 9 scenarios.
 
+### Lines 1a0, 1a, 1b (27 D-03a)
+
+| Line | Proves |
+|---|---|
+| 1a0 | a sign-up posted without `consent: true` (password, then e-mail link) answers 400 `consent-required`, sends no mail and leaves no `auth.users` row and no `account_agreement_records` row |
+| 1a | the ticked password sign-up leaves exactly one `account_agreement_records` row for the address: surface `sign-up`, choice `create`, record_kind `consent`, text_version `2026-09-29`, the locale sent |
+| 1b | the confirm link still writes no `consent_log` row (27 D-01); the detail line also reports the agreement row count. Check 8 (dashboard host sign-up) adds: no agreement row for that address |
+
+### Line 3b (27 D-36)
+
+| Line | Proves |
+|---|---|
+| 3b | the public-host sign-in link for an unknown address answers with the same status and body as check 3's known address, sends no mail and leaves no `auth.users` row. Checks 3 and 4 (known address A, created by check 1) still sign in |
+
 ## 26.5 other-device scenarios (D-16)
 
 `other-device.e2e.mjs` runs right after the auth scenarios in `run.sh` (same Worker on 4290, same env).

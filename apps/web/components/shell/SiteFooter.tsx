@@ -6,7 +6,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { createNavigation } from "next-intl/navigation";
 import { routing, type Locale } from "@/i18n/routing";
 import { PUBLIC_ROUTES, type PublicRoute } from "@/lib/metadata";
-import { useVamosScroll } from "@/lib/lenis-provider";
+import { scrollToElement } from "@/lib/scroll";
 import {
   PHONE_DISPLAY,
   PHONE_HREF,
@@ -15,7 +15,6 @@ import {
   WHATSAPP_HREF,
 } from "@/lib/contact-channels";
 import { Button, Icon } from "../core";
-import { CookiePrefsListener } from "@/components/consent/CookieBanner";
 
 // Ported from `app/pages/SiteFooter.dc.html`. CLAUDE.md makes this mandatory on every
 // public page and forbids hand-rolling a footer anywhere;
@@ -158,7 +157,6 @@ export function SiteFooter({
   const tFooter = useTranslations("footer");
   const locale = useLocale() as Locale;
   const rtl = locale === "ar";
-  const { scrollTo } = useVamosScroll();
 
   const groups: { key: string; heading: string; social?: boolean; items: ReactNode }[] = [
     {
@@ -202,7 +200,7 @@ export function SiteFooter({
                 const el = document.getElementById("faq");
                 if (!el) return;
                 event.preventDefault();
-                scrollTo(el);
+                scrollToElement(el);
                 if (history.replaceState) history.replaceState(null, "", "#faq");
               }}
             />
@@ -245,7 +243,7 @@ export function SiteFooter({
             <FooterLink href={route("/imprint")} label={t("imprint")} rtl={rtl} />
           </li>
           <li>
-            {/* POST settings_change via CookiePrefsListener — not a prefs grid. */}
+            {/* Opens the cookie preferences sheet (CookieBanner listens); writes nothing. */}
             <button
               type="button"
               data-ft-btnlink="1"
@@ -284,7 +282,6 @@ export function SiteFooter({
 
   return (
     <>
-    <CookiePrefsListener />
     <footer data-ft="1" data-screen-label="Footer">
       {wordmark ? (
         <div data-ft-pad="band">

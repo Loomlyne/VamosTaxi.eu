@@ -7,7 +7,8 @@ const SKIP = new Set(["node_modules", ".next", ".open-next", ".wrangler", ".git"
 
 function walk(dir: string, out: string[] = []): string[] {
   for (const e of readdirSync(dir)) {
-    if (SKIP.has(e)) continue;
+    // `.next-*` are per-spec Next build folders (gitignored) that Playwright runs leave behind.
+    if (SKIP.has(e) || e.startsWith(".next-")) continue;
     const full = join(dir, e);
     const st = statSync(full);
     if (st.isDirectory()) walk(full, out);

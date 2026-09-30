@@ -20,6 +20,7 @@ import {
 import type { BookingForEmail, EmailLocale, EmailMoney, EmailMoneyLine } from "./lib/types";
 import { paxBagsLine, t } from "./lib/t";
 import { extraNames } from "./lib/extras";
+import { formatPickup } from "./lib/pickup-time";
 import {
   BODY_FONT,
   CHARCOAL,
@@ -190,7 +191,7 @@ export function ConfirmationEmail({ booking }: { booking: BookingForEmail }) {
                   {t(locale, "pickupDetail")}
                 </Text>
                 <Text style={{ margin: "8px 0 0", fontSize: "14px", color: CHARCOAL }}>
-                  {t(locale, "timeLabel")} {ltr(leg.scheduledLocal)}
+                  {t(locale, "timeLabel")} {ltr(formatPickup(leg.scheduledLocal, locale))}
                   {leg.flightNo ? <> · {ltr(leg.flightNo)}</> : null}
                 </Text>
                 <Text style={{ margin: "8px 0 0", fontSize: "14px", color: CHARCOAL }}>
@@ -265,7 +266,7 @@ export function confirmationPlainText(booking: BookingForEmail): string {
     lines.push(`${t(locale, "fromLabel")}: ${leg.pickupText}`);
     lines.push(`${t(locale, "toLabel")}: ${leg.dropoffText}`);
     lines.push(t(locale, "pickupDetail"));
-    lines.push(`${t(locale, "timeLabel")} ${leg.scheduledLocal}`);
+    lines.push(`${t(locale, "timeLabel")} ${formatPickup(leg.scheduledLocal, locale)}`);
     if (leg.flightNo) lines.push(leg.flightNo);
     lines.push(`${t(locale, "vehicleLabel")} ${leg.vehicleClassLabel}`);
     lines.push(paxBagsLine(locale, leg.pax, leg.bags));

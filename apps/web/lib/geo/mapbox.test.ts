@@ -79,6 +79,17 @@ describe("suggest", () => {
     expect(fetchFn).not.toHaveBeenCalled();
   });
 
+  it("returns an empty list without calling fetch when q is only spaces", async () => {
+    const fetchFn = vi.fn();
+    const result = await suggest(
+      { q: "  ", sessionToken: SESSION, language: "en" },
+      TOKEN_ENV,
+      { fetch: fetchFn },
+    );
+    expect(result).toEqual({ suggestions: [] });
+    expect(fetchFn).not.toHaveBeenCalled();
+  });
+
   it("returns the degraded shape and never fetches when MAPBOX_TOKEN is absent (D-47)", async () => {
     const fetchFn = vi.fn();
     const result = await suggest(
@@ -609,29 +620,25 @@ describe("routeLegs", () => {
     expect(result.legs[0]!.road).toBe(false);
   });
 
-  it("builds a semicolon-joined coordinate path in origin-waypoints-destination order", async () => {
+  it("builds the coordinate path from origin and destination only; a stop list is ignored (26.2-p4 D)", async () => {
     const { fetchFn, calls } = captureFetch(() =>
       jsonResponse(FIXTURE_DIRECTIONS_OK),
     );
-    await routeLegs(
-      [
-        {
-          origin: { lng: 8.54, lat: 47.37 },
-          waypoints: [
-            { lng: 8.55, lat: 47.38 },
-            { lng: 8.56, lat: 47.39 },
-          ],
-          destination: { lng: 8.57, lat: 47.4 },
-        },
+    const withStops = {
+      origin: { lng: 8.54, lat: 47.37 },
+      waypoints: [
+        { lng: 8.55, lat: 47.38 },
+        { lng: 8.56, lat: 47.39 },
       ],
-      TOKEN_ENV,
-      { fetch: fetchFn },
-    );
+      destination: { lng: 8.57, lat: 47.4 },
+    } as unknown as Parameters<typeof routeLegs>[0][number];
+    await routeLegs([withStops], TOKEN_ENV, { fetch: fetchFn });
     expect(calls).toHaveLength(1);
     const path = new URL(calls[0]!.url).pathname;
-    expect(path).toContain("8.54,47.37;8.55,47.38;8.56,47.39;8.57,47.4");
+    expect(path).toContain("8.54,47.37;8.57,47.4");
+    expect(path).not.toContain("8.55,47.38");
     expect(new URL(calls[0]!.url).searchParams.get("radiuses")).toBe(
-      "unlimited;unlimited;unlimited;unlimited",
+      "unlimited;unlimited",
     );
   });
 

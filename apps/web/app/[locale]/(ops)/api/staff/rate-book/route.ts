@@ -14,6 +14,7 @@ import {
   classifyPricingFailure,
   loadRateBook,
   loadServiceZones,
+  pruneExtraLabels,
   RateBookInputError,
   forkLiveRateVersion,
   type DistanceRateInput,
@@ -32,8 +33,13 @@ import {
   type ExtraLabelRow,
   type ExtraLang,
 } from "@/lib/ops/extra-label-translate";
-import { isPlaceholderAmount, rappenFromMoneySet, rappenFromUnknown } from "@/lib/ops/rappen";
-import { extraWriteFields, isPassengerExtra, normalizeSurchargeCode, checkoutExtraKindFromRappen } from "@/lib/ops/surcharge-codes";
+import {
+  checkoutExtraKindFromRappen,
+  isPlaceholderAmount,
+  rappenFromMoneySet,
+  rappenFromUnknown,
+} from "@/lib/ops/rappen";
+import { MANUAL_PREDICATE } from "@/lib/pricing/types";
 import { jsonErr, jsonOk, withAdmin, withStaff } from "@/lib/ops/staff-json";
 import { asVehicleClassUuid, planVehicleClassWrite } from "@/lib/ops/vehicle-class-write";
 import {
@@ -342,13 +348,12 @@ function mockRates(book: RateBook): Record<string, unknown>[] {
 }
 
 function mockSurcharges(book: RateBook): Record<string, unknown>[] {
+  // 26.2-p4 A5 (owner, 2026-09-30): the code decides nothing on the Pricing table; every row is an extra.
   return book.surcharges.map((row) => {
-    const type = surchargeTypeFromCode(row.code);
     return {
       id: String(row.id),
       code: row.code,
       label: row.code,
-      type,
       rule: row.appliesTo,
       ruleId: row.ruleId == null ? "" : String(row.ruleId),
       kind: row.kind,
@@ -359,18 +364,8 @@ function mockSurcharges(book: RateBook): Record<string, unknown>[] {
       pct: row.percent == null ? "" : String(row.percent),
       appliesTo: row.appliesTo,
       active: row.active,
-      hours: type === "free_wait" ? "" : "",
     };
   });
-}
-
-function surchargeTypeFromCode(code: string): string {
-  if (code === "meet_greet") return "meet_greet";
-  if (code === "free_wait") return "free_wait";
-  if (code === "extra_wait" || code === "waiting" || code === "waiting_city" || code === "waiting_airport") {
-    return "extra_wait";
-  }
-  return "checkout_extra";
 }
 
 function mockBands(book: RateBook): Record<string, unknown>[] {
@@ -563,16 +558,7 @@ function parseSurchargeInput(body: Record<string, unknown>): SurchargeInput {
         ? body.label
         : "";
   let kindRaw = typeof body.kind === "string" ? body.kind : "amount";
-  if (type === "meet_greet") {
-    raw = "meet_greet";
-    kindRaw = "included";
-  } else if (type === "free_wait") {
-    raw = "free_wait";
-    kindRaw = "included";
-  } else if (type === "extra_wait") {
-    raw = "extra_wait";
-    kindRaw = "amount";
-  } else if (type === "checkout_extra") {
+  if (type === "checkout_extra") {
     const named = typeof body.name === "string" ? body.name : raw;
     raw =
       typeof named === "string"
@@ -581,7 +567,8 @@ function parseSurchargeInput(body: Record<string, unknown>): SurchargeInput {
     const decided = checkoutExtraKindFromRappen(statedCheckoutRappen(body));
     kindRaw = decided === "included" ? "included" : "amount";
   }
-  const code = raw ? normalizeSurchargeCode(raw) : "";
+  // 26.2-p4: the code is the owner's name as typed (slug only). Never renamed, never matched.
+  const code = raw;
   const kind: SurchargeKind =
     kindRaw === "percent" || kindRaw === "included" || kindRaw === "amount" ? kindRaw : "amount";
   const appliesRaw = typeof body.appliesTo === "string" ? body.appliesTo : typeof body.rule === "string" ? body.rule : "leg";
@@ -940,45 +927,32 @@ export const PUT = withAdmin(async (claims, request) => {
         return jsonErr("invalid", 400);
       }
       const parsed = assertSurchargeInput(parseSurchargeInput(recBody));
-      const extras = isPassengerExtra(parsed.code) ? extraWriteFields(parsed.code) : null;
-      const waitMinutes = minutesFromHours(recBody.hours ?? recBody.freeWaitHours);
       await asStaff(env, claims, async (tx) => {
-        if (waitMinutes != null && parsed.code === "free_wait") {
-          await tx`
-            update public.rate_versions
-               set free_wait_minutes = ${waitMinutes}
-             where id = ${versionId} and status = 'draft'
-          `;
-        }
+        // 26.2-p4: every extra saved here is chosen by the customer on /checkout — one
+        // rule, whatever its name, and no quantity source. The rule goes through the
+        // driver's JSON helper so Postgres stores a JSON object: `${JSON.stringify(x)}::jsonb`
+        // is serialised a second time by the driver and lands as a JSON string.
+        const rule = tx.json(MANUAL_PREDICATE);
         if (id != null) {
-          if (extras) {
-            await tx`
-              update public.surcharges set
-                code = ${parsed.code},
-                kind = ${parsed.kind},
-                amount_rappen = ${parsed.amountRappen},
-                percent = ${parsed.percent},
-                applies_to = ${parsed.appliesTo},
-                active = ${parsed.active},
-                predicate = ${JSON.stringify(extras.predicate)}::jsonb,
-                quantity_source = ${extras.quantitySource},
-                rule_id = ${parsed.ruleId}
-              where id = ${id} and rate_version_id = ${versionId}
-            `;
-          } else {
-            await tx`
-              update public.surcharges set
-                code = ${parsed.code},
-                kind = ${parsed.kind},
-                amount_rappen = ${parsed.amountRappen},
-                percent = ${parsed.percent},
-                applies_to = ${parsed.appliesTo},
-                active = ${parsed.active},
-                rule_id = ${parsed.ruleId}
-              where id = ${id} and rate_version_id = ${versionId}
-            `;
+          // 26.2-bp B9: the page may name the live book's row (and its rule); write the draft's.
+          const rowId = await draftRowId(tx, "surcharge", id, versionId);
+          if (parsed.ruleId != null) {
+            parsed.ruleId = await draftRowId(tx, "rule", parsed.ruleId, versionId);
           }
-        } else if (extras) {
+          await tx`
+            update public.surcharges set
+              code = ${parsed.code},
+              kind = ${parsed.kind},
+              amount_rappen = ${parsed.amountRappen},
+              percent = ${parsed.percent},
+              applies_to = ${parsed.appliesTo},
+              active = ${parsed.active},
+              predicate = ${rule},
+              quantity_source = null,
+              rule_id = ${parsed.ruleId}
+            where id = ${rowId} and rate_version_id = ${versionId}
+          `;
+        } else {
           await tx`
             insert into public.surcharges (
               rate_version_id, code, kind, amount_rappen, percent, applies_to, active,
@@ -986,17 +960,8 @@ export const PUT = withAdmin(async (claims, request) => {
             ) values (
               ${versionId}, ${parsed.code}, ${parsed.kind}, ${parsed.amountRappen},
               ${parsed.percent}, ${parsed.appliesTo}, ${parsed.active},
-              ${JSON.stringify(extras.predicate)}::jsonb, ${extras.quantitySource},
+              ${rule}, null,
               ${parsed.ruleId}
-            )
-          `;
-        } else {
-          await tx`
-            insert into public.surcharges (
-              rate_version_id, code, kind, amount_rappen, percent, applies_to, active, rule_id
-            ) values (
-              ${versionId}, ${parsed.code}, ${parsed.kind}, ${parsed.amountRappen},
-              ${parsed.percent}, ${parsed.appliesTo}, ${parsed.active}, ${parsed.ruleId}
             )
           `;
         }
@@ -1038,13 +1003,14 @@ export const PUT = withAdmin(async (claims, request) => {
       }
       await asStaff(env, claims, async (tx) => {
         if (id != null) {
+          const rowId = await draftRowId(tx, "band", id, versionId);
           await tx`
             update public.distance_bands set
               vehicle_class_id = ${vehicleClassId},
               from_km = ${fromKm},
               to_km = ${toKm},
               per_km_rappen = ${perKmRappen}
-            where id = ${id} and rate_version_id = ${versionId}
+            where id = ${rowId} and rate_version_id = ${versionId}
           `;
         } else {
           await tx`
@@ -1110,11 +1076,12 @@ export const PUT = withAdmin(async (claims, request) => {
       }
       await asStaff(env, claims, async (tx) => {
         if (id != null) {
+          const rowId = await draftRowId(tx, "rule", id, versionId);
           await tx`
             update public.rate_version_rules set
               kind = ${ruleKind},
               payload = ${payload}::jsonb
-            where id = ${id} and rate_version_id = ${versionId}
+            where id = ${rowId} and rate_version_id = ${versionId}
           `;
         } else {
           await tx`
@@ -1298,38 +1265,46 @@ export const DELETE = withAdmin(async (claims, request) => {
           where id = ${id} and rate_version_id = ${versionId}
         `;
       } else if (table === "surcharges") {
+        const rowId = await draftRowId(tx, "surcharge", id, versionId);
         await tx`
           delete from public.surcharges
-          where id = ${id} and rate_version_id = ${versionId}
+          where id = ${rowId} and rate_version_id = ${versionId}
         `;
       } else if (table === "distance_bands") {
+        const rowId = await draftRowId(tx, "band", id, versionId);
         await tx`
           delete from public.distance_bands
-          where id = ${id} and rate_version_id = ${versionId}
+          where id = ${rowId} and rate_version_id = ${versionId}
         `;
       } else if (table === "rate_version_rules") {
+        const rowId = await draftRowId(tx, "rule", id, versionId);
         await tx`
           delete from public.rate_version_rules
-          where id = ${id} and rate_version_id = ${versionId}
+          where id = ${rowId} and rate_version_id = ${versionId}
         `;
       } else if (table === "fixed_routes") {
+        const rowId = await draftRowId(tx, "route", id, versionId);
         await tx`
           delete from public.fixed_routes
           where rate_version_id = ${versionId}
             and (origin_zone_id, dest_zone_id) in (
               select origin_zone_id, dest_zone_id
                 from public.fixed_routes
-               where id = ${id} and rate_version_id = ${versionId}
+               where id = ${rowId} and rate_version_id = ${versionId}
             )
         `;
       } else {
+        const rowId = await draftRowId(tx, "distance", id, versionId);
         await tx`
           delete from public.distance_rates
-          where id = ${id} and rate_version_id = ${versionId}
+          where id = ${rowId} and rate_version_id = ${versionId}
         `;
       }
       return null;
     });
+    // 26.2-p4 A6: a deleted extra takes its four-language names with it once no live or
+    // draft book uses its code any more.
+    if (table === "surcharges") await pruneExtraLabels(env, claims);
     const next = await loadRateBook(env, claims, versionId);
     if (!next) return jsonErr("not-found", 404);
     const zones = await loadServiceZones(env, claims);
@@ -1338,6 +1313,76 @@ export const DELETE = withAdmin(async (claims, request) => {
     return failWrite(err);
   }
 });
+
+/**
+ * 26.2-bp B9. The pricing page shows the live book while no draft exists and sends that
+ * book's row ids; the first write forks a draft whose rows have new ids, so
+ * `where id = <live id> and rate_version_id = <draft>` matched nothing and the write was
+ * lost with a 200. This returns the row of `versionId` that `id` stands for: the row itself
+ * when it belongs to that version, else its copy (same key cloneRateVersionFrom copies by).
+ * An id that matches nothing is returned unchanged, so the write still matches nothing.
+ */
+async function draftRowId(
+  tx: Parameters<Parameters<typeof asStaff>[2]>[0],
+  kind: "surcharge" | "band" | "rule" | "route" | "distance",
+  id: number,
+  versionId: number,
+): Promise<number> {
+  let rows: { id: number | string }[];
+  if (kind === "surcharge") {
+    rows = await tx<{ id: number | string }[]>`
+      select n.id
+        from public.surcharges n
+        join public.surcharges o on o.code = n.code
+       where o.id = ${id} and n.rate_version_id = ${versionId}
+       order by (n.id = o.id) desc, n.id
+       limit 1
+    `;
+  } else if (kind === "band") {
+    rows = await tx<{ id: number | string }[]>`
+      select n.id
+        from public.distance_bands n
+        join public.distance_bands o
+          on o.vehicle_class_id = n.vehicle_class_id and o.from_km = n.from_km
+       where o.id = ${id} and n.rate_version_id = ${versionId}
+       order by (n.id = o.id) desc, n.id
+       limit 1
+    `;
+  } else if (kind === "rule") {
+    rows = await tx<{ id: number | string }[]>`
+      select n.id
+        from public.rate_version_rules n
+        join public.rate_version_rules o
+          on o.kind is not distinct from n.kind and o.payload is not distinct from n.payload
+       where o.id = ${id} and n.rate_version_id = ${versionId}
+       order by (n.id = o.id) desc, n.id
+       limit 1
+    `;
+  } else if (kind === "route") {
+    rows = await tx<{ id: number | string }[]>`
+      select n.id
+        from public.fixed_routes n
+        join public.fixed_routes o
+          on o.origin_zone_id = n.origin_zone_id
+         and o.dest_zone_id = n.dest_zone_id
+         and o.vehicle_class_id = n.vehicle_class_id
+       where o.id = ${id} and n.rate_version_id = ${versionId}
+       order by (n.id = o.id) desc, n.id
+       limit 1
+    `;
+  } else {
+    rows = await tx<{ id: number | string }[]>`
+      select n.id
+        from public.distance_rates n
+        join public.distance_rates o on o.vehicle_class_id = n.vehicle_class_id
+       where o.id = ${id} and n.rate_version_id = ${versionId}
+       order by (n.id = o.id) desc, n.id
+       limit 1
+    `;
+  }
+  const found = Number(rows[0]?.id);
+  return Number.isInteger(found) && found > 0 ? found : id;
+}
 
 function findExistingDistanceRate(
   book: RateBook,

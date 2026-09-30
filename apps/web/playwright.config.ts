@@ -132,7 +132,6 @@ export default defineConfig({
           "**/legal-notice.spec.ts",
           "**/legal-privacy-cookies.spec.ts",
           "**/legal-terms.spec.ts",
-          "**/lenis.spec.ts",
           "**/public-routes.spec.ts",
           "**/quote-api.spec.ts",
           "**/ssr-locale.spec.ts",

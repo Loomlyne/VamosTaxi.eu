@@ -45,7 +45,6 @@
     "whatsapp": "WhatsApp {phone}",
     "extraChildSeat": "Kindersitz",
     "extraOversized": "Sperrgepäck",
-    "extraStop": "Zwischenstopp",
     "vehicleEconomy": "Economy",
     "vehicleBusiness": "Business",
     "vehicleFirst": "First",
@@ -79,8 +78,8 @@
     "preheader": "Diese Fahrt ist storniert.",
     "headline": "Diese Fahrt ist storniert",
     "refundLabel": "Rückerstattung",
-    "refundPendingOps": "Pending Ops.",
-    "refundFullCaptured": "Eine volle Rückerstattung des erfassten Betrags ist unterwegs. Der Zeitpunkt folgt dem Timing Ihres Kartenherausgebers.",
+    "refundPendingOps": "Unser Team entscheidet über die Rückerstattung und teilt sie Ihnen per E-Mail mit.",
+    "refundFullCaptured": "Sie erhalten eine volle Rückerstattung des bezahlten Betrags. Unser Team veranlasst sie; Ihre Bank braucht vielleicht ein paar Tage, bis sie sichtbar ist.",
     "refundNone": "Keine Rückerstattung für dieses Zeitfenster."
   },
   "refundFailed": {

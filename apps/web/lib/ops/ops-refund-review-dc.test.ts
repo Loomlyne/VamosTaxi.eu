@@ -58,6 +58,27 @@ const KEYS = [
   "refundFailedTitle",
   "refundFailedBody",
   "tryAgain",
+  "refundBody",
+  "dueLegacyBody",
+  "whichPayment",
+  "allPayments",
+  "payTrip",
+  "payExtra",
+  "payLine",
+  "partialTitle",
+  "partialBody",
+  "processingBody",
+  "refundFullLine",
+  "refundAmountLabel",
+  "unitAria",
+  "exactNeedsPayment",
+  "errFullOnly",
+  "errExceeds",
+  "errInvalid",
+  "errAlready",
+  "errNotPaid",
+  "errNothing",
+  "errTestOnly",
 ] as const;
 
 describe("OpsDetail refund review panel (UI-SPEC §4)", () => {
@@ -106,7 +127,8 @@ describe("OpsDetail refund review panel (UI-SPEC §4)", () => {
   });
 
   it("percentage field starts empty with 0–100 bounds and gates Confirm refund", () => {
-    expect(dc).toMatch(/Input" type="number" min="0" max="100" size="md"/);
+    expect(dc).toMatch(/Input" type="number" min="0" max="\{\{ inputMax \}\}" size="md"/);
+    expect(dc).toMatch(/inputMax: unit === 'pct' \? '100' : ''/);
     expect(dc).toMatch(/percentText: ''/);
     expect(dc).toMatch(/percentValid = \/\^\\d\{1,3\}\$\/\.test\(percentText\)/);
     expect(dc).toMatch(/disabled="\{\{ confirmDisabled \}\}"/);
@@ -130,9 +152,11 @@ describe("OpsDetail refund review panel (UI-SPEC §4)", () => {
   it("shows refund controls to the admin only (D-16b)", () => {
     expect(dc).toMatch(/const isAdmin = role === 'admin';/);
     expect(dc).toMatch(/const canFullRefund = isAdmin && /);
-    expect(dc).toMatch(/const reviewNeeded = isAdmin && /);
+    expect(dc).toMatch(/const paidAdmin = isAdmin && !!booking\.paid;/);
+    expect(dc).toMatch(/const reviewNeeded = paidAdmin && /);
     expect(dc).toMatch(/const postTripEligible = isAdmin && /);
-    expect(dc).toMatch(/sc-if value="\{\{ canFullRefund \}\}"/);
+    // 260930-dash-design: Refund is an item of the Actions menu, still admin-only through canFullRefund.
+    expect(dc).toMatch(/canFullRefund \|\| postTripEligible \? \{ value: 'refund'/);
     expect(dc).not.toMatch(/sc-if value="\{\{ isCancelled \}\}"[^>]*>\s*<x-import[^>]*onClick="\{\{ markRefund \}\}"/);
   });
 
@@ -147,6 +171,76 @@ describe("OpsDetail refund review panel (UI-SPEC §4)", () => {
   it("puts the reference in vt-dir-keep inside confirm bodies", () => {
     const keeps = dc.match(/<span class="vt-dir-keep" data-vt-no-i18n="1">\{\{ decideRef \}\}<\/span>/g) ?? [];
     expect(keeps.length).toBe(2);
+  });
+});
+
+describe("20-10 dashboard refund screen", () => {
+  it("full tier: fixed 100 %, no Decline, no editable field", () => {
+    // The form block shows the Decline button and the amount Input only for the decided tier.
+    expect(dc).toMatch(/sc-if value="\{\{ declineShown \}\}"[^>]*>\s*<x-import[^>]*onClick="\{\{ openDecline \}\}"/);
+    expect(dc).toMatch(/sc-if value="\{\{ decidedShown \}\}"[^>]*>\s*<div data-ops-refund-pct>/);
+    expect(dc).toMatch(/declineShown: reviewNeeded/);
+    expect(dc).toMatch(/decidedShown: reviewNeeded/);
+    expect(dc).toMatch(/const fullShown = paidAdmin && refundStatus === 'pending_ops' && fullTier;/);
+    expect(dc).toMatch(/const reviewNeeded = paidAdmin && refundStatus === 'pending_ops' && !fullTier;/);
+    expect(dc).toMatch(/if \(fullShown\) return chosen \? \{ paymentId: chosen\.id, percent: 100 \} : \{ percent: 100 \};/);
+    expect(dc).toMatch(/data-ops-refund-full/);
+  });
+
+  it("the payment list is built only with two or more captured payments", () => {
+    expect(dc).toMatch(/const multi = payments\.length >= 2;/);
+    expect(dc).toMatch(/const payRows = multi \? \[/);
+    expect(dc).toMatch(/pickerShown: multi/);
+    expect(dc).toMatch(/sc-if value="\{\{ pickerShown \}\}"/);
+    expect(dc).toMatch(/VamosTaxiDesignSystem_245af1\.Radio" name="refund-pay"/);
+    // a payment with nothing left cannot be picked
+    expect(dc).toMatch(/!\(Number\(p\.leftRappen\) > 0\)/);
+  });
+
+  it("%/CHF: one body only, an exact amount needs a payment when there are two", () => {
+    expect(dc).toMatch(/VamosTaxiDesignSystem_245af1\.Tabs" items="\{\{ unitItems \}\}"/);
+    expect(dc).toMatch(/if \(unit === 'chf'\) return chosen \? \{ paymentId: chosen\.id, amountRappen \} : \{ amountRappen \};/);
+    expect(dc).toMatch(/return chosen \? \{ paymentId: chosen\.id, percent: Number\(percentText\) \} : \{ percent: Number\(percentText\) \};/);
+    expect(dc).not.toMatch(/percent:[^}]*amountRappen:|amountRappen:[^}]*percent:/);
+    expect(dc).toMatch(/const exactAllowed = !multi \|\| !!chosen;/);
+    expect(dc).toMatch(/const unit = !fullShown && exactAllowed && this\.state\.refundUnit === 'chf' \? 'chf' : 'pct';/);
+    expect(dc).toMatch(/unitSwitchShown: reviewNeeded && exactAllowed, exactHintShown: reviewNeeded && !exactAllowed/);
+  });
+
+  it("loads GET …/refund and reloads it after every answer", () => {
+    expect(dc).toMatch(/client\.request\('GET', '\/api\/staff\/bookings\/' \+ encodeURIComponent\(key\) \+ '\/refund'\)/);
+    expect(dc).toMatch(/\['pending_ops', 'processing', 'failed'\]/);
+    expect(dc).toMatch(/refreshRefund\(\);/);
+  });
+
+  it("Try again posts { retry: true }; partial and stripe-failed show what is still due", () => {
+    expect(dc).toMatch(/postRefund\('retry', \{ retry: true \}\)/);
+    expect(dc).not.toMatch(/rappen: owed|\{ rappen:/);
+    expect(dc).toMatch(/code === 'refund-partial' \|\| code === 'stripe-failed'/);
+    expect(dc).toMatch(/t\.partialTitle/);
+    expect(dc).toMatch(/figures\.unrecorded \? t\.processingBody/);
+  });
+
+  it("named refusals read as an inline message, amounts come from VamosLocale.money", () => {
+    for (const code of ["full-refund-only", "refund-exceeds-remaining", "invalid-amount", "already-refunded", "nothing-to-retry"]) {
+      expect(dc).toContain(`'${code}'`);
+    }
+    expect(dc).toMatch(/sc-if value="\{\{ refundErrorShown \}\}"/);
+    expect(dc).toMatch(/window\.VamosLocale\.money\(\(n \/ 100\)\.toFixed\(2\), 'CHF'\)/);
+  });
+
+  it("Refund due only for the full tier and old rows; success alert on refunded", () => {
+    expect(dc).toMatch(/showRefundDue: booking\.status === 'cancelled' && !refundFailedShown && \(\(refundStatus === 'pending_ops' && fullTier\) \|\| legacyDue\)/);
+    expect(dc).toMatch(/isRefunded: booking\.status === 'refunded' \|\| refundStatus === 'refunded'/);
+    expect(dc).toMatch(/tRefundBody: fullTier \? t\.refundBody : t\.dueLegacyBody/);
+  });
+
+  it("the new English copy is the approved wording; German has no ß", () => {
+    const { en, de } = tBlocks(dc);
+    expect(en).toContain("Cancelled more than 24 hours before pickup. The customer was told they get a full refund. Nothing is sent until you confirm.");
+    expect(en).toContain("{a} refunded. {b} still due.");
+    expect(en).toContain("Which payment?");
+    expect(de).not.toMatch(/ß/);
   });
 });
 

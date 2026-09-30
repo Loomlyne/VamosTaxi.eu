@@ -16,27 +16,20 @@
 [data-ops-refund-row]{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px}
 [data-ops-refund-pct]{flex:0 1 160px;min-width:120px}
 [data-ops-refund-pct] .vt-field{margin:0}
+[data-ops-refund-pick]{display:flex;flex-direction:column;gap:8px}
+[data-ops-refund-label]{font-family:var(--vt-font-body);font-size:var(--vt-label-md);font-weight:var(--vt-label-weight);letter-spacing:.02em;color:var(--vt-text-secondary)}
+[data-ops-refund-pay]{border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);overflow:hidden}
+[data-ops-refund-payrow]+[data-ops-refund-payrow]{border-block-start:1px solid var(--vt-border-subtle)}
+[data-ops-refund-payrow] .vt-check{display:flex;width:100%;box-sizing:border-box;min-height:44px;padding:12px 16px}
+[data-ops-refund-payrow] .vt-check__text{min-width:0;overflow-wrap:anywhere}
+[data-ops-refund-full]{margin:0;font-size:var(--vt-body-md);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)}
+[data-ops-refund-unit] .vt-tab{height:44px;min-width:72px}
 [data-ops-decide-body]{margin:0;font-size:var(--vt-body-sm);line-height:1.6;color:var(--vt-text-secondary);text-wrap:pretty}
 [data-ops-decide-foot]{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--vt-border-subtle)}
-[data-ops-detail-bar]{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:start;column-gap:12px;row-gap:10px;width:100%}
-[data-ops-bar-nav]{grid-column:1;display:flex;flex-wrap:nowrap;align-items:center}
-[data-ops-bar-main]{grid-column:2;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px}
-[data-ops-bar-end]{grid-column:3;justify-self:end;margin-inline-start:auto;display:flex;flex-wrap:nowrap;align-items:center;gap:8px}
-[data-ops-bar-cluster]{display:flex;flex-wrap:nowrap;align-items:center;gap:8px}
-[data-ops-bar-cluster]:not(:has(x-import,button,.vt-btn)){display:none}
-[data-ops-bar-cluster]:has(.vt-btn)~[data-ops-bar-cluster]:has(.vt-btn),[data-ops-bar-cluster]:has(x-import)~[data-ops-bar-cluster]:has(x-import){padding-inline-start:16px;border-inline-start:1px solid var(--vt-border-subtle)}
-@media (max-width:860px){
-[data-ops-detail-bar]{grid-template-columns:auto minmax(0,1fr)}
-[data-ops-bar-nav]{grid-column:1;grid-row:1}
-[data-ops-bar-end]{grid-column:2;grid-row:1;justify-self:end;min-width:0;flex-wrap:wrap;justify-content:flex-end}
-[data-ops-bar-main]{grid-column:1/-1;grid-row:2}
-}
-@media (max-width:520px){
-[data-ops-detail-bar]{grid-template-columns:minmax(0,1fr)}
-[data-ops-bar-nav]{grid-column:1;grid-row:1}
-[data-ops-bar-end]{grid-column:1;grid-row:2;justify-self:start;margin-inline-start:0}
-[data-ops-bar-main]{grid-column:1;grid-row:3}
-}
+[data-ops-detail-bar]{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 12px;width:100%}
+[data-ops-bar-nav]{display:flex;flex-wrap:nowrap;align-items:center;min-width:0}
+[data-ops-bar-end]{margin-inline-start:auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:8px;min-width:0}
+[data-ops-bar-end]:not(:has(x-import,dc-import,button,.vt-btn)){display:none}
 [data-ops-detail-col]{min-width:0;width:100%;display:flex;flex-direction:column;gap:14px}
 [data-ops-route-leg]{display:grid;grid-template-columns:14px minmax(0,1fr);grid-template-rows:auto auto auto;column-gap:12px;align-items:stretch}
 [data-ops-route-pip]{grid-column:1;grid-row:1;align-self:start;margin-top:4px;position:relative;z-index:1;inline-size:10px;block-size:10px;border-radius:var(--vt-radius-pill);background:var(--vt-accent);border:2px solid var(--vt-charcoal-900);box-sizing:content-box}
@@ -53,11 +46,21 @@
 [data-ops-tags]{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
 [data-ops-tag]{display:inline-flex;align-items:center;gap:6px;min-height:28px;padding:4px 10px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-pill);background:var(--vt-bg-surface);font-family:var(--vt-font-body);font-size:var(--vt-body-xs);line-height:1.3;color:var(--vt-text-primary)}
 [data-ops-tag] b{font-weight:600;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-muted);font-size:10px}
-[data-ops-assign-head]{display:flex;align-items:center;gap:12px;padding-bottom:12px;border-bottom:1px solid var(--vt-border-subtle)}
-[data-ops-assign-body]{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:12px}
-[data-ops-assign-list]{flex:1 1 220px;min-width:0}
-[data-ops-assign-side]{flex:0 0 auto;display:flex;align-items:center;gap:8px}
-[data-ops-assign-side]:not(:has(.vt-btn,x-import)){display:none}
+[data-ops-assign-pick]{grid-column:2;min-width:0;max-inline-size:560px;display:flex;flex-direction:column;gap:12px;margin-top:4px}
+[data-ops-drv-list]{display:flex;flex-direction:column;gap:8px;min-width:0}
+[data-ops-drv]{box-sizing:border-box;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-bg-surface);transition:background 140ms cubic-bezier(.2,0,.2,1),border-color 140ms cubic-bezier(.2,0,.2,1)}
+[data-ops-drv]:hover{background:var(--vt-grey-50)}
+[data-ops-drv][data-sel="1"]{border:2px solid var(--vt-charcoal-900)}
+[data-ops-drv] .vt-check{display:flex;box-sizing:border-box;width:100%;min-height:48px;padding:11px 13px}
+[data-ops-drv][data-sel="1"] .vt-check{padding:10px 12px}
+[data-ops-drv] .vt-check__text > span:first-child{font-weight:600;overflow-wrap:anywhere}
+[data-ops-assign-note]{margin:0;font-size:var(--vt-body-sm);line-height:1.5;color:var(--vt-text-muted)}
+[data-ops-assign-err]{margin:0;display:flex;align-items:flex-start;gap:8px;font-size:var(--vt-body-sm);line-height:1.5;color:var(--vt-danger);text-wrap:pretty}
+[data-ops-assign-err] > :first-child{flex:0 0 auto;margin-top:2px}
+[data-ops-assign-foot]{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+@media (max-width:520px){
+[data-ops-assign-pick]{grid-column:1/-1}
+}
 [data-ops-pax] > h3{overflow:visible;white-space:normal}
 [data-ops-pax-grid]{display:grid;grid-template-columns:minmax(7rem,132px) minmax(0,1fr);gap:8px 14px;align-items:start;font-family:var(--vt-font-body);font-size:var(--vt-body-sm)}
 [data-ops-pax-k]{color:var(--vt-text-muted);min-width:0;padding-top:2px}
@@ -69,42 +72,11 @@
 <div data-ops-bar-nav>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" icon="chevron-left" onClick="{{ goBack }}" hint-size="auto,36px">{{ tBackToBookings }}</x-import>
 </div>
-<div data-ops-bar-main>
-<sc-if value="{{ viewing }}" hint-placeholder-val="{{ true }}">
-<div data-ops-bar-cluster data-ops-bar-assign>
-<sc-if value="{{ canAssign }}" hint-placeholder-val="{{ true }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="{{ assignVariant }}" onClick="{{ openAssignDialog }}" hint-size="170px,36px">{{ assignLabel }}</x-import>
-</sc-if>
-<sc-if value="{{ canUnassign }}" hint-placeholder-val="{{ false }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ confirmUnassign }}" hint-size="110px,36px">{{ tUnassign }}</x-import>
-</sc-if>
-</div>
-<div data-ops-bar-cluster data-ops-bar-utils>
-<sc-if value="{{ canEdit }}" hint-placeholder-val="{{ true }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" icon="pencil" onClick="{{ openEdit }}" hint-size="140px,36px">{{ tEditBooking }}</x-import>
-</sc-if>
-</div>
-<div data-ops-bar-cluster data-ops-bar-trip>
-<sc-if value="{{ canAction }}" hint-placeholder-val="{{ true }}">
-<dc-import name="BrandSelect" size="compact" icon="settings" placeholder="{{ tAction }}" value="{{ actionValue }}" options="{{ actionOptions }}" onSelect="{{ pickAction }}" a11y-label="{{ tAction }}" hint-size="160px,36px"></dc-import>
-</sc-if>
-<sc-if value="{{ canNoShow }}" hint-placeholder-val="{{ true }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ markNoShow }}" hint-size="120px,36px">{{ tNoShow }}</x-import>
-</sc-if>
-</div>
-</sc-if>
-</div>
 <div data-ops-bar-end>
-<sc-if value="{{ viewing }}" hint-placeholder-val="{{ true }}">
-<sc-if value="{{ canCancel }}" hint-placeholder-val="{{ true }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="danger" icon="x" onClick="{{ openCancel }}" hint-size="110px,36px">{{ tCancelBooking }}</x-import>
-</sc-if>
-<sc-if value="{{ canFullRefund }}" hint-placeholder-val="{{ false }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="primary" disabled="{{ refundBusy }}" onClick="{{ markRefund }}" hint-size="200px,36px">{{ tMarkRefund }}</x-import>
-</sc-if>
-<sc-if value="{{ postTripEligible }}" hint-placeholder-val="{{ false }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="primary" disabled="{{ refundBusy }}" onClick="{{ openRequested }}" hint-size="200px,36px">{{ tMarkRefund }}</x-import>
-</sc-if>
+<sc-if value="{{ showActions }}" hint-placeholder-val="{{ true }}">
+<div data-ops-fold="1">
+<dc-import name="ActionsMenu" label="{{ tActions }}" items="{{ actionItems }}" onPick="{{ pickAction }}" tone="light" size="sm" hint-size="130px,36px"></dc-import>
+</div>
 </sc-if>
 <sc-if value="{{ editing }}" hint-placeholder-val="{{ false }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ cancelEdit }}" hint-size="110px,36px">{{ tCancelEdit }}</x-import>
@@ -164,29 +136,43 @@
 </sc-for>
 </div>
 
-<div data-ops-assign>
-<div data-ops-assign-head>
-<span style="flex:1 1 auto;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:600;color:var(--vt-text-muted)">{{ tAssignment }}</span>
-</div>
-<div data-ops-assign-body>
-<div data-ops-assign-list>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.List" hint-size="100%,72px">
+<div data-ops-assign ref="{{ assignRef }}">
+<h3 style="margin:0 0 12px;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:600;color:var(--vt-text-muted)">{{ tAssignment }}</h3>
+<div data-ops-pax-grid>
+<span data-ops-pax-k>{{ tDriver }}</span>
 <sc-if value="{{ hasDriver }}" hint-placeholder-val="{{ false }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.ListRow" icon="car-front" title="{{ driverName }}" subtitle="{{ driverVehicle }}" hint-size="100%,60px"></x-import>
+<span data-ops-pax-v data-vt-no-i18n="1" style="font-weight:600">{{ driverName }}</span>
 </sc-if>
 <sc-if value="{{ noDriver }}" hint-placeholder-val="{{ true }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.ListRow" icon="triangle-alert" title="{{ tNoDriver }}" subtitle="{{ tNoDriverSub }}" hint-size="100%,60px"></x-import>
+<span data-ops-pax-v style="display:flex;flex-direction:column;gap:2px"><span>{{ tNoDriver }}</span><span style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tNoDriverSub }}</span></span>
 </sc-if>
-</x-import>
+<sc-if value="{{ hasDriver }}" hint-placeholder-val="{{ false }}">
+<span data-ops-pax-k>{{ tCar }}</span>
+<span data-ops-pax-v data-vt-no-i18n="1">{{ carLine }}</span>
+</sc-if>
+<sc-if value="{{ showAssignPicker }}" hint-placeholder-val="{{ true }}">
+<div data-ops-assign-pick>
+<div data-ops-drv-list role="radiogroup" aria-label="{{ tChooseDriver }}" data-vt-no-i18n="1">
+<sc-for list="{{ assignRows }}" as="d" hint-placeholder-count="2">
+<div data-ops-drv data-sel="{{ d.selAttr }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Radio" name="ops-assign-driver" value="{{ d.id }}" label="{{ d.name }}" description="{{ d.car }}" checked="{{ d.checked }}" onChange="{{ d.pick }}" hint-size="100%,56px"></x-import>
 </div>
-<div data-ops-assign-side>
-<sc-if value="{{ showAssignSide }}" hint-placeholder-val="{{ true }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="primary" onClick="{{ openAssignDialog }}" hint-size="140px,36px">{{ tAssign }}</x-import>
-</sc-if>
-<sc-if value="{{ canUnassign }}" hint-placeholder-val="{{ false }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ confirmUnassign }}" hint-size="110px,36px">{{ tUnassign }}</x-import>
+</sc-for>
+<sc-if value="{{ noDrivers }}" hint-placeholder-val="{{ false }}">
+<p data-ops-assign-note>{{ tNoDrivers }}</p>
 </sc-if>
 </div>
+<sc-if value="{{ hasAssignError }}" hint-placeholder-val="{{ false }}">
+<p data-ops-assign-err role="alert"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="triangle-alert" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import><span data-vt-no-i18n="1">{{ assignError }}</span></p>
+</sc-if>
+<div data-ops-assign-foot>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="primary" disabled="{{ assignDisabled }}" onClick="{{ confirmAssign }}" hint-size="170px,44px">{{ tAssign }}</x-import>
+<sc-if value="{{ assignCancelable }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" onClick="{{ closeAssign }}" hint-size="110px,44px">{{ tCancel }}</x-import>
+</sc-if>
+</div>
+</div>
+</sc-if>
 </div>
 </div>
 
@@ -295,20 +281,54 @@
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" title="{{ tDisputeTitle }}" hint-size="100%,70px">{{ disputeLine }}</x-import>
 </div>
 </sc-if>
-<sc-if value="{{ reviewNeeded }}" hint-placeholder-val="{{ false }}">
-<div data-ops-refund-region>
+<sc-if value="{{ refundFormShown }}" hint-placeholder-val="{{ false }}">
+<div data-ops-refund-region ref="{{ refundRef }}">
+<sc-if value="{{ reviewShown }}" hint-placeholder-val="{{ false }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="info" title="{{ tReviewTitle }}" hint-size="100%,70px">{{ tReviewBody }}</x-import>
-<div data-ops-refund-row>
-<div data-ops-refund-pct>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" type="number" min="0" max="100" size="md" step="1" inputMode="numeric" suffix="%" placeholder="{{ tPercentPlaceholder }}" aria-label="{{ tReviewBody }}" value="{{ percentText }}" onChange="{{ setPercent }}" disabled="{{ refundBusy }}" hint-size="160px,44px"></x-import>
+</sc-if>
+<sc-if value="{{ pickerShown }}" hint-placeholder-val="{{ false }}">
+<div data-ops-refund-pick role="radiogroup" aria-label="{{ tWhichPayment }}">
+<span data-ops-refund-label>{{ tWhichPayment }}</span>
+<div data-ops-refund-pay>
+<sc-for list="{{ payRows }}" as="p" hint-placeholder-count="3">
+<div data-ops-refund-payrow>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Radio" name="refund-pay" label="{{ p.label }}" description="{{ p.description }}" checked="{{ p.checked }}" disabled="{{ p.disabled }}" onChange="{{ p.pick }}" hint-size="100%,44px"></x-import>
 </div>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="primary" disabled="{{ confirmDisabled }}" aria-busy="{{ confirmBusy }}" onClick="{{ confirmPercent }}" hint-size="170px,44px">{{ tConfirmRefund }}</x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" disabled="{{ refundBusy }}" onClick="{{ openDecline }}" hint-size="170px,44px">{{ tDeclineRefund }}</x-import>
+</sc-for>
 </div>
 </div>
 </sc-if>
-<sc-if value="{{ requestedShown }}" hint-placeholder-val="{{ false }}">
+<sc-if value="{{ fullShown }}" hint-placeholder-val="{{ false }}">
+<p data-ops-refund-full>{{ fullLine }}</p>
+</sc-if>
+<sc-if value="{{ unitSwitchShown }}" hint-placeholder-val="{{ false }}">
+<div data-ops-refund-unit>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Tabs" items="{{ unitItems }}" value="{{ unitValue }}" onChange="{{ setUnit }}" variant="segmented" aria-label="{{ tUnitAria }}" hint-size="160px,48px"></x-import>
+</div>
+</sc-if>
+<sc-if value="{{ exactHintShown }}" hint-placeholder-val="{{ false }}">
+<p data-ops-decide-body>{{ tExactNeedsPayment }}</p>
+</sc-if>
+<div data-ops-refund-row>
+<sc-if value="{{ decidedShown }}" hint-placeholder-val="{{ false }}">
+<div data-ops-refund-pct>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" type="number" min="0" max="{{ inputMax }}" size="md" step="{{ inputStep }}" inputMode="{{ inputMode }}" suffix="{{ unitLabel }}" placeholder="{{ inputPlaceholder }}" aria-label="{{ tRefundAmountLabel }}" value="{{ percentText }}" onChange="{{ setPercent }}" disabled="{{ refundBusy }}" hint-size="160px,44px"></x-import>
+</div>
+</sc-if>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="primary" disabled="{{ confirmDisabled }}" aria-busy="{{ confirmBusy }}" onClick="{{ confirmPercent }}" hint-size="170px,44px">{{ tConfirmRefund }}</x-import>
+<sc-if value="{{ declineShown }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" disabled="{{ refundBusy }}" onClick="{{ openDecline }}" hint-size="170px,44px">{{ tDeclineRefund }}</x-import>
+</sc-if>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ refundErrorShown }}" hint-placeholder-val="{{ false }}">
 <div data-ops-refund-region>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" title="{{ refundErrorText }}" hint-size="100%,56px"></x-import>
+</div>
+</sc-if>
+<sc-if value="{{ requestedShown }}" hint-placeholder-val="{{ false }}">
+<div data-ops-refund-region ref="{{ refundRef }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="info" title="{{ tRequestedTitle }}" hint-size="100%,70px">{{ tRequestedBody }}</x-import>
 <div data-ops-refund-row>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="primary" disabled="{{ refundBusy }}" aria-busy="{{ acceptBusy }}" onClick="{{ acceptPostTrip }}" hint-size="170px,44px">{{ tAcceptRefund }}</x-import>
@@ -317,7 +337,7 @@
 </div>
 </sc-if>
 <sc-if value="{{ refundFailedShown }}" hint-placeholder-val="{{ false }}">
-<div data-ops-refund-region>
+<div data-ops-refund-region ref="{{ refundRef }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" title="{{ tRefundFailedTitle }}" hint-size="100%,70px">{{ tRefundFailedBody }}</x-import>
 <div data-ops-refund-row>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" disabled="{{ refundBusy }}" onClick="{{ retryRefund }}" hint-size="140px,44px">{{ tTryAgain }}</x-import>
@@ -326,17 +346,6 @@
 </sc-if>
 </div>
 </x-import>
-
-<sc-if value="{{ dialogOpen }}" hint-placeholder-val="{{ false }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" title="{{ tAssignDriver }}" size="sm" subtitle="{{ dialogSubtitle }}" onClose="{{ closeDialog }}" hint-size="400px,280px">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Select" label="{{ tDriver }}" options="{{ driverOptions }}" value="{{ pickDriver }}" onChange="{{ setPickDriver }}" hint-size="100%,78px"></x-import>
-<p style="font-family:var(--vt-font-body);font-size:var(--vt-body-xs);color:var(--vt-text-muted);margin:16px 0 0">{{ tManualNote }}</p>
-<div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--vt-border-subtle)">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" onClick="{{ closeDialog }}" hint-size="90px,44px">{{ tCancel }}</x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" onClick="{{ confirmAssign }}" hint-size="90px,44px">{{ tAssign }}</x-import>
-</div>
-</x-import>
-</sc-if>
 
 <sc-if value="{{ cancelOpen }}" hint-placeholder-val="{{ false }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" title="{{ tCancelTitle }}" size="sm" subtitle="{{ cancelSubtitle }}" onClose="{{ closeCancel }}" hint-size="400px,320px">
@@ -380,7 +389,7 @@
 </main>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:900},&quot;id&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
-const EMPTY_BOOKING = { id:'', time:'', date:'', pickup:'', dropoff:'', vehicle:'', pax:0, bags:0, status:'', total:'CHF 000', totalRappen:0, driver:null, customer:'', email:'', phone:'', flight:'', pay:'', channel:'', km:'', arrivedAt:'', extraWaitMinutes:0, extraWaitRappen:0 };
+const EMPTY_BOOKING = { id:'', time:'', date:'', pickup:'', dropoff:'', vehicle:'', pax:0, bags:0, status:'', total:'CHF 000', totalRappen:0, driver:null, customer:'', email:'', phone:'', flight:'', pay:'', channel:'', km:'', arrivedAt:'' };
 function listBookings() {
   return window.VamosOps ? window.VamosOps.bookings.all() : [];
 }
@@ -391,13 +400,43 @@ function fareLabel(rappen) {
   }
   return window.VamosLocale ? window.VamosLocale.money('000') : 'CHF 000';
 }
-function assignableChauffeurOptions() {
+// Refund amounts are always CHF (charges are CHF). Two decimals so the admin reads the exact sum.
+// Amounts inside running text are wrapped in left-to-right isolates so they stay intact in Arabic.
+function chfText(rappen) {
+  const n = Math.max(0, Math.round(Number(rappen) || 0));
+  return window.VamosLocale && window.VamosLocale.money ? window.VamosLocale.money((n / 100).toFixed(2), 'CHF').replace(/ /g, '\u00a0') : '';
+}
+function isolate(s) { return '⁦' + s + '⁩'; }
+function fillAmounts(str, map) {
+  return String(str || '').replace(/\{(\w+)\}/g, (m, k) => (Object.prototype.hasOwnProperty.call(map, k) ? isolate(map[k]) : m));
+}
+function assignableChauffeurs() {
   const ops = window.VamosOps;
   if (!ops || !ops.chauffeurs) return [];
-  return (ops.chauffeurs.all() || []).filter((c) => c && c.id).map((c) => ({
-    value: String(c.id),
-    label: String(c.name || c.fullName || c.email || c.id),
-  }));
+  return (ops.chauffeurs.all() || []).filter((c) => c && c.id);
+}
+/* 260930-dash-design: each driver has his own car (chauffeurs.default_vehicle_id). The Assign box
+   shows it under the name as "Class · Model · Plate", the order the chauffeur form lists cars in. */
+function carText(v) {
+  const classes = (window.VamosOps && window.VamosOps.CLASSES) || [];
+  const own = v && v.vehicleClassId ? classes.filter((c) => c && c.id === v.vehicleClassId)[0] : null;
+  const klass = (own && String(own.name || own.label || '').trim()) || (v && v.klass);
+  return [klass, v && v.model, v && v.plate].filter(Boolean).join(' \u00b7 ');
+}
+/* Signed 2026-10-01: Complete and No-show are offered once the pickup time has passed (Zurich).
+   pickupAt is the instant; without it, the row's Zurich date and time are turned into one. */
+function pickupMs(booking) {
+  const at = Date.parse(String((booking && booking.pickupAt) || ''));
+  if (Number.isFinite(at)) return at;
+  const d = String((booking && booking.dateIso) || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+  const hm = String((booking && booking.time) || '').match(/^(\d{2}):(\d{2})/);
+  if (!d || !hm) return NaN;
+  const guess = Date.UTC(+d[1], +d[2] - 1, +d[3], +hm[1], +hm[2]);
+  const p = {};
+  new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Zurich', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+    .formatToParts(new Date(guess)).forEach((x) => { p[x.type] = x.value; });
+  const wall = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute);
+  return guess - (wall - guess);
 }
 function eventTitle(kind, t) {
   if (kind === 'assignment.chauffeur_set') return t.evAssigned;
@@ -534,16 +573,17 @@ const T = {
     fare:'Fare', due:'Due', paid:'Paid', fareNote:'Price snapshot taken at booking; later rule changes do not alter it.',
     outstandingTitle:'Payment outstanding', outstandingBody:'No card capture yet. Send a pay-link or wait for the checkout session to finish.',
     sendPayLink:'Send pay-link', takeCard:'Take card', openStripe:'Open Stripe payment page', copyPayLink:'Copy payment link', payLinkCopied:'Payment link copied', payLinkSent:'Pay-link sent to ', payLinkFailed:'Could not send pay-link ', cardFailed:'Card failed ',
-    refundTitle:'Refund due', refundBody:'Cancelled inside the free window. The customer is emailed that a refund will be issued to their bank account. When you mark it issued, they get a second email.',
+    refundTitle:'Refund due', refundBody:'Cancelled more than 24 hours before pickup. The customer was told they get a full refund. Nothing is sent until you confirm.',
     refundedTitle:'Refund issued', refundedBody:'The customer has been emailed that the refund was issued to their bank account.',
-    resendVoucher:'Resend voucher', editBooking:'Edit booking', cancelBooking:'Cancel', action:'Action', complete:'Complete', noShow:'No-show', markArrival:'Mark arrival', arrived:'Arrived', extraWait:'Extra wait', arrivalFailed:'Could not mark arrival ', driver:'Driver', manualNote:'Assignment is manual in V1 — there is no driver app and no automatic dispatch.', cancel:'Cancel',
+    resendVoucher:'Resend voucher', editBooking:'Edit booking', cancelBooking:'Cancel', action:'Action', complete:'Complete', noShow:'No-show', markArrival:'Mark arrival', arrived:'Arrived', arrivalFailed:'Could not mark arrival ', driver:'Driver', manualNote:'Assignment is manual in V1 — there is no driver app and no automatic dispatch.', cancel:'Cancel',
     cancelTitle:'Cancel this booking?', cancelBody:'It is marked cancelled. You will still see it under Cancelled.',
     cancelBodyUnpaid:'This unpaid trip is removed. It does not stay under Cancelled.',
     keepBooking:'Keep it', confirmCancel:'Cancel booking', confirmCancelUnpaid:'Remove booking', bookingCancelled:'Cancelled ', bookingRemoved:'Removed ', cancelFailed:'Could not cancel ', refundFailed:'Could not refund ',
     voucherResent:'Voucher re-sent to ', driverAssigned:'Driver assigned to ', unassignedOk:'Assignment cleared for ',
     evPayment:'Payment captured', evRefund:'Refund issued', evVoucher:'Voucher sent', evAssigned:'Driver assigned', evVehicle:'Vehicle assigned', evCleared:'Assignment cleared',
     evQuoted:'Quote saved', evCreated:'Booking created', evPayStarted:'Payment started', evStatus:'Status changed', included:'Included',
-    overlap:'Overlaps {ref} at {time}', noEmail:'Cannot assign until this chauffeur has an email on file.', noVehicle:'Cannot assign until this chauffeur has a vehicle.',
+    overlap:'Overlaps {ref} at {time}', noEmail:'Cannot assign until this chauffeur has an email on file.', noVehicle:'Give this driver a car first: Chauffeurs, then the driver, then Car.', classMismatch:'This driver’s car is {car}; the trip is {trip}.',
+    actions:'Actions', car:'Car', noCarYet:'No car yet', noDrivers:'No drivers yet. Add one on Chauffeurs.', chooseDriver:'Choose the driver',
     notPaid:'Unpaid trips cannot be assigned.', frozen:'This trip is frozen.', capacity:'This vehicle cannot take this trip’s passengers and bags.', assignFailed:'Could not assign ',
     pickChauffeur:'Pick a chauffeur first.', voucherFailed:'Could not resend voucher ',
     website:'Website', stripeWebhook:'Stripe webhook', resend:'Resend', dispatch:'Dispatch',
@@ -571,21 +611,44 @@ const T = {
     rejectConfirmTitle:'Reject this refund?', rejectConfirmBody:'The customer is told no money will be returned for {ref}.',
     disputeTitle:'Payment disputed', disputeManage:'Manage in the Stripe dashboard.', disputeNeedsResponse:'Needs response', disputeUnderReview:'Under review', disputeWon:'Won', disputeLost:'Lost',
     refundFailedTitle:'Refund failed', refundFailedBody:'Stripe did not accept the refund. You can try again.', tryAgain:'Try again',
+    dueLegacyBody:'Cancelled and paid. Nothing has been refunded yet.',
+    whichPayment:'Which payment?',
+    allPayments:'All payments',
+    payTrip:'Trip',
+    payExtra:'Extra fare',
+    payLine:'refunded {a} · left {b}',
+    partialTitle:'{a} refunded. {b} still due.',
+    partialBody:'Stripe did not accept one refund. Nothing was sent twice.',
+    processingBody:'A refund was sent and is not recorded yet. Press Try again.',
+    refundFullLine:'Full refund: {a}',
+    refundAmountLabel:'Refund amount',
+    unitAria:'Refund as a percentage or as an amount',
+    exactNeedsPayment:'To refund an exact amount, choose one payment.',
+    errFullOnly:'Cancelled more than 24 hours ahead: only the full refund can be sent.',
+    errExceeds:'That is more than is left to refund on this payment.',
+    errInvalid:'Enter a percentage from 0 to 100, or an amount above 0.',
+    errAlready:'Nothing is left to refund on this booking.',
+    errNotPaid:'This booking has no captured payment.',
+    errNothing:'There is nothing to try again. The page now shows what is due.',
+    errTestOnly:'Refunds can only be sent on the Stripe test account for now.',
+    errDecided:'This refund is no longer waiting for a decision. The page now shows where it stands.',
+    errNotPostTrip:'A refund can only be rejected after a completed trip or a no-show.',
  },
   de: { backToBookings:'Zurück zu Buchungen', bookedBy:'gebucht von', moreActions:'Weitere Aktionen', details:'Details', history:'Verlauf', historyEmpty:'Noch keine Ereignisse.',
     assignment:'Zuweisung', assign:'Fahrer zuweisen', reassign:'Neu zuweisen', unassign:'Zuweisung aufheben', onShift:'Im Dienst', noDriver:'Kein Fahrer zugewiesen', noDriverSub:'Vor der Abholerinnerung zuweisen',
     passengerTrip:'Passagier & Fahrt', passengers:'Passagiere', bags:'Gepäck', vehicleClass:'Fahrzeugklasse', flight:'Flug', email:'E-Mail', mobile:'Mobil', payment:'Zahlung', payLink:'Zahlungslink', session:'Session',
     fare:'Fahrpreis', due:'Offen', paid:'Bezahlt', fareNote:'Preis-Snapshot bei Buchung; spätere Regeländerungen ändern ihn nicht.',
     outstandingTitle:'Zahlung ausstehend', outstandingBody:'Keine Kartenzahlung. Zahlungslink senden oder die Checkout-Session abwarten.',
-    refundTitle:'Rückerstattung fällig', refundBody:'Storniert innerhalb des kostenlosen Fensters. Der Kunde erhält eine E-Mail, dass die Rückerstattung auf sein Bankkonto ausgezahlt wird. Wenn Sie sie als ausgezahlt markieren, folgt eine zweite E-Mail.',
+    refundTitle:'Rückerstattung fällig', refundBody:'Mehr als 24 Stunden vor der Abholung storniert. Dem Kunden wurde die volle Rückerstattung zugesagt. Es wird nichts gesendet, bis Sie bestätigen.',
     refundedTitle:'Rückerstattung ausgezahlt', refundedBody:'Der Kunde wurde per E-Mail informiert, dass die Rückerstattung auf sein Bankkonto ausgezahlt wurde.',
-    resendVoucher:'Gutschein erneut senden', editBooking:'Buchung bearbeiten', cancelBooking:'Stornieren', action:'Aktion', complete:'Abgeschlossen', noShow:'No-show', markArrival:'Ankunft markieren', arrived:'Angekommen', extraWait:'Extra-Wartezeit', arrivalFailed:'Ankunft konnte nicht markiert werden ', driver:'Fahrer', manualNote:'Die Zuweisung erfolgt in V1 manuell — es gibt keine Fahrer-App und keine automatische Vermittlung.', cancel:'Abbrechen',
+    resendVoucher:'Gutschein erneut senden', editBooking:'Buchung bearbeiten', cancelBooking:'Stornieren', action:'Aktion', complete:'Abgeschlossen', noShow:'No-show', markArrival:'Ankunft markieren', arrived:'Angekommen', arrivalFailed:'Ankunft konnte nicht markiert werden ', driver:'Fahrer', manualNote:'Die Zuweisung erfolgt in V1 manuell — es gibt keine Fahrer-App und keine automatische Vermittlung.', cancel:'Abbrechen',
     cancelTitle:'Diese Buchung stornieren?', cancelBody:'Sie wird als storniert markiert. Unter Storniert bleibt sie sichtbar.',
     cancelBodyUnpaid:'Diese unbezahlte Fahrt wird entfernt. Unter Storniert bleibt sie nicht.',
     keepBooking:'Behalten', confirmCancel:'Buchung stornieren', confirmCancelUnpaid:'Buchung entfernen', bookingCancelled:'Storniert ', bookingRemoved:'Entfernt ', cancelFailed:'Konnte nicht stornieren ', refundFailed:'Konnte nicht erstatten ',
     voucherResent:'Gutschein erneut gesendet an ', driverAssigned:'Fahrer zugewiesen zu ', unassignedOk:'Zuweisung aufgehoben für ',
     evPayment:'Zahlung erfasst', evRefund:'Rückerstattung ausgezahlt', evVoucher:'Gutschein gesendet', evAssigned:'Fahrer zugewiesen', evVehicle:'Fahrzeug zugewiesen', evCleared:'Zuweisung aufgehoben',
-    overlap:'Überschneidet sich mit {ref} um {time}', noEmail:'Zuweisung erst, wenn dieser Chauffeur eine E-Mail hat.', noVehicle:'Zuweisung erst, wenn dieser Chauffeur ein Fahrzeug hat.',
+    overlap:'Überschneidet sich mit {ref} um {time}', noEmail:'Zuweisung erst, wenn dieser Chauffeur eine E-Mail hat.', noVehicle:'Geben Sie diesem Fahrer zuerst ein Auto: Chauffeure, dann den Fahrer, dann Auto.', classMismatch:'Das Auto dieses Fahrers ist {car}; die Fahrt ist {trip}.',
+    actions:'Aktionen', car:'Auto', noCarYet:'Noch kein Auto', noDrivers:'Noch keine Fahrer. Unter Chauffeure hinzufügen.', chooseDriver:'Fahrer wählen',
     notPaid:'Unbezahlte Fahrten können nicht zugewiesen werden.', frozen:'Diese Fahrt ist gesperrt.', capacity:'Dieses Fahrzeug kann Passagiere und Gepäck dieser Fahrt nicht aufnehmen.', assignFailed:'Zuweisung fehlgeschlagen für ',
     pickChauffeur:'Zuerst einen Fahrer wählen.', voucherFailed:'Gutschein konnte nicht gesendet werden ',
     website:'Website', stripeWebhook:'Stripe-Webhook', resend:'Resend', dispatch:'Dispatch',
@@ -617,10 +680,33 @@ const T = {
     rejectConfirmTitle:'Diese Rückerstattung zurückweisen?', rejectConfirmBody:'Der Kunde erfährt, dass für {ref} kein Geld zurückerstattet wird.',
     disputeTitle:'Zahlung angefochten', disputeManage:'Im Stripe-Dashboard bearbeiten.', disputeNeedsResponse:'Antwort nötig', disputeUnderReview:'In Prüfung', disputeWon:'Gewonnen', disputeLost:'Verloren',
     refundFailedTitle:'Rückerstattung fehlgeschlagen', refundFailedBody:'Stripe hat die Rückerstattung nicht angenommen. Sie können es erneut versuchen.', tryAgain:'Erneut versuchen',
+    dueLegacyBody:'Storniert und bezahlt. Bisher wurde nichts zurückerstattet.',
+    whichPayment:'Welche Zahlung?',
+    allPayments:'Alle Zahlungen',
+    payTrip:'Fahrt',
+    payExtra:'Aufpreis',
+    payLine:'erstattet {a} · offen {b}',
+    partialTitle:'{a} erstattet. {b} noch offen.',
+    partialBody:'Stripe hat eine Rückerstattung nicht angenommen. Nichts wurde doppelt gesendet.',
+    processingBody:'Eine Rückerstattung wurde gesendet und ist noch nicht verbucht. Drücken Sie «Erneut versuchen».',
+    refundFullLine:'Volle Rückerstattung: {a}',
+    refundAmountLabel:'Rückerstattungsbetrag',
+    unitAria:'Rückerstattung als Prozentsatz oder als Betrag',
+    exactNeedsPayment:'Für einen genauen Betrag wählen Sie eine Zahlung.',
+    errFullOnly:'Mehr als 24 Stunden vorher storniert: Es kann nur die volle Rückerstattung gesendet werden.',
+    errExceeds:'Das ist mehr, als bei dieser Zahlung noch zurückerstattet werden kann.',
+    errInvalid:'Geben Sie einen Prozentsatz von 0 bis 100 oder einen Betrag über 0 ein.',
+    errAlready:'Bei dieser Buchung ist nichts mehr zurückzuerstatten.',
+    errNotPaid:'Diese Buchung hat keine erfasste Zahlung.',
+    errNothing:'Es gibt nichts zu wiederholen. Die Seite zeigt jetzt, was offen ist.',
+    errTestOnly:'Rückerstattungen können vorerst nur im Stripe-Testkonto gesendet werden.',
+    errDecided:'Diese Rückerstattung wartet nicht mehr auf einen Entscheid. Die Seite zeigt jetzt den aktuellen Stand.',
+    errNotPostTrip:'Eine Rückerstattung kann nur nach einer abgeschlossenen Fahrt oder einem No-show zurückgewiesen werden.',
  },
   fr: {
     unassign:'Désassigner', action:'Action', complete:'Terminer', historyEmpty:'Aucun événement.', passengerTrip:'Passager et trajet',
-    overlap:'Chevauche {ref} à {time}', noEmail:'Impossible d’assigner tant que ce chauffeur n’a pas d’e-mail.', noVehicle:'Impossible d’assigner tant que ce chauffeur n’a pas de véhicule.',
+    overlap:'Chevauche {ref} à {time}', noEmail:'Impossible d’assigner tant que ce chauffeur n’a pas d’e-mail.', noVehicle:'Donnez d’abord une voiture à ce chauffeur : Chauffeurs, puis le chauffeur, puis Voiture.', classMismatch:'La voiture de ce chauffeur est {car} ; la course est {trip}.',
+    actions:'Actions', car:'Voiture', noCarYet:'Pas encore de voiture', noDrivers:'Aucun chauffeur. Ajoutez-en un sous Chauffeurs.', chooseDriver:'Choisir le chauffeur',
     notPaid:'Les courses non payées ne peuvent pas être assignées.', frozen:'Cette course est gelée.', capacity:'Ce véhicule ne peut pas prendre les passagers et bagages de cette course.', assignFailed:'Assignation impossible pour ',
     pickChauffeur:'Choisissez d’abord un chauffeur.', voucherFailed:'Impossible de renvoyer le bon ',
     unassignedOk:'Assignation retirée pour ', evVehicle:'Véhicule assigné', evCleared:'Assignation retirée',
@@ -636,7 +722,7 @@ const T = {
     refuse:'Refuser',
     refuseFailed:'Impossible de refuser la modification pour ',
     flightBanner:'Numéro de vol mis à jour',
-    markArrival:'Marquer l’arrivée', arrived:'Arrivé', extraWait:'Attente extra', arrivalFailed:'Impossible de marquer l’arrivée ',
+    markArrival:'Marquer l’arrivée', arrived:'Arrivé', arrivalFailed:'Impossible de marquer l’arrivée ',
     cancelBodyUnpaid:'Cette course non payée est supprimée. Elle n’apparaît pas sous Annulé.',
     confirmCancelUnpaid:'Supprimer la réservation', bookingRemoved:'Supprimé ',
     coupon:'Code promo', extras:'Extras', vat:'TVA', included:'Inclus',
@@ -646,13 +732,35 @@ const T = {
     rejectConfirmTitle:'Rejeter ce remboursement ?', rejectConfirmBody:'Le client est informé qu’aucun montant ne sera remboursé pour {ref}.',
     disputeTitle:'Paiement contesté', disputeManage:'À gérer dans le tableau de bord Stripe.', disputeNeedsResponse:'Réponse requise', disputeUnderReview:'En cours d’examen', disputeWon:'Gagné', disputeLost:'Perdu',
     refundFailedTitle:'Échec du remboursement', refundFailedBody:'Stripe n’a pas accepté le remboursement. Vous pouvez réessayer.', tryAgain:'Réessayer',
+    dueLegacyBody:'Annulée et payée. Rien n’a encore été remboursé.',
+    whichPayment:'Quel paiement ?',
+    allPayments:'Tous les paiements',
+    payTrip:'Trajet',
+    payExtra:'Supplément',
+    payLine:'remboursé {a} · reste {b}',
+    partialTitle:'{a} remboursé. {b} encore dû.',
+    partialBody:'Stripe n’a pas accepté un remboursement. Rien n’a été envoyé deux fois.',
+    processingBody:'Un remboursement a été envoyé et n’est pas encore enregistré. Appuyez sur Réessayer.',
+    refundFullLine:'Remboursement intégral : {a}',
+    refundAmountLabel:'Montant du remboursement',
+    unitAria:'Remboursement en pourcentage ou en montant',
+    exactNeedsPayment:'Pour rembourser un montant exact, choisissez un paiement.',
+    errFullOnly:'Annulée plus de 24 heures à l’avance : seul le remboursement intégral peut être envoyé.',
+    errExceeds:'C’est plus que ce qu’il reste à rembourser sur ce paiement.',
+    errInvalid:'Saisissez un pourcentage de 0 à 100 ou un montant supérieur à 0.',
+    errAlready:'Il ne reste rien à rembourser sur cette réservation.',
+    errNotPaid:'Cette réservation n’a aucun paiement capturé.',
+    errNothing:'Il n’y a rien à réessayer. La page montre maintenant ce qui est dû.',
+    errTestOnly:'Les remboursements ne peuvent être envoyés que sur le compte de test Stripe pour le moment.',
+    errDecided:'Ce remboursement n’attend plus de décision. La page montre maintenant où il en est.',
+    errNotPostTrip:'Un remboursement ne peut être rejeté qu’après une course terminée ou une absence.',
     backToBookings:'Retour aux réservations', bookedBy:'réservé par', moreActions:'Plus d’actions', details:'Détails', history:'Historique', historyEmpty:'Aucun événement.',
     assignment:'Assignation', assign:'Assigner un chauffeur', reassign:'Réassigner', onShift:'En service', noDriver:'Aucun chauffeur assigné', noDriverSub:'Assignez avant l’envoi du rappel de prise en charge',
     passengers:'Passagers', bags:'bagages', vehicleClass:'Classe du véhicule', flight:'Vol', email:'E-mail', mobile:'Mobile', payment:'Paiement', payLink:'Lien de paiement', session:'Session',
     fare:'Tarif', due:'Dû', paid:'Payé', fareNote:'Prix figé au moment de la réservation ; les changements de tarif ultérieurs ne le modifient pas.',
     outstandingTitle:'Paiement en attente', outstandingBody:'Aucune carte encore débitée. Envoyez un lien de paiement ou attendez la fin de la session de paiement.',
     sendPayLink:'Envoyer le lien de paiement', takeCard:'Encaisser par carte', openStripe:'Ouvrir la page de paiement Stripe', copyPayLink:'Copier le lien de paiement', payLinkCopied:'Lien de paiement copié', payLinkSent:'Lien de paiement envoyé à ', payLinkFailed:'Impossible d’envoyer le lien de paiement ', cardFailed:'Échec de la carte ',
-    refundTitle:'Remboursement dû', refundBody:'Annulée dans le délai gratuit. Le client reçoit un e-mail indiquant qu’un remboursement sera versé sur son compte bancaire. Quand vous le marquez comme versé, il reçoit un second e-mail.',
+    refundTitle:'Remboursement dû', refundBody:'Annulée plus de 24 heures avant la prise en charge. Le client a été informé d’un remboursement intégral. Rien n’est envoyé avant votre confirmation.',
     refundedTitle:'Remboursement versé', refundedBody:'Le client a reçu un e-mail confirmant que le remboursement a été versé sur son compte bancaire.',
     resendVoucher:'Renvoyer le bon', editBooking:'Modifier la réservation', cancelBooking:'Annuler', noShow:'Absence', driver:'Chauffeur', manualNote:'L’assignation est manuelle en V1 — il n’y a pas d’application chauffeur ni de répartition automatique.', cancel:'Annuler',
     cancelTitle:'Annuler cette réservation ?', cancelBody:'Elle sera marquée comme annulée. Vous la retrouverez sous Annulées.',
@@ -669,7 +777,8 @@ const T = {
   },
   ar: {
     unassign:'إلغاء التعيين', action:'إجراء', complete:'إكمال', historyEmpty:'لا أحداث بعد.', passengerTrip:'الراكب والرحلة',
-    overlap:'يتداخل مع {ref} عند {time}', noEmail:'لا يمكن التعيين قبل وجود بريد إلكتروني لهذا السائق.', noVehicle:'لا يمكن التعيين قبل وجود مركبة لهذا السائق.',
+    overlap:'يتداخل مع {ref} عند {time}', noEmail:'لا يمكن التعيين قبل وجود بريد إلكتروني لهذا السائق.', noVehicle:'أعطِ هذا السائق سيارة أولًا: السائقون، ثم السائق، ثم السيارة.', classMismatch:'سيارة هذا السائق من فئة {car}، والرحلة من فئة {trip}.',
+    actions:'الإجراءات', car:'السيارة', noCarYet:'لا سيارة بعد', noDrivers:'لا يوجد سائقون بعد. أضف سائقًا من صفحة السائقين.', chooseDriver:'اختر السائق',
     notPaid:'لا يمكن تعيين الرحلات غير المدفوعة.', frozen:'هذه الرحلة مجمّدة.', capacity:'هذه المركبة لا تتسع لركاب وأمتعة هذه الرحلة.', assignFailed:'تعذّر التعيين لـ ',
     pickChauffeur:'اختر سائقاً أولاً.', voucherFailed:'تعذّر إعادة إرسال القسيمة ',
     unassignedOk:'أُلغي التعيين لـ ', evVehicle:'عُيّنت المركبة', evCleared:'أُلغي التعيين',
@@ -685,7 +794,7 @@ const T = {
     refuse:'رفض',
     refuseFailed:'تعذّر رفض التعديل لـ ',
     flightBanner:'تم تحديث رقم الرحلة',
-    markArrival:'تسجيل الوصول', arrived:'وصل', extraWait:'انتظار إضافي', arrivalFailed:'تعذّر تسجيل الوصول لـ ',
+    markArrival:'تسجيل الوصول', arrived:'وصل', arrivalFailed:'تعذّر تسجيل الوصول لـ ',
     cancelBodyUnpaid:'تُحذف هذه الرحلة غير المدفوعة. لن تبقى ضمن الملغاة.',
     confirmCancelUnpaid:'حذف الحجز', bookingRemoved:'حُذف ',
     coupon:'قسيمة', extras:'إضافات', vat:'ضريبة القيمة المضافة', included:'مشمول',
@@ -695,13 +804,35 @@ const T = {
     rejectConfirmTitle:'رفض طلب الاسترداد هذا؟', rejectConfirmBody:'سيُبلَّغ العميل بأنه لن يُعاد أي مبلغ عن {ref}.',
     disputeTitle:'دفعة متنازع عليها', disputeManage:'تُدار من لوحة تحكم Stripe.', disputeNeedsResponse:'بحاجة إلى رد', disputeUnderReview:'قيد المراجعة', disputeWon:'رابح', disputeLost:'خاسر',
     refundFailedTitle:'فشل الاسترداد', refundFailedBody:'لم تقبل Stripe الاسترداد. يمكنك المحاولة مرة أخرى.', tryAgain:'حاول مرة أخرى',
+    dueLegacyBody:'أُلغي وهو مدفوع. لم يُستردّ شيء بعد.',
+    whichPayment:'أي دفعة؟',
+    allPayments:'كل الدفعات',
+    payTrip:'الرحلة',
+    payExtra:'أجرة إضافية',
+    payLine:'مُستردّ {a} · متبقٍّ {b}',
+    partialTitle:'استُردّ {a}. ما زال {b} مستحقًا.',
+    partialBody:'لم تقبل Stripe أحد المبالغ المستردة. لم يُرسَل شيء مرتين.',
+    processingBody:'أُرسل مبلغ مسترد ولم يُسجَّل بعد. اضغط «حاول مرة أخرى».',
+    refundFullLine:'استرداد كامل: {a}',
+    refundAmountLabel:'مبلغ الاسترداد',
+    unitAria:'الاسترداد كنسبة مئوية أو كمبلغ',
+    exactNeedsPayment:'لاسترداد مبلغ محدد، اختر دفعة واحدة.',
+    errFullOnly:'أُلغي قبل أكثر من 24 ساعة: يمكن إرسال الاسترداد الكامل فقط.',
+    errExceeds:'هذا أكبر من المتبقي للاسترداد من هذه الدفعة.',
+    errInvalid:'أدخل نسبة من 0 إلى 100 أو مبلغًا أكبر من 0.',
+    errAlready:'لا يوجد ما يُسترد في هذا الحجز.',
+    errNotPaid:'لا توجد دفعة محصّلة لهذا الحجز.',
+    errNothing:'لا يوجد ما يُعاد. تعرض الصفحة الآن ما هو مستحق.',
+    errTestOnly:'لا يمكن إرسال المبالغ المستردة حاليًا إلا على حساب Stripe التجريبي.',
+    errDecided:'لم يعد هذا الاسترداد بانتظار قرار. تعرض الصفحة الآن وضعه الحالي.',
+    errNotPostTrip:'لا يمكن رفض الاسترداد إلا بعد رحلة مكتملة أو عدم الحضور.',
     backToBookings:'الرجوع إلى الحجوزات', bookedBy:'تم الحجز بواسطة', moreActions:'المزيد من الإجراءات', details:'التفاصيل', history:'السجل', historyEmpty:'لا أحداث بعد.',
     assignment:'التعيين', assign:'تعيين سائق', reassign:'إعادة التعيين', onShift:'في الدورية', noDriver:'لا يوجد سائق معيّن', noDriverSub:'عيّن سائقاً قبل إرسال تذكير الانطلاق',
     passengers:'الركاب', bags:'حقائب', vehicleClass:'فئة المركبة', flight:'الرحلة الجوية', email:'البريد الإلكتروني', mobile:'الجوال', payment:'الدفع', payLink:'رابط الدفع', session:'الجلسة',
     fare:'الأجرة', due:'مستحق', paid:'مدفوع', fareNote:'السعر مثبّت عند الحجز؛ تغييرات القواعد لاحقاً لا تُغيّره.',
     outstandingTitle:'الدفع معلّق', outstandingBody:'لم تُحصَّل بطاقة بعد. أرسل رابط دفع أو انتظر انتهاء جلسة الدفع.',
     sendPayLink:'إرسال رابط الدفع', takeCard:'تحصيل بطاقة', openStripe:'فتح صفحة الدفع على Stripe', copyPayLink:'نسخ رابط الدفع', payLinkCopied:'تم نسخ رابط الدفع', payLinkSent:'أُرسل رابط الدفع إلى ', payLinkFailed:'تعذّر إرسال رابط الدفع ', cardFailed:'فشلت البطاقة ',
-    refundTitle:'استرداد مستحق', refundBody:'أُلغيت ضمن نافذة الإلغاء المجانية. يُرسَل للعميل بريد إلكتروني بأن الاسترداد سيُحوَّل إلى حسابه المصرفي. عند تحديده كمُحوَّل، يصله بريد إلكتروني ثانٍ.',
+    refundTitle:'استرداد مستحق', refundBody:'أُلغي قبل موعد الاستلام بأكثر من 24 ساعة. أُبلغ العميل بأنه سيستردّ المبلغ كاملًا. لا يُرسَل شيء قبل تأكيدك.',
     refundedTitle:'تم الاسترداد', refundedBody:'تلقّى العميل بريداً إلكترونياً يؤكد تحويل الاسترداد إلى حسابه المصرفي.',
     resendVoucher:'إعادة إرسال القسيمة', editBooking:'تعديل الحجز', cancelBooking:'إلغاء', noShow:'عدم الحضور', driver:'السائق', manualNote:'التعيين يدوي في الإصدار الأول — لا يوجد تطبيق للسائق ولا توزيع تلقائي.', cancel:'إلغاء',
     cancelTitle:'إلغاء هذا الحجز؟', cancelBody:'سيُوسم بأنه ملغى. ستظل تراه ضمن الملغاة.',
@@ -718,25 +849,76 @@ const T = {
   },
 };
 class Component extends DCLogic {
-  state = { lang: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en', dialogOpen:false, cancelOpen:false, pickDriver:'', toastMsg:'', showToast:false, editing:false, edit:{}, historyOpen:false,
+  state = { lang: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en', assignOpen:false, assignError:'', cancelOpen:false, pickDriver:'', toastMsg:'', showToast:false, editing:false, edit:{}, historyOpen:false,
     // 26.1-18 refund review (UI-SPEC §4): percentage starts empty, never 100.
-    percentText: '', percentFor:'', refundBusy:'', refundFailFor:'', refundRetryBody:null, requestedFor:'', declineOpen:false, rejectOpen:false };
+    percentText: '', percentFor:'', refundBusy:'', requestedFor:'', declineOpen:false, rejectOpen:false,
+    // 20-10: GET …/refund answer, the last partial/failed POST answer, an inline error, the %/CHF switch and the payment choice.
+    refundData:null, refundAnswer:null, refundError:null, refundUnit:'pct', refundPick:'all', refundPickFor:'' };
   toggleHistory = () => this.setState((s) => ({ historyOpen: !s.historyOpen }));
-  componentDidUpdate(prevProps, prevState) {
-    const overlay = !!(this.state.dialogOpen || this.state.cancelOpen || this.state.declineOpen || this.state.rejectOpen);
-    const was = !!(prevState.dialogOpen || prevState.cancelOpen || prevState.declineOpen || prevState.rejectOpen);
+  // The dc-runtime hands componentDidUpdate the previous props only (support.js), so the overlay
+  // scroll lock keeps its own last value instead of reading a prevState that never arrives.
+  // (The assign dialog is gone — 260930-dash-design — so dialogOpen no longer counts.)
+  componentDidUpdate() {
+    this.publishBar();
+    const overlay = !!(this.state.cancelOpen || this.state.declineOpen || this.state.rejectOpen);
+    const was = !!this._overlayWas;
+    this._overlayWas = overlay;
     if (was !== overlay) { try { document.body.style.overflow = overlay ? 'hidden' : ''; } catch (e) {} }
+    this.syncRefund();
   }
+  // 260930-dash-design: at phone width the console's top bar lists this page's actions
+  // (app/vamos-ops-bar.js); the page's own Actions button is folded there ([data-ops-fold]).
+  publishBar = () => {
+    const bar = window.VamosOpsBar;
+    if (!bar || typeof bar.set !== 'function') return;
+    const v = this._barVals || { title: '', label: '', items: [] };
+    bar.set('detail', { title: v.title, label: v.label, items: v.items, onPick: (value) => { if (this._barPick) this._barPick(value); } });
+  };
+  _assignRef = (el) => { this._assignEl = el; };
+  // Merge with 20-10 (refunds by hand): Actions → Refund brings the admin to main's refund panel.
+  _refundRef = (el) => { if (el) this._refundEl = el; };
+  goRefund = () => {
+    setTimeout(() => {
+      const el = this._refundEl;
+      if (!el || el.isConnected === false) return;
+      try { el.scrollIntoView({ block: 'center' }); } catch (e) {}
+      const first = el.querySelector && el.querySelector('input:not([disabled]), button:not([disabled])');
+      if (first) { try { first.focus({ preventScroll: true }); } catch (e) {} }
+    }, 0);
+  };
+  // 20-10: the payment list and the amounts come from GET …/refund. Load it when the booking has a refund
+  // due, processing or failed (and again after every refund answer).
+  syncRefund = () => {
+    const b = this.getBooking();
+    const key = b.bookingId || b.id || '';
+    const prof = window.VamosOps && window.VamosOps.profile ? window.VamosOps.profile.get() : {};
+    const status = String(b.refundStatus || 'none');
+    const want = !!key && !!prof && prof.role === 'admin' && !!b.paid && ['pending_ops', 'processing', 'failed'].indexOf(status) !== -1;
+    const tag = want ? key + ':' + status : '';
+    if (tag === this._refundTag) return;
+    this._refundTag = tag;
+    if (want) this.loadRefund(key);
+  };
+  loadRefund = (key) => {
+    const client = window.VamosOpsApi;
+    if (!client || typeof client.request !== 'function' || !key) return;
+    client.request('GET', '/api/staff/bookings/' + encodeURIComponent(key) + '/refund').then((json) => {
+      if (json && json.ok && json.data) this.setState({ refundData: { key, data: json.data } });
+    });
+  };
   componentWillUnmount() {
-    try { if (this.state.dialogOpen || this.state.cancelOpen || this.state.declineOpen || this.state.rejectOpen) document.body.style.overflow = ''; } catch (e) {}
+    if (window.VamosOpsBar && typeof window.VamosOpsBar.clear === 'function') window.VamosOpsBar.clear('detail');
+    try { if (this.state.cancelOpen || this.state.declineOpen || this.state.rejectOpen) document.body.style.overflow = ''; } catch (e) {}
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
     if (this._off) this._off();
     clearTimeout(this._retry);
   }
   componentDidMount() {
     this.bind();
+    this.publishBar();
     this._onLocale = (e) => this.setState({ lang: e.detail.lang, cur: e.detail.cur });
     window.addEventListener('vamos:locale', this._onLocale);
+    this.syncRefund();
   }
   bind = () => {
     if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
@@ -750,6 +932,12 @@ class Component extends DCLogic {
       offs.push(window.VamosOps.vehicles.onChange(() => this.forceUpdate()));
       window.VamosOps.vehicles.all();
     }
+    // 260930-dash-design: the rate book carries the class names the owner typed (VamosOps.CLASSES),
+    // so a car of his own class reads its name under the driver in the Assign box.
+    if (window.VamosOps.rates) {
+      offs.push(window.VamosOps.rates.onChange(() => this.forceUpdate()));
+      window.VamosOps.rates.all();
+    }
     // D-16b: refund controls follow the signed-in role from /api/staff/me.
     if (window.VamosOps.profile && typeof window.VamosOps.profile.onChange === 'function') {
       offs.push(window.VamosOps.profile.onChange(() => this.forceUpdate()));
@@ -762,6 +950,13 @@ class Component extends DCLogic {
     const found = listBookings().find((b) => b.id === id || b.bookingId === id);
     return found || EMPTY_BOOKING;
   }
+  // 26.2-bp C6: one staff request at a time from this page. A second click while one is in flight is ignored
+  // (a double click sent two pay-link e-mails, and a second Complete came back "frozen" after the first had worked).
+  once = (send, done) => {
+    if (this._busy) return;
+    this._busy = true;
+    send().then((json) => { this._busy = false; done(json); }, (err) => { this._busy = false; throw err; });
+  };
   notify = (msg) => { this.setState({ toastMsg: msg, showToast: true }); clearTimeout(this._t); this._t = setTimeout(() => this.setState({ showToast: false }), 3600); };
   // Opens Stripe's hosted page for this booking in a new tab. The tab is opened on the click
   // (before the request) so the popup blocker allows it, then pointed at the returned URL.
@@ -815,7 +1010,7 @@ class Component extends DCLogic {
     } else {
       booking.sessionLeft = 'No open session';
     }
-    const drivers = assignableChauffeurOptions();
+    const drivers = assignableChauffeurs();
     const assignedDriver = booking.driver || booking.chauffeur || null;
     const frozen = ['completed','cancelled','refunded','no-show','no_show','partially_cancelled','partially_completed'].indexOf(booking.status) !== -1;
     const canAssign = !!booking.paid && !frozen;
@@ -836,13 +1031,64 @@ class Component extends DCLogic {
     const refundKey = booking.bookingId || booking.id || '';
     const refundStatus = String(booking.refundStatus || 'none');
     const postTripStatus = ['completed','partially_completed','no_show','no-show'].indexOf(booking.status) !== -1;
-    const reviewNeeded = isAdmin && !!booking.paid && refundStatus === 'pending_ops';
+    // 20-10 refund screen. fullTier = cancelled more than 24 h ahead: the amount is fixed at 100 %, no Decline.
+    // The booking row already says whether an amount is owed, so the tier is known before GET …/refund answers.
+    const rd = this.state.refundData && this.state.refundData.key === refundKey ? this.state.refundData.data : null;
+    const owedBk = Number(booking.refundOwedRappen);
+    const fullTier = rd ? rd.fullTier === true : (refundStatus === 'pending_ops' && Number.isFinite(owedBk) && owedBk > 0);
+    const paidAdmin = isAdmin && !!booking.paid;
+    const fullShown = paidAdmin && refundStatus === 'pending_ops' && fullTier;
+    const reviewNeeded = paidAdmin && refundStatus === 'pending_ops' && !fullTier;
+    const legacyDue = booking.status === 'cancelled' && !!booking.paid && refundStatus === 'none';
     const postTripEligible = isAdmin && !!booking.paid && booking.tripPassed === true && refundStatus === 'none' && postTripStatus;
-    const canFullRefund = isAdmin && booking.status === 'cancelled' && refundStatus !== 'pending_ops' && refundStatus !== 'declined';
+    const canFullRefund = isAdmin && legacyDue;
     const percentText = this.state.percentFor === refundKey ? String(this.state.percentText || '') : '';
     const percentValid = /^\d{1,3}$/.test(percentText) && Number(percentText) <= 100;
     const refundBusy = this.state.refundBusy || '';
-    const refundFailedShown = isAdmin && !!refundKey && (this.state.refundFailFor === refundKey || refundStatus === 'failed');
+    // Payments, the choice between them and the %/CHF switch.
+    const payments = rd && Array.isArray(rd.payments) ? rd.payments : [];
+    const multi = payments.length >= 2;
+    const pickRaw = this.state.refundPickFor === refundKey ? String(this.state.refundPick) : 'all';
+    const chosen = multi ? payments.find((p) => String(p.id) === pickRaw) || null : null;
+    const pick = chosen ? String(chosen.id) : 'all';
+    const exactAllowed = !multi || !!chosen;
+    const unit = !fullShown && exactAllowed && this.state.refundUnit === 'chf' ? 'chf' : 'pct';
+    const unitCode = window.VamosLocale && window.VamosLocale.money ? window.VamosLocale.money('', 'CHF').trim() : '';
+    const amountOk = /^\d{1,7}([.,]\d{1,2})?$/.test(percentText);
+    const amountRappen = amountOk ? Math.round(parseFloat(percentText.replace(',', '.')) * 100) : 0;
+    const amountValid = amountOk && amountRappen > 0;
+    // One body, never both percent and amountRappen. An exact amount needs a paymentId when there are two payments
+    // (the list then forces a choice); with one captured payment the server finds it.
+    const refundBody = () => {
+      if (fullShown) return chosen ? { paymentId: chosen.id, percent: 100 } : { percent: 100 };
+      if (unit === 'chf') return chosen ? { paymentId: chosen.id, amountRappen } : { amountRappen };
+      return chosen ? { paymentId: chosen.id, percent: Number(percentText) } : { percent: Number(percentText) };
+    };
+    const sumOf = (key) => payments.reduce((s, p) => s + (Number(p[key]) || 0), 0);
+    const payDetail = (a, b) => fillAmounts(t.payLine, { a: chfText(a), b: chfText(b) });
+    const pickRow = (id, label, description, disabled) => ({
+      label, description, disabled, checked: pick === id,
+      pick: () => { if (!refundBusy) this.setState({ refundPick: id, refundPickFor: refundKey, refundError: null, percentText: id === 'all' && unit === 'chf' ? '' : percentText, percentFor: refundKey }); },
+    });
+    const payRows = multi ? [pickRow('all', t.allPayments + ' · ' + isolate(chfText(sumOf('chargedRappen'))), payDetail(sumOf('refundedRappen'), sumOf('leftRappen')), false)].concat(payments.map((p) =>
+      pickRow(String(p.id), (p.kind === 'extra' ? t.payExtra : t.payTrip) + ' · ' + isolate(eventWhen(p.capturedAt)) + ' · ' + isolate(chfText(p.chargedRappen)), payDetail(p.refundedRappen, p.leftRappen), !(Number(p.leftRappen) > 0)))) : [];
+    const fullAmount = chosen ? chosen.leftRappen : (payments.length ? sumOf('leftRappen') : (Number.isFinite(owedBk) ? owedBk : 0));
+    // Partial / failed / processing: the amounts come from the answer just received, else from GET …/refund.
+    const ans = this.state.refundAnswer && this.state.refundAnswer.key === refundKey ? this.state.refundAnswer : null;
+    const refundFailedShown = isAdmin && !!refundKey && refundStatus !== 'refunded' && (!!ans || refundStatus === 'failed' || refundStatus === 'processing');
+    const figures = ans ? { refunded: ans.refundedRappen, due: ans.dueRappen, unrecorded: ans.parts.some((p) => p && p.state === 'unrecorded') }
+      : (rd ? { refunded: rd.refundedRappen, due: rd.dueRappen, unrecorded: refundStatus === 'processing' } : null);
+    const failTitle = figures ? fillAmounts(t.partialTitle, { a: chfText(figures.refunded), b: chfText(figures.due) }) : t.refundFailedTitle;
+    const failBody = !figures ? t.refundFailedBody : (figures.unrecorded ? t.processingBody : (figures.refunded > 0 ? t.partialBody : t.refundFailedBody));
+    const refundErr = this.state.refundError && this.state.refundError.key === refundKey ? this.state.refundError.code : '';
+    const errByCode = {
+      'full-refund-only': t.errFullOnly, 'refund-exceeds-remaining': t.errExceeds, 'invalid-percent': t.errInvalid, 'invalid-amount': t.errInvalid,
+      'invalid-body': t.errInvalid, 'already-refunded': t.errAlready, 'not-paid': t.errNotPaid, 'nothing-to-retry': t.errNothing, 'stripe-test-only': t.errTestOnly,
+      // 261001-refusal-messages: Decline / Reject refusals from ops_refund_decide.
+      'not-pending': t.errDecided, 'not-open': t.errDecided, 'not-post-trip': t.errNotPostTrip,
+    };
+    const refundErrorText = refundErr ? (errByCode[refundErr] || (t.refundFailed + booking.id)) : '';
+    const refundFormShown = (fullShown || reviewNeeded) && !refundFailedShown;
     const dispute = booking.dispute && typeof booking.dispute === 'object' ? booking.dispute : null;
     const disputeWord = (status) => {
       const st = String(status || '');
@@ -857,42 +1103,44 @@ class Component extends DCLogic {
       return at < 0 ? [String(str || ''), ''] : [str.slice(0, at), str.slice(at + 5)];
     };
     const decideParts = splitRef(this.state.rejectOpen ? t.rejectConfirmBody : t.declineConfirmBody);
+    // After any answer: reload the booking list and the picker so "Refund due" and the amounts are never stale.
+    const refreshRefund = () => {
+      if (window.VamosOps) window.VamosOps.bookings.reset();
+      this.loadRefund(refundKey);
+    };
     const postRefund = (kind, body) => {
       const client = window.VamosOpsApi;
-      const ops = window.VamosOps;
       if (!client || typeof client.request !== 'function' || !refundKey) {
         this.notify(t.refundFailed + booking.id);
         return;
       }
-      this.setState({ refundBusy: kind });
+      this.setState({ refundBusy: kind, refundError: null });
       client.request('POST', '/api/staff/bookings/' + encodeURIComponent(refundKey) + '/refund', body).then((json) => {
+        const code = json && json.code;
         if (json && json.ok) {
-          this.setState({ refundBusy: '', refundFailFor: '', refundRetryBody: null, requestedFor: '', percentText: '', percentFor: '' });
-          if (ops) ops.bookings.reset();
-        } else if (json && (json.code === 'stripe-failed' || json.code === 'network')) {
-          this.setState({ refundBusy: '', refundFailFor: refundKey, refundRetryBody: body });
+          this.setState({ refundBusy: '', refundAnswer: null, refundError: null, requestedFor: '', percentText: '', percentFor: '', refundUnit: 'pct', refundPick: 'all' });
+        } else if (code === 'refund-partial' || code === 'stripe-failed') {
+          this.setState({ refundBusy: '', refundError: null, refundAnswer: { key: refundKey, refundedRappen: Number(json.refundedRappen) || 0, dueRappen: Number(json.dueRappen) || 0, parts: Array.isArray(json.parts) ? json.parts : [] } });
         } else {
-          this.setState({ refundBusy: '' });
-          this.notify(t.refundFailed + booking.id);
+          this.setState({ refundBusy: '', refundError: { key: refundKey, code: String(code || 'unknown') }, refundAnswer: code === 'nothing-to-retry' ? null : this.state.refundAnswer });
         }
+        refreshRefund();
       });
     };
     const postDecision = (kind) => {
       const client = window.VamosOpsApi;
-      const ops = window.VamosOps;
       if (!client || typeof client.request !== 'function' || !refundKey) {
         this.notify(t.refundFailed + booking.id);
         return;
       }
-      this.setState({ refundBusy: kind });
+      this.setState({ refundBusy: kind, refundError: null });
       client.request('POST', '/api/staff/bookings/' + encodeURIComponent(refundKey) + '/refund-decision', { decision: kind }).then((json) => {
         if (json && json.ok) {
           this.setState({ refundBusy: '', declineOpen: false, rejectOpen: false, requestedFor: '', percentText: '', percentFor: '' });
-          if (ops) ops.bookings.reset();
         } else {
-          this.setState({ refundBusy: '' });
-          this.notify(t.refundFailed + booking.id);
+          this.setState({ refundBusy: '', declineOpen: false, rejectOpen: false, refundError: { key: refundKey, code: String((json && json.code) || 'unknown') } });
         }
+        refreshRefund();
       });
     };
     const durationMin = Number(booking.durationMin) || 0;
@@ -904,6 +1152,47 @@ class Component extends DCLogic {
     const distanceChip = booking.distanceKm ? (booking.distanceKm + ' km') : '';
     const extras = Array.isArray(booking.extras) ? booking.extras : [];
     const extrasText = extras.length ? extras.map((code) => extraName(booking, code, this.state.lang)).filter(Boolean).join(', ') : t.noExtras;
+    // 260930-dash-design: the Assign box asks only for the driver; each row shows his own car.
+    const vehicles = (window.VamosOps && window.VamosOps.vehicles) ? (window.VamosOps.vehicles.all() || []) : [];
+    const carById = {};
+    vehicles.forEach((v) => { if (v && v.id) carById[v.id] = v; });
+    const assignedCar = booking.assignedVehicleId ? (carById[booking.assignedVehicleId] || null) : null;
+    const showAssignPicker = canAssign && (!assignedDriver || !!this.state.assignOpen);
+    const assignRows = drivers.map((c) => {
+      const id = String(c.id);
+      const carId = String(c.defaultVehicleId || c.vehicle || '');
+      const car = carId ? carById[carId] : null;
+      const picked = this.state.pickDriver === id;
+      return {
+        id,
+        name: String(c.name || c.fullName || c.email || c.id),
+        car: car ? carText(car) : (carId ? '\u2014' : t.noCarYet),
+        checked: picked,
+        selAttr: picked ? '1' : '0',
+        pick: () => this.setState({ pickDriver: id, assignError: '' }),
+      };
+    });
+    const canEdit = !!booking.paid && !cancelled;
+    const canCancel = !cancelled && booking.status !== 'completed';
+    // Item 1 (owner, 2026-09-30): every action valid for this booking, in one menu. Cancel is last
+    // and set apart (danger). Each value runs the handler its old button ran (pickAction).
+    // A trip with no readable time keeps both (the owner can still close a broken row).
+    const pickAt = pickupMs(booking);
+    const pickupReached = !Number.isFinite(pickAt) || pickAt <= Date.now();
+    const actionItems = [
+      canAssign ? { value: 'assign', label: assignedDriver ? t.reassign : t.assign, icon: assignedDriver ? 'users' : 'user-plus' } : null,
+      canUnassign ? { value: 'unassign', label: t.unassign, icon: 'minus' } : null,
+      canEdit ? { value: 'edit', label: t.editBooking, icon: 'pencil' } : null,
+      !!booking.paid && !cancelled ? { value: 'resend', label: t.resendVoucher, icon: 'mail' } : null,
+      !frozen && !booking.arrivedAt ? { value: 'arrival', label: t.markArrival, icon: 'map-pin' } : null,
+      !frozen && pickupReached ? { value: 'complete', label: t.complete, icon: 'circle-check' } : null,
+      !frozen && pickupReached ? { value: 'noShow', label: t.noShow, icon: 'circle-alert' } : null,
+      // Merge with 20-10: Refund is offered for main's refund panel (due, review, failed) as well as
+      // for an old cancelled row and a post-trip request.
+      refundFormShown || refundFailedShown || canFullRefund || postTripEligible ? { value: 'refund', label: t.markRefund, icon: 'receipt', disabled: !!refundBusy } : null,
+      canCancel ? { value: 'cancel', label: booking.paid ? t.confirmCancel : t.confirmCancelUnpaid, icon: 'x', tone: 'danger' } : null,
+    ].filter(Boolean);
+    const viewing = !this.state.editing;
     const tags = [
       { icon: 'user', k: t.driver, v: assignedDriver || t.unassigned },
       { icon: 'clock', k: t.when, v: pickupWhen || '—' },
@@ -918,15 +1207,12 @@ class Component extends DCLogic {
     if (booking.arrivedAt) {
       tags.push({ icon: 'clock', k: t.arrived, v: eventWhen(booking.arrivedAt).slice(11, 16) || '—' });
     }
-    if (Number(booking.extraWaitMinutes) > 0) {
-      const waitPay = Number(booking.extraWaitRappen) > 0 ? (' · ' + fareLabel(Number(booking.extraWaitRappen))) : '';
-      tags.push({ icon: 'clock', k: t.extraWait, v: String(booking.extraWaitMinutes) + t.minutes + waitPay });
-    }
     if (booking.vehicle && booking.vehicle !== booking.klass) {
       tags.splice(3, 0, { icon: 'car', k: t.vehicleAssigned, v: booking.vehicle });
     }
-    return {
+    const vals = {
       n14:14, n15:15, n16:16, yes:true,
+      tActions: t.actions, actionItems, showActions: viewing && actionItems.length > 0,
       tBackToBookings: t.backToBookings, tMoreActions: t.moreActions, tBookedBy: t.bookedBy,
       goBack: () => {
         history.pushState({}, '', '/bookings');
@@ -942,14 +1228,8 @@ class Component extends DCLogic {
       hasRouteMid: !!(durationChip || distanceChip),
       tags,
       tAssignment: t.assignment,
-      assignVariant: assignedDriver ? 'ghost' : 'primary',
-      assignLabel: assignedDriver ? t.reassign : t.assign,
       canAssign, canUnassign, tUnassign: t.unassign,
       canResend: !!booking.paid && !cancelled,
-      openAssignDialog: () => {
-        if (!canAssign) return;
-        this.setState({ dialogOpen: true, pickDriver: (drivers[0] && drivers[0].value) || '' });
-      },
       confirmUnassign: () => {
         const id = booking.bookingId || booking.id;
         const client = window.VamosOpsApi;
@@ -966,8 +1246,16 @@ class Component extends DCLogic {
           }
         });
       },
-      hasDriver: !!assignedDriver, noDriver: !assignedDriver, showAssignSide: !assignedDriver && canAssign,
-      driverName: assignedDriver || '', driverVehicle: booking.vehicle || '',
+      hasDriver: !!assignedDriver, noDriver: !assignedDriver,
+      driverName: assignedDriver || '', carLine: assignedCar ? carText(assignedCar) : (booking.vehicle || '\u2014'),
+      tCar: t.car, tChooseDriver: t.chooseDriver, tNoDrivers: t.noDrivers,
+      assignRef: this._assignRef, refundRef: this._refundRef,
+      showAssignPicker, assignCancelable: showAssignPicker && !!assignedDriver,
+      closeAssign: () => this.setState({ assignOpen: false, pickDriver: '', assignError: '' }),
+      assignRows, noDrivers: assignRows.length === 0,
+      // Never a disabled primary: at 42 % the yellow reads as a cream pill (law 02). No pick → the box says so.
+      assignDisabled: false,
+      assignError: this.state.assignError || '', hasAssignError: !!this.state.assignError,
       tNoDriver: t.noDriver, tNoDriverSub: t.noDriverSub,
       tPassengerTrip: t.passengerTrip, tPassengers: t.passengers, tBags: t.bags, tVehicleClass: t.vehicleClass,
       tFlight: t.flight, tEmail: t.email, tMobile: t.mobile, tPayment: t.payment, tPayLink: t.payLink, tSession: t.session,
@@ -985,14 +1273,23 @@ class Component extends DCLogic {
       tFare: t.fare, fareLines, tTotalLabel: booking.paid ? t.paid : t.due, tFareNote: t.fareNote,
       tHistory: t.history, tHistoryEmpty: t.historyEmpty, historyRows, historyEmpty: historyRows.length === 0, historyHas: historyRows.length > 0,
       historyOpen: !!this.state.historyOpen, historyClosed: !this.state.historyOpen, toggleHistory: this.toggleHistory,
-      isPending: !booking.paid && !cancelled, isCancelled: booking.status === 'cancelled', isRefunded: booking.status === 'refunded',
-      showRefundDue: booking.status === 'cancelled' && !reviewNeeded && refundStatus !== 'declined',
+      isPending: !booking.paid && !cancelled, isCancelled: booking.status === 'cancelled', isRefunded: booking.status === 'refunded' || refundStatus === 'refunded',
+      showRefundDue: booking.status === 'cancelled' && !refundFailedShown && ((refundStatus === 'pending_ops' && fullTier) || legacyDue),
       canFullRefund, postTripEligible, reviewNeeded,
+      refundFormShown, reviewShown: reviewNeeded, decidedShown: reviewNeeded, declineShown: reviewNeeded, fullShown,
+      pickerShown: multi, payRows, fullLine: fillAmounts(t.refundFullLine, { a: chfText(fullAmount) }),
+      unitSwitchShown: reviewNeeded && exactAllowed, exactHintShown: reviewNeeded && !exactAllowed,
+      unitItems: [{ value: 'pct', label: '%' }, { value: 'chf', label: unitCode }], unitValue: unit, unitLabel: unit === 'pct' ? '%' : unitCode,
+      inputMax: unit === 'pct' ? '100' : '', inputStep: unit === 'pct' ? '1' : '0.01', inputMode: unit === 'pct' ? 'numeric' : 'decimal',
+      inputPlaceholder: unit === 'pct' ? t.percentPlaceholder : '0.00',
+      refundErrorShown: !!refundErrorText, refundErrorText,
+      tWhichPayment: t.whichPayment, tUnitAria: t.unitAria, tExactNeedsPayment: t.exactNeedsPayment, tRefundAmountLabel: t.refundAmountLabel,
+      setUnit: (v) => { if (!refundBusy) this.setState({ refundUnit: v === 'chf' ? 'chf' : 'pct', percentText: '', percentFor: refundKey, refundError: null }); },
       requestedShown: postTripEligible && this.state.requestedFor === refundKey,
       refundFailedShown, hasDispute: !!dispute,
       disputeLine: dispute ? [disputeWord(dispute.status), t.disputeManage].filter(Boolean).join(' · ') : '',
       percentText, refundBusy: !!refundBusy,
-      confirmDisabled: !percentValid || !!refundBusy,
+      confirmDisabled: fullShown ? !!refundBusy : (!(unit === 'chf' ? amountValid : percentValid) || !!refundBusy),
       confirmBusy: refundBusy === 'percent' ? 'true' : 'false',
       acceptBusy: refundBusy === 'post-trip' ? 'true' : 'false',
       decideBusy: refundBusy === 'decline' || refundBusy === 'reject' ? 'true' : 'false',
@@ -1002,16 +1299,19 @@ class Component extends DCLogic {
       tConfirmRefund: t.confirmRefund, tDeclineRefund: t.declineRefund, tDeclineConfirmTitle: t.declineConfirmTitle, tKeepReviewing: t.keepReviewing,
       tRequestedTitle: t.requestedTitle, tRequestedBody: t.requestedBody, tAcceptRefund: t.acceptRefund, tRejectRefund: t.rejectRefund,
       tRejectConfirmTitle: t.rejectConfirmTitle, tDisputeTitle: t.disputeTitle,
-      tRefundFailedTitle: t.refundFailedTitle, tRefundFailedBody: t.refundFailedBody, tTryAgain: t.tryAgain,
+      tRefundFailedTitle: failTitle, tRefundFailedBody: failBody, tTryAgain: t.tryAgain,
       setPercent: (e) => {
         const raw = e && e.target ? e.target.value : e;
-        this.setState({ percentText: String(raw == null ? '' : raw).trim(), percentFor: refundKey });
+        this.setState({ percentText: String(raw == null ? '' : raw).trim(), percentFor: refundKey, refundError: null });
       },
       // D-24: 0 % means nothing back, which is a decline — send it through the decline dialog.
+      // D-24: 0 % means nothing back, which is a decline — send it through the decline dialog (decided tier only).
       confirmPercent: () => {
-        if (!percentValid || refundBusy) return;
-        if (Number(percentText) === 0) { this.setState({ declineOpen: true, rejectOpen: false }); return; }
-        postRefund('percent', { percent: Number(percentText) });
+        if (refundBusy) return;
+        if (fullShown) { postRefund('percent', refundBody()); return; }
+        if (unit === 'chf' ? !amountValid : !percentValid) return;
+        if (unit === 'pct' && Number(percentText) === 0) { this.setState({ declineOpen: true, rejectOpen: false }); return; }
+        postRefund('percent', refundBody());
       },
       openDecline: () => { if (!refundBusy) this.setState({ declineOpen: true, rejectOpen: false }); },
       openReject: () => { if (!refundBusy) this.setState({ rejectOpen: true, declineOpen: false }); },
@@ -1020,15 +1320,9 @@ class Component extends DCLogic {
       confirmReject: () => { if (!refundBusy) postDecision('reject'); },
       openRequested: () => this.setState({ requestedFor: refundKey }),
       acceptPostTrip: () => { if (!refundBusy) postRefund('post-trip', { postTrip: true }); },
-      retryRefund: () => {
-        if (refundBusy) return;
-        const owed = Number(booking.refundOwedRappen);
-        const body = this.state.refundFailFor === refundKey && this.state.refundRetryBody
-          ? this.state.refundRetryBody
-          : (Number.isFinite(owed) && owed > 0 ? { rappen: owed } : {});
-        postRefund('retry', body);
-      },
-      tOutstandingTitle: t.outstandingTitle, tOutstandingBody: t.outstandingBody, tRefundTitle: t.refundTitle, tRefundBody: t.refundBody,
+      // Try again asks the server to finish what is still open; it never sends a new amount.
+      retryRefund: () => { if (!refundBusy) postRefund('retry', { retry: true }); },
+      tOutstandingTitle: t.outstandingTitle, tOutstandingBody: t.outstandingBody, tRefundTitle: t.refundTitle, tRefundBody: fullTier ? t.refundBody : t.dueLegacyBody,
       tRefundedTitle: t.refundedTitle, tRefundedBody: t.refundedBody,
       tSendPayLink: t.sendPayLink, tTakeCard: t.takeCard, tOpenStripe: t.openStripe, tCopyPayLink: t.copyPayLink, hasExtraPay: !!booking.pendingEditExtraSessionId,
       tResendVoucher: t.resendVoucher, tEditBooking: t.editBooking, tCancelBooking: t.cancelBooking,
@@ -1037,8 +1331,8 @@ class Component extends DCLogic {
       tSaveEdit: t.saveEdit, tContinue: t.continue, tAccept: t.accept, tRefuse: t.refuse, tCancelEdit: t.cancelEdit, tMarkRefund: t.markRefund,
       tCustomer: t.customer, tPickup: t.pickup, tDropoff: t.dropoff, tDate: t.date, tTime: t.time, tBagsLabel: t.bagsLabel,
       tPendingEditTitle: t.pendingEditTitle, tUnpaidNoEditTitle: t.unpaidNoEditTitle, tUnpaidNoEditBody: t.unpaidNoEditBody, tUnpaidNewTrip: t.unpaidNewTrip,
-      editing: !!this.state.editing, viewing: !this.state.editing,
-      canEdit: !!booking.paid && !cancelled,
+      editing: !!this.state.editing, viewing,
+      canEdit,
       unpaidNoEdit: !booking.paid && !cancelled,
       hasPendingEdit: !!booking.pendingEditId,
       hasFlightBanner: !!(booking.flight && String(booking.flight).trim()),
@@ -1137,17 +1431,36 @@ class Component extends DCLogic {
         });
       },
       markRefund: () => { if (!refundBusy) postRefund('full', {}); },
-      canCancel: !cancelled && booking.status !== 'completed',
+      canCancel,
       canComplete: !frozen,
       canNoShow: !frozen,
-      canAction: !frozen || (!!booking.paid && !cancelled),
-      actionValue: '',
-      actionOptions: [
-        !!booking.paid && !cancelled ? { value: 'resend', label: t.resendVoucher } : null,
-        !frozen && !booking.arrivedAt ? { value: 'arrival', label: t.markArrival } : null,
-        !frozen ? { value: 'complete', label: t.complete } : null,
-      ].filter(Boolean),
       pickAction: (v) => {
+        if (v === 'assign') {
+          if (!canAssign) return;
+          this.setState({ assignOpen: true, pickDriver: '', assignError: '' });
+          setTimeout(() => {
+            const el = this._assignEl;
+            if (!el) return;
+            try { el.scrollIntoView({ block: 'center' }); } catch (e) {}
+            const first = el.querySelector && el.querySelector('input[type="radio"]');
+            if (first) { try { first.focus({ preventScroll: true }); } catch (e) {} }
+          }, 0);
+          return;
+        }
+        if (v === 'unassign') { vals.confirmUnassign(); return; }
+        if (v === 'edit') { if (canEdit) vals.openEdit(); return; }
+        if (v === 'noShow') { vals.markNoShow(); return; }
+        if (v === 'refund') {
+          if (refundBusy) return;
+          // 20-10 (main): a refund due, a review or a failed refund has its panel on this page — the
+          // menu takes the admin there; nothing is sent until he presses the panel's own button.
+          if (refundFormShown || refundFailedShown) { this.goRefund(); return; }
+          // An old cancelled row (refund_status none) keeps main's one-press full refund.
+          if (canFullRefund) { vals.markRefund(); return; }
+          if (postTripEligible) { vals.openRequested(); this.goRefund(); }
+          return;
+        }
+        if (v === 'cancel') { if (canCancel) vals.openCancel(); return; }
         if (v === 'resend') {
           const id = booking.bookingId || booking.id;
           const client = window.VamosOpsApi;
@@ -1172,7 +1485,7 @@ class Component extends DCLogic {
             this.notify(t.arrivalFailed + id);
             return;
           }
-          client.request('PATCH', '/api/staff/bookings/' + encodeURIComponent(id), { arrived: true }).then((json) => {
+          this.once(() => client.request('PATCH', '/api/staff/bookings/' + encodeURIComponent(id), { arrived: true }), (json) => {
             if (json && json.ok) {
               if (ops) ops.bookings.reset();
             } else if (json && json.code === 'frozen') {
@@ -1191,7 +1504,7 @@ class Component extends DCLogic {
             this.notify(t.editFailed + id);
             return;
           }
-          client.request('PATCH', '/api/staff/bookings/' + encodeURIComponent(id), { status: 'completed' }).then((json) => {
+          this.once(() => client.request('PATCH', '/api/staff/bookings/' + encodeURIComponent(id), { status: 'completed' }), (json) => {
             if (json && json.ok) {
               if (ops) ops.bookings.reset();
             } else if (json && json.code === 'frozen') {
@@ -1210,7 +1523,7 @@ class Component extends DCLogic {
           this.notify(t.arrivalFailed + id);
           return;
         }
-        client.request('PATCH', '/api/staff/bookings/' + encodeURIComponent(id), { arrived: true }).then((json) => {
+        this.once(() => client.request('PATCH', '/api/staff/bookings/' + encodeURIComponent(id), { arrived: true }), (json) => {
           if (json && json.ok) {
             if (ops) ops.bookings.reset();
           } else if (json && json.code === 'frozen') {
@@ -1228,7 +1541,7 @@ class Component extends DCLogic {
           this.notify(t.editFailed + id);
           return;
         }
-        client.request('PATCH', '/api/staff/bookings/' + encodeURIComponent(id), { status: 'completed' }).then((json) => {
+        this.once(() => client.request('PATCH', '/api/staff/bookings/' + encodeURIComponent(id), { status: 'completed' }), (json) => {
           if (json && json.ok) {
             if (ops) ops.bookings.reset();
           } else if (json && json.code === 'frozen') {
@@ -1246,7 +1559,7 @@ class Component extends DCLogic {
           this.notify(t.editFailed + id);
           return;
         }
-        client.request('PATCH', '/api/staff/bookings/' + encodeURIComponent(id), { status: 'no_show' }).then((json) => {
+        this.once(() => client.request('PATCH', '/api/staff/bookings/' + encodeURIComponent(id), { status: 'no_show' }), (json) => {
           if (json && json.ok) {
             if (ops) ops.bookings.reset();
           } else if (json && json.code === 'frozen') {
@@ -1288,6 +1601,9 @@ class Component extends DCLogic {
                 window.dispatchEvent(new PopStateEvent('popstate'));
               } catch (e) {}
             }
+          } else if (json && json.code === 'frozen') {
+            // 261001-refusal-messages: ops_cancel_booking refuses a finished or cancelled trip.
+            this.notify(t.frozen);
           } else {
             this.notify(t.cancelFailed + id);
           }
@@ -1316,7 +1632,7 @@ class Component extends DCLogic {
           this.notify(t.payLinkFailed + id);
           return;
         }
-        client.request('POST', '/api/staff/bookings/' + encodeURIComponent(id) + '/pay-link', { send: true }).then((json) => {
+        this.once(() => client.request('POST', '/api/staff/bookings/' + encodeURIComponent(id) + '/pay-link', { send: true }), (json) => {
           if (json && json.ok) {
             if (ops) ops.bookings.reset();
             this.notify(t.payLinkSent + (booking.email || id));
@@ -1338,37 +1654,41 @@ class Component extends DCLogic {
           navigator.clipboard.writeText(url).then(() => this.notify(t.payLinkCopied), () => this.notify(t.cardFailed + id));
         });
       },
-      dialogOpen: this.state.dialogOpen, tAssignDriver: t.assign, dialogSubtitle: booking.id + ' · ' + booking.time + ' · ' + booking.vehicle,
-      closeDialog: () => this.setState({ dialogOpen: false }),
-      tDriver: t.driver, driverOptions: drivers, pickDriver: this.state.pickDriver, setPickDriver: (e) => this.setState({ pickDriver: e.target.value }),
-      tManualNote: t.manualNote, tCancel: t.cancel, tAssign: t.assign,
+      tDriver: t.driver, pickDriver: this.state.pickDriver,
+      tCancel: t.cancel, tAssign: t.assign,
       confirmAssign: () => {
         const chosen = this.state.pickDriver;
         const id = booking.bookingId || booking.id;
         const client = window.VamosOpsApi;
         const ops = window.VamosOps;
         if (!canAssign || !client || typeof client.request !== 'function') return;
-        if (!chosen) { this.notify(t.pickChauffeur); return; }
-        client.request('POST', '/api/staff/bookings/' + encodeURIComponent(id) + '/assign', { chauffeurId: chosen }).then((json) => {
+        if (!chosen) { this.setState({ assignError: t.pickChauffeur }); return; }
+        this.setState({ assignError: '' });
+        this.once(() => client.request('POST', '/api/staff/bookings/' + encodeURIComponent(id) + '/assign', { chauffeurId: chosen }), (json) => {
           if (json && json.ok) {
             if (ops) ops.bookings.reset();
-            this.setState({ dialogOpen: false });
+            this.setState({ assignOpen: false, pickDriver: '', assignError: '' });
             this.notify(t.driverAssigned + booking.id);
             return;
           }
+          // A refusal stays on the Assign box, in plain words, until the next pick.
           const code = json && json.code;
-          if (code === 'overlap') {
-            this.notify((t.overlap || '').replace('{ref}', json.otherRef || '').replace('{time}', json.otherLocal || ''));
-          } else if (code === 'no-email') this.notify(t.noEmail);
-          else if (code === 'no-vehicle') this.notify(t.noVehicle);
-          else if (code === 'not-paid') this.notify(t.notPaid);
-          else if (code === 'frozen') this.notify(t.frozen);
-          else if (code === 'capacity') this.notify(t.capacity);
-          else this.notify(t.assignFailed + booking.id);
+          let msg = t.assignFailed + booking.id;
+          if (code === 'overlap') msg = (t.overlap || '').replace('{ref}', json.otherRef || '').replace('{time}', json.otherLocal || '');
+          else if (code === 'no-email') msg = t.noEmail;
+          else if (code === 'no-vehicle') msg = t.noVehicle;
+          else if (code === 'class-mismatch') msg = (t.classMismatch || '').replace('{car}', json.carClass || '\u2014').replace('{trip}', json.tripClass || booking.klass || '\u2014');
+          else if (code === 'not-paid') msg = t.notPaid;
+          else if (code === 'frozen') msg = t.frozen;
+          else if (code === 'capacity') msg = t.capacity;
+          this.setState({ assignError: msg });
         });
       },
       showToast: this.state.showToast, toastMsg: this.state.toastMsg, closeToast: () => this.setState({ showToast: false }),
     };
+    this._barVals = { title: booking.id, label: t.actions, items: viewing ? actionItems : [] };
+    this._barPick = vals.pickAction;
+    return vals;
   }
 }
 </script>

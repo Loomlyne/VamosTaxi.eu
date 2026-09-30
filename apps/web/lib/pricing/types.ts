@@ -50,13 +50,22 @@ export type ZoneType = "airport" | "city" | "ski" | "other";
 /**
  * surcharges.predicate jsonb discriminators (D-09).
  * An empty object or unknown kind is not-applicable — never silently true.
+ * `manual` is an extra the customer chooses on /checkout: the quote never adds it.
  */
 export type SurchargePredicate =
   | { kind: "always" }
   | { kind: "pickup_zone_type"; zone_type: ZoneType }
   | { kind: "local_time_window"; tz: string; from: string; to: string }
   | { kind: "dest_zone_tag"; tag: string }
-  | { kind: "quantity" };
+  | { kind: "quantity" }
+  | { kind: "manual" };
+
+/**
+ * The rule of every extra the pricing page saves (26.2-p4): chosen by the
+ * customer on /checkout, charged only when ticked. One definition for the
+ * writer (the staff rate-book route) and the reader (mapSurcharge).
+ */
+export const MANUAL_PREDICATE = { kind: "manual" } as const satisfies SurchargePredicate;
 
 /** vehicle_classes row facts the kernel reads. */
 export interface VehicleClassRow {
@@ -239,7 +248,6 @@ export interface QuoteLegInput {
    * Mapbox (snapped driving, or WGS84 metres between the same pins).
    */
   road?: boolean;
-  waypoints: unknown[];
   /** D-08b: customer-entered flight number. A non-empty value triggers the airport fee. */
   flight_no?: string | null;
   /**

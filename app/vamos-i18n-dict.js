@@ -282,6 +282,8 @@
       'Accept all': { de: 'Alle akzeptieren', fr: 'Tout accepter', ar: 'قبول الكل' },
       'Necessary only': { de: 'Nur notwendige', fr: 'Nécessaires uniquement', ar: 'الضرورية فقط' },
       'Manage preferences': { de: 'Einstellungen verwalten', fr: 'Gérer les préférences', ar: 'إدارة التفضيلات' },
+      'Your choice was not saved. Try again.': { de: 'Ihre Auswahl wurde nicht gespeichert. Versuchen Sie es erneut.', fr: 'Votre choix n’a pas été enregistré. Réessayez.', ar: 'لم يُحفظ اختيارك. حاول مرة أخرى.' },
+      'The check did not go through. Try again.': { de: 'Die Prüfung ist nicht durchgegangen. Versuchen Sie es erneut.', fr: 'La vérification n\'est pas passée. Réessayez.', ar: 'لم يكتمل التحقق. حاول مرة أخرى.' },
       'Choose your categories': { de: 'Wählen Sie Ihre Kategorien', fr: 'Choisissez vos catégories', ar: 'اختر الفئات' },
       'Strictly necessary': { de: 'Unbedingt erforderlich', fr: 'Strictement nécessaires', ar: 'ضرورية تمامًا' },
       'Always on': { de: 'Immer aktiv', fr: 'Toujours actifs', ar: 'مفعّلة دائمًا' },
@@ -351,6 +353,7 @@
       'Send the link again': { de: 'Link erneut senden', fr: 'Renvoyer le lien', ar: 'أعد إرسال الرابط' },
       'Check your inbox. We sent a new link.': { de: 'Prüfen Sie Ihren Posteingang. Wir haben einen neuen Link geschickt.', fr: 'Consultez votre boîte de réception. Nous avons envoyé un nouveau lien.', ar: 'تحقق من بريدك الوارد. أرسلنا رابطًا جديدًا.' },
       'Could not send the link. Try again.': { de: 'Der Link konnte nicht gesendet werden. Bitte erneut versuchen.', fr: 'Impossible d’envoyer le lien. Réessayez.', ar: 'تعذر إرسال الرابط. حاول مرة أخرى.' },
+      'Tick the box to accept the Terms and confirm the Privacy notice.': { de: 'Setzen Sie das Häkchen, um die AGB zu akzeptieren und die Datenschutzerklärung zu bestätigen.', fr: 'Cochez la case pour accepter les conditions générales et confirmer la déclaration de confidentialité.', ar: 'ضع علامة في المربع لقبول الشروط والأحكام وتأكيد إشعار الخصوصية.' },
       'The link works once and expires after 1 hour. Nothing there? Check spam, then send another.': { de: 'Der Link funktioniert einmal und läuft nach 1 Stunde ab. Nichts angekommen? Prüfen Sie den Spam-Ordner und senden Sie dann einen neuen.', fr: 'Le lien ne fonctionne qu’une fois et expire après 1 heure. Rien reçu ? Vérifiez vos spams, puis renvoyez-en un.', ar: 'يعمل الرابط مرة واحدة وتنتهي صلاحيته بعد ساعة. لم يصلك شيء؟ تحقق من البريد المزعج ثم أرسل رابطًا آخر.' },
       'Choose a password': { de: 'Wählen Sie ein Passwort', fr: 'Choisissez un mot de passe', ar: 'اختر كلمة مرور' },
       'Enter your password': { de: 'Geben Sie Ihr Passwort ein', fr: 'Saisissez votre mot de passe', ar: 'أدخل كلمة المرور' },
@@ -964,6 +967,9 @@
       'Max bags': { de: 'Max. Gepäckstücke', fr: 'Bagages max.', ar: 'أقصى حقائب' },
       'Choose photo': { de: 'Foto wählen', fr: 'Choisir une photo', ar: 'اختيار صورة' },
       'Add a checkout extra, extra-wait rate, or edit meet and greet and free wait. Meet and greet and free wait stay on for the customer.': { de: 'Checkout-Extra, Extra-Wartepreis oder Meet and greet und Freiwarten bearbeiten. Meet and greet und Freiwarten bleiben für den Kunden an.', fr: 'Ajoutez un extra de paiement, un tarif d’attente extra, ou modifiez l’accueil et l’attente libre. L’accueil et l’attente libre restent activés pour le client.', ar: 'أضف إضافة دفع أو سعر انتظار إضافي أو عدّل الاستقبال والانتظار المجاني. يبقى الاستقبال والانتظار المجاني مفعّلين للعميل.' },
+      // 26.2-p4 A5 (owner, 2026-09-30): Pricing > Extras empty list and tab hint.
+      'Add an extra. Customers choose it at checkout.': { de: 'Fügen Sie ein Extra hinzu. Kundinnen und Kunden wählen es beim Checkout.', fr: 'Ajoutez un extra. Les clients le choisissent au paiement.', ar: 'أضف إضافة. يختارها العملاء عند الدفع.' },
+      'Checkout extras': { de: 'Checkout-Extras', fr: 'Extras de paiement', ar: 'إضافات الدفع' },
       'Pick a row from the rules table above.': { de: 'Eine Zeile aus der Regel-Tabelle oben wählen.', fr: 'Choisissez une ligne dans le tableau des règles ci-dessus.', ar: 'اختر صفًا من جدول القواعد أعلاه.' },
       'Add a rule in the table above first.': { de: 'Zuerst eine Regel in der Tabelle oben hinzufügen.', fr: 'Ajoutez d’abord une règle dans le tableau ci-dessus.', ar: 'أضف قاعدة في الجدول أعلاه أولًا.' },
       'Applies when': { de: 'Gilt wenn', fr: 'S’applique quand', ar: 'تنطبق عندما' },
@@ -1406,7 +1412,9 @@
       'This trip will be cancelled. Refund needs a person — we will email you.': { de: 'Diese Fahrt wird storniert. Die Rückerstattung braucht eine Person — wir schreiben Ihnen.', fr: 'Ce trajet sera annulé. Le remboursement demande une personne — nous vous écrirons.', ar: 'ستُلغى هذه الرحلة. الاسترداد يحتاج إلى شخص — وسنراسل لك.' },
       'Too close to cancel here. Call us.': { de: 'Zu knapp, um hier zu stornieren. Rufen Sie uns an.', fr: 'Trop proche pour annuler ici. Appelez-nous.', ar: 'الوقت ضيق للإلغاء من هنا. اتصل بنا.' },
       'Cancelled': { de: 'Storniert', fr: 'Annulé', ar: 'ملغى' },
-      'Pending Ops': { de: 'Wartet auf Ops', fr: 'En attente Ops', ar: 'بانتظار التشغيل' },
+      "Full refund · sent by our team": { de: "Volle Rückerstattung · wird von unserem Team veranlasst", fr: "Remboursement intégral · envoyé par notre équipe", ar: "استرداد كامل · يرسله فريقنا" },
+      "Refund under review": { de: "Rückerstattung in Prüfung", fr: "Remboursement en cours d’examen", ar: "الاسترداد قيد المراجعة" },
+      "You will get a full refund of the amount you paid. Our team sends it; your bank may take a few days to show it.": { de: "Sie erhalten eine volle Rückerstattung des bezahlten Betrags. Unser Team veranlasst sie; Ihre Bank braucht vielleicht ein paar Tage, bis sie sichtbar ist.", fr: "Vous recevrez un remboursement intégral du montant payé. Notre équipe l’envoie ; votre banque peut mettre quelques jours à l’afficher.", ar: "ستستردّ كامل المبلغ الذي دفعته. يرسله فريقنا؛ قد يحتاج مصرفك بضعة أيام لإظهاره." },
       'Processing': { de: 'In Bearbeitung', fr: 'En cours', ar: 'قيد المعالجة' },
       'Refunded': { de: 'Erstattet', fr: 'Remboursé', ar: 'مُسترد' },
       'Failed': { de: 'Fehlgeschlagen', fr: 'Échoué', ar: 'فشل' },
@@ -1661,6 +1669,8 @@
       'When you book': { de: 'Wenn Sie buchen', fr: 'Quand vous réservez', ar: 'عند الحجز' },
       'Lead passenger name, email address and mobile number.': { de: 'Name der Hauptperson, E-Mail-Adresse und Mobilnummer.', fr: 'Nom du passager principal, adresse e-mail et numéro de mobile.', ar: 'اسم الراكب الرئيسي وعنوان البريد ورقم الهاتف المحمول.' },
       'Pickup and drop-off address, and any additional stop.': { de: 'Abhol- und Zieladresse sowie allfällige Zwischenstopps.', fr: 'Adresse de prise en charge et de destination, ainsi que tout arrêt supplémentaire.', ar: 'عنوان الانطلاق والوجهة وأي محطة إضافية.' },
+      /* 2026-10-01, owner-approved (decisions/2026-10-01-terms-no-stops.md): privacy line without stops. */
+      'Pickup and drop-off address.': { de: 'Abhol- und Zieladresse.', fr: 'Adresse de prise en charge et de destination.', ar: 'عنوان الانطلاق والوصول.' },
       'Flight number, where you gave one, and the arrival time we read from it.': { de: 'Flugnummer, sofern angegeben, und die daraus gelesene Ankunftszeit.', fr: 'Numéro de vol, si vous en avez donné un, et l’heure d’arrivée que nous en déduisons.', ar: 'رقم الرحلة الجوية، إن ذكرته، ووقت الوصول الذي نقرأه منه.' },
       'Passenger and luggage count, child seat requests, declared items.': { de: 'Zahl der Passagiere und Gepäckstücke, Kindersitzwünsche, angemeldete Gegenstände.', fr: 'Nombre de passagers et de bagages, demandes de siège enfant, objets déclarés.', ar: 'عدد الركاب والحقائب، وطلبات مقاعد الأطفال، والأغراض المُعلَنة.' },
       'Anything you type into the notes field for the driver.': { de: 'Alles, was Sie in das Notizfeld für den Fahrer schreiben.', fr: 'Tout ce que vous inscrivez dans le champ de notes pour le chauffeur.', ar: 'كل ما تكتبه في حقل الملاحظات الموجّهة للسائق.' },
@@ -1745,7 +1755,7 @@
       "Tell us within 10 days of the journey, by email or telephone, quoting your booking reference.": { de: "Melden Sie sich innerhalb von 10 Tagen nach der Fahrt per E-Mail oder Telefon, unter Angabe Ihrer Buchungsreferenz.", fr: "Signalez-le-nous dans les 10 jours suivant le trajet, par e-mail ou par téléphone, en indiquant votre référence de réservation.", ar: "أبلغنا خلال 10 أيام من الرحلة، بالبريد أو الهاتف، مع ذكر رقم حجزك." },
       "We resolve your complaint within 30 days.": { de: "Wir erledigen Ihre Beschwerde innerhalb von 30 Tagen.", fr: "Nous traitons votre réclamation dans un délai de 30 jours.", ar: "نعالج شكواك خلال 30 يومًا." },
       "Any refund we agree is paid within 30 days of your written acceptance of our decision.": { de: "Eine vereinbarte Rückerstattung zahlen wir innerhalb von 30 Tagen, nachdem Sie unseren Entscheid schriftlich angenommen haben.", fr: "Tout remboursement convenu est versé dans les 30 jours suivant votre acceptation écrite de notre décision.", ar: "أي مبلغ نتفق على ردّه يُدفع خلال 30 يومًا من موافقتك الكتابية على قرارنا." },
-      "Refunded automatically, in full, to the payment method you used. We send the refund when you cancel; your bank may take a few days to show it.": { de: "Automatisch und vollständig auf das Zahlungsmittel zurückerstattet, mit dem Sie bezahlt haben. Wir veranlassen die Rückerstattung, sobald Sie stornieren; Ihre Bank braucht vielleicht ein paar Tage, bis sie sichtbar ist.", fr: "Remboursé automatiquement et intégralement sur le moyen de paiement utilisé. Nous lançons le remboursement dès votre annulation ; votre banque peut mettre quelques jours à l’afficher.", ar: "يُردّ المبلغ كاملًا وتلقائيًا إلى وسيلة الدفع التي استخدمتها. نُرسل الاسترداد فور إلغائك، وقد يستغرق بنكك بضعة أيام لإظهاره." },
+      "Refunded in full to the payment method you used. Our team sends the refund after you cancel; your bank may take a few days to show it.": { de: "Vollständig auf das Zahlungsmittel zurückerstattet, mit dem Sie bezahlt haben. Unser Team veranlasst die Rückerstattung nach Ihrer Stornierung; Ihre Bank braucht vielleicht ein paar Tage, bis sie sichtbar ist.", fr: "Remboursé intégralement sur le moyen de paiement utilisé. Notre équipe envoie le remboursement après votre annulation ; votre banque peut mettre quelques jours à l’afficher.", ar: "يُردّ المبلغ كاملًا إلى وسيلة الدفع التي استخدمتها. يرسل فريقنا المبلغ المسترد بعد إلغائك؛ قد يحتاج مصرفك بضعة أيام لإظهاره." },
       "Less than": { de: "Weniger als", fr: "Moins de", ar: "أقل من" },
       "The booking is cancelled at once. No refund is sent automatically.": { de: "Die Buchung wird sofort storniert. Es wird keine Rückerstattung automatisch ausgelöst.", fr: "La réservation est annulée immédiatement. Aucun remboursement n’est envoyé automatiquement.", ar: "يُلغى الحجز فورًا. لا يُرسل أي استرداد تلقائيًا." },
       "After the ride": { de: "Nach der Fahrt", fr: "Après la course", ar: "بعد الرحلة" },
@@ -1765,7 +1775,7 @@
       "Our team decides the refund and tells you by email.": { de: "Unser Team entscheidet über die Rückerstattung und teilt sie Ihnen per E-Mail mit.", fr: "Notre équipe décide du remboursement et vous en informe par e-mail.", ar: "يقرّر فريقنا مبلغ الاسترداد ويُبلغك به عبر البريد الإلكتروني." },
       "Extended city stay, up to 15 minutes: shown on your quote.": { de: "Verlängerter Stadtaufenthalt, bis zu 15 Minuten: in Ihrem Angebot ausgewiesen.", fr: "Séjour en ville prolongé, jusqu’à 15 minutes : indiqué sur votre devis.", ar: "إقامة ممتدة في المدينة، حتى 15 دقيقة: مبيّنة في عرض السعر الخاص بك." },
       "Time, address, passenger count and vehicle class can be changed before pickup, free of charge. If the change moves the fare, you pay or we refund the difference — never more than the difference.": { de: "Zeit, Adresse, Passagierzahl und Fahrzeugklasse lassen sich vor der Abholung kostenlos ändern. Verschiebt die Änderung den Fahrpreis, zahlen Sie die Differenz oder wir erstatten sie — nie mehr als die Differenz.", fr: "L’heure, l’adresse, le nombre de passagers et la classe de véhicule peuvent être modifiés avant la prise en charge, sans frais. Si la modification change le tarif, vous payez ou nous remboursons la différence — jamais plus que la différence.", ar: "يمكن تعديل الوقت والعنوان وعدد الركاب وفئة السيارة قبل الانطلاق، دون رسوم. وإن غيّر التعديل السعر، تدفع الفرق أو نردّه لك — ولا شيء أكثر من الفرق." },
-      "This trip will be cancelled. Refunded in full, automatically.": { de: "Diese Fahrt wird storniert. Vollständig und automatisch zurückerstattet.", fr: "Ce trajet sera annulé. Remboursé intégralement, automatiquement.", ar: "ستُلغى هذه الرحلة. يُردّ المبلغ كاملًا وتلقائيًا." },
+      "This trip will be cancelled. You get a full refund; our team sends it.": { de: "Diese Fahrt wird storniert. Sie erhalten eine volle Rückerstattung; unser Team veranlasst sie.", fr: "Ce trajet sera annulé. Vous êtes remboursé intégralement ; notre équipe envoie le remboursement.", ar: "ستُلغى هذه الرحلة. يُردّ إليك المبلغ كاملًا؛ يرسله فريقنا." },
       "This trip will be cancelled. Our team decides the refund and tells you by email.": { de: "Diese Fahrt wird storniert. Unser Team entscheidet über die Rückerstattung und teilt sie Ihnen per E-Mail mit.", fr: "Ce trajet sera annulé. Notre équipe décide du remboursement et vous en informe par e-mail.", ar: "ستُلغى هذه الرحلة. يقرّر فريقنا مبلغ الاسترداد ويُبلغك به عبر البريد الإلكتروني." },
       "If the pickup time passes without you cancelling, the no-show rule applies instead. All of it is in the": { de: "Vergeht die Abholzeit ohne Stornierung, gilt stattdessen die Regel für Nichterscheinen. Alles dazu steht in der", fr: "Si l’heure de prise en charge passe sans annulation de votre part, la règle de non-présentation s’applique. Tout figure dans la", ar: "إذا مرّ موعد الانطلاق دون أن تلغي، تُطبَّق قاعدة عدم الحضور بدلًا من ذلك. كل التفاصيل في" },
       "A driver is already scheduled against this pickup. Dispatch can still move it. This page cannot.": { de: "Für diese Abholung ist bereits ein Fahrer eingeplant. Die Disposition kann sie noch verschieben. Diese Seite kann es nicht.", fr: "Un chauffeur est déjà prévu pour cette prise en charge. La répartition peut encore la déplacer. Cette page ne le peut pas.", ar: "تمّ بالفعل تعيين سائق لهذا الموعد. يمكن لقسم التوزيع تغييره، أما هذه الصفحة فلا." },
@@ -1812,6 +1822,7 @@
       'Nothing except the strictly necessary category is set before you choose. If you never choose, nothing else is ever set.': { de: 'Ausser der unbedingt erforderlichen Kategorie wird nichts gesetzt, bevor Sie wählen. Wählen Sie nie, wird auch nie etwas anderes gesetzt.', fr: 'Rien, hormis la catégorie strictement nécessaire, n’est déposé avant votre choix. Si vous ne choisissez jamais, rien d’autre ne sera jamais déposé.', ar: 'لا يُضبط شيء قبل اختيارك سوى الفئة الضرورية. وإن لم تختر أبدًا، فلن يُضبط أي شيء آخر أبدًا.' },
       'Read from this browser, so it is the real state, not an example.': { de: 'Aus diesem Browser ausgelesen — also der tatsächliche Stand, kein Beispiel.', fr: 'Lu depuis ce navigateur : c’est l’état réel, pas un exemple.', ar: 'مقروء من هذا المتصفّح، فهو الحالة الفعلية لا مثالًا.' },
       'Necessary · on': { de: 'Notwendig · ein', fr: 'Nécessaires · activés', ar: 'ضرورية · مفعّلة' },
+      '1 year': { de: '1 Jahr', fr: '1 an', ar: 'سنة واحدة' },
       'Change preferences': { de: 'Einstellungen ändern', fr: 'Modifier les préférences', ar: 'غيّر التفضيلات' },
       'Reset my choice': { de: 'Meine Wahl zurücksetzen', fr: 'Réinitialiser mon choix', ar: 'أعد ضبط اختياري' },
       'Saved': { de: 'Gespeichert', fr: 'Enregistré', ar: 'تم الحفظ' },
@@ -2130,16 +2141,6 @@
       'Minute up': { de: 'Minuten später', fr: 'Minutes suivantes', ar: 'دقائق لاحقة' },
       'Minute down': { de: 'Minuten früher', fr: 'Minutes précédentes', ar: 'دقائق سابقة' },
       'Select a time': { de: 'Uhrzeit wählen', fr: 'Choisir une heure', ar: 'اختر الوقت' },
-      /* 26.4.2 laptop class cards */
-      'Choose your class': { de: 'Wählen Sie Ihre Klasse', fr: 'Choisissez votre classe', ar: 'اختر فئتك' },
-      'Fixed price, all inclusive. Pick a class to continue.': { de: 'Fixpreis, alles inklusive. Wählen Sie eine Klasse, um fortzufahren.', fr: 'Prix fixe, tout compris. Choisissez une classe pour continuer.', ar: 'سعر ثابت شامل كل شيء. اختر فئة للمتابعة.' },
-      'Price at checkout': { de: 'Preis an der Kasse', fr: 'Prix au paiement', ar: 'السعر عند الدفع' },
-      'No class fits this trip. Change the passengers or the bags.': { de: 'Keine Klasse passt zu dieser Fahrt. Ändern Sie die Passagiere oder das Gepäck.', fr: 'Aucune classe ne convient à ce trajet. Modifiez les passagers ou les bagages.', ar: 'لا توجد فئة تناسب هذه الرحلة. غيّر عدد الركاب أو الحقائب.' },
-      'Prices are busy for a moment. Pick a class and you see the price at checkout.': { de: 'Die Preise sind kurz nicht verfügbar. Wählen Sie eine Klasse, den Preis sehen Sie an der Kasse.', fr: 'Les prix sont momentanément indisponibles. Choisissez une classe, vous verrez le prix au paiement.', ar: 'الأسعار غير متاحة للحظة. اختر فئة وسترى السعر عند الدفع.' },
-      'We could not load prices just now. Pick a class and you see the price at checkout.': { de: 'Die Preise konnten gerade nicht geladen werden. Wählen Sie eine Klasse, den Preis sehen Sie an der Kasse.', fr: 'Impossible de charger les prix pour le moment. Choisissez une classe, vous verrez le prix au paiement.', ar: 'تعذّر تحميل الأسعار الآن. اختر فئة وسترى السعر عند الدفع.' },
-      'Fill in the trip to see prices': { de: 'Fahrt ausfüllen, um Preise zu sehen', fr: 'Renseignez le trajet pour voir les prix', ar: 'أكمل تفاصيل الرحلة لعرض الأسعار' },
-      'Add the missing details to see prices:': { de: 'Ergänzen Sie die fehlenden Angaben, um Preise zu sehen:', fr: 'Ajoutez les informations manquantes pour voir les prix :', ar: 'أضف التفاصيل الناقصة لعرض الأسعار:' },
-      'Loading prices': { de: 'Preise werden geladen', fr: 'Chargement des prix', ar: 'جارٍ تحميل الأسعار' },
       'Previous step': { de: 'Vorheriger Schritt', fr: 'Étape précédente', ar: 'الخطوة السابقة' },
       'Next': { de: 'Weiter', fr: 'Suivant', ar: 'التالي' },
       'Time': { de: 'Uhrzeit', fr: 'Heure', ar: 'الوقت' },
@@ -2191,18 +2192,12 @@
       'The chauffeur could not be saved.': { de: 'Der Chauffeur konnte nicht gespeichert werden.', fr: 'Le chauffeur n’a pas pu être enregistré.', ar: 'تعذّر حفظ السائق.' },
       'Customer details could not be saved.': { de: 'Die Kundendaten konnten nicht gespeichert werden.', fr: 'Les coordonnées du client n’ont pas pu être enregistrées.', ar: 'تعذّر حفظ بيانات العميل.' },
       'Save failed. Try again.': { de: 'Speichern fehlgeschlagen. Versuchen Sie es erneut.', fr: 'Échec de l’enregistrement. Réessayez.', ar: 'فشل الحفظ. أعد المحاولة.' },
+      /* 26.2-bp C4: written straight into New trip (error title) and Booking detail (Payment tag, cancel dialog). */
+      'Quote first': { de: 'Zuerst quoten', fr: 'Devis d’abord', ar: 'سعّر أولاً' },
+      'Not paid yet': { de: 'Noch nicht bezahlt', fr: 'Pas encore payé', ar: 'لم يُدفع بعد' },
+      'Paid by card': { de: 'Mit Karte bezahlt', fr: 'Payé par carte', ar: 'مدفوع بالبطاقة' },
     },
   };
-
-  /* 26.4.2 laptop class cards: figures the code builds. */
-  (function () {
-    var P = DICT.patterns;
-    P.push({ re: /^Up to (\d+) passengers$/, de: 'Bis zu $1 Passagiere', fr: 'Jusqu’à $1 passagers', ar: 'حتى $1 ركاب' });
-    P.push({ re: /^Up to (\d+) bags$/, de: 'Bis zu $1 Gepäckstücke', fr: 'Jusqu’à $1 bagages', ar: 'حتى $1 حقائب' });
-    P.push({ re: /^Seats up to (\d+)$/, de: 'Plätze bis $1', fr: 'Jusqu’à $1 places', ar: 'مقاعد حتى $1' });
-    P.push({ re: /^Bags up to (\d+)$/, de: 'Gepäck bis $1', fr: 'Jusqu’à $1 bagages', ar: 'حقائب حتى $1' });
-    P.push({ re: /^(\d+) seats$/, de: '$1 Plätze', fr: '$1 places', ar: '$1 مقاعد' });
-  })();
 
   /* 26.3-G2 — account surfaces: values the code builds or the API supplies.
      Generated from the month and status tables so the entries stay plain

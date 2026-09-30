@@ -1,14 +1,13 @@
 // apps/web/lib/ops/tickets-write.test.ts
 //
-// Wave 0 (13-01): patchTicket send-path contract (RPLY-01 RPLY-02 D-05 D-06 D-10 D-11).
-// Mock asStaff + sendContactMessage. No Hyperdrive, no live Resend. Stays red until 13-07.
+// patchTicket: status changes and overlay Save. The reply send path is gone (G27).
+// Mock asStaff + sendContactMessage. No Hyperdrive, no live Resend.
 
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { VamosClaims } from "../db/identity";
-import { staffMessageId } from "./ticket-mail";
 
 const asStaff = vi.fn();
 const { sendContactMessage } = vi.hoisted(() => ({ sendContactMessage: vi.fn() }));
@@ -112,135 +111,14 @@ beforeEach(() => {
   });
 });
 
-describe("patchTicket staff reply (RPLY-01 RPLY-02 D-05 D-06 D-10 D-11)", () => {
+describe("patchTicket sends no mail (G27, read-only Support)", () => {
   it("does not bind EMAIL on the staff env", () => {
     expect("EMAIL" in env).toBe(false);
   });
 
-  describe("D-10 empty and closed refuse (RPLY-01)", () => {
-    it("returns empty-reply for a trimmed-empty body and never calls sendContactMessage", async () => {
-      await expect(patchTicket(env, claims, TICKET_ID, { reply: "   " })).resolves.toEqual({
-        ok: false,
-        reason: "empty-reply",
-      });
-      expect(sendContactMessage).not.toHaveBeenCalled();
-      expect(asStaff).not.toHaveBeenCalled();
-    });
-
-    it("returns invalid-status for a closed ticket and never calls sendContactMessage", async () => {
-      asStaff.mockImplementation(async (_env: unknown, _claims: unknown, fn: (sql: unknown) => Promise<unknown>) => {
-        const sql = async (strings: TemplateStringsArray, ..._values: unknown[]) => {
-          const text = strings.join(" ");
-          if (/contact_submissions/i.test(text) && !/update/i.test(text)) {
-            return [{ ...openTicket, ticket_status: "closed" }];
-          }
-          if (/support_messages/i.test(text) && !/insert/i.test(text)) {
-            return [{ rfc_message_id: PARENT_RFC }];
-          }
-          return [];
-        };
-        return fn(sql);
-      });
-      await expect(patchTicket(env, claims, TICKET_ID, { reply: "Thanks." })).resolves.toEqual({
-        ok: false,
-        reason: "invalid-status",
-      });
-      expect(sendContactMessage).not.toHaveBeenCalled();
-      expect(persistCalls).toHaveLength(0);
-    });
-
-    it("returns invalid-reply when reply.length is greater than 8000 and never sends", async () => {
-      await expect(
-        patchTicket(env, claims, TICKET_ID, { reply: "x".repeat(8001) }),
-      ).resolves.toEqual({ ok: false, reason: "invalid-reply" });
-      expect(sendContactMessage).not.toHaveBeenCalled();
-    });
-  });
-
-  describe("D-06 fail-closed — no INSERT, status not replied (RPLY-01)", () => {
-    it("returns send-failed when Resend accepted is false and does not persist", async () => {
-      sendContactMessage.mockResolvedValue({
-        accepted: false,
-        providerId: null,
-        providerSuffix: null,
-        rfcMessageId: null,
-      });
-      await expect(patchTicket(env, claims, TICKET_ID, { reply: "Thanks, Ada." })).resolves.toEqual({
-        ok: false,
-        reason: "send-failed",
-      });
-      expect(persistBlob()).not.toMatch(/insert into public\.support_messages/i);
-      expect(persistBlob()).not.toMatch(/ticket_status = 'replied'/);
-    });
-
-    it("returns send-failed when rfcMessageId is missing and does not persist", async () => {
-      sendContactMessage.mockResolvedValue({
-        accepted: true,
-        providerId: PROVIDER_ID,
-        providerSuffix: PROVIDER_SUFFIX,
-      });
-      await expect(patchTicket(env, claims, TICKET_ID, { reply: "Thanks, Ada." })).resolves.toEqual({
-        ok: false,
-        reason: "send-failed",
-      });
-      expect(persistBlob()).not.toMatch(/insert into public\.support_messages/i);
-      expect(persistBlob()).not.toMatch(/ticket_status = 'replied'/);
-    });
-  });
-
-  describe("RPLY-02 D-05 payload — From plus-address, Reply-To plus-address, BCC info@", () => {
-    it("sends From plus-address, Reply-To plus-address, bcc info@, allowEmailFallback false, no EMAIL, no Message-ID", async () => {
-      sendContactMessage.mockResolvedValue({
-        accepted: true,
-        providerId: PROVIDER_ID,
-        providerSuffix: PROVIDER_SUFFIX,
-        rfcMessageId: GET_RFC,
-      });
-      await patchTicket(env, claims, TICKET_ID, { reply: "Thanks, Ada." });
-      const [apiKey, _from, to, idempotencyKey, _rendered, email, options] = lastSendCall();
-      expect(apiKey).toBe("re_test");
-      expect(to).toBe("guest@example.test");
-      expect(email).toBeUndefined();
-      expect(idempotencyKey).toMatch(new RegExp(`^staff-reply/${TICKET_ID}/[0-9a-f-]{36}$`));
-      const headers = (options as { headers?: Record<string, string> }).headers ?? {};
-      expect(headers["In-Reply-To"]).toBe(PARENT_RFC);
-      expect(headers).not.toHaveProperty("Message-ID");
-      expect(Object.keys(headers)).not.toContain("Message-ID");
-      expect(options).toMatchObject({
-        from: STAFF_FROM,
-        replyTo: PUBLIC_ADDRESS,
-        bcc: "info@vamostaxi.site",
-        allowEmailFallback: false,
-      });
-    });
-  });
-
-  describe("RPLY-01 GET rfc persist and D-11 replied", () => {
-    it("persists angle-bracketed rfcMessageId from GET and resend_email_id from providerId", async () => {
-      sendContactMessage.mockResolvedValue({
-        accepted: true,
-        providerId: PROVIDER_ID,
-        providerSuffix: PROVIDER_SUFFIX,
-        rfcMessageId: GET_RFC,
-      });
-      await expect(patchTicket(env, claims, TICKET_ID, { reply: "Thanks, Ada." })).resolves.toMatchObject({
-        ok: true,
-        status: "replied",
-      });
-      const [, , , idempotencyKey] = lastSendCall();
-      const outboundId = String(idempotencyKey).split("/")[2] ?? "";
-      const values = persistValues();
-      expect(GET_RFC).toMatch(/^<.+@.+>$/);
-      expect(values).toContain(GET_RFC);
-      expect(values).toContain(PROVIDER_ID);
-      expect(GET_RFC).not.toBe(PROVIDER_ID);
-      expect(GET_RFC).not.toBe(PROVIDER_SUFFIX);
-      expect(GET_RFC).not.toBe(staffMessageId(outboundId));
-      expect(values).not.toContain(PROVIDER_SUFFIX);
-      expect(values).not.toContain(staffMessageId(outboundId));
-      expect(persistBlob()).toMatch(/insert into public\.support_messages/i);
-      expect(persistBlob()).toMatch(/ticket_status = 'replied'/);
-    });
+  it("a status change never sends", async () => {
+    await patchTicket(env, claims, TICKET_ID, { status: "closed" });
+    expect(sendContactMessage).not.toHaveBeenCalled();
   });
 });
 
@@ -291,10 +169,7 @@ describe("overlay Save (D-04 D-05 D-06 SUP-04)", () => {
     expect(persistValues()).not.toContain("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb");
   });
 
-  it("refuses Save mixed with reply or status", async () => {
-    await expect(
-      patchTicket(env, claims, TICKET_ID, { note: "x", reply: "Thanks." }),
-    ).resolves.toEqual({ ok: false, reason: "invalid-status" });
+  it("refuses Save mixed with status", async () => {
     await expect(
       patchTicket(env, claims, TICKET_ID, { phone: "+41", status: "open" }),
     ).resolves.toEqual({ ok: false, reason: "invalid-status" });

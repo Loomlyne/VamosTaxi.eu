@@ -5,6 +5,11 @@ import { authPost, resetHarness, state } from "./harness";
 vi.mock("@opennextjs/cloudflare", async () => (await import("./harness")).cloudflareMock);
 vi.mock("next/headers", async () => (await import("./harness")).headersMock);
 vi.mock("@supabase/ssr", async () => (await import("./harness")).ssrMock);
+vi.mock("@/lib/db/identity", () => ({
+  asSystem: async (_env: unknown, fn: (tx: unknown) => Promise<void>) => {
+    await fn(async () => []);
+  },
+}));
 
 const { POST } = await import("@/app/api/auth/route");
 const body = {
@@ -14,6 +19,7 @@ const body = {
   password: "a-long-password-1",
   firstName: "Mia",
   lastName: "Keller",
+  consent: true,
 };
 
 beforeEach(() => resetHarness());

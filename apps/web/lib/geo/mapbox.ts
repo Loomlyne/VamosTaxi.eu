@@ -148,10 +148,10 @@ export type ReversePlace = {
 
 export type ReverseResult = { place: ReversePlace | null };
 
+/** One driving leg: origin to destination. No stop on the way (26.2-p4 D). */
 export type RouteLegInput = {
   origin: GeoPoint;
   destination: GeoPoint;
-  waypoints?: GeoPoint[];
 };
 
 export type RouteLeg = {
@@ -351,7 +351,7 @@ export async function suggest(
   deps: MapboxDeps = {},
 ): Promise<SuggestResult> {
   const emit = emitFor("geo.suggest", input.language);
-  if (input.q.length < MIN_SUGGEST_Q) {
+  if (input.q.trim().length < MIN_SUGGEST_Q) {
     return { suggestions: [] };
   }
   const access = tokenOf(env);
@@ -490,7 +490,7 @@ export async function reverse(
 }
 
 function pointsOf(leg: RouteLegInput): GeoPoint[] {
-  return [leg.origin, ...(leg.waypoints ?? []), leg.destination];
+  return [leg.origin, leg.destination];
 }
 
 function coordinatePath(leg: RouteLegInput): string {
@@ -679,31 +679,12 @@ async function snapLegToRoads(
     leg.destination,
     leg.origin,
   );
-  const waypoints = [];
-  for (const wp of leg.waypoints ?? []) {
-    waypoints.push(
-      await snapPinToRoad(fetchImpl, access, emit, wp, leg.destination),
-    );
-  }
-  return {
-    origin,
-    destination,
-    ...(waypoints.length > 0 ? { waypoints } : {}),
-  };
+  return { origin, destination };
 }
 
 function snapChanged(a: RouteLegInput, b: RouteLegInput): boolean {
   if (!samePin(a.origin, b.origin)) return true;
-  if (!samePin(a.destination, b.destination)) return true;
-  const aw = a.waypoints ?? [];
-  const bw = b.waypoints ?? [];
-  if (aw.length !== bw.length) return true;
-  for (let i = 0; i < aw.length; i += 1) {
-    const left = aw[i];
-    const right = bw[i];
-    if (!left || !right || !samePin(left, right)) return true;
-  }
-  return false;
+  return !samePin(a.destination, b.destination);
 }
 
 export async function routeLegs(

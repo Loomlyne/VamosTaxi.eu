@@ -27,11 +27,9 @@
 <link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/components/mobile/fig-assets.css">
 <link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
 <script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
-<link rel="stylesheet" href="../../assets/lenis.css">
-<script src="../../assets/lenis.js"></script>
-<script src="../../assets/lenis-boot.js"></script>
 <script src="../vamos-i18n-dict.js"></script>
 <script src="../vamos-locale.js"></script>
+<script src="../vamos-account-notice.js"></script>
 <script src="../vamos-page-transition.js"></script>
 <style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
 .vt-input--focus{box-shadow:none}
@@ -94,6 +92,7 @@ body{margin:0;background:var(--vt-bg-page)}a{color:var(--vt-text-link);border-bo
 </aside>
 </main>
 <dc-import name="SiteFooter" hint-size="100%,520px"></dc-import>
+<dc-import name="CookieBanner" hint-size="0,0"></dc-import>
 <sc-if value="{{ showJumper }}" hint-placeholder-val="{{ true }}">
 <div data-jump="1" data-jump-collapsed="{{ collapsedAttr }}">
 <button type="button" data-jump-head="1" onClick="{{ toggleJumper }}">Review · states<span style="font-size:11px;letter-spacing:0">{{ caret }}</span></button>
@@ -118,6 +117,7 @@ const STATES = [
   { key: 'f', label: 'Sign up · email already registered', mode: 'signup', method: 'password', stage: 'form', banner: 'registered', email: 'taken@vamostaxi.site' },
   { key: 'g', label: 'Sign up · magic link', mode: 'signup', method: 'magic', stage: 'form', banner: '' },
   { key: 'h', label: 'Sign up · link sent', mode: 'signup', method: 'magic', stage: 'sent', banner: '' },
+  { key: 'n', label: 'Sign up · tick missing', mode: 'signup', method: 'password', stage: 'form', banner: 'consent' },
   { key: 'i', label: 'Forgot password · request', mode: 'forgot', method: 'password', stage: 'form', banner: '' },
   { key: 'j', label: 'Forgot password · link sent', mode: 'forgot', method: 'password', stage: 'sent', banner: '' },
   { key: 'k', label: 'Sign in · passkey prompt', mode: 'signin', method: 'password', stage: 'verifying', banner: '' },

@@ -201,6 +201,39 @@ describe("mapRateBook", () => {
     });
   });
 
+  // 26.2-p4 A1. The old dashboard write stored the rule as a JSON string; the
+  // live child-seat row still holds it. Such a row is an extra the customer
+  // chooses, so the reader hands it on as the manual rule.
+  const ruleRow = (predicate: unknown) => ({
+    id: 3,
+    rate_version_id: 18,
+    code: "child-seat",
+    kind: "amount",
+    amount_rappen: 1000,
+    percent: null,
+    applies_to: "leg",
+    active: true,
+    predicate,
+    quantity_source: null,
+  });
+
+  it("reads a rule stored as a JSON string (the live child-seat row) as the manual rule", () => {
+    const book = mapRateBook({ surcharges: [ruleRow("{\"kind\":\"always\"}")] });
+    expect(book.surcharges[0]?.predicate).toEqual({ kind: "manual" });
+  });
+
+  it("reads the manual rule object as it is", () => {
+    const book = mapRateBook({ surcharges: [ruleRow({ kind: "manual" })] });
+    expect(book.surcharges[0]?.predicate).toEqual({ kind: "manual" });
+  });
+
+  it("leaves a rule stored as an object alone: always stays always, empty stays empty", () => {
+    const book = mapRateBook({
+      surcharges: [ruleRow({ kind: "always" }), ruleRow({}), ruleRow(null), ruleRow(undefined)],
+    });
+    expect(book.surcharges.map((row) => row.predicate)).toEqual([{ kind: "always" }, {}, {}, {}]);
+  });
+
   it("maps zone tags to a string array and absent tags to an empty array", () => {
     const book = mapRateBook({
       rate_version: null,

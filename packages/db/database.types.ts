@@ -655,6 +655,85 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_refund_intents: {
+        Row: {
+          actor_id: string | null
+          amount_rappen: number
+          attempts: number
+          batch_id: string
+          booking_id: string
+          created_at: string
+          decided_percent: number | null
+          id: number
+          last_error: string | null
+          payment_id: number
+          reason: string
+          refund_id: number | null
+          state: string
+          stripe_refund_id: string | null
+          tier: string
+          updated_at: string
+        }
+        Insert: {
+          actor_id?: string | null
+          amount_rappen: number
+          attempts?: number
+          batch_id: string
+          booking_id: string
+          created_at?: string
+          decided_percent?: number | null
+          id?: never
+          last_error?: string | null
+          payment_id: number
+          reason: string
+          refund_id?: number | null
+          state?: string
+          stripe_refund_id?: string | null
+          tier: string
+          updated_at?: string
+        }
+        Update: {
+          actor_id?: string | null
+          amount_rappen?: number
+          attempts?: number
+          batch_id?: string
+          booking_id?: string
+          created_at?: string
+          decided_percent?: number | null
+          id?: never
+          last_error?: string | null
+          payment_id?: number
+          reason?: string
+          refund_id?: number | null
+          state?: string
+          stripe_refund_id?: string | null
+          tier?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_refund_intents_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_refund_intents_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "booking_payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_refund_intents_refund_id_fkey"
+            columns: ["refund_id"]
+            isOneToOne: false
+            referencedRelation: "booking_refunds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_refunds: {
         Row: {
           available_on: string | null
@@ -3049,6 +3128,17 @@ export type Database = {
         }[]
       }
       confirmation_payload: { Args: { p_booking_id: string }; Returns: Json }
+      consent_choice: {
+        Args: { p_as_of?: string; p_policy_version: string }
+        Returns: {
+          analytics: boolean
+          functional: boolean
+          marketing: boolean
+          method: string
+          necessary: boolean
+          recorded_at: string
+        }[]
+      }
       create_quote_snapshot: {
         Args: {
           p_bags: number
@@ -3349,6 +3439,64 @@ export type Database = {
           refund_status: string
         }[]
       }
+      ops_refund_intent_failed: {
+        Args: { p_error: string; p_intent_id: number; p_void?: boolean }
+        Returns: {
+          attempts: number
+          booking_id: string
+          due_rappen: number
+          intent_id: number
+          open_intents: number
+          refund_status: string
+          refunded_rappen: number
+          state: string
+        }[]
+      }
+      ops_refund_intent_sent: {
+        Args: {
+          p_available_on?: string
+          p_intent_id: number
+          p_payout_country?: string
+          p_stripe_fee_rappen?: unknown
+          p_stripe_refund_id: string
+        }
+        Returns: {
+          booking_id: string
+          contact_email: string
+          contact_name: string
+          due_rappen: number
+          locale: string
+          open_intents: number
+          payer_email: string
+          payment_id: number
+          reference: string
+          refund_id: number
+          refund_rappen: number
+          refund_status: string
+          refunded_rappen: number
+        }[]
+      }
+      ops_refund_plan: {
+        Args: {
+          p_actor_id: string
+          p_amount_rappen?: number
+          p_booking_id: string
+          p_payment_id?: number
+          p_percent?: number
+          p_reason?: string
+          p_resume_only?: boolean
+        }
+        Returns: {
+          amount_rappen: number
+          attempts: number
+          idempotency_key: string
+          intent_id: number
+          payment_id: number
+          resumed: boolean
+          state: string
+          stripe_payment_intent_id: string
+        }[]
+      }
       ops_refund_record: {
         Args: {
           p_actor_id: string
@@ -3575,6 +3723,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      staff_extra_labels_prune: { Args: never; Returns: number }
       staff_set_sign_in_method: {
         Args: { p_method: string }
         Returns: undefined

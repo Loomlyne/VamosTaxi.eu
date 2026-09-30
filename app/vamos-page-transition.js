@@ -39,12 +39,9 @@
       if (tries < 40) setTimeout(function () { vtScrollHash(tries + 1); }, 80);
       return;
     }
-    if (window.vtScrollTo) window.vtScrollTo(el, -88);
-    else {
-      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      var top = el.getBoundingClientRect().top + window.pageYOffset - 88;
-      window.scrollTo({ top: top, behavior: reduce ? 'auto' : 'smooth' });
-    }
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var top = el.getBoundingClientRect().top + window.pageYOffset - 88;
+    window.scrollTo({ top: top, behavior: reduce ? 'auto' : 'smooth' });
   }
   addEventListener('load', function () { setTimeout(vtScrollHash, 80); });
 })();

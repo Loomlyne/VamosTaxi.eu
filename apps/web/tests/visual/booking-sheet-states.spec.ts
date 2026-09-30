@@ -168,7 +168,8 @@ test.describe("BookingSheet mechanics @component", () => {
     await expect(page.locator(LIVE)).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.style.overflow)).toBe("");
     expect(await page.evaluate(() => document.body.style.overflow)).toBe("");
-    expect(await page.evaluate(() => (history.state && history.state.vtSheet) ?? null)).toBeNull();
+    // The sheet leaves a spare step for a Back pressed at once and removes it after a pause (quick 260930-bp2).
+    await expect.poll(() => page.evaluate(() => (history.state && history.state.vtSheet) ?? null), { timeout: 5000 }).toBeNull();
   });
 
   test("a missing time is named and its field is the one that takes focus @component", async ({ page }) => {
@@ -191,7 +192,8 @@ test.describe("BookingSheet mechanics @component", () => {
     await expect(page.locator(LIVE)).toBeVisible();
     await page.locator(`${LIVE} [data-bs-head] button[aria-label="Close booking"]`).click();
     await expect(page.locator(LIVE)).toHaveCount(0);
-    expect(await page.evaluate(() => (history.state && history.state.vtSheet) ?? null)).toBeNull();
+    // The sheet leaves a spare step for a Back pressed at once and removes it after a pause (quick 260930-bp2).
+    await expect.poll(() => page.evaluate(() => (history.state && history.state.vtSheet) ?? null), { timeout: 5000 }).toBeNull();
     await page.goForward().catch(() => undefined);
     await page.waitForTimeout(300);
     await expect(page.locator(LIVE)).toHaveCount(0);

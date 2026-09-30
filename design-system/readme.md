@@ -481,7 +481,6 @@ sources stay in `assets/source/`; social artwork is still PNG-only.
 | `tokens/laws.css` | **the four platform laws — imported last, overrides the layers above** (§8) |
 | `assets/vamos-i18n-dict.js` | 128 strings × de/fr/ar + 7 patterns each, keyed by the English source string (§9) |
 | `assets/vamos-locale.js` | `VamosLocale` — the one language and currency store (§9) |
-| `assets/vamos-scroll.js` | `VamosScroll` — wheel lerp + the `--vt-scroll` signal (§10) |
 | `components/mobile/fig-tokens.css` | 317 Rolic.app Figma variables (own namespace; never overrides `--vt-*`) |
 | `components/mobile/fig-assets.css` | bitmap classes for the generated mobile components |
 | `components/core/` | `Button` `IconButton` `Icon` `Logo` `CheckerMark` `Card` `Badge` `Tag` `Avatar` |
@@ -674,24 +673,17 @@ every string with no entry in de, fr or ar. Live specimen:
 
 ## 10. Scroll
 
-`assets/vamos-scroll.js` — one instance per surface, auto-started. It lerps the
-wheel and publishes a scroll signal that pinned, scroll-driven sections read
-instead of each installing their own listener.
+Scrolling is native. The design system ships no scroller and no scroll signal:
+wheel, trackpad, touch and keyboard move the page the way the browser does.
 
-- Lerp `0.12`, snap under `0.25px`, anchor offset `−96px` (clears the 76px header).
-- Writes `--vt-scroll` (0…1) on `<html>` and fires `vamos:scroll` with
-  `{ y, progress, velocity }`.
-- `VamosScroll.scrollTo('#faq', { offset: -96 })`; same-page `#anchor` links are
-  intercepted and eased automatically.
-- **Stays native** for `prefers-reduced-motion`, touch, keyboard, scrollbar
-  drag, pinch-zoom, and anything inside `[data-scroll-native]` (tables, the ops
-  board, code blocks).
-
-It is a ~90-line lerp scroller carrying the same contract the product build used
-from **Lenis 1.3.23**, vendored so the system has no CDN dependency and every
-page works offline. If a consuming app already ships Lenis, delete the file and
-boot Lenis with `{ lerp: 0.12, smoothTouch: false }` — nothing else depends on
-it. Specimen: `guidelines/scroll.html`.
+- In-page jumps call `window.scrollTo` with `behavior: 'smooth'`, or `'auto'`
+  under `prefers-reduced-motion`; the anchor offset is `−88px` (clears the 76px
+  sticky header).
+- A panel that owns its own scroll uses plain `overflow` plus
+  `overscroll-behavior: contain`.
+- Removed 2026-09-30: `assets/vamos-scroll.js` (`VamosScroll`, `--vt-scroll`,
+  `vamos:scroll`). It set a custom property on `<html>` at every scroll event,
+  which restyled the whole page each time, and nothing read it.
 
 ---
 

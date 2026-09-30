@@ -8,6 +8,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { asStaff } from "@/lib/db/identity";
 import {
   assertRoleChange,
+  isLastAdminDbError,
   loadStaff,
   mapSqlState,
   StaffInputError,
@@ -63,6 +64,8 @@ export const PATCH = withAdmin(async (claims, request) => {
     });
   } catch (err) {
     if (err instanceof StaffInputError) return jsonErr(err.key, 400);
+    // G17: the database guard caught a race the roster read above could not see.
+    if (isLastAdminDbError(err)) return jsonErr("staff-last-admin", 400);
     const mapped = mapSqlState(err);
     if (mapped.kind === "privilege") return jsonErr("not-admin", 403);
     if (mapped.kind !== "unknown") return jsonErr(mapped.key, 400);

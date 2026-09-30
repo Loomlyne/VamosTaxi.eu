@@ -17,7 +17,6 @@ type StaffTx = postgres.TransactionSql;
 
 export type { RateVersionStatus };
 
-export { SURCHARGE_CODES, type SurchargeCode } from "./surcharge-codes";
 export type SurchargeKind = "amount" | "percent" | "included";
 export type SurchargeAppliesTo = "leg" | "booking";
 
@@ -227,6 +226,10 @@ const KEBAB_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 function isSurchargeCode(value: string): boolean {
   return KEBAB_SLUG.test(value);
 }
+
+// 26.2-bp B4: what the database accepts for a stored code (extra_labels check,
+// 20260930140000). The reader uses this so a stored row is never left out.
+const STORED_SURCHARGE_CODE = /^[a-z0-9_-]{1,64}$/;
 
 function rejectNegativeRappen(value: number | null, key: string): number | null {
   if (value == null) return null;
@@ -580,7 +583,7 @@ export async function loadRateBook(
         live: row.live,
       })),
       surcharges: surcharges.flatMap((row) => {
-        if (!isSurchargeCode(row.code)) return [];
+        if (!STORED_SURCHARGE_CODE.test(row.code)) return [];
         return [
           {
             id: asId(row.id),
@@ -700,14 +703,14 @@ async function cloneRateVersionFrom(
     insert into public.rate_versions (
       slug, label, status,
       vat_rate_bps, quote_lock_minutes, service_area_geojson,
-      free_wait_minutes, max_extra_stops
+      free_wait_minutes
     )
     select
       ${slug},
       ${`${source.label} draft`},
       'draft',
       vat_rate_bps, quote_lock_minutes, service_area_geojson,
-      free_wait_minutes, max_extra_stops
+      free_wait_minutes
       from public.rate_versions
      where id = ${source.id}
     returning id
@@ -896,4 +899,22 @@ export async function loadDraftQuoteBookDoc(
     `;
     return rows[0]?.result ?? null;
   });
+}
+
+/**
+ * 26.2 P4 A6 (owner, 2026-09-30: "anything deleted should be deleted completely"). Deletes the
+ * four-language names of every extra whose code no live or draft price book uses
+ * (`public.staff_extra_labels_prune`, admin only, migration 20261007110000). Called after an
+ * extra is deleted, a draft is discarded and a book is published. Best effort in its own
+ * transaction: a failure is logged and never undoes the write that came before it.
+ */
+export async function pruneExtraLabels(env: CloudflareEnv, claims: VamosClaims): Promise<void> {
+  try {
+    await asStaff(env, claims, async (tx) => {
+      await tx`select public.staff_extra_labels_prune() as deleted`;
+      return null;
+    });
+  } catch (err) {
+    console.error("ops_extra_labels_prune_failed", err instanceof Error ? err.message : String(err));
+  }
 }

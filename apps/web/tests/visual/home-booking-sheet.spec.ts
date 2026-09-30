@@ -182,7 +182,8 @@ test.describe("Home bar and sheet @component", () => {
     await page.waitForLoadState("domcontentloaded");
 
     // No sheet history entries remain: one entry for checkout, none for the sheet.
-    expect(await page.evaluate(() => (history.state as { vtSheet?: number } | null)?.vtSheet)).toBeUndefined();
+    // The spare step the sheet leaves for a Back pressed at once is removed after a pause (quick 260930-bp2).
+    await expect.poll(() => page.evaluate(() => (history.state as { vtSheet?: number } | null)?.vtSheet), { timeout: 5000 }).toBeUndefined();
     expect(await page.evaluate(() => history.length)).toBe(len0 + 1);
     // No trip, draft or booking key was written anywhere.
     const after = await storageKeys(page);
@@ -284,7 +285,8 @@ test.describe("Home bar and sheet @component", () => {
     await expect(heroBar(page)).toContainText("Fixture Street 1");
     await expect(heroBar(page)).toContainText("Drop-off");
     await expect(heroBar(page)).toContainText("Add date and time");
-    expect(await page.evaluate(() => (history.state as { vtSheet?: number } | null)?.vtSheet)).toBeUndefined();
+    // The spare step the sheet leaves for a Back pressed at once is removed after a pause (quick 260930-bp2).
+    await expect.poll(() => page.evaluate(() => (history.state as { vtSheet?: number } | null)?.vtSheet), { timeout: 5000 }).toBeUndefined();
 
     await heroBar(page).click();
     await expect(sheet(page).locator('input[id$="-from"]')).toHaveValue("Fixture Street 1");
@@ -301,7 +303,7 @@ test.describe("Home bar and sheet @component", () => {
     await expect(heroBar(page)).not.toContainText("Fixture Street 1");
   });
 
-  test("the sheet locks scroll, inerts the page, stops Lenis and restores the scroll position @component", async ({ page }) => {
+  test("the sheet locks scroll, inerts the page and restores the scroll position @component", async ({ page }) => {
     test.skip(width(page) > 1080, "tablet and phone only");
     await openHome(page);
     await page.evaluate(() => window.scrollTo(0, 900));
@@ -313,8 +315,6 @@ test.describe("Home bar and sheet @component", () => {
     expect(await page.evaluate(() => getComputedStyle(document.documentElement).overflow)).toBe("hidden");
     expect(await page.evaluate(() => document.body.style.overflow)).toBe("hidden");
     await expect(page.locator("[data-hero]")).toHaveAttribute("inert", "");
-    const lenis = await page.evaluate(() => document.documentElement.classList.contains("lenis"));
-    if (lenis) await expect(page.locator("html")).toHaveClass(/lenis-stopped/);
     await expect(page.locator("[data-bar-dock]")).toHaveAttribute("data-show", "0");
 
     await page.keyboard.press("Escape");
@@ -327,27 +327,28 @@ test.describe("Home bar and sheet @component", () => {
     await expect(page.locator("[data-bar-dock]")).toHaveAttribute("data-show", "1");
   });
 
-  test("after the sheet closes the page scrolls again: Lenis is running and the wheel moves the page @component", async ({ page }) => {
+  test("after the sheet closes the page scrolls again: the lock is released and the wheel moves the page @component", async ({ page }) => {
     test.skip(width(page) > 1080, "tablet and phone only");
     await openHome(page);
     for (const how of ["escape", "close", "back"] as const) {
       await page.evaluate(() => window.scrollTo(0, 0));
+      // home.dc.html scrolls smoothly (native scroll-behavior): let the jump settle before the sheet opens.
+      await page.waitForFunction(() => window.scrollY === 0);
       await openSheet(page);
       if (how === "escape") await page.keyboard.press("Escape");
       else if (how === "close") await sheet(page).locator("[data-bs-head] button").last().click();
       else await page.goBack();
-      await expect(sheet(page)).toHaveCount(0);
-      await page.waitForTimeout(300);
+      await expect(sheet(page), how).toHaveCount(0);
+      // The sheet walks the history back over its own entry when it closes (BookingSheet _flush,
+      // 800 ms fallback); reopening before that popstate lands races it, which has nothing to do
+      // with scrolling, so let it finish.
+      await page.waitForTimeout(900);
       const st = await page.evaluate(() => ({
-        cls: document.documentElement.className,
         de: getComputedStyle(document.documentElement).overflowY,
         body: getComputedStyle(document.body).overflowY,
-        stopped: (window as unknown as { __vtLenis?: { isStopped: boolean } }).__vtLenis?.isStopped ?? null,
       }));
-      expect(st.cls, how).not.toContain("lenis-stopped");
       expect(["visible", "auto", "scroll"], `${how} html ${st.de}`).toContain(st.de);
       expect(["visible", "auto", "scroll"], `${how} body ${st.body}`).toContain(st.body);
-      if (st.stopped !== null) expect(st.stopped, how).toBe(false);
       await page.mouse.move(200, 300);
       await page.mouse.wheel(0, 600);
       await expect.poll(() => page.evaluate(() => window.scrollY), { message: how }).toBeGreaterThan(200);
@@ -369,12 +370,10 @@ test.describe("Home bar and sheet @component", () => {
     await expect(sheet(page)).toHaveCount(0);
     await page.waitForTimeout(400);
     const st = await page.evaluate(() => ({
-      cls: document.documentElement.className,
       de: getComputedStyle(document.documentElement).overflowY,
       body: getComputedStyle(document.body).overflowY,
       inert: document.querySelectorAll("[inert]").length,
     }));
-    expect(st.cls).not.toContain("lenis-stopped");
     expect(["visible", "auto", "scroll"]).toContain(st.de);
     expect(["visible", "auto", "scroll"]).toContain(st.body);
     expect(st.inert).toBe(0);
@@ -531,7 +530,8 @@ test.describe("Home bar and sheet @component", () => {
     await expect(page.getByRole("combobox", { name: "From", exact: true })).toHaveValue("Fixture Street 1");
     await expect(page.getByRole("combobox", { name: "To", exact: true })).toHaveValue("Fixture Airport");
     await expect(page.locator("#book")).toHaveAttribute("data-bookcard", "1");
-    expect(await page.evaluate(() => (history.state as { vtSheet?: number } | null)?.vtSheet)).toBeUndefined();
+    // The spare step the sheet leaves for a Back pressed at once is removed after a pause (quick 260930-bp2).
+    await expect.poll(() => page.evaluate(() => (history.state as { vtSheet?: number } | null)?.vtSheet), { timeout: 5000 }).toBeUndefined();
     expect(await page.evaluate(() => document.documentElement.style.overflow)).toBe("");
     await expect(page.locator("[data-hero]")).not.toHaveAttribute("inert", /.*/);
     // And back to the phone width: the bar shows the same trip.

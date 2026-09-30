@@ -28,9 +28,6 @@
 <link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/components/mobile/fig-assets.css">
 <link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
 <script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
-<link rel="stylesheet" href="../../assets/lenis.css">
-<script src="../../assets/lenis.js"></script>
-<script src="../../assets/lenis-boot.js"></script>
 <script src="../vamos-i18n-dict.js"></script>
 <script src="../vamos-locale.js"></script>
 <script src="../vamos-page-transition.js"></script>
@@ -120,6 +117,11 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div data-bd-card="1">
 <div data-bd-cap="1"><span data-bd-n="1">08</span><span data-bd-t="1">Sign up · check your email</span></div>
 <div data-bd-body="1"><dc-import name="AuthForm" mode="signup" method="magic" stage="sent" email="anna.keller@example.com" frozen="{{ yes }}" hint-size="360px,480px"></dc-import></div>
+</div>
+
+<div data-bd-card="1">
+<div data-bd-cap="1"><span data-bd-n="1">08b</span><span data-bd-t="1">Sign up · tick missing</span></div>
+<div data-bd-body="1"><dc-import name="AuthForm" mode="signup" method="password" stage="form" banner="consent" frozen="{{ yes }}" hint-size="360px,620px"></dc-import></div>
 </div>
 
 <div data-bd-card="1">

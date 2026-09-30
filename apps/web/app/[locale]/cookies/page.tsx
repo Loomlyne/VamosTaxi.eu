@@ -70,6 +70,7 @@ export default async function CookiesPage({
       kickerKey="common.legal"
       effectiveDateLabel="Cookies effective date"
       versionLabel="Cookies version"
+      consentDated
     >
       <LanguageCoverageNotice page="cookies" />
 
@@ -88,7 +89,7 @@ export default async function CookiesPage({
         </h2>
         <p>{tCookies("necessary-only-standfirst")}</p>
         <h4>{tCookies("strictly-necessary")}</h4>
-        <div data-lenis-prevent>
+        <div>
           <Table
             columns={columns}
             rowKey="slug"
@@ -109,7 +110,7 @@ export default async function CookiesPage({
               },
               {
                 slug: "consent",
-                name: <span data-i18n-skip>consent_subject</span>,
+                name: <span data-i18n-skip>consent_subject · vamosCookieConsent</span>,
                 purpose: tCookies("consent-subject-purpose"),
                 provider: "Vamos Taxi",
                 duration: <PendingSlot label="Consent duration" />,
@@ -118,7 +119,12 @@ export default async function CookiesPage({
           />
         </div>
         <div className="vt-legal-blank--row" data-meta-slot="cookies">
-          <PendingSlot label="Meta cookie row" />
+          <p>
+            {tCookies.rich("meta-row", {
+              b: (chunks) => <strong>{chunks}</strong>,
+              code: (chunks) => <code className="vt-dir-keep">{chunks}</code>,
+            })}
+          </p>
         </div>
       </section>
 

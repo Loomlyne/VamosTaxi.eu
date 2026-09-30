@@ -65,7 +65,7 @@ describe("home.dc.html bar and sheet on one trip state (26.4-09)", () => {
     expect(raw).toContain("inert");
   });
 
-  it("never builds a second Lenis or smooth scroll", () => {
+  it("never builds a Lenis or smooth scroll", () => {
     expect(home).not.toContain("new Lenis");
     expect(home).not.toMatch(/(?<!over)scroll-behavior/);
   });

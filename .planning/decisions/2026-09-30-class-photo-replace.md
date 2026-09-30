@@ -8,9 +8,12 @@ session's report; not re-asked.
 |---|---|
 | 1 | When a class photo is replaced on dashboard /pricing and the change is published, the old photo and its small copies (`<key>.w640.webp`, `<key>.w1280.webp`) are deleted from storage for good. |
 | 2 | The Remove link on the class photo field goes (26.2 finding P3). Pictures at four widths for his signature before code. |
+| 4 | 23:35, question form in the same session: the Remove link goes **everywhere** (class, chauffeur, vehicle, staff photos), and the photo of an inactive class is deleted **with the class** when the class is hard-deleted. The class field without the Remove link is signed. |
 | 3 | This does not change the signed photo note of the same day: making a small copy never changes or deletes an original. Deleting a replaced photo at publish is a separate rule. |
 
 Not built yet. Files: `app/ops/OpsTable.dc.html`, `app/ops/OpsPricing.dc.html`,
 `apps/web/app/[locale]/(ops)/api/staff/rate-book/route.ts`, `apps/web/lib/ops/photos.ts`.
 A photo that a booking, a mail or a saved price snapshot still points to must be named in the
 plan before anything is deleted.
+
+Finding by that session (23:35): `vehicle_classes.photo_path` is the only place holding a class photo key and it is not versioned, so a new photo is live at Save, not at Publish; snapshots, quotes, bookings, mails and confirmation pages hold no photo key. The session puts to the owner what "delete at publish" means when the new photo already shows at Save.
