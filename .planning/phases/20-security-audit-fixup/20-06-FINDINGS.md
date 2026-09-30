@@ -113,3 +113,12 @@ APIs 401 without a session; dashboard `/` and `/dashboard` 308 to `/login`.
 | F12 | Fix with a confirm screen: the link opens "Sign in as <e-mail>?" with one button; works on any device. | routing asked (new screen, design first) |
 | F13 | Proposed: serve React, ReactDOM and Babel from our own host and remove unpkg.com from the allowed script hosts. | routing asked (shared `support.js`, CSP) |
 | F14 | Fix them all. | Phase 20 for the database items; routing asked for the rest |
+
+## Fixed in batch A (see `HANDOVER-BATCH-A.md`)
+
+| id | Commit | Note |
+|---|---|---|
+| F1 | `6b104b84` | The pay token is not revoked at settle (the pay page reads "paid" with it); it can no longer open any manage function. |
+| F2 | `1c314d1a`, `c7059d34`, `719d4a2a` | Read-only Support; file route download-only. |
+| F5, F10 | `135ff1a1` | F14 database item already enforced; asserted by a test. |
+| F13 | `1d05ed5e` | |
