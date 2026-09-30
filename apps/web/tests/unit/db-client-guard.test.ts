@@ -59,6 +59,12 @@ const PORT_EXEMPT: Record<string, string> = {
     "documented 55322 default so the 26.3 workflow works with no env; VAMOS_TEST_DB_PORT overrides",
   "packages/db/test/local/worker-client-parity.test.ts":
     "CI stack default 54322 when VAMOS_TEST_DB_PORT is unset",
+  "apps/web/tests/support/dev-binding.ts":
+    "Phase 27 helper: documented 54322/54324 defaults, VAMOS_TEST_DB_PORT / VAMOS_TEST_MAIL_PORT override (devBindingEnv throws without the DB port)",
+  "packages/db/test/local/consent-reader.test.ts":
+    "Phase 27 default 59322 when VAMOS_LOCAL_DB_PORT is unset (same pattern as worker-arrays)",
+  "packages/db/test/local/signup-agreement.test.ts":
+    "CI stack default 54322 when VAMOS_LOCAL_DB_PORT is unset (same as worker-arrays)",
   "packages/db/test/local/checkout-account.test.ts":
     "CI stack default 54322 when VAMOS_LOCAL_DB_PORT is unset (same as worker-arrays)",
   "packages/db/test/local/worker-arrays.test.ts":

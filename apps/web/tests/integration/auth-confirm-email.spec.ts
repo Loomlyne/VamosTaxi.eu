@@ -6,7 +6,7 @@
 // assertion after signup fails. That is the signal this spec exists to
 // produce. Never skip this test. Do not edit config.toml from this spec.
 
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "../support/test";
 import { execFileSync, spawn, type ChildProcess } from "node:child_process";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
