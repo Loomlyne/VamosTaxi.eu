@@ -273,6 +273,25 @@ describe("evaluatePredicate", () => {
     expect(result.unresolved).toBeTruthy();
   });
 
+  it("manual (chosen by the customer at checkout) never applies in the quote, and says why", () => {
+    const contexts = [
+      { originZoneId: zrh.id, destZoneId: ski.id, quantity: 0 },
+      { originZoneId: city.id, destZoneId: city.id, quantity: 3 },
+      { originZoneId: null, destZoneId: null, quantity: 0 },
+    ];
+    for (const ctx of contexts) {
+      const result = evaluatePredicate(
+        { kind: "manual" },
+        { scheduledLocal: "2026-09-04T23:10", zones: zonesMap(zrh, ski, city), ...ctx },
+      );
+      expect(result.applies).toBe(false);
+      expect(result.quantity).toBe(0);
+      expect(result.why).toEqual({ predicate: "manual" });
+      // A known rule, not an unreadable one.
+      expect(result.unresolved).toBeUndefined();
+    }
+  });
+
   it("unresolved origin zone id returns applies false with unresolved set", () => {
     const result = evaluatePredicate(
       { kind: "pickup_zone_type", zone_type: "airport" },

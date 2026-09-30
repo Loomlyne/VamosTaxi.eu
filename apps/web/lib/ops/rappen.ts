@@ -28,3 +28,17 @@ export function rappenFromMoneySet(value: unknown): number | null {
   if ("CHF" in obj) return rappenFromUnknown(obj.CHF);
   return null;
 }
+
+/**
+ * Checkout extra amount rule. Stated CHF 0 is included and not charged.
+ * Any positive price, including 1 CHF, is an extra. Empty is unfilled — do not invent 0.
+ * `rappen` is already converted (1 CHF = 100).
+ */
+export function checkoutExtraKindFromRappen(
+  rappen: number | null,
+): "included" | "amount" | null {
+  if (rappen == null) return null;
+  if (rappen === 0) return "included";
+  if (rappen > 0) return "amount";
+  return null;
+}

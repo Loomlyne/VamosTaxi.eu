@@ -79,8 +79,8 @@
     "preheader": "This trip is cancelled.",
     "headline": "This trip is cancelled",
     "refundLabel": "Refund",
-    "refundPendingOps": "Pending Ops.",
-    "refundFullCaptured": "A full refund of the captured amount is on the way. Timing follows your card issuer's timing.",
+    "refundPendingOps": "Our team decides the refund and tells you by email.",
+    "refundFullCaptured": "You will get a full refund of the amount you paid. Our team sends it; your bank may take a few days to show it.",
     "refundNone": "No refund for this window."
   },
   "refundFailed": {

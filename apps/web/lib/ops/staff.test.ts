@@ -17,6 +17,7 @@ import {
   assertInviteInput,
   assertProfileInput,
   assertRoleChange,
+  isLastAdminDbError,
   loadOwnProfile,
   loadStaff,
   StaffInputError,
@@ -96,6 +97,15 @@ describe("assertInviteInput", () => {
       email: "a@b.ch",
       role: "dispatcher",
     });
+  });
+});
+
+describe("isLastAdminDbError (G17 database guard)", () => {
+  it("recognises the trigger refusal and nothing else", () => {
+    expect(isLastAdminDbError({ code: "23514", message: "staff-last-admin" })).toBe(true);
+    expect(isLastAdminDbError({ code: "23514", message: "some other check" })).toBe(false);
+    expect(isLastAdminDbError({ code: "42501", message: "staff-last-admin" })).toBe(false);
+    expect(isLastAdminDbError(null)).toBe(false);
   });
 });
 

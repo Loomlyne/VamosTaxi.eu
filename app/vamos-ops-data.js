@@ -642,6 +642,8 @@
       assignedVehicleId: str(b.assignedVehicleId),
       vehicle: str(b.vehicle),
       flight: str(b.flight),
+      // The admin's Mark arrival time; booking detail shows "Arrived HH:MM" from it.
+      arrivedAt: str(b.arrivedAt),
       note: str(b.note),
       email: str(b.email),
       phone: str(b.phone),
@@ -817,28 +819,21 @@
   }
 
   var SURCHARGE_KINDS = ["amount", "percent", "included"];
+  // 26.2-p4 A5 (owner, 2026-09-30): the code never gives a row a type. `type` is only what the
+  // Pricing page sends on save ("checkout_extra"), which the rate-book route reads.
   function cleanSurcharge(s) {
     s = s || {};
-    var type = str(s.type);
-    if (!type) {
-      var code = str(s.code || s.label);
-      if (code === "meet_greet") type = "meet_greet";
-      else if (code === "free_wait") type = "free_wait";
-      else if (code === "extra_wait" || code === "waiting" || code === "waiting_city" || code === "waiting_airport") type = "extra_wait";
-      else type = "checkout_extra";
-    }
     return {
       id: str(s.id),
       label: str(s.label || s.code || s.name),
-      name: str(s.name || s.label),
+      name: str(s.name || s.labelEn || s.label),
       code: str(s.code || s.label),
-      type: type,
-      hours: s.hours === undefined || s.hours === null ? "" : s.hours,
+      type: str(s.type),
       rule: str(s.rule),
       ruleId: str(s.ruleId),
       kind: SURCHARGE_KINDS.indexOf(s.kind) === -1 ? "amount" : s.kind,
       amounts: cleanMoneySet(s.amounts), pct: str(s.pct),
-      labelDe: str(s.labelDe), labelFr: str(s.labelFr), labelAr: str(s.labelAr),
+      labelEn: str(s.labelEn), labelDe: str(s.labelDe), labelFr: str(s.labelFr), labelAr: str(s.labelAr),
       machineLangs: Array.isArray(s.machineLangs) ? s.machineLangs.slice() : []
     };
   }

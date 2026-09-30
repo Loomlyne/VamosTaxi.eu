@@ -12,11 +12,11 @@ Rewritten short on 2026-09-30 14:25; the long version is in git history (`823022
 | Item | Value |
 |---|---|
 | Site | https://vamostaxi.site and https://dashboard.vamostaxi.site |
-| main = origin/main | `f37cc0b4` plus planning notes |
-| Worker `vamos` | version `1e1fd4a6` |
+| main = origin/main | `1a105d25` plus planning notes |
+| Worker `vamos` | version `832b884e` |
 | Worker `vamos-dashboard` (gateway) | version `58c6e541`, deployed 15:22 by the owner's word; before: `5ea4fe65` |
-| Rollback point | Worker `852de5f4`, git tag `backup/main-before-home-no-class-316606ee`; before the three pieces: Worker `d0c427c2`; before native scrolling: Worker `f3f7d929`; before the queue: Worker `92504970`; before class cards: Worker `d80e6577`; before speed A: Worker `8adb148c`; before phone home: Worker `d43e467b`; before 26.2: Worker `0d1806ce`; before the Support button: Worker `2d5906ce` (before 26.5: Worker `fe9314d0`, tag `backup/main-before-26.5-e09f90cb`). Guest accounts off without a deploy: `settings.guest_accounts_live = false` |
-| Database | migrations up to `20260930210000`, 26.5's `20261001100000` to `130000`, Phase 20's `20261005100000` and `110000`, 26.2's `20261007100000`, all applied and read back. `guest_accounts_live` = true since 14:58 (owner's answer) |
+| Rollback point | Worker `24945bab`, git tag `backup/main-before-batch-c1-1ecade7b`; before extras A: Worker `2f303d16`; before refunds: Worker `1e1fd4a6`, tag `backup/main-before-refunds-3a486eaa` (note: rolling the Worker back alone re-enables automatic refunds on cancel; the migration stays); before the home change: Worker `852de5f4`; before the three pieces: Worker `d0c427c2`; before native scrolling: Worker `f3f7d929`; before the queue: Worker `92504970`; before class cards: Worker `d80e6577`; before speed A: Worker `8adb148c`; before phone home: Worker `d43e467b`; before 26.2: Worker `0d1806ce`; before the Support button: Worker `2d5906ce` (before 26.5: Worker `fe9314d0`, tag `backup/main-before-26.5-e09f90cb`). Guest accounts off without a deploy: `settings.guest_accounts_live = false` |
+| Database | migrations up to `20260930210000`, 26.5's `20261001100000` to `130000`, Phase 20's `20261005100000` and `110000`, 26.2's `20261007100000`, Phase 20's `20261005120000`, `130000`, `140000` (refunds by hand), 26.2's `20261007110000` (extra names prune), Phase 20's `20261005150000` (last-admin guard), all applied and read back. `guest_accounts_live` = true since 14:58 (owner's answer) |
 | Who deploys | the control session, from the owner's Mac. GitHub runs checks, never deploys. |
 
 ## Shipped
@@ -41,6 +41,9 @@ Rewritten short on 2026-09-30 14:25; the long version is in git history (`823022
 | 09-30 | 23:26 | Native scrolling: Lenis and the design-system scroll script removed everywhere | `561d1647` | `d0c427c2` |
 | 09-30 | 23:54 | Class photos (no Remove link; unused photos deleted at Publish), sync prune, distance on /checkout | `4da95e14` | `852de5f4` |
 | 10-01 | 00:20 | Laptop home without the class section (owner order) | `f37cc0b4` | `1e1fd4a6` |
+| 10-01 | 02:30 | **Refunds by hand** (Phase 20 plan 20-10): no automatic Stripe refund on a cancel; admin refund per payment; approved texts | `f29623da` | `2f303d16` |
+| 10-01 | 02:37 | Extras part A: the price book row decides an extra, no fixed names; names pruned; Pricing and booking detail changes | `9acfdb51` | `24945bab` |
+| 10-01 | 02:42 | Security batch C part 1: Arabic font from our host, four hardening fixes, last-admin guard | `1a105d25` | `832b884e` |
 
 ## Ship order from here
 
@@ -81,9 +84,9 @@ Full text: `.planning/decisions/2026-09-30-priorities-and-ship-mode.md`.
 
 | # | Job | Database | After the ship |
 |---|---|---|---|
-| 1 | Refunds by hand (20-10, `117ff88b`) | `20261005140000`, back to back with the deploy | Owner: booking, cancel, refund by hand |
-| 2 | Extras part A (26.2, after `f9b7c53e`) | `20261007110000` before the deploy | Owner: one 4242 (checkout extras list) |
-| 3 | Security batch C part 1 (`dcfcc64c`) | `20261005150000` | Owner: /ar on the phone; last-admin refusal |
+| 1 | Refunds by hand | **Live 02:30** (owner said Ship). Migration applied and read back (7 function bodies identical, intents table RLS forced, staff SELECT only), deploy right after. Live /cancellation carries the new sentence. Owner UAT: booking, cancel on the site, refund by hand on the dashboard | done |
+| 2 | Extras part A | **Live 02:37** (owner said Ship). Migration applied and read back (function body identical, vamos_staff EXECUTE, admin check inside; it would delete nothing on live today, the names table is empty). Owner UAT: add an extra, book with it and pay 4242, delete it and publish | done |
+| 3 | Security batch C part 1 | **Live 02:42** (owner said Ship). Trigger function read back identical, trigger on `staff`; live has 1 active admin (the owner), so his own account can no longer be removed. Live serves the Arabic font files from our host; the Google link is gone. Owner check: /ar on the phone | done |
 | 4 | Phase 27 consent record (`2e691add`) | `20261002100000`, `20261002110000` before the deploy | Owner: banner and sign-up tick box; then 28 and 29 |
 | 5 | Booking polish 2 (26.5) when handed over | none | |
 
