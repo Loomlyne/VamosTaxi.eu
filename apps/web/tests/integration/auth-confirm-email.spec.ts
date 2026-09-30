@@ -123,6 +123,7 @@ test.describe("D-28 Pitfall 4 confirm-email intermediate state", () => {
     await page.getByLabel("First name").fill("Ada");
     await page.getByLabel("Last name").fill("Lovelace");
     await page.getByLabel("Password").fill(PASSWORD);
+    await page.locator("[data-af-consent] .vt-check__box").click();
     await page.getByRole("button", { name: "Create an account" }).click();
     await expect(page.locator("[data-af]")).toContainText("Send a new link");
 

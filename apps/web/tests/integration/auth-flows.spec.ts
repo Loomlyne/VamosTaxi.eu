@@ -146,6 +146,14 @@ async function fillSignup(page: Page, email: string, first: string, last: string
   await page.getByLabel("First name").fill(first);
   await page.getByLabel("Last name").fill(last);
   await page.getByRole("textbox", { name: "Password" }).fill(password);
+  await tickAccountNotice(page);
+}
+
+/** Sign-up needs the account notice ticked (27-16). The design-system input is hidden; its box takes the click. */
+async function tickAccountNotice(page: Page) {
+  const box = page.locator("[data-af-consent] .vt-check__box");
+  await expect(box).toBeVisible({ timeout: 30_000 });
+  if (!(await page.locator('[data-af-consent] input[type="checkbox"]').isChecked())) await box.click();
 }
 
 function customerRow(email: string): { user_id: string | null; full_name: string | null; n: number } {
@@ -502,6 +510,7 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
     await page.getByLabel(deMessages.common["first-name"]).fill("Ada");
     await page.getByLabel(deMessages.common["last-name"]).fill("Lovelace");
     await page.getByLabel(deMessages.common.password).fill(PASSWORD);
+    await tickAccountNotice(page);
     const response = page.waitForResponse((res) =>
       new URL(res.url()).pathname === "/api/auth" && res.request().method() === "POST",
     );
