@@ -112,7 +112,9 @@ export async function POST(request: Request) {
         providerIdempotencyKey,
         rendered[message],
         env.EMAIL,
-        message === "customer" ? { replyTo } : undefined,
+        // The support copy answers to the customer of this submission, so Reply in the
+        // admin's inbox reaches them and stays in that thread (owner, 2026-09-30).
+        message === "customer" ? { replyTo } : { replyTo: input.email },
       );
       if (message === "customer") {
         customerRfcMessageId = sent.rfcMessageId;

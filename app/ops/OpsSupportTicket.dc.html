@@ -248,7 +248,8 @@
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ reopenTicket }}" hint-size="120px,44px">{{ tReopen }}</x-import>
 </sc-if>
 <sc-if value="{{ canReply }}" hint-placeholder-val="{{ true }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" icon="mail" href="{{ mailHref }}" hint-size="220px,44px">{{ tAnswer }}</x-import>
+<dc-import name="BrandSelect" icon="settings" value="{{ mailApp }}" options="{{ mailAppOptions }}" onSelect="{{ setMailApp }}" a11y-label="{{ tMailApp }}" hint-size="48px,36px"></dc-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" icon="mail" disabled="{{ answerOff }}" onClick="{{ answerByMail }}" hint-size="220px,44px">{{ tAnswer }}</x-import>
 </sc-if>
 </div>
 </div>
@@ -334,7 +335,7 @@ const T = {
     emptyTitle:'No tickets', emptyBody:'Contact-page messages land here.', colEmpty:'No tickets',
     status:'Status', close:'Close', closeTicket:'Close Ticket', reopen:'Reopen', customer:'Customer', staff:'Dispatcher', noteWho:'Note',
     kanban:'Kanban', table:'Table', colName:'Customer', colEmail:'Email', colPhone:'Phone', colRef:'Ref', colWhen:'When', colLocale:'Locale',
-    answer:'Answer by e-mail', mailHint:'Read only. Attached files and your answer are in your e-mail inbox.', closedBody:'This ticket is closed. Reopen it to keep working.',
+    answer:'Answer by e-mail', mailHint:'Read only. The button opens a reply to this customer in your mail app.', mailApp:'Mail app', mailAuto:'This device’s mail app', mailGmail:'Gmail in the browser', closedBody:'This ticket is closed. Reopen it to keep working.',
     loadError:'Could not load tickets. Try again.',
     sendError:'Couldn’t save. Try again.',
     footNew:'Waiting on dispatch', footOpen:'In progress', footMsgs:'Across every ticket', footAll:'On the board',
@@ -350,7 +351,7 @@ const T = {
     emptyTitle:'Keine Tickets', emptyBody:'Nichts in diesem Filter.', colEmpty:'Keine Tickets',
     status:'Status', close:'Schliessen', closeTicket:'Ticket schliessen', reopen:'Wieder öffnen', customer:'Kunde', staff:'Disponent', noteWho:'Notiz',
     kanban:'Kanban', table:'Tabelle', colName:'Kunde', colEmail:'E-Mail', colPhone:'Telefon', colRef:'Ref.', colWhen:'Wann', colLocale:'Sprache',
-    answer:'Per E-Mail antworten', mailHint:'Nur lesen. Anhänge und Ihre Antwort finden Sie in Ihrem E-Mail-Postfach.', closedBody:'Dieses Ticket ist geschlossen. Öffnen Sie es erneut, um weiterzuarbeiten.',
+    answer:'Per E-Mail antworten', mailHint:'Nur lesen. Die Schaltfläche öffnet eine Antwort an diesen Kunden in Ihrem E-Mail-Programm.', mailApp:'E-Mail-Programm', mailAuto:'E-Mail-Programm dieses Geräts', mailGmail:'Gmail im Browser', closedBody:'Dieses Ticket ist geschlossen. Öffnen Sie es erneut, um weiterzuarbeiten.',
     loadError:'Tickets konnten nicht geladen werden. Bitte erneut versuchen.',
     sendError:'Speichern fehlgeschlagen. Bitte erneut versuchen.',
     footNew:'Wartet auf Dispatch', footOpen:'In Bearbeitung', footMsgs:'Über alle Tickets', footAll:'Auf dem Board',
@@ -366,7 +367,7 @@ const T = {
     emptyTitle:'Aucun ticket', emptyBody:'Rien dans ce filtre.', colEmpty:'Aucun ticket',
     status:'Statut', close:'Fermer', closeTicket:'Fermer le ticket', reopen:'Réouvrir', customer:'Client', staff:'Régulateur', noteWho:'Note',
     kanban:'Kanban', table:'Tableau', colName:'Client', colEmail:'E-mail', colPhone:'Téléphone', colRef:'Réf.', colWhen:'Quand', colLocale:'Langue',
-    answer:'Répondre par e-mail', mailHint:'Lecture seule. Les pièces jointes et votre réponse se trouvent dans votre boîte e-mail.', closedBody:'Ce ticket est fermé. Réouvrez-le pour continuer.',
+    answer:'Répondre par e-mail', mailHint:'Lecture seule. Le bouton ouvre une réponse à ce client dans votre messagerie.', mailApp:'Messagerie', mailAuto:'Messagerie de cet appareil', mailGmail:'Gmail dans le navigateur', closedBody:'Ce ticket est fermé. Réouvrez-le pour continuer.',
     loadError:'Impossible de charger les tickets. Réessayez.',
     sendError:'Impossible d’enregistrer. Réessayez.',
     footNew:'En attente dispatch', footOpen:'En cours', footMsgs:'Tous tickets confondus', footAll:'Sur le tableau',
@@ -382,7 +383,7 @@ const T = {
     emptyTitle:'لا تذاكر', emptyBody:'لا شيء في هذا التصفية.', colEmpty:'لا تذاكر',
     status:'الحالة', close:'إغلاق', closeTicket:'إغلاق التذكرة', reopen:'إعادة الفتح', customer:'العميل', staff:'الموزّع', noteWho:'ملاحظة',
     kanban:'كانبان', table:'جدول', colName:'العميل', colEmail:'البريد', colPhone:'الهاتف', colRef:'المرجع', colWhen:'متى', colLocale:'اللغة',
-    answer:'الرد عبر البريد الإلكتروني', mailHint:'للقراءة فقط. الملفات المرفقة وردّك في بريدك الإلكتروني.', closedBody:'هذه التذكرة مغلقة. أعد فتحها للمتابعة.',
+    answer:'الرد عبر البريد الإلكتروني', mailHint:'للقراءة فقط. الزر يفتح ردًا على هذا العميل في تطبيق بريدك.', mailApp:'تطبيق البريد', mailAuto:'تطبيق البريد على هذا الجهاز', mailGmail:'Gmail في المتصفح', closedBody:'هذه التذكرة مغلقة. أعد فتحها للمتابعة.',
     loadError:'تعذر تحميل التذاكر. حاول مرة أخرى.',
     sendError:'تعذر الحفظ. حاول مرة أخرى.',
     footNew:'بانتظار التوزيع', footOpen:'قيد المعالجة', footMsgs:'عبر كل التذاكر', footAll:'على اللوحة',
@@ -394,11 +395,23 @@ const T = {
     expand:'توسيع', collapse:'طي', saveNote:'حفظ', view:'عرض',
     seeAll:'عرض الكل', seeAllCol:'عرض الكل: %s', collapseCol:'طي %s', expandCol:'توسيع %s' },
 };
+// "Answer by e-mail": the links are built by the server for this ticket only (lib/ops/tickets-map.ts).
+function replyOf(r) {
+  const x = r && typeof r === 'object' ? r : {};
+  const mailto = typeof x.mailto === 'string' && x.mailto.indexOf('mailto:') === 0 ? x.mailto : '';
+  const gmail = typeof x.gmail === 'string' && x.gmail.indexOf('https://mail.google.com/') === 0 ? x.gmail : '';
+  return { mailto: mailto, gmail: gmail };
+}
+const MAIL_APP_KEY = 'vamosOpsMailApp';
+function readMailApp() {
+  try { return window.localStorage.getItem(MAIL_APP_KEY) === 'gmail' ? 'gmail' : 'auto'; } catch (err) { return 'auto'; }
+}
 function cloneTickets(rows) {
   const src = Array.isArray(rows) ? rows : [];
   return src.map((t) => ({
     id: t.id, ticketId: t.ticketId, status: t.status, name: t.name, email: t.email, phone: t.phone,
     bookingRef: t.bookingRef, locale: t.locale, when: t.when, last: t.last, note: t.note || '',
+    reply: replyOf(t.reply),
     messages: (t.messages || []).map((m) => ({
       whoKey: m.whoKey, when: m.when, body: m.body, files: Array.isArray(m.files) ? m.files.slice() : [],
     })),
@@ -476,7 +489,7 @@ function opsHand() {
 class Component extends DCLogic {
   state = {
     lang: 'en', filter: 'all', view: opsPhone() ? 'table' : 'kanban', query: '', tickets: [],
-    openId: null, filterOpen: false, metaOpen: true, loadError: false, overlayError: false,
+    openId: null, mailApp: readMailApp(), filterOpen: false, metaOpen: true, loadError: false, overlayError: false,
     sortNewest: Object.assign({}, SORT_NEWEST),
     colOpen: { new: true, open: true, replied: true, responded: true, closed: true },
   };
@@ -528,6 +541,20 @@ class Component extends DCLogic {
   setFilter = (key) => this.setState({ filter: key || 'all', filterOpen: false });
   toggleMeta = () => { if (!opsHand()) return; this.setState({ metaOpen: !this.state.metaOpen }); };
   setView = (v) => this.setState({ view: v === 'table' ? 'table' : 'kanban' });
+  setMailApp = (v) => {
+    const next = v === 'gmail' ? 'gmail' : 'auto';
+    try { window.localStorage.setItem(MAIL_APP_KEY, next); } catch (err) {}
+    this.setState({ mailApp: next });
+  };
+  answerByMail = () => {
+    const open = this.state.tickets.find((t) => t.id === this.state.openId);
+    if (!open || !open.reply) return;
+    if (this.state.mailApp === 'gmail' && open.reply.gmail) {
+      window.open(open.reply.gmail, '_blank', 'noopener');
+      return;
+    }
+    if (open.reply.mailto) window.location.href = open.reply.mailto;
+  };
   setQuery = (e) => this.setState({ query: e && e.target ? e.target.value : '' });
   toggleSort = (status) => {
     const next = Object.assign({}, this.state.sortNewest);
@@ -688,10 +715,13 @@ class Component extends DCLogic {
     });
     const phoneDigits = open ? digitsOf(open.phone) : '';
     return {
-      yes: true, n16: 16,
-      tTitle: t.title, tSubtitle: t.subtitle,
-      tCloseTicket: t.closeTicket, tReopen: t.reopen, tColEmpty: t.colEmpty, tSeeAll: t.seeAll,
-      tAnswer: t.answer, tMailHint: t.mailHint, tClosedBody: t.closedBody, tLoadError: t.loadError, tSendError: t.sendError,
+      yes: true, n16: 16, n18: 18, n3: 3, n6: 6,
+      tTitle: t.title, tSubtitle: t.subtitle, tEmptyTitle: t.emptyTitle, tEmptyBody: t.emptyBody,
+      tStatus: t.status, tClose: t.close, tCloseTicket: t.closeTicket, tReopen: t.reopen, tKanban: t.kanban, tTable: t.table, tColEmpty: t.colEmpty, tSeeAll: t.seeAll,
+      tAnswer: t.answer, tMailHint: t.mailHint, tMailApp: t.mailApp,
+      mailApp: this.state.mailApp, setMailApp: this.setMailApp, answerByMail: this.answerByMail,
+      mailAppOptions: [{ value: 'auto', label: t.mailAuto }, { value: 'gmail', label: t.mailGmail }],
+      answerOff: !(open && open.reply && (open.reply.mailto || open.reply.gmail)), tClosedBody: t.closedBody, tLoadError: t.loadError, tSendError: t.sendError,
       tTicket: t.ticket, tChannel: t.channel, tChannelForm: t.channelForm, tOpened: t.opened, tLastAct: t.lastAct,
       tBooking: t.booking, tBookingPh: t.bookingPh, tMail: t.mail, tCall: t.call, tWhatsApp: t.whatsApp,
       tPhone: t.phone, tPhonePh: t.phonePh, tNote: t.note, tNotePh: t.notePh, tSearchPh: t.searchPh, tFilter: t.filter,
@@ -738,7 +768,7 @@ class Component extends DCLogic {
       openPhone: open ? open.phone : '',
       openPhoneShow: open && open.phone ? 'block' : 'none',
       hasPhone: !!(open && open.phone),
-      mailHref: open ? ('mailto:' + open.email) : '',
+      mailHref: open ? ((open.reply && open.reply.mailto) || ('mailto:' + open.email)) : '',
       telHref: phoneDigits ? ('tel:+' + phoneDigits) : '',
       waHref: phoneDigits ? ('https://wa.me/' + phoneDigits) : '',
       openTicketId: open ? open.ticketId : '',

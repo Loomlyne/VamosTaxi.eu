@@ -173,6 +173,11 @@ function voucherText(heading: string, body: string, quoteLabel: string, quote: s
   return `Vamos Taxi\n\n${heading}\n\n${body}\n\n${quoteLabel}\n${quote}${ctaBlock}\n\n${CONTACT_FOOTER}`;
 }
 
+/** Subject of the acknowledgement the customer holds; a reply uses "Re: " + this to stay in their thread. */
+export function contactCustomerSubject(locale: EmailLocale): string {
+  return (COPY[locale] ?? COPY.en).customerSubject;
+}
+
 export function renderContactCustomerEmail(locale: EmailLocale, data: ContactCustomerEmailData) {
   const copy = COPY[locale];
   const name = data.name.trim();

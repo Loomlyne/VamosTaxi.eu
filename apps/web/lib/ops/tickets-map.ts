@@ -2,6 +2,8 @@
 //
 // Pure Support mapping. Keep Hyperdrive out of this file so vitest can import it.
 
+import { contactCustomerSubject } from "@vamos/emails/contact";
+
 const STATUSES: readonly string[] = Object.freeze(["new", "open", "replied", "responded", "closed"]);
 
 export type TicketStatus = "new" | "open" | "replied" | "responded" | "closed";
@@ -42,6 +44,19 @@ export type OpsTicketRow = {
   last: string;
   note: string;
   messages: OpsTicketMessage[];
+  /** What "Answer by e-mail" opens: this ticket's customer, subject and latest customer message. */
+  reply: OpsTicketReply;
+};
+
+export type OpsTicketReply = {
+  to: string;
+  subject: string;
+  /** RFC Message-ID the customer's mail app threads on; "" when none is stored. */
+  messageId: string;
+  /** Opens the device's own mail app. Carries In-Reply-To and References (RFC 6068) when an identity is stored. "" without an address. */
+  mailto: string;
+  /** Opens a new message in Gmail in the browser. Subject only: Gmail's address cannot carry an identity. "" without an address. */
+  gmail: string;
 };
 
 export type SqlSubmission = {
@@ -63,6 +78,7 @@ export type SqlMessage = {
   direction: string | null;
   body_text: string | null;
   created_at: string | Date;
+  rfc_message_id?: string | null;
 };
 
 function str(value: unknown): string {
@@ -110,6 +126,45 @@ function ticketId(id: string): string {
   return `TKT-${id.replace(/-/g, "").slice(0, 8).toUpperCase()}`;
 }
 
+const RFC_ID = /^<[^<>\s@]+@[^<>\s@]+>$/;
+const ADDRESS = /^[^\s@<>,;:"'()\\]+@[^\s@<>,;:"'()\\]+\.[^\s@<>,;:"'()\\]+$/;
+
+/**
+ * Reply data for one ticket, built only from that ticket's own rows, so two tickets can
+ * never share an address or a thread. The identity is the newest customer message that
+ * has one (a form message carries the identity of the acknowledgement the customer got).
+ */
+export function ticketReply(row: SqlSubmission, messages: SqlMessage[]): OpsTicketReply {
+  const email = str(row.email).trim();
+  const locale = str(row.locale);
+  const known = locale === "de" || locale === "fr" || locale === "ar" ? locale : "en";
+  let messageId = "";
+  for (let i = messages.length - 1; i >= 0; i -= 1) {
+    const message = messages[i];
+    if (!message || message.submission_id !== row.id) continue;
+    if (whoKey(message.direction) !== "customer") continue;
+    const id = str(message.rfc_message_id).trim();
+    if (RFC_ID.test(id)) {
+      messageId = id;
+      break;
+    }
+  }
+  const to = ADDRESS.test(email) ? email : "";
+  const subject = `Re: ${contactCustomerSubject(known)}`;
+  const thread = messageId
+    ? `&In-Reply-To=${encodeURIComponent(messageId)}&References=${encodeURIComponent(messageId)}`
+    : "";
+  return {
+    to,
+    subject,
+    messageId,
+    mailto: to ? `mailto:${encodeURIComponent(to).replace(/%40/g, "@")}?subject=${encodeURIComponent(subject)}${thread}` : "",
+    gmail: to
+      ? `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}&su=${encodeURIComponent(subject)}`
+      : "",
+  };
+}
+
 export function mapTicket(
   row: SqlSubmission,
   messages: SqlMessage[],
@@ -146,5 +201,6 @@ export function mapTicket(
     last: zurichStamp(lastSource),
     note: "",
     messages: mappedMessages,
+    reply: ticketReply(row, messages),
   };
 }
