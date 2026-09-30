@@ -193,13 +193,17 @@ describe("flight/contact/reviews/publish cache", () => {
     expect(src).toContain("{ headers: NO_STORE }");
   });
 
-  it("public reviews GET JSON is private no-store", () => {
+  it("public reviews GET JSON is shared for 5 minutes, every other method stays no-store", () => {
     const src = readFileSync(
       join(dirname(fileURLToPath(import.meta.url)), "../../app/api/reviews/route.ts"),
       "utf8",
     );
-    expect(src).toContain('cache-control": "private, no-store"');
-    expect(src).toContain("headers: noStore");
+    expect(src).toContain('cache-control": "public, max-age=300, s-maxage=300"');
+    expect(src).toContain("{ status, headers: shared }");
+    // Only published rows through publicSql: nothing in the route reads the visitor.
+    expect(src).not.toMatch(/cookies|headers\(\)|request\.headers|getUser|auth/i);
+    // 405 answers keep no-store.
+    expect(src).toContain('{ status: 405, headers: noStore }');
   });
 
   it("staff publish jsonFail uses jsonErr (staff no-store)", () => {
