@@ -352,11 +352,15 @@ class Component extends DCLogic {
     if (window.VamosLocale) this.setState({ lang: window.VamosLocale.lang() || 'en' });
     this._onKey = (e) => { if (e.key === 'Escape' && this.state.menuOpen) this.setState({ menuOpen: false }); };
     window.addEventListener('keydown', this._onKey);
-    if (window.VamosOpsBar && typeof window.VamosOpsBar.onChange === 'function') {
-      this._offBar = window.VamosOpsBar.onChange(() => this.forceUpdate());
-    }
+    this.bindBar();
     this.bindOps();
   }
+  // Helmet scripts can land after the first mount; wait for the bar store like bindOps waits for VamosOps.
+  bindBar = () => {
+    if (!window.VamosOpsBar || typeof window.VamosOpsBar.onChange !== 'function') { this._barRetry = setTimeout(this.bindBar, 120); return; }
+    this._offBar = window.VamosOpsBar.onChange(() => this.forceUpdate());
+    this.forceUpdate();
+  };
   componentWillUnmount() {
     if (this._onPop) window.removeEventListener('popstate', this._onPop);
     if (this._onClick) document.removeEventListener('click', this._onClick);
@@ -365,6 +369,7 @@ class Component extends DCLogic {
     if (this._offOps) this._offOps();
     if (this._offBar) this._offBar();
     clearTimeout(this._retry);
+    clearTimeout(this._barRetry);
   }
   bindOps = () => {
     if (!window.VamosOps) { this._retry = setTimeout(this.bindOps, 120); return; }

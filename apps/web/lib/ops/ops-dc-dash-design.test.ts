@@ -375,6 +375,20 @@ describe("2 · phone: compact bar and folded page buttons", () => {
     expect(store.pick).toHaveBeenCalledWith("cancel");
   });
 
+  it("the bar store survives a second load of its file, and the shell waits for it to exist", async () => {
+    const code = read("app/vamos-ops-bar.js");
+    const win: Record<string, any> = {};
+    new Function("window", code)(win);
+    const heard: unknown[] = [];
+    win.VamosOpsBar.onChange((v: unknown) => heard.push(v));
+    new Function("window", code)(win); // the helmet runs it again
+    win.VamosOpsBar.set("detail", { title: "VT-26-0042", items: [{ value: "cancel", label: "Cancel booking" }] });
+    await flush();
+    expect(heard).toHaveLength(1);
+    const shell = readDc("ops.dc.html");
+    expect(shell).toMatch(/bindBar = \(\) => \{\n\s*if \(!window\.VamosOpsBar[^\n]*setTimeout\(this\.bindBar, 120\)/);
+  });
+
   it("with the avatar gone from the bar, the drawer shows Profile, Settings and Sign out on a phone", () => {
     const side = readDc("OpsSidebar.dc.html");
     const phone = mediaBlocks(side, "(max-width:899px)");

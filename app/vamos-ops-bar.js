@@ -15,6 +15,9 @@
    (title, labels, order, tone, disabled) re-renders the bar. Listeners run after the current
    render, never inside it. */
 (function () {
+  // The shell's helmet can run this file twice (parser, then the dc-runtime). A second store would
+  // drop the listeners the first one holds, so the bar would never hear a screen again.
+  if (window.VamosOpsBar) return;
   var current = null;
   var sig = "";
   var listeners = [];
