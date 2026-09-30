@@ -83,5 +83,6 @@ export function failStatus(code: string): number {
   if (code === "unpaid") return 409;
   if (code === "must-fix" || code === "capacity" || code === "not-requested") return 409;
   if (code === "stripe-failed" || code === "stripe-test-only") return 502;
+  if (code === "temporarily_unavailable") return 503;
   return 400;
 }

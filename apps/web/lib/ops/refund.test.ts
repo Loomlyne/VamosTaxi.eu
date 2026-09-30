@@ -64,13 +64,17 @@ describe("08-05 refund file proofs", () => {
     expect(sql).not.toMatch(/create or replace function public\.tg_payment_matches_snapshot/);
   });
 
-  it("refund.ts calls createRefund before ops_refund_record", () => {
+  it("refund.ts plans the intent, then createRefund, then ops_refund_intent_sent (20-10)", () => {
     const src = read("apps/web/lib/ops/refund.ts");
-    const createAt = src.indexOf("createRefund");
-    const rpcAt = src.indexOf("ops_refund_record");
-    expect(createAt).toBeGreaterThan(-1);
-    expect(rpcAt).toBeGreaterThan(-1);
-    expect(createAt).toBeLessThan(rpcAt);
+    const planAt = src.indexOf("public.ops_refund_plan(");
+    const createAt = src.indexOf("createRefund(stripe");
+    const sentAt = src.indexOf("public.ops_refund_intent_sent(");
+    const failedAt = src.indexOf("public.ops_refund_intent_failed(");
+    expect(planAt).toBeGreaterThan(-1);
+    expect(createAt).toBeGreaterThan(planAt);
+    expect(sentAt).toBeGreaterThan(createAt);
+    expect(failedAt).toBeGreaterThan(-1);
+    expect(src).not.toMatch(/public\.ops_refund_record\(/);
     expect(src).toMatch(/asStaff/);
     expect(src).toMatch(/asSystem/);
     expect(src).toMatch(/sk_live_/);
@@ -84,7 +88,7 @@ describe("08-05 refund file proofs", () => {
     const createAt = src.indexOf("createRefund(");
     expect(resolveAt).toBeGreaterThan(-1);
     expect(resolveAt).toBeLessThan(createAt);
-    expect(src).toMatch(/if \(!paymentIntentId\) return \{ ok: false, code: "stripe-failed" \}/);
+    expect(src).toMatch(/if \(!paymentIntentId\) throw new Error\("no-payment-intent"\)/);
   });
 
   it("staff PATCH no longer markRefunded-without-Stripe", () => {
@@ -103,7 +107,7 @@ describe("08-05 refund file proofs", () => {
     // 26.1-17 D-24: refunds are admin-only now (was withStaff).
     expect(refund).toMatch(/withAdmin/);
     const pub = read("apps/web/app/api/staff/bookings/[id]/refund/route.ts");
-    expect(pub).toMatch(/export \{ POST \}/);
+    expect(pub).toMatch(/export \{ GET, POST \}/);
   });
 
   it("cancelBooking goes through ops_cancel_booking (events in same tx)", () => {
@@ -160,10 +164,9 @@ describe("09-05 D-12 remaining refund", () => {
     ).toEqual({ remaining: 3000, amount: 3000 });
 
     const src = read("apps/web/lib/ops/refund.ts");
-    expect(src).toMatch(/opsRefundAmount/);
     expect(src).not.toMatch(/if \(existing\[0\]\) return \{ ok: false, code: "already-refunded" \}/);
     expect(src).toMatch(/already-refunded/);
-    expect(src).toMatch(/remaining === 0|remaining <= 0|!.*remaining/);
+    expect(src).toMatch(/leftRappen <= 0/);
   });
 
   it("refund route forwards optional percent or rappen", () => {
@@ -176,13 +179,27 @@ describe("09-05 D-12 remaining refund", () => {
     expect(refund).not.toMatch(/status: ['\"]refunded['\"].*bookings/);
   });
 
-  it("cancelBooking auto_full uses paid-cancel Stripe helper; pending_ops skips Stripe", () => {
+  it("20-10 refund route: forwards paymentId and retry, answers partial with amounts, GET is admin-only", () => {
+    const refund = read(
+      "apps/web/app/[locale]/(ops)/api/staff/bookings/[id]/refund/route.ts",
+    );
+    expect(refund).toMatch(/const requested: RefundRequest = parsed\.value/);
+    expect(refund).toMatch(/refundBooking\(env, claims, id, requested\)/);
+    expect(refund).toMatch(/paymentId/);
+    expect(refund).toMatch(/retry/);
+    expect(refund).toMatch(/jsonErr\(result\.code, 502, \{[\s\S]*refundedRappen[\s\S]*dueRappen[\s\S]*parts/);
+    expect(refund).toMatch(/export const GET = withAdmin/);
+    expect(refund).toMatch(/loadRefundPicker/);
+    expect(refund).toMatch(/nothing-to-retry/);
+    expect(refund).toMatch(/full-refund-only/);
+    // The mail loop only runs after the ok check.
+    expect(refund.indexOf("if (!result.ok)")).toBeLessThan(refund.indexOf("sendRefund("));
+  });
+
+  it("cancelBooking goes through ops_cancel_booking and never calls Stripe to refund (20-10)", () => {
     const w = read("apps/web/lib/ops/bookings-write.ts");
     expect(w).toMatch(/ops_cancel_booking/);
-    expect(w).toMatch(/applyStripeRefund/);
-    expect(w).toMatch(/auto_full/);
-    expect(w).toMatch(/pending_ops/);
-    expect(w).toMatch(/record_booking_refund|applyStripeRefund/);
+    expect(w).not.toMatch(/applyStripeRefund|createRefund|record_booking_refund/);
     expect(w).not.toMatch(/status:\s*['\"]refunded['\"]/);
   });
 });
@@ -204,7 +221,38 @@ describe("26.1-17 D-24/D-25 admin refund decisions", () => {
       ok: false,
       code: "invalid-body",
     });
-    expect(parseRefundBody({ rappen: 1200.7 })).toEqual({ ok: true, value: { rappen: 1200 } });
+    // 20-10: the exact amount is amountRappen; the old name `rappen` is accepted as the same thing.
+    expect(parseRefundBody({ rappen: 1200.7 })).toEqual({ ok: true, value: { amountRappen: 1200 } });
+    expect(parseRefundBody({ amountRappen: 1200 })).toEqual({ ok: true, value: { amountRappen: 1200 } });
+  });
+
+  it("parseRefundBody 20-10: paymentId, retry, and one of percent / amountRappen, never both", async () => {
+    const { parseRefundBody } = await import("./refund-map");
+    expect(parseRefundBody({ paymentId: 7, percent: 100 })).toEqual({ ok: true, value: { paymentId: 7, percent: 100 } });
+    expect(parseRefundBody({ paymentId: 7, amountRappen: 500 })).toEqual({
+      ok: true,
+      value: { paymentId: 7, amountRappen: 500 },
+    });
+    expect(parseRefundBody({ retry: true })).toEqual({ ok: true, value: { retry: true } });
+    expect(parseRefundBody({ retry: false })).toEqual({ ok: true, value: {} });
+    for (const bad of [
+      { percent: 50, amountRappen: 500 },
+      { percent: 50, rappen: 500 },
+      { amountRappen: 500, rappen: 500 },
+      { paymentId: 0 },
+      { paymentId: 1.5 },
+      { paymentId: "7" },
+      { retry: true, percent: 50 },
+      { retry: true, paymentId: 7 },
+      { retry: true, postTrip: true },
+      { retry: "yes" },
+      { postTrip: true, paymentId: 7 },
+    ]) {
+      expect(parseRefundBody(bad)).toEqual({ ok: false, code: "invalid-body" });
+    }
+    for (const bad of [0, -5, Number.NaN, "500"]) {
+      expect(parseRefundBody({ amountRappen: bad })).toEqual({ ok: false, code: "invalid-amount" });
+    }
   });
 
   it("parseRefundDecision accepts decline | reject only", async () => {
@@ -238,6 +286,8 @@ describe("26.1-17 D-24/D-25 admin refund decisions", () => {
       "not-pending",
       "not-post-trip",
       "not-open",
+      "nothing-to-retry",
+      "full-refund-only",
     ]) {
       expect(mapRefundSqlError({ code: "P0001", message: name })).toEqual({ ok: false, code: name });
     }
@@ -247,23 +297,24 @@ describe("26.1-17 D-24/D-25 admin refund decisions", () => {
     });
   });
 
-  it("refundBooking: percent / postTrip reach ops_refund_record with reason and amount; decided by the admin", () => {
+  it("refundBooking: percent / postTrip / amount reach ops_refund_plan; decided by the admin, recorded per intent", () => {
     const src = read("apps/web/lib/ops/refund.ts");
     expect(src).toMatch(/postTrip\?: boolean/);
     expect(src).toMatch(/"post_trip"/);
-    expect(src).toMatch(/ops_refund_record\([\s\S]*\$\{reason\}[\s\S]*\$\{decidedRappen\}/);
+    expect(src).toMatch(
+      /ops_refund_plan\([\s\S]*\$\{planArgs\.percent\}[\s\S]*\$\{planArgs\.reason\}[\s\S]*\$\{planArgs\.amountRappen\}/,
+    );
     expect(src).toMatch(/ops_refund_decide/);
     expect(src).toMatch(/export async function decideRefund/);
-    // Every admin refund is recorded by ops_refund_record (decided_by), never the customer path.
-    expect(src).not.toMatch(/applyStripeRefund/);
-    // Money never leaves before the per-payment cap is checked.
-    const capAt = src.indexOf("refund-exceeds-remaining");
-    const createAt = src.indexOf("createRefund(");
-    expect(capAt).toBeGreaterThan(-1);
-    expect(capAt).toBeLessThan(createAt);
-    const postAt = src.indexOf("not-post-trip");
-    expect(postAt).toBeGreaterThan(-1);
-    expect(postAt).toBeLessThan(createAt);
+    // The customer cancel path is never used by an admin refund.
+    expect(src).not.toMatch(/applyStripeRefund|record_booking_refund/);
+    // Money never leaves before the amount rules and the post-trip check ran.
+    const createAt = src.indexOf("createRefund(stripe");
+    for (const name of ["refund-exceeds-remaining", "full-refund-only", "not-post-trip"]) {
+      const at = src.indexOf(name);
+      expect(at).toBeGreaterThan(-1);
+      expect(at).toBeLessThan(createAt);
+    }
   });
 
   it("refund route is admin-only and validates the body; decision route is dual-mounted and admin-only", () => {
@@ -291,4 +342,15 @@ describe("26.1-17 D-24/D-25 admin refund decisions", () => {
     const json = read("apps/web/lib/ops/staff-json.ts");
     expect(json).toMatch(/withAdmin[\s\S]*requireAdminClaims/);
   });
+});
+
+describe("20-10: Refund issued mail only when nothing is owed any more", () => {
+  it("the route mails 'issued' only when the booking's refund status is refunded", () => {
+    const route = readFileSync(
+      join(repoRoot, "apps/web/app/[locale]/(ops)/api/staff/bookings/[id]/refund/route.ts"),
+      "utf8",
+    );
+    expect(route).toMatch(/if \(result\.refundStatus === "refunded"\) \{[\s\S]*?sendRefund\(/);
+  });
+
 });

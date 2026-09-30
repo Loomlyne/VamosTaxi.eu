@@ -239,19 +239,6 @@
 </x-dc>
 <script type="text/x-dc" data-dc-script>
 const RATE_ICON = { Economy:'car-front', Business:'car', First:'star', Van:'bus' };
-const SURCHARGE_TYPES = [
-  { value: 'checkout_extra', k: 'typeCheckoutExtra' },
-  { value: 'meet_greet', k: 'typeMeet' },
-  { value: 'free_wait', k: 'typeFreeWait' },
-  { value: 'extra_wait', k: 'typeExtraWait' },
-];
-function surchargeTypeOf(code) {
-  const raw = String(code || '');
-  if (raw === 'meet_greet') return 'meet_greet';
-  if (raw === 'free_wait') return 'free_wait';
-  if (raw === 'extra_wait' || raw === 'waiting' || raw === 'waiting_city' || raw === 'waiting_airport') return 'extra_wait';
-  return 'checkout_extra';
-}
 function classSlugOf(name) {
   return String(name || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 }
@@ -327,7 +314,7 @@ const PANES = [
 const T = {
   en: { actions:'Actions', title:'Pricing & routes', subtitle:'City to city, distance rules, surcharges and coupons',
     tabRoutes:'City to city', tabDistance:'Distance rules', tabSurcharges:'Surcharges & extras', tabCoupons:'Coupons',
-    hintRoutes:'One pair covers both directions. Click a row and it goes live.', hintDistance:'Start, per kilometre, airport pickup fee', airportStart:'Airport pickup fee (added to start)', hintSurcharges:'Checkout extras, wait, meet and greet', hintCoupons:'Percent or fixed CHF',
+    hintRoutes:'One pair covers both directions. Click a row and it goes live.', hintDistance:'Start, per kilometre, airport pickup fee', airportStart:'Airport pickup fee (added to start)', hintSurcharges:'Checkout extras', hintCoupons:'Percent or fixed CHF',
     colId:'ID', colFrom:'From', colTo:'To', colEconomy:'Economy', colBusiness:'Business', colLive:'Live', live:'Live', draft:'Draft',
     colClass:'Class', colPhoto:'Photo', moveClassUp:'Move class up', moveClassDown:'Move class down', colName:'Name', startFare:'Start', perKm:'Per kilometre', maxPax:'Max passengers', maxBags:'Max bags', hidePublic:'Hide from public', hiddenPublic:'Hidden from public', showPublic:'Show on public', shownPublic:'Shown on public',
     fPhoto:'Photo', choosePhoto:'Choose photo', hClassPhoto:'Required to Publish. Stored on R2, not on this machine.',
@@ -346,10 +333,9 @@ const T = {
     kindWaiting:'Waiting unit', kindLock:'Quote-lock hours', kindFreeWait:'Free-wait hours', kindMaxStops:'Max extra stops', kindServiceArea:'Service area',
     fPayload:'Value', hRulePayload:'Waiting unit, hours, or Mapbox area. Timezone is Europe/Zurich.',
     addSurcharge:'Add surcharge', editSurcharge:'Edit surcharge', saveSurcharge:'Save surcharge', deleteSurchargeTitle:'Delete this surcharge from the draft?', deleteSurchargeBody:'Delete this surcharge from the draft? Public does not change until Publish.',
-    emptySurchargesTitle:'No surcharges in this draft', emptySurchargesBody:'Add a checkout extra, extra-wait rate, or edit meet and greet and free wait. Meet and greet and free wait stay on for the customer.',
-    searchSurcharges:'Type or name', nounSurcharge:'surcharge', nounSurcharges:'surcharges',
-    surchargeType:'Type', whatThisDoes:'What this does',
-    typeCheckoutExtra:'Checkout extra', typeMeet:'Meet and greet', typeFreeWait:'Free airport wait', typeExtraWait:'Extra wait',
+    emptySurchargesTitle:'No surcharges in this draft', emptySurchargesBody:'Add an extra. Customers choose it at checkout.',
+    searchSurcharges:'Search by name', nounSurcharge:'surcharge', nounSurcharges:'surcharges',
+    whatThisDoes:'What this does',
     doesCheckout:'0 is free and included on checkout. It is not added to the fare. A price, including 1, is an extra and is added to the quoted price.',
     doesMeet:'Always on for the customer. Amount stays CHF 0. You cannot turn it off.',
     doesFreeWait:'Always on for airport pickup. Set the free hours. You cannot turn it off.',
@@ -357,7 +343,6 @@ const T = {
     extraName:'Name', extraHours:'Free hours', extraWaitRate:'CHF per hour',
     extraNameDe:'Name in German', extraNameFr:'Name in French', extraNameAr:'Name in Arabic', extraTranslated:'Translated automatically. Edit if needed.',
     meetAmount:'Amount', meetAmountHint:'Locked at CHF 0. Included for the customer.',
-    notDeletableMeet:'Meet and greet stays on. You can edit the amount. You cannot turn it off for the customer.',
     notDeletableWait:'Free wait stays on. You can edit the hours. You cannot turn it off for the customer.',
     addCoupon:'Add coupon', editCoupon:'Edit coupon', saveCoupon:'Save coupon', deleteCouponTitle:'Delete this coupon from the draft?', deleteCouponBody:'Delete this coupon from the draft? Public does not change until Publish.',
     emptyCouponsTitle:'No coupons in this draft', emptyCouponsBody:'Add a percent-off or fixed-CHF coupon. Public cannot use it until Publish.',
@@ -416,7 +401,7 @@ const T = {
   },
   de: { actions:'Aktionen', title:'Preise & Routen', subtitle:'Stadt zu Stadt, Distanzregeln, Zuschläge und Gutscheine',
     tabRoutes:'Stadt zu Stadt', tabDistance:'Distanzregeln', tabSurcharges:'Zuschläge & Extras', tabCoupons:'Gutscheine',
-    hintRoutes:'Ein Paar gilt in beide Richtungen. Zeile anklicken, dann ist sie live.', hintDistance:'Start, pro Kilometer, Flughafen-Abholgebühr', airportStart:'Flughafen-Abholgebühr (zum Start addiert)', hintSurcharges:'Checkout-Extras, Warten, Meet and greet', hintCoupons:'Prozent oder fester CHF',
+    hintRoutes:'Ein Paar gilt in beide Richtungen. Zeile anklicken, dann ist sie live.', hintDistance:'Start, pro Kilometer, Flughafen-Abholgebühr', airportStart:'Flughafen-Abholgebühr (zum Start addiert)', hintSurcharges:'Checkout-Extras', hintCoupons:'Prozent oder fester CHF',
     colId:'ID', colFrom:'Von', colTo:'Nach', colEconomy:'Economy', colBusiness:'Business', colLive:'Live', live:'Live', draft:'Entwurf',
     colClass:'Klasse', colPhoto:'Foto', moveClassUp:'Klasse nach oben', moveClassDown:'Klasse nach unten', colName:'Name', startFare:'Start', perKm:'Pro Kilometer', maxPax:'Max. Passagiere', maxBags:'Max. Gepäckstücke', hidePublic:'Vor der Öffentlichkeit verbergen', hiddenPublic:'Vor der Öffentlichkeit verborgen', showPublic:'Öffentlich zeigen', shownPublic:'Öffentlich sichtbar',
     fPhoto:'Foto', choosePhoto:'Foto wählen', hClassPhoto:'Pflicht vor dem Veröffentlichen. Liegt auf R2, nicht auf diesem Gerät.',
@@ -435,10 +420,9 @@ const T = {
     kindWaiting:'Warteeinheit', kindLock:'Quote-Lock-Stunden', kindFreeWait:'Freiwarte-Stunden', kindMaxStops:'Max. Extra-Stops', kindServiceArea:'Servicegebiet',
     fPayload:'Wert', hRulePayload:'Warteeinheit, Stunden oder Mapbox-Gebiet. Zeitzone ist Europe/Zurich.',
     addSurcharge:'Zuschlag hinzufügen', editSurcharge:'Zuschlag bearbeiten', saveSurcharge:'Zuschlag speichern', deleteSurchargeTitle:'Diesen Zuschlag aus dem Entwurf löschen?', deleteSurchargeBody:'Diesen Zuschlag aus dem Entwurf löschen? Die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
-    emptySurchargesTitle:'Keine Zuschläge in diesem Entwurf', emptySurchargesBody:'Checkout-Extra, Extra-Wartepreis oder Meet and greet und Freiwarten bearbeiten. Meet and greet und Freiwarten bleiben für den Kunden an.',
-    searchSurcharges:'Typ oder Name', nounSurcharge:'Zuschlag', nounSurcharges:'Zuschläge',
-    surchargeType:'Typ', whatThisDoes:'Was das bewirkt',
-    typeCheckoutExtra:'Checkout-Extra', typeMeet:'Meet and greet', typeFreeWait:'Freiwarten am Flughafen', typeExtraWait:'Extra-Warten',
+    emptySurchargesTitle:'Keine Zuschläge in diesem Entwurf', emptySurchargesBody:'Fügen Sie ein Extra hinzu. Kundinnen und Kunden wählen es beim Checkout.',
+    searchSurcharges:'Nach Name suchen', nounSurcharge:'Zuschlag', nounSurcharges:'Zuschläge',
+    whatThisDoes:'Was das bewirkt',
     doesCheckout:'0 ist gratis und inbegriffen. Es wird nicht zum Fahrpreis addiert. Ein Preis, auch 1, ist ein Extra und wird zum Angebot addiert.',
     doesMeet:'Für den Kunden immer an. Betrag bleibt CHF 0. Du kannst es nicht ausschalten.',
     doesFreeWait:'Bei Flughafenabholung immer an. Freie Stunden setzen. Du kannst es nicht ausschalten.',
@@ -446,7 +430,6 @@ const T = {
     extraName:'Name', extraHours:'Freie Stunden', extraWaitRate:'CHF pro Stunde',
     extraNameDe:'Name auf Deutsch', extraNameFr:'Name auf Französisch', extraNameAr:'Name auf Arabisch', extraTranslated:'Automatisch übersetzt. Bei Bedarf anpassen.',
     meetAmount:'Betrag', meetAmountHint:'Auf CHF 0 gesperrt. Für den Kunden inklusive.',
-    notDeletableMeet:'Meet and greet bleibt an. Du kannst den Betrag bearbeiten. Du kannst es für den Kunden nicht ausschalten.',
     notDeletableWait:'Freiwarten bleibt an. Du kannst die Stunden bearbeiten. Du kannst es für den Kunden nicht ausschalten.',
     addCoupon:'Gutschein hinzufügen', editCoupon:'Gutschein bearbeiten', saveCoupon:'Gutschein speichern', deleteCouponTitle:'Diesen Gutschein aus dem Entwurf löschen?', deleteCouponBody:'Diesen Gutschein aus dem Entwurf löschen? Die Öffentlichkeit ändert sich erst mit Veröffentlichen.',
     emptyCouponsTitle:'Keine Gutscheine in diesem Entwurf', emptyCouponsBody:'Prozent- oder festen-CHF-Gutschein hinzufügen. Die Öffentlichkeit kann ihn erst nach dem Veröffentlichen nutzen.',
@@ -507,7 +490,7 @@ const T = {
   },
   fr: { actions:'Actions', title:'Tarifs & trajets', subtitle:'De ville en ville, règles de distance, suppléments et codes promo',
     tabRoutes:'De ville en ville', tabDistance:'Règles de distance', tabSurcharges:'Suppléments & extras', tabCoupons:'Codes promo',
-    hintRoutes:'Une paire vaut dans les deux sens. Cliquez une ligne pour la passer live.', hintDistance:'Départ, au kilomètre, frais aéroport', airportStart:'Frais aéroport (ajoutés au départ)', hintSurcharges:'Extras de paiement, attente, accueil', hintCoupons:'Pourcent ou CHF fixe',
+    hintRoutes:'Une paire vaut dans les deux sens. Cliquez une ligne pour la passer live.', hintDistance:'Départ, au kilomètre, frais aéroport', airportStart:'Frais aéroport (ajoutés au départ)', hintSurcharges:'Extras de paiement', hintCoupons:'Pourcent ou CHF fixe',
     colId:'ID', colFrom:'De', colTo:'Vers', colEconomy:'Economy', colBusiness:'Business', colLive:'Live', live:'Live', draft:'Brouillon',
     colClass:'Classe', colPhoto:'Photo', moveClassUp:'Monter la classe', moveClassDown:'Descendre la classe', colName:'Nom', startFare:'Départ', perKm:'Par kilomètre', maxPax:'Passagers max.', maxBags:'Bagages max.', hidePublic:'Masquer au public', hiddenPublic:'Masqué au public', showPublic:'Afficher au public', shownPublic:'Visible au public',
     fPhoto:'Photo', choosePhoto:'Choisir une photo', hClassPhoto:'Obligatoire pour Publier. Stockée sur R2, pas sur cet appareil.',
@@ -526,10 +509,9 @@ const T = {
     kindWaiting:'Unité d’attente', kindLock:'Heures de verrouillage', kindFreeWait:'Heures d’attente libre', kindMaxStops:'Max d’arrêts extra', kindServiceArea:'Zone de service',
     fPayload:'Valeur', hRulePayload:'Unité d’attente, heures ou zone Mapbox. Fuseau : Europe/Zurich.',
     addSurcharge:'Ajouter un supplément', editSurcharge:'Modifier le supplément', saveSurcharge:'Enregistrer le supplément', deleteSurchargeTitle:'Supprimer ce supplément du brouillon ?', deleteSurchargeBody:'Supprimer ce supplément du brouillon ? Le public ne change qu’après Publier.',
-    emptySurchargesTitle:'Aucun supplément dans ce brouillon', emptySurchargesBody:'Ajoutez un extra de paiement, un tarif d’attente extra, ou modifiez l’accueil et l’attente libre. L’accueil et l’attente libre restent activés pour le client.',
-    searchSurcharges:'Type ou nom', nounSurcharge:'supplément', nounSurcharges:'suppléments',
-    surchargeType:'Type', whatThisDoes:'Ce que cela fait',
-    typeCheckoutExtra:'Extra de paiement', typeMeet:'Accueil', typeFreeWait:'Attente libre à l’aéroport', typeExtraWait:'Attente extra',
+    emptySurchargesTitle:'Aucun supplément dans ce brouillon', emptySurchargesBody:'Ajoutez un extra. Les clients le choisissent au paiement.',
+    searchSurcharges:'Rechercher par nom', nounSurcharge:'supplément', nounSurcharges:'suppléments',
+    whatThisDoes:'Ce que cela fait',
     doesCheckout:'0 est offert et inclus. Il n’est pas ajouté au tarif. Un prix, même 1, est un extra et s’ajoute au devis.',
     doesMeet:'Toujours activé pour le client. Le montant reste CHF 0. Vous ne pouvez pas le couper.',
     doesFreeWait:'Toujours activé pour une prise en charge aéroport. Réglez les heures libres. Vous ne pouvez pas le couper.',
@@ -537,7 +519,6 @@ const T = {
     extraName:'Nom', extraHours:'Heures libres', extraWaitRate:'CHF par heure',
     extraNameDe:'Nom en allemand', extraNameFr:'Nom en français', extraNameAr:'Nom en arabe', extraTranslated:'Traduit automatiquement. Modifiez si besoin.',
     meetAmount:'Montant', meetAmountHint:'Verrouillé à CHF 0. Inclus pour le client.',
-    notDeletableMeet:'L’accueil reste activé. Vous pouvez modifier le montant. Vous ne pouvez pas le couper pour le client.',
     notDeletableWait:'L’attente libre reste activée. Vous pouvez modifier les heures. Vous ne pouvez pas la couper pour le client.',
     addCoupon:'Ajouter un code', editCoupon:'Modifier le code', saveCoupon:'Enregistrer le code', deleteCouponTitle:'Supprimer ce code du brouillon ?', deleteCouponBody:'Supprimer ce code du brouillon ? Le public ne change qu’après Publier.',
     emptyCouponsTitle:'Aucun code dans ce brouillon', emptyCouponsBody:'Ajoutez un code en pourcent ou en CHF fixe. Le public ne peut pas l’utiliser avant Publier.',
@@ -598,7 +579,7 @@ const T = {
   },
   ar: { actions:'الإجراءات', title:'الأسعار والمسارات', subtitle:'بين المدن وقواعد مسافة ورسوم وقسائم',
     tabRoutes:'بين المدن', tabDistance:'قواعد المسافة', tabSurcharges:'الرسوم والإضافات', tabCoupons:'القسائم',
-    hintRoutes:'الزوج الواحد يغطي الاتجاهين. انقر الصف ليصبح مباشرًا.', hintDistance:'البداية، لكل كيلومتر، رسوم الاستقبال من المطار', airportStart:'رسوم الاستقبال من المطار (تُضاف إلى البداية)', hintSurcharges:'إضافات الدفع والانتظار والاستقبال', hintCoupons:'نسبة أو فرنك ثابت',
+    hintRoutes:'الزوج الواحد يغطي الاتجاهين. انقر الصف ليصبح مباشرًا.', hintDistance:'البداية، لكل كيلومتر، رسوم الاستقبال من المطار', airportStart:'رسوم الاستقبال من المطار (تُضاف إلى البداية)', hintSurcharges:'إضافات الدفع', hintCoupons:'نسبة أو فرنك ثابت',
     colId:'المعرّف', colFrom:'من', colTo:'إلى', colEconomy:'اقتصادي', colBusiness:'أعمال', colLive:'مباشر', live:'مباشر', draft:'مسودة',
     colClass:'الفئة', colPhoto:'الصورة', moveClassUp:'تحريك الفئة لأعلى', moveClassDown:'تحريك الفئة لأسفل', colName:'الاسم', startFare:'البداية', perKm:'لكل كيلومتر', maxPax:'أقصى عدد مسافرين', maxBags:'أقصى حقائب', hidePublic:'إخفاء عن العامة', hiddenPublic:'مخفي عن العامة', showPublic:'إظهار للعامة', shownPublic:'ظاهر للعامة',
     fPhoto:'الصورة', choosePhoto:'اختيار صورة', hClassPhoto:'مطلوبة للنشر. تُحفظ على R2 وليس على هذا الجهاز.',
@@ -617,10 +598,9 @@ const T = {
     kindWaiting:'وحدة الانتظار', kindLock:'ساعات قفل العرض', kindFreeWait:'ساعات الانتظار المجاني', kindMaxStops:'أقصى توقفات إضافية', kindServiceArea:'منطقة الخدمة',
     fPayload:'القيمة', hRulePayload:'وحدة الانتظار أو الساعات أو منطقة مابوكس. المنطقة الزمنية Europe/Zurich.',
     addSurcharge:'إضافة رسم', editSurcharge:'تعديل الرسم', saveSurcharge:'حفظ الرسم', deleteSurchargeTitle:'حذف هذا الرسم من المسودة؟', deleteSurchargeBody:'حذف هذا الرسم من المسودة؟ لا يتغير العام حتى النشر.',
-    emptySurchargesTitle:'لا رسوم في هذه المسودة', emptySurchargesBody:'أضف إضافة دفع أو سعر انتظار إضافي أو عدّل الاستقبال والانتظار المجاني. يبقى الاستقبال والانتظار المجاني مفعّلين للعميل.',
-    searchSurcharges:'النوع أو الاسم', nounSurcharge:'رسم', nounSurcharges:'رسوم',
-    surchargeType:'النوع', whatThisDoes:'ماذا يفعل هذا',
-    typeCheckoutExtra:'إضافة الدفع', typeMeet:'الاستقبال', typeFreeWait:'انتظار مجاني في المطار', typeExtraWait:'انتظار إضافي',
+    emptySurchargesTitle:'لا رسوم في هذه المسودة', emptySurchargesBody:'أضف إضافة. يختارها العملاء عند الدفع.',
+    searchSurcharges:'ابحث بالاسم', nounSurcharge:'رسم', nounSurcharges:'رسوم',
+    whatThisDoes:'ماذا يفعل هذا',
     doesCheckout:'0 مجاني ومشمول. لا يُضاف إلى الأجرة. أي سعر، بما فيه 1، إضافة تُضاف إلى السعر المعروض.',
     doesMeet:'دائمًا مفعّل للعميل. المبلغ يبقى فرنك 0. لا يمكنك إيقافه.',
     doesFreeWait:'دائمًا مفعّل عند الاستقبال في المطار. عيّن الساعات المجانية. لا يمكنك إيقافه.',
@@ -628,7 +608,6 @@ const T = {
     extraName:'الاسم', extraHours:'ساعات مجانية', extraWaitRate:'فرنك لكل ساعة',
     extraNameDe:'الاسم بالألمانية', extraNameFr:'الاسم بالفرنسية', extraNameAr:'الاسم بالعربية', extraTranslated:'تُرجم تلقائياً. عدّله عند الحاجة.',
     meetAmount:'المبلغ', meetAmountHint:'مقفل على فرنك 0. مشمول للعميل.',
-    notDeletableMeet:'الاستقبال يبقى مفعّلًا. يمكنك تعديل المبلغ. لا يمكنك إيقافه للعميل.',
     notDeletableWait:'الانتظار المجاني يبقى مفعّلًا. يمكنك تعديل الساعات. لا يمكنك إيقافه للعميل.',
     addCoupon:'إضافة قسيمة', editCoupon:'تعديل القسيمة', saveCoupon:'حفظ القسيمة', deleteCouponTitle:'حذف هذه القسيمة من المسودة؟', deleteCouponBody:'حذف هذه القسيمة من المسودة؟ لا يتغير العام حتى النشر.',
     emptyCouponsTitle:'لا قسائم في هذه المسودة', emptyCouponsBody:'أضف قسيمة نسبة أو فرنك ثابت. لا يستخدمها العام حتى النشر.',
@@ -1129,6 +1108,7 @@ class Component extends DCLogic {
 
   renderVals() {
     const t = T[this.state.lang] || T.en;
+    const lang = this.state.lang || 'en';
     const ops = window.VamosOps;
     const pane = this.state.pane;
     const money = (v) => this.money(v);
@@ -1517,29 +1497,21 @@ class Component extends DCLogic {
       tSearchDistance: t.searchDistance, distanceSearchKeys: ['klass'],
       tEmptyClassesTitle: t.emptyClassesTitle, tEmptyClassesBody: t.emptyClassesBody,
 
+      // 26.2-p4 A5 (owner, 2026-09-30): every row is an extra the customer chooses; its code never
+      // gives it a type, a fixed amount or an hours figure.
       surcharges: surchargesRaw.map((r) => {
-        const type = r.type || surchargeTypeOf(r.code || r.label);
         const label = r.name || r.label || r.code || '';
         return Object.assign({}, r, {
-          type: type,
           label: label,
           name: r.name || label,
-          value: type === 'meet_greet' || (type === 'checkout_extra' && r.kind === 'included') ? '0' : (r.kind === 'percent' ? r.pct : ((r.amounts && r.amounts.CHF) || r.value || '')),
-          hours: r.hours || (ops && ops.freeWaitHours) || '',
+          value: r.kind === 'included' ? '0' : (r.kind === 'percent' ? r.pct : ((r.amounts && r.amounts.CHF) || r.value || '')),
         });
       }),
       surchargeColumns: [
-        { key:'type', header: t.surchargeType, lookup:(r) => {
-          const hit = SURCHARGE_TYPES.filter((c) => c.value === (r.type || surchargeTypeOf(r.code || r.label)))[0];
-          return hit ? t[hit.k] : (r.type || r.label);
-        } },
-        { key:'label', header: t.colName, lookup:(r) => r.name || r.label || r.code || '' },
+        { key:'label', header: t.colName, lookup:(r) => (lang === 'de' && r.labelDe) || (lang === 'fr' && r.labelFr) || (lang === 'ar' && r.labelAr) || r.name || r.label || r.code || '' },
         { key:'value', header: t.colAmount,
           lookup:(r) => {
-            const type = r.type || surchargeTypeOf(r.code || r.label);
-            if (type === 'meet_greet') return money('0');
-            if (type === 'free_wait') return (r.hours ? (r.hours + ' h') : '');
-            if (type === 'checkout_extra' && (r.kind === 'included' || r.value === '0' || r.value === 0)) return money('0');
+            if (r.kind === 'included' || r.value === '0' || r.value === 0) return money('0');
             return money(r.value);
           } },
       ],
@@ -1552,7 +1524,7 @@ class Component extends DCLogic {
       ],
       surchargeBlank: () => {
         const blank = ops ? ops.surcharges.blank() : { kind:'amount', amounts:{}, pct:'' };
-        return Object.assign({}, blank, { type:'checkout_extra', value:'', name:'', hours:1, label:'', rule:'leg' });
+        return Object.assign({}, blank, { type:'checkout_extra', value:'', name:'', label:'', rule:'leg' });
       },
       saveSurcharge: (rec) => {
         if (!ops) return;
@@ -1587,7 +1559,7 @@ class Component extends DCLogic {
       tNounSurcharge: t.nounSurcharge, tNounSurcharges: t.nounSurcharges,
       tAddSurcharge: t.addSurcharge, tEditSurcharge: t.editSurcharge, tSaveSurcharge: t.saveSurcharge,
       tDeleteSurchargeTitle: t.deleteSurchargeTitle, tDeleteSurchargeBody: t.deleteSurchargeBody,
-      tSearchSurcharges: t.searchSurcharges, surchargeSearchKeys: ['label', 'type', 'name'],
+      tSearchSurcharges: t.searchSurcharges, surchargeSearchKeys: ['label', 'name'],
       tEmptySurchargesTitle: t.emptySurchargesTitle, tEmptySurchargesBody: t.emptySurchargesBody,
 
       couponRows: (couponRaw || []).map((row) => Object.assign({}, row, { capStatus: this.couponCapStatus(row) })),

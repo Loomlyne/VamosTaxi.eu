@@ -328,6 +328,93 @@ describe("1 · booking detail: one Actions menu", () => {
   });
 });
 
+// ── 1b · Merged with main (20-10 refunds by hand): Refund lives in Actions, main's panel does the work ──
+describe("1b · Actions → Refund opens main's refunds-by-hand panel", () => {
+  const due = { status: "cancelled", refundStatus: "pending_ops", refundOwedRappen: 12000 };
+  const fakePanel = () => {
+    const focus = vi.fn();
+    return { el: { isConnected: true, scrollIntoView: vi.fn(), querySelector: vi.fn(() => ({ focus })) }, focus };
+  };
+
+  it("a cancelled paid booking with a refund due shows Actions with Refund, and main's panel on the page", () => {
+    const v = detail(due).vals();
+    expect(v.refundFormShown).toBe(true);
+    expect(v.fullShown).toBe(true);
+    expect(v.showRefundDue).toBe(true);
+    expect(v.showActions).toBe(true);
+    expect((v.actionItems as { value: string }[]).map((i) => i.value)).toEqual(["refund"]);
+  });
+
+  it("picking Refund sends nothing: it scrolls to main's panel and focuses its first control", async () => {
+    const d = detail(due);
+    const p = fakePanel();
+    (d.logic as unknown as { _refundEl: unknown })._refundEl = p.el;
+    d.vals().pickAction("refund");
+    await flush();
+    expect(d.request).not.toHaveBeenCalled();
+    expect(p.el.scrollIntoView).toHaveBeenCalledWith({ block: "center" });
+    expect(p.focus).toHaveBeenCalledWith({ preventScroll: true });
+    // The panel's own Confirm refund is what sends (main's body: full tier = 100 %).
+    d.vals().confirmPercent();
+    await flush();
+    expect(d.request).toHaveBeenCalledWith("POST", "/api/staff/bookings/b0000000-0000-4000-8000-000000000042/refund", { percent: 100 });
+  });
+
+  it("the phone bar's Refund does the same (one handler)", async () => {
+    const d = detail(due);
+    const p = fakePanel();
+    (d.logic as unknown as { _refundEl: unknown })._refundEl = p.el;
+    d.vals();
+    d.logic.componentDidUpdate();
+    const [, entry] = d.bar.set.mock.calls.at(-1) as [string, Record<string, any>];
+    expect(entry.items.map((i: { value: string }) => i.value)).toEqual(["refund"]);
+    entry.onPick("refund");
+    await flush();
+    expect(d.request).not.toHaveBeenCalledWith("POST", expect.stringMatching(/\/refund$/), expect.anything());
+    expect(p.el.scrollIntoView).toHaveBeenCalled();
+  });
+
+  it("a failed refund offers Refund too; it leads to main's Try again, never a new POST", async () => {
+    const d = detail({ status: "cancelled", refundStatus: "failed", refundOwedRappen: 12000 });
+    const v = d.vals();
+    expect(v.refundFailedShown).toBe(true);
+    expect((v.actionItems as { value: string }[]).map((i) => i.value)).toContain("refund");
+    v.pickAction("refund");
+    await flush();
+    expect(d.request).not.toHaveBeenCalledWith("POST", expect.stringMatching(/\/refund$/), expect.anything());
+  });
+
+  it("an old cancelled row (refund_status none) keeps main's one-press full refund", async () => {
+    const d = detail({ status: "cancelled" });
+    d.vals().pickAction("refund");
+    await flush();
+    expect(d.request).toHaveBeenCalledWith("POST", "/api/staff/bookings/b0000000-0000-4000-8000-000000000042/refund", {});
+  });
+
+  it("a post-trip request opens main's Accept / Reject panel", () => {
+    const d = detail({ status: "completed", tripPassed: true, driver: "Marco" });
+    d.vals().pickAction("refund");
+    expect(d.logic.state.requestedFor).toBe("b0000000-0000-4000-8000-000000000042");
+    expect(d.vals().requestedShown).toBe(true);
+  });
+
+  it("while a refund is being sent the item is disabled and a pick does nothing", async () => {
+    const d = detail(due);
+    d.logic.state = { ...d.logic.state, refundBusy: "percent" };
+    const item = (d.vals().actionItems as { value: string; disabled?: boolean }[]).find((i) => i.value === "refund");
+    expect(item?.disabled).toBe(true);
+  });
+
+  it("main's three refund panels carry the ref the menu scrolls to; no Refund button outside the menu", () => {
+    const tpl = templateOf(readDc("OpsDetail.dc.html"));
+    for (const flag of ["refundFormShown", "requestedShown", "refundFailedShown"]) {
+      expect(tpl, flag).toMatch(new RegExp(`sc-if value="\\{\\{ ${flag} \\}\\}"[^>]*>\\s*<div data-ops-refund-region ref="\\{\\{ refundRef \\}\\}">`));
+    }
+    expect(tpl).not.toContain('onClick="{{ markRefund }}"');
+    expect(tpl).not.toContain('onClick="{{ openRequested }}"');
+  });
+});
+
 // ── 2 · Phone: compact bar, page buttons fold into its Actions menu ─────────────────────────
 describe("2 · phone: compact bar and folded page buttons", () => {
   it("booking detail hands its actions and its reference to the bar, and takes them back on leave", () => {

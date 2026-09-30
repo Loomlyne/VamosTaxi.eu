@@ -78,7 +78,8 @@ describe("Phase 6 finalize — class line-up and staff hash", () => {
     expect(pricing).not.toMatch(/blank\(\{ id: klass, klass \}\)/);
     expect(pricing).toMatch(/fromMapbox: rec\.fromMapbox/);
     expect(pricing).toMatch(/photoKind:'class'/);
-    expect(pricing).toMatch(/typeCheckoutExtra/);
+    // 26.2-p4 A5 (owner, 2026-09-30): the Type column and its words are gone.
+    expect(pricing).not.toMatch(/typeCheckoutExtra/);
     expect(pricing).not.toMatch(/hMapboxRoute/);
   });
 

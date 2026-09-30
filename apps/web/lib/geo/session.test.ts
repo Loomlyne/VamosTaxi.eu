@@ -146,6 +146,13 @@ describe("sessionBucket", () => {
     expect(sessionBucket(request)).toBe("1.2.3.4");
   });
 
+  it("ignores x-forwarded-for: a spoofed header gets no bucket of its own", () => {
+    const request = new Request("https://vamos.example/api/geo/suggest", {
+      headers: { "x-forwarded-for": "9.9.9.9" },
+    });
+    expect(sessionBucket(request)).toBe("unknown");
+  });
+
   it("falls back to unknown when no client ip header is present", () => {
     const request = new Request("https://vamos.example/api/geo/suggest");
     expect(sessionBucket(request)).toBe("unknown");
