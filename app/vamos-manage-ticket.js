@@ -178,7 +178,11 @@
 
   function refundLine(booking) {
     var st = String((booking && booking.refundStatus) || "").toLowerCase();
-    if (st === "pending_ops") return t("Pending Ops");
+    if (st === "pending_ops") {
+      // Full refund owed (cancel more than 24 h ahead) reads as such; without an owed amount our team is still deciding.
+      var owed = Number(booking && booking.refundOwedRappen);
+      return owed > 0 ? t("Full refund · sent by our team") : t("Refund under review");
+    }
     if (st === "processing") return t("Processing");
     if (st === "refunded") return t("Refunded");
     if (st === "failed") return t("Failed");
