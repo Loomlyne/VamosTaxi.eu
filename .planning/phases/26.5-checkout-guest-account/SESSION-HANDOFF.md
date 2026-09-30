@@ -105,3 +105,12 @@ Written 2026-09-30 ~03:00 by the orchestrating session. The owner moved this wor
 - Known: tests/visual/legal-privacy-cookies.spec.ts "rtl and English data-tok" expects 17 pills and gets 0. It was stale before 26.5 (the legal ship removed the pills), not yet confirmed on main. About 15 lib/ops test failures seen by plan 08's builder, not yet compared with main.
 - origin/main has moved by docs-only commits; merge before hand-over.
 - Control session told: F3 taken as D-20, F4 refused (stays with Phase 20), resume uses the purpose 'manage' token from intent.
+
+## Build state, 2026-09-30 later (supersedes the "stopped at usage limit" block)
+- Built and committed: plans 01, 02, 03, 04 (with D-20), 05, 08, 09, 11. Each has a SUMMARY.md. origin/main e6e69704 merged.
+- Waiting for the control session's word that 26.4.2 shipped: plan 06 (choice panel on /checkout, shows the D-20 messages) and plan 10. Then plan 07.
+- Migrations: 100000 agreement records, 120000 paid-only reminder, 130000 Pay press cap (D-20). 110000 is plan 10's.
+- Local stack vamos-taxi-265: workdir is `<session scratchpad>/sb265`, ports 613xx. Run pgTAP BEFORE the role-password script (extensions.test 12). Role passwords are not set after the last restart.
+- From-zero replay passes. pgTAP: only seed_idempotent 33 and 36 fail, stale pinned counts already wrong on main (not touched).
+- packages/db test/local: connection-reuse, no-begin and local-fixtures hard-code port 54322; never run the whole folder, name the files.
+- lib/ops/bookings-write.test.ts: 2 tests fail in this folder on unchanged main code, pass in the main checkout.
