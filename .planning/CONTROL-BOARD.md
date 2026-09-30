@@ -76,7 +76,8 @@ as a branch, then the folder, its Docker stack and build output are removed the 
 
 | Session | Folder under `vamos-wt/` | Branch | State |
 |---|---|---|---|
-| Vamos Taxi 26.4.2 completion | `class-photo-small`; new: `phone-sheet-bugs`, `phone-home` | `feat/class-photo-small`, `fix/phone-sheet-bugs`, `fix/phone-home` | running |
+| Vamos Taxi 26.4.2 completion | none | all four jobs shipped | at its context limit; can be closed |
+| new session needed | `class-photo-replace` | `feat/class-photo-replace` | hand-off written, prompt `09-class-photo-replace.md` |
 | Vamos Taxi SEO and browser settings | `site-speed`, `seo-head-2` | `fix/site-speed`, `fix/seo-head-followup` | running / parked |
 | Meta measurement phases 27-29 | `phase-27` | `gsd/phase-27-consent-record` | running; stack `vamos-taxi-270` stopped |
 | Phase 26.2 audit | `phase-26.2`, `phase-26.2-u13` | `gsd/phase-26.2-audit`, `gsd/phase-26.2-u13` | waiting for 26.5; stack `vamos-taxi-262` stopped |
@@ -103,6 +104,7 @@ Prompts for sessions: `.planning/prompts/`, shared rules in `00-common-rules.md`
 | 14:22 | Phone menu opens as a full page, not a side panel (shared header, every page) | same | Same |
 | 14:22 | Hero fills the screen; no white strips at the top and bottom of Safari | same | Same |
 | 14:27 | Support e-mail button must open the exact e-mail in the mail app he is signed in to, and his answer must stay in that thread. Today it is a plain new mail to the customer | Security session, `fix/support-open-in-mail` | Owner answered 14:32: always the mail of that ticket's customer, never mixed; mail app automatic for now, admin choice if cheap; build it; **ship when the control session's checks pass** (his word, this job only) |
+| 16:20 | Class photo: Remove link goes; a replaced photo and its small copies are deleted at publish (`.planning/decisions/2026-09-30-class-photo-replace.md`) | **Needs a new session**: the 26.4.2 session reached its context limit and wrote a hand-off. Prompt `09-class-photo-replace.md`, branch `feat/class-photo-replace` | Not started |
 | 15:40 | Five owner decisions from the 26.2 questions that need a signed plan before code: P1 class change on a paid trip re-prices; P2 refund across both payments; P3 class photo Remove link goes, replaced photo deleted from storage; P4 a deleted extra is deleted completely (hard-coded Ski/Waiting names go); P5 pay link for an erased booking | P1, P4: 26.2 session, own jobs, P4 first. P2, P5: security session (with refunds by hand). P3: 26.4.2 session (photo job) | Plans for his signature |
 | 09-29 | Later, its own job: passwords off on the whole site, e-mail link or passkey only | Not scheduled | His word when to start |
 
@@ -153,7 +155,11 @@ Full texts in `.planning/decisions/`.
 
 | What | Carried by |
 |---|---|
-| The two phone booking bugs above | `fix/phone-sheet-bugs` |
+| Safari: Back pressed within a second after closing the phone booking page with the X does nothing | not assigned |
+| German class card says "Gepäckstücke"; the signed picture said "Koffer" | not assigned; wording is the owner's |
+| SELECT on the home class card is 44 px high, the rule for primary booking buttons is 54 | not assigned |
+| An empty dark band of about 400 px sits under the footer on the phone home page | not assigned |
+| On a laptop the page behind an open booking page or dialog scrolls by mouse wheel | native scrolling job |
 | /terms section 03 mentions SMS; /about fleet numbers differ from the live classes (archived work `archive/legal-follow-up-fe4e37a0`, never shipped) | 26.2 list, not assigned |
 | Settings say 15 minutes standard waiting, the pages say 30 | Owner changes the setting if both should agree |
 | The airport fee is saved inside the fare line, not as its own line | 26.2 list |
