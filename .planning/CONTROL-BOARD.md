@@ -88,7 +88,7 @@ Prompts for sessions: `.planning/prompts/`, shared rules in `00-common-rules.md`
 | 14:22 | Trustpilot block under the phone bar: smaller, redesigned, inside the white area | 26.4.2 session, `fix/phone-home` | Pictures, signature |
 | 14:22 | Phone menu opens as a full page, not a side panel (shared header, every page) | same | Same |
 | 14:22 | Hero fills the screen; no white strips at the top and bottom of Safari | same | Same |
-| 14:27 | Support e-mail button must open the exact e-mail in the mail app he is signed in to, and his answer must stay in that thread. Today it is a plain new mail to the customer | Security session, `fix/support-open-in-mail` | Find out, propose, his signature, then build |
+| 14:27 | Support e-mail button must open the exact e-mail in the mail app he is signed in to, and his answer must stay in that thread. Today it is a plain new mail to the customer | Security session, `fix/support-open-in-mail` | Owner answered 14:32: always the mail of that ticket's customer, never mixed; mail app automatic for now, admin choice if cheap; build it; **ship when the control session's checks pass** (his word, this job only) |
 | 09-29 | Later, its own job: passwords off on the whole site, e-mail link or passkey only | Not scheduled | His word when to start |
 
 ## Security (Phase 20)
