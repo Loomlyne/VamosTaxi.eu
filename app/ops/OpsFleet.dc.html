@@ -184,6 +184,7 @@ const T = {
     saveFailed:'Save failed. Try again.',
     offRoadStay:'This vehicle is off the road. Upcoming assigned trips stay on the board — they are not cancelled. Fix them on Needs attention.',
     backChauffeurs:'All chauffeurs',
+    fCar:'Car', noCar:'No car', hCar:'The car this driver drives. Assign puts it on the trip.',
     statusOff:'Off duty', statusLeave:'On leave',
   },
   de: {
@@ -222,6 +223,7 @@ const T = {
     saveFailed:'Speichern fehlgeschlagen. Bitte erneut versuchen.',
     offRoadStay:'Dieses Fahrzeug ist nicht auf der Strasse. Zugewiesene kommende Fahrten bleiben auf dem Board — sie werden nicht storniert. Beheben unter Needs attention.',
     backChauffeurs:'Alle Chauffeure',
+    fCar:'Auto', noCar:'Kein Auto', hCar:'Das Auto, das dieser Fahrer fährt. Beim Zuweisen kommt es auf die Fahrt.',
     statusOff:'Außer Dienst', statusLeave:'Abwesend',
   },
   fr: {
@@ -260,6 +262,7 @@ const T = {
     saveFailed:'Enregistrement impossible. Réessayez.',
     offRoadStay:'Ce véhicule n’est plus en service. Les courses assignées à venir restent au tableau — elles ne sont pas annulées. Corrigez-les sous Needs attention.',
     backChauffeurs:'Tous les chauffeurs',
+    fCar:'Voiture', noCar:'Aucune voiture', hCar:'La voiture que conduit ce chauffeur. L’attribution la met sur la course.',
     statusOff:'Hors service', statusLeave:'Absent',
   },
   ar: {
@@ -298,6 +301,7 @@ const T = {
     saveFailed:'فشل الحفظ. حاول مرة أخرى.',
     offRoadStay:'هذه المركبة خارج الخدمة. الرحلات المسندة القادمة تبقى على اللوحة — لا تُلغى. عالجها في Needs attention.',
     backChauffeurs:'كل السائقين',
+    fCar:'السيارة', noCar:'بلا سيارة', hCar:'السيارة التي يقودها هذا السائق. عند الإسناد تُسجَّل على الرحلة.',
     statusOff:'خارج الدورية', statusLeave:'في إجازة',
   },
 };
@@ -342,6 +346,10 @@ class Component extends DCLogic {
     const vStatusOptions = (ops ? ops.VEHICLE_STATUS : []).map((s) => ({ value: s, label: VSTATUS[s].label }));
     const vehicleOptions = [{ value:'', label: t.none }].concat(vehicles.map((v) => ({ value: v.id, label: vehicleLabel(v) })));
     const chauffeurOptions = chauffeurs.map((c) => ({ value: c.id, label: c.name || c.id }));
+    // 260930-dash-design (owner, 2026-10-01): each driver has his own car. The Car field writes
+    // chauffeurs.default_vehicle_id, the car Assign puts on the trip. Class first, as Assign shows it.
+    const carLabel = (v) => [v.klass, v.model, v.plate].filter(Boolean).join(' \u00b7 ') || v.id;
+    const carOptions = [{ value: '', label: t.noCar }].concat(vehicles.map((v) => ({ value: v.id, label: carLabel(v) })));
     const inactiveClass = { economy: 1, business: 1, first: 1, van: 1 };
     const classNameById = {};
     const rememberClass = (id, name) => {
@@ -406,6 +414,7 @@ class Component extends DCLogic {
       { key:'phone', label:t.fPhone, editor:'phone', half:true, placeholder:'+41 00 000 00 00' },
       { key:'email', label:t.fEmail, half:true, placeholder:'name@example.com' },
       { key:'licence', label:t.fLicence, editor:'licence', half:true, placeholder:'CH 000 000' },
+      { key:'defaultVehicleId', label:t.fCar, editor:'select', options:carOptions, icon:'car', hint:t.hCar, emptyLabel:t.noCar },
       { key:'vehicleClassId', label:t.fClass, editor:'select', options:chauffeurClassOptions, icon:'car', hint:t.hChauffeurClass, emptyLabel:t.noClass, half:true, pair:'class-lang' },
       { key:'languages', label:t.fLanguages, editor:'select', multi:true, options:languageOptions(t), icon:'globe', half:true, pair:'class-lang' },
       { key:'note', label:t.fNote, editor:'area', placeholder:'' },
@@ -523,9 +532,12 @@ class Component extends DCLogic {
           return out;
         };
         const classId = uuidOrNull(rec.vehicleClassId);
-        const keptVehicle = uuidOrNull(rec.defaultVehicleId);
+        // The Car field is the truth once the form carries it: "No car" clears the car even though
+        // the record still holds the old one under the legacy "vehicle" key.
         const legacyVehicle = uuidOrNull(rec.vehicle);
-        const vehicleId = keptVehicle || (legacyVehicle && legacyVehicle !== classId ? legacyVehicle : null);
+        const vehicleId = Object.prototype.hasOwnProperty.call(rec, 'defaultVehicleId')
+          ? uuidOrNull(rec.defaultVehicleId)
+          : (legacyVehicle && legacyVehicle !== classId ? legacyVehicle : null);
         const payload = Object.assign({}, rec, {
           vehicleClassId: classId,
           vehicleClassName: (classId && classNameById[classId]) || rec.vehicleClassName || '',

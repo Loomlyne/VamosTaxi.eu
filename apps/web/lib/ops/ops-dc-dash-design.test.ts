@@ -417,6 +417,8 @@ describe("3 · each driver has his own car", () => {
     const win = {
       VamosOps: {
         onAny: on,
+        VEHICLE_STATUS: ["service", "idle", "workshop"],
+        VEHICLE_CLASSES: ["Economy", "Business", "Van luxury"],
         vehicles: {
           all: () => [
             { id: ECON_CAR, klass: "Economy", model: "Toyota Corolla", plate: "ZH 123 456" },
