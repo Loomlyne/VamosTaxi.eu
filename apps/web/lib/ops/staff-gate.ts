@@ -46,11 +46,6 @@ export function amrMethodsOf(amr: ReadonlyArray<AmrLike> | null | undefined): st
   return out;
 }
 
-/** The session was signed in with a passkey. Only GoTrue's exact `passkey` method counts. */
-export function isPasskeySession(amr: ReadonlyArray<AmrLike> | null | undefined): boolean {
-  return amrMethodsOf(amr).includes("passkey");
-}
-
 /** The gate decision for one request. See the file header for the rules. */
 export function staffGateDecision(input: StaffGateInput): StaffGateDecision {
   if (input.role !== "admin") return "deny";

@@ -24,7 +24,7 @@
     "push": "supabase db push --include-seed",
     "link": "supabase link --project-ref ${SUPABASE_PROJECT_ID:-yaumjzvylngfjhtuffqs}",
     "typecheck": "tsc --noEmit",
-    "test": "node -e \"console.log('@vamos/db unit')\" && vitest run test/local/identity-contract.test.ts",
+    "test": "node -e \"console.log('@vamos/db unit')\" && vitest run test/local/identity-contract.test.ts test/fixtures/leak-check.test.ts",
     "test:local": "vitest run test/local",
     "test:deployed": "vitest run test/deployed",
     "mutation-gate": "node scripts/mutation-gate.mjs",

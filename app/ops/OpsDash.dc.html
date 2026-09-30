@@ -282,14 +282,11 @@ class Component extends DCLogic {
     const moneyBookings = bookings.filter((b) => b.capturedAt && inPeriod(zurichYmdFromIso(b.capturedAt), periodKey, today));
     const capturedCount = moneyBookings.length;
     const avgRappen = capturedCount ? Math.round(incomeRappen / capturedCount) : 0;
-    const zeroMoney = fareLabel(0);
     const onShift = chauffeurs.filter((c) => c.status === 'shift').length;
     const pickups = periodBookings.filter((b) => b.status !== 'cancelled' && b.status !== 'refunded').length;
-    const unassignedPaid = periodBookings.filter((b) => b.paid && !b.driver && b.status !== 'cancelled' && b.status !== 'completed').length;
-    const extraRappen = moneyBookings.reduce((n, b) => n + (Number(b.extraRappen) || 0), 0);
+    const unassignedPaid = periodBookings.filter((b) => b.paid && !b.driver && ['cancelled', 'refunded', 'completed', 'no-show', 'no_show'].indexOf(b.status) === -1).length;
     const unpaidPending = periodBookings.filter((b) => b.payLinkSent && !b.paid && b.status !== 'cancelled' && b.status !== 'refunded' && b.status !== 'completed').length;
     const pendingEdits = periodBookings.filter((b) => b.paid && b.pendingEditId).length;
-    const moneyInExtra = [];
     const refundLines = Array.isArray(money.refunds) ? money.refunds : [];
     const moneyOut = refundLines.map((r) => ({
       label: [r.customer, r.booking].filter(Boolean).join(' · '),
@@ -322,7 +319,7 @@ class Component extends DCLogic {
       income: MONEY_IN_CLASSES.map((label) => ({
         label,
         amount: fareLabel(moneyBookings.filter((b) => b.klass === label).reduce((n, b) => n + (Number(b.totalRappen) || 0), 0)),
-      })).concat(moneyInExtra),
+      })),
       expenses: moneyOut,
       attention: [
         { icon:'triangle-alert', title:'Unassigned bookings', note:'Paid, no chauffeur yet', count:String(unassignedPaid), href:'/bookings?filter=Unassigned' },
