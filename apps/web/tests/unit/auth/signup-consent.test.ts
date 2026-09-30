@@ -10,6 +10,9 @@ vi.mock("@opennextjs/cloudflare", async () => (await import("./harness")).cloudf
 vi.mock("next/headers", async () => (await import("./harness")).headersMock);
 vi.mock("@supabase/ssr", async () => (await import("./harness")).ssrMock);
 vi.mock("@/lib/db/identity", () => ({
+  asSystem: async (_env: unknown, fn: (tx: unknown) => Promise<void>) => {
+    await fn(async () => []);
+  },
   asCustomer: async (_env: unknown, claims: unknown, fn: (tx: unknown) => Promise<void>) => {
     if (db.fail) throw new Error("db down");
     db.claims.push(claims);
@@ -76,7 +79,7 @@ describe("sign-up sets no consent flag", () => {
     const signUp = vi.fn(async (..._a: unknown[]) => ({ error: null }));
     state.auth.signUp = signUp as never;
     await POST(
-      authPost({ mode: "signup", method: "password", email: "a@b.co", password: "12345678", firstName: "A", lastName: "B" }),
+      authPost({ mode: "signup", method: "password", email: "a@b.co", password: "12345678", firstName: "A", lastName: "B", consent: true }),
     );
     expect((signUp.mock.calls[0]?.[0] as { options: { data: object } }).options.data).not.toHaveProperty("signup_consent");
   });
@@ -84,7 +87,7 @@ describe("sign-up sets no consent flag", () => {
   it("magic-link sign-up sets none either", async () => {
     const otp = vi.fn(async (..._a: unknown[]) => ({ error: null }));
     state.auth.signInWithOtp = otp as never;
-    await POST(authPost({ mode: "signup", method: "magic", email: "a@b.co", firstName: "A", lastName: "B" }));
+    await POST(authPost({ mode: "signup", method: "magic", email: "a@b.co", firstName: "A", lastName: "B", consent: true }));
     expect((otp.mock.calls[0]?.[0] as { options: { data: object } }).options.data).not.toHaveProperty("signup_consent");
   });
 });

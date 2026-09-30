@@ -16,7 +16,8 @@
     "packages/db/test/fixtures/two-customers.ts",
     "apps/web/tests/integration/checkout-server-db.spec.ts",
     "apps/web/tests/integration/intent-supersede-db.spec.ts",
-    "apps/web/tests/integration/extras-charged-recorded-db.spec.ts"
+    "apps/web/tests/integration/extras-charged-recorded-db.spec.ts",
+    "packages/db/test/local/signup-agreement.test.ts"
   ],
 
   "_allowed_reserve_comment": "Files permitted to call `.reserve()` (interfaces ban #3, Pitfall 9). `sql.reserve()` pins one physical backend so a residue bug fails 100% of the time locally instead of only when Hyperdrive happens to reuse a backend (D-16) -- banned everywhere in apps/** on purpose.",
@@ -40,7 +41,8 @@
     "packages/db/test/local/connection-reuse.test.ts",
     "packages/db/test/local/worker-arrays.test.ts",
     "packages/db/test/local/checkout-account.test.ts",
-    "apps/web/lib/db/system-reads.local.test.ts"
+    "apps/web/lib/db/system-reads.local.test.ts",
+    "packages/db/test/local/signup-agreement.test.ts"
   ],
 
   "_allowed_session_set_comment": "Files permitted a `set_config(..., false)` call or a bare `SET ROLE`/`SET SESSION` (interfaces ban #6). apps/isolation-probe/src/index.ts's `bindIdentity()` helper deliberately reproduces the session-scoped (non-transaction-local) SET for NC1/NC2/`session` (D-17); connection-reuse.test.ts's one occurrence is the same negative-control shape reproduced locally. packages/db/src/identity.ts's `resetPooledSession` is the D-01 checkout sanitizer (Hyperdrive RESET is not trusted) -- session-scoped clears of leftover identity GUCs, not a request identity bind.",
@@ -61,7 +63,8 @@
     "apps/web/lib/public/reviews.ts",
     "apps/web/lib/ops/coupons.test.ts",
     "apps/web/lib/ops/pricing.test.ts",
-    "apps/web/lib/ops/staff.test.ts"
+    "apps/web/lib/ops/staff.test.ts",
+    "apps/web/lib/auth/signup-agreement.ts"
   ],
 
   "_isolate_memoisation_exempt_comment": "U31/ISOL-08 CI-grep half (plan 05-23): files under apps/web/app or apps/web/lib permitted a module-scope Map/Set/WeakMap/WeakSet, unstable_cache, React.cache, or 'use cache'. Starts empty; the one named entry is BODY_ALLOW_KEYS in quote/errors.ts — a frozen JSON-key allow-list, not a request-scoped cache. Test trees are excluded structurally in the checker, not here.",
