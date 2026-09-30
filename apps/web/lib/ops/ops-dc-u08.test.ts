@@ -324,3 +324,165 @@ describe("OpsDetail history time", () => {
     expect(eventWhen(null)).toBe("");
   });
 });
+
+// ── OpsSupportTicket (released to this unit 2026-09-30, after Phase 20 made it read-only) ──
+// The whole script block runs here against a stub DCLogic, so the tests drive the real methods.
+type Ticket = {
+  id: string; ticketId: string; status: string; name: string; email: string; phone: string;
+  bookingRef: string; locale: string; when: string; last: string; note: string; messages: unknown[];
+};
+type SupportComp = {
+  state: { tickets: Ticket[]; openId: string | null; overlayError: boolean; loadError: boolean };
+  hydrate(): void;
+  componentDidMount(): void;
+  openTicket(id: string): void;
+  closeOverlay(): void;
+  closeTicket(): void;
+  setNote(e: { target: { value: string } }): void;
+  saveNote(): void;
+  setState(patch: Record<string, unknown>): void;
+  renderVals(): { thread: { from: string; who: string }[] };
+};
+type ApiAnswer = { ok: boolean; data?: unknown };
+
+function supportHarness(api: (method: string, path: string, body?: unknown) => ApiAnswer) {
+  const src = readDc("OpsSupportTicket.dc.html");
+  const script = grab(src, /<script type="text\/x-dc" data-dc-script[^>]*>\n([\s\S]*?)\n<\/script>/, "support script");
+  class DCLogic {
+    props: Record<string, unknown> = {};
+    state: Record<string, unknown> = {};
+    setState(patch: Record<string, unknown>, done?: () => void) {
+      this.state = { ...this.state, ...patch };
+      if (done) done();
+    }
+    forceUpdate() {}
+  }
+  const badges: number[] = [];
+  const win: Record<string, unknown> = {
+    VamosOpsApi: { request: (m: string, p: string, b?: unknown) => Promise.resolve(api(m, p, b)) },
+    addEventListener: () => undefined,
+    removeEventListener: () => undefined,
+    dispatchEvent: (e: { detail: { newCount: number } }) => badges.push(e.detail.newCount),
+    matchMedia: () => ({ matches: false }),
+  };
+  const doc = { addEventListener: () => undefined, removeEventListener: () => undefined, visibilityState: "visible", querySelector: () => null };
+  class FakeEvent {
+    detail: unknown;
+    constructor(_name: string, init: { detail: unknown }) {
+      this.detail = init.detail;
+    }
+  }
+  const Component = new Function(
+    "DCLogic", "window", "document", "requestAnimationFrame", "CustomEvent",
+    `${script}\nreturn Component;`,
+  )(DCLogic, win, doc, (fn: () => void) => fn(), FakeEvent) as new () => SupportComp;
+  const settle = async () => {
+    for (let i = 0; i < 6; i++) await Promise.resolve();
+  };
+  return { comp: new Component(), win, badges, settle };
+}
+
+function serverTicket(over: Partial<Ticket> = {}): Ticket {
+  return {
+    id: "t1", ticketId: "T-1", status: "open", name: "Ada Example", email: "ada@example.com", phone: "",
+    bookingRef: "", locale: "en", when: "", last: "", note: "", messages: [], ...over,
+  };
+}
+
+describe("OpsSupportTicket unsaved fields", () => {
+  it("a refresh (window focus, tab back in view) keeps what was typed and not saved yet", async () => {
+    const { comp, settle } = supportHarness((m) => (m === "GET" ? { ok: true, data: [serverTicket()] } : { ok: true }));
+    comp.hydrate();
+    await settle();
+    comp.openTicket("t1");
+    comp.setNote({ target: { value: "call back at five" } });
+    comp.hydrate(); // what the focus and visibilitychange handlers do
+    await settle();
+    expect(comp.state.tickets[0]?.note).toBe("call back at five");
+  });
+
+  it("after Save the server copy is the truth again, and closing the ticket drops an unsaved edit", async () => {
+    let stored = "";
+    const { comp, settle } = supportHarness((m, _p, body) => {
+      if (m === "PATCH") stored = String((body as { note?: string }).note ?? stored);
+      return m === "GET" ? { ok: true, data: [serverTicket({ note: stored })] } : { ok: true };
+    });
+    comp.hydrate();
+    await settle();
+    comp.openTicket("t1");
+    comp.setNote({ target: { value: "first note" } });
+    comp.saveNote();
+    await settle();
+    stored = "edited elsewhere";
+    comp.hydrate();
+    await settle();
+    expect(comp.state.tickets[0]?.note).toBe("edited elsewhere");
+
+    comp.setNote({ target: { value: "never saved" } });
+    comp.closeOverlay();
+    comp.hydrate();
+    await settle();
+    expect(comp.state.tickets[0]?.note).toBe("edited elsewhere");
+  });
+});
+
+describe("OpsSupportTicket close that the server refuses", () => {
+  it("puts the ticket back to its status and the badge back to its count", async () => {
+    const { comp, badges, settle } = supportHarness((m) =>
+      m === "GET" ? { ok: true, data: [serverTicket({ status: "open" })] } : { ok: false },
+    );
+    comp.hydrate();
+    await settle();
+    comp.openTicket("t1");
+    comp.closeTicket();
+    await settle();
+    expect(comp.state.overlayError).toBe(true);
+    expect(comp.state.tickets[0]?.status).toBe("open");
+    expect(badges[badges.length - 1]).toBe(1);
+  });
+});
+
+describe("OpsSupportTicket sidebar badge", () => {
+  it("opening Support does not wipe the count before the tickets have loaded", async () => {
+    const { comp, win, badges, settle } = supportHarness(() => ({ ok: false }));
+    win.__vamosSupportNew = 3;
+    comp.componentDidMount();
+    await settle();
+    expect(comp.state.loadError).toBe(true);
+    expect(win.__vamosSupportNew).toBe(3);
+    expect(badges).toEqual([]);
+  });
+
+  it("a loaded list still sets it: new and open tickets only", async () => {
+    const { comp, win, settle } = supportHarness(() => ({
+      ok: true,
+      data: [serverTicket({ id: "a", status: "new" }), serverTicket({ id: "b", status: "open" }), serverTicket({ id: "c", status: "closed" })],
+    }));
+    comp.componentDidMount();
+    await settle();
+    expect(win.__vamosSupportNew).toBe(2);
+  });
+});
+
+describe("OpsSupportTicket staff message label", () => {
+  it("without a profile name it is the copy-table word for the language, not a fixed person's name", async () => {
+    const staffMsg = { whoKey: "staff", when: "", body: "We will call you.", files: [] };
+    const { comp, settle } = supportHarness(() => ({ ok: true, data: [serverTicket({ messages: [staffMsg] })] }));
+    comp.hydrate();
+    await settle();
+    comp.openTicket("t1");
+    expect(comp.renderVals().thread[0]?.who).toBe("Dispatcher");
+    comp.setState({ lang: "de" });
+    expect(comp.renderVals().thread[0]?.who).toBe("Disponent");
+  });
+
+  it("with a profile name it is that name", async () => {
+    const staffMsg = { whoKey: "staff", when: "", body: "We will call you.", files: [] };
+    const { comp, win, settle } = supportHarness(() => ({ ok: true, data: [serverTicket({ messages: [staffMsg] })] }));
+    win.VamosOps = { profile: { get: () => ({ name: "Ada Admin" }) } };
+    comp.hydrate();
+    await settle();
+    comp.openTicket("t1");
+    expect(comp.renderVals().thread[0]?.who).toBe("Ada Admin");
+  });
+});

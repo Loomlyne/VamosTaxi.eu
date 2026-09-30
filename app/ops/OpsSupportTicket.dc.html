@@ -404,6 +404,13 @@ function cloneTickets(rows) {
     })),
   }));
 }
+/* What the admin typed into the open ticket (phone, booking reference, note) and has not saved.
+   The list is reloaded on window focus, when the tab comes back, and after every save; without
+   this the reload put the server copy over the typing. */
+function keepDraft(rows, draft) {
+  if (!draft || !draft.id) return rows;
+  return rows.map((t) => t.id === draft.id ? Object.assign({}, t, draft.fields) : t);
+}
 function stamp() {
   const p = {};
   new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Zurich', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })
@@ -425,14 +432,14 @@ function adminName() {
     const p = ops && ops.profile && typeof ops.profile.get === 'function' ? ops.profile.get() : {};
     if (p && (p.name || p.fullName)) return p.name || p.fullName;
   } catch (err) {}
-  return 'Koussay';
+  return '';
 }
 function ticketHay(row) {
   const parts = [row.ticketId, row.name, row.email, row.phone, row.bookingRef, row.locale, row.note];
   (row.messages || []).forEach((m) => { parts.push(m.body); });
   return parts.join(' ').toLowerCase();
 }
-function fileItems(ticketId, files) {
+function fileItems(files) {
   const list = Array.isArray(files) ? files : [];
   const out = [];
   for (let i = 0; i < list.length; i++) {
@@ -484,7 +491,7 @@ class Component extends DCLogic {
         this.setState({ loadError: true });
         return;
       }
-      const tickets = cloneTickets(json.data);
+      const tickets = keepDraft(cloneTickets(json.data), this._draft);
       this.setState({ tickets: tickets, loadError: false }, () => {
         publishBadge(tickets);
         if (this.state.openId) requestAnimationFrame(() => this.scrollThread());
@@ -500,8 +507,9 @@ class Component extends DCLogic {
     document.addEventListener('visibilitychange', this._onVis);
     if (window.VamosLocale) this.setState({ lang: window.VamosLocale.lang() });
     if (opsPhone() && this.state.view === 'kanban') this.setState({ view: 'table' });
+    // The badge is set when the list has loaded (hydrate). Publishing the empty start list here
+    // showed "no tickets" until then, and for good when the load failed.
     this.hydrate();
-    publishBadge(this.state.tickets);
   }
   componentDidUpdate() {
     if (!this._focusTable) return;
@@ -519,8 +527,6 @@ class Component extends DCLogic {
   }
   setFilter = (key) => this.setState({ filter: key || 'all', filterOpen: false });
   toggleMeta = () => { if (!opsHand()) return; this.setState({ metaOpen: !this.state.metaOpen }); };
-  setKanban = () => this.setState({ view: 'kanban' });
-  setTable = () => this.setState({ view: 'table' });
   setView = (v) => this.setState({ view: v === 'table' ? 'table' : 'kanban' });
   setQuery = (e) => this.setState({ query: e && e.target ? e.target.value : '' });
   toggleSort = (status) => {
@@ -543,6 +549,8 @@ class Component extends DCLogic {
     const id = this.state.openId;
     if (!id) return;
     const tickets = this.state.tickets.map((t) => t.id === id ? Object.assign({}, t, { [key]: val }) : t);
+    const held = this._draft && this._draft.id === id ? this._draft.fields : {};
+    this._draft = { id: id, fields: Object.assign({}, held, { [key]: val }) };
     this.setState({ tickets: tickets });
   };
   setPhone = (e) => this.patchOpen('phone', e && e.target ? e.target.value : '');
@@ -553,17 +561,20 @@ class Component extends DCLogic {
     if (!id) return;
     const row = this.state.tickets.find((t) => t.id === id);
     if (!row) return;
+    // Saved: the server copy is the truth again, unless more was typed while the save was on its way.
+    const sent = this._draft;
     this.persistTicket(id, {
       phone: row.phone || '',
       booking_ref: row.bookingRef || '',
       note: String(row.note || '').trim(),
-    });
+    }, null, () => { if (this._draft === sent) this._draft = null; });
   };
-  persistTicket = (id, payload, onFail) => {
+  persistTicket = (id, payload, onFail, onOk) => {
     const api = window.VamosOpsApi;
     if (!api || typeof api.request !== 'function' || !id) return;
     api.request('PATCH', '/api/staff/tickets/' + id, payload).then((json) => {
       if (json && json.ok) {
+        if (typeof onOk === 'function') onOk();
         this.setState({ overlayError: false });
         this.hydrate();
         return;
@@ -597,6 +608,7 @@ class Component extends DCLogic {
   };
   openRow = (row) => { if (row && row.id) this.openTicket(row.id); };
   closeOverlay = () => {
+    this._draft = null;
     this.setState({ openId: null, overlayError: false });
   };
   scrollThread = () => {
@@ -612,7 +624,12 @@ class Component extends DCLogic {
     const tickets = this.state.tickets.map((t) => t.id === id ? Object.assign({}, t, { status: 'closed', last: stamp() }) : t);
     this.setState({ tickets: tickets });
     publishBadge(tickets);
-    this.persistTicket(id, { status: 'closed' }, () => this.setState({ overlayError: true }));
+    // Refused or lost: back to what it was, the same way reopen and first-open undo themselves.
+    this.persistTicket(id, { status: 'closed' }, () => {
+      const reverted = this.state.tickets.map((t) => t.id === id ? Object.assign({}, t, { status: current.status, last: current.last }) : t);
+      this.setState({ tickets: reverted, overlayError: true });
+      publishBadge(reverted);
+    });
   };
   reopenTicket = () => {
     const id = this.state.openId;
@@ -634,7 +651,7 @@ class Component extends DCLogic {
     const oneStatus = filter !== 'all';
     const view = (oneStatus || opsPhone()) ? 'table' : (this.state.view === 'table' ? 'table' : 'kanban');
     const labels = { new: t.new, open: t.open, replied: t.replied, responded: t.responded, closed: t.closed };
-    const whoStaff = adminName();
+    const whoStaff = adminName() || t.staff;
     const whoLabel = { customer: t.customer, staff: whoStaff, note: t.noteWho };
     const filterOptions = [{ value: 'all', label: t.all }].concat(STATUSES.map((k) => ({ value: k, label: labels[k] })));
     const q = String(this.state.query || '').trim().toLowerCase();
@@ -671,12 +688,12 @@ class Component extends DCLogic {
     });
     const phoneDigits = open ? digitsOf(open.phone) : '';
     return {
-      yes: true, n16: 16, n18: 18, n3: 3, n6: 6,
-      tTitle: t.title, tSubtitle: t.subtitle, tEmptyTitle: t.emptyTitle, tEmptyBody: t.emptyBody,
-      tStatus: t.status, tClose: t.close, tCloseTicket: t.closeTicket, tReopen: t.reopen, tKanban: t.kanban, tTable: t.table, tColEmpty: t.colEmpty, tSeeAll: t.seeAll,
+      yes: true, n16: 16,
+      tTitle: t.title, tSubtitle: t.subtitle,
+      tCloseTicket: t.closeTicket, tReopen: t.reopen, tColEmpty: t.colEmpty, tSeeAll: t.seeAll,
       tAnswer: t.answer, tMailHint: t.mailHint, tClosedBody: t.closedBody, tLoadError: t.loadError, tSendError: t.sendError,
       tTicket: t.ticket, tChannel: t.channel, tChannelForm: t.channelForm, tOpened: t.opened, tLastAct: t.lastAct,
-      tBooking: t.booking, tBookingPh: t.bookingPh, tMsgs: t.msgs, tMail: t.mail, tCall: t.call, tWhatsApp: t.whatsApp,
+      tBooking: t.booking, tBookingPh: t.bookingPh, tMail: t.mail, tCall: t.call, tWhatsApp: t.whatsApp,
       tPhone: t.phone, tPhonePh: t.phonePh, tNote: t.note, tNotePh: t.notePh, tSearchPh: t.searchPh, tFilter: t.filter,
       tSaveNote: t.saveNote, metaOpenAttr: opsHand() ? (this.state.metaOpen ? '1' : '0') : '1',
       showMetaToggle: opsHand(),
@@ -692,12 +709,11 @@ class Component extends DCLogic {
         { label: t.cntMsgs, value: String(nMsgs), icon: 'message-circle', foot: t.footMsgs },
         { label: t.cntAll, value: String(this.state.tickets.length), icon: 'users', foot: t.footAll },
       ],
-      isEmpty: false,
       showKanban: !this.state.loadError && view === 'kanban',
       showTable: !this.state.loadError && view === 'table',
       tView: t.view, view: view,
       viewOptions: [{ value: 'table', label: t.table }, { value: 'kanban', label: t.kanban }],
-      setKanban: this.setKanban, setTable: this.setTable, setView: this.setView,
+      setView: this.setView,
       columns: columns,
       tableColumns: [
         { key:'name', header: t.colName },
@@ -731,9 +747,6 @@ class Component extends DCLogic {
       openBooking: open ? (open.bookingRef || '') : '',
       openNote: open ? (open.note || '') : '',
       openLocale: open && open.locale ? String(open.locale).toUpperCase() : '',
-      openMsgCount: open ? t.msgCount.replace('%n', String(open.messages.length)) : '',
-      openStatus: open ? open.status : 'new',
-      openStatusLabel: open ? (labels[open.status] || open.status) : '',
       setPhone: this.setPhone,
       setBooking: this.setBooking,
       setNote: this.setNote,
@@ -744,7 +757,7 @@ class Component extends DCLogic {
       reopenTicket: this.reopenTicket,
       thread: open ? open.messages.map((m) => ({
         from: m.whoKey, who: whoLabel[m.whoKey] || m.whoKey, when: m.when, body: m.body,
-        files: fileItems(open.id, m.files),
+        files: fileItems(m.files),
       })) : [],
     };
   }
