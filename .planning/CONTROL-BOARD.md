@@ -219,11 +219,23 @@ Built by the 26.3 session as `fix/26.4.2-booking-feedback` (folder `fix-26.4.2`)
 | Checkout, flight edit: when Turnstile challenges the re-quote, no challenge is shown and the price stays on "Updating price" (`CheckoutForm.tsx` flightBlur) | Confirmed in code by the control session. Not reproduced on live. Sent to the 26.3 session to fix inside 26.4.2. |
 | The public pages (mocks) carry no hreflang links in their HTML | For the owner. Not assigned. Search engines cannot tell the language versions apart. |
 
-## Follow-up jobs, not assigned
+## Shipped on 2026-09-30
+
+| Time | What | main | Worker |
+|---|---|---|---|
+| 12:22 | 26.4.2 booking feedback | `37ba5b62` | `59c18372` |
+| 12:38 | Phase 20 batch A (security), two migrations | `e8aaad0b` | `a0d38f64` |
+| 12:46 | SEO: head, favicon, share picture, sitemap, one address per language | `5b394833` | `64be5312` |
+
+SEO live read: `/`, `/de`, `/fr`, `/ar`, `/de/faq`, `/ar/faq`, `/fr/about` 200 with the right language, title, canonical and hreflang; sitemap 36 addresses; favicon, share picture, manifest 200; the language switch moves the address; checkout follows the language. Three differences from its hand-over went back to the SEO session: the dashboard address still serves the public robots file; language addresses are served uncached; a stored language and the cookie can disagree. Tests in 26.0's folder that expect the old redirect are red until 26.0 updates them.
+
+## Follow-up jobs
 
 | Job | From |
 |---|---|
-| Serve a smaller version of each class photo (today 2.3 to 2.8 MB PNG each, about 7.6 MB on the laptop home) | Owner decision 10 of 26.4.2, 2026-09-30 |
+| Serve a smaller version of each class photo (today 2.3 to 2.8 MB PNG each, about 7.6 MB on the laptop home) | **Started** by the owner in the 26.4.2 session: folder `class-photo-small`, branch `feat/class-photo-small`. Design note and signature first. Migration block `20261006100000` to `190000`. |
+| The Arabic font file from Google is blocked by our own security header, so Arabic pages use the fallback font | Control session, 2026-09-30. Passed to Phase 20. |
+| Dashboard screen files can be opened on the public address (layout only, no data) | Phase 20 F16, goes into batch C |
 | Cloudflare Web Analytics script is blocked by our own security header on every page (seen in the browser console; older than this ship) | Control session, 2026-09-30 |
 
 ## Owed by the control session
