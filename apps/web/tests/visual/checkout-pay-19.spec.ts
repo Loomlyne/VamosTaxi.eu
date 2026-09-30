@@ -496,10 +496,17 @@ test("Have an account? Sign in carries class and extras in returnTo; voucher, co
   await page.locator("#co-note-panel textarea").fill("Gate 3");
   await fillContact(page);
 
-  const link = page.locator("[data-co-sign-in]");
-  const href = (await link.getAttribute("href"))!;
-  expect(href.startsWith("/sign-in?returnTo=")).toBe(true);
-  const returnTo = decodeURIComponent(href.slice("/sign-in?returnTo=".length));
+  // 26.5: the header link is replaced by the Sign in option; its link request carries the
+  // returnTo, and sending it parks voucher, company and note in this tab.
+  const authBodies: { returnTo?: string }[] = [];
+  await page.route("**/api/auth", async (route) => {
+    authBodies.push(JSON.parse(route.request().postData() ?? "{}") as { returnTo?: string });
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, stage: "sent" }) });
+  });
+  await page.locator('[data-acct-option="signin"]').click();
+  await page.locator("[data-acct-signin='form'] [data-acct-action]").click();
+  await expect(page.locator("[data-acct-signin='sent']")).toBeVisible();
+  const returnTo = authBodies.at(-1)!.returnTo!;
   expect(returnTo.startsWith("/checkout?")).toBe(true);
   const params = new URLSearchParams(returnTo.split("?")[1]);
   expect(params.get("class")).toBe("business");
@@ -507,9 +514,6 @@ test("Have an account? Sign in carries class and extras in returnTo; voucher, co
   expect(params.get("when")).toBe("2026-12-15T08:15");
   expect(returnTo).not.toMatch(/Amira|amira|41796|Keller/);
 
-  // Click without leaving; read what was parked for this tab.
-  await link.evaluate((el) => el.addEventListener("click", (e) => e.preventDefault(), { once: true }));
-  await link.click();
   const stash = await page.evaluate(() => window.sessionStorage.getItem("vamosCheckoutReturn"));
   expect(JSON.parse(stash!)).toMatchObject({ voucher: "SPRING10", company: { name: "Vamos AG" }, note: "Gate 3" });
   expect(stash).not.toMatch(/amira|Keller|41796/);
@@ -561,7 +565,7 @@ for (const lang of ["de", "fr", "ar"] as const) {
     const keys = [
       "who-is-travelling",
       "payment",
-      "signInLink",
+      "acctKicker",
       "discCompany",
       "discNote",
       "methodNote",
@@ -598,14 +602,6 @@ for (const lang of ["de", "fr", "ar"] as const) {
       expect(await height(page.locator('[data-co-contact] input[autocomplete="given-name"]').locator("xpath=.."))).toBeGreaterThanOrEqual(54);
       await expect(pay(page)).toHaveCount(1);
       await noSidewaysScroll(page);
-      if (lang === "ar") {
-        // the sign-in link sits at the inline end: the left side in RTL at 1440
-        if (width === 1440) {
-          const head = await page.locator('[data-co-section="2"] header').boundingBox();
-          const aside = await page.locator("[data-co-sign-in]").boundingBox();
-          expect(aside!.x + aside!.width / 2).toBeLessThan(head!.x + head!.width / 2);
-        }
-      }
       await page.screenshot({ path: join(process.env.TMPDIR ?? "/tmp", `26.3-19-${lang}-${width}.png`), fullPage: true });
     }
   });

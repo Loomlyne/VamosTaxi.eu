@@ -104,6 +104,8 @@ export default defineConfig({
           "**/account-i18n-coverage-26-3.spec.ts",
           "**/locale-follow-26-3.spec.ts",
           "**/checkout-sections.spec.ts",
+          "**/checkout-account.spec.ts",
+          "**/checkout-other-device-265.spec.ts",
           "**/pay-link-page.spec.ts",
           "**/confirmation.spec.ts",
           "**/confirmation-poll.spec.ts",

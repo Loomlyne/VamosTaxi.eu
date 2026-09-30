@@ -327,6 +327,113 @@ test.describe("Home bar and sheet @component", () => {
     await expect(page.locator("[data-bar-dock]")).toHaveAttribute("data-show", "1");
   });
 
+  test("after the sheet closes the page scrolls again: Lenis is running and the wheel moves the page @component", async ({ page }) => {
+    test.skip(width(page) > 1080, "tablet and phone only");
+    await openHome(page);
+    for (const how of ["escape", "close", "back"] as const) {
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await openSheet(page);
+      if (how === "escape") await page.keyboard.press("Escape");
+      else if (how === "close") await sheet(page).locator("[data-bs-head] button").last().click();
+      else await page.goBack();
+      await expect(sheet(page)).toHaveCount(0);
+      await page.waitForTimeout(300);
+      const st = await page.evaluate(() => ({
+        cls: document.documentElement.className,
+        de: getComputedStyle(document.documentElement).overflowY,
+        body: getComputedStyle(document.body).overflowY,
+        stopped: (window as unknown as { __vtLenis?: { isStopped: boolean } }).__vtLenis?.isStopped ?? null,
+      }));
+      expect(st.cls, how).not.toContain("lenis-stopped");
+      expect(["visible", "auto", "scroll"], `${how} html ${st.de}`).toContain(st.de);
+      expect(["visible", "auto", "scroll"], `${how} body ${st.body}`).toContain(st.body);
+      if (st.stopped !== null) expect(st.stopped, how).toBe(false);
+      await page.mouse.move(200, 300);
+      await page.mouse.wheel(0, 600);
+      await expect.poll(() => page.evaluate(() => window.scrollY), { message: how }).toBeGreaterThan(200);
+    }
+  });
+
+  test("SEE PRICES then browser Back: the home page scrolls @component", async ({ page }) => {
+    test.skip(width(page) > 1080, "tablet and phone only");
+    await openHome(page);
+    await openSheet(page);
+    await pickFrom(page, "Fixture Street", "Fixture Street 1");
+    await pickTo(page, "Fixture Air", "Fixture Airport");
+    await fillWhen(page);
+    const nav = page.waitForURL(/\/checkout\?/);
+    await nextBtn(page).click();
+    await nav;
+    await page.goBack();
+    await waitForMockReady(page);
+    await expect(sheet(page)).toHaveCount(0);
+    await page.waitForTimeout(400);
+    const st = await page.evaluate(() => ({
+      cls: document.documentElement.className,
+      de: getComputedStyle(document.documentElement).overflowY,
+      body: getComputedStyle(document.body).overflowY,
+      inert: document.querySelectorAll("[inert]").length,
+    }));
+    expect(st.cls).not.toContain("lenis-stopped");
+    expect(["visible", "auto", "scroll"]).toContain(st.de);
+    expect(["visible", "auto", "scroll"]).toContain(st.body);
+    expect(st.inert).toBe(0);
+    await page.mouse.move(200, 300);
+    await page.mouse.wheel(0, 600);
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(200);
+  });
+
+  test("with the keyboard up (visual viewport shrunk) the sheet still covers the page and the typed field stays visible @component", async ({ page }) => {
+    test.skip(width(page) > 1080, "tablet and phone only");
+    await openHome(page);
+    await openSheet(page);
+    const full = page.viewportSize()!.height;
+    // What the iPhone keyboard does: the visual viewport gets shorter, the layout viewport does not.
+    const shrink = (h: number, top: number) =>
+      page.evaluate(([hh, tt]) => {
+        const v = window.visualViewport!;
+        Object.defineProperty(v, "height", { configurable: true, get: () => hh });
+        Object.defineProperty(v, "offsetTop", { configurable: true, get: () => tt });
+        v.dispatchEvent(new Event("resize"));
+      }, [h, top]);
+    const to = sheet(page).locator('input[id$="-to"]');
+    await to.focus();
+    const vvh = Math.round(full * 0.45);
+    await shrink(vvh, 0);
+    await page.waitForTimeout(250);
+    const g = await page.evaluate(() => {
+      const r = (el: Element) => el.getBoundingClientRect();
+      const root = document.querySelector("[data-bs]")!, foot = document.querySelector("[data-bs-foot], [data-bs-next]")!;
+      const under = [40, 120, 200].map((dy) => !!document.elementFromPoint(window.innerWidth / 2, Math.min(window.innerHeight - 2, r(foot).bottom + dy))?.closest("[data-bs]"));
+      const f = r(document.activeElement!);
+      return { rootTop: r(root).top, rootBottom: r(root).bottom, footBottom: r(document.querySelector("[data-bs-next]")!).bottom, under, fTop: f.top, fBottom: f.bottom, ih: window.innerHeight, bg: getComputedStyle(root).backgroundColor };
+    });
+    // the sheet's own surface reaches the bottom of the screen: nothing of the home page under SEE PRICES
+    expect(g.rootTop).toBeLessThanOrEqual(1);
+    expect(g.rootBottom).toBeGreaterThanOrEqual(g.ih - 1);
+    expect(g.under).toEqual([true, true, true]);
+    // SEE PRICES and the field being typed in sit inside the visible part
+    expect(g.footBottom).toBeLessThanOrEqual(vvh + 1);
+    expect(g.fTop).toBeGreaterThanOrEqual(0);
+    expect(g.fBottom).toBeLessThanOrEqual(vvh + 1);
+    // iOS also pans the visual viewport: the content follows, the surface still covers everything
+    await shrink(vvh, 60);
+    await page.waitForTimeout(250);
+    const g2 = await page.evaluate(() => {
+      const root = document.querySelector("[data-bs]")!.getBoundingClientRect(), head = document.querySelector("[data-bs-head]")!.getBoundingClientRect(), next = document.querySelector("[data-bs-next]")!.getBoundingClientRect();
+      return { rootTop: root.top, rootBottom: root.bottom, headTop: head.top, nextBottom: next.bottom, ih: window.innerHeight };
+    });
+    expect(g2.rootTop).toBeLessThanOrEqual(1);
+    expect(g2.rootBottom).toBeGreaterThanOrEqual(g2.ih - 1);
+    expect(g2.headTop).toBeGreaterThanOrEqual(60 - 1);
+    expect(g2.nextBottom).toBeLessThanOrEqual(60 + vvh + 1);
+    // keyboard down again: the sheet is the full screen
+    await shrink(full, 0);
+    await page.waitForTimeout(250);
+    const nb = await page.evaluate(() => document.querySelector("[data-bs-next]")!.getBoundingClientRect().bottom);
+    expect(nb).toBeGreaterThan(full - 80);
+  });
+
   test("browser back closes the sheet in one press and the bar keeps the entry @component", async ({ page }) => {
     test.skip(width(page) > 1080, "tablet and phone only");
     await openHome(page);

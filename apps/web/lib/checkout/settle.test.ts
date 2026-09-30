@@ -128,6 +128,7 @@ function deps(patch: Partial<SettleDeps> = {}): SettleDeps & {
   settlePayment: ReturnType<typeof vi.fn>;
   eventSettle: ReturnType<typeof vi.fn>;
   deliverConfirmation: ReturnType<typeof vi.fn>;
+  provisionAccount: ReturnType<typeof vi.fn>;
   refund: ReturnType<typeof vi.fn>;
   recordDuplicateRefund: ReturnType<typeof vi.fn>;
   alertPaidAfterCancel: ReturnType<typeof vi.fn>;
@@ -144,6 +145,7 @@ function deps(patch: Partial<SettleDeps> = {}): SettleDeps & {
   const settlePayment = vi.fn(async () => settleRow());
   const eventSettle = vi.fn(async () => undefined);
   const deliverConfirmation = vi.fn(async () => undefined);
+  const provisionAccount = vi.fn(async () => "created");
   const refund = vi.fn(async () => ({ id: "re_test_1" }));
   const recordDuplicateRefund = vi.fn(async () => undefined);
   const alertPaidAfterCancel = vi.fn(async () => undefined);
@@ -155,6 +157,7 @@ function deps(patch: Partial<SettleDeps> = {}): SettleDeps & {
     settlePayment,
     eventSettle,
     deliverConfirmation,
+    provisionAccount,
     refund,
     recordDuplicateRefund,
     alertPaidAfterCancel,
@@ -174,6 +177,7 @@ function deps(patch: Partial<SettleDeps> = {}): SettleDeps & {
     settlePayment: ReturnType<typeof vi.fn>;
     eventSettle: ReturnType<typeof vi.fn>;
     deliverConfirmation: ReturnType<typeof vi.fn>;
+    provisionAccount: ReturnType<typeof vi.fn>;
     refund: ReturnType<typeof vi.fn>;
     recordDuplicateRefund: ReturnType<typeof vi.fn>;
     alertPaidAfterCancel: ReturnType<typeof vi.fn>;
@@ -277,6 +281,56 @@ describe("handleStripeMessageWithDeps", () => {
     const result = await handleStripeMessageWithDeps(message(), d);
     expect(result).toEqual({ ack: true });
     expect(d.deliverConfirmation).toHaveBeenCalledTimes(1);
+  });
+
+  it("provisions the account once after the confirmation on a first settlement (26.5-05)", async () => {
+    const order: string[] = [];
+    const d = deps({
+      deliverConfirmation: vi.fn(async () => void order.push("mail")),
+      provisionAccount: vi.fn(async () => void order.push("account")),
+    });
+    expect(await handleStripeMessageWithDeps(message(), d)).toEqual({ ack: true });
+    expect(d.provisionAccount).toHaveBeenCalledTimes(1);
+    expect(d.provisionAccount).toHaveBeenCalledWith(expect.objectContaining({ booking_id: expect.any(String) }));
+    expect(order).toEqual(["mail", "account"]);
+  });
+
+  it("does not provision on already_settled or refund_required (26.5-05)", async () => {
+    const settled = deps({ settlePayment: vi.fn(async () => settleRow({ already_settled: true })) });
+    await handleStripeMessageWithDeps(message(), settled);
+    expect(settled.provisionAccount).not.toHaveBeenCalled();
+    const refunded = deps({
+      settlePayment: vi.fn(async () => settleRow({ refund_required: true, refund_reason: "duplicate_charge" })),
+    });
+    await handleStripeMessageWithDeps(message(), refunded);
+    expect(refunded.provisionAccount).not.toHaveBeenCalled();
+  });
+
+  it("a provisioning rejection or failed result still acks and emits with the booking id only (26.5-05)", async () => {
+    for (const provisionAccount of [
+      vi.fn(async () => {
+        throw new Error("boom mia@example.com");
+      }),
+      vi.fn(async () => "failed"),
+    ]) {
+      const emit = vi.fn();
+      const d = deps({ provisionAccount, emit });
+      expect(await handleStripeMessageWithDeps(message(), d)).toEqual({ ack: true });
+      expect(emit).toHaveBeenCalledWith("error", "account_provision_failed", {
+        bookingId: expect.any(String),
+      });
+      expect(JSON.stringify(emit.mock.calls)).not.toContain("mia@");
+    }
+  });
+
+  it("a confirmation mail failure does not stop the account step (26.5-05)", async () => {
+    const d = deps({
+      deliverConfirmation: vi.fn(async () => {
+        throw new Error("resend down");
+      }),
+    });
+    await handleStripeMessageWithDeps(message(), d);
+    expect(d.provisionAccount).toHaveBeenCalledTimes(1);
   });
 
   it("a confirmation e-mail failure acks like a success and emits an error (26.3 D-27)", async () => {

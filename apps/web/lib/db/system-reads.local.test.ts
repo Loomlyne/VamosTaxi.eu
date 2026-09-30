@@ -31,6 +31,7 @@ import {
   writeFlightNumber,
 } from "./system-reads";
 import { runReminder24h } from "../lifecycle/reminder";
+import { asSystem } from "./identity";
 
 const PORT = process.env["VAMOS_LOCAL_DB_PORT"];
 const REPO = join(__dirname, "..", "..", "..", "..");
@@ -113,7 +114,27 @@ describe.skipIf(!PORT)("system-role reads through the real asSystem (local, comm
 
       // the reminder job itself (its window is scheduledAt + 24 h .. + 25 h)
       const [lg] = await su<{ at: Date }[]>`select original_scheduled_at as at from public.booking_legs where booking_id = ${a!.id}`;
-      const res = await runReminder24h(env, new Date(lg!.at.getTime() - 24.5 * 3600_000));
+      // D-18 (26.5-11): paid bookings only. Fixture booking a is pending, so the definer, as the job
+      // sees it (asSystem, never raw table SQL), must not return it.
+      const scheduledAt = new Date(lg!.at.getTime() - 24.5 * 3600_000);
+      const from = new Date(scheduledAt.getTime() + 24 * 3600_000).toISOString();
+      const to = new Date(scheduledAt.getTime() + 25 * 3600_000).toISOString();
+      const candidateCount = () =>
+        asSystem(env, async (sql) => {
+          const r = await sql<{ n: number }[]>`
+            select count(*)::int as n from public.reminder_24h_candidates(${from}::timestamptz, ${to}::timestamptz)
+             where booking_id = ${a!.id}::uuid`;
+          return r[0]!.n;
+        });
+      expect(await candidateCount()).toBe(0);
+
+      // Confirm it as the superuser (replica role skips the status-rollup triggers, as the pgTAP sibling does).
+      await su.begin(async (tx) => {
+        await tx`set local session_replication_role = replica`;
+        await tx`update public.bookings set status = 'confirmed' where id = ${a!.id}`;
+      });
+      expect(await candidateCount()).toBe(1);
+      const res = await runReminder24h(env, scheduledAt);
       expect(res.selected).toBeGreaterThanOrEqual(1);
     } finally {
       await su.end({ timeout: 5 });
