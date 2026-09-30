@@ -9,9 +9,25 @@ Plan, the five texts, the answers and the picker design: signed by the owner 202
 Apply `20261005140000_refunds_by_hand.sql` and deploy the Worker back to back. An old Worker on the
 new database still refunds a customer cancel automatically once (never twice). The later live
 migration `20261007100000` only changes grants, so the order is safe.
-The three Next strings also live in the hosted `content_strings` table (keys
-`legal.tier-full-refund-automatic`, `checkout.cancelSheetFull`,
-`legal.automatic-full-refund-of-the-amount-we`): update them at ship, or the old wording can stay.
+**No content_strings update is needed (checked 2026-09-30, read-only):** the live Worker reads its
+texts from the bundled JSON. `CONTENT_SOURCE` is not a var in `apps/web/wrangler.jsonc` and not a
+secret on Worker `vamos`, so `lib/content/messages.ts` uses its default `json`. The live
+`content_strings` table is not used: 1,546 rows, last changed 2026-09-28 08:18 UTC, and none of
+the three keys (`legal.tier-full-refund-automatic`, `checkout.cancelSheetFull`,
+`legal.automatic-full-refund-of-the-amount-we`) exists there (queried by key and by the old English
+text: 0 rows). The mock pages read `app/vamos-i18n-dict.js`, also bundled. If `CONTENT_SOURCE=db`
+is ever switched on, that table must first be re-seeded from `packages/db/supabase/seed.sql`.
+
+### /cancellation mock, the only line that changes (`app/pages/cancellation.dc.html`, vs origin/main)
+
+```diff
+-<p style="font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Refunded automatically, in full, to the payment method you used. We send the refund when you cancel; your bank may take a few days to show it.</p>
++<p style="font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Refunded in full to the payment method you used. Our team sends the refund after you cancel; your bank may take a few days to show it.</p>
+```
+
+de, fr and ar come from `app/vamos-i18n-dict.js` (the entry keyed by the new English sentence),
+byte-identical to `.planning/decisions/2026-09-30-refunds-by-hand.md` (pinned by
+`apps/web/lib/legal/refund-texts-20-10.test.ts`).
 
 ## What changes for people
 
