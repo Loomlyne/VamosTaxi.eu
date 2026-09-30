@@ -1,6 +1,6 @@
 # Phase 27 hand-over: consent record
 
-Read this first. One gate is red and not ours: Worker e2e `a3` (see the table, row 17). The auth specs (18c) are closed, see the section below.
+Read this first. One gate is red and not ours: Worker e2e `a3` (see the table, row 17; still red after the 2026-10-01 second run, main did not fix it). The auth specs (18c) are closed, see the section below.
 
 ## Blocker closed: the two auth specs (was: red as committed)
 
@@ -16,47 +16,46 @@ Read this first. One gate is red and not ours: Worker e2e `a3` (see the table, r
 
 ## Final commit
 
-- Branch: `gsd/phase-27-consent-record` in `/Users/koss/Developer/vamos-wt/phase-27`. The hand-over commit `docs(27-14): gate run after the 2026-10-01 merge` is the tip (`git log -1`); the code tip before it is `46ab9d1e` (merge of origin/main `f37cc0b4`).
-- origin/main merged: `f37cc0b4373cf6c0cfbdd63aebe896529a2c199e`, no conflict (`git merge-base --is-ancestor origin/main HEAD` exits 0 after a fetch).
-- Ship day: 2026-10-01 (Zurich). `CONSENT_POLICY_VERSION` and `CONSENT_UPDATED` are both `2026-10-01` (b69d0593). `LEGAL_UPDATED` stays `2026-09-30`. If the ship slips, the control session moves both constants; a test forces them equal.
-- Lenis merge note: main removed Lenis from every mock and the Next pages (561d1647, native scrolling). The merge had no conflict in Phase 27 files. The banner still shows on mock /about: `consent-banner-27.spec.ts` case D passes in the browser, and so does case G (/de/about).
-- 78cb0e1b dev-binding note: `next.config.ts` passes the `staging` wrangler env to `initOpenNextCloudflareForDev` only when `VAMOS_DEV_WRANGLER_ENV` is set (opt-in, dev only; the default call is unchanged; `pnpm build` never selects it). The two auth specs set it. Pending the control session's yes or no to keep it.
+- Branch: `gsd/phase-27-consent-record` in `/Users/koss/Developer/vamos-wt/phase-27`. The hand-over commit `docs(27-14): gate run after merging main 0881800e` is the tip (`git log -1`); the code tip before it is `597ae9c0` (database.types.ts picks up main's `staff_extra_labels_prune`), on top of merge `a37cc45a`.
+- origin/main merged: `0881800e9082ea5dd211d5b2a0614864d6577b04` (merge commit `a37cc45a`; fetch shows origin/main unchanged, `git merge-base --is-ancestor origin/main HEAD` exits 0). The only conflict was `scripts/db-access-fence-allowlist.json`, both entries kept.
+- Ship day: 2026-10-01 (Zurich). `CONSENT_POLICY_VERSION` and `CONSENT_UPDATED` are both `2026-10-01`. `LEGAL_UPDATED` stays `2026-09-30`.
+- 78cb0e1b dev-binding note: `VAMOS_DEV_WRANGLER_ENV` opt-in in `next.config.ts`, dev only. Pending the control session's yes or no to keep it.
 - Nothing pushed, deployed or applied to the hosted database.
 
 ## Checks
 
-Gate run 2026-10-01 (00:15 to 00:45 Zurich) on the tree after the merge of `f37cc0b4`, once, by this plan only. Stack: local port 59322 only. Docker, port binds and the browser needed the sandbox off. All commands from `/Users/koss/Developer/vamos-wt/phase-27`.
+Gate run 2026-10-01 (02:30 to 03:10 Zurich), once, by this plan only, on the tree after merging main `0881800e`. Stack: local port 59322 only (stopped at the end). Docker, port binds and the browser needed the sandbox off. Migrations: 123 files replayed from zero in order.
 
-| # | Command | Result | On origin/main too? |
-|---|---|---|---|
-| 1 | `pnpm install --frozen-lockfile` | pass, already up to date | n/a |
-| 2 | `pnpm test:unit` | pass: web 304 files passed, 1 skipped, 3009 tests passed, 1 skipped; emails 12 files, 151 tests; db 2 files, 13 tests | n/a |
-| 3 | `bash scripts/local-stack-27.sh reset` (from-zero replay) | pass: 120 migration files applied in order, seed loaded | n/a |
-| 4 | `bash scripts/local-stack-27.sh test` (full pgTAP) | pass: 87 files, 1975 tests, "Result: PASS" (run before role passwords were set) | n/a |
-| 5 | `VAMOS_LOCAL_DB_PORT=59322 pnpm --filter @vamos/db exec vitest run test/local/consent-reader.test.ts test/local/signup-agreement.test.ts test/local/checkout-account.test.ts` | consent-reader and signup-agreement pass (6 tests). checkout-account: 3 tests fail with the `vamos_edge` password, run before the passwords were set. Known, local-only | local-only |
-| 6 | `pnpm typecheck` | pass | n/a |
-| 7 | `pnpm lint` | pass, 0 errors, 6 warnings | n/a |
-| 8 | `pnpm lint:css` | pass | n/a |
-| 9 | `pnpm check:numbers` | pass | n/a |
-| 10 | `pnpm check:legal-claims` | pass (3 checks) | n/a |
-| 11 | `pnpm check:public-env` | pass | n/a |
-| 12 | `pnpm check:db-fences` | pass (8 checks, 985 files) | n/a |
-| 13 | `pnpm i18n:check` | pass (2676 keys) | n/a |
-| 14 | `pnpm db:seed:check` | pass, no drift | n/a |
-| 15 | `node_modules/.bin/supabase gen types typescript --local --schema public --workdir /tmp/vamos-sb27 \| diff -q - packages/db/database.types.ts` | pass, identical | n/a |
-| 16a | `pnpm build` | pass | n/a |
-| 16b | `pnpm --filter web exec opennextjs-cloudflare build` | pass, `.open-next/worker.js` built | n/a |
-| 17 | `apps/web/tests/e2e-worker/run.sh <tree> /tmp/vamos-sb27 /tmp/vamos-sb27/hook-secret.txt p27` (`SB_API_PORT=59321 SB_DB_PORT=59322 SB_DB_CONTAINER=supabase_db_vamos-taxi-270`, `supabase` wrapper on PATH, `vamos_edge` and `vamos_public` passwords set to their own names on the 59322 container first) | 49 PASS, 1 FAIL, 1 N/A. 1a0, 1a, 1b, 3b pass. FAIL `a3` (other-device.e2e.mjs): `POST /api/checkout/intent` answers 503 `quote_lock_secret_missing`, the script expects 4xx. Cause is main's 88e6b827 (Phase 20 B1, "lock-secret 503"): phase 1 of run.sh has no `QUOTE_LOCK_SECRET` (mkcfg.mjs sets it only for phase2). Harness fault on main's code, not Phase 27; not fixed (files outside Phase 27). N/A `d2`: no Stripe key on the local Worker, as before. A first run before the passwords were set showed 10 FAILs, all `password authentication failed for user "vamos_edge"` | a3: the 503 comes from main; the harness gap would show on main too |
-| 18a | `pnpm exec playwright test tests/integration/consent-banner-27.spec.ts --project=component-390 --workers=1` | pass, 9 of 9 (case D: banner shows on mock /about without Lenis; G: /de/about) | n/a |
-| 18b | `pnpm exec playwright test tests/integration/signup-agreement-27.spec.ts` (all four projects) | pass, 56 of 56 | n/a |
-| 18c | `VAMOS_TEST_DB_PORT=59322 VAMOS_TEST_MAIL_PORT=59324 VAMOS_TEST_SUPABASE_WORKDIR=/tmp/vamos-sb27 pnpm exec playwright test <file> --workers=1`, `auth-flows.spec.ts` then `auth-confirm-email.spec.ts`, stack from `start-mailpit` | pass: 11 of 11, then 1 of 1 | n/a |
-| 19 | must-not greps, added lines of `git diff origin/main...HEAD` | pass: `sk_live_`, `vamostaxi.eu`, `1595596972063765`, `fbq(`, `fbevents` only in planning documents that forbid them, plus one test assertion forbidding `fbevents` (`vamos-consent.test.ts`). No code line | n/a |
-| 20 | `git grep` `META_LEGAL_GATE_OPEN = false as const` in `apps/web/lib/meta` | pass, still false (`legal-gate.ts:6`) | n/a |
-| 21 | `git grep` `record_consent\|recordConsent` in `apps/web/lib/auth`, `apps/web/app/api/auth` (no tests) | pass, empty | n/a |
-| 22 | `git grep` `signup_consent` in `apps/web/lib`, `apps/web/app` (no tests) | pass, empty | n/a |
-| 23 | `git diff --numstat origin/main...HEAD` on quote, checkout, stripe, pricing, checkout page, confirmation, checkout components | pass, exactly `1 1 apps/web/app/[locale]/checkout/checkout.css` | n/a |
+| # | Command | Result |
+|---|---|---|
+| 1 | `pnpm install --frozen-lockfile` | pass, already up to date |
+| 2 | `pnpm test:unit` | pass: web 315 files passed, 2 skipped, 3125 tests passed, 2 skipped; emails 12 files, 151 tests; db 2 files, 14 tests |
+| 3 | `bash scripts/local-stack-27.sh reset` (from-zero replay) | pass, 123 migrations, seed loaded |
+| 4 | `bash scripts/local-stack-27.sh test` (full pgTAP) | pass: 90 files, 2095 tests, "Result: PASS" (before role passwords were set) |
+| 5 | `VAMOS_LOCAL_DB_PORT=59322 pnpm --filter @vamos/db exec vitest run test/local/consent-reader.test.ts test/local/signup-agreement.test.ts test/local/checkout-account.test.ts` | consent-reader and signup-agreement pass (6 tests). checkout-account 3 fail on the `vamos_edge` password (run before passwords were set). Known, local-only |
+| 6 | `pnpm typecheck` | pass |
+| 7 | `pnpm lint` | pass, 0 errors |
+| 8 | `pnpm lint:css` | pass |
+| 9 | `pnpm check:numbers` | pass |
+| 10 | `pnpm check:legal-claims` | pass (3 checks) |
+| 11 | `pnpm check:public-env` | pass |
+| 12 | `pnpm check:db-fences` | pass (8 checks, 996 files) |
+| 13 | `pnpm i18n:check` | pass (2676 keys) |
+| 14 | `pnpm db:seed:check` | pass, no drift (no seed regeneration needed) |
+| 15 | `supabase gen types typescript --local --schema public --workdir /tmp/vamos-sb27 \| diff -q - packages/db/database.types.ts` | first run FAILED: one line, `staff_extra_labels_prune` (main's migration `20261007110000`, main's own `database.types.ts` lacks it). Fixed by regenerating (+1 line), commit `597ae9c0`; re-run identical |
+| 16a | `pnpm build` | pass |
+| 16b | `pnpm --filter web exec opennextjs-cloudflare build` | pass, `.open-next/worker.js` built |
+| 17 | `apps/web/tests/e2e-worker/run.sh <tree> /tmp/vamos-sb27 /tmp/vamos-sb27/hook-secret.txt p27` (`SB_API_PORT=59321 SB_DB_PORT=59322 SB_DB_CONTAINER=supabase_db_vamos-taxi-270`, `vamos_edge` and `vamos_public` passwords set on the 59322 container first) | 49 PASS, 1 FAIL, 1 N/A. FAIL `a3`: `POST /api/checkout/intent` answers 503 `temporarily_unavailable` (quote-lock secret missing in run.sh phase 1), the script expects 4xx. Main did not fix it. N/A `d2`: no Stripe key on the local Worker |
+| 18a | `pnpm exec playwright test tests/integration/consent-banner-27.spec.ts --project=component-390 --workers=1` | pass, 9 of 9 |
+| 18b | `pnpm exec playwright test tests/integration/signup-agreement-27.spec.ts` (all four projects) | pass, 56 of 56 |
+| 18c | `VAMOS_TEST_DB_PORT=59322 VAMOS_TEST_MAIL_PORT=59324 VAMOS_TEST_SUPABASE_WORKDIR=/tmp/vamos-sb27 pnpm exec playwright test <file> --workers=1`, `auth-flows.spec.ts` then `auth-confirm-email.spec.ts`, stack from `start-mailpit` (reset, passwords set) | pass: 11 of 11, then 1 of 1 |
+| 19 | must-not greps, added lines of `git diff origin/main...HEAD` | pass: `sk_live_`, `vamostaxi.eu`, `1595596972063765`, `fbq(`, `fbevents` appear only in planning documents that forbid them (same as the last run); no code line |
+| 20 | `git grep` `META_LEGAL_GATE_OPEN = false as const` in `apps/web/lib/meta` | pass, still false (`legal-gate.ts:6`) |
+| 21 | `git grep` `record_consent\|recordConsent` in `apps/web/lib/auth`, `apps/web/app/api/auth` (no tests) | pass, empty |
+| 22 | `git grep` `signup_consent` in `apps/web/lib`, `apps/web/app` (no tests) | pass, empty |
+| 23 | `git diff --numstat origin/main...HEAD` on quote, checkout, stripe, pricing, checkout page, confirmation, checkout components | pass, exactly `1 1 apps/web/app/[locale]/checkout/checkout.css`. Main's extras part A did not change that line; ours is the only Phase 27 change there |
 
-Stack stopped (`docker ps | grep -c 270` is 0), `tsconfig.json` and `next-env.d.ts` restored, no process left in the worktree. Build folders under `apps/web` are ignored output; `service-role-laws.test.ts` now skips `.next-*` (73c394c3).
+Stack stopped (`docker ps | grep -c 270` is 0), `tsconfig.json` and `next-env.d.ts` restored, no process left in the worktree.
 
 ### Known reds that are not ours
 
