@@ -105,9 +105,31 @@ async function downloadCapped(url: string): Promise<ArrayBuffer | null> {
   if (!res.ok) return null;
   const declared = Number(res.headers.get("content-length") ?? 0);
   if (declared > MAX_INBOUND_FILE_BYTES) return null;
-  const buf = await res.arrayBuffer();
-  if (buf.byteLength > MAX_INBOUND_FILE_BYTES) return null;
-  return buf;
+  if (!res.body) {
+    const buf = await res.arrayBuffer();
+    return buf.byteLength > MAX_INBOUND_FILE_BYTES ? null : buf;
+  }
+  // G15: no declared length — read in chunks and stop as soon as the cap is passed.
+  const reader = res.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > MAX_INBOUND_FILE_BYTES) {
+      await reader.cancel().catch(() => undefined);
+      return null;
+    }
+    chunks.push(value);
+  }
+  const out = new Uint8Array(total);
+  let offset = 0;
+  for (const c of chunks) {
+    out.set(c, offset);
+    offset += c.byteLength;
+  }
+  return out.buffer;
 }
 
 export async function storeInboundFiles(

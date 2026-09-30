@@ -15,7 +15,6 @@ import type { CheckoutIntentRequest, CheckoutWebIntentRequest } from "./intent-s
 import { checkoutCharge, type CheckoutChargeCoupon, type ExtraCatalogRow } from "./checkout-charge";
 import { buildTripQuery } from "./trip-url";
 import { zurichLocalToUtcMs } from "../geo/serviceArea";
-import { extraFaresOn, extraRappenOutsideLock, lockHasExtra, type CheckoutExtraJson } from "./extras-catalog";
 import { checkoutLegsFromLock, snapshotFromLock } from "./lock-to-rpc";
 import { flightKey } from "./flight-no";
 import { manageTokenCookie } from "./manage-token";
@@ -129,7 +128,6 @@ export type CheckoutIntentDeps = {
   actorCustomerId: string | null;
   vehicleClassId: string;
   snapshotPolicy: Record<string, unknown>;
-  extrasCatalog?: CheckoutExtraJson[];
   /** asQuote loadLaunchFlags. Omitted/throw → fail-closed 81. */
   loadLaunchFlags?: () => Promise<{ vat_rate_bps: number }>;
   /** D-33: test unpaid never opens Stripe. Omitted → not a test booking. */

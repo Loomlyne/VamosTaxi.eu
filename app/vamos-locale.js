@@ -366,7 +366,7 @@
     var l = document.createElement('link');
     l.id = 'vt-ar-font';
     l.rel = 'stylesheet';
-    l.href = 'https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap';
+    l.href = '/assets/fonts/noto-sans-arabic/noto-sans-arabic.css';
     document.head.appendChild(l);
   }
 

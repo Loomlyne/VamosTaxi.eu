@@ -185,6 +185,15 @@ export function evaluatePredicate(
       };
     }
 
+    case "manual": {
+      // Chosen by the customer on /checkout and charged there. Never added by the quote.
+      return {
+        applies: false,
+        quantity: 0,
+        why: { predicate: "manual" },
+      };
+    }
+
     default: {
       // Exhaustiveness for known kinds; unknown kind is not-applicable (T-04-03).
       const _exhaustive: never = kind as never;

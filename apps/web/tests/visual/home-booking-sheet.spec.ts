@@ -182,7 +182,8 @@ test.describe("Home bar and sheet @component", () => {
     await page.waitForLoadState("domcontentloaded");
 
     // No sheet history entries remain: one entry for checkout, none for the sheet.
-    expect(await page.evaluate(() => (history.state as { vtSheet?: number } | null)?.vtSheet)).toBeUndefined();
+    // The spare step the sheet leaves for a Back pressed at once is removed after a pause (quick 260930-bp2).
+    await expect.poll(() => page.evaluate(() => (history.state as { vtSheet?: number } | null)?.vtSheet), { timeout: 5000 }).toBeUndefined();
     expect(await page.evaluate(() => history.length)).toBe(len0 + 1);
     // No trip, draft or booking key was written anywhere.
     const after = await storageKeys(page);
@@ -284,7 +285,8 @@ test.describe("Home bar and sheet @component", () => {
     await expect(heroBar(page)).toContainText("Fixture Street 1");
     await expect(heroBar(page)).toContainText("Drop-off");
     await expect(heroBar(page)).toContainText("Add date and time");
-    expect(await page.evaluate(() => (history.state as { vtSheet?: number } | null)?.vtSheet)).toBeUndefined();
+    // The spare step the sheet leaves for a Back pressed at once is removed after a pause (quick 260930-bp2).
+    await expect.poll(() => page.evaluate(() => (history.state as { vtSheet?: number } | null)?.vtSheet), { timeout: 5000 }).toBeUndefined();
 
     await heroBar(page).click();
     await expect(sheet(page).locator('input[id$="-from"]')).toHaveValue("Fixture Street 1");
@@ -528,7 +530,8 @@ test.describe("Home bar and sheet @component", () => {
     await expect(page.getByRole("combobox", { name: "From", exact: true })).toHaveValue("Fixture Street 1");
     await expect(page.getByRole("combobox", { name: "To", exact: true })).toHaveValue("Fixture Airport");
     await expect(page.locator("#book")).toHaveAttribute("data-bookcard", "1");
-    expect(await page.evaluate(() => (history.state as { vtSheet?: number } | null)?.vtSheet)).toBeUndefined();
+    // The spare step the sheet leaves for a Back pressed at once is removed after a pause (quick 260930-bp2).
+    await expect.poll(() => page.evaluate(() => (history.state as { vtSheet?: number } | null)?.vtSheet), { timeout: 5000 }).toBeUndefined();
     expect(await page.evaluate(() => document.documentElement.style.overflow)).toBe("");
     await expect(page.locator("[data-hero]")).not.toHaveAttribute("inert", /.*/);
     // And back to the phone width: the bar shows the same trip.

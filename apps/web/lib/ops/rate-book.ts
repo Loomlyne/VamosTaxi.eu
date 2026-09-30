@@ -17,7 +17,6 @@ type StaffTx = postgres.TransactionSql;
 
 export type { RateVersionStatus };
 
-export { SURCHARGE_CODES, type SurchargeCode } from "./surcharge-codes";
 export type SurchargeKind = "amount" | "percent" | "included";
 export type SurchargeAppliesTo = "leg" | "booking";
 
@@ -900,4 +899,22 @@ export async function loadDraftQuoteBookDoc(
     `;
     return rows[0]?.result ?? null;
   });
+}
+
+/**
+ * 26.2 P4 A6 (owner, 2026-09-30: "anything deleted should be deleted completely"). Deletes the
+ * four-language names of every extra whose code no live or draft price book uses
+ * (`public.staff_extra_labels_prune`, admin only, migration 20261007110000). Called after an
+ * extra is deleted, a draft is discarded and a book is published. Best effort in its own
+ * transaction: a failure is logged and never undoes the write that came before it.
+ */
+export async function pruneExtraLabels(env: CloudflareEnv, claims: VamosClaims): Promise<void> {
+  try {
+    await asStaff(env, claims, async (tx) => {
+      await tx`select public.staff_extra_labels_prune() as deleted`;
+      return null;
+    });
+  } catch (err) {
+    console.error("ops_extra_labels_prune_failed", err instanceof Error ? err.message : String(err));
+  }
 }

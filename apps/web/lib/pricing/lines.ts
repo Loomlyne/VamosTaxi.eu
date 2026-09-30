@@ -648,6 +648,7 @@ export interface BuildLegSurchargeLinesArgs {
   fareLine: Line;
   surcharges: SurchargeRow[];
   zones: ZoneRow[];
+  /** Not read since 26.2-p4 A4 (it only fed the waiting minutes). Kept so callers do not change. */
   settings: SettingsSnapshot | null;
   rateVersionId: number | null;
   /** When set, only these codes; default = non-quantity leg surcharges. */
@@ -659,29 +660,6 @@ function zonesMap(zones: ZoneRow[]): Map<string, ZoneRow> {
   return m;
 }
 
-function isWaitingSurcharge(code: string): boolean {
-  return code === "waiting" || code === "waiting_airport" || code === "waiting_city";
-}
-
-function includedMinutes(
-  code: string,
-  settings: SettingsSnapshot | null,
-): { minutes: number | null; source: string } {
-  if (code === "waiting_airport") {
-    return {
-      minutes: settings?.airport_waiting_minutes ?? null,
-      source: "settings_versions.airport_waiting_minutes",
-    };
-  }
-  if (code === "waiting_city") {
-    return {
-      minutes: settings?.city_waiting_minutes ?? null,
-      source: "settings_versions.city_waiting_minutes",
-    };
-  }
-  return { minutes: null, source: "settings_versions" };
-}
-
 /**
  * Leg-level surcharges only (applies_to === 'leg', no quantity_source).
  * Percent basis is the fare line amount; of_line_seq names that fare line (D-06).
@@ -691,7 +669,7 @@ function includedMinutes(
 export function buildLegSurchargeLines(
   args: BuildLegSurchargeLinesArgs,
 ): Line[] {
-  const { leg, fareLine, surcharges, zones, settings, rateVersionId } = args;
+  const { leg, fareLine, surcharges, zones, rateVersionId } = args;
   const zmap = zonesMap(zones);
   const out: Line[] = [];
 
@@ -712,35 +690,8 @@ export function buildLegSurchargeLines(
     });
     if (!pred.applies) continue;
 
-    if (isWaitingSurcharge(row.code)) {
-      const { minutes, source } = includedMinutes(row.code, settings);
-      const provisional = seqFor(leg.leg_seq, "included", row.code);
-      out.push({
-        seq: provisional,
-        leg_seq: leg.leg_seq,
-        kind: "included",
-        code: row.code,
-        i18n_key: `price.surcharge.${row.code}.label`,
-        params: { minutes },
-        basis: {
-          rule: "included",
-          included_minutes: minutes,
-          source,
-          payable_rappen: 0,
-        },
-        source_row: {
-          table: "surcharges",
-          id: row.id,
-          ...(rateVersionId !== null ? { rate_version_id: rateVersionId } : {}),
-        },
-        amount_rappen: row.kind === "included" ? null : 0,
-      });
-      continue;
-    }
-
     // Stated CHF 0 is included: shown, not added to the fare. A positive amount is charged.
     if (row.kind === "included" || (row.kind === "amount" && row.amount_rappen === 0)) {
-      const { minutes, source } = includedMinutes(row.code, settings);
       const provisional = seqFor(leg.leg_seq, "included", row.code);
       out.push({
         seq: provisional,
@@ -748,11 +699,14 @@ export function buildLegSurchargeLines(
         kind: "included",
         code: row.code,
         i18n_key: `price.surcharge.${row.code}.label`,
-        params: { minutes },
+        // 26.2-p4 A4: no waiting minutes are looked up by the row's code any more.
+        // The three fields stay, empty, so an included line keeps the shape it
+        // always had for every other code.
+        params: { minutes: null },
         basis: {
           rule: "included",
-          included_minutes: minutes,
-          source,
+          included_minutes: null,
+          source: "settings_versions",
         },
         source_row: {
           table: "surcharges",

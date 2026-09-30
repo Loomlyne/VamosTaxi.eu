@@ -111,6 +111,10 @@ async function fakeTx(strings: TemplateStringsArray, ...values: unknown[]): Prom
   return [];
 }
 
+// 26.2-p4 A1: the extra write binds its rule through the driver's JSON helper (`tx.json`).
+// This stand-in does not store the rule; rate-book-extra-rule.test.ts proves that part.
+fakeTx.json = (value: unknown) => value;
+
 vi.mock("@opennextjs/cloudflare", () => ({
   getCloudflareContext: () => ({ env: {} }),
 }));
