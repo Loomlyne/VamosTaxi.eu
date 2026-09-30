@@ -12,9 +12,9 @@ Rewritten short on 2026-09-30 14:25; the long version is in git history (`823022
 | Item | Value |
 |---|---|
 | Site | https://vamostaxi.site and https://dashboard.vamostaxi.site |
-| main = origin/main | `ec1beed5` plus planning notes |
-| Worker `vamos` | version `04a64c26` |
-| Rollback point | Worker `64be5312`, git tag `backup/main-before-psb-0c34961b` |
+| main = origin/main | `3d74d6a0` plus planning notes |
+| Worker `vamos` | version `fe9314d0` |
+| Rollback point | Worker `04a64c26`, git tag `backup/main-before-scroll-lock-b408f1da` |
 | Database | migrations up to `20260930210000`, plus `20261005100000` and `20261005110000` (Phase 20), applied and read back |
 | Who deploys | the control session, from the owner's Mac. GitHub runs checks, never deploys. |
 
@@ -29,6 +29,7 @@ Rewritten short on 2026-09-30 14:25; the long version is in git history (`823022
 | 09-30 | 12:38 | Phase 20 batch A (security), two migrations | `e8aaad0b` | `a0d38f64` |
 | 09-30 | 12:46 | SEO: head, favicon, share picture, sitemap, one address per language | `5b394833` | `64be5312` |
 | 09-30 | 14:40 | Repair of 26.4.2: the phone booking page releases the page scroll on close and covers the screen with the keyboard open | `ec1beed5` | `04a64c26` |
+| 09-30 | 14:46 | Scroll repair: a released page lock starts scrolling again on every page (phone menu, dialogs, booking page) | `3d74d6a0` | `fe9314d0` |
 
 ## Ship order from here
 
@@ -37,7 +38,7 @@ Owner's order: booking, payments, account, Meta first.
 | # | Job | State | Needs |
 |---|---|---|---|
 | 1 | Phone sheet bugs | **Live 14:40.** Live read at 390: the sheet covers the screen, scrolling works again after closing. Real iPhone and keyboard: the owner's check | |
-| 1a | Scroll lock never released on any page (`assets/lenis-boot.js`): phone menu and dialogs still stop scrolling until a reload | SEO session builds `fix/scroll-lock-release` | Owner's Ship |
+| 1a | Scroll lock never released on any page | **Live 14:46** (owner said Ship now). Live read at 390 on /faq: page lock and the real phone menu stop scrolling while open and release it on close | |
 | 1b | Support e-mail button | Handed over `a9fee250`; held until 26.5 is in | Ships on the control session's checks (owner's word 14:32) |
 | 2 | **26.5 account choice before payment** | All build plans committed; final check (plan 07) running since 13:55 | Hand-over, control check, ship under the day's ship mode |
 | 3 | 26.2 audit, hand-over 1 (17 bug fixes, dashboard, mails, helpers; no checkout) | Checked green by the control session at `bda1c151`; addendum at `8305d795` | 26.5 on main, re-check, owner's Ship. Proposed grant migration `20261007100000` |
