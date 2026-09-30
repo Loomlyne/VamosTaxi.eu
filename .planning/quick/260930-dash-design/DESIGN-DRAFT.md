@@ -285,3 +285,66 @@ this branch removed that avatar).
   (as on main), and Actions › Refund brings the admin to it. The alternative — panel hidden until
   Refund is picked — would hide the "inside 24 hours" review from an admin who does not open the
   menu, so it was not built.
+
+## Editor dialog buttons — "one row at the bottom" (owner, question form, 2026-10-01)
+
+"Fix the buttons on the overlay" = the Edit chauffeur box. At phone size Delete, Cancel and Save
+chauffeur stood one under the other, left-aligned, three widths; Cancel was the kit Button with
+`variant="outline"`, which the kit does not have (it rendered as the browser's grey button).
+
+What changed — `app/ops/OpsTable.dc.html` only (the shared table editor's footer, `[data-vt-editor-foot]`):
+- Markup: two groups in reading order — `[data-vt-foot-del]` (Delete) and `[data-vt-foot-main]`
+  (Cancel, Save). All three are kit `Button` size `md` (44 px): Delete `ghost` as text only (no icon),
+  Cancel `ghost` (a real kit variant; was the missing `outline`), Save `primary`. Delete still hides
+  for a new row (`deleteShow`); Save still follows `saveOff`.
+- Wider than 680 px: one row — Delete at the start as a red text button (`--vt-danger` text, no fill,
+  no border; hover a neutral `--vt-grey-50` fill; no glow, no tint), Cancel and Save together at the
+  end, same height. The text of Delete lines up with the form's start edge. The trash icon was
+  dropped: a text button, and without it the French row ("Supprimer / Annuler / Enregistrer le
+  chauffeur") fits the 512 px footer on one line — with the icon it wrapped.
+- 680 px and narrower: Save full width on top, Cancel full width under it, Delete centred at the
+  very bottom (`column-reverse` + `order`, so no second copy of the buttons).
+- RTL: logical properties only (`margin-inline-start/-end`, `padding-inline`); Arabic mirrors.
+- No new colour, no new copy (Delete / Cancel are already in the dictionary in four languages).
+
+Dialogs that change (every editor dialog built on OpsTable): Chauffeurs — Edit / Add chauffeur (and
+the fleet page's car editor); Bookings board, Calendar and Calendar board — Edit / New booking;
+Customers — Customer; Coupons page — Edit / Add coupon; Pricing — Edit route (City to city), Edit
+class (Distance rules), Edit surcharge (Surcharges & extras), Edit coupon. An "Add" dialog has no
+Delete: Cancel and Save at the end; on phone Save then Cancel. Not changed: OpsTable's nested dialog
+and its delete confirmation (their own footers), and dialogs outside OpsTable.
+
+### Tests (first, red before)
+
+- New `apps/web/lib/ops/ops-dc-editor-foot.test.ts`, 5 cases — before the change 5 failed:
+  `delete group: expected -1 to be greater than 0`; `expected '' to match /margin-inline-start:auto/`;
+  `expected '' to match /color:var\(--vt-danger\)/`; `expected '' to match /flex-direction:column/`;
+  `… not to contain 'variant="outline"'`. After: 5 passed. (The "no icon" line was added
+  with the icon change, after the French check below.) The existing pin in
+  `ops-write-contract.test.ts` (footer padding) is kept unchanged.
+
+Gates (once): sync script ok; `pnpm typecheck` 0; `pnpm lint` 0 errors (the same 5 pre-existing
+warnings); `pnpm lint:css` 0; `pnpm i18n:check` pass. Touched / OpsTable-reading tests
+(`ops-dc-editor-foot`, `ops-write-contract`, `ops-dc-finalize`, `ops-pricing-tabs`, `ops-dc-u08`,
+`no-photo-remove-link`, `ops-dc-dash-design`): 97 passed.
+
+### Pictures — `screens/overlay-buttons-sheet.png` (20 + sheet, real shell, offline, API stubbed)
+
+- `overlay-chauffeur-{before|after}-{en|ar}-{1440|1024|768|390}.png` — Edit chauffeur (driver Marco).
+- `overlay-extra-{before|after}-en-{1440|390}.png` — Pricing › Surcharges & extras › Edit surcharge
+  (the draft's "Child seat", no amount).
+- before = origin/main `a8948162` (it still has the old driver form with Class; only the footer is
+  this change), after = this branch. Every picture opened and looked at; measured in the page:
+  all three buttons 44 px high; desktop/tablet Delete at the start and Cancel + Save at the end
+  (mirrored in Arabic); at 390 Save and Cancel 294 px wide (full width), Delete centred under them;
+  Delete text in the danger colour, transparent; 0 px sideways at every width.
+
+German and French (measured, not pictured): Edit chauffeur at 1440 and 768 — one row in both
+("Löschen / Abbrechen / Chauffeur speichern", "Supprimer / Annuler / Enregistrer le chauffeur"),
+0 px overflow. A longer save label in another dialog would wrap (Cancel + Save under Delete, still at
+the end), never overflow.
+
+### Not verified
+
+- No live click, nothing deployed. Only Edit chauffeur and Edit surcharge were pictured; the other
+  editor dialogs share the same footer markup and CSS.
