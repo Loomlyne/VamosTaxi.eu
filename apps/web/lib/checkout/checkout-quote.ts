@@ -61,6 +61,12 @@ export type QuoteOk = {
   classes: ClassView[];
   /** No class is eligible for this party (D-11 empty state). */
   noneFit: boolean;
+  /**
+   * The server's routed distance for the trip in metres (`route.legs[].distance_m`,
+   * the same number the fare uses). Display only. `null` when the answer carries no
+   * road distance (older answer, or a leg measured without a road).
+   */
+  distanceM: number | null;
 };
 
 export type QuoteRefusal = {
@@ -141,6 +147,26 @@ function classView(raw: unknown): ClassView | null {
   };
 }
 
+/** Sum of the server's road metres; null when a leg is missing, zero or not a road. */
+function routeDistanceM(raw: unknown): number | null {
+  const legs = asRecord(raw).legs;
+  if (!Array.isArray(legs) || legs.length === 0) return null;
+  let sum = 0;
+  for (const item of legs) {
+    const leg = asRecord(item);
+    const m = leg.distance_m;
+    if (leg.road === false || typeof m !== "number" || !Number.isFinite(m) || m <= 0) return null;
+    sum += m;
+  }
+  return sum;
+}
+
+/** "18.4": the server's metres as kilometres, one decimal, as the design system writes figures. */
+export function kmFigure(distanceM: number | null | undefined): string | null {
+  if (distanceM == null || !Number.isFinite(distanceM) || distanceM <= 0) return null;
+  return (Math.round(distanceM / 100) / 10).toFixed(1);
+}
+
 export function parseQuoteJson(status: number, json: unknown): QuoteResult {
   const body = asRecord(json);
   if (body.ok === true && typeof body.quote_id === "string" && typeof body.lock === "string") {
@@ -155,6 +181,7 @@ export function parseQuoteJson(status: number, json: unknown): QuoteResult {
       pricingLive: body.pricing_live !== false,
       classes,
       noneFit: classes.length === 0 || classes.every((c) => !c.eligible),
+      distanceM: routeDistanceM(body.route),
     };
   }
   const code = typeof body.error === "string" ? body.error : status >= 500 ? "unavailable" : "unknown";

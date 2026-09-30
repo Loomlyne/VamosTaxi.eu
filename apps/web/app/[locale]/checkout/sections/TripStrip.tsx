@@ -8,17 +8,20 @@ import type { Trip } from "@/lib/checkout/trip-url";
 
 /**
  * UI-SPEC S2 trip strip: back chevron (home always opens empty), route on line 1,
- * "Tue 29 Sept, 08:15 · 2 passengers · 3 bags" on line 2, and "Edit trip" at the end.
+ * "18.4 km · Tue 29 Sept, 08:15 · 2 passengers · 3 bags" on line 2, and "Edit trip" at the end.
  */
 export function TripStrip({
   trip,
   locale,
+  distanceKm,
   onBack,
   onEdit,
   editRef,
 }: {
   trip: Trip;
   locale: string;
+  /** The server's quote distance, already written as "18.4"; null while there is none. */
+  distanceKm?: string | null;
   onBack: () => void;
   onEdit: () => void;
   editRef: Ref<HTMLButtonElement>;
@@ -41,6 +44,14 @@ export function TripStrip({
           <span className="vt-co__strip-place" dir="auto">{trip.to}</span>
         </p>
         <p className="vt-co__strip-facts" data-co-facts>
+          {distanceKm ? (
+            <>
+              <span className="vt-co__strip-km" data-co-distance>
+                {t.rich("distanceKm", { km: <span className="vt-dir-keep">{distanceKm}</span> })}
+              </span>
+              {" · "}
+            </>
+          ) : null}
           {when ? <span className="vt-dir-keep">{when}</span> : null}
           {when ? " · " : ""}
           {counts.join(" · ")}
