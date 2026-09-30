@@ -25,16 +25,11 @@ values ('20100000-0000-4000-a000-000000000001', 'admin', true, now(), 'RH Admin'
 create temporary table fx (k text primary key, id uuid not null);
 create temporary table pay (k text not null, n int not null, id bigint not null, primary key (k, n));
 
--- One booking with one leg, one snapshot per amount and (when paid) one captured payment per amount.
-create function pg_temp.rh_mk(p_key text, p_offs interval, p_amounts int[], p_paid boolean default true)
+-- One booking with one leg (origin role: the leg trigger sets original_scheduled_at).
+create function pg_temp.rh_mk(p_key text, p_offs interval, p_paid boolean default true)
 returns uuid language plpgsql as $$
 declare
   v_b uuid;
-  v_snap bigint;
-  v_first bigint;
-  v_pay bigint;
-  v_amt int;
-  v_i int := 0;
 begin
   insert into public.bookings (contact_name, contact_email, status)
   values ('RH ' || p_key, 'rh-' || p_key || '@vamostaxi.eu',
@@ -48,8 +43,20 @@ begin
   select v_b, 1, 'outbound', 'ZRH Airport', 'Zurich HB',
          now() + p_offs, to_char(now() + p_offs, 'YYYY-MM-DD"T"HH24:MI'), vc.id, 'confirmed'
     from public.vehicle_classes vc where vc.slug = 'rh-class';
+  insert into pg_temp.fx values (p_key, v_b);
+  return v_b;
+end $$;
 
-  perform set_config('session_replication_role', 'replica', true);
+-- One snapshot per amount and (when paid) one captured payment per amount (replica role).
+create function pg_temp.rh_pay(p_key text, p_amounts int[], p_paid boolean default true)
+returns void language plpgsql as $$
+declare
+  v_b uuid := (select id from pg_temp.fx where k = p_key);
+  v_snap bigint;
+  v_pay bigint;
+  v_amt int;
+  v_i int := 0;
+begin
   foreach v_amt in array p_amounts loop
     v_i := v_i + 1;
     insert into public.price_snapshots (
@@ -73,7 +80,6 @@ begin
       cross join lateral (select id from public.settings_versions order by id limit 1) sv
      where vc.slug = 'rh-class'
     returning id into v_snap;
-    if v_first is null then v_first := v_snap; end if;
     if p_paid then
       insert into public.booking_payments (
         booking_id, snapshot_id, stripe_payment_intent_id, charged_rappen, status, captured_at
@@ -82,34 +88,53 @@ begin
       insert into pg_temp.pay values (p_key, v_i, v_pay);
     end if;
   end loop;
-  perform set_config('session_replication_role', 'origin', true);
-
-  update public.bookings set price_snapshot_id = v_first where id = v_b;
-  insert into pg_temp.fx values (p_key, v_b);
-  return v_b;
 end $$;
 
 create function pg_temp.b(p_key text) returns uuid language sql as $$ select id from pg_temp.fx where k = p_key $$;
 create function pg_temp.p(p_key text, p_n int) returns bigint language sql as $$ select id from pg_temp.pay where k = p_key and n = p_n $$;
 create function pg_temp.adm() returns uuid language sql as $$ select '20100000-0000-4000-a000-000000000001'::uuid $$;
 
-select pg_temp.rh_mk('g30',  interval '30 hours', array[8000]);
-select pg_temp.rh_mk('c30',  interval '30 hours', array[8000]);
-select pg_temp.rh_mk('a3',   interval '3 hours',  array[8000]);
-select pg_temp.rh_mk('u30',  interval '30 hours', array[8000], false);
-select pg_temp.rh_mk('s30',  interval '30 hours', array[8000]);
-select pg_temp.rh_mk('s3',   interval '3 hours',  array[8000]);
-select pg_temp.rh_mk('t2a',  interval '30 hours', array[10000, 2000]);
-select pg_temp.rh_mk('t2b',  interval '30 hours', array[10000, 2000]);
-select pg_temp.rh_mk('t2c',  interval '30 hours', array[10000, 2000]);
-select pg_temp.rh_mk('t2d',  interval '30 hours', array[10000, 2000]);
-select pg_temp.rh_mk('d1',   interval '3 hours',  array[10000]);
-select pg_temp.rh_mk('d2',   interval '3 hours',  array[10000]);
-select pg_temp.rh_mk('d3',   interval '3 hours',  array[10000]);
-select pg_temp.rh_mk('d4',   interval '3 hours',  array[10000]);
-select pg_temp.rh_mk('d5',   interval '3 hours',  array[10000]);
-select pg_temp.rh_mk('d6',   interval '3 hours',  array[10000, 2000]);
-select pg_temp.rh_mk('paid', interval '30 hours', array[8000]);
+select pg_temp.rh_mk('g30', interval '30 hours');
+select pg_temp.rh_mk('c30', interval '30 hours');
+select pg_temp.rh_mk('a3', interval '3 hours');
+select pg_temp.rh_mk('u30', interval '30 hours', false);
+select pg_temp.rh_mk('s30', interval '30 hours');
+select pg_temp.rh_mk('s3', interval '3 hours');
+select pg_temp.rh_mk('t2a', interval '30 hours');
+select pg_temp.rh_mk('t2b', interval '30 hours');
+select pg_temp.rh_mk('t2c', interval '30 hours');
+select pg_temp.rh_mk('t2d', interval '30 hours');
+select pg_temp.rh_mk('d1', interval '3 hours');
+select pg_temp.rh_mk('d2', interval '3 hours');
+select pg_temp.rh_mk('d3', interval '3 hours');
+select pg_temp.rh_mk('d4', interval '3 hours');
+select pg_temp.rh_mk('d5', interval '3 hours');
+select pg_temp.rh_mk('d6', interval '3 hours');
+select pg_temp.rh_mk('paid', interval '30 hours');
+
+set local session_replication_role = replica;
+select pg_temp.rh_pay('g30', array[8000]);
+select pg_temp.rh_pay('c30', array[8000]);
+select pg_temp.rh_pay('a3', array[8000]);
+select pg_temp.rh_pay('u30', array[8000], false);
+select pg_temp.rh_pay('s30', array[8000]);
+select pg_temp.rh_pay('s3', array[8000]);
+select pg_temp.rh_pay('t2a', array[10000, 2000]);
+select pg_temp.rh_pay('t2b', array[10000, 2000]);
+select pg_temp.rh_pay('t2c', array[10000, 2000]);
+select pg_temp.rh_pay('t2d', array[10000, 2000]);
+select pg_temp.rh_pay('d1', array[10000]);
+select pg_temp.rh_pay('d2', array[10000]);
+select pg_temp.rh_pay('d3', array[10000]);
+select pg_temp.rh_pay('d4', array[10000]);
+select pg_temp.rh_pay('d5', array[10000]);
+select pg_temp.rh_pay('d6', array[10000, 2000]);
+select pg_temp.rh_pay('paid', array[8000]);
+set local session_replication_role = origin;
+
+update public.bookings b
+   set price_snapshot_id = (select min(s.id) from public.price_snapshots s where s.booking_id = b.id)
+ where b.id in (select id from pg_temp.fx);
 
 insert into public.booking_access_tokens (booking_id, token_hash, expires_at)
 values (pg_temp.b('g30'), extensions.digest('rh-g30-token', 'sha256'), now() + interval '1 day');
@@ -183,16 +208,22 @@ select ok(
       and b.refund_status = 'none' and coalesce(b.refund_owed_rappen, 0) = 0
      from public.bookings b where b.id = pg_temp.b('u30')),
   'cancel > 24 h of an UNPAID booking -> refund_status none, nothing owed');
+select * from public.ops_cancel_booking(pg_temp.b('s30'), pg_temp.adm());
 select ok(
   (select refund_status = 'pending_ops' and refund_owed_rappen = 8000
-     from public.ops_cancel_booking(pg_temp.b('s30'), pg_temp.adm()) c
-     join public.bookings b on b.id = c.booking_id),
+     from public.bookings where id = pg_temp.b('s30')),
   'staff cancel > 24 h, paid -> pending_ops, owed = captured');
+select * from public.ops_cancel_booking(pg_temp.b('s3'), pg_temp.adm());
 select ok(
   (select refund_status = 'pending_ops' and refund_owed_rappen is null
-     from public.ops_cancel_booking(pg_temp.b('s3'), pg_temp.adm()) c
-     join public.bookings b on b.id = c.booking_id),
+     from public.bookings where id = pg_temp.b('s3')),
   'staff cancel inside 24 h, paid -> pending_ops, owed null (unchanged)');
+
+-- two payments (10000 + 2000), cancelled 30 h ahead by staff: a full-tier booking
+select * from public.ops_cancel_booking(pg_temp.b('t2a'), pg_temp.adm());
+select * from public.ops_cancel_booking(pg_temp.b('t2b'), pg_temp.adm());
+select * from public.ops_cancel_booking(pg_temp.b('t2c'), pg_temp.adm());
+select * from public.ops_cancel_booking(pg_temp.b('t2d'), pg_temp.adm());
 
 -- ── 1.3 table ────────────────────────────────────────────────────────────────────── 3
 select throws_ok(
@@ -310,10 +341,6 @@ select is(
   1, 'decided: choosing one payment plans no intent for the other');
 
 -- ── full tier: 100 % only ─────────────────────────────────────────────────────────── 8
-select * from public.ops_cancel_booking(pg_temp.b('t2a'), pg_temp.adm());
-select * from public.ops_cancel_booking(pg_temp.b('t2b'), pg_temp.adm());
-select * from public.ops_cancel_booking(pg_temp.b('t2c'), pg_temp.adm());
-select * from public.ops_cancel_booking(pg_temp.b('t2d'), pg_temp.adm());
 select ok(
   (select refund_status = 'pending_ops' and refund_owed_rappen = 12000
      from public.bookings where id = pg_temp.b('t2d')),
@@ -330,13 +357,16 @@ select throws_ok(
 select is((select count(*)::int from public.booking_refund_intents where booking_id = pg_temp.b('t2d')), 0,
   'full tier: the refused plans left no intent');
 
+create temporary table dq as
+  select format($f$select public.ops_refund_decide(%L::uuid, 'decline')$f$, pg_temp.b('t2d')) as q;
+grant select on dq to vamos_staff;
 set local role vamos_staff;
 select set_config('request.jwt.claims',
   jsonb_build_object('sub', '20100000-0000-4000-a000-000000000001', 'role', 'authenticated', 'aal', 'aal2',
     'app_metadata', jsonb_build_object('vamos_role', 'admin'))::text,
   true);
 select throws_ok(
-  format($f$select public.ops_refund_decide(%L::uuid, 'decline')$f$, pg_temp.b('t2d')),
+  (select q from dq),
   'P0001', 'full-refund-only', 'full tier: the admin cannot decline');
 reset role;
 select set_config('request.jwt.claims', '', true);
@@ -411,7 +441,7 @@ select ok(
            where e.booking_id = pg_temp.b('t2c') and e.kind = 'refund.issued'
              and e.payment_id = pg_temp.p('t2c', 1) and e.actor_id = pg_temp.adm()),
   'sent: a refund.issued event by the actor on that payment');
-select is((select stripe_fee_rappen from public.booking_payments where id = pg_temp.p('t2c', 1)), 25,
+select is((select stripe_fee_rappen::int from public.booking_payments where id = pg_temp.p('t2c', 1)), 25,
   'sent: the Stripe fee is stored on the payment');
 select ok(
   (select i.state = 'sent' and i.stripe_refund_id = 're_rh_t2c_1' and i.refund_id is not null
@@ -428,7 +458,7 @@ select ok(
   'sent twice: same facts back');
 select is((select count(*)::int from public.booking_refunds where booking_id = pg_temp.b('t2c')), 1,
   'sent twice: still one booking_refunds row');
-select is((select refunded_rappen from public.bookings where id = pg_temp.b('t2c')), 10000,
+select is((select refunded_rappen::int from public.bookings where id = pg_temp.b('t2c')), 10000,
   'sent twice: refunded_rappen counted once');
 select is((select count(*)::int from public.booking_events where booking_id = pg_temp.b('t2c') and kind = 'refund.issued'), 1,
   'sent twice: one refund.issued event');
@@ -508,11 +538,12 @@ select ok(
 select ok(
   (select refund_owed_rappen = 8000 from public.bookings where id = pg_temp.b('d1')),
   'decided: owed = refunded after the decided amount went');
+create temporary table fl_d2 as
+  select * from public.ops_refund_intent_failed(
+    (select id from public.booking_refund_intents where booking_id = pg_temp.b('d2')), 'gone', true);
 select ok(
-  (select f.refund_status = 'pending_ops' and b.refund_owed_rappen is null and f.due_rappen = 0
-     from public.ops_refund_intent_failed(
-            (select id from public.booking_refund_intents where booking_id = pg_temp.b('d2')), 'gone', true)
-     f join public.bookings b on b.id = f.booking_id),
+  (select refund_status = 'pending_ops' and due_rappen = 0 and state = 'void' from fl_d2)
+  and (select refund_owed_rappen is null from public.bookings where id = pg_temp.b('d2')),
   'decided, void, nothing else sent: back to pending_ops with owed null (the team decides again)');
 
 select * from finish();
