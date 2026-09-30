@@ -432,7 +432,7 @@ function adminName() {
     const p = ops && ops.profile && typeof ops.profile.get === 'function' ? ops.profile.get() : {};
     if (p && (p.name || p.fullName)) return p.name || p.fullName;
   } catch (err) {}
-  return 'Koussay';
+  return '';
 }
 function ticketHay(row) {
   const parts = [row.ticketId, row.name, row.email, row.phone, row.bookingRef, row.locale, row.note];
@@ -653,7 +653,7 @@ class Component extends DCLogic {
     const oneStatus = filter !== 'all';
     const view = (oneStatus || opsPhone()) ? 'table' : (this.state.view === 'table' ? 'table' : 'kanban');
     const labels = { new: t.new, open: t.open, replied: t.replied, responded: t.responded, closed: t.closed };
-    const whoStaff = adminName();
+    const whoStaff = adminName() || t.staff;
     const whoLabel = { customer: t.customer, staff: whoStaff, note: t.noteWho };
     const filterOptions = [{ value: 'all', label: t.all }].concat(STATUSES.map((k) => ({ value: k, label: labels[k] })));
     const q = String(this.state.query || '').trim().toLowerCase();

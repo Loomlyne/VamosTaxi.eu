@@ -340,6 +340,8 @@ type SupportComp = {
   closeTicket(): void;
   setNote(e: { target: { value: string } }): void;
   saveNote(): void;
+  setState(patch: Record<string, unknown>): void;
+  renderVals(): { thread: { from: string; who: string }[] };
 };
 type ApiAnswer = { ok: boolean; data?: unknown };
 
@@ -459,5 +461,28 @@ describe("OpsSupportTicket sidebar badge", () => {
     comp.componentDidMount();
     await settle();
     expect(win.__vamosSupportNew).toBe(2);
+  });
+});
+
+describe("OpsSupportTicket staff message label", () => {
+  it("without a profile name it is the copy-table word for the language, not a fixed person's name", async () => {
+    const staffMsg = { whoKey: "staff", when: "", body: "We will call you.", files: [] };
+    const { comp, settle } = supportHarness(() => ({ ok: true, data: [serverTicket({ messages: [staffMsg] })] }));
+    comp.hydrate();
+    await settle();
+    comp.openTicket("t1");
+    expect(comp.renderVals().thread[0]?.who).toBe("Dispatcher");
+    comp.setState({ lang: "de" });
+    expect(comp.renderVals().thread[0]?.who).toBe("Disponent");
+  });
+
+  it("with a profile name it is that name", async () => {
+    const staffMsg = { whoKey: "staff", when: "", body: "We will call you.", files: [] };
+    const { comp, win, settle } = supportHarness(() => ({ ok: true, data: [serverTicket({ messages: [staffMsg] })] }));
+    win.VamosOps = { profile: { get: () => ({ name: "Ada Admin" }) } };
+    comp.hydrate();
+    await settle();
+    comp.openTicket("t1");
+    expect(comp.renderVals().thread[0]?.who).toBe("Ada Admin");
   });
 });
