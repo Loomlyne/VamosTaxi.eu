@@ -62,9 +62,6 @@
 </sc-if>
 <sc-if value="{{ noPhoto }}" hint-placeholder-val="{{ true }}">{{ initials }}</sc-if>
 </button>
-<button type="button" onClick="{{ clearPhoto }}" aria-label="{{ tRemovePhoto }}" title="{{ tRemovePhoto }}" style="position:absolute;inset-inline-end:-2px;top:-2px;display:{{ photoClearShow }};align-items:center;justify-content:center;width:24px;height:24px;padding:0;border:2px solid var(--vt-bg-surface);border-radius:999px;background:var(--vt-charcoal-900);color:var(--vt-text-inverse);cursor:pointer" style-hover="background:var(--vt-danger)">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="x" size="{{ n12 }}" color="currentColor" hint-size="12px,12px"></x-import>
-</button>
 </span>
 <p data-hint="1" style="flex:1 1 auto;min-width:0">{{ tPhotoHint }}</p>
 </div>
@@ -182,7 +179,7 @@ const T = {
     who:'Who you are', whoSub:'Shown on bookings you touch and on the notes you leave',
     name:'Name', role:'Role', roleHint:'What the team calls this seat — dispatcher, owner, night desk.',
     email:'Email', phone:'Phone', phoneCc:'Country code',
-    upload:'Upload a photo', removePhoto:'Remove the photo',
+    upload:'Upload a photo',
     photoHint:'Click the circle to upload. Square works best — it saves straight away and shows in the sidebar.',
     console:'Console', consoleSub:'How this console behaves for you',
     twoFactor:'Two-step sign in', twoFactorHint:'A code as well as a password. Needs a provider connected.',
@@ -202,7 +199,7 @@ const T = {
     who:'Wer Sie sind', whoSub:'Erscheint bei Buchungen, die Sie bearbeiten, und bei Ihren Notizen',
     name:'Name', role:'Rolle', roleHint:'Wie das Team diesen Platz nennt — Disponent, Inhaber, Nachtschicht.',
     email:'E-Mail', phone:'Telefon', phoneCc:'Ländervorwahl',
-    upload:'Foto hochladen', removePhoto:'Foto entfernen',
+    upload:'Foto hochladen',
     photoHint:'Auf den Kreis klicken, um ein Foto hochzuladen. Quadratisch passt am besten — es wird sofort gespeichert und erscheint in der Seitenleiste.',
     console:'Konsole', consoleSub:'Wie sich diese Konsole für Sie verhält',
     twoFactor:'Zwei-Schritt-Anmeldung', twoFactorHint:'Ein Code zusätzlich zum Passwort. Benötigt einen verbundenen Anbieter.',
@@ -222,7 +219,7 @@ const T = {
     who:'Qui vous êtes', whoSub:'Affiché sur les réservations que vous traitez et sur vos notes',
     name:'Nom', role:'Rôle', roleHint:'Le nom que l’équipe donne à ce poste — régulateur, propriétaire, poste de nuit.',
     email:'E-mail', phone:'Téléphone', phoneCc:'Indicatif',
-    upload:'Téléverser une photo', removePhoto:'Retirer la photo',
+    upload:'Téléverser une photo',
     photoHint:'Cliquez sur le cercle pour téléverser. Le carré fonctionne le mieux — elle est enregistrée aussitôt et apparaît dans la barre latérale.',
     console:'Console', consoleSub:'Le comportement de cette console pour vous',
     twoFactor:'Connexion en deux étapes', twoFactorHint:'Un code en plus du mot de passe. Nécessite un fournisseur connecté.',
@@ -242,7 +239,7 @@ const T = {
     who:'من أنت', whoSub:'يظهر على الحجوزات التي تعالجها وعلى ملاحظاتك',
     name:'الاسم', role:'الدور', roleHint:'ما يسمّيه الفريق لهذا المقعد — موزّع، مالك، مناوبة ليلية.',
     email:'البريد الإلكتروني', phone:'الهاتف', phoneCc:'رمز الدولة',
-    upload:'رفع صورة', removePhoto:'إزالة الصورة',
+    upload:'رفع صورة',
     photoHint:'انقر على الدائرة لرفع صورة. الصورة المربعة أنسب — وتُحفظ فورًا وتظهر في الشريط الجانبي.',
     console:'لوحة التحكم', consoleSub:'كيف تتصرّف هذه اللوحة معك',
     twoFactor:'تسجيل دخول بخطوتين', twoFactorHint:'رمز إضافي مع كلمة المرور. يتطلب ربط مزوّد.',
@@ -441,7 +438,6 @@ class Component extends DCLogic {
       });
     });
   };
-  clearPhoto = () => this.persist({ avatar:'' });
   save = () => {
     if (!this.state.draft) return;
     const d = this.state.draft;
@@ -505,7 +501,7 @@ class Component extends DCLogic {
       tTitle: t.title, tSubtitle: t.subtitle, tSave: t.save, tDiscard: t.discard, tSaved: t.saved,
       tWho: t.who, tWhoSub: t.whoSub, tName: t.name, tRole: t.role, tRoleHint: t.roleHint,
       tEmail: t.email, tPhone: t.phone, tPhoneCc: t.phoneCc,
-      tUpload: t.upload, tRemovePhoto: t.removePhoto, tPhotoHint: t.photoHint,
+      tUpload: t.upload, tPhotoHint: t.photoHint,
       tConsole: t.console, tConsoleSub: t.consoleSub,
       tSession: t.session, tSessionBody: t.sessionBody, tSignOut: t.signOut,
       dirtyShow: dirty ? 'inline-flex' : 'none',
@@ -515,8 +511,7 @@ class Component extends DCLogic {
       photo:avatarUrl(d.avatar),
       hasPhoto: !!d.avatar,
       noPhoto: !d.avatar,
-      photoClearShow: d.avatar ? 'flex' : 'none',
-      pickPhoto: this.pickPhoto, clearPhoto: this.clearPhoto,
+      pickPhoto: this.pickPhoto,
       vName: d.name || '', setName: (e) => this.set('name', fieldValue(e)),
       vRole: d.role || '', setRole: (e) => this.set('role', fieldValue(e)),
       vEmail: d.email || '', setEmail: (e) => this.set('email', fieldValue(e)),

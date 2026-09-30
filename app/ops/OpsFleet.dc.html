@@ -169,7 +169,7 @@ const T = {
     fClass:'Class', fModel:'Model', fPlate:'Plate', fSeats:'Seats', fBags:'Bags', fYear:'Year', fStatus:'Status', fNote:'Note',
     fName:'Name', fPhone:'Phone', fEmail:'Email', fLicence:'Licence number', fLanguages:'Languages', fVehicle:'Vehicle',
     lang_de:'German', lang_fr:'French', lang_it:'Italian', lang_en:'English', lang_ar:'Arabic',
-    fPhoto:'Photo', clearPhoto:'Remove photo', choosePhoto:'Choose photo',
+    fPhoto:'Photo', choosePhoto:'Choose photo',
     fChauffeurs:'Associated with chauffeur',
     hClass:'Sets the price — a class is priced once, on the Pricing screen.',
     hPlate:'As it reads on the plate.', hVehicle:'The vehicle this chauffeur drives.', hChauffeurClass:'The class this chauffeur has.',
@@ -207,7 +207,7 @@ const T = {
     fClass:'Klasse', fModel:'Modell', fPlate:'Kennzeichen', fSeats:'Plätze', fBags:'Gepäck', fYear:'Jahr', fStatus:'Status', fNote:'Notiz',
     fName:'Name', fPhone:'Telefon', fEmail:'E-Mail', fLicence:'Ausweisnummer', fLanguages:'Sprachen', fVehicle:'Fahrzeug',
     lang_de:'Deutsch', lang_fr:'Französisch', lang_it:'Italienisch', lang_en:'Englisch', lang_ar:'Arabisch',
-    fPhoto:'Foto', clearPhoto:'Foto entfernen', choosePhoto:'Foto wählen',
+    fPhoto:'Foto', choosePhoto:'Foto wählen',
     fChauffeurs:'Zugeordnete Chauffeure',
     hClass:'Bestimmt den Preis — eine Klasse wird einmal auf dem Preis-Bildschirm bepreist.',
     hPlate:'So, wie es auf dem Kennzeichen steht.', hVehicle:'Das Fahrzeug, das dieser Chauffeur fährt.', hChauffeurClass:'Die Klasse, die dieser Chauffeur hat.',
@@ -245,7 +245,7 @@ const T = {
     fClass:'Classe', fModel:'Modèle', fPlate:'Plaque', fSeats:'Places', fBags:'Bagages', fYear:'Année', fStatus:'Statut', fNote:'Note',
     fName:'Nom', fPhone:'Téléphone', fEmail:'E-mail', fLicence:'Numéro de permis', fLanguages:'Langues', fVehicle:'Véhicule',
     lang_de:'Allemand', lang_fr:'Français', lang_it:'Italien', lang_en:'Anglais', lang_ar:'Arabe',
-    fPhoto:'Photo', clearPhoto:'Retirer la photo', choosePhoto:'Choisir une photo',
+    fPhoto:'Photo', choosePhoto:'Choisir une photo',
     fChauffeurs:'Associé au chauffeur',
     hClass:'Détermine le tarif — une classe est tarifée une fois, sur l’écran Tarifs.',
     hPlate:'Tel qu’il figure sur la plaque.', hVehicle:'Le véhicule que ce chauffeur conduit.', hChauffeurClass:'La classe de ce chauffeur.',
@@ -283,7 +283,7 @@ const T = {
     fClass:'الفئة', fModel:'الطراز', fPlate:'اللوحة', fSeats:'المقاعد', fBags:'الحقائب', fYear:'السنة', fStatus:'الحالة', fNote:'ملاحظة',
     fName:'الاسم', fPhone:'الهاتف', fEmail:'البريد الإلكتروني', fLicence:'رقم الرخصة', fLanguages:'اللغات', fVehicle:'المركبة',
     lang_de:'الألمانية', lang_fr:'الفرنسية', lang_it:'الإيطالية', lang_en:'الإنجليزية', lang_ar:'العربية',
-    fPhoto:'الصورة', clearPhoto:'إزالة الصورة', choosePhoto:'اختيار صورة',
+    fPhoto:'الصورة', choosePhoto:'اختيار صورة',
     fChauffeurs:'مرتبط بالسائق',
     hClass:'تحدّد السعر — تُسعَّر الفئة مرة واحدة في شاشة الأسعار.',
     hPlate:'كما هو مكتوب على اللوحة.', hVehicle:'المركبة التي يقودها هذا السائق.', hChauffeurClass:'الفئة التي يملكها هذا السائق.',
@@ -388,7 +388,7 @@ class Component extends DCLogic {
     ];
 
     const vehicleFields = [
-      { key:'photo', label:t.fPhoto, editor:'photo', photoKind:'vehicle', upload:'/api/photos/upload', clearLabel:t.clearPhoto, chooseLabel:t.choosePhoto, hint:t.hPhoto },
+      { key:'photo', label:t.fPhoto, editor:'photo', photoKind:'vehicle', upload:'/api/photos/upload', chooseLabel:t.choosePhoto, hint:t.hPhoto },
       { key:'klass', label:t.fClass, editor:'select', options:classOptions, icon:'car', half:true, hint:t.hClass, required:true },
       { key:'model', label:t.fModel, half:true, placeholder:'Sedan or similar' },
       { key:'plate', label:t.fPlate, half:true, placeholder:'ZH 000 000', required:true },
@@ -401,7 +401,7 @@ class Component extends DCLogic {
       { key:'note', label:t.fNote, editor:'area', placeholder:'' },
     ];
     const chauffeurFields = [
-      { key:'photo', label:t.fPhoto, editor:'photo', photoKind:'chauffeur', upload:'/api/photos/upload', clearLabel:t.clearPhoto, chooseLabel:t.choosePhoto, hint:t.hPhoto },
+      { key:'photo', label:t.fPhoto, editor:'photo', photoKind:'chauffeur', upload:'/api/photos/upload', chooseLabel:t.choosePhoto, hint:t.hPhoto },
       { key:'name', label:t.fName, half:true, required:true },
       { key:'phone', label:t.fPhone, editor:'phone', half:true, placeholder:'+41 00 000 00 00' },
       { key:'email', label:t.fEmail, half:true, placeholder:'name@example.com' },
