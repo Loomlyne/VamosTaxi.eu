@@ -1,2 +1,32 @@
 /*.dc.html
   Content-Type: text/html; charset=utf-8
+
+# Site speed (owner decision 2026-09-30, .planning/quick/260930-site-speed/PLAN.md).
+# Every rule sits on static files only: the same bytes for every visitor. Pages, /api/*
+# and anything that varies by cookie are answered by the Worker and never matched here.
+# Rules add their values when patterns overlap, so the long rules below first detach the
+# short one. Nothing here names a path that is per-visitor; lib/cache/static-headers.test.ts
+# fails if one ever does.
+#
+# Short (5 minutes): our scripts, dictionary, page components, styles, logos. The mocks have
+# no version in their file names, so a new deploy reaches a returning visitor within 5
+# minutes. No stale-while-revalidate: it would serve the old file once after expiry.
+/app/*
+  Cache-Control: public, max-age=300
+/assets/*
+  Cache-Control: public, max-age=300
+/_ds/*
+  Cache-Control: public, max-age=300
+/brand/*
+  Cache-Control: public, max-age=300
+
+# One year: files whose name changes when the file changes.
+/assets/vendor/*
+  ! Cache-Control
+  Cache-Control: public, max-age=31536000, immutable
+/assets/photography/*
+  ! Cache-Control
+  Cache-Control: public, max-age=31536000, immutable
+/_ds/:pack/assets/fonts/*
+  ! Cache-Control
+  Cache-Control: public, max-age=31536000, immutable
