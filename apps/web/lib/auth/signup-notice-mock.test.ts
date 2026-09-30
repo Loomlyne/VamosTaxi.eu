@@ -60,3 +60,45 @@ describe("sign-up notice in the mock", () => {
     expect(src.match(/2026-/g) ?? []).toHaveLength(1);
   });
 });
+
+describe("sign-up form source pins", () => {
+  const form = read("app/pages/AuthForm.dc.html");
+  const errorEn = messages("en").acctCreateConsentError!;
+  const styleStart = form.indexOf("<style>");
+  const style = form.slice(styleStart, form.indexOf("</style>", styleStart));
+  const consentRules = style.split("\n").filter((l) => l.includes("[data-af-consent]"));
+
+  it("carries the tick row, the pinned table and consent in the payload", () => {
+    for (const needle of ["data-af-consent", "VamosAccountNotice", "consent: true", "consent-required", "signup-unavailable"]) {
+      expect(form).toContain(needle);
+    }
+    expect(form.split(`>${errorEn}<`).length - 1).toBe(1);
+    expect(form).not.toContain("By creating an account");
+    expect(form.split("VamosTaxiDesignSystem_245af1.Checkbox").length - 1).toBe(1);
+  });
+  it("shows the row in sign-up only, never on the ops surface", () => {
+    const m = form.match(/const showConsent = ([^;]+);/);
+    expect(m?.[1]).toContain("mode === 'signup'");
+    expect(m?.[1]).toContain("!isOps");
+  });
+  it("the dashboard files stay untouched", () => {
+    for (const f of ["app/ops/AuthForm.dc.html", "app/ops/ops-login.dc.html"]) {
+      const src = read(f);
+      for (const needle of ["data-af-consent", "VamosAccountNotice", "Tick the box"]) expect(src).not.toContain(needle);
+    }
+  });
+  it("style: tokens and logical properties only, no yellow tint, no glow", () => {
+    expect(consentRules.length).toBeGreaterThan(0);
+    expect(style).not.toContain("--vt-yellow-");
+    expect(style.split("--vt-shadow-accent").length - 1).toBe(1);
+    for (const rule of consentRules) {
+      for (const bad of ["margin-left", "margin-right", "padding-left", "left:", "right:", "box-shadow"]) {
+        expect(rule).not.toContain(bad);
+      }
+    }
+  });
+  it("loads the notice script in both hosts", () => {
+    expect(form).toContain("vamos-account-notice.js");
+    expect(read("app/pages/sign-in.dc.html")).toContain("vamos-account-notice.js");
+  });
+});
