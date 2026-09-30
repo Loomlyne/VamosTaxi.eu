@@ -12,10 +12,10 @@ Rewritten short on 2026-09-30 14:25; the long version is in git history (`823022
 | Item | Value |
 |---|---|
 | Site | https://vamostaxi.site and https://dashboard.vamostaxi.site |
-| main = origin/main | `51b851e3` plus planning notes |
-| Worker `vamos` | version `8adb148c` |
+| main = origin/main | `02c1bd3d` plus planning notes |
+| Worker `vamos` | version `d80e6577` |
 | Worker `vamos-dashboard` (gateway) | version `58c6e541`, deployed 15:22 by the owner's word; before: `5ea4fe65` |
-| Rollback point | Worker `d43e467b`, git tag `backup/main-before-phone-home-3b7bd64d`; before 26.2: Worker `0d1806ce`; before the Support button: Worker `2d5906ce` (before 26.5: Worker `fe9314d0`, tag `backup/main-before-26.5-e09f90cb`). Guest accounts off without a deploy: `settings.guest_accounts_live = false` |
+| Rollback point | Worker `8adb148c`, git tag `backup/main-before-speed-a-8cd3a746`; before phone home: Worker `d43e467b`; before 26.2: Worker `0d1806ce`; before the Support button: Worker `2d5906ce` (before 26.5: Worker `fe9314d0`, tag `backup/main-before-26.5-e09f90cb`). Guest accounts off without a deploy: `settings.guest_accounts_live = false` |
 | Database | migrations up to `20260930210000`, 26.5's `20261001100000` to `130000`, Phase 20's `20261005100000` and `110000`, 26.2's `20261007100000`, all applied and read back. `guest_accounts_live` = true since 14:58 (owner's answer) |
 | Who deploys | the control session, from the owner's Mac. GitHub runs checks, never deploys. |
 
@@ -35,6 +35,7 @@ Rewritten short on 2026-09-30 14:25; the long version is in git history (`823022
 | 09-30 | 15:02 | Support e-mail button: answers the customer of that ticket; support copy carries the customer as reply address | `96796ddb` | `0d1806ce` |
 | 09-30 | 15:09 | 26.2 audit hand-over 1: 17 bug fixes in dashboard, mails and helpers; sign-in mails clean in de/fr/ar; staff price preview permission | `3142a6e8` | `d43e467b` |
 | 09-30 | 15:20 | SEO follow-up (dashboard robots closed, first view follows a stored language) and phone home (Trustpilot row in the booking card, full-page menu, hero behind Safari's bars) | `51b851e3` | `8adb148c` + gateway `58c6e541` |
+| 09-30 | 15:28 | Site speed A: static files cached, reviews cached 5 min, About photo 4.0 MB to 385 KB | `02c1bd3d` | `d80e6577` |
 
 ## Ship order from here
 
@@ -55,7 +56,7 @@ Owner's order: booking, payments, account, Meta first.
 | 9 | Phase 20 batch C | Waits | After 27. Sign-in confirm screen (F12), dashboard files off the public address (F16), Arabic font from our own host (F17) |
 | 10 | Phone home design | **Live 15:20** (owner signed and said Ship). Live read at 375: hero fills the screen, Trustpilot row inside the booking card. Full-page menu and Safari bar colour: the owner's iPhone check | Owner's iPhone |
 | 10a | Phase 20 batch B1 (return-route limit, F8, lock-secret 503, ticket reply refused, staff e-mail check, reviews column grants `20261005120000`) | Handed over `75b0aba0`; touches checkout files | Owner's 26.5 test first, then his Ship, then a 4242 payment |
-| 10b | Site speed A: cache headers, reviews cached 5 min, About photo 4.0 MB to 385 KB | Handed over `1fa39e0c` | Control check, owner's Ship |
+| 10b | Site speed A | **Live 15:28** (owner said Ship). Live read: scripts and page parts 5 minutes, engine and photos one year, reviews 5 minutes with 5 rows; checkout, account, manage booking, sign-in and the per-visitor APIs stay `private, no-store`. A deploy now reaches a returning visitor within 5 minutes. B (native scrolling) is built on `fix/native-scroll`, hands over after class cards and Phase 27 | |
 | 11 | Scroll and speed | Measuring on live | A plan for the owner's signature |
 | 12 | 26.0 main green | No session. 9 of 12 plans done, 35 behind main | Prompt `03-finish-26.0.md` |
 | 13 | 26.2 gate scripts (stricter checks) | On `gsd/phase-26.2-u13` | Last, after 27 to 29 |
