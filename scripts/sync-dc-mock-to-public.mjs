@@ -18,6 +18,7 @@ import {
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { assertHeadBase, injectBaseInto } from "./dc-page-base.mjs";
+import { pruneMissing } from "./sync-prune.mjs";
 
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const pub = resolve(repo, "apps/web/public");
@@ -85,6 +86,15 @@ function stripDcCopies(dir) {
     else if (isDcCopy(ent.name)) rmSync(p);
   }
 }
+
+// The copy never deletes, so first drop what vanished from the source: a removed file must not
+// keep shipping from the gitignored copy. `app/` is not mirrored: its .html pages are generated
+// from the .dc.html sources below and have no source counterpart.
+const pruned = [
+  ...pruneMissing(resolve(repo, "design-system"), resolve(pub, "_ds", uuid)).map((p) => `_ds/${p}`),
+  ...pruneMissing(resolve(repo, "assets"), resolve(pub, "assets")).map((p) => `assets/${p}`),
+];
+if (pruned.length > 0) console.log(`pruned ${pruned.length} stale public file(s): ${pruned.join(", ")}`);
 
 copy(resolve(repo, "app"), resolve(pub, "app"));
 copy(resolve(repo, "design-system"), resolve(pub, "_ds", uuid));
