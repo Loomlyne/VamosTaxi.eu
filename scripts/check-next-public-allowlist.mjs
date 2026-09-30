@@ -11,27 +11,36 @@
 // the honest custom-script case.
 
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
-import { join, relative, extname } from "node:path";
+import { join, relative, extname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const repoRoot = fileURLToPath(new URL("..", import.meta.url));
 const webRoot = join(repoRoot, "apps/web");
 const allowlistPath = join(repoRoot, "scripts/public-env-allowlist.json");
-const openNextAssets = join(webRoot, ".open-next/assets");
+const argv = process.argv.slice(2);
+const assetsFlag = argv.indexOf("--assets");
+const openNextAssets =
+  assetsFlag >= 0 && argv[assetsFlag + 1]
+    ? resolve(process.cwd(), argv[assetsFlag + 1])
+    : join(webRoot, ".open-next/assets");
 
 const EXCLUDED_DIRS = new Set(["node_modules", ".next", ".open-next", ".git", ".wrangler"]);
+// `.next-<name>` folders are extra Next build output (the visual specs write them; git-ignored).
+// They are not source, hold multi-megabyte bundles and once kept this check busy for 35 minutes.
+const isExcludedDir = (name) => EXCLUDED_DIRS.has(name) || name.startsWith(".next");
 const BINARY_EXT = new Set([
   ".ttf", ".otf", ".woff", ".woff2",
   ".png", ".jpg", ".jpeg", ".gif", ".ico", ".webp", ".avif",
-  ".mp4", ".mov", ".pdf",
+  ".mp4", ".mov", ".webm", ".pdf", ".gz", ".zip",
 ]);
 const NEXT_PUBLIC_RE = /\bNEXT_PUBLIC_[A-Z0-9_]+\b/g;
+const USE_CLIENT_RE = /^\s*(?:\/\/[^\n]*\n\s*|\/\*[\s\S]*?\*\/\s*)*["']use client["']/;
 
 /** Recursively collect readable (non-binary, non-excluded) file paths under `dir`. */
 function walk(dir, files = []) {
   if (!existsSync(dir)) return files;
   for (const entry of readdirSync(dir)) {
-    if (EXCLUDED_DIRS.has(entry)) continue;
+    if (isExcludedDir(entry)) continue;
     const full = join(dir, entry);
     const stats = statSync(full);
     if (stats.isDirectory()) {
@@ -119,8 +128,47 @@ function checkBuiltBundle(allowlist) {
   return ok;
 }
 
+/** 26.5 D-14: no NEXT_PUBLIC name may contain SERVICE_ROLE; no "use client" file may mention it. */
+function checkServiceRoleSource() {
+  let ok = true;
+  for (const file of walk(webRoot)) {
+    if (!/\.(ts|tsx|js|jsx|mjs)$/.test(file)) continue;
+    const content = readFileSync(file, "utf8");
+    for (const id of content.match(NEXT_PUBLIC_RE) ?? []) {
+      if (id.includes("SERVICE_ROLE")) {
+        console.error(`check-next-public-allowlist: client-exposed name contains SERVICE_ROLE (${id}): ${relative(repoRoot, file)}`);
+        ok = false;
+      }
+    }
+    if (content.includes("SERVICE_ROLE") && USE_CLIENT_RE.test(content)) {
+      console.error(`check-next-public-allowlist: "use client" file mentions SERVICE_ROLE: ${relative(repoRoot, file)}`);
+      ok = false;
+    }
+  }
+  if (ok) console.log("check-next-public-allowlist: service-role source rules (D-14) — pass.");
+  return ok;
+}
+
+/** 26.5 D-14: when VT_BUNDLE_SECRET_SENTINEL is set, that value must not appear in the bundle.
+ *  The value is never printed — only the file path on a hit. */
+function checkBundleSentinel() {
+  const sentinel = process.env.VT_BUNDLE_SECRET_SENTINEL;
+  if (!sentinel || !existsSync(openNextAssets)) return true;
+  let ok = true;
+  for (const file of walk(openNextAssets)) {
+    if (readFileSync(file, "utf8").includes(sentinel)) {
+      console.error(`check-next-public-allowlist: secret sentinel value found in bundle file: ${file}`);
+      ok = false;
+    }
+  }
+  if (ok) console.log("check-next-public-allowlist: sentinel value absent from bundle — pass.");
+  return ok;
+}
+
 const allowlist = loadAllowlist();
 const sourceOk = checkSourceAllowlist(allowlist);
 const bundleOk = checkBuiltBundle(allowlist);
+const serviceRoleOk = checkServiceRoleSource();
+const sentinelOk = checkBundleSentinel();
 
-process.exit(sourceOk && bundleOk ? 0 : 1);
+process.exit(sourceOk && bundleOk && serviceRoleOk && sentinelOk ? 0 : 1);

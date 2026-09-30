@@ -52,20 +52,27 @@ describe("dc mock URL gate", () => {
     expect(should404MockLeak("/sitemap")).toBe(false);
   });
 
-  it("308s locale-prefixed mock leaks in one hop", () => {
+  it("308s locale-prefixed mock leaks in one hop, to the language address of an indexable page", () => {
     const gated = gatePublicRequest(doc("/de/app/pages/about.html"));
     expect((gated as Response).status).toBe(308);
     expect((gated as Response).headers.get("location")).toBe(
-      "https://vamostaxi.site/about",
+      "https://vamostaxi.site/de/about",
     );
+    const priv = gatePublicRequest(doc("/de/app/pages/sign-in.html"));
+    expect((priv as Response).headers.get("location")).toBe("https://vamostaxi.site/sign-in");
   });
 
-  it("308s locale prefixes off the public host", () => {
-    const gated = gatePublicRequest(req("/de/about"));
+  it("lets /de /fr /ar through on the indexable pages (option B)", () => {
+    expect(gatePublicRequest(req("/de/about"))).toBeNull();
+    expect(gatePublicRequest(req("/ar"))).toBeNull();
+  });
+
+  it("308s locale prefixes off the public host on every other page", () => {
+    const gated = gatePublicRequest(req("/de/sign-in"));
     expect(gated).toBeInstanceOf(Response);
     const res = gated as Response;
     expect(res.status).toBe(308);
-    expect(res.headers.get("location")).toBe("https://vamostaxi.site/about");
+    expect(res.headers.get("location")).toBe("https://vamostaxi.site/sign-in");
     expect(res.headers.get("set-cookie") ?? "").toMatch(/NEXT_LOCALE=de/);
     expect(res.headers.get("set-cookie") ?? "").toMatch(/Secure/i);
   });

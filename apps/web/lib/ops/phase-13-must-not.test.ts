@@ -36,11 +36,11 @@ function stripLineComments(src: string): string {
 const listed = Object.values(FILES);
 
 describe("phase 13 must-not greps (RPLY-01 RPLY-02 D-01 D-05 D-08 D-09)", () => {
-  it("RPLY-01 RPLY-02 tickets-write bccs SUPPORT_EMAIL with allowEmailFallback false and no EMAIL/Message-ID", () => {
+  // G27: the staff reply send path is gone; tickets-write must stay mail-free.
+  it("G27 tickets-write sends no mail and uses no EMAIL/Message-ID", () => {
     const src = read(FILES.ticketsWrite);
     const code = stripLineComments(src);
-    expect(code).toMatch(/allowEmailFallback:\s*false/);
-    expect(code).toMatch(/bcc:\s*SUPPORT_EMAIL/);
+    expect(code).not.toMatch(/sendContactMessage/);
     expect(code).not.toMatch(/env\.EMAIL/);
     expect(code).not.toMatch(/Message-ID/);
   });
@@ -63,12 +63,13 @@ describe("phase 13 must-not greps (RPLY-01 RPLY-02 D-01 D-05 D-08 D-09)", () => 
     expect(contact).not.toMatch(/Message-ID/);
   });
 
-  it("D-01 overlay sendError PATCH { reply: body } with no FIXTURES; OpsSidebar has no Staff tab", () => {
+  // Phase 20 F2 (owner, 2026-09-30): Support is read-only, so the overlay sends no reply.
+  it("D-01 overlay sendError PATCH with no reply body and no FIXTURES; OpsSidebar has no Staff tab", () => {
     const overlay = stripLineComments(read(FILES.overlay));
     const sidebar = read(FILES.sidebar);
     expect(overlay).toMatch(/sendError/);
     expect(overlay).toMatch(/PATCH/);
-    expect(overlay).toMatch(/\{\s*reply:\s*body\s*\}/);
+    expect(overlay).not.toMatch(/\{\s*reply:/);
     expect(overlay).not.toMatch(/FIXTURES/);
     expect(sidebar).not.toMatch(/key:'staff'/);
     expect(sidebar).not.toMatch(/#staff/);

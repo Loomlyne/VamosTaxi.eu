@@ -16,6 +16,7 @@ import {
   updateBooking,
   type MarkedBooking,
 } from "@/lib/ops/bookings-write";
+import { isCheckoutEmail } from "@/lib/checkout/contact-validate";
 import { jsonErr, jsonOk, withStaff } from "@/lib/ops/staff-json";
 
 export const dynamic = "force-dynamic";
@@ -34,11 +35,9 @@ function asEmailLocale(value: string): "en" | "de" | "fr" | "ar" {
 async function afterOpsMark(
   env: CloudflareEnv,
   booking: MarkedBooking,
-  status: "completed" | "no_show",
 ): Promise<void> {
   if (!booking.email.trim()) return;
   if (!booking.paid) return;
-  if (status === "no_show" && !booking.paid) return;
   try {
     await notifyReviewRequest(env, {
       bookingId: booking.bookingId,
@@ -102,7 +101,7 @@ export const PATCH = withStaff(async (claims, request) => {
       if (result.code === "unknown") return jsonErr("unknown", 500);
       return jsonErr("not-found", 404);
     }
-    await afterOpsMark(env, result.booking, status);
+    await afterOpsMark(env, result.booking);
     return jsonOk({ id, status });
   }
 
@@ -110,9 +109,17 @@ export const PATCH = withStaff(async (claims, request) => {
     return jsonErr("use-refund", 400);
   }
 
+  // G20: a present e-mail must be a real address (same rule as checkout); absent keeps today's value.
+  let email: string | undefined;
+  if (Object.prototype.hasOwnProperty.call(record, "email")) {
+    const raw = typeof record.email === "string" ? record.email.trim() : "";
+    if (!raw || raw.length > 254 || !isCheckoutEmail(raw)) return jsonErr("invalid-email", 400);
+    email = raw;
+  }
+
   const result = await updateBooking(env, claims, id, {
     customer: typeof record.customer === "string" ? record.customer : undefined,
-    email: typeof record.email === "string" ? record.email : undefined,
+    email,
     phone: typeof record.phone === "string" ? record.phone : undefined,
     note: typeof record.note === "string" ? record.note : undefined,
     pickup: typeof record.pickup === "string" ? record.pickup : undefined,

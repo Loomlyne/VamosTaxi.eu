@@ -1,5 +1,7 @@
 # Vamos Taxi Product Brief
 
+> **Status, 2026-09-30:** This is the 2026-07 brief. Its Vercel lines and Vercel Pro cost are superseded: hosting is Cloudflare Workers (OpenNext) with Supabase; there is no Vercel. The public site is https://vamostaxi.site (Worker `vamos` on Cloudflare); `vamostaxi.eu` is not used and is never bound. Vehicle classes are Economy / Business / Van luxury.
+
 ## Vision
 
 Replace the current Vamos Taxi website with a premium, mobile-first **scheduled** transfer-booking experience and an operations dashboard. Customers book ahead (e.g. today for tomorrow), get a fixed price, pay, and receive confirmation. At the agreed pickup time the assigned driver is waiting. This is not on-demand ride-hailing and not live GPS matching.

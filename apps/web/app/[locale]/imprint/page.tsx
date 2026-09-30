@@ -74,6 +74,7 @@ export default async function ImprintPage({
       kickerKey="common.legal"
       effectiveDateLabel="Imprint effective date"
       versionLabel="Imprint version"
+      shipDated
     >
       {/* LegalPage PendingSlot: Imprint effective date */}
       {/* LegalPage PendingSlot: Imprint version */}
@@ -152,17 +153,12 @@ export default async function ImprintPage({
         </h2>
         <dl data-dl="1">
           <DlRow term={tLegal("uid-vat-number")}>
-            <PendingSlot label="Uid number" />
+            {/* Owner confirmed 2026-09-30 (.planning/quick/260930-lgl-legal-pages-from-eu/DECISIONS.md #4). */}
+            <span data-i18n-skip className="vt-dir-keep">
+              CHE-296.035.710
+            </span>
           </DlRow>
         </dl>
-        <div data-slot="1" data-i18n-skip>
-          <p data-slot-k="1">Client input · UID</p>
-          <p>
-            The number appears nowhere on the previous site. It is not invented here: either the
-            real UID in the CHE format with the VAT suffix, or the row comes out if the company is
-            not VAT-registered. A wrong UID is worse than none.
-          </p>
-        </div>
       </section>
 
       <section id="aufsicht">

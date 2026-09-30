@@ -778,7 +778,7 @@
 }
 
 .vt-co__editor-grid[data-flight-row="true"] {
-  grid-template-areas: "from to" "flight ." "when party";
+  grid-template-areas: "flight ." "from to" "when party";
 }
 
 .vt-co__editor-field {
@@ -916,11 +916,14 @@
   color: var(--vt-text-secondary);
 }
 
-/* Class cards: VehicleCard, laid out vertical >=681 and as rows <=680 */
+/* Class cards (quick 260930-cps, owner-signed layout E): one row per class at every width. A square inset photo
+   on the inline-start side; beside it the name, the price with its note, and "N seats / N bags" at the bottom.
+   Selected = 2 px charcoal border + a charcoal check in the top inline-end corner. Too small = greyed, no price,
+   "Seats up to N". The whole card is the control. */
 .vt-co__classes {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
 }
 
 .vt-co__class {
@@ -929,25 +932,72 @@
 }
 
 .vt-co__class .vt-veh {
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: 120px minmax(0, 1fr);
+  grid-template-rows: auto auto 1fr;
+  grid-template-areas:
+    "shot name"
+    "shot price"
+    "shot caps";
   align-items: start;
-  gap: 12px;
-  block-size: 100%;
+  gap: 2px 12px;
+  padding-block: 8px;
+  padding-inline: 8px;
+}
+
+.vt-co__class .vt-veh--selected {
+  padding-block: 7px;
+  padding-inline: 7px;
 }
 
 .vt-co__class .vt-veh__shot {
-  inline-size: 100%;
+  grid-area: shot;
+  align-self: center;
+  inline-size: 120px;
   block-size: auto;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 1 / 1;
 }
 
-.vt-co__class .vt-veh__price {
-  align-items: flex-start;
-  text-align: start;
+/* Owner photos are portrait with the car in the lower part: keep the car in the square crop. */
+.vt-co__class .vt-veh__shot img {
+  object-position: 50% 72%;
 }
 
 .vt-co__class .vt-veh__body {
+  display: contents;
+}
+
+.vt-co__class .vt-veh__headline {
+  grid-area: name;
+  margin-block: 2px 0;
   min-inline-size: 0;
+  /* room for the check in the top inline-end corner */
+  padding-inline-end: 34px;
+}
+
+.vt-co__class .vt-veh__name {
+  font-size: var(--vt-heading-4);
+  line-height: 1.2;
+}
+
+.vt-co__class .vt-veh__price {
+  grid-area: price;
+  grid-column: auto;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: start;
+  gap: 0;
+}
+
+.vt-co__class .vt-veh__amount {
+  font-size: var(--vt-heading-3);
+  line-height: 1.15;
+}
+
+.vt-co__class .vt-veh__caps {
+  grid-area: caps;
+  align-self: end;
+  gap: 4px 14px;
+  margin-block-end: 2px;
 }
 
 .vt-co__class[data-eligible="false"] .vt-veh,
@@ -955,12 +1005,23 @@
   opacity: 0.42;
 }
 
+/* Too small: the price would only say CHF 000; the note is the message. */
+.vt-co__class[data-eligible="false"] .vt-veh__amount {
+  display: none;
+}
+
+.vt-co__class[data-eligible="false"] .vt-veh__note {
+  font-size: var(--vt-body-sm);
+  font-weight: var(--vt-weight-medium);
+  color: var(--vt-text-secondary);
+}
+
 .vt-co__class-check {
   position: absolute;
-  inset-block-start: 28px;
-  inset-inline-start: 28px;
-  inline-size: 28px;
-  block-size: 28px;
+  inset-block-start: 10px;
+  inset-inline-end: 10px;
+  inline-size: 24px;
+  block-size: 24px;
   border-radius: 50%;
   background: var(--vt-charcoal-900);
   display: inline-flex;
@@ -992,39 +1053,16 @@
     flex: 1 1 100%;
   }
 
-  .vt-co__classes {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 12px;
-  }
-
   .vt-co__class .vt-veh {
-    grid-template-columns: 72px minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 12px;
+    grid-template-columns: 104px minmax(0, 1fr);
   }
 
   .vt-co__class .vt-veh__shot {
-    inline-size: 72px;
-    block-size: 54px;
-    aspect-ratio: auto;
+    inline-size: 104px;
   }
 
   .vt-co__class .vt-veh__amount {
-    font-size: var(--vt-heading-3);
-  }
-
-  .vt-co__class .vt-veh__price {
-    grid-column: auto;
-    flex-direction: column;
-    align-items: flex-end;
-    text-align: end;
-  }
-
-  .vt-co__class-check {
-    inset-block-start: 22px;
-    inset-inline-start: 22px;
-    inline-size: 22px;
-    block-size: 22px;
+    font-size: var(--vt-heading-4);
   }
 }
 
@@ -1270,4 +1308,24 @@
   .vt-co__section-head {
     flex-wrap: wrap;
   }
+}
+
+/* 26.5: account choice at the top of section 2. Tokens and logical properties only. */
+[data-co-account] {
+  display: grid;
+  gap: var(--vt-space-6);
+  min-inline-size: 0;
+  margin-block-end: var(--vt-space-6);
+}
+
+[data-co-account-divider] {
+  margin: 0;
+  border: 0;
+  border-block-start: 1px solid var(--vt-border-subtle);
+}
+
+/* The invisible account check reserves no space; an interactive challenge grows the host itself. */
+[data-co-account] .vt-turnstile {
+  min-block-size: 0;
+  min-inline-size: 0;
 }

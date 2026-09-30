@@ -9,6 +9,7 @@ import { priceCheckoutWithDeps } from "@/lib/checkout/price-route";
 import { asQuote } from "@/lib/db/identity";
 import { evaluateCoupon, loadLaunchFlags } from "@/lib/db/quote";
 import { csrfForbidden } from "@/lib/security/origin";
+import { lockSecretMissingResponse, lockSecretPresent } from "@/lib/quote/lock-secret";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,7 @@ export async function POST(request: Request) {
   if (blocked) return blocked;
   try {
     const { env } = getCloudflareContext();
+    if (!lockSecretPresent(env.QUOTE_LOCK_SECRET, "/api/checkout/price")) return lockSecretMissingResponse();
     let json: unknown;
     try {
       json = await request.json();

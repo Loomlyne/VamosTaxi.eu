@@ -10,6 +10,8 @@
  */
 import { devGalleryEnabled, isDevGalleryPath } from "./dev-gallery";
 
+import { seoPageFor } from "./seo/head";
+
 export const INTERNAL_ASSET_HEADER = "x-vamos-dc-asset";
 
 export const ACCOUNT_SECTIONS = [
@@ -139,6 +141,12 @@ function redirectTo(
   return new Response(null, { status: 308, headers });
 }
 
+/** The address a page has in a language: prefixed on the nine indexable pages, else unchanged. */
+function languageAddress(path: string, prefix: "en" | "de" | "fr" | "ar" | null): string {
+  if (!prefix || prefix === "en" || !seoPageFor(path)?.indexable) return path;
+  return path === "/" ? `/${prefix}` : `/${prefix}${path}`;
+}
+
 export function canonicalPublicFromLeak(pathname: string): string | null {
   const path = stripAssetExt(pathWithoutLocale(pathname));
   return DC_MOCK_CANONICAL[path] ?? null;
@@ -215,11 +223,12 @@ export function gatePublicRequest(request: Request): Response | "not-found" | nu
     // Scripts, CSS, `.dc.html` mocks, fetch() — not address-bar visits.
     if (!isDocumentNav(request)) return null;
     const dest = canonicalPublicFromLeak(path);
-    if (dest) return redirectTo(url, dest, prefix);
+    if (dest) return redirectTo(url, languageAddress(dest, prefix), prefix);
     return "not-found";
   }
 
-  if (prefix) return redirectTo(url, path, prefix);
+  // Option B (2026-09-30): /de /fr /ar are real addresses on the indexable pages.
+  if (prefix && languageAddress(path, prefix) === path) return redirectTo(url, path, prefix);
 
   return null;
 }

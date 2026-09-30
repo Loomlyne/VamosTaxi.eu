@@ -1,25 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mapTicket, nextTicketStatus, rejectStaffReply, staffPatchStatus } from "./tickets-map";
-
-describe("nextTicketStatus", () => {
-  it("keeps an explicit open after new", () => {
-    expect(nextTicketStatus("new", "open")).toBe("open");
-  });
-
-  it("moves to replied, responded, and closed", () => {
-    expect(nextTicketStatus("open", "replied")).toBe("replied");
-    expect(nextTicketStatus("replied", "responded")).toBe("responded");
-    expect(nextTicketStatus("replied", "closed")).toBe("closed");
-  });
-
-  it("reopens closed to open and never returns to new", () => {
-    expect(nextTicketStatus("open", "new")).toBeNull();
-    expect(nextTicketStatus("replied", "new")).toBeNull();
-    expect(nextTicketStatus("closed", "open")).toBe("open");
-    expect(nextTicketStatus("closed", "replied")).toBeNull();
-    expect(nextTicketStatus("closed", "closed")).toBe("closed");
-  });
-});
+import { mapTicket, rejectStaffReply, staffPatchStatus } from "./tickets-map";
 
 describe("staffPatchStatus", () => {
   it("opens only from new or closed", () => {
@@ -43,9 +23,10 @@ describe("staffPatchStatus", () => {
 });
 
 describe("rejectStaffReply (D-12)", () => {
-  it("does not block a reply key so overlay PATCH { reply } can send", () => {
-    expect(rejectStaffReply({ reply: "hi" })).toBe(false);
-    expect(rejectStaffReply({ reply: "" })).toBe(false);
+  it("blocks a reply key: the dashboard Support page is read-only (G27)", () => {
+    expect(rejectStaffReply({ reply: "hi" })).toBe(true);
+    expect(rejectStaffReply({ reply: "" })).toBe(true);
+    expect(rejectStaffReply(null)).toBe(false);
     expect(rejectStaffReply({ status: "open" })).toBe(false);
     expect(rejectStaffReply({})).toBe(false);
   });

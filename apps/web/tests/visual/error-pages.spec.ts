@@ -20,8 +20,8 @@
 //     `tests/support/mock-harness.ts`'s `mountPort` (a bare `react-dom/server` render with
 //     no Next.js runtime underneath it) cannot supply that context, so this file's own
 //     `not-found.tsx` suite spawns a real `next dev` server exactly the way
-//     `tests/integration/ssr-locale.spec.ts` and `tests/integration/lenis.spec.ts`
-//     established, and drives it with a real Playwright `page.goto()` — not a raw
+//     `tests/integration/ssr-locale.spec.ts`
+//     does, and drives it with a real Playwright `page.goto()` — not a raw
 //     `fetch()`, and that distinction matters here specifically (see the next paragraph).
 //
 //   - SSR NOTE, discovered running this exact suite against a real server (both

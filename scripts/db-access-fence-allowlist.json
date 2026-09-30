@@ -10,6 +10,7 @@
     "packages/db/test/local/local-fixtures.ts",
     "packages/db/test/local/no-begin.test.ts",
     "packages/db/test/local/worker-arrays.test.ts",
+    "packages/db/test/local/checkout-account.test.ts",
     "apps/web/lib/db/system-reads.local.test.ts",
     "packages/db/test/fixtures/two-customers.ts",
     "packages/db/test/support/test-stack-guard.ts",
@@ -40,6 +41,7 @@
     "packages/db/test/local/no-begin.test.ts",
     "packages/db/test/local/connection-reuse.test.ts",
     "packages/db/test/local/worker-arrays.test.ts",
+    "packages/db/test/local/checkout-account.test.ts",
     "apps/web/lib/db/system-reads.local.test.ts"
   ],
 

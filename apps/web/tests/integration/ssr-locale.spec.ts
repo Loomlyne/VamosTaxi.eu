@@ -8,8 +8,8 @@
 // client-side correction happens before Playwright ever looks. Every assertion here
 // instead reads the bytes a plain `fetch()` receives, before any script has run.
 //
-// Runs against the real Next.js app (`next dev`, spawned in beforeAll), the same
-// dev-server pattern tests/integration/lenis.spec.ts established — `setRequestLocale`
+// Runs against the real Next.js app (`next dev`, spawned in beforeAll; one dev server
+// per worker) — `setRequestLocale`
 // (Pitfall 2) and the `[locale]` segment's `notFound()` boundary are real App Router
 // behaviour a static-render harness has no way to exercise.
 //
@@ -30,7 +30,7 @@ let baseURL = "";
 
 test.beforeAll(async ({}, testInfo) => {
   // Only the one project this spec actually runs under spends the cost of a dev
-  // server — same reasoning lenis.spec.ts's own beforeAll documents. Raw HTML bytes
+  // server — one dev server per worker. Raw HTML bytes
   // don't vary by viewport at all, so there is nothing a second project would add.
   if (testInfo.project.name !== RUN_PROJECT) return;
 
@@ -83,7 +83,7 @@ const LOCALE_EXPECTATIONS: Record<string, LocaleExpectation> = {
 
 test.describe("Server-rendered locale @ssr-locale", () => {
   // One dev server per worker — force every test into the same worker so exactly one
-  // `next dev` process ever gets spawned, matching lenis.spec.ts's own reasoning.
+  // `next dev` process ever gets spawned, one dev server per worker.
   test.describe.configure({ mode: "serial" });
 
   for (const [locale, expectation] of Object.entries(LOCALE_EXPECTATIONS)) {

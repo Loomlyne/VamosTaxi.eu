@@ -3,22 +3,20 @@
 // D-55 / D-75 ops must-fix. PayLink envelope. No legal invention, no CHF,
 // no auto-cancel copy beyond "the trip stays".
 
-import type { ReactNode } from "react";
 import {
   Body,
-  Column,
   Container,
   Head,
   Html,
   Img,
   Preview,
-  Row,
   Section,
   Text,
 } from "@react-email/components";
 import type { EmailLocale } from "./lib/types";
 import { t } from "./lib/t";
 import { formatPickup } from "./PayLinkEmail";
+import { Fact, ltr } from "./lib/lifecycle-mail";
 import {
   BODY_FONT,
   CHARCOAL,
@@ -29,23 +27,6 @@ import {
   WHITE,
   YELLOW,
 } from "./chrome";
-
-const kicker = {
-  margin: 0,
-  fontSize: "11px",
-  fontWeight: 600,
-  color: MUTED,
-  textTransform: "uppercase" as const,
-  letterSpacing: "0.08em",
-};
-
-const place = {
-  margin: "4px 0 0",
-  fontSize: "16px",
-  lineHeight: "22px",
-  fontWeight: 600,
-  color: CHARCOAL,
-};
 
 export type OpsMustFixKind = "off-road" | "overlap" | "stuck-payment" | "paid-after-cancel";
 
@@ -69,33 +50,6 @@ export type OpsMustFixForEmail = {
   trips: OpsMustFixTrip[];
   detail?: OpsMustFixDetail;
 };
-
-function ltr(value: string) {
-  return (
-    <span style={{ unicodeBidi: "isolate", direction: "ltr", whiteSpace: "nowrap" }}>
-      {value}
-    </span>
-  );
-}
-
-function Fact({
-  label,
-  children,
-  first,
-}: {
-  label: string;
-  children: ReactNode;
-  first?: boolean;
-}) {
-  return (
-    <Row>
-      <Column style={{ paddingTop: first ? 0 : 16 }}>
-        <Text style={kicker}>{label}</Text>
-        <Text style={place}>{children}</Text>
-      </Column>
-    </Row>
-  );
-}
 
 function refs(payload: OpsMustFixForEmail): string {
   return payload.trips.map((trip) => trip.reference).filter(Boolean).join(", ");

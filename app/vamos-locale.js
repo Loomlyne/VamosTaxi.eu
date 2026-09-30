@@ -473,6 +473,23 @@
     try { window.dispatchEvent(new CustomEvent('vamos:locale', { detail: snap })); } catch (e) {}
   }
 
+  /* Option B (2026-09-30): the nine public pages have one address per language. A switch
+     made in the page moves the address to match, without a reload, and retitles the tab
+     from the titles the server put on the page (window.VamosSeoTitle). */
+  var SEO_PATHS = { '/': 1, '/about': 1, '/faq': 1, '/contact': 1, '/terms': 1, '/privacy': 1, '/imprint': 1, '/cookies': 1, '/cancellation': 1 };
+  function followAddress() {
+    try {
+      if (window.VamosSeoTitle && window.VamosSeoTitle[state.lang]) document.title = window.VamosSeoTitle[state.lang];
+      var path = location.pathname;
+      var m = path.match(/^\/(de|fr|ar)(?=\/|$)/);
+      var bare = m ? (path.slice(m[0].length) || '/') : path;
+      if (bare.length > 1 && bare.charAt(bare.length - 1) === '/') bare = bare.slice(0, -1);
+      if (!SEO_PATHS[bare]) return;
+      var want = state.lang === 'en' ? bare : '/' + state.lang + (bare === '/' ? '' : bare);
+      if (want !== path) history.replaceState(history.state, '', want + location.search + location.hash);
+    } catch (e) {}
+  }
+
   function set(next, quiet) {
     var changed = false;
     if (next.lang && LANGS.indexOf(next.lang) > -1 && next.lang !== state.lang) { state.lang = next.lang; changed = true; }
@@ -486,6 +503,7 @@
         localStorage.setItem(LS_CUR, state.cur);
       } catch (e) {}
       writeLangCookie();
+      followAddress();
     }
     chrome();
     pass();
@@ -614,6 +632,9 @@
   });
 
   function start() {
+    /* A stored language the server did not know about (no cookie, or an old one) makes the
+       first view English in the head only: bring the address and the tab title to it. */
+    followAddress();
     chrome();
     pass();
     legalNotice();

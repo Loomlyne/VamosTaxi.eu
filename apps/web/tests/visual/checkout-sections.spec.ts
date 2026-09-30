@@ -98,7 +98,8 @@ function quoteBody(pax: number, bags: number) {
         fixed_route: false,
         total_rappen: Math.round((BASE[c.slug] ?? 0) * 1.081),
         lines: [],
-        photo_url: null,
+        // FIXTURE photos (neutral grey SVG). Van luxury has none on purpose: it shows the car icon.
+        photo_url: c.slug === "van-luxury" ? null : `/photos/classes/fixture-${c.slug}.svg`,
       };
     }),
   };
@@ -154,6 +155,9 @@ async function setup(
   );
   await page.route("**/api/flight/**", (route) =>
     route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: false }) }),
+  );
+  await page.route("**/photos/classes/**", (route) =>
+    route.fulfill({ status: 200, contentType: "image/svg+xml", body: '<svg xmlns="http://www.w3.org/2000/svg" width="640" height="400" viewBox="0 0 640 400"><rect width="640" height="400" fill="#c9cacb"/><rect x="170" y="160" width="300" height="90" rx="30" fill="#e4e5e5"/></svg>' }),
   );
   await page.route("**/api/quote", async (route: Route) => {
     if (route.request().method() !== "POST") return route.fallback();
@@ -334,16 +338,20 @@ test("no extras section at all when the dashboard has no extras, at four widths 
 
 // ── 3. Sign in carries class and extras ─────────────────────────────────────────────────
 for (const lang of LANGS) {
-  test(`${lang}: Have an account? Sign in carries class and extras in returnTo and no contact @checkout`, async ({ page }) => {
+  test(`${lang}: the Sign in option carries class and extras in returnTo and no contact @checkout`, async ({ page }) => {
     await setup(page);
+    await page.route("**/api/auth", (route) =>
+      route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, stage: "sent" }) }),
+    );
     for (const width of WIDTHS) {
       await open(page, lang, width, `${TRIP}&class=business`);
       await page.locator('[data-co-extra="child-seat"] label').click();
       await fillContact(page);
-      const href = (await page.locator("[data-co-sign-in]").getAttribute("href"))!;
-      const match = /sign-in\?returnTo=(.+)$/.exec(href);
-      expect(match, href).toBeTruthy();
-      const returnTo = decodeURIComponent(match![1]!);
+      // 26.5: the Sign in option sends the link request with this checkout as returnTo.
+      const sent = page.waitForRequest((r) => r.url().endsWith("/api/auth") && r.method() === "POST");
+      await page.locator('[data-acct-option="signin"]').click();
+      await page.locator("[data-acct-signin='form'] [data-acct-action]").click();
+      const returnTo = (JSON.parse((await sent).postData() ?? "{}") as { returnTo: string }).returnTo;
       expect(returnTo).toMatch(/\/checkout\?/);
       const params = new URLSearchParams(returnTo.split("?")[1]);
       expect(params.get("class")).toBe("business");
@@ -490,5 +498,92 @@ for (const lang of ["en", "ar"] as Lang[]) {
       await expect(pay(page)).toHaveCount(1);
       await noSidewaysScroll(page);
     }
+  });
+}
+
+// ── 26.4.2 (owner, 2026-09-30): the phone class cards ───────────────────────────────────
+// At <=680 px one compact card per class: the class photo (or the car icon) at the inline start, name over
+// seats and bags, then the price row. Selected = charcoal 2px border + check. Too small = greyed, no price,
+// "Seats up to N". 768 keeps the tile cards. Amounts are arithmetic fixtures.
+const SHOTS_D = "/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/3c6c6056-f11d-41a2-8b13-17a758844e5c/scratchpad";
+// Quick 260930-cps, owner-signed layout E: the same row card at every width. Square photo on the inline-start side,
+// name, price, "N seats / N bags" in words, the check in the top inline-end corner.
+for (const [lang, width] of [["en", 390], ["ar", 390], ["en", 768], ["ar", 768], ["en", 1024], ["en", 1440]] as const) {
+  test(`${lang} ${width}: class cards are one row per class, photo at the side @checkout`, async ({ page }) => {
+    await setup(page);
+    const seats5 = TRIP.replace("pax=2", "pax=5");
+    await open(page, lang, width, seats5);
+    const phone = true;
+    const economy = card(page, "economy");
+    const van = card(page, "van-luxury");
+    // Too small: Economy and Business take 3, the party is 5.
+    await expect(economy).toHaveAttribute("data-eligible", "false");
+    await expect(economy.locator(".vt-veh")).toBeDisabled();
+    await expect(economy.locator(".vt-veh__note")).toContainText("3");
+    await expect(economy.locator(".vt-veh__shot")).toBeVisible();
+    if (phone) await expect(economy.locator(".vt-veh__amount")).toBeHidden();
+    // Photo from the server on Economy, the car icon (no img, no text) on Van luxury; the photo box is the same size.
+    await expect(economy.locator(".vt-veh__shot img")).toHaveAttribute("alt", "Economy");
+    await expect(economy.locator(".vt-veh__shot img")).toHaveAttribute("loading", "lazy");
+    await expect(economy.locator(".vt-veh__shot img")).toHaveAttribute("decoding", "async");
+    await expect(economy.locator(".vt-veh__shot img")).toHaveAttribute("width", "640");
+    await expect(van.locator(".vt-veh__shot img")).toHaveCount(0);
+    await expect(van.locator(".vt-veh__shot > *").first()).toBeVisible();
+    expect((await van.locator(".vt-veh__shot").innerText()).trim()).toBe("");
+    const eb = (await economy.locator(".vt-veh__shot").boundingBox())!;
+    const vb0 = (await van.locator(".vt-veh__shot").boundingBox())!;
+    expect(Math.abs(vb0.width - eb.width)).toBeLessThanOrEqual(0.5);
+    expect(Math.abs(vb0.height - eb.height)).toBeLessThanOrEqual(0.5);
+    // square photo, one card per row, seats and bags in words
+    expect(Math.abs(eb.width - eb.height)).toBeLessThanOrEqual(0.5);
+    expect(eb.width).toBe(width <= 680 ? 104 : 120);
+    const eBox = (await economy.boundingBox())!, vBox = (await van.boundingBox())!;
+    expect(vBox.y).toBeGreaterThanOrEqual(eBox.y + eBox.height);
+    expect(Math.abs(vBox.x - eBox.x)).toBeLessThanOrEqual(0.5);
+    if (lang === "en") await expect(economy.locator(".vt-veh__caps")).toHaveText(/3 seats\s*3 bags/);
+    else await expect(economy.locator(".vt-veh__caps")).not.toContainText("seats");
+    if (phone) {
+      // on the inline-start side of the card, the card fits the viewport, 44 px target at least
+      const cardBox = (await economy.boundingBox())!;
+      const rtl = lang === "ar";
+      if (rtl) expect(Math.abs(cardBox.x + cardBox.width - (eb.x + eb.width))).toBeLessThanOrEqual(16);
+      else expect(eb.x - cardBox.x).toBeLessThanOrEqual(16);
+      expect(cardBox.x).toBeGreaterThanOrEqual(0);
+      expect(cardBox.x + cardBox.width).toBeLessThanOrEqual(width);
+      expect(cardBox.height).toBeGreaterThanOrEqual(72);
+    }
+    // Eligible: price prominent, 54 px tap target at least, selectable.
+    await expect(van).toHaveAttribute("data-eligible", "true");
+    await expect(van.locator(".vt-veh__amount")).toBeVisible();
+    const box = (await van.locator(".vt-veh").boundingBox())!;
+    expect(box.height).toBeGreaterThanOrEqual(54);
+    await van.locator(".vt-veh").click();
+    await expect(van).toHaveAttribute("data-selected", "true");
+    await expect(van.locator(".vt-veh")).toHaveCSS("border-top-width", "2px");
+    const charcoal = await page.evaluate(() => {
+      const probe = document.createElement("i");
+      probe.style.color = "var(--vt-charcoal-900)";
+      document.body.appendChild(probe);
+      const c = getComputedStyle(probe).color;
+      probe.remove();
+      return c;
+    });
+    // the design-system card transitions its border colour, so wait for it to settle
+    await expect(van.locator(".vt-veh")).toHaveCSS("border-top-color", charcoal);
+    await expect(van.locator(".vt-co__class-check")).toBeVisible();
+    if (phone) {
+      // the check sits in the card's top inline-end corner, clear of the photo and of the name
+      const chk = (await van.locator(".vt-co__class-check").boundingBox())!;
+      const vc = (await van.boundingBox())!;
+      const vs = (await van.locator(".vt-veh__shot").boundingBox())!;
+      const nm = (await van.locator(".vt-veh__name").boundingBox())!;
+      const rtl = lang === "ar";
+      if (rtl) { expect(chk.x - vc.x).toBeLessThanOrEqual(14); expect(chk.x + chk.width).toBeLessThanOrEqual(vs.x); expect(nm.x).toBeGreaterThanOrEqual(chk.x + chk.width - 1); }
+      else { expect(vc.x + vc.width - (chk.x + chk.width)).toBeLessThanOrEqual(14); expect(chk.x).toBeGreaterThanOrEqual(vs.x + vs.width); expect(nm.x + nm.width).toBeLessThanOrEqual(chk.x + 1); }
+      expect(chk.y - vc.y).toBeLessThanOrEqual(14);
+    }
+    await noSidewaysScroll(page);
+    await page.locator("[data-co-classes]").scrollIntoViewIfNeeded();
+    
   });
 }

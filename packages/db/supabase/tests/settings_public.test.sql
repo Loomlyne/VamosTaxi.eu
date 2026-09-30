@@ -59,11 +59,11 @@ reset role;
 -- (6) anon sees only published reviews. -----------------------------------------------------------
 -- DEVIATION (Rule 1, bug fix -- Plan 02-09 seeds 5 real published reviews): a blanket
 -- `count(*) from public.reviews` no longer isolates this test's own two fixtures from the
--- seeded rows. Scoping to this test's own external_refs keeps the assertion's original intent
+-- seeded rows. Scoping to this test's own author names (external_ref is not a public column, G2) keeps the assertion's original intent
 -- (published-only filtering) without depending on the total row count staying zero.
 set local role anon;
 select is(
-  (select count(*) from public.reviews where external_ref in ('sp-published', 'sp-unpublished'))::int, 1,
+  (select count(*) from public.reviews where author_name in ('Published Reviewer', 'Unpublished Reviewer'))::int, 1,
   '(6) anon selecting this test''s own reviews returns only the published one'
 );
 

@@ -95,6 +95,7 @@ export async function loadBookings(
         snap.distance_km,
         snap.coupon_code,
         snap.policy,
+        snap.lines,
         ev.events,
         l.arrived_at,
         live.free_wait_minutes,

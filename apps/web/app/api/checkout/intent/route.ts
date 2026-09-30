@@ -33,6 +33,15 @@ import { policyHours } from "@/lib/checkout/policy-settings";
 import { loadCheckoutReprice } from "@/lib/checkout/reprice";
 import type { IntentRecompute } from "@/lib/quote/intent";
 import { publicSiteOrigin, csrfForbidden } from "@/lib/security/origin";
+import {
+  intentIpAllowed,
+  intentLimitResponse,
+  notePayPressFromEnv,
+  payPressAllowed,
+} from "@/lib/checkout/intent-limits";
+import { gateAccountForRequest } from "@/lib/checkout/account-gate";
+import { truncateClientIp, cfConnectingIp } from "@/lib/consent/ip";
+import { lockSecretMissingResponse, lockSecretPresent } from "@/lib/quote/lock-secret";
 
 export const dynamic = "force-dynamic";
 
@@ -58,9 +67,16 @@ export async function POST(request: Request) {
 }
 
 async function postIntent(request: Request) {
+  const startedAt = Date.now();
   const blocked = csrfForbidden(request);
   if (blocked) return blocked;
   const { env } = getCloudflareContext();
+  if (!lockSecretPresent(env.QUOTE_LOCK_SECRET, "/api/checkout/intent")) return lockSecretMissingResponse();
+
+  // D-20 (a): 8 Pay presses per minute per IP, before anything is read or checked.
+  if (!(await intentIpAllowed(env.INTENT_RATE_LIMITER, cfConnectingIp(request.headers) ?? "unknown"))) {
+    return intentLimitResponse("rate_limited");
+  }
 
   let json: unknown;
   try {
@@ -74,6 +90,11 @@ async function postIntent(request: Request) {
     return refuse("invalid_request");
   }
   const body = parsed.data;
+
+  // D-20 (b): at most 5 Pay presses per price. A replay (same idempotency key) is not counted.
+  if (!(await payPressAllowed(notePayPressFromEnv(env), body.quote_id, body.idempotency_key))) {
+    return intentLimitResponse("pay_limit");
+  }
 
   const { postgresNowIso, vehicleClassId } = await asQuote(env, async (sql) => {
     const rows = await sql`select now() as now`;
@@ -134,7 +155,42 @@ async function postIntent(request: Request) {
     return refuse("pricing_not_live");
   }
 
+  // 26.5: the account choice is checked before any Stripe session exists. A refusal
+  // or "sign in first" answer returns here; only the record to write comes forward.
+  const actorCustomerId = await resolveActorCustomerId(env, request);
+  const gate = await gateAccountForRequest({
+    env,
+    request,
+    startedAt,
+    account: body.account,
+    email: body.contact.email,
+    locale: body.locale,
+    signedIn: actorCustomerId !== null,
+  });
+  if ("response" in gate) return gate.response;
+  const accountRecord = gate.record;
+  const userAgent = (request.headers.get("user-agent") ?? "").slice(0, 300) || null;
+  const ipTruncated = truncateClientIp(cfConnectingIp(request.headers));
+
   return runCheckoutIntent(body, {
+    // D-06/D-19: written after the booking exists; the DB copies the booking's e-mail (p_email is null).
+    afterBooking: accountRecord
+      ? (bookingId) =>
+          asCheckout(env, null, async (sql) => {
+            await sql`
+              select public.record_account_agreement(
+                'checkout',
+                ${bookingId}::uuid,
+                null,
+                ${accountRecord.choice},
+                ${accountRecord.textVersion},
+                ${body.locale},
+                ${userAgent},
+                ${ipTruncated}::inet
+              )
+            `;
+          })
+      : undefined,
     mode: "web",
     lockSecrets: previous ? { current, previous } : { current },
     workerNowIso: new Date().toISOString(),
@@ -196,7 +252,7 @@ async function postIntent(request: Request) {
     // T-26.3-10-03: a booking may be replaced only by the browser that holds
     // its vt_manage cookie (guest-role RLS shows the row to that hash and no one).
     ownsBooking: (bookingId) => bookingOwnedByRequest(env, request, bookingId),
-    actorCustomerId: await resolveActorCustomerId(env, request),
+    actorCustomerId,
     vehicleClassId,
     snapshotPolicy,
     loadLaunchFlags: () => loadLaunchFlags(env),

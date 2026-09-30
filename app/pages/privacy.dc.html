@@ -25,11 +25,9 @@
 <link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
 <link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
 <script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
-<link rel="stylesheet" href="../../assets/lenis.css">
-<script src="../../assets/lenis.js"></script>
-<script src="../../assets/lenis-boot.js"></script>
 <script src="../vamos-i18n-dict.js"></script>
 <script src="../vamos-locale.js"></script>
+<script src="../vamos-legal-updated.js"></script>
 <script src="../vamos-page-transition.js"></script>
 <style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
 .vt-input--focus{box-shadow:none}
@@ -126,7 +124,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <h1 style="margin:0 0 18px;max-width:20ch;font-family:var(--vt-font-display);font-size:var(--vt-display-2);line-height:var(--vt-display-leading);letter-spacing:var(--vt-display-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-inverse);text-wrap:pretty">Privacy policy</h1>
 <p style="margin:0;max-width:58ch;font-size:var(--vt-body-lg);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">A transfer needs your name, two addresses, a time and a way to reach you. This is what happens to that information, who else touches it, and how long it stays.</p>
 <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px 28px;margin-top:32px;padding-top:24px;border-top:1px solid var(--vt-border-inverse)">
-<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Last updated</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">1 September 2026</span></div>
+<div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Last updated</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)" data-vt-no-i18n="1">{{ updatedLabel }}</span></div>
 <div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Version</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">1.0</span></div>
 <div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Applies to</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">revFADP · GDPR</span></div>
 <button data-lg-noprint="1" type="button" onClick="{{ doPrint }}" style="margin-inline-start:auto;display:inline-flex;align-items:center;gap:9px;height:44px;padding:0 20px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-inverse);background:none;color:var(--vt-text-inverse);font-family:inherit;font-size:var(--vt-body-sm);white-space:nowrap;cursor:pointer">
@@ -199,6 +197,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <li>Passenger and luggage count, child seat requests, declared items.</li>
 <li>Anything you type into the notes field for the driver.</li>
 </ul>
+<p><strong>Your account.</strong> When you book, we create an account for your email address so you can see and manage your bookings. It has no password. To sign in, we send a link to your email. We keep your name, email, phone number and bookings in it. You can close your account at any time by writing to info@vamostaxi.site. We then delete what we are not required by law to keep.</p>
 <h3>When you pay</h3>
 <p>Payment metadata only: the amount, the currency, the method, the last four digits, and whether it succeeded. Card numbers are entered on Stripe's own form and never reach our systems.</p>
 <h3>While you use the site</h3>
@@ -210,7 +209,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <section id="basis">
 <h2><span data-lg-n="1">03</span>Why we may use it</h2>
 <div data-dl="1">
-<div data-dl-r="1"><span data-dl-k="1">To perform the contract</span><span data-dl-v="1">Taking a booking, assigning a driver, collecting payment, sending your confirmation and driver details, handling a change or a cancellation.</span></div>
+<div data-dl-r="1"><span data-dl-k="1">To perform the contract</span><span data-dl-v="1">Taking a booking, assigning a driver, collecting payment, sending your confirmation and driver details, handling a change or a cancellation. <span>Legal basis under the GDPR: Art. 6 (1) (b).</span></span></div>
 <div data-dl-r="1"><span data-dl-k="1">Legal obligation</span><span data-dl-v="1">Accounting, tax, and the trip records Swiss archiving law requires us to hold — see section <a href="#retention">06</a>.</span></div>
 <div data-dl-r="1"><span data-dl-k="1">Legitimate interest</span><span data-dl-v="1">Fraud prevention, service quality, evidence of a no-show, and defending a claim.</span></div>
 <div data-dl-r="1"><span data-dl-k="1">Consent</span><span data-dl-v="1">Analytics and marketing cookies, and any newsletter. You can withdraw it at any time without giving a reason.</span></div>
@@ -230,7 +229,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div data-dl="1">
 <div data-dl-r="1"><span data-dl-k="1">Stripe Payments Europe Ltd</span><span data-dl-v="1">Card payments · Dublin, Ireland</span></div>
 <div data-dl-r="1"><span data-dl-k="1">Supabase</span><span data-dl-v="1">Booking database and sign-in · Zurich</span></div>
-<div data-dl-r="1"><span data-dl-k="1">Vercel</span><span data-dl-v="1">Website hosting and delivery · Cloudflare Workers (global edge)</span></div>
+<div data-dl-r="1"><span data-dl-k="1">Cloudflare</span><span data-dl-v="1">Website hosting and delivery · Cloudflare Workers (global edge)</span></div>
 <div data-dl-r="1"><span data-dl-k="1">Mapbox</span><span data-dl-v="1">Address lookup and route distance · United States</span></div>
 <div data-dl-r="1"><span data-dl-k="1">Resend</span><span data-dl-v="1">Confirmation and driver-detail emails · used when transactional mail is on</span></div>
 <div data-dl-r="1"><span data-dl-k="1">Sentry</span><span data-dl-v="1">Error diagnostics · not in use</span></div>
@@ -254,9 +253,9 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <section id="retention">
 <h2><span data-lg-n="1">06</span>How long we keep it</h2>
 <div data-dl="1">
-<div data-dl-r="1"><span data-dl-k="1">Trip records</span><span data-dl-v="1">Lead passenger name, passenger count, email, start and destination — 10 years years, because Swiss archiving law requires it.</span></div>
+<div data-dl-r="1"><span data-dl-k="1">Trip records</span><span data-dl-v="1">Lead passenger name, passenger count, email, start and destination — 10 years, because Swiss archiving law requires it.</span></div>
 <div data-dl-r="1"><span data-dl-k="1">Payment records</span><span data-dl-v="1">10 years (Swiss books) for accounting and tax.</span></div>
-<div data-dl-r="1"><span data-dl-k="1">Account and marketing preferences</span><span data-dl-v="1">Until you close the account or withdraw consent.</span></div>
+<div data-dl-r="1"><span data-dl-k="1">Account and marketing preferences</span><span data-dl-v="1">Until you close the account or withdraw consent. <span>You can close your account at any time by writing to us.</span></span></div>
 <div data-dl-r="1"><span data-dl-k="1">Server logs</span><span data-dl-v="1">as long as needed to run the service</span></div>
 <div data-dl-r="1"><span data-dl-k="1">Consent record</span><span data-dl-v="1">as long as needed to show consent — proof of what you chose, and when.</span></div>
 </div>
@@ -280,7 +279,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div style="background:var(--vt-bg-inverse);color:var(--vt-text-inverse);border-radius:var(--vt-radius-lg);padding:22px">
 <p style="margin:0 0 14px;display:flex;align-items:center;gap:8px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">We have to keep</p>
 <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading-tight);color:rgb(255 255 255 / .84)">
-<li>Trip records for 10 years years</li>
+<li>Trip records for 10 years</li>
 <li>Payment and tax records</li>
 <li>The record of your cookie choice</li>
 <li>Evidence relating to an open claim</li>
@@ -299,7 +298,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 
 <section id="requests">
 <h2><span data-lg-n="1">09</span>Making a request</h2>
-<p>Email <a href="mailto:info@vamostaxi.site">info@vamostaxi.site</a> with the booking reference if there is one. We answer within 30 days days.</p>
+<p>Email <a href="mailto:info@vamostaxi.site">info@vamostaxi.site</a> with the booking reference if there is one. We answer within 30 days; in complex cases we may take up to 60 days more.</p>
 <p>We may ask you to confirm who you are before we send data anywhere — for your protection, not as an obstacle.</p>
 
 </section>
@@ -340,6 +339,7 @@ class Component extends DCLogic {
   tocRef = React.createRef();
 
   componentDidMount() {
+    if (window.VamosLocale) this._offLocale = window.VamosLocale.onChange(() => this.forceUpdate());
     const prose = this.proseRef.current, toc = this.tocRef.current;
     if (!prose || !toc || typeof IntersectionObserver === 'undefined') return;
     const links = Array.from(toc.querySelectorAll('[data-lg-tl]'));
@@ -362,7 +362,8 @@ class Component extends DCLogic {
     }, { rootMargin: '-104px 0px -60% 0px' });
     prose.querySelectorAll('section[id]').forEach((s) => this.io.observe(s));
   }
-  componentWillUnmount() { if (this.io) this.io.disconnect(); }
+  componentWillUnmount() {
+    if (this._offLocale) this._offLocale(); if (this.io) this.io.disconnect(); }
 
   toggleToc = () => this.setState((s) => ({ tocOpen: !s.tocOpen }));
   doPrint = () => window.print();
@@ -372,7 +373,10 @@ class Component extends DCLogic {
   };
 
   renderVals() {
+    const legalDate = window.VamosLegalUpdated;
+    const lang = window.VamosLocale ? window.VamosLocale.lang() : 'en';
     return {
+      updatedLabel: legalDate ? legalDate.label(lang) : '',
       n14: 14, n16: 16, n18: 18,
       tocOpen: this.state.tocOpen ? '1' : null,
       toggleToc: this.toggleToc, doPrint: this.doPrint, openCookiePrefs: this.openCookiePrefs,

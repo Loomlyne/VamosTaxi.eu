@@ -139,16 +139,20 @@ export function ClassSection({
                   name={<span className="vt-dir-keep">{c.name}</span>}
                   price={money(c.totalRappen)}
                   priceNote={note(c)}
-                  passengers={c.pax || undefined}
-                  luggage={c.bags || undefined}
+                  features={[
+                    ...(c.pax ? [{ icon: "users" as const, label: t("classSeats", { n: c.pax }) }] : []),
+                    ...(c.bags ? [{ icon: "luggage" as const, label: t("classBags", { n: c.bags }) }] : []),
+                  ]}
                   image={c.photo || undefined}
+                  imageAlt={c.name}
+                  icon="car"
                   selected={isSelected}
                   disabled={!c.eligible}
                   onSelect={() => onSelect(c.slug)}
                 />
                 {isSelected ? (
                   <span className="vt-co__class-check" aria-hidden="true">
-                    <Icon name="check" size={16} color="var(--vt-accent)" />
+                    <Icon name="check" size={14} color="var(--vt-accent)" />
                   </span>
                 ) : null}
               </div>

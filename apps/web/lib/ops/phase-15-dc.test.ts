@@ -88,20 +88,12 @@ describe("phase 15 DC #support", () => {
     expect(sidebar).not.toMatch(/key:'staff'/);
   });
 
-  it("thread files are buttons that open a nested preview overlay", () => {
+  // Phase 20 F2 (owner, 2026-09-30): no file is opened in the dashboard, names only.
+  it("thread files are names only, with no preview overlay and no PDF viewer", () => {
     const html = read(SUPPORT_WRITER);
     expect(html).toMatch(/data-files/);
-    expect(html).toMatch(/f\.open/);
-    expect(html).toMatch(/previewOpen/);
-    expect(html).toMatch(/vt-file-preview/);
-    expect(html).toMatch(/data-preview-img/);
-    expect(html).toMatch(/data-preview-pdf/);
-    expect(html).toMatch(/data-preview-pages/);
-    expect(html).toMatch(/pdfjs-dist/);
-    expect(html).toMatch(/openPreview/);
-    expect(html).toMatch(/createObjectURL/);
-    expect(html).toMatch(/credentials: 'include'/);
-    expect(html).toMatch(/previewHasHref/);
+    expect(html).toMatch(/data-file-name/);
+    expect(html).not.toMatch(/f\.open|previewOpen|vt-file-preview|data-preview-|pdfjs|openPreview|createObjectURL/);
     expect(html).not.toMatch(/<iframe data-preview-pdf/);
     expect(html).not.toMatch(/<img data-file/);
     expect(html).not.toMatch(/<a data-file/);

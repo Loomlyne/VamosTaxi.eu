@@ -195,6 +195,13 @@ interface CloudflareEnv {
   AUTH_RATE_LIMITER?: RateLimit;
 
   /**
+   * Rate-limit binding for POST /api/checkout/intent (8 per 60 s per IP, 26.5 D-20). Own bucket.
+   * OPTIONAL in types: a missing binding (local dev) is logged and allowed; the per-quote cap in
+   * the database still applies.
+   */
+  INTENT_RATE_LIMITER?: RateLimit;
+
+  /**
    * Engineering unit-count sentinel for the daily Mapbox breaker (D-54 / U37).
    * OPTIONAL string parsed with `Number.parseInt` — a UNIT COUNT, never a franc figure.
    * No Mapbox plan exists yet, so no ceiling in francs can be honest. Trips rather than logs.

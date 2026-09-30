@@ -5,7 +5,7 @@
 
 import { NextResponse } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
-import { validateAuthRedirectTarget } from "@/lib/auth/redirect-target";
+import { decodeNextParam, validateAuthRedirectTarget } from "@/lib/auth/redirect-target";
 import { routing } from "@/i18n/routing";
 import { trustedSiteOrigin } from "@/lib/security/origin";
 import {
@@ -49,7 +49,8 @@ export async function GET(request: Request): Promise<NextResponse> {
   const code = url.searchParams.get("code");
   const tokenHash = url.searchParams.get("token_hash");
   const type = url.searchParams.get("type");
-  const next = url.searchParams.get("next") ?? url.searchParams.get("redirect_to");
+  // `nextb` is base64url of the target (a checkout path with a query); the plain `next` is for simple paths.
+  const next = decodeNextParam(url.searchParams.get("nextb")) ?? url.searchParams.get("next") ?? url.searchParams.get("redirect_to");
   const locale = localeFromNext(next);
   const origin = trustedSiteOrigin(url.host) ?? "https://vamostaxi.site";
   const ctx = { requestId: crypto.randomUUID(), route: "/api/auth/callback", locale };

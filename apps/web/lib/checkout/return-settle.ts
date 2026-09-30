@@ -115,6 +115,8 @@ export type ReturnRedirectDeps = {
   readSession: (sessionId: string) => Promise<ReturnSession>;
   settle: (session: Stripe.Checkout.Session) => Promise<"paid" | "duplicate" | "unpaid" | "failed">;
   lookupReference: (sessionId: string) => Promise<string>;
+  /** F6: per-visitor gate, asked before the Stripe read. false = answer pay=unknown, no Stripe call. */
+  allowRead?: () => Promise<boolean>;
 };
 
 export type ReturnRedirectInput = {
@@ -137,6 +139,7 @@ export async function returnRedirectTarget(
   const { sessionId, ref, locale } = input;
   const checkout = localePath(locale, "/checkout");
   if (!isCheckoutSessionId(sessionId)) return checkout;
+  if (deps.allowRead && !(await deps.allowRead().catch(() => false))) return `${checkout}?pay=unknown`;
   const read = await deps.readSession(sessionId).catch(
     (): ReturnSession => ({ status: "unknown", quoteId: null, reference: null, session: null }),
   );

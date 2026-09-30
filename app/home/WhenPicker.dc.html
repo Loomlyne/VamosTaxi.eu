@@ -25,9 +25,6 @@
 <link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
 <link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
 <script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
-<link rel="stylesheet" href="../../assets/lenis.css">
-<script src="../../assets/lenis.js"></script>
-<script src="../../assets/lenis-boot.js"></script>
 <script src="../vamos-i18n-dict.js"></script>
 <script src="../vamos-locale.js"></script>
 <script src="../vamos-page-transition.js"></script>
@@ -48,16 +45,16 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 :root{--vt-icon-base:"../../assets/icons/"}body{margin:0}a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}@keyframes vt-when-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}@media (max-width:560px){[data-wp-row]{flex-direction:column!important}[data-wp-cal]{width:100%!important;flex:0 0 auto!important}[data-wp-div]{width:100%!important;height:1px!important;flex:0 0 auto!important}[data-wp-time]{width:100%!important}}:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}</style>
 </helmet>
 <div ref="{{ rootRef }}" style="position:relative;display:flex;flex-direction:column;gap:6px;min-width:0;font-family:var(--vt-font-body)">
-<span style="font-size:var(--vt-label-md);font-weight:var(--vt-label-weight);letter-spacing:.02em;color:var(--vt-text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ label }}</span>
+<span style="{{ labelCss }}">{{ label }}</span>
 <div style="position:relative;width:100%;min-width:0">
-<button type="button" aria-haspopup="dialog" aria-expanded="{{ openStr }}" onClick="{{ toggle }}" style="all:unset;box-sizing:border-box;display:flex;align-items:center;gap:10px;width:100%;height:var(--vt-control-h-md);padding:0 14px;background:var(--vt-bg-surface);border:var(--vt-border-w) solid var(--vt-border-subtle);border-radius:var(--vt-radius-field);cursor:pointer;font-size:var(--vt-body-md);color:var(--vt-text-primary);transition:var(--vt-transition-control)" style-hover="border-color:var(--vt-grey-300)">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="calendar" size="{{ n16 }}" color="var(--vt-text-muted)" hint-size="16px,16px"></x-import>
+<button type="button" aria-haspopup="dialog" aria-expanded="{{ openStr }}" aria-invalid="{{ invalidStr }}" onClick="{{ toggle }}" style="{{ trigCss }}" style-hover="border-color:var(--vt-grey-300)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ trigIcon }}" size="{{ n16 }}" color="var(--vt-text-muted)" hint-size="16px,16px"></x-import>
 <span style="flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:7px;text-align:start">
-<sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+<sc-if value="{{ showPh }}" hint-placeholder-val="{{ false }}">
 <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--vt-text-muted)">{{ placeholder }}</span>
 </sc-if>
-<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ value }}</span>
-<span style="color:var(--vt-text-secondary);font-variant-numeric:tabular-nums">{{ time }}</span>
+<sc-if value="{{ showDate }}" hint-placeholder-val="{{ true }}"><span data-vt-no-i18n style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ value }}</span></sc-if>
+<sc-if value="{{ showTime }}" hint-placeholder-val="{{ true }}"><span data-vt-no-i18n style="color:var(--vt-text-secondary);font-variant-numeric:tabular-nums" class="vt-dir-keep">{{ time }}</span></sc-if>
 <sc-if value="{{ range }}" hint-placeholder-val="{{ false }}">
 <span style="color:var(--vt-text-muted);flex:0 0 auto">→</span>
 <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ value2 }}</span>
@@ -81,7 +78,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </div>
 </sc-if>
 <div data-wp-row="" style="display:flex;gap:16px;align-items:stretch">
-<div data-wp-cal="" style="flex:0 0 264px;width:264px;display:flex;flex-direction:column;gap:6px">
+<sc-if value="{{ showCal }}" hint-placeholder-val="{{ true }}"><div data-wp-cal="" style="{{ calCss }}">
 <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;height:32px">
 <sc-if value="{{ canPrev }}" hint-placeholder-val="{{ true }}">
 <button type="button" aria-label="Previous month" onClick="{{ prev }}" style="all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:999px;cursor:pointer;color:var(--vt-text-secondary)" style-hover="background:var(--vt-grey-100);color:var(--vt-text-primary)">
@@ -100,7 +97,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </div>
 <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px">
 <sc-for list="{{ dows }}" as="w" hint-placeholder-count="7">
-<span style="font-size:10px;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted);text-align:center;padding:4px 0">{{ w }}</span>
+<span data-vt-no-i18n style="font-size:10px;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted);text-align:center;padding:4px 0">{{ w }}</span>
 </sc-for>
 <sc-for list="{{ cells }}" as="c" hint-placeholder-count="31">
 <sc-if value="{{ c.blank }}" hint-placeholder-val="{{ false }}"><span></span></sc-if>
@@ -118,9 +115,9 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </sc-if>
 </sc-for>
 </div>
-</div>
-<div data-wp-div="" style="flex:0 0 1px;background:var(--vt-border-subtle)"></div>
-<div data-wp-time="" style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:8px">
+</div></sc-if>
+<sc-if value="{{ showDiv }}" hint-placeholder-val="{{ true }}"><div data-wp-div="" style="flex:0 0 1px;background:var(--vt-border-subtle)"></div></sc-if>
+<sc-if value="{{ showTimeCol }}" hint-placeholder-val="{{ true }}"><div data-wp-time="" style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:8px">
 <div style="display:flex;align-items:center;gap:7px;height:32px">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="clock" size="{{ n16 }}" color="var(--vt-text-muted)" hint-size="16px,16px"></x-import>
 <span style="font-size:var(--vt-label-md);font-weight:var(--vt-label-weight);letter-spacing:.02em;color:var(--vt-text-secondary);white-space:nowrap">{{ activeTimeTitle }}</span>
@@ -145,7 +142,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-down" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
 </button>
 </div>
-</div>
+</div></sc-if>
 </div>
 </div>
 <sc-if value="{{ range }}" hint-placeholder-val="{{ false }}">
@@ -194,7 +191,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <div style="display:flex;align-items:center;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid var(--vt-border-subtle)">
 <span style="display:flex;flex-direction:column;gap:1px;min-width:0;flex:1 1 auto">
 <span style="font-size:10px;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ label }}</span>
-<span style="font-size:14px;font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary);font-variant-numeric:tabular-nums;white-space:nowrap">{{ summary }}</span>
+<span class="vt-dir-keep" data-vt-no-i18n style="font-size:14px;font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary);font-variant-numeric:tabular-nums;white-space:nowrap">{{ summary }}</span>
 </span>
 <span style="display:flex;align-items:center;gap:8px;flex:0 0 auto">
 <button type="button" onClick="{{ clearAll }}" style="all:unset;box-sizing:border-box;display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--vt-border-subtle);background:var(--vt-bg-surface);color:var(--vt-text-secondary);font-family:var(--vt-font-body);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:var(--vt-transition-control)" style-hover="border-color:var(--vt-charcoal-900);color:var(--vt-text-primary)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="x" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import>{{ clearLabel }}</button>
@@ -216,7 +213,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </div>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:600,&quot;height&quot;:180},&quot;label&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Pickup date &amp; time&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;value&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Fri 14 Aug&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;time&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;08:15&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;day&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:14,&quot;min&quot;:1,&quot;max&quot;:31,&quot;tsType&quot;:&quot;number&quot;},&quot;range&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Return trip&quot;},&quot;value2&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Mon 17 Aug&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Return trip&quot;},&quot;time2&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;10:00&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Return trip&quot;},&quot;day2&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:17,&quot;min&quot;:1,&quot;max&quot;:31,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Return trip&quot;},&quot;baseMonth&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;2026-08&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;locale&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;en&quot;,&quot;de&quot;,&quot;fr&quot;,&quot;ar&quot;],&quot;default&quot;:&quot;en&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;timeTitle&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Pickup time&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;timeTitle2&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Return time&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Return trip&quot;},&quot;savedLabel&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Saved&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;hint&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;align&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;start&quot;,&quot;end&quot;],&quot;default&quot;:&quot;start&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;times&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;string[]&quot;},&quot;groups&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;[string,string,string]&quot;},&quot;legLabels&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;[string,string]&quot;},&quot;onDay&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(day:number,label:string)=&gt;void&quot;},&quot;onTime&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(time:string)=&gt;void&quot;},&quot;onDay2&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(day:number,label:string)=&gt;void&quot;},&quot;onTime2&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(time:string)=&gt;void&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:600,&quot;height&quot;:180},&quot;label&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Pickup date &amp; time&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;value&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Fri 14 Aug&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;time&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;08:15&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;day&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:14,&quot;min&quot;:1,&quot;max&quot;:31,&quot;tsType&quot;:&quot;number&quot;},&quot;range&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Return trip&quot;},&quot;value2&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Mon 17 Aug&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Return trip&quot;},&quot;time2&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;10:00&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Return trip&quot;},&quot;day2&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:17,&quot;min&quot;:1,&quot;max&quot;:31,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Return trip&quot;},&quot;baseMonth&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;2026-08&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;locale&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;en&quot;,&quot;de&quot;,&quot;fr&quot;,&quot;ar&quot;],&quot;default&quot;:&quot;en&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;timeTitle&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Pickup time&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;timeTitle2&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Return time&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Return trip&quot;},&quot;savedLabel&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Saved&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;part&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;both&quot;,&quot;date&quot;,&quot;time&quot;],&quot;default&quot;:&quot;both&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;size&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;md&quot;,&quot;lg&quot;],&quot;default&quot;:&quot;md&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;error&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;dayY&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:0,&quot;tsType&quot;:&quot;number&quot;},&quot;dayM&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:0,&quot;tsType&quot;:&quot;number&quot;},&quot;hint&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;align&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;start&quot;,&quot;end&quot;],&quot;default&quot;:&quot;start&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;times&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;string[]&quot;},&quot;groups&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;[string,string,string]&quot;},&quot;legLabels&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;[string,string]&quot;},&quot;onDay&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(day:number,label:string)=&gt;void&quot;},&quot;onTime&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(time:string)=&gt;void&quot;},&quot;onDay2&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(day:number,label:string)=&gt;void&quot;},&quot;onTime2&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(time:string)=&gt;void&quot;}}">
 function zNow() {
   const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Zurich', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date());
   const g = (t) => +((parts.find((p) => p.type === t) || {}).value || 0);
@@ -245,7 +242,7 @@ class Component extends DCLogic {
   _popRef = (el) => { this._pop = el; };
   componentDidMount() {
     this._away = (e) => { if (this.state.open && this._root && !this._root.contains(e.target)) { this.setState({ open: false }); if (this.props.onOpenChange) this.props.onOpenChange(false); } };
-    this._esc = (e) => { if (e.key === 'Escape' && this.state.open) { this.setState({ open: false }); if (this.props.onOpenChange) this.props.onOpenChange(false); } };
+    this._esc = (e) => { if (e.key === 'Escape' && this.state.open) { this.setState({ open: false }); this.focusTrigger(); if (this.props.onOpenChange) this.props.onOpenChange(false); } };
     document.addEventListener('mousedown', this._away);
     document.addEventListener('keydown', this._esc);
     this._repos = () => { if (this.state.open) this.setState({ rect: this.rectNow() }); };
@@ -259,7 +256,13 @@ class Component extends DCLogic {
     window.removeEventListener('resize', this._repos);
     clearTimeout(this._closeT);
   }
-  loc() { const l = this.props.locale || 'en'; return l === 'en' ? 'en-GB' : l; }
+  /** The selected day's year and month. A host that keeps the choice itself (the phone sheet, where Date and Time are two pickers) passes dayY and dayM; otherwise the picker's own memory is used. */
+  selYM() {
+    const p = this.props, s = this.state;
+    const has = (v) => v !== undefined && v !== null && v !== '' && isFinite(+v);
+    return { y: has(p.dayY) && +p.dayY > 0 ? +p.dayY : s.selY, m: has(p.dayM) && +p.dayY > 0 ? +p.dayM : s.selM };
+  }
+  loc() { const l = this.props.locale || 'en'; return { en: 'en-GB', de: 'de-CH', fr: 'fr-CH', ar: 'ar-u-nu-latn' }[l] || l; }
   fmt(opts, d) { try { return new Intl.DateTimeFormat(this.loc(), opts).format(d); } catch (e) { return ''; } }
   dayLabel(y, m, d) { return this.fmt({ weekday: 'short', day: 'numeric', month: 'short' }, new Date(y, m, d)).replace(/,/g, ''); }
   shift(n) {
@@ -291,8 +294,8 @@ class Component extends DCLogic {
     if (total < 0) total = 0;
     if (total > 23 * 60 + 55) total = 23 * 60 + 55;
     const hm = zPad(Math.floor(total / 60)) + ':' + zPad(total % 60);
-    const y = leg === 1 ? s.selY2 : s.selY;
-    const mo = leg === 1 ? s.selM2 : s.selM;
+    const y = leg === 1 ? s.selY2 : this.selYM().y;
+    const mo = leg === 1 ? s.selM2 : this.selYM().m;
     const d = leg === 1 ? (+p.day2 || 0) : (+p.day || 0);
     const min = zMin();
     if (y === min.y && mo === min.m && d === min.d && hm < min.hm) { this.emitTime(min.hm); return; }
@@ -301,8 +304,8 @@ class Component extends DCLogic {
   autoFill() {
     const p = this.props, min = zMin();
     const hasDay = !!(+p.day);
-    let y = hasDay ? this.state.selY : min.y;
-    let m = hasDay ? this.state.selM : min.m;
+    let y = hasDay ? this.selYM().y : min.y;
+    let m = hasDay ? this.selYM().m : min.m;
     let d = hasDay ? +p.day : min.d;
     const past = !hasDay || y < min.y || (y === min.y && m < min.m) || (y === min.y && m === min.m && d < min.d);
     if (past) {
@@ -316,7 +319,9 @@ class Component extends DCLogic {
     }
   }
   /** Everything applies as you pick it — this just gets the sheet out of the way. */
-  closeSoon() { clearTimeout(this._closeT); this._closeT = setTimeout(() => { this.setState({ open: false }); if (this.props.onOpenChange) this.props.onOpenChange(false); }, 220); }
+  closeSoon() { clearTimeout(this._closeT); this._closeT = setTimeout(() => { this.setState({ open: false }); this.focusTrigger(); if (this.props.onOpenChange) this.props.onOpenChange(false); }, 220); }
+  /** Closing from the keyboard or a button hands focus back to the trigger, so Escape keeps working inside a sheet. */
+  focusTrigger() { const b = this._root && this._root.querySelector('button[aria-haspopup="dialog"]'); if (b && b.focus) { try { b.focus({ preventScroll: true }); } catch (e) {} } }
   /** The trigger's viewport rect — the popup is fixed to it, so no scroll container can clip it. */
   rectNow() {
     const el = this._root;
@@ -352,13 +357,16 @@ class Component extends DCLogic {
   renderVals() {
     const s = this.state, p = this.props;
     const range = !!p.range;
+    const part = p.part === 'date' || p.part === 'time' ? p.part : 'both';
+    const lg = p.size === 'lg';
     const leg = range ? (s.leg || 0) : 0;
     const hasDay = !!(+p.day), d1 = +p.day || 0, d2 = +p.day2 || 0;
     const first = (new Date(s.y, s.m, 1).getDay() + 6) % 7;
     const dim = new Date(s.y, s.m + 1, 0).getDate();
     const dows = [];
     for (let i = 0; i < 7; i++) dows.push(this.fmt({ weekday: 'short' }, new Date(2024, 0, 1 + i)));
-    const on1 = s.y === s.selY && s.m === s.selM;
+    const sel1 = this.selYM();
+    const on1 = s.y === sel1.y && s.m === sel1.m;
     const on2 = range && s.y === s.selY2 && s.m === s.selM2;
     const lo = Math.min(d1, d2), hi = Math.max(d1, d2);
     const min = zMin();
@@ -373,7 +381,7 @@ class Component extends DCLogic {
         pick: past ? () => {} : () => {
           const label = this.dayLabel(s.y, s.m, d);
           if (range && leg === 1) { this.setState({ selY2: s.y, selM2: s.m }); if (p.onDay2) p.onDay2(d, label, s.y, s.m); }
-          else { this.setState({ selY: s.y, selM: s.m, leg: range ? 1 : 0 }); if (p.onDay) p.onDay(d, label, s.y, s.m); }
+          else { this.setState({ selY: s.y, selM: s.m, leg: range ? 1 : 0 }); if (p.onDay) p.onDay(d, label, s.y, s.m); if (part === 'date') this.closeSoon(); }
           const active = leg === 1 ? p.time2 : p.time;
           if (s.y === min.y && s.m === min.m && d === min.d && (!active || active < min.hm)) this.emitTime(min.hm);
         },
@@ -381,20 +389,32 @@ class Component extends DCLogic {
     }
     const activeTime = this.parseHm(leg === 1 ? p.time2 : p.time);
     const timeRows = [];
-    const full1 = p.value || (hasDay ? this.dayLabel(s.selY, s.selM, d1) : '');
-    const full2 = p.value2 || (d2 ? this.dayLabel(s.selY2, s.selM2, d2) : '');
+    // A known day is always formatted in the active language (a label stored at pick time would stay in the old one).
+    const full1 = hasDay ? this.dayLabel(sel1.y, sel1.m, d1) : (p.value || '');
+    const full2 = d2 ? this.dayLabel(s.selY2, s.selM2, d2) : (p.value2 || '');
     const short = (v) => String(v).replace(/^\S+\s/, '');
     const names = (p.legLabels && p.legLabels.length === 2) ? p.legLabels : ['Pickup', 'Return'];
     const titles = [p.timeTitle || 'Time', p.timeTitle2 || p.timeTitle || 'Time'];
     const stamps = [full1 + ' · ' + (p.time || ''), full2 + ' · ' + (p.time2 || '')];
-    const saved = range ? !!(full1 && p.time && full2 && p.time2) : !!(full1 && p.time);
+    const saved = range ? !!(full1 && p.time && full2 && p.time2) : part === 'date' ? !!full1 : part === 'time' ? !!p.time : !!(full1 && p.time);
     const legObj = (i) => ({ label: names[i], stamp: i === 0 ? (p.time || '') : (p.time2 || ''), on: leg === i, off: leg !== i, pick: () => this.setState({ leg: i }) });
     return {
       n14: 14, n16: 16,
       open: s.open, openStr: s.open ? 'true' : 'false',
       range, notRange: !range,
       label: p.label || 'Date & time',
-      isEmpty: !full1 && !p.time, placeholder: p.placeholder || 'Select date & time',
+      isEmpty: !full1 && !p.time,
+      showPh: part === 'date' ? !full1 : part === 'time' ? !p.time : (!full1 && !p.time),
+      showDate: part !== 'time', showTime: part !== 'date',
+      trigIcon: part === 'time' ? 'clock' : 'calendar',
+      invalidStr: p.error ? 'true' : 'false',
+      showCal: part !== 'time', showTimeCol: part !== 'date', showDiv: part === 'both',
+      calCss: part === 'date' ? 'flex:1 1 auto;width:100%;display:flex;flex-direction:column;gap:6px' : 'flex:0 0 264px;width:264px;display:flex;flex-direction:column;gap:6px',
+      labelCss: lg
+        ? 'font-size:13px;font-weight:600;line-height:18px;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis'
+        : 'font-size:var(--vt-label-md);font-weight:var(--vt-label-weight);letter-spacing:.02em;color:var(--vt-text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis',
+      trigCss: 'all:unset;box-sizing:border-box;display:flex;align-items:center;gap:10px;width:100%;cursor:pointer;color:var(--vt-text-primary);transition:var(--vt-transition-control);background:var(--vt-bg-surface);border:var(--vt-border-w) solid ' + (p.error ? 'var(--vt-danger)' : 'var(--vt-border-subtle)') + ';'
+        + (lg ? 'height:var(--vt-control-h-lg);padding:0 16px;border-radius:999px;font-size:16px' : 'height:var(--vt-control-h-md);padding:0 14px;border-radius:var(--vt-radius-field);font-size:var(--vt-body-md)'), placeholder: p.placeholder || 'Select date & time',
       value: range ? short(full1) : full1, value2: range ? short(full2) : full2,
       time: p.time || '', time2: p.time2 || '',
       hint: p.hint || '', hasHint: !!p.hint,
@@ -402,8 +422,8 @@ class Component extends DCLogic {
       clearLabel: p.clearLabel || 'Clear', saveLabel: p.saveLabel || 'Save',
       isSaved: saved, notSaved: !saved,
       clearAll: () => { this.setState({ leg: 0 }); if (p.onClear) p.onClear(); },
-      done: () => { clearTimeout(this._closeT); this.setState({ open: false }); if (p.onOpenChange) p.onOpenChange(false); },
-      summary: full1 + ' · ' + (p.time || ''),
+      done: () => { clearTimeout(this._closeT); this.setState({ open: false }); this.focusTrigger(); if (p.onOpenChange) p.onOpenChange(false); },
+      summary: part === 'date' ? full1 : part === 'time' ? (p.time || '') : full1 + ' · ' + (p.time || ''),
       legs: [legObj(0), legObj(1)],
       legA: { label: names[0], stamp: stamps[0], on: leg === 0, off: leg !== 0, pick: () => this.setState({ leg: 0 }) },
       legB: { label: names[1], stamp: stamps[1], on: leg === 1, off: leg !== 1, pick: () => this.setState({ leg: 1 }) },
@@ -411,9 +431,9 @@ class Component extends DCLogic {
       popCss: (() => {
         const base = 'box-sizing:border-box;z-index:800;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-xl);padding:16px;display:flex;flex-direction:column;overflow-y:auto;-webkit-overflow-scrolling:touch;animation:vt-when-in var(--vt-dur-fast) var(--vt-ease-out)';
         const r = s.rect, hasWin = typeof window !== 'undefined';
-        if (!r || !hasWin) return 'position:absolute;' + (p.align === 'end' ? 'inset-inline-end:0' : 'inset-inline-start:0') + ';top:calc(100% + 8px);width:min(560px,calc(100vw - 40px));max-height:min(70svh,540px);' + base;
+        if (!r || !hasWin) return 'position:absolute;' + (p.align === 'end' ? 'inset-inline-end:0' : 'inset-inline-start:0') + ';top:calc(100% + 8px);width:min(' + (part === 'both' ? 560 : 360) + 'px,calc(100vw - 40px));max-height:min(70svh,540px);' + base;
         const vw = window.innerWidth || 1200, vh = window.innerHeight || 800;
-        const w = Math.min(560, vw - 24);
+        const w = Math.min(part === 'both' ? 560 : 360, vw - 24);
         const wanted = p.align === 'end' ? r.right - w : r.left;
         const left = Math.round(Math.min(Math.max(12, wanted), Math.max(12, vw - w - 12)));
         const need = s.popH || (range ? 520 : 460);

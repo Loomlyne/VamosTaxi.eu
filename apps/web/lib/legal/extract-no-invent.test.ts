@@ -34,14 +34,15 @@ const PUBLIC_LEGAL = [
   "i18n/messages/ar.json",
 ] as const;
 
-describe("imprint UID stays TBC (D-26 D-28)", () => {
-  it("Uid number is a PendingSlot, not an invented CHE number", () => {
+// Owner confirmed CHE-296.035.710 against the company papers on 2026-09-30
+// (.planning/quick/260930-lgl-legal-pages-from-eu/DECISIONS.md #4). Until then it was a TBC gap
+// (D-26 D-28). The test now pins that exact number, so any other CHE number still fails.
+describe("imprint UID is the owner-confirmed number", () => {
+  it("shows CHE-296.035.710 and no other CHE number", () => {
     const imprint = source("app/[locale]/imprint/page.tsx");
-    const slot = source("components/legal/PendingSlot.tsx");
-    expect(imprint).toContain('<PendingSlot label="Uid number" />');
-    expect(slot).toMatch(/data-tok/);
-    expect(imprint).not.toMatch(/CHE-296\.035\.710/);
-    expect(imprint).not.toMatch(/CHE-\d{3}\.\d{3}\.\d{3}/);
+    expect(imprint).not.toContain('<PendingSlot label="Uid number" />');
+    expect(imprint).toContain("CHE-296.035.710");
+    expect([...imprint.matchAll(/CHE-\d{3}\.\d{3}\.\d{3}/g)].map((m) => m[0])).toEqual(["CHE-296.035.710"]);
   });
 });
 
