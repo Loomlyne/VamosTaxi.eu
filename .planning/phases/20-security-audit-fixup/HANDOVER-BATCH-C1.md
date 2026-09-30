@@ -1,6 +1,6 @@
 # Phase 20 hand-over, batch C part 1
 
-**Branch:** `fix/phase-20-batch-c`, main `f37cc0b4` merged, code head `d252fac6`. Not deployed, no
+**Branch:** `fix/phase-20-batch-c`, main `f29623da` (refunds by hand live) merged at `d90b342d`, code head `d252fac6`. Not deployed, no
 hosted SQL. Ships after refunds by hand (20-10) and before Phase 27. Needs the owner's Ship.
 F12 (sign-in confirm screen, signed) and F16 (dashboard files off the public host) are part 2, after
 Phase 27, with their own hand-over. The F12 design commits on this branch (`cd59570f`, `e1550dcc`)
@@ -27,12 +27,12 @@ are planning files only.
   font was blocked and phones showed their own fallback type.
 - The other four fixes change nothing visible.
 
-## Checks on `d252fac6`
+## Checks on the merged tree `d90b342d`
 
 | Check | Result |
 |---|---|
 | typecheck, lint, lint:css, i18n:check, check:legal-claims, check:numbers, check:public-env, check:db-fences, db:seed:check, build | exit 0 |
-| Unit tests (full run once) | 2847 pass, 1 skipped, 0 fail; emails 151 pass |
+| Unit tests | 2898 pass, 2 skipped, 0 fail; emails 151 pass. A first run under machine load (load average 20) had 9 five-second timeouts in 7 files; each file passed alone and the full re-run passed. |
 | pgTAP (isolated stack, from-zero replay) | 86 files, 1946 tests pass; new `last_admin_guard.test.sql` 10 (5 failed before) |
 | Each fix | test failed first, passes after |
 | F17 browser | headless Chromium under the exact CSP, Arabic at 1440 and 390: font loaded from our origin (200), 0 Google requests, 0 violations; pictures in `20-C-screens/` |
@@ -43,7 +43,7 @@ are planning files only.
 one trigger on `public.staff`. No row changes. Safe on live. It sorts before the live
 `20261007100000`, which only changes grants, so the order is safe. Apply verbatim, read back
 `md5(prosrc)` of `app`/`public` trigger function and `pg_trigger` for `staff_last_admin_guard`.
-If 20-10 ships first, its `20261005140000` goes on before this one.
+`20261005140000` (refunds by hand) is live since 02:30, so this is the next migration in order.
 
 ## NOT verified
 
