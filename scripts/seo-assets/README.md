@@ -1,11 +1,11 @@
 # Tab icon and share picture
 
 Generated once, files committed to `apps/web/public/`. No runtime dependency and no CDN.
-To rebuild, in a scratch folder (nothing is added to the repo's package.json):
+To rebuild, copy this folder to a scratch folder (nothing is added to the repo's package.json):
 
-    npm i favicons@7.3.1 sharp      # favicons: MIT (itgalaxy/favicons)
-    node <repo>/scripts/seo-assets/generate-favicons.mjs    # writes ./out, copy the files named below
-    node <repo>/scripts/seo-assets/generate-og-image.mjs    # writes apps/web/public/og-image.jpg
+    npm init -y && npm i favicons@7.3.1 sharp      # favicons: MIT (itgalaxy/favicons)
+    node generate-favicons.mjs                      # writes ./out, copy the files named below
+    REPO=<path to the repo> node generate-og-image.mjs   # writes apps/web/public/og-image.jpg
 
 Copied from `out/`: `favicon.ico`, `apple-touch-icon-180x180.png` → `apple-touch-icon.png`,
 `android-chrome-192x192.png` → `icon-192.png`, `android-chrome-512x512.png` → `icon-512.png`,
