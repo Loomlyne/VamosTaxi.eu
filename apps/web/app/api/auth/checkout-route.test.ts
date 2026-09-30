@@ -154,9 +154,9 @@ describe("POST /api/auth magic from /sign-in", () => {
     expect((state.otp.mock.calls[0]?.[0] as { options: { shouldCreateUser: boolean } }).options.shouldCreateUser).toBe(false);
   });
 
-  it("keeps today's behaviour without a checkout returnTo", async () => {
+  it("never creates an account without a checkout returnTo either (27 D-36)", async () => {
     await run(plain);
-    expect((state.otp.mock.calls[0]?.[0] as { options: { shouldCreateUser: boolean } }).options.shouldCreateUser).toBe(true);
+    expect((state.otp.mock.calls[0]?.[0] as { options: { shouldCreateUser: boolean } }).options.shouldCreateUser).toBe(false);
   });
 
   it("sign-up is never affected", async () => {
