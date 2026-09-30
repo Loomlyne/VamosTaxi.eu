@@ -30,7 +30,6 @@ type Copy = {
   customerCta: string;
   supportSubject: string;
   supportHeading: string;
-  staffSubject: string;
   staffHeading: string;
   staffHello: string;
   staffBody: string;
@@ -50,7 +49,6 @@ const COPY: Record<EmailLocale, Copy> = {
     customerCta: "Continue on WhatsApp",
     supportSubject: "New contact message — Vamos Taxi",
     supportHeading: "New contact message",
-    staffSubject: "Reply from Vamos Taxi",
     staffHeading: "A reply from Vamos Taxi",
     staffHello: "Hello, {name}.",
     staffBody: "We wrote back to your message.",
@@ -65,7 +63,6 @@ const COPY: Record<EmailLocale, Copy> = {
     customerCta: "Weiter auf WhatsApp",
     supportSubject: "Neue Kontaktanfrage — Vamos Taxi",
     supportHeading: "Neue Kontaktanfrage",
-    staffSubject: "Antwort von Vamos Taxi",
     staffHeading: "Eine Antwort von Vamos Taxi",
     staffHello: "Hallo, {name}.",
     staffBody: "Wir haben auf Ihre Nachricht geantwortet.",
@@ -80,7 +77,6 @@ const COPY: Record<EmailLocale, Copy> = {
     customerCta: "Continuer sur WhatsApp",
     supportSubject: "Nouveau message de contact — Vamos Taxi",
     supportHeading: "Nouveau message de contact",
-    staffSubject: "Réponse de Vamos Taxi",
     staffHeading: "Une réponse de Vamos Taxi",
     staffHello: "Bonjour, {name}.",
     staffBody: "Nous avons répondu à votre message.",
@@ -95,7 +91,6 @@ const COPY: Record<EmailLocale, Copy> = {
     customerCta: "متابعة على واتساب",
     supportSubject: "رسالة تواصل جديدة — Vamos Taxi",
     supportHeading: "رسالة تواصل جديدة",
-    staffSubject: "رد من Vamos Taxi",
     staffHeading: "رد من Vamos Taxi",
     staffHello: "مرحبا، {name}.",
     staffBody: "رددنا على رسالتك.",
