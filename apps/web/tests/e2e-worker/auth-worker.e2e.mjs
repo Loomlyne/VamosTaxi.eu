@@ -80,26 +80,40 @@ async function follow(link, jar, host) {
 }
 
 const users = (e) => Number(sql(`select count(*) from auth.users where email='${e}'`));
+const agreements = (e) => Number(sql(`select count(*) from public.account_agreement_records where lower(email)=lower('${e}')`));
 
 const A = `e2e-a-${RUN}@example.com`, B = `e2e-b-${RUN}@example.com`, D = `e2e-d-${RUN}@example.com`, U = `e2e-unknown-${RUN}@example.com`, U2 = `e2e-unknown2-${RUN}@example.com`;
 const jarA = new Jar();
 
-// 1 sign up
+// 1a0 sign-up without the tick is refused: no account, no account_agreement_records row (27 D-03a)
 let seen = before();
-let r = await auth({ mode: "signup", method: "password", email: A, password: PW1, firstName: "E", lastName: "Two" }, jarA, { ip: newIp() });
+{
+  const N1 = `e2e-notick-${RUN}@example.com`, N2 = `e2e-notick2-${RUN}@example.com`;
+  const rp = await auth({ mode: "signup", method: "password", email: N1, password: PW1, firstName: "N", lastName: "One" }, new Jar(), { ip: newIp() });
+  const rm = await auth({ mode: "signup", method: "magic", email: N2, firstName: "N", lastName: "Two" }, new Jar(), { ip: newIp() });
+  const mailN = await newMail(seen, 2500);
+  const okBody = (x) => x.status === 400 && x.json?.reason === "consent-required";
+  rec("1a0 sign-up without the tick is refused", okBody(rp) && okBody(rm) && !mailN && users(N1) === 0 && users(N2) === 0 && agreements(N1) === 0 && agreements(N2) === 0,
+    `password ${rp.status} ${JSON.stringify(rp.json)}; magic ${rm.status} ${JSON.stringify(rm.json)}; mail=${!!mailN}; auth.users=${users(N1)}+${users(N2)}; agreement rows=${agreements(N1)}+${agreements(N2)}`);
+}
+
+// 1 sign up
+seen = before();
+let r = await auth({ mode: "signup", method: "password", email: A, password: PW1, firstName: "E", lastName: "Two", consent: true, locale: "de" }, jarA, { ip: newIp() });
 const su = `status ${r.status} stage=${r.json?.stage ?? JSON.stringify(r.json)?.slice(0, 60)}`;
 let mail = await newMail(seen);
 const rowsAfter = users(A);
 const hasVerifier = jarA.has(/code-verifier/);
+const agrA = sql(`select count(*) from public.account_agreement_records where lower(email)=lower('${A}') and surface='sign-up' and choice='create' and record_kind='consent' and text_version='2026-09-29' and locale='de'`);
 let link = mail && linkOf(mail);
-rec("1a signup: response + mail + auth.users row", !!mail && rowsAfter === 1, `${su}; mail=${!!mail}; auth.users=${rowsAfter}; code-verifier cookie=${hasVerifier}`);
+rec("1a signup: response + mail + auth.users row + one agreement record", !!mail && rowsAfter === 1 && agrA === "1" && agreements(A) === 1, `${su}; mail=${!!mail}; auth.users=${rowsAfter}; code-verifier cookie=${hasVerifier}; agreement rows=${agreements(A)} matching=${agrA}`);
 if (link) {
   const f = await follow(link, jarA);
   const s = await session(jarA);
   const cust = sql(`select count(*) from public.customers c join auth.users u on u.id=c.user_id where u.email='${A}'`);
   const cons = sql(`select count(*) from public.consent_log l join public.customers c on c.id=l.customer_id join auth.users u on u.id=c.user_id where u.email='${A}'`);
   rec("1b confirm link -> callback -> session/customer, no consent row (27 D-01)", f.hops.join(">").includes("302") && s?.signedIn === true && cust === "1" && Number(cons) === 0,
-    `hops=${f.hops.join(">")} final=${f.final} sb-auth-token cookie=${jarA.has(/^sb-.*-auth-token/)}; session.signedIn=${s?.signedIn}; customers=${cust}; consent_log=${cons}`);
+    `hops=${f.hops.join(">")} final=${f.final} sb-auth-token cookie=${jarA.has(/^sb-.*-auth-token/)}; session.signedIn=${s?.signedIn}; customers=${cust}; consent_log=${cons}; agreement rows=${agreements(A)}`);
 } else rec("1b confirm link", false, "no mail/link");
 
 // 2 password sign-in / sign out
@@ -155,7 +169,7 @@ if (link) { const f = await follow(link, jar5); s = await session(jar5);
 
 // 6 unconfirmed
 seen = before(); const jar6 = new Jar();
-await auth({ mode: "signup", method: "password", email: B, password: PW1, firstName: "B", lastName: "Two" }, jar6, { ip: newIp() });
+await auth({ mode: "signup", method: "password", email: B, password: PW1, firstName: "B", lastName: "Two", consent: true }, jar6, { ip: newIp() });
 await newMail(seen);
 r = await auth({ mode: "signin", method: "password", email: B, password: PW1 }, new Jar(), { ip: newIp() });
 const nc = `status ${r.status} ${JSON.stringify(r.json)}`;
@@ -172,9 +186,9 @@ s = await session(jar8, DH);
 const r8a = `customer pw signin on dashboard: ${r.status} ${JSON.stringify(r.json)}; token cookie left=${jar8.has(/^sb-.*-auth-token/)}; signedIn=${s?.signedIn}`;
 r = await auth({ mode: "signin", method: "magic", email: U }, new Jar(), { host: DH, ip: newIp() });
 const m8 = `magic unknown on dashboard: ${r.status}, auth.users=${users(U)}`;
-r = await auth({ mode: "signup", method: "password", email: U2, password: PW1, firstName: "U", lastName: "Two" }, new Jar(), { host: DH, ip: newIp() });
-const s8 = `pw signup on dashboard: ${r.status}, auth.users=${users(U2)}`;
-rec("8 dashboard host", r.status && users(U) === 0 && users(U2) === 0 && r8a.includes("403") && !jar8.has(/^sb-.*-auth-token/), `${r8a}; ${m8}; ${s8}`);
+r = await auth({ mode: "signup", method: "password", email: U2, password: PW1, firstName: "U", lastName: "Two", consent: true }, new Jar(), { host: DH, ip: newIp() });
+const s8 = `pw signup on dashboard: ${r.status}, auth.users=${users(U2)}, agreement rows=${agreements(U2)}`;
+rec("8 dashboard host", r.status && users(U) === 0 && users(U2) === 0 && agreements(U2) === 0 && r8a.includes("403") && !jar8.has(/^sb-.*-auth-token/), `${r8a}; ${m8}; ${s8}`);
 
 // 7 rate limit (last: same ip bucket)
 // The local limiter (miniflare) counts in fixed windows aligned to the wall-clock minute and keeps its state in .wrangler/e2e:
