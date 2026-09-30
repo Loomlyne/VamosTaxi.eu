@@ -58,7 +58,7 @@ const CAPS = [
   { slug: "van-luxury", name: "Van luxury", pax: 12, bags: 9, photo: "/assets/photography/class-van.jpg" },
 ];
 
-function quoteBody() {
+function quoteBody(noRoad = false) {
   return {
     ok: true,
     quote_id: "22222222-2222-4222-8222-222222222222",
@@ -74,7 +74,7 @@ function quoteBody() {
           geometry: { type: "LineString", coordinates: [] },
           origin_zone_id: null,
           dest_zone_id: null,
-          road: true,
+          road: !noRoad,
         },
       ],
     },
@@ -93,14 +93,14 @@ function quoteBody() {
   };
 }
 
-async function prepare(page: Page) {
+async function prepare(page: Page, noRoad = false) {
   await page.route(
     (url) => url.hostname.includes("stripe") || url.hostname.includes("cloudflare") || url.hostname.includes("turnstile"),
     (route) => route.abort(),
   );
   await page.route("**/api/quote", async (route) => {
     if (route.request().method() !== "POST") return route.continue();
-    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(quoteBody()) });
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(quoteBody(noRoad)) });
   });
   await page.addInitScript(() => {
     const style = document.createElement("style");
@@ -131,6 +131,32 @@ test("booking polish pictures: checkout distance @bp-capture", async ({ page }, 
       await summary.scrollIntoViewIfNeeded();
       await expect(summary.locator("[data-co-distance]")).toContainText("148.2");
       await summary.screenshot({ path: join(OUT, `checkout-${width}-${lang}-summary.png`) });
+    }
+  }
+});
+
+test("booking polish pictures: checkout no-road trip @bp-capture", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== RUN_PROJECT || !process.env.BP_CAPTURE, "capture only, BP_CAPTURE=1");
+  testInfo.setTimeout(600_000);
+  await prepare(page, true);
+  for (const lang of LANGS) {
+    for (const width of [1440, 390] as const) {
+      await page.setViewportSize({ width, height: width >= 1024 ? 900 : 844 });
+      const res = await openInLocale(page, baseURL, `/checkout?${TRIP}&class=business`, lang);
+      expect(res?.ok()).toBeTruthy();
+      await expect(page.locator("[data-co-classes]")).toBeVisible({ timeout: 60_000 });
+      const strip = page.locator("[data-co-strip] [data-co-no-road]");
+      await expect(strip).toBeVisible();
+      await expect(page.locator("[data-co-strip]")).not.toContainText("148");
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+      expect(overflow).toBeLessThanOrEqual(0);
+      await page.evaluate(() => document.fonts.ready);
+      await page.waitForTimeout(400);
+      await page.screenshot({ path: join(OUT, `checkout-${width}-${lang}-noroad-top.png`) });
+      const summary = page.locator(width >= 1081 ? ".vt-co__railcard" : "[data-co-section='3']").first();
+      await summary.scrollIntoViewIfNeeded();
+      await expect(summary.locator("[data-co-no-road]")).toBeVisible();
+      await summary.screenshot({ path: join(OUT, `checkout-${width}-${lang}-noroad-summary.png`) });
     }
   }
 });
