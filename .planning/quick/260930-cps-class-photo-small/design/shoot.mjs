@@ -18,12 +18,12 @@ await new Promise((r) => srv.listen(PORT, "127.0.0.1", r));
 const br = await chromium.launch();
 const only = process.argv[2];
 try {
-  for (const opt of ["A", "B", "C"]) {
+  for (const opt of ["A", "B", "C", "D"]) {
     if (only && only !== opt) continue;
     const shots = [
       ["home", 1440, "en"], ["home", 1100, "en"], ["home", 1440, "de"], ["home", 1440, "ar"],
       ["checkout", 1440, "en"], ["checkout", 1024, "en"], ["checkout", 768, "en"], ["checkout", 390, "en"],
-      ["checkout", 390, "de"], ["checkout", 390, "ar"], ["checkout", 768, "ar"],
+      ["checkout", 390, "de"], ["checkout", 390, "ar"], ["checkout", 768, "ar"], ["checkout", 768, "de"], ["checkout", 1024, "ar"], ["home", 1100, "de"], ["home", 1100, "ar"],
     ];
     for (const [part, w, lang] of shots) {
       const page = await br.newPage({ viewport: { width: w, height: 800 }, deviceScaleFactor: 1 });

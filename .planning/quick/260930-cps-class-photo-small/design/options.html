@@ -78,6 +78,24 @@ body{margin:0;font-family:var(--vt-font-body);color:var(--vt-text-primary);backg
 .C .co-only .side>div:last-child{text-align:end}
 .C .co-only .chk{inset-block-start:50%;transform:translateY(-50%);inset-inline-end:14px}
 
+/* ── Option D (owner, 2026-09-30): A's inset photo and A's rows and selector in checkout,
+      tablet and phone; on the laptop home three cards across with the content stacked beside the photo ── */
+.D .grid{grid-template-columns:minmax(0,1fr)}
+.D .card{grid-template-columns:132px minmax(0,1fr) auto;align-items:center;gap:var(--vt-space-4);padding:12px 52px 12px 12px;padding-inline:12px 52px}
+.D .shot{inline-size:132px;aspect-ratio:3/2}
+.D .pr{text-align:end}
+.D .chk{inset-block-start:50%;transform:translateY(-50%);inset-inline-end:14px}
+.D .home-only .grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.D .home-only .card{grid-template-columns:132px minmax(0,1fr);align-items:center;gap:14px;padding:12px;padding-inline:12px}
+.D .home-only .side{display:flex;flex-direction:column;gap:8px;min-width:0}
+.D .home-only .btn{block-size:40px;padding:0 16px;align-self:flex-start}
+@media (max-width:1240px){.D .home-only .card{grid-template-columns:104px minmax(0,1fr)}.D .home-only .shot{inline-size:104px}}
+@media (max-width:700px){
+  .D .card{grid-template-columns:96px minmax(0,1fr);grid-template-areas:"shot body" "shot pr";gap:2px 12px;padding:10px 44px 10px 10px;padding-inline:10px 44px}
+  .D .shot{grid-area:shot;inline-size:96px}
+  .D .body{grid-area:body}.D .pr{grid-area:pr;text-align:start}
+}
+
 /* narrow: every option becomes a row with the photo at the side */
 @media (max-width:1080px){
   .B .grid,.C .grid{grid-template-columns:repeat(3,minmax(0,1fr))}
@@ -121,10 +139,10 @@ const shot = (c) => `<div class="shot"><img src="ph/${c.slug}.jpg" alt="${c.name
 const body = (c) => `<div class="body"><div class="name">${c.name}</div><div class="meta"><span>${ic('users')}${c.pax}</span><span>${ic('luggage')}${c.bags}</span></div></div>`;
 function homeCard(c, st) {
   const price = st === 'priced' ? `<div class="price">${c.p}</div>` : st === 'loading' ? `<span class="sk"></span>` : `<div class="note">${T.fill}</div>`;
-  const btn = st === 'loading' ? `<span class="sk" style="inline-size:120px;block-size:${opt === 'C' ? 40 : 44}px;border-radius:999px"></span>` : `<span class="btn ${st === 'idle' ? 'dis' : ''}">${T.sel} ${ic('arrow-right')}</span>`;
+  const btn = st === 'loading' ? `<span class="sk" style="inline-size:120px;block-size:${opt === 'C' || opt === 'D' ? 40 : 44}px;border-radius:999px"></span>` : `<span class="btn ${st === 'idle' ? 'dis' : ''}">${T.sel} ${ic('arrow-right')}</span>`;
   if (opt === 'A') return `<div class="card">${shot(c)}${body(c)}<div class="pr">${price}</div><div class="act">${btn}</div></div>`;
   if (opt === 'B') return `<div class="card">${shot(c)}${body(c)}<div class="foot">${price}${btn}</div></div>`;
-  return `<div class="card">${shot(c)}<div class="side">${body(c)}${price}${btn}</div></div>`;
+  return `<div class="card">${shot(c)}<div class="side">${body(c)}${price}${btn.replace('block-size:44px', 'block-size:40px')}</div></div>`;
 }
 function coCard(c, selected, off) {
   const pr = off ? `<div class="note">${T.seats}</div>` : `<div class="price">${c.p}.00</div><div class="small">${T.fixed}</div>`;
