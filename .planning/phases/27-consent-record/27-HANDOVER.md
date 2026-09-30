@@ -201,3 +201,8 @@ Run on staging after the control session deploys. Use a private window each time
 19. Do the same with your own existing address. Expect: the mail arrives and the link signs you in.
 
 If a step fails: steps 1-11 the banner (this phase, 27-04 to 27-12), steps 12-17 the sign-up tick (27-16, 27-15), steps 18-19 the sign-in link (27-18). The control session fixes on a new job branch.
+
+## Addendum 2026-10-01 (after the gate run)
+
+- The two auth browser specs now stop at once with a clear message when `VAMOS_TEST_DB_PORT` is not set (`apps/web/tests/support/dev-binding.ts`), instead of a 503 during sign-up. Checked: without the variable the spec fails with that message. Not re-run with the variable after this change: the change only wraps the existing connection block, which passed 11/11 and 1/1 in the gate run.
+- Runbook: `docs/runbook/auth-browser-specs.md` (default stack: `VAMOS_TEST_DB_PORT=54322 VAMOS_TEST_MAIL_PORT=54324`; run the two files one after the other).

@@ -18,10 +18,19 @@ export function supabaseStatusArgs(): string[] {
   return ["exec", "supabase", "status", "-o", "env", ...(workdir ? ["--workdir", workdir] : [])];
 }
 
-/** Environment for the spawned Next dev server: staging dev binding, and the DB connection when the port is overridden. */
+/** Environment for the spawned Next dev server: staging dev binding plus the DB connection on VAMOS_TEST_DB_PORT (required). */
 export function devBindingEnv(): Record<string, string> {
+  if (!process.env.VAMOS_TEST_DB_PORT) {
+    // Without it the staging `localConnectionString` (placeholder password) is used and every sign-up
+    // answers 503 — fail here with the fix instead. See docs/runbook/auth-browser-specs.md.
+    throw new Error(
+      "Set VAMOS_TEST_DB_PORT to your local Supabase DB port (default stack: VAMOS_TEST_DB_PORT=54322). " +
+        "Sign-up writes the account agreement record through the Worker database binding; without the port " +
+        "the dev server has no working connection and sign-up answers 503. See docs/runbook/auth-browser-specs.md.",
+    );
+  }
   const env: Record<string, string> = { VAMOS_DEV_WRANGLER_ENV: "staging" };
-  if (process.env.VAMOS_TEST_DB_PORT) {
+  {
     // Same roles as the staging `localConnectionString`s, on the overridden port. The password is the fixed
     // local one from packages/db/scripts/local-role-passwords.mjs (the committed wrangler string carries a
     // literal placeholder password that no local stack accepts).
