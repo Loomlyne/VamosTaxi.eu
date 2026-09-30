@@ -1615,7 +1615,8 @@ class Component extends DCLogic {
         photoSrc: (val && String(val).indexOf('data:') !== 0) ? ('/photos/' + val) : '',
         hasPhoto: !!(val && String(val).indexOf('data:') !== 0),
         noPhoto: !(val && String(val).indexOf('data:') !== 0),
-        clearShow: (val && String(val).indexOf('data:') !== 0) ? 'inline' : 'none',
+        /* noClear: a photo that must always exist (class photo) is replaced by choosing another, never removed. */
+        clearShow: (!f.noClear && val && String(val).indexOf('data:') !== 0) ? 'inline' : 'none',
         clearLabel: f.clearLabel || 'Remove',
         fromSug: false,
         fromSugItems: [],
