@@ -64,3 +64,29 @@ describe("AuthForm locale sent to /api/auth", () => {
     expect(JSON.parse(JSON.stringify({ locale: got }))).toEqual({ locale: "de" });
   });
 });
+
+describe("OpsSettings save", () => {
+  it("a saved answer lands in the settings store, so the screen stops reading as unsaved", async () => {
+    const src = readDc("OpsSettings.dc.html");
+    const body = grab(src, /\n  save = \(\) => \{\n([\s\S]*?)\n  \};\n/, "OpsSettings save");
+    const stored: Record<string, unknown> = { company: "Old AG" };
+    const answer = { ok: true, data: { company: "New AG" } };
+    const win = {
+      VamosOps: {
+        settings: {
+          get: () => ({ ...stored }),
+          apply: (patch: Record<string, unknown>) => Object.assign(stored, patch),
+        },
+      },
+    };
+    const self = {
+      state: { draft: { company: "New AG" } },
+      setState: () => undefined,
+    };
+    const run = new Function("api", "window", "setTimeout", "clearTimeout", body);
+    run.call(self, () => Promise.resolve(answer), win, () => 0, () => undefined);
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(win.VamosOps.settings.get().company).toBe("New AG");
+  });
+});
