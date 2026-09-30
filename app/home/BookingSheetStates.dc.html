@@ -57,80 +57,76 @@ body{margin:0;background:var(--vt-grey-100)}
 </div>
 <div data-bg-grid="1">
 <div data-bg-card="1">
-<div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">1</span><span>Step 1: default, empty</span></div>
-<div data-bg-frame="1" data-size="ph"><dc-import name="BookingSheet" inline="{{ yes }}" step="{{ n1 }}" hint-size="100%,100%"></dc-import></div>
+<div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">1</span><span>Default, empty</span></div>
+<div data-bg-frame="1" data-size="ph"><dc-import name="BookingSheet" inline="{{ yes }}"  hint-size="100%,100%"></dc-import></div>
 </div>
 <div data-bg-card="1">
-<div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">2</span><span>Step 1: incomplete, warning shown (NEXT pressed)</span></div>
-<div data-bg-frame="1" data-size="ph"><dc-import name="BookingSheet" inline="{{ yes }}" step="{{ n1 }}" showIssues="{{ yes }}" hint-size="100%,100%"></dc-import></div>
+<div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">2</span><span>Incomplete, warning shown (SEE PRICES pressed)</span></div>
+<div data-bg-frame="1" data-size="ph"><dc-import name="BookingSheet" inline="{{ yes }}" showIssues="{{ yes }}" hint-size="100%,100%"></dc-import></div>
 </div>
 <div data-bg-card="1">
-<div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">3</span><span>Step 1: suggestions open</span></div>
-<div data-bg-frame="1" data-size="ph"><dc-import name="BookingSheet" inline="{{ yes }}" step="{{ n1 }}" fromText="Zurich" fromHits="{{ hits }}" hint-size="100%,100%"></dc-import></div>
+<div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">3</span><span>From suggestions open</span></div>
+<div data-bg-frame="1" data-size="ph"><dc-import name="BookingSheet" inline="{{ yes }}" fromText="Zurich" fromHits="{{ hits }}" hint-size="100%,100%"></dc-import></div>
 </div>
 <div data-bg-card="1">
-<div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">4</span><span>Step 1: airport pickup, flight number required</span></div>
-<div data-bg-frame="1" data-size="ph"><dc-import name="BookingSheet" inline="{{ yes }}" step="{{ n1 }}" fromText="Zurich Airport (ZRH)" fromChosen="{{ yes }}" fromAirport="{{ yes }}" hint-size="100%,100%"></dc-import></div>
+<div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">4</span><span>Airport pickup, flight number directly under From (required)</span></div>
+<div data-bg-frame="1" data-size="ph"><dc-import name="BookingSheet" inline="{{ yes }}" fromText="Zurich Airport (ZRH)" fromChosen="{{ yes }}" fromAirport="{{ yes }}" hint-size="100%,100%"></dc-import></div>
 </div>
 <div data-bg-card="1">
-<div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">5</span><span>Step 1: airport pickup, flight number missing (warning)</span></div>
-<div data-bg-frame="1" data-size="ph"><dc-import name="BookingSheet" inline="{{ yes }}" step="{{ n1 }}" fromText="Zurich Airport (ZRH)" fromChosen="{{ yes }}" fromAirport="{{ yes }}" showIssues="{{ yes }}" hint-size="100%,100%"></dc-import></div>
+<div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">5</span><span>Airport pickup, flight number missing (warning)</span></div>
+<div data-bg-frame="1" data-size="ph"><dc-import name="BookingSheet" inline="{{ yes }}" fromText="Zurich Airport (ZRH)" fromChosen="{{ yes }}" fromAirport="{{ yes }}" showIssues="{{ yes }}" hint-size="100%,100%"></dc-import></div>
 </div>
 <div data-bg-card="1">
-<div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">6</span><span>Step 1: other pickup, opener</span></div>
-<div data-bg-frame="1" data-size="ph"><dc-import name="BookingSheet" inline="{{ yes }}" step="{{ n1 }}" fromText="Bahnhofstrasse 1" fromChosen="{{ yes }}" hint-size="100%,100%"></dc-import></div>
+<div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">6</span><span>Other pickup, optional opener</span></div>
+<div data-bg-frame="1" data-size="ph"><dc-import name="BookingSheet" inline="{{ yes }}" fromText="Bahnhofstrasse 1" fromChosen="{{ yes }}" hint-size="100%,100%"></dc-import></div>
 </div>
 <div data-bg-card="1">
-<div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">7</span><span>Step 1: optional flight number open</span></div>
-<div data-bg-frame="1" data-size="ph"><dc-import name="BookingSheet" inline="{{ yes }}" step="{{ n1 }}" fromText="Bahnhofstrasse 1" fromChosen="{{ yes }}" flightOpen="{{ yes }}" flight="LX 318" hint-size="100%,100%"></dc-import></div>
+<div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">7</span><span>Optional flight number open</span></div>
+<div data-bg-frame="1" data-size="ph"><dc-import name="BookingSheet" inline="{{ yes }}" fromText="Bahnhofstrasse 1" fromChosen="{{ yes }}" flightOpen="{{ yes }}" flight="LX 318" hint-size="100%,100%"></dc-import></div>
 </div>
 <div data-bg-card="1">
-<div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">8</span><span>Step 1: keyboard open (390 by 420)</span></div>
-<div data-bg-frame="1" data-size="kb"><dc-import name="BookingSheet" inline="{{ yes }}" step="{{ n1 }}" fromText="Bahn" fromHits="{{ hits }}" hint-size="100%,100%"></dc-import></div>
+<div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">8</span><span>To suggestions open</span></div>
+<div data-bg-frame="1" data-size="ph"><dc-import name="BookingSheet" inline="{{ yes }}" fromText="Zurich Airport (ZRH)" fromChosen="{{ yes }}" fromAirport="{{ yes }}" flight="LX 318" toText="Zurich" toHits="{{ hits }}" hint-size="100%,100%"></dc-import></div>
 </div>
 <div data-bg-card="1">
-<div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">9</span><span>Step 2: default</span></div>
-<div data-bg-frame="1" data-size="ph"><dc-import name="BookingSheet" inline="{{ yes }}" step="{{ n2 }}" fromText="Zurich Airport (ZRH)" fromChosen="{{ yes }}" hint-size="100%,100%"></dc-import></div>
+<div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">9</span><span>Same place (warning)</span></div>
+<div data-bg-frame="1" data-size="ph"><dc-import name="BookingSheet" inline="{{ yes }}" fromText="Bahnhofstrasse 1" fromChosen="{{ yes }}" toText="Bahnhofstrasse 1" toChosen="{{ yes }}" samePlace="{{ yes }}" showIssues="{{ yes }}" hint-size="100%,100%"></dc-import></div>
 </div>
 <div data-bg-card="1">
-<div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">10</span><span>Step 2: same place (warning)</span></div>
-<div data-bg-frame="1" data-size="ph"><dc-import name="BookingSheet" inline="{{ yes }}" step="{{ n2 }}" fromText="Bahnhofstrasse 1" fromChosen="{{ yes }}" toText="Bahnhofstrasse 1" toChosen="{{ yes }}" samePlace="{{ yes }}" showIssues="{{ yes }}" hint-size="100%,100%"></dc-import></div>
+<div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">10</span><span>Date set, pickup time missing (warning)</span></div>
+<div data-bg-frame="1" data-size="ph"><dc-import name="BookingSheet" inline="{{ yes }}" fromText="Zurich Airport (ZRH)" fromChosen="{{ yes }}" toText="Bahnhofstrasse 1" toChosen="{{ yes }}" dayNum="{{ n6 }}" dateLabel="Tue 6 Oct" baseMonth="2026-10" showIssues="{{ yes }}" hint-size="100%,100%"></dc-import></div>
 </div>
 <div data-bg-card="1">
-<div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">11</span><span>Step 3: default</span></div>
-<div data-bg-frame="1" data-size="ph"><dc-import name="BookingSheet" inline="{{ yes }}" step="{{ n3 }}" fromText="Zurich Airport (ZRH)" fromChosen="{{ yes }}" toText="Bahnhofstrasse 1" toChosen="{{ yes }}" minDate="2026-09-29" hint-size="100%,100%"></dc-import></div>
+<div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">11</span><span>Too soon (lead-time message from home)</span></div>
+<div data-bg-frame="1" data-size="ph"><dc-import name="BookingSheet" inline="{{ yes }}" fromText="Zurich Airport (ZRH)" fromChosen="{{ yes }}" toText="Bahnhofstrasse 1" toChosen="{{ yes }}" dayNum="{{ n6 }}" dateLabel="Tue 6 Oct" time="08:15" baseMonth="2026-10" whenError="Choose a time at least 3 hours from now" showIssues="{{ yes }}" hint-size="100%,100%"></dc-import></div>
 </div>
 <div data-bg-card="1">
-<div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">12</span><span>Step 3: pickup time missing (warning)</span></div>
-<div data-bg-frame="1" data-size="ph"><dc-import name="BookingSheet" inline="{{ yes }}" step="{{ n3 }}" fromText="Zurich Airport (ZRH)" fromChosen="{{ yes }}" toText="Bahnhofstrasse 1" toChosen="{{ yes }}" minDate="2026-09-29" date="2026-10-06" showIssues="{{ yes }}" hint-size="100%,100%"></dc-import></div>
+<div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">12</span><span>Complete trip, minimum travellers (minus disabled)</span></div>
+<div data-bg-frame="1" data-size="ph"><dc-import name="BookingSheet" inline="{{ yes }}" fromText="Zurich Airport (ZRH)" fromChosen="{{ yes }}" toText="Bahnhofstrasse 1" toChosen="{{ yes }}" flight="LX 318" fromAirport="{{ yes }}" dayNum="{{ n6 }}" dateLabel="Tue 6 Oct" time="08:15" baseMonth="2026-10" pax="{{ n1 }}" bags="{{ n0 }}" hint-size="100%,100%"></dc-import></div>
 </div>
 <div data-bg-card="1">
-<div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">13</span><span>Step 3: too soon (lead-time message from home)</span></div>
-<div data-bg-frame="1" data-size="ph"><dc-import name="BookingSheet" inline="{{ yes }}" step="{{ n3 }}" fromText="Zurich Airport (ZRH)" fromChosen="{{ yes }}" toText="Bahnhofstrasse 1" toChosen="{{ yes }}" minDate="2026-09-29" date="2026-09-29" time="08:15" whenError="Choose a time at least 3 hours from now" showIssues="{{ yes }}" hint-size="100%,100%"></dc-import></div>
+<div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">13</span><span>Complete trip, mid travellers</span></div>
+<div data-bg-frame="1" data-size="ph"><dc-import name="BookingSheet" inline="{{ yes }}" fromText="Zurich Airport (ZRH)" fromChosen="{{ yes }}" toText="Bahnhofstrasse 1" toChosen="{{ yes }}" dayNum="{{ n6 }}" dateLabel="Tue 6 Oct" time="08:15" baseMonth="2026-10" pax="{{ n3 }}" bags="{{ n5 }}" hint-size="100%,100%"></dc-import></div>
 </div>
 <div data-bg-card="1">
-<div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">14</span><span>Step 4: minimum (minus disabled)</span></div>
-<div data-bg-frame="1" data-size="ph"><dc-import name="BookingSheet" inline="{{ yes }}" step="{{ n4 }}" fromText="Zurich Airport (ZRH)" fromChosen="{{ yes }}" toText="Bahnhofstrasse 1" toChosen="{{ yes }}" date="2026-10-06" time="08:15" whenLabel="Tue 6 Oct, 08:15" pax="{{ n1 }}" bags="{{ n0 }}" hint-size="100%,100%"></dc-import></div>
+<div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">14</span><span>Keyboard open (390 by 420)</span></div>
+<div data-bg-frame="1" data-size="kb"><dc-import name="BookingSheet" inline="{{ yes }}" fromText="Bahn" fromHits="{{ hits }}" hint-size="100%,100%"></dc-import></div>
 </div>
 <div data-bg-card="1">
-<div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">15</span><span>Step 4: mid values</span></div>
-<div data-bg-frame="1" data-size="ph"><dc-import name="BookingSheet" inline="{{ yes }}" step="{{ n4 }}" fromText="Zurich Airport (ZRH)" fromChosen="{{ yes }}" toText="Bahnhofstrasse 1" toChosen="{{ yes }}" date="2026-10-06" time="08:15" whenLabel="Tue 6 Oct, 08:15" pax="{{ n3 }}" bags="{{ n5 }}" hint-size="100%,100%"></dc-import></div>
+<div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">15</span><span>Right to left, forced: airport with flight</span></div>
+<div data-bg-frame="1" data-size="ph" dir="rtl"><dc-import name="BookingSheet" inline="{{ yes }}" fromText="Zurich Airport (ZRH)" fromChosen="{{ yes }}" fromAirport="{{ yes }}" hint-size="100%,100%"></dc-import></div>
 </div>
 <div data-bg-card="1">
-<div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">16</span><span>Right to left, forced: step 1 airport with flight</span></div>
-<div data-bg-frame="1" data-size="ph" dir="rtl"><dc-import name="BookingSheet" inline="{{ yes }}" step="{{ n1 }}" fromText="Zurich Airport (ZRH)" fromChosen="{{ yes }}" fromAirport="{{ yes }}" hint-size="100%,100%"></dc-import></div>
+<div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">16</span><span>Right to left, forced: warning on the empty page</span></div>
+<div data-bg-frame="1" data-size="ph" dir="rtl"><dc-import name="BookingSheet" inline="{{ yes }}" showIssues="{{ yes }}" hint-size="100%,100%"></dc-import></div>
 </div>
 <div data-bg-card="1">
-<div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">17</span><span>Right to left, forced: step 3 with warning</span></div>
-<div data-bg-frame="1" data-size="ph" dir="rtl"><dc-import name="BookingSheet" inline="{{ yes }}" step="{{ n3 }}" fromText="Zurich Airport (ZRH)" fromChosen="{{ yes }}" toText="Bahnhofstrasse 1" toChosen="{{ yes }}" minDate="2026-09-29" showIssues="{{ yes }}" hint-size="100%,100%"></dc-import></div>
-</div>
-<div data-bg-card="1">
-<div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">18</span><span>Tablet 768 by 1024: step 4, centred column</span></div>
-<div data-bg-frame="1" data-size="tab"><dc-import name="BookingSheet" inline="{{ yes }}" step="{{ n4 }}" fromText="Zurich Airport (ZRH)" fromChosen="{{ yes }}" toText="Bahnhofstrasse 1" toChosen="{{ yes }}" date="2026-10-06" time="08:15" whenLabel="Tue 6 Oct, 08:15" pax="{{ n2 }}" bags="{{ n1 }}" hint-size="100%,100%"></dc-import></div>
+<div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">17</span><span>Tablet 768 by 1024: centred column</span></div>
+<div data-bg-frame="1" data-size="tab"><dc-import name="BookingSheet" inline="{{ yes }}" fromText="Zurich Airport (ZRH)" fromChosen="{{ yes }}" toText="Bahnhofstrasse 1" toChosen="{{ yes }}" dayNum="{{ n6 }}" dateLabel="Tue 6 Oct" time="08:15" baseMonth="2026-10" pax="{{ n2 }}" bags="{{ n1 }}" hint-size="100%,100%"></dc-import></div>
 </div>
 </div>
 </section>
-<dc-import name="BookingSheet" open="{{ live.open }}" step="{{ live.step }}" fromText="{{ live.fromText }}" fromHits="{{ live.fromHits }}" fromChosen="{{ live.fromChosen }}" fromAirport="{{ live.fromAirport }}" toText="{{ live.toText }}" toHits="{{ live.toHits }}" toChosen="{{ live.toChosen }}" samePlace="{{ live.samePlace }}" flight="{{ live.flight }}" flightOpen="{{ live.flightOpen }}" flightValid="{{ live.flightValid }}" date="{{ live.date }}" time="{{ live.time }}" minDate="{{ live.minDate }}" whenError="" whenLabel="{{ live.whenLabel }}" pax="{{ live.pax }}" bags="{{ live.bags }}" onFromInput="{{ h.fromInput }}" onFromPick="{{ h.fromPick }}" onFromClear="{{ h.fromClear }}" onToInput="{{ h.toInput }}" onToPick="{{ h.toPick }}" onToClear="{{ h.toClear }}" onFlight="{{ h.flight }}" onFlightOpen="{{ h.flightOpen }}" onDate="{{ h.date }}" onTime="{{ h.time }}" onPax="{{ h.pax }}" onBags="{{ h.bags }}" onStep="{{ h.step }}" onClose="{{ h.close }}" onSubmit="{{ h.submit }}" hint-size="100%,100%"></dc-import>
+<dc-import name="BookingSheet" open="{{ live.open }}" fromText="{{ live.fromText }}" fromHits="{{ live.fromHits }}" fromChosen="{{ live.fromChosen }}" fromAirport="{{ live.fromAirport }}" toText="{{ live.toText }}" toHits="{{ live.toHits }}" toChosen="{{ live.toChosen }}" samePlace="{{ live.samePlace }}" flight="{{ live.flight }}" flightOpen="{{ live.flightOpen }}" flightValid="{{ live.flightValid }}" dayNum="{{ live.dayNum }}" dateLabel="{{ live.dateLabel }}" time="{{ live.time }}" baseMonth="{{ live.baseMonth }}" lang="{{ live.lang }}" pax="{{ live.pax }}" bags="{{ live.bags }}" onFromInput="{{ h.fromInput }}" onFromPick="{{ h.fromPick }}" onFromClear="{{ h.fromClear }}" onToInput="{{ h.toInput }}" onToPick="{{ h.toPick }}" onToClear="{{ h.toClear }}" onFlight="{{ h.flight }}" onFlightOpen="{{ h.flightOpen }}" onDay="{{ h.day }}" onTime="{{ h.time }}" onWhenClear="{{ h.whenClear }}" onPax="{{ h.pax }}" onBags="{{ h.bags }}" onClose="{{ h.close }}" onSubmit="{{ h.submit }}" hint-size="0,0"></dc-import>
 
 </x-dc>
 <script type="text/x-dc" data-dc-script>
@@ -146,31 +142,30 @@ const hitsFor = (text) => {
   return PLACES.filter((x) => x.name.toLowerCase().indexOf(q) >= 0 || x.sub.toLowerCase().indexOf(q) >= 0)
     .map((x) => ({ id: x.id, name: x.name, sub: x.sub, icon: x.icon, tone: x.air ? '' : '' }));
 };
-const ymd = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-const EMPTY = () => ({ open: false, step: 1, fromText: '', fromId: '', fromChosen: false, fromAirport: false, toText: '', toId: '', toChosen: false, flight: '', flightOpen: false, date: '', time: '', pax: 1, bags: 0 });
+const EMPTY = () => ({ open: false, fromText: '', fromId: '', fromChosen: false, fromAirport: false, toText: '', toId: '', toChosen: false, flight: '', flightOpen: false, day: 0, dayLabel: '', dayY: 0, dayM: 0, time: '', pax: 1, bags: 0 });
 class Component extends DCLogic {
   constructor(props) { super(props); this.state = Object.assign(EMPTY(), { log: 'no submit yet' }); }
   _open(trip) {
     const d = new Date(); d.setDate(d.getDate() + 7);
+    const lbl = new Intl.DateTimeFormat('en-GB', { weekday: 'short', day: 'numeric', month: 'short' }).format(d).replace(/,/g, '');
     const base = EMPTY(); base.open = true;
-    if (trip) Object.assign(base, { fromText: 'Zurich Airport (ZRH)', fromId: 'zrh', fromChosen: true, fromAirport: true, flight: 'LX 318', toText: 'Bahnhofstrasse 1', toId: 'bs', toChosen: true, date: ymd(d), time: '08:15' });
+    if (trip) Object.assign(base, { fromText: 'Zurich Airport (ZRH)', fromId: 'zrh', fromChosen: true, fromAirport: true, flight: 'LX 318', toText: 'Bahnhofstrasse 1', toId: 'bs', toChosen: true, day: d.getDate(), dayLabel: lbl, dayY: d.getFullYear(), dayM: d.getMonth(), time: '08:15' });
     this.setState(base);
   }
   renderVals() {
     const s = this.state;
     const set = (patch) => this.setState(patch);
     const place = (id) => PLACES.filter((x) => x.id === id)[0];
-    const d = new Date();
-    const whenLabel = s.date && s.time ? s.date + ', ' + s.time : '';
+    const base = String(s.dayY || new Date().getFullYear()) + '-' + String((s.dayM || 0) + 1).padStart(2, '0');
     const flightValid = !s.flight.trim() || /^[A-Za-z0-9]{2}\s?\d{1,4}$/.test(s.flight.trim());
     return {
-      yes: true, n0: 0, n1: 1, n2: 2, n3: 3, n4: 4, n5: 5,
+      yes: true, n0: 0, n1: 1, n2: 2, n3: 3, n5: 5, n6: 6,
       hits: hitsFor('zur').slice(0, 3), log: s.log,
       openEmpty: () => this._open(false), openTrip: () => this._open(true),
       live: {
-        open: s.open, step: s.step, fromText: s.fromText, fromHits: s.fromChosen ? [] : hitsFor(s.fromText), fromChosen: s.fromChosen, fromAirport: s.fromAirport,
+        open: s.open, fromText: s.fromText, fromHits: s.fromChosen ? [] : hitsFor(s.fromText), fromChosen: s.fromChosen, fromAirport: s.fromAirport,
         toText: s.toText, toHits: s.toChosen ? [] : hitsFor(s.toText), toChosen: s.toChosen, samePlace: !!(s.fromChosen && s.toChosen && s.fromId === s.toId),
-        flight: s.flight, flightOpen: s.flightOpen, flightValid: flightValid, date: s.date, time: s.time, minDate: ymd(d), whenLabel: whenLabel, pax: s.pax, bags: s.bags,
+        flight: s.flight, flightOpen: s.flightOpen, flightValid: flightValid, dayNum: s.day, dateLabel: s.dayLabel, time: s.time, baseMonth: base, lang: (window.VamosLocale && window.VamosLocale.lang && window.VamosLocale.lang()) || 'en', pax: s.pax, bags: s.bags,
       },
       h: {
         fromInput: (t) => set({ fromText: t, fromChosen: false, fromId: '', fromAirport: false }),
@@ -181,9 +176,9 @@ class Component extends DCLogic {
         toClear: () => set({ toText: '', toChosen: false, toId: '' }),
         flight: (t) => set({ flight: String(t).toUpperCase() }),
         flightOpen: () => set({ flightOpen: true }),
-        date: (v) => set({ date: v }), time: (v) => set({ time: v }),
+        day: (d, label, y, m) => set({ day: d, dayLabel: label, dayY: y, dayM: m }), time: (v) => set({ time: v }),
+        whenClear: () => set({ day: 0, dayLabel: '', time: '' }),
         pax: (n) => set({ pax: n }), bags: (n) => set({ bags: n }),
-        step: (n) => set({ step: n }),
         close: () => set({ open: false }),
         submit: () => {
           const st = history.state;

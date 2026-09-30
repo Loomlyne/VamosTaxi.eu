@@ -92,9 +92,9 @@ main and does not merge cleanly; a session has to redo it on today's main.
 
 | Order | What | State |
 |---|---|---|
-| 1 | 26.4.2 booking feedback | Second round after his review of the pictures. Hand-over follows his signature. |
+| 1 | 26.4.2 booking feedback | **Live since 2026-09-30 12:22.** main `37ba5b62`, Worker `59c18372` (rollback `a55b2c19`). Shipped under the day's ship mode after the owner's signatures (02:50, 11:50) and a green full check of `58eb48c7` in a clean clone. Live read: mock files identical to the build, laptop home shows the three class cards with photos. Owed by the owner: 15 UAT steps in the hand-over, 4242 payment first. |
 | 2 | 26.5 account choice before payment, with the paid-only reminder | Building |
-| 3 | 27 consent record | Not started |
+| 3 | 27 consent record | **Held by the owner until 26.5 is live** (27 D-34, 2026-09-30). Discuss signed. 13 plans written; their checker found 3 blockers and 11 warnings, revision running. Then the owner signs design and plan together. The /sign-up tick box is built inside 27 on 26.5's account record. 28 and 29 wait too. The control session tells it when 26.5's migration `20261001100000` is on main. |
 | 4 | 28 pixel page view, 29 purchase event | The Meta wording is his since 2026-09-30 (`.planning/decisions/2026-09-30-meta-wording.md`), all three texts, four languages. Not started. |
 | after | 26.0 → 26.2 → 20 (19 is closed) | 26.0 keeps building, lands after the ones above |
 
@@ -132,7 +132,7 @@ Full text: `.planning/decisions/2026-09-29-checkout-account-notice.md`.
 
 ## Migration numbers, reserved 2026-09-30
 
-Live is at `20260930210000`.
+Live is at `20260930210000` plus Phase 20's `20261005100000` and `20261005110000` (applied 2026-09-30, function replacements only).
 
 | Lane | Numbers |
 |---|---|
@@ -189,6 +189,16 @@ Reported by that session; not yet re-checked by the control session.
 
 Every Phase 20 ship needs the owner's Ship; today's ship mode does not cover it.
 
+Owner decided every finding F1 to F14 on 2026-09-30 (table at the end of `20-06-FINDINGS.md`, branch pushed at `f372f7fe`). Phase 20 builds all of it, in three batches:
+
+| Batch | When | What |
+|---|---|---|
+| A | **Live since 2026-09-30 12:38** (owner said Ship). main `e8aaad0b`, Worker `a0d38f64` (rollback `59c18372`). Migrations `20261005100000` and `20261005110000` applied, 9 function bodies read back identical. Live read: home, FAQ and dashboard sign-in boot with the engine from our own host, no request to unpkg, security header no longer lists unpkg. Not checked: dashboard Support signed in. | F1 pay link no longer opens Manage booking. F2 reworked by his decision: dashboard Support becomes read-only, file names only, one button opens his e-mail. F5, F10, F14 database items. F13: the page engine (React, Babel) served from our own host, not unpkg. |
+| B | After 26.5 is on main | Limit on the payment return address, F8, remaining F14 items, and **F11: refunds by hand** (customer cancels, booking shows "Refund due", admin presses Refund). F11 needs a signed plan and a check of every refund promise on /cancellation, /terms, FAQ and the mails. |
+| C | After Phase 27 is on main | F12: the sign-in link opens a confirm screen "Sign in as <e-mail>?". Design first. |
+
+Accepted by him, no work: F4, F7, F9. GitHub lists 41 known weaknesses in dependencies (15 high); Phase 20 reads which ones matter.
+
 ## Owner feedback after the 26.4 ship, 2026-09-30
 
 Built by the 26.3 session as `fix/26.4.2-booking-feedback` (folder `fix-26.4.2`).
@@ -208,6 +218,32 @@ Built by the 26.3 session as `fix/26.4.2-booking-feedback` (folder `fix-26.4.2`)
 |---|---|
 | Checkout, flight edit: when Turnstile challenges the re-quote, no challenge is shown and the price stays on "Updating price" (`CheckoutForm.tsx` flightBlur) | Confirmed in code by the control session. Not reproduced on live. Sent to the 26.3 session to fix inside 26.4.2. |
 | The public pages (mocks) carry no hreflang links in their HTML | For the owner. Not assigned. Search engines cannot tell the language versions apart. |
+
+## Shipped on 2026-09-30
+
+| Time | What | main | Worker |
+|---|---|---|---|
+| 12:22 | 26.4.2 booking feedback | `37ba5b62` | `59c18372` |
+| 12:38 | Phase 20 batch A (security), two migrations | `e8aaad0b` | `a0d38f64` |
+| 12:46 | SEO: head, favicon, share picture, sitemap, one address per language | `5b394833` | `64be5312` |
+
+SEO live read: `/`, `/de`, `/fr`, `/ar`, `/de/faq`, `/ar/faq`, `/fr/about` 200 with the right language, title, canonical and hreflang; sitemap 36 addresses; favicon, share picture, manifest 200; the language switch moves the address; checkout follows the language. Three differences from its hand-over went back to the SEO session: the dashboard address still serves the public robots file; language addresses are served uncached; a stored language and the cookie can disagree. Tests in 26.0's folder that expect the old redirect are red until 26.0 updates them.
+
+## Owner requests, 2026-09-30 12:55
+
+| # | Request, his words in short | Scope he chose | Goes to | State |
+|---|---|---|---|---|
+| 1 | He does not like the class cards as they are: photo on the side, card smaller | Both places: laptop home and step 1 of /checkout, every size | Session "Vamos Taxi 26.4.2 completion", job `feat/class-photo-small`, together with the smaller photo files | Design pictures with options, his signature first. Replaces the layout signed at 11:50. Checkout side builds after 26.5 is on main. |
+| 2 | Scrolling glitches and breaks; the site must be faster | Everywhere | Session "Vamos Taxi SEO and browser settings", folder `site-speed`, branch `fix/site-speed` | Measure first on live, name the cause with numbers, then a plan for his signature. Suspects: smooth scroll (Lenis), in-browser compile of every page, heavy photos, the language runtime, uncached language addresses. |
+
+
+
+| Job | From |
+|---|---|
+| Serve a smaller version of each class photo (today 2.3 to 2.8 MB PNG each, about 7.6 MB on the laptop home) | **Started** by the owner in the 26.4.2 session: folder `class-photo-small`, branch `feat/class-photo-small`. Design note and signature first. Migration block `20261006100000` to `190000`. |
+| The Arabic font file from Google is blocked by our own security header, so Arabic pages use the fallback font | Control session, 2026-09-30. Passed to Phase 20. |
+| Dashboard screen files can be opened on the public address (layout only, no data) | Phase 20 F16, goes into batch C |
+| Cloudflare Web Analytics script is blocked by our own security header on every page (seen in the browser console; older than this ship) | Control session, 2026-09-30 |
 
 ## Owed by the control session
 

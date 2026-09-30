@@ -37,8 +37,10 @@ describe("14-06 inbound webhook + staff file GET (source-read)", () => {
     expect(src).toContain("withStaff");
     expect(src).toContain("SUPPORT_FILES");
     expect(src).toContain("Content-Disposition");
-    expect(src).toContain("inline");
-    expect(src).toContain("application/pdf");
+    // Phase 20 F2: files are download-only, never rendered on the dashboard origin.
+    expect(src).toContain("attachment; filename=");
+    expect(src).not.toContain('"inline"');
+    expect(src).toContain("nosniff");
     expect(src).not.toContain("PHOTOS");
     expect(src).not.toContain("staffOriginAllowed");
     expect(src).not.toContain("download_url");

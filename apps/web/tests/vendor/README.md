@@ -44,3 +44,5 @@ If `app/support.js`'s `REACT_URL`/`REACT_DOM_URL`/`BABEL_URL`/`*_SRI` constants 
 its SHA-384 matches the new `*_SRI` constant before trusting it, replace the file here, and
 update this table. Never vendor a file whose hash does not match the mock runtime's own pin —
 that would silently diff the port against different bytes than the mock itself trusts.
+
+> F13 update: production now serves the same bytes from `/assets/vendor/` (see `assets/vendor/LICENSES.md`), so `support.js` no longer names unpkg. This harness copy stays for the visual tests and is byte-identical.

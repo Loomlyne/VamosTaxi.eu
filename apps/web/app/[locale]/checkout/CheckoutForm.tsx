@@ -16,7 +16,7 @@ import { useFx } from "@/lib/fx/use-fx";
 import { useVamosLocale } from "@/lib/locale-shim";
 import { airportByName } from "@/lib/checkout/trip-editor-rules";
 import { geoLocale } from "@/lib/checkout/geo-locale";
-import { tripIsQuotable } from "@/lib/checkout/checkout-quote";
+import { tripIsQuotable, type QuoteResult } from "@/lib/checkout/checkout-quote";
 import type { ChargeLine } from "@/lib/checkout/checkout-charge";
 import { extraLabel, type ExtraNames } from "@/lib/checkout/extra-label";
 import {
@@ -313,9 +313,17 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
 
   const submitChallengeToken = useCallback(
     (token: string | null) => {
-      if (token && challenge) void requoteTrip(challenge.next, token);
+      if (!token || !challenge) return;
+      const next = challenge.next;
+      void (async () => {
+        // One re-sign with the solved token. A flight edit that still fails says so on the flight field.
+        const result = await requoteTrip(next, token);
+        if (result.kind === "error" && !result.challenge && (next.flight ?? null) !== (tripRef.current.flight ?? null)) {
+          setFlightError((result.i18nKey ? label(result.i18nKey, result.params ?? undefined) : "") || t("quoteGeneric"));
+        }
+      })();
     },
-    [challenge, requoteTrip],
+    [challenge, requoteTrip, label, t],
   );
 
   // ── Mount: catalogue, signed-in prefill, sign-in return stash, resume ─────────────────
@@ -545,6 +553,20 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  /** A flight re-sign that the server answers with a challenge mounts the page challenge; any other refusal shows on the flight field. */
+  const showResignOutcome = useCallback(
+    (result: QuoteResult, next: Trip) => {
+      if (result.kind !== "error") return;
+      if (result.challenge) {
+        const text = (result.i18nKey ? label(result.i18nKey, result.params ?? undefined) : "") || t("quoteGeneric");
+        setChallenge({ text, next });
+        return;
+      }
+      setFlightError((result.i18nKey ? label(result.i18nKey, result.params ?? undefined) : "") || t("quoteGeneric"));
+    },
+    [label, t],
+  );
+
   const flightBlur = useCallback(() => {
     const raw = flight.trim();
     if (!raw) return;
@@ -555,12 +577,11 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
     }
     if (parsed.flight === tripRef.current.flight) return;
     void (async () => {
-      const result = await flow.resignFlight({ ...tripRef.current, flight: parsed.flight, flightDisplay: parsed.display });
-      if (result.kind === "error" && !result.challenge) {
-        setFlightError((result.i18nKey ? label(result.i18nKey, result.params ?? undefined) : "") || t("quoteGeneric"));
-      }
+      const next = { ...tripRef.current, flight: parsed.flight, flightDisplay: parsed.display };
+      const result = await flow.resignFlight(next);
+      showResignOutcome(result, next);
     })();
-  }, [flight, flow, label, t]);
+  }, [flight, flow, showResignOutcome]);
 
   // ── Totals ────────────────────────────────────────────────────────────────────────────
   const totalView = useMemo(() => {
@@ -627,7 +648,8 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
     const typed = normaliseFlight(flight);
     if (typed && typed.flight !== trip.flight) {
       announce(t("updatingPrice"));
-      void flow.resignFlight({ ...trip, flight: typed.flight, flightDisplay: typed.display });
+      const next = { ...trip, flight: typed.flight, flightDisplay: typed.display };
+      void flow.resignFlight(next).then((result) => showResignOutcome(result, next));
       return;
     }
     if (price.kind === "error") {
@@ -751,6 +773,7 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
     requoteTrip,
     resume,
     selectedClass,
+    showResignOutcome,
     t,
     tickedValid,
     trip,
