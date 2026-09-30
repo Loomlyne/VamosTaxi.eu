@@ -61,6 +61,8 @@ Owner's order: booking, payments, account, Meta first.
 | 10a | Phase 20 batch B1 (return-route limit, F8, lock-secret 503, ticket reply refused, staff e-mail check, reviews column grants `20261005120000`) | Handed over `75b0aba0`; touches checkout files | Owner's 26.5 test first, then his Ship, then a 4242 payment |
 | 10b | Site speed A | **Live 15:28** (owner said Ship). Live read: scripts and page parts 5 minutes, engine and photos one year, reviews 5 minutes with 5 rows; checkout, account, manage booking, sign-in and the per-visitor APIs stay `private, no-store`. A deploy now reaches a returning visitor within 5 minutes. B (native scrolling) is built on `fix/native-scroll`, hands over after class cards and Phase 27 | |
 | 10c | 26.2 hand-over 2: 16 booking-path bugs, each approved by the owner through the form (mails, dashboard booking edit, New trip, price book, address search, re-price) | Handed over `975c3ab4`; checked green by the control session on main `3b4f86d8` | Owner's 26.5 test first, then his Ship, then a 4242 payment |
+| 10f | **Refunds by hand** (Phase 20 plan 20-10, owner-signed): no automatic Stripe refund on a cancel; "Refund due"; admin picks payment and amount; five approved texts in four languages | Handed over `0ca067bb`; not yet checked by the control session | Tomorrow: control check, owner's Ship; migration `20261005140000` and deploy back to back; three hosted content strings updated; UAT: booking, cancel, manual refund |
+| 10g | Distance on /checkout (booking polish hand-over 1) | Handed over `9cee3903`; checked green with the photo job and the sync prune | Owner's Ship, one question with the home section |
 | 10e | Sync prune: the copy step removes stale files under `public/assets` and `public/_ds` (scripts only) | Handed over `615c65bc`; control check green (its tests, sync run, gates) | Owner's Ship, bundled with the next ship question |
 | 10d | Native scrolling | **Live 23:26** (owner's word 16:00). Live read: no Lenis file or global on /faq, the bundle writes no --vt-scroll, page scrolls by script at 390, phone menu locks and releases. Note: the sync script leaves old copies in `apps/web/public/assets`; the control session removed the three Lenis copies by hand before the deploy | Owner: scroll the site on his phone and laptop |
 | 11 | Scroll and speed | Measuring on live | A plan for the owner's signature |
@@ -85,7 +87,7 @@ as a branch, then the folder, its Docker stack and build output are removed the 
 | Meta measurement phases 27-29 | `phase-27` | `gsd/phase-27-consent-record` | running; stack `vamos-taxi-270` stopped |
 | Phase 26.2 audit | `phase-26.2`, `phase-26.2-u13` | `gsd/phase-26.2-audit`, `gsd/phase-26.2-u13` | waiting for 26.5; stack `vamos-taxi-262` stopped |
 | Vamos Taxi security phase | `phase-20` (slimmed, reinstall needed) | `gsd/phase-20-security-check` | idle; stack `vamos-taxi-20` stopped |
-| none (26.0) | `main-green-2` (slimmed, reinstall needed) | `fix/main-green-2` | idle; stack `vamos-taxi-mg2` stopped |
+| Phase 26.0 main green completion (started 23:43) | `main-green-2` | `fix/main-green-2` | merging main, then plans 10 to 12 |
 
 Removed on 2026-09-30, every tip on GitHub as a branch or an `archive/*` tag: 13 shipped folders,
 7 unit folders of 26.2, `fix-26.3-followups` (its two research notes committed, branch pushed),
