@@ -12,9 +12,9 @@ Rewritten short on 2026-09-30 14:25; the long version is in git history (`823022
 | Item | Value |
 |---|---|
 | Site | https://vamostaxi.site and https://dashboard.vamostaxi.site |
-| main = origin/main | `5b394833` plus planning notes |
-| Worker `vamos` | version `64be5312` |
-| Rollback point | Worker `a0d38f64`, git tag `backup/main-before-seo-09b3c692` |
+| main = origin/main | `ec1beed5` plus planning notes |
+| Worker `vamos` | version `04a64c26` |
+| Rollback point | Worker `64be5312`, git tag `backup/main-before-psb-0c34961b` |
 | Database | migrations up to `20260930210000`, plus `20261005100000` and `20261005110000` (Phase 20), applied and read back |
 | Who deploys | the control session, from the owner's Mac. GitHub runs checks, never deploys. |
 
@@ -28,6 +28,7 @@ Rewritten short on 2026-09-30 14:25; the long version is in git history (`823022
 | 09-30 | 12:22 | 26.4.2 booking feedback: one-page phone booking, flight before From, class cards with photos, flight-edit fix | `37ba5b62` | `59c18372` |
 | 09-30 | 12:38 | Phase 20 batch A (security), two migrations | `e8aaad0b` | `a0d38f64` |
 | 09-30 | 12:46 | SEO: head, favicon, share picture, sitemap, one address per language | `5b394833` | `64be5312` |
+| 09-30 | 14:40 | Repair of 26.4.2: the phone booking page releases the page scroll on close and covers the screen with the keyboard open | `ec1beed5` | `04a64c26` |
 
 ## Ship order from here
 
@@ -35,7 +36,9 @@ Owner's order: booking, payments, account, Meta first.
 
 | # | Job | State | Needs |
 |---|---|---|---|
-| 1 | **Phone sheet bugs** (two defects of the 26.4.2 ship, see below) | Routed 14:24, test first | Ships as a 26.4.2 repair under the day's ship mode |
+| 1 | Phone sheet bugs | **Live 14:40.** Live read at 390: the sheet covers the screen, scrolling works again after closing. Real iPhone and keyboard: the owner's check | |
+| 1a | Scroll lock never released on any page (`assets/lenis-boot.js`): phone menu and dialogs still stop scrolling until a reload | SEO session builds `fix/scroll-lock-release` | Owner's Ship |
+| 1b | Support e-mail button | Handed over `a9fee250`; held until 26.5 is in | Ships on the control session's checks (owner's word 14:32) |
 | 2 | **26.5 account choice before payment** | All build plans committed; final check (plan 07) running since 13:55 | Hand-over, control check, ship under the day's ship mode |
 | 3 | 26.2 audit, hand-over 1 (17 bug fixes, dashboard, mails, helpers; no checkout) | Checked green by the control session at `bda1c151`; addendum at `8305d795` | 26.5 on main, re-check, owner's Ship. Proposed grant migration `20261007100000` |
 | 4 | SEO follow-up (dashboard robots, first view in the stored language) | `c864061f`, parked | 26.5 on main, owner's Ship, and his word for deploying Worker `vamos-dashboard` |
@@ -48,6 +51,8 @@ Owner's order: booking, payments, account, Meta first.
 | 11 | Scroll and speed | Measuring on live | A plan for the owner's signature |
 | 12 | 26.0 main green | No session. 9 of 12 plans done, 35 behind main | Prompt `03-finish-26.0.md` |
 | 13 | 26.2 gate scripts (stricter checks) | On `gsd/phase-26.2-u13` | Last, after 27 to 29 |
+
+**Main is frozen since 14:42 until the 26.5 hand-over is in** (owner: fastest way to finish 26.5). No other ship, no heavy check run on this Mac meanwhile.
 
 **Ship mode on 2026-09-30 only:** the control session ships 26.4.2 (and its repairs), 26.5 and
 27 to 29 without asking, when every check of its own passes, and tells him right after.
