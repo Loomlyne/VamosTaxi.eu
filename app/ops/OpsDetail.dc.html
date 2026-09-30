@@ -371,6 +371,21 @@ function carText(v) {
   const klass = (own && String(own.name || own.label || '').trim()) || (v && v.klass);
   return [klass, v && v.model, v && v.plate].filter(Boolean).join(' \u00b7 ');
 }
+/* Signed 2026-10-01: Complete and No-show are offered once the pickup time has passed (Zurich).
+   pickupAt is the instant; without it, the row's Zurich date and time are turned into one. */
+function pickupMs(booking) {
+  const at = Date.parse(String((booking && booking.pickupAt) || ''));
+  if (Number.isFinite(at)) return at;
+  const d = String((booking && booking.dateIso) || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+  const hm = String((booking && booking.time) || '').match(/^(\d{2}):(\d{2})/);
+  if (!d || !hm) return NaN;
+  const guess = Date.UTC(+d[1], +d[2] - 1, +d[3], +hm[1], +hm[2]);
+  const p = {};
+  new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Zurich', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+    .formatToParts(new Date(guess)).forEach((x) => { p[x.type] = x.value; });
+  const wall = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute);
+  return guess - (wall - guess);
+}
 function eventTitle(kind, t) {
   if (kind === 'assignment.chauffeur_set') return t.evAssigned;
   if (kind === 'assignment.vehicle_set') return t.evVehicle;
@@ -934,14 +949,17 @@ class Component extends DCLogic {
     const canCancel = !cancelled && booking.status !== 'completed';
     // Item 1 (owner, 2026-09-30): every action valid for this booking, in one menu. Cancel is last
     // and set apart (danger). Each value runs the handler its old button ran (pickAction).
+    // A trip with no readable time keeps both (the owner can still close a broken row).
+    const pickAt = pickupMs(booking);
+    const pickupReached = !Number.isFinite(pickAt) || pickAt <= Date.now();
     const actionItems = [
       canAssign ? { value: 'assign', label: assignedDriver ? t.reassign : t.assign, icon: assignedDriver ? 'users' : 'user-plus' } : null,
       canUnassign ? { value: 'unassign', label: t.unassign, icon: 'minus' } : null,
       canEdit ? { value: 'edit', label: t.editBooking, icon: 'pencil' } : null,
       !!booking.paid && !cancelled ? { value: 'resend', label: t.resendVoucher, icon: 'mail' } : null,
       !frozen && !booking.arrivedAt ? { value: 'arrival', label: t.markArrival, icon: 'map-pin' } : null,
-      !frozen ? { value: 'complete', label: t.complete, icon: 'circle-check' } : null,
-      !frozen ? { value: 'noShow', label: t.noShow, icon: 'circle-alert' } : null,
+      !frozen && pickupReached ? { value: 'complete', label: t.complete, icon: 'circle-check' } : null,
+      !frozen && pickupReached ? { value: 'noShow', label: t.noShow, icon: 'circle-alert' } : null,
       canFullRefund || postTripEligible ? { value: 'refund', label: t.markRefund, icon: 'receipt', disabled: !!refundBusy } : null,
       canCancel ? { value: 'cancel', label: booking.paid ? t.confirmCancel : t.confirmCancelUnpaid, icon: 'x', tone: 'danger' } : null,
     ].filter(Boolean);

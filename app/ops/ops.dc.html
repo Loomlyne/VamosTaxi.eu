@@ -154,11 +154,12 @@ button[data-vt-count]{appearance:none;-webkit-appearance:none;cursor:pointer;fon
 [data-ops-topbar]{display:none}
 [data-ops-top-acts]{display:none}
 [data-ops-main]{flex:1 1 auto;min-width:0;display:flex;flex-direction:column}
-@media (max-width:767px){
+@media (max-width:1080px){
 [data-ops-fold]{display:none!important}
 [data-ops-top-acts]{display:flex}
 }
-@media (max-width:899px){
+/* Signed 2026-10-01: "tablets too" — drawer, compact bar and folded buttons up to 1080px (tablet range). */
+@media (max-width:1080px){
 [data-ops-nav]{position:fixed;inset-block:0;inset-inline-start:0;z-index:70;transform:translateX(-110%);transition:transform 260ms cubic-bezier(.2,0,.2,1);box-shadow:var(--vt-shadow-xl)}
 [dir="rtl"] [data-ops-nav]{transform:translateX(110%)}
 [data-ops-nav][data-open="1"],[dir="rtl"] [data-ops-nav][data-open="1"]{transform:none}

@@ -120,6 +120,15 @@ function loadLogic(file: string, win: Record<string, unknown>, lang = "en", prop
 }
 
 const flush = () => new Promise((r) => setTimeout(r, 0));
+const HOUR = 3600e3;
+const isoIn = (ms: number) => new Date(Date.now() + ms).toISOString();
+/** The Zurich wall clock of an instant, the way the board row carries it (dateIso + time). */
+function zurichWall(ms: number): { dateIso: string; time: string } {
+  const p: Record<string, string> = {};
+  new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Zurich", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })
+    .formatToParts(new Date(Date.now() + ms)).forEach((x) => { p[x.type] = x.value; });
+  return { dateIso: `${p.year}-${p.month}-${p.day}`, time: `${p.hour}:${p.minute}` };
+}
 
 // ── fixtures (no amounts: totals stay CHF 000) ─────────────────────────────────────────────
 const MARCO = "c0000000-0000-4000-8000-00000000aa01";
@@ -227,7 +236,7 @@ describe("1 · booking detail: one Actions menu", () => {
   });
 
   it("a paid, unassigned trip lists every valid action; Cancel booking is last and danger", () => {
-    const items = detail().vals().actionItems as { value: string; label: string; tone?: string }[];
+    const items = detail({ pickupAt: isoIn(-HOUR) }).vals().actionItems as { value: string; label: string; tone?: string }[];
     expect(items.map((i) => i.value)).toEqual(["assign", "edit", "resend", "arrival", "complete", "noShow", "cancel"]);
     expect(items.map((i) => i.label)).toEqual([
       "Assign driver",
@@ -239,6 +248,21 @@ describe("1 · booking detail: one Actions menu", () => {
       "Cancel booking",
     ]);
     expect(items.filter((i) => i.tone === "danger").map((i) => i.value)).toEqual(["cancel"]);
+  });
+
+  it("signed 2026-10-01: Complete and No-show only once the pickup time has passed (Zurich)", () => {
+    const values = (over: Record<string, unknown>) =>
+      (detail(over).vals().actionItems as { value: string }[]).map((i) => i.value);
+    const nextWeek = values({ pickupAt: isoIn(7 * 24 * HOUR) });
+    expect(nextWeek).not.toContain("complete");
+    expect(nextWeek).not.toContain("noShow");
+    expect(nextWeek).toContain("arrival");
+    const hourAgo = values({ pickupAt: isoIn(-HOUR) });
+    expect(hourAgo).toContain("complete");
+    expect(hourAgo).toContain("noShow");
+    // Without pickupAt, the Zurich date and time of the row decide.
+    expect(values({ pickupAt: "", ...zurichWall(-HOUR) })).toContain("complete");
+    expect(values({ pickupAt: "", ...zurichWall(7 * 24 * HOUR) })).not.toContain("noShow");
   });
 
   it("an assigned trip offers Reassign and Unassign", () => {
@@ -334,7 +358,9 @@ describe("2 · phone: compact bar and folded page buttons", () => {
   it("the detail's Actions menu sits in a [data-ops-fold] wrapper, which the shell hides at phone width", () => {
     expect(barMarkup()).toMatch(/<div data-ops-fold[^>]*>\s*<dc-import name="ActionsMenu"/);
     const shell = readDc("ops.dc.html");
-    expect(mediaBlocks(shell, "(max-width:767px)")).toContain("[data-ops-fold]{display:none!important}");
+    // Signed 2026-10-01: "tablets too" — the fold applies up to 1080px (tablet range 681–1080).
+    expect(mediaBlocks(shell, "(max-width:1080px)")).toContain("[data-ops-fold]{display:none!important}");
+    expect(mediaBlocks(shell, "(max-width:767px)")).not.toContain("[data-ops-fold]");
   });
 
   it("the shell bar is one compact row: menu, title or wordmark, the page's Actions — no avatar", () => {
@@ -349,7 +375,10 @@ describe("2 · phone: compact bar and folded page buttons", () => {
     expect(Number(h?.[1])).toBeLessThanOrEqual(52);
     // The Actions slot only shows at phone width.
     expect(shell).toMatch(/\[data-ops-top-acts\]\{display:none\}/);
-    expect(mediaBlocks(shell, "(max-width:767px)")).toContain("[data-ops-top-acts]{display:flex}");
+    expect(mediaBlocks(shell, "(max-width:1080px)")).toContain("[data-ops-top-acts]{display:flex}");
+    // The compact bar (and the drawer) cover the same range; above 1080 the desktop rail stays.
+    expect(mediaBlocks(shell, "(max-width:1080px)")).toContain("[data-ops-topbar]{display:grid;");
+    expect(mediaBlocks(shell, "(max-width:899px)")).toBe("");
   });
 
   it("the shell reads the bar store: title, items and the pick go to the screen", () => {
@@ -391,7 +420,8 @@ describe("2 · phone: compact bar and folded page buttons", () => {
 
   it("with the avatar gone from the bar, the drawer shows Profile, Settings and Sign out on a phone", () => {
     const side = readDc("OpsSidebar.dc.html");
-    const phone = mediaBlocks(side, "(max-width:899px)");
+    const phone = mediaBlocks(side, "(max-width:1080px)");
+    expect(side).toContain("window.matchMedia('(max-width: 1080px)')");
     expect(phone).toContain("[data-rail-toggle]{display:none!important}");
     expect(phone).not.toContain("[data-rail-profile]{display:none!important}");
     expect(side).not.toMatch(/profileShow: drawer \? 'none'/);
@@ -462,9 +492,55 @@ describe("3 · each driver has his own car", () => {
       { value: ECON_CAR, label: "Economy · Toyota Corolla · ZH 123 456" },
       { value: BUS_CAR, label: "Business · Mercedes V-Class · ZH 000 000" },
     ]);
+    // Signed 2026-10-01: the Class field is gone; the driver's class is his car's class.
+    expect(f.find((x) => x.key === "vehicleClassId")).toBeUndefined();
+    expect(f.find((x) => x.key === "languages")).not.toHaveProperty("pair");
     expect(fleet("de").vals().fields.find((x: { key: string }) => x.key === "defaultVehicleId").label).toBe("Auto");
     expect(fleet("fr").vals().fields.find((x: { key: string }) => x.key === "defaultVehicleId").label).toBe("Voiture");
     expect(fleet("ar").vals().fields.find((x: { key: string }) => x.key === "defaultVehicleId").label).toBe("السيارة");
+  });
+
+  it("signed 2026-10-01: the list, the search and the profile show the class of the driver's car", () => {
+    const on = () => () => undefined;
+    const drivers = [
+      { id: MARCO, name: "Marco", defaultVehicleId: BUS_CAR, vehicle: BUS_CAR, vehicleClassId: "old-class", vehicleClassName: "Van luxury" },
+      { id: LUCA, name: "Luca", defaultVehicleId: "", vehicle: "", vehicleClassId: "old-class", vehicleClassName: "Van luxury" },
+    ];
+    const win = (lang: string, chauffeurId = "") => loadLogic("OpsFleet.dc.html", {
+      VamosOps: {
+        onAny: on, VEHICLE_STATUS: ["service"], VEHICLE_CLASSES: ["Economy"], CLASSES: [],
+        vehicles: { all: () => [{ id: BUS_CAR, vehicleClassId: "", klass: "Business", model: "Mercedes V-Class", plate: "ZH 000 000" }], blank: () => ({}) },
+        chauffeurs: { all: () => drivers, blank: () => ({}), upsert: async () => ({ ok: true }) },
+        rates: { all: () => [] },
+        bookings: { all: () => [] },
+      },
+      addEventListener() {}, removeEventListener() {},
+    }, lang, { chauffeurId });
+    const v = win("en").renderVals();
+    const col = (v.columns as { key: string; emptyLabel?: string; lookup: (r: unknown) => unknown }[]).find((c) => c.key === "carClassName");
+    expect(col?.lookup(drivers[0])).toBe("Business");
+    expect(col?.lookup(drivers[1])).toBe("");
+    expect(col?.emptyLabel).toBe("No car yet");
+    expect(v.searchKeys).toContain("carClassName");
+    expect(v.searchKeys).not.toContain("vehicleClassName");
+    expect((v.rows as { carClassName: string }[]).map((r) => r.carClassName)).toEqual(["Business", ""]);
+    const fact = (lang: string, id: string) =>
+      (win(lang, id).renderVals().profileFacts as { icon: string; value: string }[]).find((x) => x.icon === "car")?.value;
+    expect(fact("en", MARCO)).toBe("Business");
+    expect(fact("en", LUCA)).toBe("No car yet");
+    expect(fact("de", LUCA)).toBe("Noch kein Auto");
+    expect(fact("fr", LUCA)).toBe("Pas encore de voiture");
+    expect(fact("ar", LUCA)).toBe("لا سيارة بعد");
+  });
+
+  it("signed 2026-10-01: Save no longer sends a class (the server keeps the stored column)", async () => {
+    const f = fleet();
+    await f.vals().onSave({ name: "Marco", defaultVehicleId: BUS_CAR, vehicleClassId: "e0000000-0000-4000-8000-00000000ec01", vehicleClassName: "Economy" });
+    const sent = f.upsert.mock.calls.at(-1)?.[0] as Record<string, unknown>;
+    expect(sent).not.toHaveProperty("vehicleClassId");
+    expect(sent).not.toHaveProperty("vehicleClassName");
+    const data = read("app/vamos-ops-data.js");
+    expect(data).toMatch(/if \(Object\.prototype\.hasOwnProperty\.call\(c, "vehicleClassId"\)\) row\.vehicleClassId = classId;/);
   });
 
   it("Save writes the picked car to defaultVehicleId; No car clears it even when the old car is still in the record", async () => {
