@@ -21,17 +21,17 @@ describe("readConsentChoice", () => {
   it("binds the subject, then calls consent_choice with the policy version and null", async () => {
     const { tx, calls } = fakeTx([[], []]);
     await readConsentChoice(tx, SUBJECT);
-    expect(calls[0].sql).toContain("set_config('request.vamos.consent_subject'");
-    expect(calls[0].values).toEqual([SUBJECT]);
-    expect(calls[1].sql).toContain("consent_choice(");
-    expect(calls[1].values).toEqual([CONSENT_POLICY_VERSION, null]);
+    expect(calls[0]!.sql).toContain("set_config('request.vamos.consent_subject'");
+    expect(calls[0]!.values).toEqual([SUBJECT]);
+    expect(calls[1]!.sql).toContain("consent_choice(");
+    expect(calls[1]!.values).toEqual([CONSENT_POLICY_VERSION, null]);
   });
 
   it("passes an as-of Date through", async () => {
     const { tx, calls } = fakeTx([[], []]);
     const asOf = new Date("2026-09-01T10:00:00.000Z");
     await readConsentChoice(tx, SUBJECT, asOf);
-    expect(calls[1].values).toEqual([CONSENT_POLICY_VERSION, asOf]);
+    expect(calls[1]!.values).toEqual([CONSENT_POLICY_VERSION, asOf]);
   });
 
   it("returns null for zero rows", async () => {

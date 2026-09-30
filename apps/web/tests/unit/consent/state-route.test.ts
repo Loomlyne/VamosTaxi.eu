@@ -46,7 +46,7 @@ describe("GET /api/consent/state", () => {
 
   it("non-UUID cookie: chosen false, no DB", async () => {
     const res = await GET(req("consent_subject=not-a-uuid"));
-    expect((await res.json()).chosen).toBe(false);
+    expect(((await res.json()) as { chosen: boolean }).chosen).toBe(false);
     expect(asAnon).not.toHaveBeenCalled();
     expectHeaders(res);
   });
@@ -54,8 +54,8 @@ describe("GET /api/consent/state", () => {
   it("valid cookie, no row: chosen false", async () => {
     readConsentChoice.mockResolvedValue(null);
     const res = await GET(req(`consent_subject=${SUBJECT}`));
-    expect((await res.json()).chosen).toBe(false);
-    expect(readConsentChoice.mock.calls[0][1]).toBe(SUBJECT);
+    expect(((await res.json()) as { chosen: boolean }).chosen).toBe(false);
+    expect(readConsentChoice.mock.calls[0]![1]).toBe(SUBJECT);
     expectHeaders(res);
   });
 

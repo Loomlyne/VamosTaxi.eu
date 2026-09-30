@@ -21,11 +21,11 @@ const SECTIONS = [
 const decision = read(".planning/decisions/2026-09-30-meta-wording.md");
 
 function sectionText(n: number, lang: string): string {
-  const start = decision.indexOf(SECTIONS[n].head);
-  const end = n < 2 ? decision.indexOf(SECTIONS[n + 1].head) : decision.length;
+  const start = decision.indexOf(SECTIONS[n]!.head);
+  const end = n < 2 ? decision.indexOf(SECTIONS[n + 1]!.head) : decision.length;
   const m = decision.slice(start, end).match(new RegExp(`^\\| ${lang} \\| (.+) \\|$`, "m"));
-  if (!m) throw new Error(`no ${lang} row in ${SECTIONS[n].head}`);
-  return m[1];
+  if (!m) throw new Error(`no ${lang} row in ${SECTIONS[n]!.head}`);
+  return m[1]!;
 }
 
 const fromMarkdown = (t: string) => t.replace(/\*\*(.+?)\*\*/g, "[b]$1[/b]").replace(/`(.+?)`/g, "[code]$1[/code]");
@@ -52,12 +52,12 @@ describe("owner Meta texts", () => {
     SECTIONS.forEach((s, n) =>
       LANGS.forEach((l) =>
         it(`${s.mock} ${l} equals the decision file`, () => {
-          expect(fromSegments(mock[s.mock][l])).toBe(fromMarkdown(sectionText(n, l)));
+          expect(fromSegments(mock[s.mock]![l]!)).toBe(fromMarkdown(sectionText(n, l)));
         }),
       ),
     );
     it("segments() falls back to English", () => {
-      expect(mock.segments("banner", "xx")).toBe(mock.banner.en);
+      expect(mock.segments("banner", "xx")).toBe(mock.banner!.en);
     });
   });
 
@@ -74,7 +74,7 @@ describe("owner Meta texts", () => {
 
   it("no key of the mock dictionary is a fragment of an owner text", () => {
     const src = read("app/vamos-i18n-dict.js");
-    const keys = [...src.matchAll(/^\s*'((?:[^'\\]|\\.)+)'\s*:\s*\{/gm)].map((m) => m[1].replace(/\\'/g, "'"));
+    const keys = [...src.matchAll(/^\s*'((?:[^'\\]|\\.)+)'\s*:\s*\{/gm)].map((m) => m[1]!.replace(/\\'/g, "'"));
     expect(keys.length).toBeGreaterThan(100);
     const plain = SECTIONS.flatMap((_, n) => LANGS.map((l) => sectionText(n, l).replace(/\*\*|`/g, "")));
     // 'Cookie preferences' is the existing label of the banner link, not a piece of an owner sentence.

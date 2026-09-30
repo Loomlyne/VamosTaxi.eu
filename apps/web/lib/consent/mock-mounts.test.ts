@@ -17,8 +17,8 @@ function customerMocks(): string[] {
   const block = /const DC_PAGES: Record<string, string> = \{([\s\S]*?)\n\};/.exec(middleware);
   if (!block) throw new Error("DC_PAGES not found in middleware.ts");
   const files = new Set<string>();
-  for (const m of block[1].matchAll(/"(\/app\/[^"]+)\.html"/g)) {
-    files.add(`${m[1].slice(1)}.dc.html`);
+  for (const m of block[1]!.matchAll(/"(\/app\/[^"]+)\.html"/g)) {
+    files.add(`${m[1]!.slice(1)}.dc.html`);
   }
   files.add("app/home/home.dc.html");
   return [...files].sort();
