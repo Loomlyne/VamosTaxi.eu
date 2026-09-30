@@ -281,3 +281,140 @@ describe("New trip and Booking detail literals resolve in the platform dictionar
     expect(clashes).toEqual([]);
   });
 });
+
+// ── OpsDetail ───────────────────────────────────────────────────────────────────────────────
+type DetailVals = {
+  markArrival(): void;
+  markComplete(): void;
+  markNoShow(): void;
+  sendPayLink(): void;
+  confirmAssign(): void;
+  pickAction(value: string): void;
+};
+
+type DetailComp = {
+  state: Json;
+  props: Json;
+  setState(patch: Json): void;
+  renderVals(): DetailVals;
+};
+
+const BOOKING_UUID = "11111111-1111-4111-8111-111111111111";
+const DRIVER_UUID = "22222222-2222-4222-8222-222222222222";
+
+function detailHarness(booking: Json, answer: (call: Call) => Promise<Json> | Json) {
+  const calls: Call[] = [];
+  const noop = () => undefined;
+  const client = {
+    request: (method: string, path: string, body?: Json) => {
+      const call: Call = { url: path, method, body: body ?? null };
+      calls.push(call);
+      return Promise.resolve(answer(call));
+    },
+  };
+  const table = { all: () => [] as unknown[], onChange: () => noop };
+  const win = {
+    VamosOpsApi: client,
+    VamosOps: {
+      bookings: { ...table, all: () => [booking], reset: noop },
+      chauffeurs: { ...table, all: () => [{ id: DRIVER_UUID, name: "Ada Driver" }] },
+      vehicles: table,
+      profile: { get: () => ({ role: "admin" }), onChange: () => noop },
+    },
+    VamosLocale: { money: () => "CHF 000" },
+    addEventListener: noop,
+    removeEventListener: noop,
+    dispatchEvent: () => true,
+    open: () => null,
+  };
+  class FakePopStateEvent {
+    constructor(public type: string) {}
+  }
+  const Component = new Function(
+    "DCLogic", "window", "document", "localStorage", "history", "PopStateEvent", "navigator",
+    `${scriptOf("OpsDetail.dc.html")}\nreturn Component;`,
+  )(
+    StubLogic, win, { body: { style: {} } }, { getItem: () => "en" }, { pushState: noop }, FakePopStateEvent, {},
+  ) as new () => DetailComp;
+  const comp = new Component();
+  comp.props = { id: "VT-TEST-1" };
+  return { comp, calls };
+}
+
+/** A paid, confirmed booking with a chauffeur to pick: every action of the detail page is on offer. */
+const paidBooking: Json = {
+  id: "VT-TEST-1",
+  bookingId: BOOKING_UUID,
+  status: "confirmed",
+  paid: true,
+  email: "ada@example.com",
+  customer: "Ada Example",
+  klass: "Economy",
+  pickup: "Zurich HB",
+  dropoff: "Basel SBB",
+};
+const unpaidBooking: Json = { ...paidBooking, paid: false, status: "pending" };
+
+describe("OpsDetail actions send one request per click (C6)", () => {
+  // name -> how to press it, which booking it needs, and the request it sends
+  const actions: {
+    name: string;
+    booking: Json;
+    press: (v: DetailVals, comp: DetailComp) => void;
+    method: string;
+    path: string;
+  }[] = [
+    { name: "Mark complete", booking: paidBooking, press: (v) => v.markComplete(), method: "PATCH", path: `/api/staff/bookings/${BOOKING_UUID}` },
+    { name: "Mark no-show", booking: paidBooking, press: (v) => v.markNoShow(), method: "PATCH", path: `/api/staff/bookings/${BOOKING_UUID}` },
+    { name: "Mark arrival", booking: paidBooking, press: (v) => v.markArrival(), method: "PATCH", path: `/api/staff/bookings/${BOOKING_UUID}` },
+    { name: "Send pay link", booking: unpaidBooking, press: (v) => v.sendPayLink(), method: "POST", path: `/api/staff/bookings/${BOOKING_UUID}/pay-link` },
+    {
+      name: "Assign",
+      booking: paidBooking,
+      press: (v, comp) => {
+        comp.setState({ pickDriver: DRIVER_UUID });
+        v.confirmAssign();
+      },
+      method: "POST",
+      path: `/api/staff/bookings/${BOOKING_UUID}/assign`,
+    },
+    { name: "Complete, from the action menu", booking: paidBooking, press: (v) => v.pickAction("complete"), method: "PATCH", path: `/api/staff/bookings/${BOOKING_UUID}` },
+    { name: "Arrival, from the action menu", booking: paidBooking, press: (v) => v.pickAction("arrival"), method: "PATCH", path: `/api/staff/bookings/${BOOKING_UUID}` },
+  ];
+
+  function pending(booking: Json) {
+    let reply!: (json: Json) => void;
+    const promise = new Promise<Json>((resolve) => {
+      reply = resolve;
+    });
+    return { ...detailHarness(booking, () => promise), reply };
+  }
+
+  for (const a of actions) {
+    it(`${a.name}: a second click while the first is in flight sends nothing`, async () => {
+      const { comp, calls } = pending(a.booking);
+      a.press(comp.renderVals(), comp);
+      a.press(comp.renderVals(), comp); // a double click re-renders in between, so the second press has fresh handlers
+      await settle();
+      expect(calls.map((c) => `${c.method} ${c.url}`)).toEqual([`${a.method} ${a.path}`]);
+    });
+  }
+
+  it("the page is free again once the answer is in, whether it was good or not", async () => {
+    const { comp, calls, reply } = pending(paidBooking);
+    comp.renderVals().markComplete();
+    reply({ ok: false, code: "network" });
+    await settle();
+    comp.renderVals().markComplete();
+    await settle();
+    expect(calls).toHaveLength(2);
+  });
+
+  it("one status change at a time: No-show while Complete is in flight is not sent", async () => {
+    const { comp, calls } = pending(paidBooking);
+    comp.renderVals().markComplete();
+    comp.renderVals().markNoShow();
+    await settle();
+    expect(calls.map((c) => c.body)).toEqual([{ status: "completed" }]);
+  });
+});
