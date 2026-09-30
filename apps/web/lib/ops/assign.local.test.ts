@@ -24,7 +24,7 @@ import { assignBooking } from "./assign";
 const PORT = process.env["VAMOS_LOCAL_DB_PORT"];
 
 describe.skipIf(!PORT)("assignBooking on the owner's live shape (local, committed fixture)", () => {
-  it("answers no-vehicle while the chauffeur has no vehicle, assigns once a vehicle is linked, answers overlap on a clash", async () => {
+  it("answers no-vehicle without a car, class-mismatch for a car of another class, assigns with a car of the trip's class, answers overlap on a clash", async () => {
     const env = {
       HYPERDRIVE_NOCACHE: { connectionString: `postgres://vamos_edge:vamos_edge@127.0.0.1:${PORT}/postgres` },
     } as unknown as CloudflareEnv;
@@ -104,6 +104,12 @@ describe.skipIf(!PORT)("assignBooking on the owner's live shape (local, committe
       await su`insert into public.vehicle_seats (vehicle_id, seat, chauffeur_id) values (${vehicleId}::uuid, 'morning', ${chauffeurId}::uuid)`;
       await su`update public.chauffeurs set default_vehicle_id = ${vehicleId}::uuid where id = ${chauffeurId}::uuid`;
 
+      // Owner, 2026-10-01: a car of another class than the trip is refused (class-mismatch).
+      const mismatch = await assignBooking(env, claims, bookingId, chauffeurId);
+      expect(mismatch).toMatchObject({ ok: false, code: "class-mismatch" });
+
+      // The car is the trip's class: the assignment goes through.
+      await su`update public.vehicles set vehicle_class_id = ${classA}::uuid where id = ${vehicleId}::uuid`;
       const second = await assignBooking(env, claims, bookingId, chauffeurId);
       expect(second).toMatchObject({ ok: true, bookingId, chauffeurId, vehicleId });
       const [leg] = await su<{ chauffeur: string; vehicle: string; status: string }[]>`
