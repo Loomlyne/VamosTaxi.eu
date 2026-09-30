@@ -1,0 +1,545 @@
+{
+ "base": "http://localhost:4300",
+ "at": "2026-09-30T11:20:16.289Z",
+ "rows": [
+  {
+   "page": "/about",
+   "size": "laptop",
+   "variant": "base",
+   "runs": 3,
+   "ok": 3,
+   "median": {
+    "fcp": 148,
+    "lcp": 148,
+    "load": 119,
+    "tbt": 0,
+    "cls": 0.0005,
+    "transferKB": 4421,
+    "scrollP95": 16.7,
+    "scrollOver25": 0,
+    "scrollMax": 17,
+    "scrollHandlers": 1396,
+    "scrollTbt": 0
+   },
+   "detail": {
+    "page": "/about",
+    "size": "laptop",
+    "variant": "base",
+    "loadMs": 169,
+    "ttfb": 26,
+    "dcl": 137,
+    "load": 137,
+    "fcp": 216,
+    "lcp": 216,
+    "cls": 0,
+    "longtasks": 0,
+    "tbt": 0,
+    "loaf": [
+     {
+      "t": 137,
+      "d": 56,
+      "block": 0,
+      "scripts": [
+       [
+        "vendor/react-18.3.1.production.min.js",
+        "MessagePort.onmessage",
+        7
+       ],
+       [
+        "vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js",
+        "http://localhost:4300/_ds/vamos-taxi-des",
+        31
+       ],
+       [
+        "app/vamos-i18n-dict.js",
+        "http://localhost:4300/app/vamos-i18n-dic",
+        12
+       ]
+      ]
+     }
+    ],
+    "docH": 5245,
+    "lenis": true,
+    "transferKB": 4421,
+    "bytesKB": {
+     "document": 30,
+     "script": 2979,
+     "stylesheet": 45,
+     "image": 535,
+     "font": 665,
+     "fetch": 167,
+     "other": 0
+    },
+    "counts": {
+     "document": 1,
+     "script": 10,
+     "stylesheet": 12,
+     "image": 20,
+     "font": 5,
+     "fetch": 8,
+     "other": 1
+    },
+    "big": [
+     [
+      "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js",
+      2262
+     ],
+     [
+      "/app/vamos-i18n-dict.js",
+      448
+     ],
+     [
+      "/assets/photography/fleet-van-street-1200.jpg",
+      385
+     ],
+     [
+      "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/assets/fonts/Poppins-Regular.ttf",
+      155
+     ],
+     [
+      "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/assets/fonts/Poppins-Medium.ttf",
+      153
+     ],
+     [
+      "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/assets/fonts/Poppins-SemiBold.ttf",
+      152
+     ]
+    ],
+    "scroll": {
+     "frames": 270,
+     "p50": 16.7,
+     "p95": 16.7,
+     "max": 33,
+     "over25": 1,
+     "over50": 0,
+     "handlers": 1388,
+     "longtasks": 0,
+     "tbt": 0,
+     "cls": 0,
+     "loaf": [],
+     "endY": 1961
+    }
+   }
+  },
+  {
+   "page": "/about",
+   "size": "phone",
+   "variant": "base",
+   "runs": 3,
+   "ok": 3,
+   "median": {
+    "fcp": 464,
+    "lcp": 464,
+    "load": 352,
+    "tbt": 25,
+    "cls": 0.0165,
+    "transferKB": 4271,
+    "scrollP95": 16.7,
+    "scrollOver25": 0,
+    "scrollMax": 17,
+    "scrollHandlers": 478,
+    "scrollTbt": 0
+   },
+   "detail": {
+    "page": "/about",
+    "size": "phone",
+    "variant": "base",
+    "loadMs": 357,
+    "ttfb": 11,
+    "dcl": 309,
+    "load": 351,
+    "fcp": 464,
+    "lcp": 464,
+    "cls": 0.0165,
+    "longtasks": 1,
+    "tbt": 25,
+    "loaf": [
+     {
+      "t": 309,
+      "d": 139,
+      "block": 46,
+      "scripts": [
+       [
+        "vendor/react-18.3.1.production.min.js",
+        "MessagePort.onmessage",
+        30
+       ]
+      ]
+     },
+     {
+      "t": 458,
+      "d": 114,
+      "block": 1,
+      "scripts": [
+       [
+        "vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js",
+        "http://localhost:4300/_ds/vamos-taxi-des",
+        31
+       ],
+       [
+        "app/vamos-i18n-dict.js",
+        "http://localhost:4300/app/vamos-i18n-dic",
+        48
+       ]
+      ]
+     },
+     {
+      "t": 620,
+      "d": 103,
+      "block": 10,
+      "scripts": [
+       [
+        "pages/support.js",
+        "Response.text.then",
+        10
+       ],
+       [
+        "pages/support.js",
+        "Response.text.then",
+        9
+       ],
+       [
+        "vendor/react-18.3.1.production.min.js",
+        "MessagePort.onmessage",
+        50
+       ]
+      ]
+     }
+    ],
+    "docH": 9116,
+    "lenis": true,
+    "transferKB": 4271,
+    "bytesKB": {
+     "document": 30,
+     "script": 2979,
+     "stylesheet": 45,
+     "image": 535,
+     "font": 515,
+     "fetch": 167,
+     "other": 0
+    },
+    "counts": {
+     "document": 1,
+     "script": 10,
+     "stylesheet": 12,
+     "image": 20,
+     "font": 4,
+     "fetch": 8,
+     "other": 1
+    },
+    "big": [
+     [
+      "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js",
+      2262
+     ],
+     [
+      "/app/vamos-i18n-dict.js",
+      448
+     ],
+     [
+      "/assets/photography/fleet-van-street-1200.jpg",
+      385
+     ],
+     [
+      "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/assets/fonts/Poppins-Regular.ttf",
+      155
+     ],
+     [
+      "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/assets/fonts/Poppins-Medium.ttf",
+      153
+     ],
+     [
+      "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/assets/fonts/Poppins-SemiBold.ttf",
+      152
+     ]
+    ],
+    "scroll": {
+     "frames": 271,
+     "p50": 16.7,
+     "p95": 16.7,
+     "max": 17,
+     "over25": 0,
+     "over50": 0,
+     "handlers": 481,
+     "longtasks": 0,
+     "tbt": 0,
+     "cls": 0,
+     "loaf": [],
+     "endY": 900
+    }
+   }
+  },
+  {
+   "page": "/faq",
+   "size": "laptop",
+   "variant": "base",
+   "runs": 3,
+   "ok": 3,
+   "median": {
+    "fcp": 208,
+    "lcp": 208,
+    "load": 124,
+    "tbt": 0,
+    "cls": 0.0023,
+    "transferKB": 4040,
+    "scrollP95": 16.7,
+    "scrollOver25": 0,
+    "scrollMax": 17,
+    "scrollHandlers": 1256,
+    "scrollTbt": 0
+   },
+   "detail": {
+    "page": "/faq",
+    "size": "laptop",
+    "variant": "base",
+    "loadMs": 131,
+    "ttfb": 7,
+    "dcl": 100,
+    "load": 100,
+    "fcp": 164,
+    "lcp": 164,
+    "cls": 0.0002,
+    "longtasks": 0,
+    "tbt": 0,
+    "loaf": [
+     {
+      "t": 96,
+      "d": 53,
+      "block": 0,
+      "scripts": [
+       [
+        "vendor/react-18.3.1.production.min.js",
+        "MessagePort.onmessage",
+        6
+       ],
+       [
+        "vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js",
+        "http://localhost:4300/_ds/vamos-taxi-des",
+        26
+       ],
+       [
+        "app/vamos-i18n-dict.js",
+        "http://localhost:4300/app/vamos-i18n-dic",
+        11
+       ]
+      ]
+     }
+    ],
+    "docH": 3240,
+    "lenis": true,
+    "transferKB": 4040,
+    "bytesKB": {
+     "document": 32,
+     "script": 2979,
+     "stylesheet": 45,
+     "image": 148,
+     "font": 665,
+     "fetch": 170,
+     "other": 0
+    },
+    "counts": {
+     "document": 1,
+     "script": 10,
+     "stylesheet": 12,
+     "image": 11,
+     "font": 5,
+     "fetch": 8,
+     "other": 1
+    },
+    "big": [
+     [
+      "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js",
+      2262
+     ],
+     [
+      "/app/vamos-i18n-dict.js",
+      448
+     ],
+     [
+      "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/assets/fonts/Poppins-Regular.ttf",
+      155
+     ],
+     [
+      "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/assets/fonts/Poppins-Medium.ttf",
+      153
+     ],
+     [
+      "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/assets/fonts/Poppins-SemiBold.ttf",
+      152
+     ],
+     [
+      "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/assets/fonts/Poppins-Bold.ttf",
+      150
+     ]
+    ],
+    "scroll": {
+     "frames": 271,
+     "p50": 16.7,
+     "p95": 16.7,
+     "max": 17,
+     "over25": 0,
+     "over50": 0,
+     "handlers": 1256,
+     "longtasks": 0,
+     "tbt": 0,
+     "cls": 0,
+     "loaf": [],
+     "endY": 0
+    }
+   }
+  },
+  {
+   "page": "/faq",
+   "size": "phone",
+   "variant": "base",
+   "runs": 3,
+   "ok": 3,
+   "median": {
+    "fcp": 476,
+    "lcp": 476,
+    "load": 371,
+    "tbt": 40,
+    "cls": 0.0165,
+    "transferKB": 3889,
+    "scrollP95": 16.7,
+    "scrollOver25": 1,
+    "scrollMax": 33,
+    "scrollHandlers": 473,
+    "scrollTbt": 0
+   },
+   "detail": {
+    "page": "/faq",
+    "size": "phone",
+    "variant": "base",
+    "loadMs": 378,
+    "ttfb": 29,
+    "dcl": 331,
+    "load": 371,
+    "fcp": 468,
+    "lcp": 468,
+    "cls": 0.0165,
+    "longtasks": 3,
+    "tbt": 40,
+    "loaf": [
+     {
+      "t": 463,
+      "d": 109,
+      "block": 9,
+      "scripts": [
+       [
+        "vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js",
+        "http://localhost:4300/_ds/vamos-taxi-des",
+        30
+       ],
+       [
+        "app/vamos-i18n-dict.js",
+        "http://localhost:4300/app/vamos-i18n-dic",
+        51
+       ]
+      ]
+     },
+     {
+      "t": 659,
+      "d": 97,
+      "block": 35,
+      "scripts": [
+       [
+        "vendor/react-18.3.1.production.min.js",
+        "MessagePort.onmessage",
+        81
+       ]
+      ]
+     },
+     {
+      "t": 371,
+      "d": 84,
+      "block": 31,
+      "scripts": [
+       [
+        "vendor/react-18.3.1.production.min.js",
+        "MessagePort.onmessage",
+        29
+       ]
+      ]
+     },
+     {
+      "t": 310,
+      "d": 60,
+      "block": 0,
+      "scripts": [
+       [
+        "pages/support.js",
+        "#document.onDOMContentLoaded",
+        18
+       ]
+      ]
+     }
+    ],
+    "docH": 5741,
+    "lenis": true,
+    "transferKB": 3889,
+    "bytesKB": {
+     "document": 32,
+     "script": 2979,
+     "stylesheet": 45,
+     "image": 148,
+     "fetch": 170,
+     "font": 515,
+     "other": 0
+    },
+    "counts": {
+     "document": 1,
+     "script": 10,
+     "stylesheet": 12,
+     "image": 10,
+     "fetch": 8,
+     "font": 4,
+     "other": 1
+    },
+    "big": [
+     [
+      "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js",
+      2262
+     ],
+     [
+      "/app/vamos-i18n-dict.js",
+      448
+     ],
+     [
+      "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/assets/fonts/Poppins-Regular.ttf",
+      155
+     ],
+     [
+      "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/assets/fonts/Poppins-Medium.ttf",
+      153
+     ],
+     [
+      "/_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/assets/fonts/Poppins-SemiBold.ttf",
+      152
+     ]
+    ],
+    "scroll": {
+     "frames": 266,
+     "p50": 16.7,
+     "p95": 16.7,
+     "max": 100,
+     "over25": 1,
+     "over50": 1,
+     "handlers": 485,
+     "longtasks": 0,
+     "tbt": 0,
+     "cls": 0,
+     "loaf": [
+      {
+       "t": 6241,
+       "d": 116,
+       "block": 0,
+       "scripts": []
+      }
+     ],
+     "endY": 900
+    }
+   }
+  }
+ ]
+}
