@@ -25,6 +25,7 @@ import {
   parseClassDeleteReason,
 } from "@/lib/ops/vehicle-class-write";
 import { jsonErr, jsonOk, withAdmin, withStaff } from "@/lib/ops/staff-json";
+import { removeUnusedClassPhotos } from "@/lib/ops/class-photo-sweep";
 
 export const dynamic = "force-dynamic";
 
@@ -150,6 +151,8 @@ export const DELETE = withAdmin(async (claims, request) => {
     if (!parsed.ok) return jsonErr("invalid-reason", 400);
     const { env } = getCloudflareContext();
     const result = await deleteVehicleClassIfUnreferenced(env, claims, idRaw, parsed.reason);
+    // Quick 260930-cpr: a class deleted for good takes its photo with it. Hidden or in use: nothing goes.
+    if (result === "deleted") await removeUnusedClassPhotos(env, claims, "class-deleted", idRaw);
     const reply = classDeleteReply(idRaw, result);
     return reply.body.ok ? jsonOk(reply.body.data) : jsonErr(String(reply.body.code), reply.status);
   } catch (err) {
