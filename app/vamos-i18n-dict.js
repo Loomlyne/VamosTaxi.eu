@@ -279,6 +279,8 @@
       'Accept all': { de: 'Alle akzeptieren', fr: 'Tout accepter', ar: 'قبول الكل' },
       'Necessary only': { de: 'Nur notwendige', fr: 'Nécessaires uniquement', ar: 'الضرورية فقط' },
       'Manage preferences': { de: 'Einstellungen verwalten', fr: 'Gérer les préférences', ar: 'إدارة التفضيلات' },
+      'Your choice was not saved. Try again.': { de: 'Ihre Auswahl wurde nicht gespeichert. Versuchen Sie es erneut.', fr: 'Votre choix n’a pas été enregistré. Réessayez.', ar: 'لم يُحفظ اختيارك. حاول مرة أخرى.' },
+      'The check did not go through. Try again.': { de: 'Die Prüfung ist nicht durchgegangen. Versuchen Sie es erneut.', fr: 'La vérification n\'est pas passée. Réessayez.', ar: 'لم يكتمل التحقق. حاول مرة أخرى.' },
       'Choose your categories': { de: 'Wählen Sie Ihre Kategorien', fr: 'Choisissez vos catégories', ar: 'اختر الفئات' },
       'Strictly necessary': { de: 'Unbedingt erforderlich', fr: 'Strictement nécessaires', ar: 'ضرورية تمامًا' },
       'Always on': { de: 'Immer aktiv', fr: 'Toujours actifs', ar: 'مفعّلة دائمًا' },
