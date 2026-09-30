@@ -7,14 +7,13 @@ import { test, expect, type Page } from "@playwright/test";
 import { execFileSync, spawn, type ChildProcess } from "node:child_process";
 import { join } from "node:path";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { devBindingEnv, ownClientIpHeaders, waitForDevBindings, warmAuthPages, MAIL_URL, OWNER_CS, supabaseStatusArgs } from "../support/dev-binding";
 import deMessages from "../../i18n/messages/de.json";
 
 const RUN_PROJECT = "component-1440";
-const MAIL_URL = "http://127.0.0.1:54324";
 const PORT = 4250;
 const PASSWORD = "password1";
 const NEW_PASSWORD = "password2";
-const OWNER_CS = "postgres://postgres:postgres@127.0.0.1:54322/postgres";
 const DB_ROOT = join(WEB_ROOT, "..", "..", "packages", "db");
 const STACK_DOWN = "Local stack is not running. Run `pnpm db:start && pnpm db:reset`.";
 
@@ -60,7 +59,7 @@ function requireLocalStack(): { apiUrl: string; anonKey: string } {
   requireLocalDb();
   let raw: string;
   try {
-    raw = execFileSync("pnpm", ["exec", "supabase", "status", "-o", "env"], {
+    raw = execFileSync("pnpm", supabaseStatusArgs(), {
       cwd: DB_ROOT,
       encoding: "utf8",
       timeout: 30_000,
@@ -142,10 +141,20 @@ function uniqueEmail(tag: string): string {
 }
 
 async function fillSignup(page: Page, email: string, first: string, last: string, password: string) {
+  // The page re-renders once its scripts have loaded; fields filled before that are cleared.
+  await page.waitForLoadState("networkidle");
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("First name").fill(first);
   await page.getByLabel("Last name").fill(last);
   await page.getByRole("textbox", { name: "Password" }).fill(password);
+  await tickAccountNotice(page);
+}
+
+/** Sign-up needs the account notice ticked (27-16). The design-system input is hidden; its box takes the click. */
+async function tickAccountNotice(page: Page) {
+  const box = page.locator("[data-af-consent] .vt-check__box");
+  await expect(box).toBeVisible({ timeout: 30_000 });
+  if (!(await page.locator('[data-af-consent] input[type="checkbox"]').isChecked())) await box.click();
 }
 
 function customerRow(email: string): { user_id: string | null; full_name: string | null; n: number } {
@@ -190,15 +199,19 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
       detached: true,
       env: {
         ...process.env,
+        ...devBindingEnv(),
         SUPABASE_URL: stack.apiUrl,
         SUPABASE_ANON_KEY: stack.anonKey,
       },
     });
     await waitForNextServer(baseURL);
+    await waitForDevBindings(baseURL);
+    await warmAuthPages(baseURL);
   });
 
-  test.beforeEach(({}, testInfo) => {
+  test.beforeEach(async ({ context }, testInfo) => {
     test.skip(testInfo.project.name !== RUN_PROJECT);
+    await context.setExtraHTTPHeaders(ownClientIpHeaders());
   });
 
   test.afterAll(() => {
@@ -283,6 +296,21 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
 
   test("AUTH-01 magic sign-in link from the mail catcher establishes a session", async ({ page, context }) => {
     const email = uniqueEmail("otp");
+    // 27 D-36: the sign-in link never creates an account, so make a confirmed one first.
+    const signupAfter = new Date(Date.now() - 1000).toISOString();
+    await page.goto(`${baseURL}/sign-up`);
+    await fillSignup(page, email, "Ada", "Lovelace", PASSWORD);
+    await page.getByRole("button", { name: "CREATE ACCOUNT" }).click();
+    await expect(page.locator("[data-af]")).toContainText("Send another link");
+    const confirmMail = await waitForMail(email, signupAfter);
+    const confirmLink = extractLinks(confirmMail.html, confirmMail.text).find(
+      (u) => u.includes("token") || u.includes("code=") || u.includes("/api/auth/callback"),
+    );
+    expect(confirmLink, "confirmation link in mail").toBeTruthy();
+    await page.goto(confirmLink!);
+    await page.waitForURL((url) => !url.pathname.includes("/api/auth/callback"), { timeout: 15_000 });
+    await context.clearCookies();
+
     const after = new Date(Date.now() - 1000).toISOString();
     await page.goto(`${baseURL}/sign-in`);
     await page.getByRole("button", { name: "Email me a link instead" }).click();
@@ -301,6 +329,21 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
     expect(session.ok()).toBe(true);
     expect((await session.json()).signedIn).toBe(true);
     await context.clearCookies();
+  });
+
+  test("AUTH-01 sign-in link for an unknown address shows the same view and makes no account (27 D-36)", async ({ page }) => {
+    const email = uniqueEmail("nolink");
+    await page.goto(`${baseURL}/sign-in`);
+    await page.getByRole("button", { name: "Email me a link instead" }).click();
+    await page.getByLabel("Email").fill(email);
+    await page.getByRole("button", { name: "Email me a link" }).click();
+    await expect(page.locator("[data-af]")).toContainText("Send another link");
+    const n = ownerQuery(
+      `const email = ${JSON.stringify(email)};
+       const rows = await sql\`select count(*)::int as n from auth.users where email = \${email}\`;
+       console.log(String(rows[0].n));`,
+    );
+    expect(n).toBe("0");
   });
 
   test("AUTH-01 enumeration: two signups with the same address look the same", async ({ page }) => {
@@ -471,7 +514,8 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
     await page.getByLabel(deMessages.common.email).fill(email);
     await page.getByLabel(deMessages.common["first-name"]).fill("Ada");
     await page.getByLabel(deMessages.common["last-name"]).fill("Lovelace");
-    await page.getByLabel(deMessages.common.password).fill(PASSWORD);
+    await page.getByRole("textbox", { name: deMessages.common.password }).fill(PASSWORD);
+    await tickAccountNotice(page);
     const response = page.waitForResponse((res) =>
       new URL(res.url()).pathname === "/api/auth" && res.request().method() === "POST",
     );

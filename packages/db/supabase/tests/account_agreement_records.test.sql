@@ -192,7 +192,7 @@ select is((select count(*)::int from unnest(array['anon','authenticated','vamos_
             where has_function_privilege(r, 'public.checkout_email_has_account(text)', 'execute')), 0, 'has_account: no other role');
 
 select is(has_function_privilege('vamos_checkout', 'public.record_account_agreement(text,uuid,text,text,text,text,text,inet)', 'execute'), true, 'record: checkout EXECUTE');
-select is((select count(*)::int from unnest(array['anon','authenticated','vamos_system']) r
+select is((select count(*)::int from unnest(array['anon','authenticated']) r
             where has_function_privilege(r, 'public.record_account_agreement(text,uuid,text,text,text,text,text,inet)', 'execute')), 0, 'record: no other role');
 
 select is(has_function_privilege('vamos_system', 'public.checkout_account_request_for_booking(uuid)', 'execute'), true, 'request_for_booking: system EXECUTE');
@@ -267,7 +267,7 @@ select is((select record_kind from public.account_agreement_records
 select is((select host(ip_truncated) from public.account_agreement_records
             where booking_id = (select booking_id from aar_b2) and choice = 'create'), '203.0.113.0', 'ip is stored');
 
--- sign-up as postgres (stands in for Phase 27's grant)
+-- sign-up as postgres; the vamos_system grant is proved in signup_agreement_grant.test.sql
 select ok(public.record_account_agreement('sign-up', null, '  New.Person@Example.TEST ', 'create', '2026-09-29', 'ar', null, null) > 0, 'sign-up: create accepted');
 select is((select record_kind || '/' || coalesce(booking_id::text, 'none') || '/' || email from public.account_agreement_records
             where surface = 'sign-up'), 'consent/none/new.person@example.test', 'sign-up row: consent, no booking, e-mail lower-cased');

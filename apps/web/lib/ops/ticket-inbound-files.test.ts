@@ -81,3 +81,54 @@ describe("INB-02 D-08 D-10 Wave 0 file caps (RED until 14-05)", () => {
     expect(result.threadLine).toBeNull();
   });
 });
+
+describe("G15 downloadCapped reads the stream with a cap", () => {
+  it("stops reading an undeclared-length body once it passes 5 MiB and reports not kept", async () => {
+    const { storeInboundFiles } = (await import("./ticket-inbound-files")) as unknown as {
+      storeInboundFiles: (
+        env: { SUPPORT_FILES?: unknown },
+        attachments: unknown,
+        args: { sql: unknown; submissionId: string; messageId: string; bodyText: string },
+      ) => Promise<string>;
+    };
+    const chunk = new Uint8Array(1024 * 1024);
+    let pulled = 0;
+    let cancelled = false;
+    const stream = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        pulled += 1;
+        if (pulled > 50) {
+          controller.close();
+          return;
+        }
+        controller.enqueue(chunk);
+      },
+      cancel() {
+        cancelled = true;
+      },
+    });
+    const realFetch = globalThis.fetch;
+    globalThis.fetch = (async () => new Response(stream, { status: 200 })) as typeof fetch;
+    const puts: unknown[] = [];
+    try {
+      const out = await storeInboundFiles(
+        { SUPPORT_FILES: { put: async (...a: unknown[]) => void puts.push(a) } },
+        [{ filename: "a.jpg", contentType: "image/jpeg", size: 100, downloadUrl: "https://x.test/a.jpg" }],
+        {
+          sql: (() => {
+            throw new Error("sql must not run");
+          }) as unknown,
+          submissionId: "s",
+          messageId: "m",
+          bodyText: "hi",
+        },
+      );
+      expect(out).toContain(D10("a.jpg"));
+    } finally {
+      globalThis.fetch = realFetch;
+    }
+    expect(puts).toHaveLength(0);
+    expect(cancelled).toBe(true);
+    expect(pulled).toBeLessThan(15);
+  });
+});

@@ -29,6 +29,7 @@
 <script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
 <script src="../vamos-i18n-dict.js"></script>
 <script src="../vamos-locale.js"></script>
+<script src="../vamos-account-notice.js"></script>
 <script src="../vamos-page-transition.js"></script>
 <style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
 .vt-input--focus{box-shadow:none}
@@ -92,6 +93,13 @@ button,.vt-btn,.vt-iconbtn{box-shadow:none}
 [data-af-links]{display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px}
 [data-af-code]{display:flex;flex-direction:column;gap:12px;padding-top:20px;border-top:1px solid var(--vt-border-subtle)}
 [data-af-err]{margin:0;display:flex;align-items:center;gap:8px;font-size:var(--vt-body-sm);color:var(--vt-danger)}
+/* Sign-up account notice (26.5 Text 1) with its tick box. Layout only; the Checkbox keeps its own look. */
+[data-af-consent]{display:flex;flex-direction:column;gap:8px;min-inline-size:0}
+[data-af-consent] .vt-check{display:flex;align-items:center;inline-size:100%;min-block-size:44px;min-inline-size:0}
+[data-af-consent] .vt-check__text{min-inline-size:0;overflow-wrap:anywhere}
+[data-af-consent] input[aria-invalid="true"]+.vt-check__box{border-color:var(--vt-danger)}
+[data-af-consent] a{color:var(--vt-charcoal-900);text-decoration:underline;text-decoration-color:var(--vt-grey-400);text-underline-offset:3px;transition:color 140ms var(--vt-ease-standard)}
+[data-af-consent] a:hover{color:var(--vt-charcoal-700);text-decoration-color:currentColor}
 @media (prefers-reduced-motion:reduce){[data-af-view],[data-af-fill]{animation:none}[data-af-fill]{transform:scaleX(1)}}</style>
 </helmet>
 <div data-af="1" style="width:100%;display:flex;flex-direction:column;gap:30px;font-family:var(--vt-font-body);color:var(--vt-text-primary)">
@@ -137,6 +145,9 @@ button,.vt-btn,.vt-iconbtn{box-shadow:none}
 <sc-if value="{{ bannerConfirmFail }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" role="alert" hint-size="100%,56px">Could not send the link. Try again.</x-import>
 </sc-if>
+<sc-if value="{{ bannerSendFailed }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" role="alert" hint-size="100%,56px">Could not send the link. Try again.</x-import>
+</sc-if>
 <sc-if value="{{ bannerCred }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" title="That email and password don't match" hint-size="100%,88px">Try again, or <button type="button" data-af-link="1" data-on-alert="1" onClick="{{ useMagic }}">email yourself a sign-in link</button> instead.</x-import>
 </sc-if>
@@ -162,6 +173,15 @@ button,.vt-btn,.vt-iconbtn{box-shadow:none}
 </div>
 </sc-if>
 </div>
+
+<sc-if value="{{ showConsent }}">
+<div data-af-consent="1">
+<sc-if value="{{ noticeReady }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Checkbox" label="{{ consentLabel }}" checked="{{ consent }}" onChange="{{ toggleConsent }}" aria-invalid="{{ consentInvalid }}" aria-describedby="{{ consentDescribedBy }}" hint-size="100%,44px"></x-import>
+</sc-if>
+<sc-if value="{{ errConsent }}"><p data-af-err="1" role="alert" id="{{ consentErrId }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-alert" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>Tick the box to accept the Terms and confirm the Privacy notice.</p></sc-if>
+</div>
+</sc-if>
 
 <div style="display:flex;flex-direction:column;gap:16px;align-items:stretch">
 <div data-af-cta="1" style="width:100%">
@@ -268,7 +288,7 @@ button,.vt-btn,.vt-iconbtn{box-shadow:none}
 </div>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:640},&quot;mode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;signin&quot;,&quot;signup&quot;,&quot;forgot&quot;],&quot;default&quot;:&quot;signin&quot;,&quot;tsType&quot;:&quot;'signin'|'signup'|'forgot'&quot;},&quot;method&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;password&quot;,&quot;magic&quot;],&quot;default&quot;:&quot;password&quot;,&quot;tsType&quot;:&quot;'password'|'magic'&quot;},&quot;stage&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;form&quot;,&quot;sent&quot;,&quot;verifying&quot;,&quot;returning&quot;],&quot;default&quot;:&quot;form&quot;,&quot;tsType&quot;:&quot;'form'|'sent'|'verifying'|'returning'&quot;},&quot;banner&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;&quot;,&quot;credentials&quot;,&quot;registered&quot;,&quot;expired&quot;,&quot;rate-limited&quot;,&quot;not-staff&quot;,&quot;unconfirmed&quot;],&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;'credentials'|'registered'|'expired'|'rate-limited'|'not-staff'|'unconfirmed'|null&quot;},&quot;email&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;firstName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;lastName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;frozen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;onState&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(s: {mode:string;method:string;stage:string;banner:string|null}) =&gt; void&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:640},&quot;mode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;signin&quot;,&quot;signup&quot;,&quot;forgot&quot;],&quot;default&quot;:&quot;signin&quot;,&quot;tsType&quot;:&quot;'signin'|'signup'|'forgot'&quot;},&quot;method&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;password&quot;,&quot;magic&quot;],&quot;default&quot;:&quot;password&quot;,&quot;tsType&quot;:&quot;'password'|'magic'&quot;},&quot;stage&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;form&quot;,&quot;sent&quot;,&quot;verifying&quot;,&quot;returning&quot;],&quot;default&quot;:&quot;form&quot;,&quot;tsType&quot;:&quot;'form'|'sent'|'verifying'|'returning'&quot;},&quot;banner&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;&quot;,&quot;credentials&quot;,&quot;registered&quot;,&quot;expired&quot;,&quot;rate-limited&quot;,&quot;not-staff&quot;,&quot;unconfirmed&quot;,&quot;consent&quot;,&quot;send-failed&quot;],&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;'credentials'|'registered'|'expired'|'rate-limited'|'not-staff'|'unconfirmed'|'consent'|'send-failed'|null&quot;},&quot;email&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;firstName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;lastName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;frozen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;onState&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(s: {mode:string;method:string;stage:string;banner:string|null}) =&gt; void&quot;}}">
 const REGISTERED = ['taken@vamostaxi.site'];
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i;
 function b64urlToBuf(s) {
@@ -347,6 +367,9 @@ class Component extends DCLogic {
     firstName: this.props.firstName || '',
     lastName: this.props.lastName || '',
     errors: {},
+    consent: false,
+    lang: 'en',
+    noticeReady: !!window.VamosAccountNotice,
     resent: false,
     showPw: false,
     code: '',
@@ -358,6 +381,7 @@ class Component extends DCLogic {
     confirmBusy: false,
   };
   componentDidMount() {
+    this.bindGlobals(0);
     /* The email-link callback sends a failed, expired or already-used link here as ?error=1. */
     try {
       if (!this.props.frozen && !this.state.banner && this.state.stage === 'form' &&
@@ -378,14 +402,30 @@ class Component extends DCLogic {
         password: this.props.password || '',
         firstName: this.props.firstName || '',
         lastName: this.props.lastName || '',
-        errors: {}, resent: false,
+        errors: {}, consent: false, resent: false,
       }, () => {
         if (this.state.stage === 'returning') this.armExit();
         if (this.state.stage === 'verifying' && (this.props.frozen || this.props.surface === 'ops')) this.armPasskey();
       });
     }
   }
-  componentWillUnmount() { clearTimeout(this.exitTimer); clearTimeout(this.pkTimer); }
+  componentWillUnmount() {
+    clearTimeout(this.exitTimer); clearTimeout(this.pkTimer); clearTimeout(this.globalsTimer);
+    if (this._offLocale) this._offLocale();
+  }
+  /* vamos-locale.js and vamos-account-notice.js load from this component's own helmet and can land
+     after it mounts. Wait for them (up to 10 s) instead of assuming they are there: the notice
+     appears the moment it exists, and until then nothing can be ticked or submitted. */
+  bindGlobals(tries) {
+    const L = window.VamosLocale;
+    if (L && !this._offLocale && typeof L.onChange === 'function') {
+      this._offLocale = L.onChange((v) => this.setState({ lang: (v && v.lang) || this.locale() }));
+      this.setState({ lang: this.locale() });
+    }
+    const ready = !!window.VamosAccountNotice;
+    if (ready && !this.state.noticeReady) this.setState({ noticeReady: true });
+    if ((!ready || !this._offLocale) && tries < 200) this.globalsTimer = setTimeout(() => this.bindGlobals(tries + 1), 50);
+  }
   armExit() {
     clearTimeout(this.exitTimer);
     if (this.props.frozen) return;
@@ -482,12 +522,12 @@ class Component extends DCLogic {
     });
   }
   togglePw = () => this.setState({ showPw: !this.state.showPw });
-  setMode = (v) => this.go({ mode: v, stage: 'form', banner: null, password: '' });
+  setMode = (v) => this.go({ mode: v, stage: 'form', banner: null, password: '', consent: false });
   useMagic = () => this.go({ method: 'magic', stage: 'form', banner: null, password: '' });
   usePassword = () => this.go({ method: 'password', stage: 'form', banner: null });
-  goForgot = () => this.go({ mode: 'forgot', method: 'password', stage: 'form', banner: null, password: '' });
-  backToSignIn = () => this.go({ mode: 'signin', method: 'password', stage: 'form', banner: null });
-  signInInstead = () => this.go({ mode: 'signin', method: 'password', stage: 'form', banner: null, password: '' });
+  goForgot = () => this.go({ mode: 'forgot', method: 'password', stage: 'form', banner: null, password: '', consent: false });
+  backToSignIn = () => this.go({ mode: 'signin', method: 'password', stage: 'form', banner: null, consent: false });
+  signInInstead = () => this.go({ mode: 'signin', method: 'password', stage: 'form', banner: null, password: '', consent: false });
   locale() {
     try {
       if (window.VamosLocale && typeof window.VamosLocale.lang === 'function') return window.VamosLocale.lang();
@@ -515,6 +555,8 @@ class Component extends DCLogic {
       if (mode === 'signin' && method === 'password') return this.go({ banner: 'credentials' });
       return this.go({ stage: 'sent' });
     }
+    if (!result.ok && result.reason === 'consent-required') return this.go({ stage: 'form', banner: null, consent: false, errors: { consent: true } });
+    if (!result.ok && result.reason === 'signup-unavailable') return this.go({ stage: 'form', banner: 'send-failed' });
     if (!result.ok) {
       const shown = this.reasonBanner(result.reason);
       if (shown) return this.go({ stage: 'form', banner: shown });
@@ -533,11 +575,11 @@ class Component extends DCLogic {
     const addr = email.trim();
     if (mode === 'forgot') return { mode: 'forgot', email: addr };
     if (method === 'magic') {
-      if (mode === 'signup') return { mode: 'signup', method: 'magic', email: addr, firstName: firstName.trim(), lastName: lastName.trim() };
+      if (mode === 'signup') return Object.assign({ mode: 'signup', method: 'magic', email: addr, firstName: firstName.trim(), lastName: lastName.trim() }, this.state.consent ? { consent: true } : {});
       return { mode: 'signin', method: 'magic', email: addr };
     }
     if (mode === 'signup') {
-      return { mode: 'signup', method: 'password', email: addr, password, firstName: firstName.trim(), lastName: lastName.trim() };
+      return Object.assign({ mode: 'signup', method: 'password', email: addr, password, firstName: firstName.trim(), lastName: lastName.trim() }, this.state.consent ? { consent: true } : {});
     }
     return { mode: 'signin', method: 'password', email: addr, password };
   }
@@ -546,6 +588,7 @@ class Component extends DCLogic {
     if (this.props.frozen || this.props.surface === 'ops') return;
     this.liveAuth(this.payload()).then((result) => {
       if (result && result.reason === 'rate-limited') this.setState({ resent: false, resendLimited: true });
+      else if (result && (result.reason === 'consent-required' || result.reason === 'signup-unavailable')) this.applyLive(result, this.state.mode, this.state.method);
     });
   };
   /* The same email carries a 6-digit code next to the link. Typing it is a sign-in of its
@@ -595,7 +638,17 @@ class Component extends DCLogic {
     else if (!EMAIL_RE.test(addr)) errors.email = 'Check the email address';
     if (mode !== 'forgot' && method === 'password' && !password) errors.password = mode === 'signup' ? 'Choose a password' : 'Enter your password';
     else if (mode === 'signup' && method === 'password' && password.length < 8) errors.password = 'Use at least 8 characters';
-    if (Object.keys(errors).length) { this.setState({ errors, banner: null }); return; }
+    /* Sign-up needs the account notice ticked, and the notice text must be on screen (fail closed). */
+    if (mode === 'signup' && this.props.surface !== 'ops' && !(this.state.consent && window.VamosAccountNotice)) errors.consent = true;
+    if (Object.keys(errors).length) {
+      this.setState({ errors, banner: null }, () => {
+        if (errors.consent && Object.keys(errors).length === 1) {
+          const box = document.querySelector('[data-af-consent] input[type="checkbox"]');
+          if (box) box.focus();
+        }
+      });
+      return;
+    }
     /* Gallery / ops stay on the demo rules so every jumper state is reachable. */
     if (this.props.frozen || this.props.surface === 'ops') {
       if (mode === 'forgot' || method === 'magic') return this.go({ stage: 'sent' });
@@ -613,6 +666,18 @@ class Component extends DCLogic {
     this._busy = true;
     this.liveAuth(this.payload()).then((result) => this.applyLive(result, mode, method)).finally(() => { this._busy = false; });
   };
+  /* The label is 26.5's Text 1 from vamos-account-notice.js, never a sentence typed here.
+     data-vt-no-i18n keeps the runtime from touching it; the table already has all four languages. */
+  consentLabel() {
+    const N = window.VamosAccountNotice;
+    if (!N || typeof N.segments !== 'function') return null;
+    const kids = N.segments(this.state.lang).map((g, i) => {
+      if (typeof g === 'string') return g;
+      const href = g.terms != null ? '/terms' : '/privacy';
+      return React.createElement('a', { key: i, href: href, target: '_blank', rel: 'noopener' }, g.terms != null ? g.terms : g.privacy);
+    });
+    return React.createElement('span', { 'data-vt-no-i18n': '1' }, kids);
+  }
   renderVals() {
     const { mode, method, stage, banner, email, password, firstName, lastName, errors, resent } = this.state;
     const isForm = stage === 'form', isSent = stage === 'sent';
@@ -620,7 +685,14 @@ class Component extends DCLogic {
     /* the ops console is the same auth, one surface across: no sign-up, its own
        destination and session key, dispatch wording */
     const isOps = this.props.surface === 'ops';
+    const showConsent = isForm && mode === 'signup' && !isOps;
+    const errConsent = showConsent && !!(errors.consent || banner === 'consent');
     return {
+      showConsent, errConsent, noticeReady: this.state.noticeReady, consent: this.state.consent,
+      consentInvalid: errConsent, consentErrId: 'af-consent-err', consentDescribedBy: errConsent ? 'af-consent-err' : undefined,
+      consentLabel: this.consentLabel(),
+      toggleConsent: (e) => { const on = !!e.target.checked; this.setState({ consent: on, errors: on ? Object.assign({}, this.state.errors, { consent: false }) : this.state.errors, banner: on && this.state.banner === 'consent' ? null : this.state.banner }); },
+      bannerSendFailed: isForm && banner === 'send-failed',
       isOps, notOps: !isOps,
       hOps: isForm && mode === 'signin' && isOps,
       sOpsPw: isForm && mode === 'signin' && !isMagic && isOps,

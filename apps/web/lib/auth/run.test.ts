@@ -124,7 +124,7 @@ describe("runSignUpPassword", () => {
       password: "password1",
       options: {
         emailRedirectTo: "https://example.test/api/auth/callback?next=%2F",
-        data: { full_name: "A B", locale: "de", signup_consent: "pending" },
+        data: { full_name: "A B", locale: "de" },
       },
     });
   });
