@@ -346,6 +346,7 @@ describe("runCheckoutIntent mode web (26.3)", () => {
     const w = world(p);
     const first = (await (await runCheckoutIntent(await webBody(p), w.d as never)).json()) as Record<string, unknown>;
     w.calls.length = 0;
+    w.d.ownsBooking = async (id: string) => id === first.booking_id;
     const res = await runCheckoutIntent(await webBody(p, { idempotency_key: "idem-w2" }), w.d as never);
     const again = (await res.json()) as Record<string, unknown>;
     expect(again.reference).toBe(first.reference);
@@ -354,6 +355,40 @@ describe("runCheckoutIntent mode web (26.3)", () => {
     expect(w.calls).not.toContain("createBooking");
     expect(w.bookings.size).toBe(1);
     expect(res.headers.get("set-cookie")).toMatch(/^vt_manage=/);
+  });
+
+  it("F8: Pay again by a requester who does not own the booking gets the url but no manage token, cookie or detail write", async () => {
+    const p = payload();
+    const w = world(p);
+    const first = (await (await runCheckoutIntent(await webBody(p), w.d as never)).json()) as Record<string, unknown>;
+    const issued: string[] = [];
+    w.d.issueManageToken = async (a: { bookingId: string }) => {
+      issued.push(a.bookingId);
+    };
+    w.details.length = 0;
+    w.d.ownsBooking = async () => false;
+    const res = await runCheckoutIntent(await webBody(p, { idempotency_key: "idem-w2" }), w.d as never);
+    const again = (await res.json()) as Record<string, unknown>;
+    expect(again.booking_id).toBe(first.booking_id);
+    expect(issued).toEqual([]);
+    expect(w.details).toEqual([]);
+    expect(res.headers.get("set-cookie")).toBeNull();
+  });
+
+  it("F8: an expired session re-attached for a non-owner mints no manage token either", async () => {
+    const p = payload();
+    const w = world(p);
+    await runCheckoutIntent(await webBody(p), w.d as never);
+    w.sessions.get("cs_1")!.status = "expired";
+    const issued: string[] = [];
+    w.d.issueManageToken = async (a: { bookingId: string }) => {
+      issued.push(a.bookingId);
+    };
+    w.d.ownsBooking = async () => false;
+    const res = await runCheckoutIntent(await webBody(p, { idempotency_key: "idem-w2" }), w.d as never);
+    expect(res.status).toBe(200);
+    expect(issued).toEqual([]);
+    expect(res.headers.get("set-cookie")).toBeNull();
   });
 
   it("an expired session on a still-pending booking gets a new hosted session on the same booking", async () => {
