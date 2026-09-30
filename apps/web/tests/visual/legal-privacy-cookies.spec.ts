@@ -26,10 +26,10 @@ const COOKIES_IDS = [
   "change",
 ] as const;
 
-// Live [data-tok] = LegalPage hero (date+version) + body PendingSlots.
-// Plan grep 19/14 counted CSS. Mock content: privacy 17, cookies 21.
-const PRIVACY_TOK = 17;
-const COOKIES_TOK = 21;
+// 26.0: the legal ship (owner-approved texts) removed every data-tok pill from the privacy and
+// cookies mocks. The test still proves the count is the same in all four languages, now zero.
+const PRIVACY_TOK = 0;
+const COOKIES_TOK = 0;
 
 const PORTS: Record<string, number> = {
   "component-1440": testPort(4194),

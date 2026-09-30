@@ -362,11 +362,11 @@ test("Edit trip: fields in home order, UPDATE PRICES re-quotes, replaces the URL
   // Focus moves to From, which is prefilled.
   await expect(page.locator('[data-co-field="from"] input')).toBeFocused();
   await expect(page.locator('[data-co-field="from"] input')).toHaveValue("Zurich Airport");
-  // Home order: From, Flight (airport), To, When, Travellers.
+  // Home order since 26.4.2: Flight, From, To, When, Travellers.
   const order = await editor
     .locator("[data-co-field]")
     .evaluateAll((els) => els.map((el) => el.getAttribute("data-co-field")));
-  expect(order).toEqual(["from", "flight", "to", "when", "travellers"]);
+  expect(order).toEqual(["flight", "from", "to", "when", "travellers"]);
   await expect(page.locator('[data-co-field="flight"] input')).toHaveValue("LX 318");
   await page.screenshot({ path: join(process.env.TMPDIR ?? "/tmp", "26.3-15-editor-1440.png") });
   await page.setViewportSize({ width: 390, height: 900 });

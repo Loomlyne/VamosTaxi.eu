@@ -162,8 +162,15 @@ test("an invalid cookie value falls back to English @checkout", async ({ page })
   await expect(page.locator("html")).toHaveAttribute("dir", "ltr");
 });
 
-test("DC pages still 308 away from a locale prefix @checkout", async ({ request }) => {
-  const res = await request.get(`${baseURL}/de/about`, { maxRedirects: 0 });
+test("DC pages that are not indexable still 308 away from a locale prefix @checkout", async ({ request }) => {
+  // 26.0: since the SEO ship /de /fr /ar are real addresses on the indexable pages (/about is one);
+  // the pages with indexable:false in lib/seo/pages.json (sign-in, account...) keep the redirect.
+  const res = await request.get(`${baseURL}/de/sign-in`, { maxRedirects: 0 });
   expect(res.status()).toBe(308);
-  expect(new URL(res.headers()["location"] ?? "", baseURL).pathname).toBe("/about");
+  expect(new URL(res.headers()["location"] ?? "", baseURL).pathname).toBe("/sign-in");
+});
+
+test("an indexable DC page answers at its locale address @checkout", async ({ request }) => {
+  const res = await request.get(`${baseURL}/de/about`, { maxRedirects: 0 });
+  expect(res.status()).toBe(200);
 });
