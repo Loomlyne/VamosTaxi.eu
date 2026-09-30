@@ -181,7 +181,7 @@ async function loadAssignedChauffeurTrip(
 }
 
 async function loadOverlap(
-  sql: Parameters<Parameters<typeof asSystem>[1]>[0],
+  sql: OpsSql,
   bookingId: string,
   chauffeurId: string,
 ): Promise<AssignOverlap> {
