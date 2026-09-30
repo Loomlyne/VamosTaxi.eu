@@ -78,8 +78,8 @@
     "preheader": "Ce trajet est annulé.",
     "headline": "Ce trajet est annulé",
     "refundLabel": "Remboursement",
-    "refundPendingOps": "Pending Ops.",
-    "refundFullCaptured": "Un remboursement intégral du montant capturé est en cours. Le délai suit le timing de votre émetteur de carte.",
+    "refundPendingOps": "Notre équipe décide du remboursement et vous en informe par e-mail.",
+    "refundFullCaptured": "Vous recevrez un remboursement intégral du montant payé. Notre équipe l’envoie ; votre banque peut mettre quelques jours à l’afficher.",
     "refundNone": "Aucun remboursement pour cette fenêtre."
   },
   "refundFailed": {

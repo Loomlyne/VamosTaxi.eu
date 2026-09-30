@@ -6,6 +6,13 @@ import { OPS_SQLSTATE } from "./sqlstate";
 
 export type RefundFail = { ok: false; code: string };
 
+/** 20-10: one payment's part of a refund click. `unrecorded` = Stripe accepted, the database write failed. */
+export type RefundPart = {
+  paymentId: number;
+  amountRappen: number;
+  state: "sent" | "failed" | "unrecorded";
+};
+
 export type RefundOk = {
   ok: true;
   bookingId: string;
@@ -16,9 +23,23 @@ export type RefundOk = {
   contactName: string;
   locale: string;
   reference: string;
+  /** 20-10: totals after the batch. `refundStatus` is `pending_ops` while part of a full-tier refund is still due. */
+  refundStatus: string;
+  refundedRappen: number;
+  dueRappen: number;
+  parts: RefundPart[];
 };
 
-export type RefundResult = RefundOk | RefundFail;
+/** 20-10: some part did not go through. HTTP 502; no "Refund issued" mail until the batch is complete. */
+export type RefundPartial = {
+  ok: false;
+  code: "refund-partial" | "stripe-failed";
+  refundedRappen: number;
+  dueRappen: number;
+  parts: RefundPart[];
+};
+
+export type RefundResult = RefundOk | RefundFail | RefundPartial;
 
 const NAMED: readonly string[] = Object.freeze([
   "not-found",
@@ -34,6 +55,9 @@ const NAMED: readonly string[] = Object.freeze([
   "not-pending",
   "not-post-trip",
   "not-open",
+  // 20-10 refunds by hand (the database refuses these too)
+  "nothing-to-retry",
+  "full-refund-only",
 ]);
 
 function codeOf(err: unknown): string | undefined {
@@ -99,17 +123,29 @@ export function opsRefundAmount(input: {
   return { remaining, amount };
 }
 
-export type RefundRequest = { percent?: number; rappen?: number; postTrip?: boolean };
+export type RefundRequest = {
+  /** One captured payment; absent = every captured payment. */
+  paymentId?: number;
+  /** Percent of what was paid on each chosen payment, capped at what is left. Never with amountRappen. */
+  percent?: number;
+  /** Exact amount, only with one chosen payment, capped at what is left. Never with percent. */
+  amountRappen?: number;
+  postTrip?: boolean;
+  /** Resume the open (intended / failed) parts only. Alone. */
+  retry?: boolean;
+};
 
 export type ParsedRefundBody =
   | { ok: true; value: RefundRequest }
-  | { ok: false; code: "invalid-percent" | "invalid-body" };
+  | { ok: false; code: "invalid-percent" | "invalid-body" | "invalid-amount" };
 
 /**
- * 26.1-17 D-24/D-25 (T-26.1-54): the admin refund body. `{}` = full remaining;
- * `{ percent }` = an integer 0-100 of captured; `{ postTrip: true }` = the post-trip
- * accept (full remaining, reason post_trip) and cannot be combined with an amount.
- * The amount itself is always computed server-side from the captured sum.
+ * 26.1-17 D-24/D-25 + 20-10 (T-26.1-54): the admin refund body. `{}` = every payment, all that is
+ * left; `{ percent }` = an integer 0-100 of what was paid; `{ amountRappen }` (legacy `rappen`) =
+ * an exact amount; never both. `{ paymentId }` limits it to one payment (an exact amount needs
+ * one payment: the route checks that against the booking). `{ postTrip: true }` = the post-trip
+ * accept and cannot be combined with an amount or a payment. `{ retry: true }` stands alone.
+ * The amount itself is always computed server-side.
  */
 export function parseRefundBody(body: unknown): ParsedRefundBody {
   if (!body || typeof body !== "object" || Array.isArray(body)) return { ok: true, value: {} };
@@ -122,16 +158,42 @@ export function parseRefundBody(body: unknown): ParsedRefundBody {
     }
     out.percent = p;
   }
-  if (typeof record.rappen === "number" && Number.isFinite(record.rappen)) {
-    out.rappen = Math.trunc(record.rappen);
+  const rawAmount = record.amountRappen !== undefined ? record.amountRappen : record.rappen;
+  if (record.amountRappen !== undefined && record.rappen !== undefined) {
+    return { ok: false, code: "invalid-body" };
+  }
+  if (rawAmount !== undefined) {
+    if (typeof rawAmount !== "number" || !Number.isFinite(rawAmount)) {
+      return { ok: false, code: "invalid-amount" };
+    }
+    const amount = Math.trunc(rawAmount);
+    if (amount <= 0) return { ok: false, code: "invalid-amount" };
+    out.amountRappen = amount;
+  }
+  if (out.percent !== undefined && out.amountRappen !== undefined) {
+    return { ok: false, code: "invalid-body" };
+  }
+  if ("paymentId" in record && record.paymentId !== undefined) {
+    const id = record.paymentId;
+    if (typeof id !== "number" || !Number.isInteger(id) || id <= 0) {
+      return { ok: false, code: "invalid-body" };
+    }
+    out.paymentId = id;
   }
   if ("postTrip" in record && record.postTrip !== undefined) {
     if (typeof record.postTrip !== "boolean") return { ok: false, code: "invalid-body" };
     if (record.postTrip) {
-      if (out.percent !== undefined || out.rappen !== undefined) {
+      if (out.percent !== undefined || out.amountRappen !== undefined || out.paymentId !== undefined) {
         return { ok: false, code: "invalid-body" };
       }
       out.postTrip = true;
+    }
+  }
+  if ("retry" in record && record.retry !== undefined) {
+    if (typeof record.retry !== "boolean") return { ok: false, code: "invalid-body" };
+    if (record.retry) {
+      if (Object.keys(out).length > 0) return { ok: false, code: "invalid-body" };
+      out.retry = true;
     }
   }
   return { ok: true, value: out };

@@ -83,6 +83,7 @@
       driver: null,
       money: null,
       refundStatus: "none",
+      refundOwedRappen: 0,
       reviewSubmitted: false,
       canCancel: false,
       cancelWindow: "none",
@@ -121,6 +122,9 @@
         if (d.ok && d.body && d.body.ok) {
           booking.money = d.body.money || null;
           booking.driver = d.body.driver || null;
+          // 20-10: the refund row and box survive a reload.
+          booking.refundStatus = d.body.refundStatus || "none";
+          booking.refundOwedRappen = Number(d.body.refundOwedRappen) || 0;
         }
         return { kind: "booking", booking: booking, via: "account" };
       });
@@ -178,7 +182,11 @@
 
   function refundLine(booking) {
     var st = String((booking && booking.refundStatus) || "").toLowerCase();
-    if (st === "pending_ops") return t("Pending Ops");
+    if (st === "pending_ops") {
+      // Full refund owed (cancel more than 24 h ahead) reads as such; without an owed amount our team is still deciding.
+      var owed = Number(booking && booking.refundOwedRappen);
+      return owed > 0 ? t("Full refund · sent by our team") : t("Refund under review");
+    }
     if (st === "processing") return t("Processing");
     if (st === "refunded") return t("Refunded");
     if (st === "failed") return t("Failed");

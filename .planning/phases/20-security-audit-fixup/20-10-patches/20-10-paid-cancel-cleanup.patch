@@ -1,0 +1,381 @@
+--- a/apps/web/lib/lifecycle/paid-cancel.ts
++++ b/apps/web/lib/lifecycle/paid-cancel.ts
+@@ -3,13 +3,9 @@
+ // 20-10 refunds by hand: a cancel sends the mail and calls no Stripe. The admin sends the refund.
+ // D-08 never restores a prior status. 09-07 D-11/D-14: notifyCancellation after success;
+ // assigned chauffeur → URGENT ops.
+-// applyStripeRefund stays only for the staff cancel in lib/ops/bookings-write.ts until the
+-// 20-10 patch (staff cancel, no Stripe) is applied; it is deleted with that patch.
+ 
+ export const dynamic = "force-dynamic";
+ 
+-import { CHARGE_CURRENCY } from "../checkout/currency";
+-import { createRefund, resolvePaymentIntentId, retrieveRefund, stripeFromEnv } from "../checkout/stripe";
+ import { asCustomer, asGuest, asSystem, type VamosClaims } from "../db/identity";
+ import { loadPaidCancelMail } from "../db/system-reads";
+ import { notifyCancellation } from "./notify-lifecycle";
+@@ -28,25 +24,6 @@
+ 
+ export type PaidCancelResult = PaidCancelOk | PaidCancelFail;
+ 
+-export type ApplyStripeRefundInput = {
+-  bookingId: string;
+-  paymentId: number;
+-  paymentIntentId: string;
+-  amountRappen: number;
+-  idempotencyKey: string;
+-  /** D-05: Stripe refund metadata reason. Defaults to "customer_cancel" for the existing customer/staff cancel callers. */
+-  reason?: string;
+-};
+-
+-export type ApplyStripeRefundOk = {
+-  ok: true;
+-  stripeRefundId: string;
+-  payoutCountry: string;
+-  availableOn: string | null;
+-};
+-
+-export type ApplyStripeRefundResult = ApplyStripeRefundOk | PaidCancelFail;
+-
+ type CancelledRow = {
+   booking_id: string;
+   refund_mode: string;
+@@ -107,20 +84,6 @@
+   return { payoutCountry, availableOn };
+ }
+ 
+-function liveKeyRefused(env: CloudflareEnv): boolean {
+-  return (env.STRIPE_SECRET_KEY ?? "").startsWith("sk_live_");
+-}
+-
+-async function markRefundFailed(env: CloudflareEnv, bookingId: string): Promise<void> {
+-  try {
+-    await asSystem(env, async (sql) => {
+-      await sql`select public.bookings_set_refund_failed(${bookingId}::uuid)`;
+-    });
+-  } catch {
+-    // D-08: stay cancelled even if the failed stamp misses.
+-  }
+-}
+-
+ type CancelMailRow = {
+   reference: string;
+   locale: string | null;
+@@ -168,82 +131,7 @@
+     }
+   } catch {
+     // Cancel already committed. Mail is best-effort.
+-  }
+-}
+-
+-export async function applyStripeRefund(
+-  env: CloudflareEnv,
+-  input: ApplyStripeRefundInput,
+-): Promise<ApplyStripeRefundResult> {
+-  if (liveKeyRefused(env)) {
+-    return { ok: false, code: "stripe-test-only" };
+-  }
+-  if (!input.paymentIntentId || input.amountRappen <= 0) {
+-    await markRefundFailed(env, input.bookingId);
+-    return { ok: false, code: "stripe-failed" };
+-  }
+-
+-  let stripeRefundId = "";
+-  let facts = { payoutCountry: "CH", availableOn: null as string | null };
+-  try {
+-    const stripe = stripeFromEnv(env);
+-    const paymentIntentId = await resolvePaymentIntentId(stripe, input.paymentIntentId);
+-    if (!paymentIntentId) {
+-      await markRefundFailed(env, input.bookingId);
+-      return { ok: false, code: "stripe-failed" };
+-    }
+-    const created = await createRefund(stripe, {
+-      paymentIntentId,
+-      amountRappen: input.amountRappen,
+-      idempotencyKey: input.idempotencyKey,
+-      bookingId: input.bookingId,
+-      paymentId: input.paymentId,
+-      reason: input.reason ?? "customer_cancel",
+-    });
+-    if (!created?.id) {
+-      await markRefundFailed(env, input.bookingId);
+-      return { ok: false, code: "stripe-failed" };
+-    }
+-    stripeRefundId = created.id;
+-    const currency = created.currency?.toLowerCase();
+-    if (currency && currency !== CHARGE_CURRENCY) {
+-      await markRefundFailed(env, input.bookingId);
+-      return { ok: false, code: "stripe-failed" };
+-    }
+-    let expanded = created;
+-    try {
+-      expanded = await retrieveRefund(stripe, created.id);
+-    } catch {
+-      expanded = created;
+-    }
+-    facts = payoutFactsFromRefund(expanded);
+-  } catch {
+-    await markRefundFailed(env, input.bookingId);
+-    return { ok: false, code: "stripe-failed" };
+   }
+-
+-  try {
+-    await asSystem(env, async (sql) => {
+-      await sql`
+-        select * from public.record_booking_refund(
+-          ${input.bookingId}::uuid,
+-          ${stripeRefundId}::text,
+-          ${facts.payoutCountry}::text,
+-          ${facts.availableOn}::timestamptz,
+-          ${input.amountRappen}
+-        )
+-      `;
+-    });
+-  } catch {
+-    return { ok: false, code: "unknown" };
+-  }
+-
+-  return {
+-    ok: true,
+-    stripeRefundId,
+-    payoutCountry: facts.payoutCountry,
+-    availableOn: facts.availableOn,
+-  };
+ }
+ 
+ /**
+--- a/apps/web/lib/lifecycle/paid-cancel.test.ts
++++ b/apps/web/lib/lifecycle/paid-cancel.test.ts
+@@ -1,6 +1,6 @@
+ // apps/web/lib/lifecycle/paid-cancel.test.ts
+ //
+-// 09-01 Wave 0 + 09-05: guest paid-cancel → createRefund THEN record_booking_refund (D-08).
++// 09-01 Wave 0 + 09-05: paid cancel → mail + Refund due, no Stripe (20-10).
+ // Mock Stripe only. Never sk_live_ calls. Synthetic rappen only. No invented CHF. No TRIP. No LX1234.
+ 
+ import { readFileSync } from "node:fs";
+@@ -19,7 +19,6 @@
+ const retrieveRefund = vi.fn();
+ const stripeFromEnv = vi.fn();
+ const asSystem = vi.fn();
+-let resolvePaymentIntentIdOverride: ((stripe: unknown, storedId: string) => Promise<string | null>) | null = null;
+ 
+ vi.mock("../checkout/stripe", async (importOriginal) => {
+   const actual = await importOriginal<typeof import("../checkout/stripe")>();
+@@ -28,10 +27,6 @@
+     createRefund: (...args: unknown[]) => createRefund(...args),
+     retrieveRefund: (...args: unknown[]) => retrieveRefund(...args),
+     stripeFromEnv: (...args: unknown[]) => stripeFromEnv(...args),
+-    resolvePaymentIntentId: (stripe: unknown, storedId: string) =>
+-      resolvePaymentIntentIdOverride
+-        ? resolvePaymentIntentIdOverride(stripe, storedId)
+-        : actual.resolvePaymentIntentId(stripe as never, storedId),
+   };
+ });
+ 
+@@ -73,56 +68,23 @@
+   });
+ });
+ 
+-describe("paid-cancel Stripe-before-record (D-08)", () => {
+-  it("calls createRefund then record_booking_refund, never the reverse", () => {
++describe("paid-cancel makes no Stripe call (20-10)", () => {
++  it("has no refund helper, no createRefund, no live-key branch", () => {
+     const src = read("apps/web/lib/lifecycle/paid-cancel.ts");
+-    const createAt = src.indexOf("createRefund");
+-    const recordAt = src.indexOf("record_booking_refund");
+-    expect(createAt).toBeGreaterThan(-1);
+-    expect(recordAt).toBeGreaterThan(-1);
+-    expect(createAt).toBeLessThan(recordAt);
++    expect(src).not.toMatch(/applyStripeRefund|createRefund|record_booking_refund|stripeFromEnv|sk_live_/);
++    expect(src).toMatch(/notifyCancellation/);
+   });
+ 
+-  it("Stripe fail leaves cancelled + refund_status failed; no un-cancel (D-08)", () => {
+-    const src = read("apps/web/lib/lifecycle/paid-cancel.ts");
+-    expect(src).toMatch(/bookings_set_refund_failed/);
+-    expect(src).toMatch(/cancelled/);
+-    expect(src).toMatch(/failed/);
+-    expect(src).not.toMatch(/un-cancel/);
+-    expect(src).not.toMatch(/status:\s*['"]paid['"]/);
+-    expect(src).not.toMatch(/status:\s*['"]confirmed['"]/);
++  it("neither the cancel routes, bookings-write nor this file call createRefund", () => {
++    for (const f of [
++      "apps/web/lib/lifecycle/paid-cancel.ts",
++      "apps/web/lib/ops/bookings-write.ts",
++      "apps/web/app/api/manage/cancel/route.ts",
++      "apps/web/app/api/account/bookings/paid-cancel/route.ts",
++    ]) {
++      expect(read(f)).not.toMatch(/createRefund\(/);
++    }
+   });
+-
+-  it("finishPaidCancel has no Stripe call and no customer-cancel idempotency key (20-10)", () => {
+-    const src = read("apps/web/lib/lifecycle/paid-cancel.ts");
+-    const start = src.indexOf("export async function finishPaidCancel");
+-    const end = src.indexOf("export async function paidCancelGuest");
+-    const body = src.slice(start, end);
+-    expect(body).not.toMatch(/createRefund|applyStripeRefund|stripeFromEnv|customer-cancel/);
+-  });
+-
+-  it("retrieves Stripe refund country or available_on (D-07) and never invents day counts", () => {
+-    const src = read("apps/web/lib/lifecycle/paid-cancel.ts");
+-    expect(src).toMatch(/retrieveRefund|refunds\.retrieve/);
+-    expect(src).toMatch(/payment_method_details|card\.country|payoutCountry|payout_country/);
+-    expect(src).toMatch(/available_on|availableOn/);
+-    expect(src).not.toMatch(/3–5 business days|3-5 business days|business days/);
+-  });
+-
+-  it("skips Stripe for pending_ops and none", () => {
+-    const src = read("apps/web/lib/lifecycle/paid-cancel.ts");
+-    expect(src).toMatch(/pending_ops/);
+-    expect(src).toMatch(/auto_full/);
+-    expect(src).toMatch(/sk_live_/);
+-  });
+-
+-  it("resolves the PaymentIntent id before calling createRefund, never a stale cs_ id (D-05)", () => {
+-    const src = read("apps/web/lib/lifecycle/paid-cancel.ts");
+-    const resolveAt = src.indexOf("resolvePaymentIntentId(");
+-    const createAt = src.indexOf("createRefund(");
+-    expect(resolveAt).toBeGreaterThan(-1);
+-    expect(resolveAt).toBeLessThan(createAt);
+-  });
+ });
+ 
+ describe("unpaid cancel route stays D-09", () => {
+@@ -179,135 +141,7 @@
+       availableOn: new Date(1_789_250_000 * 1000).toISOString(),
+     });
+     expect(payoutFactsFromRefund({})).toEqual({ payoutCountry: "CH", availableOn: null });
+-  });
+-});
+-
+-describe("applyStripeRefund mocked order", () => {
+-  beforeEach(() => {
+-    createRefund.mockReset();
+-    retrieveRefund.mockReset();
+-    stripeFromEnv.mockReset();
+-    asSystem.mockReset();
+-    stripeFromEnv.mockReturnValue({});
+-    resolvePaymentIntentIdOverride = null;
+-  });
+-
+-  it("createRefund then retrieve then record_booking_refund", async () => {
+-    const order: string[] = [];
+-    createRefund.mockImplementation(async () => {
+-      order.push("createRefund");
+-      return { id: "re_test_1", currency: "chf", amount: 8000 };
+-    });
+-    retrieveRefund.mockImplementation(async () => {
+-      order.push("retrieve");
+-      return {
+-        id: "re_test_1",
+-        currency: "chf",
+-        charge: { payment_method_details: { card: { country: "FR" } } },
+-        balance_transaction: { available_on: 1_789_250_000 },
+-      };
+-    });
+-    asSystem.mockImplementation(async (_env: CloudflareEnv, fn: (sql: unknown) => unknown) => {
+-      const sql = async (strings: TemplateStringsArray, ..._values: unknown[]) => {
+-        const text = strings.join(" ");
+-        if (text.includes("record_booking_refund")) order.push("record");
+-        if (text.includes("bookings_set_refund_failed")) order.push("failed");
+-        return [{ booking_id: BOOKING_ID, refund_id: 9 }];
+-      };
+-      return fn(sql);
+-    });
+-
+-    const { applyStripeRefund } = await import("./paid-cancel");
+-    const result = await applyStripeRefund(ENV, {
+-      bookingId: BOOKING_ID,
+-      paymentId: PAYMENT_ID,
+-      paymentIntentId: PI,
+-      amountRappen: 8000,
+-      idempotencyKey: `refund:${BOOKING_ID}:${PAYMENT_ID}:customer-cancel`,
+-    });
+-
+-    expect(createRefund).toHaveBeenCalledWith(expect.anything(), {
+-      paymentIntentId: PI,
+-      amountRappen: 8000,
+-      idempotencyKey: `refund:${BOOKING_ID}:${PAYMENT_ID}:customer-cancel`,
+-      bookingId: BOOKING_ID,
+-      paymentId: PAYMENT_ID,
+-      reason: "customer_cancel",
+-    });
+-    expect(order).toEqual(["createRefund", "retrieve", "record"]);
+-    expect(result).toMatchObject({
+-      ok: true,
+-      payoutCountry: "FR",
+-      availableOn: new Date(1_789_250_000 * 1000).toISOString(),
+-    });
+   });
+-
+-  it("Stripe throw calls bookings_set_refund_failed and does not un-cancel", async () => {
+-    createRefund.mockRejectedValue(new Error("card_decline"));
+-    let failedSql = "";
+-    asSystem.mockImplementation(async (_env: CloudflareEnv, fn: (sql: unknown) => unknown) => {
+-      const sql = async (strings: TemplateStringsArray, ..._values: unknown[]) => {
+-        failedSql = strings.join(" ");
+-        return [];
+-      };
+-      return fn(sql);
+-    });
+-
+-    const { applyStripeRefund } = await import("./paid-cancel");
+-    const result = await applyStripeRefund(ENV, {
+-      bookingId: BOOKING_ID,
+-      paymentId: PAYMENT_ID,
+-      paymentIntentId: PI,
+-      amountRappen: 8000,
+-      idempotencyKey: `refund:${BOOKING_ID}:${PAYMENT_ID}:customer-cancel`,
+-    });
+-
+-    expect(result).toEqual({ ok: false, code: "stripe-failed" });
+-    expect(failedSql).toMatch(/bookings_set_refund_failed/);
+-    expect(failedSql).not.toMatch(/status/);
+-    expect(retrieveRefund).not.toHaveBeenCalled();
+-  });
+-
+-  it("a null PaymentIntent resolution never calls createRefund, marks refund failed, returns stripe-failed (D-05)", async () => {
+-    resolvePaymentIntentIdOverride = async () => null;
+-    let failedSql = "";
+-    asSystem.mockImplementation(async (_env: CloudflareEnv, fn: (sql: unknown) => unknown) => {
+-      const sql = async (strings: TemplateStringsArray, ..._values: unknown[]) => {
+-        failedSql = strings.join(" ");
+-        return [];
+-      };
+-      return fn(sql);
+-    });
+-
+-    const { applyStripeRefund } = await import("./paid-cancel");
+-    const result = await applyStripeRefund(ENV, {
+-      bookingId: BOOKING_ID,
+-      paymentId: PAYMENT_ID,
+-      paymentIntentId: "cs_test_stale",
+-      amountRappen: 8000,
+-      idempotencyKey: `refund:${BOOKING_ID}:${PAYMENT_ID}:customer-cancel`,
+-    });
+-
+-    expect(result).toEqual({ ok: false, code: "stripe-failed" });
+-    expect(createRefund).not.toHaveBeenCalled();
+-    expect(failedSql).toMatch(/bookings_set_refund_failed/);
+-  });
+-
+-  it("refuses sk_live_", async () => {
+-    const { applyStripeRefund } = await import("./paid-cancel");
+-    const result = await applyStripeRefund(
+-      { STRIPE_SECRET_KEY: "sk_live_nope" } as CloudflareEnv,
+-      {
+-        bookingId: BOOKING_ID,
+-        paymentId: PAYMENT_ID,
+-        paymentIntentId: PI,
+-        amountRappen: 8000,
+-        idempotencyKey: `refund:${BOOKING_ID}:${PAYMENT_ID}:customer-cancel`,
+-      },
+-    );
+-    expect(result).toEqual({ ok: false, code: "stripe-test-only" });
+-    expect(createRefund).not.toHaveBeenCalled();
+-  });
+ });
+ 
+ describe("paid-cancel lifecycle mails (D-11/D-14)", () => {
