@@ -365,3 +365,16 @@ File: `app/ops/OpsDetail.dc.html` and `apps/web/lib/ops/ops-refund-review-dc.tes
 - `customerCancelWindow` (`apps/web/lib/checkout/cancel-window.ts`) was not opened; it is assumed to keep returning `auto_full` for > 24 h (pinned by `voucher-badge.test.ts:78-79`).
 - No test was run; "stays green" statements are from reading the assertions.
 - The proposed internal dashboard wording in B.5 (de / fr / ar) is a draft, not reviewed by a native speaker.
+
+---
+
+## E. Owner answers to the open questions (question form, 2026-09-30) — BINDING, they override B and D where they differ
+
+| # | Question | Answer |
+|---|---|---|
+| 1, 4 | Decline, or less than 100 %, on a booking cancelled more than 24 h ahead | **Fixed: full refund only.** On a full-tier booking (pending_ops with owed > 0) the amount is 100 % of every payment, cannot be lowered, and there is no Decline button. The server enforces it too: a lower amount or a decline on such a booking is refused. With two payments the admin may still send them one at a time (pick a payment), each at 100 %; the rest stays "Refund due". |
+| 5 | Percentage on a partly refunded payment | His words: "make i type a percentage or a exact price". The refund field takes **either a percentage or an exact CHF amount** (a %/CHF switch next to the field; design-system parts only). A percentage means percent of what was paid on that payment, capped at what is left. An exact amount is capped at what is left; more is refused with a clear message. Applies where the admin decides the amount (inside 24 h, after the trip). The server takes `{ percent }` or `{ amountRappen }`, never both. With "All payments", a percentage applies to each payment; an exact amount is allowed only when one payment is chosen. |
+| 6 | Staff cancel of a paid booking | **The customer gets the normal cancellation e-mail at once**, with the approved refund sentence (T4 for more than 24 h, T5 inside), then "Refund issued" when the admin refunds. |
+| 7 | Automatic refund of a double payment (`settle.ts`) | **Stays automatic.** Not a cancellation refund. Untouched. |
+| 2, 3 | Customer's Refund row and body on vamostaxi.site/manage-booking (and booking detail) | Inside 24 h: the existing "Refund under review" (already in four languages). More than 24 h, not yet refunded — approved by him: en "Full refund · sent by our team", de "Volle Rückerstattung · wird von unserem Team veranlasst", fr "Remboursement intégral · envoyé par notre équipe", ar "استرداد كامل · يرسله فريقنا". The body under it is the approved T4 sentence. The internal words "Pending Ops" / "Wartet auf Ops" are never shown to a customer. |
+| 8 | A "Stop this refund" button for a refund Stripe keeps refusing | Not built (session decision, keeps it simple): it stays "still due" with Try again. |
