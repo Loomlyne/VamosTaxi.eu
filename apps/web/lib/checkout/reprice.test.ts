@@ -38,7 +38,6 @@ describe("loadCheckoutReprice", () => {
       ok: true,
       pricingLive: true,
       liveRateVersionId: 7,
-      extrasCatalog: [],
     });
   });
 

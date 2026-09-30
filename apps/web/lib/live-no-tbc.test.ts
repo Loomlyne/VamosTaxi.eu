@@ -30,9 +30,12 @@ describe("no TBC on live pages", () => {
     expect(found).toEqual([]);
   });
 
-  it("the cookie banner hides its Meta slot while it only holds a gap", () => {
+  it("the cookie banner has no .vt-ck-meta and no PendingSlot", () => {
     const css = readFileSync(join(here, "../components/consent/CookieBanner.css"), "utf8");
-    expect(css).toMatch(/\.vt-ck-meta:has\(\[data-tok\]\)\s*\{\s*display:\s*none;/);
+    const tsx = readFileSync(join(here, "../components/consent/CookieBanner.tsx"), "utf8");
+    expect(css).not.toContain(".vt-ck-meta");
+    expect(tsx).not.toContain("PendingSlot");
+    expect(tsx).not.toContain("data-tok");
   });
 
   it("the pill pattern finds the old gaps", () => {

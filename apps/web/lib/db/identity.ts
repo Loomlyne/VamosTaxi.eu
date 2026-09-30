@@ -91,7 +91,8 @@ export const asAnon = <T,>(env: CloudflareEnv, fn: QueryFn<T>) =>
 
 /**
  * Worker-only system work — SET ROLE `vamos_system`. Legitimate callers: the Stripe webhook
- * route, the `queue()` consumer, and the notification sweep in `scheduled()`. No claims:
+ * route, the `queue()` consumer, the notification sweep in `scheduled()`, the contact form and
+ * the sign-up agreement record (27 D-03a). No claims:
  * authority is the grant.
  */
 export const asSystem = <T,>(env: CloudflareEnv, fn: QueryFn<T>) =>

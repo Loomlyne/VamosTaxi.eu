@@ -71,31 +71,27 @@ function classNameOf(tag: string): string {
   return found![1]!;
 }
 
-function onlySlot(src: string, className: string, hook: string, label: string): void {
-  const pattern = `<div\\s+(?:className="${className}"\\s+data-meta-slot="${hook}"|data-meta-slot="${hook}"\\s+className="${className}")\\s*>\\s*<PendingSlot\\s+label="${label}"\\s*/>\\s*</div>`;
-  const matches = src.match(new RegExp(pattern, "g"));
-  expect(matches ?? [], hook).toHaveLength(1);
+/** Inner markup of the one Meta slot wrapper (the wrapper holds a single paragraph). */
+function slotBody(src: string, className: string, hook: string): string {
+  const pattern = `<div\\s+(?:className="${className}"\\s+data-meta-slot="${hook}"|data-meta-slot="${hook}"\\s+className="${className}")\\s*>([\\s\\S]*?)</div>`;
+  const found = src.match(new RegExp(pattern));
+  expect(found, hook).not.toBeNull();
+  return found![1]!.trim();
 }
 
 describe("meta legal gate", () => {
-  it("necessary-cookies-only remains", () => {
+  it("banner title is you-choose-what-we-measure and body is meta-banner", () => {
     const banner = source("components/consent/CookieBanner.tsx");
-    expect(banner).toContain(
-      '<h2 className="vt-ck-title">{t("necessary-cookies-only")}</h2>',
-    );
+    expect(banner).toContain('{t("you-choose-what-we-measure")}');
+    expect(banner).toContain('t.rich("meta-banner"');
     for (const locale of ["en", "de", "fr", "ar"]) {
-      expect(source(`i18n/messages/${locale}.json`), locale).toContain(
-        '"necessary-cookies-only"',
-      );
+      const messages = source(`i18n/messages/${locale}.json`);
+      expect(messages, locale).toContain('"you-choose-what-we-measure"');
+      expect(messages, locale).toContain('"meta-banner"');
     }
-    expect(source("i18n/messages/en.json")).toContain(
-      '"necessary-cookies-only": "Necessary cookies only"',
-    );
   });
 
-  it("policy version unchanged", () => {
-    const policy = source("lib/consent/policy.ts");
-    expect(policy).toContain('export const CONSENT_POLICY_VERSION = "2026-09-12"');
+  it("policy version is the consent date", () => {
     const assignment = /CONSENT_POLICY_VERSION\s*=(?!=)\s*(["'])([^"']+)\1/g;
     const found: string[] = [];
     for (const rel of walk("")) {
@@ -104,7 +100,14 @@ describe("meta legal gate", () => {
         found.push(`${rel} ${match[2]}`);
       }
     }
-    expect(found).toEqual(["lib/consent/policy.ts 2026-09-12"]);
+    expect(found).toHaveLength(1);
+    const [file, version] = found[0]!.split(" ");
+    expect(file).toBe("lib/consent/policy.ts");
+    expect(version).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(version! > "2026-09-12").toBe(true);
+    const mock = readFileSync(join(webRoot, "../../app/vamos-legal-updated.js"), "utf8");
+    const consent = /var CONSENT_UPDATED = '(\d{4}-\d{2}-\d{2})';/.exec(mock);
+    expect(consent?.[1]).toBe(version);
   });
 
   it("no fbevents.js", () => {
@@ -154,18 +157,17 @@ describe("meta legal gate", () => {
     expect(count).toBe(1);
   });
 
-  it("marketing stays false", () => {
+  it("categories come from the choice, one policy version (27 D-05, D-18)", () => {
     const bind = source("lib/consent/bind.ts");
-    expect(bind).toContain("marketing: false");
-    expect(bind).toContain(
-      "policyVersion = input.policyVersion ?? CONSENT_POLICY_VERSION",
-    );
+    expect(bind).not.toContain("marketing: false");
+    expect(bind).not.toContain("policyVersion");
+    expect(bind).toContain("CONSENT_POLICY_VERSION");
     expect(bind).toContain("record_consent");
     expect(bind).not.toMatch(/update\s+consent_log/i);
+    expect(source("app/api/consent/route.ts")).toContain("categoriesForChoice(");
   });
 
   it("slots exist", () => {
-    const banner = source("components/consent/CookieBanner.tsx");
     const cookies = source("app/[locale]/cookies/page.tsx");
     const privacy = source("app/[locale]/privacy/page.tsx");
     const imprint = source("app/[locale]/imprint/page.tsx");
@@ -182,26 +184,20 @@ describe("meta legal gate", () => {
     expect(privacy).toContain('<PendingSlot label="Analytics region" />');
     expect(imprint).toContain('<PendingSlot label="Photography credit" />');
 
-    expect(banner).toContain('className="vt-ck-meta"');
-    expect(banner).toContain('data-meta-slot="banner"');
-    expect(banner).toContain('<PendingSlot label="Meta banner line" />');
-    expect(classNameOf(openTag(banner, "banner"))).toBe("vt-ck-meta");
-
-    expect(cookies.match(/Meta cookie row/g) ?? []).toHaveLength(1);
+    expect(cookies).not.toContain('label="Meta cookie row"');
+    expect(privacy).not.toContain('label="Meta privacy line"');
     expect(cookies).toContain('className="vt-legal-blank--row"');
     expect(cookies).toContain('data-meta-slot="cookies"');
     expect(classNameOf(openTag(cookies, "cookies"))).toBe("vt-legal-blank--row");
+    expect(slotBody(cookies, "vt-legal-blank--row", "cookies")).toContain('"meta-row"');
 
     expect(privacy).toContain('className="vt-legal-blank"');
     expect(privacy).toContain('data-meta-slot="privacy"');
-    expect(privacy).toContain('<PendingSlot label="Meta privacy line" />');
     expect(classNameOf(openTag(privacy, "privacy"))).toBe("vt-legal-blank");
+    expect(slotBody(privacy, "vt-legal-blank", "privacy")).toContain('"meta-privacy-line"');
   });
 
-  it("no sentence", () => {
-    for (const label of ["Meta banner line", "Meta cookie row", "Meta privacy line"]) {
-      expect(label).not.toMatch(/[.!?]/);
-    }
+  it("owner texts, not agent sentences", () => {
     for (const rel of [
       "components/consent/CookieBanner.tsx",
       "app/[locale]/cookies/page.tsx",
@@ -212,8 +208,16 @@ describe("meta legal gate", () => {
         expect(src, rel).not.toContain(needle);
       }
     }
-    onlySlot(source("components/consent/CookieBanner.tsx"), "vt-ck-meta", "banner", "Meta banner line");
-    onlySlot(source("app/[locale]/cookies/page.tsx"), "vt-legal-blank--row", "cookies", "Meta cookie row");
-    onlySlot(source("app/[locale]/privacy/page.tsx"), "vt-legal-blank", "privacy", "Meta privacy line");
+    for (const [rel, cls, hook, key] of [
+      ["app/[locale]/cookies/page.tsx", "vt-legal-blank--row", "cookies", "meta-row"],
+      ["app/[locale]/privacy/page.tsx", "vt-legal-blank", "privacy", "meta-privacy-line"],
+    ] as const) {
+      const body = slotBody(source(rel), cls, hook);
+      // Only the t.rich call: no literal prose in the slot.
+      const flat = body.replace(/\s+/g, " ");
+      expect(flat).toMatch(new RegExp(`^<p> \\{t(?:Cookies)?\\.rich\\("${key}", \\{ `));
+      expect(flat.endsWith(", })} </p>")).toBe(true);
+      expect(flat.match(/\.rich\(/g)).toHaveLength(1);
+    }
   });
 });

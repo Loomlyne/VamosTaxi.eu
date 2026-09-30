@@ -181,6 +181,25 @@ describe("identity-contract (D-16, database-free)", () => {
     expect(parsed.app_metadata).toEqual({});
   });
 
+  it("claim 5b — claimsForSql passes only vamos_role from app_metadata (G14)", () => {
+    const parsed = JSON.parse(
+      claimsForSql({
+        sub: "33333333-3333-3333-3333-333333333333",
+        role: "authenticated",
+        app_metadata: { vamos_role: "admin", provider: "email", stray: { a: 1 } },
+      }),
+    );
+    expect(parsed.app_metadata).toEqual({ vamos_role: "admin" });
+    const none = JSON.parse(
+      claimsForSql({
+        sub: "33333333-3333-3333-3333-333333333333",
+        role: "authenticated",
+        app_metadata: { stray: 1 },
+      }),
+    );
+    expect(none.app_metadata).toEqual({});
+  });
+
   it("claim 6 — opts.probe makes ENTRY_PROBE the first recorded statement; no opts records none", async () => {
     {
       const { client, recorded } = makeRecordingClient();

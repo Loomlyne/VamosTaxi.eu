@@ -2,9 +2,10 @@
 //
 // D-03 / D-04: set_config request.vamos.consent_subject then public.record_consent
 // on the same asAnon/asCustomer transaction. Subject is never an RPC argument.
-// Accept → accept_all, Dismiss → reject_all, /cookies → settings_change.
+// Categories come from the visitor's choice (D-18), see choice.ts; necessary is always true.
 
 import type postgres from "postgres";
+import type { ConsentCategories } from "./choice";
 import { CONSENT_POLICY_VERSION } from "./policy";
 
 export type ConsentMethod = "accept_all" | "reject_all" | "settings_change";
@@ -16,18 +17,11 @@ export const CONSENT_METHOD = {
   settings: "settings_change",
 } as const;
 
-const CATEGORIES = {
-  necessary: true,
-  functional: false,
-  analytics: false,
-  marketing: false,
-} as const;
-
 export type RecordConsentInput = {
   subject: string;
   method: ConsentMethod;
   locale: ConsentLocale;
-  policyVersion?: string;
+  categories: ConsentCategories;
   userAgent?: string | null;
   ipTruncated?: string | null;
   bookingId?: string | null;
@@ -42,15 +36,14 @@ export async function recordConsent(
   input: RecordConsentInput,
 ): Promise<void> {
   await tx`select set_config('request.vamos.consent_subject', ${input.subject}, true)`;
-  const policyVersion = input.policyVersion ?? CONSENT_POLICY_VERSION;
   await tx`select public.record_consent(
-    ${CATEGORIES.necessary},
-    ${CATEGORIES.functional},
-    ${CATEGORIES.analytics},
-    ${CATEGORIES.marketing},
+    ${true},
+    ${input.categories.functional},
+    ${input.categories.analytics},
+    ${input.categories.marketing},
     ${input.method},
     ${input.locale},
-    ${policyVersion},
+    ${CONSENT_POLICY_VERSION},
     ${input.bookingId ?? null},
     ${input.userAgent ?? null},
     ${input.ipTruncated ?? null}

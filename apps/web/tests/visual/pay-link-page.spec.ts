@@ -12,6 +12,7 @@ import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 import { openInLocale, type Lang } from "../support/locale";
 import { FAKE_STRIPE_HOST, installFakeStripe } from "../support/fake-stripe";
+import { stubConsentChosen } from "../support/consent-state";
 
 const RUN_PROJECT = "component-1440";
 const TOKEN = "dG9rZW4tYWJjZGVmZ2g";
@@ -52,6 +53,7 @@ test.afterAll(() => {
 });
 
 test.beforeEach(async ({ page }, testInfo) => {
+  await stubConsentChosen(page);
   test.skip(testInfo.project.name !== RUN_PROJECT, "pay-link page specs run once under component-1440.");
   // Real Stripe and Cloudflare hosts stay offline; the fake Stripe origin is routed per test.
   await page.route(

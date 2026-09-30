@@ -25,9 +25,11 @@ describe("D-23 grep gate — no off-session extra-wait debit", () => {
     expect(intent).toMatch(/waiting extra is 0 at pay/);
   });
 
-  it("ops extra wait is display-only and never opens a PaymentIntent", () => {
+  // 26.2-p4 A4: the extra-wait figure left the board mapper (owner, 2026-09-30); the mapper still
+  // never opens a PaymentIntent.
+  it("ops board mapper never opens a PaymentIntent", () => {
     const src = readFileSync(join(here, "../ops/bookings-map.ts"), "utf8");
-    expect(src).toMatch(/Display only — never a Stripe amount/);
+    expect(src).not.toMatch(/extraWait/);
     expect(src).not.toMatch(/off_session/);
     expect(src).not.toMatch(/setup_future_usage/);
     expect(src).not.toMatch(/paymentIntents\.create/);

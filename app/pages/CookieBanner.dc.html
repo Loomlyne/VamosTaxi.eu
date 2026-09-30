@@ -27,6 +27,8 @@
 <script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
 <script src="../vamos-i18n-dict.js"></script>
 <script src="../vamos-locale.js"></script>
+<script src="../vamos-meta-texts.js"></script>
+<script src="../vamos-consent.js"></script>
 <script src="../vamos-page-transition.js"></script>
 <style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
 .vt-input--focus{box-shadow:none}
@@ -42,38 +44,52 @@
 .vt-btn:focus-visible{box-shadow:var(--vt-ring)!important}
 .vt-btn[disabled],.vt-btn[aria-disabled="true"]{transform:none}.vt-select .vt-input--focus{box-shadow:none}
 input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] input:focus{outline:none;box-shadow:none}
-[data-tok]::after{content:"TBC";font-family:var(--vt-font-body);font-size:.66em;font-weight:700;letter-spacing:.1em;color:var(--vt-yellow-700);margin-inline-start:5px}body{margin:0}
+[data-tok]::after{content:"TBC";font-family:var(--vt-font-body);font-size:.66em;font-weight:700;letter-spacing:.1em;color:var(--vt-charcoal-800);margin-inline-start:5px}body{margin:0;padding-block-end:var(--vt-ck-reserve,0px)}
 a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}
 @keyframes ck-in{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
 @keyframes ck-fade{from{opacity:0}to{opacity:1}}
 [data-ck-sheet]{animation:ck-in 320ms cubic-bezier(.16,1,.3,1) both}
 [data-ck-veil]{animation:ck-fade 200ms cubic-bezier(.2,0,.2,1) both}
 [data-ck-link]{color:var(--vt-charcoal-900);text-decoration:underline;text-decoration-color:var(--vt-grey-300);text-underline-offset:3px;transition:color 140ms cubic-bezier(.2,0,.2,1)}
-[data-ck-link]:hover{color:var(--vt-yellow-700);text-decoration-color:currentColor}
+[data-ck-link]:hover{color:var(--vt-charcoal-800);text-decoration-color:currentColor}
 [data-ck-row]:last-child{border-bottom:0}
 [data-ck-pill]:hover{background:var(--vt-charcoal-800)}
 [data-ck-pill]:active{transform:translateY(1px)}
 [data-ck-x]:hover{background:var(--vt-grey-100)}
-[data-ck-banner]{position:fixed;left:16px;right:16px;bottom:16px;z-index:70}
+[data-ck-banner]{position:fixed;inset-inline:16px;inset-block-end:16px;z-index:70}
+[data-ck-ts]{display:flex;gap:8px;min-block-size:0;flex-basis:100%}
+[data-ck-gal]{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,452px),1fr));gap:24px;padding:32px;background:var(--vt-grey-50);font-family:var(--vt-font-body)}
+[data-ck-code]{font-family:var(--vt-font-mono);font-size:.92em;background:none;border:0;padding:0;color:inherit}
 [data-ck-cats]{display:flex;flex-direction:column}
 [data-ck-meta]{display:flex;flex-direction:column;gap:4px}
 [data-ck-acts]{display:flex;flex-direction:column;gap:10px}
 [data-ck-modal]{width:min(680px,calc(100vw - 32px));max-height:min(86vh,760px)}
-@media (min-width:640px){[data-ck-banner]{left:32px;right:auto;bottom:32px;width:452px}[data-ck-acts]{flex-direction:row;flex-wrap:wrap;align-items:center}[data-ck-meta]{flex-direction:row;gap:20px}}
+@media (min-width:640px){[data-ck-banner]{inset-inline-start:32px;inset-inline-end:auto;inset-block-end:32px;inline-size:452px}[data-ck-acts]{flex-direction:row;flex-wrap:wrap;align-items:center}[data-ck-meta]{flex-direction:row;gap:20px}}
 @media print{[data-ck-banner],[data-ck-veil]{display:none!important}}
 @media (prefers-reduced-motion:reduce){[data-ck-sheet],[data-ck-veil]{animation:none}}:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}</style>
 </helmet>
 
 <sc-if value="{{ showBanner }}" hint-placeholder-val="{{ true }}">
 <div data-ck-banner="1" ref="{{ bannerRef }}" data-screen-label="Cookie banner" role="region" aria-label="Cookie choices" style="font-family:var(--vt-font-body)">
-<div data-ck-sheet="1" style="background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-xl);box-shadow:var(--vt-shadow-lg);padding:24px">
+<div data-ck-sheet="1" data-ck-card="1" aria-busy="{{ busyStr }}" style="background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-xl);box-shadow:var(--vt-shadow-lg);padding:24px">
 <p style="margin:0 0 10px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Cookies</p>
 <h2 style="margin:0 0 8px;font-family:var(--vt-font-display);font-size:var(--vt-heading-3);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">You choose what we measure</h2>
-<p style="margin:0 0 18px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary);max-width:46ch">Strictly necessary cookies keep the booking flow working. Analytics and marketing stay off until you turn them on. Read the <a data-ck-link="1" href="cookies.dc.html">cookie policy</a>.</p>
+<p data-vt-no-i18n="1" style="margin:0 0 8px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary);max-width:46ch">{{ bannerText }}</p>
+<p style="margin:0 0 18px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading)"><a data-ck-link="1" href="cookies.dc.html">Cookie policy</a></p>
+<sc-if value="{{ alertSave }}" hint-placeholder-val="{{ false }}">
+<div style="margin-block-end:12px"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" role="alert" title="Your choice was not saved. Try again." hint-size="100%,56px"></x-import></div>
+</sc-if>
+<sc-if value="{{ alertCheck }}" hint-placeholder-val="{{ false }}">
+<div style="margin-block-end:12px"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" role="alert" title="The check did not go through. Try again." hint-size="100%,56px"></x-import></div>
+</sc-if>
+<div data-ck-ts="1" data-vt-no-i18n="1" ref="{{ tsBannerRef }}" style="margin-block-end:8px"></div>
+<sc-if value="{{ tsPlaceholder }}" hint-placeholder-val="{{ false }}">
+<div data-vt-no-i18n="1" style="min-block-size:65px;margin-block-end:8px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);display:grid;place-items:center;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">Cloudflare check shown here</div>
+</sc-if>
 <div data-ck-acts="1">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ acceptAll }}" hint-size="128px,44px">Accept all</x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" onClick="{{ rejectAll }}" hint-size="184px,44px">Necessary only</x-import>
-<button type="button" onClick="{{ openPrefs }}" style="appearance:none;background:none;border:0;padding:6px 2px;min-height:44px;font-family:inherit;font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);color:var(--vt-text-secondary);text-decoration:underline;text-decoration-color:var(--vt-grey-300);text-underline-offset:3px;cursor:pointer">Manage preferences</button>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" disabled="{{ busy }}" onClick="{{ acceptAll }}" hint-size="128px,44px">Accept all</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" disabled="{{ busy }}" onClick="{{ rejectAll }}" hint-size="184px,44px">Necessary only</x-import>
+<button data-ck-manage="1" type="button" disabled="{{ busy }}" onClick="{{ openPrefs }}" style="appearance:none;background:none;border:0;padding:6px 2px;min-height:44px;font-family:inherit;font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);color:var(--vt-text-secondary);text-decoration:underline;text-decoration-color:var(--vt-grey-300);text-underline-offset:3px;cursor:pointer">Manage preferences</button>
 </div>
 </div>
 </div>
@@ -81,175 +97,402 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 
 <sc-if value="{{ showPrefs }}" hint-placeholder-val="{{ false }}">
 <div data-ck-veil="1" style="position:fixed;inset:0;z-index:80;background:var(--vt-bg-scrim);display:flex;align-items:flex-end;justify-content:center;padding:16px;font-family:var(--vt-font-body)" onClick="{{ veilClick }}">
-<div data-ck-modal="1" data-ck-sheet="1" role="dialog" aria-modal="true" aria-labelledby="ck-title" ref="{{ dialogRef }}" tabindex="-1" style="background:var(--vt-bg-surface);border-radius:var(--vt-radius-xl);box-shadow:var(--vt-shadow-xl);display:flex;flex-direction:column;overflow:hidden;outline:none;margin:auto 0">
+<div data-ck-modal="1" data-ck-sheet="1" role="dialog" aria-modal="true" aria-labelledby="ck-title" aria-busy="{{ busyStr }}" ref="{{ dialogRef }}" tabindex="-1" style="background:var(--vt-bg-surface);border-radius:var(--vt-radius-xl);box-shadow:var(--vt-shadow-xl);display:flex;flex-direction:column;overflow:hidden;outline:none;margin:auto 0">
 
 <div style="display:flex;align-items:flex-start;gap:16px;padding:26px 26px 20px;border-bottom:1px solid var(--vt-border-subtle)">
 <div style="flex:1 1 auto;min-width:0">
 <p style="margin:0 0 8px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Cookie preferences</p>
 <h2 id="ck-title" style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Choose your categories</h2>
 </div>
-<button data-ck-x="1" type="button" onClick="{{ closePrefs }}" aria-label="Close" style="flex:0 0 auto;width:44px;height:44px;display:grid;place-items:center;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-subtle);background:var(--vt-bg-surface);cursor:pointer;transition:background 140ms cubic-bezier(.2,0,.2,1)">
+<button data-ck-x="1" type="button" disabled="{{ busy }}" onClick="{{ closePrefs }}" aria-label="Close" style="flex:0 0 auto;width:44px;height:44px;display:grid;place-items:center;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-subtle);background:var(--vt-bg-surface);cursor:pointer;transition:background 140ms cubic-bezier(.2,0,.2,1)">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="x" size="{{ n18 }}" color="var(--vt-charcoal-900)" hint-size="18px,18px"></x-import>
 </button>
 </div>
 
-<div data-ck-cats="1" style="overflow:auto;padding:4px 26px">
-
+<div data-ck-cats="1" data-lenis-prevent="1" style="overflow:auto;padding:4px 26px">
+<sc-for list="{{ rows }}" as="r" hint-placeholder-count="4">
 <div data-ck-row="1" style="display:flex;gap:20px;align-items:flex-start;padding:22px 0;border-bottom:1px solid var(--vt-grey-100)">
 <div style="flex:1 1 auto;min-width:0">
-<h3 style="margin:0 0 6px;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);line-height:1.3;font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Strictly necessary</h3>
-<p style="margin:0 0 10px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Holds your booking while you fill it in, processes the payment, blocks fraud and records this consent. The site does not work without them.</p>
-<div data-ck-meta="1" style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)"><span>Vamos Taxi · Stripe · Supabase · Cloudflare</span><span>session / refresh as issued by Supabase Auth</span></div>
+<h3 style="margin:0 0 6px;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);line-height:1.3;font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">{{ r.title }}</h3>
+<sc-if value="{{ r.isText }}" hint-placeholder-val="{{ true }}">
+<p style="margin:0 0 10px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">{{ r.desc }}</p>
+</sc-if>
+<sc-if value="{{ r.isSeg }}" hint-placeholder-val="{{ false }}">
+<p data-vt-no-i18n="1" style="margin:0;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)"><sc-for list="{{ r.segs }}" as="g" hint-placeholder-count="3"><sc-if value="{{ g.isText }}" hint-placeholder-val="{{ true }}"><span>{{ g.t }}</span></sc-if><sc-if value="{{ g.isB }}" hint-placeholder-val="{{ false }}"><strong style="font-weight:var(--vt-weight-semibold)">{{ g.t }}</strong></sc-if><sc-if value="{{ g.isCode }}" hint-placeholder-val="{{ false }}"><code data-ck-code="1" class="vt-dir-keep">{{ g.t }}</code></sc-if></sc-for></p>
+</sc-if>
+<sc-if value="{{ r.hasMeta }}" hint-placeholder-val="{{ true }}">
+<div data-ck-meta="1" style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)"><span>{{ r.m1 }}</span><span>{{ r.m2 }}</span></div>
+</sc-if>
 </div>
 <div style="flex:0 0 auto;display:flex;align-items:center;gap:10px;min-height:44px">
+<sc-if value="{{ r.always }}" hint-placeholder-val="{{ false }}">
 <span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Always on</span>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Switch" checked="{{ on }}" disabled="{{ on }}" aria-label="Strictly necessary cookies, always on" hint-size="44px,26px"></x-import>
+</sc-if>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Switch" checked="{{ r.checked }}" disabled="{{ r.off }}" onChange="{{ r.change }}" aria-label="{{ r.aria }}" hint-size="44px,26px"></x-import>
 </div>
 </div>
-
-<div data-ck-row="1" style="display:flex;gap:20px;align-items:flex-start;padding:22px 0;border-bottom:1px solid var(--vt-grey-100)">
-<div style="flex:1 1 auto;min-width:0">
-<h3 style="margin:0 0 6px;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);line-height:1.3;font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Functional</h3>
-<p style="margin:0 0 10px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Remembers your language and your last pickup address so you do not type them twice.</p>
-<div data-ck-meta="1" style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)"><span>Vamos Taxi</span><span>until you change language or clear recent places</span></div>
-</div>
-<div style="flex:0 0 auto;display:flex;align-items:center;min-height:44px">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Switch" checked="{{ pFunctional }}" onChange="{{ toggleFunctional }}" aria-label="Functional cookies" hint-size="44px,26px"></x-import>
-</div>
-</div>
-
-<div data-ck-row="1" style="display:flex;gap:20px;align-items:flex-start;padding:22px 0;border-bottom:1px solid var(--vt-grey-100)">
-<div style="flex:1 1 auto;min-width:0">
-<h3 style="margin:0 0 6px;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);line-height:1.3;font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Analytics</h3>
-<p style="margin:0 0 10px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Tells us which step of a booking people abandon, and reports errors so we can fix them.</p>
-<div data-ck-meta="1" style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)"><span>Cloudflare Web Analytics (cookieless) · Sentry</span><span>not used</span></div>
-</div>
-<div style="flex:0 0 auto;display:flex;align-items:center;min-height:44px">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Switch" checked="{{ pAnalytics }}" onChange="{{ toggleAnalytics }}" aria-label="Analytics cookies" hint-size="44px,26px"></x-import>
-</div>
-</div>
-
-<div data-ck-row="1" style="display:flex;gap:20px;align-items:flex-start;padding:22px 0;border-bottom:1px solid var(--vt-grey-100)">
-<div style="flex:1 1 auto;min-width:0">
-<h3 style="margin:0 0 6px;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);line-height:1.3;font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Marketing</h3>
-<p style="margin:0 0 10px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Measures which advert brought you here. Nothing in this category is running today.</p>
-<div data-ck-meta="1" style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)"><span>none</span><span>not used</span></div>
-</div>
-<div style="flex:0 0 auto;display:flex;align-items:center;min-height:44px">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Switch" checked="{{ pMarketing }}" onChange="{{ toggleMarketing }}" aria-label="Marketing cookies" hint-size="44px,26px"></x-import>
-</div>
-</div>
-
+</sc-for>
 </div>
 
 <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:20px 26px;border-top:1px solid var(--vt-border-subtle);background:var(--vt-grey-50)">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ savePrefs }}" hint-size="150px,44px">Save choices</x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" onClick="{{ acceptAll }}" hint-size="128px,44px">Accept all</x-import>
-<p style="margin:0;margin-left:auto;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">Your choice is stored in this browser until you change it.</p>
+<sc-if value="{{ alertSave }}" hint-placeholder-val="{{ false }}">
+<div style="flex-basis:100%"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" role="alert" title="Your choice was not saved. Try again." hint-size="100%,56px"></x-import></div>
+</sc-if>
+<sc-if value="{{ alertCheck }}" hint-placeholder-val="{{ false }}">
+<div style="flex-basis:100%"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" role="alert" title="The check did not go through. Try again." hint-size="100%,56px"></x-import></div>
+</sc-if>
+<div data-ck-ts="1" data-vt-no-i18n="1" ref="{{ tsSheetRef }}"></div>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" disabled="{{ busy }}" onClick="{{ savePrefs }}" hint-size="150px,44px">Save choices</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" disabled="{{ busy }}" onClick="{{ acceptAll }}" hint-size="128px,44px">Accept all</x-import>
+<p style="margin:0;margin-inline-start:auto;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">Your choice is stored in this browser until you change it.</p>
 </div>
 
 </div>
 </div>
 </sc-if>
 
+<sc-if value="{{ gallery }}" hint-placeholder-val="{{ false }}">
+<section data-ck-gal="1" data-vt-no-i18n="1" aria-label="Cookie banner states (review only)">
+<sc-for list="{{ galleryCards }}" as="g" hint-placeholder-count="5">
+<div>
+<p style="margin:0 0 8px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">{{ g.label }}</p>
+<div data-ck-card="1" aria-busy="{{ g.busyStr }}" style="background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-xl);box-shadow:var(--vt-shadow-lg);padding:24px;max-inline-size:452px">
+<p style="margin:0 0 10px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Cookies</p>
+<h2 style="margin:0 0 8px;font-family:var(--vt-font-display);font-size:var(--vt-heading-3);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">You choose what we measure</h2>
+<p style="margin:0 0 8px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary);max-width:46ch">{{ galleryText }}</p>
+<p style="margin:0 0 18px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading)"><a data-ck-link="1" href="cookies.dc.html">Cookie policy</a></p>
+<sc-if value="{{ g.alertSave }}" hint-placeholder-val="{{ false }}">
+<div style="margin-block-end:12px"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" role="alert" title="Your choice was not saved. Try again." hint-size="100%,56px"></x-import></div>
+</sc-if>
+<sc-if value="{{ g.alertCheck }}" hint-placeholder-val="{{ false }}">
+<div style="margin-block-end:12px"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" role="alert" title="The check did not go through. Try again." hint-size="100%,56px"></x-import></div>
+</sc-if>
+<sc-if value="{{ g.ts }}" hint-placeholder-val="{{ false }}">
+<div style="min-block-size:65px;margin-block-end:8px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);display:grid;place-items:center;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">Cloudflare check shown here</div>
+</sc-if>
+<div data-ck-acts="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" disabled="{{ g.busy }}" hint-size="128px,44px">Accept all</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" disabled="{{ g.busy }}" hint-size="184px,44px">Necessary only</x-import>
+<button type="button" disabled="{{ g.busy }}" style="appearance:none;background:none;border:0;padding:6px 2px;min-height:44px;font-family:inherit;font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);color:var(--vt-text-secondary);text-decoration:underline;text-decoration-color:var(--vt-grey-300);text-underline-offset:3px">Manage preferences</button>
+</div>
+</div>
+</div>
+</sc-for>
+<div>
+<p style="margin:0 0 8px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Sheet with a saved choice</p>
+<div data-ck-modal="1" style="background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-xl);box-shadow:var(--vt-shadow-xl);display:flex;flex-direction:column;overflow:hidden">
+<div style="padding:26px 26px 20px;border-bottom:1px solid var(--vt-border-subtle)">
+<p style="margin:0 0 8px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Cookie preferences</p>
+<h2 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Choose your categories</h2>
+</div>
+<div style="padding:4px 26px">
+<sc-for list="{{ galleryRows }}" as="r" hint-placeholder-count="4">
+<div data-ck-row="1" style="display:flex;gap:20px;align-items:flex-start;padding:22px 0;border-bottom:1px solid var(--vt-grey-100)">
+<div style="flex:1 1 auto;min-width:0">
+<h3 style="margin:0 0 6px;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);line-height:1.3;font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">{{ r.title }}</h3>
+<sc-if value="{{ r.isText }}" hint-placeholder-val="{{ true }}">
+<p style="margin:0 0 10px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">{{ r.desc }}</p>
+</sc-if>
+<sc-if value="{{ r.isSeg }}" hint-placeholder-val="{{ false }}">
+<p style="margin:0;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)"><sc-for list="{{ r.segs }}" as="g" hint-placeholder-count="3"><sc-if value="{{ g.isText }}" hint-placeholder-val="{{ true }}"><span>{{ g.t }}</span></sc-if><sc-if value="{{ g.isB }}" hint-placeholder-val="{{ false }}"><strong style="font-weight:var(--vt-weight-semibold)">{{ g.t }}</strong></sc-if><sc-if value="{{ g.isCode }}" hint-placeholder-val="{{ false }}"><code data-ck-code="1" class="vt-dir-keep">{{ g.t }}</code></sc-if></sc-for></p>
+</sc-if>
+<sc-if value="{{ r.hasMeta }}" hint-placeholder-val="{{ true }}">
+<div data-ck-meta="1" style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)"><span>{{ r.m1 }}</span><span>{{ r.m2 }}</span></div>
+</sc-if>
+</div>
+<div style="flex:0 0 auto;display:flex;align-items:center;gap:10px;min-height:44px">
+<sc-if value="{{ r.always }}" hint-placeholder-val="{{ false }}">
+<span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Always on</span>
+</sc-if>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Switch" checked="{{ r.checked }}" disabled="{{ r.off }}" aria-label="{{ r.aria }}" hint-size="44px,26px"></x-import>
+</div>
+</div>
+</sc-for>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:20px 26px;border-top:1px solid var(--vt-border-subtle);background:var(--vt-grey-50)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" hint-size="150px,44px">Save choices</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" hint-size="128px,44px">Accept all</x-import>
+<p style="margin:0;margin-inline-start:auto;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">Your choice is stored in this browser until you change it.</p>
+</div>
+</div>
+</div>
+</section>
+</sc-if>
+
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1200,&quot;height&quot;:560},&quot;startState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;auto&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;banner&quot;,&quot;prefs&quot;,&quot;hidden&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Review&quot;}}">
-const KEY = 'vamosCookieConsent';
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1200,&quot;height&quot;:560},&quot;startState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;auto&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;banner&quot;,&quot;busy&quot;,&quot;turnstile&quot;,&quot;error-save&quot;,&quot;error-check&quot;,&quot;prefs&quot;,&quot;prefs-saved&quot;,&quot;hidden&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Review&quot;}}">
+// The server is the record (27-CONTEXT D-06). VamosConsent owns the request, the
+// display cache and Turnstile; this component owns the states and the copy.
+const NOOP = () => {};
 
 class Component extends DCLogic {
   dialogRef = React.createRef();
   bannerRef = React.createRef();
+  tsBannerRef = React.createRef();
+  tsSheetRef = React.createRef();
+  ts = null;
+  opener = null;
+  unmounted = false;
+  _ro = null;
+  _obsEl = null;
 
   constructor(props) {
     super(props);
     const start = props.startState || 'auto';
-    this.state = {
-      decided: false,
-      mode: start === 'auto' ? 'banner' : start,
+    this.forced = start !== 'auto';
+    this.gallery = /[?&]ck-gallery=1(&|$)/.test(String(window.location.search || ''));
+    const s = {
+      decided: false, known: this.forced, dirty: false,
+      mode: 'unknown', busy: false, alert: null, tsPlaceholder: false,
       functional: false, analytics: false, marketing: false,
+      lang: this.curLang(),
     };
+    if (start === 'banner') s.mode = 'banner';
+    if (start === 'busy') { s.mode = 'banner'; s.busy = true; }
+    if (start === 'turnstile') { s.mode = 'banner'; s.busy = true; s.tsPlaceholder = true; }
+    if (start === 'error-save') { s.mode = 'banner'; s.alert = 'save'; }
+    if (start === 'error-check') { s.mode = 'banner'; s.alert = 'check'; }
+    if (start === 'prefs') s.mode = 'prefs';
+    if (start === 'prefs-saved') {
+      s.mode = 'prefs'; s.decided = true;
+      s.functional = true; s.analytics = false; s.marketing = true;
+    }
+    if (start === 'hidden') s.mode = 'hidden';
+    this.state = s;
+  }
+
+  curLang() {
+    const L = window.VamosLocale;
+    const v = L && (typeof L.lang === 'function' ? L.lang() : L.lang);
+    return v === 'de' || v === 'fr' || v === 'ar' ? v : 'en';
   }
 
   componentDidMount() {
-    if ((this.props.startState || 'auto') === 'auto') {
-      let saved = null;
-      try { saved = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { saved = null; }
-      if (saved && typeof saved === 'object') {
-        this.setState({ decided: true, mode: 'hidden',
-          functional: !!saved.functional, analytics: !!saved.analytics, marketing: !!saved.marketing });
-      }
+    const L = window.VamosLocale;
+    if (L && typeof L.onChange === 'function') {
+      this._offLocale = L.onChange((v) => this.setState({ lang: (v && v.lang) || this.curLang() }));
     }
+    this.bindConsent(0);
     window.addEventListener('vamos:cookie-prefs', this.openPrefs);
     document.addEventListener('keydown', this.onKey);
-    window.addEventListener('resize', this.syncBodyPad);
-    this.syncBodyPad();
+    window.addEventListener('resize', this.syncReserve);
+    this.observe();
+    this.syncReserve();
   }
-  componentDidUpdate() { this.syncBodyPad(); }
+  // vamos-consent.js comes from this component's own <helmet>, so it can land after the
+  // mount. Wait for it (up to 5s); if it never arrives the banner asks (D-33), never hides.
+  bindConsent(tries) {
+    if (this.unmounted) return;
+    if (!window.VamosConsent) {
+      if (tries >= 100) { if (!this.forced) this.setState({ known: true, mode: 'banner' }); return; }
+      this._bindTimer = setTimeout(() => this.bindConsent(tries + 1), 50);
+      return;
+    }
+    this._offConsent = window.VamosConsent.onChange((c) => {
+      if (this.forced || !c) return;
+      this.setState({
+        decided: true, known: true, busy: false, alert: null, mode: 'hidden',
+        functional: !!c.functional, analytics: !!c.analytics, marketing: !!c.marketing,
+      });
+    });
+    if (!this.forced) this.readServer();
+  }
+  componentDidUpdate() { this.observe(); this.syncReserve(); }
   componentWillUnmount() {
+    this.unmounted = true;
+    if (this._offLocale) this._offLocale();
+    if (this._offConsent) this._offConsent();
+    if (this._bindTimer) clearTimeout(this._bindTimer);
+    this.destroyTs();
+    if (this._ro) this._ro.disconnect();
     window.removeEventListener('vamos:cookie-prefs', this.openPrefs);
     document.removeEventListener('keydown', this.onKey);
-    window.removeEventListener('resize', this.syncBodyPad);
-    document.body.style.paddingBottom = '';
+    window.removeEventListener('resize', this.syncReserve);
+    document.documentElement.style.removeProperty('--vt-ck-reserve');
   }
 
-  // The banner is fixed, so reserve real space for it — measured, not guessed, because
-  // its height changes with viewport width and with German copy. Desktop is a 452px
-  // card in the bottom-left corner, clear of the booking widget, so it reserves nothing.
-  syncBodyPad = () => {
-    if (this.state.mode !== 'banner') { document.body.style.paddingBottom = ''; return; }
-    if (window.innerWidth >= 640) { document.body.style.paddingBottom = ''; return; }
+  // Until the server answers the banner paints nothing; a failed check asks (D-33).
+  readServer() {
+    window.VamosConsent.state().then((r) => {
+      if (this.unmounted) return;
+      if (r && r.ok && r.chosen && r.choice) {
+        const c = r.choice;
+        this.setState((st) => ({
+          known: true, decided: true,
+          mode: st.mode === 'unknown' ? 'hidden' : st.mode,
+          functional: st.dirty ? st.functional : !!c.functional,
+          analytics: st.dirty ? st.analytics : !!c.analytics,
+          marketing: st.dirty ? st.marketing : !!c.marketing,
+        }));
+      } else {
+        this.setState((st) => ({ known: true, mode: st.mode === 'unknown' ? 'banner' : st.mode }));
+      }
+    });
+  }
+
+  // The banner is fixed, so reserve real space for it below 640px: measured, because its
+  // height changes with viewport width, German copy, the Alert and a Turnstile challenge.
+  syncReserve = () => {
+    const root = document.documentElement;
+    if (this.state.mode !== 'banner' || window.innerWidth >= 640) { root.style.removeProperty('--vt-ck-reserve'); return; }
     const el = this.bannerRef.current;
     const h = el ? Math.ceil(el.getBoundingClientRect().height) : 0;
-    document.body.style.paddingBottom = h ? (h + 32) + 'px' : '';
+    if (h) root.style.setProperty('--vt-ck-reserve', (h + 32) + 'px');
+    else root.style.removeProperty('--vt-ck-reserve');
   };
+  observe() {
+    const el = this.bannerRef.current;
+    if (el === this._obsEl) return;
+    if (this._ro) this._ro.disconnect();
+    this._obsEl = el;
+    if (el && window.ResizeObserver) {
+      if (!this._ro) this._ro = new window.ResizeObserver(() => this.syncReserve());
+      this._ro.observe(el);
+    }
+  }
 
-  onKey = (e) => { if (e.key === 'Escape' && this.state.mode === 'prefs') this.closePrefs(); };
+  onKey = (e) => { if (e.key === 'Escape' && this.state.mode === 'prefs' && !this.state.busy) this.closePrefs(); };
 
-  write(next) {
-    try {
-      localStorage.setItem(KEY, JSON.stringify({
-        necessary: true, functional: next.functional, analytics: next.analytics,
-        marketing: next.marketing, ts: new Date().toISOString(), v: 1,
-      }));
-    } catch (e) { /* storage unavailable — the choice still applies to this visit */ }
+  destroyTs() {
+    if (this.ts) { try { this.ts.remove(); } catch (e) { /* widget already gone */ } this.ts = null; }
+  }
+
+  // One request at a time. `doSave(token)` is the one POST; Necessary only never asks for a token.
+  submit(needsToken, doSave, cats) {
+    if (this.forced || this.state.busy || this.unmounted) return;
+    const where = this.state.mode === 'prefs' ? 'sheet' : 'banner';
+    this.destroyTs();
+    this.setState({ busy: true, alert: null }, () => {
+      if (!needsToken) { this.finish(doSave(undefined), cats); return; }
+      const box = where === 'sheet' ? this.tsSheetRef.current : this.tsBannerRef.current;
+      this.ts = window.VamosConsent.turnstile(
+        box,
+        (token) => this.finish(doSave(token), cats),
+        () => this.fail('check')
+      );
+      if (this.ts) this.ts.execute();
+    });
+  }
+  finish(request, cats) {
+    request.then((r) => {
+      if (this.unmounted) return;
+      if (r && r.ok) {
+        this.destroyTs();
+        this.setState({
+          busy: false, alert: null, decided: true, known: true, mode: 'hidden',
+          functional: cats.functional, analytics: cats.analytics, marketing: cats.marketing,
+        }, this.restoreFocus);
+        return;
+      }
+      this.fail(r && r.code === 'challenge_failed' ? 'check' : 'save');
+    });
+  }
+  fail(kind) {
+    if (this.unmounted) return;
+    if (this.ts) { try { this.ts.reset(); } catch (e) { /* widget already gone */ } }
+    this.setState({ busy: false, alert: kind });
   }
 
   acceptAll = () => {
-    const next = { functional: true, analytics: true, marketing: true };
-    this.write(next); this.setState(Object.assign({ decided: true, mode: 'hidden' }, next));
+    const cats = { functional: true, analytics: true, marketing: true };
+    this.submit(true, (t) => window.VamosConsent.save('accept_all', cats, { turnstileToken: t }), cats);
   };
   rejectAll = () => {
-    const next = { functional: false, analytics: false, marketing: false };
-    this.write(next); this.setState(Object.assign({ decided: true, mode: 'hidden' }, next));
+    const cats = { functional: false, analytics: false, marketing: false };
+    this.submit(false, () => window.VamosConsent.save('reject_all', cats, {}), cats);
   };
   savePrefs = () => {
-    this.write(this.state); this.setState({ decided: true, mode: 'hidden' });
+    const s = this.state;
+    const cats = { functional: s.functional, analytics: s.analytics, marketing: s.marketing };
+    this.submit(cats.marketing, (t) => window.VamosConsent.save('settings_change', cats, { turnstileToken: t }), cats);
   };
+
+  // Opens the sheet only. It never writes a row (D-10).
   openPrefs = () => {
-    this.setState({ mode: 'prefs' }, () => {
+    if (this.state.busy) return;
+    if (this.state.mode === 'prefs') return;
+    const a = document.activeElement;
+    this.opener = this.state.mode === 'banner' ? 'banner' : (a && a !== document.body ? a : null);
+    this.setState({ mode: 'prefs', alert: null }, () => {
       const el = this.dialogRef.current; if (el) el.focus();
     });
   };
-  closePrefs = () => { this.setState({ mode: this.state.decided ? 'hidden' : 'banner' }); };
+  closePrefs = () => {
+    if (this.state.busy) return;
+    this.destroyTs();
+    this.setState((st) => ({ mode: st.decided ? 'hidden' : (st.known ? 'banner' : 'unknown'), alert: null }), this.restoreFocus);
+  };
+  restoreFocus = () => {
+    const o = this.opener; this.opener = null;
+    if (o === 'banner') {
+      const b = document.querySelector('[data-ck-manage]'); if (b) b.focus();
+    } else if (o && o.isConnected && typeof o.focus === 'function') o.focus();
+  };
   veilClick = (e) => { if (e.target === e.currentTarget) this.closePrefs(); };
 
-  toggleFunctional = (e) => this.setState({ functional: e.target.checked });
-  toggleAnalytics = (e) => this.setState({ analytics: e.target.checked });
-  toggleMarketing = (e) => this.setState({ marketing: e.target.checked });
+  toggleFunctional = (e) => this.setState({ functional: e.target.checked, dirty: true });
+  toggleAnalytics = (e) => this.setState({ analytics: e.target.checked, dirty: true });
+  toggleMarketing = (e) => this.setState({ marketing: e.target.checked, dirty: true });
+
+  segs(key, lang) {
+    if (!window.VamosMetaTexts || typeof window.VamosMetaTexts.segments !== 'function') return [];
+    return window.VamosMetaTexts.segments(key, lang || this.state.lang).map((s) => {
+      if (typeof s === 'string') return { t: s, isText: true, isB: false, isCode: false };
+      if (s && s.b != null) return { t: s.b, isText: false, isB: true, isCode: false };
+      return { t: s && s.code, isText: false, isB: false, isCode: true };
+    });
+  }
+
+  rowsFor(o) {
+    const off = o.off;
+    return [
+      { title: 'Strictly necessary', isText: true, isSeg: false, segs: [],
+        desc: 'Holds your booking while you fill it in, processes the payment, blocks fraud and records this consent. The site does not work without them.',
+        hasMeta: true, m1: 'Vamos Taxi · Stripe · Supabase · Cloudflare', m2: 'session / refresh as issued by Supabase Auth',
+        always: true, checked: true, off: true, aria: 'Strictly necessary cookies, always on', change: NOOP },
+      { title: 'Functional', isText: true, isSeg: false, segs: [],
+        desc: 'Remembers your language and your last pickup address so you do not type them twice.',
+        hasMeta: true, m1: 'Vamos Taxi', m2: 'until you change language or clear recent places',
+        always: false, checked: o.f, off: off, aria: 'Functional cookies', change: this.toggleFunctional },
+      { title: 'Analytics', isText: true, isSeg: false, segs: [],
+        desc: 'Tells us which step of a booking people abandon, and reports errors so we can fix them.',
+        hasMeta: true, m1: 'Cloudflare Web Analytics (cookieless) · Sentry', m2: 'not used',
+        always: false, checked: o.a, off: off, aria: 'Analytics cookies', change: this.toggleAnalytics },
+      { title: 'Marketing', isText: false, isSeg: true, segs: this.segs('cookiesRow', o.lang),
+        desc: '', hasMeta: false, m1: '', m2: '',
+        always: false, checked: o.m, off: off, aria: 'Marketing cookies', change: this.toggleMarketing },
+    ];
+  }
 
   renderVals() {
+    const s = this.state;
+    const bannerText = this.segs('banner').map((g) => g.t).join('');
+    const card = (label, o) => Object.assign({
+      label, busy: false, busyStr: 'false', alertSave: false, alertCheck: false, ts: false,
+    }, o, { busyStr: o && o.busy ? 'true' : 'false' });
     return {
-      n18: 18, on: true,
-      showBanner: this.state.mode === 'banner',
-      showPrefs: this.state.mode === 'prefs',
-      pFunctional: this.state.functional,
-      pAnalytics: this.state.analytics,
-      pMarketing: this.state.marketing,
+      n18: 18,
+      showBanner: s.mode === 'banner',
+      showPrefs: s.mode === 'prefs',
+      busy: s.busy, busyStr: s.busy ? 'true' : 'false',
+      alertSave: s.alert === 'save', alertCheck: s.alert === 'check',
+      tsPlaceholder: s.tsPlaceholder,
+      bannerText,
+      rows: this.rowsFor({ f: s.functional, a: s.analytics, m: s.marketing, off: s.busy }),
       acceptAll: this.acceptAll, rejectAll: this.rejectAll, savePrefs: this.savePrefs,
       openPrefs: this.openPrefs, closePrefs: this.closePrefs, veilClick: this.veilClick,
-      toggleFunctional: this.toggleFunctional, toggleAnalytics: this.toggleAnalytics,
-      toggleMarketing: this.toggleMarketing,
       dialogRef: this.dialogRef, bannerRef: this.bannerRef,
+      tsBannerRef: this.tsBannerRef, tsSheetRef: this.tsSheetRef,
+      gallery: this.gallery,
+      galleryText: this.gallery ? this.segs('banner', 'en').map((g) => g.t).join('') : '',
+      galleryCards: this.gallery ? [
+        card('Default', {}),
+        card('Busy', { busy: true }),
+        card('Turnstile waiting', { busy: true, ts: true }),
+        card('Save failed', { alertSave: true }),
+        card('Check failed', { alertCheck: true }),
+      ] : [],
+      galleryRows: this.gallery ? this.rowsFor({ f: true, a: false, m: true, off: true, lang: 'en' }) : [],
     };
   }
 }

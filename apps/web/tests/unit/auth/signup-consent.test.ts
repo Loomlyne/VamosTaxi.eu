@@ -1,5 +1,6 @@
-// Cause H: sign-up consent never landed (no session at sign-up). Now the confirmation
-// callback writes it once, using the new session.
+// 27 D-01: the sign-up confirmation writes no consent_log row; an earlier Accept survives sign-up.
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { resetHarness, state, writeCookies, setCookieHeaders } from "./harness";
 
@@ -9,6 +10,9 @@ vi.mock("@opennextjs/cloudflare", async () => (await import("./harness")).cloudf
 vi.mock("next/headers", async () => (await import("./harness")).headersMock);
 vi.mock("@supabase/ssr", async () => (await import("./harness")).ssrMock);
 vi.mock("@/lib/db/identity", () => ({
+  asSystem: async (_env: unknown, fn: (tx: unknown) => Promise<void>) => {
+    await fn(async () => []);
+  },
   asCustomer: async (_env: unknown, claims: unknown, fn: (tx: unknown) => Promise<void>) => {
     if (db.fail) throw new Error("db down");
     db.claims.push(claims);
@@ -52,53 +56,38 @@ beforeEach(() => {
   db.fail = false;
 });
 
-describe("sign-up consent on confirmation", () => {
-  it("writes one consent row for the new user and marks it done", async () => {
+describe("confirming a sign-up writes no cookie row (27 D-01)", () => {
+  it("the callback route does not import or call any consent writer", () => {
+    const src = readFileSync(join(process.cwd(), "app/api/auth/callback/route.ts"), "utf8");
+    expect(src).not.toMatch(/signup-consent/);
+    expect(src).not.toMatch(/recordSignupConsentOnConfirm/);
+    expect(src).not.toMatch(/recordConsent|record_consent/);
+  });
+
+  it("a confirm neither calls asCustomer nor touches the pending flag", async () => {
     const updateUser = confirmedUser("pending");
     const res = await GET(cb());
     expect(res.status).toBe(302);
-    expect(db.claims).toEqual([{ sub: "u1", role: "authenticated", email: "a@b.co" }]);
-    // set_config(subject) then record_consent(..., method, locale, ...)
-    expect(db.calls).toHaveLength(2);
-    expect(db.calls[0]).toEqual(["3b241101-e2bb-4255-8caf-4136c566a962"]);
-    expect(db.calls[1]).toContain("de");
-    expect(db.calls[1]).toContain("settings_change");
-    expect(updateUser).toHaveBeenCalledWith({ data: { signup_consent: "2026-09-12" } });
-    expect(setCookieHeaders(res).join("\n")).toContain("sb-x-auth-token=refreshed");
-  });
-
-  it("does not write a second row once the flag holds the policy version", async () => {
-    const updateUser = confirmedUser("2026-09-12");
-    await GET(cb());
+    expect(db.claims).toHaveLength(0);
     expect(db.calls).toHaveLength(0);
     expect(updateUser).not.toHaveBeenCalled();
   });
-
-  it("a database failure never breaks the redirect", async () => {
-    confirmedUser("pending");
-    db.fail = true;
-    vi.spyOn(console, "log").mockImplementation(() => undefined);
-    vi.spyOn(console, "error").mockImplementation(() => undefined);
-    const res = await GET(cb());
-    expect(res.status).toBe(302);
-    expect(res.headers.get("location")).not.toContain("error=1");
-  });
 });
 
-describe("sign-up leaves the flag for the callback", () => {
-  it("password sign-up stores signup_consent pending in user_metadata", async () => {
+describe("sign-up sets no consent flag", () => {
+  it("password sign-up sets no signup_consent key", async () => {
     const signUp = vi.fn(async (..._a: unknown[]) => ({ error: null }));
     state.auth.signUp = signUp as never;
     await POST(
-      authPost({ mode: "signup", method: "password", email: "a@b.co", password: "12345678", firstName: "A", lastName: "B" }),
+      authPost({ mode: "signup", method: "password", email: "a@b.co", password: "12345678", firstName: "A", lastName: "B", consent: true }),
     );
-    expect(signUp.mock.calls[0]?.[0]).toMatchObject({ options: { data: { signup_consent: "pending" } } });
+    expect((signUp.mock.calls[0]?.[0] as { options: { data: object } }).options.data).not.toHaveProperty("signup_consent");
   });
 
-  it("magic-link sign-up stores it too", async () => {
+  it("magic-link sign-up sets none either", async () => {
     const otp = vi.fn(async (..._a: unknown[]) => ({ error: null }));
     state.auth.signInWithOtp = otp as never;
-    await POST(authPost({ mode: "signup", method: "magic", email: "a@b.co", firstName: "A", lastName: "B" }));
-    expect(otp.mock.calls[0]?.[0]).toMatchObject({ options: { data: { signup_consent: "pending" } } });
+    await POST(authPost({ mode: "signup", method: "magic", email: "a@b.co", firstName: "A", lastName: "B", consent: true }));
+    expect((otp.mock.calls[0]?.[0] as { options: { data: object } }).options.data).not.toHaveProperty("signup_consent");
   });
 });

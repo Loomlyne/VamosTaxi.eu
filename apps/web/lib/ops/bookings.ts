@@ -97,9 +97,7 @@ export async function loadBookings(
         snap.policy,
         snap.lines,
         ev.events,
-        l.arrived_at,
-        live.free_wait_minutes,
-        live.waiting_amount_rappen
+        l.arrived_at
       from public.bookings b
       left join lateral (
         select *
@@ -108,23 +106,6 @@ export async function loadBookings(
         order by leg.leg_seq
         limit 1
       ) l on true
-      left join lateral (
-        select
-          rv.free_wait_minutes,
-          s.amount_rappen as waiting_amount_rappen
-        from public.rate_versions rv
-        left join public.surcharges s
-          on s.rate_version_id = rv.id
-         and s.active = true
-         and s.code in ('waiting_airport', 'waiting', 'waiting_city')
-        where rv.status = 'live'
-        order by case s.code
-          when 'waiting_airport' then 0
-          when 'waiting' then 1
-          else 2
-        end
-        limit 1
-      ) live on true
       left join public.vehicle_classes vc on vc.id = l.vehicle_class_id
       left join public.chauffeurs ch on ch.id = l.assigned_chauffeur_id
       left join public.vehicles v on v.id = l.assigned_vehicle_id

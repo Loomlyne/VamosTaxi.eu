@@ -7,7 +7,7 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { asStaff } from "@/lib/db/identity";
 import { loadRateVersions } from "@/lib/ops/pricing";
-import { classifyPricingFailure } from "@/lib/ops/rate-book";
+import { classifyPricingFailure, pruneExtraLabels } from "@/lib/ops/rate-book";
 import { jsonErr, jsonOk, withAdmin } from "@/lib/ops/staff-json";
 
 export const dynamic = "force-dynamic";
@@ -47,6 +47,8 @@ export const POST = withAdmin(async (claims, request) => {
     return jsonErr("unknown", 500);
   }
 
+  // 26.2-p4 A6: names of extras only the discarded draft used go with it.
+  await pruneExtraLabels(env, claims);
   if (!live) return jsonOk({ discarded: id, versionId: null, empty: true });
   return jsonOk({ discarded: id, versionId: live.id, empty: false });
 });
