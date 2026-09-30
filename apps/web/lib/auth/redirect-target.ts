@@ -6,6 +6,19 @@ import { routing } from "../../i18n/routing";
 import { safeReturnTo } from "../account/return-to";
 import { PUBLIC_ROUTES, type PublicRoute } from "../metadata";
 
+/** Reads the `nextb` form of the callback target (base64url of the path). Null when absent or not valid base64url/UTF-8. */
+export function decodeNextParam(raw: string | null): string | null {
+  if (!raw || !/^[A-Za-z0-9_-]+$/.test(raw) || raw.length > 4000) return null;
+  try {
+    const b64 = raw.replace(/-/g, "+").replace(/_/g, "/");
+    const binary = atob(b64 + "=".repeat((4 - (b64.length % 4)) % 4));
+    const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
+    return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+  } catch {
+    return null;
+  }
+}
+
 function isLocale(value: string): value is (typeof routing.locales)[number] {
   return (routing.locales as readonly string[]).includes(value);
 }

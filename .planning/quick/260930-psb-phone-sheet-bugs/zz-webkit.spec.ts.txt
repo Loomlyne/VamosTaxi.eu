@@ -1,0 +1,59 @@
+// SCRATCH (quick 260930-psb): the two sheet repairs in Playwright WebKit at 390, iPhone-like context. Copy to
+// apps/web/tests/visual/zz-webkit.spec.ts, run with --project=component-390 --workers=1, then remove it.
+import { test, expect, webkit, devices } from "@playwright/test";
+import { serveMock, waitForMockReady } from "../support/mock-harness";
+
+test("webkit 390: sheet closes -> page scrolls; keyboard-sized viewport -> sheet covers the page @component", async ({}, ti) => {
+  test.skip(ti.project.name !== "component-390");
+  test.setTimeout(120_000);
+  const br = await webkit.launch();
+  const ctx = await br.newContext({ ...devices["iPhone 14"], viewport: { width: 390, height: 844 } });
+  const page = await ctx.newPage();
+  try {
+    await page.route("**/api/**", (r) => r.fulfill({ status: 200, contentType: "application/json", body: '{"ok":true,"suggestions":[],"classes":[]}' }));
+    await page.goto(await serveMock("app/home/home.dc.html"));
+    await waitForMockReady(page);
+    const accept = page.getByRole("button", { name: /Accept all/i });
+    if (await accept.isVisible().catch(() => false)) await accept.click();
+    const hasLenis = await page.evaluate(() => !!(window as any).__vtLenis);
+    console.log("lenis loaded:", hasLenis);
+    for (const how of ["back", "close", "back"]) {
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await page.locator("[data-bar-wrap] [data-bb]").click();
+      await expect(page.locator("[data-bs]")).toBeVisible();
+      if (how === "close") await page.locator("[data-bs] [data-bs-head] button").last().click();
+      else await page.evaluate(() => history.back());
+      await expect(page.locator("[data-bs]")).toHaveCount(0);
+      await page.waitForTimeout(1200); // WebKit: a Back pressed within 0.8 s of closing with X is taken for the sheet's own history step
+      const st = await page.evaluate(() => ({ cls: document.documentElement.className, de: getComputedStyle(document.documentElement).overflowY, body: getComputedStyle(document.body).overflowY, stopped: (window as any).__vtLenis?.isStopped ?? null }));
+      console.log(how, JSON.stringify(st));
+      expect(st.cls).not.toContain("lenis-stopped");
+      expect(["visible", "auto", "scroll"]).toContain(st.de);
+      expect(["visible", "auto", "scroll"]).toContain(st.body);
+      await page.evaluate(() => window.scrollTo(0, 700));
+      await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(400);
+    }
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.locator("[data-bar-wrap] [data-bb]").click();
+    await page.locator('[data-bs] input[id$="-to"]').focus();
+    await page.evaluate(() => {
+      const v = window.visualViewport!;
+      Object.defineProperty(v, "height", { configurable: true, get: () => 380 });
+      Object.defineProperty(v, "offsetTop", { configurable: true, get: () => 0 });
+      v.dispatchEvent(new Event("resize"));
+    });
+    await page.waitForTimeout(300);
+    const g = await page.evaluate(() => {
+      const root = document.querySelector("[data-bs]")!.getBoundingClientRect(), next = document.querySelector("[data-bs-next]")!.getBoundingClientRect(), f = document.activeElement!.getBoundingClientRect();
+      const under = [420, 520, 700, 830].map((y) => !!document.elementFromPoint(195, y)?.closest("[data-bs]"));
+      return { rootTop: root.top, rootBottom: root.bottom, nextBottom: next.bottom, fTop: f.top, fBottom: f.bottom, under, ih: window.innerHeight };
+    });
+    console.log("keyboard", JSON.stringify(g));
+    expect(g.rootBottom).toBeGreaterThanOrEqual(g.ih - 1);
+    expect(g.under).toEqual([true, true, true, true]);
+    expect(g.nextBottom).toBeLessThanOrEqual(381);
+    expect(g.fTop).toBeGreaterThanOrEqual(0);
+    expect(g.fBottom).toBeLessThanOrEqual(381);
+    await page.screenshot({ path: ti.outputPath("webkit-keyboard.png") });
+  } finally { await br.close(); }
+});

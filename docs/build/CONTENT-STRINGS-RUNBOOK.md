@@ -21,7 +21,7 @@ authority. `pnpm i18n:check` reads them and blocks a PR on a missing key.
 The database table `public.content_strings` is the **runtime** source once
 `CONTENT_SOURCE` is `db`. Until that env is flipped, the loader serves the JSON
 import. Code default is `json`. Do not set `CONTENT_SOURCE=db` on
-`vamos-web-staging` until the owner says so.
+the live Worker `vamos` until the owner says so.
 
 Neither is authoritative for both. Editing JSON without regenerating the seed
 leaves the table behind. Editing `#pages` / `#legal` without `pnpm i18n:pull`

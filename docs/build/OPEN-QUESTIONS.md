@@ -1,5 +1,7 @@
 # Open questions — Vamos Taxi V1 build
 
+> **Status, 2026-09-30:** The public site is https://vamostaxi.site (Worker `vamos` on Cloudflare); `vamostaxi.eu` is not used and is never bound. Questions that name `vamostaxi.eu` or staging subdomains are answered by that decision. No Vercel anywhere; Vercel appears below only as the thing the answers rule out.
+
 Raised 17 Aug 2026, from the Phase 1–3 planning pass over `HANDOFF-CLAUDE-CODE.md`,
 `docs/GSD-LAUNCH.md`, `docs/MISSING-FEATURES.md`, `CLAUDE.md`, the design-system readme
 and the mocks in `app/`.

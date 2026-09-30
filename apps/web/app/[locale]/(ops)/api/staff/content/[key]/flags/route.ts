@@ -14,15 +14,10 @@ import {
   loadContentRow,
   parseFlagPatch,
   readJsonObject,
+  type ContentStringFlagsPatch,
 } from "../route";
 
 export const dynamic = "force-dynamic";
-
-export type ContentStringFlagsPatch = {
-  pendingValue?: boolean;
-  nonTranslatable?: boolean;
-  noParamReason?: string | null;
-};
 
 function mergeFlags(
   existing: {

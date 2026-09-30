@@ -166,6 +166,13 @@
           "name": "AUTH_RATE_LIMITER",
           "namespace_id": "1003",
           "simple": { "limit": 10, "period": 60 }
+        },
+        // POST /api/checkout/intent (26.5 D-20): 8 Pay presses per 60 s per IP, its own bucket so
+        // price lookups never use it up.
+        {
+          "name": "INTENT_RATE_LIMITER",
+          "namespace_id": "1004",
+          "simple": { "limit": 8, "period": 60 }
         }
       ],
       // Rule 2 addition (plan 03-06, D-36): uncommented from the placeholder block plan
@@ -307,6 +314,13 @@
           "name": "AUTH_RATE_LIMITER",
           "namespace_id": "1003",
           "simple": { "limit": 10, "period": 60 }
+        },
+        // POST /api/checkout/intent (26.5 D-20): 8 Pay presses per 60 s per IP, its own bucket so
+        // price lookups never use it up.
+        {
+          "name": "INTENT_RATE_LIMITER",
+          "namespace_id": "1004",
+          "simple": { "limit": 8, "period": 60 }
         }
       ],
       // Two Hyperdrive configs (D-01/D-03), never one: `HYPERDRIVE` is the cacheable,

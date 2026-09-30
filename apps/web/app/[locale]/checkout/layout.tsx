@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { loadSettingsVersion } from "@/lib/db/quote";
+import { accountCreateAvailable, guestAccountsOn } from "@/lib/checkout/account-notice";
 import { policyHours } from "@/lib/checkout/policy-settings";
 import { CheckoutSettingsProvider } from "./CheckoutSettings";
 import "./checkout.css";
@@ -51,6 +52,18 @@ export default async function CheckoutLayout({
       ? env.STRIPE_PUBLISHABLE_KEY
       : "";
 
+  let guestOn = false;
+  let createOn = false;
+  if (env) {
+    try {
+      createOn = accountCreateAvailable(env);
+      guestOn = await guestAccountsOn(env);
+    } catch {
+      guestOn = false;
+      createOn = false;
+    }
+  }
+
   return (
     <CheckoutSettingsProvider
       value={{
@@ -59,6 +72,8 @@ export default async function CheckoutLayout({
         checkoutWindowMinutes,
         turnstileSiteKey: env?.TURNSTILE_SITE_KEY ?? process.env.TURNSTILE_SITE_KEY,
         publishableKey,
+        guestAccountsOn: guestOn,
+        accountCreateAvailable: createOn,
       }}
     >
       {children}

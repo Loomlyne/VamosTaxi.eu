@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { renderAuthEmail } from "./auth";
 
-const TYPES = ["signup", "recovery", "otp", "email_change", "invite", "reauthentication"] as const;
+const TYPES = ["signup", "recovery", "otp", "email_change", "invite", "reauthentication", "account_ready", "account_signin"] as const;
 const LOCALES = ["en", "de", "fr", "ar"] as const;
 
 describe("renderAuthEmail", () => {
@@ -26,6 +26,20 @@ describe("renderAuthEmail", () => {
       });
     }
   }
+
+  it("account_ready has the link and no code block; account_signin has both", () => {
+    for (const locale of LOCALES) {
+      const ready = renderAuthEmail("account_ready", locale, { name: "Anna", code: "", link: "https://vamostaxi.site/x" });
+      expect(ready.html).toContain("https://vamostaxi.site/x");
+      expect(ready.html).not.toContain("Or enter this code");
+      const signin = renderAuthEmail("account_signin", locale, { name: "Anna", code: "123456", link: "https://vamostaxi.site/x" });
+      expect(signin.html).toContain("123456");
+      expect(signin.html).toContain("https://vamostaxi.site/x");
+      expect(ready.html + signin.html).not.toContain("ß");
+    }
+    expect(renderAuthEmail("account_signin", "en", { name: "", code: "1", link: "l" }).text).toContain("checkout page");
+    expect(renderAuthEmail("account_ready", "ar", { name: "", code: "", link: "l" }).html).toContain('dir="rtl"');
+  });
 
   it("signup en uses wordmark chrome without Arial (D-03)", () => {
     const out = renderAuthEmail("signup", "en", {
