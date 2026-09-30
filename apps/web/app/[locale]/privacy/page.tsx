@@ -110,7 +110,7 @@ export default async function PrivacyPage({
           <li>{t("passenger-and-luggage-count-child-seat-requests")}</li>
           <li>{t("anything-you-type-into-the-notes-field-for-the-d")}</li>
         </ul>
-        {/* Phase 26.5: the approved "Your account" paragraph (.planning/decisions/2026-09-30-legal-pages.md) goes here, between the "When you book" list and "When you pay". */}
+        <p><strong>{t("your-account-lead")}</strong> {t("your-account-body")}</p>
         <h3>{t("when-you-pay")}</h3>
         <p>{t("payment-metadata-only-the-amount-the-currency-th")}</p>
         <h3>{t("while-you-use-the-site")}</h3>

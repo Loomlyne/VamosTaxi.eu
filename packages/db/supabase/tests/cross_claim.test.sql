@@ -41,18 +41,18 @@ update public.customers
 -- public.next_booking_reference() (this file runs as `postgres`, which owns that function and
 -- may call it via the column DEFAULT regardless of its EXECUTE grant). Every price column left
 -- NULL -- D-21, Law 04: never invent a CHF figure to make a fixture look complete.
-insert into public.bookings (contact_name, contact_email, customer_id)
-select 'Cross Claim A1', 'cc-a1@example.test', c.id from public.customers c where c.email = 'cc-cust-a@example.test';
-insert into public.bookings (contact_name, contact_email, customer_id)
-select 'Cross Claim A2', 'cc-a2@example.test', c.id from public.customers c where c.email = 'cc-cust-a@example.test';
-insert into public.bookings (contact_name, contact_email, customer_id)
-select 'Cross Claim A3', 'cc-a3@example.test', c.id from public.customers c where c.email = 'cc-cust-a@example.test';
-insert into public.bookings (contact_name, contact_email, customer_id)
-select 'Cross Claim B1', 'cc-b1@example.test', c.id from public.customers c where c.email = 'cc-cust-b@example.test';
-insert into public.bookings (contact_name, contact_email, customer_id)
-select 'Cross Claim B2', 'cc-b2@example.test', c.id from public.customers c where c.email = 'cc-cust-b@example.test';
-insert into public.bookings (contact_name, contact_email, customer_id)
-select 'Cross Claim B3', 'cc-b3@example.test', c.id from public.customers c where c.email = 'cc-cust-b@example.test';
+insert into public.bookings (contact_name, contact_email, customer_id, status)
+select 'Cross Claim A1', 'cc-a1@example.test', c.id, 'confirmed' from public.customers c where c.email = 'cc-cust-a@example.test';
+insert into public.bookings (contact_name, contact_email, customer_id, status)
+select 'Cross Claim A2', 'cc-a2@example.test', c.id, 'confirmed' from public.customers c where c.email = 'cc-cust-a@example.test';
+insert into public.bookings (contact_name, contact_email, customer_id, status)
+select 'Cross Claim A3', 'cc-a3@example.test', c.id, 'confirmed' from public.customers c where c.email = 'cc-cust-a@example.test';
+insert into public.bookings (contact_name, contact_email, customer_id, status)
+select 'Cross Claim B1', 'cc-b1@example.test', c.id, 'confirmed' from public.customers c where c.email = 'cc-cust-b@example.test';
+insert into public.bookings (contact_name, contact_email, customer_id, status)
+select 'Cross Claim B2', 'cc-b2@example.test', c.id, 'confirmed' from public.customers c where c.email = 'cc-cust-b@example.test';
+insert into public.bookings (contact_name, contact_email, customer_id, status)
+select 'Cross Claim B3', 'cc-b3@example.test', c.id, 'confirmed' from public.customers c where c.email = 'cc-cust-b@example.test';
 
 -- Capture each customer's ground-truth reference set as `postgres` (BYPASSRLS) so the
 -- assertions below compare against a known set, not against whatever a role switch happens to
