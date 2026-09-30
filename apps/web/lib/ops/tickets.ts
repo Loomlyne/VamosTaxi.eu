@@ -53,7 +53,8 @@ export async function loadTickets(env: CloudflareEnv, claims: VamosClaims): Prom
         m.submission_id,
         m.direction,
         m.body_text,
-        m.created_at
+        m.created_at,
+        m.rfc_message_id
       from public.support_messages m
       where m.submission_id in ${sql(ids)}
       order by m.created_at asc

@@ -12,10 +12,10 @@ Rewritten short on 2026-09-30 14:25; the long version is in git history (`823022
 | Item | Value |
 |---|---|
 | Site | https://vamostaxi.site and https://dashboard.vamostaxi.site |
-| main = origin/main | `5b394833` plus planning notes |
-| Worker `vamos` | version `64be5312` |
-| Rollback point | Worker `a0d38f64`, git tag `backup/main-before-seo-09b3c692` |
-| Database | migrations up to `20260930210000`, plus `20261005100000` and `20261005110000` (Phase 20), applied and read back |
+| main = origin/main | `96796ddb` plus planning notes |
+| Worker `vamos` | version `0d1806ce` |
+| Rollback point | Worker `2d5906ce`, git tag `backup/main-before-support-mail-519e3d4e` (before 26.5: Worker `fe9314d0`, tag `backup/main-before-26.5-e09f90cb`). Guest accounts off without a deploy: `settings.guest_accounts_live = false` |
+| Database | migrations up to `20260930210000`, 26.5's `20261001100000` to `130000`, Phase 20's `20261005100000` and `110000`, all applied and read back. `guest_accounts_live` = true since 14:58 (owner's answer) |
 | Who deploys | the control session, from the owner's Mac. GitHub runs checks, never deploys. |
 
 ## Shipped
@@ -28,6 +28,10 @@ Rewritten short on 2026-09-30 14:25; the long version is in git history (`823022
 | 09-30 | 12:22 | 26.4.2 booking feedback: one-page phone booking, flight before From, class cards with photos, flight-edit fix | `37ba5b62` | `59c18372` |
 | 09-30 | 12:38 | Phase 20 batch A (security), two migrations | `e8aaad0b` | `a0d38f64` |
 | 09-30 | 12:46 | SEO: head, favicon, share picture, sitemap, one address per language | `5b394833` | `64be5312` |
+| 09-30 | 14:40 | Repair of 26.4.2: the phone booking page releases the page scroll on close and covers the screen with the keyboard open | `ec1beed5` | `04a64c26` |
+| 09-30 | 14:46 | Scroll repair: a released page lock starts scrolling again on every page (phone menu, dialogs, booking page) | `3d74d6a0` | `fe9314d0` |
+| 09-30 | 14:57 | **26.5 account choice before payment**: guest, sign in or create an account; unpaid bookings hidden from the account; paid-only reminder; pay-press limit; four migrations | `9a5263cd` | `2d5906ce` |
+| 09-30 | 15:02 | Support e-mail button: answers the customer of that ticket; support copy carries the customer as reply address | `96796ddb` | `0d1806ce` |
 
 ## Ship order from here
 
@@ -35,8 +39,10 @@ Owner's order: booking, payments, account, Meta first.
 
 | # | Job | State | Needs |
 |---|---|---|---|
-| 1 | **Phone sheet bugs** (two defects of the 26.4.2 ship, see below) | Routed 14:24, test first | Ships as a 26.4.2 repair under the day's ship mode |
-| 2 | **26.5 account choice before payment** | All build plans committed; final check (plan 07) running since 13:55 | Hand-over, control check, ship under the day's ship mode |
+| 1 | Phone sheet bugs | **Live 14:40.** Live read at 390: the sheet covers the screen, scrolling works again after closing. Real iPhone and keyboard: the owner's check | |
+| 1a | Scroll lock never released on any page | **Live 14:46** (owner said Ship now). Live read at 390 on /faq: page lock and the real phone menu stop scrolling while open and release it on close | |
+| 1b | Support e-mail button | **Live 15:02** (owner's word 14:32). Thread is certain only when he presses Reply on the inbox copy of a new ticket; later customer replies live in the dashboard only. Follow-up for certainty: copy each customer reply to his inbox (one migration) | Owner check signed in |
+| 2 | 26.5 account choice before payment | **Live 14:57**, under the day's ship mode. Clean-clone gates and 2831 unit tests green on the merged tree; 7 function bodies read back identical; the key name is in 0 client files. Live read: /checkout shows the three options and the guest line, no password field. Not checked: a payment, a mail, the sign-in link | Owner UAT, 11 steps in the 26.5 HANDOVER, 4242 as guest first |
 | 3 | 26.2 audit, hand-over 1 (17 bug fixes, dashboard, mails, helpers; no checkout) | Checked green by the control session at `bda1c151`; addendum at `8305d795` | 26.5 on main, re-check, owner's Ship. Proposed grant migration `20261007100000` |
 | 4 | SEO follow-up (dashboard robots, first view in the stored language) | `c864061f`, parked | 26.5 on main, owner's Ship, and his word for deploying Worker `vamos-dashboard` |
 | 5 | Class cards: layout E (signed), small photo files | Home side built (`1c9d4aba`); checkout side waits for 26.5 | Hand-over, owner's Ship |
@@ -61,7 +67,6 @@ as a branch, then the folder, its Docker stack and build output are removed the 
 
 | Session | Folder under `vamos-wt/` | Branch | State |
 |---|---|---|---|
-| Vamos Taxi build 26.5 | `phase-26.5` (+ `.sb265`) | `gsd/phase-26.5-checkout-account` | running; stack `vamos-taxi-265` |
 | Vamos Taxi 26.4.2 completion | `class-photo-small`; new: `phone-sheet-bugs`, `phone-home` | `feat/class-photo-small`, `fix/phone-sheet-bugs`, `fix/phone-home` | running |
 | Vamos Taxi SEO and browser settings | `site-speed`, `seo-head-2` | `fix/site-speed`, `fix/seo-head-followup` | running / parked |
 | Meta measurement phases 27-29 | `phase-27` | `gsd/phase-27-consent-record` | running; stack `vamos-taxi-270` stopped |
@@ -170,5 +175,4 @@ Full texts in `.planning/decisions/`.
 
 | What | When |
 |---|---|
-| Tell the 26.5 session's waiters when 26.5 is on main: 26.2, SEO, class cards, Phase 27, Phase 20 | At the 26.5 ship |
-| Remove `phase-26.5`, `.sb265` and stack `vamos-taxi-265` | Same day as the 26.5 ship |
+| Nothing open | 26.5 shipped 14:57; waiters told (26.2, Phase 27, class cards); folder `phase-26.5`, `.sb265` and stack `vamos-taxi-265` removed, branch and archive tag on GitHub |

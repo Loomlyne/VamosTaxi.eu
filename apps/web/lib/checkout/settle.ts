@@ -41,6 +41,7 @@ import { stripeAccountIsLegacyUaeTest } from "./charge-gate";
 import type { StripeQueueMessage } from "./webhook";
 import { purgeDepsFromEnv, purgeOnSessionExpired } from "./purge-unpaid";
 import { deliverConfirmation } from "./notify";
+import { provisionCheckoutAccount, provisionDeps } from "./provision-account";
 import {
   deliverOverlapMustFix,
   deliverPaidAfterCancelAlert,
@@ -135,6 +136,8 @@ export type SettleDeps = MoneyEventDeps & {
   }) => Promise<SettleRow>;
   eventSettle: (eventId: string, error: string | null) => Promise<void>;
   deliverConfirmation: (row: SettleRow) => Promise<void>;
+  /** 26.5-05: account from the checkout choice; a failure never changes the settle result. */
+  provisionAccount?: (row: SettleRow) => Promise<unknown>;
   /** D-22: Stripe-first refund for a settle branch that captured money but must not confirm the trip. */
   refund: (input: RefundInput) => Promise<{ id: string }>;
   /** Records the refund decision (idempotent on stripeRefundId) after `refund` succeeds. */
@@ -447,6 +450,12 @@ export async function handleStripeMessageWithDeps(
       } catch {
         deps.emit("error", "confirmation_mail_failed", { bookingId: row.booking_id });
       }
+      try {
+        const outcome = await deps.provisionAccount?.(row);
+        if (outcome === "failed") deps.emit("error", "account_provision_failed", { bookingId: row.booking_id });
+      } catch {
+        deps.emit("error", "account_provision_failed", { bookingId: row.booking_id });
+      }
     }
 
     // D-21/D-22: whoever settled first must expire every other still-open
@@ -602,6 +611,7 @@ export async function handleStripeMessage(
       });
     },
     deliverConfirmation: (row) => deliverConfirmation(env, row),
+    provisionAccount: (row) => provisionCheckoutAccount(row, provisionDeps(env, emit)),
     refund: async (input) => {
       const refund = await createRefund(stripe, {
         paymentIntentId: input.paymentIntentId,

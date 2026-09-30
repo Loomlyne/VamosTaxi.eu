@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { firstPayError, isMobileNumber, type PayFormState } from "./pay-validate";
+import { firstAccountError, firstPayError, firstSectionError, isMobileNumber, type PayFormState } from "./pay-validate";
 
 const ok: PayFormState = {
   classChosen: true,
@@ -68,5 +68,60 @@ describe("firstPayError", () => {
       messageKey: "errCompanyName",
     });
     expect(firstPayError({ ...ok, companyOpen: true, companyName: "Vamos AG", companyVat: "CHE-123" })).toBeNull();
+  });
+});
+
+describe("firstSectionError: 26.5 account rules (section 2)", () => {
+  const out = { signedIn: false, choice: "guest" as const, stage: "form" as const, createConsent: false };
+
+  it("class still wins over the account rules", () => {
+    expect(firstSectionError({ ...ok, classChosen: false, account: { ...out, choice: "create" } })?.field).toBe("class");
+  });
+
+  it("sign in, form stage: names the sign-in step", () => {
+    expect(firstSectionError({ ...ok, account: { ...out, choice: "signin" } })).toEqual({
+      field: "account",
+      messageKey: "acctPayBlockSignIn",
+    });
+  });
+
+  it("sign in, sent stage: names the link that was sent", () => {
+    expect(firstSectionError({ ...ok, account: { ...out, choice: "signin", stage: "sent" } })).toEqual({
+      field: "accountSent",
+      messageKey: "acctPayBlockSent",
+    });
+  });
+
+  it("the account rule beats an empty contact field", () => {
+    expect(firstSectionError({ ...ok, firstName: "", account: { ...out, choice: "signin" } })?.field).toBe("account");
+  });
+
+  it("create without the Text 1 tick names the tick (D-12)", () => {
+    expect(firstSectionError({ ...ok, account: { ...out, choice: "create" } })).toEqual({
+      field: "accountConsent",
+      messageKey: "acctCreateConsentError",
+    });
+  });
+
+  it("create with the tick passes on to the contact rules", () => {
+    const account = { ...out, choice: "create" as const, createConsent: true };
+    expect(firstSectionError({ ...ok, account })).toBeNull();
+    expect(firstSectionError({ ...ok, firstName: "", account })?.field).toBe("firstName");
+  });
+
+  it("guest never has a consent rule, ticked or not (D-13)", () => {
+    expect(firstSectionError({ ...ok, account: { ...out, createConsent: false } })).toBeNull();
+    expect(firstSectionError({ ...ok, account: { ...out, createConsent: true } })).toBeNull();
+  });
+
+  it("signed in: no account rule applies, whatever the stale choice state", () => {
+    for (const choice of ["guest", "signin", "create"] as const) {
+      expect(firstAccountError({ signedIn: true, choice, stage: "sent", createConsent: false })).toBeNull();
+    }
+  });
+
+  it("absent account state changes nothing; firstPayError itself is untouched", () => {
+    expect(firstSectionError(ok)).toBeNull();
+    expect(firstSectionError({ ...ok, mobile: "" })).toEqual(firstPayError({ ...ok, mobile: "" }));
   });
 });

@@ -165,3 +165,30 @@ export const writeFlightNumber = async (
       select * from public.booking_flight_write(
         ${input.bookingId}::uuid, ${input.flightNo}, ${input.actorKind}, ${input.actorId}::uuid)`,
   ))[0] ?? null;
+
+export type CheckoutAccountRequest = {
+  email: string;
+  choice: "guest" | "create";
+  full_name: string;
+  locale: string;
+};
+
+/** 26.5-05: the account request recorded at PAY for a paid booking (definer, plan 01). */
+export const readCheckoutAccountRequest = async (
+  env: CloudflareEnv,
+  bookingId: string,
+): Promise<CheckoutAccountRequest | null> =>
+  (await asSystem(env, (sql) =>
+    sql<CheckoutAccountRequest[]>`select * from public.checkout_account_request_for_booking(${bookingId}::uuid)`,
+  ))[0] ?? null;
+
+export type CheckoutAccountUserState = { user_exists: boolean; confirmed: boolean; checkout_origin: boolean };
+
+/** 26.5-05: booleans only about an auth user for an e-mail (definer, plan 01). */
+export const readCheckoutAccountUserState = async (
+  env: CloudflareEnv,
+  email: string,
+): Promise<CheckoutAccountUserState> =>
+  (await asSystem(env, (sql) =>
+    sql<CheckoutAccountUserState[]>`select * from public.checkout_account_user_state(${email})`,
+  ))[0] ?? { user_exists: false, confirmed: false, checkout_origin: false };
