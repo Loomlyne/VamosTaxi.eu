@@ -55,7 +55,6 @@ export const PATCH = withStaff(async (claims, request) => {
   const result = await patchTicket(env, claims, id, input);
   if (!result.ok) {
     if (result.reason === "not-found") return jsonErr("not-found", 404);
-    if (result.reason === "send-failed") return jsonErr("send-failed", 503);
     if (result.reason === "invalid-booking-ref") return jsonErr("invalid-booking-ref", 400);
     return jsonErr(result.reason, 400);
   }
