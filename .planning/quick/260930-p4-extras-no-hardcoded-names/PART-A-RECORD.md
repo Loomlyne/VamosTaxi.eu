@@ -75,3 +75,57 @@ helper (one line), because the route now binds the rule through `tx.json`. No ex
 
 The tick-box half of the ten-names table (Night, Weekend, Holiday, Waiting as tick boxes) is A2's
 change, so its test is in A2.
+
+---
+
+## A2 — the tick-box list is decided by the row alone
+
+Commit: `0d8d2a19`
+
+### What changed
+
+| File | Change |
+|---|---|
+| `apps/web/lib/checkout/extras-catalog.ts` | `selectableExtras`: a tick box is a row that is active, kind `amount`, amount a whole number ≥ 1 rappen, rule `manual`, no quantity source. The name test (`isPassengerExtra`), the "already on the quote" test and `row.code === "extra_stop"` are gone from it. First row per code still wins. The legacy string reaches this function as `manual` through `mapSurcharge` (A1); `loadCheckoutCatalog` is its only caller and always maps first. |
+
+### Tests
+
+New, failing before the change:
+
+| Test | Failure line before |
+|---|---|
+| `lib/checkout/extras-catalog.test.ts` › `a manual row with an amount is a tick box whatever its code` | `AssertionError: expected [ 'ski', 'pet', 'extra-stop', …(4) ] to deeply equal [ 'ski', 'waiting', 'night', …(14) ]` |
+| same file › `a row the fare engine handles is not a tick box` | `AssertionError: expected [ 'pet', 'roof-box', 'ski', …(2) ] to deeply equal []` |
+| same file › `a row without a readable rule is not a tick box` | `AssertionError: expected [ 'empty-rule', 'null-rule', …(2) ] to deeply equal []` |
+| same file › `a manual row with a quantity source is not a tick box` | `AssertionError: expected [ 'child-seat' ] to deeply equal []` |
+| `lib/ops/rate-book-extra-rule.test.ts` › `'Waiting' …` (saved through the route, then read as /checkout reads it) | `AssertionError: expected [] to deeply equal [ [ 'waiting', 1000 ] ]` |
+| same file › `'Night' …`, `'Weekend' …`, `'Holiday' …` | `AssertionError: expected [] to deeply equal [ [ 'night', 1000 ] ]` (and `weekend`, `holiday`) |
+
+Before: `Tests 8 failed | 26 passed (34)`.
+
+Green before and after, on purpose: `inactive, percent, included, amount 0 and empty amount are not tick
+boxes` (amount 0 stays hidden until Part B), `the first row per code wins`, and the three label tests.
+
+After: green. `extras-catalog`, `rate-book-extra-rule`, `live-child-seat-rule`, `checkout-catalog`,
+`extras-g6` → `Test Files 5 passed (5)`, `Tests 53 passed (53)`. Neighbours (`new-trip-intent`,
+`callback-redirect`, `public-board`, `eligibility`, `phase-26-3-laws`, `phase-26-4-laws`) →
+`Test Files 6 passed (6)`, `Tests 92 passed (92)`.
+
+With this commit the ten names of RESEARCH "Answer 4" are complete end to end in one test
+(`rate-book-extra-rule.test.ts`, `it.each`): each is saved through the real route under its own code,
+gets the manual rule as a JSON object, no quantity source, its names under the same code, no quote
+line, and one tick box `[code, 1000]`.
+
+Existing test replaced: `lib/checkout/extras-catalog.test.ts` › `keeps active passenger amount rows
+only, by exact code`. It expected `night`, `waiting`, `return_trip` and `extra_stop` to be dropped by
+name and rows without a rule to be kept — exactly what the signed plan removes (RESEARCH Answer 6
+lists it). Its fixture default rule changed from `null` to `{ kind: "manual" }`.
+
+### What is different for rows that are not on live
+
+| Row | Before | After |
+|---|---|---|
+| Old-style `child_seat` (rule `quantity`, source `child_seats`; books 13, 14 and any draft cloned from them) | A tick box, by accident | Not a tick box. The quote adds it only when a request sends a count, and no screen does. Saving it once on the Pricing page makes it an ordinary tick box (`child-seat`, manual). |
+| A row with the empty rule `{}` | A tick box if its name was allowed | Not a tick box. Such a row cannot be published from the dashboard (Publish gate, unchanged). |
+
+Live book 18 holds neither.
