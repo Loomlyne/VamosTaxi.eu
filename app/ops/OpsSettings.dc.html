@@ -929,6 +929,8 @@ class Component extends DCLogic {
       emailConfirm: d.emailConfirm, emailReminder: d.emailReminder, smsReminder: d.smsReminder, opsAlerts: d.opsAlerts,
     }).then((json) => {
       if (json && json.ok && json.data) {
+        // The store is what "unsaved" is measured against; without this the saved values keep reading as a draft.
+        if (window.VamosOps && window.VamosOps.settings) window.VamosOps.settings.apply(json.data);
         if (window.VamosLocale) {
           if (json.data.defaultCur) window.VamosLocale.setCur(json.data.defaultCur);
           if (json.data.defaultLang) window.VamosLocale.setLang(json.data.defaultLang);
