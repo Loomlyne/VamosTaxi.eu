@@ -14,7 +14,6 @@ import {
   type AuthSetCookie,
 } from "@/lib/supabase/server";
 import { log } from "@/lib/logger";
-import { recordSignupConsentOnConfirm } from "@/lib/auth/signup-consent";
 
 export const dynamic = "force-dynamic";
 
@@ -83,9 +82,6 @@ export async function GET(request: Request): Promise<NextResponse> {
     log("error", "auth-callback", ctx, { reason: error.code ?? "exchange-failed" });
     return fail();
   }
-
-  // First confirmation of a sign-up: write the consent record now that a session exists.
-  await recordSignupConsentOnConfirm({ request, supabase, fallbackLocale: locale, ctx });
 
   const target = validateAuthRedirectTarget(next, locale);
   return redirectTo(target);

@@ -1,5 +1,6 @@
-// Cause H: sign-up consent never landed (no session at sign-up). Now the confirmation
-// callback writes it once, using the new session.
+// 27 D-01: the sign-up confirmation writes no consent_log row; an earlier Accept survives sign-up.
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { resetHarness, state, writeCookies, setCookieHeaders } from "./harness";
 
@@ -52,36 +53,21 @@ beforeEach(() => {
   db.fail = false;
 });
 
-describe("sign-up consent on confirmation", () => {
-  it("writes one consent row for the new user and marks it done", async () => {
+describe("confirming a sign-up writes no cookie row (27 D-01)", () => {
+  it("the callback route does not import or call any consent writer", () => {
+    const src = readFileSync(join(process.cwd(), "app/api/auth/callback/route.ts"), "utf8");
+    expect(src).not.toMatch(/signup-consent/);
+    expect(src).not.toMatch(/recordSignupConsentOnConfirm/);
+    expect(src).not.toMatch(/recordConsent|record_consent/);
+  });
+
+  it("a confirm neither calls asCustomer nor touches the pending flag", async () => {
     const updateUser = confirmedUser("pending");
     const res = await GET(cb());
     expect(res.status).toBe(302);
-    expect(db.claims).toEqual([{ sub: "u1", role: "authenticated", email: "a@b.co" }]);
-    // set_config(subject) then record_consent(..., method, locale, ...)
-    expect(db.calls).toHaveLength(2);
-    expect(db.calls[0]).toEqual(["3b241101-e2bb-4255-8caf-4136c566a962"]);
-    expect(db.calls[1]).toContain("de");
-    expect(db.calls[1]).toContain("settings_change");
-    expect(updateUser).toHaveBeenCalledWith({ data: { signup_consent: "2026-09-12" } });
-    expect(setCookieHeaders(res).join("\n")).toContain("sb-x-auth-token=refreshed");
-  });
-
-  it("does not write a second row once the flag holds the policy version", async () => {
-    const updateUser = confirmedUser("2026-09-12");
-    await GET(cb());
+    expect(db.claims).toHaveLength(0);
     expect(db.calls).toHaveLength(0);
     expect(updateUser).not.toHaveBeenCalled();
-  });
-
-  it("a database failure never breaks the redirect", async () => {
-    confirmedUser("pending");
-    db.fail = true;
-    vi.spyOn(console, "log").mockImplementation(() => undefined);
-    vi.spyOn(console, "error").mockImplementation(() => undefined);
-    const res = await GET(cb());
-    expect(res.status).toBe(302);
-    expect(res.headers.get("location")).not.toContain("error=1");
   });
 });
 

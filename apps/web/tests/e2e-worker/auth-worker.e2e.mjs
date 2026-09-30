@@ -98,7 +98,7 @@ if (link) {
   const s = await session(jarA);
   const cust = sql(`select count(*) from public.customers c join auth.users u on u.id=c.user_id where u.email='${A}'`);
   const cons = sql(`select count(*) from public.consent_log l join public.customers c on c.id=l.customer_id join auth.users u on u.id=c.user_id where u.email='${A}'`);
-  rec("1b confirm link -> callback -> session/customer/consent", f.hops.join(">").includes("302") && s?.signedIn === true && cust === "1" && Number(cons) >= 1,
+  rec("1b confirm link -> callback -> session/customer, no consent row (27 D-01)", f.hops.join(">").includes("302") && s?.signedIn === true && cust === "1" && Number(cons) === 0,
     `hops=${f.hops.join(">")} final=${f.final} sb-auth-token cookie=${jarA.has(/^sb-.*-auth-token/)}; session.signedIn=${s?.signedIn}; customers=${cust}; consent_log=${cons}`);
 } else rec("1b confirm link", false, "no mail/link");
 
