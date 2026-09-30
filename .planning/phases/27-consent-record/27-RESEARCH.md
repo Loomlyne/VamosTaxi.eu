@@ -530,7 +530,13 @@ Drive `withIdentity(…, "anon", …)` with the Worker's own `client()` options 
 | A4 | Owner texts pass `legal-text-hygiene.test.ts` without a reviewed-repeat entry | Pitfall 5 | One allowlist entry; the text is never edited. |
 | A5 | Showing the banner when the state GET fails is acceptable | Pattern 4 / Open Q3 | Repeat asks during an outage; no Meta effect. |
 
-## Open Questions (owner or control session; one decision per question)
+## Open Questions (RESOLVED)
+
+Resolved on 2026-09-30: Q1 -> CONTEXT D-31 (only cookies and privacy move; privacy gets the consent
+date). Q2 -> D-29 (PS-1) and D-30 (PS-2). Q3 -> D-33 (banner shows when the state check fails).
+Q4 -> D-03a and D-34 (built inside 27, phase held until 26.5 is live). Q5 -> D-32 (coming-soon gets
+the banner). Q6 -> hand-over plan (pre-ship hosted read-only checks). The original text is kept
+below for the record.
 
 1. **Privacy and cookies "Last updated" versus the shared `LEGAL_UPDATED`.**
    - What we know: D-17 and Phase 26 D-15 require cookies date = privacy date = policy version. Privacy reads `LEGAL_UPDATED`, which also dates terms, cancellation and imprint (owner decision 14). Cookies is hard-coded to 1 September 2026.
