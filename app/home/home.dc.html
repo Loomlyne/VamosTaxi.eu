@@ -231,7 +231,9 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 @container bookcompact (max-width:400px){#book [data-book-slots]:has([data-book-field="flight"]){grid-template-columns:minmax(0,1fr);grid-template-areas:"pickup" "dest" "when" "flight" "party"}}
 @media (min-width:1080px){[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]){grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"pickup pickup" "dest dest" "when flight" "party party";align-items:end}[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]) [data-book-field="pickup"]{grid-area:pickup}[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]) [data-book-field="dest"]{grid-area:dest}[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]) [data-book-field="when"]{grid-area:when}[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]) [data-book-field="flight"]{grid-area:flight}[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]) [data-book-field="party"]{grid-area:party}[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]) [data-book-field],[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]) [data-vtcombo]{min-width:0;max-width:100%}[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]) [data-vtcombo]{width:100%;box-sizing:border-box}[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]) [data-vtcombo] input{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}[data-book-slots][data-airport="0"]:has([data-book-field="pickup"]) [data-party]{grid-template-columns:repeat(2,minmax(0,1fr));width:100%}}
 [data-hero],[data-hero-inner]{min-height:100vh;min-height:100svh}
-@media (max-width:1080px){[data-hero]{min-height:100lvh}}
+/* Phone and tablet: the hero's dark ground reaches behind Safari's own bars (100lvh), the content stays inside the small
+   viewport, and the page ground is charcoal so Safari tints its status and address bars dark instead of white. */
+@media (max-width:1080px){[data-hero]{min-height:100lvh}html:root,html:root body{background:var(--vt-charcoal-900)}}
 [data-hero-slides]{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
 [data-hero-slide]{position:absolute;inset:0;background-position:center top;background-size:cover;background-repeat:no-repeat;opacity:0;transform:scale(1.02);transition:opacity .55s cubic-bezier(.2,0,.2,1),transform .7s cubic-bezier(.2,0,.2,1)}
 [data-hero-slide][data-on="1"]{opacity:1;transform:scale(1)}
@@ -412,7 +414,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </div><div id="{{ barId }}" data-bar-wrap="1" data-trust-in="{{ trustInBar }}" data-om-label="Booking bar">
 <div ref="{{ barSlotRef }}"><dc-import name="BookingBar" from="{{ barFrom }}" to="{{ barTo }}" whenLabel="{{ whenLabel }}" pax="{{ paxN }}" bags="{{ bagsN }}" travellersSet="{{ travSet }}" complete="{{ tripComplete }}" expanded="{{ sheetOpen }}" onOpen="{{ openFromHero }}" hint-size="100%,54px"></dc-import></div>
 <sc-if value="{{ trustHas }}" hint-placeholder-val="{{ false }}">
-<a data-bar-trust="1" href="{{ trustHref }}" target="_blank" rel="noopener noreferrer" aria-label="{{ trustAria }}" data-om-label="Reviews">
+<a data-bar-trust="1" data-vt-no-i18n="1" href="{{ trustHref }}" target="_blank" rel="noopener noreferrer" aria-label="{{ trustAria }}" data-om-label="Reviews">
 <img data-bt-mark="1" data-vt-no-i18n="1" src="/assets/reviews/trustpilot.svg" alt="Trustpilot" width="82" height="20">
 <span data-bt-stars="1" aria-hidden="true">
 <img data-vt-no-i18n="1" src="/assets/reviews/trustpilot-star.svg" alt="" width="14" height="14" style="opacity:{{ trustO1 }}">
