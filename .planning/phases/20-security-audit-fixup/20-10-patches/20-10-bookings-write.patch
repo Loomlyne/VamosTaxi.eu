@@ -1,0 +1,65 @@
+--- a/apps/web/lib/ops/bookings-write.ts
++++ b/apps/web/lib/ops/bookings-write.ts
+@@ -1,16 +1,15 @@
+ // apps/web/lib/ops/bookings-write.ts
+ //
+ // Staff cancel, delete, and in-place field updates. Refund is lib/ops/refund.ts
+-// (Stripe first). Board `id` is the public reference; bookingId is the uuid.
++// (by hand, 20-10: a cancel never calls Stripe). Board `id` is the public reference; bookingId is the uuid.
+ // DATA-08: ops_cancel_booking writes booking_events (booking.status_changed) in the same tx.
+ 
+ import { mintManageToken } from "@/lib/checkout/manage-token";
+ import { asStaff, asSystem, type VamosClaims } from "@/lib/db/identity";
+-import { loadCapturedPaymentRow } from "@/lib/db/system-reads";
+ import { expireSessionIds } from "../checkout/cancel-unpaid";
+ import { stripeAccountIsLegacyUaeTest } from "../checkout/charge-gate";
+ import { expireCheckoutSession, stripeFromEnv } from "../checkout/stripe";
+-import { applyStripeRefund } from "../lifecycle/paid-cancel";
++import { finishPaidCancel } from "../lifecycle/paid-cancel";
+ import { liveClassSlug } from "./class-slug";
+ import { mapRefundSqlError, sqlErrorCode } from "./refund-map";
+ import { resolveStaffBookingId } from "./resolve-booking-id";
+@@ -124,7 +123,6 @@
+ 
+   if ("ok" in cancelled && cancelled.ok === false) return cancelled;
+   const row = cancelled as CancelRow;
+-  const refundMode = String(row.refund_mode ?? "");
+ 
+   // D-04: expire every open Stripe Checkout Session this booking still has,
+   // after the cancel above already committed. A Stripe failure is logged;
+@@ -147,25 +145,16 @@
+     row.stripe_checkout_session_ids ?? [],
+   );
+ 
+-  if (refundMode === "pending_ops" || refundMode === "none") {
+-    // Stripe lives in the Worker, not SQL. pending_ops / none skip createRefund.
+-  } else if (refundMode === "auto_full") {
+-    const payment = await loadCapturedPaymentRow(env, bookingId);
+-    if (payment) {
+-      const refundRappen = Number(row.refund_rappen ?? 0);
+-      const amountRappen =
+-        Number.isFinite(refundRappen) && refundRappen > 0
+-          ? refundRappen
+-          : Number(payment.charged_rappen);
+-      await applyStripeRefund(env, {
+-        bookingId,
+-        paymentId: Number(payment.id),
+-        paymentIntentId: String(payment.stripe_payment_intent_id),
+-        amountRappen,
+-        idempotencyKey: `refund:${bookingId}:${payment.id}:ops-cancel`,
+-      });
+-    }
+-  }
++  // 20-10 refunds by hand: no Stripe call on a staff cancel. The booking keeps "Refund due"
++  // (pending_ops; the owed amount for a cancel more than 24 h ahead) and the customer gets the
++  // normal cancellation mail at once, with the approved refund sentence. The admin sends the
++  // refund from the dashboard. The mail is best-effort; the cancel already committed.
++  await finishPaidCancel(env, {
++    booking_id: String(row.booking_id),
++    refund_mode: String(row.refund_mode ?? ""),
++    refund_rappen: row.refund_rappen,
++    stripe_payment_intent_id: null,
++  });
+ 
+   return {
+     ok: true,

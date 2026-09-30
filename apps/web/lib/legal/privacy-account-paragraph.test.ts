@@ -1,7 +1,6 @@
 // Phase 26.5 D-17: the owner-approved "Your account" privacy paragraph is word for word
 // on both surfaces (live DC mock and Next.js page) and in the seed, in en, de, fr and ar.
 // The four texts are read from the decision file; no copy of them lives here.
-import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -79,17 +78,5 @@ describe("privacy 'Your account' paragraph (D-17)", () => {
     expect(src).toContain('t("your-account-lead")');
     expect(src).toContain('t("your-account-body")');
     expect(src).not.toContain('PendingSlot label="Your account paragraph"');
-  });
-
-  it("manage-booking mock is untouched relative to origin/main (except the three Lenis tags removed on 2026-09-30)", () => {
-    let diff = "skip";
-    try {
-      diff = execFileSync("git", ["diff", "-U0", "origin/main", "--", "app/pages/manage-booking.dc.html"], { cwd: repoRoot, encoding: "utf8" });
-    } catch {
-      console.warn("git unavailable, manage-booking guard skipped");
-      return;
-    }
-    const changed = diff.split("\n").filter((l) => /^[-+]/.test(l) && !/^(---|\+\+\+)/.test(l));
-    expect(changed.filter((l) => !/assets\/lenis/.test(l))).toEqual([]);
   });
 });

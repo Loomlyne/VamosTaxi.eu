@@ -60,8 +60,6 @@ export type OpsBookingRow = {
   extras: string[];
   fareLines: OpsFareLine[];
   arrivedAt: string;
-  extraWaitMinutes: number;
-  extraWaitRappen: number;
 };
 
 export type OpsBookingDispute = { status: string; reason: string };
@@ -116,8 +114,6 @@ export type SqlBoardRow = {
   policy?: unknown;
   lines?: unknown;
   arrived_at?: string | Date | null;
-  free_wait_minutes?: number | string | null;
-  waiting_amount_rappen?: number | string | null;
 };
 
 function str(value: unknown): string {
@@ -185,46 +181,6 @@ function iso(value: string | Date | null | undefined): string {
 function rappen(value: number | string | null | undefined): number {
   const n = Number(value ?? 0);
   return Number.isFinite(n) && n > 0 ? n : 0;
-}
-
-/** D-38: extra wait after published free_wait_minutes. Display only — never a Stripe amount. */
-export function extraWaitFromArrival(args: {
-  arrivedAt: string | Date | null | undefined;
-  scheduledAt: string | Date | null | undefined;
-  freeWaitMinutes: number | null | undefined;
-  unitMinutes?: number | null;
-  amountRappen: number | null | undefined;
-}): { extraMinutes: number; extraRappen: number } {
-  if (args.arrivedAt == null || args.scheduledAt == null) {
-    return { extraMinutes: 0, extraRappen: 0 };
-  }
-  const arrived =
-    args.arrivedAt instanceof Date ? args.arrivedAt.getTime() : Date.parse(String(args.arrivedAt));
-  const scheduled =
-    args.scheduledAt instanceof Date
-      ? args.scheduledAt.getTime()
-      : Date.parse(String(args.scheduledAt));
-  if (!Number.isFinite(arrived) || !Number.isFinite(scheduled)) {
-    return { extraMinutes: 0, extraRappen: 0 };
-  }
-  const elapsed = Math.max(0, Math.floor((arrived - scheduled) / 60_000));
-  const free =
-    typeof args.freeWaitMinutes === "number" && Number.isFinite(args.freeWaitMinutes)
-      ? Math.max(0, Math.trunc(args.freeWaitMinutes))
-      : 0;
-  const extraMinutes = Math.max(0, elapsed - free);
-  if (extraMinutes <= 0) return { extraMinutes: 0, extraRappen: 0 };
-  const amount =
-    typeof args.amountRappen === "number" && Number.isFinite(args.amountRappen)
-      ? Math.max(0, Math.trunc(args.amountRappen))
-      : 0;
-  if (amount <= 0) return { extraMinutes, extraRappen: 0 };
-  const unit =
-    typeof args.unitMinutes === "number" && Number.isFinite(args.unitMinutes) && args.unitMinutes > 0
-      ? Math.trunc(args.unitMinutes)
-      : null;
-  const extraRappen = unit != null ? Math.ceil(extraMinutes / unit) * amount : amount;
-  return { extraMinutes, extraRappen };
 }
 
 function minutes(primary: number | string | null | undefined, fallback: number | string | null | undefined): number {
@@ -365,18 +321,6 @@ export function mapBoardBooking(row: SqlBoardRow): OpsBookingRow {
   const feeRaw = row.stripe_fee_rappen;
   const stripeFeeRappen =
     feeRaw === undefined || feeRaw === null || String(feeRaw).trim() === "" ? null : rappen(feeRaw);
-  const extraWait = extraWaitFromArrival({
-    arrivedAt: row.arrived_at,
-    scheduledAt: row.scheduled_at,
-    freeWaitMinutes:
-      row.free_wait_minutes == null || row.free_wait_minutes === ""
-        ? null
-        : Number(row.free_wait_minutes),
-    amountRappen:
-      row.waiting_amount_rappen == null || row.waiting_amount_rappen === ""
-        ? null
-        : Number(row.waiting_amount_rappen),
-  });
   return {
     id: str(row.reference) || str(row.id),
     bookingId: str(row.id),
@@ -432,7 +376,5 @@ export function mapBoardBooking(row: SqlBoardRow): OpsBookingRow {
     extras: extrasFromSnapshot(row.policy, row.lines),
     fareLines: mapFareLines(row.lines, klass),
     arrivedAt: iso(row.arrived_at),
-    extraWaitMinutes: extraWait.extraMinutes,
-    extraWaitRappen: extraWait.extraRappen,
   };
 }

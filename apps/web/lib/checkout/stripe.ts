@@ -235,6 +235,27 @@ export async function createRefund(
 }
 
 /**
+ * 20-10: the refund the app already made for one refund intent, or null. A retry looks here
+ * first (Stripe's idempotency key lives only 24 hours), so one intent never makes two refunds.
+ * Matches metadata.vamos_intent, which the admin refund sets on every intent it sends.
+ */
+export async function findRefundByIntent(
+  stripe: Stripe,
+  paymentIntentId: string,
+  intentId: number | string,
+): Promise<Stripe.Refund | null> {
+  const list = await stripe.refunds.list({ payment_intent: paymentIntentId, limit: 100 });
+  // A refund Stripe gave up on ("failed" / "canceled") never sent the money: treat it as not sent so a
+  // Retry makes a new one. "succeeded", "pending" and "requires_action" (and an unknown status) count as sent.
+  return (
+    list.data.find(
+      (r) =>
+        r.metadata?.vamos_intent === String(intentId) && r.status !== "failed" && r.status !== "canceled",
+    ) ?? null
+  );
+}
+
+/**
  * D-05/X0b: a refund must always target a real PaymentIntent, never a
  * Checkout Session id. `pi_...` is returned as-is with no Stripe call
  * (research threat "stale cs_ misroute" — a stored `cs_...` value must be

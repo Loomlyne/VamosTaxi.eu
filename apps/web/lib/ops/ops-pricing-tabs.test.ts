@@ -55,7 +55,8 @@ describe("OpsPricing tabs (D-11 D-12 D-17 D-25)", () => {
     expect(html).toContain("city to city");
     expect(html).toContain("canton to canton");
     expect(html).toContain("photoKind:'class'");
-    expect(html).toContain("SURCHARGE_TYPES");
+    // 26.2-p4 A5 (owner, 2026-09-30): no type list behind the Extras table.
+    expect(html).not.toContain("SURCHARGE_TYPES");
     expect(html).not.toContain("ruleRows");
   });
 

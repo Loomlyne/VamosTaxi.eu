@@ -31,6 +31,7 @@ export function claimsForSql(c: VamosClaims): string {
     aal: c.aal ?? "aal1",
     email: c.email,
     session_id: c.session_id,
-    app_metadata: c.app_metadata ?? {},
+    // G14: SQL reads only app_metadata.vamos_role (app.is_staff / app.is_admin); pass nothing else.
+    app_metadata: c.app_metadata?.vamos_role ? { vamos_role: c.app_metadata.vamos_role } : {},
   });
 }

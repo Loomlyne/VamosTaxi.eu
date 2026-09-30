@@ -51,6 +51,12 @@ export type RoleChange = {
   active?: boolean;
 };
 
+/** G17: true when Postgres refused the change with the last-admin trigger (23514, 'staff-last-admin'). */
+export function isLastAdminDbError(err: unknown): boolean {
+  const e = err as { code?: unknown; message?: unknown } | null;
+  return !!e && e.code === "23514" && typeof e.message === "string" && e.message.includes("staff-last-admin");
+}
+
 export class StaffInputError extends Error {
   readonly key: string;
 
