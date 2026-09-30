@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import { CHECKOUT_SEND_FLOOR_MS, sendCheckoutSignInLink } from "./checkout-sign-in";
 import type { AuthClient } from "./run";
+import { decodeNextParam } from "./redirect-target";
+
+// The callback target travels as `nextb` (base64url) when it carries a query (26.5-07).
+const targetOf = (redirect: string): string | null => decodeNextParam(new URL(redirect).searchParams.get("nextb")) ?? new URL(redirect).searchParams.get("next");
 
 function client(signInWithOtp: AuthClient["auth"]["signInWithOtp"]): AuthClient {
   return { auth: { signInWithOtp } } as unknown as AuthClient;
@@ -17,7 +21,7 @@ describe("sendCheckoutSignInLink", () => {
     });
     const arg = (otp.mock.calls[0] as unknown[])[0] as { options: { shouldCreateUser: boolean; emailRedirectTo: string } };
     expect(arg.options.shouldCreateUser).toBe(false);
-    expect(decodeURIComponent(arg.options.emailRedirectTo)).toContain("/en/checkout?class=economy&extras=a");
+    expect(targetOf(arg.options.emailRedirectTo)).toBe("/en/checkout?class=economy&extras=a");
   });
 
   it("falls back to home for a foreign returnTo", async () => {
@@ -27,7 +31,7 @@ describe("sendCheckoutSignInLink", () => {
     });
     const arg = (otp.mock.calls[0] as unknown[])[0] as { options: { emailRedirectTo: string } };
     expect(arg.options.emailRedirectTo).not.toContain("evil");
-    expect(decodeURIComponent(arg.options.emailRedirectTo)).toContain("next=/en");
+    expect(targetOf(arg.options.emailRedirectTo)).toBe("/en");
   });
 
   it("gives the same answer for an unknown and a known address", async () => {

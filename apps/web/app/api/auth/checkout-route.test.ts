@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { decodeNextParam } from "@/lib/auth/redirect-target";
 
 type Fn = ReturnType<typeof vi.fn<(...args: any[]) => any>>;
 const state = vi.hoisted(() => ({
@@ -86,7 +87,7 @@ describe("POST /api/auth origin checkout", () => {
     expect(await unknown.text()).toBe('{"stage":"sent"}');
     const arg = state.otp.mock.calls[0]?.[0] as { options: { shouldCreateUser: boolean; emailRedirectTo: string } };
     expect(arg.options.shouldCreateUser).toBe(false);
-    expect(decodeURIComponent(arg.options.emailRedirectTo)).toContain("/checkout?class=economy");
+    expect(decodeNextParam(new URL(arg.options.emailRedirectTo).searchParams.get("nextb"))).toContain("/checkout?class=economy");
   });
 
   it("carries the PKCE verifier cookie and no session cookie", async () => {
