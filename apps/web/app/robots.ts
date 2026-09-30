@@ -23,6 +23,9 @@ const PRIVATE_PATHS = [
   "/sitemap",
 ];
 
+// Answers depend on the host, so it must not be prerendered at build.
+export const dynamic = "force-dynamic";
+
 function isDashboardHost(host: string | null): boolean {
   const name = (host ?? "").split(":")[0]?.toLowerCase() ?? "";
   return name === "dashboard.vamostaxi.site" || name === "dashboard.localhost";
