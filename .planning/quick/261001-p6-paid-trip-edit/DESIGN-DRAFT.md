@@ -226,7 +226,12 @@ quote the difference before anything is charged." · "Passengers and bags", the 
 Skis, a cot or a bike are worth a word to dispatch before you travel." · "You pay any difference in
 the fare, or we refund it." · "Time, route, vehicle or passengers."
 
-## Open questions for the owner (one decision each)
+## Owner answers (2026-10-01)
+
+All five open questions and F1 answered, and the design signed: decisions D10–D16 in
+`.planning/decisions/2026-10-01-p6-paid-trip-edit.md` (texts word for word there).
+
+## Open questions for the owner (one decision each) — answered, see above
 
 1. **Which e-mail asks the customer to pay the difference after a place change?** Your approved
    "pay the difference" e-mail speaks of a class ("Your trip changes to Business"). Example: Anna's
