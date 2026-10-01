@@ -112,8 +112,15 @@
 /* One row, two fields. Wrap only when the row is narrower than both fields. */
 [data-vt-pair]{display:flex;flex-wrap:wrap;align-items:flex-start;gap:var(--vt-space-3);min-width:0}
 [data-vt-pair-field]{box-sizing:border-box;flex:1 1 calc(var(--vt-space-12) + var(--vt-space-6));min-width:min(100%,calc(var(--vt-space-12) + var(--vt-space-6)))}
+/* 261001-cars-page (owner, signed 2026-10-01): a screen that hands a `card` function shows its rows
+   as OpsCardRow cards on a phone — no table, no sideways swipe. Every other list keeps its table. */
+[data-vt-cards]{display:none}
+@media (max-width:680px){
+[data-vt-cardview="1"] [data-vt-table-scroll]{display:none}
+[data-vt-cardview="1"] [data-vt-cards]{display:flex;flex-direction:column;gap:12px;min-width:0}
+}
 </style>
-<div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+<div data-vt-cardview="{{ cardView }}" style="display:flex;flex-direction:column;gap:16px;min-width:0">
 
 <sc-if value="{{ showList }}" hint-placeholder-val="{{ true }}">
 <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;min-width:0">
@@ -158,6 +165,13 @@
 <div data-vt-table-scroll="1" data-fill="{{ tableFill }}" data-scroll-native="1" data-lenis-prevent="1" ref="{{ tableRef }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Table" columns="{{ tableColumns }}" rows="{{ visibleRows }}" onRowClick="{{ rowClick }}" hint-size="100%,320px"></x-import>
 </div>
+<sc-if value="{{ hasCards }}" hint-placeholder-val="{{ false }}">
+<div data-vt-cards="1" role="list" aria-label="{{ cardsLabel }}">
+<sc-for list="{{ cardRows }}" as="c" hint-placeholder-count="2">
+<dc-import name="OpsCardRow" title="{{ c.title }}" subtitle="{{ c.subtitle }}" facts="{{ c.facts }}" small-facts="{{ c.smallFacts }}" edit-label="{{ c.editLabel }}" delete-label="{{ c.deleteLabel }}" on-edit="{{ c.onEdit }}" on-delete="{{ c.onDelete }}" can-delete="{{ c.canDelete }}" hint-size="100%,150px"></dc-import>
+</sc-for>
+</div>
+</sc-if>
 </sc-if>
 
 <sc-if value="{{ noMatches }}" hint-placeholder-val="{{ false }}">
@@ -1739,6 +1753,19 @@ class Component extends DCLogic {
       addLabel: this.props.addLabel || 'Add',
       countLabel,
       hasRows: visible.length > 0,
+      // 261001-cars-page: phone cards (OpsCardRow) for a screen that hands a `card` function.
+      cardView: typeof this.props.card === 'function' ? '1' : '0',
+      hasCards: typeof this.props.card === 'function' && visible.length > 0,
+      cardsLabel: this.props.nounPlural || this.props.noun || '',
+      cardRows: typeof this.props.card !== 'function' ? [] : visible.map((row) => Object.assign(
+        { title: '', subtitle: '', facts: [], smallFacts: [], editLabel: this.props.editLabel || 'Edit', deleteLabel: this.props.deleteLabel || 'Delete' },
+        this.props.card(row) || {},
+        {
+          canDelete: this.rowCanDelete(row),
+          onEdit: () => this.startEdit(row),
+          onDelete: () => this.askDelete(row),
+        },
+      )),
       isEmpty: rows.length === 0,
       noMatches: rows.length > 0 && visible.length === 0,
       noMatchTitle: this.props.noMatchTitle || 'Nothing matches that search',

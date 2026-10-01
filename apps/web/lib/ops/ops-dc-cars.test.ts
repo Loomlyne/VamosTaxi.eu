@@ -226,10 +226,10 @@ describe("2 · OpsCars — the list and the edit box", () => {
     }
   });
 
-  it("the edit box: photo, plate, model, class, seats, bags, status — plate, model and class required", async () => {
+  it("the edit box: photo, plate, model, class, seats, bags — no Status (signed 2026-10-01); plate, model and class required", async () => {
     const { vals } = await mounted();
     const f = vals().fields as Record<string, any>[];
-    expect(f.map((x) => x.key)).toEqual(["photo", "plate", "model", "vehicleClassId", "seats", "bags", "status"]);
+    expect(f.map((x) => x.key)).toEqual(["photo", "plate", "model", "vehicleClassId", "seats", "bags"]);
     expect(f.filter((x) => x.required).map((x) => x.key)).toEqual(["plate", "model", "vehicleClassId"]);
     expect(f.find((x) => x.key === "photo")).toMatchObject({ editor: "photo", photoKind: "vehicle", upload: "/api/photos/upload" });
     // Pictures at 390 (en and ar): half-width Plate and Model cut "ZH 000 000" and the model name.
@@ -237,11 +237,6 @@ describe("2 · OpsCars — the list and the edit box", () => {
     expect(f.find((x) => x.key === "model")).not.toHaveProperty("half");
     expect(f.find((x) => x.key === "seats")).toMatchObject({ editor: "number", min: 1, max: 16 });
     expect(f.find((x) => x.key === "bags")).toMatchObject({ editor: "number", min: 0, max: 16 });
-    expect(f.find((x) => x.key === "status")?.options).toEqual([
-      { value: "service", label: "In service" },
-      { value: "idle", label: "Free" },
-      { value: "workshop", label: "In the workshop" },
-    ]);
   });
 
   it("class: the classes of the live price book, never the draft's or a fixed list; a car's old class stays pickable", async () => {
@@ -282,11 +277,9 @@ describe("2 · OpsCars — the list and the edit box", () => {
       ["ZH 777 777", "Saden", ""],
     ]);
     const cols = vals().columns as Record<string, any>[];
-    expect(cols.map((c) => c.key)).toEqual(["model", "className", "seats", "bags", "driverNames", "status"]);
-    expect(cols.map((c) => c.header)).toEqual(["Car", "Class", "Seats", "Bags", "Driver", "Status"]);
-    const status = cols.find((c) => c.key === "status");
-    expect(status?.kind).toBe("badge");
-    expect(Object.values(status?.tones ?? {}).map((t: any) => t.tone)).not.toContain("warning");
+    // Signed 2026-10-01: no Status column and no status words anywhere on the page.
+    expect(cols.map((c) => c.key)).toEqual(["model", "className", "seats", "bags", "driverNames"]);
+    expect(cols.map((c) => c.header)).toEqual(["Car", "Class", "Seats", "Bags", "Driver"]);
     expect(vals().searchKeys).toEqual(["plate", "model", "className", "driverNames"]);
     expect(vals().labelKey).toBe("plate");
   });
@@ -300,6 +293,11 @@ describe("2 · OpsCars — the list and the edit box", () => {
     expect(T.de.title).toBe("Autos");
     expect(T.fr.title).toBe("Voitures");
     expect(T.ar.title).toBe("السيارات");
+    for (const lang of ["en", "de", "fr", "ar"]) {
+      for (const k of ["fStatus", "colStatus", "hStatus", "sService", "sIdle", "sWorkshop"]) expect(T[lang]).not.toHaveProperty(k);
+    }
+    const src = scriptOf(read("app/ops/OpsCars.dc.html"));
+    expect(src).not.toMatch(/workshop|'idle'|STATUSES|STATUS_TONE/);
   });
 
   it("German, French and Arabic labels reach the edit box and the list", async () => {
@@ -323,13 +321,17 @@ describe("3 · Add creates, Edit saves the car", () => {
     expect(sent).toMatchObject({ plate: "ZH 1", model: "VW Passat", vehicleClassId: ECONOMY });
     expect(sent).not.toHaveProperty("className");
     expect(sent).not.toHaveProperty("driverNames");
+    // The form no longer sends a status: a new car gets the column's default.
+    expect(sent).not.toHaveProperty("status");
   });
 
   it("Edit goes to the store's update (PATCH) with the row id", async () => {
     const c = await mounted();
     await c.vals().onUpdate(CAR_A, { id: CAR_A, plate: "ZH 000 001", model: "Mercedes V-Class", vehicleClassId: BUSINESS, seats: 6, bags: 6, status: "idle", className: "Business", driverNames: "Marco" });
-    expect(c.update).toHaveBeenCalledWith(CAR_A, expect.objectContaining({ plate: "ZH 000 001", status: "idle" }));
+    expect(c.update).toHaveBeenCalledWith(CAR_A, expect.objectContaining({ plate: "ZH 000 001", seats: 6 }));
     expect(c.update.mock.calls[0]?.[1]).not.toHaveProperty("driverNames");
+    // A save without a status keeps the stored one (server: vehicle-status-keep.test.ts).
+    expect(c.update.mock.calls[0]?.[1]).not.toHaveProperty("status");
   });
 
   it("a plate already on file reads in the owner's language", async () => {
@@ -378,6 +380,91 @@ describe("4 · Delete: refused in plain words while a driver or an open trip has
   });
 });
 
+// ── 6 · Phone: each car is a card (signed 2026-10-01) ───────────────────────────────────────
+describe("6 · on a phone (≤ 680 px) each car is a card — no table, no sideways swipe", () => {
+  it("OpsCars hands OpsTable a card for each car: model and plate, class and driver, seats and bags small", async () => {
+    const { vals } = await mounted();
+    const v = vals();
+    expect(templateOf(read("app/ops/OpsCars.dc.html"))).toMatch(/card="\{\{ card \}\}"/);
+    const rows = v.rows as Record<string, any>[];
+    expect(v.card(rows[0])).toEqual({
+      title: "Mercedes V-Class",
+      subtitle: "ZH 000 000",
+      facts: [
+        { label: "Class", value: "Business", muted: false },
+        { label: "Driver", value: "Marco", muted: false },
+      ],
+      smallFacts: [
+        { label: "Seats", value: "6" },
+        { label: "Bags", value: "6" },
+      ],
+      editLabel: "Edit car",
+      deleteLabel: "Delete car",
+    });
+    expect(v.card(rows[1]).facts[1]).toEqual({ label: "Driver", value: "No driver", muted: true });
+    const ar = (await mounted("ar")).vals();
+    const arCard = ar.card((ar.rows as Record<string, any>[])[1]);
+    expect(arCard.facts.map((f: { label: string }) => f.label)).toEqual(["الفئة", "السائق"]);
+    expect(arCard.facts[1].value).toBe("بلا سائق");
+    expect(arCard.smallFacts.map((f: { label: string }) => f.label)).toEqual(["المقاعد", "الحقائب"]);
+  });
+
+  it("OpsTable: with a card, the phone shows OpsCardRow cards instead of the table; Edit and Delete open its own boxes", () => {
+    const src = read("app/ops/OpsTable.dc.html");
+    const tpl = templateOf(src);
+    expect(tpl).toMatch(/<div data-vt-cards="1" role="list"[^>]*>\s*<sc-for list="\{\{ cardRows \}\}" as="c"[^>]*>\s*<dc-import name="OpsCardRow"/);
+    expect(tpl).toMatch(/data-vt-cardview="\{\{ cardView \}\}"/);
+    expect(src).toMatch(/\[data-vt-cards\]\{display:none\}/);
+    expect(src).toMatch(/@media \(max-width:680px\)\{\s*\[data-vt-cardview="1"\] \[data-vt-table-scroll\]\{display:none\}\s*\[data-vt-cardview="1"\] \[data-vt-cards\]\{display:flex[;}]/);
+    const logic = scriptOf(src);
+    expect(logic).toMatch(/cardRows/);
+    expect(logic).toMatch(/onEdit: \(\) => this\.startEdit\(row\)/);
+    expect(logic).toMatch(/onDelete: \(\) => this\.askDelete\(row\)/);
+    // Every other list keeps its table: no card prop, no card view.
+    expect(logic).toMatch(/cardView: typeof this\.props\.card === 'function' \? '1' : '0'/);
+  });
+
+  it("OpsCardRow: a component with real props and every state; 44 px actions; laws kept", () => {
+    const src = read("app/ops/OpsCardRow.dc.html");
+    const props = src.match(/data-props="([^"]*)"/)?.[1]?.replace(/&quot;/g, '"') ?? "";
+    for (const p of ["title", "subtitle", "facts", "smallFacts", "editLabel", "deleteLabel", "onEdit", "onDelete", "canDelete", "selected", "disabled", "loading", "loadingLabel", "error"]) {
+      expect(props, p).toMatch(new RegExp(`"${p}"`));
+    }
+    const tpl = templateOf(src);
+    expect(tpl.match(/VamosTaxiDesignSystem_245af1\.IconButton/g)?.length).toBe(2);
+    expect(tpl).toMatch(/IconButton" icon="pencil"[^>]*size="md"/);
+    expect(tpl).toMatch(/IconButton" icon="trash-2"[^>]*size="md"/);
+    expect(tpl).toMatch(/role="listitem"/);
+    expect(tpl).toMatch(/dir="ltr"/);
+    expect(src).toMatch(/:root\{--vt-shadow-accent:none\}/);
+    expect(src).not.toMatch(/--vt-yellow-(50|100|200|300|600|700)\b/);
+    expect(src).not.toMatch(/(^|[;{"'\s])(margin|padding)-(left|right)\s*:/);
+    expect(src).not.toMatch(/(^|[;{"'\s])(left|right)\s*:/);
+  });
+
+  it("OpsCardRow states: default, muted fact, selected, disabled, loading in words, error", () => {
+    const win = { addEventListener() {}, removeEventListener() {} };
+    const { Component } = runScript("app/ops/OpsCardRow.dc.html", win);
+    const make = (props: Record<string, unknown>) => {
+      const c = new Component(props) as Logic;
+      return c.renderVals();
+    };
+    const base = { title: "Mercedes V-Class", subtitle: "ZH 000 000", facts: [{ label: "Driver", value: "No driver", muted: true }], smallFacts: [{ label: "Seats", value: "6" }], editLabel: "Edit car", deleteLabel: "Delete", onEdit: () => {}, onDelete: () => {} };
+    const d = make(base);
+    expect(d).toMatchObject({ showBody: true, showLoading: false, showActions: true, showDelete: true, hasError: false, border: "1px solid var(--vt-border-subtle)", opacity: "1" });
+    expect(d.facts[0]).toMatchObject({ label: "Driver", value: "No driver", color: "var(--vt-text-muted)" });
+    expect(make({ ...base, canDelete: false }).showDelete).toBe(false);
+    expect(make({ ...base, selected: true }).border).toBe("2px solid var(--vt-charcoal-900)");
+    const off = make({ ...base, disabled: true });
+    expect(off).toMatchObject({ opacity: "0.42", actionsDisabled: true, ariaDisabled: "true" });
+    const wait = make({ ...base, loading: true, loadingLabel: "Loading the cars" });
+    expect(wait).toMatchObject({ showLoading: true, showBody: false, showActions: false, loadingLabel: "Loading the cars" });
+    const err = make({ ...base, error: "Driven by Marco." });
+    expect(err).toMatchObject({ hasError: true, error: "Driven by Marco." });
+    expect(make({ ...base, title: "" }).title).toBe("—");
+  });
+});
+
 // ── 5 · Store and platform laws ─────────────────────────────────────────────────────────────
 describe("5 · the store keeps the seat ids; the page keeps the platform laws", () => {
   it("cleanVehicle keeps Morning and Night, so a car edit does not empty vehicle_seats", () => {
@@ -391,6 +478,9 @@ describe("5 · the store keeps the seat ids; the page keeps the platform laws", 
     const ops = windowStub.VamosOps as { vehicles: { blank: (o: unknown) => Record<string, unknown> } };
     expect(ops.vehicles.blank({ id: CAR_A, morningChauffeurId: "c1", nightChauffeurId: "c2" })).toMatchObject({ morning: "c1", night: "c2" });
     expect(ops.vehicles.blank({ id: CAR_A, morning: "c3", night: "" })).toMatchObject({ morning: "c3", night: "" });
+    // Signed 2026-10-01: a new car carries no status (the column's default applies); a stored one is read as is.
+    expect(ops.vehicles.blank({})).not.toHaveProperty("status");
+    expect(ops.vehicles.blank({ status: "idle" })).toMatchObject({ status: "idle" });
   });
 
   it("the store loads once: a second run of the file keeps the first store and its listeners", async () => {

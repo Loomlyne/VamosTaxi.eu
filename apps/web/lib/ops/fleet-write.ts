@@ -9,6 +9,19 @@ import { persistVehicleSeats } from "./chauffeur-desk";
 import { tripsFromRows, type OpsMustFixTrip } from "./must-fix-mail";
 import type { ClassDeleteResult } from "./vehicle-class-write";
 
+/**
+ * Signed 2026-10-01: the insert never names vehicles.status, so a new car gets the column's
+ * default; a caller that does send a status has it written in the same transaction.
+ */
+async function writeExplicitStatus(
+  sql: any,
+  id: string,
+  status: AssertedVehicleInput["status"],
+): Promise<void> {
+  if (status === undefined) return;
+  await sql`update public.vehicles set status = ${status}::public.vehicle_status where id = ${id}::uuid`;
+}
+
 export async function insertVehicle(
   env: CloudflareEnv,
   claims: VamosClaims,
@@ -20,7 +33,7 @@ export async function insertVehicle(
       const rows = await sql<{ id: string }[]>`
         insert into public.vehicles (
           id, vehicle_class_id, model, plate, first_registered,
-          seats, bags, status, photo_path, note, updated_at
+          seats, bags, photo_path, note, updated_at
         ) values (
           ${id},
           ${parsed.vehicleClassId},
@@ -29,7 +42,6 @@ export async function insertVehicle(
           ${parsed.firstRegistered},
           ${parsed.seats},
           ${parsed.bags},
-          ${parsed.status},
           ${parsed.photoPath},
           ${parsed.note},
           now()
@@ -38,13 +50,14 @@ export async function insertVehicle(
       `;
       const row = rows[0];
       if (!row) throw new Error("insertVehicle");
+      await writeExplicitStatus(sql, row.id, parsed.status);
       await persistVehicleSeats(sql, row.id, parsed.morningChauffeurId, parsed.nightChauffeurId);
       return row.id;
     }
     const rows = await sql<{ id: string }[]>`
       insert into public.vehicles (
         vehicle_class_id, model, plate, first_registered,
-        seats, bags, status, photo_path, note, updated_at
+        seats, bags, photo_path, note, updated_at
       ) values (
         ${parsed.vehicleClassId},
         ${parsed.model},
@@ -52,7 +65,6 @@ export async function insertVehicle(
         ${parsed.firstRegistered},
         ${parsed.seats},
         ${parsed.bags},
-        ${parsed.status},
         ${parsed.photoPath},
         ${parsed.note},
         now()
@@ -61,6 +73,7 @@ export async function insertVehicle(
     `;
     const row = rows[0];
     if (!row) throw new Error("insertVehicle");
+    await writeExplicitStatus(sql, row.id, parsed.status);
     await persistVehicleSeats(sql, row.id, parsed.morningChauffeurId, parsed.nightChauffeurId);
     return row.id;
   });
@@ -100,7 +113,7 @@ export async function updateVehicleRow(
         first_registered = ${parsed.firstRegistered},
         seats = ${parsed.seats},
         bags = ${parsed.bags},
-        status = ${parsed.status},
+        status = case when ${parsed.status === undefined}::boolean then status else ${parsed.status ?? null}::public.vehicle_status end,
         photo_path = ${parsed.photoPath},
         note = ${parsed.note},
         updated_at = now()

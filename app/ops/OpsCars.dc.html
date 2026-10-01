@@ -28,7 +28,7 @@
 <p role="status" style="margin:0;max-width:78ch;font-size:var(--vt-body-sm);line-height:1.6;color:var(--vt-danger);text-wrap:pretty">{{ classMsg }}</p>
 </sc-if>
 
-<dc-import name="OpsTable" rows="{{ rows }}" columns="{{ columns }}" fields="{{ fields }}" blank="{{ blank }}" onSave="{{ onSave }}" onUpdate="{{ onUpdate }}" onDelete="{{ onDelete }}" save-label="{{ saveLabel }}" add-save-label="{{ addSaveLabel }}" noun="{{ noun }}" noun-plural="{{ nounPlural }}" add-title="{{ addTitle }}" edit-title="{{ editTitle }}" delete-title="{{ deleteTitle }}" delete-body="{{ deleteBody }}" label-key="{{ labelKey }}" add-label="{{ addLabel }}" search-placeholder="{{ searchPlaceholder }}" search-keys="{{ searchKeys }}" empty-title="{{ emptyTitle }}" empty-body="{{ emptyBody }}" required-message="{{ requiredMessage }}" hint-size="100%,460px"></dc-import>
+<dc-import name="OpsTable" rows="{{ rows }}" columns="{{ columns }}" card="{{ card }}" fields="{{ fields }}" blank="{{ blank }}" onSave="{{ onSave }}" onUpdate="{{ onUpdate }}" onDelete="{{ onDelete }}" save-label="{{ saveLabel }}" add-save-label="{{ addSaveLabel }}" noun="{{ noun }}" noun-plural="{{ nounPlural }}" add-title="{{ addTitle }}" edit-title="{{ editTitle }}" delete-title="{{ deleteTitle }}" delete-body="{{ deleteBody }}" label-key="{{ labelKey }}" add-label="{{ addLabel }}" search-placeholder="{{ searchPlaceholder }}" search-keys="{{ searchKeys }}" empty-title="{{ emptyTitle }}" empty-body="{{ emptyBody }}" required-message="{{ requiredMessage }}" hint-size="100%,460px"></dc-import>
 
 <p style="margin:0;max-width:78ch;font-size:var(--vt-body-xs);line-height:1.6;color:var(--vt-text-muted);text-wrap:pretty">{{ note }}</p>
 
@@ -41,17 +41,17 @@
    refuses a car of another class than the trip. The class list is the live fare book's classes,
    read from the server, never a fixed list. Delete is refused by the server, in plain words here,
    while a driver has the car or a trip that is not finished uses it. */
-const STATUSES = ['service', 'idle', 'workshop'];
-const STATUS_TONE = { service: 'success', idle: 'neutral', workshop: 'outline' };
-const LIST_ONLY = ['className', 'driverNames'];
+// Signed 2026-10-01: no Status on this page. The column stays in the database; the form never
+// sends it, so a save keeps the stored value and a new car gets the column's default.
+const NOT_SENT = ['className', 'driverNames', 'status'];
 const T = {
   en: {
     title:'Cars',
     sub:'Each car, its class and what it takes. A driver gets his car on Chauffeurs.',
     note:'Assign puts the driver’s car on the trip. It refuses a car of another class than the trip, or one with fewer seats or bags than the trip needs.',
-    colCar:'Car', colClass:'Class', colSeats:'Seats', colBags:'Bags', colDriver:'Driver', colStatus:'Status',
+    colCar:'Car', colClass:'Class', colSeats:'Seats', colBags:'Bags', colDriver:'Driver',
     noDriver:'No driver',
-    fPhoto:'Photo', fPlate:'Plate', fModel:'Model', fClass:'Class', fSeats:'Seats', fBags:'Bags', fStatus:'Status',
+    fPhoto:'Photo', fPlate:'Plate', fModel:'Model', fClass:'Class', fSeats:'Seats', fBags:'Bags',
     choosePhoto:'Choose photo', pickClass:'Pick a class',
     hPhoto:'Optional. Kept for this car only and deleted with it.',
     hPlate:'As it reads on the plate.',
@@ -59,10 +59,8 @@ const T = {
     hClass:'The classes of the live fare book. A new class shows here once it is published.',
     hSeats:'Travellers it takes. Assign refuses a bigger party.',
     hBags:'Bags it takes. Assign refuses more bags.',
-    hStatus:'In the workshop: its assigned trips stay booked, and the support inbox gets a mail that lists them.',
-    sService:'In service', sIdle:'Free', sWorkshop:'In the workshop',
     add:'Add a car', editTitle:'Edit car', saveCar:'Save car',
-    delTitle:'Delete this car?',
+    delTitle:'Delete this car?', delCar:'Delete car',
     delBody:'The car and its photo are deleted for good. Finished trips keep their driver, without this car.',
     noun:'car', nouns:'cars',
     search:'Plate, model, class or driver',
@@ -82,9 +80,9 @@ const T = {
     title:'Autos',
     sub:'Jedes Auto, seine Klasse und was es mitnimmt. Sein Auto bekommt ein Fahrer unter Chauffeure.',
     note:'Beim Zuweisen kommt das Auto des Fahrers auf die Fahrt. Abgelehnt wird ein Auto einer anderen Klasse als die Fahrt oder mit weniger Plätzen oder Gepäck, als die Fahrt braucht.',
-    colCar:'Auto', colClass:'Klasse', colSeats:'Plätze', colBags:'Gepäck', colDriver:'Fahrer', colStatus:'Status',
+    colCar:'Auto', colClass:'Klasse', colSeats:'Plätze', colBags:'Gepäck', colDriver:'Fahrer',
     noDriver:'Kein Fahrer',
-    fPhoto:'Foto', fPlate:'Kennzeichen', fModel:'Modell', fClass:'Klasse', fSeats:'Plätze', fBags:'Gepäck', fStatus:'Status',
+    fPhoto:'Foto', fPlate:'Kennzeichen', fModel:'Modell', fClass:'Klasse', fSeats:'Plätze', fBags:'Gepäck',
     choosePhoto:'Foto wählen', pickClass:'Klasse wählen',
     hPhoto:'Freiwillig. Gehört nur zu diesem Auto und wird mit ihm gelöscht.',
     hPlate:'So, wie es auf dem Kennzeichen steht.',
@@ -92,10 +90,8 @@ const T = {
     hClass:'Die Klassen des Live-Tarifbuchs. Eine neue Klasse erscheint hier, sobald sie veröffentlicht ist.',
     hSeats:'Reisende, die es mitnimmt. Eine grössere Gruppe wird beim Zuweisen abgelehnt.',
     hBags:'Gepäckstücke, die es mitnimmt. Mehr Gepäck wird beim Zuweisen abgelehnt.',
-    hStatus:'In der Werkstatt: Die zugewiesenen Fahrten bleiben gebucht, und das Support-Postfach bekommt eine Mail mit der Liste.',
-    sService:'Im Einsatz', sIdle:'Frei', sWorkshop:'In der Werkstatt',
     add:'Auto hinzufügen', editTitle:'Auto bearbeiten', saveCar:'Auto speichern',
-    delTitle:'Dieses Auto löschen?',
+    delTitle:'Dieses Auto löschen?', delCar:'Auto löschen',
     delBody:'Das Auto und sein Foto werden endgültig gelöscht. Abgeschlossene Fahrten behalten ihren Fahrer, ohne dieses Auto.',
     noun:'Auto', nouns:'Autos',
     search:'Kennzeichen, Modell, Klasse oder Fahrer',
@@ -115,9 +111,9 @@ const T = {
     title:'Voitures',
     sub:'Chaque voiture, sa classe et ce qu’elle prend. Un chauffeur reçoit sa voiture sous Chauffeurs.',
     note:'L’attribution met la voiture du chauffeur sur la course. Elle refuse une voiture d’une autre classe que la course, ou avec moins de places ou de bagages que la course n’en demande.',
-    colCar:'Voiture', colClass:'Classe', colSeats:'Places', colBags:'Bagages', colDriver:'Chauffeur', colStatus:'Statut',
+    colCar:'Voiture', colClass:'Classe', colSeats:'Places', colBags:'Bagages', colDriver:'Chauffeur',
     noDriver:'Aucun chauffeur',
-    fPhoto:'Photo', fPlate:'Plaque', fModel:'Modèle', fClass:'Classe', fSeats:'Places', fBags:'Bagages', fStatus:'Statut',
+    fPhoto:'Photo', fPlate:'Plaque', fModel:'Modèle', fClass:'Classe', fSeats:'Places', fBags:'Bagages',
     choosePhoto:'Choisir une photo', pickClass:'Choisir une classe',
     hPhoto:'Facultative. Gardée pour cette voiture seule et supprimée avec elle.',
     hPlate:'Tel qu’il figure sur la plaque.',
@@ -125,10 +121,8 @@ const T = {
     hClass:'Les classes du livre tarifaire en ligne. Une nouvelle classe apparaît ici une fois publiée.',
     hSeats:'Voyageurs qu’elle prend. L’attribution refuse un groupe plus grand.',
     hBags:'Bagages qu’elle prend. L’attribution refuse plus de bagages.',
-    hStatus:'À l’atelier : ses courses attribuées restent réservées, et la boîte du support reçoit un e-mail qui les liste.',
-    sService:'En service', sIdle:'Libre', sWorkshop:'À l’atelier',
     add:'Ajouter une voiture', editTitle:'Modifier la voiture', saveCar:'Enregistrer la voiture',
-    delTitle:'Supprimer cette voiture ?',
+    delTitle:'Supprimer cette voiture ?', delCar:'Supprimer la voiture',
     delBody:'La voiture et sa photo sont supprimées pour de bon. Les courses terminées gardent leur chauffeur, sans cette voiture.',
     noun:'voiture', nouns:'voitures',
     search:'Plaque, modèle, classe ou chauffeur',
@@ -148,9 +142,9 @@ const T = {
     title:'السيارات',
     sub:'كل سيارة وفئتها وما تتسع له. يحصل السائق على سيارته من صفحة السائقين.',
     note:'عند الإسناد توضع سيارة السائق على الرحلة. ويُرفض الإسناد إذا كانت السيارة من فئة غير فئة الرحلة، أو فيها مقاعد أو أماكن حقائب أقل مما تحتاجه الرحلة.',
-    colCar:'السيارة', colClass:'الفئة', colSeats:'المقاعد', colBags:'الحقائب', colDriver:'السائق', colStatus:'الحالة',
+    colCar:'السيارة', colClass:'الفئة', colSeats:'المقاعد', colBags:'الحقائب', colDriver:'السائق',
     noDriver:'بلا سائق',
-    fPhoto:'الصورة', fPlate:'اللوحة', fModel:'الطراز', fClass:'الفئة', fSeats:'المقاعد', fBags:'الحقائب', fStatus:'الحالة',
+    fPhoto:'الصورة', fPlate:'اللوحة', fModel:'الطراز', fClass:'الفئة', fSeats:'المقاعد', fBags:'الحقائب',
     choosePhoto:'اختيار صورة', pickClass:'اختر فئة',
     hPhoto:'اختيارية. تُحفظ لهذه السيارة وحدها وتُحذف معها.',
     hPlate:'كما هو مكتوب على اللوحة.',
@@ -158,10 +152,8 @@ const T = {
     hClass:'فئات دفتر الأسعار المباشر. تظهر الفئة الجديدة هنا بعد نشرها.',
     hSeats:'عدد المسافرين الذي تتسع له. يُرفض الإسناد لمجموعة أكبر.',
     hBags:'عدد الحقائب الذي تتسع له. يُرفض الإسناد إذا كانت الحقائب أكثر.',
-    hStatus:'في الورشة: تبقى رحلاتها المُسندة محجوزة، ويصل إلى بريد الدعم بريد يسردها.',
-    sService:'في الخدمة', sIdle:'متاحة', sWorkshop:'في الورشة',
     add:'إضافة سيارة', editTitle:'تعديل السيارة', saveCar:'حفظ السيارة',
-    delTitle:'حذف هذه السيارة؟',
+    delTitle:'حذف هذه السيارة؟', delCar:'حذف السيارة',
     delBody:'تُحذف السيارة وصورتها نهائيًا. وتحتفظ الرحلات المنتهية بسائقها، من دون هذه السيارة.',
     noun:'سيارة', nouns:'سيارات',
     search:'اللوحة أو الطراز أو الفئة أو السائق',
@@ -201,10 +193,10 @@ function localize(json, t, fallback) {
   return Object.assign({}, json || {}, { ok: false, message: message || fallback });
 }
 
-/** The record the server gets: the row without the list-only keys. */
+/** The record the server gets: the row without the list-only keys and without a status. */
 function carRecord(rec) {
   const out = {};
-  for (const k in (rec || {})) if (LIST_ONLY.indexOf(k) === -1) out[k] = rec[k];
+  for (const k in (rec || {})) if (NOT_SENT.indexOf(k) === -1) out[k] = rec[k];
   return out;
 }
 
@@ -294,9 +286,6 @@ class Component extends DCLogic {
       if (!id || classOptions.some((o) => o.value === id)) return;
       classOptions.push({ value: id, label: names[id] || id });
     });
-    const statusLabel = { service: t.sService, idle: t.sIdle, workshop: t.sWorkshop };
-    const tones = {};
-    STATUSES.forEach((s) => { tones[s] = { tone: STATUS_TONE[s], label: statusLabel[s] }; });
 
     const rows = cars.map((v) => Object.assign({}, v, {
       className: classNameOf(v),
@@ -317,8 +306,24 @@ class Component extends DCLogic {
       { key:'bags', header:t.colBags, width:'96px' },
       { key:'driverNames', header:t.colDriver, width:'180px',
         lookup:(r) => r.driverNames || React.createElement('span', { style: { color:'var(--vt-text-muted)' } }, t.noDriver) },
-      { key:'status', header:t.colStatus, width:'160px', kind:'badge', tones },
     ];
+
+    // Signed 2026-10-01: on a phone (≤ 680 px) each car is a card (OpsCardRow through OpsTable):
+    // model and plate, then class and driver, seats and bags small; Edit and Delete on the card.
+    const card = (r) => ({
+      title: String(r.model || ''),
+      subtitle: String(r.plate || ''),
+      facts: [
+        { label: t.colClass, value: r.className || '—', muted: !r.className },
+        { label: t.colDriver, value: r.driverNames || t.noDriver, muted: !r.driverNames },
+      ],
+      smallFacts: [
+        { label: t.colSeats, value: String(r.seats == null ? '' : r.seats) },
+        { label: t.colBags, value: String(r.bags == null ? '' : r.bags) },
+      ],
+      editLabel: t.editTitle,
+      deleteLabel: t.delCar,
+    });
 
     const fields = [
       { key:'photo', label:t.fPhoto, editor:'photo', photoKind:'vehicle', upload:'/api/photos/upload', chooseLabel:t.choosePhoto, hint:t.hPhoto },
@@ -327,8 +332,6 @@ class Component extends DCLogic {
       { key:'vehicleClassId', label:t.fClass, editor:'select', options:classOptions, icon:'car', required:true, emptyLabel:t.pickClass, hint:t.hClass },
       { key:'seats', label:t.fSeats, editor:'number', min:1, max:16, half:true, hint:t.hSeats },
       { key:'bags', label:t.fBags, editor:'number', min:0, max:16, half:true, hint:t.hBags },
-      { key:'status', label:t.fStatus, editor:'select', icon:'settings', hint:t.hStatus,
-        options: STATUSES.map((s) => ({ value: s, label: statusLabel[s] })) },
     ];
 
     const load = this.state.classLoad;
@@ -342,6 +345,7 @@ class Component extends DCLogic {
       classMsg,
       rows,
       columns,
+      card,
       fields,
       blank: () => (store ? store.blank() : {}),
       // OpsTable gives a new row a UUID (the photo is stored under it), and the store PATCHes any

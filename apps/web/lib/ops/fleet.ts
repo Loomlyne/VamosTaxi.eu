@@ -69,7 +69,11 @@ export type AssertedVehicleInput = {
   firstRegistered: number | null;
   seats: number;
   bags: number;
-  status: VehicleStatus;
+  /**
+   * Signed 2026-10-01: the Cars page has no Status. Undefined = the body sent none: an update
+   * keeps the stored value, an insert leaves the column's default.
+   */
+  status: VehicleStatus | undefined;
   photoPath: string | null;
   note: string;
   morningChauffeurId: string | null;
@@ -197,8 +201,8 @@ export function assertVehicleInput(input: VehicleInput): AssertedVehicleInput {
     }
   }
 
-  const status: VehicleStatus =
-    input.status && isVehicleStatus(input.status) ? input.status : "service";
+  const status: VehicleStatus | undefined =
+    input.status && isVehicleStatus(input.status) ? input.status : undefined;
 
   const photoPath = input.photoPath === undefined ? null : input.photoPath;
   if (photoPath !== null && photoPath.startsWith("data:")) {

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+:root{--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}
+[data-vt-cardrow]{box-sizing:border-box;display:flex;flex-direction:column;gap:12px;padding-block:14px 16px;padding-inline:16px 10px;background:var(--vt-bg-surface);border-radius:var(--vt-radius-lg);min-width:0}
+[data-vt-cardrow-head]{display:flex;align-items:flex-start;gap:8px;min-width:0}
+[data-vt-cardrow-name]{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px;padding-block-start:4px}
+[data-vt-cardrow-title]{margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:600;line-height:1.3;color:var(--vt-text-primary);overflow-wrap:anywhere}
+[data-vt-cardrow-sub]{align-self:flex-start;unicode-bidi:isolate;font-size:var(--vt-body-sm);letter-spacing:.02em;color:var(--vt-text-muted)}
+[data-vt-cardrow-acts]{flex:0 0 auto;display:flex;align-items:center;gap:4px}
+[data-vt-cardrow-facts]{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,120px),1fr));gap:10px 16px;margin:0;padding-inline-end:6px;min-width:0}
+[data-vt-cardrow-facts] div{display:flex;flex-direction:column;gap:2px;min-width:0}
+[data-vt-cardrow-facts] dt{font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);line-height:1.4;color:var(--vt-text-muted)}
+[data-vt-cardrow-facts] dd{margin:0;font-size:var(--vt-body-sm);line-height:1.4;overflow-wrap:anywhere}
+[data-vt-cardrow-small]{display:flex;flex-wrap:wrap;gap:4px 16px;margin:0;padding:0;list-style:none;font-size:var(--vt-body-xs);line-height:1.4;color:var(--vt-text-muted)}
+[data-vt-cardrow-small] b{font-family:var(--vt-font-display);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)}
+[data-vt-cardrow-error]{display:flex;align-items:flex-start;gap:8px;margin:0;padding-inline-end:6px;font-size:var(--vt-body-sm);line-height:1.5;color:var(--vt-danger)}
+[data-vt-cardrow-wait]{margin:0;padding-block:6px;font-size:var(--vt-body-sm);color:var(--vt-text-muted)}
+</style>
+</helmet>
+<div data-vt-cardrow="1" role="listitem" aria-disabled="{{ ariaDisabled }}" aria-busy="{{ ariaBusy }}" style="border:{{ border }};opacity:{{ opacity }}">
+
+<sc-if value="{{ showLoading }}" hint-placeholder-val="{{ false }}">
+<p data-vt-cardrow-wait="1" role="status">{{ loadingLabel }}</p>
+</sc-if>
+
+<sc-if value="{{ showBody }}" hint-placeholder-val="{{ true }}">
+<div data-vt-cardrow-head="1">
+<div data-vt-cardrow-name="1">
+<p data-vt-cardrow-title="1">{{ title }}</p>
+<sc-if value="{{ hasSubtitle }}" hint-placeholder-val="{{ true }}">
+<span data-vt-cardrow-sub="1" dir="ltr">{{ subtitle }}</span>
+</sc-if>
+</div>
+<sc-if value="{{ showActions }}" hint-placeholder-val="{{ true }}">
+<div data-vt-cardrow-acts="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.IconButton" icon="pencil" label="{{ editLabel }}" variant="outline" size="md" disabled="{{ actionsDisabled }}" onClick="{{ edit }}" hint-size="44px,44px"></x-import>
+<sc-if value="{{ showDelete }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.IconButton" icon="trash-2" label="{{ deleteLabel }}" variant="ghost" size="md" disabled="{{ actionsDisabled }}" onClick="{{ remove }}" hint-size="44px,44px"></x-import>
+</sc-if>
+</div>
+</sc-if>
+</div>
+
+<sc-if value="{{ hasFacts }}" hint-placeholder-val="{{ true }}">
+<dl data-vt-cardrow-facts="1">
+<sc-for list="{{ facts }}" as="f" hint-placeholder-count="2">
+<div><dt>{{ f.label }}</dt><dd style="color:{{ f.color }}">{{ f.value }}</dd></div>
+</sc-for>
+</dl>
+</sc-if>
+
+<sc-if value="{{ hasSmallFacts }}" hint-placeholder-val="{{ true }}">
+<ul data-vt-cardrow-small="1">
+<sc-for list="{{ smallFacts }}" as="s" hint-placeholder-count="2">
+<li>{{ s.label }} <b>{{ s.value }}</b></li>
+</sc-for>
+</ul>
+</sc-if>
+
+<sc-if value="{{ hasError }}" hint-placeholder-val="{{ false }}">
+<p data-vt-cardrow-error="1" role="alert"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="triangle-alert" size="{{ n16 }}" color="var(--vt-danger)" hint-size="16px,16px"></x-import><span>{{ error }}</span></p>
+</sc-if>
+</sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:358,&quot;height&quot;:170},&quot;title&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Mercedes V-Class&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;subtitle&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;ZH 000 000&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;facts&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;{label:string,value:string,muted?:boolean}[]&quot;},&quot;smallFacts&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;{label:string,value:string}[]&quot;},&quot;editLabel&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Edit&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;deleteLabel&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Delete&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;onEdit&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;()=&gt;void&quot;},&quot;onDelete&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;()=&gt;void&quot;},&quot;canDelete&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;selected&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;disabled&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;loading&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;loadingLabel&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Loading&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;error&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+/* One list row as a card — quick 261001-cars-page (owner, signed 2026-10-01): on a phone (≤ 680 px)
+   a list shows each row as a card instead of a table, no sideways swipe. OpsTable renders it when a
+   screen hands it a `card` function (Cars only for now); every other list keeps its table.
+
+   Props: title, subtitle (a code such as a plate: kept left-to-right inside Arabic), facts
+   [{label, value, muted}] (the two or three things to read first), smallFacts [{label, value}]
+   (small print), editLabel / deleteLabel + onEdit / onDelete (kit IconButton md = 44 px),
+   canDelete, selected, disabled, loading + loadingLabel, error.
+
+   States: default (white card, hairline); hover / press / focus are the kit IconButton's own (no
+   glow); selected (2 px charcoal border); disabled (42 %, actions off); loading — stated in words,
+   never a shimmering block (design system §3); empty value — a muted fact (e.g. "No driver") or
+   "—" for a missing title; error (danger line with the triangle). All copy arrives translated. */
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props || {};
+    const fact = (f) => ({
+      label: String((f && f.label) || ''),
+      value: String((f && f.value != null && f.value !== '') ? f.value : '—'),
+      color: (f && f.muted) ? 'var(--vt-text-muted)' : 'var(--vt-text-primary)',
+    });
+    const facts = (Array.isArray(p.facts) ? p.facts : []).map(fact);
+    const smallFacts = (Array.isArray(p.smallFacts) ? p.smallFacts : []).map((s) => ({
+      label: String((s && s.label) || ''),
+      value: String((s && s.value != null) ? s.value : ''),
+    }));
+    const loading = p.loading === true;
+    const disabled = p.disabled === true;
+    const error = String(p.error || '').trim();
+    const subtitle = String(p.subtitle || '').trim();
+    return {
+      n16: 16,
+      title: String(p.title || '').trim() || '—',
+      subtitle,
+      hasSubtitle: !!subtitle,
+      facts,
+      hasFacts: facts.length > 0,
+      smallFacts,
+      hasSmallFacts: smallFacts.length > 0,
+      editLabel: String(p.editLabel || 'Edit'),
+      deleteLabel: String(p.deleteLabel || 'Delete'),
+      edit: () => { if (!disabled && typeof p.onEdit === 'function') p.onEdit(); },
+      remove: () => { if (!disabled && typeof p.onDelete === 'function') p.onDelete(); },
+      showLoading: loading,
+      showBody: !loading,
+      showActions: !loading,
+      showDelete: p.canDelete !== false,
+      loadingLabel: String(p.loadingLabel || 'Loading'),
+      hasError: !!error,
+      error,
+      border: p.selected === true ? '2px solid var(--vt-charcoal-900)' : '1px solid var(--vt-border-subtle)',
+      opacity: disabled ? '0.42' : '1',
+      actionsDisabled: disabled,
+      ariaDisabled: disabled ? 'true' : 'false',
+      ariaBusy: loading ? 'true' : 'false',
+    };
+  }
+}
+</script>
+</body>
+</html>

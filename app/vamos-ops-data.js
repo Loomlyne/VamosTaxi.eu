@@ -579,7 +579,7 @@
   var VEHICLE_STATUS = ["service", "idle", "workshop"];
   function cleanVehicle(v) {
     v = v || {};
-    return {
+    var out = {
       id: str(v.id),
       klass: cleanKlass(v.klass),
       // 260930-dash-design: the class row itself, so a class the owner named reads its own name
@@ -587,7 +587,6 @@
       vehicleClassId: str(v.vehicleClassId || v.vehicle_class_id),
       model: str(v.model), plate: str(v.plate), year: str(v.year),
       seats: num(v.seats, 3), bags: num(v.bags, 3),
-      status: VEHICLE_STATUS.indexOf(v.status) === -1 ? "service" : v.status,
       photo: (str(v.photo || v.photoPath).indexOf("data:") === 0) ? "" : str(v.photo || v.photoPath),
       note: str(v.note),
       // 261001-cars-page: the old Morning/Night seat ids ride along, so a car edit on the Cars page
@@ -595,6 +594,10 @@
       morning: str(v.morning || v.morningChauffeurId),
       night: str(v.night || v.nightChauffeurId)
     };
+    // Signed 2026-10-01: the Cars page has no Status. A stored status is read as is; a new car
+    // carries none, so the server leaves the column's default and a save keeps the stored one.
+    if (VEHICLE_STATUS.indexOf(v.status) !== -1) out.status = v.status;
+    return out;
   }
 
   var CHAUFFEUR_STATUS = ["shift", "off", "leave"];
