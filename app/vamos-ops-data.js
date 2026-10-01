@@ -609,6 +609,8 @@
       vehicle: vehicleId, defaultVehicleId: vehicleId,
       vehicleClassId: classId,
       vehicleClassName: str(c.vehicleClassName || c.className || c.vehicle_class_name),
+      // 2026-10-01: the plate number on the chauffeur (chauffeurs.plate).
+      plate: str(c.plate),
       licence: str(c.licence || c.licenceNumber || c.licence_number),
       languages: Array.isArray(c.languages) ? c.languages.join(", ") : str(c.languages),
       status: CHAUFFEUR_STATUS.indexOf(c.status) === -1 ? "off" : c.status,
@@ -648,6 +650,10 @@
       chauffeurEmail: str(b.chauffeurEmail),
       assignedChauffeurId: str(b.assignedChauffeurId),
       assignedVehicleId: str(b.assignedVehicleId),
+      // No cars (2026-10-01): the trip's class row and the assigned chauffeur's plate.
+      vehicleClassId: str(b.vehicleClassId),
+      className: str(b.className),
+      chauffeurPlate: str(b.chauffeurPlate),
       vehicle: str(b.vehicle),
       flight: str(b.flight),
       // The admin's Mark arrival time; booking detail shows "Arrived HH:MM" from it.

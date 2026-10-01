@@ -7,6 +7,7 @@
 import {
   ChauffeurDuplicateEmailError,
   ChauffeurInputError,
+  type ChauffeurDeleteResult,
   type ChauffeurDetail,
   type ChauffeurInput,
   type ChauffeurRow,
@@ -24,7 +25,7 @@ import {
   type VehicleRow,
 } from "./fleet";
 import { classDisplayName, liveClassSlug } from "./class-slug";
-import { jsonErr } from "./staff-json";
+import { jsonErr, jsonOk } from "./staff-json";
 import { mapSqlState } from "./sqlstate";
 
 export const UUID_RE =
@@ -190,6 +191,7 @@ export function presentChauffeur(
     vehicleClassId: row.vehicleClassId ?? "",
     vehicleClassName: (row.vehicleClassName ?? "").trim(),
     className: (row.vehicleClassName ?? "").trim(),
+    plate: (row.plate ?? "").trim(),
     licenceNumber,
     licence: licenceNumber,
     licenceExpiresOn: row.licenceExpiresOn,
@@ -272,6 +274,8 @@ export function parseChauffeurBody(body: unknown): { id: string | null; input: C
       vehicleClassId: Object.prototype.hasOwnProperty.call(rec, "vehicleClassId")
         ? asString(rec.vehicleClassId) || null
         : undefined,
+      // 2026-10-01: the plate on the chauffeur; absent means keep the column.
+      plate: Object.prototype.hasOwnProperty.call(rec, "plate") ? asString(rec.plate) || null : undefined,
       licenceNumber: asString(rec.licenceNumber || rec.licence),
       licenceExpiresOn: asString(rec.licenceExpiresOn) || null,
       languages: languageCodes(rec.languages),
@@ -311,6 +315,13 @@ function sqlCode(err: unknown): string | undefined {
   return typeof code === "string" ? code : undefined;
 }
 
+/** postgres.js names the violated constraint `constraint_name`; older stand-ins used `constraint`. */
+function constraintOf(err: unknown): string {
+  if (typeof err !== "object" || err === null) return "";
+  const bag = err as { constraint_name?: unknown; constraint?: unknown };
+  return String(bag.constraint_name ?? bag.constraint ?? "");
+}
+
 export function chauffeurErrorCopy(code: string): string | null {
   if (code === "chauffeurs-failure-name-required") return "Name is required.";
   if (code === "chauffeurs-failure-phone-required") return "Phone is required.";
@@ -320,6 +331,8 @@ export function chauffeurErrorCopy(code: string): string | null {
   if (code === "chauffeurs-failure-photo") return "Photo must be an uploaded file, not an embedded image.";
   if (code === "chauffeurs-failure-vehicle") return "That vehicle is missing.";
   if (code === "chauffeurs-failure-class") return "That class is missing.";
+  if (code === "chauffeurs-failure-plate") return "The plate number is too long.";
+  if (code === "chauffeurs-plate-taken") return "Another chauffeur already has this plate number.";
   if (code === "chauffeurs-failure-error") return "The chauffeur could not be saved.";
   if (code === "chauffeurs-duplicate-email") return "This email is already on file.";
   if (code === "fleet-seat-morning-taken") return "This vehicle already has a Morning chauffeur.";
@@ -376,6 +389,11 @@ export function chauffeurJsonError(err: unknown): Response {
     return jsonErr(err.key, 400, { message });
   }
   const mapped = mapSqlState(err);
+  if (sqlCode(err) === "23505" && constraintOf(err) === "chauffeurs_plate_active_key") {
+    return jsonErr("chauffeurs-plate-taken", 409, {
+      message: chauffeurErrorCopy("chauffeurs-plate-taken") ?? "Another chauffeur already has this plate number.",
+    });
+  }
   if (sqlCode(err) === "23503") {
     const constraint =
       typeof err === "object" && err !== null && "constraint" in err
@@ -409,6 +427,25 @@ export function chauffeurJsonError(err: unknown): Response {
   }
   const message = "The chauffeur could not be saved.";
   return jsonErr(code || "error", 500, { message });
+}
+
+/**
+ * Owner, 2026-10-01 ("anything deleted should be deleted completely"): a chauffeur with a trip that
+ * is not finished is not deleted; the answer names him and the trips. The dashboard words it in the
+ * owner's language from `name` and `references`; `message` is the English fallback.
+ */
+export function chauffeurDeleteJson(id: string, result: ChauffeurDeleteResult): Response {
+  if (result.kind === "gone") {
+    return jsonErr("not-found", 404, { message: chauffeurErrorCopy("not-found") ?? "That chauffeur is gone." });
+  }
+  if (result.kind === "in-use") {
+    return jsonErr("chauffeur-in-use", 409, {
+      name: result.name,
+      references: result.references,
+      message: `${result.name} still has trips that are not finished: ${result.references.join(", ")}. Assign them to another driver first.`,
+    });
+  }
+  return jsonOk({ id });
 }
 
 export async function readJsonBody(request: Request): Promise<unknown> {

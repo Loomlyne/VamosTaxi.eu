@@ -359,6 +359,7 @@ describe("presentChauffeur", () => {
     defaultVehiclePlate: null,
     vehicleClassId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
     vehicleClassName: "Economy",
+    plate: null,
     licenceExpiresOn: null,
     languages: ["en"],
     status: "off" as const,

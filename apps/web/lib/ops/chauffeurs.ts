@@ -114,6 +114,9 @@ export function normalizeChauffeurEmail(email: string | null | undefined): strin
   return trimmed || null;
 }
 
+/** chauffeurs_plate_shape (20261007160000): a plate is 1–32 characters. */
+export const PLATE_MAX = 32;
+
 export function assertChauffeurInput(input: ChauffeurInput): AssertedChauffeurInput {
   const fullName = input.fullName.trim();
   if (!fullName) {
@@ -145,6 +148,17 @@ export function assertChauffeurInput(input: ChauffeurInput): AssertedChauffeurIn
     throw new ChauffeurInputError("chauffeurs-failure-class");
   }
 
+  // 2026-10-01: the plate number on the chauffeur. Trimmed, case as typed; the column holds 32.
+  let plate: string | null | undefined;
+  if (input.plate === undefined) plate = undefined;
+  else {
+    const plateRaw = input.plate == null ? "" : input.plate.trim();
+    plate = plateRaw === "" ? null : plateRaw;
+    if (plate && plate.length > PLATE_MAX) {
+      throw new ChauffeurInputError("chauffeurs-failure-plate");
+    }
+  }
+
   const expiryRaw = input.licenceExpiresOn == null ? "" : input.licenceExpiresOn.trim();
   let licenceExpiresOn: string | null = null;
   if (expiryRaw !== "") {
@@ -168,6 +182,7 @@ export function assertChauffeurInput(input: ChauffeurInput): AssertedChauffeurIn
     email,
     defaultVehicleId,
     vehicleClassId,
+    plate,
     licenceNumber,
     licenceExpiresOn,
     languages: normalizeLanguages(input.languages),
@@ -190,6 +205,7 @@ type ListSqlRow = {
   default_vehicle_plate: string | null;
   vehicle_class_id: string | null;
   vehicle_class_name: string | null;
+  plate?: string | null;
   licence_expires_on: Date | string | null;
   languages: string[] | null;
   status: string;
@@ -230,6 +246,7 @@ function mapListRow(row: ListSqlRow): ChauffeurRow {
     defaultVehiclePlate: rowText(row, "default_vehicle_plate", "defaultVehiclePlate"),
     vehicleClassId: rowText(row, "vehicle_class_id", "vehicleClassId"),
     vehicleClassName: rowText(row, "vehicle_class_name", "vehicleClassName"),
+    plate: rowText(row, "plate", "plate"),
     licenceExpiresOn: expiry,
     languages: mapLanguages(row.languages),
     status,
@@ -291,6 +308,7 @@ export async function loadChauffeurDetailsList(
         v.plate as default_vehicle_plate,
         c.vehicle_class_id,
         cls.name as vehicle_class_name,
+        c.plate,
         c.licence_number,
         c.licence_expires_on,
         c.languages,
@@ -325,6 +343,7 @@ export async function loadChauffeurs(
         v.plate as default_vehicle_plate,
         c.vehicle_class_id,
         cls.name as vehicle_class_name,
+        c.plate,
         c.licence_expires_on,
         c.languages,
         c.status,
@@ -359,6 +378,7 @@ export async function loadChauffeur(
         v.plate as default_vehicle_plate,
         c.vehicle_class_id,
         cls.name as vehicle_class_name,
+        c.plate,
         c.licence_number,
         c.licence_expires_on,
         c.languages,
@@ -399,6 +419,7 @@ export async function loadChauffeurByEmail(
         v.plate as default_vehicle_plate,
         c.vehicle_class_id,
         cls.name as vehicle_class_name,
+        c.plate,
         c.licence_number,
         c.licence_expires_on,
         c.languages,

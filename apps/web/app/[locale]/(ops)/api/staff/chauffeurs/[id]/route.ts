@@ -7,6 +7,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { assertChauffeurInput, loadChauffeur, loadChauffeurByEmail } from "@/lib/ops/chauffeurs";
 import { ChauffeurDuplicateEmailError } from "@/lib/ops/chauffeurs-model";
 import {
+  chauffeurDeleteJson,
   chauffeurJsonError,
   isUuid,
   parseChauffeurBody,
@@ -54,8 +55,9 @@ export async function DELETE(
     if (!isUuid(id)) return jsonErr("chauffeurs-failure-error", 400);
     try {
       const { env } = getCloudflareContext();
-      await deleteChauffeurRow(env, claims, id);
-      return jsonOk({ id });
+      // Owner, 2026-10-01: refused while an unfinished trip has him; otherwise deleted completely.
+      const result = await deleteChauffeurRow(env, claims, id);
+      return chauffeurDeleteJson(id, result);
     } catch (err) {
       return chauffeurJsonError(err);
     }
