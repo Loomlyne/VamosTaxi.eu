@@ -14,8 +14,11 @@
 --   E  passengers and bags inside the class: no new price (D5), leg and price record carry them.
 --   F  more passengers than the class takes + a larger class: one price, the class changes, the
 --      driver comes off (P1 D6).
---   G  a new time that clashes with another trip of the assigned driver: the owner must choose; Take
---      off works; Keep is refused while the table constraint forbids the overlap (D11, see HANDOVER).
+--   G  a new time that clashes with another trip of the assigned driver: the owner must choose. Keep
+--      (D11, D17) keeps him on both: this trip is stamped and left out of the overlap rule; an
+--      ordinary Assign onto it, or onto any other trip of his, is still refused; a party change keeps
+--      the stamp; a second move without Keep asks again; unassign clears it and a reassign is
+--      refused again. Take off works.
 --   I  an overlap that appears between confirm and payment: the driver comes off, the payment is
 --      recorded (the webhook never fails on it).
 --   J  a customer's time-change payload keeps the old rule: an overlap is refused (23P01).
@@ -25,7 +28,7 @@
 --   M  booking_change_request_facts: what a paid change changed (for the driver's e-mail).
 -- Rolled back. Synthetic integer rappen only, never a product CHF.
 begin;
-select plan(107);
+select plan(121);
 
 insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity)
 values ('tcr-eco', 4, 4), ('tcr-biz', 7, 7);
@@ -43,7 +46,7 @@ values ('26060001-0000-4000-a000-000000000001', 'admin', true, now(), 'TCR Admin
 insert into public.chauffeurs (full_name, phone, email, licence_number, languages, vehicle_class_id)
 select 'TCR Driver ' || d, '+41 79 260 06 0' || d, 'tcr-driver-' || d || '@vamostaxi.eu', 'LIC-TCR-' || d,
        array['de', 'en'], vc.id
-  from unnest(array['a', 'b', 'c', 'd', 'e']) as d
+  from unnest(array['a', 'b', 'c', 'd', 'e', 'f']) as d
   cross join lateral (select id from public.vehicle_classes where slug = 'tcr-eco') vc;
 
 create temporary table fx (k text primary key, id uuid not null);
@@ -127,6 +130,15 @@ create function pg_temp.tcr_driver_id(p_driver text) returns uuid language sql a
   select id from public.chauffeurs where email = 'tcr-driver-' || p_driver || '@vamostaxi.eu'
 $$;
 
+-- An ordinary Assign, as the dashboard calls it; the overlap check is made at once (the RPC defers
+-- it to COMMIT, which a rolled-back test never reaches).
+create function pg_temp.tcr_assign(p_key text, p_driver text) returns void language plpgsql as $$
+begin
+  perform * from public.ops_assign_leg((select f.id from pg_temp.fx as f where f.k = p_key),
+                                       pg_temp.tcr_driver_id(p_driver), '26060001-0000-4000-a000-000000000001'::uuid);
+  set constraints public.booking_legs_chauffeur_no_overlap immediate;
+end $$;
+
 create function pg_temp.tcr_local(p_offs interval) returns text language sql as $$
   select to_char(date_trunc('minute', now() + p_offs) at time zone 'Europe/Zurich', 'YYYY-MM-DD"T"HH24:MI')
 $$;
@@ -174,6 +186,10 @@ select pg_temp.tcr_mk('party', 'tcr-eco', interval '48 hours', 10);
 select pg_temp.tcr_mk('grow', 'tcr-eco', interval '48 hours', 10);
 select pg_temp.tcr_mk('busy', 'tcr-eco', interval '200 hours', 10);
 select pg_temp.tcr_mk('clash', 'tcr-eco', interval '196 hours', 10);
+select pg_temp.tcr_mk('busy2', 'tcr-eco', interval '250 hours', 10);
+select pg_temp.tcr_mk('clash2', 'tcr-eco', interval '246 hours', 10);
+select pg_temp.tcr_mk('third', 'tcr-eco', interval '500 hours', 10);
+select pg_temp.tcr_mk('third3', 'tcr-eco', interval '250 hours', 10);
 select pg_temp.tcr_mk('lateov', 'tcr-eco', interval '300 hours', 10);
 select pg_temp.tcr_mk('contact', 'tcr-eco', interval '48 hours', 10);
 select pg_temp.tcr_mk('classonly', 'tcr-eco', interval '48 hours', 10);
@@ -183,6 +199,8 @@ select pg_temp.tcr_drive('time', 'b');
 select pg_temp.tcr_drive('grow', 'e');
 select pg_temp.tcr_drive('busy', 'a');
 select pg_temp.tcr_drive('clash', 'a');
+select pg_temp.tcr_drive('busy2', 'f');
+select pg_temp.tcr_drive('clash2', 'f');
 select pg_temp.tcr_drive('lateov', 'c');
 select pg_temp.tcr_drive('contact', 'd');
 
@@ -212,7 +230,8 @@ select is(
      from pg_proc p join pg_namespace n on n.oid = p.pronamespace
     where (n.nspname, p.proname) in (('public', 'booking_staff_trip_change'), ('public', 'booking_change_request_facts'),
                                      ('public', 'booking_staff_contact_update'), ('public', 'booking_edit_apply_payload'),
-                                     ('app', 'booking_change_mint_trip_snapshot'), ('public', 'manage_money_for'))),
+                                     ('app', 'booking_change_mint_trip_snapshot'), ('public', 'manage_money_for'),
+                                     ('app', 'tg_leg_kept_clear'), ('app', 'tg_leg_kept_guard'))),
   true, 'every P6 function is SECURITY DEFINER with search_path empty');
 select function_privs_are('public', 'booking_change_request_facts', '{uuid}'::text[], 'vamos_system', '{EXECUTE}'::text[],
   'booking_change_request_facts: vamos_system holds EXECUTE');
@@ -439,33 +458,95 @@ select ok(
 -- ---------------------------------------------------------------------------
 -- G. A clash with another trip of driver a (busy at +200 h; clash moves from +196 h to +200 h 10 min)
 -- ---------------------------------------------------------------------------
+select is(
+  (select pg_get_constraintdef(c.oid) like '%overlap_kept_range IS DISTINCT FROM scheduled_range%DEFERRABLE%'
+     from pg_constraint c where c.conname = 'booking_legs_chauffeur_no_overlap'),
+  true, 'D17: the overlap rule leaves out a kept trip only, still deferrable');
 select throws_ok(
   format($f$select * from pg_temp.tcr_change('clash', null, jsonb_build_object('scheduled_local', %L), null)$f$,
          pg_temp.tcr_local(interval '200 hours 10 minutes')),
   'P0001', 'driver-choice-needed', 'clash: the owner must choose keep or take off (D7)');
-select throws_ok(
-  format($f$select * from pg_temp.tcr_change('clash', null, jsonb_build_object('scheduled_local', %L), null, null, 'keep')$f$,
-         pg_temp.tcr_local(interval '200 hours 10 minutes')),
-  'P0001', 'driver-overlap', 'clash: Keep is refused while the table constraint forbids one driver on two overlapping trips (D11 open)');
 select is(
   (select scheduled_local from public.booking_legs where booking_id = (select id from fx where k = 'clash')),
-  pg_temp.tcr_local(interval '196 hours'), 'clash refused: the trip did not move');
+  pg_temp.tcr_local(interval '196 hours'), 'clash without a choice: the trip did not move');
 create temporary table clash as
   select * from pg_temp.tcr_change('clash', null,
-    jsonb_build_object('scheduled_local', pg_temp.tcr_local(interval '200 hours 10 minutes')), null, null, 'unassign');
-select is((select outcome from clash), 'applied', 'clash, take off: applied');
-select is((select unassigned_chauffeur_id from clash), pg_temp.tcr_driver_id('a'), 'clash, take off: driver a named for his e-mail');
+    jsonb_build_object('scheduled_local', pg_temp.tcr_local(interval '200 hours 10 minutes')), null, null, 'keep');
+select is(
+  (select outcome || ':' || coalesce(unassigned_chauffeur_id::text, 'none') || ':' || (kept_chauffeur_id = pg_temp.tcr_driver_id('a'))::text from clash),
+  'applied:none:true', 'Keep on a clash (D11, D17): applied, driver a stays and is named for his e-mail');
+select is(
+  (select scheduled_local || ':' || (assigned_chauffeur_id = pg_temp.tcr_driver_id('a'))::text || ':' || (overlap_kept_range = scheduled_range)::text
+     from public.booking_legs where booking_id = (select id from fx where k = 'clash')),
+  pg_temp.tcr_local(interval '200 hours 10 minutes') || ':true:true', 'Keep: the trip moved, driver a on it, kept for exactly its new window');
+select is(
+  (select (assigned_chauffeur_id = pg_temp.tcr_driver_id('a'))::text || ':' || coalesce(overlap_kept_range::text, 'null')
+     from public.booking_legs where booking_id = (select id from fx where k = 'busy')),
+  'true:null', 'Keep: his other trip keeps him and is not kept itself');
+select is(
+  (select (payload ->> 'driver') || ':' || (payload ->> 'overlap_kept') from public.booking_edit_requests
+    where id = (select request_id from clash)),
+  'keep:true', 'Keep: the request records the owner''s choice');
+-- An ordinary Assign onto the kept trip's window (not onto busy) is refused.
+update public.booking_legs as l
+   set scheduled_at = x.at, scheduled_local = to_char(x.at at time zone 'Europe/Zurich', 'YYYY-MM-DD"T"HH24:MI')
+  from (select upper(scheduled_range) + interval '1 minute' as at from public.booking_legs
+         where booking_id = (select id from fx where k = 'busy')) as x
+ where l.booking_id = (select id from fx where k = 'third');
+select is(
+  (select (t.scheduled_range && c.scheduled_range)::text || ':' || (t.scheduled_range && b.scheduled_range)::text
+     from public.booking_legs t, public.booking_legs c, public.booking_legs b
+    where t.booking_id = (select id from fx where k = 'third') and c.booking_id = (select id from fx where k = 'clash')
+      and b.booking_id = (select id from fx where k = 'busy')),
+  'true:false', 'fixture: third overlaps the kept trip only');
+select throws_ok($$select pg_temp.tcr_assign('third', 'a')$$, '23P01', null,
+  'D17: an ordinary Assign onto a kept trip is refused (the overlap rule, raised by booking_legs_kept_guard)');
+select throws_ok($$select pg_temp.tcr_assign('third3', 'f')$$, '23P01', null,
+  'D17: an ordinary Assign onto a trip that is not kept is refused as before');
+select lives_ok(
+  format($f$update public.booking_legs set flight_no = 'LX 1' where booking_id = %L$f$, (select id from fx where k = 'busy')),
+  'the trip the other was kept against stays editable');
+create temporary table clash_party as select * from pg_temp.tcr_change('clash', null, '{"pax":3}'::jsonb, null);
+select is(
+  (select c.outcome || ':' || (l.overlap_kept_range = l.scheduled_range)::text
+     from clash_party c, public.booking_legs l where l.booking_id = (select id from fx where k = 'clash')),
+  'applied:true', 'a party change on the kept trip asks nothing and keeps it kept');
+select throws_ok(
+  format($f$select * from pg_temp.tcr_change('clash', null, jsonb_build_object('scheduled_local', %L), null)$f$,
+         pg_temp.tcr_local(interval '200 hours 15 minutes')),
+  'P0001', 'driver-choice-needed', 'a second move of the kept trip without Keep asks again');
+select throws_ok(
+  format($f$select public.booking_edit_apply_payload(%L::uuid, %s, jsonb_build_object('scheduled_local', %L), null, 'customer', 'c')$f$,
+         (select id from fx where k = 'clash'),
+         (select price_snapshot_id from public.bookings where id = (select id from fx where k = 'clash')),
+         pg_temp.tcr_local(interval '200 hours 15 minutes')),
+  '23P01', null, 'a move of the kept trip without Keep (a customer''s time change) is refused: the stamp no longer matches');
+select lives_ok(
+  format($f$select * from public.ops_unassign_leg(%L::uuid, '26060001-0000-4000-a000-000000000001'::uuid)$f$,
+         (select id from fx where k = 'clash')),
+  'unassign the kept trip');
+select is(
+  (select coalesce(overlap_kept_range::text, 'null') from public.booking_legs where booking_id = (select id from fx where k = 'clash')),
+  'null', 'unassign clears the stamp');
+select throws_ok($$select pg_temp.tcr_assign('clash', 'a')$$, '23P01', null,
+  'a reassign of the same driver onto the overlap is refused again (not kept any more)');
+
+create temporary table clash2 as
+  select * from pg_temp.tcr_change('clash2', null,
+    jsonb_build_object('scheduled_local', pg_temp.tcr_local(interval '250 hours 10 minutes')), null, null, 'unassign');
+select is((select outcome from clash2), 'applied', 'clash, take off: applied');
+select is((select unassigned_chauffeur_id from clash2), pg_temp.tcr_driver_id('f'), 'clash, take off: driver f named for his e-mail');
 select is(
   (select coalesce(assigned_chauffeur_id::text, 'none') || ':' || status from public.booking_legs
-    where booking_id = (select id from fx where k = 'clash')),
+    where booking_id = (select id from fx where k = 'clash2')),
   'none:confirmed', 'clash, take off: the trip is unassigned (assigned -> confirmed)');
 select ok(
-  exists (select 1 from public.booking_events e where e.booking_id = (select id from fx where k = 'clash')
+  exists (select 1 from public.booking_events e where e.booking_id = (select id from fx where k = 'clash2')
             and e.kind = 'assignment.cleared' and e.payload ->> 'reason' = 'trip_change'),
   'clash, take off: assignment.cleared reason trip_change');
 select is(
-  (select assigned_chauffeur_id from public.booking_legs where booking_id = (select id from fx where k = 'busy')),
-  pg_temp.tcr_driver_id('a'), 'clash, take off: his other trip keeps him');
+  (select assigned_chauffeur_id from public.booking_legs where booking_id = (select id from fx where k = 'busy2')),
+  pg_temp.tcr_driver_id('f'), 'clash, take off: his other trip keeps him');
 
 -- ---------------------------------------------------------------------------
 -- I. An overlap that appears between confirm and payment (keep): driver c comes off, payment recorded

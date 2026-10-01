@@ -373,6 +373,7 @@ export type Database = {
           leg_seq: number
           note: string
           origin_zone_id: string | null
+          overlap_kept_range: unknown
           original_scheduled_at: string
           pax: number
           pickup_lat: number | null
@@ -408,6 +409,7 @@ export type Database = {
           leg_seq: number
           note?: string
           origin_zone_id?: string | null
+          overlap_kept_range?: unknown
           original_scheduled_at: string
           pax?: number
           pickup_lat?: number | null
@@ -443,6 +445,7 @@ export type Database = {
           leg_seq?: number
           note?: string
           origin_zone_id?: string | null
+          overlap_kept_range?: unknown
           original_scheduled_at?: string
           pax?: number
           pickup_lat?: number | null

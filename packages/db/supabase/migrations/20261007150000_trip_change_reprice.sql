@@ -38,17 +38,121 @@
 --                                       last_change ('class' | 'trip' | null): the customer page
 --                                       picks the approved refund line (P1 class line or D15).
 --
--- Safe on real paid bookings: no existing row is inserted, updated or deleted by this file; no
--- column, no constraint, no backfill. A booking changes only when the owner confirms a change (or
--- the customer pays a difference he asked for). Every function is SECURITY DEFINER with
--- search_path ''. New public functions: EXECUTE vamos_system only. app.* helper: no grant.
--- Replaced bodies keep their signature, grants and comments' meaning. No CHF amount here.
+--   (0)  D11 + D17 (owner, 2026-10-01: "Keep him on both"; "Change the rule": a trip he keeps on
+--        purpose is left out of the overlap check, an ordinary Assign still refuses overlaps):
+--        booking_legs.overlap_kept_range — the time window the owner kept this trip's driver for
+--        on purpose (null = not kept). A leg is "kept" only while that stamp equals its
+--        scheduled_range, so any later move of its time or route, without a new Keep, makes it
+--        count again; a change of driver (assign, unassign, reassign, a deleted chauffeur, a class
+--        change) clears the stamp (trigger booking_legs_kept_clear). booking_legs_chauffeur_no_overlap
+--        is rebuilt with the same columns and deferrability and one more WHERE term: kept legs are
+--        not in it. A leg that is NOT kept must still not overlap a kept leg of the same driver
+--        (trigger booking_legs_kept_guard, raising the same 23P01 as the constraint): so Assign,
+--        a reassign and every other write refuse every overlap exactly as before; only the trip the
+--        owner kept may overlap. ops_assign_leg / ops_unassign_leg are not touched.
 --
--- Open (D11, owner answered "Keep him on both"): the table constraint
--- booking_legs_chauffeur_no_overlap refuses one driver on two overlapping trips at every
--- statement and at COMMIT. Honouring "Keep" on an overlap needs that constraint changed, which this
--- file does not do (stopped and reported, HANDOVER.md). Until then (3) refuses Keep on a real
--- overlap with 'driver-overlap'; "Take off" works.
+-- Safe on real paid bookings: no existing row is inserted, updated or deleted by this file and no
+-- backfill. One nullable column without a default is added (catalogue only, no table rewrite).
+-- Rebuilding the exclusion constraint takes an ACCESS EXCLUSIVE lock on booking_legs while its GiST
+-- index is built and every row checked (milliseconds for the few hundred rows there are); every
+-- existing row has overlap_kept_range null, so the new rule selects exactly the rows the old one
+-- did and the check cannot fail. If it ever did, the statement raises and the whole migration rolls
+-- back with the old constraint in place. A booking changes only when the owner confirms a change (or
+-- the customer pays a difference he asked for). Every function is SECURITY DEFINER with
+-- search_path ''. New public functions: EXECUTE vamos_system only. app.* helpers and the trigger
+-- functions: no grant. Replaced bodies keep their signature, grants and comments' meaning. No CHF
+-- amount here.
+
+-- ---------------------------------------------------------------------------
+-- (0) D17: a trip kept on purpose is left out of the overlap rule (only that trip, only that window)
+-- ---------------------------------------------------------------------------
+alter table public.booking_legs
+  add column overlap_kept_range pg_catalog.tstzrange;
+
+comment on column public.booking_legs.overlap_kept_range is
+  '26.2 P6 (D11, D17): the time window the owner kept this trip''s driver on although it overlaps another of his trips (the Keep choice of a change). The leg is left out of booking_legs_chauffeur_no_overlap only while this equals scheduled_range; any later move of the window counts again, and a change of driver clears it (trigger booking_legs_kept_clear). Null = not kept. Written only by booking_edit_apply_payload on a confirmed Keep.';
+
+alter table public.booking_legs
+  drop constraint booking_legs_chauffeur_no_overlap;
+alter table public.booking_legs
+  add constraint booking_legs_chauffeur_no_overlap
+  exclude using gist (assigned_chauffeur_id with =, scheduled_range with &&)
+  where (assigned_chauffeur_id is not null
+         and status not in ('cancelled', 'no_show')
+         and overlap_kept_range is distinct from scheduled_range)
+  deferrable initially immediate;
+
+comment on constraint booking_legs_chauffeur_no_overlap on public.booking_legs is
+  'OPS-03 + 26.2 P6 (D17): one driver is never on two overlapping trips, except a trip the owner kept on purpose (overlap_kept_range = scheduled_range). A leg that is not kept must not overlap a kept one either: trigger booking_legs_kept_guard.';
+
+create function app.tg_leg_kept_clear()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  -- A new driver (or none) was never kept on this trip: the stamp goes.
+  if new.assigned_chauffeur_id is distinct from old.assigned_chauffeur_id then
+    new.overlap_kept_range := null;
+  end if;
+  return new;
+end;
+$$;
+
+revoke all on function app.tg_leg_kept_clear() from public;
+
+create trigger booking_legs_kept_clear
+  before update of assigned_chauffeur_id on public.booking_legs
+  for each row execute function app.tg_leg_kept_clear();
+
+create function app.tg_leg_kept_guard()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  -- Only a leg the rule counts: assigned, running, and not kept for this exact window.
+  if new.assigned_chauffeur_id is null
+     or new.status in ('cancelled'::public.booking_status, 'no_show'::public.booking_status)
+     or new.overlap_kept_range = new.scheduled_range then
+    return null;
+  end if;
+  -- A write that moves nothing the rule reads leaves a leg as it was: the trip another trip was
+  -- kept against stays editable (its flight, its note, its party).
+  if tg_op = 'UPDATE'
+     and new.assigned_chauffeur_id is not distinct from old.assigned_chauffeur_id
+     and new.scheduled_range is not distinct from old.scheduled_range
+     and new.status is not distinct from old.status
+     and new.overlap_kept_range is not distinct from old.overlap_kept_range then
+    return null;
+  end if;
+  if exists (
+    select 1
+      from public.booking_legs as k
+     where k.id <> new.id
+       and k.assigned_chauffeur_id = new.assigned_chauffeur_id
+       and k.status not in ('cancelled'::public.booking_status, 'no_show'::public.booking_status)
+       and k.overlap_kept_range = k.scheduled_range
+       and k.scheduled_range && new.scheduled_range
+  ) then
+    raise exception 'conflicting key value violates exclusion constraint "booking_legs_chauffeur_no_overlap"'
+      using errcode = 'exclusion_violation',
+            constraint = 'booking_legs_chauffeur_no_overlap',
+            detail = 'The driver is kept on another trip at that time on purpose (26.2 P6, D17).';
+  end if;
+  return null;
+end;
+$$;
+
+revoke all on function app.tg_leg_kept_guard() from public;
+
+create trigger booking_legs_kept_guard
+  after insert or update of assigned_chauffeur_id, scheduled_at, estimated_duration_minutes,
+                            turnaround_buffer_minutes, status, overlap_kept_range
+  on public.booking_legs
+  for each row execute function app.tg_leg_kept_guard();
 
 -- ---------------------------------------------------------------------------
 -- (1) booking_edit_apply_payload -- body of 20261007140000 (P1), changed as listed above.
@@ -85,6 +189,8 @@ declare
   v_new_minutes pg_catalog.int4;
   v_range pg_catalog.tstzrange;
   v_off_reason pg_catalog.text;
+  v_keep_overlap pg_catalog.bool;
+  v_window_moves pg_catalog.bool;
 begin
   v_payload := app.edit_payload_object(p_payload);
 
@@ -159,6 +265,11 @@ begin
               end;
   v_new_minutes := coalesce((v_payload ->> 'estimated_duration_minutes')::pg_catalog.int4,
                             v_leg.estimated_duration_minutes);
+  v_window_moves := v_new_at is distinct from v_leg.scheduled_at
+                    or v_new_minutes is distinct from v_leg.estimated_duration_minutes;
+  -- D17: the owner saw the clash and kept the driver on purpose (only with a driver choice).
+  v_keep_overlap := v_payload ->> 'driver' = 'keep'
+                    and coalesce(v_payload ->> 'overlap_kept', '') = 'true';
 
   -- Who leaves the trip, decided before the leg moves (the overlap guard checks every statement).
   if v_prev_chauffeur is not null or v_prev_vehicle is not null then
@@ -168,10 +279,11 @@ begin
     elsif v_payload ->> 'driver' = 'unassign' then
       -- P6 D7: the owner chose "take him off this trip".
       v_off_reason := 'trip_change';
-    elsif v_payload ->> 'driver' = 'keep' then
+    elsif v_payload ->> 'driver' = 'keep' and not v_keep_overlap and v_window_moves then
       -- P6 D7: kept. The change was checked for a clash when it was confirmed; a trip given to him
       -- since (before the customer paid the difference) can overlap the new time now. The payment
-      -- is recorded either way: he comes off this trip and is told.
+      -- is recorded either way: he comes off this trip and is told. (A clash the owner saw and
+      -- kept on purpose is D17: the trip is stamped below instead.)
       v_range := pg_catalog.tstzrange(
         v_new_at,
         v_new_at + (greatest(coalesce(v_new_minutes, 0), 30)
@@ -245,6 +357,20 @@ begin
          pax = coalesce((v_payload ->> 'pax')::pg_catalog.int2, pax),
          bags = coalesce((v_payload ->> 'bags')::pg_catalog.int2, bags),
          vehicle_class_id = coalesce(v_class_id, vehicle_class_id),
+         -- D17: the window the owner kept the driver for, computed as scheduled_range is (the
+         -- generated column's own expression), so the leg leaves the overlap rule in this same
+         -- statement. Otherwise unchanged: a later move without a new Keep no longer matches.
+         overlap_kept_range = case
+           when v_keep_overlap and v_off_reason is null and assigned_chauffeur_id is not null then
+             pg_catalog.tstzrange(
+               v_new_at,
+               pg_catalog.timezone('UTC', pg_catalog.timezone('UTC', v_new_at)
+                 + (greatest(coalesce(v_new_minutes, 0), 30)
+                    + coalesce(turnaround_buffer_minutes, 0)) * interval '1 minute'),
+               '[)'
+             )
+           else overlap_kept_range
+         end,
          updated_at = pg_catalog.now()
    where id = v_leg.id;
 
@@ -252,6 +378,11 @@ begin
     into v_leg
     from public.booking_legs as l
    where l.id = v_leg.id;
+
+  if v_keep_overlap and v_leg.assigned_chauffeur_id is not null
+     and v_leg.overlap_kept_range is distinct from v_leg.scheduled_range then
+    raise exception 'keep-window-mismatch' using errcode = 'P0001';
+  end if;
 
   if v_leg.assigned_vehicle_id is not null then
     select v.*
@@ -292,7 +423,7 @@ $$;
 comment on function public.booking_edit_apply_payload(
   pg_catalog.uuid, pg_catalog.int8, pg_catalog.jsonb, pg_catalog.uuid, pg_catalog.text, pg_catalog.text
 ) is
-  '08-07 + 26.2 P1 + P6: apply an accepted paid-edit payload (a JSON string payload is read as its object). A new place writes text, Mapbox place id and coordinates; a new route its duration. The driver comes off (event assignment.cleared) on a class change (reason class_change), on the owner''s choice (payload driver = unassign, reason trip_change) or when a kept driver (payload driver = keep) now overlaps another of his trips (reason overlap). A payload with no driver choice keeps the old rule: overlap (23P01) and capacity raise; the trip is not auto-cancelled (D-75). Does not change booking.status except assigned -> confirmed when the driver comes off. Unknown class: unknown-class; a place without coordinates: invalid-payload. EXECUTE vamos_system only.';
+  '08-07 + 26.2 P1 + P6: apply an accepted paid-edit payload (a JSON string payload is read as its object). A new place writes text, Mapbox place id and coordinates; a new route its duration. The driver comes off (event assignment.cleared) on a class change (reason class_change), on the owner''s choice (payload driver = unassign, reason trip_change) or when a kept driver (payload driver = keep) whose window moves now overlaps another of his trips the owner did not see (reason overlap). D17: payload driver = keep with overlap_kept = true (the owner kept him on a clash) stamps overlap_kept_range = the new scheduled_range, which leaves this trip out of booking_legs_chauffeur_no_overlap. A payload with no driver choice keeps the old rule: overlap (23P01) and capacity raise; the trip is not auto-cancelled (D-75). Does not change booking.status except assigned -> confirmed when the driver comes off. Unknown class: unknown-class; a place without coordinates: invalid-payload. EXECUTE vamos_system only.';
 
 -- ---------------------------------------------------------------------------
 -- (2) app.booking_change_mint_trip_snapshot
@@ -462,6 +593,8 @@ declare
   v_range pg_catalog.tstzrange;
   v_has_driver pg_catalog.bool;
   v_clash pg_catalog.bool := false;
+  v_clash_car pg_catalog.bool := false;
+  v_keep_overlap pg_catalog.bool := false;
   v_priced pg_catalog.bool;
   v_rv_status pg_catalog.text;
   v_paid pg_catalog.int4;
@@ -656,10 +789,13 @@ begin
   end if;
 
   -- D7: an assigned driver stays unless the class changes (P1 D6) or the owner takes him off. A
-  -- new time or a longer route that overlaps another of his trips needs the owner's choice.
+  -- new time or a longer route that overlaps another of his trips needs the owner's choice; a
+  -- window that does not move asks nothing (an overlap already there was allowed before).
   v_has_driver := v_leg.assigned_chauffeur_id is not null or v_leg.assigned_vehicle_id is not null;
-  if v_has_driver and not v_class_change then
-    v_new_minutes := coalesce((v_trip ->> 'estimated_duration_minutes')::pg_catalog.int4, v_leg.estimated_duration_minutes);
+  v_new_minutes := coalesce((v_trip ->> 'estimated_duration_minutes')::pg_catalog.int4, v_leg.estimated_duration_minutes);
+  if v_has_driver and not v_class_change
+     and (v_new_at is distinct from v_leg.scheduled_at
+          or v_new_minutes is distinct from v_leg.estimated_duration_minutes) then
     v_range := pg_catalog.tstzrange(
       v_new_at,
       v_new_at + (greatest(coalesce(v_new_minutes, 0), 30)
@@ -671,17 +807,26 @@ begin
         from public.booking_legs as o
        where o.id <> v_leg.id
          and o.status not in ('cancelled'::public.booking_status, 'no_show'::public.booking_status)
-         and ((v_leg.assigned_chauffeur_id is not null and o.assigned_chauffeur_id = v_leg.assigned_chauffeur_id)
-              or (v_leg.assigned_vehicle_id is not null and o.assigned_vehicle_id = v_leg.assigned_vehicle_id))
+         and v_leg.assigned_chauffeur_id is not null and o.assigned_chauffeur_id = v_leg.assigned_chauffeur_id
          and o.scheduled_range && v_range
     );
-    if v_clash and p_driver is null then
+    -- A car from before 2026-10-01 still on a leg: a car cannot be kept on two trips.
+    v_clash_car := exists (
+      select 1
+        from public.booking_legs as o
+       where o.id <> v_leg.id
+         and o.status not in ('cancelled'::public.booking_status, 'no_show'::public.booking_status)
+         and v_leg.assigned_vehicle_id is not null and o.assigned_vehicle_id = v_leg.assigned_vehicle_id
+         and o.scheduled_range && v_range
+    );
+    if (v_clash or v_clash_car) and p_driver is null then
       raise exception 'driver-choice-needed' using errcode = 'P0001';
     end if;
-    if v_clash and p_driver = 'keep' then
-      -- D11 (owner: keep him on both) needs booking_legs_chauffeur_no_overlap changed; not done here.
+    if v_clash_car and p_driver = 'keep' then
       raise exception 'driver-overlap' using errcode = 'P0001';
     end if;
+    -- D11 + D17: Keep on a clash keeps him on both trips; this one leaves the overlap rule.
+    v_keep_overlap := v_clash and p_driver = 'keep';
   end if;
 
   v_payload := v_trip;
@@ -689,6 +834,9 @@ begin
     v_payload := v_payload || pg_catalog.jsonb_build_object('vehicle_class_slug', v_class.slug);
   elsif v_has_driver then
     v_payload := v_payload || pg_catalog.jsonb_build_object('driver', coalesce(p_driver, 'keep'));
+    if v_keep_overlap then
+      v_payload := v_payload || pg_catalog.jsonb_build_object('overlap_kept', true);
+    end if;
   end if;
 
   v_snap := app.booking_change_mint_trip_snapshot(
@@ -763,7 +911,7 @@ comment on function public.booking_staff_trip_change(
   pg_catalog.jsonb, pg_catalog.text, pg_catalog.numeric, pg_catalog.int4, pg_catalog.jsonb, pg_catalog.int4,
   pg_catalog.text
 ) is
-  '26.2 P6: the admin''s change of places, date, time or party (and the class with them) on a paid trip. Same rules as booking_staff_change (paid, confirmed/assigned, before pickup, no refund in flight, no waiting customer request), plus: trip fields whitelisted, a new place whole (text, coordinates, route duration and distance), a new time in the future, party within the target class, a price for new places or class only (today''s live book), paid-net as previewed, a clash with another trip of the assigned driver needs the owner''s choice (Keep on a real overlap: driver-overlap, D11 open). Writes the price record, a staff request and either accepts it (priced: applied / refund_due / extra_required) or applies it at once (no new price). Refusals: not-found, unpaid, not-editable, too-late, refund-open, customer-request-waiting, invalid-change, past-time, unknown-class, no-change, class-too-small, price-book-changed, paid-changed, driver-choice-needed, driver-overlap. EXECUTE vamos_system only.';
+  '26.2 P6: the admin''s change of places, date, time or party (and the class with them) on a paid trip. Same rules as booking_staff_change (paid, confirmed/assigned, before pickup, no refund in flight, no waiting customer request), plus: trip fields whitelisted, a new place whole (text, coordinates, route duration and distance), a new time in the future, party within the target class, a price for new places or class only (today''s live book), paid-net as previewed, a new window that clashes with another trip of the assigned driver needs the owner''s choice: Take off, or Keep (D11, D17: this trip then leaves the overlap rule; a car from before 2026-10-01 cannot be kept: driver-overlap). Writes the price record, a staff request and either accepts it (priced: applied / refund_due / extra_required) or applies it at once (no new price). Refusals: not-found, unpaid, not-editable, too-late, refund-open, customer-request-waiting, invalid-change, past-time, unknown-class, no-change, class-too-small, price-book-changed, paid-changed, driver-choice-needed, driver-overlap. EXECUTE vamos_system only.';
 
 -- ---------------------------------------------------------------------------
 -- (4) booking_change_request_facts: what a change changed, and who drives the trip now.

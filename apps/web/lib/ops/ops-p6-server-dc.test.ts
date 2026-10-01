@@ -4,7 +4,7 @@
 // (app/ops/OpsDetail.dc.html), with no new text — only strings the page already has in four
 // languages:
 //   - the refusals the change route can still answer show the page's own sentence instead of the
-//     generic "Could not change the trip of …" (Keep on an overlapping trip, D11 open; a new airport
+//     generic "Could not change the trip of …" (Keep refused for a car from before 2026-10-01; a new airport
 //     pickup without a flight; a time that has passed);
 //   - "<driver> stays on the trip and gets the new details by e-mail" shows only when the server
 //     sends him one: new places ("trip assigned" again) or a new time (time-change e-mail), D16. A

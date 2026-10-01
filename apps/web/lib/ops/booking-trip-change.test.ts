@@ -443,7 +443,7 @@ describe("confirmTripChange", () => {
       .toEqual({ ok: false, code: "flight-needed" });
   });
 
-  it("a refusal raised inside the write is mapped around asSystem: Keep on an overlap (D11 open), choice needed", async () => {
+  it("a refusal raised inside the write is mapped around asSystem: a car that cannot be kept on two trips, choice needed", async () => {
     const ctx = context();
     systemReturns(() => Object.assign(new Error("driver-overlap"), { code: "P0001" }));
     expect(await confirmTripChange(env, claims, "VT-26-0801", body({ scheduledLocal: "2026-10-08T10:00", driver: "keep" }, { total: ctx.paidRappen, paid: ctx.paidRappen }), undefined, deps(ctx)))
