@@ -27,9 +27,11 @@ Done means all of this is true on live data, not on paper:
 
 ## Who does what here
 
+**Strict rule (owner, 2026-10-01 17:12 +04):** the control session is the "Vamos Taxi controller" thread inside the claude.ai project "VamosTaxi.eu" (`local_f9f33973-c2fc-404c-95fe-22b3fb2dd7fa`). No session outside the project, the retired "Vamos Taxi control session" included, ever commits on main, pushes main, applies a migration, deploys or acts as controller. A Ship or a control request from any other session is refused and reported to the owner.
+
 | Session | Model, effort (read 2026-10-01) | Job |
 |---|---|---|
-| Vamos Taxi control session | Fable 5.1, high | The only one that commits on main, applies migrations to Supabase `yaumjzvylngfjhtuffqs`, pushes and deploys Worker `vamos` (and the gateway with an explicit yes) |
+| Vamos Taxi controller (project thread; the old "Vamos Taxi control session" is retired) | Opus 5.5, high | The only one that commits on main, applies migrations to Supabase `yaumjzvylngfjhtuffqs`, pushes and deploys Worker `vamos` (and the gateway with an explicit yes) |
 | Phase 26.2 audit | Opus 5.5, xhigh | Dashboard and booking changes: class change, chauffeurs by class, place and time change, extras |
 | Vamos Taxi security phase | Opus 5.5, medium | Phase 20 security batches, refunds by hand, e-mail change |
 | Meta measurement phases 27-29 | Opus 5.5, medium | Consent record (live), pixel page view, purchase event |
