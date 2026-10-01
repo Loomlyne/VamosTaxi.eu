@@ -17,9 +17,13 @@ const uid = (await r.json()).id;
 sql(`insert into public.staff (user_id, role, full_name, accepted_at) values ('${uid}', 'admin', 'VL12 Admin', now())`);
 
 const browser = await chromium.launch();
-const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+// Its own client address: /api/quote allows 8 a minute per address locally too.
+const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, extraHTTPHeaders: { "cf-connecting-ip": `10.99.${Math.floor(Math.random() * 250)}.${Math.floor(Math.random() * 250)}` } });
 await ctx.addInitScript(() => { try { localStorage.setItem("vamosLang", "en"); } catch (e) {} });
 const page = await ctx.newPage();
+// /api/fx reaches the internet from the local Worker and has crashed wrangler's local proxy twice; the
+// display-currency rate is not part of this check.
+await page.route(/\/api\/fx(\?.*)?$/, (r) => r.fulfill({ status: 503, contentType: "application/json", body: "{}" }));
 const errors = [];
 page.on("pageerror", (e) => errors.push(String(e).slice(0, 160)));
 const quotes = [];
@@ -41,7 +45,7 @@ await Promise.all([
   page.getByRole("button", { name: /^\s*sign in\s*$/i }).first().click(),
 ]);
 await page.waitForTimeout(2000);
-await page.waitForURL(/dashboard|bookings/, { timeout: 20000 }).catch(() => {});
+await page.waitForURL(/\/(dashboard|bookings)/, { timeout: 20000 }).catch(() => {});
 await page.screenshot({ path: `${SHOTS}/ops-after-sign-in.png` });
 console.log("auth answers", JSON.stringify(authAnswers));
 rec("1 local admin signs in on the dashboard host", !/\/login/.test(page.url()), page.url());
@@ -63,5 +67,41 @@ const opts = await page.evaluate(() => [...document.querySelectorAll("select opt
 const classSel = await page.getByLabel("Vehicle class").first().evaluate((el) => (el.tagName === "SELECT" ? [...el.options].map((o) => o.textContent.trim()) : el.textContent.trim())).catch(() => "n/a");
 rec("3 the class list offers only Van luxury for 10", JSON.stringify(classSel).includes("Van luxury") && !JSON.stringify(classSel).includes("Economy") && !JSON.stringify(classSel).includes("Business"), `class select: ${JSON.stringify(classSel)}; all options on page: ${JSON.stringify(opts).slice(0, 200)}`);
 await page.screenshot({ path: `${SHOTS}/ops-new-trip-10.png` });
+
+// Review fix 4: 13-16 says no class seats the party; more than 16 cannot be typed.
+const lineText = () => page.evaluate(() => {
+  const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  for (let n = w.nextNode(); n; n = w.nextNode()) {
+    const t = (n.nodeValue || "").trim();
+    if (/No class seats|Keine Klasse|Aucune classe|لا توجد فئة/.test(t)) return t;
+  }
+  return "";
+});
+const paxField = page.getByLabel("Passengers");
+// The dashboard has no verified quote cookie: the bare bucket allows 4 quotes a minute per address.
+await page.waitForTimeout(61_000);
+await paxField.fill("14");
+await paxField.blur();
+for (let i = 0; i < 40 && !quotes.some((q) => q.pax === 14); i++) await page.waitForTimeout(250);
+await page.waitForTimeout(1500);
+const q14 = quotes.filter((q) => q.pax === 14).pop();
+rec("4 14 travellers: the quote finds no class and the form says so", !!q14 && q14.classes.every((c) => !c.endsWith(":ok")) && (await lineText()) === "No class seats 14 passengers", `quote: ${q14?.classes.join(" ")}; line: "${await lineText()}"`);
+await page.screenshot({ path: `${SHOTS}/ops-new-trip-14.png` });
+await page.waitForTimeout(61_000);
+await paxField.fill("20");
+await paxField.blur();
+await page.waitForTimeout(400);
+const shown = await paxField.inputValue();
+for (let i = 0; i < 40 && !quotes.some((q) => q.pax === 16); i++) await page.waitForTimeout(250);
+await page.waitForTimeout(1500);
+rec("5 20 typed reads 16 and quotes 16 (no Quote failed)", shown === "16" && quotes.some((q) => q.pax === 16 && q.status === 200) && !quotes.some((q) => q.pax > 16), `field "${shown}"; pax sent: ${quotes.map((q) => q.pax).join(",")}; line: "${await lineText()}"`);
+await page.evaluate(() => window.VamosLocale.setLang("de"));
+await page.waitForTimeout(600);
+const de = await lineText();
+await page.evaluate(() => window.VamosLocale.setLang("ar"));
+await page.waitForTimeout(600);
+const ar = await lineText();
+rec("6 the line in German, then switched to Arabic", de === "Keine Klasse hat Platz für 16 Passagiere" && ar === "لا توجد فئة تتسع لـ 16 راكبًا", `de "${de}" → ar "${ar}"`);
+await page.screenshot({ path: `${SHOTS}/ops-new-trip-16-ar.png` });
 console.log("errors", errors);
 await browser.close();
