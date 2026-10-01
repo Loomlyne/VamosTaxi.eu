@@ -2,8 +2,9 @@
 
 Branch `gsd/26.2-p1-class-change` (folder `/Users/koss/Developer/vamos-wt/phase-26.2-p1`), origin/main
 `083b50ab` merged in. Plan signed by the owner 2026-09-30; P1 signed 2026-10-01 with two additions
-(Withdraw change; the customer's refund line), both built. Nothing pushed, no PR, no deploy, no hosted
-SQL. Full detail: `BUILD-RECORD.md`; pictures: `screens/` (sheets `sheet-*.png`).
+(Withdraw change; the customer's refund line), both built and **signed on pictures 2026-10-01**
+(`sheet-withdraw.png`, `sheet-refund-line.png`; question form: "Signed"). Branch pushed; no PR, no
+deploy, no hosted SQL. Full detail: `BUILD-RECORD.md`; pictures: `screens/` (sheets `sheet-*.png`).
 
 ## What changes
 
