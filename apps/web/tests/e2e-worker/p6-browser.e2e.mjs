@@ -706,7 +706,9 @@ try {
   if (want("C8")) {
     try {
       const a = B.pairA, b = B.pairB;
-      await freshWindow(40000); // two cancel presses inside one limiter window
+      // Two cancel presses, right after C7's three writes from the same address: start in a new limiter window
+      // (four account writes per minute per address), not merely one with time left.
+      await nap(60000 - (Date.now() % 60000) + 300);
       const tabA = cpage;
       await manage(tabA, "pairA");
       const tabB = await cctx.newPage();
