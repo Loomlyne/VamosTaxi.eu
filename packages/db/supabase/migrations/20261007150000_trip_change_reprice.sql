@@ -119,13 +119,14 @@ begin
      or new.overlap_kept_range = new.scheduled_range then
     return null;
   end if;
-  -- A write that moves nothing the rule reads leaves a leg as it was: the trip another trip was
-  -- kept against stays editable (its flight, its note, its party).
+  -- A leg the rule already counted, with the same driver and the same window, makes no new
+  -- overlap: the trip another trip was kept against stays editable (its flight, its note, its
+  -- party) and its status still moves (paid -> confirmed, assigned -> completed).
   if tg_op = 'UPDATE'
      and new.assigned_chauffeur_id is not distinct from old.assigned_chauffeur_id
      and new.scheduled_range is not distinct from old.scheduled_range
-     and new.status is not distinct from old.status
-     and new.overlap_kept_range is not distinct from old.overlap_kept_range then
+     and old.status not in ('cancelled'::public.booking_status, 'no_show'::public.booking_status)
+     and old.overlap_kept_range is distinct from old.scheduled_range then
     return null;
   end if;
   if exists (

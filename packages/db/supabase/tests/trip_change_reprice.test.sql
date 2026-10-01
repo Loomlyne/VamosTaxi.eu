@@ -28,7 +28,7 @@
 --   M  booking_change_request_facts: what a paid change changed (for the driver's e-mail).
 -- Rolled back. Synthetic integer rappen only, never a product CHF.
 begin;
-select plan(121);
+select plan(123);
 
 insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity)
 values ('tcr-eco', 4, 4), ('tcr-biz', 7, 7);
@@ -506,6 +506,16 @@ select throws_ok($$select pg_temp.tcr_assign('third3', 'f')$$, '23P01', null,
 select lives_ok(
   format($f$update public.booking_legs set flight_no = 'LX 1' where booking_id = %L$f$, (select id from fx where k = 'busy')),
   'the trip the other was kept against stays editable');
+-- Its status still moves (the owner marks it done; a payment confirms it): nothing about its window changed.
+create temporary table busy_was as
+  select status from public.booking_legs where booking_id = (select id from fx where k = 'busy');
+select lives_ok(
+  format($f$update public.booking_legs set status = 'completed' where booking_id = %L$f$, (select id from fx where k = 'busy')),
+  'the trip the other was kept against can be marked completed');
+select lives_ok(
+  format($f$update public.booking_legs set status = %L::public.booking_status where booking_id = %L$f$,
+         (select status from busy_was), (select id from fx where k = 'busy')),
+  'and its status can move back (any status between counted ones)');
 create temporary table clash_party as select * from pg_temp.tcr_change('clash', null, '{"pax":3}'::jsonb, null);
 select is(
   (select c.outcome || ':' || (l.overlap_kept_range = l.scheduled_range)::text
