@@ -12,6 +12,7 @@ import {
 } from "@/lib/checkout/booking-read";
 import { customerClaims } from "@/lib/account/session";
 import { MANAGE_COOKIE_NAME } from "@/lib/checkout/manage-token";
+import { confirmationManageHref, type ConfirmationReadVia } from "@/lib/checkout/confirmation-manage-href";
 import { ConfirmationClient, type ConfirmationPhase } from "./ConfirmationClient";
 import "./confirmation.css";
 
@@ -96,6 +97,7 @@ export default async function ConfirmationPage({
 
   let initialPhase: ConfirmationPhase = "hidden";
   let booking: VisibleBooking | null = null;
+  let readVia: ConfirmationReadVia = null;
 
   // Return path (D-27): a well-formed reference always opens the loading screen
   // first. The poller reads status; nothing here reveals whether the booking
@@ -105,8 +107,16 @@ export default async function ConfirmationPage({
     booking = pendingTicket(ref);
     if (env && (raw || claims)) {
       try {
-        const read = await readBookingForConfirmation(env, raw, ref, claims);
-        if (read.visible) {
+        // The manage cookie first, alone, so MANAGE BOOKING knows which door opens
+        // this trip; then the session, as before (cookie, else account).
+        let read = raw ? await readBookingForConfirmation(env, raw, ref, null) : null;
+        if (read?.visible) {
+          readVia = "cookie";
+        } else if (claims) {
+          read = await readBookingForConfirmation(env, "", ref, claims);
+          if (read.visible) readVia = "account";
+        }
+        if (read?.visible) {
           booking = read;
           initialPhase = isVoucherStatus(read.status)
             ? "confirmed"
@@ -128,6 +138,7 @@ export default async function ConfirmationPage({
       initialPhase={initialPhase}
       booking={booking}
       freeCancelHours={freeCancelHours}
+      manageHref={confirmationManageHref(locale, ref, readVia)}
     />
   );
 }
