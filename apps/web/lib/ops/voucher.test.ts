@@ -73,11 +73,9 @@ describe("customer refund words and amount (26.1-18, UI-SPEC §2)", () => {
   it("customer cancel screens use the shared D-24 window, not a 6 hour cut-off", () => {
     const route = read("apps/web/app/api/manage/booking/route.ts");
     const client = read("apps/web/app/[locale]/confirmation/[ref]/ConfirmationClient.tsx");
-    for (const src of [route, client]) {
-      expect(src).toMatch(/customerCancelWindow\(/);
-      expect(src).not.toMatch(/hours > 6/);
-    }
-    expect(client).not.toMatch(/cancelSheetClose/);
-    expect(client).toMatch(/refundRappen/);
+    expect(route).toMatch(/customerCancelWindow\(/);
+    expect(route).not.toMatch(/hours > 6/);
+    // 2026-10-01: cancelling left /confirmation for Manage booking (owner decision).
+    expect(client).not.toMatch(/cancelSheet|paid-cancel|hours > 6/);
   });
 });

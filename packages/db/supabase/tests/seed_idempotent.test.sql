@@ -112,11 +112,13 @@ select is((select count(*) from public.reviews where published)::int, 0, 'no see
 -- 26.0: re-pinned to the seed header (content_strings=2672) after the dictionary appends on main; re-read it from the header, never from en.json.
 -- 26.5: re-pinned to the generated seed after 26.5's 36 new strings: 2670 keys (main had 2634 before 26.5).
 -- booking polish: +1 key (checkout.noRoadRoute), pinned to the generated seed header: 2673 keys.
--- B7 (2026-10-01): +1 key (legal.terms-driver-details-by-email), seed header: 2685 keys, 96 no-param-reason.
-select is((select count(*) from public.content_strings)::int, 2685 + 26, 'content_strings row count = flattened en.json key count + 26 migration canton names');
+-- B7 (2026-10-01): +1 key (legal.terms-driver-details-by-email).
+-- /confirmation redesign (2026-10-01): +8 keys (checkout.next*, manageHint, helpLine).
+-- B7 refreshed on main 50a2a050: seed header after both: 2693 keys, 97 no-param-reason.
+select is((select count(*) from public.content_strings)::int, 2693 + 26, 'content_strings row count = flattened en.json key count + 26 migration canton names');
 select is((select count(*) from public.content_strings where pending_value)::int, 16, '16 pending-value keys (ADR-011, Law 04 data-tok)');
 select is((select count(*) from public.content_strings where non_translatable)::int, 8 + 26, '8 non-translatable seed keys (ADR-012) + 26 migration canton names');
-select is((select count(*) from public.content_strings where no_param_reason is not null)::int, 96, '96 no-param-reason keys (I18N-06; count re-read from the seed header in B7)');
+select is((select count(*) from public.content_strings where no_param_reason is not null)::int, 97, '97 no-param-reason keys (I18N-06; count re-read from the seed header after B7 + /confirmation)');
 select ok(
   (select de is not null and fr is not null and ar is not null from public.content_strings where key = 'price.surcharge.night.rule'),
   'price.surcharge.night.rule (Plan 02-04) has a non-null de/fr/ar translation'

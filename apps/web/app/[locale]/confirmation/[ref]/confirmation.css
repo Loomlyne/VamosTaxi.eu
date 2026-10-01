@@ -17,13 +17,6 @@
   margin-block-end: 24px;
 }
 
-.vt-confirmation__kicker {
-  font-family: var(--vt-font-body);
-  font-size: var(--vt-body-sm);
-  color: var(--vt-text-muted);
-  margin: 0;
-}
-
 .vt-confirmation__title {
   font-family: var(--vt-font-display);
   font-size: var(--vt-heading-2);
@@ -98,11 +91,29 @@
   font-weight: var(--vt-weight-semibold);
 }
 
-.vt-confirmation__help {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-block-start: 8px;
+/* Help line (2026-10-01): one sentence, two inline links. */
+.vt-confirmation__help-line {
+  margin-block: 24px 0;
+  font-family: var(--vt-font-body);
+  font-size: var(--vt-body-sm);
+  line-height: var(--vt-body-leading);
+  color: var(--vt-text-muted);
+}
+
+/* The design system's link: charcoal text on the yellow hairline (base.css). */
+.vt-confirmation__help-link {
+  color: var(--vt-text-primary);
+  font-weight: var(--vt-weight-semibold);
+}
+
+.vt-confirmation__help-link:hover {
+  border-block-end-color: var(--vt-text-primary);
+}
+
+.vt-confirmation__help-link:focus-visible {
+  outline: none;
+  box-shadow: var(--vt-ring);
+  border-radius: var(--vt-radius-xs);
 }
 
 .vt-confirmation__spin {
@@ -173,7 +184,7 @@
   }
 }
 
-/* S4: charcoal disc with the yellow check, then kicker, heading, reference line. */
+/* S4: charcoal disc with the yellow check, then heading and reference line. */
 .vt-confirmation__disc {
   display: inline-flex;
   align-items: center;
@@ -188,12 +199,15 @@
   align-items: flex-start;
 }
 
-.vt-confirmation__kicker--booked {
-  font-size: 13px;
-  font-weight: var(--vt-weight-semibold);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--vt-charcoal-900);
+.vt-confirmation__hero-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.vt-confirmation__hero--booked .vt-confirmation__disc {
+  inline-size: 48px;
+  block-size: 48px;
 }
 
 .vt-confirmation__booked {
@@ -203,8 +217,7 @@
   min-inline-size: 0;
 }
 
-.vt-confirmation__presentment,
-.vt-confirmation__legal {
+.vt-confirmation__presentment {
   margin: 0;
   font-family: var(--vt-font-body);
   font-size: var(--vt-body-sm);
@@ -212,8 +225,43 @@
   overflow-wrap: anywhere;
 }
 
-.vt-confirmation__booked-cancel {
+/* Four labelled facts, two by two; one column only when a phone is very narrow. */
+.vt-confirmation__facts {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 20px 24px;
+  margin: 0;
+  padding-block: 20px;
+  border-block: 1px solid var(--vt-border-subtle);
+}
+
+.vt-confirmation__fact {
   display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-inline-size: 0;
+}
+
+.vt-confirmation__fact dt {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--vt-font-body);
+  font-size: var(--vt-label-sm);
+  letter-spacing: var(--vt-label-tracking);
+  text-transform: uppercase;
+  font-weight: var(--vt-label-weight);
+  color: var(--vt-text-muted);
+}
+
+.vt-confirmation__fact dd {
+  margin: 0;
+  font-family: var(--vt-font-body);
+  font-size: var(--vt-body-md);
+  font-weight: var(--vt-weight-medium);
+  color: var(--vt-text-primary);
+  overflow-wrap: anywhere;
 }
 
 .vt-confirmation__actions {
@@ -224,33 +272,116 @@
   align-items: center;
 }
 
+/* The booked page's two buttons, equal width, side by side; stacked on a phone. */
+.vt-confirmation__actions--pair {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  margin-block: 24px 0;
+}
+
+.vt-confirmation__actions--pair .vt-btn {
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+.vt-confirmation__hint {
+  margin-block: 12px 0;
+  font-family: var(--vt-font-body);
+  font-size: var(--vt-body-sm);
+  line-height: var(--vt-body-leading);
+  color: var(--vt-text-muted);
+}
+
+/* "What happens next": three steps, each a small charcoal disc with a yellow glyph. */
+.vt-confirmation__next {
+  margin-block-start: 24px;
+}
+
+.vt-confirmation__next-title {
+  margin: 0 0 20px;
+  font-family: var(--vt-font-display);
+  font-size: var(--vt-heading-4);
+  font-weight: var(--vt-weight-semibold);
+  color: var(--vt-text-primary);
+}
+
+.vt-confirmation__next-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.vt-confirmation__next-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.vt-confirmation__next-disc {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 32px;
+  block-size: 32px;
+  border-radius: 50%;
+  background: var(--vt-charcoal-900);
+}
+
+.vt-confirmation__next-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-inline-size: 0;
+  padding-block-start: 5px;
+}
+
+.vt-confirmation__next-head {
+  font-family: var(--vt-font-body);
+  font-size: var(--vt-body-md);
+  color: var(--vt-text-primary);
+}
+
+.vt-confirmation__next-body {
+  font-family: var(--vt-font-body);
+  font-size: var(--vt-body-sm);
+  color: var(--vt-text-muted);
+}
+
+.vt-confirmation__another {
+  margin-block-start: 24px;
+}
+
 .vt-confirmation__resent {
   font-family: var(--vt-font-body);
   font-size: var(--vt-body-sm);
   color: var(--vt-success);
 }
 
-.vt-confirmation__alerts {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 16px;
-}
-
-.vt-confirmation__footer {
-  text-align: center;
-  margin-block-start: 40px;
-}
-
-@media (max-width: 640px) {
-  .vt-confirmation__alerts {
+@media (max-width: 340px) {
+  .vt-confirmation__facts {
     grid-template-columns: minmax(0, 1fr);
   }
 }
 
+/* DOWNLOAD VOUCHER prints the trip card and prices only. Header and ContactFab
+   already hide themselves in print; the footer and banner are hidden here. */
 @media print {
   .vt-confirmation__actions,
-  .vt-confirmation__alerts,
-  .vt-confirmation__footer {
-    display: none;
+  .vt-confirmation__hint,
+  .vt-confirmation__next,
+  .vt-confirmation__help-line,
+  .vt-confirmation__another,
+  [data-confirmation-charge-refunded],
+  body:has([data-confirmation]) footer[data-ft],
+  body:has([data-confirmation]) [data-ck-banner] {
+    display: none !important;
+  }
+
+  .vt-confirmation {
+    padding-block: 0;
   }
 }

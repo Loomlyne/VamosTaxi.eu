@@ -714,7 +714,15 @@
     "acctCodeError": "Vérifiez le code. Il compte {digits} chiffres et reste valable une heure.",
     "acctResend": "Renvoyer un lien",
     "acctResent": "Renvoyé à l’instant.",
-    "acctRateLimit": "Trop de tentatives. Attendez une minute, puis réessayez."
+    "acctRateLimit": "Trop de tentatives. Attendez une minute, puis réessayez.",
+    "nextAssignTitle": "Nous attribuons votre chauffeur.",
+    "nextAssignBody": "Vous recevez un e-mail avec le nom du chauffeur et la plaque.",
+    "nextReminderTitle": "Un rappel 24 heures avant la prise en charge.",
+    "nextReminderBody": "Par e-mail, avec les coordonnées de votre chauffeur une fois attribué.",
+    "nextCancelTitle": "Annulation gratuite jusqu'à <h>{hours}</h> heures avant la prise en charge.",
+    "nextCancelBody": "Sur « Gérer la réservation ».",
+    "manageHint": "Changez l'heure ou le numéro de vol, ou annulez, sur « Gérer la réservation ».",
+    "helpLine": "Une question sur ce trajet ? Appelez le <tel>{phone}</tel> ou écrivez sur <wa>WhatsApp</wa>."
   },
   "common": {
     "4-not-live": "4 non actifs",

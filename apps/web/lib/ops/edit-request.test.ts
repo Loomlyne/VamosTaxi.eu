@@ -269,16 +269,18 @@ describe("09-10 flight write-through (D-27)", () => {
     expect(signed).toMatch(/kind:\s*"customer"|asCustomer/);
   });
 
-  it("manage-booking and confirmation post time-change and flight", () => {
+  it("manage-booking posts time-change and flight; confirmation sends them there", () => {
     const page = read("app/pages/manage-booking.dc.html");
     expect(page).toMatch(/time-change/);
     expect(page.toLowerCase()).toMatch(/flight/);
     expect(page).toMatch(/Time-change requested/);
     expect(page).not.toMatch(/AeroDataBox|LX1234/i);
 
+    // 2026-10-01 (owner decision): time, flight and cancel live on Manage booking only.
     const confirm = read("apps/web/app/[locale]/confirmation/[ref]/ConfirmationClient.tsx");
-    expect(confirm).toMatch(/time-change/);
-    expect(confirm).toMatch(/\/api\/account\/bookings\/flight/);
+    expect(confirm).not.toMatch(/time-change/);
+    expect(confirm).not.toMatch(/\/api\/account\/bookings\//);
+    expect(confirm).toMatch(/manageHint/);
     expect(confirm).not.toMatch(/AeroDataBox|LX1234/i);
 
     const ops = read("app/ops/OpsDetail.dc.html");
