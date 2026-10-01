@@ -66,7 +66,7 @@ describe("security headers (D-32…D-38)", () => {
     expect(csp).not.toMatch(/stripe\.com/);
     expect(csp).not.toMatch(/link\.com/);
     expect(csp).toMatch(/frame-src challenges\.cloudflare\.com;/);
-    expect(csp).toMatch(/maps\.googleapis\.com/);
+    expect(csp).not.toMatch(/maps\.googleapis\.com/);
   });
 
   it("keeps /dev noindex rows", () => {
