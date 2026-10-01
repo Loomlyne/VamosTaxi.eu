@@ -19,13 +19,24 @@ fs.writeFileSync(dir+"/.dev.vars", Object.entries(v).map(([k,x])=>`${k}="${x}"`)
 
 // 26.5-07: phase 2 (checkout-account scenarios) adds local stand-in secrets. Never real keys: the Stripe key is
 // a fake that only the local fake server (fakes.mjs) ever sees, and the lock secret signs locks minted by the e2e itself.
-if (process.argv[5] === "phase2") {
+if (process.argv[5] === "phase2" || process.argv[5] === "p6") {
   Object.assign(v, {
     STRIPE_SECRET_KEY: "sk_test_e2e_fake_local_only",
     QUOTE_LOCK_SECRET: "e2e-local-lock-secret-0123456789abcdef",
     TURNSTILE_SECRET_KEY: "e2e-local-turnstile-fake",
     TURNSTILE_SITE_KEY: "1x00000000000000000000AA", // Cloudflare's public always-pass test site key; the page then renders its (stubbed) widget
     CONTACT_TURNSTILE_ALLOWED_HOSTNAMES: "localhost",
+  });
+  fs.writeFileSync(dir+"/.dev.vars", Object.entries(v).map(([k,x])=>`${k}="${x}"`).join("\n")+"\n",{mode:0o600});
+}
+
+// 26.2 P6 (p6-run.sh): phase 2 plus the stand-in keys of the two other outside services the trip-change routes call.
+// Mapbox and Resend are reached only through the local fake server (fakes.mjs, via the fetch rewrite of p6-run.sh).
+if (process.argv[5] === "p6") {
+  Object.assign(v, {
+    MAPBOX_TOKEN: "pk.e2e-fake-local",
+    RESEND_API_KEY: "re_e2e_fake_local",
+    MAPBOX_DAILY_UNIT_SENTINEL: "100000",
   });
   fs.writeFileSync(dir+"/.dev.vars", Object.entries(v).map(([k,x])=>`${k}="${x}"`).join("\n")+"\n",{mode:0o600});
 }

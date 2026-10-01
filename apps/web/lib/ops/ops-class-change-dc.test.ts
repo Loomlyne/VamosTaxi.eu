@@ -35,10 +35,13 @@ describe("Edit: the class is a list of today's classes, not a free text or the c
     expect(dc).toMatch(/klass: \(s\.edit && s\.edit\.klass\) \|\| data\.currentClass \|\| ''/);
   });
 
-  it("the price box shows class now, new class, paid so far, new total and the difference", () => {
+  // 26.2 P6 extends the box: the class is one "what changes" row (old → new) like every other trip field;
+  // the money rows stay paid so far, new total and the difference.
+  it("the box lists the class old → new, then paid so far, new total and the difference", () => {
     expect(dc).toMatch(/sc-if value="\{\{ classBoxShown \}\}"/);
     expect(dc).toMatch(/PriceSummary" lines="\{\{ classBoxLines \}\}" total="\{\{ classBoxTotal \}\}"/);
-    for (const key of ["classRowNow", "classRowNew", "classPaidSoFar", "classNewTotal"]) {
+    expect(dc).toMatch(/if \(classChanged\) changeRows\.push\(\{ k: t\.vehicleClass, o: currentClassRow \? currentClassRow\.name : \(booking\.klass \|\| '—'\), n: pickedClass\.name \}\);/);
+    for (const key of ["classPaidSoFar", "classNewTotal"]) {
       expect(dc).toMatch(new RegExp(`label: t\\.${key}`));
     }
     expect(dc).toMatch(/classDiff > 0 \? t\.classDiffToPay : \(classDiff < 0 \? t\.classDiffRefund : t\.classDiffNone\)/);
@@ -48,17 +51,20 @@ describe("Edit: the class is a list of today's classes, not a free text or the c
 describe("Saving: nothing is written before the confirm step; the class never rides on the PATCH", () => {
   const save = between(dc, "      saveEdit: () => {", "      markRefund:");
 
-  it("a changed class opens the confirm step first", () => {
-    expect(save).toMatch(/if \(classChanged && !this\._classConfirmed\)/);
+  it("a changed class (or any trip field, 26.2 P6) opens the confirm step first", () => {
+    expect(save).toMatch(/if \(tripChanged && !this\._classConfirmed\)/);
+    expect(dc).toMatch(/const tripChanged = placesChanged \|\| otherTripChanged \|\| classChanged;/);
     expect(save).toMatch(/this\.setState\(\{ classConfirmOpen: true \}\)/);
     const patch = between(save, "client.request('PATCH'", "}).then");
     expect(patch).not.toMatch(/klass/);
   });
 
-  it("the class goes to …/change with the slug and the two figures shown, nothing else", () => {
+  it("a class-only change goes to …/change with the slug and the two figures shown, nothing else", () => {
     const post = between(dc, "const postClassChange = () => {", "    const vals = {");
-    expect(post).toMatch(/'\/change', \{\n\s+klass: pickedClass\.slug, expectTotalRappen: pickedClass\.newTotalRappen, expectPaidRappen: cpData\.paidRappen,\n\s+\}\)/);
+    expect(post).toMatch(/'\/change', changeBody\(\)\)/);
     expect(post).not.toMatch(/edit-accept/);
+    const body = between(dc, "const changeBody = () => {", "    const postClassChange");
+    expect(body).toMatch(/return onlyClass \? \{ klass: pickedClass\.slug, expectTotalRappen: pickedClass\.newTotalRappen, expectPaidRappen: cpData\.paidRappen \} : body;/);
   });
 
   it("the confirm step is a design-system Dialog with Keep / Change and the driver line when one is assigned", () => {
@@ -72,7 +78,8 @@ describe("Saving: nothing is written before the confirm step; the class never ri
 
 describe("Waiting for the difference (D1, D4) and the customer's own requests", () => {
   it("your class change waiting for the payment shows its own line, without Accept / Refuse", () => {
-    expect(dc).toMatch(/const pendingClassWait = !!booking\.pendingEditId && booking\.pendingEditActor === 'staff' && !!booking\.pendingEditClass;/);
+    // 26.2 P6: your dearer trip change waits the same way; the board names the class only for a class change.
+    expect(dc).toMatch(/const pendingClassWait = !!booking\.pendingEditId && booking\.pendingEditActor === 'staff';/);
     const block = between(dc, '<sc-if value="{{ hasPendingEdit }}"', "<sc-if value=\"{{ hasFlightBanner }}\"");
     const answer = between(block, '<sc-if value="{{ pendingNeedsAnswer }}"', "</sc-if>");
     expect(answer).toMatch(/acceptPending/);

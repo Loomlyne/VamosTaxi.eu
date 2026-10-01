@@ -234,7 +234,8 @@ describe("20-10 dashboard refund screen", () => {
     expect(dc).toMatch(/\(booking\.status === 'cancelled' && \(\(refundStatus === 'pending_ops' && fullTier\) \|\| legacyDue\)\)/);
     expect(dc).toMatch(/\(refundStatus === 'pending_ops' && creditTier && !creditShown\)/);
     expect(dc).toMatch(/isRefunded: booking\.status === 'refunded' \|\| refundStatus === 'refunded'/);
-    expect(dc).toMatch(/tRefundBody: creditTier \? t\.classCreditBody : \(fullTier \? t\.refundBody : t\.dueLegacyBody\)/);
+    // 26.2 P6 D21: a cheaper trip change names the trip; a class change keeps the class line.
+    expect(dc).toMatch(/tRefundBody: creditTier \? \(tripCredit \? t\.tripCreditBody : t\.classCreditBody\) : \(fullTier \? t\.refundBody : t\.dueLegacyBody\)/);
   });
 
   it("26.2 P1 credit tier: exactly what is due, one press, no percentage field, no Decline", () => {

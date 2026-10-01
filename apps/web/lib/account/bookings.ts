@@ -18,6 +18,10 @@ export type AccountSqlRow = {
   scheduled_local: string | null;
   scheduled_at: string | Date | null;
   pax: number | null;
+  /** 26.2 P6 (D19): the flight number on the first leg, so the account view can show and change it. */
+  flight_no?: string | null;
+  /** 26.2 P6 (D19): the booking's address (the signed-in e-mail: the list is chosen by it). */
+  contact_email?: string | null;
   chauffeur_name?: string | null;
   vehicle_plate?: string | null;
   vehicle_model?: string | null;
@@ -31,6 +35,12 @@ export type AccountBooking = {
   href: string;
   date: string;
   time: string;
+  /** 26.2 P6 (D13): the booked day as YYYY-MM-DD (a time change from the account view needs it). */
+  dateIso: string;
+  /** 26.2 P6 (D19): the flight number as booked ("" when none); the account view's flight row needs it. */
+  flightNo: string;
+  /** 26.2 P6 (D19): where the confirmation goes; the account view's Resend row names it. */
+  contactEmail: string;
   route: string;
   pickup: string;
   dropoff: string;
@@ -154,6 +164,9 @@ export function mapAccountBooking(row: AccountSqlRow, now = new Date()): Account
     payable: false,
     date: when.date,
     time: when.time,
+    dateIso: when.dateIso,
+    flightNo: str(row.flight_no),
+    contactEmail: str(row.contact_email),
     route: pickup && dropoff ? `${pickup} → ${dropoff}` : pickup || dropoff,
     pickup,
     dropoff,

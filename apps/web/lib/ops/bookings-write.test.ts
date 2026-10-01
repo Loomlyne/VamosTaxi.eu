@@ -229,21 +229,26 @@ describe("updateBooking never changes the class in place (26.2 P1, A8)", { timeo
   const BOOKING_ID = "00000000-0000-4000-8000-000000000002";
 
   it("the in-place PATCH writes no vehicle class, whatever it is sent", async () => {
+    // 26.2 P6: the in-place save is the definer function booking_staff_contact_update (name,
+    // e-mail, phone, note, flight); no table is written from the Worker and no class reaches it.
     const calls: { text: string; values: unknown[] }[] = [];
+    const record = (strings: TemplateStringsArray, ...values: unknown[]) => {
+      calls.push({ text: strings.join("?"), values });
+      if (strings.join("?").includes("booking_staff_contact_update")) {
+        return Promise.resolve([{ booking_id: BOOKING_ID, changed_fields: "", flight_changed: false, assigned_chauffeur_id: null }]);
+      }
+      return Promise.resolve([{ id: BOOKING_ID }]);
+    };
     asStaff.mockReset();
-    asStaff.mockImplementation(async (_env: CloudflareEnv, _claims: unknown, fn: (sql: unknown) => unknown) => {
-      const sql = async (strings: TemplateStringsArray, ...values: unknown[]) => {
-        calls.push({ text: strings.join("?"), values });
-        if (calls.length === 1) return [{ id: BOOKING_ID }];
-        if (calls.length === 2) return [{ id: 1 }];
-        return [];
-      };
-      return fn(sql);
-    });
+    asStaff.mockImplementation(async (_env: CloudflareEnv, _claims: unknown, fn: (sql: unknown) => unknown) => fn(record));
+    asSystem.mockReset();
+    asSystem.mockImplementation(async (_env: CloudflareEnv, fn: (sql: unknown) => unknown) => fn(record));
     const { updateBooking } = await import("./bookings-write");
     const result = await updateBooking(ENV, CLAIMS, "VT-2", { klass: "Business" } as never);
-    expect(result).toEqual({ ok: true });
+    expect(result).toEqual({ ok: true, changed: [], flightChanged: false, driverMailed: false });
     expect(calls.some((c) => c.text.includes("vehicle_class_id"))).toBe(false);
+    expect(calls.some((c) => /update\s+public\./i.test(c.text))).toBe(false);
+    expect(calls.find((c) => c.text.includes("booking_staff_contact_update"))!.values).not.toContain("Business");
   });
 
   it("the PATCH route and the write no longer read a class", () => {
