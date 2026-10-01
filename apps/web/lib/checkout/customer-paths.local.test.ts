@@ -91,6 +91,32 @@ describe.skipIf(!PORT)("the customer's own doors through the real Worker client 
     expect(await resendCustomerConfirmation(env, owner, other.reference)).toEqual({ ok: false, code: "not-found" });
     expect(await leg(b.id)).toMatchObject({ scheduled_local: "2030-01-06T10:00" });
 
+    // P6 review 1: the customer's request is a time change at the booking's own price. The owner's Accept
+    // applies the new time and nothing becomes due; a forged customer request with a cheaper price record
+    // or with another field is refused by the database itself (the old generic POST passed both).
+    const { acceptPaidEdit } = await import("../ops/edit-request");
+    const { asSystem } = w;
+    const pending = (await su<{ id: string }[]>`
+      select id::text as id from public.booking_edit_requests where booking_id = ${b.id} and status = 'requested'`)[0]!;
+    expect(await acceptPaidEdit(env, STAFF, b.reference, { payload: {} as never, requestId: pending.id })).toMatchObject({ ok: true });
+    const accepted = (await su<{ total: number; owed: number; local: string; pays: number }[]>`
+      select s.total_rappen as total, coalesce(b.refund_owed_rappen, 0)::int as owed, l.scheduled_local as local,
+             (select count(*)::int from public.booking_payments p where p.booking_id = b.id) as pays
+        from public.bookings b
+        join public.price_snapshots s on s.id = b.price_snapshot_id
+        join public.booking_legs l on l.booking_id = b.id
+       where b.id = ${b.id}`)[0]!;
+    expect(accepted).toEqual({ total: b.paid, owed: 0, local: "2030-01-06T12:00", pays: 1 });
+    const cheapId = (await asSystem(env, (sql) =>
+      sql<{ id: string }[]>`select public.booking_edit_clone_quote_snapshot(${b.id}::uuid, ${1}::rappen, ${null}::uuid)::text as id`))[0]!.id;
+    await expect(asSystem(env, (sql) => sql`
+      select * from public.booking_edit_request_upsert(${b.id}::uuid, 'customer', ${ownerId}::uuid,
+        ${sql.json({ scheduled_local: "2030-01-06T13:00" })}, ${cheapId}::bigint)`)).rejects.toThrow(/snapshot-mismatch/);
+    const ownSnap = (await su<{ id: string }[]>`select price_snapshot_id::text as id from public.bookings where id = ${b.id}`)[0]!.id;
+    await expect(asSystem(env, (sql) => sql`
+      select * from public.booking_edit_request_upsert(${b.id}::uuid, 'customer', ${ownerId}::uuid,
+        ${sql.json({ scheduled_local: "2030-01-06T13:00", pickup_text: "Zug" })}, ${ownSnap}::bigint)`)).rejects.toThrow(/customer-time-only/);
+
     // D20: once cancelled (as paid-cancel writes it: status and its event with the refund facts), Resend
     // sends the cancellation e-mail again through the real definer read, never the confirmation.
     await su`update public.bookings set status = 'cancelled' where id = ${b.id}`;

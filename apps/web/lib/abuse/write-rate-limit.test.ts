@@ -93,7 +93,6 @@ describe("checkWriteRateLimit fail-closed (D-11, D-13)", () => {
     expect(helper).toMatch(/QUOTE_RATE_LIMITER_BARE/);
     const routes = [
       "apps/web/app/api/account/prefs/route.ts",
-      "apps/web/app/api/account/bookings/route.ts",
       "apps/web/app/api/account/bookings/cancel/route.ts",
       "apps/web/app/api/account/bookings/paid-cancel/route.ts",
       "apps/web/app/api/account/bookings/time-change/route.ts",

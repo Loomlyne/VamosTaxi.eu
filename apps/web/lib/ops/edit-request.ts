@@ -31,7 +31,6 @@ import {
   stripeFromEnv,
 } from "@/lib/checkout/stripe";
 import type { CheckoutLocale } from "@/lib/checkout/currency";
-import { verifyLock } from "@/lib/quote/lock";
 import { zurichLocalToUtcMs } from "../geo/serviceArea";
 import { PUBLIC_SITE_ORIGIN } from "./phone-booking-map";
 import { stripeCheckoutReturnUrl } from "@/lib/checkout/return-url";
@@ -73,12 +72,11 @@ export type CustomerEditAuth =
   | { kind: "customer"; claims: VamosClaims }
   | { kind: "guest"; manageTokenHashHex: string };
 
-export type RequestPaidEditInput = {
-  payload: EditPayload;
-  quoteSnapshotId?: number;
-  lock?: string;
-  vehicleClassSlug?: string;
-};
+/**
+ * P6 review 1 (2026-10-02): what a customer may ask for — a new time (D9). Nothing else comes from the
+ * browser: no quote lock, no price record, no place, party or contact (the database refuses them too).
+ */
+type CustomerTimePayload = { scheduled_local: string; scheduled_at: string };
 
 export type RequestPaidEditOk = {
   ok: true;
@@ -334,18 +332,20 @@ async function loadOwnedBooking(
  * Identity is JWT email (asCustomer) or manage token (asGuest); upsert is asSystem.
  * Never asStaff from this door.
  */
-export async function requestCustomerPaidEdit(
+/**
+ * Customer/guest time-change request. Writes `booking_edit_requests` `requested`, priced at the
+ * booking's own total (its price record cloned at its own total): a time change keeps the price paid
+ * (D1). Does not mutate booking columns. Identity is JWT email (asCustomer) or manage token (asGuest);
+ * the upsert is asSystem. Never asStaff from this door.
+ */
+async function requestCustomerTime(
   env: CloudflareEnv,
   auth: CustomerEditAuth,
   bookingKey: string,
-  input: RequestPaidEditInput,
+  payload: CustomerTimePayload,
 ): Promise<RequestPaidEditResult> {
   const key = bookingKey.trim();
   if (!key) return { ok: false, code: "not-found" };
-
-  if ((input.lock ?? "").trim() && !lockSecretPresent(env.QUOTE_LOCK_SECRET, "edit-request/customer")) {
-    return { ok: false, code: "temporarily_unavailable" };
-  }
 
   const owned = await loadOwnedBooking(env, auth, key);
   if (!owned) return { ok: false, code: "not-found" };
@@ -354,37 +354,15 @@ export async function requestCustomerPaidEdit(
 
   try {
     const upsert = await asSystem(env, async (sql) => {
-      let quoteSnapshotId = input.quoteSnapshotId ?? 0;
-      if (!Number.isFinite(quoteSnapshotId) || quoteSnapshotId <= 0) {
-        let newTotal: number | null = null;
-        let quoteId: string | null = null;
-        const lockToken = (input.lock ?? "").trim();
-        if (lockToken) {
-          const current = env.QUOTE_LOCK_SECRET ?? "";
-          const previous = env.QUOTE_LOCK_SECRET_PREVIOUS;
-          const verified = await verifyLock(
-            previous ? { current, previous } : { current },
-            lockToken,
-            new Date().toISOString(),
-          );
-          if (!verified.ok) throw Object.assign(new Error("not-found"), { code: "P0002" });
-          const slug = (input.vehicleClassSlug ?? input.payload.vehicle_class_slug ?? "economy")
-            .trim()
-            .toLowerCase();
-          const row = verified.payload.class_totals.find((c) => c.slug === slug);
-          if (row?.total_rappen == null) throw Object.assign(new Error("not-found"), { code: "P0002" });
-          newTotal = Number(row.total_rappen);
-          quoteId = verified.payload.quote_id;
-        }
-        const cloned = await sql<{ id: number }[]>`
-          select public.booking_edit_clone_quote_snapshot(
-            ${owned.id}::uuid,
-            ${newTotal}::rappen,
-            ${quoteId}::uuid
-          ) as id
-        `;
-        quoteSnapshotId = Number(cloned[0]?.id ?? 0);
-      }
+      // The booking's own record at its own total (the function returns the bound record when it can).
+      const cloned = await sql<{ id: number }[]>`
+        select public.booking_edit_clone_quote_snapshot(
+          ${owned.id}::uuid,
+          ${null}::rappen,
+          ${null}::uuid
+        ) as id
+      `;
+      const quoteSnapshotId = Number(cloned[0]?.id ?? 0);
       if (!Number.isFinite(quoteSnapshotId) || quoteSnapshotId <= 0) {
         throw Object.assign(new Error("not-found"), { code: "P0002" });
       }
@@ -396,19 +374,13 @@ export async function requestCustomerPaidEdit(
           ${owned.id}::uuid,
           'customer',
           ${actorId}::uuid,
-          ${sql.json(input.payload as Parameters<typeof sql.json>[0])},
+          ${sql.json(payload as Parameters<typeof sql.json>[0])},
           ${quoteSnapshotId}::bigint
         )
       `;
       const row = rows[0];
       if (!row) throw Object.assign(new Error("not-found"), { code: "P0002" });
-      return {
-        request_id: String(row.request_id),
-        superseded_id: row.superseded_id ? String(row.superseded_id) : null,
-        old_extra_session_id: row.old_extra_session_id ? String(row.old_extra_session_id) : null,
-        old_extra_snapshot_id:
-          row.old_extra_snapshot_id == null ? null : Number(row.old_extra_snapshot_id),
-      };
+      return { request_id: String(row.request_id) };
     });
     return {
       ok: true,
@@ -437,11 +409,9 @@ export async function requestCustomerTimeChange(
   const scheduledMs = zurichLocalToUtcMs(scheduledLocal);
   if (scheduledMs == null) return { ok: false, code: "not-found" };
   const scheduledAt = new Date(scheduledMs).toISOString();
-  return requestCustomerPaidEdit(env, auth, bookingKey, {
-    payload: {
-      scheduled_local: scheduledLocal,
-      scheduled_at: scheduledAt,
-    },
+  return requestCustomerTime(env, auth, bookingKey, {
+    scheduled_local: scheduledLocal,
+    scheduled_at: scheduledAt,
   });
 }
 

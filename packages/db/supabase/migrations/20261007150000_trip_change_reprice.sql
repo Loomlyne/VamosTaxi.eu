@@ -40,6 +40,15 @@
 --   (7)  booking_cancel_resend_facts    D20 definer read: a paid cancelled trip's cancellation
 --                                       e-mail facts and the refund line it recorded (the
 --                                       customer's Resend on a cancelled trip).
+--   (8)  booking_edit_request_upsert    create or replace, P1's body + review 1: a customer request is a
+--                                       time change at the booking's own total (no other key, no other
+--                                       price record).
+--   (9)  booking_flight_write           create or replace, body of 20260930210000 + review 6: refused
+--                                       on an erased booking.
+--   Review 2/3 (2026-10-02): every non-class change carries the driver choice (keep), and a Keep
+--   covers only the clashes seen at confirm (payload overlap_seen); any other clash at payment takes
+--   the driver off. Review 4: explicit revokes from anon/authenticated. Review 5: the file can run
+--   twice (if not exists / or replace / drop trigger if exists).
 --
 --   (0)  D11 + D17 (owner, 2026-10-01: "Keep him on both"; "Change the rule": a trip he keeps on
 --        purpose is left out of the overlap check, an ordinary Assign still refuses overlaps):
@@ -70,7 +79,7 @@
 -- (0) D17: a trip kept on purpose is left out of the overlap rule (only that trip, only that window)
 -- ---------------------------------------------------------------------------
 alter table public.booking_legs
-  add column overlap_kept_range pg_catalog.tstzrange;
+  add column if not exists overlap_kept_range pg_catalog.tstzrange;
 
 comment on column public.booking_legs.overlap_kept_range is
   '26.2 P6 (D11, D17): the time window the owner kept this trip''s driver on although it overlaps another of his trips (the Keep choice of a change). The leg is left out of booking_legs_chauffeur_no_overlap only while this equals scheduled_range; any later move of the window counts again, and a change of driver clears it (trigger booking_legs_kept_clear). Null = not kept. Written only by booking_edit_apply_payload on a confirmed Keep.';
@@ -88,7 +97,7 @@ alter table public.booking_legs
 comment on constraint booking_legs_chauffeur_no_overlap on public.booking_legs is
   'OPS-03 + 26.2 P6 (D17): one driver is never on two overlapping trips, except a trip the owner kept on purpose (overlap_kept_range = scheduled_range). A leg that is not kept must not overlap a kept one either: trigger booking_legs_kept_guard.';
 
-create function app.tg_leg_kept_clear()
+create or replace function app.tg_leg_kept_clear()
 returns trigger
 language plpgsql
 security definer
@@ -105,11 +114,12 @@ $$;
 
 revoke all on function app.tg_leg_kept_clear() from public;
 
+drop trigger if exists booking_legs_kept_clear on public.booking_legs;
 create trigger booking_legs_kept_clear
   before update of assigned_chauffeur_id on public.booking_legs
   for each row execute function app.tg_leg_kept_clear();
 
-create function app.tg_leg_kept_guard()
+create or replace function app.tg_leg_kept_guard()
 returns trigger
 language plpgsql
 security definer
@@ -152,6 +162,7 @@ $$;
 
 revoke all on function app.tg_leg_kept_guard() from public;
 
+drop trigger if exists booking_legs_kept_guard on public.booking_legs;
 create trigger booking_legs_kept_guard
   after insert or update of assigned_chauffeur_id, scheduled_at, estimated_duration_minutes,
                             turnaround_buffer_minutes, status, overlap_kept_range
@@ -283,11 +294,11 @@ begin
     elsif v_payload ->> 'driver' = 'unassign' then
       -- P6 D7: the owner chose "take him off this trip".
       v_off_reason := 'trip_change';
-    elsif v_payload ->> 'driver' = 'keep' and not v_keep_overlap and v_window_moves then
+    elsif v_payload ->> 'driver' = 'keep' and v_window_moves then
       -- P6 D7: kept. The change was checked for a clash when it was confirmed; a trip given to him
       -- since (before the customer paid the difference) can overlap the new time now. The payment
-      -- is recorded either way: he comes off this trip and is told. (A clash the owner saw and
-      -- kept on purpose is D17: the trip is stamped below instead.)
+      -- is recorded either way: he comes off this trip and is told. A clash the owner saw and kept
+      -- on purpose (D17, payload overlap_seen) is left out of this check; the trip is stamped below.
       v_range := pg_catalog.tstzrange(
         v_new_at,
         v_new_at + (greatest(coalesce(v_new_minutes, 0), 30)
@@ -302,6 +313,9 @@ begin
            and ((v_prev_chauffeur is not null and o.assigned_chauffeur_id = v_prev_chauffeur)
                 or (v_prev_vehicle is not null and o.assigned_vehicle_id = v_prev_vehicle))
            and o.scheduled_range && v_range
+           and not (v_keep_overlap
+                    and coalesce(v_payload -> 'overlap_seen', '[]'::pg_catalog.jsonb)
+                        operator(pg_catalog.?) (o.id::pg_catalog.text))
       ) then
         v_off_reason := 'overlap';
       end if;
@@ -432,7 +446,7 @@ comment on function public.booking_edit_apply_payload(
 -- ---------------------------------------------------------------------------
 -- (2) app.booking_change_mint_trip_snapshot
 -- ---------------------------------------------------------------------------
-create function app.booking_change_mint_trip_snapshot(
+create or replace function app.booking_change_mint_trip_snapshot(
   p_booking_id pg_catalog.uuid,
   p_vehicle_class_id pg_catalog.uuid,
   p_rate_version_id pg_catalog.int8,
@@ -543,7 +557,7 @@ comment on function app.booking_change_mint_trip_snapshot(
 -- ---------------------------------------------------------------------------
 -- (3) booking_staff_trip_change
 -- ---------------------------------------------------------------------------
-create function public.booking_staff_trip_change(
+create or replace function public.booking_staff_trip_change(
   p_booking_id pg_catalog.uuid,
   p_actor_id pg_catalog.uuid,
   p_vehicle_class_slug pg_catalog.text,
@@ -599,6 +613,7 @@ declare
   v_clash pg_catalog.bool := false;
   v_clash_car pg_catalog.bool := false;
   v_keep_overlap pg_catalog.bool := false;
+  v_seen pg_catalog.jsonb := '[]'::pg_catalog.jsonb;
   v_priced pg_catalog.bool;
   v_rv_status pg_catalog.text;
   v_paid pg_catalog.int4;
@@ -831,15 +846,29 @@ begin
     end if;
     -- D11 + D17: Keep on a clash keeps him on both trips; this one leaves the overlap rule.
     v_keep_overlap := v_clash and p_driver = 'keep';
+    if v_keep_overlap then
+      v_seen := coalesce((
+        select pg_catalog.jsonb_agg(o.id::pg_catalog.text order by o.id)
+          from public.booking_legs as o
+         where o.id <> v_leg.id
+           and o.status not in ('cancelled'::public.booking_status, 'no_show'::public.booking_status)
+           and o.assigned_chauffeur_id = v_leg.assigned_chauffeur_id
+           and o.scheduled_range && v_range
+      ), '[]'::pg_catalog.jsonb);
+    end if;
   end if;
 
   v_payload := v_trip;
   if v_class_change then
     v_payload := v_payload || pg_catalog.jsonb_build_object('vehicle_class_slug', v_class.slug);
-  elsif v_has_driver then
+  else
+    -- Review 2 (2026-10-02): every other change carries the driver choice, also with no driver now. A driver
+    -- given the trip before the customer pays the difference then comes off on a clash (reason overlap)
+    -- instead of the payment failing with 23P01 and the webhook retrying.
     v_payload := v_payload || pg_catalog.jsonb_build_object('driver', coalesce(p_driver, 'keep'));
     if v_keep_overlap then
-      v_payload := v_payload || pg_catalog.jsonb_build_object('overlap_kept', true);
+      -- Review 3: the Keep covers the trips the owner saw at this moment, and only those.
+      v_payload := v_payload || pg_catalog.jsonb_build_object('overlap_kept', true, 'overlap_seen', v_seen);
     end if;
   end if;
 
@@ -903,6 +932,16 @@ revoke all on function public.booking_staff_trip_change(
   pg_catalog.jsonb, pg_catalog.text, pg_catalog.numeric, pg_catalog.int4, pg_catalog.jsonb, pg_catalog.int4,
   pg_catalog.text
 ) from public;
+revoke all on function public.booking_staff_trip_change(
+  pg_catalog.uuid, pg_catalog.uuid, pg_catalog.text, pg_catalog.jsonb, pg_catalog.int8, pg_catalog.int4,
+  pg_catalog.jsonb, pg_catalog.text, pg_catalog.numeric, pg_catalog.int4, pg_catalog.jsonb, pg_catalog.int4,
+  pg_catalog.text
+) from anon;
+revoke all on function public.booking_staff_trip_change(
+  pg_catalog.uuid, pg_catalog.uuid, pg_catalog.text, pg_catalog.jsonb, pg_catalog.int8, pg_catalog.int4,
+  pg_catalog.jsonb, pg_catalog.text, pg_catalog.numeric, pg_catalog.int4, pg_catalog.jsonb, pg_catalog.int4,
+  pg_catalog.text
+) from authenticated;
 
 grant execute on function public.booking_staff_trip_change(
   pg_catalog.uuid, pg_catalog.uuid, pg_catalog.text, pg_catalog.jsonb, pg_catalog.int8, pg_catalog.int4,
@@ -920,7 +959,7 @@ comment on function public.booking_staff_trip_change(
 -- ---------------------------------------------------------------------------
 -- (4) booking_change_request_facts: what a change changed, and who drives the trip now.
 -- ---------------------------------------------------------------------------
-create function public.booking_change_request_facts(p_request_id pg_catalog.uuid)
+create or replace function public.booking_change_request_facts(p_request_id pg_catalog.uuid)
 returns table (
   booking_id pg_catalog.uuid,
   places_changed pg_catalog.bool,
@@ -961,7 +1000,7 @@ comment on function public.booking_change_request_facts(pg_catalog.uuid) is
 -- ---------------------------------------------------------------------------
 -- (5) booking_staff_contact_update: saved at once, recorded (D6, D8).
 -- ---------------------------------------------------------------------------
-create function public.booking_staff_contact_update(
+create or replace function public.booking_staff_contact_update(
   p_booking_id pg_catalog.uuid,
   p_actor_id pg_catalog.uuid,
   p_contact_name pg_catalog.text,
@@ -1085,6 +1124,12 @@ $$;
 revoke all on function public.booking_staff_contact_update(
   pg_catalog.uuid, pg_catalog.uuid, pg_catalog.text, pg_catalog.text, pg_catalog.text, pg_catalog.text, pg_catalog.text
 ) from public;
+revoke all on function public.booking_staff_contact_update(
+  pg_catalog.uuid, pg_catalog.uuid, pg_catalog.text, pg_catalog.text, pg_catalog.text, pg_catalog.text, pg_catalog.text
+) from anon;
+revoke all on function public.booking_staff_contact_update(
+  pg_catalog.uuid, pg_catalog.uuid, pg_catalog.text, pg_catalog.text, pg_catalog.text, pg_catalog.text, pg_catalog.text
+) from authenticated;
 
 grant execute on function public.booking_staff_contact_update(
   pg_catalog.uuid, pg_catalog.uuid, pg_catalog.text, pg_catalog.text, pg_catalog.text, pg_catalog.text, pg_catalog.text
@@ -1188,7 +1233,7 @@ revoke all on function public.manage_money_for(pg_catalog.uuid) from authenticat
 --     Worker turns them into the line exactly as finishPaidCancel does). Only a cancelled trip that
 --     was paid: a trip cancelled before it was paid never had this e-mail. Read only.
 -- ---------------------------------------------------------------------------
-create function public.booking_cancel_resend_facts(p_booking_id pg_catalog.uuid)
+create or replace function public.booking_cancel_resend_facts(p_booking_id pg_catalog.uuid)
 returns table (
   reference pg_catalog.text, locale pg_catalog.text, contact_email pg_catalog.text,
   pickup_text pg_catalog.text, dropoff_text pg_catalog.text, scheduled_local pg_catalog.text,
@@ -1238,3 +1283,159 @@ grant execute on function public.booking_cancel_resend_facts(pg_catalog.uuid) to
 
 comment on function public.booking_cancel_resend_facts(pg_catalog.uuid) is
   '26.2 P6 D20: the cancellation e-mail facts of a paid cancelled trip and the refund line its cancellation recorded (refund_mode, refund_rappen of the last status change to cancelled), for the customer''s Resend. No row for a trip that is not cancelled or was never paid. Read only. EXECUTE vamos_system only.';
+
+-- ---------------------------------------------------------------------------
+-- (8) Review 1 (2026-10-02): booking_edit_request_upsert — body of 20261007140000 (P1). A customer's
+--     request is a time change at the booking's own price: the payload holds scheduled_local (and
+--     scheduled_at) only (D9), and its price record has the total of the booking's bound record. Before,
+--     a customer could pass a cheap public quote lock and other keys; the owner's one-click Accept then set
+--     "Refund due". Staff requests are unchanged.
+-- ---------------------------------------------------------------------------
+create or replace function public.booking_edit_request_upsert(
+  p_booking_id pg_catalog.uuid,
+  p_actor pg_catalog.text,
+  p_actor_id pg_catalog.uuid,
+  p_payload pg_catalog.jsonb,
+  p_quote_snapshot_id pg_catalog.int8
+)
+returns table (
+  request_id pg_catalog.uuid,
+  superseded_id pg_catalog.uuid,
+  old_extra_session_id pg_catalog.text,
+  old_extra_snapshot_id pg_catalog.int8
+)
+language plpgsql
+security definer
+set search_path = ''
+as $$
+#variable_conflict use_column
+declare
+  v_booking public.bookings%rowtype;
+  v_prev public.booking_edit_requests%rowtype;
+  v_id pg_catalog.uuid;
+  v_payload pg_catalog.jsonb;
+begin
+  if p_actor is distinct from 'customer' and p_actor is distinct from 'staff' then
+    raise exception 'invalid_actor' using errcode = 'check_violation';
+  end if;
+
+  v_payload := app.edit_payload_object(p_payload);
+
+  if p_actor = 'customer' and v_payload ? 'vehicle_class_slug' then
+    raise exception 'class-change-staff-only' using errcode = 'P0001';
+  end if;
+
+  -- Review 1: a customer asks for a new time, nothing else (D9).
+  if p_actor = 'customer'
+     and (not (v_payload ? 'scheduled_local')
+          or exists (
+            select 1
+              from pg_catalog.jsonb_object_keys(v_payload) as k(key)
+             where k.key not in ('scheduled_local', 'scheduled_at')
+          )) then
+    raise exception 'customer-time-only' using errcode = 'P0001';
+  end if;
+
+  select b.*
+    into v_booking
+    from public.bookings as b
+   where b.id = p_booking_id
+     and b.erased_at is null
+     for update;
+
+  if not found then
+    raise exception 'not-found' using errcode = 'P0002';
+  end if;
+
+  if not exists (
+    select 1
+      from public.booking_payments as p
+     where p.booking_id = v_booking.id
+       and p.captured_at is not null
+  ) then
+    raise exception 'unpaid' using errcode = 'P0001';
+  end if;
+
+  -- Review 1: a customer's request is priced at the booking's own total, never at another record's.
+  if p_actor = 'customer' and not exists (
+    select 1
+      from public.price_snapshots as s
+      join public.price_snapshots as bound on bound.id = v_booking.price_snapshot_id
+     where s.id = p_quote_snapshot_id
+       and s.total_rappen = bound.total_rappen
+  ) then
+    raise exception 'snapshot-mismatch' using errcode = 'P0001';
+  end if;
+
+  select r.*
+    into v_prev
+    from public.booking_edit_requests as r
+   where r.booking_id = v_booking.id
+     and r.status = 'requested'
+   for update;
+
+  if found then
+    update public.booking_edit_requests
+       set status = 'superseded'
+     where id = v_prev.id;
+  end if;
+
+  insert into public.booking_edit_requests (
+    booking_id, actor, actor_id, payload, quote_snapshot_id, status
+  ) values (
+    v_booking.id, p_actor, p_actor_id, v_payload, p_quote_snapshot_id, 'requested'
+  )
+  returning id into v_id;
+
+  return query
+    select v_id,
+           v_prev.id,
+           v_prev.extra_session_id,
+           v_prev.extra_snapshot_id;
+end;
+$$;
+
+comment on function public.booking_edit_request_upsert(
+  pg_catalog.uuid, pg_catalog.text, pg_catalog.uuid, pg_catalog.jsonb, pg_catalog.int8
+) is
+  '08-07 D-73 + 26.2 P1 + P6 review 1: insert requested paid-edit (a JSON string payload is stored as its object); supersede previous requested row. Unpaid refused. A customer request: vehicle_class_slug -> class-change-staff-only; any key but scheduled_local / scheduled_at, or no scheduled_local -> customer-time-only; a price record whose total is not the booking''s bound total -> snapshot-mismatch. EXECUTE vamos_system only.';
+
+-- ---------------------------------------------------------------------------
+-- (9) Review 6 (2026-10-02): booking_flight_write — body of 20260930210000. No flight number is
+--     written on an erased booking (the customer lookups no longer read erased_at, which neither
+--     customer role may read).
+-- ---------------------------------------------------------------------------
+create or replace function public.booking_flight_write(
+  p_booking_id pg_catalog.uuid,
+  p_flight_no pg_catalog.text,
+  p_actor_kind pg_catalog.text,
+  p_actor_id pg_catalog.uuid
+)
+returns table (
+  booking_id pg_catalog.uuid, reference pg_catalog.text, contact_email pg_catalog.text,
+  locale pg_catalog.text, pickup_text pg_catalog.text, dropoff_text pg_catalog.text,
+  scheduled_local pg_catalog.text, booking_leg_id pg_catalog.text, chauffeur_email pg_catalog.text
+)
+language plpgsql volatile security definer set search_path = ''
+as $$
+#variable_conflict use_column
+declare
+  v_leg pg_catalog.uuid;
+begin
+  if not exists (select 1 from public.bookings as b where b.id = p_booking_id and b.erased_at is null) then
+    raise exception 'not-found' using errcode = 'P0002';
+  end if;
+  update public.booking_legs as bl
+     set flight_no = p_flight_no
+   where bl.booking_id = p_booking_id
+     and bl.leg_seq = (select pg_catalog.min(x.leg_seq) from public.booking_legs as x where x.booking_id = p_booking_id)
+  returning bl.id into v_leg;
+  if v_leg is null then
+    raise exception 'not-found' using errcode = 'P0002';
+  end if;
+  insert into public.booking_events (booking_id, booking_leg_id, kind, actor_kind, actor_id, actor_label, payload)
+  values (p_booking_id, v_leg, 'booking.modified', p_actor_kind, p_actor_id, p_actor_kind,
+          pg_catalog.jsonb_build_object('flight_no', p_flight_no));
+  return query select * from public.booking_trip_for_mail(p_booking_id);
+end;
+$$;

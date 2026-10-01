@@ -28,7 +28,7 @@
 --   M  booking_change_request_facts: what a paid change changed (for the driver's e-mail).
 -- Rolled back. Synthetic integer rappen only, never a product CHF.
 begin;
-select plan(131);
+select plan(153);
 
 insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity)
 values ('tcr-eco', 4, 4), ('tcr-biz', 7, 7);
@@ -718,6 +718,146 @@ select is(
 select is(
   (select count(*)::int from public.booking_cancel_resend_facts((select id from fx where k = 'same'))),
   0, 'D20: a trip that is not cancelled gets nothing from this read');
+
+-- ---------------------------------------------------------------------------
+-- N. Review 2: a driver given the trip after confirm and before payment, whose other trip clashes
+--    with the new time. The payment is recorded and he comes off (no 23P01 in the settle).
+-- ---------------------------------------------------------------------------
+select pg_temp.tcr_mk('nodrv', 'tcr-eco', interval '700 hours', 10);
+create temporary table nodrv as
+  select * from pg_temp.tcr_change('nodrv', null,
+    jsonb_build_object('dropoff_text', 'Chur', 'dropoff_place_id', 'mb-chur', 'dropoff_lat', 46.8508,
+                       'dropoff_lng', 9.5320, 'estimated_duration_minutes', 120),
+    14, 10, null, 'tcr-rv', 118.2, 120);
+select is((select outcome from nodrv), 'extra_required', 'review 2: a trip with no driver waits for the difference');
+select is((select payload ->> 'driver' from public.booking_edit_requests where id = (select request_id from nodrv)),
+  'keep', 'review 2: the request carries driver keep although no driver was on the trip at confirm');
+select pg_temp.tcr_mk('nodrv_n', 'tcr-eco', interval '700 hours', 10);
+update public.booking_legs as l
+   set scheduled_at = x.at,
+       scheduled_local = to_char(x.at at time zone 'Europe/Zurich', 'YYYY-MM-DD"T"HH24:MI')
+  -- 45 minutes after its current end: past the 30-minute turnaround an Assign adds, inside the new 120-minute trip.
+  from (select upper(scheduled_range) + interval '45 minutes' as at from public.booking_legs
+         where booking_id = (select id from fx where k = 'nodrv')) as x
+ where l.booking_id = (select id from fx where k = 'nodrv_n');
+select lives_ok($$select pg_temp.tcr_drive('nodrv_n', 'e')$$, 'review 2: driver e has the next trip');
+select lives_ok($$select pg_temp.tcr_drive('nodrv', 'e')$$, 'review 2: driver e is given the trip before the customer pays (no overlap yet)');
+select lives_ok(
+  format($f$select public.booking_edit_request_set_extra_session(%L::uuid, 'cs_tcr_nodrv')$f$, (select request_id from nodrv)),
+  'review 2: the Stripe page id is stored');
+create temporary table nodrv_paid as
+  select * from public.checkout_extra_payment_settle('evt_tcr_nodrv', 'cs_tcr_nodrv', 'pi_tcr_nodrv_x', 'succeeded',
+                                                     'CHF', null, null, null, null);
+select is(
+  (select applied::text || ':' || (unassigned_chauffeur_id = pg_temp.tcr_driver_id('e'))::text from nodrv_paid),
+  'true:true', 'review 2: the payment applies the change and driver e comes off');
+select is(
+  (select count(*)::int from public.booking_payments p where p.booking_id = (select id from fx where k = 'nodrv')
+      and p.captured_at is not null),
+  2, 'review 2: both payments are recorded');
+
+-- ---------------------------------------------------------------------------
+-- O. Review 3: a Keep covers only the clash the owner saw. A trip given to the driver after confirm
+--    that also clashes with the new time takes him off this trip when the payment lands.
+-- ---------------------------------------------------------------------------
+select pg_temp.tcr_mk('ks', 'tcr-eco', interval '800 hours', 10);
+select pg_temp.tcr_mk('kk', 'tcr-eco', interval '796 hours', 10);
+select pg_temp.tcr_drive('ks', 'd');
+select pg_temp.tcr_drive('kk', 'd');
+create temporary table kk as
+  select * from pg_temp.tcr_change('kk', null,
+    jsonb_build_object('scheduled_local', pg_temp.tcr_local(interval '800 hours 10 minutes'),
+                       'dropoff_text', 'Chur', 'dropoff_place_id', 'mb-chur', 'dropoff_lat', 46.8508,
+                       'dropoff_lng', 9.5320, 'estimated_duration_minutes', 120),
+    14, 10, 'keep', 'tcr-rv', 118.2, 120);
+select is((select outcome from kk), 'extra_required', 'review 3: Keep on a priced change waits for the difference');
+select pg_temp.tcr_mk('kn', 'tcr-eco', interval '801 hours 30 minutes', 10);
+select lives_ok($$select pg_temp.tcr_drive('kn', 'd')$$, 'review 3: driver d is given another trip inside the new time (no overlap yet)');
+select lives_ok(
+  format($f$select public.booking_edit_request_set_extra_session(%L::uuid, 'cs_tcr_kk')$f$, (select request_id from kk)),
+  'review 3: the Stripe page id is stored');
+create temporary table kk_paid as
+  select * from public.checkout_extra_payment_settle('evt_tcr_kk', 'cs_tcr_kk', 'pi_tcr_kk_x', 'succeeded',
+                                                     'CHF', null, null, null, null);
+select is(
+  (select applied::text || ':' || coalesce((unassigned_chauffeur_id = pg_temp.tcr_driver_id('d'))::text, 'none') from kk_paid),
+  'true:true', 'review 3: the payment applies the change and driver d comes off (a clash he was not kept for)');
+select is(
+  (select coalesce(assigned_chauffeur_id::text, 'none') || ':' || coalesce(overlap_kept_range::text, 'null')
+     from public.booking_legs where booking_id = (select id from fx where k = 'kk')),
+  'none:null', 'review 3: the trip is unassigned and not stamped kept');
+select is(
+  (select string_agg((assigned_chauffeur_id = pg_temp.tcr_driver_id('d'))::text, ',' order by booking_id)
+     from public.booking_legs where booking_id in (select id from fx where k in ('ks', 'kn'))),
+  'true,true', 'review 3: his other two trips keep him');
+
+-- ---------------------------------------------------------------------------
+-- P. Review 3, the same Keep with only the clash the owner saw: still kept when the payment lands.
+-- ---------------------------------------------------------------------------
+select pg_temp.tcr_mk('ps', 'tcr-eco', interval '900 hours', 10);
+select pg_temp.tcr_mk('pk', 'tcr-eco', interval '896 hours', 10);
+select pg_temp.tcr_drive('ps', 'c');
+select pg_temp.tcr_drive('pk', 'c');
+create temporary table pk as
+  select * from pg_temp.tcr_change('pk', null,
+    jsonb_build_object('scheduled_local', pg_temp.tcr_local(interval '900 hours 10 minutes'),
+                       'dropoff_text', 'Chur', 'dropoff_place_id', 'mb-chur', 'dropoff_lat', 46.8508,
+                       'dropoff_lng', 9.5320, 'estimated_duration_minutes', 120),
+    14, 10, 'keep', 'tcr-rv', 118.2, 120);
+select lives_ok(
+  format($f$select public.booking_edit_request_set_extra_session(%L::uuid, 'cs_tcr_pk')$f$, (select request_id from pk)),
+  'review 3: the Stripe page id is stored (seen clash only)');
+create temporary table pk_paid as
+  select * from public.checkout_extra_payment_settle('evt_tcr_pk', 'cs_tcr_pk', 'pi_tcr_pk_x', 'succeeded',
+                                                     'CHF', null, null, null, null);
+select is(
+  (select applied::text || ':' || coalesce(unassigned_chauffeur_id::text, 'none') from pk_paid),
+  'true:none', 'review 3: with only the clash the owner saw, the payment applies and driver c stays');
+select is(
+  (select (assigned_chauffeur_id = pg_temp.tcr_driver_id('c'))::text || ':' || (overlap_kept_range = scheduled_range)::text
+     from public.booking_legs where booking_id = (select id from fx where k = 'pk')),
+  'true:true', 'review 3: kept for exactly its new window');
+
+-- ---------------------------------------------------------------------------
+-- Q. Review 1: a customer's request is a time change at the booking's own price. No other key, no
+--    other price record (a cheap quote lock made a cheap record and a refund on Accept).
+-- ---------------------------------------------------------------------------
+select pg_temp.tcr_mk('custreq', 'tcr-eco', interval '1000 hours', 10);
+select lives_ok(
+  format($f$select * from public.booking_edit_request_upsert(%L::uuid, 'customer', null,
+           jsonb_build_object('scheduled_local', '2030-02-01T10:00', 'scheduled_at', '2030-02-01T09:00:00.000Z'), %s)$f$,
+         (select id from fx where k = 'custreq'),
+         (select price_snapshot_id from public.bookings where id = (select id from fx where k = 'custreq'))),
+  'review 1: a customer time change at its own price is stored');
+select throws_ok(
+  format($f$select * from public.booking_edit_request_upsert(%L::uuid, 'customer', null,
+           jsonb_build_object('scheduled_local', '2030-02-01T10:00', 'pickup_text', 'Zug'), %s)$f$,
+         (select id from fx where k = 'custreq'),
+         (select price_snapshot_id from public.bookings where id = (select id from fx where k = 'custreq'))),
+  'P0001', 'customer-time-only', 'review 1: a customer request with a place is refused');
+select throws_ok(
+  format($f$select * from public.booking_edit_request_upsert(%L::uuid, 'customer', null,
+           jsonb_build_object('scheduled_local', '2030-02-01T10:00', 'pax', 1), %s)$f$,
+         (select id from fx where k = 'custreq'),
+         (select price_snapshot_id from public.bookings where id = (select id from fx where k = 'custreq'))),
+  'P0001', 'customer-time-only', 'review 1: a customer request with a party is refused');
+select throws_ok(
+  format($f$select * from public.booking_edit_request_upsert(%L::uuid, 'customer', null,
+           jsonb_build_object('scheduled_local', '2030-02-01T10:00'),
+           public.booking_edit_clone_quote_snapshot(%L::uuid, 1, null))$f$,
+         (select id from fx where k = 'custreq'), (select id from fx where k = 'custreq')),
+  'P0001', 'snapshot-mismatch', 'review 1: a customer request on a price record of another total is refused');
+
+-- ---------------------------------------------------------------------------
+-- R. Review 6: no flight number is written on an erased booking.
+-- ---------------------------------------------------------------------------
+select pg_temp.tcr_mk('erased', 'tcr-eco', interval '1100 hours', 10);
+update public.bookings set erased_at = now() where id = (select id from fx where k = 'erased');
+select throws_ok(
+  format($f$select * from public.booking_flight_write(%L::uuid, 'LX 9', 'customer', null)$f$, (select id from fx where k = 'erased')),
+  'P0002', 'not-found', 'review 6: a flight number on an erased booking is refused');
+select is((select coalesce(flight_no, 'none') from public.booking_legs where booking_id = (select id from fx where k = 'erased')),
+  'none', 'review 6: nothing written');
 
 select * from finish();
 rollback;

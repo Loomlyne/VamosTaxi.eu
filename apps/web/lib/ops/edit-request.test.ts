@@ -122,9 +122,10 @@ describe("08-07 file proofs", () => {
 });
 
 describe("08-10 customer paid-edit request", () => {
-  it("POSTs requested via JWT or manage token, never asStaff, never mutates booking columns", () => {
+  it("requested via JWT or manage token, never asStaff, never mutates booking columns; the generic POST is retired (P6 review 1)", () => {
     const src = read("apps/web/lib/ops/edit-request.ts");
-    expect(src).toMatch(/requestCustomerPaidEdit/);
+    expect(src).toMatch(/requestCustomerTime/);
+    expect(src).not.toMatch(/requestCustomerPaidEdit/);
     expect(src).toMatch(/'customer'/);
     expect(src).toMatch(/asCustomer/);
     expect(src).toMatch(/asGuest/);
@@ -133,9 +134,8 @@ describe("08-10 customer paid-edit request", () => {
     expect(src).not.toMatch(/asStaff\(/);
     expect(src).not.toMatch(/:6543/);
     const route = read("apps/web/app/api/account/bookings/route.ts");
-    expect(route).toMatch(/export async function POST/);
-    expect(route).toMatch(/requestCustomerPaidEdit/);
-    expect(route).toMatch(/hashManageToken/);
+    expect(route).not.toMatch(/export async function POST/);
+    expect(route).not.toMatch(/requestCustomerPaidEdit/);
     expect(route).toMatch(/customerClaims/);
     expect(route).not.toMatch(/asStaff/);
     expect(route).not.toMatch(/become-a-partner/);
@@ -158,7 +158,7 @@ describe("09-10 time-change request/confirm (D-23–D-26)", () => {
   it("T-09-90 only ops accept RPC mutates scheduled_at; customer request does not", () => {
     const lib = read("apps/web/lib/ops/edit-request.ts");
     const request = fnBody(lib, "requestCustomerTimeChange");
-    expect(request).toMatch(/requestCustomerPaidEdit/);
+    expect(request).toMatch(/requestCustomerTime\(/);
     expect(request).toMatch(/scheduled_local/);
     expect(request).toMatch(/scheduled_at/);
     expect(request).not.toMatch(/update public\.booking_legs/i);
@@ -236,7 +236,7 @@ describe("09-10 time-change request/confirm (D-23–D-26)", () => {
   it("same-price time-only payload still requested; second request upserts", () => {
     const lib = read("apps/web/lib/ops/edit-request.ts");
     const request = fnBody(lib, "requestCustomerTimeChange");
-    expect(request).toMatch(/payload:\s*\{[\s\S]*scheduled_local/);
+    expect(request).toMatch(/requestCustomerTime\(env, auth, bookingKey, \{[\s\S]*scheduled_local/);
     expect(request).toMatch(/scheduled_at/);
     expect(lib).toMatch(/booking_edit_request_upsert/);
     expect(request).not.toMatch(/booking_edit_request_accept/);

@@ -45,15 +45,10 @@ describe("F14 edit-request refuses an empty lock secret", () => {
     const r = await acceptPaidEdit(env, { sub: "s", role: "authenticated" }, "VT-1", { payload, lock: "tok" });
     expect(r).toEqual({ ok: false, code: "temporarily_unavailable" });
   });
-  it("requestCustomerPaidEdit answers temporarily_unavailable before loading the booking", async () => {
-    const { requestCustomerPaidEdit } = await import("../ops/edit-request");
-    const r = await requestCustomerPaidEdit(
-      env,
-      { kind: "guest", manageTokenHashHex: "00" },
-      "VT-1",
-      { payload, lock: "tok" },
-    );
-    expect(r).toEqual({ ok: false, code: "temporarily_unavailable" });
+  it("the customer door reads no lock at all (P6 review 1): there is no customer request that takes one", async () => {
+    const lib = await import("../ops/edit-request");
+    expect((lib as Record<string, unknown>).requestCustomerPaidEdit).toBeUndefined();
+    expect(lib.requestCustomerTimeChange.length).toBe(4);
   });
   it("the staff JSON error status is 503", async () => {
     const { failStatus } = await import("../ops/edit-request-map");
