@@ -59,7 +59,7 @@ test.describe("Home services @component", () => {
   test.describe.configure({ mode: "serial" });
 
   test.beforeAll(async ({}, testInfo) => {
-    testInfo.setTimeout(90_000);
+    testInfo.setTimeout(240_000);
     const port = PORTS[testInfo.project.name] ?? testPort(4249);
     baseURL = `http://localhost:${port}`;
     devServer = spawn(resolveNextBin(), ["dev", "-p", String(port)], {
@@ -68,7 +68,10 @@ test.describe("Home services @component", () => {
       detached: true,
       env: nextDevEnv({ TEST_DIST_DIR: `.next-home-services-${port}` }, { gallery: true }),
     });
-    await waitForNextServer(baseURL);
+    await waitForNextServer(baseURL, 180_000);
+    // `next dev` compiles a route on its first request; on a loaded machine that is longer than a 30 s test.
+    // Warm the gallery route here, inside the 240 s hook, so the first screenshot test measures the page.
+    await waitForNextServer(baseURL + pathFor("en"), 180_000);
   });
 
   test.afterAll(() => {
