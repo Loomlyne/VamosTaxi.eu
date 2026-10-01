@@ -21,6 +21,11 @@ import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 
 const RUN_PROJECT = "component-1440";
+// 26.0 (main-green-3): "/" is the DC mock home (middleware DC_PAGES), which never mounts the React
+// providers that install the __vamos* test hooks (lib/locale-shim.ts), so every test waited out its
+// timeout. The React money shim still runs on the Next pages customers see (/checkout, /confirmation);
+// the Next 404 page mounts the same providers and makes no background requests.
+const NEXT_PAGE = "/currency-spec-not-a-page";
 
 let devServer: ChildProcess | null = null;
 let baseURL = "";
@@ -78,7 +83,7 @@ test.describe("Currency swaps the mark, never the number @currency", () => {
   test("the server always renders CHF; switching currency changes only the mark, and the digit sequence is byte-identical", async ({
     page,
   }) => {
-    await page.goto(baseURL + "/");
+    await page.goto(baseURL + NEXT_PAGE);
 
     // D-16: the server always renders CHF — proven before the currency-switch test
     // hook is even called, straight from the client's first read of the store.
@@ -103,7 +108,7 @@ test.describe("Currency swaps the mark, never the number @currency", () => {
   test("switching currency touches no request and triggers no navigation — it is pure client state", async ({
     page,
   }) => {
-    await page.goto(baseURL + "/");
+    await page.goto(baseURL + NEXT_PAGE);
     await waitForHooks(page);
 
     const urlBefore = page.url();
@@ -125,7 +130,7 @@ test.describe("Currency swaps the mark, never the number @currency", () => {
   test("every currency renders the same one CHF-priced figure — ADR-004's 'display-only, CHF is the one priced currency'", async ({
     page,
   }) => {
-    await page.goto(baseURL + "/");
+    await page.goto(baseURL + NEXT_PAGE);
     await waitForHooks(page);
 
     // The display preference genuinely switches (proven by the mark)...
