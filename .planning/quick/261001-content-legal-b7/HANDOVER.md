@@ -35,8 +35,9 @@ Built in a cloud thread: no GSD, no `CLAUDE.local.md`. Nothing deployed, nothing
 ## Not verified
 
 - The beacon actually counting on vamostaxi.site: it needs the live host, your Cloudflare switch and a real Analytics yes.
-- The Worker build (`wrangler dev`) and Playwright e2e/visual: not run. The footer picture baselines will show one extra link (Imprint): rebaseline.
-- No pgTAP run: no migration and no database code changed.
+- The Worker build (`wrangler dev`) and the Playwright e2e: not run here. The updated imprint component specs pass locally at 1440 (6 tests). Picture baselines to rebaseline on the Mac: every footer picture (one extra link: Imprint), `imprint-fr`/`imprint-ar` and `legal-notice-fr`/`legal-notice-ar` (no notice bar any more).
+- pgTAP: not run here; GitHub's schema job runs it (`seed_idempotent` re-pinned to the regenerated seed in `3b4b7ce1`).
+- Gitleaks flagged the public Web Analytics site tag; `.gitleaks.toml` allows that exact value only (`99476a80`).
 - Withdrawing Analytics consent stops the beacon from the next page on, not on the page where you withdraw.
 
 ## Migrations
