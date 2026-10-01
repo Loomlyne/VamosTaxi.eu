@@ -5,7 +5,7 @@ the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 Rewritten short on 2026-09-30 14:25; the long version is in git history (`8230227c`).
 
-**Last update:** 2026-10-01 15:44 (+04)
+**Last update:** 2026-10-01 16:08 (+04)
 
 ## Live now
 
@@ -215,7 +215,7 @@ Full texts in `.planning/decisions/`.
 | Settings say 15 minutes standard waiting, the pages say 30 | Owner changes the setting if both should agree |
 | The airport fee is saved inside the fare line, not as its own line | 26.2 list |
 | `data-i18n-skip` still sits in the frozen legal pages, `LegalPage`, `PendingSlot` and `manage-booking.dc.html`; the runtime ignores it (no customer effect). `app/[locale]/(ops)/api/staff/content/[key]/route.ts` exports non-route helpers | 26.2 list, not assigned |
-| GitHub e2e jobs: second fix on main 15:36 (`f8a2f635`); run 36856406309 not read yet. Left open on purpose: 11 spec files run in serial mode, so one failing test hides the rest as "did not run" (needs spec edits); one cold-start "dev server did not become ready within 90 s" seen locally; the known red set (screenshot drift, stale home specs, legal pages) | Control session reads the run; spec edits not assigned |
+| GitHub e2e jobs, run 36856406309 on `f8a2f635` read 16:08: the tsconfig fault is gone (0 errors). Two jobs cut at the 30-minute limit with no result (1440 px shard 1 of 4; 768 and 390 px); 1024 px took 27 min; shards 2 to 4 took 17 to 21 min. "Dev server did not become ready" 26 times across three jobs (cold start on GitHub runners). 18 failed and 8 flaky in the four finished jobs (about, legal pages, home specs, faq, contact, checkout-account, public-routes, confirmation, checkout-page, auth-forms) | Job 3 sent to the 26.0 session 16:08: branch `ci/e2e-linux-3`, one reusable e2e workflow plus a push trigger for `ci/**`, proven by a run on GitHub before the hand-over |
 | Playwright: 48 SiteHeader screenshot diffs (open and unconfirmed states, every language, 3 widths) fail with and without 26.0, cause not found; home specs red on main (`home-red-36.txt`); unclassified reds: checkout-hosted 390, currency, confirmation S3/S4, checkout-account 768 | `26.0-HANDOVER.md`; booking-polish for the home reds |
 | Class photos are 2.3 to 2.8 MB each | `feat/class-photo-small` |
 | VT-26-0739 and VT-26-0742 are not in the owner's account | Not a bug: booked with another e-mail address |
@@ -263,7 +263,8 @@ Full texts in `.planning/decisions/`.
 
 | What | When |
 |---|---|
-| Read run 36856406309 (six e2e jobs on `f8a2f635`): times per job and failing specs | When the run finishes |
+| Check the hand-over of `ci/e2e-linux-3` (must carry a GitHub run link where every e2e job ends inside its limit) | On hand-over, then the owner's Ship |
+| Control role: the owner wants the project coordinator to take over; prompt `.planning/prompts/11-coordinator-takes-control.md` on main (`66d3ba80`). Until the coordinator's take-over commit, this session stays control | When the owner says "handed over" |
 
 Done 2026-10-01, between 13:15 and 13:19 by the clock: (1) reminder cron error: the live database log of the last 22 hours holds no "permission denied" line at all (read-only log query; the hourly job ran in that window; the reminder function was replaced on 09-30 by `20261001120000`). Closed. (2) First "Booking funnel e2e on Linux" run on `6ec73c52`: cancelled at its 45-minute limit, no result (run 36829545716). The repository is public, so the minutes cost nothing; board-only commits do not start a run.
 
