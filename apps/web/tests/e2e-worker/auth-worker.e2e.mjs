@@ -208,13 +208,17 @@ if (link) { const f = await follow(link, jar3); s = await session(jar3);
   const mailH = await newMail(seenH, 8000);
   const markedH = sql(`select count(*) from public.account_finish_pending p join auth.users u on u.id=p.user_id where u.email='${UH}' and p.finished_at is null`);
   await nap(1500);
+  const seenH2 = before();
   const rH = await auth({ mode: "signup", method: "password", email: UH, password: PW1, firstName: "H", lastName: "Two", consent: true }, new Jar(), { ip: newIp() });
+  // The sign-up sends a fresh confirm link (the earlier link's token is replaced); that is the one a person uses.
+  const mailH2 = await newMail(seenH2, 8000);
+  const linkH = (mailH2 && linkOf(mailH2)) || (mailH && linkOf(mailH));
   const jarH = new Jar();
-  const fH = mailH && linkOf(mailH) ? await follow(linkOf(mailH), jarH) : { hops: [], final: "" };
+  const fH = linkH ? await follow(linkH, jarH) : { hops: [], final: "" };
   const sH = await sessionF(jarH);
   rec("3h link then a ticked /sign-up for the same address: signed in without a second tick",
     markedH === "1" && agreements(UH) === 1 && sH?.signedIn === true && sH?.finishRequired === false && !fH.final.includes("state=finish"),
-    `marked=${markedH}; signup ${rH.status}; records=${agreements(UH)}; target=${fH.final}; signedIn=${sH?.signedIn} finishRequired=${sH?.finishRequired}`);
+    `marked=${markedH}; signup ${rH.status}; second mail=${!!mailH2}; records=${agreements(UH)}; target=${fH.final}; signedIn=${sH?.signedIn} finishRequired=${sH?.finishRequired}`);
 
   // An account made by a password sign-up (A, check 1) is never asked.
   const jarK = new Jar();
