@@ -12,6 +12,8 @@ Started 2026-10-01. Nothing pushed, no PR, no deploy, no hosted SQL.
 | # | Commit | What |
 |---|---|---|
 | 1 | `5a389707` | Database: migration `20261007140000_class_change_reprice.sql`, pgTAP `class_change_reprice.test.sql` (69), Worker-client local test `packages/db/test/local/class-change-reprice.test.ts` (3), regenerated `database.types.ts` (only the new functions and columns differ) |
+| 2 | `e0029d3d` | Price step `apps/web/lib/ops/booking-change-price.ts` + 14 unit tests |
+| 3 | (next) | Writer fix (`sql.json`), accept takes a stored request only (no field from the browser, lead note 3), cheaper accept = Refund due with no Stripe call, PATCH no longer writes the class (A8), rules and body parser `booking-change-map.ts` (+10 tests), by-version price book read in `rate-book.ts`, `deliverBookingConfirmation` split out of `voucher.ts`, migration: shown class totals kept only for the same book |
 
 ## Design choices made inside the signed plan (say if one is wrong)
 
@@ -30,6 +32,11 @@ Started 2026-10-01. Nothing pushed, no PR, no deploy, no hosted SQL.
 |---|---|---|
 | pgTAP `class_change_reprice.test.sql` | `function public.booking_staff_change(...) does not exist` (plan 62, ran 0) | 69/69 pass |
 | local `class-change-reprice.test.ts` (Worker client options) | 1: `new row for relation "booking_edit_requests" violates check constraint "booking_edit_requests_payload_object"`; 2–3: `function public.booking_staff_change(...) does not exist` | 3/3 pass |
+| `booking-change-price.test.ts` (14) | Written with the module, not before it. Checked instead by mutation: difference against the booked total instead of paid-net → "the paid figure…" fails; shown-totals filter off → 6 fail; "same price for every kept metre" off → "refused, not guessed" fails. | 14/14 |
+| `edit-request-time.test.ts` | `AssertionError: expected 1 to be +0` (the payload went as a `JSON.stringify` string param) | pass |
+| `staff-hosted-pay.test.ts` (+2) | `expected { ok: false, code: 'not-found' } to deeply equal { ok: false, code: 'invalid-body' }`; `expected { ok: false, code: 'unknown' } to match object { ok: true … refund_due }` | pass |
+| `bookings-write.test.ts` (class tests replaced) | `expected true to be false` (PATCH wrote vehicle_class_id); `not to match /klass/` | pass |
+| `edit-request.test.ts` 08-07 proof | changed from `toMatch(/createRefund/)` to `not.toMatch(/createRefund/)` (the automatic refund is gone, refunds by hand) | pass |
 
 ## Real-Postgres proof (isolated stack, Worker client options)
 

@@ -292,11 +292,12 @@ export function reproduceCharge(
     const b = board(bookingBook, facts, m, saved, computedAt);
     const current = chargeFor(b, saved.classSlug, saved, saved.vatRateBps);
     if (!current.ok || current.chargedRappen !== saved.totalRappen) continue;
+    // Only figures both sides have are compared: a class the party no longer fits (passengers
+    // changed since) says nothing about the distance.
     const shownAgree = saved.shownAlternatives.every((shown) => {
       const entry = b.classes.find((row) => row.slug === shown.slug);
-      if (!entry) return true;
-      const net = entry.eligible && !b.partial.has(entry.slug) ? entry.total_rappen : null;
-      return net === shown.total_rappen;
+      const net = entry && entry.eligible && !b.partial.has(entry.slug) ? entry.total_rappen : null;
+      return net == null || shown.total_rappen == null || net === shown.total_rappen;
     });
     if (shownAgree) kept.push(m);
   }

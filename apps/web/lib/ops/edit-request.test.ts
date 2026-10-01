@@ -90,7 +90,10 @@ describe("08-07 file proofs", () => {
     expect(src).not.toMatch(/:6543/);
     expect(src).toMatch(/expireCheckoutSession/);
     expect(src).toMatch(/createCheckoutSession/);
-    expect(src).toMatch(/createRefund/);
+    // 26.2 P1 + refunds by hand (2026-09-30): a cheaper change is "Refund due"; nothing from the
+    // edit machine sends a refund to Stripe.
+    expect(src).not.toMatch(/createRefund/);
+    expect(src).not.toMatch(/booking_edit_refund_record/);
     expect(src).toMatch(/extraCheckoutMetadata/);
     const stripe = read("apps/web/lib/checkout/stripe.ts");
     expect(stripe).toMatch(/kind: "extra"/);

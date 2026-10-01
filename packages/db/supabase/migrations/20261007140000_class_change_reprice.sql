@@ -718,7 +718,12 @@ begin
     v_src.coupon_code,
     p_lines,
     v_src.policy,
-    coalesce(v_src.shown_alternatives, '[]'::pg_catalog.jsonb),
+    -- The class totals the customer was shown pin the trip's distance for the next change; they
+    -- only hold for the book they were computed with.
+    case
+      when p_rate_version_id = v_src.rate_version_id then coalesce(v_src.shown_alternatives, '[]'::pg_catalog.jsonb)
+      else '[]'::pg_catalog.jsonb
+    end,
     v_until,
     v_until
   )
@@ -735,7 +740,7 @@ revoke all on function app.booking_change_mint_snapshot(
 comment on function app.booking_change_mint_snapshot(
   pg_catalog.uuid, pg_catalog.uuid, pg_catalog.int8, pg_catalog.int4, pg_catalog.jsonb, pg_catalog.text, pg_catalog.uuid
 ) is
-  '26.2 P1: insert the price record of a change (source modification): new class, given live rate version, given full lines and total (reconcile trigger checks the sum), booking policy, coupon, distance, duration; supersedes the bound record. No grant.';
+  '26.2 P1: insert the price record of a change (source modification): new class, given live rate version, given full lines and total (reconcile trigger checks the sum), booking policy, coupon, distance, duration; shown class totals kept only when the rate version is the same; supersedes the bound record. No grant.';
 
 -- ---------------------------------------------------------------------------
 -- (8) booking_staff_change: the dashboard's class change (staff-made request, D0-D8).
