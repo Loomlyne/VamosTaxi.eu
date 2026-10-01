@@ -939,13 +939,18 @@ class Component extends DCLogic {
     // The route follows how the booking was opened (applyTicket keeps it as authVia). A guest's token lives in the
     // HttpOnly vt_manage cookie once the e-mailed link has been opened (the address no longer carries it), so the
     // guest request is sent with whatever token the address has, empty included: the server reads the cookie first.
+    // That cookie is one for the whole site (a second link or a second booking replaces it), so the booking on
+    // screen goes with the request and the server refuses any other one (409 wrong-booking).
     const req = this.state.authVia === 'account' && helper.cancelAccount
       ? helper.cancelAccount(ticket.reference)
-      : (helper.cancelGuest ? helper.cancelGuest(tok) : Promise.resolve({ ok: false, body: {} }));
+      : (helper.cancelGuest ? helper.cancelGuest(tok, ticket.reference) : Promise.resolve({ ok: false, body: {} }));
     req.then((result) => {
       if (!result || !result.ok || !result.body || result.body.ok !== true) {
         this.setState({ cancelling: false });
-        this.say(t('Could not cancel this booking.'), 'danger');
+        const wrongBooking = !!(result && result.body && result.body.code === 'wrong-booking');
+        this.say(wrongBooking
+          ? t('This page is for another booking. Open the link from its e-mail again.')
+          : t('Could not cancel this booking.'), 'danger');
         return;
       }
       const refundStatus = result.body.refundStatus || 'pending_ops';

@@ -173,9 +173,11 @@ describe("paid cancel, refunds by hand (20-10)", () => {
     chauffeur_email: null,
   };
 
+  // The guest role sees its own booking only (row security): the ownership read answers it, the cancel answers row.
   function guestReturns(row: Record<string, unknown>) {
     asGuest.mockImplementation(async (_env: CloudflareEnv, _hash: string, fn: (sql: unknown) => unknown) => {
-      const sql = async () => [row];
+      const sql = async (strings: TemplateStringsArray) =>
+        strings.join("?").includes("manage_booking_cancel") ? [row] : [{ id: BOOKING_ID, reference: "VT-26-0101" }];
       return fn(sql);
     });
   }
@@ -191,7 +193,7 @@ describe("paid cancel, refunds by hand (20-10)", () => {
   it("more than 24 h ahead: zero Stripe refund calls, answers refund due with the owed amount", async () => {
     guestReturns({ booking_id: BOOKING_ID, refund_mode: "auto_full", refund_rappen: 10000, stripe_payment_intent_id: PI });
     const { paidCancelGuest } = await import("./paid-cancel");
-    const result = await paidCancelGuest(ENV, "ab".repeat(32));
+    const result = await paidCancelGuest(ENV, "ab".repeat(32), "VT-26-0101");
     expect(result).toEqual({
       ok: true,
       bookingId: BOOKING_ID,
@@ -210,7 +212,7 @@ describe("paid cancel, refunds by hand (20-10)", () => {
   it("the same with a live key: still ok, still zero Stripe calls", async () => {
     guestReturns({ booking_id: BOOKING_ID, refund_mode: "auto_full", refund_rappen: 10000, stripe_payment_intent_id: PI });
     const { paidCancelGuest } = await import("./paid-cancel");
-    const result = await paidCancelGuest({ STRIPE_SECRET_KEY: "sk_live_x" } as CloudflareEnv, "ab".repeat(32));
+    const result = await paidCancelGuest({ STRIPE_SECRET_KEY: "sk_live_x" } as CloudflareEnv, "ab".repeat(32), "VT-26-0101");
     expect(result).toMatchObject({ ok: true, refundStatus: "pending_ops", refundRappen: 10000 });
     expect(createRefund).not.toHaveBeenCalled();
     expect(stripeFromEnv).not.toHaveBeenCalled();
@@ -220,7 +222,7 @@ describe("paid cancel, refunds by hand (20-10)", () => {
   it("inside 24 h: pending_ops, the team decides, mail line pending_ops", async () => {
     guestReturns({ booking_id: BOOKING_ID, refund_mode: "pending_ops", refund_rappen: null, stripe_payment_intent_id: PI });
     const { paidCancelGuest } = await import("./paid-cancel");
-    const result = await paidCancelGuest(ENV, "ab".repeat(32));
+    const result = await paidCancelGuest(ENV, "ab".repeat(32), "VT-26-0101");
     expect(result).toMatchObject({ ok: true, refundMode: "pending_ops", refundStatus: "pending_ops", refundRappen: 0 });
     expect(createRefund).not.toHaveBeenCalled();
     expect(notifyCancellation.mock.calls[0]![1]).toMatchObject({ refundLine: "pending_ops" });
@@ -229,7 +231,7 @@ describe("paid cancel, refunds by hand (20-10)", () => {
   it("auto_full with nothing captured is none, mail line none", async () => {
     guestReturns({ booking_id: BOOKING_ID, refund_mode: "auto_full", refund_rappen: 0, stripe_payment_intent_id: null });
     const { paidCancelGuest } = await import("./paid-cancel");
-    const result = await paidCancelGuest(ENV, "ab".repeat(32));
+    const result = await paidCancelGuest(ENV, "ab".repeat(32), "VT-26-0101");
     expect(result).toMatchObject({ ok: true, refundStatus: "none", refundRappen: 0 });
     expect(createRefund).not.toHaveBeenCalled();
     expect(notifyCancellation.mock.calls[0]![1]).toMatchObject({ refundLine: "none" });

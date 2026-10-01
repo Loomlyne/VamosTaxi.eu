@@ -1434,6 +1434,7 @@
       'Refunded to your {country} card.': { de: 'Erstattet auf Ihre Karte in {country}.', fr: 'Remboursé sur votre carte {country}.', ar: 'أُعيد إلى بطاقتك في {country}.' },
       'Stripe pays out on {date}.': { de: 'Stripe zahlt am {date} aus.', fr: 'Stripe verse le {date}.', ar: 'سترايب يدفع في {date}.' },
       'Could not cancel this booking.': { de: 'Diese Buchung konnte nicht storniert werden.', fr: 'Impossible d’annuler cette réservation.', ar: 'تعذر إلغاء هذا الحجز.' },
+      'This page is for another booking. Open the link from its e-mail again.': { de: 'Diese Seite gehört zu einer anderen Buchung. Öffnen Sie den Link aus ihrer E-Mail erneut.', fr: 'Cette page concerne une autre réservation. Ouvrez à nouveau le lien de son e-mail.', ar: 'هذه الصفحة تخص حجزًا آخر. افتح الرابط من بريده الإلكتروني مرة أخرى.' },
       'Request time change': { de: 'Zeitänderung anfragen', fr: 'Demander un changement d’heure', ar: 'طلب تغيير الوقت' },
       'Save flight number': { de: 'Flugnummer speichern', fr: 'Enregistrer le numéro de vol', ar: 'حفظ رقم الرحلة' },
       'Time-change requested. Pickup stays {original} until we confirm.': {
