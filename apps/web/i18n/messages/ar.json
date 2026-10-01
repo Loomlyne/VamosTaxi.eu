@@ -1638,7 +1638,8 @@
     "flight-delayed-allowance-moves": "وإذا تأخّرت رحلتك الجوية، تتحرّك المدة مع الرحلة — لا حاجة للاتصال بنا.",
     "our-team-decides-refund-email": "يقرّر فريقنا مبلغ الاسترداد ويُبلغك به عبر البريد الإلكتروني.",
     "extended-city-stay-15-shown-on-quote": "إقامة ممتدة في المدينة، حتى 15 دقيقة: مبيّنة في عرض السعر الخاص بك.",
-    "changes-free-before-pickup": "يمكن تعديل الوقت والعنوان وعدد الركاب وفئة السيارة قبل الانطلاق، دون رسوم. وإن غيّر التعديل السعر، تدفع الفرق أو نردّه لك — ولا شيء أكثر من الفرق."
+    "changes-free-before-pickup": "يمكن تعديل الوقت والعنوان وعدد الركاب وفئة السيارة قبل الانطلاق، دون رسوم. وإن غيّر التعديل السعر، تدفع الفرق أو نردّه لك — ولا شيء أكثر من الفرق.",
+    "terms-driver-details-by-email": "نرسل اسم السائق والمركبة ولوحتها عبر البريد الإلكتروني فور تعيين السائق، ثم مرة أخرى في التذكير قبل 24 ساعة من موعد الانطلاق. رقم السائق موجود في صفحة إدارة حجزك."
   },
   "ops": {
     "add-a-note-visible-to-dispatch-only": "أضف ملاحظة يراها قسم التشغيل وحده…",
@@ -2808,7 +2809,8 @@
       "legal.all-other-pickups-30-minutes-booked": "fixed legal-page figure from the vamostaxi.eu terms or privacy text, owner-approved 2026-09-30 (docs/legal-source/vamostaxi-eu-2026-09-30/MAPPING.md list A), not a live count",
       "legal.team-refund-paid-30-days-acceptance": "fixed legal-page figure from the vamostaxi.eu terms or privacy text, owner-approved 2026-09-30 (docs/legal-source/vamostaxi-eu-2026-09-30/MAPPING.md list A), not a live count",
       "legal.and-we-resolve-within-30-days": "fixed legal-page figure from the vamostaxi.eu terms or privacy text, owner-approved 2026-09-30 (docs/legal-source/vamostaxi-eu-2026-09-30/MAPPING.md list A), not a live count",
-      "legal.extended-city-stay-15-shown-on-quote": "fixed legal-page figure (owner decision 2026-09-30, .planning/quick/260930-lgl-legal-pages-from-eu/DECISIONS.md), not a live count"
+      "legal.extended-city-stay-15-shown-on-quote": "fixed legal-page figure (owner decision 2026-09-30, .planning/quick/260930-lgl-legal-pages-from-eu/DECISIONS.md), not a live count",
+      "legal.terms-driver-details-by-email": "fixed legal-page figure (owner decision 2026-09-30, .planning/quick/260930-lgl-legal-pages-from-eu/DECISIONS.md), not a live count"
     }
   },
   "quote": {
