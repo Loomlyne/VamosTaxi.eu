@@ -118,12 +118,14 @@ button,.vt-btn,.vt-iconbtn{box-shadow:none}
 <sc-if value="{{ hOps }}"><h1 data-af-h1="1" style="font-size:clamp(28px,3.4vw,36px)">Dispatch sign in</h1></sc-if>
 <sc-if value="{{ hSignUp }}"><h1 data-af-h1="1">Sign up</h1></sc-if>
 <sc-if value="{{ hForgot }}"><h1 data-af-h1="1">Reset your password</h1></sc-if>
+<sc-if value="{{ hFinish }}"><h1 data-af-h1="1">Finish your account</h1></sc-if>
 <sc-if value="{{ sSignInPw }}" hint-placeholder-val="{{ true }}"><p data-af-sub="1">Your transfers, vouchers and receipts, all in one place.</p></sc-if>
 <sc-if value="{{ sOpsPw }}"><p data-af-sub="1">Internal tool for Vamos Taxi dispatchers and admins.</p></sc-if>
 <sc-if value="{{ sSignInMagic }}"><p data-af-sub="1">We email you a sign-in link. No password to remember.</p></sc-if>
 <sc-if value="{{ sSignUpPw }}"><p data-af-sub="1">Create an account and every transfer you book stays together in one place.</p></sc-if>
 <sc-if value="{{ sSignUpMagic }}"><p data-af-sub="1">Give us your email and we send a link that creates your account. No password to set.</p></sc-if>
 <sc-if value="{{ hForgot }}"><p data-af-sub="1">Enter the email you booked with and we send you a link to set a new password.</p></sc-if>
+<sc-if value="{{ hFinish }}"><p data-af-sub="1">Your email is confirmed. Add your name to finish your account.</p></sc-if>
 </div>
 
 <sc-if value="{{ bannerExpired }}">
@@ -156,13 +158,21 @@ button,.vt-btn,.vt-iconbtn{box-shadow:none}
 </sc-if>
 
 <div style="display:flex;flex-direction:column;gap:16px">
+<sc-if value="{{ hFinish }}">
+<div data-note="1"><span data-note-k="1">Your email</span><span data-af-step-v="1" class="vt-dir-keep" data-vt-no-i18n="1">{{ emailEcho }}</span></div>
+</sc-if>
 <sc-if value="{{ needName }}">
 <div data-af-2col="1" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="First name" type="text" size="lg" autoComplete="given-name" placeholder="Anna" value="{{ firstName }}" onChange="{{ setFirstName }}" error="{{ errFirst }}" hint-size="100%,84px"></x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="Last name" type="text" size="lg" autoComplete="family-name" placeholder="Keller" value="{{ lastName }}" onChange="{{ setLastName }}" error="{{ errLast }}" hint-size="100%,84px"></x-import>
 </div>
 </sc-if>
+<sc-if value="{{ needEmail }}" hint-placeholder-val="{{ true }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="Email" type="email" icon="mail" size="lg" autoComplete="email" placeholder="you@example.com" value="{{ email }}" onChange="{{ setEmail }}" error="{{ errEmail }}" hint-size="100%,84px"></x-import>
+</sc-if>
+<sc-if value="{{ needPhone }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="Mobile number (optional)" type="tel" icon="phone" size="lg" inputMode="tel" autoComplete="tel" placeholder="+41 79 000 00 00" hint="So your driver can reach you on the day." value="{{ phone }}" onChange="{{ setPhone }}" error="{{ errPhone }}" hint-size="100%,84px"></x-import>
+</sc-if>
 <sc-if value="{{ needPassword }}">
 <div data-af-pw="1">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="Password" type="{{ pwType }}" size="lg" autoComplete="{{ pwAutoComplete }}" placeholder="••••••••" hint="{{ pwHint }}" value="{{ password }}" onChange="{{ setPassword }}" error="{{ errPassword }}" hint-size="100%,84px"></x-import>
@@ -188,6 +198,7 @@ button,.vt-btn,.vt-iconbtn{box-shadow:none}
 <sc-if value="{{ ctaSignIn }}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" block="{{ yes }}" onClick="{{ submit }}" hint-size="100%,54px">Sign in</x-import></sc-if>
 <sc-if value="{{ ctaSignUp }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" block="{{ yes }}" onClick="{{ submit }}" hint-size="100%,54px">Create account</x-import></sc-if>
 <sc-if value="{{ ctaMagic }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" block="{{ yes }}" icon="mail" onClick="{{ submit }}" hint-size="100%,54px">Email me a link</x-import></sc-if>
+<sc-if value="{{ ctaFinish }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" block="{{ yes }}" onClick="{{ submit }}" hint-size="100%,54px">Finish account</x-import></sc-if>
 <sc-if value="{{ ctaReset }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" block="{{ yes }}" onClick="{{ submit }}" hint-size="100%,54px">Send reset link</x-import></sc-if>
 </div>
 
@@ -208,6 +219,7 @@ button,.vt-btn,.vt-iconbtn{box-shadow:none}
 <sc-if value="{{ linkSignUpPw }}"><button type="button" data-af-link="1" onClick="{{ useMagic }}">Sign up with a link instead</button></sc-if>
 <sc-if value="{{ isMagic }}"><button type="button" data-af-link="1" onClick="{{ usePassword }}">Use a password instead</button></sc-if>
 <sc-if value="{{ hForgot }}"><button type="button" data-af-link="1" onClick="{{ backToSignIn }}">Back to sign in</button></sc-if>
+<sc-if value="{{ hFinish }}"><button type="button" data-af-link="1" onClick="{{ notYou }}">Not you? Sign out</button></sc-if>
 </div>
 </div>
 </div>
@@ -288,7 +300,7 @@ button,.vt-btn,.vt-iconbtn{box-shadow:none}
 </div>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:640},&quot;mode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;signin&quot;,&quot;signup&quot;,&quot;forgot&quot;],&quot;default&quot;:&quot;signin&quot;,&quot;tsType&quot;:&quot;'signin'|'signup'|'forgot'&quot;},&quot;method&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;password&quot;,&quot;magic&quot;],&quot;default&quot;:&quot;password&quot;,&quot;tsType&quot;:&quot;'password'|'magic'&quot;},&quot;stage&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;form&quot;,&quot;sent&quot;,&quot;verifying&quot;,&quot;returning&quot;],&quot;default&quot;:&quot;form&quot;,&quot;tsType&quot;:&quot;'form'|'sent'|'verifying'|'returning'&quot;},&quot;banner&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;&quot;,&quot;credentials&quot;,&quot;registered&quot;,&quot;expired&quot;,&quot;rate-limited&quot;,&quot;not-staff&quot;,&quot;unconfirmed&quot;,&quot;consent&quot;,&quot;send-failed&quot;],&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;'credentials'|'registered'|'expired'|'rate-limited'|'not-staff'|'unconfirmed'|'consent'|'send-failed'|null&quot;},&quot;email&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;firstName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;lastName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;frozen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;onState&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(s: {mode:string;method:string;stage:string;banner:string|null}) =&gt; void&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:640},&quot;mode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;signin&quot;,&quot;signup&quot;,&quot;forgot&quot;,&quot;finish&quot;],&quot;default&quot;:&quot;signin&quot;,&quot;tsType&quot;:&quot;'signin'|'signup'|'forgot'|'finish'&quot;},&quot;method&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;password&quot;,&quot;magic&quot;],&quot;default&quot;:&quot;password&quot;,&quot;tsType&quot;:&quot;'password'|'magic'&quot;},&quot;stage&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;form&quot;,&quot;sent&quot;,&quot;verifying&quot;,&quot;returning&quot;],&quot;default&quot;:&quot;form&quot;,&quot;tsType&quot;:&quot;'form'|'sent'|'verifying'|'returning'&quot;},&quot;banner&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;&quot;,&quot;credentials&quot;,&quot;registered&quot;,&quot;expired&quot;,&quot;rate-limited&quot;,&quot;not-staff&quot;,&quot;unconfirmed&quot;,&quot;consent&quot;,&quot;send-failed&quot;],&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;'credentials'|'registered'|'expired'|'rate-limited'|'not-staff'|'unconfirmed'|'consent'|'send-failed'|null&quot;},&quot;email&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;firstName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;lastName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;frozen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;onState&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(s: {mode:string;method:string;stage:string;banner:string|null}) =&gt; void&quot;}}">
 const REGISTERED = ['taken@vamostaxi.site'];
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i;
 function b64urlToBuf(s) {
@@ -366,6 +378,7 @@ class Component extends DCLogic {
     password: this.props.password || '',
     firstName: this.props.firstName || '',
     lastName: this.props.lastName || '',
+    phone: '',
     errors: {},
     consent: false,
     lang: 'en',
@@ -382,6 +395,7 @@ class Component extends DCLogic {
   };
   componentDidMount() {
     this.bindGlobals(0);
+    if (this.state.mode === 'finish') this.loadFinish();
     /* The email-link callback sends a failed, expired or already-used link here as ?error=1. */
     try {
       if (!this.props.frozen && !this.state.banner && this.state.stage === 'form' &&
@@ -389,6 +403,19 @@ class Component extends DCLogic {
     } catch (e) {}
     if (this.state.stage === 'returning') this.armExit();
     if (this.state.stage === 'verifying' && (this.props.frozen || this.props.surface === 'ops')) this.armPasskey();
+  }
+  /* 27 D-37: the finish step belongs to the signed-in account. Its address comes from the
+     session, never from the URL; signed out, the page is the ordinary sign-in. */
+  loadFinish() {
+    if (this.props.frozen || this.props.surface === 'ops') return;
+    fetch('/api/auth/session?finish=1', { credentials: 'same-origin', cache: 'no-store' })
+      .then((r) => r.json())
+      .then((snap) => {
+        if (!snap || !snap.signedIn) return this.go({ mode: 'signin', method: 'password', stage: 'form', banner: null });
+        if (!snap.finishRequired) { this.saveSession(); return this.go({ stage: 'returning', banner: null }); }
+        this.setState({ email: snap.email || '', phone: snap.phone || '' });
+      })
+      .catch(() => {});
   }
   componentDidUpdate(prev) {
     const keys = ['mode', 'method', 'stage', 'banner', 'email', 'nonce'];
@@ -402,8 +429,10 @@ class Component extends DCLogic {
         password: this.props.password || '',
         firstName: this.props.firstName || '',
         lastName: this.props.lastName || '',
+        phone: '',
         errors: {}, consent: false, resent: false,
       }, () => {
+        if (this.state.mode === 'finish') this.loadFinish();
         if (this.state.stage === 'returning') this.armExit();
         if (this.state.stage === 'verifying' && (this.props.frozen || this.props.surface === 'ops')) this.armPasskey();
       });
@@ -468,7 +497,7 @@ class Component extends DCLogic {
       if (this.props.surface === 'ops') { localStorage.setItem('vamosOpsAuth', '1'); return; }
       /* Clicking an emailed link, or signing in to an existing account, already proves the
          address. Only a brand-new password sign-up still needs that proof. */
-      const verified = this.state.mode === 'signin' || this.state.method === 'magic';
+      const verified = this.state.mode === 'signin' || this.state.mode === 'finish' || this.state.method === 'magic';
       let prev = {};
       try { prev = JSON.parse(localStorage.getItem('vamosAuth') || 'null') || {}; } catch (e) {}
       localStorage.setItem('vamosAuth', JSON.stringify({
@@ -522,6 +551,13 @@ class Component extends DCLogic {
     });
   }
   togglePw = () => this.setState({ showPw: !this.state.showPw });
+  notYou = () => {
+    if (this.props.frozen || this.props.surface === 'ops') return this.go({ mode: 'signin', method: 'password', stage: 'form', banner: null, consent: false });
+    this.liveAuth({ action: 'signout' }).finally(() => {
+      try { localStorage.removeItem('vamosAuth'); } catch (e) {}
+      this.go({ mode: 'signin', method: 'password', stage: 'form', banner: null, email: '', consent: false });
+    });
+  };
   setMode = (v) => this.go({ mode: v, stage: 'form', banner: null, password: '', consent: false });
   useMagic = () => this.go({ method: 'magic', stage: 'form', banner: null, password: '' });
   usePassword = () => this.go({ method: 'password', stage: 'form', banner: null });
@@ -563,6 +599,11 @@ class Component extends DCLogic {
     }
     if (result.ok) {
       this.saveSession();
+      /* 27.1: the code signed in an account the sign-in link just made: finish it first. */
+      if (result.finish && this.state.mode !== 'finish') {
+        this.go({ mode: 'finish', method: 'password', stage: 'form', banner: null, consent: false });
+        return this.loadFinish();
+      }
       return this.go({ stage: 'returning', banner: null });
     }
     if (result.stage === 'sent') return this.go({ stage: 'sent' });
@@ -573,13 +614,16 @@ class Component extends DCLogic {
   payload() {
     const { mode, method, email, password, firstName, lastName } = this.state;
     const addr = email.trim();
+    const phone = this.state.phone.trim();
+    const extra = Object.assign(phone ? { phone } : {}, this.state.consent ? { consent: true } : {});
     if (mode === 'forgot') return { mode: 'forgot', email: addr };
+    if (mode === 'finish') return Object.assign({ action: 'finish-account', firstName: firstName.trim(), lastName: lastName.trim() }, extra);
     if (method === 'magic') {
-      if (mode === 'signup') return Object.assign({ mode: 'signup', method: 'magic', email: addr, firstName: firstName.trim(), lastName: lastName.trim() }, this.state.consent ? { consent: true } : {});
+      if (mode === 'signup') return Object.assign({ mode: 'signup', method: 'magic', email: addr, firstName: firstName.trim(), lastName: lastName.trim() }, extra);
       return { mode: 'signin', method: 'magic', email: addr };
     }
     if (mode === 'signup') {
-      return Object.assign({ mode: 'signup', method: 'password', email: addr, password, firstName: firstName.trim(), lastName: lastName.trim() }, this.state.consent ? { consent: true } : {});
+      return Object.assign({ mode: 'signup', method: 'password', email: addr, password, firstName: firstName.trim(), lastName: lastName.trim() }, extra);
     }
     return { mode: 'signin', method: 'password', email: addr, password };
   }
@@ -630,16 +674,20 @@ class Component extends DCLogic {
   submit = () => {
     const { mode, method, email, password, firstName, lastName } = this.state;
     const addr = email.trim().toLowerCase();
-    const needName = mode === 'signup' && method === 'password';
+    const needName = mode === 'signup' || mode === 'finish';
     const errors = {};
     if (needName && !firstName.trim()) errors.firstName = 'Enter your first name';
     if (needName && !lastName.trim()) errors.lastName = 'Enter your last name';
-    if (!addr) errors.email = 'Enter your email address';
+    if (mode === 'finish') { /* the address is the signed-in account's own */ }
+    else if (!addr) errors.email = 'Enter your email address';
     else if (!EMAIL_RE.test(addr)) errors.email = 'Check the email address';
+    /* Optional, but a number that is there must be dialable: same rule as the account page. */
+    const phone = this.state.phone.trim();
+    if (needName && phone && (phone.replace(/[^\d]/g, '').length < 9 || phone.length > 32)) errors.phone = 'Check the mobile number, including the country code';
     if (mode !== 'forgot' && method === 'password' && !password) errors.password = mode === 'signup' ? 'Choose a password' : 'Enter your password';
     else if (mode === 'signup' && method === 'password' && password.length < 8) errors.password = 'Use at least 8 characters';
     /* Sign-up needs the account notice ticked, and the notice text must be on screen (fail closed). */
-    if (mode === 'signup' && this.props.surface !== 'ops' && !(this.state.consent && window.VamosAccountNotice)) errors.consent = true;
+    if (needName && this.props.surface !== 'ops' && !(this.state.consent && window.VamosAccountNotice)) errors.consent = true;
     if (Object.keys(errors).length) {
       this.setState({ errors, banner: null }, () => {
         if (errors.consent && Object.keys(errors).length === 1) {
@@ -651,6 +699,7 @@ class Component extends DCLogic {
     }
     /* Gallery / ops stay on the demo rules so every jumper state is reachable. */
     if (this.props.frozen || this.props.surface === 'ops') {
+      if (mode === 'finish') { this.saveSession(); return this.go({ stage: 'returning', banner: null }); }
       if (mode === 'forgot' || method === 'magic') return this.go({ stage: 'sent' });
       if (mode === 'signin') {
         if (password.toLowerCase() === 'wrong') return this.go({ banner: 'credentials' });
@@ -681,11 +730,12 @@ class Component extends DCLogic {
   renderVals() {
     const { mode, method, stage, banner, email, password, firstName, lastName, errors, resent } = this.state;
     const isForm = stage === 'form', isSent = stage === 'sent';
-    const isMagic = method === 'magic' && mode !== 'forgot';
+    const isMagic = method === 'magic' && mode !== 'forgot' && mode !== 'finish';
     /* the ops console is the same auth, one surface across: no sign-up, its own
        destination and session key, dispatch wording */
     const isOps = this.props.surface === 'ops';
-    const showConsent = isForm && mode === 'signup' && !isOps;
+    const isFinish = mode === 'finish';
+    const showConsent = isForm && (mode === 'signup' || isFinish) && !isOps;
     const errConsent = showConsent && !!(errors.consent || banner === 'consent');
     return {
       showConsent, errConsent, noticeReady: this.state.noticeReady, consent: this.state.consent,
@@ -698,17 +748,21 @@ class Component extends DCLogic {
       sOpsPw: isForm && mode === 'signin' && !isMagic && isOps,
       n16: 16, n18: 18, n22: 22, yes: true,
       tabItems: [{ value: 'signin', label: 'Sign in' }, { value: 'signup', label: 'Sign up' }],
-      mode, showTabs: isForm && mode !== 'forgot' && !isOps,
+      mode, showTabs: isForm && mode !== 'forgot' && !isFinish && !isOps,
       isForm, isSent, isReturning: stage === 'returning', isVerifying: stage === 'verifying',
       showPasskey: !isOps && isForm && mode === 'signin',
+      hFinish: isForm && isFinish, ctaFinish: isForm && isFinish,
+      needEmail: !isFinish, needPhone: isForm && (mode === 'signup' || isFinish) && !isOps,
+      phone: this.state.phone, setPhone: (e) => this.setState({ phone: e.target.value }), errPhone: errors.phone,
+      notYou: this.notYou,
       startPasskey: this.startPasskey, cancelPasskey: this.cancelPasskey,
       hSignIn: isForm && mode === 'signin' && !isOps, hSignUp: isForm && mode === 'signup', hForgot: isForm && mode === 'forgot',
       sSignInPw: isForm && mode === 'signin' && !isMagic && !isOps,
       sSignInMagic: isForm && mode === 'signin' && isMagic,
       sSignUpPw: isForm && mode === 'signup' && !isMagic,
       sSignUpMagic: isForm && mode === 'signup' && isMagic,
-      needName: isForm && mode === 'signup' && !isMagic,
-      needPassword: mode !== 'forgot' && !isMagic,
+      needName: isForm && (mode === 'signup' || isFinish),
+      needPassword: mode !== 'forgot' && !isFinish && !isMagic,
       pwAutoComplete: mode === 'signup' ? 'new-password' : 'current-password',
       pwHint: mode === 'signup' ? 'At least 8 characters.' : undefined,
       showPw: this.state.showPw, hidePw: !this.state.showPw,

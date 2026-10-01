@@ -102,3 +102,48 @@ describe("sign-up form source pins", () => {
     expect(read("app/pages/sign-in.dc.html")).toContain("vamos-account-notice.js");
   });
 });
+
+describe("27.1 finish your account and the optional phone (27 D-37)", () => {
+  const form = read("app/pages/AuthForm.dc.html");
+  const dict = loadDict();
+
+  it("the finish view carries the same tick and refuses to submit without it", () => {
+    expect(form.match(/const showConsent = ([^;]+);/)?.[1]).toContain("isFinish");
+    expect(form).toContain("const needName = mode === 'signup' || mode === 'finish';");
+    expect(form).toContain("if (needName && this.props.surface !== 'ops' && !(this.state.consent && window.VamosAccountNotice)) errors.consent = true;");
+  });
+  it("posts finish-account with no e-mail; the address comes from the session", () => {
+    const payload = form.slice(form.indexOf("  payload() {"), form.indexOf("  resend = () =>"));
+    const finish = payload.split("\n").find((l) => l.includes("mode === 'finish'")) ?? "";
+    expect(finish).toContain("action: 'finish-account'");
+    expect(finish).not.toContain("email");
+    expect(form).toContain("fetch('/api/auth/session?finish=1'");
+  });
+  it("asks the optional mobile number on both sign-up forms and the finish step", () => {
+    expect(form).toContain('label="Mobile number (optional)"');
+    expect(form).toMatch(/needPhone: isForm && \(mode === 'signup' \|\| isFinish\) && !isOps/);
+    expect(form).toMatch(/needName: isForm && \(mode === 'signup' \|\| isFinish\)/);
+  });
+  it("the account page sends an unfinished account to the finish step", () => {
+    const account = read("app/pages/account.dc.html");
+    expect(account).toContain("fetch('/api/auth/session?finish=1'");
+    expect(account).toContain("snap.finishRequired === true");
+    expect(account).toContain("/sign-up?state=finish");
+  });
+  it("every new string has de, fr and ar (Swiss German, no ß)", () => {
+    for (const en of [
+      "Finish your account",
+      "Your email is confirmed. Add your name to finish your account.",
+      "Your email",
+      "Mobile number (optional)",
+      "So your driver can reach you on the day.",
+      "Check the mobile number, including the country code",
+      "Finish account",
+      "Not you? Sign out",
+    ]) {
+      expect(form, en).toContain(en);
+      for (const l of ["de", "fr", "ar"]) expect(dict[en]?.[l], `${en} ${l}`).toBeTruthy();
+      expect(dict[en]?.de ?? "").not.toContain("ß");
+    }
+  });
+});
