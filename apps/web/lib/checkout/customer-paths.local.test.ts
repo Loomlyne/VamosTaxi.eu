@@ -14,6 +14,7 @@ import { openWorld } from "../ops/trip-change.local-fixture";
 const PORT = process.env["VAMOS_LOCAL_DB_PORT"];
 const sendConfirmation = vi.fn();
 const sendFlightNumber = vi.fn();
+const sendCancellation = vi.fn();
 
 vi.mock("@vamos/emails/confirmation", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@vamos/emails/confirmation")>();
@@ -21,6 +22,7 @@ vi.mock("@vamos/emails/confirmation", async (importOriginal) => {
     ...actual,
     sendConfirmation: (...a: unknown[]) => sendConfirmation(...a),
     sendFlightNumber: (...a: unknown[]) => sendFlightNumber(...a),
+    sendCancellation: (...a: unknown[]) => sendCancellation(...a),
   };
 });
 
@@ -78,7 +80,7 @@ describe.skipIf(!PORT)("the customer's own doors through the real Worker client 
 
     // Resend (D19): the confirmation again, to the booking's own address, by either door.
     sendConfirmation.mockResolvedValue({ ok: true, providerMessageId: "c1" });
-    expect(await resendCustomerConfirmation(env, guest, b.reference)).toEqual({ ok: true, bookingId: b.id, email: `p6e-${tag}-cust@example.test` });
+    expect(await resendCustomerConfirmation(env, guest, b.reference)).toEqual({ ok: true, bookingId: b.id, email: `p6e-${tag}-cust@example.test`, mail: "confirmation" });
     expect(await resendCustomerConfirmation(env, owner, b.reference)).toMatchObject({ ok: true });
     expect(sendConfirmation).toHaveBeenCalledTimes(2);
     expect(sendConfirmation.mock.calls[0]![1]).toMatchObject({ reference: b.reference, contactEmail: `p6e-${tag}-cust@example.test` });
@@ -88,5 +90,21 @@ describe.skipIf(!PORT)("the customer's own doors through the real Worker client 
     expect(await resendCustomerConfirmation(env, guest, other.reference)).toEqual({ ok: false, code: "not-found" });
     expect(await resendCustomerConfirmation(env, owner, other.reference)).toEqual({ ok: false, code: "not-found" });
     expect(await leg(b.id)).toMatchObject({ scheduled_local: "2030-01-06T10:00" });
+
+    // D20: once cancelled (as paid-cancel writes it: status and its event with the refund facts), Resend
+    // sends the cancellation e-mail again through the real definer read, never the confirmation.
+    await su`update public.bookings set status = 'cancelled' where id = ${b.id}`;
+    await su`insert into public.booking_events (booking_id, kind, actor_kind, actor_label, from_status, to_status, payload)
+             values (${b.id}, 'booking.status_changed', 'guest', '', 'confirmed', 'cancelled',
+                     ${su.json({ via: "manage", refund_mode: "auto_full", refund_rappen: b.paid })})`;
+    sendConfirmation.mockClear();
+    sendCancellation.mockResolvedValue({ ok: true, providerMessageId: "x1" });
+    expect(await resendCustomerConfirmation(env, guest, b.reference)).toEqual({
+      ok: true, bookingId: b.id, email: `p6e-${tag}-cust@example.test`, mail: "cancellation",
+    });
+    expect(sendConfirmation).not.toHaveBeenCalled();
+    expect(sendCancellation).toHaveBeenCalledTimes(1);
+    expect(sendCancellation.mock.calls[0]![1]).toMatchObject({ reference: b.reference, locale: "de", refundLine: "full_captured", urgent: false });
+    expect(sendCancellation.mock.calls[0]![2]).toBe(`p6e-${tag}-cust@example.test`);
   });
 });
