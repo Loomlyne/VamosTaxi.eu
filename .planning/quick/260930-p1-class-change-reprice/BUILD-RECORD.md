@@ -13,7 +13,8 @@ Started 2026-10-01. Nothing pushed, no PR, no deploy, no hosted SQL.
 |---|---|---|
 | 1 | `5a389707` | Database: migration `20261007140000_class_change_reprice.sql`, pgTAP `class_change_reprice.test.sql` (69), Worker-client local test `packages/db/test/local/class-change-reprice.test.ts` (3), regenerated `database.types.ts` (only the new functions and columns differ) |
 | 2 | `e0029d3d` | Price step `apps/web/lib/ops/booking-change-price.ts` + 14 unit tests |
-| 4 | (next) | Server: `booking-change.ts` (preview / confirm / after-change mails), routes `POST …/bookings/:id/change/preview` and `POST …/bookings/:id/change` (+ dual mounts), the owner's e-mail `ClassChangePayEmail` (four languages, copied programmatically from the decision file), settle hook for a paid difference, refunds-by-hand credit tier in `refund.ts`, board read of the waiting change, dashboard (class list, price box, confirm step, waiting state, credit panel, four languages), customer account line guard |
+| 5 | (next) | End-to-end local test through the real Worker client (`booking-change.local.test.ts`), both local test files named in `scripts/db-access-fence-allowlist.json`, module-scope `Set` removed (isolate-memoisation fence) |
+| 4 | `060b65d3` | Server: `booking-change.ts` (preview / confirm / after-change mails), routes `POST …/bookings/:id/change/preview` and `POST …/bookings/:id/change` (+ dual mounts), the owner's e-mail `ClassChangePayEmail` (four languages, copied programmatically from the decision file), settle hook for a paid difference, refunds-by-hand credit tier in `refund.ts`, board read of the waiting change, dashboard (class list, price box, confirm step, waiting state, credit panel, four languages), customer account line guard |
 | 3 | `bd9c7fe8` | Writer fix (`sql.json`), accept takes a stored request only (no field from the browser, lead note 3), cheaper accept = Refund due with no Stripe call, PATCH no longer writes the class (A8), rules and body parser `booking-change-map.ts` (+10 tests), by-version price book read in `rate-book.ts`, `deliverBookingConfirmation` split out of `voucher.ts`, migration: shown class totals kept only for the same book |
 
 ## Design choices made inside the signed plan (say if one is wrong)
@@ -49,7 +50,31 @@ Started 2026-10-01. Nothing pushed, no PR, no deploy, no hosted SQL.
 
 ## Real-Postgres proof (isolated stack, Worker client options)
 
-Stack: project `vamos-taxi-262`, port 62322, workdir symlinks re-pointed to this folder.
+Stacks: first `vamos-taxi-262` (port 62322, workdir `scratchpad/sb262`, symlinks re-pointed to this
+folder at 08:05). **Collision:** at 08:27 another session re-pointed sb262's symlinks to
+`/Users/koss/Developer/vamos-wt/phase-26.2`, restarted that stack with its own migrations and ran its
+pgTAP (logs `start-cc.log`, `pgtap-cc*.log`, `types-cc.ts` in sb262). Not knowing that, I ran
+`supabase db reset --workdir sb262` at 08:45: it replayed THAT folder's migrations and wiped that
+stack's data. Nothing of theirs is in git or on disk lost; their stack is up with their schema. From
+08:46 I used my own stack only: project `vamos-taxi-p1`, ports 633xx, workdir `scratchpad/sbp1`
+(symlinks to this folder). I did not stop sb262 (it is the other session's now).
+
+- **From-zero replay** (`sbp1`, `db start`): 124 migrations applied, `20261007140000` included.
+- **Full pgTAP on that replay:** 91 files, 2164 tests, PASS (run with the login roles passwordless; with
+  the local passwords set, `extensions.test.sql` #12 "vamos_edge has no password" fails by design).
+- **End to end through the real Worker client** (`apps/web/lib/ops/booking-change.local.test.ts`,
+  asStaff / asSystem / asQuote, only Stripe, Mapbox and the mail sender replaced): a booking written the
+  way checkout writes it on a live book; dearer preview → confirm (`extra_required`, request waits as a
+  JSON object, booking still Economy, Stripe page for exactly the difference, owner's mail with new
+  total / paid / difference) → extra settle as the system role (class Business, driver and car off,
+  `unassigned_chauffeur_id` returned) → `afterExtraSettled` builds the confirmation through the definer
+  reads (total = new total, class Business) and the driver mail; cheaper → `refund_due`, `pending_ops`
+  owed = difference, no Stripe call → `refundBooking` with `{}` sends exactly the difference →
+  `refund_status none`, `refunded_rappen` = difference. Pass.
+- `apps/web/lib/ops/refund-by-hand.local.test.ts`, `assign.local.test.ts`, `lib/db/system-reads.local.test.ts`
+  on the same stack: pass. Note: `system-reads.local` and `booking-change.local` both publish a live
+  price book (one live at a time); run them one after the other (`--no-file-parallelism`), else the
+  second hits `rate_versions_one_live`.
 
 - **The payload writer finding, settled (lead note 2):** through the Worker client options
   (`fetch_types:false`, prepared), `${JSON.stringify(payload)}::jsonb` is sent as a JSON STRING and

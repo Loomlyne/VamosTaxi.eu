@@ -115,7 +115,7 @@ export type ChangeBody = {
   expectPaidRappen: number | null;
 };
 
-const BODY_KEYS = new Set(["klass", "expectTotalRappen", "expectPaidRappen"]);
+const BODY_KEYS: readonly string[] = Object.freeze(["klass", "expectTotalRappen", "expectPaidRappen"]);
 
 function rappenOrNull(value: unknown): number | null | undefined {
   if (value === undefined || value === null) return null;
@@ -131,7 +131,7 @@ export function parseChangeBody(raw: unknown): { ok: true; value: ChangeBody } |
   if (raw === undefined || raw === null) return { ok: true, value: { klass: null, expectTotalRappen: null, expectPaidRappen: null } };
   if (typeof raw !== "object" || Array.isArray(raw)) return { ok: false, code: "invalid-body" };
   const rec = raw as Record<string, unknown>;
-  for (const key of Object.keys(rec)) if (!BODY_KEYS.has(key)) return { ok: false, code: "invalid-body" };
+  for (const key of Object.keys(rec)) if (!BODY_KEYS.includes(key)) return { ok: false, code: "invalid-body" };
   let klass: string | null = null;
   if (rec.klass !== undefined && rec.klass !== null) {
     if (typeof rec.klass !== "string") return { ok: false, code: "invalid-body" };
