@@ -305,7 +305,7 @@ describe("2 · OpsCars — the list and the edit box", () => {
   it("German, French and Arabic labels reach the edit box and the list", async () => {
     const de = (await mounted("de")).vals();
     expect((de.fields as Record<string, any>[]).find((x) => x.key === "plate")?.label).toBe("Kennzeichen");
-    expect((de.columns as Record<string, any>[])[0].header).toBe("Auto");
+    expect((de.columns as Record<string, any>[])[0]?.header).toBe("Auto");
     const ar = (await mounted("ar")).vals();
     expect((ar.fields as Record<string, any>[]).find((x) => x.key === "seats")?.label).toBe("المقاعد");
     expect(ar.addLabel).toBe("إضافة سيارة");
