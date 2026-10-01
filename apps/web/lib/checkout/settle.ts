@@ -76,6 +76,8 @@ export type SettleRow = {
   applied?: boolean;
   /** 26.2 P1, kind=extra only: the driver the applied class change took off the trip. */
   unassigned_chauffeur_id?: string | null;
+  /** 26.2 P6, kind=extra only: the change request the payment settled (what it changed, for the driver's e-mail). */
+  request_id?: string | null;
 };
 
 export type CaptureGate = {
@@ -605,6 +607,7 @@ export async function handleStripeMessage(
             : [],
           applied: row.applied === true,
           unassigned_chauffeur_id: row.unassigned_chauffeur_id ? String(row.unassigned_chauffeur_id) : null,
+          request_id: row.request_id ? String(row.request_id) : null,
         };
       } catch (err) {
         if (extra && sqlState(err) === "23P01") {

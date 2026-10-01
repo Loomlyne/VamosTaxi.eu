@@ -19,8 +19,10 @@
 
 import {
   chauffeurEmailLocale,
+  sendChauffeurAssign,
   sendChauffeurUnassign,
   sendClassChangePay,
+  sendTimeChange,
   type EmailLocale,
 } from "@vamos/emails/confirmation";
 import { asStaff, asSystem, type VamosClaims } from "@/lib/db/identity";
@@ -42,6 +44,8 @@ import {
 } from "./booking-change-map";
 import {
   priceBookingChange,
+  priceClasses,
+  reproduceCharge,
   savedChargeFromSnapshot,
   type BookingChangePrice,
   type ClassPrice,
@@ -52,6 +56,7 @@ import { loadSettingsRows } from "./draft-preview";
 import { DASHBOARD_ORIGIN, openDifferencePayment } from "./edit-request";
 import { loadQuoteBookDocForVersion } from "./rate-book";
 import { resolveStaffBookingId } from "./resolve-booking-id";
+import type { TripFactsInput, TripFactsOk } from "./trip-change-facts";
 import { deliverBookingConfirmation } from "./voucher";
 
 export const dynamic = "force-dynamic";
@@ -69,6 +74,9 @@ export type ChangeContext = {
   paid: boolean;
   paidRappen: number;
   customerRequestWaiting: boolean;
+  /** 26.2 P6: the driver on the first leg, and the turnaround the overlap guard adds to his trips. */
+  assignedChauffeurId?: string | null;
+  turnaroundMinutes?: number | null;
   leg: {
     pickupText: string;
     dropoffText: string;
@@ -112,7 +120,18 @@ export type ChangeDeps = {
     place: { placeId: string | null; lat: number | null; lng: number | null },
     language: GeoLanguage,
   ) => Promise<PlaceFacts | null>;
+  /** 26.2 P6: the trip facts of a new place (preview; Mapbox through the quote pipeline, signed). */
+  tripFacts?: (env: CloudflareEnv, input: TripFactsInput) => Promise<TripFactsOk | ChangeFail>;
+  /** 26.2 P6: the same facts from the preview's signed lock (confirm; no Mapbox call). */
+  verifyTripFacts?: (env: CloudflareEnv, token: string, input: TripFactsInput, nowIso: string) => Promise<TripFactsOk | ChangeFail>;
+  /** 26.2 P6 (D7): another trip of the assigned driver that the trip as edited would overlap. */
+  findDriverClash?: (env: CloudflareEnv, claims: VamosClaims, query: DriverClashQuery) => Promise<DriverClash | null>;
 };
+
+/** 26.2 P6: the time window the trip as edited takes the driver (the overlap guard's own window). */
+export type DriverClashQuery = { bookingId: string; chauffeurId: string; startMs: number; endMs: number };
+/** 26.2 P6: the other trip, as the Edit names it ("VT-26-0807, pickup at 10:30"). */
+export type DriverClash = { reference: string; time: string };
 
 export type ChangeClass = {
   slug: string;
@@ -152,6 +171,8 @@ export type ChangeConfirmed = {
   confirmationSent: boolean;
   /** A driver was taken off the trip (D6); his "trip taken off" mail is best effort. */
   driverTakenOff: boolean;
+  /** 26.2 P6 (D7, D16): the driver who stays was sent the new details (trip assigned / time change). */
+  driverUpdated: boolean;
 };
 
 const n = (value: unknown): number => {
@@ -193,6 +214,7 @@ async function defaultLoadContext(env: CloudflareEnv, claims: VamosClaims, booki
              l.pickup_lat, l.pickup_lng, l.dropoff_lat, l.dropoff_lng,
              l.origin_zone_id::text as origin_zone_id, l.dest_zone_id::text as dest_zone_id,
              l.scheduled_local, l.flight_no, l.pax, l.bags, l.estimated_duration_minutes,
+             l.assigned_chauffeur_id::text as assigned_chauffeur_id, l.turnaround_buffer_minutes,
              lvc.slug as leg_class_slug,
              (select min(x.scheduled_at) from public.booking_legs as x where x.booking_id = b.id) as pickup_at,
              s.id as snapshot_id, s.total_rappen, s.lines, s.rate_version_id, s.shown_alternatives,
@@ -232,6 +254,8 @@ async function defaultLoadContext(env: CloudflareEnv, claims: VamosClaims, booki
     paid: n(row.captured_count) > 0,
     paidRappen: n(row.captured_rappen) - n(row.refunded_rappen),
     customerRequestWaiting: row.customer_waiting === true,
+    assignedChauffeurId: sOrNull(row.assigned_chauffeur_id),
+    turnaroundMinutes: numOrNull(row.turnaround_buffer_minutes),
     leg: {
       pickupText: s(row.pickup_text),
       dropoffText: s(row.dropoff_text),
@@ -294,6 +318,31 @@ async function defaultResolvePlace(
   return null;
 }
 
+/**
+ * Another trip of the driver that the window would overlap: the same rule as the table's overlap
+ * guard (booking_legs_chauffeur_no_overlap), read as staff. The earliest one is named.
+ */
+async function defaultFindDriverClash(env: CloudflareEnv, claims: VamosClaims, q: DriverClashQuery): Promise<DriverClash | null> {
+  const start = new Date(q.startMs).toISOString();
+  const end = new Date(q.endMs).toISOString();
+  const row = await asStaff(env, claims, async (sql) => {
+    const rows = await sql<{ reference: string; scheduled_local: string }[]>`
+      select b.reference, o.scheduled_local
+        from public.booking_legs as o
+        join public.bookings as b on b.id = o.booking_id
+       where o.booking_id <> ${q.bookingId}::uuid
+         and o.assigned_chauffeur_id = ${q.chauffeurId}::uuid
+         and o.status not in ('cancelled', 'no_show')
+         and o.scheduled_range && tstzrange(${start}::timestamptz, ${end}::timestamptz, '[)')
+       order by o.scheduled_at
+       limit 1
+    `;
+    return rows[0] ?? null;
+  });
+  if (!row) return null;
+  return { reference: s(row.reference), time: s(row.scheduled_local).slice(11, 16) };
+}
+
 export const defaultChangeDeps: ChangeDeps = {
   now: () => Date.now(),
   loadContext: defaultLoadContext,
@@ -302,6 +351,10 @@ export const defaultChangeDeps: ChangeDeps = {
   loadVatRateBps: async (env) => (await loadLaunchFlags(env)).vat_rate_bps,
   loadSettings: async (env, claims, computedAt) => (await loadSettingsRows(env, claims, computedAt)).rows,
   resolvePlace: defaultResolvePlace,
+  // Loaded on use: the quote pipeline (and its engine) only when a place changes.
+  tripFacts: async (env, input) => (await import("./trip-change-facts")).runTripFacts(env, input),
+  verifyTripFacts: async (env, token, input, nowIso) => (await import("./trip-change-facts")).verifyTripLock(env, token, input, nowIso),
+  findDriverClash: defaultFindDriverClash,
 };
 
 /**
@@ -340,13 +393,16 @@ export function tripFactsFromContext(
 
 type Priced = { ok: true; ctx: ChangeContext; saved: SavedCharge; price: Extract<BookingChangePrice, { ok: true }> };
 
-/** Rules, then the price step (stored facts when the shown totals pin them, else the Mapbox facts). */
-async function priceForBooking(
+/** The booking a change starts from: rules checked, its price record read as the charge it was. */
+export type LoadedChange = { ok: true; ctx: ChangeContext; saved: SavedCharge; nowMs: number; computedAt: string };
+
+/** The plan rules, then the booking's own price record (P1; P6 starts from the same). */
+export async function loadChangeContext(
   env: CloudflareEnv,
   claims: VamosClaims,
   bookingKey: string,
   deps: ChangeDeps,
-): Promise<Priced | ChangeFail> {
+): Promise<LoadedChange | ChangeFail> {
   const key = bookingKey.trim();
   if (!key) return { ok: false, code: "not-found" };
   let ctx: ChangeContext | null;
@@ -383,42 +439,85 @@ async function priceForBooking(
     : null;
   // The price record must be of the class the trip has (an old in-place class edit breaks that).
   if (!saved || saved.classSlug !== ctx.legClassSlug) return { ok: false, code: "trip-data" };
+  return { ok: true, ctx, saved, nowMs, computedAt: new Date(nowMs).toISOString() };
+}
 
-  const computedAt = new Date(nowMs).toISOString();
-  let today: RateBook;
-  let bookingBook: RateBook;
-  let vatRateBps: number;
-  let settings: SettingsVersionRow[];
+/** Today's live book (D3), the booking's own book, today's VAT rate and the settings. */
+export type ChangeBooks = { today: RateBook; bookingBook: RateBook; vatRateBps: number; settings: SettingsVersionRow[] };
+
+export async function loadChangeBooks(
+  env: CloudflareEnv,
+  claims: VamosClaims,
+  loaded: LoadedChange,
+  deps: ChangeDeps,
+): Promise<{ ok: true; books: ChangeBooks } | ChangeFail> {
+  const { saved, computedAt } = loaded;
   try {
-    today = mapRateBook(await deps.loadLiveBook(env));
+    const today = mapRateBook(await deps.loadLiveBook(env));
     if (!today.rate_version) return { ok: false, code: "pricing-not-live" };
-    bookingBook =
+    const bookingBook =
       saved.rateVersionId === today.rate_version.id
         ? today
         : mapRateBook(await deps.loadBookByVersion(env, claims, saved.rateVersionId));
-    vatRateBps = await deps.loadVatRateBps(env);
-    settings = await deps.loadSettings(env, claims, computedAt);
+    const vatRateBps = await deps.loadVatRateBps(env);
+    const settings = await deps.loadSettings(env, claims, computedAt);
+    return { ok: true, books: { today, bookingBook, vatRateBps, settings } };
   } catch {
     return { ok: false, code: "unknown" };
   }
+}
 
-  const attempt = (facts: TripFacts | null) =>
-    facts
-      ? priceBookingChange({
-          bookingBook: { book: bookingBook, settings, vatRateBps: saved.vatRateBps },
-          today: { book: today, settings, vatRateBps },
-          facts,
-          saved,
-          paidRappen: ctx.paidRappen,
-          computedAt,
-        })
-      : ({ ok: false, code: "trip-data" } as const);
+/** P6: the trip as edited on the route as booked (date, time, party); places do not change here. */
+export type PartyTarget = { scheduledLocal: string; pax: number; bags: number };
+
+/**
+ * The price step on the route as booked (P1): the stored trip when the shown class totals pin it,
+ * else the saved places through Mapbox, checked against what was charged; then every class of
+ * today's book. With a target (P6) the check uses the trip as booked and the new prices the trip as
+ * edited (a party that changes which classes fit).
+ */
+export async function priceOnBookedRoute(
+  env: CloudflareEnv,
+  loaded: LoadedChange,
+  books: ChangeBooks,
+  deps: ChangeDeps,
+  target?: PartyTarget,
+): Promise<Extract<BookingChangePrice, { ok: true }> | ChangeFail> {
+  const { ctx, saved, computedAt } = loaded;
+  const { today, bookingBook, vatRateBps, settings } = books;
+  const todayId = today.rate_version?.id;
+  if (todayId == null) return { ok: false, code: "pricing-not-live" };
+  const attempt = (facts: TripFacts | null): BookingChangePrice => {
+    if (!facts) return { ok: false, code: "trip-data" };
+    const bookingPriced = { book: bookingBook, settings, vatRateBps: saved.vatRateBps };
+    const todayPriced = { book: today, settings, vatRateBps };
+    if (!target) {
+      return priceBookingChange({ bookingBook: bookingPriced, today: todayPriced, facts, saved, paidRappen: ctx.paidRappen, computedAt });
+    }
+    const metres = reproduceCharge(bookingPriced, facts, saved, computedAt);
+    if (metres.length === 0) return { ok: false, code: "trip-data" };
+    return {
+      ok: true,
+      paidRappen: ctx.paidRappen,
+      currentTotalRappen: saved.totalRappen,
+      rateVersionId: todayId,
+      classes: priceClasses({
+        today: todayPriced,
+        facts: { ...facts, scheduledLocal: target.scheduledLocal, pax: target.pax, bags: target.bags },
+        metres,
+        saved,
+        paidRappen: ctx.paidRappen,
+        currentClassSlug: saved.classSlug,
+        computedAt,
+      }),
+    };
+  };
 
   // Same book and the customer's shown class totals on record: the stored trip is checked against
   // every class total, no Mapbox call needed.
-  if (saved.rateVersionId === today.rate_version.id && saved.shownAlternatives.length > 0) {
+  if (saved.rateVersionId === todayId && saved.shownAlternatives.length > 0) {
     const stored = attempt(tripFactsFromContext(ctx, null));
-    if (stored.ok) return { ok: true, ctx, saved, price: stored };
+    if (stored.ok) return stored;
   }
   // Otherwise the saved places through Mapbox (airport, city, canton), checked against the charge.
   const language = geoLanguage(ctx.locale);
@@ -428,12 +527,28 @@ async function priceForBooking(
   ]);
   if (origin || dest) {
     const resolved = attempt(tripFactsFromContext(ctx, { origin, dest }));
-    if (resolved.ok) return { ok: true, ctx, saved, price: resolved };
+    if (resolved.ok) return resolved;
   }
   return { ok: false, code: "trip-data" };
 }
 
-function classOut(row: ClassPrice): ChangeClass {
+/** Rules, then the price step (stored facts when the shown totals pin them, else the Mapbox facts). */
+async function priceForBooking(
+  env: CloudflareEnv,
+  claims: VamosClaims,
+  bookingKey: string,
+  deps: ChangeDeps,
+): Promise<Priced | ChangeFail> {
+  const loaded = await loadChangeContext(env, claims, bookingKey, deps);
+  if (!loaded.ok) return loaded;
+  const loadedBooks = await loadChangeBooks(env, claims, loaded, deps);
+  if (!loadedBooks.ok) return loadedBooks;
+  const price = await priceOnBookedRoute(env, loaded, loadedBooks.books, deps);
+  if (!price.ok) return price;
+  return { ok: true, ctx: loaded.ctx, saved: loaded.saved, price };
+}
+
+export function classOut(row: ClassPrice): ChangeClass {
   return row.ok
     ? { slug: row.slug, name: row.name, current: row.current, ok: true, newTotalRappen: row.newTotalRappen, differenceRappen: row.differenceRappen, code: null }
     : { slug: row.slug, name: row.name, current: row.current, ok: false, newTotalRappen: null, differenceRappen: null, code: row.code };
@@ -572,42 +687,75 @@ export async function confirmBookingChange(
         mailed = false;
       }
     }
-    return { ...base, outcome: "extra_required", payUrl: opened.url, mailed, confirmationSent: false, driverTakenOff: false };
+    return { ...base, outcome: "extra_required", payUrl: opened.url, mailed, confirmationSent: false, driverTakenOff: false, driverUpdated: false };
   }
 
   if (outcome !== "applied" && outcome !== "refund_due") return { ok: false, code: "unknown" };
+  await expireSupersededPage(env, row.old_extra_session_id);
   const after = await afterChangeApplied(env, ctx.bookingId, row.unassigned_chauffeur_id ? String(row.unassigned_chauffeur_id) : null);
   return { ...base, outcome, payUrl: null, mailed: false, ...after };
 }
 
 /**
+ * 26.2 P6: a change applied at once replaced a dearer change that still waited for its payment.
+ * Its Stripe page is closed, so the old link cannot be paid for a change that will never apply.
+ * Best effort: a payment that still arrives is recorded and shows as Refund due (P1 C6).
+ */
+export async function expireSupersededPage(env: CloudflareEnv, sessionId: string | null | undefined): Promise<void> {
+  const id = s(sessionId).trim();
+  if (!id) return;
+  try {
+    await expireCheckoutSession(stripeFromEnv(env), id);
+  } catch {
+    // Already expired or paid.
+  }
+}
+
+/** 26.2 P6 (D16): the existing e-mail a driver who stays on the trip gets. */
+export type KeptDriverMail = { chauffeurId: string; mail: "assign" | "time" };
+
+type MailFactsRow = {
+  email: string | null;
+  languages_csv: string | null;
+  reference: string;
+  pickup_text: string | null;
+  dropoff_text: string | null;
+  scheduled_local: string | null;
+};
+
+async function driverMailFacts(env: CloudflareEnv, bookingId: string, chauffeurId: string): Promise<MailFactsRow | null> {
+  return asSystem(env, async (sql) => {
+    const rows = await sql<MailFactsRow[]>`select * from public.booking_change_mail_facts(${bookingId}::uuid, ${chauffeurId}::uuid)`;
+    return rows[0] ?? null;
+  });
+}
+
+/**
  * After a change was applied (on confirm, or when the difference was paid): the confirmation again
  * with the new class and total (D7); the driver taken off the trip gets the "trip taken off" mail
- * (D6). Mail is best effort: the change already committed.
+ * (D6); a driver who stays gets the existing "trip assigned" mail again for new places, or the
+ * existing time-change mail for a new time alone (26.2 P6, D16). Mail is best effort: the change
+ * already committed.
  */
 export async function afterChangeApplied(
   env: CloudflareEnv,
   bookingId: string,
   unassignedChauffeurId: string | null,
-): Promise<{ confirmationSent: boolean; driverTakenOff: boolean }> {
+  kept: KeptDriverMail | null = null,
+): Promise<{ confirmationSent: boolean; driverTakenOff: boolean; driverUpdated: boolean }> {
   let confirmationSent = false;
   try {
     confirmationSent = (await deliverBookingConfirmation(env, bookingId)).ok;
   } catch {
     confirmationSent = false;
   }
+  const key = env.RESEND_API_KEY ?? "";
   let driverTakenOff = false;
   if (unassignedChauffeurId) {
     driverTakenOff = true;
     try {
-      const facts = await asSystem(env, async (sql) => {
-        const rows = await sql<
-          { email: string | null; languages_csv: string | null; reference: string; pickup_text: string | null; dropoff_text: string | null; scheduled_local: string | null }[]
-        >`select * from public.booking_change_mail_facts(${bookingId}::uuid, ${unassignedChauffeurId}::uuid)`;
-        return rows[0] ?? null;
-      });
+      const facts = await driverMailFacts(env, bookingId, unassignedChauffeurId);
       const to = s(facts?.email).trim();
-      const key = env.RESEND_API_KEY ?? "";
       if (facts && to && key) {
         await sendChauffeurUnassign(
           { RESEND_API_KEY: key },
@@ -625,16 +773,69 @@ export async function afterChangeApplied(
       // The driver is off the trip either way; the dashboard shows it unassigned.
     }
   }
-  return { confirmationSent, driverTakenOff };
+  let driverUpdated = false;
+  if (kept && kept.chauffeurId !== unassignedChauffeurId) {
+    try {
+      const facts = await driverMailFacts(env, bookingId, kept.chauffeurId);
+      const to = s(facts?.email).trim();
+      if (facts && to && key) {
+        const trip = {
+          reference: s(facts.reference),
+          locale: chauffeurEmailLocale(s(facts.languages_csv).split(",").map((x) => x.trim()).filter(Boolean)),
+          pickupText: s(facts.pickup_text),
+          dropoffText: s(facts.dropoff_text),
+          scheduledLocal: s(facts.scheduled_local),
+        };
+        const sent =
+          kept.mail === "assign"
+            ? await sendChauffeurAssign({ RESEND_API_KEY: key }, trip, to)
+            : await sendTimeChange({ RESEND_API_KEY: key }, { ...trip, outcome: "confirmed" }, to);
+        driverUpdated = sent.ok;
+      }
+    } catch {
+      driverUpdated = false;
+    }
+  }
+  return { confirmationSent, driverTakenOff, driverUpdated };
+}
+
+type RequestFactsRow = {
+  booking_id: string;
+  places_changed: boolean;
+  time_changed: boolean;
+  party_changed: boolean;
+  class_changed: boolean;
+  assigned_chauffeur_id: string | null;
+};
+
+/** 26.2 P6: which existing e-mail a driver who stayed gets: new places, else a new time alone. */
+export function keptDriverMail(facts: { places_changed: boolean; time_changed: boolean; class_changed: boolean; assigned_chauffeur_id: string | null } | null): KeptDriverMail | null {
+  if (!facts || facts.class_changed || !facts.assigned_chauffeur_id) return null;
+  if (facts.places_changed) return { chauffeurId: String(facts.assigned_chauffeur_id), mail: "assign" };
+  if (facts.time_changed) return { chauffeurId: String(facts.assigned_chauffeur_id), mail: "time" };
+  return null;
 }
 
 /** Stripe webhook: the difference of a change was paid and the change applied. */
 export async function afterExtraSettled(
   env: CloudflareEnv,
-  row: { booking_id: string; applied?: boolean; unassigned_chauffeur_id?: string | null },
+  row: { booking_id: string; applied?: boolean; unassigned_chauffeur_id?: string | null; request_id?: string | null },
 ): Promise<void> {
   if (row.applied !== true) return;
-  await afterChangeApplied(env, row.booking_id, row.unassigned_chauffeur_id ?? null);
+  let kept: KeptDriverMail | null = null;
+  const requestId = s(row.request_id).trim();
+  if (requestId) {
+    try {
+      const facts = await asSystem(env, async (sql) => {
+        const rows = await sql<RequestFactsRow[]>`select * from public.booking_change_request_facts(${requestId}::uuid)`;
+        return rows[0] ?? null;
+      });
+      kept = keptDriverMail(facts);
+    } catch {
+      kept = null;
+    }
+  }
+  await afterChangeApplied(env, row.booking_id, row.unassigned_chauffeur_id ?? null, kept);
 }
 
 type WaitingRow = { request_id: string; actor: string; extra_session_id: string | null; reference: string };
