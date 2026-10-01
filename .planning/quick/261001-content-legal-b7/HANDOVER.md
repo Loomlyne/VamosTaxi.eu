@@ -36,9 +36,13 @@ Built in a cloud thread: no GSD, no `CLAUDE.local.md`. Nothing deployed, nothing
 
 - The beacon actually counting on vamostaxi.site: it needs the live host, your Cloudflare switch and a real Analytics yes.
 - The Worker build (`wrangler dev`) and the Playwright e2e: not run here. The updated imprint component specs pass locally at 1440 (6 tests). Picture baselines to rebaseline on the Mac: every footer picture (one extra link: Imprint), `imprint-fr`/`imprint-ar` and `legal-notice-fr`/`legal-notice-ar` (no notice bar any more).
-- pgTAP: not run here; GitHub's schema job runs it (`seed_idempotent` re-pinned to the regenerated seed in `3b4b7ce1`).
+- pgTAP: run from zero after the refresh below (92 files, 2,227 tests, pass).
 - Gitleaks flagged the public Web Analytics site tag; `.gitleaks.toml` allows that exact value only (`99476a80`).
 - Withdrawing Analytics consent stops the beacon from the next page on, not on the page where you withdraw.
+
+## Refresh on main 50a2a050 (2026-10-01, after /confirmation landed)
+
+Merged origin/main (main wins). The only conflicts were the generated `seed.sql` and `seed_idempotent.test.sql`. The seed was regenerated: header `content_strings=2693`, `no_param_reason=97` (B7 +1 key, /confirmation +8). `seed_idempotent` is re-pinned to those counts. On the merged tip, in a cloud machine, everything below passes: local Supabase from zero + reset, pgTAP (92 files, 2,227 tests), `db:types:check`, `db:seed:check`, typecheck, lint, lint:css, i18n:check, check:legal-claims, check:numbers, check:public-env, check:db-fences, unit tests (3,633 pass, 5 skipped) and `pnpm build`. Not run: the Playwright e2e and the Mac picture diffs.
 
 ## Migrations
 
