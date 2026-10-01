@@ -9,7 +9,7 @@
 // Server answers are route fixtures (the Worker e2e other-device.e2e.mjs proves the real
 // routes). Runs once under component-1440 with its own `next dev`. Tagged @checkout.
 
-import { test, expect, type Page, type Route } from "@playwright/test";
+import { test, expect, type Page, type Route } from "../support/test";
 import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 import { openInLocale } from "../support/locale";

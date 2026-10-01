@@ -41,7 +41,7 @@ export interface BrandSelectProps {
   onSelect?: (value: string) => void;
   /** Marks the whole control as carrying no translatable copy — the language switcher
    *  labels itself in its own language ("Deutsch", never "German"), and a currency mark
-   *  is a code, not a word. CLAUDE.md § Localisation names `data-i18n-skip` for exactly
+   *  is a code, not a word. CLAUDE.md § Localisation names `data-vt-no-i18n` for exactly
    *  this; the mock spells the same intent `data-vt-no-i18n` on the same two subtrees. */
   i18nSkip?: boolean;
 }
@@ -91,7 +91,7 @@ export function BrandSelect({
     <div
       data-vs-root={field ? "field" : "compact"}
       ref={rootRef}
-      {...(i18nSkip ? { "data-i18n-skip": "" } : {})}
+      {...(i18nSkip ? { "data-vt-no-i18n": "" } : {})}
     >
       <button
         type="button"

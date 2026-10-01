@@ -7,7 +7,7 @@
 // Each case is named for the claim it proves. The gallery is mounted through
 // mountPort with a real NextIntlClientProvider so useLocale/useMessages work.
 
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "../support/test";
 import { mountPort, waitForMockReady } from "../support/mock-harness";
 import { DIR_KEEP_PARAMS, REFUSAL_BINDINGS } from "../../lib/quote/client-contract";
 import enMessages from "../../i18n/messages/en.json";

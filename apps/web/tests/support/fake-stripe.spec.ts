@@ -1,11 +1,11 @@
 // @component — self-test for the fake hosted Stripe page (26.3 D-38). Offline: the app
 // under test is a blank route on a local origin.
-import { test, expect } from "@playwright/test";
+import { test, expect } from "./test";
 import { installFakeStripe, FAKE_STRIPE_HOST } from "./fake-stripe";
 
 const ORIGIN = "http://127.0.0.1:4173";
 
-async function blank(page: import("@playwright/test").Page) {
+async function blank(page: import("./test").Page) {
   await page.route(`${ORIGIN}/**`, (route) => {
     const u = new URL(route.request().url());
     if (u.pathname.startsWith("/api/")) return route.fallback();
@@ -17,7 +17,7 @@ async function blank(page: import("@playwright/test").Page) {
   });
 }
 
-async function startIntent(page: import("@playwright/test").Page) {
+async function startIntent(page: import("./test").Page) {
   await page.goto(`${ORIGIN}/en/checkout`);
   return page.evaluate(async () => {
     const r = await fetch("/api/checkout/intent", {

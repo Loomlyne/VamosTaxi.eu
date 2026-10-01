@@ -6,7 +6,7 @@
 // real /api/quote shape; `route.legs[0].distance_m` is what the page shows. Totals are
 // null (`CHF 000`): no price is invented.
 
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "../support/test";
 import { spawn, type ChildProcess } from "node:child_process";
 import { join } from "node:path";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";

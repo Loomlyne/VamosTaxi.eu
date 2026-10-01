@@ -12,6 +12,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import postgres from "postgres";
 import { withIdentity, type EntryProbeRow } from "../../src/identity.js";
+import { testDbUrl, workerSql } from "../support/worker-client.js";
 import { claimsForSql } from "../../src/claims.js";
 import { assertNoLiveRateVersion, seedTwoCustomers, type LocalIdentity } from "./local-fixtures.js";
 
@@ -20,7 +21,7 @@ import { assertNoLiveRateVersion, seedTwoCustomers, type LocalIdentity } from ".
 // `localConnectionString` plan 03-03 writes into `apps/web/wrangler.jsonc`. This is the ONLY
 // connection string this file ever opens; the superuser string lives in `local-fixtures.ts`
 // alone (D-04 -- BYPASSRLS makes `42501` untestable on a superuser connection).
-const CS = "postgres://vamos_edge:vamos_edge@127.0.0.1:54322/postgres";
+const CS = testDbUrl("edge");
 
 /**
  * DEVIATION (Rule 3, blocking-issue auto-fix): `postgres@3.4.9`'s reserved connection object
@@ -64,7 +65,7 @@ beforeAll(async () => {
   identities = await seedTwoCustomers();
   expect(await assertNoLiveRateVersion(), "D-21: no rate_versions row may be live for this suite").toBe(true);
 
-  sql = postgres(CS, { max: 1, fetch_types: false, prepare: true, connect_timeout: 10 });
+  sql = workerSql(CS);
   // DEVIATION (Rule 3, blocking-issue auto-fix): `postgres@3.4.9`'s `sql.reserve()` hangs
   // indefinitely when called against a completely cold pool (confirmed empirically -- `open`
   // has nothing to shift and the `closed`-slot connect path never resolves the reserve

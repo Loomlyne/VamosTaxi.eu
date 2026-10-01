@@ -1,12 +1,13 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../support/test";
+import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 
 const PORTS: Record<string, number> = {
-  "component-1440": 4150,
-  "component-1024": 4151,
-  "component-768": 4152,
-  "component-390": 4153,
+  "component-1440": testPort(4150),
+  "component-1024": testPort(4151),
+  "component-768": testPort(4152),
+  "component-390": testPort(4153),
 };
 
 let devServer: ChildProcess | null = null;
@@ -17,7 +18,7 @@ test.describe("About page @component", () => {
 
   test.beforeAll(async ({}, testInfo) => {
     testInfo.setTimeout(90_000);
-    const port = PORTS[testInfo.project.name] ?? 4159;
+    const port = PORTS[testInfo.project.name] ?? testPort(4159);
     baseURL = `http://localhost:${port}`;
     devServer = spawn(NEXT_BIN, ["dev", "-p", String(port)], {
       cwd: WEB_ROOT,

@@ -114,12 +114,6 @@ export default [
       "packages/db/src/public.ts",
       "apps/isolation-probe/**",
       "packages/db/test/**",
-      // 26.3: the three specs that run the real checkout code against the port-shifted local
-      // stack (127.0.0.1:55322, refuse any other host). Test-only, never bundled, same reason
-      // as packages/db/test/**: they open a raw client to prove the shipped SQL path.
-      "apps/web/tests/integration/checkout-server-db.spec.ts",
-      "apps/web/tests/integration/intent-supersede-db.spec.ts",
-      "apps/web/tests/integration/extras-charged-recorded-db.spec.ts",
       "apps/web/app/**",
       "apps/web/lib/**",
     ],

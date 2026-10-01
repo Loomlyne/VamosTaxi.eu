@@ -3,7 +3,7 @@
  * languages: text, no gap pill, translation coverage empty, no sideways scroll, Arabic RTL.
  * The texts come from the decision file. Runs once under component-1440 (resizes itself).
  */
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../support/test";
 import { spawn, type ChildProcess } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";

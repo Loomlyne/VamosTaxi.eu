@@ -162,7 +162,7 @@ async function LiveProof() {
 
   return (
     <main data-live="1">
-      <p data-chrome="1" data-i18n-skip>
+      <p data-chrome="1" data-vt-no-i18n>
         Home chrome
       </p>
       <p data-brand="1">{brand ? pickLocaleColumn(brand, locale) : ""}</p>

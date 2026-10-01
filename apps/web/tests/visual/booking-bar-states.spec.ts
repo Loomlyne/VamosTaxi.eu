@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "../support/test";
 import { serveMock, waitForMockReady } from "../support/mock-harness";
 
 // Phase 26.4 plan 04 — the BookingBar states gallery renders every state in en/de/fr/ar

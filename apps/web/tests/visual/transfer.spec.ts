@@ -31,7 +31,7 @@
 // viewport rule — the Fidelity Contract's reduced-viewport allowance (1440/390 only)
 // applies to them.
 
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "../support/test";
 import { mountBundle, mountPort, waitForMockReady } from "../support/mock-harness";
 import enMessages from "../../i18n/messages/en.json";
 import deMessages from "../../i18n/messages/de.json";

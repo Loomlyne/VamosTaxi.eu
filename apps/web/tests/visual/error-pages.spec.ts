@@ -46,7 +46,8 @@
 //
 // Tagged `@error-pages` per this plan's own artifact list.
 
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "../support/test";
+import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { mountPort, waitForMockReady } from "../support/mock-harness";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
@@ -112,7 +113,7 @@ test.describe("not-found.tsx @component @error-pages", () => {
   test.beforeAll(async ({}, testInfo) => {
     if (!REDUCED_VIEWPORT_PROJECTS.has(testInfo.project.name)) return;
     testInfo.setTimeout(90_000);
-    const port = 4100 + testInfo.workerIndex;
+    const port = testPort(4100) + testInfo.workerIndex;
     baseURL = `http://localhost:${port}`;
     devServer = spawn(NEXT_BIN, ["dev", "-p", String(port)], {
       cwd: WEB_ROOT,

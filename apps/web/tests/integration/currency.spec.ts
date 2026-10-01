@@ -15,7 +15,8 @@
 // mapping for I18N-05) runs this suite alone, and the plain `pnpm test:visual` still
 // picks it up as part of the full run.
 
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "../support/test";
+import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 
@@ -29,7 +30,7 @@ test.beforeAll(async ({}, testInfo) => {
 
   testInfo.setTimeout(90_000);
 
-  const port = 4100 + testInfo.workerIndex;
+  const port = testPort(4100) + testInfo.workerIndex;
   baseURL = `http://localhost:${port}`;
   devServer = spawn(NEXT_BIN, ["dev", "-p", String(port)], {
     cwd: WEB_ROOT,

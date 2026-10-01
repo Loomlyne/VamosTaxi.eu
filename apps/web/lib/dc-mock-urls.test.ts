@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   accountDcPath,
   canonicalPublicFromLeak,
@@ -204,5 +204,34 @@ describe("dc mock URL gate", () => {
     expect(
       gatePublicRequest(doc("/login", { host: "dashboard.vamostaxi.site" })),
     ).toBeNull();
+  });
+});
+
+describe("dev gallery switch (26.0 D-02)", () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("404s /dev when the switch is off", () => {
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("VAMOS_DEV_GALLERY", "");
+    expect(should404MockLeak("/dev")).toBe(true);
+    expect(should404MockLeak("/de/dev/home/services")).toBe(true);
+  });
+  it("lets /dev through when the switch is on, mocks stay 404", () => {
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("VAMOS_DEV_GALLERY", "1");
+    expect(should404MockLeak("/dev")).toBe(false);
+    expect(should404MockLeak("/de/dev/home/services")).toBe(false);
+    expect(should404MockLeak("/app/pages/x.dc.html")).toBe(true);
+  });
+  it("stays 404 under production even with the flag", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("VAMOS_DEV_GALLERY", "1");
+    expect(should404MockLeak("/dev")).toBe(true);
+  });
+  it("worker gate still answers not-found with the switch on", () => {
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("VAMOS_DEV_GALLERY", "1");
+    expect(gatePublicRequest(doc("/dev"))).toBe("not-found");
+    expect(gatePublicRequest(doc("/dev/home/services"))).toBe("not-found");
   });
 });

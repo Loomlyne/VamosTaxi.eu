@@ -79,7 +79,7 @@
 //      (1440) for the same reason; the CTA's correct uppercase rendering is still
 //      screenshotted, just as a port-only state (every other test in this file).
 
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "../support/test";
 import { mountPort, serveMock, waitForMockReady } from "../support/mock-harness";
 import enMessages from "../../i18n/messages/en.json";
 import deMessages from "../../i18n/messages/de.json";
