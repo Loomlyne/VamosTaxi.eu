@@ -70,6 +70,8 @@
 [data-vt-foot-main] .vt-btn{width:100%}
 [data-vt-foot-del]{order:2;align-self:center}
 [data-vt-foot-del] .vt-btn{margin-inline-start:0}
+/* A field that asks for it (phoneFull) takes the whole row on a phone, so its value is not cut. */
+[data-vt-phone-full="1"]{grid-column:1 / -1 !important}
 }
 [data-vt-save-err]{box-sizing:border-box;display:flex;align-items:center;gap:10px;padding:8px 14px;margin-bottom:16px;border:1px solid var(--vt-danger);border-radius:var(--vt-radius-pill);background:var(--vt-danger-tint);font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-danger)}
 [data-vt-time-wrap] input{all:unset;flex:1 1 auto;min-width:0;width:100%;font:inherit;color:inherit;background:transparent;caret-color:var(--vt-charcoal-900)}
@@ -197,7 +199,7 @@
 </sc-if>
 <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px">
 <sc-for list="{{ formFields }}" as="f" hint-placeholder-count="5">
-<div style="grid-column:{{ f.span }};min-width:0;display:{{ f.show }};position:{{ f.sugPos }};z-index:{{ f.sugZ }}">
+<div data-vt-phone-full="{{ f.phoneFull }}" style="grid-column:{{ f.span }};min-width:0;display:{{ f.show }};position:{{ f.sugPos }};z-index:{{ f.sugZ }}">
 
 <sc-if value="{{ f.isText }}" hint-placeholder-val="{{ true }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" icon="{{ f.inputIcon }}" label="{{ f.label }}" value="{{ f.value }}" onChange="{{ f.set }}" placeholder="{{ f.placeholder }}" hint="{{ f.hint }}" error="{{ f.error }}" suffix="{{ f.suffix }}" required="{{ f.required }}" hint-size="100%,76px"></x-import>
@@ -505,7 +507,7 @@
 
    columns: [{ key, header, width, align, kind, subKey, tones, emptyLabel, prefix }]
      kind  'text' | 'stack' | 'mono' | 'badge' | 'money' | 'need' | 'bool'
-   fields:  [{ key, label, editor, options, placeholder, hint, required, half, icon, readonly }]
+   fields:  [{ key, label, editor, options, placeholder, hint, required, half, phoneFull, icon, readonly }]
      editor 'text' | 'number' | 'year' | 'phone' | 'date' | 'time' | 'select' | 'switch' | 'area' | 'photo' */
 /* A leading icon is what makes a console field read like the client-facing ones on the
    booking widget, so the schema's key picks the same glyph the front page uses. */
@@ -1570,6 +1572,7 @@ class Component extends DCLogic {
         placeholder: f.placeholder || '', suffix: f.suffix || '',
         error: err, required: !!f.required,
         span: f.half ? 'span 1' : 'span 2',
+        phoneFull: f.phoneFull ? '1' : '0',
         pair: f.pair || '',
         show: this.fieldVisible(f, d) ? 'block' : 'none',
         icon: f.icon || 'settings',

@@ -1,8 +1,12 @@
 -- ops_assign_leg.test.sql
 --
--- 08-04: unpaid / no-email / no-vehicle / overlap 23P01 / unassign clears FKs /
--- events / frozen cancelled. EXECUTE vamos_system only. Rolled back. Synthetic
--- 1-rappen figures only — never a product CHF.
+-- 08-04: unpaid / no-email / overlap 23P01 / unassign clears FKs / events / frozen
+-- cancelled. EXECUTE vamos_system only. Rolled back. Synthetic 1-rappen figures only —
+-- never a product CHF.
+-- 20261007160000 (owner, 2026-10-01: no cars): a driver is assigned by his class and never
+-- with a vehicle — the no-vehicle refusal is gone, assigned_vehicle_id stays null (even for a
+-- driver with an old default_vehicle_id), no assignment.vehicle_set event. The class rules
+-- have their own file, assign_by_class.test.sql.
 begin;
 select plan(24);
 
@@ -13,16 +17,17 @@ insert into public.vehicles (vehicle_class_id, model, plate, seats, bags)
 select vc.id, 'OAL Car', 'ZH-OAL-01', 4, 4
   from public.vehicle_classes vc where vc.slug = 'oal-class';
 
-insert into public.chauffeurs (full_name, phone, email, licence_number, default_vehicle_id)
-select 'OAL Good', '+41 79 804 00 01', 'oal-good@vamostaxi.eu', 'LIC-OAL-G', v.id
+insert into public.chauffeurs (full_name, phone, email, licence_number, default_vehicle_id, vehicle_class_id)
+select 'OAL Good', '+41 79 804 00 01', 'oal-good@vamostaxi.eu', 'LIC-OAL-G', v.id, v.vehicle_class_id
   from public.vehicles v where v.plate = 'ZH-OAL-01';
 
-insert into public.chauffeurs (full_name, phone, licence_number, default_vehicle_id)
-select 'OAL No Email', '+41 79 804 00 02', 'LIC-OAL-E', v.id
+insert into public.chauffeurs (full_name, phone, licence_number, default_vehicle_id, vehicle_class_id)
+select 'OAL No Email', '+41 79 804 00 02', 'LIC-OAL-E', v.id, v.vehicle_class_id
   from public.vehicles v where v.plate = 'ZH-OAL-01';
 
-insert into public.chauffeurs (full_name, phone, email, licence_number)
-values ('OAL No Vehicle', '+41 79 804 00 03', 'oal-noveh@vamostaxi.eu', 'LIC-OAL-V');
+insert into public.chauffeurs (full_name, phone, email, licence_number, vehicle_class_id)
+select 'OAL No Vehicle', '+41 79 804 00 03', 'oal-noveh@vamostaxi.eu', 'LIC-OAL-V', vc.id
+  from public.vehicle_classes vc where vc.slug = 'oal-class';
 
 insert into auth.users (id, email, aud, role, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
 values (
@@ -189,14 +194,12 @@ select throws_ok(
   'no-email assign refused'
 );
 
-select throws_ok(
+select lives_ok(
   format(
     $f$select * from public.ops_assign_leg(%L::uuid, %L::uuid, %L::uuid)$f$,
     (select paid_a from fx), (select no_vehicle from fx), (select actor from fx)
   ),
-  'P0001',
-  'no-vehicle',
-  'no-vehicle assign refused'
+  'a driver without a car is assigned (2026-10-01: no cars)'
 );
 
 select lives_ok(
@@ -204,7 +207,7 @@ select lives_ok(
     $f$select * from public.ops_assign_leg(%L::uuid, %L::uuid, %L::uuid)$f$,
     (select paid_a from fx), (select good from fx), (select actor from fx)
   ),
-  'paid assign writes both FKs'
+  'reassign to another driver of the class'
 );
 
 -- ops_assign_leg defers the GiST EXCLUDE to COMMIT (D-48, 20260910164004), and this
@@ -227,10 +230,10 @@ select ok(
       from public.booking_legs l
       join public.chauffeurs c on c.id = l.assigned_chauffeur_id
      where l.booking_id = (select paid_a from fx)
-       and l.assigned_vehicle_id is not null
+       and l.assigned_vehicle_id is null
        and c.licence_number = 'LIC-OAL-G'
   ),
-  'assign sets chauffeur and default vehicle FKs'
+  'assign sets the chauffeur and no vehicle, even for a driver with an old default car'
 );
 
 select ok(
@@ -243,12 +246,12 @@ select ok(
 );
 
 select ok(
-  exists (
+  not exists (
     select 1 from public.booking_events
      where booking_id = (select paid_a from fx)
        and kind = 'assignment.vehicle_set'
   ),
-  'assignment.vehicle_set event inserted'
+  'no assignment.vehicle_set event'
 );
 
 select lives_ok(

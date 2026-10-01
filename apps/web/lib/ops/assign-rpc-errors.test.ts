@@ -32,7 +32,6 @@ import { assignBooking, unassignBooking } from "./assign";
 
 const BOOKING = "b0000000-0000-4000-8000-000000000006";
 const CHAUFFEUR = "c0000000-0000-4000-8000-000000000004";
-const VEHICLE = "87a4578f-0000-4000-8000-000000000003";
 const env = {} as CloudflareEnv;
 const claims: VamosClaims = {
   sub: "a0000000-0000-4000-8000-000000000005",
@@ -69,11 +68,19 @@ beforeEach(() => {
 });
 
 describe("assignBooking answers the RPC's refusal instead of throwing", () => {
-  it("chauffeur without a vehicle (the owner's live shape, 2026-09-30) → no-vehicle", async () => {
-    asSystem.mockImplementation(beginLike({ queryError: pgError("no-vehicle", "P0001") }));
+  it("chauffeur without a class (raced past the page's check) → no-class (no cars, 2026-10-01)", async () => {
+    asSystem.mockImplementation(beginLike({ queryError: pgError("no-class", "P0001") }));
     await expect(assignBooking(env, claims, BOOKING, CHAUFFEUR)).resolves.toEqual({
       ok: false,
-      code: "no-vehicle",
+      code: "no-class",
+    });
+  });
+
+  it("chauffeur of another class (raced past the page's check) → class-mismatch", async () => {
+    asSystem.mockImplementation(beginLike({ queryError: pgError("class-mismatch", "P0001") }));
+    await expect(assignBooking(env, claims, BOOKING, CHAUFFEUR)).resolves.toEqual({
+      ok: false,
+      code: "class-mismatch",
     });
   });
 
@@ -89,7 +96,7 @@ describe("assignBooking answers the RPC's refusal instead of throwing", () => {
   it("an overlap that fails at COMMIT → overlap with the other trip", async () => {
     asSystem.mockImplementation(
       beginLike({
-        rows: [{ booking_id: BOOKING, leg_id: "l1", chauffeur_id: CHAUFFEUR, vehicle_id: VEHICLE }],
+        rows: [{ booking_id: BOOKING, leg_id: "l1", chauffeur_id: CHAUFFEUR, vehicle_id: null }],
         commitError: pgError("conflicting key value violates exclusion constraint", "23P01"),
       }),
     );
@@ -102,9 +109,9 @@ describe("assignBooking answers the RPC's refusal instead of throwing", () => {
     });
   });
 
-  it("a clean run still returns the assigned chauffeur and vehicle", async () => {
+  it("a clean run returns the assigned chauffeur and no vehicle (the RPC answers vehicle_id null)", async () => {
     asSystem.mockImplementation(
-      beginLike({ rows: [{ booking_id: BOOKING, leg_id: "l1", chauffeur_id: CHAUFFEUR, vehicle_id: VEHICLE }] }),
+      beginLike({ rows: [{ booking_id: BOOKING, leg_id: "l1", chauffeur_id: CHAUFFEUR, vehicle_id: null }] }),
     );
     asStaff.mockResolvedValue({ mail: null, customer: null });
     await expect(assignBooking(env, claims, BOOKING, CHAUFFEUR)).resolves.toEqual({
@@ -112,7 +119,6 @@ describe("assignBooking answers the RPC's refusal instead of throwing", () => {
       bookingId: BOOKING,
       legId: "l1",
       chauffeurId: CHAUFFEUR,
-      vehicleId: VEHICLE,
     });
   });
 });

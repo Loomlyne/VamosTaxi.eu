@@ -14,8 +14,10 @@ update public.rate_versions set status = 'live' where slug = 'mbd-rv';
 
 insert into public.vehicles (vehicle_class_id, model, plate)
 select id, 'Mercedes V-Class', 'ZH 123456' from public.vehicle_classes where slug = 'mbd-class';
-insert into public.chauffeurs (full_name, phone, licence_number, email, note)
-values ('Anna Marie Keller', '+41 79 000 00 77', 'LIC-MBD', 'anna.private@example.test', 'private note');
+-- 20261007160000 (owner, 2026-10-01: no cars): the driver block shows the chauffeur's own plate,
+-- never the car's (the leg below still points at an old car row to prove it), and no car model.
+insert into public.chauffeurs (full_name, phone, licence_number, email, note, plate)
+values ('Anna Marie Keller', '+41 79 000 00 77', 'LIC-MBD', 'anna.private@example.test', 'private note', 'ZH 765 432');
 
 insert into public.bookings (reference, contact_name, contact_email, status, locale)
 values
@@ -127,8 +129,8 @@ select ok((select a -> 'money' -> 'payment_method_type' = 'null'::jsonb from mbd
 -- Driver ------------------------------------------------------------------------------
 select is((select a -> 'driver' ->> 'first_name' from mbd), 'Anna', 'driver: first name only');
 select is((select a -> 'driver' ->> 'phone' from mbd), '+41 79 000 00 77', 'driver: phone');
-select is((select a -> 'driver' ->> 'vehicle_model' from mbd), 'Mercedes V-Class', 'driver: vehicle model');
-select is((select a -> 'driver' ->> 'plate' from mbd), 'ZH 123456', 'driver: plate');
+select ok((select a -> 'driver' -> 'vehicle_model' = 'null'::jsonb from mbd), 'driver: no car model (no cars, 2026-10-01)');
+select is((select a -> 'driver' ->> 'plate' from mbd), 'ZH 765 432', 'driver: the chauffeur''s plate, not the car''s');
 select is((select array_agg(k order by k) from mbd, jsonb_object_keys(a -> 'driver') k),
   array['first_name', 'phone', 'plate', 'vehicle_model'], 'driver: exactly the four keys');
 select ok(position('Keller' in (select a::text from mbd)) = 0

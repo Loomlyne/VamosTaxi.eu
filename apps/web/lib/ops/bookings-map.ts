@@ -20,6 +20,10 @@ export type OpsBookingRow = {
   pickup: string;
   dropoff: string;
   klass: string;
+  /** The trip's class row (first leg); Assign lists only the chauffeurs of this class (2026-10-01). */
+  vehicleClassId: string;
+  /** The class as the owner named it on the price book, "" when unnamed. */
+  className: string;
   vehicle: string;
   pax: number;
   bags: number;
@@ -29,6 +33,8 @@ export type OpsBookingRow = {
   chauffeurEmail: string;
   assignedChauffeurId: string;
   assignedVehicleId: string;
+  /** chauffeurs.plate of the assigned driver (no cars, 2026-10-01). */
+  chauffeurPlate: string;
   flight: string;
   note: string;
   paid: boolean;
@@ -88,7 +94,10 @@ export type SqlBoardRow = {
   pax: number | null;
   bags: number | null;
   class_slug: string | null;
+  vehicle_class_id?: string | null;
+  class_name?: string | null;
   chauffeur_name: string | null;
+  chauffeur_plate?: string | null;
   chauffeur_email?: string | null;
   assigned_chauffeur_id?: string | null;
   assigned_vehicle_id?: string | null;
@@ -346,6 +355,8 @@ export function mapBoardBooking(row: SqlBoardRow): OpsBookingRow {
     pickup: str(row.pickup_text),
     dropoff: str(row.dropoff_text),
     klass,
+    vehicleClassId: str(row.vehicle_class_id),
+    className: str(row.class_name).trim(),
     vehicle: fleetVehicle(str(row.vehicle_plate), str(row.vehicle_model)),
     pax: Number(row.pax ?? 1) || 1,
     bags: Number(row.bags ?? 0) || 0,
@@ -355,6 +366,7 @@ export function mapBoardBooking(row: SqlBoardRow): OpsBookingRow {
     chauffeurEmail: str(row.chauffeur_email),
     assignedChauffeurId: str(row.assigned_chauffeur_id),
     assignedVehicleId: str(row.assigned_vehicle_id),
+    chauffeurPlate: str(row.chauffeur_plate).trim(),
     flight: str(row.flight_no),
     note: str(row.note),
     paid,

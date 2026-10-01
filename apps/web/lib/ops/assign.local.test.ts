@@ -1,14 +1,15 @@
 // apps/web/lib/ops/assign.local.test.ts
 //
-// Quick 260930-dash-assign. The owner's live shape (2026-09-30) on a real local database, through
-// the REAL assignBooking: asStaff resolves the booking, asSystem runs ops_assign_leg, both on
-// postgres.js with the Worker's client options. One chauffeur without a default vehicle, one
-// vehicle of another class that nobody drives, one paid booking. ops_assign_leg raises
-// 'no-vehicle'; the dashboard must get that code back, not a thrown error (a 500, which the page
-// shows as the generic "Could not assign"). Then the chauffeur is put on the vehicle the way
-// persistVehicleSeats (chauffeur-desk.ts) writes a Morning seat, and the same call assigns. A
-// second paid trip at the same time for the same chauffeur then fails at COMMIT (the GiST
-// constraints are deferred) and must come back as overlap with the first trip.
+// Quick 260930-dash-assign, moved to the no-cars rule by quick 261001-chauffeur-car (owner,
+// 2026-10-01: each chauffeur is chosen by a class; Assign never needs a car). On a real local
+// database, through the REAL assignBooking: asStaff reads the class facts and resolves the
+// booking, asSystem runs ops_assign_leg (20261007160000), both on postgres.js with the Worker's
+// client options. The owner's live shape: one chauffeur without a car, one vehicle row nobody
+// uses, one paid booking. A chauffeur without a class is refused (no-class), one of another class
+// is refused with the names (class-mismatch); with the trip's class he is assigned with NO vehicle.
+// A second paid trip at the same time for the same chauffeur then fails at COMMIT (the GiST
+// constraints are deferred) and must come back as overlap with the first trip. The unused vehicle
+// row is never touched.
 //
 // Skipped unless VAMOS_LOCAL_DB_PORT names a DISPOSABLE local stack: the fixture is COMMITTED
 // (unique per run). Host is fixed to 127.0.0.1.
@@ -24,7 +25,7 @@ import { assignBooking } from "./assign";
 const PORT = process.env["VAMOS_LOCAL_DB_PORT"];
 
 describe.skipIf(!PORT)("assignBooking on the owner's live shape (local, committed fixture)", () => {
-  it("answers no-vehicle without a car, class-mismatch for a car of another class, assigns with a car of the trip's class, answers overlap on a clash", async () => {
+  it("answers no-class without a class, class-mismatch for another class, assigns the trip's class with no vehicle, answers overlap on a clash", async () => {
     const env = {
       HYPERDRIVE_NOCACHE: { connectionString: `postgres://vamos_edge:vamos_edge@127.0.0.1:${PORT}/postgres` },
     } as unknown as CloudflareEnv;
@@ -40,25 +41,25 @@ describe.skipIf(!PORT)("assignBooking on the owner's live shape (local, committe
     try {
       await su.begin(async (tx) => {
         await tx`
-          insert into public.vehicle_classes (id, slug, passenger_capacity, luggage_capacity)
-          values (${classA}::uuid, ${`${tag}-a`}, 3, 3), (${classB}::uuid, ${`${tag}-b`}, 3, 3)`;
-        // The only vehicle: another class than the chauffeur's, in service, no chauffeur seat.
+          insert into public.vehicle_classes (id, slug, name, passenger_capacity, luggage_capacity)
+          values (${classA}::uuid, ${`${tag}-a`}, 'Business', 3, 3), (${classB}::uuid, ${`${tag}-b`}, 'Economy', 3, 3)`;
+        // The live shape: one vehicle row nobody uses. It must stay exactly as it is.
         await tx`
           insert into public.vehicles (id, vehicle_class_id, model, plate, seats, bags, status)
           values (${vehicleId}::uuid, ${classB}::uuid, 'Local car', ${`ZH-${tag}`}, 3, 3, 'service')`;
-        // The only chauffeur: active, off, no default vehicle, no login.
+        // The only chauffeur: active, no car, no class yet, a plate, no login.
         await tx`
           insert into public.chauffeurs (id, full_name, phone, email, licence_number, default_vehicle_id,
-                                         vehicle_class_id, languages, status, active, user_id)
-          values (${chauffeurId}::uuid, 'Local Driver', '+41 79 000 00 04', ${`${tag}@example.test`},
-                  ${`LIC-${tag}`}, null, ${classA}::uuid, '{ar,en,fr}', 'off', true, null)`;
+                                         vehicle_class_id, plate, languages, status, active, user_id)
+          values (${chauffeurId}::uuid, 'Marco Local', '+41 79 000 00 04', ${`${tag}@example.test`},
+                  ${`LIC-${tag}`}, null, null, ${`ZH ${tag}`}, '{ar,en,fr}', 'off', true, null)`;
         await tx`
           insert into auth.users (id, email, aud, role, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
           values (${userId}::uuid, ${`${tag}-owner@example.test`}, 'authenticated', 'authenticated', '{}', '{}', now(), now())`;
         await tx`
           insert into public.staff (user_id, role, active, full_name, accepted_at)
           values (${userId}::uuid, 'admin', true, 'Local Owner', now())`;
-        // Two paid bookings at the same pickup time (one transaction, so the same now()).
+        // Two paid Business bookings at the same pickup time (one transaction, so the same now()).
         for (const [n, id] of [bookingId, otherBookingId].entries()) {
           await tx`
             insert into public.bookings (id, reference, contact_name, contact_email, status)
@@ -88,6 +89,7 @@ describe.skipIf(!PORT)("assignBooking on the owner's live shape (local, committe
           await tx`set local session_replication_role = origin`;
         }
       });
+      const [carBefore] = await su<{ row: string }[]>`select row_to_json(v)::text as row from public.vehicles v where v.id = ${vehicleId}::uuid`;
 
       const claims: VamosClaims = {
         sub: userId,
@@ -96,26 +98,29 @@ describe.skipIf(!PORT)("assignBooking on the owner's live shape (local, committe
         app_metadata: { vamos_role: "admin" },
       };
 
-      // The owner's click: the page sends the booking uuid and the only chauffeur's id.
+      // The owner's click: the page sends the booking uuid and the only chauffeur's id. No class yet.
       const first = await assignBooking(env, claims, bookingId, chauffeurId);
-      expect(first).toEqual({ ok: false, code: "no-vehicle" });
+      expect(first).toEqual({ ok: false, code: "no-class", driverName: "Marco Local", tripClass: "Business" });
 
-      // Fleet → vehicle → Morning chauffeur (chauffeur-desk.ts persistVehicleSeats writes both).
-      await su`insert into public.vehicle_seats (vehicle_id, seat, chauffeur_id) values (${vehicleId}::uuid, 'morning', ${chauffeurId}::uuid)`;
-      await su`update public.chauffeurs set default_vehicle_id = ${vehicleId}::uuid where id = ${chauffeurId}::uuid`;
-
-      // Owner, 2026-10-01: a car of another class than the trip is refused (class-mismatch).
+      // Chauffeurs → Marco → Class: Economy. The trip is Business: refused with the names.
+      await su`update public.chauffeurs set vehicle_class_id = ${classB}::uuid where id = ${chauffeurId}::uuid`;
       const mismatch = await assignBooking(env, claims, bookingId, chauffeurId);
-      expect(mismatch).toMatchObject({ ok: false, code: "class-mismatch" });
+      expect(mismatch).toEqual({
+        ok: false,
+        code: "class-mismatch",
+        driverName: "Marco Local",
+        driverClass: "Economy",
+        tripClass: "Business",
+      });
 
-      // The car is the trip's class: the assignment goes through.
-      await su`update public.vehicles set vehicle_class_id = ${classA}::uuid where id = ${vehicleId}::uuid`;
+      // Class: Business. The assignment goes through with no vehicle at all.
+      await su`update public.chauffeurs set vehicle_class_id = ${classA}::uuid where id = ${chauffeurId}::uuid`;
       const second = await assignBooking(env, claims, bookingId, chauffeurId);
-      expect(second).toMatchObject({ ok: true, bookingId, chauffeurId, vehicleId });
-      const [leg] = await su<{ chauffeur: string; vehicle: string; status: string }[]>`
+      expect(second).toEqual({ ok: true, bookingId, legId: expect.any(String), chauffeurId });
+      const [leg] = await su<{ chauffeur: string; vehicle: string | null; status: string }[]>`
         select assigned_chauffeur_id::text as chauffeur, assigned_vehicle_id::text as vehicle, status::text as status
           from public.booking_legs where booking_id = ${bookingId}::uuid`;
-      expect(leg).toEqual({ chauffeur: chauffeurId, vehicle: vehicleId, status: "assigned" });
+      expect(leg).toEqual({ chauffeur: chauffeurId, vehicle: null, status: "assigned" });
 
       // Same chauffeur, same pickup time: the deferred GiST constraint fails at COMMIT (23P01).
       const [firstTrip] = await su<{ reference: string; scheduled_local: string }[]>`
@@ -128,6 +133,10 @@ describe.skipIf(!PORT)("assignBooking on the owner's live shape (local, committe
         otherRef: firstTrip!.reference,
         otherLocal: firstTrip!.scheduled_local,
       });
+
+      // The vehicle row nobody uses is exactly as it was.
+      const [carAfter] = await su<{ row: string }[]>`select row_to_json(v)::text as row from public.vehicles v where v.id = ${vehicleId}::uuid`;
+      expect(carAfter).toEqual(carBefore);
     } finally {
       await su.end({ timeout: 1 });
     }

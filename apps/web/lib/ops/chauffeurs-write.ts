@@ -3,8 +3,8 @@
 // Chauffeur mutations for the JSON door. SQL stays here so the route never
 // imports postgres. Every write is asStaff (D-02).
 
-import { asStaff, type VamosClaims } from "../db/identity";
-import type { AssertedChauffeurInput } from "./chauffeurs-model";
+import { asStaff, asSystem, type VamosClaims } from "../db/identity";
+import { ChauffeurInputError, type AssertedChauffeurInput, type ChauffeurDeleteResult } from "./chauffeurs-model";
 import { persistChauffeurDesk } from "./chauffeur-desk";
 
 /** Postgres `text[]` literal. A JS array can bind as a scalar and throw 22P02. */
@@ -18,11 +18,13 @@ export async function insertChauffeur(
   id: string | null,
   parsed: AssertedChauffeurInput,
 ): Promise<string> {
+  // Owner, decision 7 (2026-10-01): a new chauffeur needs a plate number.
+  if (!parsed.plate) throw new ChauffeurInputError("chauffeurs-failure-plate-required");
   return asStaff(env, claims, async (sql) => {
     if (id) {
       const rows = await sql<{ id: string }[]>`
         insert into public.chauffeurs (
-          id, full_name, phone, email, default_vehicle_id, vehicle_class_id,
+          id, full_name, phone, email, default_vehicle_id, vehicle_class_id, plate,
           licence_number, licence_expires_on, languages, status,
           photo_path, note, active, updated_at
         ) values (
@@ -32,6 +34,7 @@ export async function insertChauffeur(
           ${parsed.email},
           ${parsed.defaultVehicleId},
           ${parsed.vehicleClassId ?? null},
+          ${parsed.plate ?? null},
           ${parsed.licenceNumber},
           ${parsed.licenceExpiresOn},
           ${pgTextArrayLiteral(parsed.languages)}::text[],
@@ -51,7 +54,7 @@ export async function insertChauffeur(
     }
     const rows = await sql<{ id: string }[]>`
       insert into public.chauffeurs (
-        full_name, phone, email, default_vehicle_id, vehicle_class_id,
+        full_name, phone, email, default_vehicle_id, vehicle_class_id, plate,
         licence_number, licence_expires_on, languages, status,
         photo_path, note, active, updated_at
       ) values (
@@ -60,6 +63,7 @@ export async function insertChauffeur(
         ${parsed.email},
         ${parsed.defaultVehicleId},
         ${parsed.vehicleClassId ?? null},
+        ${parsed.plate ?? null},
         ${parsed.licenceNumber},
         ${parsed.licenceExpiresOn},
         ${pgTextArrayLiteral(parsed.languages)}::text[],
@@ -92,6 +96,7 @@ export async function updateChauffeurRow(
         email = ${parsed.email},
         default_vehicle_id = ${parsed.defaultVehicleId},
         vehicle_class_id = case when ${parsed.vehicleClassId === undefined}::boolean then vehicle_class_id else ${parsed.vehicleClassId ?? null}::uuid end,
+        plate = case when ${parsed.plate === undefined}::boolean then plate else ${parsed.plate ?? null}::text end,
         licence_number = ${parsed.licenceNumber},
         licence_expires_on = ${parsed.licenceExpiresOn},
         languages = ${pgTextArrayLiteral(parsed.languages)}::text[],
@@ -99,7 +104,7 @@ export async function updateChauffeurRow(
         photo_path = ${parsed.photoPath},
         note = ${parsed.note},
         updated_at = now()
-      where id = ${id}
+      where id = ${id} and deleted_at is null
       returning id
     `;
     if (!rows[0]) return false;
@@ -108,15 +113,34 @@ export async function updateChauffeurRow(
   });
 }
 
+function sqlCode(err: unknown): string | undefined {
+  if (typeof err !== "object" || err === null || !("code" in err)) return undefined;
+  const code = (err as { code: unknown }).code;
+  return typeof code === "string" ? code : undefined;
+}
+
+/**
+ * Owner, decision 7 (2026-10-01): deleting a chauffeur keeps his row for his finished trips;
+ * his trips that are not finished (a passed pickup nobody closed included) go back to unassigned,
+ * with an assignment.cleared event each; he leaves every list and Assign. One transaction in
+ * public.ops_delete_chauffeur (20261007160000, definer, vamos_system only), run asSystem after
+ * withStaff. The refusal is mapped AROUND asSystem (postgres.js begin() rethrows a caught query
+ * error). No mail: he is gone, and a customer gets none for an unassign.
+ */
 export async function deleteChauffeurRow(
   env: CloudflareEnv,
   claims: VamosClaims,
   id: string,
-): Promise<void> {
-  await asStaff(env, claims, async (sql) => {
-    await sql`
-      delete from public.chauffeurs where id = ${id}
-    `;
-    return null;
-  });
+): Promise<ChauffeurDeleteResult> {
+  try {
+    const rows = await asSystem(env, async (sql) => {
+      return sql<{ reference: string }[]>`
+        select reference from public.ops_delete_chauffeur(${id}::uuid, ${claims.sub}::uuid)
+      `;
+    });
+    return { kind: "deleted", unassigned: rows.map((r) => String(r.reference)) };
+  } catch (err) {
+    if (sqlCode(err) === "P0002") return { kind: "gone" };
+    throw err;
+  }
 }

@@ -50,20 +50,27 @@
 [data-ops-tags]{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
 [data-ops-tag]{display:inline-flex;align-items:center;gap:6px;min-height:28px;padding:4px 10px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-pill);background:var(--vt-bg-surface);font-family:var(--vt-font-body);font-size:var(--vt-body-xs);line-height:1.3;color:var(--vt-text-primary)}
 [data-ops-tag] b{font-weight:600;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-muted);font-size:10px}
-[data-ops-assign-pick]{grid-column:2;min-width:0;max-inline-size:560px;display:flex;flex-direction:column;gap:12px;margin-top:4px}
-[data-ops-drv-list]{display:flex;flex-direction:column;gap:8px;min-width:0}
-[data-ops-drv]{box-sizing:border-box;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-bg-surface);transition:background 140ms cubic-bezier(.2,0,.2,1),border-color 140ms cubic-bezier(.2,0,.2,1)}
-[data-ops-drv]:hover{background:var(--vt-grey-50)}
-[data-ops-drv][data-sel="1"]{border:2px solid var(--vt-charcoal-900)}
-[data-ops-drv] .vt-check{display:flex;box-sizing:border-box;width:100%;min-height:48px;padding:11px 13px}
-[data-ops-drv][data-sel="1"] .vt-check{padding:10px 12px}
-[data-ops-drv] .vt-check__text > span:first-child{font-weight:600;overflow-wrap:anywhere}
+/* 261001-chauffeur-car, decision 7: Assign is one row — Driver [Choose a chauffeur ▾] [ASSIGN];
+   assigned, it reads "Name · Plate" with Change and Unassign as text buttons. */
+[data-ops-assign-row]{grid-column:2;min-width:0;max-inline-size:640px;display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+[data-ops-assign-select]{flex:1 1 240px;min-width:0}
+[data-ops-assign-row="done"]{gap:4px 12px}
+[data-ops-assign-line]{min-width:0;overflow-wrap:anywhere;font-size:var(--vt-body-sm);font-weight:600;line-height:1.4;color:var(--vt-text-primary)}
+[data-ops-assign-act]{display:inline-flex;flex-wrap:wrap;align-items:center;gap:4px}
+[data-ops-assign-act] .vt-btn{min-height:44px;padding-inline:10px;border-color:transparent;background:transparent;text-decoration:underline;text-underline-offset:3px}
+[data-ops-assign-act] .vt-btn.vt-btn--ghost:hover:not([disabled]){border-color:transparent;background:var(--vt-grey-50)}
+[data-ops-assign] [data-ops-pax-k]{align-self:center;padding-top:0}
+[data-ops-assign-under]{grid-column:2;max-inline-size:640px}
 [data-ops-assign-note]{margin:0;font-size:var(--vt-body-sm);line-height:1.5;color:var(--vt-text-muted)}
 [data-ops-assign-err]{margin:0;display:flex;align-items:flex-start;gap:8px;font-size:var(--vt-body-sm);line-height:1.5;color:var(--vt-danger);text-wrap:pretty}
 [data-ops-assign-err] > :first-child{flex:0 0 auto;margin-top:2px}
-[data-ops-assign-foot]{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
-@media (max-width:520px){
-[data-ops-assign-pick]{grid-column:1/-1}
+/* Phone: the dropdown full width, ASSIGN full width under it. */
+@media (max-width:680px){
+[data-ops-assign-row]{grid-column:1/-1}
+[data-ops-assign-row="pick"]{flex-direction:column;align-items:stretch}
+[data-ops-assign-row="pick"] .vt-btn{width:100%}
+[data-ops-assign-select]{flex:0 0 auto}
+[data-ops-assign-under]{grid-column:1/-1}
 }
 [data-ops-pax] > h3{overflow:visible;white-space:normal}
 [data-ops-pax-grid]{display:grid;grid-template-columns:minmax(7rem,132px) minmax(0,1fr);gap:8px 14px;align-items:start;font-family:var(--vt-font-body);font-size:var(--vt-body-sm)}
@@ -144,38 +151,38 @@
 <h3 style="margin:0 0 12px;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:600;color:var(--vt-text-muted)">{{ tAssignment }}</h3>
 <div data-ops-pax-grid>
 <span data-ops-pax-k>{{ tDriver }}</span>
-<sc-if value="{{ hasDriver }}" hint-placeholder-val="{{ false }}">
-<span data-ops-pax-v data-vt-no-i18n="1" style="font-weight:600">{{ driverName }}</span>
+<sc-if value="{{ showAssigned }}" hint-placeholder-val="{{ false }}">
+<div data-ops-assign-row="done">
+<span data-ops-assign-line data-vt-no-i18n="1">{{ driverLine }}</span>
+<span data-ops-assign-act>
+<sc-if value="{{ canAssign }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" onClick="{{ openChange }}" hint-size="90px,44px">{{ tChange }}</x-import>
 </sc-if>
-<sc-if value="{{ noDriver }}" hint-placeholder-val="{{ true }}">
-<span data-ops-pax-v style="display:flex;flex-direction:column;gap:2px"><span>{{ tNoDriver }}</span><span style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tNoDriverSub }}</span></span>
+<sc-if value="{{ canUnassign }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" onClick="{{ confirmUnassign }}" hint-size="110px,44px">{{ tUnassign }}</x-import>
 </sc-if>
-<sc-if value="{{ hasDriver }}" hint-placeholder-val="{{ false }}">
-<span data-ops-pax-k>{{ tCar }}</span>
-<span data-ops-pax-v data-vt-no-i18n="1">{{ carLine }}</span>
+</span>
+</div>
 </sc-if>
 <sc-if value="{{ showAssignPicker }}" hint-placeholder-val="{{ true }}">
-<div data-ops-assign-pick>
-<div data-ops-drv-list role="radiogroup" aria-label="{{ tChooseDriver }}" data-vt-no-i18n="1">
-<sc-for list="{{ assignRows }}" as="d" hint-placeholder-count="2">
-<div data-ops-drv data-sel="{{ d.selAttr }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Radio" name="ops-assign-driver" value="{{ d.id }}" label="{{ d.name }}" description="{{ d.car }}" checked="{{ d.checked }}" onChange="{{ d.pick }}" hint-size="100%,56px"></x-import>
+<div data-ops-assign-row="pick">
+<div data-ops-assign-select data-vt-no-i18n="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Select" size="md" options="{{ driverOptions }}" value="{{ pickDriver }}" placeholder="{{ tChooseChauffeur }}" onChange="{{ pickDriverFromSelect }}" aria-label="{{ tChooseChauffeur }}" hint-size="100%,44px"></x-import>
 </div>
-</sc-for>
-<sc-if value="{{ noDrivers }}" hint-placeholder-val="{{ false }}">
-<p data-ops-assign-note>{{ tNoDrivers }}</p>
-</sc-if>
-</div>
-<sc-if value="{{ hasAssignError }}" hint-placeholder-val="{{ false }}">
-<p data-ops-assign-err role="alert"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="triangle-alert" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import><span data-vt-no-i18n="1">{{ assignError }}</span></p>
-</sc-if>
-<div data-ops-assign-foot>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="primary" disabled="{{ assignDisabled }}" onClick="{{ confirmAssign }}" hint-size="170px,44px">{{ tAssign }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="primary" disabled="{{ assignDisabled }}" onClick="{{ confirmAssign }}" hint-size="130px,44px">{{ tAssignBtn }}</x-import>
 <sc-if value="{{ assignCancelable }}" hint-placeholder-val="{{ false }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" onClick="{{ closeAssign }}" hint-size="110px,44px">{{ tCancel }}</x-import>
 </sc-if>
 </div>
-</div>
+</sc-if>
+<sc-if value="{{ showNoDriverText }}" hint-placeholder-val="{{ false }}">
+<span data-ops-pax-v style="display:flex;flex-direction:column;gap:2px"><span>{{ tNoDriver }}</span><span style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tNoDriverSub }}</span></span>
+</sc-if>
+<sc-if value="{{ showNoDrivers }}" hint-placeholder-val="{{ false }}">
+<p data-ops-assign-note data-ops-assign-under>{{ tNoDrivers }}</p>
+</sc-if>
+<sc-if value="{{ hasAssignError }}" hint-placeholder-val="{{ false }}">
+<p data-ops-assign-err data-ops-assign-under role="alert"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="triangle-alert" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import><span data-vt-no-i18n="1">{{ assignError }}</span></p>
 </sc-if>
 </div>
 </div>
@@ -457,18 +464,14 @@ function isolate(s) { return '⁦' + s + '⁩'; }
 function fillAmounts(str, map) {
   return String(str || '').replace(/\{(\w+)\}/g, (m, k) => (Object.prototype.hasOwnProperty.call(map, k) ? isolate(map[k]) : m));
 }
-function assignableChauffeurs() {
+/* 261001-chauffeur-car (owner, 2026-10-01): "When I assign a driver the driver that appear must
+   match the request of the class." Only the chauffeurs whose class is the trip's class; no car.
+   A row without a known trip class (an old store) lists everyone — the server still refuses. */
+function assignableChauffeurs(tripClassId) {
   const ops = window.VamosOps;
   if (!ops || !ops.chauffeurs) return [];
-  return (ops.chauffeurs.all() || []).filter((c) => c && c.id);
-}
-/* 260930-dash-design: each driver has his own car (chauffeurs.default_vehicle_id). The Assign box
-   shows it under the name as "Class · Model · Plate", the order the chauffeur form lists cars in. */
-function carText(v) {
-  const classes = (window.VamosOps && window.VamosOps.CLASSES) || [];
-  const own = v && v.vehicleClassId ? classes.filter((c) => c && c.id === v.vehicleClassId)[0] : null;
-  const klass = (own && String(own.name || own.label || '').trim()) || (v && v.klass);
-  return [klass, v && v.model, v && v.plate].filter(Boolean).join(' \u00b7 ');
+  const want = String(tripClassId || '');
+  return (ops.chauffeurs.all() || []).filter((c) => c && c.id && (!want || String(c.vehicleClassId || '') === want));
 }
 /* Signed 2026-10-01: Complete and No-show are offered once the pickup time has passed (Zurich).
    pickupAt is the instant; without it, the row's Zurich date and time are turned into one. */
@@ -629,9 +632,9 @@ const T = {
     voucherResent:'Voucher re-sent to ', driverAssigned:'Driver assigned to ', unassignedOk:'Assignment cleared for ',
     evPayment:'Payment captured', evRefund:'Refund issued', evVoucher:'Voucher sent', evAssigned:'Driver assigned', evVehicle:'Vehicle assigned', evCleared:'Assignment cleared',
     evQuoted:'Quote saved', evCreated:'Booking created', evPayStarted:'Payment started', evStatus:'Status changed', included:'Included',
-    overlap:'Overlaps {ref} at {time}', noEmail:'Cannot assign until this chauffeur has an email on file.', noVehicle:'Give this driver a car first: Chauffeurs, then the driver, then Car.', classMismatch:'This driver’s car is {car}; the trip is {trip}.',
-    actions:'Actions', car:'Car', noCarYet:'No car yet', noDrivers:'No drivers yet. Add one on Chauffeurs.', chooseDriver:'Choose the driver',
-    notPaid:'Unpaid trips cannot be assigned.', frozen:'This trip is frozen.', capacity:'This vehicle cannot take this trip’s passengers and bags.', assignFailed:'Could not assign ',
+    overlap:'Overlaps {ref} at {time}', noEmail:'Cannot assign until this chauffeur has an email on file.', noClass:'{name} has no class yet. Choose one on Chauffeurs.', classMismatch:'{name} drives {driver}; the trip is {trip}.',
+    actions:'Actions', plate:'Plate', chooseChauffeur:'Choose a chauffeur', assignBtn:'Assign', change:'Change', noDrivers:'No drivers yet. Add one on Chauffeurs.', noDriversClass:'No chauffeur has the class {class} yet. Choose it on Chauffeurs.', chooseDriver:'Choose the driver',
+    notPaid:'Unpaid trips cannot be assigned.', frozen:'This trip is frozen.', capacity:'This trip has more passengers or bags than its class takes.', assignFailed:'Could not assign ',
     pickChauffeur:'Pick a chauffeur first.', voucherFailed:'Could not resend voucher ',
     website:'Website', stripeWebhook:'Stripe webhook', resend:'Resend', dispatch:'Dispatch',
     lineTransfer:'Transfer, ', lineAirportFee:'Airport pickup fee',
@@ -728,9 +731,9 @@ const T = {
     keepBooking:'Behalten', confirmCancel:'Buchung stornieren', confirmCancelUnpaid:'Buchung entfernen', bookingCancelled:'Storniert ', bookingRemoved:'Entfernt ', cancelFailed:'Konnte nicht stornieren ', refundFailed:'Konnte nicht erstatten ',
     voucherResent:'Gutschein erneut gesendet an ', driverAssigned:'Fahrer zugewiesen zu ', unassignedOk:'Zuweisung aufgehoben für ',
     evPayment:'Zahlung erfasst', evRefund:'Rückerstattung ausgezahlt', evVoucher:'Gutschein gesendet', evAssigned:'Fahrer zugewiesen', evVehicle:'Fahrzeug zugewiesen', evCleared:'Zuweisung aufgehoben',
-    overlap:'Überschneidet sich mit {ref} um {time}', noEmail:'Zuweisung erst, wenn dieser Chauffeur eine E-Mail hat.', noVehicle:'Geben Sie diesem Fahrer zuerst ein Auto: Chauffeure, dann den Fahrer, dann Auto.', classMismatch:'Das Auto dieses Fahrers ist {car}; die Fahrt ist {trip}.',
-    actions:'Aktionen', car:'Auto', noCarYet:'Noch kein Auto', noDrivers:'Noch keine Fahrer. Unter Chauffeure hinzufügen.', chooseDriver:'Fahrer wählen',
-    notPaid:'Unbezahlte Fahrten können nicht zugewiesen werden.', frozen:'Diese Fahrt ist gesperrt.', capacity:'Dieses Fahrzeug kann Passagiere und Gepäck dieser Fahrt nicht aufnehmen.', assignFailed:'Zuweisung fehlgeschlagen für ',
+    overlap:'Überschneidet sich mit {ref} um {time}', noEmail:'Zuweisung erst, wenn dieser Chauffeur eine E-Mail hat.', noClass:'{name} hat noch keine Klasse. Wählen Sie eine unter Chauffeure.', classMismatch:'{name} fährt {driver}; die Fahrt ist {trip}.',
+    actions:'Aktionen', plate:'Kennzeichen', chooseChauffeur:'Chauffeur wählen', assignBtn:'Zuweisen', change:'Ändern', noDrivers:'Noch keine Fahrer. Unter Chauffeure hinzufügen.', noDriversClass:'Noch kein Chauffeur hat die Klasse {class}. Wählen Sie sie unter Chauffeure.', chooseDriver:'Fahrer wählen',
+    notPaid:'Unbezahlte Fahrten können nicht zugewiesen werden.', frozen:'Diese Fahrt ist gesperrt.', capacity:'Diese Fahrt hat mehr Passagiere oder Gepäck, als ihre Klasse aufnimmt.', assignFailed:'Zuweisung fehlgeschlagen für ',
     pickChauffeur:'Zuerst einen Fahrer wählen.', voucherFailed:'Gutschein konnte nicht gesendet werden ',
     website:'Website', stripeWebhook:'Stripe-Webhook', resend:'Resend', dispatch:'Dispatch',
     lineTransfer:'Transfer, ', lineAirportFee:'Flughafengebühr',
@@ -820,9 +823,9 @@ const T = {
  },
   fr: {
     unassign:'Désassigner', action:'Action', complete:'Terminer', historyEmpty:'Aucun événement.', passengerTrip:'Passager et trajet',
-    overlap:'Chevauche {ref} à {time}', noEmail:'Impossible d’assigner tant que ce chauffeur n’a pas d’e-mail.', noVehicle:'Donnez d’abord une voiture à ce chauffeur : Chauffeurs, puis le chauffeur, puis Voiture.', classMismatch:'La voiture de ce chauffeur est {car} ; la course est {trip}.',
-    actions:'Actions', car:'Voiture', noCarYet:'Pas encore de voiture', noDrivers:'Aucun chauffeur. Ajoutez-en un sous Chauffeurs.', chooseDriver:'Choisir le chauffeur',
-    notPaid:'Les courses non payées ne peuvent pas être assignées.', frozen:'Cette course est gelée.', capacity:'Ce véhicule ne peut pas prendre les passagers et bagages de cette course.', assignFailed:'Assignation impossible pour ',
+    overlap:'Chevauche {ref} à {time}', noEmail:'Impossible d’assigner tant que ce chauffeur n’a pas d’e-mail.', noClass:'{name} n’a pas encore de classe. Choisissez-en une sous Chauffeurs.', classMismatch:'{name} conduit en {driver} ; la course est en {trip}.',
+    actions:'Actions', plate:'Plaque', chooseChauffeur:'Choisir un chauffeur', assignBtn:'Assigner', change:'Modifier', noDrivers:'Aucun chauffeur. Ajoutez-en un sous Chauffeurs.', noDriversClass:'Aucun chauffeur n’a encore la classe {class}. Choisissez-la sous Chauffeurs.', chooseDriver:'Choisir le chauffeur',
+    notPaid:'Les courses non payées ne peuvent pas être assignées.', frozen:'Cette course est gelée.', capacity:'Cette course compte plus de passagers ou de bagages que sa classe n’en prend.', assignFailed:'Assignation impossible pour ',
     pickChauffeur:'Choisissez d’abord un chauffeur.', voucherFailed:'Impossible de renvoyer le bon ',
     unassignedOk:'Assignation retirée pour ', evVehicle:'Véhicule assigné', evCleared:'Assignation retirée',
     continue:'Continuer', accept:'Accepter',
@@ -926,9 +929,9 @@ const T = {
   },
   ar: {
     unassign:'إلغاء التعيين', action:'إجراء', complete:'إكمال', historyEmpty:'لا أحداث بعد.', passengerTrip:'الراكب والرحلة',
-    overlap:'يتداخل مع {ref} عند {time}', noEmail:'لا يمكن التعيين قبل وجود بريد إلكتروني لهذا السائق.', noVehicle:'أعطِ هذا السائق سيارة أولًا: السائقون، ثم السائق، ثم السيارة.', classMismatch:'سيارة هذا السائق من فئة {car}، والرحلة من فئة {trip}.',
-    actions:'الإجراءات', car:'السيارة', noCarYet:'لا سيارة بعد', noDrivers:'لا يوجد سائقون بعد. أضف سائقًا من صفحة السائقين.', chooseDriver:'اختر السائق',
-    notPaid:'لا يمكن تعيين الرحلات غير المدفوعة.', frozen:'هذه الرحلة مجمّدة.', capacity:'هذه المركبة لا تتسع لركاب وأمتعة هذه الرحلة.', assignFailed:'تعذّر التعيين لـ ',
+    overlap:'يتداخل مع {ref} عند {time}', noEmail:'لا يمكن التعيين قبل وجود بريد إلكتروني لهذا السائق.', noClass:'لا فئة لـ {name} بعد. اختر له فئة في صفحة السائقين.', classMismatch:'يقود {name} فئة {driver}، والرحلة من فئة {trip}.',
+    actions:'الإجراءات', plate:'اللوحة', chooseChauffeur:'اختر سائقًا', assignBtn:'تعيين', change:'تغيير', noDrivers:'لا يوجد سائقون بعد. أضف سائقًا من صفحة السائقين.', noDriversClass:'لا يوجد سائق من فئة {class} بعد. اخترها في صفحة السائقين.', chooseDriver:'اختر السائق',
+    notPaid:'لا يمكن تعيين الرحلات غير المدفوعة.', frozen:'هذه الرحلة مجمّدة.', capacity:'في هذه الرحلة ركاب أو حقائب أكثر مما تتسع له فئتها.', assignFailed:'تعذّر التعيين لـ ',
     pickChauffeur:'اختر سائقاً أولاً.', voucherFailed:'تعذّر إعادة إرسال القسيمة ',
     unassignedOk:'أُلغي التعيين لـ ', evVehicle:'عُيّنت المركبة', evCleared:'أُلغي التعيين',
     continue:'متابعة', accept:'قبول',
@@ -1113,12 +1116,8 @@ class Component extends DCLogic {
       offs.push(window.VamosOps.chauffeurs.onChange(() => this.forceUpdate()));
       window.VamosOps.chauffeurs.all();
     }
-    if (window.VamosOps.vehicles) {
-      offs.push(window.VamosOps.vehicles.onChange(() => this.forceUpdate()));
-      window.VamosOps.vehicles.all();
-    }
-    // 260930-dash-design: the rate book carries the class names the owner typed (VamosOps.CLASSES),
-    // so a car of his own class reads its name under the driver in the Assign box.
+    // 261001-chauffeur-car: no cars; the Assign box reads the drivers and their class only. The rate
+    // book still carries the class names the owner typed (VamosOps.CLASSES).
     if (window.VamosOps.rates) {
       offs.push(window.VamosOps.rates.onChange(() => this.forceUpdate()));
       window.VamosOps.rates.all();
@@ -1216,7 +1215,8 @@ class Component extends DCLogic {
     } else {
       booking.sessionLeft = 'No open session';
     }
-    const drivers = assignableChauffeurs();
+    const drivers = assignableChauffeurs(booking.vehicleClassId);
+    const tripClassName = String(booking.className || booking.klass || '').trim();
     const assignedDriver = booking.driver || booking.chauffeur || null;
     const frozen = ['completed','cancelled','refunded','no-show','no_show','partially_cancelled','partially_completed'].indexOf(booking.status) !== -1;
     const canAssign = !!booking.paid && !frozen;
@@ -1366,26 +1366,18 @@ class Component extends DCLogic {
     const distanceChip = booking.distanceKm ? (booking.distanceKm + ' km') : '';
     const extras = Array.isArray(booking.extras) ? booking.extras : [];
     const extrasText = extras.length ? extras.map((code) => extraName(booking, code, this.state.lang)).filter(Boolean).join(', ') : t.noExtras;
-    // 260930-dash-design: the Assign box asks only for the driver; each row shows his own car.
-    const vehicles = (window.VamosOps && window.VamosOps.vehicles) ? (window.VamosOps.vehicles.all() || []) : [];
-    const carById = {};
-    vehicles.forEach((v) => { if (v && v.id) carById[v.id] = v; });
-    const assignedCar = booking.assignedVehicleId ? (carById[booking.assignedVehicleId] || null) : null;
+    // 261001-chauffeur-car, decision 7: one row — the dropdown lists the drivers of the trip's class
+    // as "Name · Plate"; assigned, the row reads "Name · Plate" with Change and Unassign.
+    const allDrivers = (window.VamosOps && window.VamosOps.chauffeurs) ? (window.VamosOps.chauffeurs.all() || []) : [];
+    const assignedRow = allDrivers.filter((c) => c && booking.assignedChauffeurId && String(c.id) === String(booking.assignedChauffeurId))[0] || null;
+    const driverPlate = String(booking.chauffeurPlate || (assignedRow && assignedRow.plate) || '').trim();
     const showAssignPicker = canAssign && (!assignedDriver || !!this.state.assignOpen);
-    const assignRows = drivers.map((c) => {
-      const id = String(c.id);
-      const carId = String(c.defaultVehicleId || c.vehicle || '');
-      const car = carId ? carById[carId] : null;
-      const picked = this.state.pickDriver === id;
-      return {
-        id,
-        name: String(c.name || c.fullName || c.email || c.id),
-        car: car ? carText(car) : (carId ? '\u2014' : t.noCarYet),
-        checked: picked,
-        selAttr: picked ? '1' : '0',
-        pick: () => this.setState({ pickDriver: id, assignError: '' }),
-      };
-    });
+    const driverOptions = drivers.map((c) => ({
+      value: String(c.id),
+      label: [String(c.name || c.fullName || c.email || c.id), String(c.plate || '').trim()].filter(Boolean).join(' \u00b7 '),
+    }));
+    const showAssigned = !!assignedDriver && !showAssignPicker;
+    const driverLine = [assignedDriver || '', driverPlate].filter(Boolean).join(' \u00b7 ');
     const canEdit = !!booking.paid && !cancelled;
     const canCancel = !cancelled && booking.status !== 'completed';
     // Item 1 (owner, 2026-09-30): every action valid for this booking, in one menu. Cancel is last
@@ -1531,12 +1523,16 @@ class Component extends DCLogic {
         });
       },
       hasDriver: !!assignedDriver, noDriver: !assignedDriver,
-      driverName: assignedDriver || '', carLine: assignedCar ? carText(assignedCar) : (booking.vehicle || '\u2014'),
-      tCar: t.car, tChooseDriver: t.chooseDriver, tNoDrivers: t.noDrivers,
+      driverName: assignedDriver || '', driverPlate, driverLine, showAssigned,
+      showNoDriverText: !assignedDriver && !showAssignPicker,
+      tChooseChauffeur: t.chooseChauffeur, tAssignBtn: t.assignBtn, tChange: t.change,
+      openChange: () => this.setState({ assignOpen: true, pickDriver: '', assignError: '' }),
+      pickDriverFromSelect: (e) => this.setState({ pickDriver: String((e && e.target ? e.target.value : e) || ''), assignError: '' }),
+      tNoDrivers: (booking.vehicleClassId && tripClassName) ? t.noDriversClass.replace('{class}', tripClassName) : t.noDrivers,
       assignRef: this._assignRef, refundRef: this._refundRef,
       showAssignPicker, assignCancelable: showAssignPicker && !!assignedDriver,
       closeAssign: () => this.setState({ assignOpen: false, pickDriver: '', assignError: '' }),
-      assignRows, noDrivers: assignRows.length === 0,
+      driverOptions, noDrivers: driverOptions.length === 0, showNoDrivers: showAssignPicker && driverOptions.length === 0,
       // Never a disabled primary: at 42 % the yellow reads as a cream pill (law 02). No pick → the box says so.
       assignDisabled: false,
       assignError: this.state.assignError || '', hasAssignError: !!this.state.assignError,
@@ -2018,8 +2014,16 @@ class Component extends DCLogic {
           let msg = t.assignFailed + booking.id;
           if (code === 'overlap') msg = (t.overlap || '').replace('{ref}', json.otherRef || '').replace('{time}', json.otherLocal || '');
           else if (code === 'no-email') msg = t.noEmail;
-          else if (code === 'no-vehicle') msg = t.noVehicle;
-          else if (code === 'class-mismatch') msg = (t.classMismatch || '').replace('{car}', json.carClass || '\u2014').replace('{trip}', json.tripClass || booking.klass || '\u2014');
+          else if (code === 'no-class' || code === 'class-mismatch') {
+            // The server names the driver and both classes; without them, the picked row and the trip say it.
+            const row = drivers.filter((c) => String(c.id) === String(chosen))[0] || {};
+            const name = String(json.driverName || row.name || '').trim() || '\u2014';
+            const driverClass = String(json.driverClass || row.vehicleClassName || '').trim() || '\u2014';
+            const trip = String(json.tripClass || tripClassName).trim() || '\u2014';
+            msg = code === 'no-class'
+              ? t.noClass.replace('{name}', name)
+              : t.classMismatch.replace('{name}', name).replace('{driver}', driverClass).replace('{trip}', trip);
+          }
           else if (code === 'not-paid') msg = t.notPaid;
           else if (code === 'frozen') msg = t.frozen;
           else if (code === 'capacity') msg = t.capacity;

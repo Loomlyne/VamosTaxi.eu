@@ -74,34 +74,27 @@
 </sc-for>
 </div>
 </section>
-<div style="box-sizing:border-box;display:flex;flex-direction:column;gap:12px;padding:18px 20px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg)">
-<span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">{{ tLiveTrips }}</span>
-<sc-if value="{{ noLiveTrips }}" hint-placeholder-val="{{ true }}">
-<p style="margin:0;font-size:var(--vt-body-sm);font-weight:600;color:var(--vt-text-primary)">{{ tNoLiveTrips }}</p>
-<p style="margin:4px 0 0;font-size:var(--vt-body-xs);line-height:1.6;color:var(--vt-text-muted)">{{ tNoLiveTripsBody }}</p>
+<section data-ch-history="1" style="box-sizing:border-box;display:flex;flex-direction:column;gap:12px;padding:18px 20px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);min-width:0">
+<h2 style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">{{ tHistory }}</h2>
+<sc-if value="{{ noHistory }}" hint-placeholder-val="{{ false }}">
+<p style="margin:0;font-size:var(--vt-body-sm);font-weight:600;color:var(--vt-text-primary)">{{ tNoHistory }}</p>
+<p style="margin:4px 0 0;max-width:78ch;font-size:var(--vt-body-xs);line-height:1.6;color:var(--vt-text-muted)">{{ tNoHistoryBody }}</p>
 </sc-if>
-<sc-for list="{{ liveTrips }}" as="trip" hint-placeholder-count="2">
-<a href="{{ trip.href }}" style="box-sizing:border-box;display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-grey-50);text-decoration:none;color:inherit">
-<span style="font-family:var(--vt-font-display);font-weight:600;letter-spacing:.04em">{{ trip.ref }}</span>
-<span style="min-width:0;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)">{{ trip.route }}</span>
-<span style="margin-inline-start:auto;font-size:var(--vt-body-xs);color:var(--vt-text-muted);white-space:nowrap">{{ trip.when }}</span>
+<sc-if value="{{ historyFailed }}" hint-placeholder-val="{{ false }}">
+<p style="margin:0;font-size:var(--vt-body-sm);line-height:1.5;color:var(--vt-danger)">{{ tHistoryFailed }}</p>
+</sc-if>
+<sc-for list="{{ historyRows }}" as="h" hint-placeholder-count="3">
+<a href="{{ h.href }}" data-ch-hist-row="1" style="box-sizing:border-box;display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;min-height:44px;padding:10px 12px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-grey-50);text-decoration:none;color:inherit;min-width:0">
+<span dir="ltr" style="unicode-bidi:isolate;font-family:var(--vt-font-display);font-weight:600;letter-spacing:.04em">{{ h.ref }}</span>
+<span style="flex:1 1 200px;min-width:0;font-size:var(--vt-body-sm);color:var(--vt-text-secondary);overflow-wrap:anywhere">{{ h.route }}</span>
+<span dir="ltr" style="unicode-bidi:isolate;font-size:var(--vt-body-xs);color:var(--vt-text-muted);white-space:nowrap">{{ h.when }}</span>
+<span style="font-size:var(--vt-body-xs);font-weight:600;color:var(--vt-text-primary);white-space:nowrap">{{ h.statusLabel }}</span>
+<sc-if value="{{ h.takenOff }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Badge" tone="outline" hint-size="90px,24px">{{ h.takenOffLabel }}</x-import>
+</sc-if>
 </a>
 </sc-for>
-</div>
-<div style="box-sizing:border-box;display:flex;flex-direction:column;gap:12px;padding:18px 20px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg)">
-<span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">{{ tPastBookings }}</span>
-<sc-if value="{{ noPastBookings }}" hint-placeholder-val="{{ true }}">
-<p style="margin:0;font-size:var(--vt-body-sm);font-weight:600;color:var(--vt-text-primary)">{{ tNoPastBookings }}</p>
-<p style="margin:4px 0 0;font-size:var(--vt-body-xs);line-height:1.6;color:var(--vt-text-muted)">{{ tNoPastBookingsBody }}</p>
-</sc-if>
-<sc-for list="{{ pastBookings }}" as="trip" hint-placeholder-count="2">
-<a href="{{ trip.href }}" style="box-sizing:border-box;display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-grey-50);text-decoration:none;color:inherit">
-<span style="font-family:var(--vt-font-display);font-weight:600;letter-spacing:.04em">{{ trip.ref }}</span>
-<span style="min-width:0;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)">{{ trip.route }}</span>
-<span style="margin-inline-start:auto;font-size:var(--vt-body-xs);color:var(--vt-text-muted);white-space:nowrap">{{ trip.when }}</span>
-</a>
-</sc-for>
-</div>
+</section>
 </div>
 </sc-if>
 
@@ -151,7 +144,7 @@ const T = {
   en: {
     vehicles:'Vehicles', chauffeurs:'Chauffeurs',
     vSub:'What the fleet is, what it seats, and whether it is on the road',
-    cSub:'Who drives, which vehicle they are on, and whether they are on shift',
+    cSub:'Who drives, in which class, and on which plate',
     colVehicle:'Vehicle', colPlate:'Plate', colCapacity:'Capacity', colBase:'Base fare',
     colChauffeur:'Chauffeur', colStatus:'Status', colPhone:'Phone', colLicence:'Licence',
     unassigned:'No chauffeur', noVehicle:'No vehicle', noClass:'No class',
@@ -162,10 +155,10 @@ const T = {
     addVehicle:'Add a vehicle', addChauffeur:'Add a chauffeur',
     nounV:'vehicle', nounVs:'vehicles', nounC:'chauffeur', nounCs:'chauffeurs',
     editV:'Edit vehicle', editC:'Edit chauffeur', delV:'Delete this vehicle?', delC:'Delete this chauffeur?',
-    searchVehicles:'Class, model or plate', searchChauffeurs:'Name, phone or licence',
-    emptyCTitle:'No chauffeurs yet', emptyCBody:'Add a chauffeur and pair them with one of the vehicles.',
+    searchVehicles:'Class, model or plate', searchChauffeurs:'Name, phone, plate or licence',
+    emptyCTitle:'No chauffeurs yet', emptyCBody:'Add a chauffeur and choose his class.',
     delVBody:'The vehicle leaves the fleet, and any chauffeur paired with it is left without one.',
-    delCBody:'The chauffeur leaves the console. Their vehicle stays in the fleet.',
+    delCBody:'He leaves the Chauffeurs list and Assign. His finished trips keep his name; his trips that are not finished go back to unassigned.',
     fClass:'Class', fModel:'Model', fPlate:'Plate', fSeats:'Seats', fBags:'Bags', fYear:'Year', fStatus:'Status', fNote:'Note',
     fName:'Name', fPhone:'Phone', fEmail:'Email', fLicence:'Licence number', fLanguages:'Languages', fVehicle:'Vehicle',
     lang_de:'German', lang_fr:'French', lang_it:'Italian', lang_en:'English', lang_ar:'Arabic',
@@ -178,19 +171,22 @@ const T = {
     hLanguages:'Shown to the traveller. Pick every language this chauffeur speaks.',
     none:'No vehicle',
     vNote:'A vehicle is priced by its class, so changing a class price on the Pricing screen changes every vehicle in it. Add vehicles first; chauffeurs are attached to them afterwards.',
-    cNote:'Each chauffeur drives one vehicle at a time, and that pairing is what the bookings board assigns against. A chauffeur with no vehicle cannot be given a transfer.',
+    cNote:'Assign lists only the chauffeurs of the trip’s class. A chauffeur without a class cannot be given a transfer.',
     cannotAssignNoEmail:'Cannot assign until an email is saved.',
     liveTrips:'Live trips', noLiveTrips:'No live trips', noLiveTripsBody:'Assigned trips that are not finished show here. Open a trip to see it on the board.', pastBookings:'Past bookings', noPastBookings:'No past bookings', noPastBookingsBody:'Finished assigned trips show here. Open a booking to see it on the board.', saveChauffeur:'Save chauffeur', keepEditing:'Keep editing', morning:'Morning', night:'Night', fShiftDays:'Shift days', fShiftStart:'Starts', fShiftEnd:'Ends', dupEmail:'This email is already on file.', dupOpen:'Open existing chauffeur', profile:'Profile',
     saveFailed:'Save failed. Try again.',
     offRoadStay:'This vehicle is off the road. Upcoming assigned trips stay on the board — they are not cancelled. Fix them on Needs attention.',
     backChauffeurs:'All chauffeurs',
-    fCar:'Car', noCar:'No car', noCarYet:'No car yet', hCar:'The car this driver drives. Assign puts it on the trip.',
+    cntWithClass:'With a class', footClass:'Can be assigned trips of that class', fPlateNumber:'Plate number', hChauffeurPlate:'As it reads on the plate. The customer sees it with the driver’s name.',
+    nowUnassigned:'Now unassigned: {refs}.', refSep:', ',
+    history:'Bookings', noHistory:'No bookings yet', noHistoryBody:'Every trip assigned to this chauffeur shows here, also the ones he was taken off. Open one to see it on the board.', historyFailed:'The bookings could not be read. Reload the page.', takenOff:'Taken off',
+    st_pending:'Awaiting payment', st_quote:'Quote', st_paid:'Paid', st_confirmed:'Confirmed', st_assigned:'Assigned', st_completed:'Completed', st_cancelled:'Cancelled', st_refunded:'Refunded', st_no_show:'No-show', st_partially_cancelled:'Partly cancelled', st_partially_completed:'Partly completed',
     statusOff:'Off duty', statusLeave:'On leave',
   },
   de: {
     vehicles:'Fahrzeuge', chauffeurs:'Chauffeure',
     vSub:'Was die Flotte ist, wie viele Plätze sie hat und ob sie unterwegs ist',
-    cSub:'Wer fährt, auf welchem Fahrzeug, und ob er im Dienst ist',
+    cSub:'Wer fährt, in welcher Klasse und mit welchem Kennzeichen',
     colVehicle:'Fahrzeug', colPlate:'Kennzeichen', colCapacity:'Kapazität', colBase:'Grundpreis',
     colChauffeur:'Chauffeur', colStatus:'Status', colPhone:'Telefon', colLicence:'Führerausweis',
     unassigned:'Kein Chauffeur', noVehicle:'Kein Fahrzeug', noClass:'Keine Klasse',
@@ -201,10 +197,10 @@ const T = {
     addVehicle:'Fahrzeug hinzufügen', addChauffeur:'Chauffeur hinzufügen',
     nounV:'Fahrzeug', nounVs:'Fahrzeuge', nounC:'Chauffeur', nounCs:'Chauffeure',
     editV:'Fahrzeug bearbeiten', editC:'Chauffeur bearbeiten', delV:'Dieses Fahrzeug löschen?', delC:'Diesen Chauffeur löschen?',
-    searchVehicles:'Klasse, Modell oder Kennzeichen', searchChauffeurs:'Name, Telefon oder Ausweis',
-    emptyCTitle:'Noch keine Chauffeure', emptyCBody:'Chauffeur hinzufügen und mit einem Fahrzeug verbinden.',
+    searchVehicles:'Klasse, Modell oder Kennzeichen', searchChauffeurs:'Name, Telefon, Kennzeichen oder Ausweis',
+    emptyCTitle:'Noch keine Chauffeure', emptyCBody:'Chauffeur hinzufügen und seine Klasse wählen.',
     delVBody:'Das Fahrzeug verlässt die Flotte, und ein damit verbundener Chauffeur steht ohne da.',
-    delCBody:'Der Chauffeur verlässt die Konsole. Sein Fahrzeug bleibt in der Flotte.',
+    delCBody:'Er verschwindet aus der Chauffeur-Liste und beim Zuweisen. Beendete Fahrten behalten seinen Namen; nicht beendete Fahrten sind wieder ohne Fahrer.',
     fClass:'Klasse', fModel:'Modell', fPlate:'Kennzeichen', fSeats:'Plätze', fBags:'Gepäck', fYear:'Jahr', fStatus:'Status', fNote:'Notiz',
     fName:'Name', fPhone:'Telefon', fEmail:'E-Mail', fLicence:'Ausweisnummer', fLanguages:'Sprachen', fVehicle:'Fahrzeug',
     lang_de:'Deutsch', lang_fr:'Französisch', lang_it:'Italienisch', lang_en:'Englisch', lang_ar:'Arabisch',
@@ -217,19 +213,22 @@ const T = {
     hLanguages:'Für den Reisenden sichtbar. Alle Sprachen wählen, die dieser Chauffeur spricht.',
     none:'Kein Fahrzeug',
     vNote:'Ein Fahrzeug wird über seine Klasse bepreist — eine Preisänderung auf dem Preis-Bildschirm gilt für alle Fahrzeuge dieser Klasse. Zuerst Fahrzeuge anlegen, die Chauffeure kommen danach dazu.',
-    cNote:'Jeder Chauffeur fährt jeweils ein Fahrzeug, und genau diese Paarung weist das Buchungsboard zu. Ein Chauffeur ohne Fahrzeug kann keinen Transfer bekommen.',
+    cNote:'Beim Zuweisen erscheinen nur die Chauffeure der Klasse der Fahrt. Ein Chauffeur ohne Klasse kann keinen Transfer bekommen.',
     cannotAssignNoEmail:'Kann nicht zugewiesen werden, bis eine E-Mail gespeichert ist.',
     liveTrips:'Laufende Fahrten', noLiveTrips:'Keine laufenden Fahrten', noLiveTripsBody:'Zugewiesene Fahrten, die noch nicht beendet sind, erscheinen hier. Eine Fahrt öffnen, um sie auf dem Board zu sehen.', pastBookings:'Frühere Buchungen', noPastBookings:'Keine früheren Buchungen', noPastBookingsBody:'Beendete zugewiesene Fahrten erscheinen hier. Eine Buchung öffnen, um sie auf dem Board zu sehen.', saveChauffeur:'Chauffeur speichern', keepEditing:'Weiter bearbeiten', morning:'Morgen', night:'Nacht', fShiftDays:'Schichttage', fShiftStart:'Beginn', fShiftEnd:'Ende', dupEmail:'Diese E-Mail ist bereits erfasst.', dupOpen:'Bestehenden Chauffeur öffnen', profile:'Profil',
     saveFailed:'Speichern fehlgeschlagen. Bitte erneut versuchen.',
     offRoadStay:'Dieses Fahrzeug ist nicht auf der Strasse. Zugewiesene kommende Fahrten bleiben auf dem Board — sie werden nicht storniert. Beheben unter Needs attention.',
     backChauffeurs:'Alle Chauffeure',
-    fCar:'Auto', noCar:'Kein Auto', noCarYet:'Noch kein Auto', hCar:'Das Auto, das dieser Fahrer fährt. Beim Zuweisen kommt es auf die Fahrt.',
-    statusOff:'Außer Dienst', statusLeave:'Abwesend',
+    cntWithClass:'Mit Klasse', footClass:'Für Fahrten dieser Klasse zuweisbar', fPlateNumber:'Kennzeichen', hChauffeurPlate:'So, wie es auf dem Schild steht. Der Kunde sieht es beim Namen des Fahrers.',
+    nowUnassigned:'Jetzt ohne Fahrer: {refs}.', refSep:', ',
+    history:'Buchungen', noHistory:'Noch keine Buchungen', noHistoryBody:'Jede Fahrt, die diesem Chauffeur zugewiesen wurde, erscheint hier, auch die, von denen er abgezogen wurde. Eine Fahrt öffnen, um sie auf dem Board zu sehen.', historyFailed:'Die Buchungen konnten nicht gelesen werden. Seite neu laden.', takenOff:'Abgezogen',
+    st_pending:'Zahlung ausstehend', st_quote:'Offerte', st_paid:'Bezahlt', st_confirmed:'Bestätigt', st_assigned:'Zugewiesen', st_completed:'Abgeschlossen', st_cancelled:'Storniert', st_refunded:'Erstattet', st_no_show:'Nicht erschienen', st_partially_cancelled:'Teilweise storniert', st_partially_completed:'Teilweise abgeschlossen',
+    statusOff:'Ausser Dienst', statusLeave:'Abwesend',
   },
   fr: {
     vehicles:'Véhicules', chauffeurs:'Chauffeurs',
     vSub:'Ce qu’est la flotte, ce qu’elle transporte et si elle roule',
-    cSub:'Qui conduit, sur quel véhicule, et s’il est en service',
+    cSub:'Qui conduit, dans quelle classe et avec quelle plaque',
     colVehicle:'Véhicule', colPlate:'Plaque', colCapacity:'Capacité', colBase:'Tarif de base',
     colChauffeur:'Chauffeur', colStatus:'Statut', colPhone:'Téléphone', colLicence:'Permis',
     unassigned:'Aucun chauffeur', noVehicle:'Aucun véhicule', noClass:'Aucune classe',
@@ -240,10 +239,10 @@ const T = {
     addVehicle:'Ajouter un véhicule', addChauffeur:'Ajouter un chauffeur',
     nounV:'véhicule', nounVs:'véhicules', nounC:'chauffeur', nounCs:'chauffeurs',
     editV:'Modifier le véhicule', editC:'Modifier le chauffeur', delV:'Supprimer ce véhicule ?', delC:'Supprimer ce chauffeur ?',
-    searchVehicles:'Classe, modèle ou plaque', searchChauffeurs:'Nom, téléphone ou permis',
-    emptyCTitle:'Aucun chauffeur', emptyCBody:'Ajoutez un chauffeur et associez-le à un véhicule.',
+    searchVehicles:'Classe, modèle ou plaque', searchChauffeurs:'Nom, téléphone, plaque ou permis',
+    emptyCTitle:'Aucun chauffeur', emptyCBody:'Ajoutez un chauffeur et choisissez sa classe.',
     delVBody:'Le véhicule quitte la flotte, et le chauffeur qui y était associé se retrouve sans.',
-    delCBody:'Le chauffeur quitte la console. Son véhicule reste dans la flotte.',
+    delCBody:'Il disparaît de la liste des chauffeurs et de l’attribution. Ses courses terminées gardent son nom ; ses courses non terminées repassent sans chauffeur.',
     fClass:'Classe', fModel:'Modèle', fPlate:'Plaque', fSeats:'Places', fBags:'Bagages', fYear:'Année', fStatus:'Statut', fNote:'Note',
     fName:'Nom', fPhone:'Téléphone', fEmail:'E-mail', fLicence:'Numéro de permis', fLanguages:'Langues', fVehicle:'Véhicule',
     lang_de:'Allemand', lang_fr:'Français', lang_it:'Italien', lang_en:'Anglais', lang_ar:'Arabe',
@@ -256,19 +255,22 @@ const T = {
     hLanguages:'Visibles par le voyageur. Choisissez toutes les langues parlées par ce chauffeur.',
     none:'Aucun véhicule',
     vNote:'Un véhicule est tarifé par sa classe : changer le prix d’une classe sur l’écran Tarifs change tous ses véhicules. Ajoutez d’abord les véhicules ; les chauffeurs y sont rattachés ensuite.',
-    cNote:'Chaque chauffeur conduit un véhicule à la fois, et c’est cette association que le tableau des réservations attribue. Un chauffeur sans véhicule ne peut pas recevoir de transfert.',
+    cNote:'L’attribution ne montre que les chauffeurs de la classe de la course. Un chauffeur sans classe ne peut pas recevoir de transfert.',
     cannotAssignNoEmail:'Impossible d’attribuer tant qu’un e-mail n’est pas enregistré.',
     liveTrips:'Courses en cours', noLiveTrips:'Aucune course en cours', noLiveTripsBody:'Les courses assignées non terminées s’affichent ici. Ouvrez une course pour la voir au tableau.', pastBookings:'Réservations passées', noPastBookings:'Aucune réservation passée', noPastBookingsBody:'Les courses assignées terminées s’affichent ici. Ouvrez une réservation pour la voir au tableau.', saveChauffeur:'Enregistrer le chauffeur', keepEditing:'Continuer l’édition', morning:'Matin', night:'Nuit', fShiftDays:'Jours de service', fShiftStart:'Début', fShiftEnd:'Fin', dupEmail:'Cet e-mail est déjà enregistré.', dupOpen:'Ouvrir le chauffeur existant', profile:'Profil',
     saveFailed:'Enregistrement impossible. Réessayez.',
     offRoadStay:'Ce véhicule n’est plus en service. Les courses assignées à venir restent au tableau — elles ne sont pas annulées. Corrigez-les sous Needs attention.',
     backChauffeurs:'Tous les chauffeurs',
-    fCar:'Voiture', noCar:'Aucune voiture', noCarYet:'Pas encore de voiture', hCar:'La voiture que conduit ce chauffeur. L’attribution la met sur la course.',
+    cntWithClass:'Avec classe', footClass:'Attribuables aux courses de cette classe', fPlateNumber:'Plaque', hChauffeurPlate:'Telle qu’elle figure sur la plaque. Le client la voit avec le nom du chauffeur.',
+    nowUnassigned:'Désormais sans chauffeur : {refs}.', refSep:', ',
+    history:'Réservations', noHistory:'Aucune réservation', noHistoryBody:'Chaque course assignée à ce chauffeur s’affiche ici, même celles qui lui ont été retirées. Ouvrez-en une pour la voir au tableau.', historyFailed:'Impossible de lire les réservations. Rechargez la page.', takenOff:'Retiré',
+    st_pending:'Paiement en attente', st_quote:'Devis', st_paid:'Payée', st_confirmed:'Confirmée', st_assigned:'Assignée', st_completed:'Terminée', st_cancelled:'Annulée', st_refunded:'Remboursée', st_no_show:'Absence', st_partially_cancelled:'Partiellement annulée', st_partially_completed:'Partiellement terminée',
     statusOff:'Hors service', statusLeave:'Absent',
   },
   ar: {
     vehicles:'المركبات', chauffeurs:'السائقون',
     vSub:'ما هي المركبات، وكم تتسع، وهل هي على الطريق',
-    cSub:'من يقود، وعلى أي مركبة، وهل هو في الدورية',
+    cSub:'من يقود، وفي أي فئة، وبأي لوحة',
     colVehicle:'المركبة', colPlate:'اللوحة', colCapacity:'السعة', colBase:'الأجرة الأساسية',
     colChauffeur:'السائق', colStatus:'الحالة', colPhone:'الهاتف', colLicence:'الرخصة',
     unassigned:'بلا سائق', noVehicle:'بلا مركبة', noClass:'بلا فئة',
@@ -279,10 +281,10 @@ const T = {
     addVehicle:'إضافة مركبة', addChauffeur:'إضافة سائق',
     nounV:'مركبة', nounVs:'مركبات', nounC:'سائق', nounCs:'سائقون',
     editV:'تعديل المركبة', editC:'تعديل السائق', delV:'حذف هذه المركبة؟', delC:'حذف هذا السائق؟',
-    searchVehicles:'الفئة أو الطراز أو اللوحة', searchChauffeurs:'الاسم أو الهاتف أو الرخصة',
-    emptyCTitle:'لا يوجد سائقون بعد', emptyCBody:'أضف سائقًا واربطه بإحدى المركبات.',
+    searchVehicles:'الفئة أو الطراز أو اللوحة', searchChauffeurs:'الاسم أو الهاتف أو اللوحة أو الرخصة',
+    emptyCTitle:'لا يوجد سائقون بعد', emptyCBody:'أضف سائقًا واختر فئته.',
     delVBody:'تخرج المركبة من الأسطول، ويبقى السائق المرتبط بها بلا مركبة.',
-    delCBody:'يخرج السائق من لوحة التحكم، وتبقى مركبته في الأسطول.',
+    delCBody:'يختفي من قائمة السائقين ومن الإسناد. تحتفظ رحلاته المنتهية باسمه، وتعود رحلاته غير المنتهية بلا سائق.',
     fClass:'الفئة', fModel:'الطراز', fPlate:'اللوحة', fSeats:'المقاعد', fBags:'الحقائب', fYear:'السنة', fStatus:'الحالة', fNote:'ملاحظة',
     fName:'الاسم', fPhone:'الهاتف', fEmail:'البريد الإلكتروني', fLicence:'رقم الرخصة', fLanguages:'اللغات', fVehicle:'المركبة',
     lang_de:'الألمانية', lang_fr:'الفرنسية', lang_it:'الإيطالية', lang_en:'الإنجليزية', lang_ar:'العربية',
@@ -295,51 +297,72 @@ const T = {
     hLanguages:'تظهر للمسافر. اختر كل اللغات التي يتحدثها هذا السائق.',
     none:'بلا مركبة',
     vNote:'تُسعَّر المركبة حسب فئتها، وتغيير سعر الفئة في شاشة الأسعار يغيّر كل مركباتها. أضف المركبات أولًا، ثم يُربط بها السائقون.',
-    cNote:'يقود كل سائق مركبة واحدة في كل وقت، وهذا الاقتران هو ما تُسنِده لوحة الحجوزات. السائق بلا مركبة لا يمكن إسناد رحلة إليه.',
+    cNote:'عند الإسناد يظهر فقط سائقو فئة الرحلة. السائق بلا فئة لا يمكن إسناد رحلة إليه.',
     cannotAssignNoEmail:'لا يمكن الإسناد حتى يُحفظ بريد إلكتروني.',
     liveTrips:'الرحلات الجارية', noLiveTrips:'لا رحلات جارية', noLiveTripsBody:'الرحلات المسندة غير المنتهية تظهر هنا. افتح رحلة لرؤيتها على اللوحة.', pastBookings:'حجوزات سابقة', noPastBookings:'لا حجوزات سابقة', noPastBookingsBody:'الرحلات المسندة المنتهية تظهر هنا. افتح حجزًا لرؤيته على اللوحة.', saveChauffeur:'حفظ السائق', keepEditing:'متابعة التحرير', morning:'صباح', night:'ليل', fShiftDays:'أيام الوردية', fShiftStart:'البداية', fShiftEnd:'النهاية', dupEmail:'هذا البريد مسجّل مسبقًا.', dupOpen:'فتح السائق الحالي', profile:'الملف',
     saveFailed:'فشل الحفظ. حاول مرة أخرى.',
     offRoadStay:'هذه المركبة خارج الخدمة. الرحلات المسندة القادمة تبقى على اللوحة — لا تُلغى. عالجها في Needs attention.',
     backChauffeurs:'كل السائقين',
-    fCar:'السيارة', noCar:'بلا سيارة', noCarYet:'لا سيارة بعد', hCar:'السيارة التي يقودها هذا السائق. عند الإسناد تُسجَّل على الرحلة.',
+    cntWithClass:'لديهم فئة', footClass:'يمكن إسنادهم إلى رحلات فئتهم', fPlateNumber:'رقم اللوحة', hChauffeurPlate:'كما هو مكتوب على اللوحة. يراه العميل مع اسم السائق.',
+    nowUnassigned:'أصبحت بلا سائق: {refs}.', refSep:'، ',
+    history:'الحجوزات', noHistory:'لا حجوزات بعد', noHistoryBody:'كل رحلة أُسندت إلى هذا السائق تظهر هنا، حتى التي أُزيل عنها. افتح رحلة لرؤيتها على اللوحة.', historyFailed:'تعذّرت قراءة الحجوزات. أعد تحميل الصفحة.', takenOff:'أُزيل عنه',
+    st_pending:'بانتظار الدفع', st_quote:'عرض سعر', st_paid:'مدفوع', st_confirmed:'مؤكد', st_assigned:'معيّن', st_completed:'مكتمل', st_cancelled:'ملغى', st_refunded:'مسترد', st_no_show:'لم يحضر', st_partially_cancelled:'ملغى جزئيًا', st_partially_completed:'مكتمل جزئيًا',
     statusOff:'خارج الدورية', statusLeave:'في إجازة',
   },
 };
 
 class Component extends DCLogic {
-  state = { lang: 'en', saveMsg: '', notice: '', deskEditTick: 0, deskEditId: '' };
+  state = { lang: 'en', saveMsg: '', notice: '', deskEditTick: 0, deskEditId: '', history: null, historyFor: '', historyFailed: false };
   bind = () => {
     if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
     this._off = window.VamosOps.onAny(() => this.forceUpdate());
     this.forceUpdate();
   };
+  // 261001-chauffeur-car (owner, 2026-10-01): the chauffeur's bookings history, read-only, from
+  // GET /api/staff/chauffeurs/:id/bookings — every booking he was ever assigned to, newest first.
+  loadHistory = (id) => {
+    const key = String(id || '');
+    if (!key || this._historyFor === key) return;
+    this._historyFor = key;
+    const api = window.VamosOpsApi;
+    if (!api || typeof api.request !== 'function') { this._historyFor = ''; this._historyRetry = setTimeout(() => this.loadHistory(key), 120); return; }
+    const done = (json) => {
+      if (this._historyFor !== key) return;
+      const ok = !!(json && json.ok && Array.isArray(json.data));
+      this.setState({ history: ok ? json.data : [], historyFor: key, historyFailed: !ok });
+    };
+    api.request('GET', '/api/staff/chauffeurs/' + encodeURIComponent(key) + '/bookings').then(done, () => done(null));
+  };
+  chauffeurId() { return String(this.props.chauffeurId || this.props['chauffeur-id'] || ''); }
   componentDidMount() {
     this.bind();
     this._onLocale = (e) => this.setState({ lang: e.detail.lang, cur: e.detail.cur });
     window.addEventListener('vamos:locale', this._onLocale);
     if (window.VamosLocale) this.setState({ lang: window.VamosLocale.lang() });
+    if (this.chauffeurId()) this.loadHistory(this.chauffeurId());
+  }
+  componentDidUpdate() {
+    const id = this.chauffeurId();
+    if (id && id !== this._historyFor) this.loadHistory(id);
   }
   componentWillUnmount() {
     if (this._off) this._off();
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
     clearTimeout(this._retry);
+    clearTimeout(this._historyRetry);
   }
 
   renderVals() {
     const t = T[this.state.lang] || T.en;
     const ops = window.VamosOps;
     const isChauffeurs = true;
-    const chauffeurId = String(this.props.chauffeurId || this.props['chauffeur-id'] || '');
+    const chauffeurId = this.chauffeurId();
     const isDetail = isChauffeurs && !!chauffeurId;
     const isList = !isDetail;
     const vehicles = ops ? ops.vehicles.all() : [];
     const chauffeurs = ops ? ops.chauffeurs.all() : [];
 
-    const vehicleById = {};
-    vehicles.forEach((v) => { vehicleById[v.id] = v; });
-
     const onShift = chauffeurs.filter((c) => c.status === 'shift').length;
-    const paired = chauffeurs.filter((c) => c.vehicle).length;
 
     const vehicleLabel = (v) => v.klass + ' · ' + (v.plate || v.id);
     const classOptions = ((ops && ops.VEHICLE_CLASSES) || ['Economy', 'Business', 'Van luxury']).map((c) => ({ value: c, label: c }));
@@ -347,31 +370,33 @@ class Component extends DCLogic {
     const vehicleOptions = [{ value:'', label: t.none }].concat(vehicles.map((v) => ({ value: v.id, label: vehicleLabel(v) })));
     const chauffeurOptions = chauffeurs.map((c) => ({ value: c.id, label: c.name || c.id }));
 
-    const classNameById = {};
-    const rememberClass = (id, name) => {
-      const key = String(id || '').trim();
-      const label = String(name || '').trim();
-      if (!key || !label || classNameById[key]) return;
-      classNameById[key] = label;
+    // 261001-chauffeur-car (owner, 2026-10-01): each chauffeur is chosen by a class of TODAY's price
+    // book (VamosOps.liveClasses: the live version's available classes, from the server), never the
+    // draft's and never a fixed list. A driver whose class left the live book keeps it, by its name.
+    const live = (ops && typeof ops.liveClasses === 'function') ? ops.liveClasses() : { status: 'failed', classes: [], names: {} };
+    const classNameById = Object.assign({}, live.names || {});
+    (live.classes || []).forEach((c) => { if (c && c.id && c.name) classNameById[c.id] = c.name; });
+    const classIdOf = (r) => String((r && (r.vehicleClassId || r.vehicle_class_id)) || '').trim();
+    const classLabel = (r) => {
+      const id = classIdOf(r);
+      if (id && classNameById[id]) return classNameById[id];
+      return String((r && (r.vehicleClassName || r.className || r.vehicle_class_name)) || '').trim();
     };
-    ((ops && ops.CLASSES) || []).forEach((c) => rememberClass(c && c.id, c && (c.name || c.label)));
-    const rates = (ops && ops.rates) ? ops.rates.all() : [];
-    rates.forEach((r) => {
-      if (!r || r.available !== true) return;
-      const id = String(r.vehicleClassId || '').trim();
-      rememberClass(id, String(r.name || classNameById[id] || '').trim());
+    const plateOf = (r) => String((r && r.plate) || '').trim();
+    const chauffeurClassOptions = [{ value: '', label: t.noClass }].concat((live.classes || []).map((c) => ({ value: c.id, label: c.name })));
+    chauffeurs.forEach((c) => {
+      const id = classIdOf(c);
+      if (!id || chauffeurClassOptions.some((o) => o.value === id)) return;
+      const name = classLabel(c);
+      if (name) chauffeurClassOptions.push({ value: id, label: name });
     });
-    // 260930-dash-design (owner, 2026-10-01): each driver has his own car. The Car field writes
-    // chauffeurs.default_vehicle_id, the car Assign puts on the trip. Class first, as Assign shows
-    // it; a class the owner named reads his name, not the Economy fallback of klass.
-    const carLabel = (v) => [classNameById[v.vehicleClassId] || v.klass, v.model, v.plate].filter(Boolean).join(' \u00b7 ') || v.id;
-    const carOptions = [{ value: '', label: t.noCar }].concat(vehicles.map((v) => ({ value: v.id, label: carLabel(v) })));
-    // Signed 2026-10-01: a driver's class is his car's class. The chauffeurs.vehicle_class_id column
-    // is kept (no migration) but nothing here reads or writes it any more. No car: ''.
-    const carClassOf = (r) => {
-      const car = vehicleById[String((r && (r.defaultVehicleId || r.vehicle)) || '')];
-      return car ? String(classNameById[car.vehicleClassId] || car.klass || '').trim() : '';
-    };
+    const withClass = chauffeurs.filter((c) => !!classIdOf(c)).length;
+    // The server sends language names ("German, English"); the Languages select holds codes, so an
+    // existing chauffeur's languages read "—" in the edit box (found 2026-10-01). Hand it the codes.
+    const nameToCode = { german:'de', french:'fr', italian:'it', english:'en', arabic:'ar', de:'de', fr:'fr', it:'it', en:'en', ar:'ar' };
+    const languageCodesOf = (value) => (Array.isArray(value) ? value : String(value || '').split(/[,|]/))
+      .map((x) => nameToCode[String(x || '').trim().toLowerCase()] || '')
+      .filter((code, i, all) => code && all.indexOf(code) === i);
 
     const chauffeurColumns = [
       { key:'name', header:t.colChauffeur, lookup:(r) => React.createElement('span', {
@@ -383,8 +408,10 @@ class Component extends DCLogic {
         }, r.name || r.fullName || r.full_name || r.id),
         (r.phone || r.phoneNumber) ? React.createElement('span', { style:{ fontSize:'var(--vt-body-xs)', color:'var(--vt-text-muted)' } }, r.phone || r.phoneNumber) : null,
       ) },
-      { key:'carClassName', header:t.fClass, width:'190px', kind:'need', emptyLabel:t.noCarYet,
-        lookup:(r) => carClassOf(r) },
+      { key:'className', header:t.fClass, width:'170px', kind:'need', emptyLabel:t.noClass,
+        lookup:(r) => classLabel(r) },
+      { key:'plate', header:t.colPlate, width:'140px', kind:'mono',
+        lookup:(r) => plateOf(r) },
       { key:'licence', header:t.colLicence, width:'140px', kind:'mono',
         lookup:(r) => String((r && (r.licence || r.licenceNumber || r.licence_number)) || '').trim() },
     ];
@@ -402,13 +429,17 @@ class Component extends DCLogic {
       { key:'status', label:t.fStatus, editor:'select', options:vStatusOptions, icon:'settings', half:true },
       { key:'note', label:t.fNote, editor:'area', placeholder:'' },
     ];
+    // The form as it was before the 2026-10-01 dashboard-design ship (316606ee), plus Plate number
+    // next to Class (the two things the owner chooses). No Car field. Name and Plate number are
+    // required (decision 7): the box shows the shared "Needed" under an empty one.
     const chauffeurFields = [
       { key:'photo', label:t.fPhoto, editor:'photo', photoKind:'chauffeur', upload:'/api/photos/upload', chooseLabel:t.choosePhoto, hint:t.hPhoto },
-      { key:'name', label:t.fName, half:true, required:true },
-      { key:'phone', label:t.fPhone, editor:'phone', half:true, placeholder:'+41 00 000 00 00' },
-      { key:'email', label:t.fEmail, half:true, placeholder:'name@example.com' },
-      { key:'licence', label:t.fLicence, editor:'licence', half:true, placeholder:'CH 000 000' },
-      { key:'defaultVehicleId', label:t.fCar, editor:'select', options:carOptions, icon:'car', hint:t.hCar, emptyLabel:t.noCar },
+      { key:'name', label:t.fName, half:true, phoneFull:true, required:true },
+      { key:'phone', label:t.fPhone, editor:'phone', half:true, phoneFull:true, placeholder:'+41 00 000 00 00' },
+      { key:'email', label:t.fEmail, half:true, phoneFull:true, placeholder:'name@example.com' },
+      { key:'licence', label:t.fLicence, editor:'licence', half:true, phoneFull:true, placeholder:'CH 000 000' },
+      { key:'vehicleClassId', label:t.fClass, editor:'select', options:chauffeurClassOptions, icon:'car-front', hint:t.hChauffeurClass, emptyLabel:t.noClass, half:true, phoneFull:true },
+      { key:'plate', label:t.fPlateNumber, half:true, phoneFull:true, required:true, icon:'car', placeholder:'ZH 000 000', hint:t.hChauffeurPlate },
       { key:'languages', label:t.fLanguages, editor:'select', multi:true, options:languageOptions(t), icon:'globe' },
       { key:'note', label:t.fNote, editor:'area', placeholder:'' },
     ];
@@ -417,25 +448,8 @@ class Component extends DCLogic {
     const detail = isDetail
       ? (chauffeurs.filter((c) => c.id === chauffeurId)[0] || null)
       : null;
-    const ended = { cancelled: 1, completed: 1, refunded: 1, 'no-show': 1 };
-    const bookings = (isDetail && ops && ops.bookings) ? ops.bookings.all() : [];
-    const tripHref = (b) => ({
-      href: '/bookings/' + encodeURIComponent(b.id),
-      ref: b.id,
-      route: [b.pickup, b.dropoff].filter(Boolean).join(' → ') || '—',
-      when: [b.date, b.time].filter(Boolean).join(' · '),
-    });
-    const matchesChauffeur = (b) => {
-      if (!detail) return false;
-      if (detail.id && b.assignedChauffeurId === detail.id) return true;
-      const email = String(detail.email || '').trim().toLowerCase();
-      if (email && String(b.chauffeurEmail || '').trim().toLowerCase() === email) return true;
-      if (detail.name && (b.chauffeur === detail.name || b.driver === detail.name)) return true;
-      return false;
-    };
-    const liveTrips = !detail ? [] : bookings.filter((b) => !ended[b.status] && matchesChauffeur(b)).map(tripHref);
-    const pastBookings = !detail ? [] : bookings.filter((b) => ended[b.status] && matchesChauffeur(b)).map(tripHref);
-    const className = detail ? carClassOf(detail) : '';
+    const className = detail ? classLabel(detail) : '';
+    const detailPlate = detail ? plateOf(detail) : '';
     const profileName = detail ? (detail.name || '—') : '';
     const profilePhone = detail ? (detail.phone || '—') : '';
     const initials = String((detail && detail.name) || '').trim().split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w.charAt(0)).join('').toUpperCase() || '—';
@@ -443,10 +457,29 @@ class Component extends DCLogic {
     const photoSrc = (!photoRaw || photoRaw.indexOf('data:') === 0) ? '' : (photoRaw.charAt(0) === '/' ? photoRaw : '/photos/' + photoRaw);
     const profileFacts = !detail ? [] : [
       { icon:'mail', label:t.fEmail, value: detail.email || '—', dir: detail.email ? 'ltr' : 'auto' },
-      { icon:'car', label:t.fClass, value: className || t.noCarYet, dir: className ? 'ltr' : 'auto' },
+      { icon:'car-front', label:t.fClass, value: className || t.noClass, dir: className ? 'ltr' : 'auto' },
+      { icon:'car', label:t.colPlate, value: detailPlate || '—', dir: detailPlate ? 'ltr' : 'auto' },
       { icon:'shield-check', label:t.fLicence, value: detail.licence || '—', dir: detail.licence ? 'ltr' : 'auto' },
       { icon:'globe', label:t.fLanguages, value: detail.languages || '—', dir:'auto' },
     ];
+    // Read-only history (owner, 2026-10-01): newest first as the server sends it; a booking he was
+    // taken off is marked. A row opens the booking.
+    const historyOn = isDetail && this.state.historyFor === chauffeurId && Array.isArray(this.state.history);
+    const historyRows = !historyOn ? [] : this.state.history.map((h) => ({
+      ref: String(h.reference || ''),
+      href: '/bookings/' + encodeURIComponent(String(h.reference || h.bookingId || '')),
+      route: [h.pickup, h.dropoff].filter(Boolean).join(' → ') || '—',
+      when: [h.date, h.time].filter(Boolean).join(' · '),
+      statusLabel: t['st_' + String(h.status || '').replace(/-/g, '_')] || String(h.status || ''),
+      takenOff: h.takenOff === true,
+      takenOffLabel: t.takenOff,
+    }));
+
+    // Decision 7: after a delete, the trips that went back to unassigned are named on the page.
+    const unassignedNotice = (json) => {
+      const refs = (json && json.data && Array.isArray(json.data.unassigned)) ? json.data.unassigned.map(String) : [];
+      return refs.length ? t.nowUnassigned.replace('{refs}', refs.join(t.refSep)) : '';
+    };
 
     return {
       n18: 18,
@@ -477,12 +510,13 @@ class Component extends DCLogic {
       hasNoEmail: !!(detail && !String(detail.email || '').trim()),
       tProfile: t.profile,
       tPhone: t.fPhone,
-      tLiveTrips: t.liveTrips,
-      tNoLiveTrips: t.noLiveTrips,
-      tNoLiveTripsBody: t.noLiveTripsBody,
-      tPastBookings: t.pastBookings,
-      tNoPastBookings: t.noPastBookings,
-      tNoPastBookingsBody: t.noPastBookingsBody,
+      tHistory: t.history,
+      tNoHistory: t.noHistory,
+      tNoHistoryBody: t.noHistoryBody,
+      tHistoryFailed: t.historyFailed,
+      historyFailed: !!(historyOn && this.state.historyFailed),
+      noHistory: historyOn && !this.state.historyFailed && historyRows.length === 0,
+      historyRows,
       profileName,
       profilePhone,
       initials,
@@ -490,19 +524,20 @@ class Component extends DCLogic {
       hasPhoto: !!photoSrc,
       noPhoto: !photoSrc,
       profileFacts,
-      noLiveTrips: liveTrips.length === 0,
-      noPastBookings: pastBookings.length === 0,
-      pastBookings,
-      liveTrips,
       title: isDetail ? (detail && detail.name ? detail.name : t.chauffeurs) : t.chauffeurs,
       subtitle: t.cSub,
       note: t.cNote,
       counts: [
         { label:t.cntChauffeurs, value:String(chauffeurs.length), of:'', icon:'users', foot:t.footChauffeurs },
         { label:t.cntOnShift, value:String(onShift), of:'/ ' + chauffeurs.length, icon:'clock', foot:t.footShift },
-        { label:t.cntWithVehicle, value:String(paired), of:'/ ' + chauffeurs.length, icon:'car', foot:t.footPaired },
+        { label:t.cntWithClass, value:String(withClass), of:'/ ' + chauffeurs.length, icon:'car-front', foot:t.footClass },
       ],
-      rows: chauffeurs.map((c) => Object.assign({}, c, { carClassName: carClassOf(c) })),
+      rows: chauffeurs.map((c) => Object.assign({}, c, {
+        className: classLabel(c),
+        plate: plateOf(c),
+        languages: languageCodesOf(c.languages).join(', '),
+        languageText: String(c.languages || ''),
+      })),
       columns: chauffeurColumns,
       fields: chauffeurFields,
       blank: () => (store ? store.blank() : {}),
@@ -524,26 +559,20 @@ class Component extends DCLogic {
           });
           return out;
         };
-        const classId = uuidOrNull(rec.vehicleClassId); // only to tell a legacy "vehicle" that held a class id
-        // The Car field is the truth once the form carries it: "No car" clears the car even though
-        // the record still holds the old one under the legacy "vehicle" key.
-        const legacyVehicle = uuidOrNull(rec.vehicle);
-        const vehicleId = Object.prototype.hasOwnProperty.call(rec, 'defaultVehicleId')
-          ? uuidOrNull(rec.defaultVehicleId)
-          : (legacyVehicle && legacyVehicle !== classId ? legacyVehicle : null);
+        // No cars (owner, 2026-10-01): the class and the plate are the chauffeur's own; no car is
+        // sent, and an old car link is cleared (no vehicle row is touched).
         const payload = Object.assign({}, rec, {
-          vehicle: vehicleId,
-          defaultVehicleId: vehicleId,
+          vehicleClassId: uuidOrNull(rec.vehicleClassId),
+          plate: String(rec.plate || '').trim(),
+          vehicle: null,
+          defaultVehicleId: null,
           languages: langCodes(rec.languages),
           shiftWeekdays: String(rec.weekdays || rec.shiftWeekdays || '').split(',').map((s) => Number(s.trim())).filter((n) => n >= 1 && n <= 7),
           shiftStart: rec.shiftStart || rec.start || null,
           shiftEnd: rec.shiftEnd || rec.end || null,
         });
-        // Signed 2026-10-01: the form has no Class; send none, so the server keeps the stored column.
-        delete payload.vehicleClassId;
         delete payload.vehicleClassName;
         delete payload.className;
-        delete payload.carClassName;
         return store.upsert(payload).then((json) => {
           if (!json || json.ok !== true) {
             const reason = (json && (json.message || json.error || json.detail)) || t.saveFailed;
@@ -554,7 +583,15 @@ class Component extends DCLogic {
           return json;
         });
       },
-      onDelete: (id) => (store ? store.remove(id) : null),
+      // Decision 7 (2026-10-01): he leaves the list and Assign; his trips that are not finished go
+      // back to unassigned, and the page names them.
+      onDelete: (id) => {
+        if (!store) return null;
+        return Promise.resolve(store.remove(id)).then((json) => {
+          if (json && json.ok === true) this.setState({ notice: unassignedNotice(json), saveMsg: '' });
+          return json;
+        });
+      },
       noun: t.nounC,
       nounPlural: t.nounCs,
       addTitle: t.addChauffeur,
@@ -565,7 +602,7 @@ class Component extends DCLogic {
       labelKey: 'name',
       addLabel: t.addChauffeur,
       searchPlaceholder: t.searchChauffeurs,
-      searchKeys: ['name','phone','email','licence','languages','carClassName'],
+      searchKeys: ['name','phone','email','licence','languageText','className','plate'],
       emptyTitle: t.emptyCTitle,
       emptyBody: t.emptyCBody,
       deleteBody: t.delCBody,

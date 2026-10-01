@@ -8,8 +8,9 @@
 //      No-show / Cancel; "Back to bookings" stays; Cancel stays apart (danger), no glow.
 //   2. Phone: the top bar is one compact row (menu, title or wordmark, one Actions button);
 //      a screen's own buttons fold into that menu at phone width (booking detail, Pricing).
-//   3. Each driver has his own car: a Car field on the chauffeur form; the Assign box asks only
-//      for the driver (car under the name), one primary button, refusals in plain words.
+//   3. The Assign box asks only for the driver, one primary button, refusals in plain words.
+//      (The car parts of 3 — a Car field, the car under the driver's name — were withdrawn by the
+//      owner on 2026-10-01: no cars; ops-dc-chauffeur-class.test.ts pins class and plate.)
 
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -540,150 +541,10 @@ describe("2 · phone: compact bar and folded page buttons", () => {
   });
 });
 
-// ── 3 · Driver's car and the Assign box ────────────────────────────────────────────────────
-describe("3 · each driver has his own car", () => {
-  function fleet(lang = "en") {
-    const on = () => () => undefined;
-    const upsert = vi.fn(async (_rec: Record<string, unknown>) => ({ ok: true }));
-    const win = {
-      VamosOps: {
-        onAny: on,
-        VEHICLE_STATUS: ["service", "idle", "workshop"],
-        VEHICLE_CLASSES: ["Economy", "Business", "Van luxury"],
-        vehicles: {
-          all: () => [
-            { id: ECON_CAR, klass: "Economy", model: "Toyota Corolla", plate: "ZH 123 456" },
-            { id: BUS_CAR, klass: "Business", model: "Mercedes V-Class", plate: "ZH 000 000" },
-          ],
-          blank: () => ({}),
-        },
-        chauffeurs: { all: () => [], blank: () => ({}), upsert },
-        rates: { all: () => [] },
-        bookings: { all: () => [] },
-      },
-      addEventListener() {},
-      removeEventListener() {},
-    };
-    const logic = loadLogic("OpsFleet.dc.html", win, lang);
-    return { logic, upsert, vals: () => logic.renderVals() };
-  }
-
-  it("the chauffeur form has a Car field listing the fleet's cars, class first", () => {
-    const f = fleet().vals().fields as { key: string; label: string; editor?: string; options?: { value: string; label: string }[] }[];
-    const car = f.find((x) => x.key === "defaultVehicleId");
-    expect(car).toBeDefined();
-    expect(car?.label).toBe("Car");
-    expect(car?.editor).toBe("select");
-    expect(car?.options).toEqual([
-      { value: "", label: "No car" },
-      { value: ECON_CAR, label: "Economy · Toyota Corolla · ZH 123 456" },
-      { value: BUS_CAR, label: "Business · Mercedes V-Class · ZH 000 000" },
-    ]);
-    // Signed 2026-10-01: the Class field is gone; the driver's class is his car's class.
-    expect(f.find((x) => x.key === "vehicleClassId")).toBeUndefined();
-    expect(f.find((x) => x.key === "languages")).not.toHaveProperty("pair");
-    expect(fleet("de").vals().fields.find((x: { key: string }) => x.key === "defaultVehicleId").label).toBe("Auto");
-    expect(fleet("fr").vals().fields.find((x: { key: string }) => x.key === "defaultVehicleId").label).toBe("Voiture");
-    expect(fleet("ar").vals().fields.find((x: { key: string }) => x.key === "defaultVehicleId").label).toBe("السيارة");
-  });
-
-  it("signed 2026-10-01: the list, the search and the profile show the class of the driver's car", () => {
-    const on = () => () => undefined;
-    const drivers = [
-      { id: MARCO, name: "Marco", defaultVehicleId: BUS_CAR, vehicle: BUS_CAR, vehicleClassId: "old-class", vehicleClassName: "Van luxury" },
-      { id: LUCA, name: "Luca", defaultVehicleId: "", vehicle: "", vehicleClassId: "old-class", vehicleClassName: "Van luxury" },
-    ];
-    const win = (lang: string, chauffeurId = "") => loadLogic("OpsFleet.dc.html", {
-      VamosOps: {
-        onAny: on, VEHICLE_STATUS: ["service"], VEHICLE_CLASSES: ["Economy"], CLASSES: [],
-        vehicles: { all: () => [{ id: BUS_CAR, vehicleClassId: "", klass: "Business", model: "Mercedes V-Class", plate: "ZH 000 000" }], blank: () => ({}) },
-        chauffeurs: { all: () => drivers, blank: () => ({}), upsert: async () => ({ ok: true }) },
-        rates: { all: () => [] },
-        bookings: { all: () => [] },
-      },
-      addEventListener() {}, removeEventListener() {},
-    }, lang, { chauffeurId });
-    const v = win("en").renderVals();
-    const col = (v.columns as { key: string; emptyLabel?: string; lookup: (r: unknown) => unknown }[]).find((c) => c.key === "carClassName");
-    expect(col?.lookup(drivers[0])).toBe("Business");
-    expect(col?.lookup(drivers[1])).toBe("");
-    expect(col?.emptyLabel).toBe("No car yet");
-    expect(v.searchKeys).toContain("carClassName");
-    expect(v.searchKeys).not.toContain("vehicleClassName");
-    expect((v.rows as { carClassName: string }[]).map((r) => r.carClassName)).toEqual(["Business", ""]);
-    const fact = (lang: string, id: string) =>
-      (win(lang, id).renderVals().profileFacts as { icon: string; value: string }[]).find((x) => x.icon === "car")?.value;
-    expect(fact("en", MARCO)).toBe("Business");
-    expect(fact("en", LUCA)).toBe("No car yet");
-    expect(fact("de", LUCA)).toBe("Noch kein Auto");
-    expect(fact("fr", LUCA)).toBe("Pas encore de voiture");
-    expect(fact("ar", LUCA)).toBe("لا سيارة بعد");
-  });
-
-  it("signed 2026-10-01: Save no longer sends a class (the server keeps the stored column)", async () => {
-    const f = fleet();
-    await f.vals().onSave({ name: "Marco", defaultVehicleId: BUS_CAR, vehicleClassId: "e0000000-0000-4000-8000-00000000ec01", vehicleClassName: "Economy" });
-    const sent = f.upsert.mock.calls.at(-1)?.[0] as Record<string, unknown>;
-    expect(sent).not.toHaveProperty("vehicleClassId");
-    expect(sent).not.toHaveProperty("vehicleClassName");
-    const data = read("app/vamos-ops-data.js");
-    expect(data).toMatch(/if \(Object\.prototype\.hasOwnProperty\.call\(c, "vehicleClassId"\)\) row\.vehicleClassId = classId;/);
-  });
-
-  it("Save writes the picked car to defaultVehicleId; No car clears it even when the old car is still in the record", async () => {
-    const f = fleet();
-    await f.vals().onSave({ name: "Marco", defaultVehicleId: BUS_CAR, vehicle: ECON_CAR });
-    expect(f.upsert.mock.calls.at(-1)?.[0]).toMatchObject({ defaultVehicleId: BUS_CAR, vehicle: BUS_CAR });
-    await f.vals().onSave({ name: "Marco", defaultVehicleId: "", vehicle: ECON_CAR });
-    expect(f.upsert.mock.calls.at(-1)?.[0]).toMatchObject({ defaultVehicleId: null, vehicle: null });
-  });
-
-  it("a car of a class the owner named himself reads that name, never the Economy fallback", () => {
-    const data = read("app/vamos-ops-data.js");
-    expect(data).toMatch(/vehicleClassId: str\(v\.vehicleClassId \|\| v\.vehicle_class_id\)/);
-    const own = { id: "cls-own", name: "Van luxury XL" };
-    const car = { id: ECON_CAR, vehicleClassId: "cls-own", klass: "Economy", model: "Sprinter", plate: "ZH 7" };
-    const fl = loadLogic("OpsFleet.dc.html", {
-      VamosOps: {
-        onAny: () => () => undefined,
-        VEHICLE_STATUS: ["service"],
-        VEHICLE_CLASSES: ["Economy"],
-        CLASSES: [own],
-        vehicles: { all: () => [car], blank: () => ({}) },
-        chauffeurs: { all: () => [], blank: () => ({}), upsert: async () => ({ ok: true }) },
-        rates: { all: () => [] },
-        bookings: { all: () => [] },
-      },
-      addEventListener() {},
-      removeEventListener() {},
-    });
-    const opts = fl.renderVals().fields.find((x: { key: string }) => x.key === "defaultVehicleId").options;
-    expect(opts[1].label).toBe("Van luxury XL \u00b7 Sprinter \u00b7 ZH 7");
-    const b = booking();
-    const { win: dw } = detailWindow(b);
-    (dw.VamosOps as Record<string, unknown>).CLASSES = [own];
-    (dw.VamosOps as { chauffeurs: { all: () => unknown[] } }).chauffeurs.all = () => [{ id: MARCO, name: "Marco", defaultVehicleId: ECON_CAR }];
-    (dw.VamosOps as { vehicles: { all: () => unknown[] } }).vehicles.all = () => [car];
-    const d = loadLogic("OpsDetail.dc.html", dw, "en", { id: b.id });
-    expect((d.renderVals().assignRows as { car: string }[])[0]!.car).toBe("Van luxury XL \u00b7 Sprinter \u00b7 ZH 7");
-  });
-
-  it("the Assign box: no dialog, the drivers as a radio list with their car under the name, one primary button", () => {
-    const tpl = templateOf(readDc("OpsDetail.dc.html"));
-    expect(tpl).not.toContain('title="{{ tAssignDriver }}"');
-    const box = tpl.slice(tpl.indexOf("<div data-ops-assign"), tpl.indexOf("<div data-ops-pax>"));
-    expect(box).toMatch(/<sc-for list="\{\{ assignRows \}\}"/);
-    expect(box).toMatch(/VamosTaxiDesignSystem_245af1\.Radio"[^>]*label="\{\{ d\.name \}\}"[^>]*description="\{\{ d\.car \}\}"/);
-    expect(box.match(/variant="primary"[^>]*onClick="\{\{ confirmAssign \}\}"/g) ?? []).toHaveLength(1);
-    // Same grid as Passenger & trip, so the box lines up with the rest of the detail.
-    expect(box).toContain("data-ops-pax-grid");
-    const rows = detail().vals().assignRows as { name: string; car: string }[];
-    expect(rows.map((r) => [r.name, r.car])).toEqual([
-      ["Marco", "Economy · Toyota Corolla · ZH 123 456"],
-      ["Luca", "No car yet"],
-    ]);
-  });
-
+// ── 3 · The Assign box ──────────────────────────────────────────────────────────────────────
+// Owner, 2026-10-01: no cars. The Car field, the car under the driver's name and the car refusals
+// pinned here before are withdrawn; class and plate are pinned in ops-dc-chauffeur-class.test.ts.
+describe("3 · the Assign box", () => {
   it("the button is never a pale-yellow disabled pill: without a pick it asks for one, in words, and sends nothing", async () => {
     const d = detail();
     expect(d.vals().assignDisabled).toBe(false);
@@ -691,45 +552,12 @@ describe("3 · each driver has his own car", () => {
     await flush();
     expect(d.request).not.toHaveBeenCalled();
     expect(d.vals().assignError).toBe("Pick a chauffeur first.");
-    (d.vals().assignRows as { pick: () => void }[])[0]!.pick();
+    // Decision 7 (2026-10-01): the pick is the one-row dropdown now (ops-dc-chauffeur-class.test.ts).
+    d.vals().pickDriverFromSelect({ target: { value: MARCO } });
     expect(d.logic.state.pickDriver).toBe(MARCO);
     expect(d.vals().hasAssignError).toBe(false);
     const css = readDc("OpsDetail.dc.html");
-    expect(css).toMatch(/\[data-ops-assign-pick\]\{[^}]*max-inline-size:\d+px/);
+    expect(css).toMatch(/\[data-ops-assign-row\]\{[^}]*max-inline-size:\d+px/);
   });
 
-  it("refusals in plain words, on the box: no car, and a car of another class", async () => {
-    const noCar = detail({}, "en", { ok: false, code: "no-vehicle" });
-    (noCar.vals().assignRows as { pick: () => void }[])[1]!.pick();
-    noCar.vals().confirmAssign();
-    await flush();
-    expect(noCar.vals().assignError).toBe("Give this driver a car first: Chauffeurs, then the driver, then Car.");
-    const mismatch = detail({}, "en", { ok: false, code: "class-mismatch", carClass: "Economy", tripClass: "Business" });
-    (mismatch.vals().assignRows as { pick: () => void }[])[0]!.pick();
-    mismatch.vals().confirmAssign();
-    await flush();
-    expect(mismatch.vals().assignError).toBe("This driver’s car is Economy; the trip is Business.");
-    expect(mismatch.vals().hasAssignError).toBe(true);
-  });
-
-  it("the refusals exist in de, fr and ar, with the class names put in", async () => {
-    const want: Record<string, [string, string]> = {
-      de: ["Geben Sie diesem Fahrer zuerst ein Auto: Chauffeure, dann den Fahrer, dann Auto.", "Das Auto dieses Fahrers ist Economy; die Fahrt ist Business."],
-      fr: ["Donnez d’abord une voiture à ce chauffeur : Chauffeurs, puis le chauffeur, puis Voiture.", "La voiture de ce chauffeur est Economy ; la course est Business."],
-      ar: ["أعطِ هذا السائق سيارة أولًا: السائقون، ثم السائق، ثم السيارة.", "سيارة هذا السائق من فئة Economy، والرحلة من فئة Business."],
-    };
-    for (const [lang, [noCarText, mismatchText]] of Object.entries(want)) {
-      const a = detail({}, lang, { ok: false, code: "no-vehicle" });
-      (a.vals().assignRows as { pick: () => void }[])[1]!.pick();
-      a.vals().confirmAssign();
-      await flush();
-      expect(a.vals().assignError, lang).toBe(noCarText);
-      const b = detail({}, lang, { ok: false, code: "class-mismatch", carClass: "Economy", tripClass: "Business" });
-      (b.vals().assignRows as { pick: () => void }[])[0]!.pick();
-      b.vals().confirmAssign();
-      await flush();
-      expect(b.vals().assignError, lang).toBe(mismatchText);
-      expect(noCarText + mismatchText).not.toContain("ß");
-    }
-  });
 });

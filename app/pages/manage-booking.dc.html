@@ -325,9 +325,11 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div data-row="1">
 <span style="min-width:0"><span data-row-k="1">Phone</span><sc-if value="{{ hasDriverTel }}" hint-placeholder-val="{{ false }}"><a data-tel="1" class="vt-dir-keep" href="{{ driverTel }}">{{ driverPhone }}</a></sc-if></span>
 </div>
+<sc-if value="{{ hasDriverCar }}" hint-placeholder-val="{{ false }}">
 <div data-row="1">
 <span style="min-width:0"><span data-row-k="1">Vehicle</span><span data-row-v="1" data-i18n-skip="1">{{ driverCar }}</span></span>
 </div>
+</sc-if>
 </sc-if>
 </sc-if>
 <sc-if value="{{ showRefundLine }}" hint-placeholder-val="{{ false }}">
@@ -1197,6 +1199,8 @@ class Component extends DCLogic {
       driverTel,
       hasDriverTel: !!driverTel,
       driverCar,
+      // No cars (2026-10-01): the chauffeur's plate alone; no plate, no Vehicle row (no empty line).
+      hasDriverCar: !!driverCar,
       hasMethod: !!money,
       methodLabel,
       hasPresentment: !!presentmentLabel,

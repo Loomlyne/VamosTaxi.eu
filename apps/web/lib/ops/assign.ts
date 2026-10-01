@@ -106,12 +106,11 @@ async function loadCustomerAssignment(
       l.dropoff_text,
       l.scheduled_local,
       c.full_name as chauffeur_name,
-      v.model as vehicle,
-      v.plate as plate
+      null::text as vehicle,
+      c.plate as plate
       from public.bookings as b
       join public.booking_legs as l on l.booking_id = b.id
       join public.chauffeurs as c on c.id = ${chauffeurId}::uuid
-      left join public.vehicles as v on v.id = l.assigned_vehicle_id
      where b.id = ${bookingId}::uuid
      order by l.leg_seq
      limit 1
@@ -198,13 +197,7 @@ async function loadOverlap(
         on other.id <> mine.id
        and other.status not in ('cancelled', 'no_show')
        and other.scheduled_range && mine.scheduled_range
-       and (
-         other.assigned_chauffeur_id = c.id
-         or (
-           c.default_vehicle_id is not null
-           and other.assigned_vehicle_id = c.default_vehicle_id
-         )
-       )
+       and other.assigned_chauffeur_id = c.id
       join public.bookings as b on b.id = other.booking_id
      where mine.booking_id = ${bookingId}::uuid
      order by other.scheduled_at
@@ -216,10 +209,10 @@ async function loadOverlap(
 }
 
 type ClassFactsRow = {
-  car_id: string | null;
-  car_class_id: string | null;
-  car_class_name: string | null;
-  car_class_slug: string | null;
+  driver_name: string | null;
+  driver_class_id: string | null;
+  driver_class_name: string | null;
+  driver_class_slug: string | null;
   trip_class_id: string | null;
   trip_class_name: string | null;
   trip_class_slug: string | null;
@@ -235,9 +228,9 @@ function className(name: string | null, slug: string | null): string {
 }
 
 /**
- * 260930-dash-design: the driver's own car (chauffeurs.default_vehicle_id, the car ops_assign_leg
- * puts on the trip) with its class, and the class of the trip's first leg (the leg the RPC
- * assigns). Null when the booking or the driver is not there — the RPC then answers not-found.
+ * No cars (owner, 2026-10-01): the driver's class (chauffeurs.vehicle_class_id) and the class of
+ * the trip's first leg (the leg the RPC assigns). Null when the booking or the driver is not
+ * there — the RPC then answers not-found.
  */
 export async function loadAssignClassFacts(
   sql: OpsSql,
@@ -246,18 +239,17 @@ export async function loadAssignClassFacts(
 ): Promise<AssignClassFacts | null> {
   const rows = await sql<ClassFactsRow[]>`
     select
-      c.default_vehicle_id as car_id,
-      v.vehicle_class_id as car_class_id,
-      car_cls.name as car_class_name,
-      car_cls.slug as car_class_slug,
+      c.full_name as driver_name,
+      c.vehicle_class_id as driver_class_id,
+      driver_cls.name as driver_class_name,
+      driver_cls.slug as driver_class_slug,
       l.vehicle_class_id as trip_class_id,
       trip_cls.name as trip_class_name,
       trip_cls.slug as trip_class_slug
       from public.bookings as b
       join public.booking_legs as l on l.booking_id = b.id
       join public.chauffeurs as c on c.id = ${chauffeurId}::uuid
-      left join public.vehicles as v on v.id = c.default_vehicle_id
-      left join public.vehicle_classes as car_cls on car_cls.id = v.vehicle_class_id
+      left join public.vehicle_classes as driver_cls on driver_cls.id = c.vehicle_class_id
       left join public.vehicle_classes as trip_cls on trip_cls.id = l.vehicle_class_id
      where b.id = ${bookingId}::uuid
      order by l.leg_seq
@@ -266,9 +258,9 @@ export async function loadAssignClassFacts(
   const row = rows[0];
   if (!row) return null;
   return {
-    carId: row.car_id ? String(row.car_id) : null,
-    carClassId: row.car_class_id ? String(row.car_class_id) : null,
-    carClassName: className(row.car_class_name, row.car_class_slug),
+    driverName: String(row.driver_name ?? "").trim(),
+    driverClassId: row.driver_class_id ? String(row.driver_class_id) : null,
+    driverClassName: className(row.driver_class_name, row.driver_class_slug),
     tripClassId: row.trip_class_id ? String(row.trip_class_id) : null,
     tripClassName: className(row.trip_class_name, row.trip_class_slug),
   };
@@ -300,8 +292,9 @@ export async function assignBooking(
   if (!key || !chauffeur) return { ok: false, code: "not-found" };
   const bookingId = await resolveStaffBookingId(env, claims, key);
   if (!bookingId) return { ok: false, code: "not-found" };
-  // 260930-dash-design (owner rule 2026-10-01): a car of another class than the trip's is refused
-  // before the database call, so nothing is written. A read that fails answers a refusal, not a 500.
+  // Owner, 2026-10-01 (no cars): a driver without a class, or of another class than the trip's, is
+  // refused before the database call, so nothing is written. A read that fails answers a refusal,
+  // not a 500. ops_assign_leg checks the same rule again (20261007160000).
   let facts: AssignClassFacts | null;
   try {
     facts = await asStaff(env, claims, (sql) => loadAssignClassFacts(sql, bookingId, chauffeur));
@@ -317,7 +310,7 @@ export async function assignBooking(
   try {
     result = await asSystem<AssignResult>(env, async (sql) => {
       const rows = await sql<
-        { booking_id: string; leg_id: string; chauffeur_id: string; vehicle_id: string }[]
+        { booking_id: string; leg_id: string; chauffeur_id: string; vehicle_id: string | null }[]
       >`
         select * from public.ops_assign_leg(
           ${bookingId}::uuid,
@@ -327,12 +320,12 @@ export async function assignBooking(
       `;
       const row = rows[0];
       if (!row) return { ok: false, code: "unknown" };
+      // No cars (2026-10-01): the RPC answers vehicle_id null; no vehicle id leaves this function.
       return {
         ok: true,
         bookingId: String(row.booking_id),
         legId: String(row.leg_id),
         chauffeurId: String(row.chauffeur_id),
-        vehicleId: String(row.vehicle_id),
       };
     });
   } catch (err) {

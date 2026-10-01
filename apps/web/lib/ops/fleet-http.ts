@@ -7,6 +7,7 @@
 import {
   ChauffeurDuplicateEmailError,
   ChauffeurInputError,
+  type ChauffeurDeleteResult,
   type ChauffeurDetail,
   type ChauffeurInput,
   type ChauffeurRow,
@@ -24,7 +25,7 @@ import {
   type VehicleRow,
 } from "./fleet";
 import { classDisplayName, liveClassSlug } from "./class-slug";
-import { jsonErr } from "./staff-json";
+import { jsonErr, jsonOk } from "./staff-json";
 import { mapSqlState } from "./sqlstate";
 
 export const UUID_RE =
@@ -190,6 +191,7 @@ export function presentChauffeur(
     vehicleClassId: row.vehicleClassId ?? "",
     vehicleClassName: (row.vehicleClassName ?? "").trim(),
     className: (row.vehicleClassName ?? "").trim(),
+    plate: (row.plate ?? "").trim(),
     licenceNumber,
     licence: licenceNumber,
     licenceExpiresOn: row.licenceExpiresOn,
@@ -272,6 +274,8 @@ export function parseChauffeurBody(body: unknown): { id: string | null; input: C
       vehicleClassId: Object.prototype.hasOwnProperty.call(rec, "vehicleClassId")
         ? asString(rec.vehicleClassId) || null
         : undefined,
+      // 2026-10-01: the plate on the chauffeur; absent means keep the column.
+      plate: Object.prototype.hasOwnProperty.call(rec, "plate") ? asString(rec.plate) || null : undefined,
       licenceNumber: asString(rec.licenceNumber || rec.licence),
       licenceExpiresOn: asString(rec.licenceExpiresOn) || null,
       languages: languageCodes(rec.languages),
@@ -320,6 +324,8 @@ export function chauffeurErrorCopy(code: string): string | null {
   if (code === "chauffeurs-failure-photo") return "Photo must be an uploaded file, not an embedded image.";
   if (code === "chauffeurs-failure-vehicle") return "That vehicle is missing.";
   if (code === "chauffeurs-failure-class") return "That class is missing.";
+  if (code === "chauffeurs-failure-plate-required") return "Plate number is required.";
+  if (code === "chauffeurs-failure-plate") return "The plate number is too long.";
   if (code === "chauffeurs-failure-error") return "The chauffeur could not be saved.";
   if (code === "chauffeurs-duplicate-email") return "This email is already on file.";
   if (code === "fleet-seat-morning-taken") return "This vehicle already has a Morning chauffeur.";
@@ -409,6 +415,17 @@ export function chauffeurJsonError(err: unknown): Response {
   }
   const message = "The chauffeur could not be saved.";
   return jsonErr(code || "error", 500, { message });
+}
+
+/**
+ * Owner, decision 7 (2026-10-01): the chauffeur is deleted from the dashboard (his row stays for
+ * his finished trips); `unassigned` names his trips that went back to unassigned.
+ */
+export function chauffeurDeleteJson(id: string, result: ChauffeurDeleteResult): Response {
+  if (result.kind === "gone") {
+    return jsonErr("not-found", 404, { message: chauffeurErrorCopy("not-found") ?? "That chauffeur is gone." });
+  }
+  return jsonOk({ id, unassigned: result.unassigned });
 }
 
 export async function readJsonBody(request: Request): Promise<unknown> {

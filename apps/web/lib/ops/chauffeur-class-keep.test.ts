@@ -65,7 +65,8 @@ describe("the driver form stops writing the class", () => {
     expect(update?.values).toContain(CLASS);
     const n = recorder();
     asStaff.mockImplementation(async (_e: unknown, _c: unknown, fn: (sql: unknown) => unknown) => fn(n.sql));
-    await insertChauffeur(env, claims, null, assertChauffeurInput(parseChauffeurBody({ name: "Luca", phone: "+41 79 222 22 22" }).input));
+    // Decision 7 (2026-10-01): a new chauffeur needs a plate number.
+    await insertChauffeur(env, claims, null, assertChauffeurInput(parseChauffeurBody({ name: "Luca", phone: "+41 79 222 22 22", plate: "ZH 222 222" }).input));
     const insert = n.calls.find((c) => /insert into public\.chauffeurs/.test(c.text));
     expect(insert?.values).not.toContain(undefined);
   });

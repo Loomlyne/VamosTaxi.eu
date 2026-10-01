@@ -27,7 +27,7 @@ function failStatus(code: string): number {
     code === "frozen" ||
     code === "not-paid" ||
     code === "no-email" ||
-    code === "no-vehicle" ||
+    code === "no-class" ||
     code === "capacity" ||
     code === "class-mismatch"
   ) {
@@ -61,9 +61,17 @@ export const POST = withStaff(async (claims, request) => {
         otherLocal: result.otherLocal ?? "",
       });
     }
+    // No cars (owner, 2026-10-01): the page words the refusal from the driver's name and classes.
     if (result.code === "class-mismatch") {
       return jsonErr("class-mismatch", 409, {
-        carClass: result.carClass ?? "",
+        driverName: result.driverName ?? "",
+        driverClass: result.driverClass ?? "",
+        tripClass: result.tripClass ?? "",
+      });
+    }
+    if (result.code === "no-class") {
+      return jsonErr("no-class", 409, {
+        driverName: result.driverName ?? "",
         tripClass: result.tripClass ?? "",
       });
     }
@@ -73,6 +81,5 @@ export const POST = withStaff(async (claims, request) => {
     id,
     bookingId: result.bookingId,
     chauffeurId: result.chauffeurId,
-    vehicleId: result.vehicleId,
   });
 });
