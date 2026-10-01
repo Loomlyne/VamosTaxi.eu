@@ -89,6 +89,15 @@
         de: '$1 · $2 Passagiere · $3', fr: '$1 · $2 passagers · $3', ar: '$1 · $2 مسافرًا · $3' },
       { re: /^(1[1-9]|[2-9]\d) passengers · (VT-[\w-]+)$/,
         de: '$1 Passagiere · $2', fr: '$1 passagers · $2', ar: '$1 مسافرًا · $2' },
+      /* Dashboard New trip: the quote has no class for the party. */
+      { re: /^No class seats 1 passenger$/,
+        de: 'Keine Klasse hat Platz für 1 Passagier', fr: 'Aucune classe n’accueille 1 passager', ar: 'لا توجد فئة تتسع لراكب واحد' },
+      { re: /^No class seats 2 passengers$/,
+        de: 'Keine Klasse hat Platz für 2 Passagiere', fr: 'Aucune classe n’accueille 2 passagers', ar: 'لا توجد فئة تتسع لراكبَين' },
+      { re: /^No class seats (1[1-9]|[2-9]\d) passengers$/,
+        de: 'Keine Klasse hat Platz für $1 Passagiere', fr: 'Aucune classe n’accueille $1 passagers', ar: 'لا توجد فئة تتسع لـ $1 راكبًا' },
+      { re: /^No class seats (\d+) passengers$/,
+        de: 'Keine Klasse hat Platz für $1 Passagiere', fr: 'Aucune classe n’accueille $1 passagers', ar: 'لا توجد فئة تتسع لـ $1 ركاب' },
 
       /* ── Manage a booking · party size and class capacity ─────────────── */
       { re: /^Up to (\d+) passengers$/,

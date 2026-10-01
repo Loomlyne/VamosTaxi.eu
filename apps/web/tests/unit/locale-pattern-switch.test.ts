@@ -76,6 +76,16 @@ describe("switching language keeps the right Arabic count form (real vamos-local
     ["Das ist die einzige Buchung.", "ar", "هذا هو الحجز الوحيد."],
     // A wider template no longer swallows a narrower one
     ["Bis zu 7 Gepäckstücke", "en", "Up to 7 bags"],
+    // Dashboard New trip: no class seats the party
+    ["No class seats 14 passengers", "de", "Keine Klasse hat Platz für 14 Passagiere"],
+    ["No class seats 14 passengers", "fr", "Aucune classe n’accueille 14 passagers"],
+    ["No class seats 14 passengers", "ar", "لا توجد فئة تتسع لـ 14 راكبًا"],
+    ["No class seats 8 passengers", "ar", "لا توجد فئة تتسع لـ 8 ركاب"],
+    ["No class seats 2 passengers", "ar", "لا توجد فئة تتسع لراكبَين"],
+    ["No class seats 1 passenger", "ar", "لا توجد فئة تتسع لراكب واحد"],
+    ["Keine Klasse hat Platz für 8 Passagiere", "ar", "لا توجد فئة تتسع لـ 8 ركاب"],
+    ["Aucune classe n’accueille 14 passagers", "ar", "لا توجد فئة تتسع لـ 14 راكبًا"],
+    ["لا توجد فئة تتسع لـ 14 راكبًا", "en", "No class seats 14 passengers"],
   ])("%s → %s reads %s", (key, lang, want) => {
     expect(t(key, lang)).toBe(want);
   });

@@ -94,9 +94,23 @@ describe("BookingSheet takes the limit as a prop", () => {
   });
 });
 
-describe("dashboard New trip has no silent clamp", () => {
-  it("sends the number typed; the quote's class rows decide", () => {
-    expect(ops).toContain("pax: Math.max(1, parseInt(this.state.pax, 10) || 1),");
+describe("dashboard New trip: no silent 8, the database 16, a line when no class seats the party", () => {
+  it("quotes the number typed up to the database limit; the quote's class rows decide the class", () => {
+    expect(ops).toMatch(/var PARTY_LIMIT = 16;/);
+    expect(ops).toContain("pax: Math.min(PARTY_LIMIT, Math.max(1, parseInt(this.state.pax, 10) || 1)),");
+    expect(ops).toContain("+digits > PARTY_LIMIT ? String(PARTY_LIMIT) : digits");
+  });
+
+  it("shows the line under Vehicle class only for a current quote with no class left", () => {
+    expect(opsRaw).toMatch(/label="\{\{ tClass \}\}"[^>]*error="\{\{ classError \}\}"/);
+    expect(ops).toContain("quotedPax: nums.pax");
+    expect(ops).toMatch(/classError: s\.quoteId && s\.quotedPax && Array\.isArray\(s\.classes\) && s\.classes\.length && !classChoices\(s\.classes\)\.length \? noClassLine\(s\.quotedPax\) : ''/);
+  });
+
+  it("words the line in the singular for one", () => {
+    const noClassLine = new Function(`${topLevelFunction(opsRaw, "noClassLine")}; return noClassLine;`)() as (n: number) => string;
+    expect(noClassLine(1)).toBe("No class seats 1 passenger");
+    expect(noClassLine(14)).toBe("No class seats 14 passengers");
   });
 });
 
