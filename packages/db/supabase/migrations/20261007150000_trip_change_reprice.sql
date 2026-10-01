@@ -1,7 +1,7 @@
 -- 20261007150000_trip_change_reprice.sql
 --
 -- 26.2 P6: a place and time change on a PAID trip is re-priced and works. Plan signed by the owner
--- (.planning/quick/261001-p6-paid-trip-edit/PLAN.md), decisions D1-D16
+-- (.planning/quick/261001-p6-paid-trip-edit/PLAN.md), decisions D1-D20
 -- (.planning/decisions/2026-10-01-p6-paid-trip-edit.md). P6 extends P1's machine
 -- (20261007140000_class_change_reprice.sql): the same staff request, the same accept (difference
 -- against everything paid minus refunds; dearer waits for the payment of the difference; cheaper is
@@ -37,6 +37,9 @@
 --   (6)  manage_money_for               create or replace, body of 20260930190000 + key
 --                                       last_change ('class' | 'trip' | null): the customer page
 --                                       picks the approved refund line (P1 class line or D15).
+--   (7)  booking_cancel_resend_facts    D20 definer read: a paid cancelled trip's cancellation
+--                                       e-mail facts and the refund line it recorded (the
+--                                       customer's Resend on a cancelled trip).
 --
 --   (0)  D11 + D17 (owner, 2026-10-01: "Keep him on both"; "Change the rule": a trip he keeps on
 --        purpose is left out of the overlap check, an ordinary Assign still refuses overlaps):
@@ -1177,3 +1180,61 @@ $$;
 revoke all on function public.manage_money_for(pg_catalog.uuid) from public;
 revoke all on function public.manage_money_for(pg_catalog.uuid) from anon;
 revoke all on function public.manage_money_for(pg_catalog.uuid) from authenticated;
+
+-- ---------------------------------------------------------------------------
+-- (7) D20 (owner, 2026-10-02: "Resend the cancellation mail instead on a cancelled trip"): the
+--     facts of the cancellation e-mail for the customer's Resend, with the refund line the
+--     cancellation recorded (its booking.status_changed event: refund_mode, refund_rappen; the
+--     Worker turns them into the line exactly as finishPaidCancel does). Only a cancelled trip that
+--     was paid: a trip cancelled before it was paid never had this e-mail. Read only.
+-- ---------------------------------------------------------------------------
+create function public.booking_cancel_resend_facts(p_booking_id pg_catalog.uuid)
+returns table (
+  reference pg_catalog.text, locale pg_catalog.text, contact_email pg_catalog.text,
+  pickup_text pg_catalog.text, dropoff_text pg_catalog.text, scheduled_local pg_catalog.text,
+  refund_mode pg_catalog.text, refund_rappen pg_catalog.int4
+)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select b.reference, b.locale, b.contact_email::pg_catalog.text,
+         l.pickup_text, l.dropoff_text, l.scheduled_local,
+         e.payload ->> 'refund_mode',
+         (e.payload ->> 'refund_rappen')::pg_catalog.int4
+    from public.bookings as b
+    join lateral (
+      select bl.pickup_text, bl.dropoff_text, bl.scheduled_local
+        from public.booking_legs as bl
+       where bl.booking_id = b.id
+       order by bl.leg_seq
+       limit 1
+    ) as l on true
+    left join lateral (
+      select ev.payload
+        from public.booking_events as ev
+       where ev.booking_id = b.id
+         and ev.kind = 'booking.status_changed'
+         and ev.to_status in ('cancelled'::public.booking_status, 'partially_cancelled'::public.booking_status)
+       order by ev.at desc, ev.id desc
+       limit 1
+    ) as e on true
+   where b.id = p_booking_id
+     and b.status in ('cancelled'::public.booking_status, 'partially_cancelled'::public.booking_status,
+                      'refunded'::public.booking_status)
+     and exists (
+       select 1
+         from public.booking_payments as p
+        where p.booking_id = b.id
+          and p.captured_at is not null
+     )
+$$;
+
+revoke all on function public.booking_cancel_resend_facts(pg_catalog.uuid) from public;
+revoke all on function public.booking_cancel_resend_facts(pg_catalog.uuid) from anon;
+revoke all on function public.booking_cancel_resend_facts(pg_catalog.uuid) from authenticated;
+grant execute on function public.booking_cancel_resend_facts(pg_catalog.uuid) to vamos_system;
+
+comment on function public.booking_cancel_resend_facts(pg_catalog.uuid) is
+  '26.2 P6 D20: the cancellation e-mail facts of a paid cancelled trip and the refund line its cancellation recorded (refund_mode, refund_rappen of the last status change to cancelled), for the customer''s Resend. No row for a trip that is not cancelled or was never paid. Read only. EXECUTE vamos_system only.';

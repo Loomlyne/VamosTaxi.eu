@@ -28,7 +28,7 @@
 --   M  booking_change_request_facts: what a paid change changed (for the driver's e-mail).
 -- Rolled back. Synthetic integer rappen only, never a product CHF.
 begin;
-select plan(123);
+select plan(131);
 
 insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity)
 values ('tcr-eco', 4, 4), ('tcr-biz', 7, 7);
@@ -682,6 +682,42 @@ select throws_ok($$select * from pg_temp.tcr_change('same', 'tcr-nope', '{"pax":
 select is(
   (select outcome from pg_temp.tcr_change('same', 'tcr-eco', '{"pax":3}'::jsonb, null)),
   'applied', 'naming the current class is not a class change (party only, no price)');
+
+-- ---------------------------------------------------------------------------
+-- M. D20 (owner, 2026-10-02): the customer's Resend on a cancelled trip sends the cancellation
+--    e-mail again, with the refund line its cancellation recorded. A definer read for vamos_system.
+-- ---------------------------------------------------------------------------
+select pg_temp.tcr_mk('can_paid', 'tcr-eco', interval '300 hours', 5000);
+select pg_temp.tcr_mk('can_unpaid', 'tcr-eco', interval '301 hours', 5000, false);
+update public.bookings set status = 'cancelled' where id in (select id from fx where k in ('can_paid', 'can_unpaid'));
+insert into public.booking_events (booking_id, kind, actor_kind, actor_label, from_status, to_status, payload)
+select id, 'booking.status_changed', 'customer', '', 'confirmed', 'cancelled',
+       jsonb_build_object('via', 'manage', 'refund_mode', 'pending_ops', 'refund_rappen', null)
+  from fx where k = 'can_paid';
+select has_function('public', 'booking_cancel_resend_facts', array['uuid'], 'D20: booking_cancel_resend_facts exists');
+select function_privs_are('public', 'booking_cancel_resend_facts', '{uuid}'::text[], 'vamos_system', '{EXECUTE}'::text[],
+  'D20: vamos_system holds EXECUTE');
+select function_privs_are('public', 'booking_cancel_resend_facts', '{uuid}'::text[], 'anon', '{}'::text[],
+  'D20: anon holds no EXECUTE');
+select function_privs_are('public', 'booking_cancel_resend_facts', '{uuid}'::text[], 'authenticated', '{}'::text[],
+  'D20: authenticated holds no EXECUTE');
+select is(
+  (select p.prosecdef and p.proconfig @> array['search_path=""'] from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public' and p.proname = 'booking_cancel_resend_facts'),
+  true, 'D20: SECURITY DEFINER with search_path empty');
+select is(
+  (select reference || '|' || locale || '|' || contact_email || '|' || pickup_text || '|' || dropoff_text || '|'
+          || coalesce(refund_mode, 'null') || '|' || coalesce(refund_rappen::text, 'null')
+     from public.booking_cancel_resend_facts((select id from fx where k = 'can_paid'))),
+  (select reference from public.bookings where id = (select id from fx where k = 'can_paid'))
+    || '|de|tcr-can_paid@vamostaxi.eu|Zurich Oerlikon|Zurich Airport|pending_ops|null',
+  'D20: a paid cancelled trip: its mail facts and the refund line its cancellation recorded');
+select is(
+  (select count(*)::int from public.booking_cancel_resend_facts((select id from fx where k = 'can_unpaid'))),
+  0, 'D20: a trip cancelled before it was paid has no cancellation mail to send again');
+select is(
+  (select count(*)::int from public.booking_cancel_resend_facts((select id from fx where k = 'same'))),
+  0, 'D20: a trip that is not cancelled gets nothing from this read');
 
 select * from finish();
 rollback;

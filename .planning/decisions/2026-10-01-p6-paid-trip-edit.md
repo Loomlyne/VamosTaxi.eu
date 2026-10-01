@@ -30,6 +30,7 @@ confirmation again, allowed until pickup, cheaper = "Refund due" pressed by him,
 | D17 | D11 needs the database's own overlap rule changed (it refuses every overlap today). Change it? | "Change the rule": a trip he keeps on purpose is left out of the overlap check; an ordinary Assign still refuses overlaps |
 | D18 | The site books any two places in its Europe map area (Zurich → Istanbul bookable; Dubai, New York refused); the Edit follows it. Keep it or make it smaller? | "Keep the site's rule": the Edit accepts what the public form accepts; a smaller area would be its own job |
 | D19 | Signed-in booking view: flight-number "Save" and "Resend email" say saved/sent and do nothing | "Fix them in P6": both do the real thing, as on the manage-booking link page |
+| D20 | On a cancelled trip, Resend on the booking page sent the "Booked — VT-…" confirmation again (in this chat, 2026-10-02) | "Resend the cancellation mail instead on a cancelled trip": the existing cancellation e-mail, to the customer only, with the refund line its cancellation recorded; no new text |
 
 ### D14 — "pay the difference" e-mail for a place or time change
 
