@@ -61,7 +61,12 @@ describe("parseTripQuery", () => {
 
   it("rejects out-of-range and malformed fields without throwing", () => {
     expect(parseTripQuery({ ...full(), pax: "0" }).trip.pax).toBeNull();
-    expect(parseTripQuery({ ...full(), pax: "9" }).trip.pax).toBeNull();
+    // The limit is the database's 16 on a leg; which class fits is the class rows' call (Van luxury 12).
+    expect(parseTripQuery({ ...full(), pax: "10" }).trip.pax).toBe(10);
+    expect(parseTripQuery({ ...full(), pax: "12" }).trip.pax).toBe(12);
+    expect(parseTripQuery({ ...full(), pax: "16" }).trip.pax).toBe(16);
+    expect(parseTripQuery({ ...full(), pax: "17" }).trip.pax).toBeNull();
+    expect(parseTripQuery({ ...full(), pax: "17" }).errors.map((e) => e.field)).toEqual(["travellers"]);
     expect(parseTripQuery({ ...full(), pax: "2.5" }).trip.pax).toBeNull();
     expect(parseTripQuery({ ...full(), bags: "17" }).trip.bags).toBeNull();
     expect(parseTripQuery({ ...full(), bags: "17" }).errors.map((e) => e.field)).toEqual([

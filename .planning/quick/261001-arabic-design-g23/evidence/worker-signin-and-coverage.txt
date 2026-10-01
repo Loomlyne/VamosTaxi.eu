@@ -1,0 +1,48 @@
+Local Worker build (opennextjs-cloudflare build of fix/arabic-design-g23, wrangler dev --local,
+no database; /api/* answered in the browser), 2026-10-02 01:30-01:33 +04.
+
+tools/worker-signin.mjs — sign-in code step (Email me a link instead -> code field):
+PASS en 1440 button rgb(236,236,236) opacity 1; hint rgb(104,107,106) 5.38:1 on white
+PASS en 1024 button rgb(236,236,236) opacity 1; hint rgb(104,107,106) 5.38:1 on white
+PASS en 768 button rgb(236,236,236) opacity 1; hint rgb(104,107,106) 5.38:1 on white
+PASS en 390 button rgb(236,236,236) opacity 1; hint rgb(104,107,106) 5.38:1 on white
+PASS de 1440 button rgb(236,236,236) opacity 1; hint rgb(104,107,106) 5.38:1 on white
+PASS de 1024 button rgb(236,236,236) opacity 1; hint rgb(104,107,106) 5.38:1 on white
+PASS de 768 button rgb(236,236,236) opacity 1; hint rgb(104,107,106) 5.38:1 on white
+PASS de 390 button rgb(236,236,236) opacity 1; hint rgb(104,107,106) 5.38:1 on white
+PASS fr 1440 button rgb(236,236,236) opacity 1; hint rgb(104,107,106) 5.38:1 on white
+PASS fr 1024 button rgb(236,236,236) opacity 1; hint rgb(104,107,106) 5.38:1 on white
+PASS fr 768 button rgb(236,236,236) opacity 1; hint rgb(104,107,106) 5.38:1 on white
+PASS fr 390 button rgb(236,236,236) opacity 1; hint rgb(104,107,106) 5.38:1 on white
+PASS ar 1440 button rgb(236,236,236) opacity 1; hint rgb(104,107,106) 5.38:1 on white
+PASS ar 1024 button rgb(236,236,236) opacity 1; hint rgb(104,107,106) 5.38:1 on white
+PASS ar 768 button rgb(236,236,236) opacity 1; hint rgb(104,107,106) 5.38:1 on white
+PASS ar 390 button rgb(236,236,236) opacity 1; hint rgb(104,107,106) 5.38:1 on white
+ALL PASS
+
+tools/coverage-compare.mjs — VamosLocale.coverage on the English page for de/fr/ar, main e38026ff vs branch:
+/imprint de: main 6, branch 6, new [], gone []
+/imprint fr: main 6, branch 6, new [], gone []
+/imprint ar: main 6, branch 6, new [], gone []
+/cancellation de: main 1, branch 1, new [], gone []
+/cancellation fr: main 1, branch 1, new [], gone []
+/cancellation ar: main 1, branch 1, new [], gone []
+/terms de: main 3, branch 3, new [], gone []
+/terms fr: main 3, branch 3, new [], gone []
+/terms ar: main 3, branch 3, new [], gone []
+/faq de: main 0, branch 0, new [], gone []
+/faq fr: main 0, branch 0, new [], gone []
+/faq ar: main 0, branch 0, new [], gone []
+/sign-in de: main 1, branch 1, new [], gone []
+/sign-in fr: main 1, branch 1, new [], gone []
+/sign-in ar: main 1, branch 1, new [], gone []
+/account de: main 5, branch 7, new [], gone []   (re-run twice each: both list the same 7 entries,
+/account fr: main 5, branch 7, new [], gone []    all sample-user data: "A","AK","Amira Keller",
+/account ar: main 5, branch 7, new [], gone []    "amira@example.com","Amira"; the 5 was a timing read)
+NO NEW COVERAGE GAPS
+
+The gaps that exist on main and on the branch alike (not this job's strings):
+/imprint: GmbH, CH-020.4.077.792-7, vamostaxi.site, Ben Othman Houssein, Vamos Taxi / Loomlyne, Loomlyne
+/cancellation: "Where our records show you were at the pickup point and no vehicle came, you receive full refund back."
+/terms: "Registered as Vamos Taxi GmbH, company number CH-020.4.077.792-7 …", "Oversized or unusual items declared at booking: shown on your quote.", "Accepted methods: Visa, Mastercard, Apple Pay, Google Pay and TWINT."
+/sign-in: the placeholder you@example.com

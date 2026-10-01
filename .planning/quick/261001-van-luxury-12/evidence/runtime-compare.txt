@@ -1,0 +1,15 @@
+Old (origin/main) vs fixed app/vamos-locale.js, same dictionary, every pattern filled with values its own regex accepts,
+translated from de, fr and ar into every other language (loc-compare.mjs):
+
+compared 2529, differ 185
+untranslated by the fix where the old runtime translated: 0
+
+The 185 are the Arabic 3-10 / 11-99 forms after a de or fr page switches, and wider templates that no longer swallow
+narrower ones, for example:
+  de→en "Bis zu 7 Gepäckstücke":  old "Bis zu 7 bags"     fixed "Up to 7 bags"
+  de→ar "Schritt 3 von 4":        old "Schritt 3 من 4"    fixed "الخطوة 3 من 4"
+  de→ar "Bis zu 7 Passagiere":    old "حتى 7 راكبًا"      fixed "حتى 7 ركاب"
+One pre-existing gap stays: ar "… · مسافر واحد · VT-…" has no number to carry back (the Arabic omits the 1).
+
+Browser, same page with origin/main's runtime served (OLD_LOCALE):
+FAIL | S1 de→ar: 7 travellers keep the 3-10 form | before "7 Passagiere · 0 Gepäckstücke" → after "7 Passagiere · 0 حقيبة"
