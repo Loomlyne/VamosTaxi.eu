@@ -11,5 +11,6 @@ to be there, that's it."
 | 4 | The Cars page branch `gsd/26.2-cars-page` is withdrawn: archived on GitHub, never merged. |
 
 | 5 | Simplified again the same day: "each chauffeur will be chosen by a class, that's it, without anything extra, so I can assign him easily on bookings." No car at all: the chauffeur form has Class only; Assign lists only drivers of the booking's class; no vehicle is chosen (`assigned_vehicle_id` stays empty, capacity from the class). Migration `20261007160000`. |
+| 6 | Refined the same day: the chauffeur form as before today's ship, with Class and ONE new field, a plate number on the chauffeur ("that what will differentiate drivers and keep track on them"); Assign shows only drivers of the booking's class; a bookings history on each chauffeur's profile. Column `chauffeurs.plate` in the same migration `20261007160000`. |
 
 Replaces the earlier "Cars page" reading of the 26.2 session. Job: branch `gsd/26.2-chauffeur-car`.
