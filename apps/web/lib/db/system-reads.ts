@@ -193,8 +193,18 @@ export const readCheckoutAccountUserState = async (
     sql<CheckoutAccountUserState[]>`select * from public.checkout_account_user_state(${email})`,
   ))[0] ?? { user_exists: false, confirmed: false, checkout_origin: false };
 
-/** 27.1: true when this signed-in account must still finish (name, optional phone, the tick). Definer, boolean only. */
+/** 27.1: true while an account the public sign-in link made has not finished. Definer, boolean only. */
 export const readAccountFinishRequired = async (env: CloudflareEnv, userId: string): Promise<boolean> =>
   (await asSystem(env, (sql) =>
     sql<{ required: boolean }[]>`select public.account_finish_required(${userId}::uuid) as required`,
   ))[0]?.required === true;
+
+/** 27.1: marks the unconfirmed account the sign-in link just made for this address (definer). */
+export const markAccountFinishPending = async (env: CloudflareEnv, email: string): Promise<void> => {
+  await asSystem(env, (sql) => sql`select public.account_finish_mark(${email})`);
+};
+
+/** 27.1: the finish step stored the tick; the account is finished (definer). */
+export const markAccountFinished = async (env: CloudflareEnv, userId: string): Promise<void> => {
+  await asSystem(env, (sql) => sql`select public.account_finish_done(${userId}::uuid)`);
+};

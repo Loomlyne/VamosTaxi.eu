@@ -6,7 +6,7 @@
 
 import { routing } from "../../i18n/routing";
 import { safeReturnTo } from "../account/return-to";
-import { readAccountFinishRequired } from "../db/system-reads";
+import { markAccountFinishPending, markAccountFinished, readAccountFinishRequired } from "../db/system-reads";
 import { log, type RequestContext } from "../logger";
 
 /** public.account_finish_required for a user id; false (and one log line) when the read fails. */
@@ -15,6 +15,26 @@ export async function mustFinish(env: CloudflareEnv, userId: string, ctx: Reques
     return await readAccountFinishRequired(env, userId);
   } catch {
     log("error", "auth", ctx, { reason: "finish-read-failed" });
+    return false;
+  }
+}
+
+/** Marks the account the sign-in link just made for a new address. Logs and carries on when it fails. */
+export async function markFinishPending(env: CloudflareEnv, email: string, ctx: RequestContext): Promise<void> {
+  try {
+    await markAccountFinishPending(env, email);
+  } catch {
+    log("error", "auth", ctx, { reason: "finish-mark-pending-failed" });
+  }
+}
+
+/** The finish step is done for this account. false (and one log line) when it could not be stored. */
+export async function markFinished(env: CloudflareEnv, userId: string, ctx: RequestContext): Promise<boolean> {
+  try {
+    await markAccountFinished(env, userId);
+    return true;
+  } catch {
+    log("error", "auth", ctx, { reason: "finish-mark-done-failed" });
     return false;
   }
 }

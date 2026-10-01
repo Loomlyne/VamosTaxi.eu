@@ -8,7 +8,8 @@ import { checkWriteRateLimit } from "@/lib/abuse/rate-limit";
 import { holdCheckoutFloor, sendCheckoutSignInLink } from "@/lib/auth/checkout-sign-in";
 import { CONSENT_REQUIRED, SIGNUP_UNAVAILABLE, recordSignupAgreement, signupConsentGiven } from "@/lib/auth/signup-agreement";
 import { finishAccount } from "@/lib/auth/account-finish";
-import { finishTarget, mustFinish } from "@/lib/auth/finish-target";
+import { markFinished, markFinishPending, mustFinish } from "@/lib/auth/finish-target";
+import { readCheckoutAccountUserState } from "@/lib/db/system-reads";
 import { log } from "@/lib/logger";
 import { verifyTurnstile } from "@/lib/turnstile";
 import {
@@ -318,6 +319,7 @@ export async function POST(request: Request): Promise<Response> {
         },
         finishRequired: (userId) => mustFinish(env, userId, ctx),
         record: (email) => recordSignupAgreement(env, { email, locale, headers: request.headers }),
+        markDone: (userId) => markFinished(env, userId, ctx),
         updateProfile: async (data) => {
           const { error } = await supabase.auth.updateUser({ data });
           return error ? (error.code ?? "auth-failed") : null;
@@ -669,6 +671,15 @@ export async function POST(request: Request): Promise<Response> {
         return json(SIGNUP_UNAVAILABLE, 503);
       }
     }
+    // 27.1: did this address have an account before the link? Only a new one is marked to finish.
+    let newAddress = false;
+    if (parsed.data.mode === "signin" && !dashboard) {
+      try {
+        newAddress = !(await readCheckoutAccountUserState(env, parsed.data.email)).user_exists;
+      } catch {
+        log("error", "auth", ctx, { reason: "user-state-read-failed", action: "otp" });
+      }
+    }
     const { result, reason } = await runOtp(
       supabase,
       parsed.data.mode === "signup"
@@ -693,8 +704,9 @@ export async function POST(request: Request): Promise<Response> {
       origin,
       emailNext(returnToRaw, localizedHome(locale)),
     );
-    // Sign-in: an unknown address gets no mail and would answer faster than a known one.
-    // The checkout branch's floor makes both answers take the same minimum time (T-27-57).
+    if (newAddress && !reason) await markFinishPending(env, parsed.data.email, ctx);
+    // Sign-in: the known and the new address do different work. The checkout branch's floor makes
+    // both answers take the same minimum time (T-27-57).
     if (parsed.data.mode !== "signup") await holdCheckoutFloor({ startedAt });
     if (reason) log("error", "auth", ctx, { reason, action: "otp" });
     return sessionJson(result, setCookies);

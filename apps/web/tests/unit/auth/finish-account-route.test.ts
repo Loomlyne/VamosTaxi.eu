@@ -3,7 +3,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { authPost, resetHarness, setCookieHeaders, state, writeCookies } from "./harness";
 
-const db = vi.hoisted(() => ({ finish: true as boolean | Error, order: [] as string[], recordFails: false }));
+const db = vi.hoisted(() => ({ finish: true as boolean | Error, order: [] as string[], recordFails: false, exists: false, doneFails: false }));
 
 vi.mock("@opennextjs/cloudflare", async () => (await import("./harness")).cloudflareMock);
 vi.mock("next/headers", async () => (await import("./harness")).headersMock);
@@ -13,6 +13,17 @@ vi.mock("@/lib/db/system-reads", () => ({
     db.order.push("read");
     if (db.finish instanceof Error) throw db.finish;
     return db.finish;
+  },
+  readCheckoutAccountUserState: async () => {
+    db.order.push("state");
+    return { user_exists: db.exists, confirmed: db.exists, checkout_origin: false };
+  },
+  markAccountFinishPending: async () => {
+    db.order.push("mark");
+  },
+  markAccountFinished: async () => {
+    if (db.doneFails) throw new Error("down");
+    db.order.push("done");
   },
 }));
 vi.mock("@/lib/db/identity", () => ({
@@ -34,6 +45,8 @@ beforeEach(() => {
   db.finish = true;
   db.order = [];
   db.recordFails = false;
+  db.exists = false;
+  db.doneFails = false;
   state.auth.getUser = (async () => ({ data: { user: mia }, error: null })) as never;
 });
 
@@ -48,7 +61,7 @@ describe("POST /api/auth finish-account", () => {
     const res = await POST(authPost(body));
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ ok: true });
-    expect(db.order).toEqual(["read", "record", "profile"]);
+    expect(db.order).toEqual(["read", "record", "done", "profile"]);
     expect(update).toHaveBeenCalledWith({
       data: { first_name: "Mia", last_name: "Keller", full_name: "Mia Keller", phone: "+41 79 000 00 00" },
     });
@@ -93,6 +106,47 @@ describe("POST /api/auth finish-account", () => {
     const res = await POST(authPost(body, "dashboard.vamostaxi.site"));
     expect(res.status).toBe(404);
     expect(db.order).toEqual([]);
+  });
+});
+
+describe("the sign-in link marks only a new address", () => {
+  it("new address: state read, link asked, account marked", async () => {
+    const otp = vi.fn(async (..._a: unknown[]) => ({ error: null }));
+    state.auth.signInWithOtp = otp as never;
+    const res = await POST(authPost({ mode: "signin", method: "magic", email: "new@example.test" }));
+    expect(await res.json()).toEqual({ stage: "sent" });
+    expect(db.order).toEqual(["state", "mark"]);
+  });
+
+  it("known address: same answer, nothing marked", async () => {
+    db.exists = true;
+    state.auth.signInWithOtp = (async () => ({ error: null })) as never;
+    const res = await POST(authPost({ mode: "signin", method: "magic", email: "mia@example.test" }));
+    expect(await res.json()).toEqual({ stage: "sent" });
+    expect(db.order).toEqual(["state"]);
+  });
+
+  it("a failed link request marks nothing", async () => {
+    state.auth.signInWithOtp = (async () => ({ error: { code: "over_email_send_rate_limit" } })) as never;
+    await POST(authPost({ mode: "signin", method: "magic", email: "new@example.test" }));
+    expect(db.order).toEqual(["state"]);
+  });
+
+  it("the dashboard host reads and marks nothing", async () => {
+    state.auth.signInWithOtp = (async () => ({ error: null })) as never;
+    await POST(authPost({ mode: "signin", method: "magic", email: "new@example.test" }, "dashboard.vamostaxi.site"));
+    expect(db.order).toEqual([]);
+  });
+});
+
+describe("finish-account when 'finished' cannot be stored", () => {
+  it("answers 503 and writes no profile", async () => {
+    db.doneFails = true;
+    const update = vi.fn();
+    state.auth.updateUser = update as never;
+    const res = await POST(authPost(body));
+    expect(res.status).toBe(503);
+    expect(update).not.toHaveBeenCalled();
   });
 });
 

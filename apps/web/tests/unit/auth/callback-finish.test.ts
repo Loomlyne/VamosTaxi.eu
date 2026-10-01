@@ -19,6 +19,8 @@ vi.mock("@/lib/db/system-reads", () => ({
     db.asked.push(id);
     return db.finish;
   },
+  markAccountFinishPending: async () => undefined,
+  markAccountFinished: async () => undefined,
 }));
 vi.mock("@/lib/supabase/server", () => ({
   authSetCookieHeader: (c: { name: string; value: string }) => `${c.name}=${c.value}; Path=/`,

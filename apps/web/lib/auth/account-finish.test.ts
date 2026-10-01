@@ -2,10 +2,14 @@
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/db/identity", () => ({ asSystem: vi.fn() }));
-vi.mock("../db/system-reads", () => ({ readAccountFinishRequired: vi.fn() }));
+vi.mock("../db/system-reads", () => ({
+  readAccountFinishRequired: vi.fn(),
+  markAccountFinishPending: vi.fn(),
+  markAccountFinished: vi.fn(),
+}));
 
 const { finishAccount, NOT_SIGNED_IN, FINISH_INVALID } = await import("./account-finish");
-const { finishTarget, mustFinish } = await import("./finish-target");
+const { finishTarget, mustFinish, markFinished, markFinishPending } = await import("./finish-target");
 const reads = await import("../db/system-reads");
 const { CONSENT_REQUIRED, SIGNUP_UNAVAILABLE } = await import("./signup-agreement");
 const { signUpPasswordSchema, signUpMagicSchema, finishAccountSchema } = await import("./schemas");
@@ -17,6 +21,10 @@ function deps(over: Partial<Parameters<typeof finishAccount>[0]> = {}) {
     finishRequired: vi.fn(async () => true),
     record: vi.fn(async (email: string) => {
       calls.push(`record:${email}`);
+      return true;
+    }),
+    markDone: vi.fn(async (id: string) => {
+      calls.push(`done:${id}`);
       return true;
     }),
     updateProfile: vi.fn(async (data: Record<string, string>) => {
@@ -37,6 +45,7 @@ describe("finishAccount", () => {
     expect(out).toEqual({ result: { ok: true }, reason: null });
     expect(calls).toEqual([
       "record:mia@example.test",
+      "done:user-1",
       `profile:${JSON.stringify({ first_name: "Mia", last_name: "Keller", full_name: "Mia Keller", phone: "+41 79 000 00 00" })}`,
     ]);
   });
@@ -86,6 +95,13 @@ describe("finishAccount", () => {
     expect(d.updateProfile).not.toHaveBeenCalled();
   });
 
+  it("stores no profile when 'finished' could not be stored (the step shows again)", async () => {
+    const { d } = deps({ markDone: vi.fn(async () => false) });
+    expect(await finishAccount(d, body)).toEqual({ result: SIGNUP_UNAVAILABLE, reason: "finish-mark-failed" });
+    expect(d.record).toHaveBeenCalledTimes(1);
+    expect(d.updateProfile).not.toHaveBeenCalled();
+  });
+
   it("leaves the phone out when none was given", async () => {
     const { d } = deps();
     await finishAccount(d, body);
@@ -119,6 +135,20 @@ describe("mustFinish", () => {
   it("answers false when the read fails, so nobody is locked out", async () => {
     vi.mocked(reads.readAccountFinishRequired).mockRejectedValueOnce(new Error("down"));
     expect(await mustFinish({} as CloudflareEnv, "u", ctx)).toBe(false);
+  });
+});
+
+describe("markFinished / markFinishPending", () => {
+  const ctx = { requestId: "r", route: "/t", locale: null };
+  it("markFinished answers false when the write fails", async () => {
+    vi.mocked(reads.markAccountFinished).mockRejectedValueOnce(new Error("down"));
+    expect(await markFinished({} as CloudflareEnv, "u", ctx)).toBe(false);
+    vi.mocked(reads.markAccountFinished).mockResolvedValueOnce(undefined);
+    expect(await markFinished({} as CloudflareEnv, "u", ctx)).toBe(true);
+  });
+  it("markFinishPending never throws", async () => {
+    vi.mocked(reads.markAccountFinishPending).mockRejectedValueOnce(new Error("down"));
+    await expect(markFinishPending({} as CloudflareEnv, "a@b.co", ctx)).resolves.toBeUndefined();
   });
 });
 

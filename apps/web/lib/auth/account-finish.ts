@@ -3,7 +3,8 @@
 // 27.1 (27 D-37, owner 2026-10-01). A sign-in link for a new address makes the account; after the
 // confirm button the person lands on "Finish your account" (name, optional mobile, the account tick).
 // This is that step's server side. The e-mail is always the session's own (getUser), never a value
-// the client sent. Order: the agreement record first, then the profile; no record, nothing written.
+// the client sent. Order: the agreement record first, then "finished", then the profile; no record,
+// nothing else written.
 // Logs reasons only, never the address.
 
 import { finishAccountSchema } from "./schemas";
@@ -17,6 +18,8 @@ export type FinishAccountDeps = {
   finishRequired: (userId: string) => Promise<boolean>;
   /** recordSignupAgreement for the session's own e-mail. true = stored. */
   record: (email: string) => Promise<boolean>;
+  /** public.account_finish_done through asSystem. true = stored. */
+  markDone: (userId: string) => Promise<boolean>;
   /** supabase.auth.updateUser({ data }). Returns an error code or null. */
   updateProfile: (data: Record<string, string>) => Promise<string | null>;
 };
@@ -43,6 +46,9 @@ export async function finishAccount(
   if (!(await deps.finishRequired(user.id))) return { result: { ok: true }, reason: null };
 
   if (!(await deps.record(user.email))) return { result: SIGNUP_UNAVAILABLE, reason: "record-failed" };
+  // The tick is stored. If "finished" cannot be stored the step is shown again; a second press adds a
+  // second record row (append-only), never an account without one.
+  if (!(await deps.markDone(user.id))) return { result: SIGNUP_UNAVAILABLE, reason: "finish-mark-failed" };
 
   const { firstName, lastName, phone } = parsed.data;
   const data: Record<string, string> = {
