@@ -1,20 +1,21 @@
-# P6 hand-over — change the place or time of a paid trip (D1–D21)
+# P6 hand-over — change the place or time of a paid trip (D1–D21, review fixes 1–6)
 
-Branch `gsd/26.2-p6-build` (worktree `.claude/worktrees/p6-paid-trip-edit` in the main folder), code verified at
-**`09a97ca4`**; this hand-over is the commit after it (documents and run screenshots only), origin/main `d575917e` merged in (no conflict). Pushed, never forced. No PR, no deploy, no hosted
-write (four read-only SELECTs on live: column grants, objects and rule, function md5s, function grants; results below). Decisions: `.planning/decisions/2026-10-01-p6-paid-trip-edit.md`
+Branch `gsd/26.2-p6-build` (worktree `.claude/worktrees/p6-paid-trip-edit` in the main folder). Code verified at
+**`42f3a12c`**; this hand-over is the commit after it (documents and one run screenshot only). origin/main `eb9128f3`
+is merged in (no conflict). Pushed, never forced. No PR, no deploy, no hosted write; only read-only SELECTs on live:
+column grants, objects and rule, function md5s, function grants. Decisions: `.planning/decisions/2026-10-01-p6-paid-trip-edit.md`
 (D1–D19 signed 2026-10-01; **D20 and D21 answered 2026-10-02 in this session**). Earlier record: `BUILD-RECORD.md`.
 Browser run: `WORKER-RUN.md`. Pictures: `screens/` (signed design) and `screens/worker-run/` (the real run).
 
-## First: a live bug, fixed here (consider shipping it first)
+## Already shipped from this branch: the guest-cancel hotfix
 
-**A guest cannot cancel a paid trip from the e-mailed link on vamostaxi.site today.** The middleware moves the manage
-token from the link into the HttpOnly `vt_manage` cookie and strips it from the address (K100). The page then has
-no token, and "Confirm cancellation" only sent a request when it had one, so it showed "Could not cancel this
-booking." and sent nothing. The fix (`5dcb9e6c`, both `manage-booking` and `booking-detail`) sends the guest request
-and the server reads the cookie, as the time change, flight and resend already do. The test failed first, then
-passed. A Chromium click proved it on the local Worker (C7a). It changes page code only, no server code and no
-migration.
+Live since 02:28 (main `5bedee98`, Worker `ae61d012`), as `5dcb9e6c` + `421b88f2` squashed by the control session.
+A guest could not cancel from the e-mailed link (the token lives in the `vt_manage` cookie, the page had none). The
+review then found the first fix could cancel the wrong booking: the cookie is one per site, so a second link or
+booking replaces it. Now the page sends the booking on screen and the server refuses any other with
+`409 wrong-booking` ("This page is for another booking. Open the link from its e-mail again.", four languages).
+Chromium C8: booking A's tab after booking B's link → refused, neither cancelled; reopened from A's link → A
+cancels, B stays. The P6 branch holds the same files as main.
 
 ## What changes, in plain words
 
@@ -41,7 +42,20 @@ migration.
   do the real thing (D19). A new **day** is now sent with the new time (it was dropped before).
 - **D20:** on a cancelled trip, "Resend email" sends the existing cancellation e-mail again (customer only, the refund
   sentence its cancellation used), never the "Booked — VT-…" mail.
-- The guest cancellation fix above.
+
+**Review fixes 1–6 (fresh review, 2026-10-02, `12354b6e`)**
+1. **A customer can no longer lower the price.** The generic `POST /api/account/bookings` took a quote snapshot id,
+   any public quote lock and a free payload from the browser. Your one-click Accept then set "Refund due". It is
+   retired; no page called it. A customer's change is the time change only (D9), priced at the booking's own total.
+   The database refuses anything else from a customer (`customer-time-only`, `snapshot-mismatch`).
+2. **A paid difference always records.** If a driver is given the trip after you confirm and before the customer
+   pays, and the new time clashes with his other trip, he now comes off. Before, the payment failed with an overlap
+   error and the webhook kept retrying.
+3. **Keep covers only the clash you saw.** If another trip given to him in the meantime also clashes when the payment
+   lands, he comes off that trip.
+4. Explicit revokes from anon/authenticated on the two staff functions (hosted default privileges).
+5. The migration can run twice safely (second apply checked).
+6. No flight number is written on an erased booking.
 
 ## Fixed in this session (besides D20, D21)
 
@@ -49,7 +63,8 @@ migration.
 |---|---|
 | `8ecec60e` | **D17 bug:** with a driver kept on two overlapping trips, the *other* trip could no longer change status: "Complete", or a payment moving it to confirmed, failed with an overlap error (23P01). Fixed in the guard trigger; pgTAP red first. Proven in Chromium (O4c: Complete → 200). |
 | `d8e0cb8c`, `7f5b341e` | `database.types.ts` had been ordered by hand, so CI's `db:types:check` would fail. Regenerated with the pinned CLI (2.115.0). |
-| `5dcb9e6c` | Guest cancellation (above). |
+| `5dcb9e6c`, `421b88f2` | Guest cancellation and its wrong-booking guard (above; live as main `5bedee98`). |
+| `12354b6e` | Review fixes 1–6 (above). Tests first: pgTAP red (no driver choice, a settle that died on 23P01, Keep not re-checked, customer keys and price not refused, erased flight written), unit and Worker-client tests. |
 | `5f582461` | The test runner killed whatever listened on its ports. On 2026-10-02 at about 01:27 it most likely stopped a local Worker that another session (`arabic-design-g23`) had on 4390. That session was told; it moved to 4777. The runner now stops only its own processes and refuses busy ports. |
 
 `6af6b74c` (the controller's save of the previous session's work) was reviewed: it adds the booking's address to the
@@ -61,7 +76,7 @@ account list (`b.contact_email`, already in the customer column grant). It is al
 | Kind | Objects |
 |---|---|
 | Table (D17) | `booking_legs.overlap_kept_range tstzrange` (nullable, no default: no rewrite); constraint `booking_legs_chauffeur_no_overlap` rebuilt with one more WHERE term; triggers `booking_legs_kept_clear`, `booking_legs_kept_guard` (functions `app.tg_leg_kept_clear`, `app.tg_leg_kept_guard`) |
-| Replaced, same signature | `booking_edit_apply_payload` (from P1's body), `manage_money_for` (+ key `last_change`) |
+| Replaced, same signature | `booking_edit_apply_payload` (from P1's body), `manage_money_for` (+ key `last_change`), `booking_edit_request_upsert` (from P1's body + customer limits, review 1), `booking_flight_write` (from `20260930210000` + erased check, review 6) |
 | New (EXECUTE `vamos_system` only, SECURITY DEFINER, `search_path ''`) | `booking_staff_trip_change`, `booking_change_request_facts`, `booking_staff_contact_update`, `booking_cancel_resend_facts` (D20, read only) |
 | New helper (no grant) | `app.booking_change_mint_trip_snapshot` |
 
@@ -71,8 +86,9 @@ the whole file rolls back with the old rule in place. The rebuild holds a lock o
 
 **Read on live before (read-only, 2026-10-02):** the old rule is in place; none of the P6 functions or triggers
 exist; 39 legs, **0** counted by the rule (no assigned active driver). Live `booking_edit_apply_payload` has md5
-`9cc40aaa…` (exactly P1's body in `20261007140000`) and `manage_money_for` has md5 `133c5928…` (exactly
-`20260930190000`), so P6 replaces exactly what is live. Main's `20261007180000` (live) touches no P6 object, so
+`9cc40aaa…` (exactly P1's body in `20261007140000`), `manage_money_for` `133c5928…` (exactly `20260930190000`),
+`booking_edit_request_upsert` `fb0a59af…` (exactly P1's body) and `booking_flight_write` `a19614f0…` (exactly
+`20260930210000`), so P6 replaces exactly what is live. Main's `20261007180000` (live) touches no P6 object, so
 applying `150000` after it gives the same result as the from-empty order.
 
 **Order (control session):** apply the file verbatim → read back (below) → deploy Worker `vamos` with `--env staging`.
@@ -85,14 +101,16 @@ select n.nspname || '.' || p.proname as fn, md5(p.prosrc) as src_md5, p.prosecde
   from pg_proc p join pg_namespace n on n.oid = p.pronamespace
  where (n.nspname, p.proname) in (('public','booking_edit_apply_payload'),('public','manage_money_for'),
    ('public','booking_staff_trip_change'),('public','booking_change_request_facts'),('public','booking_staff_contact_update'),
-   ('public','booking_cancel_resend_facts'),('app','booking_change_mint_trip_snapshot'),('app','tg_leg_kept_clear'),('app','tg_leg_kept_guard'))
+   ('public','booking_cancel_resend_facts'),('public','booking_edit_request_upsert'),('public','booking_flight_write'),
+   ('app','booking_change_mint_trip_snapshot'),('app','tg_leg_kept_clear'),('app','tg_leg_kept_guard'))
  order by 1;
 select md5(pg_get_constraintdef(c.oid)) from pg_constraint c where c.conname = 'booking_legs_chauffeur_no_overlap';
 select string_agg(tgname, ',' order by tgname) from pg_trigger
  where tgrelid = 'public.booking_legs'::regclass and tgname like 'booking_legs_kept%';
 select routine_name, string_agg(distinct grantee, ',' order by grantee) from information_schema.routine_privileges
  where routine_schema = 'public' and privilege_type = 'EXECUTE' and routine_name in ('booking_staff_trip_change',
-   'booking_change_request_facts','booking_staff_contact_update','booking_cancel_resend_facts','booking_edit_apply_payload','manage_money_for')
+   'booking_change_request_facts','booking_staff_contact_update','booking_cancel_resend_facts','booking_edit_apply_payload','manage_money_for',
+   'booking_edit_request_upsert','booking_flight_write')
  group by 1 order by 1;
 select count(*) as legs, count(*) filter (where overlap_kept_range is not null) as kept from public.booking_legs;
 ```
@@ -104,18 +122,21 @@ select count(*) as legs, count(*) filter (where overlap_kept_range is not null) 
 | app.tg_leg_kept_guard | `e9247f21d43fe390829d54871f31ed55` |
 | public.booking_cancel_resend_facts | `eca073b8be936ebd2b4b2f4d1376a7a3` |
 | public.booking_change_request_facts | `5ea17121c020fbfc4429ef8ffcfd4866` |
-| public.booking_edit_apply_payload | `dcc02160189371a58d6146168c92928c` |
+| public.booking_edit_apply_payload | `e091cc25181cf088f2a5b5c24a1019d3` |
+| public.booking_edit_request_upsert | `c86124b9515b2ff7222ec9d084cfe643` |
+| public.booking_flight_write | `b38ac396e369bb239f3bcfd9086d6113` |
 | public.booking_staff_contact_update | `50e3257ba993273589db0bcfdd4a6a66` |
-| public.booking_staff_trip_change | `ee50365ece0fe7c504b8f13136493505` |
+| public.booking_staff_trip_change | `96ad73c2f112bef924c07fa7048b7548` |
 | public.manage_money_for | `b3d2f0262d0dfd3e2744f7390dccb6a0` |
 
-All nine: `prosecdef = true`, `proconfig = {search_path=""}`. Rule md5 `9605dc334749216579486eaa39c39a1e`. Triggers
+All eleven: `prosecdef = true`, `proconfig = {search_path=""}`. Rule md5 `9605dc334749216579486eaa39c39a1e`. Triggers
 `booking_legs_kept_clear,booking_legs_kept_guard`. EXECUTE: the four new public functions and
 `booking_edit_apply_payload` → `postgres, service_role, vamos_system` on hosted (the local replay shows them without
 `service_role`, Supabase's hosted default; live already shows it on `booking_edit_apply_payload`); `manage_money_for`
-→ `postgres, service_role` (unchanged). Legs: `39` (or more, if new bookings arrived) and `kept = 0`.
+→ `postgres, service_role` (unchanged); `booking_edit_request_upsert` and `booking_flight_write` →
+`postgres, service_role, vamos_system` (unchanged, as live shows today). Legs: `39` (or more, if new bookings arrived) and `kept = 0`.
 
-## Checks (final tree `09a97ca4`, after `node scripts/sync-dc-mock-to-public.mjs`)
+## Checks (final tree `42f3a12c`, after `node scripts/sync-dc-mock-to-public.mjs`)
 
 | Check | Result |
 |---|---|
@@ -125,15 +146,15 @@ All nine: `prosecdef = true`, `proconfig = {search_path=""}`. Rule md5 `9605dc33
 | `pnpm i18n:check` | pass (2685 keys) |
 | `pnpm check:legal-claims` | pass (3 checks) |
 | `pnpm check:numbers` | pass |
-| `pnpm check:db-fences` | pass (8 checks, 1094 files) |
+| `pnpm check:db-fences` | pass (8 checks, 1104 files) |
 | `pnpm check:public-env` | pass before the build; pass (built client bundle scanned) after the Worker build |
 | `pnpm db:seed:check` | no drift (seed.sql unchanged by this job; no re-pin needed) |
-| `pnpm test:unit` | pass: web 367 files / 3687 tests (9 local-database files skipped without a port), emails 14 / 179, db 2 / 14 |
+| `pnpm test:unit` | pass: web 376 files / 3775 tests (9 local-database files skipped without a port), emails 14 / 179, db 2 / 14; includes main's language-switch test with the Resend pattern and the wrong-booking line added |
 | `pnpm build` | pass; `…/change/preview`, `…/change/withdraw`, `/api/manage/resend`, `/api/account/bookings/resend` in both mounts |
-| From-empty replay + full pgTAP (own stack `vamos-taxi-p6b`, ports 624xx) | 128 migrations; **95 files / 2430 tests pass** (P6 file 131) |
+| From-empty replay + full pgTAP (own stack `vamos-taxi-p6b`, ports 624xx) | 128 migrations; **95 files / 2452 tests pass** (P6 file 153) |
 | Types (`pnpm exec supabase` 2.115.0, `gen types --local` on that stack) = `database.types.ts` | identical (the `db:types:check` command itself targets port 54322, which this job must not use; the same command ran with `--workdir`) |
-| Worker-client database tests on the same replay | 8/8: trip-change, trip-change-patch, customer-paths (now with D20 on the real database), booking-change, refund-by-hand, assign, chauffeur-delete, system-reads |
-| Chromium on the local Worker build (`p6-run.sh`, nothing stubbed in the Worker; Stripe, Mapbox, Resend, Turnstile are local stand-ins) | **37 lines, 37 PASS, 0 FAIL** in one run on the merged final tree (O1–O8 dashboard, C1–C7 site, widths 390/768/1024/1440, English and Arabic RTL, no page errors). Lines and evidence: `WORKER-RUN.md` |
+| Worker-client database tests on the same replay | 8/8: trip-change, trip-change-patch, customer-paths (D20; review 1: your Accept of a customer's time change keeps the paid price, forged requests refused), booking-change, refund-by-hand, assign, chauffeur-delete, system-reads |
+| Chromium on the local Worker build (`p6-run.sh`, nothing stubbed in the Worker; Stripe, Mapbox, Resend, Turnstile are local stand-ins) | **39 lines, 39 PASS, 0 FAIL** in one run on the final tree, 02:49 (O1–O8 dashboard, C1–C8 site incl. the wrong-booking cancel, widths 390/768/1024/1440, English and Arabic RTL, no page errors). Lines and evidence: `WORKER-RUN.md` |
 
 ## Not verified
 
@@ -145,6 +166,8 @@ All nine: `prosecdef = true`, `proconfig = {search_path=""}`. Rule md5 `9605dc33
   n’est envoyé avant votre confirmation." ar "عُدّلت الرحلة وأصبحت أرخص الآن. لا يُرسَل شيء قبل تأكيدك."
 - A trip cancelled before it was ever paid (only reachable from a signed-in account) has no cancellation e-mail to
   resend: "Resend email" there answers "Could not send that request.".
+- Your dashboard Accept of a customer's time change (review 1) is proven through the Worker client on a real database,
+  not clicked in the browser run.
 - The amounts in `WORKER-RUN.md` come from the local test price book of the fixture, not from Vamos prices.
 
 ## Seen, not changed (outside P6; your call)
@@ -183,11 +206,14 @@ Use paid test bookings. The 4242 payment comes first.
 13. Airport pickup with a driver → Edit → Flight number → SAVE CHANGES. Expected: the driver gets the flight-number
     e-mail.
 14. vamostaxi.site, open a paid test booking from its e-mailed link (not signed in) → Cancel this transfer → Confirm
-    cancellation. Expected: the booking is cancelled (before the fix: "Could not cancel this booking.").
+    cancellation. Expected: the booking is cancelled (live since the hotfix).
 15. Same page → Resend email. Expected: "Sent. Check … in a minute or two." and the **cancellation** e-mail ("Booking
     VT-… is cancelled") arrives, not "Booked — VT-…" (D20).
 16. Signed in → a test booking → flight Save, Resend email, Change this booking → another day and time → Request these
     changes. Expected: "Flight number saved.", "Sent. Check …", "Time-change requested." with the new day.
+
+17. Signed in → a paid test booking → Change this booking → another time → Request these changes; then dashboard →
+    that booking → Accept. Expected: the new time is applied, no "Refund due", the price stays what was paid (review 1).
 
 UAT and Ship are your word.
 

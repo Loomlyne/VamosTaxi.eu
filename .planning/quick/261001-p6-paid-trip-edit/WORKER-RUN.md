@@ -1,5 +1,12 @@
 # P6 worker run — every changed DC form step in a real Chromium on the real local Worker and Supabase
 
+**Final after the review fixes (lead, 2026-10-02 02:49 +04):** one uninterrupted run on the final tree `42f3a12c`
+(origin/main `eb9128f3` in, the guest-cancel hotfix and review fixes 1–6 in, fresh OpenNext build): **39 lines,
+39 PASS, 0 FAIL**. New line C8 (the wrong-booking cancel): booking A's tab after booking B's link → `409
+wrong-booking`, "This page is for another booking. Open the link from its e-mail again.", A and B both still
+confirmed; reopened from A's own link → A cancelled, B confirmed. (One earlier run had C8b answer `429
+rate_limited`: C7's three writes and C8's two fell in one limiter minute; C8 now starts in a new window.)
+
 **Final (lead, 2026-10-02):** one uninterrupted run on the merged tree `7f5b341e` (origin/main `dace2b1f` in, D20 and
 D21 in, fresh OpenNext build) at 01:57 +04, and again on the final tree `09a97ca4` (origin/main `d575917e` in) at 02:06 +04:
 **37 lines, 37 PASS, 0 FAIL, exit 0** both times, ports 4590/4591/9631/9632, fakes 4397.
