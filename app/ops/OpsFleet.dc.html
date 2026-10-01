@@ -391,6 +391,12 @@ class Component extends DCLogic {
       if (name) chauffeurClassOptions.push({ value: id, label: name });
     });
     const withClass = chauffeurs.filter((c) => !!classIdOf(c)).length;
+    // The server sends language names ("German, English"); the Languages select holds codes, so an
+    // existing chauffeur's languages read "—" in the edit box (found 2026-10-01). Hand it the codes.
+    const nameToCode = { german:'de', french:'fr', italian:'it', english:'en', arabic:'ar', de:'de', fr:'fr', it:'it', en:'en', ar:'ar' };
+    const languageCodesOf = (value) => (Array.isArray(value) ? value : String(value || '').split(/[,|]/))
+      .map((x) => nameToCode[String(x || '').trim().toLowerCase()] || '')
+      .filter((code, i, all) => code && all.indexOf(code) === i);
 
     const chauffeurColumns = [
       { key:'name', header:t.colChauffeur, lookup:(r) => React.createElement('span', {
@@ -525,7 +531,12 @@ class Component extends DCLogic {
         { label:t.cntOnShift, value:String(onShift), of:'/ ' + chauffeurs.length, icon:'clock', foot:t.footShift },
         { label:t.cntWithClass, value:String(withClass), of:'/ ' + chauffeurs.length, icon:'car-front', foot:t.footClass },
       ],
-      rows: chauffeurs.map((c) => Object.assign({}, c, { className: classLabel(c), plate: plateOf(c) })),
+      rows: chauffeurs.map((c) => Object.assign({}, c, {
+        className: classLabel(c),
+        plate: plateOf(c),
+        languages: languageCodesOf(c.languages).join(', '),
+        languageText: String(c.languages || ''),
+      })),
       columns: chauffeurColumns,
       fields: chauffeurFields,
       blank: () => (store ? store.blank() : {}),
@@ -591,7 +602,7 @@ class Component extends DCLogic {
       labelKey: 'name',
       addLabel: t.addChauffeur,
       searchPlaceholder: t.searchChauffeurs,
-      searchKeys: ['name','phone','email','licence','languages','className','plate'],
+      searchKeys: ['name','phone','email','licence','languageText','className','plate'],
       emptyTitle: t.emptyCTitle,
       emptyBody: t.emptyCBody,
       deleteBody: t.delCBody,

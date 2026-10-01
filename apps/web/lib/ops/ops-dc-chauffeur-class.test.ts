@@ -237,6 +237,17 @@ describe("1 · the chauffeur form", () => {
     expect(["de", "fr", "ar"].map(noClass)).toEqual(["Keine Klasse", "Aucune classe", "بلا فئة"]);
   });
 
+  it("the edit box shows the languages he speaks (the store holds names, the select holds codes)", () => {
+    // Found while picturing: on origin/main the Languages select of an existing chauffeur read "—"
+    // because the server sends names ("German, English") and the select's values are codes.
+    const drivers = [{ ...DRIVERS[0], languages: "German, English" }];
+    const v = fleet("en", {}, { drivers }).vals();
+    const row = (v.rows as { languages: string; languageText: string }[])[0]!;
+    expect(row.languages).toBe("de, en");
+    expect(row.languageText).toBe("German, English");
+    expect(v.searchKeys).toContain("languageText");
+  });
+
   it("Save sends the class and the trimmed plate, and no car", async () => {
     const f = fleet();
     await f.vals().onSave({ id: MARCO, name: "Marco Rossi", vehicleClassId: BUSINESS, plate: "  ZH 123 456 ", defaultVehicleId: "87a4578f-0000-4000-8000-000000000013", vehicle: "87a4578f-0000-4000-8000-000000000013" });
