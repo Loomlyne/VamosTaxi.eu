@@ -30,7 +30,11 @@ import { join } from "node:path";
 export const WEB_ROOT = join(__dirname, "..", "..");
 
 /** Absolute path to the workspace-pinned `next` binary — never a pnpm/npx wrapper. */
-export const NEXT_BIN = join(WEB_ROOT, "node_modules", ".bin", "next");
+// e2e-linux-3: with VAMOS_DEV_LOG_DIR set (the Linux e2e workflow) the same binary runs through a wrapper that
+// keeps the dev server's output; see next-dev-logged.sh.
+export const NEXT_BIN = process.env.VAMOS_DEV_LOG_DIR
+  ? join(WEB_ROOT, "tests", "support", "next-dev-logged.sh")
+  : join(WEB_ROOT, "node_modules", ".bin", "next");
 
 /**
  * Poll `url` until the app itself answers (< 400), not merely a bound socket.
