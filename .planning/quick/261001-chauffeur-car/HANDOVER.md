@@ -2,9 +2,13 @@
 
 **To:** control session. **From:** 26.2 audit session, 2026-10-01.
 **Folder:** `/Users/koss/Developer/vamos-wt/phase-26.2`, branch `gsd/26.2-chauffeur-car`, origin/main
-`083b50ab` merged in (`11cdfcb7`; one conflict, `.planning/decisions/2026-10-01-no-cars-page.md`:
-this branch's copy kept, it holds decisions 1–8 verbatim and supersedes main's 1–6 table).
-Pushed (branch only). No deploy, no hosted SQL. The final commit is the one that adds this file.
+`8b65e01b` (P1 class change) merged in (`2443a072`). Conflicts: `.planning/decisions/2026-10-01-no-cars-page.md`
+(first merge, this branch's copy kept: decisions 1–8 verbatim, supersedes main's 1–6 table) and
+`scripts/db-access-fence-allowlist.json` (both P1's and this branch's test files kept).
+`app/ops/OpsDetail.dc.html` merged by git with both P1's class-change parts and this branch's Assign
+box; `packages/db/database.types.ts` checked against types generated from the 125 merged migrations:
+equal in content. Pushed (branch only). No deploy, no hosted SQL. The final commit is the one that
+adds this file.
 Full record: `RECORD.md` in this folder. Owner decisions: `.planning/decisions/2026-10-01-no-cars-page.md`.
 
 ## Signed by the owner (question form on pictures, 2026-10-01)
@@ -16,6 +20,10 @@ Full record: `RECORD.md` in this folder. Owner decisions: `.planning/decisions/2
 | 3 | Each chauffeur's profile: a read-only Bookings history (assigned / taken off), newest first | `history-after-en-1440.png` |
 | 4 | Delete a chauffeur: his finished trips keep him; his trips not finished go back to unassigned ("Now unassigned: VT-…"); he leaves the list and Assign | `delete-confirm-after-en-1440.png` |
 | 5 | Customer mails ("Plate") and the manage-booking page ("Vehicle") show the chauffeur's plate under the existing labels — no new wording | — |
+
+**A chauffeur with no plate yet** (every live chauffeur until the owner types one): the 24 h reminder
+and the "driver assigned" mail leave the Plate line out, and the manage-booking page leaves the
+Vehicle row out; never "null", never an empty line (`no-car-surfaces.test.ts`).
 | 6 | The one unused vehicle row on live: **delete it** (after this ship, by you, see below) | — |
 
 ## Migration
@@ -34,17 +42,18 @@ Delete the one unused `vehicles` row on live: first read that no `booking_legs.a
 and no `chauffeurs.default_vehicle_id` points to it and whether it has a photo in storage; delete
 the row (and its photo); read back. Deleted means gone everywhere.
 
-## Checks on merge `11cdfcb7`, run once by the lead
+## Checks on merge `2443a072`, run once by the lead
 
 typecheck, lint (0 errors, 6 old warnings), lint:css, i18n:check (2676 keys), check:numbers,
-check:db-fences (8/8), check:public-env, check:legal-claims (3/3), db:seed:check, build: pass.
-Unit, full: web 3352 + 4 skipped (339 files), emails 151, db 14. From-zero replay of 124 migrations
-plus seed and full pgTAP: 91 files, **2146 tests, all pass** (own stack `vamos-taxi-chauffeur`, ports
-653xx, stopped with `--no-backup`, nothing left). **On a real Postgres with the Worker client
-options:** `assign.local.test.ts` (assign by class, refusals, overlap) and
-`chauffeur-delete.local.test.ts` (finished trips keep him, unfinished go back to unassigned) pass.
-`db:types:check`: the installed CLI 2.118.0 prints unformatted types; with formatting set aside the
-generated types equal the committed `packages/db/database.types.ts` (incl. `plate`, `deleted_at`).
+check:db-fences (8/8, 1058 files), check:public-env, check:legal-claims, db:seed:check, build: pass.
+Unit, full: web 3428 + 5 skipped (346 files), emails 161, db 14. From-zero replay of **125
+migrations** (ends 20261007140000, 20261007160000) plus seed and full pgTAP: 92 files, **2227 tests,
+all pass** (incl. `class_change_reprice`, `assign_by_class`; own stack `vamos-taxi-chauffeur`, stopped
+with `--no-backup`). **On a real Postgres with the Worker client options:** `assign.local`,
+`chauffeur-delete.local`, P1's `booking-change.local` and `class-change-reprice` (3/3): pass, none
+skipped. `db:types:check` is a plain diff against the installed CLI's output; CLI 2.118.0 prints a
+different format than the one that wrote the committed file (content equal), so that check only
+passes on the CLI version that generated the file.
 
 ## Not verified
 
