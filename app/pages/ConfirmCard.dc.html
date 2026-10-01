@@ -96,6 +96,15 @@ button,.vt-btn{box-shadow:none}
 </div>
 </sc-if>
 
+<sc-if value="{{ isPending }}">
+<div data-cf-view="pending" style="display:flex;flex-direction:column;gap:26px">
+<div data-cf-dest="1">
+<span data-cf-dest-v="1" translate="no" data-vt-no-i18n="1"><span class="vt-dir-keep" dir="ltr">{{ email }}</span></span>
+</div>
+<p data-cf-sub="1" role="status">Now open the link we sent to your other address.</p>
+</div>
+</sc-if>
+
 <sc-if value="{{ isExpired }}">
 <div data-cf-view="expired" style="display:flex;flex-direction:column;gap:26px">
 <div data-cf-gone="1" role="alert">
@@ -141,7 +150,7 @@ class Component extends DCLogic {
       const p = res[0], s = res[1];
       if (!p || !p.ok || !p.email) { this.setState({ view: 'expired', requestHref }); return; }
       const me = s && s.signedIn && s.email ? String(s.email) : '';
-      const other = me && me.toLowerCase() !== String(p.email).toLowerCase() ? me : '';
+      const other = l.type !== 'email_change' && me && me.toLowerCase() !== String(p.email).toLowerCase() ? me : '';
       this.setState({ view: 'ready', email: p.email, other, type: l.type, requestHref });
     });
   }
@@ -166,6 +175,8 @@ class Component extends DCLogic {
         location.assign(j.target);
         return;
       }
+      /* E-mail change, first of two clicks: confirmed here, the link to the other address finishes it. */
+      if (j && j.ok && j.pending === true) { this.setState({ view: 'pending', busy: false }); return; }
       if (j && j.code === 'expired') { this.setState({ view: 'expired', busy: false }); return; }
       this.setState({ busy: false, failed: true });
     }).catch(() => this.setState({ busy: false, failed: true }));
@@ -175,9 +186,9 @@ class Component extends DCLogic {
     const change = type === 'email_change';
     return {
       n22: 22, yes: true,
-      isLoading: view === 'loading', isReady: view === 'ready', isExpired: view === 'expired',
+      isLoading: view === 'loading', isReady: view === 'ready', isPending: view === 'pending', isExpired: view === 'expired',
       ariaBusy: view === 'loading' ? 'true' : 'false',
-      heading: change && view === 'ready' ? 'Confirm your new e-mail address' : 'Sign in to Vamos Taxi',
+      heading: change && (view === 'ready' || view === 'pending') ? 'Confirm your new e-mail address' : 'Sign in to Vamos Taxi',
       email, busy, failed, requestHref,
       showSigningAs: !change, isSignIn: !change, isChange: change,
       hasOther: Boolean(other),

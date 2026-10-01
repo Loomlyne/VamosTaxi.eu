@@ -5,7 +5,7 @@ the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 Rewritten short on 2026-09-30 14:25; the long version is in git history (`8230227c`).
 
-**Last update:** 2026-10-01 13:19 (+04)
+**Last update:** 2026-10-01 13:37 (+04)
 
 ## Live now
 
@@ -13,10 +13,10 @@ Rewritten short on 2026-09-30 14:25; the long version is in git history (`823022
 |---|---|
 | Site | https://vamostaxi.site and https://dashboard.vamostaxi.site |
 | main = origin/main | `34c726db` plus planning notes |
-| Worker `vamos` | version `c2127d38` (2026-10-01 11:19, 26.0); before: `7fa342a7` |
+| Worker `vamos` | version `60e61d96` (2026-10-01 13:36, 26.2 P1); before: `c2127d38` |
 | Worker `vamos-dashboard` (gateway) | version `71a307da` (2026-10-01 08:0x); before: `58c6e541`. Rollback of batch C part 2 = both Workers together |
 | Rollback point | Worker `f58cd68e` + gateway `58c6e541` together, git tag `backup/main-before-c2-df520d08`; before the design: Worker `e2c53324`; before D and the refusal fix: Worker `c45d2782`; before 27: Worker `dfba8779`, tag `backup/main-before-27-a8948162` (the two Phase 27 migrations are additive and can stay); before polish 2: Worker `832b884e`; before batch C1: Worker `24945bab`; before extras A: Worker `2f303d16`; before refunds: Worker `1e1fd4a6`, tag `backup/main-before-refunds-3a486eaa` (note: rolling the Worker back alone re-enables automatic refunds on cancel; the migration stays); before the home change: Worker `852de5f4`; before the three pieces: Worker `d0c427c2`; before native scrolling: Worker `f3f7d929`; before the queue: Worker `92504970`; before class cards: Worker `d80e6577`; before speed A: Worker `8adb148c`; before phone home: Worker `d43e467b`; before 26.2: Worker `0d1806ce`; before the Support button: Worker `2d5906ce` (before 26.5: Worker `fe9314d0`, tag `backup/main-before-26.5-e09f90cb`). Guest accounts off without a deploy: `settings.guest_accounts_live = false` |
-| Database | migrations up to `20260930210000`, 26.5's `20261001100000` to `130000`, Phase 20's `20261005100000` and `110000`, 26.2's `20261007100000`, Phase 20's `20261005120000`, `130000`, `140000` (refunds by hand), 26.2's `20261007110000` (extra names prune), Phase 20's `20261005150000` (last-admin guard), Phase 27's `20261002100000` and `110000`, all applied and read back. `guest_accounts_live` = true since 14:58 (owner's answer) |
+| Database | migrations up to `20260930210000`, 26.5's `20261001100000` to `130000`, Phase 20's `20261005100000` and `110000`, 26.2's `20261007100000`, Phase 20's `20261005120000`, `130000`, `140000` (refunds by hand), 26.2's `20261007110000` (extra names prune), Phase 20's `20261005150000` (last-admin guard), Phase 27's `20261002100000` and `110000`, 26.2 P1's `20261007140000` (class change; 13 function bodies md5-identical, three checks widened), all applied and read back. `guest_accounts_live` = true since 14:58 (owner's answer) |
 | Who deploys | the control session, from the owner's Mac. GitHub runs checks, never deploys. |
 
 ## Shipped
@@ -50,6 +50,7 @@ Rewritten short on 2026-09-30 14:25; the long version is in git history (`823022
 | 10-01 | 03:24 | Dashboard design: one Actions menu, short phone bar, Assign without a pop-up, driver Car field, edit-box buttons | `4dc72078` | `f58cd68e` |
 | 10-01 | 08:06 | Security batch C part 2: sign-in confirm screen, dashboard files off the public host, /dev headers once (two Workers) | `34c726db` | `7fa342a7` + gateway `71a307da` |
 | 10-01 | 11:19 | **26.0 main green**: honest test and gate set, Worker-client DB tests, e2e-linux GitHub job, `/dev` test-only, imprint en+de notice for fr/ar readers (D-05); no migration | `6ec73c52` | `c2127d38` |
+| 10-01 | 13:36 | **26.2 P1 class change on a paid trip**: dashboard class list with the difference, pay-the-difference mail and 24-hour Stripe page, Withdraw change, refund line on the customer page; customer time-change requests fixed (failed on live with 23514); migration `20261007140000` | `8b65e01b` | `60e61d96` |
 
 ## Ship order from here
 
@@ -103,7 +104,7 @@ Full text: `.planning/decisions/2026-09-30-priorities-and-ship-mode.md`.
 | 1 | Phase 28 pixel page view | **On hold, nothing built.** Discuss signed, research committed (`99b2285d`, folder `phase-28`, branch `gsd/phase-28-pixel-pageview`). The owner said both Meta switches are off, but Meta's own setup file for the pixel, read 2026-10-01 09:15 UTC by the Meta session, still lists automatic matching (e-mail, name, phone, address) and inferred events as on. The Meta session re-reads it every hour and starts building when it shows off (`.planning/decisions/2026-10-01-meta-events-manager-switches.md`). Migration `20261003100000` reserved, not written |
 | 2 | Dashboard design | **Live 03:24** (owner said Ship). Live OpsDetail mock identical to the source. Owner UAT: 5 steps in `.planning/quick/260930-dash-design/HANDOVER.md`, Assign first once the driver has a car |
 | 3 | Security part 2 | **Live 08:06** (owner said Ship). Live: dashboard sign-in 200; dashboard screen files 200 on the dashboard host with CSP, X-Frame-Options and noindex, 404 on the public host; /dev sends each header once; /sign-in/confirm answers. **Finding:** the hand-over said new gateway + old vamos keeps the dashboard working; on live it did not: the dashboard answered 404 between the gateway deploy and the vamos deploy (about the length of one build). Owner UAT: sign-in link opened on the phone; dashboard sign-in. Open owner question: e-mail change cannot finish (hook mails only the old address) |
-| 4 | P1 class change, P6 place/time change | P1 building (`phase-26.2-p1`, pay-mail text approved). **P6 plan signed 2026-10-01** (`.planning/decisions/2026-10-01-p6-paid-trip-edit.md`, migration `20261007150000`): time-only keeps the price; unbookable place refused; cheaper late = full difference as Refund due; too many people offers a larger class; people, bags, contact and flight change instantly; the customer's change page drops five dead fields (picture first). Built after P1 on P1's functions. **No Cars page** (owner correction 2026-10-01, `.planning/decisions/2026-10-01-no-cars-page.md`): refined: chauffeur form as before with Class and one new plate-number field; Assign lists drivers of the booking's class; bookings history per chauffeur; migration `20261007160000`; branch `gsd/26.2-chauffeur-car`, pictures first |
+| 4 | P1 class change, P6 place/time change | **P1 live 13:36** (`8b65e01b`, Worker `60e61d96`; folder and stack removed; owner UAT: 11 steps in `.planning/quick/260930-p1-class-change-reprice/HANDOVER.md`, a 4242 payment of a difference first). **P6 plan signed 2026-10-01** (`.planning/decisions/2026-10-01-p6-paid-trip-edit.md`, migration `20261007150000`): time-only keeps the price; unbookable place refused; cheaper late = full difference as Refund due; too many people offers a larger class; people, bags, contact and flight change instantly; the customer's change page drops five dead fields (picture first). Built after P1 on P1's functions. **No Cars page** (owner correction 2026-10-01, `.planning/decisions/2026-10-01-no-cars-page.md`): refined: chauffeur form as before with Class and one new plate-number field; Assign lists drivers of the booking's class; bookings history per chauffeur; migration `20261007160000`; branch `gsd/26.2-chauffeur-car`, pictures first |
 | 5 | 26.0 main green | **Live** (owner said Ship, 2026-10-01). Gates honest again; `/dev` test-only; imprint declares en+de with a notice for fr/ar readers (D-05); e2e-linux GitHub job added (deploys nothing). Playwright still not green: owner-ruled reds (RouteSummary, SiteFooter), 48 SiteHeader screenshot diffs (undiagnosed, also on main without 26.0), home reds on main (`home-red-36.txt`), unclassified reds listed in `.planning/phases/26.0-main-green/26.0-HANDOVER.md` |
 | 6 | Phase 29, then the finish-your-account follow-up (27 D-37) | After 28 |
 | 7 | Stricter check scripts (u13) | Last |
@@ -251,6 +252,7 @@ Full texts in `.planning/decisions/`.
 | 8 | The unsigned Lenis folder `.planning/quick/260928-q4t-…` (feeds the scroll and speed plan) | decision |
 | 9 | Empty the Trash; `brag-output` and `.pnpm-store` in the main checkout | his click |
 | 10 | 26.0 UAT: (1) vamostaxi.site/imprint in French, then Arabic: a notice says the page exists in English and German, English binding; is the French and Arabic wording right? (2) /dev and /dev/home/services answer 404 (checked by control 11:20). (3) The 48 SiteHeader screenshot diffs and the page diffs (about, contact, faq, home sections, legal pages, error pages de/fr): intended change (rebaseline on his Mac) or bug, one decision per page; images in `.planning/phases/26.0-main-green/evidence/`. (4) First run of the GitHub job "Booking funnel e2e on Linux" on `6ec73c52`: failures listed back to control | site, GitHub |
+| 11 | **P1 UAT, payment first** (dashboard.vamostaxi.site, test bookings paid with the Stripe test card): Economy to Business, pay the difference from the e-mail with 4242; Withdraw change on a second booking; Business to Economy, Refund due, the refund line on the customer page in four languages, Confirm refund. 11 steps in `.planning/quick/260930-p1-class-change-reprice/HANDOVER.md`. Control reads `booking_payments` and `booking_refunds` after steps 5 and 10 | dashboard, e-mail |
 
 ## Owed by the control session
 
@@ -259,6 +261,16 @@ Full texts in `.planning/decisions/`.
 | Check the hand-over of `fix/e2e-linux-time` when it arrives (job sent to the 26.0 session 2026-10-01, between 13:15 and 13:19 by the clock; started in folder `e2e-linux-time`) | On hand-over, then the owner's Ship |
 
 Done 2026-10-01, between 13:15 and 13:19 by the clock: (1) reminder cron error: the live database log of the last 22 hours holds no "permission denied" line at all (read-only log query; the hourly job ran in that window; the reminder function was replaced on 09-30 by `20261001120000`). Closed. (2) First "Booking funnel e2e on Linux" run on `6ec73c52`: cancelled at its 45-minute limit, no result (run 36829545716). The repository is public, so the minutes cost nothing; board-only commits do not start a run.
+
+## Hand-overs waiting, 2026-10-01 13:37
+
+| # | Job | State |
+|---|---|---|
+| 1 | Chauffeurs by class (`gsd/26.2-chauffeur-car`, handed over at `656154b4`, migration `20261007160000`, owner signed on pictures) | Merging main `8b65e01b` (P1) in; then control check, owner's Ship. After the ship: owner decision 8, delete the one unused `vehicles` row on live after reading that nothing points to it |
+| 2 | E-mail change fix (`fix/phase-20-email-change`, handed over at `e0c97beb`, no migration; owner's form answer "Fix it") | Merging main `8b65e01b` in; then control check, owner's Ship |
+| 3 | GitHub e2e job time limit (`fix/e2e-linux-time`) | 26.0 session measuring |
+
+Archived on 13:37: local-only branches `fix/26.3-manage-booking`, `fix/26.3-new-trip-save` and the withdrawn Cars page tip as `archive/branch-*` tags on GitHub. Folder `phase-26.2-p1` removed.
 
 ## Sessions at 13:19 on 2026-10-01
 

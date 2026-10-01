@@ -2204,6 +2204,7 @@
       /* F12: the confirm screen an e-mailed sign-in link opens (/sign-in/confirm, /login/confirm). */
       'Sign in to Vamos Taxi': { de: 'Bei Vamos Taxi anmelden', fr: 'Connexion à Vamos Taxi', ar: 'تسجيل الدخول إلى Vamos Taxi' },
       'You are signing in as': { de: 'Sie melden sich an als', fr: 'Vous vous connectez en tant que', ar: 'أنت تسجّل الدخول باسم' },
+      'Now open the link we sent to your other address.': { de: 'Öffnen Sie jetzt den Link, den wir an Ihre andere Adresse gesendet haben.', fr: 'Ouvrez maintenant le lien envoyé à votre autre adresse.', ar: 'افتح الآن الرابط الذي أرسلناه إلى عنوانك الآخر.' },
       'Only continue if this is your e-mail address.': { de: 'Fahren Sie nur fort, wenn dies Ihre E-Mail-Adresse ist.', fr: 'Continuez uniquement s’il s’agit de votre adresse e-mail.', ar: 'تابع فقط إذا كان هذا عنوان بريدك الإلكتروني.' },
       'SIGN IN': { de: 'ANMELDEN', fr: 'SE CONNECTER', ar: 'تسجيل الدخول' },
       'Not you?': { de: 'Nicht Sie?', fr: 'Ce n’est pas vous ?', ar: 'لست أنت؟' },
