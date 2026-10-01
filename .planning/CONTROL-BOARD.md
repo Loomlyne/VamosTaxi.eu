@@ -22,7 +22,7 @@ the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 Rewritten short on 2026-09-30 14:25; the long version is in git history (`8230227c`).
 
-**Last update:** 2026-10-01 23:40 (+04)
+**Last update:** 2026-10-01 23:58 (+04)
 
 ## Controller take-over, 2026-10-01 23:25 (+04)
 
@@ -41,7 +41,7 @@ The local controller read `.planning/HANDOVER-2026-10-01.md` (the closing state 
 
 | Lane | Job | Branch | After it |
 |---|---|---|---|
-| R | Fresh review of Phase 20 leftovers G7/G10/G11/G12/G28 (Opus, read-only) | `claude/project-thread-cwny3q` `84cb34cb` | Controller ships: migration `20261007180000` verbatim + read-back, deploy, live checks |
+| R | Phase 20 leftovers G7/G10/G11/G12/G28 | **Live 23:51** (`3e2bba66`, Worker `b7a34b05`) | done; branch deleted, `archive/branch-claude-project-thread-cwny3q-84cb34cb` |
 | A | Finish P6, change place or time of a paid trip | `gsd/26.2-p6-build` `6af6b74c` (last commit is the saved WIP) | Fresh review (money path), then ship. Migration `20261007150000` |
 | B | Main green (26.0 finish, B4): Linux `confirmation.spec.ts:130`, mutation-gate patch, schema job, home reds; tests and CI files only | `ci/e2e-linux-3`, `fix/e2e-linux-2` | Ship (CI files, no deploy); the 48 SiteHeader picture diffs go to the owner one page at a time |
 | D | GSD bookkeeping (B10): missing summaries, `STATE.md`, `ROADMAP.md` rows for 26.0/26.2/26.5/27.1 and the closed phases | new | Ship as a planning note |
@@ -54,13 +54,12 @@ dashboard customer list; gate `/checkout` and `/booking-detail`) → B3 live-key
 `^(sk|rk)_live_`; after the owner's refund-by-hand test) → 26.2 rows (airport fee inside the fare line,
 JSON double encoding in `stripe_events.payload` and `rate_version_rules.payload`, `data-i18n-skip` leftovers).
 
-**After the owner turns off Cloudflare's automatic Web Analytics:** B7 content and legal ships (controller)
-→ G23 (drop `maps.googleapis.com` from CSP `connect-src`) → Arabic and design-canvas fixes (5 + 19).
+**B7 live 23:56.** Next on that lane: G23 (drop `maps.googleapis.com` from CSP `connect-src`) → Arabic and design-canvas fixes (5 + 19).
 
 **Last:** u13 stricter check scripts (`gsd/phase-26.2-u13`). **After the owner's Meta check:** Phase 28, then 29.
 
-**The owner's own steps:** (1) Cloudflare Web Analytics automatic setup off. (2) Waiting time 30 minutes
-in dashboard settings, after B7. (3) Real texts of the 5 published reviews. (4) 4242 payment as guest and
+**The owner's own steps:** (1) Done 23:4x: Cloudflare automatic Web Analytics off. (2) Now: waiting time 30 minutes
+in dashboard settings (B7 is live). (3) Real texts of the 5 published reviews. (4) 4242 payment as guest and
 with "Create an account". (5) /contact real message. (6) Refund by hand. (7) Pay in de, fr, ar and on a
 tablet. (8) UAT of the live jobs (pick-up report section 2). (9) Meta switches on pixel 1595596972063765.
 (10) The 48 SiteHeader picture diffs. (11) Repo public or private. (12) The rest of the 18:01 message. Done 23:40: PR #62 closed
@@ -73,8 +72,8 @@ book row 18, delete test bookings, live Stripe key, vamostaxi.eu cutover.
 | Item | Value |
 |---|---|
 | Site | https://vamostaxi.site and https://dashboard.vamostaxi.site |
-| main = origin/main | `96a17ab7` (last code) plus planning notes |
-| Worker `vamos` | version `6eb1d700` (2026-10-01 17:44, 27.1 finish your account); before: `8f6720d6` (17:33, /confirmation), `fae3e473` |
+| main = origin/main | `ea1141e7` (last code) plus planning notes |
+| Worker `vamos` | version `4e3a6eba` (2026-10-01 23:56, B7 content and legal); before: `b7a34b05` (23:50, Phase 20 leftovers), `6eb1d700` (17:44, 27.1 finish your account), `8f6720d6` (17:33, /confirmation), `fae3e473` |
 | Worker `vamos-dashboard` (gateway) | version `71a307da` (2026-10-01 08:0x); before: `58c6e541`. Rollback of batch C part 2 = both Workers together |
 | Rollback point | Worker `f58cd68e` + gateway `58c6e541` together, git tag `backup/main-before-c2-df520d08`; before the design: Worker `e2c53324`; before D and the refusal fix: Worker `c45d2782`; before 27: Worker `dfba8779`, tag `backup/main-before-27-a8948162` (the two Phase 27 migrations are additive and can stay); before polish 2: Worker `832b884e`; before batch C1: Worker `24945bab`; before extras A: Worker `2f303d16`; before refunds: Worker `1e1fd4a6`, tag `backup/main-before-refunds-3a486eaa` (note: rolling the Worker back alone re-enables automatic refunds on cancel; the migration stays); before the home change: Worker `852de5f4`; before the three pieces: Worker `d0c427c2`; before native scrolling: Worker `f3f7d929`; before the queue: Worker `92504970`; before class cards: Worker `d80e6577`; before speed A: Worker `8adb148c`; before phone home: Worker `d43e467b`; before 26.2: Worker `0d1806ce`; before the Support button: Worker `2d5906ce` (before 26.5: Worker `fe9314d0`, tag `backup/main-before-26.5-e09f90cb`). Guest accounts off without a deploy: `settings.guest_accounts_live = false` |
 | Database | migrations up to `20260930210000`, 26.5's `20261001100000` to `130000`, Phase 20's `20261005100000` and `110000`, 26.2's `20261007100000`, Phase 20's `20261005120000`, `130000`, `140000` (refunds by hand), 26.2's `20261007110000` (extra names prune), Phase 20's `20261005150000` (last-admin guard), Phase 27's `20261002100000` and `110000`, 26.2 P1's `20261007140000` (class change; 13 function bodies md5-identical, three checks widened), 26.2's `20261007160000` (assign by class; 4 function bodies md5-identical, `chauffeurs.plate` and `deleted_at`), all applied and read back. `guest_accounts_live` = true since 14:58 (owner's answer) |
@@ -123,6 +122,8 @@ Clean clone: install from the lockfile and all 11 gates pass; pgTAP from zero on
 | 10-01 | 15:43 | /contact: phone and e-mail read left to right in Arabic; three lines translated (de, fr, ar); no migration | `c5157913` | `fae3e473` |
 | 10-01 | 17:33 | **/confirmation redesign** (signed): two buttons, three next steps, help line; time, flight and cancel move to Manage booking; no migration. Rollback: tag `backup/main-before-confirmation-150a2a20`, Worker `fae3e473`. A stray Worker `vamos-web` made by a deploy without `--env staging` was deleted at 17:45 | `50a2a050` | `8f6720d6` |
 | 10-01 | 17:44 | **27.1 Finish your account**: a sign-in-link account finishes (name, optional phone, the account tick) before it can pay or open a booking; nobody ticks twice. Migration `20261007170000` applied first and read back (three bodies md5-identical, definer, vamos_system only; table RLS, no client grant). Rollback: tag `backup/main-before-27.1-cbbd4d13`, Worker `8f6720d6` | `96a17ab7` | `6eb1d700` |
+| 10-01 | 23:51 | **Phase 20 leftovers** G7, G10, G11, G12, G28 (fresh review: safe; both checkout functions owned by postgres, both definer, read on live first): grants off roles that never call them, `staff_daily_digests` RLS on, dashboard ticket id encoded. Migration `20261007180000` applied verbatim first and read back (the hand-over's expected grant list exactly; checkout owner keeps `create_quote_snapshot`; `vamos_checkout` keeps `checkout_create_booking`). Clean clone: 11 gates, build, 3508 web unit tests, pgTAP from empty 94 files / 2299, types identical. Live 200 on 9 pages + dashboard /login + /api/consent/state. Rollback: tag `backup/main-before-p20-leftovers-42fd9060`, Worker `6eb1d700` (grants stay; they are only narrower) | `3e2bba66` | `b7a34b05` |
+| 10-01 | 23:56 | **B7 content and legal** (owner turned Cloudflare's automatic Web Analytics off first; no beacon on 7 live pages before the deploy): Imprint back in the footer, imprint in en/de/fr/ar with German binding, /terms driver details by e-mail, /about Van luxury 12, Web Analytics only after an Analytics yes (CSP allows static.cloudflareinsights.com and cloudflareinsights.com; no beacon in any page's HTML before consent), seed waiting 30 for a fresh database. No migration. Clean clone: 11 gates, build, 3512 web unit tests, pgTAP from empty 94 / 2299, types identical. Live 200 on 12 pages + dashboard /login. PR #66 closed as shipped. Rollback: tag `backup/main-before-b7-3e2bba66`, Worker `b7a34b05` | `ea1141e7` | `4e3a6eba` |
 
 ## Ship order from here
 
@@ -247,7 +248,7 @@ The owner decided every finding F1 to F14. Every Phase 20 ship needs his Ship.
 | Phase 20 | `20261005100000`, `110000` (live) |
 | Class photos | `20261006100000` to `190000` |
 | 26.2 | `20261007100000` staff price preview (live); P4-A `110000`, trigger clean-up `120000`, P4-C `130000`; P1 `140000` (live); P6 `150000`; chauffeurs by class `160000` (live); **27.1 finish your account `170000`** (taken by the project chat "Finish your account" on 2026-10-01, reserved here after the fact) |
-| Phase 20 (more) | `20261005120000` reviews column grants (B1), `130000` erased-booking pay link (20-12), `140000` refunds by hand (20-10); leftovers G7/G10/G11/G12/G28 `20261007180000` (on `claude/project-thread-cwny3q`, not applied) |
+| Phase 20 (more) | `20261005120000` reviews column grants (B1), `130000` erased-booking pay link (20-12), `140000` refunds by hand (20-10); leftovers G7/G10/G11/G12/G28 `20261007180000` (live 23:51) |
 | **Next free** | **`20261007190000`**. Ask the controller first; check every remote branch for the file name |
 
 ## Decisions that stand
@@ -328,7 +329,6 @@ Full texts in `.planning/decisions/`.
 | What | When |
 |---|---|
 | Check the hand-over of `ci/e2e-linux-3` (must carry a GitHub run link where every e2e job ends inside its limit) | On hand-over, then the owner's Ship |
-| Phase 20 leftovers (`claude/project-thread-cwny3q` at `84cb34cb`, migration `20261007180000`): fresh reviewer session first, then ship under the standing order | Next |
 
 Done 2026-10-01, between 13:15 and 13:19 by the clock: (1) reminder cron error: the live database log of the last 22 hours holds no "permission denied" line at all (read-only log query; the hourly job ran in that window; the reminder function was replaced on 09-30 by `20261001120000`). Closed. (2) First "Booking funnel e2e on Linux" run on `6ec73c52`: cancelled at its 45-minute limit, no result (run 36829545716). The repository is public, so the minutes cost nothing; board-only commits do not start a run.
 
