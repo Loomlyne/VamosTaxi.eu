@@ -28,6 +28,9 @@ export const CHANGE_FAIL_CODES = [
   "must-fix",
   "stripe-test-only",
   "stripe-failed",
+  // 26.2 P1 Withdraw (owner sign-off 2026-10-01)
+  "nothing-waiting",
+  "already-paid",
   "unknown",
 ] as const;
 
@@ -76,6 +79,8 @@ const SQL_REFUSALS: readonly ChangeFailCode[] = Object.freeze([
   "class-too-small",
   "price-book-changed",
   "paid-changed",
+  "nothing-waiting",
+  "already-paid",
 ]);
 
 function messageOf(err: unknown): string {

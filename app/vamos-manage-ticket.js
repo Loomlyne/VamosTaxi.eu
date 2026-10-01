@@ -125,6 +125,7 @@
           // 20-10: the refund row and box survive a reload.
           booking.refundStatus = d.body.refundStatus || "none";
           booking.refundOwedRappen = Number(d.body.refundOwedRappen) || 0;
+          booking.refundedRappen = Number(d.body.refundedRappen) || 0;
         }
         return { kind: "booking", booking: booking, via: "account" };
       });
@@ -197,6 +198,28 @@
     return "";
   }
 
+  // 26.2 P1 (owner-approved 2026-10-01, .planning/decisions/2026-10-01-class-change-pay-mail.md): after a
+  // CHEAPER class change the team owes the difference ("Refund due"). Until the refund is sent the
+  // booking page says so, in the new class and the amount still due; once it is sent the line goes.
+  var CHANGE_CREDIT_LINE = "Your trip now runs in {class}. The difference of {amount} comes back to the payment method you used; our team sends it.";
+
+  function changeCreditLine(booking) {
+    if (!booking) return "";
+    var bs = String(booking.status || "").toLowerCase();
+    if (!bs || bs === "cancelled" || bs === "refunded" || bs === "partially_cancelled") return "";
+    var st = String(booking.refundStatus || "").toLowerCase();
+    if (st !== "pending_ops" && st !== "processing" && st !== "failed") return "";
+    var due = (Number(booking.refundOwedRappen) || 0) - (Number(booking.refundedRappen) || 0);
+    if (!(due > 0)) return "";
+    var cls = String((booking.money && booking.money.className) || "").trim();
+    if (!cls) return "";
+    var amount = (due / 100).toFixed(2);
+    var money = root.VamosLocale && typeof root.VamosLocale.money === "function"
+      ? root.VamosLocale.money(amount)
+      : "CHF " + amount;
+    return t(CHANGE_CREDIT_LINE).split("{class}").join(cls).split("{amount}").join(money);
+  }
+
   function refundedCopy(booking) {
     if (!booking || String(booking.refundStatus).toLowerCase() !== "refunded") return "";
     var country = booking.payoutCountryLabel || t("Switzerland");
@@ -225,5 +248,6 @@
     saveFlightAccount: saveFlightAccount,
     refundLine: refundLine,
     refundedCopy: refundedCopy,
+    changeCreditLine: changeCreditLine,
   };
 })(window);

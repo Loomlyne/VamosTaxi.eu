@@ -383,6 +383,17 @@
 </x-import>
 </sc-if>
 
+<!-- 26.2 P1 (owner sign-off 2026-10-01): withdraw your dearer class change that waits for the payment. -->
+<sc-if value="{{ withdrawOpen }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" title="{{ tWithdrawTitle }}" size="sm" subtitle="{{ booking.id }}" onClose="{{ closeWithdraw }}" hint-size="400px,260px">
+<p data-ops-decide-body>{{ tWithdrawBody }}</p>
+<div data-ops-decide-foot>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="outline" disabled="{{ withdrawBusy }}" onClick="{{ closeWithdraw }}" hint-size="170px,44px">{{ tWithdrawKeep }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="primary" disabled="{{ withdrawBusy }}" aria-busy="{{ withdrawBusyAria }}" onClick="{{ confirmWithdraw }}" hint-size="170px,44px">{{ tWithdrawChange }}</x-import>
+</div>
+</x-import>
+</sc-if>
+
 <sc-if value="{{ cancelOpen }}" hint-placeholder-val="{{ false }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" title="{{ tCancelTitle }}" size="sm" subtitle="{{ cancelSubtitle }}" onClose="{{ closeCancel }}" hint-size="400px,320px">
 <p style="margin:0;font-size:var(--vt-body-sm);line-height:1.6;color:var(--vt-text-secondary);text-wrap:pretty">{{ tCancelBody }}</p>
@@ -697,6 +708,12 @@ const T = {
     errClassBook:'The price book changed since you looked. Check the new figures and confirm again.',
     errClassPricingOff:'No price book is live, so no new price can be worked out.',
     errClassFailed:'Could not change the class of ',
+    withdrawChange:'Withdraw change', withdrawTitle:'Withdraw the class change?', withdrawKeep:'Keep the change',
+    withdrawBody:'The payment link stops working and nothing is charged. The booking stays {class}.',
+    withdrawDone:'Change withdrawn. The payment link no longer works.',
+    withdrawPaid:'The customer has just paid the difference. The class changes now.',
+    withdrawStripe:'Stripe did not close the payment page. Nothing changed; try again.',
+    withdrawNothing:'No class change is waiting on this booking.',
  },
   de: { backToBookings:'Zurück zu Buchungen', bookedBy:'gebucht von', moreActions:'Weitere Aktionen', details:'Details', history:'Verlauf', historyEmpty:'Noch keine Ereignisse.',
     assignment:'Zuweisung', assign:'Fahrer zuweisen', reassign:'Neu zuweisen', unassign:'Zuweisung aufheben', onShift:'Im Dienst', noDriver:'Kein Fahrer zugewiesen', noDriverSub:'Vor der Abholerinnerung zuweisen',
@@ -794,6 +811,12 @@ const T = {
     errClassBook:'Die Preisliste hat sich geändert. Prüfen Sie die neuen Beträge und bestätigen Sie erneut.',
     errClassPricingOff:'Es ist keine Preisliste live, daher kann kein neuer Preis berechnet werden.',
     errClassFailed:'Klasse konnte nicht geändert werden: ',
+    withdrawChange:'Änderung zurückziehen', withdrawTitle:'Klassenwechsel zurückziehen?', withdrawKeep:'Änderung behalten',
+    withdrawBody:'Der Zahlungslink funktioniert nicht mehr und es wird nichts belastet. Die Buchung bleibt {class}.',
+    withdrawDone:'Änderung zurückgezogen. Der Zahlungslink funktioniert nicht mehr.',
+    withdrawPaid:'Der Kunde hat die Differenz soeben bezahlt. Die Klasse ändert sich jetzt.',
+    withdrawStripe:'Stripe hat die Zahlungsseite nicht geschlossen. Nichts wurde geändert; versuchen Sie es erneut.',
+    withdrawNothing:'Auf dieser Buchung wartet kein Klassenwechsel.',
  },
   fr: {
     unassign:'Désassigner', action:'Action', complete:'Terminer', historyEmpty:'Aucun événement.', passengerTrip:'Passager et trajet',
@@ -894,6 +917,12 @@ const T = {
     errClassBook:'La grille tarifaire a changé. Vérifiez les nouveaux montants et confirmez à nouveau.',
     errClassPricingOff:'Aucune grille tarifaire n’est en ligne ; aucun nouveau prix ne peut être calculé.',
     errClassFailed:'Impossible de changer la classe de ',
+    withdrawChange:'Retirer le changement', withdrawTitle:'Retirer le changement de classe ?', withdrawKeep:'Garder le changement',
+    withdrawBody:'Le lien de paiement ne fonctionne plus et rien n’est débité. La réservation reste en {class}.',
+    withdrawDone:'Changement retiré. Le lien de paiement ne fonctionne plus.',
+    withdrawPaid:'Le client vient de payer la différence. La classe change maintenant.',
+    withdrawStripe:'Stripe n’a pas fermé la page de paiement. Rien n’a changé ; réessayez.',
+    withdrawNothing:'Aucun changement de classe n’attend sur cette réservation.',
   },
   ar: {
     unassign:'إلغاء التعيين', action:'إجراء', complete:'إكمال', historyEmpty:'لا أحداث بعد.', passengerTrip:'الراكب والرحلة',
@@ -994,6 +1023,12 @@ const T = {
     errClassBook:'تغيّرت قائمة الأسعار. راجع المبالغ الجديدة وأكّد مرة أخرى.',
     errClassPricingOff:'لا توجد قائمة أسعار نشطة، لذا لا يمكن حساب سعر جديد.',
     errClassFailed:'تعذّر تغيير فئة ',
+    withdrawChange:'سحب التغيير', withdrawTitle:'سحب تغيير الفئة؟', withdrawKeep:'الإبقاء على التغيير',
+    withdrawBody:'يتوقف رابط الدفع عن العمل ولا يُخصم أي مبلغ. يبقى الحجز بفئة {class}.',
+    withdrawDone:'سُحب التغيير. لم يعد رابط الدفع يعمل.',
+    withdrawPaid:'دفع العميل الفرق للتو. تتغير الفئة الآن.',
+    withdrawStripe:'لم يُغلق Stripe صفحة الدفع. لم يتغير شيء؛ حاول مرة أخرى.',
+    withdrawNothing:'لا يوجد تغيير فئة بانتظار هذا الحجز.',
   },
 };
 class Component extends DCLogic {
@@ -1003,14 +1038,14 @@ class Component extends DCLogic {
     // 20-10: GET …/refund answer, the last partial/failed POST answer, an inline error, the %/CHF switch and the payment choice.
     refundData:null, refundAnswer:null, refundError:null, refundUnit:'pct', refundPick:'all', refundPickFor:'',
     // 26.2 P1: the class-change preview (POST …/change/preview) of the booking in Edit, its confirm step, a request in flight.
-    classPreview:null, classConfirmOpen:false, classBusy:false };
+    classPreview:null, classConfirmOpen:false, classBusy:false, withdrawOpen:false, withdrawBusy:false };
   toggleHistory = () => this.setState((s) => ({ historyOpen: !s.historyOpen }));
   // The dc-runtime hands componentDidUpdate the previous props only (support.js), so the overlay
   // scroll lock keeps its own last value instead of reading a prevState that never arrives.
   // (The assign dialog is gone — 260930-dash-design — so dialogOpen no longer counts.)
   componentDidUpdate() {
     this.publishBar();
-    const overlay = !!(this.state.cancelOpen || this.state.declineOpen || this.state.rejectOpen || this.state.classConfirmOpen);
+    const overlay = !!(this.state.cancelOpen || this.state.declineOpen || this.state.rejectOpen || this.state.classConfirmOpen || this.state.withdrawOpen);
     const was = !!this._overlayWas;
     this._overlayWas = overlay;
     if (was !== overlay) { try { document.body.style.overflow = overlay ? 'hidden' : ''; } catch (e) {} }
@@ -1058,7 +1093,7 @@ class Component extends DCLogic {
   };
   componentWillUnmount() {
     if (window.VamosOpsBar && typeof window.VamosOpsBar.clear === 'function') window.VamosOpsBar.clear('detail');
-    try { if (this.state.cancelOpen || this.state.declineOpen || this.state.rejectOpen || this.state.classConfirmOpen) document.body.style.overflow = ''; } catch (e) {}
+    try { if (this.state.cancelOpen || this.state.declineOpen || this.state.rejectOpen || this.state.classConfirmOpen || this.state.withdrawOpen) document.body.style.overflow = ''; } catch (e) {}
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
     if (this._off) this._off();
     clearTimeout(this._retry);
@@ -1358,10 +1393,14 @@ class Component extends DCLogic {
     // A trip with no readable time keeps both (the owner can still close a broken row).
     const pickAt = pickupMs(booking);
     const pickupReached = !Number.isFinite(pickAt) || pickAt <= Date.now();
+    // 26.2 P1: your own dearer class change waits for the customer's payment of the difference.
+    const pendingClassWait = !!booking.pendingEditId && booking.pendingEditActor === 'staff' && !!booking.pendingEditClass;
     const actionItems = [
       canAssign ? { value: 'assign', label: assignedDriver ? t.reassign : t.assign, icon: assignedDriver ? 'users' : 'user-plus' } : null,
       canUnassign ? { value: 'unassign', label: t.unassign, icon: 'minus' } : null,
       canEdit ? { value: 'edit', label: t.editBooking, icon: 'pencil' } : null,
+      // 26.2 P1 (owner sign-off 2026-10-01): withdraw the waiting change; the payment link stops working.
+      pendingClassWait ? { value: 'withdraw', label: t.withdrawChange, icon: 'x' } : null,
       !!booking.paid && !cancelled ? { value: 'resend', label: t.resendVoucher, icon: 'mail' } : null,
       !frozen && !booking.arrivedAt ? { value: 'arrival', label: t.markArrival, icon: 'map-pin' } : null,
       !frozen && pickupReached ? { value: 'complete', label: t.complete, icon: 'circle-check' } : null,
@@ -1455,7 +1494,6 @@ class Component extends DCLogic {
         this.notify(t.errClassFailed + booking.id);
       });
     };
-    const pendingClassWait = !!booking.pendingEditId && booking.pendingEditActor === 'staff' && !!booking.pendingEditClass;
     const vals = {
       n14:14, n15:15, n16:16, yes:true,
       tActions: t.actions, actionItems, showActions: viewing && actionItems.length > 0,
@@ -1595,6 +1633,30 @@ class Component extends DCLogic {
       classBoxTotalLabel, classBoxNote,
       classConfirmOpen: !!this.state.classConfirmOpen && classOk, classDriverOff: !!booking.assignedChauffeurId,
       classBusy: !!this.state.classBusy, classBusyAria: this.state.classBusy ? 'true' : 'false',
+      withdrawOpen: !!this.state.withdrawOpen && pendingClassWait, withdrawBusy: !!this.state.withdrawBusy,
+      withdrawBusyAria: this.state.withdrawBusy ? 'true' : 'false',
+      tWithdrawTitle: t.withdrawTitle, tWithdrawKeep: t.withdrawKeep, tWithdrawChange: t.withdrawChange,
+      tWithdrawBody: fillAmounts(t.withdrawBody, { class: booking.klass || '—' }),
+      closeWithdraw: () => { if (!this.state.withdrawBusy) this.setState({ withdrawOpen: false }); },
+      confirmWithdraw: () => {
+        if (this.state.withdrawBusy) return;
+        const client = window.VamosOpsApi;
+        if (!client || typeof client.request !== 'function') { this.notify(t.withdrawStripe); return; }
+        this.setState({ withdrawBusy: true });
+        client.request('POST', '/api/staff/bookings/' + encodeURIComponent(bookingKey) + '/change/withdraw', {}).then((json) => {
+          if (window.VamosOps) window.VamosOps.bookings.reset();
+          const code = json && json.code;
+          this.setState({ withdrawOpen: false, withdrawBusy: false });
+          if (json && json.ok) { this.notify(t.withdrawDone); return; }
+          if (code === 'already-paid') this.notify(t.withdrawPaid);
+          else if (code === 'nothing-waiting') this.notify(t.withdrawNothing);
+          else if (code === 'stripe-test-only') this.notify(t.errTestOnly);
+          else this.notify(t.withdrawStripe);
+        }, () => {
+          this.setState({ withdrawOpen: false, withdrawBusy: false });
+          this.notify(t.withdrawStripe);
+        });
+      },
       tClassConfirmTitle: t.classConfirmTitle, tClassKeep: t.classKeep, tClassConfirm: t.classConfirm, tClassNoteDriver: t.classNoteDriver,
       closeClassConfirm: () => { if (!this.state.classBusy) this.setState({ classConfirmOpen: false }); },
       confirmClassChange: () => {
@@ -1728,6 +1790,7 @@ class Component extends DCLogic {
         }
         if (v === 'unassign') { vals.confirmUnassign(); return; }
         if (v === 'edit') { if (canEdit) vals.openEdit(); return; }
+        if (v === 'withdraw') { if (pendingClassWait) this.setState({ withdrawOpen: true }); return; }
         if (v === 'noShow') { vals.markNoShow(); return; }
         if (v === 'refund') {
           if (refundBusy) return;

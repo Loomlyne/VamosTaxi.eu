@@ -20,6 +20,35 @@ Started 2026-10-01. Nothing pushed, no PR, no deploy, no hosted SQL.
 | 4 | `060b65d3` | Server: `booking-change.ts` (preview / confirm / after-change mails), routes `POST …/bookings/:id/change/preview` and `POST …/bookings/:id/change` (+ dual mounts), the owner's e-mail `ClassChangePayEmail` (four languages, copied programmatically from the decision file), settle hook for a paid difference, refunds-by-hand credit tier in `refund.ts`, board read of the waiting change, dashboard (class list, price box, confirm step, waiting state, credit panel, four languages), customer account line guard |
 | 3 | `bd9c7fe8` | Writer fix (`sql.json`), accept takes a stored request only (no field from the browser, lead note 3), cheaper accept = Refund due with no Stripe call, PATCH no longer writes the class (A8), rules and body parser `booking-change-map.ts` (+10 tests), by-version price book read in `rate-book.ts`, `deliverBookingConfirmation` split out of `voucher.ts`, migration: shown class totals kept only for the same book |
 
+## Owner sign-off additions (2026-10-01, after P1 was signed)
+
+| # | Addition | What |
+|---|---|---|
+| A1 | "Withdraw change" | In the booking's ACTIONS menu only while your dearer change waits for payment. Confirm dialog ("Withdraw the class change?"), then `POST /api/staff/bookings/:id/change/withdraw` (body `{}`). The Worker closes the Stripe page for the difference FIRST (expire), then `booking_change_withdraw` ends the request (status `withdrawn`). Nothing is charged; the booking is not touched. Four-language label, dialog and notices in the OpsDetail table. |
+| A2 | Refund line on the customer's booking page | After a CHEAPER class change, until the refund is sent: the owner's line, word for word (decision file, second section), on manage-booking and the account booking view, next to the trip status. New class name from the booking's price record, amount = owed minus refunded through `VamosLocale.money`. Gone once the refund is sent (`refund_status` back to `none`). |
+
+**Choice (A1, she pays in the same second):** apply. Two cases:
+- The page completes before the expire: Stripe refuses the expire, the route reads the session
+  (`complete`), answers `already-paid` ("The customer has just paid the difference. The class changes
+  now.") and ends nothing; the webhook applies the change as usual.
+- A payment reaches the settle for a request already `withdrawn` (an async payment method finishing
+  later): `checkout_extra_payment_settle` applies it — she gets what she paid for — as long as nothing
+  newer was asked (no other change waiting, and the booking still bound to the price record the
+  change was built on) and the trip still runs. Otherwise the payment is recorded, not applied, and
+  shows as Refund due for your Refund click.
+- Stripe does not answer: nothing is ended (`stripe-failed`), you can press again.
+
+| Test | Before (RED) | After |
+|---|---|---|
+| pgTAP `class_change_reprice` W (12 new, 81 total) | `function public.booking_change_withdraw(uuid, uuid, uuid) does not exist` (12 fail); then "newer change" by `created_at` failed inside one transaction (2 fail) → rule changed to state (waiting request / bound price record) | 81/81, with `booking_edit_requests` and `refunds_by_hand` 210/210 |
+| `booking-change-withdraw.test.ts` (7) | 5 fail (`withdrawBookingChange` missing) | 7/7 |
+| `ops-class-change-dc.test.ts` (+3) | 3 fail (no menu item, dialog, notices) | 12/12 |
+| `class-change-customer-line.test.ts` (rewritten, 12) | `TypeError: changeCreditLine is not a function` (10 fail); the four languages are compared with the decision file | 12/12 |
+
+The dictionary entry and the decision-file section were written from the coordinator's text; the
+dictionary templates were derived from the decision file by a script (Economy → {class}, CHF 000 →
+{amount}), so the rendered line equals the decision file byte for byte (test).
+
 ## Design choices made inside the signed plan (say if one is wrong)
 
 | # | Choice | Why |

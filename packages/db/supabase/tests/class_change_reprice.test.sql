@@ -12,9 +12,11 @@
 --   F  difference not paid: the request ends, the booking is untouched (D4).
 --   G  payload reader fix: a payload passed as a JSON string is read as the object it holds.
 --   H  grants: EXECUTE vamos_system only.
+--   W  withdraw (owner sign-off 2026-10-01): ends a waiting dearer change; a difference paid in the
+--      same second is applied when nothing newer was asked, else it shows as Refund due.
 -- Rolled back. Synthetic integer rappen only, never a product CHF.
 begin;
-select plan(69);
+select plan(81);
 
 insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity)
 values ('ccr-eco', 4, 4), ('ccr-biz', 7, 7), ('ccr-tiny', 1, 0);
@@ -394,6 +396,66 @@ select throws_ok(
          (select id from fx where k = 'legacy'),
          (select price_snapshot_id from public.bookings where id = (select id from fx where k = 'legacy'))),
   'P0001', 'class-change-staff-only', 'a customer request cannot carry a class');
+
+-- ---------------------------------------------------------------------------
+-- W. Withdraw (owner sign-off 2026-10-01): a dearer change waiting for payment can be withdrawn;
+--    a difference paid anyway (same second) is applied when nothing newer exists, else Refund due.
+-- ---------------------------------------------------------------------------
+select pg_temp.ccr_mk('wd1', 'ccr-eco', interval '48 hours', 10);
+select pg_temp.ccr_mk('wd2', 'ccr-eco', interval '48 hours', 10);
+
+select function_privs_are('public', 'booking_change_withdraw', '{uuid,uuid,uuid}'::text[], 'vamos_system', '{EXECUTE}'::text[],
+  'booking_change_withdraw: vamos_system holds EXECUTE');
+select function_privs_are('public', 'booking_change_withdraw', '{uuid,uuid,uuid}'::text[], 'vamos_staff', '{}'::text[],
+  'booking_change_withdraw: vamos_staff holds no EXECUTE');
+select throws_ok(
+  format($f$select * from public.booking_change_withdraw(%L::uuid, gen_random_uuid(), '26020001-0000-4000-a000-000000000001'::uuid)$f$,
+         (select id from fx where k = 'wd1')),
+  'P0001', 'nothing-waiting', 'withdraw: nothing waiting is refused');
+
+create temporary table wd1 as select * from pg_temp.ccr_change('wd1', 'ccr-biz', 13, 10);
+select public.booking_edit_request_set_extra_session((select request_id from wd1), 'cs_ccr_wd1');
+create temporary table wd1_out as
+  select * from public.booking_change_withdraw((select id from fx where k = 'wd1'), (select request_id from wd1),
+                                               '26020001-0000-4000-a000-000000000001'::uuid);
+select is((select extra_session_id from wd1_out), 'cs_ccr_wd1', 'withdraw names the Stripe page to close');
+select is((select r.status from public.booking_edit_requests r where r.id = (select request_id from wd1)),
+  'withdrawn', 'withdraw: the request ends as withdrawn');
+select is(
+  (select vc.slug from public.booking_legs l join public.vehicle_classes vc on vc.id = l.vehicle_class_id
+    where l.booking_id = (select id from fx where k = 'wd1')),
+  'ccr-eco', 'withdraw: the booking stays as it was');
+select throws_ok(
+  format($f$select * from public.booking_change_withdraw(%L::uuid, %L::uuid, '26020001-0000-4000-a000-000000000001'::uuid)$f$,
+         (select id from fx where k = 'wd1'), (select request_id from wd1)),
+  'P0001', 'nothing-waiting', 'withdraw twice: nothing waiting any more');
+
+-- She paid in the same second: what she paid for is applied (nothing newer was asked since).
+create temporary table wd1_paid as
+  select * from public.checkout_extra_payment_settle('evt_ccr_wd1', 'cs_ccr_wd1', 'pi_ccr_wd1_x', 'succeeded',
+                                                     'CHF', null, null, null, null);
+select is((select applied from wd1_paid), true, 'paid after withdraw: applied');
+select is(
+  (select vc.slug from public.booking_legs l join public.vehicle_classes vc on vc.id = l.vehicle_class_id
+    where l.booking_id = (select id from fx where k = 'wd1')),
+  'ccr-biz', 'paid after withdraw: the class she paid for');
+select is(
+  (select b.refund_status from public.bookings b where b.id = (select id from fx where k = 'wd1')),
+  'none', 'paid after withdraw: nothing owed');
+
+-- A newer change was asked after the withdrawal: the old payment is recorded, not applied; Refund due.
+create temporary table wd2 as select * from pg_temp.ccr_change('wd2', 'ccr-biz', 13, 10);
+select public.booking_edit_request_set_extra_session((select request_id from wd2), 'cs_ccr_wd2');
+select * from public.booking_change_withdraw((select id from fx where k = 'wd2'), (select request_id from wd2),
+                                             '26020001-0000-4000-a000-000000000001'::uuid);
+create temporary table wd2b as select * from pg_temp.ccr_change('wd2', 'ccr-biz', 13, 10);
+create temporary table wd2_paid as
+  select * from public.checkout_extra_payment_settle('evt_ccr_wd2', 'cs_ccr_wd2', 'pi_ccr_wd2_x', 'succeeded',
+                                                     'CHF', null, null, null, null);
+select is((select applied from wd2_paid), false, 'paid after withdraw, a newer change exists: not applied');
+select is(
+  (select b.refund_status || ':' || b.refund_owed_rappen::int from public.bookings b where b.id = (select id from fx where k = 'wd2')),
+  'pending_ops:3', 'paid after withdraw, a newer change exists: the payment shows as Refund due');
 
 select * from finish();
 rollback;

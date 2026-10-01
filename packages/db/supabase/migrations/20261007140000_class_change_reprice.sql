@@ -24,11 +24,14 @@
 --                                       book, the full lines (fare, extras, coupon, VAT) (W5).
 --   (8)  booking_staff_change           the dashboard's class change: rules, (7), a staff request,
 --                                       (6). One transaction.
---   (9)  checkout_extra_payment_settle  drop + create (same arguments, more columns): applies only a
---                                       request that still waits; names the driver taken off; a
+--   (8b) booking_change_withdraw        the admin withdraws a dearer change that waits for payment
+--                                       (owner sign-off 2026-10-01); status 'withdrawn' added.
+--   (9)  checkout_extra_payment_settle  drop + create (same arguments, more columns): applies a
+--                                       request that still waits (or one withdrawn in the same second
+--                                       with nothing newer asked); names the driver taken off; a
 --                                       difference not paid ends the request (D4); a payment for a
---                                       request that has ended is recorded, never applied, and
---                                       shows as Refund due.
+--                                       request that has ended otherwise is recorded, never applied,
+--                                       and shows as Refund due.
 --   (10) refunds by hand, credit tier   booking_refund_intents accepts tier 'credit' and reason
 --                                       'modification_credit'; ops_refund_plan refunds exactly what
 --                                       a change left due on a live booking (no percentage);
@@ -36,7 +39,7 @@
 --                                       credit was paid out to refund_status none.
 --   (11) booking_change_mail_facts      definer read for the "trip taken off" mail after a payment.
 --
--- Safe on real paid bookings: no existing row is rewritten. Two CHECK constraints are widened
+-- Safe on real paid bookings: no existing row is rewritten. Three CHECK constraints are widened
 -- (existing rows still pass). Every function is SECURITY DEFINER with search_path ''. New public
 -- functions: EXECUTE vamos_system only. app.* helpers: no grant (called by the definer functions).
 -- Replaced bodies are the newest definitions (20260910175309, 20261005140000), changed only as
@@ -928,6 +931,70 @@ comment on function public.booking_staff_change(
   '26.2 P1: the admin''s class change on a paid trip. Checks (paid, confirmed/assigned, before pickup, no refund in flight, no waiting customer request, class known/active/not hidden/different/large enough, rate version live, paid-net as previewed), writes the new price record, a staff request {vehicle_class_slug} and accepts it: applied (same price), refund_due (cheaper, Refund due) or extra_required (dearer, the trip waits for the difference). Refusals: not-found, unpaid, not-editable, too-late, refund-open, customer-request-waiting, unknown-class, same-class, class-too-small, price-book-changed, paid-changed, invalid-price. Returns the driver taken off when the change applied at once. EXECUTE vamos_system only.';
 
 -- ---------------------------------------------------------------------------
+-- (8b) Withdraw (owner sign-off 2026-10-01): the admin ends a dearer change that waits for the
+--      customer's payment. The Worker closes the Stripe page first; this ends the request
+--      (status withdrawn). The booking is not touched. booking_edit_requests.status gains
+--      'withdrawn' (existing rows still pass the widened check).
+-- ---------------------------------------------------------------------------
+alter table public.booking_edit_requests
+  drop constraint if exists booking_edit_requests_status_check;
+alter table public.booking_edit_requests
+  add constraint booking_edit_requests_status_check
+  check (status in ('requested', 'accepted', 'superseded', 'withdrawn'));
+
+create function public.booking_change_withdraw(
+  p_booking_id pg_catalog.uuid,
+  p_request_id pg_catalog.uuid,
+  p_actor_id pg_catalog.uuid
+)
+returns table (
+  request_id pg_catalog.uuid,
+  booking_id pg_catalog.uuid,
+  extra_session_id pg_catalog.text
+)
+language plpgsql
+security definer
+set search_path = ''
+as $$
+#variable_conflict use_column
+declare
+  v_req public.booking_edit_requests%rowtype;
+begin
+  perform 1 from public.bookings as b where b.id = p_booking_id for update;
+
+  select r.* into v_req
+    from public.booking_edit_requests as r
+   where r.id = p_request_id
+     and r.booking_id = p_booking_id
+     for update;
+
+  if not found
+     or v_req.status is distinct from 'requested'
+     or v_req.actor is distinct from 'staff'
+     or v_req.extra_snapshot_id is null then
+    raise exception 'nothing-waiting' using errcode = 'P0001';
+  end if;
+
+  if v_req.extra_payment_id is not null then
+    raise exception 'already-paid' using errcode = 'P0001';
+  end if;
+
+  update public.booking_edit_requests
+     set status = 'withdrawn'
+   where id = v_req.id;
+
+  return query select v_req.id, v_req.booking_id, v_req.extra_session_id;
+end;
+$$;
+
+revoke all on function public.booking_change_withdraw(pg_catalog.uuid, pg_catalog.uuid, pg_catalog.uuid) from public;
+
+grant execute on function public.booking_change_withdraw(pg_catalog.uuid, pg_catalog.uuid, pg_catalog.uuid) to vamos_system;
+
+comment on function public.booking_change_withdraw(pg_catalog.uuid, pg_catalog.uuid, pg_catalog.uuid) is
+  '26.2 P1 (owner sign-off 2026-10-01): end the admin''s dearer class change that waits for the customer''s payment (status withdrawn); the booking is untouched; the Worker closes the Stripe page first. Refusals: nothing-waiting, already-paid. A difference paid in the same second is applied by checkout_extra_payment_settle when nothing newer was asked. EXECUTE vamos_system only.';
+
+-- ---------------------------------------------------------------------------
 -- (9) checkout_extra_payment_settle -- body of 20260910175309, changed: more columns back;
 --     only a request that still waits is applied; the driver taken off is named; a difference
 --     not paid ends the request; Refund due is settled after the payment.
@@ -1128,7 +1195,25 @@ begin
     v_actor_label := coalesce(v_req.actor, '');
   end if;
 
-  if v_req.status = 'requested' then
+  -- A request that still waits is applied. So is one the admin withdrew when the customer paid
+  -- in the same second (owner sign-off 2026-10-01: she gets what she paid for), as long as no
+  -- newer change was asked since and the trip still runs.
+  if v_req.status = 'requested'
+     or (v_req.status = 'withdrawn'
+         and v_booking.status not in ('cancelled'::public.booking_status,
+                                      'partially_cancelled'::public.booking_status,
+                                      'refunded'::public.booking_status)
+         -- nothing newer: no other change waits, and the booking is still bound to the price
+         -- record this change was built on (no other change was applied since)
+         and not exists (
+           select 1 from public.booking_edit_requests as x
+            where x.booking_id = v_req.booking_id
+              and x.id <> v_req.id
+              and x.status = 'requested'
+         )
+         and v_orig is not distinct from (
+           select q.supersedes_id from public.price_snapshots as q where q.id = v_req.quote_snapshot_id
+         )) then
     select l.* into v_before
       from public.booking_legs as l
      where l.booking_id = v_booking.id
@@ -1157,9 +1242,9 @@ begin
            extra_payment_id = v_pay.id
      where id = v_req.id;
   else
-    -- The request had ended (replaced by a newer change, or its time ran out) before this
-    -- payment arrived. The money is recorded; the trip is not changed; what was paid above the
-    -- price shows as Refund due for the admin.
+    -- The request had ended (replaced by a newer change, its time ran out, or withdrawn and
+    -- overtaken by a newer change) before this payment arrived. The money is recorded; the trip
+    -- is not changed; what was paid above the price shows as Refund due for the admin.
     update public.bookings
        set price_snapshot_id = v_orig
      where id = v_booking.id;
@@ -1203,7 +1288,7 @@ comment on function public.checkout_extra_payment_settle(
   pg_catalog.text, pg_catalog.text, pg_catalog.text, pg_catalog.text, pg_catalog.text,
   pg_catalog.numeric, pg_catalog.text, pg_catalog.timestamptz, pg_catalog.int8
 ) is
-  '08-07 D-67/D-69 + 26.2 P1: insert the extra payment against the difference snapshot. A request that still waits is applied (applied, class_changed, unassigned_chauffeur_id returned; D6); a request that has ended is not applied and the overpayment shows as Refund due. Not paid (failed / canceled / expired): the request ends (D4), the booking is untouched. Never rewinds confirmed to pending. EXECUTE vamos_system only.';
+  '08-07 D-67/D-69 + 26.2 P1: insert the extra payment against the difference snapshot. A request that still waits is applied (applied, class_changed, unassigned_chauffeur_id returned; D6), so is one withdrawn in the same second when nothing newer was asked and the trip still runs; a request that has ended otherwise is not applied and the overpayment shows as Refund due. Not paid (failed / canceled / expired): the request ends (D4), the booking is untouched. Never rewinds confirmed to pending. EXECUTE vamos_system only.';
 
 -- ---------------------------------------------------------------------------
 -- (10) Refunds by hand, credit tier

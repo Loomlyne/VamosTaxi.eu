@@ -24,6 +24,7 @@ import {
   type EmailLocale,
 } from "@vamos/emails/confirmation";
 import { asStaff, asSystem, type VamosClaims } from "@/lib/db/identity";
+import { expireCheckoutSession, retrieveCheckoutSession, stripeFromEnv } from "@/lib/checkout/stripe";
 import { loadLaunchFlags, loadRateBook } from "@/lib/db/quote";
 import { supersedePendingEditRequest } from "@/lib/db/system-reads";
 import { countMapboxUnit } from "@/lib/abuse/breaker";
@@ -634,4 +635,78 @@ export async function afterExtraSettled(
 ): Promise<void> {
   if (row.applied !== true) return;
   await afterChangeApplied(env, row.booking_id, row.unassigned_chauffeur_id ?? null);
+}
+
+type WaitingRow = { request_id: string; actor: string; extra_session_id: string | null; reference: string };
+
+/**
+ * "Withdraw change" (owner sign-off 2026-10-01): end the admin's dearer class change that waits for
+ * the customer's payment. The Stripe page for the difference is closed FIRST, so an ended request
+ * never leaves a link that still works. If she paid in the same second the page is already
+ * complete: the answer is already-paid and nothing is ended (the payment applies the change). If the
+ * page had expired already, the request is ended all the same. Nothing is charged; the booking is
+ * not touched.
+ */
+export async function withdrawBookingChange(
+  env: CloudflareEnv,
+  claims: VamosClaims,
+  bookingKey: string,
+): Promise<{ ok: true; bookingId: string; reference: string } | ChangeFail> {
+  if ((env.STRIPE_SECRET_KEY ?? "").startsWith("sk_live_")) return { ok: false, code: "stripe-test-only" };
+  const key = bookingKey.trim();
+  if (!key) return { ok: false, code: "not-found" };
+
+  let bookingId: string | null;
+  let waiting: WaitingRow | null;
+  try {
+    bookingId = await resolveStaffBookingId(env, claims, key);
+    if (!bookingId) return { ok: false, code: "not-found" };
+    const id = bookingId;
+    waiting = await asStaff(env, claims, async (sql) => {
+      const rows = await sql<WaitingRow[]>`
+        select r.id::text as request_id, r.actor::text as actor, r.extra_session_id, b.reference
+          from public.booking_edit_requests as r
+          join public.bookings as b on b.id = r.booking_id
+         where r.booking_id = ${id}::uuid
+           and r.status = 'requested'
+         order by r.created_at desc
+         limit 1
+      `;
+      return rows[0] ?? null;
+    });
+  } catch {
+    return { ok: false, code: "unknown" };
+  }
+  if (!waiting || waiting.actor !== "staff" || !waiting.extra_session_id) return { ok: false, code: "nothing-waiting" };
+
+  const stripe = stripeFromEnv(env);
+  try {
+    await expireCheckoutSession(stripe, waiting.extra_session_id);
+  } catch {
+    let status = "";
+    try {
+      status = String((await retrieveCheckoutSession(stripe, waiting.extra_session_id))?.status ?? "");
+    } catch {
+      status = "";
+    }
+    if (status === "complete") return { ok: false, code: "already-paid" };
+    if (status !== "expired") return { ok: false, code: "stripe-failed" };
+  }
+
+  const ids = { bookingId, requestId: waiting.request_id };
+  try {
+    await asSystem(env, async (sql) => {
+      await sql`
+        select * from public.booking_change_withdraw(
+          ${ids.bookingId}::uuid,
+          ${ids.requestId}::uuid,
+          ${claims.sub}::uuid
+        )
+      `;
+      return null;
+    });
+  } catch (err) {
+    return mapChangeSqlError(err);
+  }
+  return { ok: true, bookingId, reference: String(waiting.reference) };
 }

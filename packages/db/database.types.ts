@@ -2680,6 +2680,14 @@ export type Database = {
           scheduled_local: string
         }[]
       }
+      booking_change_withdraw: {
+        Args: { p_actor_id: string; p_booking_id: string; p_request_id: string }
+        Returns: {
+          booking_id: string
+          extra_session_id: string
+          request_id: string
+        }[]
+      }
       booking_edit_apply_payload: {
         Args: {
           p_actor_id: string

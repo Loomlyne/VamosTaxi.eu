@@ -56,7 +56,7 @@ describe("Saving: nothing is written before the confirm step; the class never ri
   });
 
   it("the class goes to …/change with the slug and the two figures shown, nothing else", () => {
-    const post = between(dc, "const postClassChange = () => {", "    const pendingClassWait");
+    const post = between(dc, "const postClassChange = () => {", "    const vals = {");
     expect(post).toMatch(/'\/change', \{\n\s+klass: pickedClass\.slug, expectTotalRappen: pickedClass\.newTotalRappen, expectPaidRappen: cpData\.paidRappen,\n\s+\}\)/);
     expect(post).not.toMatch(/edit-accept/);
   });
@@ -96,5 +96,29 @@ describe("design laws on the new parts", () => {
     const rule = dc.match(/\[data-ops-class-box\]\{[^}]*\}/)?.[0] ?? "";
     expect(rule).toMatch(/border:1px solid var\(--vt-border-subtle\)/);
     expect(rule).not.toMatch(/shadow|yellow|glow/);
+  });
+});
+
+describe("Withdraw change (owner sign-off 2026-10-01)", () => {
+  it("is in the Actions menu only while your dearer change waits for the payment", () => {
+    expect(dc).toMatch(/pendingClassWait \? \{ value: 'withdraw', label: t\.withdrawChange, icon: 'x' \} : null,/);
+    const decl = dc.indexOf("const pendingClassWait =");
+    expect(decl).toBeGreaterThan(-1);
+    expect(decl).toBeLessThan(dc.indexOf("const actionItems = ["));
+  });
+
+  it("asks first, then POSTs …/change/withdraw with an empty body", () => {
+    expect(dc).toMatch(/if \(v === 'withdraw'\) \{ if \(pendingClassWait\) this\.setState\(\{ withdrawOpen: true \}\); return; \}/);
+    const dialog = between(dc, '<sc-if value="{{ withdrawOpen }}"', "</sc-if>");
+    expect(dialog).toMatch(/Dialog" open="\{\{ yes \}\}" title="\{\{ tWithdrawTitle \}\}"/);
+    expect(dialog).toMatch(/onClick="\{\{ confirmWithdraw \}\}"/);
+    expect(dc).toMatch(/'\/change\/withdraw', \{\}\)/);
+  });
+
+  it("each answer has its notice: withdrawn, she has just paid, Stripe did not answer, nothing waits", () => {
+    const post = between(dc, "confirmWithdraw: () => {", "      },\n");
+    for (const key of ["withdrawDone", "withdrawPaid", "withdrawStripe", "withdrawNothing"]) {
+      expect(post).toMatch(new RegExp(`t\\.${key}`));
+    }
   });
 });
