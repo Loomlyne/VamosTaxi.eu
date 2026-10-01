@@ -416,7 +416,8 @@ class Component extends DCLogic {
       .then((snap) => {
         if (!snap || !snap.signedIn) return this.go({ mode: 'signin', method: 'password', stage: 'form', banner: null });
         if (!snap.finishRequired) { this.saveSession(); return this.go({ stage: 'returning', banner: null }); }
-        this.setState({ email: snap.email || '', phone: snap.phone || '' });
+        /* Never overwrite what the person already typed while the session was being read. */
+        this.setState((s) => ({ email: snap.email || '', phone: s.phone || snap.phone || '' }));
       })
       .catch(() => {});
   }
@@ -691,7 +692,7 @@ class Component extends DCLogic {
     /* Optional, but a number that is there must be dialable: same rule as the account page. */
     const phone = this.state.phone.trim();
     if (needName && phone && (phone.replace(/[^\d]/g, '').length < 9 || phone.length > 32)) errors.phone = 'Check the mobile number, including the country code';
-    if (mode !== 'forgot' && method === 'password' && !password) errors.password = mode === 'signup' ? 'Choose a password' : 'Enter your password';
+    if (mode !== 'forgot' && mode !== 'finish' && method === 'password' && !password) errors.password = mode === 'signup' ? 'Choose a password' : 'Enter your password';
     else if (mode === 'signup' && method === 'password' && password.length < 8) errors.password = 'Use at least 8 characters';
     /* Sign-up needs the account notice ticked, and the notice text must be on screen (fail closed). */
     if (needName && this.props.surface !== 'ops' && !(this.state.consent && window.VamosAccountNotice)) errors.consent = true;
@@ -793,7 +794,8 @@ class Component extends DCLogic {
       isMagic: isForm && isMagic,
       sentSignIn: isSent && mode === 'signin', sentSignUp: isSent && mode === 'signup', sentForgot: isSent && mode === 'forgot',
       sentMagicAny: isSent && mode !== 'forgot',
-      emailEcho: email.trim() || 'your email address',
+      /* The finish step shows the session's own address once it is read, never a stand-in. */
+      emailEcho: email.trim() || (isFinish ? '' : 'your email address'),
       email, password, firstName, lastName, resent,
       setEmail: (e) => this.setState({ email: e.target.value }),
       setPassword: (e) => this.setState({ password: e.target.value }),

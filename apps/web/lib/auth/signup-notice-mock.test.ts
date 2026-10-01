@@ -165,3 +165,13 @@ describe("27.1 finish step failures and the /bookings gate", () => {
     expect(list).toContain("s.finishRequired === true");
   });
 });
+
+describe("27.1 finish step bugs found by the browser run", () => {
+  const form = read("app/pages/AuthForm.dc.html");
+  it("the finish step never asks for a password it does not show", () => {
+    expect(form).toContain("if (mode !== 'forgot' && mode !== 'finish' && method === 'password' && !password)");
+  });
+  it("reading the session never overwrites a mobile number already typed", () => {
+    expect(form).toContain("phone: s.phone || snap.phone || ''");
+  });
+});
