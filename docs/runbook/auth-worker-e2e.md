@@ -61,6 +61,16 @@ the button on a second device signs in and a second press is expired; a crafted 
 the confirm page with no cookie and no session; signed in as someone else, pressing switches the account; the reset mail is a
 confirm link.
 
+## Secure e-mail change (two links)
+
+`email-change.e2e.mjs` (after `confirm-link`, same Worker): a signed-in user asks to change the e-mail. With
+`double_confirm_changes = true` the hook mails two confirm links, one to the current and one to the new address, each sealing
+its own address (Supabase pairs `token_hash_new` with the current address and `token_hash` with the new one). Proves: two mails
+with distinct tokens; each page names its own recipient; the first press answers `{ok, pending}` with no session and the e-mail
+unchanged; the same link again is expired; the second press completes the change and signs in as the new address; and the
+same in the other order. The local mail capture holds text only (no To header), so the script tells the mails apart by heading.
+Port-shifted stack: the identity-role passwords (`vamos_public`, `vamos_edge`) must be set on that container first.
+
 ## 26.5 other-device scenarios (D-16)
 
 `other-device.e2e.mjs` runs right after the auth scenarios in `run.sh` (same Worker on 4290, same env).
