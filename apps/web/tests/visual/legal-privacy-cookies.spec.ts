@@ -107,7 +107,7 @@ test.describe("Privacy and cookies pages @component", () => {
         // Measure the rendered mock, not the boot frame.
         await expect(page.locator("[data-lg-tl]").first()).toBeAttached();
         await expect
-          .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth))
+          .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), { message: `no sideways scroll on ${pathFor(locale, route)}` })
           .toBe(true);
       }
     }
@@ -125,7 +125,7 @@ test.describe("Privacy and cookies pages @component", () => {
       const table = page.locator("table[data-ct]").first();
       await expect(table).toBeVisible();
       await expect
-        .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth))
+        .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), { message: `no sideways scroll on ${pathFor(locale, "/cookies")}` })
         .toBe(true);
       const boxes = await page.locator("table[data-ct]").evaluateAll((els) =>
         els.map((el) => getComputedStyle(el.parentElement as Element).overflowX),

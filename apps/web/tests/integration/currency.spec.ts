@@ -113,7 +113,12 @@ test.describe("Currency swaps the mark, never the number @currency", () => {
 
     const urlBefore = page.url();
     const requestsDuringSwitch: string[] = [];
-    page.on("request", (request) => requestsDuringSwitch.push(request.url()));
+    // Next's own dev tooling (error overlay stack frames, its font) is not an app request; seen on the Linux runner.
+    page.on("request", (request) => {
+      const path = new URL(request.url()).pathname;
+      if (path.startsWith("/__nextjs") || path.startsWith("/_next/")) return;
+      requestsDuringSwitch.push(request.url());
+    });
 
     await page.evaluate(() => window.__vamosSetCurrency?.("USD"));
     // Give any accidental request a moment to fire before asserting its absence —

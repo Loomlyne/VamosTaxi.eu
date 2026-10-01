@@ -76,7 +76,7 @@ test.describe("Terms page @component", () => {
       // Measure the rendered mock, not the boot frame (flaky on Linux at 390).
       await expect(page.locator(`#${SECTION_IDS[0]}`)).toHaveCount(1);
       await expect
-        .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth))
+        .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), { message: `no sideways scroll on ${path}` })
         .toBe(true);
     }
   });
