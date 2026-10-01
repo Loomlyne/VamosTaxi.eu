@@ -5,7 +5,7 @@
 **Control rule (owner, 2026-10-01 18:01 +04; replaces the 17:03 take-over line of `95ccece6` and the 17:12 strict rule of `150a2a20`):**
 - Vamos runs from plain Claude Code on the owner's Mac. Every job runs locally, never in the cloud.
 - One controller session: "VamosTaxi - session control" (`local_633b433a-13a1-4f99-bfe8-3d595717a4a1`), in `/Users/koss/Developer/VamosTaxi.eu` on `main`. Only it commits and pushes main, applies live migrations, deploys Workers and cleans branches.
-- Every other session is a job session. It runs GSD with the owner's `CLAUDE.local.md`, has its own app worktree under `.claude/worktrees/` in the main folder (the app makes it when the owner starts the session; `/Users/koss/Developer/vamos-wt` is gone, owner 2026-10-01 23:45 +04: "vamos-wt no more") and branch cut from `origin/main`, builds and tests, merges `origin/main` back in, writes a hand-over file for the controller and stops.
+- Every other session is a job session. It runs GSD with the owner's `CLAUDE.local.md`, has its own app worktree under `.claude/worktrees/` in the main folder (the app makes it when the owner starts the session; `/Users/koss/Developer/vamos-wt` is gone, owner 2026-10-01 about 23:35 +04: "vamos-wt no more") and branch cut from `origin/main`, builds and tests, merges `origin/main` back in, writes a hand-over file for the controller and stops.
 - The claude.ai project coordinator and its threads are retired, the "Vamos Taxi controller" thread (`local_f9f33973-…`) included.
 - A fresh reviewer session, not the builder, reads every money, sign-in or database change before it ships. Opus plans and reviews; Sonnet builds.
 - One session per job. Parallel jobs never share files; each plan lists its exact files. In the shared translation files a job adds only its own keys.
@@ -22,7 +22,7 @@ the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 Rewritten short on 2026-09-30 14:25; the long version is in git history (`8230227c`).
 
-**Last update:** 2026-10-01 23:55 (+04)
+**Last update:** 2026-10-01 23:40 (+04)
 
 ## Controller take-over, 2026-10-01 23:25 (+04)
 
@@ -35,7 +35,7 @@ The local controller read `.planning/HANDOVER-2026-10-01.md` (the closing state 
 - GitHub branches: main, `ci/e2e-linux-3`, `claude/project-thread-6r5gz9` (B7), `claude/project-thread-cwny3q` (Phase 20), `claude/routesummary-port-only` and its base `fix/main-green`, `docs/lenis-quick-note`, `fix/e2e-linux-2`, `gsd/26.2-p6-build`, `gsd/26.2-p6-paid-trip-edit`, `gsd/phase-20-security-check`, `gsd/phase-26.2-u13`, `gsd/phase-28-pixel-pageview`.
 - App worktrees under `.claude/worktrees/` (all clean, every tip on main or GitHub): `awesome-swartz` (Phase 20), `great-khayyam` (B5, shipped), `vigilant-einstein` (/confirmation, shipped), `trusting-mirzakhani` (blocked rule job), and `distracted-nash`, `frosty-shamir`, `interesting-nightingale` (`66d3ba80`), `serene-meninsky`, `stoic-cartwright`, `suspicious-rubin` (`194aee66`). Removed only on the owner's "yes, delete".
 
-## What is left, 2026-10-01 23:50 (+04)
+## What is left, 2026-10-01 23:38 (+04)
 
 **Lanes that run now, in parallel (no shared files; each job in its own app worktree):**
 
@@ -63,7 +63,7 @@ JSON double encoding in `stripe_events.payload` and `rate_version_rules.payload`
 in dashboard settings, after B7. (3) Real texts of the 5 published reviews. (4) 4242 payment as guest and
 with "Create an account". (5) /contact real message. (6) Refund by hand. (7) Pay in de, fr, ar and on a
 tablet. (8) UAT of the live jobs (pick-up report section 2). (9) Meta switches on pixel 1595596972063765.
-(10) The 48 SiteHeader picture diffs. (11) Repo public or private. (12) The rest of the 18:01 message. Done 23:58: PR #62 closed
+(10) The 48 SiteHeader picture diffs. (11) Repo public or private. (12) The rest of the 18:01 message. Done 23:40: PR #62 closed
 (comment says what is on main), `claude/routesummary-port-only`, `fix/main-green` and `docs/lenis-quick-note`
 deleted on the owner's answer, each saved in its `archive/*` tag. Launch, his word only: prices + Publish of price
 book row 18, delete test bookings, live Stripe key, vamostaxi.eu cutover.
@@ -183,7 +183,7 @@ Full text: `.planning/decisions/2026-09-30-priorities-and-ship-mode.md`.
 
 ## Sessions and folders on this Mac
 
-**Clean at 2026-10-01 23:50 (+04), owner's order "vamos-wt no more i want al clean":** one folder,
+**Clean at 2026-10-01 23:38 (+04), owner's order "vamos-wt no more i want al clean":** one folder,
 `/Users/koss/Developer/VamosTaxi.eu` on `main`, no other worktree; one local branch (`main`);
 `/Users/koss/Developer/vamos-wt` deleted. Before removal: the P6 job's 29 uncommitted files were committed
 and pushed as `6af6b74c` on `gsd/26.2-p6-build` (not reviewed, not a hand-over); `home-red-36.txt` moved to
