@@ -5,7 +5,7 @@ the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 Rewritten short on 2026-09-30 14:25; the long version is in git history (`8230227c`).
 
-**Last update:** 2026-10-01 13:42 (+04)
+**Last update:** 2026-10-01 13:46 (+04)
 
 ## Live now
 
@@ -13,10 +13,10 @@ Rewritten short on 2026-09-30 14:25; the long version is in git history (`823022
 |---|---|
 | Site | https://vamostaxi.site and https://dashboard.vamostaxi.site |
 | main = origin/main | `34c726db` plus planning notes |
-| Worker `vamos` | version `38063b7d` (2026-10-01 13:42, e-mail change fix); before: `60e61d96` |
+| Worker `vamos` | version `8889f3c3` (2026-10-01 13:45, chauffeurs by class); before: `38063b7d` |
 | Worker `vamos-dashboard` (gateway) | version `71a307da` (2026-10-01 08:0x); before: `58c6e541`. Rollback of batch C part 2 = both Workers together |
 | Rollback point | Worker `f58cd68e` + gateway `58c6e541` together, git tag `backup/main-before-c2-df520d08`; before the design: Worker `e2c53324`; before D and the refusal fix: Worker `c45d2782`; before 27: Worker `dfba8779`, tag `backup/main-before-27-a8948162` (the two Phase 27 migrations are additive and can stay); before polish 2: Worker `832b884e`; before batch C1: Worker `24945bab`; before extras A: Worker `2f303d16`; before refunds: Worker `1e1fd4a6`, tag `backup/main-before-refunds-3a486eaa` (note: rolling the Worker back alone re-enables automatic refunds on cancel; the migration stays); before the home change: Worker `852de5f4`; before the three pieces: Worker `d0c427c2`; before native scrolling: Worker `f3f7d929`; before the queue: Worker `92504970`; before class cards: Worker `d80e6577`; before speed A: Worker `8adb148c`; before phone home: Worker `d43e467b`; before 26.2: Worker `0d1806ce`; before the Support button: Worker `2d5906ce` (before 26.5: Worker `fe9314d0`, tag `backup/main-before-26.5-e09f90cb`). Guest accounts off without a deploy: `settings.guest_accounts_live = false` |
-| Database | migrations up to `20260930210000`, 26.5's `20261001100000` to `130000`, Phase 20's `20261005100000` and `110000`, 26.2's `20261007100000`, Phase 20's `20261005120000`, `130000`, `140000` (refunds by hand), 26.2's `20261007110000` (extra names prune), Phase 20's `20261005150000` (last-admin guard), Phase 27's `20261002100000` and `110000`, 26.2 P1's `20261007140000` (class change; 13 function bodies md5-identical, three checks widened), all applied and read back. `guest_accounts_live` = true since 14:58 (owner's answer) |
+| Database | migrations up to `20260930210000`, 26.5's `20261001100000` to `130000`, Phase 20's `20261005100000` and `110000`, 26.2's `20261007100000`, Phase 20's `20261005120000`, `130000`, `140000` (refunds by hand), 26.2's `20261007110000` (extra names prune), Phase 20's `20261005150000` (last-admin guard), Phase 27's `20261002100000` and `110000`, 26.2 P1's `20261007140000` (class change; 13 function bodies md5-identical, three checks widened), 26.2's `20261007160000` (assign by class; 4 function bodies md5-identical, `chauffeurs.plate` and `deleted_at`), all applied and read back. `guest_accounts_live` = true since 14:58 (owner's answer) |
 | Who deploys | the control session, from the owner's Mac. GitHub runs checks, never deploys. |
 
 ## Shipped
@@ -52,6 +52,7 @@ Rewritten short on 2026-09-30 14:25; the long version is in git history (`823022
 | 10-01 | 11:19 | **26.0 main green**: honest test and gate set, Worker-client DB tests, e2e-linux GitHub job, `/dev` test-only, imprint en+de notice for fr/ar readers (D-05); no migration | `6ec73c52` | `c2127d38` |
 | 10-01 | 13:36 | **26.2 P1 class change on a paid trip**: dashboard class list with the difference, pay-the-difference mail and 24-hour Stripe page, Withdraw change, refund line on the customer page; customer time-change requests fixed (failed on live with 23514); migration `20261007140000` | `8b65e01b` | `60e61d96` |
 | 10-01 | 13:42 | **E-mail change can finish** (Phase 20 follow-up): one mail to the old address, one to the new; first click says "Now open the link we sent to your other address", second click completes; no migration | `11559467` | `38063b7d` |
+| 10-01 | 13:45 | **Chauffeurs by class**: Class and required Plate number on the chauffeur, Assign lists only the trip's class as "Name · Plate", bookings history per chauffeur, delete keeps finished trips; mails and booking page show the plate; migration `20261007160000` | `b0ee0421` | `8889f3c3` |
 
 ## Ship order from here
 
@@ -267,7 +268,7 @@ Done 2026-10-01, between 13:15 and 13:19 by the clock: (1) reminder cron error: 
 
 | # | Job | State |
 |---|---|---|
-| 1 | Chauffeurs by class (`gsd/26.2-chauffeur-car`, new tip `319519a6` with main `11559467` merged, migration `20261007160000`, owner signed on pictures) | In the control session's clean clone; then the owner's Ship. Live pre-check clean: 1 chauffeur, 1 vehicle row, 0 legs assigned. After the ship: owner decision 8, delete the one unused `vehicles` row on live after reading that nothing points to it |
+| 1 | Chauffeurs by class | **Live 13:45** (`b0ee0421`, Worker `8889f3c3`); branch and `archive/26.2-chauffeur-car-319519a6` on GitHub. Live: chauffeurs list and the new history path answer 401 without a session; the dashboard screens carry "Plate number", "Choose a chauffeur" and P1's "Withdraw change". Owner UAT: 6 steps in `.planning/quick/261001-chauffeur-car/HANDOVER.md`; step 1 first (his live driver has no class or plate, so Assign lists nobody until he sets them). Owner decision 8: the one `vehicles` row on live (model "sedan", plate 2098890, no photo; no leg, no chauffeur, no seat row points to it, read 2026-10-01) is deleted by the owner in the Supabase SQL editor (control does not hard-delete rows); control reads back |
 | 2 | E-mail change fix | **Live 13:42** (`11559467`, Worker `38063b7d`); folder removed; branch and `archive/phase-20-email-change-6abe05d0` on GitHub. Owner UAT: Account, change the e-mail to a second address of yours; one mail in each inbox; old inbox link says to open the other; new inbox link signs in with the new address |
 | 3 | GitHub e2e job time limit (`fix/e2e-linux-time`) | 26.0 session measuring |
 
