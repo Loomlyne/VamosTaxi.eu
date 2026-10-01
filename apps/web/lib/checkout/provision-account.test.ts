@@ -1,7 +1,10 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
+import { openAddress } from "../auth/sealed-address";
 import { provisionCheckoutAccount, type ProvisionDeps } from "./provision-account";
+
+const SEAL_SECRET = "v1,whsec_dGVzdHNlY3JldHRlc3RzZWNyZXQ";
 
 const REQUEST = { email: "Mia@Example.com", choice: "create" as const, full_name: "Mia", locale: "de" };
 
@@ -21,6 +24,7 @@ function make(patch: Partial<ProvisionDeps> = {}) {
     admin: () => ({ createUser, generateLink }),
     sendMail,
     origin: "https://vamostaxi.site",
+    sealSecret: SEAL_SECRET,
     emit,
     ...patch,
   };
@@ -90,10 +94,19 @@ describe("provisionCheckoutAccount", () => {
     expect(m.generateLink).toHaveBeenCalledWith({ type: "magiclink", email: "mia@example.com" });
     const [to, mail] = m.sendMail.mock.calls[0]!;
     expect(to).toBe("mia@example.com");
-    expect(mail.text).toContain(
-      "https://vamostaxi.site/api/auth/callback?token_hash=hash123&type=magiclink&next=%2Fde%2Faccount",
-    );
+    const url = new URL(/https:\/\/vamostaxi\.site\/sign-in\/confirm[^\s"'<>]*/.exec(mail.text)![0]);
+    expect(url.searchParams.get("token_hash")).toBe("hash123");
+    expect(url.searchParams.get("type")).toBe("magiclink");
+    expect(url.searchParams.get("next")).toBe("/de/account");
+    expect(await openAddress(url.searchParams.get("e"), "hash123", SEAL_SECRET)).toBe("mia@example.com");
+    expect(mail.text).not.toContain("/api/auth/callback");
     expect(mail.html).not.toContain("Or enter this code");
+  });
+
+  it("no seal key: failed, no mail (fail closed)", async () => {
+    const m = make({ sealSecret: undefined });
+    expect(await provisionCheckoutAccount(ROW, m.deps)).toBe("failed");
+    expect(m.sendMail).not.toHaveBeenCalled();
   });
 
   it("verify type comes from generateLink when it gives one", async () => {

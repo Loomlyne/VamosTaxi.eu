@@ -68,8 +68,15 @@ async function newMail(seen, ms = 8000) {
   while (Date.now() - t0 < ms) { const f = files().filter((x) => !seen.has(x)).sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs); if (f.length) return fs.readFileSync(f[0], "utf8"); await new Promise((r) => setTimeout(r, 250)); }
   return null;
 }
-const linkOf = (t) => (t.match(/https?:\/\/[^\s"<>]*\/auth\/v1\/verify[^\s"<>]*/) ?? [])[0]?.replace(/&amp;/g, "&");
+const linkOf = (t) => (t.match(/https?:\/\/[^\s"<>]*(?:\/auth\/v1\/verify|\/(?:sign-in|login)\/confirm)[^\s"<>]*/) ?? [])[0]?.replace(/&amp;/g, "&");
 async function follow(link, jar) {
+  const cu = new URL(link);
+  if (/\/(?:sign-in|login)\/confirm$/.test(cu.pathname)) { // F12: the confirm page, then its button
+    const body = Object.fromEntries(["token_hash", "type", "e", "next", "nextb"].map((k) => [k, cu.searchParams.get(k)]).filter(([, v]) => v));
+    await req("GET", cu.pathname + cu.search, { jar });
+    await req("POST", "/api/auth/callback", { jar, headers: { origin: `http://localhost:${PORT}`, "cf-connecting-ip": "10.77.7.7" }, body });
+    return;
+  }
   let url = link;
   for (let i = 0; i < 6; i++) {
     const r = await req("GET", url, { jar });

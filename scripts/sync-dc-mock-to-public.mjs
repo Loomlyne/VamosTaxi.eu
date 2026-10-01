@@ -41,6 +41,7 @@ const PAGE_FILES = [
   "app/pages/privacy.dc.html",
   "app/pages/reset-password.dc.html",
   "app/pages/sign-in.dc.html",
+  "app/pages/sign-in-confirm.dc.html",
   "app/pages/sitemap.dc.html",
   "app/pages/terms.dc.html",
   "app/ops/ops.dc.html",

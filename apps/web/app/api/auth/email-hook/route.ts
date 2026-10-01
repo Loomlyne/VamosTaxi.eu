@@ -8,6 +8,7 @@ import { Resend } from "resend";
 import { renderAuthEmail, type AuthEmailType } from "@vamos/emails";
 import { AUTH_LOCALE_METADATA_KEY } from "@/lib/supabase/constants";
 import { routing } from "@/i18n/routing";
+import { buildConfirmLink, siteFromRedirect } from "@/lib/auth/confirm-link";
 import { log } from "@/lib/logger";
 
 export const dynamic = "force-dynamic";
@@ -18,6 +19,7 @@ const FROM_NAME = "Vamos Taxi";
 const Body = z.object({
   user: z.object({
     email: z.string().email(),
+    new_email: z.string().email().optional(),
     user_metadata: z.record(z.string(), z.unknown()).optional(),
   }),
   email_data: z.object({
@@ -57,6 +59,32 @@ function verifyLink(supabaseUrl: string, emailData: {
   const origin = raw.replace(/\/auth\/v1$/i, "");
   const redirect = encodeURIComponent(emailData.redirect_to);
   return `${origin}/auth/v1/verify?token=${emailData.token_hash}&type=${emailData.email_action_type}&redirect_to=${redirect}`;
+}
+
+/** Link types that start a session. The staff invite stays confirm-only (owner decision, F12 section 6). */
+const CONFIRM_TYPES: readonly string[] = Object.freeze(["signup", "magiclink", "email_otp", "recovery", "email_change"]);
+
+/**
+ * F12: the mailed link is the site's confirm page with the recipient sealed in `e`. The token is only
+ * spent when the person presses the button there, so mail scanners and look-alike links do nothing.
+ */
+async function mailedLink(
+  env: CloudflareEnv,
+  secret: string,
+  parsed: { user: { email: string }; email_data: { token_hash: string; email_action_type: string; redirect_to: string; site_url: string } },
+): Promise<string | null> {
+  const data = parsed.email_data;
+  if (!CONFIRM_TYPES.includes(data.email_action_type)) return verifyLink(env.SUPABASE_URL, data);
+  const site = siteFromRedirect(data.redirect_to);
+  return buildConfirmLink({
+    origin: site.origin,
+    tokenHash: data.token_hash,
+    type: data.email_action_type === "email_otp" ? "email" : data.email_action_type,
+    email: parsed.user.email,
+    secret,
+    next: site.next,
+    nextb: site.nextb,
+  });
 }
 
 function hookVerifySecret(raw: string): string {
@@ -158,7 +186,11 @@ export async function POST(request: Request) {
   const finalKind =
     kind === "signup" && typeof origin === "string" && origin.startsWith("checkout") ? "account_signin" : kind;
 
-  const link = verifyLink(env.SUPABASE_URL, parsed.email_data);
+  const link = await mailedLink(env, secret, parsed);
+  if (!link) {
+    log("error", "email-hook", { ...ctx, locale }, { reason: "seal-failed" });
+    return empty(500);
+  }
   const name =
     typeof parsed.user.user_metadata?.full_name === "string"
       ? parsed.user.user_metadata.full_name

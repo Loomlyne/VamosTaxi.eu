@@ -47,6 +47,20 @@ all 9 scenarios.
 |---|---|
 | 3b | the public-host sign-in link for an unknown address answers with the same status and body as check 3's known address, sends no mail and leaves no `auth.users` row. Checks 3 and 4 (known address A, created by check 1) still sign in |
 
+## F12 confirm screen (Phase 20 batch C)
+
+Every e-mailed link that starts a session is the site's confirm page (`/sign-in/confirm`, `/login/confirm` on the dashboard
+host) with the recipient sealed in `e`. The scripts follow such a link the way a person does: open the page (GET, spends
+nothing), press the button (POST `/api/auth/callback`, same-origin). `run.sh` exports `E2E_HOOK_SECRET_FILE` so a script can
+seal an address exactly as `lib/auth/sealed-address.ts` does (`sealE` in `checkout-common.mjs`).
+
+`confirm-link.e2e.mjs` (runs after `other-device`, same Worker): mail holds a confirm URL with `e` and no verify URL, callback
+or plain address; GET shows the page and makes no session; preview answers only the address and answers expired for a seal
+moved to another token; a cross-site or Origin-less POST is 403, a missing `e` is 400, a seal for another address is refused;
+the button on a second device signs in and a second press is expired; a crafted `/api/auth/callback?token_hash=` redirects to
+the confirm page with no cookie and no session; signed in as someone else, pressing switches the account; the reset mail is a
+confirm link.
+
 ## 26.5 other-device scenarios (D-16)
 
 `other-device.e2e.mjs` runs right after the auth scenarios in `run.sh` (same Worker on 4290, same env).
