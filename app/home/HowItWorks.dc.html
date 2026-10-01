@@ -1638,6 +1638,16 @@ function readLang() {
 /* Pay row reads the public catalog. These two slugs only. Never a typed fare. */
 const PAY_SLUGS = ['mercedes-benz-v-class', 'mercedes-s-class-special'];
 const PAY_LADDER = { economy: 1, business: 1, first: 1, van: 1 };
+/** One GET /api/quote per page: the idle class list (seats per class). home.dc.html and HowItWorks share it. */
+function idleBoard() {
+  if (typeof window === 'undefined' || typeof fetch === 'undefined') return Promise.resolve(null);
+  if (!window.__vamosIdleBoard) {
+    window.__vamosIdleBoard = fetch('/api/quote', { headers: { accept: 'application/json' } })
+      .then((r) => r.json().catch(() => null))
+      .catch(() => null);
+  }
+  return window.__vamosIdleBoard;
+}
 function payHold() { return 'CHF\u00a0000'; }
 function payLiveAmount(rappen, pricingLive) {
   if (pricingLive !== true) return payHold();
@@ -1693,8 +1703,7 @@ class Component extends DCLogic {
   }
   loadPayClasses() {
     this._payOn = true;
-    fetch('/api/quote', { headers: { accept: 'application/json' } })
-      .then((res) => res.json().catch(() => null))
+    idleBoard()
       .then((j) => {
         if (!this._payOn || !j || j.ok !== true || !Array.isArray(j.classes)) return;
         const live = j.pricing_live === true;
