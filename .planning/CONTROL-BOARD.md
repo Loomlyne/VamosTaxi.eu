@@ -5,7 +5,7 @@ the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 Rewritten short on 2026-09-30 14:25; the long version is in git history (`8230227c`).
 
-**Last update:** 2026-10-01 14:20 (+04)
+**Last update:** 2026-10-01 14:51 (+04)
 
 ## Live now
 
@@ -213,7 +213,7 @@ Full texts in `.planning/decisions/`.
 | Settings say 15 minutes standard waiting, the pages say 30 | Owner changes the setting if both should agree |
 | The airport fee is saved inside the fare line, not as its own line | 26.2 list |
 | `data-i18n-skip` still sits in the frozen legal pages, `LegalPage`, `PendingSlot` and `manage-booking.dc.html`; the runtime ignores it (no customer effect). `app/[locale]/(ops)/api/staff/content/[key]/route.ts` exports non-route helpers | 26.2 list, not assigned |
-| GitHub job "Booking funnel e2e on Linux": split into four jobs on `add33513`; first result not read yet | Control session reads run 36848434943 |
+| GitHub e2e jobs, first split run 36848434943 read 14:51: no timeout. 1440 px shards: 19 failed in total, 142 did not run; shard 1 took 28 min 58 s of its 30. Narrow job (1024, 768, 390 px): 148 failed and 1295 did not run because of a harness fault, 290 "Failed to load tsconfig file" errors (a dev server rewriting `apps/web/tsconfig.json` under the other workers is the likely cause, not proven) | `fix/e2e-linux-2`, 26.0 session (job sent 14:51) |
 | Playwright: 48 SiteHeader screenshot diffs (open and unconfirmed states, every language, 3 widths) fail with and without 26.0, cause not found; home specs red on main (`home-red-36.txt`); unclassified reds: checkout-hosted 390, currency, confirmation S3/S4, checkout-account 768 | `26.0-HANDOVER.md`; booking-polish for the home reds |
 | Class photos are 2.3 to 2.8 MB each | `feat/class-photo-small` |
 | VT-26-0739 and VT-26-0742 are not in the owner's account | Not a bug: booked with another e-mail address |
@@ -261,9 +261,18 @@ Full texts in `.planning/decisions/`.
 
 | What | When |
 |---|---|
-| Read the first split e2e run (36848434943) and list the failing specs; before: check the hand-over of `fix/e2e-linux-time` when it arrives (job sent to the 26.0 session 2026-10-01, between 13:15 and 13:19 by the clock; started in folder `e2e-linux-time`) | On hand-over, then the owner's Ship |
+| Check the hand-over of `fix/e2e-linux-2` (tsconfig race in the narrow job, shard 1 near its limit, the "did not run" counts) | On hand-over, then the owner's Ship |
 
 Done 2026-10-01, between 13:15 and 13:19 by the clock: (1) reminder cron error: the live database log of the last 22 hours holds no "permission denied" line at all (read-only log query; the hourly job ran in that window; the reminder function was replaced on 09-30 by `20261001120000`). Closed. (2) First "Booking funnel e2e on Linux" run on `6ec73c52`: cancelled at its 45-minute limit, no result (run 36829545716). The repository is public, so the minutes cost nothing; board-only commits do not start a run.
+
+## Seen on live, 2026-10-01 14:47
+
+VT-26-0749: a guest booking started 14:04, paying in EUR, reached the Stripe page and was not paid; the
+Stripe webhook marked the payment failed at 14:35 and the booking stays pending. The 31-minute gap fits
+an abandoned Stripe page that expired; Stripe itself was not read. No other payment, class change,
+assignment or refund on live since today's ships; the chauffeur has a class and no plate; the one
+`vehicles` row is still there. The 26.2 session waits for the owner's signature on the P6 pictures
+(committed 14:44).
 
 ## Hand-overs waiting, 2026-10-01 13:37
 
