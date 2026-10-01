@@ -99,7 +99,7 @@ const SHOTS = {
       const box = document.createElement("div");
       box.id = "vt-typo-strip";
       box.setAttribute("data-vt-no-i18n", "1");
-      box.style.cssText = "position:fixed;inset-block-start:0;inset-inline-start:0;z-index:2147483646;background:#fff;padding:24px 32px;display:grid;grid-template-columns:auto auto;gap:10px 40px;font-size:30px;border:1px solid #DEDEDE";
+      box.style.cssText = "position:fixed;inset-block-start:0;inset-inline-start:0;z-index:2147483646;background:#fff;padding:24px 32px;display:grid;grid-template-columns:auto auto;gap:10px 40px;font-size:30px";
       for (const k of keys) {
         const a = document.createElement("span"); a.textContent = k; a.dir = "ltr"; a.style.cssText = "font-family:Poppins,sans-serif;font-size:16px;color:#545756";
         const b = document.createElement("span"); b.textContent = L.t(k); b.dir = "rtl"; b.lang = "ar"; b.style.fontFamily = "'Noto Sans Arabic',sans-serif";

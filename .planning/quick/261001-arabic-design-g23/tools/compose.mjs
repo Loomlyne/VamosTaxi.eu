@@ -46,15 +46,15 @@ function textStrip(title, pairs) {
 
 const CSS = `body{margin:0;padding:32px;background:#F6F6F6;font-family:Poppins,system-ui,sans-serif;color:#1E1F1F}
 h1{margin:0 0 6px;font-size:28px}p.lead{margin:0 0 24px;color:#545756;font-size:15px;max-width:1500px;line-height:1.5}
-section{background:#fff;border:1px solid #DEDEDE;border-radius:16px;padding:20px 24px;margin-bottom:24px}
+section{background:#fff;padding:20px 24px;margin-bottom:24px}
 h2{margin:0 0 12px;font-size:18px}
 .row{display:flex;gap:16px;align-items:flex-start;margin-bottom:12px}
 .head .cell{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#545756}
 .side{width:150px;flex:0 0 150px;font-size:13px;font-weight:600}
 .side.before{color:#9a2a1a}.side.after{color:#1d6b3a}
-.cell img{display:block;border:1px solid #ECECEC;border-radius:6px}
+.cell img{display:block}
 .strip{margin-bottom:14px}.k{font-size:13px;color:#545756;margin-bottom:6px}
-.ar{font-family:'Noto Sans Arabic',system-ui,sans-serif;font-size:24px;padding:6px 14px;border:1px solid #ECECEC;border-radius:6px;background:#fff;min-width:600px}`;
+.ar{font-family:'Noto Sans Arabic',system-ui,sans-serif;font-size:24px;padding:6px 14px;background:#fff;min-width:600px}`;
 
 const SHEETS = {
   "01-phone-numbers-arabic": `<h1>1 · Phone numbers in Arabic</h1><p class="lead">In Arabic a bare +41 79 626 70 82 reads backwards (82 70 626 79 41+). Fix: the number sits in a left-to-right span (vt-dir-keep), as /contact and the footer already do. English does not change.</p>
