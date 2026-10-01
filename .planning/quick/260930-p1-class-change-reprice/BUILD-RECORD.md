@@ -13,7 +13,8 @@ Started 2026-10-01. Nothing pushed, no PR, no deploy, no hosted SQL.
 |---|---|---|
 | 1 | `5a389707` | Database: migration `20261007140000_class_change_reprice.sql`, pgTAP `class_change_reprice.test.sql` (69), Worker-client local test `packages/db/test/local/class-change-reprice.test.ts` (3), regenerated `database.types.ts` (only the new functions and columns differ) |
 | 2 | `e0029d3d` | Price step `apps/web/lib/ops/booking-change-price.ts` + 14 unit tests |
-| 3 | (next) | Writer fix (`sql.json`), accept takes a stored request only (no field from the browser, lead note 3), cheaper accept = Refund due with no Stripe call, PATCH no longer writes the class (A8), rules and body parser `booking-change-map.ts` (+10 tests), by-version price book read in `rate-book.ts`, `deliverBookingConfirmation` split out of `voucher.ts`, migration: shown class totals kept only for the same book |
+| 4 | (next) | Server: `booking-change.ts` (preview / confirm / after-change mails), routes `POST …/bookings/:id/change/preview` and `POST …/bookings/:id/change` (+ dual mounts), the owner's e-mail `ClassChangePayEmail` (four languages, copied programmatically from the decision file), settle hook for a paid difference, refunds-by-hand credit tier in `refund.ts`, board read of the waiting change, dashboard (class list, price box, confirm step, waiting state, credit panel, four languages), customer account line guard |
+| 3 | `bd9c7fe8` | Writer fix (`sql.json`), accept takes a stored request only (no field from the browser, lead note 3), cheaper accept = Refund due with no Stripe call, PATCH no longer writes the class (A8), rules and body parser `booking-change-map.ts` (+10 tests), by-version price book read in `rate-book.ts`, `deliverBookingConfirmation` split out of `voucher.ts`, migration: shown class totals kept only for the same book |
 
 ## Design choices made inside the signed plan (say if one is wrong)
 
@@ -37,6 +38,14 @@ Started 2026-10-01. Nothing pushed, no PR, no deploy, no hosted SQL.
 | `staff-hosted-pay.test.ts` (+2) | `expected { ok: false, code: 'not-found' } to deeply equal { ok: false, code: 'invalid-body' }`; `expected { ok: false, code: 'unknown' } to match object { ok: true … refund_due }` | pass |
 | `bookings-write.test.ts` (class tests replaced) | `expected true to be false` (PATCH wrote vehicle_class_id); `not to match /klass/` | pass |
 | `edit-request.test.ts` 08-07 proof | changed from `toMatch(/createRefund/)` to `not.toMatch(/createRefund/)` (the automatic refund is gone, refunds by hand) | pass |
+| `booking-change-map.test.ts` (10) | written with the module | 10/10 |
+| `booking-change.test.ts` (13) | written with the module (fakes; begin-like asSystem stand-in that rethrows) | 13/13 |
+| `booking-change-settle.test.ts` (3) | mutation: hook call removed from settle.ts → 2 fail | 3/3 |
+| `ClassChangePayEmail.test.tsx` (10) | `Cannot find module './ClassChangePayEmail'`; the test reads the decision file and compares subject, heading, text and button word for word in en/de/fr/ar | 10/10 |
+| `refund-by-hand.test.ts` (+2, picker shape) | `expected { ok: true … } to deeply equal { ok: false, code: 'invalid-amount' }` (a percentage was taken on a credit); `fullTier: true` on a live booking | pass |
+| `ops-class-change-dc.test.ts` (9) | run against the old OpsDetail: 8 fail (Input not Select, vehicle pre-fill, no box, no confirm step, no waiting line) | 9/9 |
+| `ops-refund-review-dc.test.ts` | two pins updated to the credit tier (review tier excludes it; Refund due also for a live credit) + one new pin | 21/21 |
+| `class-change-customer-line.test.ts` (2) | `expected 'Full refund · sent by our team' to be ''` on a confirmed trip with a change credit | pass |
 
 ## Real-Postgres proof (isolated stack, Worker client options)
 

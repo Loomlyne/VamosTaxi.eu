@@ -183,6 +183,10 @@
   function refundLine(booking) {
     var st = String((booking && booking.refundStatus) || "").toLowerCase();
     if (st === "pending_ops") {
+      // 26.2 P1: on a trip that still runs, "refund due" is a cheaper class change waiting for the
+      // team's Refund; the cancel line below would promise a full refund that is not owed.
+      var bs = String((booking && booking.status) || "").toLowerCase();
+      if (bs && bs !== "cancelled" && bs !== "refunded" && bs !== "partially_cancelled") return "";
       // Full refund owed (cancel more than 24 h ahead) reads as such; without an owed amount our team is still deciding.
       var owed = Number(booking && booking.refundOwedRappen);
       return owed > 0 ? t("Full refund · sent by our team") : t("Refund under review");

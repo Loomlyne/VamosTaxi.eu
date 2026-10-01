@@ -90,8 +90,13 @@ type RefundState = {
   refundedRappen: number;
   dueRappen: number;
   fullTier: boolean;
+  /** 26.2 P1: a change on a live booking left an amount due (refund exactly that). */
+  creditTier: boolean;
   payments: RefundPayment[];
 };
+
+/** Booking statuses where the trip no longer runs (a refund owed there is a cancel refund). */
+const ENDED_STATUSES: readonly string[] = Object.freeze(["cancelled", "partially_cancelled", "refunded"]);
 
 const n = (v: number | string | null | undefined): number => {
   const x = Number(v ?? 0);
@@ -148,13 +153,18 @@ async function readRefundState(env: CloudflareEnv, claims: VamosClaims, bookingI
     });
     const owed = n(b.refund_owed_rappen);
     const refunded = n(b.refunded_rappen);
+    const pendingOps = String(b.refund_status) === "pending_ops";
+    // 26.2 P1: owed on a trip that still runs = a class change made it cheaper (credit tier);
+    // owed on a cancelled trip = the full cancel refund (20-10 full tier). Same rule as ops_refund_plan.
+    const creditTier = pendingOps && owed > refunded && !ENDED_STATUSES.includes(String(b.status));
     return {
       status: String(b.status),
       refundStatus: String(b.refund_status),
       owedRappen: owed,
       refundedRappen: refunded,
       dueRappen: Math.max(0, owed - refunded),
-      fullTier: String(b.refund_status) === "pending_ops" && owed > 0,
+      fullTier: pendingOps && owed > 0 && !creditTier,
+      creditTier,
       payments,
     };
   });
@@ -167,8 +177,10 @@ export type RefundPicker = {
   refundedRappen: number;
   dueRappen: number;
   refundStatus: string;
-  /** pending_ops with an owed amount: full amount only, no decline. */
+  /** pending_ops with an owed amount on a cancelled booking: full amount only, no decline. */
   fullTier: boolean;
+  /** 26.2 P1: a change on a live booking left this much due: refund exactly that. */
+  creditTier: boolean;
 };
 
 /** GET …/refund: what the picker and a reloaded page need. Admin only (the route wraps it). */
@@ -191,6 +203,7 @@ export async function loadRefundPicker(
     dueRappen: state.dueRappen,
     refundStatus: state.refundStatus,
     fullTier: state.fullTier,
+    creditTier: state.creditTier,
   };
 }
 
@@ -300,6 +313,11 @@ function checkRequest(
   if (state.fullTier) {
     if (percent !== null && percent < 100) return { ok: false, code: "full-refund-only" };
     if (amount !== null && chosen && amount < chosen.leftRappen) return { ok: false, code: "full-refund-only" };
+  }
+  if (state.creditTier) {
+    // The amount due is exact (what the change made cheaper): no percentage, never more than due.
+    if (percent !== null) return { ok: false, code: "invalid-amount" };
+    if (amount !== null && amount > state.dueRappen) return { ok: false, code: "refund-exceeds-remaining" };
   }
   return {
     paymentId: chosen ? chosen.id : null,

@@ -129,5 +129,11 @@
     "headline": "How was your trip?",
     "body": "This link stays available. One review per booking.",
     "cta": "REVIEW TRIP"
+  },
+  "classChangePay": {
+    "subject": "Your Vamos Taxi booking {reference}: pay the difference",
+    "heading": "Your trip changes to {className}",
+    "text": "You asked to change booking {reference} to {className}. The new total is {newTotal}; you have paid {paid}. Pay the difference of {difference} to confirm the change. The link works for 24 hours. If it is not paid by then, your booking stays as it is.",
+    "button": "Pay the difference"
   }
 }
