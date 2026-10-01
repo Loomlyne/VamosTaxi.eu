@@ -5,17 +5,27 @@
 -- chosen by a class and told apart by a plate number; Assign never needs a car.
 --
 -- (a) public.chauffeurs.plate — the plate number the owner types on the chauffeur. Trimmed text,
---     case kept as typed; unique (case-insensitive) among active chauffeurs, because the plate is
---     what tells two drivers apart. Live rows start without one (null).
+--     case kept as typed; two chauffeurs may carry the same plate (owner, decision 7). The form
+--     requires it; live rows start without one (null).
+--     public.chauffeurs.deleted_at — owner, decision 7: a deleted chauffeur's row stays for the
+--     history of his finished trips; the dashboard hides it everywhere else. The e-mail index
+--     skips deleted rows so his address can be used again.
 -- (b) public.ops_assign_leg — same signature, return shape, grants (vamos_system only). No vehicle:
 --     the 'no-vehicle' refusal is gone, assigned_vehicle_id is set to null, no
 --     assignment.vehicle_set event. The driver's class must be the trip's class ('no-class',
---     'class-mismatch'); capacity is the class's passenger/luggage capacity ('capacity').
---     ops_unassign_leg is unchanged.
+--     'class-mismatch'); capacity is the class's passenger/luggage capacity ('capacity'); a
+--     deleted chauffeur is 'not-found'. ops_unassign_leg is unchanged.
 -- (c) public.reminder_24h_candidates — same signature and columns; `plate` is the chauffeur's
 --     plate, `vehicle` (the car model) is always null. The mail omits an empty line already.
 -- (d) public.manage_driver_for — same four keys; 'plate' is the chauffeur's plate,
 --     'vehicle_model' is always null.
+--
+-- (e) public.ops_delete_chauffeur(chauffeur, actor) — owner, decision 7. One transaction: his
+--     trips that are not finished (leg and booking not cancelled / completed / no_show / refunded —
+--     a trip whose pickup has passed but that nobody closed counts as not finished) go back to
+--     unassigned exactly as ops_unassign_leg does (both FKs null, assigned → confirmed,
+--     assignment.cleared event); his finished trips keep him; the row stays with deleted_at and
+--     active = false. Answers the references taken off him. EXECUTE: vamos_system only.
 --
 -- No vehicle row is created, changed or deleted. Applied migrations are not edited.
 
@@ -34,12 +44,19 @@ alter table public.chauffeurs
     or (pg_catalog.btrim(plate) = plate and pg_catalog.char_length(plate) between 1 and 32)
   );
 
-create unique index if not exists chauffeurs_plate_active_key
-  on public.chauffeurs (pg_catalog.upper(plate))
-  where active and plate is not null;
-
 comment on column public.chauffeurs.plate is
-  'Plate number of the car this chauffeur drives, as the owner types it (trimmed). Tells two drivers apart: unique, case-insensitive, among active chauffeurs. Null when none. Shown to the customer where the car plate used to be (2026-10-01).';
+  'Plate number of the car this chauffeur drives, as the owner types it (trimmed). Two chauffeurs may share one. Null only on rows from before 2026-10-01 (the form requires it). Shown to the customer where the car plate used to be.';
+
+alter table public.chauffeurs
+  add column if not exists deleted_at pg_catalog.timestamptz;
+
+comment on column public.chauffeurs.deleted_at is
+  'Set by ops_delete_chauffeur (owner, 2026-10-01): the row stays for his finished trips; every dashboard list, Assign and ops_assign_leg skip it.';
+
+drop index if exists public.chauffeurs_email_lower_uidx;
+create unique index chauffeurs_email_lower_uidx
+  on public.chauffeurs (lower(trim(email)))
+  where email is not null and length(trim(email)) > 0 and deleted_at is null;
 
 -- ---------------------------------------------------------------------------
 -- (b) ops_assign_leg: assign by class, no vehicle
@@ -119,7 +136,8 @@ begin
   select c.*
     into v_chauffeur
     from public.chauffeurs as c
-   where c.id = p_chauffeur_id;
+   where c.id = p_chauffeur_id
+     and c.deleted_at is null;
 
   if not found then
     raise exception 'not-found' using errcode = 'P0002';
@@ -302,3 +320,112 @@ $$;
 revoke all on function public.manage_driver_for(pg_catalog.uuid) from public;
 revoke all on function public.manage_driver_for(pg_catalog.uuid) from anon;
 revoke all on function public.manage_driver_for(pg_catalog.uuid) from authenticated;
+
+-- ---------------------------------------------------------------------------
+-- (e) ops_delete_chauffeur: keep the row, unassign what is not finished
+-- ---------------------------------------------------------------------------
+create or replace function public.ops_delete_chauffeur(
+  p_chauffeur_id pg_catalog.uuid,
+  p_actor_id pg_catalog.uuid
+)
+returns table (
+  reference pg_catalog.text
+)
+language plpgsql
+security definer
+set search_path = ''
+as $$
+#variable_conflict use_column
+declare
+  v_chauffeur public.chauffeurs%rowtype;
+  v_leg record;
+  v_actor_label pg_catalog.text;
+begin
+  select c.*
+    into v_chauffeur
+    from public.chauffeurs as c
+   where c.id = p_chauffeur_id
+     and c.deleted_at is null
+     for update;
+
+  if not found then
+    raise exception 'not-found' using errcode = 'P0002';
+  end if;
+
+  select coalesce(s.full_name, '')
+    into v_actor_label
+    from public.staff as s
+   where s.user_id = p_actor_id;
+
+  if v_actor_label is null then
+    v_actor_label := '';
+  end if;
+
+  for v_leg in
+    select l.id as leg_id, l.booking_id, l.assigned_vehicle_id, b.reference as booking_reference
+      from public.booking_legs as l
+      join public.bookings as b on b.id = l.booking_id
+     where l.assigned_chauffeur_id = v_chauffeur.id
+       and l.status not in (
+             'cancelled'::public.booking_status, 'completed'::public.booking_status,
+             'no_show'::public.booking_status, 'refunded'::public.booking_status)
+       and b.status not in (
+             'cancelled'::public.booking_status, 'completed'::public.booking_status,
+             'no_show'::public.booking_status, 'refunded'::public.booking_status)
+     order by l.scheduled_at
+       for update of l
+  loop
+    update public.booking_legs
+       set assigned_chauffeur_id = null,
+           assigned_vehicle_id = null,
+           status = case
+             when status = 'assigned'::public.booking_status
+             then 'confirmed'::public.booking_status
+             else status
+           end,
+           updated_at = pg_catalog.now()
+     where id = v_leg.leg_id;
+
+    update public.bookings
+       set status = case
+             when status = 'assigned'::public.booking_status
+             then 'confirmed'::public.booking_status
+             else status
+           end,
+           updated_at = pg_catalog.now()
+     where id = v_leg.booking_id;
+
+    insert into public.booking_events (
+      booking_id, booking_leg_id, kind, actor_kind, actor_id, actor_label, payload
+    ) values (
+      v_leg.booking_id,
+      v_leg.leg_id,
+      'assignment.cleared',
+      'staff',
+      p_actor_id,
+      v_actor_label,
+      pg_catalog.jsonb_build_object(
+        'chauffeur_id', v_chauffeur.id,
+        'vehicle_id', v_leg.assigned_vehicle_id
+      )
+    );
+
+    reference := v_leg.booking_reference;
+    return next;
+  end loop;
+
+  update public.chauffeurs
+     set deleted_at = pg_catalog.now(),
+         active = false,
+         updated_at = pg_catalog.now()
+   where id = v_chauffeur.id;
+end
+$$;
+
+revoke all on function public.ops_delete_chauffeur(pg_catalog.uuid, pg_catalog.uuid) from public;
+revoke all on function public.ops_delete_chauffeur(pg_catalog.uuid, pg_catalog.uuid) from anon;
+revoke all on function public.ops_delete_chauffeur(pg_catalog.uuid, pg_catalog.uuid) from authenticated;
+grant execute on function public.ops_delete_chauffeur(pg_catalog.uuid, pg_catalog.uuid) to vamos_system;
+
+comment on function public.ops_delete_chauffeur(pg_catalog.uuid, pg_catalog.uuid) is
+  'Owner 2026-10-01 (decision 7): delete a chauffeur — his trips that are not finished (incl. a passed pickup nobody closed) go back to unassigned with an assignment.cleared event; finished trips keep him; the row stays with deleted_at and active = false. Answers the references taken off him. EXECUTE: vamos_system only.';

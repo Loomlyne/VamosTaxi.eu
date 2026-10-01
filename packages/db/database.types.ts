@@ -968,6 +968,7 @@ export type Database = {
           active: boolean
           created_at: string
           default_vehicle_id: string | null
+          deleted_at: string | null
           email: string | null
           full_name: string
           id: string
@@ -991,6 +992,7 @@ export type Database = {
           active?: boolean
           created_at?: string
           default_vehicle_id?: string | null
+          deleted_at?: string | null
           email?: string | null
           full_name: string
           id?: string
@@ -1014,6 +1016,7 @@ export type Database = {
           active?: boolean
           created_at?: string
           default_vehicle_id?: string | null
+          deleted_at?: string | null
           email?: string | null
           full_name?: string
           id?: string
@@ -3392,6 +3395,12 @@ export type Database = {
           refund_mode: string
           refund_rappen: number
           stripe_checkout_session_ids: string[]
+        }[]
+      }
+      ops_delete_chauffeur: {
+        Args: { p_actor_id: string; p_chauffeur_id: string }
+        Returns: {
+          reference: string
         }[]
       }
       ops_fill_canton_pairs: {
