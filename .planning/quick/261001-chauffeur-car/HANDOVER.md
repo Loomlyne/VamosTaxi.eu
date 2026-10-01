@@ -7,7 +7,8 @@
 `scripts/db-access-fence-allowlist.json` (both P1's and this branch's test files kept).
 `app/ops/OpsDetail.dc.html` merged by git with both P1's class-change parts and this branch's Assign
 box; `packages/db/database.types.ts` checked against types generated from the 125 merged migrations:
-equal in content. Pushed (branch only). No deploy, no hosted SQL. The final commit is the one that
+equal in content. Then main moved to `11559467` (Phase 20 e-mail change; no file in common, no
+migration): merged as `c6ddba68`, clean; typecheck, db-fences, i18n re-run: pass. Pushed (branch only). No deploy, no hosted SQL. The final commit is the one that
 adds this file.
 Full record: `RECORD.md` in this folder. Owner decisions: `.planning/decisions/2026-10-01-no-cars-page.md`.
 
