@@ -141,23 +141,23 @@ English and Arabic; nothing scrolls sideways (36/36 shots, `sideways 0`); no con
 Single shots: `{dear-edit,cheap-edit,dear-confirm,wait-view,credit-view}-{before,after}-{en,ar}-{1440,390}.png`,
 `mail-{en,de,fr,ar}-{640,390}.png`.
 
-## Checks (run once at the end, on the merged branch, after `node scripts/sync-dc-mock-to-public.mjs`)
+## Checks (final run once, after the sign-off additions, on the branch with origin/main `083b50ab` merged, after `node scripts/sync-dc-mock-to-public.mjs`)
 
 | Check | Result |
 |---|---|
-| `pnpm typecheck` | pass |
+| `pnpm typecheck` | pass (after typing the fake `expireCheckoutSession` in `booking-change.local.test.ts`) |
 | `pnpm lint` | pass (0 errors; 6 warnings, all in files this job did not touch) |
 | `pnpm lint:css` | pass |
 | `pnpm i18n:check` | pass (2676 keys) |
-| `pnpm check:numbers` | pass |
+| `pnpm check:numbers` | pass (after the refund-line amount test used a money stub instead of a CHF figure) |
 | `pnpm check:db-fences` | pass (8 checks, after the module-scope `Set` fix) |
 | `pnpm check:public-env` | pass |
 | `pnpm check:legal-claims` | pass |
-| `pnpm test:unit` | pass — web 338 files / 3334 tests (4 local-DB files skipped without a port), emails 161, db 14 |
+| `pnpm test:unit` | web 342 files / 3371 tests pass, 1 failed: the port guard (`db-client-guard`) flagged the default `54322` in `packages/db/test/local/class-change-reprice.test.ts`; fixed (no default port; the suite skips without `VAMOS_LOCAL_DB_PORT`), guard re-run 5/5 pass, typecheck re-run pass. emails 161, db 14 pass |
 | `pnpm db:seed:check` | no drift |
-| `pnpm build` | pass; `…/bookings/[id]/change` and `…/change/preview` built in both mounts |
-| pgTAP from zero (`sb-p1`) | 124 migrations replayed, 91 files / 2164 tests pass |
-| Local Worker-client tests (`sb-p1`) | `class-change-reprice` 3/3, `booking-change.local` 1/1, `refund-by-hand.local`, `assign.local`, `system-reads.local` pass (the last two publishers of a live book run one after the other) |
+| `pnpm build` | pass; `…/bookings/[id]/change`, `…/change/preview` and `…/change/withdraw` built in both mounts |
+| pgTAP from zero (`sb-p1`) | 124 migrations replayed, 91 files / 2176 tests pass (`class_change_reprice` 81) |
+| Local Worker-client tests (`sb-p1`, then stopped with `--no-backup`) | `class-change-reprice` 3/3, `booking-change.local` 1/1 (dearer → paid, withdraw, cheaper → refund by hand), `refund-by-hand.local`, `assign.local`, `system-reads.local` pass (the last two publishers of a live book run one after the other) |
 
 ## Files outside this job's own area (touched because the plan needs them)
 

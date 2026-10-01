@@ -61,9 +61,10 @@ describe("the refund line after a cheaper class change (owner-approved, 2026-10-
   });
 
   it("the amount is what is still due (owed minus refunded) through the money formatter", () => {
-    const { changeCreditLine } = load("en");
+    // The formatter is stubbed to show what it was given (no CHF figure in a test, Law 04).
+    const { changeCreditLine } = load("en", (a) => `money(${a})`);
     expect(changeCreditLine({ ...credit, refundOwedRappen: 1300, refundedRappen: 1000 })).toBe(
-      "Your trip now runs in Economy. The difference of CHF 3.00 comes back to the payment method you used; our team sends it.",
+      "Your trip now runs in Economy. The difference of money(3.00) comes back to the payment method you used; our team sends it.",
     );
   });
 

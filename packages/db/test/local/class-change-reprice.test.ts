@@ -3,7 +3,7 @@
 // 26.2 P1. The class-change functions of migration 20261007140000 driven through the SAME client
 // options the Worker uses (`publicSql`: `fetch_types: false`, the registered array types,
 // prepared statements) under the role the Worker uses (`vamos_system`). Everything runs inside
-// ONE rolled-back transaction per case. Local only: 127.0.0.1, port from VAMOS_LOCAL_DB_PORT.
+// ONE rolled-back transaction per case. Local only: 127.0.0.1, port from VAMOS_LOCAL_DB_PORT (skipped without it).
 //
 // Finding pinned here (2026-10-01, before the fix): the payload writer
 // `${JSON.stringify(payload)}::jsonb` sends a JSON STRING through this client (the parameter is
@@ -18,7 +18,8 @@ import { describe, expect, it } from "vitest";
 import postgres from "postgres";
 import { publicSql } from "../../src/public.js";
 
-const PORT = process.env["VAMOS_LOCAL_DB_PORT"] ?? "54322";
+// No default port (db-client guard): the suite runs only when VAMOS_LOCAL_DB_PORT names a local stack.
+const PORT = process.env["VAMOS_LOCAL_DB_PORT"] ?? "";
 const SUPER = `postgres://postgres:postgres@127.0.0.1:${PORT}/postgres`;
 const here = dirname(fileURLToPath(import.meta.url));
 const FIXTURE = readFileSync(join(here, "fixtures", "class-change.sql"), "utf8");
@@ -61,7 +62,7 @@ const lines = (total: number) => [
   { seq: 2, leg_seq: 1, code: "vat", kind: "vat", i18n_key: "price.line.vat", params: { vatRateBps: 81 }, amount_rappen: 1 },
 ];
 
-describe("P1 class change through the Worker's client options (fetch_types: false)", () => {
+describe.skipIf(!PORT)("P1 class change through the Worker's client options (fetch_types: false)", () => {
   it("the old writer form (JSON.stringify(...)::jsonb) is read as an object, the fixed writer (tx.json) too", async () => {
     const out = await inRolledBackTx(async (tx, fx) => {
       const legacy = await tx<{ request_id: string }[]>`

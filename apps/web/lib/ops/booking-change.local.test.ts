@@ -22,7 +22,7 @@ const PORT = process.env["VAMOS_LOCAL_DB_PORT"];
 
 const createCheckoutSession = vi.fn();
 const createRefund = vi.fn();
-const expireCheckoutSession = vi.fn(async () => ({ status: "expired" }));
+const expireCheckoutSession = vi.fn(async (..._a: unknown[]) => ({ status: "expired" }));
 const sendClassChangePay = vi.fn();
 const sendConfirmation = vi.fn();
 const sendChauffeurUnassign = vi.fn();
