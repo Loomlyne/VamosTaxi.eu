@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+/* 26.2 P6: one address search for the dashboard (Edit of a paid trip; New trip and the route editor
+   to follow). The field is the kit Input; the kit has no list-box, so the list below is built from
+   tokens: white surface, hairline, neutral shadow, a grey-50 step on hover — never a glow, never a
+   tint. Logical properties only, so the list lines up in Arabic too. */
+[data-ps-root]{position:relative;min-width:0;--vt-shadow-accent:none}
+[data-ps-root] .vt-input--focus{box-shadow:none}
+[data-ps-root][data-open="true"]{z-index:30}
+[data-ps-list]{position:absolute;inset-inline:0;top:calc(100% + 4px);z-index:30;box-sizing:border-box;display:flex;flex-direction:column;gap:2px;padding:6px;max-height:300px;overflow-y:auto;overscroll-behavior:contain;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-lg)}
+[data-ps-row]{display:flex;align-items:center;gap:10px;min-height:44px;padding-block:6px;padding-inline:10px;border-radius:var(--vt-radius-md);cursor:pointer;font-family:var(--vt-font-body);text-align:start}
+[data-ps-row]:hover,[data-ps-row][aria-selected="true"]{background:var(--vt-grey-50)}
+[data-ps-row]:active{transform:translateY(1px)}
+[data-ps-tile]{inline-size:28px;block-size:28px;flex:0 0 auto;border-radius:var(--vt-radius-sm);background:var(--vt-grey-100);color:var(--vt-text-secondary);display:inline-flex;align-items:center;justify-content:center}
+[data-ps-text]{display:flex;flex-direction:column;min-width:0;flex:1 1 auto}
+[data-ps-name]{font-size:var(--vt-body-sm);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary);line-height:1.35;overflow-wrap:anywhere}
+[data-ps-sub]{font-size:var(--vt-body-xs);color:var(--vt-text-muted);line-height:1.35;overflow-wrap:anywhere}
+[data-ps-note]{display:flex;align-items:center;flex-wrap:wrap;gap:8px 10px;min-height:44px;padding-block:6px;padding-inline:10px;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);line-height:1.45;color:var(--vt-text-secondary)}
+[data-ps-note][data-tone="error"]{color:var(--vt-danger)}
+[data-ps-note] > span{min-width:0;flex:1 1 160px}
+[data-ps-spin]{inline-size:14px;block-size:14px;flex:0 0 auto;border-radius:999px;border:2px solid var(--vt-grey-200);border-top-color:var(--vt-charcoal-900);animation:vt-ps-spin .7s linear infinite}
+@keyframes vt-ps-spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){[data-ps-spin]{animation-duration:2.4s}}
+[data-ps-retry]{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;min-height:44px;padding-inline:10px;border-radius:var(--vt-radius-md);cursor:pointer;font-family:var(--vt-font-body);font-size:12px;font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-primary);text-decoration:underline;text-underline-offset:3px}
+[data-ps-retry]:hover{background:var(--vt-grey-50)}
+[data-ps-retry]:active{transform:translateY(1px)}
+[data-ps-retry]:focus-visible{outline:none;box-shadow:var(--vt-ring)}
+</style>
+</helmet>
+<div data-ps-root="1" data-state="{{ stateAttr }}" data-open="{{ openStr }}" ref="{{ rootRef }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" icon="{{ icon }}" label="{{ label }}" value="{{ text }}" placeholder="{{ phText }}" hint="{{ hintText }}" error="{{ errorText }}" disabled="{{ off }}" required="{{ required }}" dir="auto" role="combobox" aria-autocomplete="list" aria-expanded="{{ openStr }}" aria-controls="{{ listId }}" aria-activedescendant="{{ activeId }}" autoComplete="off" spellCheck="false" onChange="{{ onInput }}" onKeyDown="{{ onKey }}" onFocus="{{ onFocus }}" onBlur="{{ onBlur }}" hint-size="100%,76px"></x-import>
+<sc-if value="{{ open }}" hint-placeholder-val="{{ false }}">
+<div data-ps-list="1" data-scroll-native="1" role="listbox" id="{{ listId }}" aria-label="{{ label }}" data-vt-no-i18n="1">
+<sc-if value="{{ showTyping }}" hint-placeholder-val="{{ false }}">
+<div data-ps-note="1" role="status"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="search" size="{{ n16 }}" color="var(--vt-text-muted)" hint-size="16px,16px"></x-import><span>{{ tTyping }}</span></div>
+</sc-if>
+<sc-if value="{{ showLoading }}" hint-placeholder-val="{{ false }}">
+<div data-ps-note="1" role="status" aria-busy="true"><i data-ps-spin="1" aria-hidden="true"></i><span>{{ tLoading }}</span></div>
+</sc-if>
+<sc-if value="{{ showNone }}" hint-placeholder-val="{{ false }}">
+<div data-ps-note="1" role="status"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-alert" size="{{ n16 }}" color="var(--vt-text-muted)" hint-size="16px,16px"></x-import><span>{{ tNone }}</span></div>
+</sc-if>
+<sc-if value="{{ showError }}" hint-placeholder-val="{{ false }}">
+<div data-ps-note="1" data-tone="error" role="alert"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="triangle-alert" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import><span>{{ tError }}</span><button type="button" data-ps-retry="1" onMouseDown="{{ hold }}" onClick="{{ retry }}">{{ tRetry }}</button></div>
+</sc-if>
+<sc-for list="{{ rows }}" as="r" hint-placeholder-count="3">
+<div data-ps-row="1" role="option" id="{{ r.id }}" aria-selected="{{ r.sel }}" onMouseDown="{{ hold }}" onClick="{{ r.pick }}">
+<span data-ps-tile="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="map-pin" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span>
+<span data-ps-text="1"><span data-ps-name="1">{{ r.name }}</span><span data-ps-sub="1">{{ r.sub }}</span></span>
+</div>
+</sc-for>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:420},&quot;label&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Pickup&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;value&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;picked&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;placeholder&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;hint&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;error&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;disabled&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;required&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;locale&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;&quot;,&quot;en&quot;,&quot;de&quot;,&quot;fr&quot;,&quot;ar&quot;],&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;''|'en'|'de'|'fr'|'ar'&quot;},&quot;resolveAirport&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;preview&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;live&quot;,&quot;empty&quot;,&quot;typing&quot;,&quot;loading&quot;,&quot;hits&quot;,&quot;none&quot;,&quot;error&quot;,&quot;picked&quot;,&quot;refused&quot;,&quot;disabled&quot;],&quot;default&quot;:&quot;live&quot;,&quot;tsType&quot;:&quot;'live'|'empty'|'typing'|'loading'|'hits'|'none'|'error'|'picked'|'refused'|'disabled'&quot;},&quot;onText&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(text:string)=&gt;void&quot;},&quot;onPick&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(place:{text:string,name:string,sub:string,mapbox_id:string,session_token:string,isAirport?:boolean})=&gt;void&quot;}}">
+/* Props: label, value (the text the host holds), picked (that text is a place picked from the list,
+   or the trip's saved place), placeholder, hint, error (the host's refusal, e.g. a place the site
+   cannot book), disabled, required, locale (the Mapbox language; default the page language),
+   resolveAirport (after a pick, ask /api/geo/retrieve whether the place is an airport — New trip
+   needs it for the flight field), onText(text) on every keystroke (the host forgets its picked
+   place), onPick(place) with { text, name, sub, mapbox_id, session_token, isAirport? }.
+   States, each reached by using the field: empty · typing (one letter: "type 2 letters") ·
+   loading (the search is asked, 160 ms after the last key) · hits · none found · error (the search
+   did not answer: Try again) · picked (map-pin, the place text) · refused (the host's error under
+   the field) · disabled. Keyboard: arrows move, Enter picks, Escape closes. `preview` freezes one
+   state for the states gallery (PlaceSearchStates.dc.html) only; every live use leaves it "live".
+   Copy is this component's own four-language table (it can sit inside a page subtree that the
+   runtime does not translate); addresses are data and never translated. */
+const PS_T = {
+  en: { placeholder:'Street, town or airport', typing:'Type 2 letters or more.', loading:'Searching…', none:'No place found. Try a street and a town.', error:'The address search did not answer.', retry:'Try again', pick:'Pick the place from the list.' },
+  de: { placeholder:'Strasse, Ort oder Flughafen', typing:'Geben Sie mindestens 2 Zeichen ein.', loading:'Suche läuft…', none:'Kein Ort gefunden. Versuchen Sie Strasse und Ort.', error:'Die Adresssuche hat nicht geantwortet.', retry:'Erneut versuchen', pick:'Wählen Sie den Ort aus der Liste.' },
+  fr: { placeholder:'Rue, localité ou aéroport', typing:'Saisissez au moins 2 lettres.', loading:'Recherche…', none:'Aucun lieu trouvé. Essayez une rue et une localité.', error:'La recherche d’adresse n’a pas répondu.', retry:'Réessayer', pick:'Choisissez le lieu dans la liste.' },
+  ar: { placeholder:'شارع أو مدينة أو مطار', typing:'اكتب حرفين على الأقل.', loading:'جارٍ البحث…', none:'لم يُعثر على أي مكان. جرّب اسم شارع ومدينة.', error:'لم تستجب خدمة البحث عن العناوين.', retry:'أعد المحاولة', pick:'اختر المكان من القائمة.' },
+};
+/* The gallery's frozen states: a few made-up hits so every row shape shows. */
+const PS_DEMO_HITS = [
+  { name:'Zug station', sub:'Bahnhofplatz, 6300 Zug' },
+  { name:'Zug', sub:'Canton of Zug, Switzerland' },
+  { name:'Zugerbergstrasse', sub:'6300 Zug' },
+];
+const PS_DEMO = {
+  empty:   { text:'', open:false },
+  typing:  { text:'Z', open:true, status:'typing' },
+  loading: { text:'Zug Bahn', open:true, status:'loading' },
+  hits:    { text:'Zug', open:true, status:'hits', hits:PS_DEMO_HITS, active:0 },
+  none:    { text:'Zzqx', open:true, status:'none' },
+  error:   { text:'Zug', open:true, status:'error' },
+  picked:  { text:'Zug station, Bahnhofplatz, 6300 Zug', open:false, picked:true },
+  refused: { text:'Istanbul Airport (IST), Arnavutköy, Istanbul', open:false, picked:true },
+  disabled:{ text:'Zurich Oerlikon station, 8050 Zurich', open:false, picked:true, disabled:true },
+};
+let psSeq = 0;
+function psSession() {
+  try {
+    let t = sessionStorage.getItem('vamosGeo');
+    if (t && /^[0-9a-f-]{36}$/i.test(t)) return t;
+    t = (crypto.randomUUID && crypto.randomUUID()) || '';
+    if (t) sessionStorage.setItem('vamosGeo', t);
+    return t;
+  } catch (e) { return (crypto.randomUUID && crypto.randomUUID()) || ''; }
+}
+function psLang() {
+  try {
+    const l = window.VamosLocale && typeof window.VamosLocale.lang === 'function' ? window.VamosLocale.lang() : 'en';
+    return PS_T[l] ? l : 'en';
+  } catch (e) { return 'en'; }
+}
+class Component extends DCLogic {
+  state = { text: null, open: false, status: 'idle', hits: [], active: -1, lang: psLang() };
+  _id = 'vt-ps-' + (++psSeq);
+  _seq = 0;
+  _t = null;
+  _rootRef = (el) => { this._root = el; };
+  componentDidMount() {
+    if (window.VamosLocale && typeof window.VamosLocale.onChange === 'function') {
+      this._offLocale = window.VamosLocale.onChange((v) => this.setState({ lang: PS_T[v && v.lang] ? v.lang : psLang() }));
+    }
+  }
+  componentWillUnmount() {
+    clearTimeout(this._t);
+    if (this._offLocale) this._offLocale();
+  }
+  props_() { return this.props || {}; }
+  /* The text the field shows: what is being typed, else the host's value. */
+  shownText() {
+    const p = this.props_();
+    return this.state.text != null ? this.state.text : String(p.value || '');
+  }
+  geoLocale() {
+    const p = this.props_();
+    return ['en', 'de', 'fr', 'ar'].indexOf(p.locale) !== -1 ? p.locale : this.state.lang;
+  }
+  ask = (q) => {
+    const token = psSession();
+    clearTimeout(this._t);
+    const seq = ++this._seq;
+    if (String(q || '').trim().length < 2 || !token) {
+      this.setState({ status: String(q || '').trim() ? 'typing' : 'idle', hits: [], active: -1, open: !!String(q || '').trim() });
+      return;
+    }
+    this.setState({ status: 'loading', open: true, active: -1 });
+    this._t = setTimeout(() => {
+      fetch('/api/geo/suggest?q=' + encodeURIComponent(q) + '&session_token=' + encodeURIComponent(token) + '&locale=' + encodeURIComponent(this.geoLocale()), { credentials: 'same-origin' })
+        .then((r) => (r.ok ? r.json() : Promise.reject(new Error('http'))))
+        .then((j) => {
+          if (seq !== this._seq) return;
+          const hits = ((j && j.suggestions) || []).map((h) => ({
+            name: String(h.name || ''), sub: String(h.address || h.context || ''), mapbox_id: String(h.mapbox_id || ''), session_token: token,
+          })).filter((h) => h.name && h.mapbox_id).slice(0, 8);
+          if (!hits.length && j && j.degraded) { this.setState({ status: 'error', hits: [] }); return; }
+          this.setState({ status: hits.length ? 'hits' : 'none', hits, active: hits.length ? 0 : -1 });
+        })
+        .catch(() => { if (seq === this._seq) this.setState({ status: 'error', hits: [] }); });
+    }, 160);
+  };
+  pick = (hit) => {
+    const p = this.props_();
+    const text = [hit.name, hit.sub].filter(Boolean).join(', ');
+    clearTimeout(this._t);
+    this._seq += 1;
+    this.setState({ text: null, open: false, status: 'idle', hits: [], active: -1 });
+    const place = { text, name: hit.name, sub: hit.sub, mapbox_id: hit.mapbox_id, session_token: hit.session_token };
+    if (typeof p.onPick === 'function') p.onPick(place);
+    if (p.resolveAirport && hit.mapbox_id) {
+      fetch('/api/geo/retrieve?mapbox_id=' + encodeURIComponent(hit.mapbox_id) + '&session_token=' + encodeURIComponent(hit.session_token) + '&locale=' + encodeURIComponent(this.geoLocale()), { credentials: 'same-origin' })
+        .then((r) => (r.ok ? r.json() : null)).catch(() => null)
+        .then((j) => {
+          const pl = j && j.place;
+          if (typeof p.onPick === 'function') p.onPick(Object.assign({}, place, { isAirport: !!(pl && pl.isAirport === true) }));
+        });
+    }
+  };
+  renderVals() {
+    const p = this.props_();
+    const t = PS_T[this.state.lang] || PS_T.en;
+    const demo = p.preview && p.preview !== 'live' ? PS_DEMO[p.preview] || null : null;
+    const off = demo ? !!demo.disabled : !!p.disabled;
+    const text = demo ? demo.text : this.shownText();
+    const open = demo ? !!demo.open : (!!this.state.open && !off);
+    const status = demo ? (demo.status || 'idle') : this.state.status;
+    const hits = demo ? (demo.hits || []) : this.state.hits;
+    const active = demo ? (demo.active == null ? -1 : demo.active) : this.state.active;
+    const picked = demo ? !!demo.picked : (!!p.picked && this.state.text == null);
+    const error = demo ? (p.preview === 'refused' ? (p.error || '') : '') : (open ? '' : String(p.error || ''));
+    const typed = String(text || '').trim().length > 0;
+    const hint = open || error ? '' : (p.hint ? String(p.hint) : (typed && !picked ? t.pick : ''));
+    const rows = status === 'hits' ? hits.map((h, i) => ({
+      id: this._id + '-o' + i, name: h.name, sub: h.sub, sel: i === active ? 'true' : 'false',
+      pick: () => { if (!demo) this.pick(h); },
+    })) : [];
+    const stateAttr = off ? 'disabled' : (error ? 'refused' : (open ? status : (picked ? 'picked' : (typed ? 'typed' : 'empty'))));
+    return {
+      n16: 16,
+      rootRef: this._rootRef,
+      stateAttr,
+      label: p.label || '',
+      text: String(text || ''),
+      phText: p.placeholder || t.placeholder,
+      hintText: hint,
+      errorText: error,
+      off,
+      required: !!p.required,
+      icon: picked ? 'map-pin' : 'search',
+      open,
+      openStr: open ? 'true' : 'false',
+      listId: this._id + '-list',
+      activeId: open && active >= 0 && status === 'hits' ? this._id + '-o' + active : undefined,
+      showTyping: open && status === 'typing',
+      showLoading: open && status === 'loading',
+      showNone: open && status === 'none',
+      showError: open && status === 'error',
+      rows,
+      tTyping: t.typing, tLoading: t.loading, tNone: t.none, tError: t.error, tRetry: t.retry,
+      hold: (e) => { if (e && e.preventDefault) e.preventDefault(); },
+      retry: () => { if (!demo) this.ask(this.shownText()); },
+      onInput: (e) => {
+        if (demo || off) return;
+        const v = e && e.target ? e.target.value : String(e || '');
+        this.setState({ text: v });
+        if (typeof p.onText === 'function') p.onText(v);
+        this.ask(v);
+      },
+      onFocus: () => {
+        if (demo || off) return;
+        if (this.state.text != null && this.state.hits.length) this.setState({ open: true });
+      },
+      onBlur: () => {
+        if (demo) return;
+        clearTimeout(this._t);
+        this._seq += 1;
+        this.setState({ open: false, status: this.state.status === 'loading' ? 'idle' : this.state.status });
+      },
+      onKey: (e) => {
+        if (demo || off || !e) return;
+        const k = e.key;
+        if (k === 'Escape') { if (this.state.open) { e.preventDefault(); this.setState({ open: false }); } return; }
+        if (k === 'ArrowDown' || k === 'ArrowUp') {
+          const n = this.state.hits.length;
+          if (!n) return;
+          e.preventDefault();
+          const step = k === 'ArrowDown' ? 1 : -1;
+          this.setState((s) => ({ open: true, active: ((s.active < 0 ? (step > 0 ? -1 : 0) : s.active) + step + n) % n }));
+          return;
+        }
+        if (k === 'Enter' && this.state.open && this.state.status === 'hits' && this.state.active >= 0) {
+          e.preventDefault();
+          this.pick(this.state.hits[this.state.active]);
+        }
+      },
+    };
+  }
+}
+</script>
+</body>
+</html>
