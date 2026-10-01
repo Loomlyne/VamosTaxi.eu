@@ -149,14 +149,17 @@ export function assertChauffeurInput(input: ChauffeurInput): AssertedChauffeurIn
   }
 
   // 2026-10-01: the plate number on the chauffeur. Trimmed, case as typed; the column holds 32.
-  let plate: string | null | undefined;
+  // undefined = the caller did not send one (an update keeps the stored plate).
+  let plate: string | undefined;
   if (input.plate === undefined) plate = undefined;
   else {
     const plateRaw = input.plate == null ? "" : input.plate.trim();
-    plate = plateRaw === "" ? null : plateRaw;
-    if (plate && plate.length > PLATE_MAX) {
+    // Owner, decision 7 (2026-10-01): the plate number is required.
+    if (plateRaw === "") throw new ChauffeurInputError("chauffeurs-failure-plate-required");
+    if (plateRaw.length > PLATE_MAX) {
       throw new ChauffeurInputError("chauffeurs-failure-plate");
     }
+    plate = plateRaw;
   }
 
   const expiryRaw = input.licenceExpiresOn == null ? "" : input.licenceExpiresOn.trim();
@@ -321,6 +324,7 @@ export async function loadChauffeurDetailsList(
       from public.chauffeurs c
       left join public.vehicles v on v.id = c.default_vehicle_id
       left join public.vehicle_classes cls on cls.id = c.vehicle_class_id
+      where c.deleted_at is null
       order by c.active desc, c.licence_expires_on asc nulls last, c.full_name asc
     `;
     const extras = await loadDeskExtras(sql);
@@ -355,6 +359,7 @@ export async function loadChauffeurs(
       from public.chauffeurs c
       left join public.vehicles v on v.id = c.default_vehicle_id
       left join public.vehicle_classes cls on cls.id = c.vehicle_class_id
+      where c.deleted_at is null
       order by c.active desc, c.licence_expires_on asc nulls last, c.full_name asc
     `;
     const extras = await loadDeskExtras(sql);
@@ -392,6 +397,7 @@ export async function loadChauffeur(
       left join public.vehicles v on v.id = c.default_vehicle_id
       left join public.vehicle_classes cls on cls.id = c.vehicle_class_id
       where c.id = ${id}
+        and c.deleted_at is null
       limit 1
     `;
     const row = rows[0];
@@ -432,7 +438,8 @@ export async function loadChauffeurByEmail(
       from public.chauffeurs c
       left join public.vehicles v on v.id = c.default_vehicle_id
       left join public.vehicle_classes cls on cls.id = c.vehicle_class_id
-      where c.email is not null
+      where c.deleted_at is null
+        and c.email is not null
         and length(trim(c.email)) > 0
         and lower(trim(c.email)) = ${normalized}
       limit 1

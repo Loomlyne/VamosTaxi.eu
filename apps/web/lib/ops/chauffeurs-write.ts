@@ -3,8 +3,8 @@
 // Chauffeur mutations for the JSON door. SQL stays here so the route never
 // imports postgres. Every write is asStaff (D-02).
 
-import { asStaff, type VamosClaims } from "../db/identity";
-import type { AssertedChauffeurInput, ChauffeurDeleteResult } from "./chauffeurs-model";
+import { asStaff, asSystem, type VamosClaims } from "../db/identity";
+import { ChauffeurInputError, type AssertedChauffeurInput, type ChauffeurDeleteResult } from "./chauffeurs-model";
 import { persistChauffeurDesk } from "./chauffeur-desk";
 
 /** Postgres `text[]` literal. A JS array can bind as a scalar and throw 22P02. */
@@ -18,6 +18,8 @@ export async function insertChauffeur(
   id: string | null,
   parsed: AssertedChauffeurInput,
 ): Promise<string> {
+  // Owner, decision 7 (2026-10-01): a new chauffeur needs a plate number.
+  if (!parsed.plate) throw new ChauffeurInputError("chauffeurs-failure-plate-required");
   return asStaff(env, claims, async (sql) => {
     if (id) {
       const rows = await sql<{ id: string }[]>`
@@ -102,7 +104,7 @@ export async function updateChauffeurRow(
         photo_path = ${parsed.photoPath},
         note = ${parsed.note},
         updated_at = now()
-      where id = ${id}
+      where id = ${id} and deleted_at is null
       returning id
     `;
     if (!rows[0]) return false;
@@ -111,56 +113,34 @@ export async function updateChauffeurRow(
   });
 }
 
-function uniqueStrings(values: string[]): string[] {
-  const out: string[] = [];
-  for (const value of values) {
-    const text = String(value ?? "").trim();
-    if (text && !out.includes(text)) out.push(text);
-  }
-  return out;
+function sqlCode(err: unknown): string | undefined {
+  if (typeof err !== "object" || err === null || !("code" in err)) return undefined;
+  const code = (err as { code: unknown }).code;
+  return typeof code === "string" ? code : undefined;
 }
 
 /**
- * Owner, 2026-10-01 ("anything deleted should be deleted completely"). One staff transaction:
- * lock the chauffeur; a trip that is not finished (leg and booking not closed — a trip whose pickup
- * has passed but is not Complete, No-show or Cancelled still counts) refuses the delete with his
- * name and the references, nothing written; otherwise every finished leg lets go of him (the trip
- * keeps its record without a driver; booking_legs.assigned_chauffeur_id is on delete restrict) and
- * the chauffeur row is deleted (shift and leave rows go by cascade). No vehicle row is read or
- * written.
+ * Owner, decision 7 (2026-10-01): deleting a chauffeur keeps his row for his finished trips;
+ * his trips that are not finished (a passed pickup nobody closed included) go back to unassigned,
+ * with an assignment.cleared event each; he leaves every list and Assign. One transaction in
+ * public.ops_delete_chauffeur (20261007160000, definer, vamos_system only), run asSystem after
+ * withStaff. The refusal is mapped AROUND asSystem (postgres.js begin() rethrows a caught query
+ * error). No mail: he is gone, and a customer gets none for an unassign.
  */
 export async function deleteChauffeurRow(
   env: CloudflareEnv,
   claims: VamosClaims,
   id: string,
 ): Promise<ChauffeurDeleteResult> {
-  return asStaff(env, claims, async (sql) => {
-    const found = await sql<{ id: string; full_name: string }[]>`
-      select id, full_name from public.chauffeurs where id = ${id}::uuid for update
-    `;
-    const row = found[0];
-    if (!row) return { kind: "gone" as const };
-    const open = await sql<{ reference: string }[]>`
-      select b.reference
-        from public.booking_legs as l
-        join public.bookings as b on b.id = l.booking_id
-       where l.assigned_chauffeur_id = ${id}::uuid
-         and l.status not in ('cancelled', 'completed', 'no_show', 'refunded')
-         and b.status not in ('cancelled', 'completed', 'no_show', 'refunded')
-         and b.erased_at is null
-       order by l.scheduled_at
-    `;
-    if (open.length > 0) {
-      return {
-        kind: "in-use" as const,
-        name: String(row.full_name ?? "").trim(),
-        references: uniqueStrings(open.map((o) => o.reference)),
-      };
-    }
-    const cleared = await sql<{ id: string }[]>`
-      update public.booking_legs set assigned_chauffeur_id = null where assigned_chauffeur_id = ${id}::uuid returning id
-    `;
-    await sql`delete from public.chauffeurs where id = ${id}::uuid`;
-    return { kind: "deleted" as const, clearedLegs: cleared.length };
-  });
+  try {
+    const rows = await asSystem(env, async (sql) => {
+      return sql<{ reference: string }[]>`
+        select reference from public.ops_delete_chauffeur(${id}::uuid, ${claims.sub}::uuid)
+      `;
+    });
+    return { kind: "deleted", unassigned: rows.map((r) => String(r.reference)) };
+  } catch (err) {
+    if (sqlCode(err) === "P0002") return { kind: "gone" };
+    throw err;
+  }
 }

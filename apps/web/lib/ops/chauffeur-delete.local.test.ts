@@ -1,11 +1,11 @@
 // apps/web/lib/ops/chauffeur-delete.local.test.ts
 //
-// Quick 261001-chauffeur-car (owner, 2026-10-01: "anything deleted should be deleted completely").
-// On a real local database, through the REAL deleteChauffeurRow and loadChauffeurHistory (asStaff on
-// postgres.js with the Worker's client options): a chauffeur with one finished trip and one paid
-// trip still open is refused with his name and the open reference, and nothing changes; his history
-// lists both, newest first. Once the open trip is closed, the delete goes through: both legs keep
-// their record without him, the chauffeur row is gone, and the unused vehicle row is untouched.
+// Quick 261001-chauffeur-car, owner decision 7 (2026-10-01): deleting a chauffeur keeps his row for
+// his finished trips; his trips that are not finished — a future one and one whose pickup passed
+// but nobody closed — go back to unassigned; he leaves the Chauffeurs list and Assign. On a real
+// local database, through the REAL deleteChauffeurRow (asSystem → ops_delete_chauffeur),
+// loadChauffeurs, loadChauffeurHistory (asStaff) and assignBooking, all on postgres.js with the
+// Worker's client options. The unused vehicle row is never touched.
 //
 // Skipped unless VAMOS_LOCAL_DB_PORT names a DISPOSABLE local stack: the fixture is COMMITTED
 // (unique per run). Host is fixed to 127.0.0.1.
@@ -16,13 +16,15 @@ import { randomUUID } from "node:crypto";
 import postgres from "postgres";
 import { describe, expect, it } from "vitest";
 import type { VamosClaims } from "../db/identity";
+import { assignBooking } from "./assign";
 import { loadChauffeurHistory } from "./chauffeur-history";
+import { loadChauffeurs } from "./chauffeurs";
 import { deleteChauffeurRow } from "./chauffeurs-write";
 
 const PORT = process.env["VAMOS_LOCAL_DB_PORT"];
 
 describe.skipIf(!PORT)("deleteChauffeurRow on a real database (local, committed fixture)", () => {
-  it("refuses while a trip is open, lists his history, then deletes him completely", async () => {
+  it("keeps his finished trip, unassigns the ones not finished, hides him, and refuses him on Assign", async () => {
     const env = {
       HYPERDRIVE_NOCACHE: { connectionString: `postgres://vamos_edge:vamos_edge@127.0.0.1:${PORT}/postgres` },
     } as unknown as CloudflareEnv;
@@ -33,7 +35,8 @@ describe.skipIf(!PORT)("deleteChauffeurRow on a real database (local, committed 
     const chauffeurId = randomUUID();
     const userId = randomUUID();
     const doneId = randomUUID();
-    const openId = randomUUID();
+    const futureId = randomUUID();
+    const staleId = randomUUID();
     try {
       await su.begin(async (tx) => {
         await tx`
@@ -52,53 +55,54 @@ describe.skipIf(!PORT)("deleteChauffeurRow on a real database (local, committed 
         await tx`
           insert into public.staff (user_id, role, active, full_name, accepted_at)
           values (${userId}::uuid, 'admin', true, 'Local Owner', now())`;
-        for (const [id, days, status] of [
-          [doneId, -30, "completed"],
-          [openId, 30, "assigned"],
+        for (const [id, hours, status] of [
+          [doneId, -24 * 30, "completed"],
+          [futureId, 24 * 30, "assigned"],
+          [staleId, -2, "assigned"],
         ] as const) {
           await tx`
             insert into public.bookings (id, reference, contact_name, contact_email, status)
-            values (${id}::uuid, public.next_booking_reference(), 'Local Trip', ${`${tag}-${status}@example.test`}, 'confirmed')`;
+            values (${id}::uuid, public.next_booking_reference(), 'Local Trip', ${`${tag}-${id.slice(0, 4)}@example.test`}, 'confirmed')`;
           await tx`set local session_replication_role = replica`;
           await tx`
             insert into public.booking_legs (booking_id, leg_seq, direction, pickup_text, dropoff_text,
               scheduled_at, original_scheduled_at, scheduled_local, vehicle_class_id, estimated_duration_minutes,
               pax, bags, assigned_chauffeur_id, status, turnaround_buffer_minutes)
             values (${id}::uuid, 1, 'outbound', 'ZRH Airport', 'Zurich HB',
-              now() + make_interval(days => ${days}), now() + make_interval(days => ${days}),
-              to_char(now() + make_interval(days => ${days}), 'YYYY-MM-DD"T"HH24:MI'),
+              now() + make_interval(hours => ${hours}), now() + make_interval(hours => ${hours}),
+              to_char(now() + make_interval(hours => ${hours}), 'YYYY-MM-DD"T"HH24:MI'),
               ${classId}::uuid, 60, 1, 1, ${chauffeurId}::uuid, ${status}::public.booking_status, 15)`;
           await tx`update public.bookings set status = ${status}::public.booking_status where id = ${id}::uuid`;
           await tx`set local session_replication_role = origin`;
         }
       });
       const [carBefore] = await su<{ row: string }[]>`select row_to_json(v)::text as row from public.vehicles v where v.id = ${vehicleId}::uuid`;
-      const [openRef] = await su<{ reference: string }[]>`select reference from public.bookings where id = ${openId}::uuid`;
+      const refs = await su<{ id: string; reference: string }[]>`
+        select id::text as id, reference from public.bookings where id in (${futureId}::uuid, ${staleId}::uuid)`;
+      const refOf = (id: string) => refs.find((r) => r.id === id)!.reference;
       const claims: VamosClaims = { sub: userId, role: "authenticated", aal: "aal2", app_metadata: { vamos_role: "admin" } };
 
-      const history = await loadChauffeurHistory(env, claims, chauffeurId);
-      expect(history.map((h) => h.bookingId)).toEqual([openId, doneId]);
-      expect(history.every((h) => h.takenOff === false)).toBe(true);
-
-      const refused = await deleteChauffeurRow(env, claims, chauffeurId);
-      expect(refused).toEqual({ kind: "in-use", name: "Marco Delete", references: [openRef!.reference] });
-      const [still] = await su<{ n: number }[]>`select count(*)::int as n from public.chauffeurs where id = ${chauffeurId}::uuid`;
-      expect(still!.n).toBe(1);
-
-      await su`update public.booking_legs set status = 'completed' where booking_id = ${openId}::uuid`;
-      await su`update public.bookings set status = 'completed' where id = ${openId}::uuid`;
+      expect((await loadChauffeurHistory(env, claims, chauffeurId)).map((h) => h.bookingId)).toEqual([futureId, staleId, doneId]);
 
       const deleted = await deleteChauffeurRow(env, claims, chauffeurId);
-      expect(deleted).toEqual({ kind: "deleted", clearedLegs: 2 });
-      const [gone] = await su<{ n: number }[]>`select count(*)::int as n from public.chauffeurs where id = ${chauffeurId}::uuid`;
-      expect(gone!.n).toBe(0);
+      expect(deleted.kind).toBe("deleted");
+      expect(deleted.kind === "deleted" ? [...deleted.unassigned].sort() : []).toEqual([refOf(futureId), refOf(staleId)].sort());
+
       const legs = await su<{ booking: string; chauffeur: string | null; status: string }[]>`
         select booking_id::text as booking, assigned_chauffeur_id::text as chauffeur, status::text as status
-          from public.booking_legs where booking_id in (${doneId}::uuid, ${openId}::uuid) order by scheduled_at`;
-      expect(legs).toEqual([
-        { booking: doneId, chauffeur: null, status: "completed" },
-        { booking: openId, chauffeur: null, status: "completed" },
-      ]);
+          from public.booking_legs where booking_id in (${doneId}::uuid, ${futureId}::uuid, ${staleId}::uuid)`;
+      const leg = (id: string) => legs.find((l) => l.booking === id);
+      expect(leg(doneId)).toEqual({ booking: doneId, chauffeur: chauffeurId, status: "completed" });
+      expect(leg(futureId)).toEqual({ booking: futureId, chauffeur: null, status: "confirmed" });
+      expect(leg(staleId)).toEqual({ booking: staleId, chauffeur: null, status: "confirmed" });
+      const [row] = await su<{ full_name: string; gone: boolean; active: boolean }[]>`
+        select full_name, deleted_at is not null as gone, active from public.chauffeurs where id = ${chauffeurId}::uuid`;
+      expect(row).toEqual({ full_name: "Marco Delete", gone: true, active: false });
+
+      expect((await loadChauffeurs(env, claims)).some((c) => c.id === chauffeurId)).toBe(false);
+      await expect(deleteChauffeurRow(env, claims, chauffeurId)).resolves.toEqual({ kind: "gone" });
+      await expect(assignBooking(env, claims, futureId, chauffeurId)).resolves.toMatchObject({ ok: false });
+
       const [carAfter] = await su<{ row: string }[]>`select row_to_json(v)::text as row from public.vehicles v where v.id = ${vehicleId}::uuid`;
       expect(carAfter).toEqual(carBefore);
     } finally {

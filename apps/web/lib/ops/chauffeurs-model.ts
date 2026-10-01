@@ -110,8 +110,8 @@ export type AssertedChauffeurInput = {
   defaultVehicleId: string | null;
   /** undefined = keep the stored class (the driver form no longer sends one, signed 2026-10-01). */
   vehicleClassId: string | null | undefined;
-  /** undefined = keep the stored plate (the form did not send one). */
-  plate: string | null | undefined;
+  /** Required (decision 7); undefined = keep the stored plate (the caller did not send one). */
+  plate: string | undefined;
   licenceNumber: string;
   licenceExpiresOn: string | null;
   languages: string[];
@@ -124,11 +124,13 @@ export type AssertedChauffeurInput = {
   leaveRanges: LeaveRange[];
 };
 
-/** What deleteChauffeurRow found (chauffeurs-write.ts); fleet-http.ts chauffeurDeleteJson words it. */
+/**
+ * What deleteChauffeurRow found (chauffeurs-write.ts); fleet-http.ts chauffeurDeleteJson answers it.
+ * Decision 7: `unassigned` = the references of his trips that were not finished, now unassigned.
+ */
 export type ChauffeurDeleteResult =
   | { kind: "gone" }
-  | { kind: "in-use"; name: string; references: string[] }
-  | { kind: "deleted"; clearedLegs: number };
+  | { kind: "deleted"; unassigned: string[] };
 
 export class ChauffeurInputError extends Error {
   readonly key: string;

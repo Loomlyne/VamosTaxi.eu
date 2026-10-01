@@ -2,9 +2,9 @@
 //
 // Quick 261001-chauffeur-car, owner decisions 2026-10-01 (.planning/decisions/2026-10-01-no-cars-page.md):
 //   - each chauffeur carries a plate number (chauffeurs.plate, 20261007160000): trimmed, case kept,
-//     unique among active chauffeurs; the write and read paths carry it;
-//   - deleting a chauffeur is refused while an unfinished trip has him (names and references in the
-//     answer); otherwise he is deleted completely and his finished trips keep their record without him;
+//     REQUIRED, and two chauffeurs may share one (decision 7); the write and read paths carry it;
+//   - deleting a chauffeur (decision 7) keeps his row for his finished trips; his trips that are
+//     not finished go back to unassigned (ops_delete_chauffeur, asSystem); he leaves every list;
 //   - his profile reads every booking he was ever assigned to, newest first, the ones he was taken
 //     off marked as such (booking_legs + assignment events, read-only).
 //
@@ -15,12 +15,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { VamosClaims } from "../db/identity";
 
 const asStaff = vi.fn();
+const asSystem = vi.fn();
 
 vi.mock("../db/identity", () => ({
   asStaff: (...args: unknown[]) => asStaff(...args),
+  asSystem: (...args: unknown[]) => asSystem(...args),
 }));
 
-import { assertChauffeurInput, ChauffeurInputError, type ChauffeurInput } from "./chauffeurs";
+import { assertChauffeurInput, ChauffeurInputError, loadChauffeur, loadChauffeurByEmail, loadChauffeurDetailsList, loadChauffeurs, type ChauffeurInput } from "./chauffeurs";
 import { chauffeurDeleteJson, chauffeurErrorCopy, chauffeurJsonError, parseChauffeurBody, presentChauffeur } from "./fleet-http";
 import { deleteChauffeurRow, insertChauffeur, updateChauffeurRow } from "./chauffeurs-write";
 import { loadChauffeurHistory } from "./chauffeur-history";
@@ -64,15 +66,28 @@ function runWith(rec: ReturnType<typeof recorder>) {
 
 beforeEach(() => {
   asStaff.mockReset();
+  asSystem.mockReset();
 });
 
 // ── plate on the chauffeur ──────────────────────────────────────────────────────────────────
 describe("the plate number on the chauffeur", () => {
-  it("is trimmed, keeps its case, empty means none, absent means keep", () => {
+  it("is trimmed and keeps its case; absent means keep the stored one", () => {
     expect(assertChauffeurInput(baseInput({ plate: "  zh 123 456 " })).plate).toBe("zh 123 456");
-    expect(assertChauffeurInput(baseInput({ plate: "   " })).plate).toBeNull();
-    expect(assertChauffeurInput(baseInput({ plate: null })).plate).toBeNull();
     expect(assertChauffeurInput(baseInput()).plate).toBeUndefined();
+  });
+
+  it("is required: empty is refused in the existing words (decision 7)", () => {
+    for (const plate of ["", "   ", null]) {
+      expect(() => assertChauffeurInput(baseInput({ plate }))).toThrow("chauffeurs-failure-plate-required");
+    }
+    expect(chauffeurErrorCopy("chauffeurs-failure-plate-required")).toBe("Plate number is required.");
+  });
+
+  it("a new chauffeur without a plate is refused before any write", async () => {
+    const rec = recorder([]);
+    runWith(rec);
+    await expect(insertChauffeur(env, claims, null, assertChauffeurInput(baseInput()))).rejects.toThrow("chauffeurs-failure-plate-required");
+    expect(rec.calls).toHaveLength(0);
   });
 
   it("refuses a plate longer than the column allows", () => {
@@ -132,87 +147,81 @@ describe("the plate number on the chauffeur", () => {
     expect(keep?.values).toContain(true);
   });
 
-  it("a plate another active chauffeur has comes back as plain words, not a 500", async () => {
-    const err = Object.assign(new Error("duplicate key value violates unique constraint"), {
-      code: "23505",
-      constraint_name: "chauffeurs_plate_active_key",
-    });
-    const res = chauffeurJsonError(err);
-    expect(res.status).toBe(409);
-    const body = (await res.json()) as { code?: string; error?: string; message?: string };
-    expect(body.code ?? body.error).toBe("chauffeurs-plate-taken");
-    expect(body.message).toBe("Another chauffeur already has this plate number.");
+  it("two chauffeurs may share a plate: no plate-taken refusal is left in the JSON door", () => {
+    const src = readFileSync(fileURLToPath(new URL("./fleet-http.ts", import.meta.url)), "utf8");
+    expect(src).not.toMatch(/chauffeurs-plate-taken|chauffeurs_plate_active_key/);
   });
 });
 
 // ── delete a chauffeur ──────────────────────────────────────────────────────────────────────
-describe("deleting a chauffeur", () => {
-  it("locks his row first and answers gone when he is not there", async () => {
-    const rec = recorder([]);
-    runWith(rec);
-    await expect(deleteChauffeurRow(env, claims, MARCO)).resolves.toEqual({ kind: "gone" });
-    expect(rec.calls[0]?.text).toMatch(/from public\.chauffeurs where id = \?::uuid for update/);
-    expect(rec.calls.some((c) => /delete from public\.chauffeurs/.test(c.text))).toBe(false);
-  });
+type SysCall = { text: string; values: unknown[] };
+function systemWith(rows: unknown[] | Error) {
+  const calls: SysCall[] = [];
+  asSystem.mockImplementation(async (_env: unknown, fn: (sql: unknown) => Promise<unknown>) =>
+    fn((strings: TemplateStringsArray, ...values: unknown[]) => {
+      calls.push({ text: strings.join("?").replace(/\s+/g, " ").trim(), values });
+      return rows instanceof Error ? Promise.reject(rows) : Promise.resolve(rows);
+    }),
+  );
+  return calls;
+}
 
-  it("is refused while an unfinished trip has him — names and references, nothing written", async () => {
-    const rec = recorder([
-      { match: /from public\.chauffeurs where id/, rows: [{ id: MARCO, full_name: "Marco Rossi" }] },
-      { match: /from public\.booking_legs as l join public\.bookings as b/, rows: [{ reference: "VT-26-0042" }, { reference: "VT-26-0043" }, { reference: "VT-26-0042" }] },
-    ]);
-    runWith(rec);
+describe("deleting a chauffeur (decision 7)", () => {
+  it("runs ops_delete_chauffeur as the system role with his id and the owner as actor", async () => {
+    const calls = systemWith([{ reference: "VT-26-0050" }, { reference: "VT-26-0051" }]);
     await expect(deleteChauffeurRow(env, claims, MARCO)).resolves.toEqual({
-      kind: "in-use",
-      name: "Marco Rossi",
-      references: ["VT-26-0042", "VT-26-0043"],
+      kind: "deleted",
+      unassigned: ["VT-26-0050", "VT-26-0051"],
     });
-    const open = rec.calls.find((c) => /from public\.booking_legs as l join public\.bookings as b/.test(c.text));
-    // Unfinished = the leg and the booking are not closed — a trip whose pickup passed but that is
-    // not Complete, No-show or Cancelled still blocks (the rule of the rejected Cars branch).
-    expect(open?.text).toMatch(/l\.assigned_chauffeur_id = \?::uuid/);
-    expect(open?.text).toMatch(/l\.status not in \('cancelled', 'completed', 'no_show', 'refunded'\)/);
-    expect(open?.text).toMatch(/b\.status not in \('cancelled', 'completed', 'no_show', 'refunded'\)/);
-    expect(open?.text).not.toMatch(/scheduled_at\s*>/);
-    expect(rec.calls.some((c) => /update public\.booking_legs/.test(c.text))).toBe(false);
-    expect(rec.calls.some((c) => /delete from public\.chauffeurs/.test(c.text))).toBe(false);
+    expect(calls[0]?.text).toMatch(/select reference from public\.ops_delete_chauffeur\(\?::uuid, \?::uuid\)/);
+    expect(calls[0]?.values).toEqual([MARCO, claims.sub]);
+    expect(asStaff).not.toHaveBeenCalled();
   });
 
-  it("otherwise his finished trips let go of him and he is deleted completely", async () => {
-    const rec = recorder([
-      { match: /from public\.chauffeurs where id/, rows: [{ id: MARCO, full_name: "Marco Rossi" }] },
-      { match: /update public\.booking_legs/, rows: [{ id: "l1" }, { id: "l2" }] },
-    ]);
-    runWith(rec);
-    await expect(deleteChauffeurRow(env, claims, MARCO)).resolves.toEqual({ kind: "deleted", clearedLegs: 2 });
-    const texts = rec.calls.map((c) => c.text);
-    const clear = texts.findIndex((t) => /update public\.booking_legs set assigned_chauffeur_id = null where assigned_chauffeur_id = \?::uuid/.test(t));
-    const del = texts.findIndex((t) => /delete from public\.chauffeurs where id = \?::uuid/.test(t));
-    expect(clear).toBeGreaterThan(0);
-    expect(del).toBeGreaterThan(clear);
-    expect(texts.some((t) => /public\.vehicles/.test(t))).toBe(false);
+  it("a chauffeur who is not there (or already deleted) answers gone — mapped around the wrapper", async () => {
+    systemWith(Object.assign(new Error("not-found"), { code: "P0002" }));
+    await expect(deleteChauffeurRow(env, claims, MARCO)).resolves.toEqual({ kind: "gone" });
   });
 
-  it("the route answers 409 with plain words, 404 when gone, 200 when deleted", async () => {
-    const refused = chauffeurDeleteJson(MARCO, { kind: "in-use", name: "Marco Rossi", references: ["VT-26-0042"] });
-    expect(refused.status).toBe(409);
-    const body = (await refused.json()) as Record<string, unknown>;
-    expect(body.code ?? body.error).toBe("chauffeur-in-use");
-    expect(body.name).toBe("Marco Rossi");
-    expect(body.references).toEqual(["VT-26-0042"]);
-    expect(body.message).toBe("Marco Rossi still has trips that are not finished: VT-26-0042. Assign them to another driver first.");
+  it("any other failure is thrown (the route answers 500 in words)", async () => {
+    systemWith(Object.assign(new Error("boom"), { code: "08006" }));
+    await expect(deleteChauffeurRow(env, claims, MARCO)).rejects.toThrow("boom");
+  });
+
+  it("no mail goes to him: the delete path sends nothing", () => {
+    const src = readFileSync(fileURLToPath(new URL("./chauffeurs-write.ts", import.meta.url)), "utf8");
+    expect(src).not.toMatch(/sendChauffeur|notify/);
+  });
+
+  it("the route answers 404 when gone, 200 with the trips taken off him", async () => {
     expect(chauffeurDeleteJson(MARCO, { kind: "gone" }).status).toBe(404);
-    const ok = chauffeurDeleteJson(MARCO, { kind: "deleted", clearedLegs: 0 });
+    const ok = chauffeurDeleteJson(MARCO, { kind: "deleted", unassigned: ["VT-26-0050"] });
     expect(ok.status).toBe(200);
-    expect(((await ok.json()) as { data?: { id?: string } }).data?.id).toBe(MARCO);
+    expect(((await ok.json()) as { data?: unknown }).data).toEqual({ id: MARCO, unassigned: ["VT-26-0050"] });
   });
 
-  it("the DELETE route uses that answer (no bare 23503)", () => {
+  it("the DELETE route uses that answer", () => {
     const route = readFileSync(
       fileURLToPath(new URL("../../app/[locale]/(ops)/api/staff/chauffeurs/[id]/route.ts", import.meta.url)),
       "utf8",
     );
     expect(route).toMatch(/const result = await deleteChauffeurRow\(env, claims, id\)/);
     expect(route).toMatch(/return chauffeurDeleteJson\(id, result\)/);
+  });
+
+  it("a deleted chauffeur leaves every dashboard read and cannot be edited", async () => {
+    const rec = recorder([]);
+    runWith(rec);
+    await loadChauffeurs(env, claims);
+    await loadChauffeurDetailsList(env, claims);
+    await loadChauffeur(env, claims, MARCO);
+    await loadChauffeurByEmail(env, claims, "marco@example.test");
+    const reads = rec.calls.filter((c) => /from public\.chauffeurs c/.test(c.text));
+    expect(reads).toHaveLength(4);
+    for (const r of reads) expect(r.text).toMatch(/c\.deleted_at is null/);
+    await updateChauffeurRow(env, claims, MARCO, assertChauffeurInput(baseInput({ plate: "ZH 1" })));
+    const upd = rec.calls.find((c) => /update public\.chauffeurs set full_name/.test(c.text));
+    expect(upd?.text).toMatch(/where id = \? and deleted_at is null/);
   });
 });
 
