@@ -22,7 +22,7 @@ the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 Rewritten short on 2026-09-30 14:25; the long version is in git history (`8230227c`).
 
-**Last update:** 2026-10-01 23:58 (+04)
+**Last update:** 2026-10-02 00:01 (+04)
 
 ## Controller take-over, 2026-10-01 23:25 (+04)
 
@@ -44,7 +44,7 @@ The local controller read `.planning/HANDOVER-2026-10-01.md` (the closing state 
 | R | Phase 20 leftovers G7/G10/G11/G12/G28 | **Live 23:51** (`3e2bba66`, Worker `b7a34b05`) | done; branch deleted, `archive/branch-claude-project-thread-cwny3q-84cb34cb` |
 | A | Finish P6, change place or time of a paid trip | `gsd/26.2-p6-build` `6af6b74c` (last commit is the saved WIP) | Fresh review (money path), then ship. Migration `20261007150000` |
 | B | Main green (26.0 finish, B4): Linux `confirmation.spec.ts:130`, mutation-gate patch, schema job, home reds; tests and CI files only | `ci/e2e-linux-3`, `fix/e2e-linux-2` | Ship (CI files, no deploy); the 48 SiteHeader picture diffs go to the owner one page at a time |
-| D | GSD bookkeeping (B10): missing summaries, `STATE.md`, `ROADMAP.md` rows for 26.0/26.2/26.5/27.1 and the closed phases | new | Ship as a planning note |
+| D | GSD bookkeeping (B10) | **On main 00:00** (`e38026ff`, planning only) | done; GSD now shows 323/337 plans, current 20 (20-09), next 28 |
 | V | Van luxury up to 12 travellers (owner chose "Raise to 12", 2026-10-01 16:03) | new | Stops if it needs a file P6 touches; ship; owner test: 4242 for 10 travellers |
 
 **Then, one at a time after P6 (same money and checkout files):** B2 extras part B (CHF 0 shows "included")
@@ -56,7 +56,8 @@ JSON double encoding in `stripe_events.payload` and `rate_version_rules.payload`
 
 **B7 live 23:56.** Next on that lane: G23 (drop `maps.googleapis.com` from CSP `connect-src`) → Arabic and design-canvas fixes (5 + 19).
 
-**Last:** u13 stricter check scripts (`gsd/phase-26.2-u13`). **After the owner's Meta check:** Phase 28, then 29.
+**Closed by the owner 2026-10-01 23:59:** Phase 19 (no surge test, not a launch item) and the 26.2 audit units that
+never ran (`decisions/2026-10-01-phase19-and-26.2-units-closed.md`). **Last:** u13 stricter check scripts (`gsd/phase-26.2-u13`). **After the owner's Meta check:** Phase 28, then 29.
 
 **The owner's own steps:** (1) Done 23:4x: Cloudflare automatic Web Analytics off. (2) Now: waiting time 30 minutes
 in dashboard settings (B7 is live). (3) Real texts of the 5 published reviews. (4) 4242 payment as guest and

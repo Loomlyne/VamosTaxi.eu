@@ -74,10 +74,8 @@ delete test bookings (26.3 D-37), the live Stripe key, the vamostaxi.eu cutover,
 
 ### Open questions for the controller
 
-1. Phase 19: closed by the owner on 2026-09-30 (board commit `571bf701`, prompt `06-phase-19-surge.md`), or a
-   launch item (HANDOVER-2026-10-01.md section 9)? No source in `.planning/decisions/` or the phase folder.
-2. The 26.2 audit units never finished (01 re-baseline after 26.0, 02, 04, 05, 06, 07, 08, 11, close-out 12) are on
-   no lane. Keep for later, or close the audit with what is live?
+None. Answered by the owner 2026-10-01 23:59 (+04): Phase 19 closed (no surge test); the 26.2 units that
+never ran are closed (`.planning/decisions/2026-10-01-phase19-and-26.2-units-closed.md`).
 
 ## Blockers
 

@@ -104,7 +104,7 @@ the word "Phase", so GSD reads each line as one phase.
 - [x] **Phase 16: Staging MX + end-to-end UAT** - Customer Reply-in-Gmail appends to the same ticket; MX only on replies.vamostaxi.site (complete: 16-UAT 10 of 10 passed; closure file 2026-09-29)
 - [x] **Phase 17: Ops chauffeur profile, shift roster, two-driver vehicles** - CLOSED (owner, 2026-09-29): feature removed, "we deleted that part"; never build. A fresh phase if it is wanted again
 - [x] **Phase 18: OPS Pricing source of truth** - `/pricing` is the only fare book; public offers follow Publish (completed 2026-09-15)
-- [x] **Phase 19: 10,000-booking surge proof on the 26.3 checkout** - DEFERRED, not current work. Two dated sources disagree: closed by the owner 2026-09-30 ("no need for test close it", board commit 571bf701), and "before launch: the surge test" in HANDOVER-2026-10-01.md. Open question for the controller; no agent starts it
+- [x] **Phase 19: 10,000-booking surge proof on the 26.3 checkout** - CLOSED by the owner (2026-09-30, confirmed 2026-10-01 23:59): no surge test, not a launch item (`decisions/2026-10-01-phase19-and-26.2-units-closed.md`)
 - [ ] **Phase 20: Security check of the changed app (2026-10)** - OPEN. Check, serious fixes, owner decisions and refunds by hand are live (20-06, 07, 08, 10); leftovers G7/G10/G11/G12/G28 on main 2026-10-01 23:49 (3e2bba66, migration 20261007180000 applied); 20-09 live proof is left and waits for the owner's 4242 and refund test
 - [x] **Phase 21: Charge gate + visible refusal + payable intent** - REPLACED (owner, 2026-09-29) by 26.1 (live); its client code was rebuilt by 26.3. Never build
 - [x] **Phase 22: Card confirm + thank-you webhook wait** - REPLACED (owner, 2026-09-29) by 26.3: payment is Stripe's hosted page, no card form on the site. Never build
@@ -114,7 +114,7 @@ the word "Phase", so GSD reads each line as one phase.
 - [x] **Phase 26: Legal gate** - Pixel and Purchase stay off until owner banner, cookies, and privacy lines exist in en/de/fr/ar; new policy version; flag stays off (completed 2026-09-23)
 - [x] **Phase 26.0: Main green (INSERTED)** - Honest test and gate set, Linux e2e job, /dev test-only, imprint en+de notice (shipped 2026-10-01, 6ec73c52, Worker c2127d38; the remaining reds are lane B on the board)
 - [x] **Phase 26.1: Payment and pricing integrity (INSERTED)** - A paid session always confirms; refunds, disputes and DLQ reach the DB; the owner fare formula with 26 cantons; pay-link lock and race; refund rules; three classes; admin sign-in options (shipped 2026-09-28, cff97a0e; 26.1-28 superseded)
-- [ ] **Phase 26.2: Codebase audit, bug fix and simplify** - OPEN, partly live. Hand-overs 1 and 2, P1 class change, P4 extras A and D, chauffeurs by class are live; P6 paid-trip edit in work (lane A); units 04, 05, 06 never started; close-out 26.2-12 not written
+- [ ] **Phase 26.2: Codebase audit, bug fix and simplify** - OPEN for its found rows only. Hand-overs 1 and 2, P1 class change, P4 extras A and D, chauffeurs by class are live; P6 in work (lane A); the units that never ran (01, 02, 04-08 rest, 11, close-out 12) are closed by the owner 2026-10-01 23:59
 - [x] **Phase 26.3: Booking flow rebuild (INSERTED)** - Home box to paid in two screens on Stripe's hosted page (shipped 2026-09-29, af93fc8e; test-booking delete D-37 is the owner's word)
 - [x] **Phase 26.4: One form + phone booking sheet (INSERTED)** - One booking form; phone and tablet bar plus sheet (shipped 2026-09-30, 0f58ab6d)
 - [x] **Phase 26.4.1: Laptop booking bar (INSERTED)** - Wide bar at the bottom of the laptop hero (shipped 2026-09-30, 0f58ab6d)
@@ -830,17 +830,11 @@ History of 2026-09-13: `.planning/phases/18-ops-pricing-source/archive-2026-09-1
 
 **UI hint**: yes — `18-UI-SPEC.md` 2026-09-14 approved (four tabs, VAT-only rail, `--vt-*` only)
 
-### Phase 19: 10,000-booking surge proof on the 26.3 checkout (DEFERRED, status question open)
+### Phase 19: 10,000-booking surge proof on the 26.3 checkout (CLOSED)
 
-**State, 2026-10-01**: not current work; no agent starts it. The sources disagree and the owner has not been
-asked again:
-- Closed: control board commit `571bf701` (2026-09-30 03:05 +04) records "Closed by the owner, 2026-09-30
-  ('no need for test close it')"; `.planning/prompts/06-phase-19-surge.md` carries "CLOSED BY THE OWNER ON
-  2026-09-30"; the board's "Decisions that stand" says the surge test is closed.
-- Still wanted: `.planning/HANDOVER-2026-10-01.md` section 9 lists "the Phase 19 surge test" under "Also before
-  launch"; `.planning/PHASE-CLOSURE-2026-09-29.md` has it parked, rewritten and signed (19-01 to 19-05).
-Neither source is in `.planning/decisions/` or the phase folder. The controller asks the owner; until then
-the plans keep no SUMMARY. The `sk_live_` refund refusal it once carried moved to Phase 20 / B3.
+**State**: closed by the owner on 2026-09-30 and confirmed on 2026-10-01 23:59 (+04) in the controller
+session: no surge test, not a launch item (`.planning/decisions/2026-10-01-phase19-and-26.2-units-closed.md`).
+The plans 19-01 to 19-05 stay as history without a SUMMARY. The `sk_live_` refund refusal moved to B3.
 
 **Goal**: The quote, checkout and booking save are proven with 10,000 bookings at once, on a copy of the database behind a hidden test Worker with a fake Stripe, then about 200 real sandbox payments through Stripe's page.
 **Depends on**: 26.0, 26.2, 20. The owner's paid steps: Cloudflare Workers Paid and a copy of the database.
@@ -1027,18 +1021,18 @@ In work or waiting (board "What is left"):
 
 **Plans:** 3 of 12 finished (03, 09, 10)
 
-- [ ] 26.2-01-PLAN.md — Baseline: written 2026-09-30 before 26.0 landed (`26.2-BASELINE.md`); no re-baseline after 26.0
-- [ ] 26.2-02-PLAN.md — Leaf lib: geo, health, abuse, security reviewed (`REVIEW-02`); flight, fx, content, crypto, forms, db, supabase, account, auth, lifecycle not reviewed
+- [x] 26.2-01-PLAN.md — Baseline: written 2026-09-30 before 26.0 landed (`26.2-BASELINE.md`); no re-baseline after 26.0 — **closed by the owner 2026-10-01** (not run)
+- [x] 26.2-02-PLAN.md — Leaf lib: geo, health, abuse, security reviewed (`REVIEW-02`); flight, fx, content, crypto, forms, db, supabase, account, auth, lifecycle not reviewed — **closed by the owner 2026-10-01** (not run)
 - [x] 26.2-03-PLAN.md — Ops lib: reviewed in full; fixes in hand-overs 1 and 2 (`26.2-03-SUMMARY.md`)
-- [ ] 26.2-04-PLAN.md — Prices (`lib/quote`, `lib/pricing`): not started
-- [ ] 26.2-05-PLAN.md — API routes outside checkout: not started as a unit (staff routes reviewed under 07)
-- [ ] 26.2-06-PLAN.md — Components: not started
-- [ ] 26.2-07-PLAN.md — Next pages outside checkout: dashboard routes reviewed (`REVIEW-07`); public pages, `middleware.ts`, `i18n` not reviewed
-- [ ] 26.2-08-PLAN.md — Live DC surfaces: `app/ops` reviewed (`REVIEW-08`); `app/home`, `app/pages`, `app/vamos-*.js` not reviewed
+- [x] 26.2-04-PLAN.md — Prices (`lib/quote`, `lib/pricing`): not started — **closed by the owner 2026-10-01** (not run)
+- [x] 26.2-05-PLAN.md — API routes outside checkout: not started as a unit (staff routes reviewed under 07) — **closed by the owner 2026-10-01** (not run)
+- [x] 26.2-06-PLAN.md — Components: not started — **closed by the owner 2026-10-01** (not run)
+- [x] 26.2-07-PLAN.md — Next pages outside checkout: dashboard routes reviewed (`REVIEW-07`); public pages, `middleware.ts`, `i18n` not reviewed — **closed by the owner 2026-10-01** (not run)
+- [x] 26.2-08-PLAN.md — Live DC surfaces: `app/ops` reviewed (`REVIEW-08`); `app/home`, `app/pages`, `app/vamos-*.js` not reviewed — **closed by the owner 2026-10-01** (not run)
 - [x] 26.2-09-PLAN.md — E-mails: reviewed in full (`26.2-09-SUMMARY.md`)
 - [x] 26.2-10-PLAN.md — Database, report only: done; findings partly fixed (`26.2-10-SUMMARY.md`)
-- [ ] 26.2-11-PLAN.md — Booking path: only rows from other units fixed (hand-over 2); its own scope (`lib/checkout`, `api/checkout`, `api/stripe`, `api/quote`, checkout and confirmation pages, `worker.ts`) not reviewed; P6 in work
-- [ ] 26.2-12-PLAN.md — Close-out hand-over: not written (hand-overs 1 and 2 were interim)
+- [x] 26.2-11-PLAN.md — Booking path: only rows from other units fixed (hand-over 2); its own scope (`lib/checkout`, `api/checkout`, `api/stripe`, `api/quote`, checkout and confirmation pages, `worker.ts`) not reviewed; P6 in work — **closed by the owner 2026-10-01** (not run)
+- [x] 26.2-12-PLAN.md — Close-out hand-over: not written (hand-overs 1 and 2 were interim) — **closed by the owner 2026-10-01** (not run)
 
 **UI hint**: no new screens from the audit itself; P1, P4 and P6 carry their own signed pictures.
 
@@ -1266,7 +1260,7 @@ Plan-level states (owner, 2026-09-29; source record .planning/PHASE-CLOSURE-2026
 | 16. Staging MX + end-to-end UAT | UAT 10/10 passed | Complete | - |
 | 17. Ops chauffeur profile, shift roster, two-driver vehicles | - | Closed, feature removed | - |
 | 18. OPS Pricing source of truth | 7/7 | Complete    | 2026-09-15 |
-| 19. 10,000-booking surge proof | 0/5 | Deferred. Closed by the owner 2026-09-30 per board commit 571bf701; the 2026-10-01 hand-over still lists it before launch. Question for the controller | - |
+| 19. 10,000-booking surge proof | 0/5 | Closed by the owner (2026-09-30, confirmed 2026-10-01). No surge test | - |
 | 20. Security check of the changed app | 9/10 (20-09 live proof open) | Open. A, B1, 20-12, 20-10, C1, C2, the e-mail change fix and the leftovers G7/G10/G11/G12/G28 (3e2bba66) on main; left: 20-09 (F15 reached main with B7, ea1141e7) | - |
 | 21. Charge gate + visible refusal + payable intent | - | Replaced by 26.1/26.3, never build | - |
 | 22. Card confirm + thank-you webhook wait | 0/TBD | Replaced by 26.1/26.3, never build | - |
