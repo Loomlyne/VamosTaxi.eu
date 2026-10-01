@@ -184,7 +184,8 @@ describe("parseChauffeurBody", () => {
     expect(parsed.input.fullName).toBe("Ada");
     expect(parsed.input.licenceNumber).toBe("CH 1");
     expect(parsed.input.defaultVehicleId).toBe("11111111-1111-4111-8111-111111111111");
-    expect(parsed.input.vehicleClassId).toBeNull();
+    // Signed 2026-10-01: no class in the body = keep the stored class (the form has no Class field).
+    expect(parsed.input.vehicleClassId).toBeUndefined();
     expect(parsed.input.languages).toEqual(["de", "en"]);
   });
 

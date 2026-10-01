@@ -10,6 +10,7 @@
  */
 import { devGalleryEnabled, isDevGalleryPath } from "./dev-gallery";
 
+import { applySecurityHeaders } from "./security/headers";
 import { seoPageFor } from "./seo/head";
 
 export const INTERNAL_ASSET_HEADER = "x-vamos-dc-asset";
@@ -38,6 +39,7 @@ export const DC_MOCK_CANONICAL: Record<string, string> = {
   "/app/pages/cancellation": "/cancellation",
   "/app/pages/imprint": "/imprint",
   "/app/pages/sign-in": "/sign-in",
+  "/app/pages/sign-in-confirm": "/sign-in/confirm",
   "/app/pages/reset-password": "/reset-password",
   "/app/pages/manage-booking": "/manage-booking",
   "/app/pages/booking-detail": "/booking-detail",
@@ -51,6 +53,7 @@ export const DC_MOCK_CANONICAL: Record<string, string> = {
 const LEFTOVER_EXACT: readonly string[] = Object.freeze([
   "/become-a-partner",
   "/login",
+  "/login/confirm",
   "/ops",
 ]);
 
@@ -238,4 +241,53 @@ export function gateLeakedMockRequest(request: Request): Response | null {
   const gated = gatePublicRequest(request);
   if (gated === "not-found") return empty404();
   return gated;
+}
+
+/** True for `/app/ops` and every file under it (the dashboard screens and their scripts). */
+export function isOpsAssetRequest(request: Request): boolean {
+  const { pathname } = new URL(request.url);
+  return pathname === "/app/ops" || pathname.startsWith("/app/ops/");
+}
+
+/**
+ * F16: the dashboard screens are served on the dashboard host only. Call with the
+ * request already pinned to this Worker's surface (host = dashboard host on the
+ * `vamos-dashboard` entrypoint), BEFORE any asset-host rewrite and BEFORE the
+ * internal-asset header check (a public client can send that header).
+ * Public host: a private no-store 404. Dashboard host: null (serve it).
+ */
+export function guardOpsAsset(request: Request): Response | null {
+  if (!isOpsAssetRequest(request)) return null;
+  if (isDashboardHost(new URL(request.url).hostname)) return null;
+  const headers = new Headers({ "cache-control": "private, no-store" });
+  applySecurityHeaders(headers);
+  return new Response(null, { status: 404, headers });
+}
+
+/** Full security headers and noindex on a dashboard screen file (asset responses carry none). */
+export function withOpsAssetHeaders(res: Response): Response {
+  const headers = new Headers(res.headers);
+  applySecurityHeaders(headers);
+  headers.set("X-Robots-Tag", "noindex");
+  return new Response(res.body, { status: res.status, statusText: res.statusText, headers });
+}
+
+/**
+ * F16: answer a dashboard screen file straight from the assets binding. A named entrypoint
+ * (`Dashboard`) does not pass through the asset layer, so the file is fetched here. Call only
+ * after `guardOpsAsset` let the request through. A missing file stays a private no-store 404
+ * that carries the security headers.
+ */
+export async function serveOpsAsset(
+  request: Request,
+  assets: { fetch(request: Request): Promise<Response> },
+): Promise<Response> {
+  const res = await assets.fetch(request);
+  if (res.status === 404) {
+    const headers = new Headers({ "cache-control": "private, no-store" });
+    applySecurityHeaders(headers);
+    headers.set("X-Robots-Tag", "noindex");
+    return new Response(null, { status: 404, headers });
+  }
+  return withOpsAssetHeaders(res);
 }

@@ -10,6 +10,7 @@
  * K92: Assets live on Worker `vamos` custom domains (apex/www), not here.
  * `/app/ops/*` `/_next/*` `/brand/*` and dotted files go to vamos default
  * fetch on vamostaxi.site so OpenNext ASSETS hit. Documents stay on Dashboard.
+ * Exception (F16): `/app/ops/*` goes to Dashboard, which reads the file from ASSETS itself.
  */
 import { isApexAssetPath } from "./lib/security/pin-sni";
 
@@ -63,6 +64,11 @@ export default {
           "cache-control": "public, max-age=3600",
         },
       });
+    }
+    // F16: dashboard screen files are answered by the Dashboard entrypoint (dashboard host only).
+    // The public entrance 404s /app/ops/*, so they must not be sent there.
+    if (path === "/app/ops" || path.startsWith("/app/ops/")) {
+      return env.APP.fetch(request);
     }
     if (isApexAssetPath(path)) {
       return env.PUBLIC.fetch(apexAssetRequest(request));

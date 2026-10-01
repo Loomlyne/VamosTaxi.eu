@@ -210,6 +210,17 @@
    }
   },
   {
+   "key": "sign-in-confirm",
+   "path": "/sign-in/confirm",
+   "indexable": false,
+   "title": {
+    "en": "Confirm your sign-in | Vamos Taxi",
+    "de": "Anmeldung abschliessen | Vamos Taxi",
+    "fr": "Confirmer la connexion | Vamos Taxi",
+    "ar": "تأكيد تسجيل الدخول | Vamos Taxi"
+   }
+  },
+  {
    "key": "reset-password",
    "path": "/reset-password",
    "indexable": false,
