@@ -536,6 +536,10 @@ describe("5 · Assign is one row (decision 7): Driver [Choose a chauffeur ▾] [
     expect(src).toMatch(/@media \(max-width:680px\)\{[^@]*\[data-ops-assign-row="pick"\]\{[^}]*flex-direction:column[^}]*align-items:stretch/);
     expect(src).toMatch(/\[data-ops-assign-row="pick"\] \.vt-btn\{width:100%\}/);
     expect(src).toMatch(/\[data-ops-assign-act\] \.vt-btn\{[^}]*min-height:44px/);
+    // Text buttons: no border, no fill (the editor footer's Delete is styled the same way); no glow.
+    expect(src).toMatch(/\[data-ops-assign-act\] \.vt-btn\{[^}]*border-color:transparent[^}]*background:transparent/);
+    // The Driver label sits level with the 44 px row.
+    expect(src).toMatch(/\[data-ops-assign\] \[data-ops-pax-k\]\{align-self:center;padding-top:0\}/);
   });
 
   it("no driver of this class: the box says so with the class name, four languages", () => {
