@@ -1,0 +1,306 @@
+PASS CSP connect-src has no maps.googleapis.com 'self' challenges.cloudflare.com api.mapbox.com events.mapbox.com cloudflareinsights.com
+PASS en 1440 /imprint phone reads left to right []
+PASS en 1440 /imprint 2 directional icons unmirrored [false,false]
+PASS en 1440 /imprint no sideways scroll 
+FAIL en 1440 /imprint coverage de empty ["GmbH","CH-020.4.077.792-7","vamostaxi.site","Ben Othman Houssein","Vamos Taxi / Loomlyne","Loomlyne"]
+FAIL en 1440 /imprint coverage fr empty ["GmbH","CH-020.4.077.792-7","vamostaxi.site","Ben Othman Houssein","Vamos Taxi / Loomlyne","Loomlyne"]
+FAIL en 1440 /imprint coverage ar empty ["GmbH","CH-020.4.077.792-7","vamostaxi.site","Ben Othman Houssein","Vamos Taxi / Loomlyne","Loomlyne"]
+PASS en muted grey color-mix(in oklab,#767877 60%,#545756) -> oklab(0.523866 -0.00327937 0.000616694)
+PASS en 1440 /cancellation phone reads left to right []
+PASS en 1440 /cancellation 5 directional icons unmirrored [false,false,false,false,false]
+PASS en 1440 /cancellation no sideways scroll 
+FAIL en 1440 /cancellation coverage de empty ["Where our records show you were at the pickup point and no vehicle came, you receive full refund back."]
+FAIL en 1440 /cancellation coverage fr empty ["Where our records show you were at the pickup point and no vehicle came, you receive full refund back."]
+FAIL en 1440 /cancellation coverage ar empty ["Where our records show you were at the pickup point and no vehicle came, you receive full refund back."]
+PASS en 1440 /terms phone reads left to right []
+PASS en 1440 /terms 4 directional icons unmirrored [false,false,false,false]
+PASS en 1440 /terms no sideways scroll 
+FAIL en 1440 /terms coverage de empty ["Registered as Vamos Taxi GmbH, company number CH-020.4.077.792-7 at the commercial register of the Canton of Zurich. Full company details are on the","Oversized or unusual items declared at booking: shown on your quote.","Accepted methods: Visa, Mastercard, Apple Pay, Google Pay and TWINT."]
+FAIL en 1440 /terms coverage fr empty ["Registered as Vamos Taxi GmbH, company number CH-020.4.077.792-7 at the commercial register of the Canton of Zurich. Full company details are on the","Oversized or unusual items declared at booking: shown on your quote.","Accepted methods: Visa, Mastercard, Apple Pay, Google Pay and TWINT."]
+FAIL en 1440 /terms coverage ar empty ["Registered as Vamos Taxi GmbH, company number CH-020.4.077.792-7 at the commercial register of the Canton of Zurich. Full company details are on the","Oversized or unusual items declared at booking: shown on your quote.","Accepted methods: Visa, Mastercard, Apple Pay, Google Pay and TWINT."]
+PASS en 1440 /faq phone reads left to right []
+PASS en 1440 /faq 8 directional icons unmirrored [false,false,false,false,false,false,false,false]
+PASS en 1440 /faq no sideways scroll 
+PASS en 1440 /faq coverage de empty 
+PASS en 1440 /faq coverage fr empty 
+PASS en 1440 /faq coverage ar empty 
+PASS en 1440 /sign-in phone reads left to right []
+PASS en 1440 /sign-in 3 directional icons unmirrored [false,false,false]
+PASS en 1440 /sign-in no sideways scroll 
+FAIL en 1440 /sign-in coverage de empty ["you@example.com"]
+FAIL en 1440 /sign-in coverage fr empty ["you@example.com"]
+FAIL en 1440 /sign-in coverage ar empty ["you@example.com"]
+PASS en 1024 /imprint phone reads left to right []
+PASS en 1024 /imprint 1 directional icons unmirrored [false]
+PASS en 1024 /imprint no sideways scroll 
+FAIL en 1024 /imprint coverage de empty ["GmbH","CH-020.4.077.792-7","vamostaxi.site","Ben Othman Houssein","Vamos Taxi / Loomlyne","Loomlyne"]
+FAIL en 1024 /imprint coverage fr empty ["GmbH","CH-020.4.077.792-7","vamostaxi.site","Ben Othman Houssein","Vamos Taxi / Loomlyne","Loomlyne"]
+FAIL en 1024 /imprint coverage ar empty ["GmbH","CH-020.4.077.792-7","vamostaxi.site","Ben Othman Houssein","Vamos Taxi / Loomlyne","Loomlyne"]
+PASS en 1024 /cancellation phone reads left to right []
+PASS en 1024 /cancellation 4 directional icons unmirrored [false,false,false,false]
+PASS en 1024 /cancellation no sideways scroll 
+FAIL en 1024 /cancellation coverage de empty ["Where our records show you were at the pickup point and no vehicle came, you receive full refund back."]
+FAIL en 1024 /cancellation coverage fr empty ["Where our records show you were at the pickup point and no vehicle came, you receive full refund back."]
+FAIL en 1024 /cancellation coverage ar empty ["Where our records show you were at the pickup point and no vehicle came, you receive full refund back."]
+PASS en 1024 /terms phone reads left to right []
+PASS en 1024 /terms 3 directional icons unmirrored [false,false,false]
+PASS en 1024 /terms no sideways scroll 
+FAIL en 1024 /terms coverage de empty ["Registered as Vamos Taxi GmbH, company number CH-020.4.077.792-7 at the commercial register of the Canton of Zurich. Full company details are on the","Oversized or unusual items declared at booking: shown on your quote.","Accepted methods: Visa, Mastercard, Apple Pay, Google Pay and TWINT."]
+FAIL en 1024 /terms coverage fr empty ["Registered as Vamos Taxi GmbH, company number CH-020.4.077.792-7 at the commercial register of the Canton of Zurich. Full company details are on the","Oversized or unusual items declared at booking: shown on your quote.","Accepted methods: Visa, Mastercard, Apple Pay, Google Pay and TWINT."]
+FAIL en 1024 /terms coverage ar empty ["Registered as Vamos Taxi GmbH, company number CH-020.4.077.792-7 at the commercial register of the Canton of Zurich. Full company details are on the","Oversized or unusual items declared at booking: shown on your quote.","Accepted methods: Visa, Mastercard, Apple Pay, Google Pay and TWINT."]
+PASS en 1024 /faq phone reads left to right []
+PASS en 1024 /faq 7 directional icons unmirrored [false,false,false,false,false,false,false]
+PASS en 1024 /faq no sideways scroll 
+PASS en 1024 /faq coverage de empty 
+PASS en 1024 /faq coverage fr empty 
+PASS en 1024 /faq coverage ar empty 
+PASS en 1024 /sign-in phone reads left to right []
+PASS en 1024 /sign-in 2 directional icons unmirrored [false,false]
+PASS en 1024 /sign-in no sideways scroll 
+FAIL en 1024 /sign-in coverage de empty ["you@example.com"]
+FAIL en 1024 /sign-in coverage fr empty ["you@example.com"]
+FAIL en 1024 /sign-in coverage ar empty ["you@example.com"]
+PASS en 768 /imprint phone reads left to right []
+PASS en 768 /imprint 1 directional icons unmirrored [false]
+PASS en 768 /imprint no sideways scroll 
+FAIL en 768 /imprint coverage de empty ["GmbH","CH-020.4.077.792-7","vamostaxi.site","Ben Othman Houssein","Vamos Taxi / Loomlyne","Loomlyne"]
+FAIL en 768 /imprint coverage fr empty ["GmbH","CH-020.4.077.792-7","vamostaxi.site","Ben Othman Houssein","Vamos Taxi / Loomlyne","Loomlyne"]
+FAIL en 768 /imprint coverage ar empty ["GmbH","CH-020.4.077.792-7","vamostaxi.site","Ben Othman Houssein","Vamos Taxi / Loomlyne","Loomlyne"]
+PASS en 768 /cancellation phone reads left to right []
+PASS en 768 /cancellation 4 directional icons unmirrored [false,false,false,false]
+PASS en 768 /cancellation no sideways scroll 
+FAIL en 768 /cancellation coverage de empty ["Where our records show you were at the pickup point and no vehicle came, you receive full refund back."]
+FAIL en 768 /cancellation coverage fr empty ["Where our records show you were at the pickup point and no vehicle came, you receive full refund back."]
+FAIL en 768 /cancellation coverage ar empty ["Where our records show you were at the pickup point and no vehicle came, you receive full refund back."]
+PASS en 768 /terms phone reads left to right []
+PASS en 768 /terms 3 directional icons unmirrored [false,false,false]
+PASS en 768 /terms no sideways scroll 
+FAIL en 768 /terms coverage de empty ["Registered as Vamos Taxi GmbH, company number CH-020.4.077.792-7 at the commercial register of the Canton of Zurich. Full company details are on the","Oversized or unusual items declared at booking: shown on your quote.","Accepted methods: Visa, Mastercard, Apple Pay, Google Pay and TWINT."]
+FAIL en 768 /terms coverage fr empty ["Registered as Vamos Taxi GmbH, company number CH-020.4.077.792-7 at the commercial register of the Canton of Zurich. Full company details are on the","Oversized or unusual items declared at booking: shown on your quote.","Accepted methods: Visa, Mastercard, Apple Pay, Google Pay and TWINT."]
+FAIL en 768 /terms coverage ar empty ["Registered as Vamos Taxi GmbH, company number CH-020.4.077.792-7 at the commercial register of the Canton of Zurich. Full company details are on the","Oversized or unusual items declared at booking: shown on your quote.","Accepted methods: Visa, Mastercard, Apple Pay, Google Pay and TWINT."]
+PASS en 768 /faq phone reads left to right []
+PASS en 768 /faq 7 directional icons unmirrored [false,false,false,false,false,false,false]
+PASS en 768 /faq no sideways scroll 
+PASS en 768 /faq coverage de empty 
+PASS en 768 /faq coverage fr empty 
+PASS en 768 /faq coverage ar empty 
+PASS en 768 /sign-in phone reads left to right []
+PASS en 768 /sign-in 2 directional icons unmirrored [false,false]
+PASS en 768 /sign-in no sideways scroll 
+FAIL en 768 /sign-in coverage de empty ["you@example.com"]
+FAIL en 768 /sign-in coverage fr empty ["you@example.com"]
+FAIL en 768 /sign-in coverage ar empty ["you@example.com"]
+PASS en 390 /imprint phone reads left to right []
+PASS en 390 /imprint 1 directional icons unmirrored [false]
+PASS en 390 /imprint no sideways scroll 
+FAIL en 390 /imprint coverage de empty ["GmbH","CH-020.4.077.792-7","vamostaxi.site","Ben Othman Houssein","Vamos Taxi / Loomlyne","Loomlyne"]
+FAIL en 390 /imprint coverage fr empty ["GmbH","CH-020.4.077.792-7","vamostaxi.site","Ben Othman Houssein","Vamos Taxi / Loomlyne","Loomlyne"]
+FAIL en 390 /imprint coverage ar empty ["GmbH","CH-020.4.077.792-7","vamostaxi.site","Ben Othman Houssein","Vamos Taxi / Loomlyne","Loomlyne"]
+PASS en 390 /cancellation phone reads left to right []
+PASS en 390 /cancellation 4 directional icons unmirrored [false,false,false,false]
+PASS en 390 /cancellation no sideways scroll 
+FAIL en 390 /cancellation coverage de empty ["Where our records show you were at the pickup point and no vehicle came, you receive full refund back."]
+FAIL en 390 /cancellation coverage fr empty ["Where our records show you were at the pickup point and no vehicle came, you receive full refund back."]
+FAIL en 390 /cancellation coverage ar empty ["Where our records show you were at the pickup point and no vehicle came, you receive full refund back."]
+PASS en 390 /terms phone reads left to right []
+PASS en 390 /terms 3 directional icons unmirrored [false,false,false]
+PASS en 390 /terms no sideways scroll 
+FAIL en 390 /terms coverage de empty ["Registered as Vamos Taxi GmbH, company number CH-020.4.077.792-7 at the commercial register of the Canton of Zurich. Full company details are on the","Oversized or unusual items declared at booking: shown on your quote.","Accepted methods: Visa, Mastercard, Apple Pay, Google Pay and TWINT."]
+FAIL en 390 /terms coverage fr empty ["Registered as Vamos Taxi GmbH, company number CH-020.4.077.792-7 at the commercial register of the Canton of Zurich. Full company details are on the","Oversized or unusual items declared at booking: shown on your quote.","Accepted methods: Visa, Mastercard, Apple Pay, Google Pay and TWINT."]
+FAIL en 390 /terms coverage ar empty ["Registered as Vamos Taxi GmbH, company number CH-020.4.077.792-7 at the commercial register of the Canton of Zurich. Full company details are on the","Oversized or unusual items declared at booking: shown on your quote.","Accepted methods: Visa, Mastercard, Apple Pay, Google Pay and TWINT."]
+PASS en 390 /faq phone reads left to right []
+PASS en 390 /faq 7 directional icons unmirrored [false,false,false,false,false,false,false]
+PASS en 390 /faq no sideways scroll 
+PASS en 390 /faq coverage de empty 
+PASS en 390 /faq coverage fr empty 
+PASS en 390 /faq coverage ar empty 
+PASS en 390 /sign-in phone reads left to right []
+PASS en 390 /sign-in 2 directional icons unmirrored [false,false]
+PASS en 390 /sign-in no sideways scroll 
+FAIL en 390 /sign-in coverage de empty ["you@example.com"]
+FAIL en 390 /sign-in coverage fr empty ["you@example.com"]
+FAIL en 390 /sign-in coverage ar empty ["you@example.com"]
+PASS de 1440 /imprint phone reads left to right []
+PASS de 1440 /imprint 2 directional icons unmirrored [false,false]
+PASS de 1440 /imprint no sideways scroll 
+PASS de muted grey color-mix(in oklab,#767877 60%,#545756) -> oklab(0.523866 -0.00327937 0.000616694)
+PASS de 1440 /cancellation phone reads left to right []
+PASS de 1440 /cancellation 5 directional icons unmirrored [false,false,false,false,false]
+PASS de 1440 /cancellation no sideways scroll 
+PASS de 1440 /terms phone reads left to right []
+PASS de 1440 /terms 4 directional icons unmirrored [false,false,false,false]
+PASS de 1440 /terms no sideways scroll 
+PASS de 1440 /faq phone reads left to right []
+PASS de 1440 /faq 8 directional icons unmirrored [false,false,false,false,false,false,false,false]
+PASS de 1440 /faq no sideways scroll 
+PASS de 1440 /sign-in phone reads left to right []
+PASS de 1440 /sign-in 3 directional icons unmirrored [false,false,false]
+PASS de 1440 /sign-in no sideways scroll 
+PASS de 1024 /imprint phone reads left to right []
+PASS de 1024 /imprint 1 directional icons unmirrored [false]
+PASS de 1024 /imprint no sideways scroll 
+PASS de 1024 /cancellation phone reads left to right []
+PASS de 1024 /cancellation 4 directional icons unmirrored [false,false,false,false]
+PASS de 1024 /cancellation no sideways scroll 
+PASS de 1024 /terms phone reads left to right []
+PASS de 1024 /terms 3 directional icons unmirrored [false,false,false]
+PASS de 1024 /terms no sideways scroll 
+PASS de 1024 /faq phone reads left to right []
+PASS de 1024 /faq 7 directional icons unmirrored [false,false,false,false,false,false,false]
+PASS de 1024 /faq no sideways scroll 
+PASS de 1024 /sign-in phone reads left to right []
+PASS de 1024 /sign-in 2 directional icons unmirrored [false,false]
+PASS de 1024 /sign-in no sideways scroll 
+PASS de 768 /imprint phone reads left to right []
+PASS de 768 /imprint 1 directional icons unmirrored [false]
+PASS de 768 /imprint no sideways scroll 
+PASS de 768 /cancellation phone reads left to right []
+PASS de 768 /cancellation 4 directional icons unmirrored [false,false,false,false]
+PASS de 768 /cancellation no sideways scroll 
+PASS de 768 /terms phone reads left to right []
+PASS de 768 /terms 3 directional icons unmirrored [false,false,false]
+PASS de 768 /terms no sideways scroll 
+PASS de 768 /faq phone reads left to right []
+PASS de 768 /faq 6 directional icons unmirrored [false,false,false,false,false,false]
+PASS de 768 /faq no sideways scroll 
+PASS de 768 /sign-in phone reads left to right []
+PASS de 768 /sign-in 2 directional icons unmirrored [false,false]
+PASS de 768 /sign-in no sideways scroll 
+PASS de 390 /imprint phone reads left to right []
+PASS de 390 /imprint 1 directional icons unmirrored [false]
+PASS de 390 /imprint no sideways scroll 
+PASS de 390 /cancellation phone reads left to right []
+PASS de 390 /cancellation 4 directional icons unmirrored [false,false,false,false]
+PASS de 390 /cancellation no sideways scroll 
+PASS de 390 /terms phone reads left to right []
+PASS de 390 /terms 3 directional icons unmirrored [false,false,false]
+PASS de 390 /terms no sideways scroll 
+PASS de 390 /faq phone reads left to right []
+PASS de 390 /faq 7 directional icons unmirrored [false,false,false,false,false,false,false]
+PASS de 390 /faq no sideways scroll 
+PASS de 390 /sign-in phone reads left to right []
+PASS de 390 /sign-in 2 directional icons unmirrored [false,false]
+PASS de 390 /sign-in no sideways scroll 
+PASS fr 1440 /imprint phone reads left to right []
+PASS fr 1440 /imprint 2 directional icons unmirrored [false,false]
+PASS fr 1440 /imprint no sideways scroll 
+PASS fr muted grey color-mix(in oklab,#767877 60%,#545756) -> oklab(0.523866 -0.00327937 0.000616694)
+PASS fr 1440 /cancellation phone reads left to right []
+PASS fr 1440 /cancellation 5 directional icons unmirrored [false,false,false,false,false]
+PASS fr 1440 /cancellation no sideways scroll 
+PASS fr 1440 /terms phone reads left to right []
+PASS fr 1440 /terms 4 directional icons unmirrored [false,false,false,false]
+PASS fr 1440 /terms no sideways scroll 
+PASS fr 1440 /faq phone reads left to right []
+PASS fr 1440 /faq 8 directional icons unmirrored [false,false,false,false,false,false,false,false]
+PASS fr 1440 /faq no sideways scroll 
+PASS fr 1440 /sign-in phone reads left to right []
+PASS fr 1440 /sign-in 3 directional icons unmirrored [false,false,false]
+PASS fr 1440 /sign-in no sideways scroll 
+PASS fr 1024 /imprint phone reads left to right []
+PASS fr 1024 /imprint 1 directional icons unmirrored [false]
+PASS fr 1024 /imprint no sideways scroll 
+PASS fr 1024 /cancellation phone reads left to right []
+PASS fr 1024 /cancellation 4 directional icons unmirrored [false,false,false,false]
+PASS fr 1024 /cancellation no sideways scroll 
+PASS fr 1024 /terms phone reads left to right []
+PASS fr 1024 /terms 3 directional icons unmirrored [false,false,false]
+PASS fr 1024 /terms no sideways scroll 
+PASS fr 1024 /faq phone reads left to right []
+PASS fr 1024 /faq 7 directional icons unmirrored [false,false,false,false,false,false,false]
+PASS fr 1024 /faq no sideways scroll 
+PASS fr 1024 /sign-in phone reads left to right []
+PASS fr 1024 /sign-in 2 directional icons unmirrored [false,false]
+PASS fr 1024 /sign-in no sideways scroll 
+PASS fr 768 /imprint phone reads left to right []
+PASS fr 768 /imprint 1 directional icons unmirrored [false]
+PASS fr 768 /imprint no sideways scroll 
+PASS fr 768 /cancellation phone reads left to right []
+PASS fr 768 /cancellation 4 directional icons unmirrored [false,false,false,false]
+PASS fr 768 /cancellation no sideways scroll 
+PASS fr 768 /terms phone reads left to right []
+PASS fr 768 /terms 3 directional icons unmirrored [false,false,false]
+PASS fr 768 /terms no sideways scroll 
+PASS fr 768 /faq phone reads left to right []
+PASS fr 768 /faq 7 directional icons unmirrored [false,false,false,false,false,false,false]
+PASS fr 768 /faq no sideways scroll 
+PASS fr 768 /sign-in phone reads left to right []
+PASS fr 768 /sign-in 2 directional icons unmirrored [false,false]
+PASS fr 768 /sign-in no sideways scroll 
+PASS fr 390 /imprint phone reads left to right []
+PASS fr 390 /imprint 1 directional icons unmirrored [false]
+PASS fr 390 /imprint no sideways scroll 
+PASS fr 390 /cancellation phone reads left to right []
+PASS fr 390 /cancellation 4 directional icons unmirrored [false,false,false,false]
+PASS fr 390 /cancellation no sideways scroll 
+PASS fr 390 /terms phone reads left to right []
+PASS fr 390 /terms 3 directional icons unmirrored [false,false,false]
+PASS fr 390 /terms no sideways scroll 
+PASS fr 390 /faq phone reads left to right []
+PASS fr 390 /faq 7 directional icons unmirrored [false,false,false,false,false,false,false]
+PASS fr 390 /faq no sideways scroll 
+PASS fr 390 /sign-in phone reads left to right []
+PASS fr 390 /sign-in 2 directional icons unmirrored [false,false]
+PASS fr 390 /sign-in no sideways scroll 
+PASS ar 1440 /imprint phone reads left to right []
+PASS ar 1440 /imprint 2 directional icons mirrored [true,true]
+PASS ar 1440 /imprint no sideways scroll 
+PASS ar muted grey color-mix(in oklab,#767877 60%,#545756) -> oklab(0.523866 -0.00327937 0.000616694)
+PASS ar 1440 /cancellation phone reads left to right []
+PASS ar 1440 /cancellation 5 directional icons mirrored [true,true,true,true,true]
+PASS ar 1440 /cancellation no sideways scroll 
+PASS ar 1440 /terms phone reads left to right []
+PASS ar 1440 /terms 4 directional icons mirrored [true,true,true,true]
+PASS ar 1440 /terms no sideways scroll 
+PASS ar 1440 /faq phone reads left to right []
+PASS ar 1440 /faq 8 directional icons mirrored [true,true,true,true,true,true,true,true]
+PASS ar 1440 /faq no sideways scroll 
+PASS ar 1440 /sign-in phone reads left to right []
+PASS ar 1440 /sign-in 3 directional icons mirrored [true,true,true]
+PASS ar 1440 /sign-in no sideways scroll 
+PASS ar 1024 /imprint phone reads left to right []
+PASS ar 1024 /imprint 1 directional icons mirrored [true]
+PASS ar 1024 /imprint no sideways scroll 
+PASS ar 1024 /cancellation phone reads left to right []
+PASS ar 1024 /cancellation 4 directional icons mirrored [true,true,true,true]
+PASS ar 1024 /cancellation no sideways scroll 
+PASS ar 1024 /terms phone reads left to right []
+PASS ar 1024 /terms 3 directional icons mirrored [true,true,true]
+PASS ar 1024 /terms no sideways scroll 
+PASS ar 1024 /faq phone reads left to right []
+PASS ar 1024 /faq 7 directional icons mirrored [true,true,true,true,true,true,true]
+PASS ar 1024 /faq no sideways scroll 
+PASS ar 1024 /sign-in phone reads left to right []
+PASS ar 1024 /sign-in 2 directional icons mirrored [true,true]
+PASS ar 1024 /sign-in no sideways scroll 
+PASS ar 768 /imprint phone reads left to right []
+PASS ar 768 /imprint 1 directional icons mirrored [true]
+PASS ar 768 /imprint no sideways scroll 
+PASS ar 768 /cancellation phone reads left to right []
+PASS ar 768 /cancellation 4 directional icons mirrored [true,true,true,true]
+PASS ar 768 /cancellation no sideways scroll 
+PASS ar 768 /terms phone reads left to right []
+PASS ar 768 /terms 3 directional icons mirrored [true,true,true]
+PASS ar 768 /terms no sideways scroll 
+PASS ar 768 /faq phone reads left to right []
+PASS ar 768 /faq 7 directional icons mirrored [true,true,true,true,true,true,true]
+PASS ar 768 /faq no sideways scroll 
+PASS ar 768 /sign-in phone reads left to right []
+PASS ar 768 /sign-in 2 directional icons mirrored [true,true]
+PASS ar 768 /sign-in no sideways scroll 
+PASS ar 390 /imprint phone reads left to right []
+PASS ar 390 /imprint 1 directional icons mirrored [true]
+PASS ar 390 /imprint no sideways scroll 
+PASS ar 390 /cancellation phone reads left to right []
+PASS ar 390 /cancellation 4 directional icons mirrored [true,true,true,true]
+PASS ar 390 /cancellation no sideways scroll 
+PASS ar 390 /terms phone reads left to right []
+PASS ar 390 /terms 3 directional icons mirrored [true,true,true]
+PASS ar 390 /terms no sideways scroll 
+PASS ar 390 /faq phone reads left to right []
+PASS ar 390 /faq 7 directional icons mirrored [true,true,true,true,true,true,true]
+PASS ar 390 /faq no sideways scroll 
+PASS ar 390 /sign-in phone reads left to right []
+PASS ar 390 /sign-in 2 directional icons mirrored [true,true]
+PASS ar 390 /sign-in no sideways scroll 
+257 pass, 48 fail

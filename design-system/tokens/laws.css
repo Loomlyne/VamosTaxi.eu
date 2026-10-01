@@ -46,6 +46,11 @@
   --vt-yellow-600:var(--vt-charcoal-900);
   --vt-yellow-700:var(--vt-charcoal-800);
 }
+/* A disabled primary button is a grey fill with muted text. The kit fades
+   every disabled button to 42% opacity, which turns #FDC20B into the pale
+   cream tint this law bans. Same grey as a disabled field (.vt-input--disabled). */
+.vt-btn.vt-btn--primary:is([disabled],[aria-disabled="true"]),
+.vt-btn.vt-btn--primary:is([disabled],[aria-disabled="true"]):is(:hover,:active){opacity:1;background:var(--vt-grey-100);color:var(--vt-text-muted);transform:none}
 
 /* ── 03 · Four languages, same pass ───────────────────────────────────────
    English, German, French and Arabic. A surface is not finished until every
@@ -55,6 +60,12 @@
    hack. Anything that must not mirror is marked, not excluded. */
 [dir="rtl"]{text-align:start}
 [dir="rtl"] .vt-dir-keep{direction:ltr;unicode-bidi:isolate} /* references, times, CHF figures, flight numbers */
+/* A glyph that points along the reading line (next, back, open, sign out)
+   points the other way in Arabic. Icon is a CSS-mask span, so the glyph is
+   found by its file name. It keeps its direction inside .vt-dir-keep or
+   dir="ltr". The wrappers listed after them already mirror their own icon;
+   they are left out so that icon never flips twice. */
+[dir="rtl"] :is([style*="/arrow-right.svg"],[style*="/chevron-right.svg"],[style*="/chevron-left.svg"],[style*="/log-in.svg"],[style*="/log-out.svg"]):not(.vt-dir-keep *,[dir="ltr"] *,[data-bb-mirror] *,[data-bs-mirror] *,[data-svc-cta-arrow] *,[data-svc-circ] *,[data-route-join] *,[data-bt-go] *,[data-bk-go] *,[data-ac-more-go] *,.vt-dp__nav *,.vt-row__chevron *,.vt-co__strip-back *,.vt-co__strip-arrow *){transform:scaleX(-1)}
 
 /* ── 04 · A pending value is a labelled gap ───────────────────────────────
    A number the client still owes us is written as human words in a pill
