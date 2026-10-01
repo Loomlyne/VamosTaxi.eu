@@ -35,15 +35,18 @@ select ok(has_function_privilege('anon', 'public.quote_lock_deadline(bigint)', '
 select ok(has_function_privilege('anon', 'public.quote_settings_version(timestamptz)', 'EXECUTE'), 'G10 anon keeps quote_settings_version');
 select ok(has_function_privilege('vamos_staff', 'public.quote_rate_book(boolean)', 'EXECUTE'), 'G10 vamos_staff keeps quote_rate_book');
 
--- create_quote_snapshot: no role at all; checkout_create_booking (definer) is the only caller.
+-- create_quote_snapshot: no caller role at all; checkout_create_booking (definer) is the only
+-- caller. service_role is allowed: live holds the Supabase default grant (read 2026-10-02), a
+-- local stack does not, and it is the server key that bypasses RLS anyway.
 select is(
   (select count(*)::int
      from pg_proc p
      join pg_namespace n on n.oid = p.pronamespace
      cross join lateral aclexplode(coalesce(p.proacl, '{}'::aclitem[])) a
     where n.nspname = 'public' and p.proname = 'create_quote_snapshot'
-      and a.privilege_type = 'EXECUTE' and a.grantee <> p.proowner),
-  0, 'G10 create_quote_snapshot: EXECUTE held by its owner only');
+      and a.privilege_type = 'EXECUTE'
+      and a.grantee not in (p.proowner, 'service_role'::regrole::oid)),
+  0, 'G10 create_quote_snapshot: EXECUTE held by its owner and service_role only');
 select ok((select prosecdef from pg_proc where oid = 'public.checkout_create_booking'::regproc),
   'G10 checkout_create_booking (the snapshot caller) is security definer');
 
