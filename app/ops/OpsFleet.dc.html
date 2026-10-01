@@ -158,7 +158,7 @@ const T = {
     searchVehicles:'Class, model or plate', searchChauffeurs:'Name, phone, plate or licence',
     emptyCTitle:'No chauffeurs yet', emptyCBody:'Add a chauffeur and choose his class.',
     delVBody:'The vehicle leaves the fleet, and any chauffeur paired with it is left without one.',
-    delCBody:'The chauffeur is deleted for good. Finished trips keep their record without him.',
+    delCBody:'He leaves the Chauffeurs list and Assign. His finished trips keep his name; his trips that are not finished go back to unassigned.',
     fClass:'Class', fModel:'Model', fPlate:'Plate', fSeats:'Seats', fBags:'Bags', fYear:'Year', fStatus:'Status', fNote:'Note',
     fName:'Name', fPhone:'Phone', fEmail:'Email', fLicence:'Licence number', fLanguages:'Languages', fVehicle:'Vehicle',
     lang_de:'German', lang_fr:'French', lang_it:'Italian', lang_en:'English', lang_ar:'Arabic',
@@ -177,8 +177,8 @@ const T = {
     saveFailed:'Save failed. Try again.',
     offRoadStay:'This vehicle is off the road. Upcoming assigned trips stay on the board — they are not cancelled. Fix them on Needs attention.',
     backChauffeurs:'All chauffeurs',
-    cntWithClass:'With a class', footClass:'Can be assigned trips of that class', fPlateNumber:'Plate number', hChauffeurPlate:'As it reads on the plate. The customer sees it with the driver’s name.', plateTaken:'Another chauffeur already has this plate number.',
-    inUse:'{name} still has trips that are not finished: {refs}. Assign them to another driver first.', refSep:', ',
+    cntWithClass:'With a class', footClass:'Can be assigned trips of that class', fPlateNumber:'Plate number', hChauffeurPlate:'As it reads on the plate. The customer sees it with the driver’s name.',
+    nowUnassigned:'Now unassigned: {refs}.', refSep:', ',
     history:'Bookings', noHistory:'No bookings yet', noHistoryBody:'Every trip assigned to this chauffeur shows here, also the ones he was taken off. Open one to see it on the board.', historyFailed:'The bookings could not be read. Reload the page.', takenOff:'Taken off',
     st_pending:'Awaiting payment', st_quote:'Quote', st_paid:'Paid', st_confirmed:'Confirmed', st_assigned:'Assigned', st_completed:'Completed', st_cancelled:'Cancelled', st_refunded:'Refunded', st_no_show:'No-show', st_partially_cancelled:'Partly cancelled', st_partially_completed:'Partly completed',
     statusOff:'Off duty', statusLeave:'On leave',
@@ -200,7 +200,7 @@ const T = {
     searchVehicles:'Klasse, Modell oder Kennzeichen', searchChauffeurs:'Name, Telefon, Kennzeichen oder Ausweis',
     emptyCTitle:'Noch keine Chauffeure', emptyCBody:'Chauffeur hinzufügen und seine Klasse wählen.',
     delVBody:'Das Fahrzeug verlässt die Flotte, und ein damit verbundener Chauffeur steht ohne da.',
-    delCBody:'Der Chauffeur wird endgültig gelöscht. Beendete Fahrten behalten ihren Eintrag ohne ihn.',
+    delCBody:'Er verschwindet aus der Chauffeur-Liste und beim Zuweisen. Beendete Fahrten behalten seinen Namen; nicht beendete Fahrten sind wieder ohne Fahrer.',
     fClass:'Klasse', fModel:'Modell', fPlate:'Kennzeichen', fSeats:'Plätze', fBags:'Gepäck', fYear:'Jahr', fStatus:'Status', fNote:'Notiz',
     fName:'Name', fPhone:'Telefon', fEmail:'E-Mail', fLicence:'Ausweisnummer', fLanguages:'Sprachen', fVehicle:'Fahrzeug',
     lang_de:'Deutsch', lang_fr:'Französisch', lang_it:'Italienisch', lang_en:'Englisch', lang_ar:'Arabisch',
@@ -219,8 +219,8 @@ const T = {
     saveFailed:'Speichern fehlgeschlagen. Bitte erneut versuchen.',
     offRoadStay:'Dieses Fahrzeug ist nicht auf der Strasse. Zugewiesene kommende Fahrten bleiben auf dem Board — sie werden nicht storniert. Beheben unter Needs attention.',
     backChauffeurs:'Alle Chauffeure',
-    cntWithClass:'Mit Klasse', footClass:'Für Fahrten dieser Klasse zuweisbar', fPlateNumber:'Kennzeichen', hChauffeurPlate:'So, wie es auf dem Schild steht. Der Kunde sieht es beim Namen des Fahrers.', plateTaken:'Ein anderer Chauffeur hat dieses Kennzeichen bereits.',
-    inUse:'{name} hat noch Fahrten, die nicht beendet sind: {refs}. Weisen Sie sie zuerst einem anderen Fahrer zu.', refSep:', ',
+    cntWithClass:'Mit Klasse', footClass:'Für Fahrten dieser Klasse zuweisbar', fPlateNumber:'Kennzeichen', hChauffeurPlate:'So, wie es auf dem Schild steht. Der Kunde sieht es beim Namen des Fahrers.',
+    nowUnassigned:'Jetzt ohne Fahrer: {refs}.', refSep:', ',
     history:'Buchungen', noHistory:'Noch keine Buchungen', noHistoryBody:'Jede Fahrt, die diesem Chauffeur zugewiesen wurde, erscheint hier, auch die, von denen er abgezogen wurde. Eine Fahrt öffnen, um sie auf dem Board zu sehen.', historyFailed:'Die Buchungen konnten nicht gelesen werden. Seite neu laden.', takenOff:'Abgezogen',
     st_pending:'Zahlung ausstehend', st_quote:'Offerte', st_paid:'Bezahlt', st_confirmed:'Bestätigt', st_assigned:'Zugewiesen', st_completed:'Abgeschlossen', st_cancelled:'Storniert', st_refunded:'Erstattet', st_no_show:'Nicht erschienen', st_partially_cancelled:'Teilweise storniert', st_partially_completed:'Teilweise abgeschlossen',
     statusOff:'Ausser Dienst', statusLeave:'Abwesend',
@@ -242,7 +242,7 @@ const T = {
     searchVehicles:'Classe, modèle ou plaque', searchChauffeurs:'Nom, téléphone, plaque ou permis',
     emptyCTitle:'Aucun chauffeur', emptyCBody:'Ajoutez un chauffeur et choisissez sa classe.',
     delVBody:'Le véhicule quitte la flotte, et le chauffeur qui y était associé se retrouve sans.',
-    delCBody:'Le chauffeur est supprimé définitivement. Les courses terminées gardent leur trace sans lui.',
+    delCBody:'Il disparaît de la liste des chauffeurs et de l’attribution. Ses courses terminées gardent son nom ; ses courses non terminées repassent sans chauffeur.',
     fClass:'Classe', fModel:'Modèle', fPlate:'Plaque', fSeats:'Places', fBags:'Bagages', fYear:'Année', fStatus:'Statut', fNote:'Note',
     fName:'Nom', fPhone:'Téléphone', fEmail:'E-mail', fLicence:'Numéro de permis', fLanguages:'Langues', fVehicle:'Véhicule',
     lang_de:'Allemand', lang_fr:'Français', lang_it:'Italien', lang_en:'Anglais', lang_ar:'Arabe',
@@ -261,8 +261,8 @@ const T = {
     saveFailed:'Enregistrement impossible. Réessayez.',
     offRoadStay:'Ce véhicule n’est plus en service. Les courses assignées à venir restent au tableau — elles ne sont pas annulées. Corrigez-les sous Needs attention.',
     backChauffeurs:'Tous les chauffeurs',
-    cntWithClass:'Avec classe', footClass:'Attribuables aux courses de cette classe', fPlateNumber:'Plaque', hChauffeurPlate:'Telle qu’elle figure sur la plaque. Le client la voit avec le nom du chauffeur.', plateTaken:'Un autre chauffeur a déjà cette plaque.',
-    inUse:'{name} a encore des courses non terminées : {refs}. Assignez-les d’abord à un autre chauffeur.', refSep:', ',
+    cntWithClass:'Avec classe', footClass:'Attribuables aux courses de cette classe', fPlateNumber:'Plaque', hChauffeurPlate:'Telle qu’elle figure sur la plaque. Le client la voit avec le nom du chauffeur.',
+    nowUnassigned:'Désormais sans chauffeur : {refs}.', refSep:', ',
     history:'Réservations', noHistory:'Aucune réservation', noHistoryBody:'Chaque course assignée à ce chauffeur s’affiche ici, même celles qui lui ont été retirées. Ouvrez-en une pour la voir au tableau.', historyFailed:'Impossible de lire les réservations. Rechargez la page.', takenOff:'Retiré',
     st_pending:'Paiement en attente', st_quote:'Devis', st_paid:'Payée', st_confirmed:'Confirmée', st_assigned:'Assignée', st_completed:'Terminée', st_cancelled:'Annulée', st_refunded:'Remboursée', st_no_show:'Absence', st_partially_cancelled:'Partiellement annulée', st_partially_completed:'Partiellement terminée',
     statusOff:'Hors service', statusLeave:'Absent',
@@ -284,7 +284,7 @@ const T = {
     searchVehicles:'الفئة أو الطراز أو اللوحة', searchChauffeurs:'الاسم أو الهاتف أو اللوحة أو الرخصة',
     emptyCTitle:'لا يوجد سائقون بعد', emptyCBody:'أضف سائقًا واختر فئته.',
     delVBody:'تخرج المركبة من الأسطول، ويبقى السائق المرتبط بها بلا مركبة.',
-    delCBody:'يُحذف السائق نهائيًا. تبقى الرحلات المنتهية مسجّلة من دونه.',
+    delCBody:'يختفي من قائمة السائقين ومن الإسناد. تحتفظ رحلاته المنتهية باسمه، وتعود رحلاته غير المنتهية بلا سائق.',
     fClass:'الفئة', fModel:'الطراز', fPlate:'اللوحة', fSeats:'المقاعد', fBags:'الحقائب', fYear:'السنة', fStatus:'الحالة', fNote:'ملاحظة',
     fName:'الاسم', fPhone:'الهاتف', fEmail:'البريد الإلكتروني', fLicence:'رقم الرخصة', fLanguages:'اللغات', fVehicle:'المركبة',
     lang_de:'الألمانية', lang_fr:'الفرنسية', lang_it:'الإيطالية', lang_en:'الإنجليزية', lang_ar:'العربية',
@@ -303,8 +303,8 @@ const T = {
     saveFailed:'فشل الحفظ. حاول مرة أخرى.',
     offRoadStay:'هذه المركبة خارج الخدمة. الرحلات المسندة القادمة تبقى على اللوحة — لا تُلغى. عالجها في Needs attention.',
     backChauffeurs:'كل السائقين',
-    cntWithClass:'لديهم فئة', footClass:'يمكن إسنادهم إلى رحلات فئتهم', fPlateNumber:'رقم اللوحة', hChauffeurPlate:'كما هو مكتوب على اللوحة. يراه العميل مع اسم السائق.', plateTaken:'رقم اللوحة هذا مسجّل لسائق آخر.',
-    inUse:'لدى {name} رحلات لم تنتهِ بعد: {refs}. أسندها إلى سائق آخر أولًا.', refSep:'، ',
+    cntWithClass:'لديهم فئة', footClass:'يمكن إسنادهم إلى رحلات فئتهم', fPlateNumber:'رقم اللوحة', hChauffeurPlate:'كما هو مكتوب على اللوحة. يراه العميل مع اسم السائق.',
+    nowUnassigned:'أصبحت بلا سائق: {refs}.', refSep:'، ',
     history:'الحجوزات', noHistory:'لا حجوزات بعد', noHistoryBody:'كل رحلة أُسندت إلى هذا السائق تظهر هنا، حتى التي أُزيل عنها. افتح رحلة لرؤيتها على اللوحة.', historyFailed:'تعذّرت قراءة الحجوزات. أعد تحميل الصفحة.', takenOff:'أُزيل عنه',
     st_pending:'بانتظار الدفع', st_quote:'عرض سعر', st_paid:'مدفوع', st_confirmed:'مؤكد', st_assigned:'معيّن', st_completed:'مكتمل', st_cancelled:'ملغى', st_refunded:'مسترد', st_no_show:'لم يحضر', st_partially_cancelled:'ملغى جزئيًا', st_partially_completed:'مكتمل جزئيًا',
     statusOff:'خارج الدورية', statusLeave:'في إجازة',
@@ -430,7 +430,8 @@ class Component extends DCLogic {
       { key:'note', label:t.fNote, editor:'area', placeholder:'' },
     ];
     // The form as it was before the 2026-10-01 dashboard-design ship (316606ee), plus Plate number
-    // next to Class (the two things the owner chooses). No Car field. Only Name is required.
+    // next to Class (the two things the owner chooses). No Car field. Name and Plate number are
+    // required (decision 7): the box shows the shared "Needed" under an empty one.
     const chauffeurFields = [
       { key:'photo', label:t.fPhoto, editor:'photo', photoKind:'chauffeur', upload:'/api/photos/upload', chooseLabel:t.choosePhoto, hint:t.hPhoto },
       { key:'name', label:t.fName, half:true, phoneFull:true, required:true },
@@ -438,7 +439,7 @@ class Component extends DCLogic {
       { key:'email', label:t.fEmail, half:true, phoneFull:true, placeholder:'name@example.com' },
       { key:'licence', label:t.fLicence, editor:'licence', half:true, phoneFull:true, placeholder:'CH 000 000' },
       { key:'vehicleClassId', label:t.fClass, editor:'select', options:chauffeurClassOptions, icon:'car-front', hint:t.hChauffeurClass, emptyLabel:t.noClass, half:true, phoneFull:true },
-      { key:'plate', label:t.fPlateNumber, half:true, phoneFull:true, icon:'car', placeholder:'ZH 000 000', hint:t.hChauffeurPlate },
+      { key:'plate', label:t.fPlateNumber, half:true, phoneFull:true, required:true, icon:'car', placeholder:'ZH 000 000', hint:t.hChauffeurPlate },
       { key:'languages', label:t.fLanguages, editor:'select', multi:true, options:languageOptions(t), icon:'globe' },
       { key:'note', label:t.fNote, editor:'area', placeholder:'' },
     ];
@@ -474,10 +475,10 @@ class Component extends DCLogic {
       takenOffLabel: t.takenOff,
     }));
 
-    const inUseMessage = (json) => {
-      const refs = Array.isArray(json && json.references) ? json.references.map(String) : [];
-      const name = String((json && json.name) || (detail && detail.name) || '').trim();
-      return t.inUse.replace('{name}', name).replace('{refs}', refs.join(t.refSep));
+    // Decision 7: after a delete, the trips that went back to unassigned are named on the page.
+    const unassignedNotice = (json) => {
+      const refs = (json && json.data && Array.isArray(json.data.unassigned)) ? json.data.unassigned.map(String) : [];
+      return refs.length ? t.nowUnassigned.replace('{refs}', refs.join(t.refSep)) : '';
     };
 
     return {
@@ -574,21 +575,20 @@ class Component extends DCLogic {
         delete payload.className;
         return store.upsert(payload).then((json) => {
           if (!json || json.ok !== true) {
-            const out = (json && json.code === 'chauffeurs-plate-taken') ? Object.assign({}, json, { message: t.plateTaken }) : json;
-            const reason = (out && (out.message || out.error || out.detail)) || t.saveFailed;
+            const reason = (json && (json.message || json.error || json.detail)) || t.saveFailed;
             this.setState({ saveMsg: reason, notice: '' });
-            return out;
+            return json;
           }
           this.setState({ saveMsg: '', notice: '' });
           return json;
         });
       },
-      // Owner, 2026-10-01: refused while an unfinished trip has him (his name and the references, in
-      // the owner's language); otherwise deleted completely.
+      // Decision 7 (2026-10-01): he leaves the list and Assign; his trips that are not finished go
+      // back to unassigned, and the page names them.
       onDelete: (id) => {
         if (!store) return null;
         return Promise.resolve(store.remove(id)).then((json) => {
-          if (json && json.ok !== true && json.code === 'chauffeur-in-use') return Object.assign({}, json, { message: inUseMessage(json) });
+          if (json && json.ok === true) this.setState({ notice: unassignedNotice(json), saveMsg: '' });
           return json;
         });
       },

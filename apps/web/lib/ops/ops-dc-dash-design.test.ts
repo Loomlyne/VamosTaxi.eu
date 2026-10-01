@@ -552,11 +552,12 @@ describe("3 · the Assign box", () => {
     await flush();
     expect(d.request).not.toHaveBeenCalled();
     expect(d.vals().assignError).toBe("Pick a chauffeur first.");
-    (d.vals().assignRows as { pick: () => void }[])[0]!.pick();
+    // Decision 7 (2026-10-01): the pick is the one-row dropdown now (ops-dc-chauffeur-class.test.ts).
+    d.vals().pickDriverFromSelect({ target: { value: MARCO } });
     expect(d.logic.state.pickDriver).toBe(MARCO);
     expect(d.vals().hasAssignError).toBe(false);
     const css = readDc("OpsDetail.dc.html");
-    expect(css).toMatch(/\[data-ops-assign-pick\]\{[^}]*max-inline-size:\d+px/);
+    expect(css).toMatch(/\[data-ops-assign-row\]\{[^}]*max-inline-size:\d+px/);
   });
 
 });

@@ -204,9 +204,12 @@ describe("1 · the chauffeur form", () => {
     expect(plate.label).toBe("Plate number");
     expect(plate.half).toBe(true);
     expect(plate.placeholder).toBe("ZH 000 000");
-    // Optional, like Licence: the form marks only Name as required.
-    expect(plate.required).toBeFalsy();
-    expect(f.filter((x) => x.required).map((x) => x.key)).toEqual(["name"]);
+    // Decision 7 (2026-10-01): the plate number is required — the box refuses to save without it
+    // and shows the existing "Needed" under the field (de Erforderlich, fr Requis, ar مطلوب).
+    expect(plate.required).toBe(true);
+    expect(f.filter((x) => x.required).map((x) => x.key)).toEqual(["name", "plate"]);
+    const dict = read("app/vamos-i18n-dict.js");
+    expect(dict).toMatch(/'Needed': \{ de: 'Erforderlich', fr: 'Requis', ar: 'مطلوب' \}/);
   });
 
   it("on a phone every field of the box takes the full width, so no value is cut (\"…iness\")", () => {
@@ -267,19 +270,8 @@ describe("1 · the chauffeur form", () => {
     expect(f.upsert.mock.calls.at(-1)?.[0]).toMatchObject({ vehicleClassId: null, plate: "" });
   });
 
-  it("a plate another chauffeur has is refused in the owner's language", async () => {
-    const want: Record<string, string> = {
-      en: "Another chauffeur already has this plate number.",
-      de: "Ein anderer Chauffeur hat dieses Kennzeichen bereits.",
-      fr: "Un autre chauffeur a déjà cette plaque.",
-      ar: "رقم اللوحة هذا مسجّل لسائق آخر.",
-    };
-    for (const [lang, text] of Object.entries(want)) {
-      const f = fleet(lang);
-      f.upsert.mockResolvedValueOnce({ ok: false, code: "chauffeurs-plate-taken", message: "Another chauffeur already has this plate number." } as never);
-      const json = (await f.vals().onSave({ name: "Marco Rossi", plate: "ZH 654 321" })) as { message?: string };
-      expect(json.message, lang).toBe(text);
-    }
+  it("two chauffeurs may carry the same plate: no plate-taken words are left", () => {
+    expect(scriptOf(readDc("OpsFleet.dc.html"))).not.toMatch(/plateTaken|chauffeurs-plate-taken/);
   });
 });
 
@@ -320,26 +312,39 @@ describe("2 · the Chauffeurs list shows name, class and plate", () => {
 });
 
 // ── 3 · delete ──────────────────────────────────────────────────────────────────────────────
-describe("3 · deleting a chauffeur", () => {
-  it("a chauffeur with an unfinished trip is refused in plain words, four languages", async () => {
+describe("3 · deleting a chauffeur (decision 7)", () => {
+  it("the confirm box says what happens, four languages", () => {
     const want: Record<string, string> = {
-      en: "Marco Rossi still has trips that are not finished: VT-26-0042, VT-26-0043. Assign them to another driver first.",
-      de: "Marco Rossi hat noch Fahrten, die nicht beendet sind: VT-26-0042, VT-26-0043. Weisen Sie sie zuerst einem anderen Fahrer zu.",
-      fr: "Marco Rossi a encore des courses non terminées : VT-26-0042, VT-26-0043. Assignez-les d’abord à un autre chauffeur.",
-      ar: "لدى Marco Rossi رحلات لم تنتهِ بعد: VT-26-0042، VT-26-0043. أسندها إلى سائق آخر أولًا.",
+      en: "He leaves the Chauffeurs list and Assign. His finished trips keep his name; his trips that are not finished go back to unassigned.",
+      de: "Er verschwindet aus der Chauffeur-Liste und beim Zuweisen. Beendete Fahrten behalten seinen Namen; nicht beendete Fahrten sind wieder ohne Fahrer.",
+      fr: "Il disparaît de la liste des chauffeurs et de l’attribution. Ses courses terminées gardent son nom ; ses courses non terminées repassent sans chauffeur.",
+      ar: "يختفي من قائمة السائقين ومن الإسناد. تحتفظ رحلاته المنتهية باسمه، وتعود رحلاته غير المنتهية بلا سائق.",
     };
     for (const [lang, text] of Object.entries(want)) {
-      const f = fleet(lang);
-      f.remove.mockResolvedValueOnce({ ok: false, code: "chauffeur-in-use", name: "Marco Rossi", references: ["VT-26-0042", "VT-26-0043"], message: "x" } as never);
-      const json = (await f.vals().onDelete(MARCO)) as { ok: boolean; message?: string };
-      expect(json.ok).toBe(false);
-      expect(json.message, lang).toBe(text);
+      expect(fleet(lang).vals().deleteBody, lang).toBe(text);
       expect(text).not.toContain("ß");
     }
   });
 
-  it("the confirm box says he is deleted completely (no vehicle words)", () => {
-    expect(fleet().vals().deleteBody).toBe("The chauffeur is deleted for good. Finished trips keep their record without him.");
+  it("after the delete the page names the trips that went back to unassigned, four languages", async () => {
+    const want: Record<string, string> = {
+      en: "Now unassigned: VT-26-0050, VT-26-0051.",
+      de: "Jetzt ohne Fahrer: VT-26-0050, VT-26-0051.",
+      fr: "Désormais sans chauffeur : VT-26-0050, VT-26-0051.",
+      ar: "أصبحت بلا سائق: VT-26-0050، VT-26-0051.",
+    };
+    for (const [lang, text] of Object.entries(want)) {
+      const f = fleet(lang);
+      f.remove.mockResolvedValueOnce({ ok: true, data: { id: MARCO, unassigned: ["VT-26-0050", "VT-26-0051"] } } as never);
+      const json = (await f.vals().onDelete(MARCO)) as { ok: boolean };
+      expect(json.ok).toBe(true);
+      expect(f.vals().notice, lang).toBe(text);
+      expect(f.vals().hasNotice).toBe(true);
+    }
+    const quiet = fleet();
+    quiet.remove.mockResolvedValueOnce({ ok: true, data: { id: MARCO, unassigned: [] } } as never);
+    await quiet.vals().onDelete(MARCO);
+    expect(quiet.vals().hasNotice).toBe(false);
   });
 });
 
@@ -460,23 +465,77 @@ function detail(over: Record<string, unknown> = {}, lang = "en", answer: unknown
   return { logic, request, vals: () => logic.renderVals() };
 }
 
-describe("5 · Assign lists only the drivers of the booking's class", () => {
-  it("a Business booking lists Marco (Business) with his plate, not Luca (Economy) or Nina (no class)", () => {
-    const rows = detail().vals().assignRows as { id: string; name: string; plate: string }[];
-    expect(rows.map((r) => [r.name, r.plate])).toEqual([["Marco Rossi", "ZH 123 456"]]);
+describe("5 · Assign is one row (decision 7): Driver [Choose a chauffeur ▾] [ASSIGN]", () => {
+  it("the dropdown lists only the chauffeurs of the booking's class, as \"Name · Plate\"", () => {
+    const v = detail().vals();
+    expect(v.driverOptions).toEqual([
+      { value: MARCO, label: "Marco Rossi · ZH 123 456" },
+    ]);
+    const eco = detail({ vehicleClassId: ECONOMY, klass: "Economy", className: "Economy" }).vals();
+    expect(eco.driverOptions).toEqual([{ value: LUCA, label: "Luca Bianchi · ZH 654 321" }]);
   });
 
-  it("an Economy booking lists Luca only", () => {
-    const rows = detail({ vehicleClassId: ECONOMY, klass: "Economy", className: "Economy" }).vals().assignRows as { name: string }[];
-    expect(rows.map((r) => r.name)).toEqual(["Luca Bianchi"]);
-  });
-
-  it("the radio shows the plate under the name; no car anywhere in the box", () => {
+  it("the row: the label column, the design-system Select, one ASSIGN button; no radio cards, no car", () => {
     const tpl = templateOf(readDc("OpsDetail.dc.html"));
     const box = tpl.slice(tpl.indexOf("<div data-ops-assign"), tpl.indexOf("<div data-ops-pax>"));
-    expect(box).toMatch(/VamosTaxiDesignSystem_245af1\.Radio"[^>]*label="\{\{ d\.name \}\}"[^>]*description="\{\{ d\.plate \}\}"/);
-    expect(box).not.toMatch(/d\.car|carLine|tCar/);
-    expect(box.match(/variant="primary"[^>]*onClick="\{\{ confirmAssign \}\}"/g) ?? []).toHaveLength(1);
+    expect(box).toContain("data-ops-pax-grid");
+    expect(box).toMatch(/<span data-ops-pax-k>\{\{ tDriver \}\}<\/span>/);
+    expect(box).toMatch(/<div data-ops-assign-row/);
+    expect(box).toMatch(/VamosTaxiDesignSystem_245af1\.Select"[^>]*options="\{\{ driverOptions \}\}"[^>]*placeholder="\{\{ tChooseChauffeur \}\}"/);
+    expect(box.match(/variant="primary"[^>]*onClick="\{\{ confirmAssign \}\}"[^>]*>\{\{ tAssignBtn \}\}</g) ?? []).toHaveLength(1);
+    expect(box).not.toMatch(/\.Radio"|data-ops-drv|d\.car|carLine|tCar/);
+  });
+
+  it("picking in the dropdown sets the driver; ASSIGN sends him", async () => {
+    const d = detail();
+    d.vals().pickDriverFromSelect({ target: { value: MARCO } });
+    expect(d.logic.state.pickDriver).toBe(MARCO);
+    expect(d.vals().pickDriver).toBe(MARCO);
+    d.vals().confirmAssign();
+    await flush();
+    expect(d.request).toHaveBeenCalledWith("POST", "/api/staff/bookings/b0000000-0000-4000-8000-000000000042/assign", { chauffeurId: MARCO });
+  });
+
+  it("words in four languages: Choose a chauffeur, Assign, Change, Unassign", () => {
+    const want: Record<string, [string, string, string, string]> = {
+      en: ["Choose a chauffeur", "Assign", "Change", "Unassign"],
+      de: ["Chauffeur wählen", "Zuweisen", "Ändern", "Zuweisung aufheben"],
+      fr: ["Choisir un chauffeur", "Assigner", "Modifier", "Désassigner"],
+      ar: ["اختر سائقًا", "تعيين", "تغيير", "إلغاء التعيين"],
+    };
+    for (const [lang, words] of Object.entries(want)) {
+      const v = detail({}, lang).vals();
+      expect([v.tChooseChauffeur, v.tAssignBtn, v.tChange, v.tUnassign], lang).toEqual(words);
+    }
+  });
+
+  it("assigned: the row reads \"Name · Plate\" with Change and Unassign text buttons", async () => {
+    const d = detail({ driver: "Marco Rossi", chauffeur: "Marco Rossi", assignedChauffeurId: MARCO, chauffeurPlate: "ZH 123 456", status: "assigned" });
+    const v = d.vals();
+    expect(v.showAssigned).toBe(true);
+    expect(v.showAssignPicker).toBe(false);
+    expect(v.driverLine).toBe("Marco Rossi · ZH 123 456");
+    const tpl = templateOf(readDc("OpsDetail.dc.html"));
+    const box = tpl.slice(tpl.indexOf("<div data-ops-assign"), tpl.indexOf("<div data-ops-pax>"));
+    expect(box).toMatch(/\{\{ driverLine \}\}/);
+    expect(box).toMatch(/onClick="\{\{ openChange \}\}"[^>]*>\{\{ tChange \}\}</);
+    expect(box).toMatch(/onClick="\{\{ confirmUnassign \}\}"[^>]*>\{\{ tUnassign \}\}</);
+    v.openChange();
+    const after = d.vals();
+    expect(after.showAssignPicker).toBe(true);
+    expect(after.showAssigned).toBe(false);
+    v.confirmUnassign();
+    await flush();
+    expect(d.request).toHaveBeenCalledWith("POST", "/api/staff/bookings/b0000000-0000-4000-8000-000000000042/unassign", {});
+    const none = detail({ driver: "Nina Keller", chauffeur: "Nina Keller", assignedChauffeurId: NINA, chauffeurPlate: "", status: "assigned" }).vals();
+    expect(none.driverLine).toBe("Nina Keller");
+  });
+
+  it("phone: the dropdown full width, ASSIGN full width under it; the text buttons are 44 px targets", () => {
+    const src = readDc("OpsDetail.dc.html");
+    expect(src).toMatch(/@media \(max-width:680px\)\{[^@]*\[data-ops-assign-row="pick"\]\{[^}]*flex-direction:column[^}]*align-items:stretch/);
+    expect(src).toMatch(/\[data-ops-assign-row="pick"\] \.vt-btn\{width:100%\}/);
+    expect(src).toMatch(/\[data-ops-assign-act\] \.vt-btn\{[^}]*min-height:44px/);
   });
 
   it("no driver of this class: the box says so with the class name, four languages", () => {
@@ -493,7 +552,7 @@ describe("5 · Assign lists only the drivers of the booking's class", () => {
     }
   });
 
-  it("the server's refusal of another class is worded with the driver's name, four languages", async () => {
+  it("the server's refusal stays under the row, worded with the driver's name, four languages", async () => {
     const want: Record<string, [string, string]> = {
       en: ["Marco Rossi drives Economy; the trip is Business.", "Marco Rossi has no class yet. Choose one on Chauffeurs."],
       de: ["Marco Rossi fährt Economy; die Fahrt ist Business.", "Marco Rossi hat noch keine Klasse. Wählen Sie eine unter Chauffeure."],
@@ -502,35 +561,28 @@ describe("5 · Assign lists only the drivers of the booking's class", () => {
     };
     for (const [lang, [mismatch, noClass]] of Object.entries(want)) {
       const a = detail({}, lang, { ok: false, code: "class-mismatch", driverName: "Marco Rossi", driverClass: "Economy", tripClass: "Business" });
-      (a.vals().assignRows as { pick: () => void }[])[0]!.pick();
+      a.vals().pickDriverFromSelect({ target: { value: MARCO } });
       a.vals().confirmAssign();
       await flush();
       expect(a.vals().assignError, lang).toBe(mismatch);
       const b = detail({}, lang, { ok: false, code: "no-class", driverName: "Marco Rossi", tripClass: "Business" });
-      (b.vals().assignRows as { pick: () => void }[])[0]!.pick();
+      b.vals().pickDriverFromSelect({ target: { value: MARCO } });
       b.vals().confirmAssign();
       await flush();
       expect(b.vals().assignError, lang).toBe(noClass);
       expect(mismatch + noClass).not.toContain("ß");
     }
+    const tpl = templateOf(readDc("OpsDetail.dc.html"));
+    const box = tpl.slice(tpl.indexOf("<div data-ops-assign"), tpl.indexOf("<div data-ops-pax>"));
+    expect(box.indexOf("data-ops-assign-err")).toBeGreaterThan(box.indexOf("data-ops-assign-row"));
   });
 
   it("a refusal without names falls back to the picked driver and the trip's class", async () => {
     const a = detail({}, "en", { ok: false, code: "class-mismatch" });
-    (a.vals().assignRows as { pick: () => void }[])[0]!.pick();
+    a.vals().pickDriverFromSelect({ target: { value: MARCO } });
     a.vals().confirmAssign();
     await flush();
     expect(a.vals().assignError).toBe("Marco Rossi drives Business; the trip is Business.");
-  });
-
-  it("the assigned driver's plate shows under the driver, not a car", () => {
-    const v = detail({ driver: "Marco Rossi", chauffeur: "Marco Rossi", assignedChauffeurId: MARCO, chauffeurPlate: "ZH 123 456", status: "assigned" }).vals();
-    expect(v.driverName).toBe("Marco Rossi");
-    expect(v.tPlate).toBe("Plate");
-    expect(v.driverPlate).toBe("ZH 123 456");
-    expect(v.hasDriverPlate).toBe(true);
-    const none = detail({ driver: "Nina Keller", chauffeur: "Nina Keller", assignedChauffeurId: NINA, chauffeurPlate: "", status: "assigned" }).vals();
-    expect(none.hasDriverPlate).toBe(false);
   });
 });
 
