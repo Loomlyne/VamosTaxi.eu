@@ -69,14 +69,14 @@ set local role vamos_system;
 select is(public.account_finish_required((select other from _af)), false, 'staff are never asked');
 reset role;
 
--- The sign-up trigger copies the optional phone from the sign-up metadata.
+-- A just-made unconfirmed account that already has an agreement row (a /sign-up account) is never marked.
 insert into auth.users (id, instance_id, aud, role, email, created_at, updated_at, raw_app_meta_data, raw_user_meta_data)
-values (gen_random_uuid(), '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'phone.signup@example.test', now(), now(), '{}'::jsonb,
-        '{"full_name":"Pia Phone","phone":"+41790000001"}'::jsonb);
-select is((select full_name || '|' || phone from public.customers where email = 'phone.signup@example.test'), 'Pia Phone|+41790000001', 'sign-up trigger copies name and phone');
-insert into auth.users (id, instance_id, aud, role, email, created_at, updated_at, raw_app_meta_data, raw_user_meta_data)
-values (gen_random_uuid(), '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'nophone.signup@example.test', now(), now(), '{}'::jsonb, '{}'::jsonb);
-select is((select full_name || '|' || phone from public.customers where email = 'nophone.signup@example.test'), '|', 'sign-up trigger without metadata still inserts with empty name and phone');
+values (gen_random_uuid(), '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'agreed.signup@example.test', now(), now(), '{}'::jsonb, '{}'::jsonb);
+select public.record_account_agreement('sign-up', null, 'agreed.signup@example.test', 'create', '2026-09-29', 'en', null, null);
+set local role vamos_system;
+select lives_ok($$select public.account_finish_mark('agreed.signup@example.test')$$, 'mark call for a sign-up account');
+reset role;
+select is((select count(*)::int from public.account_finish_pending p join auth.users u on u.id = p.user_id where u.email = 'agreed.signup@example.test'), 0, 'a sign-up account is never marked');
 
 select * from finish();
 rollback;

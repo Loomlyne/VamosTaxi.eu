@@ -115,7 +115,8 @@ const rowsAfter = users(A);
 const hasVerifier = jarA.has(/code-verifier/);
 const agrA = sql(`select count(*) from public.account_agreement_records where lower(email)=lower('${A}') and surface='sign-up' and choice='create' and record_kind='consent' and text_version='2026-09-29' and locale='de'`);
 let link = mail && linkOf(mail);
-rec("1a signup: response + mail + auth.users row + one agreement record + optional phone kept on the account and the customer row (27.1)", !!mail && rowsAfter === 1 && agrA === "1" && agreements(A) === 1 && meta(A, "phone") === "+41790000000" && sql(`select phone from public.customers where email='${A}'`) === "+41790000000", `${su}; mail=${!!mail}; auth.users=${rowsAfter}; code-verifier cookie=${hasVerifier}; agreement rows=${agreements(A)} matching=${agrA}; phone kept=${meta(A, "phone") === "+41790000000"}; customer phone=${sql(`select phone from public.customers where email='${A}'`) === "+41790000000"}`);
+rec("1a signup: response + mail + auth.users row + one agreement record + optional phone kept on the account (27.1)", !!mail && rowsAfter === 1 && agrA === "1" && agreements(A) === 1 && meta(A, "phone") === "+41790000000"
+  && sql(`select count(*) from public.account_finish_pending p join auth.users u on u.id=p.user_id where u.email='${A}'`) === "0", `${su}; mail=${!!mail}; auth.users=${rowsAfter}; code-verifier cookie=${hasVerifier}; agreement rows=${agreements(A)} matching=${agrA}; phone kept=${meta(A, "phone") === "+41790000000"}; finish mark=${sql(`select count(*) from public.account_finish_pending p join auth.users u on u.id=p.user_id where u.email='${A}'`)}`);
 if (link) {
   const f = await follow(link, jarA);
   const s = await session(jarA);

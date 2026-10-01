@@ -9,7 +9,6 @@ import { holdCheckoutFloor, sendCheckoutSignInLink } from "@/lib/auth/checkout-s
 import { CONSENT_REQUIRED, SIGNUP_UNAVAILABLE, recordSignupAgreement, signupConsentGiven } from "@/lib/auth/signup-agreement";
 import { finishAccount } from "@/lib/auth/account-finish";
 import { finishRequiredStrict, markFinished, markFinishPending, mustFinish } from "@/lib/auth/finish-target";
-import { readCheckoutAccountUserState } from "@/lib/db/system-reads";
 import { log } from "@/lib/logger";
 import { verifyTurnstile } from "@/lib/turnstile";
 import {
@@ -676,15 +675,6 @@ export async function POST(request: Request): Promise<Response> {
     if (parsed.data.mode === "signin" && !dashboard && !(await perAddressAllowed("link", parsed.data.email))) {
       return json(RATE_LIMITED, 429);
     }
-    // 27.1: did this address have an account before the link? Only a new one is marked to finish.
-    let newAddress = false;
-    if (parsed.data.mode === "signin" && !dashboard) {
-      try {
-        newAddress = !(await readCheckoutAccountUserState(env, parsed.data.email)).user_exists;
-      } catch {
-        log("error", "auth", ctx, { reason: "user-state-read-failed", action: "otp" });
-      }
-    }
     const { result, reason } = await runOtp(
       supabase,
       parsed.data.mode === "signup"
@@ -709,7 +699,9 @@ export async function POST(request: Request): Promise<Response> {
       origin,
       emailNext(returnToRaw, localizedHome(locale)),
     );
-    if (newAddress && !reason) await markFinishPending(env, parsed.data.email, ctx);
+    // 27.1: mark the account this link just made, if it made one. The database decides (unconfirmed,
+    // made in the last 10 minutes, no agreement row), so a known address does the same work.
+    if (parsed.data.mode === "signin" && !dashboard && !reason) await markFinishPending(env, parsed.data.email, ctx);
     // Sign-in: the known and the new address do different work. The checkout branch's floor makes
     // both answers take the same minimum time (T-27-57).
     if (parsed.data.mode !== "signup") await holdCheckoutFloor({ startedAt });

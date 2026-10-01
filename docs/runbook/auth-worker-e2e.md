@@ -57,6 +57,16 @@ On the public host the sign-in link makes the account for a new address; the acc
 
 Check 1a also sends the optional phone and reads it back from `user_metadata`.
 
+`finish-account-browser.e2e.mjs` (run by `run.sh` after `email-change`, same Worker, Chromium at 390 px, nothing stubbed):
+
+| Line | Proves |
+|---|---|
+| F1 | /sign-in "Email me a link" for a new address shows "check your email" and the mail holds a confirm link |
+| F2 | the link's SIGN IN lands on `/sign-up?state=finish`, "Finish your account", the address shown read-only, no tabs |
+| F3 | Finish without the tick shows the tick error on the page and writes no record |
+| F4 | with names, mobile and the tick: lands on /account and stays; one sign-up record; `Mia Keller` and `+41790000000` on the customer row; no unfinished mark; no sideways scroll |
+| F5 | no page errors |
+
 ## F12 confirm screen (Phase 20 batch C)
 
 Every e-mailed link that starts a session is the site's confirm page (`/sign-in/confirm`, `/login/confirm` on the dashboard

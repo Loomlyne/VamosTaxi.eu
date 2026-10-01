@@ -110,26 +110,24 @@ describe("POST /api/auth finish-account", () => {
 });
 
 describe("the sign-in link marks only a new address", () => {
-  it("new address: state read, link asked, account marked", async () => {
+  it("a public link request asks the database to mark the account it may have made", async () => {
     const otp = vi.fn(async (..._a: unknown[]) => ({ error: null }));
     state.auth.signInWithOtp = otp as never;
     const res = await POST(authPost({ mode: "signin", method: "magic", email: "new@example.test" }));
     expect(await res.json()).toEqual({ stage: "sent" });
-    expect(db.order).toEqual(["state", "mark"]);
-  });
-
-  it("known address: same answer, nothing marked", async () => {
-    db.exists = true;
-    state.auth.signInWithOtp = (async () => ({ error: null })) as never;
-    const res = await POST(authPost({ mode: "signin", method: "magic", email: "mia@example.test" }));
-    expect(await res.json()).toEqual({ stage: "sent" });
-    expect(db.order).toEqual(["state"]);
+    expect(db.order).toEqual(["mark"]);
   });
 
   it("a failed link request marks nothing", async () => {
     state.auth.signInWithOtp = (async () => ({ error: { code: "over_email_send_rate_limit" } })) as never;
     await POST(authPost({ mode: "signin", method: "magic", email: "new@example.test" }));
-    expect(db.order).toEqual(["state"]);
+    expect(db.order).toEqual([]);
+  });
+
+  it("a sign-up never marks", async () => {
+    state.auth.signInWithOtp = (async () => ({ error: null })) as never;
+    await POST(authPost({ mode: "signup", method: "magic", email: "n@example.test", firstName: "A", lastName: "B", consent: true }));
+    expect(db.order).not.toContain("mark");
   });
 
   it("the link has its own per-address limit; a 429 marks nothing", async () => {

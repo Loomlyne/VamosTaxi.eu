@@ -174,7 +174,7 @@ button,.vt-btn,.vt-iconbtn{box-shadow:none}
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="Email" type="email" icon="mail" size="lg" autoComplete="email" placeholder="you@example.com" value="{{ email }}" onChange="{{ setEmail }}" error="{{ errEmail }}" hint-size="100%,84px"></x-import>
 </sc-if>
 <sc-if value="{{ needPhone }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="Mobile number (optional)" type="tel" icon="phone" size="lg" inputMode="tel" autoComplete="tel" placeholder="+41 79 000 00 00" hint="So your driver can reach you on the day." value="{{ phone }}" onChange="{{ setPhone }}" error="{{ errPhone }}" hint-size="100%,84px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="Mobile number (optional)" type="tel" icon="phone" size="lg" dir="ltr" inputMode="tel" autoComplete="tel" placeholder="+41 79 000 00 00" hint="So your driver can reach you on the day." value="{{ phone }}" onChange="{{ setPhone }}" error="{{ errPhone }}" hint-size="100%,84px"></x-import>
 </sc-if>
 <sc-if value="{{ needPassword }}">
 <div data-af-pw="1">

@@ -6,9 +6,8 @@
 -- user id in a table the customer cannot write, so a later e-mail change, a checkout account or a
 -- sign-up account is never sent to the finish step.
 --
--- One new table and three SECURITY DEFINER functions for vamos_system. One existing function body
--- grows by one column: the sign-up trigger now also copies the optional mobile number into
--- public.customers.phone, so the dashboard and checkout see it. No existing row is changed.
+-- Additive only: one new table and three SECURITY DEFINER functions for vamos_system. No existing
+-- row, table or function is changed.
 
 create table public.account_finish_pending (
   user_id      pg_catalog.uuid primary key references auth.users (id) on delete cascade,
@@ -22,9 +21,10 @@ revoke all on table public.account_finish_pending from public, anon, authenticat
 comment on table public.account_finish_pending is
   'Phase 27.1: accounts the public sign-in link made for a new address. finished_at is set when the finish step stored the account tick. No role has a table grant; vamos_system reaches it only through the three definer functions.';
 
--- The sign-in link route calls this right after asking Supabase for the link, only when the address
--- had no account before. It marks a user that Supabase has just made (unconfirmed, made in the last
--- 10 minutes), never an older or confirmed one, so a race can never mark an existing customer.
+-- The sign-in link route calls this right after every successful public link request. It marks only a
+-- user that Supabase has just made for that link: unconfirmed, made in the last 10 minutes, and with no
+-- account agreement row for the address (a /sign-up or checkout account always has one). An older,
+-- confirmed or agreed account is never marked.
 create or replace function public.account_finish_mark(p_email pg_catalog.text)
 returns void
 language sql volatile security definer set search_path = ''
@@ -35,6 +35,10 @@ as $$
    where pg_catalog.lower(u.email::pg_catalog.text) = pg_catalog.lower(pg_catalog.btrim(p_email))
      and u.email_confirmed_at is null
      and u.created_at > pg_catalog.now() - interval '10 minutes'
+     and not exists (
+       select 1 from public.account_agreement_records as r
+        where pg_catalog.lower(r.email) = pg_catalog.lower(u.email::pg_catalog.text)
+     )
   on conflict (user_id) do nothing
 $$;
 
@@ -87,36 +91,3 @@ comment on function public.account_finish_required(pg_catalog.uuid) is
   'Phase 27.1: true while an account the sign-in link made has not finished. Boolean only. vamos_system only.';
 comment on function public.account_finish_done(pg_catalog.uuid, pg_catalog.text, pg_catalog.text) is
   'Phase 27.1: the finish step stored the account tick; the account is finished and its name and optional phone are copied onto public.customers. vamos_system only.';
-
--- ---------------------------------------------------------------------------
--- The sign-up trigger also copies the optional mobile number (27.1). Same body as
--- 20260828000001 plus the phone column on insert; the conflict branch is unchanged.
--- ---------------------------------------------------------------------------
-create or replace function public.tg_link_customer_on_signup()
-returns trigger
-language plpgsql
-security definer
-set search_path = ''
-as $fn$
-begin
-  -- new.email on auth.users is text; public.customers.email is extensions.citext.
-  -- The implicit cast is what makes the conflict target match case-insensitively,
-  -- which is the mechanism D-07 relies on to link a guest row created from a
-  -- differently-cased checkout email.
-  insert into public.customers (user_id, email, full_name, phone)
-  values (
-    new.id,
-    new.email,
-    coalesce(new.raw_user_meta_data->>'full_name', ''),
-    pg_catalog.left(pg_catalog.btrim(coalesce(new.raw_user_meta_data->>'phone', '')), 32)
-  )
-  on conflict (email) where erased_at is null
-  do update
-    set user_id = excluded.user_id,
-        updated_at = pg_catalog.now()
-    where public.customers.user_id is null;
-  return new;
-end;
-$fn$;
-
-revoke all on function public.tg_link_customer_on_signup() from public;

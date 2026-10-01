@@ -302,7 +302,7 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
   test("AUTH-01 magic sign-in link from the mail catcher establishes a session", async ({ page, context }) => {
     page.setDefaultTimeout(15_000);
     const email = uniqueEmail("otp");
-    // 27 D-36: the sign-in link never creates an account, so make a confirmed one first.
+    // A confirmed sign-up account first, so the link signs in without the finish step (27.1).
     const signupAfter = new Date(Date.now() - 1000).toISOString();
     await page.goto(`${baseURL}/sign-up`);
     await fillSignup(page, email, "Ada", "Lovelace", PASSWORD);
@@ -337,8 +337,8 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
     await context.clearCookies();
   });
 
-  test("AUTH-01 sign-in link for an unknown address shows the same view and makes no account (27 D-36)", async ({ page }) => {
-    const email = uniqueEmail("nolink");
+  test("AUTH-01 sign-in link for a new address shows the same view and makes one unconfirmed account to finish (27.1, 27 D-37)", async ({ page }) => {
+    const email = uniqueEmail("newlink");
     await page.goto(`${baseURL}/sign-in`);
     await page.getByRole("button", { name: "Email me a link instead" }).click();
     await page.getByLabel("Email").fill(email);
@@ -346,10 +346,12 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
     await expect(page.locator("[data-af]")).toContainText("Send another link");
     const n = ownerQuery(
       `const email = ${JSON.stringify(email)};
-       const rows = await sql\`select count(*)::int as n from auth.users where email = \${email}\`;
+       const rows = await sql\`select count(*)::int as n from auth.users u
+         join public.account_finish_pending p on p.user_id = u.id
+        where u.email = \${email} and u.email_confirmed_at is null and p.finished_at is null\`;
        console.log(String(rows[0].n));`,
     );
-    expect(n).toBe("0");
+    expect(n).toBe("1");
   });
 
   test("AUTH-01 enumeration: two signups with the same address look the same", async ({ page }) => {
