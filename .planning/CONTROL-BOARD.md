@@ -5,7 +5,7 @@ the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 Rewritten short on 2026-09-30 14:25; the long version is in git history (`8230227c`).
 
-**Last update:** 2026-09-30 14:25 (+04)
+**Last update:** 2026-10-01 11:22 (+04)
 
 ## Live now
 
@@ -13,7 +13,7 @@ Rewritten short on 2026-09-30 14:25; the long version is in git history (`823022
 |---|---|
 | Site | https://vamostaxi.site and https://dashboard.vamostaxi.site |
 | main = origin/main | `34c726db` plus planning notes |
-| Worker `vamos` | version `7fa342a7` |
+| Worker `vamos` | version `c2127d38` (2026-10-01 11:19, 26.0); before: `7fa342a7` |
 | Worker `vamos-dashboard` (gateway) | version `71a307da` (2026-10-01 08:0x); before: `58c6e541`. Rollback of batch C part 2 = both Workers together |
 | Rollback point | Worker `f58cd68e` + gateway `58c6e541` together, git tag `backup/main-before-c2-df520d08`; before the design: Worker `e2c53324`; before D and the refusal fix: Worker `c45d2782`; before 27: Worker `dfba8779`, tag `backup/main-before-27-a8948162` (the two Phase 27 migrations are additive and can stay); before polish 2: Worker `832b884e`; before batch C1: Worker `24945bab`; before extras A: Worker `2f303d16`; before refunds: Worker `1e1fd4a6`, tag `backup/main-before-refunds-3a486eaa` (note: rolling the Worker back alone re-enables automatic refunds on cancel; the migration stays); before the home change: Worker `852de5f4`; before the three pieces: Worker `d0c427c2`; before native scrolling: Worker `f3f7d929`; before the queue: Worker `92504970`; before class cards: Worker `d80e6577`; before speed A: Worker `8adb148c`; before phone home: Worker `d43e467b`; before 26.2: Worker `0d1806ce`; before the Support button: Worker `2d5906ce` (before 26.5: Worker `fe9314d0`, tag `backup/main-before-26.5-e09f90cb`). Guest accounts off without a deploy: `settings.guest_accounts_live = false` |
 | Database | migrations up to `20260930210000`, 26.5's `20261001100000` to `130000`, Phase 20's `20261005100000` and `110000`, 26.2's `20261007100000`, Phase 20's `20261005120000`, `130000`, `140000` (refunds by hand), 26.2's `20261007110000` (extra names prune), Phase 20's `20261005150000` (last-admin guard), Phase 27's `20261002100000` and `110000`, all applied and read back. `guest_accounts_live` = true since 14:58 (owner's answer) |
@@ -49,6 +49,7 @@ Rewritten short on 2026-09-30 14:25; the long version is in git history (`823022
 | 10-01 | 03:10 | Extras part D (no stop on the way; terms and privacy lines) and dashboard refusal messages + My bookings shows anyway | `0edf87d9` | `e2c53324` |
 | 10-01 | 03:24 | Dashboard design: one Actions menu, short phone bar, Assign without a pop-up, driver Car field, edit-box buttons | `4dc72078` | `f58cd68e` |
 | 10-01 | 08:06 | Security batch C part 2: sign-in confirm screen, dashboard files off the public host, /dev headers once (two Workers) | `34c726db` | `7fa342a7` + gateway `71a307da` |
+| 10-01 | 11:19 | **26.0 main green**: honest test and gate set, Worker-client DB tests, e2e-linux GitHub job, `/dev` test-only, imprint en+de notice for fr/ar readers (D-05); no migration | `6ec73c52` | `c2127d38` |
 
 ## Ship order from here
 
@@ -77,7 +78,7 @@ Owner's order: booking, payments, account, Meta first.
 | 10e | Sync prune (scripts only) | **On main 23:54** (owner said Ship) | |
 | 10d | Native scrolling | **Live 23:26** (owner's word 16:00). Live read: no Lenis file or global on /faq, the bundle writes no --vt-scroll, page scrolls by script at 390, phone menu locks and releases. Note: the sync script leaves old copies in `apps/web/public/assets`; the control session removed the three Lenis copies by hand before the deploy | Owner: scroll the site on his phone and laptop |
 | 11 | Scroll and speed | Measuring on live | A plan for the owner's signature |
-| 12 | 26.0 main green | No session. 9 of 12 plans done, 35 behind main | Prompt `03-finish-26.0.md` |
+| 12 | 26.0 main green | **Live 2026-10-01 11:19** (`6ec73c52`, Worker `c2127d38`) | Folder, branch and stack removed; branch `fix/main-green-2` and tag `archive/26-0-main-green-01679f12` on GitHub |
 | 13 | 26.2 gate scripts (stricter checks) | On `gsd/phase-26.2-u13` | Last, after 27 to 29 |
 
 **Ship mode on 2026-09-30 only:** the control session ships 26.4.2 (and its repairs), 26.5 and
@@ -103,7 +104,7 @@ Full text: `.planning/decisions/2026-09-30-priorities-and-ship-mode.md`.
 | 2 | Dashboard design | **Live 03:24** (owner said Ship). Live OpsDetail mock identical to the source. Owner UAT: 5 steps in `.planning/quick/260930-dash-design/HANDOVER.md`, Assign first once the driver has a car |
 | 3 | Security part 2 | **Live 08:06** (owner said Ship). Live: dashboard sign-in 200; dashboard screen files 200 on the dashboard host with CSP, X-Frame-Options and noindex, 404 on the public host; /dev sends each header once; /sign-in/confirm answers. **Finding:** the hand-over said new gateway + old vamos keeps the dashboard working; on live it did not: the dashboard answered 404 between the gateway deploy and the vamos deploy (about the length of one build). Owner UAT: sign-in link opened on the phone; dashboard sign-in. Open owner question: e-mail change cannot finish (hook mails only the old address) |
 | 4 | P1 class change, P6 place/time change | P1 building (`phase-26.2-p1`, pay-mail text approved). **P6 plan signed 2026-10-01** (`.planning/decisions/2026-10-01-p6-paid-trip-edit.md`, migration `20261007150000`): time-only keeps the price; unbookable place refused; cheaper late = full difference as Refund due; too many people offers a larger class; people, bags, contact and flight change instantly; the customer's change page drops five dead fields (picture first). Built after P1 on P1's functions. **No Cars page** (owner correction 2026-10-01, `.planning/decisions/2026-10-01-no-cars-page.md`): refined: chauffeur form as before with Class and one new plate-number field; Assign lists drivers of the booking's class; bookings history per chauffeur; migration `20261007160000`; branch `gsd/26.2-chauffeur-car`, pictures first |
-| 5 | 26.0 main green | Working |
+| 5 | 26.0 main green | **Live** (owner said Ship, 2026-10-01). Gates honest again; `/dev` test-only; imprint declares en+de with a notice for fr/ar readers (D-05); e2e-linux GitHub job added (deploys nothing). Playwright still not green: owner-ruled reds (RouteSummary, SiteFooter), 48 SiteHeader screenshot diffs (undiagnosed, also on main without 26.0), home reds on main (`home-red-36.txt`), unclassified reds listed in `.planning/phases/26.0-main-green/26.0-HANDOVER.md` |
 | 6 | Phase 29, then the finish-your-account follow-up (27 D-37) | After 28 |
 | 7 | Stricter check scripts (u13) | Last |
 
@@ -119,7 +120,7 @@ as a branch, then the folder, its Docker stack and build output are removed the 
 | Meta measurement phases 27-29 | `phase-27` | `gsd/phase-27-consent-record` | running; stack `vamos-taxi-270` stopped |
 | Phase 26.2 audit | `phase-26.2`, `phase-26.2-u13` | `gsd/phase-26.2-audit`, `gsd/phase-26.2-u13` | waiting for 26.5; stack `vamos-taxi-262` stopped |
 | Vamos Taxi security phase | none | all seven branches on GitHub | all Phase 20 batches live; session at its limit; open for the owner: refund UAT then the live-key proof, e-mail change bug, edit-accept by any staff, after-trip refund switch |
-| Phase 26.0 main green completion (started 23:43) | `main-green-2` | `fix/main-green-2` | merging main, then plans 10 to 12 |
+| Phase 26.0 main green completion | none | `fix/main-green-2` on GitHub | shipped 2026-10-01 11:19; folder `main-green-2`, local branch and stack `vamos-taxi-mg2` removed; session can be closed |
 
 Removed on 2026-09-30, every tip on GitHub as a branch or an `archive/*` tag: 13 shipped folders,
 7 unit folders of 26.2, `fix-26.3-followups` (its two research notes committed, branch pushed),
@@ -207,8 +208,9 @@ Full texts in `.planning/decisions/`.
 | /terms section 03 mentions SMS; /about fleet numbers differ from the live classes (archived work `archive/legal-follow-up-fe4e37a0`, never shipped) | 26.2 list, not assigned |
 | Settings say 15 minutes standard waiting, the pages say 30 | Owner changes the setting if both should agree |
 | The airport fee is saved inside the fare line, not as its own line | 26.2 list |
-| Tests in 26.0's folder that expect `/de/about` to redirect are stale since the SEO ship; one screenshot test expects gaps the legal ship removed | 26.0 |
-| One unit test (`bookings-write.test.ts`) can time out at 5 seconds on a busy machine | 26.0 |
+| `data-i18n-skip` still sits in the frozen legal pages, `LegalPage`, `PendingSlot` and `manage-booking.dc.html`; the runtime ignores it (no customer effect). `app/[locale]/(ops)/api/staff/content/[key]/route.ts` exports non-route helpers | 26.2 list, not assigned |
+| The 24 h reminder cron error seen on live by the first 26.0 session ("permission denied for table booking_legs") is not verified fixed; read-only check of the Worker logs owed | Control session |
+| Playwright: 48 SiteHeader screenshot diffs (open and unconfirmed states, every language, 3 widths) fail with and without 26.0, cause not found; home specs red on main (`home-red-36.txt`); unclassified reds: checkout-hosted 390, currency, confirmation S3/S4, checkout-account 768 | `26.0-HANDOVER.md`; booking-polish for the home reds |
 | Class photos are 2.3 to 2.8 MB each | `feat/class-photo-small` |
 | VT-26-0739 and VT-26-0742 are not in the owner's account | Not a bug: booked with another e-mail address |
 
@@ -248,9 +250,11 @@ Full texts in `.planning/decisions/`.
 | 7 | Older UAT not reported: manage link of VT-26-0743, dashboard New trip, sign-in 14 steps | e-mail, dashboard, phone |
 | 8 | The unsigned Lenis folder `.planning/quick/260928-q4t-…` (feeds the scroll and speed plan) | decision |
 | 9 | Empty the Trash; `brag-output` and `.pnpm-store` in the main checkout | his click |
+| 10 | 26.0 UAT: (1) vamostaxi.site/imprint in French, then Arabic: a notice says the page exists in English and German, English binding; is the French and Arabic wording right? (2) /dev and /dev/home/services answer 404 (checked by control 11:20). (3) The 48 SiteHeader screenshot diffs and the page diffs (about, contact, faq, home sections, legal pages, error pages de/fr): intended change (rebaseline on his Mac) or bug, one decision per page; images in `.planning/phases/26.0-main-green/evidence/`. (4) First run of the GitHub job "Booking funnel e2e on Linux" on `6ec73c52`: failures listed back to control | site, GitHub |
 
 ## Owed by the control session
 
 | What | When |
 |---|---|
-| Nothing open | 26.5 shipped 14:57; waiters told (26.2, Phase 27, class cards); folder `phase-26.5`, `.sb265` and stack `vamos-taxi-265` removed, branch and archive tag on GitHub |
+| Read-only check of the Worker cron logs for the 24 h reminder "permission denied for table booking_legs" error (26.0 hand-over) | Next idle moment |
+| Read the first "Booking funnel e2e on Linux" run on `6ec73c52` and list its failures | When the run finishes |
