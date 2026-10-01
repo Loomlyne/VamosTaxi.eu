@@ -48,9 +48,11 @@ test.describe("GET /api/staff/content @ops-dc-content", () => {
       join(webRoot, "app/[locale]/(ops)/api/staff/content/[key]/flags/route.ts"),
       "utf8",
     );
-    expect(flagsRoute).toMatch(/pendingValue\?: boolean/);
-    expect(flagsRoute).toMatch(/nonTranslatable\?: boolean/);
-    expect(flagsRoute).toMatch(/noParamReason\?: string \| null/);
+    // 26.0: the patch type moved to ContentStringFlagsPatch; the route merges each field on its own.
+    expect(flagsRoute).toMatch(/ContentStringFlagsPatch/);
+    expect(flagsRoute).toMatch(/patch\.pendingValue \?\? existing\.pendingValue/);
+    expect(flagsRoute).toMatch(/patch\.nonTranslatable \?\? existing\.nonTranslatable/);
+    expect(flagsRoute).toMatch(/patch\.noParamReason !== undefined/);
     expect(flagsRoute).not.toMatch(/translatable\?: boolean/);
     expect(flagsRoute).toMatch(/loadContentRow/);
     expect(flagsRoute).toMatch(/setContentStringFlags/);

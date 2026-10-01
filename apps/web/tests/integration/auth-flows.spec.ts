@@ -9,8 +9,7 @@ import { execFileSync, spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, settleCloudflareDev, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 import { mailUrl, nextDevEnv, ownerDbUrl, REPO_ROOT, requireTestStack, stackKeys } from "../support/test-stack";
 import { join } from "node:path";
-import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
-import { devBindingEnv, ownClientIpHeaders, waitForDevBindings, warmAuthPages, MAIL_URL, OWNER_CS, supabaseStatusArgs } from "../support/dev-binding";
+import { devBindingEnv, ownClientIpHeaders, supabaseStatusArgs, waitForDevBindings, warmAuthPages } from "../support/dev-binding";
 import deMessages from "../../i18n/messages/de.json";
 
 const RUN_PROJECT = "component-1440";
