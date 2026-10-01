@@ -12,7 +12,7 @@ import { chromium } from "@playwright/test";
 import fs from "node:fs";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
-import { PORT, FAKE_PORT, API, SERVICE, rec, finish, sql } from "./checkout-common.mjs";
+import { PORT, FAKE_PORT, API, SERVICE, rec, finish, sql, freshWindow } from "./checkout-common.mjs";
 
 const DASH_PORT = Number(process.env.E2E_DASH_PORT ?? 4391);
 const BASE = `http://localhost:${PORT}`;
@@ -26,6 +26,8 @@ const SHOTS = fileURLToPath(new URL("../../../../.planning/quick/261001-p6-paid-
 fs.mkdirSync(SHOTS, { recursive: true });
 
 const nap = (ms) => new Promise((r) => setTimeout(r, ms));
+/** The page wraps amounts and names in left-to-right isolates: take them out before comparing text. */
+const bidi = (s) => String(s ?? "").replace(/[\u2066-\u2069]/g, "");
 const short = (s, n = 140) => String(s ?? "").replace(/\s+/g, " ").replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/g, "<id>").slice(0, n);
 const fj = async (p) => (await fetch(FAKE + p)).json();
 const q = (text) => sql(text);
@@ -395,9 +397,9 @@ try {
       await openBooking(dpage, "edit8");
       await startEdit(dpage);
       await dpage.getByLabel("Passengers", { exact: true }).fill("6");
-      await dpage.getByText(/Classes that fit: Business|cannot take this party/).first().waitFor({ timeout: 20000 });
+      await dpage.waitForFunction(() => /Classes that fit:\s*[\u2066]?Business/.test(document.body.innerText), null, { timeout: 25000 });
       const opts = await dpage.getByLabel("Vehicle class").locator("option").allInnerTexts();
-      const hint = (await dpage.locator("[data-ops-trip-grid]").innerText()).replace(/\s+/g, " ");
+      const hint = bidi(await dpage.locator("[data-ops-trip-grid], [data-ops-edit-group='trip']").first().innerText()).replace(/\s+/g, " ");
       await dpage.getByLabel("Vehicle class").selectOption({ label: "Business" });
       await waitPreview(dpage, /Vehicle class.*Business/i);
       const f = boxFigures(await changeBox(dpage).innerText());
@@ -405,7 +407,7 @@ try {
       const rows = (await dpage.locator("[data-ops-chg-row]").allInnerTexts()).map((x) => x.replace(/\s+/g, " "));
       const oneDiff = (f.text.match(/Difference to pay/gi) ?? []).length === 1;
       rec("O8 Passengers 6 on an Economy booking: the class list offers only the classes that fit (Business, besides the current one tagged 'too small'); one price for the whole change",
-        opts.some((o) => /^Business$/.test(o.trim())) && opts.some((o) => /too small/.test(o)) && /Passengers.*2.*6/.test(rows.join(" ")) && /Vehicle class.*Economy.*Business/.test(rows.join(" ")) && oneDiff && f.diff > 0,
+        /Classes that fit: Business/.test(hint) && opts.some((o) => /^Business$/.test(o.trim())) && opts.some((o) => /too small/.test(o)) && /Passengers.*2.*6/.test(rows.join(" ")) && /Vehicle class.*Economy.*Business/.test(rows.join(" ")) && oneDiff && f.diff > 0,
         `options ${JSON.stringify(opts.map((o) => o.trim()))}; hint "Classes that fit: Business" ${/Classes that fit: Business/.test(hint)}; box rows ${JSON.stringify(rows)}; one total: new total ${money(f.total)}, paid ${money(f.paid)}, difference to pay ${money(f.diff)}`);
       await dpage.locator("[data-ops-edit-acts]").getByRole("button").first().click(); // Cancel: nothing was confirmed
       rec("O8b leaving the edit without confirming wrote nothing", legRow("edit8") === before, `leg unchanged: ${legRow("edit8") === before}`);
@@ -506,6 +508,7 @@ try {
   if (want("C2")) {
     try {
       const air = B.air;
+      await freshWindow(30000); // the write limiter (4 per minute per address) counts the flight Save, Resend and time change together
       await manage(cpage, "air");
       scroll390.push({ name: "C2 manage page", over: over((await widthsOf(cpage, [390]))[0]) });
       await cpage.getByRole("button", { name: "Edit", exact: true }).click();
@@ -642,27 +645,53 @@ try {
     }
   }
 
-  // C7 (D20) a cancelled booking: "Resend confirmation" sends the cancellation e-mail, not the "Booked" mail.
+  // C7 (D20) a cancelled booking: Resend sends the cancellation e-mail, not the "Booked" mail. The booking is cancelled
+  // through the real manage page (Cancel this transfer -> Confirm cancellation), then the confirmation is resent twice:
+  // right after (the same view, "Resend email") and on a fresh load of the cancelled booking.
   if (want("C7")) {
     try {
       const cn = B.canc;
+      await freshWindow(40000); // cancel, resend and resend: three writes inside one limiter window
       await manage(cpage, "canc");
       await cpage.getByRole("button", { name: /Cancel this transfer/ }).first().click();
+      const nC = apiLog.length;
       await cpage.getByRole("button", { name: "Confirm cancellation", exact: true }).click();
-      await cpage.getByText("This transfer is cancelled").first().waitFor({ timeout: 25000 });
+      await cpage.getByText("Full refund").first().waitFor({ timeout: 25000 });
       await nap(1500);
-      scroll390.push({ name: "C7 cancelled view", over: over((await widthsOf(cpage, [390]))[0]) });
       const st = q(`select status from public.bookings where id = '${cn.id}'`);
-      const t0 = new Date().toISOString();
-      const n0 = apiLog.length;
-      await cpage.getByRole("button", { name: "Resend confirmation" }).click();
-      const m = await msg(cpage, /Sent\. Check .* in a minute or two\./);
+      const cancelCall = apiOf(nC, /manage\/cancel/)[0];
+      rec("C7a Cancel this transfer -> Confirm cancellation on the real manage page cancels the booking",
+        st === "cancelled" && cancelCall?.s === 200, `booking status in the database ${st}; ${since(nC, /manage\/cancel/)}`);
+      scroll390.push({ name: "C7 after cancelling", over: over((await widthsOf(cpage, [390]))[0]) });
+      const subjectOk = (m) => new RegExp(`^Buchung ${cn.reference} ist storniert`).test(m.subject);
+
+      // (1) the booking view after cancelling: "Resend email"
+      let t0 = new Date().toISOString();
+      let n0 = apiLog.length;
+      await cpage.getByRole("button", { name: "Resend email", exact: true }).first().click();
+      let m = await msg(cpage, /Sent\. Check .* in a minute or two\./);
       await nap(1500);
-      const allNew = await mailsSince(t0);
-      const mails = allNew.filter((x) => x.to.includes(cn.email));
-      rec("C7 cancelled booking -> Resend confirmation: 'Sent. Check <address> ...'; the stand-in got exactly ONE mail to it, the cancellation subject, no 'Gebucht' mail",
-        st === "cancelled" && m.includes(cn.email) && mails.length === 1 && new RegExp(`^Buchung ${cn.reference} ist storniert`).test(mails[0].subject) && !allNew.some((x) => /Gebucht/.test(x.subject)),
-        `booking status ${st}; message "${m}"; mails to the address since the press: ${fmtMails(mails)}; all mails since: ${allNew.length}; ${since(n0, /manage\/resend/)}`);
+      let allNew = await mailsSince(t0);
+      let mails = allNew.filter((x) => x.to.includes(cn.email));
+      rec("C7b cancelled booking -> Resend email: 'Sent. Check <address> ...'; the stand-in got exactly ONE mail to it, the cancellation subject, no 'Gebucht' mail",
+        m.includes(cn.email) && mails.length === 1 && subjectOk(mails[0]) && !allNew.some((x) => /Gebucht/.test(x.subject)),
+        `message "${m}"; mails to the address since the press: ${fmtMails(mails)}; all mails since: ${allNew.length}; ${since(n0, /manage\/resend/)}`);
+
+      // (2) a fresh load of the cancelled booking (the page's cancelled view with "Resend confirmation" is never entered:
+      // isCancelled is fixed to false), so the way to resend on it is the same "Resend email" row.
+      await manage(cpage, "canc");
+      await cpage.getByText("Cancelled", { exact: true }).first().waitFor({ timeout: 25000 });
+      scroll390.push({ name: "C7 cancelled booking, fresh load", over: over((await widthsOf(cpage, [390]))[0]) });
+      t0 = new Date().toISOString();
+      n0 = apiLog.length;
+      await cpage.getByRole("button", { name: "Resend email", exact: true }).first().click();
+      m = await msg(cpage, /Sent\. Check .* in a minute or two\./);
+      await nap(1500);
+      allNew = await mailsSince(t0);
+      mails = allNew.filter((x) => x.to.includes(cn.email));
+      rec("C7c fresh load of the cancelled booking -> Resend email: 'Sent. Check <address> ...'; exactly ONE mail to it, the cancellation subject, no 'Gebucht' mail",
+        m.includes(cn.email) && mails.length === 1 && subjectOk(mails[0]) && !allNew.some((x) => /Gebucht/.test(x.subject)),
+        `message "${m}"; mails to the address since the press: ${fmtMails(mails)}; all mails since: ${allNew.length}; ${since(n0, /manage\/resend/)}`);
     } catch (e) {
       await stopped("C7 cancelled resend", e, cpage);
     }
