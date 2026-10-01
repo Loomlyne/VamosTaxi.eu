@@ -1,7 +1,8 @@
 # P6 worker run — every changed DC form step in a real Chromium on the real local Worker and Supabase
 
-**Final (lead, 2026-10-02 01:57 +04):** one uninterrupted run on the merged final tree `7f5b341e` (origin/main `dace2b1f`
-in, D20 and D21 in, fresh OpenNext build): **37 lines, 37 PASS, 0 FAIL, exit 0**, ports 4590/4591/9631/9632, fakes 4397.
+**Final (lead, 2026-10-02):** one uninterrupted run on the merged tree `7f5b341e` (origin/main `dace2b1f` in, D20 and
+D21 in, fresh OpenNext build) at 01:57 +04, and again on the final tree `09a97ca4` (origin/main `d575917e` in) at 02:06 +04:
+**37 lines, 37 PASS, 0 FAIL, exit 0** both times, ports 4590/4591/9631/9632, fakes 4397.
 New since the builder's run: O2c asserts the D21 trip line ("The trip was changed and costs less now. Nothing is sent
 until you confirm.") and not the class line. Two earlier lead runs were cut short when a Worker runtime was stopped
 from outside under a load average of 24–28 (no crash report; every cut line had passed before and passed again).

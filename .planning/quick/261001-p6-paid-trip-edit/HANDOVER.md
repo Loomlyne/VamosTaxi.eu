@@ -1,7 +1,7 @@
 # P6 hand-over — change the place or time of a paid trip (D1–D21)
 
 Branch `gsd/26.2-p6-build` (worktree `.claude/worktrees/p6-paid-trip-edit` in the main folder), code verified at
-**`7f5b341e`**; this hand-over is the commit after it (documents and one screenshot only), origin/main `dace2b1f` merged in (no conflict). Pushed, never forced. No PR, no deploy, no hosted
+**`09a97ca4`**; this hand-over is the commit after it (documents and run screenshots only), origin/main `d575917e` merged in (no conflict). Pushed, never forced. No PR, no deploy, no hosted
 write (four read-only SELECTs on live: column grants, objects and rule, function md5s, function grants; results below). Decisions: `.planning/decisions/2026-10-01-p6-paid-trip-edit.md`
 (D1–D19 signed 2026-10-01; **D20 and D21 answered 2026-10-02 in this session**). Earlier record: `BUILD-RECORD.md`.
 Browser run: `WORKER-RUN.md`. Pictures: `screens/` (signed design) and `screens/worker-run/` (the real run).
@@ -115,7 +115,7 @@ All nine: `prosecdef = true`, `proconfig = {search_path=""}`. Rule md5 `9605dc33
 `service_role`, Supabase's hosted default; live already shows it on `booking_edit_apply_payload`); `manage_money_for`
 → `postgres, service_role` (unchanged). Legs: `39` (or more, if new bookings arrived) and `kept = 0`.
 
-## Checks (final tree `7f5b341e`, after `node scripts/sync-dc-mock-to-public.mjs`)
+## Checks (final tree `09a97ca4`, after `node scripts/sync-dc-mock-to-public.mjs`)
 
 | Check | Result |
 |---|---|
@@ -125,10 +125,10 @@ All nine: `prosecdef = true`, `proconfig = {search_path=""}`. Rule md5 `9605dc33
 | `pnpm i18n:check` | pass (2685 keys) |
 | `pnpm check:legal-claims` | pass (3 checks) |
 | `pnpm check:numbers` | pass |
-| `pnpm check:db-fences` | pass (8 checks, 1093 files) |
+| `pnpm check:db-fences` | pass (8 checks, 1094 files) |
 | `pnpm check:public-env` | pass before the build; pass (built client bundle scanned) after the Worker build |
 | `pnpm db:seed:check` | no drift (seed.sql unchanged by this job; no re-pin needed) |
-| `pnpm test:unit` | pass: web 366 files / 3671 tests (9 local-database files skipped without a port), emails 14 / 179, db 2 / 14 |
+| `pnpm test:unit` | pass: web 367 files / 3687 tests (9 local-database files skipped without a port), emails 14 / 179, db 2 / 14 |
 | `pnpm build` | pass; `…/change/preview`, `…/change/withdraw`, `/api/manage/resend`, `/api/account/bookings/resend` in both mounts |
 | From-empty replay + full pgTAP (own stack `vamos-taxi-p6b`, ports 624xx) | 128 migrations; **95 files / 2430 tests pass** (P6 file 131) |
 | Types (`pnpm exec supabase` 2.115.0, `gen types --local` on that stack) = `database.types.ts` | identical (the `db:types:check` command itself targets port 54322, which this job must not use; the same command ran with `--workdir`) |
