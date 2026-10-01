@@ -46,5 +46,5 @@ difference on a test booking, then `booking_payments` read by status.
 | Gate | State |
 |---|---|
 | Discuss (DECISIONS.md) | Answered, question form, 2026-10-01 |
-| This plan | **Waiting for his signature** |
+| This plan | **Signed by the owner, question form, 2026-10-01** ("Signed") |
 | Designs (Edit with address search and price box; customer page without the five fields) | Before code ships |
