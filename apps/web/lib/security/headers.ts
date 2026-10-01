@@ -8,6 +8,11 @@
 // navigation, not governed by this policy). No page of ours loads Stripe.js,
 // frames Stripe or calls api.stripe.com from the browser, so no Stripe or Link
 // host is allowlisted. Add one back only with the surface that needs it.
+//
+// Cloudflare Web Analytics: static.cloudflareinsights.com serves the beacon,
+// cloudflareinsights.com receives it. Our own code loads it only after the
+// visitor allows Analytics (lib/consent/web-analytics.ts); Cloudflare's
+// automatic injection must stay off, or this allowance lets it run unasked.
 
 export const SECURITY_HEADER_PAIRS: ReadonlyArray<readonly [string, string]> = [
   ["Strict-Transport-Security", "max-age=31536000; includeSubDomains"],
@@ -17,7 +22,7 @@ export const SECURITY_HEADER_PAIRS: ReadonlyArray<readonly [string, string]> = [
   ["Permissions-Policy", "camera=(), microphone=(), geolocation=()"],
   [
     "Content-Security-Policy",
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' challenges.cloudflare.com; frame-src challenges.cloudflare.com; connect-src 'self' maps.googleapis.com challenges.cloudflare.com api.mapbox.com events.mapbox.com; img-src 'self' data: blob: https://*.mapbox.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'",
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' challenges.cloudflare.com static.cloudflareinsights.com; frame-src challenges.cloudflare.com; connect-src 'self' maps.googleapis.com challenges.cloudflare.com api.mapbox.com events.mapbox.com cloudflareinsights.com; img-src 'self' data: blob: https://*.mapbox.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'",
   ],
 ];
 
