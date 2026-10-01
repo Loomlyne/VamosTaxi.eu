@@ -13,7 +13,9 @@ Started 2026-10-01. Nothing pushed, no PR, no deploy, no hosted SQL.
 |---|---|---|
 | 1 | `5a389707` | Database: migration `20261007140000_class_change_reprice.sql`, pgTAP `class_change_reprice.test.sql` (69), Worker-client local test `packages/db/test/local/class-change-reprice.test.ts` (3), regenerated `database.types.ts` (only the new functions and columns differ) |
 | 2 | `e0029d3d` | Price step `apps/web/lib/ops/booking-change-price.ts` + 14 unit tests |
-| 5 | (next) | End-to-end local test through the real Worker client (`booking-change.local.test.ts`), both local test files named in `scripts/db-access-fence-allowlist.json`, module-scope `Set` removed (isolate-memoisation fence) |
+| 6 | (next) | Pictures for the owner's signature (`screens/`, method of ops-signing-pictures-real-shell), Edit grid stacks on a phone (the class value was cut at 390) |
+| merge | `c15c101c` | origin/main 40dc4f29 brought in (only overlap: the identical decision file) |
+| 5 | `ca05fecb` | End-to-end local test through the real Worker client (`booking-change.local.test.ts`), both local test files named in `scripts/db-access-fence-allowlist.json`, module-scope `Set` removed (isolate-memoisation fence) |
 | 4 | `060b65d3` | Server: `booking-change.ts` (preview / confirm / after-change mails), routes `POST …/bookings/:id/change/preview` and `POST …/bookings/:id/change` (+ dual mounts), the owner's e-mail `ClassChangePayEmail` (four languages, copied programmatically from the decision file), settle hook for a paid difference, refunds-by-hand credit tier in `refund.ts`, board read of the waiting change, dashboard (class list, price box, confirm step, waiting state, credit panel, four languages), customer account line guard |
 | 3 | `bd9c7fe8` | Writer fix (`sql.json`), accept takes a stored request only (no field from the browser, lead note 3), cheaper accept = Refund due with no Stripe call, PATCH no longer writes the class (A8), rules and body parser `booking-change-map.ts` (+10 tests), by-version price book read in `rate-book.ts`, `deliverBookingConfirmation` split out of `voucher.ts`, migration: shown class totals kept only for the same book |
 
@@ -86,6 +88,26 @@ stack's data. Nothing of theirs is in git or on disk lost; their stack is up wit
   apply step reads a string payload too (pgTAP G).
 - Regression pgTAP on the same stack: `booking_edit_requests`, `refunds_by_hand`, `ops_refund`,
   `refund_review`, `ops_assign_leg`, `settle_revive` — 313 tests, pass.
+
+## Pictures for the owner (`.planning/quick/260930-p1-class-change-reprice/screens/`)
+
+Real dashboard shell (`app/ops/ops.dc.html` as the Worker serves it), API answers from the real board
+mapper of each version, before = origin/main `40dc4f29` (git archive), after = this branch. Every
+amount shows CHF 000 (the money formatter is stubbed on the pictures: no invented price). 1440 and 390,
+English and Arabic; nothing scrolls sideways (36/36 shots, `sideways 0`); no console error except the
+`assets/icons/route.svg` 404 that main has too (the route-chip icon file is missing in the repo).
+
+| Sheet | What |
+|---|---|
+| `sheet-dear-edit.png` | Edit, dearer class: class list (live classes, booking's class preselected, not the car) and price box |
+| `sheet-cheap-edit.png` | Edit, cheaper class: price box "Refund due" |
+| `sheet-dear-confirm.png` | The confirm step (new): recap, consequence, driver line |
+| `sheet-wait-view.png` | Waiting for payment of the difference, Open / Copy the Stripe page (before: the generic Accept / Refuse panel) |
+| `sheet-credit-view.png` | After a cheaper change: Refund due for the difference only (before: main offered the full refund) |
+| `sheet-mail.png` | The new e-mail, en / de / fr / ar, 640 and 390, the decision file's example values |
+
+Single shots: `{dear-edit,cheap-edit,dear-confirm,wait-view,credit-view}-{before,after}-{en,ar}-{1440,390}.png`,
+`mail-{en,de,fr,ar}-{640,390}.png`.
 
 ## Checks (run once at the end)
 

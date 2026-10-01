@@ -25,6 +25,9 @@
 [data-ops-refund-full]{margin:0;font-size:var(--vt-body-md);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)}
 [data-ops-refund-unit] .vt-tab{height:44px;min-width:72px}
 [data-ops-decide-body]{margin:0;font-size:var(--vt-body-sm);line-height:1.6;color:var(--vt-text-secondary);text-wrap:pretty}
+/* 26.2 P1: the Edit fields stack on a phone so a value (the class list too) is never cut. */
+[data-ops-edit-grid]{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px}
+[data-ops-edit-grid]>*{min-width:0}
 [data-ops-class-box]{margin-top:14px;padding:14px 16px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);min-width:0}
 [data-ops-decide-foot]{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--vt-border-subtle)}
 [data-ops-detail-bar]{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 12px;width:100%}
@@ -180,7 +183,7 @@
 <div data-ops-pax>
 <h3 style="margin:0 0 12px;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:600;color:var(--vt-text-muted)">{{ tPassengerTrip }}</h3>
 <sc-if value="{{ editing }}" hint-placeholder-val="{{ false }}">
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+<div data-ops-edit-grid>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tCustomer }}" value="{{ edit.customer }}" onChange="{{ setEditCustomer }}" hint-size="100%,76px"></x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tEmail }}" value="{{ edit.email }}" onChange="{{ setEditEmail }}" hint-size="100%,76px"></x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tMobile }}" value="{{ edit.phone }}" onChange="{{ setEditPhone }}" hint-size="100%,76px"></x-import>
