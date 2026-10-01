@@ -234,6 +234,42 @@ describe("extra-fare payment on a hosted session", () => {
     expect(input.cancelUrl).toBe("https://dashboard.vamostaxi.site/bookings/VT-26-0001");
   });
 
+  it("26.2 P1: acceptPaidEdit without a request id refuses; it never builds a request from the browser's fields", async () => {
+    const seen: string[] = [];
+    sqlHandler = (text) => {
+      seen.push(text);
+      return [];
+    };
+    const res = await acceptPaidEdit(
+      env,
+      { sub: "00000000-0000-4000-8000-0000000000aa" } as never,
+      "VT-26-0001",
+      { payload: { pickup_text: "Typed in the browser", vehicle_class_slug: "van-luxury" } },
+      "https://dashboard.vamostaxi.site",
+    );
+    expect(res).toEqual({ ok: false, code: "invalid-body" });
+    expect(seen).toEqual([]);
+    expect(createSession).not.toHaveBeenCalled();
+  });
+
+  it("26.2 P1: a cheaper accepted change is Refund due, with no Stripe call (refunds by hand)", async () => {
+    sqlHandler = (text) => {
+      if (text.includes("booking_edit_request_accept")) {
+        return [{ request_id: "00000000-0000-4000-8000-0000000000e2", booking_id: BOOKING, outcome: "refund_due", difference_rappen: -300, extra_snapshot_id: null, extra_session_id: null, hours_before: 48, original_payment_id: 1, original_intent_id: "pi_1" }];
+      }
+      return [];
+    };
+    const res = await acceptPaidEdit(
+      env,
+      { sub: "00000000-0000-4000-8000-0000000000aa" } as never,
+      "VT-26-0001",
+      { requestId: "00000000-0000-4000-8000-0000000000e2", payload: {} as never },
+      "https://dashboard.vamostaxi.site",
+    );
+    expect(res).toMatchObject({ ok: true, outcome: "refund_due", differenceRappen: -300, extraSessionId: null });
+    expect(createSession).not.toHaveBeenCalled();
+  });
+
   it("staffExtraPayUrl returns the open kind=extra hosted URL for this booking only", async () => {
     sqlHandler = () => [{ booking_id: BOOKING, extra_session_id: "cs_test_extra1" }];
     const extra = { id: "cs_test_extra1", status: "open", url: "https://checkout.stripe.test/c/pay/cs_test_extra1", metadata: { kind: "extra", booking_id: BOOKING } };

@@ -67,6 +67,22 @@ export type BookingForEmail = {
   money?: EmailMoney;
 };
 
+/**
+ * 26.2 P1: "pay the difference" of a class change on a paid trip (owner-approved wording,
+ * .planning/decisions/2026-10-01-class-change-pay-mail.md). Amounts null render `CHF 000`.
+ */
+export type ClassChangePayForEmail = {
+  reference: string;
+  locale: EmailLocale;
+  /** The new class as the owner names it (Economy / Business / Van luxury, Latin in every language). */
+  className: string;
+  newTotalRappen: number | null;
+  paidRappen: number | null;
+  differenceRappen: number | null;
+  /** The Stripe page for the difference (open 24 hours). */
+  payUrl: string;
+};
+
 export type PayLinkForEmail = {
   reference: string;
   locale: EmailLocale;

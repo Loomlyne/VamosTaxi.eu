@@ -10,7 +10,6 @@ import { expireSessionIds } from "../checkout/cancel-unpaid";
 import { stripeAccountIsLegacyUaeTest } from "../checkout/charge-gate";
 import { expireCheckoutSession, stripeFromEnv } from "../checkout/stripe";
 import { finishPaidCancel } from "../lifecycle/paid-cancel";
-import { liveClassSlug } from "./class-slug";
 import { mapRefundSqlError, sqlErrorCode } from "./refund-map";
 import { resolveStaffBookingId } from "./resolve-booking-id";
 import { OPS_SQLSTATE } from "./sqlstate";
@@ -38,7 +37,6 @@ export type BookingPatch = {
   pax?: number;
   bags?: number;
   flight?: string;
-  klass?: string;
 };
 
 
@@ -272,8 +270,8 @@ export async function updateBooking(
     const pickup = patch.pickup ?? null;
     const dropoff = patch.dropoff ?? null;
     const flight = patch.flight ?? null;
-    // D-14: Economy / Business / Van luxury (or a live slug) -> live slug; First keeps the stored class.
-    const slug = patch.klass ? liveClassSlug(patch.klass) : null;
+    // 26.2 P1 (A8): the class is never written here. A class change on a paid trip is priced and
+    // goes through the change route (lib/ops/booking-change.ts, booking_staff_change).
     const dateIso = (patch.dateIso ?? "").trim();
     const time = (patch.time ?? "").trim();
     const local = dateIso && time ? `${dateIso}T${time}:00` : null;
@@ -290,13 +288,6 @@ export async function updateBooking(
         scheduled_at = case
           when ${local} is null then scheduled_at
           else (${local}::timestamp at time zone 'Europe/Zurich')
-        end,
-        vehicle_class_id = case
-          when ${slug} is null then vehicle_class_id
-          else coalesce(
-            (select id from public.vehicle_classes where slug = ${slug} limit 1),
-            vehicle_class_id
-          )
         end
       where booking_id = ${bookingId}::uuid
         and leg_seq = (

@@ -32,3 +32,26 @@ the real amount at send time (new total, paid so far, difference, in that order)
 - Heading: تتغير رحلتك إلى Business
 - Text: طلبت تغيير الحجز VT-26-0801 إلى Business. الإجمالي الجديد CHF 000، ودفعت CHF 000. ادفع الفرق البالغ CHF 000 لتأكيد التغيير. الرابط صالح لمدة 24 ساعة. إذا لم يُدفع حتى ذلك الحين، يبقى حجزك كما هو.
 - Button: ادفع الفرق
+
+# Refund line on the customer's booking page
+
+Approved by the owner as written, question form, 2026-10-01 (P1 sign-off). Used word for word. Shown
+on the customer's booking page (manage-booking and the account booking view, next to the trip
+status) after a CHEAPER class change, until the refund is sent; it disappears once the refund is sent.
+`Economy` stands for the new class name, `CHF 000` for the real difference (money formatter).
+
+## English
+
+- Line: Your trip now runs in Economy. The difference of CHF 000 comes back to the payment method you used; our team sends it.
+
+## German
+
+- Line: Ihre Fahrt läuft jetzt in Economy. Die Differenz von CHF 000 geht auf das Zahlungsmittel zurück, mit dem Sie bezahlt haben; unser Team veranlasst sie.
+
+## French
+
+- Line: Votre trajet passe en Economy. La différence de CHF 000 vous est remboursée sur le moyen de paiement utilisé ; notre équipe l’envoie.
+
+## Arabic
+
+- Line: تسير رحلتك الآن بفئة Economy. يُردّ إليك الفرق البالغ CHF 000 إلى وسيلة الدفع التي استخدمتها؛ يرسله فريقنا.

@@ -270,6 +270,10 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <span style="margin-inline-start:auto;display:flex"><span data-pill="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="clock" size="{{ n14 }}" color="var(--vt-text-muted)" hint-size="14px,14px"></x-import>{{ countdown }}</span></span>
 </div>
 
+<!-- 26.2 P1 (owner-approved 2026-10-01): after a cheaper class change, until the refund is sent. Translated by the ticket helper. -->
+<sc-if value="{{ changeCredit }}" hint-placeholder-val="{{ false }}">
+<p data-change-credit="1" style="display:flex;align-items:flex-start;gap:8px;margin:0 0 18px;font-size:var(--vt-body-sm);line-height:1.5;color:var(--vt-text-primary)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="info" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span style="min-width:0;flex:1 1 auto" data-vt-no-i18n="1">{{ changeCreditLine }}</span></p>
+</sc-if>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.RouteSummary" pickup="{{ pickup }}" pickupDetail="{{ pickupDetail }}" dropoff="{{ dropoff }}" meta="{{ meta }}" hint-size="100%,180px"></x-import>
 
 <div style="margin-top:18px;border-top:1px solid var(--vt-grey-200)">
@@ -1135,6 +1139,7 @@ class Component extends DCLogic {
     const hideCancel = !ticket.canCancel || reviewed || s.status === 'completed' || s.status === 'no_show' || s.status === 'cancelled';
     const refundLine = helper.refundLine ? helper.refundLine(ticket) : '';
     const refundedCopy = helper.refundedCopy ? helper.refundedCopy(ticket) : '';
+    const changeCreditLine = helper.changeCreditLine ? helper.changeCreditLine(ticket) : '';
     const pickupShort = ticket.pickupText || '';
     const dropShort = ticket.dropoffText || '';
     const routeShort = pickupShort && dropShort ? (pickupShort + ' → ' + dropShort) : (pickupShort || dropShort);
@@ -1200,6 +1205,7 @@ class Component extends DCLogic {
       refundLine,
       hasRefundedCopy: !!refundedCopy,
       refundedCopy,
+      changeCredit: !!changeCreditLine, changeCreditLine,
       cancelFull: windowKind === 'auto_full',
       cancelOps: windowKind === 'pending_ops',
       canConfirmCancel: !hideCancel && windowKind !== 'none',
