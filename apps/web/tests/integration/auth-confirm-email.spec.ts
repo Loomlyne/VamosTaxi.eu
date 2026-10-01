@@ -102,6 +102,8 @@ test.describe("D-28 Pitfall 4 confirm-email intermediate state", () => {
     await page.getByLabel("First name").fill("Ada");
     await page.getByLabel("Last name").fill("Lovelace");
     await page.getByLabel("Password", { exact: true }).fill(PASSWORD);
+    // 26.0: sign-up has carried the agreement tick box since Phase 27; the real input is visually hidden.
+    await page.locator("[data-af-consent] .vt-check__box").click();
     await page.getByRole("button", { name: /create account/i }).click();
     await expect(page.locator("[data-af]")).toContainText("Send another link");
 

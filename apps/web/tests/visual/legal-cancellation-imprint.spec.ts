@@ -13,8 +13,8 @@ const CANCELLATION_IDS = [
   "noshow",
   "disruption",
   "refunds",
-  "vouchers",
-];
+]; // 26.0: the legal ship (owner-approved text) removed the vouchers section
+
 
 const IMPRINT_IDS = [
   "register",
@@ -159,10 +159,6 @@ test.describe("Cancellation and imprint pages @component", () => {
   });
 
   test("hreflang in raw response @component", async ({ page }) => {
-    test.fail(
-      true,
-      "KNOWN-RED 26.0: /cancellation and /imprint are served as DC mocks and their raw HTML has no hreflang links (expected hreflang=\"en\") — owner to rule",
-    );
     for (const path of ["/cancellation", "/imprint"]) {
       const res = await page.goto(baseURL + path);
       const body = (await res?.text()) ?? "";
@@ -227,7 +223,8 @@ test.describe("Cancellation and imprint pages @component", () => {
     await expect(page.locator("main")).toBeVisible({ timeout: 60_000 });
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl"); // dir="rtl"
     const cancelTok = await page.locator("[data-tok]").allTextContents();
-    expect(cancelTok).toHaveLength(20);
+    // 26.0: the legal ship removed every data-tok pill; the count must stay equal in all four languages.
+    expect(cancelTok).toHaveLength(0);
     expect(await toks("/en/cancellation")).toEqual(cancelTok);
     expect(await toks("/de/cancellation")).toEqual(cancelTok);
     expect(await toks("/fr/cancellation")).toEqual(cancelTok);
@@ -235,7 +232,7 @@ test.describe("Cancellation and imprint pages @component", () => {
     await page.goto(baseURL + "/ar/imprint", { waitUntil: "domcontentloaded", timeout: 60_000 });
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
     const imprintTok = await page.locator("[data-tok]").allTextContents();
-    expect(imprintTok).toHaveLength(9);
+    expect(imprintTok).toHaveLength(0);
     expect(await toks("/en/imprint")).toEqual(imprintTok);
     expect(await toks("/de/imprint")).toEqual(imprintTok);
     expect(await toks("/fr/imprint")).toEqual(imprintTok);

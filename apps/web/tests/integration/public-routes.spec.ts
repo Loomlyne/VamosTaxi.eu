@@ -186,7 +186,8 @@ test.describe("Public route contract @public-routes", () => {
     expect(urlBlocks.length, "sitemap.xml url count must not equal PUBLIC_ROUTES").not.toBe(
       routes.length,
     );
-    expect(urlBlocks.length, "sitemap.xml url count vs D-30 allowlist").toBe(allowlist.length);
+    // 26.0: since the SEO ship every allowlisted page is listed at its en address and at /de /fr /ar.
+    expect(urlBlocks.length, "sitemap.xml url count vs D-30 allowlist x 4 languages").toBe(allowlist.length * 4);
     for (const path of allowlist) {
       const locSuffix = path === "/" ? "" : path;
       const loc = `${SITE_URL}${locSuffix}`;
