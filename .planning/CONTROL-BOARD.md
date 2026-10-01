@@ -5,7 +5,7 @@ the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 Rewritten short on 2026-09-30 14:25; the long version is in git history (`8230227c`).
 
-**Last update:** 2026-10-01 13:27 (+04)
+**Last update:** 2026-10-01 13:19 (+04)
 
 ## Live now
 
@@ -100,7 +100,7 @@ Full text: `.planning/decisions/2026-09-30-priorities-and-ship-mode.md`.
 
 | # | Job | State |
 |---|---|---|
-| 1 | Phase 28 pixel page view | Started (folder `phase-28`, branch `gsd/phase-28-pixel-pageview`); both Meta Events Manager switches confirmed OFF by the owner (`.planning/decisions/2026-10-01-meta-events-manager-switches.md`); discuss next |
+| 1 | Phase 28 pixel page view | **On hold, nothing built.** Discuss signed, research committed (`99b2285d`, folder `phase-28`, branch `gsd/phase-28-pixel-pageview`). The owner said both Meta switches are off, but Meta's own setup file for the pixel, read 2026-10-01 09:15 UTC by the Meta session, still lists automatic matching (e-mail, name, phone, address) and inferred events as on. The Meta session re-reads it every hour and starts building when it shows off (`.planning/decisions/2026-10-01-meta-events-manager-switches.md`). Migration `20261003100000` reserved, not written |
 | 2 | Dashboard design | **Live 03:24** (owner said Ship). Live OpsDetail mock identical to the source. Owner UAT: 5 steps in `.planning/quick/260930-dash-design/HANDOVER.md`, Assign first once the driver has a car |
 | 3 | Security part 2 | **Live 08:06** (owner said Ship). Live: dashboard sign-in 200; dashboard screen files 200 on the dashboard host with CSP, X-Frame-Options and noindex, 404 on the public host; /dev sends each header once; /sign-in/confirm answers. **Finding:** the hand-over said new gateway + old vamos keeps the dashboard working; on live it did not: the dashboard answered 404 between the gateway deploy and the vamos deploy (about the length of one build). Owner UAT: sign-in link opened on the phone; dashboard sign-in. Open owner question: e-mail change cannot finish (hook mails only the old address) |
 | 4 | P1 class change, P6 place/time change | P1 building (`phase-26.2-p1`, pay-mail text approved). **P6 plan signed 2026-10-01** (`.planning/decisions/2026-10-01-p6-paid-trip-edit.md`, migration `20261007150000`): time-only keeps the price; unbookable place refused; cheaper late = full difference as Refund due; too many people offers a larger class; people, bags, contact and flight change instantly; the customer's change page drops five dead fields (picture first). Built after P1 on P1's functions. **No Cars page** (owner correction 2026-10-01, `.planning/decisions/2026-10-01-no-cars-page.md`): refined: chauffeur form as before with Class and one new plate-number field; Assign lists drivers of the booking's class; bookings history per chauffeur; migration `20261007160000`; branch `gsd/26.2-chauffeur-car`, pictures first |
@@ -246,7 +246,7 @@ Full texts in `.planning/decisions/`.
 | # | What | Where |
 |---|---|---|
 | 5 | Signatures as they come: phone home pictures, scroll and speed plan, refunds-by-hand plan | the sessions |
-| 6 | Two switches in Meta Events Manager before Phase 28 (Automatic advanced matching off; Track events automatically without code off) | Meta |
+| 6 | **Blocks Phase 28.** Two switches in Meta Events Manager (Automatic advanced matching off; Track events automatically without code off): Meta's setup file for pixel 1595596972063765 still showed both on at 09:15 UTC on 2026-10-01. Check that the change was saved, on that pixel | Meta |
 | 7 | Older UAT not reported: manage link of VT-26-0743, dashboard New trip, sign-in 14 steps | e-mail, dashboard, phone |
 | 8 | The unsigned Lenis folder `.planning/quick/260928-q4t-…` (feeds the scroll and speed plan) | decision |
 | 9 | Empty the Trash; `brag-output` and `.pnpm-store` in the main checkout | his click |
@@ -256,6 +256,19 @@ Full texts in `.planning/decisions/`.
 
 | What | When |
 |---|---|
-| Check the hand-over of `fix/e2e-linux-time` when it arrives (job sent to the 26.0 session 2026-10-01 13:25) | On hand-over, then the owner's Ship |
+| Check the hand-over of `fix/e2e-linux-time` when it arrives (job sent to the 26.0 session 2026-10-01, between 13:15 and 13:19 by the clock; started in folder `e2e-linux-time`) | On hand-over, then the owner's Ship |
 
-Done 2026-10-01 13:20: (1) reminder cron error: the live database log of the last 22 hours holds no "permission denied" line at all (read-only log query; the hourly job ran in that window; the reminder function was replaced on 09-30 by `20261001120000`). Closed. (2) First "Booking funnel e2e on Linux" run on `6ec73c52`: cancelled at its 45-minute limit, no result (run 36829545716). The repository is public, so the minutes cost nothing; board-only commits do not start a run.
+Done 2026-10-01, between 13:15 and 13:19 by the clock: (1) reminder cron error: the live database log of the last 22 hours holds no "permission denied" line at all (read-only log query; the hourly job ran in that window; the reminder function was replaced on 09-30 by `20261001120000`). Closed. (2) First "Booking funnel e2e on Linux" run on `6ec73c52`: cancelled at its 45-minute limit, no result (run 36829545716). The repository is public, so the minutes cost nothing; board-only commits do not start a run.
+
+## Sessions at 13:19 on 2026-10-01
+
+| Session | Folder | Branch | State |
+|---|---|---|---|
+| Phase 26.2 audit | `phase-26.2`, `phase-26.2-p1` | `gsd/26.2-chauffeur-car`, `gsd/26.2-p1-class-change` | busy; P1 tip `091e9977` (Withdraw change and the refund line, committed 13:17), no hand-over yet; chauffeur job last commit 11:37, pictures being remade |
+| Phase 26.0 main green completion | `e2e-linux-time` | `fix/e2e-linux-time` | busy; measuring the test list per browser project; stack `vamos-taxi-e2e` running |
+| Vamos Taxi security phase | `email-change` | `fix/phase-20-email-change` | busy; cut from `b5285d6e`, no commit yet; not ordered by the control session |
+| Meta measurement phases 27-29 | `phase-28` | `gsd/phase-28-pixel-pageview` | idle, on hold until Meta shows automatic matching off; hourly check |
+| 26.2 gate scripts | `phase-26.2-u13` | `gsd/phase-26.2-u13` | parked, last; 91 behind main |
+| 26.5, 26.4.2 completion, SEO | none | shipped | idle; can be closed |
+
+Local database stacks running at 13:19: `vamos-taxi` (default ports, started 13:16, owner session not identified), `vamos-taxi-e2e`, `vamos-taxi-p1`. `twenty-crm` is another product.
