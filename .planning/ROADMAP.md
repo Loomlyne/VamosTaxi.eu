@@ -105,7 +105,7 @@ the word "Phase", so GSD reads each line as one phase.
 - [x] **Phase 17: Ops chauffeur profile, shift roster, two-driver vehicles** - CLOSED (owner, 2026-09-29): feature removed, "we deleted that part"; never build. A fresh phase if it is wanted again
 - [x] **Phase 18: OPS Pricing source of truth** - `/pricing` is the only fare book; public offers follow Publish (completed 2026-09-15)
 - [x] **Phase 19: 10,000-booking surge proof on the 26.3 checkout** - CLOSED by the owner (2026-09-30, confirmed 2026-10-01 23:59): no surge test, not a launch item (`decisions/2026-10-01-phase19-and-26.2-units-closed.md`)
-- [ ] **Phase 20: Security check of the changed app (2026-10)** - OPEN. Check, serious fixes, owner decisions and refunds by hand are live (20-06, 07, 08, 10); leftovers G7/G10/G11/G12/G28 on main 2026-10-01 23:49 (3e2bba66, migration 20261007180000 applied); 20-09 live proof is left and waits for the owner's 4242 and refund test
+- [x] **Phase 20: Security check of the changed app (2026-10)** - Check, serious fixes, owner decisions and refunds by hand are live (20-06, 07, 08, 10, 12); every fix re-probed on live and hosted functions/grants compared with the migration files in 20-09; owner's 4242 payment VT-26-0750 passed (completed 2026-10-02)
 - [x] **Phase 21: Charge gate + visible refusal + payable intent** - REPLACED (owner, 2026-09-29) by 26.1 (live); its client code was rebuilt by 26.3. Never build
 - [x] **Phase 22: Card confirm + thank-you webhook wait** - REPLACED (owner, 2026-09-29) by 26.3: payment is Stripe's hosted page, no card form on the site. Never build
 - [x] **Phase 23: Wallets + Dashboard methods** - REPLACED (owner, 2026-09-29) by 26.3: Stripe's page shows card, Apple Pay, Google Pay and TWINT. Never build
@@ -851,9 +851,13 @@ The plans 19-01 to 19-05 stay as history without a SUMMARY. The `sk_live_` refun
 **Requirements**: SEC-01 … SEC-12 (done), SEC-13 … SEC-16
 **Success Criteria** (what must be TRUE): see `20-CONTEXT.md`. Leads passed in by the control session are listed in `.planning/CONTROL-BOARD.md`, "Passed to Phase 20".
 
-**Plans:** 20-01…03 done · 20-04, 20-05 superseded · 20-06 check, done 2026-09-30 · 20-07 serious fixes (F1, F2, F3), live · 20-08 owner decisions, fixes live in batches A, B1, C1, C2 and the e-mail change fix; F15 on main with B7 (`ea1141e7`, 23:55) · 20-10 refunds by hand, live 2026-10-01 (`f29623da`) · **20-09 live proof: open** (its read-back of A to C2 is on `gsd/phase-20-security-check` only; the 4242 payment, a refund by hand and the leftovers re-probe are not done)
+**Plans:** 20-01…03 done · 20-04, 20-05 superseded · 20-06 check, done 2026-09-30 · 20-07 serious fixes (F1, F2, F3), live · 20-08 owner decisions, fixes live in batches A, B1, C1, C2 and the e-mail change fix; F15 on main with B7 (`ea1141e7`, 23:55) · 20-10 refunds by hand, live 2026-10-01 (`f29623da`) · 20-12 erased-booking pay link, live 2026-09-30 (`a81e194e`) · **20-09 live proof: done 2026-10-02** (`20-09-LIVE.md`, `20-09-SUMMARY.md`: every fix re-probed on Worker `ae61d012` and again after P6 on `c6a4ecac`, every Phase 20 function md5-identical to its file, the owner's 4242 payment VT-26-0750 passed)
 
-**Open, 2026-10-01 23:53 (+04):** leftovers G7, G10, G11, G12, G28 are on main as `3e2bba66` (23:49, squash of
+**Complete, 2026-10-02 03:15 (+04).** Drift D1–D8 between live and the migration files (none from Phase 20; D1:
+`20260911000002_live_passenger_extras.sql` was never applied on live) is passed to the control session as findings.
+Owner steps left outside the phase: refund by hand (20-10, board step 6), then B3 live-key refusals.
+
+**Before the close, 2026-10-01 23:53 (+04):** leftovers G7, G10, G11, G12, G28 are on main as `3e2bba66` (23:49, squash of
 `claude/project-thread-cwny3q` `84cb34cb`; fresh review "safe to ship"); migration `20261007180000` applied on
 live and read back (commit message). The Worker deploy that carries G28 was not yet on the control board when
 read. Left: 20-09, the live proof (the owner's 4242 payment and refund by hand, then a re-probe of A to C2 and
@@ -1261,7 +1265,7 @@ Plan-level states (owner, 2026-09-29; source record .planning/PHASE-CLOSURE-2026
 | 17. Ops chauffeur profile, shift roster, two-driver vehicles | - | Closed, feature removed | - |
 | 18. OPS Pricing source of truth | 7/7 | Complete    | 2026-09-15 |
 | 19. 10,000-booking surge proof | 0/5 | Closed by the owner (2026-09-30, confirmed 2026-10-01). No surge test | - |
-| 20. Security check of the changed app | 9/10 (20-09 live proof open) | Open. A, B1, 20-12, 20-10, C1, C2, the e-mail change fix and the leftovers G7/G10/G11/G12/G28 (3e2bba66) on main; left: 20-09 (F15 reached main with B7, ea1141e7) | - |
+| 20. Security check of the changed app | 11/11 (20-04, 20-05 superseded) | Complete. A, B1, 20-12, 20-10, C1, C2, the e-mail change fix, the leftovers G7/G10/G11/G12/G28 and G23 live; 20-09 live proof and the owner's 4242 payment passed | 2026-10-02 |
 | 21. Charge gate + visible refusal + payable intent | - | Replaced by 26.1/26.3, never build | - |
 | 22. Card confirm + thank-you webhook wait | 0/TBD | Replaced by 26.1/26.3, never build | - |
 | 23. Wallets + Dashboard methods | 0/TBD | Replaced by 26.1/26.3, never build | - |

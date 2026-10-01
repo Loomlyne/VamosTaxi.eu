@@ -144,14 +144,14 @@ describe("pay-link open cache", () => {
 });
 
 describe("account bookings POST cache", () => {
-  it("POST 401/404/success send private no-store", () => {
+  it("GET 401 sends private no-store; the generic POST is retired (P6 review 1)", () => {
     const src = readFileSync(
       join(dirname(fileURLToPath(import.meta.url)), "../../app/api/account/bookings/route.ts"),
       "utf8",
     );
     expect(src).toContain('Cache-Control": "private, no-store"');
     expect(src).toContain("status: 401, headers: noStore");
-    expect(src).toContain("status: 404, headers: noStore");
+    expect(src).not.toMatch(/export async function POST/);
   });
 });
 

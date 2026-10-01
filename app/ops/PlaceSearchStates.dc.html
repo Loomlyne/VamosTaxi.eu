@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vamos Taxi · Place search states</title>
+<script src="../support.js"></script>
+<style>html,body{background:#F6F6F6;margin:0}</style>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
+<script src="../vamos-i18n-dict.js"></script>
+<script src="../vamos-locale.js"></script>
+<style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}
+body{margin:0;background:var(--vt-bg-page)}
+/* Review scaffold for PlaceSearch (26.2 P6): every state side by side. English on purpose
+   (internal); the component's own copy follows the page language. */
+[data-psg]{box-sizing:border-box;max-inline-size:1200px;margin-inline:auto;padding:clamp(20px,4vw,40px) clamp(16px,4vw,40px) 80px;font-family:var(--vt-font-body);color:var(--vt-text-primary)}
+[data-psg-h]{margin:0 0 6px;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:var(--vt-weight-semibold)}
+[data-psg-sub]{margin:0 0 24px;max-inline-size:72ch;font-size:var(--vt-body-sm);line-height:1.6;color:var(--vt-text-secondary)}
+[data-psg-grid]{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:16px}
+[data-psg-card]{box-sizing:border-box;display:flex;flex-direction:column;min-width:0;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg)}
+[data-psg-cap]{display:flex;align-items:baseline;gap:10px;padding:12px 16px;border-block-end:1px solid var(--vt-border-subtle);font-size:var(--vt-body-sm)}
+[data-psg-n]{font-family:var(--vt-font-display);font-weight:var(--vt-weight-semibold);color:var(--vt-text-muted)}
+[data-psg-body]{padding:16px;min-block-size:290px}
+</style>
+</helmet>
+<main data-psg="1" data-vt-no-i18n="1">
+<h1 data-psg-h="1">Place search · states</h1>
+<p data-psg-sub="1">PlaceSearch.dc.html (26.2 P6). Each card freezes one state with the preview prop; in use, typing reaches them. Addresses are made up.</p>
+<div data-psg-grid="1">
+<sc-for list="{{ cards }}" as="c" hint-placeholder-count="9">
+<section data-psg-card="1" data-psg-state="{{ c.state }}">
+<div data-psg-cap="1"><span data-psg-n="1">{{ c.n }}</span><span>{{ c.title }}</span></div>
+<div data-psg-body="1">
+<dc-import name="PlaceSearch" label="{{ c.label }}" preview="{{ c.state }}" error="{{ c.error }}" hint-size="100%,76px"></dc-import>
+</div>
+</section>
+</sc-for>
+</div>
+</main>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1200,&quot;height&quot;:1100}}">
+const TITLES = [
+  ['empty', 'Empty'], ['typing', 'Typing — one letter'], ['loading', 'Loading — asking the search'],
+  ['hits', 'Hits — arrows move, Enter picks'], ['none', 'None found'], ['error', 'Error — the search did not answer'],
+  ['picked', 'Picked'], ['refused', 'Refused by the trip check'], ['disabled', 'Disabled'],
+];
+const LABEL = { en: 'Pickup', de: 'Abholung', fr: 'Prise en charge', ar: 'مكان الانطلاق' };
+const REFUSED = {
+  en: 'The site cannot book this place. Nothing has changed.',
+  de: 'Dieser Ort kann auf der Website nicht gebucht werden. Es hat sich nichts geändert.',
+  fr: 'Ce lieu ne peut pas être réservé sur le site. Rien n’a changé.',
+  ar: 'لا يمكن حجز هذا المكان على الموقع. لم يتغيّر شيء.',
+};
+class Component extends DCLogic {
+  state = { lang: (window.VamosLocale && window.VamosLocale.lang && window.VamosLocale.lang()) || 'en' };
+  componentDidMount() {
+    if (window.VamosLocale && window.VamosLocale.onChange) this._off = window.VamosLocale.onChange((v) => this.setState({ lang: v.lang }));
+  }
+  componentWillUnmount() { if (this._off) this._off(); }
+  renderVals() {
+    const l = LABEL[this.state.lang] ? this.state.lang : 'en';
+    return {
+      cards: TITLES.map(([state, title], i) => ({
+        state, title, n: String(i + 1).padStart(2, '0'), label: LABEL[l],
+        error: state === 'refused' ? REFUSED[l] : '',
+      })),
+    };
+  }
+}
+</script>
+</body>
+</html>

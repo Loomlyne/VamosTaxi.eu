@@ -49,6 +49,7 @@ function state(opts: {
   refundStatus?: string;
   owed?: number | null;
   refunded?: number;
+  lastChange?: string | null;
   pays: Pay[];
 }) {
   return {
@@ -57,6 +58,7 @@ function state(opts: {
       refund_status: opts.refundStatus ?? "pending_ops",
       refund_owed_rappen: opts.owed ?? null,
       refunded_rappen: opts.refunded ?? 0,
+      last_change: opts.lastChange ?? null,
     },
     pays: opts.pays.map((p) => ({
       id: p.id,
@@ -387,6 +389,21 @@ describe("amount rules in the Worker (20-10 section E)", () => {
     expect((planArgs as unknown[])[6]).toBeNull();
   });
 
+  it("26.2 P6 D21: the picker says which change left the credit — a place/time change (trip) or a class change", async () => {
+    const { loadRefundPicker } = await import("./refund");
+    staff = state({ status: "confirmed", owed: 300, pays: [{ id: 1, charged: 10000 }], lastChange: "trip" });
+    expect(await loadRefundPicker(ENV, CLAIMS, "VT-26-0101")).toMatchObject({ creditTier: true, lastChange: "trip" });
+    staff = state({ status: "confirmed", owed: 300, pays: [{ id: 1, charged: 10000 }], lastChange: "class" });
+    expect(await loadRefundPicker(ENV, CLAIMS, "VT-26-0101")).toMatchObject({ creditTier: true, lastChange: "class" });
+    staff = state({ status: "cancelled", owed: 300, pays: [{ id: 1, charged: 300 }] });
+    expect(await loadRefundPicker(ENV, CLAIMS, "VT-26-0101")).toMatchObject({ lastChange: null });
+    // Same rule as manage_money_for.last_change: the last accepted change, a class-only payload = class.
+    const { readFileSync } = await import("node:fs");
+    const src = readFileSync(new URL("./refund.ts", import.meta.url), "utf8");
+    expect(src).toMatch(/from public\.booking_edit_requests as r[\s\S]{0,200}r\.status = 'accepted'/);
+    expect(src).toMatch(/vehicle_class_slug/);
+  });
+
   it("a cancelled booking with an amount owed stays full tier (not credit)", async () => {
     staff = state({ status: "cancelled", owed: 300, pays: [{ id: 1, charged: 300 }] });
     const { loadRefundPicker } = await import("./refund");
@@ -446,6 +463,7 @@ describe("loadRefundPicker (GET)", () => {
       refundStatus: "pending_ops",
       fullTier: true,
       creditTier: false,
+      lastChange: null,
     });
   });
 });

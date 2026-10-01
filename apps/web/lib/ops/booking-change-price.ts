@@ -305,6 +305,22 @@ export function reproduceCharge(
 }
 
 /**
+ * 26.2 P6: the class totals of a trip as checkout stores them on a price record (shown_alternatives:
+ * each class's net with the coupon as it applied, null for a class not offered). Kept on the new
+ * price record of a place change, they pin its new distance for the next change.
+ */
+export function classNets(
+  book: PriceBook,
+  facts: TripFacts,
+  distanceM: number,
+  saved: SavedCharge,
+  computedAt: string,
+): Array<{ slug: string; total_rappen: number | null }> {
+  const b = board(book, facts, distanceM, saved, computedAt);
+  return b.classes.map((c) => ({ slug: c.slug, total_rappen: c.eligible && !b.partial.has(c.slug) ? c.total_rappen : null }));
+}
+
+/**
  * Price every class of today's live book for the trip, against what is paid so far (net of
  * refunds). `metres` = the distances that reproduced the current charge (same trip) or the exact
  * distance of new facts (P6).

@@ -72,6 +72,8 @@ export function mapEditSqlError(err: unknown): EditAcceptFail {
     "expired",
     "unknown-class",
     "class-change-staff-only",
+    // 26.2 P6 review 1 (migration 20261007150000): a customer asks for a time, nothing else.
+    "customer-time-only",
   ]) {
     if (message === name || message.startsWith(`${name}\n`) || message.startsWith(`${name} `)) {
       if (name === "capacity") return { ok: false, code: "must-fix" };

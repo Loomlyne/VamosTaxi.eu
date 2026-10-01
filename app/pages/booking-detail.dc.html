@@ -112,18 +112,6 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 .vt-route .vt-route__stop{grid-column:2;grid-row:1}
 .vt-route .vt-route__stop--last{grid-row:2}
 [data-actions2]{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
-[data-opts]{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:10px}
-[data-opt]{all:unset;box-sizing:border-box;display:flex;flex-direction:column;gap:5px;min-height:96px;padding:14px;background:var(--vt-bg-surface);border:1px solid var(--vt-grey-300);border-radius:var(--vt-radius-md);cursor:pointer;transition:border-color 140ms var(--vt-ease-standard),background 140ms var(--vt-ease-standard)}
-[data-opt]:hover{border-color:var(--vt-charcoal-900)}
-[data-opt][aria-pressed="true"]{padding:13px;border-width:2px;border-color:var(--vt-charcoal-900);background:var(--vt-grey-50)}
-[data-opt-t]{font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);line-height:1.2;color:var(--vt-text-primary)}
-[data-opt-s]{font-size:var(--vt-body-xs);line-height:1.45;color:var(--vt-text-secondary)}
-[data-step]{display:flex;align-items:center;gap:6px}
-[data-step] button{appearance:none;width:44px;height:44px;display:grid;place-items:center;padding:0;border:1px solid var(--vt-grey-300);border-radius:var(--vt-radius-pill);background:var(--vt-bg-surface);color:var(--vt-charcoal-900);cursor:pointer;transition:background 140ms var(--vt-ease-standard),border-color 140ms var(--vt-ease-standard),color 140ms var(--vt-ease-standard)}
-[data-step] button:hover{background:var(--vt-charcoal-900);border-color:var(--vt-charcoal-900);color:var(--vt-text-inverse)}
-[data-step] button:disabled{opacity:.36;cursor:not-allowed}
-[data-step] button:disabled:hover{background:var(--vt-bg-surface);border-color:var(--vt-grey-300);color:var(--vt-charcoal-900)}
-[data-step-v]{min-width:32px;text-align:center;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);font-variant-numeric:tabular-nums;color:var(--vt-text-primary)}
 [data-diff]{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;padding:12px 0;border-bottom:1px solid var(--vt-grey-200);font-size:var(--vt-body-sm);line-height:1.5;color:var(--vt-text-primary)}
 [data-diff]:last-child{border-bottom:0}
 [data-diff-k]{flex:0 0 130px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
@@ -413,7 +401,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div data-noprint="1" data-card="1" style="padding:clamp(22px,2.6vw,30px)">
 <button type="button" data-back="1" onClick="{{ backToBooking }}" style-hover="color:var(--vt-charcoal-900)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-left" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>Back to your booking</button>
 <h2 style="margin:0 0 8px;font-family:var(--vt-font-display);font-size:var(--vt-heading-1);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Change your booking</h2>
-<p style="margin:0 0 26px;max-width:58ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Move the pickup, change where you are going, or travel with a different party. Nothing is applied until we confirm it in writing.</p>
+<p style="margin:0 0 26px;max-width:58ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Nothing is applied until we confirm it in writing.</p>
 
 <p data-grp="1" style="margin-bottom:16px">Pickup date and time</p>
 <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;margin-bottom:16px">
@@ -425,57 +413,8 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <dc-import name="WhenPicker" label="New pickup date &amp; time" placeholder="Pick a new date and time" value="{{ mDate }}" time="{{ mTime }}" day="{{ mDay }}" times="{{ timeSlots }}" baseMonth="2026-08" timeTitle="Pickup time" saveLabel="Use this time" savedLabel="Time set" clearLabel="Reset" onDay="{{ setDay }}" onTime="{{ setTime }}" onClear="{{ resetWhen }}" hint-size="100%,84px"></dc-import>
 </div>
 
-<p data-grp="1" style="margin-bottom:16px">Where you are going</p>
-<div data-two="1" style="margin-bottom:12px">
-<div data-fld="1">
-<label for="mb-pickup">Pickup address</label>
-<input id="mb-pickup" name="pickup" type="text" autocomplete="off" placeholder="Airport, address or hotel" value="{{ pickupDraft }}" onInput="{{ onPickupDraft }}">
-</div>
-<div data-fld="1">
-<label for="mb-dropoff">Destination</label>
-<input id="mb-dropoff" name="dropoff" type="text" autocomplete="off" placeholder="Airport, address or hotel" value="{{ dropoffDraft }}" onInput="{{ onDropoffDraft }}">
-</div>
-</div>
-<p data-hint="1" style="margin-bottom:30px"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="map-pin" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span data-t="1">A new route is priced again. If it comes to more you pay the difference, if it comes to less we refund it — never more than the difference.</span></p>
-
-<p data-grp="1" style="margin-bottom:16px">Vehicle class</p>
-<div data-opts="1" style="margin-bottom:12px">
-<sc-for list="{{ vehicles }}" as="v" hint-placeholder-count="4">
-<button type="button" data-opt="1" aria-pressed="{{ v.on }}" onClick="{{ v.pick }}">
-<span data-opt-t="1">{{ v.name }}</span>
-<span data-opt-s="1">{{ v.ex }}</span>
-<span data-opt-s="1" style="color:var(--vt-text-muted)">{{ v.cap }}</span>
-</button>
-</sc-for>
-</div>
-<p data-hint="1" style="margin-bottom:30px"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="car" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span data-t="1">A larger class costs more and a smaller one costs less. We quote the difference before anything is charged.</span></p>
-
-<p data-grp="1" style="margin-bottom:16px">Passengers and bags</p>
-<div data-two="1" style="margin-bottom:12px">
-<div data-card="1" style="padding:14px 16px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px">
-<span style="min-width:0"><span data-row-k="1">Passengers</span><span data-row-v="1" style="font-size:var(--vt-body-sm);color:var(--vt-text-secondary)">{{ vehicleCap }}</span></span>
-<span data-step="1">
-<button type="button" aria-label="One passenger fewer" onClick="{{ paxDec }}" disabled="{{ paxMin }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="minus" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></button>
-<span data-step-v="1">{{ paxN }}</span>
-<button type="button" aria-label="One passenger more" onClick="{{ paxInc }}" disabled="{{ paxMax }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="plus" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></button>
-</span>
-</div>
-<div data-card="1" style="padding:14px 16px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px">
-<span style="min-width:0"><span data-row-k="1">Bags</span><span data-row-v="1" style="font-size:var(--vt-body-sm);color:var(--vt-text-secondary)">{{ vehicleBags }}</span></span>
-<span data-step="1">
-<button type="button" aria-label="One bag fewer" onClick="{{ bagDec }}" disabled="{{ bagMin }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="minus" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></button>
-<span data-step-v="1">{{ bagN }}</span>
-<button type="button" aria-label="One bag more" onClick="{{ bagInc }}" disabled="{{ bagMax }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="plus" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></button>
-</span>
-</div>
-</div>
-<sc-if value="{{ overCapacity }}" hint-placeholder-val="{{ false }}">
-<p data-err="1" style="margin-bottom:30px"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-alert" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span data-t="1">That is more people than this class seats. Pick a larger class above.</span></p>
-</sc-if>
-<sc-if value="{{ withinCapacity }}" hint-placeholder-val="{{ true }}">
-<p data-hint="1" style="margin-bottom:30px"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="luggage" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span data-t="1">Count a cabin bag as a bag. Skis, a cot or a bike are worth a word to dispatch before you travel.</span></p>
-</sc-if>
-
+<!-- 26.2 P6 (owner, D9): pickup, destination, class, passengers and bags are gone from this view; only
+     the time change is sent, so only the time is offered. -->
 <p data-grp="1" style="margin-bottom:8px">What you are changing</p>
 <sc-if value="{{ hasDiff }}" hint-placeholder-val="{{ false }}">
 <div style="margin-bottom:18px">
@@ -490,7 +429,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 </div>
 <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:22px">
 <p data-hint="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="info" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span data-t="1">The change takes effect when we confirm it in writing — not when you send it. Until then the booking stands as it is.</span></p>
-<p data-hint="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="receipt" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span data-t="1">You pay any difference in the fare, or we refund it. We never charge for the change itself.</span></p>
+<p data-hint="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="receipt" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span data-t="1">We never charge for the change itself.</span></p>
 </div>
 <div style="display:flex;flex-wrap:wrap;gap:12px">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" iconEnd="arrow-right" onClick="{{ confirmModify }}" hint-size="240px,54px">Request these changes</x-import>
@@ -558,7 +497,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <p data-grp="1" style="margin-bottom:14px">Before you cancel</p>
 <button type="button" data-fork="1" onClick="{{ startModify }}" style="width:100%;margin-bottom:22px">
 <span data-tile="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="calendar-days" size="{{ n20 }}" color="var(--vt-charcoal-900)" hint-size="20px,20px"></x-import></span>
-<span style="min-width:0;flex:1 1 200px"><span data-fork-t="1">Move it instead</span><span data-fork-s="1">Keep the booking and the fare where they are, and pick another day, another route or a different vehicle.</span></span>
+<span style="min-width:0;flex:1 1 200px"><span data-fork-t="1">Move it instead</span></span>
 <span data-fork-cta="ghost">Change instead<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></span>
 </button>
 </sc-if>
@@ -672,12 +611,6 @@ const TIMES = ['05:30', '06:45', '08:15', '09:30', '11:00', '12:15', '14:00', '1
 const MANAGE_BOOKING_API = '/api/manage/booking';
 const MANAGE_CANCEL_API = '/api/manage/cancel';
 
-const CLASSES = [
-  { id: 'saden', name: 'Economy', ex: 'Sedan or similar', seats: 3, bags: 3 },
-  { id: 'mercedes-benz-v-class', name: 'Business', ex: 'Executive sedan', seats: 3, bags: 3 },
-  { id: 'van-luxury', name: 'Van luxury', ex: 'Minivan or similar', seats: 7, bags: 8 },
-];
-const nameOf = (id) => (CLASSES.find((c) => c.id === id) || CLASSES[0]).name;
 
 const api = () => window.VamosManageTicket || {};
 const t = (en) => (api().t ? api().t(en) : en);
@@ -710,6 +643,18 @@ function blankTicket() {
     availableOn: null,
     priceTotalRappen: 0,
   };
+}
+
+/* 26.2 P6 (D13): the day the customer picked, as YYYY-MM-DD (the picker hands year, 0-based month, day). */
+function isoDay(y, m, d) {
+  if (!Number.isInteger(y) || !Number.isInteger(m) || !Number.isInteger(d)) return '';
+  return y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+}
+
+/* The Zurich wall clock a change asks for: the day picked (else the day as booked) and the time picked. '' when there is no day. */
+function requestedLocal(isoDayPicked, time, bookedLocal) {
+  const day = /^\d{4}-\d{2}-\d{2}$/.test(String(isoDayPicked || '')) ? String(isoDayPicked) : String(bookedLocal || '').slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(day) && /^\d{2}:\d{2}$/.test(String(time || '')) ? day + 'T' + time : '';
 }
 
 function formatLocal(scheduledLocal) {
@@ -760,8 +705,6 @@ class Component extends DCLogic {
       ticket,
       authVia: '',
       mDay: 0, mDate: '', mTime: '',
-      pickupDraft: '', dropoffDraft: '',
-      vehicle: 'saden', pax: 1, bags: 0,
       voucher: false, flightMode: 'idle', flightDraft: '', flight: '',
       requested: null, status: 'confirmed',
       toast: null, toastTone: 'neutral',
@@ -857,10 +800,6 @@ class Component extends DCLogic {
       ticket,
       status,
       ref: ticket.reference,
-      pickupDraft: ticket.pickupText,
-      dropoffDraft: ticket.dropoffText,
-      pax: ticket.pax || 1,
-      bags: ticket.bags || 0,
       flight: ticket.flightNo || '',
       flightDraft: ticket.flightNo || '',
       flightMode: 'idle',
@@ -880,8 +819,7 @@ class Component extends DCLogic {
     const local = formatLocal(ticket.scheduledLocal);
     return {
       mDay: local.day, mDate: ticket.dateLabel || local.date, mTime: ticket.timeLabel || local.time,
-      pickupDraft: ticket.pickupText, dropoffDraft: ticket.dropoffText,
-      vehicle: this.state.vehicle, pax: ticket.pax || 1, bags: ticket.bags || 0,
+      mIso: String(ticket.scheduledLocal || '').slice(0, 10),
     };
   }
 
@@ -889,12 +827,8 @@ class Component extends DCLogic {
     const s = this.state, ticket = s.ticket || blankTicket(), out = [];
     const booked = (ticket.dateLabel || '') + ' · ' + (ticket.timeLabel || '');
     const next = s.mDate + ' · ' + s.mTime;
-    const pu = (s.pickupDraft || '').trim(), df = (s.dropoffDraft || '').trim();
+    // 26.2 P6 (D9): only the time is sent, so only the time is listed.
     if (next !== booked) out.push({ k: 'Pickup time', o: booked, n: next });
-    if (pu && pu !== ticket.pickupText) out.push({ k: 'Pickup address', o: ticket.pickupText, n: pu });
-    if (df && df !== ticket.dropoffText) out.push({ k: 'Destination', o: ticket.dropoffText, n: df });
-    if (s.pax !== ticket.pax) out.push({ k: 'Passengers', o: String(ticket.pax), n: String(s.pax) });
-    if (s.bags !== ticket.bags) out.push({ k: 'Bags', o: String(ticket.bags), n: String(s.bags) });
     return out;
   }
 
@@ -952,24 +886,40 @@ class Component extends DCLogic {
   startCancel = () => this.goTo('cancel');
   backToBooking = () => this.goTo('booking');
 
-  setDay = (d, label) => this.setState({ mDay: d, mDate: label });
+  setDay = (d, label, y, m) => this.setState((s) => ({ mDay: d, mDate: label, mIso: isoDay(y, m, d) || s.mIso }));
   setTime = (t) => this.setState({ mTime: t });
   resetWhen = () => {
     const ticket = this.state.ticket || blankTicket();
-    this.setState({ mDate: ticket.dateLabel, mTime: ticket.timeLabel });
+    this.setState({ mDate: ticket.dateLabel, mTime: ticket.timeLabel, mIso: String(ticket.scheduledLocal || '').slice(0, 10) });
   };
   resetChanges = () => this.setState(this.drafts());
 
-  onPickupDraft = (e) => this.setState({ pickupDraft: e.target.value });
-  onDropoffDraft = (e) => this.setState({ dropoffDraft: e.target.value });
-  pickVehicle = (id) => () => this.setState({ vehicle: id });
-  bump = (k, d, min, max) => () => this.setState((s) => ({ [k]: Math.min(max, Math.max(min, s[k] + d)) }));
 
+  // 26.2 P6 (D13): the time change is sent exactly as the manage-booking page sends it — the account
+  // route when the booking was opened signed in, the guest route with the manage token — with the
+  // same result states. It used to say "Change requested" and send nothing.
   confirmModify = () => {
-    const list = this.diffList();
-    if (!list.length) return;
-    this.setState({ view: 'booking', requested: list });
-    this.say('Change requested. We confirm every change by email.', 'accent');
+    const helper = api();
+    const ticket = this.state.ticket || blankTicket();
+    const s = this.state;
+    const orig = (ticket.dateLabel || '') + (ticket.timeLabel ? (' · ' + ticket.timeLabel) : '');
+    // The day picked travels with the time (it used to be dropped: the day as booked was sent).
+    const scheduledLocal = requestedLocal(s.mIso, s.mTime, ticket.scheduledLocal);
+    if (!scheduledLocal) { this.say(t('Could not request this time change.'), 'danger'); return; }
+    const tok = helper.token ? helper.token() : '';
+    // Request time change — POST /api/manage/time-change (guest) or /api/account/bookings/time-change
+    const req = this.state.authVia === 'account'
+      ? helper.timeChangeAccount(ticket.reference, scheduledLocal)
+      : helper.timeChangeGuest(tok, ticket.reference, scheduledLocal);
+    req.then((result) => {
+      if (result && result.ok && result.body && result.body.ok) {
+        const msg = t('Time-change requested. Pickup stays {original} until we confirm.').replace('{original}', orig || 'the booked time');
+        this.say(msg, 'ok');
+        this.setState({ view: 'booking', requested: this.diffList() });
+        return;
+      }
+      this.say(t('Could not request this time change.'), 'danger');
+    }).catch(() => this.say(t('Could not request this time change.'), 'danger'));
   };
 
   confirmCancel = () => {
@@ -1021,7 +971,23 @@ class Component extends DCLogic {
   openVoucher = () => this.setState({ voucher: true });
   closeVoucher = () => this.setState({ voucher: false });
   printVoucher = () => window.print();
-  resend = () => this.say('Sent. Check ' + ((this.state.ticket && this.state.ticket.contactEmail) || '') + ' in a minute or two.', 'success');
+  resend = () => {
+    const helper = api();
+    const ticket = this.state.ticket || blankTicket();
+    const tok = helper.token ? helper.token() : '';
+    // 26.2 P6 (D19): POST /api/manage/resend (guest) or /api/account/bookings/resend — the
+    // confirmation again, to the booking's own address. "Sent" only when the server sent it.
+    const req = this.state.authVia === 'account'
+      ? helper.resendAccount(ticket.reference)
+      : helper.resendGuest(tok, ticket.reference);
+    req.then((result) => {
+      if (result && result.ok && result.body && result.body.ok) {
+        this.say('Sent. Check ' + (result.body.email || ticket.contactEmail || '') + ' in a minute or two.', 'success');
+        return;
+      }
+      this.say(t('Could not send that request.'), 'danger');
+    }).catch(() => this.say(t('Could not send that request.'), 'danger'));
+  };
 
   editFlight = () => this.setState((s) => ({ flightMode: 'edit', flightDraft: s.flight }));
   cancelFlight = () => this.setState((s) => ({ flightMode: 'idle', flightDraft: s.flight }));
@@ -1029,8 +995,22 @@ class Component extends DCLogic {
   saveFlight = () => {
     const v = this.state.flightDraft.trim();
     if (!v) { this.setState({ flightMode: 'idle' }); return; }
-    this.setState({ flight: v, flightMode: 'idle' });
-    this.say('Flight number saved as ' + v + '. Your driver tracks this flight.', 'success');
+    const helper = api();
+    const ticket = this.state.ticket || blankTicket();
+    const tok = helper.token ? helper.token() : '';
+    // 26.2 P6 (D19): as on the manage link — POST /api/account/bookings/flight (signed in) or
+    // /api/manage/flight (guest). The number shows as saved only when the server saved it.
+    const req = this.state.authVia === 'account'
+      ? helper.saveFlightAccount(ticket.reference, v)
+      : helper.saveFlightGuest(tok, ticket.reference, v);
+    req.then((result) => {
+      if (result && result.ok && result.body && result.body.ok) {
+        this.setState({ flight: v, flightMode: 'idle' });
+        this.say(t('Flight number saved.'), 'success');
+        return;
+      }
+      this.say(t('Could not save this flight number.'), 'danger');
+    }).catch(() => this.say(t('Could not save this flight number.'), 'danger'));
   };
 
   renderVals() {
@@ -1066,7 +1046,6 @@ class Component extends DCLogic {
     ].filter((row) => row.label);
     if (vehicleLabel) meta.push({ icon: 'car', label: vehicleLabel });
     if (airport && s.flight) meta.push({ icon: 'plane-landing', label: s.flight });
-    const cls = CLASSES.find((c) => c.id === s.vehicle) || CLASSES[0];
     const diffs = this.diffList();
     const windowKind = ticket.cancelWindow || 'none';
     const reviewed = !!ticket.reviewSubmitted;
@@ -1138,7 +1117,7 @@ class Component extends DCLogic {
 
       modifySub: late
         ? 'Your pickup is close, so a change now needs a phone call — we will show you why.'
-        : 'Time, route, vehicle or passengers. We confirm every change by email before it counts.',
+        : 'We confirm every change by email before it counts.',
       cancelSub: windowKind === 'pending_ops'
         ? 'See what comes back at this notice before you decide.'
         : 'See the refund you are due before anything is confirmed.',
@@ -1147,21 +1126,6 @@ class Component extends DCLogic {
 
       mDate: s.mDate, mTime: s.mTime, mDay: s.mDay, timeSlots: TIMES,
       setDay: this.setDay, setTime: this.setTime, resetWhen: this.resetWhen,
-      pickupDraft: s.pickupDraft, dropoffDraft: s.dropoffDraft,
-      onPickupDraft: this.onPickupDraft, onDropoffDraft: this.onDropoffDraft,
-      vehicles: CLASSES.map((c) => ({
-        id: c.id, name: c.name, ex: c.ex,
-        cap: 'Up to ' + c.seats + ' passengers',
-        on: s.vehicle === c.id ? 'true' : 'false',
-        pick: this.pickVehicle(c.id),
-      })),
-      vehicleCap: 'Up to ' + cls.seats + ' passengers',
-      vehicleBags: 'Up to ' + cls.bags + ' bags',
-      overCapacity: s.pax > cls.seats, withinCapacity: s.pax <= cls.seats,
-      paxN: String(s.pax), bagN: String(s.bags),
-      paxDec: this.bump('pax', -1, 1, 8), paxInc: this.bump('pax', 1, 1, 8),
-      bagDec: this.bump('bags', -1, 0, 10), bagInc: this.bump('bags', 1, 0, 10),
-      paxMin: s.pax <= 1, paxMax: s.pax >= 8, bagMin: s.bags <= 0, bagMax: s.bags >= 10,
       diffs, hasDiff: diffs.length > 0, noDiff: diffs.length === 0,
       confirmModify: this.confirmModify, resetChanges: this.resetChanges,
 

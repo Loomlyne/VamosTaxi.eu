@@ -4,6 +4,9 @@
 // confirmation goes again and the driver taken off is told (D6, D7) — through the settle deps hook;
 // the first-payment confirmation never goes for an extra payment; a mail failure never retries.
 
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("../db/identity", () => ({ asSystem: vi.fn(), asStaff: vi.fn() }));
@@ -87,5 +90,13 @@ describe("paid difference of a class change (kind=extra)", () => {
     }));
     expect(await handleStripeMessageWithDeps(message, d)).toMatchObject({ ack: true });
     expect(d.emit).toHaveBeenCalledWith("error", "change_mail_failed", { bookingId: "11111111-1111-1111-1111-111111111111" });
+  });
+});
+
+describe("26.2 P6: the paid request reaches the after-change hook", () => {
+  it("the settle hands the request id on (what the change changed decides the kept driver's e-mail)", () => {
+    const src = readFileSync(join(dirname(fileURLToPath(import.meta.url)), "../checkout/settle.ts"), "utf8");
+    expect(src).toMatch(/request_id: row\.request_id \? String\(row\.request_id\) : null,/);
+    expect(src).toMatch(/request_id\?: string \| null;/);
   });
 });
