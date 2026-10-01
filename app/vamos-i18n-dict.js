@@ -73,6 +73,23 @@
       { re: /^Showing (\d+) of (\d+) bookings\.$/,
         de: '$1 von $2 Buchungen angezeigt.', fr: '$1 réservations sur $2 affichées.', ar: 'يتم عرض $1 من $2 حجزًا.' },
 
+      /* ── Van luxury 12 (quick 261001) · 11 to 99 travellers ──────────────
+         Arabic counts 11–99 with the singular accusative (12 راكبًا, 12 مسافرًا),
+         not the 3–10 plural. First match wins, so these sit above the general
+         (\d+) entries below and the P.push ones at the end of this file. */
+      { re: /^Up to (1[1-9]|[2-9]\d) passengers$/,
+        de: 'Bis zu $1 Passagiere', fr: 'Jusqu’à $1 passagers', ar: 'حتى $1 راكبًا' },
+      { re: /^(1[1-9]|[2-9]\d) passengers$/,
+        de: '$1 Passagiere', fr: '$1 passagers', ar: '$1 راكبًا' },
+      { re: /^(1[1-9]|[2-9]\d) passengers · 1 bag$/,
+        de: '$1 Passagiere · 1 Gepäckstück', fr: '$1 passagers · 1 bagage', ar: '$1 راكبًا · حقيبة واحدة' },
+      { re: /^(1[1-9]|[2-9]\d) passengers · (\d+) bags$/,
+        de: '$1 Passagiere · $2 Gepäckstücke', fr: '$1 passagers · $2 bagages', ar: '$1 راكبًا · $2 حقائب' },
+      { re: /^(.+) · (1[1-9]|[2-9]\d) passengers · (VT-\d+)$/,
+        de: '$1 · $2 Passagiere · $3', fr: '$1 · $2 passagers · $3', ar: '$1 · $2 مسافرًا · $3' },
+      { re: /^(1[1-9]|[2-9]\d) passengers · (VT-[\w-]+)$/,
+        de: '$1 Passagiere · $2', fr: '$1 passagers · $2', ar: '$1 مسافرًا · $2' },
+
       /* ── Manage a booking · party size and class capacity ─────────────── */
       { re: /^Up to (\d+) passengers$/,
         de: 'Bis zu $1 Passagiere', fr: 'Jusqu’à $1 passagers', ar: 'حتى $1 ركاب' },
