@@ -98,6 +98,10 @@ jobs:
       - name: Booking-funnel specs (VAMOS_E2E list, screenshots skipped)
         env:
           VAMOS_E2E: "1"
+          # Read by apps/web/next.config.ts (dev only): no remote Cloudflare session (the runner has no API
+          # token) and one miniflare state folder per dev server (shared state gave SQLITE_BUSY).
+          VAMOS_DEV_REMOTE_BINDINGS: "0"
+          VAMOS_DEV_PERSIST_PER_PROCESS: "1"
           VAMOS_DEV_LOG_DIR: ${{ github.workspace }}/apps/web/test-results/dev-logs
           NODE_OPTIONS: --require=${{ github.workspace }}/apps/web/tests/support/dev-log-preload.cjs
           PLAYWRIGHT_JSON_OUTPUT_NAME: ${{ github.workspace }}/apps/web/e2e-report.json
