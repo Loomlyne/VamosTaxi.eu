@@ -936,11 +936,12 @@ class Component extends DCLogic {
     const tok = helper.token ? helper.token() : '';
     const ticket = this.state.ticket || blankTicket();
     this.setState({ cancelling: true });
-    const req = tok && helper.cancelGuest
-      ? helper.cancelGuest(tok)
-      : (this.state.signedIn && helper.cancelAccount
-        ? helper.cancelAccount(ticket.reference)
-        : Promise.resolve({ ok: false, body: {} }));
+    // The route follows how the booking was opened (applyTicket keeps it as authVia). A guest's token lives in the
+    // HttpOnly vt_manage cookie once the e-mailed link has been opened (the address no longer carries it), so the
+    // guest request is sent with whatever token the address has, empty included: the server reads the cookie first.
+    const req = this.state.authVia === 'account' && helper.cancelAccount
+      ? helper.cancelAccount(ticket.reference)
+      : (helper.cancelGuest ? helper.cancelGuest(tok) : Promise.resolve({ ok: false, body: {} }));
     req.then((result) => {
       if (!result || !result.ok || !result.body || result.body.ok !== true) {
         this.setState({ cancelling: false });
