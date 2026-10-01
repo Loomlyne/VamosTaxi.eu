@@ -45,6 +45,9 @@
 @container (max-width:520px){[data-ops-trip-grid] [data-ops-span]{grid-column:1/-1}[data-ops-flight-row]{inline-size:100%}}
 @container (max-width:280px){[data-ops-trip-grid]{grid-template-columns:minmax(0,1fr)}}
 [data-ops-change-box]{margin-top:2px;display:flex;flex-direction:column;gap:12px}
+/* A narrow box: the big figure goes under its label instead of past the box edge. */
+[data-ops-change-box] .vt-price__total,[data-ops-confirm] .vt-price__total{flex-wrap:wrap;row-gap:6px}
+@container (max-width:420px){[data-ops-change-box]{padding:12px}}
 [data-ops-chg-kicker]{margin:0;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:600;color:var(--vt-text-muted)}
 [data-ops-chg-list]{display:flex;flex-direction:column;min-width:0}
 [data-ops-chg-row]{display:grid;grid-template-columns:minmax(7rem,150px) minmax(0,1fr);gap:4px 14px;align-items:baseline;padding-block:9px;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);line-height:1.45}
@@ -326,7 +329,7 @@
 <div data-ops-edit-grid>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tCustomer }}" value="{{ edit.customer }}" onChange="{{ setEditCustomer }}" hint-size="100%,76px"></x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tEmail }}" value="{{ edit.email }}" onChange="{{ setEditEmail }}" hint-size="100%,76px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tMobile }}" value="{{ edit.phone }}" onChange="{{ setEditPhone }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tMobile }}" value="{{ edit.phone }}" onChange="{{ setEditPhone }}" dir="ltr" inputMode="tel" hint-size="100%,76px"></x-import>
 <div data-ops-span="all">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Textarea" label="{{ tNote }}" value="{{ edit.note }}" onChange="{{ setEditNote }}" rows="{{ n3 }}" hint="{{ tNoteHint }}" hint-size="100%,120px"></x-import>
 </div>
@@ -341,12 +344,17 @@
 <span data-ops-pax-k>{{ tEmail }}</span>
 <span data-ops-pax-v data-vt-no-i18n="1">{{ emailTitle }}</span>
 <span data-ops-pax-k>{{ tMobile }}</span>
-<span data-ops-pax-v data-vt-no-i18n="1">{{ phoneTitle }}</span>
+<span data-ops-pax-v data-vt-no-i18n="1" class="vt-dir-keep">{{ phoneTitle }}</span>
 <span data-ops-pax-k>{{ tPassengers }}</span>
 <span data-ops-pax-v data-ops-pax-facts>
 <span data-vt-pb="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="users" size="{{ n14 }}" color="var(--vt-text-muted)" hint-size="14px,14px"></x-import><span data-vt-no-i18n="1">{{ paxText }}</span></span>
 <span data-vt-pb="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="luggage" size="{{ n14 }}" color="var(--vt-text-muted)" hint-size="14px,14px"></x-import><span data-vt-no-i18n="1">{{ bagsText }}</span></span>
 </span>
+<!-- 26.2 P6: the note you keep on the booking (Edit → Contact and note); only you see it. -->
+<sc-if value="{{ hasNote }}" hint-placeholder-val="{{ false }}">
+<span data-ops-pax-k data-vt-no-i18n="1">{{ tNote }}</span>
+<span data-ops-pax-v data-vt-no-i18n="1" style="white-space:pre-line">{{ noteText }}</span>
+</sc-if>
 </div>
 </sc-if>
 </div>
@@ -584,7 +592,7 @@
 </sc-if>
 
 <sc-if value="{{ showToast }}" hint-placeholder-val="{{ false }}">
-<div style="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:60">
+<div data-vt-no-i18n="1" style="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:60">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Toast" tone="success" onClose="{{ closeToast }}" hint-size="320px,50px">{{ toastMsg }}</x-import>
 </div>
 </sc-if>
@@ -1862,7 +1870,7 @@ class Component extends DCLogic {
     const classOptions = classRows.length
       ? classRows.filter((c) => c.current || !partyTooBig || c.ok === true).map((c) => ({
         value: c.slug,
-        label: [c.name, c.current ? t.classCurrentTag : '', c.current && partyTooBig ? t.tooSmallTag : ''].filter(Boolean).join(' · '),
+        label: [c.name, c.current ? (partyTooBig ? t.tooSmallTag : t.classCurrentTag) : ''].filter(Boolean).join(' · '),
       }))
       : [{ value: '', label: booking.klass || '—' }];
     const fitList = fitRows.map((c) => c.name).join(', ');
@@ -2112,7 +2120,7 @@ class Component extends DCLogic {
       alsoSavedShown: tripChanged && instant.changed, alsoSavedLine: fillAmounts(t.alsoSaved, { fields: instantNames.join(', ') }),
       tEditPrimary: tripChanged ? t.continue : t.saveEdit,
       tEditTripHead: t.editTripHead, tEditTripLead: t.editTripLead, tEditContactHead: t.editContactHead, tEditContactLead: t.editContactLead,
-      tNote: t.note, tNoteHint: t.noteHint, tTripTooLate: t.tripTooLate, tripLocked,
+      tNote: t.note, tNoteHint: t.noteHint, hasNote: !!String(booking.note || '').trim(), noteText: String(booking.note || '').trim(), tTripTooLate: t.tripTooLate, tripLocked,
       flightShown, flightHint: hasDriver ? t.flightHintDriver : t.flightHintNoDriver, flightError,
       pickupPicked: !tf.pickupTyped, dropoffPicked: !tf.dropoffTyped, pickupError, dropoffError,
       dateError, timeError, paxError, bagsError, n3: 3,

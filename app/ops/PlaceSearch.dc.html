@@ -24,6 +24,9 @@
 [data-ps-text]{display:flex;flex-direction:column;min-width:0;flex:1 1 auto}
 [data-ps-name]{font-size:var(--vt-body-sm);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary);line-height:1.35;overflow-wrap:anywhere}
 [data-ps-sub]{font-size:var(--vt-body-xs);color:var(--vt-text-muted);line-height:1.35;overflow-wrap:anywhere}
+/* An address is data in its own script: it keeps its own direction ("6300 Zug" stays in that order in Arabic)
+   and lines up with the row's start. */
+[data-ps-name],[data-ps-sub]{unicode-bidi:plaintext;text-align:match-parent}
 [data-ps-note]{display:flex;align-items:center;flex-wrap:wrap;gap:8px 10px;min-height:44px;padding-block:6px;padding-inline:10px;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);line-height:1.45;color:var(--vt-text-secondary)}
 [data-ps-note][data-tone="error"]{color:var(--vt-danger)}
 [data-ps-note] > span{min-width:0;flex:1 1 160px}
