@@ -1,0 +1,1527 @@
+[
+ {
+  "ok": true,
+  "what": "CSP connect-src has no maps.googleapis.com",
+  "detail": "'self' challenges.cloudflare.com api.mapbox.com events.mapbox.com cloudflareinsights.com"
+ },
+ {
+  "ok": true,
+  "what": "en 1440 /imprint phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "en 1440 /imprint 2 directional icons unmirrored",
+  "detail": "[false,false]"
+ },
+ {
+  "ok": true,
+  "what": "en 1440 /imprint no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": false,
+  "what": "en 1440 /imprint coverage de empty",
+  "detail": "[\"GmbH\",\"CH-020.4.077.792-7\",\"vamostaxi.site\",\"Ben Othman Houssein\",\"Vamos Taxi / Loomlyne\",\"Loomlyne\"]"
+ },
+ {
+  "ok": false,
+  "what": "en 1440 /imprint coverage fr empty",
+  "detail": "[\"GmbH\",\"CH-020.4.077.792-7\",\"vamostaxi.site\",\"Ben Othman Houssein\",\"Vamos Taxi / Loomlyne\",\"Loomlyne\"]"
+ },
+ {
+  "ok": false,
+  "what": "en 1440 /imprint coverage ar empty",
+  "detail": "[\"GmbH\",\"CH-020.4.077.792-7\",\"vamostaxi.site\",\"Ben Othman Houssein\",\"Vamos Taxi / Loomlyne\",\"Loomlyne\"]"
+ },
+ {
+  "ok": true,
+  "what": "en muted grey",
+  "detail": "color-mix(in oklab,#767877 60%,#545756) -> oklab(0.523866 -0.00327937 0.000616694)"
+ },
+ {
+  "ok": true,
+  "what": "en 1440 /cancellation phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "en 1440 /cancellation 5 directional icons unmirrored",
+  "detail": "[false,false,false,false,false]"
+ },
+ {
+  "ok": true,
+  "what": "en 1440 /cancellation no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": false,
+  "what": "en 1440 /cancellation coverage de empty",
+  "detail": "[\"Where our records show you were at the pickup point and no vehicle came, you receive full refund back.\"]"
+ },
+ {
+  "ok": false,
+  "what": "en 1440 /cancellation coverage fr empty",
+  "detail": "[\"Where our records show you were at the pickup point and no vehicle came, you receive full refund back.\"]"
+ },
+ {
+  "ok": false,
+  "what": "en 1440 /cancellation coverage ar empty",
+  "detail": "[\"Where our records show you were at the pickup point and no vehicle came, you receive full refund back.\"]"
+ },
+ {
+  "ok": true,
+  "what": "en 1440 /terms phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "en 1440 /terms 4 directional icons unmirrored",
+  "detail": "[false,false,false,false]"
+ },
+ {
+  "ok": true,
+  "what": "en 1440 /terms no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": false,
+  "what": "en 1440 /terms coverage de empty",
+  "detail": "[\"Registered as Vamos Taxi GmbH, company number CH-020.4.077.792-7 at the commercial register of the Canton of Zurich. Full company details are on the\",\"Oversized or unusual items declared at booking: shown on your quote.\",\"Accepted methods: Visa, Mastercard, Apple Pay, Google Pay and TWINT.\"]"
+ },
+ {
+  "ok": false,
+  "what": "en 1440 /terms coverage fr empty",
+  "detail": "[\"Registered as Vamos Taxi GmbH, company number CH-020.4.077.792-7 at the commercial register of the Canton of Zurich. Full company details are on the\",\"Oversized or unusual items declared at booking: shown on your quote.\",\"Accepted methods: Visa, Mastercard, Apple Pay, Google Pay and TWINT.\"]"
+ },
+ {
+  "ok": false,
+  "what": "en 1440 /terms coverage ar empty",
+  "detail": "[\"Registered as Vamos Taxi GmbH, company number CH-020.4.077.792-7 at the commercial register of the Canton of Zurich. Full company details are on the\",\"Oversized or unusual items declared at booking: shown on your quote.\",\"Accepted methods: Visa, Mastercard, Apple Pay, Google Pay and TWINT.\"]"
+ },
+ {
+  "ok": true,
+  "what": "en 1440 /faq phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "en 1440 /faq 8 directional icons unmirrored",
+  "detail": "[false,false,false,false,false,false,false,false]"
+ },
+ {
+  "ok": true,
+  "what": "en 1440 /faq no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "en 1440 /faq coverage de empty",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "en 1440 /faq coverage fr empty",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "en 1440 /faq coverage ar empty",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "en 1440 /sign-in phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "en 1440 /sign-in 3 directional icons unmirrored",
+  "detail": "[false,false,false]"
+ },
+ {
+  "ok": true,
+  "what": "en 1440 /sign-in no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": false,
+  "what": "en 1440 /sign-in coverage de empty",
+  "detail": "[\"you@example.com\"]"
+ },
+ {
+  "ok": false,
+  "what": "en 1440 /sign-in coverage fr empty",
+  "detail": "[\"you@example.com\"]"
+ },
+ {
+  "ok": false,
+  "what": "en 1440 /sign-in coverage ar empty",
+  "detail": "[\"you@example.com\"]"
+ },
+ {
+  "ok": true,
+  "what": "en 1024 /imprint phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "en 1024 /imprint 1 directional icons unmirrored",
+  "detail": "[false]"
+ },
+ {
+  "ok": true,
+  "what": "en 1024 /imprint no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": false,
+  "what": "en 1024 /imprint coverage de empty",
+  "detail": "[\"GmbH\",\"CH-020.4.077.792-7\",\"vamostaxi.site\",\"Ben Othman Houssein\",\"Vamos Taxi / Loomlyne\",\"Loomlyne\"]"
+ },
+ {
+  "ok": false,
+  "what": "en 1024 /imprint coverage fr empty",
+  "detail": "[\"GmbH\",\"CH-020.4.077.792-7\",\"vamostaxi.site\",\"Ben Othman Houssein\",\"Vamos Taxi / Loomlyne\",\"Loomlyne\"]"
+ },
+ {
+  "ok": false,
+  "what": "en 1024 /imprint coverage ar empty",
+  "detail": "[\"GmbH\",\"CH-020.4.077.792-7\",\"vamostaxi.site\",\"Ben Othman Houssein\",\"Vamos Taxi / Loomlyne\",\"Loomlyne\"]"
+ },
+ {
+  "ok": true,
+  "what": "en 1024 /cancellation phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "en 1024 /cancellation 4 directional icons unmirrored",
+  "detail": "[false,false,false,false]"
+ },
+ {
+  "ok": true,
+  "what": "en 1024 /cancellation no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": false,
+  "what": "en 1024 /cancellation coverage de empty",
+  "detail": "[\"Where our records show you were at the pickup point and no vehicle came, you receive full refund back.\"]"
+ },
+ {
+  "ok": false,
+  "what": "en 1024 /cancellation coverage fr empty",
+  "detail": "[\"Where our records show you were at the pickup point and no vehicle came, you receive full refund back.\"]"
+ },
+ {
+  "ok": false,
+  "what": "en 1024 /cancellation coverage ar empty",
+  "detail": "[\"Where our records show you were at the pickup point and no vehicle came, you receive full refund back.\"]"
+ },
+ {
+  "ok": true,
+  "what": "en 1024 /terms phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "en 1024 /terms 3 directional icons unmirrored",
+  "detail": "[false,false,false]"
+ },
+ {
+  "ok": true,
+  "what": "en 1024 /terms no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": false,
+  "what": "en 1024 /terms coverage de empty",
+  "detail": "[\"Registered as Vamos Taxi GmbH, company number CH-020.4.077.792-7 at the commercial register of the Canton of Zurich. Full company details are on the\",\"Oversized or unusual items declared at booking: shown on your quote.\",\"Accepted methods: Visa, Mastercard, Apple Pay, Google Pay and TWINT.\"]"
+ },
+ {
+  "ok": false,
+  "what": "en 1024 /terms coverage fr empty",
+  "detail": "[\"Registered as Vamos Taxi GmbH, company number CH-020.4.077.792-7 at the commercial register of the Canton of Zurich. Full company details are on the\",\"Oversized or unusual items declared at booking: shown on your quote.\",\"Accepted methods: Visa, Mastercard, Apple Pay, Google Pay and TWINT.\"]"
+ },
+ {
+  "ok": false,
+  "what": "en 1024 /terms coverage ar empty",
+  "detail": "[\"Registered as Vamos Taxi GmbH, company number CH-020.4.077.792-7 at the commercial register of the Canton of Zurich. Full company details are on the\",\"Oversized or unusual items declared at booking: shown on your quote.\",\"Accepted methods: Visa, Mastercard, Apple Pay, Google Pay and TWINT.\"]"
+ },
+ {
+  "ok": true,
+  "what": "en 1024 /faq phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "en 1024 /faq 7 directional icons unmirrored",
+  "detail": "[false,false,false,false,false,false,false]"
+ },
+ {
+  "ok": true,
+  "what": "en 1024 /faq no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "en 1024 /faq coverage de empty",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "en 1024 /faq coverage fr empty",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "en 1024 /faq coverage ar empty",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "en 1024 /sign-in phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "en 1024 /sign-in 2 directional icons unmirrored",
+  "detail": "[false,false]"
+ },
+ {
+  "ok": true,
+  "what": "en 1024 /sign-in no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": false,
+  "what": "en 1024 /sign-in coverage de empty",
+  "detail": "[\"you@example.com\"]"
+ },
+ {
+  "ok": false,
+  "what": "en 1024 /sign-in coverage fr empty",
+  "detail": "[\"you@example.com\"]"
+ },
+ {
+  "ok": false,
+  "what": "en 1024 /sign-in coverage ar empty",
+  "detail": "[\"you@example.com\"]"
+ },
+ {
+  "ok": true,
+  "what": "en 768 /imprint phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "en 768 /imprint 1 directional icons unmirrored",
+  "detail": "[false]"
+ },
+ {
+  "ok": true,
+  "what": "en 768 /imprint no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": false,
+  "what": "en 768 /imprint coverage de empty",
+  "detail": "[\"GmbH\",\"CH-020.4.077.792-7\",\"vamostaxi.site\",\"Ben Othman Houssein\",\"Vamos Taxi / Loomlyne\",\"Loomlyne\"]"
+ },
+ {
+  "ok": false,
+  "what": "en 768 /imprint coverage fr empty",
+  "detail": "[\"GmbH\",\"CH-020.4.077.792-7\",\"vamostaxi.site\",\"Ben Othman Houssein\",\"Vamos Taxi / Loomlyne\",\"Loomlyne\"]"
+ },
+ {
+  "ok": false,
+  "what": "en 768 /imprint coverage ar empty",
+  "detail": "[\"GmbH\",\"CH-020.4.077.792-7\",\"vamostaxi.site\",\"Ben Othman Houssein\",\"Vamos Taxi / Loomlyne\",\"Loomlyne\"]"
+ },
+ {
+  "ok": true,
+  "what": "en 768 /cancellation phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "en 768 /cancellation 4 directional icons unmirrored",
+  "detail": "[false,false,false,false]"
+ },
+ {
+  "ok": true,
+  "what": "en 768 /cancellation no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": false,
+  "what": "en 768 /cancellation coverage de empty",
+  "detail": "[\"Where our records show you were at the pickup point and no vehicle came, you receive full refund back.\"]"
+ },
+ {
+  "ok": false,
+  "what": "en 768 /cancellation coverage fr empty",
+  "detail": "[\"Where our records show you were at the pickup point and no vehicle came, you receive full refund back.\"]"
+ },
+ {
+  "ok": false,
+  "what": "en 768 /cancellation coverage ar empty",
+  "detail": "[\"Where our records show you were at the pickup point and no vehicle came, you receive full refund back.\"]"
+ },
+ {
+  "ok": true,
+  "what": "en 768 /terms phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "en 768 /terms 3 directional icons unmirrored",
+  "detail": "[false,false,false]"
+ },
+ {
+  "ok": true,
+  "what": "en 768 /terms no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": false,
+  "what": "en 768 /terms coverage de empty",
+  "detail": "[\"Registered as Vamos Taxi GmbH, company number CH-020.4.077.792-7 at the commercial register of the Canton of Zurich. Full company details are on the\",\"Oversized or unusual items declared at booking: shown on your quote.\",\"Accepted methods: Visa, Mastercard, Apple Pay, Google Pay and TWINT.\"]"
+ },
+ {
+  "ok": false,
+  "what": "en 768 /terms coverage fr empty",
+  "detail": "[\"Registered as Vamos Taxi GmbH, company number CH-020.4.077.792-7 at the commercial register of the Canton of Zurich. Full company details are on the\",\"Oversized or unusual items declared at booking: shown on your quote.\",\"Accepted methods: Visa, Mastercard, Apple Pay, Google Pay and TWINT.\"]"
+ },
+ {
+  "ok": false,
+  "what": "en 768 /terms coverage ar empty",
+  "detail": "[\"Registered as Vamos Taxi GmbH, company number CH-020.4.077.792-7 at the commercial register of the Canton of Zurich. Full company details are on the\",\"Oversized or unusual items declared at booking: shown on your quote.\",\"Accepted methods: Visa, Mastercard, Apple Pay, Google Pay and TWINT.\"]"
+ },
+ {
+  "ok": true,
+  "what": "en 768 /faq phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "en 768 /faq 7 directional icons unmirrored",
+  "detail": "[false,false,false,false,false,false,false]"
+ },
+ {
+  "ok": true,
+  "what": "en 768 /faq no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "en 768 /faq coverage de empty",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "en 768 /faq coverage fr empty",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "en 768 /faq coverage ar empty",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "en 768 /sign-in phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "en 768 /sign-in 2 directional icons unmirrored",
+  "detail": "[false,false]"
+ },
+ {
+  "ok": true,
+  "what": "en 768 /sign-in no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": false,
+  "what": "en 768 /sign-in coverage de empty",
+  "detail": "[\"you@example.com\"]"
+ },
+ {
+  "ok": false,
+  "what": "en 768 /sign-in coverage fr empty",
+  "detail": "[\"you@example.com\"]"
+ },
+ {
+  "ok": false,
+  "what": "en 768 /sign-in coverage ar empty",
+  "detail": "[\"you@example.com\"]"
+ },
+ {
+  "ok": true,
+  "what": "en 390 /imprint phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "en 390 /imprint 1 directional icons unmirrored",
+  "detail": "[false]"
+ },
+ {
+  "ok": true,
+  "what": "en 390 /imprint no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": false,
+  "what": "en 390 /imprint coverage de empty",
+  "detail": "[\"GmbH\",\"CH-020.4.077.792-7\",\"vamostaxi.site\",\"Ben Othman Houssein\",\"Vamos Taxi / Loomlyne\",\"Loomlyne\"]"
+ },
+ {
+  "ok": false,
+  "what": "en 390 /imprint coverage fr empty",
+  "detail": "[\"GmbH\",\"CH-020.4.077.792-7\",\"vamostaxi.site\",\"Ben Othman Houssein\",\"Vamos Taxi / Loomlyne\",\"Loomlyne\"]"
+ },
+ {
+  "ok": false,
+  "what": "en 390 /imprint coverage ar empty",
+  "detail": "[\"GmbH\",\"CH-020.4.077.792-7\",\"vamostaxi.site\",\"Ben Othman Houssein\",\"Vamos Taxi / Loomlyne\",\"Loomlyne\"]"
+ },
+ {
+  "ok": true,
+  "what": "en 390 /cancellation phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "en 390 /cancellation 4 directional icons unmirrored",
+  "detail": "[false,false,false,false]"
+ },
+ {
+  "ok": true,
+  "what": "en 390 /cancellation no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": false,
+  "what": "en 390 /cancellation coverage de empty",
+  "detail": "[\"Where our records show you were at the pickup point and no vehicle came, you receive full refund back.\"]"
+ },
+ {
+  "ok": false,
+  "what": "en 390 /cancellation coverage fr empty",
+  "detail": "[\"Where our records show you were at the pickup point and no vehicle came, you receive full refund back.\"]"
+ },
+ {
+  "ok": false,
+  "what": "en 390 /cancellation coverage ar empty",
+  "detail": "[\"Where our records show you were at the pickup point and no vehicle came, you receive full refund back.\"]"
+ },
+ {
+  "ok": true,
+  "what": "en 390 /terms phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "en 390 /terms 3 directional icons unmirrored",
+  "detail": "[false,false,false]"
+ },
+ {
+  "ok": true,
+  "what": "en 390 /terms no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": false,
+  "what": "en 390 /terms coverage de empty",
+  "detail": "[\"Registered as Vamos Taxi GmbH, company number CH-020.4.077.792-7 at the commercial register of the Canton of Zurich. Full company details are on the\",\"Oversized or unusual items declared at booking: shown on your quote.\",\"Accepted methods: Visa, Mastercard, Apple Pay, Google Pay and TWINT.\"]"
+ },
+ {
+  "ok": false,
+  "what": "en 390 /terms coverage fr empty",
+  "detail": "[\"Registered as Vamos Taxi GmbH, company number CH-020.4.077.792-7 at the commercial register of the Canton of Zurich. Full company details are on the\",\"Oversized or unusual items declared at booking: shown on your quote.\",\"Accepted methods: Visa, Mastercard, Apple Pay, Google Pay and TWINT.\"]"
+ },
+ {
+  "ok": false,
+  "what": "en 390 /terms coverage ar empty",
+  "detail": "[\"Registered as Vamos Taxi GmbH, company number CH-020.4.077.792-7 at the commercial register of the Canton of Zurich. Full company details are on the\",\"Oversized or unusual items declared at booking: shown on your quote.\",\"Accepted methods: Visa, Mastercard, Apple Pay, Google Pay and TWINT.\"]"
+ },
+ {
+  "ok": true,
+  "what": "en 390 /faq phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "en 390 /faq 7 directional icons unmirrored",
+  "detail": "[false,false,false,false,false,false,false]"
+ },
+ {
+  "ok": true,
+  "what": "en 390 /faq no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "en 390 /faq coverage de empty",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "en 390 /faq coverage fr empty",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "en 390 /faq coverage ar empty",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "en 390 /sign-in phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "en 390 /sign-in 2 directional icons unmirrored",
+  "detail": "[false,false]"
+ },
+ {
+  "ok": true,
+  "what": "en 390 /sign-in no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": false,
+  "what": "en 390 /sign-in coverage de empty",
+  "detail": "[\"you@example.com\"]"
+ },
+ {
+  "ok": false,
+  "what": "en 390 /sign-in coverage fr empty",
+  "detail": "[\"you@example.com\"]"
+ },
+ {
+  "ok": false,
+  "what": "en 390 /sign-in coverage ar empty",
+  "detail": "[\"you@example.com\"]"
+ },
+ {
+  "ok": true,
+  "what": "de 1440 /imprint phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "de 1440 /imprint 2 directional icons unmirrored",
+  "detail": "[false,false]"
+ },
+ {
+  "ok": true,
+  "what": "de 1440 /imprint no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "de muted grey",
+  "detail": "color-mix(in oklab,#767877 60%,#545756) -> oklab(0.523866 -0.00327937 0.000616694)"
+ },
+ {
+  "ok": true,
+  "what": "de 1440 /cancellation phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "de 1440 /cancellation 5 directional icons unmirrored",
+  "detail": "[false,false,false,false,false]"
+ },
+ {
+  "ok": true,
+  "what": "de 1440 /cancellation no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "de 1440 /terms phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "de 1440 /terms 4 directional icons unmirrored",
+  "detail": "[false,false,false,false]"
+ },
+ {
+  "ok": true,
+  "what": "de 1440 /terms no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "de 1440 /faq phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "de 1440 /faq 8 directional icons unmirrored",
+  "detail": "[false,false,false,false,false,false,false,false]"
+ },
+ {
+  "ok": true,
+  "what": "de 1440 /faq no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "de 1440 /sign-in phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "de 1440 /sign-in 3 directional icons unmirrored",
+  "detail": "[false,false,false]"
+ },
+ {
+  "ok": true,
+  "what": "de 1440 /sign-in no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "de 1024 /imprint phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "de 1024 /imprint 1 directional icons unmirrored",
+  "detail": "[false]"
+ },
+ {
+  "ok": true,
+  "what": "de 1024 /imprint no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "de 1024 /cancellation phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "de 1024 /cancellation 4 directional icons unmirrored",
+  "detail": "[false,false,false,false]"
+ },
+ {
+  "ok": true,
+  "what": "de 1024 /cancellation no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "de 1024 /terms phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "de 1024 /terms 3 directional icons unmirrored",
+  "detail": "[false,false,false]"
+ },
+ {
+  "ok": true,
+  "what": "de 1024 /terms no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "de 1024 /faq phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "de 1024 /faq 7 directional icons unmirrored",
+  "detail": "[false,false,false,false,false,false,false]"
+ },
+ {
+  "ok": true,
+  "what": "de 1024 /faq no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "de 1024 /sign-in phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "de 1024 /sign-in 2 directional icons unmirrored",
+  "detail": "[false,false]"
+ },
+ {
+  "ok": true,
+  "what": "de 1024 /sign-in no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "de 768 /imprint phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "de 768 /imprint 1 directional icons unmirrored",
+  "detail": "[false]"
+ },
+ {
+  "ok": true,
+  "what": "de 768 /imprint no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "de 768 /cancellation phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "de 768 /cancellation 4 directional icons unmirrored",
+  "detail": "[false,false,false,false]"
+ },
+ {
+  "ok": true,
+  "what": "de 768 /cancellation no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "de 768 /terms phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "de 768 /terms 3 directional icons unmirrored",
+  "detail": "[false,false,false]"
+ },
+ {
+  "ok": true,
+  "what": "de 768 /terms no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "de 768 /faq phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "de 768 /faq 6 directional icons unmirrored",
+  "detail": "[false,false,false,false,false,false]"
+ },
+ {
+  "ok": true,
+  "what": "de 768 /faq no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "de 768 /sign-in phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "de 768 /sign-in 2 directional icons unmirrored",
+  "detail": "[false,false]"
+ },
+ {
+  "ok": true,
+  "what": "de 768 /sign-in no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "de 390 /imprint phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "de 390 /imprint 1 directional icons unmirrored",
+  "detail": "[false]"
+ },
+ {
+  "ok": true,
+  "what": "de 390 /imprint no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "de 390 /cancellation phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "de 390 /cancellation 4 directional icons unmirrored",
+  "detail": "[false,false,false,false]"
+ },
+ {
+  "ok": true,
+  "what": "de 390 /cancellation no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "de 390 /terms phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "de 390 /terms 3 directional icons unmirrored",
+  "detail": "[false,false,false]"
+ },
+ {
+  "ok": true,
+  "what": "de 390 /terms no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "de 390 /faq phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "de 390 /faq 7 directional icons unmirrored",
+  "detail": "[false,false,false,false,false,false,false]"
+ },
+ {
+  "ok": true,
+  "what": "de 390 /faq no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "de 390 /sign-in phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "de 390 /sign-in 2 directional icons unmirrored",
+  "detail": "[false,false]"
+ },
+ {
+  "ok": true,
+  "what": "de 390 /sign-in no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "fr 1440 /imprint phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "fr 1440 /imprint 2 directional icons unmirrored",
+  "detail": "[false,false]"
+ },
+ {
+  "ok": true,
+  "what": "fr 1440 /imprint no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "fr muted grey",
+  "detail": "color-mix(in oklab,#767877 60%,#545756) -> oklab(0.523866 -0.00327937 0.000616694)"
+ },
+ {
+  "ok": true,
+  "what": "fr 1440 /cancellation phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "fr 1440 /cancellation 5 directional icons unmirrored",
+  "detail": "[false,false,false,false,false]"
+ },
+ {
+  "ok": true,
+  "what": "fr 1440 /cancellation no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "fr 1440 /terms phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "fr 1440 /terms 4 directional icons unmirrored",
+  "detail": "[false,false,false,false]"
+ },
+ {
+  "ok": true,
+  "what": "fr 1440 /terms no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "fr 1440 /faq phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "fr 1440 /faq 8 directional icons unmirrored",
+  "detail": "[false,false,false,false,false,false,false,false]"
+ },
+ {
+  "ok": true,
+  "what": "fr 1440 /faq no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "fr 1440 /sign-in phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "fr 1440 /sign-in 3 directional icons unmirrored",
+  "detail": "[false,false,false]"
+ },
+ {
+  "ok": true,
+  "what": "fr 1440 /sign-in no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "fr 1024 /imprint phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "fr 1024 /imprint 1 directional icons unmirrored",
+  "detail": "[false]"
+ },
+ {
+  "ok": true,
+  "what": "fr 1024 /imprint no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "fr 1024 /cancellation phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "fr 1024 /cancellation 4 directional icons unmirrored",
+  "detail": "[false,false,false,false]"
+ },
+ {
+  "ok": true,
+  "what": "fr 1024 /cancellation no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "fr 1024 /terms phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "fr 1024 /terms 3 directional icons unmirrored",
+  "detail": "[false,false,false]"
+ },
+ {
+  "ok": true,
+  "what": "fr 1024 /terms no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "fr 1024 /faq phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "fr 1024 /faq 7 directional icons unmirrored",
+  "detail": "[false,false,false,false,false,false,false]"
+ },
+ {
+  "ok": true,
+  "what": "fr 1024 /faq no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "fr 1024 /sign-in phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "fr 1024 /sign-in 2 directional icons unmirrored",
+  "detail": "[false,false]"
+ },
+ {
+  "ok": true,
+  "what": "fr 1024 /sign-in no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "fr 768 /imprint phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "fr 768 /imprint 1 directional icons unmirrored",
+  "detail": "[false]"
+ },
+ {
+  "ok": true,
+  "what": "fr 768 /imprint no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "fr 768 /cancellation phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "fr 768 /cancellation 4 directional icons unmirrored",
+  "detail": "[false,false,false,false]"
+ },
+ {
+  "ok": true,
+  "what": "fr 768 /cancellation no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "fr 768 /terms phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "fr 768 /terms 3 directional icons unmirrored",
+  "detail": "[false,false,false]"
+ },
+ {
+  "ok": true,
+  "what": "fr 768 /terms no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "fr 768 /faq phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "fr 768 /faq 7 directional icons unmirrored",
+  "detail": "[false,false,false,false,false,false,false]"
+ },
+ {
+  "ok": true,
+  "what": "fr 768 /faq no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "fr 768 /sign-in phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "fr 768 /sign-in 2 directional icons unmirrored",
+  "detail": "[false,false]"
+ },
+ {
+  "ok": true,
+  "what": "fr 768 /sign-in no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "fr 390 /imprint phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "fr 390 /imprint 1 directional icons unmirrored",
+  "detail": "[false]"
+ },
+ {
+  "ok": true,
+  "what": "fr 390 /imprint no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "fr 390 /cancellation phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "fr 390 /cancellation 4 directional icons unmirrored",
+  "detail": "[false,false,false,false]"
+ },
+ {
+  "ok": true,
+  "what": "fr 390 /cancellation no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "fr 390 /terms phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "fr 390 /terms 3 directional icons unmirrored",
+  "detail": "[false,false,false]"
+ },
+ {
+  "ok": true,
+  "what": "fr 390 /terms no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "fr 390 /faq phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "fr 390 /faq 7 directional icons unmirrored",
+  "detail": "[false,false,false,false,false,false,false]"
+ },
+ {
+  "ok": true,
+  "what": "fr 390 /faq no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "fr 390 /sign-in phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "fr 390 /sign-in 2 directional icons unmirrored",
+  "detail": "[false,false]"
+ },
+ {
+  "ok": true,
+  "what": "fr 390 /sign-in no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "ar 1440 /imprint phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "ar 1440 /imprint 2 directional icons mirrored",
+  "detail": "[true,true]"
+ },
+ {
+  "ok": true,
+  "what": "ar 1440 /imprint no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "ar muted grey",
+  "detail": "color-mix(in oklab,#767877 60%,#545756) -> oklab(0.523866 -0.00327937 0.000616694)"
+ },
+ {
+  "ok": true,
+  "what": "ar 1440 /cancellation phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "ar 1440 /cancellation 5 directional icons mirrored",
+  "detail": "[true,true,true,true,true]"
+ },
+ {
+  "ok": true,
+  "what": "ar 1440 /cancellation no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "ar 1440 /terms phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "ar 1440 /terms 4 directional icons mirrored",
+  "detail": "[true,true,true,true]"
+ },
+ {
+  "ok": true,
+  "what": "ar 1440 /terms no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "ar 1440 /faq phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "ar 1440 /faq 8 directional icons mirrored",
+  "detail": "[true,true,true,true,true,true,true,true]"
+ },
+ {
+  "ok": true,
+  "what": "ar 1440 /faq no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "ar 1440 /sign-in phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "ar 1440 /sign-in 3 directional icons mirrored",
+  "detail": "[true,true,true]"
+ },
+ {
+  "ok": true,
+  "what": "ar 1440 /sign-in no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "ar 1024 /imprint phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "ar 1024 /imprint 1 directional icons mirrored",
+  "detail": "[true]"
+ },
+ {
+  "ok": true,
+  "what": "ar 1024 /imprint no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "ar 1024 /cancellation phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "ar 1024 /cancellation 4 directional icons mirrored",
+  "detail": "[true,true,true,true]"
+ },
+ {
+  "ok": true,
+  "what": "ar 1024 /cancellation no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "ar 1024 /terms phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "ar 1024 /terms 3 directional icons mirrored",
+  "detail": "[true,true,true]"
+ },
+ {
+  "ok": true,
+  "what": "ar 1024 /terms no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "ar 1024 /faq phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "ar 1024 /faq 7 directional icons mirrored",
+  "detail": "[true,true,true,true,true,true,true]"
+ },
+ {
+  "ok": true,
+  "what": "ar 1024 /faq no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "ar 1024 /sign-in phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "ar 1024 /sign-in 2 directional icons mirrored",
+  "detail": "[true,true]"
+ },
+ {
+  "ok": true,
+  "what": "ar 1024 /sign-in no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "ar 768 /imprint phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "ar 768 /imprint 1 directional icons mirrored",
+  "detail": "[true]"
+ },
+ {
+  "ok": true,
+  "what": "ar 768 /imprint no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "ar 768 /cancellation phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "ar 768 /cancellation 4 directional icons mirrored",
+  "detail": "[true,true,true,true]"
+ },
+ {
+  "ok": true,
+  "what": "ar 768 /cancellation no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "ar 768 /terms phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "ar 768 /terms 3 directional icons mirrored",
+  "detail": "[true,true,true]"
+ },
+ {
+  "ok": true,
+  "what": "ar 768 /terms no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "ar 768 /faq phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "ar 768 /faq 7 directional icons mirrored",
+  "detail": "[true,true,true,true,true,true,true]"
+ },
+ {
+  "ok": true,
+  "what": "ar 768 /faq no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "ar 768 /sign-in phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "ar 768 /sign-in 2 directional icons mirrored",
+  "detail": "[true,true]"
+ },
+ {
+  "ok": true,
+  "what": "ar 768 /sign-in no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "ar 390 /imprint phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "ar 390 /imprint 1 directional icons mirrored",
+  "detail": "[true]"
+ },
+ {
+  "ok": true,
+  "what": "ar 390 /imprint no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "ar 390 /cancellation phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "ar 390 /cancellation 4 directional icons mirrored",
+  "detail": "[true,true,true,true]"
+ },
+ {
+  "ok": true,
+  "what": "ar 390 /cancellation no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "ar 390 /terms phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "ar 390 /terms 3 directional icons mirrored",
+  "detail": "[true,true,true]"
+ },
+ {
+  "ok": true,
+  "what": "ar 390 /terms no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "ar 390 /faq phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "ar 390 /faq 7 directional icons mirrored",
+  "detail": "[true,true,true,true,true,true,true]"
+ },
+ {
+  "ok": true,
+  "what": "ar 390 /faq no sideways scroll",
+  "detail": ""
+ },
+ {
+  "ok": true,
+  "what": "ar 390 /sign-in phone reads left to right",
+  "detail": "[]"
+ },
+ {
+  "ok": true,
+  "what": "ar 390 /sign-in 2 directional icons mirrored",
+  "detail": "[true,true]"
+ },
+ {
+  "ok": true,
+  "what": "ar 390 /sign-in no sideways scroll",
+  "detail": ""
+ }
+]
