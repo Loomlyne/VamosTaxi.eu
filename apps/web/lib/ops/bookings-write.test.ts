@@ -38,7 +38,8 @@ vi.mock("../checkout/stripe", async (importOriginal) => {
   };
 });
 
-describe("bookings-write arrival clock (D-38)", () => {
+// 26.0: a cold import of bookings-write takes 4-6 s; vitest's 5 s default timed the first test out.
+describe("bookings-write arrival clock (D-38)", { timeout: 15_000 }, () => {
   it("persists booking_legs.arrived_at on markArrival and does not charge Stripe", () => {
     const src = read("bookings-write.ts");
     expect(src).toMatch(/export async function markArrival/);
@@ -54,7 +55,7 @@ describe("bookings-write arrival clock (D-38)", () => {
   });
 });
 
-describe("cancelBooking expires open Stripe Checkout Sessions (D-04)", () => {
+describe("cancelBooking expires open Stripe Checkout Sessions (D-04)", { timeout: 15_000 }, () => {
   beforeEach(() => {
     asStaff.mockReset();
     asSystem.mockReset();
@@ -133,7 +134,7 @@ describe("cancelBooking expires open Stripe Checkout Sessions (D-04)", () => {
   });
 });
 
-describe("cancelBooking on an unpaid booking expires its open Stripe Checkout Sessions (26.2-bp B1)", () => {
+describe("cancelBooking on an unpaid booking expires its open Stripe Checkout Sessions (26.2-bp B1)", { timeout: 15_000 }, () => {
   beforeEach(() => {
     asStaff.mockReset();
     asSystem.mockReset();
@@ -222,7 +223,7 @@ describe("cancelBooking on an unpaid booking expires its open Stripe Checkout Se
   });
 });
 
-describe("updateBooking never changes the class in place (26.2 P1, A8)", () => {
+describe("updateBooking never changes the class in place (26.2 P1, A8)", { timeout: 15_000 }, () => {
   const ENV = {} as CloudflareEnv;
   const CLAIMS = { sub: "staff-1", role: "authenticated" } as VamosClaims;
   const BOOKING_ID = "00000000-0000-4000-8000-000000000002";
@@ -254,7 +255,7 @@ describe("updateBooking never changes the class in place (26.2 P1, A8)", () => {
   });
 });
 
-describe("detail read model carries refund review and dispute facts (D-07, D-24, D-25)", () => {
+describe("detail read model carries refund review and dispute facts (D-07, D-24, D-25)", { timeout: 15_000 }, () => {
   const base: SqlBoardRow = {
     id: "22222222-2222-2222-2222-222222222222",
     reference: "VT-26-0808",

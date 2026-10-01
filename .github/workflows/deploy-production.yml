@@ -119,9 +119,96 @@ jobs:
       - name: Visual + integration tests (screenshot diffs, D-25)
         run: pnpm test:visual
 
+  # 26.0 D-01: the booking-funnel specs (Next + database) run here, on Linux, against the runner's own
+  # throwaway Supabase stack on loopback. No secret is referenced: Stripe is the in-repo fake, Turnstile
+  # uses Cloudflare's dummy keys, geo is stubbed (QUOTE_TEST_STUB_GEO). It deploys nothing and reaches no
+  # live resource. darwin screenshot assertions are skipped here (VAMOS_E2E=1 sets ignoreSnapshots);
+  # the pictures are compared on the owner's Mac.
+  e2e-linux:
+    name: Booking funnel e2e on Linux (D-01)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+        with:
+          version: 11.7.0
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Chromium
+        run: pnpm --filter web exec playwright install --with-deps chromium
+
+      - name: Set up Supabase CLI
+        uses: supabase/setup-cli@ab058987d8d6c725971f6cf9d0b5c98467e30bd1 # v1.7.1
+        with:
+          version: 2.115.0
+
+      - name: Start local stack
+        run: pnpm db:start
+
+      - name: Apply every migration from zero + seed
+        run: pnpm db:reset
+
+      # The specs and the guard refuse a database without this marker role (plans 02 and 04).
+      - name: Mark the throwaway stack
+        run: node scripts/mark-test-stack.mjs postgres://postgres:postgres@127.0.0.1:54322/postgres
+
+      - name: Local role passwords (D-04)
+        env:
+          ALLOW_LOCAL_ROLE_PASSWORDS: "1"
+        run: pnpm db:local-roles
+
+      # The local stack's own keys, never a repository secret. Masked before they reach the environment file.
+      - name: Export the stack environment
+        working-directory: packages/db
+        run: |
+          eval "$(pnpm exec supabase status -o env | grep -E '^(API_URL|ANON_KEY|SERVICE_ROLE_KEY)=')"
+          echo "::add-mask::$ANON_KEY"
+          echo "::add-mask::$SERVICE_ROLE_KEY"
+          {
+            echo "SUPABASE_URL=$API_URL"
+            echo "SUPABASE_ANON_KEY=$ANON_KEY"
+            echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY"
+            echo "VAMOS_TEST_DB_PORT=54322"
+            echo "VAMOS_LOCAL_DB_PORT=54322"
+            echo "VAMOS_TEST_DB_URL=postgres://postgres:postgres@127.0.0.1:54322/postgres"
+            echo "VAMOS_TEST_MAIL_URL=http://127.0.0.1:54324"
+            echo "REQUIRE_DB=1"
+          } >> "$GITHUB_ENV"
+
+      - name: Booking-funnel specs (VAMOS_E2E list, screenshots skipped)
+        env:
+          VAMOS_E2E: "1"
+        run: pnpm test:visual --workers=2
+
+      - name: Upload test results on failure
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: e2e-linux-test-results
+          path: apps/web/test-results
+          retention-days: 7
+
+      - name: Stop local stack
+        if: always()
+        run: pnpm db:stop
+
   deploy:
     name: Deploy to production
-    needs: [gate, visual]
+    needs: [gate, visual, e2e-linux]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

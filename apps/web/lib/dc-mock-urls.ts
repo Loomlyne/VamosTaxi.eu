@@ -8,6 +8,7 @@
  * / `.dc.html` mocks — those are how DC pages load. Only document navigations of
  * leftover pretty-URLs 308/404.
  */
+import { devGalleryEnabled, isDevGalleryPath } from "./dev-gallery";
 
 import { applySecurityHeaders } from "./security/headers";
 import { seoPageFor } from "./seo/head";
@@ -158,6 +159,7 @@ export function should404MockLeak(pathname: string): boolean {
   if (canonicalPublicFromLeak(pathname)) return false;
   const path = stripAssetExt(pathWithoutLocale(pathname));
   if (LEFTOVER_EXACT.includes(path) || path.startsWith("/ops/")) return true;
+  if (isDevGalleryPath(path) && devGalleryEnabled()) return false;
   return isMockPublicPath(path);
 }
 

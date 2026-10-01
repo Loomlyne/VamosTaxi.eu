@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "../support/test";
 import { serveMock, waitForMockReady } from "../support/mock-harness";
 
 // Phase 26.4 plan 09 (D-01…D-06, D-09, D-13), sheet reshaped to ONE page by quick 260930-obf.
@@ -258,16 +258,18 @@ test.describe("Home bar and sheet @component", () => {
   for (const lang of ["de", "fr", "ar"] as const) {
     test(`the sheet writes the chosen date in ${lang}, not English, and follows a switch @component`, async ({ page }) => {
       test.skip(width(page) > 1080, "tablet and phone only");
-      const EN_DAY = /\b(Mon|Tue|Wed|Thu|Fri|Sat|Sun)\b|\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/;
+      const EN_DAY_ANY = /\b(Mon|Tue|Wed|Thu|Fri|Sat|Sun)\b|\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/;
+      // 26.0: "Nov" is the same word in German, so a November date must not fail the de check.
+      const EN_DAY = (lang: string): RegExp => (lang === "de" ? new RegExp(EN_DAY_ANY.source.replace("|Nov", "")) : EN_DAY_ANY);
       await openHome(page);
       await openSheet(page);
       await fillWhen(page);
       const btn = sheet(page).locator("[data-bs-date] button[aria-haspopup]");
       const en = (await btn.innerText()).trim();
-      expect(en).toMatch(EN_DAY);
+      expect(en).toMatch(EN_DAY_ANY);
       await setLang(page, lang);
       const txt = (await btn.innerText()).trim();
-      expect(txt).not.toMatch(EN_DAY);
+      expect(txt).not.toMatch(EN_DAY(lang));
       expect(txt).not.toBe(en);
       const cov = await page.evaluate((l) => (window as unknown as { VamosLocale: Locale }).VamosLocale.coverage(document.querySelector("[data-bs]")!, l), lang);
       expect(cov.count).toBe(0);

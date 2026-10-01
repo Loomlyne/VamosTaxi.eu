@@ -1,4 +1,5 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../support/test";
+import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 
@@ -11,7 +12,7 @@ let baseURL = "";
 test.beforeAll(async ({}, testInfo) => {
   if (testInfo.project.name !== RUN_PROJECT) return;
   testInfo.setTimeout(90_000);
-  const port = 4180;
+  const port = testPort(4180);
   baseURL = `http://localhost:${port}`;
   devServer = spawn(NEXT_BIN, ["dev", "-p", String(port)], {
     cwd: WEB_ROOT,

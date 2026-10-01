@@ -1,19 +1,17 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page, emulateMedia } from "../support/test";
+import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
-import { existsSync } from "node:fs";
-import { join } from "node:path";
-import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { NEXT_BIN, settleCloudflareDev, waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { nextDevEnv } from "../support/test-stack";
 
 const PORTS: Record<string, number> = {
-  "component-1440": 4280,
-  "component-1024": 4281,
-  "component-768": 4282,
-  "component-390": 4283,
+  "component-1440": testPort(4280),
+  "component-1024": testPort(4281),
+  "component-768": testPort(4282),
+  "component-390": testPort(4283),
 };
 
 const LOCALES = ["en", "de", "fr", "ar"] as const;
-const MAIN_NEXT = join("/Users/koss/Developer/VamosTaxi.eu/apps/web/node_modules/.bin/next");
-const NEXT = existsSync(NEXT_BIN) ? NEXT_BIN : MAIN_NEXT;
 
 const SECTION_SEL = [
   "[data-hero]",
@@ -32,7 +30,7 @@ function pathFor(locale: string) {
 }
 
 async function gotoHome(page: Page, locale: string) {
-  await page.emulateMedia({ reducedMotion: "reduce" });
+  await emulateMedia(page, { reducedMotion: "reduce" });
   const res = await page.goto(baseURL + pathFor(locale), { timeout: 60_000, waitUntil: "domcontentloaded" });
   if (!res || res.status() >= 400) {
     throw new Error(`Home ${locale} returned ${res?.status() ?? "no response"}`);
@@ -51,22 +49,18 @@ test.describe("Home page @component", () => {
 
   test.beforeAll(async ({}, testInfo) => {
     testInfo.setTimeout(240_000);
-    const port = PORTS[testInfo.project.name] ?? 4280;
+    const port = PORTS[testInfo.project.name] ?? testPort(4280);
     baseURL = `http://localhost:${port}`;
-    devServer = spawn(NEXT, ["dev", "-p", String(port)], {
+    devServer = spawn(NEXT_BIN, ["dev", "-p", String(port)], {
       cwd: WEB_ROOT,
       stdio: "ignore",
       detached: true,
-      env: {
-        ...process.env,
+      env: nextDevEnv({
         TEST_DIST_DIR: `test-results/.next-home-${port}`,
         CLOUDFLARE_ENV: "staging",
-        WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE:
-          "postgres://vamos_public:vamos_public@127.0.0.1:54322/postgres",
-        WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE_NOCACHE:
-          "postgres://vamos_edge:vamos_edge@127.0.0.1:54322/postgres",
-      },
+      }),
     });
+    await settleCloudflareDev();
     await waitForNextServer(baseURL, 180_000);
   });
 

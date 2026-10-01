@@ -109,6 +109,7 @@ select is((select count(*) from public.reviews where published)::int, 0, 'no see
 -- 26.4-10: en.json gained 4 keys in 26.4 (trip flight add/optional/hint, Stripe product name): 2600 keys.
 -- 26.1-10: migration 20260928130000_canton_city_zones.sql (not the seed) adds 26 non-translatable
 -- canton display names (zone.canton-<code>); canton_zones.test.sql pins those 26 on their own.
+-- 26.0: re-pinned to the seed header (content_strings=2672) after the dictionary appends on main; re-read it from the header, never from en.json.
 -- 26.5: re-pinned to the generated seed after 26.5's 36 new strings: 2670 keys (main had 2634 before 26.5).
 -- booking polish: +1 key (checkout.noRoadRoute), pinned to the generated seed header: 2673 keys.
 select is((select count(*) from public.content_strings)::int, 2684 + 26, 'content_strings row count = flattened en.json key count + 26 migration canton names');

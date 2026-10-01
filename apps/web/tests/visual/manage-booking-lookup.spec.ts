@@ -1,7 +1,7 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../support/test";
 import { serveMock, waitForMockReady } from "../support/mock-harness";
 
-async function openLookup(page: import("@playwright/test").Page): Promise<void> {
+async function openLookup(page: import("../support/test").Page): Promise<void> {
   const url = await serveMock("app/pages/manage-booking.dc.html");
   await page.goto(url);
   await waitForMockReady(page);

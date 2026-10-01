@@ -212,7 +212,7 @@
 <div style="display:flex;flex-direction:column;gap:12px;padding-top:16px;border-top:1px solid var(--vt-grey-200)">
 <div>
 <span style="display:block;font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-primary)">{{ tSecMagicLinkLabel }}</span>
-<p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted);overflow-wrap:anywhere">{{ magicPre }}<span class="vt-dir-keep" data-i18n-skip="1" style="color:var(--vt-text-primary);font-weight:500">{{ secEmail }}</span>{{ magicPost }}</p>
+<p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted);overflow-wrap:anywhere">{{ magicPre }}<span class="vt-dir-keep" data-vt-no-i18n="1" style="color:var(--vt-text-primary);font-weight:500">{{ secEmail }}</span>{{ magicPost }}</p>
 </div>
 <div data-sec-row="1">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" size="md" sentenceCase="{{ yes }}" onClick="{{ usePassword }}" disabled="{{ methodBusy }}" hint-size="220px,44px">{{ tSecMagicLinkUseInstead }}</x-import>
@@ -240,7 +240,7 @@
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="shield-check" size="{{ n18 }}" color="var(--vt-text-muted)" hint-size="18px,18px"></x-import>
 <span style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:2px">
 <span style="font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-text-primary)">{{ tSecPasskeyRegistered }}</span>
-<span class="vt-dir-keep" data-i18n-skip="1" style="display:{{ pk.nameShow }};font-size:var(--vt-body-xs);color:var(--vt-text-muted);overflow-wrap:anywhere">{{ pk.name }}</span>
+<span class="vt-dir-keep" data-vt-no-i18n="1" style="display:{{ pk.nameShow }};font-size:var(--vt-body-xs);color:var(--vt-text-muted);overflow-wrap:anywhere">{{ pk.name }}</span>
 </span>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="secondary" size="md" onClick="{{ pk.remove }}" disabled="{{ passkeyBusy }}" aria-busy="{{ passkeyBusy }}" hint-size="200px,44px">{{ tSecPasskeyRemove }}</x-import>
 </div>
@@ -274,7 +274,7 @@
 <div data-totp-qr="1"><img src="{{ totpQr }}" alt="{{ tSecTotpQrAlt }}" width="176" height="176"></div>
 <div data-totp-side="1">
 <span data-fld-l="1">{{ tSecTotpSecretLabel }}</span>
-<span data-totp-secret="1" class="vt-dir-keep" data-i18n-skip="1" data-vt-no-i18n="1">{{ totpSecret }}</span>
+<span data-totp-secret="1" class="vt-dir-keep" data-vt-no-i18n="1">{{ totpSecret }}</span>
 <span data-fld-l="1">{{ tSecTotpCodeLabel }}</span>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" type="text" size="md" inputMode="numeric" pattern="[0-9]*" maxLength="{{ n6 }}" autoComplete="one-time-code" aria-label="{{ tSecTotpCodeLabel }}" value="{{ totpCode }}" onChange="{{ setTotpCode }}" hint-size="100%,44px"></x-import>
 <sc-if value="{{ totpFailed }}" hint-placeholder-val="{{ false }}">

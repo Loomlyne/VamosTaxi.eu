@@ -121,7 +121,7 @@ function FooterLink({
   const external = /^(mailto:|tel:|https?:)/i.test(href);
   const rolled = !plain && !rtl && !/[؀-ۿ]/.test(label);
   const inner = rolled ? (
-    <span aria-hidden="true" data-i18n-skip="">
+    <span aria-hidden="true" data-vt-no-i18n="">
       {splitCells(label)}
     </span>
   ) : (

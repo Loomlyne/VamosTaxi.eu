@@ -1,4 +1,4 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "../support/test";
 import { serveMock, waitForMockReady } from "../support/mock-harness";
 
 // Quick 260930-hnc. The laptop home carries no "Choose your class" section: SEE PRICES already leads to

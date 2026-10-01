@@ -30,7 +30,7 @@
 // the middle two breakpoints (01-UI-SPEC.md § Component Port Fidelity Contract,
 // "Viewports" row).
 
-import { test, expect, type Page, type Locator } from "@playwright/test";
+import { test, expect, type Page, type Locator } from "../support/test";
 import { serveMock, mountPort, mountBundle, waitForMockReady } from "../support/mock-harness";
 
 const REDUCED_VIEWPORT_PROJECTS = new Set(["component-1440", "component-390"]);

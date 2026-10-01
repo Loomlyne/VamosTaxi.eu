@@ -5,7 +5,8 @@
 // database is the QUOTE-10 launch-state path. Mapbox is stubbed through
 // the harness (QUOTE_TEST_STUB_GEO) rather than skipped.
 
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../support/test";
+import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 
@@ -34,7 +35,9 @@ function wellFormed(overrides: Record<string, unknown> = {}): Record<string, unk
 async function postQuote(body: unknown): Promise<Response> {
   return fetch(`${baseURL}/api/quote`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    // The public quote routes deny a POST with no Origin (CSRF, lib/security/origin.ts); a browser
+    // always sends one, a bare Node fetch does not.
+    headers: { "content-type": "application/json", origin: baseURL },
     body: JSON.stringify(body),
   });
 }
@@ -42,7 +45,9 @@ async function postQuote(body: unknown): Promise<Response> {
 async function postReprice(body: unknown): Promise<Response> {
   return fetch(`${baseURL}/api/quote/reprice`, {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    // The public quote routes deny a POST with no Origin (CSRF, lib/security/origin.ts); a browser
+    // always sends one, a bare Node fetch does not.
+    headers: { "content-type": "application/json", origin: baseURL },
     body: JSON.stringify(body),
   });
 }
@@ -65,7 +70,7 @@ function collectStrings(value: unknown, acc: string[] = []): string[] {
 test.beforeAll(async ({}, testInfo) => {
   if (testInfo.project.name !== RUN_PROJECT) return;
   testInfo.setTimeout(90_000);
-  const port = 4100 + testInfo.workerIndex;
+  const port = testPort(4100) + testInfo.workerIndex;
   baseURL = `http://localhost:${port}`;
   devServer = spawn(NEXT_BIN, ["dev", "-p", String(port)], {
     cwd: WEB_ROOT,

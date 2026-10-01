@@ -44,7 +44,7 @@
 // it is not screenshot-tested here; recorded in .planning/WINDOWS.md as an
 // unrun-verify follow-up, same treatment as Avatar's onError.
 
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "../support/test";
 import { mountBundle, mountPort, waitForMockReady } from "../support/mock-harness";
 import enMessages from "../../i18n/messages/en.json";
 

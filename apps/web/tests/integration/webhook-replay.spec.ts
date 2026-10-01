@@ -5,7 +5,7 @@
 // settlement RPC-shaped deps run together. Every other Phase 7 test stubs
 // at least one of them. The real verifyStripeEvent runs — never mocked.
 
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../support/test";
 import Stripe from "stripe";
 import { handleStripeWebhook } from "../../lib/checkout/webhook";
 import { handleStripeMessageWithDeps, type SettleDeps } from "../../lib/checkout/settle";
