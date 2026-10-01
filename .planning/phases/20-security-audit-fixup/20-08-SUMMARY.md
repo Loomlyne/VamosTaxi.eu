@@ -1,14 +1,14 @@
 ---
 phase: 20-security-audit-fixup
 plan: 08
-status: complete; one fix waits for an owner step
+status: complete; deploys of the last two ships not yet on the board
 completed: 2026-10-01
 written_by: GSD bookkeeping job B10, 2026-10-01, from git history and the control board
 ---
 
 # 20-08 summary: the owner decides the rest, one finding per question
 
-**Outcome: every decision taken; the fixes he chose are live except F15.** Decisions F1 to F14 are in `20-06-FINDINGS.md`, section "Owner decisions (20-08)", dated 2026-09-30.
+**Outcome: every decision taken; the fixes he chose are on main.** Decisions F1 to F14 are in `20-06-FINDINGS.md`, section "Owner decisions (20-08)", dated 2026-09-30.
 
 | Batch | Main | Worker | Migration |
 |---|---|---|---|
@@ -22,7 +22,7 @@ written_by: GSD bookkeeping job B10, 2026-10-01, from git history and the contro
 Accepted, no work: F4, F7, F9. Refunds by hand (F11) is its own plan, 20-10.
 
 **Left:**
-- F15, Cloudflare Web Analytics: the owner switches off the automatic setup in Cloudflare, then B7 (`claude/project-thread-6r5gz9`, PR #66) ships; then G23 (drop `maps.googleapis.com` from CSP `connect-src`).
+- F15, Cloudflare Web Analytics: the owner switched Cloudflare's automatic injection off (2026-10-01 23:4x +04, per the B7 commit message); B7 then reached main as `ea1141e7` (23:55): Web Analytics loads only after a saved Analytics yes, declared on /cookies. The deploy was not yet on the board when read. Next: G23 (drop `maps.googleapis.com` from CSP `connect-src`).
 - The G rows come from the 26.2 triage, not from this plan. G7, G10, G11, G12, G28: on main as `3e2bba66` (2026-10-01 23:49 +04), migration `20261007180000` applied on live and read back (commit message); the Worker deploy for G28 was not yet on the board when read at 23:53. G8 and G9 (drop the price-band tables): after P6.
 
 **Sources:** `20-06-FINDINGS.md`; `.planning/CONTROL-BOARD.md` "Shipped" table, "Security (Phase 20)" and "What is left"; `git log` of the commits above.

@@ -857,7 +857,7 @@ the plans keep no SUMMARY. The `sk_live_` refund refusal it once carried moved t
 **Requirements**: SEC-01 … SEC-12 (done), SEC-13 … SEC-16
 **Success Criteria** (what must be TRUE): see `20-CONTEXT.md`. Leads passed in by the control session are listed in `.planning/CONTROL-BOARD.md`, "Passed to Phase 20".
 
-**Plans:** 20-01…03 done · 20-04, 20-05 superseded · 20-06 check, done 2026-09-30 · 20-07 serious fixes (F1, F2, F3), live · 20-08 owner decisions, fixes live in batches A, B1, C1, C2 and the e-mail change fix; F15 waits for the owner's Cloudflare step and B7 · 20-10 refunds by hand, live 2026-10-01 (`f29623da`) · **20-09 live proof: open** (its read-back of A to C2 is on `gsd/phase-20-security-check` only; the 4242 payment, a refund by hand and the leftovers re-probe are not done)
+**Plans:** 20-01…03 done · 20-04, 20-05 superseded · 20-06 check, done 2026-09-30 · 20-07 serious fixes (F1, F2, F3), live · 20-08 owner decisions, fixes live in batches A, B1, C1, C2 and the e-mail change fix; F15 on main with B7 (`ea1141e7`, 23:55) · 20-10 refunds by hand, live 2026-10-01 (`f29623da`) · **20-09 live proof: open** (its read-back of A to C2 is on `gsd/phase-20-security-check` only; the 4242 payment, a refund by hand and the leftovers re-probe are not done)
 
 **Open, 2026-10-01 23:53 (+04):** leftovers G7, G10, G11, G12, G28 are on main as `3e2bba66` (23:49, squash of
 `claude/project-thread-cwny3q` `84cb34cb`; fresh review "safe to ship"); migration `20261007180000` applied on
@@ -1240,7 +1240,7 @@ Close-out one-by-one: 17 deploy → 17 SQL apply → 17 UAT → 16 ROADMAP tick 
 v1.2 Payment (leftovers 16/17/19/20 frozen): 21 → 22 → 23 → 24 → 25
 v1.3 Meta measurement (Phases 21–25 stay planned, not current): 26 → 26.1 → 27 → 28 → 29
 Order of 2026-09-30 (owner): 26.4.2 → 26.5 → 27 → 28 → 29 → 26.0 → 26.2 → 20 → 19. Source: .planning/decisions/2026-09-30-priorities-and-ship-mode.md
-Where it stands, 2026-10-01 (bookkeeping B10, from .planning/CONTROL-BOARD.md "What is left"): shipped 26.1, 26.3, 26.4, 26.4.1, 26.4.2, 26.5, 26.0, 27, 27.1. Open now, in parallel lanes: 26.2 P6 (A), 26.0 finish B4 (B), this bookkeeping (D), Van luxury up to 12 travellers (V, no phase); the 20 leftovers (R) reached main at 23:49 (3e2bba66), 20-09 live proof left. Then, one at a time after P6, the rest of 26.2. Waiting for the owner: 28 then 29 (Meta check), B7 content and legal (Cloudflare Web Analytics off). 19 deferred, status question open. The control board is the live source; this line is a snapshot.
+Where it stands, 2026-10-01 (bookkeeping B10, from .planning/CONTROL-BOARD.md "What is left"): shipped 26.1, 26.3, 26.4, 26.4.1, 26.4.2, 26.5, 26.0, 27, 27.1. Open now, in parallel lanes: 26.2 P6 (A), 26.0 finish B4 (B), this bookkeeping (D), Van luxury up to 12 travellers (V, no phase); the 20 leftovers (R) reached main at 23:49 (3e2bba66), 20-09 live proof left. Then, one at a time after P6, the rest of 26.2. B7 content and legal reached main at 23:55 (ea1141e7) after the owner switched Cloudflare's automatic Web Analytics off; next in that line G23, then the Arabic and design-canvas fixes. Waiting for the owner: 28 then 29 (Meta check). 19 deferred, status question open. The control board is the live source; this line is a snapshot.
 Plan-level states (owner, 2026-09-29; source record .planning/PHASE-CLOSURE-2026-09-29.md on main, commit 37e55d26), updated 2026-10-01: plan 04.3 replaced by 26.1/26.3, never build · plan 05-19 dropped · plan 05-24 folded into 27.1 and /contact, owner checks left · plan 05-28 shipped 2026-10-01 as B8 · plan 11-12 owner-held, never raise · plan 26.1-28 superseded
 
 | Phase | Plans Complete | Status | Completed |
@@ -1267,7 +1267,7 @@ Plan-level states (owner, 2026-09-29; source record .planning/PHASE-CLOSURE-2026
 | 17. Ops chauffeur profile, shift roster, two-driver vehicles | - | Closed, feature removed | - |
 | 18. OPS Pricing source of truth | 7/7 | Complete    | 2026-09-15 |
 | 19. 10,000-booking surge proof | 0/5 | Deferred. Closed by the owner 2026-09-30 per board commit 571bf701; the 2026-10-01 hand-over still lists it before launch. Question for the controller | - |
-| 20. Security check of the changed app | 9/10 (20-09 live proof open) | Open. A, B1, 20-12, 20-10, C1, C2, the e-mail change fix and the leftovers G7/G10/G11/G12/G28 (3e2bba66) on main; left: 20-09; F15 after the owner's Cloudflare step | - |
+| 20. Security check of the changed app | 9/10 (20-09 live proof open) | Open. A, B1, 20-12, 20-10, C1, C2, the e-mail change fix and the leftovers G7/G10/G11/G12/G28 (3e2bba66) on main; left: 20-09 (F15 reached main with B7, ea1141e7) | - |
 | 21. Charge gate + visible refusal + payable intent | - | Replaced by 26.1/26.3, never build | - |
 | 22. Card confirm + thank-you webhook wait | 0/TBD | Replaced by 26.1/26.3, never build | - |
 | 23. Wallets + Dashboard methods | 0/TBD | Replaced by 26.1/26.3, never build | - |

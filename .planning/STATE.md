@@ -4,8 +4,8 @@ milestone: v1.3
 milestone_name: Meta measurement
 status: executing
 stopped_at: "GSD bookkeeping B10 on docs/gsd-bookkeeping: summaries, ROADMAP rows and this file brought to the control board of 2026-10-01"
-last_updated: "2026-10-01T19:53:00.000Z"
-last_activity: "2026-10-01 23:53 (+04) - GSD bookkeeping B10: missing summaries written, ROADMAP rows for 26.0/26.2/26.5/27.1, closed and replaced phases marked"
+last_updated: "2026-10-01T19:56:00.000Z"
+last_activity: "2026-10-01 23:56 (+04) - GSD bookkeeping B10: missing summaries written, ROADMAP rows for 26.0/26.2/26.5/27.1, closed and replaced phases marked"
 progress:
   total_phases: 42
   completed_phases: 38
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-09-23)
 
 ## Current Position
 
-Last updated: 2026-10-01 23:53 (+04), by the bookkeeping job B10 (branch `docs/gsd-bookkeeping`).
-Source: `.planning/CONTROL-BOARD.md`, "What is left, 2026-10-01 23:38 (+04)", and origin/main `3e2bba66` read at 23:53.
-main = origin/main `3e2bba66` (Phase 20 leftovers, 23:49). Last deploy on the board: Worker `vamos` `6eb1d700` (27.1, 17:44), gateway `vamos-dashboard` `71a307da`.
+Last updated: 2026-10-01 23:56 (+04), by the bookkeeping job B10 (branch `docs/gsd-bookkeeping`).
+Source: `.planning/CONTROL-BOARD.md`, "What is left, 2026-10-01 23:38 (+04)", and origin/main up to `ea1141e7` read at 23:56.
+main = origin/main `ea1141e7` (B7 content and legal, 23:55), after `3e2bba66` (Phase 20 leftovers, 23:49). Last deploy on the board: Worker `vamos` `6eb1d700` (27.1, 17:44), gateway `vamos-dashboard` `71a307da`.
 
 **Lanes that run now, in parallel (no shared files; each job in its own app worktree under `.claude/worktrees/`):**
 
@@ -47,12 +47,13 @@ customer list; gate `/checkout` and `/booking-detail`) → B3 live-key refusals 
 after the owner's refund-by-hand test) → 26.2 rows (airport fee inside the fare line, JSON double encoding in
 `stripe_events.payload` and `rate_version_rules.payload`, `data-i18n-skip` leftovers).
 
-**After the owner turns off Cloudflare's automatic Web Analytics:** B7 content and legal (`claude/project-thread-6r5gz9`,
-PR #66) → G23 (drop `maps.googleapis.com` from CSP `connect-src`) → Arabic and design-canvas fixes (5 + 19).
+**Web Analytics line:** the owner switched Cloudflare's automatic Web Analytics off (23:4x, per the B7 commit message) and B7
+content and legal reached main as `ea1141e7` at 23:55 (Web Analytics only after consent; deploy not yet on the board when read)
+→ G23 (drop `maps.googleapis.com` from CSP `connect-src`) → Arabic and design-canvas fixes (5 + 19).
 
 **Last:** u13 stricter check scripts (`gsd/phase-26.2-u13`). **After the owner's Meta check:** Phase 28, then 29.
 
-**The owner's own steps** (board): (1) Cloudflare Web Analytics automatic setup off. (2) Waiting time 30 minutes
+**The owner's own steps** (board): (1) Cloudflare Web Analytics automatic setup off (done 23:4x per the B7 commit). (2) Waiting time 30 minutes
 in dashboard settings, after B7. (3) Real texts of the 5 published reviews. (4) 4242 payment as guest and with
 "Create an account". (5) /contact real message. (6) Refund by hand. (7) Pay in de, fr, ar and on a tablet.
 (8) UAT of the live jobs. (9) Meta switches on pixel 1595596972063765. (10) The 48 SiteHeader picture diffs.
@@ -104,7 +105,7 @@ History up to 2026-09-29. Later quick jobs are listed on the control board ("Shi
 
 ## Session Continuity
 
-Last session: 2026-10-01T19:53:00.000Z (bookkeeping job B10, planning files only)
+Last session: 2026-10-01T19:56:00.000Z (bookkeeping job B10, planning files only)
 Stopped at: hand-over `.planning/quick/261001-gsd-bookkeeping/HANDOVER.md` written for the control session.
 Resume: a job session takes its job from the control board lanes above, in its own app worktree, and hands over to
 the controller "VamosTaxi - session control". Do not `phases.clear`. Do not new-project.
