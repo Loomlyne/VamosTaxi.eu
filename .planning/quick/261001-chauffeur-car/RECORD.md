@@ -1,5 +1,5 @@
 ---
-status: built with the owner's answers (decision 7), waiting for his signature on the pictures; nothing pushed, nothing deployed, no hosted SQL
+status: signed by the owner 2026-10-01 (decision 8); handed over to the control session (HANDOVER.md); no deploy, no hosted SQL
 branch: gsd/26.2-chauffeur-car (cut from origin/main f3543451)
 created: 2026-10-01
 before: origin/main f3543451 (git archive) · after: this branch
