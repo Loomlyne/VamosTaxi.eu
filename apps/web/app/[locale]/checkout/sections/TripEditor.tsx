@@ -38,6 +38,7 @@ export function TripEditor({
   onSubmit,
   onClose,
   onDirtyChange,
+  paxMax,
 }: {
   trip: Trip;
   locale: string;
@@ -46,6 +47,8 @@ export function TripEditor({
   onClose: () => void;
   /** True while the fields differ from the applied trip (PAY then says "Update the prices first"). */
   onDirtyChange?: (dirty: boolean) => void;
+  /** Most travellers the Travellers counter reaches: the most seats among the quoted classes (`partyCap`). Null or absent: the database limit (`PAX_MAX`). */
+  paxMax?: number | null;
 }) {
   const settings = useCheckoutSettings();
   const lastNext = useRef<Trip | null>(null);
@@ -347,7 +350,7 @@ export function TripEditor({
             icon="users"
             value={pax}
             min={PAX_MIN}
-            max={PAX_MAX}
+            max={paxMax ?? PAX_MAX}
             onChange={setPax}
             decrementLabel={t("removePassenger")}
             incrementLabel={t("addPassenger")}

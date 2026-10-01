@@ -12,6 +12,8 @@
 
 import { loadLaunchFlags as dbLoadLaunchFlags, loadRateBook as dbLoadRateBook, type LaunchFlags } from "../db/quote";
 import { derivePricingLive, mapRateBook } from "../pricing/rateBook";
+import type { IntentRecompute } from "../quote/intent";
+import type { QuoteLockPayload } from "../quote/lock";
 
 export type CheckoutRepriceDeps = {
   loadRateBook: (env: CloudflareEnv, opts: { preferDraft: boolean }) => Promise<unknown>;
@@ -55,4 +57,26 @@ export async function loadCheckoutReprice(
   } catch {
     return { ok: false };
   }
+}
+
+/**
+ * The payment step's reading of a signed lock (POST /api/checkout/intent): a class is bookable only
+ * when the quote priced it. The engine leaves a class that cannot seat the party unpriced
+ * (`priceQuote`: ineligible → total null), so a lock for 10 travellers can never pay for Economy
+ * (3 seats); `checkIntentAgainstLock` refuses it.
+ */
+export function repriceFromLock(
+  payload: QuoteLockPayload,
+  reprice: { pricingLive: boolean; liveRateVersionId: number | null },
+): IntentRecompute {
+  return {
+    pricing_live: reprice.pricingLive,
+    engine_version: payload.engine_version,
+    live_rate_version_id: reprice.liveRateVersionId,
+    classes: payload.class_totals.map((row) => ({
+      slug: row.slug as IntentRecompute["classes"][number]["slug"],
+      total_rappen: row.total_rappen,
+      eligible: row.total_rappen != null,
+    })),
+  };
 }

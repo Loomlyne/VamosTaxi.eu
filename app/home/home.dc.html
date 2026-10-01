@@ -592,7 +592,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <dc-import name="BookingBar" docked="{{ yes }}" from="{{ barFrom }}" to="{{ barTo }}" whenLabel="{{ whenLabel }}" pax="{{ paxN }}" bags="{{ bagsN }}" travellersSet="{{ travSet }}" complete="{{ tripComplete }}" expanded="{{ sheetOpen }}" onOpen="{{ openFromDock }}" hint-size="100%,54px"></dc-import>
 </div>
 
-<dc-import name="BookingSheet" open="{{ sheetOpen }}" fromText="{{ pickupText }}" fromHits="{{ fromHits }}" fromChosen="{{ fromChosen }}" fromAirport="{{ air }}" toText="{{ dropText }}" toHits="{{ toHits }}" toChosen="{{ toChosen }}" samePlace="{{ samePlace }}" flight="{{ fno }}" flightOpen="{{ flightOpenBool }}" flightValid="{{ flightValid }}" dayNum="{{ sheetDay }}" dayY="{{ sheetDayY }}" dayM="{{ sheetDayM }}" dateLabel="{{ date }}" time="{{ time }}" baseMonth="{{ baseMonth }}" lang="{{ lang }}" whenError="{{ sheetWhenErr }}" pax="{{ paxN }}" bags="{{ bagsN }}" onFromInput="{{ shFromInput }}" onFromPick="{{ shFromPick }}" onFromClear="{{ shFromClear }}" onToInput="{{ shToInput }}" onToPick="{{ shToPick }}" onToClear="{{ shToClear }}" onFieldFocus="{{ shFocus }}" onFlight="{{ shFlight }}" onFlightOpen="{{ openFlightSheet }}" onDay="{{ setDay }}" onTime="{{ setTime }}" onWhenClear="{{ whenClear }}" onPax="{{ setPaxN }}" onBags="{{ setBagsN }}" onClose="{{ closeSheet }}" onSubmit="{{ shSubmit }}" hint-size="0,0"></dc-import>
+<dc-import name="BookingSheet" open="{{ sheetOpen }}" fromText="{{ pickupText }}" fromHits="{{ fromHits }}" fromChosen="{{ fromChosen }}" fromAirport="{{ air }}" toText="{{ dropText }}" toHits="{{ toHits }}" toChosen="{{ toChosen }}" samePlace="{{ samePlace }}" flight="{{ fno }}" flightOpen="{{ flightOpenBool }}" flightValid="{{ flightValid }}" dayNum="{{ sheetDay }}" dayY="{{ sheetDayY }}" dayM="{{ sheetDayM }}" dateLabel="{{ date }}" time="{{ time }}" baseMonth="{{ baseMonth }}" lang="{{ lang }}" whenError="{{ sheetWhenErr }}" pax="{{ paxN }}" paxMax="{{ paxMaxN }}" bags="{{ bagsN }}" onFromInput="{{ shFromInput }}" onFromPick="{{ shFromPick }}" onFromClear="{{ shFromClear }}" onToInput="{{ shToInput }}" onToPick="{{ shToPick }}" onToClear="{{ shToClear }}" onFieldFocus="{{ shFocus }}" onFlight="{{ shFlight }}" onFlightOpen="{{ openFlightSheet }}" onDay="{{ setDay }}" onTime="{{ setTime }}" onWhenClear="{{ whenClear }}" onPax="{{ setPaxN }}" onBags="{{ setBagsN }}" onClose="{{ closeSheet }}" onSubmit="{{ shSubmit }}" hint-size="0,0"></dc-import>
 
 </div>
 
@@ -1144,6 +1144,24 @@ function dispCur(v, lang) { try { return new Intl.DisplayNames([lang], { type: '
 function hashXY(s) { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return { x: ((h % 53 + 53) % 53) - 26, y: (((h >> 4) % 37 + 37) % 37) - 18 }; }
 /** One media boundary (26.4 D-01): at or under 1080 px home shows the bar and sheet, from 1081 px the box. */
 function NARROW() { return typeof matchMedia !== 'undefined' && matchMedia('(max-width:1080px)').matches; }
+/** One GET /api/quote per page: the idle class list (seats per class). home.dc.html and HowItWorks share it. */
+function idleBoard() {
+  if (typeof window === 'undefined' || typeof fetch === 'undefined') return Promise.resolve(null);
+  if (!window.__vamosIdleBoard) {
+    window.__vamosIdleBoard = fetch('/api/quote', { headers: { accept: 'application/json' } })
+      .then((r) => r.json().catch(() => null))
+      .catch(() => null);
+  }
+  return window.__vamosIdleBoard;
+}
+const PARTY_LIMIT = 16; /* booking_legs.pax check (1..16), the same bound /api/quote accepts; the class rows set the real cap */
+/** Most seats among the classes a customer can book now (effective_max_pax from the class rows); null if the list is missing. */
+function boardPartyCap(j) {
+  if (!j || j.ok !== true || !Array.isArray(j.classes)) return null;
+  let m = 0;
+  j.classes.forEach((c) => { const n = c && c.eligible !== false ? Number(c.effective_max_pax) : NaN; if (Number.isFinite(n) && n > m) m = n; });
+  return m >= 1 ? Math.min(Math.floor(m), PARTY_LIMIT) : null;
+}
 const BOOK_HREF = /^(?:\/(?:de|fr|ar))?\/?#book$/;
 const WHEN_TAG = { en: 'en-GB', de: 'de-CH', fr: 'fr-CH', ar: 'ar-u-nu-latn' };
 /** Checkout trip-strip line 2, e.g. "Tue 29 Sept, 08:15" (same format as apps/web/lib/checkout/trip-format.ts). */
@@ -1162,7 +1180,7 @@ class Component extends DCLogic {
       cur: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosCurrency')) || 'CHF',
       pickupText: '', pickupLoc: null, dropText: '', dropLoc: null,
       day: null, time: '', returnDay: null, returnTime: '', dayLabel: null, returnLabel: null, dayY: null, dayM: null, returnY: null, returnM: null,
-      pax: 1, bags: 0, hours: 0, geo: 'idle',
+      pax: 1, paxCap: null, bags: 0, hours: 0, geo: 'idle',
       flight: '', flightAsk: false, flightState: 'idle', flightData: null, flightPlan: null, flightSince: '', flightNote: '', changes: [], kept: [],
       touched: { pickup: false, dest: false, when: false }, here: null, hereLoc: null,
       autofill: { pickup: null, when: null, dest: null, party: null }, fill: null, picked: null,
@@ -1195,7 +1213,15 @@ class Component extends DCLogic {
     if (REDUCED || !this._note) return;
     try { this._note.animate([{ opacity: 1 }, { opacity: .35, offset: .4 }, { opacity: 1 }], { duration: 200, easing: 'cubic-bezier(.2,0,.2,1)' }); } catch (e) {}
   }
+  /** Traveller limit: the most seats among the bookable classes (from the class rows), the database's 16 until that list arrives. */
+  paxMax() { const c = this.state.paxCap; return c >= 1 ? c : PARTY_LIMIT; }
   componentDidMount() {
+    this._alive = true;
+    idleBoard().then((j) => {
+      const cap = boardPartyCap(j);
+      if (!this._alive || !cap) return;
+      this.setState((s) => ({ paxCap: cap, pax: Math.min(cap, Math.max(1, parseInt(s.pax, 10) || 1)) }));
+    });
     cleanStaleTrip();
     this._onLocale = (e) => this.setState({ lang: e.detail.lang, cur: e.detail.cur }, () => this.relabelAll());
     window.addEventListener('vamos:locale', this._onLocale);
@@ -1320,6 +1346,7 @@ class Component extends DCLogic {
     document.fonts && document.fonts.ready ? document.fonts.ready.then(() => this.q()) : this.q();
   }
   componentWillUnmount() {
+    this._alive = false;
     this.teardownSheetBits();
     clearInterval(this._reviewsWait); clearTimeout(this._reviewsStop); if (this._onReviews) window.removeEventListener('vamos:reviews', this._onReviews); if (this._offReviews) this._offReviews();
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale); if (this._onDestPick) window.removeEventListener('vamos:dest-pick', this._onDestPick); document.removeEventListener('mousedown', this._away); document.removeEventListener('pointerdown', this._sugPtrDown, true); document.removeEventListener('pointermove', this._sugPtrMove, true); document.removeEventListener('pointerup', this._sugPtrUp, true); document.removeEventListener('pointercancel', this._sugPtrUp, true); document.removeEventListener('scroll', this._sugBoxScroll, true); document.removeEventListener('keydown', this._esc); window.removeEventListener('resize', this._onResize); clearTimeout(this._sugMovedT); (this._mqs || []).forEach((m) => { m.removeEventListener ? m.removeEventListener('change', this._onResize) : m.removeListener(this._onResize); }); Object.values(this.dusts).forEach((d) => d.destroy()); this.lockScroll(false); this.stopPoll(); clearTimeout(this._deb); clearTimeout(this._ft); clearTimeout(this._geoT); this._geoSeq++; if (this._ac) { try { this._ac.abort(); } catch (e) {} } this.clearFill(); }
@@ -1845,7 +1872,7 @@ class Component extends DCLogic {
   }
   shFlight = (text) => { const v = this.normFlight(text); this.setState((s) => ({ fno: v, errs: Object.assign({}, s.errs, { flight: '' }) })); };
   openFlightSheet = () => this.setState({ flightOpen: true });
-  setPaxN = (n) => { const v = parseInt(n, 10); this.setState({ pax: Math.min(8, Math.max(1, Number.isFinite(v) ? v : 1)) }); };
+  setPaxN = (n) => { const v = parseInt(n, 10); this.setState({ pax: Math.min(this.paxMax(), Math.max(1, Number.isFinite(v) ? v : 1)) }); };
   setBagsN = (n) => { const v = parseInt(n, 10); this.setState({ bags: Math.min(16, Math.max(0, Number.isFinite(v) ? v : 0)) }); };
   /** SEE PRICES from the sheet (it has already removed its own history entries). */
   shSubmit = () => {
@@ -2193,7 +2220,7 @@ class Component extends DCLogic {
   travScrim = (e) => { if (e.target === e.currentTarget) this.closeTrav(); };
   travKey = (e) => { if (e.key === 'Escape') { e.stopPropagation(); this.closeTrav(); } };
   decPax = () => this.setState((s) => ({ pax: Math.max(1, (parseInt(s.pax, 10) || 1) - 1) }));
-  incPax = () => this.setState((s) => ({ pax: Math.min(8, (parseInt(s.pax, 10) || 1) + 1) }));
+  incPax = () => this.setState((s) => ({ pax: Math.min(s.paxCap >= 1 ? s.paxCap : PARTY_LIMIT, (parseInt(s.pax, 10) || 1) + 1) }));
   decBag = () => this.setState((s) => ({ bags: Math.max(0, (parseInt(s.bags, 10) || 0) - 1) }));
   incBag = () => this.setState((s) => ({ bags: Math.min(16, (parseInt(s.bags, 10) || 0) + 1) }));
   /** Errors first-in-DOM-order get focus. */
@@ -2238,7 +2265,7 @@ class Component extends DCLogic {
     p.set('to', r.dText.slice(0, 200));
     if (r.dl.mapbox_id) p.set('tid', String(r.dl.mapbox_id).slice(0, 256));
     p.set('when', r.when);
-    p.set('pax', String(Math.min(8, Math.max(1, parseInt(s.pax, 10) || 1))));
+    p.set('pax', String(Math.min(this.paxMax(), Math.max(1, parseInt(s.pax, 10) || 1))));
     p.set('bags', String(Math.min(16, Math.max(0, parseInt(s.bags, 10) || 0))));
     if (r.fl) p.set('flight', r.fl);
     const prefix = (s.lang === 'de' || s.lang === 'fr' || s.lang === 'ar') ? '/' + s.lang : '';
@@ -2261,7 +2288,8 @@ class Component extends DCLogic {
     const air = this.pickupAir();
     const showFlightField = air || (!!s.pickupLoc && (!!s.flightOpen || !!s.fno));
     const showOpener = !!s.pickupLoc && !showFlightField;
-    const paxN = Math.min(8, Math.max(1, parseInt(s.pax, 10) || 1));
+    const paxCapN = this.paxMax();
+    const paxN = Math.min(paxCapN, Math.max(1, parseInt(s.pax, 10) || 1));
     const bagsN = Math.min(16, Math.max(0, parseInt(s.bags, 10) || 0));
     const e = s.errs || {};
     const trip = this.checkTrip();
@@ -2312,7 +2340,7 @@ class Component extends DCLogic {
       travBtnRef: this.travBtnRef, travPanelRef: this.travPanelRef, travOpen: !!s.travOpen, travOpenStr: s.travOpen ? 'true' : 'false', travOpenAttr: s.travOpen ? '1' : '0',
       toggleTrav: this.toggleTrav, closeTrav: () => this.closeTrav(), travScrim: this.travScrim, travKey: this.travKey,
       travSummary: paxN + (paxN === 1 ? ' passenger' : ' passengers') + ' · ' + bagsN + (bagsN === 1 ? ' bag' : ' bags'),
-      paxN: paxN, bagsN: bagsN, paxAtMin: paxN <= 1, paxAtMax: paxN >= 8, bagsAtMin: bagsN <= 0, bagsAtMax: bagsN >= 16,
+      paxN: paxN, paxMaxN: paxCapN, bagsN: bagsN, paxAtMin: paxN <= 1, paxAtMax: paxN >= paxCapN, bagsAtMin: bagsN <= 0, bagsAtMax: bagsN >= 16,
       decPax: this.decPax, incPax: this.incPax, decBag: this.decBag, incBag: this.incBag,
       submitBox: this.submitBox,
       announce: s.announce,

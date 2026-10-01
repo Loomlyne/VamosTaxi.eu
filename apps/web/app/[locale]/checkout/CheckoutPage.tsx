@@ -17,6 +17,7 @@ import { formatChfRappen } from "@/lib/fx/format";
 import { useFx } from "@/lib/fx/use-fx";
 import { useVamosLocale } from "@/lib/locale-shim";
 import { geoLocale } from "@/lib/checkout/geo-locale";
+import { partyCap } from "@/lib/checkout/party-cap";
 import { buildTripQuery, type Trip, type TripFieldError } from "@/lib/checkout/trip-url";
 import { useCheckoutSettings } from "./CheckoutSettings";
 import { ClassSection, type ClassPhase } from "./sections/ClassSection";
@@ -307,6 +308,7 @@ export function CheckoutPage({
               onSubmit={submitEditor}
               onClose={closeEditor}
               onDirtyChange={onEditorDirty}
+              paxMax={partyCap(quote?.classes)}
             />
           ) : (
             <TripStrip

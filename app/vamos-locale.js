@@ -214,6 +214,13 @@
     return p.__rx[lang];
   }
 
+  /** Group numbers in the order a template uses them: '$2 von $1' gives [2, 1]. */
+  function templateOrder(tpl) {
+    var out = [], m, rx = /\$(\d)/g;
+    while ((m = rx.exec(tpl))) out.push(+m[1]);
+    return out;
+  }
+
   function fromPattern(key, lang) {
     /* Patterns are short one-liners; skip the 150-odd regex tests for prose. */
     if (key.length > 160) return null;
@@ -224,9 +231,24 @@
         if (!rx) continue;
         var m = rx.exec(key);
         if (!m) continue;
-        var target = lang === 'en' ? englishTemplate(p) : p[lang];
+        var from = LANGS[j] === 'en' ? englishTemplate(p) : p[LANGS[j]];
+        var order = templateOrder(from), vals = {};
+        for (var k = 0; k < order.length; k++) vals[order[k]] = m[k + 1];
+        var fill = function (tpl) { return tpl.replace(/\$(\d)/g, function (_x, n) { return vals[+n] || ''; }); };
+        /* templateRx widens every group to (.+). Rebuild the English from the captures and make the
+           pattern's own regex agree, or a narrow entry (Arabic 11-99 travellers) catches every count.
+           A template that leaves a group out (a fixed "the only booking") cannot be rebuilt: keep it. */
+        var en = englishTemplate(p);
+        var whole = templateOrder(en).every(function (n) { return vals[n] !== undefined; });
+        if (whole) {
+          p.re.lastIndex = 0;
+          var agrees = p.re.test(fill(en));
+          p.re.lastIndex = 0;
+          if (!agrees) continue;
+        }
+        var target = lang === 'en' ? en : p[lang];
         if (!target) return null;
-        return target.replace(/\$(\d)/g, function (_x, n) { return m[+n] || ''; });
+        return fill(target);
       }
     }
     return null;
