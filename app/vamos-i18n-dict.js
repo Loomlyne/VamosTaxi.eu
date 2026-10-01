@@ -1367,7 +1367,6 @@
       'Pickup time': { de: 'Abholzeit', fr: 'Heure de prise en charge', ar: 'موعد الانطلاق' },
       'Change requested': { de: 'Änderung angefragt', fr: 'Modification demandée', ar: 'تم طلب التعديل' },
       'Not applied yet. We confirm every change by email, and the booking above stands until we do.': { de: 'Noch nicht übernommen. Wir bestätigen jede Änderung per E-Mail, und bis dahin gilt die Buchung oben.', fr: 'Pas encore appliqué. Nous confirmons chaque modification par e-mail, et la réservation ci-dessus tient jusque-là.', ar: 'لم يُطبَّق بعد. نؤكّد كل تعديل بالبريد، ويبقى الحجز أعلاه ساريًا حتى ذلك الحين.' },
-      'Change requested. We confirm every change by email.': { de: 'Änderung angefragt. Wir bestätigen jede Änderung per E-Mail.', fr: 'Modification demandée. Nous confirmons chaque modification par e-mail.', ar: 'تم طلب التعديل. ونحن نؤكّد كل تعديل بالبريد.' },
       'This change needs a person': { de: 'Diese Änderung braucht einen Menschen', fr: 'Cette modification demande une personne', ar: 'هذا التعديل يحتاج إلى شخص' },
       'A driver is already scheduled against this pickup, and you are inside the': { de: 'Für diese Abholung ist bereits ein Fahrer eingeplant, und Sie sind innerhalb der', fr: 'Un chauffeur est déjà planifié pour cette prise en charge, et vous êtes dans le', ar: 'هناك سائق مُعيَّن بالفعل لهذا الانطلاق، وأنت داخل' },
       '. Dispatch can still move it. This page cannot.': { de: '. Die Disposition kann sie noch verschieben. Diese Seite nicht.', fr: '. La centrale peut encore la déplacer. Cette page, non.', ar: '. لا تزال غرفة العمليات قادرة على تغييره. أما هذه الصفحة فلا.' },
@@ -1383,7 +1382,6 @@
       'sets out what comes back.': { de: 'legt fest, was zurückkommt.', fr: 'précise ce qui vous revient.', ar: 'تبيّن ما سيُردّ إليك.' },
       'Before you cancel': { de: 'Bevor Sie stornieren', fr: 'Avant d’annuler', ar: 'قبل أن تلغي' },
       'Move it instead': { de: 'Lieber verschieben', fr: 'Déplacer plutôt', ar: 'غيّر الموعد بدلاً من ذلك' },
-      'Keep the booking and the fare where they are, and pick another day, another route or a different vehicle.': { de: 'Buchung und Fahrpreis bleiben, wo sie sind — wählen Sie einen anderen Tag, eine andere Route oder ein anderes Fahrzeug.', fr: 'Gardez la réservation et le tarif tels quels, et choisissez un autre jour, un autre itinéraire ou un autre véhicule.', ar: 'أبقِ الحجز والسعر كما هما، واختر يومًا آخر أو مسارًا آخر أو سيارة أخرى.' },
       'Change instead': { de: 'Stattdessen ändern', fr: 'Modifier plutôt', ar: 'التعديل بدلاً من ذلك' },
       'The trip you cancelled': { de: 'Die stornierte Fahrt', fr: 'Le trajet que vous avez annulé', ar: 'الرحلة التي ألغيتها' },
       'Rebook this trip': { de: 'Diese Fahrt neu buchen', fr: 'Réserver de nouveau ce trajet', ar: 'أعد حجز هذه الرحلة' },
@@ -1416,6 +1414,7 @@
       'Failed': { de: 'Fehlgeschlagen', fr: 'Échoué', ar: 'فشل' },
       'Reviewed': { de: 'Bewertet', fr: 'Évalué', ar: 'تم التقييم' },
       // 26.2 P1 (owner-approved 2026-10-01): customer booking page after a cheaper class change, until the refund is sent.
+      'Your trip has changed. The difference of {amount} comes back to the payment method you used; our team sends it.': { de: 'Ihre Fahrt wurde geändert. Die Differenz von {amount} geht auf das Zahlungsmittel zurück, mit dem Sie bezahlt haben; unser Team veranlasst sie.', fr: 'Votre trajet a été modifié. La différence de {amount} vous est remboursée sur le moyen de paiement utilisé ; notre équipe l’envoie.', ar: 'تم تعديل رحلتك. يُردّ إليك الفرق البالغ {amount} إلى وسيلة الدفع التي استخدمتها؛ يرسله فريقنا.' },
       'Your trip now runs in {class}. The difference of {amount} comes back to the payment method you used; our team sends it.': { de: 'Ihre Fahrt läuft jetzt in {class}. Die Differenz von {amount} geht auf das Zahlungsmittel zurück, mit dem Sie bezahlt haben; unser Team veranlasst sie.', fr: 'Votre trajet passe en {class}. La différence de {amount} vous est remboursée sur le moyen de paiement utilisé ; notre équipe l’envoie.', ar: 'تسير رحلتك الآن بفئة {class}. يُردّ إليك الفرق البالغ {amount} إلى وسيلة الدفع التي استخدمتها؛ يرسله فريقنا.' },
       'Refunded to your {country} card.': { de: 'Erstattet auf Ihre Karte in {country}.', fr: 'Remboursé sur votre carte {country}.', ar: 'أُعيد إلى بطاقتك في {country}.' },
       'Stripe pays out on {date}.': { de: 'Stripe zahlt am {date} aus.', fr: 'Stripe verse le {date}.', ar: 'سترايب يدفع في {date}.' },

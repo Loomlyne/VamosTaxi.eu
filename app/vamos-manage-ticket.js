@@ -202,6 +202,10 @@
   // CHEAPER class change the team owes the difference ("Refund due"). Until the refund is sent the
   // booking page says so, in the new class and the amount still due; once it is sent the line goes.
   var CHANGE_CREDIT_LINE = "Your trip now runs in {class}. The difference of {amount} comes back to the payment method you used; our team sends it.";
+  // 26.2 P6 (owner-approved 2026-10-01, D15 in .planning/decisions/2026-10-01-p6-paid-trip-edit.md):
+  // after a CHEAPER change of places or time (any change that is not the class alone), until the
+  // refund is sent. A class-only change keeps the line above.
+  var TRIP_CREDIT_LINE = "Your trip has changed. The difference of {amount} comes back to the payment method you used; our team sends it.";
 
   function changeCreditLine(booking) {
     if (!booking) return "";
@@ -211,12 +215,15 @@
     if (st !== "pending_ops" && st !== "processing" && st !== "failed") return "";
     var due = (Number(booking.refundOwedRappen) || 0) - (Number(booking.refundedRappen) || 0);
     if (!(due > 0)) return "";
-    var cls = String((booking.money && booking.money.className) || "").trim();
-    if (!cls) return "";
     var amount = (due / 100).toFixed(2);
     var money = root.VamosLocale && typeof root.VamosLocale.money === "function"
       ? root.VamosLocale.money(amount)
       : "CHF " + amount;
+    if (booking.money && booking.money.lastChange === "trip") {
+      return t(TRIP_CREDIT_LINE).split("{amount}").join(money);
+    }
+    var cls = String((booking.money && booking.money.className) || "").trim();
+    if (!cls) return "";
     return t(CHANGE_CREDIT_LINE).split("{class}").join(cls).split("{amount}").join(money);
   }
 

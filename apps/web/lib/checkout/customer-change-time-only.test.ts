@@ -55,11 +55,9 @@ describe.each(PAGES)("%s: the change view offers the time only (D9)", (rel) => {
     expect(diff).not.toMatch(/Pickup address|Destination|Passengers|Bags/);
     const send = html.slice(html.indexOf("  confirmModify = () => {"), html.indexOf("  confirmCancel = () => {"));
     expect(send).not.toMatch(/pickupDraft|dropoffDraft|s\.pax|s\.bags|s\.vehicle/);
-    // The manage link sends the time; the account view's button sends nothing today (follow-up in DESIGN-DRAFT.md).
-    if (rel.includes("manage-booking")) {
-      expect(send).toMatch(/timeChangeAccount\(ticket\.reference, scheduledLocal\)/);
-      expect(send).toMatch(/timeChangeGuest\(tok, ticket\.reference, scheduledLocal\)/);
-    }
+    // Both views send the time (the account view since D13, 26.2 P6 server step).
+    expect(send).toMatch(/timeChangeAccount\(ticket\.reference, scheduledLocal\)/);
+    expect(send).toMatch(/timeChangeGuest\(tok, ticket\.reference, scheduledLocal\)/);
   });
 
   it("no sentence that only made sense with the five fields is left", () => {

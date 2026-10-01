@@ -497,7 +497,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <p data-grp="1" style="margin-bottom:14px">Before you cancel</p>
 <button type="button" data-fork="1" onClick="{{ startModify }}" style="width:100%;margin-bottom:22px">
 <span data-tile="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="calendar-days" size="{{ n20 }}" color="var(--vt-charcoal-900)" hint-size="20px,20px"></x-import></span>
-<span style="min-width:0;flex:1 1 200px"><span data-fork-t="1">Move it instead</span><span data-fork-s="1">Keep the booking and the fare where they are, and pick another day, another route or a different vehicle.</span></span>
+<span style="min-width:0;flex:1 1 200px"><span data-fork-t="1">Move it instead</span></span>
 <span data-fork-cta="ghost">Change instead<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></span>
 </button>
 </sc-if>
@@ -875,11 +875,36 @@ class Component extends DCLogic {
   resetChanges = () => this.setState(this.drafts());
 
 
+  // 26.2 P6 (D13): the time change is sent exactly as the manage-booking page sends it — the account
+  // route when the booking was opened signed in, the guest route with the manage token — with the
+  // same result states. It used to say "Change requested" and send nothing.
   confirmModify = () => {
-    const list = this.diffList();
-    if (!list.length) return;
-    this.setState({ view: 'booking', requested: list });
-    this.say('Change requested. We confirm every change by email.', 'accent');
+    const helper = api();
+    const ticket = this.state.ticket || blankTicket();
+    const s = this.state;
+    const orig = (ticket.dateLabel || '') + (ticket.timeLabel ? (' · ' + ticket.timeLabel) : '');
+    let scheduledLocal = '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(String(s.mDate || '')) && s.mTime) {
+      scheduledLocal = s.mDate + 'T' + s.mTime;
+    } else if (ticket.scheduledLocal && s.mTime) {
+      scheduledLocal = String(ticket.scheduledLocal).slice(0, 10) + 'T' + s.mTime;
+    } else {
+      scheduledLocal = String(s.mDate || '') + 'T' + String(s.mTime || '');
+    }
+    const tok = helper.token ? helper.token() : '';
+    // Request time change — POST /api/manage/time-change (guest) or /api/account/bookings/time-change
+    const req = this.state.authVia === 'account'
+      ? helper.timeChangeAccount(ticket.reference, scheduledLocal)
+      : helper.timeChangeGuest(tok, ticket.reference, scheduledLocal);
+    req.then((result) => {
+      if (result && result.ok && result.body && result.body.ok) {
+        const msg = t('Time-change requested. Pickup stays {original} until we confirm.').replace('{original}', orig || 'the booked time');
+        this.say(msg, 'ok');
+        this.setState({ view: 'booking', requested: this.diffList() });
+        return;
+      }
+      this.say(t('Could not request this time change.'), 'danger');
+    }).catch(() => this.say(t('Could not request this time change.'), 'danger'));
   };
 
   confirmCancel = () => {
