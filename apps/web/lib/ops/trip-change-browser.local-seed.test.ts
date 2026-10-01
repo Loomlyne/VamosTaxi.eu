@@ -61,6 +61,9 @@ describe.skipIf(!PORT || !OUT)("seed for the browser run (local, committed rows)
         edit8: await seedBooking("edit8", ECO, { local: "2030-01-09T10:00" }),
         acct: await seedBooking("acct", ECO, { local: "2030-01-10T10:00" }),
         canc: await seedBooking("canc", ECO, { local: "2030-01-11T10:00" }),
+        // C8: two bookings opened from their two e-mailed links in one browser (the vt_manage cookie is one per site).
+        pairA: await seedBooking("pairA", ECO, { local: "2030-01-12T10:00" }),
+        pairB: await seedBooking("pairB", ECO, { local: "2030-01-13T10:00" }),
       };
       // An airport PICKUP with a flight number: swap pickup and destination (the seed writes Oerlikon -> airport).
       for (const key of ["air", "acct"] as const) {
@@ -73,7 +76,7 @@ describe.skipIf(!PORT || !OUT)("seed for the browser run (local, committed rows)
       }
       // Manage-link tokens: the raw value goes to the browser script, the table keeps the hash (hashManageToken).
       const tokens: Record<string, string> = {};
-      for (const key of ["cheap", "air", "dear", "canc"] as const) {
+      for (const key of ["cheap", "air", "dear", "canc", "pairA", "pairB"] as const) {
         const bytes = randomBytes(32);
         tokens[key] = base64urlEncode(bytes);
         await su`

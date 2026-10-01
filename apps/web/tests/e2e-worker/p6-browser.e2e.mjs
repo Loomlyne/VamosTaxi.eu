@@ -700,6 +700,44 @@ try {
       await stopped("C7 cancelled resend", e, cpage);
     }
   }
+  // C8 (review of 5dcb9e6c): the vt_manage cookie is one for the whole site. Booking A's link opened in one tab, then
+  // booking B's link in another tab of the same browser (the cookie is now B's). Confirm cancellation in A's tab must
+  // refuse with the plain message and cancel nothing; opened again from A's own link, A cancels and B stays.
+  if (want("C8")) {
+    try {
+      const a = B.pairA, b = B.pairB;
+      await freshWindow(40000); // two cancel presses inside one limiter window
+      const tabA = cpage;
+      await manage(tabA, "pairA");
+      const tabB = await cctx.newPage();
+      tabB.on("pageerror", (e) => errors.push(String(e).slice(0, 120)));
+      await manage(tabB, "pairB");
+      await tabA.bringToFront();
+      await tabA.getByRole("button", { name: /Cancel this transfer/ }).first().click();
+      const n1 = apiLog.length;
+      await tabA.getByRole("button", { name: "Confirm cancellation", exact: true }).click();
+      const m1 = await msg(tabA, /This page is for another booking\. Open the link from its e-mail again\./);
+      await nap(1200);
+      const st1 = q(`select string_agg(reference || ':' || status::text, ',' order by reference) from public.bookings where id in ('${a.id}', '${b.id}')`);
+      const call1 = apiOf(n1, /manage\/cancel/)[0];
+      rec("C8a Confirm cancellation in booking A's tab after booking B's link was opened: 409 wrong-booking, the page says so, NEITHER booking is cancelled",
+        call1?.s === 409 && /This page is for another booking/.test(m1) && !/cancelled/.test(st1),
+        `message "${m1}"; database ${st1}; ${since(n1, /manage\/cancel/)}`);
+      await tabB.close();
+      await manage(tabA, "pairA");
+      await tabA.getByRole("button", { name: /Cancel this transfer/ }).first().click();
+      const n2 = apiLog.length;
+      await tabA.getByRole("button", { name: "Confirm cancellation", exact: true }).click();
+      await tabA.getByText("Full refund").first().waitFor({ timeout: 25000 });
+      await nap(1200);
+      const st2 = q(`select string_agg(reference || ':' || status::text, ',' order by reference) from public.bookings where id in ('${a.id}', '${b.id}')`);
+      rec("C8b opened again from booking A's own link: Confirm cancellation cancels A and leaves B as it was",
+        apiOf(n2, /manage\/cancel/)[0]?.s === 200 && st2.includes(`${a.reference}:cancelled`) && !st2.includes(`${b.reference}:cancelled`),
+        `database ${st2}; ${since(n2, /manage\/cancel/)}`);
+    } catch (e) {
+      await stopped("C8 wrong-booking cancel", e, cpage);
+    }
+  }
   await cctx.close();
   rec("C5b no sideways scroll at 390 on the pages visited", scroll390.every((x) => x.over <= 1), scroll390.map((x) => `${x.name}: ${x.over}`).join("; ") || "no page measured");
 } catch (e) {
