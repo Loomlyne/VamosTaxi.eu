@@ -220,6 +220,13 @@ describe("D19: the account view carries the flight number, so its Save row shows
     expect(read("apps/web/app/api/account/bookings/route.ts")).toMatch(/l\.flight_no,/);
     expect(ticketSrc).toMatch(/flightNo: \(row && row\.flightNo\) \|\| "",/);
   });
+
+  it("the account view names the address the confirmation goes to (the Resend row read 'Send it again to ,')", async () => {
+    const { mapAccountBooking } = await import("../account/bookings");
+    expect(mapAccountBooking({ reference: "VT-1", status: "confirmed", scheduled_local: "2026-10-08T08:00", contact_email: "anna@example.test" } as never)).toMatchObject({ contactEmail: "anna@example.test" });
+    expect(read("apps/web/app/api/account/bookings/route.ts")).toMatch(/b\.contact_email,/);
+    expect(ticketSrc).toMatch(/contactEmail: \(row && row\.contactEmail\) \|\| "",/);
+  });
 });
 
 describe("D19: the manage-ticket helper and the dictionary", () => {

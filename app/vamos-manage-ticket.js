@@ -90,7 +90,8 @@
       canCancel: false,
       cancelWindow: "none",
       contactName: "",
-      contactEmail: "",
+      // 26.2 P6 (D19): the booking's address, so "Send it again to …" and "Confirmation sent to" name it.
+      contactEmail: (row && row.contactEmail) || "",
       payoutCountryLabel: null,
       availableOn: null,
       priceTotalRappen: (row && row.priceRappen) || 0,
