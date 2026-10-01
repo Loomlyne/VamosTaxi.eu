@@ -3,7 +3,8 @@
 Branch `claude/project-thread-wmr715` (cut from the plan branch `claude/project-thread-ii4fuh`,
 which is main `9ef6df61` plus the signed decision, plan and pictures).
 Code commit: `0ce96336`. Merge of origin/main `ea75a7b7`: `247a5f12` (no conflict).
-Gate fixes after the merge: `0ee3e417`. This hand-over is the commit after that.
+Gate fixes after the merge: `0ee3e417`. Hand-over: `ee07de33`. Second merge of origin/main `66d3ba80`
+(one planning prompt, no code): `c09ce863`, the branch tip.
 
 No migration. No setting. No API route changed. One Worker (`vamos`); the dashboard gateway is untouched.
 
