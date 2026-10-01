@@ -132,8 +132,13 @@
     });
   }
 
-  function cancelGuest(tok) {
-    var body = tok ? JSON.stringify({ token: tok }) : "{}";
+  // The booking on screen goes with the cancel: vt_manage is one cookie for the whole site, and the
+  // server refuses (409 wrong-booking) a cancel for any other booking than the cookie's.
+  function cancelGuest(tok, ref) {
+    var payload = {};
+    if (tok) payload.token = tok;
+    if (ref) payload.ref = ref;
+    var body = JSON.stringify(payload);
     return jsonFetch("/api/manage/cancel", {
       method: "POST",
       headers: { "content-type": "application/json" },

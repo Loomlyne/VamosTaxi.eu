@@ -158,24 +158,42 @@ export async function finishPaidCancel(env: CloudflareEnv, row: CancelledRow): P
   };
 }
 
+/**
+ * The guest cancel names the booking it is for. vt_manage is one cookie for the whole site: a second
+ * e-mailed link, or a second booking paid (a return trip), replaces it, so a page still showing booking A
+ * can hold the token of booking B. The token's own booking (row security shows a guest only that one) must
+ * be the booking on screen (`bookingKey`: its reference or id), else `wrong-booking` and nothing is written.
+ * The check and the cancel run in one transaction.
+ */
 export async function paidCancelGuest(
   env: CloudflareEnv,
   tokenHashHex: string,
+  bookingKey: string,
 ): Promise<PaidCancelResult> {
   if (!tokenHashHex) return { ok: false, code: "not-found" };
-  let row: CancelledRow | undefined;
+  const key = (bookingKey ?? "").trim().toLowerCase();
+  let outcome: { row?: CancelledRow; code?: string } = {};
   try {
-    row = await asGuest(env, tokenHashHex, async (sql) => {
+    outcome = await asGuest(env, tokenHashHex, async (sql) => {
+      const own = await sql<{ id: string; reference: string }[]>`
+        select b.id::text as id, b.reference from public.bookings as b limit 2
+      `;
+      if (own.length !== 1) return { code: "not-found" };
+      const mine = own[0]!;
+      if (!key || (key !== mine.id.toLowerCase() && key !== String(mine.reference).toLowerCase())) {
+        return { code: "wrong-booking" };
+      }
       const rows = await sql<CancelledRow[]>`
         select * from public.manage_booking_cancel(decode(${tokenHashHex}, 'hex'))
       `;
-      return rows[0];
+      return { row: rows[0] };
     });
   } catch (err) {
     return mapCancelSqlError(err);
   }
-  if (!row?.booking_id) return { ok: false, code: "not-found" };
-  return finishPaidCancel(env, row);
+  if (outcome.code) return { ok: false, code: outcome.code };
+  if (!outcome.row?.booking_id) return { ok: false, code: "not-found" };
+  return finishPaidCancel(env, outcome.row);
 }
 
 const BOOKING_UUID =

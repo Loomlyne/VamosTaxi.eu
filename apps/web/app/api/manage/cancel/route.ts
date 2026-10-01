@@ -15,9 +15,13 @@ function json(body: unknown, status = 200): Response {
   });
 }
 
+function str(value: unknown): string {
+  return typeof value === "string" && value.trim() ? value.trim() : "";
+}
+
 function failStatus(code: string): number {
   if (code === "not-found") return 404;
-  if (code === "not-cancellable" || code === "unpaid-use-hard-delete") return 409;
+  if (code === "not-cancellable" || code === "unpaid-use-hard-delete" || code === "wrong-booking") return 409;
   if (code === "stripe-failed" || code === "stripe-test-only") return 502;
   if (code === "unauthorized") return 401;
   return 500;
@@ -29,26 +33,28 @@ export async function POST(request: Request): Promise<Response> {
   const limited = await accountWriteForbidden(request);
   if (limited) return limited;
   const jar = await cookies();
+  let body: Record<string, unknown> = {};
+  try {
+    const parsed = await request.json();
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      body = parsed as Record<string, unknown>;
+    }
+  } catch {
+    body = {};
+  }
   let raw = readManageCookie(
     jar.get(MANAGE_COOKIE_NAME)?.value ?? "",
     request.headers.get("cookie"),
   );
-  if (!raw) {
-    try {
-      const body = await request.json();
-      if (body && typeof body === "object" && !Array.isArray(body)) {
-        const token = (body as { token?: unknown }).token;
-        if (typeof token === "string") raw = token.trim();
-      }
-    } catch {
-      raw = "";
-    }
-  }
+  if (!raw) raw = str(body.token);
   const tokenHashHex = raw ? await hashManageToken(raw) : "";
   if (!tokenHashHex) return json({ ok: false, code: "not-found" }, 404);
+  // vt_manage is one cookie for the whole site: the page names the booking it shows, and a cancel for any
+  // other booking than the cookie's is refused (409 wrong-booking), never carried out on the cookie's one.
+  const bookingKey = str(body.ref) || str(body.reference) || str(body.bookingId) || str(body.id);
 
   const { env } = await getCloudflareContext({ async: true });
-  const result = await paidCancelGuest(env, tokenHashHex);
+  const result = await paidCancelGuest(env, tokenHashHex, bookingKey);
   if (!result.ok) return json({ ok: false, code: result.code }, failStatus(result.code));
   return json({
     ok: true,
