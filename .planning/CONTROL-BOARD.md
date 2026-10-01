@@ -5,7 +5,7 @@ the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 Rewritten short on 2026-09-30 14:25; the long version is in git history (`8230227c`).
 
-**Last update:** 2026-10-01 13:46 (+04)
+**Last update:** 2026-10-01 14:20 (+04)
 
 ## Live now
 
@@ -53,6 +53,7 @@ Rewritten short on 2026-09-30 14:25; the long version is in git history (`823022
 | 10-01 | 13:36 | **26.2 P1 class change on a paid trip**: dashboard class list with the difference, pay-the-difference mail and 24-hour Stripe page, Withdraw change, refund line on the customer page; customer time-change requests fixed (failed on live with 23514); migration `20261007140000` | `8b65e01b` | `60e61d96` |
 | 10-01 | 13:42 | **E-mail change can finish** (Phase 20 follow-up): one mail to the old address, one to the new; first click says "Now open the link we sent to your other address", second click completes; no migration | `11559467` | `38063b7d` |
 | 10-01 | 13:45 | **Chauffeurs by class**: Class and required Plate number on the chauffeur, Assign lists only the trip's class as "Name · Plate", bookings history per chauffeur, delete keeps finished trips; mails and booking page show the plate; migration `20261007160000` | `b0ee0421` | `8889f3c3` |
+| 10-01 | 14:19 | GitHub e2e job split into four parallel jobs with a 30-minute limit each (workflow files only, no deploy) | `add33513` | unchanged |
 
 ## Ship order from here
 
@@ -212,7 +213,7 @@ Full texts in `.planning/decisions/`.
 | Settings say 15 minutes standard waiting, the pages say 30 | Owner changes the setting if both should agree |
 | The airport fee is saved inside the fare line, not as its own line | 26.2 list |
 | `data-i18n-skip` still sits in the frozen legal pages, `LegalPage`, `PendingSlot` and `manage-booking.dc.html`; the runtime ignores it (no customer effect). `app/[locale]/(ops)/api/staff/content/[key]/route.ts` exports non-route helpers | 26.2 list, not assigned |
-| GitHub job "Booking funnel e2e on Linux" runs out of time (45 minutes) and reports nothing | `fix/e2e-linux-time`, 26.0 session |
+| GitHub job "Booking funnel e2e on Linux": split into four jobs on `add33513`; first result not read yet | Control session reads run 36848434943 |
 | Playwright: 48 SiteHeader screenshot diffs (open and unconfirmed states, every language, 3 widths) fail with and without 26.0, cause not found; home specs red on main (`home-red-36.txt`); unclassified reds: checkout-hosted 390, currency, confirmation S3/S4, checkout-account 768 | `26.0-HANDOVER.md`; booking-polish for the home reds |
 | Class photos are 2.3 to 2.8 MB each | `feat/class-photo-small` |
 | VT-26-0739 and VT-26-0742 are not in the owner's account | Not a bug: booked with another e-mail address |
@@ -260,7 +261,7 @@ Full texts in `.planning/decisions/`.
 
 | What | When |
 |---|---|
-| Check the hand-over of `fix/e2e-linux-time` when it arrives (job sent to the 26.0 session 2026-10-01, between 13:15 and 13:19 by the clock; started in folder `e2e-linux-time`) | On hand-over, then the owner's Ship |
+| Read the first split e2e run (36848434943) and list the failing specs; before: check the hand-over of `fix/e2e-linux-time` when it arrives (job sent to the 26.0 session 2026-10-01, between 13:15 and 13:19 by the clock; started in folder `e2e-linux-time`) | On hand-over, then the owner's Ship |
 
 Done 2026-10-01, between 13:15 and 13:19 by the clock: (1) reminder cron error: the live database log of the last 22 hours holds no "permission denied" line at all (read-only log query; the hourly job ran in that window; the reminder function was replaced on 09-30 by `20261001120000`). Closed. (2) First "Booking funnel e2e on Linux" run on `6ec73c52`: cancelled at its 45-minute limit, no result (run 36829545716). The repository is public, so the minutes cost nothing; board-only commits do not start a run.
 
@@ -270,7 +271,7 @@ Done 2026-10-01, between 13:15 and 13:19 by the clock: (1) reminder cron error: 
 |---|---|---|
 | 1 | Chauffeurs by class | **Live 13:45** (`b0ee0421`, Worker `8889f3c3`); branch and `archive/26.2-chauffeur-car-319519a6` on GitHub. Live: chauffeurs list and the new history path answer 401 without a session; the dashboard screens carry "Plate number", "Choose a chauffeur" and P1's "Withdraw change". Owner UAT: 6 steps in `.planning/quick/261001-chauffeur-car/HANDOVER.md`; step 1 first (his live driver has no class or plate, so Assign lists nobody until he sets them). Owner decision 8: the one `vehicles` row on live (model "sedan", plate 2098890, no photo; no leg, no chauffeur, no seat row points to it, read 2026-10-01) is deleted by the owner in the Supabase SQL editor (control does not hard-delete rows); control reads back |
 | 2 | E-mail change fix | **Live 13:42** (`11559467`, Worker `38063b7d`); folder removed; branch and `archive/phase-20-email-change-6abe05d0` on GitHub. Owner UAT: Account, change the e-mail to a second address of yours; one mail in each inbox; old inbox link says to open the other; new inbox link signs in with the new address |
-| 3 | GitHub e2e job time limit (`fix/e2e-linux-time`) | 26.0 session measuring |
+| 3 | GitHub e2e job time limit | **On main 14:19** (`add33513`, no deploy; owner said Ship). Folder `e2e-linux-time` and stack `vamos-taxi-e2e` removed; branch and `archive/e2e-linux-time-8c1d2c68` on GitHub. First run 36848434943 is queued behind the older runs; expected red per spec (about 80 known failures: screenshot drift, stale home specs, the unclassified ones), not a timeout. Control reads it and reports |
 
 Archived on 13:37: local-only branches `fix/26.3-manage-booking`, `fix/26.3-new-trip-save` and the withdrawn Cars page tip as `archive/branch-*` tags on GitHub. Folder `phase-26.2-p1` removed.
 
