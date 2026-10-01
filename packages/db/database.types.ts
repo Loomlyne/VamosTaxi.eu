@@ -2686,6 +2686,17 @@ export type Database = {
           scheduled_local: string
         }[]
       }
+      booking_change_request_facts: {
+        Args: { p_request_id: string }
+        Returns: {
+          assigned_chauffeur_id: string
+          booking_id: string
+          class_changed: boolean
+          party_changed: boolean
+          places_changed: boolean
+          time_changed: boolean
+        }[]
+      }
       booking_change_withdraw: {
         Args: { p_actor_id: string; p_booking_id: string; p_request_id: string }
         Returns: {
@@ -2792,6 +2803,23 @@ export type Database = {
         Returns: undefined
       }
       booking_snapshot_policy: { Args: { p_booking_id: string }; Returns: Json }
+      booking_staff_contact_update: {
+        Args: {
+          p_actor_id: string
+          p_booking_id: string
+          p_contact_email: string
+          p_contact_name: string
+          p_contact_phone: string
+          p_flight_no: string
+          p_note: string
+        }
+        Returns: {
+          assigned_chauffeur_id: string
+          booking_id: string
+          changed_fields: string
+          flight_changed: boolean
+        }[]
+      }
       booking_staff_change: {
         Args: {
           p_actor_id: string
@@ -2807,6 +2835,37 @@ export type Database = {
           booking_id: string
           difference_rappen: number
           extra_snapshot_id: number
+          new_total_rappen: number
+          old_extra_session_id: string
+          old_extra_snapshot_id: number
+          outcome: string
+          paid_rappen: number
+          quote_snapshot_id: number
+          request_id: string
+          unassigned_chauffeur_id: string
+        }[]
+      }
+      booking_staff_trip_change: {
+        Args: {
+          p_actor_id: string
+          p_booking_id: string
+          p_distance_km: number
+          p_driver: string
+          p_duration_min: number
+          p_engine_version: string
+          p_expected_paid_rappen: number
+          p_lines: Json
+          p_rate_version_id: number
+          p_shown_alternatives: Json
+          p_total_rappen: number
+          p_trip: Json
+          p_vehicle_class_slug: string
+        }
+        Returns: {
+          booking_id: string
+          difference_rappen: number
+          extra_snapshot_id: number
+          kept_chauffeur_id: string
           new_total_rappen: number
           old_extra_session_id: string
           old_extra_snapshot_id: number
