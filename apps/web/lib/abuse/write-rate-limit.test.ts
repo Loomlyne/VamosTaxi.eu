@@ -98,8 +98,10 @@ describe("checkWriteRateLimit fail-closed (D-11, D-13)", () => {
       "apps/web/app/api/account/bookings/paid-cancel/route.ts",
       "apps/web/app/api/account/bookings/time-change/route.ts",
       "apps/web/app/api/account/bookings/flight/route.ts",
+      "apps/web/app/api/account/bookings/resend/route.ts",
       "apps/web/app/api/manage/cancel/route.ts",
       "apps/web/app/api/manage/flight/route.ts",
+      "apps/web/app/api/manage/resend/route.ts",
       "apps/web/app/api/manage/time-change/route.ts",
     ];
     for (const rel of routes) {

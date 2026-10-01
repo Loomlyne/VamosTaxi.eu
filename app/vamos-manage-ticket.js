@@ -182,6 +182,24 @@
     });
   }
 
+  // 26.2 P6 (D19): "Resend email" sends the confirmation again (voucher, fresh manage link) to the
+  // booking's own address. The answer carries that address; a send that did not happen is not ok.
+  function resendGuest(tok, ref) {
+    return jsonFetch("/api/manage/resend", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ token: tok || "", ref: ref }),
+    });
+  }
+
+  function resendAccount(ref) {
+    return jsonFetch("/api/account/bookings/resend", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ ref: ref }),
+    });
+  }
+
   function refundLine(booking) {
     var st = String((booking && booking.refundStatus) || "").toLowerCase();
     if (st === "pending_ops") {
@@ -254,6 +272,8 @@
     timeChangeAccount: timeChangeAccount,
     saveFlightGuest: saveFlightGuest,
     saveFlightAccount: saveFlightAccount,
+    resendGuest: resendGuest,
+    resendAccount: resendAccount,
     refundLine: refundLine,
     refundedCopy: refundedCopy,
     changeCreditLine: changeCreditLine,

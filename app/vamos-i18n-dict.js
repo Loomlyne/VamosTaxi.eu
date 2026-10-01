@@ -28,6 +28,8 @@
         de: 'Durchschnitt aus $1 veröffentlichten Bewertungen', fr: 'Moyenne de $1 avis publiés', ar: 'المتوسط من $1 تقييمات منشورة' },
       { re: /^Sent to (.+)$/,
         de: 'Gesendet an $1', fr: 'Envoyé à $1', ar: 'أُرسل إلى $1' },
+      { re: /^Sent\. Check (.+) in a minute or two\.$/,
+        de: 'Gesendet. Prüfen Sie $1 in ein bis zwei Minuten.', fr: 'Envoyé. Vérifiez $1 d’ici une à deux minutes.', ar: 'تم الإرسال. تحقّق من $1 خلال دقيقة أو دقيقتين.' },
       { re: /^© (\d{4}) Vamos Taxi\. All rights reserved\.$/,
         de: '© $1 Vamos Taxi. Alle Rechte vorbehalten.', fr: '© $1 Vamos Taxi. Tous droits réservés.', ar: '© $1 فاموس تاكسي. جميع الحقوق محفوظة.' },
       { re: /^(\d+) questions?$/,

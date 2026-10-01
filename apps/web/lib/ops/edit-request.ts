@@ -307,14 +307,16 @@ async function loadOwnedBooking(
   auth: CustomerEditAuth,
   key: string,
 ): Promise<OwnedBooking | null> {
+  // 26.2 P6: only columns both customer roles may read (their column grants leave out erased_at,
+  // so filtering on it refused every call with 42501). A staff-erased booking is refused by the
+  // definer writes themselves (the request upsert checks erased_at).
   const query = async (
     sql: Parameters<Parameters<typeof asSystem>[1]>[0],
   ): Promise<OwnedBooking | null> => {
     const rows = await sql<OwnedBooking[]>`
       select b.id
         from public.bookings b
-       where b.erased_at is null
-         and (b.id::text = ${key} or b.reference = ${key})
+       where b.id::text = ${key} or b.reference = ${key}
        limit 1
     `;
     return rows[0] ?? null;
@@ -539,16 +541,24 @@ export async function writeCustomerFlightNo(
       trip.scheduled_local instanceof Date
         ? trip.scheduled_local.toISOString()
         : String(trip.scheduled_local ?? "");
-    await notifyFlightNumber(env, {
-      bookingId: trip.booking_id,
-      locale: checkoutLocale(trip.locale || "en"),
-      reference: trip.reference,
-      pickupText: trip.pickup_text || "",
-      dropoffText: trip.dropoff_text || "",
-      scheduledLocal,
-      flightNo: no,
-      chauffeurEmail: trip.chauffeur_email,
-    });
+    // The flight number is saved before the notice goes out; a notice that fails must not turn a
+    // saved number into "Could not save" on the page. Found 2026-10-01 (P6, D19): the mail ledger's
+    // kind list (booking_notifications_kind_check) still refuses 'flight_no' (open since 09-06), so
+    // the claim raises 23514 on every save.
+    try {
+      await notifyFlightNumber(env, {
+        bookingId: trip.booking_id,
+        locale: checkoutLocale(trip.locale || "en"),
+        reference: trip.reference,
+        pickupText: trip.pickup_text || "",
+        dropoffText: trip.dropoff_text || "",
+        scheduledLocal,
+        flightNo: no,
+        chauffeurEmail: trip.chauffeur_email,
+      });
+    } catch (err) {
+      console.error("writeCustomerFlightNo notice", owned.id, err instanceof Error ? err.message : String(err));
+    }
     return { ok: true, bookingId: owned.id, flightNo: no };
   } catch (err) {
     return mapEditSqlError(err);

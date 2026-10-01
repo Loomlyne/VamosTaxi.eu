@@ -973,7 +973,23 @@ class Component extends DCLogic {
   openVoucher = () => this.setState({ voucher: true });
   closeVoucher = () => this.setState({ voucher: false });
   printVoucher = () => window.print();
-  resend = () => this.say('Sent. Check ' + ((this.state.ticket && this.state.ticket.contactEmail) || '') + ' in a minute or two.', 'success');
+  resend = () => {
+    const helper = api();
+    const ticket = this.state.ticket || blankTicket();
+    const tok = helper.token ? helper.token() : '';
+    // 26.2 P6 (D19): POST /api/manage/resend (guest) or /api/account/bookings/resend — the
+    // confirmation again, to the booking's own address. "Sent" only when the server sent it.
+    const req = this.state.authVia === 'account'
+      ? helper.resendAccount(ticket.reference)
+      : helper.resendGuest(tok, ticket.reference);
+    req.then((result) => {
+      if (result && result.ok && result.body && result.body.ok) {
+        this.say('Sent. Check ' + (result.body.email || ticket.contactEmail || '') + ' in a minute or two.', 'success');
+        return;
+      }
+      this.say(t('Could not send that request.'), 'danger');
+    }).catch(() => this.say(t('Could not send that request.'), 'danger'));
+  };
 
   editFlight = () => this.setState((s) => ({ flightMode: 'edit', flightDraft: s.flight }));
   cancelFlight = () => this.setState((s) => ({ flightMode: 'idle', flightDraft: s.flight }));

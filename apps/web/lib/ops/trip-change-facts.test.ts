@@ -50,6 +50,7 @@ const PLACES: Record<string, { name: string; lng: number; lat: number; canton: s
   "mb-zrh": { name: "Zurich Airport", lng: 8.5625, lat: 47.4505, canton: "ZH", cityId: "city-kloten", isAirport: true },
   "mb-oerlikon": { name: "Oerlikon", lng: 8.5442, lat: 47.4115, canton: "ZH", cityId: "city-zurich", isAirport: false },
   "mb-dubai": { name: "Dubai Marina", lng: 55.14, lat: 25.08, canton: null, cityId: "city-dubai", isAirport: false },
+  "mb-istanbul": { name: "Istanbul Airport", lng: 28.7519, lat: 41.2753, canton: null, cityId: "city-istanbul", isAirport: true },
 };
 
 function geo() {
@@ -148,6 +149,13 @@ describe("the trip facts of a new place (preview)", () => {
     const out = await runTripFacts(env, { locale: "en", saved, trip: { ...noChange, pickup: { ...zugPick, mapbox_id: "mb-dubai" } }, target },
       { pipelineDeps: pipelineDeps(env), ...geo(), nowMs: NOW });
     expect(out).toEqual({ ok: false, code: "place-not-served", field: "pickup" });
+  });
+
+  it("D18 (owner, 2026-10-01): the Edit keeps the site's area rule — Istanbul is bookable like on the public form", async () => {
+    const { env } = envWith();
+    const out = await runTripFacts(env, { locale: "en", saved, trip: { ...noChange, dropoff: { ...zugPick, mapbox_id: "mb-istanbul" } }, target },
+      { pipelineDeps: pipelineDeps(env), ...geo(), nowMs: NOW });
+    expect(out.ok).toBe(true);
   });
 
   it("a destination on the pickup is the same place", async () => {

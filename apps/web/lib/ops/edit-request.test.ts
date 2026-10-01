@@ -269,6 +269,17 @@ describe("09-10 flight write-through (D-27)", () => {
     expect(signed).toMatch(/kind:\s*"customer"|asCustomer/);
   });
 
+  it("P6 D19: a saved flight number stays saved when its notice fails; the customer lookup reads no erased_at", () => {
+    const lib = read("apps/web/lib/ops/edit-request.ts");
+    const write = fnBody(lib, "writeCustomerFlightNo");
+    // The notice sits in its own try, after the write, so a refused mail claim (23514) is logged, not returned.
+    expect(write).toMatch(/try \{\s*await notifyFlightNumber\([\s\S]*?\} catch \(err\) \{\s*console\.error\("writeCustomerFlightNo notice"/);
+    // Neither customer role may read bookings.erased_at (column grants): naming it raised 42501.
+    const owned = lib.slice(lib.indexOf("async function loadOwnedBooking("), lib.indexOf("async function loadOwnedBooking(") + 1500);
+    expect(owned).toMatch(/from public\.bookings/);
+    expect(owned.slice(0, owned.indexOf("\n}\n"))).not.toMatch(/b\.erased_at/);
+  });
+
   it("manage-booking and confirmation post time-change and flight", () => {
     const page = read("app/pages/manage-booking.dc.html");
     expect(page).toMatch(/time-change/);

@@ -179,3 +179,48 @@ it("an account booking carries its day (dateIso on the account list, scheduledLo
   });
   expect(ticketSrc).toMatch(/scheduledLocal: row && row\.dateIso && row\.time \? row\.dateIso \+ "T" \+ row\.time : "",/);
 });
+
+// D19 (owner, 2026-10-01): on the signed-in booking view, "Save" of the flight number and "Resend
+// email" do the real thing, as on the manage-booking link: the account route when the booking was
+// opened signed in, the guest route with the manage token; the same result states and an error
+// state when it fails. Resend had no server path on either view (both said "Sent" and sent nothing):
+// POST /api/manage/resend and /api/account/bookings/resend now send the confirmation again.
+function handler(html: string, name: string): string {
+  const a = html.indexOf(`  ${name} = () => {`);
+  expect(a, name).toBeGreaterThan(-1);
+  const b = html.indexOf("\n  };", a);
+  return html.slice(a, b);
+}
+
+describe.each(PAGES)("%s: D19 flight number and resend do the real thing", (rel) => {
+  const html = read(rel);
+
+  it("Save of the flight number goes to the server and says what happened", () => {
+    const body = handler(html, "saveFlight");
+    expect(body).toMatch(/this\.state\.authVia === 'account'\s*\? helper\.saveFlightAccount\(ticket\.reference, v\)\s*: helper\.saveFlightGuest\(tok, ticket\.reference, v\)/);
+    expect(body).toMatch(/this\.say\(t\('Flight number saved\.'\), 'success'\)/);
+    expect(body).toMatch(/this\.say\(t\('Could not save this flight number\.'\), 'danger'\)/);
+    expect(html).not.toContain("Your driver tracks this flight.");
+  });
+
+  it("Resend email goes to the server; success names the address, failure says so", () => {
+    const body = handler(html, "resend");
+    expect(body).toMatch(/this\.state\.authVia === 'account'\s*\? helper\.resendAccount\(ticket\.reference\)\s*: helper\.resendGuest\(tok, ticket\.reference\)/);
+    expect(body).toMatch(/this\.say\('Sent\. Check ' \+ /);
+    expect(body).toMatch(/this\.say\(t\('Could not send that request\.'\), 'danger'\)/);
+    expect(body).toMatch(/req\.then\(/);
+  });
+});
+
+describe("D19: the manage-ticket helper and the dictionary", () => {
+  it("the helper posts to the two resend routes", () => {
+    expect(ticketSrc).toMatch(/function resendGuest\(tok, ref\) \{\s*return jsonFetch\("\/api\/manage\/resend"/);
+    expect(ticketSrc).toMatch(/function resendAccount\(ref\) \{\s*return jsonFetch\("\/api\/account\/bookings\/resend"/);
+    expect(ticketSrc).toMatch(/resendGuest: resendGuest,\s*resendAccount: resendAccount,/);
+  });
+  it("the success line exists in four languages (pattern), the failure line already did", () => {
+    expect(dictSrc).toMatch(/re: \/\^Sent\\\. Check \(\.\+\) in a minute or two\\\.\$\//);
+    expect(dictSrc).toMatch(/'Could not send that request\.': \{ de: '(?:[^'\\]|\\.)+', fr: '(?:[^'\\]|\\.)+', ar: '(?:[^'\\]|\\.)+' \}/);
+    expect(dictSrc).toMatch(/'Flight number saved\.': \{ de: /);
+  });
+});
