@@ -16,6 +16,10 @@
      VamosConsent.cached()                 display cache for the current policy version, or null
      VamosConsent.turnstile(box, onToken, onError) -> {execute, reset, remove}
 
+   Cloudflare Web Analytics (cookieless) starts only once a saved choice allows
+   Analytics: when state() reads one from the server, or save() records one.
+   Cloudflare's automatic injection must stay off (owner 2026-10-01).
+
    Plain browser script (not transpiled): var, function, fetch + Promise. */
 (function () {
   if (window.VamosConsent) return;
@@ -25,6 +29,22 @@
   var API_SCRIPT = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
   var policyVersion = null;
   var scriptRequested = false;
+  /* Public site tag; apps/web/lib/consent/web-analytics.ts carries the same one. */
+  var BEACON_SRC = 'https://static.cloudflareinsights.com/beacon.min.js';
+  var BEACON_TOKEN = '792482ef56d84c46aee4f6501205ce68';
+
+  function startAnalytics() {
+    try {
+      var host = location.hostname || '';
+      if (!/(^|\.)vamostaxi\.(site|eu)$/.test(host) || host.indexOf('dashboard.') === 0) return;
+      if (document.querySelector('script[src="' + BEACON_SRC + '"]')) return;
+      var s = document.createElement('script');
+      s.defer = true;
+      s.src = BEACON_SRC;
+      s.setAttribute('data-cf-beacon', JSON.stringify({ token: BEACON_TOKEN }));
+      document.head.appendChild(s);
+    } catch (e) { /* no analytics is never an error for the visitor */ }
+  }
 
   function lang() {
     var l = window.VamosLocale && window.VamosLocale.lang;
@@ -42,6 +62,7 @@
           return res.json().then(function (j) {
             if (!j || j.ok !== true) return failed();
             if (typeof j.policyVersion === 'string') policyVersion = j.policyVersion;
+            if (j.chosen === true && j.choice && j.choice.analytics === true) startAnalytics();
             return done({
               ok: true,
               chosen: j.chosen === true,
@@ -96,6 +117,7 @@
       }).then(function (res) {
         if (res.ok) {
           writeCache(method, payload);
+          if (payload.analytics) startAnalytics();
           var detail = {
             method: method, functional: payload.functional,
             analytics: payload.analytics, marketing: payload.marketing,

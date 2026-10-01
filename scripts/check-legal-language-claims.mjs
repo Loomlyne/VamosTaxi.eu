@@ -8,10 +8,10 @@
 //
 // Three checks, each naming the requirement it enforces:
 //
-//   1. Declaration (D-27)     — LEGAL_LANGUAGES.imprint is exactly ["en","de"],
+//   1. Declaration (D-27)     — LEGAL_LANGUAGES.imprint is exactly ["en","de","fr","ar"],
 //                                matching the served mock's data-vt-legal on
-//                                app/pages/imprint.dc.html. D-05 (26.0, owner 2026-09-29):
-//                                the imprint exists in English and German only.
+//                                app/pages/imprint.dc.html. Owner 2026-10-01 (replaces
+//                                D-05): the imprint reads in all four languages.
 //   2. Positive coverage (D-29)— every key the page source actually renders exists
 //                                and is non-empty in every language the page claims.
 //   3. No over-claim (I18N-08) — a claimed language whose derived keys (excluding
@@ -214,7 +214,7 @@ function main() {
 
   // ── Check 1: D-12 imprint declaration ────────────────────────────────────────
   const imprintLangs = LEGAL_LANGUAGES.imprint || [];
-  const IMPRINT_LANGS = ["en", "de"];
+  const IMPRINT_LANGS = ["en", "de", "fr", "ar"];
   const imprintOk =
     imprintLangs.length === IMPRINT_LANGS.length &&
     IMPRINT_LANGS.every((lang, i) => imprintLangs[i] === lang);
@@ -222,7 +222,7 @@ function main() {
   if (!imprintOk) {
     d12.push(
       `apps/web/lib/legal-languages.ts LEGAL_LANGUAGES.imprint is ${JSON.stringify(imprintLangs)}, ` +
-        `must be exactly ${JSON.stringify(IMPRINT_LANGS)} (D-05, 26.0, owner 2026-09-29).`,
+        `must be exactly ${JSON.stringify(IMPRINT_LANGS)} (owner 2026-10-01, replaces D-05).`,
     );
   }
   const imprintMock = readFileSync(join(repoRoot, "app/pages/imprint.dc.html"), "utf8");
