@@ -80,3 +80,12 @@
   --vt-accent-press:var(--vt-yellow-600);
   --vt-focus:var(--vt-yellow-400);
 }
+
+/* Muted text (field hints, captions) must reach 4.5:1. --vt-grey-500 alone is
+   4.45:1 on white and 4.11:1 on --vt-bg-page. A 60/40 mix toward
+   --vt-charcoal-600 reads 5.4:1 on white, 5.0:1 on the page grey and 4.6:1 on
+   --vt-bg-inset, and stays a step lighter than --vt-text-secondary (7.3:1).
+   Browsers without color-mix keep --vt-grey-500. */
+@supports (color:color-mix(in oklab,red,blue)){
+  :root{--vt-text-muted:color-mix(in oklab,var(--vt-grey-500) 60%,var(--vt-charcoal-600))}
+}
