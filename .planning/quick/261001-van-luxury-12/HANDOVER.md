@@ -4,7 +4,8 @@ Job session, 2026-10-02 (+04). Branch `feat/van-luxury-12`, folder `.claude/work
 Plan signed by the owner in this session 2026-10-01 23:59 +04 (`PLAN.md`). Owner decision: "Raise to 12" (2026-10-01 16:03).
 
 - **Round 2:** the controller's fresh review (2026-10-02) asked for items 1, 4 and 7. All three are done below.
-- **Tested tree:** `a56597de`. It includes the merge of `origin/main` `dace2b1f` (merge commit `c606adb9`).
+- **Tested tree:** `1dfd6448`, the merge of `origin/main` `d575917e` (`07e43fed` Arabic/design + G23). The merge was clean. The gates below ran on it.
+- **Browser runs:** on `a56597de`, before that merge. The merge brings only Arabic spelling fixes in other dictionary entries, colour tokens and CSP headers; none touches the travellers code.
 - **Hand-over commit:** the commit that adds this file. It contains only `.planning` docs.
 - **Folder:** clean.
 - **Local database stack:** stopped (`vamos-taxi-vl12`, ports 644xx).
@@ -33,7 +34,7 @@ and `distance_rates.max_pax`). It is no longer a hard-coded 8. The number 16 app
 - A `trip.pax` that differs from the lock is refused (`lib/checkout/intent.ts:429`).
 - `POST /api/quote` still refuses more than 16.
 
-## Checks on `a56597de` (one run, 2026-10-02 +04)
+## Checks on `1dfd6448` (one run, 2026-10-02 +04; the same 11 also passed on `a56597de`)
 
 | Gate | Result |
 |---|---|
@@ -46,7 +47,7 @@ and `distance_rates.max_pax`). It is no longer a hard-coded 8. The number 16 app
 | check:public-env | pass |
 | check:db-fences | pass |
 | db:seed:check | pass |
-| test:unit | pass: web 3573 passed / 5 skipped, emails 165, db 14 |
+| test:unit | pass: web 3589 passed / 5 skipped, emails 165, db 14 |
 | build | pass |
 
 ## Chromium against the local Worker build (`a56597de` code; evidence in `evidence/`, pictures in `screens/`)
