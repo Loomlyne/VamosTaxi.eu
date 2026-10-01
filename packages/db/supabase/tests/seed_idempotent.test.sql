@@ -69,7 +69,7 @@ select is((select cancellation_tiers from public.settings_versions where slug = 
   '[{"from_hours_before":24,"refund_percent":100},{"from_hours_before":0,"refund_percent":75},{"no_show":true,"refund_percent":0}]'::jsonb,
   'cancellation_tiers is the 100/75/0 three-element array (D-35)');
 select is((select airport_waiting_minutes from public.settings_versions where slug = 'launch-baseline'), 60, 'airport_waiting_minutes = 60 (D-35)');
-select is((select city_waiting_minutes from public.settings_versions where slug = 'launch-baseline'), 15, 'city_waiting_minutes = 15 (D-35)');
+select is((select city_waiting_minutes from public.settings_versions where slug = 'launch-baseline'), 30, 'city_waiting_minutes = 30 (owner 2026-10-01; D-35 had 15)');
 select is((select min_advance_minutes from public.settings_versions where slug = 'launch-baseline'), 180, 'min_advance_minutes = 180 (D-35)');
 select is((select manage_link_validity_days from public.settings_versions where slug = 'launch-baseline'), 30, 'manage_link_validity_days = 30 (D-35)');
 select is((select round_trip_discount_percent from public.settings_versions where slug = 'launch-baseline'), 10::numeric, 'round_trip_discount_percent = 10 (D-35)');
@@ -112,11 +112,13 @@ select is((select count(*) from public.reviews where published)::int, 0, 'no see
 -- 26.0: re-pinned to the seed header (content_strings=2672) after the dictionary appends on main; re-read it from the header, never from en.json.
 -- 26.5: re-pinned to the generated seed after 26.5's 36 new strings: 2670 keys (main had 2634 before 26.5).
 -- booking polish: +1 key (checkout.noRoadRoute), pinned to the generated seed header: 2673 keys.
--- /confirmation redesign (2026-10-01): +8 keys (checkout.next*, manageHint, helpLine), seed header: 2692 keys, 96 no-param-reason.
-select is((select count(*) from public.content_strings)::int, 2692 + 26, 'content_strings row count = flattened en.json key count + 26 migration canton names');
+-- B7 (2026-10-01): +1 key (legal.terms-driver-details-by-email).
+-- /confirmation redesign (2026-10-01): +8 keys (checkout.next*, manageHint, helpLine).
+-- B7 refreshed on main 50a2a050: seed header after both: 2693 keys, 97 no-param-reason.
+select is((select count(*) from public.content_strings)::int, 2693 + 26, 'content_strings row count = flattened en.json key count + 26 migration canton names');
 select is((select count(*) from public.content_strings where pending_value)::int, 16, '16 pending-value keys (ADR-011, Law 04 data-tok)');
 select is((select count(*) from public.content_strings where non_translatable)::int, 8 + 26, '8 non-translatable seed keys (ADR-012) + 26 migration canton names');
-select is((select count(*) from public.content_strings where no_param_reason is not null)::int, 96, '96 no-param-reason keys (I18N-06; count re-read from the seed header in the /confirmation redesign)');
+select is((select count(*) from public.content_strings where no_param_reason is not null)::int, 97, '97 no-param-reason keys (I18N-06; count re-read from the seed header after B7 + /confirmation)');
 select ok(
   (select de is not null and fr is not null and ar is not null from public.content_strings where key = 'price.surcharge.night.rule'),
   'price.surcharge.night.rule (Plan 02-04) has a non-null de/fr/ar translation'

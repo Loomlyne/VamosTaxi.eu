@@ -54,6 +54,13 @@ describe("security headers (D-32…D-38)", () => {
     expect(csp).not.toMatch(/vamostaxi\.eu/);
   });
 
+  it("CSP allows Cloudflare Web Analytics: beacon script and its endpoint only", () => {
+    const csp = headerMap().get("Content-Security-Policy") ?? "";
+    expect(csp).toMatch(/script-src [^;]*static\.cloudflareinsights\.com/);
+    expect(csp).toMatch(/connect-src [^;]*cloudflareinsights\.com/);
+    expect(csp).not.toMatch(/frame-src [^;]*cloudflareinsights/);
+  });
+
   it("CSP allows no Stripe or Link host: card entry is Stripe's hosted page only (D-48)", () => {
     const csp = headerMap().get("Content-Security-Policy") ?? "";
     expect(csp).not.toMatch(/stripe\.com/);

@@ -15,7 +15,7 @@
 //
 // D-35 (ADR-014 §5, 2026-08-22): the one seeded `settings_versions` row carries the confirmed
 // policy numbers — free_cancel_hours=24, the 100/75/0 cancellation tiers, waiting minutes
-// 60/15, min_advance_minutes=180, manage_link_validity_days=30, round_trip_discount_percent=10,
+// 60/30 (city 15 → 30, owner 2026-10-01: the pages say 30), min_advance_minutes=180, manage_link_validity_days=30, round_trip_discount_percent=10,
 // night window 20:00–06:00 Europe/Zurich, quote_lock/checkout_window_minutes=30.
 //
 // D-36 (ADR-014 §6): exactly three vehicle classes ship — Economy 3/3, Business 3/3, Van 8/8.
@@ -327,7 +327,7 @@ function emitSettingsVersions() {
     qNullOnly(null), // modification_deadline_hours — unconfirmed, ADR-002
     qint(180), // min_advance_minutes
     qint(60), // airport_waiting_minutes
-    qint(15), // city_waiting_minutes
+    qint(30), // city_waiting_minutes — owner 2026-10-01 (was 15)
     qint(30), // manage_link_validity_days
     qint(10), // round_trip_discount_percent
     q(NIGHT_WINDOW.start), // night_window_start — shared with night surcharge predicate (D-39)
