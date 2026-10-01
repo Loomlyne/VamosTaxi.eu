@@ -22,6 +22,7 @@ const PORT = process.env["VAMOS_LOCAL_DB_PORT"];
 
 const createCheckoutSession = vi.fn();
 const createRefund = vi.fn();
+const expireCheckoutSession = vi.fn(async () => ({ status: "expired" }));
 const sendClassChangePay = vi.fn();
 const sendConfirmation = vi.fn();
 const sendChauffeurUnassign = vi.fn();
@@ -33,7 +34,7 @@ vi.mock("../checkout/stripe", async (importOriginal) => {
     stripeFromEnv: () => ({}),
     createCheckoutSession: (...a: unknown[]) => createCheckoutSession(...a),
     retrieveCheckoutSession: vi.fn(async () => null),
-    expireCheckoutSession: vi.fn(),
+    expireCheckoutSession: (...a: unknown[]) => expireCheckoutSession(...a),
     resolvePaymentIntentId: async (_s: unknown, id: string) => id,
     retrieveRefund: async (_s: unknown, id: string) => ({ id, status: "succeeded" }),
     findRefundByIntent: async () => null,
@@ -93,7 +94,7 @@ describe.skipIf(!PORT)("class change on a paid trip through the real Worker clie
       const { snapshotLinesFromCharge } = await import("../checkout/lock-to-rpc");
       const { loadSettingsRows } = await import("./draft-preview");
       const { quoteInputFromFacts } = await import("./booking-change-price");
-      const { previewBookingChange, confirmBookingChange, afterExtraSettled } = await import("./booking-change");
+      const { previewBookingChange, confirmBookingChange, afterExtraSettled, withdrawBookingChange } = await import("./booking-change");
       const { refundBooking } = await import("./refund");
       const { asSystem } = await import("../db/identity");
 
@@ -201,6 +202,24 @@ describe.skipIf(!PORT)("class change on a paid trip through the real Worker clie
         select vc.slug, l.assigned_chauffeur_id::text as driver from public.booking_legs l
           join public.vehicle_classes vc on vc.id = l.vehicle_class_id where l.booking_id = ${dear.id}`)[0]!;
       expect(after).toEqual({ slug: BIZ, driver: null });
+
+      // --- withdraw (owner sign-off 2026-10-01): a dearer change that waits is ended, nothing charged --
+      const wd = await seedBooking("wd", ECO, false);
+      const pw = await previewBookingChange(env, claims, wd.reference);
+      if (!pw.ok) throw new Error(`preview refused: ${JSON.stringify(pw)}`);
+      const wbiz = pw.classes.find((c) => c.slug === BIZ)!;
+      createCheckoutSession.mockResolvedValueOnce({ id: `cs_p1e_wd_${tag}`, url: `https://checkout.stripe.test/c/pay/cs_p1e_wd_${tag}` });
+      expect(await confirmBookingChange(env, claims, wd.reference, {
+        klass: BIZ, expectTotalRappen: wbiz.newTotalRappen, expectPaidRappen: pw.paidRappen,
+      })).toMatchObject({ ok: true, outcome: "extra_required" });
+      expect(await withdrawBookingChange(env, claims, wd.reference)).toEqual({ ok: true, bookingId: wd.id, reference: wd.reference });
+      expect(expireCheckoutSession.mock.calls.at(-1)![1]).toBe(`cs_p1e_wd_${tag}`);
+      expect((await su<{ st: string; slug: string }[]>`
+        select r.status as st, vc.slug from public.booking_edit_requests r
+          join public.booking_legs l on l.booking_id = r.booking_id
+          join public.vehicle_classes vc on vc.id = l.vehicle_class_id
+         where r.booking_id = ${wd.id}`)[0]).toEqual({ st: "withdrawn", slug: ECO });
+      expect(await withdrawBookingChange(env, claims, wd.reference)).toEqual({ ok: false, code: "nothing-waiting" });
 
       // --- cheaper: Business -> Economy, then the admin's Refund ------------------------------------
       const cheap = await seedBooking("cheap", BIZ, false);
