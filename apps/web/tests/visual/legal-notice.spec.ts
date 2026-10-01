@@ -35,7 +35,9 @@ test.describe("LanguageCoverageNotice @component", () => {
       cwd: WEB_ROOT,
       stdio: "ignore",
       detached: true,
-      env: nextDevEnv({}, { gallery: true }),
+      // Own build folder: with --workers=2 on the Linux runner another spec's `next dev` wrote the shared .next
+      // at the same time ("__webpack_modules__[moduleId] is not a function", MODULE_NOT_FOUND, 500 on the gallery).
+      env: nextDevEnv({ TEST_DIST_DIR: `.next-legal-notice-${port}` }, { gallery: true }),
     });
     await waitForNextServer(baseURL);
   });

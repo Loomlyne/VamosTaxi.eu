@@ -132,6 +132,8 @@ async function noSidewaysScroll(page: Page) {
 const SCREENS: Screen[] = ["confirming", "received", "booked"];
 
 test("S3 A, S3 B and S4 in en at 1440, 1024, 768 and 390 @checkout", async ({ page }) => {
+  // Twelve page visits; on a cold Linux runner the first attempt ran past the 90 s default (the warm retry passed).
+  test.setTimeout(180_000);
   await page.clock.install();
   for (const width of [1440, 1024, 768, 390] as const) {
     await page.setViewportSize({ width, height: 900 });
