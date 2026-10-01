@@ -42,9 +42,10 @@ import {
   defaultChangeDeps,
   expireSupersededPage,
   loadChangeBooks,
-  loadChangeContext,
+  loadChangeRules,
   previewBookingChange,
   priceOnBookedRoute,
+  savedChargeOf,
   type ChangeBooks,
   type ChangeConfirmed,
   type ChangeContext,
@@ -52,7 +53,7 @@ import {
   type ChangePreview,
   type DriverClash,
   type KeptDriverMail,
-  type LoadedChange,
+  type LoadedRules,
 } from "./booking-change";
 import {
   mapChangeSqlError,
@@ -62,7 +63,7 @@ import {
   type TripChangeInput,
   type TripTarget,
 } from "./booking-change-map";
-import { classNets, priceClasses, type ClassPrice } from "./booking-change-price";
+import { classNets, priceClasses, type ClassPrice, type SavedCharge } from "./booking-change-price";
 import { DASHBOARD_ORIGIN, openDifferencePayment } from "./edit-request";
 import type { SavedTrip, TripFactsInput, TripFactsOk } from "./trip-change-facts";
 
@@ -121,8 +122,7 @@ function className(book: RateBook, slug: string): string {
  * D1, D5: a date, a time or a party inside the class moves no money. The class as booked keeps the
  * price paid (when the party fits it); the other classes keep what P1's price step said.
  */
-function withNoNewPrice(rows: ClassPrice[], loaded: LoadedChange, books: ChangeBooks, target: TripTarget): ClassPrice[] {
-  const { saved } = loaded;
+function withNoNewPrice(rows: ClassPrice[], bookedTotalRappen: number, books: ChangeBooks, target: TripTarget): ClassPrice[] {
   return rows.map((row): ClassPrice => {
     if (!row.current) return row;
     let fits: boolean;
@@ -133,7 +133,7 @@ function withNoNewPrice(rows: ClassPrice[], loaded: LoadedChange, books: ChangeB
       fits = !!cls && target.pax <= cls.passenger_capacity && target.bags <= cls.luggage_capacity;
     }
     return fits
-      ? { ok: true, slug: row.slug, name: row.name, current: true, newTotalRappen: saved.totalRappen, differenceRappen: 0, lines: [] }
+      ? { ok: true, slug: row.slug, name: row.name, current: true, newTotalRappen: bookedTotalRappen, differenceRappen: 0, lines: [] }
       : { ok: false, slug: row.slug, name: row.name, current: true, code: "class-too-small" };
   });
 }
@@ -143,6 +143,15 @@ function unpriced(books: ChangeBooks, currentSlug: string, code: Extract<ClassPr
   return sortedClasses(books.today).map((cls) => ({
     ok: false, slug: cls.slug, name: classDisplayName(cls, cls.slug), current: cls.slug === currentSlug, code,
   }));
+}
+
+/**
+ * What the booking was sold at: its price record as the charge it was (null when that record cannot
+ * be priced again — a change with no new price still works on it), the class and total as booked.
+ */
+function booked(ctx: ChangeContext): { saved: SavedCharge | null; classSlug: string; totalRappen: number } {
+  const saved = savedChargeOf(ctx);
+  return { saved, classSlug: saved ? saved.classSlug : ctx.legClassSlug, totalRappen: saved ? saved.totalRappen : n(ctx.snapshot?.totalRappen) };
 }
 
 /** D7: the window the trip as edited takes its driver for (the overlap guard's own rule). */
@@ -167,6 +176,10 @@ async function clashFor(
   }
 }
 
+function withSaved(rules: LoadedRules, saved: SavedCharge) {
+  return { ...rules, saved };
+}
+
 /** POST …/change/preview with trip fields: what the trip as edited would cost. Read-only. */
 export async function previewTripChange(
   env: CloudflareEnv,
@@ -175,21 +188,24 @@ export async function previewTripChange(
   trip: TripChangeInput,
   deps: ChangeDeps = defaultChangeDeps,
 ): Promise<TripChangePreview | ChangeFail> {
-  const loaded = await loadChangeContext(env, claims, bookingKey, deps);
-  if (!loaded.ok) return loaded;
-  const { ctx, saved, computedAt } = loaded;
-  const target = tripTarget(ctx.leg, trip, loaded.nowMs);
+  const rules = await loadChangeRules(env, claims, bookingKey, deps);
+  if (!rules.ok) return rules;
+  const { ctx, computedAt } = rules;
+  const target = tripTarget(ctx.leg, trip, rules.nowMs);
   if (!target.ok) return target;
   if (!target.placesChanged && !target.timeChanged && !target.partyChanged) {
     return previewBookingChange(env, claims, bookingKey, deps);
   }
-  const loadedBooks = await loadChangeBooks(env, claims, loaded, deps);
+  const was = booked(ctx);
+  // New places need a new price: the record must be one P1's price step can read.
+  if (target.placesChanged && !was.saved) return { ok: false, code: "trip-data" };
+  const loadedBooks = await loadChangeBooks(env, claims, { saved: was.saved, computedAt }, deps);
   if (!loadedBooks.ok) return loadedBooks;
   const books = loadedBooks.books;
 
   let classes: ClassPrice[];
   let facts: TripFactsOk | null = null;
-  if (target.placesChanged) {
+  if (target.placesChanged && was.saved) {
     const step = deps.tripFacts ?? defaultChangeDeps.tripFacts!;
     const got = await step(env, factsInput(ctx, trip, target));
     if (!got.ok) return got;
@@ -198,15 +214,17 @@ export async function previewTripChange(
       today: todayPriced(books),
       facts: got.facts,
       metres: [got.facts.distanceM],
-      saved,
+      saved: was.saved,
       paidRappen: ctx.paidRappen,
-      currentClassSlug: saved.classSlug,
+      currentClassSlug: was.saved.classSlug,
       computedAt,
     });
   } else {
-    const priced = await priceOnBookedRoute(env, loaded, books, deps, target);
-    const rows = priced.ok ? priced.classes : unpriced(books, saved.classSlug, priced.code === "trip-data" ? "trip-data" : "class-not-sold");
-    classes = withNoNewPrice(rows, loaded, books, target);
+    const priced = was.saved ? await priceOnBookedRoute(env, withSaved(rules, was.saved), books, deps, target) : null;
+    const rows = priced && priced.ok
+      ? priced.classes
+      : unpriced(books, was.classSlug, !priced || priced.code === "trip-data" ? "trip-data" : "class-not-sold");
+    classes = withNoNewPrice(rows, was.totalRappen, books, target);
   }
 
   const minutes = facts ? facts.leg.estimated_duration_minutes : ctx.leg.estimatedMinutes;
@@ -215,9 +233,9 @@ export async function previewTripChange(
     ok: true,
     bookingId: ctx.bookingId,
     reference: ctx.reference,
-    currentClass: saved.classSlug,
+    currentClass: was.classSlug,
     paidRappen: ctx.paidRappen,
-    currentTotalRappen: saved.totalRappen,
+    currentTotalRappen: was.totalRappen,
     rateVersionId: books.today.rate_version!.id,
     classes: classes.map(classOut),
     ...(facts ? { lock: facts.lock, pickupIsAirport: facts.pickupIsAirport } : {}),
@@ -258,24 +276,29 @@ export async function confirmTripChange(
   // Plan: the change machine refuses a live key until the security session's pre-launch proof.
   if ((env.STRIPE_SECRET_KEY ?? "").startsWith("sk_live_")) return { ok: false, code: "stripe-test-only" };
 
-  const loaded = await loadChangeContext(env, claims, bookingKey, deps);
-  if (!loaded.ok) return loaded;
-  const { ctx, saved, nowMs, computedAt } = loaded;
+  const rules = await loadChangeRules(env, claims, bookingKey, deps);
+  if (!rules.ok) return rules;
+  const { ctx, nowMs, computedAt } = rules;
   const target = tripTarget(ctx.leg, trip, nowMs);
   if (!target.ok) return target;
-  const klass = body.klass && body.klass !== saved.classSlug ? body.klass : null;
+  const was = booked(ctx);
+  const klass = body.klass && body.klass !== was.classSlug ? body.klass : null;
   if (!target.placesChanged && !target.timeChanged && !target.partyChanged) {
     if (klass) return confirmBookingChange(env, claims, bookingKey, p1, dashboardOrigin, deps);
     return { ok: false, code: "no-change" };
   }
-  const loadedBooks = await loadChangeBooks(env, claims, loaded, deps);
+  // A new price (new places, a class) needs a record P1's price step can read; a date, time or
+  // party inside the class does not (D1, D5).
+  const saved = was.saved;
+  if ((target.placesChanged || klass) && !saved) return { ok: false, code: "trip-data" };
+  const loadedBooks = await loadChangeBooks(env, claims, { saved, computedAt }, deps);
   if (!loadedBooks.ok) return loadedBooks;
   const books = loadedBooks.books;
 
   const write: Record<string, string | number | null> = {};
   let facts: TripFactsOk | null = null;
   let classes: ClassPrice[] | null = null;
-  if (target.placesChanged) {
+  if (target.placesChanged && saved) {
     if (!trip.lock) return { ok: false, code: "lock-invalid" };
     const verify = deps.verifyTripFacts ?? defaultChangeDeps.verifyTripFacts!;
     const got = await verify(env, trip.lock, factsInput(ctx, trip, target), new Date(nowMs).toISOString());
@@ -293,8 +316,8 @@ export async function confirmTripChange(
       currentClassSlug: saved.classSlug,
       computedAt,
     });
-  } else if (klass) {
-    const priced = await priceOnBookedRoute(env, loaded, books, deps, target);
+  } else if (klass && saved) {
+    const priced = await priceOnBookedRoute(env, withSaved(rules, saved), books, deps, target);
     if (!priced.ok) return priced;
     classes = priced.classes;
   }
@@ -302,7 +325,7 @@ export async function confirmTripChange(
   if (target.pax !== ctx.leg.pax) write.pax = target.pax;
   if (target.bags !== ctx.leg.bags) write.bags = target.bags;
 
-  const targetSlug = klass ?? saved.classSlug;
+  const targetSlug = klass ?? was.classSlug;
   let price: { rateVersionId: number; total: number; lines: unknown[]; name: string } | null = null;
   if (classes) {
     const row = classes.find((c) => c.slug === targetSlug);
@@ -311,11 +334,11 @@ export async function confirmTripChange(
     // The owner confirms what he saw; anything that moved since is shown again, never charged.
     if (row.newTotalRappen !== body.expectTotalRappen) return { ok: false, code: "price-changed" };
     price = { rateVersionId: books.today.rate_version!.id, total: row.newTotalRappen, lines: row.lines, name: row.name };
-  } else if (body.expectTotalRappen !== saved.totalRappen) {
+  } else if (body.expectTotalRappen !== was.totalRappen) {
     return { ok: false, code: "price-changed" };
   }
   if (ctx.paidRappen !== body.expectPaidRappen) return { ok: false, code: "paid-changed" };
-  const shown = facts ? classNets(todayPriced(books), facts.facts, facts.facts.distanceM, saved, computedAt) : null;
+  const shown = facts && saved ? classNets(todayPriced(books), facts.facts, facts.facts.distanceM, saved, computedAt) : null;
 
   type Json = Parameters<Parameters<typeof asSystem>[1]>[0]["json"];
   let row: TripChangeRow;

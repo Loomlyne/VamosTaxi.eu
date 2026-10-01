@@ -396,13 +396,16 @@ type Priced = { ok: true; ctx: ChangeContext; saved: SavedCharge; price: Extract
 /** The booking a change starts from: rules checked, its price record read as the charge it was. */
 export type LoadedChange = { ok: true; ctx: ChangeContext; saved: SavedCharge; nowMs: number; computedAt: string };
 
-/** The plan rules, then the booking's own price record (P1; P6 starts from the same). */
-export async function loadChangeContext(
+/** The booking with the plan rules checked (P6: a change with no new price needs no more). */
+export type LoadedRules = { ok: true; ctx: ChangeContext; nowMs: number; computedAt: string };
+
+/** The plan rules (paid, editable, before pickup, no refund in flight, no customer request waiting). */
+export async function loadChangeRules(
   env: CloudflareEnv,
   claims: VamosClaims,
   bookingKey: string,
   deps: ChangeDeps,
-): Promise<LoadedChange | ChangeFail> {
+): Promise<LoadedRules | ChangeFail> {
   const key = bookingKey.trim();
   if (!key) return { ok: false, code: "not-found" };
   let ctx: ChangeContext | null;
@@ -427,7 +430,14 @@ export async function loadChangeContext(
     nowMs,
   );
   if (refusal) return { ok: false, code: refusal };
+  return { ok: true, ctx, nowMs, computedAt: new Date(nowMs).toISOString() };
+}
 
+/**
+ * The booking's price record as the charge it was, or null when it cannot be priced again: not the
+ * one-charge shape checkout writes, or not of the class the trip has (an old in-place class edit).
+ */
+export function savedChargeOf(ctx: ChangeContext): SavedCharge | null {
   const saved = ctx.snapshot
     ? savedChargeFromSnapshot({
         total_rappen: ctx.snapshot.totalRappen,
@@ -437,9 +447,21 @@ export async function loadChangeContext(
         shown_alternatives: ctx.snapshot.shownAlternatives,
       })
     : null;
-  // The price record must be of the class the trip has (an old in-place class edit breaks that).
-  if (!saved || saved.classSlug !== ctx.legClassSlug) return { ok: false, code: "trip-data" };
-  return { ok: true, ctx, saved, nowMs, computedAt: new Date(nowMs).toISOString() };
+  return saved && saved.classSlug === ctx.legClassSlug ? saved : null;
+}
+
+/** The plan rules, then the booking's own price record (P1; a P6 change with a new price starts from the same). */
+export async function loadChangeContext(
+  env: CloudflareEnv,
+  claims: VamosClaims,
+  bookingKey: string,
+  deps: ChangeDeps,
+): Promise<LoadedChange | ChangeFail> {
+  const rules = await loadChangeRules(env, claims, bookingKey, deps);
+  if (!rules.ok) return rules;
+  const saved = savedChargeOf(rules.ctx);
+  if (!saved) return { ok: false, code: "trip-data" };
+  return { ...rules, saved };
 }
 
 /** Today's live book (D3), the booking's own book, today's VAT rate and the settings. */
@@ -448,15 +470,16 @@ export type ChangeBooks = { today: RateBook; bookingBook: RateBook; vatRateBps: 
 export async function loadChangeBooks(
   env: CloudflareEnv,
   claims: VamosClaims,
-  loaded: LoadedChange,
+  loaded: { saved: SavedCharge | null; computedAt: string },
   deps: ChangeDeps,
 ): Promise<{ ok: true; books: ChangeBooks } | ChangeFail> {
   const { saved, computedAt } = loaded;
   try {
     const today = mapRateBook(await deps.loadLiveBook(env));
     if (!today.rate_version) return { ok: false, code: "pricing-not-live" };
+    // P6: a change with no new price on a record that cannot be priced again needs today's book only.
     const bookingBook =
-      saved.rateVersionId === today.rate_version.id
+      !saved || saved.rateVersionId === today.rate_version.id
         ? today
         : mapRateBook(await deps.loadBookByVersion(env, claims, saved.rateVersionId));
     const vatRateBps = await deps.loadVatRateBps(env);

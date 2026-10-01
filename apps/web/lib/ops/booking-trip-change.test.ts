@@ -515,3 +515,31 @@ describe("afterExtraSettled: the difference of a trip change was paid", () => {
     expect(sendChauffeurUnassign).toHaveBeenCalledTimes(1);
   });
 });
+
+// ---------------------------------------------------------------------------------------------
+describe("a price record that cannot be priced again (older shape, or an old in-place class edit)", () => {
+  const oldShape = (ctx: ChangeContext): ChangeContext => ({
+    ...ctx,
+    snapshot: { ...ctx.snapshot!, lines: [{ kind: "fare", code: "legacy", amount_rappen: Number(ctx.snapshot!.totalRappen) }] },
+  });
+
+  it("a date or time change still works (no price needed, D1): the class as booked keeps the price paid", async () => {
+    const ctx = oldShape(context());
+    const res = await previewTripChange(env, claims, "VT-26-0801", { ...NO_CHANGE, scheduledLocal: "2026-10-08T10:00" }, deps(ctx));
+    expect(res).toMatchObject({ ok: true, currentClass: ECO, currentTotalRappen: ctx.paidRappen });
+    if (!res.ok) return;
+    expect(res.classes.find((c) => c.current)).toMatchObject({ ok: true, newTotalRappen: ctx.paidRappen, differenceRappen: 0 });
+    expect(res.classes.filter((c) => !c.current).every((c) => c.code === "trip-data")).toBe(true);
+
+    systemReturns((text) => (text.includes("booking_staff_trip_change") ? tripRow("applied", 0, ctx.paidRappen, ctx.paidRappen) : []));
+    const done = await confirmTripChange(env, claims, "VT-26-0801", body({ scheduledLocal: "2026-10-08T10:00" }, { total: ctx.paidRappen, paid: ctx.paidRappen }), undefined, deps(ctx));
+    expect(done).toMatchObject({ ok: true, outcome: "applied" });
+  });
+
+  it("a new place or a class needs a price: refused as trip-data (cancel and make a new trip)", async () => {
+    const ctx = oldShape(context());
+    expect(await previewTripChange(env, claims, "VT-26-0801", { ...NO_CHANGE, pickup: ZUG }, deps(ctx))).toEqual({ ok: false, code: "trip-data" });
+    expect(await confirmTripChange(env, claims, "VT-26-0801", body({ pax: 6 }, { klass: BIZ, total: 1, paid: ctx.paidRappen }), undefined, deps(ctx)))
+      .toEqual({ ok: false, code: "trip-data" });
+  });
+});
