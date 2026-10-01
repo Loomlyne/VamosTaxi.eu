@@ -192,3 +192,9 @@ export const readCheckoutAccountUserState = async (
   (await asSystem(env, (sql) =>
     sql<CheckoutAccountUserState[]>`select * from public.checkout_account_user_state(${email})`,
   ))[0] ?? { user_exists: false, confirmed: false, checkout_origin: false };
+
+/** 27.1: true when this signed-in account must still finish (name, optional phone, the tick). Definer, boolean only. */
+export const readAccountFinishRequired = async (env: CloudflareEnv, userId: string): Promise<boolean> =>
+  (await asSystem(env, (sql) =>
+    sql<{ required: boolean }[]>`select public.account_finish_required(${userId}::uuid) as required`,
+  ))[0]?.required === true;
