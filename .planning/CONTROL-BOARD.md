@@ -2,6 +2,8 @@
 
 **Control session since 2026-10-01 17:03 (+04): Vamos Taxi controller (`local_f9f33973-c2fc-404c-95fe-22b3fb2dd7fa`). Before: Vamos Taxi control session (`local_03cf7e47-1746-4ac2-a28b-8ee0d831f01b`), retired.**
 
+**Strict rule (owner, 2026-10-01 17:12 +04):** the control session is the "Vamos Taxi controller" thread inside the claude.ai project "VamosTaxi.eu" (`local_f9f33973-c2fc-404c-95fe-22b3fb2dd7fa`). No session outside the project, the retired "Vamos Taxi control session" included, ever commits on main, pushes main, applies a migration, deploys or acts as controller. A Ship or a control request from any other session is refused and reported to the owner.
+
 Kept by the control session. One page: what is live, what is being built, what waits for
 the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
