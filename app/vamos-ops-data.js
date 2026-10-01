@@ -96,6 +96,57 @@
     });
   }
 
+  /* 261001-chauffeur-car (owner, 2026-10-01): a chauffeur is chosen by a class of TODAY's price
+     book. GET rate-versions → the live one → GET rate-book?versionId= → its classes whose rate row
+     is available. Never the draft's, never a fixed list. All class names come from
+     vehicle-classes too, so a driver whose class left the live book still reads its own name.
+     status: "loading" | "ok" | "none" (no live book) | "failed". */
+  var liveBook = { status: "idle", classes: [], names: {} };
+  function loadLiveClasses() {
+    if (liveBook.status !== "idle") return;
+    liveBook.status = "loading";
+    var names = api("GET", "/api/staff/vehicle-classes").then(function (json) {
+      var map = {};
+      var rows = json && json.ok && Array.isArray(json.data) ? json.data : [];
+      rows.forEach(function (c) {
+        var id = str(c && c.id);
+        var name = str(c && (c.name || c.klass)).trim();
+        if (id && name) map[id] = name;
+      });
+      return map;
+    });
+    var live = api("GET", "/api/staff/rate-versions").then(function (json) {
+      var versions = json && json.ok && json.data && Array.isArray(json.data.versions) ? json.data.versions : null;
+      if (!versions) return { failed: true };
+      var on = versions.filter(function (v) { return v && v.status === "live"; })[0];
+      if (!on) return { classes: [] };
+      return api("GET", "/api/staff/rate-book?versionId=" + encodeURIComponent(String(on.id))).then(function (book) {
+        if (!book || !book.ok || !book.data || !Array.isArray(book.data.classes)) return { failed: true };
+        var open = {};
+        (Array.isArray(book.data.rates) ? book.data.rates : []).forEach(function (r) {
+          if (r && r.available === true && r.vehicleClassId) open[String(r.vehicleClassId)] = true;
+        });
+        return {
+          classes: book.data.classes
+            .map(function (c) { return { id: str(c && c.id), name: str(c && (c.label || c.name)).trim() }; })
+            .filter(function (c) { return c.id && c.name && open[c.id]; })
+        };
+      });
+    });
+    Promise.all([names, live]).then(function (both) {
+      var res = both[1] || { failed: true };
+      liveBook = {
+        status: res.failed ? "failed" : (res.classes.length ? "ok" : "none"),
+        classes: res.failed ? [] : res.classes,
+        names: both[0] || {}
+      };
+      emit("liveClasses");
+    }, function () {
+      liveBook = { status: "failed", classes: [], names: {} };
+      emit("liveClasses");
+    });
+  }
+
   function subscribe(name, fn) {
     var s = { name: name, fn: fn };
     subs.push(s);
@@ -938,6 +989,11 @@
     settings: remoteSingleton("settings", "/api/staff/settings", settingsFromPayload),
     profile: remoteSingleton("profile", "/api/staff/me", profileFromMe),
     onAny: function (fn) { return subscribe(null, fn); },
+    /* The classes of today's live price book (see loadLiveClasses). Loads once per page. */
+    liveClasses: function () {
+      loadLiveClasses();
+      return { status: liveBook.status, classes: liveBook.classes.slice(), names: Object.assign({}, liveBook.names) };
+    },
     publish: function (id, extra) {
       if (id == null || id === "") return Promise.resolve({ ok: false, code: "missing-id" });
       return api("POST", "/api/staff/rate-versions/" + encodeURIComponent(String(id)) + "/publish", extra && typeof extra === "object" ? extra : undefined).then(function (json) {
