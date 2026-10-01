@@ -160,19 +160,29 @@ export async function POST(request: Request): Promise<Response> {
   // Already signed in as someone else: the screen said so, so this switches the account.
   const { data: current } = await supabase.auth.getUser();
   const currentEmail = current?.user?.email?.toLowerCase();
-  if (currentEmail && currentEmail !== address) await supabase.auth.signOut({ scope: "local" });
+  // An e-mail change link is for the account's old or its new address: the signed-in holder keeps the session.
+  if (type !== "email_change" && currentEmail && currentEmail !== address) await supabase.auth.signOut({ scope: "local" });
 
   const { data, error } = await supabase.auth.verifyOtp({ type: type as EmailOtpType, token_hash: tokenHash });
+  // Secure e-mail change, first of two clicks: Supabase answers "link accepted, now confirm the other
+  // address" with no user and no session. That is progress, not a failure; nothing is signed in yet.
+  if (type === "email_change" && !error && !data?.user && !data?.session) {
+    return answer(200, { ok: true, pending: true });
+  }
   if (error || !data?.user) {
     log("error", "auth-callback", ctx, { reason: error?.code ?? "verify-failed" });
     return expired();
   }
 
-  // The session that verifyOtp made must be for the address the screen showed.
+  // The session that verifyOtp made must be for the address the screen showed. For an e-mail change the
+  // address is the account's current e-mail or its pending new_email. When this press was the second click
+  // the change is already done and the old address no longer appears on the account: the seal (bound to this
+  // token_hash, made only by the hook) says the token was mailed to `address`, and Supabase just accepted it.
+  const changeDone = type === "email_change" && !data.user.new_email;
   const verified = [data.user.email, type === "email_change" ? data.user.new_email : null]
-    .filter((v): v is string => typeof v === "string")
+    .filter((v): v is string => typeof v === "string" && v.length > 0)
     .map((v) => v.toLowerCase());
-  if (!verified.includes(address)) {
+  if (!verified.includes(address) && !changeDone) {
     log("error", "auth-callback", ctx, { reason: "address-mismatch" });
     await supabase.auth.signOut({ scope: "local" });
     return expired();

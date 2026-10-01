@@ -25,6 +25,9 @@ const Body = z.object({
   email_data: z.object({
     token: z.string(),
     token_hash: z.string(),
+    // Secure e-mail change (double confirm): the second token pair. Names are reversed by Supabase.
+    token_new: z.string().optional(),
+    token_hash_new: z.string().optional(),
     redirect_to: z.string(),
     site_url: z.string(),
     email_action_type: z.enum([
@@ -72,15 +75,17 @@ async function mailedLink(
   env: CloudflareEnv,
   secret: string,
   parsed: { user: { email: string }; email_data: { token_hash: string; email_action_type: string; redirect_to: string; site_url: string } },
+  /** The token_hash and recipient this mail is for (an e-mail change sends two). */
+  to: { tokenHash: string; email: string } = { tokenHash: parsed.email_data.token_hash, email: parsed.user.email },
 ): Promise<string | null> {
   const data = parsed.email_data;
   if (!CONFIRM_TYPES.includes(data.email_action_type)) return verifyLink(env.SUPABASE_URL, data);
   const site = siteFromRedirect(data.redirect_to);
   return buildConfirmLink({
     origin: site.origin,
-    tokenHash: data.token_hash,
+    tokenHash: to.tokenHash,
     type: data.email_action_type === "email_otp" ? "email" : data.email_action_type,
-    email: parsed.user.email,
+    email: to.email,
     secret,
     next: site.next,
     nextb: site.nextb,
@@ -186,23 +191,37 @@ export async function POST(request: Request) {
   const finalKind =
     kind === "signup" && typeof origin === "string" && origin.startsWith("checkout") ? "account_signin" : kind;
 
-  const link = await mailedLink(env, secret, parsed);
-  if (!link) {
-    log("error", "email-hook", { ...ctx, locale }, { reason: "seal-failed" });
-    return empty(500);
-  }
   const name =
     typeof parsed.user.user_metadata?.full_name === "string"
       ? parsed.user.user_metadata.full_name
       : "";
-  const rendered = renderAuthEmail(finalKind, locale, {
-    code: parsed.email_data.token,
-    link,
-    name,
-  });
+
+  // One mail per recipient. A secure e-mail change has two: Supabase names the pairs backwards, so
+  // token_hash_new + token go to the CURRENT address and token_hash + token_new to the NEW one.
+  type Mail = { to: string; tokenHash: string; code: string; kind: AuthEmailType };
+  const d = parsed.email_data;
+  const mails: Mail[] = [];
+  if (d.email_action_type === "email_change") {
+    const newAddress = parsed.user.new_email;
+    if (d.token_hash_new && newAddress) {
+      mails.push({ to: parsed.user.email, tokenHash: d.token_hash_new, code: d.token, kind: "email_change_current" });
+      mails.push({ to: newAddress, tokenHash: d.token_hash, code: d.token_new ?? "", kind: "email_change" });
+    } else {
+      mails.push({ to: newAddress ?? parsed.user.email, tokenHash: d.token_hash, code: d.token, kind: "email_change" });
+    }
+  } else {
+    mails.push({ to: parsed.user.email, tokenHash: d.token_hash, code: d.token, kind: finalKind });
+  }
 
   try {
-    await sendBranded(env, parsed.user.email, rendered);
+    for (const mail of mails) {
+      const link = await mailedLink(env, secret, parsed, { tokenHash: mail.tokenHash, email: mail.to });
+      if (!link) {
+        log("error", "email-hook", { ...ctx, locale }, { reason: "seal-failed" });
+        return empty(500);
+      }
+      await sendBranded(env, mail.to, renderAuthEmail(mail.kind, locale, { code: mail.code, link, name }));
+    }
   } catch {
     return empty(502);
   }

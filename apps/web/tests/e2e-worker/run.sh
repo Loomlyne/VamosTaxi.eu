@@ -33,6 +33,7 @@ for _ in $(seq 40); do sleep 2; curl -s -o /dev/null http://localhost:$E2E_PORT/
 MAIL_ROOT="$WEB/.wrangler/tmp/email" OUT="$WEB/.wrangler/e2e-$LABEL.json" node "$TREE/apps/web/tests/e2e-worker/auth-worker.e2e.mjs" "$LABEL"
 MAIL_ROOT="$WEB/.wrangler/tmp/email" OUT="$WEB/.wrangler/e2e-$LABEL-other-device.json" node "$TREE/apps/web/tests/e2e-worker/other-device.e2e.mjs" "$LABEL"
 MAIL_ROOT="$WEB/.wrangler/tmp/email" OUT="$WEB/.wrangler/e2e-$LABEL-confirm-link.json" node "$TREE/apps/web/tests/e2e-worker/confirm-link.e2e.mjs" "$LABEL"
+MAIL_ROOT="$WEB/.wrangler/tmp/email" OUT="$WEB/.wrangler/e2e-$LABEL-email-change.json" node "$TREE/apps/web/tests/e2e-worker/email-change.e2e.mjs" "$LABEL"
 kill $P1 2>/dev/null; sleep 2
 # Phase 2: the 26.5 checkout scenarios run against a Worker that also holds the local stand-in secrets.
 node "$TREE/apps/web/tests/e2e-worker/mkcfg.mjs" "$WEB" "$WEB/.e2e-sb.env" "$HOOK" phase2
