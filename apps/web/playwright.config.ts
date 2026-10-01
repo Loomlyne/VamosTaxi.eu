@@ -22,7 +22,7 @@ const VIEWPORTS: Record<string, { width: number; height: number }> = {
 
 export default defineConfig({
   testDir: "./tests",
-  testMatch: "**/*.spec.ts",
+  testMatch: process.env.VAMOS_E2E === "1" ? E2E_SPECS : "**/*.spec.ts",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
@@ -86,7 +86,7 @@ export default defineConfig({
   //     pictures are compared on the owner's Mac. No Linux baselines exist.
   //   - local (neither set): every spec runs.
   ...(process.env.VAMOS_E2E === "1"
-    ? { testMatch: E2E_SPECS, ignoreSnapshots: process.platform !== "darwin" }
+    ? { ignoreSnapshots: process.platform !== "darwin" }
     : process.env.CI
       ? { testIgnore: E2E_SPECS }
       : {}),
