@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { renderAuthEmail } from "./auth";
 
-const TYPES = ["signup", "recovery", "otp", "email_change", "invite", "reauthentication", "account_ready", "account_signin"] as const;
+const TYPES = ["signup", "recovery", "otp", "email_change", "email_change_current", "invite", "reauthentication", "account_ready", "account_signin"] as const;
 const LOCALES = ["en", "de", "fr", "ar"] as const;
 
 describe("renderAuthEmail", () => {

@@ -2,7 +2,7 @@ import { escapeHtml } from "./escape";
 import { codeBlock, ctaButton, layoutHtml, layoutText } from "./layout";
 import { t, type EmailLocale } from "./messages";
 
-export type AuthEmailType = "signup" | "recovery" | "otp" | "email_change" | "invite" | "reauthentication" | "account_ready" | "account_signin";
+export type AuthEmailType = "signup" | "recovery" | "otp" | "email_change" | "email_change_current" | "invite" | "reauthentication" | "account_ready" | "account_signin";
 export type AuthEmailData = { code: string; link: string; name: string };
 
 const KEYS: Record<AuthEmailType, { subject: string; heading: string; body: string; cta: string }> = {
@@ -35,6 +35,12 @@ const KEYS: Record<AuthEmailType, { subject: string; heading: string; body: stri
     heading: "email-change-heading",
     body: "email-change-lead",
     cta: "email-change-cta",
+  },
+  email_change_current: {
+    subject: "email-change-current-subject",
+    heading: "email-change-current-heading",
+    body: "email-change-current-lead",
+    cta: "email-change-current-cta",
   },
   account_ready: {
     subject: "email-account-ready-subject",
