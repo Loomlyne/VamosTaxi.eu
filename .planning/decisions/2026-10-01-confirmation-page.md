@@ -10,6 +10,7 @@ Given by the owner through the question form in the project thread "Pick-up repo
 | 1 | The layout in `proposed-en-1440.png` and `proposed-en-390.png` is **signed** (answer "Signed", 11:24 UTC). |
 | 2 | Changing the time or flight number and cancelling live on Manage booking only. They leave the confirmation page (today they call sign-in-only routes and do nothing for a guest). |
 | 3 | The English wording below is **approved** (answer "Approve", 11:31 UTC). Used word for word. German, French and Arabic are drafted in the build and shown to the owner at UAT. |
+| 4 | The build plan `.planning/quick/261001-confirmation-redesign/PLAN.md` is **signed** (answer "Signed", 11:34 UTC). The build runs on the owner's Mac. |
 
 ## Approved English text
 
