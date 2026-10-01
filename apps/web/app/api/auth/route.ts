@@ -7,6 +7,8 @@ import { routing } from "@/i18n/routing";
 import { checkWriteRateLimit } from "@/lib/abuse/rate-limit";
 import { holdCheckoutFloor, sendCheckoutSignInLink } from "@/lib/auth/checkout-sign-in";
 import { CONSENT_REQUIRED, SIGNUP_UNAVAILABLE, recordSignupAgreement, signupConsentGiven } from "@/lib/auth/signup-agreement";
+import { finishAccount } from "@/lib/auth/account-finish";
+import { finishTarget, mustFinish } from "@/lib/auth/finish-target";
 import { log } from "@/lib/logger";
 import { verifyTurnstile } from "@/lib/turnstile";
 import {
@@ -305,6 +307,30 @@ export async function POST(request: Request): Promise<Response> {
     }
   }
 
+  if (action === "finish-account") {
+    // 27.1 (27 D-37): the finish step after a sign-in link made the account. Public host only.
+    if (dashboard) return json({ ok: false, reason: "invalid" }, 404);
+    const { result, reason } = await finishAccount(
+      {
+        getUser: async () => {
+          const { data, error } = await supabase.auth.getUser();
+          return error || !data.user ? null : { id: data.user.id, email: data.user.email ?? null };
+        },
+        finishRequired: (userId) => mustFinish(env, userId, ctx),
+        record: (email) => recordSignupAgreement(env, { email, locale, headers: request.headers }),
+        updateProfile: async (data) => {
+          const { error } = await supabase.auth.updateUser({ data });
+          return error ? (error.code ?? "auth-failed") : null;
+        },
+      },
+      fields,
+    );
+    if (reason) log("error", "auth", ctx, { reason, action: "finish-account" });
+    const status = result.ok ? 200 : result.reason === "no-user" ? 401 : result.reason === "signup-unavailable" ? 503 : 400;
+    // updateUser refreshes the session: its cookies must ride on this response.
+    return sessionJson(result, setCookies, status);
+  }
+
   if (action === "passkey-start") {
     const { data, error } = await supabase.auth.passkey.startAuthentication();
     if (error || !data) {
@@ -552,6 +578,13 @@ export async function POST(request: Request): Promise<Response> {
     }
     const notStaff = await refuseNonStaff();
     if (notStaff) return notStaff;
+    // 27.1: an account the sign-in link just made goes to the finish step, not to where it was going.
+    if (!dashboard) {
+      const { data: signedIn } = await supabase.auth.getUser();
+      if (signedIn.user && (await mustFinish(env, signedIn.user.id, ctx))) {
+        return sessionJson({ ok: true, finish: true }, setCookies);
+      }
+    }
     return sessionJson({ ok: true }, setCookies);
   }
 
@@ -645,14 +678,17 @@ export async function POST(request: Request): Promise<Response> {
             locale,
             firstName: parsed.data.firstName,
             lastName: parsed.data.lastName,
+            phone: parsed.data.phone,
             createUser: !dashboard,
           }
         : {
             mode: "signin",
             email: parsed.data.email,
             locale,
-            // 27 D-36: the sign-in link never creates an account; sign-up does, with the notice and the tick.
-            createUser: false,
+            // 27.1 (27 D-37, owner 2026-10-01): on the public site the sign-in link makes the account for a
+            // new address; after the link it must finish (name, optional phone, the tick). Replaces 27 D-36
+            // there. The staff dashboard never makes an account.
+            createUser: !dashboard,
           },
       origin,
       emailNext(returnToRaw, localizedHome(locale)),

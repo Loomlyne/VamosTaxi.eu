@@ -11,6 +11,7 @@ import { NextResponse } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { checkWriteRateLimit } from "@/lib/abuse/rate-limit";
 import { confirmPathFor } from "@/lib/auth/confirm-link";
+import { finishTarget, mustFinish } from "@/lib/auth/finish-target";
 import { decodeNextParam, validateAuthRedirectTarget } from "@/lib/auth/redirect-target";
 import { openAddress, sealSecretFrom } from "@/lib/auth/sealed-address";
 import { routing } from "@/i18n/routing";
@@ -200,5 +201,10 @@ export async function POST(request: Request): Promise<Response> {
     }
   }
 
-  return answer(200, { ok: true, target: validateAuthRedirectTarget(nextRaw, locale) });
+  const target = validateAuthRedirectTarget(nextRaw, locale);
+  // 27.1 (27 D-37): an account the sign-in link just made finishes first (name, optional phone, the tick).
+  if (!isDashboardHost(new URL(request.url).host) && data.user.id && (await mustFinish(env, data.user.id, ctx))) {
+    return answer(200, { ok: true, target: finishTarget(locale, target) });
+  }
+  return answer(200, { ok: true, target });
 }

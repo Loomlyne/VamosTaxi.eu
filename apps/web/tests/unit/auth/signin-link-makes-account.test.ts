@@ -1,5 +1,6 @@
-// 27 D-36: the sign-in link never creates an account, answers the same for every
-// address, and holds the same minimum time for every address (T-27-57).
+// 27.1 (27 D-37, owner 2026-10-01, replaces 27 D-36 on the public host): the sign-in link makes the
+// account for a new address (it then finishes after the link), answers the same for every address, and
+// holds the same minimum time for every address (T-27-57). The dashboard host never makes an account.
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -33,8 +34,8 @@ beforeEach(() => {
   floor.calls = 0;
 });
 
-describe("sign-in link on the public host (D-36)", () => {
-  it("never creates an account, with or without a returnTo", async () => {
+describe("sign-in link on the public host (27 D-37)", () => {
+  it("makes the account for a new address, with or without a returnTo", async () => {
     for (const extra of [{}, { returnTo: "/checkout?class=economy" }]) {
       const otp = vi.fn(async (..._a: unknown[]) => ({ error: null }));
       state.auth.signInWithOtp = otp as never;
@@ -42,7 +43,9 @@ describe("sign-in link on the public host (D-36)", () => {
       expect(res.status).toBe(200);
       expect(await res.json()).toEqual({ stage: "sent" });
       expect(otp).toHaveBeenCalledTimes(1);
-      expect(otp.mock.calls[0]?.[0]).toMatchObject({ options: { shouldCreateUser: false } });
+      expect(otp.mock.calls[0]?.[0]).toMatchObject({ options: { shouldCreateUser: true } });
+      // A sign-in link carries no name or phone: those come on the finish step, with the tick.
+      expect((otp.mock.calls[0]?.[0] as { options: { data: Record<string, string> } }).options.data).toEqual({ locale: "en" });
     }
   });
 

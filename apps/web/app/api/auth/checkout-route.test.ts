@@ -154,14 +154,14 @@ describe("POST /api/auth origin checkout", () => {
 describe("POST /api/auth magic from /sign-in", () => {
   const plain = { locale: "en", method: "magic", mode: "signin", email: "guest@example.com" };
 
-  it("never creates an account when returnTo is a checkout URL", async () => {
+  it("makes the account for a new address when returnTo is a checkout URL (27 D-37)", async () => {
     await run({ ...plain, returnTo: "/checkout?class=economy" });
-    expect((state.otp.mock.calls[0]?.[0] as { options: { shouldCreateUser: boolean } }).options.shouldCreateUser).toBe(false);
+    expect((state.otp.mock.calls[0]?.[0] as { options: { shouldCreateUser: boolean } }).options.shouldCreateUser).toBe(true);
   });
 
-  it("never creates an account without a checkout returnTo either (27 D-36)", async () => {
+  it("makes the account for a new address without a checkout returnTo too (27 D-37, replaces D-36)", async () => {
     await run(plain);
-    expect((state.otp.mock.calls[0]?.[0] as { options: { shouldCreateUser: boolean } }).options.shouldCreateUser).toBe(false);
+    expect((state.otp.mock.calls[0]?.[0] as { options: { shouldCreateUser: boolean } }).options.shouldCreateUser).toBe(true);
   });
 
   it("sign-up is never affected", async () => {

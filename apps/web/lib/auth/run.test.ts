@@ -157,6 +157,31 @@ describe("runOtp", () => {
   });
 });
 
+describe("optional phone on a sign-up (27.1)", () => {
+  it("password sign-up stores the phone in metadata only when given", async () => {
+    const signUp = vi.fn(async () => ({ error: null }));
+    const sb = client({ signUp });
+    await runSignUpPassword(
+      sb,
+      { email: "a@b.co", password: "password1", firstName: "A", lastName: "B", locale: "en", phone: "+41790000000" },
+      "https://example.test",
+      "/",
+    );
+    const first = signUp.mock.calls[0] as unknown as [{ options: { data: Record<string, string> } }];
+    expect(first[0].options.data).toEqual({ full_name: "A B", locale: "en", phone: "+41790000000" });
+  });
+
+  it("link sign-up stores the phone; a sign-in link never writes names or phone", async () => {
+    const signInWithOtp = vi.fn(async () => ({ error: null }));
+    const sb = client({ signInWithOtp });
+    await runOtp(sb, { mode: "signup", email: "a@b.co", locale: "ar", firstName: "A", lastName: "B", phone: "+971500000000" }, "https://example.test", "/");
+    await runOtp(sb, { mode: "signin", email: "a@b.co", locale: "ar", phone: "+971500000000" }, "https://example.test", "/");
+    const calls = signInWithOtp.mock.calls as unknown as [{ options: { data: Record<string, string> } }][];
+    expect(calls[0]![0].options.data).toEqual({ locale: "ar", full_name: "A B", phone: "+971500000000" });
+    expect(calls[1]![0].options.data).toEqual({ locale: "ar" });
+  });
+});
+
 describe("runPasswordReset", () => {
   it("returns sent on error", async () => {
     const sb = client({
