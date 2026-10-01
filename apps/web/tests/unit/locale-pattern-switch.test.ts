@@ -86,6 +86,17 @@ describe("switching language keeps the right Arabic count form (real vamos-local
     ["Keine Klasse hat Platz für 8 Passagiere", "ar", "لا توجد فئة تتسع لـ 8 ركاب"],
     ["Aucune classe n’accueille 14 passagers", "ar", "لا توجد فئة تتسع لـ 14 راكبًا"],
     ["لا توجد فئة تتسع لـ 14 راكبًا", "en", "No class seats 14 passengers"],
+    // 26.2 P6 (D19): the Resend answer names the address; switching language keeps it, and the older
+    // "Sent to …" template does not swallow it (nor the other way round)
+    ["Sent. Check anna@example.test in a minute or two.", "de", "Gesendet. Prüfen Sie anna@example.test in ein bis zwei Minuten."],
+    ["Sent. Check anna@example.test in a minute or two.", "fr", "Envoyé. Vérifiez anna@example.test d’ici une à deux minutes."],
+    ["Sent. Check anna@example.test in a minute or two.", "ar", "تم الإرسال. تحقّق من anna@example.test خلال دقيقة أو دقيقتين."],
+    ["Gesendet. Prüfen Sie anna@example.test in ein bis zwei Minuten.", "fr", "Envoyé. Vérifiez anna@example.test d’ici une à deux minutes."],
+    ["تم الإرسال. تحقّق من anna@example.test خلال دقيقة أو دقيقتين.", "en", "Sent. Check anna@example.test in a minute or two."],
+    ["Gesendet an anna@example.test", "fr", "Envoyé à anna@example.test"],
+    // The guest-cancel refusal (a fixed line)
+    ["This page is for another booking. Open the link from its e-mail again.", "de", "Diese Seite gehört zu einer anderen Buchung. Öffnen Sie den Link aus ihrer E-Mail erneut."],
+    ["Diese Seite gehört zu einer anderen Buchung. Öffnen Sie den Link aus ihrer E-Mail erneut.", "ar", "هذه الصفحة تخص حجزًا آخر. افتح الرابط من بريده الإلكتروني مرة أخرى."],
   ])("%s → %s reads %s", (key, lang, want) => {
     expect(t(key, lang)).toBe(want);
   });

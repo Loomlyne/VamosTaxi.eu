@@ -31,6 +31,8 @@ export type ManageMoney = {
   presentment: { amountMinor: number; currency: string } | null;
   className: string;
   lines: ManageMoneyLine[];
+  /** 26.2 P6: the change applied last — the class alone, anything else ("trip"), or none. Picks the approved refund line. */
+  lastChange: "class" | "trip" | null;
 };
 
 export type ManageDriver = {
@@ -79,6 +81,7 @@ export function moneyFromJson(raw: unknown): ManageMoney | null {
     presentment,
     className: text(rec.vehicle_class_name),
     lines,
+    lastChange: rec.last_change === "class" || rec.last_change === "trip" ? rec.last_change : null,
   };
 }
 

@@ -74,10 +74,12 @@
       status: status,
       pickupText: (row && row.pickup) || "",
       dropoffText: (row && row.dropoff) || "",
-      scheduledLocal: "",
+      // 26.2 P6 (D13): the day and time as booked, so a time change from the account view has its day.
+      scheduledLocal: row && row.dateIso && row.time ? row.dateIso + "T" + row.time : "",
       dateLabel: (row && row.date) || "",
       timeLabel: (row && row.time) || "",
-      flightNo: "",
+      // 26.2 P6 (D19): the flight number as booked, so the flight row shows and can be changed here too.
+      flightNo: (row && row.flightNo) || "",
       pax: (row && row.pax) || 1,
       bags: 0,
       driver: null,
@@ -88,7 +90,8 @@
       canCancel: false,
       cancelWindow: "none",
       contactName: "",
-      contactEmail: "",
+      // 26.2 P6 (D19): the booking's address, so "Send it again to …" and "Confirmation sent to" name it.
+      contactEmail: (row && row.contactEmail) || "",
       payoutCountryLabel: null,
       availableOn: null,
       priceTotalRappen: (row && row.priceRappen) || 0,
@@ -186,6 +189,24 @@
     });
   }
 
+  // 26.2 P6 (D19): "Resend email" sends the confirmation again (voucher, fresh manage link) to the
+  // booking's own address. The answer carries that address; a send that did not happen is not ok.
+  function resendGuest(tok, ref) {
+    return jsonFetch("/api/manage/resend", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ token: tok || "", ref: ref }),
+    });
+  }
+
+  function resendAccount(ref) {
+    return jsonFetch("/api/account/bookings/resend", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ ref: ref }),
+    });
+  }
+
   function refundLine(booking) {
     var st = String((booking && booking.refundStatus) || "").toLowerCase();
     if (st === "pending_ops") {
@@ -207,6 +228,10 @@
   // CHEAPER class change the team owes the difference ("Refund due"). Until the refund is sent the
   // booking page says so, in the new class and the amount still due; once it is sent the line goes.
   var CHANGE_CREDIT_LINE = "Your trip now runs in {class}. The difference of {amount} comes back to the payment method you used; our team sends it.";
+  // 26.2 P6 (owner-approved 2026-10-01, D15 in .planning/decisions/2026-10-01-p6-paid-trip-edit.md):
+  // after a CHEAPER change of places or time (any change that is not the class alone), until the
+  // refund is sent. A class-only change keeps the line above.
+  var TRIP_CREDIT_LINE = "Your trip has changed. The difference of {amount} comes back to the payment method you used; our team sends it.";
 
   function changeCreditLine(booking) {
     if (!booking) return "";
@@ -216,12 +241,15 @@
     if (st !== "pending_ops" && st !== "processing" && st !== "failed") return "";
     var due = (Number(booking.refundOwedRappen) || 0) - (Number(booking.refundedRappen) || 0);
     if (!(due > 0)) return "";
-    var cls = String((booking.money && booking.money.className) || "").trim();
-    if (!cls) return "";
     var amount = (due / 100).toFixed(2);
     var money = root.VamosLocale && typeof root.VamosLocale.money === "function"
       ? root.VamosLocale.money(amount)
       : "CHF " + amount;
+    if (booking.money && booking.money.lastChange === "trip") {
+      return t(TRIP_CREDIT_LINE).split("{amount}").join(money);
+    }
+    var cls = String((booking.money && booking.money.className) || "").trim();
+    if (!cls) return "";
     return t(CHANGE_CREDIT_LINE).split("{class}").join(cls).split("{amount}").join(money);
   }
 
@@ -251,6 +279,8 @@
     timeChangeAccount: timeChangeAccount,
     saveFlightGuest: saveFlightGuest,
     saveFlightAccount: saveFlightAccount,
+    resendGuest: resendGuest,
+    resendAccount: resendAccount,
     refundLine: refundLine,
     refundedCopy: refundedCopy,
     changeCreditLine: changeCreditLine,

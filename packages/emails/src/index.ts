@@ -7,6 +7,13 @@ export {
   classChangePaySubject,
 } from "./ClassChangePayEmail";
 export {
+  TripChangePayEmail,
+  tripChangePayCopy,
+  tripChangePayPlainText,
+  tripChangePaySubject,
+} from "./TripChangePayEmail";
+export type { TripChangePayForEmail } from "./TripChangePayEmail";
+export {
   ChauffeurAssignEmail,
   chauffeurAssignPlainText,
   chauffeurAssignSubject,
@@ -69,6 +76,7 @@ export {
   sendConfirmation,
   sendPayLink,
   sendClassChangePay,
+  sendTripChangePay,
   sendPriceChanged,
   sendExpired,
   sendRefund,

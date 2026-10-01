@@ -24,6 +24,12 @@ import {
 import { PayLinkEmail, payLinkPlainText, payLinkSubject } from "../PayLinkEmail";
 import { ClassChangePayEmail, classChangePayPlainText, classChangePaySubject } from "../ClassChangePayEmail";
 import {
+  TripChangePayEmail,
+  tripChangePayPlainText,
+  tripChangePaySubject,
+  type TripChangePayForEmail,
+} from "../TripChangePayEmail";
+import {
   OpsMustFixEmail,
   opsMustFixPlainText,
   opsMustFixSubject,
@@ -278,6 +284,45 @@ export async function sendClassChangePay(
     return { ok: true, providerMessageId: id };
   } catch (err) {
     const message = err instanceof Error ? err.message : "sendClassChangePay failed";
+    return { ok: false, error: message };
+  }
+}
+
+/**
+ * 26.2 P6: the "pay the difference" mail of a dearer place or time change (owner-approved wording
+ * D14, four languages). One recipient: the booking's contact e-mail.
+ */
+export async function sendTripChangePay(
+  env: EmailEnv,
+  mail: TripChangePayForEmail,
+  to: string,
+): Promise<SendOutcome> {
+  try {
+    if (!env.RESEND_API_KEY) {
+      return { ok: false, error: "RESEND_API_KEY is not bound" };
+    }
+    const address = to.trim().toLowerCase();
+    if (!address) {
+      return { ok: false, error: "no trip-change recipient" };
+    }
+    const resend = new Resend(env.RESEND_API_KEY);
+    const result = await resend.emails.send({
+      from: FROM,
+      to: [address],
+      subject: tripChangePaySubject(mail),
+      react: TripChangePayEmail({ mail }),
+      text: tripChangePayPlainText(mail),
+    });
+    if (result.error) {
+      return { ok: false, error: result.error.message };
+    }
+    const id = result.data?.id;
+    if (!id) {
+      return { ok: false, error: "Resend returned no id" };
+    }
+    return { ok: true, providerMessageId: id };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "sendTripChangePay failed";
     return { ok: false, error: message };
   }
 }

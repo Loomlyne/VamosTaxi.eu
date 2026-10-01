@@ -135,5 +135,16 @@
     "heading": "Ihre Fahrt wechselt zu {className}",
     "text": "Sie haben gebeten, die Buchung {reference} auf {className} zu ändern. Der neue Gesamtbetrag ist {newTotal}; bezahlt haben Sie {paid}. Bezahlen Sie die Differenz von {difference}, um die Änderung zu bestätigen. Der Link gilt 24 Stunden. Ist er bis dann nicht bezahlt, bleibt Ihre Buchung, wie sie ist.",
     "button": "Differenz bezahlen"
+  },
+  "tripChangePay": {
+    "subject": "Ihre Vamos Taxi-Buchung {reference}: Differenz bezahlen",
+    "heading": "Ihre Fahrt ändert sich",
+    "intro": "Sie haben gebeten, die Buchung {reference} zu ändern.",
+    "pickup": "Neuer Abholort: {value}",
+    "dropoff": "Neues Ziel: {value}",
+    "time": "Neue Abholzeit: {value}",
+    "class": "Neue Klasse: {value}",
+    "money": "Der neue Gesamtbetrag ist {newTotal}; bezahlt haben Sie {paid}. Bezahlen Sie die Differenz von {difference}, um die Änderung zu bestätigen. Der Link gilt 24 Stunden. Ist er bis dann nicht bezahlt, bleibt Ihre Buchung, wie sie ist.",
+    "button": "Differenz bezahlen"
   }
 }

@@ -14,7 +14,7 @@
 - Deploy with `--env staging` (Worker `vamos`, live on vamostaxi.site). A deploy without it made the stray Worker `vamos-web` on 2026-10-01.
 - Types with the pinned CLI: `pnpm exec supabase` (2.115.0), then `db:types:check`.
 - After any seed change, re-pin `packages/db/supabase/tests/seed_idempotent.test.sql` to the counts in the seed header.
-- Next migration number: `20261007190000`. Ask the controller first and check every remote branch for the file name.
+- Next migration number: `20261007200000`. Ask the controller first and check every remote branch for the file name.
 - Standing order (owner, 2026-10-01 17:41 +04, verbatim): "coomit and deply all after verify dont ask me". It is never used for the live Stripe key, the vamostaxi.eu cutover, price book row 18 Publish, deleting test bookings, or wiping data. Those need his word every time.
 
 Kept by the control session. One page: what is live, what is being built, what waits for
@@ -22,7 +22,7 @@ the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 Rewritten short on 2026-09-30 14:25; the long version is in git history (`8230227c`).
 
-**Last update:** 2026-10-02 02:30 (+04)
+**Last update:** 2026-10-02 03:00 (+04)
 
 ## Controller take-over, 2026-10-01 23:25 (+04)
 
@@ -42,12 +42,12 @@ The local controller read `.planning/HANDOVER-2026-10-01.md` (the closing state 
 | Lane | Job | Branch | After it |
 |---|---|---|---|
 | R | Phase 20 leftovers G7/G10/G11/G12/G28 | **Live 23:51** (`3e2bba66`, Worker `b7a34b05`) | done; branch deleted, `archive/branch-claude-project-thread-cwny3q-84cb34cb` |
-| A | Finish P6, change place or time of a paid trip | Guest-cancel hotfix **live 02:28** (`5bedee98`). P6 full review FIX BEFORE SHIP (customer could lower the price; paid difference could fail to record; grants; flight on erased bookings); fixing in its session | Re-review, then ship with migration `20261007150000` |
+| A | P6, change place or time of a paid trip | **Live 02:58** (`05b8f2d1`, Worker `c6a4ecac`) | done; session archived, folder and branches removed. New follow-up from review 2: a customer time request can end a staff change that waits for payment (no money lost); queue it with the follow-ups |
 | B | Main green (26.0 finish, B4): Linux `confirmation.spec.ts:130`, mutation-gate patch, schema job, home reds; tests and CI files only | `ci/e2e-linux-3`, `fix/e2e-linux-2` | Ship (CI files, no deploy); the 48 SiteHeader picture diffs go to the owner one page at a time |
 | D | GSD bookkeeping (B10) | **On main 00:00** (`e38026ff`, planning only) | done; GSD now shows 323/337 plans, current 20 (20-09), next 28 |
 | V | Van luxury up to 12 travellers | **Live 02:12** (`7f718a5a`, Worker `7cf4af92`) | done; session archived, folder and branch removed |
 
-**Then, one at a time after P6 (same money and checkout files):** Van luxury follow-up in P6's files (`app/pages/manage-booking.dc.html:693` and `booking-detail.dc.html:675` hard-code Business 3 / Van luxury 7 seats and their counters stop at 8; read the limit from the class rows; also the dashboard booking edit writes `pax` with no seat check, `lib/ops/bookings-write.ts:300`) → Arabic phone left to right in P6's files (`manage-booking.dc.html` ~235/533/661, `booking-detail.dc.html` ~233/523/643) and in the Arabic e-mails (`refund.ts`, `contact.ts`, `ConfirmationEmail.tsx`); remove the 12 local mirror flips the new laws.css rule makes redundant → B2 extras part B (CHF 0 shows "included")
+**Now free to start, one at a time (P6 is live; same money and checkout files):** P6 follow-up (a customer time request must not end a staff change waiting for payment: refuse it or expire that page) → Van luxury follow-up in P6's files (`app/pages/manage-booking.dc.html:693` and `booking-detail.dc.html:675` hard-code Business 3 / Van luxury 7 seats and their counters stop at 8; read the limit from the class rows; also the dashboard booking edit writes `pax` with no seat check, `lib/ops/bookings-write.ts:300`) → Arabic phone left to right in P6's files (`manage-booking.dc.html` ~235/533/661, `booking-detail.dc.html` ~233/523/643) and in the Arabic e-mails (`refund.ts`, `contact.ts`, `ConfirmationEmail.tsx`); remove the 12 local mirror flips the new laws.css rule makes redundant → B2 extras part B (CHF 0 shows "included")
 and part C (count per extra, with a maximum; migrations `20261007120000`, `130000`) → drop the price-band
 tables G8/G9 (deletes rows of old price-book rows 1-5; fresh review) → B5 follow-ups (mobile number to the
 dashboard customer list; gate `/checkout` and `/booking-detail`) → B3 live-key refusals (one helper for
@@ -73,8 +73,8 @@ book row 18, delete test bookings, live Stripe key, vamostaxi.eu cutover.
 | Item | Value |
 |---|---|
 | Site | https://vamostaxi.site and https://dashboard.vamostaxi.site |
-| main = origin/main | `5bedee98` (last code) plus planning notes |
-| Worker `vamos` | version `ae61d012` (2026-10-02 02:28, guest-cancel hotfix); before: `7cf4af92` (02:12, Van luxury 12), `1415cd1f` (01:53, Arabic and design fixes + G23), `4e3a6eba` (2026-10-01 23:56, B7 content and legal), `b7a34b05` (23:50, Phase 20 leftovers), `6eb1d700` (17:44, 27.1 finish your account), `8f6720d6` (17:33, /confirmation), `fae3e473` |
+| main = origin/main | `05b8f2d1` (last code) plus planning notes |
+| Worker `vamos` | version `c6a4ecac` (2026-10-02 02:58, P6 paid-trip edit); before: `ae61d012` (02:28, guest-cancel hotfix), `7cf4af92` (02:12, Van luxury 12), `1415cd1f` (01:53, Arabic and design fixes + G23), `4e3a6eba` (2026-10-01 23:56, B7 content and legal), `b7a34b05` (23:50, Phase 20 leftovers), `6eb1d700` (17:44, 27.1 finish your account), `8f6720d6` (17:33, /confirmation), `fae3e473` |
 | Worker `vamos-dashboard` (gateway) | version `71a307da` (2026-10-01 08:0x); before: `58c6e541`. Rollback of batch C part 2 = both Workers together |
 | Rollback point | Worker `f58cd68e` + gateway `58c6e541` together, git tag `backup/main-before-c2-df520d08`; before the design: Worker `e2c53324`; before D and the refusal fix: Worker `c45d2782`; before 27: Worker `dfba8779`, tag `backup/main-before-27-a8948162` (the two Phase 27 migrations are additive and can stay); before polish 2: Worker `832b884e`; before batch C1: Worker `24945bab`; before extras A: Worker `2f303d16`; before refunds: Worker `1e1fd4a6`, tag `backup/main-before-refunds-3a486eaa` (note: rolling the Worker back alone re-enables automatic refunds on cancel; the migration stays); before the home change: Worker `852de5f4`; before the three pieces: Worker `d0c427c2`; before native scrolling: Worker `f3f7d929`; before the queue: Worker `92504970`; before class cards: Worker `d80e6577`; before speed A: Worker `8adb148c`; before phone home: Worker `d43e467b`; before 26.2: Worker `0d1806ce`; before the Support button: Worker `2d5906ce` (before 26.5: Worker `fe9314d0`, tag `backup/main-before-26.5-e09f90cb`). Guest accounts off without a deploy: `settings.guest_accounts_live = false` |
 | Database | migrations up to `20260930210000`, 26.5's `20261001100000` to `130000`, Phase 20's `20261005100000` and `110000`, 26.2's `20261007100000`, Phase 20's `20261005120000`, `130000`, `140000` (refunds by hand), 26.2's `20261007110000` (extra names prune), Phase 20's `20261005150000` (last-admin guard), Phase 27's `20261002100000` and `110000`, 26.2 P1's `20261007140000` (class change; 13 function bodies md5-identical, three checks widened), 26.2's `20261007160000` (assign by class; 4 function bodies md5-identical, `chauffeurs.plate` and `deleted_at`), all applied and read back. `guest_accounts_live` = true since 14:58 (owner's answer) |
@@ -128,6 +128,7 @@ Clean clone: install from the lockfile and all 11 gates pass; pgTAP from zero on
 | 10-02 | 01:53 | **Arabic and design fixes + G23** (design signed by the owner 01:09, four recommended options): Arabic numbers left to right on /imprint, /cancellation, /account and two checkout lines; arrows and chevrons mirror in Arabic (one laws.css rule); disabled primary button grey; muted text 5.38:1; Arabic typo انتظار in four strings (live reads the JSON messages, no row to change); Google Maps out of CSP connect-src. No migration. Clean clone: 11 gates, build, 3528 web unit tests, pgTAP from empty 94 / 2299, types identical. Live 200 on 11 pages + dashboard /login. Rollback: tag `backup/main-before-arabic-g23-dace2b1f`, Worker `4e3a6eba`. Not done: the 19 design-canvas problems (list owed by the owner) | `07e43fed` | `1415cd1f` |
 | 10-02 | 02:12 | **Van luxury up to 12 travellers** (owner 2026-10-01 16:03): traveller limit from the class rows on home, phone sheet, /checkout and dashboard New trip; server refuses a class with too few seats (real-engine test); language switch de/fr→ar keeps the right Arabic plural (vamos-locale.js). No migration. Fresh review: round 1 fix, round 2 safe (30,636 lookups, 0 regressions). Clean clone: 11 gates, build, 3589 web unit tests, pgTAP 94 / 2299, types identical. Live: /api/quote gives Economy 3, Business 7, Van luxury 12; 8 pages + dashboard /login 200. Rollback: tag `backup/main-before-van-luxury-12-d575917e`, Worker `1415cd1f` | `7f718a5a` | `7cf4af92` |
 | 10-02 | 02:28 | **Hotfix: guest cancel from the e-mailed link** (found by P6; live since the token moved into the vt_manage cookie): the page sends the booking on screen; the cancel route checks inside the guest transaction that the cookie owns that booking, else 409 and nothing written. Picks 5dcb9e6c + 421b88f2 from the P6 branch. No migration. Fresh review: round 1 fix (wrong booking via the shared cookie), round 2 safe. Clean clone: 11 gates, build, 3605 web unit tests, pgTAP 94 / 2299. Live: pages 200, served page sends the reference. Rollback: tag `backup/main-before-guest-cancel-28634c81`, Worker `7cf4af92` | `5bedee98` | `ae61d012` |
+| 10-02 | 02:58 | **26.2 P6 change place or time of a paid trip** (D1-D21 signed): dashboard trip change re-priced on today's live book (date/time/party in the class keep the price), dearer waits for the difference, cheaper is Refund due by hand, driver clash asks take off or keep (D17 rule); customer time change only at its own price; account flight row and Resend (D20). Migration `20261007150000` applied verbatim first and read back: 11 bodies md5-identical, definer, search_path '', rule `9605dc33`, triggers, grants; 39 legs, 0 kept, no row written. Fresh review: round 1 fix (customer could lower the price; paid difference could fail to record), round 2 safe. Clean clone: 11 gates, build, 3775 web unit tests, pgTAP 95 / 2452, types identical. Live 200; retired generic change POST 405. Rollback: tag `backup/main-before-p6-eb9128f3`, Worker `ae61d012` (the migration stays; its functions only add refusals and new paths) | `05b8f2d1` | `c6a4ecac` |
 
 ## Ship order from here
 
@@ -252,8 +253,9 @@ The owner decided every finding F1 to F14. Every Phase 20 ship needs his Ship.
 | Phase 20 | `20261005100000`, `110000` (live) |
 | Class photos | `20261006100000` to `190000` |
 | 26.2 | `20261007100000` staff price preview (live); P4-A `110000`, trigger clean-up `120000`, P4-C `130000`; P1 `140000` (live); P6 `150000`; chauffeurs by class `160000` (live); **27.1 finish your account `170000`** (taken by the project chat "Finish your account" on 2026-10-01, reserved here after the fact) |
-| Phase 20 (more) | `20261005120000` reviews column grants (B1), `130000` erased-booking pay link (20-12), `140000` refunds by hand (20-10); leftovers G7/G10/G11/G12/G28 `20261007180000` (live 23:51) |
-| **Next free** | **`20261007190000`**. Ask the controller first; check every remote branch for the file name |
+| Phase 20 (more) | `20261005120000` reviews column grants (B1), `130000` erased-booking pay link (20-12), `140000` refunds by hand (20-10); leftovers G7/G10/G11/G12/G28 `20261007180000` (live 23:51); P6 `20261007150000` live 02:58 |
+| P6 follow-ups | `20261007190000` booking_edit_request_upsert: a customer time request waits while a staff change awaits payment (reserved 03:09, `fix/p6-followups`) |
+| **Next free** | **`20261007200000`**. Ask the controller first; check every remote branch for the file name |
 
 ## Decisions that stand
 

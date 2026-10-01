@@ -26,13 +26,12 @@ describe("public mocks carry the D-14 line-up", () => {
     }
   });
 
-  it("manage-booking and booking-detail offer the three live classes", () => {
+  // 26.2 P6 (owner, D9): the customer's change view no longer offers a class (it was never sent).
+  it("manage-booking and booking-detail offer no class choice at all", () => {
     for (const rel of PAGES.slice(1)) {
       const html = read(rel);
-      expect(html, rel).toContain("{ id: 'saden', name: 'Economy'");
-      expect(html, rel).toContain("{ id: 'mercedes-benz-v-class', name: 'Business'");
-      expect(html, rel).toContain("{ id: 'van-luxury', name: 'Van luxury'");
-      expect(html, rel).toContain("vehicle: 'saden'");
+      expect(html, rel).not.toMatch(/const CLASSES = \[/);
+      expect(html, rel).not.toMatch(/vehicle: 'saden'/);
       expect(html, rel).not.toMatch(/id: 'first'/);
     }
   });

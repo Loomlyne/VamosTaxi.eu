@@ -135,5 +135,16 @@
     "heading": "Votre trajet passe en {className}",
     "text": "Vous avez demandé de passer la réservation {reference} en {className}. Le nouveau total est de {newTotal} ; vous avez payé {paid}. Payez la différence de {difference} pour confirmer le changement. Le lien est valable 24 heures. S’il n’est pas payé d’ici là, votre réservation reste inchangée.",
     "button": "Payer la différence"
+  },
+  "tripChangePay": {
+    "subject": "Votre réservation Vamos Taxi {reference} : payer la différence",
+    "heading": "Votre trajet change",
+    "intro": "Vous avez demandé de modifier la réservation {reference}.",
+    "pickup": "Nouveau lieu de prise en charge : {value}",
+    "dropoff": "Nouvelle destination : {value}",
+    "time": "Nouvelle heure de prise en charge : {value}",
+    "class": "Nouvelle catégorie : {value}",
+    "money": "Le nouveau total est de {newTotal} ; vous avez payé {paid}. Payez la différence de {difference} pour confirmer le changement. Le lien est valable 24 heures. S’il n’est pas payé d’ici là, votre réservation reste inchangée.",
+    "button": "Payer la différence"
   }
 }
