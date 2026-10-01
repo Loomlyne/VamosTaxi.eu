@@ -1863,6 +1863,8 @@ class Component extends DCLogic {
       'refund-open': t.errClassRefundOpen, 'pricing-not-live': t.errClassPricingOff, 'unpaid': t.unpaidNoEditBody,
       'price-changed': t.errClassPriceChanged, 'paid-changed': t.errClassPriceChanged, 'price-book-changed': t.errClassBook,
       'stripe-test-only': t.errTestOnly, 'not-editable': t.errClassTooLate,
+      // 26.2 P6 server step: the reasons the change route can still answer, in the page's own words.
+      'must-fix': t.mustFix, 'driver-overlap': t.mustFix, 'flight-needed': t.flightNeeded, 'past-time': t.errPastTime,
     };
     const classError = cp && !cp.busy && cp.code && !cp.field
       ? (classErrByCode[cp.code] || (t.errClassFailed + booking.id))
@@ -2109,13 +2111,13 @@ class Component extends DCLogic {
       classBoxShown: tripReady && priced, classBoxLines, classBoxTotal: tripReady && priced ? chfText(Math.abs(classDiff)) : '',
       classBoxTotalLabel, classBoxNote, noPriceShown: tripReady && !priced, changeNoteShown: tripReady,
       tWhatChanges: t.whatChanges, tNoNewPrice: t.noNewPrice, tClassLoading: t.classLoading,
-      driverNoteShown: tripReady && hasDriver && !classChanged && !clash, driverNote: fillName(t.driverKeepNote),
+      driverNoteShown: tripReady && hasDriver && !classChanged && !clash && (placesChanged || tf.whenChanged), driverNote: fillName(t.driverKeepNote),
       clashShown: !!clash && tripChanged && !busy, clashTitle: fillName(t.clashTitle), clashBody: fillName(t.clashBody),
       clashKeepLabel: fillName(t.clashKeep), clashOffLabel: fillName(t.clashOff), tClashKeepSub: t.clashKeepSub, tClashOffSub: t.clashOffSub,
       clashKeepOn: clashChoice === 'keep', clashOffOn: clashChoice === 'off',
       pickClashKeep: () => this.setState({ clashChoice: 'keep', clashFor: cp ? cp.sig : '' }),
       pickClashOff: () => this.setState({ clashChoice: 'off', clashFor: cp ? cp.sig : '' }),
-      confirmDriverShown: hasDriver && !classChanged && (!clash || clashChoice === 'keep'),
+      confirmDriverShown: hasDriver && !classChanged && (placesChanged || tf.whenChanged) && (!clash || clashChoice === 'keep'),
       confirmDriverNote: fillName(t.driverKeepNote),
       alsoSavedShown: tripChanged && instant.changed, alsoSavedLine: fillAmounts(t.alsoSaved, { fields: instantNames.join(', ') }),
       tEditPrimary: tripChanged ? t.continue : t.saveEdit,
