@@ -2694,6 +2694,19 @@ export type Database = {
       }
       account_finish_mark: { Args: { p_email: string }; Returns: undefined }
       account_finish_required: { Args: { p_user_id: string }; Returns: boolean }
+      booking_cancel_resend_facts: {
+        Args: { p_booking_id: string }
+        Returns: {
+          contact_email: string
+          dropoff_text: string
+          locale: string
+          pickup_text: string
+          reference: string
+          refund_mode: string
+          refund_rappen: number
+          scheduled_local: string
+        }[]
+      }
       booking_captured_payment: {
         Args: { p_booking_id: string }
         Returns: {
