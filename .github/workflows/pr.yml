@@ -139,10 +139,23 @@ jobs:
   # uses Cloudflare's dummy keys, geo is stubbed (QUOTE_TEST_STUB_GEO). It deploys nothing and reaches no
   # live resource. darwin screenshot assertions are skipped here (VAMOS_E2E=1 sets ignoreSnapshots);
   # the pictures are compared on the owner's Mac.
+  # Measured locally (one worker, CI retries on): the whole list took 59 min, of which 1440 px alone
+  # 37 min and 1024, 768 and 390 px about 7 min each. One job could not fit 45 min (first run on main
+  # 6ec73c52 was cancelled at the limit), so the list is split into four jobs that run in parallel:
+  # 1440 px in three shards, and the three narrower widths together. Every spec still runs in exactly
+  # one job; nothing is skipped. Expected per job: about 12 min of specs plus about 6 min of setup.
   e2e-linux:
-    name: Booking funnel e2e on Linux (D-01)
+    name: Booking funnel e2e on Linux (${{ matrix.label }})
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { label: "1440 px, shard 1 of 3", args: "--project=component-1440 --shard=1/3" }
+          - { label: "1440 px, shard 2 of 3", args: "--project=component-1440 --shard=2/3" }
+          - { label: "1440 px, shard 3 of 3", args: "--project=component-1440 --shard=3/3" }
+          - { label: "1024, 768 and 390 px", args: "--project=component-1024 --project=component-768 --project=component-390" }
     permissions:
       contents: read
     steps:
@@ -207,13 +220,13 @@ jobs:
       - name: Booking-funnel specs (VAMOS_E2E list, screenshots skipped)
         env:
           VAMOS_E2E: "1"
-        run: pnpm test:visual --workers=2
+        run: pnpm test:visual ${{ matrix.args }} --workers=2
 
       - name: Upload test results on failure
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: e2e-linux-test-results
+          name: e2e-linux-test-results-${{ strategy.job-index }}
           path: apps/web/test-results
           retention-days: 7
 
