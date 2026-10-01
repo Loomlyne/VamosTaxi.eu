@@ -30,8 +30,7 @@ import {
 import { evaluateCoupon, loadLaunchFlags, loadSettingsVersion } from "@/lib/db/quote";
 import { lookupVehicleClassId, snapshotPolicyFromSettings } from "@/lib/checkout/lock-to-rpc";
 import { policyHours } from "@/lib/checkout/policy-settings";
-import { loadCheckoutReprice } from "@/lib/checkout/reprice";
-import type { IntentRecompute } from "@/lib/quote/intent";
+import { loadCheckoutReprice, repriceFromLock } from "@/lib/checkout/reprice";
 import { publicSiteOrigin, csrfForbidden } from "@/lib/security/origin";
 import {
   intentIpAllowed,
@@ -196,16 +195,7 @@ async function postIntent(request: Request) {
     workerNowIso: new Date().toISOString(),
     postgresNowIso,
     holdUntilIso,
-    reprice: (payload) => ({
-      pricing_live: repriced.pricingLive,
-      engine_version: payload.engine_version,
-      live_rate_version_id: repriced.liveRateVersionId,
-      classes: payload.class_totals.map((row) => ({
-        slug: row.slug as IntentRecompute["classes"][number]["slug"],
-        total_rappen: row.total_rappen,
-        eligible: row.total_rappen != null,
-      })),
-    }),
+    reprice: (payload) => repriceFromLock(payload, repriced),
     mintManageToken,
     manageLinkMaxAgeSeconds: 30 * 24 * 60 * 60,
     // D-02: always the Stripe-hosted page; no card form on our site.

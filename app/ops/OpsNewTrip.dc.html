@@ -42,7 +42,7 @@
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tTime }}" value="{{ time }}" onChange="{{ setTime }}" hint-size="100%,76px"></x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tPassengers }}" value="{{ pax }}" onChange="{{ setPax }}" hint-size="100%,76px"></x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tBags }}" value="{{ bags }}" onChange="{{ setBags }}" hint-size="100%,76px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Select" label="{{ tClass }}" options="{{ classOptions }}" value="{{ klass }}" onChange="{{ setKlass }}" hint-size="100%,78px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Select" label="{{ tClass }}" options="{{ classOptions }}" value="{{ klass }}" error="{{ classError }}" onChange="{{ setKlass }}" hint-size="100%,78px"></x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Select" label="{{ tLocale }}" options="{{ localeOptions }}" value="{{ locale }}" onChange="{{ setLocale }}" hint-size="100%,78px"></x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tFlight }}" hint="{{ flightHint }}" error="{{ flightError }}" value="{{ flight }}" onChange="{{ setFlight }}" hint-size="100%,96px"></x-import>
 <div></div>
@@ -124,6 +124,13 @@ function flightKey(raw) {
   return n ? n.flight : '';
 }
 /** Eligible classes of a quote answer: value = live slug, label = name customers see, else the slug. */
+/* The database limit on one leg (booking_legs.pax 1..16), the same bound /api/quote accepts. Which class
+   seats the party comes from the quote's class rows (classChoices), never from this number. */
+var PARTY_LIMIT = 16;
+/** "No class seats 14 passengers" when a current quote has no class for the party; '' otherwise. */
+function noClassLine(n) {
+  return n === 1 ? 'No class seats 1 passenger' : 'No class seats ' + n + ' passengers';
+}
 function classChoices(classes) {
   return (classes || []).filter(function (c) { return c && c.eligible !== false && c.slug; }).map(function (c) {
     var words = String(c.slug).replace(/[-_]+/g, ' ').trim();
@@ -177,7 +184,7 @@ class Component extends DCLogic {
     dateIso: '', time: '10:00', pax: '1', bags: '0', klass: '', classes: [], locale: 'en',
     flight: '', flightError: '', name: '', email: '', phone: '',
     extrasList: [], extrasState: 'loading', ticked: [],
-    quoteId: '', lock: '', quotedFlight: '', fareRappen: 0, priceBusy: false, error: '', saving: false,
+    quoteId: '', lock: '', quotedFlight: '', quotedPax: 0, fareRappen: 0, priceBusy: false, error: '', saving: false,
   };
   _geoSeq = { pickup: 0, drop: 0 }; // one counter per field (26.2-bp C3a): a Drop-off keystroke must not void the Pickup answer
   _quoteSeq = 0;
@@ -197,7 +204,7 @@ class Component extends DCLogic {
   /** A field the lock prices (date, time, passengers, bags): drop the lock and quote again shortly. */
   setTripField = (key) => (e) => {
     var value = e && e.target ? e.target.value : e;
-    this.setState({ [key]: value, error: '', quoteId: '', lock: '', fareRappen: 0 });
+    this.setState({ [key]: value, error: '', quoteId: '', lock: '', quotedPax: 0, fareRappen: 0 });
     if (this._timer) clearTimeout(this._timer);
     this._timer = setTimeout(this.fireQuote, 700);
   };
@@ -260,10 +267,10 @@ class Component extends DCLogic {
       this.checkAirport(loc);
     } else this.setState({ dropLoc: loc, dropText: text, dropOpen: false, dropHits: [] }, this.fireQuote);
   };
-  setPickup = (e) => { var v = e && e.target ? e.target.value : e; this.setState({ pickupText: v, pickupLoc: null, pickupAir: false, quoteId: '', lock: '', fareRappen: 0 }); this.search('pickup', v); };
-  setDrop = (e) => { var v = e && e.target ? e.target.value : e; this.setState({ dropText: v, dropLoc: null, quoteId: '', lock: '', fareRappen: 0 }); this.search('drop', v); };
+  setPickup = (e) => { var v = e && e.target ? e.target.value : e; this.setState({ pickupText: v, pickupLoc: null, pickupAir: false, quoteId: '', lock: '', quotedPax: 0, fareRappen: 0 }); this.search('pickup', v); };
+  setDrop = (e) => { var v = e && e.target ? e.target.value : e; this.setState({ dropText: v, dropLoc: null, quoteId: '', lock: '', quotedPax: 0, fareRappen: 0 }); this.search('drop', v); };
   tripNumbers = () => ({
-    pax: Math.min(8, Math.max(1, parseInt(this.state.pax, 10) || 1)),
+    pax: Math.min(PARTY_LIMIT, Math.max(1, parseInt(this.state.pax, 10) || 1)),
     bags: Math.min(16, Math.max(0, parseInt(this.state.bags, 10) || 0)),
   });
   fireQuote = () => {
@@ -271,7 +278,7 @@ class Component extends DCLogic {
     var dropoff = placeInput(this.state.dropLoc, this.state.dropText);
     var when = scheduledLocal(this.state.dateIso, this.state.time);
     if (!pickup || !dropoff || !when) {
-      this.setState({ quoteId: '', lock: '', fareRappen: 0 });
+      this.setState({ quoteId: '', lock: '', quotedPax: 0, fareRappen: 0 });
       return;
     }
     var seq = ++this._quoteSeq;
@@ -288,18 +295,18 @@ class Component extends DCLogic {
       bags: nums.bags,
     };
     if (this.state.klass) body.preferred_class = this.state.klass;
-    this.setState({ quoteId: '', lock: '', fareRappen: 0, priceBusy: true });
+    this.setState({ quoteId: '', lock: '', quotedPax: 0, fareRappen: 0, priceBusy: true });
     postJson('/api/quote', body)
       .then((j) => {
         if (seq !== this._quoteSeq) return;
-        if (!j || j.ok !== true) { this.setState({ error: 'quote', quoteId: '', lock: '', fareRappen: 0, priceBusy: false }); return; }
+        if (!j || j.ok !== true) { this.setState({ error: 'quote', quoteId: '', lock: '', quotedPax: 0, fareRappen: 0, priceBusy: false }); return; }
         var choices = classChoices(j.classes);
         this.setState({
-          quoteId: j.quote_id || '', lock: j.lock || '', quotedFlight: flight ? flight.flight : '',
+          quoteId: j.quote_id || '', lock: j.lock || '', quotedFlight: flight ? flight.flight : '', quotedPax: nums.pax,
           classes: j.classes || [], klass: pickClass(choices, this.state.klass), error: '',
         }, this.priceNow);
       })
-      .catch(() => { if (seq === this._quoteSeq) this.setState({ error: 'quote', quoteId: '', lock: '', fareRappen: 0, priceBusy: false }); });
+      .catch(() => { if (seq === this._quoteSeq) this.setState({ error: 'quote', quoteId: '', lock: '', quotedPax: 0, fareRappen: 0, priceBusy: false }); });
   };
   /** The total staff see is the total the server charges for lock + class + ticked codes (never added here). Resolves the rappen or null. */
   priceNow = (lockArg) => {
@@ -421,6 +428,7 @@ class Component extends DCLogic {
       name: s.name, email: s.email, phone: s.phone,
       // The classes the quote priced, named as customers see them (never hard-coded slugs).
       classOptions: classChoices(s.classes),
+      classError: s.quotedPax && Array.isArray(s.classes) && s.classes.length && !classChoices(s.classes).length ? noClassLine(s.quotedPax) : '',
       localeOptions: [
         { value: 'en', label: 'English' }, { value: 'de', label: 'Deutsch' },
         { value: 'fr', label: 'Français' }, { value: 'ar', label: 'العربية' },
@@ -428,7 +436,12 @@ class Component extends DCLogic {
       extraRows: rows, extrasNote: !!extrasNoteText, extrasNoteText: extrasNoteText,
       setPickup: this.setPickup, setDrop: this.setDrop,
       setDate: this.setTripField('dateIso'), setTime: this.setTripField('time'),
-      setPax: this.setTripField('pax'), setBags: this.setTripField('bags'),
+      // Digits only, and never above the database limit: 20 typed reads 16.
+      setPax: (e) => {
+        var digits = String(e && e.target ? e.target.value : e == null ? '' : e).replace(/\D/g, '');
+        this.setTripField('pax')(digits !== '' && +digits > PARTY_LIMIT ? String(PARTY_LIMIT) : digits);
+      },
+      setBags: this.setTripField('bags'),
       setKlass: (e) => this.setState({ klass: e && e.target ? e.target.value : e }, this.priceNow),
       setLocale: this.setField('locale'),
       // typing a flight never re-quotes; Save re-signs the lock with it when it differs

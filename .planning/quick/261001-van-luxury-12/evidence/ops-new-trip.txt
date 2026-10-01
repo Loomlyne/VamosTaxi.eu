@@ -1,0 +1,7 @@
+PASS | 1 local admin signs in on the dashboard host | http://dashboard.localhost:4491/dashboard
+PASS | 2 New trip sends 10 travellers to the quote (no silent 8) | quotes sent with pax: 10; last: saden:pax mercedes-benz-v-class:pax van-luxury:ok
+PASS | 3 the class list offers only Van luxury for 10 | class select: ["Van luxury"]; all options on page: ["Van luxury","English","Deutsch","Français","العربية"]
+PASS | 4 14 travellers: the quote finds no class and the form says so | quote: saden:pax mercedes-benz-v-class:pax van-luxury:pax; line: "No class seats 14 passengers"
+PASS | 5 20 typed reads 16 and quotes 16 (no Quote failed) | field "16"; pax sent: 10,14,16; line: "No class seats 16 passengers"
+PASS | 6 the line in German, then switched to Arabic | de "Keine Klasse hat Platz für 16 Passagiere" → ar "لا توجد فئة تتسع لـ 16 راكبًا"
+errors []
