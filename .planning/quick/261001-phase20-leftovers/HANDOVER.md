@@ -90,5 +90,5 @@ files), emails 165, db 14: pass. build: pass.
 ## Left
 
 A fresh review of this branch, then the ship: apply `20261007180000` on live verbatim, read back
-with the SELECT above, deploy `vamos` for G28 (or let it ride the next deploy), delete this branch
-and its local stack (`vamos-taxi-p20`, stop with `--no-backup`).
+with the SELECT above, deploy `vamos` for G28 (or let it ride the next deploy), delete this branch.
+The local stack `vamos-taxi-p20` is already stopped and removed (`--no-backup`).
