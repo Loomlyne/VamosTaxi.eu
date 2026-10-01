@@ -107,7 +107,7 @@
 }
 
 .vt-confirmation__help-link:hover {
-  border-bottom-color: var(--vt-text-primary);
+  border-block-end-color: var(--vt-text-primary);
 }
 
 .vt-confirmation__help-link:focus-visible {
