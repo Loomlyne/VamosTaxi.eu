@@ -5,7 +5,7 @@ the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 Rewritten short on 2026-09-30 14:25; the long version is in git history (`8230227c`).
 
-**Last update:** 2026-10-01 11:22 (+04)
+**Last update:** 2026-10-01 13:27 (+04)
 
 ## Live now
 
@@ -209,7 +209,7 @@ Full texts in `.planning/decisions/`.
 | Settings say 15 minutes standard waiting, the pages say 30 | Owner changes the setting if both should agree |
 | The airport fee is saved inside the fare line, not as its own line | 26.2 list |
 | `data-i18n-skip` still sits in the frozen legal pages, `LegalPage`, `PendingSlot` and `manage-booking.dc.html`; the runtime ignores it (no customer effect). `app/[locale]/(ops)/api/staff/content/[key]/route.ts` exports non-route helpers | 26.2 list, not assigned |
-| The 24 h reminder cron error seen on live by the first 26.0 session ("permission denied for table booking_legs") is not verified fixed; read-only check of the Worker logs owed | Control session |
+| GitHub job "Booking funnel e2e on Linux" runs out of time (45 minutes) and reports nothing | `fix/e2e-linux-time`, 26.0 session |
 | Playwright: 48 SiteHeader screenshot diffs (open and unconfirmed states, every language, 3 widths) fail with and without 26.0, cause not found; home specs red on main (`home-red-36.txt`); unclassified reds: checkout-hosted 390, currency, confirmation S3/S4, checkout-account 768 | `26.0-HANDOVER.md`; booking-polish for the home reds |
 | Class photos are 2.3 to 2.8 MB each | `feat/class-photo-small` |
 | VT-26-0739 and VT-26-0742 are not in the owner's account | Not a bug: booked with another e-mail address |
@@ -256,5 +256,6 @@ Full texts in `.planning/decisions/`.
 
 | What | When |
 |---|---|
-| Read-only check of the Worker cron logs for the 24 h reminder "permission denied for table booking_legs" error (26.0 hand-over) | Next idle moment |
-| Read the first "Booking funnel e2e on Linux" run on `6ec73c52` and list its failures | When the run finishes |
+| Check the hand-over of `fix/e2e-linux-time` when it arrives (job sent to the 26.0 session 2026-10-01 13:25) | On hand-over, then the owner's Ship |
+
+Done 2026-10-01 13:20: (1) reminder cron error: the live database log of the last 22 hours holds no "permission denied" line at all (read-only log query; the hourly job ran in that window; the reminder function was replaced on 09-30 by `20261001120000`). Closed. (2) First "Booking funnel e2e on Linux" run on `6ec73c52`: cancelled at its 45-minute limit, no result (run 36829545716). The repository is public, so the minutes cost nothing; board-only commits do not start a run.
