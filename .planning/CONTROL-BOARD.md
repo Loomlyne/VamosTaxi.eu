@@ -270,6 +270,8 @@ Full texts in `.planning/decisions/`.
 
 ## Known on live, not fixed yet
 
+- 2026-10-02, Phase 20 reviewer: on live `service_role` holds EXECUTE on `create_quote_snapshot` and `checkout_create_booking` (Supabase default grant); the new pgTAP case "create_quote_snapshot: EXECUTE held by its owner only" passes only on a local stack. Harmless (service_role is the server key and bypasses RLS anyway); the test, not live, should change. Goes with the main-green or u13 job. The reviewer's other drift (no `vamos_edge` grant on live) was read after the 23:51 apply; before it, live matched the migration files.
+
 | What | Carried by |
 |---|---|
 | Safari: Back pressed within a second after closing the phone booking page with the X does nothing | `fix/booking-polish` |
