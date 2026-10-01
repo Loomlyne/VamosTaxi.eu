@@ -13,7 +13,8 @@ Started 2026-10-01. Nothing pushed, no PR, no deploy, no hosted SQL.
 |---|---|---|
 | 1 | `5a389707` | Database: migration `20261007140000_class_change_reprice.sql`, pgTAP `class_change_reprice.test.sql` (69), Worker-client local test `packages/db/test/local/class-change-reprice.test.ts` (3), regenerated `database.types.ts` (only the new functions and columns differ) |
 | 2 | `e0029d3d` | Price step `apps/web/lib/ops/booking-change-price.ts` + 14 unit tests |
-| 6 | (next) | Pictures for the owner's signature (`screens/`, method of ops-signing-pictures-real-shell), Edit grid stacks on a phone (the class value was cut at 390) |
+| 7 | (this commit) | Record: checks, not verified, questions |
+| 6 | `de59ef06` | Pictures for the owner's signature (`screens/`, method of ops-signing-pictures-real-shell), Edit grid stacks on a phone (the class value was cut at 390) |
 | merge | `c15c101c` | origin/main 40dc4f29 brought in (only overlap: the identical decision file) |
 | 5 | `ca05fecb` | End-to-end local test through the real Worker client (`booking-change.local.test.ts`), both local test files named in `scripts/db-access-fence-allowlist.json`, module-scope `Set` removed (isolate-memoisation fence) |
 | 4 | `060b65d3` | Server: `booking-change.ts` (preview / confirm / after-change mails), routes `POST …/bookings/:id/change/preview` and `POST …/bookings/:id/change` (+ dual mounts), the owner's e-mail `ClassChangePayEmail` (four languages, copied programmatically from the decision file), settle hook for a paid difference, refunds-by-hand credit tier in `refund.ts`, board read of the waiting change, dashboard (class list, price box, confirm step, waiting state, credit panel, four languages), customer account line guard |
@@ -52,14 +53,16 @@ Started 2026-10-01. Nothing pushed, no PR, no deploy, no hosted SQL.
 
 ## Real-Postgres proof (isolated stack, Worker client options)
 
-Stacks: first `vamos-taxi-262` (port 62322, workdir `scratchpad/sb262`, symlinks re-pointed to this
+Stacks (workdirs under `scratchpad/`): first `vamos-taxi-262` (port 62322, workdir `scratchpad/sb262`, symlinks re-pointed to this
 folder at 08:05). **Collision:** at 08:27 another session re-pointed sb262's symlinks to
 `/Users/koss/Developer/vamos-wt/phase-26.2`, restarted that stack with its own migrations and ran its
 pgTAP (logs `start-cc.log`, `pgtap-cc*.log`, `types-cc.ts` in sb262). Not knowing that, I ran
 `supabase db reset --workdir sb262` at 08:45: it replayed THAT folder's migrations and wiped that
 stack's data. Nothing of theirs is in git or on disk lost; their stack is up with their schema. From
-08:46 I used my own stack only: project `vamos-taxi-p1`, ports 633xx, workdir `scratchpad/sbp1`
-(symlinks to this folder). I did not stop sb262 (it is the other session's now).
+08:46 I used my own stack only: project `vamos-taxi-p1`, ports 6332x, workdir `scratchpad/sb-p1`
+(named `sbp1` while in use, renamed after the lead's note; symlinks to this folder; inspector 8383).
+Stopped with `--no-backup` at the end. I did not stop or touch sb262 again (the other session's now).
+Every DB result in this record after 08:46 comes from `sb-p1`; the earlier sb262 runs were repeated there.
 
 - **From-zero replay** (`sbp1`, `db start`): 124 migrations applied, `20261007140000` included.
 - **Full pgTAP on that replay:** 91 files, 2164 tests, PASS (run with the login roles passwordless; with
@@ -109,17 +112,75 @@ English and Arabic; nothing scrolls sideways (36/36 shots, `sideways 0`); no con
 Single shots: `{dear-edit,cheap-edit,dear-confirm,wait-view,credit-view}-{before,after}-{en,ar}-{1440,390}.png`,
 `mail-{en,de,fr,ar}-{640,390}.png`.
 
-## Checks (run once at the end)
+## Checks (run once at the end, on the merged branch, after `node scripts/sync-dc-mock-to-public.mjs`)
 
-Not run yet.
+| Check | Result |
+|---|---|
+| `pnpm typecheck` | pass |
+| `pnpm lint` | pass (0 errors; 6 warnings, all in files this job did not touch) |
+| `pnpm lint:css` | pass |
+| `pnpm i18n:check` | pass (2676 keys) |
+| `pnpm check:numbers` | pass |
+| `pnpm check:db-fences` | pass (8 checks, after the module-scope `Set` fix) |
+| `pnpm check:public-env` | pass |
+| `pnpm check:legal-claims` | pass |
+| `pnpm test:unit` | pass — web 338 files / 3334 tests (4 local-DB files skipped without a port), emails 161, db 14 |
+| `pnpm db:seed:check` | no drift |
+| `pnpm build` | pass; `…/bookings/[id]/change` and `…/change/preview` built in both mounts |
+| pgTAP from zero (`sb-p1`) | 124 migrations replayed, 91 files / 2164 tests pass |
+| Local Worker-client tests (`sb-p1`) | `class-change-reprice` 3/3, `booking-change.local` 1/1, `refund-by-hand.local`, `assign.local`, `system-reads.local` pass (the last two publishers of a live book run one after the other) |
+
+## Files outside this job's own area (touched because the plan needs them)
+
+| File | Why |
+|---|---|
+| `apps/web/lib/checkout/settle.ts` | 3 small edits: carry `applied` / `unassigned_chauffeur_id` of the extra settle, and one optional hook after a paid difference (confirmation again, driver told). Loaded on use. |
+| `apps/web/lib/ops/refund.ts` + its tests, SQL `ops_refund_plan` / `app.refund_intents_settle` (create or replace) | The credit tier of refunds by hand (security session's area). Full tier unchanged for cancelled bookings; their pgTAP and unit suites pass. |
+| `app/vamos-manage-ticket.js` | The account page no longer shows the cancel promise "Full refund · sent by our team" on a trip that still runs (a change credit). No new customer wording. |
+| `scripts/db-access-fence-allowlist.json` | Names the two new local test files (raw postgres client, local only), as the fence asks. |
+
+None of the brief's hands-off files were edited (tests/**, .github, middleware.ts, worker.ts, lib/seo,
+app/home, class cards, checkout.css, consent, seed.sql; the shared dictionaries were not needed: the
+dashboard keeps its own four-language table, the e-mail its own message files).
 
 ## Not verified
 
-- Nothing applied to the hosted database (control session's job).
+- Migration `20261007140000` is not applied on the hosted database (control session's job). It is
+  additive: new functions, `create or replace` of six, one `drop + create` of `checkout_extra_payment_settle`
+  (same arguments, more columns; the deployed Worker reads the old columns by name), two widened CHECKs.
+  Apply it before the Worker that calls `booking_staff_change`.
+- No real Stripe page, refund or Resend mail was made: all three were stood in. After the ship, owner
+  rule 8: one class change on a test booking, the difference paid with 4242 4242 4242 4242, then
+  `booking_payments` by status, and one cheaper change refunded by hand.
+- Live bookings were not read (no hosted SQL). Only bookings whose price record has the checkout shape
+  (fare + extras + coupon + VAT lines) can be re-priced; an older record answers "trip-data" with the
+  message "Cancel it and make a new trip". How many live bookings are of the old shape: not known.
+- The Mapbox path (saved place id → Search Box retrieve with a new session token, else reverse of the saved
+  coordinates) was not run against Mapbox. It is used only when the booking's price book is not today's
+  live book; with today's book (book 18 today) the saved trip is checked against every class total the
+  customer was shown, without Mapbox. When the facts do not reproduce the charge, the change is refused.
+- Hermes browser UAT of the dashboard: owner.
+- Pictures were taken at 1440 and 390 (the brief); 1024 and 768 were not captured.
+- A live Stripe key is refused by the change (plan: not lifted here).
+
+## Known gaps left as they are (not this job)
+
+- The customer full-edit door (`POST /api/account/bookings` with a quote lock, no screen sends it) still
+  prices through the lock's class net (W1). A class in it is now refused by the database; a lock-priced
+  place change waits for P6.
+- `assets/icons/route.svg` is missing (404 on the booking page, on main too).
 
 ## Stopped on / questions for the owner
 
-None so far.
+Nothing stopped the build. Two points that are his to decide later (not asked by the plan):
+
+1. After a cheaper class, the customer gets the confirmation again with the new total, but her own pages
+   say nothing about the money coming back until the refund is sent (no approved wording exists for it).
+   Example: Anna moves from Business to Economy; her account page shows Economy and the new total, no
+   "refund on the way" line. Does he want a line there (his wording, four languages)?
+2. A dearer change waiting for payment cannot be withdrawn by a button; it ends after 24 hours or when
+   he makes another class change. Example: Anna phones back after 10 minutes and keeps Economy — the
+   link stays open for the rest of the 24 hours. Does he want a "Withdraw" button?
 
 ## Process note
 
