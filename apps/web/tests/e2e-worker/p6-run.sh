@@ -23,14 +23,33 @@ export E2E_HOOK_SECRET_FILE=$HOOK
 PIDS="$WEB/.wrangler/p6-pids"
 mkdir -p "$WEB/.wrangler"
 
+# Stops only what this run started: the recorded PIDs and their whole process trees (wrangler leaves workerd
+# children). Never by port: other sessions run their own Workers on this Mac.
+kill_tree() {
+  local c
+  for c in $(pgrep -P "$1" 2>/dev/null); do kill_tree "$c"; done
+  kill "$1" 2>/dev/null
+}
 stop_all() {
-  if [ -f "$PIDS" ]; then kill $(cat "$PIDS") 2>/dev/null; rm -f "$PIDS"; fi
+  if [ -f "$PIDS" ]; then
+    for p in $(cat "$PIDS"); do kill_tree "$p"; done
+    rm -f "$PIDS"
+  fi
   sleep 2
-  # wrangler leaves its workerd children behind: free exactly this run's ports.
-  for p in "$E2E_PORT" "$E2E_DASH_PORT" "$E2E_FAKE_PORT" "$E2E_INSPECT" "$E2E_DASH_INSPECT"; do
-    lsof -ti "tcp:$p" -sTCP:LISTEN 2>/dev/null | xargs kill 2>/dev/null
-  done
   rm -f "$WEB/.e2e-sb.env" "$WEB/.dev.vars"
+}
+
+# A port another process holds is a stop, not something to take over (another session's Worker answered on
+# 4390 on 2026-10-02 and this run talked to it).
+ports_free() {
+  local p busy=""
+  for p in "$E2E_PORT" "$E2E_DASH_PORT" "$E2E_FAKE_PORT" "$E2E_INSPECT" "$E2E_DASH_INSPECT"; do
+    if lsof -ti "tcp:$p" -sTCP:LISTEN >/dev/null 2>&1; then busy="$busy $p"; fi
+  done
+  if [ -n "$busy" ]; then
+    echo "FAIL | p6-run | port(s)$busy already in use by another process: choose free ones with E2E_PORT, E2E_DASH_PORT, E2E_FAKE_PORT, E2E_INSPECT, E2E_DASH_INSPECT"
+    return 1
+  fi
 }
 
 if [ "$MODE" = "down" ]; then stop_all; exit 0; fi
@@ -52,6 +71,7 @@ seed() {
 if [ "$MODE" = "seed" ]; then seed; exit 0; fi
 
 stop_all
+ports_free || exit 5
 rm -rf "$WEB/.wrangler/p6" "$WEB/.wrangler/p6-dash"
 supabase status -o env --workdir "$SBDIR" > "$WEB/.e2e-sb.env" 2>/dev/null
 node "$TREE/apps/web/tests/e2e-worker/mkcfg.mjs" "$WEB" "$WEB/.e2e-sb.env" "$HOOK" p6
