@@ -25,7 +25,7 @@ export async function GET(request: Request) {
   const email = claims.email;
   const { env } = await getCloudflareContext({ async: true });
   try {
-    type Answer = { extras: unknown; refundStatus: string; refundOwedRappen: number } | null;
+    type Answer = { extras: unknown; refundStatus: string; refundOwedRappen: number; refundedRappen: number } | null;
     const payload = await asCustomer(env, claims, async (sql): Promise<Answer> => {
       const rows = await sql<{ payload: unknown }[]>`
         select public.customer_booking_extras(${reference}) as payload
@@ -35,18 +35,23 @@ export async function GET(request: Request) {
       // 20-10: the refund row and box of the booking page. Same ownership rule as the account list
       // (the signed-in e-mail). Readable as `authenticated` through the column grant of
       // 20260911234758 (refund_status, refund_owed_rappen, refunded_rappen).
-      const refund = await sql<{ refund_status: string | null; refund_owed_rappen: number | string | null }[]>`
-        select b.refund_status::text as refund_status, b.refund_owed_rappen
+      // 26.2 P1: refunded_rappen too (same grant), so the page shows what is still due after a cheaper class.
+      const refund = await sql<
+        { refund_status: string | null; refund_owed_rappen: number | string | null; refunded_rappen: number | string | null }[]
+      >`
+        select b.refund_status::text as refund_status, b.refund_owed_rappen, b.refunded_rappen
           from public.bookings as b
          where b.reference = ${reference}
            and lower(b.contact_email::text) = lower(${email})
          limit 1
       `;
       const owed = Number(refund[0]?.refund_owed_rappen ?? 0);
+      const refunded = Number(refund[0]?.refunded_rappen ?? 0);
       return {
         extras,
         refundStatus: refund[0]?.refund_status ? String(refund[0].refund_status) : "none",
         refundOwedRappen: Number.isFinite(owed) ? owed : 0,
+        refundedRappen: Number.isFinite(refunded) ? refunded : 0,
       };
     });
     if (!payload) return NextResponse.json({ ok: false }, { status: 404, headers: noStore });
@@ -56,6 +61,7 @@ export async function GET(request: Request) {
         ...manageExtrasFromJson(payload.extras),
         refundStatus: payload.refundStatus,
         refundOwedRappen: payload.refundOwedRappen,
+        refundedRappen: payload.refundedRappen,
       },
       { headers: noStore },
     );

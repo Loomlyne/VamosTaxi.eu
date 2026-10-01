@@ -728,6 +728,10 @@
       pendingEditActor: str(b.pendingEditActor),
       pendingEditQuoteRappen: num(b.pendingEditQuoteRappen, 0),
       pendingEditExtraSessionId: str(b.pendingEditExtraSessionId),
+      // 26.2 P1: a class change waiting for the difference (class, amount, until when).
+      pendingEditClass: str(b.pendingEditClass),
+      pendingEditDifferenceRappen: num(b.pendingEditDifferenceRappen, 0),
+      pendingEditPayUntil: str(b.pendingEditPayUntil),
       durationMin: num(b.durationMin, 0),
       distanceKm: b.distanceKm == null || b.distanceKm === "" ? null : num(b.distanceKm, 0),
       couponCode: str(b.couponCode),

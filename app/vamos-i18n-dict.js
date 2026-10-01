@@ -1421,6 +1421,8 @@
       'Refunded': { de: 'Erstattet', fr: 'Remboursé', ar: 'مُسترد' },
       'Failed': { de: 'Fehlgeschlagen', fr: 'Échoué', ar: 'فشل' },
       'Reviewed': { de: 'Bewertet', fr: 'Évalué', ar: 'تم التقييم' },
+      // 26.2 P1 (owner-approved 2026-10-01): customer booking page after a cheaper class change, until the refund is sent.
+      'Your trip now runs in {class}. The difference of {amount} comes back to the payment method you used; our team sends it.': { de: 'Ihre Fahrt läuft jetzt in {class}. Die Differenz von {amount} geht auf das Zahlungsmittel zurück, mit dem Sie bezahlt haben; unser Team veranlasst sie.', fr: 'Votre trajet passe en {class}. La différence de {amount} vous est remboursée sur le moyen de paiement utilisé ; notre équipe l’envoie.', ar: 'تسير رحلتك الآن بفئة {class}. يُردّ إليك الفرق البالغ {amount} إلى وسيلة الدفع التي استخدمتها؛ يرسله فريقنا.' },
       'Refunded to your {country} card.': { de: 'Erstattet auf Ihre Karte in {country}.', fr: 'Remboursé sur votre carte {country}.', ar: 'أُعيد إلى بطاقتك في {country}.' },
       'Stripe pays out on {date}.': { de: 'Stripe zahlt am {date} aus.', fr: 'Stripe verse le {date}.', ar: 'سترايب يدفع في {date}.' },
       'Could not cancel this booking.': { de: 'Diese Buchung konnte nicht storniert werden.', fr: 'Impossible d’annuler cette réservation.', ar: 'تعذر إلغاء هذا الحجز.' },

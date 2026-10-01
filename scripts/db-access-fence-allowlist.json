@@ -1,7 +1,7 @@
 {
   "_comment": "Plan 03-06 / D-05, D-06, D-08, D-10, D-31 -- the named exceptions scripts/check-db-access-fences.mjs loads, never inlines. Every entry here is a deliberate, reviewed exception naming one file (or, for a directory, one already-reviewed local-simulation area) -- when a check fires on correct code, this list gets a new named entry, the check's own regex never gets loosened.",
 
-  "_allowed_postgres_importers_comment": "Files permitted to `import postgres from \"postgres\"` (or `require`/re-export it) directly (interfaces ban #1, D-10). The two packages/db core modules and the staging probe are the shipped door; packages/db/test/local's four files and one fixture file construct raw postgres.js clients only to drive the SAME shipped `withIdentity` through a pinned/simulated connection for the DATA-06 local proof (D-16) -- there is no second, inlined copy of the identity SQL anywhere in this list. packages/db/test/local/worker-arrays.test.ts (260929-pga) drives the shipped publicSql/withIdentity clients against a local stack inside one rolled-back transaction (fixture via .unsafe, local host only). The last three (26.3) run the real checkout code against the port-shifted local stack on 127.0.0.1:55322 in one rolled-back transaction and refuse any other host. packages/db/test/local/consent-reader.test.ts (27-01) drives the shipped Worker client options against the phase-27 local stack on 127.0.0.1:59322 in one rolled-back transaction. apps/web/lib/ops/assign.local.test.ts (260930-dash-assign) seeds a disposable local stack (127.0.0.1, VAMOS_LOCAL_DB_PORT, skipped without it) as the superuser and drives the REAL assignBooking through asStaff/asSystem, same shape as system-reads.local.test.ts. apps/web/lib/ops/chauffeur-delete.local.test.ts (261001-chauffeur-car) does the same for the REAL deleteChauffeurRow and loadChauffeurHistory through asStaff.",
+  "_allowed_postgres_importers_comment": "Files permitted to `import postgres from \"postgres\"` (or `require`/re-export it) directly (interfaces ban #1, D-10). The two packages/db core modules and the staging probe are the shipped door; packages/db/test/local's four files and one fixture file construct raw postgres.js clients only to drive the SAME shipped `withIdentity` through a pinned/simulated connection for the DATA-06 local proof (D-16) -- there is no second, inlined copy of the identity SQL anywhere in this list. packages/db/test/local/worker-arrays.test.ts (260929-pga) drives the shipped publicSql/withIdentity clients against a local stack inside one rolled-back transaction (fixture via .unsafe, local host only). The last three (26.3) run the real checkout code against the port-shifted local stack on 127.0.0.1:55322 in one rolled-back transaction and refuse any other host. packages/db/test/local/consent-reader.test.ts (27-01) drives the shipped Worker client options against the phase-27 local stack on 127.0.0.1:59322 in one rolled-back transaction. apps/web/lib/ops/assign.local.test.ts (260930-dash-assign) seeds a disposable local stack (127.0.0.1, VAMOS_LOCAL_DB_PORT, skipped without it) as the superuser and drives the REAL assignBooking through asStaff/asSystem, same shape as system-reads.local.test.ts. apps/web/lib/ops/booking-change.local.test.ts (26.2 P1) is the same shape for the class change (preview, confirm, extra settle, refund by hand); packages/db/test/local/class-change-reprice.test.ts (26.2 P1) drives the class-change functions through publicSql's Worker client options in one rolled-back transaction per case. apps/web/lib/ops/chauffeur-delete.local.test.ts (261001-chauffeur-car) does the same for the REAL deleteChauffeurRow and loadChauffeurHistory through asStaff.",
   "allowed_postgres_importers": [
     "packages/db/src/identity.ts",
     "packages/db/src/public.ts",
@@ -16,6 +16,8 @@
     "apps/web/lib/ops/refund-by-hand.local.test.ts",
     "apps/web/lib/ops/assign.local.test.ts",
     "apps/web/lib/ops/chauffeur-delete.local.test.ts",
+    "apps/web/lib/ops/booking-change.local.test.ts",
+    "packages/db/test/local/class-change-reprice.test.ts",
     "packages/db/test/fixtures/two-customers.ts",
     "apps/web/tests/integration/checkout-server-db.spec.ts",
     "apps/web/tests/integration/intent-supersede-db.spec.ts",
@@ -52,7 +54,9 @@
     "packages/db/test/local/checkout-account.test.ts",
     "apps/web/lib/db/system-reads.local.test.ts",
     "packages/db/test/local/signup-agreement.test.ts",
-    "apps/web/lib/ops/refund-by-hand.local.test.ts"
+    "apps/web/lib/ops/refund-by-hand.local.test.ts",
+    "apps/web/lib/ops/booking-change.local.test.ts",
+    "packages/db/test/local/class-change-reprice.test.ts"
   ],
 
   "_allowed_session_set_comment": "Files permitted a `set_config(..., false)` call or a bare `SET ROLE`/`SET SESSION` (interfaces ban #6). apps/isolation-probe/src/index.ts's `bindIdentity()` helper deliberately reproduces the session-scoped (non-transaction-local) SET for NC1/NC2/`session` (D-17); connection-reuse.test.ts's one occurrence is the same negative-control shape reproduced locally. packages/db/src/identity.ts's `resetPooledSession` is the D-01 checkout sanitizer (Hyperdrive RESET is not trusted) -- session-scoped clears of leftover identity GUCs, not a request identity bind.",

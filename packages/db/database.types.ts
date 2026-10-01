@@ -2675,6 +2675,25 @@ export type Database = {
           stripe_payment_intent_id: string
         }[]
       }
+      booking_change_mail_facts: {
+        Args: { p_booking_id: string; p_chauffeur_id: string }
+        Returns: {
+          dropoff_text: string
+          email: string
+          languages_csv: string
+          pickup_text: string
+          reference: string
+          scheduled_local: string
+        }[]
+      }
+      booking_change_withdraw: {
+        Args: { p_actor_id: string; p_booking_id: string; p_request_id: string }
+        Returns: {
+          booking_id: string
+          extra_session_id: string
+          request_id: string
+        }[]
+      }
       booking_edit_apply_payload: {
         Args: {
           p_actor_id: string
@@ -2773,6 +2792,31 @@ export type Database = {
         Returns: undefined
       }
       booking_snapshot_policy: { Args: { p_booking_id: string }; Returns: Json }
+      booking_staff_change: {
+        Args: {
+          p_actor_id: string
+          p_booking_id: string
+          p_engine_version: string
+          p_expected_paid_rappen: number
+          p_lines: Json
+          p_rate_version_id: number
+          p_total_rappen: number
+          p_vehicle_class_slug: string
+        }
+        Returns: {
+          booking_id: string
+          difference_rappen: number
+          extra_snapshot_id: number
+          new_total_rappen: number
+          old_extra_session_id: string
+          old_extra_snapshot_id: number
+          outcome: string
+          paid_rappen: number
+          quote_snapshot_id: number
+          request_id: string
+          unassigned_chauffeur_id: string
+        }[]
+      }
       booking_trip_for_mail: {
         Args: { p_booking_id: string }
         Returns: {
@@ -2960,10 +3004,14 @@ export type Database = {
         }
         Returns: {
           already_settled: boolean
+          applied: boolean
           booking_id: string
+          class_changed: boolean
           contact_email: string
           locale: string
           reference: string
+          request_id: string
+          unassigned_chauffeur_id: string
         }[]
       }
       checkout_issue_manage_token: {

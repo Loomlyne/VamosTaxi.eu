@@ -20,11 +20,11 @@ export type EditPayload = {
   vehicle_class_slug?: string;
 };
 
+/** 26.2 P1: a cheaper change is "refund_due" (refunds by hand); the old automatic outcomes are gone. */
 export type AcceptOutcome =
   | "applied"
   | "extra_required"
-  | "refund_immediate"
-  | "refund_click"
+  | "refund_due"
   | "must-fix";
 
 export type EditAcceptFail = { ok: false; code: string };
@@ -67,6 +67,11 @@ export function mapEditSqlError(err: unknown): EditAcceptFail {
     "snapshot-mismatch",
     "invalid_actor",
     "invalid_difference",
+    // 26.2 P1 (migration 20261007140000)
+    "refund-open",
+    "expired",
+    "unknown-class",
+    "class-change-staff-only",
   ]) {
     if (message === name || message.startsWith(`${name}\n`) || message.startsWith(`${name} `)) {
       if (name === "capacity") return { ok: false, code: "must-fix" };

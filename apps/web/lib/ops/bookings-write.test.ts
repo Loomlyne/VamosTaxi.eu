@@ -223,13 +223,12 @@ describe("cancelBooking on an unpaid booking expires its open Stripe Checkout Se
   });
 });
 
-describe("updateBooking class edit (D-14)", { timeout: 15_000 }, () => {
+describe("updateBooking never changes the class in place (26.2 P1, A8)", { timeout: 15_000 }, () => {
   const ENV = {} as CloudflareEnv;
   const CLAIMS = { sub: "staff-1", role: "authenticated" } as VamosClaims;
   const BOOKING_ID = "00000000-0000-4000-8000-000000000002";
 
-  /** Runs updateBooking with a recording sql tag; returns the slug bound in the class update. */
-  async function classSlugFor(klass: string): Promise<unknown> {
+  it("the in-place PATCH writes no vehicle class, whatever it is sent", async () => {
     const calls: { text: string; values: unknown[] }[] = [];
     asStaff.mockReset();
     asStaff.mockImplementation(async (_env: CloudflareEnv, _claims: unknown, fn: (sql: unknown) => unknown) => {
@@ -242,23 +241,17 @@ describe("updateBooking class edit (D-14)", { timeout: 15_000 }, () => {
       return fn(sql);
     });
     const { updateBooking } = await import("./bookings-write");
-    const result = await updateBooking(ENV, CLAIMS, "VT-2", { klass });
+    const result = await updateBooking(ENV, CLAIMS, "VT-2", { klass: "Business" } as never);
     expect(result).toEqual({ ok: true });
-    const leg = calls.find((c) => c.text.includes("vehicle_class_id = case"));
-    expect(leg).toBeDefined();
-    const at = leg!.text.split("?").findIndex((part) => part.includes("vehicle_class_id = case"));
-    return leg!.values[at];
-  }
-
-  it("resolves Economy, Business and Van luxury to the live slugs", async () => {
-    expect(await classSlugFor("Economy")).toBe("saden");
-    expect(await classSlugFor("Business")).toBe("mercedes-benz-v-class");
-    expect(await classSlugFor("Van luxury")).toBe("van-luxury");
+    expect(calls.some((c) => c.text.includes("vehicle_class_id"))).toBe(false);
   });
 
-  it("accepts a live slug and keeps the stored class for First", async () => {
-    expect(await classSlugFor("mercedes-benz-v-class")).toBe("mercedes-benz-v-class");
-    expect(await classSlugFor("First")).toBeNull();
+  it("the PATCH route and the write no longer read a class", () => {
+    const write = readFileSync(join(here, "bookings-write.ts"), "utf8");
+    const route = readFileSync(join(here, "../../app/[locale]/(ops)/api/staff/bookings/[id]/route.ts"), "utf8");
+    expect(write).not.toMatch(/klass/);
+    expect(write).not.toMatch(/liveClassSlug/);
+    expect(route).not.toMatch(/record\.klass/);
   });
 });
 
