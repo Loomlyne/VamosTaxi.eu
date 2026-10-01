@@ -27,3 +27,6 @@ Koss answered in the project thread "Read loomlyne/vamostaxi.eu and propose next
 6. **"Figure out the rest"**: the /terms section 03 SMS line and the /about fleet text, fixed on
    2026-09-30 in `fe4e37a0` and never shipped, come in with this job. Van luxury 12 passengers /
    9 cases matches the live `vehicle_classes` row (read 2026-10-01).
+7. **The imprint's binding text is German** (owner's choice on the decision card, 2026-10-01
+   11:43 UTC). The page's own line "The German version is the binding one" stays in all four
+   languages; the 26.0 notice wording "The English text is binding" is retired.
