@@ -433,12 +433,12 @@ class Component extends DCLogic {
     // next to Class (the two things the owner chooses). No Car field. Only Name is required.
     const chauffeurFields = [
       { key:'photo', label:t.fPhoto, editor:'photo', photoKind:'chauffeur', upload:'/api/photos/upload', chooseLabel:t.choosePhoto, hint:t.hPhoto },
-      { key:'name', label:t.fName, half:true, required:true },
-      { key:'phone', label:t.fPhone, editor:'phone', half:true, placeholder:'+41 00 000 00 00' },
-      { key:'email', label:t.fEmail, half:true, placeholder:'name@example.com' },
-      { key:'licence', label:t.fLicence, editor:'licence', half:true, placeholder:'CH 000 000' },
-      { key:'vehicleClassId', label:t.fClass, editor:'select', options:chauffeurClassOptions, icon:'car-front', hint:t.hChauffeurClass, emptyLabel:t.noClass, half:true },
-      { key:'plate', label:t.fPlateNumber, half:true, icon:'car', placeholder:'ZH 000 000', hint:t.hChauffeurPlate },
+      { key:'name', label:t.fName, half:true, phoneFull:true, required:true },
+      { key:'phone', label:t.fPhone, editor:'phone', half:true, phoneFull:true, placeholder:'+41 00 000 00 00' },
+      { key:'email', label:t.fEmail, half:true, phoneFull:true, placeholder:'name@example.com' },
+      { key:'licence', label:t.fLicence, editor:'licence', half:true, phoneFull:true, placeholder:'CH 000 000' },
+      { key:'vehicleClassId', label:t.fClass, editor:'select', options:chauffeurClassOptions, icon:'car-front', hint:t.hChauffeurClass, emptyLabel:t.noClass, half:true, phoneFull:true },
+      { key:'plate', label:t.fPlateNumber, half:true, phoneFull:true, icon:'car', placeholder:'ZH 000 000', hint:t.hChauffeurPlate },
       { key:'languages', label:t.fLanguages, editor:'select', multi:true, options:languageOptions(t), icon:'globe' },
       { key:'note', label:t.fNote, editor:'area', placeholder:'' },
     ];

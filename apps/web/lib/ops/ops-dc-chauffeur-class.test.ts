@@ -209,6 +209,16 @@ describe("1 · the chauffeur form", () => {
     expect(f.filter((x) => x.required).map((x) => x.key)).toEqual(["name"]);
   });
 
+  it("on a phone every field of the box takes the full width, so no value is cut (\"…iness\")", () => {
+    const f = fleet().vals().fields as (Field & { phoneFull?: boolean })[];
+    for (const key of ["name", "phone", "email", "licence", "vehicleClassId", "plate"]) {
+      expect(f.find((x) => x.key === key)!.phoneFull, key).toBe(true);
+    }
+    const table = readDc("OpsTable.dc.html");
+    expect(table).toMatch(/data-vt-phone-full="\{\{ f\.phoneFull \}\}"/);
+    expect(table).toMatch(/@media \(max-width:680px\)\{[^@]*\[data-vt-phone-full="1"\]\{grid-column:1 \/ -1 !important\}/);
+  });
+
   it("Class offers the live price book's classes from the server, never a fixed list", () => {
     const opts = (fleet().vals().fields as Field[]).find((x) => x.key === "vehicleClassId")!.options;
     expect(opts).toEqual([
