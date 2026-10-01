@@ -8,6 +8,7 @@ set -u
 # Ports: another session may hold 4290/4291. Override with E2E_PORT / E2E_DASH_PORT (and the hook uri + redirect list of the Supabase workdir must match E2E_PORT).
 E2E_PORT=${E2E_PORT:-4290}; E2E_DASH_PORT=${E2E_DASH_PORT:-4291}; E2E_INSPECT=${E2E_INSPECT:-9331}; E2E_DASH_INSPECT=${E2E_DASH_INSPECT:-9332}
 export E2E_PORT E2E_DASH_PORT
+export E2E_HOOK_SECRET_FILE=$3 # F12: the e2e seals addresses into links the way the hook does
 TREE=$1; SBDIR=$2; HOOK=$3; LABEL=${4:-run}
 WEB=$TREE/apps/web
 supabase status -o env --workdir "$SBDIR" > "$WEB/.e2e-sb.env" 2>/dev/null
@@ -31,6 +32,7 @@ P2=$!
 for _ in $(seq 40); do sleep 2; curl -s -o /dev/null http://localhost:$E2E_PORT/api/auth/session && curl -s -o /dev/null http://localhost:$E2E_DASH_PORT/api/auth/session && break; done
 MAIL_ROOT="$WEB/.wrangler/tmp/email" OUT="$WEB/.wrangler/e2e-$LABEL.json" node "$TREE/apps/web/tests/e2e-worker/auth-worker.e2e.mjs" "$LABEL"
 MAIL_ROOT="$WEB/.wrangler/tmp/email" OUT="$WEB/.wrangler/e2e-$LABEL-other-device.json" node "$TREE/apps/web/tests/e2e-worker/other-device.e2e.mjs" "$LABEL"
+MAIL_ROOT="$WEB/.wrangler/tmp/email" OUT="$WEB/.wrangler/e2e-$LABEL-confirm-link.json" node "$TREE/apps/web/tests/e2e-worker/confirm-link.e2e.mjs" "$LABEL"
 kill $P1 2>/dev/null; sleep 2
 # Phase 2: the 26.5 checkout scenarios run against a Worker that also holds the local stand-in secrets.
 node "$TREE/apps/web/tests/e2e-worker/mkcfg.mjs" "$WEB" "$WEB/.e2e-sb.env" "$HOOK" phase2

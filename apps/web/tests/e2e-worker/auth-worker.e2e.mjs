@@ -64,11 +64,18 @@ async function newMail(seen, ms = 8000) {
   while (Date.now() - t0 < ms) { const f = files().filter((x) => !seen.has(x)).sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs); if (f.length) return fs.readFileSync(f[0], "utf8"); await new Promise((r) => setTimeout(r, 250)); }
   return null;
 }
-const linkOf = (t) => (t.match(/https?:\/\/[^\s"<>]*\/auth\/v1\/verify[^\s"<>]*/) ?? [])[0]?.replace(/&amp;/g, "&");
+const linkOf = (t) => (t.match(/https?:\/\/[^\s"<>]*(?:\/auth\/v1\/verify|\/(?:sign-in|login)\/confirm)[^\s"<>]*/) ?? [])[0]?.replace(/&amp;/g, "&");
 const codeOf = (t) => (t.match(/\b(\d{6})\b/) ?? [])[1];
 
 // follow a mail link: Supabase verify -> 303 -> app callback -> 302 ...
 async function follow(link, jar, host) {
+  const cu = new URL(link);
+  if (/\/(?:sign-in|login)\/confirm$/.test(cu.pathname)) { // F12: the confirm page, then its button
+    const page = await req("GET", cu.pathname + cu.search, { jar, host: cu.host });
+    const body = Object.fromEntries(["token_hash", "type", "e", "next", "nextb"].map((k) => [k, cu.searchParams.get(k)]).filter(([, v]) => v));
+    const post = await req("POST", "/api/auth/callback", { jar, host: cu.host, headers: { origin: `http://${cu.host}`, "cf-connecting-ip": newIp() }, body });
+    return { hops: [`GET ${page.status}`, `POST ${post.status}`], final: post.json?.target ?? "" };
+  }
   const hops = []; let url = link;
   for (let i = 0; i < 6; i++) {
     const r = await req("GET", url, { jar, host });
@@ -112,7 +119,7 @@ if (link) {
   const s = await session(jarA);
   const cust = sql(`select count(*) from public.customers c join auth.users u on u.id=c.user_id where u.email='${A}'`);
   const cons = sql(`select count(*) from public.consent_log l join public.customers c on c.id=l.customer_id join auth.users u on u.id=c.user_id where u.email='${A}'`);
-  rec("1b confirm link -> callback -> session/customer, no consent row (27 D-01)", f.hops.join(">").includes("302") && s?.signedIn === true && cust === "1" && Number(cons) === 0,
+  rec("1b confirm link -> callback -> session/customer, no consent row (27 D-01)", f.hops.join(">").includes("POST 200") && s?.signedIn === true && cust === "1" && Number(cons) === 0,
     `hops=${f.hops.join(">")} final=${f.final} sb-auth-token cookie=${jarA.has(/^sb-.*-auth-token/)}; session.signedIn=${s?.signedIn}; customers=${cust}; consent_log=${cons}; agreement rows=${agreements(A)}`);
 } else rec("1b confirm link", false, "no mail/link");
 

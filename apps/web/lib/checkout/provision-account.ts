@@ -11,6 +11,8 @@ export const dynamic = "force-dynamic";
 import { renderAuthEmail } from "@vamos/emails";
 import { Resend } from "resend";
 import { routing } from "@/i18n/routing";
+import { buildConfirmLink } from "../auth/confirm-link";
+import { sealSecretFrom } from "../auth/sealed-address";
 import { readCheckoutAccountRequest, readCheckoutAccountUserState } from "../db/system-reads";
 import type { ScalarValue } from "../logger";
 import { publicSiteOrigin } from "../security/origin";
@@ -33,6 +35,8 @@ export type ProvisionDeps = {
   admin: () => CheckoutAuthAdmin | null;
   sendMail: (to: string, mail: { subject: string; html: string; text: string }) => Promise<void>;
   origin: string;
+  /** F12: key the address in the mailed link is sealed with (derived from the e-mail-hook secret). Missing = no mail. */
+  sealSecret?: string;
   emit: (level: "debug" | "info" | "warn" | "error", type: string, fields?: Record<string, ScalarValue>) => void;
 };
 
@@ -92,9 +96,19 @@ export async function provisionCheckoutAccount(
       return "failed";
     }
     const verifyType = link.verificationType ?? "magiclink";
-    const url =
-      `${deps.origin}/api/auth/callback?token_hash=${encodeURIComponent(link.hashedToken)}` +
-      `&type=${encodeURIComponent(verifyType)}&next=${encodeURIComponent(`/${locale}/account`)}`;
+    // F12: the site's confirm page, not the callback. The token is spent only when the person presses the button.
+    const url = await buildConfirmLink({
+      origin: deps.origin,
+      tokenHash: link.hashedToken,
+      type: verifyType,
+      email,
+      secret: deps.sealSecret,
+      next: `/${locale}/account`,
+    });
+    if (!url) {
+      deps.emit("error", "account_provision_failed", { bookingId, reason: "seal-unavailable" });
+      return "failed";
+    }
 
     const mail = renderAuthEmail("account_ready", locale, { code: "", link: url, name: request.full_name });
     await deps.sendMail(email, mail);
@@ -152,6 +166,7 @@ export function provisionDeps(env: CloudflareEnv, emit: ProvisionDeps["emit"]): 
     admin: () => checkoutAuthAdmin(env),
     sendMail: (to, mail) => sendBranded(env, to, mail),
     origin: publicSiteOrigin(null),
+    sealSecret: sealSecretFrom(env),
     emit,
   };
 }

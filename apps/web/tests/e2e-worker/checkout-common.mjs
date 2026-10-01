@@ -67,7 +67,7 @@ export function req(method, url, { headers = {}, body, jar, raw } = {}) {
         const sc = res.headers["set-cookie"] ?? [];
         if (jar && local) jar.absorb(sc);
         let json; try { json = JSON.parse(buf); } catch {}
-        resolve({ status: res.statusCode, location: res.headers.location, setCookies: sc, json, text: buf, ms: 0 });
+        resolve({ status: res.statusCode, location: res.headers.location, setCookies: sc, json, text: buf, ms: 0, headers: res.headers });
       });
     });
     r.on("error", reject); if (data) r.write(data); r.end();
@@ -109,13 +109,36 @@ export async function newMail(seen, ms = 8000) {
 }
 export const mailCount = (seen) => files().filter((x) => !seen.has(x)).length;
 // The mail text is quoted-printable-free in the local capture; a link is either the Supabase verify URL or the app callback.
-export const linkOf = (t) => (t.match(/https?:\/\/[^\s"<>]*\/auth\/v1\/verify[^\s"<>]*/) ?? [])[0]?.replace(/&amp;/g, "&");
+export const linkOf = (t) => (t.match(/https?:\/\/[^\s"<>]*(?:\/auth\/v1\/verify|\/(?:sign-in|login)\/confirm)[^\s"<>]*/) ?? [])[0]?.replace(/&amp;/g, "&");
 export const codeOf = (t) => (t.match(/\b(\d{6})\b/) ?? [])[1];
 export const subjectOf = (t) => (t.match(/^subject:\s*(.+)$/im) ?? [])[1]?.trim() ?? "";
 export const linkType = (link) => { try { return new URL(link).searchParams.get("type"); } catch { return null; } };
 
-/** Follow a mail link (Supabase verify -> 303 -> app callback -> 302 ...). Returns hops and the final path+query. */
+/** F12: seal an address into a link exactly as lib/auth/sealed-address.ts does (HKDF from the hook secret, AES-GCM, token_hash as AAD). */
+export async function sealE(email, tokenHash, secret = fs.readFileSync(process.env.E2E_HOOK_SECRET_FILE, "utf8").trim()) {
+  const enc = new TextEncoder();
+  const material = await crypto.subtle.importKey("raw", enc.encode(secret), "HKDF", false, ["deriveKey"]);
+  const key = await crypto.subtle.deriveKey({ name: "HKDF", hash: "SHA-256", salt: new Uint8Array(0), info: enc.encode("vamos-f12-sealed-address-v1") }, material, { name: "AES-GCM", length: 256 }, false, ["encrypt"]);
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv, additionalData: enc.encode(tokenHash) }, key, enc.encode(email.trim().toLowerCase())));
+  return Buffer.from([...iv, ...ct]).toString("base64url");
+}
+
+/** F12: the confirm page is opened (GET spends nothing) and its button is pressed (POST /api/auth/callback). */
+export async function pressConfirm(link, jar) {
+  const cu = new URL(link);
+  const page = await req("GET", `http://localhost:${PORT}${cu.pathname}${cu.search}`, { jar });
+  const body = Object.fromEntries(["token_hash", "type", "e", "next", "nextb"].map((k) => [k, cu.searchParams.get(k)]).filter(([, v]) => v));
+  const post = await req("POST", `http://localhost:${PORT}/api/auth/callback`, { jar, headers: { ...ORIGIN, "cf-connecting-ip": newIp() }, body });
+  return { page, post };
+}
+
+/** Follow a mail link (Supabase verify -> 303 -> app callback -> 302 ..., or the F12 confirm page + button). Returns hops and the final path+query. */
 export async function follow(link, jar) {
+  if (/\/(?:sign-in|login)\/confirm$/.test(new URL(link).pathname)) {
+    const { page, post } = await pressConfirm(link, jar);
+    return { hops: [`GET ${page.status}`, `POST ${post.status}`], finalPath: post.json?.target ?? "", last: post };
+  }
   const hops = []; let url = link; let last = null;
   for (let i = 0; i < 8; i++) {
     const r = await req("GET", url, { jar });
