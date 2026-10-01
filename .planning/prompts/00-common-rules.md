@@ -8,7 +8,7 @@ or leave your hand-over file and tell the owner.
 **Control rule (owner, 2026-10-01 18:01 +04; replaces the 17:03 take-over line of `95ccece6` and the 17:12 strict rule of `150a2a20`):**
 - Vamos runs from plain Claude Code on the owner's Mac. Every job runs locally, never in the cloud.
 - One controller session: "VamosTaxi - session control" (`local_633b433a-13a1-4f99-bfe8-3d595717a4a1`), in `/Users/koss/Developer/VamosTaxi.eu` on `main`. Only it commits and pushes main, applies live migrations, deploys Workers and cleans branches.
-- Every other session is a job session. It runs GSD with the owner's `CLAUDE.local.md`, has its own `vamos-wt/<job>` worktree and branch cut from `origin/main`, builds and tests, merges `origin/main` back in, writes a hand-over file for the controller and stops.
+- Every other session is a job session. It runs GSD with the owner's `CLAUDE.local.md`, has its own app worktree under `.claude/worktrees/` in the main folder (the app makes it when the owner starts the session; `/Users/koss/Developer/vamos-wt` is gone, owner 2026-10-01 23:45 +04: "vamos-wt no more") and branch cut from `origin/main`, builds and tests, merges `origin/main` back in, writes a hand-over file for the controller and stops.
 - The claude.ai project coordinator and its threads are retired, the "Vamos Taxi controller" thread (`local_f9f33973-…`) included.
 - A fresh reviewer session, not the builder, reads every money, sign-in or database change before it ships. Opus plans and reviews; Sonnet builds.
 - One session per job. Parallel jobs never share files; each plan lists its exact files. In the shared translation files a job adds only its own keys.
@@ -45,7 +45,7 @@ or leave your hand-over file and tell the owner.
 - `SUPABASE_SERVICE_ROLE_KEY` is on the Worker. Never read or print a secret value.
 
 ## Your folder
-- Work only in your own folder under `/Users/koss/Developer/vamos-wt/` on your own branch.
+- Work only in your own app worktree under `/Users/koss/Developer/VamosTaxi.eu/.claude/worktrees/` on your own branch. Never create a folder outside the main folder.
 - Your own local database on shifted ports. Never touch another session's Docker project.
 - No push to main, no PR, no deploy. The stash command is forbidden except its list and show forms.
 - Add files to git by name. Never add a whole folder.
