@@ -1,5 +1,5 @@
 // apps/web/tests/visual/legal-notice.spec.ts
-import { test, expect } from "../support/test";
+import { test, expect, type Page } from "../support/test";
 import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
@@ -7,6 +7,16 @@ import { nextDevEnv } from "../support/test-stack";
 
 let devServer: ChildProcess | null = null;
 let baseURL = "";
+
+/**
+ * Opens a gallery address and waits for it to render. On the 2-core Linux runner `next dev` compiles each
+ * locale's first request cold, and the 5 s default of the first assertion ran out (26.0, flaky gallery en/de,
+ * red "absent under ar": element not found).
+ */
+async function open(page: Page, path: string): Promise<void> {
+  await page.goto(baseURL + path);
+  await page.locator('[data-page="imprint"]').waitFor({ timeout: 60_000 });
+}
 
 test.describe("LanguageCoverageNotice @component", () => {
   test.describe.configure({ mode: "serial" });
@@ -45,7 +55,7 @@ test.describe("LanguageCoverageNotice @component", () => {
     const path = locale === "en" ? "/dev/legal-notice" : `/${locale}/dev/legal-notice`;
 
     test(`gallery ${locale} @component`, async ({ page }) => {
-      await page.goto(baseURL + path);
+      await open(page, path);
       await expect(page.locator("main")).toBeVisible();
       await expect(page).toHaveScreenshot(`legal-notice-${locale}.png`);
     });
@@ -53,7 +63,7 @@ test.describe("LanguageCoverageNotice @component", () => {
 
   // Owner 2026-10-01 (replaces 26.0 D-05): the imprint reads in all four languages.
   test("imprint notice absent under fr @component", async ({ page }) => {
-    await page.goto(baseURL + "/fr/dev/legal-notice");
+    await open(page, "/fr/dev/legal-notice");
     await expect(page.locator('[data-page="imprint"]')).toHaveAttribute("data-notice", "absent");
     await expect(page.locator('[data-page="terms"]')).toHaveAttribute("data-notice", "absent");
     await expect(page.locator('[data-page="privacy"]')).toHaveAttribute("data-notice", "absent");
@@ -62,15 +72,15 @@ test.describe("LanguageCoverageNotice @component", () => {
   });
 
   test("imprint notice absent under ar @component", async ({ page }) => {
-    await page.goto(baseURL + "/ar/dev/legal-notice");
+    await open(page, "/ar/dev/legal-notice");
     await expect(page.locator('[data-page="imprint"]')).toHaveAttribute("data-notice", "absent");
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl"); // dir="rtl"
   });
 
   test("imprint notice absent under en and de @component", async ({ page }) => {
-    await page.goto(baseURL + "/dev/legal-notice");
+    await open(page, "/dev/legal-notice");
     await expect(page.locator('[data-page="imprint"]')).toHaveAttribute("data-notice", "absent");
-    await page.goto(baseURL + "/de/dev/legal-notice");
+    await open(page, "/de/dev/legal-notice");
     await expect(page.locator('[data-page="imprint"]')).toHaveAttribute("data-notice", "absent");
   });
 });
