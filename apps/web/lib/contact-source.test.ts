@@ -84,6 +84,21 @@ describe("DC contact source", () => {
     expect(localeSource).toContain("h.setAttribute('dir', RTL[state.lang] ? 'rtl' : 'ltr');");
   });
 
+  it("keeps the direct phone and e-mail left to right in Arabic and translates every intro line", () => {
+    expect(contactSource).toContain('<span data-ch-v="1"><span class="vt-dir-keep">+41 79 626 70 82</span></span>');
+    expect(contactSource).toContain('<span data-ch-v="1"><span class="vt-dir-keep">info@vamostaxi.site</span></span>');
+    expect(contactSource).not.toMatch(/<span data-ch-v="1">[^<]/);
+    const dict = readFileSync(join(repoRoot, "app/vamos-i18n-dict.js"), "utf8");
+    for (const line of [
+      "Call, message, or email the team directly.",
+      "For time-sensitive requests, call us on the number opposite.",
+      "For time-sensitive travel, call us on the number opposite.",
+    ]) {
+      expect(contactSource).toContain(line);
+      expect(dict).toMatch(new RegExp(`'${line.replace(/[.,]/g, "\\$&")}': \\{ de: '[^']+', fr: '[^']+', ar: '[^']+' \\}`));
+    }
+  });
+
   it("drops stale representation metadata before serving an injected contact response", () => {
     const serveDcHtml = middlewareSource.slice(
       middlewareSource.indexOf("async function serveDcHtml"),
