@@ -9,7 +9,7 @@ the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 Rewritten short on 2026-09-30 14:25; the long version is in git history (`8230227c`).
 
-**Last update:** 2026-10-01 17:33 (+04)
+**Last update:** 2026-10-01 17:49 (+04)
 
 ## Live now
 
@@ -17,11 +17,15 @@ Rewritten short on 2026-09-30 14:25; the long version is in git history (`823022
 |---|---|
 | Site | https://vamostaxi.site and https://dashboard.vamostaxi.site |
 | main = origin/main | `34c726db` plus planning notes |
-| Worker `vamos` | version `8f6720d6` (2026-10-01 17:33, /confirmation redesign); before: `fae3e473` |
+| Worker `vamos` | version `6eb1d700` (2026-10-01 17:44, 27.1 finish your account); before: `8f6720d6` (17:33, /confirmation), `fae3e473` |
 | Worker `vamos-dashboard` (gateway) | version `71a307da` (2026-10-01 08:0x); before: `58c6e541`. Rollback of batch C part 2 = both Workers together |
 | Rollback point | Worker `f58cd68e` + gateway `58c6e541` together, git tag `backup/main-before-c2-df520d08`; before the design: Worker `e2c53324`; before D and the refusal fix: Worker `c45d2782`; before 27: Worker `dfba8779`, tag `backup/main-before-27-a8948162` (the two Phase 27 migrations are additive and can stay); before polish 2: Worker `832b884e`; before batch C1: Worker `24945bab`; before extras A: Worker `2f303d16`; before refunds: Worker `1e1fd4a6`, tag `backup/main-before-refunds-3a486eaa` (note: rolling the Worker back alone re-enables automatic refunds on cancel; the migration stays); before the home change: Worker `852de5f4`; before the three pieces: Worker `d0c427c2`; before native scrolling: Worker `f3f7d929`; before the queue: Worker `92504970`; before class cards: Worker `d80e6577`; before speed A: Worker `8adb148c`; before phone home: Worker `d43e467b`; before 26.2: Worker `0d1806ce`; before the Support button: Worker `2d5906ce` (before 26.5: Worker `fe9314d0`, tag `backup/main-before-26.5-e09f90cb`). Guest accounts off without a deploy: `settings.guest_accounts_live = false` |
 | Database | migrations up to `20260930210000`, 26.5's `20261001100000` to `130000`, Phase 20's `20261005100000` and `110000`, 26.2's `20261007100000`, Phase 20's `20261005120000`, `130000`, `140000` (refunds by hand), 26.2's `20261007110000` (extra names prune), Phase 20's `20261005150000` (last-admin guard), Phase 27's `20261002100000` and `110000`, 26.2 P1's `20261007140000` (class change; 13 function bodies md5-identical, three checks widened), 26.2's `20261007160000` (assign by class; 4 function bodies md5-identical, `chauffeurs.plate` and `deleted_at`), all applied and read back. `guest_accounts_live` = true since 14:58 (owner's answer) |
 | Who deploys | the control session, from the owner's Mac. GitHub runs checks, never deploys. |
+
+## Verified 2026-10-01 17:49 (+04), main `96a17ab7`
+
+Clean clone: install from the lockfile and all 11 gates pass; pgTAP from zero on an own stack (`vamos-taxi-ctl`, 643xx) 93 files, 2259 tests pass; `db:types:check` passes; stack stopped. Live migrations: every file since `20260928140000` is on live by name, `20261007170000` read back; 21 older files (2026-08-27 to 2026-09-28 13:00) are recorded on live under split names, their key functions checked present. Live 200: /, /checkout, /confirmation, /sign-up, /account, /contact, /manage-booking, dashboard /login. Worker `vamos` `6eb1d700`, gateway `71a307da`. Not verified: no 4242 payment since the two ships (owner UAT); the e2e and picture jobs were not run. **B7 content/legal held**: Cloudflare's automatic Web Analytics snippet is still injected on live pages (seen with a browser user agent); B7's CSP would let it run before consent. The owner switches it off in Cloudflare, then B7 ships. GitHub after clean-up: main plus `ci/e2e-linux-3`, `claude/project-thread-6r5gz9` (B7, PR #66), `claude/routesummary-port-only` (PR #62) and its base `fix/main-green`, `docs/lenis-quick-note`, `fix/e2e-linux-2`, `gsd/26.2-p6-build`, `gsd/26.2-p6-paid-trip-edit`, `gsd/phase-20-security-check`, `gsd/phase-26.2-u13`, `gsd/phase-28-pixel-pageview`. Shipped today and deleted, each with an `archive/*` tag: `claude/project-thread-wmr715`, `-ii4fuh`, `-vc27aw`, `-jbsapo`.
 
 ## Shipped
 
@@ -60,7 +64,8 @@ Rewritten short on 2026-09-30 14:25; the long version is in git history (`823022
 | 10-01 | 14:19 | GitHub e2e job split into four parallel jobs with a 30-minute limit each (workflow files only, no deploy) | `add33513` | unchanged |
 | 10-01 | 15:36 | GitHub e2e jobs: own tsconfig for the test runner (ends the 290 "Failed to load tsconfig file" errors), six jobs instead of four (workflow files and one test settings file, no deploy) | `f8a2f635` | unchanged |
 | 10-01 | 15:43 | /contact: phone and e-mail read left to right in Arabic; three lines translated (de, fr, ar); no migration | `c5157913` | `fae3e473` |
-| 10-01 | 17:33 | **/confirmation redesign** (signed): two buttons, three next steps, help line; time, flight and cancel move to Manage booking; no migration. Rollback: tag `backup/main-before-confirmation-150a2a20`, Worker `fae3e473`. A stray Worker `vamos-web` (no bindings, workers.dev only) was created by a deploy without `--env staging`; waits for the owner's word to delete | `50a2a050` | `8f6720d6` |
+| 10-01 | 17:33 | **/confirmation redesign** (signed): two buttons, three next steps, help line; time, flight and cancel move to Manage booking; no migration. Rollback: tag `backup/main-before-confirmation-150a2a20`, Worker `fae3e473`. A stray Worker `vamos-web` made by a deploy without `--env staging` was deleted at 17:45 | `50a2a050` | `8f6720d6` |
+| 10-01 | 17:44 | **27.1 Finish your account**: a sign-in-link account finishes (name, optional phone, the account tick) before it can pay or open a booking; nobody ticks twice. Migration `20261007170000` applied first and read back (three bodies md5-identical, definer, vamos_system only; table RLS, no client grant). Rollback: tag `backup/main-before-27.1-cbbd4d13`, Worker `8f6720d6` | `96a17ab7` | `6eb1d700` |
 
 ## Ship order from here
 
