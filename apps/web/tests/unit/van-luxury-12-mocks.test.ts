@@ -139,33 +139,4 @@ describe("boardPartyCap (evaluated from home.dc.html)", () => {
   });
 });
 
-describe("Arabic counts 11 to 99 travellers with the singular accusative (vamos-i18n-dict.js)", () => {
-  // Loads the real dictionary the way a page does and translates the way vamos-locale.js does: the first pattern wins.
-  const win: { VamosI18n?: { patterns: Array<Record<string, string> & { re: RegExp }> } } = {};
-  new Function("window", read("vamos-i18n-dict.js"))(win);
-  const patterns = win.VamosI18n?.patterns ?? [];
-  const tr = (key: string, lang: string) => {
-    for (const p of patterns) {
-      p.re.lastIndex = 0;
-      if (p[lang] && p.re.test(key)) {
-        p.re.lastIndex = 0;
-        return key.replace(p.re, p[lang] as string);
-      }
-    }
-    return null;
-  };
-
-  it.each([
-    ["12 passengers · 0 bags", "ar", "12 راكبًا · 0 حقائب"],
-    ["11 passengers · 1 bag", "ar", "11 راكبًا · حقيبة واحدة"],
-    ["12 passengers", "ar", "12 راكبًا"],
-    ["Up to 12 passengers", "ar", "حتى 12 راكبًا"],
-    ["12 passengers · VT-4821", "ar", "12 مسافرًا · VT-4821"],
-    ["10 passengers · 0 bags", "ar", "10 ركاب · 0 حقائب"],
-    ["7 passengers", "ar", "7 ركاب"],
-    ["12 passengers · 0 bags", "de", "12 Passagiere · 0 Gepäckstücke"],
-    ["12 passengers · 0 bags", "fr", "12 passagers · 0 bagages"],
-  ])("%s in %s reads %s", (key, lang, want) => {
-    expect(tr(key, lang)).toBe(want);
-  });
-});
+// The Arabic wording for 11 to 99 travellers runs through the real runtime in locale-pattern-switch.test.ts.
