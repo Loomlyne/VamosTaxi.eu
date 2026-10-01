@@ -4,7 +4,10 @@ Branch `claude/project-thread-wmr715` (cut from the plan branch `claude/project-
 which is main `9ef6df61` plus the signed decision, plan and pictures).
 Code commit: `0ce96336`. Merge of origin/main `ea75a7b7`: `247a5f12` (no conflict).
 Gate fixes after the merge: `0ee3e417`. Hand-over: `ee07de33`. Second merge of origin/main `66d3ba80`
-(one planning prompt, no code): `c09ce863`, the branch tip.
+(one planning prompt, no code): `c09ce863`.
+Pre-ship fix asked by the controller: merge of origin/main `150a2a20` (planning only) `0dc07256`, then
+`7720d8ce` re-pins `packages/db/supabase/tests/seed_idempotent.test.sql` to the regenerated seed header
+(content_strings 2692 + 26, no_param_reason 96). The branch tip is the commit after this hand-over edit.
 
 No migration. No setting. No API route changed. One Worker (`vamos`); the dashboard gateway is untouched.
 
@@ -53,6 +56,8 @@ and the hours show the TBC gap; on live they show the real date, class, flight a
 | pnpm db:seed:check | pass (after `0ee3e417`: seed regenerated) |
 | pnpm test:unit | pass: web 3450 passed, 5 skipped; emails 165; db 14 |
 | pnpm build | pass |
+| pgTAP on my own stack (`vamos-taxi-conf`, ports 643xx), built from zero: every migration plus the seed | pass: 92 files, 2227 tests, `seed_idempotent` ok (run on `7720d8ce`; stack stopped and removed after) |
+| Full check set again on `7720d8ce` | all 11 pass; test:unit web 3450 passed, 5 skipped; emails 165; db 14 |
 | New unit test `components/checkout/confirmation-booked.test.tsx` | 10/10: two buttons, no time/flight/cancel, approved English verbatim, hours from settings and TBC gap, de/fr/ar have no missing line, unpaid and cancelled states, the three Manage booking links |
 | Visual `tests/visual/confirmation.spec.ts` (Mac) | pass; the four `booked-en-*` pictures refreshed, the loading and "payment received" pictures unchanged |
 | Rendered at 1440, 1024, 768, 390 in en, de, fr, ar | 16 renders: nothing scrolls sideways, buttons 54 px, Arabic right to left, three steps, no time/flight form |
