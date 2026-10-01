@@ -68,15 +68,15 @@ select ok(has_function_privilege('authenticated', 'public.record_consent(boolean
 
 set local role anon;
 select set_config('request.vamos.consent_subject', 'f2000000-0000-4000-8000-000000000001', true);
-select lives_ok($$ select public.record_consent(true, false, false, false, 'banner', 'en', '2026-08') $$,
+select lives_ok($$ select public.record_consent(true, true, false, false, 'accept_all', 'en', '2026-08') $$,
   'G11 anon still records consent (the banner path)');
 reset role;
 set local role vamos_guest;
-select throws_ok($$ select public.record_consent(true, false, false, false, 'banner', 'en', '2026-08') $$,
+select throws_ok($$ select public.record_consent(true, true, false, false, 'accept_all', 'en', '2026-08') $$,
   '42501', null, 'G11 vamos_guest cannot record consent');
 reset role;
 set local role vamos_public;
-select throws_ok($$ select public.record_consent(true, false, false, false, 'banner', 'en', '2026-08') $$,
+select throws_ok($$ select public.record_consent(true, true, false, false, 'accept_all', 'en', '2026-08') $$,
   '42501', null, 'G11 vamos_public cannot record consent');
 reset role;
 
