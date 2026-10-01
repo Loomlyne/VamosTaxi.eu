@@ -164,9 +164,11 @@ if (link) { const f = await follow(link, jar3); s = await session(jar3);
   const jarL = new Jar();
   let f3 = link3b ? await follow(link3b, jarL) : { hops: [], final: "" };
   const s3c = await sessionF(jarL);
-  rec("3c confirm button signs in and lands on the finish step; the session says finishRequired",
-    f3.hops.join(">").includes("POST 200") && f3.final === "/sign-up?state=finish" && s3c?.signedIn === true && s3c?.finishRequired === true,
-    `hops=${f3.hops.join(">")} target=${f3.final}; signedIn=${s3c?.signedIn} finishRequired=${s3c?.finishRequired}`);
+  const me3c = (await req("GET", "/api/checkout/me", { jar: jarL })).json;
+  rec("3c confirm button signs in and lands on the finish step; the session and /api/checkout/me say it must finish",
+    f3.hops.join(">").includes("POST 200") && f3.final === "/sign-up?state=finish" && s3c?.signedIn === true && s3c?.finishRequired === true
+      && JSON.stringify(me3c) === JSON.stringify({ signed_in: true, finish_required: true }),
+    `hops=${f3.hops.join(">")} target=${f3.final}; signedIn=${s3c?.signedIn} finishRequired=${s3c?.finishRequired}; checkout/me=${JSON.stringify(me3c)}`);
 
   const r3d = await auth({ action: "finish-account", firstName: "Mia", lastName: "Keller" }, jarL, { ip: newIp() });
   rec("3d finish without the tick: 400 consent-required, no record, no name written",
@@ -176,12 +178,14 @@ if (link) { const f = await follow(link, jar3); s = await session(jar3);
   const r3e = await auth({ action: "finish-account", firstName: "Mia", lastName: "Keller", phone: "+41 79 000 00 00", consent: true, locale: "fr" }, jarL, { ip: newIp() });
   const row3e = sql(`select count(*) from public.account_agreement_records where lower(email)=lower('${UL}') and surface='sign-up' and choice='create' and record_kind='consent' and text_version='2026-09-29' and locale='fr'`);
   const s3e = await sessionF(jarL);
+  const me3e = (await req("GET", "/api/checkout/me", { jar: jarL })).json;
   const again = await auth({ action: "finish-account", firstName: "Mia", lastName: "Keller", consent: true }, jarL, { ip: newIp() });
   rec("3e finish with the tick: exactly one sign-up record, names and phone saved, finished; a second press writes nothing",
     r3e.status === 200 && r3e.json?.ok === true && row3e === "1" && agreements(UL) === 1 && meta(UL, "full_name") === "Mia Keller" && meta(UL, "phone") === "+41790000000"
       && sql(`select full_name || '|' || phone from public.customers where email='${UL}'`) === "Mia Keller|+41790000000"
-      && s3e?.finishRequired === false && s3e?.signedIn === true && again.status === 200 && agreements(UL) === 1,
-    `${r3e.status} ${JSON.stringify(r3e.json)}; matching row=${row3e}; rows=${agreements(UL)}; full_name=${meta(UL, "full_name")}; phone kept=${meta(UL, "phone") === "+41790000000"}; customer row=${sql(`select full_name || '|' || phone from public.customers where email='${UL}'`)}; finishRequired=${s3e?.finishRequired}; second press ${again.status}, rows=${agreements(UL)}`);
+      && s3e?.finishRequired === false && s3e?.signedIn === true && again.status === 200 && agreements(UL) === 1
+      && me3e?.signed_in === true && me3e?.finish_required === undefined && me3e?.first_name === "Mia",
+    `${r3e.status} ${JSON.stringify(r3e.json)}; matching row=${row3e}; rows=${agreements(UL)}; full_name=${meta(UL, "full_name")}; phone kept=${meta(UL, "phone") === "+41790000000"}; customer row=${sql(`select full_name || '|' || phone from public.customers where email='${UL}'`)}; finishRequired=${s3e?.finishRequired}; second press ${again.status}, rows=${agreements(UL)}; checkout/me after=${JSON.stringify(me3e)?.slice(0, 80)}`);
 
   await nap(1500);
   const UC = `e2e-newcode-${Date.now()}@example.com`;
@@ -195,6 +199,22 @@ if (link) { const f = await follow(link, jar3); s = await session(jar3);
   rec("3f the 6-digit code for a new address answers finish: true",
     r3f.status === 200 && r3f.json?.ok === true && r3f.json?.finish === true && s3f?.finishRequired === true,
     `code in mail=${!!code3f}; verify-code ${r3f.status} ${JSON.stringify(r3f.json)}; finishRequired=${s3f?.finishRequired}`);
+
+  // 3h: a link for a new address, then a ticked /sign-up for the same address before the link is used: not asked twice.
+  await nap(1500);
+  const UH = `e2e-linkthensignup-${Date.now()}@example.com`;
+  const seenH = before();
+  await auth({ mode: "signin", method: "magic", email: UH }, new Jar(), { ip: newIp() });
+  const mailH = await newMail(seenH, 8000);
+  const markedH = sql(`select count(*) from public.account_finish_pending p join auth.users u on u.id=p.user_id where u.email='${UH}' and p.finished_at is null`);
+  await nap(1500);
+  const rH = await auth({ mode: "signup", method: "password", email: UH, password: PW1, firstName: "H", lastName: "Two", consent: true }, new Jar(), { ip: newIp() });
+  const jarH = new Jar();
+  const fH = mailH && linkOf(mailH) ? await follow(linkOf(mailH), jarH) : { hops: [], final: "" };
+  const sH = await sessionF(jarH);
+  rec("3h link then a ticked /sign-up for the same address: signed in without a second tick",
+    markedH === "1" && agreements(UH) === 1 && sH?.signedIn === true && sH?.finishRequired === false && !fH.final.includes("state=finish"),
+    `marked=${markedH}; signup ${rH.status}; records=${agreements(UH)}; target=${fH.final}; signedIn=${sH?.signedIn} finishRequired=${sH?.finishRequired}`);
 
   // An account made by a password sign-up (A, check 1) is never asked.
   const jarK = new Jar();

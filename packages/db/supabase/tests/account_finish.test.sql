@@ -4,7 +4,7 @@
 -- link just made is asked to finish; the answer is kept by user id; no role but vamos_system may call;
 -- no role has a table grant. Synthetic auth users, rolled back.
 begin;
-select plan(26);
+select plan(29);
 
 create temp table _af as select gen_random_uuid() as fresh, gen_random_uuid() as confirmed,
   gen_random_uuid() as old, gen_random_uuid() as other;
@@ -46,6 +46,18 @@ select is(public.account_finish_required((select old from _af)), false, 'an olde
 select is(public.account_finish_required((select other from _af)), false, 'an account nobody marked is never asked');
 select is(public.account_finish_required(gen_random_uuid()), false, 'unknown id answers false');
 select lives_ok($$select public.account_finish_mark('fresh.link@example.test')$$, 'a second mark is harmless');
+reset role;
+-- Someone who asked for a link and then ticked on /sign-up for the same address is not asked again.
+insert into auth.users (id, instance_id, aud, role, email, created_at, updated_at, raw_app_meta_data, raw_user_meta_data)
+values ('00000000-0000-4000-8000-0000000027a1', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'link.then.signup@example.test', now(), now(), '{}'::jsonb, '{}'::jsonb);
+set local role vamos_system;
+select public.account_finish_mark('link.then.signup@example.test');
+select is(public.account_finish_required('00000000-0000-4000-8000-0000000027a1'), true, 'marked link account must finish');
+reset role;
+select public.record_account_agreement('sign-up', null, 'LINK.then.signup@example.test', 'create', '2026-09-29', 'de', null, null);
+set local role vamos_system;
+select is(public.account_finish_required('00000000-0000-4000-8000-0000000027a1'), false, 'a tick on /sign-up counts: not asked twice');
+select is((select count(*)::int from unnest(array[1]) where public.account_finish_required('00000000-0000-4000-8000-0000000027a1')), 0, 'still false on a second read');
 select lives_ok($$select public.account_finish_done((select fresh from _af), ' Mia Keller ', '+41790000000')$$, 'done');
 select is(public.account_finish_required((select fresh from _af)), false, 'finished after done');
 select throws_ok($$select * from public.account_finish_pending$$, '42501', null, 'table select refused for system');

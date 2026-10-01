@@ -46,11 +46,18 @@ create or replace function public.account_finish_required(p_user_id pg_catalog.u
 returns pg_catalog.bool
 language sql stable security definer set search_path = ''
 as $$
+  -- An agreement row for the account's address counts as finished too (someone who ticked on /sign-up
+  -- after asking for a link is never asked a second time).
   select exists (
     select 1 from public.account_finish_pending as p
+      join auth.users as u on u.id = p.user_id
      where p.user_id = p_user_id
        and p.finished_at is null
        and not exists (select 1 from public.staff as st where st.user_id = p_user_id)
+       and not exists (
+         select 1 from public.account_agreement_records as r
+          where pg_catalog.lower(r.email) = pg_catalog.lower(u.email::pg_catalog.text)
+       )
   )
 $$;
 

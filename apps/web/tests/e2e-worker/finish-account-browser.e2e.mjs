@@ -53,6 +53,16 @@ try {
     rec("F2 the link lands on 'Finish your account' with the address read-only and no sign-in/sign-up tabs",
       shown.toLowerCase().includes(EMAIL) && tabs === 0, `url=${page.url().replace(BASE, "")}; address shown=${shown.toLowerCase().includes(EMAIL)}; tabs=${tabs}`);
 
+    // F2b: typing /checkout while unfinished goes back to the finish step, with the checkout kept as returnTo.
+    await page.goto(`${BASE}/checkout?from=Zurich%20Airport&to=Zurich%20HB&pax=1&bags=0`, { waitUntil: "load" });
+    await page.waitForURL((x) => x.pathname === "/sign-up" && x.searchParams.get("state") === "finish", { timeout: 20000 }).catch(() => {});
+    const back = new URL(page.url());
+    rec("F2b /checkout while unfinished sends the person back to the finish step, keeping the checkout",
+      back.pathname === "/sign-up" && back.searchParams.get("state") === "finish" && (back.searchParams.get("returnTo") ?? "").startsWith("/checkout?"),
+      `url=${page.url().replace(BASE, "")}`);
+    await page.getByRole("heading", { name: "Finish your account" }).waitFor({ timeout: 15000 });
+    await page.waitForFunction((e) => (document.querySelector("[data-af] [data-note]")?.textContent ?? "").toLowerCase().includes(e), EMAIL, { timeout: 10000 }).catch(() => {});
+
     // F3: Finish without the tick is refused on the page; nothing is written.
     await page.getByLabel("First name").fill("Mia");
     await page.getByLabel("Last name").fill("Keller");
@@ -67,15 +77,15 @@ try {
     // The real checkbox input is visually hidden by the design system; a click on its box ticks it.
     await page.locator("[data-af-consent] .vt-check__box").click();
     await page.getByRole("button", { name: "FINISH ACCOUNT" }).click();
-    // /account opens its first tab (/account/transfers).
-    await page.waitForURL((x) => x.pathname.startsWith("/account"), { timeout: 20000 }).catch(() => {});
-    await page.waitForTimeout(1500);
-    const stillAccount = new URL(page.url()).pathname.startsWith("/account");
+    // returnTo from F2b: back to the checkout, which no longer sends the person away.
+    await page.waitForURL((x) => x.pathname === "/checkout", { timeout: 20000 }).catch(() => {});
+    await page.waitForTimeout(2500);
+    const stillAccount = new URL(page.url()).pathname === "/checkout";
     const rows1 = sql(`select count(*) from public.account_agreement_records where lower(email)=lower('${EMAIL}') and surface='sign-up' and choice='create'`);
     const cust = sql(`select full_name || '|' || phone from public.customers where email='${EMAIL}'`);
     const pending = sql(`select count(*) from public.account_finish_pending p join auth.users u on u.id=p.user_id where u.email='${EMAIL}' and p.finished_at is null`);
     const sideways = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1);
-    rec("F4 with the tick: lands on /account and stays there; one sign-up record; name and phone on the customer row",
+    rec("F4 with the tick: back on the checkout it came from, and it stays there; one sign-up record; name and phone on the customer row",
       stillAccount && rows1 === "1" && cust === "Mia Keller|+41790000000" && pending === "0" && !sideways,
       `url=${page.url().replace(BASE, "")}; /api/auth answers=${answers.join(" / ")}; typed phone=${typedPhone}; records=${rows1}; customer=${cust}; unfinished marks=${pending}; sideways scroll=${sideways}`);
   } else {
