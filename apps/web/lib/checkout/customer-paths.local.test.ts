@@ -69,6 +69,12 @@ describe.skipIf(!PORT)("the customer's own doors through the real Worker client 
     expect(await writeCustomerFlightNo(env, guest, b.reference, "lx 77")).toMatchObject({ ok: true, flightNo: "LX 77" });
     expect(await writeCustomerFlightNo(env, owner, b.reference, "lx 78")).toMatchObject({ ok: true, flightNo: "LX 78" });
     expect((await su<{ flight_no: string }[]>`select flight_no from public.booking_legs where booking_id = ${b.id}`)[0]!.flight_no).toBe("LX 78");
+    // The account list (signed in) reads the flight number too, so the account view shows the row.
+    const { asCustomer } = await import("../db/identity");
+    const listed = await asCustomer(env, owner.claims, (sql) => sql<{ flight_no: string | null }[]>`
+      select l.flight_no from public.bookings b join public.booking_legs l on l.booking_id = b.id and l.leg_seq = 1
+       where b.reference = ${b.reference} and lower(b.contact_email::text) = lower(${owner.claims.email!})`);
+    expect(listed).toEqual([{ flight_no: "LX 78" }]);
 
     // Resend (D19): the confirmation again, to the booking's own address, by either door.
     sendConfirmation.mockResolvedValue({ ok: true, providerMessageId: "c1" });

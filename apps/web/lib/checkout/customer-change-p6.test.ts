@@ -212,6 +212,16 @@ describe.each(PAGES)("%s: D19 flight number and resend do the real thing", (rel)
   });
 });
 
+describe("D19: the account view carries the flight number, so its Save row shows as on the manage link", () => {
+  it("the account list reads the flight number and the ticket keeps it", async () => {
+    const { mapAccountBooking } = await import("../account/bookings");
+    expect(mapAccountBooking({ reference: "VT-1", status: "confirmed", scheduled_local: "2026-10-08T08:00", flight_no: "LX 318" } as never)).toMatchObject({ flightNo: "LX 318" });
+    expect(mapAccountBooking({ reference: "VT-1", status: "confirmed", scheduled_local: "2026-10-08T08:00" } as never)).toMatchObject({ flightNo: "" });
+    expect(read("apps/web/app/api/account/bookings/route.ts")).toMatch(/l\.flight_no,/);
+    expect(ticketSrc).toMatch(/flightNo: \(row && row\.flightNo\) \|\| "",/);
+  });
+});
+
 describe("D19: the manage-ticket helper and the dictionary", () => {
   it("the helper posts to the two resend routes", () => {
     expect(ticketSrc).toMatch(/function resendGuest\(tok, ref\) \{\s*return jsonFetch\("\/api\/manage\/resend"/);

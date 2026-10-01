@@ -78,7 +78,8 @@
       scheduledLocal: row && row.dateIso && row.time ? row.dateIso + "T" + row.time : "",
       dateLabel: (row && row.date) || "",
       timeLabel: (row && row.time) || "",
-      flightNo: "",
+      // 26.2 P6 (D19): the flight number as booked, so the flight row shows and can be changed here too.
+      flightNo: (row && row.flightNo) || "",
       pax: (row && row.pax) || 1,
       bags: 0,
       driver: null,

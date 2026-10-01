@@ -49,6 +49,7 @@ export async function GET(request: Request) {
           l.scheduled_local,
           l.scheduled_at,
           l.pax,
+          l.flight_no,
           b.is_test,
           b.pay_link_sent_at,
           exists (select 1 from public.reviews r where r.booking_id = b.id) as has_review
