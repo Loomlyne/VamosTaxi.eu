@@ -204,7 +204,7 @@ class Component extends DCLogic {
   /** A field the lock prices (date, time, passengers, bags): drop the lock and quote again shortly. */
   setTripField = (key) => (e) => {
     var value = e && e.target ? e.target.value : e;
-    this.setState({ [key]: value, error: '', quoteId: '', lock: '', fareRappen: 0 });
+    this.setState({ [key]: value, error: '', quoteId: '', lock: '', quotedPax: 0, fareRappen: 0 });
     if (this._timer) clearTimeout(this._timer);
     this._timer = setTimeout(this.fireQuote, 700);
   };
@@ -267,8 +267,8 @@ class Component extends DCLogic {
       this.checkAirport(loc);
     } else this.setState({ dropLoc: loc, dropText: text, dropOpen: false, dropHits: [] }, this.fireQuote);
   };
-  setPickup = (e) => { var v = e && e.target ? e.target.value : e; this.setState({ pickupText: v, pickupLoc: null, pickupAir: false, quoteId: '', lock: '', fareRappen: 0 }); this.search('pickup', v); };
-  setDrop = (e) => { var v = e && e.target ? e.target.value : e; this.setState({ dropText: v, dropLoc: null, quoteId: '', lock: '', fareRappen: 0 }); this.search('drop', v); };
+  setPickup = (e) => { var v = e && e.target ? e.target.value : e; this.setState({ pickupText: v, pickupLoc: null, pickupAir: false, quoteId: '', lock: '', quotedPax: 0, fareRappen: 0 }); this.search('pickup', v); };
+  setDrop = (e) => { var v = e && e.target ? e.target.value : e; this.setState({ dropText: v, dropLoc: null, quoteId: '', lock: '', quotedPax: 0, fareRappen: 0 }); this.search('drop', v); };
   tripNumbers = () => ({
     pax: Math.min(PARTY_LIMIT, Math.max(1, parseInt(this.state.pax, 10) || 1)),
     bags: Math.min(16, Math.max(0, parseInt(this.state.bags, 10) || 0)),
@@ -278,7 +278,7 @@ class Component extends DCLogic {
     var dropoff = placeInput(this.state.dropLoc, this.state.dropText);
     var when = scheduledLocal(this.state.dateIso, this.state.time);
     if (!pickup || !dropoff || !when) {
-      this.setState({ quoteId: '', lock: '', fareRappen: 0 });
+      this.setState({ quoteId: '', lock: '', quotedPax: 0, fareRappen: 0 });
       return;
     }
     var seq = ++this._quoteSeq;
@@ -295,18 +295,18 @@ class Component extends DCLogic {
       bags: nums.bags,
     };
     if (this.state.klass) body.preferred_class = this.state.klass;
-    this.setState({ quoteId: '', lock: '', fareRappen: 0, priceBusy: true });
+    this.setState({ quoteId: '', lock: '', quotedPax: 0, fareRappen: 0, priceBusy: true });
     postJson('/api/quote', body)
       .then((j) => {
         if (seq !== this._quoteSeq) return;
-        if (!j || j.ok !== true) { this.setState({ error: 'quote', quoteId: '', lock: '', fareRappen: 0, priceBusy: false }); return; }
+        if (!j || j.ok !== true) { this.setState({ error: 'quote', quoteId: '', lock: '', quotedPax: 0, fareRappen: 0, priceBusy: false }); return; }
         var choices = classChoices(j.classes);
         this.setState({
           quoteId: j.quote_id || '', lock: j.lock || '', quotedFlight: flight ? flight.flight : '', quotedPax: nums.pax,
           classes: j.classes || [], klass: pickClass(choices, this.state.klass), error: '',
         }, this.priceNow);
       })
-      .catch(() => { if (seq === this._quoteSeq) this.setState({ error: 'quote', quoteId: '', lock: '', fareRappen: 0, priceBusy: false }); });
+      .catch(() => { if (seq === this._quoteSeq) this.setState({ error: 'quote', quoteId: '', lock: '', quotedPax: 0, fareRappen: 0, priceBusy: false }); });
   };
   /** The total staff see is the total the server charges for lock + class + ticked codes (never added here). Resolves the rappen or null. */
   priceNow = (lockArg) => {
@@ -428,7 +428,7 @@ class Component extends DCLogic {
       name: s.name, email: s.email, phone: s.phone,
       // The classes the quote priced, named as customers see them (never hard-coded slugs).
       classOptions: classChoices(s.classes),
-      classError: s.quoteId && s.quotedPax && Array.isArray(s.classes) && s.classes.length && !classChoices(s.classes).length ? noClassLine(s.quotedPax) : '',
+      classError: s.quotedPax && Array.isArray(s.classes) && s.classes.length && !classChoices(s.classes).length ? noClassLine(s.quotedPax) : '',
       localeOptions: [
         { value: 'en', label: 'English' }, { value: 'de', label: 'Deutsch' },
         { value: 'fr', label: 'Français' }, { value: 'ar', label: 'العربية' },

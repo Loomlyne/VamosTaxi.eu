@@ -104,7 +104,10 @@ describe("dashboard New trip: no silent 8, the database 16, a line when no class
   it("shows the line under Vehicle class only for a current quote with no class left", () => {
     expect(opsRaw).toMatch(/label="\{\{ tClass \}\}"[^>]*error="\{\{ classError \}\}"/);
     expect(ops).toContain("quotedPax: nums.pax");
-    expect(ops).toMatch(/classError: s\.quoteId && s\.quotedPax && Array\.isArray\(s\.classes\) && s\.classes\.length && !classChoices\(s\.classes\)\.length \? noClassLine\(s\.quotedPax\) : ''/);
+    // A quote with no class to book returns no quote_id, so the line keys on the count it was quoted for.
+    expect(ops).toMatch(/classError: s\.quotedPax && Array\.isArray\(s\.classes\) && s\.classes\.length && !classChoices\(s\.classes\)\.length \? noClassLine\(s\.quotedPax\) : ''/);
+    // Every place that drops the quote also drops the count it was for.
+    expect(ops.match(/quoteId: '', lock: '',(?! (?:quotedFlight: '', )?quotedPax: 0)/g) ?? []).toEqual([]);
   });
 
   it("words the line in the singular for one", () => {
