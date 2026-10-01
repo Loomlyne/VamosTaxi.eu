@@ -27,6 +27,9 @@ confirmation again, allowed until pickup, cheaper = "Refund due" pressed by him,
 | D14 | Pay-the-difference e-mail for a place or time change | "Approve as written" — texts below, word for word |
 | D15 | Line on the customer's booking page after a cheaper place change, until the refund is sent | "Approve as written" — texts below, word for word; it disappears once the refund is sent |
 | D16 | E-mail to a kept driver when the pickup or destination changes | "The 'trip assigned' e-mail again": the existing e-mail, no new text (a new time alone keeps the existing time-change e-mail) |
+| D17 | D11 needs the database's own overlap rule changed (it refuses every overlap today). Change it? | "Change the rule": a trip he keeps on purpose is left out of the overlap check; an ordinary Assign still refuses overlaps |
+| D18 | The site books any two places in its Europe map area (Zurich → Istanbul bookable; Dubai, New York refused); the Edit follows it. Keep it or make it smaller? | "Keep the site's rule": the Edit accepts what the public form accepts; a smaller area would be its own job |
+| D19 | Signed-in booking view: flight-number "Save" and "Resend email" say saved/sent and do nothing | "Fix them in P6": both do the real thing, as on the manage-booking link page |
 
 ### D14 — "pay the difference" e-mail for a place or time change
 
