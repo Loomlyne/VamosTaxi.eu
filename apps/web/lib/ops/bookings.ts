@@ -84,6 +84,10 @@ export async function loadBookings(
         ed.edit_actor,
         ed.edit_quote_total,
         ed.extra_session_id,
+        ed.edit_class_slug,
+        ed.edit_class_name,
+        ed.edit_extra_rappen,
+        ed.edit_extra_expires_at,
         rf.refund_rappen,
         b.refund_status,
         b.refund_owed_rappen,
@@ -135,11 +139,20 @@ export async function loadBookings(
           r.id as edit_request_id,
           r.actor::text as edit_actor,
           r.extra_session_id,
-          qs.total_rappen as edit_quote_total
+          qs.total_rappen as edit_quote_total,
+          -- 26.2 P1: a class change waiting for the difference: the new class, the difference, until when.
+          r.payload ->> 'vehicle_class_slug' as edit_class_slug,
+          ecls.name as edit_class_name,
+          xs.total_rappen as edit_extra_rappen,
+          xs.expires_at as edit_extra_expires_at
         from public.booking_edit_requests r
         join public.price_snapshots qs on qs.id = r.quote_snapshot_id
+        left join public.vehicle_classes ecls on ecls.slug = r.payload ->> 'vehicle_class_slug'
+        left join public.price_snapshots xs on xs.id = r.extra_snapshot_id
         where r.booking_id = b.id
           and r.status = 'requested'
+          -- D4: a difference not paid within 24 hours has ended; the booking reads as it is.
+          and (xs.id is null or xs.expires_at > now())
         order by r.created_at desc
         limit 1
       ) ed on true

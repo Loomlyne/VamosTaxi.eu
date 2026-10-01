@@ -54,6 +54,12 @@ export type OpsBookingRow = {
   pendingEditActor: string;
   pendingEditQuoteRappen: number;
   pendingEditExtraSessionId: string;
+  /** 26.2 P1: the class a change waits to become (dearer: until the difference is paid), or "". */
+  pendingEditClass: string;
+  /** 26.2 P1: the difference to pay, rappen (0 when none). */
+  pendingEditDifferenceRappen: number;
+  /** 26.2 P1: until when the difference can be paid (ISO), or "". */
+  pendingEditPayUntil: string;
   durationMin: number;
   distanceKm: number | null;
   couponCode: string;
@@ -107,6 +113,10 @@ export type SqlBoardRow = {
   edit_actor?: string | null;
   edit_quote_total?: number | string | null;
   extra_session_id?: string | null;
+  edit_class_slug?: string | null;
+  edit_class_name?: string | null;
+  edit_extra_rappen?: number | string | null;
+  edit_extra_expires_at?: string | Date | null;
   estimated_duration_minutes?: number | string | null;
   duration_min?: number | string | null;
   distance_km?: number | string | null;
@@ -370,6 +380,10 @@ export function mapBoardBooking(row: SqlBoardRow): OpsBookingRow {
     pendingEditActor: str(row.edit_actor),
     pendingEditQuoteRappen: rappen(row.edit_quote_total),
     pendingEditExtraSessionId: str(row.extra_session_id),
+    // 26.2 P1: a class change waiting for the difference (name as the owner typed it, else the D-14 name).
+    pendingEditClass: str(row.edit_class_name).trim() || (row.edit_class_slug ? classDisplayName(str(row.edit_class_slug)) ?? str(row.edit_class_slug) : ""),
+    pendingEditDifferenceRappen: rappen(row.edit_extra_rappen),
+    pendingEditPayUntil: iso(row.edit_extra_expires_at),
     durationMin: minutes(row.duration_min, row.estimated_duration_minutes),
     distanceKm: kmOrNull(row.distance_km),
     couponCode: str(row.coupon_code).trim(),

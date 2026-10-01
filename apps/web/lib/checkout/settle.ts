@@ -72,6 +72,10 @@ export type SettleRow = {
   payment_id: number;
   charged_rappen: number;
   other_open_session_ids: string[];
+  /** 26.2 P1, kind=extra only: the paid change was applied (it may have ended before payment). */
+  applied?: boolean;
+  /** 26.2 P1, kind=extra only: the driver the applied class change took off the trip. */
+  unassigned_chauffeur_id?: string | null;
 };
 
 export type CaptureGate = {
@@ -138,6 +142,8 @@ export type SettleDeps = MoneyEventDeps & {
   deliverConfirmation: (row: SettleRow) => Promise<void>;
   /** 26.5-05: account from the checkout choice; a failure never changes the settle result. */
   provisionAccount?: (row: SettleRow) => Promise<unknown>;
+  /** 26.2 P1: the difference of a change was paid: confirmation again, driver taken off told. */
+  afterExtraApplied?: (row: SettleRow) => Promise<void>;
   /** D-22: Stripe-first refund for a settle branch that captured money but must not confirm the trip. */
   refund: (input: RefundInput) => Promise<{ id: string }>;
   /** Records the refund decision (idempotent on stripeRefundId) after `refund` succeeds. */
@@ -456,6 +462,13 @@ export async function handleStripeMessageWithDeps(
       } catch {
         deps.emit("error", "account_provision_failed", { bookingId: row.booking_id });
       }
+    } else if (!row.already_settled && extra && row.applied === true) {
+      // 26.2 P1 (D6, D7): the paid change is applied; the mails never turn the settle into a retry.
+      try {
+        await deps.afterExtraApplied?.(row);
+      } catch {
+        deps.emit("error", "change_mail_failed", { bookingId: row.booking_id });
+      }
     }
 
     // D-21/D-22: whoever settled first must expire every other still-open
@@ -590,6 +603,8 @@ export async function handleStripeMessage(
           other_open_session_ids: Array.isArray(row.other_open_session_ids)
             ? row.other_open_session_ids.map((id: unknown) => String(id))
             : [],
+          applied: row.applied === true,
+          unassigned_chauffeur_id: row.unassigned_chauffeur_id ? String(row.unassigned_chauffeur_id) : null,
         };
       } catch (err) {
         if (extra && sqlState(err) === "23P01") {
@@ -611,6 +626,11 @@ export async function handleStripeMessage(
       });
     },
     deliverConfirmation: (row) => deliverConfirmation(env, row),
+    // 26.2 P1: loaded on use, so the webhook path loads the class-change mails only when needed.
+    afterExtraApplied: async (row) => {
+      const { afterExtraSettled } = await import("../ops/booking-change");
+      await afterExtraSettled(env, row);
+    },
     provisionAccount: (row) => provisionCheckoutAccount(row, provisionDeps(env, emit)),
     refund: async (input) => {
       const refund = await createRefund(stripe, {

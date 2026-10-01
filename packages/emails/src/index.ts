@@ -1,6 +1,12 @@
 export { ConfirmationEmail } from "./ConfirmationEmail";
 export { PayLinkEmail, payLinkPlainText, payLinkSubject } from "./PayLinkEmail";
 export {
+  ClassChangePayEmail,
+  classChangePayCopy,
+  classChangePayPlainText,
+  classChangePaySubject,
+} from "./ClassChangePayEmail";
+export {
   ChauffeurAssignEmail,
   chauffeurAssignPlainText,
   chauffeurAssignSubject,
@@ -62,6 +68,7 @@ export type { ReviewRequestForEmail } from "./ReviewRequestEmail";
 export {
   sendConfirmation,
   sendPayLink,
+  sendClassChangePay,
   sendPriceChanged,
   sendExpired,
   sendRefund,
@@ -90,6 +97,7 @@ export type {
 export { buildInvite } from "./lib/ics";
 export type {
   BookingForEmail,
+  ClassChangePayForEmail,
   EmailExtraLine,
   EmailLocale,
   EmailMoney,

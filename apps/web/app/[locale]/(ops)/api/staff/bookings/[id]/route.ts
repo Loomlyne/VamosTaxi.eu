@@ -129,7 +129,7 @@ export const PATCH = withStaff(async (claims, request) => {
     pax: typeof record.pax === "number" ? record.pax : undefined,
     bags: typeof record.bags === "number" ? record.bags : undefined,
     flight: typeof record.flight === "string" ? record.flight : undefined,
-    klass: typeof record.klass === "string" ? record.klass : undefined,
+    // 26.2 P1: no class here — a class change goes through …/change, priced on the server.
   });
   if (!result.ok) {
     if (result.code === "unpaid") return jsonErr("unpaid", 409);

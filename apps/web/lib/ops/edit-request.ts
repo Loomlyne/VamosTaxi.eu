@@ -3,8 +3,11 @@
 // 08-07: paid-edit request + ops accept. Extra Checkout Session is the
 // fare difference only (D-67). Merge supersedes the previous requested row
 // and expires the old extra session when the amount changed (D-73).
-// Stripe-first difference refund uses 08-05 createRefund. Never asStaff INSERT
-// payments. Hyperdrive DIRECT only.
+// 26.2 P1: accept answers applied, refund_due or extra_required. A cheaper change is "Refund due"
+// for the admin's Refund click (refunds by hand): nothing goes to Stripe from here except the
+// Stripe page for a difference to pay. Accept needs the request id of a stored request: no
+// change is built from fields the browser sends. Never asStaff INSERT payments. Hyperdrive
+// DIRECT only.
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +25,6 @@ import {
 import { notifyFlightNumber, notifyTimeChange } from "@/lib/lifecycle/notify-lifecycle";
 import {
   createCheckoutSession,
-  createRefund,
   expireCheckoutSession,
   retrieveCheckoutSession,
   hostedSessionIsPayable,
@@ -51,7 +53,7 @@ export const DASHBOARD_ORIGIN = "https://dashboard.vamostaxi.site";
 
 export type EditAcceptOk = {
   ok: true;
-  outcome: "applied" | "extra_required" | "refund_immediate" | "refund_click";
+  outcome: "applied" | "extra_required" | "refund_due";
   requestId: string;
   bookingId: string;
   differenceRappen: number;
@@ -63,9 +65,8 @@ export type EditAcceptResult = EditAcceptOk | EditAcceptFail;
 export type AcceptPaidEditInput = {
   payload: EditPayload;
   requestId?: string;
-  quoteSnapshotId?: number;
+  /** Kept for the F14 guard only: a lock is not read by accept any more (26.2 P1). */
   lock?: string;
-  vehicleClassSlug?: string;
 };
 
 export type CustomerEditAuth =
@@ -102,18 +103,102 @@ function checkoutLocale(raw: string): CheckoutLocale {
   return "en";
 }
 
-async function resolveBookingId(
-  sql: Parameters<Parameters<typeof asSystem>[1]>[0],
-  key: string,
-): Promise<string | null> {
-  const rows = await sql<{ id: string }[]>`
-    select id
-      from public.bookings
-     where erased_at is null
-       and (id::text = ${key} or reference = ${key})
-     limit 1
-  `;
-  return rows[0]?.id ?? null;
+export type DifferencePaymentOk = { ok: true; sessionId: string; url: string | null };
+
+/**
+ * The Stripe page for the difference of a requested change (D-67, D-48: Stripe's hosted page).
+ * Reuses the open page of the request it replaced when the amount is the same, else expires it;
+ * opens 24 h; stores the page id on the request. 26.2 P1 calls this after the admin's dearer
+ * class change; the dashboard's Accept calls it for a customer request.
+ */
+export async function openDifferencePayment(
+  env: CloudflareEnv,
+  args: {
+    requestId: string;
+    bookingId: string;
+    differenceRappen: number;
+    oldSessionId: string | null;
+    oldExtraSnapshotId: number | null;
+    dashboardOrigin: string;
+  },
+): Promise<DifferencePaymentOk | EditAcceptFail> {
+  const difference = fareDifferenceRappen(args.differenceRappen, 0);
+  if (difference <= 0) return { ok: false, code: "unknown" };
+
+  const stripe = stripeFromEnv(env);
+  let reuse: { id: string; url: string | null } | null = null;
+  const oldSessionId = args.oldSessionId;
+  let oldExtraTotal: number | null = null;
+  if (args.oldExtraSnapshotId != null) {
+    oldExtraTotal = await loadEditSnapshotTotal(env, args.oldExtraSnapshotId);
+  }
+
+  if (oldSessionId && !shouldExpireOldExtraSession(oldExtraTotal, difference)) {
+    try {
+      const existing = await retrieveCheckoutSession(stripe, oldSessionId);
+      if (hostedSessionIsPayable(existing, difference)) {
+        reuse = { id: oldSessionId, url: existing?.url ?? null };
+      }
+    } catch {
+      reuse = null;
+    }
+  }
+
+  if (oldSessionId && reuse?.id !== oldSessionId) {
+    try {
+      await expireCheckoutSession(stripe, oldSessionId);
+    } catch {
+      // Already expired / consumed — merge still proceeds with one extra payment.
+    }
+  }
+
+  let session = reuse;
+  if (!session) {
+    const booking = await loadEditBookingContact(env, args.bookingId);
+    if (!booking) return { ok: false, code: "not-found" };
+    const email = String(booking.contact_email ?? "").trim();
+    if (!email) return { ok: false, code: "not-found" };
+    const reference = String(booking.reference);
+    const locale = checkoutLocale(String(booking.locale ?? "en"));
+    const meta = extraCheckoutMetadata(args.bookingId, args.requestId);
+    try {
+      const created = await createCheckoutSession(stripe, {
+        chargedRappen: difference,
+        bookingId: meta.booking_id,
+        bookingReference: reference,
+        customerEmail: email,
+        locale,
+        idempotencyKey: `extra:${args.requestId}:${difference}`,
+        // D4 (owner, 2026-09-30): the difference can be paid for 24 hours.
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        // D-48: Stripe's hosted page, no card form of ours. Paid returns through
+        // the settle route to the confirmation; Back returns to the ops booking.
+        uiMode: "hosted_page",
+        successUrl: stripeCheckoutReturnUrl(PUBLIC_SITE_ORIGIN, locale),
+        cancelUrl: `${args.dashboardOrigin.replace(/\/$/, "")}/bookings/${encodeURIComponent(reference)}`,
+        productName: "Fare difference",
+        extra: { extraId: meta.extra_id },
+      });
+      session = { id: created.id, url: created.url ?? null };
+    } catch {
+      return { ok: false, code: "stripe-failed" };
+    }
+  }
+
+  try {
+    await asSystem(env, async (sql) => {
+      await sql`
+        select public.booking_edit_request_set_extra_session(
+          ${args.requestId}::uuid,
+          ${session.id}::text
+        )
+      `;
+    });
+  } catch (err) {
+    return mapEditSqlError(err);
+  }
+
+  return { ok: true, sessionId: session.id, url: session.url };
 }
 
 export async function acceptPaidEdit(
@@ -131,85 +216,14 @@ export async function acceptPaidEdit(
     return { ok: false, code: "temporarily_unavailable" };
   }
 
+  // 26.2 P1 (lead note 3): only a stored request is accepted. A change the admin makes himself
+  // goes through the class-change route (lib/ops/booking-change.ts), priced on the server.
+  const requestId = (input.requestId ?? "").trim();
+  if (!requestId) return { ok: false, code: "invalid-body" };
+
   const secret = env.STRIPE_SECRET_KEY ?? "";
   if (secret.startsWith("sk_live_")) {
     return { ok: false, code: "stripe-test-only" };
-  }
-
-  type UpsertRow = {
-    request_id: string;
-    superseded_id: string | null;
-    old_extra_session_id: string | null;
-    old_extra_snapshot_id: number | null;
-  };
-
-  let upsert: UpsertRow | null = null;
-  let requestId = (input.requestId ?? "").trim();
-
-  if (!requestId) {
-    try {
-      upsert = await asSystem(env, async (sql) => {
-        const bookingId = await resolveBookingId(sql, key);
-        if (!bookingId) throw Object.assign(new Error("not-found"), { code: "P0002" });
-
-        let quoteSnapshotId = input.quoteSnapshotId ?? 0;
-        if (!Number.isFinite(quoteSnapshotId) || quoteSnapshotId <= 0) {
-          let newTotal: number | null = null;
-          let quoteId: string | null = null;
-          const lockToken = (input.lock ?? "").trim();
-          if (lockToken) {
-            const current = env.QUOTE_LOCK_SECRET ?? "";
-            const previous = env.QUOTE_LOCK_SECRET_PREVIOUS;
-            const verified = await verifyLock(
-              previous ? { current, previous } : { current },
-              lockToken,
-              new Date().toISOString(),
-            );
-            if (!verified.ok) throw Object.assign(new Error("not-found"), { code: "P0002" });
-            const slug = (input.vehicleClassSlug ?? input.payload.vehicle_class_slug ?? "economy")
-              .trim()
-              .toLowerCase();
-            const row = verified.payload.class_totals.find((c) => c.slug === slug);
-            if (row?.total_rappen == null) throw Object.assign(new Error("not-found"), { code: "P0002" });
-            newTotal = Number(row.total_rappen);
-            quoteId = verified.payload.quote_id;
-          }
-          const cloned = await sql<{ id: number }[]>`
-            select public.booking_edit_clone_quote_snapshot(
-              ${bookingId}::uuid,
-              ${newTotal}::rappen,
-              ${quoteId}::uuid
-            ) as id
-          `;
-          quoteSnapshotId = Number(cloned[0]?.id ?? 0);
-        }
-        if (!Number.isFinite(quoteSnapshotId) || quoteSnapshotId <= 0) {
-          throw Object.assign(new Error("not-found"), { code: "P0002" });
-        }
-
-        const rows = await sql<UpsertRow[]>`
-          select * from public.booking_edit_request_upsert(
-            ${bookingId}::uuid,
-            'staff',
-            ${claims.sub}::uuid,
-            ${JSON.stringify(input.payload)}::jsonb,
-            ${quoteSnapshotId}::bigint
-          )
-        `;
-        const row = rows[0];
-        if (!row) throw Object.assign(new Error("not-found"), { code: "P0002" });
-        return {
-          request_id: String(row.request_id),
-          superseded_id: row.superseded_id ? String(row.superseded_id) : null,
-          old_extra_session_id: row.old_extra_session_id ? String(row.old_extra_session_id) : null,
-          old_extra_snapshot_id:
-            row.old_extra_snapshot_id == null ? null : Number(row.old_extra_snapshot_id),
-        };
-      });
-      requestId = upsert.request_id;
-    } catch (err) {
-      return mapEditSqlError(err);
-    }
   }
 
   type AcceptRow = {
@@ -219,9 +233,6 @@ export async function acceptPaidEdit(
     difference_rappen: number;
     extra_snapshot_id: number | null;
     extra_session_id: string | null;
-    hours_before: number | null;
-    original_payment_id: number | null;
-    original_intent_id: string | null;
   };
 
   let accepted: AcceptRow;
@@ -242,9 +253,6 @@ export async function acceptPaidEdit(
         difference_rappen: Number(row.difference_rappen),
         extra_snapshot_id: row.extra_snapshot_id == null ? null : Number(row.extra_snapshot_id),
         extra_session_id: row.extra_session_id ? String(row.extra_session_id) : null,
-        hours_before: row.hours_before == null ? null : Number(row.hours_before),
-        original_payment_id: row.original_payment_id == null ? null : Number(row.original_payment_id),
-        original_intent_id: row.original_intent_id ? String(row.original_intent_id) : null,
       };
     });
   } catch (err) {
@@ -259,66 +267,10 @@ export async function acceptPaidEdit(
     return mapped;
   }
 
-  if (accepted.outcome === "applied") {
+  if (accepted.outcome === "applied" || accepted.outcome === "refund_due") {
     return {
       ok: true,
-      outcome: "applied",
-      requestId: accepted.request_id,
-      bookingId: accepted.booking_id,
-      differenceRappen: 0,
-      extraSessionId: null,
-    };
-  }
-
-  if (accepted.outcome === "refund_click") {
-    return {
-      ok: true,
-      outcome: "refund_click",
-      requestId: accepted.request_id,
-      bookingId: accepted.booking_id,
-      differenceRappen: accepted.difference_rappen,
-      extraSessionId: null,
-    };
-  }
-
-  if (accepted.outcome === "refund_immediate") {
-    const refundRappen = Math.abs(accepted.difference_rappen);
-    if (refundRappen <= 0 || !accepted.original_intent_id) {
-      return { ok: false, code: "unknown" };
-    }
-    let refundId = "";
-    try {
-      const stripe = stripeFromEnv(env);
-      const refund = await createRefund(stripe, {
-        paymentIntentId: accepted.original_intent_id,
-        amountRappen: refundRappen,
-        idempotencyKey: `edit-refund:${accepted.request_id}:${refundRappen}`,
-        bookingId: accepted.booking_id,
-        paymentId: accepted.original_payment_id ?? 0,
-        reason: "modification_credit",
-      });
-      if (!refund?.id) return { ok: false, code: "stripe-failed" };
-      refundId = refund.id;
-    } catch {
-      return { ok: false, code: "stripe-failed" };
-    }
-    try {
-      await asSystem(env, async (sql) => {
-        await sql`
-          select * from public.booking_edit_refund_record(
-            ${accepted.request_id}::uuid,
-            ${refundId}::text,
-            ${claims.sub}::uuid,
-            ${refundRappen}::rappen
-          )
-        `;
-      });
-    } catch (err) {
-      return mapEditSqlError(err);
-    }
-    return {
-      ok: true,
-      outcome: "refund_immediate",
+      outcome: accepted.outcome,
       requestId: accepted.request_id,
       bookingId: accepted.booking_id,
       differenceRappen: accepted.difference_rappen,
@@ -330,88 +282,23 @@ export async function acceptPaidEdit(
     return { ok: false, code: "unknown" };
   }
 
-  const difference = fareDifferenceRappen(accepted.difference_rappen, 0);
-  if (difference <= 0) return { ok: false, code: "unknown" };
-
-  const stripe = stripeFromEnv(env);
-  let reuseSessionId: string | null = null;
-  const oldSessionId = upsert?.old_extra_session_id ?? null;
-  let oldExtraTotal: number | null = null;
-  if (upsert?.old_extra_snapshot_id != null) {
-    oldExtraTotal = await loadEditSnapshotTotal(env, upsert.old_extra_snapshot_id);
-  }
-
-  if (oldSessionId && !shouldExpireOldExtraSession(oldExtraTotal, difference)) {
-    try {
-      const existing = await retrieveCheckoutSession(stripe, oldSessionId);
-      if (hostedSessionIsPayable(existing, difference)) {
-        reuseSessionId = oldSessionId;
-      }
-    } catch {
-      reuseSessionId = null;
-    }
-  }
-
-  if (oldSessionId && reuseSessionId !== oldSessionId) {
-    try {
-      await expireCheckoutSession(stripe, oldSessionId);
-    } catch {
-      // Already expired / consumed — merge still proceeds with one extra payment.
-    }
-  }
-
-  let extraSessionId = reuseSessionId;
-  if (!extraSessionId) {
-    const booking = await loadEditBookingContact(env, accepted.booking_id);
-    if (!booking) return { ok: false, code: "not-found" };
-    const email = String(booking.contact_email ?? "").trim();
-    if (!email) return { ok: false, code: "not-found" };
-    const reference = String(booking.reference);
-    const locale = checkoutLocale(String(booking.locale ?? "en"));
-    const meta = extraCheckoutMetadata(accepted.booking_id, accepted.request_id);
-    try {
-      const session = await createCheckoutSession(stripe, {
-        chargedRappen: difference,
-        bookingId: meta.booking_id,
-        bookingReference: reference,
-        customerEmail: email,
-        locale,
-        idempotencyKey: `extra:${accepted.request_id}:${difference}`,
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-        // D-48: Stripe's hosted page, no card form of ours. Paid returns through
-        // the settle route to the confirmation; Back returns to the ops booking.
-        uiMode: "hosted_page",
-        successUrl: stripeCheckoutReturnUrl(PUBLIC_SITE_ORIGIN, locale),
-        cancelUrl: `${dashboardOrigin.replace(/\/$/, "")}/bookings/${encodeURIComponent(reference)}`,
-        productName: "Fare difference",
-        extra: { extraId: meta.extra_id },
-      });
-      extraSessionId = session.id;
-    } catch {
-      return { ok: false, code: "stripe-failed" };
-    }
-  }
-
-  try {
-    await asSystem(env, async (sql) => {
-      await sql`
-        select public.booking_edit_request_set_extra_session(
-          ${accepted.request_id}::uuid,
-          ${extraSessionId}::text
-        )
-      `;
-    });
-  } catch (err) {
-    return mapEditSqlError(err);
-  }
+  const opened = await openDifferencePayment(env, {
+    requestId: accepted.request_id,
+    bookingId: accepted.booking_id,
+    differenceRappen: accepted.difference_rappen,
+    oldSessionId: accepted.extra_session_id,
+    oldExtraSnapshotId: null,
+    dashboardOrigin,
+  });
+  if (!opened.ok) return opened;
 
   return {
     ok: true,
     outcome: "extra_required",
     requestId: accepted.request_id,
     bookingId: accepted.booking_id,
-    differenceRappen: difference,
-    extraSessionId,
+    differenceRappen: fareDifferenceRappen(accepted.difference_rappen, 0),
+    extraSessionId: opened.sessionId,
   };
 }
 
@@ -500,12 +387,14 @@ export async function requestCustomerPaidEdit(
         throw Object.assign(new Error("not-found"), { code: "P0002" });
       }
 
+      // 26.2 P1: a JSON parameter, not `JSON.stringify(...)::jsonb` — through the Worker's client
+      // that text arrives as a JSON string and the payload check refused every request (23514).
       const rows = await sql<UpsertRow[]>`
         select * from public.booking_edit_request_upsert(
           ${owned.id}::uuid,
           'customer',
           ${actorId}::uuid,
-          ${JSON.stringify(input.payload)}::jsonb,
+          ${sql.json(input.payload as Parameters<typeof sql.json>[0])},
           ${quoteSnapshotId}::bigint
         )
       `;

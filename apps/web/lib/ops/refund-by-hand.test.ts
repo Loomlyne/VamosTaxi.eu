@@ -369,6 +369,30 @@ describe("amount rules in the Worker (20-10 section E)", () => {
     expect(one).toMatchObject({ ok: true, refundStatus: "pending_ops", dueRappen: 10000 });
   });
 
+  it("26.2 P1 credit tier: a cheaper class on a live booking refunds exactly what is due, never a percentage", async () => {
+    staff = state({ status: "confirmed", owed: 300, pays: [{ id: 1, charged: 10000 }] });
+    const { refundBooking, loadRefundPicker } = await import("./refund");
+    expect(await refundBooking(ENV, CLAIMS, "VT-26-0101", { percent: 100 })).toEqual({ ok: false, code: "invalid-amount" });
+    expect(await refundBooking(ENV, CLAIMS, "VT-26-0101", { amountRappen: 301 })).toEqual({
+      ok: false,
+      code: "refund-exceeds-remaining",
+    });
+    expect(calls).toEqual([]);
+    expect(await loadRefundPicker(ENV, CLAIMS, "VT-26-0101")).toMatchObject({ fullTier: false, creditTier: true, dueRappen: 300 });
+    planRows = [intent(13, 1, 300)];
+    sentImpl = () => [sentRow(300, 300, 0, { refund_status: "none" })];
+    expect(await refundBooking(ENV, CLAIMS, "VT-26-0101", {})).toMatchObject({ ok: true, refundStatus: "none" });
+    // No percent, no amount: the database plans exactly the amount due (credit tier).
+    expect((planArgs as unknown[])[3]).toBeNull();
+    expect((planArgs as unknown[])[6]).toBeNull();
+  });
+
+  it("a cancelled booking with an amount owed stays full tier (not credit)", async () => {
+    staff = state({ status: "cancelled", owed: 300, pays: [{ id: 1, charged: 300 }] });
+    const { loadRefundPicker } = await import("./refund");
+    expect(await loadRefundPicker(ENV, CLAIMS, "VT-26-0101")).toMatchObject({ fullTier: true, creditTier: false });
+  });
+
   it("the review tier (owed null) still takes a lower percent", async () => {
     staff = state({ owed: null, pays: [{ id: 1, charged: 10000 }] });
     planRows = [intent(11, 1, 4000)];
@@ -421,6 +445,7 @@ describe("loadRefundPicker (GET)", () => {
       dueRappen: 2000,
       refundStatus: "pending_ops",
       fullTier: true,
+      creditTier: false,
     });
   });
 });

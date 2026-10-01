@@ -842,6 +842,30 @@ export async function loadDraftQuoteBookDoc(
       `;
       return fallback[0]?.result ?? null;
     }
+    return quoteBookDocById(tx, draftId);
+  });
+}
+
+/**
+ * 26.2 P1: the price book document (quote_rate_book shape) of one rate version, live, draft or
+ * retired, read as staff. The class-change price step reproduces a booking's charge with the
+ * book its price record was made with.
+ */
+export async function loadQuoteBookDocForVersion(
+  env: CloudflareEnv,
+  claims: VamosClaims,
+  versionId: number,
+): Promise<unknown> {
+  return asStaff(env, claims, (tx) => quoteBookDocById(tx, versionId));
+}
+
+async function quoteBookDocById(
+  tx: Parameters<Parameters<typeof asStaff>[2]>[0],
+  versionId: number | string,
+): Promise<unknown> {
+  {
+    // One block kept so the document query below stays byte-for-byte what the draft preview read.
+    const draftId = versionId;
     const rows = await tx<{ result: unknown }[]>`
       select jsonb_build_object(
         'rate_version', jsonb_build_object(
@@ -898,7 +922,7 @@ export async function loadDraftQuoteBookDoc(
        limit 1
     `;
     return rows[0]?.result ?? null;
-  });
+  }
 }
 
 /**
