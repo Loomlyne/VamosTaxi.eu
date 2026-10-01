@@ -118,7 +118,7 @@ as a branch, then the folder, its Docker stack and build output are removed the 
 | Vamos Taxi SEO and browser settings | `site-speed`, `seo-head-2` | `fix/site-speed`, `fix/seo-head-followup` | running / parked |
 | Meta measurement phases 27-29 | `phase-27` | `gsd/phase-27-consent-record` | running; stack `vamos-taxi-270` stopped |
 | Phase 26.2 audit | `phase-26.2`, `phase-26.2-u13` | `gsd/phase-26.2-audit`, `gsd/phase-26.2-u13` | waiting for 26.5; stack `vamos-taxi-262` stopped |
-| Vamos Taxi security phase | `phase-20` (slimmed, reinstall needed) | `gsd/phase-20-security-check` | idle; stack `vamos-taxi-20` stopped |
+| Vamos Taxi security phase | none | all seven branches on GitHub | all Phase 20 batches live; session at its limit; open for the owner: refund UAT then the live-key proof, e-mail change bug, edit-accept by any staff, after-trip refund switch |
 | Phase 26.0 main green completion (started 23:43) | `main-green-2` | `fix/main-green-2` | merging main, then plans 10 to 12 |
 
 Removed on 2026-09-30, every tip on GitHub as a branch or an `archive/*` tag: 13 shipped folders,
