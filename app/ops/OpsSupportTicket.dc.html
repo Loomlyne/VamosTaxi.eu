@@ -599,7 +599,7 @@ class Component extends DCLogic {
   persistTicket = (id, payload, onFail, onOk) => {
     const api = window.VamosOpsApi;
     if (!api || typeof api.request !== 'function' || !id) return;
-    api.request('PATCH', '/api/staff/tickets/' + id, payload).then((json) => {
+    api.request('PATCH', '/api/staff/tickets/' + encodeURIComponent(id), payload).then((json) => {
       if (json && json.ok) {
         if (typeof onOk === 'function') onOk();
         this.setState({ overlayError: false });
