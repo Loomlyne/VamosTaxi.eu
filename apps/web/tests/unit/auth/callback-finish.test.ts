@@ -64,6 +64,19 @@ describe("confirm button, account that must finish", () => {
     expect(target.searchParams.get("returnTo")).toBe(co);
   });
 
+  it("a password-reset link keeps its own page", async () => {
+    const e = await sealAddress("mia@example.com", "abc", SECRET);
+    const res = await POST(
+      new Request("https://vamostaxi.site/api/auth/callback", {
+        method: "POST",
+        headers: { "content-type": "application/json", origin: "https://vamostaxi.site" },
+        body: JSON.stringify({ token_hash: "abc", type: "recovery", e, next: "/reset-password" }),
+      }),
+    );
+    expect(((await res.json()) as { target: string }).target).toBe("/reset-password");
+    expect(db.asked).toEqual([]);
+  });
+
   it("a finished account goes where it was going", async () => {
     db.finish = false;
     expect(await press({ next: "/account" })).toEqual({ ok: true, target: "/account" });

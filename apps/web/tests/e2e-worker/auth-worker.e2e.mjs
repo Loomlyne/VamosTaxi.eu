@@ -115,7 +115,7 @@ const rowsAfter = users(A);
 const hasVerifier = jarA.has(/code-verifier/);
 const agrA = sql(`select count(*) from public.account_agreement_records where lower(email)=lower('${A}') and surface='sign-up' and choice='create' and record_kind='consent' and text_version='2026-09-29' and locale='de'`);
 let link = mail && linkOf(mail);
-rec("1a signup: response + mail + auth.users row + one agreement record + optional phone kept (27.1)", !!mail && rowsAfter === 1 && agrA === "1" && agreements(A) === 1 && meta(A, "phone") === "+41 79 000 00 00", `${su}; mail=${!!mail}; auth.users=${rowsAfter}; code-verifier cookie=${hasVerifier}; agreement rows=${agreements(A)} matching=${agrA}; phone kept=${meta(A, "phone") === "+41 79 000 00 00"}`);
+rec("1a signup: response + mail + auth.users row + one agreement record + optional phone kept on the account and the customer row (27.1)", !!mail && rowsAfter === 1 && agrA === "1" && agreements(A) === 1 && meta(A, "phone") === "+41790000000" && sql(`select phone from public.customers where email='${A}'`) === "+41790000000", `${su}; mail=${!!mail}; auth.users=${rowsAfter}; code-verifier cookie=${hasVerifier}; agreement rows=${agreements(A)} matching=${agrA}; phone kept=${meta(A, "phone") === "+41790000000"}; customer phone=${sql(`select phone from public.customers where email='${A}'`) === "+41790000000"}`);
 if (link) {
   const f = await follow(link, jarA);
   const s = await session(jarA);
@@ -149,14 +149,16 @@ if (link) { const f = await follow(link, jar3); s = await session(jar3);
   const known3 = r; // check 3's request for the known address A
   const UL = `e2e-newlink-${Date.now()}@example.com`;
   const seen3b = before();
+  const t3b = Date.now();
   const r3b = await auth({ mode: "signin", method: "magic", email: UL }, new Jar(), { ip: newIp() });
+  const ms3b = Date.now() - t3b;
   const mail3b = await newMail(seen3b, 8000);
   const link3b = mail3b && linkOf(mail3b);
   const sealed = !!link3b && /\/sign-in\/confirm\?/.test(link3b) && new URL(link3b).searchParams.has("e") && !/\/auth\/v1\/verify/.test(mail3b);
   rec("3b sign-in link for a new address: same answer as a known one, a sealed confirm mail, one unconfirmed account, no record (27 D-37)",
     r3b.status === known3.status && JSON.stringify(r3b.json) === JSON.stringify(known3.json) && sealed && users(UL) === 1 && agreements(UL) === 0
-      && sql(`select count(*) from auth.users where email='${UL}' and email_confirmed_at is null`) === "1",
-    `status ${r3b.status} vs known ${known3.status}; body equal=${JSON.stringify(r3b.json) === JSON.stringify(known3.json)}; mail=${!!mail3b} sealed confirm link=${sealed}; auth.users=${users(UL)}; agreement rows=${agreements(UL)}`);
+      && sql(`select count(*) from auth.users where email='${UL}' and email_confirmed_at is null`) === "1" && ms3b >= 1200,
+    `took ${ms3b} ms; status ${r3b.status} vs known ${known3.status}; body equal=${JSON.stringify(r3b.json) === JSON.stringify(known3.json)}; mail=${!!mail3b} sealed confirm link=${sealed}; auth.users=${users(UL)}; agreement rows=${agreements(UL)}`);
 
   const jarL = new Jar();
   let f3 = link3b ? await follow(link3b, jarL) : { hops: [], final: "" };
@@ -175,9 +177,10 @@ if (link) { const f = await follow(link, jar3); s = await session(jar3);
   const s3e = await sessionF(jarL);
   const again = await auth({ action: "finish-account", firstName: "Mia", lastName: "Keller", consent: true }, jarL, { ip: newIp() });
   rec("3e finish with the tick: exactly one sign-up record, names and phone saved, finished; a second press writes nothing",
-    r3e.status === 200 && r3e.json?.ok === true && row3e === "1" && agreements(UL) === 1 && meta(UL, "full_name") === "Mia Keller" && meta(UL, "phone") === "+41 79 000 00 00"
+    r3e.status === 200 && r3e.json?.ok === true && row3e === "1" && agreements(UL) === 1 && meta(UL, "full_name") === "Mia Keller" && meta(UL, "phone") === "+41790000000"
+      && sql(`select full_name || '|' || phone from public.customers where email='${UL}'`) === "Mia Keller|+41790000000"
       && s3e?.finishRequired === false && s3e?.signedIn === true && again.status === 200 && agreements(UL) === 1,
-    `${r3e.status} ${JSON.stringify(r3e.json)}; matching row=${row3e}; rows=${agreements(UL)}; full_name=${meta(UL, "full_name")}; phone kept=${meta(UL, "phone") === "+41 79 000 00 00"}; finishRequired=${s3e?.finishRequired}; second press ${again.status}, rows=${agreements(UL)}`);
+    `${r3e.status} ${JSON.stringify(r3e.json)}; matching row=${row3e}; rows=${agreements(UL)}; full_name=${meta(UL, "full_name")}; phone kept=${meta(UL, "phone") === "+41790000000"}; customer row=${sql(`select full_name || '|' || phone from public.customers where email='${UL}'`)}; finishRequired=${s3e?.finishRequired}; second press ${again.status}, rows=${agreements(UL)}`);
 
   await nap(1500);
   const UC = `e2e-newcode-${Date.now()}@example.com`;

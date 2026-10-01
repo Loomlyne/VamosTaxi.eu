@@ -147,3 +147,21 @@ describe("27.1 finish your account and the optional phone (27 D-37)", () => {
     }
   });
 });
+
+describe("27.1 finish step failures and the /bookings gate", () => {
+  const form = read("app/pages/AuthForm.dc.html");
+  it("a failed or lost finish never shows the 'check your email' screen", () => {
+    expect(form).toContain("if (mode === 'finish') return this.go({ stage: 'form', banner: 'save-failed' });");
+    expect(form).toContain("result.reason === 'no-user') return this.go({ mode: 'signin'");
+    expect(form).toContain(">Could not save. Try again.<");
+    expect(loadDict()["Could not save. Try again."]?.de).toBeTruthy();
+  });
+  it("names are capped at the server's 80 characters", () => {
+    expect(form.split('maxLength="{{ n80 }}"').length - 1).toBe(2);
+  });
+  it("/bookings sends an unfinished account to the finish step too", () => {
+    const list = read("app/pages/bookings.dc.html");
+    expect(list).toContain("fetch('/api/auth/session?finish=1'");
+    expect(list).toContain("s.finishRequired === true");
+  });
+});

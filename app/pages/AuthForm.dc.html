@@ -147,6 +147,9 @@ button,.vt-btn,.vt-iconbtn{box-shadow:none}
 <sc-if value="{{ bannerConfirmFail }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" role="alert" hint-size="100%,56px">Could not send the link. Try again.</x-import>
 </sc-if>
+<sc-if value="{{ bannerSaveFailed }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" role="alert" hint-size="100%,56px">Could not save. Try again.</x-import>
+</sc-if>
 <sc-if value="{{ bannerSendFailed }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" role="alert" hint-size="100%,56px">Could not send the link. Try again.</x-import>
 </sc-if>
@@ -163,8 +166,8 @@ button,.vt-btn,.vt-iconbtn{box-shadow:none}
 </sc-if>
 <sc-if value="{{ needName }}">
 <div data-af-2col="1" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="First name" type="text" size="lg" autoComplete="given-name" placeholder="Anna" value="{{ firstName }}" onChange="{{ setFirstName }}" error="{{ errFirst }}" hint-size="100%,84px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="Last name" type="text" size="lg" autoComplete="family-name" placeholder="Keller" value="{{ lastName }}" onChange="{{ setLastName }}" error="{{ errLast }}" hint-size="100%,84px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="First name" type="text" size="lg" autoComplete="given-name" maxLength="{{ n80 }}" placeholder="Anna" value="{{ firstName }}" onChange="{{ setFirstName }}" error="{{ errFirst }}" hint-size="100%,84px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" label="Last name" type="text" size="lg" autoComplete="family-name" maxLength="{{ n80 }}" placeholder="Keller" value="{{ lastName }}" onChange="{{ setLastName }}" error="{{ errLast }}" hint-size="100%,84px"></x-import>
 </div>
 </sc-if>
 <sc-if value="{{ needEmail }}" hint-placeholder-val="{{ true }}">
@@ -300,7 +303,7 @@ button,.vt-btn,.vt-iconbtn{box-shadow:none}
 </div>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:640},&quot;mode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;signin&quot;,&quot;signup&quot;,&quot;forgot&quot;,&quot;finish&quot;],&quot;default&quot;:&quot;signin&quot;,&quot;tsType&quot;:&quot;'signin'|'signup'|'forgot'|'finish'&quot;},&quot;method&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;password&quot;,&quot;magic&quot;],&quot;default&quot;:&quot;password&quot;,&quot;tsType&quot;:&quot;'password'|'magic'&quot;},&quot;stage&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;form&quot;,&quot;sent&quot;,&quot;verifying&quot;,&quot;returning&quot;],&quot;default&quot;:&quot;form&quot;,&quot;tsType&quot;:&quot;'form'|'sent'|'verifying'|'returning'&quot;},&quot;banner&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;&quot;,&quot;credentials&quot;,&quot;registered&quot;,&quot;expired&quot;,&quot;rate-limited&quot;,&quot;not-staff&quot;,&quot;unconfirmed&quot;,&quot;consent&quot;,&quot;send-failed&quot;],&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;'credentials'|'registered'|'expired'|'rate-limited'|'not-staff'|'unconfirmed'|'consent'|'send-failed'|null&quot;},&quot;email&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;firstName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;lastName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;frozen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;onState&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(s: {mode:string;method:string;stage:string;banner:string|null}) =&gt; void&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:640},&quot;mode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;signin&quot;,&quot;signup&quot;,&quot;forgot&quot;,&quot;finish&quot;],&quot;default&quot;:&quot;signin&quot;,&quot;tsType&quot;:&quot;'signin'|'signup'|'forgot'|'finish'&quot;},&quot;method&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;password&quot;,&quot;magic&quot;],&quot;default&quot;:&quot;password&quot;,&quot;tsType&quot;:&quot;'password'|'magic'&quot;},&quot;stage&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;form&quot;,&quot;sent&quot;,&quot;verifying&quot;,&quot;returning&quot;],&quot;default&quot;:&quot;form&quot;,&quot;tsType&quot;:&quot;'form'|'sent'|'verifying'|'returning'&quot;},&quot;banner&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;&quot;,&quot;credentials&quot;,&quot;registered&quot;,&quot;expired&quot;,&quot;rate-limited&quot;,&quot;not-staff&quot;,&quot;unconfirmed&quot;,&quot;consent&quot;,&quot;send-failed&quot;,&quot;save-failed&quot;],&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;'credentials'|'registered'|'expired'|'rate-limited'|'not-staff'|'unconfirmed'|'consent'|'send-failed'|'save-failed'|null&quot;},&quot;email&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;firstName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;lastName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;frozen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;onState&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(s: {mode:string;method:string;stage:string;banner:string|null}) =&gt; void&quot;}}">
 const REGISTERED = ['taken@vamostaxi.site'];
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i;
 function b64urlToBuf(s) {
@@ -588,10 +591,14 @@ class Component extends DCLogic {
   }
   applyLive(result, mode, method, skipEnroll) {
     if (!result) {
+      if (mode === 'finish') return this.go({ stage: 'form', banner: 'save-failed' });
       if (mode === 'signin' && method === 'password') return this.go({ banner: 'credentials' });
       return this.go({ stage: 'sent' });
     }
     if (!result.ok && result.reason === 'consent-required') return this.go({ stage: 'form', banner: null, consent: false, errors: { consent: true } });
+    /* 27.1: the finish step's own failures. A lost session is the ordinary sign-in again. */
+    if (mode === 'finish' && !result.ok && result.reason === 'no-user') return this.go({ mode: 'signin', method: 'password', stage: 'form', banner: null, email: '', consent: false });
+    if (mode === 'finish' && !result.ok && (result.reason === 'signup-unavailable' || result.reason === 'invalid')) return this.go({ stage: 'form', banner: 'save-failed' });
     if (!result.ok && result.reason === 'signup-unavailable') return this.go({ stage: 'form', banner: 'send-failed' });
     if (!result.ok) {
       const shown = this.reasonBanner(result.reason);
@@ -775,6 +782,7 @@ class Component extends DCLogic {
       bannerConfirmSent: isForm && banner === 'unconfirmed' && this.state.confirmSent,
       bannerConfirmFail: isForm && banner === 'unconfirmed' && this.state.confirmFailed,
       bannerCred: isForm && banner === 'credentials', bannerTaken: isForm && banner === 'registered',
+      bannerSaveFailed: isForm && banner === 'save-failed', n80: 80,
       ctaSignIn: isForm && mode === 'signin' && !isMagic,
       ctaSignUp: isForm && mode === 'signup' && !isMagic,
       ctaMagic: isForm && isMagic,

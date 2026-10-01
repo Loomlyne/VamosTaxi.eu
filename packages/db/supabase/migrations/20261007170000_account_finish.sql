@@ -6,8 +6,9 @@
 -- user id in a table the customer cannot write, so a later e-mail change, a checkout account or a
 -- sign-up account is never sent to the finish step.
 --
--- Additive only: one new table, three SECURITY DEFINER functions for vamos_system. No existing row,
--- table or function is changed.
+-- One new table and three SECURITY DEFINER functions for vamos_system. One existing function body
+-- grows by one column: the sign-up trigger now also copies the optional mobile number into
+-- public.customers.phone, so the dashboard and checkout see it. No existing row is changed.
 
 create table public.account_finish_pending (
   user_id      pg_catalog.uuid primary key references auth.users (id) on delete cascade,
@@ -45,29 +46,77 @@ as $$
     select 1 from public.account_finish_pending as p
      where p.user_id = p_user_id
        and p.finished_at is null
+       and not exists (select 1 from public.staff as st where st.user_id = p_user_id)
   )
 $$;
 
-create or replace function public.account_finish_done(p_user_id pg_catalog.uuid)
+-- The finish step stored the tick: the account is finished, and the name and the optional mobile
+-- number go onto the customer row (the dashboard's customer list and checkout's prefill read it).
+-- An empty p_phone keeps the row's phone.
+create or replace function public.account_finish_done(
+  p_user_id   pg_catalog.uuid,
+  p_full_name pg_catalog.text,
+  p_phone     pg_catalog.text
+)
 returns void
 language sql volatile security definer set search_path = ''
 as $$
   update public.account_finish_pending
      set finished_at = pg_catalog.now()
    where user_id = p_user_id
-     and finished_at is null
+     and finished_at is null;
+  update public.customers
+     set full_name = pg_catalog.left(pg_catalog.btrim(coalesce(p_full_name, '')), 161),
+         phone = coalesce(nullif(pg_catalog.btrim(coalesce(p_phone, '')), ''), phone),
+         updated_at = pg_catalog.now()
+   where user_id = p_user_id
+     and erased_at is null
+     and pg_catalog.btrim(coalesce(p_full_name, '')) <> '';
 $$;
 
 revoke all on function public.account_finish_mark(pg_catalog.text) from public;
 revoke all on function public.account_finish_required(pg_catalog.uuid) from public;
-revoke all on function public.account_finish_done(pg_catalog.uuid) from public;
+revoke all on function public.account_finish_done(pg_catalog.uuid, pg_catalog.text, pg_catalog.text) from public;
 grant execute on function public.account_finish_mark(pg_catalog.text) to vamos_system;
 grant execute on function public.account_finish_required(pg_catalog.uuid) to vamos_system;
-grant execute on function public.account_finish_done(pg_catalog.uuid) to vamos_system;
+grant execute on function public.account_finish_done(pg_catalog.uuid, pg_catalog.text, pg_catalog.text) to vamos_system;
 
 comment on function public.account_finish_mark(pg_catalog.text) is
   'Phase 27.1: marks the unconfirmed account the public sign-in link just made (last 10 minutes) as having to finish. vamos_system only.';
 comment on function public.account_finish_required(pg_catalog.uuid) is
   'Phase 27.1: true while an account the sign-in link made has not finished. Boolean only. vamos_system only.';
-comment on function public.account_finish_done(pg_catalog.uuid) is
-  'Phase 27.1: the finish step stored the account tick; the account is finished. vamos_system only.';
+comment on function public.account_finish_done(pg_catalog.uuid, pg_catalog.text, pg_catalog.text) is
+  'Phase 27.1: the finish step stored the account tick; the account is finished and its name and optional phone are copied onto public.customers. vamos_system only.';
+
+-- ---------------------------------------------------------------------------
+-- The sign-up trigger also copies the optional mobile number (27.1). Same body as
+-- 20260828000001 plus the phone column on insert; the conflict branch is unchanged.
+-- ---------------------------------------------------------------------------
+create or replace function public.tg_link_customer_on_signup()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $fn$
+begin
+  -- new.email on auth.users is text; public.customers.email is extensions.citext.
+  -- The implicit cast is what makes the conflict target match case-insensitively,
+  -- which is the mechanism D-07 relies on to link a guest row created from a
+  -- differently-cased checkout email.
+  insert into public.customers (user_id, email, full_name, phone)
+  values (
+    new.id,
+    new.email,
+    coalesce(new.raw_user_meta_data->>'full_name', ''),
+    pg_catalog.left(pg_catalog.btrim(coalesce(new.raw_user_meta_data->>'phone', '')), 32)
+  )
+  on conflict (email) where erased_at is null
+  do update
+    set user_id = excluded.user_id,
+        updated_at = pg_catalog.now()
+    where public.customers.user_id is null;
+  return new;
+end;
+$fn$;
+
+revoke all on function public.tg_link_customer_on_signup() from public;

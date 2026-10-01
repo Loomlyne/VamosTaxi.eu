@@ -8,7 +8,7 @@ import { checkWriteRateLimit } from "@/lib/abuse/rate-limit";
 import { holdCheckoutFloor, sendCheckoutSignInLink } from "@/lib/auth/checkout-sign-in";
 import { CONSENT_REQUIRED, SIGNUP_UNAVAILABLE, recordSignupAgreement, signupConsentGiven } from "@/lib/auth/signup-agreement";
 import { finishAccount } from "@/lib/auth/account-finish";
-import { markFinished, markFinishPending, mustFinish } from "@/lib/auth/finish-target";
+import { finishRequiredStrict, markFinished, markFinishPending, mustFinish } from "@/lib/auth/finish-target";
 import { readCheckoutAccountUserState } from "@/lib/db/system-reads";
 import { log } from "@/lib/logger";
 import { verifyTurnstile } from "@/lib/turnstile";
@@ -205,7 +205,7 @@ export async function POST(request: Request): Promise<Response> {
   };
 
   /** One more bucket per e-mail address (code checks and confirmation re-sends). Fail-open like the IP one. */
-  const perAddressAllowed = async (kind: "code" | "resend" | "checkout", email: string): Promise<boolean> => {
+  const perAddressAllowed = async (kind: "code" | "resend" | "checkout" | "link", email: string): Promise<boolean> => {
     if (!env.AUTH_RATE_LIMITER) return true;
     try {
       const out = await env.AUTH_RATE_LIMITER.limit({ key: `auth-${kind}:${email.toLowerCase()}` });
@@ -317,9 +317,9 @@ export async function POST(request: Request): Promise<Response> {
           const { data, error } = await supabase.auth.getUser();
           return error || !data.user ? null : { id: data.user.id, email: data.user.email ?? null };
         },
-        finishRequired: (userId) => mustFinish(env, userId, ctx),
+        finishRequired: (userId) => finishRequiredStrict(env, userId, ctx),
         record: (email) => recordSignupAgreement(env, { email, locale, headers: request.headers }),
-        markDone: (userId) => markFinished(env, userId, ctx),
+        markDone: (userId, profile) => markFinished(env, userId, profile, ctx),
         updateProfile: async (data) => {
           const { error } = await supabase.auth.updateUser({ data });
           return error ? (error.code ?? "auth-failed") : null;
@@ -670,6 +670,11 @@ export async function POST(request: Request): Promise<Response> {
       if (!(await recordSignupAgreement(env, { email: parsed.data.email, locale, headers: request.headers }))) {
         return json(SIGNUP_UNAVAILABLE, 503);
       }
+    }
+    // 27.1: the sign-in link can now make an account, so it gets the same per-address limit as the
+    // other mail sends (same answer for every address; a 429 says nothing about the address).
+    if (parsed.data.mode === "signin" && !dashboard && !(await perAddressAllowed("link", parsed.data.email))) {
+      return json(RATE_LIMITED, 429);
     }
     // 27.1: did this address have an account before the link? Only a new one is marked to finish.
     let newAddress = false;

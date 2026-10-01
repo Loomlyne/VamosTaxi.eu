@@ -204,7 +204,12 @@ export const markAccountFinishPending = async (env: CloudflareEnv, email: string
   await asSystem(env, (sql) => sql`select public.account_finish_mark(${email})`);
 };
 
-/** 27.1: the finish step stored the tick; the account is finished (definer). */
-export const markAccountFinished = async (env: CloudflareEnv, userId: string): Promise<void> => {
-  await asSystem(env, (sql) => sql`select public.account_finish_done(${userId}::uuid)`);
+/** 27.1: the finish step stored the tick; the account is finished and the customer row gets the name and phone (definer). */
+export const markAccountFinished = async (
+  env: CloudflareEnv,
+  userId: string,
+  fullName: string,
+  phone: string,
+): Promise<void> => {
+  await asSystem(env, (sql) => sql`select public.account_finish_done(${userId}::uuid, ${fullName}, ${phone})`);
 };

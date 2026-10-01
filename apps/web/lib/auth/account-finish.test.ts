@@ -23,8 +23,8 @@ function deps(over: Partial<Parameters<typeof finishAccount>[0]> = {}) {
       calls.push(`record:${email}`);
       return true;
     }),
-    markDone: vi.fn(async (id: string) => {
-      calls.push(`done:${id}`);
+    markDone: vi.fn(async (id: string, profile: { fullName: string; phone: string }) => {
+      calls.push(`done:${id}:${profile.fullName}:${profile.phone}`);
       return true;
     }),
     updateProfile: vi.fn(async (data: Record<string, string>) => {
@@ -45,8 +45,8 @@ describe("finishAccount", () => {
     expect(out).toEqual({ result: { ok: true }, reason: null });
     expect(calls).toEqual([
       "record:mia@example.test",
-      "done:user-1",
-      `profile:${JSON.stringify({ first_name: "Mia", last_name: "Keller", full_name: "Mia Keller", phone: "+41 79 000 00 00" })}`,
+      "done:user-1:Mia Keller:+41790000000",
+      `profile:${JSON.stringify({ first_name: "Mia", last_name: "Keller", full_name: "Mia Keller", phone: "+41790000000" })}`,
     ]);
   });
 
@@ -79,6 +79,12 @@ describe("finishAccount", () => {
   it("answers no-user when nobody is signed in", async () => {
     const { d } = deps({ getUser: vi.fn(async () => null) });
     expect((await finishAccount(d, body)).result).toEqual(NOT_SIGNED_IN);
+    expect(d.record).not.toHaveBeenCalled();
+  });
+
+  it("a failed read answers signup-unavailable, never ok (the typed name is not dropped)", async () => {
+    const { d } = deps({ finishRequired: vi.fn(async () => null) });
+    expect(await finishAccount(d, body)).toEqual({ result: SIGNUP_UNAVAILABLE, reason: "finish-read-failed" });
     expect(d.record).not.toHaveBeenCalled();
   });
 
@@ -142,9 +148,9 @@ describe("markFinished / markFinishPending", () => {
   const ctx = { requestId: "r", route: "/t", locale: null };
   it("markFinished answers false when the write fails", async () => {
     vi.mocked(reads.markAccountFinished).mockRejectedValueOnce(new Error("down"));
-    expect(await markFinished({} as CloudflareEnv, "u", ctx)).toBe(false);
+    expect(await markFinished({} as CloudflareEnv, "u", { fullName: "A B", phone: "" }, ctx)).toBe(false);
     vi.mocked(reads.markAccountFinished).mockResolvedValueOnce(undefined);
-    expect(await markFinished({} as CloudflareEnv, "u", ctx)).toBe(true);
+    expect(await markFinished({} as CloudflareEnv, "u", { fullName: "A B", phone: "" }, ctx)).toBe(true);
   });
   it("markFinishPending never throws", async () => {
     vi.mocked(reads.markAccountFinishPending).mockRejectedValueOnce(new Error("down"));

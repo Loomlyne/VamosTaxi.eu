@@ -94,6 +94,14 @@ export async function GET(request: Request): Promise<NextResponse> {
   }
 
   const target = validateAuthRedirectTarget(next, locale);
+  // 27.1: an older PKCE link (already in an inbox) for an account that must finish goes there too.
+  if (!isDashboardHost(url.host) && !target.includes("reset-password")) {
+    const got = await supabase.auth.getUser();
+    const userId = got?.data?.user?.id;
+    if (userId && (await mustFinish(getCloudflareContext().env, userId, ctx))) {
+      return redirectTo(finishTarget(locale, target));
+    }
+  }
   return redirectTo(target);
 }
 
@@ -203,7 +211,8 @@ export async function POST(request: Request): Promise<Response> {
 
   const target = validateAuthRedirectTarget(nextRaw, locale);
   // 27.1 (27 D-37): an account the sign-in link just made finishes first (name, optional phone, the tick).
-  if (!isDashboardHost(new URL(request.url).host) && data.user.id && (await mustFinish(env, data.user.id, ctx))) {
+  // A password-reset link keeps its own page; /account sends the account to the step afterwards.
+  if (type !== "recovery" && !isDashboardHost(new URL(request.url).host) && data.user.id && (await mustFinish(env, data.user.id, ctx))) {
     return answer(200, { ok: true, target: finishTarget(locale, target) });
   }
   return answer(200, { ok: true, target });

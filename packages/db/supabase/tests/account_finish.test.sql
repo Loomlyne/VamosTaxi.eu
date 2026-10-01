@@ -4,7 +4,7 @@
 -- link just made is asked to finish; the answer is kept by user id; no role but vamos_system may call;
 -- no role has a table grant. Synthetic auth users, rolled back.
 begin;
-select plan(20);
+select plan(26);
 
 create temp table _af as select gen_random_uuid() as fresh, gen_random_uuid() as confirmed,
   gen_random_uuid() as old, gen_random_uuid() as other;
@@ -26,13 +26,13 @@ select is((select count(*)::int from unnest(array['anon','authenticated','vamos_
             where exists (select 1 from pg_roles where rolname = r)
               and has_table_privilege(r, 'public.account_finish_pending', 'select,insert,update,delete')), 0, 'no role has a table privilege');
 select is((select count(*)::int from pg_proc p
-            where p.oid in ('public.account_finish_mark(text)'::regprocedure, 'public.account_finish_required(uuid)'::regprocedure, 'public.account_finish_done(uuid)'::regprocedure)
+            where p.oid in ('public.account_finish_mark(text)'::regprocedure, 'public.account_finish_required(uuid)'::regprocedure, 'public.account_finish_done(uuid,text,text)'::regprocedure)
               and p.prosecdef and p.proconfig = array['search_path=""']), 3, 'three definers with empty search_path');
 select is(has_function_privilege('vamos_system', 'public.account_finish_mark(text)', 'execute')
       and has_function_privilege('vamos_system', 'public.account_finish_required(uuid)', 'execute')
-      and has_function_privilege('vamos_system', 'public.account_finish_done(uuid)', 'execute'), true, 'system has EXECUTE on all three');
+      and has_function_privilege('vamos_system', 'public.account_finish_done(uuid,text,text)', 'execute'), true, 'system has EXECUTE on all three');
 select is((select count(*)::int from unnest(array['anon','authenticated','vamos_public','vamos_checkout','vamos_guest','vamos_staff']) r,
-                 unnest(array['public.account_finish_mark(text)','public.account_finish_required(uuid)','public.account_finish_done(uuid)']) f
+                 unnest(array['public.account_finish_mark(text)','public.account_finish_required(uuid)','public.account_finish_done(uuid,text,text)']) f
             where exists (select 1 from pg_roles where rolname = r) and has_function_privilege(r, f, 'execute')), 0, 'no other role has EXECUTE');
 
 set local role vamos_system;
@@ -46,7 +46,7 @@ select is(public.account_finish_required((select old from _af)), false, 'an olde
 select is(public.account_finish_required((select other from _af)), false, 'an account nobody marked is never asked');
 select is(public.account_finish_required(gen_random_uuid()), false, 'unknown id answers false');
 select lives_ok($$select public.account_finish_mark('fresh.link@example.test')$$, 'a second mark is harmless');
-select lives_ok($$select public.account_finish_done((select fresh from _af))$$, 'done');
+select lives_ok($$select public.account_finish_done((select fresh from _af), ' Mia Keller ', '+41790000000')$$, 'done');
 select is(public.account_finish_required((select fresh from _af)), false, 'finished after done');
 select throws_ok($$select * from public.account_finish_pending$$, '42501', null, 'table select refused for system');
 reset role;
@@ -54,6 +54,29 @@ reset role;
 set local role authenticated;
 select throws_ok($$select public.account_finish_required(gen_random_uuid())$$, '42501', null, 'authenticated refused');
 reset role;
+
+-- The customer row (made by the sign-up trigger when the link made the account) gets name and phone.
+select is((select full_name || '|' || phone from public.customers where user_id = (select fresh from _af)), 'Mia Keller|+41790000000', 'done copies name and phone onto the customer row');
+set local role vamos_system;
+select lives_ok($$select public.account_finish_done((select fresh from _af), 'Mia Keller', '')$$, 'done again with no phone');
+reset role;
+select is((select phone from public.customers where user_id = (select fresh from _af)), '+41790000000', 'an empty phone keeps the row''s phone');
+
+-- A staff row stops the question even for a marked, unfinished account.
+insert into public.account_finish_pending (user_id) select other from _af;
+insert into public.staff (user_id, role) select other, 'dispatcher' from _af;
+set local role vamos_system;
+select is(public.account_finish_required((select other from _af)), false, 'staff are never asked');
+reset role;
+
+-- The sign-up trigger copies the optional phone from the sign-up metadata.
+insert into auth.users (id, instance_id, aud, role, email, created_at, updated_at, raw_app_meta_data, raw_user_meta_data)
+values (gen_random_uuid(), '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'phone.signup@example.test', now(), now(), '{}'::jsonb,
+        '{"full_name":"Pia Phone","phone":"+41790000001"}'::jsonb);
+select is((select full_name || '|' || phone from public.customers where email = 'phone.signup@example.test'), 'Pia Phone|+41790000001', 'sign-up trigger copies name and phone');
+insert into auth.users (id, instance_id, aud, role, email, created_at, updated_at, raw_app_meta_data, raw_user_meta_data)
+values (gen_random_uuid(), '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'nophone.signup@example.test', now(), now(), '{}'::jsonb, '{}'::jsonb);
+select is((select full_name || '|' || phone from public.customers where email = 'nophone.signup@example.test'), '|', 'sign-up trigger without metadata still inserts with empty name and phone');
 
 select * from finish();
 rollback;

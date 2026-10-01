@@ -14,12 +14,12 @@ import { fullName, type ProfileRunResult } from "./run";
 export type FinishAccountDeps = {
   /** The verified signed-in user, or null. */
   getUser: () => Promise<{ id: string; email: string | null } | null>;
-  /** public.account_finish_required through asSystem. */
-  finishRequired: (userId: string) => Promise<boolean>;
+  /** public.account_finish_required through asSystem; null when the read failed. */
+  finishRequired: (userId: string) => Promise<boolean | null>;
   /** recordSignupAgreement for the session's own e-mail. true = stored. */
   record: (email: string) => Promise<boolean>;
-  /** public.account_finish_done through asSystem. true = stored. */
-  markDone: (userId: string) => Promise<boolean>;
+  /** public.account_finish_done through asSystem (also copies name and phone onto the customer row). true = stored. */
+  markDone: (userId: string, profile: { fullName: string; phone: string }) => Promise<boolean>;
   /** supabase.auth.updateUser({ data }). Returns an error code or null. */
   updateProfile: (data: Record<string, string>) => Promise<string | null>;
 };
@@ -43,18 +43,23 @@ export async function finishAccount(
   const user = await deps.getUser();
   if (!user?.email) return { result: NOT_SIGNED_IN, reason: "no-user" };
 
-  if (!(await deps.finishRequired(user.id))) return { result: { ok: true }, reason: null };
+  const required = await deps.finishRequired(user.id);
+  if (required === null) return { result: SIGNUP_UNAVAILABLE, reason: "finish-read-failed" };
+  if (!required) return { result: { ok: true }, reason: null };
 
   if (!(await deps.record(user.email))) return { result: SIGNUP_UNAVAILABLE, reason: "record-failed" };
   // The tick is stored. If "finished" cannot be stored the step is shown again; a second press adds a
   // second record row (append-only), never an account without one.
-  if (!(await deps.markDone(user.id))) return { result: SIGNUP_UNAVAILABLE, reason: "finish-mark-failed" };
-
   const { firstName, lastName, phone } = parsed.data;
+  const name = fullName(firstName, lastName);
+  if (!(await deps.markDone(user.id, { fullName: name, phone: phone ?? "" }))) {
+    return { result: SIGNUP_UNAVAILABLE, reason: "finish-mark-failed" };
+  }
+
   const data: Record<string, string> = {
     first_name: firstName,
     last_name: lastName,
-    full_name: fullName(firstName, lastName),
+    full_name: name,
   };
   if (phone) data.phone = phone;
   const code = await deps.updateProfile(data);

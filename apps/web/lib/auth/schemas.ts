@@ -17,13 +17,15 @@ const nameSchema = z.string().trim().min(1).max(80);
 
 /**
  * 27.1: the optional mobile number on /sign-up and on the finish step. Same rule as the account
- * page's phone (`parseProfileFields`): at most 32 characters, at least 9 digits.
+ * page's phone (`parseProfileFields`): at most 32 characters, at least 9 digits. Stored the way
+ * checkout stores a phone (`e164Phone`: "+" and the digits).
  */
 export const phoneSchema = z
   .string()
   .trim()
   .max(32)
-  .refine((v) => v.replace(/\D/g, "").length >= 9);
+  .refine((v) => v.replace(/\D/g, "").length >= 9)
+  .transform((v) => `+${v.replace(/\D/g, "")}`);
 
 export const signInPasswordSchema = z
   .object({

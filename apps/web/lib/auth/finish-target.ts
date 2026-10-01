@@ -9,6 +9,16 @@ import { safeReturnTo } from "../account/return-to";
 import { markAccountFinishPending, markAccountFinished, readAccountFinishRequired } from "../db/system-reads";
 import { log, type RequestContext } from "../logger";
 
+/** Same read for the finish step itself: null when it fails, so the typed name is never dropped. */
+export async function finishRequiredStrict(env: CloudflareEnv, userId: string, ctx: RequestContext): Promise<boolean | null> {
+  try {
+    return await readAccountFinishRequired(env, userId);
+  } catch {
+    log("error", "auth", ctx, { reason: "finish-read-failed" });
+    return null;
+  }
+}
+
 /** public.account_finish_required for a user id; false (and one log line) when the read fails. */
 export async function mustFinish(env: CloudflareEnv, userId: string, ctx: RequestContext): Promise<boolean> {
   try {
@@ -28,10 +38,15 @@ export async function markFinishPending(env: CloudflareEnv, email: string, ctx: 
   }
 }
 
-/** The finish step is done for this account. false (and one log line) when it could not be stored. */
-export async function markFinished(env: CloudflareEnv, userId: string, ctx: RequestContext): Promise<boolean> {
+/** The finish step is done for this account (name and phone onto the customer row). false (and one log line) when it could not be stored. */
+export async function markFinished(
+  env: CloudflareEnv,
+  userId: string,
+  profile: { fullName: string; phone: string },
+  ctx: RequestContext,
+): Promise<boolean> {
   try {
-    await markAccountFinished(env, userId);
+    await markAccountFinished(env, userId, profile.fullName, profile.phone);
     return true;
   } catch {
     log("error", "auth", ctx, { reason: "finish-mark-done-failed" });

@@ -63,7 +63,7 @@ describe("POST /api/auth finish-account", () => {
     expect(await res.json()).toEqual({ ok: true });
     expect(db.order).toEqual(["read", "record", "done", "profile"]);
     expect(update).toHaveBeenCalledWith({
-      data: { first_name: "Mia", last_name: "Keller", full_name: "Mia Keller", phone: "+41 79 000 00 00" },
+      data: { first_name: "Mia", last_name: "Keller", full_name: "Mia Keller", phone: "+41790000000" },
     });
     expect(setCookieHeaders(res).join("\n")).toContain("sb-x-auth-token=session-2");
     expect(res.headers.get("cache-control")).toBe("private, no-store");
@@ -130,6 +130,16 @@ describe("the sign-in link marks only a new address", () => {
     state.auth.signInWithOtp = (async () => ({ error: { code: "over_email_send_rate_limit" } })) as never;
     await POST(authPost({ mode: "signin", method: "magic", email: "new@example.test" }));
     expect(db.order).toEqual(["state"]);
+  });
+
+  it("the link has its own per-address limit; a 429 marks nothing", async () => {
+    state.env.AUTH_RATE_LIMITER = {
+      limit: async ({ key }: { key: string }) => ({ success: !key.startsWith("auth-link:") }),
+    };
+    state.auth.signInWithOtp = (async () => ({ error: null })) as never;
+    const res = await POST(authPost({ mode: "signin", method: "magic", email: "new@example.test" }));
+    expect(res.status).toBe(429);
+    expect(db.order).toEqual([]);
   });
 
   it("the dashboard host reads and marks nothing", async () => {

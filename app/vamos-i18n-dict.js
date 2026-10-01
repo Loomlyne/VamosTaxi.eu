@@ -333,6 +333,7 @@
       'Check the mobile number, including the country code': { de: 'Prüfen Sie die Mobilnummer mit Ländervorwahl', fr: 'Vérifiez le numéro de mobile, indicatif du pays compris', ar: 'تحقّق من رقم الجوال مع رمز الدولة' },
       'Finish account': { de: 'Konto abschliessen', fr: 'Finaliser le compte', ar: 'إكمال الحساب' },
       'Not you? Sign out': { de: 'Nicht Sie? Abmelden', fr: 'Ce n’est pas vous ? Se déconnecter', ar: 'لست أنت؟ سجّل الخروج' },
+      'Could not save. Try again.': { de: 'Speichern nicht möglich. Bitte erneut versuchen.', fr: 'Enregistrement impossible. Réessayez.', ar: 'تعذّر الحفظ. حاول مرة أخرى.' },
       'Use a password instead': { de: 'Stattdessen Passwort verwenden', fr: 'Utiliser plutôt un mot de passe', ar: 'استخدم كلمة مرور بدلًا من ذلك' },
       'Send reset link': { de: 'Link zum Zurücksetzen senden', fr: 'Envoyer le lien', ar: 'إرسال رابط إعادة التعيين' },
       'Sign in with a passkey': { de: 'Mit Passkey anmelden', fr: 'Se connecter avec une passkey', ar: 'الدخول بمفتاح المرور' },
