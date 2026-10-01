@@ -1,48 +1,17 @@
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 
-// D-28: the dev-only states gallery (`/dev/components/**`) must never be reachable in a
-// production DEPLOY, and must carry a robots header instructing search engines not to
-// index it in every environment (staging is where the gallery is actually reviewed, so
-// a header that only applied in production would protect nothing a reviewer ever hits
-// it on).
+import { devGalleryEnabled } from "@/lib/dev-gallery";
+
+// D-02 (26.0, 2026-09-29): the dev-only states gallery (`/dev/**`) opens only in a local
+// `next dev` started with VAMOS_DEV_GALLERY=1 (see lib/dev-gallery.ts). Every production
+// build answers 404, staging included: DEPLOY_ENV no longer reopens it.
 //
-// A route-group LAYOUT rather than a per-page check (UI-SPEC's own proposed default,
-// confirmed here): a per-page check is one file away from being forgotten the next time
-// a category lands (Phase 5 could add an eighth) — a layout wrapping every current and
-// future route under this segment closes that gap structurally rather than by
-// discipline.
-//
-// `export const dynamic = "force-dynamic"` is load-bearing, not decorative. This
-// project builds ONCE (`opennextjs-cloudflare build`) and deploys the SAME artifact to
-// both `env.staging` and `env.production` (`apps/web/wrangler.jsonc`'s own comment: the
-// two environments differ only in their runtime `vars`/bindings, injected by Cloudflare
-// at request time — there is no separate "staging build"). `[locale]/layout.tsx`'s own
-// `generateStaticParams` makes every route under it statically pre-rendered by default
-// (confirmed directly: `pnpm build`'s own route table lists `/en/dev/components/*` etc.
-// as `● (SSG) prerendered as static HTML` before this line existed) — a plain
-// `NODE_ENV`/`DEPLOY_ENV` check inside a statically-generated page runs exactly ONCE,
-// at BUILD time, when `DEPLOY_ENV` cannot possibly be set yet (it is a Cloudflare
-// runtime `vars` binding, not a build-time Node env var) — baking the SAME "exclude"
-// decision into the ONE artifact both staging and production later deploy, which would
-// silently break staging's own reachability requirement (D-28/D-37) the moment
-// production also builds correctly. Forcing this whole subtree dynamic makes the check
-// below run PER REQUEST, at the edge, against the real `DEPLOY_ENV` the serving
-// environment actually injected — the only point in this pipeline that value exists.
-//
-// The check: `NODE_ENV === "production"` alone is true for BOTH staging and true
-// production (both are the same built-and-deployed Worker) — `DEPLOY_ENV !== "staging"`
-// is what tells them apart, the same plain, non-secret marker `middleware.ts` already
-// reads for D-37's noindex header (`apps/web/lib/env.d.ts`'s own comment: present under
-// `env.staging`, absent under `env.production`). Local `next dev` has `NODE_ENV ===
-// "development"`, so the whole condition is false there regardless of `DEPLOY_ENV` —
-// the gallery resolves normally.
+// `dynamic = "force-dynamic"` keeps the check per request rather than baked at build time.
 export const dynamic = "force-dynamic";
 
 export default function DevLayout({ children }: { children: ReactNode }) {
-  const isTrueProduction =
-    process.env.NODE_ENV === "production" && process.env.DEPLOY_ENV !== "staging";
-  if (isTrueProduction) {
+  if (!devGalleryEnabled()) {
     notFound();
   }
   return <>{children}</>;

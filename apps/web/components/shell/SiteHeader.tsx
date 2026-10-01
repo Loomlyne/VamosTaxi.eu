@@ -44,7 +44,7 @@ const { Link } = createNavigation(routing);
 /** The four locales, labelled in their own language. This is the one switcher CLAUDE.md
  *  names as legitimately opting out of translation — "Deutsch" is what a German speaker
  *  looks for, never the English word "German" — so these endonyms are literals here and
- *  the control carries `data-i18n-skip`, exactly as the mock marks the same subtree. */
+ *  the control carries `data-vt-no-i18n`, exactly as the mock marks the same subtree. */
 const LANG_NOTE: Record<Locale, string> = {
   en: "English",
   de: "Deutsch",

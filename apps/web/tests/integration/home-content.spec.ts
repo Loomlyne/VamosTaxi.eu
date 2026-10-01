@@ -1,20 +1,18 @@
 // SITE-01: home reviews + FAQ text come from public.reviews / public.content_strings.
 // Fail loudly if the local stack is down — never skip.
 
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../support/test";
+import { testPort } from "../support/port";
 import { execFileSync, spawn, type ChildProcess } from "node:child_process";
-import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { NEXT_BIN, settleCloudflareDev, waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { nextDevEnv, ownerDbUrl, REPO_ROOT, requireTestStack } from "../support/test-stack";
 
 const RUN_PROJECT = "component-1440";
-const LIVE_PORT = 4260;
-const DEAD_PORT = 4261;
-const OWNER_CS = "postgres://postgres:postgres@127.0.0.1:54322/postgres";
+const LIVE_PORT = testPort(4453);
+const DEAD_PORT = testPort(4454);
 const DEAD_CS = "postgres://vamos_public:***@127.0.0.1:1/postgres";
-const MAIN_NEXT = join("/Users/koss/Developer/VamosTaxi.eu/apps/web/node_modules/.bin/next");
-const NEXT = existsSync(NEXT_BIN) ? NEXT_BIN : MAIN_NEXT;
-const DB_ROOT = join(WEB_ROOT, "..", "..", "packages", "db");
+const DB_ROOT = join(REPO_ROOT, "packages", "db");
 
 const SEEDED_AUTHOR = "First L.";
 const UNPUBLISHED_NAME = "Unpublished U.";
@@ -43,7 +41,7 @@ function ownerQuery(sqlJs: string): string {
         "--input-type=module",
         "-e",
         `import postgres from "postgres";
-         const sql = postgres(${JSON.stringify(OWNER_CS)}, { max: 1, connect_timeout: 5 });
+         const sql = postgres(${JSON.stringify(ownerDbUrl())}, { max: 1, connect_timeout: 5 });
          try {
            ${sqlJs}
          } finally {
@@ -63,24 +61,18 @@ function ownerQuery(sqlJs: string): string {
   }
 }
 
-function requireLocalDb(): void {
-  const out = ownerQuery(`const rows = await sql\`select 1 as ok\`; console.log(String(rows[0].ok));`);
-  if (out !== "1") {
-    throw new Error("Local stack is not running. Run `pnpm db:start && pnpm db:reset`.");
-  }
-}
-
 function spawnDev(port: number, extraEnv: Record<string, string | undefined> = {}): ChildProcess {
-  return spawn(NEXT, ["dev", "-p", String(port)], {
+  const extra: Record<string, string> = {
+    CLOUDFLARE_ENV: "staging",
+    TEST_DIST_DIR: `test-results/.next-home-content-${port}`,
+  };
+  for (const [k, v] of Object.entries(extraEnv)) if (v !== undefined) extra[k] = v;
+  return spawn(NEXT_BIN, ["dev", "-p", String(port)], {
     cwd: WEB_ROOT,
     stdio: "ignore",
     detached: true,
-    env: {
-      ...process.env,
-      CLOUDFLARE_ENV: "staging",
-      TEST_DIST_DIR: `test-results/.next-home-content-${port}`,
-      ...extraEnv,
-    },
+    // /dev/* is the component gallery: reachable in this spawned server only (D-02).
+    env: nextDevEnv(extra, { gallery: true }),
   });
 }
 
@@ -90,14 +82,29 @@ test.describe("home content SITE-01", () => {
   test.beforeAll(async ({}, testInfo) => {
     if (testInfo.project.name !== RUN_PROJECT) return;
     testInfo.setTimeout(240_000);
-    requireLocalDb();
+    await requireTestStack();
+    // The migrations ship no review rows; seed the one the assertions read (own external_ref, removed after).
+    ownerQuery(`
+      const name = ${JSON.stringify(SEEDED_AUTHOR)};
+      await sql\`
+        insert into public.reviews (external_ref, source, author_name, author_role, body, rating, route_label, published, sort_order)
+        values ('rv-seeded-26-0-06', 'manual', \${name}, 'test', 'seeded by home-content spec', 5, 'ZRH → Zurich city', true, 0)
+        on conflict (external_ref) do update set published = true, sort_order = 0
+      \`;
+    `);
     liveURL = `http://localhost:${LIVE_PORT}`;
     deadURL = `http://localhost:${DEAD_PORT}`;
     liveServer = spawnDev(LIVE_PORT);
+    await settleCloudflareDev();
     await waitForNextServer(liveURL, 180_000);
   });
 
   test.afterAll(() => {
+    try {
+      ownerQuery(`await sql\`delete from public.reviews where external_ref in ('rv-seeded-26-0-06', 'rv-unpublished-05-18')\`;`);
+    } catch {
+      /* stack gone */
+    }
     killServer(liveServer);
     killServer(deadServer);
   });
@@ -182,6 +189,7 @@ test.describe("home content SITE-01", () => {
     deadServer = spawnDev(DEAD_PORT, {
       WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE: DEAD_CS,
     });
+    await settleCloudflareDev();
     await waitForNextServer(deadURL, 180_000);
     const res = await page.goto(`${deadURL}/dev/home/reviews?live=1`, { timeout: 60_000 });
     expect(res?.status()).toBe(200);

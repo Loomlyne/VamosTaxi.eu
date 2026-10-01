@@ -1,4 +1,5 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../support/test";
+import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 
@@ -25,16 +26,16 @@ const COOKIES_IDS = [
   "change",
 ] as const;
 
-// Live [data-tok] = LegalPage hero (date+version) + body PendingSlots.
-// Plan grep 19/14 counted CSS. Mock content: privacy 17, cookies 21.
-const PRIVACY_TOK = 17;
-const COOKIES_TOK = 21;
+// 26.0: the legal ship (owner-approved texts) removed every data-tok pill from the privacy and
+// cookies mocks. The test still proves the count is the same in all four languages, now zero.
+const PRIVACY_TOK = 0;
+const COOKIES_TOK = 0;
 
 const PORTS: Record<string, number> = {
-  "component-1440": 4194,
-  "component-1024": 4191,
-  "component-768": 4192,
-  "component-390": 4193,
+  "component-1440": testPort(4194),
+  "component-1024": testPort(4191),
+  "component-768": testPort(4192),
+  "component-390": testPort(4193),
 };
 
 const LOCALES = ["en", "de", "fr", "ar"] as const;
@@ -51,7 +52,7 @@ test.describe("Privacy and cookies pages @component", () => {
 
   test.beforeAll(async ({}, testInfo) => {
     testInfo.setTimeout(240_000);
-    const port = PORTS[testInfo.project.name] ?? 4199;
+    const port = PORTS[testInfo.project.name] ?? testPort(4199);
     baseURL = `http://localhost:${port}`;
     // Isolated distDir so four viewport projects (and `pnpm test:visual`'s other
     // next-dev specs) do not wipe each other's compiled `[locale]/privacy` page.

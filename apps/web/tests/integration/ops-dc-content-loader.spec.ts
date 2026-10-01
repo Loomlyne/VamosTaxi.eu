@@ -6,7 +6,7 @@
 
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../support/test";
 import { CONTENT_SOURCE, loadMessagesFromDb, unflattenKeys } from "../../lib/content/messages";
 import en from "../../i18n/messages/en.json";
 

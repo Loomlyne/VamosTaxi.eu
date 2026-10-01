@@ -2,7 +2,8 @@
 //
 // Plan 07-09 Task 3. Chrome only. Tagged @checkout.
 
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "../support/test";
+import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 import { stubConsentChosen } from "../support/consent-state";
@@ -30,7 +31,7 @@ test.describe.configure({ mode: "serial" });
 test.beforeAll(async ({}, testInfo) => {
   if (testInfo.project.name !== RUN_PROJECT) return;
   testInfo.setTimeout(180_000);
-  const port = 4240 + testInfo.workerIndex;
+  const port = testPort(4240) + testInfo.workerIndex;
   baseURL = `http://127.0.0.1:${port}`;
   devServer = spawn(NEXT_BIN, ["dev", "-p", String(port)], {
     cwd: WEB_ROOT,
@@ -108,7 +109,7 @@ async function openScreen(page: Page, path: string, screen: Screen) {
     await page.clock.fastForward(21_000);
     await expect
       .poll(async () => {
-        await page.clock.runFor(1_000);
+        await page.clock.fastForward(1_000);
         return page.locator("[data-confirmation-state=received]").count();
       })
       .toBe(1);

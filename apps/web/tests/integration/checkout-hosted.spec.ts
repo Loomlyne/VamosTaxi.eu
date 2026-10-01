@@ -14,7 +14,8 @@
 // price route answered and to the amount the intent answer hands to Stripe for the ticked
 // child seat. Runs once under component-1440 with its own `next dev`. Tagged @checkout.
 
-import { test, expect, type Page, type Route } from "@playwright/test";
+import { test, expect, type Page, type Route } from "../support/test";
+import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 import { FAKE_STRIPE_HOST } from "../support/fake-stripe";
@@ -33,7 +34,7 @@ test.describe.configure({ mode: "serial" });
 test.beforeAll(async ({}, testInfo) => {
   if (testInfo.project.name !== RUN_PROJECT) return;
   testInfo.setTimeout(240_000);
-  const port = 4300 + testInfo.workerIndex;
+  const port = testPort(4300) + testInfo.workerIndex;
   baseURL = `http://127.0.0.1:${port}`;
   devServer = spawn(NEXT_BIN, ["dev", "-p", String(port)], {
     cwd: WEB_ROOT,

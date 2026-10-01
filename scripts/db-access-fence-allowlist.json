@@ -19,7 +19,10 @@
     "apps/web/tests/integration/checkout-server-db.spec.ts",
     "apps/web/tests/integration/intent-supersede-db.spec.ts",
     "apps/web/tests/integration/extras-charged-recorded-db.spec.ts",
-    "packages/db/test/local/signup-agreement.test.ts"
+    "packages/db/test/local/signup-agreement.test.ts",
+    "packages/db/test/support/test-stack-guard.ts",
+    "packages/db/test/support/worker-client.ts",
+    "packages/db/test/local/worker-client-parity.test.ts"
   ],
 
   "_allowed_reserve_comment": "Files permitted to call `.reserve()` (interfaces ban #3, Pitfall 9). `sql.reserve()` pins one physical backend so a residue bug fails 100% of the time locally instead of only when Hyperdrive happens to reuse a backend (D-16) -- banned everywhere in apps/** on purpose.",
@@ -32,7 +35,10 @@
     "packages/db/test/local/connection-reuse.test.ts",
     "packages/db/test/local/no-begin.test.ts",
     "packages/db/test/local/local-fixtures.ts",
-    "packages/db/test/fixtures/two-customers.ts"
+    "packages/db/test/fixtures/two-customers.ts",
+    "packages/db/test/support/test-stack-guard.ts",
+    "packages/db/test/support/worker-client.ts",
+    "packages/db/test/local/worker-client-parity.test.ts"
   ],
 
   "_allowed_unsafe_comment": "Files permitted to call `.unsafe(` (interfaces ban #7). packages/db/src/identity.ts's one call is the allow-listed ENTRY_PROBE the D-15 residue probe reads; apps/isolation-probe/src/index.ts's six calls are the probe's own deliberate mutant/hazard/positive-control constructions (D-14) that must issue a sequence `withIdentity` itself never produces; the two packages/db/test/local files construct the same ENTRY_PROBE locally (no-begin.test.ts) or polyfill `.begin()` on a reserved connection via raw BEGIN/COMMIT/ROLLBACK/RESET (connection-reuse.test.ts, Rule 3 deviation from plan 03-02).",

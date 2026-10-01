@@ -31,9 +31,11 @@
 // (01-10-PLAN.md's own verify command) runs this suite alone, and the plain
 // `pnpm test:visual` still picks it up as part of the full run.
 
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "../support/test";
+import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { nextDevEnv } from "../support/test-stack";
 
 const RUN_PROJECT = "component-1440";
 
@@ -55,6 +57,7 @@ test.beforeAll(async ({}, testInfo) => {
     cwd: WEB_ROOT,
     stdio: "ignore",
     detached: true,
+    env: nextDevEnv({}, { gallery: true }),
   });
   await waitForNextServer(baseURL);
 });

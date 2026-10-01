@@ -400,15 +400,28 @@ function loadTsModule(absPath: string): Record<string, unknown> {
   if (cached) return cached;
 
   const source = readFileSync(absPath, "utf8");
-  const { outputText } = ts.transpileModule(source, {
-    fileName: absPath,
-    compilerOptions: {
-      module: ts.ModuleKind.CommonJS,
-      jsx: ts.JsxEmit.React,
-      target: ts.ScriptTarget.ES2020,
-      esModuleInterop: true,
-    },
-  });
+  if (absPath.endsWith(".json")) {
+    // 26.0: a ported component now imports a message file; JSON is data, not TypeScript.
+    const json = JSON.parse(source) as Record<string, unknown>;
+    const mod = { ...json, default: json };
+    tsModuleCache.set(absPath, mod);
+    return mod;
+  }
+  let outputText: string;
+  try {
+    ({ outputText } = ts.transpileModule(source, {
+      fileName: absPath,
+      compilerOptions: {
+        module: ts.ModuleKind.CommonJS,
+        jsx: ts.JsxEmit.React,
+        target: ts.ScriptTarget.ES2020,
+        esModuleInterop: true,
+      },
+    }));
+  } catch (err) {
+    // 26.0: name the file; a bare "Output generation failed" hid which import broke 131 shell tests.
+    throw new Error(`loadTsModule could not transpile ${absPath}: ${String(err)}`);
+  }
 
   const moduleObj: { exports: Record<string, unknown> } = { exports: {} };
   // Placeholder set before execution so a circular import resolves to the in-progress

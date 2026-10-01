@@ -26,7 +26,7 @@
 // reduced-viewport allowance (1440/390 only) applies uniformly here, the same as
 // Button's own spec.
 
-import { test, expect, type Page, type Locator } from "@playwright/test";
+import { test, expect, type Page, type Locator } from "../support/test";
 import { mountBundle, mountPort, waitForMockReady } from "../support/mock-harness";
 
 const REDUCED_VIEWPORT_PROJECTS = new Set(["component-1440", "component-390"]);

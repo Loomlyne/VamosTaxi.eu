@@ -7,7 +7,7 @@
 // Runs once under component-1440 with its own `next dev`, like checkout-sections.spec.ts.
 // Amounts are arithmetic fixtures, never a book price.
 
-import { test, expect, type Page, type Route } from "@playwright/test";
+import { test, expect, type Page, type Route } from "../support/test";
 import { spawn, type ChildProcess } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
