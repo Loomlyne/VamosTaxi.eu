@@ -5,6 +5,7 @@
 import { asSystem } from "../db/identity";
 import { BOOKING_REFERENCE_RE } from "./booking-status";
 import { handleStripeMessage, type HandleResult } from "./settle";
+import { recordStripeEvent } from "./stripe-event-record";
 import type Stripe from "stripe";
 import { localePath } from "./steps";
 import { retrieveCheckoutSession, stripeFromEnv } from "./stripe";
@@ -90,23 +91,19 @@ export async function settlePaidReturn(
 ): Promise<"paid" | "duplicate" | "unpaid" | "failed"> {
   if (session.payment_status !== "paid") return "unpaid";
   const eventId = `return_${session.id}`;
-  const created = new Date((session.created ?? Math.floor(Date.now() / 1000)) * 1000).toISOString();
-  await asSystem(env, async (sql) => {
-    await sql`
-      select public.stripe_event_record(
-        ${eventId},
-        ${"checkout.session.completed"},
-        ${created}::timestamptz,
-        ${session.id},
-        ${JSON.stringify({ id: session.id, payment_status: session.payment_status })}::jsonb
-      )
-    `;
+  const created = session.created ?? Math.floor(Date.now() / 1000);
+  await recordStripeEvent(env, {
+    id: eventId,
+    type: "checkout.session.completed",
+    created,
+    objectId: session.id,
+    payload: { id: session.id, payment_status: session.payment_status },
   });
   const handled = await handleStripeMessage(env, {
     eventId,
     type: "checkout.session.completed",
     objectId: session.id,
-    stripeCreated: session.created ?? Math.floor(Date.now() / 1000),
+    stripeCreated: created,
   });
   return returnSettleOutcome(handled);
 }
