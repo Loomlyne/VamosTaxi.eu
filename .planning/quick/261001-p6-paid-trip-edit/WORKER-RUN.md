@@ -1,6 +1,14 @@
 # P6 worker run — every changed DC form step in a real Chromium on the real local Worker and Supabase
 
-Result: green. `p6-run.sh` (real OpenNext rebuild of this branch at 5dcb9e6c + 624af1de, then seed, start, browser run, stop)
+**Final (lead, 2026-10-02 01:57 +04):** one uninterrupted run on the merged final tree `7f5b341e` (origin/main `dace2b1f`
+in, D20 and D21 in, fresh OpenNext build): **37 lines, 37 PASS, 0 FAIL, exit 0**, ports 4590/4591/9631/9632, fakes 4397.
+New since the builder's run: O2c asserts the D21 trip line ("The trip was changed and costs less now. Nothing is sent
+until you confirm.") and not the class line. Two earlier lead runs were cut short when a Worker runtime was stopped
+from outside under a load average of 24–28 (no crash report; every cut line had passed before and passed again).
+The first of them also hit another session's Worker on 4390; `p6-run.sh` now refuses busy ports and stops only
+its own processes (`5f582461`).
+
+Builder's run (below) — result: green. `p6-run.sh` (real OpenNext rebuild of this branch at 5dcb9e6c + 624af1de, then seed, start, browser run, stop)
 printed 36 lines, 36 PASS, 0 FAIL, exit 0 (2026-10-02 01:09–01:11 Dubai).
 
 Harness: `apps/web/tests/e2e-worker/p6-run.sh` (runner), `p6-browser.e2e.mjs` (Chromium script), `fakes.mjs` (Stripe, Turnstile,
@@ -56,8 +64,8 @@ Run by hand: `p6-run.sh <repo-tree> <supabase-workdir> <hook-secret-file> [label
 
 ## Seen, not part of the expected lines (owner's call, nothing changed)
 
-- After a destination change that made the trip cheaper, the Refund due panel says "The class was changed to a cheaper one. Nothing is sent
-  until you confirm." (the P1 class text); the change was a place.
+- After a destination change that made the trip cheaper, the Refund due panel said "The class was changed to a cheaper one. Nothing is sent
+  until you confirm." (the P1 class text); the change was a place. **Owner answered D21 (2026-10-02); fixed in `71abdab4`, line O2c.**
 - The Assign refusal on the dashboard prints the raw local time ("Overlaps VT-26-0185 at 2026-10-01T22:59") instead of "22:59".
 - The customer's date picker opens on the current month (fixed base month in the page), not on the booked month.
 - `manage-booking.dc.html` has `isCancelled: false` fixed, so its cancelled view and its "Resend confirmation" button are never shown; after
