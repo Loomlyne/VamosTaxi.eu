@@ -74,7 +74,8 @@
       status: status,
       pickupText: (row && row.pickup) || "",
       dropoffText: (row && row.dropoff) || "",
-      scheduledLocal: "",
+      // 26.2 P6 (D13): the day and time as booked, so a time change from the account view has its day.
+      scheduledLocal: row && row.dateIso && row.time ? row.dateIso + "T" + row.time : "",
       dateLabel: (row && row.date) || "",
       timeLabel: (row && row.time) || "",
       flightNo: "",

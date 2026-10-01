@@ -662,6 +662,18 @@ function blankTicket() {
   };
 }
 
+/* 26.2 P6 (D13): the day the customer picked, as YYYY-MM-DD (the picker hands year, 0-based month, day). */
+function isoDay(y, m, d) {
+  if (!Number.isInteger(y) || !Number.isInteger(m) || !Number.isInteger(d)) return '';
+  return y + '-' + String(m + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+}
+
+/* The Zurich wall clock a change asks for: the day picked (else the day as booked) and the time picked. '' when there is no day. */
+function requestedLocal(isoDayPicked, time, bookedLocal) {
+  const day = /^\d{4}-\d{2}-\d{2}$/.test(String(isoDayPicked || '')) ? String(isoDayPicked) : String(bookedLocal || '').slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(day) && /^\d{2}:\d{2}$/.test(String(time || '')) ? day + 'T' + time : '';
+}
+
 function formatLocal(scheduledLocal) {
   const raw = String(scheduledLocal || '');
   const match = raw.match(/^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})/);
@@ -817,6 +829,7 @@ class Component extends DCLogic {
     const local = formatLocal(ticket.scheduledLocal);
     return {
       mDay: local.day, mDate: ticket.dateLabel || local.date, mTime: ticket.timeLabel || local.time,
+      mIso: String(ticket.scheduledLocal || '').slice(0, 10),
     };
   }
 
@@ -883,11 +896,11 @@ class Component extends DCLogic {
   startCancel = () => this.goTo('cancel');
   backToBooking = () => this.goTo('booking');
 
-  setDay = (d, label) => this.setState({ mDay: d, mDate: label });
+  setDay = (d, label, y, m) => this.setState((s) => ({ mDay: d, mDate: label, mIso: isoDay(y, m, d) || s.mIso }));
   setTime = (t) => this.setState({ mTime: t });
   resetWhen = () => {
     const ticket = this.state.ticket || blankTicket();
-    this.setState({ mDate: ticket.dateLabel, mTime: ticket.timeLabel });
+    this.setState({ mDate: ticket.dateLabel, mTime: ticket.timeLabel, mIso: String(ticket.scheduledLocal || '').slice(0, 10) });
   };
   resetChanges = () => this.setState(this.drafts());
 
@@ -897,14 +910,9 @@ class Component extends DCLogic {
     const ticket = this.state.ticket || blankTicket();
     const s = this.state;
     const orig = (ticket.dateLabel || '') + (ticket.timeLabel ? (' · ' + ticket.timeLabel) : '');
-    let scheduledLocal = '';
-    if (/^\d{4}-\d{2}-\d{2}$/.test(String(s.mDate || '')) && s.mTime) {
-      scheduledLocal = s.mDate + 'T' + s.mTime;
-    } else if (ticket.scheduledLocal && s.mTime) {
-      scheduledLocal = String(ticket.scheduledLocal).slice(0, 10) + 'T' + s.mTime;
-    } else {
-      scheduledLocal = String(s.mDate || '') + 'T' + String(s.mTime || '');
-    }
+    // The day picked travels with the time (it used to be dropped: the day as booked was sent).
+    const scheduledLocal = requestedLocal(s.mIso, s.mTime, ticket.scheduledLocal);
+    if (!scheduledLocal) { this.say(t('Could not request this time change.'), 'danger'); return; }
     const tok = helper.token ? helper.token() : '';
     // Request time change — POST /api/manage/time-change (guest) or /api/account/bookings/time-change.
     // 26.2 P6 (D13): the route follows how the booking was opened (applyTicket keeps it as authVia).

@@ -31,6 +31,8 @@ export type AccountBooking = {
   href: string;
   date: string;
   time: string;
+  /** 26.2 P6 (D13): the booked day as YYYY-MM-DD (a time change from the account view needs it). */
+  dateIso: string;
   route: string;
   pickup: string;
   dropoff: string;
@@ -154,6 +156,7 @@ export function mapAccountBooking(row: AccountSqlRow, now = new Date()): Account
     payable: false,
     date: when.date,
     time: when.time,
+    dateIso: when.dateIso,
     route: pickup && dropoff ? `${pickup} → ${dropoff}` : pickup || dropoff,
     pickup,
     dropoff,

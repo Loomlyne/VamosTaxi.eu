@@ -133,3 +133,49 @@ describe("D15: the refund line after a cheaper change of places or time", () => 
     expect(moneyFromJson({ charged_rappen: 1000, lines: [], vehicle_class_name: "Economy", last_change: "x" })).toMatchObject({ lastChange: null });
   });
 });
+
+// D13 found on the way: both views sent the time on the day AS BOOKED (a new day was dropped), and a
+// booking opened through the account had no day at all, so its request was refused. The day picked
+// in the date picker now travels with the time, and an account booking carries its day.
+function helpers(rel: string) {
+  const html = read(rel);
+  const a = html.indexOf("function isoDay(");
+  const b = html.indexOf("\n}\n", html.indexOf("function requestedLocal(")) + 2;
+  expect(a).toBeGreaterThan(-1);
+  return new Function(`${html.slice(a, b)}\nreturn { requestedLocal, isoDay };`)() as {
+    requestedLocal: (iso: string, time: string, booked: string) => string;
+    isoDay: (y: unknown, m: unknown, d: unknown) => string;
+  };
+}
+
+describe.each(PAGES)("%s: the day picked is sent with the time", (rel) => {
+  const h = helpers(rel);
+  const html = read(rel);
+
+  it("the picker's day (month 0-based) becomes the ISO day", () => {
+    expect(h.isoDay(2026, 9, 9)).toBe("2026-10-09");
+    expect(h.isoDay(undefined, undefined, 9)).toBe("");
+  });
+
+  it("a new day and time, the booked day with a new time, nothing without a day", () => {
+    expect(h.requestedLocal("2026-10-09", "10:00", "2026-10-08T08:00")).toBe("2026-10-09T10:00");
+    expect(h.requestedLocal("", "10:00", "2026-10-08T08:00")).toBe("2026-10-08T10:00");
+    expect(h.requestedLocal("", "10:00", "")).toBe("");
+    expect(h.requestedLocal("Fri 9 Oct", "10:00", "")).toBe("");
+  });
+
+  it("setDay keeps the ISO day; the request is built from it; nothing is sent without one", () => {
+    expect(html).toMatch(/setDay = \(d, label, y, m\) => this\.setState\(\(s\) => \(\{ mDay: d, mDate: label, mIso: isoDay\(y, m, d\) \|\| s\.mIso \}\)\);/);
+    const body = confirmModify(html);
+    expect(body).toMatch(/const scheduledLocal = requestedLocal\(s\.mIso, s\.mTime, ticket\.scheduledLocal\);/);
+    expect(body).toMatch(/if \(!scheduledLocal\) \{ this\.say\(t\('Could not request this time change\.'\), 'danger'\); return; \}/);
+  });
+});
+
+it("an account booking carries its day (dateIso on the account list, scheduledLocal on the ticket)", async () => {
+  const { mapAccountBooking } = await import("../account/bookings");
+  expect(mapAccountBooking({ reference: "VT-1", status: "confirmed", scheduled_local: "2026-10-08T08:00" } as never)).toMatchObject({
+    dateIso: "2026-10-08", time: "08:00",
+  });
+  expect(ticketSrc).toMatch(/scheduledLocal: row && row\.dateIso && row\.time \? row\.dateIso \+ "T" \+ row\.time : "",/);
+});
