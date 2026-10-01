@@ -391,8 +391,8 @@ export type Database = {
           leg_seq: number
           note: string
           origin_zone_id: string | null
-          overlap_kept_range: unknown
           original_scheduled_at: string
+          overlap_kept_range: unknown
           pax: number
           pickup_lat: number | null
           pickup_lng: number | null
@@ -427,8 +427,8 @@ export type Database = {
           leg_seq: number
           note?: string
           origin_zone_id?: string | null
-          overlap_kept_range?: unknown
           original_scheduled_at: string
+          overlap_kept_range?: unknown
           pax?: number
           pickup_lat?: number | null
           pickup_lng?: number | null
@@ -463,8 +463,8 @@ export type Database = {
           leg_seq?: number
           note?: string
           origin_zone_id?: string | null
-          overlap_kept_range?: unknown
           original_scheduled_at?: string
+          overlap_kept_range?: unknown
           pax?: number
           pickup_lat?: number | null
           pickup_lng?: number | null
@@ -2830,23 +2830,6 @@ export type Database = {
         Returns: undefined
       }
       booking_snapshot_policy: { Args: { p_booking_id: string }; Returns: Json }
-      booking_staff_contact_update: {
-        Args: {
-          p_actor_id: string
-          p_booking_id: string
-          p_contact_email: string
-          p_contact_name: string
-          p_contact_phone: string
-          p_flight_no: string
-          p_note: string
-        }
-        Returns: {
-          assigned_chauffeur_id: string
-          booking_id: string
-          changed_fields: string
-          flight_changed: boolean
-        }[]
-      }
       booking_staff_change: {
         Args: {
           p_actor_id: string
@@ -2870,6 +2853,23 @@ export type Database = {
           quote_snapshot_id: number
           request_id: string
           unassigned_chauffeur_id: string
+        }[]
+      }
+      booking_staff_contact_update: {
+        Args: {
+          p_actor_id: string
+          p_booking_id: string
+          p_contact_email: string
+          p_contact_name: string
+          p_contact_phone: string
+          p_flight_no: string
+          p_note: string
+        }
+        Returns: {
+          assigned_chauffeur_id: string
+          booking_id: string
+          changed_fields: string
+          flight_changed: boolean
         }[]
       }
       booking_staff_trip_change: {
