@@ -36,3 +36,17 @@ describe("OpsDetail follows the change route's answers (26.2 P6)", () => {
     expect(dc).toMatch(/else if \(d\.driverUpdated && driverName\) msg \+= ' ' \+ fillName\(t\.tripDoneDriverKept\);/);
   });
 });
+
+describe("D21 (owner, 2026-10-02): the Refund due panel after a cheaper place or time change", () => {
+  it("says the trip changed, in four languages; a class-only change keeps the class line", () => {
+    expect(dc).toContain("tripCreditBody:'The trip was changed and costs less now. Nothing is sent until you confirm.'");
+    expect(dc).toContain("tripCreditBody:'Die Fahrt wurde geändert und kostet jetzt weniger. Es wird nichts gesendet, bis Sie bestätigen.'");
+    expect(dc.match(/\btripCreditBody:'/g)?.length).toBe(4);
+    expect(dc.match(/\bclassCreditBody:'/g)?.length).toBe(4);
+    // Both places the credit body shows pick the trip line from the refund data's lastChange.
+    expect(dc).toMatch(/const tripCredit = !!\(rd && rd\.lastChange === 'trip'\);/);
+    expect(dc).toMatch(/tClassCreditBody: tripCredit \? t\.tripCreditBody : t\.classCreditBody/);
+    expect(dc).toMatch(/tRefundBody: creditTier \? \(tripCredit \? t\.tripCreditBody : t\.classCreditBody\)/);
+  });
+});
+

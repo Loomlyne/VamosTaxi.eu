@@ -71,6 +71,7 @@ type BookingRow = {
   refund_status: string;
   refund_owed_rappen: number | string | null;
   refunded_rappen: number | string | null;
+  last_change?: string | null;
 };
 
 export type RefundPayment = {
@@ -92,6 +93,8 @@ type RefundState = {
   fullTier: boolean;
   /** 26.2 P1: a change on a live booking left an amount due (refund exactly that). */
   creditTier: boolean;
+  /** 26.2 P6 D21: the last accepted change was a class change alone ("class") or of places, time or party ("trip"). */
+  lastChange: "class" | "trip" | null;
   payments: RefundPayment[];
 };
 
@@ -110,7 +113,22 @@ async function readRefundState(env: CloudflareEnv, claims: VamosClaims, bookingI
       select b.status::text as status,
              b.refund_status::text as refund_status,
              b.refund_owed_rappen,
-             b.refunded_rappen
+             b.refunded_rappen,
+             -- 26.2 P6 D21: same rule as manage_money_for.last_change (the customer's D15 line).
+             (select case
+                       when pg_catalog.jsonb_typeof(r.payload) = 'object'
+                        and r.payload ? 'vehicle_class_slug'
+                        and not exists (
+                          select 1 from pg_catalog.jsonb_object_keys(r.payload) as k(key)
+                           where k.key <> 'vehicle_class_slug'
+                        ) then 'class'
+                       else 'trip'
+                     end
+                from public.booking_edit_requests as r
+               where r.booking_id = b.id
+                 and r.status = 'accepted'
+               order by r.accepted_at desc nulls last, r.created_at desc
+               limit 1) as last_change
         from public.bookings as b
        where b.id = ${bookingId}::uuid
        limit 1
@@ -165,6 +183,7 @@ async function readRefundState(env: CloudflareEnv, claims: VamosClaims, bookingI
       dueRappen: Math.max(0, owed - refunded),
       fullTier: pendingOps && owed > 0 && !creditTier,
       creditTier,
+      lastChange: b.last_change === "class" || b.last_change === "trip" ? b.last_change : null,
       payments,
     };
   });
@@ -181,6 +200,8 @@ export type RefundPicker = {
   fullTier: boolean;
   /** 26.2 P1: a change on a live booking left this much due: refund exactly that. */
   creditTier: boolean;
+  /** 26.2 P6 D21: which change it was, so the panel names a class change or a trip change. */
+  lastChange: "class" | "trip" | null;
 };
 
 /** GET …/refund: what the picker and a reloaded page need. Admin only (the route wraps it). */
@@ -204,6 +225,7 @@ export async function loadRefundPicker(
     refundStatus: state.refundStatus,
     fullTier: state.fullTier,
     creditTier: state.creditTier,
+    lastChange: state.lastChange,
   };
 }
 

@@ -899,6 +899,7 @@ const T = {
     classWaitingTitle:'Waiting for payment of the difference',
     classWaitingBody:'{class} · {a} to pay · the link works until {until}',
     classCreditBody:'The class was changed to a cheaper one. Nothing is sent until you confirm.',
+    tripCreditBody:'The trip was changed and costs less now. Nothing is sent until you confirm.',
     classCreditLine:'Difference to refund: {a}',
     classDoneApplied:'Class changed. The customer got the confirmation again.',
     classDoneRefund:'Class changed. Refund due: {a}. Press Confirm refund to send it.',
@@ -1039,6 +1040,7 @@ const T = {
     classWaitingTitle:'Warten auf Zahlung der Differenz',
     classWaitingBody:'{class} · {a} zu bezahlen · Link gültig bis {until}',
     classCreditBody:'Die Klasse wurde auf eine günstigere geändert. Es wird nichts gesendet, bis Sie bestätigen.',
+    tripCreditBody:'Die Fahrt wurde geändert und kostet jetzt weniger. Es wird nichts gesendet, bis Sie bestätigen.',
     classCreditLine:'Zurückzuerstattende Differenz: {a}',
     classDoneApplied:'Klasse geändert. Der Kunde hat die Bestätigung erneut erhalten.',
     classDoneRefund:'Klasse geändert. Rückerstattung fällig: {a}. Drücken Sie «Rückerstattung bestätigen», um sie zu senden.',
@@ -1182,6 +1184,7 @@ const T = {
     classWaitingTitle:'En attente du paiement de la différence',
     classWaitingBody:'{class} · {a} à payer · lien valable jusqu’au {until}',
     classCreditBody:'La classe a été changée pour une moins chère. Rien n’est envoyé avant votre confirmation.',
+    tripCreditBody:'La course a été modifiée et coûte maintenant moins cher. Rien n’est envoyé avant votre confirmation.',
     classCreditLine:'Différence à rembourser : {a}',
     classDoneApplied:'Classe changée. Le client a reçu de nouveau la confirmation.',
     classDoneRefund:'Classe changée. Remboursement dû : {a}. Appuyez sur « Confirmer le remboursement » pour l’envoyer.',
@@ -1325,6 +1328,7 @@ const T = {
     classWaitingTitle:'بانتظار دفع الفرق',
     classWaitingBody:'{class} · {a} للدفع · الرابط صالح حتى {until}',
     classCreditBody:'غُيّرت الفئة إلى فئة أرخص. لا يُرسَل شيء قبل تأكيدك.',
+    tripCreditBody:'عُدّلت الرحلة وأصبحت أرخص الآن. لا يُرسَل شيء قبل تأكيدك.',
     classCreditLine:'الفرق المطلوب استرداده: {a}',
     classDoneApplied:'غُيّرت الفئة. تلقّى العميل التأكيد مرة أخرى.',
     classDoneRefund:'غُيّرت الفئة. استرداد مستحق: {a}. اضغط «تأكيد الاسترداد» لإرساله.',
@@ -1646,6 +1650,8 @@ class Component extends DCLogic {
     const fullShown = paidAdmin && refundStatus === 'pending_ops' && fullTier;
     const creditShown = paidAdmin && refundStatus === 'pending_ops' && creditTier;
     const creditDue = rd ? Number(rd.dueRappen) || 0 : Math.max(0, (Number.isFinite(owedBk) ? owedBk : 0) - refundedBk);
+    // 26.2 P6 D21 (owner, 2026-10-02): a cheaper place, time or party change says the trip changed, not the class.
+    const tripCredit = !!(rd && rd.lastChange === 'trip');
     const reviewNeeded = paidAdmin && refundStatus === 'pending_ops' && !fullTier && !creditTier;
     const legacyDue = booking.status === 'cancelled' && !!booking.paid && refundStatus === 'none';
     const postTripEligible = isAdmin && !!booking.paid && booking.tripPassed === true && refundStatus === 'none' && postTripStatus;
@@ -2037,7 +2043,7 @@ class Component extends DCLogic {
       isPending: !booking.paid && !cancelled, isCancelled: booking.status === 'cancelled', isRefunded: booking.status === 'refunded' || refundStatus === 'refunded',
       showRefundDue: !refundFailedShown && ((booking.status === 'cancelled' && ((refundStatus === 'pending_ops' && fullTier) || legacyDue))
         || (refundStatus === 'pending_ops' && creditTier && !creditShown)),
-      creditShown, creditLine: fillAmounts(t.classCreditLine, { a: chfText(creditDue) }), tClassCreditBody: t.classCreditBody,
+      creditShown, creditLine: fillAmounts(t.classCreditLine, { a: chfText(creditDue) }), tClassCreditBody: tripCredit ? t.tripCreditBody : t.classCreditBody,
       canFullRefund, postTripEligible, reviewNeeded,
       refundFormShown, reviewShown: reviewNeeded, decidedShown: reviewNeeded, declineShown: reviewNeeded, fullShown,
       pickerShown: multi, payRows, fullLine: fillAmounts(t.refundFullLine, { a: chfText(fullAmount) }),
@@ -2085,7 +2091,7 @@ class Component extends DCLogic {
       acceptPostTrip: () => { if (!refundBusy) postRefund('post-trip', { postTrip: true }); },
       // Try again asks the server to finish what is still open; it never sends a new amount.
       retryRefund: () => { if (!refundBusy) postRefund('retry', { retry: true }); },
-      tOutstandingTitle: t.outstandingTitle, tOutstandingBody: t.outstandingBody, tRefundTitle: t.refundTitle, tRefundBody: creditTier ? t.classCreditBody : (fullTier ? t.refundBody : t.dueLegacyBody),
+      tOutstandingTitle: t.outstandingTitle, tOutstandingBody: t.outstandingBody, tRefundTitle: t.refundTitle, tRefundBody: creditTier ? (tripCredit ? t.tripCreditBody : t.classCreditBody) : (fullTier ? t.refundBody : t.dueLegacyBody),
       tRefundedTitle: t.refundedTitle, tRefundedBody: t.refundedBody,
       tSendPayLink: t.sendPayLink, tTakeCard: t.takeCard, tOpenStripe: t.openStripe, tCopyPayLink: t.copyPayLink, hasExtraPay: !!booking.pendingEditExtraSessionId,
       tResendVoucher: t.resendVoucher, tEditBooking: t.editBooking, tCancelBooking: t.cancelBooking,

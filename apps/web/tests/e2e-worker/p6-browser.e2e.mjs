@@ -282,9 +282,13 @@ try {
       await openBooking(dpage, "cheap");
       await dpage.getByText("Refund due", { exact: true }).first().waitFor({ timeout: 15000 });
       const region = dpage.locator("[data-ops-refund-region]").first();
+      // D21: the panel's sentence follows GET …/refund (lastChange), which answers after the page loads.
+      await region.getByText("The trip was changed and costs less now.", { exact: false }).waitFor({ timeout: 15000 }).catch(() => {});
       const regionText = (await region.innerText().catch(() => "")).replace(/\s+/g, " ");
       await shot(region, "o2-refund-due-panel");
-      rec("O2c the booking page shows the Refund due panel with the full difference", regionText.includes(money(due)), `panel: "${short(regionText, 170)}"`);
+      rec("O2c the booking page shows the Refund due panel with the full difference and the D21 trip line (not the class line)",
+        regionText.includes(money(due)) && regionText.includes("The trip was changed and costs less now. Nothing is sent until you confirm.") && !regionText.includes("The class was changed"),
+        `panel: "${short(regionText, 200)}"`);
     } catch (e) {
       await stopped("O2 cheaper place", e);
     }
