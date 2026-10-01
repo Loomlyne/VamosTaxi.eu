@@ -1,5 +1,5 @@
 ---
-status: in progress — design draft for the owner's signature; nothing pushed, nothing deployed, no hosted SQL
+status: built, waiting for the owner's signature on the pictures; nothing pushed, nothing deployed, no hosted SQL
 branch: gsd/26.2-chauffeur-car (cut from origin/main f3543451)
 created: 2026-10-01
 before: origin/main f3543451 (git archive) · after: this branch
@@ -144,6 +144,113 @@ left out.
 | `edde5890` | feat(dash): migration 20261007160000 + pgTAP |
 | `023e179e` | feat(dash): server — assign by driver class, plate, delete rule, history read, board fields |
 | `039326fc` | feat(dash): dashboard — form, list, profile history, Assign by class |
+| `bcd0c29d` | docs(dash): this record |
+| `5ac43850` | fix(dash): the edit box shows the languages he speaks (deviation 1) |
+| `c78512bb` | fix(dash): chauffeur box on a phone, each field full width (deviation 2) |
+| (this one) | docs(dash): signing pictures, sheet, record |
+
+## Deviations (found while building)
+
+1. [Rule 1] **Languages read "—" in the edit box** (also on origin/main, seen in the before
+   picture): the server sends names ("German, English"), the select holds codes. The list rows now
+   hand the select the codes; search keeps the names. Test red then green. `5ac43850`.
+2. [Rule 1] **Values cut on a phone**: at 390 the half-width fields cut their values (Class read
+   "…iness", name, e-mail). OpsTable gets an opt-in `phoneFull` flag (whole row under 680 px), used
+   by the chauffeur box only — no other editor changes. `c78512bb`.
+3. [Rule 1] German copy in OpsFleet had one `ß` ("Außer Dienst") → "Ausser Dienst".
+4. [Rule 1] The console store double load (main's Chauffeurs empty on some loads) — fixed with its
+   own test (`82c80a4a`). The before pictures needed 1 fresh load on origin/main; the branch none.
+5. OpsDetail no longer reads the vehicles store (it only fed the car line).
+
+## Pictures — `screens/` (60 PNG + `chauffeur-class-sheet.png`), real dashboard shell, offline
+
+Shell served as `serveOpsDc` does (`<base href="/app/ops/">` + signed-in flag) at `/fleet/chauffeurs`,
+`/fleet/chauffeurs/<id>`, `/bookings/VT-26-0042`; before = `git archive f3543451`, after = this
+branch. API answers made by each version's REAL presenters (`presentChauffeur`, `mapBoardBooking`,
+`presentVehicleClass`, `presentVehicle`; after also `mapChauffeurHistory`, `chauffeurDeleteJson`):
+Marco Rossi (Business, ZH 123 456), Sara Meier (Business, ZH 222 333), Luca Bianchi (Economy,
+ZH 654 321), Nina Keller (no class, no plate); live book 18 with Economy / Business / Van luxury;
+one unused vehicle row. No amounts.
+
+- `list-{before|after}-{en|ar}-{1440|390}` — the Chauffeurs list (and the rail at 1440)
+- `form-edit-before-…` (main's Car select), `form-{edit|add}[-end]-after-{en|ar}-{1440|768|390}`
+- `assign-{before|after}-{en|ar}-{1440|390}`, `assign-refusal-after-{en|ar}-{1440|390}`
+- `history-{before|after}-en-{1440|390}`, `delete-refusal-after-en-{1440|390}`, `menu-{before|after}-en-390`
+- `chauffeur-class-sheet.png` — all of the above on one sheet
+
+Every picture opened and looked at. Measured in the page: **0 px sideways at every width**;
+`dir=rtl` in Arabic. Refusal texts read back from the page: "Marco Rossi drives Economy; the trip is
+Business." / "يقود Marco Rossi فئة Economy، والرحلة من فئة Business." / "Marco Rossi still has trips
+that are not finished: VT-26-0050. Assign them to another driver first."
+
+## Gates (once, at the end)
+
+`node scripts/sync-dc-mock-to-public.mjs` ok; `pnpm typecheck` 0; `pnpm lint` 0 errors (6 warnings,
+none in touched files); `pnpm lint:css` 0; `pnpm i18n:check` pass; `pnpm check:numbers` ok;
+`pnpm check:db-fences` pass (the new local test is in the allow-list); `pnpm check:public-env`
+pass; `pnpm check:legal-claims` pass. Touched and related unit tests (`lib/ops`, `lib/checkout`,
+`lib/lifecycle`, `lib/account`): **189 files, 1831 passed, 3 skipped**. Fresh isolated stack
+(`sb262`, migrations from scratch incl. 20261007160000): pgTAP **2128 tests, all pass** (the
+"vamos_edge has no password" check fails only while the lead's local passwords are set; passes
+with them cleared); `assign.local` + `chauffeur-delete.local` pass on the real database. Stack
+stopped with `--no-backup`.
+
+## Not verified
+
+- No hosted SQL, no Worker build, no deploy, no live click. The migration ran on the isolated local
+  stack only. Hosted: apply `20261007160000` verbatim, then read back.
+- No mail was sent; the reminder and "driver assigned" mails are proven as text in four languages.
+- German, French and Arabic words read by no native speaker.
+- The isolated stack's three symlinks (`sb262/supabase/{migrations,seed.sql,tests}`) now point at
+  this folder (lead's instruction); P1's leftover stack was stopped with `--no-backup` first.
+
+## Merge points
+
+- `app/ops/OpsDetail.dc.html` is also being changed by P1 (another folder): this branch touches the
+  Assign box only (helper, copy keys `noClass`/`classMismatch`/`plate`/`noDriversClass`/`capacity`,
+  the box markup, `confirmAssign` refusal words, the bind()).
+- `packages/db/database.types.ts`: regenerated here (only `chauffeurs.plate`); P1 may regenerate too.
+- Not touched: `packages/emails`, `lib/ops/edit-request*.ts`, `apps/web/tests/**`, middleware, worker,
+  checkout, seed.sql, any applied migration.
+
+## Pre-existing, seen, not touched
+
+- Arabic: phone numbers read reversed in the list and the edit box ("01 00 000 79 41+").
+- Row Edit/Delete buttons 32 px, under the 44 px rule (shared OpsTable, every dashboard list).
+- The list header reads "Driver" (runtime dictionary), the copy table says "Chauffeur".
+- On a phone the list scrolls inside its own box; Class/Plate are a sideways swipe there.
+- OpsFleet still carries the unreachable nested "Add a vehicle" dialog; `/api/staff/vehicles`
+  still exists (no screen reaches it); the must-fix "off-road" mail can no longer fire.
+
+## Questions for the owner (signature)
+
+1. **Plate required?** Today it is optional (the form marks only Name as required, like Licence).
+   Example: Nina Keller can be saved without a plate. Make it required?
+2. **Plate unique?** Two active chauffeurs cannot carry the same plate (case does not matter), so
+   two drivers who share one car on different shifts cannot both have it. Keep unique?
+3. **Delete and finished trips**: a chauffeur with only finished trips is deleted for good; those
+   trips keep their record without his name (example: a completed VT-26-0040 shows no driver on its
+   booking page). Keep, or refuse while any trip ever had him?
+4. **"Not finished"**: a trip whose pickup time has passed but that is not closed (not Complete,
+   No-show or Cancelled) also blocks the delete. Right?
+5. **What the customer sees**: the mails say "Plate: ZH 123 456" and the manage-booking page shows
+   the plate under "Vehicle" (no car model). Keep these existing labels?
+6. **The unused vehicle row on live** stays (no screen shows it). Delete it later (one SQL line,
+   your go), or leave it?
+
+## Owner UAT (after the ship, dashboard.vamostaxi.site)
+
+1. Chauffeurs → pencil on your driver → pick **Class** Business, type **Plate number** ZH 123 456 →
+   **SAVE CHAUFFEUR**. **Expected:** the list shows Business and ZH 123 456 on his row.
+2. Type the plate in the search box. **Expected:** only that driver is listed.
+3. Bookings → open a paid Business trip with no driver. **Expected:** under Assignment only your
+   Business drivers are listed, each with his plate; Economy drivers are not.
+4. Pick your driver → **ASSIGN DRIVER**. **Expected:** "Driver assigned to VT-…"; the box shows him
+   and "Plate ZH 123 456".
+5. Chauffeurs → click his name. **Expected:** Class and Plate in his profile; under Bookings the
+   trip from step 4, newest first.
+6. Edit him → **DELETE** → **DELETE**. **Expected:** "… still has trips that are not finished:
+   VT-…. Assign them to another driver first." and he stays.
 
 ## Not verified
 
