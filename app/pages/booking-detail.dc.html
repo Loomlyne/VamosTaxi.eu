@@ -774,10 +774,17 @@ class Component extends DCLogic {
     this._offLocale = window.VamosLocale && window.VamosLocale.onChange(() => this.forceUpdate());
     const helper = api();
     const tok = helper.token ? helper.token() : '';
-    fetch('/api/auth/session', { credentials: 'same-origin', cache: 'no-store' })
+    fetch('/api/auth/session' + (tok ? '' : '?finish=1'), { credentials: 'same-origin', cache: 'no-store' })
       .then((response) => response.ok ? response.json() : Promise.reject(new Error('session-unavailable')))
       .then((snapshot) => {
         const signedIn = !!(snapshot && snapshot.signedIn === true);
+        /* 27.1 (27 D-37): opened from the account (no token), an account the sign-in link made finishes first. */
+        if (!tok && signedIn && snapshot.finishRequired === true) {
+          let l = 'en';
+          try { const v = window.VamosLocale && window.VamosLocale.lang; l = (typeof v === 'function' ? v() : v) || 'en'; } catch (e) {}
+          location.replace((l !== 'en' ? '/' + l : '') + '/sign-up?state=finish');
+          return;
+        }
         this.setState({ signedIn }, () => {
           if (!tok) this.loadLive();
         });

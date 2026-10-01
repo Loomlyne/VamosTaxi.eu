@@ -41,6 +41,7 @@ import type { AccountChoiceValue } from "@/components/checkout/AccountChoice";
 import type { CheckoutSignInStage } from "@/components/checkout/CheckoutSignIn";
 import { useQuoteLabel } from "@/lib/checkout/quote-label";
 import { buildTripQuery, normaliseFlight, parseTripQuery, type Trip } from "@/lib/checkout/trip-url";
+import { finishPathFrom } from "@/lib/auth/finish-path";
 import { useCheckoutFlow } from "./CheckoutPage";
 import { useCheckoutSettings } from "./CheckoutSettings";
 
@@ -378,11 +379,17 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
         const res = await fetch("/api/checkout/me", { credentials: "same-origin" });
         const me = (await res.json()) as {
           signed_in?: boolean;
+          finish_required?: boolean;
           email?: string;
           first_name?: string;
           last_name?: string;
           phone?: string;
         };
+        // 27.1 (27 D-37): an account the sign-in link made finishes (name, the tick) before it can pay.
+        if (me.signed_in && me.finish_required) {
+          window.location.replace(finishPathFrom(window.location.pathname, window.location.search));
+          return;
+        }
         if (me.signed_in && me.email) {
           setSignedInEmail(me.email);
           const next = {

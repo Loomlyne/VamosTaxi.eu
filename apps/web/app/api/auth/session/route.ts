@@ -2,7 +2,8 @@
 //
 // Minimal session snapshot for the header's client control. Any script on the
 // page can read this response, so it carries only the signed-in customer's own
-// account display fields: signedIn, displayName, email, emailConfirmed, phone. It never
+// account display fields: signedIn, displayName, email, emailConfirmed, phone, and (27.1) whether
+// the account must still finish (finishRequired). It never
 // includes a user id, token, role claim, or timestamp.
 //
 // D-03: getUser() only — never the cookie-only session helper. Middleware matcher excludes /api,
@@ -14,6 +15,8 @@
 // emailConfirmed is derived from User.email_confirmed_at on @supabase/ssr 0.12.5
 // (@supabase/auth-js 2.112.4 User).
 
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { mustFinish } from "@/lib/auth/finish-target";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { log } from "@/lib/logger";
 
@@ -27,6 +30,8 @@ export type SessionSnapshot = {
   email: string | null;
   emailConfirmed: boolean;
   phone: string | null;
+  /** 27.1: the account must still finish (name, optional phone, the tick). Only read with ?finish=1; false when not asked or the read fails. */
+  finishRequired: boolean;
 };
 
 const SIGNED_OUT: SessionSnapshot = {
@@ -35,6 +40,7 @@ const SIGNED_OUT: SessionSnapshot = {
   email: null,
   emailConfirmed: false,
   phone: null,
+  finishRequired: false,
 };
 
 function displayNameFromMetadata(metadata: Record<string, unknown>): string | null {
@@ -67,12 +73,23 @@ export async function GET(request: Request) {
     if (!user) return snapshotResponse(SIGNED_OUT);
 
     const metadata = user.user_metadata as Record<string, unknown> | undefined;
+    // Asked only with ?finish=1 (the account page and the finish step), so the header's call on
+    // every public page stays one Auth read with no database query.
+    const asked = new URL(request.url).searchParams.get("finish") === "1";
+    const finishRequired = asked
+      ? await mustFinish(getCloudflareContext().env, user.id, {
+          requestId: crypto.randomUUID(),
+          route: "/api/auth/session",
+          locale: null,
+        })
+      : false;
     return snapshotResponse({
       signedIn: true,
       displayName: metadata ? displayNameFromMetadata(metadata) : null,
       email: user.email ?? null,
       emailConfirmed: Boolean(user.email_confirmed_at),
       phone: metadata ? phoneFromMetadata(metadata) : null,
+      finishRequired,
     });
   } catch {
     log(

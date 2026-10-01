@@ -4,6 +4,7 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { customerClaims } from "@/lib/account/session";
 import { resolveActorCustomerId } from "@/lib/checkout/actor-customer";
+import { mustFinish } from "@/lib/auth/finish-target";
 import { meWithDeps, type MeRow } from "@/lib/checkout/me";
 import { asCustomer } from "@/lib/db/identity";
 
@@ -17,6 +18,9 @@ export async function GET(request: Request) {
     const claims = await customerClaims(request);
     if (!claims) return new Response(JSON.stringify({ signed_in: false }), { headers: HEADERS });
     const answer = await meWithDeps({
+      // 27.1: an unfinished sign-in-link account is sent to the finish step before it can pay.
+      finishRequired: () =>
+        mustFinish(env, claims.sub, { requestId: crypto.randomUUID(), route: "/api/checkout/me", locale: null }),
       customerId: () => resolveActorCustomerId(env, request),
       readOwnRow: async () => {
         const rows = await asCustomer(env, claims, (sql) =>

@@ -41,11 +41,31 @@ all 9 scenarios.
 | 1a | the ticked password sign-up leaves exactly one `account_agreement_records` row for the address: surface `sign-up`, choice `create`, record_kind `consent`, text_version `2026-09-29`, the locale sent |
 | 1b | the confirm link still writes no `consent_log` row (27 D-01); the detail line also reports the agreement row count. Check 8 (dashboard host sign-up) adds: no agreement row for that address |
 
-### Line 3b (27 D-36)
+### Lines 3b to 3g (27.1, 27 D-37; replaces the D-36 line)
+
+On the public host the sign-in link makes the account for a new address; the account must then finish
+(name, optional phone, the account tick) before it is used. The dashboard host still makes no account (check 8).
 
 | Line | Proves |
 |---|---|
-| 3b | the public-host sign-in link for an unknown address answers with the same status and body as check 3's known address, sends no mail and leaves no `auth.users` row. Checks 3 and 4 (known address A, created by check 1) still sign in |
+| 3b | the sign-in link for a new address answers with the same status and body as check 3's known address, mails a sealed confirm link (no Supabase verify URL), and leaves one unconfirmed `auth.users` row and no `account_agreement_records` row |
+| 3c | the confirm button signs in and its target is `/sign-up?state=finish`; `/api/auth/session?finish=1` says `finishRequired: true` |
+| 3d | `finish-account` without the tick answers 400 `consent-required`, writes no record and no name |
+| 3e | with the tick and a phone: exactly one record (sign-up, create, consent, 2026-09-29, the locale sent), `full_name` and `phone` in metadata, `finishRequired: false`; a second press writes nothing |
+| 3f | the 6-digit code for another new address answers `{ ok: true, finish: true }` |
+| 3g | an account made by the password sign-up (A) is never asked to finish |
+
+Check 1a also sends the optional phone and reads it back from `user_metadata`.
+
+`finish-account-browser.e2e.mjs` (run by `run.sh` after `email-change`, same Worker, Chromium at 390 px, nothing stubbed):
+
+| Line | Proves |
+|---|---|
+| F1 | /sign-in "Email me a link" for a new address shows "check your email" and the mail holds a confirm link |
+| F2 | the link's SIGN IN lands on `/sign-up?state=finish`, "Finish your account", the address shown read-only, no tabs |
+| F3 | Finish without the tick shows the tick error on the page and writes no record |
+| F4 | with names, mobile and the tick: lands on /account and stays; one sign-up record; `Mia Keller` and `+41790000000` on the customer row; no unfinished mark; no sideways scroll |
+| F5 | no page errors |
 
 ## F12 confirm screen (Phase 20 batch C)
 

@@ -1,0 +1,193 @@
+// 27.1 (27 D-37): the finish step through POST /api/auth, the code sign-in's finish flag, the session
+// snapshot's finishRequired (only when asked) and the confirm button's finish target.
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { authPost, resetHarness, setCookieHeaders, state, writeCookies } from "./harness";
+
+const db = vi.hoisted(() => ({ finish: true as boolean | Error, order: [] as string[], recordFails: false, exists: false, doneFails: false }));
+
+vi.mock("@opennextjs/cloudflare", async () => (await import("./harness")).cloudflareMock);
+vi.mock("next/headers", async () => (await import("./harness")).headersMock);
+vi.mock("@supabase/ssr", async () => (await import("./harness")).ssrMock);
+vi.mock("@/lib/db/system-reads", () => ({
+  readAccountFinishRequired: async () => {
+    db.order.push("read");
+    if (db.finish instanceof Error) throw db.finish;
+    return db.finish;
+  },
+  readCheckoutAccountUserState: async () => {
+    db.order.push("state");
+    return { user_exists: db.exists, confirmed: db.exists, checkout_origin: false };
+  },
+  markAccountFinishPending: async () => {
+    db.order.push("mark");
+  },
+  markAccountFinished: async () => {
+    if (db.doneFails) throw new Error("down");
+    db.order.push("done");
+  },
+}));
+vi.mock("@/lib/db/identity", () => ({
+  asSystem: async (_env: unknown, fn: (tx: unknown) => Promise<unknown>) => {
+    if (db.recordFails) throw Object.assign(new Error("x"), { code: "42501" });
+    db.order.push("record");
+    return fn(async () => []);
+  },
+}));
+
+const { POST } = await import("@/app/api/auth/route");
+const { GET: SESSION } = await import("@/app/api/auth/session/route");
+const session = { name: "sb-x-auth-token", value: "session-2", options: { path: "/" } };
+const mia = { id: "user-1", email: "mia@example.test", user_metadata: {}, app_metadata: {}, email_confirmed_at: "2026-10-01" };
+const body = { action: "finish-account", firstName: "Mia", lastName: "Keller", phone: "+41 79 000 00 00", consent: true };
+
+beforeEach(() => {
+  resetHarness();
+  db.finish = true;
+  db.order = [];
+  db.recordFails = false;
+  db.exists = false;
+  db.doneFails = false;
+  state.auth.getUser = (async () => ({ data: { user: mia }, error: null })) as never;
+});
+
+describe("POST /api/auth finish-account", () => {
+  it("records the tick, then saves the profile, and sends the refreshed session cookie", async () => {
+    const update = vi.fn(async (_a: unknown) => {
+      db.order.push("profile");
+      writeCookies(session);
+      return { error: null };
+    });
+    state.auth.updateUser = update as never;
+    const res = await POST(authPost(body));
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ ok: true });
+    expect(db.order).toEqual(["read", "record", "done", "profile"]);
+    expect(update).toHaveBeenCalledWith({
+      data: { first_name: "Mia", last_name: "Keller", full_name: "Mia Keller", phone: "+41790000000" },
+    });
+    expect(setCookieHeaders(res).join("\n")).toContain("sb-x-auth-token=session-2");
+    expect(res.headers.get("cache-control")).toBe("private, no-store");
+  });
+
+  it("without the tick: 400 consent-required, nothing read or written", async () => {
+    const update = vi.fn();
+    state.auth.updateUser = update as never;
+    const res = await POST(authPost({ ...body, consent: false }));
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ ok: false, reason: "consent-required" });
+    expect(db.order).toEqual([]);
+    expect(update).not.toHaveBeenCalled();
+  });
+
+  it("signed out: 401, nothing written", async () => {
+    state.auth.getUser = (async () => ({ data: { user: null }, error: null })) as never;
+    const res = await POST(authPost(body));
+    expect(res.status).toBe(401);
+    expect(db.order).toEqual([]);
+  });
+
+  it("record failure: 503 signup-unavailable and no profile write", async () => {
+    db.recordFails = true;
+    const update = vi.fn();
+    state.auth.updateUser = update as never;
+    const res = await POST(authPost(body));
+    expect(res.status).toBe(503);
+    expect(await res.json()).toEqual({ ok: false, reason: "signup-unavailable" });
+    expect(update).not.toHaveBeenCalled();
+  });
+
+  it("an e-mail in the body is refused, never used", async () => {
+    const res = await POST(authPost({ ...body, email: "other@example.test" }));
+    expect(res.status).toBe(400);
+    expect(db.order).toEqual([]);
+  });
+
+  it("is not offered on the dashboard host", async () => {
+    const res = await POST(authPost(body, "dashboard.vamostaxi.site"));
+    expect(res.status).toBe(404);
+    expect(db.order).toEqual([]);
+  });
+});
+
+describe("the sign-in link marks only a new address", () => {
+  it("a public link request asks the database to mark the account it may have made", async () => {
+    const otp = vi.fn(async (..._a: unknown[]) => ({ error: null }));
+    state.auth.signInWithOtp = otp as never;
+    const res = await POST(authPost({ mode: "signin", method: "magic", email: "new@example.test" }));
+    expect(await res.json()).toEqual({ stage: "sent" });
+    expect(db.order).toEqual(["mark"]);
+  });
+
+  it("a failed link request marks nothing", async () => {
+    state.auth.signInWithOtp = (async () => ({ error: { code: "over_email_send_rate_limit" } })) as never;
+    await POST(authPost({ mode: "signin", method: "magic", email: "new@example.test" }));
+    expect(db.order).toEqual([]);
+  });
+
+  it("a sign-up never marks", async () => {
+    state.auth.signInWithOtp = (async () => ({ error: null })) as never;
+    await POST(authPost({ mode: "signup", method: "magic", email: "n@example.test", firstName: "A", lastName: "B", consent: true }));
+    expect(db.order).not.toContain("mark");
+  });
+
+  it("the link has its own per-address limit; a 429 marks nothing", async () => {
+    state.env.AUTH_RATE_LIMITER = {
+      limit: async ({ key }: { key: string }) => ({ success: !key.startsWith("auth-link:") }),
+    };
+    state.auth.signInWithOtp = (async () => ({ error: null })) as never;
+    const res = await POST(authPost({ mode: "signin", method: "magic", email: "new@example.test" }));
+    expect(res.status).toBe(429);
+    expect(db.order).toEqual([]);
+  });
+
+  it("the dashboard host reads and marks nothing", async () => {
+    state.auth.signInWithOtp = (async () => ({ error: null })) as never;
+    await POST(authPost({ mode: "signin", method: "magic", email: "new@example.test" }, "dashboard.vamostaxi.site"));
+    expect(db.order).toEqual([]);
+  });
+});
+
+describe("finish-account when 'finished' cannot be stored", () => {
+  it("answers 503 and writes no profile", async () => {
+    db.doneFails = true;
+    const update = vi.fn();
+    state.auth.updateUser = update as never;
+    const res = await POST(authPost(body));
+    expect(res.status).toBe(503);
+    expect(update).not.toHaveBeenCalled();
+  });
+});
+
+describe("verify-code on an account the sign-in link made", () => {
+  it("answers finish: true so the page opens the finish step", async () => {
+    state.auth.verifyOtp = (async () => {
+      writeCookies(session);
+      return { error: null };
+    }) as never;
+    const res = await POST(authPost({ mode: "verify-code", email: "mia@example.test", code: "123456" }));
+    expect(await res.json()).toEqual({ ok: true, finish: true });
+  });
+
+  it("a finished account answers plain ok", async () => {
+    db.finish = false;
+    state.auth.verifyOtp = (async () => ({ error: null })) as never;
+    const res = await POST(authPost({ mode: "verify-code", email: "mia@example.test", code: "123456" }));
+    expect(await res.json()).toEqual({ ok: true });
+  });
+});
+
+describe("GET /api/auth/session finishRequired", () => {
+  it("is read only when asked with ?finish=1", async () => {
+    const plain = (await (await SESSION(new Request("https://vamostaxi.site/api/auth/session"))).json()) as Record<string, unknown>;
+    expect(plain.finishRequired).toBe(false);
+    expect(db.order).toEqual([]);
+    const asked = (await (await SESSION(new Request("https://vamostaxi.site/api/auth/session?finish=1"))).json()) as Record<string, unknown>;
+    expect(asked).toMatchObject({ signedIn: true, email: "mia@example.test", finishRequired: true });
+  });
+
+  it("a failed read answers false, so the account page still opens", async () => {
+    db.finish = new Error("down");
+    const asked = (await (await SESSION(new Request("https://vamostaxi.site/api/auth/session?finish=1"))).json()) as Record<string, unknown>;
+    expect(asked.finishRequired).toBe(false);
+  });
+});
