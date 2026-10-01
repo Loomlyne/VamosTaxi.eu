@@ -1,8 +1,8 @@
 # Rules every Vamos work session follows
 
 You are a work session, not the control session. The control session is the only one that
-commits on main, pushes main and deploys. Its session id is
-`local_03cf7e47-1746-4ac2-a28b-8ee0d831f01b`; message it with SendMessage.
+commits on main, pushes main and deploys. It is "Vamos Taxi controller", session id
+`local_f9f33973-c2fc-404c-95fe-22b3fb2dd7fa` (since 2026-10-01 17:03 +04); message it with SendMessage.
 
 ## Read first, in this order
 1. `CLAUDE.local.md`, section "One job, one branch, one ship". Binding.

@@ -1,5 +1,7 @@
 # Control board
 
+**Control session since 2026-10-01 17:03 (+04): Vamos Taxi controller (`local_f9f33973-c2fc-404c-95fe-22b3fb2dd7fa`). Before: Vamos Taxi control session (`local_03cf7e47-1746-4ac2-a28b-8ee0d831f01b`), retired.**
+
 Kept by the control session. One page: what is live, what is being built, what waits for
 the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
