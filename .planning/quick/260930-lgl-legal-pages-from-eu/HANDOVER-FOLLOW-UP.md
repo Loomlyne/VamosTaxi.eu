@@ -110,11 +110,17 @@ language it names. This run was done one frame at a time and checks the language
   width without page scroll; my change there is text only. Not investigated.
 - Nothing ran on vamostaxi.site.
 
-## 7. Still wrong on live pages, not changed (owner's "leave old values", decision 5)
+## 7. Terms SMS line and About fleet (owner: "fix the terms SMS line and the About fleet too")
 
-- /terms §03: "Driver name, vehicle and telephone number are sent by SMS and email …" — the site sends no SMS and no phone number by email; FAQ and About now say so, terms still does.
-- /about fleet: Van row says "8 passengers, 8 medium cases"; the live active class is "Van luxury" 12 / 9. Business is described as "an executive saloon"; the live Business is a Mercedes V-Class.
-- The section 6 list of the first hand-over.
+| Page | Before | After | Source |
+|---|---|---|---|
+| /terms §03 (mock and Next.js) | "Driver name, vehicle and telephone number are sent by SMS and email shown on your confirmation before pickup. Ask us and we will send them sooner." | "Driver name, vehicle and plate are sent by email as soon as a driver is assigned, and again in the reminder 24 hours before pickup. The driver's number is on your manage-booking page." | `notify-lifecycle.ts:16` (no SMS), `:211`; `AssignmentCustomerEmail.tsx` (name, vehicle, plate); `Reminder24hEmail.tsx` |
+| /about fleet, Business | "An executive saloon for corporate travel …" | "A roomy executive van for corporate travel and airport pickups where the arrival matters." (no brand named) | live `vehicle_classes`: active Business is slug `mercedes-benz-v-class` |
+| /about fleet, third class | "Van · 8 passengers · 8 medium cases" | "Van luxury · 12 passengers · 9 medium cases" | live `vehicle_classes`: active `van-luxury` 12 / 9 |
+
+Checked on the mocks: /terms and /about × en/de/fr/ar × 1440/1024/390, one frame at a time, no sideways scroll, every new line translated.
+Left alone: Economy's description "A saloon for one or two travellers" while the class seats 3; the Next.js FAQ messages (not live) still say "by SMS … 6 hours".
+Still from the first hand-over, left as decided: its section 6 list.
 
 ## 8. Owner UAT after the control session sets the date and deploys
 
@@ -128,3 +134,5 @@ language it names. This run was done one frame at a time and checks the language
 8. Book a test ride more than 24 hours ahead (card 4242 4242 4242 4242), open the manage link, press Cancel. Expected: "This trip will be cancelled. Refunded in full, automatically." After cancelling, no "waiting on review" box.
 9. Book a test ride less than 24 hours ahead, cancel from the manage link. Expected: "This trip will be cancelled. Our team decides the refund and tells you by email." Then the box "Refund · waiting on review" with the same sentence.
 10. Open /checkout in a private window. Expected: the cookie banner shows no "TBC".
+11. vamostaxi.site/terms, section 03. Expected: "Driver name, vehicle and plate are sent by email as soon as a driver is assigned, …". No "SMS".
+12. vamostaxi.site/about, fleet. Expected: "Business · 7 passengers · 6 medium cases · A roomy executive van …" and "Van luxury · 12 passengers · 9 medium cases".

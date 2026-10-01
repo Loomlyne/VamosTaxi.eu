@@ -30,4 +30,7 @@ regexes = [
   '''data:[a-zA-Z0-9.+-]+/[a-zA-Z0-9.+-]+;base64,[A-Za-z0-9+/=]+''',
   # Stripe publishable test keys are public. Secret keys stay scanned.
   '''pk_test_[A-Za-z0-9]+''',
+  # Cloudflare Web Analytics site tag: public, printed into every page of vamostaxi.site.
+  # Only this exact tag is allowed (app/vamos-consent.js, lib/consent/web-analytics.ts).
+  '''792482ef56d84c46aee4f6501205ce68''',
 ]

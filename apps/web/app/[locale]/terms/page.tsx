@@ -120,8 +120,7 @@ export default async function TermsPage({
           <li>{t("how-to-change-or-cancel-the-booking")}</li>
         </ul>
         <p>
-          {t("driver-name-vehicle-and-telephone-number-are-sen")}{" "}
-          {tCommon("driver-details-lead-time")} {tCommon("before-pickup")}
+          {t("terms-driver-details-by-email")}
         </p>
       </section>
 

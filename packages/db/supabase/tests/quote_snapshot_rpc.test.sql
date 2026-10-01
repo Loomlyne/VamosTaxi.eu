@@ -68,7 +68,7 @@ select sv.id as settings_version_id
 grant select on qsr_null to public;
 
 -- (1) PUBLIC, anon and authenticated hold no EXECUTE (Phase 20, 20260919000001:
--- the Data API cannot mint snapshots; vamos_edge is the only grantee) ---------
+-- the Data API cannot mint snapshots; since 20261007180000 no role holds it, only the owner) -
 select function_privs_are(
   'public', 'create_quote_snapshot',
   '{uuid,uuid,int8,int8,text,timestamptz,int2,int2,jsonb,jsonb,jsonb,jsonb,display_currency,text,rappen,rappen,rappen,rappen,numeric,int4,int8,text,uuid}'::text[],
@@ -98,8 +98,8 @@ select is(
   '(2) create_quote_snapshot is security definer (prosecdef)'
 );
 
--- (3) launch-state call as vamos_edge (the remaining grantee) -------------------
-set local role vamos_edge;
+-- (3) launch-state call as the owner (checkout_create_booking calls it as definer) ---
+-- runs as the owner: 20261007180000 (G10) took EXECUTE off vamos_edge, its last grantee
 select lives_ok(
   $$
     select public.create_quote_snapshot(
@@ -117,7 +117,7 @@ select lives_ok(
       p_legs => (select one_leg from qsr_fx)
     )
   $$,
-  '(3a) vamos_edge launch-state create_quote_snapshot lives_ok'
+  '(3a) launch-state create_quote_snapshot lives_ok'
 );
 reset role;
 
@@ -164,7 +164,7 @@ create temporary table qsr_count as
 select count(*)::bigint as n from public.price_snapshots;
 
 -- (6) D-25: past lock raises and inserts nothing --------------------------------
-set local role vamos_edge;
+-- runs as the owner: 20261007180000 (G10) took EXECUTE off vamos_edge, its last grantee
 select throws_ok(
   $$
     select public.create_quote_snapshot(
@@ -195,7 +195,7 @@ select is(
 );
 
 -- (7) null checkout_window_minutes raises --------------------------------------
-set local role vamos_edge;
+-- runs as the owner: 20261007180000 (G10) took EXECUTE off vamos_edge, its last grantee
 select throws_ok(
   $$
     select public.create_quote_snapshot(
@@ -304,7 +304,7 @@ select is(
 );
 
 -- (10) lines/total identity still fires through the RPC ------------------------
-set local role vamos_edge;
+-- runs as the owner: 20261007180000 (G10) took EXECUTE off vamos_edge, its last grantee
 select throws_ok(
   $$
     select public.create_quote_snapshot(
