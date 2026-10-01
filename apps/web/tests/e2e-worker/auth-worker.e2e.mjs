@@ -56,6 +56,7 @@ let ipn = 10;
 const newIp = () => `10.20.${Math.floor(++ipn / 250)}.${ipn % 250}`;
 const auth = (body, jar, opts = {}) => req("POST", "/api/auth", { jar, host: opts.host, headers: { origin: `http://${opts.host ?? "localhost:" + PORT}`, "cf-connecting-ip": opts.ip ?? "10.9.9.9" }, body });
 const session = async (jar, host) => (await req("GET", "/api/auth/session", { jar, host })).json;
+const sessionF = async (jar, host) => (await req("GET", "/api/auth/session?finish=1", { jar, host })).json; // 27.1: asks finishRequired
 
 const files = () => { if (!fs.existsSync(MAIL_ROOT)) return []; const r = []; const walk = (d) => { for (const e of fs.readdirSync(d, { withFileTypes: true })) { const p = path.join(d, e.name); e.isDirectory() ? walk(p) : p.endsWith(".txt") && r.push(p); } }; walk(MAIL_ROOT); return r; };
 const before = () => new Set(files());
@@ -88,6 +89,7 @@ async function follow(link, jar, host) {
 
 const users = (e) => Number(sql(`select count(*) from auth.users where email='${e}'`));
 const agreements = (e) => Number(sql(`select count(*) from public.account_agreement_records where lower(email)=lower('${e}')`));
+const meta = (e, k) => sql(`select coalesce(raw_user_meta_data->>'${k}', '') from auth.users where email='${e}'`);
 
 const A = `e2e-a-${RUN}@example.com`, B = `e2e-b-${RUN}@example.com`, D = `e2e-d-${RUN}@example.com`, U = `e2e-unknown-${RUN}@example.com`, U2 = `e2e-unknown2-${RUN}@example.com`;
 const jarA = new Jar();
@@ -106,14 +108,14 @@ let seen = before();
 
 // 1 sign up
 seen = before();
-let r = await auth({ mode: "signup", method: "password", email: A, password: PW1, firstName: "E", lastName: "Two", consent: true, locale: "de" }, jarA, { ip: newIp() });
+let r = await auth({ mode: "signup", method: "password", email: A, password: PW1, firstName: "E", lastName: "Two", phone: "+41 79 000 00 00", consent: true, locale: "de" }, jarA, { ip: newIp() });
 const su = `status ${r.status} stage=${r.json?.stage ?? JSON.stringify(r.json)?.slice(0, 60)}`;
 let mail = await newMail(seen);
 const rowsAfter = users(A);
 const hasVerifier = jarA.has(/code-verifier/);
 const agrA = sql(`select count(*) from public.account_agreement_records where lower(email)=lower('${A}') and surface='sign-up' and choice='create' and record_kind='consent' and text_version='2026-09-29' and locale='de'`);
 let link = mail && linkOf(mail);
-rec("1a signup: response + mail + auth.users row + one agreement record", !!mail && rowsAfter === 1 && agrA === "1" && agreements(A) === 1, `${su}; mail=${!!mail}; auth.users=${rowsAfter}; code-verifier cookie=${hasVerifier}; agreement rows=${agreements(A)} matching=${agrA}`);
+rec("1a signup: response + mail + auth.users row + one agreement record + optional phone kept (27.1)", !!mail && rowsAfter === 1 && agrA === "1" && agreements(A) === 1 && meta(A, "phone") === "+41 79 000 00 00", `${su}; mail=${!!mail}; auth.users=${rowsAfter}; code-verifier cookie=${hasVerifier}; agreement rows=${agreements(A)} matching=${agrA}; phone kept=${meta(A, "phone") === "+41 79 000 00 00"}`);
 if (link) {
   const f = await follow(link, jarA);
   const s = await session(jarA);
@@ -141,16 +143,60 @@ if (link) { const f = await follow(link, jar3); s = await session(jar3);
   rec("3 magic link", s?.signedIn === true, `request ${r.status}; hops=${f.hops.join(">")} final=${f.final}; verifier=${jar3.has(/code-verifier/)}; signedIn=${s?.signedIn}`);
 } else rec("3 magic link", false, `request ${r.status}; no mail`);
 
-// 3b sign-in link for an unknown address (27 D-36): same answer, no mail, no account
+// 3b-3f sign-in link for an unknown address (27.1 / 27 D-37, replaces the D-36 line): the link makes the account, then it
+// must finish (name, optional phone, the tick) before it is used.
 {
   const known3 = r; // check 3's request for the known address A
-  const UL = `e2e-nolink-${Date.now()}@example.com`;
+  const UL = `e2e-newlink-${Date.now()}@example.com`;
   const seen3b = before();
   const r3b = await auth({ mode: "signin", method: "magic", email: UL }, new Jar(), { ip: newIp() });
-  const mail3b = await newMail(seen3b, 3000);
-  rec("3b sign-in link for an unknown address makes no account (27 D-36)",
-    r3b.status === known3.status && JSON.stringify(r3b.json) === JSON.stringify(known3.json) && !mail3b && users(UL) === 0,
-    `status ${r3b.status} vs known ${known3.status}; body equal=${JSON.stringify(r3b.json) === JSON.stringify(known3.json)}; mail=${!!mail3b}; auth.users=${users(UL)}`);
+  const mail3b = await newMail(seen3b, 8000);
+  const link3b = mail3b && linkOf(mail3b);
+  const sealed = !!link3b && /\/sign-in\/confirm\?/.test(link3b) && new URL(link3b).searchParams.has("e") && !/\/auth\/v1\/verify/.test(mail3b);
+  rec("3b sign-in link for a new address: same answer as a known one, a sealed confirm mail, one unconfirmed account, no record (27 D-37)",
+    r3b.status === known3.status && JSON.stringify(r3b.json) === JSON.stringify(known3.json) && sealed && users(UL) === 1 && agreements(UL) === 0
+      && sql(`select count(*) from auth.users where email='${UL}' and email_confirmed_at is null`) === "1",
+    `status ${r3b.status} vs known ${known3.status}; body equal=${JSON.stringify(r3b.json) === JSON.stringify(known3.json)}; mail=${!!mail3b} sealed confirm link=${sealed}; auth.users=${users(UL)}; agreement rows=${agreements(UL)}`);
+
+  const jarL = new Jar();
+  let f3 = link3b ? await follow(link3b, jarL) : { hops: [], final: "" };
+  const s3c = await sessionF(jarL);
+  rec("3c confirm button signs in and lands on the finish step; the session says finishRequired",
+    f3.hops.join(">").includes("POST 200") && f3.final === "/sign-up?state=finish" && s3c?.signedIn === true && s3c?.finishRequired === true,
+    `hops=${f3.hops.join(">")} target=${f3.final}; signedIn=${s3c?.signedIn} finishRequired=${s3c?.finishRequired}`);
+
+  const r3d = await auth({ action: "finish-account", firstName: "Mia", lastName: "Keller" }, jarL, { ip: newIp() });
+  rec("3d finish without the tick: 400 consent-required, no record, no name written",
+    r3d.status === 400 && r3d.json?.reason === "consent-required" && agreements(UL) === 0 && meta(UL, "first_name") === "",
+    `${r3d.status} ${JSON.stringify(r3d.json)}; agreement rows=${agreements(UL)}; first_name=${JSON.stringify(meta(UL, "first_name"))}`);
+
+  const r3e = await auth({ action: "finish-account", firstName: "Mia", lastName: "Keller", phone: "+41 79 000 00 00", consent: true, locale: "fr" }, jarL, { ip: newIp() });
+  const row3e = sql(`select count(*) from public.account_agreement_records where lower(email)=lower('${UL}') and surface='sign-up' and choice='create' and record_kind='consent' and text_version='2026-09-29' and locale='fr'`);
+  const s3e = await sessionF(jarL);
+  const again = await auth({ action: "finish-account", firstName: "Mia", lastName: "Keller", consent: true }, jarL, { ip: newIp() });
+  rec("3e finish with the tick: exactly one sign-up record, names and phone saved, finished; a second press writes nothing",
+    r3e.status === 200 && r3e.json?.ok === true && row3e === "1" && agreements(UL) === 1 && meta(UL, "full_name") === "Mia Keller" && meta(UL, "phone") === "+41 79 000 00 00"
+      && s3e?.finishRequired === false && s3e?.signedIn === true && again.status === 200 && agreements(UL) === 1,
+    `${r3e.status} ${JSON.stringify(r3e.json)}; matching row=${row3e}; rows=${agreements(UL)}; full_name=${meta(UL, "full_name")}; phone kept=${meta(UL, "phone") === "+41 79 000 00 00"}; finishRequired=${s3e?.finishRequired}; second press ${again.status}, rows=${agreements(UL)}`);
+
+  await nap(1500);
+  const UC = `e2e-newcode-${Date.now()}@example.com`;
+  const seen3f = before();
+  await auth({ mode: "signin", method: "magic", email: UC }, new Jar(), { ip: newIp() });
+  const mail3f = await newMail(seen3f, 8000);
+  const code3f = mail3f && codeOf(mail3f);
+  const jarC = new Jar();
+  const r3f = code3f ? await auth({ mode: "verify-code", email: UC, code: code3f }, jarC, { ip: newIp() }) : { status: 0, json: null };
+  const s3f = await sessionF(jarC);
+  rec("3f the 6-digit code for a new address answers finish: true",
+    r3f.status === 200 && r3f.json?.ok === true && r3f.json?.finish === true && s3f?.finishRequired === true,
+    `code in mail=${!!code3f}; verify-code ${r3f.status} ${JSON.stringify(r3f.json)}; finishRequired=${s3f?.finishRequired}`);
+
+  // An account made by a password sign-up (A, check 1) is never asked.
+  const jarK = new Jar();
+  await auth({ mode: "signin", method: "password", email: A, password: PW1 }, jarK, { ip: newIp() });
+  const sK = await sessionF(jarK);
+  rec("3g a sign-up account is never asked to finish", sK?.signedIn === true && sK?.finishRequired === false, `signedIn=${sK?.signedIn} finishRequired=${sK?.finishRequired}`);
 }
 
 // 4 e-mail code (fresh request, code from mail)
