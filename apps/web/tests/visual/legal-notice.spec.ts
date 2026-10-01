@@ -51,18 +51,19 @@ test.describe("LanguageCoverageNotice @component", () => {
     });
   }
 
-  test("imprint notice present under fr @component", async ({ page }) => {
+  // Owner 2026-10-01 (replaces 26.0 D-05): the imprint reads in all four languages.
+  test("imprint notice absent under fr @component", async ({ page }) => {
     await page.goto(baseURL + "/fr/dev/legal-notice");
-    await expect(page.locator('[data-page="imprint"]')).toHaveAttribute("data-notice", "present");
+    await expect(page.locator('[data-page="imprint"]')).toHaveAttribute("data-notice", "absent");
     await expect(page.locator('[data-page="terms"]')).toHaveAttribute("data-notice", "absent");
     await expect(page.locator('[data-page="privacy"]')).toHaveAttribute("data-notice", "absent");
     await expect(page.locator('[data-page="cookies"]')).toHaveAttribute("data-notice", "absent");
     await expect(page.locator('[data-page="cancellation"]')).toHaveAttribute("data-notice", "absent");
   });
 
-  test("imprint notice present under ar @component", async ({ page }) => {
+  test("imprint notice absent under ar @component", async ({ page }) => {
     await page.goto(baseURL + "/ar/dev/legal-notice");
-    await expect(page.locator('[data-page="imprint"]')).toHaveAttribute("data-notice", "present");
+    await expect(page.locator('[data-page="imprint"]')).toHaveAttribute("data-notice", "absent");
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl"); // dir="rtl"
   });
 

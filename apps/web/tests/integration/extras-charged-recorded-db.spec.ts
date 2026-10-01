@@ -140,7 +140,11 @@ test("child-seat and pet-crate: labelled, priced, sent to Stripe, saved and show
           predicate: { kind: "manual" },
         });
         const loadLabels = async (): Promise<ExtraLabelsByCode> => {
+          // The real reader runs as anon (asQuote in lib/checkout/checkout-catalog.ts); since
+          // 20261007180000 (G12) vamos_checkout holds no EXECUTE on extra_labels_read.
+          await tx`set local role anon`;
           const rows = await tx<typeof labelRows>`select * from public.extra_labels_read()`;
+          await tx`set local role vamos_checkout`;
           labelRows = rows;
           const out: ExtraLabelsByCode = {};
           for (const r of rows) out[r.code] = { en: r.label_en, de: r.label_de, fr: r.label_fr, ar: r.label_ar };

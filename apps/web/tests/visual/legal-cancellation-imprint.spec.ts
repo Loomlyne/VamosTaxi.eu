@@ -171,28 +171,19 @@ test.describe("Cancellation and imprint pages @component", () => {
   });
 
   test("I18N-08 imprint notice @component", async ({ page }) => {
-    // D-05 (26.0): the imprint exists in English and German; fr/ar readers get the
-    // en+de note from the runtime (#vt-legal-note-text), en/de readers get none.
-    const NOTE = {
-      fr: "Cette page existe en anglais et en allemand. Le texte anglais fait foi.",
-      ar: "هذه الصفحة متوفرة بالإنجليزية والألمانية. النص الإنجليزي هو المُلزِم.",
-    };
-    for (const locale of ["fr", "ar"] as const) {
-      await openIn(page, locale, "/imprint");
-      const note = page.locator("#vt-legal-note-text");
-      await expect(note).toBeVisible();
-      await expect(note).toHaveText(NOTE[locale]);
-    }
+    // Owner 2026-10-01 (replaces 26.0 D-05): the imprint reads in all four languages,
+    // so no reader gets the coverage note; the page itself names German as binding.
+    await openIn(page, "ar", "/imprint");
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
 
-    for (const [lang, path] of [["en", "/imprint"], ["de", "/imprint"], ["fr", "/cancellation"], ["ar", "/cancellation"], ["de", "/cancellation"], ["en", "/cancellation"]] as const) {
+    for (const [lang, path] of [["en", "/imprint"], ["de", "/imprint"], ["fr", "/imprint"], ["ar", "/imprint"], ["fr", "/cancellation"], ["ar", "/cancellation"], ["de", "/cancellation"], ["en", "/cancellation"]] as const) {
       await openIn(page, lang, path);
       await expect(page.locator("#vt-legal-note")).toHaveCount(0);
     }
   });
 
   test("imprint and cancellation declare their languages @component", async ({ page }) => {
-    for (const [path, langs] of [["/imprint", "en de"], ["/cancellation", "en de fr ar"]] as const) {
+    for (const [path, langs] of [["/imprint", "en de fr ar"], ["/cancellation", "en de fr ar"]] as const) {
       await page.goto(baseURL + path, { waitUntil: "domcontentloaded", timeout: 60_000 });
       await expect(page.locator("main")).toBeVisible({ timeout: 60_000 });
       await expect(page.locator("main")).toHaveAttribute("data-vt-legal", langs);
