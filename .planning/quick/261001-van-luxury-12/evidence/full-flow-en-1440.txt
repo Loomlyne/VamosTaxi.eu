@@ -1,0 +1,12 @@
+PASS | 1 home asks for the class list once | GET /api/quote x1; saden:ok:3 mercedes-benz-v-class:ok:7 van-luxury:ok:12
+PASS | 2 + stops at the class-row limit | stopped at 12 after 11 presses; + disabled=true
+PASS | 2b the figure 12 fits its slot and nothing scrolls sideways | slot 28px; scrollWidth ok=true
+PASS | 3 back to 10 | now 10
+PASS | 4 See prices hands 10 travellers to /checkout | /checkout?pax=10&bags=0
+PASS | 5 the quote for 10: only Van luxury fits (class rows) | POST /api/quote 200: saden:pax:3 mercedes-benz-v-class:pax:7 van-luxury:ok:12
+PASS | 6 /checkout greys Economy (up to 3) and Business (up to 7); Van luxury priced | Choose your class Economy 3 seats 3 bags Seats up to 3 Business 7 seats 6 bags Seats up to 7 Van luxury 12 seats 9 bags CHF 0.61 fixed price 2 Who is travelling CHOOSE HOW TO CONTINUE Continue as gues
+PASS | 6b /checkout does not scroll sideways | scrollWidth ok
+PASS | 7 Edit trip counter stops at 12 | + pressed 2 times from 10; disabled=true; Passengers 12 Bags 0
+PASS | 8 PAY: /api/checkout/intent accepts 10 travellers in Van luxury | intent 200 ; navigated: https://checkout.stripe.com/c/pay/cs_test_e2e_d97b9506dc2e4bec
+PASS | 9 the local booking row holds 10 travellers in Van luxury | latest booking: pending|10|van-luxury
+errors []

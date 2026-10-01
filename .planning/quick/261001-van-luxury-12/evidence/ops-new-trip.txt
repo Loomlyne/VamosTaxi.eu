@@ -1,0 +1,4 @@
+PASS | 1 local admin signs in on the dashboard host | http://dashboard.localhost:4491/dashboard
+PASS | 2 New trip sends 10 travellers to the quote (no silent 8) | quotes sent with pax: 10; last: saden:pax mercedes-benz-v-class:pax van-luxury:ok
+PASS | 3 the class list offers only Van luxury for 10 | class select: ["Van luxury"]
+errors []

@@ -1,0 +1,92 @@
+== en 1440
+PASS | 1 home asks for the class list once | GET /api/quote x1; saden:ok:3 mercedes-benz-v-class:ok:7 van-luxury:ok:12
+PASS | 2 + stops at the class-row limit | stopped at 12 after 11 presses; + disabled=true
+PASS | 2b the figure 12 fits its slot and nothing scrolls sideways | slot 28px; scrollWidth ok=true
+PASS | 3 back to 10 | now 10
+== en 1024
+PASS | 1 home asks for the class list once | GET /api/quote x1; saden:ok:3 mercedes-benz-v-class:ok:7 van-luxury:ok:12
+PASS | 2 + stops at the class-row limit | stopped at 12 after 11 presses; + disabled=true
+PASS | 2b the figure 12 fits its slot and nothing scrolls sideways | slot 28px; scrollWidth ok=true
+PASS | 3 back to 10 | now 10
+== en 768
+PASS | 1 home asks for the class list once | GET /api/quote x1; saden:ok:3 mercedes-benz-v-class:ok:7 van-luxury:ok:12
+PASS | 2 + stops at the class-row limit | stopped at 12 after 11 presses; + disabled=true
+PASS | 2b the figure 12 fits its slot and nothing scrolls sideways | slot 28px; scrollWidth ok=true
+PASS | 3 back to 10 | now 10
+== en 390
+PASS | 1 home asks for the class list once | GET /api/quote x1; saden:ok:3 mercedes-benz-v-class:ok:7 van-luxury:ok:12
+PASS | 2 + stops at the class-row limit | stopped at 12 after 11 presses; + disabled=true
+PASS | 2b the figure 12 fits its slot and nothing scrolls sideways | slot 28px; scrollWidth ok=true
+PASS | 3 back to 10 | now 10
+== de 1440
+PASS | 1 home asks for the class list once | GET /api/quote x1; saden:ok:3 mercedes-benz-v-class:ok:7 van-luxury:ok:12
+PASS | 2 + stops at the class-row limit | stopped at 12 after 11 presses; + disabled=true
+PASS | 2b the figure 12 fits its slot and nothing scrolls sideways | slot 28px; scrollWidth ok=true
+PASS | 2c no English left in the open travellers panel or sheet at 12 | coverage: {"lang":"de","count":0,"strings":[],"attrs":[]}; dir=ltr
+PASS | 3 back to 10 | now 10
+== de 1024
+PASS | 1 home asks for the class list once | GET /api/quote x1; saden:ok:3 mercedes-benz-v-class:ok:7 van-luxury:ok:12
+PASS | 2 + stops at the class-row limit | stopped at 12 after 11 presses; + disabled=true
+PASS | 2b the figure 12 fits its slot and nothing scrolls sideways | slot 28px; scrollWidth ok=true
+PASS | 2c no English left in the open travellers panel or sheet at 12 | coverage: {"lang":"de","count":0,"strings":[],"attrs":[]}; dir=ltr
+PASS | 3 back to 10 | now 10
+== de 768
+PASS | 1 home asks for the class list once | GET /api/quote x1; saden:ok:3 mercedes-benz-v-class:ok:7 van-luxury:ok:12
+PASS | 2 + stops at the class-row limit | stopped at 12 after 11 presses; + disabled=true
+PASS | 2b the figure 12 fits its slot and nothing scrolls sideways | slot 28px; scrollWidth ok=true
+PASS | 2c no English left in the open travellers panel or sheet at 12 | coverage: {"lang":"de","count":0,"strings":[],"attrs":[]}; dir=ltr
+PASS | 3 back to 10 | now 10
+== de 390
+PASS | 1 home asks for the class list once | GET /api/quote x1; saden:ok:3 mercedes-benz-v-class:ok:7 van-luxury:ok:12
+PASS | 2 + stops at the class-row limit | stopped at 12 after 11 presses; + disabled=true
+PASS | 2b the figure 12 fits its slot and nothing scrolls sideways | slot 28px; scrollWidth ok=true
+PASS | 2c no English left in the open travellers panel or sheet at 12 | coverage: {"lang":"de","count":0,"strings":[],"attrs":[]}; dir=ltr
+PASS | 3 back to 10 | now 10
+== fr 1440
+PASS | 1 home asks for the class list once | GET /api/quote x1; saden:ok:3 mercedes-benz-v-class:ok:7 van-luxury:ok:12
+PASS | 2 + stops at the class-row limit | stopped at 12 after 11 presses; + disabled=true
+PASS | 2b the figure 12 fits its slot and nothing scrolls sideways | slot 28px; scrollWidth ok=true
+PASS | 2c no English left in the open travellers panel or sheet at 12 | coverage: {"lang":"fr","count":0,"strings":[],"attrs":[]}; dir=ltr
+PASS | 3 back to 10 | now 10
+== fr 1024
+PASS | 1 home asks for the class list once | GET /api/quote x1; saden:ok:3 mercedes-benz-v-class:ok:7 van-luxury:ok:12
+PASS | 2 + stops at the class-row limit | stopped at 12 after 11 presses; + disabled=true
+PASS | 2b the figure 12 fits its slot and nothing scrolls sideways | slot 28px; scrollWidth ok=true
+PASS | 2c no English left in the open travellers panel or sheet at 12 | coverage: {"lang":"fr","count":0,"strings":[],"attrs":[]}; dir=ltr
+PASS | 3 back to 10 | now 10
+== fr 768
+PASS | 1 home asks for the class list once | GET /api/quote x1; saden:ok:3 mercedes-benz-v-class:ok:7 van-luxury:ok:12
+PASS | 2 + stops at the class-row limit | stopped at 12 after 11 presses; + disabled=true
+PASS | 2b the figure 12 fits its slot and nothing scrolls sideways | slot 28px; scrollWidth ok=true
+PASS | 2c no English left in the open travellers panel or sheet at 12 | coverage: {"lang":"fr","count":0,"strings":[],"attrs":[]}; dir=ltr
+PASS | 3 back to 10 | now 10
+== fr 390
+PASS | 1 home asks for the class list once | GET /api/quote x1; saden:ok:3 mercedes-benz-v-class:ok:7 van-luxury:ok:12
+PASS | 2 + stops at the class-row limit | stopped at 12 after 11 presses; + disabled=true
+PASS | 2b the figure 12 fits its slot and nothing scrolls sideways | slot 28px; scrollWidth ok=true
+PASS | 2c no English left in the open travellers panel or sheet at 12 | coverage: {"lang":"fr","count":0,"strings":[],"attrs":[]}; dir=ltr
+PASS | 3 back to 10 | now 10
+== ar 1440
+PASS | 1 home asks for the class list once | GET /api/quote x1; saden:ok:3 mercedes-benz-v-class:ok:7 van-luxury:ok:12
+PASS | 2 + stops at the class-row limit | stopped at 12 after 11 presses; + disabled=true
+PASS | 2b the figure 12 fits its slot and nothing scrolls sideways | slot 28px; scrollWidth ok=true
+PASS | 2c no English left in the open travellers panel or sheet at 12 | coverage: {"lang":"ar","count":0,"strings":[],"attrs":[]}; dir=rtl
+PASS | 3 back to 10 | now 10
+== ar 1024
+PASS | 1 home asks for the class list once | GET /api/quote x1; saden:ok:3 mercedes-benz-v-class:ok:7 van-luxury:ok:12
+PASS | 2 + stops at the class-row limit | stopped at 12 after 11 presses; + disabled=true
+PASS | 2b the figure 12 fits its slot and nothing scrolls sideways | slot 28px; scrollWidth ok=true
+PASS | 2c no English left in the open travellers panel or sheet at 12 | coverage: {"lang":"ar","count":0,"strings":[],"attrs":[]}; dir=rtl
+PASS | 3 back to 10 | now 10
+== ar 768
+PASS | 1 home asks for the class list once | GET /api/quote x1; saden:ok:3 mercedes-benz-v-class:ok:7 van-luxury:ok:12
+PASS | 2 + stops at the class-row limit | stopped at 12 after 11 presses; + disabled=true
+PASS | 2b the figure 12 fits its slot and nothing scrolls sideways | slot 28px; scrollWidth ok=true
+PASS | 2c no English left in the open travellers panel or sheet at 12 | coverage: {"lang":"ar","count":0,"strings":[],"attrs":[]}; dir=rtl
+PASS | 3 back to 10 | now 10
+== ar 390
+PASS | 1 home asks for the class list once | GET /api/quote x1; saden:ok:3 mercedes-benz-v-class:ok:7 van-luxury:ok:12
+PASS | 2 + stops at the class-row limit | stopped at 12 after 11 presses; + disabled=true
+PASS | 2b the figure 12 fits its slot and nothing scrolls sideways | slot 28px; scrollWidth ok=true
+PASS | 2c no English left in the open travellers panel or sheet at 12 | coverage: {"lang":"ar","count":0,"strings":[],"attrs":[]}; dir=rtl
+PASS | 3 back to 10 | now 10
