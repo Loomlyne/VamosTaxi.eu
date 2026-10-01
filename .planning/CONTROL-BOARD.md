@@ -63,8 +63,9 @@ JSON double encoding in `stripe_events.payload` and `rate_version_rules.payload`
 in dashboard settings, after B7. (3) Real texts of the 5 published reviews. (4) 4242 payment as guest and
 with "Create an account". (5) /contact real message. (6) Refund by hand. (7) Pay in de, fr, ar and on a
 tablet. (8) UAT of the live jobs (pick-up report section 2). (9) Meta switches on pixel 1595596972063765.
-(10) The 48 SiteHeader picture diffs. (11) PR #62 and `docs/lenis-quick-note`: keep or close. (12) Repo
-public or private. (13) The rest of the 18:01 message. Launch, his word only: prices + Publish of price
+(10) The 48 SiteHeader picture diffs. (11) Repo public or private. (12) The rest of the 18:01 message. Done 23:58: PR #62 closed
+(comment says what is on main), `claude/routesummary-port-only`, `fix/main-green` and `docs/lenis-quick-note`
+deleted on the owner's answer, each saved in its `archive/*` tag. Launch, his word only: prices + Publish of price
 book row 18, delete test bookings, live Stripe key, vamostaxi.eu cutover.
 
 ## Live now
