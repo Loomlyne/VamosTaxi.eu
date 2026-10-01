@@ -24,6 +24,9 @@ export default defineConfig({
   testDir: "./tests",
   testMatch: process.env.VAMOS_E2E === "1" ? E2E_SPECS : "**/*.spec.ts",
   fullyParallel: true,
+  // e2e-linux-3: in the Linux e2e job the first request to a page makes `next dev` compile it on a 2-core runner,
+  // and 30 s was not enough for several specs (home, about, legal-terms, currency...). 90 s there; unchanged elsewhere.
+  ...(process.env.VAMOS_E2E === "1" ? { timeout: 90_000 } : {}),
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   reporter: [["list"]],
