@@ -24,6 +24,13 @@ The owner's words of 2026-10-01, in the order he said them. Recorded by the 26.2
    - Delete a chauffeur: his FINISHED trips keep his name and details; his FUTURE (not finished)
      trips lose him and go back to unassigned; he disappears from the Chauffeurs list and from
      Assign. A trip whose pickup has passed but is not closed counts as not finished.
+8. His answers in the question form, 2026-10-01, on the pictures `screens/row-empty-after-en-1440.png`,
+   `row-assigned-after-en-1440.png`, `row-refusal-after-en-390.png`, `row-assigned-after-ar-390.png`:
+   - The chauffeurs-by-class work: "Signed".
+   - The reminder e-mail ("Plate") and the customer's booking page ("Vehicle") now show the
+     chauffeur's plate: "Keep 'Plate' and 'Vehicle'". No new wording.
+   - The one old car row on live that nothing uses: "Delete it". The control session deletes it
+     after this ships, once a read shows no booking leg points to it, and reads back.
 
 ## What follows from it
 
@@ -38,5 +45,5 @@ The owner's words of 2026-10-01, in the order he said them. Recorded by the 26.2
 - Plate number is required on the chauffeur form; plates may repeat.
 - Deleting a chauffeur keeps his row for history (`chauffeurs.deleted_at`); his trips that are not
   finished go back to unassigned; he is hidden from every dashboard list and from Assign.
-- No vehicle row is created, changed or deleted by this work; the existing unused vehicle row on
-  live stays as it is.
+- No vehicle row is created or changed by this work. The one unused vehicle row on live is deleted
+  by the control session after the ship (decision 8), with a read-back.
