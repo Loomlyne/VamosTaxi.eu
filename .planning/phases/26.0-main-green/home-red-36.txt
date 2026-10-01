@@ -1,0 +1,72 @@
+- integration/home-content.spec.ts :: seeded review authors render from the database [component-1440]
+    Error: expect(received).toBe(expected) // Object.is equality
+- visual/home-booking-sheet.spec.ts :: one page goes to /checkout with the trip in the URL, no flight for a street pickup @component [component-390]
+    Error: expect(received).toBe(expected) // Object.is equality
+- visual/home-booking-sheet.spec.ts :: the sheet writes the chosen date in de, not English, and follows a switch @component [component-390]
+    Error: expect(received).not.toMatch(expected)
+- visual/home-booking-sheet.spec.ts :: one page goes to /checkout with the trip in the URL, no flight for a street pickup @component [component-768]
+    Error: expect(received).toBe(expected) // Object.is equality
+- visual/home-booking-sheet.spec.ts :: the sheet writes the chosen date in de, not English, and follows a switch @component [component-768]
+    Error: expect(received).not.toMatch(expected)
+- visual/home-booking-sheet.spec.ts :: one page goes to /checkout with the trip in the URL, no flight for a street pickup @component [component-1024]
+    Error: expect(received).toBe(expected) // Object.is equality
+- visual/home-booking-sheet.spec.ts :: the sheet writes the chosen date in de, not English, and follows a switch @component [component-1024]
+    Error: expect(received).not.toMatch(expected)
+- visual/home-hero.spec.ts :: screenshot en empty @component [component-390]
+    Error: expect(locator).toBeVisible() failed
+- visual/home-hero.spec.ts :: screenshot en empty @component [component-768]
+    Error: expect(locator).toBeVisible() failed
+- visual/home-hero.spec.ts :: screenshot en empty @component [component-1024]
+    Error: expect(locator).toBeVisible() failed
+- visual/home-hero.spec.ts :: screenshot en empty @component [component-1440]
+    Error: expect(locator).toBeVisible() failed
+- visual/home-how-it-works.spec.ts :: screenshot en light-reveal @component [component-390]
+    Test timeout of 30000ms exceeded.
+- visual/home-how-it-works.spec.ts :: screenshot en light-reveal @component [component-768]
+    Test timeout of 30000ms exceeded.
+- visual/home-how-it-works.spec.ts :: screenshot en light-reveal @component [component-1024]
+    Test timeout of 30000ms exceeded.
+- visual/home-how-it-works.spec.ts :: screenshot en light-reveal @component [component-1440]
+    Test timeout of 30000ms exceeded.
+- visual/home-laptop-bar.spec.ts :: the chosen date is written in de, not English, and follows a language switch [component-1440]
+    Error: expect(received).not.toMatch(expected)
+- visual/home-reviews.spec.ts :: screenshot en default @component [component-390]
+    Test timeout of 30000ms exceeded.
+- visual/home-reviews.spec.ts :: screenshot en default @component [component-768]
+    Test timeout of 30000ms exceeded.
+- visual/home-reviews.spec.ts :: screenshot en default @component [component-1024]
+    Test timeout of 30000ms exceeded.
+- visual/home-reviews.spec.ts :: screenshot en default @component [component-1440]
+    Test timeout of 30000ms exceeded.
+- visual/home-services.spec.ts :: screenshot en light-default @component [component-390]
+    Error: expect(locator).toBeVisible() failed
+- visual/home-services.spec.ts :: screenshot en light-default @component [component-768]
+    Error: expect(locator).toBeVisible() failed
+- visual/home-services.spec.ts :: screenshot en light-default @component [component-1024]
+    Error: expect(locator).toBeVisible() failed
+- visual/home-services.spec.ts :: screenshot en light-default @component [component-1440]
+    Error: expect(locator).toBeVisible() failed
+- visual/home-why-vamos.spec.ts :: screenshot en support-on-driven @component [component-390]
+    Error: goto /dev/home/why-vamos status 404
+- visual/home-why-vamos.spec.ts :: screenshot en support-on-driven @component [component-768]
+    Error: goto /dev/home/why-vamos status 404
+- visual/home-why-vamos.spec.ts :: screenshot en support-on-driven @component [component-1024]
+    Error: goto /dev/home/why-vamos status 404
+- visual/home-why-vamos.spec.ts :: screenshot en support-on-driven @component [component-1440]
+    Error: goto /dev/home/why-vamos status 404
+- visual/home-widget.spec.ts :: screenshot en populated widget @component [component-390]
+    Test timeout of 30000ms exceeded.
+- visual/home-widget.spec.ts :: screenshot en populated widget @component [component-768]
+    Test timeout of 30000ms exceeded.
+- visual/home-widget.spec.ts :: screenshot en populated widget @component [component-1024]
+    Test timeout of 30000ms exceeded.
+- visual/home-widget.spec.ts :: screenshot en populated widget @component [component-1440]
+    Test timeout of 30000ms exceeded.
+- visual/home.spec.ts :: screenshot en @component [component-390]
+    Test timeout of 30000ms exceeded.
+- visual/home.spec.ts :: screenshot en @component [component-768]
+    Test timeout of 30000ms exceeded.
+- visual/home.spec.ts :: screenshot en @component [component-1024]
+    Test timeout of 30000ms exceeded.
+- visual/home.spec.ts :: screenshot en @component [component-1440]
+    Test timeout of 30000ms exceeded.

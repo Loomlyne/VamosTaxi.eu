@@ -714,7 +714,15 @@
     "acctCodeError": "Prüfen Sie den Code. Er hat {digits} Ziffern und gilt eine Stunde lang.",
     "acctResend": "Neuen Link senden",
     "acctResent": "Soeben erneut gesendet.",
-    "acctRateLimit": "Zu viele Versuche. Warten Sie eine Minute und versuchen Sie es erneut."
+    "acctRateLimit": "Zu viele Versuche. Warten Sie eine Minute und versuchen Sie es erneut.",
+    "nextAssignTitle": "Wir teilen Ihnen einen Fahrer zu.",
+    "nextAssignBody": "Sie erhalten eine E-Mail mit dem Namen des Fahrers und dem Kennzeichen.",
+    "nextReminderTitle": "Eine Erinnerung 24 Stunden vor der Abholung.",
+    "nextReminderBody": "Per E-Mail, mit den Angaben zu Ihrem Fahrer, sobald er zugeteilt ist.",
+    "nextCancelTitle": "Kostenlose Stornierung bis <h>{hours}</h> Stunden vor der Abholung.",
+    "nextCancelBody": "Unter «Buchung verwalten».",
+    "manageHint": "Zeit oder Flugnummer ändern oder stornieren: unter «Buchung verwalten».",
+    "helpLine": "Fragen zu dieser Fahrt? Rufen Sie <tel>{phone}</tel> an oder schreiben Sie auf <wa>WhatsApp</wa>."
   },
   "common": {
     "4-not-live": "4 nicht live",

@@ -12,7 +12,8 @@ export type AuthRunResult =
   | { stage: "sent" }
   | { ok: true };
 
-export type ProfileRunResult = { ok: true } | { ok: false; reason: string };
+/** `finish`: 27.1, a sign-in that must go to the finish step first. */
+export type ProfileRunResult = { ok: true; finish?: true } | { ok: false; reason: string };
 
 export type AuthError = { code?: string; message?: string } | null;
 
@@ -103,7 +104,7 @@ export async function runSignInPassword(
 
 export async function runSignUpPassword(
   supabase: AuthClient,
-  input: { email: string; password: string; firstName: string; lastName: string; locale: string },
+  input: { email: string; password: string; firstName: string; lastName: string; locale: string; phone?: string },
   origin: string,
   home: string,
 ): Promise<{ result: AuthRunResult; reason: string | null }> {
@@ -115,6 +116,7 @@ export async function runSignUpPassword(
       data: {
         full_name: fullName(input.firstName, input.lastName),
         [AUTH_LOCALE_METADATA_KEY]: input.locale,
+        ...(input.phone ? { phone: input.phone } : {}),
       },
     },
   });
@@ -129,6 +131,8 @@ export async function runOtp(
     locale: string;
     firstName?: string;
     lastName?: string;
+    /** 27.1: optional mobile number on a sign-up. */
+    phone?: string;
     /** false on the staff dashboard: an e-mail link must never create a customer account there. */
     createUser?: boolean;
   },
@@ -138,6 +142,7 @@ export async function runOtp(
   const data: Record<string, string> = { [AUTH_LOCALE_METADATA_KEY]: input.locale };
   if (input.mode === "signup") {
     data.full_name = fullName(input.firstName ?? "", input.lastName ?? "");
+    if (input.phone) data.phone = input.phone;
   }
   const { error } = await supabase.auth.signInWithOtp({
     email: input.email,

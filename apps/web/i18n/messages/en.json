@@ -714,7 +714,15 @@
     "acctCodeError": "Check the code. It is {digits} digits and works for one hour.",
     "acctResend": "Send another link",
     "acctResent": "Sent again just now.",
-    "acctRateLimit": "Too many tries. Wait a minute and try again."
+    "acctRateLimit": "Too many tries. Wait a minute and try again.",
+    "nextAssignTitle": "We assign your driver.",
+    "nextAssignBody": "You get an e-mail with the driver's name and plate.",
+    "nextReminderTitle": "A reminder 24 hours before pickup.",
+    "nextReminderBody": "By e-mail, with your driver's details once assigned.",
+    "nextCancelTitle": "Free cancellation up to <h>{hours}</h> hours before pickup.",
+    "nextCancelBody": "On Manage booking.",
+    "manageHint": "Change the time or the flight number, or cancel, on Manage booking.",
+    "helpLine": "Questions about this trip? Call <tel>{phone}</tel> or write on <wa>WhatsApp</wa>."
   },
   "common": {
     "4-not-live": "4 not live",
@@ -2731,6 +2739,7 @@
     "noParamKeys": {
       "cookies.meta-row": "owner legal text verbatim, .planning/decisions/2026-09-30-meta-wording.md §2",
       "checkout.payLinkExpiredBody": "fixed 24-hour pay-link hold policy (D-20), not a live count",
+      "checkout.nextReminderTitle": "fixed 24-hour reminder e-mail (reminder24h), not a live count",
       "partner.mercedes-v-class-7-seats": "fixed vehicle-class specification copy, not a live count",
       "partner.professional-driving-licence-category-b121": "fixed licence category code, not a live count",
       "home.your-driver-is-booked-for-your-exact-pickup-time": "fixed example clock time, not a live count",

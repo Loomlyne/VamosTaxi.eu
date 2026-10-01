@@ -59,6 +59,24 @@ export type Database = {
           },
         ]
       }
+      account_finish_pending: {
+        Row: {
+          created_at: string
+          finished_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          finished_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          finished_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       audit_log: {
         Row: {
           action: string
@@ -2670,6 +2688,12 @@ export type Database = {
     }
     Functions: {
       __seed_apply: { Args: never; Returns: undefined }
+      account_finish_done: {
+        Args: { p_full_name: string; p_phone: string; p_user_id: string }
+        Returns: undefined
+      }
+      account_finish_mark: { Args: { p_email: string }; Returns: undefined }
+      account_finish_required: { Args: { p_user_id: string }; Returns: boolean }
       booking_captured_payment: {
         Args: { p_booking_id: string }
         Returns: {

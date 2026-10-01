@@ -522,7 +522,7 @@ class Component extends DCLogic {
 
   componentDidMount() {
     const v = window.VamosLocale;
-    fetch('/api/auth/session', { credentials: 'same-origin' })
+    fetch('/api/auth/session?finish=1', { credentials: 'same-origin' })
       .then((r) => r.json())
       .then((snap) => {
         let stored = null;
@@ -530,6 +530,12 @@ class Component extends DCLogic {
         if (!snap || !snap.signedIn) {
           clearAuth();
           location.replace('/sign-in');
+          return;
+        }
+        /* 27.1 (27 D-37): an account the sign-in link made finishes first (name, optional phone, the tick). */
+        if (snap.finishRequired === true) {
+          const l = this.state.lang;
+          location.replace((l && l !== 'en' ? '/' + l : '') + '/sign-up?state=finish');
           return;
         }
         const full = (snap.displayName || '').trim();

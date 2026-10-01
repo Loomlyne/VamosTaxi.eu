@@ -50,8 +50,10 @@ describe("confirmation unmock (D-40)", () => {
     ].join("\n");
     const route = readFileSync(join(WEB_ROOT, "app/api/checkout/status/[ref]/route.ts"), "utf8");
     expect(pageClient).toContain("<BookingVoucher");
-    expect(pageClient).toContain('<Icon name="phone"');
-    expect(pageClient).toContain('<Icon name="message-circle"');
+    // 2026-10-01: help is one line with tel: and WhatsApp links (approved wording).
+    expect(pageClient).toContain('t.rich("helpLine"');
+    expect(pageClient).toContain("href={PHONE_HREF}");
+    expect(pageClient).toContain("href={WHATSAPP_HREF}");
     expect(pageClient).not.toContain("data-vt-icon");
     expect(pageClient).not.toContain('icon="phone"');
     expect(pageClient).not.toContain('icon="message-circle"');

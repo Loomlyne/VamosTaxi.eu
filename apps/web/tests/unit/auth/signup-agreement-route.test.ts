@@ -104,11 +104,15 @@ describe("other paths", () => {
     expect(signUp).not.toHaveBeenCalled();
   });
 
-  it("sign-in, forgot, resend need no consent and touch no database", async () => {
+  it("sign-in and forgot need no consent; password sign-in and forgot touch no database; the link writes no record", async () => {
     await POST(authPost({ mode: "signin", method: "password", email: "a@b.co", password: "12345678" }));
-    await POST(authPost({ mode: "signin", method: "magic", email: "a@b.co" }));
     await POST(authPost({ mode: "forgot", email: "a@b.co" }));
     expect(db.order).not.toContain("db");
-    expect((otp.mock.calls[0]?.[0] as { options: { shouldCreateUser: boolean } }).options.shouldCreateUser).toBe(false);
+    db.calls = [];
+    await POST(authPost({ mode: "signin", method: "magic", email: "a@b.co" }));
+    // 27.1: the link reads whether the address is new and marks a new one; it never records an agreement.
+    expect(db.calls.flat()).not.toContain("2026-09-29");
+    // 27 D-37: the public sign-in link makes the account; its tick comes on the finish step, not here.
+    expect((otp.mock.calls[0]?.[0] as { options: { shouldCreateUser: boolean } }).options.shouldCreateUser).toBe(true);
   });
 });

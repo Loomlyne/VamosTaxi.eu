@@ -1,23 +1,87 @@
 # Control board
 
+**Controller since 2026-10-01 23:25 (+04): "VamosTaxi - session control" (`local_633b433a-13a1-4f99-bfe8-3d595717a4a1`), local Claude Code on the owner's Mac, in this folder on `main`. Before: the claude.ai project thread "Vamos Taxi controller" (`local_f9f33973-c2fc-404c-95fe-22b3fb2dd7fa`, 17:03 to 18:01) and the "Vamos Taxi control session" (`local_03cf7e47-1746-4ac2-a28b-8ee0d831f01b`), both retired. Hand-over: `.planning/HANDOVER-2026-10-01.md`.**
+
+**Control rule (owner, 2026-10-01 18:01 +04; replaces the 17:03 take-over line of `95ccece6` and the 17:12 strict rule of `150a2a20`):**
+- Vamos runs from plain Claude Code on the owner's Mac. Every job runs locally, never in the cloud.
+- One controller session: "VamosTaxi - session control" (`local_633b433a-13a1-4f99-bfe8-3d595717a4a1`), in `/Users/koss/Developer/VamosTaxi.eu` on `main`. Only it commits and pushes main, applies live migrations, deploys Workers and cleans branches.
+- Every other session is a job session. It runs GSD with the owner's `CLAUDE.local.md`, has its own app worktree under `.claude/worktrees/` in the main folder (the app makes it when the owner starts the session; `/Users/koss/Developer/vamos-wt` is gone, owner 2026-10-01 23:45 +04: "vamos-wt no more") and branch cut from `origin/main`, builds and tests, merges `origin/main` back in, writes a hand-over file for the controller and stops.
+- The claude.ai project coordinator and its threads are retired, the "Vamos Taxi controller" thread (`local_f9f33973-…`) included.
+- A fresh reviewer session, not the builder, reads every money, sign-in or database change before it ships. Opus plans and reviews; Sonnet builds.
+- One session per job. Parallel jobs never share files; each plan lists its exact files. In the shared translation files a job adds only its own keys.
+- The owner signs discuss, design and plan.
+- Clean GitHub: archive tag, then delete the branch, the worktree and the PR.
+- Deploy with `--env staging` (Worker `vamos`, live on vamostaxi.site). A deploy without it made the stray Worker `vamos-web` on 2026-10-01.
+- Types with the pinned CLI: `pnpm exec supabase` (2.115.0), then `db:types:check`.
+- After any seed change, re-pin `packages/db/supabase/tests/seed_idempotent.test.sql` to the counts in the seed header.
+- Next migration number: `20261007190000`. Ask the controller first and check every remote branch for the file name.
+- Standing order (owner, 2026-10-01 17:41 +04, verbatim): "coomit and deply all after verify dont ask me". It is never used for the live Stripe key, the vamostaxi.eu cutover, price book row 18 Publish, deleting test bookings, or wiping data. Those need his word every time.
+
 Kept by the control session. One page: what is live, what is being built, what waits for
 the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 Rewritten short on 2026-09-30 14:25; the long version is in git history (`8230227c`).
 
-**Last update:** 2026-10-01 13:46 (+04)
+**Last update:** 2026-10-01 23:55 (+04)
+
+## Controller take-over, 2026-10-01 23:25 (+04)
+
+The local controller read `.planning/HANDOVER-2026-10-01.md` (the closing state of the claude.ai project) and checked it:
+
+- main = origin/main `7aed613a` before this note; last code `96a17ab7`. Worker `vamos` `6eb1d700` (13:44Z), gateway `vamos-dashboard` `71a307da`, both read with wrangler as the right account; `vamos-web` does not exist. vamostaxi.site and dashboard /login answer 200.
+- The blocked "Write the control rule into repo" job committed nothing: its folder `.claude/worktrees/trusting-mirzakhani-c91e36` (`claude/project-thread-q8h6ci`) sits clean on `7aed613a`, and that branch is not on GitHub.
+- Differs from the hand-over: `gsd/26.2-p6-build` was already on GitHub at `75b85d2e`; the Mac held 4 newer commits up to `e51940cf` (17:27 +04), pushed now without force. Folder `vamos-wt/phase-26.2` also holds 29 uncommitted files, the P6 job's work in progress, left alone.
+- Local-only branch `gsd/phase-26.1-payment-pricing` (`cbb2a3a2`, 2026-09-28, 214 commits found nowhere on GitHub) saved as tag `archive/branch-gsd-phase-26.1-payment-pricing-cbb2a3a2`; the local branch stays until the owner's "yes, delete". The 5 stashes already have `archive/stash-*` tags.
+- GitHub branches: main, `ci/e2e-linux-3`, `claude/project-thread-6r5gz9` (B7), `claude/project-thread-cwny3q` (Phase 20), `claude/routesummary-port-only` and its base `fix/main-green`, `docs/lenis-quick-note`, `fix/e2e-linux-2`, `gsd/26.2-p6-build`, `gsd/26.2-p6-paid-trip-edit`, `gsd/phase-20-security-check`, `gsd/phase-26.2-u13`, `gsd/phase-28-pixel-pageview`.
+- App worktrees under `.claude/worktrees/` (all clean, every tip on main or GitHub): `awesome-swartz` (Phase 20), `great-khayyam` (B5, shipped), `vigilant-einstein` (/confirmation, shipped), `trusting-mirzakhani` (blocked rule job), and `distracted-nash`, `frosty-shamir`, `interesting-nightingale` (`66d3ba80`), `serene-meninsky`, `stoic-cartwright`, `suspicious-rubin` (`194aee66`). Removed only on the owner's "yes, delete".
+
+## What is left, 2026-10-01 23:50 (+04)
+
+**Lanes that run now, in parallel (no shared files; each job in its own app worktree):**
+
+| Lane | Job | Branch | After it |
+|---|---|---|---|
+| R | Fresh review of Phase 20 leftovers G7/G10/G11/G12/G28 (Opus, read-only) | `claude/project-thread-cwny3q` `84cb34cb` | Controller ships: migration `20261007180000` verbatim + read-back, deploy, live checks |
+| A | Finish P6, change place or time of a paid trip | `gsd/26.2-p6-build` `6af6b74c` (last commit is the saved WIP) | Fresh review (money path), then ship. Migration `20261007150000` |
+| B | Main green (26.0 finish, B4): Linux `confirmation.spec.ts:130`, mutation-gate patch, schema job, home reds; tests and CI files only | `ci/e2e-linux-3`, `fix/e2e-linux-2` | Ship (CI files, no deploy); the 48 SiteHeader picture diffs go to the owner one page at a time |
+| D | GSD bookkeeping (B10): missing summaries, `STATE.md`, `ROADMAP.md` rows for 26.0/26.2/26.5/27.1 and the closed phases | new | Ship as a planning note |
+| V | Van luxury up to 12 travellers (owner chose "Raise to 12", 2026-10-01 16:03) | new | Stops if it needs a file P6 touches; ship; owner test: 4242 for 10 travellers |
+
+**Then, one at a time after P6 (same money and checkout files):** B2 extras part B (CHF 0 shows "included")
+and part C (count per extra, with a maximum; migrations `20261007120000`, `130000`) → drop the price-band
+tables G8/G9 (deletes rows of old price-book rows 1-5; fresh review) → B5 follow-ups (mobile number to the
+dashboard customer list; gate `/checkout` and `/booking-detail`) → B3 live-key refusals (one helper for
+`^(sk|rk)_live_`; after the owner's refund-by-hand test) → 26.2 rows (airport fee inside the fare line,
+JSON double encoding in `stripe_events.payload` and `rate_version_rules.payload`, `data-i18n-skip` leftovers).
+
+**After the owner turns off Cloudflare's automatic Web Analytics:** B7 content and legal ships (controller)
+→ G23 (drop `maps.googleapis.com` from CSP `connect-src`) → Arabic and design-canvas fixes (5 + 19).
+
+**Last:** u13 stricter check scripts (`gsd/phase-26.2-u13`). **After the owner's Meta check:** Phase 28, then 29.
+
+**The owner's own steps:** (1) Cloudflare Web Analytics automatic setup off. (2) Waiting time 30 minutes
+in dashboard settings, after B7. (3) Real texts of the 5 published reviews. (4) 4242 payment as guest and
+with "Create an account". (5) /contact real message. (6) Refund by hand. (7) Pay in de, fr, ar and on a
+tablet. (8) UAT of the live jobs (pick-up report section 2). (9) Meta switches on pixel 1595596972063765.
+(10) The 48 SiteHeader picture diffs. (11) PR #62 and `docs/lenis-quick-note`: keep or close. (12) Repo
+public or private. (13) The rest of the 18:01 message. Launch, his word only: prices + Publish of price
+book row 18, delete test bookings, live Stripe key, vamostaxi.eu cutover.
 
 ## Live now
 
 | Item | Value |
 |---|---|
 | Site | https://vamostaxi.site and https://dashboard.vamostaxi.site |
-| main = origin/main | `34c726db` plus planning notes |
-| Worker `vamos` | version `8889f3c3` (2026-10-01 13:45, chauffeurs by class); before: `38063b7d` |
+| main = origin/main | `96a17ab7` (last code) plus planning notes |
+| Worker `vamos` | version `6eb1d700` (2026-10-01 17:44, 27.1 finish your account); before: `8f6720d6` (17:33, /confirmation), `fae3e473` |
 | Worker `vamos-dashboard` (gateway) | version `71a307da` (2026-10-01 08:0x); before: `58c6e541`. Rollback of batch C part 2 = both Workers together |
 | Rollback point | Worker `f58cd68e` + gateway `58c6e541` together, git tag `backup/main-before-c2-df520d08`; before the design: Worker `e2c53324`; before D and the refusal fix: Worker `c45d2782`; before 27: Worker `dfba8779`, tag `backup/main-before-27-a8948162` (the two Phase 27 migrations are additive and can stay); before polish 2: Worker `832b884e`; before batch C1: Worker `24945bab`; before extras A: Worker `2f303d16`; before refunds: Worker `1e1fd4a6`, tag `backup/main-before-refunds-3a486eaa` (note: rolling the Worker back alone re-enables automatic refunds on cancel; the migration stays); before the home change: Worker `852de5f4`; before the three pieces: Worker `d0c427c2`; before native scrolling: Worker `f3f7d929`; before the queue: Worker `92504970`; before class cards: Worker `d80e6577`; before speed A: Worker `8adb148c`; before phone home: Worker `d43e467b`; before 26.2: Worker `0d1806ce`; before the Support button: Worker `2d5906ce` (before 26.5: Worker `fe9314d0`, tag `backup/main-before-26.5-e09f90cb`). Guest accounts off without a deploy: `settings.guest_accounts_live = false` |
 | Database | migrations up to `20260930210000`, 26.5's `20261001100000` to `130000`, Phase 20's `20261005100000` and `110000`, 26.2's `20261007100000`, Phase 20's `20261005120000`, `130000`, `140000` (refunds by hand), 26.2's `20261007110000` (extra names prune), Phase 20's `20261005150000` (last-admin guard), Phase 27's `20261002100000` and `110000`, 26.2 P1's `20261007140000` (class change; 13 function bodies md5-identical, three checks widened), 26.2's `20261007160000` (assign by class; 4 function bodies md5-identical, `chauffeurs.plate` and `deleted_at`), all applied and read back. `guest_accounts_live` = true since 14:58 (owner's answer) |
 | Who deploys | the control session, from the owner's Mac. GitHub runs checks, never deploys. |
+
+## Verified 2026-10-01 17:49 (+04), main `96a17ab7`
+
+Clean clone: install from the lockfile and all 11 gates pass; pgTAP from zero on an own stack (`vamos-taxi-ctl`, 643xx) 93 files, 2259 tests pass; `db:types:check` passes; stack stopped. Live migrations: every file since `20260928140000` is on live by name, `20261007170000` read back; 21 older files (2026-08-27 to 2026-09-28 13:00) are recorded on live under split names, their key functions checked present. Live 200: /, /checkout, /confirmation, /sign-up, /account, /contact, /manage-booking, dashboard /login. Worker `vamos` `6eb1d700`, gateway `71a307da`. Not verified: no 4242 payment since the two ships (owner UAT); the e2e and picture jobs were not run. **B7 content/legal held**: Cloudflare's automatic Web Analytics snippet is still injected on live pages (seen with a browser user agent); B7's CSP would let it run before consent. The owner switches it off in Cloudflare, then B7 ships. GitHub after clean-up: main plus `ci/e2e-linux-3`, `claude/project-thread-6r5gz9` (B7, PR #66), `claude/routesummary-port-only` (PR #62) and its base `fix/main-green`, `docs/lenis-quick-note`, `fix/e2e-linux-2`, `gsd/26.2-p6-build`, `gsd/26.2-p6-paid-trip-edit`, `gsd/phase-20-security-check`, `gsd/phase-26.2-u13`, `gsd/phase-28-pixel-pageview`. Shipped today and deleted, each with an `archive/*` tag: `claude/project-thread-wmr715`, `-ii4fuh`, `-vc27aw`, `-jbsapo`.
 
 ## Shipped
 
@@ -53,6 +117,11 @@ Rewritten short on 2026-09-30 14:25; the long version is in git history (`823022
 | 10-01 | 13:36 | **26.2 P1 class change on a paid trip**: dashboard class list with the difference, pay-the-difference mail and 24-hour Stripe page, Withdraw change, refund line on the customer page; customer time-change requests fixed (failed on live with 23514); migration `20261007140000` | `8b65e01b` | `60e61d96` |
 | 10-01 | 13:42 | **E-mail change can finish** (Phase 20 follow-up): one mail to the old address, one to the new; first click says "Now open the link we sent to your other address", second click completes; no migration | `11559467` | `38063b7d` |
 | 10-01 | 13:45 | **Chauffeurs by class**: Class and required Plate number on the chauffeur, Assign lists only the trip's class as "Name · Plate", bookings history per chauffeur, delete keeps finished trips; mails and booking page show the plate; migration `20261007160000` | `b0ee0421` | `8889f3c3` |
+| 10-01 | 14:19 | GitHub e2e job split into four parallel jobs with a 30-minute limit each (workflow files only, no deploy) | `add33513` | unchanged |
+| 10-01 | 15:36 | GitHub e2e jobs: own tsconfig for the test runner (ends the 290 "Failed to load tsconfig file" errors), six jobs instead of four (workflow files and one test settings file, no deploy) | `f8a2f635` | unchanged |
+| 10-01 | 15:43 | /contact: phone and e-mail read left to right in Arabic; three lines translated (de, fr, ar); no migration | `c5157913` | `fae3e473` |
+| 10-01 | 17:33 | **/confirmation redesign** (signed): two buttons, three next steps, help line; time, flight and cancel move to Manage booking; no migration. Rollback: tag `backup/main-before-confirmation-150a2a20`, Worker `fae3e473`. A stray Worker `vamos-web` made by a deploy without `--env staging` was deleted at 17:45 | `50a2a050` | `8f6720d6` |
+| 10-01 | 17:44 | **27.1 Finish your account**: a sign-in-link account finishes (name, optional phone, the account tick) before it can pay or open a booking; nobody ticks twice. Migration `20261007170000` applied first and read back (three bodies md5-identical, definer, vamos_system only; table RLS, no client grant). Rollback: tag `backup/main-before-27.1-cbbd4d13`, Worker `8f6720d6` | `96a17ab7` | `6eb1d700` |
 
 ## Ship order from here
 
@@ -107,29 +176,25 @@ Full text: `.planning/decisions/2026-09-30-priorities-and-ship-mode.md`.
 | 2 | Dashboard design | **Live 03:24** (owner said Ship). Live OpsDetail mock identical to the source. Owner UAT: 5 steps in `.planning/quick/260930-dash-design/HANDOVER.md`, Assign first once the driver has a car |
 | 3 | Security part 2 | **Live 08:06** (owner said Ship). Live: dashboard sign-in 200; dashboard screen files 200 on the dashboard host with CSP, X-Frame-Options and noindex, 404 on the public host; /dev sends each header once; /sign-in/confirm answers. **Finding:** the hand-over said new gateway + old vamos keeps the dashboard working; on live it did not: the dashboard answered 404 between the gateway deploy and the vamos deploy (about the length of one build). Owner UAT: sign-in link opened on the phone; dashboard sign-in. Open owner question: e-mail change cannot finish (hook mails only the old address) |
 | 4 | P1 class change, P6 place/time change | **P1 live 13:36** (`8b65e01b`, Worker `60e61d96`; folder and stack removed; owner UAT: 11 steps in `.planning/quick/260930-p1-class-change-reprice/HANDOVER.md`, a 4242 payment of a difference first). **P6 plan signed 2026-10-01** (`.planning/decisions/2026-10-01-p6-paid-trip-edit.md`, migration `20261007150000`): time-only keeps the price; unbookable place refused; cheaper late = full difference as Refund due; too many people offers a larger class; people, bags, contact and flight change instantly; the customer's change page drops five dead fields (picture first). Built after P1 on P1's functions. **No Cars page** (owner correction 2026-10-01, `.planning/decisions/2026-10-01-no-cars-page.md`): refined: chauffeur form as before with Class and one new plate-number field; Assign lists drivers of the booking's class; bookings history per chauffeur; migration `20261007160000`; branch `gsd/26.2-chauffeur-car`, pictures first |
-| 5 | 26.0 main green | **Live** (owner said Ship, 2026-10-01). Gates honest again; `/dev` test-only; imprint declares en+de with a notice for fr/ar readers (D-05); e2e-linux GitHub job added (deploys nothing). Playwright still not green: owner-ruled reds (RouteSummary, SiteFooter), 48 SiteHeader screenshot diffs (undiagnosed, also on main without 26.0), home reds on main (`home-red-36.txt`), unclassified reds listed in `.planning/phases/26.0-main-green/26.0-HANDOVER.md` |
+| 5 | 26.0 main green | **Live** (owner said Ship, 2026-10-01). Gates honest again; `/dev` test-only; imprint declares en+de with a notice for fr/ar readers (D-05); e2e-linux GitHub job added (deploys nothing). Playwright still not green: owner-ruled reds (RouteSummary, SiteFooter), 48 SiteHeader screenshot diffs (undiagnosed, also on main without 26.0), home reds on main (`.planning/phases/26.0-main-green/home-red-36.txt`), unclassified reds listed in `.planning/phases/26.0-main-green/26.0-HANDOVER.md` |
 | 6 | Phase 29, then the finish-your-account follow-up (27 D-37) | After 28 |
 | 7 | Stricter check scripts (u13) | Last |
 
 ## Sessions and folders on this Mac
 
-Disk free: 11.4 GB in the morning, 47.6 GB at 14:16. Rule: after a ship the branch goes to GitHub
-as a branch, then the folder, its Docker stack and build output are removed the same day.
+**Clean at 2026-10-01 23:50 (+04), owner's order "vamos-wt no more i want al clean":** one folder,
+`/Users/koss/Developer/VamosTaxi.eu` on `main`, no other worktree; one local branch (`main`);
+`/Users/koss/Developer/vamos-wt` deleted. Before removal: the P6 job's 29 uncommitted files were committed
+and pushed as `6af6b74c` on `gsd/26.2-p6-build` (not reviewed, not a hand-over); `home-red-36.txt` moved to
+`.planning/phases/26.0-main-green/`; every removed worktree was clean with its tip on GitHub. Removed: 4
+vamos-wt worktrees (e2e-linux-3, phase-26.2, phase-26.2-u13, phase-28), 10 app worktrees under
+`.claude/worktrees/`, 65 local branches (each fully on GitHub or in a tag), Docker stacks `vamos-taxi-20`
+and `vamos-taxi-chauffeur` with their volumes. Kept: Docker `vamos-taxi` (port 54322, the main folder's
+test database) and `twenty-crm` (another product).
 
-| Session | Folder under `vamos-wt/` | Branch | State |
-|---|---|---|---|
-| Vamos Taxi 26.4.2 completion | none | five jobs shipped | idle, free; can be closed |
-| Vamos Taxi SEO and browser settings | `site-speed`, `seo-head-2` | `fix/site-speed`, `fix/seo-head-followup` | running / parked |
-| Meta measurement phases 27-29 | `phase-27` | `gsd/phase-27-consent-record` | running; stack `vamos-taxi-270` stopped |
-| Phase 26.2 audit | `phase-26.2`, `phase-26.2-u13` | `gsd/phase-26.2-audit`, `gsd/phase-26.2-u13` | waiting for 26.5; stack `vamos-taxi-262` stopped |
-| Vamos Taxi security phase | none | all seven branches on GitHub | all Phase 20 batches live; session at its limit; open for the owner: refund UAT then the live-key proof, e-mail change bug, edit-accept by any staff, after-trip refund switch |
-| Phase 26.0 main green completion | none | `fix/main-green-2` on GitHub | shipped 2026-10-01 11:19; folder `main-green-2`, local branch and stack `vamos-taxi-mg2` removed; session can be closed |
-
-Removed on 2026-09-30, every tip on GitHub as a branch or an `archive/*` tag: 13 shipped folders,
-7 unit folders of 26.2, `fix-26.3-followups` (its two research notes committed, branch pushed),
-the old app worktree, 4 Docker stacks and 4 leftover volume sets. Docker stack `twenty-crm` is
-another product and is never touched. Left for the owner in the main checkout: `brag-output`
-1.3 GB, `.pnpm-store` 0.9 GB.
+From now on a job session works in an app worktree under `.claude/worktrees/` (made by the app when the
+owner starts it), with its own port-shifted stack, and the controller removes worktree, branch and stack
+the day the job ships.
 
 Prompts for sessions: `.planning/prompts/`, shared rules in `00-common-rules.md`.
 
@@ -180,8 +245,9 @@ The owner decided every finding F1 to F14. Every Phase 20 ship needs his Ship.
 | Phase 29 | `20261004100000` to `190000` |
 | Phase 20 | `20261005100000`, `110000` (live) |
 | Class photos | `20261006100000` to `190000` |
-| 26.2 | `20261007100000` staff price preview (live); P4-A `110000`, trigger clean-up `120000`, P4-C `130000`; P1 `140000`; P6 `150000` |
-| Phase 20 (more) | `20261005120000` reviews column grants (B1), `130000` erased-booking pay link (20-12), `140000` refunds by hand (20-10) |
+| 26.2 | `20261007100000` staff price preview (live); P4-A `110000`, trigger clean-up `120000`, P4-C `130000`; P1 `140000` (live); P6 `150000`; chauffeurs by class `160000` (live); **27.1 finish your account `170000`** (taken by the project chat "Finish your account" on 2026-10-01, reserved here after the fact) |
+| Phase 20 (more) | `20261005120000` reviews column grants (B1), `130000` erased-booking pay link (20-12), `140000` refunds by hand (20-10); leftovers G7/G10/G11/G12/G28 `20261007180000` (on `claude/project-thread-cwny3q`, not applied) |
+| **Next free** | **`20261007190000`**. Ask the controller first; check every remote branch for the file name |
 
 ## Decisions that stand
 
@@ -212,8 +278,8 @@ Full texts in `.planning/decisions/`.
 | Settings say 15 minutes standard waiting, the pages say 30 | Owner changes the setting if both should agree |
 | The airport fee is saved inside the fare line, not as its own line | 26.2 list |
 | `data-i18n-skip` still sits in the frozen legal pages, `LegalPage`, `PendingSlot` and `manage-booking.dc.html`; the runtime ignores it (no customer effect). `app/[locale]/(ops)/api/staff/content/[key]/route.ts` exports non-route helpers | 26.2 list, not assigned |
-| GitHub job "Booking funnel e2e on Linux" runs out of time (45 minutes) and reports nothing | `fix/e2e-linux-time`, 26.0 session |
-| Playwright: 48 SiteHeader screenshot diffs (open and unconfirmed states, every language, 3 widths) fail with and without 26.0, cause not found; home specs red on main (`home-red-36.txt`); unclassified reds: checkout-hosted 390, currency, confirmation S3/S4, checkout-account 768 | `26.0-HANDOVER.md`; booking-polish for the home reds |
+| GitHub e2e jobs, run 36856406309 on `f8a2f635` read 16:08: the tsconfig fault is gone (0 errors). Two jobs cut at the 30-minute limit with no result (1440 px shard 1 of 4; 768 and 390 px); 1024 px took 27 min; shards 2 to 4 took 17 to 21 min. "Dev server did not become ready" 26 times across three jobs (cold start on GitHub runners). 18 failed and 8 flaky in the four finished jobs (about, legal pages, home specs, faq, contact, checkout-account, public-routes, confirmation, checkout-page, auth-forms) | Job 3 sent to the 26.0 session 16:08: branch `ci/e2e-linux-3`, one reusable e2e workflow plus a push trigger for `ci/**`, proven by a run on GitHub before the hand-over |
+| Playwright: 48 SiteHeader screenshot diffs (open and unconfirmed states, every language, 3 widths) fail with and without 26.0, cause not found; home specs red on main (`.planning/phases/26.0-main-green/home-red-36.txt`); unclassified reds: checkout-hosted 390, currency, confirmation S3/S4, checkout-account 768 | `26.0-HANDOVER.md`; booking-polish for the home reds |
 | Class photos are 2.3 to 2.8 MB each | `feat/class-photo-small` |
 | VT-26-0739 and VT-26-0742 are not in the owner's account | Not a bug: booked with another e-mail address |
 
@@ -260,9 +326,39 @@ Full texts in `.planning/decisions/`.
 
 | What | When |
 |---|---|
-| Check the hand-over of `fix/e2e-linux-time` when it arrives (job sent to the 26.0 session 2026-10-01, between 13:15 and 13:19 by the clock; started in folder `e2e-linux-time`) | On hand-over, then the owner's Ship |
+| Check the hand-over of `ci/e2e-linux-3` (must carry a GitHub run link where every e2e job ends inside its limit) | On hand-over, then the owner's Ship |
+| Phase 20 leftovers (`claude/project-thread-cwny3q` at `84cb34cb`, migration `20261007180000`): fresh reviewer session first, then ship under the standing order | Next |
 
 Done 2026-10-01, between 13:15 and 13:19 by the clock: (1) reminder cron error: the live database log of the last 22 hours holds no "permission denied" line at all (read-only log query; the hourly job ran in that window; the reminder function was replaced on 09-30 by `20261001120000`). Closed. (2) First "Booking funnel e2e on Linux" run on `6ec73c52`: cancelled at its 45-minute limit, no result (run 36829545716). The repository is public, so the minutes cost nothing; board-only commits do not start a run.
+
+## Project chats, 2026-10-01 15:44
+
+The owner created the Claude project and opened seven chats in it. Each works in an app-made folder
+under `.claude/worktrees/` on a `claude/*` branch. All are filed in the sidebar group "Vamos Taxi".
+Nothing was deleted on GitHub (105 safety tags, 75 branches, read 15:40).
+
+| Chat | Branch | State |
+|---|---|---|
+| Contact page comments | `claude/project-thread-jbsapo` | **Shipped 15:43** (`c5157913`, Worker `fae3e473`); tip saved as `archive/contact-b8-f7ecc6bf`; its folder `interesting-germain-5cabab` is clean and goes when the chat is archived |
+| Finish your account (27.1) | `claude/project-thread-vc27aw` | Building; design signed, plan 01 waits for the owner's signature; migration `20261007170000_account_finish.sql`; stack `vamos-taxi-b5` most likely its own (not confirmed) |
+| Build confirmation redesign | `claude/project-thread-wmr715` | Building; design and build plan signed by the owner |
+| Design system comparison | `claude/serene-meninsky-fd94c1` | Working, no commit |
+| Road to launch; GitHub branch and tag cleanup; Vamos on your Mac | no commits | Idle |
+
+The control session's messages with the hand-over rules to "Finish your account" and "Build confirmation
+redesign" are held in those chats until the owner approves them there.
+
+Owner decision 8 done: the `vehicles` table on live is empty (read 15:38). P6 design signed by the owner
+at 15:00; the 26.2 session is building it.
+
+## Seen on live, 2026-10-01 14:47
+
+VT-26-0749: a guest booking started 14:04, paying in EUR, reached the Stripe page and was not paid; the
+Stripe webhook marked the payment failed at 14:35 and the booking stays pending. The 31-minute gap fits
+an abandoned Stripe page that expired; Stripe itself was not read. No other payment, class change,
+assignment or refund on live since today's ships; the chauffeur has a class and no plate; the one
+`vehicles` row is still there. The 26.2 session waits for the owner's signature on the P6 pictures
+(committed 14:44).
 
 ## Hand-overs waiting, 2026-10-01 13:37
 
@@ -270,7 +366,7 @@ Done 2026-10-01, between 13:15 and 13:19 by the clock: (1) reminder cron error: 
 |---|---|---|
 | 1 | Chauffeurs by class | **Live 13:45** (`b0ee0421`, Worker `8889f3c3`); branch and `archive/26.2-chauffeur-car-319519a6` on GitHub. Live: chauffeurs list and the new history path answer 401 without a session; the dashboard screens carry "Plate number", "Choose a chauffeur" and P1's "Withdraw change". Owner UAT: 6 steps in `.planning/quick/261001-chauffeur-car/HANDOVER.md`; step 1 first (his live driver has no class or plate, so Assign lists nobody until he sets them). Owner decision 8: the one `vehicles` row on live (model "sedan", plate 2098890, no photo; no leg, no chauffeur, no seat row points to it, read 2026-10-01) is deleted by the owner in the Supabase SQL editor (control does not hard-delete rows); control reads back |
 | 2 | E-mail change fix | **Live 13:42** (`11559467`, Worker `38063b7d`); folder removed; branch and `archive/phase-20-email-change-6abe05d0` on GitHub. Owner UAT: Account, change the e-mail to a second address of yours; one mail in each inbox; old inbox link says to open the other; new inbox link signs in with the new address |
-| 3 | GitHub e2e job time limit (`fix/e2e-linux-time`) | 26.0 session measuring |
+| 3 | GitHub e2e job time limit | **On main 14:19** (`add33513`, no deploy; owner said Ship). Folder `e2e-linux-time` and stack `vamos-taxi-e2e` removed; branch and `archive/e2e-linux-time-8c1d2c68` on GitHub. First run 36848434943 is queued behind the older runs; expected red per spec (about 80 known failures: screenshot drift, stale home specs, the unclassified ones), not a timeout. Control reads it and reports |
 
 Archived on 13:37: local-only branches `fix/26.3-manage-booking`, `fix/26.3-new-trip-save` and the withdrawn Cars page tip as `archive/branch-*` tags on GitHub. Folder `phase-26.2-p1` removed.
 
