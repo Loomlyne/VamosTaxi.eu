@@ -977,6 +977,7 @@ export type Database = {
           note: string
           phone: string
           photo_path: string | null
+          plate: string | null
           shift_end: string | null
           shift_start: string | null
           shift_tz: string
@@ -999,6 +1000,7 @@ export type Database = {
           note?: string
           phone: string
           photo_path?: string | null
+          plate?: string | null
           shift_end?: string | null
           shift_start?: string | null
           shift_tz?: string
@@ -1021,6 +1023,7 @@ export type Database = {
           note?: string
           phone?: string
           photo_path?: string | null
+          plate?: string | null
           shift_end?: string | null
           shift_start?: string | null
           shift_tz?: string
