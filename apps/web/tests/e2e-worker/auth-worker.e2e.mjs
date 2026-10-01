@@ -220,6 +220,20 @@ if (link) { const f = await follow(link, jar3); s = await session(jar3);
     markedH === "1" && agreements(UH) === 1 && sH?.signedIn === true && sH?.finishRequired === false && !fH.final.includes("state=finish"),
     `marked=${markedH}; signup ${rH.status}; second mail=${!!mailH2}; records=${agreements(UH)}; target=${fH.final}; signedIn=${sH?.signedIn} finishRequired=${sH?.finishRequired}`);
 
+  // 3i: a past guest booking (checkout 'informed' row, no account) is not a tick: the link account must finish.
+  await nap(1500);
+  const UG = `e2e-pastguest-${Date.now()}@example.com`;
+  sql(`insert into public.account_agreement_records (surface, email, choice, record_kind, text_version, locale) values ('checkout', '${UG}', 'guest', 'informed', '2026-09-29', 'en')`);
+  const seenG = before();
+  await auth({ mode: "signin", method: "magic", email: UG }, new Jar(), { ip: newIp() });
+  const mailG = await newMail(seenG, 8000);
+  const jarG = new Jar();
+  const fG = mailG && linkOf(mailG) ? await follow(linkOf(mailG), jarG) : { hops: [], final: "" };
+  const sG = await sessionF(jarG);
+  rec("3i a past guest who signs in by link for the first time is asked to finish (a guest row is not a tick)",
+    fG.final === "/sign-up?state=finish" && sG?.finishRequired === true,
+    `target=${fG.final}; finishRequired=${sG?.finishRequired}`);
+
   // An account made by a password sign-up (A, check 1) is never asked.
   const jarK = new Jar();
   await auth({ mode: "signin", method: "password", email: A, password: PW1 }, jarK, { ip: newIp() });

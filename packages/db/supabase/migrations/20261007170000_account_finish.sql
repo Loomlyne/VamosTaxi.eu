@@ -23,8 +23,9 @@ comment on table public.account_finish_pending is
 
 -- The sign-in link route calls this right after every successful public link request. It marks only a
 -- user that Supabase has just made for that link: unconfirmed, made in the last 10 minutes, and with no
--- account agreement row for the address (a /sign-up or checkout account always has one). An older,
--- confirmed or agreed account is never marked.
+-- ticked agreement (choice 'create') for the address. An older, confirmed or ticked account is never
+-- marked. A guest booking's 'informed' row is not a tick, so a past guest who signs in by link is asked
+-- (owner's answer 2026-10-01).
 create or replace function public.account_finish_mark(p_email pg_catalog.text)
 returns void
 language sql volatile security definer set search_path = ''
@@ -38,6 +39,7 @@ as $$
      and not exists (
        select 1 from public.account_agreement_records as r
         where pg_catalog.lower(r.email) = pg_catalog.lower(u.email::pg_catalog.text)
+          and r.choice = 'create'
      )
   on conflict (user_id) do nothing
 $$;
@@ -46,8 +48,8 @@ create or replace function public.account_finish_required(p_user_id pg_catalog.u
 returns pg_catalog.bool
 language sql stable security definer set search_path = ''
 as $$
-  -- An agreement row for the account's address counts as finished too (someone who ticked on /sign-up
-  -- after asking for a link is never asked a second time).
+  -- A tick for the account's address (choice 'create') counts as finished too: someone who ticked on
+  -- /sign-up after asking for a link is never asked a second time. A guest 'informed' row is not a tick.
   select exists (
     select 1 from public.account_finish_pending as p
       join auth.users as u on u.id = p.user_id
@@ -57,6 +59,7 @@ as $$
        and not exists (
          select 1 from public.account_agreement_records as r
           where pg_catalog.lower(r.email) = pg_catalog.lower(u.email::pg_catalog.text)
+            and r.choice = 'create'
        )
   )
 $$;

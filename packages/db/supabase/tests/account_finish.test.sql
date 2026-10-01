@@ -4,7 +4,7 @@
 -- link just made is asked to finish; the answer is kept by user id; no role but vamos_system may call;
 -- no role has a table grant. Synthetic auth users, rolled back.
 begin;
-select plan(29);
+select plan(32);
 
 create temp table _af as select gen_random_uuid() as fresh, gen_random_uuid() as confirmed,
   gen_random_uuid() as old, gen_random_uuid() as other;
@@ -89,6 +89,17 @@ set local role vamos_system;
 select lives_ok($$select public.account_finish_mark('agreed.signup@example.test')$$, 'mark call for a sign-up account');
 reset role;
 select is((select count(*)::int from public.account_finish_pending p join auth.users u on u.id = p.user_id where u.email = 'agreed.signup@example.test'), 0, 'a sign-up account is never marked');
+
+-- A past guest booking (checkout 'informed' row) is not a tick: the link account is marked and must finish.
+insert into auth.users (id, instance_id, aud, role, email, created_at, updated_at, raw_app_meta_data, raw_user_meta_data)
+values ('00000000-0000-4000-8000-0000000027a2', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'past.guest@example.test', now(), now(), '{}'::jsonb, '{}'::jsonb);
+insert into public.account_agreement_records (surface, email, choice, record_kind, text_version, locale)
+values ('checkout', 'Past.Guest@example.test', 'guest', 'informed', '2026-09-29', 'en');
+set local role vamos_system;
+select lives_ok($$select public.account_finish_mark('past.guest@example.test')$$, 'mark a link account whose address has only a guest row');
+select is(public.account_finish_required('00000000-0000-4000-8000-0000000027a2'), true, 'a guest row is not a tick: must finish');
+reset role;
+select is((select count(*)::int from public.account_finish_pending where user_id = '00000000-0000-4000-8000-0000000027a2' and finished_at is null), 1, 'the past guest is marked');
 
 select * from finish();
 rollback;
