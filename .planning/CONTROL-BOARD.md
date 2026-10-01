@@ -5,7 +5,7 @@ the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 Rewritten short on 2026-09-30 14:25; the long version is in git history (`8230227c`).
 
-**Last update:** 2026-10-01 13:27 (+04)
+**Last update:** 2026-10-01 13:19 (+04)
 
 ## Live now
 
@@ -256,6 +256,19 @@ Full texts in `.planning/decisions/`.
 
 | What | When |
 |---|---|
-| Check the hand-over of `fix/e2e-linux-time` when it arrives (job sent to the 26.0 session 2026-10-01 13:25) | On hand-over, then the owner's Ship |
+| Check the hand-over of `fix/e2e-linux-time` when it arrives (job sent to the 26.0 session 2026-10-01, between 13:15 and 13:19 by the clock; started in folder `e2e-linux-time`) | On hand-over, then the owner's Ship |
 
-Done 2026-10-01 13:20: (1) reminder cron error: the live database log of the last 22 hours holds no "permission denied" line at all (read-only log query; the hourly job ran in that window; the reminder function was replaced on 09-30 by `20261001120000`). Closed. (2) First "Booking funnel e2e on Linux" run on `6ec73c52`: cancelled at its 45-minute limit, no result (run 36829545716). The repository is public, so the minutes cost nothing; board-only commits do not start a run.
+Done 2026-10-01, between 13:15 and 13:19 by the clock: (1) reminder cron error: the live database log of the last 22 hours holds no "permission denied" line at all (read-only log query; the hourly job ran in that window; the reminder function was replaced on 09-30 by `20261001120000`). Closed. (2) First "Booking funnel e2e on Linux" run on `6ec73c52`: cancelled at its 45-minute limit, no result (run 36829545716). The repository is public, so the minutes cost nothing; board-only commits do not start a run.
+
+## Sessions at 13:19 on 2026-10-01
+
+| Session | Folder | Branch | State |
+|---|---|---|---|
+| Phase 26.2 audit | `phase-26.2`, `phase-26.2-p1` | `gsd/26.2-chauffeur-car`, `gsd/26.2-p1-class-change` | busy; P1 tip `091e9977` (Withdraw change and the refund line, committed 13:17), no hand-over yet; chauffeur job last commit 11:37, pictures being remade |
+| Phase 26.0 main green completion | `e2e-linux-time` | `fix/e2e-linux-time` | busy; measuring the test list per browser project; stack `vamos-taxi-e2e` running |
+| Vamos Taxi security phase | `email-change` | `fix/phase-20-email-change` | busy; cut from `b5285d6e`, no commit yet; not ordered by the control session |
+| Meta measurement phases 27-29 | `phase-28` | `gsd/phase-28-pixel-pageview` | idle, on hold until Meta shows automatic matching off; hourly check |
+| 26.2 gate scripts | `phase-26.2-u13` | `gsd/phase-26.2-u13` | parked, last; 91 behind main |
+| 26.5, 26.4.2 completion, SEO | none | shipped | idle; can be closed |
+
+Local database stacks running at 13:19: `vamos-taxi` (default ports, started 13:16, owner session not identified), `vamos-taxi-e2e`, `vamos-taxi-p1`. `twenty-crm` is another product.
