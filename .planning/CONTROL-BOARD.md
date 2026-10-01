@@ -9,7 +9,7 @@ the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 Rewritten short on 2026-09-30 14:25; the long version is in git history (`8230227c`).
 
-**Last update:** 2026-10-01 16:08 (+04)
+**Last update:** 2026-10-01 17:33 (+04)
 
 ## Live now
 
@@ -17,7 +17,7 @@ Rewritten short on 2026-09-30 14:25; the long version is in git history (`823022
 |---|---|
 | Site | https://vamostaxi.site and https://dashboard.vamostaxi.site |
 | main = origin/main | `34c726db` plus planning notes |
-| Worker `vamos` | version `fae3e473` (2026-10-01 15:43, /contact fix); before: `8889f3c3` |
+| Worker `vamos` | version `8f6720d6` (2026-10-01 17:33, /confirmation redesign); before: `fae3e473` |
 | Worker `vamos-dashboard` (gateway) | version `71a307da` (2026-10-01 08:0x); before: `58c6e541`. Rollback of batch C part 2 = both Workers together |
 | Rollback point | Worker `f58cd68e` + gateway `58c6e541` together, git tag `backup/main-before-c2-df520d08`; before the design: Worker `e2c53324`; before D and the refusal fix: Worker `c45d2782`; before 27: Worker `dfba8779`, tag `backup/main-before-27-a8948162` (the two Phase 27 migrations are additive and can stay); before polish 2: Worker `832b884e`; before batch C1: Worker `24945bab`; before extras A: Worker `2f303d16`; before refunds: Worker `1e1fd4a6`, tag `backup/main-before-refunds-3a486eaa` (note: rolling the Worker back alone re-enables automatic refunds on cancel; the migration stays); before the home change: Worker `852de5f4`; before the three pieces: Worker `d0c427c2`; before native scrolling: Worker `f3f7d929`; before the queue: Worker `92504970`; before class cards: Worker `d80e6577`; before speed A: Worker `8adb148c`; before phone home: Worker `d43e467b`; before 26.2: Worker `0d1806ce`; before the Support button: Worker `2d5906ce` (before 26.5: Worker `fe9314d0`, tag `backup/main-before-26.5-e09f90cb`). Guest accounts off without a deploy: `settings.guest_accounts_live = false` |
 | Database | migrations up to `20260930210000`, 26.5's `20261001100000` to `130000`, Phase 20's `20261005100000` and `110000`, 26.2's `20261007100000`, Phase 20's `20261005120000`, `130000`, `140000` (refunds by hand), 26.2's `20261007110000` (extra names prune), Phase 20's `20261005150000` (last-admin guard), Phase 27's `20261002100000` and `110000`, 26.2 P1's `20261007140000` (class change; 13 function bodies md5-identical, three checks widened), 26.2's `20261007160000` (assign by class; 4 function bodies md5-identical, `chauffeurs.plate` and `deleted_at`), all applied and read back. `guest_accounts_live` = true since 14:58 (owner's answer) |
@@ -60,6 +60,7 @@ Rewritten short on 2026-09-30 14:25; the long version is in git history (`823022
 | 10-01 | 14:19 | GitHub e2e job split into four parallel jobs with a 30-minute limit each (workflow files only, no deploy) | `add33513` | unchanged |
 | 10-01 | 15:36 | GitHub e2e jobs: own tsconfig for the test runner (ends the 290 "Failed to load tsconfig file" errors), six jobs instead of four (workflow files and one test settings file, no deploy) | `f8a2f635` | unchanged |
 | 10-01 | 15:43 | /contact: phone and e-mail read left to right in Arabic; three lines translated (de, fr, ar); no migration | `c5157913` | `fae3e473` |
+| 10-01 | 17:33 | **/confirmation redesign** (signed): two buttons, three next steps, help line; time, flight and cancel move to Manage booking; no migration. Rollback: tag `backup/main-before-confirmation-150a2a20`, Worker `fae3e473`. A stray Worker `vamos-web` (no bindings, workers.dev only) was created by a deploy without `--env staging`; waits for the owner's word to delete | `50a2a050` | `8f6720d6` |
 
 ## Ship order from here
 
