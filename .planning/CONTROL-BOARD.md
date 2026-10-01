@@ -22,7 +22,7 @@ the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 Rewritten short on 2026-09-30 14:25; the long version is in git history (`8230227c`).
 
-**Last update:** 2026-10-02 03:00 (+04)
+**Last update:** 2026-10-02 03:33 (+04)
 
 ## Controller take-over, 2026-10-01 23:25 (+04)
 
@@ -43,7 +43,7 @@ The local controller read `.planning/HANDOVER-2026-10-01.md` (the closing state 
 |---|---|---|---|
 | R | Phase 20 leftovers G7/G10/G11/G12/G28 | **Live 23:51** (`3e2bba66`, Worker `b7a34b05`) | done; branch deleted, `archive/branch-claude-project-thread-cwny3q-84cb34cb` |
 | A | P6, change place or time of a paid trip | **Live 02:58** (`05b8f2d1`, Worker `c6a4ecac`) | done; session archived, folder and branches removed. New follow-up from review 2: a customer time request can end a staff change that waits for payment (no money lost); queue it with the follow-ups |
-| B | Main green (26.0 finish, B4): Linux `confirmation.spec.ts:130`, mutation-gate patch, schema job, home reds; tests and CI files only | `ci/e2e-linux-3`, `fix/e2e-linux-2` | Ship (CI files, no deploy); the 48 SiteHeader picture diffs go to the owner one page at a time |
+| B | Main green 3 (26.0 finish) | **On main 03:33** (`36445c03`, tests/CI only, no deploy): GitHub E2E Linux 9 jobs inside 30 min, schema + mutation gate green, stale specs fixed. Left: owner decides the 48 SiteHeader pictures (one cause: his signed full-page menu); unclassified Linux reds checkout-hosted 390, checkout-account 768/390; /cookies "#legacy" link with no section | done; session archived, folder, stack and 4 branches removed (archive tags) |
 | D | GSD bookkeeping (B10) | **On main 00:00** (`e38026ff`, planning only) | done; GSD now shows 323/337 plans, current 20 (20-09), next 28 |
 | V | Van luxury up to 12 travellers | **Live 02:12** (`7f718a5a`, Worker `7cf4af92`) | done; session archived, folder and branch removed |
 
@@ -129,6 +129,7 @@ Clean clone: install from the lockfile and all 11 gates pass; pgTAP from zero on
 | 10-02 | 02:12 | **Van luxury up to 12 travellers** (owner 2026-10-01 16:03): traveller limit from the class rows on home, phone sheet, /checkout and dashboard New trip; server refuses a class with too few seats (real-engine test); language switch de/fr→ar keeps the right Arabic plural (vamos-locale.js). No migration. Fresh review: round 1 fix, round 2 safe (30,636 lookups, 0 regressions). Clean clone: 11 gates, build, 3589 web unit tests, pgTAP 94 / 2299, types identical. Live: /api/quote gives Economy 3, Business 7, Van luxury 12; 8 pages + dashboard /login 200. Rollback: tag `backup/main-before-van-luxury-12-d575917e`, Worker `1415cd1f` | `7f718a5a` | `7cf4af92` |
 | 10-02 | 02:28 | **Hotfix: guest cancel from the e-mailed link** (found by P6; live since the token moved into the vt_manage cookie): the page sends the booking on screen; the cancel route checks inside the guest transaction that the cookie owns that booking, else 409 and nothing written. Picks 5dcb9e6c + 421b88f2 from the P6 branch. No migration. Fresh review: round 1 fix (wrong booking via the shared cookie), round 2 safe. Clean clone: 11 gates, build, 3605 web unit tests, pgTAP 94 / 2299. Live: pages 200, served page sends the reference. Rollback: tag `backup/main-before-guest-cancel-28634c81`, Worker `7cf4af92` | `5bedee98` | `ae61d012` |
 | 10-02 | 02:58 | **26.2 P6 change place or time of a paid trip** (D1-D21 signed): dashboard trip change re-priced on today's live book (date/time/party in the class keep the price), dearer waits for the difference, cheaper is Refund due by hand, driver clash asks take off or keep (D17 rule); customer time change only at its own price; account flight row and Resend (D20). Migration `20261007150000` applied verbatim first and read back: 11 bodies md5-identical, definer, search_path '', rule `9605dc33`, triggers, grants; 39 legs, 0 kept, no row written. Fresh review: round 1 fix (customer could lower the price; paid difference could fail to record), round 2 safe. Clean clone: 11 gates, build, 3775 web unit tests, pgTAP 95 / 2452, types identical. Live 200; retired generic change POST 405. Rollback: tag `backup/main-before-p6-eb9128f3`, Worker `ae61d012` (the migration stays; its functions only add refusals and new paths) | `05b8f2d1` | `c6a4ecac` |
+| 10-02 | 03:33 | **Main green 3**: Linux e2e jobs inside limits, mutation gate and schema job green, stale specs fixed, header diffs explained. Tests, CI and planning only; no deploy | `36445c03` | unchanged |
 
 ## Ship order from here
 
