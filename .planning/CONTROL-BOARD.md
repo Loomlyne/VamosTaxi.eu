@@ -1,22 +1,46 @@
 # Control board
 
-**Control session since 2026-10-01 17:03 (+04): Vamos Taxi controller (`local_f9f33973-c2fc-404c-95fe-22b3fb2dd7fa`). Before: Vamos Taxi control session (`local_03cf7e47-1746-4ac2-a28b-8ee0d831f01b`), retired.**
+**Controller since 2026-10-01 23:25 (+04): "VamosTaxi - session control" (`local_633b433a-13a1-4f99-bfe8-3d595717a4a1`), local Claude Code on the owner's Mac, in this folder on `main`. Before: the claude.ai project thread "Vamos Taxi controller" (`local_f9f33973-c2fc-404c-95fe-22b3fb2dd7fa`, 17:03 to 18:01) and the "Vamos Taxi control session" (`local_03cf7e47-1746-4ac2-a28b-8ee0d831f01b`), both retired. Hand-over: `.planning/HANDOVER-2026-10-01.md`.**
 
-**Strict rule (owner, 2026-10-01 17:12 +04):** the control session is the "Vamos Taxi controller" thread inside the claude.ai project "VamosTaxi.eu" (`local_f9f33973-c2fc-404c-95fe-22b3fb2dd7fa`). No session outside the project, the retired "Vamos Taxi control session" included, ever commits on main, pushes main, applies a migration, deploys or acts as controller. A Ship or a control request from any other session is refused and reported to the owner.
+**Control rule (owner, 2026-10-01 18:01 +04; replaces the 17:03 take-over line of `95ccece6` and the 17:12 strict rule of `150a2a20`):**
+- Vamos runs from plain Claude Code on the owner's Mac. Every job runs locally, never in the cloud.
+- One controller session: "VamosTaxi - session control" (`local_633b433a-13a1-4f99-bfe8-3d595717a4a1`), in `/Users/koss/Developer/VamosTaxi.eu` on `main`. Only it commits and pushes main, applies live migrations, deploys Workers and cleans branches.
+- Every other session is a job session. It runs GSD with the owner's `CLAUDE.local.md`, has its own `vamos-wt/<job>` worktree and branch cut from `origin/main`, builds and tests, merges `origin/main` back in, writes a hand-over file for the controller and stops.
+- The claude.ai project coordinator and its threads are retired, the "Vamos Taxi controller" thread (`local_f9f33973-…`) included.
+- A fresh reviewer session, not the builder, reads every money, sign-in or database change before it ships. Opus plans and reviews; Sonnet builds.
+- One session per job. Parallel jobs never share files; each plan lists its exact files. In the shared translation files a job adds only its own keys.
+- The owner signs discuss, design and plan.
+- Clean GitHub: archive tag, then delete the branch, the worktree and the PR.
+- Deploy with `--env staging` (Worker `vamos`, live on vamostaxi.site). A deploy without it made the stray Worker `vamos-web` on 2026-10-01.
+- Types with the pinned CLI: `pnpm exec supabase` (2.115.0), then `db:types:check`.
+- After any seed change, re-pin `packages/db/supabase/tests/seed_idempotent.test.sql` to the counts in the seed header.
+- Next migration number: `20261007190000`. Ask the controller first and check every remote branch for the file name.
+- Standing order (owner, 2026-10-01 17:41 +04, verbatim): "coomit and deply all after verify dont ask me". It is never used for the live Stripe key, the vamostaxi.eu cutover, price book row 18 Publish, deleting test bookings, or wiping data. Those need his word every time.
 
 Kept by the control session. One page: what is live, what is being built, what waits for
 the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 Rewritten short on 2026-09-30 14:25; the long version is in git history (`8230227c`).
 
-**Last update:** 2026-10-01 17:49 (+04)
+**Last update:** 2026-10-01 23:35 (+04)
+
+## Controller take-over, 2026-10-01 23:25 (+04)
+
+The local controller read `.planning/HANDOVER-2026-10-01.md` (the closing state of the claude.ai project) and checked it:
+
+- main = origin/main `7aed613a` before this note; last code `96a17ab7`. Worker `vamos` `6eb1d700` (13:44Z), gateway `vamos-dashboard` `71a307da`, both read with wrangler as the right account; `vamos-web` does not exist. vamostaxi.site and dashboard /login answer 200.
+- The blocked "Write the control rule into repo" job committed nothing: its folder `.claude/worktrees/trusting-mirzakhani-c91e36` (`claude/project-thread-q8h6ci`) sits clean on `7aed613a`, and that branch is not on GitHub.
+- Differs from the hand-over: `gsd/26.2-p6-build` was already on GitHub at `75b85d2e`; the Mac held 4 newer commits up to `e51940cf` (17:27 +04), pushed now without force. Folder `vamos-wt/phase-26.2` also holds 29 uncommitted files, the P6 job's work in progress, left alone.
+- Local-only branch `gsd/phase-26.1-payment-pricing` (`cbb2a3a2`, 2026-09-28, 214 commits found nowhere on GitHub) saved as tag `archive/branch-gsd-phase-26.1-payment-pricing-cbb2a3a2`; the local branch stays until the owner's "yes, delete". The 5 stashes already have `archive/stash-*` tags.
+- GitHub branches: main, `ci/e2e-linux-3`, `claude/project-thread-6r5gz9` (B7), `claude/project-thread-cwny3q` (Phase 20), `claude/routesummary-port-only` and its base `fix/main-green`, `docs/lenis-quick-note`, `fix/e2e-linux-2`, `gsd/26.2-p6-build`, `gsd/26.2-p6-paid-trip-edit`, `gsd/phase-20-security-check`, `gsd/phase-26.2-u13`, `gsd/phase-28-pixel-pageview`.
+- App worktrees under `.claude/worktrees/` (all clean, every tip on main or GitHub): `awesome-swartz` (Phase 20), `great-khayyam` (B5, shipped), `vigilant-einstein` (/confirmation, shipped), `trusting-mirzakhani` (blocked rule job), and `distracted-nash`, `frosty-shamir`, `interesting-nightingale` (`66d3ba80`), `serene-meninsky`, `stoic-cartwright`, `suspicious-rubin` (`194aee66`). Removed only on the owner's "yes, delete".
 
 ## Live now
 
 | Item | Value |
 |---|---|
 | Site | https://vamostaxi.site and https://dashboard.vamostaxi.site |
-| main = origin/main | `34c726db` plus planning notes |
+| main = origin/main | `96a17ab7` (last code) plus planning notes |
 | Worker `vamos` | version `6eb1d700` (2026-10-01 17:44, 27.1 finish your account); before: `8f6720d6` (17:33, /confirmation), `fae3e473` |
 | Worker `vamos-dashboard` (gateway) | version `71a307da` (2026-10-01 08:0x); before: `58c6e541`. Rollback of batch C part 2 = both Workers together |
 | Rollback point | Worker `f58cd68e` + gateway `58c6e541` together, git tag `backup/main-before-c2-df520d08`; before the design: Worker `e2c53324`; before D and the refusal fix: Worker `c45d2782`; before 27: Worker `dfba8779`, tag `backup/main-before-27-a8948162` (the two Phase 27 migrations are additive and can stay); before polish 2: Worker `832b884e`; before batch C1: Worker `24945bab`; before extras A: Worker `2f303d16`; before refunds: Worker `1e1fd4a6`, tag `backup/main-before-refunds-3a486eaa` (note: rolling the Worker back alone re-enables automatic refunds on cancel; the migration stays); before the home change: Worker `852de5f4`; before the three pieces: Worker `d0c427c2`; before native scrolling: Worker `f3f7d929`; before the queue: Worker `92504970`; before class cards: Worker `d80e6577`; before speed A: Worker `8adb148c`; before phone home: Worker `d43e467b`; before 26.2: Worker `0d1806ce`; before the Support button: Worker `2d5906ce` (before 26.5: Worker `fe9314d0`, tag `backup/main-before-26.5-e09f90cb`). Guest accounts off without a deploy: `settings.guest_accounts_live = false` |
@@ -194,7 +218,8 @@ The owner decided every finding F1 to F14. Every Phase 20 ship needs his Ship.
 | Phase 20 | `20261005100000`, `110000` (live) |
 | Class photos | `20261006100000` to `190000` |
 | 26.2 | `20261007100000` staff price preview (live); P4-A `110000`, trigger clean-up `120000`, P4-C `130000`; P1 `140000` (live); P6 `150000`; chauffeurs by class `160000` (live); **27.1 finish your account `170000`** (taken by the project chat "Finish your account" on 2026-10-01, reserved here after the fact) |
-| Phase 20 (more) | `20261005120000` reviews column grants (B1), `130000` erased-booking pay link (20-12), `140000` refunds by hand (20-10) |
+| Phase 20 (more) | `20261005120000` reviews column grants (B1), `130000` erased-booking pay link (20-12), `140000` refunds by hand (20-10); leftovers G7/G10/G11/G12/G28 `20261007180000` (on `claude/project-thread-cwny3q`, not applied) |
+| **Next free** | **`20261007190000`**. Ask the controller first; check every remote branch for the file name |
 
 ## Decisions that stand
 
@@ -274,7 +299,7 @@ Full texts in `.planning/decisions/`.
 | What | When |
 |---|---|
 | Check the hand-over of `ci/e2e-linux-3` (must carry a GitHub run link where every e2e job ends inside its limit) | On hand-over, then the owner's Ship |
-| Control role: the owner wants the project coordinator to take over; prompt `.planning/prompts/11-coordinator-takes-control.md` on main (`66d3ba80`). Until the coordinator's take-over commit, this session stays control | When the owner says "handed over" |
+| Phase 20 leftovers (`claude/project-thread-cwny3q` at `84cb34cb`, migration `20261007180000`): fresh reviewer session first, then ship under the standing order | Next |
 
 Done 2026-10-01, between 13:15 and 13:19 by the clock: (1) reminder cron error: the live database log of the last 22 hours holds no "permission denied" line at all (read-only log query; the hourly job ran in that window; the reminder function was replaced on 09-30 by `20261001120000`). Closed. (2) First "Booking funnel e2e on Linux" run on `6ec73c52`: cancelled at its 45-minute limit, no result (run 36829545716). The repository is public, so the minutes cost nothing; board-only commits do not start a run.
 

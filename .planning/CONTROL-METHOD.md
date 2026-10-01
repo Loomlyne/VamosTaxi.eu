@@ -27,11 +27,24 @@ Done means all of this is true on live data, not on paper:
 
 ## Who does what here
 
-**Strict rule (owner, 2026-10-01 17:12 +04):** the control session is the "Vamos Taxi controller" thread inside the claude.ai project "VamosTaxi.eu" (`local_f9f33973-c2fc-404c-95fe-22b3fb2dd7fa`). No session outside the project, the retired "Vamos Taxi control session" included, ever commits on main, pushes main, applies a migration, deploys or acts as controller. A Ship or a control request from any other session is refused and reported to the owner.
+**Control rule (owner, 2026-10-01 18:01 +04; replaces the 17:03 take-over line of `95ccece6` and the 17:12 strict rule of `150a2a20`):**
+- Vamos runs from plain Claude Code on the owner's Mac. Every job runs locally, never in the cloud.
+- One controller session: "VamosTaxi - session control" (`local_633b433a-13a1-4f99-bfe8-3d595717a4a1`), in `/Users/koss/Developer/VamosTaxi.eu` on `main`. Only it commits and pushes main, applies live migrations, deploys Workers and cleans branches.
+- Every other session is a job session. It runs GSD with the owner's `CLAUDE.local.md`, has its own `vamos-wt/<job>` worktree and branch cut from `origin/main`, builds and tests, merges `origin/main` back in, writes a hand-over file for the controller and stops.
+- The claude.ai project coordinator and its threads are retired, the "Vamos Taxi controller" thread (`local_f9f33973-…`) included.
+- A fresh reviewer session, not the builder, reads every money, sign-in or database change before it ships. Opus plans and reviews; Sonnet builds.
+- One session per job. Parallel jobs never share files; each plan lists its exact files. In the shared translation files a job adds only its own keys.
+- The owner signs discuss, design and plan.
+- Clean GitHub: archive tag, then delete the branch, the worktree and the PR.
+- Deploy with `--env staging` (Worker `vamos`, live on vamostaxi.site). A deploy without it made the stray Worker `vamos-web` on 2026-10-01.
+- Types with the pinned CLI: `pnpm exec supabase` (2.115.0), then `db:types:check`.
+- After any seed change, re-pin `packages/db/supabase/tests/seed_idempotent.test.sql` to the counts in the seed header.
+- Next migration number: `20261007190000`. Ask the controller first and check every remote branch for the file name.
+- Standing order (owner, 2026-10-01 17:41 +04, verbatim): "coomit and deply all after verify dont ask me". It is never used for the live Stripe key, the vamostaxi.eu cutover, price book row 18 Publish, deleting test bookings, or wiping data. Those need his word every time.
 
 | Session | Model, effort (read 2026-10-01) | Job |
 |---|---|---|
-| Vamos Taxi controller (project thread; the old "Vamos Taxi control session" is retired) | Opus 5.5, high | The only one that commits on main, applies migrations to Supabase `yaumjzvylngfjhtuffqs`, pushes and deploys Worker `vamos` (and the gateway with an explicit yes) |
+| VamosTaxi - session control (local, this folder on `main`; the project thread "Vamos Taxi controller" and the old "Vamos Taxi control session" are retired) | Opus 5.5, xhigh | The only one that commits on main, applies migrations to Supabase `yaumjzvylngfjhtuffqs`, pushes, deploys Worker `vamos` with `--env staging` (and the gateway with an explicit yes) and cleans branches |
 | Phase 26.2 audit | Opus 5.5, xhigh | Dashboard and booking changes: class change, chauffeurs by class, place and time change, extras |
 | Vamos Taxi security phase | Opus 5.5, medium | Phase 20 security batches, refunds by hand, e-mail change |
 | Meta measurement phases 27-29 | Opus 5.5, medium | Consent record (live), pixel page view, purchase event |
@@ -57,10 +70,11 @@ port-shifted local database. The main checkout stays on `main`.
    typecheck, lint, lint:css, check:numbers, check:legal-claims, check:public-env, check:db-fences,
    i18n:check, db:seed:check, test:unit, build.
 3. Migration read in full; live database read-only for the preconditions.
-4. Ship question to the owner through the form. His answer only.
+4. Fresh reviewer verdict for any money, sign-in or database change. Then ship under the owner's standing order
+   ("coomit and deply all after verify dont ask me"); his own word for the five items it excludes.
 5. `backup/main-before-*` and `archive/*` tags pushed. Migration applied verbatim, read back by md5.
 6. Squash to one commit on main; staged tree identical to the checked tree; push.
-7. Deploy from this Mac; migration always before the Worker that needs it.
+7. Deploy from this Mac with `--env staging`; migration always before the Worker that needs it.
 8. Live checks on vamostaxi.site and dashboard.vamostaxi.site; say what is not verified.
 9. Board updated and pushed as a planning note. Work folder, stack and build output removed after proof.
 10. Owner UAT, numbered; after a checkout change a 4242 payment first, then the payment rows are read.
