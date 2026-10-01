@@ -31,7 +31,8 @@ const BOOKED = {
 };
 
 async function mockSignedIn(page: Page): Promise<void> {
-  await page.route("**/api/auth/session", (route) =>
+  // `*`: since 27.1 (96a17ab7) /account and /bookings ask /api/auth/session?finish=1; the header asks without a query.
+  await page.route("**/api/auth/session*", (route) =>
     route.fulfill({
       json: { signedIn: true, displayName: "Anna Keller", email: "anna@example.com", emailConfirmed: true },
     }),
@@ -127,7 +128,7 @@ test.describe("account bookings 26.3", () => {
 
   test("a foreign returnTo falls back to /account", async ({ page }) => {
     await page.route("**/api/auth", (route) => route.fulfill({ json: { ok: true } }));
-    await page.route("**/api/auth/session", (route) => route.fulfill({ json: { signedIn: false } }));
+    await page.route("**/api/auth/session*", (route) => route.fulfill({ json: { signedIn: false } }));
     await page.goto(`${baseURL}/sign-in?returnTo=${encodeURIComponent("//evil.com")}`);
     await page.getByLabel("Email").fill("anna@example.com");
     await page.getByRole("textbox", { name: "Password" }).fill("correct-horse-1");

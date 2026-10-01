@@ -109,7 +109,14 @@ async function openSheetIfNarrow(page: Page) {
   }).toPass({ timeout: 15_000 });
 }
 
-test.describe("Home widget @component", () => {
+// FIXME (stale, intent gone): this spec drove the React home at `/` with the in-page quote board
+// (BookingBoard: class cards, price panel, lock countdown). 0f591fa6 (2026-08-31, "serve the mock at / and
+// drop the old React homepage") removed that page: `/` is the DC mock and app/[locale]/page.tsx returns
+// null. 26.3/26.4 then settled that the home has ONE booking box/bar that sends no quote and leads to
+// /checkout (home-no-class-section.spec.ts proves "the home bar sends no quote"). BookingBoard is mounted
+// nowhere a customer can reach; the refusal placements stay proven by quote-flow.spec.ts on /dev/quote.
+// Delete this file, or point it at a new surface, only on the owner's word.
+test.describe.fixme("Home widget @component", () => {
   test.describe.configure({ mode: "serial" });
 
   test.beforeAll(async ({}, testInfo) => {

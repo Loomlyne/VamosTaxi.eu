@@ -48,6 +48,14 @@ function loadLegalLanguages(): Record<string, string[]> {
   return out;
 }
 
+/** The indexable pages of the SEO head table: the only ones with language addresses (owner option B, 2026-09-30). */
+function loadIndexablePaths(): Set<string> {
+  const table = JSON.parse(readFileSync(join(WEB_ROOT, "lib/seo/pages.json"), "utf8")) as {
+    pages: { path: string; indexable?: boolean }[];
+  };
+  return new Set(table.pages.filter((p) => p.indexable === true).map((p) => p.path));
+}
+
 function localePath(locale: string, path: string): string {
   const suffix = path === "/" ? "" : path;
   if (locale === "en") return suffix || "/";
@@ -129,18 +137,20 @@ test.describe("Public route contract @public-routes", () => {
     }
   });
 
+  // 26.0 (main-green-3): was a KNOWN-RED mark ("the mocks have no hreflang"). Since the SEO head table
+  // (5b394833, owner option B) the served mocks carry hreflang on the indexable pages only; private pages
+  // (sign-in, reset-password, account...) keep one address and no language links, by design.
   test("reachable routes carry four hreflang links plus x-default matching buildAlternates", async () => {
-    test.fail(
-      true,
-      "KNOWN-RED 26.0: the served public pages are DC mocks (lib/dc-mock-urls.ts) and their raw HTML has no hreflang links; the first route (/) fails on hreflang=\"en\" — owner to rule",
-    );
     const routes = loadPublicRoutes();
     const phase5 = loadPhase5Routes();
     const later = new Set(
       phase5.filter((r) => r.phase === 7 || r.phase === 8 || r.phase === 9).map((r) => r.path),
     );
+    const indexable = loadIndexablePaths();
+    const checked = routes.filter((path) => path !== UNOWNED && !later.has(path) && indexable.has(path));
+    expect(checked.length, "indexable public routes").toBeGreaterThanOrEqual(9);
     for (const path of routes) {
-      if (path === UNOWNED || later.has(path)) continue;
+      if (path === UNOWNED || later.has(path) || !indexable.has(path)) continue;
       const res = await fetch(baseURL + localePath("en", path));
       expect(res.status).toBe(200);
       const body = await res.text();
@@ -226,8 +236,16 @@ test.describe("Public route contract @public-routes", () => {
       if (path === UNOWNED || later.has(path)) continue;
       const res = await fetch(baseURL + localePath("en", path));
       const body = await res.text();
-      const headers = body.match(/<header\b[^>]*data-screen-label="Header"/g) ?? [];
-      const footers = body.match(/<footer\b[^>]*data-ft="1"/g) ?? [];
+      // A Next page renders the header and footer on the server; a served DC mock (lib/dc-mock-urls.ts,
+      // middleware DC_PAGES) carries them as one <dc-import> each that the browser renders (CLAUDE.md).
+      const headers = [
+        ...(body.match(/<header\b[^>]*data-screen-label="Header"/g) ?? []),
+        ...(body.match(/<dc-import\b[^>]*name="SiteHeader"/g) ?? []),
+      ];
+      const footers = [
+        ...(body.match(/<footer\b[^>]*data-ft="1"/g) ?? []),
+        ...(body.match(/<dc-import\b[^>]*name="SiteFooter"/g) ?? []),
+      ];
       expect(headers.length, `header on ${path}`).toBe(1);
       expect(footers.length, `footer on ${path}`).toBe(1);
     }

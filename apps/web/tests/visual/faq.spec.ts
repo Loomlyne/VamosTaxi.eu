@@ -131,12 +131,17 @@ test.describe("FAQ page and gallery @component", () => {
     expect(controls).toBeTruthy();
     const panel = page.locator(`#${controls}`);
     await expect(panel).toHaveCount(1);
-    expect(await toggle.getAttribute("aria-expanded")).toBe("false");
+    // /faq is the DC mock (apps/web/middleware.ts DC_PAGES), whose first answer is open on arrival
+    // (app/pages/faq.dc.html, `open: { 1: true }`). Enter and Space each flip the state from there.
+    const first = await toggle.getAttribute("aria-expanded");
+    expect(first === "true" || first === "false").toBe(true);
+    const flipped = first === "true" ? "false" : "true";
     await page.keyboard.press("Enter");
-    expect(await toggle.getAttribute("aria-expanded")).toBe("true");
+    await expect(toggle).toHaveAttribute("aria-expanded", flipped);
     await page.keyboard.press("Space");
-    expect(await toggle.getAttribute("aria-expanded")).toBe("false");
+    await expect(toggle).toHaveAttribute("aria-expanded", first ?? "");
     await page.keyboard.press("Enter");
+    await expect(toggle).toHaveAttribute("aria-expanded", flipped);
     const shadow = await toggle.evaluate((el) => getComputedStyle(el).boxShadow);
     const ring = await page.evaluate(() =>
       getComputedStyle(document.documentElement).getPropertyValue("--vt-ring").trim(),
