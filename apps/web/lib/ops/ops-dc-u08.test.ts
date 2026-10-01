@@ -24,14 +24,15 @@ function grab(src: string, re: RegExp, label: string): string {
 
 describe("OpsFleet chauffeur delete", () => {
   it("onDelete hands the store's answer back to OpsTable as a promise (else the dialog reports a failure)", async () => {
-    // 261001-chauffeur-car: onDelete now words a refusal (chauffeur-in-use) in the owner's language
-    // before OpsTable shows it, so it hands back a promise of the store's answer, not the same object.
+    // 261001-chauffeur-car: onDelete now names the trips that went back to unassigned (decision 7)
+    // before OpsTable closes, so it hands back a promise of the store's answer, not the same object.
     const src = readDc("OpsFleet.dc.html");
     const body = grab(src, /\n\s*onDelete: (\(id\) => \{[\s\S]*?\n\s{6}\}),\n\s*noun:/, "OpsFleet onDelete");
     const answer = { ok: true };
-    const onDelete = new Function("store", "inUseMessage", `return ${body};`)(
+    const onDelete = new Function("store", "unassignedNotice", `return ${body};`).call(
+      { setState() {} },
       { remove: () => Promise.resolve(answer) },
-      () => "refused",
+      () => "",
     ) as (id: string) => Promise<unknown>;
     await expect(onDelete("c1")).resolves.toBe(answer);
   });
