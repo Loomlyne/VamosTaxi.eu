@@ -29,7 +29,7 @@ import enMessages from "../../i18n/messages/en.json";
 import deMessages from "../../i18n/messages/de.json";
 import frMessages from "../../i18n/messages/fr.json";
 import arMessages from "../../i18n/messages/ar.json";
-import { percentToHundredths, roundHalfUp } from "../pricing/round";
+import { percentToHundredths } from "../pricing/round";
 
 
 const PRODUCT_NAMES: Record<string, string> = {
@@ -206,18 +206,6 @@ function sqlState(err: unknown): string | undefined {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
-}
-
-/**
- * Inverse of payableRappen's discount: the lock only ever carries the
- * post-coupon class total, so a percent coupon re-evaluated at intent must
- * gross it back up before checkout extras can be discounted too (D-08a).
- * >=100% grossing is skipped — the net is already 0 and any base value
- * maps to the same 0 through payableRappen's own floor.
- */
-function grossUpBeforeCouponRappen(postCouponRappen: number, percentHundredths: number): number {
-  if (percentHundredths <= 0 || percentHundredths >= 10_000) return postCouponRappen;
-  return roundHalfUp(postCouponRappen * 10_000, 10_000 - percentHundredths);
 }
 
 /**
@@ -465,13 +453,12 @@ async function runWebIntent(
     if (!evaluated) return refuse("coupon_no_longer_valid");
     couponId = evaluated.couponId;
     coupon = evaluated.charge;
-    // The lock carries the post-coupon class total; checkoutCharge starts from
-    // the pre-coupon fare (plan 26.3-03 decision 4).
-    if (coupon.kind === "percent" && coupon.percentHundredths != null) {
-      preCouponRappen = grossUpBeforeCouponRappen(netRappen, coupon.percentHundredths);
-    } else if (coupon.kind === "amount" && coupon.amountRappen) {
-      preCouponRappen = netRappen + coupon.amountRappen;
-    }
+    // 26.2 audit (U04-1): checkoutCharge starts from the pre-coupon fare pinned on the signed
+    // lock, never a gross-up of the post-coupon total (a fixed coupon is clamped to the fare, a
+    // percent one is rounded). A lock minted before the field existed: a fresh quote first.
+    const pinned = payload.class_totals.find((r) => r.slug === body.vehicle_class)?.pre_coupon_rappen;
+    if (typeof pinned !== "number") return refuse("price_changed");
+    preCouponRappen = pinned;
   }
 
   // D-19 / D-35: the one charge function, exact extra codes, live catalog.

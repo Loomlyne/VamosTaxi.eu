@@ -438,6 +438,61 @@ describe("runQuotePipeline", () => {
       expect(nonAirport.ok).toBe(true);
       expect(captured?.legs[0]?.origin_is_airport).toBe(false);
     });
+
+    it("26.2 audit U04-2: a coords pickup at ZRH with neutral text still carries the airport flag and Mapbox's name", async () => {
+      let captured: QuoteInput | undefined;
+      const result = await runQuotePipeline(
+        validBody({
+          pickup: { kind: "coords", lng: ZRH.lng, lat: ZRH.lat, text: "Kloten" },
+          dropoff: { kind: "coords", lng: ZURICH.lng, lat: ZURICH.lat, text: "somewhere" },
+        }),
+        baseDeps({
+          qsSubject: "verified-subject",
+          reverse: async ({ lng }) => ({
+            place:
+              lng === ZRH.lng
+                ? {
+                    name: "Zurich Airport",
+                    address: "Flughafen Zürich",
+                    lng: ZRH.lng,
+                    lat: ZRH.lat,
+                    canton: "ZH",
+                    cityId: "place.kloten",
+                    cityName: "Kloten",
+                    isAirport: true,
+                  }
+                : {
+                    name: "Zurich HB",
+                    address: "Bahnhofplatz",
+                    lng: ZURICH.lng,
+                    lat: ZURICH.lat,
+                    canton: "ZH",
+                    cityId: "place.zurich",
+                    cityName: "Zürich",
+                    isAirport: false,
+                  },
+          }),
+          loadAndPrice: async (_env, input) => {
+            captured = input;
+            return pricedOk();
+          },
+        }),
+      );
+      expect(result.ok).toBe(true);
+      expect(captured?.legs[0]?.origin_is_airport).toBe(true);
+      expect(captured?.legs[0]?.origin_place).toBe("Zurich Airport");
+      expect(captured?.legs[0]?.origin_city_id).toBe("place.kloten");
+    });
+
+    it("26.2 audit U04-2: a coords place whose reverse finds nothing is place_unresolved, never priced from browser text", async () => {
+      const result = await runQuotePipeline(
+        validBody({
+          pickup: { kind: "coords", lng: ZRH.lng, lat: ZRH.lat, text: "Kloten" },
+        }),
+        baseDeps({ qsSubject: "verified-subject" }),
+      );
+      expect(result).toEqual({ ok: false, code: "place_unresolved" });
+    });
   });
 
   describe("strict schema refuses client-sent boundary facts (D-08b/D-10)", () => {
@@ -498,6 +553,41 @@ describe("the lock carries and restores boundary facts across reprice (26.1-09)"
     expect(again.ok).toBe(true);
     expect(captured?.legs[0]?.origin_city_id).toBe("place.zurich");
     expect(captured?.legs[0]?.origin_is_airport).toBe(true);
+  });
+
+  it("26.2 audit U04-1: the lock pins each class's pre-coupon total (HMAC-covered), clamped coupon or not", async () => {
+    const line = (kind: "fare" | "discount", code: string, amount: number) =>
+      ({
+        seq: 0,
+        leg_seq: kind === "fare" ? 1 : null,
+        kind,
+        code,
+        i18n_key: `price.line.${code}`,
+        basis: { rule: "test" },
+        allocation: "pro_rata",
+        amount_rappen: amount,
+      }) as unknown as ClassBoardEntry["lines"][number];
+    const priced = pricedOk();
+    if (!priced.ok) throw new Error("fixture");
+    // Fare 3000, fixed coupon clamped to the fare: class total 0, pre-coupon 3000.
+    priced.quote.classes = [
+      {
+        ...board()[0]!,
+        total_rappen: 0,
+        lines: [line("fare", "distance_fare", 3000), line("discount", "coupon", 3000)],
+      },
+      { ...board()[1]!, total_rappen: null, lines: [] },
+    ];
+    const result = await runQuotePipeline(validBody(), baseDeps({ loadAndPrice: async () => priced }));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    const verified = await verifyLock({ current: FAKE_SECRET }, result.lock, "2026-08-28T12:00:00.000Z");
+    expect(verified.ok).toBe(true);
+    if (!verified.ok) return;
+    expect(verified.payload.class_totals).toEqual([
+      { slug: "economy", total_rappen: 0, pre_coupon_rappen: 3000 },
+      { slug: "business", total_rappen: null, pre_coupon_rappen: null },
+    ]);
   });
 
   it("a lock signed before origin_city_id/dest_city_id/origin_is_airport existed still verifies and prices with those fields undefined", async () => {

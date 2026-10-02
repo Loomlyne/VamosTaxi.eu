@@ -11,7 +11,7 @@ import {
   ENGINE_VERSION_PLACEHOLDER,
   priceQuote,
 } from "./priceQuote";
-import type { SettingsVersionRow } from "./policy";
+import { preCouponTotalOfClass, type SettingsVersionRow } from "./policy";
 import type {
   DistanceRateRow,
   FixedRouteRow,
@@ -758,6 +758,30 @@ describe("priceQuote — owner formula: airport fee additive, pair applies regar
     expect(eco.lines.find((l) => l.code === "airport_fee")?.amount_rappen).toBeNull();
     expect(eco.total_rappen).toBeNull();
     expect(result.partially_priced_class_slugs).toContain("economy");
+  });
+
+  it("U04-1: preCouponTotalOfClass is the exact fare + extras even when a fixed coupon is clamped to it", () => {
+    const result = priceQuote(
+      book(),
+      settingsRows(),
+      input({ extras: { child_seats: 1 }, legs: [neutralLeg()], coupon: "BIG" }),
+      { coupon: { id: 1, code: "BIG", kind: "amount", percent: null, amount_rappen: 50_000 } },
+    );
+    const eco = result.classes.find((c) => c.slug === "economy");
+    if (!eco) throw new Error("missing economy");
+    expect(eco.total_rappen).toBe(0);
+    expect(preCouponTotalOfClass(eco)).toBe(1_000 + 2_000 + 500);
+  });
+
+  it("U04-5 / D-26: no metres (Directions down) with an airport pickup reads all-null, never partially priced", () => {
+    const { eco, result } = quote(book(), {
+      legs: [{ ...neutralLeg(), origin_zone_id: zoneA.id, distance_m: 0, duration_s: 0, road: false }],
+    });
+    expect(eco.lines.find((l) => l.code === "distance_fare")?.amount_rappen).toBeNull();
+    expect(eco.lines.find((l) => l.code === "airport_fee")?.amount_rappen).toBeNull();
+    expect(eco.lines.find((l) => l.code === "child_seat")?.amount_rappen).toBeNull();
+    expect(eco.total_rappen).toBeNull();
+    expect(result.partially_priced_class_slugs).not.toContain("economy");
   });
 
   it("a non-airport pickup with no pair match stays fully priced regardless of a null airport_start_rappen", () => {

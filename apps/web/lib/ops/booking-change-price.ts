@@ -22,9 +22,8 @@
 import { checkoutCharge, type ChargeLine, type CheckoutChargeCoupon, type ExtraCatalogRow } from "../checkout/checkout-charge";
 import { snapshotLinesFromCharge, type SnapshotLine } from "../checkout/lock-to-rpc";
 import { priceQuote } from "../pricing/priceQuote";
-import type { CouponFacts, SettingsVersionRow } from "../pricing/policy";
+import { preCouponTotalOfClass, type CouponFacts, type SettingsVersionRow } from "../pricing/policy";
 import { classDisplayName } from "../pricing/public-board";
-import { roundHalfUp } from "../pricing/round";
 import type { ClassBoardEntry, QuoteInput, RateBook } from "../pricing/types";
 
 /** What the price kernel needs to know about one trip. */
@@ -174,12 +173,6 @@ export function savedChargeFromSnapshot(snapshot: {
   return { totalRappen: total, classSlug, rateVersionId, extras, coupon, vatRateBps, shownAlternatives: shown };
 }
 
-/** checkout's gross-up of a post-coupon class net (apps/web/lib/checkout/intent.ts grossUpBeforeCouponRappen). */
-function grossUpBeforeCouponRappen(postCouponRappen: number, percentHundredths: number): number {
-  if (percentHundredths <= 0 || percentHundredths >= 10_000) return postCouponRappen;
-  return roundHalfUp(postCouponRappen * 10_000, 10_000 - percentHundredths);
-}
-
 function couponFacts(coupon: CheckoutChargeCoupon | null): CouponFacts | null {
   if (!coupon) return null;
   if (coupon.kind === "percent" && coupon.percentHundredths) {
@@ -236,7 +229,7 @@ function board(book: PriceBook, facts: TripFacts, distanceM: number, saved: Save
 
 type Charged = { ok: true; chargedRappen: number; lines: ChargeLine[] } | { ok: false; code: ChangeRefusal };
 
-/** The checkout charge for one class of a priced board (intent.ts order: lock net, gross-up, checkoutCharge). */
+/** The checkout charge for one class of a priced board (intent.ts order: lock net, pinned pre-coupon fare, checkoutCharge). */
 function chargeFor(b: Board, slug: string, saved: SavedCharge, vatRateBps: number): Charged {
   const entry = b.classes.find((row) => row.slug === slug);
   if (!entry) return { ok: false, code: "class-not-sold" };
@@ -248,11 +241,11 @@ function chargeFor(b: Board, slug: string, saved: SavedCharge, vatRateBps: numbe
   }
   if (entry.total_rappen == null || b.partial.has(slug)) return { ok: false, code: "class-not-sold" };
   const net = entry.total_rappen;
+  // 26.2 audit (U04-1): the pre-coupon fare comes from the board's own lines, not a gross-up of the net.
   let pre: number | null = null;
-  if (saved.coupon?.kind === "percent" && saved.coupon.percentHundredths) {
-    pre = grossUpBeforeCouponRappen(net, saved.coupon.percentHundredths);
-  } else if (saved.coupon?.kind === "amount" && saved.coupon.amountRappen) {
-    pre = net + saved.coupon.amountRappen;
+  if (saved.coupon) {
+    pre = preCouponTotalOfClass(entry);
+    if (pre == null) return { ok: false, code: "trip-data" };
   }
   const charge = checkoutCharge({
     classNetRappen: net,

@@ -72,7 +72,10 @@ export const POST = withAdmin(async (claims, request) => {
     pax: body.pax,
     bags: body.bags,
     lines: snapshotFareLines(cls.slug, chargedRappen),
-    policy: priced.settingsPolicy,
+    // 26.2 audit (U04-7): rate_version_id above is the live row (the charge gate needs one), but the
+    // amounts come from the draft. The snapshot names that draft too, so the row does not misstate
+    // which price book produced its figure.
+    policy: { ...priced.settingsPolicy, draft_rate_version_id: priced.book.rate_version?.id ?? null },
     shown_alternatives: priced.quote.classes.map((row) => ({
       slug: row.slug,
       total_rappen: row.total_rappen,

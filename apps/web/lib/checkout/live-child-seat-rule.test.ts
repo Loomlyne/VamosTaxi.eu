@@ -36,8 +36,10 @@ function liveBookDoc(predicate: unknown): Record<string, unknown> {
         id: 10,
         rate_version_id: 18,
         vehicle_class_id: "vc-economy",
-        base_fare_rappen: null,
-        per_km_rappen: null,
+        // 26.2 audit (U04-5): a fare with no amount nulls every line after it, so the
+        // fixture carries a priced fare for the "always" row to show its own amount.
+        base_fare_rappen: 1_000,
+        per_km_rappen: 100,
         min_fare_rappen: null,
         max_pax: 3,
         available: true,

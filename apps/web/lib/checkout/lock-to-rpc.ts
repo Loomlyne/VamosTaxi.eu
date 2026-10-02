@@ -262,7 +262,8 @@ export function snapshotFromLock(
       ...snapshotPolicy,
       extras,
     },
-    shown_alternatives: payload.class_totals,
+    // 26.2 audit: slug + net only; the lock's pre_coupon_rappen is not a shown figure.
+    shown_alternatives: payload.class_totals.map((row) => ({ slug: row.slug, total_rappen: row.total_rappen })),
     legs,
     display_currency: payload.display_currency,
     source: "web",
