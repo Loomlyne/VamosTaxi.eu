@@ -24,7 +24,7 @@ function pathFor(locale: string, route: "/faq" | "/dev/faq"): string {
 async function startServer(port: number): Promise<void> {
   if (devServer?.pid) {
     try {
-      process.kill(devServer.pid, "SIGTERM");
+      process.kill(-devServer.pid, "SIGTERM");
     } catch {
       /* gone */
     }
@@ -72,7 +72,9 @@ test.describe("FAQ page and gallery @component", () => {
   test.afterAll(() => {
     if (devServer?.pid) {
       try {
-        process.kill(devServer.pid, "SIGTERM");
+        // The whole group: on the Linux runner the leader is the logging wrapper (next-dev-logged.sh) and a signal
+        // to the leader alone left `next dev` running on the port.
+        process.kill(-devServer.pid, "SIGTERM");
       } catch {
         // already gone
       }
@@ -204,13 +206,21 @@ test.describe("FAQ page and gallery @component", () => {
       els.map((el) => (el as HTMLButtonElement).innerText.trim()),
     );
     await page.goto(baseURL + "/de/faq");
-    const deNames = await page.locator("[data-faq-toggle]").evaluateAll((els) =>
-      els.map((el) => (el as HTMLButtonElement).innerText.trim()),
-    );
     expect(enNames.length).toBeGreaterThan(0);
-    expect(enNames.length).toBe(deNames.length);
-    for (let i = 0; i < enNames.length; i += 1) {
-      expect(deNames[i]).not.toBe(enNames[i]);
-    }
+    // The page is a mock: its English markup is translated by the locale runtime after the load event, so a read
+    // straight after goto can still see English on a slow runner (flaky on Linux, one toggle each time). Poll until
+    // every toggle has changed, and print the ones that did not.
+    await expect
+      .poll(
+        async () => {
+          const deNames = await page.locator("[data-faq-toggle]").evaluateAll((els) =>
+            els.map((el) => (el as HTMLButtonElement).innerText.trim()),
+          );
+          if (deNames.length !== enNames.length) return `${deNames.length} toggles in de, ${enNames.length} in en`;
+          return deNames.filter((name, i) => name === enNames[i]).join(" | ") || "all differ";
+        },
+        { timeout: 15_000, message: "every FAQ toggle reads German" },
+      )
+      .toBe("all differ");
   });
 });

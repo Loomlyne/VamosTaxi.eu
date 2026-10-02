@@ -105,7 +105,9 @@ test.describe("D-28 Pitfall 4 confirm-email intermediate state", () => {
     // 26.0: sign-up has carried the agreement tick box since Phase 27; the real input is visually hidden.
     await page.locator("[data-af-consent] .vt-check__box").click();
     await page.getByRole("button", { name: /create account/i }).click();
-    await expect(page.locator("[data-af]")).toContainText("Send another link");
+    // The first real sign-up compiles the send-mail hook inside its own request (4 s on the runner, then the 5 s
+    // default ran out on the retry), so the sent state gets a generous wait.
+    await expect(page.locator("[data-af]")).toContainText("Send another link", { timeout: 30_000 });
 
     const before = await sessionSnapshot(page);
     expect(before.signedIn).toBe(false);

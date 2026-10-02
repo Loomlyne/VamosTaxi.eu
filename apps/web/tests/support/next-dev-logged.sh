@@ -10,6 +10,16 @@ for a in "$@"; do
   if [ "$prev" = "-p" ] || [ "$prev" = "--port" ]; then port="$a"; fi
   prev="$a"
 done
+# 26.0 checkout-reds: with --workers=2 two dev servers ran at once, and every spec that does not set its own
+# TEST_DIST_DIR wrote the one apps/web/.next. A starting `next dev` clears that folder, so the other server lost its
+# build files (ENOENT .next/routes-manifest.json, MODULE_NOT_FOUND, "invalid distance code" in the webpack cache
+# in the Linux dev logs) and the specs on it failed one run and passed the next. Servers of one worker run one after
+# another, so each worker (TEST_PARALLEL_INDEX, the same after a worker restart) gets its own folder; a spec's own
+# TEST_DIST_DIR still wins. Build files and the webpack cache are kept between a worker's servers, as before.
+if [ "$1" = "dev" ] && [ -z "${TEST_DIST_DIR:-}" ] && [ -n "${TEST_PARALLEL_INDEX:-}" ]; then
+  TEST_DIST_DIR=".next-w${TEST_PARALLEL_INDEX}"
+  export TEST_DIST_DIR
+fi
 mkdir -p "$VAMOS_DEV_LOG_DIR"
 LOG="$VAMOS_DEV_LOG_DIR/next-${port:-x}-$$.log"
 echo "# $(date -u +%FT%TZ) pid $$ next $*" >> "$LOG"

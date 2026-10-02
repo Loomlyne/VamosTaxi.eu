@@ -75,9 +75,25 @@ test.describe("Terms page @component", () => {
       await page.goto(baseURL + path);
       // Measure the rendered mock, not the boot frame (flaky on Linux at 390).
       await expect(page.locator(`#${SECTION_IDS[0]}`)).toHaveCount(1);
+      // On a miss the poll's last value names the widest elements, so a red run says what overflows and where.
       await expect
-        .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), { message: `no sideways scroll on ${path}` })
-        .toBe(true);
+        .poll(
+          () =>
+            page.evaluate(() => {
+              const iw = window.innerWidth;
+              const sw = document.documentElement.scrollWidth;
+              if (sw <= iw) return "fits";
+              const wide = [...document.querySelectorAll("body *")]
+                .map((el) => ({ el, right: Math.round(el.getBoundingClientRect().right) }))
+                .filter((x) => x.right > iw)
+                .sort((a, b) => b.right - a.right)
+                .slice(0, 4)
+                .map((x) => `${x.el.tagName.toLowerCase()}${x.el.id ? "#" + x.el.id : ""}[${String(x.el.getAttribute("class") ?? "").slice(0, 30)}] right=${x.right}`);
+              return `scrollWidth ${sw} > ${iw}: ${wide.join(" ; ")}`;
+            }),
+          { message: `no sideways scroll on ${path}` },
+        )
+        .toBe("fits");
     }
   });
 

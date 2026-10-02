@@ -1,7 +1,7 @@
 // apps/web/tests/visual/legal-cancellation-imprint.spec.ts
 import { test, expect } from "../support/test";
 import { testPort } from "../support/port";
-import { spawn, type ChildProcess } from "node:child_process";
+import { execFileSync, spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 
 const CANCELLATION_IDS = [
@@ -39,11 +39,29 @@ let devServer: ChildProcess | null = null;
 let baseURL = "";
 let port = testPort(4200);
 
+// Frees the port from a server a dead worker left behind. It used to run `lsof -ti tcp:<port> | xargs kill -9` in the
+// background: that lists every process with ANY socket on the port, the Playwright worker (its fetch to the server) and
+// Chromium included, and on a loaded runner lsof finished only after the new server was up, so it killed its own worker
+// ("worker process exited unexpectedly, signal=SIGKILL", five tests at 0 s, the dev logs full of EADDRINUSE restarts).
+// Now it runs to the end first, and only the process that LISTENS on the port is stopped.
 function killPort(p: number) {
   try {
-    spawn("sh", ["-c", `lsof -ti tcp:${p} | xargs kill -9`], { stdio: "ignore" });
+    const out = execFileSync("lsof", ["-nP", `-iTCP:${p}`, "-sTCP:LISTEN", "-t"], {
+      encoding: "utf8",
+      timeout: 20_000,
+      stdio: ["ignore", "pipe", "ignore"],
+    });
+    for (const line of out.split("\n")) {
+      const pid = Number(line.trim());
+      if (!Number.isInteger(pid) || pid <= 1 || pid === process.pid) continue;
+      try {
+        process.kill(pid, "SIGKILL");
+      } catch {
+        // already gone
+      }
+    }
   } catch {
-    // already gone
+    // nothing listens on the port (lsof exits 1), or lsof is missing
   }
 }
 
@@ -57,6 +75,10 @@ async function openIn(page: import("../support/test").Page, lang: string, path: 
 }
 
 test.describe("Cancellation and imprint pages @component", () => {
+  // One worker runs the whole file. fullyParallel spread its tests over both workers of the Linux job, every worker
+  // ran beforeAll and started its own server on this ONE port: the second start answered EADDRINUSE (eight tiny
+  // dev logs on the runner), and the killPort below stopped the first worker's server under its tests.
+  test.describe.configure({ mode: "serial" });
 
   test.beforeAll(async ({}, testInfo) => {
     testInfo.setTimeout(180_000);
