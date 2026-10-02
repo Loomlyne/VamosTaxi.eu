@@ -48,6 +48,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-tok]{display:inline-flex;align-items:baseline;gap:5px;font-family:var(--vt-font-body);font-weight:var(--vt-weight-medium);font-size:.97em;background:var(--vt-yellow-50);border:1px solid var(--vt-yellow-300);color:var(--vt-charcoal-900);border-radius:var(--vt-radius-xs);padding:0 7px;white-space:nowrap}
 [data-tok]::after{content:"TBC";font-family:var(--vt-font-body);font-size:.66em;font-weight:700;letter-spacing:.1em;color:var(--vt-yellow-700)}
 [data-tok-fig]{display:inline-flex;font-family:var(--vt-font-display);font-size:var(--vt-figure-md);line-height:1.1}
+[data-mb-acts] .vt-btn{max-inline-size:100%;white-space:normal;block-size:auto;min-block-size:var(--vt-control-h-lg);padding-block:10px;text-align:center}
 [data-slot]{margin:0;border:1px dashed var(--vt-grey-300);background:var(--vt-grey-50);border-radius:var(--vt-radius-md);padding:16px 18px}
 [data-slot-k]{display:flex;align-items:center;gap:8px;margin:0 0 6px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
 [data-slot-k]::before{content:"";width:8px;height:8px;flex:0 0 auto;background:var(--vt-grey-300)}
@@ -431,14 +432,14 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <p data-hint="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="info" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span data-t="1">The change takes effect when we confirm it in writing — not when you send it. Until then the booking stands as it is.</span></p>
 <p data-hint="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="receipt" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import><span data-t="1">We never charge for the change itself.</span></p>
 </div>
-<div style="display:flex;flex-wrap:wrap;gap:12px">
+<div data-mb-acts="1" style="display:flex;flex-wrap:wrap;gap:12px">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" iconEnd="arrow-right" onClick="{{ confirmModify }}" hint-size="240px,54px">Request these changes</x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" variant="ghost" onClick="{{ resetChanges }}" hint-size="180px,54px">Discard changes</x-import>
 </div>
 </sc-if>
 <sc-if value="{{ noDiff }}" hint-placeholder-val="{{ true }}">
 <p style="margin:0 0 22px;max-width:58ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">Nothing yet. Adjust anything above and it is listed here, old value beside new, before you send it.</p>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" iconEnd="arrow-right" disabled="{{ yes }}" hint-size="240px,54px">Request these changes</x-import>
+<div data-mb-acts="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" iconEnd="arrow-right" disabled="{{ yes }}" hint-size="240px,54px">Request these changes</x-import></div>
 </sc-if>
 </div>
 </sc-if>
