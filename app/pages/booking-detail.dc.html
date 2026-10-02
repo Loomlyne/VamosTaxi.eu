@@ -237,13 +237,13 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 
 <sc-if value="{{ viaLink }}" hint-placeholder-val="{{ false }}">
 <div data-noprint="1">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="inverse" title="Opened from your confirmation email" hint-size="100%,84px">This link opens booking {{ ref }} and nothing else. To see other trips, sign in or look them up one at a time.</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="inverse" title="Opened from your confirmation email" hint-size="100%,84px">This link opens booking <span class="vt-dir-keep" data-vt-no-i18n="1">{{ ref }}</span> and nothing else. To see other trips, sign in or look them up one at a time.</x-import>
 </div>
 </sc-if>
 
 <article data-card="1" aria-labelledby="mb-bk-h" style="padding:clamp(20px,2.4vw,26px)">
 <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;margin-bottom:20px">
-<h2 id="mb-bk-h" style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);line-height:1.1;letter-spacing:.04em;font-weight:var(--vt-weight-bold);color:var(--vt-text-primary)">{{ ref }}</h2>
+<h2 id="mb-bk-h" style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);line-height:1.1;letter-spacing:.04em;font-weight:var(--vt-weight-bold);color:var(--vt-text-primary)"><span class="vt-dir-keep" data-vt-no-i18n="1">{{ ref }}</span></h2>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.StatusBadge" status="{{ status }}" hint-size="110px,26px"></x-import>
 <sc-if value="{{ isReviewed }}" hint-placeholder-val="{{ false }}">
 <span data-pill="1">Reviewed</span>
@@ -278,7 +278,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <sc-if value="{{ flightRow }}" hint-placeholder-val="{{ true }}">
 <div data-row="1">
 <sc-if value="{{ flightIdle }}" hint-placeholder-val="{{ true }}">
-<span style="min-width:0"><span data-row-k="1">Flight number</span><span data-row-v="1" style="font-family:var(--vt-font-display);font-weight:var(--vt-weight-semibold);letter-spacing:.03em">{{ flight }}</span></span>
+<span style="min-width:0"><span data-row-k="1">Flight number</span><span data-row-v="1" style="font-family:var(--vt-font-display);font-weight:var(--vt-weight-semibold);letter-spacing:.03em"><span class="vt-dir-keep" data-vt-no-i18n="1">{{ flight }}</span></span></span>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" icon="pencil" onClick="{{ editFlight }}" hint-size="120px,44px">Edit</x-import>
 </sc-if>
 <sc-if value="{{ flightEditing }}" hint-placeholder-val="{{ false }}">
@@ -297,17 +297,17 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 </div>
 </sc-if>
 <div data-row="1">
-<span style="min-width:0"><span data-row-k="1">Confirmation sent to</span><span data-row-v="1">{{ email }}</span></span>
+<span style="min-width:0"><span data-row-k="1">Confirmation sent to</span><span data-row-v="1"><span class="vt-dir-keep" data-vt-no-i18n="1">{{ email }}</span></span></span>
 <span data-pill="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="shield-check" size="{{ n14 }}" color="var(--vt-text-muted)" hint-size="14px,14px"></x-import>Paid in full</span>
 </div>
 <sc-if value="{{ hasChauffeur }}" hint-placeholder-val="{{ false }}">
 <div data-row="1">
-<span style="min-width:0"><span data-row-k="1">Chauffeur</span><span data-row-v="1">{{ chauffeurName }}</span></span>
+<span style="min-width:0"><span data-row-k="1">Chauffeur</span><span data-row-v="1" data-vt-no-i18n="1">{{ chauffeurName }}</span></span>
 </div>
 </sc-if>
 <sc-if value="{{ hasVehicle }}" hint-placeholder-val="{{ false }}">
 <div data-row="1">
-<span style="min-width:0"><span data-row-k="1">Vehicle</span><span data-row-v="1">{{ vehicleLabel }}</span></span>
+<span style="min-width:0"><span data-row-k="1">Vehicle</span><span data-row-v="1" data-vt-no-i18n="1">{{ vehicleLabel }}</span></span>
 </div>
 </sc-if>
 <sc-if value="{{ showRefundLine }}" hint-placeholder-val="{{ false }}">
@@ -367,12 +367,12 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.RouteSummary" inverse="{{ yes }}" pickup="{{ pickup }}" pickupDetail="{{ pickupTime }}" dropoff="{{ dropoff }}" hint-size="100%,170px"></x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.PriceSummary" inverse="{{ yes }}" lines="{{ lines }}" total="{{ total }}" totalLabel="{{ totalLabel }}" note="" hint-size="100%,170px"></x-import>
 <dl style="margin-block-start:20px;padding-block-start:16px;border-block-start:1px solid var(--vt-border-inverse);display:flex;flex-direction:column;gap:8px">
-<div style="display:flex;justify-content:space-between;gap:16px;align-items:baseline"><dt style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-inverse-muted)">Booking</dt><dd style="margin:0;text-align:end;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">{{ ref }}</dd></div>
+<div style="display:flex;justify-content:space-between;gap:16px;align-items:baseline"><dt style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-inverse-muted)">Booking</dt><dd style="margin:0;text-align:end;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-inverse)"><span class="vt-dir-keep" data-vt-no-i18n="1">{{ ref }}</span></dd></div>
 <div style="display:flex;justify-content:space-between;gap:16px;align-items:baseline"><dt style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-inverse-muted)">Date</dt><dd style="margin:0;text-align:end;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">{{ bookedWhen }}</dd></div>
 <div style="display:flex;justify-content:space-between;gap:16px;align-items:baseline"><dt style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-inverse-muted)">Passengers</dt><dd style="margin:0;text-align:end;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">{{ paxLabel }}</dd></div>
 <div style="display:flex;justify-content:space-between;gap:16px;align-items:baseline"><dt style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-inverse-muted)">Bags</dt><dd style="margin:0;text-align:end;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">{{ bagLabel }}</dd></div>
 <div style="display:flex;justify-content:space-between;gap:16px;align-items:baseline"><dt style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-inverse-muted)">Vehicle</dt><dd style="margin:0;text-align:end;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">{{ vehicleName }}</dd></div>
-<div style="display:flex;justify-content:space-between;gap:16px;align-items:baseline"><dt style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-inverse-muted)">Payer email</dt><dd style="margin:0;text-align:end;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">{{ email }}</dd></div>
+<div style="display:flex;justify-content:space-between;gap:16px;align-items:baseline"><dt style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-inverse-muted)">Payer email</dt><dd style="margin:0;text-align:end;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-inverse)"><span class="vt-dir-keep" data-vt-no-i18n="1">{{ email }}</span></dd></div>
 </dl>
 </x-import>
 <div aria-hidden="true" style="position:absolute;top:0;inset-inline-end:0;pointer-events:none">
@@ -388,7 +388,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 </sc-if>
 
 <div data-noprint="1" data-row="1">
-<span style="min-width:0"><span data-row-k="1">Confirmation email</span><span data-row-v="1" style="font-size:var(--vt-body-sm);color:var(--vt-text-secondary)">Send it again to {{ email }}, voucher attached.</span></span>
+<span style="min-width:0"><span data-row-k="1">Confirmation email</span><span data-row-v="1" style="font-size:var(--vt-body-sm);color:var(--vt-text-secondary)">Send it again to <span class="vt-dir-keep" data-vt-no-i18n="1">{{ email }}</span>, voucher attached.</span></span>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" icon="mail" onClick="{{ resend }}" hint-size="160px,44px">Resend email</x-import>
 </div>
 </div>
@@ -479,7 +479,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div data-noprint="1" data-card="1" style="padding:clamp(22px,2.6vw,30px)">
 <button type="button" data-back="1" onClick="{{ backToBooking }}" style-hover="color:var(--vt-charcoal-900)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-left" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>Back to your booking</button>
 <h2 style="margin:0 0 8px;font-family:var(--vt-font-display);font-size:var(--vt-heading-1);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Cancel this transfer</h2>
-<p style="margin:0 0 22px;max-width:58ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">{{ ref }} · {{ routeShort }} · {{ bookedWhen }}.</p>
+<p style="margin:0 0 22px;max-width:58ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)"><span class="vt-dir-keep" data-vt-no-i18n="1">{{ ref }}</span> · {{ routeShort }} · {{ bookedWhen }}.</p>
 
 <div data-refund="1" style="margin-bottom:20px">
 <sc-if value="{{ cancelFull }}" hint-placeholder-val="{{ true }}">
@@ -517,7 +517,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="x" size="{{ n24 }}" color="var(--vt-danger)" hint-size="24px,24px"></x-import>
 </div>
 <h2 style="margin:0 0 10px;font-family:var(--vt-font-display);font-size:var(--vt-heading-1);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">This transfer is cancelled</h2>
-<p style="margin:0 0 20px;max-width:58ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">{{ ref }} is cancelled and no driver will come. The cancellation confirmation is on its way to {{ email }} — keep it, because that is what your refund is calculated from.</p>
+<p style="margin:0 0 20px;max-width:58ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)"><span class="vt-dir-keep" data-vt-no-i18n="1">{{ ref }}</span> is cancelled and no driver will come. The cancellation confirmation is on its way to <span class="vt-dir-keep" data-vt-no-i18n="1">{{ email }}</span> — keep it, because that is what your refund is calculated from.</p>
 
 <div style="position:relative;margin-bottom:20px" data-confirmation-voucher="1">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" tone="inverse" padding="lg" hint-size="100%,520px">
@@ -577,7 +577,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 </sc-if>
 <div style="background:var(--vt-bg-inverse);color:var(--vt-text-inverse);border-radius:var(--vt-radius-lg);padding:22px">
 <p style="margin:0 0 12px;display:flex;align-items:center;gap:9px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="phone" size="{{ n16 }}" color="var(--vt-accent)" hint-size="16px,16px"></x-import>A person, if you need one</p>
-<p style="margin:0 0 14px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">Dispatch answers the phone. Quote {{ ref }} and they can do anything on this page for you, including the things this page will not.</p>
+<p style="margin:0 0 14px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">Dispatch answers the phone. Quote <span class="vt-dir-keep" data-vt-no-i18n="1">{{ ref }}</span> and they can do anything on this page for you, including the things this page will not.</p>
 <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="light" icon="phone" href="tel:+41796267082" hint-size="200px,44px"><span class="vt-dir-keep">+41 79 626 70 82</span></x-import>
 </div>
@@ -916,7 +916,7 @@ class Component extends DCLogic {
       : helper.timeChangeGuest(tok, ticket.reference, scheduledLocal);
     req.then((result) => {
       if (result && result.ok && result.body && result.body.ok) {
-        const msg = t('Time-change requested. Pickup stays {original} until we confirm.').replace('{original}', orig || 'the booked time');
+        const msg = t('Time-change requested. Pickup stays {original} until we confirm.').replace('{original}', orig || t('the booked time'));
         this.say(msg, 'ok');
         this.setState({ view: 'booking', requested: this.diffList() });
         return;
@@ -1049,7 +1049,7 @@ class Component extends DCLogic {
     const meta = [
       { icon: 'calendar', label: ticket.dateLabel },
       { icon: 'clock', label: ticket.timeLabel ? ('Pickup ' + ticket.timeLabel) : '' },
-      { icon: 'users', label: ticket.pax ? (ticket.pax + ' passengers') : '' },
+      { icon: 'users', label: ticket.pax ? (ticket.pax === 1 ? '1 passenger' : ticket.pax + ' passengers') : '' },
     ].filter((row) => row.label);
     if (vehicleLabel) meta.push({ icon: 'car', label: vehicleLabel });
     if (airport && s.flight) meta.push({ icon: 'plane-landing', label: s.flight });
@@ -1103,7 +1103,7 @@ class Component extends DCLogic {
       meta, lines, total: paid, hasPrice: !!paid,
       email: ticket.contactEmail, isAirport: airport,
       vehicleName: vehicleLabel,
-      paxLabel: ticket.pax + ' passengers', bagLabel: ticket.bags + ' bags',
+      paxLabel: ticket.pax === 1 ? '1 passenger' : ticket.pax + ' passengers', bagLabel: ticket.bags === 1 ? '1 bag' : ticket.bags + ' bags',
       flightRow: airport && s.status !== 'cancelled' && !!s.flight,
       bookedWhen, newWhen,
       changePending: !!(s.requested && s.requested.length), requested: s.requested || [],
