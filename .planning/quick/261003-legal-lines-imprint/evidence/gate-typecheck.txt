@@ -4,7 +4,7 @@ packages/db typecheck$ tsc --noEmit
 packages/emails typecheck$ tsc --noEmit
 packages/db typecheck: Done
 packages/emails typecheck: Done
-apps/isolation-probe typecheck$ tsc --noEmit
 apps/web typecheck$ tsc --noEmit
+apps/isolation-probe typecheck$ tsc --noEmit
 apps/isolation-probe typecheck: Done
 apps/web typecheck: Done

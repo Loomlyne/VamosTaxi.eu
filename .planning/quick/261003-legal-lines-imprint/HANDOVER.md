@@ -1,8 +1,9 @@
-# Hand-over — legal lines + imprint gaps (quick 261003-legal-lines-imprint)
+# Hand-over — legal lines + imprint empty sections (quick 261003-legal-lines-imprint)
 
 Branch `fix/legal-lines-imprint`, cut from `origin/main` 18be38cb, origin/main merged in again before push.
 Job session (not control). No deploy, no live database, no migration, no setting.
-Written 2026-10-03 about 02:45 +04.
+First written 2026-10-03 02:45 +04; imprint part redone 02:50 +04 after the owner's corrected U07-2 answer
+("Hide those sections (Recommended)", `.planning/decisions/2026-10-03-audit-owner-answers.md`, main 46887db0).
 
 ## What changed
 
@@ -38,44 +39,42 @@ script (`evidence/scripts/build-entries.mjs`), not retyped. Output: `evidence/ne
    only. They hold the older text, none of the 19 edited lines; the imprint twin still has the "Client
    input" notes. They reach no customer and the i18n gate passes; not changed.
 
-### Part 2 — /imprint internal notes become labelled gaps (U07-2, owner "Labelled TBC gaps")
+### Part 2 — /imprint: sections without real text are not rendered (U07-2, owner "Hide those sections")
 
 `app/pages/imprint.dc.html`:
-- The three "Client input" blocks (05 licence, 06 dispute body, 07 content and links) are replaced by
-  `data-tok` pills, markup copied from the earlier legal pills
-  (`<span data-vt-no-i18n="1" data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">…</span>`):
-  - 05 Supervisory authority and licence: `licensing authority` TBC, `licence number` TBC
-  - 06 Dispute resolution: `dispute resolution body` TBC (under the existing complaints line)
-  - 07 Disclaimer: `content and links disclaimer` TBC
-  Labels stay English in every language (ADR-011). No value, body name or number invented.
-- Removed the now-dead slot machinery: `[data-slot]` CSS, the `showSlotNotes` prop and `slotNotes` value.
-- Removed the page-local `[data-tok]` CSS, which was built from `--vt-yellow-50/300/700` (Law 02 tokens).
-  The pills now use the system rule in `design-system/tokens/laws.css` (grey dashed hairline, TBC tag).
-
-Finding on U07-2: on the served mock the "Client input" blocks were already hidden
-(`[data-slot]{display:none!important}` since ae9165bf). Customers did not see the notes; they saw
-sections 05 and 07 as bare headings. Probe before/after: `evidence/imprint-probe-before.txt`,
-`evidence/imprint-probe-after.txt`. The audit's "visible" was wrong; the owner's fix still applies and now
-fills the two empty sections.
+- Section 05 "Supervisory authority and licence" (`#aufsicht`) and section 07 "Disclaimer" (`#haftung`) are
+  removed from the page, with their two entries in the "On this page" side menu.
+- Section 06 "Dispute resolution" keeps only its existing complaints line ("We take complaints directly; the
+  route is in the terms."); there is no dispute-resolution-body line.
+- No TBC pill anywhere on the page.
+- The internal "Client input" notes are removed from the markup, not just hidden: they had no other use
+  (hidden by `[data-slot]{display:none!important}` since ae9165bf; the only reader was the `showSlotNotes`
+  review prop). With them went the `[data-slot]` CSS, the `showSlotNotes` prop and the `slotNotes` value.
+  The old text stays in git (e.g. `git show 18be38cb:app/pages/imprint.dc.html`, lines 220–249) for when
+  the owner gives the real values.
+- Numbering: the numbers are written by hand in each heading and side-menu entry (not generated), so they
+  are kept as they were. The page now reads 01, 02, 03, 04, 06, 08, 09.
+- The page-local `[data-tok]` styling (built from `--vt-yellow-50/300/700`) and its print override are
+  removed: nothing on the page uses `data-tok` now.
+- Note: the hidden "Client legal text" note in `terms.dc.html` §12 still links to `imprint.dc.html#dispute`;
+  that anchor still exists. Not changed.
 
 ### Tests changed
 
-- `apps/web/lib/live-no-tbc.test.ts`: the owner's 2026-09-30 rule "no TBC on any page a customer can see"
-  conflicts with his 2026-10-03 U07-2 answer. The newer, narrower answer wins: the four imprint pills are
-  allowed by file and exact label; any other pill on any live mock still fails. A new test pins the imprint
-  to exactly those four pills and no `data-slot` / "Client input".
-- `apps/web/tests/visual/legal-cancellation-imprint.spec.ts` ("rtl and English data-tok"): the imprint now
-  expects the four English labels, identical in en/de/fr/ar (was: zero pills). Not run here (needs a Worker build).
+- `apps/web/lib/live-no-tbc.test.ts`: identical to main (the earlier imprint exception is reverted). No live
+  page may show a TBC pill, /imprint included.
+- `apps/web/tests/visual/legal-cancellation-imprint.spec.ts` ("rtl and English data-tok"): the imprint
+  expects zero pills (as before), plus: `#aufsicht` and `#haftung` do not exist, and no `main section[id]`
+  is a bare heading. Not run here (needs a Worker build).
 
 ## Files
 
 - `app/vamos-i18n-dict.js`
 - `app/pages/terms.dc.html`, `privacy.dc.html`, `cookies.dc.html`, `cancellation.dc.html`, `imprint.dc.html`
-- `apps/web/lib/live-no-tbc.test.ts`
 - `apps/web/tests/visual/legal-cancellation-imprint.spec.ts`
 - `.planning/quick/261003-legal-lines-imprint/` (this file, `evidence/`)
 
-## Checks
+## Checks (re-run after the imprint change)
 
 | Check | Result |
 |---|---|
@@ -84,11 +83,12 @@ fills the two empty sections.
 | `pnpm check:numbers` | ok |
 | `pnpm lint` | exit 0; 6 warnings, all in files this job did not touch |
 | `pnpm typecheck` | pass |
-| Targeted unit tests (13 files: live-no-tbc, legal-updated, legal-text-hygiene, arabic-design-g23, consent/legal-pages-27, consent/owner-texts, consent/mock-banner, legal/refund-texts-20-10, legal/privacy-account-paragraph, legal/extract-no-invent, contact-source, unit/locale-pattern-switch, checkout/manage-pages-i18n) | 214 / 214 pass |
-| Full `pnpm test:unit` (once) | pass: web 4246 passed / 31 skipped (395 files + 16 skipped), emails 239, db 14 |
+| Targeted unit tests (13 files: live-no-tbc, legal-updated, legal-text-hygiene, arabic-design-g23, consent/legal-pages-27, consent/owner-texts, consent/mock-banner, legal/refund-texts-20-10, legal/privacy-account-paragraph, legal/extract-no-invent, contact-source, unit/locale-pattern-switch, checkout/manage-pages-i18n) | 213 / 213 pass |
+| Full `pnpm test:unit` (once, before the imprint change; not re-run, per the one-run limit) | pass: web 4246 passed / 31 skipped, emails 239, db 14 |
 | Chromium, synced public mocks on a static server (port 4871, stopped after), `VamosLocale.coverage(document.body)` per page in de/fr/ar | see table below |
+| /imprint probe in en/de/fr/ar (`evidence/imprint-probe-after.txt`) | sections register, kontakt, vertretung, mwst, dispute, urheberrecht, credits; side menu 01 02 03 04 06 08 09; 0 pills; 0 bare sections |
 | Sideways scroll at 390 px (ar and de, all five pages) | none: scrollWidth = clientWidth = 390 |
-| Screenshots: 390 px Arabic + 1440 px German of each changed section (terms 01/04/11, privacy 04/06, cookies 03/04, cancellation 05, imprint 05–07) | `evidence/screens/` (18 files), looked at |
+| Screenshots: 390 px Arabic + 1440 px German of each changed section (terms 01/04/11, privacy 04/06, cookies 03/04, cancellation 05, imprint 04–08) | `evidence/screens/` (18 files), looked at; imprint pair replaced |
 
 ### Coverage, untranslated strings per page (same count in de, fr and ar)
 
@@ -101,15 +101,15 @@ fills the two empty sections.
 | /imprint | 6 | 0 |
 
 Before and after lists: `evidence/coverage-summary.txt` (full JSON in `coverage-before.json`,
-`coverage-after.json`). The only English left on purpose is the four imprint `data-tok` labels, which the
-runtime does not count (they carry `data-vt-no-i18n`).
+`coverage-after.json`). Nothing English is left on these pages in de/fr/ar except names and codes marked as such.
 
 ## Not verified
 
 - Not run on the local Worker build or on vamostaxi.site; only the synced public mocks on a static server.
+- Full `pnpm test:unit` not re-run after the imprint rework (one run allowed; the targeted 13 files were re-run).
 - Visual pixel baselines (`apps/web/tests/visual/legal-*.spec.ts-snapshots`, darwin and Linux) for terms,
   privacy, cookies, cancellation and imprint were not run or re-captured. The text changed in de/fr/ar and
-  the imprint gained pills, so these baselines will differ and need a re-capture by the controller.
+  the imprint lost two sections, so these baselines will differ and need a re-capture by the controller.
 - Integration/e2e and pgTAP suites not run (nothing here touches the database or an API).
 - No native speaker read the Arabic, French or German in place; the texts are the owner-approved drafts verbatim.
 - Observation, not changed: in Arabic at 390 px the register number on /terms 01 breaks after "CH-" at the
@@ -121,16 +121,16 @@ runtime does not count (they carry `data-vt-no-i18n`).
 
 1. Open https://vamostaxi.site/de/terms, scroll to 01. Expected: "Eingetragen als Vamos Taxi GmbH, Firmennummer CH-020.4.077.792-7 im Handelsregister des Kantons Zürich. Alle Angaben zum Unternehmen stehen im Impressum."
 2. Same page, 11 Payment. Expected: "Akzeptierte Zahlungsmittel: Visa, Mastercard, Apple Pay, Google Pay und TWINT."
-3. Open https://vamostaxi.site/fr/privacy, section 01. Expected: Délégué à la protection des données "aucun délégué désigné"; Représentant… "aucun désigné".
+3. Open https://vamostaxi.site/fr/privacy, section 01. Expected: data protection officer row "aucun délégué désigné"; EU representative row "aucun désigné".
 4. Open https://vamostaxi.site/ar/privacy, section 06, Payment records row. Expected: "10 سنوات (الدفاتر التجارية السويسرية) للمحاسبة والضرائب." with 10 on the right.
 5. Open https://vamostaxi.site/de/cookies, section 04. Expected: vamosLang row reads "Merkt sich, in welcher Sprache Sie die Website lesen" and "bis Sie die Sprache ändern".
 6. Open https://vamostaxi.site/cancellation (English), section 05. Expected: "…no vehicle came, you receive a full refund."
 7. Open https://vamostaxi.site/ar/cancellation, section 05. Expected: "إذا أظهرت سجلاتنا أنك كنت في نقطة الانطلاق ولم تصل أي سيارة، تحصل على استرداد كامل للمبلغ."
-8. Open https://vamostaxi.site/imprint, sections 05, 06, 07. Expected: grey dashed pills "licensing authority TBC", "licence number TBC" under 05; "dispute resolution body TBC" under 06; "content and links disclaimer TBC" under 07. No "Client input" text anywhere.
-9. Open https://vamostaxi.site/ar/imprint, same sections. Expected: the same four English pills, right-aligned under Arabic headings.
+8. Open https://vamostaxi.site/imprint. Expected: the side menu lists 01, 02, 03, 04, 06, 08, 09; there is no "Supervisory authority and licence" and no "Disclaimer" section; 06 "Dispute resolution" shows only "We take complaints directly; the route is in the terms."; no TBC anywhere.
+9. Open https://vamostaxi.site/ar/imprint. Expected: the same sections in Arabic, no empty heading, no English text except names (Vamos Taxi GmbH, Loomlyne, Ben Othman Houssein) and codes.
 
 ## For the controller
 
-- Review: legal copy only, no money, sign-in or database code. The test change in `live-no-tbc.test.ts`
-  relaxes a rule for four exact labels on one page; please confirm that reading of the two owner answers.
-- After merge: re-capture the legal visual baselines; the "rtl and English data-tok" spec now expects four imprint pills.
+- Review: legal copy and one page's structure only; no money, sign-in or database code.
+- After merge: re-capture the legal visual baselines; the "rtl and English data-tok" spec now also checks
+  that the imprint has no section 05/07 and no bare section.

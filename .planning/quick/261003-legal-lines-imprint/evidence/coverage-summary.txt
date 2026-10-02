@@ -31,5 +31,5 @@ imprint fr: before 6, after 0
 imprint ar: before 6, after 0
   before list: ["GmbH","CH-020.4.077.792-7","vamostaxi.site","Ben Othman Houssein","Vamos Taxi / Loomlyne","Loomlyne"]
   after list (same in de/fr/ar: true): []
-  data-tok after: ["licensing authority","licence number","dispute resolution body","content and links disclaimer"]
+  data-tok after: []
   390px scrollWidth/clientWidth: ar 390/390, de 390/390

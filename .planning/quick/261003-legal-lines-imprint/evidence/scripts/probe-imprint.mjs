@@ -22,7 +22,11 @@ for (const lang of ['en', 'de', 'fr', 'ar']) {
   const r = await page.evaluate(() => ({
     slots: [...document.querySelectorAll('[data-slot]')].map((n) => ({ display: getComputedStyle(n).display, visibleText: n.innerText.trim().slice(0, 80) })),
     toks: [...document.querySelectorAll('[data-tok]')].map((n) => ({ text: n.textContent.trim(), shown: n.innerText.trim(), display: getComputedStyle(n).display, after: getComputedStyle(n, '::after').content })),
-    sections: ['aufsicht', 'dispute', 'haftung'].map((id) => ({ id, text: (document.getElementById(id) || {}).innerText })),
+    sectionIds: [...document.querySelectorAll('main section[id]')].map((s) => s.id),
+    bareSections: [...document.querySelectorAll('main section[id]')]
+      .filter((s) => s.innerText.trim() === (s.querySelector('h2') || s).innerText.trim()).map((s) => s.id),
+    tocNumbers: [...document.querySelectorAll('[data-lg-tl] i')].map((i) => i.textContent),
+    dispute: (document.getElementById('dispute') || {}).innerText,
   }));
   console.log(lang, JSON.stringify(r));
   await ctx.close();

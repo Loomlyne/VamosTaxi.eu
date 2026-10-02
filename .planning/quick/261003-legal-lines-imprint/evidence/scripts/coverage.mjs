@@ -29,7 +29,7 @@ const sections = [
   ['cookies', 'Strictly necessary'],
   ['cookies', 'Functional'],
   ['cancellation', 'If no driver arrives'],
-  ['imprint', '#aufsicht..#haftung'],
+  ['imprint', '#mwst..#urheberrecht'],
 ];
 
 const browser = await chromium.launch({ executablePath: exe, headless: true });
