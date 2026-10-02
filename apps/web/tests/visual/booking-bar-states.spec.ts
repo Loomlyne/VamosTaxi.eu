@@ -49,16 +49,22 @@ for (const lang of ["en", "de", "fr", "ar"] as const) {
       await page.evaluate((l) => (window as unknown as Loc).VamosLocale.setLang(l), lang);
       await page.waitForTimeout(250);
 
-      const transform = await page.locator("[data-bb]").first().locator("[data-bb-mirror]").evaluate(
-        (el) => getComputedStyle(el).transform,
-      );
-      if (lang === "ar") {
-        // matrix(a, b, c, d, tx, ty) with a negative x-scale
-        const a = Number(/matrix\(([-\d.e]+),/.exec(transform)?.[1] ?? "1");
-        expect(a).toBeLessThan(0);
-      } else {
-        expect(transform === "none" || Number(/matrix\(([-\d.e]+),/.exec(transform)?.[1] ?? "1") > 0).toBe(true);
-      }
+      // The glyph is mirrored once, by laws.css (03), never by the bar: multiply the sign of
+      // the x-scale (matrix(a, b, c, d, tx, ty)) of the icon and every ancestor.
+      const xScale = await page
+        .locator("[data-bb]")
+        .first()
+        .locator('[data-bb-mirror] [style*=".svg"]')
+        .first()
+        .evaluate((icon) => {
+          let product = 1;
+          for (let n: Element | null = icon; n; n = n.parentElement) {
+            const a = Number(/^matrix\(([-\d.e]+),/.exec(getComputedStyle(n).transform)?.[1] ?? "1");
+            if (a < 0) product = -product;
+          }
+          return product;
+        });
+      expect(xScale).toBe(lang === "ar" ? -1 : 1);
 
       const before = Number(await page.locator("[data-bs-opens]").innerText());
       await page.locator("[data-bb]").first().click();

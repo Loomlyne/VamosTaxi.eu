@@ -63,9 +63,11 @@
 /* A glyph that points along the reading line (next, back, open, sign out)
    points the other way in Arabic. Icon is a CSS-mask span, so the glyph is
    found by its file name. It keeps its direction inside .vt-dir-keep or
-   dir="ltr". The wrappers listed after them already mirror their own icon;
-   they are left out so that icon never flips twice. */
-[dir="rtl"] :is([style*="/arrow-right.svg"],[style*="/chevron-right.svg"],[style*="/chevron-left.svg"],[style*="/log-in.svg"],[style*="/log-out.svg"]):not(.vt-dir-keep *,[dir="ltr"] *,[data-bb-mirror] *,[data-bs-mirror] *,[data-svc-cta-arrow] *,[data-svc-circ] *,[data-route-join] *,[data-bt-go] *,[data-bk-go] *,[data-ac-more-go] *,.vt-dp__nav *,.vt-row__chevron *,.vt-co__strip-back *,.vt-co__strip-arrow *){transform:scaleX(-1)}
+   dir="ltr". The glyph is mirrored here, once, for the whole site: no
+   component mirrors its own arrow, or the arrow would flip twice. A wrapper
+   that nudges its arrow on hover moves it toward the inline end instead
+   (translateX with a negative value under dir="rtl"). */
+[dir="rtl"] :is([style*="/arrow-right.svg"],[style*="/chevron-right.svg"],[style*="/chevron-left.svg"],[style*="/log-in.svg"],[style*="/log-out.svg"]):not(.vt-dir-keep *,[dir="ltr"] *){transform:scaleX(-1)}
 
 /* ── 04 · A pending value is a labelled gap ───────────────────────────────
    A number the client still owes us is written as human words in a pill
