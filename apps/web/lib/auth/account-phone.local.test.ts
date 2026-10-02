@@ -12,7 +12,7 @@ import postgres from "postgres";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { asCustomer, type VamosClaims } from "../db/identity";
 import { markAccountFinishPending, markAccountFinished } from "../db/system-reads";
-import { loadCustomerHistory, loadCustomers } from "../ops/customers";
+import { eraseCustomer, loadCustomerHistory, loadCustomers } from "../ops/customers";
 import { storeProfilePhone, syncSignupPhone } from "./account-phone";
 
 const PORT = process.env["VAMOS_LOCAL_DB_PORT"];
@@ -92,6 +92,34 @@ describe.skipIf(!PORT)("a phone from sign-up, finish or the account page reaches
     );
     expect(touched).toEqual([]);
     expect(await customerPhone(b.id)).toBe("");
+  });
+
+  it("a customer deleted on the dashboard is never written; a confirmed customer with no row gets one", { timeout: 60_000 }, async () => {
+    const email = `pho-erased-${tag}@example.test`;
+    const eva = await signUp(10, email, { full_name: "Eva Erased", phone: "+41790000010" }, true);
+    const [row] = await su<{ id: string }[]>`select id from public.customers where user_id = ${eva.id}`;
+    // The dashboard's own delete (admin, tombstone).
+    expect(await eraseCustomer(env, STAFF, row!.id)).toBe(true);
+    // Why the write cannot simply filter on erased_at: the customer role has no right to read it.
+    await expect(
+      asCustomer(env, { sub: eva.id, role: "authenticated", email } as VamosClaims, (sql) =>
+        sql`select id from public.customers where user_id = ${eva.id}::uuid and erased_at is null`,
+      ),
+    ).rejects.toMatchObject({ code: "42501" });
+
+    await storeProfilePhone(env, eva, "+41 79 000 00 11", ctx);
+    await syncSignupPhone(env, { ...eva, user_metadata: { phone: "+41790000010" } }, ctx);
+    expect(await customerPhone(eva.id)).toBe("");
+    expect(await dashboardPhone(email)).toBeUndefined();
+
+    // A confirmed account whose row is missing: the row is made, then written.
+    const noRowEmail = `pho-norow-${tag}@example.test`;
+    const nora = await signUp(11, noRowEmail, { full_name: "Nora Norow" }, true);
+    await su`delete from public.customers where user_id = ${nora.id}`;
+    expect(await customerPhone(nora.id)).toBeUndefined();
+    await storeProfilePhone(env, nora, "+41 79 000 00 12", ctx);
+    expect(await customerPhone(nora.id)).toBe("+41 79 000 00 12");
+    expect(await dashboardPhone(noRowEmail)).toBe("+41 79 000 00 12");
   });
 
   it("finish step (27.1): the number lands on the row through account_finish_done and shows on the dashboard", { timeout: 60_000 }, async () => {

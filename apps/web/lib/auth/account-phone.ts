@@ -11,6 +11,12 @@
 // and no definer function is needed. Nothing else is written; `erased_at`, `note`, `type` stay out
 // of reach of this role.
 //
+// A customer deleted on the dashboard (erased_at set) is never written. `authenticated` has no SELECT
+// on `erased_at` (a WHERE on it fails with 42501 on live), so the row is found first through
+// `public.customer_id_for_user` (vamos_checkout, the lookup checkout uses): null for an erased,
+// unconfirmed or unknown user, and the row's id otherwise (it makes the row on demand for a confirmed
+// user who has none). The update then targets that id.
+//
 // Two modes:
 //  - "replace": the person typed a new number on the account page; the table follows the page.
 //  - "if-empty": the first confirmed session after a sign-up that carried a number (link or code).
@@ -18,7 +24,7 @@
 //    dashboard, or the person changed it on the account page since).
 
 import type { CustomerSession } from "../account/session";
-import { asCustomer } from "../db/identity";
+import { asCheckout, asCustomer } from "../db/identity";
 import { log, type RequestContext } from "../logger";
 
 /** A phone worth storing: a string of at most 32 characters with at least 9 digits (the account page's own rule). */
@@ -47,8 +53,8 @@ function claimsFor(user: AuthUserLike): CustomerSession {
 }
 
 /**
- * Writes the signed-in customer's own row. Returns how many rows changed: 0 means no row (an account
- * that has none yet) or, in "if-empty" mode, a number already there.
+ * Writes the signed-in customer's own row. Returns how many rows changed: 0 means no live customer
+ * row (erased on the dashboard, e-mail not confirmed) or, in "if-empty" mode, a number already there.
  * @param env Worker bindings
  * @param user the verified auth user
  * @param phone an already cleaned number (see cleanAccountPhone)
@@ -60,15 +66,21 @@ export async function writeOwnCustomerPhone(
   phone: string,
   mode: OwnPhoneMode,
 ): Promise<number> {
+  // The live (not erased) row of this user; null when there is none to write.
+  const found = await asCheckout(env, null, (sql) =>
+    sql<{ id: string | null }[]>`select public.customer_id_for_user(${user.id}::uuid) as id`,
+  );
+  const customerId = found[0]?.id;
+  if (!customerId) return 0;
   const rows = await asCustomer(env, claimsFor(user), (sql) =>
     mode === "replace"
       ? sql<{ id: string }[]>`
           update public.customers set phone = ${phone}
-           where user_id = ${user.id}::uuid
+           where id = ${customerId}::uuid and user_id = ${user.id}::uuid
           returning id`
       : sql<{ id: string }[]>`
           update public.customers set phone = ${phone}
-           where user_id = ${user.id}::uuid and phone = ''
+           where id = ${customerId}::uuid and user_id = ${user.id}::uuid and phone = ''
           returning id`,
   );
   return rows.length;
@@ -77,8 +89,8 @@ export async function writeOwnCustomerPhone(
 /**
  * Account page: the number the person just saved goes onto the customer row too. Throws when the
  * write fails, so the page says "Could not save" and the person tries again (the auth metadata
- * write is repeated, the row is written once). A missing row is logged, not an error: the row is
- * made when the account first lists its bookings.
+ * write is repeated, the row is written once). No live row (erased on the dashboard) is logged, not
+ * an error, and nothing is written.
  */
 export async function storeProfilePhone(
   env: CloudflareEnv,

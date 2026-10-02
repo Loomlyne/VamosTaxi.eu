@@ -4,10 +4,23 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 type Call = { text: string; values: unknown[]; claims: unknown };
 const calls: Call[] = [];
+const lookups: unknown[][] = [];
 let rowsChanged = 1;
 let dbFails = false;
+// public.customer_id_for_user: the live row's id, or null (erased, unconfirmed, unknown).
+let liveRowId: string | null = "22222222-2222-4222-8222-222222222222";
 
 vi.mock("../db/identity", () => ({
+  asCheckout: vi.fn(async (_env: unknown, claims: unknown, fn: (sql: unknown) => Promise<unknown>) => {
+    if (dbFails) throw new Error("db down");
+    expect(claims).toBeNull();
+    const sql = (strings: TemplateStringsArray, ...values: unknown[]) => {
+      expect(strings.join("?").replace(/\s+/g, " ").trim()).toBe("select public.customer_id_for_user(?::uuid) as id");
+      lookups.push(values);
+      return Promise.resolve([{ id: liveRowId }]);
+    };
+    return fn(sql);
+  }),
   // The real asCustomer opens a database connection; here it runs the statement against a recorder.
   asCustomer: vi.fn(async (_env: unknown, claims: unknown, fn: (sql: unknown) => Promise<unknown>) => {
     if (dbFails) throw new Error("db down");
@@ -25,9 +38,12 @@ const { runUpdateProfile } = await import("./run");
 const env = {} as CloudflareEnv;
 const ctx = { requestId: "r", route: "/api/auth", locale: "en" };
 const USER = { id: "11111111-1111-4111-8111-111111111111", email: "mia@example.test" };
+const ROW = "22222222-2222-4222-8222-222222222222";
 
 afterEach(() => {
   calls.length = 0;
+  lookups.length = 0;
+  liveRowId = ROW;
   rowsChanged = 1;
   dbFails = false;
   vi.restoreAllMocks();
@@ -50,13 +66,22 @@ describe("writeOwnCustomerPhone", () => {
     expect(await writeOwnCustomerPhone(env, USER, "+41796267082", "replace")).toBe(1);
     expect(calls).toHaveLength(1);
     expect(calls[0]!.claims).toEqual({ sub: USER.id, role: "authenticated", email: USER.email });
-    expect(calls[0]!.text).toBe("update public.customers set phone = ? where user_id = ?::uuid returning id");
-    expect(calls[0]!.values).toEqual(["+41796267082", USER.id]);
+    expect(calls[0]!.text).toBe("update public.customers set phone = ? where id = ?::uuid and user_id = ?::uuid returning id");
+    expect(calls[0]!.values).toEqual(["+41796267082", ROW, USER.id]);
+    expect(lookups).toEqual([[USER.id]]);
+  });
+
+  it("an erased, unconfirmed or unknown customer is never written: the lookup says there is no live row", async () => {
+    liveRowId = null;
+    expect(await writeOwnCustomerPhone(env, USER, "+41796267082", "replace")).toBe(0);
+    expect(await writeOwnCustomerPhone(env, USER, "+41796267082", "if-empty")).toBe(0);
+    expect(lookups).toHaveLength(2);
+    expect(calls).toHaveLength(0);
   });
 
   it("if-empty: only fills a blank phone", async () => {
     await writeOwnCustomerPhone(env, USER, "+41796267082", "if-empty");
-    expect(calls[0]!.text).toBe("update public.customers set phone = ? where user_id = ?::uuid and phone = '' returning id");
+    expect(calls[0]!.text).toBe("update public.customers set phone = ? where id = ?::uuid and user_id = ?::uuid and phone = '' returning id");
   });
 
   it("reports 0 when no row changed", async () => {
@@ -72,11 +97,12 @@ describe("storeProfilePhone (account page)", () => {
     expect(calls[0]!.text).not.toContain("phone = ''");
   });
 
-  it("a missing customer row is logged, not an error", async () => {
-    rowsChanged = 0;
+  it("no live customer row (erased on the dashboard) is logged, not an error, and nothing is written", async () => {
+    liveRowId = null;
     const out = vi.spyOn(console, "log").mockImplementation(() => undefined);
     await expect(storeProfilePhone(env, USER, "+41796267082", ctx)).resolves.toBeUndefined();
     expect(String(out.mock.calls[0]?.[0])).toContain("phone-no-customer-row");
+    expect(calls).toHaveLength(0);
   });
 
   it("a database failure throws, so the page says it could not save", async () => {
@@ -90,7 +116,7 @@ describe("syncSignupPhone (first confirmed session)", () => {
     await syncSignupPhone(env, { ...USER, user_metadata: { full_name: "Mia Keller", phone: "+41790000000" } }, ctx);
     expect(calls).toHaveLength(1);
     expect(calls[0]!.text).toContain("and phone = ''");
-    expect(calls[0]!.values).toEqual(["+41790000000", USER.id]);
+    expect(calls[0]!.values).toEqual(["+41790000000", ROW, USER.id]);
   });
 
   it("does nothing, and asks the database nothing, without a usable number", async () => {

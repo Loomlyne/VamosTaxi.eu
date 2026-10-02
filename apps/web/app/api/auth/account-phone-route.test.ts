@@ -10,12 +10,18 @@ const state = vi.hoisted(() => ({
   updateUser: null as unknown as ReturnType<typeof vi.fn<(...a: any[]) => any>>,
   statements: [] as { text: string; values: unknown[]; claims: unknown }[],
   dbFails: false,
+  row: "22222222-2222-4222-8222-222222222222",
 }));
 
 vi.mock("@opennextjs/cloudflare", () => ({
   getCloudflareContext: () => ({ env: { AUTH_RATE_LIMITER: { limit: async () => ({ success: true }) } } }),
 }));
 vi.mock("@/lib/db/identity", () => ({
+  // public.customer_id_for_user: the customer's live row (an erased row answers null).
+  asCheckout: async (_env: unknown, _claims: unknown, fn: (sql: unknown) => Promise<unknown>) => {
+    if (state.dbFails) throw new Error("db down");
+    return fn(() => Promise.resolve([{ id: state.row }]));
+  },
   asCustomer: async (_env: unknown, claims: unknown, fn: (sql: unknown) => Promise<unknown>) => {
     if (state.dbFails) throw new Error("db down");
     const sql = (strings: TemplateStringsArray, ...values: unknown[]) => {
@@ -84,8 +90,8 @@ describe("account page: update-profile {phone}", () => {
     expect(await res.json()).toEqual({ ok: true });
     expect(state.updateUser).toHaveBeenCalledWith({ data: { phone: "+41 79 626 70 82" } });
     expect(state.statements).toHaveLength(1);
-    expect(state.statements[0]!.text).toBe("update public.customers set phone = ? where user_id = ?::uuid returning id");
-    expect(state.statements[0]!.values).toEqual(["+41 79 626 70 82", MIA.id]);
+    expect(state.statements[0]!.text).toBe("update public.customers set phone = ? where id = ?::uuid and user_id = ?::uuid returning id");
+    expect(state.statements[0]!.values).toEqual(["+41 79 626 70 82", state.row, MIA.id]);
     expect(state.statements[0]!.claims).toEqual({ sub: MIA.id, role: "authenticated", email: MIA.email });
   });
 
@@ -108,8 +114,8 @@ describe("sign-up code (verify-code)", () => {
     const res = await post("/api/auth", { locale: "en", mode: "verify-code", email: MIA.email, code: "123456" });
     expect(await res.json()).toEqual({ ok: true });
     expect(state.statements).toHaveLength(1);
-    expect(state.statements[0]!.text).toBe("update public.customers set phone = ? where user_id = ?::uuid and phone = '' returning id");
-    expect(state.statements[0]!.values).toEqual(["+41790000001", MIA.id]);
+    expect(state.statements[0]!.text).toBe("update public.customers set phone = ? where id = ?::uuid and user_id = ?::uuid and phone = '' returning id");
+    expect(state.statements[0]!.values).toEqual(["+41790000001", state.row, MIA.id]);
   });
 
   it("a sign-up without a number writes nothing, and a database failure never blocks the sign-in", async () => {
@@ -134,7 +140,7 @@ describe("confirm button (callback POST)", () => {
     expect(await res.json()).toEqual({ ok: true, target: "/account" });
     expect(state.statements).toHaveLength(1);
     expect(state.statements[0]!.text).toContain("and phone = ''");
-    expect(state.statements[0]!.values).toEqual(["+41790000001", MIA.id]);
+    expect(state.statements[0]!.values).toEqual(["+41790000001", state.row, MIA.id]);
   });
 
   it("a database failure never blocks the sign-in", async () => {
