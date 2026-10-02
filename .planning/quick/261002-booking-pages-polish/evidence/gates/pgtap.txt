@@ -58,6 +58,7 @@ psql:/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e
 /private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/pay_link_lines.test.sql .......................... ok
 /private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/payment_fx.test.sql .............................. ok
 /private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/phase20_grant_leftovers.test.sql ................. ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/policy_draft_publish.test.sql .................... ok
 /private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/pricing_frozen.test.sql .......................... ok
 psql:/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/purge_unpaid.test.sql:171: WARNING:  no privileges were granted for "pu_a"
 psql:/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/purge_unpaid.test.sql:171: WARNING:  no privileges were granted for "pu_paid"
@@ -105,7 +106,7 @@ psql:/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e
 /private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/vehicle_class_delete_hide.test.sql ............... ok
 /private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/webhook_ordering.test.sql ........................ ok
 All tests successful.
-Files=97, Tests=2630,  6 wallclock secs ( 0.36 usr  0.13 sys +  0.56 cusr  0.35 csys =  1.40 CPU)
+Files=98, Tests=2648,  9 wallclock secs ( 0.62 usr  0.20 sys +  0.73 cusr  0.54 csys =  2.09 CPU)
 Result: PASS
 A new version of Supabase CLI is available: v2.119.0 (currently installed v2.115.0)
 We recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli

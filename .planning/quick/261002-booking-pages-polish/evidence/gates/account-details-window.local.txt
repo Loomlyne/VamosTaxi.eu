@@ -8,7 +8,7 @@ Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
 
  Test Files  1 passed (1)
       Tests  4 passed (4)
-   Start at  01:45:38
-   Duration  2.11s (transform 646ms, setup 0ms, import 84ms, tests 1.89s, environment 0ms)
+   Start at  01:48:49
+   Duration  1.67s (transform 589ms, setup 0ms, import 66ms, tests 1.49s, environment 0ms)
 
 exit 0

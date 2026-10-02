@@ -6,5 +6,5 @@ check-db-access-fences: no `sql.unsafe(` outside the allow-list (ban #7) — pas
 check-db-access-fences: no session-scoped `set_config(..., false)` / bare `SET ROLE`/`SET SESSION` (ban #6) — pass.
 check-db-access-fences: every identity-wrapper importer is a Route Handler or force-dynamic (D-06) — pass.
 check-db-access-fences: no isolate-level memoisation under apps/web/app and apps/web/lib (U31/ISOL-08 CI-grep) — pass.
-check-db-access-fences: all 8 checks passed (1125 files scanned).
+check-db-access-fences: all 8 checks passed (1127 files scanned).
 check:db-fences exit 0

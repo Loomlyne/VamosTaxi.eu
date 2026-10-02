@@ -11,7 +11,7 @@ $ next build
    ▲ Next.js 15.5.25
 
    Creating an optimized production build ...
- ✓ Compiled successfully in 6.5s
+ ✓ Compiled successfully in 9.1s
    Linting and checking validity of types ...
 
  ⚠ The Next.js plugin was not detected in your ESLint configuration. See https://nextjs.org/docs/app/api-reference/config/eslint#migrating-existing-config
@@ -21,6 +21,7 @@ $ next build
 
 info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
    Collecting page data ...
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
 <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
 <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
 <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
@@ -39,69 +40,70 @@ info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/d
 
 Route (app)                                                        Size  First Load JS
 ┌ ○ /_not-found                                                   991 B         103 kB
-├ ○ /.well-known/apple-developer-merchantid-domain-association    492 B         103 kB
-├ ○ /.well-known/security.txt                                     492 B         103 kB
-├ ● /[locale]                                                     492 B         103 kB
+├ ○ /.well-known/apple-developer-merchantid-domain-association    496 B         103 kB
+├ ○ /.well-known/security.txt                                     496 B         103 kB
+├ ● /[locale]                                                     496 B         103 kB
 ├   ├ /en
 ├   ├ /de
 ├   ├ /fr
 ├   └ /ar
-├ ƒ /[locale]/[...rest]                                           492 B         103 kB
+├ ƒ /[locale]/[...rest]                                           496 B         103 kB
 ├ ● /[locale]/about                                              1.3 kB         129 kB
 ├   ├ /en/about
 ├   ├ /de/about
 ├   ├ /fr/about
 ├   └ /ar/about
-├ ƒ /[locale]/api/photos/upload                                   492 B         103 kB
-├ ƒ /[locale]/api/staff/bookings                                  492 B         103 kB
-├ ƒ /[locale]/api/staff/bookings/[id]                             492 B         103 kB
-├ ƒ /[locale]/api/staff/bookings/[id]/assign                      492 B         103 kB
-├ ƒ /[locale]/api/staff/bookings/[id]/change                      492 B         103 kB
-├ ƒ /[locale]/api/staff/bookings/[id]/change/preview              492 B         103 kB
-├ ƒ /[locale]/api/staff/bookings/[id]/change/withdraw             492 B         103 kB
-├ ƒ /[locale]/api/staff/bookings/[id]/edit-accept                 492 B         103 kB
-├ ƒ /[locale]/api/staff/bookings/[id]/edit-request                492 B         103 kB
-├ ƒ /[locale]/api/staff/bookings/[id]/extra-pay                   492 B         103 kB
-├ ƒ /[locale]/api/staff/bookings/[id]/pay-link                    492 B         103 kB
-├ ƒ /[locale]/api/staff/bookings/[id]/refund                      492 B         103 kB
-├ ƒ /[locale]/api/staff/bookings/[id]/refund-decision             492 B         103 kB
-├ ƒ /[locale]/api/staff/bookings/[id]/take-card                   492 B         103 kB
-├ ƒ /[locale]/api/staff/bookings/[id]/unassign                    492 B         103 kB
-├ ƒ /[locale]/api/staff/bookings/[id]/voucher                     492 B         103 kB
-├ ƒ /[locale]/api/staff/chauffeurs                                492 B         103 kB
-├ ƒ /[locale]/api/staff/chauffeurs/[id]                           492 B         103 kB
-├ ƒ /[locale]/api/staff/chauffeurs/[id]/bookings                  492 B         103 kB
-├ ƒ /[locale]/api/staff/claim-invite                              492 B         103 kB
-├ ƒ /[locale]/api/staff/content                                   492 B         103 kB
-├ ƒ /[locale]/api/staff/content/[key]                             492 B         103 kB
-├ ƒ /[locale]/api/staff/content/[key]/flags                       492 B         103 kB
-├ ƒ /[locale]/api/staff/coupons                                   492 B         103 kB
-├ ƒ /[locale]/api/staff/coupons/[id]                              492 B         103 kB
-├ ƒ /[locale]/api/staff/coupons/redemptions                       492 B         103 kB
-├ ƒ /[locale]/api/staff/customers                                 492 B         103 kB
-├ ƒ /[locale]/api/staff/customers/[id]                            492 B         103 kB
-├ ƒ /[locale]/api/staff/dashboard                                 492 B         103 kB
-├ ƒ /[locale]/api/staff/invite                                    492 B         103 kB
-├ ƒ /[locale]/api/staff/me                                        492 B         103 kB
-├ ƒ /[locale]/api/staff/profile                                   492 B         103 kB
-├ ƒ /[locale]/api/staff/rate-book                                 492 B         103 kB
-├ ƒ /[locale]/api/staff/rate-book/preview                         492 B         103 kB
-├ ƒ /[locale]/api/staff/rate-book/test-unpaid                     492 B         103 kB
-├ ƒ /[locale]/api/staff/rate-versions                             492 B         103 kB
-├ ƒ /[locale]/api/staff/rate-versions/[id]                        492 B         103 kB
-├ ƒ /[locale]/api/staff/rate-versions/[id]/clone                  492 B         103 kB
-├ ƒ /[locale]/api/staff/rate-versions/[id]/discard                492 B         103 kB
-├ ƒ /[locale]/api/staff/rate-versions/[id]/publish                492 B         103 kB
-├ ƒ /[locale]/api/staff/reviews                                   492 B         103 kB
-├ ƒ /[locale]/api/staff/reviews/[id]                              492 B         103 kB
-├ ƒ /[locale]/api/staff/roster                                    492 B         103 kB
-├ ƒ /[locale]/api/staff/settings                                  492 B         103 kB
-├ ƒ /[locale]/api/staff/tickets                                   492 B         103 kB
-├ ƒ /[locale]/api/staff/tickets/[id]                              492 B         103 kB
-├ ƒ /[locale]/api/staff/tickets/[id]/files/[fileId]               492 B         103 kB
-├ ƒ /[locale]/api/staff/vehicle-classes                           492 B         103 kB
-├ ƒ /[locale]/api/staff/vehicles                                  492 B         103 kB
-├ ƒ /[locale]/api/staff/vehicles/[id]                             492 B         103 kB
+├ ƒ /[locale]/api/photos/upload                                   496 B         103 kB
+├ ƒ /[locale]/api/staff/bookings                                  496 B         103 kB
+├ ƒ /[locale]/api/staff/bookings/[id]                             496 B         103 kB
+├ ƒ /[locale]/api/staff/bookings/[id]/assign                      496 B         103 kB
+├ ƒ /[locale]/api/staff/bookings/[id]/change                      496 B         103 kB
+├ ƒ /[locale]/api/staff/bookings/[id]/change/preview              496 B         103 kB
+├ ƒ /[locale]/api/staff/bookings/[id]/change/withdraw             496 B         103 kB
+├ ƒ /[locale]/api/staff/bookings/[id]/edit-accept                 496 B         103 kB
+├ ƒ /[locale]/api/staff/bookings/[id]/edit-request                496 B         103 kB
+├ ƒ /[locale]/api/staff/bookings/[id]/extra-pay                   496 B         103 kB
+├ ƒ /[locale]/api/staff/bookings/[id]/pay-link                    496 B         103 kB
+├ ƒ /[locale]/api/staff/bookings/[id]/refund                      496 B         103 kB
+├ ƒ /[locale]/api/staff/bookings/[id]/refund-decision             496 B         103 kB
+├ ƒ /[locale]/api/staff/bookings/[id]/take-card                   496 B         103 kB
+├ ƒ /[locale]/api/staff/bookings/[id]/unassign                    496 B         103 kB
+├ ƒ /[locale]/api/staff/bookings/[id]/voucher                     496 B         103 kB
+├ ƒ /[locale]/api/staff/chauffeurs                                496 B         103 kB
+├ ƒ /[locale]/api/staff/chauffeurs/[id]                           496 B         103 kB
+├ ƒ /[locale]/api/staff/chauffeurs/[id]/bookings                  496 B         103 kB
+├ ƒ /[locale]/api/staff/claim-invite                              496 B         103 kB
+├ ƒ /[locale]/api/staff/content                                   496 B         103 kB
+├ ƒ /[locale]/api/staff/content/[key]                             496 B         103 kB
+├ ƒ /[locale]/api/staff/content/[key]/flags                       496 B         103 kB
+├ ƒ /[locale]/api/staff/coupons                                   496 B         103 kB
+├ ƒ /[locale]/api/staff/coupons/[id]                              496 B         103 kB
+├ ƒ /[locale]/api/staff/coupons/redemptions                       496 B         103 kB
+├ ƒ /[locale]/api/staff/customers                                 496 B         103 kB
+├ ƒ /[locale]/api/staff/customers/[id]                            496 B         103 kB
+├ ƒ /[locale]/api/staff/dashboard                                 496 B         103 kB
+├ ƒ /[locale]/api/staff/invite                                    496 B         103 kB
+├ ƒ /[locale]/api/staff/me                                        496 B         103 kB
+├ ƒ /[locale]/api/staff/profile                                   496 B         103 kB
+├ ƒ /[locale]/api/staff/rate-book                                 496 B         103 kB
+├ ƒ /[locale]/api/staff/rate-book/preview                         496 B         103 kB
+├ ƒ /[locale]/api/staff/rate-book/test-unpaid                     496 B         103 kB
+├ ƒ /[locale]/api/staff/rate-versions                             496 B         103 kB
+├ ƒ /[locale]/api/staff/rate-versions/[id]                        496 B         103 kB
+├ ƒ /[locale]/api/staff/rate-versions/[id]/clone                  496 B         103 kB
+├ ƒ /[locale]/api/staff/rate-versions/[id]/discard                496 B         103 kB
+├ ƒ /[locale]/api/staff/rate-versions/[id]/publish                496 B         103 kB
+├ ƒ /[locale]/api/staff/reviews                                   496 B         103 kB
+├ ƒ /[locale]/api/staff/reviews/[id]                              496 B         103 kB
+├ ƒ /[locale]/api/staff/roster                                    496 B         103 kB
+├ ƒ /[locale]/api/staff/settings                                  496 B         103 kB
+├ ƒ /[locale]/api/staff/settings/policy-publish                   496 B         103 kB
+├ ƒ /[locale]/api/staff/tickets                                   496 B         103 kB
+├ ƒ /[locale]/api/staff/tickets/[id]                              496 B         103 kB
+├ ƒ /[locale]/api/staff/tickets/[id]/files/[fileId]               496 B         103 kB
+├ ƒ /[locale]/api/staff/vehicle-classes                           496 B         103 kB
+├ ƒ /[locale]/api/staff/vehicles                                  496 B         103 kB
+├ ƒ /[locale]/api/staff/vehicles/[id]                             496 B         103 kB
 ├ ● /[locale]/cancellation                                        140 B         123 kB
 ├   ├ /en/cancellation
 ├   ├ /de/cancellation
@@ -112,18 +114,18 @@ Route (app)                                                        Size  First L
 ├   ├ /de/checkout
 ├   ├ /fr/checkout
 ├   └ /ar/checkout
-├ ● /[locale]/checkout/details                                    492 B         103 kB
+├ ● /[locale]/checkout/details                                    496 B         103 kB
 ├   ├ /en/checkout/details
 ├   ├ /de/checkout/details
 ├   ├ /fr/checkout/details
 ├   └ /ar/checkout/details
 ├ ƒ /[locale]/checkout/pay/[token]                              4.83 kB         122 kB
-├ ● /[locale]/checkout/payment                                    492 B         103 kB
+├ ● /[locale]/checkout/payment                                    496 B         103 kB
 ├   ├ /en/checkout/payment
 ├   ├ /de/checkout/payment
 ├   ├ /fr/checkout/payment
 ├   └ /ar/checkout/payment
-├ ● /[locale]/checkout/trip                                       492 B         103 kB
+├ ● /[locale]/checkout/trip                                       496 B         103 kB
 ├   ├ /en/checkout/trip
 ├   ├ /de/checkout/trip
 ├   ├ /fr/checkout/trip
@@ -149,7 +151,7 @@ Route (app)                                                        Size  First L
 ├   ├ /de/dev/auth
 ├   ├ /fr/dev/auth
 ├   └ /ar/dev/auth
-├ ● /[locale]/dev/components                                      492 B         103 kB
+├ ● /[locale]/dev/components                                      496 B         103 kB
 ├   ├ /en/dev/components
 ├   ├ /de/dev/components
 ├   ├ /fr/dev/components
@@ -279,108 +281,109 @@ Route (app)                                                        Size  First L
 ├   ├ /de/terms
 ├   ├ /fr/terms
 ├   └ /ar/terms
-├ ƒ /api/account/bookings                                         492 B         103 kB
-├ ƒ /api/account/bookings/cancel                                  492 B         103 kB
-├ ƒ /api/account/bookings/details                                 492 B         103 kB
-├ ƒ /api/account/bookings/flight                                  492 B         103 kB
-├ ƒ /api/account/bookings/paid-cancel                             492 B         103 kB
-├ ƒ /api/account/bookings/resend                                  492 B         103 kB
-├ ƒ /api/account/bookings/time-change                             492 B         103 kB
-├ ƒ /api/account/prefs                                            492 B         103 kB
-├ ƒ /api/auth                                                     492 B         103 kB
-├ ƒ /api/auth/callback                                            492 B         103 kB
-├ ƒ /api/auth/confirm/preview                                     492 B         103 kB
-├ ƒ /api/auth/email-hook                                          492 B         103 kB
-├ ƒ /api/auth/session                                             492 B         103 kB
-├ ƒ /api/checkout/extras                                          492 B         103 kB
-├ ƒ /api/checkout/intent                                          492 B         103 kB
-├ ƒ /api/checkout/lock-expire                                     492 B         103 kB
-├ ƒ /api/checkout/me                                              492 B         103 kB
-├ ƒ /api/checkout/pay-link/open                                   492 B         103 kB
-├ ƒ /api/checkout/price                                           492 B         103 kB
-├ ƒ /api/checkout/resume                                          492 B         103 kB
-├ ƒ /api/checkout/return                                          492 B         103 kB
-├ ƒ /api/checkout/status/[ref]                                    492 B         103 kB
-├ ƒ /api/consent                                                  492 B         103 kB
-├ ƒ /api/consent/state                                            492 B         103 kB
-├ ƒ /api/contact                                                  492 B         103 kB
-├ ƒ /api/dev/db-smoke                                             492 B         103 kB
-├ ƒ /api/flight/[no]                                              492 B         103 kB
-├ ƒ /api/fx                                                       492 B         103 kB
-├ ƒ /api/geo/retrieve                                             492 B         103 kB
-├ ƒ /api/geo/reverse                                              492 B         103 kB
-├ ƒ /api/geo/suggest                                              492 B         103 kB
-├ ƒ /api/internal/health                                          492 B         103 kB
-├ ƒ /api/manage/booking                                           492 B         103 kB
-├ ƒ /api/manage/cancel                                            492 B         103 kB
-├ ƒ /api/manage/flight                                            492 B         103 kB
-├ ƒ /api/manage/resend                                            492 B         103 kB
-├ ƒ /api/manage/time-change                                       492 B         103 kB
-├ ƒ /api/photos/upload                                            492 B         103 kB
-├ ƒ /api/quote                                                    492 B         103 kB
-├ ƒ /api/quote/reprice                                            492 B         103 kB
-├ ƒ /api/reviews                                                  492 B         103 kB
-├ ƒ /api/reviews/photo                                            492 B         103 kB
-├ ƒ /api/reviews/submit                                           492 B         103 kB
-├ ƒ /api/staff/bookings                                           492 B         103 kB
-├ ƒ /api/staff/bookings/[id]                                      492 B         103 kB
-├ ƒ /api/staff/bookings/[id]/assign                               492 B         103 kB
-├ ƒ /api/staff/bookings/[id]/change                               492 B         103 kB
-├ ƒ /api/staff/bookings/[id]/change/preview                       492 B         103 kB
-├ ƒ /api/staff/bookings/[id]/change/withdraw                      492 B         103 kB
-├ ƒ /api/staff/bookings/[id]/edit-accept                          492 B         103 kB
-├ ƒ /api/staff/bookings/[id]/edit-request                         492 B         103 kB
-├ ƒ /api/staff/bookings/[id]/extra-pay                            492 B         103 kB
-├ ƒ /api/staff/bookings/[id]/pay-link                             492 B         103 kB
-├ ƒ /api/staff/bookings/[id]/refund                               492 B         103 kB
-├ ƒ /api/staff/bookings/[id]/refund-decision                      492 B         103 kB
-├ ƒ /api/staff/bookings/[id]/take-card                            492 B         103 kB
-├ ƒ /api/staff/bookings/[id]/unassign                             492 B         103 kB
-├ ƒ /api/staff/bookings/[id]/voucher                              492 B         103 kB
-├ ƒ /api/staff/chauffeurs                                         492 B         103 kB
-├ ƒ /api/staff/chauffeurs/[id]                                    492 B         103 kB
-├ ƒ /api/staff/chauffeurs/[id]/bookings                           492 B         103 kB
-├ ƒ /api/staff/claim-invite                                       492 B         103 kB
-├ ƒ /api/staff/content                                            492 B         103 kB
-├ ƒ /api/staff/content/[key]                                      492 B         103 kB
-├ ƒ /api/staff/content/[key]/flags                                492 B         103 kB
-├ ƒ /api/staff/coupons                                            492 B         103 kB
-├ ƒ /api/staff/coupons/[id]                                       492 B         103 kB
-├ ƒ /api/staff/coupons/redemptions                                492 B         103 kB
-├ ƒ /api/staff/customers                                          492 B         103 kB
-├ ƒ /api/staff/customers/[id]                                     492 B         103 kB
-├ ƒ /api/staff/dashboard                                          492 B         103 kB
-├ ƒ /api/staff/invite                                             492 B         103 kB
-├ ƒ /api/staff/me                                                 492 B         103 kB
-├ ƒ /api/staff/profile                                            492 B         103 kB
-├ ƒ /api/staff/rate-book                                          492 B         103 kB
-├ ƒ /api/staff/rate-book/preview                                  492 B         103 kB
-├ ƒ /api/staff/rate-book/test-unpaid                              492 B         103 kB
-├ ƒ /api/staff/rate-versions                                      492 B         103 kB
-├ ƒ /api/staff/rate-versions/[id]                                 492 B         103 kB
-├ ƒ /api/staff/rate-versions/[id]/clone                           492 B         103 kB
-├ ƒ /api/staff/rate-versions/[id]/discard                         492 B         103 kB
-├ ƒ /api/staff/rate-versions/[id]/publish                         492 B         103 kB
-├ ƒ /api/staff/reviews                                            492 B         103 kB
-├ ƒ /api/staff/reviews/[id]                                       492 B         103 kB
-├ ƒ /api/staff/roster                                             492 B         103 kB
-├ ƒ /api/staff/settings                                           492 B         103 kB
-├ ƒ /api/staff/tickets                                            492 B         103 kB
-├ ƒ /api/staff/tickets/[id]                                       492 B         103 kB
-├ ƒ /api/staff/tickets/[id]/files/[fileId]                        492 B         103 kB
-├ ƒ /api/staff/vehicle-classes                                    492 B         103 kB
-├ ƒ /api/staff/vehicles                                           492 B         103 kB
-├ ƒ /api/staff/vehicles/[id]                                      492 B         103 kB
-├ ƒ /api/stripe/webhook                                           492 B         103 kB
-├ ƒ /api/webhooks/resend                                          492 B         103 kB
-├ ƒ /photos/[...key]                                              492 B         103 kB
-├ ƒ /photos/[key]                                                 492 B         103 kB
-├ ○ /robots.txt                                                   492 B         103 kB
-└ ○ /sitemap.xml                                                  492 B         103 kB
+├ ƒ /api/account/bookings                                         496 B         103 kB
+├ ƒ /api/account/bookings/cancel                                  496 B         103 kB
+├ ƒ /api/account/bookings/details                                 496 B         103 kB
+├ ƒ /api/account/bookings/flight                                  496 B         103 kB
+├ ƒ /api/account/bookings/paid-cancel                             496 B         103 kB
+├ ƒ /api/account/bookings/resend                                  496 B         103 kB
+├ ƒ /api/account/bookings/time-change                             496 B         103 kB
+├ ƒ /api/account/prefs                                            496 B         103 kB
+├ ƒ /api/auth                                                     496 B         103 kB
+├ ƒ /api/auth/callback                                            496 B         103 kB
+├ ƒ /api/auth/confirm/preview                                     496 B         103 kB
+├ ƒ /api/auth/email-hook                                          496 B         103 kB
+├ ƒ /api/auth/session                                             496 B         103 kB
+├ ƒ /api/checkout/extras                                          496 B         103 kB
+├ ƒ /api/checkout/intent                                          496 B         103 kB
+├ ƒ /api/checkout/lock-expire                                     496 B         103 kB
+├ ƒ /api/checkout/me                                              496 B         103 kB
+├ ƒ /api/checkout/pay-link/open                                   496 B         103 kB
+├ ƒ /api/checkout/price                                           496 B         103 kB
+├ ƒ /api/checkout/resume                                          496 B         103 kB
+├ ƒ /api/checkout/return                                          496 B         103 kB
+├ ƒ /api/checkout/status/[ref]                                    496 B         103 kB
+├ ƒ /api/consent                                                  496 B         103 kB
+├ ƒ /api/consent/state                                            496 B         103 kB
+├ ƒ /api/contact                                                  496 B         103 kB
+├ ƒ /api/dev/db-smoke                                             496 B         103 kB
+├ ƒ /api/flight/[no]                                              496 B         103 kB
+├ ƒ /api/fx                                                       496 B         103 kB
+├ ƒ /api/geo/retrieve                                             496 B         103 kB
+├ ƒ /api/geo/reverse                                              496 B         103 kB
+├ ƒ /api/geo/suggest                                              496 B         103 kB
+├ ƒ /api/internal/health                                          496 B         103 kB
+├ ƒ /api/manage/booking                                           496 B         103 kB
+├ ƒ /api/manage/cancel                                            496 B         103 kB
+├ ƒ /api/manage/flight                                            496 B         103 kB
+├ ƒ /api/manage/resend                                            496 B         103 kB
+├ ƒ /api/manage/time-change                                       496 B         103 kB
+├ ƒ /api/photos/upload                                            496 B         103 kB
+├ ƒ /api/quote                                                    496 B         103 kB
+├ ƒ /api/quote/reprice                                            496 B         103 kB
+├ ƒ /api/reviews                                                  496 B         103 kB
+├ ƒ /api/reviews/photo                                            496 B         103 kB
+├ ƒ /api/reviews/submit                                           496 B         103 kB
+├ ƒ /api/staff/bookings                                           496 B         103 kB
+├ ƒ /api/staff/bookings/[id]                                      496 B         103 kB
+├ ƒ /api/staff/bookings/[id]/assign                               496 B         103 kB
+├ ƒ /api/staff/bookings/[id]/change                               496 B         103 kB
+├ ƒ /api/staff/bookings/[id]/change/preview                       496 B         103 kB
+├ ƒ /api/staff/bookings/[id]/change/withdraw                      496 B         103 kB
+├ ƒ /api/staff/bookings/[id]/edit-accept                          496 B         103 kB
+├ ƒ /api/staff/bookings/[id]/edit-request                         496 B         103 kB
+├ ƒ /api/staff/bookings/[id]/extra-pay                            496 B         103 kB
+├ ƒ /api/staff/bookings/[id]/pay-link                             496 B         103 kB
+├ ƒ /api/staff/bookings/[id]/refund                               496 B         103 kB
+├ ƒ /api/staff/bookings/[id]/refund-decision                      496 B         103 kB
+├ ƒ /api/staff/bookings/[id]/take-card                            496 B         103 kB
+├ ƒ /api/staff/bookings/[id]/unassign                             496 B         103 kB
+├ ƒ /api/staff/bookings/[id]/voucher                              496 B         103 kB
+├ ƒ /api/staff/chauffeurs                                         496 B         103 kB
+├ ƒ /api/staff/chauffeurs/[id]                                    496 B         103 kB
+├ ƒ /api/staff/chauffeurs/[id]/bookings                           496 B         103 kB
+├ ƒ /api/staff/claim-invite                                       496 B         103 kB
+├ ƒ /api/staff/content                                            496 B         103 kB
+├ ƒ /api/staff/content/[key]                                      496 B         103 kB
+├ ƒ /api/staff/content/[key]/flags                                496 B         103 kB
+├ ƒ /api/staff/coupons                                            496 B         103 kB
+├ ƒ /api/staff/coupons/[id]                                       496 B         103 kB
+├ ƒ /api/staff/coupons/redemptions                                496 B         103 kB
+├ ƒ /api/staff/customers                                          496 B         103 kB
+├ ƒ /api/staff/customers/[id]                                     496 B         103 kB
+├ ƒ /api/staff/dashboard                                          496 B         103 kB
+├ ƒ /api/staff/invite                                             496 B         103 kB
+├ ƒ /api/staff/me                                                 496 B         103 kB
+├ ƒ /api/staff/profile                                            496 B         103 kB
+├ ƒ /api/staff/rate-book                                          496 B         103 kB
+├ ƒ /api/staff/rate-book/preview                                  496 B         103 kB
+├ ƒ /api/staff/rate-book/test-unpaid                              496 B         103 kB
+├ ƒ /api/staff/rate-versions                                      496 B         103 kB
+├ ƒ /api/staff/rate-versions/[id]                                 496 B         103 kB
+├ ƒ /api/staff/rate-versions/[id]/clone                           496 B         103 kB
+├ ƒ /api/staff/rate-versions/[id]/discard                         496 B         103 kB
+├ ƒ /api/staff/rate-versions/[id]/publish                         496 B         103 kB
+├ ƒ /api/staff/reviews                                            496 B         103 kB
+├ ƒ /api/staff/reviews/[id]                                       496 B         103 kB
+├ ƒ /api/staff/roster                                             496 B         103 kB
+├ ƒ /api/staff/settings                                           496 B         103 kB
+├ ƒ /api/staff/settings/policy-publish                            496 B         103 kB
+├ ƒ /api/staff/tickets                                            496 B         103 kB
+├ ƒ /api/staff/tickets/[id]                                       496 B         103 kB
+├ ƒ /api/staff/tickets/[id]/files/[fileId]                        496 B         103 kB
+├ ƒ /api/staff/vehicle-classes                                    496 B         103 kB
+├ ƒ /api/staff/vehicles                                           496 B         103 kB
+├ ƒ /api/staff/vehicles/[id]                                      496 B         103 kB
+├ ƒ /api/stripe/webhook                                           496 B         103 kB
+├ ƒ /api/webhooks/resend                                          496 B         103 kB
+├ ƒ /photos/[...key]                                              496 B         103 kB
+├ ƒ /photos/[key]                                                 496 B         103 kB
+├ ○ /robots.txt                                                   496 B         103 kB
+└ ○ /sitemap.xml                                                  496 B         103 kB
 + First Load JS shared by all                                    102 kB
   ├ chunks/217-8485c127a3519a67.js                                46 kB
   ├ chunks/df8076bd-6749708357647ebb.js                         54.2 kB
-  └ other shared chunks (total)                                 2.23 kB
+  └ other shared chunks (total)                                 2.24 kB
 
 
 ƒ Middleware                                                     116 kB

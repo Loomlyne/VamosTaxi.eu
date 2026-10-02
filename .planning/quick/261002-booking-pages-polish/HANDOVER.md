@@ -1,8 +1,9 @@
 # Hand-over — 261002 Booking pages polish (2026-10-03 +04)
 
 Job session in `.claude/worktrees/booking-pages-polish`, branch **`fix/booking-pages-polish`**, cut from `origin/main`
-3978fda9; `origin/main` merged in twice, both clean, main touched no file of this job: 7d82a17f (settle safety
-997661d4) at 918a96af, then f0285a16 (Actions trim 33c9b994, Dependabot lockfile, board notes) at d5b64b81. Tip: the docs commit that adds this file (`git log -1 fix/booking-pages-polish`). Folder clean after it.
+3978fda9; `origin/main` merged in three times, all clean, main touched no file of this job: 7d82a17f (settle safety
+997661d4) at 918a96af, f0285a16 (Actions trim 33c9b994, Dependabot lockfile, board notes) at d5b64b81, then e77b5ede
+(policy values draft and Publish, migration 20261007210000) at 2c6c8937. Tip: the docs commit that adds this file (`git log -1 fix/booking-pages-polish`). Folder clean after it.
 
 Owner signature (question form, 2026-10-02 about 15:30 +04): design (four sheets) and plan —
 `.planning/decisions/2026-10-02-booking-pages-polish.md`. Plan: `PLAN.md`. Sheets: `screens/sheet-1..4`.
@@ -21,13 +22,13 @@ No migration. No setting. No seed change. No live read or write.
 
 React `apps/web/components/forms/TimePicker.tsx` (Next pages) is the separate job `fix/arabic-time-spinner`; no file shared.
 
-## Checks on the merged tip d5b64b81 (= the code of the tip; the docs commit adds only `.planning`)
+## Checks on the merged tip 2c6c8937 (= the code of the tip; later commits add only `.planning`)
 
 | Check | Result |
 |---|---|
-| unit tests (`pnpm test:unit`), after `pnpm install --frozen-lockfile` on the merged lockfile | web 387 files / 4165 passed, 31 skipped; emails 239; db 14 — exit 0 |
-| real-database test `apps/web/lib/checkout/account-details-window.local.test.ts` (own stack `vamos-taxi-bpp`, ports 649xx, after `db reset` on the merged migrations incl. 20261007200000) | 4/4 on d5b64b81: >24 h → auto_full + Cancel; <24 h → pending_ops + Cancel; cancelled → no Cancel; another customer's e-mail → 404 |
-| pgTAP from empty (own stack, `db reset` then `test db`, on 918a96af; the later merge and fixes change no SQL) | 97 files, 2630 tests, PASS |
+| unit tests (`pnpm test:unit`), after `pnpm install --frozen-lockfile` on the merged lockfile | web 387 files / 4186 passed, 31 skipped; emails 239; db 14 — exit 0 |
+| real-database test `apps/web/lib/checkout/account-details-window.local.test.ts` (own stack `vamos-taxi-bpp`, ports 649xx, after `db reset` on the merged migrations incl. 20261007200000 and 20261007210000) | 4/4 on 2c6c8937: >24 h → auto_full + Cancel; <24 h → pending_ops + Cancel; cancelled → no Cancel; another customer's e-mail → 404 |
+| pgTAP from empty (own stack, `db reset` then `test db`, on 2c6c8937) | 98 files, 2648 tests, PASS |
 | typecheck | exit 0 |
 | lint | exit 0 (warnings only, none in a file of this job) |
 | lint:css | exit 0 |
