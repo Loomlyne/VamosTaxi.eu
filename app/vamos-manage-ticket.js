@@ -100,9 +100,9 @@
   }
 
   // 261002: the account list's status words -> the booking page's. The list folds paid, confirmed and
-  // assigned into "booked" (and a paid booking not yet assigned into "new"); the design-system badge has
-  // no such keys and fell back to "Awaiting payment". The details answer then replaces this with the
-  // booking's own status (paid, assigned, partially_cancelled, ...).
+  // assigned into "booked" (any status it does not name, in practice partially_cancelled, becomes "new");
+  // the design-system badge has no such keys and fell back to "Awaiting payment". The details answer then
+  // replaces this with the booking's own status (paid, assigned, partially_cancelled, ...).
   var ACCOUNT_STATUS = { booked: "confirmed", "new": "confirmed", awaiting_payment: "pending", unpaid: "pending" };
 
   function fromAccount(row) {

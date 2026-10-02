@@ -90,14 +90,14 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-left" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
 </span>
 </sc-if>
-<span style="font-family:var(--vt-font-display);font-size:15px;font-weight:var(--vt-weight-semibold);letter-spacing:-0.01em">{{ monthTitle }}</span>
+<span data-vt-no-i18n style="font-family:var(--vt-font-display);font-size:15px;font-weight:var(--vt-weight-semibold);letter-spacing:-0.01em">{{ monthTitle }}</span>
 <button type="button" aria-label="Next month" onClick="{{ next }}" style="all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:999px;cursor:pointer;color:var(--vt-text-secondary)" style-hover="background:var(--vt-grey-100);color:var(--vt-text-primary)">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-right" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
 </button>
 </div>
 <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px">
 <sc-for list="{{ dows }}" as="w" hint-placeholder-count="7">
-<span style="font-size:10px;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted);text-align:center;padding:4px 0">{{ w }}</span>
+<span data-vt-no-i18n style="font-size:10px;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted);text-align:center;padding:4px 0">{{ w }}</span>
 </sc-for>
 <sc-for list="{{ cells }}" as="c" hint-placeholder-count="31">
 <sc-if value="{{ c.blank }}" hint-placeholder-val="{{ false }}"><span></span></sc-if>

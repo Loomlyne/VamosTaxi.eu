@@ -284,14 +284,28 @@ describe("GET /api/account/bookings/details: status, window and Cancel (261002 i
   });
 
   it("a window that cannot be read means no Cancel, never a wrong promise (the page itself still answers ok)", async () => {
-    installOwner([paidRow()]);
-    installSystem(new Error("boom"));
-    const res = await callDetails();
-    expect(res.status).toBe(200);
-    expect(await res.json()).toMatchObject({ ok: true, status: "confirmed", canCancel: false, cancelWindow: "none" });
-    asSystem.mockReset();
-    asSystem.mockRejectedValue(new Error("pool exhausted"));
-    expect(await (await callDetails()).json()).toMatchObject({ ok: true, canCancel: false, cancelWindow: "none" });
+    const logged = vi.spyOn(console, "error").mockImplementation(() => {});
+    try {
+      installOwner([paidRow()]);
+      installSystem(new Error("boom"));
+      const res = await callDetails();
+      expect(res.status).toBe(200);
+      expect(await res.json()).toMatchObject({ ok: true, status: "confirmed", canCancel: false, cancelWindow: "none" });
+      asSystem.mockReset();
+      asSystem.mockRejectedValue(new Error("pool exhausted"));
+      expect(await (await callDetails()).json()).toMatchObject({ ok: true, canCancel: false, cancelWindow: "none" });
+      // the failure is logged (a drifted grant on live would otherwise hide Cancel with no trace), without the
+      // e-mail or the reference
+      expect(logged.mock.calls).toEqual([
+        ["account_booking_cancel_window_failed", "boom"],
+        ["account_booking_cancel_window_failed", "pool exhausted"],
+      ]);
+      const text = JSON.stringify(logged.mock.calls);
+      expect(text).not.toContain("example.test");
+      expect(text).not.toContain(REF);
+    } finally {
+      logged.mockRestore();
+    }
   });
 
   it.each(["completed", "no_show", "cancelled", "partially_cancelled", "refunded"])("%s: no Cancel and no window read", async (status) => {

@@ -101,7 +101,10 @@ export async function GET(request: Request) {
           return rows[0]?.refund_mode ?? null;
         });
         if (mode === "auto_full" || mode === "pending_ops") cancelWindow = mode;
-      } catch {
+      } catch (err) {
+        // Fail closed (no Cancel), but never silently: a drifted grant on live would hide Cancel on every
+        // signed-in booking. No e-mail, no reference in the log.
+        console.error("account_booking_cancel_window_failed", err instanceof Error ? err.message : String(err));
         cancelWindow = "none";
       }
     }
