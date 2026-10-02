@@ -493,7 +493,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </button>
 <div data-trav-shell="1" data-open="{{ travOpenAttr }}" onClick="{{ travScrim }}">
 <sc-if value="{{ travOpen }}" hint-placeholder-val="{{ false }}">
-<div data-trav-panel="1" data-lenis-prevent="1" role="dialog" aria-label="Travellers" tabindex="-1" ref="{{ travPanelRef }}" onKeyDown="{{ travKey }}">
+<div data-trav-panel="1" role="dialog" aria-label="Travellers" tabindex="-1" ref="{{ travPanelRef }}" onKeyDown="{{ travKey }}">
 <div data-trav-row="1">
 <span data-trav-label="1">Passengers</span>
 <div data-stepper="1">
@@ -829,7 +829,7 @@ const FLIGHT_API = {
   },
   /** GET /api/flight/:no — server proxy. Non-OK / 503 → null. Never fake a status. */
   status(num, date, advance) {
-    const locale = (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en';
+    const locale = vtLang();
     return fetch('/api/flight/' + encodeURIComponent(num) + '?date=' + encodeURIComponent(date) + '&locale=' + encodeURIComponent(locale))
       .then((r) => r.json())
       .then((j) => {
@@ -869,7 +869,7 @@ const T = {
     flightCardTitle:'Flight details', fcTo:'Departs {ap} at {t} — we take you there.', fcFrom:'Arriving at {ap} at {t} — we\'ll meet you there.',
     flightDateLbl:'Which day', today:'Today', tomorrow:'Tomorrow', useFlight:'Use this flight', notMyFlight:'Not my flight',
     removeFlightLbl:'Remove flight', pendingTimeMsg:'Flight time changed to {t} — update?', applyUpdate:'Update', revertTo:'Revert to', 
-    signIn:'Sign in', customPin:'Use as map pin', dowRef:'Sat,Sun,Mon,Tue,Wed,Thu,Fri', mon:'Aug',
+    signIn:'Sign in', customPin:'Use as map pin',
     menu:'Menu', close:'Close', clear:'Clear', save:'Save', planTitle:'Plan your transfer', showPrices:'Show fixed prices', trustEmpty:'Guest reviews will show here once they are published.', trustScore:'{n}/5', trustCountOne:'1 review', trustCount:'{n} reviews', trustRead:'Read reviews', trustExcellent:'Excellent', trustGreat:'Great', trustGood:'Good', trustFair:'Fair', trustAria:'Guest reviews', call:'Call +41 79 626 70 82', callNote:'Talk to dispatch', langLabel:'Language', curLabel:'Currency',
     morning:'Morning', afternoon:'Afternoon', evening:'Evening', pickupTime:'Pickup time', returnTimeLbl:'Return time',
     useLoc:'Use my current location', useLocSub:'GPS · fastest way to set pickup', nearYou:'Near you', popular:'Popular destinations', locating:'Locating…', whenBoth:'Pickup & return', flightChip:'Add a flight number', saved:'Saved',
@@ -926,7 +926,7 @@ const T = {
     flightCardTitle:'Flugdetails', fcTo:'Abflug {ap} um {t} — wir bringen Sie dorthin.', fcFrom:'Ankunft {ap} um {t} — wir holen Sie dort ab.',
     flightDateLbl:'Welcher Tag', today:'Heute', tomorrow:'Morgen', useFlight:'Diesen Flug verwenden', notMyFlight:'Nicht mein Flug',
     removeFlightLbl:'Flug entfernen', pendingTimeMsg:'Flugzeit geändert auf {t} — aktualisieren?', applyUpdate:'Aktualisieren', revertTo:'Zurücksetzen auf', 
-    signIn:'Anmelden', customPin:'Als Kartenpunkt verwenden', dowRef:'Sa,So,Mo,Di,Mi,Do,Fr', mon:'Aug.',
+    signIn:'Anmelden', customPin:'Als Kartenpunkt verwenden',
     menu:'Menü', close:'Schliessen', clear:'Löschen', save:'Speichern', planTitle:'Transfer planen', showPrices:'Festpreise anzeigen', trustEmpty:'Gästebewertungen erscheinen hier, sobald sie veröffentlicht sind.', trustScore:'{n}/5', trustCountOne:'1 Bewertung', trustCount:'{n} Bewertungen', trustRead:'Bewertungen lesen', trustExcellent:'Ausgezeichnet', trustGreat:'Sehr gut', trustGood:'Gut', trustFair:'Ordentlich', trustAria:'Gästebewertungen', call:'+41 79 626 70 82 anrufen', callNote:'Direkt mit der Disposition sprechen', langLabel:'Sprache', curLabel:'Währung',
     morning:'Vormittag', afternoon:'Nachmittag', evening:'Abend', pickupTime:'Abholzeit', returnTimeLbl:'Rückfahrtzeit',
     useLoc:'Aktuellen Standort verwenden', useLocSub:'GPS · schnellster Weg zum Abholort', nearYou:'In Ihrer Nähe', popular:'Beliebte Ziele', locating:'Standort wird ermittelt…', whenBoth:'Hin- & Rückfahrt', flightChip:'Flugnummer hinzufügen', saved:'Gespeichert',
@@ -978,7 +978,7 @@ const T = {
     getting:'Calcul de votre prix fixe…', selectHint:'Choisissez une classe pour continuer — détails & options ensuite',
     naPax:'Indisponible pour {n} passagers', naBags:'Indisponible pour {n} bagages', quoteErr:'Tarif indisponible — réessayez', routeErr:'Pas d’itinéraire routier vers cette destination', europeErr:'Nous circulons en Europe', fixed:'Prix fixe', allIn:'total, tout compris', mostBooked:'Le plus réservé',
     economy:'Economy', business:'Business', van:'Van luxury', exEconomy:'Berline ou similaire', exBusiness:'Berline affaires', exVan:'Monospace ou similaire', exDefault:'Prix fixe · Accueil', seats:'places', bagsWord:'bagages',
-    signIn:'Connexion', customPin:'Utiliser comme point sur la carte', dowRef:'sam.,dim.,lun.,mar.,mer.,jeu.,ven.', mon:'août',
+    signIn:'Connexion', customPin:'Utiliser comme point sur la carte',
     menu:'Menu', close:'Fermer', clear:'Effacer', save:'Enregistrer', planTitle:'Planifiez votre transfert', showPrices:'Afficher les prix fixes', trustEmpty:'Les avis s’afficheront ici dès qu’ils seront publiés.', trustScore:'{n}/5', trustCountOne:'1 avis', trustCount:'{n} avis', trustRead:'Lire les avis', trustExcellent:'Excellent', trustGreat:'Très bien', trustGood:'Bien', trustFair:'Correct', trustAria:'Avis des clients', call:'Appeler le +41 79 626 70 82', callNote:'Parler à la centrale', langLabel:'Langue', curLabel:'Devise',
     morning:'Matin', afternoon:'Après-midi', evening:'Soir', pickupTime:'Heure de départ', returnTimeLbl:'Heure du retour',
     useLoc:'Utiliser ma position actuelle', useLocSub:'GPS · le plus rapide pour le départ', nearYou:'À proximité', popular:'Destinations populaires', locating:'Localisation…', whenBoth:'Départ & retour', flightChip:'Ajouter un numéro de vol', saved:'Enregistré',
@@ -1010,7 +1010,7 @@ const T = {
     getting:'جارٍ حساب سعرك الثابت…', selectHint:'اختر فئة للمتابعة — التفاصيل والإضافات تاليًا',
     naPax:'غير متاحة لـ {n} ركاب', naBags:'غير متاحة لـ {n} حقائب', quoteErr:'تعذّر التسعير — حاول مجددًا', routeErr:'لا يوجد مسار بري إلى هذه الوجهة', europeErr:'نعمل في أوروبا', fixed:'سعر ثابت', allIn:'الإجمالي، شامل كل شيء', mostBooked:'الأكثر حجزًا',
     economy:'Economy', business:'Business', van:'Van luxury', exEconomy:'سيدان أو ما شابه', exBusiness:'سيدان تنفيذية', exVan:'ميني فان أو ما شابه', exDefault:'سعر ثابت · استقبال', seats:'مقاعد', bagsWord:'حقائب',
-    signIn:'تسجيل الدخول', customPin:'استخدامه كنقطة على الخريطة', dowRef:'السبت,الأحد,الاثنين,الثلاثاء,الأربعاء,الخميس,الجمعة', mon:'أغسطس',
+    signIn:'تسجيل الدخول', customPin:'استخدامه كنقطة على الخريطة',
     menu:'القائمة', close:'إغلاق', clear:'مسح', save:'حفظ', planTitle:'خطّط رحلتك', showPrices:'إظهار الأسعار الثابتة', trustEmpty:'تظهر آراء الضيوف هنا بعد نشرها.', trustScore:'{n}/5', trustCountOne:'تقييم واحد', trustCount:'{n} تقييمات', trustRead:'قراءة التقييمات', trustExcellent:'ممتاز', trustGreat:'جيد جداً', trustGood:'جيد', trustFair:'مقبول', trustAria:'آراء الضيوف', call:'اتصل بنا', callNote:'تحدّث مع قسم التوزيع', langLabel:'اللغة', curLabel:'العملة',
     morning:'صباحًا', afternoon:'بعد الظهر', evening:'مساءً', pickupTime:'وقت الانطلاق', returnTimeLbl:'وقت العودة',
     useLoc:'استخدام موقعي الحالي', useLocSub:'GPS · أسرع طريقة لتحديد الانطلاق', nearYou:'بالقرب منك', popular:'وجهات شائعة', locating:'جارٍ تحديد الموقع…', whenBoth:'الذهاب والعودة', flightChip:'إضافة رقم الرحلة', saved:'تم الحفظ',
@@ -1160,6 +1160,22 @@ function boardPartyCap(j) {
   j.classes.forEach((c) => { const n = c && c.eligible !== false ? Number(c.effective_max_pax) : NaN; if (Number.isFinite(n) && n > m) m = n; });
   return m >= 1 ? Math.min(Math.floor(m), PARTY_LIMIT) : null;
 }
+/** Active language from the shared store; raw storage only before vamos-locale.js has loaded (26.2 audit U08-9). */
+function vtLang() {
+  try {
+    const L = window.VamosLocale;
+    if (L && typeof L.lang === 'function') return L.lang() || 'en';
+    return (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en';
+  } catch (e) { return 'en'; }
+}
+/** Active currency from the shared store; raw storage only before vamos-locale.js has loaded (26.2 audit U08-9). */
+function vtCur() {
+  try {
+    const L = window.VamosLocale;
+    if (L && typeof L.cur === 'function') return L.cur() || 'CHF';
+    return (typeof localStorage !== 'undefined' && localStorage.getItem('vamosCurrency')) || 'CHF';
+  } catch (e) { return 'CHF'; }
+}
 const BOOK_HREF = /^(?:\/(?:de|fr|ar))?\/?#book$/;
 const WHEN_TAG = { en: 'en-GB', de: 'de-CH', fr: 'fr-CH', ar: 'ar-u-nu-latn' };
 /** Checkout trip-strip line 2, e.g. "Tue 29 Sept, 08:15" (same format as apps/web/lib/checkout/trip-format.ts). */
@@ -1172,10 +1188,10 @@ function whenText(y, m, d, time, lang) {
 class Component extends DCLogic {
   /** The widget starts completely empty — every field is the traveller's own answer. */
   state = (() => {
-    const lang = (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en';
+    const lang = vtLang();
     return {
       lang: LANGS.includes(lang) ? lang : 'en',
-      cur: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosCurrency')) || 'CHF',
+      cur: vtCur(),
       pickupText: '', pickupLoc: null, dropText: '', dropLoc: null,
       day: null, time: '', returnDay: null, returnTime: '', dayLabel: null, returnLabel: null, dayY: null, dayM: null, returnY: null, returnM: null,
       pax: 1, paxCap: null, bags: 0, hours: 0, geo: 'idle',
@@ -1415,7 +1431,6 @@ class Component extends DCLogic {
     if (window.VamosLocale) return window.VamosLocale.money(amount, this.state.cur);
     const c = CURS[this.state.cur] || CURS.CHF; return c.s + amount;
   }
-  fmtDate(day) { const t = this.t(); const dow = t.dowRef.split(','); return dow[(day - 1) % 7] + ' ' + day + ' ' + t.mon; }
   resolveLoc(text, loc) { if (loc) return loc; const s = (text || '').trim(); return s.length >= 4 ? Object.assign({ custom: true, n: s }, hashXY(s)) : null; }
   /** A trip only prices once pickup, destination, when, and party are real answers. */
   routeInfo() {
@@ -2278,7 +2293,7 @@ class Component extends DCLogic {
   renderVals() {
     const t = this.t(); const s = this.state;
     const trust = this.trustSummary();
-    const dateStr = s.dayLabel || (s.day ? this.fmtDate(s.day) : '');
+    const dateStr = s.dayLabel || (s.day ? whenText(s.dayY, s.dayM, s.day, '', s.lang) : '');
     const slots = ['05:30', '06:45', '08:15', '09:30', '11:00', '12:15', '14:00', '16:30', '18:45', '21:15'];
     if (s.time && !slots.includes(s.time)) { slots.push(s.time); slots.sort(); }
     const sugRows = this.sugRowsList();

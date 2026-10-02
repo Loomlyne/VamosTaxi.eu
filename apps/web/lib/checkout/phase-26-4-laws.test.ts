@@ -185,8 +185,8 @@ describe("Law 03: four languages", () => {
     }
   });
 
-  it("no data-i18n-skip in the 26.4 DC files (OpsPricing line 209 is older, from 26.1, and not written here)", () => {
-    expect(offenders(DC_26_4.filter((f) => !f.endsWith("OpsPricing.dc.html")), (t) => (t.includes("data-i18n-skip") ? ["data-i18n-skip"] : []))).toEqual([]);
+  it("no data-i18n-skip in the 26.4 DC files", () => {
+    expect(offenders(DC_26_4, (t) => (t.includes("data-i18n-skip") ? ["data-i18n-skip"] : []))).toEqual([]);
   });
 
   it("no Lenis, no scroll-behavior:smooth in the 26.4 DC files", () => {

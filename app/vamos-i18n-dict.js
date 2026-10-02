@@ -2290,6 +2290,12 @@
       /* Examples in input placeholders: the same in every language. */
       'VT-0000': { de: 'VT-0000', fr: 'VT-0000', ar: 'VT-0000' },
       'you@example.com': { de: 'you@example.com', fr: 'you@example.com', ar: 'you@example.com' },
+      /* 26.2 audit U08-12, U08-13, U08-14 */
+      'Your message has been accepted for delivery. Our team will review it.': { de: 'Ihre Nachricht wurde zur Zustellung angenommen. Unser Team prüft sie.', fr: 'Votre message a été accepté pour envoi. Notre équipe va le lire.', ar: 'تم قبول رسالتك للتسليم. سيراجعها فريقنا.' },
+      'Cancel this booking. The pay link stops working.': { de: 'Diese Buchung stornieren. Der Zahlungslink funktioniert dann nicht mehr.', fr: 'Annuler cette réservation. Le lien de paiement cessera de fonctionner.', ar: 'إلغاء هذا الحجز. سيتوقف رابط الدفع عن العمل.' },
+      'Customer': { de: 'Kunde', fr: 'Client', ar: 'العميل' },
+      'Pricing': { de: 'Preise', fr: 'Tarifs', ar: 'الأسعار' },
+      'Pages': { de: 'Seiten', fr: 'Pages', ar: 'الصفحات' },
     },
   };
 

@@ -89,14 +89,14 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-x-link][aria-current]{color:var(--vt-charcoal-900);font-weight:var(--vt-weight-semibold)}
 [data-crumb]{white-space:nowrap}
 [data-ct]{width:100%;border-collapse:collapse;margin:4px 0 18px;font-size:var(--vt-body-sm)}
-[data-ct] caption{text-align:left;padding:0 0 10px;font-size:var(--vt-body-xs);color:var(--vt-text-muted)}
+[data-ct] caption{text-align:start;padding:0 0 10px;font-size:var(--vt-body-xs);color:var(--vt-text-muted)}
 [data-ct] th[scope=col]{display:none}
 [data-ct] tbody tr{display:block;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);padding:14px 16px;margin-bottom:10px}
-[data-ct] tbody td{display:grid;grid-template-columns:96px minmax(0,1fr);gap:4px 14px;padding:5px 0;color:var(--vt-text-secondary);vertical-align:top;text-align:left}
+[data-ct] tbody td{display:grid;grid-template-columns:96px minmax(0,1fr);gap:4px 14px;padding:5px 0;color:var(--vt-text-secondary);vertical-align:top;text-align:start}
 [data-ct] tbody td::before{content:attr(data-l);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted);padding-top:2px}
 [data-ct] tbody td:first-child{font-family:var(--vt-font-mono);font-size:var(--vt-body-xs);color:var(--vt-text-primary)}
 @media (min-width:720px){
-[data-ct] th[scope=col]{display:table-cell;text-align:left;padding:0 16px 10px 0;border-bottom:1px solid var(--vt-charcoal-900);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-primary);white-space:nowrap}
+[data-ct] th[scope=col]{display:table-cell;text-align:start;padding-block:0 10px;padding-inline:0 16px;border-bottom:1px solid var(--vt-charcoal-900);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-primary);white-space:nowrap}
 [data-ct] thead{display:table-header-group}
 [data-ct] tbody tr{display:table-row;background:none;border:0;border-radius:0;padding:0;margin:0}
 [data-ct] tbody td{display:table-cell;padding:13px 16px 13px 0;border-bottom:1px solid var(--vt-grey-200)}

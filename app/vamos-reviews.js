@@ -151,11 +151,20 @@
     } catch (e) {}
   }
 
+  // 26.2 audit U08-3: a failed load leaves `loaded` false so a later read asks again;
+  // retryAfter keeps that from firing on every render.
+  var retryAfter = 0;
   function hydrate() {
     if (pending || loaded) return;
+    if (retryAfter && Date.now() < retryAfter) return;
     pending = true;
     api("GET", listPath()).then(function (json) {
       pending = false;
+      if (!json || json.ok === false) {
+        retryAfter = Date.now() + 5000;
+        return;
+      }
+      retryAfter = 0;
       loaded = true;
       list = pickRows(json).map(fromApi);
       emit();
@@ -294,7 +303,7 @@
       });
       return previous.slice();
     },
-    reset: function () { list = []; loaded = false; pending = false; emit(); hydrate(); return list.slice(); },
+    reset: function () { list = []; loaded = false; pending = false; retryAfter = 0; emit(); hydrate(); return list.slice(); },
     onChange: function (fn) {
       subs.push(fn);
       return function () { subs = subs.filter(function (f) { return f !== fn; }); };

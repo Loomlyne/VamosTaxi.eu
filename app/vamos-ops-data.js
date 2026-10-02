@@ -194,6 +194,13 @@
       pending = true;
       readyPromise = api("GET", base).then(function (json) {
         pending = false;
+        if (!json || json.ok === false) {
+          // 26.2 audit U08-2: a failed poll keeps the last good rows. Bookings retry
+          // on the next poll tick; the other collections ask again on the next read.
+          loaded = name === "bookings";
+          schedulePoll();
+          return;
+        }
         loaded = true;
         list = pickRows(json, name).map(clean);
         emit(name);
