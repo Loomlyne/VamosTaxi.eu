@@ -9,6 +9,13 @@ on:
   push:
     branches: ["ci/**"]
 
+# Nine jobs a run, so a superseded ci/** push leaves nine duplicates racing the new one.
+# Only a push cancels: a run called from pr.yml or before a hand-started deploy is
+# guarding something and is left alone.
+concurrency:
+  group: e2e-linux-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'push' }}
+
 permissions:
   contents: read
 
