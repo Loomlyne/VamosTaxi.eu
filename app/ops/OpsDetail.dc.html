@@ -856,6 +856,7 @@ const T = {
     refundClick:'Use Refund for the difference.',
     mustFix:'Reassign the chauffeur before this change can apply.',
     acceptPaid:'The customer has already paid the difference. The change is applied when the payment is recorded.',
+    acceptPriceChanged:'The amount to pay changed since you first accepted, so no new link was made. Refuse this request; the customer can ask again.',
     editFailed:'Could not apply edit ',
     refuse:'Refuse',
     refuseFailed:'Could not refuse edit ',
@@ -998,6 +999,7 @@ const T = {
     refundClick:'Rückerstatten für die Differenz verwenden.',
     mustFix:'Chauffeur neu zuweisen, bevor diese Änderung gilt.',
     acceptPaid:'Der Kunde hat die Differenz bereits bezahlt. Die Änderung gilt, sobald die Zahlung verbucht ist.',
+    acceptPriceChanged:'Der zu zahlende Betrag hat sich seit Ihrer ersten Annahme geändert, daher wurde kein neuer Link erstellt. Lehnen Sie diese Anfrage ab; der Kunde kann erneut fragen.',
     editFailed:'Änderung fehlgeschlagen für ',
     refuse:'Ablehnen',
     refuseFailed:'Änderung abgelehnt fehlgeschlagen für ',
@@ -1119,6 +1121,7 @@ const T = {
     refundClick:'Utiliser Rembourser pour la différence.',
     mustFix:'Réassigner le chauffeur avant d’appliquer ce changement.',
     acceptPaid:'Le client a déjà payé la différence. Le changement s’applique dès que le paiement est enregistré.',
+    acceptPriceChanged:'Le montant à payer a changé depuis votre première acceptation, aucun nouveau lien n’a donc été créé. Refusez cette demande ; le client peut redemander.',
     editFailed:'Modification impossible pour ',
     refuse:'Refuser',
     refuseFailed:'Impossible de refuser la modification pour ',
@@ -1264,6 +1267,7 @@ const T = {
     refundClick:'استخدم استرداد للفرق.',
     mustFix:'أعد تعيين السائق قبل تطبيق هذا التغيير.',
     acceptPaid:'دفع العميل الفرق بالفعل. يُطبَّق التغيير عند تسجيل الدفعة.',
+    acceptPriceChanged:'تغيّر المبلغ المطلوب منذ قبولك الأول، لذلك لم يُنشأ رابط جديد. ارفض هذا الطلب؛ ويمكن للعميل أن يطلب مرة أخرى.',
     editFailed:'تعذّر تطبيق التعديل لـ ',
     refuse:'رفض',
     refuseFailed:'تعذّر رفض التعديل لـ ',
@@ -1874,6 +1878,8 @@ class Component extends DCLogic {
       'stripe-test-only': t.errTestOnly, 'not-editable': t.errClassTooLate,
       // 26.2 P6 server step: the reasons the change route can still answer, in the page's own words.
       'must-fix': t.mustFix, 'driver-overlap': t.mustFix, 'flight-needed': t.flightNeeded, 'past-time': t.errPastTime,
+      // 261002 settle safety: the waiting change's page was paid in the same second; the payment applies that change.
+      'already-paid': t.acceptPaid,
     };
     const classError = cp && !cp.busy && cp.code && !cp.field
       ? (classErrByCode[cp.code] || (t.errClassFailed + booking.id))
@@ -2209,6 +2215,8 @@ class Component extends DCLogic {
           else if (code === 'unpaid') this.notify(t.unpaidNoEditBody);
           // 261002 review round 3: the page of this request is already paid; nothing was replaced.
           else if (code === 'already-paid') { if (ops) ops.bookings.reset(); this.notify(t.acceptPaid); }
+          // 261002 settle safety: a second Accept after the amount to pay moved; nothing was written, no new link.
+          else if (code === 'price-changed') { if (ops) ops.bookings.reset(); this.notify(t.acceptPriceChanged); }
           else this.notify(t.editFailed + booking.id);
         });
       },

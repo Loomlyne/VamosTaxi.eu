@@ -17,10 +17,13 @@ on:
   workflow_dispatch:
 
 # A second deploy queues behind the first instead of racing it — cancelling a
-# half-finished deploy is worse than waiting (T-01-07).
+# half-finished deploy is worse than waiting (T-01-07). A push-triggered run deploys
+# nothing (the `deploy` job is workflow_dispatch only), so a superseded one is just a
+# duplicate: it gets its own group per ref and is cancelled. The hand-started deploy
+# keeps the old, uncancellable group.
 concurrency:
-  group: deploy-staging
-  cancel-in-progress: false
+  group: deploy-staging-${{ github.event_name == 'workflow_dispatch' && 'deploy' || github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
 
 jobs:
   gate:

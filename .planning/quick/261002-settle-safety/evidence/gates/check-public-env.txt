@@ -1,0 +1,3 @@
+check-next-public-allowlist: all 1 NEXT_PUBLIC_* identifier(s) found are on the allowlist — pass.
+check-next-public-allowlist: no build output at apps/web/.open-next/assets — skipping built-bundle scan.
+check-next-public-allowlist: service-role source rules (D-14) — pass.
