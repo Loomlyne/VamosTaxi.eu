@@ -611,7 +611,11 @@ type StaffChangeRow = {
   unassigned_chauffeur_id: string | null;
 };
 
-/** POST …/change: the admin confirms the class he was shown. */
+/**
+ * POST …/change: the admin confirms the class he was shown. After the price checks and before the write, a
+ * staff change that waits for its difference is checked (guardWaitingStaffChange): paid in the same second
+ * -> `already-paid`, nothing written; else its page is closed first.
+ */
 export async function confirmBookingChange(
   env: CloudflareEnv,
   claims: VamosClaims,
@@ -636,6 +640,10 @@ export async function confirmBookingChange(
   // The admin confirms what he saw; anything that moved since is shown again, never charged.
   if (target.newTotalRappen !== body.expectTotalRappen) return { ok: false, code: "price-changed" };
   if (price.paidRappen !== body.expectPaidRappen) return { ok: false, code: "paid-changed" };
+  // 261002 settle safety: a change that waits for its difference is checked first (paid in the same
+  // second -> refused, nothing is replaced; else its page is closed), then this one is written.
+  const waitingGuard = await guardWaitingStaffChange(env, claims, ctx.bookingId);
+  if (waitingGuard) return waitingGuard;
 
   let row: StaffChangeRow;
   try {
@@ -861,7 +869,87 @@ export async function afterExtraSettled(
   await afterChangeApplied(env, row.booking_id, row.unassigned_chauffeur_id ?? null, kept);
 }
 
-type WaitingRow = { request_id: string; actor: string; extra_session_id: string | null; reference: string };
+/** The booking's waiting change request (status 'requested'), as Withdraw and both confirms read it. */
+export type WaitingRow = { request_id: string; actor: string; extra_session_id: string | null; reference: string };
+
+/**
+ * The newest change request of the booking that still waits (status 'requested'), read as staff (the
+ * system role has no table SELECT). Null when nothing waits. A read error is thrown: each caller maps it
+ * to its own answer (Withdraw and both confirms answer `unknown`).
+ */
+export async function loadWaitingChange(env: CloudflareEnv, claims: VamosClaims, bookingId: string): Promise<WaitingRow | null> {
+  const row = await asStaff(env, claims, async (sql) => {
+    const rows = await sql<WaitingRow[]>`
+      select r.id::text as request_id, r.actor::text as actor, r.extra_session_id, b.reference
+        from public.booking_edit_requests as r
+        join public.bookings as b on b.id = r.booking_id
+       where r.booking_id = ${bookingId}::uuid
+         and r.status = 'requested'
+       order by r.created_at desc
+       limit 1
+    `;
+    return rows[0] ?? null;
+  });
+  return row ?? null;
+}
+
+/**
+ * Closes the Stripe page of a waiting staff change, or says why it cannot be closed. Shared by Withdraw
+ * and by both confirms (class change, trip change; 261002 settle safety, P6 follow-ups review R4, warning 3).
+ * The page is expired FIRST. If Stripe refuses (already expired, or paid) the page is read again:
+ * `complete` is `already-paid` (she paid in the same second: the payment applies that change, so nothing
+ * may replace or end it), `expired` is `closed` (nothing left to pay), anything else, or no answer, is
+ * `stripe-failed` (the page may still be payable, so nothing may be written). No page (a change that never
+ * got one) is `closed` with no Stripe call.
+ */
+export async function closeWaitingStaffPage(
+  env: CloudflareEnv,
+  pageId: string | null | undefined,
+): Promise<"closed" | "already-paid" | "stripe-failed"> {
+  const page = s(pageId).trim();
+  if (!page) return "closed";
+  const stripe = stripeFromEnv(env);
+  try {
+    await expireCheckoutSession(stripe, page);
+    return "closed";
+  } catch {
+    let status = "";
+    try {
+      status = String((await retrieveCheckoutSession(stripe, page))?.status ?? "");
+    } catch {
+      status = "";
+    }
+    if (status === "complete") return "already-paid";
+    if (status !== "expired") return "stripe-failed";
+    return "closed";
+  }
+}
+
+/**
+ * 261002 settle safety (P6 follow-ups review R4, warning 3): a staff change never replaces a page just
+ * paid. Called by both confirms AFTER every price check and BEFORE their write. If a STAFF change waits
+ * with a page, the page is closed first: paid -> `already-paid` (the payment applies the waiting change;
+ * the new one is refused, nothing is written), Stripe unsure -> `stripe-failed`, closed -> null (go on; the
+ * write's own close of the replaced page afterwards is harmless). A waiting CUSTOMER request is not touched
+ * (the write refuses it with customer-request-waiting). A read error answers `unknown`.
+ */
+export async function guardWaitingStaffChange(env: CloudflareEnv, claims: VamosClaims, bookingId: string): Promise<ChangeFail | null> {
+  let waiting: WaitingRow | null;
+  try {
+    waiting = await loadWaitingChange(env, claims, bookingId);
+  } catch {
+    return { ok: false, code: "unknown" };
+  }
+  if (!waiting || waiting.actor !== "staff" || !s(waiting.extra_session_id).trim()) return null;
+  let closed: "closed" | "already-paid" | "stripe-failed";
+  try {
+    closed = await closeWaitingStaffPage(env, waiting.extra_session_id);
+  } catch {
+    // The Stripe client could not even be built (no key): nothing was closed, so nothing may be replaced.
+    closed = "stripe-failed";
+  }
+  return closed === "closed" ? null : { ok: false, code: closed };
+}
 
 /**
  * "Withdraw change" (owner sign-off 2026-10-01): end the admin's dearer class change that waits for
@@ -886,19 +974,7 @@ export async function withdrawBookingChange(
   try {
     bookingId = await resolveStaffBookingId(env, claims, key);
     if (!bookingId) return { ok: false, code: "not-found" };
-    const id = bookingId;
-    waiting = await asStaff(env, claims, async (sql) => {
-      const rows = await sql<WaitingRow[]>`
-        select r.id::text as request_id, r.actor::text as actor, r.extra_session_id, b.reference
-          from public.booking_edit_requests as r
-          join public.bookings as b on b.id = r.booking_id
-         where r.booking_id = ${id}::uuid
-           and r.status = 'requested'
-         order by r.created_at desc
-         limit 1
-      `;
-      return rows[0] ?? null;
-    });
+    waiting = await loadWaitingChange(env, claims, bookingId);
   } catch {
     return { ok: false, code: "unknown" };
   }
@@ -906,23 +982,10 @@ export async function withdrawBookingChange(
 
   // 261002 (review of item 4, finding 2): a change whose page could not be opened has no page to
   // close; it is ended in the database alone (booking_change_withdraw does not need a page), so the
-  // customer is not kept waiting behind it.
+  // customer is not kept waiting behind it. The page check is closeWaitingStaffPage (shared with the confirms).
   const page = s(waiting.extra_session_id).trim();
-  if (page) {
-    const stripe = stripeFromEnv(env);
-    try {
-      await expireCheckoutSession(stripe, page);
-    } catch {
-      let status = "";
-      try {
-        status = String((await retrieveCheckoutSession(stripe, page))?.status ?? "");
-      } catch {
-        status = "";
-      }
-      if (status === "complete") return { ok: false, code: "already-paid" };
-      if (status !== "expired") return { ok: false, code: "stripe-failed" };
-    }
-  }
+  const closed = await closeWaitingStaffPage(env, page);
+  if (closed !== "closed") return { ok: false, code: closed };
 
   const ids = { bookingId, requestId: waiting.request_id };
   let ended: { extra_session_id: string | null } | null;

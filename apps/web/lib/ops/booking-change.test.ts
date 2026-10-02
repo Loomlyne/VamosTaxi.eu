@@ -19,6 +19,8 @@ const supersede = vi.fn();
 const sendClassChangePay = vi.fn();
 const sendChauffeurUnassign = vi.fn();
 const deliverBookingConfirmation = vi.fn();
+const expireCheckoutSession = vi.fn();
+const retrieveCheckoutSession = vi.fn();
 
 vi.mock("@/lib/db/identity", () => ({
   asStaff: (...a: unknown[]) => asStaff(...a),
@@ -38,11 +40,24 @@ vi.mock("@vamos/emails/confirmation", () => ({
   chauffeurEmailLocale: (langs: string[]) => (langs[0] === "fr" ? "fr" : "en"),
 }));
 vi.mock("./voucher", () => ({ deliverBookingConfirmation: (...a: unknown[]) => deliverBookingConfirmation(...a) }));
+vi.mock("@/lib/checkout/stripe", () => ({
+  stripeFromEnv: () => ({}),
+  expireCheckoutSession: (...a: unknown[]) => expireCheckoutSession(...a),
+  retrieveCheckoutSession: (...a: unknown[]) => retrieveCheckoutSession(...a),
+}));
 vi.mock("@/lib/db/quote", () => ({ loadRateBook: vi.fn(), loadLaunchFlags: vi.fn() }));
 vi.mock("./draft-preview", () => ({ loadSettingsRows: vi.fn() }));
 vi.mock("./rate-book", () => ({ loadQuoteBookDocForVersion: vi.fn() }));
 
-import { afterExtraSettled, confirmBookingChange, previewBookingChange, type ChangeContext, type ChangeDeps } from "./booking-change";
+import {
+  afterExtraSettled,
+  closeWaitingStaffPage,
+  confirmBookingChange,
+  loadWaitingChange,
+  previewBookingChange,
+  type ChangeContext,
+  type ChangeDeps,
+} from "./booking-change";
 
 const BOOKING = "b0000000-0000-4000-8000-000000000801";
 const CHAUFFEUR = "c0000000-0000-4000-8000-000000000801";
@@ -333,6 +348,215 @@ describe("confirmBookingChange", () => {
 
   it("the body must name a class and both figures", async () => {
     expect(await confirmBookingChange(env, claims, "VT-26-0801", { klass: BIZ, expectTotalRappen: null, expectPaidRappen: 1 }, undefined, deps(context()))).toEqual({ ok: false, code: "invalid-body" });
+  });
+});
+
+// 261002 settle safety (P6 follow-ups review R4, warning 3): the owner makes a new change while the customer
+// has just paid the waiting one. The waiting staff change's page is checked first: paid -> the new change is
+// refused (the payment applies the waiting one); not paid -> the page is closed, then the new change goes on.
+// Without this the first payment became Refund due and a second link went out.
+describe("a staff change never replaces a page just paid (confirmBookingChange)", () => {
+  const BIZ = "mercedes-benz-v-class";
+  const REQUEST = "e0000000-0000-4000-8000-000000000802";
+
+  /** What the owner's confirm sends: the class and the two figures the preview showed. */
+  function confirmBody(ctx: ChangeContext) {
+    return { klass: BIZ, expectTotalRappen: charged(book(18), BIZ), expectPaidRappen: ctx.paidRappen };
+  }
+
+  /** The booking's waiting change request, as the staff read finds it (none, or one row). */
+  function waitingIs(row: Record<string, unknown> | null) {
+    asStaff.mockImplementation(async (_e: unknown, _c: unknown, fn: (sql: unknown) => unknown) => fn(async () => (row ? [row] : [])));
+  }
+  const staffWaits = { request_id: REQUEST, actor: "staff", extra_session_id: "cs_test_wait", reference: "VT-26-0801" };
+
+  function staffChangeRowFor(outcome: string, difference: number, total: number, paid: number) {
+    return {
+      request_id: "e0000000-0000-4000-8000-000000000001", booking_id: BOOKING, outcome, difference_rappen: difference,
+      new_total_rappen: total, paid_rappen: paid, quote_snapshot_id: "91", extra_snapshot_id: "92",
+      old_extra_session_id: null, old_extra_snapshot_id: null, unassigned_chauffeur_id: null,
+    };
+  }
+
+  function writeAnswers(ctx: ChangeContext, over: Record<string, unknown> = {}) {
+    const total = charged(book(18), BIZ);
+    systemReturns((text) =>
+      text.includes("booking_staff_change")
+        ? [{ ...staffChangeRowFor("extra_required", total - ctx.paidRappen, total, ctx.paidRappen), ...over }]
+        : [],
+    );
+  }
+
+  beforeEach(() => {
+    for (const m of [asStaff, asSystem, expireCheckoutSession, retrieveCheckoutSession, openDifferencePayment]) m.mockReset();
+    sendClassChangePay.mockResolvedValue({ ok: true, providerMessageId: "m1" });
+    openDifferencePayment.mockResolvedValue({ ok: true, sessionId: "cs_test_new", url: "https://checkout.stripe.test/c/pay/cs_test_new" });
+    waitingIs(null);
+  });
+
+  it("she paid the waiting page in the same second: refused as already-paid, the write is never called", async () => {
+    const ctx = context();
+    waitingIs(staffWaits);
+    writeAnswers(ctx);
+    expireCheckoutSession.mockRejectedValue(new Error("This Checkout Session is not open"));
+    retrieveCheckoutSession.mockResolvedValue({ id: "cs_test_wait", status: "complete" });
+    expect(await confirmBookingChange(env, claims, "VT-26-0801", confirmBody(ctx), undefined, deps(ctx))).toEqual({ ok: false, code: "already-paid" });
+    expect(expireCheckoutSession.mock.calls.map((c) => c[1])).toEqual(["cs_test_wait"]);
+    expect(asSystem).not.toHaveBeenCalled();
+    expect(calls.some((c) => c.text.includes("booking_staff_change"))).toBe(false);
+    expect(openDifferencePayment).not.toHaveBeenCalled();
+    expect(sendClassChangePay).not.toHaveBeenCalled();
+  });
+
+  it("the waiting page is open: closed once, THEN the write runs as before", async () => {
+    const ctx = context();
+    waitingIs(staffWaits);
+    const order: string[] = [];
+    expireCheckoutSession.mockImplementation(async (_s: unknown, id: string) => {
+      order.push(`expire:${id}`);
+      return { status: "expired" };
+    });
+    const total = charged(book(18), BIZ);
+    systemReturns((text) => {
+      if (text.includes("booking_staff_change")) {
+        order.push("write");
+        return [staffChangeRowFor("extra_required", total - ctx.paidRappen, total, ctx.paidRappen)];
+      }
+      return [];
+    });
+    const res = await confirmBookingChange(env, claims, "VT-26-0801", confirmBody(ctx), undefined, deps(ctx));
+    expect(res).toMatchObject({ ok: true, outcome: "extra_required", payUrl: "https://checkout.stripe.test/c/pay/cs_test_new" });
+    expect(order).toEqual(["expire:cs_test_wait", "write"]);
+    expect(expireCheckoutSession).toHaveBeenCalledTimes(1);
+    expect(retrieveCheckoutSession).not.toHaveBeenCalled();
+  });
+
+  it("the page had already expired (Stripe refuses, the re-read says expired): the new change goes on", async () => {
+    const ctx = context();
+    waitingIs(staffWaits);
+    writeAnswers(ctx);
+    expireCheckoutSession.mockRejectedValue(new Error("This Checkout Session is not open"));
+    retrieveCheckoutSession.mockResolvedValue({ id: "cs_test_wait", status: "expired" });
+    expect(await confirmBookingChange(env, claims, "VT-26-0801", confirmBody(ctx), undefined, deps(ctx))).toMatchObject({ ok: true, outcome: "extra_required" });
+    expect(calls.some((c) => c.text.includes("booking_staff_change"))).toBe(true);
+  });
+
+  it("Stripe refuses the close and the re-read says the page is still open (or does not answer): stripe-failed, nothing is written", async () => {
+    const ctx = context();
+    waitingIs(staffWaits);
+    writeAnswers(ctx);
+    expireCheckoutSession.mockRejectedValue(new Error("timeout"));
+    retrieveCheckoutSession.mockResolvedValue({ id: "cs_test_wait", status: "open" });
+    expect(await confirmBookingChange(env, claims, "VT-26-0801", confirmBody(ctx), undefined, deps(ctx))).toEqual({ ok: false, code: "stripe-failed" });
+    retrieveCheckoutSession.mockRejectedValue(new Error("timeout"));
+    expect(await confirmBookingChange(env, claims, "VT-26-0801", confirmBody(ctx), undefined, deps(ctx))).toEqual({ ok: false, code: "stripe-failed" });
+    expect(asSystem).not.toHaveBeenCalled();
+    expect(openDifferencePayment).not.toHaveBeenCalled();
+  });
+
+  it("no waiting change: no Stripe call at all, the write runs as before", async () => {
+    const ctx = context();
+    waitingIs(null);
+    writeAnswers(ctx);
+    expect(await confirmBookingChange(env, claims, "VT-26-0801", confirmBody(ctx), undefined, deps(ctx))).toMatchObject({ ok: true, outcome: "extra_required" });
+    expect(asStaff).toHaveBeenCalledTimes(1);
+    expect(expireCheckoutSession).not.toHaveBeenCalled();
+    expect(retrieveCheckoutSession).not.toHaveBeenCalled();
+  });
+
+  it("a waiting CUSTOMER request is not touched here (the database refuses with customer-request-waiting)", async () => {
+    const ctx = context();
+    waitingIs({ ...staffWaits, actor: "customer" });
+    systemReturns(() => Object.assign(new Error("customer-request-waiting"), { code: "P0001" }));
+    expect(await confirmBookingChange(env, claims, "VT-26-0801", confirmBody(ctx), undefined, deps(ctx))).toEqual({ ok: false, code: "customer-request-waiting" });
+    expect(expireCheckoutSession).not.toHaveBeenCalled();
+    expect(retrieveCheckoutSession).not.toHaveBeenCalled();
+  });
+
+  it("a waiting staff change that never got a page has nothing to close: no Stripe call", async () => {
+    const ctx = context();
+    for (const page of [null, ""]) {
+      waitingIs({ ...staffWaits, extra_session_id: page });
+      writeAnswers(ctx);
+      expect(await confirmBookingChange(env, claims, "VT-26-0801", confirmBody(ctx), undefined, deps(ctx))).toMatchObject({ ok: true });
+    }
+    expect(expireCheckoutSession).not.toHaveBeenCalled();
+    expect(retrieveCheckoutSession).not.toHaveBeenCalled();
+  });
+
+  it("the read of the waiting request failing: unknown, nothing is written", async () => {
+    const ctx = context();
+    asStaff.mockRejectedValue(new Error("connection terminated"));
+    writeAnswers(ctx);
+    expect(await confirmBookingChange(env, claims, "VT-26-0801", confirmBody(ctx), undefined, deps(ctx))).toEqual({ ok: false, code: "unknown" });
+    expect(asSystem).not.toHaveBeenCalled();
+    expect(expireCheckoutSession).not.toHaveBeenCalled();
+  });
+
+  it("the check sits AFTER every price check: a figure that moved is refused before the waiting request is even read", async () => {
+    const ctx = context();
+    waitingIs(staffWaits);
+    const b = confirmBody(ctx);
+    expect(await confirmBookingChange(env, claims, "VT-26-0801", { ...b, expectTotalRappen: b.expectTotalRappen + 1 }, undefined, deps(ctx))).toEqual({ ok: false, code: "price-changed" });
+    expect(await confirmBookingChange(env, claims, "VT-26-0801", { ...b, expectPaidRappen: b.expectPaidRappen - 1 }, undefined, deps(ctx))).toEqual({ ok: false, code: "paid-changed" });
+    expect(asStaff).not.toHaveBeenCalled();
+    expect(expireCheckoutSession).not.toHaveBeenCalled();
+  });
+
+  it("the later close of the replaced page by the write stays (harmless: Stripe says it is not open)", async () => {
+    const ctx = context();
+    waitingIs(staffWaits);
+    writeAnswers(ctx, { old_extra_session_id: "cs_test_wait" });
+    expireCheckoutSession.mockResolvedValue({ status: "expired" });
+    await confirmBookingChange(env, claims, "VT-26-0801", confirmBody(ctx), undefined, deps(ctx));
+    expect(openDifferencePayment.mock.calls[0]![1]).toMatchObject({ supersededSessionId: "cs_test_wait" });
+  });
+});
+
+describe("closeWaitingStaffPage and loadWaitingChange (the helpers Withdraw and both confirms share)", () => {
+  beforeEach(() => {
+    for (const m of [asStaff, expireCheckoutSession, retrieveCheckoutSession]) m.mockReset();
+  });
+
+  it("no page: closed, Stripe is not called", async () => {
+    for (const page of [null, undefined, "", "  "]) {
+      expect(await closeWaitingStaffPage(env, page)).toBe("closed");
+    }
+    expect(expireCheckoutSession).not.toHaveBeenCalled();
+    expect(retrieveCheckoutSession).not.toHaveBeenCalled();
+  });
+
+  it("closed once on success; a refused close is re-read: complete = already-paid, expired = closed, anything else = stripe-failed", async () => {
+    expireCheckoutSession.mockResolvedValueOnce({ status: "expired" });
+    expect(await closeWaitingStaffPage(env, "cs_test_wait")).toBe("closed");
+    expect(expireCheckoutSession).toHaveBeenCalledTimes(1);
+    expect(retrieveCheckoutSession).not.toHaveBeenCalled();
+
+    expireCheckoutSession.mockRejectedValue(new Error("not open"));
+    for (const [status, want] of [["complete", "already-paid"], ["expired", "closed"], ["open", "stripe-failed"], ["", "stripe-failed"]] as const) {
+      retrieveCheckoutSession.mockResolvedValueOnce({ status });
+      expect(await closeWaitingStaffPage(env, "cs_test_wait")).toBe(want);
+    }
+    retrieveCheckoutSession.mockRejectedValueOnce(new Error("timeout"));
+    expect(await closeWaitingStaffPage(env, "cs_test_wait")).toBe("stripe-failed");
+  });
+
+  it("loadWaitingChange reads the newest request still 'requested' of the booking, as staff; none is null; a read error is thrown", async () => {
+    let seen: { text: string; values: unknown[] } | null = null;
+    asStaff.mockImplementation(async (_e: unknown, _c: unknown, fn: (sql: unknown) => unknown) =>
+      fn(async (strings: TemplateStringsArray, ...values: unknown[]) => {
+        seen = { text: strings.join("?"), values };
+        return [{ request_id: "r1", actor: "staff", extra_session_id: "cs_test_wait", reference: "VT-26-0801" }];
+      }),
+    );
+    expect(await loadWaitingChange(env, claims, BOOKING)).toEqual({ request_id: "r1", actor: "staff", extra_session_id: "cs_test_wait", reference: "VT-26-0801" });
+    expect(seen!.values).toEqual([BOOKING]);
+    expect(seen!.text).toMatch(/r\.status = 'requested'/);
+    expect(seen!.text).toMatch(/order by r\.created_at desc\s+limit 1/);
+    asStaff.mockImplementation(async (_e: unknown, _c: unknown, fn: (sql: unknown) => unknown) => fn(async () => []));
+    expect(await loadWaitingChange(env, claims, BOOKING)).toBeNull();
+    asStaff.mockRejectedValue(new Error("boom"));
+    await expect(loadWaitingChange(env, claims, BOOKING)).rejects.toThrow("boom");
   });
 });
 
