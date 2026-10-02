@@ -67,7 +67,7 @@ export default async function TermsPage({
           {t("who-you-contract-with")}
         </h2>
         <p>{t("vamos-taxi-gmbh-bleicherstrasse-16-8953-dietikon")}</p>
-        <div data-slot="1" data-i18n-skip>
+        <div data-slot="1" data-vt-no-i18n>
           <p data-slot-k="1">Client legal text · contracting party</p>
           <p>
             Must state who the transport contract is with, in one sentence a passenger can
@@ -75,7 +75,7 @@ export default async function TermsPage({
           </p>
         </div>
         <p>
-          {t("registered-as")} <span data-i18n-skip>Vamos Taxi</span>
+          {t("registered-as")} <span data-vt-no-i18n>Vamos Taxi</span>
           {t("company-number-ch-020-4-077-792-7-at-the-commerc")}{" "}
           <Link href="/imprint">{tCommon("imprint")}</Link>.
         </p>
@@ -157,7 +157,7 @@ export default async function TermsPage({
           {t("partner-carriers")}
         </h2>
         <p>{t("some-journeys-are-driven-by-a-partner-carrier-wo")}</p>
-        <div data-slot="1" data-i18n-skip>
+        <div data-slot="1" data-vt-no-i18n>
           <p data-slot-k="1">Client legal text · subcontracting</p>
           <p>
             Must state that we may use partner carriers, what standard they are held to, who
@@ -179,7 +179,7 @@ export default async function TermsPage({
           <li>{t("wear-a-seatbelt-and-keep-to-swiss-road-law")}</li>
         </ul>
         <p>{t("smoking-is-not-permitted-in-our-vehicles-alcohol")}</p>
-        <div data-slot="1" data-i18n-skip>
+        <div data-slot="1" data-vt-no-i18n>
           <p data-slot-k="1">Client legal text · refusal of carriage & soiling</p>
           <p>
             Must state when a driver may refuse or end a journey, and what a passenger is
@@ -198,7 +198,7 @@ export default async function TermsPage({
         <p>{t("skis-and-snowboards-folding-bicycles-collapsible")}</p>
         <h3>{t("children")}</h3>
         <p>{t("child-and-booster-seats-are-available-on-request")}</p>
-        <div data-slot="1" data-i18n-skip>
+        <div data-slot="1" data-vt-no-i18n>
           <p data-slot-k="1">Client legal text · refused and unaccompanied items</p>
           <p>Must state what may not be carried, and what happens to luggage left in a vehicle.</p>
         </div>
@@ -284,7 +284,7 @@ export default async function TermsPage({
           <li>{t("complaint-resolved-within-30-days")}</li>
           <li>{t("agreed-refund-paid-30-days-acceptance")}</li>
         </ul>
-        <div data-slot="1" data-i18n-skip>
+        <div data-slot="1" data-vt-no-i18n>
           <p data-slot-k="1">Client legal text · escalation & dispute resolution</p>
           <p>
             Must name the body a customer can go to if we cannot agree. Same slot as on the
@@ -298,7 +298,7 @@ export default async function TermsPage({
           <span data-lg-n="1">13</span>
           {t("liability")}
         </h2>
-        <div data-slot="1" data-i18n-skip>
+        <div data-slot="1" data-vt-no-i18n>
           <p data-slot-k="1">Client legal text · liability</p>
           <p>
             The one section that must be drafted, not adapted. Consequential loss needs to be
@@ -317,7 +317,7 @@ export default async function TermsPage({
           {t("snow-closed-roads-strikes-an-airport-shutdown-ev")}{" "}
           <Link href="/cancellation">{tCommon("cancellation-refund-policy")}</Link>.
         </p>
-        <div data-slot="1" data-i18n-skip>
+        <div data-slot="1" data-vt-no-i18n>
           <p data-slot-k="1">Client legal text · definition and consequences</p>
           <p>Must define the events and state the consequence.</p>
         </div>
@@ -341,7 +341,7 @@ export default async function TermsPage({
           {tCommon("governing-law-venue")}
         </h2>
         <p>{t("swiss-law-applies")}</p>
-        <div data-slot="1" data-i18n-skip>
+        <div data-slot="1" data-vt-no-i18n>
           <p data-slot-k="1">Client legal text · venue</p>
           <p>Must name the court. The obvious answer is the seat of the company in Dietikon ZH.</p>
         </div>

@@ -87,13 +87,13 @@ export default async function ImprintPage({
         </h2>
         <dl data-dl="1">
           <DlRow term={tLegal("registered-firm-name")}>
-            <span data-i18n-skip>Vamos Taxi</span> {tLegal("the-register-entry-carries-the-name-without-gmbh")}
+            <span data-vt-no-i18n>Vamos Taxi</span> {tLegal("the-register-entry-carries-the-name-without-gmbh")}
           </DlRow>
           <DlRow term={tLegal("legal-form")}>
-            <span data-i18n-skip>GmbH</span> {tLegal("swiss-limited-liability-company")}
+            <span data-vt-no-i18n>GmbH</span> {tLegal("swiss-limited-liability-company")}
           </DlRow>
           <DlRow term={tLegal("company-number")}>
-            <span data-i18n-skip>CH-020.4.077.792-7</span>
+            <span data-vt-no-i18n>CH-020.4.077.792-7</span>
           </DlRow>
           <DlRow term={tLegal("register-office")}>{tAbout("canton-of-zurich")}</DlRow>
           <DlRow term={tContact("registered-office")}>
@@ -115,13 +115,13 @@ export default async function ImprintPage({
           <DlRow term={tContact("telephone")}>
             <a href="tel:+41796267082">+41 79 626 70 82</a>
           </DlRow>
-          <DlRow term={<span data-i18n-skip>WhatsApp</span>}>
+          <DlRow term={<span data-vt-no-i18n>WhatsApp</span>}>
             <a href="https://wa.me/41796267082" target="_blank" rel="noreferrer noopener">
               +41 79 626 70 82
             </a>
           </DlRow>
           <DlRow term={tOps("website")}>
-            <span data-i18n-skip>vamostaxi.site</span>
+            <span data-vt-no-i18n>vamostaxi.site</span>
           </DlRow>
           <DlRow term={tLegal("postal-address")}>
             {tLegal("vamos-taxi-gmbh-bleicherstrasse-16-8953-dietikon-3")}
@@ -137,11 +137,11 @@ export default async function ImprintPage({
         </h2>
         <dl data-dl="1">
           <DlRow term={tCommon("name")}>
-            <span data-i18n-skip>Ben Othman Houssein</span>
+            <span data-vt-no-i18n>Ben Othman Houssein</span>
           </DlRow>
           <DlRow term={tCommon("role")}>{tLegal("owner-and-managing-director")}</DlRow>
           <DlRow term={tLegal("responsible-for-content")}>
-            <span data-i18n-skip>Ben Othman Houssein</span>
+            <span data-vt-no-i18n>Ben Othman Houssein</span>
           </DlRow>
         </dl>
       </section>
@@ -154,7 +154,7 @@ export default async function ImprintPage({
         <dl data-dl="1">
           <DlRow term={tLegal("uid-vat-number")}>
             {/* Owner confirmed 2026-09-30 (.planning/quick/260930-lgl-legal-pages-from-eu/DECISIONS.md #4). */}
-            <span data-i18n-skip className="vt-dir-keep">
+            <span data-vt-no-i18n className="vt-dir-keep">
               CHE-296.035.710
             </span>
           </DlRow>
@@ -166,7 +166,7 @@ export default async function ImprintPage({
           <span data-lg-n="1">05</span>
           {tLegal("supervisory-authority-and-licence")}
         </h2>
-        <div data-slot="1" data-i18n-skip>
+        <div data-slot="1" data-vt-no-i18n>
           <p data-slot-k="1">Client input · licence</p>
           <p>
             Carrying passengers in the Canton of Zurich requires a licence. The issuing authority
@@ -185,7 +185,7 @@ export default async function ImprintPage({
           {tLegal("we-take-complaints-directly-the-route-is-in-the")}{" "}
           <Link href="/terms#complaints">{tCommon("terms-conditions")}</Link>.
         </p>
-        <div data-slot="1" data-i18n-skip>
+        <div data-slot="1" data-vt-no-i18n>
           <p data-slot-k="1">Client input · dispute body</p>
           <p>
             If an ombudsman or conciliation body applies, it is named here; for EU guests, also
@@ -200,7 +200,7 @@ export default async function ImprintPage({
           <span data-lg-n="1">07</span>
           {tHome("disclaimer")}
         </h2>
-        <div data-slot="1" data-i18n-skip>
+        <div data-slot="1" data-vt-no-i18n>
           <p data-slot-k="1">Client input · content and links</p>
           <p>
             Standard wording on content, external links and availability. It does not replace

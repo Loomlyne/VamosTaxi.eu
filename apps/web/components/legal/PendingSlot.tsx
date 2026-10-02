@@ -4,7 +4,7 @@
 
 export function PendingSlot({ label }: { label: string }) {
   return (
-    <span data-tok="1" data-i18n-skip title="Awaiting a confirmed value from Vamos Taxi">
+    <span data-tok="1" data-vt-no-i18n title="Awaiting a confirmed value from Vamos Taxi">
       {label}
     </span>
   );
