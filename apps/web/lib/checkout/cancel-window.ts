@@ -16,3 +16,21 @@ export type CustomerCancelWindow = "auto_full" | "pending_ops";
 export function customerCancelWindow(hours: number): CustomerCancelWindow {
   return Number.isFinite(hours) && hours > 24 ? "auto_full" : "pending_ops";
 }
+
+/** Statuses a customer can no longer cancel from: the trip ran, was cancelled, or was refunded. */
+const NOT_CANCELLABLE: readonly string[] = Object.freeze([
+  "completed",
+  "no_show",
+  "cancelled",
+  "partially_cancelled",
+  "refunded",
+]);
+
+/**
+ * 261002: whether the Cancel button shows on the customer's booking page, for the manage link and for the
+ * signed-in view alike. False once the trip ended or was cancelled/refunded, and once the customer reviewed it.
+ * The server still decides what a cancel does; this only keeps the button off a booking that is already over.
+ */
+export function customerCanCancel(status: string, reviewSubmitted: boolean): boolean {
+  return !NOT_CANCELLABLE.includes(String(status).trim().toLowerCase()) && !reviewSubmitted;
+}

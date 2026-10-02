@@ -131,7 +131,7 @@ async function pressRequest(rel: string, authVia: "token" | "account", answer: A
     view: "change",
     mIso: "2026-10-20",
     mTime: "10:00",
-    ticket: { ...(page.state.ticket as object), reference: "VT-26-0101", status: "confirmed", dateLabel: "20 Oct 2026", timeLabel: "08:15", scheduledLocal: "2026-10-20T08:15" },
+    ticket: { ...(page.state.ticket as object), reference: "VT-26-0101", status: "confirmed", scheduledLocal: "2026-10-20T08:15" },
   });
   page.confirmModify();
   for (let i = 0; i < 5; i++) await flush();
@@ -177,7 +177,8 @@ describe.each(PAGES)("%s: Request these changes", (rel) => {
 
   it("a request that goes through keeps its own line and moves to the booking view", async () => {
     const { page } = await pressRequest(rel, "token", { status: 200, body: { ok: true } });
-    expect(page.state.toast).toBe("Time-change requested. Pickup stays 20 Oct 2026 · 08:15 until we confirm.");
+    // 261002: the booked day is labelled from the booked wall clock when the toast is made (Tue 20 Oct, English here).
+    expect(page.state.toast).toBe("Time-change requested. Pickup stays Tue 20 Oct · 08:15 until we confirm.");
     expect(page.state.toastTone).toBe("ok");
     expect(page.state.view).toBe("booking");
   });

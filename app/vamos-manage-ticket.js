@@ -11,6 +11,41 @@
       : en;
   }
 
+  // 261002: the reader's language for dates and country names. The same four-locale map as the home
+  // WhenPicker (app/home/WhenPicker.dc.html loc()); digits stay Latin in Arabic.
+  var LOCALES = { en: "en-GB", de: "de-CH", fr: "fr-CH", ar: "ar-u-nu-latn" };
+
+  function lang() {
+    var l = "en";
+    try {
+      var v = root.VamosLocale && root.VamosLocale.lang;
+      l = (typeof v === "function" ? v() : v) || "en";
+    } catch (e) {}
+    return LOCALES[l] ? l : "en";
+  }
+
+  // "2026-10-06" or "2026-10-06T08:15" -> "Tue 6 Oct" / "Di. 6. Okt." / "mar. 6 oct." / "الثلاثاء، 6 أكتوبر".
+  // The day at UTC noon, formatted in UTC, so the label never shifts with the reader's time zone; commas
+  // out, as the home picker does. "" when there is no day. Pages call it while rendering, so a language
+  // switch re-labels every date.
+  function dayLabel(isoOrLocal) {
+    var m = String(isoOrLocal || "").match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (!m) return "";
+    var noon = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 12, 0, 0));
+    try {
+      return new Intl.DateTimeFormat(LOCALES[lang()], {
+        timeZone: "UTC",
+        weekday: "short",
+        day: "numeric",
+        month: "short",
+      })
+        .format(noon)
+        .replace(/,/g, "");
+    } catch (e) {
+      return m[1] + "-" + m[2] + "-" + m[3];
+    }
+  }
+
   function params() {
     try {
       return new URLSearchParams(String(location.search || ""));
@@ -64,10 +99,15 @@
     );
   }
 
+  // 261002: the account list's status words -> the booking page's. The list folds paid, confirmed and
+  // assigned into "booked" (any status it does not name, in practice partially_cancelled, becomes "new");
+  // the design-system badge has no such keys and fell back to "Awaiting payment". The details answer then
+  // replaces this with the booking's own status (paid, assigned, partially_cancelled, ...).
+  var ACCOUNT_STATUS = { booked: "confirmed", "new": "confirmed", awaiting_payment: "pending", unpaid: "pending" };
+
   function fromAccount(row) {
     var status = String((row && row.status) || "");
-    if (status === "unpaid") status = "pending";
-    if (status === "new" || status === "confirmed") status = "confirmed";
+    status = ACCOUNT_STATUS[status] || status;
     return {
       id: (row && row.id) || "",
       reference: (row && (row.ref || row.reference)) || "",
@@ -75,9 +115,9 @@
       pickupText: (row && row.pickup) || "",
       dropoffText: (row && row.dropoff) || "",
       // 26.2 P6 (D13): the day and time as booked, so a time change from the account view has its day.
+      // 261002: no English date label here any more; the pages label the day and time from this, in the
+      // reader's language, every time they render.
       scheduledLocal: row && row.dateIso && row.time ? row.dateIso + "T" + row.time : "",
-      dateLabel: (row && row.date) || "",
-      timeLabel: (row && row.time) || "",
       // 26.2 P6 (D19): the flight number as booked, so the flight row shows and can be changed here too.
       flightNo: (row && row.flightNo) || "",
       pax: (row && row.pax) || 1,
@@ -86,12 +126,15 @@
       money: null,
       refundStatus: "none",
       refundOwedRappen: 0,
-      reviewSubmitted: false,
+      // 261002: whether it was reviewed comes from the list; whether Cancel shows, and its window, from the
+      // details answer (loadAccount). Until that answer lands there is no Cancel.
+      reviewSubmitted: !!(row && row.reviewState === "reviewed"),
       canCancel: false,
       cancelWindow: "none",
       contactName: "",
       // 26.2 P6 (D19): the booking's address, so "Send it again to …" and "Confirmation sent to" name it.
       contactEmail: (row && row.contactEmail) || "",
+      payoutCountry: null,
       payoutCountryLabel: null,
       availableOn: null,
       priceTotalRappen: (row && row.priceRappen) || 0,
@@ -129,6 +172,13 @@
           booking.refundStatus = d.body.refundStatus || "none";
           booking.refundOwedRappen = Number(d.body.refundOwedRappen) || 0;
           booking.refundedRappen = Number(d.body.refundedRappen) || 0;
+          // 261002: the booking's own status (paid, assigned, partially_cancelled, ...), whether Cancel shows
+          // and in which window, and whether it was reviewed. A failed read leaves "no Cancel" from fromAccount.
+          if (d.body.status) booking.status = String(d.body.status);
+          booking.canCancel = d.body.canCancel === true;
+          booking.cancelWindow =
+            d.body.cancelWindow === "auto_full" || d.body.cancelWindow === "pending_ops" ? d.body.cancelWindow : "none";
+          if (typeof d.body.reviewSubmitted === "boolean") booking.reviewSubmitted = d.body.reviewSubmitted;
         }
         return { kind: "booking", booking: booking, via: "account" };
       });
@@ -253,14 +303,25 @@
     return t(CHANGE_CREDIT_LINE).split("{class}").join(cls).split("{amount}").join(money);
   }
 
+  // 261002: the country of the card the refund went to, in the reader's language: from the ISO code
+  // (CH when none came) through the browser's region names, else the server's English label, else Switzerland.
+  function countryName(booking) {
+    var code = String((booking && booking.payoutCountry) || "CH").toUpperCase();
+    try {
+      var name = new Intl.DisplayNames([lang()], { type: "region" }).of(code);
+      if (name && code !== "ZZ" && name.toUpperCase() !== code) return name;
+    } catch (e) {}
+    var label = booking && booking.payoutCountryLabel;
+    return label ? t(label) : t("Switzerland");
+  }
+
   function refundedCopy(booking) {
     if (!booking || String(booking.refundStatus).toLowerCase() !== "refunded") return "";
-    var country = booking.payoutCountryLabel || t("Switzerland");
-    var line = t("Refunded to your {country} card.").replace("{country}", country);
-    if (booking.availableOn) {
-      var d = String(booking.availableOn).slice(0, 10);
-      line += " " + t("Stripe pays out on {date}.").replace("{date}", d);
-    }
+    var line = t("Refunded to your {country} card.").replace("{country}", countryName(booking));
+    // The day Stripe pays out, labelled like every other date on the page.
+    var day = booking.availableOn ? dayLabel(booking.availableOn) : "";
+    // A day that ends in a full stop ("mar. 6 oct.") must not leave two at the end of the sentence.
+    if (day) line += " " + t("Stripe pays out on {date}.").replace("{date}", day).replace(/\.\.$/, ".");
     return line;
   }
 
@@ -268,6 +329,9 @@
     NOT_FOUND: NOT_FOUND,
     GONE: GONE,
     t: t,
+    LOCALES: LOCALES,
+    lang: lang,
+    dayLabel: dayLabel,
     token: token,
     refQuery: refQuery,
     isDetail: isDetail,
