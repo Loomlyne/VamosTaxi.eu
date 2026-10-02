@@ -58,12 +58,6 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-lg-prose] a{color:var(--vt-charcoal-900);text-decoration:underline;text-decoration-color:var(--vt-grey-300);text-underline-offset:3px;transition:color 140ms cubic-bezier(.2,0,.2,1)}
 [data-lg-prose] a:hover{color:var(--vt-yellow-700);text-decoration-color:currentColor}
 [data-lg-n]{display:block;margin-bottom:9px;font-family:var(--vt-font-body);font-size:var(--vt-body-xs);letter-spacing:var(--vt-label-tracking);font-weight:var(--vt-label-weight);color:var(--vt-charcoal-600)}
-[data-tok]{display:inline-flex;align-items:baseline;gap:5px;font-family:var(--vt-font-body);font-weight:var(--vt-weight-medium);font-size:.97em;background:var(--vt-yellow-50);border:1px solid var(--vt-yellow-300);color:var(--vt-charcoal-900);border-radius:var(--vt-radius-xs);padding:0 7px;white-space:nowrap}
-[data-tok]::after{content:"TBC";font-family:var(--vt-font-body);font-size:.66em;font-weight:700;letter-spacing:.1em;color:var(--vt-yellow-700)}
-[data-slot]{display:none!important;margin:0 0 16px;border:1px dashed var(--vt-grey-300);background:var(--vt-grey-50);border-radius:var(--vt-radius-md);padding:16px 18px}
-[data-slot-k]{display:flex;align-items:center;gap:8px;margin:0 0 6px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
-[data-slot-k]::before{content:"";width:8px;height:8px;flex:0 0 auto;background:var(--vt-grey-300)}
-[data-slot] p{margin:0;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)}
 [data-flag]{margin:0 0 16px;border:1px solid var(--vt-charcoal-900);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);padding:18px 20px}
 [data-flag-k]{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-charcoal-900)}
 [data-flag] p{margin:0 0 10px;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)}
@@ -98,7 +92,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-lang="both"] [data-lg-tl] [lang="en"],[data-lang="both"] [data-crumb] [lang="en"],[data-lang="both"] [data-x-link] [lang="en"]{display:none}
 [data-lang="both"] h1 [lang="en"],[data-lang="both"] h2 [lang="en"],[data-lang="both"] h3 [lang="en"]{display:block;margin-top:4px;font-size:var(--vt-heading-3);color:var(--vt-text-muted)}
 [data-lang="both"] h1 [lang="en"]{font-size:var(--vt-heading-2);color:var(--vt-text-inverse-muted)}
-[data-lang="both"] [data-dl-v] [lang="en"],[data-lang="both"] p [lang="en"],[data-lang="both"] [data-slot] [lang="en"]{display:block;margin-top:6px;color:var(--vt-text-muted)}
+[data-lang="both"] [data-dl-v] [lang="en"],[data-lang="both"] p [lang="en"]{display:block;margin-top:6px;color:var(--vt-text-muted)}
 [data-lang="both"] [data-hero-sub] [lang="en"]{display:block;margin-top:8px;color:var(--vt-text-inverse-muted)}
 :focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}
 @media (min-width:620px){[data-dl-r]{grid-template-columns:230px minmax(0,1fr)}}
@@ -110,8 +104,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-lg-prose]{max-width:none;font-size:10.5pt;color:#000}
 [data-lg-hero]{background:#fff!important;color:#000!important;border-bottom:1px solid #000}
 [data-lg-hero] *{color:#000!important}
-[data-tok]{background:#fff!important;border-color:#000!important;color:#000!important}
-[data-dl-r],[data-slot],[data-flag]{break-inside:avoid;page-break-inside:avoid}
+[data-dl-r],[data-flag]{break-inside:avoid;page-break-inside:avoid}
 @page{margin:18mm}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}</style>
 </helmet>
@@ -155,9 +148,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <a data-lg-tl="1" href="#kontakt"><i>02</i><span lang="de" data-vt-no-i18n="1">Kontakt</span><span lang="en">Contact</span></a>
 <a data-lg-tl="1" href="#vertretung"><i>03</i><span lang="de" data-vt-no-i18n="1">Vertretungsberechtigte Person</span><span lang="en">Authorised representative</span></a>
 <a data-lg-tl="1" href="#mwst"><i>04</i><span lang="de" data-vt-no-i18n="1">Mehrwertsteuer</span><span lang="en">VAT</span></a>
-<a data-lg-tl="1" href="#aufsicht"><i>05</i><span lang="de" data-vt-no-i18n="1">Aufsichtsbehörde</span><span lang="en">Supervisory authority</span></a>
 <a data-lg-tl="1" href="#dispute"><i>06</i><span lang="de" data-vt-no-i18n="1">Streitbeilegung</span><span lang="en">Dispute resolution</span></a>
-<a data-lg-tl="1" href="#haftung"><i>07</i><span lang="de" data-vt-no-i18n="1">Haftungsausschluss</span><span lang="en">Disclaimer</span></a>
 <a data-lg-tl="1" href="#urheberrecht"><i>08</i><span lang="de" data-vt-no-i18n="1">Urheberrecht</span><span lang="en">Copyright</span></a>
 <a data-lg-tl="1" href="#credits"><i>09</i><span lang="de" data-vt-no-i18n="1">Gestaltung</span><span lang="en">Design &amp; build</span></a>
 </div>
@@ -181,8 +172,8 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <h2><span data-lg-n="1">01</span><span lang="de" data-vt-no-i18n="1">Angaben gemäss Handelsregister</span><span lang="en">Register details</span></h2>
 <div data-dl="1">
 <div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Eingetragener Firmenname</span><span lang="en">Registered firm name</span></span><span data-dl-v="1">Vamos Taxi<span lang="de" data-vt-no-i18n="1"> — der Registereintrag führt den Namen ohne „GmbH“</span><span lang="en"> — the register entry carries the name without “GmbH”</span></span></div>
-<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Rechtsform</span><span lang="en">Legal form</span></span><span data-dl-v="1">GmbH<span lang="en"> · Swiss limited liability company</span></span></div>
-<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Firmennummer</span><span lang="en">Company number</span></span><span data-dl-v="1">CH-020.4.077.792-7</span></div>
+<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Rechtsform</span><span lang="en">Legal form</span></span><span data-dl-v="1"><span data-vt-no-i18n="1">GmbH</span><span lang="en"> · Swiss limited liability company</span></span></div>
+<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Firmennummer</span><span lang="en">Company number</span></span><span data-dl-v="1"><span class="vt-dir-keep" data-vt-no-i18n="1">CH-020.4.077.792-7</span></span></div>
 <div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Handelsregisteramt</span><span lang="en">Register office</span></span><span data-dl-v="1"><span lang="de" data-vt-no-i18n="1">Kanton Zürich</span><span lang="en">Canton of Zurich</span></span></div>
 <div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Sitz</span><span lang="en">Registered office</span></span><span data-dl-v="1">Bleicherstrasse 16, 8953 Dietikon ZH<span lang="en">, Switzerland</span></span></div>
 </div>
@@ -195,7 +186,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">E-Mail</span><span lang="en">Email</span></span><span data-dl-v="1"><a href="mailto:info@vamostaxi.site">info@vamostaxi.site</a></span></div>
 <div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Telefon</span><span lang="en">Telephone</span></span><span data-dl-v="1"><a href="tel:+41796267082"><span class="vt-dir-keep">+41 79 626 70 82</span></a></span></div>
 <div data-dl-r="1"><span data-dl-k="1">WhatsApp</span><span data-dl-v="1"><a href="https://wa.me/41796267082" target="_blank" rel="noreferrer noopener"><span class="vt-dir-keep">+41 79 626 70 82</span></a></span></div>
-<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Website</span><span lang="en">Website</span></span><span data-dl-v="1">vamostaxi.site</span></div>
+<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Website</span><span lang="en">Website</span></span><span data-dl-v="1"><span class="vt-dir-keep" data-vt-no-i18n="1">vamostaxi.site</span></span></div>
 <div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Postadresse</span><span lang="en">Postal address</span></span><span data-dl-v="1">Vamos Taxi GmbH, Bleicherstrasse 16, 8953 Dietikon ZH</span></div>
 </div>
 <p><span lang="de" data-vt-no-i18n="1">Fragen zu einer bestehenden Buchung beantwortet dieselbe Adresse — bitte mit Buchungsreferenz.</span><span lang="en">The same address answers questions about an existing booking — quote the booking reference.</span></p>
@@ -204,9 +195,9 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <section id="vertretung">
 <h2><span data-lg-n="1">03</span><span lang="de" data-vt-no-i18n="1">Vertretungsberechtigte Person</span><span lang="en">Authorised representative</span></h2>
 <div data-dl="1">
-<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Name</span><span lang="en">Name</span></span><span data-dl-v="1">Ben Othman Houssein</span></div>
+<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Name</span><span lang="en">Name</span></span><span data-dl-v="1" data-vt-no-i18n="1">Ben Othman Houssein</span></div>
 <div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Funktion</span><span lang="en">Role</span></span><span data-dl-v="1"><span lang="de" data-vt-no-i18n="1">Inhaber und Geschäftsleitung</span><span lang="en">Owner and managing director</span></span></div>
-<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Inhaltlich verantwortlich</span><span lang="en">Responsible for content</span></span><span data-dl-v="1">Ben Othman Houssein</span></div>
+<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Inhaltlich verantwortlich</span><span lang="en">Responsible for content</span></span><span data-dl-v="1" data-vt-no-i18n="1">Ben Othman Houssein</span></div>
 </div>
 </section>
 
@@ -217,50 +208,24 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 </div>
 </section>
 
-<section id="aufsicht">
-<h2><span data-lg-n="1">05</span><span lang="de" data-vt-no-i18n="1">Aufsichtsbehörde und Bewilligung</span><span lang="en">Supervisory authority and licence</span></h2>
-<div data-vt-no-i18n="1" data-slot="1">
-<p data-slot-k="1"><span lang="de" data-vt-no-i18n="1">Kundeneingabe · Bewilligung</span><span lang="en">Client input · licence</span></p>
-<sc-if value="{{ slotNotes }}" hint-placeholder-val="{{ true }}">
-<p><span lang="de" data-vt-no-i18n="1">Personentransport im Kanton Zürich ist bewilligungspflichtig. Hier gehören die erteilende Stelle und die Bewilligungsnummer hin — sie sind ein Vertrauenssignal und kein Kleingedrucktes. Auf der bisherigen Website fehlen beide.</span><span lang="en">Carrying passengers in the Canton of Zurich requires a licence. The issuing authority and the licence number belong here — they are a trust signal, not small print. Both are missing from the previous site.</span></p>
-</sc-if>
-</div>
-</section>
-
 <section id="dispute">
 <h2><span data-lg-n="1">06</span><span lang="de" data-vt-no-i18n="1">Streitbeilegung</span><span lang="en">Dispute resolution</span></h2>
 <p><span lang="de" data-vt-no-i18n="1">Beschwerden nehmen wir direkt entgegen; der Ablauf steht in den <a href="terms.dc.html#complaints">AGB</a>.</span><span lang="en">We take complaints directly; the route is in the <a href="terms.dc.html#complaints">terms</a>.</span></p>
-<div data-vt-no-i18n="1" data-slot="1">
-<p data-slot-k="1"><span lang="de" data-vt-no-i18n="1">Kundeneingabe · Schlichtungsstelle</span><span lang="en">Client input · dispute body</span></p>
-<sc-if value="{{ slotNotes }}" hint-placeholder-val="{{ true }}">
-<p><span lang="de" data-vt-no-i18n="1">Falls eine Schlichtungsstelle zuständig ist, wird sie hier genannt; für Gäste aus der EU zusätzlich, ob eine Online-Streitbeilegungsplattform gilt. Dieselbe Antwort füllt den Slot in den <a href="terms.dc.html#complaints">AGB</a>.</span><span lang="en">If an ombudsman or conciliation body applies, it is named here; for EU guests, also whether an online dispute-resolution platform applies. One answer fills this slot and the matching one in the <a href="terms.dc.html#complaints">terms</a>.</span></p>
-</sc-if>
-</div>
-</section>
-
-<section id="haftung">
-<h2><span data-lg-n="1">07</span><span lang="de" data-vt-no-i18n="1">Haftungsausschluss</span><span lang="en">Disclaimer</span></h2>
-<div data-vt-no-i18n="1" data-slot="1">
-<p data-slot-k="1"><span lang="de" data-vt-no-i18n="1">Kundeneingabe · Haftung für Inhalte und Links</span><span lang="en">Client input · content and links</span></p>
-<sc-if value="{{ slotNotes }}" hint-placeholder-val="{{ true }}">
-<p><span lang="de" data-vt-no-i18n="1">Standardtext zu Inhalten, externen Links und Verfügbarkeit. Er ersetzt nicht die Haftungsregelung für die Fahrt selbst — die steht in den <a href="terms.dc.html#liability">AGB</a>, und beide dürfen sich nicht widersprechen.</span><span lang="en">Standard wording on content, external links and availability. It does not replace liability for the journey itself, which sits in the <a href="terms.dc.html#liability">terms</a> — the two must not contradict each other.</span></p>
-</sc-if>
-</div>
 </section>
 
 <section id="urheberrecht">
 <h2><span data-lg-n="1">08</span><span lang="de" data-vt-no-i18n="1">Urheberrecht</span><span lang="en">Copyright</span></h2>
 <p><span lang="de" data-vt-no-i18n="1">Texte, Bilder, Marke und Gestaltung dieser Website gehören Vamos Taxi GmbH oder den jeweiligen Rechteinhabern. Weiterverwendung nur mit schriftlicher Zustimmung.</span><span lang="en">Text, images, the brand and the design of this site belong to Vamos Taxi GmbH or to the respective rights holders. Reuse only with written permission.</span></p>
 <div data-dl="1">
-<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Bildnachweis</span><span lang="en">Image credits</span></span><span data-dl-v="1">Vamos Taxi / Loomlyne</span></div>
+<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Bildnachweis</span><span lang="en">Image credits</span></span><span data-dl-v="1" data-vt-no-i18n="1">Vamos Taxi / Loomlyne</span></div>
 </div>
 </section>
 
 <section id="credits">
 <h2><span data-lg-n="1">09</span><span lang="de" data-vt-no-i18n="1">Gestaltung und Umsetzung</span><span lang="en">Design and build</span></h2>
 <div data-dl="1">
-<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Marke und Gestaltung</span><span lang="en">Brand and design</span></span><span data-dl-v="1">Loomlyne</span></div>
-<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Website</span><span lang="en">Website</span></span><span data-dl-v="1">Loomlyne</span></div>
+<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Marke und Gestaltung</span><span lang="en">Brand and design</span></span><span data-dl-v="1" data-vt-no-i18n="1">Loomlyne</span></div>
+<div data-dl-r="1"><span data-dl-k="1"><span lang="de" data-vt-no-i18n="1">Website</span><span lang="en">Website</span></span><span data-dl-v="1" data-vt-no-i18n="1">Loomlyne</span></div>
 </div>
 <p><span lang="de" data-vt-no-i18n="1">Nennung nur, wenn die Agenturen zustimmen — sonst entfallen die Zeilen.</span><span lang="en">Credit only where the agencies agree — otherwise the rows come out.</span></p>
 </section>
@@ -290,7 +255,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 </div>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;startLanguage&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;en&quot;,&quot;options&quot;:[&quot;de&quot;,&quot;en&quot;,&quot;both&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Language&quot;},&quot;showSlotNotes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Review&quot;},&quot;cookieState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;auto&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;banner&quot;,&quot;prefs&quot;,&quot;hidden&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Review&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;startLanguage&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;en&quot;,&quot;options&quot;:[&quot;de&quot;,&quot;en&quot;,&quot;both&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Language&quot;},&quot;cookieState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;auto&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;banner&quot;,&quot;prefs&quot;,&quot;hidden&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Review&quot;}}">
 class Component extends DCLogic {
   constructor(props) {
     super(props);
@@ -350,7 +315,6 @@ class Component extends DCLogic {
       tocOpen: this.state.tocOpen ? '1' : null,
       toggleToc: this.toggleToc, doPrint: this.doPrint,
       proseRef: this.proseRef, tocRef: this.tocRef,
-      slotNotes: (this.props.showSlotNotes ?? true) !== false,
       cookieState: this.props.cookieState || 'auto',
     };
   }

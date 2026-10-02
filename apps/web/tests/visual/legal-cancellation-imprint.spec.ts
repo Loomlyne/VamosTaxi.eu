@@ -246,6 +246,13 @@ test.describe("Cancellation and imprint pages @component", () => {
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
     const imprintTok = await page.locator("[data-tok]").allTextContents();
     expect(imprintTok).toHaveLength(0);
+    // U07-2 (owner 2026-10-03, "Hide those sections"): 05 licence and 07 disclaimer are not
+    // rendered until real text exists, and no section is left as a bare heading.
+    await expect(page.locator("#aufsicht, #haftung")).toHaveCount(0);
+    const bare = await page.locator("main section[id]").evaluateAll((els) =>
+      els.filter((el) => Array.from(el.children).every((c) => c.tagName === "H2")).map((el) => el.id),
+    );
+    expect(bare).toEqual([]);
     expect(await toks("/en/imprint")).toEqual(imprintTok);
     expect(await toks("/de/imprint")).toEqual(imprintTok);
     expect(await toks("/fr/imprint")).toEqual(imprintTok);

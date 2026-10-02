@@ -1917,7 +1917,7 @@
       'Routes your request and keeps the site available': { de: 'Leitet Ihre Anfrage weiter und hält die Website verfügbar', fr: 'Achemine votre requête et maintient le site disponible', ar: 'يوجّه طلبك ويُبقي الموقع متاحًا' },
       'Convenience only. Decline them and everything still works, you just retype more.': { de: 'Reiner Komfort. Lehnen Sie sie ab, funktioniert weiterhin alles — Sie tippen nur mehr.', fr: 'Confort uniquement. Refusez-les et tout fonctionne encore, vous saisirez simplement davantage.', ar: 'للراحة فقط. إن رفضتها يبقى كل شيء يعمل، لكنك ستُعيد الكتابة أكثر.' },
       'Functional — off until you allow them': { de: 'Funktional — aus, bis Sie sie erlauben', fr: 'Fonctionnels — désactivés jusqu’à votre autorisation', ar: 'وظيفية — معطّلة حتى تسمح بها' },
-      'Remembers whether you read the site in English or German': { de: 'Merkt sich, ob Sie die Website auf Englisch oder Deutsch lesen', fr: 'Retient si vous lisez le site en anglais ou en allemand', ar: 'يتذكّر ما إذا كنت تقرأ الموقع بالإنجليزية أم الألمانية' },
+      "Remembers which language you read the site in": { de: "Merkt sich, in welcher Sprache Sie die Website lesen", fr: "Retient la langue dans laquelle vous lisez le site", ar: "يتذكّر اللغة التي تقرأ بها الموقع" },
       'Offers your last pickup address the next time you book': { de: 'Schlägt bei der nächsten Buchung Ihre letzte Abholadresse vor', fr: 'Propose votre dernière adresse de prise en charge lors de votre prochaine réservation', ar: 'يقترح آخر عنوان انطلاق لك في المرة القادمة' },
       'Which step of a booking people give up on, and which errors are breaking. Aggregated, and never used to make a decision about you.': { de: 'Bei welchem Buchungsschritt Menschen abbrechen und welche Fehler auftreten. Aggregiert, und nie Grundlage einer Entscheidung über Sie.', fr: 'À quelle étape d’une réservation les gens abandonnent, et quelles erreurs cassent. Agrégé, et jamais utilisé pour prendre une décision vous concernant.', ar: 'أي خطوة من الحجز يتركها الناس، وأي أخطاء تتعطّل. مجمّعة، ولا تُستخدم أبدًا لاتخاذ قرار بشأنك.' },
       'Analytics — off until you allow them': { de: 'Analyse — aus, bis Sie sie erlauben', fr: 'Analyse — désactivés jusqu’à votre autorisation', ar: 'تحليلات — معطّلة حتى تسمح بها' },
@@ -2332,6 +2332,29 @@
       'Customer': { de: 'Kunde', fr: 'Client', ar: 'العميل' },
       'Pricing': { de: 'Preise', fr: 'Tarifs', ar: 'الأسعار' },
       'Pages': { de: 'Seiten', fr: 'Pages', ar: 'الصفحات' },
+      /* 26.2 audit U08-11 legal lines, owner-approved 2026-10-03
+         (.planning/decisions/2026-10-03-legal-translations-approved.md), used verbatim.
+         The register number (terms 01) and the figure 10 (privacy 06) sit in
+         vt-dir-keep + data-vt-no-i18n spans, so their lines are keyed around them. */
+"Registered as Vamos Taxi GmbH, company number": { de: "Eingetragen als Vamos Taxi GmbH, Firmennummer", fr: "Immatriculée sous le nom Vamos Taxi GmbH, numéro d’entreprise", ar: "مسجّلة باسم Vamos Taxi GmbH، رقم الشركة" },
+      "at the commercial register of the Canton of Zurich. Full company details are on the": { de: "im Handelsregister des Kantons Zürich. Alle Angaben zum Unternehmen stehen im", fr: "au registre du commerce du canton de Zurich. Les coordonnées complètes figurent dans les", ar: "في السجل التجاري لكانتون زيورخ. تفاصيل الشركة كاملةً في" },
+      "Oversized or unusual items declared at booking: shown on your quote.": { de: "Übergrosse oder aussergewöhnliche Gegenstände, bei der Buchung angemeldet: in Ihrem Angebot ausgewiesen.", fr: "Objets hors format ou inhabituels déclarés à la réservation : indiqué sur votre devis.", ar: "الأغراض كبيرة الحجم أو غير المعتادة المُعلَنة عند الحجز: مبيّنة في عرض السعر الخاص بك." },
+      "Accepted methods: Visa, Mastercard, Apple Pay, Google Pay and TWINT.": { de: "Akzeptierte Zahlungsmittel: Visa, Mastercard, Apple Pay, Google Pay und TWINT.", fr: "Moyens acceptés : Visa, Mastercard, Apple Pay, Google Pay et TWINT.", ar: "وسائل الدفع المقبولة: Visa وMastercard وApple Pay وGoogle Pay وTWINT." },
+      "no DPO appointed": { de: "kein Datenschutzberater ernannt", fr: "aucun délégué désigné", ar: "لم يُعيَّن مسؤول لحماية البيانات" },
+      "none appointed": { de: "keine ernannt", fr: "aucun désigné", ar: "لم يُعيَّن أحد" },
+      "Booking database and sign-in · Zurich": { de: "Buchungsdatenbank und Anmeldung · Zürich", fr: "Base de réservations et connexion · Zurich", ar: "قاعدة بيانات الحجوزات وتسجيل الدخول · زيورخ" },
+      "Confirmation and driver-detail emails · used when transactional mail is on": { de: "Bestätigungs- und Fahrerdaten-E-Mails · im Einsatz, wenn der Versand von Transaktions-E-Mails aktiv ist", fr: "E-mails de confirmation et coordonnées du chauffeur · utilisé lorsque l’envoi des e-mails transactionnels est activé", ar: "رسائل التأكيد وبيانات السائق · يُستخدم عند تفعيل رسائل المعاملات" },
+      "Error diagnostics · not in use": { de: "Fehlerdiagnose · nicht im Einsatz", fr: "Diagnostic des erreurs · non utilisé", ar: "تشخيص الأعطال · غير مستخدم" },
+      "Cloudflare Web Analytics (cookieless)": { de: "Cloudflare Web Analytics (ohne Cookies)", fr: "Cloudflare Web Analytics (sans cookie)", ar: "Cloudflare Web Analytics (بدون ملفات ارتباط)" },
+      "Site analytics, only with your consent · Cloudflare": { de: "Website-Analyse, nur mit Ihrer Einwilligung · Cloudflare", fr: "Analyse du site, uniquement avec votre consentement · Cloudflare", ar: "تحليلات الموقع، بموافقتك فقط · Cloudflare" },
+      "as long as needed to run the service": { de: "so lange, wie für den Betrieb des Dienstes nötig", fr: "aussi longtemps que nécessaire au fonctionnement du service", ar: "طالما كان ذلك ضروريًا لتشغيل الخدمة" },
+      "as long as needed to show consent — proof of what you chose, and when.": { de: "so lange, wie nötig, um die Einwilligung zu belegen — Nachweis, was Sie gewählt haben und wann.", fr: "aussi longtemps que nécessaire pour attester du consentement — preuve de ce que vous avez choisi, et quand.", ar: "طالما كان ذلك ضروريًا لإثبات الموافقة — دليل على ما اخترته ومتى." },
+      "not in use until live payments": { de: "nicht im Einsatz bis zum Start der echten Zahlungen", fr: "non utilisé avant l’activation des paiements réels", ar: "غير مستخدم حتى تفعيل المدفوعات الفعلية" },
+      "as set by Cloudflare": { de: "wie von Cloudflare festgelegt", fr: "tel que défini par Cloudflare", ar: "كما تحدّده Cloudflare" },
+      "until you change language": { de: "bis Sie die Sprache ändern", fr: "jusqu’à ce que vous changiez de langue", ar: "إلى أن تغيّر اللغة" },
+      "until you clear it": { de: "bis Sie die letzten Orte löschen", fr: "jusqu’à ce que vous effaciez les lieux récents", ar: "إلى أن تمسح الأماكن الأخيرة" },
+      "years (Swiss books) for accounting and tax.": { de: "Jahre (Schweizer Geschäftsbücher) für Buchhaltung und Steuern.", fr: "ans (livres comptables suisses) pour la comptabilité et la fiscalité.", ar: "سنوات (الدفاتر التجارية السويسرية) للمحاسبة والضرائب." },
+      "Where our records show you were at the pickup point and no vehicle came, you receive a full refund.": { de: "Wenn unsere Aufzeichnungen zeigen, dass Sie am Abholpunkt waren und kein Fahrzeug kam, erhalten Sie eine volle Rückerstattung.", fr: "Si nos relevés montrent que vous étiez au point de prise en charge et qu’aucun véhicule n’est venu, vous êtes remboursé intégralement.", ar: "إذا أظهرت سجلاتنا أنك كنت في نقطة الانطلاق ولم تصل أي سيارة، تحصل على استرداد كامل للمبلغ." },
     },
   };
 
