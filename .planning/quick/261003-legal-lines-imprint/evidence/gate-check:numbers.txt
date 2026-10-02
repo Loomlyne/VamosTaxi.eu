@@ -1,0 +1,2 @@
+$ node scripts/check-no-invented-numbers.mjs
+check-no-invented-numbers: ok
