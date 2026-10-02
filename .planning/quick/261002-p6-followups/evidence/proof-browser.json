@@ -1,0 +1,1339 @@
+{
+ "at": "2026-10-02T09:54:34.213Z",
+ "base": "http://localhost:4790",
+ "only": [],
+ "seed": {
+  "tag": "b5a9f0f1",
+  "bookings": {
+   "van10": "VT-26-0041",
+   "waiting": "VT-26-0042",
+   "plain": "VT-26-0043"
+  }
+ },
+ "results": [
+  {
+   "id": "S0",
+   "name": "the local stack accepts the customer's password (admin API)",
+   "ok": true,
+   "detail": "customer 200"
+  },
+  {
+   "id": "S1",
+   "name": "the customer signs in at /sign-in with a password (state reused by the signed-in checks)",
+   "ok": true,
+   "detail": "cookies 3, session signedIn=true"
+  },
+  {
+   "id": "P1 guest en 1440",
+   "name": "van10 reads 10 travellers, no 8",
+   "ok": true,
+   "detail": "line \"10 passengers\" (expected \"10 passengers\") x1; 8-line present: false; dir ltr; Van luxury shown: true; scrollWidth 1440/1440"
+  },
+  {
+   "id": "P1 guest en 1024",
+   "name": "van10 reads 10 travellers, no 8",
+   "ok": true,
+   "detail": "line \"10 passengers\" (expected \"10 passengers\") x1; 8-line present: false; dir ltr; Van luxury shown: true; scrollWidth 1024/1024"
+  },
+  {
+   "id": "P1 guest en 768",
+   "name": "van10 reads 10 travellers, no 8",
+   "ok": true,
+   "detail": "line \"10 passengers\" (expected \"10 passengers\") x1; 8-line present: false; dir ltr; Van luxury shown: true; scrollWidth 768/768"
+  },
+  {
+   "id": "P1 guest en 390",
+   "name": "van10 reads 10 travellers, no 8",
+   "ok": true,
+   "detail": "line \"10 passengers\" (expected \"10 passengers\") x1; 8-line present: false; dir ltr; Van luxury shown: true; scrollWidth 390/390"
+  },
+  {
+   "id": "P1 guest de 1440",
+   "name": "van10 reads 10 travellers, no 8",
+   "ok": true,
+   "detail": "line \"10 Passagiere\" (expected \"10 Passagiere\") x1; 8-line present: false; dir ltr; Van luxury shown: true; scrollWidth 1440/1440"
+  },
+  {
+   "id": "P1 guest de 1024",
+   "name": "van10 reads 10 travellers, no 8",
+   "ok": true,
+   "detail": "line \"10 Passagiere\" (expected \"10 Passagiere\") x1; 8-line present: false; dir ltr; Van luxury shown: true; scrollWidth 1024/1024"
+  },
+  {
+   "id": "P1 guest de 768",
+   "name": "van10 reads 10 travellers, no 8",
+   "ok": true,
+   "detail": "line \"10 Passagiere\" (expected \"10 Passagiere\") x1; 8-line present: false; dir ltr; Van luxury shown: true; scrollWidth 768/768"
+  },
+  {
+   "id": "P1 guest de 390",
+   "name": "van10 reads 10 travellers, no 8",
+   "ok": true,
+   "detail": "line \"10 Passagiere\" (expected \"10 Passagiere\") x1; 8-line present: false; dir ltr; Van luxury shown: true; scrollWidth 390/390"
+  },
+  {
+   "id": "P1 guest fr 1440",
+   "name": "van10 reads 10 travellers, no 8",
+   "ok": true,
+   "detail": "line \"10 passagers\" (expected \"10 passagers\") x1; 8-line present: false; dir ltr; Van luxury shown: true; scrollWidth 1440/1440"
+  },
+  {
+   "id": "P1 guest fr 1024",
+   "name": "van10 reads 10 travellers, no 8",
+   "ok": true,
+   "detail": "line \"10 passagers\" (expected \"10 passagers\") x1; 8-line present: false; dir ltr; Van luxury shown: true; scrollWidth 1024/1024"
+  },
+  {
+   "id": "P1 guest fr 768",
+   "name": "van10 reads 10 travellers, no 8",
+   "ok": true,
+   "detail": "line \"10 passagers\" (expected \"10 passagers\") x1; 8-line present: false; dir ltr; Van luxury shown: true; scrollWidth 768/768"
+  },
+  {
+   "id": "P1 guest fr 390",
+   "name": "van10 reads 10 travellers, no 8",
+   "ok": true,
+   "detail": "line \"10 passagers\" (expected \"10 passagers\") x1; 8-line present: false; dir ltr; Van luxury shown: true; scrollWidth 390/390"
+  },
+  {
+   "id": "P1 guest ar 1440",
+   "name": "van10 reads 10 travellers, no 8",
+   "ok": true,
+   "detail": "line \"10 ركاب\" (expected \"10 ركاب\") x1; 8-line present: false; dir rtl; Van luxury shown: true; scrollWidth 1440/1440"
+  },
+  {
+   "id": "P1 guest ar 1024",
+   "name": "van10 reads 10 travellers, no 8",
+   "ok": true,
+   "detail": "line \"10 ركاب\" (expected \"10 ركاب\") x1; 8-line present: false; dir rtl; Van luxury shown: true; scrollWidth 1024/1024"
+  },
+  {
+   "id": "P1 guest ar 768",
+   "name": "van10 reads 10 travellers, no 8",
+   "ok": true,
+   "detail": "line \"10 ركاب\" (expected \"10 ركاب\") x1; 8-line present: false; dir rtl; Van luxury shown: true; scrollWidth 768/768"
+  },
+  {
+   "id": "P1 guest ar 390",
+   "name": "van10 reads 10 travellers, no 8",
+   "ok": true,
+   "detail": "line \"10 ركاب\" (expected \"10 ركاب\") x1; 8-line present: false; dir rtl; Van luxury shown: true; scrollWidth 390/390"
+  },
+  {
+   "id": "P1 account en 1440",
+   "name": "van10 reads 10 travellers, no 8",
+   "ok": true,
+   "detail": "line \"10 passengers\" (expected \"10 passengers\") x1; 8-line present: false; dir ltr; Van luxury shown: false; scrollWidth 1440/1440"
+  },
+  {
+   "id": "P1 account en 1024",
+   "name": "van10 reads 10 travellers, no 8",
+   "ok": true,
+   "detail": "line \"10 passengers\" (expected \"10 passengers\") x1; 8-line present: false; dir ltr; Van luxury shown: false; scrollWidth 1024/1024"
+  },
+  {
+   "id": "P1 account en 768",
+   "name": "van10 reads 10 travellers, no 8",
+   "ok": true,
+   "detail": "line \"10 passengers\" (expected \"10 passengers\") x1; 8-line present: false; dir ltr; Van luxury shown: false; scrollWidth 768/768"
+  },
+  {
+   "id": "P1 account en 390",
+   "name": "van10 reads 10 travellers, no 8",
+   "ok": true,
+   "detail": "line \"10 passengers\" (expected \"10 passengers\") x1; 8-line present: false; dir ltr; Van luxury shown: false; scrollWidth 390/390"
+  },
+  {
+   "id": "P1 account de 1440",
+   "name": "van10 reads 10 travellers, no 8",
+   "ok": true,
+   "detail": "line \"10 Passagiere\" (expected \"10 Passagiere\") x1; 8-line present: false; dir ltr; Van luxury shown: false; scrollWidth 1440/1440"
+  },
+  {
+   "id": "P1 account de 1024",
+   "name": "van10 reads 10 travellers, no 8",
+   "ok": true,
+   "detail": "line \"10 Passagiere\" (expected \"10 Passagiere\") x1; 8-line present: false; dir ltr; Van luxury shown: false; scrollWidth 1024/1024"
+  },
+  {
+   "id": "P1 account de 768",
+   "name": "van10 reads 10 travellers, no 8",
+   "ok": true,
+   "detail": "line \"10 Passagiere\" (expected \"10 Passagiere\") x1; 8-line present: false; dir ltr; Van luxury shown: false; scrollWidth 768/768"
+  },
+  {
+   "id": "P1 account de 390",
+   "name": "van10 reads 10 travellers, no 8",
+   "ok": true,
+   "detail": "line \"10 Passagiere\" (expected \"10 Passagiere\") x1; 8-line present: false; dir ltr; Van luxury shown: false; scrollWidth 390/390"
+  },
+  {
+   "id": "P1 account fr 1440",
+   "name": "van10 reads 10 travellers, no 8",
+   "ok": true,
+   "detail": "line \"10 passagers\" (expected \"10 passagers\") x1; 8-line present: false; dir ltr; Van luxury shown: false; scrollWidth 1440/1440"
+  },
+  {
+   "id": "P1 account fr 1024",
+   "name": "van10 reads 10 travellers, no 8",
+   "ok": true,
+   "detail": "line \"10 passagers\" (expected \"10 passagers\") x1; 8-line present: false; dir ltr; Van luxury shown: false; scrollWidth 1024/1024"
+  },
+  {
+   "id": "P1 account fr 768",
+   "name": "van10 reads 10 travellers, no 8",
+   "ok": true,
+   "detail": "line \"10 passagers\" (expected \"10 passagers\") x1; 8-line present: false; dir ltr; Van luxury shown: false; scrollWidth 768/768"
+  },
+  {
+   "id": "P1 account fr 390",
+   "name": "van10 reads 10 travellers, no 8",
+   "ok": true,
+   "detail": "line \"10 passagers\" (expected \"10 passagers\") x1; 8-line present: false; dir ltr; Van luxury shown: false; scrollWidth 390/390"
+  },
+  {
+   "id": "P1 account ar 1440",
+   "name": "van10 reads 10 travellers, no 8",
+   "ok": true,
+   "detail": "line \"10 ركاب\" (expected \"10 ركاب\") x1; 8-line present: false; dir rtl; Van luxury shown: false; scrollWidth 1440/1440"
+  },
+  {
+   "id": "P1 account ar 1024",
+   "name": "van10 reads 10 travellers, no 8",
+   "ok": true,
+   "detail": "line \"10 ركاب\" (expected \"10 ركاب\") x1; 8-line present: false; dir rtl; Van luxury shown: false; scrollWidth 1024/1024"
+  },
+  {
+   "id": "P1 account ar 768",
+   "name": "van10 reads 10 travellers, no 8",
+   "ok": true,
+   "detail": "line \"10 ركاب\" (expected \"10 ركاب\") x1; 8-line present: false; dir rtl; Van luxury shown: false; scrollWidth 768/768"
+  },
+  {
+   "id": "P1 account ar 390",
+   "name": "van10 reads 10 travellers, no 8",
+   "ok": true,
+   "detail": "line \"10 ركاب\" (expected \"10 ركاب\") x1; 8-line present: false; dir rtl; Van luxury shown: false; scrollWidth 390/390"
+  },
+  {
+   "id": "P3 control",
+   "name": "the probe sees an unwrapped number in Arabic as reversed (so a pass below means something)",
+   "ok": true,
+   "detail": "+41@1413.9 79@1390.8 626@1357 70@1333.9 82@1310.3 ltr=false"
+  },
+  {
+   "id": "P3 guest ar 1440 lookup",
+   "name": "lookup view: the phone reads left to right",
+   "ok": true,
+   "detail": "button \"+41 79 626 70 82\" +41@444.7 79@474.5 626@496.4 70@528.3 82@550.4 ltr=true; scrollWidth 1440/1440"
+  },
+  {
+   "id": "P3 guest ar 1440 booking",
+   "name": "booking view: the phone reads left to right",
+   "ok": true,
+   "detail": "button \"+41 79 626 70 82\" +41@396.3 79@426.2 626@448 70@479.9 82@502 ltr=true"
+  },
+  {
+   "id": "P3 guest ar 1440 change",
+   "name": "change view: the phone reads left to right",
+   "ok": true,
+   "detail": "button \"+41 79 626 70 82\" +41@396.3 79@426.2 626@448 70@479.9 82@502 ltr=true; scrollWidth 1440/1440"
+  },
+  {
+   "id": "P3 guest ar 1024 lookup",
+   "name": "lookup view: the phone reads left to right",
+   "ok": true,
+   "detail": "button \"+41 79 626 70 82\" +41@248.3 79@278.1 626@300 70@331.8 82@354 ltr=true; scrollWidth 1024/1024"
+  },
+  {
+   "id": "P3 guest ar 1024 booking",
+   "name": "booking view: the phone reads left to right",
+   "ok": true,
+   "detail": "button \"+41 79 626 70 82\" +41@208.7 79@238.5 626@260.4 70@292.3 82@314.4 ltr=true"
+  },
+  {
+   "id": "P3 guest ar 1024 change",
+   "name": "change view: the phone reads left to right",
+   "ok": true,
+   "detail": "button \"+41 79 626 70 82\" +41@208.7 79@238.5 626@260.4 70@292.3 82@314.4 ltr=true; scrollWidth 1024/1024"
+  },
+  {
+   "id": "P3 guest ar 768 lookup",
+   "name": "lookup view: the phone reads left to right",
+   "ok": true,
+   "detail": "button \"+41 79 626 70 82\" +41@530.7 79@560.6 626@582.4 70@614.3 82@636.4 ltr=true; scrollWidth 768/768"
+  },
+  {
+   "id": "P3 guest ar 768 booking",
+   "name": "booking view: the phone reads left to right",
+   "ok": true,
+   "detail": "button \"+41 79 626 70 82\" +41@530.7 79@560.6 626@582.4 70@614.3 82@636.4 ltr=true"
+  },
+  {
+   "id": "P3 guest ar 768 change",
+   "name": "change view: the phone reads left to right",
+   "ok": true,
+   "detail": "button \"+41 79 626 70 82\" +41@530.7 79@560.6 626@582.4 70@614.3 82@636.4 ltr=true; scrollWidth 768/768"
+  },
+  {
+   "id": "P3 guest ar 390 lookup",
+   "name": "lookup view: the phone reads left to right",
+   "ok": true,
+   "detail": "button \"+41 79 626 70 82\" +41@171.1 79@201 626@222.8 70@254.7 82@276.8 ltr=true; scrollWidth 390/390"
+  },
+  {
+   "id": "P3 guest ar 390 booking",
+   "name": "booking view: the phone reads left to right",
+   "ok": true,
+   "detail": "button \"+41 79 626 70 82\" +41@171.1 79@201 626@222.8 70@254.7 82@276.8 ltr=true"
+  },
+  {
+   "id": "P3 guest ar 390 change",
+   "name": "change view: the phone reads left to right",
+   "ok": true,
+   "detail": "button \"+41 79 626 70 82\" +41@171.1 79@201 626@222.8 70@254.7 82@276.8 ltr=true; scrollWidth 390/390"
+  },
+  {
+   "id": "P3 guest en 1440 lookup",
+   "name": "lookup view: the phone reads left to right",
+   "ok": true,
+   "detail": "button \"+41 79 626 70 82\" +41@871.4 79@901.3 626@923.1 70@955 82@977.1 ltr=true; scrollWidth 1440/1440"
+  },
+  {
+   "id": "P3 guest en 1440 booking",
+   "name": "booking view: the phone reads left to right",
+   "ok": true,
+   "detail": "button \"+41 79 626 70 82\" +41@919.8 79@949.6 626@971.5 70@1003.4 82@1025.5 ltr=true"
+  },
+  {
+   "id": "P3 guest en 1440 change",
+   "name": "change view: the phone reads left to right",
+   "ok": true,
+   "detail": "button \"+41 79 626 70 82\" +41@919.8 79@949.6 626@971.5 70@1003.4 82@1025.5 ltr=true; scrollWidth 1440/1440"
+  },
+  {
+   "id": "P3 account ar 1440 lookup",
+   "name": "lookup view: the phone reads left to right",
+   "ok": true,
+   "detail": "button \"+41 79 626 70 82\" +41@444.7 79@474.5 626@496.4 70@528.3 82@550.4 ltr=true; scrollWidth 1440/1440"
+  },
+  {
+   "id": "P3 account ar 1440 booking",
+   "name": "booking view: the phone reads left to right",
+   "ok": true,
+   "detail": "button \"+41 79 626 70 82\" +41@396.3 79@426.2 626@448 70@479.9 82@502 ltr=true"
+  },
+  {
+   "id": "P3 account ar 1440 change",
+   "name": "change view: the phone reads left to right",
+   "ok": true,
+   "detail": "button \"+41 79 626 70 82\" +41@396.3 79@426.2 626@448 70@479.9 82@502 ltr=true; scrollWidth 1440/1440"
+  },
+  {
+   "id": "P3 account ar 1024 lookup",
+   "name": "lookup view: the phone reads left to right",
+   "ok": true,
+   "detail": "button \"+41 79 626 70 82\" +41@248.3 79@278.1 626@300 70@331.8 82@354 ltr=true; scrollWidth 1024/1024"
+  },
+  {
+   "id": "P3 account ar 1024 booking",
+   "name": "booking view: the phone reads left to right",
+   "ok": true,
+   "detail": "button \"+41 79 626 70 82\" +41@208.7 79@238.5 626@260.4 70@292.3 82@314.4 ltr=true"
+  },
+  {
+   "id": "P3 account ar 1024 change",
+   "name": "change view: the phone reads left to right",
+   "ok": true,
+   "detail": "button \"+41 79 626 70 82\" +41@208.7 79@238.5 626@260.4 70@292.3 82@314.4 ltr=true; scrollWidth 1024/1024"
+  },
+  {
+   "id": "P3 account ar 768 lookup",
+   "name": "lookup view: the phone reads left to right",
+   "ok": true,
+   "detail": "button \"+41 79 626 70 82\" +41@530.7 79@560.6 626@582.4 70@614.3 82@636.4 ltr=true; scrollWidth 768/768"
+  },
+  {
+   "id": "P3 account ar 768 booking",
+   "name": "booking view: the phone reads left to right",
+   "ok": true,
+   "detail": "button \"+41 79 626 70 82\" +41@530.7 79@560.6 626@582.4 70@614.3 82@636.4 ltr=true"
+  },
+  {
+   "id": "P3 account ar 768 change",
+   "name": "change view: the phone reads left to right",
+   "ok": true,
+   "detail": "button \"+41 79 626 70 82\" +41@530.7 79@560.6 626@582.4 70@614.3 82@636.4 ltr=true; scrollWidth 768/768"
+  },
+  {
+   "id": "P3 account ar 390 lookup",
+   "name": "lookup view: the phone reads left to right",
+   "ok": true,
+   "detail": "button \"+41 79 626 70 82\" +41@171.1 79@201 626@222.8 70@254.7 82@276.8 ltr=true; scrollWidth 390/390"
+  },
+  {
+   "id": "P3 account ar 390 booking",
+   "name": "booking view: the phone reads left to right",
+   "ok": true,
+   "detail": "button \"+41 79 626 70 82\" +41@171.1 79@201 626@222.8 70@254.7 82@276.8 ltr=true"
+  },
+  {
+   "id": "P3 account ar 390 change",
+   "name": "change view: the phone reads left to right",
+   "ok": true,
+   "detail": "button \"+41 79 626 70 82\" +41@171.1 79@201 626@222.8 70@254.7 82@276.8 ltr=true; scrollWidth 390/390"
+  },
+  {
+   "id": "P3 account en 1440 lookup",
+   "name": "lookup view: the phone reads left to right",
+   "ok": true,
+   "detail": "button \"+41 79 626 70 82\" +41@871.4 79@901.3 626@923.1 70@955 82@977.1 ltr=true; scrollWidth 1440/1440"
+  },
+  {
+   "id": "P3 account en 1440 booking",
+   "name": "booking view: the phone reads left to right",
+   "ok": true,
+   "detail": "button \"+41 79 626 70 82\" +41@919.8 79@949.6 626@971.5 70@1003.4 82@1025.5 ltr=true"
+  },
+  {
+   "id": "P3 account en 1440 change",
+   "name": "change view: the phone reads left to right",
+   "ok": true,
+   "detail": "button \"+41 79 626 70 82\" +41@919.8 79@949.6 626@971.5 70@1003.4 82@1025.5 ltr=true; scrollWidth 1440/1440"
+  },
+  {
+   "id": "P3 fork",
+   "name": "the 'Call dispatch' fork card (third phone spot)",
+   "ok": null,
+   "detail": "not reachable by a customer today (bookingTiming 'late' is never set), so it is not on a page a customer can open; its markup carries vt-dir-keep (read in the file)"
+  },
+  {
+   "id": "P4 guest en 1440",
+   "name": "waiting staff change: 409 staff-change-waiting, the owner's sentence, toast on screen and centred",
+   "ok": true,
+   "detail": "/api/manage/time-change 409 {\"ok\":false,\"code\":\"staff-change-waiting\"}; toast = the signed sentence; box 510..930 of 1440 (width 420, centre offset 0); scrollWidth 1440/1440"
+  },
+  {
+   "id": "P4 guest en 1024",
+   "name": "waiting staff change: 409 staff-change-waiting, the owner's sentence, toast on screen and centred",
+   "ok": true,
+   "detail": "/api/manage/time-change 409 {\"ok\":false,\"code\":\"staff-change-waiting\"}; toast = the signed sentence; box 302..722 of 1024 (width 420, centre offset 0); scrollWidth 1024/1024"
+  },
+  {
+   "id": "P4 guest en 768",
+   "name": "waiting staff change: 409 staff-change-waiting, the owner's sentence, toast on screen and centred",
+   "ok": true,
+   "detail": "/api/manage/time-change 409 {\"ok\":false,\"code\":\"staff-change-waiting\"}; toast = the signed sentence; box 174..594 of 768 (width 420, centre offset 0); scrollWidth 768/768"
+  },
+  {
+   "id": "P4 guest en 390",
+   "name": "waiting staff change: 409 staff-change-waiting, the owner's sentence, toast on screen and centred",
+   "ok": true,
+   "detail": "/api/manage/time-change 409 {\"ok\":false,\"code\":\"staff-change-waiting\"}; toast = the signed sentence; box 16..374 of 390 (width 358, centre offset 0); scrollWidth 390/390"
+  },
+  {
+   "id": "P4 guest de 1440",
+   "name": "waiting staff change: 409 staff-change-waiting, the owner's sentence, toast on screen and centred",
+   "ok": true,
+   "detail": "/api/manage/time-change 409 {\"ok\":false,\"code\":\"staff-change-waiting\"}; toast = the signed sentence; box 510..930 of 1440 (width 420, centre offset 0); scrollWidth 1440/1440"
+  },
+  {
+   "id": "P4 guest de 1024",
+   "name": "waiting staff change: 409 staff-change-waiting, the owner's sentence, toast on screen and centred",
+   "ok": true,
+   "detail": "/api/manage/time-change 409 {\"ok\":false,\"code\":\"staff-change-waiting\"}; toast = the signed sentence; box 302..722 of 1024 (width 420, centre offset 0); scrollWidth 1024/1024"
+  },
+  {
+   "id": "P4 guest de 768",
+   "name": "waiting staff change: 409 staff-change-waiting, the owner's sentence, toast on screen and centred",
+   "ok": true,
+   "detail": "/api/manage/time-change 409 {\"ok\":false,\"code\":\"staff-change-waiting\"}; toast = the signed sentence; box 174..594 of 768 (width 420, centre offset 0); scrollWidth 768/768"
+  },
+  {
+   "id": "P4 guest de 390",
+   "name": "waiting staff change: 409 staff-change-waiting, the owner's sentence, toast on screen and centred",
+   "ok": true,
+   "detail": "/api/manage/time-change 409 {\"ok\":false,\"code\":\"staff-change-waiting\"}; toast = the signed sentence; box 16..374 of 390 (width 358, centre offset 0); scrollWidth 390/390"
+  },
+  {
+   "id": "P4 guest fr 1440",
+   "name": "waiting staff change: 409 staff-change-waiting, the owner's sentence, toast on screen and centred",
+   "ok": true,
+   "detail": "/api/manage/time-change 409 {\"ok\":false,\"code\":\"staff-change-waiting\"}; toast = the signed sentence; box 510..930 of 1440 (width 420, centre offset 0); scrollWidth 1440/1440"
+  },
+  {
+   "id": "P4 guest fr 1024",
+   "name": "waiting staff change: 409 staff-change-waiting, the owner's sentence, toast on screen and centred",
+   "ok": true,
+   "detail": "/api/manage/time-change 409 {\"ok\":false,\"code\":\"staff-change-waiting\"}; toast = the signed sentence; box 302..722 of 1024 (width 420, centre offset 0); scrollWidth 1024/1024"
+  },
+  {
+   "id": "P4 guest fr 768",
+   "name": "waiting staff change: 409 staff-change-waiting, the owner's sentence, toast on screen and centred",
+   "ok": true,
+   "detail": "/api/manage/time-change 409 {\"ok\":false,\"code\":\"staff-change-waiting\"}; toast = the signed sentence; box 174..594 of 768 (width 420, centre offset 0); scrollWidth 768/768"
+  },
+  {
+   "id": "P4 guest fr 390",
+   "name": "waiting staff change: 409 staff-change-waiting, the owner's sentence, toast on screen and centred",
+   "ok": true,
+   "detail": "/api/manage/time-change 409 {\"ok\":false,\"code\":\"staff-change-waiting\"}; toast = the signed sentence; box 16..374 of 390 (width 358, centre offset 0); scrollWidth 390/390"
+  },
+  {
+   "id": "P4 guest ar 1440",
+   "name": "waiting staff change: 409 staff-change-waiting, the owner's sentence, toast on screen and centred",
+   "ok": true,
+   "detail": "/api/manage/time-change 409 {\"ok\":false,\"code\":\"staff-change-waiting\"}; toast = the signed sentence; box 510..930 of 1440 (width 420, centre offset 0); scrollWidth 1440/1440"
+  },
+  {
+   "id": "P4 guest ar 1024",
+   "name": "waiting staff change: 409 staff-change-waiting, the owner's sentence, toast on screen and centred",
+   "ok": true,
+   "detail": "/api/manage/time-change 409 {\"ok\":false,\"code\":\"staff-change-waiting\"}; toast = the signed sentence; box 302..722 of 1024 (width 420, centre offset 0); scrollWidth 1024/1024"
+  },
+  {
+   "id": "P4 guest ar 768",
+   "name": "waiting staff change: 409 staff-change-waiting, the owner's sentence, toast on screen and centred",
+   "ok": true,
+   "detail": "/api/manage/time-change 409 {\"ok\":false,\"code\":\"staff-change-waiting\"}; toast = the signed sentence; box 174..594 of 768 (width 420, centre offset 0); scrollWidth 768/768"
+  },
+  {
+   "id": "P4 guest ar 390",
+   "name": "waiting staff change: 409 staff-change-waiting, the owner's sentence, toast on screen and centred",
+   "ok": true,
+   "detail": "/api/manage/time-change 409 {\"ok\":false,\"code\":\"staff-change-waiting\"}; toast = the signed sentence; box 16..374 of 390 (width 358, centre offset 0); scrollWidth 390/390 (ar 390)"
+  },
+  {
+   "id": "P4 guest ar 390 close",
+   "name": "the toast's own close button closes it",
+   "ok": true,
+   "detail": "status 409; closed after click: true"
+  },
+  {
+   "id": "P4 guest ar 390 timing",
+   "name": "the toast is still there at 8 s and gone by 10 s",
+   "ok": true,
+   "detail": "status 409; visible at 8 s: true; gone at 10 s: true"
+  },
+  {
+   "id": "P4 guest en 1440 close",
+   "name": "the toast's own close button closes it",
+   "ok": true,
+   "detail": "status 409; closed after click: true"
+  },
+  {
+   "id": "P4 guest en 1440 timing",
+   "name": "the toast is still there at 8 s and gone by 10 s",
+   "ok": true,
+   "detail": "status 409; visible at 8 s: true; gone at 10 s: true"
+  },
+  {
+   "id": "P4 account en 1440",
+   "name": "waiting staff change: 409 staff-change-waiting, the owner's sentence, toast on screen and centred",
+   "ok": true,
+   "detail": "/api/account/bookings/time-change 409 {\"ok\":false,\"code\":\"staff-change-waiting\"}; toast = the signed sentence; box 510..930 of 1440 (width 420, centre offset 0); scrollWidth 1440/1440"
+  },
+  {
+   "id": "P4 account en 1024",
+   "name": "waiting staff change: 409 staff-change-waiting, the owner's sentence, toast on screen and centred",
+   "ok": true,
+   "detail": "/api/account/bookings/time-change 409 {\"ok\":false,\"code\":\"staff-change-waiting\"}; toast = the signed sentence; box 302..722 of 1024 (width 420, centre offset 0); scrollWidth 1024/1024"
+  },
+  {
+   "id": "P4 account en 768",
+   "name": "waiting staff change: 409 staff-change-waiting, the owner's sentence, toast on screen and centred",
+   "ok": true,
+   "detail": "/api/account/bookings/time-change 409 {\"ok\":false,\"code\":\"staff-change-waiting\"}; toast = the signed sentence; box 174..594 of 768 (width 420, centre offset 0); scrollWidth 768/768"
+  },
+  {
+   "id": "P4 account en 390",
+   "name": "waiting staff change: 409 staff-change-waiting, the owner's sentence, toast on screen and centred",
+   "ok": true,
+   "detail": "/api/account/bookings/time-change 409 {\"ok\":false,\"code\":\"staff-change-waiting\"}; toast = the signed sentence; box 16..374 of 390 (width 358, centre offset 0); scrollWidth 390/390"
+  },
+  {
+   "id": "P4 account de 1440",
+   "name": "waiting staff change: 409 staff-change-waiting, the owner's sentence, toast on screen and centred",
+   "ok": true,
+   "detail": "/api/account/bookings/time-change 409 {\"ok\":false,\"code\":\"staff-change-waiting\"}; toast = the signed sentence; box 510..930 of 1440 (width 420, centre offset 0); scrollWidth 1440/1440"
+  },
+  {
+   "id": "P4 account de 1024",
+   "name": "waiting staff change: 409 staff-change-waiting, the owner's sentence, toast on screen and centred",
+   "ok": true,
+   "detail": "/api/account/bookings/time-change 409 {\"ok\":false,\"code\":\"staff-change-waiting\"}; toast = the signed sentence; box 302..722 of 1024 (width 420, centre offset 0); scrollWidth 1024/1024"
+  },
+  {
+   "id": "P4 account de 768",
+   "name": "waiting staff change: 409 staff-change-waiting, the owner's sentence, toast on screen and centred",
+   "ok": true,
+   "detail": "/api/account/bookings/time-change 409 {\"ok\":false,\"code\":\"staff-change-waiting\"}; toast = the signed sentence; box 174..594 of 768 (width 420, centre offset 0); scrollWidth 768/768"
+  },
+  {
+   "id": "P4 account de 390",
+   "name": "waiting staff change: 409 staff-change-waiting, the owner's sentence, toast on screen and centred",
+   "ok": true,
+   "detail": "/api/account/bookings/time-change 409 {\"ok\":false,\"code\":\"staff-change-waiting\"}; toast = the signed sentence; box 16..374 of 390 (width 358, centre offset 0); scrollWidth 390/390"
+  },
+  {
+   "id": "P4 account fr 1440",
+   "name": "waiting staff change: 409 staff-change-waiting, the owner's sentence, toast on screen and centred",
+   "ok": true,
+   "detail": "/api/account/bookings/time-change 409 {\"ok\":false,\"code\":\"staff-change-waiting\"}; toast = the signed sentence; box 510..930 of 1440 (width 420, centre offset 0); scrollWidth 1440/1440"
+  },
+  {
+   "id": "P4 account fr 1024",
+   "name": "waiting staff change: 409 staff-change-waiting, the owner's sentence, toast on screen and centred",
+   "ok": true,
+   "detail": "/api/account/bookings/time-change 409 {\"ok\":false,\"code\":\"staff-change-waiting\"}; toast = the signed sentence; box 302..722 of 1024 (width 420, centre offset 0); scrollWidth 1024/1024"
+  },
+  {
+   "id": "P4 account fr 768",
+   "name": "waiting staff change: 409 staff-change-waiting, the owner's sentence, toast on screen and centred",
+   "ok": true,
+   "detail": "/api/account/bookings/time-change 409 {\"ok\":false,\"code\":\"staff-change-waiting\"}; toast = the signed sentence; box 174..594 of 768 (width 420, centre offset 0); scrollWidth 768/768"
+  },
+  {
+   "id": "P4 account fr 390",
+   "name": "waiting staff change: 409 staff-change-waiting, the owner's sentence, toast on screen and centred",
+   "ok": true,
+   "detail": "/api/account/bookings/time-change 409 {\"ok\":false,\"code\":\"staff-change-waiting\"}; toast = the signed sentence; box 16..374 of 390 (width 358, centre offset 0); scrollWidth 390/390"
+  },
+  {
+   "id": "P4 account ar 1440",
+   "name": "waiting staff change: 409 staff-change-waiting, the owner's sentence, toast on screen and centred",
+   "ok": true,
+   "detail": "/api/account/bookings/time-change 409 {\"ok\":false,\"code\":\"staff-change-waiting\"}; toast = the signed sentence; box 510..930 of 1440 (width 420, centre offset 0); scrollWidth 1440/1440"
+  },
+  {
+   "id": "P4 account ar 1024",
+   "name": "waiting staff change: 409 staff-change-waiting, the owner's sentence, toast on screen and centred",
+   "ok": true,
+   "detail": "/api/account/bookings/time-change 409 {\"ok\":false,\"code\":\"staff-change-waiting\"}; toast = the signed sentence; box 302..722 of 1024 (width 420, centre offset 0); scrollWidth 1024/1024"
+  },
+  {
+   "id": "P4 account ar 768",
+   "name": "waiting staff change: 409 staff-change-waiting, the owner's sentence, toast on screen and centred",
+   "ok": true,
+   "detail": "/api/account/bookings/time-change 409 {\"ok\":false,\"code\":\"staff-change-waiting\"}; toast = the signed sentence; box 174..594 of 768 (width 420, centre offset 0); scrollWidth 768/768"
+  },
+  {
+   "id": "P4 account ar 390",
+   "name": "waiting staff change: 409 staff-change-waiting, the owner's sentence, toast on screen and centred",
+   "ok": true,
+   "detail": "/api/account/bookings/time-change 409 {\"ok\":false,\"code\":\"staff-change-waiting\"}; toast = the signed sentence; box 16..374 of 390 (width 358, centre offset 0); scrollWidth 390/390 (ar 390)"
+  },
+  {
+   "id": "P4 account ar 390 close",
+   "name": "the toast's own close button closes it",
+   "ok": true,
+   "detail": "status 409; closed after click: true"
+  },
+  {
+   "id": "P4 account ar 390 timing",
+   "name": "the toast is still there at 8 s and gone by 10 s",
+   "ok": true,
+   "detail": "status 409; visible at 8 s: true; gone at 10 s: true"
+  },
+  {
+   "id": "P4 account en 1440 close",
+   "name": "the toast's own close button closes it",
+   "ok": true,
+   "detail": "status 409; closed after click: true"
+  },
+  {
+   "id": "P4 account en 1440 timing",
+   "name": "the toast is still there at 8 s and gone by 10 s",
+   "ok": true,
+   "detail": "status 409; visible at 8 s: true; gone at 10 s: true"
+  },
+  {
+   "id": "P4 db",
+   "name": "after every refused request: the staff change still waits, no customer row was written",
+   "ok": true,
+   "detail": "staff request before requested/true, after requested/true; customer rows 0"
+  },
+  {
+   "id": "P4 plain guest en 1440",
+   "name": "no waiting change: the time request is accepted (200)",
+   "ok": true,
+   "detail": "/api/manage/time-change 200 {\"ok\":true,\"requestId\":\"30fa67bd-4cb0-4bf2-af8f-94f8b1876761\",\"bookingId\":\"429f8063-035c-48fa-b0ee-9086302cbbee\",\"status\":\"requested\"}; toast \"Time-change requested. Pickup stays Fri 9 Oct · 14:20 until we confirm.\"; box 510..930 of 1440 (width 420, centre offset 0); requests on the booking now: customer/requested/2026-10-09T15:20"
+  },
+  {
+   "id": "P4 plain guest en 390",
+   "name": "no waiting change: the time request is accepted (200)",
+   "ok": true,
+   "detail": "/api/manage/time-change 200 {\"ok\":true,\"requestId\":\"f46dbf09-67f5-435a-b031-2a27d2e7ede3\",\"bookingId\":\"429f8063-035c-48fa-b0ee-9086302cbbee\",\"status\":\"requested\"}; toast \"Time-change requested. Pickup stays Fri 9 Oct · 14:20 until we confirm.\"; box 16..374 of 390 (width 358, centre offset 0); requests on the booking now: customer/superseded/2026-10-09T15:20 ; customer/requested/2026-10-09T15:20"
+  },
+  {
+   "id": "P4 plain guest de 1440",
+   "name": "no waiting change: the time request is accepted (200)",
+   "ok": true,
+   "detail": "/api/manage/time-change 200 {\"ok\":true,\"requestId\":\"a04b1ee6-1ae2-47c2-86ff-106bdec6d41a\",\"bookingId\":\"429f8063-035c-48fa-b0ee-9086302cbbee\",\"status\":\"requested\"}; toast \"Zeitänderung angefragt. Abholung bleibt Fri 9 Oct · 14:20, bis wir bestätigen.\"; box 510..930 of 1440 (width 420, centre offset 0); requests on the booking now: customer/superseded/2026-10-09T15:20 ; customer/superseded/2026-10-09T15:20 ; customer/requested/2026-10-09T15:20"
+  },
+  {
+   "id": "P4 plain guest de 390",
+   "name": "no waiting change: the time request is accepted (200)",
+   "ok": true,
+   "detail": "/api/manage/time-change 200 {\"ok\":true,\"requestId\":\"9e4800bf-0322-4b54-b6de-39cba62e60b1\",\"bookingId\":\"429f8063-035c-48fa-b0ee-9086302cbbee\",\"status\":\"requested\"}; toast \"Zeitänderung angefragt. Abholung bleibt Fri 9 Oct · 14:20, bis wir bestätigen.\"; box 16..374 of 390 (width 358, centre offset 0); requests on the booking now: customer/superseded/2026-10-09T15:20 ; customer/superseded/2026-10-09T15:20 ; customer/superseded/2026-10-09T15:20 ; customer/requested/2026-10-09T15:"
+  },
+  {
+   "id": "P4 plain guest fr 1440",
+   "name": "no waiting change: the time request is accepted (200)",
+   "ok": true,
+   "detail": "/api/manage/time-change 200 {\"ok\":true,\"requestId\":\"21a47f37-0424-44ae-acd0-8299e8d9296f\",\"bookingId\":\"429f8063-035c-48fa-b0ee-9086302cbbee\",\"status\":\"requested\"}; toast \"Changement d’heure demandé. La prise en charge reste Fri 9 Oct · 14:20 jusqu’à confirmation.\"; box 510..930 of 1440 (width 420, centre offset 0); requests on the booking now: customer/superseded/2026-10-09T15:20 ; customer/superseded/2026-10-09T15:20 ; customer/superseded/2026-10-09T15:20 ; customer/superseded/2026-10-09T15"
+  },
+  {
+   "id": "P4 plain guest fr 390",
+   "name": "no waiting change: the time request is accepted (200)",
+   "ok": true,
+   "detail": "/api/manage/time-change 200 {\"ok\":true,\"requestId\":\"58be569e-22da-44db-834a-0eacaadc65d9\",\"bookingId\":\"429f8063-035c-48fa-b0ee-9086302cbbee\",\"status\":\"requested\"}; toast \"Changement d’heure demandé. La prise en charge reste Fri 9 Oct · 14:20 jusqu’à confirmation.\"; box 16..374 of 390 (width 358, centre offset 0); requests on the booking now: customer/superseded/2026-10-09T15:20 ; customer/superseded/2026-10-09T15:20 ; customer/superseded/2026-10-09T15:20 ; customer/superseded/2026-10-09T15"
+  },
+  {
+   "id": "P4 plain guest ar 1440",
+   "name": "no waiting change: the time request is accepted (200)",
+   "ok": true,
+   "detail": "/api/manage/time-change 200 {\"ok\":true,\"requestId\":\"f5be388f-7e88-4e2f-a768-bb332a2e5206\",\"bookingId\":\"429f8063-035c-48fa-b0ee-9086302cbbee\",\"status\":\"requested\"}; toast \"طُلب تغيير الوقت. تبقى الانطلاقة Fri 9 Oct · 14:20 حتى نؤكد.\"; box 518..922 of 1440 (width 404, centre offset 0); requests on the booking now: customer/superseded/2026-10-09T15:20 ; customer/superseded/2026-10-09T15:20 ; customer/superseded/2026-10-09T15:20 ; customer/superseded/2026-10-09T15"
+  },
+  {
+   "id": "P4 plain guest ar 390",
+   "name": "no waiting change: the time request is accepted (200)",
+   "ok": true,
+   "detail": "/api/manage/time-change 200 {\"ok\":true,\"requestId\":\"9b516ffc-fd75-45c0-89b7-6f5958ea196d\",\"bookingId\":\"429f8063-035c-48fa-b0ee-9086302cbbee\",\"status\":\"requested\"}; toast \"طُلب تغيير الوقت. تبقى الانطلاقة Fri 9 Oct · 14:20 حتى نؤكد.\"; box 16..374 of 390 (width 358, centre offset 0); requests on the booking now: customer/superseded/2026-10-09T15:20 ; customer/superseded/2026-10-09T15:20 ; customer/superseded/2026-10-09T15:20 ; customer/superseded/2026-10-09T15"
+  },
+  {
+   "id": "P4 plain account en 1440",
+   "name": "no waiting change: the time request is accepted (200)",
+   "ok": true,
+   "detail": "/api/account/bookings/time-change 200 {\"ok\":true,\"requestId\":\"7b67ded2-757c-48b8-9248-7ebb92d3ec90\",\"bookingId\":\"429f8063-035c-48fa-b0ee-9086302cbbee\",\"status\":\"requested\"}; toast \"Time-change requested. Pickup stays Fri 9 Oct · 14:20 until we confirm.\"; box 510..930 of 1440 (width 420, centre offset 0); requests on the booking now: customer/superseded/2026-10-09T15:20 ; customer/superseded/2026-10-09T15:20 ; customer/superseded/2026-10-09T15:20 ; customer/superseded/2026-10-09T15"
+  },
+  {
+   "id": "P4 plain account en 390",
+   "name": "no waiting change: the time request is accepted (200)",
+   "ok": true,
+   "detail": "/api/account/bookings/time-change 200 {\"ok\":true,\"requestId\":\"bca2fdf1-a10c-40ec-baa6-41a79af64221\",\"bookingId\":\"429f8063-035c-48fa-b0ee-9086302cbbee\",\"status\":\"requested\"}; toast \"Time-change requested. Pickup stays Fri 9 Oct · 14:20 until we confirm.\"; box 16..374 of 390 (width 358, centre offset 0); requests on the booking now: customer/superseded/2026-10-09T15:20 ; customer/superseded/2026-10-09T15:20 ; customer/superseded/2026-10-09T15:20 ; customer/superseded/2026-10-09T15"
+  },
+  {
+   "id": "P4 plain account de 1440",
+   "name": "no waiting change: the time request is accepted (200)",
+   "ok": true,
+   "detail": "/api/account/bookings/time-change 200 {\"ok\":true,\"requestId\":\"4dec25bd-0f6a-44a1-b5a2-4a3b498cdd31\",\"bookingId\":\"429f8063-035c-48fa-b0ee-9086302cbbee\",\"status\":\"requested\"}; toast \"Zeitänderung angefragt. Abholung bleibt Fri 9 Oct · 14:20, bis wir bestätigen.\"; box 510..930 of 1440 (width 420, centre offset 0); requests on the booking now: customer/superseded/2026-10-09T15:20 ; customer/superseded/2026-10-09T15:20 ; customer/superseded/2026-10-09T15:20 ; customer/superseded/2026-10-09T15"
+  },
+  {
+   "id": "P4 plain account de 390",
+   "name": "no waiting change: the time request is accepted (200)",
+   "ok": true,
+   "detail": "/api/account/bookings/time-change 200 {\"ok\":true,\"requestId\":\"6d1310ca-1ecc-4e87-8276-dc13dfdf6c2f\",\"bookingId\":\"429f8063-035c-48fa-b0ee-9086302cbbee\",\"status\":\"requested\"}; toast \"Zeitänderung angefragt. Abholung bleibt Fri 9 Oct · 14:20, bis wir bestätigen.\"; box 16..374 of 390 (width 358, centre offset 0); requests on the booking now: customer/superseded/2026-10-09T15:20 ; customer/superseded/2026-10-09T15:20 ; customer/superseded/2026-10-09T15:20 ; customer/superseded/2026-10-09T15"
+  },
+  {
+   "id": "P4 plain account fr 1440",
+   "name": "no waiting change: the time request is accepted (200)",
+   "ok": true,
+   "detail": "/api/account/bookings/time-change 200 {\"ok\":true,\"requestId\":\"b196f3f9-7728-4b71-8141-2fd123412a1b\",\"bookingId\":\"429f8063-035c-48fa-b0ee-9086302cbbee\",\"status\":\"requested\"}; toast \"Changement d’heure demandé. La prise en charge reste Fri 9 Oct · 14:20 jusqu’à confirmation.\"; box 510..930 of 1440 (width 420, centre offset 0); requests on the booking now: customer/superseded/2026-10-09T15:20 ; customer/superseded/2026-10-09T15:20 ; customer/superseded/2026-10-09T15:20 ; customer/superseded/2026-10-09T15"
+  },
+  {
+   "id": "P4 plain account fr 390",
+   "name": "no waiting change: the time request is accepted (200)",
+   "ok": true,
+   "detail": "/api/account/bookings/time-change 200 {\"ok\":true,\"requestId\":\"b620df69-0419-47f5-8ba5-82e51d42c86f\",\"bookingId\":\"429f8063-035c-48fa-b0ee-9086302cbbee\",\"status\":\"requested\"}; toast \"Changement d’heure demandé. La prise en charge reste Fri 9 Oct · 14:20 jusqu’à confirmation.\"; box 16..374 of 390 (width 358, centre offset 0); requests on the booking now: customer/superseded/2026-10-09T15:20 ; customer/superseded/2026-10-09T15:20 ; customer/superseded/2026-10-09T15:20 ; customer/superseded/2026-10-09T15"
+  },
+  {
+   "id": "P4 plain account ar 1440",
+   "name": "no waiting change: the time request is accepted (200)",
+   "ok": true,
+   "detail": "/api/account/bookings/time-change 200 {\"ok\":true,\"requestId\":\"512e075f-09c8-4d91-861e-d7a23409fa63\",\"bookingId\":\"429f8063-035c-48fa-b0ee-9086302cbbee\",\"status\":\"requested\"}; toast \"طُلب تغيير الوقت. تبقى الانطلاقة Fri 9 Oct · 14:20 حتى نؤكد.\"; box 518..922 of 1440 (width 404, centre offset 0); requests on the booking now: customer/superseded/2026-10-09T15:20 ; customer/superseded/2026-10-09T15:20 ; customer/superseded/2026-10-09T15:20 ; customer/superseded/2026-10-09T15"
+  },
+  {
+   "id": "P4 plain account ar 390",
+   "name": "no waiting change: the time request is accepted (200)",
+   "ok": true,
+   "detail": "/api/account/bookings/time-change 200 {\"ok\":true,\"requestId\":\"aa0ac1a8-7247-495e-9011-de247942f67d\",\"bookingId\":\"429f8063-035c-48fa-b0ee-9086302cbbee\",\"status\":\"requested\"}; toast \"طُلب تغيير الوقت. تبقى الانطلاقة Fri 9 Oct · 14:20 حتى نؤكد.\"; box 16..374 of 390 (width 358, centre offset 0); requests on the booking now: customer/superseded/2026-10-09T15:20 ; customer/superseded/2026-10-09T15:20 ; customer/superseded/2026-10-09T15:20 ; customer/superseded/2026-10-09T15"
+  },
+  {
+   "id": "COV guest de lookup",
+   "name": "VamosLocale.coverage(main): no page copy without a translation",
+   "ok": true,
+   "detail": "count 0; page copy 0; data/built-in-code (not copy) 0"
+  },
+  {
+   "id": "COV guest de booking",
+   "name": "VamosLocale.coverage(main): no page copy without a translation",
+   "ok": true,
+   "detail": "count 5; page copy 0; data/built-in-code (not copy) 5: \"Wed 7 Oct · 14:20\", \"Zurich Oerlikon\", \"Zurich Airport\", \"Wed 7 Oct\", \"Mehrwertsteuer 8.1 %\""
+  },
+  {
+   "id": "COV guest de change",
+   "name": "VamosLocale.coverage(main): no page copy without a translation",
+   "ok": true,
+   "detail": "count 5; page copy 0; data/built-in-code (not copy) 5: \"Wed 7 Oct · 14:20\", \"Zurich Oerlikon\", \"Zurich Airport\", \"Wed 7 Oct\", \"Mehrwertsteuer 8.1 %\""
+  },
+  {
+   "id": "COV guest de cancel",
+   "name": "VamosLocale.coverage(main): no page copy without a translation",
+   "ok": true,
+   "detail": "count 6; page copy 0; data/built-in-code (not copy) 6: \"Wed 7 Oct · 14:20\", \"Zurich Oerlikon\", \"Zurich Airport\", \"Wed 7 Oct\", \"Zurich Oerlikon → Zurich Airport\", \"Mehrwertsteuer 8.1 %\""
+  },
+  {
+   "id": "COV account de lookup",
+   "name": "VamosLocale.coverage(main): no page copy without a translation",
+   "ok": true,
+   "detail": "count 0; page copy 0; data/built-in-code (not copy) 0"
+  },
+  {
+   "id": "COV account de booking",
+   "name": "VamosLocale.coverage(main): no page copy without a translation",
+   "ok": true,
+   "detail": "count 4; page copy 0; data/built-in-code (not copy) 4: \"Wed 7 Oct · 14:20\", \"Zurich Oerlikon\", \"Zurich Airport\", \"Wed 7 Oct\""
+  },
+  {
+   "id": "COV account de change",
+   "name": "VamosLocale.coverage(main): no page copy without a translation",
+   "ok": true,
+   "detail": "count 4; page copy 0; data/built-in-code (not copy) 4: \"Wed 7 Oct · 14:20\", \"Zurich Oerlikon\", \"Zurich Airport\", \"Wed 7 Oct\""
+  },
+  {
+   "id": "COV guest fr lookup",
+   "name": "VamosLocale.coverage(main): no page copy without a translation",
+   "ok": true,
+   "detail": "count 0; page copy 0; data/built-in-code (not copy) 0"
+  },
+  {
+   "id": "COV guest fr booking",
+   "name": "VamosLocale.coverage(main): no page copy without a translation",
+   "ok": true,
+   "detail": "count 5; page copy 0; data/built-in-code (not copy) 5: \"Wed 7 Oct · 14:20\", \"Zurich Oerlikon\", \"Zurich Airport\", \"Wed 7 Oct\", \"TVA 8.1 %\""
+  },
+  {
+   "id": "COV guest fr change",
+   "name": "VamosLocale.coverage(main): no page copy without a translation",
+   "ok": true,
+   "detail": "count 5; page copy 0; data/built-in-code (not copy) 5: \"Wed 7 Oct · 14:20\", \"Zurich Oerlikon\", \"Zurich Airport\", \"Wed 7 Oct\", \"TVA 8.1 %\""
+  },
+  {
+   "id": "COV guest fr cancel",
+   "name": "VamosLocale.coverage(main): no page copy without a translation",
+   "ok": true,
+   "detail": "count 6; page copy 0; data/built-in-code (not copy) 6: \"Wed 7 Oct · 14:20\", \"Zurich Oerlikon\", \"Zurich Airport\", \"Wed 7 Oct\", \"Zurich Oerlikon → Zurich Airport\", \"TVA 8.1 %\""
+  },
+  {
+   "id": "COV account fr lookup",
+   "name": "VamosLocale.coverage(main): no page copy without a translation",
+   "ok": true,
+   "detail": "count 0; page copy 0; data/built-in-code (not copy) 0"
+  },
+  {
+   "id": "COV account fr booking",
+   "name": "VamosLocale.coverage(main): no page copy without a translation",
+   "ok": true,
+   "detail": "count 4; page copy 0; data/built-in-code (not copy) 4: \"Wed 7 Oct · 14:20\", \"Zurich Oerlikon\", \"Zurich Airport\", \"Wed 7 Oct\""
+  },
+  {
+   "id": "COV account fr change",
+   "name": "VamosLocale.coverage(main): no page copy without a translation",
+   "ok": true,
+   "detail": "count 4; page copy 0; data/built-in-code (not copy) 4: \"Wed 7 Oct · 14:20\", \"Zurich Oerlikon\", \"Zurich Airport\", \"Wed 7 Oct\""
+  },
+  {
+   "id": "COV guest ar lookup",
+   "name": "VamosLocale.coverage(main): no page copy without a translation",
+   "ok": true,
+   "detail": "count 0; page copy 0; data/built-in-code (not copy) 0"
+  },
+  {
+   "id": "COV guest ar booking",
+   "name": "VamosLocale.coverage(main): no page copy without a translation",
+   "ok": true,
+   "detail": "count 5; page copy 0; data/built-in-code (not copy) 5: \"Wed 7 Oct · 14:20\", \"Zurich Oerlikon\", \"Zurich Airport\", \"Wed 7 Oct\", \"ضريبة القيمة المضافة 8.1 %\""
+  },
+  {
+   "id": "COV guest ar change",
+   "name": "VamosLocale.coverage(main): no page copy without a translation",
+   "ok": true,
+   "detail": "count 5; page copy 0; data/built-in-code (not copy) 5: \"Wed 7 Oct · 14:20\", \"Zurich Oerlikon\", \"Zurich Airport\", \"Wed 7 Oct\", \"ضريبة القيمة المضافة 8.1 %\""
+  },
+  {
+   "id": "COV guest ar cancel",
+   "name": "VamosLocale.coverage(main): no page copy without a translation",
+   "ok": true,
+   "detail": "count 6; page copy 0; data/built-in-code (not copy) 6: \"Wed 7 Oct · 14:20\", \"Zurich Oerlikon\", \"Zurich Airport\", \"Wed 7 Oct\", \"Zurich Oerlikon → Zurich Airport\", \"ضريبة القيمة المضافة 8.1 %\""
+  },
+  {
+   "id": "COV account ar lookup",
+   "name": "VamosLocale.coverage(main): no page copy without a translation",
+   "ok": true,
+   "detail": "count 0; page copy 0; data/built-in-code (not copy) 0"
+  },
+  {
+   "id": "COV account ar booking",
+   "name": "VamosLocale.coverage(main): no page copy without a translation",
+   "ok": true,
+   "detail": "count 4; page copy 0; data/built-in-code (not copy) 4: \"Wed 7 Oct · 14:20\", \"Zurich Oerlikon\", \"Zurich Airport\", \"Wed 7 Oct\""
+  },
+  {
+   "id": "COV account ar change",
+   "name": "VamosLocale.coverage(main): no page copy without a translation",
+   "ok": true,
+   "detail": "count 4; page copy 0; data/built-in-code (not copy) 4: \"Wed 7 Oct · 14:20\", \"Zurich Oerlikon\", \"Zurich Airport\", \"Wed 7 Oct\""
+  },
+  {
+   "id": "ERR",
+   "name": "no uncaught page errors in any context",
+   "ok": true,
+   "detail": "none"
+  },
+  {
+   "id": "BAN",
+   "name": "the cookie banner stayed down on its own (the 'necessary only' state was reused)",
+   "ok": true,
+   "detail": "never visible"
+  }
+ ],
+ "coverage": [
+  {
+   "door": "guest",
+   "lang": "de",
+   "view": "booking",
+   "count": 5,
+   "strings": [
+    "Wed 7 Oct · 14:20",
+    "Zurich Oerlikon",
+    "Zurich Airport",
+    "Wed 7 Oct",
+    "Mehrwertsteuer 8.1 %"
+   ],
+   "copy": [],
+   "other": [
+    "Wed 7 Oct · 14:20",
+    "Zurich Oerlikon",
+    "Zurich Airport",
+    "Wed 7 Oct",
+    "Mehrwertsteuer 8.1 %"
+   ]
+  },
+  {
+   "door": "guest",
+   "lang": "de",
+   "view": "change",
+   "count": 5,
+   "strings": [
+    "Wed 7 Oct · 14:20",
+    "Zurich Oerlikon",
+    "Zurich Airport",
+    "Wed 7 Oct",
+    "Mehrwertsteuer 8.1 %"
+   ],
+   "copy": [],
+   "other": [
+    "Wed 7 Oct · 14:20",
+    "Zurich Oerlikon",
+    "Zurich Airport",
+    "Wed 7 Oct",
+    "Mehrwertsteuer 8.1 %"
+   ]
+  },
+  {
+   "door": "guest",
+   "lang": "de",
+   "view": "cancel",
+   "count": 6,
+   "strings": [
+    "Wed 7 Oct · 14:20",
+    "Zurich Oerlikon",
+    "Zurich Airport",
+    "Wed 7 Oct",
+    "Zurich Oerlikon → Zurich Airport",
+    "Mehrwertsteuer 8.1 %"
+   ],
+   "copy": [],
+   "other": [
+    "Wed 7 Oct · 14:20",
+    "Zurich Oerlikon",
+    "Zurich Airport",
+    "Wed 7 Oct",
+    "Zurich Oerlikon → Zurich Airport",
+    "Mehrwertsteuer 8.1 %"
+   ]
+  },
+  {
+   "door": "guest",
+   "lang": "fr",
+   "view": "booking",
+   "count": 5,
+   "strings": [
+    "Wed 7 Oct · 14:20",
+    "Zurich Oerlikon",
+    "Zurich Airport",
+    "Wed 7 Oct",
+    "TVA 8.1 %"
+   ],
+   "copy": [],
+   "other": [
+    "Wed 7 Oct · 14:20",
+    "Zurich Oerlikon",
+    "Zurich Airport",
+    "Wed 7 Oct",
+    "TVA 8.1 %"
+   ]
+  },
+  {
+   "door": "guest",
+   "lang": "fr",
+   "view": "change",
+   "count": 5,
+   "strings": [
+    "Wed 7 Oct · 14:20",
+    "Zurich Oerlikon",
+    "Zurich Airport",
+    "Wed 7 Oct",
+    "TVA 8.1 %"
+   ],
+   "copy": [],
+   "other": [
+    "Wed 7 Oct · 14:20",
+    "Zurich Oerlikon",
+    "Zurich Airport",
+    "Wed 7 Oct",
+    "TVA 8.1 %"
+   ]
+  },
+  {
+   "door": "guest",
+   "lang": "fr",
+   "view": "cancel",
+   "count": 6,
+   "strings": [
+    "Wed 7 Oct · 14:20",
+    "Zurich Oerlikon",
+    "Zurich Airport",
+    "Wed 7 Oct",
+    "Zurich Oerlikon → Zurich Airport",
+    "TVA 8.1 %"
+   ],
+   "copy": [],
+   "other": [
+    "Wed 7 Oct · 14:20",
+    "Zurich Oerlikon",
+    "Zurich Airport",
+    "Wed 7 Oct",
+    "Zurich Oerlikon → Zurich Airport",
+    "TVA 8.1 %"
+   ]
+  },
+  {
+   "door": "guest",
+   "lang": "ar",
+   "view": "booking",
+   "count": 5,
+   "strings": [
+    "Wed 7 Oct · 14:20",
+    "Zurich Oerlikon",
+    "Zurich Airport",
+    "Wed 7 Oct",
+    "ضريبة القيمة المضافة 8.1 %"
+   ],
+   "copy": [],
+   "other": [
+    "Wed 7 Oct · 14:20",
+    "Zurich Oerlikon",
+    "Zurich Airport",
+    "Wed 7 Oct",
+    "ضريبة القيمة المضافة 8.1 %"
+   ]
+  },
+  {
+   "door": "guest",
+   "lang": "ar",
+   "view": "change",
+   "count": 5,
+   "strings": [
+    "Wed 7 Oct · 14:20",
+    "Zurich Oerlikon",
+    "Zurich Airport",
+    "Wed 7 Oct",
+    "ضريبة القيمة المضافة 8.1 %"
+   ],
+   "copy": [],
+   "other": [
+    "Wed 7 Oct · 14:20",
+    "Zurich Oerlikon",
+    "Zurich Airport",
+    "Wed 7 Oct",
+    "ضريبة القيمة المضافة 8.1 %"
+   ]
+  },
+  {
+   "door": "guest",
+   "lang": "ar",
+   "view": "cancel",
+   "count": 6,
+   "strings": [
+    "Wed 7 Oct · 14:20",
+    "Zurich Oerlikon",
+    "Zurich Airport",
+    "Wed 7 Oct",
+    "Zurich Oerlikon → Zurich Airport",
+    "ضريبة القيمة المضافة 8.1 %"
+   ],
+   "copy": [],
+   "other": [
+    "Wed 7 Oct · 14:20",
+    "Zurich Oerlikon",
+    "Zurich Airport",
+    "Wed 7 Oct",
+    "Zurich Oerlikon → Zurich Airport",
+    "ضريبة القيمة المضافة 8.1 %"
+   ]
+  },
+  {
+   "door": "account",
+   "lang": "de",
+   "view": "booking",
+   "count": 4,
+   "strings": [
+    "Wed 7 Oct · 14:20",
+    "Zurich Oerlikon",
+    "Zurich Airport",
+    "Wed 7 Oct"
+   ],
+   "copy": [],
+   "other": [
+    "Wed 7 Oct · 14:20",
+    "Zurich Oerlikon",
+    "Zurich Airport",
+    "Wed 7 Oct"
+   ]
+  },
+  {
+   "door": "account",
+   "lang": "de",
+   "view": "change",
+   "count": 4,
+   "strings": [
+    "Wed 7 Oct · 14:20",
+    "Zurich Oerlikon",
+    "Zurich Airport",
+    "Wed 7 Oct"
+   ],
+   "copy": [],
+   "other": [
+    "Wed 7 Oct · 14:20",
+    "Zurich Oerlikon",
+    "Zurich Airport",
+    "Wed 7 Oct"
+   ]
+  },
+  {
+   "door": "account",
+   "lang": "fr",
+   "view": "booking",
+   "count": 4,
+   "strings": [
+    "Wed 7 Oct · 14:20",
+    "Zurich Oerlikon",
+    "Zurich Airport",
+    "Wed 7 Oct"
+   ],
+   "copy": [],
+   "other": [
+    "Wed 7 Oct · 14:20",
+    "Zurich Oerlikon",
+    "Zurich Airport",
+    "Wed 7 Oct"
+   ]
+  },
+  {
+   "door": "account",
+   "lang": "fr",
+   "view": "change",
+   "count": 4,
+   "strings": [
+    "Wed 7 Oct · 14:20",
+    "Zurich Oerlikon",
+    "Zurich Airport",
+    "Wed 7 Oct"
+   ],
+   "copy": [],
+   "other": [
+    "Wed 7 Oct · 14:20",
+    "Zurich Oerlikon",
+    "Zurich Airport",
+    "Wed 7 Oct"
+   ]
+  },
+  {
+   "door": "account",
+   "lang": "ar",
+   "view": "booking",
+   "count": 4,
+   "strings": [
+    "Wed 7 Oct · 14:20",
+    "Zurich Oerlikon",
+    "Zurich Airport",
+    "Wed 7 Oct"
+   ],
+   "copy": [],
+   "other": [
+    "Wed 7 Oct · 14:20",
+    "Zurich Oerlikon",
+    "Zurich Airport",
+    "Wed 7 Oct"
+   ]
+  },
+  {
+   "door": "account",
+   "lang": "ar",
+   "view": "change",
+   "count": 4,
+   "strings": [
+    "Wed 7 Oct · 14:20",
+    "Zurich Oerlikon",
+    "Zurich Airport",
+    "Wed 7 Oct"
+   ],
+   "copy": [],
+   "other": [
+    "Wed 7 Oct · 14:20",
+    "Zurich Oerlikon",
+    "Zurich Airport",
+    "Wed 7 Oct"
+   ]
+  },
+  {
+   "door": "guest",
+   "lang": "ar",
+   "view": "lookup",
+   "count": 0,
+   "strings": [],
+   "copy": [],
+   "other": []
+  },
+  {
+   "door": "account",
+   "lang": "ar",
+   "view": "lookup",
+   "count": 0,
+   "strings": [],
+   "copy": [],
+   "other": []
+  },
+  {
+   "door": "guest",
+   "lang": "de",
+   "view": "lookup",
+   "count": 0,
+   "strings": [],
+   "copy": [],
+   "other": []
+  },
+  {
+   "door": "guest",
+   "lang": "fr",
+   "view": "lookup",
+   "count": 0,
+   "strings": [],
+   "copy": [],
+   "other": []
+  },
+  {
+   "door": "account",
+   "lang": "de",
+   "view": "lookup",
+   "count": 0,
+   "strings": [],
+   "copy": [],
+   "other": []
+  },
+  {
+   "door": "account",
+   "lang": "fr",
+   "view": "lookup",
+   "count": 0,
+   "strings": [],
+   "copy": [],
+   "other": []
+  }
+ ],
+ "notes": [
+  "COV account de: no cancel fork on the booking view (button[data-fork] x1), the cancel view cannot be opened",
+  "COV account fr: no cancel fork on the booking view (button[data-fork] x1), the cancel view cannot be opened",
+  "COV account ar: no cancel fork on the booking view (button[data-fork] x1), the cancel view cannot be opened"
+ ],
+ "shots": [
+  "screens/proof/p1-guest-en-1440.png",
+  "screens/proof/p1-guest-en-390.png",
+  "screens/proof/p1-guest-de-1440.png",
+  "screens/proof/p1-guest-de-390.png",
+  "screens/proof/p1-guest-fr-1440.png",
+  "screens/proof/p1-guest-fr-390.png",
+  "screens/proof/p1-guest-ar-1440.png",
+  "screens/proof/p1-guest-ar-390.png",
+  "screens/proof/p1-account-en-1440.png",
+  "screens/proof/p1-account-en-390.png",
+  "screens/proof/p1-account-de-1440.png",
+  "screens/proof/p1-account-de-390.png",
+  "screens/proof/p1-account-fr-1440.png",
+  "screens/proof/p1-account-fr-390.png",
+  "screens/proof/p1-account-ar-1440.png",
+  "screens/proof/p1-account-ar-390.png",
+  "screens/proof/p3-guest-ar-1440-lookup.png",
+  "screens/proof/p3-guest-ar-1440-booking.png",
+  "screens/proof/p3-guest-ar-1440-change.png",
+  "screens/proof/p3-guest-ar-390-lookup.png",
+  "screens/proof/p3-guest-ar-390-booking.png",
+  "screens/proof/p3-guest-ar-390-change.png",
+  "screens/proof/p3-account-ar-1440-lookup.png",
+  "screens/proof/p3-account-ar-1440-booking.png",
+  "screens/proof/p3-account-ar-1440-change.png",
+  "screens/proof/p3-account-ar-390-lookup.png",
+  "screens/proof/p3-account-ar-390-booking.png",
+  "screens/proof/p3-account-ar-390-change.png",
+  "screens/proof/p4-guest-en-1440-refused.png",
+  "screens/proof/p4-guest-en-1024-refused.png",
+  "screens/proof/p4-guest-en-768-refused.png",
+  "screens/proof/p4-guest-en-390-refused.png",
+  "screens/proof/p4-guest-de-1440-refused.png",
+  "screens/proof/p4-guest-de-1024-refused.png",
+  "screens/proof/p4-guest-de-768-refused.png",
+  "screens/proof/p4-guest-de-390-refused.png",
+  "screens/proof/p4-guest-fr-1440-refused.png",
+  "screens/proof/p4-guest-fr-1024-refused.png",
+  "screens/proof/p4-guest-fr-768-refused.png",
+  "screens/proof/p4-guest-fr-390-refused.png",
+  "screens/proof/p4-guest-ar-1440-refused.png",
+  "screens/proof/p4-guest-ar-1024-refused.png",
+  "screens/proof/p4-guest-ar-768-refused.png",
+  "screens/proof/p4-guest-ar-390-refused.png",
+  "screens/proof/p4-account-en-1440-refused.png",
+  "screens/proof/p4-account-en-1024-refused.png",
+  "screens/proof/p4-account-en-768-refused.png",
+  "screens/proof/p4-account-en-390-refused.png",
+  "screens/proof/p4-account-de-1440-refused.png",
+  "screens/proof/p4-account-de-1024-refused.png",
+  "screens/proof/p4-account-de-768-refused.png",
+  "screens/proof/p4-account-de-390-refused.png",
+  "screens/proof/p4-account-fr-1440-refused.png",
+  "screens/proof/p4-account-fr-1024-refused.png",
+  "screens/proof/p4-account-fr-768-refused.png",
+  "screens/proof/p4-account-fr-390-refused.png",
+  "screens/proof/p4-account-ar-1440-refused.png",
+  "screens/proof/p4-account-ar-1024-refused.png",
+  "screens/proof/p4-account-ar-768-refused.png",
+  "screens/proof/p4-account-ar-390-refused.png",
+  "screens/proof/p4-guest-en-1440-accepted.png",
+  "screens/proof/p4-guest-en-390-accepted.png",
+  "screens/proof/p4-guest-de-1440-accepted.png",
+  "screens/proof/p4-guest-de-390-accepted.png",
+  "screens/proof/p4-guest-fr-1440-accepted.png",
+  "screens/proof/p4-guest-fr-390-accepted.png",
+  "screens/proof/p4-guest-ar-1440-accepted.png",
+  "screens/proof/p4-guest-ar-390-accepted.png",
+  "screens/proof/p4-account-en-1440-accepted.png",
+  "screens/proof/p4-account-en-390-accepted.png",
+  "screens/proof/p4-account-de-1440-accepted.png",
+  "screens/proof/p4-account-de-390-accepted.png",
+  "screens/proof/p4-account-fr-1440-accepted.png",
+  "screens/proof/p4-account-fr-390-accepted.png",
+  "screens/proof/p4-account-ar-1440-accepted.png",
+  "screens/proof/p4-account-ar-390-accepted.png"
+ ]
+}

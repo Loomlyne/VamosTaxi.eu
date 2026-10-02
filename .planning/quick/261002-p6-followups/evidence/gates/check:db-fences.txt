@@ -1,0 +1,9 @@
+check-db-access-fences: raw `postgres` import outside the allow-list (D-10) — pass.
+check-db-access-fences: no module-scope postgres.js client (D-05) — pass.
+check-db-access-fences: no `sql.reserve()` outside the allow-list (Pitfall 9) — pass.
+check-db-access-fences: no `sql.end()` outside the allow-list (D-05) — pass.
+check-db-access-fences: no `sql.unsafe(` outside the allow-list (ban #7) — pass.
+check-db-access-fences: no session-scoped `set_config(..., false)` / bare `SET ROLE`/`SET SESSION` (ban #6) — pass.
+check-db-access-fences: every identity-wrapper importer is a Route Handler or force-dynamic (D-06) — pass.
+check-db-access-fences: no isolate-level memoisation under apps/web/app and apps/web/lib (U31/ISOL-08 CI-grep) — pass.
+check-db-access-fences: all 8 checks passed (1118 files scanned).
