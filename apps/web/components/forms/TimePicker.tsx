@@ -106,7 +106,10 @@ export function TimePicker({
               <Icon name="clock" size={16} color="var(--vt-text-muted)" />
               <span>{timeTitle}</span>
             </div>
-            <div className="vt-time__spin">
+            {/* The hour and minute columns each keep their own digits LTR, but the row
+                holding them inherits the page direction — so in Arabic the two columns
+                swapped and 04:30 read as "30 : 04". The row itself has to stay LTR. */}
+            <div className="vt-time__spin vt-dir-keep" dir="ltr">
               <div className="vt-time__col">
                 <button type="button" aria-label="Hour up" onClick={() => onChange(bumpHm(parsed.hm, 60))}>
                   <Icon name="chevron-up" size={16} color="currentColor" />
