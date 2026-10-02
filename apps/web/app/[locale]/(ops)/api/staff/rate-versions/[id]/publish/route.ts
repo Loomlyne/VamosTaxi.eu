@@ -49,6 +49,26 @@ function asNullableInt(value: number | string | null | undefined): number | null
   return Number.isFinite(n) ? Math.trunc(n) : null;
 }
 
+/**
+ * The draft's service-area polygon as an object, or null when there is none. The driver parses
+ * a jsonb column into an object; a row written by an older double-encoding writer comes back as
+ * the JSON text instead, so that shape is unwrapped here rather than copied forward.
+ */
+function readServiceArea(value: unknown): Record<string, unknown> | null {
+  if (value == null) return null;
+  if (typeof value === "object" && !Array.isArray(value)) return value as Record<string, unknown>;
+  if (typeof value !== "string" || value.trim() === "") return null;
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      return parsed as Record<string, unknown>;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
 type PublishVersionRow = {
   id: number | string;
   label: string;
@@ -87,8 +107,17 @@ export async function POST(
         }
         const vatBps = asNullableInt(row.vat_rate_bps);
         const lockMinutes = QUOTE_LOCK_MINUTES;
+        // 26.2 audit: `${JSON.stringify(x)}::jsonb` is the double-encoding form. The Worker's
+        // client runs with `fetch_types: false` and prepared statements, so Postgres describes
+        // the parameter as jsonb and the driver serialises the text a second time — the row
+        // lands as a JSON string and the `settings_versions_service_area_geojson_object` check
+        // refuses it with 23514, the same way every customer time-change request failed before
+        // 26.2 P1. The draft's polygon goes through the driver's JSON helper instead. A missing
+        // polygon must stay SQL NULL (not JSON null) so the `coalesce` below keeps the current
+        // settings row.
+        const serviceArea = readServiceArea(row.service_area_geojson);
         const serviceAreaJson =
-          row.service_area_geojson == null ? null : JSON.stringify(row.service_area_geojson);
+          serviceArea == null ? null : tx.json(serviceArea as Parameters<typeof tx.json>[0]);
         await tx`
           update public.rate_versions
              set status = 'retired'
