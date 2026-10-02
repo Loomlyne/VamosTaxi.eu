@@ -22,6 +22,11 @@
 [data-sec-row]{display:flex;flex-wrap:wrap;align-items:center;gap:12px}
 [data-reauth]{display:flex;flex-direction:column;gap:12px}
 [data-reauth-actions]{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px;padding-top:4px}
+[data-pol-chg]{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;margin:0;min-width:0;font-size:var(--vt-body-sm);line-height:1.45;color:var(--vt-text-primary)}
+[data-pol-chg-k]{color:var(--vt-text-muted);min-width:0}
+[data-pol-chg-old]{color:var(--vt-text-muted);text-decoration:line-through;text-decoration-thickness:1px}
+[data-pol-chg-new]{font-weight:var(--vt-weight-semibold)}
+[data-pol-chg-arrow]{display:inline-flex}
 @media (max-width:680px){[data-totp-enrol]{grid-template-columns:minmax(0,1fr)}[data-totp-side]{max-width:none}[data-sec-pw-grid]{grid-template-columns:minmax(0,1fr)!important}}
 </style>
 <main style="flex:1 1 auto;min-width:0;display:flex;flex-direction:column">
@@ -33,6 +38,7 @@
 </div>
 <div style="margin-inline-start:auto;display:{{ actionsShow }};flex-wrap:wrap;align-items:center;gap:10px">
 <span style="display:{{ savedShow }};font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSaved }}</span>
+<span role="alert" style="display:{{ saveErrShow }};font-size:var(--vt-body-xs);color:var(--vt-danger)">{{ saveErr }}</span>
 <span style="display:{{ dirtyShow }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="outline" onClick="{{ discard }}" hint-size="110px,44px">{{ tDiscard }}</x-import>
 </span>
@@ -81,16 +87,16 @@
 <p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tPolicySub }}</p>
 </div>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tMinAdvance }}" value="{{ vMinAdvance }}" onChange="{{ setMinAdvance }}" placeholder="{{ tHours }}" suffix="{{ tHours }}" hint="{{ vLiveMinAdvance }}" hint-size="100%,76px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tCancelWindow }}" value="{{ vCancelWindow }}" onChange="{{ setCancelWindow }}" placeholder="{{ tHours }}" suffix="{{ tHours }}" hint="{{ vLiveCancelWindow }}" hint-size="100%,76px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tAirportWait }}" value="{{ vAirportWait }}" onChange="{{ setAirportWait }}" suffix="{{ tMinutes }}" hint="{{ vLiveAirportWait }}" hint-size="100%,76px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tCityWait }}" value="{{ vCityWait }}" onChange="{{ setCityWait }}" suffix="{{ tMinutes }}" hint="{{ vLiveCityWait }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tMinAdvance }}" value="{{ vMinAdvance }}" onChange="{{ setMinAdvance }}" placeholder="{{ tMinutes }}" suffix="{{ tMinutes }}" hint="{{ vLiveMinAdvance }}" error="{{ errMinAdvance }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tCancelWindow }}" value="{{ vCancelWindow }}" onChange="{{ setCancelWindow }}" placeholder="{{ tHours }}" suffix="{{ tHours }}" hint="{{ vLiveCancelWindow }}" error="{{ errCancelWindow }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tAirportWait }}" value="{{ vAirportWait }}" onChange="{{ setAirportWait }}" suffix="{{ tMinutes }}" hint="{{ vLiveAirportWait }}" error="{{ errAirportWait }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tCityWait }}" value="{{ vCityWait }}" onChange="{{ setCityWait }}" suffix="{{ tMinutes }}" hint="{{ vLiveCityWait }}" error="{{ errCityWait }}" hint-size="100%,76px"></x-import>
 </div>
 
 <div data-policy-changes="1" style="display:{{ policyChangeShow }};flex-direction:column;gap:6px;padding:14px 16px;background:var(--vt-bg-page);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md)">
-<p style="margin:0;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-muted)">{{ tPolicyPublishHint }}</p>
+<p style="margin:0;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-muted)">{{ tPolicyChangesTitle }}</p>
 <sc-for list="{{ policyChangeRows }}" as="c" hint-placeholder-count="2">
-<p style="margin:0;font-size:var(--vt-body-sm);color:var(--vt-text-primary)"><span class="vt-dir-keep">{{ c.text }}</span></p>
+<p data-pol-chg="1"><span data-pol-chg-k="1">{{ c.label }}</span><span data-pol-chg-old="1" class="vt-dir-keep">{{ c.from }}</span><span data-pol-chg-arrow="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n14 }}" color="var(--vt-text-muted)" hint-size="14px,14px"></x-import></span><span data-pol-chg-new="1" class="vt-dir-keep">{{ c.to }}</span><span>{{ c.unit }}</span></p>
 </sc-for>
 </div>
 
@@ -104,7 +110,7 @@
 <p style="margin:0;font-size:var(--vt-body-xs);color:var(--vt-text-inverse-muted)">{{ tPolicyPublishConfirmSub }}</p>
 <div style="display:flex;flex-wrap:wrap;gap:10px">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="primary" size="md" onClick="{{ doPublish }}" disabled="{{ publishDisabled }}" hint-size="160px,44px">{{ tPolicyPublishGo }}</x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost-inverse" size="md" onClick="{{ cancelPublish }}" hint-size="120px,44px">{{ tCancel }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="light" size="md" onClick="{{ cancelPublish }}" hint-size="120px,44px">{{ tCancel }}</x-import>
 </div>
 </div>
 
@@ -401,6 +407,8 @@ const T = {
     policyPublishGo:'PUBLISH', cancel:'CANCEL',
     policyPublished:'Published. Customers see the new rules now.',
     policyPublishFailed:'Could not publish. Try again.',
+    policyChangesTitle:'Changes to publish',
+    policySaveCheck:'Check the value: a whole number from 0 to {max}.', policySaveWhole:'Check the values: whole numbers only.',
     locale:'Localisation', localeSub:'What a first-time visitor lands on before they choose',
     defaultLang:'Default language', defaultCur:'Default currency',
     published:'Published languages', publishedHint:'Every page, email and document ships in all four. The currency switch changes the mark, never the number.',
@@ -457,6 +465,8 @@ const T = {
     policyPublishGo:'VERÖFFENTLICHEN', cancel:'ABBRECHEN',
     policyPublished:'Veröffentlicht. Die neuen Regeln gelten jetzt.',
     policyPublishFailed:'Veröffentlichen nicht möglich. Bitte nochmals versuchen.',
+    policyChangesTitle:'Zu veröffentlichende Änderungen',
+    policySaveCheck:'Wert prüfen: eine ganze Zahl von 0 bis {max}.', policySaveWhole:'Werte prüfen: nur ganze Zahlen.',
     locale:'Lokalisierung', localeSub:'Womit ein neuer Besucher startet, bevor er wählt',
     defaultLang:'Standardsprache', defaultCur:'Standardwährung',
     published:'Veröffentlichte Sprachen', publishedHint:'Jede Seite, E-Mail und jedes Dokument erscheint in allen vier. Die Währungsumschaltung ändert das Zeichen, nie die Zahl.',
@@ -513,6 +523,8 @@ const T = {
     policyPublishGo:'PUBLIER', cancel:'ANNULER',
     policyPublished:'Publié. Les nouvelles règles s’appliquent.',
     policyPublishFailed:'Publication impossible. Réessayez.',
+    policyChangesTitle:'Modifications à publier',
+    policySaveCheck:'Vérifiez la valeur : un nombre entier de 0 à {max}.', policySaveWhole:'Vérifiez les valeurs : nombres entiers uniquement.',
     locale:'Localisation', localeSub:'Ce que voit un nouveau visiteur avant de choisir',
     defaultLang:'Langue par défaut', defaultCur:'Devise par défaut',
     published:'Langues publiées', publishedHint:'Chaque page, e-mail et document existe dans les quatre. Le changement de devise change le symbole, jamais le nombre.',
@@ -569,6 +581,8 @@ const T = {
     policyPublishGo:'نشر', cancel:'إلغاء',
     policyPublished:'تم النشر. القواعد الجديدة سارية الآن.',
     policyPublishFailed:'تعذّر النشر. حاول مرة أخرى.',
+    policyChangesTitle:'تغييرات بانتظار النشر',
+    policySaveCheck:'تحقّق من القيمة: عدد صحيح من 0 إلى {max}.', policySaveWhole:'تحقّق من القيم: أعداد صحيحة فقط.',
     locale:'التوطين', localeSub:'ما يبدأ به الزائر الجديد قبل أن يختار',
     defaultLang:'اللغة الافتراضية', defaultCur:'العملة الافتراضية',
     published:'اللغات المنشورة', publishedHint:'كل صفحة ورسالة ومستند متوفّرة باللغات الأربع. وتبديل العملة يغيّر الرمز، لا الرقم.',
@@ -607,6 +621,24 @@ const REAUTH_FRESH_MS = 270000; // 4.5 min: the server's vt_reauth lives 5 min.
 // The four the owner may edit (2026-10-02). They are draft values: Save keeps them,
 // Publish makes them live. They are deliberately NOT in POLICY_KEYS any more.
 const POLICY_DRAFT_KEYS = { minAdvance:1, cancelWindow:1, airportWait:1, cityWait:1 };
+// The column bounds the server and the column CHECKs hold (POLICY_DRAFT_BOUNDS in
+// apps/web/lib/ops/settings.ts): minAdvance is min_advance_minutes, cancelWindow is
+// free_cancel_hours, the two waits are *_waiting_minutes. Shown only in the refusal copy.
+const POLICY_MAX = { minAdvance:10080, cancelWindow:720, airportWait:1440, cityWait:1440 };
+// The server names the box it refused by copy id; 'settings-error-policy-number' (text such
+// as "45 min") does not, so the page finds the first box that is not a whole number.
+const POLICY_ERROR_FIELD = {
+  'settings-error-min-advance':'minAdvance', 'settings-error-free-cancel':'cancelWindow',
+  'settings-error-airport-wait':'airportWait', 'settings-error-city-wait':'cityWait',
+};
+function policyBoxNotWhole(d) {
+  for (const k in POLICY_DRAFT_KEYS) {
+    const v = d[k];
+    if (v === null || v === undefined || String(v).trim() === '') continue;
+    if (!/^\d+$/.test(String(v).trim())) return k;
+  }
+  return '';
+}
 // Read-only on this page: the live mirror, the change list and the version stamp.
 const POLICY_KEYS = {
   policySlug:1, policyLabel:1, policyEffectiveFrom:1, policyChanges:1, policyDirty:1,
@@ -684,7 +716,8 @@ class Component extends DCLogic {
     signInMethod:'password', methodBusy:false, methodSaved:false, methodMsg:'',
     totpOn:false, totpFactorId:'', totpStage:'idle', totpQr:'', totpSecret:'', totpCode:'', totpFailed:false, totpBusy:false, totpMsg:'', totpError:false,
     reauthOpen:false, reauthPw:'', showReauthPw:false, reauthCode:'', reauthSent:false, reauthBusy:false, reauthErr:'',
-    publishBusy:false, publishConfirm:false, publishMsg:'', publishError:false };
+    publishBusy:false, publishConfirm:false, publishMsg:'', publishError:false,
+    saveErr:'', saveErrField:'' };
   bind = () => {
     if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
     if (this._offSettings) this._offSettings();
@@ -983,7 +1016,8 @@ class Component extends DCLogic {
     this.setState((s) => {
       const d = {}; for (const k in s.draft) d[k] = s.draft[k];
       d[key] = value;
-      return { draft: d, saved: false };
+      // A refusal stays until a box changes or a save goes through.
+      return { draft: d, saved: false, saveErr: '', saveErrField: '' };
     });
   };
   save = () => {
@@ -1005,13 +1039,23 @@ class Component extends DCLogic {
           if (json.data.defaultCur) window.VamosLocale.setCur(json.data.defaultCur);
           if (json.data.defaultLang) window.VamosLocale.setLang(json.data.defaultLang);
         }
-        this.setState({ draft: json.data, saved: true });
+        this.setState({ draft: json.data, saved: true, saveErr: '', saveErrField: '' });
         clearTimeout(this._savedT);
         this._savedT = setTimeout(() => this.setState({ saved: false }), 2400);
+      } else {
+        // A refused save is never silent: the box it names carries the reason, else the bar does.
+        const t = T[this.state.lang] || T.en;
+        const code = json && json.code;
+        let field = POLICY_ERROR_FIELD[code] || '';
+        if (!field && code === 'settings-error-policy-number') field = policyBoxNotWhole(this.state.draft || {});
+        const msg = field ? t.policySaveCheck.replace('{max}', String(POLICY_MAX[field]))
+          : code === 'settings-error-policy-number' ? t.policySaveWhole
+          : this.failText(json, t.secSaveFailed);
+        this.setState({ saved: false, saveErr: msg, saveErrField: field });
       }
     });
   };
-  discard = () => { if (window.VamosOps) this.setState({ draft: window.VamosOps.settings.get(), saved: false }); };
+  discard = () => { if (window.VamosOps) this.setState({ draft: window.VamosOps.settings.get(), saved: false, saveErr: '', saveErrField: '' }); };
 
   // Publish sends nothing but the press: the server publishes the draft it already holds.
   // That is why the button is closed while there are unsaved changes — otherwise he would
@@ -1060,7 +1104,7 @@ class Component extends DCLogic {
     //   unsaved  — typed but not Saved yet (Publish stays closed)
     //   changes  — saved draft differs from what customers get now (Publish opens)
     //   neither  — the draft is live
-    const POLICY_UNITS = { minAdvance: t.hours, cancelWindow: t.hours, airportWait: t.minutes, cityWait: t.minutes };
+    const POLICY_UNITS = { minAdvance: t.minutes, cancelWindow: t.hours, airportWait: t.minutes, cityWait: t.minutes };
     const POLICY_LIVE_OF = { minAdvance:'liveMinAdvance', cancelWindow:'liveCancelWindow', airportWait:'liveAirportWait', cityWait:'liveCityWait' };
     const blank = (v) => v === '' || v === null || v === undefined;
     const policyUnsaved = Object.keys(POLICY_DRAFT_KEYS).some((k) => String(d[k]) !== String(saved[k]));
@@ -1069,11 +1113,15 @@ class Component extends DCLogic {
       if (String(from) === String(to)) return [];
       return [{ key: k, from: blank(from) ? '—' : String(from), to: blank(to) ? '—' : String(to), unit: POLICY_UNITS[k] }];
     });
+    // The number sits in its own vt-dir-keep span so it stays left to right in Arabic; the
+    // unit is a word and follows the line's own direction.
     const liveLine = (key, liveKey, unit) => {
       const from = d[liveKey];
       if (blank(from) || String(from) === String(d[key])) return '';
-      return t.policyLiveNow + ' ' + String(from) + ' ' + unit;
+      return React.createElement(React.Fragment, null, t.policyLiveNow + ' ',
+        React.createElement('span', { className: 'vt-dir-keep' }, String(from)), ' ' + unit);
     };
+    const errOn = (k) => (this.state.saveErrField === k ? this.state.saveErr : '');
     const RAIL = {
       company: [t.railCompany, t.railCompanyHint], policy: [t.railPolicy, t.railPolicyHint],
       locale: [t.railLocale, t.railLocaleHint], payments: [t.railPayments, t.railPaymentsHint],
@@ -1081,7 +1129,7 @@ class Component extends DCLogic {
       security: [t.railSecurity, t.railSecurityHint],
     };
     return {
-      n18: 18,
+      n18: 18, n14: 14,
       tTitle: t.title,
       tSubtitle: t.subtitle,
       tSave: t.save, tDiscard: t.discard, tSaved: t.saved,
@@ -1196,14 +1244,19 @@ class Component extends DCLogic {
       setMinAdvance: txt('minAdvance'), setCancelWindow: txt('cancelWindow'),
       setAirportWait: txt('airportWait'), setCityWait: txt('cityWait'),
       // What customers get right now, shown under a box only when the draft differs.
-      vLiveMinAdvance: liveLine('minAdvance', 'liveMinAdvance', t.hours),
-      vLiveCancelWindow: liveLine('cancelWindow', 'liveCancelWindow', t.hours),
-      vLiveAirportWait: liveLine('airportWait', 'liveAirportWait', t.minutes),
-      vLiveCityWait: liveLine('cityWait', 'liveCityWait', t.minutes),
+      vLiveMinAdvance: liveLine('minAdvance', 'liveMinAdvance', POLICY_UNITS.minAdvance),
+      vLiveCancelWindow: liveLine('cancelWindow', 'liveCancelWindow', POLICY_UNITS.cancelWindow),
+      vLiveAirportWait: liveLine('airportWait', 'liveAirportWait', POLICY_UNITS.airportWait),
+      vLiveCityWait: liveLine('cityWait', 'liveCityWait', POLICY_UNITS.cityWait),
+      errMinAdvance: errOn('minAdvance'), errCancelWindow: errOn('cancelWindow'),
+      errAirportWait: errOn('airportWait'), errCityWait: errOn('cityWait'),
+      // The bar line carries a refusal no box can hold, or one on a pane he is not looking at.
+      saveErr: this.state.saveErr || '',
+      saveErrShow: this.state.saveErr && !(this.state.saveErrField && pane === 'policy') ? 'inline' : 'none',
       policyChangeRows: policyChanges.map((c) => ({
-        key: c.key,
-        text: (t[c.key] || c.key) + ': ' + c.from + ' → ' + c.to + ' ' + c.unit,
+        key: c.key, label: t[c.key] || c.key, from: c.from, to: c.to, unit: c.unit,
       })),
+      tPolicyChangesTitle: t.policyChangesTitle,
       policyChangeShow: policyChanges.length ? 'flex' : 'none',
       tPolicyPublish: t.policyPublish,
       tPolicyPublishHint: policyUnsaved ? t.policyPublishSaveFirst

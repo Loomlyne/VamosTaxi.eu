@@ -2,6 +2,9 @@
 //
 // Pure validator / mapper cases. No Hyperdrive, no settings_versions write.
 
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it, vi } from "vitest";
 
 vi.mock("../db/identity", () => ({
@@ -10,6 +13,7 @@ vi.mock("../db/identity", () => ({
 import {
   assertPolicyDraftInput,
   assertSettingsInput,
+  POLICY_DRAFT_BOUNDS,
   mapSqlState,
   policyDraftChanges,
   SettingsInputError,
@@ -161,6 +165,46 @@ describe("assertPolicyDraftInput", () => {
       expect(err).toBeInstanceOf(SettingsInputError);
       expect((err as SettingsInputError).field).toBe("min_advance_minutes");
       expect((err as SettingsInputError).copyId).toBe("settings-error-min-advance");
+    }
+  });
+
+  it("minimum advance is minutes: a week (10080) is kept, one minute more is refused", () => {
+    expect(assertPolicyDraftInput(draft({ min_advance_minutes: 10080 })).min_advance_minutes).toBe(10080);
+    expect(() => assertPolicyDraftInput(draft({ min_advance_minutes: 10081 }))).toThrow(SettingsInputError);
+  });
+});
+
+// The dashboard Settings page states the unit and the upper bound next to each box. Both must
+// be the column's: min_advance_minutes once read "hours" there (review 2026-10-03).
+describe("OpsSettings policy boxes match the columns", () => {
+  const here = dirname(fileURLToPath(import.meta.url));
+  const page = readFileSync(join(here, "../../../../app/ops/OpsSettings.dc.html"), "utf8");
+  const PAGE_KEY = {
+    min_advance_minutes: "minAdvance",
+    free_cancel_hours: "cancelWindow",
+    airport_waiting_minutes: "airportWait",
+    city_waiting_minutes: "cityWait",
+  } as const;
+  const objectLiteral = (name: string) => page.match(new RegExp(`const ${name} = \\{([^}]*)\\}`))?.[1] ?? "";
+
+  it("each box's unit is the column's unit", () => {
+    const units = objectLiteral("POLICY_UNITS");
+    for (const [column, key] of Object.entries(PAGE_KEY)) {
+      const unit = column.endsWith("_hours") ? "t.hours" : "t.minutes";
+      expect(units, column).toMatch(new RegExp(`\\b${key}: ${unit.replace(".", "\\.")}\\b`));
+    }
+    expect(page).toMatch(/label="\{\{ tMinAdvance \}\}"[^>]*placeholder="\{\{ tMinutes \}\}" suffix="\{\{ tMinutes \}\}"/);
+    expect(page).not.toMatch(/liveLine\('minAdvance', 'liveMinAdvance', t\.hours\)/);
+  });
+
+  it("the refusal copy states the server's upper bound and maps every copy id to its box", () => {
+    const max = objectLiteral("POLICY_MAX");
+    const ids = objectLiteral("POLICY_ERROR_FIELD");
+    for (const [column, key] of Object.entries(PAGE_KEY)) {
+      const bound = POLICY_DRAFT_BOUNDS[column as keyof typeof POLICY_DRAFT_BOUNDS];
+      expect(bound.min, column).toBe(0);
+      expect(max, column).toMatch(new RegExp(`\\b${key}:${bound.max}\\b`));
+      expect(ids, column).toContain(`'${bound.copyId}':'${key}'`);
     }
   });
 });
