@@ -1,0 +1,157 @@
+{
+  "terms": {
+    "de": {
+      "count": 0,
+      "strings": [],
+      "attrs": [],
+      "dataTok": []
+    },
+    "fr": {
+      "count": 0,
+      "strings": [],
+      "attrs": [],
+      "dataTok": []
+    },
+    "ar": {
+      "count": 0,
+      "strings": [],
+      "attrs": [],
+      "dataTok": []
+    },
+    "overflow390_ar": {
+      "scrollWidth": 390,
+      "clientWidth": 390
+    },
+    "overflow390_de": {
+      "scrollWidth": 390,
+      "clientWidth": 390
+    }
+  },
+  "privacy": {
+    "de": {
+      "count": 0,
+      "strings": [],
+      "attrs": [],
+      "dataTok": []
+    },
+    "fr": {
+      "count": 0,
+      "strings": [],
+      "attrs": [],
+      "dataTok": []
+    },
+    "ar": {
+      "count": 0,
+      "strings": [],
+      "attrs": [],
+      "dataTok": []
+    },
+    "overflow390_ar": {
+      "scrollWidth": 390,
+      "clientWidth": 390
+    },
+    "overflow390_de": {
+      "scrollWidth": 390,
+      "clientWidth": 390
+    }
+  },
+  "cookies": {
+    "de": {
+      "count": 0,
+      "strings": [],
+      "attrs": [],
+      "dataTok": []
+    },
+    "fr": {
+      "count": 0,
+      "strings": [],
+      "attrs": [],
+      "dataTok": []
+    },
+    "ar": {
+      "count": 0,
+      "strings": [],
+      "attrs": [],
+      "dataTok": []
+    },
+    "overflow390_ar": {
+      "scrollWidth": 390,
+      "clientWidth": 390
+    },
+    "overflow390_de": {
+      "scrollWidth": 390,
+      "clientWidth": 390
+    }
+  },
+  "cancellation": {
+    "de": {
+      "count": 0,
+      "strings": [],
+      "attrs": [],
+      "dataTok": []
+    },
+    "fr": {
+      "count": 0,
+      "strings": [],
+      "attrs": [],
+      "dataTok": []
+    },
+    "ar": {
+      "count": 0,
+      "strings": [],
+      "attrs": [],
+      "dataTok": []
+    },
+    "overflow390_ar": {
+      "scrollWidth": 390,
+      "clientWidth": 390
+    },
+    "overflow390_de": {
+      "scrollWidth": 390,
+      "clientWidth": 390
+    }
+  },
+  "imprint": {
+    "de": {
+      "count": 0,
+      "strings": [],
+      "attrs": [],
+      "dataTok": [
+        "licensing authority",
+        "licence number",
+        "dispute resolution body",
+        "content and links disclaimer"
+      ]
+    },
+    "fr": {
+      "count": 0,
+      "strings": [],
+      "attrs": [],
+      "dataTok": [
+        "licensing authority",
+        "licence number",
+        "dispute resolution body",
+        "content and links disclaimer"
+      ]
+    },
+    "ar": {
+      "count": 0,
+      "strings": [],
+      "attrs": [],
+      "dataTok": [
+        "licensing authority",
+        "licence number",
+        "dispute resolution body",
+        "content and links disclaimer"
+      ]
+    },
+    "overflow390_ar": {
+      "scrollWidth": 390,
+      "clientWidth": 390
+    },
+    "overflow390_de": {
+      "scrollWidth": 390,
+      "clientWidth": 390
+    }
+  }
+}

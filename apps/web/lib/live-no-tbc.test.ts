@@ -2,6 +2,11 @@
 // see. The live public pages are the DC mocks (apps/web/middleware.ts DC_PAGES); the Next.js
 // routes that are live render the cookie banner. Review galleries (*States.dc.html) are not
 // served to customers and are skipped.
+//
+// One later, narrower owner answer (2026-10-03, 26.2 audit U07-2, "Labelled TBC gaps",
+// .planning/decisions/2026-10-03-audit-owner-answers.md): the /imprint values the company
+// still owes are shown as labelled TBC pills instead of internal review notes. Exactly
+// those pills are allowed, on that page only; any other pill anywhere still fails.
 import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -21,13 +26,38 @@ function mockFiles(): string[] {
   );
 }
 
+/** U07-2 (owner 2026-10-03): the only pills a live page may carry, by file and label. */
+const ALLOWED_PILLS: Record<string, string[]> = {
+  "app/pages/imprint.dc.html": [
+    "licensing authority",
+    "licence number",
+    "dispute resolution body",
+    "content and links disclaimer",
+  ],
+};
+
+function pillLabel(match: string): string {
+  return match.slice(match.indexOf(">") + 1, -1).trim();
+}
+
 describe("no TBC on live pages", () => {
-  it("no live mock renders a TBC pill", () => {
+  it("no live mock renders a TBC pill (except the U07-2 imprint gaps)", () => {
     const found = mockFiles().flatMap((rel) => {
       const src = readFileSync(join(repoRoot, rel), "utf8").replace(/<style[\s\S]*?<\/style>/gi, "");
-      return [...src.matchAll(PILL)].map((m) => `${rel}: ${m[0].slice(0, 120)}`);
+      const allowed = ALLOWED_PILLS[rel] ?? [];
+      return [...src.matchAll(PILL)]
+        .filter((m) => !allowed.includes(pillLabel(m[0])))
+        .map((m) => `${rel}: ${m[0].slice(0, 120)}`);
     });
     expect(found).toEqual([]);
+  });
+
+  it("the imprint carries exactly the U07-2 pills, each once", () => {
+    const rel = "app/pages/imprint.dc.html";
+    const src = readFileSync(join(repoRoot, rel), "utf8").replace(/<style[\s\S]*?<\/style>/gi, "");
+    expect([...src.matchAll(PILL)].map((m) => pillLabel(m[0]))).toEqual(ALLOWED_PILLS[rel]);
+    expect(src).not.toContain("data-slot");
+    expect(src).not.toContain("Client input");
   });
 
   it("the cookie banner has no .vt-ck-meta and no PendingSlot", () => {

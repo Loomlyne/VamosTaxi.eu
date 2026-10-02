@@ -245,7 +245,14 @@ test.describe("Cancellation and imprint pages @component", () => {
     await page.goto(baseURL + "/ar/imprint", { waitUntil: "domcontentloaded", timeout: 60_000 });
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
     const imprintTok = await page.locator("[data-tok]").allTextContents();
-    expect(imprintTok).toHaveLength(0);
+    // U07-2 (owner 2026-10-03, "Labelled TBC gaps"): the values the company still owes are
+    // labelled pills; the label stays English in every language (ADR-011).
+    expect(imprintTok.map((t) => t.trim())).toEqual([
+      "licensing authority",
+      "licence number",
+      "dispute resolution body",
+      "content and links disclaimer",
+    ]);
     expect(await toks("/en/imprint")).toEqual(imprintTok);
     expect(await toks("/de/imprint")).toEqual(imprintTok);
     expect(await toks("/fr/imprint")).toEqual(imprintTok);

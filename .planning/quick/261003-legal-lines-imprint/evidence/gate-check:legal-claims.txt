@@ -1,0 +1,5 @@
+$ node scripts/check-legal-language-claims.mjs
+check-legal-claims: declaration matches known facts (D-27) — pass.
+check-legal-claims: positive key coverage (D-29) — pass.
+check-legal-claims: no over-claiming (I18N-08) — pass.
+check-legal-claims: all 3 checks passed.

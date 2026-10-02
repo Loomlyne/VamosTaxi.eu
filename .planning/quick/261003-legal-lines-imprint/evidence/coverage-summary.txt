@@ -1,0 +1,35 @@
+terms de: before 3, after 0
+terms fr: before 3, after 0
+terms ar: before 3, after 0
+  before list: ["Registered as Vamos Taxi GmbH, company number CH-020.4.077.792-7 at the commercial register of the Canton of Zurich. Full company details are on the","Oversized or unusual items declared at booking: shown on your quote.","Accepted methods: Visa, Mastercard, Apple Pay, Google Pay and TWINT."]
+  after list (same in de/fr/ar: true): []
+  data-tok after: []
+  390px scrollWidth/clientWidth: ar 390/390, de 390/390
+privacy de: before 15, after 0
+privacy fr: before 15, after 0
+privacy ar: before 15, after 0
+  before list: ["no DPO appointed","none appointed","Stripe Payments Europe Ltd","Supabase","Booking database and sign-in · Zurich","Cloudflare","Mapbox","Confirmation and driver-detail emails · used when transactional mail is on","Sentry","Error diagnostics · not in use","Cloudflare Web Analytics (cookieless)","Site analytics, only with your consent · Cloudflare","10 years (Swiss books) for accounting and tax.","as long as needed to run the service","as long as needed to show consent — proof of what you chose, and when."]
+  after list (same in de/fr/ar: true): []
+  data-tok after: []
+  390px scrollWidth/clientWidth: ar 390/390, de 390/390
+cookies de: before 14, after 0
+cookies fr: before 14, after 0
+cookies ar: before 14, after 0
+  before list: ["sb-yaumjzvylngfjhtuffqs-auth-token","Vamos Taxi · Supabase","__stripe_mid · __stripe_sid","Stripe","not in use until live payments","cf_clearance","Cloudflare","as set by Cloudflare","vamosLang","until you change language","vamos:recent-places","until you clear it","Cloudflare Web Analytics (cookieless)","Sentry"]
+  after list (same in de/fr/ar: true): []
+  data-tok after: []
+  390px scrollWidth/clientWidth: ar 390/390, de 390/390
+cancellation de: before 1, after 0
+cancellation fr: before 1, after 0
+cancellation ar: before 1, after 0
+  before list: ["Where our records show you were at the pickup point and no vehicle came, you receive full refund back."]
+  after list (same in de/fr/ar: true): []
+  data-tok after: []
+  390px scrollWidth/clientWidth: ar 390/390, de 390/390
+imprint de: before 6, after 0
+imprint fr: before 6, after 0
+imprint ar: before 6, after 0
+  before list: ["GmbH","CH-020.4.077.792-7","vamostaxi.site","Ben Othman Houssein","Vamos Taxi / Loomlyne","Loomlyne"]
+  after list (same in de/fr/ar: true): []
+  data-tok after: ["licensing authority","licence number","dispute resolution body","content and links disclaimer"]
+  390px scrollWidth/clientWidth: ar 390/390, de 390/390
