@@ -4,6 +4,10 @@
 // The list unions live customer rows with booking emails. Delete is a tombstone
 // (erased_at) so the row leaves the list; bookings stay on the board.
 // Postgres has no min(uuid) — booking-sourced ids use array_agg.
+// Phone (quick 261002): a customer row wins the e-mail merge over the booking-sourced row, so a row
+// whose own phone is empty shows the phone of the customer's latest booking instead of a blank (the
+// same number a booking-only customer already shows). The number given at sign-up, on the finish
+// step or on the account page reaches the row itself (lib/auth/account-phone.ts).
 
 import { asStaff, type VamosClaims } from "@/lib/db/identity";
 
@@ -177,7 +181,14 @@ export async function loadCustomers(
               c.since,
               c.erased_at,
               case when c.erased_at is null then c.email::text end as email,
-              case when c.erased_at is null then c.phone end as phone,
+              case when c.erased_at is null then coalesce(nullif(btrim(c.phone), ''), (
+                select b.contact_phone from public.bookings b
+                 where b.erased_at is null
+                   and nullif(btrim(b.contact_phone), '') is not null
+                   and (b.customer_id = c.id or lower(b.contact_email::text) = lower(c.email::text))
+                 order by b.created_at desc
+                 limit 1
+              ), '') end as phone,
               case when c.erased_at is null then c.company end as company,
               case when c.erased_at is null then c.note end as note,
               (select count(*)::int from public.bookings b where b.customer_id = c.id) as trip_count
@@ -193,7 +204,14 @@ export async function loadCustomers(
               c.since,
               c.erased_at,
               case when c.erased_at is null then c.email::text end as email,
-              case when c.erased_at is null then c.phone end as phone,
+              case when c.erased_at is null then coalesce(nullif(btrim(c.phone), ''), (
+                select b.contact_phone from public.bookings b
+                 where b.erased_at is null
+                   and nullif(btrim(b.contact_phone), '') is not null
+                   and (b.customer_id = c.id or lower(b.contact_email::text) = lower(c.email::text))
+                 order by b.created_at desc
+                 limit 1
+              ), '') end as phone,
               case when c.erased_at is null then c.company end as company,
               case when c.erased_at is null then c.note end as note,
               (select count(*)::int from public.bookings b where b.customer_id = c.id) as trip_count
@@ -281,7 +299,14 @@ export async function loadCustomerHistory(
         c.since,
         c.erased_at,
         case when c.erased_at is null then c.email::text end as email,
-        case when c.erased_at is null then c.phone end as phone,
+        case when c.erased_at is null then coalesce(nullif(btrim(c.phone), ''), (
+          select b.contact_phone from public.bookings b
+           where b.erased_at is null
+             and nullif(btrim(b.contact_phone), '') is not null
+             and (b.customer_id = c.id or lower(b.contact_email::text) = lower(c.email::text))
+           order by b.created_at desc
+           limit 1
+        ), '') end as phone,
         case when c.erased_at is null then c.company end as company,
         case when c.erased_at is null then c.note end as note,
         (select count(*)::int from public.bookings b where b.customer_id = c.id) as trip_count

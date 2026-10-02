@@ -59,6 +59,15 @@ jobs:
         with:
           version: 2.115.0
 
+      # Auth only redirects to a listed URL, or to any port on the site_url host (127.0.0.1). The specs open their dev
+      # servers on http://localhost:<port>, and packages/db/supabase/config.toml lists only three of those ports, so a
+      # mailed link of any other spec (auth-confirm-email, port 4455) fell back to the site_url, http://127.0.0.1:3000,
+      # and the browser got "connection refused" (all three runs of 26.0 part 3). This edit is to the runner's own
+      # checkout and is the one scripts/local-test-stack.sh already makes on its scratch copy; the repository file
+      # keeps its exact list.
+      - name: Allow the spec dev-server ports for Auth redirects (runner copy of config.toml)
+        run: sed -i -E 's#^(additional_redirect_urls = \[)#\1\n  "http://localhost:*/**",#' packages/db/supabase/config.toml
+
       - name: Start local stack
         run: pnpm db:start
 

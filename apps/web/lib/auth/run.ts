@@ -227,9 +227,19 @@ export function parseProfileFields(fields: Record<string, unknown>): ProfileFiel
   return null;
 }
 
+/** Extra work after the profile is saved in Supabase Auth. */
+export type ProfileRunDeps = {
+  /**
+   * The new number also goes onto the customer row (the dashboard and checkout read it there).
+   * A throw answers `ok: false`, so the page says "Could not save" and the person tries again.
+   */
+  storePhone?: (user: { id: string; email: string | null }, phone: string) => Promise<void>;
+};
+
 export async function runUpdateProfile(
   supabase: AuthClient,
   input: ProfileFields,
+  deps: ProfileRunDeps = {},
 ): Promise<{ result: ProfileRunResult; reason: string | null }> {
   try {
     const {
@@ -257,6 +267,12 @@ export async function runUpdateProfile(
     const { error } = await supabase.auth.updateUser({ data });
     if (error) {
       return { result: { ok: false, reason: "auth-failed" }, reason: error.code ?? "auth-failed" };
+    }
+    if ("phone" in input && deps.storePhone) {
+      const who = user as { id?: unknown; email?: unknown };
+      if (typeof who.id === "string") {
+        await deps.storePhone({ id: who.id, email: typeof who.email === "string" ? who.email : null }, input.phone);
+      }
     }
     return { result: { ok: true }, reason: null };
   } catch {

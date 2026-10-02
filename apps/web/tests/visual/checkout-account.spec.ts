@@ -13,6 +13,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 import { openInLocale, type Lang } from "../support/locale";
+import { stubConsentChosen } from "../support/consent-state";
 
 const RUN_PROJECT = "component-1440";
 const GS = "11111111-1111-4111-8111-111111111111";
@@ -76,6 +77,10 @@ async function setup(
   opts: { signedInEmail?: string; intentCode?: "sign_in_first" | "account_consent_required" | "pay_limit" | "rate_limited" } = {},
 ) {
   const fx: Fx = { intentBodies: [], authBodies: [] };
+  // Phase 27: the consent banner paints after its state call answers and covers the options (a bottom card on a
+  // tablet, a bottom sheet on a phone), so a click waited until the 300 s limit. This spec is not about the banner:
+  // the state answers "already chosen" and it never shows.
+  await stubConsentChosen(page);
   // The challenge script is a stub that solves at once, so the widgets stay invisible as in production.
   await page.route(
     (url) => url.hostname.includes("cloudflare") || url.hostname.includes("turnstile"),
