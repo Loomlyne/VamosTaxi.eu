@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { createNavigation } from "next-intl/navigation";
 import { routing } from "@/i18n/routing";
 import { useVamosLocale, type CurrencyCode, type Locale } from "@/lib/locale-shim";
+import { trapTab } from "@/lib/a11y/focus-trap";
 import { Icon, Logo } from "../core";
 import { BrandSelect } from "./BrandSelect";
 import type { BrandSelectOption } from "./BrandSelect";
@@ -202,7 +203,9 @@ function SiteHeaderView({
     };
   }, [variant]);
 
-  const finishClose = () => {
+  // 26.2 audit U06-5: a user-driven close hands focus back to the menu button (not on resize or
+  // route change, where the page or the button is gone).
+  const finishClose = (restoreFocus = false) => {
     if (closeTimerRef.current !== null) {
       window.clearTimeout(closeTimerRef.current);
       closeTimerRef.current = null;
@@ -210,17 +213,22 @@ function SiteHeaderView({
     menuClosingRef.current = false;
     setMenuClosing(false);
     setMenuOpen(false);
+    if (restoreFocus) {
+      headerRef.current
+        ?.querySelector<HTMLElement>("[data-hd-narrow] > [data-hd-menu-btn]")
+        ?.focus({ preventScroll: true });
+    }
   };
   const closeMenu = () => {
     if (!menuOpenRef.current || menuClosingRef.current) return;
     const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     if (reduce) {
-      finishClose();
+      finishClose(true);
       return;
     }
     menuClosingRef.current = true;
     setMenuClosing(true);
-    closeTimerRef.current = window.setTimeout(finishClose, 360);
+    closeTimerRef.current = window.setTimeout(() => finishClose(true), 360);
   };
   const toggleMenu = () => {
     if (menuClosingRef.current) {
@@ -239,7 +247,7 @@ function SiteHeaderView({
   const onSheetAnimEnd = (event: AnimationEvent<HTMLDivElement>) => {
     if (!menuClosingRef.current) return;
     if (event.target !== event.currentTarget) return;
-    finishClose();
+    finishClose(true);
   };
 
   useEffect(() => {
@@ -248,6 +256,7 @@ function SiteHeaderView({
     document.body.style.overflow = "hidden";
     const esc = (event: KeyboardEvent) => {
       if (event.key === "Escape") closeMenu();
+      else if (event.key === "Tab") trapTab(event, document.getElementById("vt-hd-sheet"));
     };
     const away = (event: MouseEvent) => {
       if (headerRef.current && !headerRef.current.contains(event.target as Node)) {

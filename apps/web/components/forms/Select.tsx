@@ -45,11 +45,15 @@ export function Select({
   className = "",
   onFocus,
   onBlur,
+  "aria-describedby": ariaDescribedBy,
   ...rest
 }: SelectProps) {
   const [focus, setFocus] = useState(false);
   const generatedId = useId();
   const fid = id || generatedId;
+  // 26.2 audit U06-7: tie the error/hint text to the control so a screen reader reads it.
+  const msgId = `${fid}-msg`;
+  const describedBy = [ariaDescribedBy, error || hint ? msgId : ""].filter(Boolean).join(" ") || undefined;
 
   const box = [
     "vt-input",
@@ -92,6 +96,7 @@ export function Select({
           // though the field visibly renders the error message below it. Added for
           // parity with its two siblings.
           aria-invalid={error ? true : undefined}
+          aria-describedby={describedBy}
           aria-busy={loading || undefined}
           onFocus={handleFocus}
           onBlur={handleBlur}
@@ -123,12 +128,12 @@ export function Select({
         )}
       </div>
       {error ? (
-        <span className="vt-field__err">
+        <span className="vt-field__err" id={msgId}>
           <Icon name="triangle-alert" size={13} />
           {error}
         </span>
       ) : hint ? (
-        <span className="vt-field__hint">{hint}</span>
+        <span className="vt-field__hint" id={msgId}>{hint}</span>
       ) : null}
     </div>
   );

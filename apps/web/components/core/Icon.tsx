@@ -86,11 +86,10 @@ export type IconName =
 // app's own vendored copy (D-10), not the mocks' page-relative "assets/icons/".
 const FALLBACK_BASE = "/brand/icons/";
 
+// 26.2 audit U06-20: the app never sets `--vt-icon-base` (only the mock test harness does), so the
+// per-render getComputedStyle read always fell back to this constant. Use it directly.
 function iconBase(): string {
-  if (typeof window === "undefined") return FALLBACK_BASE;
-  const raw = getComputedStyle(document.documentElement).getPropertyValue("--vt-icon-base");
-  const clean = (raw || "").trim().replace(/^["']|["']$/g, "");
-  return clean || FALLBACK_BASE;
+  return FALLBACK_BASE;
 }
 
 interface IconOwnProps {

@@ -37,6 +37,9 @@ export function PhoneField({
 }: PhoneFieldProps) {
   const autoId = useId();
   const inputId = id ?? autoId;
+  // 26.2 audit U06-7: tie the error/hint text to the control; pass `required` as aria-required.
+  const msgId = `${inputId}-msg`;
+  const describedBy = [rest["aria-describedby"], error || hint ? msgId : ""].filter(Boolean).join(" ") || undefined;
   const [focused, setFocused] = useState(false);
   const shown = phoneShown(value);
 
@@ -69,6 +72,8 @@ export function PhoneField({
           autoComplete={rest.autoComplete ?? "tel"}
           value={shown}
           aria-invalid={error ? true : undefined}
+          aria-required={required || undefined}
+          aria-describedby={describedBy}
           onFocus={(e) => {
             setFocused(true);
             rest.onFocus?.(e);
@@ -81,11 +86,11 @@ export function PhoneField({
         />
       </div>
       {error ? (
-        <span className="vt-field__err" role="alert">
+        <span className="vt-field__err" role="alert" id={msgId}>
           {error}
         </span>
       ) : hint ? (
-        <span className="vt-field__hint">{hint}</span>
+        <span className="vt-field__hint" id={msgId}>{hint}</span>
       ) : null}
     </div>
   );

@@ -109,3 +109,8 @@
   font-family: var(--vt-font-body);
   font-size: var(--vt-body-sm);
 }
+
+/* 26.2 audit U06-19: the refund sentence sits on its own line instead of after a literal ". ". */
+.vt-confirmation__refund-copy {
+  display: block;
+}

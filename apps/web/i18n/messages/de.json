@@ -1205,7 +1205,9 @@
     "payment-twint": "TWINT",
     "payment-visa": "Visa",
     "vamos-taxi-on-facebook": "Vamos Taxi auf Facebook",
-    "vamos-taxi-on-instagram": "Vamos Taxi auf Instagram"
+    "vamos-taxi-on-instagram": "Vamos Taxi auf Instagram",
+    "vamos-taxi-on-youtube": "Vamos Taxi auf YouTube",
+    "vamos-taxi-on-tiktok": "Vamos Taxi auf TikTok"
   },
   "header": {
     "call-41-79-626-70-82": "+41 79 626 70 82 anrufen",
@@ -2899,7 +2901,8 @@
         "cancelled": "Dieser Flug ist annulliert, es wurde nichts ausgefüllt. Kommen Sie mit der neuen Nummer zurück.",
         "departed": "Dieser Flug hat {ap} bereits verlassen, es gibt nichts auszufüllen.",
         "off": "Wir fahren Zürich, Genf und Basel — dieser Flug berührt keinen davon. Setzen Sie den Abholort selbst."
-      }
+      },
+      "dayGroup": "An welchem Tag ist Ihr Flug"
     },
     "geo": {
       "no_results": "Keine passenden Orte — versuchen Sie eine vollständigere Adresse",
