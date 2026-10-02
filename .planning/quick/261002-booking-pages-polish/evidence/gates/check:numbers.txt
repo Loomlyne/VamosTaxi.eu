@@ -1,0 +1,2 @@
+check-no-invented-numbers: ok
+check:numbers exit 0

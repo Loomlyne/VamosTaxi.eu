@@ -1,0 +1,4 @@
+check-next-public-allowlist: all 1 NEXT_PUBLIC_* identifier(s) found are on the allowlist — pass.
+check-next-public-allowlist: built client bundle scanned, no forbidden credential names found — pass.
+check-next-public-allowlist: service-role source rules (D-14) — pass.
+check:public-env exit 0

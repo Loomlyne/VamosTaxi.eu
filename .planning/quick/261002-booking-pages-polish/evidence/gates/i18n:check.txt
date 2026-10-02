@@ -1,0 +1,39 @@
+[i18n:check] apps/web/app/[locale]/checkout/CheckoutForm.tsx:733 calls a translation lookup with a non-literal key (found.messageKey) — not statically resolvable, skipped rather than silently ignored.
+[i18n:check] apps/web/app/[locale]/checkout/CheckoutForm.tsx:844 calls a translation lookup with a non-literal key (effect.createConsentError) — not statically resolvable, skipped rather than silently ignored.
+[i18n:check] apps/web/app/[locale]/checkout/CheckoutForm.tsx:848 calls a translation lookup with a non-literal key (effect.payError) — not statically resolvable, skipped rather than silently ignored.
+[i18n:check] apps/web/app/[locale]/checkout/CheckoutForm.tsx:849 calls a translation lookup with a non-literal key (effect.payError) — not statically resolvable, skipped rather than silently ignored.
+[i18n:check] apps/web/app/[locale]/checkout/CheckoutForm.tsx:866 calls a translation lookup with a non-literal key (code === "price_changed" ? "priceChanged" : "engineChanged") — not statically resolvable, skipped rather than silently ignored.
+[i18n:check] apps/web/app/[locale]/checkout/pay/[token]/PayClient.tsx:315 calls a translation lookup with a non-literal key (genericError) — not statically resolvable, skipped rather than silently ignored.
+[i18n:check] apps/web/app/[locale]/checkout/sections/ContactSection.tsx:31 calls a translation lookup with a non-literal key (k) — not statically resolvable, skipped rather than silently ignored.
+[i18n:check] apps/web/app/[locale]/checkout/sections/PaymentSection.tsx:20 calls a translation lookup with a non-literal key (f.voucherError) — not statically resolvable, skipped rather than silently ignored.
+[i18n:check] apps/web/app/[locale]/faq/page.tsx:126 calls a translation lookup with a non-literal key (item.questionKey) — not statically resolvable, skipped rather than silently ignored.
+[i18n:check] apps/web/app/[locale]/faq/page.tsx:129 calls a translation lookup with a non-literal key (key) — not statically resolvable, skipped rather than silently ignored.
+[i18n:check] apps/web/components/booking/BookingVoucher.tsx:207 calls a translation lookup with a non-literal key (extraLabel[extra.code] ?? "childSeat") — not statically resolvable, skipped rather than silently ignored.
+[i18n:check] apps/web/components/booking/BookingVoucher.tsx:278 calls a translation lookup with a non-literal key (refundKey) — not statically resolvable, skipped rather than silently ignored.
+[i18n:check] apps/web/components/booking/BookingVoucher.tsx:408 calls a translation lookup with a non-literal key (extraLabel[code] ?? "childSeat") — not statically resolvable, skipped rather than silently ignored.
+[i18n:check] apps/web/components/checkout/AccountChoice.tsx:98 calls a translation lookup with a non-literal key (o.title) — not statically resolvable, skipped rather than silently ignored.
+[i18n:check] apps/web/components/checkout/AccountChoice.tsx:101 calls a translation lookup with a non-literal key (o.desc) — not statically resolvable, skipped rather than silently ignored.
+[i18n:check] apps/web/components/home/ServiceCard.tsx:84 calls a translation lookup with a non-literal key (titleId) — not statically resolvable, skipped rather than silently ignored.
+[i18n:check] apps/web/components/legal/LanguageCoverageNotice.tsx:40 calls a translation lookup with a non-literal key (LANG_KEY[code]) — not statically resolvable, skipped rather than silently ignored.
+[i18n:check] apps/web/components/legal/LanguageCoverageNotice.tsx:53 calls a translation lookup with a non-literal key (LANG_KEY[code]) — not statically resolvable, skipped rather than silently ignored.
+[i18n:check] apps/web/components/legal/LegalPage.tsx:76 calls a translation lookup with a non-literal key (key.slice("legal.".length) — not statically resolvable, skipped rather than silently ignored.
+[i18n:check] apps/web/components/legal/LegalPage.tsx:78 calls a translation lookup with a non-literal key (key) — not statically resolvable, skipped rather than silently ignored.
+[i18n:check] apps/web/components/legal/LegalPage.tsx:75 calls a translation lookup with a non-literal key (key.slice("common.".length) — not statically resolvable, skipped rather than silently ignored.
+[i18n:check] apps/web/components/legal/LegalPage.tsx:77 calls a translation lookup with a non-literal key (key.slice("cookies.".length) — not statically resolvable, skipped rather than silently ignored.
+[i18n:check] apps/web/components/legal/LegalToc.tsx:49 calls a translation lookup with a non-literal key (key.slice(6) — not statically resolvable, skipped rather than silently ignored.
+[i18n:check] apps/web/components/legal/LegalToc.tsx:52 calls a translation lookup with a non-literal key (key) — not statically resolvable, skipped rather than silently ignored.
+[i18n:check] apps/web/components/legal/LegalToc.tsx:47 calls a translation lookup with a non-literal key (key.slice(7) — not statically resolvable, skipped rather than silently ignored.
+[i18n:check] apps/web/components/legal/LegalToc.tsx:48 calls a translation lookup with a non-literal key (key.slice(4) — not statically resolvable, skipped rather than silently ignored.
+[i18n:check] apps/web/components/legal/LegalToc.tsx:50 calls a translation lookup with a non-literal key (key.slice(8) — not statically resolvable, skipped rather than silently ignored.
+[i18n:check] apps/web/components/legal/LegalToc.tsx:51 calls a translation lookup with a non-literal key (key.slice(5) — not statically resolvable, skipped rather than silently ignored.
+[i18n:check] apps/web/components/marketing/FaqCard.tsx:54 calls a translation lookup with a non-literal key (item.questionKey) — not statically resolvable, skipped rather than silently ignored.
+[i18n:check] apps/web/components/marketing/FaqCard.tsx:66 calls a translation lookup with a non-literal key (keyOrText) — not statically resolvable, skipped rather than silently ignored.
+[i18n:check] apps/web/components/marketing/FaqGrid.tsx:57 calls a translation lookup with a non-literal key (emptyLabelKey) — not statically resolvable, skipped rather than silently ignored.
+[i18n:check] apps/web/components/marketing/PageHero.tsx:43 calls a translation lookup with a non-literal key (crumbCurrentKey) — not statically resolvable, skipped rather than silently ignored.
+[i18n:check] apps/web/components/marketing/PageHero.tsx:45 calls a translation lookup with a non-literal key (kickerKey) — not statically resolvable, skipped rather than silently ignored.
+[i18n:check] apps/web/components/marketing/PageHero.tsx:46 calls a translation lookup with a non-literal key (titleKey) — not statically resolvable, skipped rather than silently ignored.
+[i18n:check] apps/web/components/marketing/PageHero.tsx:47 calls a translation lookup with a non-literal key (standfirstKey) — not statically resolvable, skipped rather than silently ignored.
+[i18n:check] apps/web/components/marketing/PageHero.tsx:52 calls a translation lookup with a non-literal key (altKey) — not statically resolvable, skipped rather than silently ignored.
+[i18n:check] apps/web/components/transfer/StatusBadge.tsx:82 calls a translation lookup with a non-literal key (status) — not statically resolvable, skipped rather than silently ignored.
+i18n:check passed — 2684 keys checked for cross-locale coverage, 1034 literal call sites resolved (37 non-literal skipped), 2684 English messages checked for parameterisation.
+i18n:check exit 0

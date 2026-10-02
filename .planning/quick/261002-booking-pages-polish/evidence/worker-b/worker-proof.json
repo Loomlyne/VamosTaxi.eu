@@ -1,0 +1,1096 @@
+{
+  "base": "http://127.0.0.1:4777",
+  "when": "2026-10-02T20:37:04.399Z",
+  "passed": 162,
+  "failed": 6,
+  "results": [
+    {
+      "ok": true,
+      "what": "mb en 1440: date pill",
+      "detail": "Tue 6 Oct · 08:15"
+    },
+    {
+      "ok": true,
+      "what": "mb en 1440: no sideways scroll (booking view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "mb en 1440: change-view picker reads hour : minute left to right",
+      "detail": {
+        "h": "08",
+        "m": "15",
+        "hx": 574.453125,
+        "mx": 657.4375
+      }
+    },
+    {
+      "ok": true,
+      "what": "mb en 1440: no sideways scroll (change view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "mb en 1440: booked-for / new pickup labelled in en",
+      "detail": "Tue 6 Oct · 08:15 | Tue 6 Oct · 09:15 | 09:15 | Tue 6 Oct · 08:15 | Tue 6 Oct · 09:15"
+    },
+    {
+      "ok": false,
+      "what": "mb 1440: coverage empty on the change view (de/fr/ar)",
+      "detail": {
+        "de": {
+          "count": 3,
+          "strings": [
+            "Zurich Airport",
+            "Zermatt",
+            "Tue 6 Oct"
+          ],
+          "attrs": []
+        },
+        "fr": {
+          "count": 3,
+          "strings": [
+            "Zurich Airport",
+            "Zermatt",
+            "Tue 6 Oct"
+          ],
+          "attrs": []
+        },
+        "ar": {
+          "count": 3,
+          "strings": [
+            "Zurich Airport",
+            "Zermatt",
+            "Tue 6 Oct"
+          ],
+          "attrs": []
+        }
+      }
+    },
+    {
+      "ok": true,
+      "what": "mb en 1440: time change POSTs day and new time on the right route",
+      "detail": "/api/manage/time-change {\"token\":\"\",\"ref\":\"VT-26-0807\",\"scheduled_local\":\"2026-10-06T09:15\"}"
+    },
+    {
+      "ok": true,
+      "what": "mb en 1440: toast names the booked day in en",
+      "detail": "Time-change requested. Pickup stays Tue 6 Oct · 08:15 until we confirm."
+    },
+    {
+      "ok": true,
+      "what": "mb en 1440: \"change requested\" row labelled",
+      "detail": "Tue 6 Oct · 09:15 · Pickup time"
+    },
+    {
+      "ok": false,
+      "what": "mb: coverage empty on the booking view (de/fr/ar)",
+      "detail": {
+        "de": {
+          "count": 3,
+          "strings": [
+            "Zurich Airport",
+            "Zermatt",
+            "Tue 6 Oct"
+          ],
+          "attrs": []
+        },
+        "fr": {
+          "count": 3,
+          "strings": [
+            "Zurich Airport",
+            "Zermatt",
+            "Tue 6 Oct"
+          ],
+          "attrs": []
+        },
+        "ar": {
+          "count": 3,
+          "strings": [
+            "Zurich Airport",
+            "Zermatt",
+            "Tue 6 Oct"
+          ],
+          "attrs": []
+        }
+      }
+    },
+    {
+      "ok": true,
+      "what": "bd en 1440: date pill",
+      "detail": "Tue 6 Oct · 08:15"
+    },
+    {
+      "ok": true,
+      "what": "bd en 1440: no sideways scroll (booking view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "bd en 1440: change-view picker reads hour : minute left to right",
+      "detail": {
+        "h": "08",
+        "m": "15",
+        "hx": 574.453125,
+        "mx": 657.4375
+      }
+    },
+    {
+      "ok": true,
+      "what": "bd en 1440: no sideways scroll (change view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "bd en 1440: booked-for / new pickup labelled in en",
+      "detail": "Tue 6 Oct · 08:15 | Tue 6 Oct · 09:15 | 09:15 | Tue 6 Oct · 08:15 | Tue 6 Oct · 09:15"
+    },
+    {
+      "ok": false,
+      "what": "bd 1440: coverage empty on the change view (de/fr/ar)",
+      "detail": {
+        "de": {
+          "count": 3,
+          "strings": [
+            "Zurich Airport",
+            "Zermatt",
+            "Tue 6 Oct"
+          ],
+          "attrs": []
+        },
+        "fr": {
+          "count": 3,
+          "strings": [
+            "Zurich Airport",
+            "Zermatt",
+            "Tue 6 Oct"
+          ],
+          "attrs": []
+        },
+        "ar": {
+          "count": 3,
+          "strings": [
+            "Zurich Airport",
+            "Zermatt",
+            "Tue 6 Oct"
+          ],
+          "attrs": []
+        }
+      }
+    },
+    {
+      "ok": true,
+      "what": "bd en 1440: time change POSTs day and new time on the right route",
+      "detail": "/api/account/bookings/time-change {\"ref\":\"VT-26-0807\",\"scheduled_local\":\"2026-10-06T09:15\"}"
+    },
+    {
+      "ok": true,
+      "what": "bd en 1440: toast names the booked day in en",
+      "detail": "Time-change requested. Pickup stays Tue 6 Oct · 08:15 until we confirm."
+    },
+    {
+      "ok": true,
+      "what": "bd en 1440: \"change requested\" row labelled",
+      "detail": "Tue 6 Oct · 09:15 · Pickup time"
+    },
+    {
+      "ok": false,
+      "what": "bd: coverage empty on the booking view (de/fr/ar)",
+      "detail": {
+        "de": {
+          "count": 3,
+          "strings": [
+            "Zurich Airport",
+            "Zermatt",
+            "Tue 6 Oct"
+          ],
+          "attrs": []
+        },
+        "fr": {
+          "count": 3,
+          "strings": [
+            "Zurich Airport",
+            "Zermatt",
+            "Tue 6 Oct"
+          ],
+          "attrs": []
+        },
+        "ar": {
+          "count": 3,
+          "strings": [
+            "Zurich Airport",
+            "Zermatt",
+            "Tue 6 Oct"
+          ],
+          "attrs": []
+        }
+      }
+    },
+    {
+      "ok": true,
+      "what": "mb de 1440: date pill",
+      "detail": "Di. 6. Okt. · 08:15"
+    },
+    {
+      "ok": true,
+      "what": "mb de 1440: no sideways scroll (booking view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "mb de 1440: change-view picker reads hour : minute left to right",
+      "detail": {
+        "h": "08",
+        "m": "15",
+        "hx": 574.453125,
+        "mx": 657.4375
+      }
+    },
+    {
+      "ok": true,
+      "what": "mb de 1440: no sideways scroll (change view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "mb de 1440: booked-for / new pickup labelled in de",
+      "detail": "Di. 6. Okt. · 08:15 | Di. 6. Okt. · 09:15 | 09:15 | Di. 6. Okt. · 08:15 | Di. 6. Okt. · 09:15"
+    },
+    {
+      "ok": true,
+      "what": "mb de 1440: time change POSTs day and new time on the right route",
+      "detail": "/api/manage/time-change {\"token\":\"\",\"ref\":\"VT-26-0807\",\"scheduled_local\":\"2026-10-06T09:15\"}"
+    },
+    {
+      "ok": true,
+      "what": "mb de 1440: toast names the booked day in de",
+      "detail": "Zeitänderung angefragt. Abholung bleibt Di. 6. Okt. · 08:15, bis wir bestätigen."
+    },
+    {
+      "ok": true,
+      "what": "mb de 1440: \"change requested\" row labelled",
+      "detail": "Di. 6. Okt. · 09:15 · Abholzeit"
+    },
+    {
+      "ok": true,
+      "what": "bd de 1440: date pill",
+      "detail": "Di. 6. Okt. · 08:15"
+    },
+    {
+      "ok": true,
+      "what": "bd de 1440: no sideways scroll (booking view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "bd de 1440: change-view picker reads hour : minute left to right",
+      "detail": {
+        "h": "08",
+        "m": "15",
+        "hx": 574.453125,
+        "mx": 657.4375
+      }
+    },
+    {
+      "ok": true,
+      "what": "bd de 1440: no sideways scroll (change view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "bd de 1440: booked-for / new pickup labelled in de",
+      "detail": "Di. 6. Okt. · 08:15 | Di. 6. Okt. · 09:15 | 09:15 | Di. 6. Okt. · 08:15 | Di. 6. Okt. · 09:15"
+    },
+    {
+      "ok": true,
+      "what": "bd de 1440: time change POSTs day and new time on the right route",
+      "detail": "/api/account/bookings/time-change {\"ref\":\"VT-26-0807\",\"scheduled_local\":\"2026-10-06T09:15\"}"
+    },
+    {
+      "ok": true,
+      "what": "bd de 1440: toast names the booked day in de",
+      "detail": "Zeitänderung angefragt. Abholung bleibt Di. 6. Okt. · 08:15, bis wir bestätigen."
+    },
+    {
+      "ok": true,
+      "what": "bd de 1440: \"change requested\" row labelled",
+      "detail": "Di. 6. Okt. · 09:15 · Abholzeit"
+    },
+    {
+      "ok": true,
+      "what": "mb fr 1440: date pill",
+      "detail": "mar. 6 oct. · 08:15"
+    },
+    {
+      "ok": true,
+      "what": "mb fr 1440: no sideways scroll (booking view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "mb fr 1440: change-view picker reads hour : minute left to right",
+      "detail": {
+        "h": "08",
+        "m": "15",
+        "hx": 574.453125,
+        "mx": 657.4375
+      }
+    },
+    {
+      "ok": true,
+      "what": "mb fr 1440: no sideways scroll (change view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "mb fr 1440: booked-for / new pickup labelled in fr",
+      "detail": "mar. 6 oct. · 08:15 | mar. 6 oct. · 09:15 | 09:15 | mar. 6 oct. · 08:15 | mar. 6 oct. · 09:15"
+    },
+    {
+      "ok": true,
+      "what": "mb fr 1440: time change POSTs day and new time on the right route",
+      "detail": "/api/manage/time-change {\"token\":\"\",\"ref\":\"VT-26-0807\",\"scheduled_local\":\"2026-10-06T09:15\"}"
+    },
+    {
+      "ok": true,
+      "what": "mb fr 1440: toast names the booked day in fr",
+      "detail": "Changement d’heure demandé. La prise en charge reste mar. 6 oct. · 08:15 jusqu’à confirmation."
+    },
+    {
+      "ok": true,
+      "what": "mb fr 1440: \"change requested\" row labelled",
+      "detail": "mar. 6 oct. · 09:15 · Heure de prise en charge"
+    },
+    {
+      "ok": true,
+      "what": "bd fr 1440: date pill",
+      "detail": "mar. 6 oct. · 08:15"
+    },
+    {
+      "ok": true,
+      "what": "bd fr 1440: no sideways scroll (booking view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "bd fr 1440: change-view picker reads hour : minute left to right",
+      "detail": {
+        "h": "08",
+        "m": "15",
+        "hx": 574.453125,
+        "mx": 657.4375
+      }
+    },
+    {
+      "ok": true,
+      "what": "bd fr 1440: no sideways scroll (change view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "bd fr 1440: booked-for / new pickup labelled in fr",
+      "detail": "mar. 6 oct. · 08:15 | mar. 6 oct. · 09:15 | 09:15 | mar. 6 oct. · 08:15 | mar. 6 oct. · 09:15"
+    },
+    {
+      "ok": true,
+      "what": "bd fr 1440: time change POSTs day and new time on the right route",
+      "detail": "/api/account/bookings/time-change {\"ref\":\"VT-26-0807\",\"scheduled_local\":\"2026-10-06T09:15\"}"
+    },
+    {
+      "ok": true,
+      "what": "bd fr 1440: toast names the booked day in fr",
+      "detail": "Changement d’heure demandé. La prise en charge reste mar. 6 oct. · 08:15 jusqu’à confirmation."
+    },
+    {
+      "ok": true,
+      "what": "bd fr 1440: \"change requested\" row labelled",
+      "detail": "mar. 6 oct. · 09:15 · Heure de prise en charge"
+    },
+    {
+      "ok": true,
+      "what": "mb ar 1440: date pill",
+      "detail": "الثلاثاء، 6 أكتوبر · 08:15"
+    },
+    {
+      "ok": true,
+      "what": "mb ar 1440: no sideways scroll (booking view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "mb ar 1440: change-view picker reads hour : minute left to right",
+      "detail": {
+        "h": "08",
+        "m": "15",
+        "hx": 883.453125,
+        "mx": 966.4375
+      }
+    },
+    {
+      "ok": true,
+      "what": "mb ar 1440: no sideways scroll (change view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "mb ar 1440: booked-for / new pickup labelled in ar",
+      "detail": "الثلاثاء، 6 أكتوبر · 08:15 | الثلاثاء، 6 أكتوبر · 09:15 | 09:15 | الثلاثاء، 6 أكتوبر · 08:15 | الثلاثاء، 6 أكتوبر · 09:15"
+    },
+    {
+      "ok": true,
+      "what": "mb ar 1440: time change POSTs day and new time on the right route",
+      "detail": "/api/manage/time-change {\"token\":\"\",\"ref\":\"VT-26-0807\",\"scheduled_local\":\"2026-10-06T09:15\"}"
+    },
+    {
+      "ok": true,
+      "what": "mb ar 1440: toast names the booked day in ar",
+      "detail": "طُلب تغيير الوقت. تبقى الانطلاقة الثلاثاء، 6 أكتوبر · 08:15 حتى نؤكد."
+    },
+    {
+      "ok": true,
+      "what": "mb ar 1440: \"change requested\" row labelled",
+      "detail": "الثلاثاء، 6 أكتوبر · 09:15 · موعد الانطلاق"
+    },
+    {
+      "ok": true,
+      "what": "bd ar 1440: date pill",
+      "detail": "الثلاثاء، 6 أكتوبر · 08:15"
+    },
+    {
+      "ok": true,
+      "what": "bd ar 1440: no sideways scroll (booking view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "bd ar 1440: change-view picker reads hour : minute left to right",
+      "detail": {
+        "h": "08",
+        "m": "15",
+        "hx": 883.453125,
+        "mx": 966.4375
+      }
+    },
+    {
+      "ok": true,
+      "what": "bd ar 1440: no sideways scroll (change view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "bd ar 1440: booked-for / new pickup labelled in ar",
+      "detail": "الثلاثاء، 6 أكتوبر · 08:15 | الثلاثاء، 6 أكتوبر · 09:15 | 09:15 | الثلاثاء، 6 أكتوبر · 08:15 | الثلاثاء، 6 أكتوبر · 09:15"
+    },
+    {
+      "ok": true,
+      "what": "bd ar 1440: time change POSTs day and new time on the right route",
+      "detail": "/api/account/bookings/time-change {\"ref\":\"VT-26-0807\",\"scheduled_local\":\"2026-10-06T09:15\"}"
+    },
+    {
+      "ok": true,
+      "what": "bd ar 1440: toast names the booked day in ar",
+      "detail": "طُلب تغيير الوقت. تبقى الانطلاقة الثلاثاء، 6 أكتوبر · 08:15 حتى نؤكد."
+    },
+    {
+      "ok": true,
+      "what": "bd ar 1440: \"change requested\" row labelled",
+      "detail": "الثلاثاء، 6 أكتوبر · 09:15 · موعد الانطلاق"
+    },
+    {
+      "ok": true,
+      "what": "mb en 1024: date pill",
+      "detail": "Tue 6 Oct · 08:15"
+    },
+    {
+      "ok": true,
+      "what": "mb en 1024: no sideways scroll (booking view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "bd en 1024: date pill",
+      "detail": "Tue 6 Oct · 08:15"
+    },
+    {
+      "ok": true,
+      "what": "bd en 1024: no sideways scroll (booking view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "mb de 1024: date pill",
+      "detail": "Di. 6. Okt. · 08:15"
+    },
+    {
+      "ok": true,
+      "what": "mb de 1024: no sideways scroll (booking view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "bd de 1024: date pill",
+      "detail": "Di. 6. Okt. · 08:15"
+    },
+    {
+      "ok": true,
+      "what": "bd de 1024: no sideways scroll (booking view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "mb fr 1024: date pill",
+      "detail": "mar. 6 oct. · 08:15"
+    },
+    {
+      "ok": true,
+      "what": "mb fr 1024: no sideways scroll (booking view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "bd fr 1024: date pill",
+      "detail": "mar. 6 oct. · 08:15"
+    },
+    {
+      "ok": true,
+      "what": "bd fr 1024: no sideways scroll (booking view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "mb ar 1024: date pill",
+      "detail": "الثلاثاء، 6 أكتوبر · 08:15"
+    },
+    {
+      "ok": true,
+      "what": "mb ar 1024: no sideways scroll (booking view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "bd ar 1024: date pill",
+      "detail": "الثلاثاء، 6 أكتوبر · 08:15"
+    },
+    {
+      "ok": true,
+      "what": "bd ar 1024: no sideways scroll (booking view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "mb en 768: date pill",
+      "detail": "Tue 6 Oct · 08:15"
+    },
+    {
+      "ok": true,
+      "what": "mb en 768: no sideways scroll (booking view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "bd en 768: date pill",
+      "detail": "Tue 6 Oct · 08:15"
+    },
+    {
+      "ok": true,
+      "what": "bd en 768: no sideways scroll (booking view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "mb de 768: date pill",
+      "detail": "Di. 6. Okt. · 08:15"
+    },
+    {
+      "ok": true,
+      "what": "mb de 768: no sideways scroll (booking view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "bd de 768: date pill",
+      "detail": "Di. 6. Okt. · 08:15"
+    },
+    {
+      "ok": true,
+      "what": "bd de 768: no sideways scroll (booking view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "mb fr 768: date pill",
+      "detail": "mar. 6 oct. · 08:15"
+    },
+    {
+      "ok": true,
+      "what": "mb fr 768: no sideways scroll (booking view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "bd fr 768: date pill",
+      "detail": "mar. 6 oct. · 08:15"
+    },
+    {
+      "ok": true,
+      "what": "bd fr 768: no sideways scroll (booking view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "mb ar 768: date pill",
+      "detail": "الثلاثاء، 6 أكتوبر · 08:15"
+    },
+    {
+      "ok": true,
+      "what": "mb ar 768: no sideways scroll (booking view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "bd ar 768: date pill",
+      "detail": "الثلاثاء، 6 أكتوبر · 08:15"
+    },
+    {
+      "ok": true,
+      "what": "bd ar 768: no sideways scroll (booking view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "mb en 390: date pill",
+      "detail": "Tue 6 Oct · 08:15"
+    },
+    {
+      "ok": true,
+      "what": "mb en 390: no sideways scroll (booking view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "mb en 390: change-view picker reads hour : minute left to right",
+      "detail": {
+        "h": "08",
+        "m": "15",
+        "hx": 133.953125,
+        "mx": 216.9375
+      }
+    },
+    {
+      "ok": true,
+      "what": "mb en 390: no sideways scroll (change view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "mb en 390: booked-for / new pickup labelled in en",
+      "detail": "Tue 6 Oct · 08:15 | Tue 6 Oct · 09:15 | 09:15 | Tue 6 Oct · 08:15 | Tue 6 Oct · 09:15"
+    },
+    {
+      "ok": false,
+      "what": "mb 390: coverage empty on the change view (de/fr/ar)",
+      "detail": {
+        "de": {
+          "count": 3,
+          "strings": [
+            "Zurich Airport",
+            "Zermatt",
+            "Tue 6 Oct"
+          ],
+          "attrs": []
+        },
+        "fr": {
+          "count": 3,
+          "strings": [
+            "Zurich Airport",
+            "Zermatt",
+            "Tue 6 Oct"
+          ],
+          "attrs": []
+        },
+        "ar": {
+          "count": 3,
+          "strings": [
+            "Zurich Airport",
+            "Zermatt",
+            "Tue 6 Oct"
+          ],
+          "attrs": []
+        }
+      }
+    },
+    {
+      "ok": true,
+      "what": "mb en 390: time change POSTs day and new time on the right route",
+      "detail": "/api/manage/time-change {\"token\":\"\",\"ref\":\"VT-26-0807\",\"scheduled_local\":\"2026-10-06T09:15\"}"
+    },
+    {
+      "ok": true,
+      "what": "mb en 390: toast names the booked day in en",
+      "detail": "Time-change requested. Pickup stays Tue 6 Oct · 08:15 until we confirm."
+    },
+    {
+      "ok": true,
+      "what": "mb en 390: \"change requested\" row labelled",
+      "detail": "Tue 6 Oct · 09:15 · Pickup time"
+    },
+    {
+      "ok": true,
+      "what": "bd en 390: date pill",
+      "detail": "Tue 6 Oct · 08:15"
+    },
+    {
+      "ok": true,
+      "what": "bd en 390: no sideways scroll (booking view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "bd en 390: change-view picker reads hour : minute left to right",
+      "detail": {
+        "h": "08",
+        "m": "15",
+        "hx": 133.953125,
+        "mx": 216.9375
+      }
+    },
+    {
+      "ok": true,
+      "what": "bd en 390: no sideways scroll (change view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "bd en 390: booked-for / new pickup labelled in en",
+      "detail": "Tue 6 Oct · 08:15 | Tue 6 Oct · 09:15 | 09:15 | Tue 6 Oct · 08:15 | Tue 6 Oct · 09:15"
+    },
+    {
+      "ok": false,
+      "what": "bd 390: coverage empty on the change view (de/fr/ar)",
+      "detail": {
+        "de": {
+          "count": 3,
+          "strings": [
+            "Zurich Airport",
+            "Zermatt",
+            "Tue 6 Oct"
+          ],
+          "attrs": []
+        },
+        "fr": {
+          "count": 3,
+          "strings": [
+            "Zurich Airport",
+            "Zermatt",
+            "Tue 6 Oct"
+          ],
+          "attrs": []
+        },
+        "ar": {
+          "count": 3,
+          "strings": [
+            "Zurich Airport",
+            "Zermatt",
+            "Tue 6 Oct"
+          ],
+          "attrs": []
+        }
+      }
+    },
+    {
+      "ok": true,
+      "what": "bd en 390: time change POSTs day and new time on the right route",
+      "detail": "/api/account/bookings/time-change {\"ref\":\"VT-26-0807\",\"scheduled_local\":\"2026-10-06T09:15\"}"
+    },
+    {
+      "ok": true,
+      "what": "bd en 390: toast names the booked day in en",
+      "detail": "Time-change requested. Pickup stays Tue 6 Oct · 08:15 until we confirm."
+    },
+    {
+      "ok": true,
+      "what": "bd en 390: \"change requested\" row labelled",
+      "detail": "Tue 6 Oct · 09:15 · Pickup time"
+    },
+    {
+      "ok": true,
+      "what": "mb de 390: date pill",
+      "detail": "Di. 6. Okt. · 08:15"
+    },
+    {
+      "ok": true,
+      "what": "mb de 390: no sideways scroll (booking view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "mb de→fr live switch relabels the date",
+      "detail": "mar. 6 oct. · 08:15"
+    },
+    {
+      "ok": true,
+      "what": "mb de 390: change-view picker reads hour : minute left to right",
+      "detail": {
+        "h": "08",
+        "m": "15",
+        "hx": 133.953125,
+        "mx": 216.9375
+      }
+    },
+    {
+      "ok": true,
+      "what": "mb de 390: no sideways scroll (change view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "mb de 390: booked-for / new pickup labelled in de",
+      "detail": "Di. 6. Okt. · 08:15 | Di. 6. Okt. · 09:15 | 09:15 | Di. 6. Okt. · 08:15 | Di. 6. Okt. · 09:15"
+    },
+    {
+      "ok": true,
+      "what": "mb de 390: time change POSTs day and new time on the right route",
+      "detail": "/api/manage/time-change {\"token\":\"\",\"ref\":\"VT-26-0807\",\"scheduled_local\":\"2026-10-06T09:15\"}"
+    },
+    {
+      "ok": true,
+      "what": "mb de 390: toast names the booked day in de",
+      "detail": "Zeitänderung angefragt. Abholung bleibt Di. 6. Okt. · 08:15, bis wir bestätigen."
+    },
+    {
+      "ok": true,
+      "what": "mb de 390: \"change requested\" row labelled",
+      "detail": "Di. 6. Okt. · 09:15 · Abholzeit"
+    },
+    {
+      "ok": true,
+      "what": "bd de 390: date pill",
+      "detail": "Di. 6. Okt. · 08:15"
+    },
+    {
+      "ok": true,
+      "what": "bd de 390: no sideways scroll (booking view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "bd de→fr live switch relabels the date",
+      "detail": "mar. 6 oct. · 08:15"
+    },
+    {
+      "ok": true,
+      "what": "bd de 390: change-view picker reads hour : minute left to right",
+      "detail": {
+        "h": "08",
+        "m": "15",
+        "hx": 133.953125,
+        "mx": 216.9375
+      }
+    },
+    {
+      "ok": true,
+      "what": "bd de 390: no sideways scroll (change view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "bd de 390: booked-for / new pickup labelled in de",
+      "detail": "Di. 6. Okt. · 08:15 | Di. 6. Okt. · 09:15 | 09:15 | Di. 6. Okt. · 08:15 | Di. 6. Okt. · 09:15"
+    },
+    {
+      "ok": true,
+      "what": "bd de 390: time change POSTs day and new time on the right route",
+      "detail": "/api/account/bookings/time-change {\"ref\":\"VT-26-0807\",\"scheduled_local\":\"2026-10-06T09:15\"}"
+    },
+    {
+      "ok": true,
+      "what": "bd de 390: toast names the booked day in de",
+      "detail": "Zeitänderung angefragt. Abholung bleibt Di. 6. Okt. · 08:15, bis wir bestätigen."
+    },
+    {
+      "ok": true,
+      "what": "bd de 390: \"change requested\" row labelled",
+      "detail": "Di. 6. Okt. · 09:15 · Abholzeit"
+    },
+    {
+      "ok": true,
+      "what": "mb fr 390: date pill",
+      "detail": "mar. 6 oct. · 08:15"
+    },
+    {
+      "ok": true,
+      "what": "mb fr 390: no sideways scroll (booking view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "mb fr 390: change-view picker reads hour : minute left to right",
+      "detail": {
+        "h": "08",
+        "m": "15",
+        "hx": 133.953125,
+        "mx": 216.9375
+      }
+    },
+    {
+      "ok": true,
+      "what": "mb fr 390: no sideways scroll (change view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "mb fr 390: booked-for / new pickup labelled in fr",
+      "detail": "mar. 6 oct. · 08:15 | mar. 6 oct. · 09:15 | 09:15 | mar. 6 oct. · 08:15 | mar. 6 oct. · 09:15"
+    },
+    {
+      "ok": true,
+      "what": "mb fr 390: time change POSTs day and new time on the right route",
+      "detail": "/api/manage/time-change {\"token\":\"\",\"ref\":\"VT-26-0807\",\"scheduled_local\":\"2026-10-06T09:15\"}"
+    },
+    {
+      "ok": true,
+      "what": "mb fr 390: toast names the booked day in fr",
+      "detail": "Changement d’heure demandé. La prise en charge reste mar. 6 oct. · 08:15 jusqu’à confirmation."
+    },
+    {
+      "ok": true,
+      "what": "mb fr 390: \"change requested\" row labelled",
+      "detail": "mar. 6 oct. · 09:15 · Heure de prise en charge"
+    },
+    {
+      "ok": true,
+      "what": "bd fr 390: date pill",
+      "detail": "mar. 6 oct. · 08:15"
+    },
+    {
+      "ok": true,
+      "what": "bd fr 390: no sideways scroll (booking view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "bd fr 390: change-view picker reads hour : minute left to right",
+      "detail": {
+        "h": "08",
+        "m": "15",
+        "hx": 133.953125,
+        "mx": 216.9375
+      }
+    },
+    {
+      "ok": true,
+      "what": "bd fr 390: no sideways scroll (change view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "bd fr 390: booked-for / new pickup labelled in fr",
+      "detail": "mar. 6 oct. · 08:15 | mar. 6 oct. · 09:15 | 09:15 | mar. 6 oct. · 08:15 | mar. 6 oct. · 09:15"
+    },
+    {
+      "ok": true,
+      "what": "bd fr 390: time change POSTs day and new time on the right route",
+      "detail": "/api/account/bookings/time-change {\"ref\":\"VT-26-0807\",\"scheduled_local\":\"2026-10-06T09:15\"}"
+    },
+    {
+      "ok": true,
+      "what": "bd fr 390: toast names the booked day in fr",
+      "detail": "Changement d’heure demandé. La prise en charge reste mar. 6 oct. · 08:15 jusqu’à confirmation."
+    },
+    {
+      "ok": true,
+      "what": "bd fr 390: \"change requested\" row labelled",
+      "detail": "mar. 6 oct. · 09:15 · Heure de prise en charge"
+    },
+    {
+      "ok": true,
+      "what": "mb ar 390: date pill",
+      "detail": "الثلاثاء، 6 أكتوبر · 08:15"
+    },
+    {
+      "ok": true,
+      "what": "mb ar 390: no sideways scroll (booking view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "mb ar 390: change-view picker reads hour : minute left to right",
+      "detail": {
+        "h": "08",
+        "m": "15",
+        "hx": 133.953125,
+        "mx": 216.9375
+      }
+    },
+    {
+      "ok": true,
+      "what": "mb ar 390: no sideways scroll (change view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "mb ar 390: booked-for / new pickup labelled in ar",
+      "detail": "الثلاثاء، 6 أكتوبر · 08:15 | الثلاثاء، 6 أكتوبر · 09:15 | 09:15 | الثلاثاء، 6 أكتوبر · 08:15 | الثلاثاء، 6 أكتوبر · 09:15"
+    },
+    {
+      "ok": true,
+      "what": "mb ar 390: time change POSTs day and new time on the right route",
+      "detail": "/api/manage/time-change {\"token\":\"\",\"ref\":\"VT-26-0807\",\"scheduled_local\":\"2026-10-06T09:15\"}"
+    },
+    {
+      "ok": true,
+      "what": "mb ar 390: toast names the booked day in ar",
+      "detail": "طُلب تغيير الوقت. تبقى الانطلاقة الثلاثاء، 6 أكتوبر · 08:15 حتى نؤكد."
+    },
+    {
+      "ok": true,
+      "what": "mb ar 390: \"change requested\" row labelled",
+      "detail": "الثلاثاء، 6 أكتوبر · 09:15 · موعد الانطلاق"
+    },
+    {
+      "ok": true,
+      "what": "bd ar 390: date pill",
+      "detail": "الثلاثاء، 6 أكتوبر · 08:15"
+    },
+    {
+      "ok": true,
+      "what": "bd ar 390: no sideways scroll (booking view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "bd ar 390: change-view picker reads hour : minute left to right",
+      "detail": {
+        "h": "08",
+        "m": "15",
+        "hx": 133.953125,
+        "mx": 216.9375
+      }
+    },
+    {
+      "ok": true,
+      "what": "bd ar 390: no sideways scroll (change view)",
+      "detail": "0"
+    },
+    {
+      "ok": true,
+      "what": "bd ar 390: booked-for / new pickup labelled in ar",
+      "detail": "الثلاثاء، 6 أكتوبر · 08:15 | الثلاثاء، 6 أكتوبر · 09:15 | 09:15 | الثلاثاء، 6 أكتوبر · 08:15 | الثلاثاء، 6 أكتوبر · 09:15"
+    },
+    {
+      "ok": true,
+      "what": "bd ar 390: time change POSTs day and new time on the right route",
+      "detail": "/api/account/bookings/time-change {\"ref\":\"VT-26-0807\",\"scheduled_local\":\"2026-10-06T09:15\"}"
+    },
+    {
+      "ok": true,
+      "what": "bd ar 390: toast names the booked day in ar",
+      "detail": "طُلب تغيير الوقت. تبقى الانطلاقة الثلاثاء، 6 أكتوبر · 08:15 حتى نؤكد."
+    },
+    {
+      "ok": true,
+      "what": "bd ar 390: \"change requested\" row labelled",
+      "detail": "الثلاثاء، 6 أكتوبر · 09:15 · موعد الانطلاق"
+    }
+  ]
+}

@@ -50,6 +50,16 @@
         de: 'von $1', fr: 'sur $1', ar: 'من $1' },
       { re: /^(\d+) pax$/,
         de: '$1 Pers.', fr: '$1 pers.', ar: '$1 راكب' },
+      /* Bags in Arabic (quick 261002), counted as travellers are: 2 is the dual, 3–10 the plural, 11–99 the
+         singular accusative. First match wins, so these sit above the general entry below, which kept every
+         count at "N حقيبة" and shadowed the correct entries further down. "1 bag" is a string key; 0 and
+         100+ keep the general form. */
+      { re: /^2 bags$/,
+        de: '2 Gepäckstücke', fr: '2 bagages', ar: 'حقيبتان' },
+      { re: /^([3-9]|10) bags$/,
+        de: '$1 Gepäckstücke', fr: '$1 bagages', ar: '$1 حقائب' },
+      { re: /^(1[1-9]|[2-9]\d) bags$/,
+        de: '$1 Gepäckstücke', fr: '$1 bagages', ar: '$1 حقيبةً' },
       { re: /^(\d+) bags$/,
         de: '$1 Gepäckstücke', fr: '$1 bagages', ar: '$1 حقيبة' },
       { re: /^Chauffeur (\d+)$/,
@@ -85,6 +95,12 @@
         de: '$1 Passagiere', fr: '$1 passagers', ar: '$1 راكبًا' },
       { re: /^(1[1-9]|[2-9]\d) passengers · 1 bag$/,
         de: '$1 Passagiere · 1 Gepäckstück', fr: '$1 passagers · 1 bagage', ar: '$1 راكبًا · حقيبة واحدة' },
+      /* 261002: the bag count after 11–99 travellers takes its own Arabic form too (2 bags the dual, 11–99 the
+         singular accusative); 3–10 and the rest keep the plural below. */
+      { re: /^(1[1-9]|[2-9]\d) passengers · 2 bags$/,
+        de: '$1 Passagiere · 2 Gepäckstücke', fr: '$1 passagers · 2 bagages', ar: '$1 راكبًا · حقيبتان' },
+      { re: /^(1[1-9]|[2-9]\d) passengers · (1[1-9]|[2-9]\d) bags$/,
+        de: '$1 Passagiere · $2 Gepäckstücke', fr: '$1 passagers · $2 bagages', ar: '$1 راكبًا · $2 حقيبةً' },
       { re: /^(1[1-9]|[2-9]\d) passengers · (\d+) bags$/,
         de: '$1 Passagiere · $2 Gepäckstücke', fr: '$1 passagers · $2 bagages', ar: '$1 راكبًا · $2 حقائب' },
       { re: /^(.+) · (1[1-9]|[2-9]\d) passengers · (VT-\d+)$/,
@@ -145,6 +161,16 @@
       { re: /^Reply within (.+)$/,
         de: 'Antwort innerhalb von $1', fr: 'Réponse sous $1', ar: 'الرد خلال $1' },
       /* ── 26.3 home booking box · travellers summary ─── */
+      /* 261002: 2 bags is the Arabic dual and 11–99 bags the singular accusative, after each traveller form
+         (the 11–99 travellers case is the Van luxury block near the top of this list). */
+      { re: /^(\d+) passengers · 2 bags$/,
+        de: '$1 Passagiere · 2 Gepäckstücke', fr: '$1 passagers · 2 bagages', ar: '$1 ركاب · حقيبتان' },
+      { re: /^(\d+) passengers · (1[1-9]|[2-9]\d) bags$/,
+        de: '$1 Passagiere · $2 Gepäckstücke', fr: '$1 passagers · $2 bagages', ar: '$1 ركاب · $2 حقيبةً' },
+      { re: /^1 passenger · 2 bags$/,
+        de: '1 Passagier · 2 Gepäckstücke', fr: '1 passager · 2 bagages', ar: 'راكب واحد · حقيبتان' },
+      { re: /^1 passenger · (1[1-9]|[2-9]\d) bags$/,
+        de: '1 Passagier · $1 Gepäckstücke', fr: '1 passager · $1 bagages', ar: 'راكب واحد · $1 حقيبةً' },
       { re: /^(\d+) passengers · (\d+) bags$/,
         de: '$1 Passagiere · $2 Gepäckstücke', fr: '$1 passagers · $2 bagages', ar: '$1 ركاب · $2 حقائب' },
       { re: /^1 passenger · (\d+) bags$/,
@@ -1459,6 +1485,11 @@
       'Your trip now runs in {class}. The difference of {amount} comes back to the payment method you used; our team sends it.': { de: 'Ihre Fahrt läuft jetzt in {class}. Die Differenz von {amount} geht auf das Zahlungsmittel zurück, mit dem Sie bezahlt haben; unser Team veranlasst sie.', fr: 'Votre trajet passe en {class}. La différence de {amount} vous est remboursée sur le moyen de paiement utilisé ; notre équipe l’envoie.', ar: 'تسير رحلتك الآن بفئة {class}. يُردّ إليك الفرق البالغ {amount} إلى وسيلة الدفع التي استخدمتها؛ يرسله فريقنا.' },
       'Refunded to your {country} card.': { de: 'Erstattet auf Ihre Karte in {country}.', fr: 'Remboursé sur votre carte {country}.', ar: 'أُعيد إلى بطاقتك في {country}.' },
       'Stripe pays out on {date}.': { de: 'Stripe zahlt am {date} aus.', fr: 'Stripe verse le {date}.', ar: 'سترايب يدفع في {date}.' },
+      // 261002: the booking-page status badge for a part-cancelled / part-completed trip, and the refund line's
+      // country when the browser has no region names.
+      'Partially cancelled': { de: 'Teilweise storniert', fr: 'Partiellement annulé', ar: 'ملغى جزئيًا' },
+      'Partially completed': { de: 'Teilweise abgeschlossen', fr: 'Partiellement terminé', ar: 'مكتملة جزئيًا' },
+      'Switzerland': { de: 'Schweiz', fr: 'Suisse', ar: 'سويسرا' },
       'Could not cancel this booking.': { de: 'Diese Buchung konnte nicht storniert werden.', fr: 'Impossible d’annuler cette réservation.', ar: 'تعذر إلغاء هذا الحجز.' },
       'This page is for another booking. Open the link from its e-mail again.': { de: 'Diese Seite gehört zu einer anderen Buchung. Öffnen Sie den Link aus ihrer E-Mail erneut.', fr: 'Cette page concerne une autre réservation. Ouvrez à nouveau le lien de son e-mail.', ar: 'هذه الصفحة تخص حجزًا آخر. افتح الرابط من بريده الإلكتروني مرة أخرى.' },
       'Request time change': { de: 'Zeitänderung anfragen', fr: 'Demander un changement d’heure', ar: 'طلب تغيير الوقت' },

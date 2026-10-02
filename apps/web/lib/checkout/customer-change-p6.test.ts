@@ -165,7 +165,8 @@ describe.each(PAGES)("%s: the day picked is sent with the time", (rel) => {
   });
 
   it("setDay keeps the ISO day; the request is built from it; nothing is sent without one", () => {
-    expect(html).toMatch(/setDay = \(d, label, y, m\) => this\.setState\(\(s\) => \(\{ mDay: d, mDate: label, mIso: isoDay\(y, m, d\) \|\| s\.mIso \}\)\);/);
+    // 261002: only the ISO day is kept; the picker's own (English) label is ignored.
+    expect(html).toMatch(/setDay = \(d, label, y, m\) => this\.setState\(\(s\) => \(\{ mIso: isoDay\(y, m, d\) \|\| s\.mIso \}\)\);/);
     const body = confirmModify(html);
     expect(body).toMatch(/const scheduledLocal = requestedLocal\(s\.mIso, s\.mTime, ticket\.scheduledLocal\);/);
     expect(body).toMatch(/if \(!scheduledLocal\) \{ this\.say\(t\('Could not request this time change\.'\), 'danger'\); return; \}/);

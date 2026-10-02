@@ -245,7 +245,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <article data-card="1" aria-labelledby="mb-bk-h" style="padding:clamp(20px,2.4vw,26px)">
 <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;margin-bottom:20px">
 <h2 id="mb-bk-h" style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);line-height:1.1;letter-spacing:.04em;font-weight:var(--vt-weight-bold);color:var(--vt-text-primary)"><span class="vt-dir-keep" data-vt-no-i18n="1">{{ ref }}</span></h2>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.StatusBadge" status="{{ status }}" hint-size="110px,26px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.StatusBadge" status="{{ badge }}" label="{{ badgeLabel }}" hint-size="110px,26px"></x-import>
 <sc-if value="{{ isReviewed }}" hint-placeholder-val="{{ false }}">
 <span data-pill="1">Reviewed</span>
 </sc-if>
@@ -254,7 +254,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="warning" title="Not paid yet" hint-size="100%,84px">Sent by pay link. Not confirmed until money lands.</x-import>
 </div>
 </sc-if>
-<span style="margin-inline-start:auto;display:flex"><span data-pill="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="clock" size="{{ n14 }}" color="var(--vt-text-muted)" hint-size="14px,14px"></x-import>{{ countdown }}</span></span>
+<span style="margin-inline-start:auto;display:flex"><span data-pill="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="clock" size="{{ n14 }}" color="var(--vt-text-muted)" hint-size="14px,14px"></x-import><span><span data-vt-no-i18n="1">{{ bookedDay }}</span> · <span class="vt-dir-keep" data-vt-no-i18n="1">{{ bookedTime }}</span></span></span></span>
 </div>
 
 <!-- 26.2 P1 (owner-approved 2026-10-01): after a cheaper class change, until the refund is sent. Translated by the ticket helper. -->
@@ -270,7 +270,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="clock" size="{{ n18 }}" color="var(--vt-charcoal-900)" hint-size="18px,18px"></x-import>
 <span><span data-row-k="1">Change requested</span>
 <sc-for list="{{ requested }}" as="r" hint-placeholder-count="1">
-<span data-row-v="1"><span data-diff-n="1">{{ r.n }}</span> · <span style="color:var(--vt-text-secondary)">{{ r.k }}</span></span>
+<span data-row-v="1"><span data-diff-n="1"><span data-vt-no-i18n="1">{{ r.nDay }}</span> · <span class="vt-dir-keep" data-vt-no-i18n="1">{{ r.nTime }}</span></span> · <span style="color:var(--vt-text-secondary)">{{ r.k }}</span></span>
 </sc-for>
 <span data-row-v="1" style="font-size:var(--vt-body-sm);color:var(--vt-text-secondary);margin-top:2px">Not applied yet. We confirm every change by email, and the booking above stands until we do.</span></span>
 </span>
@@ -369,7 +369,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.PriceSummary" inverse="{{ yes }}" lines="{{ lines }}" total="{{ total }}" totalLabel="{{ totalLabel }}" note="" hint-size="100%,170px"></x-import>
 <dl style="margin-block-start:20px;padding-block-start:16px;border-block-start:1px solid var(--vt-border-inverse);display:flex;flex-direction:column;gap:8px">
 <div style="display:flex;justify-content:space-between;gap:16px;align-items:baseline"><dt style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-inverse-muted)">Booking</dt><dd style="margin:0;text-align:end;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-inverse)"><span class="vt-dir-keep" data-vt-no-i18n="1">{{ ref }}</span></dd></div>
-<div style="display:flex;justify-content:space-between;gap:16px;align-items:baseline"><dt style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-inverse-muted)">Date</dt><dd style="margin:0;text-align:end;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">{{ bookedWhen }}</dd></div>
+<div style="display:flex;justify-content:space-between;gap:16px;align-items:baseline"><dt style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-inverse-muted)">Date</dt><dd style="margin:0;text-align:end;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-inverse)"><span data-vt-no-i18n="1">{{ bookedDay }}</span> · <span class="vt-dir-keep" data-vt-no-i18n="1">{{ bookedTime }}</span></dd></div>
 <div style="display:flex;justify-content:space-between;gap:16px;align-items:baseline"><dt style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-inverse-muted)">Passengers</dt><dd style="margin:0;text-align:end;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">{{ paxLabel }}</dd></div>
 <div style="display:flex;justify-content:space-between;gap:16px;align-items:baseline"><dt style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-inverse-muted)">Bags</dt><dd style="margin:0;text-align:end;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">{{ bagLabel }}</dd></div>
 <div style="display:flex;justify-content:space-between;gap:16px;align-items:baseline"><dt style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-inverse-muted)">Vehicle</dt><dd style="margin:0;text-align:end;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">{{ vehicleName }}</dd></div>
@@ -406,12 +406,14 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 
 <p data-grp="1" style="margin-bottom:16px">Pickup date and time</p>
 <div style="display:flex;flex-wrap:wrap;align-items:center;gap:12px 16px;margin-bottom:16px">
-<span style="display:flex;flex-direction:column;gap:2px"><span data-row-k="1">Booked for</span><span data-row-v="1" style="font-variant-numeric:tabular-nums">{{ bookedWhen }}</span></span>
+<span style="display:flex;flex-direction:column;gap:2px"><span data-row-k="1">Booked for</span><span data-row-v="1" style="font-variant-numeric:tabular-nums"><span data-vt-no-i18n="1">{{ bookedDay }}</span> · <span class="vt-dir-keep" data-vt-no-i18n="1">{{ bookedTime }}</span></span></span>
+<span style="display:flex;align-items:center;gap:12px 16px;min-width:0">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n18 }}" color="var(--vt-text-muted)" hint-size="18px,18px"></x-import>
-<span style="display:flex;flex-direction:column;gap:2px"><span data-row-k="1">New pickup</span><span data-row-v="1" style="font-variant-numeric:tabular-nums;font-weight:var(--vt-weight-semibold)">{{ newWhen }}</span></span>
+<span style="display:flex;flex-direction:column;gap:2px"><span data-row-k="1">New pickup</span><span data-row-v="1" style="font-variant-numeric:tabular-nums;font-weight:var(--vt-weight-semibold)"><span data-vt-no-i18n="1">{{ newDay }}</span> · <span class="vt-dir-keep" data-vt-no-i18n="1">{{ newTime }}</span></span></span>
+</span>
 </div>
 <div style="max-width:420px;margin-bottom:30px">
-<dc-import name="WhenPicker" label="New pickup date &amp; time" placeholder="Pick a new date and time" value="{{ mDate }}" time="{{ mTime }}" day="{{ mDay }}" times="{{ timeSlots }}" baseMonth="2026-08" timeTitle="Pickup time" saveLabel="Use this time" savedLabel="Time set" clearLabel="Reset" onDay="{{ setDay }}" onTime="{{ setTime }}" onClear="{{ resetWhen }}" hint-size="100%,84px"></dc-import>
+<dc-import name="WhenPicker" label="New pickup date &amp; time" placeholder="Pick a new date and time" value="{{ mDate }}" time="{{ mTime }}" day="{{ mDay }}" locale="{{ pickerLocale }}" times="{{ timeSlots }}" baseMonth="{{ pickerMonth }}" timeTitle="Pickup time" saveLabel="Use this time" savedLabel="Time set" clearLabel="Reset" onDay="{{ setDay }}" onTime="{{ setTime }}" onClear="{{ resetWhen }}" hint-size="100%,84px"></dc-import>
 </div>
 
 <!-- 26.2 P6 (owner, D9): pickup, destination, class, passengers and bags are gone from this view; only
@@ -422,9 +424,9 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <sc-for list="{{ diffs }}" as="d" hint-placeholder-count="2">
 <div data-diff="1">
 <span data-diff-k="1">{{ d.k }}</span>
-<span data-diff-o="1">{{ d.o }}</span>
+<span data-diff-o="1"><span data-vt-no-i18n="1">{{ d.oDay }}</span> · <span class="vt-dir-keep" data-vt-no-i18n="1">{{ d.oTime }}</span></span>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n14 }}" color="var(--vt-text-muted)" hint-size="14px,14px"></x-import>
-<span data-diff-n="1">{{ d.n }}</span>
+<span data-diff-n="1"><span data-vt-no-i18n="1">{{ d.nDay }}</span> · <span class="vt-dir-keep" data-vt-no-i18n="1">{{ d.nTime }}</span></span>
 </div>
 </sc-for>
 </div>
@@ -451,7 +453,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div data-stop="1">
 <div aria-hidden="true" style="position:absolute;top:0;inset-inline-end:0;width:96px;height:96px;background:url(../../assets/patterns/checker-mark.png) top right / 44px auto no-repeat;opacity:.9"></div>
 <p style="margin:0 0 12px;display:flex;align-items:center;gap:9px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="clock" size="{{ n16 }}" color="var(--vt-accent)" hint-size="16px,16px"></x-import>This change needs a person</p>
-<p data-stop-fig="1">{{ countdown }}</p>
+<p data-stop-fig="1"><span data-vt-no-i18n="1">{{ bookedDay }}</span> · <span class="vt-dir-keep" data-vt-no-i18n="1">{{ bookedTime }}</span></p>
 <p style="margin:14px 0 0;max-width:52ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .84)">A driver is already scheduled against this pickup. Dispatch can still move it. This page cannot.</p>
 </div>
 
@@ -480,7 +482,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div data-noprint="1" data-card="1" style="padding:clamp(22px,2.6vw,30px)">
 <button type="button" data-back="1" onClick="{{ backToBooking }}" style-hover="color:var(--vt-charcoal-900)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-left" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>Back to your booking</button>
 <h2 style="margin:0 0 8px;font-family:var(--vt-font-display);font-size:var(--vt-heading-1);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Cancel this transfer</h2>
-<p style="margin:0 0 22px;max-width:58ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)"><span class="vt-dir-keep" data-vt-no-i18n="1">{{ ref }}</span> · {{ routeShort }} · {{ bookedWhen }}.</p>
+<p style="margin:0 0 22px;max-width:58ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)"><span class="vt-dir-keep" data-vt-no-i18n="1">{{ ref }}</span> · {{ routeShort }} · <span data-vt-no-i18n="1">{{ bookedDay }}</span> · <span class="vt-dir-keep" data-vt-no-i18n="1">{{ bookedTime }}</span>.</p>
 
 <div data-refund="1" style="margin-bottom:20px">
 <sc-if value="{{ cancelFull }}" hint-placeholder-val="{{ true }}">
@@ -627,9 +629,6 @@ function blankTicket() {
     dropoffText: '',
     pickupDetail: '',
     scheduledLocal: '',
-    dateLabel: '',
-    timeLabel: '',
-    countdown: '',
     flightNo: '',
     pax: 1,
     bags: 0,
@@ -642,6 +641,7 @@ function blankTicket() {
     cancelWindow: 'none',
     contactName: '',
     contactEmail: '',
+    payoutCountry: null,
     payoutCountryLabel: null,
     availableOn: null,
     priceTotalRappen: 0,
@@ -660,26 +660,23 @@ function requestedLocal(isoDayPicked, time, bookedLocal) {
   return /^\d{4}-\d{2}-\d{2}$/.test(day) && /^\d{2}:\d{2}$/.test(String(time || '')) ? day + 'T' + time : '';
 }
 
-function formatLocal(scheduledLocal) {
-  const raw = String(scheduledLocal || '');
-  const match = raw.match(/^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})/);
-  if (!match) return { date: '', time: '', day: 0 };
-  const iso = match[1];
-  const time = match[2];
-  const bits = iso.split('-');
-  const year = Number(bits[0]);
-  const month = Number(bits[1]);
-  const day = Number(bits[2]);
-  const utcNoon = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
-  const parts = {};
-  new Intl.DateTimeFormat('en-GB', { timeZone: 'UTC', weekday: 'short', day: 'numeric', month: 'short' })
-    .formatToParts(utcNoon)
-    .forEach((part) => { parts[part.type] = part.value; });
-  return {
-    date: ((parts.weekday || '') + ' ' + (parts.day || '') + ' ' + (parts.month || '')).trim(),
-    time,
-    day,
-  };
+/* 261002: the booked Zurich wall clock as raw values (YYYY-MM-DD and HH:MM). The page keeps no date text in
+   state: every label is made from these while rendering, so a language switch re-labels it. */
+function parseLocal(scheduledLocal) {
+  const match = String(scheduledLocal || '').match(/^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})/);
+  return match ? { iso: match[1], time: match[2] } : { iso: '', time: '' };
+}
+
+/* A day and a time, labelled in the reader's language: the day as text, the time as it is. */
+function whenLabels(iso, time) {
+  const h = api();
+  return { day: h.dayLabel ? h.dayLabel(iso) : '', time: time || '' };
+}
+
+/* The same as one line of plain text, for a toast. */
+function whenText(iso, time) {
+  const w = whenLabels(iso, time);
+  return [w.day, w.time].filter(Boolean).join(' · ');
 }
 
 function francs(rappen) {
@@ -707,7 +704,7 @@ class Component extends DCLogic {
       errorKind: '', errorTitle: '', errorBody: '',
       ticket,
       authVia: '',
-      mDay: 0, mDate: '', mTime: '',
+      mIso: '', mTime: '',
       voucher: false, flightMode: 'idle', flightDraft: '', flight: '',
       requested: null, status: 'confirmed',
       toast: null, toastTone: 'neutral',
@@ -785,14 +782,8 @@ class Component extends DCLogic {
   }
 
   applyTicket(booking, entry, via) {
-    const local = formatLocal(booking.scheduledLocal);
-    const dateLabel = booking.dateLabel || local.date;
-    const timeLabel = booking.timeLabel || local.time;
-    const ticket = Object.assign(blankTicket(), booking, {
-      dateLabel,
-      timeLabel,
-      countdown: dateLabel && timeLabel ? (dateLabel + ' · ' + timeLabel) : '',
-    });
+    const ticket = Object.assign(blankTicket(), booking);
+    const booked = parseLocal(ticket.scheduledLocal);
     const status = String(ticket.status || 'confirmed');
     this.setState({
       view: 'booking',
@@ -806,9 +797,8 @@ class Component extends DCLogic {
       flight: ticket.flightNo || '',
       flightDraft: ticket.flightNo || '',
       flightMode: 'idle',
-      mDate: dateLabel,
-      mTime: timeLabel,
-      mDay: local.day,
+      mIso: booked.iso,
+      mTime: booked.time,
       requested: null,
       voucher: false,
     });
@@ -818,21 +808,27 @@ class Component extends DCLogic {
   money(a) { return (window.VamosLocale ? window.VamosLocale.money(a) : 'CHF ' + a); }
 
   drafts() {
-    const ticket = this.state.ticket || blankTicket();
-    const local = formatLocal(ticket.scheduledLocal);
-    return {
-      mDay: local.day, mDate: ticket.dateLabel || local.date, mTime: ticket.timeLabel || local.time,
-      mIso: String(ticket.scheduledLocal || '').slice(0, 10),
-    };
+    const booked = parseLocal((this.state.ticket || blankTicket()).scheduledLocal);
+    return { mIso: booked.iso, mTime: booked.time };
   }
 
+  /* What the customer has changed, as values (day and time, old and new) — compared as values, never as text.
+     diffRows() labels them in the reader's language while rendering; `requested` keeps these raw rows. */
   diffList() {
     const s = this.state, ticket = s.ticket || blankTicket(), out = [];
-    const booked = (ticket.dateLabel || '') + ' · ' + (ticket.timeLabel || '');
-    const next = s.mDate + ' · ' + s.mTime;
+    const booked = parseLocal(ticket.scheduledLocal);
     // 26.2 P6 (D9): only the time is sent, so only the time is listed.
-    if (next !== booked) out.push({ k: 'Pickup time', o: booked, n: next });
+    if (s.mIso !== booked.iso || s.mTime !== booked.time) {
+      out.push({ k: 'Pickup time', oIso: booked.iso, oTime: booked.time, nIso: s.mIso, nTime: s.mTime });
+    }
     return out;
+  }
+
+  diffRows(list) {
+    return (list || []).map((d) => {
+      const o = whenLabels(d.oIso, d.oTime), n = whenLabels(d.nIso, d.nTime);
+      return { k: d.k, oDay: o.day, oTime: o.time, nDay: n.day, nTime: n.time };
+    });
   }
 
   say(msg, tone) {
@@ -890,12 +886,10 @@ class Component extends DCLogic {
   startCancel = () => this.goTo('cancel');
   backToBooking = () => this.goTo('booking');
 
-  setDay = (d, label, y, m) => this.setState((s) => ({ mDay: d, mDate: label, mIso: isoDay(y, m, d) || s.mIso }));
+  /* 261002: only the day (YYYY-MM-DD) is kept; the picker's own label is ignored, the page labels the day itself. */
+  setDay = (d, label, y, m) => this.setState((s) => ({ mIso: isoDay(y, m, d) || s.mIso }));
   setTime = (t) => this.setState({ mTime: t });
-  resetWhen = () => {
-    const ticket = this.state.ticket || blankTicket();
-    this.setState({ mDate: ticket.dateLabel, mTime: ticket.timeLabel, mIso: String(ticket.scheduledLocal || '').slice(0, 10) });
-  };
+  resetWhen = () => this.setState(this.drafts());
   resetChanges = () => this.setState(this.drafts());
 
 
@@ -906,7 +900,6 @@ class Component extends DCLogic {
     const helper = api();
     const ticket = this.state.ticket || blankTicket();
     const s = this.state;
-    const orig = (ticket.dateLabel || '') + (ticket.timeLabel ? (' · ' + ticket.timeLabel) : '');
     // The day picked travels with the time (it used to be dropped: the day as booked was sent).
     const scheduledLocal = requestedLocal(s.mIso, s.mTime, ticket.scheduledLocal);
     if (!scheduledLocal) { this.say(t('Could not request this time change.'), 'danger'); return; }
@@ -917,7 +910,9 @@ class Component extends DCLogic {
       : helper.timeChangeGuest(tok, ticket.reference, scheduledLocal);
     req.then((result) => {
       if (result && result.ok && result.body && result.body.ok) {
-        const msg = t('Time-change requested. Pickup stays {original} until we confirm.').replace('{original}', orig || t('the booked time'));
+        // 261002: the booked day and time, labelled now, in the language the reader has now.
+        const booked = parseLocal(ticket.scheduledLocal);
+        const msg = t('Time-change requested. Pickup stays {original} until we confirm.').replace('{original}', whenText(booked.iso, booked.time) || t('the booked time'));
         this.say(msg, 'ok');
         this.setState({ view: 'booking', requested: this.diffList() });
         return;
@@ -959,7 +954,8 @@ class Component extends DCLogic {
         canCancel: false,
         refundStatus,
         refundOwedRappen: result.body.refundRappen || null,
-        payoutCountryLabel: result.body.payoutCountryLabel || ticket.payoutCountryLabel,
+        // 261002: the cancel routes answer the ISO code (payoutCountry), never a label; the helper names the country.
+        payoutCountry: result.body.payoutCountry || ticket.payoutCountry,
         availableOn: result.body.availableOn || null,
       });
       this.setState({
@@ -1029,32 +1025,38 @@ class Component extends DCLogic {
     const late = this.timing() === 'late';
     const airport = (p.bookingType || 'airport') !== 'city';
     const blocked = v === 'modify' && late;
-    const bookedWhen = (ticket.dateLabel || '') + (ticket.timeLabel ? (' · ' + ticket.timeLabel) : '');
-    const newWhen = s.mDate + ' · ' + s.mTime;
+    // 261002: every date is labelled here, from the booked wall clock and the day/time picked, in the reader's
+    // language — nothing stored in state — so VamosLocale.onChange -> forceUpdate re-labels all of it.
+    const booked = parseLocal(ticket.scheduledLocal);
+    const bookedLbl = whenLabels(booked.iso, booked.time);
+    const newLbl = whenLabels(s.mIso, s.mTime);
     const unpaid = s.status === 'pending' || s.status === 'quote';
-    const badge = unpaid ? 'pending' : (s.status === 'canceled' ? 'cancelled' : s.status);
+    // 261002: the design-system badge knows pending, confirmed, assigned, completed, cancelled, refunded and
+    // no-show; any other word fell back to "Awaiting payment". Pass it a key it knows plus this page's own label.
+    const BADGE_KEY = { paid: 'confirmed', partially_cancelled: 'cancelled', partially_completed: 'completed', no_show: 'no-show' };
+    const BADGE_LABEL = {
+      paid: 'Paid', assigned: 'Driver assigned', no_show: 'No-show', 'no-show': 'No-show',
+      partially_cancelled: 'Partially cancelled', partially_completed: 'Partially completed',
+    };
+    const state = unpaid ? 'pending' : (s.status === 'canceled' ? 'cancelled' : String(s.status || ''));
+    const badge = BADGE_KEY[state] || state;
     const badgeLabel = unpaid
       ? 'waiting payment'
-      : badge === 'assigned'
-        ? 'Driver assigned'
-        : badge === 'no_show' || badge === 'no-show'
-          ? 'No-show'
-          : badge === 'paid'
-            ? 'Paid'
-            : (badge ? badge.charAt(0).toUpperCase() + badge.slice(1).replace('_', ' ') : '');
+      : BADGE_LABEL[state] || (state ? state.charAt(0).toUpperCase() + state.slice(1).replace('_', ' ') : '');
     const totalLabel = s.status === 'refunded' ? 'Refunded' : unpaid ? 'waiting payment' : 'Paid';
     const paid = francs(ticket.priceTotalRappen);
     const lines = paid ? [{ label: 'Fare', value: paid }] : [];
     const chauffeurName = ticket.chauffeurName || '';
     const vehicleLabel = [ticket.plate, ticket.vehicle].filter(Boolean).join(' · ');
     const meta = [
-      { icon: 'calendar', label: ticket.dateLabel },
-      { icon: 'clock', label: ticket.timeLabel ? ('Pickup ' + ticket.timeLabel) : '' },
+      { icon: 'calendar', label: bookedLbl.day },
+      { icon: 'clock', label: bookedLbl.time ? ('Pickup ' + bookedLbl.time) : '' },
       { icon: 'users', label: ticket.pax ? (ticket.pax === 1 ? '1 passenger' : ticket.pax + ' passengers') : '' },
     ].filter((row) => row.label);
     if (vehicleLabel) meta.push({ icon: 'car', label: vehicleLabel });
     if (airport && s.flight) meta.push({ icon: 'plane-landing', label: s.flight });
-    const diffs = this.diffList();
+    const diffs = this.diffRows(this.diffList());
+    const requested = this.diffRows(s.requested);
     const windowKind = ticket.cancelWindow || 'none';
     const reviewed = !!ticket.reviewSubmitted;
     const hideCancel = !ticket.canCancel || reviewed || s.status === 'completed' || s.status === 'no_show' || s.status === 'cancelled';
@@ -1095,19 +1097,19 @@ class Component extends DCLogic {
       whoError: s.whoBy === 'email' ? 'Add the email address the booking was made with' : 'Add the surname on the booking',
       lookup: this.lookup, swapWho: this.swapWho,
 
-      ref: ticket.reference, status: badge, countdown: ticket.countdown,
+      ref: ticket.reference,
       unpaid,
       badge, badgeLabel, totalLabel,
-      pickup: ticket.pickupText, pickupDetail: ticket.pickupDetail || ticket.timeLabel, dropoff: ticket.dropoffText,
-      pickupTime: ticket.timeLabel, arriveTime: '', durationChip: '',
+      pickup: ticket.pickupText, pickupDetail: ticket.pickupDetail || booked.time, dropoff: ticket.dropoffText,
+      pickupTime: booked.time, arriveTime: '', durationChip: '',
       routeShort,
       meta, lines, total: paid, hasPrice: !!paid,
       email: ticket.contactEmail, isAirport: airport,
       vehicleName: vehicleLabel,
       paxLabel: ticket.pax === 1 ? '1 passenger' : ticket.pax + ' passengers', bagLabel: ticket.bags === 1 ? '1 bag' : ticket.bags + ' bags',
       flightRow: airport && s.status !== 'cancelled' && !!s.flight,
-      bookedWhen, newWhen,
-      changePending: !!(s.requested && s.requested.length), requested: s.requested || [],
+      bookedDay: bookedLbl.day, bookedTime: bookedLbl.time, newDay: newLbl.day, newTime: newLbl.time,
+      changePending: requested.length > 0, requested,
       isReviewed: reviewed,
       showCancel: !hideCancel,
       hasChauffeur: !!chauffeurName,
@@ -1132,7 +1134,12 @@ class Component extends DCLogic {
 
       startModify: this.startModify, startCancel: this.startCancel, backToBooking: this.backToBooking,
 
-      mDate: s.mDate, mTime: s.mTime, mDay: s.mDay, timeSlots: TIMES,
+      // The picker shows the day in the reader's language (value) and numbers it by the day of the month (day).
+      mDate: newLbl.day, mTime: s.mTime, mDay: Number(String(s.mIso || '').slice(8, 10)) || 0, timeSlots: TIMES,
+      pickerLocale: helper.lang ? helper.lang() : 'en',
+      // The month the calendar opens on: the day picked, else the booked day (was a fixed "2026-08", which
+      // highlighted the booked day-of-month in the wrong month). The picker clamps a past month to this one.
+      pickerMonth: String(s.mIso || booked.iso || '').slice(0, 7),
       setDay: this.setDay, setTime: this.setTime, resetWhen: this.resetWhen,
       diffs, hasDiff: diffs.length > 0, noDiff: diffs.length === 0,
       confirmModify: this.confirmModify, resetChanges: this.resetChanges,
