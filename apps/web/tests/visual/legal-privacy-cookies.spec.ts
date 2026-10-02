@@ -190,9 +190,9 @@ test.describe("Privacy and cookies pages @component", () => {
     await expect(btn).toBeFocused();
   });
 
-  // Last in this serial block, so a red here never hides the tests above. Red on 2026-10-02 for a real
-  // reason: the /cookies rail links "08 The previous site" to #legacy and no section has that id
-  // (app/pages/cookies.dc.html:170) — an app fix for the control session, not a spec change.
+  // Last in this serial block, so a red here never hides the tests above. Red on 2026-10-02 because the
+  // /cookies rail linked "08 The previous site" to #legacy and no section had that id; the owner had the
+  // link removed the same day, so the rail and COOKIES_IDS are both the seven real sections.
   test("TOC hashes match section ids @component", async ({ page }) => {
     for (const [route, ids] of [
       ["/privacy", PRIVACY_IDS],
