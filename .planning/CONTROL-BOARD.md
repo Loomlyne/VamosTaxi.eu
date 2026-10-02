@@ -58,7 +58,7 @@ JSON double encoding in `stripe_events.payload` and `rate_version_rules.payload`
 **Closed by the owner 2026-10-01 23:59:** Phase 19 (no surge test, not a launch item) and the 26.2 audit units that
 never ran (`decisions/2026-10-01-phase19-and-26.2-units-closed.md`). **Last:** u13 stricter check scripts (`gsd/phase-26.2-u13`). **After the owner's Meta check:** Phase 28, then 29.
 
-**The owner's own steps:** (1) Done 23:4x: Cloudflare automatic Web Analytics off. (2) Now: waiting time 30 minutes
+**The owner's own steps:** (0) GitHub: Settings > Billing and plans: fix the failed payment or raise the Actions spending limit (every Actions job stops after 3 s). (1) Done 23:4x: Cloudflare automatic Web Analytics off. (2) Now: waiting time 30 minutes
 in dashboard settings (B7 is live). (3) Real texts of the 5 published reviews. (4) 4242 payment as guest and
 with "Create an account". (5) /contact real message. (6) Refund by hand. (7) Pay in de, fr, ar and on a
 tablet. (8) UAT of the live jobs (pick-up report section 2). (9) Meta switches on pixel 1595596972063765.
@@ -133,6 +133,7 @@ Clean clone: install from the lockfile and all 11 gates pass; pgTAP from zero on
 | 10-02 | 06:43 | **/cookies**: the dead "08 The previous site" menu link removed (owner decision; no section ever existed), string gone in four languages, seed re-pinned (2692). Clean clone: 11 gates, build, unit, pgTAP 95 / 2452. Live: link gone, /cookies /de /ar 200. Rollback: tag `backup/main-before-cookies-link-69afa70a`, Worker `c6a4ecac` | `5d635c44` | `44ca2be9` |
 | 10-02 | 12:39 | **Stripe event payloads stored as objects** (26.2 finding): webhook and return-route settle write through one sql.json writer; 72 old string rows stay (nothing reads them; optional conversion is the owner's choice). No migration. Fresh review: safe. Clean clone: 11 gates, build, 3779 web unit tests, pgTAP 95 / 2452, types identical. Live 200; unsigned webhook 400. Not verified: a new row after a real payment (owner 4242, then jsonb_typeof = object). Rollback: tag `backup/main-before-stripe-events-json-62385c05`, Worker `44ca2be9` | `a42809ee` | `cdd63f10` |
 | 10-02 | 12:52 | **Account phone reaches the dashboard** (B5 follow-up 1): sign-up and account-page phone written to the customer's own row through checkout's lookup (never an erased or another user's row; created on demand for a confirmed user); dashboard falls back to the latest booking phone. No migration. Fresh review: two rounds, safe. Clean clone: 11 gates, build, 3801 web unit tests, pgTAP 95 / 2452. Live 200. Later notes: fill-blank runs on every link sign-in; sign-in waits one round trip; name edits still write metadata only; four local DB tests clash on a shared stack. Rollback: Worker `cdd63f10` | `b8b9fa7e` | `660bce80` |
+| 10-02 | 13:13 | **Linux checkout reds** (tests and the Linux e2e workflow only): stale phone-sheet spec, consent-banner stub, auth redirect port, serial legal spec, per-worker build folders. Local proof only: **GitHub Actions refuses every job (account billing: payment failed or spending limit)**; rerun 36986497034 after the owner fixes billing. App findings: `faq.dc.html:68` open-question hover colour; `/api/reviews` 500 on a dev server without Hyperdrive | `08ebcfc7` | unchanged |
 
 ## Ship order from here
 
