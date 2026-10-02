@@ -1,0 +1,20 @@
+
+/Users/koss/Developer/VamosTaxi.eu/.claude/worktrees/settle-safety/.planning/quick/260819-279-stream-5-translation-draft-the-156-produ/i18n-measure.mjs
+  45:3  warning  Unused eslint-disable directive (no problems were reported from 'no-new-func')
+
+/Users/koss/Developer/VamosTaxi.eu/.claude/worktrees/settle-safety/apps/web/i18n/request.ts
+   87:3  warning  Unused eslint-disable directive (no problems were reported from 'no-console')
+  114:7  warning  Unused eslint-disable directive (no problems were reported from 'no-console')
+
+/Users/koss/Developer/VamosTaxi.eu/.claude/worktrees/settle-safety/apps/web/lib/consent/vamos-consent.test.ts
+  12:3  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+
+/Users/koss/Developer/VamosTaxi.eu/.claude/worktrees/settle-safety/apps/web/tests/support/mock-harness.ts
+  453:3  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-implied-eval')
+
+/Users/koss/Developer/VamosTaxi.eu/.claude/worktrees/settle-safety/packages/db/test/local/identity-contract.test.ts
+  101:7  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-explicit-any')
+
+✖ 6 problems (0 errors, 6 warnings)
+  0 errors and 6 warnings potentially fixable with the `--fix` option.
+

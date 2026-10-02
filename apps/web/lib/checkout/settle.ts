@@ -43,11 +43,13 @@ import { purgeDepsFromEnv, purgeOnSessionExpired } from "./purge-unpaid";
 import { deliverConfirmation } from "./notify";
 import { provisionCheckoutAccount, provisionDeps } from "./provision-account";
 import {
+  deliverDifferenceNotAppliedAlert,
   deliverOverlapMustFix,
   deliverPaidAfterCancelAlert,
   deliverStuckPaymentAlert,
   type StuckPaymentAlertInput,
 } from "../ops/must-fix-mail";
+import { PAID_ERROR_RETRY_SECONDS, retryDelaySeconds, settleErrorKind, sqlStateOf } from "./settle-errors";
 
 /**
  * `delaySeconds` (26.1-08): a retry that must wait, e.g. app_refund_pending, so the retry budget spans minutes.
@@ -146,6 +148,12 @@ export type SettleDeps = MoneyEventDeps & {
   provisionAccount?: (row: SettleRow) => Promise<unknown>;
   /** 26.2 P1: the difference of a change was paid: confirmation again, driver taken off told. */
   afterExtraApplied?: (row: SettleRow) => Promise<void>;
+  /**
+   * 261002 settle safety: a difference was paid and recorded but the change was NOT applied (the trip
+   * was cancelled, a newer change replaced it, or it no longer fits). Mails info@ (T1); best effort,
+   * a failure never turns into a retry.
+   */
+  alertDifferenceNotApplied?: (row: SettleRow) => Promise<void>;
   /** D-22: Stripe-first refund for a settle branch that captured money but must not confirm the trip. */
   refund: (input: RefundInput) => Promise<{ id: string }>;
   /** Records the refund decision (idempotent on stripeRefundId) after `refund` succeeds. */
@@ -160,13 +168,6 @@ export type SettleDeps = MoneyEventDeps & {
   purgeOnSessionExpired: (sessionId: string, bookingId: string) => Promise<boolean>;
   emit: (level: "debug" | "info" | "warn" | "error", type: string, fields?: Record<string, ScalarValue>) => void;
 };
-
-function sqlState(err: unknown): string | undefined {
-  if (err && typeof err === "object" && "code" in err && typeof (err as { code: unknown }).code === "string") {
-    return (err as { code: string }).code;
-  }
-  return undefined;
-}
 
 /** Postgres `text[]` literal. A 1-element JS array binds as a scalar; `::text[]` then throws 22P02. */
 export function pgTextArrayLiteral(values: string[]): string {
@@ -313,13 +314,11 @@ export async function handleStripeMessageWithDeps(
       new Date(message.stripeCreated * 1000),
     );
   } catch (err) {
-    if (sqlState(err) === "P0002") return { retry: true };
-    try {
-      await deps.eventSettle(message.eventId, sqlState(err) ?? "begin_failed");
-    } catch {
-      return { retry: true };
-    }
-    return { ack: true };
+    if (sqlStateOf(err) === "P0002") return { retry: true };
+    // 261002 settle safety: begin() decides nothing about the money. Whatever it threw (a deadlock,
+    // a dropped connection, a permission error), the event is tried again, never recorded as
+    // failed and acknowledged: Stripe may have captured the payment this event reports.
+    return { retry: true, delaySeconds: settleErrorKind(err) === "transient" ? retryDelaySeconds(err) : 60 };
   }
 
   if (!admission.should_process) {
@@ -349,8 +348,19 @@ export async function handleStripeMessageWithDeps(
       session,
     });
   } catch (err) {
-    const state = sqlState(err);
+    const state = sqlStateOf(err);
     if (state === "P0002") {
+      // 261002 settle safety: an unpaid difference page that belongs to no request (a replaced
+      // page's expired event). Nothing was charged and there is nothing to record: close the event
+      // quietly instead of retrying into a stuck-payment mail.
+      if (session?.metadata?.kind === "extra" && outcome !== "succeeded") {
+        try {
+          await deps.eventSettle(message.eventId, "no_request");
+        } catch {
+          return { retry: true };
+        }
+        return { ack: true };
+      }
       const refunded = await refundPaidSessionWithoutBooking(message, session, piId, outcome, deps);
       if (refunded) {
         try {
@@ -362,8 +372,22 @@ export async function handleStripeMessageWithDeps(
       }
       return { retry: true };
     }
-    // retryable vs permanent: P0002 is the intent transaction not committed
-    // yet. 23505 from booking_payments_one_success reproduces forever.
+    // 261002 settle safety. Transient (deadlock, lost connection, timeout, no SQLSTATE at all): retry
+    // after a delay, never record the event as failed. Permanent with money captured (outcome
+    // "succeeded"): record it, but never acknowledge: retry slowly until the dead-letter queue mails
+    // info@ (the stuck-payment mail). Permanent with nothing captured (expired or failed page): the
+    // same input fails the same way, record and acknowledge as before.
+    if (settleErrorKind(err) === "transient") {
+      return { retry: true, delaySeconds: retryDelaySeconds(err) };
+    }
+    if (outcome === "succeeded") {
+      try {
+        await deps.eventSettle(message.eventId, state ?? "settle_failed");
+      } catch {
+        // Best effort: the retry below is the real handling.
+      }
+      return { retry: true, delaySeconds: PAID_ERROR_RETRY_SECONDS };
+    }
     try {
       await deps.eventSettle(message.eventId, state ?? "settle_failed");
     } catch {
@@ -470,6 +494,15 @@ export async function handleStripeMessageWithDeps(
         await deps.afterExtraApplied?.(row);
       } catch {
         deps.emit("error", "change_mail_failed", { bookingId: row.booking_id });
+      }
+    } else if (!row.already_settled && extra) {
+      // 261002 settle safety: the difference is paid and recorded (it shows as Refund due) but the
+      // change was not applied: the trip was cancelled, a newer change replaced it, or it no longer
+      // fits. Tell info@; the alert never turns the settle into a retry.
+      try {
+        await deps.alertDifferenceNotApplied?.(row);
+      } catch {
+        deps.emit("error", "difference_not_applied_alert_failed", { bookingId: row.booking_id });
       }
     }
 
@@ -610,7 +643,7 @@ export async function handleStripeMessage(
           request_id: row.request_id ? String(row.request_id) : null,
         };
       } catch (err) {
-        if (extra && sqlState(err) === "23P01") {
+        if (extra && sqlStateOf(err) === "23P01") {
           const bookingId = String(input.session?.metadata?.booking_id ?? "");
           if (bookingId) {
             try {
@@ -634,6 +667,7 @@ export async function handleStripeMessage(
       const { afterExtraSettled } = await import("../ops/booking-change");
       await afterExtraSettled(env, row);
     },
+    alertDifferenceNotApplied: (row) => deliverDifferenceNotAppliedAlert(env, row.booking_id),
     provisionAccount: (row) => provisionCheckoutAccount(row, provisionDeps(env, emit)),
     refund: async (input) => {
       const refund = await createRefund(stripe, {

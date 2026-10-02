@@ -77,6 +77,9 @@ export function mapEditSqlError(err: unknown): EditAcceptFail {
     // 26.2 P6 follow-up (migration 20261007190000): a customer's time request is refused while a staff
     // change waits for its difference to be paid; nothing is written, the staff change stays whole.
     "staff-change-waiting",
+    // 261002 settle safety (migration 20261007200000): a second Accept on a customer request when the
+    // difference moved since the first one; nothing is written, the first link stays valid.
+    "price-changed",
   ]) {
     if (message === name || message.startsWith(`${name}\n`) || message.startsWith(`${name} `)) {
       if (name === "capacity") return { ok: false, code: "must-fix" };
@@ -96,6 +99,8 @@ export function failStatus(code: string): number {
   if (code === "staff-change-waiting") return 409;
   // 261002 review round 3: Accept again on a request whose page is already paid; the payment applies it.
   if (code === "already-paid") return 409;
+  // 261002 settle safety: Accept again after the amount moved; the owner refuses the request, the customer asks again.
+  if (code === "price-changed") return 409;
   if (code === "stripe-failed" || code === "stripe-test-only") return 502;
   if (code === "temporarily_unavailable") return 503;
   return 400;

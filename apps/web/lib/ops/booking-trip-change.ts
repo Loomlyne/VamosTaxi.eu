@@ -41,6 +41,7 @@ import {
   confirmBookingChange,
   defaultChangeDeps,
   expireSupersededPage,
+  guardWaitingStaffChange,
   loadChangeBooks,
   loadChangeRules,
   previewBookingChange,
@@ -339,6 +340,10 @@ export async function confirmTripChange(
   }
   if (ctx.paidRappen !== body.expectPaidRappen) return { ok: false, code: "paid-changed" };
   const shown = facts && saved ? classNets(todayPriced(books), facts.facts, facts.facts.distanceM, saved, computedAt) : null;
+  // 261002 settle safety: a change that waits for its difference is checked first (paid in the same
+  // second -> refused, nothing is replaced; else its page is closed), then this one is written.
+  const waitingGuard = await guardWaitingStaffChange(env, claims, ctx.bookingId);
+  if (waitingGuard) return waitingGuard;
 
   type Json = Parameters<Parameters<typeof asSystem>[1]>[0]["json"];
   let row: TripChangeRow;
