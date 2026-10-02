@@ -101,6 +101,11 @@
   gap: 8px;
 }
 
+/* 261003: Total · contact · PAY. PAY keeps its 54 px height and stays the only yellow thing. */
+.vt-copay--bar .vt-copay__row {
+  gap: 12px;
+}
+
 .vt-copay__reassure {
   margin: 0;
   font-size: 13px;

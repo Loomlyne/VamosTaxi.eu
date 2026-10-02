@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { Alert } from "@/components/feedback/Alert";
 import { Button, Icon } from "@/components/core";
+import { ContactButton } from "@/components/shell/ContactButton";
 import "./checkout-parts.css";
 
 export type PayBarState = "idle" | "disabled" | "loading" | "error";
@@ -92,6 +93,8 @@ export function PayBar({
         ) : (
           <div className="vt-copay__total">{totalBlock}</div>
         )}
+        {/* 261003 direction B: the contact button docks here (Total · contact · PAY), so nothing floats over PAY. */}
+        {variant === "bar" ? <ContactButton variant="docked" /> : null}
         <Button
           size="lg"
           block={variant === "rail"}
