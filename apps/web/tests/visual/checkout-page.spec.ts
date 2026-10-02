@@ -494,10 +494,20 @@ test("de, fr and ar render the page in the chosen language, ar mirrored, no side
       const text = await page.locator("[data-checkout-page]").innerText();
       expect(text).not.toContain("ß");
       if (c.lang === "ar") {
-        const back = await page.locator(".vt-co__strip-back").evaluate((el) => getComputedStyle(el).transform);
-        const arrow = await page.locator(".vt-co__strip-arrow").evaluate((el) => getComputedStyle(el).transform);
-        expect(back).toBe("matrix(-1, 0, 0, 1, 0, 0)");
-        expect(arrow).toBe("matrix(-1, 0, 0, 1, 0, 0)");
+        // Each glyph is mirrored exactly once, by laws.css (03): the product of the x-scale
+        // signs of the icon and all its ancestors is -1.
+        const xScale = (el: Element) => {
+          let product = 1;
+          for (let n: Element | null = el; n; n = n.parentElement) {
+            const a = Number(/^matrix\(([-\d.e]+),/.exec(getComputedStyle(n).transform)?.[1] ?? "1");
+            if (a < 0) product = -product;
+          }
+          return product;
+        };
+        const back = await page.locator('.vt-co__strip-back [style*="chevron-left.svg"]').evaluate(xScale);
+        const arrow = await page.locator(".vt-co__strip-arrow").evaluate(xScale);
+        expect(back).toBe(-1);
+        expect(arrow).toBe(-1);
         // Logical layout: Edit trip sits at the inline end, which is the left edge in rtl.
         const edit = await page.locator("[data-co-edit]").boundingBox();
         const strip = await page.locator("[data-co-strip]").boundingBox();

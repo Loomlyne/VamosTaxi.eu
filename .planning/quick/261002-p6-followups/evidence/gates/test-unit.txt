@@ -1,0 +1,57 @@
+Scope: 4 of 5 workspace projects
+packages/db test$ node -e "console.log('@vamos/db unit')" && vitest run test/local/identity-contract.test.ts test/fixtures/leak-check.test.ts
+packages/emails test$ vitest run
+packages/db test: @vamos/db unit
+packages/emails test:  RUN  v4.1.11 /Users/koss/Developer/VamosTaxi.eu/.claude/worktrees/p6-followups/packages/emails
+packages/db test:  RUN  v4.1.11 /Users/koss/Developer/VamosTaxi.eu/.claude/worktrees/p6-followups/packages/db
+packages/db test:  Test Files  2 passed (2)
+packages/db test:       Tests  14 passed (14)
+packages/db test:    Start at  14:01:39
+packages/db test:    Duration  436ms (transform 70ms, setup 0ms, import 117ms, tests 19ms, environment 0ms)
+packages/db test: Done
+packages/emails test:  Test Files  15 passed (15)
+packages/emails test:       Tests  229 passed (229)
+packages/emails test:    Start at  14:01:39
+packages/emails test:    Duration  1.44s (transform 1.47s, setup 0ms, import 8.86s, tests 1.07s, environment 2ms)
+packages/emails test: Done
+apps/web test$ node ../../scripts/sync-dc-mock-to-public.mjs && vitest run
+apps/web test: synced DC mock → apps/web/public (20 pages, 18 app entries)
+apps/web test: (!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+apps/web test:   - ESM syntax in a file loaded as CommonJS (vitest.config.ts:10:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+apps/web test: Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+apps/web test:  RUN  v4.1.11 /Users/koss/Developer/VamosTaxi.eu/.claude/worktrees/p6-followups/apps/web
+apps/web test: <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+apps/web test: <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+apps/web test: <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+apps/web test: <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+apps/web test: <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+apps/web test: <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+apps/web test: <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+apps/web test: <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+apps/web test: <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+apps/web test: <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+apps/web test: <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+apps/web test: <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+apps/web test: <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+apps/web test: <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+apps/web test: <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+apps/web test: <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+apps/web test: <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+apps/web test: <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+apps/web test: <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+apps/web test: <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+apps/web test: <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+apps/web test: <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+apps/web test: <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+apps/web test: <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+apps/web test: <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+apps/web test: <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+apps/web test: <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+apps/web test: <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+apps/web test: <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+apps/web test: <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+apps/web test:  Test Files  383 passed | 14 skipped (397)
+apps/web test:       Tests  3886 passed | 24 skipped (3910)
+apps/web test:    Start at  14:01:40
+apps/web test:    Duration  18.53s (transform 15.93s, setup 0ms, import 49.68s, tests 32.38s, environment 49ms)
+apps/web test: Done

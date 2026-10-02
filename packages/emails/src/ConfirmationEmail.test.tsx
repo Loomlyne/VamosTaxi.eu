@@ -80,6 +80,29 @@ describe("ConfirmationEmail", () => {
     expect(html).toContain("direction:ltr");
   });
 
+  it("puts the dispatch phone in a left-to-right island, message text unchanged (261002 F1)", async () => {
+    const island = '<span style="unicode-bidi:isolate;direction:ltr;white-space:nowrap">+41 79 626 70 82</span>';
+    const ar = await render(ConfirmationEmail({ booking: booking("ar") }));
+    expect(ar).toContain(`التشغيل ${island}`);
+    for (const locale of ["en", "de", "fr"] as const) {
+      const html = await render(ConfirmationEmail({ booking: booking(locale) }));
+      expect(html).toContain(`Dispatch ${island}`);
+    }
+    for (const locale of LOCALES) {
+      const html = await render(ConfirmationEmail({ booking: booking(locale) }));
+      expect(html.split("+41 79 626 70 82").length).toBe(html.split(island).length);
+    }
+  });
+
+  it("plain text: Arabic dispatch phone in LRI…PDI; en/de/fr line byte for byte as before", () => {
+    const lines = (locale: EmailLocale) => confirmationPlainText(booking(locale)).split("\n");
+    expect(lines("ar")).toContain("التشغيل ⁦+41 79 626 70 82⁩");
+    for (const locale of ["en", "de", "fr"] as const) {
+      expect(lines(locale)).toContain("Dispatch +41 79 626 70 82");
+      expect(confirmationPlainText(booking(locale))).not.toMatch(/[‎‏‪-‮⁦-⁩]/);
+    }
+  });
+
   it("plain text and subject carry the reference", () => {
     const b = booking("en");
     expect(confirmationSubject(b)).toContain("VT-10001");

@@ -1,0 +1,402 @@
+[
+  {
+    "label": "dp-manage before en 1440",
+    "rows": [
+      {
+        "kind": "disabled-span",
+        "x": 224,
+        "glyphFile": "chevron-left",
+        "transform": "none"
+      },
+      {
+        "kind": "title",
+        "x": 308,
+        "text": "October 2026"
+      },
+      {
+        "kind": "button Next month",
+        "x": 456,
+        "glyphFile": "chevron-right",
+        "transform": "none"
+      }
+    ],
+    "mirrorRuleHasDpNav": [
+      true
+    ]
+  },
+  {
+    "label": "dp-manage before en 390",
+    "rows": [
+      {
+        "kind": "disabled-span",
+        "x": 29,
+        "glyphFile": "chevron-left",
+        "transform": "none"
+      },
+      {
+        "kind": "title",
+        "x": 147,
+        "text": "October 2026"
+      },
+      {
+        "kind": "button Next month",
+        "x": 329,
+        "glyphFile": "chevron-right",
+        "transform": "none"
+      }
+    ],
+    "mirrorRuleHasDpNav": [
+      true
+    ]
+  },
+  {
+    "label": "dp-manage before ar 1440",
+    "rows": [
+      {
+        "kind": "disabled-span",
+        "x": 1324,
+        "glyphFile": "chevron-left",
+        "transform": "matrix(-1, 0, 0, 1, 0, 0)"
+      },
+      {
+        "kind": "title",
+        "x": 1186,
+        "text": "أكتوبر 2026"
+      },
+      {
+        "kind": "button الشهر التالي",
+        "x": 1092,
+        "glyphFile": "chevron-right",
+        "transform": "matrix(-1, 0, 0, 1, 0, 0)"
+      }
+    ],
+    "mirrorRuleHasDpNav": [
+      true
+    ]
+  },
+  {
+    "label": "dp-manage before ar 390",
+    "rows": [
+      {
+        "kind": "disabled-span",
+        "x": 329,
+        "glyphFile": "chevron-left",
+        "transform": "matrix(-1, 0, 0, 1, 0, 0)"
+      },
+      {
+        "kind": "title",
+        "x": 157,
+        "text": "أكتوبر 2026"
+      },
+      {
+        "kind": "button الشهر التالي",
+        "x": 29,
+        "glyphFile": "chevron-right",
+        "transform": "matrix(-1, 0, 0, 1, 0, 0)"
+      }
+    ],
+    "mirrorRuleHasDpNav": [
+      true
+    ]
+  },
+  {
+    "label": "dp-manage after en 1440",
+    "rows": [
+      {
+        "kind": "disabled-span",
+        "x": 224,
+        "glyphFile": "chevron-left",
+        "transform": "none"
+      },
+      {
+        "kind": "title",
+        "x": 308,
+        "text": "October 2026"
+      },
+      {
+        "kind": "button Next month",
+        "x": 456,
+        "glyphFile": "chevron-right",
+        "transform": "none"
+      }
+    ],
+    "mirrorRuleHasDpNav": [
+      false
+    ]
+  },
+  {
+    "label": "dp-manage after en 390",
+    "rows": [
+      {
+        "kind": "disabled-span",
+        "x": 29,
+        "glyphFile": "chevron-left",
+        "transform": "none"
+      },
+      {
+        "kind": "title",
+        "x": 147,
+        "text": "October 2026"
+      },
+      {
+        "kind": "button Next month",
+        "x": 329,
+        "glyphFile": "chevron-right",
+        "transform": "none"
+      }
+    ],
+    "mirrorRuleHasDpNav": [
+      false
+    ]
+  },
+  {
+    "label": "dp-manage after ar 1440",
+    "rows": [
+      {
+        "kind": "disabled-span",
+        "x": 1324,
+        "glyphFile": "chevron-left",
+        "transform": "matrix(-1, 0, 0, 1, 0, 0)"
+      },
+      {
+        "kind": "title",
+        "x": 1186,
+        "text": "أكتوبر 2026"
+      },
+      {
+        "kind": "button الشهر التالي",
+        "x": 1092,
+        "glyphFile": "chevron-right",
+        "transform": "matrix(-1, 0, 0, 1, 0, 0)"
+      }
+    ],
+    "mirrorRuleHasDpNav": [
+      false
+    ]
+  },
+  {
+    "label": "dp-manage after ar 390",
+    "rows": [
+      {
+        "kind": "disabled-span",
+        "x": 329,
+        "glyphFile": "chevron-left",
+        "transform": "matrix(-1, 0, 0, 1, 0, 0)"
+      },
+      {
+        "kind": "title",
+        "x": 157,
+        "text": "أكتوبر 2026"
+      },
+      {
+        "kind": "button الشهر التالي",
+        "x": 29,
+        "glyphFile": "chevron-right",
+        "transform": "matrix(-1, 0, 0, 1, 0, 0)"
+      }
+    ],
+    "mirrorRuleHasDpNav": [
+      false
+    ]
+  },
+  {
+    "label": "dp-home before en 1440",
+    "rows": [
+      {
+        "kind": "disabled-span",
+        "x": 769,
+        "glyphFile": "chevron-left",
+        "transform": "none"
+      },
+      {
+        "kind": "title",
+        "x": 853,
+        "text": "October 2026"
+      },
+      {
+        "kind": "button Next month",
+        "x": 1001,
+        "glyphFile": "chevron-right",
+        "transform": "none"
+      }
+    ],
+    "mirrorRuleHasDpNav": [
+      true
+    ]
+  },
+  {
+    "label": "dp-home before en 390",
+    "rows": [
+      {
+        "kind": "disabled-span",
+        "x": 33,
+        "glyphFile": "chevron-left",
+        "transform": "none"
+      },
+      {
+        "kind": "title",
+        "x": 148,
+        "text": "October 2026"
+      },
+      {
+        "kind": "button Next month",
+        "x": 327,
+        "glyphFile": "chevron-right",
+        "transform": "none"
+      }
+    ],
+    "mirrorRuleHasDpNav": [
+      true
+    ]
+  },
+  {
+    "label": "dp-home before ar 1440",
+    "rows": [
+      {
+        "kind": "disabled-span",
+        "x": 914,
+        "glyphFile": "chevron-left",
+        "transform": "matrix(-1, 0, 0, 1, 0, 0)"
+      },
+      {
+        "kind": "title",
+        "x": 776,
+        "text": "أكتوبر 2026"
+      },
+      {
+        "kind": "button الشهر التالي",
+        "x": 682,
+        "glyphFile": "chevron-right",
+        "transform": "matrix(-1, 0, 0, 1, 0, 0)"
+      }
+    ],
+    "mirrorRuleHasDpNav": [
+      true
+    ]
+  },
+  {
+    "label": "dp-home before ar 390",
+    "rows": [
+      {
+        "kind": "disabled-span",
+        "x": 327,
+        "glyphFile": "chevron-left",
+        "transform": "matrix(-1, 0, 0, 1, 0, 0)"
+      },
+      {
+        "kind": "title",
+        "x": 158,
+        "text": "أكتوبر 2026"
+      },
+      {
+        "kind": "button الشهر التالي",
+        "x": 33,
+        "glyphFile": "chevron-right",
+        "transform": "matrix(-1, 0, 0, 1, 0, 0)"
+      }
+    ],
+    "mirrorRuleHasDpNav": [
+      true
+    ]
+  },
+  {
+    "label": "dp-home after en 1440",
+    "rows": [
+      {
+        "kind": "disabled-span",
+        "x": 769,
+        "glyphFile": "chevron-left",
+        "transform": "none"
+      },
+      {
+        "kind": "title",
+        "x": 853,
+        "text": "October 2026"
+      },
+      {
+        "kind": "button Next month",
+        "x": 1001,
+        "glyphFile": "chevron-right",
+        "transform": "none"
+      }
+    ],
+    "mirrorRuleHasDpNav": [
+      false
+    ]
+  },
+  {
+    "label": "dp-home after en 390",
+    "rows": [
+      {
+        "kind": "disabled-span",
+        "x": 33,
+        "glyphFile": "chevron-left",
+        "transform": "none"
+      },
+      {
+        "kind": "title",
+        "x": 148,
+        "text": "October 2026"
+      },
+      {
+        "kind": "button Next month",
+        "x": 327,
+        "glyphFile": "chevron-right",
+        "transform": "none"
+      }
+    ],
+    "mirrorRuleHasDpNav": [
+      false
+    ]
+  },
+  {
+    "label": "dp-home after ar 1440",
+    "rows": [
+      {
+        "kind": "disabled-span",
+        "x": 914,
+        "glyphFile": "chevron-left",
+        "transform": "matrix(-1, 0, 0, 1, 0, 0)"
+      },
+      {
+        "kind": "title",
+        "x": 776,
+        "text": "أكتوبر 2026"
+      },
+      {
+        "kind": "button الشهر التالي",
+        "x": 682,
+        "glyphFile": "chevron-right",
+        "transform": "matrix(-1, 0, 0, 1, 0, 0)"
+      }
+    ],
+    "mirrorRuleHasDpNav": [
+      false
+    ]
+  },
+  {
+    "label": "dp-home after ar 390",
+    "rows": [
+      {
+        "kind": "disabled-span",
+        "x": 327,
+        "glyphFile": "chevron-left",
+        "transform": "matrix(-1, 0, 0, 1, 0, 0)"
+      },
+      {
+        "kind": "title",
+        "x": 158,
+        "text": "أكتوبر 2026"
+      },
+      {
+        "kind": "button الشهر التالي",
+        "x": 33,
+        "glyphFile": "chevron-right",
+        "transform": "matrix(-1, 0, 0, 1, 0, 0)"
+      }
+    ],
+    "mirrorRuleHasDpNav": [
+      false
+    ]
+  }
+]

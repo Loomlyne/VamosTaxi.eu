@@ -71,10 +71,11 @@ export function ListRow({
       </span>
       {meta ? <span className="vt-row__meta">{meta}</span> : null}
       {chevron ? (
-        // Wrapped so the RTL mirror rule in ListRow.css has something to target — a
-        // forward-pointing chevron must flip under dir="rtl" (UI-SPEC's Four-Language
-        // Layout Contract, "Must mirror" table), same fix class as DatePicker's own nav
-        // chevrons (01-09-SUMMARY.md § Deviations).
+        // The chevron points along the reading line, so it must flip under dir="rtl"
+        // (UI-SPEC's Four-Language Layout Contract, "Must mirror" table). The law in
+        // design-system/tokens/laws.css (03) mirrors it once, by its file name; no local
+        // rule here. The wrapper span stays only so the row's markup and layout are
+        // unchanged.
         <span className="vt-row__chevron">
           <Icon name="chevron-right" size={16} color="var(--vt-text-muted)" />
         </span>

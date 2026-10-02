@@ -74,6 +74,9 @@ export function mapEditSqlError(err: unknown): EditAcceptFail {
     "class-change-staff-only",
     // 26.2 P6 review 1 (migration 20261007150000): a customer asks for a time, nothing else.
     "customer-time-only",
+    // 26.2 P6 follow-up (migration 20261007190000): a customer's time request is refused while a staff
+    // change waits for its difference to be paid; nothing is written, the staff change stays whole.
+    "staff-change-waiting",
   ]) {
     if (message === name || message.startsWith(`${name}\n`) || message.startsWith(`${name} `)) {
       if (name === "capacity") return { ok: false, code: "must-fix" };
@@ -89,6 +92,10 @@ export function failStatus(code: string): number {
   if (code === "not-found") return 404;
   if (code === "unpaid") return 409;
   if (code === "must-fix" || code === "capacity" || code === "not-requested") return 409;
+  // The customer can ask again once the difference is paid, withdrawn or expired: a conflict, not a bad request.
+  if (code === "staff-change-waiting") return 409;
+  // 261002 review round 3: Accept again on a request whose page is already paid; the payment applies it.
+  if (code === "already-paid") return 409;
   if (code === "stripe-failed" || code === "stripe-test-only") return 502;
   if (code === "temporarily_unavailable") return 503;
   return 400;

@@ -176,13 +176,11 @@
   }
 }
 
-[dir="rtl"] [data-svc-circ] {
-  transform: scaleX(-1);
-}
-
+/* The arrow inside is mirrored by the law (design-system/tokens/laws.css 03); the hover
+   nudge still goes forward, which is to the left in Arabic. */
 [dir="rtl"] .vt-svc:hover [data-svc-circ],
 [dir="rtl"] .vt-svc.vt-svc--preview-hover [data-svc-circ] {
-  transform: scaleX(-1) translateX(3px);
+  transform: translateX(-3px);
 }
 
 .vt-svc--disabled,
@@ -221,6 +219,6 @@
     transform: none;
   }
   [dir="rtl"] [data-svc-circ] {
-    transform: scaleX(-1);
+    transform: none;
   }
 }

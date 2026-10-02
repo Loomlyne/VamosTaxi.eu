@@ -386,8 +386,8 @@ export async function confirmTripChange(
       requestId: String(row.request_id),
       bookingId: ctx.bookingId,
       differenceRappen: n(row.difference_rappen),
-      oldSessionId: row.old_extra_session_id ? String(row.old_extra_session_id) : null,
-      oldExtraSnapshotId: row.old_extra_snapshot_id == null ? null : n(row.old_extra_snapshot_id),
+      // The page of the request this change replaced: closed, never reused (one page, one request).
+      supersededSessionId: row.old_extra_session_id ? String(row.old_extra_session_id) : null,
       dashboardOrigin,
     });
     if (!opened.ok) {

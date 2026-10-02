@@ -31,20 +31,9 @@
 .vt-dp__month{font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold)}
 .vt-dp__nav{all:unset;display:inline-flex;align-items:center;justify-content:center;inline-size:32px;block-size:32px;border-radius:var(--vt-radius-pill);cursor:pointer;color:var(--vt-text-secondary)}
 .vt-dp__nav:hover{background:var(--vt-grey-100);color:var(--vt-text-primary)}
-/* Rule 1 fix (bug — I18N-04, Four-Language Layout Contract: "DatePicker calendar nav
-   chevrons: same as Tabs"). Neither the source nor tokens/laws.css mirrors these —
-   confirmed by reading both directly. The prev/next buttons already swap physical
-   position automatically under dir="rtl" (the flex row above uses no physical
-   left/right of its own), but the chevron-left/chevron-right glyphs themselves stay
-   geometrically fixed regardless of where the flex item lands — a mask-image doesn't
-   know about writing direction. Flipping both buttons identically here (not swapping
-   which icon name each uses) reorients each glyph to point toward its new physical
-   position's outward edge, matching the "forward motion points with the reading
-   direction" rule; the flex reorder already did the position half, this does the
-   glyph half. `transform` is not a property this lint gate's logical-properties rule
-   covers, so this is compatible with "the CSS uses logical properties" (that
-   requirement is about inset/margin/padding/size, not the icon-flip mechanism). */
-[dir="rtl"] .vt-dp__nav{transform:scaleX(-1)}
+/* Month arrows: the prev/next buttons swap place by themselves under dir="rtl" (the flex
+   row above uses no physical left/right); the chevron glyphs are mirrored once, by the
+   law in design-system/tokens/laws.css (03). No local flip here. */
 .vt-dp__grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
 .vt-dp__dow{font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted);text-align:center;padding:4px 0}
 .vt-dp__day{all:unset;box-sizing:border-box;display:flex;align-items:center;justify-content:center;block-size:34px;border-radius:var(--vt-radius-sm);cursor:pointer;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-primary)}

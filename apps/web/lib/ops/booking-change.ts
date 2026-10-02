@@ -676,8 +676,8 @@ export async function confirmBookingChange(
       requestId: String(row.request_id),
       bookingId: ctx.bookingId,
       differenceRappen: n(row.difference_rappen),
-      oldSessionId: row.old_extra_session_id ? String(row.old_extra_session_id) : null,
-      oldExtraSnapshotId: row.old_extra_snapshot_id == null ? null : n(row.old_extra_snapshot_id),
+      // The page of the request this change replaced: closed, never reused (one page, one request).
+      supersededSessionId: row.old_extra_session_id ? String(row.old_extra_session_id) : null,
       dashboardOrigin,
     });
     if (!opened.ok) {
@@ -868,8 +868,9 @@ type WaitingRow = { request_id: string; actor: string; extra_session_id: string 
  * the customer's payment. The Stripe page for the difference is closed FIRST, so an ended request
  * never leaves a link that still works. If she paid in the same second the page is already
  * complete: the answer is already-paid and nothing is ended (the payment applies the change). If the
- * page had expired already, the request is ended all the same. Nothing is charged; the booking is
- * not touched.
+ * page had expired already, the request is ended all the same. A change that never got a page (Stripe
+ * failed and the clean-up did not end it) is ended with no Stripe step. Nothing is charged; the
+ * booking is not touched.
  */
 export async function withdrawBookingChange(
   env: CloudflareEnv,
@@ -901,36 +902,48 @@ export async function withdrawBookingChange(
   } catch {
     return { ok: false, code: "unknown" };
   }
-  if (!waiting || waiting.actor !== "staff" || !waiting.extra_session_id) return { ok: false, code: "nothing-waiting" };
+  if (!waiting || waiting.actor !== "staff") return { ok: false, code: "nothing-waiting" };
 
-  const stripe = stripeFromEnv(env);
-  try {
-    await expireCheckoutSession(stripe, waiting.extra_session_id);
-  } catch {
-    let status = "";
+  // 261002 (review of item 4, finding 2): a change whose page could not be opened has no page to
+  // close; it is ended in the database alone (booking_change_withdraw does not need a page), so the
+  // customer is not kept waiting behind it.
+  const page = s(waiting.extra_session_id).trim();
+  if (page) {
+    const stripe = stripeFromEnv(env);
     try {
-      status = String((await retrieveCheckoutSession(stripe, waiting.extra_session_id))?.status ?? "");
+      await expireCheckoutSession(stripe, page);
     } catch {
-      status = "";
+      let status = "";
+      try {
+        status = String((await retrieveCheckoutSession(stripe, page))?.status ?? "");
+      } catch {
+        status = "";
+      }
+      if (status === "complete") return { ok: false, code: "already-paid" };
+      if (status !== "expired") return { ok: false, code: "stripe-failed" };
     }
-    if (status === "complete") return { ok: false, code: "already-paid" };
-    if (status !== "expired") return { ok: false, code: "stripe-failed" };
   }
 
   const ids = { bookingId, requestId: waiting.request_id };
+  let ended: { extra_session_id: string | null } | null;
   try {
-    await asSystem(env, async (sql) => {
-      await sql`
+    ended = await asSystem(env, async (sql) => {
+      const rows = await sql<{ extra_session_id: string | null }[]>`
         select * from public.booking_change_withdraw(
           ${ids.bookingId}::uuid,
           ${ids.requestId}::uuid,
           ${claims.sub}::uuid
         )
       `;
-      return null;
+      return rows[0] ?? null;
     });
   } catch (err) {
     return mapChangeSqlError(err);
   }
+  // 261002 review round 2, warning 1: the confirm may have stored its page between the read above and
+  // the withdraw (a second device). The ended request names its page; one this call did not close is
+  // closed now, best effort, so a withdrawn change leaves no link that still works.
+  const late = s(ended?.extra_session_id).trim();
+  if (late && late !== page) await expireSupersededPage(env, late);
   return { ok: true, bookingId, reference: String(waiting.reference) };
 }
