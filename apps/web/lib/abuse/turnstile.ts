@@ -107,15 +107,18 @@ async function postSiteverify(
     body: JSON.stringify(payload),
     signal: AbortSignal.timeout(TURNSTILE_TIMEOUT_MS),
   });
-  // 26.2 audit: a non-2xx answer or a body that is not JSON (an HTML 502 page) means
-  // siteverify is down, not that the visitor failed the challenge. Same degraded shape as a
-  // timeout, so challengeDecision fails open as the header says.
-  if (!res.ok) return { configured: true, success: false, degraded: true };
+  // 26.2 audit: a 5xx answer, or a 2xx body that is not JSON, means siteverify is down, not
+  // that the visitor failed the challenge: same degraded shape as a timeout, so
+  // challengeDecision fails open as the header says. A 4xx is about the request (a malformed or
+  // oversized token a stranger can send on purpose), so it stays a failed challenge.
+  if (res.status >= 500) return { configured: true, success: false, degraded: true };
   let json: unknown;
   try {
     json = await res.json();
   } catch {
-    return { configured: true, success: false, degraded: true };
+    return res.ok
+      ? { configured: true, success: false, degraded: true }
+      : { configured: true, success: false };
   }
   if (json && typeof json === "object" && (json as { success?: unknown }).success === true) {
     return { configured: true, success: true };
