@@ -250,6 +250,18 @@ function buildClassLines(
   });
   raw.push(...extras);
 
+  // 26.2 audit (U04-5): a distance fare with no amount (Directions down, no metres) means the
+  // class cannot be priced. Every line built after it is null too, so the class reads all-null
+  // (CHF 000 board, D-26), never partially priced — which the route would answer with a 500.
+  if (raw.some((l) => l.kind === "fare" && l.amount_rappen === null)) {
+    for (let i = 0; i < raw.length; i += 1) {
+      const l = raw[i];
+      if (l && l.kind !== "fare" && l.amount_rappen !== null) {
+        raw[i] = { ...l, amount_rappen: null } as Line;
+      }
+    }
+  }
+
   // Number leg-level lines before booking-level so of_line_seq is stable.
   let lines = numberLines(raw);
 

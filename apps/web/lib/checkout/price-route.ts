@@ -7,7 +7,7 @@
 
 import { z } from "zod";
 import { verifyLock, type LockSecrets } from "../quote/lock";
-import { percentToHundredths, roundHalfUp } from "../pricing/round";
+import { percentToHundredths } from "../pricing/round";
 import { checkoutCharge, type ChargeLine, type ExtraCatalogRow } from "./checkout-charge";
 
 const CLASS_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -146,15 +146,14 @@ export async function priceCheckoutWithDeps(body: unknown, deps: PriceDeps): Pro
     coupon = ev;
   }
 
-  // The lock carries a post-coupon class total when it holds a coupon: gross it back up.
+  // 26.2 audit (U04-1): the lock carries a post-coupon class total when it holds a coupon, plus
+  // the pinned pre-coupon one. Read that figure; grossing the coupon back up is wrong for a fixed
+  // coupon clamped to the fare and one rappen out for a rounded percent. A lock minted before the
+  // field existed cannot be read: the browser asks for a new quote.
   let preCouponRappen: number | null = null;
   if (lockCoupon && coupon) {
-    if (coupon.kind === "percent" && coupon.percentHundredths != null) {
-      const p = coupon.percentHundredths;
-      preCouponRappen = p > 0 && p < 10_000 ? roundHalfUp(netRappen * 10_000, 10_000 - p) : netRappen;
-    } else if (coupon.amountRappen != null) {
-      preCouponRappen = netRappen + coupon.amountRappen;
-    }
+    if (typeof row.pre_coupon_rappen !== "number") return fail("price_changed");
+    preCouponRappen = row.pre_coupon_rappen;
   }
 
   let catalog: ExtraCatalogRow[];

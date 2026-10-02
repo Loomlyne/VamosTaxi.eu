@@ -308,13 +308,25 @@ function opsConsoleNotFound(request: NextRequest, cookieSource: NextResponse): N
   return applyStagingNoindex(request, out);
 }
 
+/**
+ * 26.2 audit: a dashboard redirect is never cached. The target of `/` and of a signed-out
+ * console path depends on the session, and a 308 is cached by the browser with no expiry, so
+ * after one signed-out visit a signed-in `/dashboard` kept landing on `/login`. Session
+ * redirects are 307; every one carries `private, no-store`.
+ */
+function dashboardRedirect(url: URL, status: 307 | 308 = 307): NextResponse {
+  const out = NextResponse.redirect(url, status);
+  out.headers.set("Cache-Control", "private, no-store");
+  return out;
+}
+
 async function dashboardHostMiddleware(request: NextRequest): Promise<NextResponse> {
   const { path } = localeStrippedPath(request.nextUrl.pathname);
 
   if (path === "/ops" || path.startsWith("/ops/")) {
     const pub = publicDashboardPath(path);
     const dest = pub === "/" || pub === "" ? "/" : "/login";
-    return applyStagingNoindex(request, NextResponse.redirect(dashboardAbs(request, dest), 308));
+    return applyStagingNoindex(request, dashboardRedirect(dashboardAbs(request, dest), 308));
   }
 
   if (process.env.DEPLOY_ENV === "ops-changes") {
@@ -325,7 +337,7 @@ async function dashboardHostMiddleware(request: NextRequest): Promise<NextRespon
       return serveOpsDc(request, new NextResponse(), "ops-login.dc.html", false);
     }
     if (normalizeDashboardPath(path) === "/") {
-      return applyStagingNoindex(request, NextResponse.redirect(dashboardAbs(request, "/dashboard"), 308));
+      return applyStagingNoindex(request, dashboardRedirect(dashboardAbs(request, "/dashboard")));
     }
     if (isOpsConsolePath(path)) {
       return serveOpsDc(request, new NextResponse(), "ops.dc.html", true);
@@ -376,7 +388,7 @@ async function dashboardHostMiddleware(request: NextRequest): Promise<NextRespon
     if (dashPath === "/") {
       return applyStagingNoindex(
         request,
-        copyCookies(client.response, NextResponse.redirect(dashboardAbs(request, "/dashboard"), 308)),
+        copyCookies(client.response, dashboardRedirect(dashboardAbs(request, "/dashboard"))),
       );
     }
     if (isOpsConsolePath(path)) {
@@ -393,7 +405,7 @@ async function dashboardHostMiddleware(request: NextRequest): Promise<NextRespon
   }
   return applyStagingNoindex(
     request,
-    copyCookies(client.response, NextResponse.redirect(loginUrl, 308)),
+    copyCookies(client.response, dashboardRedirect(loginUrl)),
   );
 }
 

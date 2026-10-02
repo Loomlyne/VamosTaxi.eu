@@ -11,6 +11,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { createNavigation } from "next-intl/navigation";
 import { routing, type Locale } from "@/i18n/routing";
 import { Button, Icon } from "@/components/core";
+import { trapTab } from "@/lib/a11y/focus-trap";
 import { Alert } from "@/components/feedback";
 import { Switch } from "@/components/forms";
 import { TurnstileWidget } from "@/components/forms/TurnstileWidget";
@@ -176,6 +177,16 @@ export function CookieBanner({ siteKey }: { siteKey: string | undefined }) {
     const el = openerRef.current;
     openerRef.current = null;
     if (el && typeof el.focus === "function") el.focus();
+    // 26.2 audit U06-6: the opener can be gone (a choice on the card unmounts the card's buttons,
+    // or the sheet was opened without one). If focus fell to <body>, put it on <main>.
+    window.requestAnimationFrame(() => {
+      const active = document.activeElement;
+      if (active && active !== document.body) return;
+      const main = document.querySelector<HTMLElement>("main");
+      if (!main) return;
+      if (!main.hasAttribute("tabindex")) main.setAttribute("tabindex", "-1");
+      main.focus({ preventScroll: true });
+    });
   }, []);
 
   useEffect(() => {
@@ -183,6 +194,7 @@ export function CookieBanner({ siteKey }: { siteKey: string | undefined }) {
     dialogRef.current?.focus();
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape" && !busyRef.current) closeSheet();
+      else if (e.key === "Tab") trapTab(e, dialogRef.current); // 26.2 audit U06-6
     }
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);

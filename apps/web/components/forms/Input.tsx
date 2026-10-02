@@ -44,6 +44,7 @@ export function Input({
   onFocus,
   onBlur,
   type = "text",
+  "aria-describedby": ariaDescribedBy,
   ...rest
 }: InputProps) {
   // Law 01's stated exception: focus is tracked in local state to drive
@@ -56,6 +57,9 @@ export function Input({
   const t = useTranslations("common");
   const generatedId = useId();
   const fid = id || generatedId;
+  // 26.2 audit U06-7: tie the error/hint text to the control so a screen reader reads it.
+  const msgId = `${fid}-msg`;
+  const describedBy = [ariaDescribedBy, error || hint ? msgId : ""].filter(Boolean).join(" ") || undefined;
   const isPassword = type === "password";
   const inputType = isPassword && reveal ? "text" : type;
 
@@ -92,7 +96,7 @@ export function Input({
       {label ? (
         <label className="vt-field__label" htmlFor={fid}>
           {label}
-          {required ? <span className="vt-field__req"> *</span> : null}
+          {required ? <span className="vt-field__req" aria-hidden="true"> *</span> : null}
         </label>
       ) : null}
       <div className={box}>
@@ -101,6 +105,8 @@ export function Input({
           id={fid}
           disabled={disabled}
           aria-invalid={error ? true : undefined}
+          aria-required={required || undefined}
+          aria-describedby={describedBy}
           onFocus={handleFocus}
           onBlur={handleBlur}
           {...rest}
@@ -121,12 +127,12 @@ export function Input({
         ) : null}
       </div>
       {error ? (
-        <span className="vt-field__err">
+        <span className="vt-field__err" id={msgId}>
           <Icon name="triangle-alert" size={13} />
           {error}
         </span>
       ) : hint ? (
-        <span className="vt-field__hint">{hint}</span>
+        <span className="vt-field__hint" id={msgId}>{hint}</span>
       ) : null}
     </div>
   );

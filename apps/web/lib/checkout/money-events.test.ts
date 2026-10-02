@@ -9,6 +9,7 @@ import {
   paymentIntentIdOfDispute,
   type MoneyEventDeps,
 } from "./money-events";
+import { retrieveCharge } from "./stripe";
 import type { StripeQueueMessage } from "./webhook";
 
 // Synthetic minor-unit integers only -- never a real CHF amount (D-34).
@@ -288,5 +289,64 @@ describe("handleDisputeWithDeps", () => {
     const result = await handleDisputeWithDeps(disputeMessage, dispute(), d);
     expect(result).toEqual({ ack: true });
     expect(d.eventSettle).toHaveBeenCalledWith("evt_du_1", "22P02");
+  });
+});
+
+describe("charge.refunded with more than ten refunds (26.2 audit U11-3)", () => {
+  const twelve = Array.from({ length: 12 }, (_, i) => refund({ id: `re_${i + 1}`, amount: i + 1 }));
+
+  function stripeWith(list: ReturnType<typeof vi.fn>) {
+    return {
+      charges: {
+        // Stripe's expanded list: the first ten, has_more set.
+        retrieve: vi.fn(async () => charge(twelve.slice(0, 10), { refunds: { object: "list", data: twelve.slice(0, 10), has_more: true, url: "/v1/refunds" } as never })),
+      },
+      refunds: { list },
+    } as unknown as Stripe;
+  }
+
+  it("pages through the refunds list and records all twelve", async () => {
+    const list = vi.fn(async (params: { starting_after?: string }) =>
+      params.starting_after === "re_10"
+        ? { object: "list", data: twelve.slice(10), has_more: false, url: "/v1/refunds" }
+        : { object: "list", data: [], has_more: false, url: "/v1/refunds" },
+    );
+    const full = await retrieveCharge(stripeWith(list), "ch_test_1");
+    expect(list).toHaveBeenCalledWith({ charge: "ch_test_1", limit: 100, starting_after: "re_10" });
+    expect(full.refunds?.data).toHaveLength(12);
+    expect(full.refunds?.has_more).toBe(false);
+
+    const d = deps();
+    const result = await handleChargeRefundedWithDeps(message(), full, d);
+    expect(result).toEqual({ ack: true });
+    expect(d.recordChargeRefund).toHaveBeenCalledTimes(12);
+    expect(d.recordChargeRefund.mock.calls.map((c) => (c[0] as { stripeRefundId: string }).stripeRefundId)).toEqual(
+      twelve.map((r) => r.id),
+    );
+  });
+
+  it("follows a second page when the first page also has more", async () => {
+    const list = vi.fn()
+      .mockResolvedValueOnce({ object: "list", data: [twelve[10]], has_more: true, url: "/v1/refunds" })
+      .mockResolvedValueOnce({ object: "list", data: [twelve[11]], has_more: false, url: "/v1/refunds" });
+    const full = await retrieveCharge(stripeWith(list), "ch_test_1");
+    expect(list).toHaveBeenNthCalledWith(2, { charge: "ch_test_1", limit: 100, starting_after: "re_11" });
+    expect(full.refunds?.data.map((r) => r.id)).toEqual(twelve.map((r) => r.id));
+  });
+
+  it("a failed page throws, so the event retries instead of being acknowledged", async () => {
+    const list = vi.fn(async () => {
+      throw new Error("stripe down");
+    });
+    await expect(retrieveCharge(stripeWith(list), "ch_test_1")).rejects.toThrow("stripe down");
+  });
+
+  it("a list still cut short is retried, never acknowledged with refunds unrecorded", async () => {
+    const d = deps();
+    const cut = charge(twelve.slice(0, 10), { refunds: { object: "list", data: twelve.slice(0, 10), has_more: true, url: "/v1/refunds" } as never });
+    const result = await handleChargeRefundedWithDeps(message(), cut, d);
+    expect(result).toEqual({ retry: true });
+    expect(d.recordChargeRefund).not.toHaveBeenCalled();
+    expect(d.eventSettle).not.toHaveBeenCalled();
   });
 });

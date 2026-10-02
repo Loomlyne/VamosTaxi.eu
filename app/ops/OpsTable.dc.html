@@ -156,7 +156,7 @@
 </sc-if>
 
 <sc-if value="{{ hasRows }}" hint-placeholder-val="{{ true }}">
-<div data-vt-table-scroll="1" data-fill="{{ tableFill }}" data-scroll-native="1" data-lenis-prevent="1" ref="{{ tableRef }}">
+<div data-vt-table-scroll="1" data-fill="{{ tableFill }}" data-scroll-native="1" ref="{{ tableRef }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Table" columns="{{ tableColumns }}" rows="{{ visibleRows }}" onRowClick="{{ rowClick }}" hint-size="100%,320px"></x-import>
 </div>
 </sc-if>
@@ -206,7 +206,7 @@
 </sc-if>
 
 <sc-if value="{{ f.fromSug }}" hint-placeholder-val="{{ false }}">
-<div data-vt-from-sug="1" data-scroll-native="1" data-lenis-prevent="1" role="listbox" ref="{{ sugPopRef }}">
+<div data-vt-from-sug="1" data-scroll-native="1" role="listbox" ref="{{ sugPopRef }}">
 <sc-for list="{{ f.fromSugItems }}" as="s" hint-placeholder-count="3">
 <button type="button" data-vt-sug-opt="1" onMouseDown="{{ s.pick }}">
 <span data-vt-sug-lab="1">{{ s.label }}</span>
@@ -217,7 +217,7 @@
 </sc-if>
 
 <sc-if value="{{ f.toSug }}" hint-placeholder-val="{{ false }}">
-<div data-vt-to-sug="1" data-scroll-native="1" data-lenis-prevent="1" role="listbox" ref="{{ sugPopRef }}">
+<div data-vt-to-sug="1" data-scroll-native="1" role="listbox" ref="{{ sugPopRef }}">
 <sc-for list="{{ f.toSugItems }}" as="s" hint-placeholder-count="3">
 <button type="button" data-vt-sug-opt="1" onMouseDown="{{ s.pick }}">
 <span data-vt-sug-lab="1">{{ s.label }}</span>
@@ -278,7 +278,7 @@
 <span data-vt-date-label="1" data-vt-date-empty="{{ f.dateEmpty }}">{{ f.dateLabel }}</span>
 </button>
 <sc-if value="{{ f.dateOpen }}" hint-placeholder-val="{{ false }}">
-<div data-vt-date-pop="1" data-lenis-prevent="1" ref="{{ datePopRef }}" style="top:{{ f.popTop }};left:{{ f.popLeft }}">
+<div data-vt-date-pop="1" ref="{{ datePopRef }}" style="top:{{ f.popTop }};left:{{ f.popLeft }}">
 <div data-vt-date-nav="1">
 <button type="button" aria-label="Previous month" onClick="{{ f.prevMonth }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-left" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></button>
 <strong>{{ f.monthName }}</strong>
@@ -401,7 +401,7 @@
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ historyChevron }}" size="{{ n16 }}" color="var(--vt-text-muted)" hint-size="16px,16px"></x-import>
 </button>
 <sc-if value="{{ historyOpen }}" hint-placeholder-val="{{ true }}">
-<div data-lenis-prevent="1" data-scroll-native="1" style="display:flex;flex-direction:column;gap:8px;margin-top:12px;max-height:360px;overflow-y:auto;overscroll-behavior:contain">
+<div data-scroll-native="1" style="display:flex;flex-direction:column;gap:8px;margin-top:12px;max-height:360px;overflow-y:auto;overscroll-behavior:contain">
 <sc-if value="{{ historyUses }}" hint-placeholder-val="{{ false }}">
 <sc-for list="{{ historyList }}" as="h" hint-placeholder-count="0">
 <div data-coupon-use="1" style="box-sizing:border-box;display:flex;flex-direction:column;gap:2px;padding:10px 12px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-grey-50);width:100%">
@@ -445,7 +445,7 @@
 </div>
 </x-import>
 <sc-if value="{{ routeSugOpen }}" hint-placeholder-val="{{ false }}">
-<div data-vt-sug="1" data-vt-route-sug="1" data-scroll-native="1" data-lenis-prevent="1" role="listbox" ref="{{ sugPopRef }}" style="top:{{ sugTop }};left:{{ sugLeft }};width:{{ sugWidth }}">
+<div data-vt-sug="1" data-vt-route-sug="1" data-scroll-native="1" role="listbox" ref="{{ sugPopRef }}" style="top:{{ sugTop }};left:{{ sugLeft }};width:{{ sugWidth }}">
 <sc-for list="{{ sugItems }}" as="s" hint-placeholder-count="3">
 <button type="button" data-vt-sug-opt="1" data-vt-sug-wait="{{ s.wait }}" onMouseDown="{{ s.pick }}">
 <span data-vt-sug-lab="1">{{ s.label }}</span>

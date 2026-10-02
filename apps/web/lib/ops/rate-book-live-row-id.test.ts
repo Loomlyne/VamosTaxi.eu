@@ -99,7 +99,8 @@ async function fakeTx(strings: TemplateStringsArray, ...values: unknown[]): Prom
   if (text.startsWith("update public.rate_version_rules set")) {
     for (const row of hit(db.rules)) {
       row.kind = String(values[0]);
-      row.payload = String(values[1]);
+      // 26.2 audit: the route binds the payload through tx.json (an object); stored as its JSON text.
+      row.payload = typeof values[1] === "string" ? values[1] : JSON.stringify(values[1]);
     }
     return [];
   }

@@ -11,11 +11,10 @@ export type LogoForm = "wordmark" | "lockup" | "mark";
 // FALLBACK_BASE is what actually ships, pointed at Plan 05's vendored copy (D-10).
 const FALLBACK_BASE = "/brand/logo/";
 
+// 26.2 audit U06-20: the app never sets `--vt-logo-base` (only the mock test harness does), so the
+// per-render getComputedStyle read always fell back to this constant. Use it directly.
 function logoBase(): string {
-  if (typeof window === "undefined") return FALLBACK_BASE;
-  const raw = getComputedStyle(document.documentElement).getPropertyValue("--vt-logo-base");
-  const clean = (raw || "").trim().replace(/^["']|["']$/g, "");
-  return clean || FALLBACK_BASE;
+  return FALLBACK_BASE;
 }
 
 interface LogoOwnProps {

@@ -93,10 +93,11 @@ export function VehicleCard({
       </span>
       <span className="vt-veh__body">
         <span className="vt-veh__headline">
-          <h4 className="vt-veh__name">{name}</h4>
+          {/* 26.2 audit U06-18: phrasing content only inside a <button>. */}
+          <span className="vt-veh__name">{name}</span>
           {badge ? <Badge tone="accent">{badge}</Badge> : null}
         </span>
-        {examples ? <p className="vt-veh__examples">{examples}</p> : null}
+        {examples ? <span className="vt-veh__examples">{examples}</span> : null}
         <span className="vt-veh__caps">
           {passengers != null ? (
             <span className="vt-veh__cap">
@@ -113,7 +114,7 @@ export function VehicleCard({
             </span>
           ) : null}
           {features.map((ft, i) => (
-            <span className="vt-veh__cap" key={typeof ft.label === "string" ? ft.label : i}>
+            <span className="vt-veh__cap" key={`${i}-${typeof ft.label === "string" ? ft.label : ""}`}>
               {ft.icon ? <Icon name={ft.icon} size={15} color="var(--vt-text-muted)" /> : null}
               {ft.label}
             </span>

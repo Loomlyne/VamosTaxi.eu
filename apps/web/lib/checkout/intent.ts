@@ -19,7 +19,6 @@ import { checkoutLegsFromLock, snapshotFromLock } from "./lock-to-rpc";
 import { flightKey } from "./flight-no";
 import { manageTokenCookie } from "./manage-token";
 import { CHARGE_CURRENCY } from "./currency";
-import { stripeCheckoutReturnUrl } from "./return-url";
 import {
   allSessionsExpiredUnpaid,
   checkoutPaymentIntentId,
@@ -30,8 +29,7 @@ import enMessages from "../../i18n/messages/en.json";
 import deMessages from "../../i18n/messages/de.json";
 import frMessages from "../../i18n/messages/fr.json";
 import arMessages from "../../i18n/messages/ar.json";
-import { payableRappen } from "./payable";
-import { percentToHundredths, roundHalfUp } from "../pricing/round";
+import { percentToHundredths } from "../pricing/round";
 
 
 const PRODUCT_NAMES: Record<string, string> = {
@@ -60,6 +58,13 @@ export type CheckoutIntentDeps = {
    * account agreement record. A throw is logged and never blocks payment.
    */
   afterBooking?: (bookingId: string) => Promise<void>;
+  /**
+   * 26.5 account choice (sign-in-first, consent). Called once, after the HMAC lock has
+   * verified and before any Stripe call. 26.2 audit U11-4: running it earlier answered
+   * "this e-mail has an account" (and mailed a link) to a request with a forged lock.
+   * A Response is the answer to send now; null lets the pay go on.
+   */
+  accountGate?: () => Promise<Response | null>;
   lockSecrets: { current: string; previous?: string };
   workerNowIso: string;
   postgresNowIso: string;
@@ -128,7 +133,7 @@ export type CheckoutIntentDeps = {
   actorCustomerId: string | null;
   vehicleClassId: string;
   snapshotPolicy: Record<string, unknown>;
-  /** asQuote loadLaunchFlags. Omitted/throw → fail-closed 81. */
+  /** asQuote loadLaunchFlags. A throw or a non-rate answer → `pricing_not_live` (26.2 audit U11-5). */
   loadLaunchFlags?: () => Promise<{ vat_rate_bps: number }>;
   /** D-33: test unpaid never opens Stripe. Omitted → not a test booking. */
   loadQuotePayGate?: (quoteId: string) => Promise<{ is_test: boolean } | null>;
@@ -203,40 +208,14 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
-type CouponEval =
-  | { ok: true; couponId: number; percentHundredths: number | null }
-  | { ok: false };
-
 /**
- * D-30/D-08a: evaluate_coupon's jsonb — ok:true plus coupon_id always means
- * apply it; percentHundredths is null for an amount-kind coupon or an
- * unparseable percent (payableRappen then leaves extras undiscounted for
- * that coupon rather than guessing).
+ * The VAT rate the charge is computed at, read the way the price route reads it.
+ * 26.2 audit: a read that throws, or answers something that is not a rate, is
+ * null and PAY refuses `pricing_not_live` — it never falls back to 8.1 %, which
+ * could charge a different amount from the one the screen showed. A caller that
+ * passes no loader at all (tests only; the route always passes one) gets 81.
  */
-function couponEvalFromRaw(raw: unknown): CouponEval {
-  if (!isRecord(raw) || raw.ok !== true) return { ok: false };
-  const idRaw = raw.coupon_id;
-  const couponId = typeof idRaw === "number" ? idRaw : Number(idRaw);
-  if (!Number.isFinite(couponId)) return { ok: false };
-  if (raw.kind === "percent" && typeof raw.percent === "string" && /^\d{1,3}(?:\.\d{1,2})?$/.test(raw.percent)) {
-    return { ok: true, couponId, percentHundredths: percentToHundredths(raw.percent) };
-  }
-  return { ok: true, couponId, percentHundredths: null };
-}
-
-/**
- * Inverse of payableRappen's discount: the lock only ever carries the
- * post-coupon class total, so a percent coupon re-evaluated at intent must
- * gross it back up before checkout extras can be discounted too (D-08a).
- * >=100% grossing is skipped — the net is already 0 and any base value
- * maps to the same 0 through payableRappen's own floor.
- */
-function grossUpBeforeCouponRappen(postCouponRappen: number, percentHundredths: number): number {
-  if (percentHundredths <= 0 || percentHundredths >= 10_000) return postCouponRappen;
-  return roundHalfUp(postCouponRappen * 10_000, 10_000 - percentHundredths);
-}
-
-async function vatRateBpsFromFlags(deps: CheckoutIntentDeps): Promise<number> {
+async function vatRateBpsFromFlags(deps: CheckoutIntentDeps): Promise<number | null> {
   const load = deps.loadLaunchFlags;
   if (typeof load !== "function") return CH_VAT_RATE_BPS;
   try {
@@ -246,9 +225,9 @@ async function vatRateBpsFromFlags(deps: CheckoutIntentDeps): Promise<number> {
       return Math.trunc(bps);
     }
   } catch {
-    // RPC/column missing — fail closed 81
+    // RPC/column missing — fail closed below
   }
-  return CH_VAT_RATE_BPS;
+  return null;
 }
 
 function legacyUaeAccountStop(): Response {
@@ -420,6 +399,9 @@ async function runWebIntent(
   if (!checked.ok) return refuse(mapQuoteCode(checked.code));
   const payload = checked.payload;
 
+  const gated = await deps.accountGate?.();
+  if (gated) return gated;
+
   // D-15 / T-26.3-10-01: when, travellers, bags and flight come from the signed
   // lock. A body that says otherwise needs a fresh quote first.
   const leg = payload.legs[0];
@@ -451,6 +433,7 @@ async function runWebIntent(
     return refuse("pricing_not_live");
   }
   const vatRateBps = await vatRateBpsFromFlags(deps);
+  if (vatRateBps === null) return refuse("pricing_not_live");
 
   // D-11: the coupon is the verified lock's coupon; the payer's eligibility is
   // re-evaluated here with the payer's identity, never trusted from quote time.
@@ -470,13 +453,12 @@ async function runWebIntent(
     if (!evaluated) return refuse("coupon_no_longer_valid");
     couponId = evaluated.couponId;
     coupon = evaluated.charge;
-    // The lock carries the post-coupon class total; checkoutCharge starts from
-    // the pre-coupon fare (plan 26.3-03 decision 4).
-    if (coupon.kind === "percent" && coupon.percentHundredths != null) {
-      preCouponRappen = grossUpBeforeCouponRappen(netRappen, coupon.percentHundredths);
-    } else if (coupon.kind === "amount" && coupon.amountRappen) {
-      preCouponRappen = netRappen + coupon.amountRappen;
-    }
+    // 26.2 audit (U04-1): checkoutCharge starts from the pre-coupon fare pinned on the signed
+    // lock, never a gross-up of the post-coupon total (a fixed coupon is clamped to the fare, a
+    // percent one is rounded). A lock minted before the field existed: a fresh quote first.
+    const pinned = payload.class_totals.find((r) => r.slug === body.vehicle_class)?.pre_coupon_rappen;
+    if (typeof pinned !== "number") return refuse("price_changed");
+    preCouponRappen = pinned;
   }
 
   // D-19 / D-35: the one charge function, exact extra codes, live catalog.
@@ -665,7 +647,6 @@ async function runWebIntent(
         deps.vehicleClassId,
         chargedRappen,
         deps.snapshotPolicy,
-        [],
         charge.lines,
       ),
       legs: checkoutLegsFromLock(payload, deps.vehicleClassId),

@@ -1205,7 +1205,9 @@
     "payment-twint": "TWINT",
     "payment-visa": "Visa",
     "vamos-taxi-on-facebook": "فاموس تاكسي على فيسبوك",
-    "vamos-taxi-on-instagram": "فاموس تاكسي على إنستغرام"
+    "vamos-taxi-on-instagram": "فاموس تاكسي على إنستغرام",
+    "vamos-taxi-on-youtube": "Vamos Taxi على يوتيوب",
+    "vamos-taxi-on-tiktok": "Vamos Taxi على تيك توك"
   },
   "header": {
     "call-41-79-626-70-82": "اتصل بـ ‎+41 79 626 70 82‎",
@@ -2899,7 +2901,8 @@
         "cancelled": "هذه الرحلة ملغاة، لم يُعبّأ أي حقل. عد برقم الرحلة الجديد.",
         "departed": "أقلعت هذه الرحلة من {ap} بالفعل، لا يوجد ما يُعبّأ.",
         "off": "نخدم زيورخ وجنيف وبازل — هذه الرحلة لا تمر بأي منها. حدّد الانطلاق بنفسك."
-      }
+      },
+      "dayGroup": "في أي يوم رحلتك"
     },
     "geo": {
       "no_results": "لا أماكن مطابقة — جرّب عنوانًا أوضح",

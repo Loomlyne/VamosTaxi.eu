@@ -34,8 +34,16 @@ const T = {
   fr: (label) => ({ title: label + ' n’est pas encore dans ce gel de design.', blurb:'La V1 couvre le tableau de bord, les réservations, la flotte et les tarifs & trajets — ' + label.toLowerCase() + ' figure dans la barre latérale par souci d’exactitude, mais n’est pas encore construit.', back:'Retour aux réservations' }),
   ar: (label) => ({ title: label + ' غير مشمول بعد في هذا الإصدار.', blurb:'يغطي الإصدار الأول لوحة المعلومات ولوحة الحجوزات والأسطول والأسعار والمسارات — أما ' + label + ' فيظهر في الشريط الجانبي للدقة، ولم يُبنَ بعد.', back:'العودة إلى الحجوزات' }),
 };
+/** Active language from the shared store; raw storage only before vamos-locale.js has loaded (26.2 audit U08-9). */
+function vtLang() {
+  try {
+    const L = window.VamosLocale;
+    if (L && typeof L.lang === 'function') return L.lang() || 'en';
+    return (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en';
+  } catch (e) { return 'en'; }
+}
 class Component extends DCLogic {
-  state = { lang: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en' };
+  state = { lang: vtLang() };
   componentWillUnmount() { if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale); }
   componentDidMount() {
     this._onLocale = (e) => this.setState({ lang: e.detail.lang, cur: e.detail.cur });

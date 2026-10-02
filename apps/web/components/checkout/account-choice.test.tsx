@@ -100,8 +100,10 @@ describe("AccountChoice", () => {
       const consent = html.slice(html.indexOf('data-acct-consent'));
       const label = consent.match(/<span class="vt-check__text"><span>([\s\S]*?)<\/span><\/span><\/label>/)![1];
       expect(text(label!)).toBe(cell("Text 1", l));
-      expect(html).toContain(`href="/${l}/terms"`);
-      expect(html).toContain(`href="/${l}/privacy"`);
+      // 26.2 audit U06-16: English has no /en prefix (it answers 308); de/fr/ar keep theirs.
+      const pre = l === "en" ? "" : `/${l}`;
+      expect(html).toContain(`href="${pre}/terms"`);
+      expect(html).toContain(`href="${pre}/privacy"`);
     }
   });
 
@@ -180,7 +182,7 @@ describe("CheckoutSignIn render", () => {
     const t = text(html);
     expect(t).toContain("Use the email on your account");
     expect(t).toContain("Email me a sign-in link");
-    expect(html).toContain(`href="/en/sign-in?returnTo=${encodeURIComponent(si.returnTo)}"`);
+    expect(html).toContain(`href="/sign-in?returnTo=${encodeURIComponent(si.returnTo)}"`);
   });
 
   it("sending: label changes, aria-busy, disabled", () => {

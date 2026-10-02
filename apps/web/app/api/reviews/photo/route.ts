@@ -14,6 +14,7 @@ import {
   assertPhotoUpload,
   buildPhotoKey,
 } from "@/lib/ops/photos";
+import { accountWriteForbidden } from "@/lib/abuse/account-write";
 import { csrfForbidden } from "@/lib/security/origin";
 
 const BOOKING_UUID =
@@ -57,7 +58,16 @@ function mapLookupError(err: unknown): Response {
 export async function POST(request: Request): Promise<Response> {
   const blocked = csrfForbidden(request);
   if (blocked) return blocked;
-  const formData = await request.formData();
+  // 26.2 audit: the same write limit as every other account and manage write; each upload
+  // stores a new R2 object, so an unlimited loop was storage cost with no ceiling.
+  const limited = await accountWriteForbidden(request);
+  if (limited) return limited;
+  let formData: FormData;
+  try {
+    formData = await request.formData();
+  } catch {
+    return jsonErr("invalid-input", 400);
+  }
   const fileRaw = formData.get("file");
   const token = str(formData.get("token"));
   const bookingRef = str(formData.get("bookingRef"));

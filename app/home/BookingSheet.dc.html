@@ -100,13 +100,13 @@
 @media (prefers-reduced-motion:reduce){[data-bs],[data-bs-pane],[data-bs-fade]{animation:none!important}[data-bs] *{transition:none!important}}</style>
 </helmet>
 <sc-if value="{{ visible }}" hint-placeholder-val="{{ true }}">
-<div data-bs="1" data-inline="{{ inlineAttr }}" data-leaving="{{ leavingAttr }}" ref="{{ rootRef }}" role="dialog" aria-modal="true" aria-labelledby="{{ titleId }}" style="{{ rootCss }}" onKeyDown="{{ onKey }}" data-lenis-prevent="1" data-om-label="Booking sheet">
+<div data-bs="1" data-inline="{{ inlineAttr }}" data-leaving="{{ leavingAttr }}" ref="{{ rootRef }}" role="dialog" aria-modal="true" aria-labelledby="{{ titleId }}" style="{{ rootCss }}" onKeyDown="{{ onKey }}" data-om-label="Booking sheet">
 <div data-bs-head="1">
 <div data-bs-row="1">
 <span data-bs-slot="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.IconButton" icon="x" label="Close booking" variant="plain" size="md" onClick="{{ close }}" hint-size="44px,44px"></x-import></span>
 </div>
 </div>
-<div data-bs-body="1" data-lenis-prevent="1" data-scroll-native="1" ref="{{ bodyRef }}" onFocus="{{ bodyFocus }}">
+<div data-bs-body="1" data-scroll-native="1" ref="{{ bodyRef }}" onFocus="{{ bodyFocus }}">
 <div data-bs-col="1">
 <h2 data-bs-title="1" id="{{ titleId }}" tabindex="-1">Book a transfer</h2>
 

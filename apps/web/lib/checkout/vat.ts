@@ -4,6 +4,16 @@
 export const CH_VAT_RATE_BPS = 81;
 export const CH_VAT_GROSS_BPS = 1081;
 
+/**
+ * The rate as the customer reads it, for "VAT {rate} %": 81 → "8.1". This scale is tenths of a
+ * percent (81 = 8.1 %, gross 1081), not basis points. 26.2 audit: /checkout and the pay-link
+ * page divided by 100 and showed "VAT 0.81 %" while charging 8.1 %. "" when there is no rate.
+ */
+export function vatPercentLabel(bps: number | null | undefined): string {
+  if (bps == null || !Number.isFinite(bps) || bps < 0) return "";
+  return String(Number((bps / 10).toFixed(1)));
+}
+
 /** Omitted/null/non-finite/negative → 81. 0 is a real rate (no VAT). */
 function vatBps(bps?: number | null): number {
   if (bps == null || !Number.isFinite(bps) || bps < 0) return CH_VAT_RATE_BPS;

@@ -29,7 +29,7 @@
 <div data-am-root="1" data-tone="{{ toneAttr }}" ref="{{ rootRef }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="{{ btnSize }}" variant="{{ btnVariant }}" iconEnd="chevron-down" disabled="{{ btnDisabled }}" aria-haspopup="menu" aria-expanded="{{ expanded }}" onClick="{{ toggle }}" hint-size="130px,36px">{{ label }}</x-import>
 <sc-if value="{{ open }}" hint-placeholder-val="{{ false }}">
-<div data-am-pop="1" data-lenis-prevent="1" role="menu" aria-label="{{ label }}" ref="{{ popRef }}" onKeyDown="{{ onPopKey }}" style="top:{{ popTop }};left:{{ popLeft }};width:{{ popWidth }};max-height:{{ popMaxH }}">
+<div data-am-pop="1" role="menu" aria-label="{{ label }}" ref="{{ popRef }}" onKeyDown="{{ onPopKey }}" style="top:{{ popTop }};left:{{ popLeft }};width:{{ popWidth }};max-height:{{ popMaxH }}">
 <sc-for list="{{ rows }}" as="o" hint-placeholder-count="5">
 <sc-if value="{{ o.sepBefore }}" hint-placeholder-val="{{ false }}"><div data-am-sep="1" role="separator"></div></sc-if>
 <button type="button" data-am-item="1" data-value="{{ o.value }}" role="menuitem" data-tone="{{ o.tone }}" aria-disabled="{{ o.disabledStr }}" tabindex="-1" onClick="{{ o.pick }}">

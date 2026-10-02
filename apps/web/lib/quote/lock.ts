@@ -142,7 +142,16 @@ export interface QuoteLockPayload {
   legs: QuoteLockLeg[];
   extras: QuoteLockExtras | null;
   coupon: string | null;
-  class_totals: Array<{ slug: string; total_rappen: number | null }>;
+  class_totals: Array<{
+    slug: string;
+    total_rappen: number | null;
+    /**
+     * 26.2 audit (U04-1): the class total before the coupon line. Optional so a
+     * lock minted before this field still verifies; checkout refuses such a lock
+     * with price_changed when a coupon is on it (the browser re-quotes).
+     */
+    pre_coupon_rappen?: number | null;
+  }>;
   /**
    * 26.1-11 / UI-SPEC §8: per class, the airport pickup fee and matched route
    * pair lines so checkout shows them as their own rows. Display only — never

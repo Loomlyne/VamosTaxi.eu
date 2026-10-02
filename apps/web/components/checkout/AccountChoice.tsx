@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Icon } from "@/components/core";
 import type { IconName } from "@/components/core";
 import { Checkbox, Radio } from "@/components/forms";
+import { localePath } from "@/lib/checkout/steps";
 import "./account-choice.css";
 
 export type AccountChoiceValue = "guest" | "signin" | "create";
@@ -66,6 +67,9 @@ export function AccountChoice({
 
   const options = OPTIONS.filter((o) => createAvailable || o.value !== "create");
   const active: AccountChoiceValue = !createAvailable && value === "create" ? "guest" : value;
+  // 26.2 audit U06-16: English links carry no `/en` (which answers 308).
+  const termsHref = localePath(locale, "/terms");
+  const privacyHref = localePath(locale, "/privacy");
 
   return (
     <div data-acct-choice="1">
@@ -130,12 +134,12 @@ export function AccountChoice({
                 aria-describedby={createConsentError ? consentErrorId : undefined}
                 label={t.rich("acctCreateNotice", {
                   terms: (c) => (
-                    <a href={`/${locale}/terms`} target="_blank" rel="noopener">
+                    <a href={termsHref} target="_blank" rel="noopener">
                       {c}
                     </a>
                   ),
                   privacy: (c) => (
-                    <a href={`/${locale}/privacy`} target="_blank" rel="noopener">
+                    <a href={privacyHref} target="_blank" rel="noopener">
                       {c}
                     </a>
                   ),

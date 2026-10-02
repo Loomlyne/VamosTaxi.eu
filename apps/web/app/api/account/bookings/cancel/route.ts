@@ -29,7 +29,7 @@ export async function POST(request: Request): Promise<Response> {
   } catch {
     return json({ ok: false }, 400);
   }
-  if (!/^VT-\d{2}-\d{4}$/i.test(ref)) return json({ ok: false }, 400);
+  if (!/^VT-\d{2}-\d{4,5}$/i.test(ref)) return json({ ok: false }, 400);
 
   const { env } = await getCloudflareContext({ async: true });
   try {

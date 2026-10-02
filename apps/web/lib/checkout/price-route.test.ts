@@ -109,13 +109,48 @@ describe("priceCheckoutWithDeps", () => {
   });
 
   it("does not discount twice when the lock already carries the coupon", async () => {
-    const p = payload({ coupon: "TEN", class_totals: [{ slug: "economy", total_rappen: 9000 }] });
+    const p = payload({ coupon: "TEN", class_totals: [{ slug: "economy", total_rappen: 9000, pre_coupon_rappen: 10000 }] });
     const r = await priceCheckoutWithDeps(
       await body({ coupon: "ten" }, p),
       deps({ evaluateCoupon: async () => ({ ok: true, coupon_id: 1, kind: "percent", percent: "10.00" }) }),
     );
     if (!r.body.ok) throw new Error("expected ok");
     expect(r.body.net_rappen).toBe(9000);
+  });
+
+  it("26.2 audit U04-1: a fixed coupon worth more than fare plus extra charges 0 and the Fare row is the real fare (rappen 5000 / 3000 / 1000)", async () => {
+    const p = payload({ coupon: "FIFTY", class_totals: [{ slug: "economy", total_rappen: 0, pre_coupon_rappen: 3000 }] });
+    const r = await priceCheckoutWithDeps(
+      await body({ coupon: "fifty", extra_codes: ["child_seat"] }, p),
+      deps({
+        loadCatalog: async () => [{ code: "child_seat", amountRappen: 1000, labels: { en: "Child seat", de: "Kindersitz", fr: "Siège enfant", ar: "مقعد أطفال" } }],
+        evaluateCoupon: async () => ({ ok: true, coupon_id: 1, kind: "amount", amount_rappen: 5000 }),
+      }),
+    );
+    if (!r.body.ok) throw new Error("expected ok");
+    expect(r.body.net_rappen).toBe(0);
+    expect(r.body.charged_rappen).toBe(0);
+    expect(r.body.lines.find((l) => l.kind === "fare")?.amount_rappen).toBe(3000);
+  });
+
+  it("26.2 audit U04-1: a 10 % coupon on 5005 rappen reads the exact pinned pre-coupon fare, not a grossed-up 5004", async () => {
+    // 10 % of 5005 = 500.5 -> 501 (half up); the lock total is 4504, and 4504 / 0.9 = 5004.4 -> 5004.
+    const p = payload({ coupon: "TEN", class_totals: [{ slug: "economy", total_rappen: 4504, pre_coupon_rappen: 5005 }] });
+    const r = await priceCheckoutWithDeps(
+      await body({ coupon: "ten" }, p),
+      deps({ evaluateCoupon: async () => ({ ok: true, coupon_id: 1, kind: "percent", percent: "10.00" }) }),
+    );
+    if (!r.body.ok) throw new Error("expected ok");
+    expect(r.body.lines.find((l) => l.kind === "fare")?.amount_rappen).toBe(5005);
+  });
+
+  it("26.2 audit U04-1: a lock minted before pre_coupon_rappen existed, carrying a coupon, is price_changed (the browser re-quotes)", async () => {
+    const p = payload({ coupon: "TEN", class_totals: [{ slug: "economy", total_rappen: 9000 }] });
+    const r = await priceCheckoutWithDeps(
+      await body({ coupon: "ten" }, p),
+      deps({ evaluateCoupon: async () => ({ ok: true, coupon_id: 1, kind: "percent", percent: "10.00" }) }),
+    );
+    expect(r.body).toEqual({ ok: false, code: "price_changed" });
   });
 
   it("rate limits voucher lookups only", async () => {

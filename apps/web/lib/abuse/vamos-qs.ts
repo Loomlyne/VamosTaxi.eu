@@ -85,3 +85,21 @@ export async function verifyVamosQs(
   }
   return visitorId;
 }
+
+/**
+ * The visitor id from a vamos_qs cookie, verified with the current secret and then, during a
+ * rotation, with the previous one. Null when neither verifies. One copy, so the rate-limit bucket
+ * and the Turnstile counter always agree about who the visitor is.
+ */
+export async function verifiedSubject(
+  cookie: string | null | undefined,
+  secret: string,
+  previousSecret: string | undefined,
+): Promise<string | null> {
+  const current = await verifyVamosQs(secret, cookie);
+  if (current) return current;
+  if (typeof previousSecret === "string" && previousSecret.length > 0) {
+    return verifyVamosQs(previousSecret, cookie);
+  }
+  return null;
+}

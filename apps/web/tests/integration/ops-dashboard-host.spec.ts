@@ -29,7 +29,7 @@ test.describe("dashboard host DC login @ops-dashboard-host", () => {
   test("named host /ops 308s; dashboardHostMiddleware serves DC, never Next ops rewrite", () => {
     expect(middleware).toMatch(/host === "dashboard\.vamostaxi\.site"/);
     expect(middleware).toContain('return dashboardHostMiddleware(request)');
-    expect(middleware).toMatch(/NextResponse\.redirect\(dashboardAbs\(request, dest\), 308\)/);
+    expect(middleware).toMatch(/dashboardRedirect\(dashboardAbs\(request, dest\), 308\)/);
     expect(middleware).toMatch(
       /serveOpsDc\(request, client\.response, "ops-login\.dc\.html"/,
     );

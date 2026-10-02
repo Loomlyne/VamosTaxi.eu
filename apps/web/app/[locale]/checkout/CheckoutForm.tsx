@@ -37,6 +37,8 @@ import {
   type PayField,
 } from "@/lib/checkout/pay-validate";
 import { accountIntentBlock, mapAccountCode } from "@/lib/checkout/account-pay";
+import { payIdemAfter, payIdemFor, type PayIdem } from "@/lib/checkout/pay-idempotency";
+import { lockForVoucher, signVoucherLock, type VoucherLock } from "@/lib/checkout/voucher-lock";
 import type { AccountChoiceValue } from "@/components/checkout/AccountChoice";
 import type { CheckoutSignInStage } from "@/components/checkout/CheckoutSignIn";
 import { useQuoteLabel } from "@/lib/checkout/quote-label";
@@ -214,6 +216,12 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
   const [createHidden, setCreateHidden] = useState(false);
   const [accountTurnstile, setAccountTurnstile] = useState<string | null>(null);
   const [accountResetNonce, setAccountResetNonce] = useState(0);
+  // 26.2 audit U06-21: when "create an account" goes away (hidden after an answer, or switched
+  // off), the held choice follows what the radio group shows, so PAY never sends "create".
+  const createAvailable = settings.accountCreateAvailable && !createHidden;
+  useEffect(() => {
+    if (!createAvailable && accountChoice === "create") setAccountChoice("guest");
+  }, [createAvailable, accountChoice]);
   const [flight, setFlightState] = useState(trip.flightDisplay ?? "");
   const [flightError, setFlightError] = useState<string | null>(null);
   const [extras, setExtras] = useState<ExtraItem[]>([]);
@@ -240,7 +248,9 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
   const priceSeq = useRef(0);
   const requoteTries = useRef(0);
   const started = useRef(false);
-  const idem = useRef<{ sel: string; id: string } | null>(null);
+  const idem = useRef<PayIdem | null>(null);
+  // The lock re-signed with the voucher in it (U11-1); the price call and PAY both send it.
+  const voucherLock = useRef<VoucherLock | null>(null);
   const tripRef = useRef(trip);
   const contactRef = useRef(contact);
   contactRef.current = contact;
@@ -320,8 +330,15 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
     try {
       const res = await fetch("/api/checkout/extras", { credentials: "same-origin" });
       const json = (await res.json()) as {
+        ok?: boolean;
         extras?: { code?: unknown; amount_rappen?: unknown; names?: ExtraNames }[];
       };
+      if (!res.ok || json.ok !== true) {
+        // 26.2 audit U11-6: a 503 outage keeps the extras already loaded; wiping them would
+        // silently drop what the customer ticked. The next price/requote asks again.
+        setCatalogReady(true);
+        return;
+      }
       const list: ExtraItem[] = [];
       for (const row of json.extras ?? []) {
         if (typeof row.code !== "string") continue;
@@ -331,7 +348,7 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
       }
       setExtras(list);
     } catch {
-      setExtras([]);
+      // network failure: same as an outage — keep what is loaded
     }
     setCatalogReady(true);
   }, []);
@@ -551,6 +568,27 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
     // A flight-only re-sign changes the lock but never the price: refresh without the loading state.
     if (flow.silentLock.current !== quote.lock) setPrice({ kind: "updating" });
     void (async () => {
+      // 26.2 audit U11-1: a voucher is signed into the lock first, so the price shown is the
+      // price PAY accepts. Without one the lock is used as it is.
+      let lock = lockForVoucher(quote.lock, voucher, voucherLock.current);
+      if (lock === null && voucher) {
+        const signed = await signVoucherLock(fetch, {
+          quoteId: quote.quoteId,
+          lock: quote.lock,
+          voucher,
+          locale: geoLocale(locale),
+          displayCurrency: cur === "EUR" || cur === "USD" || cur === "AED" ? cur : "CHF",
+          preferredClass: selectedClass,
+        });
+        if (mine !== priceSeq.current) return;
+        if (!signed.ok) {
+          if (signed.code === "quote_expired") setQuoteExpired(true);
+          setPrice({ kind: "error", code: signed.code });
+          return;
+        }
+        voucherLock.current = { base: quote.lock, voucher, lock: signed.lock };
+        lock = signed.lock;
+      }
       let status = 0;
       let json: Record<string, unknown> | null = null;
       try {
@@ -559,7 +597,7 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
           credentials: "same-origin",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({
-            lock: quote.lock,
+            lock,
             vehicle_class: selectedClass,
             extra_codes: tickedValid,
             coupon: voucher,
@@ -760,6 +798,12 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
       announce(t("updatingPrice"));
       return;
     }
+    // The lock that carries the voucher the price was made with (U11-1). None yet: still pricing.
+    const payLock = lockForVoucher(quote.lock, voucher, voucherLock.current);
+    if (payLock === null) {
+      announce(t("updatingPrice"));
+      return;
+    }
 
     const selection = {
       trip,
@@ -783,11 +827,11 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
     }
 
     const sel = JSON.stringify([quote.quoteId, selectedClass, [...tickedValid].sort(), voucher, contact, company, note, trip.flight, resume?.booking_id ?? null]);
-    if (!idem.current || idem.current.sel !== sel) idem.current = { sel, id: crypto.randomUUID() };
+    idem.current = payIdemFor(idem.current, sel, () => crypto.randomUUID());
 
     const body = buildIntentBody({
       quoteId: quote.quoteId,
-      lock: quote.lock,
+      lock: payLock,
       trip,
       vehicleClass: selectedClass,
       extraCodes: tickedValid,
@@ -805,7 +849,7 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
       signedIn: Boolean(signedInEmail),
       choice: accountChoice,
       guestAccountsOn: settings.guestAccountsOn,
-      createAvailable: settings.accountCreateAvailable && !createHidden,
+      createAvailable,
       createConsent,
       turnstileToken: accountTurnstile ?? undefined,
       idempotencyKey: idem.current.id,
@@ -833,6 +877,10 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
         }
         const code = json.code ?? "";
         const effect = mapAccountCode(code);
+        // U11-2: a failed answer ends this key, so the next press opens a new Stripe session.
+        // An account-step answer (sign in first, consent tick, Turnstile) comes before any
+        // session is opened, so it keeps the key and does not use up one of the 5 presses.
+        idem.current = payIdemAfter(idem.current, Boolean(effect));
         if (effect) {
           setPayStatus(effect.payError ? "error" : "idle");
           if (effect.stage) {
@@ -885,6 +933,7 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
         }
         fail(t("payStartFailed"));
       } catch {
+        idem.current = payIdemAfter(idem.current, false);
         fail(t("payStartFailed"));
       }
     })();
