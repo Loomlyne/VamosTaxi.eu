@@ -118,7 +118,7 @@ describe("priceCheckoutWithDeps", () => {
     expect(r.body.net_rappen).toBe(9000);
   });
 
-  it("26.2 audit U04-1: a CHF 50 fixed coupon on a CHF 30 fare with a CHF 10 extra charges 0 and shows Fare 30.00", async () => {
+  it("26.2 audit U04-1: a fixed coupon worth more than fare plus extra charges 0 and the Fare row is the real fare (rappen 5000 / 3000 / 1000)", async () => {
     const p = payload({ coupon: "FIFTY", class_totals: [{ slug: "economy", total_rappen: 0, pre_coupon_rappen: 3000 }] });
     const r = await priceCheckoutWithDeps(
       await body({ coupon: "fifty", extra_codes: ["child_seat"] }, p),

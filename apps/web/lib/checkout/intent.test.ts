@@ -346,7 +346,7 @@ describe("runCheckoutIntent mode web (26.3)", () => {
   });
 
   it("26.2 audit U04-1: PAY charges max(0, fare + extras - coupon) from the pinned fare, not fare + the coupon's face value", async () => {
-    // CHF 30.00 fare, CHF 35.00 fixed coupon (clamped to the fare: lock total 0), CHF 20.00 ski bag.
+    // Fare 3000 rappen, fixed coupon 3500 (clamped to the fare: lock total 0), ski bag 2000.
     // 30.00 + 20.00 - 35.00 = 15.00, plus 8.1 % VAT = 16.22. The old gross-up read the fare as 35.00 and charged 21.62.
     const p = payload({ coupon: "TEN", class_totals: [{ slug: "economy", total_rappen: 0, pre_coupon_rappen: 3000 }] });
     const w = world(p, {
