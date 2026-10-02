@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contact overlay — sketch gallery (throwaway, design only)</title>
+<!--
+  THROWAWAY SKETCH for the owner's signature. Not production code.
+  Serve the worktree root (python3 -m http.server) and open
+  /.planning/quick/261003-contact-overlay/sketches/gallery.html?dir=A&open=0&bg=bg-page-390-en&lang=en
+  Loads the real Vamos design system (tokens + laws + _ds_bundle.js) and composes the
+  overlay from its Button / IconButton / Icon / Logo. The backdrop is a read-only
+  screenshot of the live page with the current V button removed.
+  Params: dir=A|B|C · open=0|1 · bg=<file in ../screens/raw> · lang=en|de|fr|ar
+          bary/barh = pay-bar box in CSS px (checkout backdrops) · cookie=1 (cookie card open)
+          states=1 renders the states gallery instead of a page.
+-->
+<link rel="stylesheet" href="/design-system/styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+<script src="/design-system/_ds_bundle.js"></script>
+<style>
+:root{--vt-icon-base:"/assets/icons/";--vt-logo-base:"/assets/logo/";--vt-pattern-base:"/assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}
+html,body{margin:0;background:var(--vt-bg-page)}
+[data-bg]{display:block;width:100vw;height:auto}
+[data-bgwrap]{position:relative;min-height:100vh;overflow:hidden}
+
+/* ---------- ContactRow (new component, tokens only) ---------- */
+[data-crow]{display:grid;grid-template-columns:40px minmax(0,1fr) auto;align-items:center;gap:14px;min-block-size:60px;padding:8px 12px;border-radius:var(--vt-radius-md);color:var(--vt-text-primary);text-decoration:none;border:0;background:transparent;font-family:var(--vt-font-body);transition:background var(--vt-dur-fast) var(--vt-ease-out),transform 80ms var(--vt-ease-out);outline:none}
+[data-crow]:hover,[data-crow][data-s="hover"]{background:var(--vt-grey-50)}
+[data-crow]:active,[data-crow][data-s="press"]{background:var(--vt-grey-100);transform:translateY(1px)}
+[data-crow]:active [data-crow-lead],[data-crow][data-s="press"] [data-crow-lead]{background:var(--vt-white)}
+[data-crow]:focus-visible,[data-crow][data-s="focus"]{box-shadow:var(--vt-ring)}
+[data-crow-lead]{inline-size:40px;block-size:40px;border-radius:var(--vt-radius-pill);background:var(--vt-grey-100);color:var(--vt-charcoal-900);display:inline-flex;align-items:center;justify-content:center}
+[data-crow-main]{display:flex;flex-direction:column;gap:1px;min-inline-size:0}
+[data-crow-title]{font-size:var(--vt-body-sm);font-weight:var(--vt-weight-semibold);line-height:1.35}
+[data-crow-sub]{font-size:var(--vt-body-xs);color:var(--vt-text-muted);line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+[data-crow-end]{color:var(--vt-text-muted);display:inline-flex}
+.vt-dir-keep{direction:ltr;unicode-bidi:isolate}
+[dir="rtl"] [data-crow-sub].vt-dir-keep{text-align:end}
+
+/* ---------- Panel (desktop / tablet) and sheet (phone) ---------- */
+[data-cpanel]{position:absolute;inline-size:344px;box-sizing:border-box;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-xl);padding:8px}
+[data-chead]{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 12px 8px}
+[data-ckick]{margin:0;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-ctitle]{margin:2px 0 0;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary);line-height:1.2}
+[data-crows]{display:flex;flex-direction:column;gap:2px}
+[data-cscrim]{position:fixed;inset:0;background:var(--vt-bg-scrim);z-index:90}
+[data-csheet]{position:fixed;inset-inline:0;inset-block-end:0;z-index:91;background:var(--vt-bg-surface);border-start-start-radius:var(--vt-radius-xl);border-start-end-radius:var(--vt-radius-xl);box-shadow:var(--vt-shadow-xl);padding:8px 12px calc(16px + env(safe-area-inset-bottom))}
+[data-cgrab]{inline-size:40px;block-size:4px;border-radius:var(--vt-radius-pill);background:var(--vt-grey-300);margin:4px auto 4px}
+[data-csheet] [data-crow]{min-block-size:64px}
+
+/* ---------- A · Mark disc ---------- */
+[data-ta]{all:unset;box-sizing:border-box;position:fixed;z-index:80;inline-size:56px;block-size:56px;border-radius:var(--vt-radius-pill);background:var(--vt-charcoal-900);border:1px solid rgb(255 255 255 / .14);box-shadow:var(--vt-shadow-lg);display:inline-flex;align-items:center;justify-content:center;color:var(--vt-white);cursor:pointer;transition:background var(--vt-dur-fast) var(--vt-ease-out),transform 80ms var(--vt-ease-out)}
+[data-ta]:hover,[data-ta][data-s="hover"]{background:var(--vt-charcoal-800)}
+[data-ta]:active,[data-ta][data-s="press"]{background:var(--vt-charcoal-950);transform:translateY(1px)}
+[data-ta]:focus-visible,[data-ta][data-s="focus"]{box-shadow:var(--vt-shadow-lg),var(--vt-ring)}
+[data-ta] img{direction:ltr;transform:none}
+
+/* ---------- B · Labelled pill (Button secondary lg) ---------- */
+[data-tb]{position:fixed;z-index:80}
+[data-tb] .vt-btn{box-shadow:var(--vt-shadow-lg)}
+[data-tb] .vt-btn[data-s="hover"]{background:var(--vt-charcoal-800)}
+[data-tb] .vt-btn[data-s="press"]{background:var(--vt-charcoal-950);transform:translateY(1px)}
+[data-tb] .vt-btn[data-s="focus"]{box-shadow:var(--vt-shadow-lg),var(--vt-ring)}
+[data-tbdisc]{all:unset;box-sizing:border-box;inline-size:54px;block-size:54px;border-radius:var(--vt-radius-pill);background:var(--vt-charcoal-900);box-shadow:var(--vt-shadow-lg);display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+[data-tbdisc][data-s="hover"]{background:var(--vt-charcoal-800)}
+[data-tbdisc][data-s="press"]{background:var(--vt-charcoal-950);transform:translateY(1px)}
+[data-tbdisc][data-s="focus"]{box-shadow:var(--vt-shadow-lg),var(--vt-ring)}
+/* the pay bar, redrawn for B so the contact button can sit inside it */
+[data-paybar]{position:absolute;inset-inline:0;background:var(--vt-bg-surface);border-block-start:1px solid var(--vt-border-subtle);box-shadow:var(--vt-shadow-md);display:flex;align-items:center;gap:12px;padding-inline:clamp(20px,5vw,56px);box-sizing:border-box;font-family:var(--vt-font-body)}
+[data-paybar-total]{flex:1 1 auto;min-inline-size:0;display:flex;flex-direction:column}
+[data-paybar-total] span:first-child{font-size:var(--vt-body-xs);color:var(--vt-text-muted)}
+[data-paybar-total] span:last-child{font-size:var(--vt-body-md);color:var(--vt-text-primary)}
+[data-paybar] .vt-iconbtn--outline{border-color:var(--vt-border-subtle)}
+
+/* ---------- C · Edge tab ---------- */
+[data-tc]{all:unset;box-sizing:border-box;position:fixed;z-index:80;inset-inline-end:0;display:inline-flex;align-items:center;gap:10px;block-size:56px;padding-inline:14px 16px;background:var(--vt-charcoal-900);color:var(--vt-white);border-start-start-radius:var(--vt-radius-pill);border-end-start-radius:var(--vt-radius-pill);box-shadow:var(--vt-shadow-lg);cursor:pointer;font-family:var(--vt-font-body);font-size:var(--vt-label-md);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-weight-semibold);transition:background var(--vt-dur-fast) var(--vt-ease-out)}
+[dir="rtl"] [data-tc]{border-radius:0;border-start-start-radius:var(--vt-radius-pill);border-end-start-radius:var(--vt-radius-pill)}
+[data-tc][data-narrow]{inline-size:48px;padding-inline:14px 10px}
+[data-tc]:hover,[data-tc][data-s="hover"]{background:var(--vt-charcoal-800)}
+[data-tc]:active,[data-tc][data-s="press"]{background:var(--vt-charcoal-950)}
+[data-tc]:focus-visible,[data-tc][data-s="focus"]{box-shadow:var(--vt-shadow-lg),var(--vt-ring)}
+
+/* ---------- states gallery ---------- */
+[data-states]{background:var(--vt-white);padding:40px 48px;font-family:var(--vt-font-body);color:var(--vt-text-primary)}
+[data-states] h2{font-family:var(--vt-font-display);font-size:var(--vt-heading-3);margin:0 0 20px}
+[data-srow]{display:flex;flex-wrap:wrap;align-items:flex-start;gap:36px 40px;margin-block-end:40px}
+[data-scell]{display:flex;flex-direction:column;align-items:center;gap:14px;min-inline-size:96px;position:relative}
+[data-scell] > span{font-size:var(--vt-body-xs);color:var(--vt-text-muted)}
+[data-scell] [data-ta],[data-scell] [data-tc],[data-scell] [data-tb]{position:relative;inset:auto}
+[data-scell] [data-crow]{inline-size:320px}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+(function () {
+  var DS = window.VamosTaxiDesignSystem_245af1;
+  var h = React.createElement;
+  var q = new URLSearchParams(location.search);
+  var DIR = q.get('dir') || 'A';
+  var OPEN = q.get('open') === '1';
+  var BG = q.get('bg') || 'bg-page-390-en';
+  var LANG = q.get('lang') || 'en';
+  var BARY = q.get('bary') ? +q.get('bary') : null;
+  var BARH = q.get('barh') ? +q.get('barh') : 75;
+  var COOKIE = q.get('cookie') === '1';
+  var STATES = q.get('states') === '1';
+  document.documentElement.lang = LANG;
+  document.documentElement.dir = LANG === 'ar' ? 'rtl' : 'ltr';
+
+  /* Copy: every string exists in app/vamos-i18n-dict.js except the three marked NEW. */
+  var T = {
+    en: { talk: 'Talk to a person', contact: 'Contact', close: 'Close', openA: 'Open contact options', closeA: 'Close contact options', wa: 'WhatsApp', call: 'Call us', email: 'Email', msg: 'Send us a message', form: 'Contact form', total: 'Total', choose: 'Choose a class', pay: 'Pay' },
+    de: { talk: 'Sprechen Sie mit einem Menschen', contact: 'Kontakt', close: 'Schliessen', openA: 'Kontaktoptionen öffnen', closeA: 'Kontaktoptionen schliessen', wa: 'WhatsApp', call: 'Rufen Sie uns an', email: 'E-Mail', msg: 'Schreiben Sie uns', form: 'Kontaktformular', total: 'Total', choose: 'Klasse wählen', pay: 'Bezahlen' },
+    fr: { talk: 'Parlez à une personne', contact: 'Contact', close: 'Fermer', openA: 'Ouvrir les options de contact', closeA: 'Fermer les options de contact', wa: 'WhatsApp', call: 'Appelez-nous', email: 'E-mail', msg: 'Envoyez-nous un message', form: 'Formulaire de contact', total: 'Total', choose: 'Choisissez une classe', pay: 'Payer' },
+    ar: { talk: 'تحدّث إلى شخص حقيقي', contact: 'اتصل بنا', close: 'إغلاق', openA: 'فتح خيارات التواصل', closeA: 'إغلاق خيارات التواصل', wa: 'WhatsApp', call: 'اتصل بنا', email: 'البريد الإلكتروني', msg: 'أرسل لنا رسالة', form: 'نموذج التواصل', total: 'المجموع', choose: 'اختر فئة', pay: 'ادفع' }
+  };
+  var t = T[LANG] || T.en;
+  var PHONE = '+41 79 626 70 82';
+
+  function rows(state) {
+    var list = [
+      { icon: 'message-circle', title: t.wa, sub: PHONE, keep: true, href: 'https://wa.me/41796267082', end: 'external-link' },
+      { icon: 'phone', title: t.call, sub: PHONE, keep: true, href: 'tel:+41796267082' },
+      { icon: 'mail', title: t.email, sub: 'info@vamostaxi.site', keep: true, href: 'mailto:info@vamostaxi.site' },
+      { icon: 'file-text', title: t.msg, sub: t.form, href: '/contact', end: 'chevron-right' }
+    ];
+    return list.map(function (r, i) { return Row(r, i, state); });
+  }
+  function Row(r, i, state) {
+    return h('a', { key: i, 'data-crow': '1', 'data-s': state || undefined, href: r.href, role: 'menuitem' },
+      h('span', { 'data-crow-lead': '1' }, h(DS.Icon, { name: r.icon, size: 20 })),
+      h('span', { 'data-crow-main': '1' },
+        h('span', { 'data-crow-title': '1' }, r.title),
+        h('span', { 'data-crow-sub': '1', className: r.keep ? 'vt-dir-keep' : undefined }, r.sub)),
+      h('span', { 'data-crow-end': '1' }, r.end ? h(DS.Icon, { name: r.end, size: 16, className: r.end === 'chevron-right' ? '' : 'vt-dir-keep' }) : null));
+  }
+  function Head(withClose) {
+    return h('div', { 'data-chead': '1' },
+      h('div', null, h('p', { 'data-ckick': '1' }, t.contact), h('p', { 'data-ctitle': '1' }, t.talk)),
+      withClose ? h(DS.IconButton, { icon: 'x', label: t.close, variant: 'outline', size: 'md' }) : null);
+  }
+  function Panel(style) {
+    return h('div', { 'data-cpanel': '1', role: 'menu', style: style }, Head(false), h('div', { 'data-crows': '1' }, rows()));
+  }
+  function Sheet() {
+    return h(React.Fragment, null,
+      h('div', { 'data-cscrim': '1' }),
+      h('div', { 'data-csheet': '1', role: 'dialog', 'aria-label': t.talk },
+        h('div', { 'data-cgrab': '1' }), Head(true), h('div', { 'data-crows': '1' }, rows())));
+  }
+
+  var W = window.innerWidth, H = window.innerHeight;
+  var phone = W <= 680, tablet = W > 680 && W <= 1080;
+  var gap = phone ? 16 : 24;
+  var rtl = LANG === 'ar';
+  function endPos(px) { return rtl ? { left: px } : { right: px }; }
+
+  /* ---------------- Direction A ---------------- */
+  function A() {
+    var hidden = phone && COOKIE;            // steps aside while the cookie card is open on a phone
+    var bottom = gap;
+    if (BARY != null) bottom = H - BARY + 12; // lifts above the pay bar
+    var trig = hidden ? null : h('button', Object.assign({ 'data-ta': '1', 'aria-label': OPEN ? t.closeA : t.openA, 'aria-expanded': OPEN, style: Object.assign({ bottom: bottom }, endPos(gap)) }),
+      OPEN && !phone ? h(DS.Icon, { name: 'x', size: 22, color: 'var(--vt-white)' }) : h(DS.Logo, { form: 'mark', variant: 'white', height: 24 }));
+    var panel = OPEN && !phone ? Panel(Object.assign({ position: 'fixed', bottom: bottom + 56 + 12 }, endPos(gap))) : null;
+    return h(React.Fragment, null, trig, panel, OPEN && phone ? Sheet() : null);
+  }
+
+  /* ---------------- Direction B ---------------- */
+  function B() {
+    var docked = BARY != null;                // a page with a bottom bar: the button moves INTO the bar
+    var out = [];
+    if (docked) {
+      out.push(h('div', { key: 'bar', 'data-paybar': '1', style: { top: BARY, height: BARH } },
+        h('div', { 'data-paybar-total': '1' }, h('span', null, t.total), h('span', null, t.choose)),
+        h(DS.IconButton, { icon: 'message-circle', label: t.openA, variant: 'outline', size: 'lg' }),
+        h(DS.Button, { variant: 'primary', size: 'lg', icon: 'lock' }, t.pay)));
+    } else if (phone) {
+      out.push(h('div', { key: 't', 'data-tb': '1', style: Object.assign({ bottom: gap }, endPos(gap)) },
+        h('button', { 'data-tbdisc': '1', 'aria-label': OPEN ? t.closeA : t.openA, 'aria-expanded': OPEN },
+          h(DS.Icon, { name: 'message-circle', size: 22, color: 'var(--vt-yellow)' }))));
+    } else {
+      out.push(h('div', { key: 't', 'data-tb': '1', style: Object.assign({ bottom: gap }, endPos(gap)) },
+        h(DS.Button, { variant: 'secondary', size: 'lg', 'aria-expanded': OPEN },
+          h(DS.Icon, { name: OPEN ? 'x' : 'message-circle', size: 20, color: 'var(--vt-yellow)' }), OPEN ? t.close : t.contact)));
+    }
+    if (OPEN && phone) out.push(h(Sheet, { key: 's' }));
+    else if (OPEN) out.push(h('div', { key: 'p' }, Panel(Object.assign({ position: 'fixed', bottom: gap + 54 + 12 }, endPos(gap)))));
+    return h(React.Fragment, null, out);
+  }
+
+  /* ---------------- Direction C ---------------- */
+  function C() {
+    var hidden = phone && COOKIE;
+    var top = phone ? Math.round(H * 0.56) : Math.round(H * 0.5) - 28;
+    var trig = hidden ? null : h('button', { 'data-tc': '1', 'data-narrow': phone ? '1' : undefined, 'aria-label': OPEN ? t.closeA : t.openA, 'aria-expanded': OPEN, style: { top: top } },
+      h(DS.Icon, { name: OPEN && !phone ? 'x' : 'message-circle', size: 22, color: 'var(--vt-yellow)' }), phone ? null : h('span', null, OPEN ? t.close : t.contact));
+    var panel = null;
+    if (OPEN && !phone) {
+      var tabW = 160;
+      panel = Panel(Object.assign({ position: 'fixed', top: Math.max(96, top - 150) }, endPos(tabW + 12)));
+    }
+    return h(React.Fragment, null, trig, panel, OPEN && phone ? Sheet() : null);
+  }
+
+  /* ---------------- states gallery ---------------- */
+  function cell(label, node) { return h('div', { 'data-scell': '1', key: label }, node, h('span', null, label)); }
+  function States() {
+    var ss = ['default', 'hover', 'press', 'focus'];
+    var trig;
+    if (DIR === 'A') trig = ss.map(function (s) { return cell(s, h('button', { 'data-ta': '1', 'data-s': s === 'default' ? undefined : s, style: { position: 'relative' } }, h(DS.Logo, { form: 'mark', variant: 'white', height: 24 }))); })
+      .concat([cell('open', h('button', { 'data-ta': '1', style: { position: 'relative' } }, h(DS.Icon, { name: 'x', size: 22, color: 'var(--vt-white)' })))]);
+    if (DIR === 'B') trig = ss.map(function (s) { return cell('pill · ' + s, h('div', { 'data-tb': '1', style: { position: 'relative' } }, h(DS.Button, { variant: 'secondary', size: 'lg', 'data-s': s === 'default' ? undefined : s }, h(DS.Icon, { name: 'message-circle', size: 20, color: 'var(--vt-yellow)' }), t.contact))); })
+      .concat([cell('pill · open', h('div', { 'data-tb': '1', style: { position: 'relative' } }, h(DS.Button, { variant: 'secondary', size: 'lg' }, h(DS.Icon, { name: 'x', size: 20, color: 'var(--vt-yellow)' }), t.close)))])
+      .concat(ss.map(function (s) { return cell('phone disc · ' + s, h('button', { 'data-tbdisc': '1', 'data-s': s === 'default' ? undefined : s }, h(DS.Icon, { name: 'message-circle', size: 22, color: 'var(--vt-yellow)' }))); }))
+      .concat([cell('in the pay bar', h(DS.IconButton, { icon: 'message-circle', label: t.openA, variant: 'outline', size: 'lg' }))]);
+    if (DIR === 'C') trig = ss.map(function (s) { return cell(s, h('button', { 'data-tc': '1', 'data-s': s === 'default' ? undefined : s, style: { position: 'relative' } }, h(DS.Icon, { name: 'message-circle', size: 22, color: 'var(--vt-yellow)' }), h('span', null, t.contact))); })
+      .concat([cell('phone', h('button', { 'data-tc': '1', 'data-narrow': '1', style: { position: 'relative' } }, h(DS.Icon, { name: 'message-circle', size: 22, color: 'var(--vt-yellow)' })))]);
+    var rowStates = ss.map(function (s) { return cell('row · ' + s, Row({ icon: 'phone', title: t.call, sub: PHONE, keep: true, href: '#' }, 0, s === 'default' ? null : s)); });
+    return h('div', { 'data-states': '1' },
+      h('h2', null, 'Button'), h('div', { 'data-srow': '1' }, trig),
+      h('h2', null, 'Menu row (ContactRow)'), h('div', { 'data-srow': '1' }, rowStates));
+  }
+
+  function App() {
+    if (STATES) return h(States);
+    return h('div', { 'data-bgwrap': '1' },
+      h('img', { 'data-bg': '1', src: '../screens/raw/' + BG + '.png', alt: '' }),
+      DIR === 'A' ? h(A) : DIR === 'B' ? h(B) : h(C));
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(h(App));
+})();
+</script>
+</body>
+</html>
