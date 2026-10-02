@@ -53,8 +53,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
 <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--vt-text-muted)">{{ placeholder }}</span>
 </sc-if>
-<span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ value }}</span>
-<span style="color:var(--vt-text-secondary);font-variant-numeric:tabular-nums">{{ time }}</span>
+<span data-vt-no-i18n style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ value }}</span>
+<span data-vt-no-i18n style="color:var(--vt-text-secondary);font-variant-numeric:tabular-nums" class="vt-dir-keep">{{ time }}</span>
 <sc-if value="{{ range }}" hint-placeholder-val="{{ false }}">
 <span style="color:var(--vt-text-muted);flex:0 0 auto">→</span>
 <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ value2 }}</span>
@@ -122,7 +122,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="clock" size="{{ n16 }}" color="var(--vt-text-muted)" hint-size="16px,16px"></x-import>
 <span style="font-size:var(--vt-label-md);font-weight:var(--vt-label-weight);letter-spacing:.02em;color:var(--vt-text-secondary);white-space:nowrap">{{ activeTimeTitle }}</span>
 </div>
-<div style="flex:1 1 auto;display:flex;align-items:center;justify-content:center;gap:8px;padding:18px 4px 8px">
+<div class="vt-dir-keep" style="flex:1 1 auto;display:flex;align-items:center;justify-content:center;gap:8px;padding:18px 4px 8px">
 <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
 <button type="button" aria-label="Hour up" onClick="{{ hourUp }}" style="all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;width:40px;height:32px;border-radius:999px;cursor:pointer;color:var(--vt-text-secondary)" style-hover="background:var(--vt-grey-100);color:var(--vt-text-primary)">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-up" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
@@ -188,12 +188,12 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 </div>
 </sc-if>
 <sc-if value="{{ notRange }}" hint-placeholder-val="{{ true }}">
-<div style="display:flex;align-items:center;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid var(--vt-border-subtle)">
-<span style="display:flex;flex-direction:column;gap:1px;min-width:0;flex:1 1 auto">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid var(--vt-border-subtle)">
+<span style="display:flex;flex-direction:column;gap:1px;min-width:0;flex:1 1 140px">
 <span style="font-size:10px;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ label }}</span>
-<span style="font-size:14px;font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary);font-variant-numeric:tabular-nums;white-space:nowrap">{{ summary }}</span>
+<span data-vt-no-i18n style="font-size:14px;font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ summary }}</span>
 </span>
-<span style="display:flex;align-items:center;gap:8px;flex:0 0 auto">
+<span style="display:flex;align-items:center;gap:8px;flex:0 0 auto;margin-inline-start:auto">
 <button type="button" onClick="{{ clearAll }}" style="all:unset;box-sizing:border-box;display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--vt-border-subtle);background:var(--vt-bg-surface);color:var(--vt-text-secondary);font-family:var(--vt-font-body);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:var(--vt-transition-control)" style-hover="border-color:var(--vt-charcoal-900);color:var(--vt-text-primary)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="x" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import>{{ clearLabel }}</button>
 <sc-if value="{{ notSaved }}" hint-placeholder-val="{{ true }}">
 <button type="button" onClick="{{ done }}" style="all:unset;box-sizing:border-box;display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 16px;border-radius:999px;border:1px solid var(--vt-charcoal-900);background:var(--vt-accent);color:var(--vt-charcoal-900);font-family:var(--vt-font-body);font-size:13px;font-weight:700;letter-spacing:.01em;cursor:pointer;white-space:nowrap;transition:var(--vt-transition-control)" style-hover="background:var(--vt-charcoal-900);color:var(--vt-accent)">{{ saveLabel }}</button>
@@ -256,7 +256,8 @@ class Component extends DCLogic {
     window.removeEventListener('resize', this._repos);
     clearTimeout(this._closeT);
   }
-  loc() { const l = this.props.locale || 'en'; return l === 'en' ? 'en-GB' : l; }
+  /* 261002: the same four-locale map as the home copy (digits stay Latin in Arabic). */
+  loc() { const l = this.props.locale || 'en'; return { en: 'en-GB', de: 'de-CH', fr: 'fr-CH', ar: 'ar-u-nu-latn' }[l] || l; }
   fmt(opts, d) { try { return new Intl.DateTimeFormat(this.loc(), opts).format(d); } catch (e) { return ''; } }
   dayLabel(y, m, d) { return this.fmt({ weekday: 'short', day: 'numeric', month: 'short' }, new Date(y, m, d)).replace(/,/g, ''); }
   shift(n) {
