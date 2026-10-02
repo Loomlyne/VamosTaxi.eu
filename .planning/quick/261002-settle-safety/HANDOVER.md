@@ -1,8 +1,9 @@
 # Hand-over — 261002 settle safety (2026-10-02 15:30 +04)
 
 Job session in `.claude/worktrees/settle-safety`, branch **`fix/settle-safety`**, cut from `origin/main` 3978fda9;
-`origin/main` re-read at 15:10 +04: still 3978fda9, nothing to merge. Code tip **f22b6a04**; the tip of the branch is
-the docs commit that adds this file (`git log -1 fix/settle-safety`). Folder clean after that commit.
+`origin/main` a03baf75 (controller take-over, `.planning` only) merged in at ac3f0331, clean; no code changed since the
+checks. Code tip **f22b6a04**; the tip of the branch is the docs commit after that merge (`git log -1 fix/settle-safety`).
+Folder clean. Controller: session `004ad4f0-a42f-453d-9991-85113f7d673f` (board line 3, since 15:26 +04).
 
 Owner signatures (question form, 2026-10-02 14:45 +04): S1 plan "Signed", S2 alert mail T1 "Approve as written",
 S3 dashboard message T2 "Approve as written" — `.planning/decisions/2026-10-02-settle-safety.md`.
