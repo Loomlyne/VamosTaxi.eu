@@ -14,7 +14,7 @@
 - Deploy with `--env staging` (Worker `vamos`, live on vamostaxi.site). A deploy without it made the stray Worker `vamos-web` on 2026-10-01.
 - Types with the pinned CLI: `pnpm exec supabase` (2.115.0), then `db:types:check`.
 - After any seed change, re-pin `packages/db/supabase/tests/seed_idempotent.test.sql` to the counts in the seed header.
-- Next migration number: `20261007200000`. Ask the controller first and check every remote branch for the file name.
+- Next migration number: `20261007210000`. Ask the controller first and check every remote branch for the file name.
 - Standing order (owner, 2026-10-01 17:41 +04, verbatim): "coomit and deply all after verify dont ask me". It is never used for the live Stripe key, the vamostaxi.eu cutover, price book row 18 Publish, deleting test bookings, or wiping data. Those need his word every time.
 
 Kept by the control session. One page: what is live, what is being built, what waits for
@@ -261,7 +261,8 @@ The owner decided every finding F1 to F14. Every Phase 20 ship needs his Ship.
 | 26.2 | `20261007100000` staff price preview (live); P4-A `110000`, trigger clean-up `120000`, P4-C `130000`; P1 `140000` (live); P6 `150000`; chauffeurs by class `160000` (live); **27.1 finish your account `170000`** (taken by the project chat "Finish your account" on 2026-10-01, reserved here after the fact) |
 | Phase 20 (more) | `20261005120000` reviews column grants (B1), `130000` erased-booking pay link (20-12), `140000` refunds by hand (20-10); leftovers G7/G10/G11/G12/G28 `20261007180000` (live 23:51); P6 `20261007150000` live 02:58 |
 | P6 follow-ups | `20261007190000` booking_edit_request_upsert: a customer time request waits while a staff change awaits payment (**live 14:13**; reserved 03:09, `fix/p6-followups`) |
-| **Next free** | **`20261007200000`**. Ask the controller first; check every remote branch for the file name |
+| Settle safety | `20261007200000` difference-payment settle: one lock order, retry on deadlock, paid-after-cancel is Refund due (reserved 2026-10-02 14:15, `fix/settle-safety`) |
+| **Next free** | **`20261007210000`**. Ask the controller first; check every remote branch for the file name |
 
 ## Decisions that stand
 
