@@ -1,0 +1,930 @@
+[
+ {
+  "at": "2026-10-02T22:04:50.724Z",
+  "idempotencyKey": "f4547861-e0b9-4985-9f0d-6e8a893beaab",
+  "unit_amount": 14462,
+  "amount_keys": [
+   "mode",
+   "ui_mode",
+   "success_url",
+   "cancel_url",
+   "payment_method_types",
+   "wallet_options",
+   "payment_intent_data",
+   "client_reference_id",
+   "customer_email",
+   "locale",
+   "expires_at",
+   "adaptive_pricing",
+   "expand",
+   "metadata",
+   "line_items"
+  ],
+  "failed": false,
+  "customer_email": "aud-murigvyp@example.com",
+  "metadata": {
+   "booking_id": "76472d23-f1e5-49e8-afe8-90263a2a2f34",
+   "booking_reference": "f4547861-e0b9-4985-9f0d-6e8a893beaab",
+   "selection": "976a1ce3f1923f8da46e701f3d7475b6c130722304f3e2662dbe7f1c83c0b1ef"
+  }
+ },
+ {
+  "at": "2026-10-02T22:05:14.473Z",
+  "idempotencyKey": "ddc8ab07-ccdd-4ba8-a85d-c724e98fac50",
+  "unit_amount": 14462,
+  "amount_keys": [
+   "mode",
+   "ui_mode",
+   "success_url",
+   "cancel_url",
+   "payment_method_types",
+   "wallet_options",
+   "payment_intent_data",
+   "client_reference_id",
+   "customer_email",
+   "locale",
+   "expires_at",
+   "adaptive_pricing",
+   "expand",
+   "metadata",
+   "line_items"
+  ],
+  "failed": false,
+  "customer_email": "aud-murihe1k@example.com",
+  "metadata": {
+   "booking_id": "40da604a-272d-4497-96ae-c505cdd51eb9",
+   "booking_reference": "ddc8ab07-ccdd-4ba8-a85d-c724e98fac50",
+   "selection": "b39917b0c5d778453c500b8336d023a78de578bb15f7a5862c8c4aa529a5075b"
+  }
+ },
+ {
+  "at": "2026-10-02T22:05:30.028Z",
+  "idempotencyKey": "155feab6-a45e-45ae-a502-8cf17fbc29d9",
+  "unit_amount": 13988,
+  "amount_keys": [
+   "mode",
+   "ui_mode",
+   "success_url",
+   "cancel_url",
+   "payment_method_types",
+   "wallet_options",
+   "payment_intent_data",
+   "client_reference_id",
+   "customer_email",
+   "locale",
+   "expires_at",
+   "adaptive_pricing",
+   "expand",
+   "metadata",
+   "line_items"
+  ],
+  "failed": false,
+  "customer_email": "aud-murihpyb@example.com",
+  "metadata": {
+   "booking_id": "00c1d904-0b31-45f7-a0ee-469f845b4057",
+   "booking_reference": "155feab6-a45e-45ae-a502-8cf17fbc29d9",
+   "selection": "dbcba8933e4973a3dea22a9780a261be3776409f0ebe046f68582583f07d2f38"
+  }
+ },
+ {
+  "at": "2026-10-02T22:05:50.501Z",
+  "idempotencyKey": "9e4c1b4c-63ac-42db-b5c4-abcfcf1b3172",
+  "unit_amount": 15543,
+  "amount_keys": [
+   "mode",
+   "ui_mode",
+   "success_url",
+   "cancel_url",
+   "payment_method_types",
+   "wallet_options",
+   "payment_intent_data",
+   "client_reference_id",
+   "customer_email",
+   "locale",
+   "expires_at",
+   "adaptive_pricing",
+   "expand",
+   "metadata",
+   "line_items"
+  ],
+  "failed": false,
+  "customer_email": "aud-murii5qd@example.com",
+  "metadata": {
+   "booking_id": "ac07b271-cb4b-4500-8b18-3a87a3b72ca6",
+   "booking_reference": "9e4c1b4c-63ac-42db-b5c4-abcfcf1b3172",
+   "selection": "b32c3e67288d71ec61fc22a714ab0a5ed03cacaf1efad0680696ba4a7d884fe0"
+  }
+ },
+ {
+  "at": "2026-10-02T22:06:06.238Z",
+  "idempotencyKey": "5bec8d74-1970-4628-9c68-a87bdb6e23c4",
+  "unit_amount": 14462,
+  "amount_keys": [
+   "mode",
+   "ui_mode",
+   "success_url",
+   "cancel_url",
+   "payment_method_types",
+   "wallet_options",
+   "payment_intent_data",
+   "client_reference_id",
+   "customer_email",
+   "locale",
+   "expires_at",
+   "adaptive_pricing",
+   "expand",
+   "metadata",
+   "line_items"
+  ],
+  "failed": true,
+  "customer_email": "aud-muriihvb@example.com",
+  "metadata": {
+   "booking_id": "94dea11c-54fa-4a76-bfd1-3c4bf0746080",
+   "booking_reference": "5bec8d74-1970-4628-9c68-a87bdb6e23c4",
+   "selection": "f36b3b3bcaaf1efce5a7d08d6b17db05fd77ee2811646dc312d7aed78470abbc"
+  }
+ },
+ {
+  "at": "2026-10-02T22:06:06.742Z",
+  "idempotencyKey": "5bec8d74-1970-4628-9c68-a87bdb6e23c4",
+  "unit_amount": 14462,
+  "amount_keys": [
+   "mode",
+   "ui_mode",
+   "success_url",
+   "cancel_url",
+   "payment_method_types",
+   "wallet_options",
+   "payment_intent_data",
+   "client_reference_id",
+   "customer_email",
+   "locale",
+   "expires_at",
+   "adaptive_pricing",
+   "expand",
+   "metadata",
+   "line_items"
+  ],
+  "failed": false,
+  "customer_email": "aud-muriihvb@example.com",
+  "metadata": {
+   "booking_id": "94dea11c-54fa-4a76-bfd1-3c4bf0746080",
+   "booking_reference": "5bec8d74-1970-4628-9c68-a87bdb6e23c4",
+   "selection": "f36b3b3bcaaf1efce5a7d08d6b17db05fd77ee2811646dc312d7aed78470abbc"
+  }
+ },
+ {
+  "at": "2026-10-02T22:07:15.826Z",
+  "idempotencyKey": "b17e00e2-71ac-4877-9019-cbe65c1a5e0c",
+  "unit_amount": 14462,
+  "amount_keys": [
+   "mode",
+   "ui_mode",
+   "success_url",
+   "cancel_url",
+   "payment_method_types",
+   "wallet_options",
+   "payment_intent_data",
+   "client_reference_id",
+   "customer_email",
+   "locale",
+   "expires_at",
+   "adaptive_pricing",
+   "expand",
+   "metadata",
+   "line_items"
+  ],
+  "failed": true,
+  "customer_email": "aud-murijznd@example.com",
+  "metadata": {
+   "booking_id": "1731dcc6-9af7-44b1-8e2a-9ca891aaa708",
+   "booking_reference": "b17e00e2-71ac-4877-9019-cbe65c1a5e0c",
+   "selection": "67c4073b2bba271446c355295f7f4a9471756d1ee7cdca7ac36f7c047dd4bb53"
+  }
+ },
+ {
+  "at": "2026-10-02T22:07:16.330Z",
+  "idempotencyKey": "b17e00e2-71ac-4877-9019-cbe65c1a5e0c",
+  "unit_amount": 14462,
+  "amount_keys": [
+   "mode",
+   "ui_mode",
+   "success_url",
+   "cancel_url",
+   "payment_method_types",
+   "wallet_options",
+   "payment_intent_data",
+   "client_reference_id",
+   "customer_email",
+   "locale",
+   "expires_at",
+   "adaptive_pricing",
+   "expand",
+   "metadata",
+   "line_items"
+  ],
+  "failed": true,
+  "customer_email": "aud-murijznd@example.com",
+  "metadata": {
+   "booking_id": "1731dcc6-9af7-44b1-8e2a-9ca891aaa708",
+   "booking_reference": "b17e00e2-71ac-4877-9019-cbe65c1a5e0c",
+   "selection": "67c4073b2bba271446c355295f7f4a9471756d1ee7cdca7ac36f7c047dd4bb53"
+  }
+ },
+ {
+  "at": "2026-10-02T22:07:16.834Z",
+  "idempotencyKey": "b17e00e2-71ac-4877-9019-cbe65c1a5e0c",
+  "unit_amount": 14462,
+  "amount_keys": [
+   "mode",
+   "ui_mode",
+   "success_url",
+   "cancel_url",
+   "payment_method_types",
+   "wallet_options",
+   "payment_intent_data",
+   "client_reference_id",
+   "customer_email",
+   "locale",
+   "expires_at",
+   "adaptive_pricing",
+   "expand",
+   "metadata",
+   "line_items"
+  ],
+  "failed": true,
+  "customer_email": "aud-murijznd@example.com",
+  "metadata": {
+   "booking_id": "1731dcc6-9af7-44b1-8e2a-9ca891aaa708",
+   "booking_reference": "b17e00e2-71ac-4877-9019-cbe65c1a5e0c",
+   "selection": "67c4073b2bba271446c355295f7f4a9471756d1ee7cdca7ac36f7c047dd4bb53"
+  }
+ },
+ {
+  "at": "2026-10-02T22:07:19.300Z",
+  "idempotencyKey": "4fdb7888-af44-4852-aff4-5dfe974b53de",
+  "unit_amount": 14462,
+  "amount_keys": [
+   "mode",
+   "ui_mode",
+   "success_url",
+   "cancel_url",
+   "payment_method_types",
+   "wallet_options",
+   "payment_intent_data",
+   "client_reference_id",
+   "customer_email",
+   "locale",
+   "expires_at",
+   "adaptive_pricing",
+   "expand",
+   "metadata",
+   "line_items"
+  ],
+  "failed": false,
+  "customer_email": "aud-murijznd@example.com",
+  "metadata": {
+   "booking_id": "1731dcc6-9af7-44b1-8e2a-9ca891aaa708",
+   "booking_reference": "4fdb7888-af44-4852-aff4-5dfe974b53de",
+   "selection": "67c4073b2bba271446c355295f7f4a9471756d1ee7cdca7ac36f7c047dd4bb53"
+  }
+ },
+ {
+  "at": "2026-10-02T22:07:35.656Z",
+  "idempotencyKey": "5f89ffa3-5811-433c-a9fd-22abf4c1fd79",
+  "unit_amount": 14462,
+  "amount_keys": [
+   "mode",
+   "ui_mode",
+   "success_url",
+   "cancel_url",
+   "payment_method_types",
+   "wallet_options",
+   "payment_intent_data",
+   "client_reference_id",
+   "customer_email",
+   "locale",
+   "expires_at",
+   "adaptive_pricing",
+   "expand",
+   "metadata",
+   "line_items"
+  ],
+  "failed": true,
+  "customer_email": "aud-murikenm@example.com",
+  "metadata": {
+   "booking_id": "37de1325-3f0a-43f3-9a78-93835b762015",
+   "booking_reference": "5f89ffa3-5811-433c-a9fd-22abf4c1fd79",
+   "selection": "6bbdb522467af6bf7c397e286c13a6efa3b2df7dc7a2b627b715929ba1e1a027"
+  }
+ },
+ {
+  "at": "2026-10-02T22:07:36.171Z",
+  "idempotencyKey": "5f89ffa3-5811-433c-a9fd-22abf4c1fd79",
+  "unit_amount": 14462,
+  "amount_keys": [
+   "mode",
+   "ui_mode",
+   "success_url",
+   "cancel_url",
+   "payment_method_types",
+   "wallet_options",
+   "payment_intent_data",
+   "client_reference_id",
+   "customer_email",
+   "locale",
+   "expires_at",
+   "adaptive_pricing",
+   "expand",
+   "metadata",
+   "line_items"
+  ],
+  "failed": false,
+  "customer_email": "aud-murikenm@example.com",
+  "metadata": {
+   "booking_id": "37de1325-3f0a-43f3-9a78-93835b762015",
+   "booking_reference": "5f89ffa3-5811-433c-a9fd-22abf4c1fd79",
+   "selection": "6bbdb522467af6bf7c397e286c13a6efa3b2df7dc7a2b627b715929ba1e1a027"
+  }
+ },
+ {
+  "at": "2026-10-02T22:07:56.134Z",
+  "idempotencyKey": "61f7e0ae-073f-4bd3-9e05-1254fa3d6510",
+  "unit_amount": 14462,
+  "amount_keys": [
+   "mode",
+   "ui_mode",
+   "success_url",
+   "cancel_url",
+   "payment_method_types",
+   "wallet_options",
+   "payment_intent_data",
+   "client_reference_id",
+   "customer_email",
+   "locale",
+   "expires_at",
+   "adaptive_pricing",
+   "expand",
+   "metadata",
+   "line_items"
+  ],
+  "failed": false,
+  "customer_email": "aud-murikuu5@example.com",
+  "metadata": {
+   "booking_id": "a0b14fda-2302-4a3b-87d6-74a16a998c2f",
+   "booking_reference": "61f7e0ae-073f-4bd3-9e05-1254fa3d6510",
+   "selection": "2948de88aa61382c459940cd790d2d9bd9664754794ebccbfb23e9987e775e7d"
+  }
+ },
+ {
+  "at": "2026-10-02T22:08:10.707Z",
+  "idempotencyKey": "1e5b3917-27b6-45de-b9fd-238337f3b6a4",
+  "unit_amount": 13988,
+  "amount_keys": [
+   "mode",
+   "ui_mode",
+   "success_url",
+   "cancel_url",
+   "payment_method_types",
+   "wallet_options",
+   "payment_intent_data",
+   "client_reference_id",
+   "customer_email",
+   "locale",
+   "expires_at",
+   "adaptive_pricing",
+   "expand",
+   "metadata",
+   "line_items"
+  ],
+  "failed": false,
+  "customer_email": "aud-muril644@example.com",
+  "metadata": {
+   "booking_id": "af4cdee6-88a5-4cf3-8169-060e631c9126",
+   "booking_reference": "1e5b3917-27b6-45de-b9fd-238337f3b6a4",
+   "selection": "a68c1b02ba2b2672ad649ae55f65eb48fe31a64f2505f59a20d0b8865c176d18"
+  }
+ },
+ {
+  "at": "2026-10-02T22:08:27.469Z",
+  "idempotencyKey": "1facda0b-9f0b-4a0b-aeba-11c30e7a8300",
+  "unit_amount": 15543,
+  "amount_keys": [
+   "mode",
+   "ui_mode",
+   "success_url",
+   "cancel_url",
+   "payment_method_types",
+   "wallet_options",
+   "payment_intent_data",
+   "client_reference_id",
+   "customer_email",
+   "locale",
+   "expires_at",
+   "adaptive_pricing",
+   "expand",
+   "metadata",
+   "line_items"
+  ],
+  "failed": false,
+  "customer_email": "aud-murilj2c@example.com",
+  "metadata": {
+   "booking_id": "634e8cfb-de70-46a7-84e4-de88def2c586",
+   "booking_reference": "1facda0b-9f0b-4a0b-aeba-11c30e7a8300",
+   "selection": "5286075823e646fd3e9add4f30176a0486dad509cdefbdbe9384146fe6d9d254"
+  }
+ },
+ {
+  "at": "2026-10-02T22:08:41.643Z",
+  "idempotencyKey": "c6d51dc8-eac7-4a84-a5f9-1af1101b68d5",
+  "unit_amount": 14462,
+  "amount_keys": [
+   "mode",
+   "ui_mode",
+   "success_url",
+   "cancel_url",
+   "payment_method_types",
+   "wallet_options",
+   "payment_intent_data",
+   "client_reference_id",
+   "customer_email",
+   "locale",
+   "expires_at",
+   "adaptive_pricing",
+   "expand",
+   "metadata",
+   "line_items"
+  ],
+  "failed": true,
+  "customer_email": "aud-murilu0c@example.com",
+  "metadata": {
+   "booking_id": "16f41406-80e0-463d-974e-46e2e6020410",
+   "booking_reference": "c6d51dc8-eac7-4a84-a5f9-1af1101b68d5",
+   "selection": "04d80443edcb08eb8a1b709c7abef8862e9d18c0045095115d06e6ba197fd245"
+  }
+ },
+ {
+  "at": "2026-10-02T22:08:42.149Z",
+  "idempotencyKey": "c6d51dc8-eac7-4a84-a5f9-1af1101b68d5",
+  "unit_amount": 14462,
+  "amount_keys": [
+   "mode",
+   "ui_mode",
+   "success_url",
+   "cancel_url",
+   "payment_method_types",
+   "wallet_options",
+   "payment_intent_data",
+   "client_reference_id",
+   "customer_email",
+   "locale",
+   "expires_at",
+   "adaptive_pricing",
+   "expand",
+   "metadata",
+   "line_items"
+  ],
+  "failed": true,
+  "customer_email": "aud-murilu0c@example.com",
+  "metadata": {
+   "booking_id": "16f41406-80e0-463d-974e-46e2e6020410",
+   "booking_reference": "c6d51dc8-eac7-4a84-a5f9-1af1101b68d5",
+   "selection": "04d80443edcb08eb8a1b709c7abef8862e9d18c0045095115d06e6ba197fd245"
+  }
+ },
+ {
+  "at": "2026-10-02T22:08:42.652Z",
+  "idempotencyKey": "c6d51dc8-eac7-4a84-a5f9-1af1101b68d5",
+  "unit_amount": 14462,
+  "amount_keys": [
+   "mode",
+   "ui_mode",
+   "success_url",
+   "cancel_url",
+   "payment_method_types",
+   "wallet_options",
+   "payment_intent_data",
+   "client_reference_id",
+   "customer_email",
+   "locale",
+   "expires_at",
+   "adaptive_pricing",
+   "expand",
+   "metadata",
+   "line_items"
+  ],
+  "failed": true,
+  "customer_email": "aud-murilu0c@example.com",
+  "metadata": {
+   "booking_id": "16f41406-80e0-463d-974e-46e2e6020410",
+   "booking_reference": "c6d51dc8-eac7-4a84-a5f9-1af1101b68d5",
+   "selection": "04d80443edcb08eb8a1b709c7abef8862e9d18c0045095115d06e6ba197fd245"
+  }
+ },
+ {
+  "at": "2026-10-02T22:08:44.894Z",
+  "idempotencyKey": "e899f68e-045e-4cf6-8c85-b3fe7ff80241",
+  "unit_amount": 14462,
+  "amount_keys": [
+   "mode",
+   "ui_mode",
+   "success_url",
+   "cancel_url",
+   "payment_method_types",
+   "wallet_options",
+   "payment_intent_data",
+   "client_reference_id",
+   "customer_email",
+   "locale",
+   "expires_at",
+   "adaptive_pricing",
+   "expand",
+   "metadata",
+   "line_items"
+  ],
+  "failed": false,
+  "customer_email": "aud-murilu0c@example.com",
+  "metadata": {
+   "booking_id": "16f41406-80e0-463d-974e-46e2e6020410",
+   "booking_reference": "e899f68e-045e-4cf6-8c85-b3fe7ff80241",
+   "selection": "04d80443edcb08eb8a1b709c7abef8862e9d18c0045095115d06e6ba197fd245"
+  }
+ },
+ {
+  "at": "2026-10-02T22:08:58.979Z",
+  "idempotencyKey": "9b46c7be-6c72-4ed2-8e4e-9c39431ff284",
+  "unit_amount": 14462,
+  "amount_keys": [
+   "mode",
+   "ui_mode",
+   "success_url",
+   "cancel_url",
+   "payment_method_types",
+   "wallet_options",
+   "payment_intent_data",
+   "client_reference_id",
+   "customer_email",
+   "locale",
+   "expires_at",
+   "adaptive_pricing",
+   "expand",
+   "metadata",
+   "line_items"
+  ],
+  "failed": true,
+  "customer_email": "aud-murim7dd@example.com",
+  "metadata": {
+   "booking_id": "8a83245b-c847-4361-9d69-aa6df55f7bd0",
+   "booking_reference": "9b46c7be-6c72-4ed2-8e4e-9c39431ff284",
+   "selection": "8a526ee8ea1b69ac0c83b9b24236af69ab4d295fe05fdd89661365a3558845eb"
+  }
+ },
+ {
+  "at": "2026-10-02T22:08:59.482Z",
+  "idempotencyKey": "9b46c7be-6c72-4ed2-8e4e-9c39431ff284",
+  "unit_amount": 14462,
+  "amount_keys": [
+   "mode",
+   "ui_mode",
+   "success_url",
+   "cancel_url",
+   "payment_method_types",
+   "wallet_options",
+   "payment_intent_data",
+   "client_reference_id",
+   "customer_email",
+   "locale",
+   "expires_at",
+   "adaptive_pricing",
+   "expand",
+   "metadata",
+   "line_items"
+  ],
+  "failed": false,
+  "customer_email": "aud-murim7dd@example.com",
+  "metadata": {
+   "booking_id": "8a83245b-c847-4361-9d69-aa6df55f7bd0",
+   "booking_reference": "9b46c7be-6c72-4ed2-8e4e-9c39431ff284",
+   "selection": "8a526ee8ea1b69ac0c83b9b24236af69ab4d295fe05fdd89661365a3558845eb"
+  }
+ },
+ {
+  "at": "2026-10-02T22:09:52.540Z",
+  "idempotencyKey": "f7462eff-887b-45d1-9e0e-7a3ffc42bbad",
+  "unit_amount": 14462,
+  "amount_keys": [
+   "mode",
+   "ui_mode",
+   "success_url",
+   "cancel_url",
+   "payment_method_types",
+   "wallet_options",
+   "payment_intent_data",
+   "client_reference_id",
+   "customer_email",
+   "locale",
+   "expires_at",
+   "adaptive_pricing",
+   "expand",
+   "metadata",
+   "line_items"
+  ],
+  "failed": true,
+  "customer_email": "aud-murincoe@example.com",
+  "metadata": {
+   "booking_id": "02d7488d-9266-4c4f-b33c-d3b30774a8bb",
+   "booking_reference": "f7462eff-887b-45d1-9e0e-7a3ffc42bbad",
+   "selection": "dabdca613a64446a453bbfcb1b03456bf822fba6a6b47ec2b5376e12cfc49d2d"
+  }
+ },
+ {
+  "at": "2026-10-02T22:09:53.043Z",
+  "idempotencyKey": "f7462eff-887b-45d1-9e0e-7a3ffc42bbad",
+  "unit_amount": 14462,
+  "amount_keys": [
+   "mode",
+   "ui_mode",
+   "success_url",
+   "cancel_url",
+   "payment_method_types",
+   "wallet_options",
+   "payment_intent_data",
+   "client_reference_id",
+   "customer_email",
+   "locale",
+   "expires_at",
+   "adaptive_pricing",
+   "expand",
+   "metadata",
+   "line_items"
+  ],
+  "failed": false,
+  "customer_email": "aud-murincoe@example.com",
+  "metadata": {
+   "booking_id": "02d7488d-9266-4c4f-b33c-d3b30774a8bb",
+   "booking_reference": "f7462eff-887b-45d1-9e0e-7a3ffc42bbad",
+   "selection": "dabdca613a64446a453bbfcb1b03456bf822fba6a6b47ec2b5376e12cfc49d2d"
+  }
+ },
+ {
+  "at": "2026-10-02T22:12:24.785Z",
+  "idempotencyKey": "0f533f6a-b2f7-48a6-993a-753c1600fbc9",
+  "unit_amount": 14462,
+  "amount_keys": [
+   "mode",
+   "ui_mode",
+   "success_url",
+   "cancel_url",
+   "payment_method_types",
+   "wallet_options",
+   "payment_intent_data",
+   "client_reference_id",
+   "customer_email",
+   "locale",
+   "expires_at",
+   "adaptive_pricing",
+   "expand",
+   "metadata",
+   "line_items"
+  ],
+  "failed": false,
+  "customer_email": "aud-muriqm37@example.com",
+  "metadata": {
+   "booking_id": "5249accb-9922-4cec-9a46-70ef5a51e8a6",
+   "booking_reference": "0f533f6a-b2f7-48a6-993a-753c1600fbc9",
+   "selection": "95094f52ccb9de0c2e149db49628feaebb02e731de54d2264e1a2fa4610d773f"
+  }
+ },
+ {
+  "at": "2026-10-02T22:12:39.284Z",
+  "idempotencyKey": "3b903d1b-a8b3-46aa-ac5b-e058fe36b5dd",
+  "unit_amount": 13988,
+  "amount_keys": [
+   "mode",
+   "ui_mode",
+   "success_url",
+   "cancel_url",
+   "payment_method_types",
+   "wallet_options",
+   "payment_intent_data",
+   "client_reference_id",
+   "customer_email",
+   "locale",
+   "expires_at",
+   "adaptive_pricing",
+   "expand",
+   "metadata",
+   "line_items"
+  ],
+  "failed": false,
+  "customer_email": "aud-muriqxd6@example.com",
+  "metadata": {
+   "booking_id": "7a2880ef-53de-4c99-b621-bd29647d7cff",
+   "booking_reference": "3b903d1b-a8b3-46aa-ac5b-e058fe36b5dd",
+   "selection": "2a3b15d0117e8ec24f8709d79dff36de0f17df97e45c33ac00b4e8cf4e217d29"
+  }
+ },
+ {
+  "at": "2026-10-02T22:12:56.269Z",
+  "idempotencyKey": "7acde28e-33b6-443a-98ac-94a467eb2a9d",
+  "unit_amount": 15543,
+  "amount_keys": [
+   "mode",
+   "ui_mode",
+   "success_url",
+   "cancel_url",
+   "payment_method_types",
+   "wallet_options",
+   "payment_intent_data",
+   "client_reference_id",
+   "customer_email",
+   "locale",
+   "expires_at",
+   "adaptive_pricing",
+   "expand",
+   "metadata",
+   "line_items"
+  ],
+  "failed": false,
+  "customer_email": "aud-murirah7@example.com",
+  "metadata": {
+   "booking_id": "e4b25149-40e9-4e8d-963f-4acb586cc5fd",
+   "booking_reference": "7acde28e-33b6-443a-98ac-94a467eb2a9d",
+   "selection": "d39989758f941526df3a1b3848f54943c1ce872838fd879f8cbefd976e0ae4eb"
+  }
+ },
+ {
+  "at": "2026-10-02T22:13:10.368Z",
+  "idempotencyKey": "f0fdfdaf-3bc8-45f1-b27f-3f7ae1670206",
+  "unit_amount": 14462,
+  "amount_keys": [
+   "mode",
+   "ui_mode",
+   "success_url",
+   "cancel_url",
+   "payment_method_types",
+   "wallet_options",
+   "payment_intent_data",
+   "client_reference_id",
+   "customer_email",
+   "locale",
+   "expires_at",
+   "adaptive_pricing",
+   "expand",
+   "metadata",
+   "line_items"
+  ],
+  "failed": true,
+  "customer_email": "aud-murirlcw@example.com",
+  "metadata": {
+   "booking_id": "9c557d54-c18c-4656-b566-d9c0a27aaf99",
+   "booking_reference": "f0fdfdaf-3bc8-45f1-b27f-3f7ae1670206",
+   "selection": "8ff6e8cdfe1bdfb1d89845ed28f7b52c057fbf3d3656dabf099c2a7a1318d3fd"
+  }
+ },
+ {
+  "at": "2026-10-02T22:13:10.871Z",
+  "idempotencyKey": "f0fdfdaf-3bc8-45f1-b27f-3f7ae1670206",
+  "unit_amount": 14462,
+  "amount_keys": [
+   "mode",
+   "ui_mode",
+   "success_url",
+   "cancel_url",
+   "payment_method_types",
+   "wallet_options",
+   "payment_intent_data",
+   "client_reference_id",
+   "customer_email",
+   "locale",
+   "expires_at",
+   "adaptive_pricing",
+   "expand",
+   "metadata",
+   "line_items"
+  ],
+  "failed": true,
+  "customer_email": "aud-murirlcw@example.com",
+  "metadata": {
+   "booking_id": "9c557d54-c18c-4656-b566-d9c0a27aaf99",
+   "booking_reference": "f0fdfdaf-3bc8-45f1-b27f-3f7ae1670206",
+   "selection": "8ff6e8cdfe1bdfb1d89845ed28f7b52c057fbf3d3656dabf099c2a7a1318d3fd"
+  }
+ },
+ {
+  "at": "2026-10-02T22:13:11.373Z",
+  "idempotencyKey": "f0fdfdaf-3bc8-45f1-b27f-3f7ae1670206",
+  "unit_amount": 14462,
+  "amount_keys": [
+   "mode",
+   "ui_mode",
+   "success_url",
+   "cancel_url",
+   "payment_method_types",
+   "wallet_options",
+   "payment_intent_data",
+   "client_reference_id",
+   "customer_email",
+   "locale",
+   "expires_at",
+   "adaptive_pricing",
+   "expand",
+   "metadata",
+   "line_items"
+  ],
+  "failed": true,
+  "customer_email": "aud-murirlcw@example.com",
+  "metadata": {
+   "booking_id": "9c557d54-c18c-4656-b566-d9c0a27aaf99",
+   "booking_reference": "f0fdfdaf-3bc8-45f1-b27f-3f7ae1670206",
+   "selection": "8ff6e8cdfe1bdfb1d89845ed28f7b52c057fbf3d3656dabf099c2a7a1318d3fd"
+  }
+ },
+ {
+  "at": "2026-10-02T22:13:13.595Z",
+  "idempotencyKey": "25317a80-0e47-41a7-a987-086c368afe96",
+  "unit_amount": 14462,
+  "amount_keys": [
+   "mode",
+   "ui_mode",
+   "success_url",
+   "cancel_url",
+   "payment_method_types",
+   "wallet_options",
+   "payment_intent_data",
+   "client_reference_id",
+   "customer_email",
+   "locale",
+   "expires_at",
+   "adaptive_pricing",
+   "expand",
+   "metadata",
+   "line_items"
+  ],
+  "failed": false,
+  "customer_email": "aud-murirlcw@example.com",
+  "metadata": {
+   "booking_id": "9c557d54-c18c-4656-b566-d9c0a27aaf99",
+   "booking_reference": "25317a80-0e47-41a7-a987-086c368afe96",
+   "selection": "8ff6e8cdfe1bdfb1d89845ed28f7b52c057fbf3d3656dabf099c2a7a1318d3fd"
+  }
+ },
+ {
+  "at": "2026-10-02T22:13:27.756Z",
+  "idempotencyKey": "65a286fd-ead0-47c9-b168-4309d325dfaf",
+  "unit_amount": 14462,
+  "amount_keys": [
+   "mode",
+   "ui_mode",
+   "success_url",
+   "cancel_url",
+   "payment_method_types",
+   "wallet_options",
+   "payment_intent_data",
+   "client_reference_id",
+   "customer_email",
+   "locale",
+   "expires_at",
+   "adaptive_pricing",
+   "expand",
+   "metadata",
+   "line_items"
+  ],
+  "failed": true,
+  "customer_email": "aud-muriryrn@example.com",
+  "metadata": {
+   "booking_id": "b0f5e16e-a5ae-40ce-ae2b-3cca201dc548",
+   "booking_reference": "65a286fd-ead0-47c9-b168-4309d325dfaf",
+   "selection": "e4291e5ce2559b6076365508d8ea23b3bba142271f43f31aff5a8586e4be9ad2"
+  }
+ },
+ {
+  "at": "2026-10-02T22:13:28.259Z",
+  "idempotencyKey": "65a286fd-ead0-47c9-b168-4309d325dfaf",
+  "unit_amount": 14462,
+  "amount_keys": [
+   "mode",
+   "ui_mode",
+   "success_url",
+   "cancel_url",
+   "payment_method_types",
+   "wallet_options",
+   "payment_intent_data",
+   "client_reference_id",
+   "customer_email",
+   "locale",
+   "expires_at",
+   "adaptive_pricing",
+   "expand",
+   "metadata",
+   "line_items"
+  ],
+  "failed": false,
+  "customer_email": "aud-muriryrn@example.com",
+  "metadata": {
+   "booking_id": "b0f5e16e-a5ae-40ce-ae2b-3cca201dc548",
+   "booking_reference": "65a286fd-ead0-47c9-b168-4309d325dfaf",
+   "selection": "e4291e5ce2559b6076365508d8ea23b3bba142271f43f31aff5a8586e4be9ad2"
+  }
+ }
+]

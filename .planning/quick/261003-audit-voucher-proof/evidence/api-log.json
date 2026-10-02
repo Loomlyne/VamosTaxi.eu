@@ -1,0 +1,962 @@
+{
+ "results": [
+  {
+   "n": "1 fixed voucher: summary shows voucher line and lower total",
+   "ok": true,
+   "ev": "before PAY label \"PAY CHF 155.43\", after \"PAY CHF 144.62\"; applied line=1; summary: PICKUP Zurich Airport (ZRH), Terminal 2 DESTINATION Zug station 42.5 km Sat 10 Oct, 03:15 1 passenger · 0 bags Economy LX 318 Fare CHF 143.78 Coupon AUDITFIX CHF -10.00 VAT 0.81 % CHF 10.84 TOTAL CHF 144.62 By continuing you accept the terms and the cancellati"
+  },
+  {
+   "n": "2 fixed voucher: PAY ok, fake Stripe amount equals discounted total",
+   "ok": true,
+   "ev": "intent 200 {\"ok\":true,\"reference\":\"VT-26-0014\",\"booking_id\":\"a0415ef6-252b-4ef4-ab4a-cbea72e295b2\",\"url\":\"<url>; stripe got [14462] rappen; displayed 144.62; full was 155.43"
+  },
+  {
+   "n": "3 percent voucher: voucher line, lower total, PAY ok, Stripe amount equals total",
+   "ok": true,
+   "ev": "full 155.43 -> 139.88; intent 200; stripe got [13988] rappen"
+  },
+  {
+   "n": "4 voucher removed before PAY: PAY charges the full total",
+   "ok": true,
+   "ev": "full 155.43, with voucher 144.62, after remove 155.43; intent 200; stripe got [15543] rappen"
+  },
+  {
+   "n": "5a first PAY: fake Stripe answers 500 (3 calls: initial + 2 SDK retries), PAY is refused, page stays usable",
+   "ok": true,
+   "ev": "intent 500 {\"ok\":false,\"error\":\"intent_unhandled\"}; stripe calls 3, keys f0fdfdaf-3bc8-45f1-b27f-3f7ae1670206; page error: Payment did not start. Try Pay again. | ; body: EN CHF Sign in Zurich Airport (ZRH), Terminal 2 Zug station 42.5 km · Sat 10 Oct, 03:15 · 1 passenger · 0 bags Edit trip Choose your class Economy 3 seats 3 bag"
+  },
+  {
+   "n": "5b second PAY: new session with a different idempotency key, succeeds, discounted amount",
+   "ok": true,
+   "ev": "first press key f0fdfdaf-3bc8-45f1-b27f-3f7ae1670206; second press key 25317a80-0e47-41a7-a987-086c368afe96; intent 200; stripe got 14462 rappen vs displayed 144.62"
+  },
+  {
+   "n": "5c one 500 only: SDK retry inside the same press succeeds (same key twice, 500 then 200)",
+   "ok": true,
+   "ev": "intent 200; calls [[true,14462],[false,14462]]; keys equal true"
+  },
+  {
+   "n": "6 /de/checkout voucher line in German (the Worker 308s /de/checkout to /checkout; German comes from the language store)",
+   "ok": true,
+   "ev": "/checkout; html lang=de; line: \"Gutschein AUDITFIX eingelöst\"; pay button: \"BEZAHLEN CHF 144.62\""
+  }
+ ],
+ "scenarios": [
+  {
+   "scenario": "s1-fixed",
+   "errors": [],
+   "api": [
+    {
+     "at": "2026-10-02T22:12:12.548Z",
+     "method": "GET",
+     "path": "/api/auth/session",
+     "status": 200,
+     "request": "",
+     "response": "{\"signedIn\":false,\"displayName\":null,\"email\":null,\"emailConfirmed\":false,\"phone\":null,\"finishRequired\":false}"
+    },
+    {
+     "at": "2026-10-02T22:12:12.562Z",
+     "method": "GET",
+     "path": "/api/reviews",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"data\":[]}"
+    },
+    {
+     "at": "2026-10-02T22:12:12.587Z",
+     "method": "GET",
+     "path": "/api/consent/state",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"chosen\":false,\"policyVersion\":\"2026-10-01\"}"
+    },
+    {
+     "at": "2026-10-02T22:12:12.592Z",
+     "method": "GET",
+     "path": "/api/quote",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"classes\":[{\"slug\":\"economy\",\"eligible\":true,\"ineligible_reason\":null,\"effective_max_pax\":3,\"max_bags\":3,\"fixed_route\":false,\"lines\":[],\"total_rappen\":null,\"name\":\"Economy\",\"photo_url\":null},{\"slug\":\"business\",\"eligible\":true,\"ineligible_reason\":null,\"effective_max_pax\":3,\"max_bags\":3,\"fixed_route\":false,\"lines\":[],\"total_rappen\":null,\"name\":\"Business\",\"photo_url\":null},{\"slug\":\"van\",\"eligible\":true,\"ineligible_reason\":null,\"effective_max_pax\":8,\"max_bags\":8,\"fixed_route\":false,\"lines\":[],\"total_rappen\":null,\"name\":\"Van\",\"photo_url\":null}],\"fixed_routes\":[]}"
+    },
+    {
+     "at": "2026-10-02T22:12:13.449Z",
+     "method": "GET",
+     "path": "/api/geo/suggest?q=Zug&session_token=77277e92-f316-45a2-94b3-384a0be3b033&locale=en",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"suggestions\":[{\"mapbox_id\":\"mb-zug\",\"name\":\"Zug station\",\"address\":\"Bahnhofplatz, 6300 Zug\",\"context\":\"Bahnhofplatz, 6300 Zug\"}]}"
+    },
+    {
+     "at": "2026-10-02T22:12:14.586Z",
+     "method": "GET",
+     "path": "/api/auth/session",
+     "status": 200,
+     "request": "",
+     "response": "{\"signedIn\":false,\"displayName\":null,\"email\":null,\"emailConfirmed\":false,\"phone\":null,\"finishRequired\":false}"
+    },
+    {
+     "at": "2026-10-02T22:12:14.586Z",
+     "method": "GET",
+     "path": "/api/checkout/me",
+     "status": 200,
+     "request": "",
+     "response": "{\"signed_in\":false}"
+    },
+    {
+     "at": "2026-10-02T22:12:14.614Z",
+     "method": "GET",
+     "path": "/api/geo/suggest?q=Zurich%20Airport%20(ZRH)%2C%20Terminal%202&session_token=d99e6dd0-f70e-4cc7-9a2d-7d5721d4e2b4&locale=en",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"suggestions\":[{\"mapbox_id\":\"mb-zrh\",\"name\":\"Zurich Airport\",\"address\":\"Flughafenstrasse, 8058 Kloten\",\"context\":\"Flughafenstrasse, 8058 Kloten\"}]}"
+    },
+    {
+     "at": "2026-10-02T22:12:14.615Z",
+     "method": "GET",
+     "path": "/api/geo/suggest?q=Zug%20station&session_token=d99e6dd0-f70e-4cc7-9a2d-7d5721d4e2b4&locale=en",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"suggestions\":[{\"mapbox_id\":\"mb-zug\",\"name\":\"Zug station\",\"address\":\"Bahnhofplatz, 6300 Zug\",\"context\":\"Bahnhofplatz, 6300 Zug\"}]}"
+    },
+    {
+     "at": "2026-10-02T22:12:14.665Z",
+     "method": "GET",
+     "path": "/api/consent/state",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"chosen\":true,\"policyVersion\":\"2026-10-01\",\"choice\":{\"method\":\"reject_all\",\"functional\":false,\"analytics\":false,\"marketing\":false,\"recordedAt\":\"2026-10-02T22:12:13.155Z\"}}"
+    },
+    {
+     "at": "2026-10-02T22:12:14.677Z",
+     "method": "GET",
+     "path": "/api/checkout/extras",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"extras\":[],\"vat_rate_bps\":81}"
+    },
+    {
+     "at": "2026-10-02T22:12:14.757Z",
+     "method": "POST",
+     "path": "/api/quote",
+     "status": 200,
+     "request": "{\"locale\":\"en\",\"display_currency\":\"CHF\",\"mode\":\"one_way\",\"pickup\":{\"kind\":\"retrieve\",\"mapbox_id\":\"mb-zrh\",\"session_token\":\"d99e6dd0-f70e-4cc7-9a2d-7d5721d4e2b4\",\"text\":\"Zurich Airport (ZRH), Terminal 2\"},\"dropoff\":{\"kind\":\"retrieve\",\"mapbox_id\":\"mb-zug\",\"session_token\":\"d99e6dd0-f70e-4cc7-9a2d-7d5721d4e2b4\",\"text\":\"Zug station\"},\"legs\":[{\"leg_seq\":1,\"scheduled_local\":\"2026-10-10T03:15\",\"flight_no\":\"LX318\"}],\"pax\":1,\"bags\":0}",
+     "response": "{\"ok\":true,\"quote_id\":\"5249accb-9922-4cec-9a46-70ef5a51e8a6\",\"lock\":\"v1.eyJiYWdzIjowLCJjbGFzc190b3RhbHMiOlt7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImVjb25vbXkiLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fSx7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImJ1c2luZXNzIiwidG90YWxfcmFwcGVuIjoxNDM3OH0seyJwcmVfY291cG9uX3JhcHBlbiI6MTQzNzgsInNsdWciOiJ2YW4iLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fV0sImNvbXB1dGVkX2F0IjoiMjAyNi0xMC0wMlQyMjoxMjoxNC42MjNaIiwiY291cG9uIjpudWxsLCJkaXNwbGF5X2N1cnJlbmN5IjoiQ0hGIiwiZW5naW5lX3ZlcnNpb24iOiJxdW90ZS1lbmdpbmVAMjY3NDQwZjUiLCJleHAiOiIyMDI2LTEwLTAzVDIyOjEyOjE0LjY4M1oiLCJleHRyYXMiOm51bGwsImxlZ3MiOlt7ImRlc3RfY2FudG9uIjoiWkciLCJkZXN0X2NpdHlfaWQiOiJjaXR5LXp1ZyIsImRlc3RfY2l0eV9uYW1lIjoiWnVnIiwiZGVzdF96b25lX2lkIjpudWxsLCJkaXN0YW5jZV9tIjo0MjUxNywiZHJvcG9mZiI6eyJsYXQiOjQ3LjE3MzcsImxuZyI6OC41MTUyLCJwbGFjZV9pZCI6Im1iLXp1ZyIsInRleHQiOiJadWcgc3RhdGlvbiJ9LCJkdXJhdGlvbl9zIjozMzAwLCJmbGlnaHRfbm8iOiJMWDMxOCIsImxhbmRpbmdfc291cmNlIjpudWxsLCJsZWdfc2VxIjoxLCJvcmlnaW5fY2FudG9uIjoiWkgiLCJvcmlnaW5fY2l0eV9pZCI6ImNpdHkta2xvdGVuIiwib3JpZ2luX2NpdHlfbmFtZSI6Iktsb3RlbiIsIm9yaWdpbl9pc19haXJwb3J0Ijp0cnVlLCJvcmlnaW5fem9uZV9pZCI6bnVsbCwicGlja3VwIjp7ImxhdCI6NDcuNDUwNCwibG5nIjo4LjU2MjQsInBsYWNlX2lkIjoibWItenJoIiwidGV4dCI6Ilp1cmljaCBBaXJwb3J0In0sInNjaGVkdWxlZF9sb2NhbCI6IjIwMjYtMTAtMTBUMDM6MTUifV0sIm1vZGUiOiJvbmVfd2F5IiwicGF4IjoxLCJwcmljZV9yb3dzIjpbeyJsaW5lcyI6W3siYW1vdW50X3JhcHBlbiI6MjAwMCwiY29kZSI6ImFpcnBvcnRfZmVlIiwibGVnX3NlcSI6MX1dLCJzbHVnIjoiZWNvbm9teSJ9LHsibGluZXMiOlt7ImFtb3VudF9yYXBwZW4iOjIwMDAsImNvZGUiOiJh"
+    },
+    {
+     "at": "2026-10-02T22:12:17.903Z",
+     "method": "POST",
+     "path": "/api/checkout/price",
+     "status": 200,
+     "request": "{\"lock\":\"v1.eyJiYWdzIjowLCJjbGFzc190b3RhbHMiOlt7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImVjb25vbXkiLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fSx7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImJ1c2luZXNzIiwidG90YWxfcmFwcGVuIjoxNDM3OH0seyJwcmVfY291cG9uX3JhcHBlbiI6MTQzNzgsInNsdWciOiJ2YW4iLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fV0sImNvbXB1dGVkX2F0IjoiMjAyNi0xMC0wMlQyMjoxMjoxNC42MjNaIiwiY291cG9uIjpudWxsLCJkaXNwbGF5X2N1cnJlbmN5IjoiQ0hGIiwiZW5naW5lX3ZlcnNpb24iOiJxdW90ZS1lbmdpbmVAMjY3NDQwZjUiLCJleHAiOiIyMDI2LTEwLTAzVDIyOjEyOjE0LjY4M1oiLCJleHRyYXMiOm51bGwsImxlZ3MiOlt7ImRlc3RfY2FudG9uIjoiWkciLCJkZXN0X2NpdHlfaWQiOiJjaXR5LXp1ZyIsImRlc3RfY2l0eV9uYW1lIjoiWnVnIiwiZGVzdF96b25lX2lkIjpudWxsLCJkaXN0YW5jZV9tIjo0MjUxNywiZHJvcG9mZiI6eyJsYXQiOjQ3LjE3MzcsImxuZyI6OC41MTUyLCJwbGFjZV9pZCI6Im1iLXp1ZyIsInRleHQiOiJadWcgc3RhdGlvbiJ9LCJkdXJhdGlvbl9zIjozMzAwLCJmbGlnaHRfbm8iOiJMWDMxOCIsImxhbmRpbmdfc291cmNlIjpudWxsLCJsZWdfc2VxIjoxLCJvcmlnaW5fY2FudG9uIjoiWkgiLCJvcmlnaW5fY2l0eV9pZCI6ImNpdHkta2xvdGVuIiwib3JpZ2luX2NpdHlfbmFtZSI6Iktsb3RlbiIsIm9yaWdpbl9pc19haXJwb3J0Ijp0cnVlLCJvcmlnaW5fem9uZV9pZCI6bnVsbCwicGlja3VwIjp7ImxhdCI6NDcuNDUwNCwibG5nIjo4LjU2MjQsInBsYWNlX2lkIjoibWItenJoIiwidGV4dCI6Ilp1cmljaCBBaXJwb3J0In0sInNjaGVkdWxlZF9sb2NhbCI6IjIwMjYtMTAtMTBUMDM6MTUifV0sIm1vZGUiOiJvbmVfd2F5IiwicGF4IjoxLCJwcmljZV9yb3dzIjpbeyJsaW5lcyI6W3siYW1vdW50X3JhcHBlbiI6MjAwMCwiY29kZSI6ImFpcnBvcnRfZmVlIiwibGVnX3NlcSI6MX1dLCJzbHVnIjoiZWNvbm9teSJ9LHsibGluZXMiOlt7ImFtb3VudF9yYXBwZW4iOjIwMDAsImNvZGUiOiJhaXJwb3J0X2ZlZSIsImxlZ19zZXEiOjF9XSwic2x1ZyI6ImJ1c2luZXNzIn0s",
+     "response": "{\"ok\":true,\"lines\":[{\"kind\":\"fare\",\"code\":\"distance_fare\",\"i18n_key\":\"price.line.transfer\",\"params\":{\"vehicleClass\":\"economy\"},\"amount_rappen\":14378},{\"kind\":\"vat\",\"code\":\"vat\",\"i18n_key\":\"price.line.vat\",\"params\":{\"vatRateBps\":81},\"amount_rappen\":1165}],\"net_rappen\":14378,\"vat_rappen\":1165,\"charged_rappen\":15543}"
+    },
+    {
+     "at": "2026-10-02T22:12:19.547Z",
+     "method": "POST",
+     "path": "/api/quote/reprice",
+     "status": 200,
+     "request": "{\"quote_id\":\"5249accb-9922-4cec-9a46-70ef5a51e8a6\",\"lock\":\"v1.eyJiYWdzIjowLCJjbGFzc190b3RhbHMiOlt7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImVjb25vbXkiLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fSx7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImJ1c2luZXNzIiwidG90YWxfcmFwcGVuIjoxNDM3OH0seyJwcmVfY291cG9uX3JhcHBlbiI6MTQzNzgsInNsdWciOiJ2YW4iLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fV0sImNvbXB1dGVkX2F0IjoiMjAyNi0xMC0wMlQyMjoxMjoxNC42MjNaIiwiY291cG9uIjpudWxsLCJkaXNwbGF5X2N1cnJlbmN5IjoiQ0hGIiwiZW5naW5lX3ZlcnNpb24iOiJxdW90ZS1lbmdpbmVAMjY3NDQwZjUiLCJleHAiOiIyMDI2LTEwLTAzVDIyOjEyOjE0LjY4M1oiLCJleHRyYXMiOm51bGwsImxlZ3MiOlt7ImRlc3RfY2FudG9uIjoiWkciLCJkZXN0X2NpdHlfaWQiOiJjaXR5LXp1ZyIsImRlc3RfY2l0eV9uYW1lIjoiWnVnIiwiZGVzdF96b25lX2lkIjpudWxsLCJkaXN0YW5jZV9tIjo0MjUxNywiZHJvcG9mZiI6eyJsYXQiOjQ3LjE3MzcsImxuZyI6OC41MTUyLCJwbGFjZV9pZCI6Im1iLXp1ZyIsInRleHQiOiJadWcgc3RhdGlvbiJ9LCJkdXJhdGlvbl9zIjozMzAwLCJmbGlnaHRfbm8iOiJMWDMxOCIsImxhbmRpbmdfc291cmNlIjpudWxsLCJsZWdfc2VxIjoxLCJvcmlnaW5fY2FudG9uIjoiWkgiLCJvcmlnaW5fY2l0eV9pZCI6ImNpdHkta2xvdGVuIiwib3JpZ2luX2NpdHlfbmFtZSI6Iktsb3RlbiIsIm9yaWdpbl9pc19haXJwb3J0Ijp0cnVlLCJvcmlnaW5fem9uZV9pZCI6bnVsbCwicGlja3VwIjp7ImxhdCI6NDcuNDUwNCwibG5nIjo4LjU2MjQsInBsYWNlX2lkIjoibWItenJoIiwidGV4dCI6Ilp1cmljaCBBaXJwb3J0In0sInNjaGVkdWxlZF9sb2NhbCI6IjIwMjYtMTAtMTBUMDM6MTUifV0sIm1vZGUiOiJvbmVfd2F5IiwicGF4IjoxLCJwcmljZV9yb3dzIjpbeyJsaW5lcyI6W3siYW1vdW50X3JhcHBlbiI6MjAwMCwiY29kZSI6ImFpcnBvcnRfZmVlIiwibGVnX3NlcSI6MX1dLCJzbHVnIjoiZWNvbm9teSJ9LHsibGluZXMiOlt7ImFtb3VudF9yYXBwZW4iOjIwMDAsImNvZGUiOiJhaXJwb3J0X2",
+     "response": "{\"ok\":true,\"quote_id\":\"5249accb-9922-4cec-9a46-70ef5a51e8a6\",\"lock\":\"v1.eyJiYWdzIjowLCJjbGFzc190b3RhbHMiOlt7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImVjb25vbXkiLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fSx7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImJ1c2luZXNzIiwidG90YWxfcmFwcGVuIjoxNDM3OH0seyJwcmVfY291cG9uX3JhcHBlbiI6MTQzNzgsInNsdWciOiJ2YW4iLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fV0sImNvbXB1dGVkX2F0IjoiMjAyNi0xMC0wMlQyMjoxMjoxNC42MjNaIiwiY291cG9uIjoiQVVESVRGSVgiLCJkaXNwbGF5X2N1cnJlbmN5IjoiQ0hGIiwiZW5naW5lX3ZlcnNpb24iOiJxdW90ZS1lbmdpbmVAMjY3NDQwZjUiLCJleHAiOiIyMDI2LTEwLTAzVDIyOjEyOjE0LjY4M1oiLCJleHRyYXMiOm51bGwsImxlZ3MiOlt7ImRlc3RfY2FudG9uIjoiWkciLCJkZXN0X2NpdHlfaWQiOiJjaXR5LXp1ZyIsImRlc3RfY2l0eV9uYW1lIjoiWnVnIiwiZGVzdF96b25lX2lkIjpudWxsLCJkaXN0YW5jZV9tIjo0MjUxNywiZHJvcG9mZiI6eyJsYXQiOjQ3LjE3MzcsImxuZyI6OC41MTUyLCJwbGFjZV9pZCI6Im1iLXp1ZyIsInRleHQiOiJadWcgc3RhdGlvbiJ9LCJkdXJhdGlvbl9zIjozMzAwLCJmbGlnaHRfbm8iOiJMWDMxOCIsImxhbmRpbmdfc291cmNlIjpudWxsLCJsZWdfc2VxIjoxLCJvcmlnaW5fY2FudG9uIjoiWkgiLCJvcmlnaW5fY2l0eV9pZCI6ImNpdHkta2xvdGVuIiwib3JpZ2luX2NpdHlfbmFtZSI6Iktsb3RlbiIsIm9yaWdpbl9pc19haXJwb3J0Ijp0cnVlLCJvcmlnaW5fem9uZV9pZCI6bnVsbCwicGlja3VwIjp7ImxhdCI6NDcuNDUwNCwibG5nIjo4LjU2MjQsInBsYWNlX2lkIjoibWItenJoIiwidGV4dCI6Ilp1cmljaCBBaXJwb3J0In0sInNjaGVkdWxlZF9sb2NhbCI6IjIwMjYtMTAtMTBUMDM6MTUifV0sIm1vZGUiOiJvbmVfd2F5IiwicGF4IjoxLCJwcmljZV9yb3dzIjpbeyJsaW5lcyI6W3siYW1vdW50X3JhcHBlbiI6MjAwMCwiY29kZSI6ImFpcnBvcnRfZmVlIiwibGVnX3NlcSI6MX1dLCJzbHVnIjoiZWNvbm9teSJ9LHsibGluZXMiOlt7ImFtb3VudF9yYXBwZW4iOjIwMDAsImNv"
+    },
+    {
+     "at": "2026-10-02T22:12:19.576Z",
+     "method": "POST",
+     "path": "/api/checkout/price",
+     "status": 200,
+     "request": "{\"lock\":\"v1.eyJiYWdzIjowLCJjbGFzc190b3RhbHMiOlt7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImVjb25vbXkiLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fSx7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImJ1c2luZXNzIiwidG90YWxfcmFwcGVuIjoxNDM3OH0seyJwcmVfY291cG9uX3JhcHBlbiI6MTQzNzgsInNsdWciOiJ2YW4iLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fV0sImNvbXB1dGVkX2F0IjoiMjAyNi0xMC0wMlQyMjoxMjoxNC42MjNaIiwiY291cG9uIjoiQVVESVRGSVgiLCJkaXNwbGF5X2N1cnJlbmN5IjoiQ0hGIiwiZW5naW5lX3ZlcnNpb24iOiJxdW90ZS1lbmdpbmVAMjY3NDQwZjUiLCJleHAiOiIyMDI2LTEwLTAzVDIyOjEyOjE0LjY4M1oiLCJleHRyYXMiOm51bGwsImxlZ3MiOlt7ImRlc3RfY2FudG9uIjoiWkciLCJkZXN0X2NpdHlfaWQiOiJjaXR5LXp1ZyIsImRlc3RfY2l0eV9uYW1lIjoiWnVnIiwiZGVzdF96b25lX2lkIjpudWxsLCJkaXN0YW5jZV9tIjo0MjUxNywiZHJvcG9mZiI6eyJsYXQiOjQ3LjE3MzcsImxuZyI6OC41MTUyLCJwbGFjZV9pZCI6Im1iLXp1ZyIsInRleHQiOiJadWcgc3RhdGlvbiJ9LCJkdXJhdGlvbl9zIjozMzAwLCJmbGlnaHRfbm8iOiJMWDMxOCIsImxhbmRpbmdfc291cmNlIjpudWxsLCJsZWdfc2VxIjoxLCJvcmlnaW5fY2FudG9uIjoiWkgiLCJvcmlnaW5fY2l0eV9pZCI6ImNpdHkta2xvdGVuIiwib3JpZ2luX2NpdHlfbmFtZSI6Iktsb3RlbiIsIm9yaWdpbl9pc19haXJwb3J0Ijp0cnVlLCJvcmlnaW5fem9uZV9pZCI6bnVsbCwicGlja3VwIjp7ImxhdCI6NDcuNDUwNCwibG5nIjo4LjU2MjQsInBsYWNlX2lkIjoibWItenJoIiwidGV4dCI6Ilp1cmljaCBBaXJwb3J0In0sInNjaGVkdWxlZF9sb2NhbCI6IjIwMjYtMTAtMTBUMDM6MTUifV0sIm1vZGUiOiJvbmVfd2F5IiwicGF4IjoxLCJwcmljZV9yb3dzIjpbeyJsaW5lcyI6W3siYW1vdW50X3JhcHBlbiI6MjAwMCwiY29kZSI6ImFpcnBvcnRfZmVlIiwibGVnX3NlcSI6MX1dLCJzbHVnIjoiZWNvbm9teSJ9LHsibGluZXMiOlt7ImFtb3VudF9yYXBwZW4iOjIwMDAsImNvZGUiOiJhaXJwb3J0X2ZlZSIsImxlZ19zZXEiOjF9XSwic2x1ZyI6ImJ1c2lu",
+     "response": "{\"ok\":true,\"lines\":[{\"kind\":\"fare\",\"code\":\"distance_fare\",\"i18n_key\":\"price.line.transfer\",\"params\":{\"vehicleClass\":\"economy\"},\"amount_rappen\":14378},{\"kind\":\"coupon\",\"code\":\"AUDITFIX\",\"i18n_key\":\"price.line.coupon\",\"params\":{\"amountRappen\":1000},\"amount_rappen\":-1000},{\"kind\":\"vat\",\"code\":\"vat\",\"i18n_key\":\"price.line.vat\",\"params\":{\"vatRateBps\":81},\"amount_rappen\":1084}],\"net_rappen\":13378,\"vat_rappen\":1084,\"charged_rappen\":14462}"
+    },
+    {
+     "at": "2026-10-02T22:12:24.869Z",
+     "method": "POST",
+     "path": "/api/checkout/intent",
+     "status": 200,
+     "request": "{\"quote_id\":\"5249accb-9922-4cec-9a46-70ef5a51e8a6\",\"lock\":\"v1.eyJiYWdzIjowLCJjbGFzc190b3RhbHMiOlt7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImVjb25vbXkiLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fSx7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImJ1c2luZXNzIiwidG90YWxfcmFwcGVuIjoxNDM3OH0seyJwcmVfY291cG9uX3JhcHBlbiI6MTQzNzgsInNsdWciOiJ2YW4iLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fV0sImNvbXB1dGVkX2F0IjoiMjAyNi0xMC0wMlQyMjoxMjoxNC42MjNaIiwiY291cG9uIjoiQVVESVRGSVgiLCJkaXNwbGF5X2N1cnJlbmN5IjoiQ0hGIiwiZW5naW5lX3ZlcnNpb24iOiJxdW90ZS1lbmdpbmVAMjY3NDQwZjUiLCJleHAiOiIyMDI2LTEwLTAzVDIyOjEyOjE0LjY4M1oiLCJleHRyYXMiOm51bGwsImxlZ3MiOlt7ImRlc3RfY2FudG9uIjoiWkciLCJkZXN0X2NpdHlfaWQiOiJjaXR5LXp1ZyIsImRlc3RfY2l0eV9uYW1lIjoiWnVnIiwiZGVzdF96b25lX2lkIjpudWxsLCJkaXN0YW5jZV9tIjo0MjUxNywiZHJvcG9mZiI6eyJsYXQiOjQ3LjE3MzcsImxuZyI6OC41MTUyLCJwbGFjZV9pZCI6Im1iLXp1ZyIsInRleHQiOiJadWcgc3RhdGlvbiJ9LCJkdXJhdGlvbl9zIjozMzAwLCJmbGlnaHRfbm8iOiJMWDMxOCIsImxhbmRpbmdfc291cmNlIjpudWxsLCJsZWdfc2VxIjoxLCJvcmlnaW5fY2FudG9uIjoiWkgiLCJvcmlnaW5fY2l0eV9pZCI6ImNpdHkta2xvdGVuIiwib3JpZ2luX2NpdHlfbmFtZSI6Iktsb3RlbiIsIm9yaWdpbl9pc19haXJwb3J0Ijp0cnVlLCJvcmlnaW5fem9uZV9pZCI6bnVsbCwicGlja3VwIjp7ImxhdCI6NDcuNDUwNCwibG5nIjo4LjU2MjQsInBsYWNlX2lkIjoibWItenJoIiwidGV4dCI6Ilp1cmljaCBBaXJwb3J0In0sInNjaGVkdWxlZF9sb2NhbCI6IjIwMjYtMTAtMTBUMDM6MTUifV0sIm1vZGUiOiJvbmVfd2F5IiwicGF4IjoxLCJwcmljZV9yb3dzIjpbeyJsaW5lcyI6W3siYW1vdW50X3JhcHBlbiI6MjAwMCwiY29kZSI6ImFpcnBvcnRfZmVlIiwibGVnX3NlcSI6MX1dLCJzbHVnIjoiZWNvbm9teSJ9LHsibGluZXMiOlt7ImFtb3VudF9yYXBwZW4iOjIwMDAsImNvZGUiOiJhaX",
+     "response": "{\"ok\":true,\"reference\":\"VT-26-0014\",\"booking_id\":\"a0415ef6-252b-4ef4-ab4a-cbea72e295b2\",\"url\":\"https://checkout.stripe.com/c/pay/cs_test_e2e_cd3773682fec4802\",\"expires_at\":\"2026-10-02T22:43:24.000Z\",\"amount_rappen\":14462}"
+    },
+    {
+     "at": "2026-10-02T22:12:26.941Z",
+     "method": "POST",
+     "path": "/api/consent",
+     "status": 200,
+     "request": "{\"method\":\"reject_all\",\"locale\":\"en\",\"functional\":false,\"analytics\":false,\"marketing\":false,\"idempotencyKey\":\"eb60a210-99eb-4ee3-a7f9-55c432b125f4\"}",
+     "response": ""
+    }
+   ]
+  },
+  {
+   "scenario": "s3-percent",
+   "errors": [],
+   "api": [
+    {
+     "at": "2026-10-02T22:12:27.235Z",
+     "method": "GET",
+     "path": "/api/reviews",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"data\":[]}"
+    },
+    {
+     "at": "2026-10-02T22:12:27.235Z",
+     "method": "GET",
+     "path": "/api/auth/session",
+     "status": 200,
+     "request": "",
+     "response": "{\"signedIn\":false,\"displayName\":null,\"email\":null,\"emailConfirmed\":false,\"phone\":null,\"finishRequired\":false}"
+    },
+    {
+     "at": "2026-10-02T22:12:27.267Z",
+     "method": "GET",
+     "path": "/api/consent/state",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"chosen\":false,\"policyVersion\":\"2026-10-01\"}"
+    },
+    {
+     "at": "2026-10-02T22:12:27.287Z",
+     "method": "GET",
+     "path": "/api/quote",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"classes\":[{\"slug\":\"economy\",\"eligible\":true,\"ineligible_reason\":null,\"effective_max_pax\":3,\"max_bags\":3,\"fixed_route\":false,\"lines\":[],\"total_rappen\":null,\"name\":\"Economy\",\"photo_url\":null},{\"slug\":\"business\",\"eligible\":true,\"ineligible_reason\":null,\"effective_max_pax\":3,\"max_bags\":3,\"fixed_route\":false,\"lines\":[],\"total_rappen\":null,\"name\":\"Business\",\"photo_url\":null},{\"slug\":\"van\",\"eligible\":true,\"ineligible_reason\":null,\"effective_max_pax\":8,\"max_bags\":8,\"fixed_route\":false,\"lines\":[],\"total_rappen\":null,\"name\":\"Van\",\"photo_url\":null}],\"fixed_routes\":[]}"
+    },
+    {
+     "at": "2026-10-02T22:12:28.187Z",
+     "method": "GET",
+     "path": "/api/geo/suggest?q=Zug&session_token=aed7e3ce-adb7-4ab6-959c-2d721c58c1e3&locale=en",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"suggestions\":[{\"mapbox_id\":\"mb-zug\",\"name\":\"Zug station\",\"address\":\"Bahnhofplatz, 6300 Zug\",\"context\":\"Bahnhofplatz, 6300 Zug\"}]}"
+    },
+    {
+     "at": "2026-10-02T22:12:29.217Z",
+     "method": "GET",
+     "path": "/api/auth/session",
+     "status": 200,
+     "request": "",
+     "response": "{\"signedIn\":false,\"displayName\":null,\"email\":null,\"emailConfirmed\":false,\"phone\":null,\"finishRequired\":false}"
+    },
+    {
+     "at": "2026-10-02T22:12:29.228Z",
+     "method": "GET",
+     "path": "/api/checkout/me",
+     "status": 200,
+     "request": "",
+     "response": "{\"signed_in\":false}"
+    },
+    {
+     "at": "2026-10-02T22:12:29.246Z",
+     "method": "GET",
+     "path": "/api/geo/suggest?q=Zurich%20Airport%20(ZRH)%2C%20Terminal%202&session_token=92854480-aa9d-40db-8db7-bcdfbd2dd125&locale=en",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"suggestions\":[{\"mapbox_id\":\"mb-zrh\",\"name\":\"Zurich Airport\",\"address\":\"Flughafenstrasse, 8058 Kloten\",\"context\":\"Flughafenstrasse, 8058 Kloten\"}]}"
+    },
+    {
+     "at": "2026-10-02T22:12:29.247Z",
+     "method": "GET",
+     "path": "/api/geo/suggest?q=Zug%20station&session_token=92854480-aa9d-40db-8db7-bcdfbd2dd125&locale=en",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"suggestions\":[{\"mapbox_id\":\"mb-zug\",\"name\":\"Zug station\",\"address\":\"Bahnhofplatz, 6300 Zug\",\"context\":\"Bahnhofplatz, 6300 Zug\"}]}"
+    },
+    {
+     "at": "2026-10-02T22:12:29.280Z",
+     "method": "GET",
+     "path": "/api/consent/state",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"chosen\":true,\"policyVersion\":\"2026-10-01\",\"choice\":{\"method\":\"reject_all\",\"functional\":false,\"analytics\":false,\"marketing\":false,\"recordedAt\":\"2026-10-02T22:12:27.846Z\"}}"
+    },
+    {
+     "at": "2026-10-02T22:12:29.288Z",
+     "method": "GET",
+     "path": "/api/checkout/extras",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"extras\":[],\"vat_rate_bps\":81}"
+    },
+    {
+     "at": "2026-10-02T22:12:29.334Z",
+     "method": "POST",
+     "path": "/api/quote",
+     "status": 200,
+     "request": "{\"locale\":\"en\",\"display_currency\":\"CHF\",\"mode\":\"one_way\",\"pickup\":{\"kind\":\"retrieve\",\"mapbox_id\":\"mb-zrh\",\"session_token\":\"92854480-aa9d-40db-8db7-bcdfbd2dd125\",\"text\":\"Zurich Airport (ZRH), Terminal 2\"},\"dropoff\":{\"kind\":\"retrieve\",\"mapbox_id\":\"mb-zug\",\"session_token\":\"92854480-aa9d-40db-8db7-bcdfbd2dd125\",\"text\":\"Zug station\"},\"legs\":[{\"leg_seq\":1,\"scheduled_local\":\"2026-10-10T03:15\",\"flight_no\":\"LX318\"}],\"pax\":1,\"bags\":0}",
+     "response": "{\"ok\":true,\"quote_id\":\"7a2880ef-53de-4c99-b621-bd29647d7cff\",\"lock\":\"v1.eyJiYWdzIjowLCJjbGFzc190b3RhbHMiOlt7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImVjb25vbXkiLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fSx7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImJ1c2luZXNzIiwidG90YWxfcmFwcGVuIjoxNDM3OH0seyJwcmVfY291cG9uX3JhcHBlbiI6MTQzNzgsInNsdWciOiJ2YW4iLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fV0sImNvbXB1dGVkX2F0IjoiMjAyNi0xMC0wMlQyMjoxMjoyOS4yNTVaIiwiY291cG9uIjpudWxsLCJkaXNwbGF5X2N1cnJlbmN5IjoiQ0hGIiwiZW5naW5lX3ZlcnNpb24iOiJxdW90ZS1lbmdpbmVAMjY3NDQwZjUiLCJleHAiOiIyMDI2LTEwLTAzVDIyOjEyOjI5LjI5MFoiLCJleHRyYXMiOm51bGwsImxlZ3MiOlt7ImRlc3RfY2FudG9uIjoiWkciLCJkZXN0X2NpdHlfaWQiOiJjaXR5LXp1ZyIsImRlc3RfY2l0eV9uYW1lIjoiWnVnIiwiZGVzdF96b25lX2lkIjpudWxsLCJkaXN0YW5jZV9tIjo0MjUxNywiZHJvcG9mZiI6eyJsYXQiOjQ3LjE3MzcsImxuZyI6OC41MTUyLCJwbGFjZV9pZCI6Im1iLXp1ZyIsInRleHQiOiJadWcgc3RhdGlvbiJ9LCJkdXJhdGlvbl9zIjozMzAwLCJmbGlnaHRfbm8iOiJMWDMxOCIsImxhbmRpbmdfc291cmNlIjpudWxsLCJsZWdfc2VxIjoxLCJvcmlnaW5fY2FudG9uIjoiWkgiLCJvcmlnaW5fY2l0eV9pZCI6ImNpdHkta2xvdGVuIiwib3JpZ2luX2NpdHlfbmFtZSI6Iktsb3RlbiIsIm9yaWdpbl9pc19haXJwb3J0Ijp0cnVlLCJvcmlnaW5fem9uZV9pZCI6bnVsbCwicGlja3VwIjp7ImxhdCI6NDcuNDUwNCwibG5nIjo4LjU2MjQsInBsYWNlX2lkIjoibWItenJoIiwidGV4dCI6Ilp1cmljaCBBaXJwb3J0In0sInNjaGVkdWxlZF9sb2NhbCI6IjIwMjYtMTAtMTBUMDM6MTUifV0sIm1vZGUiOiJvbmVfd2F5IiwicGF4IjoxLCJwcmljZV9yb3dzIjpbeyJsaW5lcyI6W3siYW1vdW50X3JhcHBlbiI6MjAwMCwiY29kZSI6ImFpcnBvcnRfZmVlIiwibGVnX3NlcSI6MX1dLCJzbHVnIjoiZWNvbm9teSJ9LHsibGluZXMiOlt7ImFtb3VudF9yYXBwZW4iOjIwMDAsImNvZGUiOiJh"
+    },
+    {
+     "at": "2026-10-02T22:12:32.565Z",
+     "method": "POST",
+     "path": "/api/checkout/price",
+     "status": 200,
+     "request": "{\"lock\":\"v1.eyJiYWdzIjowLCJjbGFzc190b3RhbHMiOlt7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImVjb25vbXkiLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fSx7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImJ1c2luZXNzIiwidG90YWxfcmFwcGVuIjoxNDM3OH0seyJwcmVfY291cG9uX3JhcHBlbiI6MTQzNzgsInNsdWciOiJ2YW4iLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fV0sImNvbXB1dGVkX2F0IjoiMjAyNi0xMC0wMlQyMjoxMjoyOS4yNTVaIiwiY291cG9uIjpudWxsLCJkaXNwbGF5X2N1cnJlbmN5IjoiQ0hGIiwiZW5naW5lX3ZlcnNpb24iOiJxdW90ZS1lbmdpbmVAMjY3NDQwZjUiLCJleHAiOiIyMDI2LTEwLTAzVDIyOjEyOjI5LjI5MFoiLCJleHRyYXMiOm51bGwsImxlZ3MiOlt7ImRlc3RfY2FudG9uIjoiWkciLCJkZXN0X2NpdHlfaWQiOiJjaXR5LXp1ZyIsImRlc3RfY2l0eV9uYW1lIjoiWnVnIiwiZGVzdF96b25lX2lkIjpudWxsLCJkaXN0YW5jZV9tIjo0MjUxNywiZHJvcG9mZiI6eyJsYXQiOjQ3LjE3MzcsImxuZyI6OC41MTUyLCJwbGFjZV9pZCI6Im1iLXp1ZyIsInRleHQiOiJadWcgc3RhdGlvbiJ9LCJkdXJhdGlvbl9zIjozMzAwLCJmbGlnaHRfbm8iOiJMWDMxOCIsImxhbmRpbmdfc291cmNlIjpudWxsLCJsZWdfc2VxIjoxLCJvcmlnaW5fY2FudG9uIjoiWkgiLCJvcmlnaW5fY2l0eV9pZCI6ImNpdHkta2xvdGVuIiwib3JpZ2luX2NpdHlfbmFtZSI6Iktsb3RlbiIsIm9yaWdpbl9pc19haXJwb3J0Ijp0cnVlLCJvcmlnaW5fem9uZV9pZCI6bnVsbCwicGlja3VwIjp7ImxhdCI6NDcuNDUwNCwibG5nIjo4LjU2MjQsInBsYWNlX2lkIjoibWItenJoIiwidGV4dCI6Ilp1cmljaCBBaXJwb3J0In0sInNjaGVkdWxlZF9sb2NhbCI6IjIwMjYtMTAtMTBUMDM6MTUifV0sIm1vZGUiOiJvbmVfd2F5IiwicGF4IjoxLCJwcmljZV9yb3dzIjpbeyJsaW5lcyI6W3siYW1vdW50X3JhcHBlbiI6MjAwMCwiY29kZSI6ImFpcnBvcnRfZmVlIiwibGVnX3NlcSI6MX1dLCJzbHVnIjoiZWNvbm9teSJ9LHsibGluZXMiOlt7ImFtb3VudF9yYXBwZW4iOjIwMDAsImNvZGUiOiJhaXJwb3J0X2ZlZSIsImxlZ19zZXEiOjF9XSwic2x1ZyI6ImJ1c2luZXNzIn0s",
+     "response": "{\"ok\":true,\"lines\":[{\"kind\":\"fare\",\"code\":\"distance_fare\",\"i18n_key\":\"price.line.transfer\",\"params\":{\"vehicleClass\":\"economy\"},\"amount_rappen\":14378},{\"kind\":\"vat\",\"code\":\"vat\",\"i18n_key\":\"price.line.vat\",\"params\":{\"vatRateBps\":81},\"amount_rappen\":1165}],\"net_rappen\":14378,\"vat_rappen\":1165,\"charged_rappen\":15543}"
+    },
+    {
+     "at": "2026-10-02T22:12:34.190Z",
+     "method": "POST",
+     "path": "/api/quote/reprice",
+     "status": 200,
+     "request": "{\"quote_id\":\"7a2880ef-53de-4c99-b621-bd29647d7cff\",\"lock\":\"v1.eyJiYWdzIjowLCJjbGFzc190b3RhbHMiOlt7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImVjb25vbXkiLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fSx7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImJ1c2luZXNzIiwidG90YWxfcmFwcGVuIjoxNDM3OH0seyJwcmVfY291cG9uX3JhcHBlbiI6MTQzNzgsInNsdWciOiJ2YW4iLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fV0sImNvbXB1dGVkX2F0IjoiMjAyNi0xMC0wMlQyMjoxMjoyOS4yNTVaIiwiY291cG9uIjpudWxsLCJkaXNwbGF5X2N1cnJlbmN5IjoiQ0hGIiwiZW5naW5lX3ZlcnNpb24iOiJxdW90ZS1lbmdpbmVAMjY3NDQwZjUiLCJleHAiOiIyMDI2LTEwLTAzVDIyOjEyOjI5LjI5MFoiLCJleHRyYXMiOm51bGwsImxlZ3MiOlt7ImRlc3RfY2FudG9uIjoiWkciLCJkZXN0X2NpdHlfaWQiOiJjaXR5LXp1ZyIsImRlc3RfY2l0eV9uYW1lIjoiWnVnIiwiZGVzdF96b25lX2lkIjpudWxsLCJkaXN0YW5jZV9tIjo0MjUxNywiZHJvcG9mZiI6eyJsYXQiOjQ3LjE3MzcsImxuZyI6OC41MTUyLCJwbGFjZV9pZCI6Im1iLXp1ZyIsInRleHQiOiJadWcgc3RhdGlvbiJ9LCJkdXJhdGlvbl9zIjozMzAwLCJmbGlnaHRfbm8iOiJMWDMxOCIsImxhbmRpbmdfc291cmNlIjpudWxsLCJsZWdfc2VxIjoxLCJvcmlnaW5fY2FudG9uIjoiWkgiLCJvcmlnaW5fY2l0eV9pZCI6ImNpdHkta2xvdGVuIiwib3JpZ2luX2NpdHlfbmFtZSI6Iktsb3RlbiIsIm9yaWdpbl9pc19haXJwb3J0Ijp0cnVlLCJvcmlnaW5fem9uZV9pZCI6bnVsbCwicGlja3VwIjp7ImxhdCI6NDcuNDUwNCwibG5nIjo4LjU2MjQsInBsYWNlX2lkIjoibWItenJoIiwidGV4dCI6Ilp1cmljaCBBaXJwb3J0In0sInNjaGVkdWxlZF9sb2NhbCI6IjIwMjYtMTAtMTBUMDM6MTUifV0sIm1vZGUiOiJvbmVfd2F5IiwicGF4IjoxLCJwcmljZV9yb3dzIjpbeyJsaW5lcyI6W3siYW1vdW50X3JhcHBlbiI6MjAwMCwiY29kZSI6ImFpcnBvcnRfZmVlIiwibGVnX3NlcSI6MX1dLCJzbHVnIjoiZWNvbm9teSJ9LHsibGluZXMiOlt7ImFtb3VudF9yYXBwZW4iOjIwMDAsImNvZGUiOiJhaXJwb3J0X2",
+     "response": "{\"ok\":true,\"quote_id\":\"7a2880ef-53de-4c99-b621-bd29647d7cff\",\"lock\":\"v1.eyJiYWdzIjowLCJjbGFzc190b3RhbHMiOlt7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImVjb25vbXkiLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fSx7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImJ1c2luZXNzIiwidG90YWxfcmFwcGVuIjoxNDM3OH0seyJwcmVfY291cG9uX3JhcHBlbiI6MTQzNzgsInNsdWciOiJ2YW4iLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fV0sImNvbXB1dGVkX2F0IjoiMjAyNi0xMC0wMlQyMjoxMjoyOS4yNTVaIiwiY291cG9uIjoiQVVESVRQQ1QiLCJkaXNwbGF5X2N1cnJlbmN5IjoiQ0hGIiwiZW5naW5lX3ZlcnNpb24iOiJxdW90ZS1lbmdpbmVAMjY3NDQwZjUiLCJleHAiOiIyMDI2LTEwLTAzVDIyOjEyOjI5LjI5MFoiLCJleHRyYXMiOm51bGwsImxlZ3MiOlt7ImRlc3RfY2FudG9uIjoiWkciLCJkZXN0X2NpdHlfaWQiOiJjaXR5LXp1ZyIsImRlc3RfY2l0eV9uYW1lIjoiWnVnIiwiZGVzdF96b25lX2lkIjpudWxsLCJkaXN0YW5jZV9tIjo0MjUxNywiZHJvcG9mZiI6eyJsYXQiOjQ3LjE3MzcsImxuZyI6OC41MTUyLCJwbGFjZV9pZCI6Im1iLXp1ZyIsInRleHQiOiJadWcgc3RhdGlvbiJ9LCJkdXJhdGlvbl9zIjozMzAwLCJmbGlnaHRfbm8iOiJMWDMxOCIsImxhbmRpbmdfc291cmNlIjpudWxsLCJsZWdfc2VxIjoxLCJvcmlnaW5fY2FudG9uIjoiWkgiLCJvcmlnaW5fY2l0eV9pZCI6ImNpdHkta2xvdGVuIiwib3JpZ2luX2NpdHlfbmFtZSI6Iktsb3RlbiIsIm9yaWdpbl9pc19haXJwb3J0Ijp0cnVlLCJvcmlnaW5fem9uZV9pZCI6bnVsbCwicGlja3VwIjp7ImxhdCI6NDcuNDUwNCwibG5nIjo4LjU2MjQsInBsYWNlX2lkIjoibWItenJoIiwidGV4dCI6Ilp1cmljaCBBaXJwb3J0In0sInNjaGVkdWxlZF9sb2NhbCI6IjIwMjYtMTAtMTBUMDM6MTUifV0sIm1vZGUiOiJvbmVfd2F5IiwicGF4IjoxLCJwcmljZV9yb3dzIjpbeyJsaW5lcyI6W3siYW1vdW50X3JhcHBlbiI6MjAwMCwiY29kZSI6ImFpcnBvcnRfZmVlIiwibGVnX3NlcSI6MX1dLCJzbHVnIjoiZWNvbm9teSJ9LHsibGluZXMiOlt7ImFtb3VudF9yYXBwZW4iOjIwMDAsImNv"
+    },
+    {
+     "at": "2026-10-02T22:12:34.240Z",
+     "method": "POST",
+     "path": "/api/checkout/price",
+     "status": 200,
+     "request": "{\"lock\":\"v1.eyJiYWdzIjowLCJjbGFzc190b3RhbHMiOlt7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImVjb25vbXkiLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fSx7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImJ1c2luZXNzIiwidG90YWxfcmFwcGVuIjoxNDM3OH0seyJwcmVfY291cG9uX3JhcHBlbiI6MTQzNzgsInNsdWciOiJ2YW4iLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fV0sImNvbXB1dGVkX2F0IjoiMjAyNi0xMC0wMlQyMjoxMjoyOS4yNTVaIiwiY291cG9uIjoiQVVESVRQQ1QiLCJkaXNwbGF5X2N1cnJlbmN5IjoiQ0hGIiwiZW5naW5lX3ZlcnNpb24iOiJxdW90ZS1lbmdpbmVAMjY3NDQwZjUiLCJleHAiOiIyMDI2LTEwLTAzVDIyOjEyOjI5LjI5MFoiLCJleHRyYXMiOm51bGwsImxlZ3MiOlt7ImRlc3RfY2FudG9uIjoiWkciLCJkZXN0X2NpdHlfaWQiOiJjaXR5LXp1ZyIsImRlc3RfY2l0eV9uYW1lIjoiWnVnIiwiZGVzdF96b25lX2lkIjpudWxsLCJkaXN0YW5jZV9tIjo0MjUxNywiZHJvcG9mZiI6eyJsYXQiOjQ3LjE3MzcsImxuZyI6OC41MTUyLCJwbGFjZV9pZCI6Im1iLXp1ZyIsInRleHQiOiJadWcgc3RhdGlvbiJ9LCJkdXJhdGlvbl9zIjozMzAwLCJmbGlnaHRfbm8iOiJMWDMxOCIsImxhbmRpbmdfc291cmNlIjpudWxsLCJsZWdfc2VxIjoxLCJvcmlnaW5fY2FudG9uIjoiWkgiLCJvcmlnaW5fY2l0eV9pZCI6ImNpdHkta2xvdGVuIiwib3JpZ2luX2NpdHlfbmFtZSI6Iktsb3RlbiIsIm9yaWdpbl9pc19haXJwb3J0Ijp0cnVlLCJvcmlnaW5fem9uZV9pZCI6bnVsbCwicGlja3VwIjp7ImxhdCI6NDcuNDUwNCwibG5nIjo4LjU2MjQsInBsYWNlX2lkIjoibWItenJoIiwidGV4dCI6Ilp1cmljaCBBaXJwb3J0In0sInNjaGVkdWxlZF9sb2NhbCI6IjIwMjYtMTAtMTBUMDM6MTUifV0sIm1vZGUiOiJvbmVfd2F5IiwicGF4IjoxLCJwcmljZV9yb3dzIjpbeyJsaW5lcyI6W3siYW1vdW50X3JhcHBlbiI6MjAwMCwiY29kZSI6ImFpcnBvcnRfZmVlIiwibGVnX3NlcSI6MX1dLCJzbHVnIjoiZWNvbm9teSJ9LHsibGluZXMiOlt7ImFtb3VudF9yYXBwZW4iOjIwMDAsImNvZGUiOiJhaXJwb3J0X2ZlZSIsImxlZ19zZXEiOjF9XSwic2x1ZyI6ImJ1c2lu",
+     "response": "{\"ok\":true,\"lines\":[{\"kind\":\"fare\",\"code\":\"distance_fare\",\"i18n_key\":\"price.line.transfer\",\"params\":{\"vehicleClass\":\"economy\"},\"amount_rappen\":14378},{\"kind\":\"coupon\",\"code\":\"AUDITPCT\",\"i18n_key\":\"price.line.coupon\",\"params\":{\"percentHundredths\":1000},\"amount_rappen\":-1438},{\"kind\":\"vat\",\"code\":\"vat\",\"i18n_key\":\"price.line.vat\",\"params\":{\"vatRateBps\":81},\"amount_rappen\":1048}],\"net_rappen\":12940,\"vat_rappen\":1048,\"charged_rappen\":13988}"
+    },
+    {
+     "at": "2026-10-02T22:12:39.330Z",
+     "method": "POST",
+     "path": "/api/checkout/intent",
+     "status": 200,
+     "request": "{\"quote_id\":\"7a2880ef-53de-4c99-b621-bd29647d7cff\",\"lock\":\"v1.eyJiYWdzIjowLCJjbGFzc190b3RhbHMiOlt7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImVjb25vbXkiLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fSx7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImJ1c2luZXNzIiwidG90YWxfcmFwcGVuIjoxNDM3OH0seyJwcmVfY291cG9uX3JhcHBlbiI6MTQzNzgsInNsdWciOiJ2YW4iLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fV0sImNvbXB1dGVkX2F0IjoiMjAyNi0xMC0wMlQyMjoxMjoyOS4yNTVaIiwiY291cG9uIjoiQVVESVRQQ1QiLCJkaXNwbGF5X2N1cnJlbmN5IjoiQ0hGIiwiZW5naW5lX3ZlcnNpb24iOiJxdW90ZS1lbmdpbmVAMjY3NDQwZjUiLCJleHAiOiIyMDI2LTEwLTAzVDIyOjEyOjI5LjI5MFoiLCJleHRyYXMiOm51bGwsImxlZ3MiOlt7ImRlc3RfY2FudG9uIjoiWkciLCJkZXN0X2NpdHlfaWQiOiJjaXR5LXp1ZyIsImRlc3RfY2l0eV9uYW1lIjoiWnVnIiwiZGVzdF96b25lX2lkIjpudWxsLCJkaXN0YW5jZV9tIjo0MjUxNywiZHJvcG9mZiI6eyJsYXQiOjQ3LjE3MzcsImxuZyI6OC41MTUyLCJwbGFjZV9pZCI6Im1iLXp1ZyIsInRleHQiOiJadWcgc3RhdGlvbiJ9LCJkdXJhdGlvbl9zIjozMzAwLCJmbGlnaHRfbm8iOiJMWDMxOCIsImxhbmRpbmdfc291cmNlIjpudWxsLCJsZWdfc2VxIjoxLCJvcmlnaW5fY2FudG9uIjoiWkgiLCJvcmlnaW5fY2l0eV9pZCI6ImNpdHkta2xvdGVuIiwib3JpZ2luX2NpdHlfbmFtZSI6Iktsb3RlbiIsIm9yaWdpbl9pc19haXJwb3J0Ijp0cnVlLCJvcmlnaW5fem9uZV9pZCI6bnVsbCwicGlja3VwIjp7ImxhdCI6NDcuNDUwNCwibG5nIjo4LjU2MjQsInBsYWNlX2lkIjoibWItenJoIiwidGV4dCI6Ilp1cmljaCBBaXJwb3J0In0sInNjaGVkdWxlZF9sb2NhbCI6IjIwMjYtMTAtMTBUMDM6MTUifV0sIm1vZGUiOiJvbmVfd2F5IiwicGF4IjoxLCJwcmljZV9yb3dzIjpbeyJsaW5lcyI6W3siYW1vdW50X3JhcHBlbiI6MjAwMCwiY29kZSI6ImFpcnBvcnRfZmVlIiwibGVnX3NlcSI6MX1dLCJzbHVnIjoiZWNvbm9teSJ9LHsibGluZXMiOlt7ImFtb3VudF9yYXBwZW4iOjIwMDAsImNvZGUiOiJhaX",
+     "response": "{\"ok\":true,\"reference\":\"VT-26-0015\",\"booking_id\":\"ebd41fee-88e0-4b09-bdba-e0852126c971\",\"url\":\"https://checkout.stripe.com/c/pay/cs_test_e2e_1ce97a127428212a\",\"expires_at\":\"2026-10-02T22:43:39.000Z\",\"amount_rappen\":13988}"
+    },
+    {
+     "at": "2026-10-02T22:12:41.411Z",
+     "method": "POST",
+     "path": "/api/consent",
+     "status": 200,
+     "request": "{\"method\":\"reject_all\",\"locale\":\"en\",\"functional\":false,\"analytics\":false,\"marketing\":false,\"idempotencyKey\":\"1ebc9963-0067-4b95-bb07-e44b4391ce0b\"}",
+     "response": ""
+    }
+   ]
+  },
+  {
+   "scenario": "s4-removed",
+   "errors": [],
+   "api": [
+    {
+     "at": "2026-10-02T22:12:41.730Z",
+     "method": "GET",
+     "path": "/api/reviews",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"data\":[]}"
+    },
+    {
+     "at": "2026-10-02T22:12:41.771Z",
+     "method": "GET",
+     "path": "/api/auth/session",
+     "status": 200,
+     "request": "",
+     "response": "{\"signedIn\":false,\"displayName\":null,\"email\":null,\"emailConfirmed\":false,\"phone\":null,\"finishRequired\":false}"
+    },
+    {
+     "at": "2026-10-02T22:12:41.808Z",
+     "method": "GET",
+     "path": "/api/consent/state",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"chosen\":false,\"policyVersion\":\"2026-10-01\"}"
+    },
+    {
+     "at": "2026-10-02T22:12:41.825Z",
+     "method": "GET",
+     "path": "/api/quote",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"classes\":[{\"slug\":\"economy\",\"eligible\":true,\"ineligible_reason\":null,\"effective_max_pax\":3,\"max_bags\":3,\"fixed_route\":false,\"lines\":[],\"total_rappen\":null,\"name\":\"Economy\",\"photo_url\":null},{\"slug\":\"business\",\"eligible\":true,\"ineligible_reason\":null,\"effective_max_pax\":3,\"max_bags\":3,\"fixed_route\":false,\"lines\":[],\"total_rappen\":null,\"name\":\"Business\",\"photo_url\":null},{\"slug\":\"van\",\"eligible\":true,\"ineligible_reason\":null,\"effective_max_pax\":8,\"max_bags\":8,\"fixed_route\":false,\"lines\":[],\"total_rappen\":null,\"name\":\"Van\",\"photo_url\":null}],\"fixed_routes\":[]}"
+    },
+    {
+     "at": "2026-10-02T22:12:42.646Z",
+     "method": "GET",
+     "path": "/api/geo/suggest?q=Zug&session_token=d3708628-733f-4a25-b5c8-fafd01734f8b&locale=en",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"suggestions\":[{\"mapbox_id\":\"mb-zug\",\"name\":\"Zug station\",\"address\":\"Bahnhofplatz, 6300 Zug\",\"context\":\"Bahnhofplatz, 6300 Zug\"}]}"
+    },
+    {
+     "at": "2026-10-02T22:12:43.677Z",
+     "method": "GET",
+     "path": "/api/auth/session",
+     "status": 200,
+     "request": "",
+     "response": "{\"signedIn\":false,\"displayName\":null,\"email\":null,\"emailConfirmed\":false,\"phone\":null,\"finishRequired\":false}"
+    },
+    {
+     "at": "2026-10-02T22:12:43.690Z",
+     "method": "GET",
+     "path": "/api/checkout/me",
+     "status": 200,
+     "request": "",
+     "response": "{\"signed_in\":false}"
+    },
+    {
+     "at": "2026-10-02T22:12:43.707Z",
+     "method": "GET",
+     "path": "/api/geo/suggest?q=Zurich%20Airport%20(ZRH)%2C%20Terminal%202&session_token=c699b754-1744-430f-bf09-5e7f0edad6f8&locale=en",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"suggestions\":[{\"mapbox_id\":\"mb-zrh\",\"name\":\"Zurich Airport\",\"address\":\"Flughafenstrasse, 8058 Kloten\",\"context\":\"Flughafenstrasse, 8058 Kloten\"}]}"
+    },
+    {
+     "at": "2026-10-02T22:12:43.707Z",
+     "method": "GET",
+     "path": "/api/geo/suggest?q=Zug%20station&session_token=c699b754-1744-430f-bf09-5e7f0edad6f8&locale=en",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"suggestions\":[{\"mapbox_id\":\"mb-zug\",\"name\":\"Zug station\",\"address\":\"Bahnhofplatz, 6300 Zug\",\"context\":\"Bahnhofplatz, 6300 Zug\"}]}"
+    },
+    {
+     "at": "2026-10-02T22:12:43.751Z",
+     "method": "GET",
+     "path": "/api/consent/state",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"chosen\":true,\"policyVersion\":\"2026-10-01\",\"choice\":{\"method\":\"reject_all\",\"functional\":false,\"analytics\":false,\"marketing\":false,\"recordedAt\":\"2026-10-02T22:12:42.376Z\"}}"
+    },
+    {
+     "at": "2026-10-02T22:12:43.759Z",
+     "method": "GET",
+     "path": "/api/checkout/extras",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"extras\":[],\"vat_rate_bps\":81}"
+    },
+    {
+     "at": "2026-10-02T22:12:43.807Z",
+     "method": "POST",
+     "path": "/api/quote",
+     "status": 200,
+     "request": "{\"locale\":\"en\",\"display_currency\":\"CHF\",\"mode\":\"one_way\",\"pickup\":{\"kind\":\"retrieve\",\"mapbox_id\":\"mb-zrh\",\"session_token\":\"c699b754-1744-430f-bf09-5e7f0edad6f8\",\"text\":\"Zurich Airport (ZRH), Terminal 2\"},\"dropoff\":{\"kind\":\"retrieve\",\"mapbox_id\":\"mb-zug\",\"session_token\":\"c699b754-1744-430f-bf09-5e7f0edad6f8\",\"text\":\"Zug station\"},\"legs\":[{\"leg_seq\":1,\"scheduled_local\":\"2026-10-10T03:15\",\"flight_no\":\"LX318\"}],\"pax\":1,\"bags\":0}",
+     "response": "{\"ok\":true,\"quote_id\":\"e4b25149-40e9-4e8d-963f-4acb586cc5fd\",\"lock\":\"v1.eyJiYWdzIjowLCJjbGFzc190b3RhbHMiOlt7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImVjb25vbXkiLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fSx7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImJ1c2luZXNzIiwidG90YWxfcmFwcGVuIjoxNDM3OH0seyJwcmVfY291cG9uX3JhcHBlbiI6MTQzNzgsInNsdWciOiJ2YW4iLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fV0sImNvbXB1dGVkX2F0IjoiMjAyNi0xMC0wMlQyMjoxMjo0My43MThaIiwiY291cG9uIjpudWxsLCJkaXNwbGF5X2N1cnJlbmN5IjoiQ0hGIiwiZW5naW5lX3ZlcnNpb24iOiJxdW90ZS1lbmdpbmVAMjY3NDQwZjUiLCJleHAiOiIyMDI2LTEwLTAzVDIyOjEyOjQzLjc3MFoiLCJleHRyYXMiOm51bGwsImxlZ3MiOlt7ImRlc3RfY2FudG9uIjoiWkciLCJkZXN0X2NpdHlfaWQiOiJjaXR5LXp1ZyIsImRlc3RfY2l0eV9uYW1lIjoiWnVnIiwiZGVzdF96b25lX2lkIjpudWxsLCJkaXN0YW5jZV9tIjo0MjUxNywiZHJvcG9mZiI6eyJsYXQiOjQ3LjE3MzcsImxuZyI6OC41MTUyLCJwbGFjZV9pZCI6Im1iLXp1ZyIsInRleHQiOiJadWcgc3RhdGlvbiJ9LCJkdXJhdGlvbl9zIjozMzAwLCJmbGlnaHRfbm8iOiJMWDMxOCIsImxhbmRpbmdfc291cmNlIjpudWxsLCJsZWdfc2VxIjoxLCJvcmlnaW5fY2FudG9uIjoiWkgiLCJvcmlnaW5fY2l0eV9pZCI6ImNpdHkta2xvdGVuIiwib3JpZ2luX2NpdHlfbmFtZSI6Iktsb3RlbiIsIm9yaWdpbl9pc19haXJwb3J0Ijp0cnVlLCJvcmlnaW5fem9uZV9pZCI6bnVsbCwicGlja3VwIjp7ImxhdCI6NDcuNDUwNCwibG5nIjo4LjU2MjQsInBsYWNlX2lkIjoibWItenJoIiwidGV4dCI6Ilp1cmljaCBBaXJwb3J0In0sInNjaGVkdWxlZF9sb2NhbCI6IjIwMjYtMTAtMTBUMDM6MTUifV0sIm1vZGUiOiJvbmVfd2F5IiwicGF4IjoxLCJwcmljZV9yb3dzIjpbeyJsaW5lcyI6W3siYW1vdW50X3JhcHBlbiI6MjAwMCwiY29kZSI6ImFpcnBvcnRfZmVlIiwibGVnX3NlcSI6MX1dLCJzbHVnIjoiZWNvbm9teSJ9LHsibGluZXMiOlt7ImFtb3VudF9yYXBwZW4iOjIwMDAsImNvZGUiOiJh"
+    },
+    {
+     "at": "2026-10-02T22:12:47.002Z",
+     "method": "POST",
+     "path": "/api/checkout/price",
+     "status": 200,
+     "request": "{\"lock\":\"v1.eyJiYWdzIjowLCJjbGFzc190b3RhbHMiOlt7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImVjb25vbXkiLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fSx7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImJ1c2luZXNzIiwidG90YWxfcmFwcGVuIjoxNDM3OH0seyJwcmVfY291cG9uX3JhcHBlbiI6MTQzNzgsInNsdWciOiJ2YW4iLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fV0sImNvbXB1dGVkX2F0IjoiMjAyNi0xMC0wMlQyMjoxMjo0My43MThaIiwiY291cG9uIjpudWxsLCJkaXNwbGF5X2N1cnJlbmN5IjoiQ0hGIiwiZW5naW5lX3ZlcnNpb24iOiJxdW90ZS1lbmdpbmVAMjY3NDQwZjUiLCJleHAiOiIyMDI2LTEwLTAzVDIyOjEyOjQzLjc3MFoiLCJleHRyYXMiOm51bGwsImxlZ3MiOlt7ImRlc3RfY2FudG9uIjoiWkciLCJkZXN0X2NpdHlfaWQiOiJjaXR5LXp1ZyIsImRlc3RfY2l0eV9uYW1lIjoiWnVnIiwiZGVzdF96b25lX2lkIjpudWxsLCJkaXN0YW5jZV9tIjo0MjUxNywiZHJvcG9mZiI6eyJsYXQiOjQ3LjE3MzcsImxuZyI6OC41MTUyLCJwbGFjZV9pZCI6Im1iLXp1ZyIsInRleHQiOiJadWcgc3RhdGlvbiJ9LCJkdXJhdGlvbl9zIjozMzAwLCJmbGlnaHRfbm8iOiJMWDMxOCIsImxhbmRpbmdfc291cmNlIjpudWxsLCJsZWdfc2VxIjoxLCJvcmlnaW5fY2FudG9uIjoiWkgiLCJvcmlnaW5fY2l0eV9pZCI6ImNpdHkta2xvdGVuIiwib3JpZ2luX2NpdHlfbmFtZSI6Iktsb3RlbiIsIm9yaWdpbl9pc19haXJwb3J0Ijp0cnVlLCJvcmlnaW5fem9uZV9pZCI6bnVsbCwicGlja3VwIjp7ImxhdCI6NDcuNDUwNCwibG5nIjo4LjU2MjQsInBsYWNlX2lkIjoibWItenJoIiwidGV4dCI6Ilp1cmljaCBBaXJwb3J0In0sInNjaGVkdWxlZF9sb2NhbCI6IjIwMjYtMTAtMTBUMDM6MTUifV0sIm1vZGUiOiJvbmVfd2F5IiwicGF4IjoxLCJwcmljZV9yb3dzIjpbeyJsaW5lcyI6W3siYW1vdW50X3JhcHBlbiI6MjAwMCwiY29kZSI6ImFpcnBvcnRfZmVlIiwibGVnX3NlcSI6MX1dLCJzbHVnIjoiZWNvbm9teSJ9LHsibGluZXMiOlt7ImFtb3VudF9yYXBwZW4iOjIwMDAsImNvZGUiOiJhaXJwb3J0X2ZlZSIsImxlZ19zZXEiOjF9XSwic2x1ZyI6ImJ1c2luZXNzIn0s",
+     "response": "{\"ok\":true,\"lines\":[{\"kind\":\"fare\",\"code\":\"distance_fare\",\"i18n_key\":\"price.line.transfer\",\"params\":{\"vehicleClass\":\"economy\"},\"amount_rappen\":14378},{\"kind\":\"vat\",\"code\":\"vat\",\"i18n_key\":\"price.line.vat\",\"params\":{\"vatRateBps\":81},\"amount_rappen\":1165}],\"net_rappen\":14378,\"vat_rappen\":1165,\"charged_rappen\":15543}"
+    },
+    {
+     "at": "2026-10-02T22:12:48.696Z",
+     "method": "POST",
+     "path": "/api/quote/reprice",
+     "status": 200,
+     "request": "{\"quote_id\":\"e4b25149-40e9-4e8d-963f-4acb586cc5fd\",\"lock\":\"v1.eyJiYWdzIjowLCJjbGFzc190b3RhbHMiOlt7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImVjb25vbXkiLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fSx7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImJ1c2luZXNzIiwidG90YWxfcmFwcGVuIjoxNDM3OH0seyJwcmVfY291cG9uX3JhcHBlbiI6MTQzNzgsInNsdWciOiJ2YW4iLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fV0sImNvbXB1dGVkX2F0IjoiMjAyNi0xMC0wMlQyMjoxMjo0My43MThaIiwiY291cG9uIjpudWxsLCJkaXNwbGF5X2N1cnJlbmN5IjoiQ0hGIiwiZW5naW5lX3ZlcnNpb24iOiJxdW90ZS1lbmdpbmVAMjY3NDQwZjUiLCJleHAiOiIyMDI2LTEwLTAzVDIyOjEyOjQzLjc3MFoiLCJleHRyYXMiOm51bGwsImxlZ3MiOlt7ImRlc3RfY2FudG9uIjoiWkciLCJkZXN0X2NpdHlfaWQiOiJjaXR5LXp1ZyIsImRlc3RfY2l0eV9uYW1lIjoiWnVnIiwiZGVzdF96b25lX2lkIjpudWxsLCJkaXN0YW5jZV9tIjo0MjUxNywiZHJvcG9mZiI6eyJsYXQiOjQ3LjE3MzcsImxuZyI6OC41MTUyLCJwbGFjZV9pZCI6Im1iLXp1ZyIsInRleHQiOiJadWcgc3RhdGlvbiJ9LCJkdXJhdGlvbl9zIjozMzAwLCJmbGlnaHRfbm8iOiJMWDMxOCIsImxhbmRpbmdfc291cmNlIjpudWxsLCJsZWdfc2VxIjoxLCJvcmlnaW5fY2FudG9uIjoiWkgiLCJvcmlnaW5fY2l0eV9pZCI6ImNpdHkta2xvdGVuIiwib3JpZ2luX2NpdHlfbmFtZSI6Iktsb3RlbiIsIm9yaWdpbl9pc19haXJwb3J0Ijp0cnVlLCJvcmlnaW5fem9uZV9pZCI6bnVsbCwicGlja3VwIjp7ImxhdCI6NDcuNDUwNCwibG5nIjo4LjU2MjQsInBsYWNlX2lkIjoibWItenJoIiwidGV4dCI6Ilp1cmljaCBBaXJwb3J0In0sInNjaGVkdWxlZF9sb2NhbCI6IjIwMjYtMTAtMTBUMDM6MTUifV0sIm1vZGUiOiJvbmVfd2F5IiwicGF4IjoxLCJwcmljZV9yb3dzIjpbeyJsaW5lcyI6W3siYW1vdW50X3JhcHBlbiI6MjAwMCwiY29kZSI6ImFpcnBvcnRfZmVlIiwibGVnX3NlcSI6MX1dLCJzbHVnIjoiZWNvbm9teSJ9LHsibGluZXMiOlt7ImFtb3VudF9yYXBwZW4iOjIwMDAsImNvZGUiOiJhaXJwb3J0X2",
+     "response": "{\"ok\":true,\"quote_id\":\"e4b25149-40e9-4e8d-963f-4acb586cc5fd\",\"lock\":\"v1.eyJiYWdzIjowLCJjbGFzc190b3RhbHMiOlt7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImVjb25vbXkiLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fSx7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImJ1c2luZXNzIiwidG90YWxfcmFwcGVuIjoxNDM3OH0seyJwcmVfY291cG9uX3JhcHBlbiI6MTQzNzgsInNsdWciOiJ2YW4iLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fV0sImNvbXB1dGVkX2F0IjoiMjAyNi0xMC0wMlQyMjoxMjo0My43MThaIiwiY291cG9uIjoiQVVESVRGSVgiLCJkaXNwbGF5X2N1cnJlbmN5IjoiQ0hGIiwiZW5naW5lX3ZlcnNpb24iOiJxdW90ZS1lbmdpbmVAMjY3NDQwZjUiLCJleHAiOiIyMDI2LTEwLTAzVDIyOjEyOjQzLjc3MFoiLCJleHRyYXMiOm51bGwsImxlZ3MiOlt7ImRlc3RfY2FudG9uIjoiWkciLCJkZXN0X2NpdHlfaWQiOiJjaXR5LXp1ZyIsImRlc3RfY2l0eV9uYW1lIjoiWnVnIiwiZGVzdF96b25lX2lkIjpudWxsLCJkaXN0YW5jZV9tIjo0MjUxNywiZHJvcG9mZiI6eyJsYXQiOjQ3LjE3MzcsImxuZyI6OC41MTUyLCJwbGFjZV9pZCI6Im1iLXp1ZyIsInRleHQiOiJadWcgc3RhdGlvbiJ9LCJkdXJhdGlvbl9zIjozMzAwLCJmbGlnaHRfbm8iOiJMWDMxOCIsImxhbmRpbmdfc291cmNlIjpudWxsLCJsZWdfc2VxIjoxLCJvcmlnaW5fY2FudG9uIjoiWkgiLCJvcmlnaW5fY2l0eV9pZCI6ImNpdHkta2xvdGVuIiwib3JpZ2luX2NpdHlfbmFtZSI6Iktsb3RlbiIsIm9yaWdpbl9pc19haXJwb3J0Ijp0cnVlLCJvcmlnaW5fem9uZV9pZCI6bnVsbCwicGlja3VwIjp7ImxhdCI6NDcuNDUwNCwibG5nIjo4LjU2MjQsInBsYWNlX2lkIjoibWItenJoIiwidGV4dCI6Ilp1cmljaCBBaXJwb3J0In0sInNjaGVkdWxlZF9sb2NhbCI6IjIwMjYtMTAtMTBUMDM6MTUifV0sIm1vZGUiOiJvbmVfd2F5IiwicGF4IjoxLCJwcmljZV9yb3dzIjpbeyJsaW5lcyI6W3siYW1vdW50X3JhcHBlbiI6MjAwMCwiY29kZSI6ImFpcnBvcnRfZmVlIiwibGVnX3NlcSI6MX1dLCJzbHVnIjoiZWNvbm9teSJ9LHsibGluZXMiOlt7ImFtb3VudF9yYXBwZW4iOjIwMDAsImNv"
+    },
+    {
+     "at": "2026-10-02T22:12:48.724Z",
+     "method": "POST",
+     "path": "/api/checkout/price",
+     "status": 200,
+     "request": "{\"lock\":\"v1.eyJiYWdzIjowLCJjbGFzc190b3RhbHMiOlt7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImVjb25vbXkiLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fSx7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImJ1c2luZXNzIiwidG90YWxfcmFwcGVuIjoxNDM3OH0seyJwcmVfY291cG9uX3JhcHBlbiI6MTQzNzgsInNsdWciOiJ2YW4iLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fV0sImNvbXB1dGVkX2F0IjoiMjAyNi0xMC0wMlQyMjoxMjo0My43MThaIiwiY291cG9uIjoiQVVESVRGSVgiLCJkaXNwbGF5X2N1cnJlbmN5IjoiQ0hGIiwiZW5naW5lX3ZlcnNpb24iOiJxdW90ZS1lbmdpbmVAMjY3NDQwZjUiLCJleHAiOiIyMDI2LTEwLTAzVDIyOjEyOjQzLjc3MFoiLCJleHRyYXMiOm51bGwsImxlZ3MiOlt7ImRlc3RfY2FudG9uIjoiWkciLCJkZXN0X2NpdHlfaWQiOiJjaXR5LXp1ZyIsImRlc3RfY2l0eV9uYW1lIjoiWnVnIiwiZGVzdF96b25lX2lkIjpudWxsLCJkaXN0YW5jZV9tIjo0MjUxNywiZHJvcG9mZiI6eyJsYXQiOjQ3LjE3MzcsImxuZyI6OC41MTUyLCJwbGFjZV9pZCI6Im1iLXp1ZyIsInRleHQiOiJadWcgc3RhdGlvbiJ9LCJkdXJhdGlvbl9zIjozMzAwLCJmbGlnaHRfbm8iOiJMWDMxOCIsImxhbmRpbmdfc291cmNlIjpudWxsLCJsZWdfc2VxIjoxLCJvcmlnaW5fY2FudG9uIjoiWkgiLCJvcmlnaW5fY2l0eV9pZCI6ImNpdHkta2xvdGVuIiwib3JpZ2luX2NpdHlfbmFtZSI6Iktsb3RlbiIsIm9yaWdpbl9pc19haXJwb3J0Ijp0cnVlLCJvcmlnaW5fem9uZV9pZCI6bnVsbCwicGlja3VwIjp7ImxhdCI6NDcuNDUwNCwibG5nIjo4LjU2MjQsInBsYWNlX2lkIjoibWItenJoIiwidGV4dCI6Ilp1cmljaCBBaXJwb3J0In0sInNjaGVkdWxlZF9sb2NhbCI6IjIwMjYtMTAtMTBUMDM6MTUifV0sIm1vZGUiOiJvbmVfd2F5IiwicGF4IjoxLCJwcmljZV9yb3dzIjpbeyJsaW5lcyI6W3siYW1vdW50X3JhcHBlbiI6MjAwMCwiY29kZSI6ImFpcnBvcnRfZmVlIiwibGVnX3NlcSI6MX1dLCJzbHVnIjoiZWNvbm9teSJ9LHsibGluZXMiOlt7ImFtb3VudF9yYXBwZW4iOjIwMDAsImNvZGUiOiJhaXJwb3J0X2ZlZSIsImxlZ19zZXEiOjF9XSwic2x1ZyI6ImJ1c2lu",
+     "response": "{\"ok\":true,\"lines\":[{\"kind\":\"fare\",\"code\":\"distance_fare\",\"i18n_key\":\"price.line.transfer\",\"params\":{\"vehicleClass\":\"economy\"},\"amount_rappen\":14378},{\"kind\":\"coupon\",\"code\":\"AUDITFIX\",\"i18n_key\":\"price.line.coupon\",\"params\":{\"amountRappen\":1000},\"amount_rappen\":-1000},{\"kind\":\"vat\",\"code\":\"vat\",\"i18n_key\":\"price.line.vat\",\"params\":{\"vatRateBps\":81},\"amount_rappen\":1084}],\"net_rappen\":13378,\"vat_rappen\":1084,\"charged_rappen\":14462}"
+    },
+    {
+     "at": "2026-10-02T22:12:50.802Z",
+     "method": "POST",
+     "path": "/api/checkout/price",
+     "status": 200,
+     "request": "{\"lock\":\"v1.eyJiYWdzIjowLCJjbGFzc190b3RhbHMiOlt7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImVjb25vbXkiLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fSx7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImJ1c2luZXNzIiwidG90YWxfcmFwcGVuIjoxNDM3OH0seyJwcmVfY291cG9uX3JhcHBlbiI6MTQzNzgsInNsdWciOiJ2YW4iLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fV0sImNvbXB1dGVkX2F0IjoiMjAyNi0xMC0wMlQyMjoxMjo0My43MThaIiwiY291cG9uIjpudWxsLCJkaXNwbGF5X2N1cnJlbmN5IjoiQ0hGIiwiZW5naW5lX3ZlcnNpb24iOiJxdW90ZS1lbmdpbmVAMjY3NDQwZjUiLCJleHAiOiIyMDI2LTEwLTAzVDIyOjEyOjQzLjc3MFoiLCJleHRyYXMiOm51bGwsImxlZ3MiOlt7ImRlc3RfY2FudG9uIjoiWkciLCJkZXN0X2NpdHlfaWQiOiJjaXR5LXp1ZyIsImRlc3RfY2l0eV9uYW1lIjoiWnVnIiwiZGVzdF96b25lX2lkIjpudWxsLCJkaXN0YW5jZV9tIjo0MjUxNywiZHJvcG9mZiI6eyJsYXQiOjQ3LjE3MzcsImxuZyI6OC41MTUyLCJwbGFjZV9pZCI6Im1iLXp1ZyIsInRleHQiOiJadWcgc3RhdGlvbiJ9LCJkdXJhdGlvbl9zIjozMzAwLCJmbGlnaHRfbm8iOiJMWDMxOCIsImxhbmRpbmdfc291cmNlIjpudWxsLCJsZWdfc2VxIjoxLCJvcmlnaW5fY2FudG9uIjoiWkgiLCJvcmlnaW5fY2l0eV9pZCI6ImNpdHkta2xvdGVuIiwib3JpZ2luX2NpdHlfbmFtZSI6Iktsb3RlbiIsIm9yaWdpbl9pc19haXJwb3J0Ijp0cnVlLCJvcmlnaW5fem9uZV9pZCI6bnVsbCwicGlja3VwIjp7ImxhdCI6NDcuNDUwNCwibG5nIjo4LjU2MjQsInBsYWNlX2lkIjoibWItenJoIiwidGV4dCI6Ilp1cmljaCBBaXJwb3J0In0sInNjaGVkdWxlZF9sb2NhbCI6IjIwMjYtMTAtMTBUMDM6MTUifV0sIm1vZGUiOiJvbmVfd2F5IiwicGF4IjoxLCJwcmljZV9yb3dzIjpbeyJsaW5lcyI6W3siYW1vdW50X3JhcHBlbiI6MjAwMCwiY29kZSI6ImFpcnBvcnRfZmVlIiwibGVnX3NlcSI6MX1dLCJzbHVnIjoiZWNvbm9teSJ9LHsibGluZXMiOlt7ImFtb3VudF9yYXBwZW4iOjIwMDAsImNvZGUiOiJhaXJwb3J0X2ZlZSIsImxlZ19zZXEiOjF9XSwic2x1ZyI6ImJ1c2luZXNzIn0s",
+     "response": "{\"ok\":true,\"lines\":[{\"kind\":\"fare\",\"code\":\"distance_fare\",\"i18n_key\":\"price.line.transfer\",\"params\":{\"vehicleClass\":\"economy\"},\"amount_rappen\":14378},{\"kind\":\"vat\",\"code\":\"vat\",\"i18n_key\":\"price.line.vat\",\"params\":{\"vatRateBps\":81},\"amount_rappen\":1165}],\"net_rappen\":14378,\"vat_rappen\":1165,\"charged_rappen\":15543}"
+    },
+    {
+     "at": "2026-10-02T22:12:56.296Z",
+     "method": "POST",
+     "path": "/api/checkout/intent",
+     "status": 200,
+     "request": "{\"quote_id\":\"e4b25149-40e9-4e8d-963f-4acb586cc5fd\",\"lock\":\"v1.eyJiYWdzIjowLCJjbGFzc190b3RhbHMiOlt7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImVjb25vbXkiLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fSx7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImJ1c2luZXNzIiwidG90YWxfcmFwcGVuIjoxNDM3OH0seyJwcmVfY291cG9uX3JhcHBlbiI6MTQzNzgsInNsdWciOiJ2YW4iLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fV0sImNvbXB1dGVkX2F0IjoiMjAyNi0xMC0wMlQyMjoxMjo0My43MThaIiwiY291cG9uIjpudWxsLCJkaXNwbGF5X2N1cnJlbmN5IjoiQ0hGIiwiZW5naW5lX3ZlcnNpb24iOiJxdW90ZS1lbmdpbmVAMjY3NDQwZjUiLCJleHAiOiIyMDI2LTEwLTAzVDIyOjEyOjQzLjc3MFoiLCJleHRyYXMiOm51bGwsImxlZ3MiOlt7ImRlc3RfY2FudG9uIjoiWkciLCJkZXN0X2NpdHlfaWQiOiJjaXR5LXp1ZyIsImRlc3RfY2l0eV9uYW1lIjoiWnVnIiwiZGVzdF96b25lX2lkIjpudWxsLCJkaXN0YW5jZV9tIjo0MjUxNywiZHJvcG9mZiI6eyJsYXQiOjQ3LjE3MzcsImxuZyI6OC41MTUyLCJwbGFjZV9pZCI6Im1iLXp1ZyIsInRleHQiOiJadWcgc3RhdGlvbiJ9LCJkdXJhdGlvbl9zIjozMzAwLCJmbGlnaHRfbm8iOiJMWDMxOCIsImxhbmRpbmdfc291cmNlIjpudWxsLCJsZWdfc2VxIjoxLCJvcmlnaW5fY2FudG9uIjoiWkgiLCJvcmlnaW5fY2l0eV9pZCI6ImNpdHkta2xvdGVuIiwib3JpZ2luX2NpdHlfbmFtZSI6Iktsb3RlbiIsIm9yaWdpbl9pc19haXJwb3J0Ijp0cnVlLCJvcmlnaW5fem9uZV9pZCI6bnVsbCwicGlja3VwIjp7ImxhdCI6NDcuNDUwNCwibG5nIjo4LjU2MjQsInBsYWNlX2lkIjoibWItenJoIiwidGV4dCI6Ilp1cmljaCBBaXJwb3J0In0sInNjaGVkdWxlZF9sb2NhbCI6IjIwMjYtMTAtMTBUMDM6MTUifV0sIm1vZGUiOiJvbmVfd2F5IiwicGF4IjoxLCJwcmljZV9yb3dzIjpbeyJsaW5lcyI6W3siYW1vdW50X3JhcHBlbiI6MjAwMCwiY29kZSI6ImFpcnBvcnRfZmVlIiwibGVnX3NlcSI6MX1dLCJzbHVnIjoiZWNvbm9teSJ9LHsibGluZXMiOlt7ImFtb3VudF9yYXBwZW4iOjIwMDAsImNvZGUiOiJhaXJwb3J0X2",
+     "response": "{\"ok\":true,\"reference\":\"VT-26-0016\",\"booking_id\":\"2eded194-b890-4368-af2f-47374b442e2d\",\"url\":\"https://checkout.stripe.com/c/pay/cs_test_e2e_b2afdf13f44b3770\",\"expires_at\":\"2026-10-02T22:43:56.000Z\",\"amount_rappen\":15543}"
+    },
+    {
+     "at": "2026-10-02T22:12:58.346Z",
+     "method": "POST",
+     "path": "/api/consent",
+     "status": 200,
+     "request": "{\"method\":\"reject_all\",\"locale\":\"en\",\"functional\":false,\"analytics\":false,\"marketing\":false,\"idempotencyKey\":\"e19c64db-b554-4583-80a4-80cd152a264d\"}",
+     "response": ""
+    }
+   ]
+  },
+  {
+   "scenario": "s5-retry",
+   "errors": [],
+   "api": [
+    {
+     "at": "2026-10-02T22:12:58.614Z",
+     "method": "GET",
+     "path": "/api/reviews",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"data\":[]}"
+    },
+    {
+     "at": "2026-10-02T22:12:58.614Z",
+     "method": "GET",
+     "path": "/api/auth/session",
+     "status": 200,
+     "request": "",
+     "response": "{\"signedIn\":false,\"displayName\":null,\"email\":null,\"emailConfirmed\":false,\"phone\":null,\"finishRequired\":false}"
+    },
+    {
+     "at": "2026-10-02T22:12:58.647Z",
+     "method": "GET",
+     "path": "/api/consent/state",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"chosen\":false,\"policyVersion\":\"2026-10-01\"}"
+    },
+    {
+     "at": "2026-10-02T22:12:58.657Z",
+     "method": "GET",
+     "path": "/api/quote",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"classes\":[{\"slug\":\"economy\",\"eligible\":true,\"ineligible_reason\":null,\"effective_max_pax\":3,\"max_bags\":3,\"fixed_route\":false,\"lines\":[],\"total_rappen\":null,\"name\":\"Economy\",\"photo_url\":null},{\"slug\":\"business\",\"eligible\":true,\"ineligible_reason\":null,\"effective_max_pax\":3,\"max_bags\":3,\"fixed_route\":false,\"lines\":[],\"total_rappen\":null,\"name\":\"Business\",\"photo_url\":null},{\"slug\":\"van\",\"eligible\":true,\"ineligible_reason\":null,\"effective_max_pax\":8,\"max_bags\":8,\"fixed_route\":false,\"lines\":[],\"total_rappen\":null,\"name\":\"Van\",\"photo_url\":null}],\"fixed_routes\":[]}"
+    },
+    {
+     "at": "2026-10-02T22:12:59.480Z",
+     "method": "GET",
+     "path": "/api/geo/suggest?q=Zug&session_token=1d6e9910-f4d6-4901-ad9d-76730c466cd2&locale=en",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"suggestions\":[{\"mapbox_id\":\"mb-zug\",\"name\":\"Zug station\",\"address\":\"Bahnhofplatz, 6300 Zug\",\"context\":\"Bahnhofplatz, 6300 Zug\"}]}"
+    },
+    {
+     "at": "2026-10-02T22:13:00.357Z",
+     "method": "GET",
+     "path": "/api/auth/session",
+     "status": 200,
+     "request": "",
+     "response": "{\"signedIn\":false,\"displayName\":null,\"email\":null,\"emailConfirmed\":false,\"phone\":null,\"finishRequired\":false}"
+    },
+    {
+     "at": "2026-10-02T22:13:00.363Z",
+     "method": "GET",
+     "path": "/api/checkout/me",
+     "status": 200,
+     "request": "",
+     "response": "{\"signed_in\":false}"
+    },
+    {
+     "at": "2026-10-02T22:13:00.373Z",
+     "method": "GET",
+     "path": "/api/geo/suggest?q=Zurich%20Airport%20(ZRH)%2C%20Terminal%202&session_token=35e85342-e72c-40f8-a583-73d947ee4b84&locale=en",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"suggestions\":[{\"mapbox_id\":\"mb-zrh\",\"name\":\"Zurich Airport\",\"address\":\"Flughafenstrasse, 8058 Kloten\",\"context\":\"Flughafenstrasse, 8058 Kloten\"}]}"
+    },
+    {
+     "at": "2026-10-02T22:13:00.373Z",
+     "method": "GET",
+     "path": "/api/geo/suggest?q=Zug%20station&session_token=35e85342-e72c-40f8-a583-73d947ee4b84&locale=en",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"suggestions\":[{\"mapbox_id\":\"mb-zug\",\"name\":\"Zug station\",\"address\":\"Bahnhofplatz, 6300 Zug\",\"context\":\"Bahnhofplatz, 6300 Zug\"}]}"
+    },
+    {
+     "at": "2026-10-02T22:13:00.415Z",
+     "method": "GET",
+     "path": "/api/consent/state",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"chosen\":true,\"policyVersion\":\"2026-10-01\",\"choice\":{\"method\":\"reject_all\",\"functional\":false,\"analytics\":false,\"marketing\":false,\"recordedAt\":\"2026-10-02T22:12:59.208Z\"}}"
+    },
+    {
+     "at": "2026-10-02T22:13:00.459Z",
+     "method": "GET",
+     "path": "/api/checkout/extras",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"extras\":[],\"vat_rate_bps\":81}"
+    },
+    {
+     "at": "2026-10-02T22:13:00.481Z",
+     "method": "POST",
+     "path": "/api/quote",
+     "status": 200,
+     "request": "{\"locale\":\"en\",\"display_currency\":\"CHF\",\"mode\":\"one_way\",\"pickup\":{\"kind\":\"retrieve\",\"mapbox_id\":\"mb-zrh\",\"session_token\":\"35e85342-e72c-40f8-a583-73d947ee4b84\",\"text\":\"Zurich Airport (ZRH), Terminal 2\"},\"dropoff\":{\"kind\":\"retrieve\",\"mapbox_id\":\"mb-zug\",\"session_token\":\"35e85342-e72c-40f8-a583-73d947ee4b84\",\"text\":\"Zug station\"},\"legs\":[{\"leg_seq\":1,\"scheduled_local\":\"2026-10-10T03:15\",\"flight_no\":\"LX318\"}],\"pax\":1,\"bags\":0}",
+     "response": "{\"ok\":true,\"quote_id\":\"9c557d54-c18c-4656-b566-d9c0a27aaf99\",\"lock\":\"v1.eyJiYWdzIjowLCJjbGFzc190b3RhbHMiOlt7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImVjb25vbXkiLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fSx7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImJ1c2luZXNzIiwidG90YWxfcmFwcGVuIjoxNDM3OH0seyJwcmVfY291cG9uX3JhcHBlbiI6MTQzNzgsInNsdWciOiJ2YW4iLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fV0sImNvbXB1dGVkX2F0IjoiMjAyNi0xMC0wMlQyMjoxMzowMC4zNzhaIiwiY291cG9uIjpudWxsLCJkaXNwbGF5X2N1cnJlbmN5IjoiQ0hGIiwiZW5naW5lX3ZlcnNpb24iOiJxdW90ZS1lbmdpbmVAMjY3NDQwZjUiLCJleHAiOiIyMDI2LTEwLTAzVDIyOjEzOjAwLjQzMFoiLCJleHRyYXMiOm51bGwsImxlZ3MiOlt7ImRlc3RfY2FudG9uIjoiWkciLCJkZXN0X2NpdHlfaWQiOiJjaXR5LXp1ZyIsImRlc3RfY2l0eV9uYW1lIjoiWnVnIiwiZGVzdF96b25lX2lkIjpudWxsLCJkaXN0YW5jZV9tIjo0MjUxNywiZHJvcG9mZiI6eyJsYXQiOjQ3LjE3MzcsImxuZyI6OC41MTUyLCJwbGFjZV9pZCI6Im1iLXp1ZyIsInRleHQiOiJadWcgc3RhdGlvbiJ9LCJkdXJhdGlvbl9zIjozMzAwLCJmbGlnaHRfbm8iOiJMWDMxOCIsImxhbmRpbmdfc291cmNlIjpudWxsLCJsZWdfc2VxIjoxLCJvcmlnaW5fY2FudG9uIjoiWkgiLCJvcmlnaW5fY2l0eV9pZCI6ImNpdHkta2xvdGVuIiwib3JpZ2luX2NpdHlfbmFtZSI6Iktsb3RlbiIsIm9yaWdpbl9pc19haXJwb3J0Ijp0cnVlLCJvcmlnaW5fem9uZV9pZCI6bnVsbCwicGlja3VwIjp7ImxhdCI6NDcuNDUwNCwibG5nIjo4LjU2MjQsInBsYWNlX2lkIjoibWItenJoIiwidGV4dCI6Ilp1cmljaCBBaXJwb3J0In0sInNjaGVkdWxlZF9sb2NhbCI6IjIwMjYtMTAtMTBUMDM6MTUifV0sIm1vZGUiOiJvbmVfd2F5IiwicGF4IjoxLCJwcmljZV9yb3dzIjpbeyJsaW5lcyI6W3siYW1vdW50X3JhcHBlbiI6MjAwMCwiY29kZSI6ImFpcnBvcnRfZmVlIiwibGVnX3NlcSI6MX1dLCJzbHVnIjoiZWNvbm9teSJ9LHsibGluZXMiOlt7ImFtb3VudF9yYXBwZW4iOjIwMDAsImNvZGUiOiJh"
+    },
+    {
+     "at": "2026-10-02T22:13:03.704Z",
+     "method": "POST",
+     "path": "/api/checkout/price",
+     "status": 200,
+     "request": "{\"lock\":\"v1.eyJiYWdzIjowLCJjbGFzc190b3RhbHMiOlt7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImVjb25vbXkiLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fSx7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImJ1c2luZXNzIiwidG90YWxfcmFwcGVuIjoxNDM3OH0seyJwcmVfY291cG9uX3JhcHBlbiI6MTQzNzgsInNsdWciOiJ2YW4iLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fV0sImNvbXB1dGVkX2F0IjoiMjAyNi0xMC0wMlQyMjoxMzowMC4zNzhaIiwiY291cG9uIjpudWxsLCJkaXNwbGF5X2N1cnJlbmN5IjoiQ0hGIiwiZW5naW5lX3ZlcnNpb24iOiJxdW90ZS1lbmdpbmVAMjY3NDQwZjUiLCJleHAiOiIyMDI2LTEwLTAzVDIyOjEzOjAwLjQzMFoiLCJleHRyYXMiOm51bGwsImxlZ3MiOlt7ImRlc3RfY2FudG9uIjoiWkciLCJkZXN0X2NpdHlfaWQiOiJjaXR5LXp1ZyIsImRlc3RfY2l0eV9uYW1lIjoiWnVnIiwiZGVzdF96b25lX2lkIjpudWxsLCJkaXN0YW5jZV9tIjo0MjUxNywiZHJvcG9mZiI6eyJsYXQiOjQ3LjE3MzcsImxuZyI6OC41MTUyLCJwbGFjZV9pZCI6Im1iLXp1ZyIsInRleHQiOiJadWcgc3RhdGlvbiJ9LCJkdXJhdGlvbl9zIjozMzAwLCJmbGlnaHRfbm8iOiJMWDMxOCIsImxhbmRpbmdfc291cmNlIjpudWxsLCJsZWdfc2VxIjoxLCJvcmlnaW5fY2FudG9uIjoiWkgiLCJvcmlnaW5fY2l0eV9pZCI6ImNpdHkta2xvdGVuIiwib3JpZ2luX2NpdHlfbmFtZSI6Iktsb3RlbiIsIm9yaWdpbl9pc19haXJwb3J0Ijp0cnVlLCJvcmlnaW5fem9uZV9pZCI6bnVsbCwicGlja3VwIjp7ImxhdCI6NDcuNDUwNCwibG5nIjo4LjU2MjQsInBsYWNlX2lkIjoibWItenJoIiwidGV4dCI6Ilp1cmljaCBBaXJwb3J0In0sInNjaGVkdWxlZF9sb2NhbCI6IjIwMjYtMTAtMTBUMDM6MTUifV0sIm1vZGUiOiJvbmVfd2F5IiwicGF4IjoxLCJwcmljZV9yb3dzIjpbeyJsaW5lcyI6W3siYW1vdW50X3JhcHBlbiI6MjAwMCwiY29kZSI6ImFpcnBvcnRfZmVlIiwibGVnX3NlcSI6MX1dLCJzbHVnIjoiZWNvbm9teSJ9LHsibGluZXMiOlt7ImFtb3VudF9yYXBwZW4iOjIwMDAsImNvZGUiOiJhaXJwb3J0X2ZlZSIsImxlZ19zZXEiOjF9XSwic2x1ZyI6ImJ1c2luZXNzIn0s",
+     "response": "{\"ok\":true,\"lines\":[{\"kind\":\"fare\",\"code\":\"distance_fare\",\"i18n_key\":\"price.line.transfer\",\"params\":{\"vehicleClass\":\"economy\"},\"amount_rappen\":14378},{\"kind\":\"vat\",\"code\":\"vat\",\"i18n_key\":\"price.line.vat\",\"params\":{\"vatRateBps\":81},\"amount_rappen\":1165}],\"net_rappen\":14378,\"vat_rappen\":1165,\"charged_rappen\":15543}"
+    },
+    {
+     "at": "2026-10-02T22:13:05.291Z",
+     "method": "POST",
+     "path": "/api/quote/reprice",
+     "status": 200,
+     "request": "{\"quote_id\":\"9c557d54-c18c-4656-b566-d9c0a27aaf99\",\"lock\":\"v1.eyJiYWdzIjowLCJjbGFzc190b3RhbHMiOlt7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImVjb25vbXkiLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fSx7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImJ1c2luZXNzIiwidG90YWxfcmFwcGVuIjoxNDM3OH0seyJwcmVfY291cG9uX3JhcHBlbiI6MTQzNzgsInNsdWciOiJ2YW4iLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fV0sImNvbXB1dGVkX2F0IjoiMjAyNi0xMC0wMlQyMjoxMzowMC4zNzhaIiwiY291cG9uIjpudWxsLCJkaXNwbGF5X2N1cnJlbmN5IjoiQ0hGIiwiZW5naW5lX3ZlcnNpb24iOiJxdW90ZS1lbmdpbmVAMjY3NDQwZjUiLCJleHAiOiIyMDI2LTEwLTAzVDIyOjEzOjAwLjQzMFoiLCJleHRyYXMiOm51bGwsImxlZ3MiOlt7ImRlc3RfY2FudG9uIjoiWkciLCJkZXN0X2NpdHlfaWQiOiJjaXR5LXp1ZyIsImRlc3RfY2l0eV9uYW1lIjoiWnVnIiwiZGVzdF96b25lX2lkIjpudWxsLCJkaXN0YW5jZV9tIjo0MjUxNywiZHJvcG9mZiI6eyJsYXQiOjQ3LjE3MzcsImxuZyI6OC41MTUyLCJwbGFjZV9pZCI6Im1iLXp1ZyIsInRleHQiOiJadWcgc3RhdGlvbiJ9LCJkdXJhdGlvbl9zIjozMzAwLCJmbGlnaHRfbm8iOiJMWDMxOCIsImxhbmRpbmdfc291cmNlIjpudWxsLCJsZWdfc2VxIjoxLCJvcmlnaW5fY2FudG9uIjoiWkgiLCJvcmlnaW5fY2l0eV9pZCI6ImNpdHkta2xvdGVuIiwib3JpZ2luX2NpdHlfbmFtZSI6Iktsb3RlbiIsIm9yaWdpbl9pc19haXJwb3J0Ijp0cnVlLCJvcmlnaW5fem9uZV9pZCI6bnVsbCwicGlja3VwIjp7ImxhdCI6NDcuNDUwNCwibG5nIjo4LjU2MjQsInBsYWNlX2lkIjoibWItenJoIiwidGV4dCI6Ilp1cmljaCBBaXJwb3J0In0sInNjaGVkdWxlZF9sb2NhbCI6IjIwMjYtMTAtMTBUMDM6MTUifV0sIm1vZGUiOiJvbmVfd2F5IiwicGF4IjoxLCJwcmljZV9yb3dzIjpbeyJsaW5lcyI6W3siYW1vdW50X3JhcHBlbiI6MjAwMCwiY29kZSI6ImFpcnBvcnRfZmVlIiwibGVnX3NlcSI6MX1dLCJzbHVnIjoiZWNvbm9teSJ9LHsibGluZXMiOlt7ImFtb3VudF9yYXBwZW4iOjIwMDAsImNvZGUiOiJhaXJwb3J0X2",
+     "response": "{\"ok\":true,\"quote_id\":\"9c557d54-c18c-4656-b566-d9c0a27aaf99\",\"lock\":\"v1.eyJiYWdzIjowLCJjbGFzc190b3RhbHMiOlt7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImVjb25vbXkiLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fSx7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImJ1c2luZXNzIiwidG90YWxfcmFwcGVuIjoxNDM3OH0seyJwcmVfY291cG9uX3JhcHBlbiI6MTQzNzgsInNsdWciOiJ2YW4iLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fV0sImNvbXB1dGVkX2F0IjoiMjAyNi0xMC0wMlQyMjoxMzowMC4zNzhaIiwiY291cG9uIjoiQVVESVRGSVgiLCJkaXNwbGF5X2N1cnJlbmN5IjoiQ0hGIiwiZW5naW5lX3ZlcnNpb24iOiJxdW90ZS1lbmdpbmVAMjY3NDQwZjUiLCJleHAiOiIyMDI2LTEwLTAzVDIyOjEzOjAwLjQzMFoiLCJleHRyYXMiOm51bGwsImxlZ3MiOlt7ImRlc3RfY2FudG9uIjoiWkciLCJkZXN0X2NpdHlfaWQiOiJjaXR5LXp1ZyIsImRlc3RfY2l0eV9uYW1lIjoiWnVnIiwiZGVzdF96b25lX2lkIjpudWxsLCJkaXN0YW5jZV9tIjo0MjUxNywiZHJvcG9mZiI6eyJsYXQiOjQ3LjE3MzcsImxuZyI6OC41MTUyLCJwbGFjZV9pZCI6Im1iLXp1ZyIsInRleHQiOiJadWcgc3RhdGlvbiJ9LCJkdXJhdGlvbl9zIjozMzAwLCJmbGlnaHRfbm8iOiJMWDMxOCIsImxhbmRpbmdfc291cmNlIjpudWxsLCJsZWdfc2VxIjoxLCJvcmlnaW5fY2FudG9uIjoiWkgiLCJvcmlnaW5fY2l0eV9pZCI6ImNpdHkta2xvdGVuIiwib3JpZ2luX2NpdHlfbmFtZSI6Iktsb3RlbiIsIm9yaWdpbl9pc19haXJwb3J0Ijp0cnVlLCJvcmlnaW5fem9uZV9pZCI6bnVsbCwicGlja3VwIjp7ImxhdCI6NDcuNDUwNCwibG5nIjo4LjU2MjQsInBsYWNlX2lkIjoibWItenJoIiwidGV4dCI6Ilp1cmljaCBBaXJwb3J0In0sInNjaGVkdWxlZF9sb2NhbCI6IjIwMjYtMTAtMTBUMDM6MTUifV0sIm1vZGUiOiJvbmVfd2F5IiwicGF4IjoxLCJwcmljZV9yb3dzIjpbeyJsaW5lcyI6W3siYW1vdW50X3JhcHBlbiI6MjAwMCwiY29kZSI6ImFpcnBvcnRfZmVlIiwibGVnX3NlcSI6MX1dLCJzbHVnIjoiZWNvbm9teSJ9LHsibGluZXMiOlt7ImFtb3VudF9yYXBwZW4iOjIwMDAsImNv"
+    },
+    {
+     "at": "2026-10-02T22:13:05.326Z",
+     "method": "POST",
+     "path": "/api/checkout/price",
+     "status": 200,
+     "request": "{\"lock\":\"v1.eyJiYWdzIjowLCJjbGFzc190b3RhbHMiOlt7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImVjb25vbXkiLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fSx7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImJ1c2luZXNzIiwidG90YWxfcmFwcGVuIjoxNDM3OH0seyJwcmVfY291cG9uX3JhcHBlbiI6MTQzNzgsInNsdWciOiJ2YW4iLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fV0sImNvbXB1dGVkX2F0IjoiMjAyNi0xMC0wMlQyMjoxMzowMC4zNzhaIiwiY291cG9uIjoiQVVESVRGSVgiLCJkaXNwbGF5X2N1cnJlbmN5IjoiQ0hGIiwiZW5naW5lX3ZlcnNpb24iOiJxdW90ZS1lbmdpbmVAMjY3NDQwZjUiLCJleHAiOiIyMDI2LTEwLTAzVDIyOjEzOjAwLjQzMFoiLCJleHRyYXMiOm51bGwsImxlZ3MiOlt7ImRlc3RfY2FudG9uIjoiWkciLCJkZXN0X2NpdHlfaWQiOiJjaXR5LXp1ZyIsImRlc3RfY2l0eV9uYW1lIjoiWnVnIiwiZGVzdF96b25lX2lkIjpudWxsLCJkaXN0YW5jZV9tIjo0MjUxNywiZHJvcG9mZiI6eyJsYXQiOjQ3LjE3MzcsImxuZyI6OC41MTUyLCJwbGFjZV9pZCI6Im1iLXp1ZyIsInRleHQiOiJadWcgc3RhdGlvbiJ9LCJkdXJhdGlvbl9zIjozMzAwLCJmbGlnaHRfbm8iOiJMWDMxOCIsImxhbmRpbmdfc291cmNlIjpudWxsLCJsZWdfc2VxIjoxLCJvcmlnaW5fY2FudG9uIjoiWkgiLCJvcmlnaW5fY2l0eV9pZCI6ImNpdHkta2xvdGVuIiwib3JpZ2luX2NpdHlfbmFtZSI6Iktsb3RlbiIsIm9yaWdpbl9pc19haXJwb3J0Ijp0cnVlLCJvcmlnaW5fem9uZV9pZCI6bnVsbCwicGlja3VwIjp7ImxhdCI6NDcuNDUwNCwibG5nIjo4LjU2MjQsInBsYWNlX2lkIjoibWItenJoIiwidGV4dCI6Ilp1cmljaCBBaXJwb3J0In0sInNjaGVkdWxlZF9sb2NhbCI6IjIwMjYtMTAtMTBUMDM6MTUifV0sIm1vZGUiOiJvbmVfd2F5IiwicGF4IjoxLCJwcmljZV9yb3dzIjpbeyJsaW5lcyI6W3siYW1vdW50X3JhcHBlbiI6MjAwMCwiY29kZSI6ImFpcnBvcnRfZmVlIiwibGVnX3NlcSI6MX1dLCJzbHVnIjoiZWNvbm9teSJ9LHsibGluZXMiOlt7ImFtb3VudF9yYXBwZW4iOjIwMDAsImNvZGUiOiJhaXJwb3J0X2ZlZSIsImxlZ19zZXEiOjF9XSwic2x1ZyI6ImJ1c2lu",
+     "response": "{\"ok\":true,\"lines\":[{\"kind\":\"fare\",\"code\":\"distance_fare\",\"i18n_key\":\"price.line.transfer\",\"params\":{\"vehicleClass\":\"economy\"},\"amount_rappen\":14378},{\"kind\":\"coupon\",\"code\":\"AUDITFIX\",\"i18n_key\":\"price.line.coupon\",\"params\":{\"amountRappen\":1000},\"amount_rappen\":-1000},{\"kind\":\"vat\",\"code\":\"vat\",\"i18n_key\":\"price.line.vat\",\"params\":{\"vatRateBps\":81},\"amount_rappen\":1084}],\"net_rappen\":13378,\"vat_rappen\":1084,\"charged_rappen\":14462}"
+    },
+    {
+     "at": "2026-10-02T22:13:11.376Z",
+     "method": "POST",
+     "path": "/api/checkout/intent",
+     "status": 500,
+     "request": "{\"quote_id\":\"9c557d54-c18c-4656-b566-d9c0a27aaf99\",\"lock\":\"v1.eyJiYWdzIjowLCJjbGFzc190b3RhbHMiOlt7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImVjb25vbXkiLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fSx7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImJ1c2luZXNzIiwidG90YWxfcmFwcGVuIjoxNDM3OH0seyJwcmVfY291cG9uX3JhcHBlbiI6MTQzNzgsInNsdWciOiJ2YW4iLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fV0sImNvbXB1dGVkX2F0IjoiMjAyNi0xMC0wMlQyMjoxMzowMC4zNzhaIiwiY291cG9uIjoiQVVESVRGSVgiLCJkaXNwbGF5X2N1cnJlbmN5IjoiQ0hGIiwiZW5naW5lX3ZlcnNpb24iOiJxdW90ZS1lbmdpbmVAMjY3NDQwZjUiLCJleHAiOiIyMDI2LTEwLTAzVDIyOjEzOjAwLjQzMFoiLCJleHRyYXMiOm51bGwsImxlZ3MiOlt7ImRlc3RfY2FudG9uIjoiWkciLCJkZXN0X2NpdHlfaWQiOiJjaXR5LXp1ZyIsImRlc3RfY2l0eV9uYW1lIjoiWnVnIiwiZGVzdF96b25lX2lkIjpudWxsLCJkaXN0YW5jZV9tIjo0MjUxNywiZHJvcG9mZiI6eyJsYXQiOjQ3LjE3MzcsImxuZyI6OC41MTUyLCJwbGFjZV9pZCI6Im1iLXp1ZyIsInRleHQiOiJadWcgc3RhdGlvbiJ9LCJkdXJhdGlvbl9zIjozMzAwLCJmbGlnaHRfbm8iOiJMWDMxOCIsImxhbmRpbmdfc291cmNlIjpudWxsLCJsZWdfc2VxIjoxLCJvcmlnaW5fY2FudG9uIjoiWkgiLCJvcmlnaW5fY2l0eV9pZCI6ImNpdHkta2xvdGVuIiwib3JpZ2luX2NpdHlfbmFtZSI6Iktsb3RlbiIsIm9yaWdpbl9pc19haXJwb3J0Ijp0cnVlLCJvcmlnaW5fem9uZV9pZCI6bnVsbCwicGlja3VwIjp7ImxhdCI6NDcuNDUwNCwibG5nIjo4LjU2MjQsInBsYWNlX2lkIjoibWItenJoIiwidGV4dCI6Ilp1cmljaCBBaXJwb3J0In0sInNjaGVkdWxlZF9sb2NhbCI6IjIwMjYtMTAtMTBUMDM6MTUifV0sIm1vZGUiOiJvbmVfd2F5IiwicGF4IjoxLCJwcmljZV9yb3dzIjpbeyJsaW5lcyI6W3siYW1vdW50X3JhcHBlbiI6MjAwMCwiY29kZSI6ImFpcnBvcnRfZmVlIiwibGVnX3NlcSI6MX1dLCJzbHVnIjoiZWNvbm9teSJ9LHsibGluZXMiOlt7ImFtb3VudF9yYXBwZW4iOjIwMDAsImNvZGUiOiJhaX",
+     "response": "{\"ok\":false,\"error\":\"intent_unhandled\"}"
+    },
+    {
+     "at": "2026-10-02T22:13:13.624Z",
+     "method": "POST",
+     "path": "/api/checkout/intent",
+     "status": 200,
+     "request": "{\"quote_id\":\"9c557d54-c18c-4656-b566-d9c0a27aaf99\",\"lock\":\"v1.eyJiYWdzIjowLCJjbGFzc190b3RhbHMiOlt7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImVjb25vbXkiLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fSx7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImJ1c2luZXNzIiwidG90YWxfcmFwcGVuIjoxNDM3OH0seyJwcmVfY291cG9uX3JhcHBlbiI6MTQzNzgsInNsdWciOiJ2YW4iLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fV0sImNvbXB1dGVkX2F0IjoiMjAyNi0xMC0wMlQyMjoxMzowMC4zNzhaIiwiY291cG9uIjoiQVVESVRGSVgiLCJkaXNwbGF5X2N1cnJlbmN5IjoiQ0hGIiwiZW5naW5lX3ZlcnNpb24iOiJxdW90ZS1lbmdpbmVAMjY3NDQwZjUiLCJleHAiOiIyMDI2LTEwLTAzVDIyOjEzOjAwLjQzMFoiLCJleHRyYXMiOm51bGwsImxlZ3MiOlt7ImRlc3RfY2FudG9uIjoiWkciLCJkZXN0X2NpdHlfaWQiOiJjaXR5LXp1ZyIsImRlc3RfY2l0eV9uYW1lIjoiWnVnIiwiZGVzdF96b25lX2lkIjpudWxsLCJkaXN0YW5jZV9tIjo0MjUxNywiZHJvcG9mZiI6eyJsYXQiOjQ3LjE3MzcsImxuZyI6OC41MTUyLCJwbGFjZV9pZCI6Im1iLXp1ZyIsInRleHQiOiJadWcgc3RhdGlvbiJ9LCJkdXJhdGlvbl9zIjozMzAwLCJmbGlnaHRfbm8iOiJMWDMxOCIsImxhbmRpbmdfc291cmNlIjpudWxsLCJsZWdfc2VxIjoxLCJvcmlnaW5fY2FudG9uIjoiWkgiLCJvcmlnaW5fY2l0eV9pZCI6ImNpdHkta2xvdGVuIiwib3JpZ2luX2NpdHlfbmFtZSI6Iktsb3RlbiIsIm9yaWdpbl9pc19haXJwb3J0Ijp0cnVlLCJvcmlnaW5fem9uZV9pZCI6bnVsbCwicGlja3VwIjp7ImxhdCI6NDcuNDUwNCwibG5nIjo4LjU2MjQsInBsYWNlX2lkIjoibWItenJoIiwidGV4dCI6Ilp1cmljaCBBaXJwb3J0In0sInNjaGVkdWxlZF9sb2NhbCI6IjIwMjYtMTAtMTBUMDM6MTUifV0sIm1vZGUiOiJvbmVfd2F5IiwicGF4IjoxLCJwcmljZV9yb3dzIjpbeyJsaW5lcyI6W3siYW1vdW50X3JhcHBlbiI6MjAwMCwiY29kZSI6ImFpcnBvcnRfZmVlIiwibGVnX3NlcSI6MX1dLCJzbHVnIjoiZWNvbm9teSJ9LHsibGluZXMiOlt7ImFtb3VudF9yYXBwZW4iOjIwMDAsImNvZGUiOiJhaX",
+     "response": "{\"ok\":true,\"reference\":\"VT-26-0017\",\"booking_id\":\"5dbe7afd-248d-441d-aa16-21701e3e3d42\",\"url\":\"https://checkout.stripe.com/c/pay/cs_test_e2e_f4d527c7f902346d\",\"expires_at\":\"2026-10-02T22:44:13.000Z\",\"amount_rappen\":14462}"
+    },
+    {
+     "at": "2026-10-02T22:13:15.686Z",
+     "method": "POST",
+     "path": "/api/consent",
+     "status": 200,
+     "request": "{\"method\":\"reject_all\",\"locale\":\"en\",\"functional\":false,\"analytics\":false,\"marketing\":false,\"idempotencyKey\":\"73105e43-2ddc-4196-b5e3-a678481dead7\"}",
+     "response": ""
+    }
+   ]
+  },
+  {
+   "scenario": "s5c-single-500",
+   "errors": [],
+   "api": [
+    {
+     "at": "2026-10-02T22:13:15.945Z",
+     "method": "GET",
+     "path": "/api/reviews",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"data\":[]}"
+    },
+    {
+     "at": "2026-10-02T22:13:15.945Z",
+     "method": "GET",
+     "path": "/api/auth/session",
+     "status": 200,
+     "request": "",
+     "response": "{\"signedIn\":false,\"displayName\":null,\"email\":null,\"emailConfirmed\":false,\"phone\":null,\"finishRequired\":false}"
+    },
+    {
+     "at": "2026-10-02T22:13:15.982Z",
+     "method": "GET",
+     "path": "/api/quote",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"classes\":[{\"slug\":\"economy\",\"eligible\":true,\"ineligible_reason\":null,\"effective_max_pax\":3,\"max_bags\":3,\"fixed_route\":false,\"lines\":[],\"total_rappen\":null,\"name\":\"Economy\",\"photo_url\":null},{\"slug\":\"business\",\"eligible\":true,\"ineligible_reason\":null,\"effective_max_pax\":3,\"max_bags\":3,\"fixed_route\":false,\"lines\":[],\"total_rappen\":null,\"name\":\"Business\",\"photo_url\":null},{\"slug\":\"van\",\"eligible\":true,\"ineligible_reason\":null,\"effective_max_pax\":8,\"max_bags\":8,\"fixed_route\":false,\"lines\":[],\"total_rappen\":null,\"name\":\"Van\",\"photo_url\":null}],\"fixed_routes\":[]}"
+    },
+    {
+     "at": "2026-10-02T22:13:16.007Z",
+     "method": "GET",
+     "path": "/api/consent/state",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"chosen\":false,\"policyVersion\":\"2026-10-01\"}"
+    },
+    {
+     "at": "2026-10-02T22:13:16.858Z",
+     "method": "GET",
+     "path": "/api/geo/suggest?q=Zug&session_token=a01bf6e9-dc1d-4528-ae21-9cf3875e9fd5&locale=en",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"suggestions\":[{\"mapbox_id\":\"mb-zug\",\"name\":\"Zug station\",\"address\":\"Bahnhofplatz, 6300 Zug\",\"context\":\"Bahnhofplatz, 6300 Zug\"}]}"
+    },
+    {
+     "at": "2026-10-02T22:13:17.743Z",
+     "method": "GET",
+     "path": "/api/auth/session",
+     "status": 200,
+     "request": "",
+     "response": "{\"signedIn\":false,\"displayName\":null,\"email\":null,\"emailConfirmed\":false,\"phone\":null,\"finishRequired\":false}"
+    },
+    {
+     "at": "2026-10-02T22:13:17.749Z",
+     "method": "GET",
+     "path": "/api/checkout/me",
+     "status": 200,
+     "request": "",
+     "response": "{\"signed_in\":false}"
+    },
+    {
+     "at": "2026-10-02T22:13:17.758Z",
+     "method": "GET",
+     "path": "/api/geo/suggest?q=Zurich%20Airport%20(ZRH)%2C%20Terminal%202&session_token=142abaf0-7b8c-4916-a012-6f355f79dd51&locale=en",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"suggestions\":[{\"mapbox_id\":\"mb-zrh\",\"name\":\"Zurich Airport\",\"address\":\"Flughafenstrasse, 8058 Kloten\",\"context\":\"Flughafenstrasse, 8058 Kloten\"}]}"
+    },
+    {
+     "at": "2026-10-02T22:13:17.758Z",
+     "method": "GET",
+     "path": "/api/geo/suggest?q=Zug%20station&session_token=142abaf0-7b8c-4916-a012-6f355f79dd51&locale=en",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"suggestions\":[{\"mapbox_id\":\"mb-zug\",\"name\":\"Zug station\",\"address\":\"Bahnhofplatz, 6300 Zug\",\"context\":\"Bahnhofplatz, 6300 Zug\"}]}"
+    },
+    {
+     "at": "2026-10-02T22:13:17.789Z",
+     "method": "GET",
+     "path": "/api/consent/state",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"chosen\":true,\"policyVersion\":\"2026-10-01\",\"choice\":{\"method\":\"reject_all\",\"functional\":false,\"analytics\":false,\"marketing\":false,\"recordedAt\":\"2026-10-02T22:13:16.634Z\"}}"
+    },
+    {
+     "at": "2026-10-02T22:13:17.795Z",
+     "method": "GET",
+     "path": "/api/checkout/extras",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"extras\":[],\"vat_rate_bps\":81}"
+    },
+    {
+     "at": "2026-10-02T22:13:17.829Z",
+     "method": "POST",
+     "path": "/api/quote",
+     "status": 200,
+     "request": "{\"locale\":\"en\",\"display_currency\":\"CHF\",\"mode\":\"one_way\",\"pickup\":{\"kind\":\"retrieve\",\"mapbox_id\":\"mb-zrh\",\"session_token\":\"142abaf0-7b8c-4916-a012-6f355f79dd51\",\"text\":\"Zurich Airport (ZRH), Terminal 2\"},\"dropoff\":{\"kind\":\"retrieve\",\"mapbox_id\":\"mb-zug\",\"session_token\":\"142abaf0-7b8c-4916-a012-6f355f79dd51\",\"text\":\"Zug station\"},\"legs\":[{\"leg_seq\":1,\"scheduled_local\":\"2026-10-10T03:15\",\"flight_no\":\"LX318\"}],\"pax\":1,\"bags\":0}",
+     "response": "{\"ok\":true,\"quote_id\":\"b0f5e16e-a5ae-40ce-ae2b-3cca201dc548\",\"lock\":\"v1.eyJiYWdzIjowLCJjbGFzc190b3RhbHMiOlt7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImVjb25vbXkiLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fSx7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImJ1c2luZXNzIiwidG90YWxfcmFwcGVuIjoxNDM3OH0seyJwcmVfY291cG9uX3JhcHBlbiI6MTQzNzgsInNsdWciOiJ2YW4iLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fV0sImNvbXB1dGVkX2F0IjoiMjAyNi0xMC0wMlQyMjoxMzoxNy43NjRaIiwiY291cG9uIjpudWxsLCJkaXNwbGF5X2N1cnJlbmN5IjoiQ0hGIiwiZW5naW5lX3ZlcnNpb24iOiJxdW90ZS1lbmdpbmVAMjY3NDQwZjUiLCJleHAiOiIyMDI2LTEwLTAzVDIyOjEzOjE3Ljc5OFoiLCJleHRyYXMiOm51bGwsImxlZ3MiOlt7ImRlc3RfY2FudG9uIjoiWkciLCJkZXN0X2NpdHlfaWQiOiJjaXR5LXp1ZyIsImRlc3RfY2l0eV9uYW1lIjoiWnVnIiwiZGVzdF96b25lX2lkIjpudWxsLCJkaXN0YW5jZV9tIjo0MjUxNywiZHJvcG9mZiI6eyJsYXQiOjQ3LjE3MzcsImxuZyI6OC41MTUyLCJwbGFjZV9pZCI6Im1iLXp1ZyIsInRleHQiOiJadWcgc3RhdGlvbiJ9LCJkdXJhdGlvbl9zIjozMzAwLCJmbGlnaHRfbm8iOiJMWDMxOCIsImxhbmRpbmdfc291cmNlIjpudWxsLCJsZWdfc2VxIjoxLCJvcmlnaW5fY2FudG9uIjoiWkgiLCJvcmlnaW5fY2l0eV9pZCI6ImNpdHkta2xvdGVuIiwib3JpZ2luX2NpdHlfbmFtZSI6Iktsb3RlbiIsIm9yaWdpbl9pc19haXJwb3J0Ijp0cnVlLCJvcmlnaW5fem9uZV9pZCI6bnVsbCwicGlja3VwIjp7ImxhdCI6NDcuNDUwNCwibG5nIjo4LjU2MjQsInBsYWNlX2lkIjoibWItenJoIiwidGV4dCI6Ilp1cmljaCBBaXJwb3J0In0sInNjaGVkdWxlZF9sb2NhbCI6IjIwMjYtMTAtMTBUMDM6MTUifV0sIm1vZGUiOiJvbmVfd2F5IiwicGF4IjoxLCJwcmljZV9yb3dzIjpbeyJsaW5lcyI6W3siYW1vdW50X3JhcHBlbiI6MjAwMCwiY29kZSI6ImFpcnBvcnRfZmVlIiwibGVnX3NlcSI6MX1dLCJzbHVnIjoiZWNvbm9teSJ9LHsibGluZXMiOlt7ImFtb3VudF9yYXBwZW4iOjIwMDAsImNvZGUiOiJh"
+    },
+    {
+     "at": "2026-10-02T22:13:21.082Z",
+     "method": "POST",
+     "path": "/api/checkout/price",
+     "status": 200,
+     "request": "{\"lock\":\"v1.eyJiYWdzIjowLCJjbGFzc190b3RhbHMiOlt7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImVjb25vbXkiLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fSx7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImJ1c2luZXNzIiwidG90YWxfcmFwcGVuIjoxNDM3OH0seyJwcmVfY291cG9uX3JhcHBlbiI6MTQzNzgsInNsdWciOiJ2YW4iLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fV0sImNvbXB1dGVkX2F0IjoiMjAyNi0xMC0wMlQyMjoxMzoxNy43NjRaIiwiY291cG9uIjpudWxsLCJkaXNwbGF5X2N1cnJlbmN5IjoiQ0hGIiwiZW5naW5lX3ZlcnNpb24iOiJxdW90ZS1lbmdpbmVAMjY3NDQwZjUiLCJleHAiOiIyMDI2LTEwLTAzVDIyOjEzOjE3Ljc5OFoiLCJleHRyYXMiOm51bGwsImxlZ3MiOlt7ImRlc3RfY2FudG9uIjoiWkciLCJkZXN0X2NpdHlfaWQiOiJjaXR5LXp1ZyIsImRlc3RfY2l0eV9uYW1lIjoiWnVnIiwiZGVzdF96b25lX2lkIjpudWxsLCJkaXN0YW5jZV9tIjo0MjUxNywiZHJvcG9mZiI6eyJsYXQiOjQ3LjE3MzcsImxuZyI6OC41MTUyLCJwbGFjZV9pZCI6Im1iLXp1ZyIsInRleHQiOiJadWcgc3RhdGlvbiJ9LCJkdXJhdGlvbl9zIjozMzAwLCJmbGlnaHRfbm8iOiJMWDMxOCIsImxhbmRpbmdfc291cmNlIjpudWxsLCJsZWdfc2VxIjoxLCJvcmlnaW5fY2FudG9uIjoiWkgiLCJvcmlnaW5fY2l0eV9pZCI6ImNpdHkta2xvdGVuIiwib3JpZ2luX2NpdHlfbmFtZSI6Iktsb3RlbiIsIm9yaWdpbl9pc19haXJwb3J0Ijp0cnVlLCJvcmlnaW5fem9uZV9pZCI6bnVsbCwicGlja3VwIjp7ImxhdCI6NDcuNDUwNCwibG5nIjo4LjU2MjQsInBsYWNlX2lkIjoibWItenJoIiwidGV4dCI6Ilp1cmljaCBBaXJwb3J0In0sInNjaGVkdWxlZF9sb2NhbCI6IjIwMjYtMTAtMTBUMDM6MTUifV0sIm1vZGUiOiJvbmVfd2F5IiwicGF4IjoxLCJwcmljZV9yb3dzIjpbeyJsaW5lcyI6W3siYW1vdW50X3JhcHBlbiI6MjAwMCwiY29kZSI6ImFpcnBvcnRfZmVlIiwibGVnX3NlcSI6MX1dLCJzbHVnIjoiZWNvbm9teSJ9LHsibGluZXMiOlt7ImFtb3VudF9yYXBwZW4iOjIwMDAsImNvZGUiOiJhaXJwb3J0X2ZlZSIsImxlZ19zZXEiOjF9XSwic2x1ZyI6ImJ1c2luZXNzIn0s",
+     "response": "{\"ok\":true,\"lines\":[{\"kind\":\"fare\",\"code\":\"distance_fare\",\"i18n_key\":\"price.line.transfer\",\"params\":{\"vehicleClass\":\"economy\"},\"amount_rappen\":14378},{\"kind\":\"vat\",\"code\":\"vat\",\"i18n_key\":\"price.line.vat\",\"params\":{\"vatRateBps\":81},\"amount_rappen\":1165}],\"net_rappen\":14378,\"vat_rappen\":1165,\"charged_rappen\":15543}"
+    },
+    {
+     "at": "2026-10-02T22:13:22.670Z",
+     "method": "POST",
+     "path": "/api/quote/reprice",
+     "status": 200,
+     "request": "{\"quote_id\":\"b0f5e16e-a5ae-40ce-ae2b-3cca201dc548\",\"lock\":\"v1.eyJiYWdzIjowLCJjbGFzc190b3RhbHMiOlt7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImVjb25vbXkiLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fSx7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImJ1c2luZXNzIiwidG90YWxfcmFwcGVuIjoxNDM3OH0seyJwcmVfY291cG9uX3JhcHBlbiI6MTQzNzgsInNsdWciOiJ2YW4iLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fV0sImNvbXB1dGVkX2F0IjoiMjAyNi0xMC0wMlQyMjoxMzoxNy43NjRaIiwiY291cG9uIjpudWxsLCJkaXNwbGF5X2N1cnJlbmN5IjoiQ0hGIiwiZW5naW5lX3ZlcnNpb24iOiJxdW90ZS1lbmdpbmVAMjY3NDQwZjUiLCJleHAiOiIyMDI2LTEwLTAzVDIyOjEzOjE3Ljc5OFoiLCJleHRyYXMiOm51bGwsImxlZ3MiOlt7ImRlc3RfY2FudG9uIjoiWkciLCJkZXN0X2NpdHlfaWQiOiJjaXR5LXp1ZyIsImRlc3RfY2l0eV9uYW1lIjoiWnVnIiwiZGVzdF96b25lX2lkIjpudWxsLCJkaXN0YW5jZV9tIjo0MjUxNywiZHJvcG9mZiI6eyJsYXQiOjQ3LjE3MzcsImxuZyI6OC41MTUyLCJwbGFjZV9pZCI6Im1iLXp1ZyIsInRleHQiOiJadWcgc3RhdGlvbiJ9LCJkdXJhdGlvbl9zIjozMzAwLCJmbGlnaHRfbm8iOiJMWDMxOCIsImxhbmRpbmdfc291cmNlIjpudWxsLCJsZWdfc2VxIjoxLCJvcmlnaW5fY2FudG9uIjoiWkgiLCJvcmlnaW5fY2l0eV9pZCI6ImNpdHkta2xvdGVuIiwib3JpZ2luX2NpdHlfbmFtZSI6Iktsb3RlbiIsIm9yaWdpbl9pc19haXJwb3J0Ijp0cnVlLCJvcmlnaW5fem9uZV9pZCI6bnVsbCwicGlja3VwIjp7ImxhdCI6NDcuNDUwNCwibG5nIjo4LjU2MjQsInBsYWNlX2lkIjoibWItenJoIiwidGV4dCI6Ilp1cmljaCBBaXJwb3J0In0sInNjaGVkdWxlZF9sb2NhbCI6IjIwMjYtMTAtMTBUMDM6MTUifV0sIm1vZGUiOiJvbmVfd2F5IiwicGF4IjoxLCJwcmljZV9yb3dzIjpbeyJsaW5lcyI6W3siYW1vdW50X3JhcHBlbiI6MjAwMCwiY29kZSI6ImFpcnBvcnRfZmVlIiwibGVnX3NlcSI6MX1dLCJzbHVnIjoiZWNvbm9teSJ9LHsibGluZXMiOlt7ImFtb3VudF9yYXBwZW4iOjIwMDAsImNvZGUiOiJhaXJwb3J0X2",
+     "response": "{\"ok\":true,\"quote_id\":\"b0f5e16e-a5ae-40ce-ae2b-3cca201dc548\",\"lock\":\"v1.eyJiYWdzIjowLCJjbGFzc190b3RhbHMiOlt7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImVjb25vbXkiLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fSx7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImJ1c2luZXNzIiwidG90YWxfcmFwcGVuIjoxNDM3OH0seyJwcmVfY291cG9uX3JhcHBlbiI6MTQzNzgsInNsdWciOiJ2YW4iLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fV0sImNvbXB1dGVkX2F0IjoiMjAyNi0xMC0wMlQyMjoxMzoxNy43NjRaIiwiY291cG9uIjoiQVVESVRGSVgiLCJkaXNwbGF5X2N1cnJlbmN5IjoiQ0hGIiwiZW5naW5lX3ZlcnNpb24iOiJxdW90ZS1lbmdpbmVAMjY3NDQwZjUiLCJleHAiOiIyMDI2LTEwLTAzVDIyOjEzOjE3Ljc5OFoiLCJleHRyYXMiOm51bGwsImxlZ3MiOlt7ImRlc3RfY2FudG9uIjoiWkciLCJkZXN0X2NpdHlfaWQiOiJjaXR5LXp1ZyIsImRlc3RfY2l0eV9uYW1lIjoiWnVnIiwiZGVzdF96b25lX2lkIjpudWxsLCJkaXN0YW5jZV9tIjo0MjUxNywiZHJvcG9mZiI6eyJsYXQiOjQ3LjE3MzcsImxuZyI6OC41MTUyLCJwbGFjZV9pZCI6Im1iLXp1ZyIsInRleHQiOiJadWcgc3RhdGlvbiJ9LCJkdXJhdGlvbl9zIjozMzAwLCJmbGlnaHRfbm8iOiJMWDMxOCIsImxhbmRpbmdfc291cmNlIjpudWxsLCJsZWdfc2VxIjoxLCJvcmlnaW5fY2FudG9uIjoiWkgiLCJvcmlnaW5fY2l0eV9pZCI6ImNpdHkta2xvdGVuIiwib3JpZ2luX2NpdHlfbmFtZSI6Iktsb3RlbiIsIm9yaWdpbl9pc19haXJwb3J0Ijp0cnVlLCJvcmlnaW5fem9uZV9pZCI6bnVsbCwicGlja3VwIjp7ImxhdCI6NDcuNDUwNCwibG5nIjo4LjU2MjQsInBsYWNlX2lkIjoibWItenJoIiwidGV4dCI6Ilp1cmljaCBBaXJwb3J0In0sInNjaGVkdWxlZF9sb2NhbCI6IjIwMjYtMTAtMTBUMDM6MTUifV0sIm1vZGUiOiJvbmVfd2F5IiwicGF4IjoxLCJwcmljZV9yb3dzIjpbeyJsaW5lcyI6W3siYW1vdW50X3JhcHBlbiI6MjAwMCwiY29kZSI6ImFpcnBvcnRfZmVlIiwibGVnX3NlcSI6MX1dLCJzbHVnIjoiZWNvbm9teSJ9LHsibGluZXMiOlt7ImFtb3VudF9yYXBwZW4iOjIwMDAsImNv"
+    },
+    {
+     "at": "2026-10-02T22:13:22.702Z",
+     "method": "POST",
+     "path": "/api/checkout/price",
+     "status": 200,
+     "request": "{\"lock\":\"v1.eyJiYWdzIjowLCJjbGFzc190b3RhbHMiOlt7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImVjb25vbXkiLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fSx7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImJ1c2luZXNzIiwidG90YWxfcmFwcGVuIjoxNDM3OH0seyJwcmVfY291cG9uX3JhcHBlbiI6MTQzNzgsInNsdWciOiJ2YW4iLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fV0sImNvbXB1dGVkX2F0IjoiMjAyNi0xMC0wMlQyMjoxMzoxNy43NjRaIiwiY291cG9uIjoiQVVESVRGSVgiLCJkaXNwbGF5X2N1cnJlbmN5IjoiQ0hGIiwiZW5naW5lX3ZlcnNpb24iOiJxdW90ZS1lbmdpbmVAMjY3NDQwZjUiLCJleHAiOiIyMDI2LTEwLTAzVDIyOjEzOjE3Ljc5OFoiLCJleHRyYXMiOm51bGwsImxlZ3MiOlt7ImRlc3RfY2FudG9uIjoiWkciLCJkZXN0X2NpdHlfaWQiOiJjaXR5LXp1ZyIsImRlc3RfY2l0eV9uYW1lIjoiWnVnIiwiZGVzdF96b25lX2lkIjpudWxsLCJkaXN0YW5jZV9tIjo0MjUxNywiZHJvcG9mZiI6eyJsYXQiOjQ3LjE3MzcsImxuZyI6OC41MTUyLCJwbGFjZV9pZCI6Im1iLXp1ZyIsInRleHQiOiJadWcgc3RhdGlvbiJ9LCJkdXJhdGlvbl9zIjozMzAwLCJmbGlnaHRfbm8iOiJMWDMxOCIsImxhbmRpbmdfc291cmNlIjpudWxsLCJsZWdfc2VxIjoxLCJvcmlnaW5fY2FudG9uIjoiWkgiLCJvcmlnaW5fY2l0eV9pZCI6ImNpdHkta2xvdGVuIiwib3JpZ2luX2NpdHlfbmFtZSI6Iktsb3RlbiIsIm9yaWdpbl9pc19haXJwb3J0Ijp0cnVlLCJvcmlnaW5fem9uZV9pZCI6bnVsbCwicGlja3VwIjp7ImxhdCI6NDcuNDUwNCwibG5nIjo4LjU2MjQsInBsYWNlX2lkIjoibWItenJoIiwidGV4dCI6Ilp1cmljaCBBaXJwb3J0In0sInNjaGVkdWxlZF9sb2NhbCI6IjIwMjYtMTAtMTBUMDM6MTUifV0sIm1vZGUiOiJvbmVfd2F5IiwicGF4IjoxLCJwcmljZV9yb3dzIjpbeyJsaW5lcyI6W3siYW1vdW50X3JhcHBlbiI6MjAwMCwiY29kZSI6ImFpcnBvcnRfZmVlIiwibGVnX3NlcSI6MX1dLCJzbHVnIjoiZWNvbm9teSJ9LHsibGluZXMiOlt7ImFtb3VudF9yYXBwZW4iOjIwMDAsImNvZGUiOiJhaXJwb3J0X2ZlZSIsImxlZ19zZXEiOjF9XSwic2x1ZyI6ImJ1c2lu",
+     "response": "{\"ok\":true,\"lines\":[{\"kind\":\"fare\",\"code\":\"distance_fare\",\"i18n_key\":\"price.line.transfer\",\"params\":{\"vehicleClass\":\"economy\"},\"amount_rappen\":14378},{\"kind\":\"coupon\",\"code\":\"AUDITFIX\",\"i18n_key\":\"price.line.coupon\",\"params\":{\"amountRappen\":1000},\"amount_rappen\":-1000},{\"kind\":\"vat\",\"code\":\"vat\",\"i18n_key\":\"price.line.vat\",\"params\":{\"vatRateBps\":81},\"amount_rappen\":1084}],\"net_rappen\":13378,\"vat_rappen\":1084,\"charged_rappen\":14462}"
+    },
+    {
+     "at": "2026-10-02T22:13:28.312Z",
+     "method": "POST",
+     "path": "/api/checkout/intent",
+     "status": 200,
+     "request": "{\"quote_id\":\"b0f5e16e-a5ae-40ce-ae2b-3cca201dc548\",\"lock\":\"v1.eyJiYWdzIjowLCJjbGFzc190b3RhbHMiOlt7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImVjb25vbXkiLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fSx7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImJ1c2luZXNzIiwidG90YWxfcmFwcGVuIjoxNDM3OH0seyJwcmVfY291cG9uX3JhcHBlbiI6MTQzNzgsInNsdWciOiJ2YW4iLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fV0sImNvbXB1dGVkX2F0IjoiMjAyNi0xMC0wMlQyMjoxMzoxNy43NjRaIiwiY291cG9uIjoiQVVESVRGSVgiLCJkaXNwbGF5X2N1cnJlbmN5IjoiQ0hGIiwiZW5naW5lX3ZlcnNpb24iOiJxdW90ZS1lbmdpbmVAMjY3NDQwZjUiLCJleHAiOiIyMDI2LTEwLTAzVDIyOjEzOjE3Ljc5OFoiLCJleHRyYXMiOm51bGwsImxlZ3MiOlt7ImRlc3RfY2FudG9uIjoiWkciLCJkZXN0X2NpdHlfaWQiOiJjaXR5LXp1ZyIsImRlc3RfY2l0eV9uYW1lIjoiWnVnIiwiZGVzdF96b25lX2lkIjpudWxsLCJkaXN0YW5jZV9tIjo0MjUxNywiZHJvcG9mZiI6eyJsYXQiOjQ3LjE3MzcsImxuZyI6OC41MTUyLCJwbGFjZV9pZCI6Im1iLXp1ZyIsInRleHQiOiJadWcgc3RhdGlvbiJ9LCJkdXJhdGlvbl9zIjozMzAwLCJmbGlnaHRfbm8iOiJMWDMxOCIsImxhbmRpbmdfc291cmNlIjpudWxsLCJsZWdfc2VxIjoxLCJvcmlnaW5fY2FudG9uIjoiWkgiLCJvcmlnaW5fY2l0eV9pZCI6ImNpdHkta2xvdGVuIiwib3JpZ2luX2NpdHlfbmFtZSI6Iktsb3RlbiIsIm9yaWdpbl9pc19haXJwb3J0Ijp0cnVlLCJvcmlnaW5fem9uZV9pZCI6bnVsbCwicGlja3VwIjp7ImxhdCI6NDcuNDUwNCwibG5nIjo4LjU2MjQsInBsYWNlX2lkIjoibWItenJoIiwidGV4dCI6Ilp1cmljaCBBaXJwb3J0In0sInNjaGVkdWxlZF9sb2NhbCI6IjIwMjYtMTAtMTBUMDM6MTUifV0sIm1vZGUiOiJvbmVfd2F5IiwicGF4IjoxLCJwcmljZV9yb3dzIjpbeyJsaW5lcyI6W3siYW1vdW50X3JhcHBlbiI6MjAwMCwiY29kZSI6ImFpcnBvcnRfZmVlIiwibGVnX3NlcSI6MX1dLCJzbHVnIjoiZWNvbm9teSJ9LHsibGluZXMiOlt7ImFtb3VudF9yYXBwZW4iOjIwMDAsImNvZGUiOiJhaX",
+     "response": "{\"ok\":true,\"reference\":\"VT-26-0018\",\"booking_id\":\"08e6b535-ec07-4538-8ff0-1efa7db40aae\",\"url\":\"https://checkout.stripe.com/c/pay/cs_test_e2e_75c2f87c380d6f2f\",\"expires_at\":\"2026-10-02T22:44:27.000Z\",\"amount_rappen\":14462}"
+    },
+    {
+     "at": "2026-10-02T22:13:30.317Z",
+     "method": "POST",
+     "path": "/api/consent",
+     "status": 200,
+     "request": "{\"method\":\"reject_all\",\"locale\":\"en\",\"functional\":false,\"analytics\":false,\"marketing\":false,\"idempotencyKey\":\"79f9af52-bdcb-4745-904a-e73090b45e20\"}",
+     "response": ""
+    }
+   ]
+  },
+  {
+   "scenario": "s6-de",
+   "errors": [],
+   "api": [
+    {
+     "at": "2026-10-02T22:13:30.565Z",
+     "method": "GET",
+     "path": "/api/reviews",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"data\":[]}"
+    },
+    {
+     "at": "2026-10-02T22:13:30.565Z",
+     "method": "GET",
+     "path": "/api/auth/session",
+     "status": 200,
+     "request": "",
+     "response": "{\"signedIn\":false,\"displayName\":null,\"email\":null,\"emailConfirmed\":false,\"phone\":null,\"finishRequired\":false}"
+    },
+    {
+     "at": "2026-10-02T22:13:30.596Z",
+     "method": "GET",
+     "path": "/api/consent/state",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"chosen\":false,\"policyVersion\":\"2026-10-01\"}"
+    },
+    {
+     "at": "2026-10-02T22:13:30.605Z",
+     "method": "GET",
+     "path": "/api/quote",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"classes\":[{\"slug\":\"economy\",\"eligible\":true,\"ineligible_reason\":null,\"effective_max_pax\":3,\"max_bags\":3,\"fixed_route\":false,\"lines\":[],\"total_rappen\":null,\"name\":\"Economy\",\"photo_url\":null},{\"slug\":\"business\",\"eligible\":true,\"ineligible_reason\":null,\"effective_max_pax\":3,\"max_bags\":3,\"fixed_route\":false,\"lines\":[],\"total_rappen\":null,\"name\":\"Business\",\"photo_url\":null},{\"slug\":\"van\",\"eligible\":true,\"ineligible_reason\":null,\"effective_max_pax\":8,\"max_bags\":8,\"fixed_route\":false,\"lines\":[],\"total_rappen\":null,\"name\":\"Van\",\"photo_url\":null}],\"fixed_routes\":[]}"
+    },
+    {
+     "at": "2026-10-02T22:13:31.427Z",
+     "method": "GET",
+     "path": "/api/geo/suggest?q=Zug&session_token=745a1db7-d959-49ba-90d4-2cb03f28a4dc&locale=en",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"suggestions\":[{\"mapbox_id\":\"mb-zug\",\"name\":\"Zug station\",\"address\":\"Bahnhofplatz, 6300 Zug\",\"context\":\"Bahnhofplatz, 6300 Zug\"}]}"
+    },
+    {
+     "at": "2026-10-02T22:13:32.336Z",
+     "method": "GET",
+     "path": "/api/auth/session",
+     "status": 200,
+     "request": "",
+     "response": "{\"signedIn\":false,\"displayName\":null,\"email\":null,\"emailConfirmed\":false,\"phone\":null,\"finishRequired\":false}"
+    },
+    {
+     "at": "2026-10-02T22:13:32.343Z",
+     "method": "GET",
+     "path": "/api/checkout/me",
+     "status": 200,
+     "request": "",
+     "response": "{\"signed_in\":false}"
+    },
+    {
+     "at": "2026-10-02T22:13:32.356Z",
+     "method": "GET",
+     "path": "/api/geo/suggest?q=Zurich%20Airport%20(ZRH)%2C%20Terminal%202&session_token=08716fc5-4d86-4466-a284-9fa80f20fcc5&locale=en",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"suggestions\":[{\"mapbox_id\":\"mb-zrh\",\"name\":\"Zurich Airport\",\"address\":\"Flughafenstrasse, 8058 Kloten\",\"context\":\"Flughafenstrasse, 8058 Kloten\"}]}"
+    },
+    {
+     "at": "2026-10-02T22:13:32.356Z",
+     "method": "GET",
+     "path": "/api/geo/suggest?q=Zug%20station&session_token=08716fc5-4d86-4466-a284-9fa80f20fcc5&locale=en",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"suggestions\":[{\"mapbox_id\":\"mb-zug\",\"name\":\"Zug station\",\"address\":\"Bahnhofplatz, 6300 Zug\",\"context\":\"Bahnhofplatz, 6300 Zug\"}]}"
+    },
+    {
+     "at": "2026-10-02T22:13:32.379Z",
+     "method": "GET",
+     "path": "/api/consent/state",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"chosen\":true,\"policyVersion\":\"2026-10-01\",\"choice\":{\"method\":\"reject_all\",\"functional\":false,\"analytics\":false,\"marketing\":false,\"recordedAt\":\"2026-10-02T22:13:31.159Z\"}}"
+    },
+    {
+     "at": "2026-10-02T22:13:32.386Z",
+     "method": "GET",
+     "path": "/api/checkout/extras",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"extras\":[],\"vat_rate_bps\":81}"
+    },
+    {
+     "at": "2026-10-02T22:13:32.413Z",
+     "method": "POST",
+     "path": "/api/quote",
+     "status": 200,
+     "request": "{\"locale\":\"en\",\"display_currency\":\"CHF\",\"mode\":\"one_way\",\"pickup\":{\"kind\":\"retrieve\",\"mapbox_id\":\"mb-zrh\",\"session_token\":\"08716fc5-4d86-4466-a284-9fa80f20fcc5\",\"text\":\"Zurich Airport (ZRH), Terminal 2\"},\"dropoff\":{\"kind\":\"retrieve\",\"mapbox_id\":\"mb-zug\",\"session_token\":\"08716fc5-4d86-4466-a284-9fa80f20fcc5\",\"text\":\"Zug station\"},\"legs\":[{\"leg_seq\":1,\"scheduled_local\":\"2026-10-10T03:15\",\"flight_no\":\"LX318\"}],\"pax\":1,\"bags\":0}",
+     "response": "{\"ok\":true,\"quote_id\":\"203b9e79-730c-48dc-8469-aa30317ecbe4\",\"lock\":\"v1.eyJiYWdzIjowLCJjbGFzc190b3RhbHMiOlt7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImVjb25vbXkiLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fSx7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImJ1c2luZXNzIiwidG90YWxfcmFwcGVuIjoxNDM3OH0seyJwcmVfY291cG9uX3JhcHBlbiI6MTQzNzgsInNsdWciOiJ2YW4iLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fV0sImNvbXB1dGVkX2F0IjoiMjAyNi0xMC0wMlQyMjoxMzozMi4zNjBaIiwiY291cG9uIjpudWxsLCJkaXNwbGF5X2N1cnJlbmN5IjoiQ0hGIiwiZW5naW5lX3ZlcnNpb24iOiJxdW90ZS1lbmdpbmVAMjY3NDQwZjUiLCJleHAiOiIyMDI2LTEwLTAzVDIyOjEzOjMyLjM4OVoiLCJleHRyYXMiOm51bGwsImxlZ3MiOlt7ImRlc3RfY2FudG9uIjoiWkciLCJkZXN0X2NpdHlfaWQiOiJjaXR5LXp1ZyIsImRlc3RfY2l0eV9uYW1lIjoiWnVnIiwiZGVzdF96b25lX2lkIjpudWxsLCJkaXN0YW5jZV9tIjo0MjUxNywiZHJvcG9mZiI6eyJsYXQiOjQ3LjE3MzcsImxuZyI6OC41MTUyLCJwbGFjZV9pZCI6Im1iLXp1ZyIsInRleHQiOiJadWcgc3RhdGlvbiJ9LCJkdXJhdGlvbl9zIjozMzAwLCJmbGlnaHRfbm8iOiJMWDMxOCIsImxhbmRpbmdfc291cmNlIjpudWxsLCJsZWdfc2VxIjoxLCJvcmlnaW5fY2FudG9uIjoiWkgiLCJvcmlnaW5fY2l0eV9pZCI6ImNpdHkta2xvdGVuIiwib3JpZ2luX2NpdHlfbmFtZSI6Iktsb3RlbiIsIm9yaWdpbl9pc19haXJwb3J0Ijp0cnVlLCJvcmlnaW5fem9uZV9pZCI6bnVsbCwicGlja3VwIjp7ImxhdCI6NDcuNDUwNCwibG5nIjo4LjU2MjQsInBsYWNlX2lkIjoibWItenJoIiwidGV4dCI6Ilp1cmljaCBBaXJwb3J0In0sInNjaGVkdWxlZF9sb2NhbCI6IjIwMjYtMTAtMTBUMDM6MTUifV0sIm1vZGUiOiJvbmVfd2F5IiwicGF4IjoxLCJwcmljZV9yb3dzIjpbeyJsaW5lcyI6W3siYW1vdW50X3JhcHBlbiI6MjAwMCwiY29kZSI6ImFpcnBvcnRfZmVlIiwibGVnX3NlcSI6MX1dLCJzbHVnIjoiZWNvbm9teSJ9LHsibGluZXMiOlt7ImFtb3VudF9yYXBwZW4iOjIwMDAsImNvZGUiOiJh"
+    },
+    {
+     "at": "2026-10-02T22:13:35.789Z",
+     "method": "GET",
+     "path": "/api/auth/session",
+     "status": 200,
+     "request": "",
+     "response": "{\"signedIn\":false,\"displayName\":null,\"email\":null,\"emailConfirmed\":false,\"phone\":null,\"finishRequired\":false}"
+    },
+    {
+     "at": "2026-10-02T22:13:35.797Z",
+     "method": "GET",
+     "path": "/api/checkout/me",
+     "status": 200,
+     "request": "",
+     "response": "{\"signed_in\":false}"
+    },
+    {
+     "at": "2026-10-02T22:13:35.810Z",
+     "method": "GET",
+     "path": "/api/geo/suggest?q=Zurich%20Airport%20(ZRH)%2C%20Terminal%202&session_token=08254b59-edb6-495c-9999-8c08e871cda0&locale=de",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"suggestions\":[{\"mapbox_id\":\"mb-zrh\",\"name\":\"Zurich Airport\",\"address\":\"Flughafenstrasse, 8058 Kloten\",\"context\":\"Flughafenstrasse, 8058 Kloten\"}]}"
+    },
+    {
+     "at": "2026-10-02T22:13:35.810Z",
+     "method": "GET",
+     "path": "/api/geo/suggest?q=Zug%20station&session_token=08254b59-edb6-495c-9999-8c08e871cda0&locale=de",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"suggestions\":[{\"mapbox_id\":\"mb-zug\",\"name\":\"Zug station\",\"address\":\"Bahnhofplatz, 6300 Zug\",\"context\":\"Bahnhofplatz, 6300 Zug\"}]}"
+    },
+    {
+     "at": "2026-10-02T22:13:35.835Z",
+     "method": "GET",
+     "path": "/api/consent/state",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"chosen\":true,\"policyVersion\":\"2026-10-01\",\"choice\":{\"method\":\"reject_all\",\"functional\":false,\"analytics\":false,\"marketing\":false,\"recordedAt\":\"2026-10-02T22:13:31.159Z\"}}"
+    },
+    {
+     "at": "2026-10-02T22:13:35.840Z",
+     "method": "GET",
+     "path": "/api/checkout/extras",
+     "status": 200,
+     "request": "",
+     "response": "{\"ok\":true,\"extras\":[],\"vat_rate_bps\":81}"
+    },
+    {
+     "at": "2026-10-02T22:13:35.866Z",
+     "method": "POST",
+     "path": "/api/quote",
+     "status": 200,
+     "request": "{\"locale\":\"de\",\"display_currency\":\"CHF\",\"mode\":\"one_way\",\"pickup\":{\"kind\":\"retrieve\",\"mapbox_id\":\"mb-zrh\",\"session_token\":\"08254b59-edb6-495c-9999-8c08e871cda0\",\"text\":\"Zurich Airport (ZRH), Terminal 2\"},\"dropoff\":{\"kind\":\"retrieve\",\"mapbox_id\":\"mb-zug\",\"session_token\":\"08254b59-edb6-495c-9999-8c08e871cda0\",\"text\":\"Zug station\"},\"legs\":[{\"leg_seq\":1,\"scheduled_local\":\"2026-10-10T03:15\",\"flight_no\":\"LX318\"}],\"pax\":1,\"bags\":0}",
+     "response": "{\"ok\":true,\"quote_id\":\"485966d9-d658-4ead-a0ee-b4e254b96bd4\",\"lock\":\"v1.eyJiYWdzIjowLCJjbGFzc190b3RhbHMiOlt7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImVjb25vbXkiLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fSx7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImJ1c2luZXNzIiwidG90YWxfcmFwcGVuIjoxNDM3OH0seyJwcmVfY291cG9uX3JhcHBlbiI6MTQzNzgsInNsdWciOiJ2YW4iLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fV0sImNvbXB1dGVkX2F0IjoiMjAyNi0xMC0wMlQyMjoxMzozNS44MThaIiwiY291cG9uIjpudWxsLCJkaXNwbGF5X2N1cnJlbmN5IjoiQ0hGIiwiZW5naW5lX3ZlcnNpb24iOiJxdW90ZS1lbmdpbmVAMjY3NDQwZjUiLCJleHAiOiIyMDI2LTEwLTAzVDIyOjEzOjM1Ljg0MloiLCJleHRyYXMiOm51bGwsImxlZ3MiOlt7ImRlc3RfY2FudG9uIjoiWkciLCJkZXN0X2NpdHlfaWQiOiJjaXR5LXp1ZyIsImRlc3RfY2l0eV9uYW1lIjoiWnVnIiwiZGVzdF96b25lX2lkIjpudWxsLCJkaXN0YW5jZV9tIjo0MjUxNywiZHJvcG9mZiI6eyJsYXQiOjQ3LjE3MzcsImxuZyI6OC41MTUyLCJwbGFjZV9pZCI6Im1iLXp1ZyIsInRleHQiOiJadWcgc3RhdGlvbiJ9LCJkdXJhdGlvbl9zIjozMzAwLCJmbGlnaHRfbm8iOiJMWDMxOCIsImxhbmRpbmdfc291cmNlIjpudWxsLCJsZWdfc2VxIjoxLCJvcmlnaW5fY2FudG9uIjoiWkgiLCJvcmlnaW5fY2l0eV9pZCI6ImNpdHkta2xvdGVuIiwib3JpZ2luX2NpdHlfbmFtZSI6Iktsb3RlbiIsIm9yaWdpbl9pc19haXJwb3J0Ijp0cnVlLCJvcmlnaW5fem9uZV9pZCI6bnVsbCwicGlja3VwIjp7ImxhdCI6NDcuNDUwNCwibG5nIjo4LjU2MjQsInBsYWNlX2lkIjoibWItenJoIiwidGV4dCI6Ilp1cmljaCBBaXJwb3J0In0sInNjaGVkdWxlZF9sb2NhbCI6IjIwMjYtMTAtMTBUMDM6MTUifV0sIm1vZGUiOiJvbmVfd2F5IiwicGF4IjoxLCJwcmljZV9yb3dzIjpbeyJsaW5lcyI6W3siYW1vdW50X3JhcHBlbiI6MjAwMCwiY29kZSI6ImFpcnBvcnRfZmVlIiwibGVnX3NlcSI6MX1dLCJzbHVnIjoiZWNvbm9teSJ9LHsibGluZXMiOlt7ImFtb3VudF9yYXBwZW4iOjIwMDAsImNvZGUiOiJh"
+    },
+    {
+     "at": "2026-10-02T22:13:36.729Z",
+     "method": "POST",
+     "path": "/api/checkout/price",
+     "status": 200,
+     "request": "{\"lock\":\"v1.eyJiYWdzIjowLCJjbGFzc190b3RhbHMiOlt7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImVjb25vbXkiLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fSx7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImJ1c2luZXNzIiwidG90YWxfcmFwcGVuIjoxNDM3OH0seyJwcmVfY291cG9uX3JhcHBlbiI6MTQzNzgsInNsdWciOiJ2YW4iLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fV0sImNvbXB1dGVkX2F0IjoiMjAyNi0xMC0wMlQyMjoxMzozNS44MThaIiwiY291cG9uIjpudWxsLCJkaXNwbGF5X2N1cnJlbmN5IjoiQ0hGIiwiZW5naW5lX3ZlcnNpb24iOiJxdW90ZS1lbmdpbmVAMjY3NDQwZjUiLCJleHAiOiIyMDI2LTEwLTAzVDIyOjEzOjM1Ljg0MloiLCJleHRyYXMiOm51bGwsImxlZ3MiOlt7ImRlc3RfY2FudG9uIjoiWkciLCJkZXN0X2NpdHlfaWQiOiJjaXR5LXp1ZyIsImRlc3RfY2l0eV9uYW1lIjoiWnVnIiwiZGVzdF96b25lX2lkIjpudWxsLCJkaXN0YW5jZV9tIjo0MjUxNywiZHJvcG9mZiI6eyJsYXQiOjQ3LjE3MzcsImxuZyI6OC41MTUyLCJwbGFjZV9pZCI6Im1iLXp1ZyIsInRleHQiOiJadWcgc3RhdGlvbiJ9LCJkdXJhdGlvbl9zIjozMzAwLCJmbGlnaHRfbm8iOiJMWDMxOCIsImxhbmRpbmdfc291cmNlIjpudWxsLCJsZWdfc2VxIjoxLCJvcmlnaW5fY2FudG9uIjoiWkgiLCJvcmlnaW5fY2l0eV9pZCI6ImNpdHkta2xvdGVuIiwib3JpZ2luX2NpdHlfbmFtZSI6Iktsb3RlbiIsIm9yaWdpbl9pc19haXJwb3J0Ijp0cnVlLCJvcmlnaW5fem9uZV9pZCI6bnVsbCwicGlja3VwIjp7ImxhdCI6NDcuNDUwNCwibG5nIjo4LjU2MjQsInBsYWNlX2lkIjoibWItenJoIiwidGV4dCI6Ilp1cmljaCBBaXJwb3J0In0sInNjaGVkdWxlZF9sb2NhbCI6IjIwMjYtMTAtMTBUMDM6MTUifV0sIm1vZGUiOiJvbmVfd2F5IiwicGF4IjoxLCJwcmljZV9yb3dzIjpbeyJsaW5lcyI6W3siYW1vdW50X3JhcHBlbiI6MjAwMCwiY29kZSI6ImFpcnBvcnRfZmVlIiwibGVnX3NlcSI6MX1dLCJzbHVnIjoiZWNvbm9teSJ9LHsibGluZXMiOlt7ImFtb3VudF9yYXBwZW4iOjIwMDAsImNvZGUiOiJhaXJwb3J0X2ZlZSIsImxlZ19zZXEiOjF9XSwic2x1ZyI6ImJ1c2luZXNzIn0s",
+     "response": "{\"ok\":true,\"lines\":[{\"kind\":\"fare\",\"code\":\"distance_fare\",\"i18n_key\":\"price.line.transfer\",\"params\":{\"vehicleClass\":\"economy\"},\"amount_rappen\":14378},{\"kind\":\"vat\",\"code\":\"vat\",\"i18n_key\":\"price.line.vat\",\"params\":{\"vatRateBps\":81},\"amount_rappen\":1165}],\"net_rappen\":14378,\"vat_rappen\":1165,\"charged_rappen\":15543}"
+    },
+    {
+     "at": "2026-10-02T22:13:38.328Z",
+     "method": "POST",
+     "path": "/api/quote/reprice",
+     "status": 200,
+     "request": "{\"quote_id\":\"485966d9-d658-4ead-a0ee-b4e254b96bd4\",\"lock\":\"v1.eyJiYWdzIjowLCJjbGFzc190b3RhbHMiOlt7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImVjb25vbXkiLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fSx7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImJ1c2luZXNzIiwidG90YWxfcmFwcGVuIjoxNDM3OH0seyJwcmVfY291cG9uX3JhcHBlbiI6MTQzNzgsInNsdWciOiJ2YW4iLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fV0sImNvbXB1dGVkX2F0IjoiMjAyNi0xMC0wMlQyMjoxMzozNS44MThaIiwiY291cG9uIjpudWxsLCJkaXNwbGF5X2N1cnJlbmN5IjoiQ0hGIiwiZW5naW5lX3ZlcnNpb24iOiJxdW90ZS1lbmdpbmVAMjY3NDQwZjUiLCJleHAiOiIyMDI2LTEwLTAzVDIyOjEzOjM1Ljg0MloiLCJleHRyYXMiOm51bGwsImxlZ3MiOlt7ImRlc3RfY2FudG9uIjoiWkciLCJkZXN0X2NpdHlfaWQiOiJjaXR5LXp1ZyIsImRlc3RfY2l0eV9uYW1lIjoiWnVnIiwiZGVzdF96b25lX2lkIjpudWxsLCJkaXN0YW5jZV9tIjo0MjUxNywiZHJvcG9mZiI6eyJsYXQiOjQ3LjE3MzcsImxuZyI6OC41MTUyLCJwbGFjZV9pZCI6Im1iLXp1ZyIsInRleHQiOiJadWcgc3RhdGlvbiJ9LCJkdXJhdGlvbl9zIjozMzAwLCJmbGlnaHRfbm8iOiJMWDMxOCIsImxhbmRpbmdfc291cmNlIjpudWxsLCJsZWdfc2VxIjoxLCJvcmlnaW5fY2FudG9uIjoiWkgiLCJvcmlnaW5fY2l0eV9pZCI6ImNpdHkta2xvdGVuIiwib3JpZ2luX2NpdHlfbmFtZSI6Iktsb3RlbiIsIm9yaWdpbl9pc19haXJwb3J0Ijp0cnVlLCJvcmlnaW5fem9uZV9pZCI6bnVsbCwicGlja3VwIjp7ImxhdCI6NDcuNDUwNCwibG5nIjo4LjU2MjQsInBsYWNlX2lkIjoibWItenJoIiwidGV4dCI6Ilp1cmljaCBBaXJwb3J0In0sInNjaGVkdWxlZF9sb2NhbCI6IjIwMjYtMTAtMTBUMDM6MTUifV0sIm1vZGUiOiJvbmVfd2F5IiwicGF4IjoxLCJwcmljZV9yb3dzIjpbeyJsaW5lcyI6W3siYW1vdW50X3JhcHBlbiI6MjAwMCwiY29kZSI6ImFpcnBvcnRfZmVlIiwibGVnX3NlcSI6MX1dLCJzbHVnIjoiZWNvbm9teSJ9LHsibGluZXMiOlt7ImFtb3VudF9yYXBwZW4iOjIwMDAsImNvZGUiOiJhaXJwb3J0X2",
+     "response": "{\"ok\":true,\"quote_id\":\"485966d9-d658-4ead-a0ee-b4e254b96bd4\",\"lock\":\"v1.eyJiYWdzIjowLCJjbGFzc190b3RhbHMiOlt7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImVjb25vbXkiLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fSx7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImJ1c2luZXNzIiwidG90YWxfcmFwcGVuIjoxNDM3OH0seyJwcmVfY291cG9uX3JhcHBlbiI6MTQzNzgsInNsdWciOiJ2YW4iLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fV0sImNvbXB1dGVkX2F0IjoiMjAyNi0xMC0wMlQyMjoxMzozNS44MThaIiwiY291cG9uIjoiQVVESVRGSVgiLCJkaXNwbGF5X2N1cnJlbmN5IjoiQ0hGIiwiZW5naW5lX3ZlcnNpb24iOiJxdW90ZS1lbmdpbmVAMjY3NDQwZjUiLCJleHAiOiIyMDI2LTEwLTAzVDIyOjEzOjM1Ljg0MloiLCJleHRyYXMiOm51bGwsImxlZ3MiOlt7ImRlc3RfY2FudG9uIjoiWkciLCJkZXN0X2NpdHlfaWQiOiJjaXR5LXp1ZyIsImRlc3RfY2l0eV9uYW1lIjoiWnVnIiwiZGVzdF96b25lX2lkIjpudWxsLCJkaXN0YW5jZV9tIjo0MjUxNywiZHJvcG9mZiI6eyJsYXQiOjQ3LjE3MzcsImxuZyI6OC41MTUyLCJwbGFjZV9pZCI6Im1iLXp1ZyIsInRleHQiOiJadWcgc3RhdGlvbiJ9LCJkdXJhdGlvbl9zIjozMzAwLCJmbGlnaHRfbm8iOiJMWDMxOCIsImxhbmRpbmdfc291cmNlIjpudWxsLCJsZWdfc2VxIjoxLCJvcmlnaW5fY2FudG9uIjoiWkgiLCJvcmlnaW5fY2l0eV9pZCI6ImNpdHkta2xvdGVuIiwib3JpZ2luX2NpdHlfbmFtZSI6Iktsb3RlbiIsIm9yaWdpbl9pc19haXJwb3J0Ijp0cnVlLCJvcmlnaW5fem9uZV9pZCI6bnVsbCwicGlja3VwIjp7ImxhdCI6NDcuNDUwNCwibG5nIjo4LjU2MjQsInBsYWNlX2lkIjoibWItenJoIiwidGV4dCI6Ilp1cmljaCBBaXJwb3J0In0sInNjaGVkdWxlZF9sb2NhbCI6IjIwMjYtMTAtMTBUMDM6MTUifV0sIm1vZGUiOiJvbmVfd2F5IiwicGF4IjoxLCJwcmljZV9yb3dzIjpbeyJsaW5lcyI6W3siYW1vdW50X3JhcHBlbiI6MjAwMCwiY29kZSI6ImFpcnBvcnRfZmVlIiwibGVnX3NlcSI6MX1dLCJzbHVnIjoiZWNvbm9teSJ9LHsibGluZXMiOlt7ImFtb3VudF9yYXBwZW4iOjIwMDAsImNv"
+    },
+    {
+     "at": "2026-10-02T22:13:38.352Z",
+     "method": "POST",
+     "path": "/api/checkout/price",
+     "status": 200,
+     "request": "{\"lock\":\"v1.eyJiYWdzIjowLCJjbGFzc190b3RhbHMiOlt7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImVjb25vbXkiLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fSx7InByZV9jb3Vwb25fcmFwcGVuIjoxNDM3OCwic2x1ZyI6ImJ1c2luZXNzIiwidG90YWxfcmFwcGVuIjoxNDM3OH0seyJwcmVfY291cG9uX3JhcHBlbiI6MTQzNzgsInNsdWciOiJ2YW4iLCJ0b3RhbF9yYXBwZW4iOjE0Mzc4fV0sImNvbXB1dGVkX2F0IjoiMjAyNi0xMC0wMlQyMjoxMzozNS44MThaIiwiY291cG9uIjoiQVVESVRGSVgiLCJkaXNwbGF5X2N1cnJlbmN5IjoiQ0hGIiwiZW5naW5lX3ZlcnNpb24iOiJxdW90ZS1lbmdpbmVAMjY3NDQwZjUiLCJleHAiOiIyMDI2LTEwLTAzVDIyOjEzOjM1Ljg0MloiLCJleHRyYXMiOm51bGwsImxlZ3MiOlt7ImRlc3RfY2FudG9uIjoiWkciLCJkZXN0X2NpdHlfaWQiOiJjaXR5LXp1ZyIsImRlc3RfY2l0eV9uYW1lIjoiWnVnIiwiZGVzdF96b25lX2lkIjpudWxsLCJkaXN0YW5jZV9tIjo0MjUxNywiZHJvcG9mZiI6eyJsYXQiOjQ3LjE3MzcsImxuZyI6OC41MTUyLCJwbGFjZV9pZCI6Im1iLXp1ZyIsInRleHQiOiJadWcgc3RhdGlvbiJ9LCJkdXJhdGlvbl9zIjozMzAwLCJmbGlnaHRfbm8iOiJMWDMxOCIsImxhbmRpbmdfc291cmNlIjpudWxsLCJsZWdfc2VxIjoxLCJvcmlnaW5fY2FudG9uIjoiWkgiLCJvcmlnaW5fY2l0eV9pZCI6ImNpdHkta2xvdGVuIiwib3JpZ2luX2NpdHlfbmFtZSI6Iktsb3RlbiIsIm9yaWdpbl9pc19haXJwb3J0Ijp0cnVlLCJvcmlnaW5fem9uZV9pZCI6bnVsbCwicGlja3VwIjp7ImxhdCI6NDcuNDUwNCwibG5nIjo4LjU2MjQsInBsYWNlX2lkIjoibWItenJoIiwidGV4dCI6Ilp1cmljaCBBaXJwb3J0In0sInNjaGVkdWxlZF9sb2NhbCI6IjIwMjYtMTAtMTBUMDM6MTUifV0sIm1vZGUiOiJvbmVfd2F5IiwicGF4IjoxLCJwcmljZV9yb3dzIjpbeyJsaW5lcyI6W3siYW1vdW50X3JhcHBlbiI6MjAwMCwiY29kZSI6ImFpcnBvcnRfZmVlIiwibGVnX3NlcSI6MX1dLCJzbHVnIjoiZWNvbm9teSJ9LHsibGluZXMiOlt7ImFtb3VudF9yYXBwZW4iOjIwMDAsImNvZGUiOiJhaXJwb3J0X2ZlZSIsImxlZ19zZXEiOjF9XSwic2x1ZyI6ImJ1c2lu",
+     "response": "{\"ok\":true,\"lines\":[{\"kind\":\"fare\",\"code\":\"distance_fare\",\"i18n_key\":\"price.line.transfer\",\"params\":{\"vehicleClass\":\"economy\"},\"amount_rappen\":14378},{\"kind\":\"coupon\",\"code\":\"AUDITFIX\",\"i18n_key\":\"price.line.coupon\",\"params\":{\"amountRappen\":1000},\"amount_rappen\":-1000},{\"kind\":\"vat\",\"code\":\"vat\",\"i18n_key\":\"price.line.vat\",\"params\":{\"vatRateBps\":81},\"amount_rappen\":1084}],\"net_rappen\":13378,\"vat_rappen\":1084,\"charged_rappen\":14462}"
+    },
+    {
+     "at": "2026-10-02T22:13:40.431Z",
+     "method": "POST",
+     "path": "/api/consent",
+     "status": 200,
+     "request": "{\"method\":\"reject_all\",\"locale\":\"en\",\"functional\":false,\"analytics\":false,\"marketing\":false,\"idempotencyKey\":\"aa736d3b-eace-4c22-ac7e-cb4b7dbde04d\"}",
+     "response": ""
+    }
+   ]
+  }
+ ]
+}

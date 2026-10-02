@@ -1,0 +1,6 @@
+VT-26-0018|pending|14462|requires_payment
+VT-26-0017|pending|14462|requires_payment
+VT-26-0016|pending|15543|requires_payment
+VT-26-0015|pending|13988|requires_payment
+VT-26-0014|pending|14462|requires_payment
+VT-26-0013|pending|14462|requires_payment
