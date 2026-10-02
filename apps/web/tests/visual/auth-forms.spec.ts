@@ -36,7 +36,7 @@ test.describe("Auth forms @component", () => {
   test.describe.configure({ mode: "serial" });
 
   test.beforeAll(async ({}, testInfo) => {
-    testInfo.setTimeout(90_000);
+    testInfo.setTimeout(240_000);
     const port = PORTS[testInfo.project.name] ?? testPort(4179);
     baseURL = `http://localhost:${port}`;
     devServer = spawn(NEXT_BIN, ["dev", "-p", String(port)], {
@@ -45,7 +45,13 @@ test.describe("Auth forms @component", () => {
       detached: true,
       env: nextDevEnv({}, { gallery: true }),
     });
-    await waitForNextServer(baseURL);
+    await waitForNextServer(baseURL, 180_000);
+    // `next dev` compiles a route on its first request. On the Linux runner the first screenshot test of every
+    // project (a different form each run) lost its 5 s wait to the compile of /dev/auth and passed on the retry;
+    // the gallery route, in all four languages, is compiled here instead, inside the 240 s hook.
+    for (const path of ["/dev/auth", "/de/dev/auth", "/fr/dev/auth", "/ar/dev/auth"]) {
+      await waitForNextServer(baseURL + path, 180_000);
+    }
   });
 
   test.afterAll(() => {

@@ -45,7 +45,7 @@ async function mockSignedIn(page: Page): Promise<void> {
 
 test.beforeAll(async ({}, testInfo) => {
   if (testInfo.project.name !== RUN_PROJECT) return;
-  testInfo.setTimeout(90_000);
+  testInfo.setTimeout(240_000);
   baseURL = `http://localhost:${PORT}`;
   devServer = spawn(NEXT_BIN, ["dev", "-p", String(PORT)], {
     cwd: WEB_ROOT,
@@ -58,6 +58,10 @@ test.beforeAll(async ({}, testInfo) => {
     },
   });
   await waitForNextServer(baseURL);
+  // `next dev` compiles a route on its first request. On the Linux runner /[locale]/checkout took longer than the
+  // 10 s the sign-in test waited for it (the dev log ended at "Compiling /[locale]/checkout"), so the routes the
+  // tests land on are compiled here, inside this hook, and the tests measure the pages.
+  for (const path of ["/sign-in", "/checkout", "/account"]) await fetch(baseURL + path).catch(() => undefined);
 });
 
 test.afterAll(() => {
@@ -122,7 +126,7 @@ test.describe("account bookings 26.3", () => {
     await page.getByLabel("Email").fill("anna@example.com");
     await page.getByRole("textbox", { name: "Password" }).fill("correct-horse-1");
     await page.getByRole("button", { name: /sign in/i }).first().click();
-    await page.waitForURL((u) => u.pathname === "/checkout", { timeout: 10_000 });
+    await page.waitForURL((u) => u.pathname === "/checkout", { timeout: 30_000, waitUntil: "commit" });
     expect(new URL(page.url()).search).toBe("?from=zrh&class=business&extras=roof-box");
   });
 
