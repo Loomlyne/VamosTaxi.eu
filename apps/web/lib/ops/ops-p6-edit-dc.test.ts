@@ -158,6 +158,9 @@ describe("the form (D1–D8)", () => {
   it("design laws: layout only, logical properties, no tint or glow on the new rules", () => {
     const css = between(dc, "/* 26.2 P6: Edit of a paid trip in two groups", "[data-ops-decide-foot]{");
     expect(css).not.toMatch(/yellow|glow|shadow-accent|\bleft:|\bright:/);
-    expect(css).toMatch(/\[dir="rtl"\] \[data-ops-chg-arrow\]\{transform:scaleX\(-1\)\}/);
+    // 261002: the old -> new arrow is mirrored once, by the laws.css rule; a wrapper flip here
+    // flipped it a second time in Arabic.
+    expect(css).not.toMatch(/\[dir="rtl"\] \[data-ops-chg-arrow\]/);
+    expect(dc).toMatch(/data-ops-chg-arrow aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1\.Icon" name="arrow-right"/);
   });
 });

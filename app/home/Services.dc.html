@@ -77,7 +77,6 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-svc-cta-label]{min-inline-size:0;text-wrap:balance}
 [data-svc-cta-arrow]{display:inline-flex;flex:0 0 auto;align-items:center;color:var(--vt-text-inverse);transition:transform var(--vt-dur-fast) var(--vt-ease-standard)}
 [dir="rtl"] [data-svc-cta-route] svg{transform:scaleX(-1)}
-[dir="rtl"] [data-svc-cta-arrow]{transform:scaleX(-1)}
 @media (min-width:1024px){[data-svc-cta-title]{font-size:var(--vt-heading-3)}[data-svc-cta-route]{min-block-size:var(--vt-space-8)}}
 /* TABLET BENTO — 2 columns. Hero keeps a 2x2 footprint across the full width, the
    two remaining photo tiles pair up on the next row, the yellow CTA is a full width
@@ -116,9 +115,9 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-svc-cta-title]{font-size:var(--vt-heading-2)}
 [data-svc-cta-route]{min-block-size:var(--vt-space-10)}
 }
-@media (hover:hover){[data-svc-cta]:hover [data-svc-cta-btn]{background:var(--vt-charcoal-800);box-shadow:none}[data-svc-cta]:hover [data-svc-cta-pin="end"]{background:var(--vt-charcoal-900)}[data-svc-cta]:hover [data-svc-cta-arrow]{transform:translateX(var(--vt-space-1))}[dir="rtl"] [data-svc-cta]:hover [data-svc-cta-arrow]{transform:scaleX(-1) translateX(var(--vt-space-1))}}
+@media (hover:hover){[data-svc-cta]:hover [data-svc-cta-btn]{background:var(--vt-charcoal-800);box-shadow:none}[data-svc-cta]:hover [data-svc-cta-pin="end"]{background:var(--vt-charcoal-900)}[data-svc-cta]:hover [data-svc-cta-arrow]{transform:translateX(var(--vt-space-1))}[dir="rtl"] [data-svc-cta]:hover [data-svc-cta-arrow]{transform:translateX(calc(-1 * var(--vt-space-1)))}}
 [data-svc-cta]:active [data-svc-cta-btn]{transform:scale(0.96)}
-@media (prefers-reduced-motion:reduce){[data-svc-cta-btn],[data-svc-cta-arrow],[data-svc-cta-pin]{transition:none}[data-svc-cta]:active [data-svc-cta-btn],[data-svc-cta]:hover [data-svc-cta-arrow]{transform:none}[dir="rtl"] [data-svc-cta-arrow],[dir="rtl"] [data-svc-cta]:hover [data-svc-cta-arrow]{transform:scaleX(-1)}}
+@media (prefers-reduced-motion:reduce){[data-svc-cta-btn],[data-svc-cta-arrow],[data-svc-cta-pin]{transition:none}[data-svc-cta]:active [data-svc-cta-btn],[data-svc-cta]:hover [data-svc-cta-arrow]{transform:none}[dir="rtl"] [data-svc-cta-arrow],[dir="rtl"] [data-svc-cta]:hover [data-svc-cta-arrow]{transform:none}}
 :focus-visible:not(input):not(select):not(textarea):not(.vt-btn):not([data-svc-card]){outline:3px solid var(--vt-charcoal-900)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}</style>
 </helmet>
 <section data-svc-sec="1" data-screen-label="Services" aria-labelledby="svc-title" style="position:relative;overflow:visible;color:var(--vt-text-primary);font-family:var(--vt-font-body);padding:clamp(56px,7vw,104px) 0">

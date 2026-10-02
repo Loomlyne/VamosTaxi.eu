@@ -50,29 +50,37 @@ describe("laws.css", () => {
         for (const glyph of ["arrow-right", "chevron-right", "chevron-left", "log-in", "log-out"]) {
           expect(rule).toContain(`[style*="/${glyph}.svg"]`);
         }
-        for (const exclusion of [
-          ".vt-dir-keep *",
-          '[dir="ltr"] *',
-          "[data-bb-mirror] *",
-          "[data-bs-mirror] *",
-          "[data-svc-cta-arrow] *",
-          "[data-svc-circ] *",
-          "[data-route-join] *",
-          "[data-bt-go] *",
-          "[data-bk-go] *",
-          "[data-ac-more-go] *",
-          ".vt-dp__nav *",
-          ".vt-row__chevron *",
-          ".vt-co__strip-back *",
-          ".vt-co__strip-arrow *",
-        ]) {
-          expect(rule).toContain(exclusion);
-        }
-        expect(rule.endsWith("{transform:scaleX(-1)}")).toBe(true);
+        // 261002 (P6 follow-ups, item 5): the law is the only mirror. It skips only
+        // .vt-dir-keep and dir="ltr"; no component wrapper is excluded any more.
+        expect(rule.endsWith(':not(.vt-dir-keep *,[dir="ltr"] *){transform:scaleX(-1)}')).toBe(true);
         expect(css.split("/arrow-right.svg").length - 1).toBe(1);
       });
     });
   }
+
+  it("no component mirrors its own arrow (the law does it once)", () => {
+    // The wrappers that used to flip their own icon under dir="rtl" (261002 item 5).
+    const files = [
+      "app/home/BookingBar.dc.html",
+      "app/home/BookingSheet.dc.html",
+      "app/home/Services.dc.html",
+      "app/home/home.dc.html",
+      "app/pages/BookingRow.dc.html",
+      "app/pages/account.dc.html",
+      "apps/web/app/[locale]/checkout/checkout.css",
+      "apps/web/components/data/ListRow.css",
+      "apps/web/components/forms/DatePicker.css",
+      "apps/web/components/home/ServiceCard.css",
+    ];
+    for (const file of files) {
+      const flips = read(file)
+        .split("\n")
+        .filter((line) => line.includes("scaleX(-1)"))
+        // Services' decorative route line is a drawn <svg>, not one of the law's glyphs.
+        .filter((line) => !line.includes("[data-svc-cta-route] svg"));
+      expect(flips, file).toEqual([]);
+    }
+  });
 });
 
 describe("colors.css", () => {

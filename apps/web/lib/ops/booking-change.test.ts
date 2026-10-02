@@ -260,6 +260,23 @@ describe("confirmBookingChange", () => {
     expect(deliverBookingConfirmation).not.toHaveBeenCalled();
   });
 
+  it("261002 review round 2, warning 4: a dearer change that replaced a waiting one hands its page on as the REPLACED page, never as its own", async () => {
+    const ctx = context();
+    const total = charged(book(18), BIZ);
+    const row = staffChangeRow("extra_required", total - ctx.paidRappen, total, ctx.paidRappen);
+    row[0]!.old_extra_session_id = "cs_test_old" as unknown as null;
+    row[0]!.old_extra_snapshot_id = "90" as unknown as null;
+    systemReturns((text) => (text.includes("booking_staff_change") ? row : []));
+    openDifferencePayment.mockResolvedValue({ ok: true, sessionId: "cs_test_new", url: "https://checkout.stripe.test/c/pay/cs_test_new" });
+    const res = await confirmBookingChange(env, claims, "VT-26-0801", { klass: BIZ, expectTotalRappen: total, expectPaidRappen: ctx.paidRappen }, "https://dashboard.vamostaxi.site", deps(ctx));
+    expect(res).toMatchObject({ ok: true, outcome: "extra_required", payUrl: "https://checkout.stripe.test/c/pay/cs_test_new" });
+    expect(openDifferencePayment).toHaveBeenCalledTimes(1);
+    const args = openDifferencePayment.mock.calls[0]![1] as Record<string, unknown>;
+    expect(args).toMatchObject({ requestId: "e0000000-0000-4000-8000-000000000001", bookingId: BOOKING, supersededSessionId: "cs_test_old" });
+    expect(args.ownSessionId ?? null).toBeNull();
+    expect(args).not.toHaveProperty("oldSessionId");
+  });
+
   it("cheaper: applied at once, Refund due, no Stripe page, confirmation again and the driver told (D6, D7)", async () => {
     const ctx = context({}, BIZ);
     const total = charged(book(18), "saden");

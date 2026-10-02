@@ -1,0 +1,2 @@
+$ node seed/generate-seed.mjs --check
+generate-seed --check: no drift.

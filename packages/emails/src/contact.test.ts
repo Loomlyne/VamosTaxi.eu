@@ -90,3 +90,59 @@ describe("contact renderers keep $ sequences in names and references literal", (
     });
   }
 });
+
+describe("contact e-mails: the phone reads left to right (261002 F1)", () => {
+  const PHONE = "+41 79 626 70 82";
+  const WRAPPED = `<span dir="ltr" style="unicode-bidi:isolate;direction:ltr;white-space:nowrap">${PHONE}</span>`;
+  const BIDI_MARKS = /[‎‏‪-‮⁦-⁩]/;
+  const support = {
+    name: "Amira",
+    email: "amira@example.com",
+    phone: PHONE,
+    bookingRef: "VT-26-0807",
+    message: "Can I add a child seat?",
+  };
+  const mails = (locale: (typeof locales)[number]) => ({
+    customer: renderContactCustomerEmail(locale, { name: "Amira", message: "Hello" }),
+    support: renderContactSupportEmail(locale, support),
+    staff: renderStaffReplyEmail(locale, { reply: "Yes.", name: "Amira", bookingRef: "VT-26-0807" }),
+  });
+
+  for (const locale of locales) {
+    it(`wraps every visible phone in the HTML in ${locale} (acknowledgement, support copy, reply)`, () => {
+      for (const [name, mail] of Object.entries(mails(locale))) {
+        expect(mail.html, name).toContain(WRAPPED);
+        expect(mail.html.split(PHONE).length, name).toBe(mail.html.split(WRAPPED).length);
+      }
+      // The support copy shows the customer's phone too: also an island.
+      expect(mails(locale).support.html).toContain(`<strong>Phone:</strong><br/>${WRAPPED}`);
+    });
+  }
+
+  it("Arabic text: each phone sits between LRI and PDI", () => {
+    const ar = mails("ar");
+    expect(ar.customer.text.endsWith(`\n\n⁦${PHONE}⁩`)).toBe(true);
+    expect(ar.staff.text.endsWith(`\n\n⁦${PHONE}⁩`)).toBe(true);
+    expect(ar.support.text).toContain(`Phone: ⁦${PHONE}⁩`);
+    expect(ar.support.text.endsWith(`\n\n⁦${PHONE}⁩`)).toBe(true);
+  });
+
+  it("en/de/fr text is byte for byte what it was", () => {
+    const en = mails("en");
+    expect(en.customer.text).toBe(
+      "Vamos Taxi\n\nMessage received\n\nThank you, Amira. Our team will review your message.\n\nYour message\nHello\n\nContinue on WhatsApp: https://wa.me/41796267082\n\n+41 79 626 70 82",
+    );
+    expect(en.staff.text).toBe(
+      "Vamos Taxi\n\nA reply from Vamos Taxi\n\nHello, Amira.\n\nWe wrote back to your message.\n\nBooking VT-26-0807\n\nOur reply\nYes.\n\n+41 79 626 70 82",
+    );
+    expect(en.support.text).toBe(
+      "Vamos Taxi\n\nNew contact message\n\nName: Amira\n\nEmail: amira@example.com\n\nPhone: +41 79 626 70 82\n\nBooking reference: VT-26-0807\n\nMessage: Can I add a child seat?\n\n+41 79 626 70 82",
+    );
+    for (const locale of ["de", "fr"] as const) {
+      for (const mail of Object.values(mails(locale))) {
+        expect(mail.text.endsWith(`\n\n${PHONE}`)).toBe(true);
+        expect(mail.text).not.toMatch(BIDI_MARKS);
+      }
+    }
+  });
+});
