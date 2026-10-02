@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
 import { MANAGE_COOKIE_NAME, hashManageToken, rawManageTokenFromRequest } from "@/lib/checkout/manage-token";
-import { customerCancelWindow } from "@/lib/checkout/cancel-window";
+import { customerCancelWindow, customerCanCancel } from "@/lib/checkout/cancel-window";
 import { manageExtrasFromJson, type ManageExtras } from "@/lib/checkout/manage-money";
 import { asGuest } from "@/lib/db/identity";
 import { loadManageReviewState } from "@/lib/db/system-reads";
@@ -13,7 +13,6 @@ const NOT_FOUND =
 const GONE = "This booking is gone. Start a new trip from home.";
 
 const UNPAID: readonly string[] = Object.freeze(["quote", "pending"]);
-const HIDE_CANCEL: readonly string[] = Object.freeze(["completed", "no_show", "cancelled", "partially_cancelled"]);
 
 type ReadRow = {
   booking_id: string;
@@ -159,7 +158,7 @@ export async function GET(request: Request): Promise<Response> {
   // D-23/D-24 (26.1-18): >24 h auto full refund, otherwise the admin reviews it.
   // Unpaid rows returned "gone" above, so every booking here was paid.
   const windowKind = customerCancelWindow(hoursBefore(row.original_scheduled_at, new Date()));
-  const canCancel = !HIDE_CANCEL.includes(status) && !reviewSubmitted;
+  const canCancel = customerCanCancel(status, reviewSubmitted);
 
   return json(
     {

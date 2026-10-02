@@ -1,14 +1,20 @@
 // 20-10 B4: the signed-in booking detail carries the refund row data (refundStatus, refundOwedRappen)
 // of the customer's OWN booking, so the row and box survive a reload. Mocked SQL layer, synthetic rappen.
+// 261002: the same answer now also carries status, canCancel, cancelWindow and reviewSubmitted (their own
+// cases are in lib/checkout/booking-pages-polish.test.ts); asSystem is mocked because the route imports it.
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const asCustomer = vi.fn();
+const asSystem = vi.fn();
 const customerClaims = vi.fn();
 
 vi.mock("@opennextjs/cloudflare", () => ({ getCloudflareContext: async () => ({ env: {} }) }));
 vi.mock("@/lib/account/session", () => ({ customerClaims: (...a: unknown[]) => customerClaims(...a) }));
-vi.mock("@/lib/db/identity", () => ({ asCustomer: (...a: unknown[]) => asCustomer(...a) }));
+vi.mock("@/lib/db/identity", () => ({
+  asCustomer: (...a: unknown[]) => asCustomer(...a),
+  asSystem: (...a: unknown[]) => asSystem(...a),
+}));
 
 import { GET } from "@/app/api/account/bookings/details/route";
 
@@ -33,6 +39,7 @@ describe("GET /api/account/bookings/details: refund fields (20-10 B4)", () => {
   beforeEach(() => {
     queries.length = 0;
     asCustomer.mockReset();
+    asSystem.mockReset();
     customerClaims.mockReset();
     customerClaims.mockResolvedValue({ sub: "u1", email: "A@Example.test" });
   });
