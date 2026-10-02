@@ -618,8 +618,10 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <dc-import name="CookieBanner" start-state="{{ cookieState }}" hint-size="0,0"></dc-import>
 
 <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
-<div data-noprint="1" aria-live="polite" style="position:fixed;inset-inline-start:50%;bottom:24px;transform:translateX(-50%);z-index:60;display:flex;flex-direction:column;align-items:center;gap:10px">
+<div data-noprint="1" aria-live="polite" style="position:fixed;inset-inline:16px;bottom:24px;z-index:60;display:flex;flex-direction:column;align-items:center;gap:10px;pointer-events:none">
+<div style="pointer-events:auto;max-inline-size:100%">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Toast" tone="{{ toastTone }}" onClose="{{ hideToast }}" hint-size="300px,48px">{{ toast }}</x-import>
+</div>
 </div>
 </sc-if>
 </div>
@@ -845,7 +847,8 @@ class Component extends DCLogic {
   say(msg, tone) {
     clearTimeout(this._toastT);
     this.setState({ toast: msg, toastTone: tone || 'neutral' });
-    this._toastT = setTimeout(() => this.setState({ toast: null }), 4200);
+    // An error stays long enough to read in German (two sentences); other messages go after 4.2 s.
+    this._toastT = setTimeout(() => this.setState({ toast: null }), tone === 'danger' ? 9000 : 4200);
   }
   hideToast = () => { clearTimeout(this._toastT); this.setState({ toast: null }); };
 
@@ -926,7 +929,11 @@ class Component extends DCLogic {
         this.setState({ view: 'booking', requested: this.diffList() });
         return;
       }
-      this.say(t('Could not request this time change.'), 'danger');
+      // 261002: the owner's change to this trip waits for its difference to be paid (server: 409 staff-change-waiting).
+      const staffWaiting = !!(result && result.body && result.body.code === 'staff-change-waiting');
+      this.say(staffWaiting
+        ? t('A change to this trip is waiting for payment. Pay the difference from our e-mail first, then ask for a new time.')
+        : t('Could not request this time change.'), 'danger');
     }).catch(() => this.say(t('Could not request this time change.'), 'danger'));
   };
 

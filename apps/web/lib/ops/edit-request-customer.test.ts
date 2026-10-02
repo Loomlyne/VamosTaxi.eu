@@ -72,4 +72,54 @@ describe("a customer's change request (review 1)", () => {
     expect(mapEditSqlError({ message: "snapshot-mismatch" })).toEqual({ ok: false, code: "snapshot-mismatch" });
     expect(failStatus("customer-time-only")).toBe(400);
   });
+
+  it("a staff change that waits for its difference refuses the request by name, as a conflict (409), whatever the message layout", async () => {
+    const { mapEditSqlError, failStatus } = await import("./edit-request-map");
+    const refused = { ok: false, code: "staff-change-waiting" };
+    expect(mapEditSqlError({ message: "staff-change-waiting" })).toEqual(refused);
+    expect(mapEditSqlError({ message: "staff-change-waiting\nCONTEXT: PL/pgSQL function" })).toEqual(refused);
+    expect(mapEditSqlError({ message: "staff-change-waiting ", code: "P0001" })).toEqual(refused);
+    expect(failStatus("staff-change-waiting")).toBe(409);
+    // The neighbouring refusals keep their status and name.
+    expect(failStatus("customer-time-only")).toBe(400);
+    expect(failStatus("unpaid")).toBe(409);
+    expect(mapEditSqlError({ message: "customer-time-only" })).toEqual({ ok: false, code: "customer-time-only" });
+    // A name that only starts like it is not it.
+    expect(mapEditSqlError({ message: "staff-change-waiting-x" })).toEqual({ ok: false, code: "unknown" });
+  });
+
+  it("the request path hands the refusal back as { ok: false, code } and the transaction around it is the database's to roll back", async () => {
+    vi.resetModules();
+    vi.doMock("@/lib/db/identity", () => ({
+      asGuest: async (_env: unknown, _hash: string, fn: (sql: unknown) => unknown) =>
+        fn(async () => [{ id: "b1" }]),
+      asCustomer: async (_env: unknown, _claims: unknown, fn: (sql: unknown) => unknown) =>
+        fn(async () => [{ id: "b1" }]),
+      asSystem: async (_env: unknown, fn: (sql: unknown) => unknown) => {
+        const sql = Object.assign(
+          async (strings: TemplateStringsArray) => {
+            const text = strings.join("?");
+            if (text.includes("booking_edit_clone_quote_snapshot")) return [{ id: 41 }];
+            if (text.includes("booking_edit_request_upsert")) {
+              throw Object.assign(new Error("staff-change-waiting"), { code: "P0001" });
+            }
+            throw new Error(`unexpected system sql: ${text}`);
+          },
+          { json: (v: unknown) => ({ json: v }) },
+        );
+        return fn(sql);
+      },
+      asStaff: vi.fn(),
+    }));
+    const { requestCustomerTimeChange } = await import("./edit-request");
+    const r = await requestCustomerTimeChange(
+      { QUOTE_LOCK_SECRET: "" } as CloudflareEnv,
+      { kind: "guest", manageTokenHashHex: "ab" },
+      "VT-26-0101",
+      { scheduledLocal: "2030-02-01T10:00" },
+    );
+    expect(r).toEqual({ ok: false, code: "staff-change-waiting" });
+    vi.doUnmock("@/lib/db/identity");
+    vi.resetModules();
+  });
 });

@@ -2253,6 +2253,8 @@
       'Confirm your new e-mail address': { de: 'Neue E-Mail-Adresse bestätigen', fr: 'Confirmez votre nouvelle adresse e-mail', ar: 'أكّد عنوان بريدك الإلكتروني الجديد' },
       'CONFIRM': { de: 'BESTÄTIGEN', fr: 'CONFIRMER', ar: 'تأكيد' },
       'Could not sign you in. Try again.': { de: 'Die Anmeldung hat nicht geklappt. Bitte erneut versuchen.', fr: 'Connexion impossible. Réessayez.', ar: 'تعذّر تسجيل دخولك. حاول مرة أخرى.' },
+      /* 261002 P6 follow-ups (owner F2, word for word): a customer asks for a new time while the owner's change waits for payment (409 staff-change-waiting). */
+      'A change to this trip is waiting for payment. Pay the difference from our e-mail first, then ask for a new time.': { de: 'Eine Änderung dieser Fahrt wartet auf die Zahlung. Bezahlen Sie zuerst die Differenz über unsere E-Mail und fragen Sie dann nach einer neuen Zeit.', fr: 'Une modification de ce trajet attend le paiement. Payez d’abord la différence depuis notre e-mail, puis demandez une nouvelle heure.', ar: 'يوجد تعديل على هذه الرحلة بانتظار الدفع. ادفع الفرق أولاً من رسالتنا الإلكترونية، ثم اطلب وقتاً جديداً.' },
     },
   };
 
