@@ -31,14 +31,33 @@ import {
   WHITE,
   YELLOW,
 } from "./chrome";
+import { ltrText, PHONE_DISPLAY } from "./layout";
 
-const DISPATCH_PHONE = "+41 79 626 70 82";
+const DISPATCH_PHONE = PHONE_DISPLAY;
 
 function ltr(value: string) {
   return (
     <span style={{ unicodeBidi: "isolate", direction: "ltr", whiteSpace: "nowrap" }}>
       {value}
     </span>
+  );
+}
+
+/**
+ * The approved `dispatchPhone` line with the phone in a left-to-right island, so Arabic reads
+ * `+41 79 626 70 82` (261002 F1). `t()` with no values leaves `{phone}` in place; the text
+ * around it is the message as written.
+ */
+function dispatchLine(locale: EmailLocale) {
+  const template = t(locale, "dispatchPhone");
+  const at = template.indexOf("{phone}");
+  if (at < 0) return t(locale, "dispatchPhone", { phone: DISPATCH_PHONE });
+  return (
+    <>
+      {template.slice(0, at)}
+      {ltr(DISPATCH_PHONE)}
+      {template.slice(at + "{phone}".length)}
+    </>
   );
 }
 
@@ -241,7 +260,7 @@ export function ConfirmationEmail({ booking }: { booking: BookingForEmail }) {
               {t(locale, "cancellationLine")}
             </Text>
             <Text style={{ margin: "8px 0 0", fontSize: "13px", color: MUTED }}>
-              {t(locale, "dispatchPhone", { phone: DISPATCH_PHONE })}
+              {dispatchLine(locale)}
             </Text>
           </Section>
           <Section style={{ padding: "8px 32px 32px" }}>
@@ -288,7 +307,8 @@ export function confirmationPlainText(booking: BookingForEmail): string {
   lines.push(booking.manageUrl);
   lines.push(t(locale, "calendarNote"));
   lines.push(t(locale, "cancellationLine"));
-  lines.push(t(locale, "dispatchPhone", { phone: DISPATCH_PHONE }));
+  // Arabic only: the phone between LRI and PDI so it reads left to right; en/de/fr unchanged.
+  lines.push(t(locale, "dispatchPhone", { phone: ltrText(locale, DISPATCH_PHONE) }));
   lines.push(t(locale, "footer"));
   return lines.join("\n");
 }

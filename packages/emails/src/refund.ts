@@ -1,5 +1,5 @@
 import { escapeHtml } from "./escape";
-import { layoutHtml, layoutText } from "./layout";
+import { layoutHtml, layoutText, ltrHtml, ltrText, PHONE_DISPLAY } from "./layout";
 import type { EmailLocale } from "./messages";
 
 export type RefundKind = "pending" | "issued";
@@ -61,8 +61,6 @@ const COPY: Record<EmailLocale, Copy> = {
   },
 };
 
-const FOOTER = "+41 79 626 70 82";
-
 // One pass with a function replacer: a name or reference is never read as a `$&` pattern
 // and is never searched again for the other placeholder.
 function fill(template: string, data: RefundEmailData): string {
@@ -77,7 +75,8 @@ export function renderRefundEmail(locale: EmailLocale, kind: RefundKind, data: R
   const inner = `<h1>${escapeHtml(heading)}</h1><p>${escapeHtml(body)}</p>`;
   return {
     subject,
-    html: layoutHtml(locale, inner, { footer: FOOTER }),
-    text: layoutText(`${heading}\n\n${body}`, { footer: FOOTER }),
+    // The phone reads left to right in Arabic: an LTR island in HTML, LRI…PDI in text (261002 F1).
+    html: layoutHtml(locale, inner, { footer: ltrHtml(PHONE_DISPLAY) }),
+    text: layoutText(`${heading}\n\n${body}`, { footer: ltrText(locale, PHONE_DISPLAY) }),
   };
 }
