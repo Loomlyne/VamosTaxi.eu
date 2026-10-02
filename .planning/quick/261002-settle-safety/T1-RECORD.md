@@ -41,3 +41,21 @@ Live rows: `booking_edit_requests` holds 1 row (staff, accepted, paid, booking c
 | P-1 settle vs a customer request's lock order | FAIL: `{ call: '40P01', side: null }` — the database chose the settle as the deadlock victim; on live the Worker then acknowledged the event (the lost payment). |
 | P-1 Accept vs a customer request's lock order | FAIL: `{ call: '40P01', side: null }` |
 | P-2 cancel then a paid difference | FAIL: the waiting request stays `requested` after the cancel |
+
+## After the build (2026-10-02 15:05-15:25 +04)
+
+Executors (Sonnet): E1 migration + pgTAP + types, E2 settle retry + alert mail, E3 cancel page close + confirm
+check + dashboard texts. Lead (Opus) reviewed each diff against the live bodies: only the planned changes.
+
+- New pgTAP `settle_safety.test.sql` (124): on main's bodies 61 ok, 51 not ok, 12 errors (function missing; the
+  settle raising `unknown-class` = the lost payment); on the branch 124/124.
+- `settle-safety.local.test.ts` on the branch's SQL: 3/3 (and 3 repeat runs by E1).
+- Ship-order runs on `vamos-taxi-ss` (logs in `evidence/`):
+  - (b) new SQL + new code: 13 local files / 25 tests pass.
+  - (a) new SQL + the live Worker's code (`git archive origin/main`, run from the scratchpad): 12 files / 22 tests
+    pass on a fresh reset. A first try on a used stack failed one case of `refund-by-hand.local.test.ts`: the test
+    stores the fixed refund id `re_retry` in a unique column, so it passes once per stack (old test, not this job).
+  - (c) old SQL (stack reset to main's migrations) + new code: the 12 existing files pass; only
+    `settle-safety.local.test.ts` fails, exactly as on main (40P01, 40P01, request left waiting).
+- Final: reset from empty with the branch's migrations, full pgTAP 97 files / 2630 tests PASS; md5s and grants in
+  `evidence/md5-after-migration.txt`, `evidence/grants-after-migration.txt`; types from the pinned CLI identical.
