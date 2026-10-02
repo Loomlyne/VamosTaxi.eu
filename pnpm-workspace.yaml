@@ -4,6 +4,17 @@ packages:
 overrides:
   postcss: 8.5.26
   sharp: 0.35.4
+  # Dependabot on main, 2026-10-02: 41 open alerts (15 high) across five transitive
+  # packages. Caret, not >=, on purpose: >= let fast-uri jump 3 -> 4 and js-yaml 4 -> 5,
+  # which is a dependency upgrade wearing a security fix's clothes. Every bump below
+  # stays inside its own major.
+  fast-uri: ^3.1.8          # SSRF, host confusion, authority injection (6 alerts)
+  brace-expansion@2: ^2.1.7 # DoS by uncontrolled recursion
+  brace-expansion@5: ^5.0.12
+  undici@7: ^7.29.1         # TLS validation bypass, DoS, cache poisoning (28 alerts)
+  undici@8: ^8.10.2
+  js-yaml: ^4.3.2           # CPU exhaustion via merge keys
+  qs: ^6.16.0
 allowBuilds:
   '@parcel/watcher': true
   '@swc/core': true

@@ -14,7 +14,7 @@
 - Deploy with `--env staging` (Worker `vamos`, live on vamostaxi.site). A deploy without it made the stray Worker `vamos-web` on 2026-10-01.
 - Types with the pinned CLI: `pnpm exec supabase` (2.115.0), then `db:types:check`.
 - After any seed change, re-pin `packages/db/supabase/tests/seed_idempotent.test.sql` to the counts in the seed header.
-- Next migration number: `20261007220000` (`200000` is settle safety, `210000` is the policy settings job). Ask the controller first and check every remote branch for the file name.
+- Next migration number: `20261007230000` (`200000` is settle safety, live; `210000` is the policy settings job; `220000` is the 26.2 audit job, booking reference five digits). Ask the controller first and check every remote branch for the file name.
 - Standing order (owner, 2026-10-01 17:41 +04, verbatim): "coomit and deply all after verify dont ask me". It is never used for the live Stripe key, the vamostaxi.eu cutover, price book row 18 Publish, deleting test bookings, or wiping data. Those need his word every time.
 
 Kept by the control session. One page: what is live, what is being built, what waits for
@@ -22,7 +22,17 @@ the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 Rewritten short on 2026-09-30 14:25; the long version is in git history (`8230227c`).
 
-**Last update:** 2026-10-03 00:35 (+04)
+**Last update:** 2026-10-03 00:45 (+04)
+
+## Landing queue, 2026-10-03 00:45 (+04)
+
+| Branch | State | Next |
+|---|---|---|
+| `fix/policy-settings-publish` (migration `20261007210000`) | Fresh review: SHIP WITH FIXES. Blocking: the "Minimum advance" box says hours but saves minutes (typing 3 would let customers book 3 minutes ahead). Fix job running in its folder (also: Cancel button variant, silent Save error, duplicate hint, arrow icon, Arabic number direction) | Control check, migration, deploy |
+| `fix/booking-pages-polish` | Its session re-runs the browser check and a fresh review of the sign-in route; owner signed design and plan 2026-10-02 ~15:30 | Hand-over, control check, deploy |
+| `fix/26.2-audit` (migration `20261007220000`) | Session `vamostaxi-eu-03` building; touches checkout files | Hand-over, fresh review, control check |
+| `fix/arabic-time-spinner` | Review: DO NOT SHIP alone (fixes a React file no page uses; the real fix is booking pages polish item 5) | Land after booking pages polish, or archive |
+| Landed and cleaned 00:4x | settle safety, Dependabot, Actions trim: branches deleted on GitHub (archive tags), folders removed; the settle-safety folder waits for its session to close | |
 
 ## Controller take-over, 2026-10-02 15:26 (+04)
 
@@ -38,7 +48,7 @@ Read at take-over (15:27 to 15:33): main = origin/main `3978fda9`, tree clean; W
 | `fix/arabic-time-spinner` | `d16c64de` | 1 | On GitHub. Review running |
 | `fix/26.2-audit` | `3978fda9` | 0 | Cut, nothing built |
 
-Next migration number after these two: `20261007220000`.
+Next migration number after these two: `20261007220000`; that number went to the 26.2 audit job (booking reference five digits, 2026-10-03 00:3x), next free `20261007230000`.
 
 ## Controller take-over, 2026-10-01 23:25 (+04)
 
@@ -88,7 +98,7 @@ book row 18, delete test bookings, live Stripe key, vamostaxi.eu cutover.
 | Item | Value |
 |---|---|
 | Site | https://vamostaxi.site and https://dashboard.vamostaxi.site |
-| main = origin/main | `997661d4` (settle safety, last code) plus planning notes |
+| main = origin/main | `33c9b994` (Actions trim, workflow files only); last Worker code `997661d4` (settle safety) |
 | Worker `vamos` | version `0fccc5e1` (2026-10-03 00:28, settle safety); before: `7f640c03` (2026-10-02 14:12, P6 follow-ups), `660bce80` (12:52, account phone to dashboard), `cdd63f10` (12:39, Stripe event payloads), `44ca2be9` (06:43, /cookies dead link), `c6a4ecac` (02:58, P6 paid-trip edit), `ae61d012` (02:28, guest-cancel hotfix), `7cf4af92` (02:12, Van luxury 12), `1415cd1f` (01:53, Arabic and design fixes + G23), `4e3a6eba` (2026-10-01 23:56, B7 content and legal), `b7a34b05` (23:50, Phase 20 leftovers), `6eb1d700` (17:44, 27.1 finish your account), `8f6720d6` (17:33, /confirmation), `fae3e473` |
 | Worker `vamos-dashboard` (gateway) | version `71a307da` (2026-10-01 08:0x); before: `58c6e541`. Rollback of batch C part 2 = both Workers together |
 | Rollback point | settle safety: Worker `7f640c03`, tag `backup/main-before-settle-safety-3c269d5c`, then the previous bodies from the files named in the migration header (both halves are safe alone); Worker `f58cd68e` + gateway `58c6e541` together, git tag `backup/main-before-c2-df520d08`; before the design: Worker `e2c53324`; before D and the refusal fix: Worker `c45d2782`; before 27: Worker `dfba8779`, tag `backup/main-before-27-a8948162` (the two Phase 27 migrations are additive and can stay); before polish 2: Worker `832b884e`; before batch C1: Worker `24945bab`; before extras A: Worker `2f303d16`; before refunds: Worker `1e1fd4a6`, tag `backup/main-before-refunds-3a486eaa` (note: rolling the Worker back alone re-enables automatic refunds on cancel; the migration stays); before the home change: Worker `852de5f4`; before the three pieces: Worker `d0c427c2`; before native scrolling: Worker `f3f7d929`; before the queue: Worker `92504970`; before class cards: Worker `d80e6577`; before speed A: Worker `8adb148c`; before phone home: Worker `d43e467b`; before 26.2: Worker `0d1806ce`; before the Support button: Worker `2d5906ce` (before 26.5: Worker `fe9314d0`, tag `backup/main-before-26.5-e09f90cb`). Guest accounts off without a deploy: `settings.guest_accounts_live = false` |
@@ -152,6 +162,8 @@ Clean clone: install from the lockfile and all 11 gates pass; pgTAP from zero on
 | 10-02 | 14:13 | **P6 follow-ups** (owner signed F1-F4 03:58): a customer time request no longer ends a staff change waiting for payment (migration `20261007190000`, applied right after the Worker: body md5 `6aa5b970`, definer, search_path '', EXECUTE postgres/service_role/vamos_system); no Stripe page shared across requests; Withdraw without a page; Arabic phones left to right on booking pages and e-mails; e-mail font; one RTL mirror rule; missing de/fr/ar lines. Reviews: builder R1-R4 (fix, safe, fix, safe) + controller's independent review safe (Worker first, then migration). Live before: 0 shared sessions, upsert `c86124b9`, 0 waiting. Clean clone: 11 gates, build, 3886 web unit tests, pgTAP 96 / 2506, types identical. Rollback: re-apply the P6 upsert body FIRST, then Worker `660bce80` (never the old Worker with the new function) | `3b1e053d` | `7f640c03` |
 | 10-02 | 13:13 | **Linux checkout reds** (tests and the Linux e2e workflow only): stale phone-sheet spec, consent-banner stub, auth redirect port, serial legal spec, per-worker build folders. Local proof only: **GitHub Actions refuses every job (account billing: payment failed or spending limit)**; rerun 36986497034 after the owner fixes billing. App findings: `faq.dc.html:68` open-question hover colour; `/api/reviews` 500 on a dev server without Hyperdrive | `08ebcfc7` | unchanged |
 | 10-03 | 00:28 | **Settle safety** (money; owner signed plan and texts T1/T2 2026-10-02 14:45): one lock order, booking then change request, in settle and Accept (the 40P01 that dropped a captured difference is gone); the Worker retries database hiccups and never acknowledges a captured payment on an error; every cancel ends a waiting change and closes its Stripe page; a difference that lands on a cancelled trip is recorded, never applied, and shows as Refund due with mail T1; Accept refuses price-changed; a new staff change never replaces a just-paid page. Gates in a clean folder, pgTAP from empty 97/2630, fresh Opus review SHIP. Migration `20261007200000` | `997661d4` | `0fccc5e1` |
+| 10-03 | 00:33 | **Dependabot**: the 41 alerts closed (15 high); undici, fast-uri, brace-expansion, js-yaml, qs; no major moved; build tooling only, not in the Worker bundle. Files only, no deploy | `029caeb1` | unchanged |
+| 10-03 | 00:40 | **Actions trim**: superseded push runs are cancelled instead of racing; a hand-started deploy is never cancelled; no gate switched off. Workflow files only, no deploy | `33c9b994` | unchanged |
 
 ## Ship order from here
 
