@@ -1,9 +1,18 @@
 // apps/web/lib/ops/settings.ts
 //
-// D-27: this module never writes public.settings_versions. Publishing a new
-// policy version is a migration, not a console action — the function does not
-// exist, so a later contributor adding one is crossing a decision rather than
-// filling a gap.
+// D-27 is reversed for four values, by the owner on 2026-10-02:
+// min_advance_minutes, free_cancel_hours, airport_waiting_minutes and
+// city_waiting_minutes are edited here as a draft and go live through Publish.
+// See .planning/decisions/2026-10-02-policy-values-draft-then-publish.md — he went
+// to set the waiting time to 30 minutes and the box saved nothing.
+//
+// D-27 still holds for every other column of settings_versions — cancellation
+// tiers, the night window, the policy document slug and version, the service area.
+// Publishing those is still a migration, not a console action, so a later
+// contributor adding one is crossing a decision rather than filling a gap.
+//
+// Nothing here UPDATEs settings_versions. Publish INSERTs a superseding row
+// through public.policy_publish_draft; the table stays append-only.
 //
 // 06-07's shared mapSqlState (lib/ops/sqlstate.ts) is not on this fork (Wave 4
 // parallel). The local mapper below covers 23514 (column CHECK) and 23001
@@ -353,10 +362,119 @@ export async function loadCurrentPolicyVersion(
         policy_doc_slug, policy_doc_version
       from public.settings_versions
       where effective_from <= now()
-      order by effective_from desc
+      order by effective_from desc, id desc
       limit 1
     `;
     return rows[0] ?? null;
   });
   return row ? mapPolicy(row) : null;
+}
+
+// ---------------------------------------------------------------------------
+// The policy draft (owner, 2026-10-02). Four values, one row, never public.
+// ---------------------------------------------------------------------------
+
+/** The four values the dashboard may edit, and the bounds the column CHECKs also hold. */
+export const POLICY_DRAFT_BOUNDS = {
+  min_advance_minutes: { min: 0, max: 10080, copyId: "settings-error-min-advance" },
+  free_cancel_hours: { min: 0, max: 720, copyId: "settings-error-free-cancel" },
+  airport_waiting_minutes: { min: 0, max: 1440, copyId: "settings-error-airport-wait" },
+  city_waiting_minutes: { min: 0, max: 1440, copyId: "settings-error-city-wait" },
+} as const;
+
+export type PolicyDraftField = keyof typeof POLICY_DRAFT_BOUNDS;
+
+export const POLICY_DRAFT_FIELDS = Object.keys(POLICY_DRAFT_BOUNDS) as PolicyDraftField[];
+
+export type PolicyDraftInput = Record<PolicyDraftField, number | null>;
+
+export type PolicyDraftRow = PolicyDraftInput & {
+  updated_at: string;
+  updated_by: string | null;
+};
+
+type PolicyDraftSql = Record<PolicyDraftField, number | null> & {
+  updated_at: Date | string;
+  updated_by: string | null;
+};
+
+function mapPolicyDraft(row: PolicyDraftSql): PolicyDraftRow {
+  return {
+    min_advance_minutes: nullableNumber(row.min_advance_minutes),
+    free_cancel_hours: nullableNumber(row.free_cancel_hours),
+    airport_waiting_minutes: nullableNumber(row.airport_waiting_minutes),
+    city_waiting_minutes: nullableNumber(row.city_waiting_minutes),
+    updated_at: asIso(row.updated_at),
+    updated_by: row.updated_by,
+  };
+}
+
+/**
+ * Whole numbers inside the bounds, or null for "not set yet". A value that is not a
+ * whole number is refused here rather than rounded: he typed something, and silently
+ * keeping a different number is worse than saying no.
+ */
+export function assertPolicyDraftInput(input: PolicyDraftInput): PolicyDraftInput {
+  const out = {} as PolicyDraftInput;
+  for (const field of POLICY_DRAFT_FIELDS) {
+    const value = input[field];
+    if (value === null) {
+      out[field] = null;
+      continue;
+    }
+    const { min, max, copyId } = POLICY_DRAFT_BOUNDS[field];
+    if (!Number.isInteger(value) || value < min || value > max) {
+      throw new SettingsInputError(field, copyId);
+    }
+    out[field] = value;
+  }
+  return out;
+}
+
+/**
+ * A box he has never touched shows what customers get now, not a blank. The draft row can
+ * legitimately be empty — on a database built from zero the migration runs before the seed,
+ * so there is nothing to copy forward yet — and an empty policy box on screen reads as a
+ * broken page. Falling back per field keeps the page honest in every environment.
+ */
+export function policyDraftOrLive(
+  draft: PolicyDraftInput | null,
+  live: PolicyVersionRow | null,
+): PolicyDraftInput {
+  const out = {} as PolicyDraftInput;
+  for (const field of POLICY_DRAFT_FIELDS) {
+    const drafted = draft ? draft[field] : null;
+    out[field] = drafted === null || drafted === undefined ? (live ? live[field] : null) : drafted;
+  }
+  return out;
+}
+
+/** The fields where the draft and the live version disagree — the Publish change list. */
+export function policyDraftChanges(
+  draft: PolicyDraftInput,
+  live: PolicyVersionRow | null,
+): { field: PolicyDraftField; from: number | null; to: number | null }[] {
+  return POLICY_DRAFT_FIELDS.flatMap((field) => {
+    const from = live ? live[field] : null;
+    const to = draft[field];
+    return from === to ? [] : [{ field, from, to }];
+  });
+}
+
+export async function loadPolicyDraft(
+  env: CloudflareEnv,
+  claims: VamosClaims,
+): Promise<PolicyDraftRow | null> {
+  const row = await asStaff(env, claims, async (sql) => {
+    const rows = await sql<PolicyDraftSql[]>`
+      select
+        min_advance_minutes, free_cancel_hours,
+        airport_waiting_minutes, city_waiting_minutes,
+        updated_at, updated_by
+      from public.settings_policy_draft
+      where id = 1
+    `;
+    return rows[0] ?? null;
+  });
+  return row ? mapPolicyDraft(row) : null;
 }

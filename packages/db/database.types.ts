@@ -2162,6 +2162,36 @@ export type Database = {
         }
         Relationships: []
       }
+      settings_policy_draft: {
+        Row: {
+          airport_waiting_minutes: number | null
+          city_waiting_minutes: number | null
+          free_cancel_hours: number | null
+          id: number
+          min_advance_minutes: number | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          airport_waiting_minutes?: number | null
+          city_waiting_minutes?: number | null
+          free_cancel_hours?: number | null
+          id?: number
+          min_advance_minutes?: number | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          airport_waiting_minutes?: number | null
+          city_waiting_minutes?: number | null
+          free_cancel_hours?: number | null
+          id?: number
+          min_advance_minutes?: number | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       settings_versions: {
         Row: {
           airport_waiting_minutes: number | null
@@ -3733,6 +3763,7 @@ export type Database = {
           stripe_checkout_session_id: string
         }[]
       }
+      policy_publish_draft: { Args: { p_actor: string }; Returns: number }
       price_changed_unpaid_contacts: {
         Args: never
         Returns: {

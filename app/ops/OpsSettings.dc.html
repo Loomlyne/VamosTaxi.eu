@@ -81,11 +81,34 @@
 <p style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tPolicySub }}</p>
 </div>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tMinAdvance }}" value="{{ vMinAdvance }}" onChange="{{ setMinAdvance }}" placeholder="{{ tHours }}" suffix="{{ tHours }}" hint="{{ tTbc }}" hint-size="100%,76px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tCancelWindow }}" value="{{ vCancelWindow }}" onChange="{{ setCancelWindow }}" placeholder="{{ tHours }}" suffix="{{ tHours }}" hint="{{ tTbc }}" hint-size="100%,76px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tAirportWait }}" value="{{ vAirportWait }}" onChange="{{ setAirportWait }}" suffix="{{ tMinutes }}" hint-size="100%,76px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tCityWait }}" value="{{ vCityWait }}" onChange="{{ setCityWait }}" suffix="{{ tMinutes }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tMinAdvance }}" value="{{ vMinAdvance }}" onChange="{{ setMinAdvance }}" placeholder="{{ tHours }}" suffix="{{ tHours }}" hint="{{ vLiveMinAdvance }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tCancelWindow }}" value="{{ vCancelWindow }}" onChange="{{ setCancelWindow }}" placeholder="{{ tHours }}" suffix="{{ tHours }}" hint="{{ vLiveCancelWindow }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tAirportWait }}" value="{{ vAirportWait }}" onChange="{{ setAirportWait }}" suffix="{{ tMinutes }}" hint="{{ vLiveAirportWait }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tCityWait }}" value="{{ vCityWait }}" onChange="{{ setCityWait }}" suffix="{{ tMinutes }}" hint="{{ vLiveCityWait }}" hint-size="100%,76px"></x-import>
 </div>
+
+<div data-policy-changes="1" style="display:{{ policyChangeShow }};flex-direction:column;gap:6px;padding:14px 16px;background:var(--vt-bg-page);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md)">
+<p style="margin:0;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-muted)">{{ tPolicyPublishHint }}</p>
+<sc-for list="{{ policyChangeRows }}" as="c" hint-placeholder-count="2">
+<p style="margin:0;font-size:var(--vt-body-sm);color:var(--vt-text-primary)"><span class="vt-dir-keep">{{ c.text }}</span></p>
+</sc-for>
+</div>
+
+<div data-publish-row="1" style="display:flex;flex-wrap:wrap;align-items:center;gap:12px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="primary" size="md" onClick="{{ askPublish }}" disabled="{{ publishDisabled }}" hint-size="160px,44px">{{ tPolicyPublish }}</x-import>
+<p style="margin:0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tPolicyPublishHint }}</p>
+</div>
+
+<div data-publish-confirm="1" style="display:{{ publishConfirmShow }};flex-direction:column;gap:10px;padding:16px;background:var(--vt-charcoal);border-radius:var(--vt-radius-md)">
+<p style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-body-md);color:var(--vt-text-inverse)">{{ tPolicyPublishConfirm }}</p>
+<p style="margin:0;font-size:var(--vt-body-xs);color:var(--vt-text-inverse-muted)">{{ tPolicyPublishConfirmSub }}</p>
+<div style="display:flex;flex-wrap:wrap;gap:10px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="primary" size="md" onClick="{{ doPublish }}" disabled="{{ publishDisabled }}" hint-size="160px,44px">{{ tPolicyPublishGo }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost-inverse" size="md" onClick="{{ cancelPublish }}" hint-size="120px,44px">{{ tCancel }}</x-import>
+</div>
+</div>
+
+<p style="display:{{ publishMsgShow }};margin:0;font-size:var(--vt-body-xs);color:{{ publishMsgColor }}">{{ publishMsg }}</p>
 <p data-hint="1">{{ tPolicyNote }}</p>
 </section>
 </sc-if>
@@ -369,6 +392,15 @@ const T = {
     policyNote:'Waiting time is what a chauffeur holds for free before waiting is charged.',
     minAdvance:'Minimum advance', cancelWindow:'Free cancellation', airportWait:'Airport waiting included', cityWait:'City waiting included',
     hours:'hours', minutes:'min', tbc:'Still to be confirmed by the client',
+    policyLiveNow:'Live now', policyPublish:'PUBLISH',
+    policyPublishHint:'These numbers reach customers when you publish.',
+    policyPublishNothing:'What you see here is what customers get.',
+    policyPublishSaveFirst:'Save your changes first, then publish.',
+    policyPublishConfirm:'Publish these booking rules?',
+    policyPublishConfirmSub:'Customers see them straight away. The version they replace is kept.',
+    policyPublishGo:'PUBLISH', cancel:'CANCEL',
+    policyPublished:'Published. Customers see the new rules now.',
+    policyPublishFailed:'Could not publish. Try again.',
     locale:'Localisation', localeSub:'What a first-time visitor lands on before they choose',
     defaultLang:'Default language', defaultCur:'Default currency',
     published:'Published languages', publishedHint:'Every page, email and document ships in all four. The currency switch changes the mark, never the number.',
@@ -416,6 +448,15 @@ const T = {
     policyNote:'Die Wartezeit ist die Zeit, die ein Chauffeur kostenlos wartet, bevor Wartezeit verrechnet wird.',
     minAdvance:'Mindestvorlaufzeit', cancelWindow:'Kostenlose Stornierung', airportWait:'Wartezeit Flughafen inklusive', cityWait:'Wartezeit Stadt inklusive',
     hours:'Stunden', minutes:'Min.', tbc:'Vom Kunden noch zu bestätigen',
+    policyLiveNow:'Aktuell live', policyPublish:'VERÖFFENTLICHEN',
+    policyPublishHint:'Diese Zahlen erreichen Kundinnen und Kunden erst mit dem Veröffentlichen.',
+    policyPublishNothing:'Was hier steht, gilt bereits für Kundinnen und Kunden.',
+    policyPublishSaveFirst:'Zuerst speichern, dann veröffentlichen.',
+    policyPublishConfirm:'Diese Buchungsregeln veröffentlichen?',
+    policyPublishConfirmSub:'Kundinnen und Kunden sehen sie sofort. Die ersetzte Fassung bleibt erhalten.',
+    policyPublishGo:'VERÖFFENTLICHEN', cancel:'ABBRECHEN',
+    policyPublished:'Veröffentlicht. Die neuen Regeln gelten jetzt.',
+    policyPublishFailed:'Veröffentlichen nicht möglich. Bitte nochmals versuchen.',
     locale:'Lokalisierung', localeSub:'Womit ein neuer Besucher startet, bevor er wählt',
     defaultLang:'Standardsprache', defaultCur:'Standardwährung',
     published:'Veröffentlichte Sprachen', publishedHint:'Jede Seite, E-Mail und jedes Dokument erscheint in allen vier. Die Währungsumschaltung ändert das Zeichen, nie die Zahl.',
@@ -463,6 +504,15 @@ const T = {
     policyNote:'L’attente est le temps qu’un chauffeur patiente gratuitement avant facturation.',
     minAdvance:'Délai minimum', cancelWindow:'Annulation gratuite', airportWait:'Attente aéroport incluse', cityWait:'Attente ville incluse',
     hours:'heures', minutes:'min', tbc:'À confirmer par le client',
+    policyLiveNow:'En ligne actuellement', policyPublish:'PUBLIER',
+    policyPublishHint:'Ces valeurs atteignent les clients une fois publiées.',
+    policyPublishNothing:'Ce que vous voyez ici est ce que les clients obtiennent.',
+    policyPublishSaveFirst:'Enregistrez d’abord vos modifications, puis publiez.',
+    policyPublishConfirm:'Publier ces règles de réservation ?',
+    policyPublishConfirmSub:'Les clients les voient immédiatement. La version remplacée est conservée.',
+    policyPublishGo:'PUBLIER', cancel:'ANNULER',
+    policyPublished:'Publié. Les nouvelles règles s’appliquent.',
+    policyPublishFailed:'Publication impossible. Réessayez.',
     locale:'Localisation', localeSub:'Ce que voit un nouveau visiteur avant de choisir',
     defaultLang:'Langue par défaut', defaultCur:'Devise par défaut',
     published:'Langues publiées', publishedHint:'Chaque page, e-mail et document existe dans les quatre. Le changement de devise change le symbole, jamais le nombre.',
@@ -510,6 +560,15 @@ const T = {
     policyNote:'الانتظار هو المدة التي ينتظرها السائق مجانًا قبل أن يُحسب الانتظار.',
     minAdvance:'أقل مهلة مسبقة', cancelWindow:'إلغاء مجاني', airportWait:'انتظار المطار المشمول', cityWait:'انتظار المدينة المشمول',
     hours:'ساعات', minutes:'دقيقة', tbc:'بانتظار تأكيد العميل',
+    policyLiveNow:'المعمول به الآن', policyPublish:'نشر',
+    policyPublishHint:'تصل هذه الأرقام إلى العملاء عند النشر.',
+    policyPublishNothing:'ما تراه هنا هو ما يحصل عليه العملاء.',
+    policyPublishSaveFirst:'احفظ تغييراتك أولاً ثم انشر.',
+    policyPublishConfirm:'هل تنشر قواعد الحجز هذه؟',
+    policyPublishConfirmSub:'يراها العملاء فوراً. وتبقى النسخة المستبدلة محفوظة.',
+    policyPublishGo:'نشر', cancel:'إلغاء',
+    policyPublished:'تم النشر. القواعد الجديدة سارية الآن.',
+    policyPublishFailed:'تعذّر النشر. حاول مرة أخرى.',
     locale:'التوطين', localeSub:'ما يبدأ به الزائر الجديد قبل أن يختار',
     defaultLang:'اللغة الافتراضية', defaultCur:'العملة الافتراضية',
     published:'اللغات المنشورة', publishedHint:'كل صفحة ورسالة ومستند متوفّرة باللغات الأربع. وتبديل العملة يغيّر الرمز، لا الرقم.',
@@ -545,7 +604,14 @@ const T = {
 };
 
 const REAUTH_FRESH_MS = 270000; // 4.5 min: the server's vt_reauth lives 5 min.
-const POLICY_KEYS = { minAdvance:1, cancelWindow:1, airportWait:1, cityWait:1, policySlug:1, policyLabel:1, policyEffectiveFrom:1 };
+// The four the owner may edit (2026-10-02). They are draft values: Save keeps them,
+// Publish makes them live. They are deliberately NOT in POLICY_KEYS any more.
+const POLICY_DRAFT_KEYS = { minAdvance:1, cancelWindow:1, airportWait:1, cityWait:1 };
+// Read-only on this page: the live mirror, the change list and the version stamp.
+const POLICY_KEYS = {
+  policySlug:1, policyLabel:1, policyEffectiveFrom:1, policyChanges:1, policyDirty:1,
+  liveMinAdvance:1, liveCancelWindow:1, liveAirportWait:1, liveCityWait:1,
+};
 function b64urlToBuf(s) {
   const pad = '='.repeat((4 - (s.length % 4)) % 4);
   const bin = atob((s + pad).replace(/-/g, '+').replace(/_/g, '/'));
@@ -617,7 +683,8 @@ class Component extends DCLogic {
   state = { lang:'en', draft:null, emailMsg:'', saved:false, pane:'company', secEmail:'', pw1:'', pw2:'', pwMsg:'', pwSaved:false, emailSaved:false, passkeys:[], passkeyBusy:false, passkeyConfirm:false, passkeyMsg:'', passkeyError:false, showPw1:false, showPw2:false, me:null,
     signInMethod:'password', methodBusy:false, methodSaved:false, methodMsg:'',
     totpOn:false, totpFactorId:'', totpStage:'idle', totpQr:'', totpSecret:'', totpCode:'', totpFailed:false, totpBusy:false, totpMsg:'', totpError:false,
-    reauthOpen:false, reauthPw:'', showReauthPw:false, reauthCode:'', reauthSent:false, reauthBusy:false, reauthErr:'' };
+    reauthOpen:false, reauthPw:'', showReauthPw:false, reauthCode:'', reauthSent:false, reauthBusy:false, reauthErr:'',
+    publishBusy:false, publishConfirm:false, publishMsg:'', publishError:false };
   bind = () => {
     if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
     if (this._offSettings) this._offSettings();
@@ -925,6 +992,9 @@ class Component extends DCLogic {
     api('PATCH', '/api/staff/settings', {
       company: d.company, address: d.address, uid: d.uid, phone: d.phone, email: d.email,
       defaultLang: d.defaultLang, defaultCur: d.defaultCur,
+      // Draft only. Nothing here reaches a customer until Publish.
+      minAdvance: d.minAdvance, cancelWindow: d.cancelWindow,
+      airportWait: d.airportWait, cityWait: d.cityWait,
 
       emailConfirm: d.emailConfirm, emailReminder: d.emailReminder, smsReminder: d.smsReminder, opsAlerts: d.opsAlerts,
     }).then((json) => {
@@ -943,6 +1013,34 @@ class Component extends DCLogic {
   };
   discard = () => { if (window.VamosOps) this.setState({ draft: window.VamosOps.settings.get(), saved: false }); };
 
+  // Publish sends nothing but the press: the server publishes the draft it already holds.
+  // That is why the button is closed while there are unsaved changes — otherwise he would
+  // publish the stored draft while reading different numbers on the screen.
+  publish = () => {
+    const t = T[this.state.lang] || T.en;
+    if (this.state.publishBusy) return;
+    this.setState({ publishBusy: true, publishMsg: '', publishError: false });
+    api('POST', '/api/staff/settings/policy-publish', {}).then((json) => {
+      if (json && json.ok && json.data) {
+        const d = {}; for (const k in this.state.draft) d[k] = this.state.draft[k];
+        d.liveMinAdvance = json.data.liveMinAdvance;
+        d.liveCancelWindow = json.data.liveCancelWindow;
+        d.liveAirportWait = json.data.liveAirportWait;
+        d.liveCityWait = json.data.liveCityWait;
+        d.policySlug = json.data.policySlug;
+        d.policyEffectiveFrom = json.data.policyEffectiveFrom;
+        d.policyChanges = [];
+        d.policyDirty = false;
+        if (window.VamosOps && window.VamosOps.settings) window.VamosOps.settings.apply(d);
+        this.setState({ draft: d, publishBusy: false, publishConfirm: false, publishError: false, publishMsg: t.policyPublished });
+        clearTimeout(this._publishT);
+        this._publishT = setTimeout(() => this.setState({ publishMsg: '' }), 3200);
+      } else {
+        this.setState({ publishBusy: false, publishError: true, publishMsg: this.failText(json, t.policyPublishFailed) });
+      }
+    });
+  };
+
   renderVals() {
     const t = T[this.state.lang] || T.en;
     const passkeys = Array.isArray(this.state.passkeys) ? this.state.passkeys : [];
@@ -958,6 +1056,24 @@ class Component extends DCLogic {
       label, hint, on: !!d[key], toggle: (e) => this.set(key, e.target.checked),
     });
     const txt = (key) => (e) => this.set(key, e.target.value);
+    // The policy card. Three states matter and they are not the same thing:
+    //   unsaved  — typed but not Saved yet (Publish stays closed)
+    //   changes  — saved draft differs from what customers get now (Publish opens)
+    //   neither  — the draft is live
+    const POLICY_UNITS = { minAdvance: t.hours, cancelWindow: t.hours, airportWait: t.minutes, cityWait: t.minutes };
+    const POLICY_LIVE_OF = { minAdvance:'liveMinAdvance', cancelWindow:'liveCancelWindow', airportWait:'liveAirportWait', cityWait:'liveCityWait' };
+    const blank = (v) => v === '' || v === null || v === undefined;
+    const policyUnsaved = Object.keys(POLICY_DRAFT_KEYS).some((k) => String(d[k]) !== String(saved[k]));
+    const policyChanges = Object.keys(POLICY_DRAFT_KEYS).flatMap((k) => {
+      const from = d[POLICY_LIVE_OF[k]], to = d[k];
+      if (String(from) === String(to)) return [];
+      return [{ key: k, from: blank(from) ? '—' : String(from), to: blank(to) ? '—' : String(to), unit: POLICY_UNITS[k] }];
+    });
+    const liveLine = (key, liveKey, unit) => {
+      const from = d[liveKey];
+      if (blank(from) || String(from) === String(d[key])) return '';
+      return t.policyLiveNow + ' ' + String(from) + ' ' + unit;
+    };
     const RAIL = {
       company: [t.railCompany, t.railCompanyHint], policy: [t.railPolicy, t.railPolicyHint],
       locale: [t.railLocale, t.railLocaleHint], payments: [t.railPayments, t.railPaymentsHint],
@@ -1077,7 +1193,34 @@ class Component extends DCLogic {
       vCancelWindow: d.cancelWindow === undefined || d.cancelWindow === null ? '' : String(d.cancelWindow),
       vAirportWait: d.airportWait === undefined || d.airportWait === null ? '' : String(d.airportWait),
       vCityWait: d.cityWait === undefined || d.cityWait === null ? '' : String(d.cityWait),
-      setMinAdvance: () => {}, setCancelWindow: () => {}, setAirportWait: () => {}, setCityWait: () => {},
+      setMinAdvance: txt('minAdvance'), setCancelWindow: txt('cancelWindow'),
+      setAirportWait: txt('airportWait'), setCityWait: txt('cityWait'),
+      // What customers get right now, shown under a box only when the draft differs.
+      vLiveMinAdvance: liveLine('minAdvance', 'liveMinAdvance', t.hours),
+      vLiveCancelWindow: liveLine('cancelWindow', 'liveCancelWindow', t.hours),
+      vLiveAirportWait: liveLine('airportWait', 'liveAirportWait', t.minutes),
+      vLiveCityWait: liveLine('cityWait', 'liveCityWait', t.minutes),
+      policyChangeRows: policyChanges.map((c) => ({
+        key: c.key,
+        text: (t[c.key] || c.key) + ': ' + c.from + ' → ' + c.to + ' ' + c.unit,
+      })),
+      policyChangeShow: policyChanges.length ? 'flex' : 'none',
+      tPolicyPublish: t.policyPublish,
+      tPolicyPublishHint: policyUnsaved ? t.policyPublishSaveFirst
+        : policyChanges.length ? t.policyPublishHint : t.policyPublishNothing,
+      publishDisabled: policyUnsaved || !policyChanges.length || this.state.publishBusy,
+      publishBusyShow: this.state.publishBusy ? 'inline' : 'none',
+      askPublish: () => this.setState({ publishConfirm: true, publishMsg: '' }),
+      cancelPublish: () => this.setState({ publishConfirm: false }),
+      doPublish: this.publish,
+      publishConfirmShow: this.state.publishConfirm ? 'flex' : 'none',
+      tPolicyPublishConfirm: t.policyPublishConfirm,
+      tPolicyPublishConfirmSub: t.policyPublishConfirmSub,
+      tPolicyPublishGo: t.policyPublishGo,
+      tCancel: t.cancel,
+      publishMsg: this.state.publishMsg || '',
+      publishMsgShow: this.state.publishMsg ? 'block' : 'none',
+      publishMsgColor: this.state.publishError ? 'var(--vt-danger)' : 'var(--vt-text-muted)',
       vLang: d.defaultLang || 'en', pickLang: (v) => this.set('defaultLang', v),
       vCur: d.defaultCur || 'CHF', pickCur: (v) => this.set('defaultCur', v),
       langOptions: [

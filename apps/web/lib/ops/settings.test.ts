@@ -8,9 +8,13 @@ vi.mock("../db/identity", () => ({
   asStaff: vi.fn(),
 }));
 import {
+  assertPolicyDraftInput,
   assertSettingsInput,
   mapSqlState,
+  policyDraftChanges,
   SettingsInputError,
+  type PolicyDraftInput,
+  type PolicyVersionRow,
   type SettingsInput,
 } from "./settings";
 
@@ -103,5 +107,96 @@ describe("mapSqlState", () => {
       copyId: "settings-error-append-only",
     });
     expect(mapSqlState({ code: "23505" })).toEqual({ kind: "unknown" });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// The policy draft (owner, 2026-10-02). Pure cases only — no DB, no publish.
+// ---------------------------------------------------------------------------
+
+describe("assertPolicyDraftInput", () => {
+  const draft = (over: Partial<PolicyDraftInput> = {}): PolicyDraftInput => ({
+    min_advance_minutes: 180,
+    free_cancel_hours: 24,
+    airport_waiting_minutes: 60,
+    city_waiting_minutes: 30,
+    ...over,
+  });
+
+  it("keeps whole numbers inside the bounds", () => {
+    expect(assertPolicyDraftInput(draft())).toEqual(draft());
+  });
+
+  it("keeps null — a box he has not filled in is not a zero", () => {
+    expect(assertPolicyDraftInput(draft({ city_waiting_minutes: null })).city_waiting_minutes).toBeNull();
+  });
+
+  it("allows a real zero", () => {
+    expect(assertPolicyDraftInput(draft({ free_cancel_hours: 0 })).free_cancel_hours).toBe(0);
+  });
+
+  it("refuses a fraction rather than rounding it", () => {
+    expect(() => assertPolicyDraftInput(draft({ city_waiting_minutes: 30.5 }))).toThrow(
+      SettingsInputError,
+    );
+  });
+
+  it("refuses a negative waiting time", () => {
+    expect(() => assertPolicyDraftInput(draft({ airport_waiting_minutes: -1 }))).toThrow(
+      SettingsInputError,
+    );
+  });
+
+  it("refuses more than a day of waiting", () => {
+    expect(() => assertPolicyDraftInput(draft({ airport_waiting_minutes: 1441 }))).toThrow(
+      SettingsInputError,
+    );
+  });
+
+  it("names the field and a copy id, so the page can say which box is wrong", () => {
+    try {
+      assertPolicyDraftInput(draft({ min_advance_minutes: -5 }));
+      throw new Error("should have refused");
+    } catch (err) {
+      expect(err).toBeInstanceOf(SettingsInputError);
+      expect((err as SettingsInputError).field).toBe("min_advance_minutes");
+      expect((err as SettingsInputError).copyId).toBe("settings-error-min-advance");
+    }
+  });
+});
+
+describe("policyDraftChanges", () => {
+  const live = {
+    min_advance_minutes: 180,
+    free_cancel_hours: 24,
+    airport_waiting_minutes: 60,
+    city_waiting_minutes: 15,
+  } as unknown as PolicyVersionRow;
+
+  const draft: PolicyDraftInput = {
+    min_advance_minutes: 180,
+    free_cancel_hours: 24,
+    airport_waiting_minutes: 60,
+    city_waiting_minutes: 15,
+  };
+
+  it("finds nothing when the draft is what is live", () => {
+    expect(policyDraftChanges(draft, live)).toEqual([]);
+  });
+
+  it("names the one value that moved — the real case: /terms promises 30, live grants 15", () => {
+    expect(policyDraftChanges({ ...draft, city_waiting_minutes: 30 }, live)).toEqual([
+      { field: "city_waiting_minutes", from: 15, to: 30 },
+    ]);
+  });
+
+  it("treats a cleared box as a change, not as 'same'", () => {
+    expect(policyDraftChanges({ ...draft, free_cancel_hours: null }, live)).toEqual([
+      { field: "free_cancel_hours", from: 24, to: null },
+    ]);
+  });
+
+  it("with no live version every filled value is a change", () => {
+    expect(policyDraftChanges(draft, null)).toHaveLength(4);
   });
 });
