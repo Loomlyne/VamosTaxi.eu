@@ -216,6 +216,12 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
   const [createHidden, setCreateHidden] = useState(false);
   const [accountTurnstile, setAccountTurnstile] = useState<string | null>(null);
   const [accountResetNonce, setAccountResetNonce] = useState(0);
+  // 26.2 audit U06-21: when "create an account" goes away (hidden after an answer, or switched
+  // off), the held choice follows what the radio group shows, so PAY never sends "create".
+  const createAvailable = settings.accountCreateAvailable && !createHidden;
+  useEffect(() => {
+    if (!createAvailable && accountChoice === "create") setAccountChoice("guest");
+  }, [createAvailable, accountChoice]);
   const [flight, setFlightState] = useState(trip.flightDisplay ?? "");
   const [flightError, setFlightError] = useState<string | null>(null);
   const [extras, setExtras] = useState<ExtraItem[]>([]);
@@ -843,7 +849,7 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
       signedIn: Boolean(signedInEmail),
       choice: accountChoice,
       guestAccountsOn: settings.guestAccountsOn,
-      createAvailable: settings.accountCreateAvailable && !createHidden,
+      createAvailable,
       createConsent,
       turnstileToken: accountTurnstile ?? undefined,
       idempotencyKey: idem.current.id,
