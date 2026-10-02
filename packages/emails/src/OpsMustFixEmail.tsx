@@ -28,7 +28,12 @@ import {
   YELLOW,
 } from "./chrome";
 
-export type OpsMustFixKind = "off-road" | "overlap" | "stuck-payment" | "paid-after-cancel";
+export type OpsMustFixKind =
+  | "off-road"
+  | "overlap"
+  | "stuck-payment"
+  | "paid-after-cancel"
+  | "difference-not-applied";
 
 export type OpsMustFixTrip = {
   reference: string;
@@ -63,6 +68,8 @@ function headlineKey(kind: OpsMustFixKind): string {
       return "opsMustFix.stuckHeadline";
     case "paid-after-cancel":
       return "opsMustFix.paidAfterCancelHeadline";
+    case "difference-not-applied":
+      return "opsMustFix.differenceNotAppliedHeadline";
     default:
       return "opsMustFix.offRoadHeadline";
   }
@@ -76,6 +83,8 @@ function bodyKey(kind: OpsMustFixKind): string {
       return "opsMustFix.stuckBody";
     case "paid-after-cancel":
       return "opsMustFix.paidAfterCancelBody";
+    case "difference-not-applied":
+      return "opsMustFix.differenceNotAppliedBody";
     default:
       return "opsMustFix.offRoadBody";
   }

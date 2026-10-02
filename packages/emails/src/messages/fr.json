@@ -70,7 +70,9 @@
     "stuckBody": "Stripe a envoyé cet événement et il a échoué 8 fois. La réservation est peut-être payée mais non confirmée. Vérifiez la réservation dans le tableau de bord et l'événement dans Stripe.",
     "stuckEventLabel": "Événement Stripe",
     "paidAfterCancelHeadline": "Payé après annulation — remboursé",
-    "paidAfterCancelBody": "Un paiement est arrivé pour une réservation qui ne pouvait pas avoir lieu. Le montant a été remboursé automatiquement. Aucune action n'est nécessaire, sauf si le client écrit."
+    "paidAfterCancelBody": "Un paiement est arrivé pour une réservation qui ne pouvait pas avoir lieu. Le montant a été remboursé automatiquement. Aucune action n'est nécessaire, sauf si le client écrit.",
+    "differenceNotAppliedHeadline": "Différence payée, modification non appliquée",
+    "differenceNotAppliedBody": "Le client a payé la différence pour cette réservation, mais la modification n’a pas été appliquée : le trajet a été annulé, une modification plus récente l’a remplacée, ou elle ne convient plus. Le paiement est enregistré et apparaît comme remboursement dû. Renvoyez-le depuis le tableau de bord ou refaites la modification."
   },
   "cancellation": {
     "subject": "Réservation {reference} annulée",
