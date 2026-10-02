@@ -1,0 +1,54 @@
+{
+ "before mb": {
+  "booking": [
+   "Tue 6 Oct · 08:15",
+   "Zurich Airport",
+   "Zermatt",
+   "Tue 6 Oct"
+  ],
+  "change": [
+   "Tue 6 Oct · 08:15",
+   "Zurich Airport",
+   "Zermatt",
+   "Tue 6 Oct"
+  ]
+ },
+ "before bd": {
+  "booking": [
+   "Tue 6 Oct · 08:15",
+   "Zurich Airport",
+   "Zermatt",
+   "Tue 6 Oct"
+  ],
+  "change": [
+   "Tue 6 Oct · 08:15",
+   "Zurich Airport",
+   "Zermatt",
+   "Tue 6 Oct"
+  ]
+ },
+ "after mb": {
+  "booking": [
+   "Zurich Airport",
+   "Zermatt",
+   "Tue 6 Oct"
+  ],
+  "change": [
+   "Zurich Airport",
+   "Zermatt",
+   "Tue 6 Oct"
+  ]
+ },
+ "after bd": {
+  "booking": [
+   "Zurich Airport",
+   "Zermatt",
+   "Tue 6 Oct"
+  ],
+  "change": [
+   "Zurich Airport",
+   "Zermatt",
+   "Tue 6 Oct"
+  ]
+ }
+}
