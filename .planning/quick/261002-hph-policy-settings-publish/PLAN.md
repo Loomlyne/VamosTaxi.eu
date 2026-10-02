@@ -4,7 +4,7 @@ slug: policy-settings-publish
 status: in-progress
 owner_decision: .planning/decisions/2026-10-02-policy-values-draft-then-publish.md
 branch: fix/policy-settings-publish
-migration: 20261007200000
+migration: 20261007210000
 ---
 
 # The four policy boxes become real: Save writes a draft, Publish makes it live
@@ -23,7 +23,7 @@ migration with a number in it.
 
 ## Files this job owns (no other running job touches them)
 
-- `packages/db/supabase/migrations/20261007200000_policy_draft_publish.sql` (new)
+- `packages/db/supabase/migrations/20261007210000_policy_draft_publish.sql` (new)
 - `apps/web/lib/ops/settings.ts`
 - `apps/web/app/[locale]/(ops)/api/staff/settings/route.ts`
 - `apps/web/app/[locale]/(ops)/api/staff/settings/policy-publish/route.ts` (new)
@@ -33,7 +33,7 @@ migration with a number in it.
 
 ## Tasks
 
-### T1 — Migration `20261007200000_policy_draft_publish.sql`
+### T1 — Migration `20261007210000_policy_draft_publish.sql`
 
 - `public.settings_policy_draft`: singleton (`id smallint primary key default 1 check (id = 1)`),
   four nullable integer columns, `updated_at`, `updated_by uuid`.

@@ -3,7 +3,7 @@ quick_id: 261002-hph
 slug: policy-settings-publish
 status: complete
 branch: fix/policy-settings-publish
-migration: 20261007200000_policy_draft_publish.sql
+migration: 20261007210000_policy_draft_publish.sql
 owner_decision: .planning/decisions/2026-10-02-policy-values-draft-then-publish.md
 ---
 

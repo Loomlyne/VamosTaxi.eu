@@ -1,4 +1,4 @@
--- 20261007200000_policy_draft_publish.sql
+-- 20261007210000_policy_draft_publish.sql
 --
 -- Owner decision 2026-10-02: the four policy values on the dashboard Settings page get a
 -- draft and a Publish, the same two-step as the price book.

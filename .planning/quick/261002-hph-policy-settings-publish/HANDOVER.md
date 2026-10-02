@@ -5,6 +5,17 @@
 **To:** the control session.
 **State:** built, gates green, ready for a fresh reviewer and then the owner's Ship.
 
+## Migration number — read this first
+
+This branch originally used **`20261007200000`** and was pushed with it at 13:29. At 14:15 the
+controller reserved that same number for the settle-safety job (`3978fda9` on main), which had
+not written its file yet. **I moved rather than argue the timestamp**: this branch is now
+**`20261007210000_policy_draft_publish.sql`**, and `20261007200000` is left free for settle
+safety exactly as the board says. Every gate was re-run after the renumber and after merging
+`origin/main`.
+
+Next free after this one is **`20261007220000`**.
+
 ## Why it exists
 
 The owner tried to set the waiting time to 30 minutes on 2026-10-02 and the dashboard box
@@ -24,7 +35,7 @@ It changes what customers are promised (waiting time, free cancellation, minimum
 ## Order to apply
 
 1. Review in a clean clone: merge, install from the lockfile, all gates, the build.
-2. Migration **`20261007200000_policy_draft_publish.sql`** — apply verbatim, then read back
+2. Migration **`20261007210000_policy_draft_publish.sql`** — apply verbatim, then read back
    and compare with the local file. It creates one table, one function, grants to
    `vamos_staff` only. It does not touch any existing row and does not change
    `settings_versions`' shape.
@@ -45,7 +56,7 @@ legal copy is not touched, the database moves to it.
 
 ## Files
 
-- `packages/db/supabase/migrations/20261007200000_policy_draft_publish.sql` (new)
+- `packages/db/supabase/migrations/20261007210000_policy_draft_publish.sql` (new)
 - `packages/db/supabase/tests/policy_draft_publish.test.sql` (new, 18 tests)
 - `packages/db/database.types.ts` (regenerated, +31 lines)
 - `apps/web/lib/ops/settings.ts`, `apps/web/lib/ops/settings.test.ts`
