@@ -104,7 +104,11 @@ async function openScreen(page: Page, path: string, screen: Screen) {
   const res = await page.goto(`${baseURL}${path}`);
   expect(res?.ok()).toBeTruthy();
   if (screen === "received") {
-    // The first status GET proves the client hydrated and its timers are running.
+    // The first status GET proves the client hydrated and its timers are running. Count only
+    // requests made after goto returned: while goto waits for the server, the previous page keeps
+    // polling every second and hit this route too, so on a slow runner the 21 s jump below ran
+    // before the new page had started its clock and the screen stayed on "confirming".
+    hits = 0;
     await expect.poll(() => hits).toBeGreaterThan(0);
     await page.clock.fastForward(21_000);
     await expect
@@ -128,6 +132,8 @@ async function noSidewaysScroll(page: Page) {
 const SCREENS: Screen[] = ["confirming", "received", "booked"];
 
 test("S3 A, S3 B and S4 in en at 1440, 1024, 768 and 390 @checkout", async ({ page }) => {
+  // Twelve page visits; on a cold Linux runner the first attempt ran past the 90 s default (the warm retry passed).
+  test.setTimeout(180_000);
   await page.clock.install();
   for (const width of [1440, 1024, 768, 390] as const) {
     await page.setViewportSize({ width, height: 900 });

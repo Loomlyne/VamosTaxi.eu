@@ -288,7 +288,14 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
     await page.getByRole("button", { name: "Change" }).first().click();
     await page.getByLabel("First name").fill("Grace");
     await page.getByLabel("Last name").fill("Rider");
+    // The save queues behind `next dev` compiling /api/account/prefs and /bookings on first use (5 s and more
+    // on a loaded machine or the 2-core runner); wait for its own answer, not the 5 s assertion default.
+    const saved = page.waitForResponse(
+      (r) => r.request().method() === "POST" && new URL(r.url()).pathname === "/api/auth",
+      { timeout: 60_000 },
+    );
     await page.getByRole("button", { name: "Save", exact: true }).click();
+    expect((await saved).ok()).toBe(true);
     await expect(page.locator("[data-ac-row]").filter({ hasText: "Name" })).toContainText("Grace Rider");
 
     expect(userMetadata(email)).toMatchObject({

@@ -73,10 +73,27 @@ test.describe("Terms page @component", () => {
     test.skip(testInfo.project.name !== "component-390", "390 only");
     for (const path of ["/terms", "/de/terms", "/fr/terms", "/ar/terms"]) {
       await page.goto(baseURL + path);
-      const overflow = await page.evaluate(
-        () => document.documentElement.scrollWidth <= window.innerWidth,
-      );
-      expect(overflow).toBe(true);
+      // Measure the rendered mock, not the boot frame (flaky on Linux at 390).
+      await expect(page.locator(`#${SECTION_IDS[0]}`)).toHaveCount(1);
+      // On a miss the poll's last value names the widest elements, so a red run says what overflows and where.
+      await expect
+        .poll(
+          () =>
+            page.evaluate(() => {
+              const iw = window.innerWidth;
+              const sw = document.documentElement.scrollWidth;
+              if (sw <= iw) return "fits";
+              const wide = [...document.querySelectorAll("body *")]
+                .map((el) => ({ el, right: Math.round(el.getBoundingClientRect().right) }))
+                .filter((x) => x.right > iw)
+                .sort((a, b) => b.right - a.right)
+                .slice(0, 4)
+                .map((x) => `${x.el.tagName.toLowerCase()}${x.el.id ? "#" + x.el.id : ""}[${String(x.el.getAttribute("class") ?? "").slice(0, 30)}] right=${x.right}`);
+              return `scrollWidth ${sw} > ${iw}: ${wide.join(" ; ")}`;
+            }),
+          { message: `no sideways scroll on ${path}` },
+        )
+        .toBe("fits");
     }
   });
 
@@ -101,18 +118,24 @@ test.describe("Terms page @component", () => {
     expect(body).toMatch(/hreflang="x-default"/i);
   });
 
+  // 26.0 (main-green-3): /terms is the DC mock app/pages/terms.dc.html (middleware DC_PAGES). Since e27014c1 a
+  // live legal page carries no labelled gap, so there may be no [data-tok] at all; whatever pills exist read the
+  // same English words in every language (ADR-011). The old first().textContent() waited 90 s for a pill.
   test("rtl and English data-tok @component", async ({ page }) => {
     await page.goto(baseURL + "/ar/terms");
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl"); // dir="rtl"
-    const tok = await page.locator("[data-tok]").first().textContent();
+    await expect(page.locator(`#${SECTION_IDS[0]}`)).toHaveCount(1);
+    const tok = await page.locator("[data-tok]").allTextContents();
     await page.goto(baseURL + "/terms");
-    const tokEn = await page.locator("[data-tok]").first().textContent();
-    expect(tok).toBe(tokEn);
+    await expect(page.locator(`#${SECTION_IDS[0]}`)).toHaveCount(1);
+    const tokEn = await page.locator("[data-tok]").allTextContents();
+    expect(tok).toEqual(tokEn);
   });
 
   test("print control 44px keyboard @component", async ({ page }) => {
     await page.goto(baseURL + "/terms");
-    const btn = page.locator(".vt-legal-print");
+    // The mock's own print button (the React page's .vt-legal-print never renders here).
+    const btn = page.getByRole("button", { name: "Print or save as PDF" });
     await expect(btn).toBeVisible();
     const box = await btn.boundingBox();
     expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);

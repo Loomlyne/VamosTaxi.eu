@@ -64,26 +64,30 @@ test.describe("About page @component", () => {
     expect(body).toMatch(/hreflang="x-default"/i);
   });
 
+  // 26.0 (main-green-3): /about is served from the DC mock app/pages/about.dc.html (middleware DC_PAGES),
+  // not the React PageHero these three tests were written for (.vt-mh-checker / .vt-mh-photo never render,
+  // so the first one waited out the 90 s Linux timeout and the serial describe skipped the rest).
   test("rtl checker inline-end @component", async ({ page }) => {
     await page.goto(baseURL + "/ar/about");
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl"); // dir="rtl"
-    const inset = await page.locator(".vt-mh-checker").evaluate((el) => getComputedStyle(el).insetInlineEnd);
+    const checker = page.locator('[aria-hidden="true"][style*="checker-mark"]').first();
+    await expect(checker).toBeAttached();
+    const inset = await checker.evaluate((el) => getComputedStyle(el).insetInlineEnd);
     expect(inset).not.toBe("auto");
   });
 
   test("translated alts @component", async ({ page }) => {
+    const photo = page.locator('img[src*="hero-arrivals"]').first();
     await page.goto(baseURL + "/about");
-    const en = await page.locator(".vt-mh-photo img").first().getAttribute("alt");
-    await page.goto(baseURL + "/de/about");
-    const de = await page.locator(".vt-mh-photo img").first().getAttribute("alt");
+    const en = await photo.getAttribute("alt");
     expect(en && en.length).toBeTruthy();
-    expect(de).not.toBe(en);
+    await page.goto(baseURL + "/de/about");
+    await expect.poll(() => photo.getAttribute("alt")).not.toBe(en);
   });
 
-  test("next/image src is optimizer url @component", async ({ page }) => {
-    // Local next dev may not hit Cloudflare IMAGES; assert the optimizer URL shape.
+  test("van photo is the small file (site speed A, 02c1bd3d) @component", async ({ page }) => {
     await page.goto(baseURL + "/about");
-    const src = await page.locator(".vt-mh-photo img").first().getAttribute("src");
-    expect(src ?? "").toMatch(/\/_next\/image/);
+    const src = await page.locator('img[src*="fleet-van-street"]').first().getAttribute("src");
+    expect(src ?? "").toMatch(/fleet-van-street-1200\.jpg$/);
   });
 });

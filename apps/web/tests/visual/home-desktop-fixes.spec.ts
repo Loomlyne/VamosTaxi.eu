@@ -1,7 +1,11 @@
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { test, expect, type Page } from "../support/test";
 import { serveMock, waitForMockReady } from "../support/mock-harness";
+import { stubConsentChosen } from "../support/consent-state";
 
-const SHOTS = "/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/3c6c6056-f11d-41a2-8b13-17a758844e5c/scratchpad";
+// Review pictures only (nothing compares against them). Was a hard-coded path inside another session's scratchpad.
+const SHOTS = join(tmpdir(), "vamos-home-desktop-fixes-shots");
 
 const SUGGESTIONS = [
   { mapbox_id: "mb-air-1", name: "Fixture Airport", address: "Kloten", is_airport: true },
@@ -24,6 +28,9 @@ async function stubGeo(page: Page) {
 
 async function open(page: Page, width: number, height = 800) {
   await page.setViewportSize({ width, height });
+  // Phase 27: the consent banner paints after its state call answers, fixed bottom-left over the lists that open
+  // upward. Not this spec's subject: the state answers "already chosen" and the banner never shows.
+  await stubConsentChosen(page);
   await stubGeo(page);
   await page.goto(await serveMock("app/home/home.dc.html"));
   await waitForMockReady(page);

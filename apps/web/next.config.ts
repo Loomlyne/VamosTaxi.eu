@@ -1,5 +1,6 @@
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
@@ -192,7 +193,19 @@ if (process.env.NODE_ENV === "development") {
   // the agreement record) start the server on the `staging` wrangler env, which declares
   // Hyperdrive. Unset = the top-level config, as before.
   const wranglerEnv = process.env.VAMOS_DEV_WRANGLER_ENV;
-  initOpenNextCloudflareForDev(wranglerEnv ? { environment: wranglerEnv } : undefined);
+  // e2e-linux-3, test runs only (both unset = exactly as before). VAMOS_DEV_REMOTE_BINDINGS=0: the `AI`
+  // binding is always remote, so wrangler opens a Cloudflare session that needs an API token; a CI runner
+  // has none and every dev server exited at start-up ("Failed to start the remote proxy session").
+  // VAMOS_DEV_PERSIST_PER_PROCESS=1: two dev servers starting together shared one .wrangler/state and
+  // workerd died with "SQLITE_BUSY database is locked"; each process gets its own state folder.
+  const devOptions = {
+    ...(wranglerEnv ? { environment: wranglerEnv } : {}),
+    ...(process.env.VAMOS_DEV_REMOTE_BINDINGS === "0" ? { remoteBindings: false } : {}),
+    ...(process.env.VAMOS_DEV_PERSIST_PER_PROCESS === "1"
+      ? { persist: { path: join(tmpdir(), `vamos-miniflare-${process.pid}`) } }
+      : {}),
+  };
+  initOpenNextCloudflareForDev(Object.keys(devOptions).length > 0 ? devOptions : undefined);
 }
 
 export default withNextIntl(nextConfig);

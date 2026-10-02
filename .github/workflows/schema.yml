@@ -1,0 +1,101 @@
+name: Schema
+
+# 26.0 (main-green-3): pr.yml's database job, moved here unchanged so it can be proven on GitHub without
+# a pull request. One file, used two ways: pr.yml calls it (workflow_call), and a push to a `ci/**`
+# branch runs it alone, the same pattern as e2e-linux.yml. No secrets, no deploy: contents: read.
+on:
+  workflow_call:
+  push:
+    branches: ["ci/**"]
+
+permissions:
+  contents: read
+
+jobs:
+  database:
+    name: "Schema: reset from zero, pgTAP, seed + types drift"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+        with:
+          version: 11.7.0
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Set up Supabase CLI
+        uses: supabase/setup-cli@ab058987d8d6c725971f6cf9d0b5c98467e30bd1 # v1.7.1
+        with:
+          version: 2.115.0
+
+      - name: Start local stack
+        run: pnpm db:start
+
+      # Applies all 24 migrations + supabase/seed.sql from zero (DATA-07's reset-from-zero
+      # proof, reproduced in CI).
+      - name: Apply every migration from zero + seed (DATA-07)
+        run: pnpm db:reset
+
+      - name: pgTAP suite (DATA-02/03/04, AUTH-05)
+        run: pnpm db:test
+
+      - name: Seed drift (D-22)
+        run: pnpm db:seed:check
+
+      - name: Generated types drift (D-23)
+        run: pnpm db:types:check
+
+      # Plan 03-06 (DATA-06's compile-time half + the full local Phase 3 gate) appends from
+      # here. Ordering note: `pnpm db:local-roles` runs AFTER the pgTAP suite above, never
+      # before — `extensions.test.sql` (Phase 2, plan 02-08) asserts `vamos_edge has no
+      # password` (T-02-19), so setting the password earlier in this job would make that
+      # pre-existing assertion fail. 03-05-SUMMARY.md's own deviation #4 hit this exact
+      # ordering issue and recorded the same fix. (With CLI 2.115.0 a `supabase db reset`
+      # rebuilds the cluster: role passwords and the marker role below do not survive it.)
+      # 26.0 D-01: plans 02 and 04 refuse a database without the marker role.
+      - name: Mark the throwaway stack
+        run: node scripts/mark-test-stack.mjs postgres://postgres:postgres@127.0.0.1:54322/postgres
+
+      - name: Local role passwords (D-04)
+        env:
+          # Scoped to this one step only, never job-wide (T-03-23) — local-role-passwords.mjs
+          # refuses to run under a bare `CI=true` without this explicit opt-in.
+          ALLOW_LOCAL_ROLE_PASSWORDS: "1"
+        run: pnpm db:local-roles
+
+      - name: DATA-06 local half — connection reuse, lost BEGIN (D-16, D-39)
+        env:
+          VAMOS_TEST_DB_PORT: "54322"
+          VAMOS_LOCAL_DB_PORT: "54322"
+        run: pnpm --filter @vamos/db exec vitest run test/local
+
+      # Self-contained (D-18): resets to a password-free baseline, re-marks it, confirms the pgTAP
+      # suite, re-sets local role passwords, confirms the local Vitest suite, then applies and
+      # rolls back each packages/db/mutants/*.sql mutant in turn — one `supabase db reset`
+      # per mutant, ending on a clean, password-free, freshly-reset database.
+      - name: Mutation gate — the suite must go red against each mutant (D-18)
+        env:
+          ALLOW_LOCAL_ROLE_PASSWORDS: "1"
+        run: pnpm db:mutation-gate
+
+      # scripts/check-db-access-fences.mjs (plan 03-06) — a static walk+regex+allowlist scan,
+      # needs no live database, but stays in this job (not `gate` in pr.yml) to match the local
+      # Phase 3 suite's own step grouping.
+      - name: Data-access fences (D-05, D-06, D-08, D-10)
+        run: pnpm check:db-fences
+
+      - name: Stop local stack
+        if: always()
+        run: pnpm db:stop

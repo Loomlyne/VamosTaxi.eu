@@ -104,10 +104,11 @@ test.describe("Privacy and cookies pages @component", () => {
     for (const locale of LOCALES) {
       for (const route of ["/privacy", "/cookies"] as const) {
         await page.goto(baseURL + pathFor(locale, route));
-        const overflow = await page.evaluate(
-          () => document.documentElement.scrollWidth <= window.innerWidth,
-        );
-        expect(overflow).toBe(true);
+        // Measure the rendered mock, not the boot frame.
+        await expect(page.locator("[data-lg-tl]").first()).toBeAttached();
+        await expect
+          .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), { message: `no sideways scroll on ${pathFor(locale, route)}` })
+          .toBe(true);
       }
     }
   });
@@ -116,32 +117,21 @@ test.describe("Privacy and cookies pages @component", () => {
     page,
   }, testInfo) => {
     test.skip(testInfo.project.name !== "component-390", "390 only");
+    // 26.0 (main-green-3): /cookies is the DC mock app/pages/cookies.dc.html; each table[data-ct] sits in its own
+    // overflow-x:auto box (the React page's .vt-tablewrap never renders here). The page itself must never page
+    // sideways; a table wider than the screen scrolls inside its box.
     for (const locale of LOCALES) {
       await page.goto(baseURL + pathFor(locale, "/cookies"));
-      const pageFits = await page.evaluate(
-        () => document.documentElement.scrollWidth <= window.innerWidth,
+      const table = page.locator("table[data-ct]").first();
+      await expect(table).toBeVisible();
+      await expect
+        .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), { message: `no sideways scroll on ${pathFor(locale, "/cookies")}` })
+        .toBe(true);
+      const boxes = await page.locator("table[data-ct]").evaluateAll((els) =>
+        els.map((el) => getComputedStyle(el.parentElement as Element).overflowX),
       );
-      expect(pageFits).toBe(true);
-      const wrap = page.locator(".vt-tablewrap").first();
-      await expect(wrap).toBeVisible();
-      const tableOverflows = await wrap.evaluate((el) => el.scrollWidth > el.clientWidth);
-      expect(tableOverflows).toBe(true);
-    }
-  });
-
-  test("TOC hashes match section ids @component", async ({ page }) => {
-    for (const [route, ids] of [
-      ["/privacy", PRIVACY_IDS],
-      ["/cookies", COOKIES_IDS],
-    ] as const) {
-      await page.goto(baseURL + route);
-      for (const id of ids) {
-        await expect(page.locator(`#${id}`)).toHaveCount(1);
-      }
-      const hrefs = await page.locator("[data-lg-tl]").evaluateAll((els) =>
-        els.map((el) => (el as HTMLAnchorElement).getAttribute("href")),
-      );
-      expect(hrefs.sort()).toEqual(ids.map((id) => `#${id}`).sort());
+      expect(boxes.length).toBeGreaterThan(0);
+      for (const overflowX of boxes) expect(["auto", "scroll"]).toContain(overflowX);
     }
   });
 
@@ -191,11 +181,33 @@ test.describe("Privacy and cookies pages @component", () => {
 
   test("print control 44px keyboard @component", async ({ page }) => {
     await page.goto(baseURL + "/privacy");
-    const btn = page.locator(".vt-legal-print");
+    // The mock's own print button (the React page's .vt-legal-print never renders here).
+    const btn = page.getByRole("button", { name: "Print or save as PDF" });
     await expect(btn).toBeVisible();
     const box = await btn.boundingBox();
     expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
     await btn.focus();
     await expect(btn).toBeFocused();
+  });
+
+  // Last in this serial block, so a red here never hides the tests above. Red on 2026-10-02 because the
+  // /cookies rail linked "08 The previous site" to #legacy and no section had that id; the owner had the
+  // link removed the same day, so the rail and COOKIES_IDS are both the seven real sections.
+  test("TOC hashes match section ids @component", async ({ page }) => {
+    for (const [route, ids] of [
+      ["/privacy", PRIVACY_IDS],
+      ["/cookies", COOKIES_IDS],
+    ] as const) {
+      await page.goto(baseURL + route);
+      for (const id of ids) {
+        await expect(page.locator(`#${id}`)).toHaveCount(1);
+      }
+      const hrefs = await page.locator("[data-lg-tl]").evaluateAll((els) =>
+        els.map((el) => (el as HTMLAnchorElement).getAttribute("href")),
+      );
+      expect(hrefs.sort(), `${route}: every rail link must point at a section on the page`).toEqual(
+        ids.map((id) => `#${id}`).sort(),
+      );
+    }
   });
 });

@@ -1,5 +1,6 @@
 import { test, expect, type Page } from "../support/test";
 import { serveMock, waitForMockReady } from "../support/mock-harness";
+import { stubConsentChosen } from "../support/consent-state";
 
 // Phase 26.4 plan 09 (D-01…D-06, D-09, D-13), sheet reshaped to ONE page by quick 260930-obf.
 // At 1080px and under, home shows one BookingBar
@@ -40,6 +41,9 @@ async function stubGeo(page: Page) {
 }
 
 async function openHome(page: Page, hash = "") {
+  // Phase 27: the consent banner paints after its state call answers and is a bottom sheet over the bar on a
+  // phone. This spec is not about the banner, so the state answers "already chosen" and it never shows.
+  await stubConsentChosen(page);
   await stubGeo(page);
   const url = await serveMock("app/home/home.dc.html");
   await page.goto(url + hash);

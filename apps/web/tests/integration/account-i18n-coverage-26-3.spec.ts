@@ -30,7 +30,7 @@ const BOOKINGS = [
 ];
 
 async function mockSignedIn(page: Page): Promise<void> {
-  await page.route("**/api/auth/session", (route) =>
+  await page.route("**/api/auth/session*", (route) =>
     route.fulfill({ json: { signedIn: true, displayName: "Anna Keller", email: "anna@example.com", emailConfirmed: true } }),
   );
   await page.route("**/api/account/bookings", (route) =>

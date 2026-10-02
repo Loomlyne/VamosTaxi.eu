@@ -33,7 +33,7 @@ const BOOKED = {
 /** The list answers 500 until `recover()` is called, then the guest booking as Booked. */
 async function mockList(page: Page): Promise<{ recover: () => void }> {
   let failing = true;
-  await page.route("**/api/auth/session", (route) =>
+  await page.route("**/api/auth/session*", (route) =>
     route.fulfill({
       json: { signedIn: true, displayName: "Anna Keller", email: "anna@example.com", emailConfirmed: true },
     }),
