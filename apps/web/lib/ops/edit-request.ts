@@ -119,7 +119,9 @@ async function closePage(stripe: StripeClient, sessionId: string): Promise<void>
  * request by page id, so a page shared with an ended request would record the payment on that
  * one and leave the change waiting. So:
  *   - `ownSessionId`: the page already stored on THIS request (the dashboard's Accept of the same
- *     request again). Reused while it is open for the same amount, else closed.
+ *     request again). Reused while it is open for the same amount, else closed and replaced (the
+ *     replacement's Stripe key names the page it replaces). If Stripe cannot read it: stripe-failed,
+ *     and the page is left as it is.
  *   - `supersededSessionId`: the page of the request this one replaced (the dashboard's class and
  *     trip changes). Never reused: always closed (best effort), and a new page is opened.
  * Opens 24 h; stores the page id on the request. 26.2 P1 calls this after the admin's dearer class
@@ -145,15 +147,19 @@ export async function openDifferencePayment(
   const supersededSessionId = (args.supersededSessionId ?? "").trim();
 
   if (ownSessionId) {
+    // 261002 review round 2, warning 2: a page we cannot read is left alone (it may still be good;
+    // closing it would end the request through its expired event). The owner tries again.
+    let existing: Awaited<ReturnType<typeof retrieveCheckoutSession>>;
     try {
-      const existing = await retrieveCheckoutSession(stripe, ownSessionId);
-      if (hostedSessionIsPayable(existing, difference)) {
-        reuse = { id: ownSessionId, url: existing?.url ?? null };
-      }
+      existing = await retrieveCheckoutSession(stripe, ownSessionId);
     } catch {
-      reuse = null;
+      return { ok: false, code: "stripe-failed" };
     }
-    if (!reuse) await closePage(stripe, ownSessionId);
+    if (hostedSessionIsPayable(existing, difference)) {
+      reuse = { id: ownSessionId, url: existing?.url ?? null };
+    } else {
+      await closePage(stripe, ownSessionId);
+    }
   }
 
   if (supersededSessionId && supersededSessionId !== reuse?.id) {
@@ -176,7 +182,10 @@ export async function openDifferencePayment(
         bookingReference: reference,
         customerEmail: email,
         locale,
-        idempotencyKey: `extra:${args.requestId}:${difference}`,
+        // The page it replaces is part of the key (review round 2, warning 2): a replacement page for
+        // the same request and amount is a new Stripe request, not a replay of the first one (Stripe
+        // refuses a replayed key whose parameters differ). Retries of the same state stay idempotent.
+        idempotencyKey: `extra:${args.requestId}:${difference}:${ownSessionId || "0"}`,
         // D4 (owner, 2026-09-30): the difference can be paid for 24 hours.
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
         // D-48: Stripe's hosted page, no card form of ours. Paid returns through

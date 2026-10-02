@@ -76,7 +76,8 @@ describe("openDifferencePayment: one page, one request", () => {
     expect(expire).toHaveBeenCalledTimes(1);
     expect(expire.mock.calls[0]![1]).toBe("cs_test_a");
     expect(createSession).toHaveBeenCalledTimes(1);
-    expect((createSession.mock.calls[0]![1] as { idempotencyKey: string }).idempotencyKey).toBe(`extra:${NEW_REQUEST}:3000`);
+    // A fresh request's first page: nothing replaced, so the key ends in ":0".
+    expect((createSession.mock.calls[0]![1] as { idempotencyKey: string }).idempotencyKey).toBe(`extra:${NEW_REQUEST}:3000:0`);
     expect(stored).toEqual([{ requestId: NEW_REQUEST, sessionId: "cs_test_b" }]);
   });
 
@@ -87,6 +88,7 @@ describe("openDifferencePayment: one page, one request", () => {
       supersededSessionId: "cs_test_a", dashboardOrigin: "https://dashboard.vamostaxi.site",
     });
     expect(r).toMatchObject({ ok: true, sessionId: "cs_test_b" });
+    expect(expire).toHaveBeenCalledWith(expect.anything(), "cs_test_a");
     expect(stored).toEqual([{ requestId: NEW_REQUEST, sessionId: "cs_test_b" }]);
   });
 
@@ -102,21 +104,62 @@ describe("openDifferencePayment: one page, one request", () => {
     expect(stored).toEqual([{ requestId: OLD_REQUEST, sessionId: "cs_test_a" }]);
   });
 
-  it("the own page is closed and replaced when it no longer pays this difference (another amount, expired, unreadable)", async () => {
-    for (const answer of [{ ...OPEN_3000, amount_total: 2500 }, { ...OPEN_3000, status: "expired" }, new Error("down")]) {
-      vi.clearAllMocks();
+  it("review round 2, warning 2: the own page is closed and replaced when it no longer pays this difference (another amount, expired), under a key of its own", async () => {
+    // Stripe as it really answers: a key it has seen comes back with the same page only for the same
+    // parameters; the expiry moves every second, so a replayed key is an idempotency_error.
+    const seen = new Map<string, string>();
+    let next = 0;
+    createSession.mockImplementation(async (_s: unknown, input: { idempotencyKey: string }) => {
+      if (seen.has(input.idempotencyKey)) {
+        throw Object.assign(new Error("Keys for idempotent requests can only be used with the same parameters"), { type: "idempotency_error" });
+      }
+      const id = `cs_test_n${++next}`;
+      seen.set(input.idempotencyKey, id);
+      return { id, url: `https://checkout.stripe.test/c/pay/${id}` };
+    });
+
+    // The request's first page (the first Accept): key ":0".
+    const first = await openDifferencePayment(env, {
+      requestId: OLD_REQUEST, bookingId: BOOKING, differenceRappen: 3000, dashboardOrigin: "https://dashboard.vamostaxi.site",
+    });
+    expect(first).toMatchObject({ ok: true, sessionId: "cs_test_n1" });
+
+    for (const answer of [{ ...OPEN_3000, id: "cs_test_n1", amount_total: 2500 }, { ...OPEN_3000, id: "cs_test_n1", status: "expired" }]) {
+      expire.mockClear();
       stored.length = 0;
-      createSession.mockResolvedValue({ id: "cs_test_b", url: "https://checkout.stripe.test/c/pay/cs_test_b" });
-      if (answer instanceof Error) retrieve.mockRejectedValue(answer);
-      else retrieve.mockResolvedValue(answer);
+      retrieve.mockResolvedValue(answer);
+      const own = [...seen.values()].at(-1)!;
       const r = await openDifferencePayment(env, {
         requestId: OLD_REQUEST, bookingId: BOOKING, differenceRappen: 3000,
-        ownSessionId: "cs_test_a", dashboardOrigin: "https://dashboard.vamostaxi.site",
+        ownSessionId: own, dashboardOrigin: "https://dashboard.vamostaxi.site",
       });
-      expect(r).toMatchObject({ ok: true, sessionId: "cs_test_b" });
-      expect(expire.mock.calls.map((c) => c[1])).toEqual(["cs_test_a"]);
-      expect(stored).toEqual([{ requestId: OLD_REQUEST, sessionId: "cs_test_b" }]);
+      // A new page for the same request and amount, not a refusal: its key names the page it replaces.
+      expect(r).toMatchObject({ ok: true });
+      const made = (r as { sessionId: string }).sessionId;
+      expect(made).not.toBe(own);
+      expect(expire.mock.calls.map((c) => c[1])).toEqual([own]);
+      expect(stored).toEqual([{ requestId: OLD_REQUEST, sessionId: made }]);
+      const key = (createSession.mock.calls.at(-1)![1] as { idempotencyKey: string }).idempotencyKey;
+      expect(key).toBe(`extra:${OLD_REQUEST}:3000:${own}`);
     }
+    // Three pages, three keys: none replayed.
+    expect([...seen.keys()]).toEqual([
+      `extra:${OLD_REQUEST}:3000:0`,
+      `extra:${OLD_REQUEST}:3000:cs_test_n1`,
+      `extra:${OLD_REQUEST}:3000:cs_test_n2`,
+    ]);
+  });
+
+  it("review round 2, warning 2: an own page Stripe cannot read is left alone and the answer is stripe-failed", async () => {
+    retrieve.mockRejectedValue(new Error("down"));
+    const r = await openDifferencePayment(env, {
+      requestId: OLD_REQUEST, bookingId: BOOKING, differenceRappen: 3000,
+      ownSessionId: "cs_test_a", dashboardOrigin: "https://dashboard.vamostaxi.site",
+    });
+    expect(r).toEqual({ ok: false, code: "stripe-failed" });
+    expect(expire).not.toHaveBeenCalled();
+    expect(createSession).not.toHaveBeenCalled();
+    expect(stored).toEqual([]);
   });
 
   it("no earlier page: nothing is closed, one page is opened", async () => {

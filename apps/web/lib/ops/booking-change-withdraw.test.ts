@@ -126,6 +126,48 @@ describe("withdrawBookingChange", () => {
     systemAnswers(Object.assign(new Error("nothing-waiting"), { code: "P0001" }));
     staffWaiting({ ...waiting, extra_session_id: null });
     expect(await withdrawBookingChange(env, claims, "VT-26-0801")).toEqual({ ok: false, code: "nothing-waiting" });
+    // The refusal is the database's own (the old code refused before reaching it).
+    expect(systemCalls.some((c) => c.text.includes("booking_change_withdraw"))).toBe(true);
+  });
+
+  it("261002 review round 2, warning 1: a page stored between the read and the withdraw is closed after it, best effort", async () => {
+    // The read sees no page; the confirm on another device stores one before the withdraw locks the row,
+    // so booking_change_withdraw names it.
+    staffWaiting({ ...waiting, extra_session_id: null });
+    systemAnswers([{ request_id: REQUEST, booking_id: BOOKING, extra_session_id: "cs_test_late" }]);
+    const order: string[] = [];
+    asSystem.mockImplementationOnce(async (_e: unknown, fn: (sql: unknown) => Promise<unknown>) => {
+      order.push("database");
+      return fn(async (strings: TemplateStringsArray, ...values: unknown[]) => {
+        systemCalls.push({ text: strings.join("?"), values });
+        return [{ request_id: REQUEST, booking_id: BOOKING, extra_session_id: "cs_test_late" }];
+      });
+    });
+    expireCheckoutSession.mockImplementation(async () => {
+      order.push("stripe");
+      return { status: "expired" };
+    });
+    expect(await withdrawBookingChange(env, claims, "VT-26-0801")).toEqual({ ok: true, bookingId: BOOKING, reference: "VT-26-0801" });
+    expect(order).toEqual(["database", "stripe"]);
+    expect(expireCheckoutSession).toHaveBeenCalledTimes(1);
+    expect(expireCheckoutSession.mock.calls[0]![1]).toBe("cs_test_late");
+
+    // Stripe refusing that late close does not undo or fail the withdrawal.
+    vi.clearAllMocks();
+    systemCalls = [];
+    staffWaiting({ ...waiting, extra_session_id: null });
+    systemAnswers([{ request_id: REQUEST, booking_id: BOOKING, extra_session_id: "cs_test_late" }]);
+    expireCheckoutSession.mockRejectedValue(new Error("This Checkout Session is not open"));
+    expect(await withdrawBookingChange(env, claims, "VT-26-0801")).toEqual({ ok: true, bookingId: BOOKING, reference: "VT-26-0801" });
+    expect(expireCheckoutSession).toHaveBeenCalledTimes(1);
+  });
+
+  it("the page this call closed first is not closed a second time when the withdraw names the same page", async () => {
+    staffWaiting(waiting);
+    systemAnswers([{ request_id: REQUEST, booking_id: BOOKING, extra_session_id: "cs_test_wait" }]);
+    expireCheckoutSession.mockResolvedValue({ status: "expired" });
+    expect(await withdrawBookingChange(env, claims, "VT-26-0801")).toEqual({ ok: true, bookingId: BOOKING, reference: "VT-26-0801" });
+    expect(expireCheckoutSession.mock.calls.map((c) => c[1])).toEqual(["cs_test_wait"]);
   });
 
   it("she paid in the same second: the answer says so and nothing is ended (the payment applies the change)", async () => {

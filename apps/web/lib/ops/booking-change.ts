@@ -925,19 +925,25 @@ export async function withdrawBookingChange(
   }
 
   const ids = { bookingId, requestId: waiting.request_id };
+  let ended: { extra_session_id: string | null } | null;
   try {
-    await asSystem(env, async (sql) => {
-      await sql`
+    ended = await asSystem(env, async (sql) => {
+      const rows = await sql<{ extra_session_id: string | null }[]>`
         select * from public.booking_change_withdraw(
           ${ids.bookingId}::uuid,
           ${ids.requestId}::uuid,
           ${claims.sub}::uuid
         )
       `;
-      return null;
+      return rows[0] ?? null;
     });
   } catch (err) {
     return mapChangeSqlError(err);
   }
+  // 261002 review round 2, warning 1: the confirm may have stored its page between the read above and
+  // the withdraw (a second device). The ended request names its page; one this call did not close is
+  // closed now, best effort, so a withdrawn change leaves no link that still works.
+  const late = s(ended?.extra_session_id).trim();
+  if (late && late !== page) await expireSupersededPage(env, late);
   return { ok: true, bookingId, reference: String(waiting.reference) };
 }
