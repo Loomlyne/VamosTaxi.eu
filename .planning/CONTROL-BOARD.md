@@ -1,10 +1,10 @@
 # Control board
 
-**Controller since 2026-10-01 23:25 (+04): "VamosTaxi - session control" (`local_633b433a-13a1-4f99-bfe8-3d595717a4a1`), local Claude Code on the owner's Mac, in this folder on `main`. Before: the claude.ai project thread "Vamos Taxi controller" (`local_f9f33973-c2fc-404c-95fe-22b3fb2dd7fa`, 17:03 to 18:01) and the "Vamos Taxi control session" (`local_03cf7e47-1746-4ac2-a28b-8ee0d831f01b`), both retired. Hand-over: `.planning/HANDOVER-2026-10-01.md`.**
+**Controller since 2026-10-02 15:26 (+04): the session with id `004ad4f0-a42f-453d-9991-85113f7d673f`, Claude Code on the owner's Mac, in this folder on `main` (its name in the session list changes at every restart: `vamostaxi-eu-d2`, then `vamostaxi-eu-b2`; the id stays). The owner chose "This session takes control" in the question form. Before: "VamosTaxi - session control" (`local_633b433a-13a1-4f99-bfe8-3d595717a4a1`, 2026-10-01 23:25 to 2026-10-02 15:26), the claude.ai project thread "Vamos Taxi controller" (`local_f9f33973-c2fc-404c-95fe-22b3fb2dd7fa`) and the "Vamos Taxi control session" (`local_03cf7e47-1746-4ac2-a28b-8ee0d831f01b`), all retired: a retired controller starts no work and ships nothing. Hand-over of 2026-10-01: `.planning/HANDOVER-2026-10-01.md`.**
 
 **Control rule (owner, 2026-10-01 18:01 +04; replaces the 17:03 take-over line of `95ccece6` and the 17:12 strict rule of `150a2a20`):**
 - Vamos runs from plain Claude Code on the owner's Mac. Every job runs locally, never in the cloud.
-- One controller session: "VamosTaxi - session control" (`local_633b433a-13a1-4f99-bfe8-3d595717a4a1`), in `/Users/koss/Developer/VamosTaxi.eu` on `main`. Only it commits and pushes main, applies live migrations, deploys Workers and cleans branches.
+- One controller session: the session with id `004ad4f0-a42f-453d-9991-85113f7d673f` (owner's answer in the question form, 2026-10-02 15:26 +04; before it: "VamosTaxi - session control" `local_633b433a-13a1-4f99-bfe8-3d595717a4a1`, retired), in `/Users/koss/Developer/VamosTaxi.eu` on `main`. Only it commits and pushes main, applies live migrations, deploys Workers and cleans branches.
 - Every other session is a job session. It runs GSD with the owner's `CLAUDE.local.md`, has its own app worktree under `.claude/worktrees/` in the main folder (the app makes it when the owner starts the session; `/Users/koss/Developer/vamos-wt` is gone, owner 2026-10-01 about 23:35 +04: "vamos-wt no more") and branch cut from `origin/main`, builds and tests, merges `origin/main` back in, writes a hand-over file for the controller and stops.
 - The claude.ai project coordinator and its threads are retired, the "Vamos Taxi controller" thread (`local_f9f33973-…`) included.
 - A fresh reviewer session, not the builder, reads every money, sign-in or database change before it ships. Opus plans and reviews; Sonnet builds.
@@ -14,7 +14,7 @@
 - Deploy with `--env staging` (Worker `vamos`, live on vamostaxi.site). A deploy without it made the stray Worker `vamos-web` on 2026-10-01.
 - Types with the pinned CLI: `pnpm exec supabase` (2.115.0), then `db:types:check`.
 - After any seed change, re-pin `packages/db/supabase/tests/seed_idempotent.test.sql` to the counts in the seed header.
-- Next migration number: `20261007210000`. Ask the controller first and check every remote branch for the file name.
+- Next migration number: `20261007220000` (`200000` is settle safety, `210000` is the policy settings job). Ask the controller first and check every remote branch for the file name.
 - Standing order (owner, 2026-10-01 17:41 +04, verbatim): "coomit and deply all after verify dont ask me". It is never used for the live Stripe key, the vamostaxi.eu cutover, price book row 18 Publish, deleting test bookings, or wiping data. Those need his word every time.
 
 Kept by the control session. One page: what is live, what is being built, what waits for
@@ -22,7 +22,23 @@ the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 Rewritten short on 2026-09-30 14:25; the long version is in git history (`8230227c`).
 
-**Last update:** 2026-10-02 14:15 (+04)
+**Last update:** 2026-10-02 15:35 (+04)
+
+## Controller take-over, 2026-10-02 15:26 (+04)
+
+Read at take-over (15:27 to 15:33): main = origin/main `3978fda9`, tree clean; Worker `vamos` version `7f640c03` (14:12), read with wrangler as `koussayzayeni@gmail.com`. Live runs the code of main: the two commits above `3b1e053d` are planning notes.
+
+| Branch | Tip | Ahead of main | State at take-over |
+|---|---|---|---|
+| `fix/settle-safety` | `f22b6a04` | 6 | Its session still builds (worktree locked). Money: fresh review before it ships. Migration `20261007200000` |
+| `fix/booking-pages-polish` | `3978fda9` | 0 | Its session waits for the owner; nothing committed yet |
+| `fix/policy-settings-publish` | `6e21916f` | 5 | On GitHub. Database change: fresh review running. Migration `20261007210000` |
+| `fix/dependabot-high-cves` | `d443f38f` | 1 | On GitHub. Review running |
+| `ci/trim-actions-minutes` | `d93db028` | 1 | On GitHub. Review running |
+| `fix/arabic-time-spinner` | `d16c64de` | 1 | On GitHub. Review running |
+| `fix/26.2-audit` | `3978fda9` | 0 | Cut, nothing built |
+
+Next migration number after these two: `20261007220000`.
 
 ## Controller take-over, 2026-10-01 23:25 (+04)
 
