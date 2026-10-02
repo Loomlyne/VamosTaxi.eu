@@ -94,6 +94,8 @@ export function failStatus(code: string): number {
   if (code === "must-fix" || code === "capacity" || code === "not-requested") return 409;
   // The customer can ask again once the difference is paid, withdrawn or expired: a conflict, not a bad request.
   if (code === "staff-change-waiting") return 409;
+  // 261002 review round 3: Accept again on a request whose page is already paid; the payment applies it.
+  if (code === "already-paid") return 409;
   if (code === "stripe-failed" || code === "stripe-test-only") return 502;
   if (code === "temporarily_unavailable") return 503;
   return 400;

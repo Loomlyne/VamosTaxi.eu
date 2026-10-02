@@ -855,6 +855,7 @@ const T = {
  extraWaiting:'Extra payment is open for the difference.',
     refundClick:'Use Refund for the difference.',
     mustFix:'Reassign the chauffeur before this change can apply.',
+    acceptPaid:'The customer has already paid the difference. The change is applied when the payment is recorded.',
     editFailed:'Could not apply edit ',
     refuse:'Refuse',
     refuseFailed:'Could not refuse edit ',
@@ -996,6 +997,7 @@ const T = {
  extraWaiting:'Zusatzzahlung für die Differenz ist offen.',
     refundClick:'Rückerstatten für die Differenz verwenden.',
     mustFix:'Chauffeur neu zuweisen, bevor diese Änderung gilt.',
+    acceptPaid:'Der Kunde hat die Differenz bereits bezahlt. Die Änderung gilt, sobald die Zahlung verbucht ist.',
     editFailed:'Änderung fehlgeschlagen für ',
     refuse:'Ablehnen',
     refuseFailed:'Änderung abgelehnt fehlgeschlagen für ',
@@ -1116,6 +1118,7 @@ const T = {
     extraWaiting:'Paiement supplémentaire ouvert pour la différence.',
     refundClick:'Utiliser Rembourser pour la différence.',
     mustFix:'Réassigner le chauffeur avant d’appliquer ce changement.',
+    acceptPaid:'Le client a déjà payé la différence. Le changement s’applique dès que le paiement est enregistré.',
     editFailed:'Modification impossible pour ',
     refuse:'Refuser',
     refuseFailed:'Impossible de refuser la modification pour ',
@@ -1260,6 +1263,7 @@ const T = {
     extraWaiting:'دفع إضافي مفتوح للفرق.',
     refundClick:'استخدم استرداد للفرق.',
     mustFix:'أعد تعيين السائق قبل تطبيق هذا التغيير.',
+    acceptPaid:'دفع العميل الفرق بالفعل. يُطبَّق التغيير عند تسجيل الدفعة.',
     editFailed:'تعذّر تطبيق التعديل لـ ',
     refuse:'رفض',
     refuseFailed:'تعذّر رفض التعديل لـ ',
@@ -2203,6 +2207,8 @@ class Component extends DCLogic {
           }
           if (code === 'must-fix' || code === 'capacity') this.notify(t.mustFix);
           else if (code === 'unpaid') this.notify(t.unpaidNoEditBody);
+          // 261002 review round 3: the page of this request is already paid; nothing was replaced.
+          else if (code === 'already-paid') { if (ops) ops.bookings.reset(); this.notify(t.acceptPaid); }
           else this.notify(t.editFailed + booking.id);
         });
       },

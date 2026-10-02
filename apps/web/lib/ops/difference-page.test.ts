@@ -4,7 +4,10 @@
 // finds its request by page id, so a page handed on to the request that replaced it recorded the payment on
 // the ended request, left the change waiting and kept the customer refused ("staff-change-waiting").
 // openDifferencePayment now reuses only the page of the SAME request (the dashboard's Accept again) and
-// always closes the page of a request it replaced, then opens a new one. Fakes only.
+// always closes the page of a request it replaced, then opens a new one. Review round 3: the request's own
+// page is replaced only once Stripe says it is closed; a paid own page answers already-paid and nothing
+// changes. The fake Stripe below answers a reused key as Stripe does: the same page for identical
+// parameters, idempotency_error for different ones (expires_at moves every second). Fakes only.
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -48,7 +51,34 @@ vi.mock("@/lib/checkout/stripe", async (importOriginal) => {
   };
 });
 
+import { stripeSessionExpiresAtUnix } from "@/lib/checkout/stripe";
 import { openDifferencePayment } from "./edit-request";
+
+type CreateInput = {
+  idempotencyKey: string; chargedRappen: number; bookingId: string; customerEmail: string; locale: string;
+  expiresAt: Date; successUrl: string; cancelUrl: string; extra: unknown;
+};
+
+/** A Stripe create that keeps its idempotency keys as Stripe does (parameters compared to the second). */
+function realKeyStripe() {
+  const seen = new Map<string, { params: string; id: string }>();
+  let next = 0;
+  createSession.mockImplementation(async (_s: unknown, input: CreateInput) => {
+    const params = JSON.stringify({
+      amount: input.chargedRappen, booking: input.bookingId, email: input.customerEmail, locale: input.locale,
+      expires_at: stripeSessionExpiresAtUnix(input.expiresAt), success: input.successUrl, cancel: input.cancelUrl, extra: input.extra,
+    });
+    const before = seen.get(input.idempotencyKey);
+    if (before && before.params !== params) {
+      throw Object.assign(new Error("Keys for idempotent requests can only be used with the same parameters"), { type: "idempotency_error" });
+    }
+    if (before) return { id: before.id, url: `https://checkout.stripe.test/c/pay/${before.id}` };
+    const id = `cs_test_n${++next}`;
+    seen.set(input.idempotencyKey, { params, id });
+    return { id, url: `https://checkout.stripe.test/c/pay/${id}` };
+  });
+  return seen;
+}
 
 const env = { STRIPE_SECRET_KEY: "sk_test_x" } as unknown as CloudflareEnv;
 const BOOKING = "00000000-0000-4000-8000-000000000001";
@@ -59,6 +89,10 @@ const OPEN_3000 = { id: "cs_test_a", status: "open", url: "https://checkout.stri
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // Drop queued one-off answers and fakes too, so one test's Stripe never answers the next.
+  retrieve.mockReset();
+  createSession.mockReset();
+  expire.mockReset();
   stored.length = 0;
   createSession.mockResolvedValue({ id: "cs_test_b", url: "https://checkout.stripe.test/c/pay/cs_test_b" });
   expire.mockResolvedValue({ status: "expired" });
@@ -105,18 +139,7 @@ describe("openDifferencePayment: one page, one request", () => {
   });
 
   it("review round 2, warning 2: the own page is closed and replaced when it no longer pays this difference (another amount, expired), under a key of its own", async () => {
-    // Stripe as it really answers: a key it has seen comes back with the same page only for the same
-    // parameters; the expiry moves every second, so a replayed key is an idempotency_error.
-    const seen = new Map<string, string>();
-    let next = 0;
-    createSession.mockImplementation(async (_s: unknown, input: { idempotencyKey: string }) => {
-      if (seen.has(input.idempotencyKey)) {
-        throw Object.assign(new Error("Keys for idempotent requests can only be used with the same parameters"), { type: "idempotency_error" });
-      }
-      const id = `cs_test_n${++next}`;
-      seen.set(input.idempotencyKey, id);
-      return { id, url: `https://checkout.stripe.test/c/pay/${id}` };
-    });
+    const seen = realKeyStripe();
 
     // The request's first page (the first Accept): key ":0".
     const first = await openDifferencePayment(env, {
@@ -124,11 +147,12 @@ describe("openDifferencePayment: one page, one request", () => {
     });
     expect(first).toMatchObject({ ok: true, sessionId: "cs_test_n1" });
 
-    for (const answer of [{ ...OPEN_3000, id: "cs_test_n1", amount_total: 2500 }, { ...OPEN_3000, id: "cs_test_n1", status: "expired" }]) {
+    // Open for another amount (Stripe confirms the close), then already expired (nothing to close).
+    for (const kind of ["other-amount", "expired"] as const) {
       expire.mockClear();
       stored.length = 0;
-      retrieve.mockResolvedValue(answer);
-      const own = [...seen.values()].at(-1)!;
+      const own = [...seen.values()].at(-1)!.id;
+      retrieve.mockResolvedValue(kind === "other-amount" ? { ...OPEN_3000, id: own, amount_total: 2500 } : { ...OPEN_3000, id: own, status: "expired" });
       const r = await openDifferencePayment(env, {
         requestId: OLD_REQUEST, bookingId: BOOKING, differenceRappen: 3000,
         ownSessionId: own, dashboardOrigin: "https://dashboard.vamostaxi.site",
@@ -137,17 +161,91 @@ describe("openDifferencePayment: one page, one request", () => {
       expect(r).toMatchObject({ ok: true });
       const made = (r as { sessionId: string }).sessionId;
       expect(made).not.toBe(own);
-      expect(expire.mock.calls.map((c) => c[1])).toEqual([own]);
+      expect(expire.mock.calls.map((c) => c[1])).toEqual(kind === "other-amount" ? [own] : []);
       expect(stored).toEqual([{ requestId: OLD_REQUEST, sessionId: made }]);
       const key = (createSession.mock.calls.at(-1)![1] as { idempotencyKey: string }).idempotencyKey;
       expect(key).toBe(`extra:${OLD_REQUEST}:3000:${own}`);
     }
-    // Three pages, three keys: none replayed.
     expect([...seen.keys()]).toEqual([
       `extra:${OLD_REQUEST}:3000:0`,
       `extra:${OLD_REQUEST}:3000:cs_test_n1`,
       `extra:${OLD_REQUEST}:3000:cs_test_n2`,
     ]);
+  });
+
+  it("review round 3, finding 1: an own page that is already paid answers already-paid; nothing is closed, made or stored", async () => {
+    realKeyStripe();
+    retrieve.mockResolvedValue({ ...OPEN_3000, status: "complete", url: null });
+    const r = await openDifferencePayment(env, {
+      requestId: OLD_REQUEST, bookingId: BOOKING, differenceRappen: 3000,
+      ownSessionId: "cs_test_a", dashboardOrigin: "https://dashboard.vamostaxi.site",
+    });
+    expect(r).toEqual({ ok: false, code: "already-paid" });
+    expect(expire).not.toHaveBeenCalled();
+    expect(createSession).not.toHaveBeenCalled();
+    expect(stored).toEqual([]);
+  });
+
+  it("review round 3, findings 1 and 2: an own page open for another amount whose close Stripe refuses is read again: paid → already-paid, still open → stripe-failed; nothing made or stored", async () => {
+    for (const [after, answer] of [["complete", "already-paid"], ["open", "stripe-failed"]] as const) {
+      vi.clearAllMocks();
+      stored.length = 0;
+      realKeyStripe();
+      retrieve
+        .mockResolvedValueOnce({ ...OPEN_3000, amount_total: 2500 })
+        .mockResolvedValueOnce({ ...OPEN_3000, amount_total: 2500, status: after });
+      expire.mockRejectedValue(new Error("This Checkout Session is not open"));
+      const r = await openDifferencePayment(env, {
+        requestId: OLD_REQUEST, bookingId: BOOKING, differenceRappen: 3000,
+        ownSessionId: "cs_test_a", dashboardOrigin: "https://dashboard.vamostaxi.site",
+      });
+      expect(r).toEqual({ ok: false, code: answer });
+      expect(expire.mock.calls.map((c) => c[1])).toEqual(["cs_test_a"]);
+      expect(retrieve).toHaveBeenCalledTimes(2);
+      expect(createSession).not.toHaveBeenCalled();
+      expect(stored).toEqual([]);
+    }
+  });
+
+  it("review round 3: a refused close that Stripe then reports as expired is a closed page, and a new one is made", async () => {
+    realKeyStripe();
+    retrieve
+      .mockResolvedValueOnce({ ...OPEN_3000, amount_total: 2500 })
+      .mockResolvedValueOnce({ ...OPEN_3000, amount_total: 2500, status: "expired" });
+    expire.mockRejectedValue(new Error("This Checkout Session is not open"));
+    const r = await openDifferencePayment(env, {
+      requestId: OLD_REQUEST, bookingId: BOOKING, differenceRappen: 3000,
+      ownSessionId: "cs_test_a", dashboardOrigin: "https://dashboard.vamostaxi.site",
+    });
+    expect(r).toMatchObject({ ok: true, sessionId: "cs_test_n1" });
+    expect(stored).toEqual([{ requestId: OLD_REQUEST, sessionId: "cs_test_n1" }]);
+  });
+
+  it("review round 3, warning 3: a retry of the same state gets the same page only within the same second; later Stripe refuses the key and no second page is made", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    try {
+      vi.setSystemTime(new Date("2030-01-01T10:00:00.100Z"));
+      realKeyStripe();
+      // The first Accept made a page but did not store it (the store failed): the request has no page.
+      const first = await openDifferencePayment(env, {
+        requestId: OLD_REQUEST, bookingId: BOOKING, differenceRappen: 3000, dashboardOrigin: "https://dashboard.vamostaxi.site",
+      });
+      expect(first).toMatchObject({ ok: true, sessionId: "cs_test_n1" });
+      // Same state, same second: Stripe replays the same page.
+      vi.setSystemTime(new Date("2030-01-01T10:00:00.900Z"));
+      expect(await openDifferencePayment(env, {
+        requestId: OLD_REQUEST, bookingId: BOOKING, differenceRappen: 3000, dashboardOrigin: "https://dashboard.vamostaxi.site",
+      })).toMatchObject({ ok: true, sessionId: "cs_test_n1" });
+      // Same state, a later second: expires_at differs, Stripe refuses the key, nothing new is made or stored.
+      stored.length = 0;
+      vi.setSystemTime(new Date("2030-01-01T10:00:02.000Z"));
+      expect(await openDifferencePayment(env, {
+        requestId: OLD_REQUEST, bookingId: BOOKING, differenceRappen: 3000, dashboardOrigin: "https://dashboard.vamostaxi.site",
+      })).toEqual({ ok: false, code: "stripe-failed" });
+      expect(stored).toEqual([]);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("review round 2, warning 2: an own page Stripe cannot read is left alone and the answer is stripe-failed", async () => {

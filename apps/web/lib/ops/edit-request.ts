@@ -113,15 +113,48 @@ async function closePage(stripe: StripeClient, sessionId: string): Promise<void>
   }
 }
 
+type OwnPageClose = "closed" | "already-paid" | "stripe-failed";
+
+/**
+ * 261002 review round 3, finding 1 (and 2): the request's own page is replaced only once Stripe says
+ * it can no longer be paid. A paid page ("complete") is never replaced: its payment applies the
+ * change when the settle records it, and a second page would leave that payment on no request. A
+ * close Stripe refuses is read again; anything but "expired" or "complete" leaves the page as it is.
+ */
+async function closeOwnPage(
+  stripe: StripeClient,
+  sessionId: string,
+  seen: { status?: string | null } | null,
+): Promise<OwnPageClose> {
+  const statusOf = (page: { status?: string | null } | null | undefined) => String(page?.status ?? "");
+  if (statusOf(seen) === "complete") return "already-paid";
+  if (statusOf(seen) === "expired") return "closed";
+  try {
+    if (statusOf(await expireCheckoutSession(stripe, sessionId)) === "expired") return "closed";
+  } catch {
+    // Refused: read the page again to learn why.
+  }
+  let now = "";
+  try {
+    now = statusOf(await retrieveCheckoutSession(stripe, sessionId));
+  } catch {
+    now = "";
+  }
+  if (now === "complete") return "already-paid";
+  if (now === "expired") return "closed";
+  return "stripe-failed";
+}
+
 /**
  * The Stripe page for the difference of a requested change (D-67, D-48: Stripe's hosted page).
  * One page belongs to one request (261002, review of item 4, finding 1): the settle finds its
  * request by page id, so a page shared with an ended request would record the payment on that
  * one and leave the change waiting. So:
  *   - `ownSessionId`: the page already stored on THIS request (the dashboard's Accept of the same
- *     request again). Reused while it is open for the same amount, else closed and replaced (the
- *     replacement's Stripe key names the page it replaces). If Stripe cannot read it: stripe-failed,
- *     and the page is left as it is.
+ *     request again). Reused while it is open for the same amount. Already paid: already-paid, and
+ *     nothing changes. Otherwise it is closed, and replaced only once Stripe says it is closed (the
+ *     replacement's Stripe key names the page it replaces). If Stripe cannot read it, or the close
+ *     cannot be confirmed: stripe-failed, and the page is left as it is.
  *   - `supersededSessionId`: the page of the request this one replaced (the dashboard's class and
  *     trip changes). Never reused: always closed (best effort), and a new page is opened.
  * Opens 24 h; stores the page id on the request. 26.2 P1 calls this after the admin's dearer class
@@ -158,7 +191,8 @@ export async function openDifferencePayment(
     if (hostedSessionIsPayable(existing, difference)) {
       reuse = { id: ownSessionId, url: existing?.url ?? null };
     } else {
-      await closePage(stripe, ownSessionId);
+      const closed = await closeOwnPage(stripe, ownSessionId, existing);
+      if (closed !== "closed") return { ok: false, code: closed };
     }
   }
 
@@ -182,9 +216,12 @@ export async function openDifferencePayment(
         bookingReference: reference,
         customerEmail: email,
         locale,
-        // The page it replaces is part of the key (review round 2, warning 2): a replacement page for
-        // the same request and amount is a new Stripe request, not a replay of the first one (Stripe
-        // refuses a replayed key whose parameters differ). Retries of the same state stay idempotent.
+        // The page it replaces is part of the key (review round 2, warning 2), so a replacement page for
+        // the same request and amount is a new Stripe request. The key does not make a retry return the
+        // first page: Stripe replays a key only for identical parameters, and expiresAt below moves every
+        // second. A retry of the same state is therefore refused (idempotency_error, answered as
+        // stripe-failed): no second page is made. A page the first attempt made but never stored stays
+        // open for 24 h; its url never left the server (review round 3, warning 3).
         idempotencyKey: `extra:${args.requestId}:${difference}:${ownSessionId || "0"}`,
         // D4 (owner, 2026-09-30): the difference can be paid for 24 hours.
         expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
