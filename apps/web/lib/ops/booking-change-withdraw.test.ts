@@ -99,13 +99,33 @@ describe("withdrawBookingChange", () => {
     expect(systemCalls.some((c) => /update|booking_staff_change|apply/i.test(c.text))).toBe(false);
   });
 
-  it("nothing waits (no request, a customer's request, or no Stripe page): refused, nothing called", async () => {
-    for (const row of [null, { ...waiting, actor: "customer" }, { ...waiting, extra_session_id: null }]) {
+  it("nothing waits (no request, or a customer's request): refused, nothing called", async () => {
+    for (const row of [null, { ...waiting, actor: "customer" }]) {
       staffWaiting(row);
       expect(await withdrawBookingChange(env, claims, "VT-26-0801")).toEqual({ ok: false, code: "nothing-waiting" });
     }
     expect(expireCheckoutSession).not.toHaveBeenCalled();
     expect(asSystem).not.toHaveBeenCalled();
+  });
+
+  it("261002 finding 2: a staff change that never got a Stripe page is ended in the database alone, with no Stripe step", async () => {
+    for (const page of [null, ""]) {
+      vi.clearAllMocks();
+      systemCalls = [];
+      systemAnswers([{ request_id: REQUEST, booking_id: BOOKING, extra_session_id: null }]);
+      staffWaiting({ ...waiting, extra_session_id: page });
+      expect(await withdrawBookingChange(env, claims, "VT-26-0801")).toEqual({ ok: true, bookingId: BOOKING, reference: "VT-26-0801" });
+      expect(expireCheckoutSession).not.toHaveBeenCalled();
+      expect(retrieveCheckoutSession).not.toHaveBeenCalled();
+      const call = systemCalls.find((c) => c.text.includes("booking_change_withdraw"))!;
+      expect(call.values).toEqual([BOOKING, REQUEST, claims.sub]);
+    }
+    // The database still refuses what is not a waiting staff change (e.g. no price record): mapped, not a 500.
+    vi.clearAllMocks();
+    systemCalls = [];
+    systemAnswers(Object.assign(new Error("nothing-waiting"), { code: "P0001" }));
+    staffWaiting({ ...waiting, extra_session_id: null });
+    expect(await withdrawBookingChange(env, claims, "VT-26-0801")).toEqual({ ok: false, code: "nothing-waiting" });
   });
 
   it("she paid in the same second: the answer says so and nothing is ended (the payment applies the change)", async () => {

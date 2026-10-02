@@ -13,6 +13,9 @@
 //            trip change's price step marks Van luxury (12 seats) too small at 13 travellers and not at 12.
 //   item 1   a paid Van luxury booking of 10 travellers reads 10 on both customer reads the booking
 //            pages use (the manage link's read and the signed-in list's read): no cap in the way.
+//   review 1 (REVIEW-ITEM4.md) finding 5: the signed-in route POST /api/account/bookings/time-change
+//            answers 409 too. Findings 1 and 2 run in customer-request-staff-pages.local.test.ts (one
+//            long run used up the local stack's 100 connection slots, as in P6's two trip-change files).
 // Skipped unless VAMOS_LOCAL_DB_PORT names a DISPOSABLE local stack (login roles vamos_edge / vamos_public
 // with their local password); rows are committed (use a scratch stack); synthetic rappen only. Host fixed
 // to 127.0.0.1. The world (price book, drivers, seeding, the facts step) is in trip-change.local-fixture.ts;
@@ -26,6 +29,9 @@ const PORT = process.env["VAMOS_LOCAL_DB_PORT"];
 
 const createCheckoutSession = vi.fn();
 const expireCheckoutSession = vi.fn(async (..._a: unknown[]) => ({ status: "expired" }));
+const retrieveCheckoutSession = vi.fn(async (..._a: unknown[]): Promise<unknown> => null);
+// The signed-in customer the account routes see (Supabase's session cookie, replaced).
+let accountClaims: VamosClaims | null = null;
 const sendTripChangePay = vi.fn();
 const sendConfirmation = vi.fn();
 const sendChauffeurAssign = vi.fn();
@@ -40,7 +46,7 @@ vi.mock("../checkout/stripe", async (importOriginal) => {
     ...actual,
     stripeFromEnv: () => ({}),
     createCheckoutSession: (...a: unknown[]) => createCheckoutSession(...a),
-    retrieveCheckoutSession: vi.fn(async () => null),
+    retrieveCheckoutSession: (...a: unknown[]) => retrieveCheckoutSession(...a),
     expireCheckoutSession: (...a: unknown[]) => expireCheckoutSession(...a),
     createRefund: vi.fn(),
   };
@@ -58,6 +64,10 @@ vi.mock("@vamos/emails/confirmation", async (importOriginal) => {
   };
 });
 vi.mock("@opennextjs/cloudflare", () => ({ getCloudflareContext: () => ({ env: routeEnv }) }));
+vi.mock("@/lib/account/session", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../account/session")>();
+  return { ...actual, customerClaims: async () => accountClaims };
+});
 // The manage route reads the cookie jar of a Next request; this file calls the handlers directly.
 vi.mock("next/headers", () => ({ cookies: async () => ({ get: () => undefined }) }));
 vi.mock("@/lib/ops/staff-json", async () => {
@@ -178,6 +188,19 @@ describe.skipIf(!PORT)("a customer's time request vs a staff change waiting for 
     expect(asked.status).toBe(409);
     expect(await asked.json()).toEqual({ ok: false, code: "staff-change-waiting" });
     expect(await counts()).toEqual(countsBefore);
+
+    // Review finding 5: the signed-in door through its real route handler answers the same 409.
+    const { POST: accountPOST } = await import("../../app/api/account/bookings/time-change/route");
+    accountClaims = owner.claims;
+    const signedIn = await accountPOST(new Request("https://vamostaxi.site/api/account/bookings/time-change", {
+      method: "POST",
+      headers: { "content-type": "application/json", origin: "https://vamostaxi.site" },
+      body: JSON.stringify({ ref: dear.reference, scheduled_local: "2030-01-08T12:00" }),
+    }));
+    expect(signedIn.status).toBe(409);
+    expect(await signedIn.json()).toEqual({ ok: false, code: "staff-change-waiting" });
+    expect(await counts()).toEqual(countsBefore);
+    expect(await staffRow()).toEqual(before);
   });
 
   it("item 4: once the difference's price record has expired the same request is accepted and the staff request ends superseded", { timeout: 60_000 }, async () => {

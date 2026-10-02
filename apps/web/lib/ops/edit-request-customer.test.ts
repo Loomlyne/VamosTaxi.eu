@@ -9,6 +9,18 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const systemCalls: { text: string; values: unknown[] }[] = [];
+// What the upsert answers about the request it replaced (261002 finding 3 sets a page here).
+let replacedPage: string | null = null;
+const expireCheckoutSession = vi.fn();
+
+vi.mock("@/lib/checkout/stripe", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/checkout/stripe")>();
+  return {
+    ...actual,
+    stripeFromEnv: () => ({}),
+    expireCheckoutSession: (...a: unknown[]) => expireCheckoutSession(...a),
+  };
+});
 
 vi.mock("@/lib/db/identity", () => ({
   asGuest: async (_env: unknown, _hash: string, fn: (sql: unknown) => unknown) =>
@@ -22,7 +34,12 @@ vi.mock("@/lib/db/identity", () => ({
         systemCalls.push({ text, values });
         if (text.includes("booking_edit_clone_quote_snapshot")) return [{ id: 41 }];
         if (text.includes("booking_edit_request_upsert")) {
-          return [{ request_id: "r1", superseded_id: null, old_extra_session_id: null, old_extra_snapshot_id: null }];
+          return [{
+            request_id: "r1",
+            superseded_id: replacedPage ? "r0" : null,
+            old_extra_session_id: replacedPage,
+            old_extra_snapshot_id: replacedPage ? 7 : null,
+          }];
         }
         throw new Error(`unexpected system sql: ${text}`);
       },
@@ -35,6 +52,8 @@ vi.mock("@/lib/db/identity", () => ({
 
 beforeEach(() => {
   systemCalls.length = 0;
+  replacedPage = null;
+  expireCheckoutSession.mockReset();
 });
 
 describe("a customer's change request (review 1)", () => {
@@ -86,6 +105,31 @@ describe("a customer's change request (review 1)", () => {
     expect(mapEditSqlError({ message: "customer-time-only" })).toEqual({ ok: false, code: "customer-time-only" });
     // A name that only starts like it is not it.
     expect(mapEditSqlError({ message: "staff-change-waiting-x" })).toEqual({ ok: false, code: "unknown" });
+  });
+
+  it("261002 finding 3: the page of the request it replaced is closed best effort; a failure does not fail the request", async () => {
+    const { requestCustomerTimeChange } = await import("./edit-request");
+    const env = { QUOTE_LOCK_SECRET: "", STRIPE_SECRET_KEY: "sk_test_x" } as unknown as CloudflareEnv;
+    const guest = { kind: "guest" as const, manageTokenHashHex: "ab" };
+    const ok = { ok: true, requestId: "r1", bookingId: "b1", status: "requested" };
+
+    replacedPage = "cs_test_replaced";
+    expireCheckoutSession.mockResolvedValue({ status: "expired" });
+    expect(await requestCustomerTimeChange(env, guest, "VT-26-0101", { scheduledLocal: "2030-02-01T10:00" })).toEqual(ok);
+    expect(expireCheckoutSession).toHaveBeenCalledTimes(1);
+    expect(expireCheckoutSession.mock.calls[0]![1]).toBe("cs_test_replaced");
+
+    // Stripe says no (already expired or paid): the customer's request still stands.
+    expireCheckoutSession.mockReset();
+    expireCheckoutSession.mockRejectedValue(new Error("This Checkout Session is not open"));
+    expect(await requestCustomerTimeChange(env, guest, "VT-26-0101", { scheduledLocal: "2030-02-01T10:00" })).toEqual(ok);
+    expect(expireCheckoutSession).toHaveBeenCalledTimes(1);
+
+    // Nothing replaced, or no page on it: Stripe is not called.
+    expireCheckoutSession.mockReset();
+    replacedPage = null;
+    expect(await requestCustomerTimeChange(env, guest, "VT-26-0101", { scheduledLocal: "2030-02-01T10:00" })).toEqual(ok);
+    expect(expireCheckoutSession).not.toHaveBeenCalled();
   });
 
   it("the request path hands the refusal back as { ok: false, code } and the transaction around it is the database's to roll back", async () => {

@@ -2,7 +2,7 @@
 //
 // 08-07: paid-edit request + ops accept. Extra Checkout Session is the
 // fare difference only (D-67). Merge supersedes the previous requested row
-// and expires the old extra session when the amount changed (D-73).
+// and expires the old extra session (D-73; since 261002 always: one page, one request).
 // 26.2 P1: accept answers applied, refund_due or extra_required. A cheaper change is "Refund due"
 // for the admin's Refund click (refunds by hand): nothing goes to Stripe from here except the
 // Stripe page for a difference to pay. Accept needs the request id of a stored request: no
@@ -17,7 +17,6 @@ import {
   loadEditBookingContact,
   loadEditExtraSession,
   loadEditPendingPayload,
-  loadEditSnapshotTotal,
   loadTripForMail,
   supersedePendingEditRequest,
   writeFlightNumber,
@@ -103,11 +102,28 @@ function checkoutLocale(raw: string): CheckoutLocale {
 
 export type DifferencePaymentOk = { ok: true; sessionId: string; url: string | null };
 
+type StripeClient = ReturnType<typeof stripeFromEnv>;
+
+/** Best effort: closes a Stripe page. A page already paid or expired is left as it is. */
+async function closePage(stripe: StripeClient, sessionId: string): Promise<void> {
+  try {
+    await expireCheckoutSession(stripe, sessionId);
+  } catch {
+    // Already expired or paid: a payment that still arrives is recorded (P1 C6).
+  }
+}
+
 /**
  * The Stripe page for the difference of a requested change (D-67, D-48: Stripe's hosted page).
- * Reuses the open page of the request it replaced when the amount is the same, else expires it;
- * opens 24 h; stores the page id on the request. 26.2 P1 calls this after the admin's dearer
- * class change; the dashboard's Accept calls it for a customer request.
+ * One page belongs to one request (261002, review of item 4, finding 1): the settle finds its
+ * request by page id, so a page shared with an ended request would record the payment on that
+ * one and leave the change waiting. So:
+ *   - `ownSessionId`: the page already stored on THIS request (the dashboard's Accept of the same
+ *     request again). Reused while it is open for the same amount, else closed.
+ *   - `supersededSessionId`: the page of the request this one replaced (the dashboard's class and
+ *     trip changes). Never reused: always closed (best effort), and a new page is opened.
+ * Opens 24 h; stores the page id on the request. 26.2 P1 calls this after the admin's dearer class
+ * change, P6 after a dearer trip change; the dashboard's Accept calls it for a customer request.
  */
 export async function openDifferencePayment(
   env: CloudflareEnv,
@@ -115,8 +131,8 @@ export async function openDifferencePayment(
     requestId: string;
     bookingId: string;
     differenceRappen: number;
-    oldSessionId: string | null;
-    oldExtraSnapshotId: number | null;
+    ownSessionId?: string | null;
+    supersededSessionId?: string | null;
     dashboardOrigin: string;
   },
 ): Promise<DifferencePaymentOk | EditAcceptFail> {
@@ -125,29 +141,23 @@ export async function openDifferencePayment(
 
   const stripe = stripeFromEnv(env);
   let reuse: { id: string; url: string | null } | null = null;
-  const oldSessionId = args.oldSessionId;
-  let oldExtraTotal: number | null = null;
-  if (args.oldExtraSnapshotId != null) {
-    oldExtraTotal = await loadEditSnapshotTotal(env, args.oldExtraSnapshotId);
-  }
+  const ownSessionId = (args.ownSessionId ?? "").trim();
+  const supersededSessionId = (args.supersededSessionId ?? "").trim();
 
-  if (oldSessionId && !shouldExpireOldExtraSession(oldExtraTotal, difference)) {
+  if (ownSessionId) {
     try {
-      const existing = await retrieveCheckoutSession(stripe, oldSessionId);
+      const existing = await retrieveCheckoutSession(stripe, ownSessionId);
       if (hostedSessionIsPayable(existing, difference)) {
-        reuse = { id: oldSessionId, url: existing?.url ?? null };
+        reuse = { id: ownSessionId, url: existing?.url ?? null };
       }
     } catch {
       reuse = null;
     }
+    if (!reuse) await closePage(stripe, ownSessionId);
   }
 
-  if (oldSessionId && reuse?.id !== oldSessionId) {
-    try {
-      await expireCheckoutSession(stripe, oldSessionId);
-    } catch {
-      // Already expired / consumed — merge still proceeds with one extra payment.
-    }
+  if (supersededSessionId && supersededSessionId !== reuse?.id) {
+    await closePage(stripe, supersededSessionId);
   }
 
   let session = reuse;
@@ -284,8 +294,8 @@ export async function acceptPaidEdit(
     requestId: accepted.request_id,
     bookingId: accepted.booking_id,
     differenceRappen: accepted.difference_rappen,
-    oldSessionId: accepted.extra_session_id,
-    oldExtraSnapshotId: null,
+    // The page this same request already has (a second Accept): reused while it is still payable.
+    ownSessionId: accepted.extra_session_id,
     dashboardOrigin,
   });
   if (!opened.ok) return opened;
@@ -380,8 +390,21 @@ async function requestCustomerTime(
       `;
       const row = rows[0];
       if (!row) throw Object.assign(new Error("not-found"), { code: "P0002" });
-      return { request_id: String(row.request_id) };
+      return {
+        request_id: String(row.request_id),
+        old_extra_session_id: row.old_extra_session_id ? String(row.old_extra_session_id) : "",
+      };
     });
+    // 261002 (review of item 4, finding 3): the request this one replaced may still have a page for a
+    // difference (only once its price record expired, so the page is normally dead already). Closed
+    // best effort, as the dashboard's changes do; a failure never fails the customer's request.
+    if (upsert.old_extra_session_id) {
+      try {
+        await closePage(stripeFromEnv(env), upsert.old_extra_session_id);
+      } catch {
+        // No Stripe key here: the page ends by itself.
+      }
+    }
     return {
       ok: true,
       requestId: upsert.request_id,

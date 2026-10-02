@@ -9,10 +9,11 @@
 --      exactly now), the owner withdrew it, the difference was paid (accepted), or the staff request has
 --      no extra price record yet.
 --   D  unchanged: a staff request still supersedes a staff request; a customer request still supersedes a
---      customer request; unpaid and invalid actor are still refused.
+--      customer request, also one that carries an extra price record (only staff requests block);
+--      unpaid and invalid actor are still refused.
 -- Rolled back. Synthetic integer rappen only, never a product CHF.
 begin;
-select plan(51);
+select plan(54);
 
 insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity)
 values ('crw-eco', 4, 4), ('crw-biz', 7, 7);
@@ -346,6 +347,26 @@ select is((select superseded_id from c2), (select request_id from c1),
 select is(
   (select r.status from public.booking_edit_requests r where r.id = (select request_id from c1)),
   'superseded', 'customer over customer: the first is superseded');
+
+-- D2b. Review of item 4, finding 5: a CUSTOMER request that carries an extra price record (the owner
+--      accepted a dearer customer request) is not a staff change waiting: the actor filter lets the next
+--      customer request through, and it supersedes it as before.
+select pg_temp.crw_mk('custx');
+create temporary table cx1 as select * from pg_temp.crw_customer('custx');
+update public.booking_edit_requests
+   set extra_snapshot_id = (select b.price_snapshot_id from public.bookings b where b.id = (select id from fx where k = 'custx'))
+ where id = (select request_id from cx1);
+select is(
+  (select r.actor || ':' || r.status || ':' || (x.expires_at > now())::text
+     from public.booking_edit_requests r join public.price_snapshots x on x.id = r.extra_snapshot_id
+    where r.id = (select request_id from cx1)),
+  'customer:requested:true', 'custx: a customer request waits with an unexpired extra price record');
+create temporary table cx2 as select * from pg_temp.crw_customer('custx');
+select is((select superseded_id from cx2), (select request_id from cx1),
+  'a customer request with an extra price record does not block the next customer request (staff only)');
+select is(
+  (select r.status from public.booking_edit_requests r where r.id = (select request_id from cx1)),
+  'superseded', 'custx: the first customer request is superseded, as before');
 
 -- D3. Unpaid and invalid actor.
 select throws_ok($$select * from pg_temp.crw_customer('unpaid')$$, 'P0001', 'unpaid', 'unpaid is still refused');
