@@ -24,13 +24,13 @@ export function sqlStateOf(err: unknown): string | undefined {
 const SQLSTATE_SHAPE = /^[0-9A-Z]{5}$/;
 
 /** Retried after the short delay: another transaction held the lock or won the race, a retry succeeds at once. */
-const CONTENTION = new Set(["40001", "40P01", "55P03"]);
+const CONTENTION: readonly string[] = Object.freeze(["40001", "40P01", "55P03"]);
 
 /** Whole SQLSTATE classes that a retry can cure: connection exceptions, insufficient resources, system errors. */
-const TRANSIENT_CLASSES = new Set(["08", "53", "58"]);
+const TRANSIENT_CLASSES: readonly string[] = Object.freeze(["08", "53", "58"]);
 
 /** Single SQLSTATEs that a retry can cure: statement timeout / cancel, server shutdown, cannot connect now. */
-const TRANSIENT_CODES = new Set(["40001", "40P01", "55P03", "57014", "57P01", "57P02", "57P03"]);
+const TRANSIENT_CODES: readonly string[] = Object.freeze(["40001", "40P01", "55P03", "57014", "57P01", "57P02", "57P03"]);
 
 /**
  * `transient`: a database hiccup that a retry can cure. That includes any error with no SQLSTATE
@@ -41,14 +41,14 @@ const TRANSIENT_CODES = new Set(["40001", "40P01", "55P03", "57014", "57P01", "5
 export function settleErrorKind(err: unknown): "transient" | "permanent" {
   const state = sqlStateOf(err);
   if (state === undefined || !SQLSTATE_SHAPE.test(state)) return "transient";
-  if (TRANSIENT_CODES.has(state) || TRANSIENT_CLASSES.has(state.slice(0, 2))) return "transient";
+  if (TRANSIENT_CODES.includes(state) || TRANSIENT_CLASSES.includes(state.slice(0, 2))) return "transient";
   return "permanent";
 }
 
 /** Seconds before the retry of a transient error: 5 for contention (deadlock, serialization, lock), 60 otherwise. */
 export function retryDelaySeconds(err: unknown): number {
   const state = sqlStateOf(err);
-  return state !== undefined && CONTENTION.has(state) ? 5 : 60;
+  return state !== undefined && CONTENTION.includes(state) ? 5 : 60;
 }
 
 /** Seconds before the retry of a permanent error after money was captured: 8 tries span about 40 minutes at most, then the dead-letter queue mails info@. */
