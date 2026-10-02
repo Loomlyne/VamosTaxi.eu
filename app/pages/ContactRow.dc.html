@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<!-- Ground colour + cover live in the STATIC head/body on purpose. The DC runtime
+     injects every stylesheet and script from <helmet> only after React has loaded, so
+     without these the arriving document paints uncovered frames before
+     vamos-page-transition.js exists and can build its overlay. That script adopts
+     #vt-boot-cover and removes it once its own sheet is painted at COVER; the 6s
+     animation below is the fallback for when the script never runs. -->
+<style id="vt-boot">html{background:#F6F6F6}body{margin:0}#vt-boot-cover{position:fixed;inset:0;z-index:2147483000;background:#F6F6F6;pointer-events:none;animation:vt-boot-fail 0s linear 6s forwards}@keyframes vt-boot-fail{to{visibility:hidden}}</style>
+</head>
+<body>
+<div id="vt-boot-cover" aria-hidden="true"></div>
+<!-- ContactRow: one way to reach Vamos, inside the ContactButton menu (261003, direction B).
+     Built from tokens because the kit's ListRow paints the banned yellow-50 lead tile and
+     renders a <button>, and this row is a link. Twin: app/home/ContactRow.dc.html (byte-identical).
+     States: default, hover (grey-50), press (grey-100, 1px down, white lead), focus (--vt-ring).
+     No disabled state: the four channels are always there. -->
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
+<script src="../vamos-i18n-dict.js"></script>
+<script src="../vamos-locale.js"></script>
+<script src="../vamos-page-transition.js"></script>
+<style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}
+input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] input:focus{outline:none;box-shadow:none}
+a[data-crow][data-crow]{display:grid;grid-template-columns:40px minmax(0,1fr) auto;align-items:center;gap:14px;box-sizing:border-box;min-block-size:60px;padding:8px 12px;border:0;border-radius:var(--vt-radius-md);background:transparent;color:var(--vt-text-primary);text-decoration:none;font-family:var(--vt-font-body);cursor:pointer;outline:none;-webkit-tap-highlight-color:transparent;transition:background var(--vt-dur-fast) var(--vt-ease-out),transform 80ms var(--vt-ease-out)}
+a[data-crow][data-size="sheet"]{min-block-size:64px}
+a[data-crow][data-crow]:hover,a[data-crow][data-s="hover"]{background:var(--vt-grey-50);color:var(--vt-text-primary)}
+a[data-crow][data-crow]:active,a[data-crow][data-s="press"]{background:var(--vt-grey-100);transform:translateY(1px)}
+a[data-crow]:active [data-crow-lead],a[data-crow][data-s="press"] [data-crow-lead]{background:var(--vt-white)}
+a[data-crow][data-crow]:focus-visible,a[data-crow][data-s="focus"]{outline:none!important;box-shadow:var(--vt-ring)}
+[data-crow-lead]{inline-size:40px;block-size:40px;border-radius:var(--vt-radius-pill);background:var(--vt-grey-100);color:var(--vt-charcoal-900);display:inline-flex;align-items:center;justify-content:center;transition:background var(--vt-dur-fast) var(--vt-ease-out)}
+[data-crow-main]{display:flex;flex-direction:column;gap:1px;min-inline-size:0}
+[data-crow-title]{font-size:var(--vt-body-sm);font-weight:var(--vt-weight-semibold);line-height:1.35;color:var(--vt-text-primary)}
+[data-crow-sub]{font-size:var(--vt-body-xs);line-height:1.4;color:var(--vt-text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+[dir="rtl"] [data-crow-sub].vt-dir-keep{text-align:end}
+[data-crow-end]{display:inline-flex;color:var(--vt-text-muted)}
+@media (prefers-reduced-motion:reduce){a[data-crow][data-crow]{transition:none}}</style>
+</helmet>
+<a data-crow="1" data-size="{{ size }}" data-s="{{ stateAttr }}" href="{{ href }}" target="{{ target }}" rel="{{ rel }}" onClick="{{ follow }}">
+<span data-crow-lead="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ icon }}" size="{{ n20 }}" color="currentColor" hint-size="20px,20px"></x-import></span>
+<span data-crow-main="1">
+<span data-crow-title="1">{{ title }}</span>
+<sc-if value="{{ keep }}" hint-placeholder-val="{{ true }}"><span data-crow-sub="1" class="vt-dir-keep" data-vt-no-i18n="1">{{ sub }}</span></sc-if>
+<sc-if value="{{ plainSub }}" hint-placeholder-val="{{ false }}"><span data-crow-sub="1">{{ sub }}</span></sc-if>
+</span>
+<sc-if value="{{ hasEnd }}" hint-placeholder-val="{{ true }}"><span data-crow-end="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ endIcon }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span></sc-if>
+</a>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:344,&quot;height&quot;:64},&quot;icon&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;phone&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;title&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Call us&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;sub&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;+41 79 626 70 82&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;keep&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;href&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;tel:+41796267082&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;endIcon&quot;:{&quot;editor&quot;:&quot;select&quot;,&quot;options&quot;:[&quot;&quot;,&quot;external-link&quot;,&quot;chevron-right&quot;],&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;newTab&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;size&quot;:{&quot;editor&quot;:&quot;select&quot;,&quot;options&quot;:[&quot;card&quot;,&quot;sheet&quot;],&quot;default&quot;:&quot;card&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;state&quot;:{&quot;editor&quot;:&quot;select&quot;,&quot;options&quot;:[&quot;&quot;,&quot;hover&quot;,&quot;press&quot;,&quot;focus&quot;],&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;onFollow&quot;:{&quot;editor&quot;:&quot;none&quot;,&quot;tsType&quot;:&quot;() =&gt; void&quot;}}">
+/* One contact row. The host passes copy in English; the locale runtime translates the
+   title and a plain second line. A number or address (keep) is never translated and stays
+   left-to-right inside Arabic. `state` pins a look for the states gallery only. */
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props;
+    const keep = p.keep !== false && p.keep !== 'false';
+    const tab = p.newTab === true || p.newTab === 'true';
+    const end = p.endIcon || '';
+    return {
+      n16: 16, n20: 20,
+      icon: p.icon || 'phone',
+      title: p.title || '',
+      sub: p.sub || '',
+      keep: keep && !!p.sub,
+      plainSub: !keep && !!p.sub,
+      href: p.href || '#',
+      target: tab ? '_blank' : undefined,
+      rel: tab ? 'noopener noreferrer' : undefined,
+      size: p.size === 'sheet' ? 'sheet' : 'card',
+      stateAttr: p.state || undefined,
+      hasEnd: !!end,
+      endIcon: end,
+      follow: () => { if (typeof p.onFollow === 'function') p.onFollow(); },
+    };
+  }
+}
+</script>
+</body>
+</html>

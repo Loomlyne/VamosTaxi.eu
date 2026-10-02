@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<!-- Ground colour + cover live in the STATIC head/body on purpose. The DC runtime
+     injects every stylesheet and script from <helmet> only after React has loaded, so
+     without these the arriving document paints uncovered frames before
+     vamos-page-transition.js exists and can build its overlay. That script adopts
+     #vt-boot-cover and removes it once its own sheet is painted at COVER; the 6s
+     animation below is the fallback for when the script never runs. -->
+<style id="vt-boot">html{background:#F6F6F6}body{margin:0}#vt-boot-cover{position:fixed;inset:0;z-index:2147483000;background:#F6F6F6;pointer-events:none;animation:vt-boot-fail 0s linear 6s forwards}@keyframes vt-boot-fail{to{visibility:hidden}}</style>
+</head>
+<body>
+<div id="vt-boot-cover" aria-hidden="true"></div>
+<!-- ContactButton: the one way to reach a person from every public page (261003, owner-signed
+     direction B). Twin: app/home/ContactButton.dc.html (byte-identical; a unit test pins it).
+     React twin for the Next pages: apps/web/components/shell/ContactButton.tsx.
+       float, above 680px  : charcoal CONTACT pill bottom inline-end; open, it reads CLOSE.
+       float, 680px down   : 54px charcoal disc with the yellow icon; the menu is a bottom sheet.
+       docked              : 54px outline IconButton for a bottom bar (the checkout PAY bar).
+     Hidden (each rule is a data attribute the owning component sets; no scroll handler):
+       html[data-vt-ck-open]  cookie card open, phone only (CookieBanner);
+       html[data-vt-sheet-open] booking sheet open (BookingSheet);
+       html[data-vt-trav-open]  travellers sheet open on a phone (home);
+       html[data-vt-contact-docked] a docked button is on the page;
+       data-kb="1" on the root  a text field has focus on a phone (keyboard up).
+     Home on a phone: while the "Where to?" card ([data-contact-lift]) reaches the bottom corner
+     the disc sits just above it and scrolls with it; once the card has moved away it drops back
+     to the corner (owner, 2026-10-03). An IntersectionObserver decides, not a scroll handler.
+     ?cb-gallery=1 (or gallery prop) shows every state side by side for review. -->
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
+<script src="../vamos-i18n-dict.js"></script>
+<script src="../vamos-locale.js"></script>
+<script src="../vamos-page-transition.js"></script>
+<style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}
+/* Button hover/press — colour step only, no shadow, no glow */
+.vt-btn{transition:background 140ms cubic-bezier(.2,0,.2,1),border-color 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1),transform 80ms cubic-bezier(.2,0,.2,1)}
+.vt-btn:hover,.vt-btn:active{box-shadow:none!important}
+.vt-btn--primary:hover:not([disabled]){background:var(--vt-accent-hover)}
+.vt-btn--primary:active:not([disabled]){background:var(--vt-accent-press);transform:translateY(1px)}
+.vt-btn--secondary:hover:not([disabled]){background:var(--vt-charcoal-800)}
+.vt-btn--secondary:active:not([disabled]){transform:translateY(1px)}
+.vt-btn:focus-visible{box-shadow:var(--vt-ring)!important}
+input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] input:focus{outline:none;box-shadow:none}
+/* ── trigger ── */
+[data-contact-btn]{font-family:var(--vt-font-body)}
+[data-contact-btn][data-variant="float"]{position:fixed;z-index:80;inset-inline-end:24px;inset-block-end:calc(24px + var(--vt-ck-reserve, 0px))}
+[data-contact-btn][data-variant="docked"]{position:relative;display:inline-flex;flex:0 0 auto}
+[data-contact-btn][data-open="1"]{z-index:500}
+.vt-btn[data-cb-pill]{box-shadow:var(--vt-shadow-lg)}
+.vt-btn[data-cb-pill]:active:not([disabled]){background:var(--vt-charcoal-950)}
+button[data-cb-disc]{all:unset;box-sizing:border-box;inline-size:54px;block-size:54px;border-radius:var(--vt-radius-pill);background:var(--vt-charcoal-900);box-shadow:var(--vt-shadow-lg);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background var(--vt-dur-fast) var(--vt-ease-out),transform 80ms var(--vt-ease-out)}
+button[data-cb-disc]:hover{background:var(--vt-charcoal-800)}
+button[data-cb-disc]:active{background:var(--vt-charcoal-950);transform:translateY(1px)}
+button[data-cb-disc][data-cb-disc]:focus-visible{outline:none!important;box-shadow:var(--vt-shadow-lg),var(--vt-ring)}
+.vt-iconbtn[data-cb-dock][data-cb-dock]:focus-visible,[data-cb-x] .vt-iconbtn.vt-iconbtn:focus-visible{outline:none!important}
+/* ── menu: card above 680px, bottom sheet below ── */
+[data-cb-panel]{position:absolute;inset-block-end:calc(100% + 12px);inset-inline-end:0;inline-size:344px;max-inline-size:calc(100vw - 32px);box-sizing:border-box;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-xl);padding:8px;text-align:start;animation:cb-rise 200ms var(--vt-ease-out) both}
+[data-cb-scrim]{position:fixed;inset:0;background:var(--vt-bg-scrim);animation:cb-fade 200ms var(--vt-ease-out) both}
+[data-cb-sheet]{position:fixed;inset-inline:0;inset-block-end:0;box-sizing:border-box;max-block-size:calc(100dvh - 24px);overflow:auto;overscroll-behavior:contain;background:var(--vt-bg-surface);border-start-start-radius:var(--vt-radius-xl);border-start-end-radius:var(--vt-radius-xl);box-shadow:var(--vt-shadow-xl);padding:8px 12px calc(16px + env(safe-area-inset-bottom, 0px));text-align:start;animation:cb-rise 320ms var(--vt-ease-out) both}
+div[data-cb-panel][data-cb-panel]:focus,div[data-cb-sheet][data-cb-sheet]:focus,div[data-cb-panel][data-cb-panel]:focus-visible,div[data-cb-sheet][data-cb-sheet]:focus-visible{outline:none!important}
+[data-cb-grab]{inline-size:40px;block-size:4px;border-radius:var(--vt-radius-pill);background:var(--vt-grey-300);margin:4px auto}
+[data-cb-head]{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 12px 8px}
+[data-cb-head] > div{min-inline-size:0}
+[data-cb-kick]{margin:0;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-cb-title]{margin:2px 0 0;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);line-height:1.2;color:var(--vt-text-primary)}
+[data-cb-rows]{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+[data-cb-rows] > li{margin:0;padding:0;list-style:none}
+@keyframes cb-rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes cb-fade{from{opacity:0}to{opacity:1}}
+/* ── where the float steps aside ── */
+@media (max-width:680px){
+[data-contact-btn][data-variant="float"]{inset-inline-end:16px;inset-block-end:16px}
+html[data-vt-ck-open] [data-contact-btn][data-variant="float"],[data-contact-btn][data-variant="float"][data-kb="1"]{display:none}
+}
+html[data-vt-sheet-open] [data-contact-btn][data-variant="float"],html[data-vt-trav-open] [data-contact-btn][data-variant="float"],html[data-vt-contact-docked] [data-contact-btn][data-variant="float"]{display:none}
+[data-contact-btn][data-variant="float"][data-lift="1"]{position:absolute;inset-block-end:auto}
+@media (prefers-reduced-motion:reduce){[data-cb-panel],[data-cb-sheet],[data-cb-scrim]{animation:none}button[data-cb-disc]{transition:none}}
+@media print{[data-contact-btn],[data-cb-gal]{display:none!important}}
+/* ── states gallery (review scaffold) ── */
+[data-cb-gal]{background:var(--vt-white);padding:clamp(20px,4vw,48px);font-family:var(--vt-font-body);color:var(--vt-text-primary)}
+[data-cb-gal] h2{margin:0 0 20px;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold)}
+[data-cb-grow]{display:flex;flex-wrap:wrap;align-items:flex-start;gap:32px 36px;margin-block-end:40px}
+[data-cb-cell]{display:flex;flex-direction:column;align-items:center;gap:12px;min-inline-size:96px;max-inline-size:100%}
+[data-cb-cap]{font-size:var(--vt-body-xs);color:var(--vt-text-muted)}
+[data-cb-cell] [data-crow]{inline-size:min(320px,80vw)}
+[data-cb-gal] .vt-btn[data-s="hover"]{background:var(--vt-charcoal-800)}
+[data-cb-gal] .vt-btn[data-s="press"]{background:var(--vt-charcoal-950);transform:translateY(1px)}
+[data-cb-gal] .vt-btn[data-s="focus"]{box-shadow:var(--vt-shadow-lg),var(--vt-ring)!important}
+[data-cb-gal] button[data-cb-disc][data-s="hover"]{background:var(--vt-charcoal-800)}
+[data-cb-gal] button[data-cb-disc][data-s="press"]{background:var(--vt-charcoal-950);transform:translateY(1px)}
+[data-cb-gal] button[data-cb-disc][data-s="focus"]{box-shadow:var(--vt-shadow-lg),var(--vt-ring)}
+[data-cb-gal] [data-cb-panel],[data-cb-gal] [data-cb-sheet]{position:relative;inset:auto;animation:none}
+[data-cb-gal] [data-cb-sheet]{inline-size:min(390px,100%);max-block-size:none;overflow:visible}</style>
+</helmet>
+<div data-contact-btn="1" data-variant="{{ variant }}" data-narrow="{{ narrowAttr }}" data-open="{{ openAttr }}" data-lift="{{ liftAttr }}" data-kb="{{ kbAttr }}" style="{{ rootStyle }}" ref="{{ rootRef }}" data-screen-label="Contact button">
+<sc-if value="{{ showPill }}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="secondary" size="lg" data-cb-pill="1" data-cb-trigger="1" aria-expanded="{{ openStr }}" aria-controls="{{ ariaControls }}" aria-label="{{ triggerLabel }}" onClick="{{ toggle }}" hint-size="150px,54px"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ triggerIcon }}" size="{{ n20 }}" color="var(--vt-yellow)" hint-size="20px,20px"></x-import><span>{{ pillLabel }}</span></x-import></sc-if>
+<sc-if value="{{ showDisc }}" hint-placeholder-val="{{ false }}"><button type="button" data-cb-disc="1" data-cb-trigger="1" aria-expanded="{{ openStr }}" aria-controls="{{ ariaControls }}" aria-label="{{ triggerLabel }}" onClick="{{ toggle }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ triggerIcon }}" size="{{ n22 }}" color="var(--vt-yellow)" hint-size="22px,22px"></x-import></button></sc-if>
+<sc-if value="{{ showDocked }}" hint-placeholder-val="{{ false }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.IconButton" icon="{{ triggerIcon }}" label="{{ triggerLabel }}" variant="outline" size="lg" data-cb-dock="1" data-cb-trigger="1" aria-expanded="{{ openStr }}" aria-controls="{{ ariaControls }}" onClick="{{ toggle }}" hint-size="54px,54px"></x-import></sc-if>
+
+<sc-if value="{{ showCard }}" hint-placeholder-val="{{ false }}">
+<div data-cb-panel="1" id="{{ menuId }}" role="dialog" aria-labelledby="{{ titleId }}" tabindex="-1" ref="{{ panelRef }}">
+<div data-cb-head="1"><div><p data-cb-kick="1">Contact</p><p data-cb-title="1" id="{{ titleId }}">Talk to a person</p></div></div>
+<ul data-cb-rows="1">
+<li><dc-import name="ContactRow" icon="message-circle" title="WhatsApp" sub="+41 79 626 70 82" href="https://wa.me/41796267082" newTab="{{ yes }}" endIcon="external-link" size="card" onFollow="{{ follow }}" hint-size="100%,60px"></dc-import></li>
+<li><dc-import name="ContactRow" icon="phone" title="Call us" sub="+41 79 626 70 82" href="tel:+41796267082" size="card" onFollow="{{ follow }}" hint-size="100%,60px"></dc-import></li>
+<li><dc-import name="ContactRow" icon="mail" title="Email" sub="info@vamostaxi.site" href="mailto:info@vamostaxi.site" size="card" onFollow="{{ follow }}" hint-size="100%,60px"></dc-import></li>
+<li><dc-import name="ContactRow" icon="file-text" title="Send us a message" sub="Contact form" keep="{{ no }}" href="{{ contactHref }}" endIcon="chevron-right" size="card" onFollow="{{ follow }}" hint-size="100%,60px"></dc-import></li>
+</ul>
+</div>
+</sc-if>
+
+<sc-if value="{{ showSheet }}" hint-placeholder-val="{{ false }}">
+<div data-cb-scrim="1" aria-hidden="true" onClick="{{ scrimClose }}"></div>
+<div data-cb-sheet="1" id="{{ menuId }}" role="dialog" aria-modal="true" aria-labelledby="{{ titleId }}" tabindex="-1" ref="{{ panelRef }}">
+<div data-cb-grab="1" aria-hidden="true"></div>
+<div data-cb-head="1"><div><p data-cb-kick="1">Contact</p><p data-cb-title="1" id="{{ titleId }}">Talk to a person</p></div><span data-cb-x="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.IconButton" icon="x" label="Close" variant="outline" size="md" onClick="{{ closeBtn }}" hint-size="44px,44px"></x-import></span></div>
+<ul data-cb-rows="1">
+<li><dc-import name="ContactRow" icon="message-circle" title="WhatsApp" sub="+41 79 626 70 82" href="https://wa.me/41796267082" newTab="{{ yes }}" endIcon="external-link" size="sheet" onFollow="{{ follow }}" hint-size="100%,64px"></dc-import></li>
+<li><dc-import name="ContactRow" icon="phone" title="Call us" sub="+41 79 626 70 82" href="tel:+41796267082" size="sheet" onFollow="{{ follow }}" hint-size="100%,64px"></dc-import></li>
+<li><dc-import name="ContactRow" icon="mail" title="Email" sub="info@vamostaxi.site" href="mailto:info@vamostaxi.site" size="sheet" onFollow="{{ follow }}" hint-size="100%,64px"></dc-import></li>
+<li><dc-import name="ContactRow" icon="file-text" title="Send us a message" sub="Contact form" keep="{{ no }}" href="{{ contactHref }}" endIcon="chevron-right" size="sheet" onFollow="{{ follow }}" hint-size="100%,64px"></dc-import></li>
+</ul>
+</div>
+</sc-if>
+</div>
+
+<sc-if value="{{ gallery }}" hint-placeholder-val="{{ false }}">
+<section data-cb-gal="1" aria-label="Contact button states">
+<h2 data-vt-no-i18n="1">Button</h2>
+<div data-cb-grow="1">
+<sc-for list="{{ galPills }}" as="g" hint-placeholder-count="5">
+<div data-cb-cell="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="secondary" size="lg" data-cb-pill="1" data-s="{{ g.s }}" aria-label="{{ g.aria }}" hint-size="150px,54px"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ g.icon }}" size="{{ n20 }}" color="var(--vt-yellow)" hint-size="20px,20px"></x-import><span>{{ g.label }}</span></x-import><span data-cb-cap="1" data-vt-no-i18n="1">{{ g.cap }}</span></div>
+</sc-for>
+<sc-for list="{{ galDiscs }}" as="g" hint-placeholder-count="5">
+<div data-cb-cell="1"><button type="button" data-cb-disc="1" data-s="{{ g.s }}" aria-label="{{ g.aria }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ g.icon }}" size="{{ n22 }}" color="var(--vt-yellow)" hint-size="22px,22px"></x-import></button><span data-cb-cap="1" data-vt-no-i18n="1">{{ g.cap }}</span></div>
+</sc-for>
+<sc-for list="{{ galDocks }}" as="g" hint-placeholder-count="2">
+<div data-cb-cell="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.IconButton" icon="{{ g.icon }}" label="{{ g.aria }}" variant="outline" size="lg" data-cb-dock="1" hint-size="54px,54px"></x-import><span data-cb-cap="1" data-vt-no-i18n="1">{{ g.cap }}</span></div>
+</sc-for>
+</div>
+<h2 data-vt-no-i18n="1">Menu row (ContactRow)</h2>
+<div data-cb-grow="1">
+<sc-for list="{{ galRows }}" as="g" hint-placeholder-count="5">
+<div data-cb-cell="1"><dc-import name="ContactRow" icon="phone" title="Call us" sub="+41 79 626 70 82" href="tel:+41796267082" size="{{ g.size }}" state="{{ g.s }}" hint-size="320px,64px"></dc-import><span data-cb-cap="1" data-vt-no-i18n="1">{{ g.cap }}</span></div>
+</sc-for>
+</div>
+<h2 data-vt-no-i18n="1">Menu: card (above 680px) and sheet (680px and below)</h2>
+<div data-cb-grow="1">
+<div data-cb-cell="1">
+<div data-cb-panel="1" role="group" aria-label="Talk to a person">
+<div data-cb-head="1"><div><p data-cb-kick="1">Contact</p><p data-cb-title="1">Talk to a person</p></div></div>
+<ul data-cb-rows="1">
+<li><dc-import name="ContactRow" icon="message-circle" title="WhatsApp" sub="+41 79 626 70 82" href="https://wa.me/41796267082" newTab="{{ yes }}" endIcon="external-link" size="card" hint-size="100%,60px"></dc-import></li>
+<li><dc-import name="ContactRow" icon="phone" title="Call us" sub="+41 79 626 70 82" href="tel:+41796267082" size="card" hint-size="100%,60px"></dc-import></li>
+<li><dc-import name="ContactRow" icon="mail" title="Email" sub="info@vamostaxi.site" href="mailto:info@vamostaxi.site" size="card" hint-size="100%,60px"></dc-import></li>
+<li><dc-import name="ContactRow" icon="file-text" title="Send us a message" sub="Contact form" keep="{{ no }}" href="{{ contactHref }}" endIcon="chevron-right" size="card" hint-size="100%,60px"></dc-import></li>
+</ul>
+</div>
+<span data-cb-cap="1" data-vt-no-i18n="1">card · open</span>
+</div>
+<div data-cb-cell="1">
+<div data-cb-sheet="1" role="group" aria-label="Talk to a person">
+<div data-cb-grab="1" aria-hidden="true"></div>
+<div data-cb-head="1"><div><p data-cb-kick="1">Contact</p><p data-cb-title="1">Talk to a person</p></div><span data-cb-x="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.IconButton" icon="x" label="Close" variant="outline" size="md" hint-size="44px,44px"></x-import></span></div>
+<ul data-cb-rows="1">
+<li><dc-import name="ContactRow" icon="message-circle" title="WhatsApp" sub="+41 79 626 70 82" href="https://wa.me/41796267082" newTab="{{ yes }}" endIcon="external-link" size="sheet" hint-size="100%,64px"></dc-import></li>
+<li><dc-import name="ContactRow" icon="phone" title="Call us" sub="+41 79 626 70 82" href="tel:+41796267082" size="sheet" hint-size="100%,64px"></dc-import></li>
+<li><dc-import name="ContactRow" icon="mail" title="Email" sub="info@vamostaxi.site" href="mailto:info@vamostaxi.site" size="sheet" hint-size="100%,64px"></dc-import></li>
+<li><dc-import name="ContactRow" icon="file-text" title="Send us a message" sub="Contact form" keep="{{ no }}" href="{{ contactHref }}" endIcon="chevron-right" size="sheet" hint-size="100%,64px"></dc-import></li>
+</ul>
+</div>
+<span data-cb-cap="1" data-vt-no-i18n="1">sheet · open</span>
+</div>
+</div>
+</section>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:520},&quot;variant&quot;:{&quot;editor&quot;:&quot;select&quot;,&quot;options&quot;:[&quot;float&quot;,&quot;docked&quot;],&quot;default&quot;:&quot;float&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;open&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;gallery&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;}}">
+/* The menu opens on click/tap; Esc, a tap outside, the close button or following a row close
+   it, and focus goes back to the button. The phone sheet is modal (focus stays inside); the
+   card is not. Copy is English in the markup; the locale runtime translates it in place. */
+const CB_PHONE = '(max-width: 680px)';
+const CB_ZONE = 16 + 54 + 16;
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.uid = 'vt-cb-' + Math.random().toString(36).slice(2, 9);
+    this.rootRef = React.createRef();
+    this.panelRef = React.createRef();
+    this.gallery = props.gallery === true || props.gallery === 'true' || /[?&]cb-gallery=1(&|$)/.test(String(window.location.search || ''));
+    this.state = {
+      open: props.open === true || props.open === 'true',
+      narrow: this.isNarrow(), lang: this.curLang(), kb: false, lift: false, liftTop: 0,
+    };
+  }
+  variant() { return this.props.variant === 'docked' ? 'docked' : 'float'; }
+  isNarrow() {
+    if (typeof window.matchMedia === 'function') return window.matchMedia(CB_PHONE).matches;
+    return (window.innerWidth || 0) <= 680;
+  }
+  curLang() {
+    const L = window.VamosLocale;
+    const v = L && (typeof L.lang === 'function' ? L.lang() : L.lang);
+    return v === 'de' || v === 'fr' || v === 'ar' ? v : 'en';
+  }
+  componentDidMount() {
+    const L = window.VamosLocale;
+    if (L && typeof L.onChange === 'function') {
+      this._offLocale = L.onChange((v) => this.setState({ lang: (v && v.lang) || this.curLang() }));
+    }
+    if (typeof window.matchMedia === 'function') {
+      this._mq = window.matchMedia(CB_PHONE);
+      if (this._mq.addEventListener) this._mq.addEventListener('change', this.onMq); else if (this._mq.addListener) this._mq.addListener(this.onMq);
+    }
+    document.addEventListener('keydown', this.onKey);
+    document.addEventListener('pointerdown', this.onDocDown, true);
+    document.addEventListener('focusin', this.onFocusIn);
+    document.addEventListener('focusout', this.onFocusOut);
+    window.addEventListener('resize', this.onResize);
+    if (this.variant() === 'docked') document.documentElement.setAttribute('data-vt-contact-docked', '1');
+    this._h = window.innerHeight || 0;
+    this.setupLift();
+    if (this.state.open) this.focusPanel();
+  }
+  componentWillUnmount() {
+    this.unmounted = true;
+    if (this._offLocale) this._offLocale();
+    if (this._mq) { if (this._mq.removeEventListener) this._mq.removeEventListener('change', this.onMq); else if (this._mq.removeListener) this._mq.removeListener(this.onMq); }
+    document.removeEventListener('keydown', this.onKey);
+    document.removeEventListener('pointerdown', this.onDocDown, true);
+    document.removeEventListener('focusin', this.onFocusIn);
+    document.removeEventListener('focusout', this.onFocusOut);
+    window.removeEventListener('resize', this.onResize);
+    if (this._io) this._io.disconnect();
+    clearTimeout(this._kbT); clearTimeout(this._outT);
+    if (this.variant() === 'docked') document.documentElement.removeAttribute('data-vt-contact-docked');
+  }
+  onMq = () => { if (!this.unmounted) this.setState({ narrow: this.isNarrow() }, this.setupLift); };
+  onResize = () => {
+    const h = window.innerHeight || 0;
+    if (Math.abs(h - (this._h || 0)) < 2) return;
+    this._h = h;
+    this.setupLift();
+  };
+  /* Home on a phone: the observer's root is the bottom strip the disc lives in. While the
+     "Where to?" card reaches into that strip the disc sits just above the card, in the page,
+     so it scrolls with the card; when the card leaves the strip the disc goes back to the corner. */
+  setupLift = () => {
+    if (this._io) { this._io.disconnect(); this._io = null; }
+    const el = this.variant() === 'float' && this.state.narrow ? document.querySelector('[data-contact-lift]') : null;
+    if (!el || typeof window.IntersectionObserver !== 'function') {
+      if (this.state.lift) this.setState({ lift: false });
+      return;
+    }
+    const top = Math.max(0, (window.innerHeight || 0) - CB_ZONE);
+    this._io = new window.IntersectionObserver((entries) => {
+      const e = entries[entries.length - 1];
+      if (!e || this.unmounted) return;
+      if (e.isIntersecting) this.setState({ lift: true, liftTop: this.liftTop(el) });
+      else if (this.state.lift) this.setState({ lift: false });
+    }, { rootMargin: '-' + top + 'px 0px 0px 0px', threshold: 0 });
+    this._io.observe(el);
+  };
+  /** Page position (in the root's containing block) 12px above the card's top edge. */
+  liftTop(el) {
+    const r = el.getBoundingClientRect();
+    let base = -(window.scrollY || window.pageYOffset || 0);
+    const root = this.rootRef.current;
+    for (let n = root && root.parentElement; n && n !== document.body && n !== document.documentElement; n = n.parentElement) {
+      const cs = window.getComputedStyle(n);
+      if (cs.position !== 'static' || cs.transform !== 'none') { base = n.getBoundingClientRect().top - n.scrollTop; break; }
+    }
+    return Math.round(r.top - base - 54 - 12);
+  }
+  isTextField(n) {
+    if (!n || n.nodeType !== 1) return false;
+    if (n.isContentEditable) return true;
+    if (n.tagName === 'TEXTAREA') return true;
+    if (n.tagName !== 'INPUT') return false;
+    const t = String(n.type || 'text').toLowerCase();
+    return ['button', 'submit', 'reset', 'checkbox', 'radio', 'range', 'color', 'file', 'image', 'hidden'].indexOf(t) < 0;
+  }
+  onFocusIn = (e) => {
+    const root = this.rootRef.current;
+    if (root && root.contains(e.target)) return;
+    if (this.isTextField(e.target) && !this.state.kb) this.setState({ kb: true });
+  };
+  onFocusOut = () => {
+    clearTimeout(this._kbT);
+    this._kbT = setTimeout(() => {
+      if (this.unmounted) return;
+      const kb = this.isTextField(document.activeElement);
+      if (kb !== this.state.kb) this.setState({ kb });
+    }, 0);
+  };
+  trigger() { const r = this.rootRef.current; return r ? r.querySelector('[data-cb-trigger]') : null; }
+  focusTrigger() { const t = this.trigger(); if (t) { try { t.focus({ preventScroll: true }); } catch (e) { t.focus(); } } }
+  focusPanel() { const p = this.panelRef.current; if (p) { try { p.focus({ preventScroll: true }); } catch (e) { p.focus(); } } }
+  openMenu() { this.setState({ open: true }, () => this.focusPanel()); }
+  close(restore) {
+    if (!this.state.open) return;
+    this.setState({ open: false }, () => { if (restore) this.focusTrigger(); });
+  }
+  toggle = () => { if (this.state.open) this.close(true); else this.openMenu(); };
+  follow = () => this.close(true);
+  scrimClose = () => this.close(true);
+  closeBtn = () => this.close(true);
+  onDocDown = (e) => {
+    if (!this.state.open) return;
+    const root = this.rootRef.current;
+    if (root && root.contains(e.target)) return;
+    this.close(false);
+    clearTimeout(this._outT);
+    this._outT = setTimeout(() => {
+      const a = document.activeElement;
+      if (!a || a === document.body || a === document.documentElement) this.focusTrigger();
+    }, 0);
+  };
+  onKey = (e) => {
+    if (!this.state.open) return;
+    if (e.key === 'Escape' || e.key === 'Esc') { e.preventDefault(); this.close(true); return; }
+    if (e.key !== 'Tab' || !this.state.narrow) return;
+    const box = this.panelRef.current;
+    if (!box) return;
+    const f = Array.prototype.filter.call(box.querySelectorAll('a[href],button:not([disabled])'), (n) => n.getClientRects().length > 0);
+    if (!f.length) return;
+    const first = f[0], last = f[f.length - 1], a = document.activeElement;
+    if (!box.contains(a)) { e.preventDefault(); first.focus(); }
+    else if (e.shiftKey && (a === first || a === box)) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && a === last) { e.preventDefault(); first.focus(); }
+  };
+  renderVals() {
+    const s = this.state;
+    const v = this.variant();
+    const open = !!s.open;
+    const narrow = !!s.narrow;
+    const lifted = v === 'float' && narrow && !!s.lift;
+    const menuId = this.uid + '-menu';
+    const contactHref = s.lang === 'en' ? '/contact' : '/' + s.lang + '/contact';
+    const aria = (o) => (o ? 'Close contact options' : 'Open contact options');
+    const gal = this.gallery;
+    return {
+      yes: true, no: false, n20: 20, n22: 22,
+      rootRef: this.rootRef, panelRef: this.panelRef,
+      variant: v,
+      narrowAttr: narrow ? '1' : '0', openAttr: open ? '1' : '0', liftAttr: lifted ? '1' : '0', kbAttr: s.kb ? '1' : '0',
+      rootStyle: lifted ? 'top:' + s.liftTop + 'px' : '',
+      showPill: v === 'float' && !narrow,
+      showDisc: v === 'float' && narrow,
+      showDocked: v === 'docked',
+      showCard: open && !narrow,
+      showSheet: open && narrow,
+      triggerIcon: open ? 'x' : 'message-circle',
+      pillLabel: open ? 'Close' : 'Contact',
+      triggerLabel: aria(open),
+      openStr: open ? 'true' : 'false',
+      ariaControls: open ? menuId : undefined,
+      menuId, titleId: this.uid + '-title',
+      contactHref,
+      toggle: this.toggle, follow: this.follow, scrimClose: this.scrimClose, closeBtn: this.closeBtn,
+      gallery: gal,
+      galPills: gal ? [
+        { s: undefined, cap: 'pill · default', icon: 'message-circle', label: 'Contact', aria: aria(false) },
+        { s: 'hover', cap: 'pill · hover', icon: 'message-circle', label: 'Contact', aria: aria(false) },
+        { s: 'press', cap: 'pill · press', icon: 'message-circle', label: 'Contact', aria: aria(false) },
+        { s: 'focus', cap: 'pill · focus', icon: 'message-circle', label: 'Contact', aria: aria(false) },
+        { s: undefined, cap: 'pill · open', icon: 'x', label: 'Close', aria: aria(true) },
+      ] : [],
+      galDiscs: gal ? [
+        { s: undefined, cap: 'phone disc · default', icon: 'message-circle', aria: aria(false) },
+        { s: 'hover', cap: 'phone disc · hover', icon: 'message-circle', aria: aria(false) },
+        { s: 'press', cap: 'phone disc · press', icon: 'message-circle', aria: aria(false) },
+        { s: 'focus', cap: 'phone disc · focus', icon: 'message-circle', aria: aria(false) },
+        { s: undefined, cap: 'phone disc · open', icon: 'x', aria: aria(true) },
+      ] : [],
+      galDocks: gal ? [
+        { cap: 'in the pay bar', icon: 'message-circle', aria: aria(false) },
+        { cap: 'in the pay bar · open', icon: 'x', aria: aria(true) },
+      ] : [],
+      galRows: gal ? [
+        { s: '', size: 'card', cap: 'row · default' },
+        { s: 'hover', size: 'card', cap: 'row · hover' },
+        { s: 'press', size: 'card', cap: 'row · press' },
+        { s: 'focus', size: 'card', cap: 'row · focus' },
+        { s: '', size: 'sheet', cap: 'row · sheet (64px)' },
+      ] : [],
+    };
+  }
+}
+</script>
+</body>
+</html>
