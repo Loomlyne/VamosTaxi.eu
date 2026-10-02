@@ -4,8 +4,8 @@
 // record, enqueue, 200. Stripe times out a slow endpoint and retries it.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { asSystem } from "@/lib/db/identity";
 import { withRequestContext } from "@/lib/logger";
+import { recordStripeEvent } from "@/lib/checkout/stripe-event-record";
 import { handleStripeWebhook } from "@/lib/checkout/webhook";
 import { verifyStripeEvent } from "@/lib/checkout/webhook-verify";
 
@@ -27,20 +27,14 @@ export async function POST(request: Request) {
 
   return handleStripeWebhook(raw, request.headers.get("stripe-signature"), {
     verify: (body, signature) => verifyStripeEvent(env, body, signature),
-    record: async (event, objectId) => {
-      const rows = await asSystem(env, async (sql) => {
-        return sql`
-          select public.stripe_event_record(
-            ${event.id},
-            ${event.type},
-            ${new Date(event.created * 1000).toISOString()}::timestamptz,
-            ${objectId},
-            ${JSON.stringify(event.data.object)}::jsonb
-          ) as inserted
-        `;
-      });
-      return Boolean(rows[0]?.inserted);
-    },
+    record: (event, objectId) =>
+      recordStripeEvent(env, {
+        id: event.id,
+        type: event.type,
+        created: event.created,
+        objectId,
+        payload: event.data.object,
+      }),
     enqueue: (message) => env.STRIPE_EVENTS.send(message).then(() => undefined),
     emit,
   });
