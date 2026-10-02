@@ -6,7 +6,7 @@
 # Supabase project directory in the repo). project_id is non-dotted on purpose — Docker
 # container/volume names derive from it. Phase 2 migrations for this package have a
 # pre-assigned numbering table; see packages/db/README.md before running `supabase migration new`.
-project_id = "vamos-taxi-hph"
+project_id = "vamos-taxi"
 
 [api]
 enabled = true
