@@ -93,3 +93,36 @@ by rebuilding the database without this migration and seeing the same failure.
 2. `settings_versions.label` on live grows by a word every price-book publish
    ("Staging matrix — placeholder, not owner-approved draft draft draft draft …").
    That belongs to the price-book publish route, not here.
+
+## Review fixes 2026-10-03
+
+Branch merged with `origin/main` 33c9b994 first (merge 872defe6, no conflicts; git combined
+`packages/db/database.types.ts` itself — it holds main's `booking_cancel_change_pages` and this
+branch's `settings_policy_draft` / `policy_publish_draft`). Lockfile changed, installed frozen.
+Fixes in d82489b2, all in `app/ops/OpsSettings.dc.html`:
+
+- a. Minimum advance is `min_advance_minutes`: box suffix, placeholder, "Live now" line and the
+  change list say minutes. Stored value unchanged. Other boxes checked: Cancel window =
+  `free_cancel_hours` (hours, right), airport and city waiting = `*_waiting_minutes` (minutes, right).
+- b. Publish dialog Cancel: `variant="light"` (`ghost-inverse` is not in the bundle).
+- c. Refused Save is shown: a refusal that names a box (`settings-error-min-advance`,
+  `-free-cancel`, `-airport-wait`, `-city-wait`, or `settings-error-policy-number` pinned on the
+  first box that is not a whole number) goes under that box through the kit Input's `error`
+  prop: "Check the value: a whole number from 0 to {max}." Any other refusal goes in the header
+  bar (`role="alert"`, `--vt-danger`, same span pattern as the Security pane). Also in the bar
+  when he is on another pane. Cleared when a box changes, on Discard, or on a good save.
+- d. Publish hint shows once, next to Publish. Change list heading: "Changes to publish".
+- e. Change list: Lucide `arrow-right` through the kit `Icon`, outside `vt-dir-keep` so
+  `laws.css` mirrors it in Arabic; old/new numbers inside `vt-dir-keep` (same shape as OpsDetail).
+- f. "Live now": the number is an inline `vt-dir-keep` span. The unit stays outside it on
+  purpose: an Arabic unit inside an LTR isolate reads reversed ("دقيقة 120").
+- New strings `policyChangesTitle`, `policySaveCheck`, `policySaveWhole` in en/de/fr/ar.
+
+Gates run in this worktree (2026-10-03 00:39 +04): vitest `lib/ops/settings.test.ts` +
+`lib/ops/ops-dc-settings.test.ts` 51/51 pass (9 new; all 9 fail against the pre-fix page) ·
+typecheck · lint (6 pre-existing warnings, none in these files) · lint:css · i18n:check ·
+check:numbers · check:db-fences — all exit 0.
+
+Not verified: full `test:unit`, pgTAP, db gates (controller runs them); a browser run of the
+card (Arabic arrow mirror, error under the box, header line) on the local Worker; the change
+list and live line at 390 px.
