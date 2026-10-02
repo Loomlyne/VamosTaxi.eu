@@ -22,7 +22,7 @@
 // Rate Limiting Rule, 30/60 s managed_challenge) remains the gate.
 
 import { log, type LogFields, type LogLevel } from "../logger";
-import { verifyVamosQs } from "./vamos-qs";
+import { verifiedSubject } from "./vamos-qs";
 
 export type AbuseEmit = (
   level: LogLevel,
@@ -63,19 +63,6 @@ export type CheckRateLimitInput = {
 const fallbackEmit: AbuseEmit = (level, type, fields = {}) => {
   log(level, type, { requestId: "abuse", route: "rate-limit", locale: null }, fields);
 };
-
-async function verifiedSubject(
-  cookie: string | null | undefined,
-  secret: string,
-  previousSecret: string | undefined,
-): Promise<string | null> {
-  const current = await verifyVamosQs(secret, cookie);
-  if (current) return current;
-  if (typeof previousSecret === "string" && previousSecret.length > 0) {
-    return verifyVamosQs(previousSecret, cookie);
-  }
-  return null;
-}
 
 /**
  * Pick the 8/60 verified binding or the 4/60 bare-IP binding.

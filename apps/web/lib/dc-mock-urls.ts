@@ -236,13 +236,6 @@ export function gatePublicRequest(request: Request): Response | "not-found" | nu
   return null;
 }
 
-/** @deprecated use gatePublicRequest */
-export function gateLeakedMockRequest(request: Request): Response | null {
-  const gated = gatePublicRequest(request);
-  if (gated === "not-found") return empty404();
-  return gated;
-}
-
 /** True for `/app/ops` and every file under it (the dashboard screens and their scripts). */
 export function isOpsAssetRequest(request: Request): boolean {
   const { pathname } = new URL(request.url);

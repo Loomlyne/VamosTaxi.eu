@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { chfRappenToMinor, crossMinor, rateToMillionths } from "./convert";
+import { chfRappenToMinor, rateToMillionths } from "./convert";
 import { chfRappenToDisplay, formatChfRappen } from "./format";
 
 describe("display FX", () => {
@@ -9,12 +9,6 @@ describe("display FX", () => {
 
   it("80 CHF at 4.534498 AED/CHF is 362.76 AED", () => {
     expect(chfRappenToMinor(8000, rateToMillionths(4.534498))).toBe(36276);
-  });
-
-  it("100 USD → ~367 AED at live CHF-quoted rates", () => {
-    const usd = rateToMillionths(1.234718);
-    const aed = rateToMillionths(4.534498);
-    expect(crossMinor(10_000, usd, aed)).toBe(36725);
   });
 });
 

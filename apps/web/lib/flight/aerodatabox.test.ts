@@ -164,6 +164,23 @@ describe("lookupFlight — never the first record", () => {
   });
 });
 
+describe("lookupFlight — unmappable records", () => {
+  it("returns not_found when two records come back and neither can be mapped", async () => {
+    const unmappable = [
+      { number: "LX318", departure: { airport: { iata: "LHR" } }, arrival: { airport: { iata: "ZRH" } } },
+      { number: "LX318", departure: { airport: { iata: "LHR" } }, arrival: { airport: { iata: "ZRH" } } },
+    ];
+    const { fetch } = mockFetch(() => jsonResponse(unmappable));
+    const result = await lookupFlight(
+      { number: "LX318", date: "2026-01-15" },
+      { FLIGHT_API_KEY: KEY },
+      { fetch },
+    );
+    expect(result).toMatchObject({ ok: false, code: "not_found" });
+    expect(result).not.toHaveProperty("candidates");
+  });
+});
+
 describe("lookupFlight — empty and upstream failures", () => {
   it("returns not_found on an empty array", async () => {
     const { fetch } = mockFetch(() => jsonResponse(EMPTY_ARRAY));

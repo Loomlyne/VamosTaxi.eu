@@ -18,7 +18,7 @@
 //    would make an owner's unopened account into a customer-facing outage.
 //  - Never log the token, the secret or the remoteip in raw form.
 
-import { verifyVamosQs } from "./vamos-qs";
+import { verifiedSubject } from "./vamos-qs";
 
 export const TURNSTILE_TIMEOUT_MS = 2_000;
 
@@ -107,11 +107,15 @@ async function postSiteverify(
     body: JSON.stringify(payload),
     signal: AbortSignal.timeout(TURNSTILE_TIMEOUT_MS),
   });
-  let json: unknown = null;
+  // 26.2 audit: a non-2xx answer or a body that is not JSON (an HTML 502 page) means
+  // siteverify is down, not that the visitor failed the challenge. Same degraded shape as a
+  // timeout, so challengeDecision fails open as the header says.
+  if (!res.ok) return { configured: true, success: false, degraded: true };
+  let json: unknown;
   try {
     json = await res.json();
   } catch {
-    json = null;
+    return { configured: true, success: false, degraded: true };
   }
   if (json && typeof json === "object" && (json as { success?: unknown }).success === true) {
     return { configured: true, success: true };
@@ -146,8 +150,8 @@ export async function siteverify(input: SiteverifyInput): Promise<SiteverifyResu
       return { configured: true, success: false, degraded: true };
     }
     // ONE retry, SAME idempotency_key — a new key on a consumed token is a
-    // real timeout-or-duplicate and would 403 a good customer.
-    payload.idempotency_key = input.idempotencyKey;
+    // real timeout-or-duplicate and would 403 a good customer. The payload already
+    // carries that key and is not touched between the two calls.
     try {
       return await postSiteverify(fetchImpl, payload);
     } catch {
@@ -168,19 +172,6 @@ function verifyMintFresh(verify: SiteverifyResult | undefined): boolean {
   return Boolean(
     verify && "timeoutOrDuplicate" in verify && verify.timeoutOrDuplicate,
   );
-}
-
-async function verifiedSubject(
-  cookie: string | null | undefined,
-  secret: string,
-  previousSecret: string | undefined,
-): Promise<string | null> {
-  const current = await verifyVamosQs(secret, cookie);
-  if (current) return current;
-  if (typeof previousSecret === "string" && previousSecret.length > 0) {
-    return verifyVamosQs(previousSecret, cookie);
-  }
-  return null;
 }
 
 /**

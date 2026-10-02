@@ -119,6 +119,43 @@ describe("siteverify", () => {
     expect(result).toEqual({ configured: true, success: false, degraded: true });
     expect(fetchFn).toHaveBeenCalledTimes(2);
   });
+
+  it("a 502 with an HTML body is degraded, not a failed challenge", async () => {
+    const fetchFn = vi.fn(
+      async () =>
+        new Response("<html><body>502 Bad Gateway</body></html>", {
+          status: 502,
+          headers: { "content-type": "text/html" },
+        }),
+    );
+    const result = await siteverify({
+      secret: FAKE_TURNSTILE_SECRET,
+      response: TOKEN,
+      idempotencyKey: IDEMPOTENCY,
+      fetch: fetchFn,
+    });
+    expect(result).toEqual({ configured: true, success: false, degraded: true });
+    const decision = await challengeDecision({
+      ip: IP,
+      secret: FAKE_QS_SECRET,
+      attemptStore: { increment: async () => 3 },
+      token: TOKEN,
+      verify: result,
+      configured: true,
+    });
+    expect(decision).toEqual({ enforce: false, fellBackToEdge: true });
+  });
+
+  it("a 200 with a body that is not JSON is degraded", async () => {
+    const fetchFn = vi.fn(async () => new Response("not json", { status: 200 }));
+    const result = await siteverify({
+      secret: FAKE_TURNSTILE_SECRET,
+      response: TOKEN,
+      idempotencyKey: IDEMPOTENCY,
+      fetch: fetchFn,
+    });
+    expect(result).toEqual({ configured: true, success: false, degraded: true });
+  });
 });
 
 describe("challengeDecision", () => {

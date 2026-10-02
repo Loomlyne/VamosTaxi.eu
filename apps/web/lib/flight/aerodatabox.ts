@@ -336,6 +336,9 @@ export async function lookupFlight(
       const mapped = mapRecord(rec, number, date);
       if (mapped) candidates.push(mapped);
     }
+    // 26.2 audit: nothing mappable is the same "enter the time by hand" outcome as one
+    // unmappable record, never an empty pick list.
+    if (candidates.length === 0) return fail("not_found");
     return {
       ok: true,
       action: "disambiguate",

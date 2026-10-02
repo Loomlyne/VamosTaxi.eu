@@ -6,13 +6,31 @@
 
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { log } from "../logger";
 import { authCookieOptions, isSecureRequest } from "./cookies";
+
+let envWarned = false;
 
 function supabaseAuthEnv(): { url: string; anonKey: string } {
   const url = process.env.SUPABASE_URL;
   const anonKey = process.env.SUPABASE_ANON_KEY;
   if (typeof url === "string" && url.length > 0 && typeof anonKey === "string" && anonKey.length > 0) {
     return { url, anonKey };
+  }
+  // 26.2 audit: say so (once per isolate) instead of quietly refreshing sessions against
+  // 127.0.0.1. Only which value is missing is logged, never a value.
+  if (!envWarned) {
+    envWarned = true;
+    log(
+      "warn",
+      "supabase_env_missing",
+      { requestId: "middleware", route: "supabase/middleware", locale: null },
+      {
+        url_missing: !(typeof url === "string" && url.length > 0),
+        anon_key_missing: !(typeof anonKey === "string" && anonKey.length > 0),
+        fallback: "local-placeholder",
+      },
+    );
   }
   return { url: "http://127.0.0.1:54321", anonKey: "anon-placeholder" };
 }
