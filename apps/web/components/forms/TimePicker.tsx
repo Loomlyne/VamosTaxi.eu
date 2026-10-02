@@ -106,7 +106,12 @@ export function TimePicker({
               <Icon name="clock" size={16} color="var(--vt-text-muted)" />
               <span>{timeTitle}</span>
             </div>
-            <div className="vt-time__spin">
+            {/* The hour and minute columns each keep their own digits LTR, but the row
+                holding them inherits the page direction — under dir="rtl" the two columns
+                swapped and 04:30 painted as "30 : 04". .vt-dir-keep sets direction:ltr,
+                which is what fixes a flex row's order. The .dc.html twin carries the same
+                fix (shipped by the booking-pages-polish job). */}
+            <div className="vt-time__spin vt-dir-keep">
               <div className="vt-time__col">
                 <button type="button" aria-label="Hour up" onClick={() => onChange(bumpHm(parsed.hm, 60))}>
                   <Icon name="chevron-up" size={16} color="currentColor" />
