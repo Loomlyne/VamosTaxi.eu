@@ -9,6 +9,15 @@ on:
   push:
     branches: ["ci/**"]
 
+# Nine jobs a run, so a push (a ci/** branch, main or a v* tag) cancels the older run
+# of the same ref instead of leaving nine duplicates racing the new one. A run called
+# from pr.yml or by a hand-started deploy is not cancelled. Re-pushing the same v* tag
+# cancels the earlier e2e, and with it that run's production deploy, which then does
+# not run (fails safe).
+concurrency:
+  group: e2e-linux-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'push' }}
+
 permissions:
   contents: read
 
