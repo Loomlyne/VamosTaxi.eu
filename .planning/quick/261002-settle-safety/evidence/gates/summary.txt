@@ -1,0 +1,13 @@
+typecheck exit 0
+lint exit 0
+lint:css exit 0
+i18n:check exit 0
+check:legal-claims exit 0
+check:numbers exit 0
+check:public-env exit 0
+check:db-fences exit 1 (module-scope Set in settle-errors.ts; fixed, rerun exit 0)
+db:seed:check exit 0
+test:unit exit 0
+build exit 0
+typecheck (f22b6a04) exit 0
+lint (f22b6a04) exit 0

@@ -2724,6 +2724,12 @@ export type Database = {
       }
       account_finish_mark: { Args: { p_email: string }; Returns: undefined }
       account_finish_required: { Args: { p_user_id: string }; Returns: boolean }
+      booking_cancel_change_pages: {
+        Args: { p_booking_id: string }
+        Returns: {
+          extra_session_id: string
+        }[]
+      }
       booking_cancel_resend_facts: {
         Args: { p_booking_id: string }
         Returns: {
