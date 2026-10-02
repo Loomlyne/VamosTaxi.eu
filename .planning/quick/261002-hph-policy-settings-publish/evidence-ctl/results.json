@@ -1,0 +1,357 @@
+[
+ [
+  "p1 en 1440",
+  {
+   "n": 4,
+   "ph": [
+    "min",
+    "hours",
+    "",
+    ""
+   ],
+   "wrapText": "Minimum advance | min",
+   "scrollW": 1440,
+   "clientW": 1440,
+   "bodyScrollW": 1440
+  }
+ ],
+ [
+  "p1 en 390",
+  {
+   "n": 4,
+   "ph": [
+    "min",
+    "hours",
+    "",
+    ""
+   ],
+   "wrapText": "Minimum advance | min",
+   "scrollW": 390,
+   "clientW": 390,
+   "bodyScrollW": 390
+  }
+ ],
+ [
+  "p1 ar 1440",
+  {
+   "n": 4,
+   "ph": [
+    "دقيقة",
+    "ساعات",
+    "",
+    ""
+   ],
+   "wrapText": "أقل مهلة مسبقة | دقيقة",
+   "scrollW": 1440,
+   "clientW": 1440,
+   "bodyScrollW": 1440
+  }
+ ],
+ [
+  "p1 ar 390",
+  {
+   "n": 4,
+   "ph": [
+    "دقيقة",
+    "ساعات",
+    "",
+    ""
+   ],
+   "wrapText": "أقل مهلة مسبقة | دقيقة",
+   "scrollW": 390,
+   "clientW": 390,
+   "bodyScrollW": 390
+  }
+ ],
+ [
+  "p2 en body sent",
+  [
+   {
+    "company": "Vamos Taxi",
+    "address": "",
+    "uid": "",
+    "phone": "",
+    "email": "",
+    "defaultLang": "en",
+    "defaultCur": "CHF",
+    "minAdvance": "30.5",
+    "cancelWindow": 24,
+    "airportWait": 60,
+    "cityWait": 15,
+    "emailConfirm": true,
+    "emailReminder": true,
+    "smsReminder": false,
+    "opsAlerts": true
+   }
+  ]
+ ],
+ [
+  "p2 en error line",
+  [
+   "Check the value: a whole number from 0 to 10080."
+  ]
+ ],
+ [
+  "p2 en error after edit",
+  []
+ ],
+ [
+  "p3 en error line",
+  [
+   "Check the value: a whole number from 0 to 1440."
+  ]
+ ],
+ [
+  "p3 en error position",
+  [
+   {
+    "text": "Check the value: a whole number from 0 to 1440.",
+    "y": 281,
+    "boxTops": [
+     242,
+     242,
+     242,
+     374
+    ],
+    "role": null
+   }
+  ]
+ ],
+ [
+  "p4 en",
+  {
+   "rows": [
+    {
+     "text": "City waiting included 15 30 min",
+     "arrowTransforms": [],
+     "arrowHTML": "<div class=\"sc-host-x\" data-dc-tpl=\"51\" style=\"display: contents;\"><span aria-hidden=\"true\" style=\"display: inline-block; width: 14px; height: 14px; flex: 0 0 auto; background: var(--vt-text-muted); mask-image: url(&quot;../../assets/icons/arrow-right.svg&quot",
+     "maskImage": "url(\"http://127.0.0.1:53085/assets/icons/arrow-right.svg\")",
+     "oldDir": "ltr",
+     "newDir": "ltr",
+     "oldUb": "normal",
+     "rowDir": "ltr"
+    }
+   ],
+   "confirmVisible": "flex",
+   "btns": [
+    {
+     "text": "PUBLISH",
+     "bg": "rgb(253, 194, 11)",
+     "border": "1px solid rgba(0, 0, 0, 0)",
+     "radius": "999px",
+     "font": "Poppins, system-ui, -apple-sys",
+     "h": 44
+    },
+    {
+     "text": "CANCEL",
+     "bg": "rgb(255, 255, 255)",
+     "border": "1px solid rgba(0, 0, 0, 0)",
+     "radius": "999px",
+     "font": "Poppins, system-ui, -apple-sys",
+     "h": 44
+    }
+   ],
+   "hintCount": 0,
+   "pageDir": "ltr"
+  }
+ ],
+ [
+  "p4 en hint \"These numbers reach customers when you publish.\" occurrences",
+  1
+ ],
+ [
+  "p5 en coverage",
+  {
+   "lang": "de",
+   "count": 37,
+   "strings": [
+    "Content",
+    "Collapse sidebar",
+    "Company details, booking policy, payment and notifications",
+    "Name, address, UID",
+    "Booking policy",
+    "Advance, cancellation, waiting",
+    "Localisation",
+    "Language and currency",
+    "Payments",
+    "What checkout offers",
+    "Emails, SMS, alerts",
+    "Security",
+    "Email, password, passkeys",
+    "The rules the booking form and the emails quote",
+    "Minimum advance",
+    "min",
+    "Free cancellation",
+    "hours",
+    "Airport waiting included",
+    "City waiting included",
+    "Live now",
+    "Changes to publish",
+    "PUBLISH",
+    "These numbers reach customers when you publish.",
+    "Publish these booking rules?",
+    "Customers see them straight away. The version they replace is kept.",
+    "CANCEL",
+    "Waiting time is what a chauffeur holds for free before waiting is charged."
+   ],
+   "attrs": [
+    "Content",
+    "Collapse sidebar",
+    "Open navigation",
+    "Booking policy",
+    "Localisation",
+    "Payments",
+    "Security",
+    "min",
+    "hours"
+   ]
+  }
+ ],
+ [
+  "p2 ar body sent",
+  [
+   {
+    "company": "Vamos Taxi",
+    "address": "",
+    "uid": "",
+    "phone": "",
+    "email": "",
+    "defaultLang": "ar",
+    "defaultCur": "CHF",
+    "minAdvance": "30.5",
+    "cancelWindow": 24,
+    "airportWait": 60,
+    "cityWait": 15,
+    "emailConfirm": true,
+    "emailReminder": true,
+    "smsReminder": false,
+    "opsAlerts": true
+   }
+  ]
+ ],
+ [
+  "p2 ar error line",
+  [
+   "تحقّق من القيمة: عدد صحيح من 0 إلى 10080."
+  ]
+ ],
+ [
+  "p2 ar error after edit",
+  []
+ ],
+ [
+  "p3 ar error line",
+  [
+   "تحقّق من القيمة: عدد صحيح من 0 إلى 1440."
+  ]
+ ],
+ [
+  "p3 ar error position",
+  [
+   {
+    "text": "تحقّق من القيمة: عدد صحيح من 0 إلى 1440.",
+    "y": 281,
+    "boxTops": [
+     242,
+     242,
+     242,
+     354
+    ],
+    "role": null
+   }
+  ]
+ ],
+ [
+  "p4 ar",
+  {
+   "rows": [
+    {
+     "text": "انتظار المدينة المشمول 15 30 دقيقة",
+     "arrowTransforms": [
+      "matrix(-1, 0, 0, 1, 0, 0)"
+     ],
+     "arrowHTML": "<div class=\"sc-host-x\" data-dc-tpl=\"51\" style=\"display: contents;\"><span aria-hidden=\"true\" style=\"display: inline-block; width: 14px; height: 14px; flex: 0 0 auto; background: var(--vt-text-muted); mask-image: url(&quot;../../assets/icons/arrow-right.svg&quot",
+     "maskImage": "url(\"http://127.0.0.1:53085/assets/icons/arrow-right.svg\")",
+     "oldDir": "ltr",
+     "newDir": "ltr",
+     "oldUb": "isolate",
+     "rowDir": "rtl"
+    }
+   ],
+   "confirmVisible": "flex",
+   "btns": [
+    {
+     "text": "نشر",
+     "bg": "rgb(253, 194, 11)",
+     "border": "1px solid rgba(0, 0, 0, 0)",
+     "radius": "999px",
+     "font": "\"Noto Sans Arabic\", Poppins, s",
+     "h": 44
+    },
+    {
+     "text": "إلغاء",
+     "bg": "rgb(255, 255, 255)",
+     "border": "1px solid rgba(0, 0, 0, 0)",
+     "radius": "999px",
+     "font": "\"Noto Sans Arabic\", Poppins, s",
+     "h": 44
+    }
+   ],
+   "hintCount": 0,
+   "pageDir": "rtl"
+  }
+ ],
+ [
+  "p4 ar hint \"تصل هذه الأرقام إلى العملاء عند النشر.\" occurrences",
+  1
+ ],
+ [
+  "p5 ar coverage",
+  {
+   "lang": "ar",
+   "count": 34,
+   "strings": [
+    "المحتوى",
+    "طيّ الشريط الجانبي",
+    "بيانات الشركة وقواعد الحجز والدفع والإشعارات",
+    "الاسم والعنوان والرقم الضريبي",
+    "قواعد الحجز",
+    "المهلة والإلغاء والانتظار",
+    "التوطين",
+    "اللغة والعملة",
+    "ما يعرضه الدفع",
+    "رسائل ونصوص وتنبيهات",
+    "الأمان",
+    "البريد وكلمة المرور ومفاتيح المرور",
+    "القواعد التي يذكرها نموذج الحجز ورسائل البريد",
+    "أقل مهلة مسبقة",
+    "دقيقة",
+    "إلغاء مجاني",
+    "ساعات",
+    "انتظار المطار المشمول",
+    "انتظار المدينة المشمول",
+    "المعمول به الآن",
+    "تغييرات بانتظار النشر",
+    "نشر",
+    "تصل هذه الأرقام إلى العملاء عند النشر.",
+    "هل تنشر قواعد الحجز هذه؟",
+    "يراها العملاء فوراً. وتبقى النسخة المستبدلة محفوظة.",
+    "الانتظار هو المدة التي ينتظرها السائق مجانًا قبل أن يُحسب الانتظار."
+   ],
+   "attrs": [
+    "المحتوى",
+    "طيّ الشريط الجانبي",
+    "فتح التنقل",
+    "قواعد الحجز",
+    "التوطين",
+    "الأمان",
+    "دقيقة",
+    "ساعات"
+   ]
+  }
+ ],
+ [
+  "p5 ar visible latin strings (policy pane open)",
+  []
+ ]
+]
