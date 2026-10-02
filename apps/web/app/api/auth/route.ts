@@ -8,6 +8,7 @@ import { checkWriteRateLimit } from "@/lib/abuse/rate-limit";
 import { holdCheckoutFloor, sendCheckoutSignInLink } from "@/lib/auth/checkout-sign-in";
 import { CONSENT_REQUIRED, SIGNUP_UNAVAILABLE, recordSignupAgreement, signupConsentGiven } from "@/lib/auth/signup-agreement";
 import { finishAccount } from "@/lib/auth/account-finish";
+import { storeProfilePhone, syncSignupPhone } from "@/lib/auth/account-phone";
 import { finishRequiredStrict, markFinished, markFinishPending, mustFinish } from "@/lib/auth/finish-target";
 import { log } from "@/lib/logger";
 import { verifyTurnstile } from "@/lib/turnstile";
@@ -298,7 +299,10 @@ export async function POST(request: Request): Promise<Response> {
       if (blockedChange) return blockedChange;
     }
     try {
-      const { result, reason } = await runUpdateProfile(supabase, parsed);
+      // The number also goes onto the customer row: the dashboard's Customers list reads it there.
+      const { result, reason } = await runUpdateProfile(supabase, parsed, {
+        storePhone: (user, phone) => storeProfilePhone(env, user, phone, ctx),
+      });
       if (reason) log("error", "auth", ctx, { reason, action: "update-profile" });
       return sessionJson(result, setCookies);
     } catch {
@@ -582,6 +586,8 @@ export async function POST(request: Request): Promise<Response> {
     // 27.1: an account the sign-in link just made goes to the finish step, not to where it was going.
     if (!dashboard) {
       const { data: signedIn } = await supabase.auth.getUser();
+      // A number given at sign-up goes onto the customer row now that the address is confirmed.
+      if (signedIn.user) await syncSignupPhone(env, signedIn.user, ctx);
       if (signedIn.user && (await mustFinish(env, signedIn.user.id, ctx))) {
         return sessionJson({ ok: true, finish: true }, setCookies);
       }

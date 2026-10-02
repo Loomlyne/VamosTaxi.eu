@@ -13,6 +13,7 @@
     "packages/db/test/local/consent-reader.test.ts",
     "packages/db/test/local/checkout-account.test.ts",
     "apps/web/lib/db/system-reads.local.test.ts",
+    "apps/web/lib/auth/account-phone.local.test.ts",
     "apps/web/lib/ops/refund-by-hand.local.test.ts",
     "apps/web/lib/ops/assign.local.test.ts",
     "apps/web/lib/ops/chauffeur-delete.local.test.ts",
