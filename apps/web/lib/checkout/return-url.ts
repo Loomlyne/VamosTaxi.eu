@@ -12,29 +12,6 @@ export function checkoutPageLocale(pathname: string): string {
   return LOCALES.includes(first) && first !== "en" ? first : "en";
 }
 
-export function checkoutReturnUrl(
-  origin: string,
-  reference: string,
-  sessionId: string,
-  locale = "en",
-): string {
-  return checkoutSettleUrl(origin, sessionId, locale, reference);
-}
-
-/** Settle URL. Reference is optional — the return route looks the booking up by session id. */
-export function checkoutSettleUrl(
-  origin: string,
-  sessionId: string,
-  locale = "en",
-  reference = "",
-): string {
-  const url = new URL("/api/checkout/return", origin);
-  if (reference) url.searchParams.set("ref", reference);
-  url.searchParams.set("session", sessionId);
-  url.searchParams.set("locale", LOCALES.includes(locale) ? locale : "en");
-  return url.toString();
-}
-
 /**
  * Checkout Session `return_url`. Stripe replaces `{CHECKOUT_SESSION_ID}`.
  * Do not encode the braces. The booking reference is not known when the

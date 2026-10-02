@@ -125,7 +125,10 @@ export async function handleChargeRefundedWithDeps(
   const paymentIntentId = paymentIntentIdOfCharge(charge);
   const refunds = charge.refunds?.data ?? [];
   if (charge.refunds?.has_more) {
+    // retrieveCharge pages through every refund; a list still cut short here must not be
+    // acknowledged with refunds unrecorded (26.2 audit U11-3). Retry keeps the event open.
     deps.emit("warn", "charge_refunds_truncated", { eventId: message.eventId, chargeId: charge.id });
+    return { retry: true };
   }
 
   if (refunds.some((refund) => refund.status === "succeeded" && refund.currency !== "chf")) {
