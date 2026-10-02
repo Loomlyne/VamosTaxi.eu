@@ -241,7 +241,7 @@ describe("a time change with no booked date on screen (real page logic + runtime
     const page = new Page({});
     page.setState({
       authVia: "token", view: "change", mIso: "2026-10-20", mTime: "10:00",
-      ticket: { ...(page.state.ticket as object), reference: "VT-26-0101", status: "confirmed", dateLabel: "", timeLabel: "", scheduledLocal: "2026-10-20T08:15" },
+      ticket: { ...(page.state.ticket as object), reference: "VT-26-0101", status: "confirmed", scheduledLocal: "" },
     });
     page.confirmModify();
     for (let i = 0; i < 5; i++) await new Promise((r) => setImmediate(r));
