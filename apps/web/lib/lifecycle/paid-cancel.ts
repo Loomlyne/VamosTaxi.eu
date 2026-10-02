@@ -6,8 +6,9 @@
 
 export const dynamic = "force-dynamic";
 
+import { expireCheckoutSession, stripeFromEnv } from "../checkout/stripe";
 import { asCustomer, asGuest, asSystem, type VamosClaims } from "../db/identity";
-import { loadPaidCancelMail } from "../db/system-reads";
+import { loadCancelChangePages, loadPaidCancelMail } from "../db/system-reads";
 import { notifyCancellation } from "./notify-lifecycle";
 
 export type PaidCancelOk = {
@@ -135,10 +136,47 @@ async function notifyPaidCancelMails(
 }
 
 /**
- * 20-10 refunds by hand: a cancel never calls Stripe. The database already left the booking
+ * 261002 settle safety (P-2): close the Stripe page of every change request this cancel ended.
+ * Why: a difference paid after a cancel used to be applied to the cancelled trip. The database now ends a
+ * waiting change in the cancel's own transaction and the settle never applies it; closing the page stops
+ * the customer paying it at all. The pages come from `booking_cancel_change_pages` (the ended, unpaid,
+ * not yet expired ones of a cancelled booking). Best effort and silent: a page Stripe refuses to close is
+ * already paid or already expired (a payment that still lands is recorded as Refund due, never applied),
+ * an unreadable list or a Worker without a Stripe key changes nothing. Each page has its own try/catch,
+ * so one refusal never stops the next. The cancel's answer does not depend on any of it.
+ */
+async function closeEndedChangePages(env: CloudflareEnv, bookingId: string): Promise<void> {
+  let pages: string[];
+  try {
+    pages = (await loadCancelChangePages(env, bookingId)).map((id) => String(id ?? "").trim()).filter((id) => id !== "");
+  } catch {
+    return;
+  }
+  if (pages.length === 0) return;
+  let stripe: ReturnType<typeof stripeFromEnv>;
+  try {
+    stripe = stripeFromEnv(env);
+  } catch {
+    return;
+  }
+  await Promise.all(
+    pages.map(async (id) => {
+      try {
+        await expireCheckoutSession(stripe, id);
+      } catch {
+        // Already paid or expired.
+      }
+    }),
+  );
+}
+
+/**
+ * 20-10 refunds by hand: a cancel never refunds on Stripe. The database already left the booking
  * cancelled with `pending_ops` (owed = captured for the full tier, owed null inside 24 h).
  * The customer gets the cancellation mail with the matching refund line; the admin sends the
- * refund from the dashboard.
+ * refund from the dashboard. The one Stripe call a cancel makes is closing the page of a change it
+ * ended (261002 settle safety, P-2: see closeEndedChangePages); it runs FIRST, before the mail,
+ * because the customer may be on that pay page right now.
  */
 export async function finishPaidCancel(env: CloudflareEnv, row: CancelledRow): Promise<PaidCancelResult> {
   const bookingId = String(row.booking_id);
@@ -148,6 +186,7 @@ export async function finishPaidCancel(env: CloudflareEnv, row: CancelledRow): P
   const fullDue = refundMode === "auto_full" && refundRappen > 0;
   const refundLine = fullDue ? "full_captured" : refundMode === "pending_ops" ? "pending_ops" : "none";
 
+  await closeEndedChangePages(env, bookingId);
   await notifyPaidCancelMails(env, bookingId, refundLine);
   return {
     ok: true,

@@ -106,3 +106,20 @@ export async function deliverPaidAfterCancelAlert(
   if (!row) return;
   await deliverOpsMustFix(env, "paid-after-cancel", tripsFromRows([row]), emailLocale(row.locale));
 }
+
+/**
+ * 261002 settle safety (T1): a customer paid the difference for a change, the payment is recorded
+ * (it shows as Refund due) but the change was not applied: the trip was cancelled, a newer change
+ * replaced it, or it no longer fits. Mails info@ in the booking's language; the caller treats a
+ * failure as best effort and never retries because of it.
+ */
+export async function deliverDifferenceNotAppliedAlert(
+  env: CloudflareEnv,
+  bookingKey: string,
+): Promise<void> {
+  const key = bookingKey.trim();
+  if (!key) return;
+  const row = await loadMustFixTrip(env, key);
+  if (!row) return;
+  await deliverOpsMustFix(env, "difference-not-applied", tripsFromRows([row]), emailLocale(row.locale));
+}
