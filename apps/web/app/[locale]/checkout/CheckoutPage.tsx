@@ -18,6 +18,7 @@ import { useFx } from "@/lib/fx/use-fx";
 import { useVamosLocale } from "@/lib/locale-shim";
 import { geoLocale } from "@/lib/checkout/geo-locale";
 import { partyCap } from "@/lib/checkout/party-cap";
+import { createRateLimitAutoRetry, type RateLimitAutoRetry } from "@/lib/checkout/rate-limit-retry";
 import { buildTripQuery, type Trip, type TripFieldError } from "@/lib/checkout/trip-url";
 import { useCheckoutSettings } from "./CheckoutSettings";
 import { ClassSection, type ClassPhase } from "./sections/ClassSection";
@@ -165,30 +166,39 @@ export function CheckoutPage({
     [locale, cur, setSelected],
   );
 
+  // Quick 261003: "Too many prices — wait a moment" asks the customer to wait, so the page
+  // asks again by itself once, 61 s after the refusal (lib/checkout/rate-limit-retry.ts).
+  // Pressing TRY AGAIN cancels it for good; a trip edit (a newer quote) skips it.
+  const runQuoteRef = useRef(runQuote);
+  runQuoteRef.current = runQuote;
+  const autoRetry = useRef<RateLimitAutoRetry | null>(null);
+  /** Quote for the class list itself (page load, TRY AGAIN, the auto retry) and report how it settled. */
+  const quoteShown = useCallback((next: Trip) => {
+    const pending = runQuoteRef.current(next);
+    const mine = seq.current; // runQuote has already taken its request number
+    void pending.then((result) => autoRetry.current?.settled(result.kind === "error" ? result.code : null, mine));
+  }, []);
+  useEffect(() => {
+    const auto = createRateLimitAutoRetry({
+      currentSeq: () => seq.current,
+      retry: () => {
+        setPhase({ kind: "loading" });
+        quoteShown(tripRef.current);
+      },
+    });
+    autoRetry.current = auto;
+    return () => {
+      auto.dispose();
+      if (autoRetry.current === auto) autoRetry.current = null;
+    };
+  }, [quoteShown]);
+
   useEffect(() => {
     if (started.current) return;
     started.current = true;
-    if (quotable) void runQuote(initialTrip);
+    if (quotable) quoteShown(initialTrip);
     // The trip in the URL is read once; later changes go through applyTrip.
   }, []);
-
-  // Quick 261003: "Too many prices — wait a moment" asks the customer to wait, so the page
-  // asks again by itself once, after the 60 s rate-limit window, unless they already pressed
-  // TRY AGAIN or changed the trip. One time per page: never a loop against the limiter.
-  const runQuoteRef = useRef(runQuote);
-  runQuoteRef.current = runQuote;
-  const autoRetried = useRef(false);
-  useEffect(() => {
-    if (phase.kind !== "error" || phase.refusal.code !== "rate_limited" || autoRetried.current) return;
-    const mine = seq.current;
-    const id = window.setTimeout(() => {
-      if (seq.current !== mine) return;
-      autoRetried.current = true;
-      setPhase({ kind: "loading" });
-      void runQuoteRef.current(tripRef.current);
-    }, 61_000);
-    return () => window.clearTimeout(id);
-  }, [phase]);
 
   const applyTrip = useCallback(
     async (next: Trip, token?: string | null): Promise<QuoteResult> => {
@@ -356,8 +366,9 @@ export function CheckoutPage({
               }}
               onSelect={choose}
               onRetry={() => {
+                autoRetry.current?.manualRetry();
                 setPhase({ kind: "loading" });
-                void runQuote(tripRef.current);
+                quoteShown(tripRef.current);
               }}
               onEditTrip={() => setEditorOpen(true)}
             />
