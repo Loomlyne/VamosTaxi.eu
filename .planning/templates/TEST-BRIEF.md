@@ -8,7 +8,7 @@ evidence: <worktree>/.planning/quick/<id>/evidence
 
 # Test brief: <one line>
 
-Written by the lead (Opus); run by `vamos-tester` (Sonnet). Run it exactly; report PASS / FAIL / BLOCKED per step in `RESULT.md`.
+Written by the lead (Opus); run by `vamos-tester` (Sonnet). Run it exactly; reply with PASS / FAIL / BLOCKED per step; the lead saves the reply as `RESULT.md` in the evidence folder.
 
 ## What changed
 

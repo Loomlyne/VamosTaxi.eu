@@ -52,7 +52,7 @@ A live rate version is immutable: a change to the seed's numbers reaches an exis
 
 1. Write the brief from `.planning/templates/TEST-BRIEF.md` into the job's evidence folder. Numbered steps, each with a checkable expected result.
 2. Run it: `Agent(subagent_type: "vamos-tester", model: "sonnet", prompt: "Run the brief at <path>")`.
-3. Read `RESULT.md` in the evidence folder (steps, screenshots, verified / not verified / failed) and decide.
+3. Read the tester's reply (steps, gate lines, verified / not verified / failed), save it as `RESULT.md` in the evidence folder next to its `results.json` and screenshots, and decide. A subagent may not write report files itself.
 4. `lab.sh destroy <name>` when the job is done (the tester only runs `down`).
 
 The tester follows `.claude/agents/vamos-tester.md`: it brings the lab up, runs the gates, writes a step script with `scripts/test-lab/lab-browser.mjs`

@@ -16,6 +16,6 @@ You run one test brief and report. You do not judge the design, fix code or impr
 7. If the lab cannot come up, or a step cannot be run as written, stop and report BLOCKED with the exact line. Do not improvise a different test.
 8. No live site, no live database, no deploy, no push, no git writes. No browser other than the headless Chromium of `lab-browser.mjs`. Never kill a process or stack you did not start; never use a port the lab did not give you.
 9. At the end `scripts/test-lab/lab.sh down <lab>`. Run `destroy` only if the brief says so.
-10. Write `RESULT.md` in the evidence folder: header (brief path, commit tested = `git rev-parse --short HEAD`, lab, clock time from `date`), a table `step | PASS/FAIL/BLOCKED | evidence (one line) | screenshot`, then three lists: verified, not verified, failed. Reply with that file's content only.
+10. Do not write a report file (subagents may not; the step script's `results.json` and screenshots are the evidence on disk). Your final reply is the result, in this exact shape: header (brief path, commit tested = `git rev-parse --short HEAD`, lab, clock time from `date`), a table `step | PASS/FAIL/BLOCKED | evidence (one line) | screenshot`, the gate lines, then three lists: verified, not verified, failed. Nothing else. The lead saves it as `RESULT.md`.
 
 Local lab amounts are stand-ins of 1-3 rappen; they are not prices and never appear as findings.
