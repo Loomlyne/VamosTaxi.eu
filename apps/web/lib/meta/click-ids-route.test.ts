@@ -19,6 +19,7 @@ const state = {
   failWith: null as null | { code?: string; message: string },
   withContext: true,
   staffSession: false,
+  marketing: true,
 };
 
 vi.mock("@opennextjs/cloudflare", () => ({
@@ -45,7 +46,7 @@ vi.mock("@/lib/db/identity", () => ({
   asCheckout: async (_e: unknown, _n: unknown, fn: (sql: unknown) => unknown) => fn(fakeSql()),
   asQuote: async (_e: unknown, fn: (sql: unknown) => unknown) => fn(fakeSql()),
 }));
-vi.mock("@/lib/consent/read", () => ({ readConsentChoice: async () => ({ marketing: true }) }));
+vi.mock("@/lib/consent/read", () => ({ readConsentChoice: async () => ({ marketing: state.marketing }) }));
 vi.mock("@/lib/checkout/intent-schema", () => ({
   checkoutIntentSchema: { safeParse: (data: unknown) => ({ success: true, data }) },
 }));
@@ -116,6 +117,7 @@ beforeEach(() => {
   state.failWith = null;
   state.withContext = true;
   state.staffSession = false;
+  state.marketing = true;
   state.gate = new Promise<void>((res) => (state.release = res));
   vi.restoreAllMocks();
 });
@@ -133,7 +135,7 @@ describe("POST /api/checkout/intent and the Meta click-id save", () => {
     state.release!();
     await state.waited[0]!;
     expect(state.writes).toHaveLength(1);
-    expect(state.writes[0]).toEqual(["11111111-0000-4000-8000-000000000001", FBP, FBC]);
+    expect(state.writes[0]).toEqual(["11111111-0000-4000-8000-000000000001", FBP, FBC, SUBJECT]);
   });
 
   it("a failing write does not touch the answer, never rejects the background job, logs the SQLSTATE only", async () => {
@@ -171,6 +173,15 @@ describe("POST /api/checkout/intent and the Meta click-id save", () => {
     const res = await POST(pay("https://vamostaxi.site", `_fbp=${FBP}`));
     expect(res.status).toBe(200);
     await Promise.all(state.waited);
-    expect(state.writes[0]).toEqual(["11111111-0000-4000-8000-000000000001", null, null]);
+    expect(state.writes[0]).toEqual(["11111111-0000-4000-8000-000000000001", null, null, null]);
+  });
+
+  it("marketing off: three nulls are written, the subject is not kept", async () => {
+    state.marketing = false;
+    state.release!();
+    const res = await POST(pay("https://vamostaxi.site"));
+    expect(res.status).toBe(200);
+    await Promise.all(state.waited);
+    expect(state.writes[0]).toEqual(["11111111-0000-4000-8000-000000000001", null, null, null]);
   });
 });

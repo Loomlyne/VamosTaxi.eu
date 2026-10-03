@@ -191,6 +191,7 @@ async function postIntent(request: Request) {
     afterBooking: async (bookingId) => {
       // Review 2 (item 3): handed to ctx.waitUntil, so the Pay answer never waits for it. A failure logs the
       // SQLSTATE only and changes nothing else. Public Origin only, Meta format only, marketing on only.
+      // Phase 29 D-01: the consent subject is saved with the ids so the settle queue can re-check consent.
       await scheduleMetaClickIdSave({
         ctx,
         decide: {
@@ -200,9 +201,9 @@ async function postIntent(request: Request) {
           readMarketing: (subject) =>
             asAnon(env, (tx) => readConsentChoice(tx, subject)).then((c) => c?.marketing === true),
         },
-        write: (fbp, fbc) =>
+        write: (fbp, fbc, subject) =>
           asCheckout(env, null, async (sql) => {
-            await sql`select public.checkout_set_meta_click_ids(${bookingId}::uuid, ${fbp}, ${fbc})`;
+            await sql`select public.checkout_set_meta_click_ids(${bookingId}::uuid, ${fbp}, ${fbc}, ${subject}::uuid)`;
           }),
       });
       const record = accountRecord;
