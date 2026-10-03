@@ -320,7 +320,6 @@ describe("app/vamos-meta.js: flags open", () => {
   it("loading the file twice keeps the first instance", () => {
     const h = load({ open: true });
     const first = h.win.VamosMeta;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const ctx: any = { window: h.win, document: h.win.document, location: { href: "https://vamostaxi.site/", hostname: "vamostaxi.site" }, URL, setTimeout: () => 0 };
     vm.createContext(ctx);
     vm.runInContext(withFlags(true), ctx);
