@@ -40,6 +40,10 @@
         de: 'Bezahlt mit $1', fr: 'Payé par $1', ar: 'مدفوع بـ$1' },
       { re: /^Coupon (.+)$/,
         de: 'Gutschein $1', fr: 'Code $1', ar: 'قسيمة $1' },
+      /* 261003 fare lines: "{origin} – {destination} route" (the two towns as quoted, each isolated
+         left-to-right by the page so Arabic reverses the sentence, never the names). */
+      { re: /^(.+) \u2013 (.+) route$/,
+        de: 'Strecke $1 \u2013 $2', fr: 'Trajet $1 \u2013 $2', ar: 'مسار $1 \u2013 $2' },
       { re: /^Child seat × (\d+)$/,
         de: 'Kindersitz × $1', fr: 'Siège enfant × $1', ar: 'مقعد أطفال × $1' },
       { re: /^Additional stop × (\d+)$/,
@@ -713,7 +717,8 @@
       'Confirm booking': { de: 'Buchung bestätigen', fr: 'Confirmer la réservation', ar: 'تأكيد الحجز' },
       'By continuing you accept the terms and the cancellation policy.': { de: 'Mit dem Fortfahren akzeptieren Sie die AGB und die Stornierungsbedingungen.', fr: 'En continuant, vous acceptez les conditions et la politique d’annulation.', ar: 'بالمتابعة فإنك تقبل الشروط وسياسة الإلغاء.' },
       'Need something unusual — a bus, a wedding, an overnight? Call dispatch on +41 79 626 70 82.': { de: 'Etwas Aussergewöhnliches — ein Bus, eine Hochzeit, eine Nachtfahrt? Rufen Sie die Disposition an: +41 79 626 70 82.', fr: 'Un besoin inhabituel — un bus, un mariage, une nuit ? Appelez le dispatch au +41 79 626 70 82.', ar: 'تحتاج شيئًا غير معتاد — حافلة أو حفل زفاف أو رحلة ليلية؟ اتصل بقسم التشغيل على ‎+41 79 626 70 82‎.' },
-      'Airport pickup fee': { de: 'Flughafengebühr', fr: 'Frais de prise en charge à l’aéroport', ar: 'رسم الاستقبال في المطار' },
+      'Airport pickup fee': { de: 'Flughafen-Abholgebühr', fr: 'Frais de prise en charge à l’aéroport', ar: 'رسوم الاستقبال من المطار' },
+      'Route price': { de: 'Streckenpreis', fr: 'Prix du trajet', ar: 'سعر المسار' },
       '60 min airport waiting': { de: '60 Min. Wartezeit am Flughafen', fr: '60 min d’attente à l’aéroport', ar: '60 دقيقة انتظار في المطار' },
       'included': { de: 'inbegriffen', fr: 'inclus', ar: 'مشمول' },
       'passengers': { de: 'Passagiere', fr: 'passagers', ar: 'راكب' },

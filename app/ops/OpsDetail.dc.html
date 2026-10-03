@@ -710,7 +710,15 @@ function fareBreakdown(booking, t, lang) {
       const value = Number.isFinite(rappen) ? rappen : null;
       const kind = line.kind || '';
       const code = line.code || '';
-      if (kind === 'fare' || code === 'distance_fare' || code === 'fare' || code === 'transfer') {
+      if (kind === 'fare' && code === 'airport_fee') {
+        // 261003: the airport pickup fee and the route extra are their own fare lines.
+        push(code, t.lineAirportFee, value);
+      } else if (kind === 'fare' && code === 'fixed_route') {
+        // Both towns as quoted, each isolated left-to-right so Arabic reverses the sentence, never the names.
+        const o = String(line.origin || '').trim();
+        const d = String(line.destination || '').trim();
+        push(code, o && d ? t.lineRoute.replace('{origin}', '\u2066' + o + '\u2069').replace('{destination}', '\u2066' + d + '\u2069') : t.lineRoutePlain, value);
+      } else if (kind === 'fare' || code === 'distance_fare' || code === 'fare' || code === 'transfer') {
         push(code, t.lineTransfer + klass, value);
       } else if (kind === 'coupon' || code === 'coupon' || code === 'discount') {
         const coupon = String(booking.couponCode || '').trim();
@@ -841,7 +849,7 @@ const T = {
     notPaid:'Unpaid trips cannot be assigned.', frozen:'This trip is frozen.', capacity:'This trip has more passengers or bags than its class takes.', assignFailed:'Could not assign ',
     pickChauffeur:'Pick a chauffeur first.', voucherFailed:'Could not resend voucher ',
     website:'Website', stripeWebhook:'Stripe webhook', resend:'Resend', dispatch:'Dispatch',
-    lineTransfer:'Transfer, ', lineAirportFee:'Airport pickup fee',
+    lineTransfer:'Transfer, ', lineAirportFee:'Airport pickup fee', lineRoute:'{origin} \u2013 {destination} route', lineRoutePlain:'Route price',
     coupon:'Coupon', extras:'Extras', vat:'VAT', noCoupon:'None', noExtras:'None', noFlight:'None', unassigned:'Unassigned', dropUnknown:'Not stored', minutes:' min',
     vehicleAssigned:'Vehicle', when:'When',
     cardPaid:'Card payment', cardRefund:'Refund to the card', bookedSite:'Booked on the website', emailed:'Email sent', dispatcher:'Dispatcher',
@@ -980,7 +988,7 @@ const T = {
     notPaid:'Unbezahlte Fahrten können nicht zugewiesen werden.', frozen:'Diese Fahrt ist gesperrt.', capacity:'Diese Fahrt hat mehr Passagiere oder Gepäck, als ihre Klasse aufnimmt.', assignFailed:'Zuweisung fehlgeschlagen für ',
     pickChauffeur:'Zuerst einen Fahrer wählen.', voucherFailed:'Gutschein konnte nicht gesendet werden ',
     website:'Website', stripeWebhook:'Stripe-Webhook', resend:'Resend', dispatch:'Dispatch',
-    lineTransfer:'Transfer, ', lineAirportFee:'Flughafengebühr',
+    lineTransfer:'Transfer, ', lineAirportFee:'Flughafen-Abholgebühr', lineRoute:'Strecke {origin} \u2013 {destination}', lineRoutePlain:'Streckenpreis',
     coupon:'Gutschein', extras:'Extras', vat:'MwSt.', included:'Inklusive',
     sendPayLink:'Zahlungslink senden', takeCard:'Karte erfassen', openStripe:'Stripe-Zahlungsseite öffnen', copyPayLink:'Zahlungslink kopieren', payLinkCopied:'Zahlungslink kopiert',
     payLinkSent:'Zahlungslink gesendet an ', payLinkFailed:'Zahlungslink konnte nicht gesendet werden ', cardFailed:'Karte fehlgeschlagen ',
@@ -1172,7 +1180,7 @@ const T = {
     voucherResent:'Bon renvoyé à ', driverAssigned:'Chauffeur assigné à ',
     evPayment:'Paiement capturé', evRefund:'Remboursement versé', evVoucher:'Bon envoyé', evAssigned:'Chauffeur assigné', evQuoted:'Devis enregistré', evCreated:'Réservation créée', evPayStarted:'Paiement démarré', evStatus:'Statut modifié',
     website:'Site web', stripeWebhook:'Webhook Stripe', resend:'Resend', dispatch:'Dispatch',
-    lineTransfer:'Transfert, ', lineAirportFee:'Frais de prise en charge à l’aéroport',
+    lineTransfer:'Transfert, ', lineAirportFee:'Frais de prise en charge à l’aéroport', lineRoute:'Trajet {origin} \u2013 {destination}', lineRoutePlain:'Prix du trajet',
     noCoupon:'Aucun', noExtras:'Aucun', noFlight:'Aucun', unassigned:'Non assigné', dropUnknown:'Non enregistré', minutes:' min',
     vehicleAssigned:'Véhicule', when:'Quand',
     cardPaid:'Paiement par carte', cardRefund:'Remboursement sur la carte', bookedSite:'Réservé sur le site', emailed:'E-mail envoyé', dispatcher:'Répartiteur',
@@ -1318,7 +1326,7 @@ const T = {
     voucherResent:'أُعيد إرسال القسيمة إلى ', driverAssigned:'عُيّن السائق لـ ',
     evPayment:'تم تحصيل الدفع', evRefund:'تم الاسترداد', evVoucher:'أُرسلت القسيمة', evAssigned:'عُيّن السائق', evQuoted:'حُفظ العرض', evCreated:'أُنشئ الحجز', evPayStarted:'بدأ الدفع', evStatus:'تغيّرت الحالة',
     website:'الموقع', stripeWebhook:'ويب هوك Stripe', resend:'Resend', dispatch:'التشغيل',
-    lineTransfer:'نقل، ', lineAirportFee:'رسوم الاستقبال من المطار',
+    lineTransfer:'نقل، ', lineAirportFee:'رسوم الاستقبال من المطار', lineRoute:'مسار {origin} \u2013 {destination}', lineRoutePlain:'سعر المسار',
     noCoupon:'لا يوجد', noExtras:'لا يوجد', noFlight:'لا يوجد', unassigned:'غير معيّن', dropUnknown:'غير مخزّن', minutes:' دقيقة',
     vehicleAssigned:'المركبة', when:'متى',
     cardPaid:'الدفع بالبطاقة', cardRefund:'استرداد إلى البطاقة', bookedSite:'حُجز عبر الموقع', emailed:'أُرسل البريد الإلكتروني', dispatcher:'المُوزّع',
