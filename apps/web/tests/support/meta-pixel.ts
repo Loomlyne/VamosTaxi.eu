@@ -75,15 +75,15 @@ export async function routeSite(context: BrowserContext, opts: SiteOptions): Pro
     if (!file.startsWith(PUBLIC_ROOT) || !existsSync(file) || !statSync(file).isFile()) {
       return route.fulfill({ status: 404, body: "not found" });
     }
-    const raw = readFileSync(file);
-    let body: string | Buffer = raw;
+    let body: string | Buffer;
     if (mock) {
-      body = raw.toString("utf8").replace(/<head([^>]*)>/i, '<head$1><meta name="vt-turnstile-site-key" content="test">');
+      body = readFileSync(file, "utf8").replace(/<head([^>]*)>/i, '<head$1><meta name="vt-turnstile-site-key" content="test">');
     } else if (url.pathname === "/app/vamos-meta.js") {
-      body = raw
-        .toString("utf8")
+      body = readFileSync(file, "utf8")
         .replace(/var GATE_OPEN = (true|false);/, `var GATE_OPEN = ${opts.flagsOn};`)
         .replace(/var SWITCHES_OFF = (true|false);/, `var SWITCHES_OFF = ${opts.flagsOn};`);
+    } else {
+      body = readFileSync(file);
     }
     return route.fulfill({
       status: 200,
