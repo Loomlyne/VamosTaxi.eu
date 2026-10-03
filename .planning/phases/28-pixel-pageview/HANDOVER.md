@@ -108,3 +108,14 @@ Controller, after the UAT: one 4242 payment after Accept on `/about`, then read 
 
 ## Left running
 Nothing. The stack `vamos-taxi-280` and the local Worker on 4377 were stopped; `tsconfig.json`/`next-env.d.ts` restored; no `.next-*` folder left.
+
+## Review fixes (fresh reviewer, FIX FIRST; one commit per item group)
+- CR-01 a: `CookieBanner.tsx` calls `clearMetaBrowserState()` (new `lib/meta/clear-browser-state.ts`) after a save with Marketing off and when the saved choice read on load has Marketing off. Tests: helper (both cookie domain forms, both storage keys, no value written) and source pins on the banner.
+- CR-01 b: `app/vamos-meta.js` `check()` now asks the server on every page; a page off the allow-list never starts the pixel but clears when marketing is not on. Tests for denied path, denied referrer and dashboard host, and "server unreachable deletes nothing".
+- WR-01: the trigger refuses only a column that ends non-NULL and changed; clearing one column on a paid booking works. pgTAP: four new cases (clear one, other keeps value, set again refused, clear last).
+- WR-02: an outside referrer counts only as a bare origin. Table rows updated.
+- WR-03: owner, Q5 in `28-SIGNED.md`: text stays, 90 days counts from the last visit. The handover's own claim was replaced by that answer.
+- WR-04: the tree-scanning gate tests have a 30 s timeout. WR-05: comment corrected; tests pin that the account page, the language runtime and the footer anchor only move to allow-listed addresses.
+- WR-06: a non-public Origin returns `skip` (saves nothing, clears nothing). WR-07: cookie-clearing wording corrected above.
+- IN-01: migration sets `lock_timeout = '5s'`, adds both CHECKs `NOT VALID`, then validates. IN-02: `service_role` added to the hosted privilege checks.
+- Re-run after the fixes (14:30 to 14:40 UTC, nothing new on main): pgTAP from zero 100 files / 2704 tests PASS; Worker-client tests 5; unit 406 files / 4635 tests; typecheck, lint (0 errors), lint:css, check:numbers, check:legal-claims, check:public-env, check:db-fences, i18n:check, db:seed:check all exit 0; types identical; `pnpm build` and OpenNext build exit 0; browser stand-in 8/8 and REAL Meta script 3/3 (one PageView, nothing else); META-09 local Worker run 6 PASS / 1 N/A. Stack stopped.
