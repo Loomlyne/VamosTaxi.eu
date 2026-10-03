@@ -4,10 +4,15 @@
 -- one nullable column on bookings (no default), one empty table, one writer overload, the Phase 28
 -- trigger function widened to the new column, three definer functions for the system role. No row
 -- is inserted, updated or deleted by this file.
+--
+-- One transaction (IN-05): apply it verbatim as a whole (connector apply_migration, never execute_sql
+-- statement by statement). A failure rolls everything back, so a re-run starts clean and no session
+-- keeps a changed lock_timeout.
+begin;
 
 -- Brief ACCESS EXCLUSIVE locks on bookings and booking_payments (live holds real rows): give up
 -- fast instead of queueing behind a long transaction. Held until the last lock-taking statement.
-set lock_timeout = '5s';
+set local lock_timeout = '5s';
 
 alter table public.bookings add column if not exists meta_consent_subject pg_catalog.uuid;
 
@@ -287,3 +292,5 @@ comment on function public.meta_purchase_finish(pg_catalog.uuid, pg_catalog.uuid
   'Phase 29: record the Graph answer on the sending row. EXECUTE: vamos_system only.';
 comment on function public.meta_purchase_clear_ids(pg_catalog.uuid) is
   'Phase 29 D-05: best-effort wipe of fbp, fbc and consent subject on one booking. EXECUTE: vamos_system only.';
+
+commit;

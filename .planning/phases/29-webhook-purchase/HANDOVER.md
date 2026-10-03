@@ -24,6 +24,8 @@ Pay-path files (quote, pricing, checkout and confirmation pages, return route, r
 
 `packages/db/supabase/migrations/20261007260000_meta_purchase.sql`. Additive: one nullable column (`bookings.meta_consent_subject`), one empty table (`meta_purchase_events`, RLS enabled and forced), the 4-arg writer next to the 3-arg one, the trigger re-created over three columns, two definer functions (claim, finish) plus `meta_purchase_clear_ids`. Safe on live paid rows (nothing is backfilled).
 
+The file is one transaction (`begin;` ... `commit;`). Apply it verbatim, as one transaction (connector `apply_migration`, never `execute_sql` statement by statement, never in pieces).
+
 Order: (a) apply the file verbatim through the Supabase connector; (b) read back (section 3); (c) deploy `pnpm --filter web run deploy -- --env staging` (Worker `vamos`); (d) live check (section 6).
 
 Deploy gap, both directions safe (research Pitfall 10): old Worker plus new DB, the 3-arg writer still works and claims never happen. New Worker plus old DB, the 4-arg writer and the claim fail with 42883, are caught and logged, Pay and settle are unaffected. Migration first is still the rule. The 3-arg writer stays in the database for this reason; the Worker calls the 4-arg one.
