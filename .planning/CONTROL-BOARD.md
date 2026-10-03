@@ -22,7 +22,7 @@ the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 Rewritten short on 2026-09-30 14:25; the long version is in git history (`8230227c`).
 
-**Last update:** 2026-10-03 20:12 (+04)
+**Last update:** 2026-10-03 20:05 (+04)
 
 ## Landing queue, 2026-10-03 00:45 (+04)
 
@@ -303,7 +303,7 @@ The owner decided every finding F1 to F14. Every Phase 20 ship needs his Ship.
 | 26.5 | `20261001100000` agreement record, `110000` unpaid hidden, `120000` paid-only reminder, `130000` pay-press cap |
 | Phase 27 | `20261002100000` to `190000` |
 | Phase 28 | `20261003100000` to `190000` |
-| Phase 29 | ~~`20261004100000` to `190000`~~ withdrawn 2026-10-03 20:1x (sorts before migrations already on live); **`20261007260000`** reserved for Phase 29 (controller, 2026-10-03 20:1x) |
+| Phase 29 | ~~`20261004100000` to `190000`~~ withdrawn 2026-10-03 20:05 (sorts before migrations already on live); **`20261007260000`** reserved for Phase 29 (controller, 2026-10-03 20:05) |
 | Phase 20 | `20261005100000`, `110000` (live) |
 | Class photos | `20261006100000` to `190000` |
 | 26.2 | `20261007100000` staff price preview (live); P4-A `110000`, trigger clean-up `120000`, P4-C `130000`; P1 `140000` (live); P6 `150000`; chauffeurs by class `160000` (live); **27.1 finish your account `170000`** (taken by the project chat "Finish your account" on 2026-10-01, reserved here after the fact) |
