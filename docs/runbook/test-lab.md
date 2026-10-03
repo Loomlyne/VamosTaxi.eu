@@ -77,3 +77,4 @@ A green lab is never proof for the live site: after a deploy that touches checko
 - `/de/checkout` is 308'd to `/checkout`; German comes from the language store (`localStorage.vamosLang`, written only by `open({ lang })`, never read elsewhere).
 - `vitest related` cannot see tests that read `.dc.html` mocks or `app/*.js` by file path: the brief names those tests.
 - Stripe's hosted page is fake: `checkout.stripe.com` is aborted and the `/api/checkout/intent` answer is read before the page leaves.
+- A screenshot taken after PAY is blank: the page leaves for the fake Stripe URL, which the lab blocks. Check PAY by the captured intent answer and `/__sessions`, and take the picture before pressing PAY.
