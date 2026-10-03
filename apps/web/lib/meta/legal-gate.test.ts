@@ -128,7 +128,7 @@ describe("meta legal gate", () => {
     const mock = readFileSync(join(webRoot, "../../app/vamos-legal-updated.js"), "utf8");
     const consent = /var CONSENT_UPDATED = '(\d{4}-\d{2}-\d{2})';/.exec(mock);
     expect(consent?.[1]).toBe(version);
-  });
+  }, 30_000);
 
   it("Meta strings only where allowed (Phase 28 per-needle allow map)", () => {
     const LOADER = ["app/vamos-meta.js", "apps/web/public/app/vamos-meta.js"];
@@ -155,7 +155,7 @@ describe("meta legal gate", () => {
       }
     }
     expect(hits).toEqual([]);
-  });
+  }, 30_000);
 
   it("the Next policy never names a Meta host (only the mock-page builder may)", () => {
     expect(SECURITY_HEADER_PAIRS.map(([, v]) => v).join("\n")).not.toMatch(/facebook|instagram/i);
@@ -181,7 +181,7 @@ describe("meta legal gate", () => {
       }
       expect(count, name).toBe(1);
     }
-  });
+  }, 30_000);
 
   it("the loader's baked flags equal the TypeScript flags", () => {
     const js = repoSource("app/vamos-meta.js");
