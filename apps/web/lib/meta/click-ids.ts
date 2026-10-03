@@ -67,7 +67,8 @@ export async function metaClickIdsToSave(input: {
 }): Promise<MetaSaveDecision> {
   if (!input.measurementAllowed) return { skip: true };
   const none = { skip: false, fbp: null, fbc: null } as const;
-  if (!publicOriginAllowed(input.origin)) return none;
+  // A non-public Origin (the dashboard) neither saves nor clears: it must never touch a booking's values (WR-06).
+  if (!publicOriginAllowed(input.origin)) return { skip: true };
   const ids = readMetaClickIds(input.cookieHeader);
   if (ids.fbp === null && ids.fbc === null) return none;
   const subject = readConsentSubject(input.cookieHeader);

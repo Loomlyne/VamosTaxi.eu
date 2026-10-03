@@ -49,10 +49,10 @@ describe("metaClickIdsToSave", () => {
     expect(await metaClickIdsToSave({ ...base, measurementAllowed: false, readMarketing })).toEqual({ skip: true });
     expect(readMarketing).not.toHaveBeenCalled();
   });
-  it("a dashboard or missing Origin gives nulls", async () => {
+  it("a dashboard or missing Origin skips: nothing saved and nothing cleared (WR-06)", async () => {
     const readMarketing = vi.fn(async () => true);
     for (const origin of ["https://dashboard.vamostaxi.site", null]) {
-      expect(await metaClickIdsToSave({ ...base, origin, readMarketing })).toEqual({ skip: false, fbp: null, fbc: null });
+      expect(await metaClickIdsToSave({ ...base, origin, readMarketing })).toEqual({ skip: true });
     }
     expect(readMarketing).not.toHaveBeenCalled();
   });
