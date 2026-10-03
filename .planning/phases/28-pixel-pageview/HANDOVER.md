@@ -131,3 +131,15 @@ Not changed: the flags, the allow-list semantics beyond item 4, the migration.
 ### Owner decisions for Phase 29 (not code)
 - (a) Automatic advanced matching is off only by the code flag (`autoConfig` false). If it is switched on in Events Manager, e-mails autofilled on `/sign-in` could be hashed and sent. In that case the switch flag (`META_EVENTS_MANAGER_SWITCHES_OFF` and the loader's `SWITCHES_OFF`) must go false. Phase 29 decides whether to add a check that does not depend on the owner remembering this.
 - (b) Saved `meta_fbp` / `meta_fbc` on a booking are not cleared on a later withdrawal of Marketing, or after payment. Whether they are nulled after the Purchase send (research Open Question 4) and whether a withdrawal must reach already-saved values is the owner's decision.
+
+## Final hand-over (2026-10-03, branch `fix/phase-28-review-2`)
+Tip: the commit that adds this section (see `git log -1 origin/fix/phase-28-review-2`). Base: merge of `origin/main` at `a8e78ec2` (home sections hand-over 2 `923c7fea` + board notes) into `d1ebf1aa`, merge commit `5bdfad47`; no conflict.
+
+Verified on that tree (about 15:45 to 16:10 UTC):
+- `sync-dc-mock-to-public`, `pnpm install --frozen-lockfile`, `pnpm test:unit` (web 408 files / 4666 passed, 31 skipped; db 14; emails 239; scripts ok), `typecheck`, `lint` (0 errors, 6 warnings), `lint:css`, `check:numbers`, `check:legal-claims`, `check:public-env`, `check:db-fences`, `i18n:check`, `db:seed:check`: all exit 0.
+- Own native stack `vamos-lab-p28` (Supabase CLI 2.119.0, `--runtime native`, DB 45122, no Docker): every migration from zero including `20261007240000_booking_meta_click_ids`, seed ok; `supabase test db` 100 files / 2704 tests PASS. Stack stopped, scratch folder removed. `lab.sh up` on main still calls Docker (no native mode in the script yet), so the stack was started by hand in the lab's workdir.
+- The three Meta texts in `app/vamos-meta-texts.js` equal `.planning/decisions/2026-09-30-meta-wording.md` cell for cell (12/12, independent script, plus `owner-texts.test.ts`).
+- No Purchase event: the loader's only `track` is `PageView`; no `Purchase`, CAPI or `graph.facebook.com` in app/lib/components/middleware (Phase 29).
+- Supabase connector from this session sees `yaumjzvylngfjhtuffqs` (read-only `list_migrations`): last live migration `20261002222545 booking_reference_five_digits`; `booking_meta_click_ids` not applied. Nothing applied.
+
+Not verified here: browser specs (stand-in, real Meta script, META-09 Worker run) were not re-run after this merge (main brought only a home `.dc.html` route-tap change and board notes); Linux CI; a 4242 payment; owner UAT.
