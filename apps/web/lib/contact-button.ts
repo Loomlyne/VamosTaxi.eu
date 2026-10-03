@@ -36,11 +36,19 @@ export type ContactChannel = {
   href: string | null;
   newTab: boolean;
   endIcon: IconName | null;
+  /** A brand mark that replaces the Lucide icon in the menu row (the WhatsApp glyph, its own green). */
+  logo?: string;
 };
+
+/** The WhatsApp brand glyph (assets/social/whatsapp.svg, served from /assets). */
+export const WHATSAPP_LOGO = "/assets/social/whatsapp.svg";
+
+/** Timings of the float's own cycle: rest closed, show a channel, close again (ms). */
+export const CYCLE_MS = Object.freeze({ rest: 4000, show: 3000, close: 340 } as const);
 
 /** The menu rows, in the owner's order (2026-10-03): WhatsApp, Call us, Email, Send us a message. */
 export const CONTACT_CHANNELS: readonly ContactChannel[] = Object.freeze([
-  { id: "whatsapp", icon: "message-circle", titleKey: "whatsapp", sub: PHONE_DISPLAY, href: WHATSAPP_HREF, newTab: true, endIcon: "external-link" },
+  { id: "whatsapp", icon: "message-circle", titleKey: "whatsapp", sub: PHONE_DISPLAY, href: WHATSAPP_HREF, newTab: true, endIcon: "external-link", logo: WHATSAPP_LOGO },
   { id: "call", icon: "phone", titleKey: "callUs", sub: PHONE_DISPLAY, href: PHONE_HREF, newTab: false, endIcon: null },
   { id: "email", icon: "mail", titleKey: "email", sub: SUPPORT_EMAIL, href: SUPPORT_EMAIL_HREF, newTab: false, endIcon: null },
   { id: "form", icon: "file-text", titleKey: "sendMessage", subKey: "contactForm", href: null, newTab: false, endIcon: "chevron-right" },
