@@ -2908,5 +2908,17 @@
       "no_results": "Aucun lieu correspondant — essayez une adresse plus complète",
       "suggest_unavailable": "La recherche de lieux est indisponible — saisissez l'adresse ou déposez une épingle"
     }
+  },
+  "contactButton": {
+    "contact": "Contact",
+    "close": "Fermer",
+    "talk": "Parlez à une personne",
+    "whatsapp": "WhatsApp",
+    "callUs": "Appelez-nous",
+    "email": "E-mail",
+    "sendMessage": "Envoyez-nous un message",
+    "contactForm": "Formulaire de contact",
+    "openOptions": "Ouvrir les options de contact",
+    "closeOptions": "Fermer les options de contact"
   }
 }

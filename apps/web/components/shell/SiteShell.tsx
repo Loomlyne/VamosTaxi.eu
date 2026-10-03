@@ -2,7 +2,7 @@
 
 import { type ReactNode } from "react";
 import { usePathname } from "next/navigation";
-import { ContactFab } from "./ContactFab";
+import { ContactButton } from "./ContactButton";
 
 /**
  * The composition seam `apps/web/app/[locale]/layout.tsx` renders. It exists for exactly
@@ -60,7 +60,8 @@ export function SiteShell({
       {isHome ? null : header}
       {children}
       {footer}
-      <ContactFab />
+      {/* The float. On /checkout at 1080px and below the PAY bar docks its own and this one steps aside. */}
+      <ContactButton />
       {banner}
     </>
   );

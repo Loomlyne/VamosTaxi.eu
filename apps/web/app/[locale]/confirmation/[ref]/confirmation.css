@@ -367,7 +367,7 @@
   }
 }
 
-/* DOWNLOAD VOUCHER prints the trip card and prices only. Header and ContactFab
+/* DOWNLOAD VOUCHER prints the trip card and prices only. Header and ContactButton
    already hide themselves in print; the footer and banner are hidden here. */
 @media print {
   .vt-confirmation__actions,

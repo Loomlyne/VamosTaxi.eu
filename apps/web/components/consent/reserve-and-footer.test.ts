@@ -42,7 +42,7 @@ describe("reserve above the banner", () => {
   });
 
   it("the contact button offsets by --vt-ck-reserve", () => {
-    expect(read("apps/web/components/shell/ContactFab.css")).toContain(
+    expect(read("apps/web/components/shell/ContactButton.css")).toContain(
       "calc(24px + var(--vt-ck-reserve, 0px))",
     );
   });
