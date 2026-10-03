@@ -310,6 +310,7 @@ class Component extends DCLogic {
     document.removeEventListener('keydown', this.onKey);
     window.removeEventListener('resize', this.syncReserve);
     document.documentElement.style.removeProperty('--vt-ck-reserve');
+    document.documentElement.removeAttribute('data-vt-ck-open');
   }
 
   // Until the server answers the banner paints nothing; a failed check asks (D-33).
@@ -335,6 +336,8 @@ class Component extends DCLogic {
   // height changes with viewport width, German copy, the Alert and a Turnstile challenge.
   syncReserve = () => {
     const root = document.documentElement;
+    /* The contact button steps aside on a phone while the card is open (ContactButton.dc.html). */
+    root.toggleAttribute('data-vt-ck-open', this.state.mode === 'banner');
     if (this.state.mode !== 'banner' || window.innerWidth >= 640) { root.style.removeProperty('--vt-ck-reserve'); return; }
     const el = this.bannerRef.current;
     const h = el ? Math.ceil(el.getBoundingClientRect().height) : 0;

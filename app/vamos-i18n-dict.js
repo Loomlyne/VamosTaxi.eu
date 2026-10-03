@@ -481,6 +481,11 @@
       'You never need an account to book. Guest checkout takes you straight through — an account just keeps your transfers, vouchers and receipts in one place.': { de: 'Für eine Buchung brauchen Sie nie ein Konto. Die Gastbuchung führt Sie direkt durch — ein Konto hält lediglich Transfers, Gutscheine und Belege an einem Ort.', fr: 'Un compte n’est jamais nécessaire pour réserver. La commande en tant qu’invité vous fait passer directement — le compte ne fait que réunir transferts, bons et reçus.', ar: 'لا تحتاج حسابًا للحجز أبدًا. الحجز كضيف يمضي بك مباشرة — والحساب يجمع رحلاتك وقسائمك وإيصالاتك فقط.' },
       'Booked ahead, priced up front, and your assigned driver is already there at the agreed time.': { de: 'Im Voraus gebucht, im Voraus bepreist — und Ihr zugeteilter Fahrer ist zur vereinbarten Zeit bereits da.', fr: 'Réservé à l’avance, chiffré d’avance, et votre chauffeur attitré est déjà là à l’heure convenue.', ar: 'حجز مسبق وسعر معروف مسبقًا، وسائقك المعيَّن موجود في الموعد المتفق عليه.' },
 
+      /* ── Contact button (261003, direction B). The rest of its copy is above or below. ── */
+      'Contact form': { de: 'Kontaktformular', fr: 'Formulaire de contact', ar: 'نموذج التواصل' },
+      'Open contact options': { de: 'Kontaktoptionen öffnen', fr: 'Ouvrir les options de contact', ar: 'فتح خيارات التواصل' },
+      'Close contact options': { de: 'Kontaktoptionen schliessen', fr: 'Fermer les options de contact', ar: 'إغلاق خيارات التواصل' },
+
       /* ── Contact page ─────────────────────────────────────────────────── */
       'Talk to a person': { de: 'Sprechen Sie mit einem Menschen', fr: 'Parlez à une personne', ar: 'تحدّث إلى شخص حقيقي' },
       'One team handles bookings, changes, complaints and everything else. Say what you need and quote a reference if you have one.': { de: 'Ein Team bearbeitet Buchungen, Änderungen, Reklamationen und alles andere. Sagen Sie, was Sie brauchen, und nennen Sie eine Referenz, falls vorhanden.', fr: 'Une seule équipe gère réservations, modifications, réclamations et le reste. Dites ce dont vous avez besoin et indiquez une référence si vous en avez une.', ar: 'فريق واحد يتولّى الحجوزات والتعديلات والشكاوى وكل ما عداها. أخبرنا بما تحتاجه واذكر رقم الحجز إن وُجد.' },

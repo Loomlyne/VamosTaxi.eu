@@ -2908,5 +2908,17 @@
       "no_results": "لا أماكن مطابقة — جرّب عنوانًا أوضح",
       "suggest_unavailable": "البحث عن الأماكن متوقف — اكتب العنوان أو أسقط دبوسًا"
     }
+  },
+  "contactButton": {
+    "contact": "اتصل بنا",
+    "close": "إغلاق",
+    "talk": "تحدّث إلى شخص حقيقي",
+    "whatsapp": "WhatsApp",
+    "callUs": "اتصل بنا",
+    "email": "البريد الإلكتروني",
+    "sendMessage": "أرسل لنا رسالة",
+    "contactForm": "نموذج التواصل",
+    "openOptions": "فتح خيارات التواصل",
+    "closeOptions": "إغلاق خيارات التواصل"
   }
 }

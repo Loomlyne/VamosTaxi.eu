@@ -1,0 +1,7 @@
+/* 261003: the contact button floats on every page. Existing page baselines were taken before it
+   existed, so screenshots hide it (playwright.config.ts stylePath). Its own pictures live in
+   contact-button.spec.ts, which passes stylePath: [] to show it. */
+[data-contact-btn],
+.vt-cbtn__layer {
+  visibility: hidden !important;
+}

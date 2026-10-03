@@ -58,6 +58,8 @@
   font-weight: var(--vt-weight-semibold);
   line-height: 1.2;
   color: var(--vt-text-primary);
+  /* 261003: a figure never breaks across lines ("CHF" over "000"). */
+  white-space: nowrap;
 }
 
 .vt-copay__note {
@@ -99,6 +101,47 @@
   border-block-start: var(--vt-border-w) solid var(--vt-border-subtle);
   box-shadow: var(--vt-shadow-md);
   gap: 8px;
+}
+
+/* 261003: Total · contact · PAY. PAY keeps its 54 px height and stays the only yellow thing. */
+.vt-copay--bar .vt-copay__row {
+  gap: 12px;
+}
+
+/* 261003: phone bar (520px and below). The amount stays on one line for any total up to
+   CHF 9'999.00 and in the EUR / USD / AED marks. Measured at 390: PAY carries the figure a
+   second time (up to 235px), which left the Total 37px. The Total sits right next to PAY, so
+   PAY keeps the figure for screen readers only; the Total gets the room and its figure steps
+   down with the space it is given (never below 16px, 20px when there is room). */
+@media (max-width: 520px) {
+  .vt-copay--bar .vt-copay__row {
+    gap: 8px;
+  }
+
+  .vt-copay--bar .vt-copay__total {
+    container-type: inline-size;
+  }
+
+  .vt-copay--bar .vt-copay__amount {
+    font-size: clamp(16px, 14.5cqi, 20px);
+  }
+
+  .vt-copay--bar .vt-copay__pay-amount {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 380px) {
+  .vt-copay--bar .vt-copay__pay {
+    padding-inline: 20px;
+  }
 }
 
 .vt-copay__reassure {

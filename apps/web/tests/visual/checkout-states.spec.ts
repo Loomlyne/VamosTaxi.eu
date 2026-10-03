@@ -9,6 +9,8 @@ import { test, expect, type Page } from "../support/test";
 import { mountPort } from "../support/mock-harness";
 import { waitForMockReady } from "../support/mock-harness";
 import { stubConsentChosen } from "../support/consent-state";
+import enMessages from "../../i18n/messages/en.json";
+import arMessages from "../../i18n/messages/ar.json";
 
 test.beforeEach(async ({ page }) => {
   await stubConsentChosen(page);
@@ -24,7 +26,8 @@ async function box(page: Page, selector: string) {
 
 for (const lang of ["en", "ar"] as const) {
   test(`checkout parts gallery, every state (${lang}) @component`, async ({ page }, testInfo) => {
-    const url = await mountPort(GALLERY, { lang });
+    // 261003: the bars dock the contact button, which reads its strings through next-intl.
+    const url = await mountPort(GALLERY, { lang }, { locale: lang, messages: lang === "ar" ? arMessages : enMessages });
     await page.goto(url);
     await waitForMockReady(page);
 
