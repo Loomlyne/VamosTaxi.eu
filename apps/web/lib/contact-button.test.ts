@@ -15,7 +15,7 @@ vi.mock("next-intl/navigation", () => ({
     Link: ({ href, children, ...rest }: { href: string; children?: unknown }) => createElement("a", { href, ...rest }, children as never),
   }),
 }));
-import { CONTACT_CHANNELS, HIDE_FLAGS, contactPath, isTextField, triggerLabelKey } from "./contact-button";
+import { CONTACT_CHANNELS, HIDE_FLAGS, WHATSAPP_GREEN, WHATSAPP_LOGO_WHITE, contactPath, isTextField, triggerLabelKey } from "./contact-button";
 import { ContactButton } from "@/components/shell/ContactButton";
 
 const REPO = join(WEB_ROOT, "..", "..");
@@ -367,6 +367,31 @@ describe("DC menu logic", () => {
   it("the WhatsApp rows lead with the brand logo, not the Lucide message-circle", () => {
     expect(BTN.pages.match(/logo="\/assets\/social\/whatsapp\.svg"/g)?.length).toBe(4);
     expect(ROW.pages).toContain("hasLogo");
+  });
+
+  it("the WhatsApp step is WhatsApp green with the white logo and a charcoal label, on the page and over the footer", () => {
+    expect(WHATSAPP_GREEN).toBe("#25D366");
+    const green = /\[data-ch="whatsapp"\][^}]*\{background:#25D366;color:var\(--vt-charcoal-900\)\}/;
+    for (const css of [styles(BTN.pages), styles(BTN.home)]) {
+      expect(css).toMatch(green);
+      expect(css).toContain('[data-ch="whatsapp"][data-over="1"]:active');
+      expect(css).toContain(WHATSAPP_LOGO_WHITE);
+      expect(css).not.toContain("mask:url(/assets/social/whatsapp.svg)");
+    }
+    expect(reactCss).toContain("background: #25d366;");
+    expect(reactCss).toContain('.vt-cbtn__float[data-ch="whatsapp"][data-over="1"]');
+    expect(reactCss).toContain(WHATSAPP_LOGO_WHITE);
+    expect(reactCss).not.toMatch(/mask:\s*url/);
+    // the green exists nowhere else in the float's rules
+    expect(styles(BTN.pages).match(/background:#25D366/gi)?.length).toBe(1);
+    const { c, flush } = openDc(true);
+    flush();
+    expect(c.renderVals().chAttr).toBe("whatsapp");
+    c.state.over = true;
+    expect(c.renderVals().chAttr).toBe("whatsapp");
+    expect(c.renderVals().isWa).toBe(true);
+    // gallery pictures both WhatsApp states
+    expect(BTN.pages).toContain('data-ch="{{ g.ch }}"');
   });
 
   it("following a row closes the menu; on a phone the menu is the sheet", () => {

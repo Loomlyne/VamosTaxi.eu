@@ -85,9 +85,9 @@ button[data-cb-float][data-over="1"]:active{background:var(--vt-accent-press)}
 [data-cb-ico]{display:inline-flex;align-items:center;justify-content:center;inline-size:22px;block-size:22px;flex:none}
 [data-cb-lbl]{opacity:0;transition:opacity var(--vt-dur-fast) var(--vt-ease-standard)}
 button[data-cb-float][data-wide="1"] [data-cb-lbl],button[data-cb-float][data-x="1"] [data-cb-lbl]{opacity:1;transition:opacity var(--vt-dur-base) var(--vt-ease-standard) 120ms}
-/* WhatsApp brand glyph (assets/social/whatsapp.svg, its own green); on the yellow ground it is the same shape in charcoal so it stays readable */
-[data-cb-wa]{display:block;inline-size:22px;block-size:22px;background:url(/assets/social/whatsapp.svg) center/contain no-repeat}
-button[data-cb-float][data-over="1"] [data-cb-wa]{background:var(--vt-charcoal-900);-webkit-mask:url(/assets/social/whatsapp.svg) center/contain no-repeat;mask:url(/assets/social/whatsapp.svg) center/contain no-repeat}
+/* WhatsApp step (owner, 2026-10-03): WhatsApp green with the white WhatsApp logo and a charcoal label, on the page AND over the footer. #25D366 is the WhatsApp brand green, allowed only on this state (design system §5 brand-mark rule). Hover keeps the same green (a darker green is not a token); press = translateY(1px); focus ring as everywhere. */
+[data-cb-wa]{display:block;inline-size:22px;block-size:22px;background:url(/assets/social/whatsapp-white.svg) center/contain no-repeat}
+button[data-cb-float][data-ch="whatsapp"],button[data-cb-float][data-ch="whatsapp"]:hover,button[data-cb-float][data-ch="whatsapp"]:active,button[data-cb-float][data-ch="whatsapp"][data-over="1"],button[data-cb-float][data-ch="whatsapp"][data-over="1"]:hover,button[data-cb-float][data-ch="whatsapp"][data-over="1"]:active{background:#25D366;color:var(--vt-charcoal-900)}
 .vt-iconbtn[data-cb-dock][data-cb-dock]:focus-visible,[data-cb-x] .vt-iconbtn.vt-iconbtn:focus-visible{outline:none!important}
 /* ── menu: card above 680px, bottom sheet below ── */
 [data-cb-panel]{position:absolute;inset-block-end:calc(100% + 12px);inset-inline-end:0;inline-size:344px;max-inline-size:calc(100vw - 32px);box-sizing:border-box;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-xl);padding:8px;text-align:start;animation:cb-rise 200ms var(--vt-ease-out) both}
@@ -178,7 +178,7 @@ html[data-vt-sheet-open] [data-contact-btn][data-variant="float"],html[data-vt-t
 <h2 data-vt-no-i18n="1">Float button: every state (animated by itself on the page)</h2>
 <div data-cb-grow="1">
 <sc-for list="{{ galFloats }}" as="g" hint-placeholder-count="9">
-<div data-cb-cell="1" data-ground="{{ g.ground }}"><button type="button" data-cb-float="1" data-wide="{{ g.wide }}" data-x="{{ g.x }}" data-over="{{ g.over }}" aria-label="{{ g.aria }}"><span data-cb-inner="1" ><span data-cb-ico="1" aria-hidden="true"><sc-if value="{{ g.wa }}" hint-placeholder-val="{{ false }}"><span data-cb-wa="1"></span></sc-if><sc-if value="{{ g.notWa }}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ g.icon }}" size="{{ n22 }}" color="{{ g.color }}" hint-size="22px,22px"></x-import></sc-if></span><span data-cb-lbl="1" aria-hidden="true">{{ g.label }}</span></span></button><span data-cb-cap="1" data-vt-no-i18n="1">{{ g.cap }}</span></div>
+<div data-cb-cell="1" data-ground="{{ g.ground }}"><button type="button" data-cb-float="1" data-wide="{{ g.wide }}" data-x="{{ g.x }}" data-over="{{ g.over }}" data-ch="{{ g.ch }}" aria-label="{{ g.aria }}"><span data-cb-inner="1" ><span data-cb-ico="1" aria-hidden="true"><sc-if value="{{ g.wa }}" hint-placeholder-val="{{ false }}"><span data-cb-wa="1"></span></sc-if><sc-if value="{{ g.notWa }}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ g.icon }}" size="{{ n22 }}" color="{{ g.color }}" hint-size="22px,22px"></x-import></sc-if></span><span data-cb-lbl="1" aria-hidden="true">{{ g.label }}</span></span></button><span data-cb-cap="1" data-vt-no-i18n="1">{{ g.cap }}</span></div>
 </sc-for>
 </div>
 <h2 data-vt-no-i18n="1">Menu row (ContactRow)</h2>
@@ -472,9 +472,9 @@ class Component extends DCLogic {
     const fullW = s.innerW ? 16 + s.innerW + 24 : 0;
     const w = wide || expanded ? fullW : 54;
     const iconColor = s.over ? 'var(--vt-charcoal-900)' : 'var(--vt-yellow)';
-    const fl = (cap, o) => Object.assign({ cap, wide: '0', x: '0', over: '0', icon: 'message-circle', label: 'Contact', wa: false, notWa: true, color: 'var(--vt-yellow)', ground: '', aria: aria(false) }, o);
+    const fl = (cap, o) => Object.assign({ cap, wide: '0', x: '0', over: '0', icon: 'message-circle', label: 'Contact', wa: false, ch: '', notWa: true, color: 'var(--vt-yellow)', ground: '', aria: aria(false) }, o);
     const ov = { over: '1', color: 'var(--vt-charcoal-900)', ground: 'inv' };
-    const waO = { x: '1', wa: true, notWa: false, label: 'WhatsApp us' };
+    const waO = { x: '1', wa: true, ch: 'whatsapp', notWa: false, label: 'WhatsApp us' };
     const callO = { x: '1', icon: 'phone', label: 'Call us' };
     const mailO = { x: '1', icon: 'mail', label: 'Email us' };
     return {
@@ -490,7 +490,8 @@ class Component extends DCLogic {
         fl('open · Call us', callO),
         fl('open · Email us', mailO),
         fl('closed · over the footer', ov),
-        fl('open · over the footer, WhatsApp', Object.assign({}, ov, waO)),
+        fl('closed · phone disc, WhatsApp icon', { wa: true, ch: 'whatsapp', notWa: false }),
+        fl('open · over the footer, WhatsApp (green too)', Object.assign({}, ov, waO)),
         fl('open · over the footer, Call', Object.assign({}, ov, callO)),
         fl('tablet and desktop · at rest', { wide: '1' }),
         fl('reduced motion · static disc, chat icon'),

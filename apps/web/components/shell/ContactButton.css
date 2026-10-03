@@ -107,18 +107,25 @@
   transition: opacity var(--vt-dur-base) var(--vt-ease-standard) 120ms;
 }
 
-/* The WhatsApp brand glyph in its own green; charcoal (same shape) on the yellow ground. */
+/* The WhatsApp step (owner, 2026-10-03): WhatsApp green, the white WhatsApp logo, a charcoal label,
+   on the page and over the footer. #25D366 is the WhatsApp brand green, allowed only on this state
+   (design system section 5 brand-mark rule). Hover keeps the same green (a darker green is not a
+   token); press is translateY(1px); the focus ring is the shared one. */
 .vt-cbtn__wa {
   display: block;
   inline-size: 22px;
   block-size: 22px;
-  background: url("/assets/social/whatsapp.svg") center / contain no-repeat;
+  background: url("/assets/social/whatsapp-white.svg") center / contain no-repeat;
 }
 
-.vt-cbtn__float[data-over="1"] .vt-cbtn__wa {
-  background: var(--vt-charcoal-900);
-  -webkit-mask: url("/assets/social/whatsapp.svg") center / contain no-repeat;
-  mask: url("/assets/social/whatsapp.svg") center / contain no-repeat;
+.vt-cbtn__float[data-ch="whatsapp"],
+.vt-cbtn__float[data-ch="whatsapp"]:hover,
+.vt-cbtn__float[data-ch="whatsapp"]:active,
+.vt-cbtn__float[data-ch="whatsapp"][data-over="1"],
+.vt-cbtn__float[data-ch="whatsapp"][data-over="1"]:hover,
+.vt-cbtn__float[data-ch="whatsapp"][data-over="1"]:active {
+  background: #25d366;
+  color: var(--vt-charcoal-900);
 }
 
 .vt-crow__logo {

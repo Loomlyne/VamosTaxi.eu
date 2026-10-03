@@ -43,6 +43,10 @@ export type ContactChannel = {
 /** The WhatsApp brand glyph (assets/social/whatsapp.svg, served from /assets). */
 export const WHATSAPP_LOGO = "/assets/social/whatsapp.svg";
 
+/** The WhatsApp step of the float (owner, 2026-10-03): WhatsApp brand green, white logo, charcoal label, on the page and over the footer. Allowed only on this state. */
+export const WHATSAPP_GREEN = "#25D366";
+export const WHATSAPP_LOGO_WHITE = "/assets/social/whatsapp-white.svg";
+
 /** Timings of the float's own cycle: rest closed, show a channel, close again (ms). */
 export const CYCLE_MS = Object.freeze({ rest: 4000, show: 3000, close: 340 } as const);
 
