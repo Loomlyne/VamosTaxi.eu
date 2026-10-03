@@ -146,7 +146,7 @@ export async function dashboardSignIn(s) {
   await page.goto(DASH + "/login", { waitUntil: "domcontentloaded" });
   await page.locator('input[type="email"], input[autocomplete="email"], input[autocomplete="username"]').first().fill(f.email);
   await page.locator('input[type="password"]').first().fill(f.password);
-  await page.locator('button[type="submit"]').first().click();
+  await page.getByRole("button", { name: /^sign in$/i }).click();
   await page.waitForURL((u) => !/\/login/.test(u.pathname), { timeout: 20000 });
 }
 
