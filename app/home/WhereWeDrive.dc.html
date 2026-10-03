@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<!-- Ground colour + cover live in the STATIC head/body on purpose (see HowItWorks.dc.html). -->
+<style id="vt-boot">html{background:#F6F6F6}body{margin:0}#vt-boot-cover{position:fixed;inset:0;z-index:2147483000;background:#F6F6F6;pointer-events:none;animation:vt-boot-fail 0s linear 6s forwards}@keyframes vt-boot-fail{to{visibility:hidden}}</style>
+</head>
+<body>
+<div id="vt-boot-cover" aria-hidden="true"></div>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
+<script src="../vamos-i18n-dict.js"></script>
+<script src="../vamos-locale.js"></script>
+<script src="../vamos-page-transition.js"></script>
+<style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}
+body{margin:0}
+a{color:inherit;text-decoration:none;border-bottom:0}a:hover{color:inherit}
+[data-ww]{background:var(--vt-bg-page);color:var(--vt-text-primary);font-family:var(--vt-font-body);border-block-start:1px solid var(--vt-border-subtle);scroll-margin-top:calc(var(--vt-space-11) + var(--vt-space-3))}
+[data-ww-wrap]{box-sizing:border-box;max-inline-size:var(--vt-container-lg);margin-inline:auto;padding-block:clamp(56px,7vw,96px);padding-inline:var(--vt-gutter)}
+[data-ww-head]{display:flex;flex-direction:column;align-items:flex-start;gap:12px;margin-block-end:clamp(24px,3vw,32px)}
+[data-ww-kicker]{margin:0;display:inline-flex;align-self:flex-start;align-items:center;gap:9px;box-sizing:border-box;min-block-size:var(--vt-space-7);padding-block:0;padding-inline:var(--vt-space-3) 15px;border:var(--vt-border-w) solid var(--vt-grey-200);border-radius:var(--vt-radius-pill);background:var(--vt-white);font-size:12px;font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;line-height:1;white-space:nowrap;color:var(--vt-charcoal-900)}
+[data-ww-kicker]::before{content:"";flex:0 0 13px;inline-size:13px;block-size:13px;background:url(../../assets/patterns/checker-mark.png) center / contain no-repeat}
+[data-ww-title]{margin:0;max-inline-size:20ch;font-family:var(--vt-font-display);font-size:var(--vt-display-3);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:var(--vt-display-leading);text-wrap:balance;color:var(--vt-text-primary)}
+[data-ww-tabs]{display:flex;flex-wrap:wrap;gap:var(--vt-space-2);margin-block-end:var(--vt-space-6)}
+[data-ww-tab]{appearance:none;cursor:pointer;display:inline-flex;align-items:center;gap:var(--vt-space-2);box-sizing:border-box;min-block-size:44px;padding-block:0;padding-inline:18px;border:var(--vt-border-w) solid var(--vt-border-subtle);border-radius:var(--vt-radius-pill);background:var(--vt-white);color:var(--vt-text-primary);font-family:var(--vt-font-body);font-size:13px;font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;line-height:1;white-space:nowrap}
+[data-ww-tab]:hover{border-color:var(--vt-charcoal-900)}
+[data-ww-tab]:active{transform:translateY(1px)}
+[data-ww-tab][aria-selected="true"]{background:var(--vt-charcoal-900);border-color:var(--vt-charcoal-900);color:var(--vt-white)}
+[data-ww-tab]:focus-visible,[data-ww-row]:focus-visible{outline:none;box-shadow:var(--vt-ring)}
+[data-ww-split]{display:grid;grid-template-columns:minmax(0,1fr);gap:clamp(24px,4vw,56px);align-items:start}
+@media (min-width:900px){[data-ww-split]{grid-template-columns:repeat(2,minmax(0,1fr))}}
+[data-ww-photo]{position:relative;overflow:hidden;box-sizing:border-box;inline-size:100%;aspect-ratio:4/3;background:var(--vt-charcoal-900);border-radius:var(--vt-radius-lg);--ww-zoom:116%;--ww-x:-9.3%;--ww-y:0}
+[data-ww-photo][data-airport="gva"]{--ww-zoom:118%;--ww-x:0;--ww-y:0}
+[data-ww-photo][data-airport="bsl"]{--ww-zoom:122%;--ww-x:-19.5%;--ww-y:-22%}
+/* Photo crop offsets are image geometry, not text: physical left/top on purpose. */
+[data-ww-photo] img{position:absolute;left:var(--ww-x);top:var(--ww-y);inline-size:var(--ww-zoom);block-size:var(--ww-zoom);max-inline-size:none;object-fit:cover}
+[data-ww-list]{display:flex;flex-direction:column;min-inline-size:0}
+[data-ww-row]{display:flex;align-items:center;justify-content:space-between;gap:var(--vt-space-3);box-sizing:border-box;min-block-size:52px;padding-block:var(--vt-space-2);border-block-end:1px solid var(--vt-border-subtle);color:var(--vt-text-primary);font-size:15px;font-weight:var(--vt-weight-medium);border-radius:var(--vt-radius-xs)}
+[data-ww-row]:hover{border-block-end-color:var(--vt-charcoal-900)}
+[data-ww-row]:active{transform:translateY(1px)}
+[data-ww-row-main]{display:inline-flex;flex-wrap:wrap;align-items:center;column-gap:var(--vt-space-2);row-gap:var(--vt-space-1);min-inline-size:0}
+[data-ww-arrow]{display:inline-flex;align-items:center;color:var(--vt-text-muted)}
+[data-ww-chev]{display:inline-flex;align-items:center;flex:0 0 auto;color:var(--vt-text-muted)}
+[dir="rtl"] [data-ww-arrow],[dir="rtl"] [data-ww-chev]{transform:scaleX(-1)}
+[data-ww-tag]{display:inline-flex;align-items:center;min-block-size:24px;padding-inline:10px;border-radius:var(--vt-radius-pill);background:var(--vt-charcoal-900);color:var(--vt-accent);font-size:11px;font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;line-height:1}
+[data-ww-skel]{min-block-size:52px;border-block-end:1px solid var(--vt-border-subtle);display:flex;align-items:center}
+[data-ww-skel]::before{content:"";display:block;block-size:14px;inline-size:min(60%,260px);border-radius:var(--vt-radius-pill);background:var(--vt-grey-200)}
+[data-ww-note]{margin:var(--vt-space-4) 0 0;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)}
+@media (prefers-reduced-motion:no-preference){
+  [data-ww-tab],[data-ww-row]{transition:background var(--vt-dur-fast) var(--vt-ease-standard),border-color var(--vt-dur-fast) var(--vt-ease-standard),color var(--vt-dur-fast) var(--vt-ease-standard),transform 80ms var(--vt-ease-standard)}
+}
+@media (prefers-reduced-motion:reduce){[data-ww-tab]:active,[data-ww-row]:active{transform:none}}
+</style>
+</helmet>
+<section data-ww="1" id="where-we-drive" dir="{{ dir }}" data-screen-label="Where we drive" aria-labelledby="ww-title">
+<div data-ww-wrap="1">
+<div data-ww-head="1">
+<p data-ww-kicker="1">Where we drive</p>
+<h2 id="ww-title" data-ww-title="1">Choose an airport. See where we take you.</h2>
+</div>
+<div data-ww-tabs="1" role="tablist" aria-label="Airports" onKeyDown="{{ onTabKey }}">
+<sc-for list="{{ tabs }}" as="a" hint-placeholder-count="3">
+<button type="button" role="tab" id="{{ a.tabId }}" data-ww-tab="1" aria-selected="{{ a.sel }}" aria-controls="ww-panel" tabindex="{{ a.tab }}" onClick="{{ a.select }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="plane-landing" size="{{ n18 }}" hint-size="18px,18px"></x-import>
+<span>{{ a.city }}</span><span class="vt-dir-keep" data-vt-no-i18n="1">{{ a.code }}</span>
+</button>
+</sc-for>
+</div>
+<div data-ww-split="1" id="ww-panel" role="tabpanel" aria-labelledby="{{ activeTabId }}">
+<div data-ww-photo="1" data-airport="{{ activeId }}"><img src="{{ photo }}" alt=""></div>
+<div>
+<div data-ww-list="1">
+<sc-if value="{{ showSkel }}" hint-placeholder-val="{{ false }}">
+<div data-ww-skel="1" aria-hidden="true"></div>
+<div data-ww-skel="1" aria-hidden="true"></div>
+</sc-if>
+<sc-for list="{{ rows }}" as="r" hint-placeholder-count="5">
+<a data-ww-row="1" href="/#book" onClick="{{ r.pick }}">
+<span data-ww-row-main="1"><span>{{ airportName }}</span><span data-ww-arrow="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n16 }}" hint-size="16px,16px"></x-import></span><span>{{ r.name }}</span><sc-if value="{{ r.fixed }}" hint-placeholder-val="{{ false }}"><span data-ww-tag="1">Fixed route</span></sc-if></span>
+<span data-ww-chev="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-right" size="{{ n16 }}" hint-size="16px,16px"></x-import></span>
+</a>
+</sc-for>
+</div>
+<p data-ww-note="1">Not on the list? Type any address in the booking card.</p>
+</div>
+</div>
+</div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}">
+const AIRPORTS = [
+  { id: 'zrh', code: 'ZRH', city: 'Zurich', label: 'Zurich Airport', places: ['Zurich', 'Lucerne', 'Interlaken', 'Zermatt', 'Bern'] },
+  { id: 'gva', code: 'GVA', city: 'Geneva', label: 'Geneva Airport', places: ['Geneva', 'Lausanne', 'Zermatt', 'Bern'] },
+  { id: 'bsl', code: 'BSL', city: 'Basel', label: 'Basel EuroAirport', places: ['Basel', 'Bern', 'Lucerne', 'Zurich'] },
+];
+/** One GET /api/quote per page: shared with home.dc.html and HowItWorks via window.__vamosIdleBoard. */
+function idleBoard() {
+  if (typeof window === 'undefined' || typeof fetch === 'undefined') return Promise.resolve(null);
+  if (!window.__vamosIdleBoard) {
+    window.__vamosIdleBoard = fetch('/api/quote', { headers: { accept: 'application/json' } })
+      .then((r) => r.json().catch(() => null))
+      .catch(() => null);
+  }
+  return window.__vamosIdleBoard;
+}
+function isRtl() { return typeof document !== 'undefined' && document.documentElement.dir === 'rtl'; }
+class Component extends DCLogic {
+  state = { lang: (window.VamosLocale && window.VamosLocale.lang && window.VamosLocale.lang()) || 'en', active: 0, fixed: null };
+  componentDidMount() {
+    if (window.VamosLocale && window.VamosLocale.onChange) {
+      this._offLocale = window.VamosLocale.onChange((v) => this.setState({ lang: v.lang }));
+    }
+    this._on = true;
+    idleBoard().then((j) => {
+      if (!this._on) return;
+      const out = [];
+      const seen = {};
+      if (j && j.ok === true && Array.isArray(j.fixed_routes)) {
+        j.fixed_routes.forEach((f) => {
+          if (!f || typeof f.from !== 'string' || typeof f.to !== 'string') return;
+          if (f.from.indexOf('Zurich Airport') !== 0) return;
+          const label = f.to.split(',')[0].trim();
+          if (label.length < 2 || seen[label]) return;
+          seen[label] = 1;
+          out.push({ name: label, fixed: true, toMapboxId: f.to_mapbox_id || '', fromMapboxId: f.from_mapbox_id || '' });
+        });
+      }
+      /* Every ZRH row can send Zurich Airport as a chosen place: the fixed routes carry its mapbox id. */
+      this.setState({ fixed: out, zrhId: (out[0] && out[0].fromMapboxId) || '' });
+    }).catch(() => { if (this._on) this.setState({ fixed: [] }); });
+  }
+  componentWillUnmount() {
+    this._on = false;
+    if (this._offLocale) this._offLocale();
+  }
+  selectTab(i, focus) {
+    this.setState({ active: i });
+    if (focus) {
+      const el = document.getElementById('ww-tab-' + AIRPORTS[i].id);
+      if (el && el.focus) el.focus();
+    }
+  }
+  onTabKey = (e) => {
+    const k = e && e.key;
+    const n = AIRPORTS.length;
+    const cur = this.state.active;
+    const fwd = isRtl() ? 'ArrowLeft' : 'ArrowRight';
+    const back = isRtl() ? 'ArrowRight' : 'ArrowLeft';
+    let next = -1;
+    if (k === fwd) next = (cur + 1) % n;
+    else if (k === back) next = (cur + n - 1) % n;
+    else if (k === 'Home') next = 0;
+    else if (k === 'End') next = n - 1;
+    if (next < 0) return;
+    if (e.preventDefault) e.preventDefault();
+    this.selectTab(next, true);
+  };
+  pick(e, airport, row) {
+    if (e && (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || (e.button && e.button > 0))) return;
+    if (e && e.preventDefault) e.preventDefault();
+    const place = String(row.name || '').replace(/\s+/g, ' ').trim().slice(0, 200);
+    if (place.length < 2) return;
+    const detail = { name: place, kind: row.fixed ? 'route' : 'city', from: airport.label, fromCode: airport.code, handled: false };
+    if (row.fixed) { detail.fromMapboxId = row.fromMapboxId; detail.toMapboxId = row.toMapboxId; }
+    else if (airport.code === 'ZRH' && this.state.zrhId) detail.fromMapboxId = this.state.zrhId;
+    try { window.dispatchEvent(new CustomEvent('vamos:dest-pick', { detail: detail })); } catch (err) {}
+    if (detail.handled === true) return;
+    const reduce = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const el = document.getElementById('book');
+    if (!el) return;
+    const top = el.getBoundingClientRect().top + window.pageYOffset - 24;
+    window.scrollTo({ top: top, behavior: reduce ? 'auto' : 'smooth' });
+  }
+  renderVals() {
+    const a = AIRPORTS[this.state.active] || AIRPORTS[0];
+    const fixedRows = a.id === 'zrh' && Array.isArray(this.state.fixed) ? this.state.fixed : [];
+    const rows = fixedRows.concat(a.places.map((p) => ({ name: p, fixed: false }))).map((r) => ({
+      name: r.name,
+      fixed: r.fixed,
+      pick: (e) => this.pick(e, a, r),
+    }));
+    return {
+      dir: this.state.lang === 'ar' ? 'rtl' : 'ltr',
+      n16: 16,
+      n18: 18,
+      onTabKey: this.onTabKey,
+      tabs: AIRPORTS.map((x, i) => ({
+        tabId: 'ww-tab-' + x.id,
+        city: x.city,
+        code: x.code,
+        sel: i === this.state.active ? 'true' : 'false',
+        tab: i === this.state.active ? '0' : '-1',
+        select: () => this.selectTab(i, false),
+      })),
+      activeTabId: 'ww-tab-' + a.id,
+      activeId: a.id,
+      photo: '/assets/photography/dest-' + a.id + '.jpg',
+      airportName: a.label,
+      showSkel: a.id === 'zrh' && this.state.fixed === null,
+      rows: rows,
+    };
+  }
+}
+</script>
+</body>
+</html>

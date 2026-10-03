@@ -106,8 +106,10 @@ describe("reviews JSON dual mount + mock", () => {
     expect(html).toMatch(/rel="noopener noreferrer"/);
     expect(html).not.toMatch(/<a data-rv-link[^>]*>\{\{ r\.linkLabel \}\}/);
     // 92d6af1: the name block is a <div> that also carries the route sub-line.
+    // The signed home-sections card adds dir="auto" to the name (names can be Arabic or Latin
+    // in any page language), so the <strong> may carry attributes besides data-rv-name.
     expect(html).toMatch(
-      /<div data-rv-who="1"[^>]*>\s*<strong data-rv-name="1">\{\{ r\.name \}\}<\/strong>/,
+      /<div data-rv-who="1"[^>]*>\s*<strong data-rv-name="1"[^>]*>\{\{ r\.name \}\}<\/strong>/,
     );
     // Icons come from the Lucide set through Icon, never hand-drawn SVG (CLAUDE.md).
     expect(html).not.toMatch(/<svg/);

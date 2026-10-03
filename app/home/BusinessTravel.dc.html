@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<!-- Ground colour + cover live in the STATIC head/body on purpose. The DC runtime
+     injects every stylesheet and script from <helmet> only after React has loaded, so
+     without these the arriving document paints uncovered frames before
+     vamos-page-transition.js exists and can build its overlay. That script adopts
+     #vt-boot-cover and removes it once its own sheet is painted at COVER; the 6s
+     animation below is the fallback for when the script never runs. -->
+<style id="vt-boot">html{background:#F6F6F6}body{margin:0}#vt-boot-cover{position:fixed;inset:0;z-index:2147483000;background:#F6F6F6;pointer-events:none;animation:vt-boot-fail 0s linear 6s forwards}@keyframes vt-boot-fail{to{visibility:hidden}}</style>
+</head>
+<body>
+<div id="vt-boot-cover" aria-hidden="true"></div>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
+<script src="../vamos-i18n-dict.js"></script>
+<script src="../vamos-locale.js"></script>
+<script src="../vamos-page-transition.js"></script>
+<style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}
+body{margin:0}
+a{color:inherit;text-decoration:none;border-bottom:0}
+[data-kicker]{margin:0;display:inline-flex;align-self:flex-start;align-items:center;gap:9px;box-sizing:border-box;inline-size:fit-content;max-inline-size:100%;min-block-size:32px;padding-block:0;padding-inline:12px 15px;border:1px solid var(--vt-grey-200);border-radius:var(--vt-radius-pill);background:var(--vt-white);font-family:var(--vt-font-body);font-size:12px;font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;line-height:1;white-space:nowrap;color:var(--vt-charcoal-900)}
+[data-kicker]::before{content:"";flex:0 0 13px;inline-size:13px;block-size:13px;background:url(../../assets/patterns/checker-mark.png) center / contain no-repeat}
+[data-title]{margin:0;max-inline-size:18ch;font-family:var(--vt-font-display);font-size:var(--vt-display-3);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:var(--vt-display-leading);text-wrap:balance;color:var(--vt-text-primary)}
+[data-wrap]{box-sizing:border-box;max-inline-size:var(--vt-container-lg);margin-inline:auto;padding-block:clamp(56px,7vw,96px);padding-inline:var(--vt-gutter)}
+[data-head]{display:flex;flex-direction:column;align-items:flex-start;gap:12px;margin-block-end:clamp(28px,4vw,48px)}
+:focus-visible:not(input):not(select):not(textarea){outline:none;box-shadow:var(--vt-ring)}
+[data-band]{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:clamp(24px,4vw,48px)}
+[data-band-copy]{display:flex;flex-direction:column;align-items:flex-start;gap:14px;flex:1 1 420px;min-inline-size:0}
+[data-lede]{margin:0;max-inline-size:46ch;font-family:var(--vt-font-body);font-size:var(--vt-body-md);line-height:var(--vt-body-leading);text-wrap:pretty;color:var(--vt-text-secondary)}
+[data-chips]{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
+[data-chip]{display:inline-flex;align-items:center;gap:8px;min-block-size:32px;box-sizing:border-box;padding-inline:12px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-pill);font-family:var(--vt-font-body);font-size:13px;font-weight:var(--vt-weight-medium);color:var(--vt-text-primary)}
+[data-band-act]{display:flex;flex-wrap:wrap;align-items:center;gap:12px;flex:0 0 auto}
+[data-btn]{display:inline-flex;align-items:center;justify-content:center;gap:10px;box-sizing:border-box;min-block-size:44px;padding-inline:20px;border:1px solid var(--vt-charcoal-900);border-radius:var(--vt-radius-pill);background:var(--vt-charcoal-900);color:var(--vt-text-inverse);font-family:var(--vt-font-body);font-size:13px;font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;white-space:nowrap;transition:background 140ms var(--vt-ease-standard),border-color 140ms var(--vt-ease-standard),transform 80ms var(--vt-ease-standard)}
+[data-btn]:hover{background:var(--vt-charcoal-800)}
+[data-btn]:active{transform:translateY(1px)}
+[data-btn="ghost"]{background:transparent;color:var(--vt-text-primary)}
+[data-btn="ghost"]:hover{background:var(--vt-grey-50);border-color:var(--vt-charcoal-900)}
+@media (max-width:640px){[data-band-act]{flex-direction:column;align-items:stretch;inline-size:100%}[data-btn]{inline-size:100%}}
+@media (prefers-reduced-motion:reduce){[data-btn]{transition:none}[data-btn]:active{transform:none}}
+</style>
+</helmet>
+<section data-screen-label="BusinessTravel" aria-labelledby="biz-title" style="background:var(--vt-bg-page);color:var(--vt-text-primary);font-family:var(--vt-font-body)">
+<div data-wrap="1">
+<div data-band="1">
+<div data-band-copy="1">
+<p data-kicker="1">Business travel</p>
+<h2 data-title="1" id="biz-title" style="max-inline-size:22ch">Booking for guests or a team?</h2>
+<p data-lede="1">Book a ride in your guest’s name and send them the voucher.</p>
+<ul data-chips="1">
+<li data-chip="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n18 }}" hint-size="18px,18px"></x-import>Book in a guest’s name</li>
+<li data-chip="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n18 }}" hint-size="18px,18px"></x-import>One contact for every ride</li>
+</ul>
+</div>
+<div data-band-act="1">
+<a data-btn="1" href="/contact">Contact us<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n18 }}" hint-size="18px,18px"></x-import></a>
+<a data-btn="ghost" href="https://wa.me/41796267082" rel="noopener" target="_blank"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="message-circle" size="{{ n18 }}" hint-size="18px,18px"></x-import>WhatsApp</a>
+</div>
+</div>
+</div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+/** Re-renders when the platform language changes. Static copy, no data fetching. */
+class Component extends DCLogic {
+  state = { lang: null };
+  componentDidMount() {
+    this._offLocale = window.VamosLocale.onChange((v) => this.setState({ lang: v.lang }));
+  }
+  componentWillUnmount() {
+    if (this._offLocale) this._offLocale();
+  }
+  renderVals() {
+    return { n18: 18, n20: 20 };
+  }
+}
+</script>
+</body>
+</html>
