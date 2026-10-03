@@ -115,3 +115,30 @@ Fast kill switch: `META_EVENTS_MANAGER_SWITCHES_OFF = false` in `legal-gate.ts` 
 ## 10. Left running
 
 Nothing. The own stack `vamos-taxi-290` was stopped (port 62322 no longer listening); no `apps/web/.next-*` folder exists; working tree clean. `.open-next/` is build output, not tracked.
+
+## 11. Final gate run after merging origin/main (UTC 2026-10-03)
+
+Merged `origin/main` at `fddfae18` into the branch with no conflicts (merge commit `bc2d12e3`). The merge brought no new migration (newest on both sides is `20261007260000_meta_purchase.sql`) and no lockfile or package.json change, so no install was needed. The final branch tip is the commit that adds this section; read it with `git log -1`.
+
+Own stack `vamos-taxi-290` (native, DB port 62322), reset from zero, stopped afterwards:
+
+- stack reset: pass (all migrations applied, seed ran).
+- pgTAP, full: PASS, 102 files, 2845 tests.
+- `packages/db` test/local `meta-purchase`, `meta-click-ids`, `consent-reader`: pass, 3 files, 11 tests.
+
+Gates, run once, in order:
+
+- `pnpm test:unit`: pass. packages/db 14, packages/emails 247, apps/web 4802 passed and 31 skipped (417 files passed, 16 skipped).
+- `pnpm typecheck`: pass.
+- `pnpm lint`: pass, 0 errors, 6 warnings (unused eslint-disable directives, e.g. `packages/db/test/local/identity-contract.test.ts:101`).
+- `pnpm lint:css`: pass.
+- `check:legal-claims` pass (3 checks); `check:numbers` pass; `check:public-env` pass (built bundle scanned); `check:db-fences` pass (8 checks, 1177 files).
+- `i18n:check`: pass, 2699 keys.
+- `db:seed:check`: pass, no drift.
+- `pnpm build` (next build): pass.
+- opennextjs-cloudflare build (`sync-dc-mock-to-public.mjs`, then `opennextjs-cloudflare build` in apps/web): pass, worker saved in `.open-next/worker.js`.
+- `db:types:check`: NOT RUN (needs Docker, not started). Substitute proof is in section 5: native CLI type generation compared on the Phase 29 objects only, whole-file byte identity not proven. Same pgTAP/reset result above shows the migration applies from zero.
+
+Must-not greps on added lines of `git diff origin/main...HEAD`, `.planning` excluded: `sk_live_` 0, `vamostaxi.eu` 0, `client_user_agent|client_ip_address|external_id` 0.
+
+After the gates: no `apps/web/.next-*` folders, tsconfig files unchanged, working tree clean before this edit.
