@@ -46,159 +46,132 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 body{margin:0}
 a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}
 [data-rv-wrap]{box-sizing:border-box;max-width:var(--vt-container-lg);margin-inline:auto;padding-block:clamp(56px,7vw,90px);padding-inline:clamp(16px,3.2vw,56px)}
-[data-rv-head]{display:flex;flex-direction:column;align-items:flex-start;gap:var(--vt-space-3);margin-bottom:clamp(var(--vt-space-7),3.6vw,var(--vt-space-8))}
+[data-rv-head]{display:flex;flex-direction:column;align-items:flex-start;gap:var(--vt-space-3);margin-bottom:clamp(var(--vt-space-6),3vw,var(--vt-space-7))}
 [data-rv-kicker]{margin:0;display:inline-flex;align-self:start;align-items:center;gap:9px;min-block-size:32px;padding-block:0;padding-inline:12px 15px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-pill);background:var(--vt-bg-surface);font-family:var(--vt-font-body);font-size:12px;font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;line-height:1;white-space:nowrap;color:var(--vt-charcoal-900)}
 [data-rv-kicker] img{inline-size:13px;block-size:13px;display:block}
 [data-rv-title]{margin:0;font-family:var(--vt-font-display);font-size:var(--vt-display-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:var(--vt-display-leading);max-width:22ch;text-wrap:balance;text-align:start}
-[data-rv-grid]{display:grid;grid-template-columns:minmax(148px,220px) minmax(0,1fr);column-gap:var(--vt-space-7);row-gap:var(--vt-space-6);align-items:start}
-[data-rv-score]{display:flex;flex-direction:column;align-items:flex-start;gap:var(--vt-space-2);min-width:0;padding-block-start:var(--vt-space-2)}
-[data-rv-score-mark]{display:block;flex:0 0 auto;block-size:var(--vt-space-9);inline-size:calc(var(--vt-space-9) * 2500 / 1163.3);max-inline-size:100%;object-fit:contain;object-position:start;background:transparent;padding:0;border:0;border-radius:0;box-shadow:none}
-[data-rv-score-cap]{margin:0;max-width:28ch;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-regular);line-height:1.45;color:var(--vt-text-secondary);text-wrap:pretty;text-align:start}
-[data-rv-cards]{display:flex;flex-flow:row nowrap;align-items:stretch;gap:var(--vt-space-4);margin:0;padding-block:var(--vt-space-2);padding-inline:0;min-width:0;max-width:100%;list-style:none;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;overscroll-behavior-y:auto;touch-action:pan-x pan-y;scroll-behavior:auto;scroll-padding-inline:var(--vt-space-3);scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch}
-[data-rv-cards]::-webkit-scrollbar{display:none;width:0;height:0}
-[data-rv-item]{display:flex;flex-grow:0;flex-shrink:0;flex-basis:min(calc(var(--vt-space-12) + var(--vt-space-12) + var(--vt-space-8)),calc(100% - var(--vt-space-7)));min-width:0;max-width:100%}
-[data-rv-card]{box-sizing:border-box;display:flex;flex-direction:column;align-items:stretch;align-self:start;justify-content:start;gap:var(--vt-space-4);width:100%;min-width:0;height:auto;flex:0 1 auto;padding:var(--vt-space-5);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-xl);background:var(--vt-bg-surface);box-shadow:none;text-align:start}
-[data-rv-mark]{display:flex;align-items:center;min-block-size:var(--vt-space-6);min-width:0;flex:0 1 auto}
-[data-rv-logo]{display:block;block-size:18px;inline-size:auto;max-inline-size:100%;object-fit:contain;flex:0 0 auto}[data-rv-logo][src*="trustpilot-stacked"]{block-size:var(--vt-space-8);inline-size:calc(var(--vt-space-8) * 2500 / 1163.3);max-inline-size:100%}
-[data-rv-src]{font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);line-height:1.3;color:var(--vt-text-secondary);overflow-wrap:anywhere}
-[data-rv-q]{margin:0;padding:0;flex:0 0 auto;min-width:0}
-[data-rv-text]{margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-regular);line-height:1.5;letter-spacing:0;text-align:start;text-wrap:pretty;overflow-wrap:break-word;color:var(--vt-text-primary);quotes:"\201C" "\201D"}
-[dir="rtl"] [data-rv-text]{quotes:"\00AB" "\00BB"}
-[data-rv-text]::before{content:open-quote}
-[data-rv-text]::after{content:close-quote}
-[data-rv-foot]{display:flex;flex-direction:column;align-items:start;gap:var(--vt-space-2);margin:0;min-width:0;flex:0 0 auto}
-[data-rv-rate]{display:flex;align-items:center;gap:var(--vt-space-1);min-width:0;width:100%}
-[data-rv-stars]{display:flex;align-items:center;gap:2px;min-block-size:var(--vt-space-6)}
-[data-rv-stars] img{inline-size:18px;block-size:18px;flex:0 0 auto}
-[data-rv-link]{position:relative;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;inline-size:var(--vt-control-h-md);block-size:var(--vt-control-h-md);flex:0 0 auto;margin:0;padding:0;border:0;border-radius:var(--vt-radius-pill);background:transparent;color:var(--vt-charcoal-900);text-decoration:none;box-shadow:none}
+[data-rv-chips]{display:flex;flex-wrap:wrap;gap:var(--vt-space-3);margin:0 0 var(--vt-space-7);padding:0;list-style:none}
+[data-rv-chip]{box-sizing:border-box;display:inline-flex;align-items:center;gap:var(--vt-space-3);min-block-size:56px;padding-block:0;padding-inline:var(--vt-space-5);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-pill);background:var(--vt-white);color:var(--vt-text-primary);max-inline-size:100%}
+[data-rv-chip] img{display:block;block-size:20px;inline-size:auto;flex:0 0 auto}
+[data-rv-chip-score]{font-family:var(--vt-font-display);font-size:20px;font-weight:var(--vt-weight-semibold);line-height:1}
+[data-rv-chip-n]{font-family:var(--vt-font-body);font-size:12px;line-height:1.3;color:var(--vt-text-muted)}
+[data-rv-wall]{columns:3 280px;column-gap:var(--vt-space-5);margin:0;padding:0;list-style:none}
+[data-rv-item]{break-inside:avoid;margin:0 0 var(--vt-space-5);padding:0}
+[data-rv-card]{box-sizing:border-box;display:flex;flex-direction:column;align-items:stretch;gap:var(--vt-space-4);width:100%;min-width:0;padding:var(--vt-space-5);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-white);box-shadow:none;text-align:start}
+[data-rv-stars]{display:flex;align-items:center;gap:2px}
+[data-rv-star]{display:block;inline-size:18px;block-size:18px;flex:0 0 auto;background:var(--vt-accent);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2.6l2.4 6.5h6.8l-5.5 4.2 2.1 6.6L12 16.2 6.2 19.9l2.1-6.6L2.8 9.1h6.8z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2.6l2.4 6.5h6.8l-5.5 4.2 2.1 6.6L12 16.2 6.2 19.9l2.1-6.6L2.8 9.1h6.8z'/%3E%3C/svg%3E") center/contain no-repeat}
+[data-rv-star][data-off]{background:var(--vt-grey-300)}
+[data-rv-rate]{display:flex;align-items:center;min-width:0}
+/* Owner's original-review link (#50): borderless icon after the stars. The 44px target is cancelled out of the row height so the card keeps its signed spacing. */
+[data-rv-link]{position:relative;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;inline-size:var(--vt-control-h-md);block-size:var(--vt-control-h-md);flex:0 0 auto;margin:0;margin-block:calc((18px - var(--vt-control-h-md)) / 2);padding:0;border:0;border-radius:var(--vt-radius-pill);background:transparent;color:var(--vt-charcoal-900);text-decoration:none;box-shadow:none;transition:background-color 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1)}
 @media (hover:hover){[data-rv-link]:hover{background:var(--vt-grey-50);color:var(--vt-charcoal-900)}}
 [data-rv-link]:active{background:var(--vt-grey-100);color:var(--vt-charcoal-900)}
 [data-rv-link]:focus-visible{outline:none;box-shadow:var(--vt-ring)}
-[data-rv-who]{display:flex;flex-direction:column;align-items:start;gap:var(--vt-space-1);min-width:0;max-width:100%}
-[data-rv-name]{font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-semibold);letter-spacing:0;line-height:1.3;color:var(--vt-text-primary);overflow-wrap:anywhere}
-[data-rv-sub]{display:block;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-regular);line-height:1.45;color:var(--vt-text-secondary);overflow-wrap:anywhere;text-wrap:pretty}
-[data-rv-origin]{display:flex;flex-wrap:wrap;align-items:center;gap:var(--vt-space-2);min-width:0;max-width:100%}
-[data-rv-badge]{display:inline-flex;align-items:center;gap:var(--vt-space-1);min-block-size:var(--vt-space-6);padding-block:var(--vt-space-1);padding-inline:var(--vt-space-3);border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-subtle);background:var(--vt-bg-surface);box-shadow:none;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);line-height:1.3;color:var(--vt-text-secondary);width:fit-content;max-width:100%;white-space:normal;overflow-wrap:anywhere;text-align:start}
-[data-rv-badge] > *{flex:0 0 auto}
-[data-rv-empty]{box-sizing:border-box;display:flex;flex-direction:column;align-items:flex-start;gap:var(--vt-space-2);max-width:62ch;padding:var(--vt-space-6);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-xl);background:var(--vt-bg-surface);text-align:start}
-[data-rv-empty] strong{font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-semibold);line-height:1.3;color:var(--vt-text-primary)}
-[data-rv-empty] span{font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-regular);line-height:1.6;color:var(--vt-text-secondary);text-wrap:pretty;max-width:60ch}
-@media (max-width:759px){
-[data-rv-grid]{grid-template-columns:minmax(0,1fr)}
-[data-rv-score]{flex-direction:row;flex-wrap:wrap;align-items:center;column-gap:var(--vt-space-4);row-gap:var(--vt-space-2);padding-block-start:0}
-[data-rv-score-cap]{flex-basis:100%;max-width:36ch}
-}
+[data-rv-q]{margin:0;padding:0;min-width:0}
+[data-rv-text]{margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-regular);line-height:1.5;text-align:start;text-wrap:pretty;overflow-wrap:break-word;white-space:pre-line;color:var(--vt-text-primary);quotes:"\201C" "\201D"}
+[dir="rtl"] [data-rv-text]{quotes:"\00AB" "\00BB"}
+[data-rv-text]::before{content:open-quote}
+[data-rv-text]::after{content:close-quote}
+[data-rv-who]{display:flex;flex-direction:column;align-items:start;gap:var(--vt-space-1);min-width:0}
+[data-rv-name]{font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-semibold);line-height:1.3;color:var(--vt-text-primary);overflow-wrap:anywhere}
+[data-rv-sub]{font-family:var(--vt-font-body);font-size:var(--vt-body-sm);line-height:1.45;color:var(--vt-text-secondary);overflow-wrap:anywhere}
+[data-rv-mark]{display:inline-flex;align-items:center;align-self:flex-start;min-block-size:24px;max-inline-size:100%;color:var(--vt-text-secondary);font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium)}
+[data-rv-mark] img{display:block;block-size:18px;inline-size:auto;max-inline-size:100%}
+a[data-rv-mark]{text-decoration:none;border-bottom:0;border-radius:var(--vt-radius-xs);transition:opacity 140ms cubic-bezier(.2,0,.2,1)}
+a[data-rv-mark]:hover{opacity:.7}
+a[data-rv-mark]:active{transform:translateY(1px)}
+a[data-rv-mark]:focus-visible{outline:none;box-shadow:var(--vt-ring)}
+[data-rv-sk]{display:block;background:var(--vt-grey-100);border-radius:var(--vt-radius-pill);block-size:14px}
+[data-rv-sk="chip"]{inline-size:200px;block-size:56px;max-inline-size:100%}
+[data-rv-sk="line"]{inline-size:100%}
+[data-rv-sk="short"]{inline-size:55%}
+[data-rv-sk="stars"]{inline-size:100px;block-size:18px}
 @media (prefers-reduced-motion:no-preference){
-[data-rv-link]{transition:background-color var(--vt-dur-fast) var(--vt-ease-standard),color var(--vt-dur-fast) var(--vt-ease-standard)}
-}
-@media (prefers-reduced-motion:reduce){
-[data-rv-link]{transition:none}
-[data-rv-item][data-rv-clone]{display:none}
+[data-rv-sk]{animation:rvpulse 1.4s ease-in-out infinite}
+@keyframes rvpulse{0%,100%{opacity:1}50%{opacity:.5}}
 }
 :focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid var(--vt-focus)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}
 </style>
 </helmet>
-<section id="reviews" data-rv="1" data-state="{{ viewState }}" data-screen-label="Reviews" aria-labelledby="reviews-title" aria-busy="{{ busy }}" style="color:var(--vt-text-primary);font-family:var(--vt-font-body);position:relative;overflow:hidden">
-<div aria-hidden="true" style="position:absolute;inset:0;background-image:url(data:image/png;base64,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);background-size:88px 88px;background-repeat:repeat;opacity:.028;pointer-events:none;z-index:0"></div>
-<div data-rv-wrap="1" style="position:relative;z-index:1">
+<sc-if value="{{ showSection }}" hint-placeholder-val="{{ true }}">
+<section id="reviews" data-rv="1" data-state="{{ viewState }}" data-screen-label="Reviews" aria-labelledby="reviews-title" aria-busy="{{ busy }}" style="color:var(--vt-text-primary);font-family:var(--vt-font-body);position:relative">
+<div data-rv-wrap="1">
 <div data-rv-head="1">
 <p data-rv-kicker="1"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKAAAAChCAYAAABAk7SIAAAEi0lEQVR4AeyUS27bQBQETR1BuU58o1wqZ9F9nEX2YWCuaIA/c379XpcBGYYkznRXF/yYX8852+st4c/8+vF7TrjVI+FWVApEAAEDjZUxKgJmXDVQJwQMNFbGqAiYcdVAnXwFDDRS5qgImHndAN0QMMBImSMiYOZ1A3RDwAAjZY6IgJnXDdANAQOMVDmi1HEIKDWHXxgE9NtcqjECSs3hFwYB/TaXaoyAUnP4hUFAv82lGncVUKo5YSQIIKDEDL4hENB3e4nmCCgxg28IBPTdXqI5AkrM4BsCAbtszyV7BBBwjwzvdyGAgF0wc8keAQTcI8P7XQggYBfMXLJHAAH3yPB+FwII2AWz7yVnzRHwjBCfNyWAgE3xcvgZAQQ8I8TnTQkgYFO8HH5GAAHPCPF5UwII2BQvh58RyCvgWXM+lyCAgBIz+IZAQN/tJZojoMQMviEQ0Hd7ieYIKDGDbwgEzLd9qEYIGGqufGERMN+moRohYKi58oVFwHybhmqEgKHmyhcWAfNtGqpRVQFDNSesBAEElJjBNwQC+m4v0fwxvX9M2V7z6zlne71N//5m2+mzD/8BJf4P+IZAQN/tJZojYJUZOOQuAQS8S47nqhBAwCoYOeQuAQS8S47nqhBAwCoYOeQuAQS8S47nqhBAwCoYfQ8pbY6ApQR5vogAAhbh4+FSAghYSpDniwggYBE+Hi4lgIClBHm+iAACFuHj4VICcQUsbc7zEgQQUGIG3xAI6Lu9RHMElJjBNwQC+m4v0RwBJWbwDYGA8bZPlRgBU80ZrwwCxtssVWIETDVnvDIIGG+zVIkRMNWc8cogYLzNUiX+loCpmlNGggACSszgGwIBfbeXaI6AEjP4hkBA3+0lmiOgxAy+IRDw0vZ8qRUBBGxFlnMvEUDAS5j4UisCCNiKLOdeIoCAlzDxpVYEELAVWc69RAABL2Hy/VLr5gjYmjDnHxJAwEM8fNiaAAK2Jsz5hwQQ8BAPH7YmgICtCXP+IQEEPMTDh60J6ArYujnnSxBAQIkZfEMgoO/2Es0RUGIG3xAI6Lu9RPPH/HrO2V7T+8eU7vXzzy8JYyqH4D9gZaAVjrM6AgGt5tYri4B6m1glQkCrufXKIqDeJlaJENBqbr2yCKi3iVWiLwJaNaesBAEElJjBNwQC+m4v0RwBJWbwDYGAvttLNEdAiRl8QyDgsj2/RhFAwFHkuXchgIALBn6NIoCAo8hz70IAARcM/BpFAAFHkefehQACLhh8f41ujoCjFzC/HwHNBRhdHwFHL2B+PwKaCzC6PgKOXsD8fgQ0F2B0/XECjm7O/RIEEFBiBt8QCOi7vURzBJSYwTcEAvpuL9EcASVm8A2BgP2358YVAQRcweDP/gQQsD9zblwRQMAVDP7sTwAB+zPnxhUBBFzB4M/+BBCwP3PfGzeaI+AGFN7qRwAB+7Hmpg0CCLgBhbf6EUDAfqy5aYMAAm5A4a1+BBCwH2tu2iBgIuBGc96SIICAEjP4hkBA3+0lmiOgxAy+IRDQd3uJ5ggoMYNvCARMvr16PQRUXyh5vv8AAAD//3BQ2wUAAAAGSURBVAMAfqEZH/MwL3sAAAAASUVORK5CYII=" alt="" style="width:13px;height:13px;display:block">Reviews</p>
-<h2 id="reviews-title" data-rv-title="1">What clients say about us</h2>
+<h2 id="reviews-title" data-rv-title="1">What travellers say.</h2>
 </div>
-<sc-if value="{{ showGrid }}" hint-placeholder-val="{{ false }}">
-<div data-rv-grid="1">
-<div data-rv-score="1">
-<img data-rv-score-mark="1" data-vt-no-i18n="1" src="/assets/reviews/trustpilot-stacked-ink.svg" alt="Trustpilot" width="120" height="56">
-<p data-rv-score-cap="1" data-vt-no-i18n="1">{{ scoreCaption }}</p>
+<sc-if value="{{ loading }}" hint-placeholder-val="{{ false }}">
+<div data-rv-skeleton="1" aria-hidden="true">
+<div data-rv-chips="1">
+<span data-rv-sk="chip"></span><span data-rv-sk="chip"></span><span data-rv-sk="chip"></span>
 </div>
-<ul data-rv-cards="1" ref="{{ rowRef }}" tabindex="0" data-scroll-native="1" aria-label="Client reviews">
-<sc-for list="{{ cards }}" as="r" hint-placeholder-count="0">
+<div data-rv-wall="1">
+<div data-rv-item="1"><div data-rv-card="1"><span data-rv-sk="stars"></span><span data-rv-sk="line"></span><span data-rv-sk="line"></span><span data-rv-sk="short"></span></div></div>
+<div data-rv-item="1"><div data-rv-card="1"><span data-rv-sk="stars"></span><span data-rv-sk="line"></span><span data-rv-sk="short"></span></div></div>
+<div data-rv-item="1"><div data-rv-card="1"><span data-rv-sk="stars"></span><span data-rv-sk="line"></span><span data-rv-sk="line"></span><span data-rv-sk="line"></span><span data-rv-sk="short"></span></div></div>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ ready }}" hint-placeholder-val="{{ true }}">
+<ul data-rv-chips="1" aria-label="Review scores by platform">
+<sc-for list="{{ chips }}" as="c" hint-placeholder-count="3">
+<li data-rv-chip="1" data-src="{{ c.id }}">
+<img data-vt-no-i18n="1" src="{{ c.logo }}" alt="{{ c.label }}" height="20">
+<b data-rv-chip-score="1" class="vt-dir-keep" data-vt-no-i18n="1">{{ c.score }}</b>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
+<span data-rv-chip-n="1">{{ c.countLabel }}</span>
+</li>
+</sc-for>
+</ul>
+<ul data-rv-wall="1">
+<sc-for list="{{ cards }}" as="r" hint-placeholder-count="3">
 <li data-rv-item="1">
-<article data-rv-card="1" data-rv-face="1" data-i="{{ r.i1 }}">
-<blockquote data-rv-q="1">
-<p data-rv-text="1" data-vt-no-i18n="1" dir="auto"><bdi>{{ r.text }}</bdi></p>
-</blockquote>
-<div data-rv-foot="1">
+<article data-rv-card="1">
 <div data-rv-rate="1">
 <span data-rv-stars="1" role="img" aria-label="{{ r.ratingLabel }}" style="display:{{ r.starsShow }}">
-<sc-if value="{{ r.platformStars }}" hint-placeholder-val="{{ false }}">
-<img src="{{ r.starSrc }}" alt="" width="18" height="18" style="opacity:{{ r.o1 }}">
-<img src="{{ r.starSrc }}" alt="" width="18" height="18" style="opacity:{{ r.o2 }}">
-<img src="{{ r.starSrc }}" alt="" width="18" height="18" style="opacity:{{ r.o3 }}">
-<img src="{{ r.starSrc }}" alt="" width="18" height="18" style="opacity:{{ r.o4 }}">
-<img src="{{ r.starSrc }}" alt="" width="18" height="18" style="opacity:{{ r.o5 }}">
-</sc-if>
-<sc-if value="{{ r.vamosStars }}" hint-placeholder-val="{{ true }}">
-<img src="{{ r.starSrc }}" alt="" width="18" height="18" style="opacity:{{ r.o1 }}">
-<img src="{{ r.starSrc }}" alt="" width="18" height="18" style="opacity:{{ r.o2 }}">
-<img src="{{ r.starSrc }}" alt="" width="18" height="18" style="opacity:{{ r.o3 }}">
-<img src="{{ r.starSrc }}" alt="" width="18" height="18" style="opacity:{{ r.o4 }}">
-<img src="{{ r.starSrc }}" alt="" width="18" height="18" style="opacity:{{ r.o5 }}">
-</sc-if>
+<i data-rv-star="1" data-off="{{ r.off1 }}"></i><i data-rv-star="1" data-off="{{ r.off2 }}"></i><i data-rv-star="1" data-off="{{ r.off3 }}"></i><i data-rv-star="1" data-off="{{ r.off4 }}"></i><i data-rv-star="1" data-off="{{ r.off5 }}"></i>
 </span>
-<a data-rv-link="1" href="{{ r.url }}" target="_blank" rel="noopener noreferrer" aria-label="{{ r.linkLabel }}" title="{{ r.linkLabel }}" hidden="{{ r.linkHidden }}" style="display:{{ r.linkShow }}">
+<a data-rv-link="1" href="{{ r.linkUrl }}" target="_blank" rel="noopener noreferrer" aria-label="{{ r.linkLabel }}" title="{{ r.linkLabel }}" hidden="{{ r.linkHidden }}" style="display:{{ r.linkShow }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="external-link" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
 </a>
 </div>
+<blockquote data-rv-q="1">
+<p data-rv-text="1" data-vt-no-i18n="1" dir="auto"><bdi>{{ r.text }}</bdi></p>
+</blockquote>
 <div data-rv-who="1" data-vt-no-i18n="1">
-<strong data-rv-name="1">{{ r.name }}</strong>
-<span data-rv-sub="1" data-vt-no-i18n="1" dir="auto" style="display:{{ r.routeShow }}">{{ r.route }}</span>
+<strong data-rv-name="1" dir="auto">{{ r.name }}</strong>
+<span data-rv-sub="1" dir="auto" style="display:{{ r.routeShow }}">{{ r.route }}</span>
 </div>
-<div data-rv-origin="1">
-<span data-rv-mark="1">
-<sc-if value="{{ r.hasLogo }}" hint-placeholder-val="{{ false }}">
-<img data-rv-logo="1" data-vt-no-i18n="1" src="{{ r.logo }}" alt="{{ r.sourceLabel }}">
+<sc-if value="{{ r.markLink }}" hint-placeholder-val="{{ false }}">
+<a data-rv-mark="1" href="{{ r.url }}" target="_blank" rel="noopener" aria-label="{{ r.linkLabel }}" title="{{ r.linkLabel }}"><img data-vt-no-i18n="1" src="{{ r.logo }}" alt="{{ r.label }}" height="18"></a>
 </sc-if>
-<sc-if value="{{ r.noLogo }}" hint-placeholder-val="{{ true }}">
-<span data-rv-src="1">{{ r.sourceLabel }}</span>
+<sc-if value="{{ r.markImg }}" hint-placeholder-val="{{ false }}">
+<span data-rv-mark="1"><img data-vt-no-i18n="1" src="{{ r.logo }}" alt="{{ r.label }}" height="18"></span>
 </sc-if>
-</span>
-<sc-if value="{{ r.verified }}" hint-placeholder-val="{{ false }}">
-<span data-rv-badge="1">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n14 }}" color="currentColor" hint-size="14px,14px"></x-import>{{ r.verifiedLabel }}
-</span>
+<sc-if value="{{ r.markText }}" hint-placeholder-val="{{ false }}">
+<span data-rv-mark="1">Collected by us</span>
 </sc-if>
-</div>
-</div>
 </article>
 </li>
 </sc-for>
 </ul>
-</div>
-</sc-if>
-<sc-if value="{{ showEmpty }}" hint-placeholder-val="{{ true }}">
-<div data-rv-empty="1">
-<strong>No published reviews yet</strong>
-<span>Reviews from completed transfers appear here once they are published.</span>
-</div>
 </sc-if>
 </div>
 </section>
+</sc-if>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1200,&quot;height&quot;:720}}">
 /**
- * Home · Reviews — score column plus one horizontal row of cards.
- * Published rows come from VamosReviews (GET /api/reviews). An empty store
- * stays empty: no sample names, no sample quotes, no platform mark unless
- * that row's source is that platform. The score is the mean of published
- * ratings that are above zero. It is never a hardcoded figure.
- * The row drifts at 24px/s once it is in view. A hover does not start or
- * stop that drift, and a vertical page scroll passes through the row. If the
- * visitor scrolls the row horizontally, the drift pauses until the pointer
- * leaves. Focus inside the row also pauses it, so a keyboard user can use a
- * link. prefers-reduced-motion never starts the drift; the same row still
- * scrolls by hand, and a vertical page scroll still passes through. Visual
- * copies exist only so the drift can loop without a jump. They are not extra
- * reviews.
+ * Home · Reviews — platform score chips on top, a masonry wall of full reviews below.
+ * Rows come from VamosReviews (GET /api/reviews, published only) and are never
+ * edited or truncated. A chip shows only for a source that has at least one
+ * published row; its score is the mean of that source's rated rows. The whole
+ * section renders nothing while fewer than 3 published rows exist (once the
+ * store has answered); until then it shows a skeleton. A card's logo links out
+ * only when sourceUrl is an http(s) URL on that platform's own domain.
  */
 class Component extends DCLogic {
   state = { lang: 'en', settled: false };
-  PX_PER_SEC = 24;
-  rowRef = (el) => {
-    this.unbindRow();
-    this.row = el || null;
-    if (el) this.bindRow(el);
-  };
   componentDidMount() {
     this._onReviews = () => {
       clearTimeout(this._settle);
@@ -211,12 +184,12 @@ class Component extends DCLogic {
       if (this._offReviews) clearInterval(this._reviewsWait);
     }, 50);
     this._reviewsStop = setTimeout(() => clearInterval(this._reviewsWait), 10000);
+    /* A failed load never emits; stop showing the skeleton after a while. */
+    this._settle = setTimeout(() => this.setState({ settled: true }), 4000);
     if (window.VamosLocale) {
       this._offLocale = window.VamosLocale.onChange((v) => this.setState({ lang: v.lang }));
     }
-    this.syncClones();
   }
-  componentDidUpdate() { this.syncClones(); }
   bindReviews() {
     const store = window.VamosReviews;
     if (!store || this._offReviews) return;
@@ -224,13 +197,8 @@ class Component extends DCLogic {
       clearTimeout(this._settle);
       this.setState({ settled: true });
     });
-    const rows = store.published();
-    if (rows.length) {
-      this.setState({ settled: true });
-    } else if (!this._settle) {
-      /* Already-loaded empty store does not emit. One shot, not a dwell. */
-      this._settle = setTimeout(() => this.setState({ settled: true }), 1200);
-    }
+    store.published();
+    if (store.ready && store.ready()) this.setState({ settled: true });
   }
   componentWillUnmount() {
     clearInterval(this._reviewsWait);
@@ -239,336 +207,92 @@ class Component extends DCLogic {
     if (this._onReviews) window.removeEventListener('vamos:reviews', this._onReviews);
     if (this._offReviews) this._offReviews();
     if (this._offLocale) this._offLocale();
-    this.unbindRow();
-  }
-  reduceMotion() {
-    return typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
-  }
-  unbindRow() {
-    const el = this.row;
-    this.row = null;
-    this.loop = 0;
-    this._pos = null;
-    this.stopDrift();
-    if (this.ro) { this.ro.disconnect(); this.ro = null; }
-    if (this.io) { this.io.disconnect(); this.io = null; }
-    if (this.mq && this.onMq) this.mq.removeEventListener('change', this.onMq);
-    this.mq = null;
-    this.onMq = null;
-    if (el) {
-      if (this.onLeave) el.removeEventListener('pointerleave', this.onLeave);
-      if (this.onFocusIn) el.removeEventListener('focusin', this.onFocusIn);
-      if (this.onFocusOut) el.removeEventListener('focusout', this.onFocusOut);
-      if (this.onScroll) el.removeEventListener('scroll', this.onScroll);
-      this.clearClones(el);
-    }
-    if (this.onUp) {
-      window.removeEventListener('pointerup', this.onUp);
-      window.removeEventListener('pointercancel', this.onUp);
-    }
-    this.hand = false;
-    this.focus = false;
-    this.inView = false;
-  }
-  bindRow(el) {
-    this.hand = false;
-    this.focus = false;
-    this.inView = false;
-    this.loop = 0;
-    this.onLeave = () => { this.hand = false; this.kick(); };
-    this.onFocusIn = () => { this.focus = true; };
-    this.onFocusOut = (e) => {
-      if (!el.contains(e.relatedTarget)) { this.focus = false; this.kick(); }
-    };
-    this.onUp = (e) => {
-      if (e.pointerType === 'touch') { this.hand = false; this.kick(); }
-    };
-    this.onScroll = () => this.onRowScroll();
-    el.addEventListener('pointerleave', this.onLeave);
-    el.addEventListener('focusin', this.onFocusIn);
-    el.addEventListener('focusout', this.onFocusOut);
-    el.addEventListener('scroll', this.onScroll, { passive: true });
-    window.addEventListener('pointerup', this.onUp);
-    window.addEventListener('pointercancel', this.onUp);
-    this.mq = matchMedia('(prefers-reduced-motion: reduce)');
-    this.onMq = () => { this.syncClones(); this.kick(); };
-    this.mq.addEventListener('change', this.onMq);
-    const box = el.getBoundingClientRect();
-    this.inView = box.bottom > 0 && box.top < window.innerHeight && box.width > 0;
-    this.io = new IntersectionObserver((entries) => {
-      const hit = entries.some((en) => en.isIntersecting);
-      this.inView = hit;
-      if (!hit) this.hand = false;
-      if (hit) this.kick();
-    }, { threshold: 0 });
-    this.io.observe(el);
-    this.ro = new ResizeObserver(() => this.syncClones());
-    this.ro.observe(el);
-    this.syncClones();
-    this.kick();
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => this.syncClones());
-  }
-  onRowScroll() {
-    if (this._writing) return;
-    const el = this.row;
-    if (!el) return;
-    const x = this.readX(el);
-    if (this._pos != null && Math.abs(x - this._pos) < 2.5) {
-      this._pos = x;
-      return;
-    }
-    /* User drag / trackpad / wheel scroll is native; it only pauses autoplay. Autoplay writeX marks _writing so it never lands here. */
-    this.hand = true;
-  }
-  paused() {
-    const el = this.row;
-    const active = typeof document !== 'undefined' ? document.activeElement : null;
-    const focused = this.focus || !!(el && active && el.contains(active));
-    return !!(this.hand || focused || this.reduceMotion() || !this.inView || !(this.loop > 1));
-  }
-  kick() {
-    if (this.raf || !this.row || this.reduceMotion() || !this.inView) return;
-    this.last = 0;
-    this.raf = requestAnimationFrame((t) => this.tick(t));
-  }
-  stopDrift() {
-    if (this.raf) cancelAnimationFrame(this.raf);
-    this.raf = 0;
-    this.last = 0;
-  }
-  tick(ts) {
-    this.raf = 0;
-    if (!this.row || this.reduceMotion() || !this.inView) return;
-    if (this.paused()) {
-      this.last = 0;
-      this._pos = null;
-      return;
-    }
-    if (!this.last) this.last = ts;
-    const dt = Math.min(0.05, (ts - this.last) / 1000);
-    this.last = ts;
-    this.advance(this.PX_PER_SEC * dt);
-    this.raf = requestAnimationFrame((t) => this.tick(t));
-  }
-  originals(el) {
-    return [...el.querySelectorAll(':scope > [data-rv-item]:not([data-rv-clone])')];
-  }
-  clearClones(el) {
-    if (!el) return;
-    el.querySelectorAll(':scope > [data-rv-clone]').forEach((n) => n.remove());
-  }
-  syncClones() {
-    const el = this.row;
-    if (!el || this._syncing) return;
-    this._syncing = true;
-    try {
-      const items = this.originals(el);
-      if (this.ro) items.forEach((item) => this.ro.observe(item));
-      const overflows = el.scrollWidth > el.clientWidth + 2;
-      const want = !this.reduceMotion() && items.length > 0 && overflows;
-      const sig = items.map((item) => item.textContent).join('\u0001');
-      const have = el.querySelectorAll(':scope > [data-rv-clone]').length;
-      if (!want) {
-        if (have) this.clearClones(el);
-        this.loop = 0;
-        this._sig = sig;
-        return;
-      }
-      if (have !== items.length || sig !== this._sig) {
-        this.clearClones(el);
-        items.forEach((item) => {
-          const clone = item.cloneNode(true);
-          clone.setAttribute('data-rv-clone', '1');
-          clone.setAttribute('aria-hidden', 'true');
-          clone.querySelectorAll('a, button, [tabindex]').forEach((node) => node.setAttribute('tabindex', '-1'));
-          clone.querySelectorAll('[id]').forEach((node) => node.removeAttribute('id'));
-          el.appendChild(clone);
-        });
-        this._sig = sig;
-      }
-      const first = items[0];
-      const clone = el.querySelector(':scope > [data-rv-clone]');
-      const loop = first && clone ? Math.abs(clone.getBoundingClientRect().left - first.getBoundingClientRect().left) : 0;
-      this.loop = loop > 1 ? loop : 0;
-      this.kick();
-    } finally {
-      this._syncing = false;
-    }
-  }
-  rtlKind() {
-    if (this._rtlKind) return this._rtlKind;
-    const probe = document.createElement('div');
-    probe.dir = 'rtl';
-    probe.style.cssText = 'width:4px;height:1px;overflow:scroll;position:absolute;top:-9999px;visibility:hidden';
-    const inner = document.createElement('div');
-    inner.style.cssText = 'width:8px;height:1px';
-    probe.appendChild(inner);
-    document.body.appendChild(probe);
-    let kind = 'positive';
-    if (probe.scrollLeft > 0) kind = 'reverse';
-    else {
-      probe.scrollLeft = 1;
-      kind = probe.scrollLeft === 0 ? 'negative' : 'positive';
-    }
-    probe.remove();
-    this._rtlKind = kind;
-    return kind;
-  }
-  readX(el) {
-    if (getComputedStyle(el).direction !== 'rtl') return el.scrollLeft;
-    const max = Math.max(0, el.scrollWidth - el.clientWidth);
-    const kind = this.rtlKind();
-    if (kind === 'negative') return -el.scrollLeft;
-    if (kind === 'reverse') return max - el.scrollLeft;
-    return el.scrollLeft;
-  }
-  writeX(el, x) {
-    const loop = this.loop;
-    if (!(loop > 1)) return;
-    const n = ((x % loop) + loop) % loop;
-    this._writing = true;
-    if (getComputedStyle(el).direction !== 'rtl') el.scrollLeft = n;
-    else {
-      const max = Math.max(0, el.scrollWidth - el.clientWidth);
-      const kind = this.rtlKind();
-      if (kind === 'negative') el.scrollLeft = -n;
-      else if (kind === 'reverse') el.scrollLeft = Math.max(0, max - n);
-      else el.scrollLeft = n;
-    }
-    this._pos = this.readX(el);
-    this._writing = false;
-  }
-  advance(px) {
-    const el = this.row;
-    if (!el || !(this.loop > 1) || !(px > 0)) return;
-    if (this._pos == null || !isFinite(this._pos)) this._pos = this.readX(el);
-    this._pos += px;
-    const loop = this.loop;
-    this._pos = ((this._pos % loop) + loop) % loop;
-    this.writeX(el, this._pos);
   }
   lang() {
     return (this.state && this.state.lang) || (window.VamosLocale ? window.VamosLocale.lang() : 'en');
   }
-  caption(n, rated, lang) {
-    const arAvg = (k) => {
-      if (k === 1) return 'المتوسط من تقييم منشور واحد';
-      if (k === 2) return 'المتوسط من تقييمين منشورين';
-      if (k >= 3 && k <= 10) return 'المتوسط من ' + k + ' تقييمات منشورة';
-      return 'المتوسط من ' + k + ' تقييمًا منشورًا';
-    };
-    const arCount = (k) => {
-      if (k === 1) return 'تقييم منشور واحد';
-      if (k === 2) return 'تقييمان منشوران';
-      if (k >= 3 && k <= 10) return k + ' تقييمات منشورة';
-      return k + ' تقييمًا منشورًا';
-    };
-    if (rated) {
-      if (lang === 'de') return n === 1 ? 'Durchschnitt aus 1 veröffentlichten Bewertung' : ('Durchschnitt aus ' + n + ' veröffentlichten Bewertungen');
-      if (lang === 'fr') return n === 1 ? 'Moyenne de 1 avis publié' : ('Moyenne de ' + n + ' avis publiés');
-      if (lang === 'ar') return arAvg(n);
-      return n === 1 ? 'Average of 1 published review' : ('Average of ' + n + ' published reviews');
-    }
-    if (lang === 'de') return n === 1 ? '1 veröffentlichte Bewertung' : (n + ' veröffentlichte Bewertungen');
-    if (lang === 'fr') return n === 1 ? '1 avis publié' : (n + ' avis publiés');
-    if (lang === 'ar') return arCount(n);
-    return n === 1 ? '1 published review' : (n + ' published reviews');
+  /** Returns raw when it is an http(s) URL on the platform's own domain, else ''. */
+  hrefOf(raw, source) {
+    const v = String(raw || '').trim();
+    if (!v) return '';
+    let u;
+    try { u = new URL(v); } catch (e) { return ''; }
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') return '';
+    const h = u.hostname.toLowerCase();
+    const on = (d) => h === d || h.endsWith('.' + d);
+    let ok = false;
+    if (source === 'google') ok = /(^|\.)google\.[a-z.]{2,}$/.test(h) || on('g.page') || on('goo.gl');
+    else if (source === 'trustpilot') ok = on('trustpilot.com');
+    else if (source === 'tripadvisor') ok = /(^|\.)tripadvisor\.[a-z.]{2,}$/.test(h);
+    return ok ? v : '';
   }
-  scoreLabel(shown, lang) {
-    if (lang === 'de') return 'Bewertet mit ' + shown + ' von 5';
-    if (lang === 'fr') return 'Noté ' + shown + ' sur 5';
-    if (lang === 'ar') return 'التقييم ' + shown + ' من 5';
-    return 'Rated ' + shown + ' out of 5';
+  /** The owner's per-review link (OpsReviews "Link to the original"): any http(s) URL, else ''. */
+  linkOf(raw) {
+    const v = String(raw || '').trim();
+    if (!v) return '';
+    try {
+      const u = new URL(v);
+      return (u.protocol === 'http:' || u.protocol === 'https:') && u.hostname ? v : '';
+    } catch (e) { return ''; }
   }
   renderVals() {
     const store = window.VamosReviews;
     const rows = store ? store.published() : [];
     const lang = this.lang();
-    const settled = !!(this.state && this.state.settled) || rows.length > 0;
-    const rated = rows.filter((r) => r.rating > 0);
-    let scoreText = '';
-    let scoreLabel = '';
-    const starOp = { so1: '0.22', so2: '0.22', so3: '0.22', so4: '0.22', so5: '0.22' };
-    if (rated.length) {
-      const sum = rated.reduce((a, r) => a + r.rating, 0);
-      const value = sum / rated.length;
-      const tenths = Math.round(value * 10);
-      const shown = Math.floor(tenths / 10) + ((lang === 'de' || lang === 'fr') ? ',' : '.') + (tenths % 10);
-      scoreText = shown;
-      scoreLabel = this.scoreLabel(shown, lang);
-      for (let s = 1; s <= 5; s++) {
-        const fill = value - (s - 1);
-        starOp['so' + s] = fill >= 1 ? '1' : (fill <= 0 ? '0.22' : String(Math.round(fill * 100) / 100));
-      }
-    }
-    const hrefOf = (raw) => {
-      const v = String(raw || '').trim();
-      if (!v) return '';
-      try {
-        const parsed = new URL(v);
-        if ((parsed.protocol === 'http:' || parsed.protocol === 'https:') && parsed.hostname) return v;
-      } catch (e) {}
-      return '';
-    };
-    const cards = rows.map((r, n) => {
-      const label = store ? store.sourceLabel(r.source) : (r.source || '');
-      const logo = store && store.sourceLogo ? store.sourceLogo(r.source) : '';
-      const starSrc = store && store.starSrc ? store.starSrc(r.source) : '';
-      const platform = r.source === 'google' || r.source === 'tripadvisor' || r.source === 'trustpilot';
-      const stars = {};
-      for (let s = 1; s <= 5; s++) {
-        stars['s' + s] = s <= r.rating ? 'var(--vt-yellow)' : 'var(--vt-grey-300)';
-        stars['o' + s] = s <= r.rating ? '1' : '0.22';
-      }
-      const href = hrefOf(r.url);
-      const linkLabel = !href ? ''
-        : (r.source === 'google' ? 'Read on Google'
-          : r.source === 'tripadvisor' ? 'Read on Tripadvisor'
-          : r.source === 'trustpilot' ? 'Read on Trustpilot'
-          : 'Read the review');
-      const verifiedLabel = !r.verified ? ''
-        : (r.source === 'google' ? 'Verified Google review'
-          : r.source === 'tripadvisor' ? 'Verified Tripadvisor review'
-          : r.source === 'trustpilot' ? 'Verified Trustpilot review'
-          : 'Verified');
-      const route = r.route || (!r.route && r.vehicleClass ? r.vehicleClass : '');
-      return Object.assign({
-        i1: n + 1,
-        name: r.name || '',
+    const settled = !!(this.state && this.state.settled) || rows.length > 0 || !!(store && store.ready && store.ready());
+    const enough = rows.length >= 3;
+    const loading = !enough && !settled;
+    const PLATFORMS = ['google', 'trustpilot', 'tripadvisor'];
+    const dec = (lang === 'de' || lang === 'fr') ? ',' : '.';
+    const chips = PLATFORMS.map((id) => {
+      const mine = rows.filter((r) => r.source === id);
+      if (!mine.length) return null;
+      const rated = mine.filter((r) => r.rating > 0);
+      const tenths = rated.length ? Math.round(rated.reduce((a, r) => a + r.rating, 0) / rated.length * 10) : 0;
+      return {
+        id: id,
+        label: store.sourceLabel(id),
+        logo: '/assets/reviews/' + id + '.svg',
+        score: rated.length ? Math.floor(tenths / 10) + dec + (tenths % 10) : '',
+        countLabel: mine.length === 1 ? '1 review' : mine.length + ' reviews',
+      };
+    }).filter(Boolean);
+    const cards = rows.map((r) => {
+      const platform = PLATFORMS.indexOf(r.source) >= 0;
+      const href = platform ? this.hrefOf(r.url, r.source) : '';
+      const label = platform ? store.sourceLabel(r.source) : '';
+      const linkUrl = this.linkOf(r.url);
+      const o = {
         text: r.text || '',
-        route: route,
-        routeShow: route ? 'block' : 'none',
-        sourceLabel: platform ? label : 'Collected by us',
-        hasLogo: !!(platform && logo),
-        noLogo: !(platform && logo),
-        logo: platform ? logo : '',
-        starSrc: platform ? starSrc : 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgdmlld0JveD0iMCAwIDI0IDI0IiBhcmlhLWhpZGRlbj0idHJ1ZSI+PHBhdGggZmlsbD0iI0ZEQzIwQiIgZD0iTTEyIDIuNmwyLjQgNi41aDYuOGwtNS41IDQuMiAyLjEgNi42TDEyIDE2LjIgNi4yIDE5LjlsMi4xLTYuNkwyLjggOS4xaDYuOHoiLz48L3N2Zz4=',
-        platformStars: !!(platform && starSrc),
-        vamosStars: !(platform && starSrc),
+        name: r.name || '',
+        route: r.route || '',
+        routeShow: r.route ? 'block' : 'none',
         starsShow: r.rating > 0 ? 'flex' : 'none',
         ratingLabel: 'Rated ' + r.rating + ' out of 5',
-        verified: !!r.verified,
-        verifiedLabel: verifiedLabel,
-        url: href || '#',
-        linkShow: href ? 'inline-flex' : 'none',
-        linkHidden: href ? null : true,
-        linkLabel: linkLabel,
-      }, stars);
+        label: label,
+        logo: platform ? '/assets/reviews/' + r.source + '.svg' : '',
+        url: href,
+        markLink: !!href,
+        markImg: platform && !href,
+        markText: !platform,
+        linkLabel: !linkUrl ? '' : (platform ? 'Read on ' + label : 'Read the review'),
+        linkUrl: linkUrl || '#',
+        linkShow: linkUrl ? 'inline-flex' : 'none',
+        linkHidden: linkUrl ? null : true,
+      };
+      for (let s = 1; s <= 5; s++) o['off' + s] = s <= r.rating ? null : '1';
+      return o;
     });
-    return Object.assign({
-      n14: 14, n16: 16, n18: 18, n20: 20,
-      viewState: rows.length ? 'ready' : (settled ? 'empty' : 'loading'),
-      busy: rows.length || settled ? 'false' : 'true',
-      showGrid: rows.length > 0,
-      showEmpty: settled && rows.length === 0,
-      scoreShow: rated.length ? 'flex' : 'none',
-      scoreStar: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgdmlld0JveD0iMCAwIDI0IDI0IiBhcmlhLWhpZGRlbj0idHJ1ZSI+PHBhdGggZmlsbD0iI0ZEQzIwQiIgZD0iTTEyIDIuNmwyLjQgNi41aDYuOGwtNS41IDQuMiAyLjEgNi42TDEyIDE2LjIgNi4yIDE5LjlsMi4xLTYuNkwyLjggOS4xaDYuOHoiLz48L3N2Zz4=',
-      scoreText: scoreText,
-      scoreLabel: scoreLabel,
-      scoreCaption: rows.length ? this.caption(rated.length || rows.length, rated.length > 0, lang) : '',
+    return {
+      n16: 16,
+      showSection: enough || loading,
+      viewState: enough ? 'ready' : 'loading',
+      busy: enough ? 'false' : 'true',
+      loading: loading,
+      ready: enough,
+      chips: chips,
       cards: cards,
-      rowRef: this.rowRef,
-    }, starOp);
+    };
   }
 }
 </script>

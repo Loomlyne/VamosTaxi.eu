@@ -1,0 +1,12 @@
+import { chromium } from '/Users/koss/Developer/VamosTaxi.eu/node_modules/.pnpm/playwright-core@1.62.1/node_modules/playwright-core/index.mjs';
+const b = await chromium.launch();
+const p = await b.newPage();
+p.on('console', (m) => console.log('console', m.text().slice(0, 200)));
+p.on('pageerror', (e) => console.log('err', String(e).slice(0, 200)));
+p.on('requestfailed', (r) => console.log('fail', r.url()));
+p.on('response', (r) => { if (r.status() >= 400) console.log(r.status(), r.url()); });
+await p.goto('http://127.0.0.1:4792/app/home/ClosingCta.dc.html', { waitUntil: 'networkidle' });
+console.log(await p.evaluate(() => [typeof window.VamosI18n, typeof window.VamosLocale, document.body.innerText.slice(0, 80)]));
+await p.goto('http://127.0.0.1:4792/app/home/AirportMeet.dc.html', { waitUntil: 'networkidle' });
+console.log(await p.evaluate(() => [typeof window.VamosI18n, typeof window.VamosLocale, document.body.innerText.slice(0, 80)]));
+await b.close();
