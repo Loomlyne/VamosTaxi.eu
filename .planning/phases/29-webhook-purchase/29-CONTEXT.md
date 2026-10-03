@@ -102,7 +102,7 @@ success criteria 1–5; not repeated here).
 - **Migration number.** The board reserves `20261004100000`–`20261004190000` for Phase 29, but main is
   already at `20261007220000`. Phase 28 uses `20261007240000` and fare lines use `20261007230000`. A 1004
   file would sort before migrations already applied on live. Phase 29 likely needs one additive
-  migration (a sent marker, plus whatever D-01 needs). The controller gives the number.
+  migration (a sent marker, plus whatever D-01 needs). The controller gives the number. Owner, 2026-10-03 (question form): "Let the controller pick". Free on every remote branch at that time: 20261007250000 and up. Planning waits for the number on the board.
 - **Order.** Phase 29 needs Phase 28's columns on live first. The plan assumes 28 ships before 29.
 </open_items>
 
