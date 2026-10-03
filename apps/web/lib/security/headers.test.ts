@@ -6,7 +6,7 @@
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { applySecurityHeaders, SECURITY_HEADER_PAIRS } from "./headers";
+import { applySecurityHeaders, contentSecurityPolicy, SECURITY_HEADER_PAIRS } from "./headers";
 import { describe, expect, it } from "vitest";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -32,7 +32,8 @@ describe("security headers (D-32…D-38)", () => {
   it("emits HSTS, CSP, Referrer-Policy, Permissions-Policy, XFO, nosniff", () => {
     const headers = headerMap();
     expect(headers.get("Strict-Transport-Security")).toMatch(/max-age=31536000/);
-    expect(headers.get("Referrer-Policy")).toBe("strict-origin-when-cross-origin");
+    // Phase 28: changed on purpose; a same-site referrer is the bare origin.
+    expect(headers.get("Referrer-Policy")).toBe("strict-origin");
     expect(headers.get("X-Content-Type-Options")).toBe("nosniff");
     expect(headers.get("X-Frame-Options")).toBe("DENY");
     expect(headers.get("Permissions-Policy")).toMatch(/camera=\(\)/);
@@ -67,6 +68,35 @@ describe("security headers (D-32…D-38)", () => {
     expect(csp).not.toMatch(/link\.com/);
     expect(csp).toMatch(/frame-src challenges\.cloudflare\.com;/);
     expect(csp).not.toMatch(/maps\.googleapis\.com/);
+  });
+
+  it("the Next policy is the pre-Phase-28 string byte for byte and names no Meta host", () => {
+    const csp = headerMap().get("Content-Security-Policy");
+    expect(csp).toBe(
+      "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' challenges.cloudflare.com static.cloudflareinsights.com; frame-src challenges.cloudflare.com; connect-src 'self' challenges.cloudflare.com api.mapbox.com events.mapbox.com cloudflareinsights.com; img-src 'self' data: blob: https://*.mapbox.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'",
+    );
+    expect(csp).toBe(contentSecurityPolicy({ metaPixel: false }));
+    expect(SECURITY_HEADER_PAIRS.map(([, v]) => v).join("\n")).not.toMatch(/facebook|instagram/i);
+  });
+
+  it("the Meta policy adds the script host, the beacon host and the fallback frame, nothing else", () => {
+    const plain = contentSecurityPolicy({ metaPixel: false });
+    const meta = contentSecurityPolicy({ metaPixel: true });
+    const script = "https://connect." + "facebook" + ".net";
+    const beacon = "https://www." + "facebook" + ".com";
+    expect(meta).toMatch(new RegExp(`script-src [^;]*${script.replace(/\./g, "\\.")}`));
+    expect(meta).toMatch(new RegExp(`img-src [^;]*${beacon.replace(/\./g, "\\.")}`));
+    expect(meta).toMatch(new RegExp(`connect-src [^;]*${beacon.replace(/\./g, "\\.")}`));
+    expect(meta).toMatch(new RegExp(`frame-src challenges\\.cloudflare\\.com ${beacon.replace(/\./g, "\\.")}`));
+    // connect-src does NOT gain the script host (Meta's telemetry stays blocked).
+    expect(meta.match(/connect-src [^;]*/)![0]).not.toContain(script);
+    expect(meta).not.toMatch(/instagram|conversionsapigateway/);
+    // Removing the four additions gives back the plain policy exactly.
+    const stripped = meta
+      .replace(` ${script}`, "")
+      .split(` ${beacon}`)
+      .join("");
+    expect(stripped).toBe(plain);
   });
 
   it("keeps /dev noindex rows", () => {
