@@ -1239,9 +1239,16 @@ do not change.
   5. Must-nots: no `sk_live_`, no `vamostaxi.eu`, no invented legal copy, no invented CHF, no hashed email or phone, no browser Purchase, no middle events (quote seen, checkout started, pay step). Do not change quote, pay, or confirmation. Do not call Graph from the thank-you page or as a second Purchase.
 
 **State, 2026-10-01: waiting.** Starts after 28. No Purchase event until the legal gate is open (owner rule).
-Migrations `20261004100000` to `190000` reserved.
+Migration `20261007260000` reserved by the controller (2026-10-03 20:05); the earlier `20261004100000`-`190000` block is withdrawn.
 
-**Plans**: TBD
+**Plans**: 6 plans
+Plans:
+- [ ] 29-01-PLAN.md — merge origin/main; migration 20261007260000 (claim, once-only table, consent subject) + pgTAP + types
+- [ ] 29-02-PLAN.md — capi.ts: locked Purchase payload and one POST; needle scan allow map; Meta bindings typed
+- [ ] 29-03-PLAN.md — Pay press saves the consent subject with the Meta ids (D-01)
+- [ ] 29-04-PLAN.md — purchase.ts orchestrator (gate, token, Stripe mode, claim, one POST, finish) + Worker-client DB proof
+- [ ] 29-05-PLAN.md — settle queue hook after the money steps; queue opts in; return route pinned out
+- [ ] 29-06-PLAN.md — owner's test event code, full gates, HANDOVER for the controller
 **UI hint**: no. One Purchase from the settle queue. Do not change quote, pay, or confirmation.
 
 ## Progress
