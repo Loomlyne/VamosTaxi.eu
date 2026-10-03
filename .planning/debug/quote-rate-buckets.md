@@ -1,8 +1,8 @@
 ---
-status: fixing
+status: awaiting_human_verify
 trigger: "live iPhone /checkout step 1 shows 'Too many prices in a short time' after picking ZRH -> Zurich Main Station on home"
 created: 2026-10-03T16:12:46+0400
-updated: 2026-10-03T16:12:46+0400
+updated: 2026-10-03T16:29:00+0400
 ---
 
 ## Current Focus
@@ -47,6 +47,6 @@ started: reported 2026-10-03
 ## Resolution
 
 root_cause: shared lookup+quote rate-limit counter, 4/60 per IP on live because VAMOS_QS_SECRET is unset
-fix: (in progress) separate LOOKUP and PRICE namespaces; one automatic retry on rate_limited
-verification:
-files_changed: []
+fix: LOOKUP_RATE_LIMITER 60/60 + _BARE 40/60 (1005/1006) for geo + flight; PRICE_RATE_LIMITER 12/60 + _BARE 8/60 (1007/1008) for reprice + voucher price; /api/quote keeps 8/60 + 4/60; /checkout retries a rate_limited quote once after 61 s
+verification: unit tests (rate-counters.test.ts + abuse, checkout, quote suites) green; tsc + eslint clean; local Worker: 35 bare suggest calls then POST /api/quote passes the limiter 4 times, 5th 429; 41st lookup 429
+files_changed: [apps/web/lib/abuse/guards.ts, apps/web/lib/abuse/rate-limit.ts, apps/web/lib/env.d.ts, apps/web/wrangler.jsonc, apps/web/app/api/quote/reprice/route.ts, apps/web/app/api/checkout/price/route.ts, apps/web/app/[locale]/checkout/CheckoutPage.tsx, apps/web/lib/abuse/rate-counters.test.ts]
