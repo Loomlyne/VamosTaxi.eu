@@ -1,0 +1,85 @@
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1200,&quot;height&quot;:640},&quot;expandMs&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:400,&quot;min&quot;:0,&quot;max&quot;:400,&quot;step&quot;:20,&quot;unit&quot;:&quot;ms&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Motion&quot;},&quot;singleOpen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Behaviour&quot;},&quot;startOpen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Behaviour&quot;}}">
+/**
+ * Home · FAQ — topics rail + accordion. Desktop (above 900px): a 280px rail of
+ * four topic buttons (count beside each) and a charcoal "Still a question?" box,
+ * beside the accordion of the selected topic. At 900px and below the topics are a
+ * sideways swipe row and the help box moves under the questions. The open item is
+ * a white card with the answer straight under the question: no divider inside.
+ * Closed items are hairline rows. One item open at a time; picking a topic opens
+ * its first item. Topics are a tablist (arrow keys move), items are buttons with
+ * aria-expanded / aria-controls. Panel animates 0fr to 1fr; reduced motion is
+ * instant. Markup stays literal so every string is directly editable and
+ * translated by the locale runtime. No invented CHF, windows, or fees.
+ */
+class Component extends DCLogic {
+  state = { lang: 'en' };
+  rootRef = (el) => { this.root = el; this.boot(); };
+  ms() { return Math.max(0, Math.round(this.props.expandMs ?? 200)); }
+  q(sel, scope) { const s = scope || this.root; return s ? Array.from(s.querySelectorAll(sel)) : []; }
+  componentDidMount() {
+    if (window.VamosLocale && window.VamosLocale.onChange) this._offLocale = window.VamosLocale.onChange((v) => this.setState({ lang: v.lang }));
+  }
+  boot() {
+    if (!this.root) return;
+    this.root.style.setProperty('--faq-ms', this.ms() + 'ms');
+    if (this._bound !== this.root) {
+      if (this._bound) { this._bound.removeEventListener('click', this.onClick); this._bound.removeEventListener('keydown', this.onKey); }
+      this.root.addEventListener('click', this.onClick);
+      this.root.addEventListener('keydown', this.onKey);
+      this._bound = this.root;
+    }
+    /* Initial open state comes from the prop once, and again only if the prop itself changes,
+       never on an unrelated re-render, which would slam the reader's open card shut. */
+    const start = (this.props.startOpen ?? true) !== false;
+    if (this._start !== start) { this._start = start; this.q('[data-faq-set]').forEach((s) => this.q('[data-faq-card]', s).forEach((c, i) => this.set(c, start && i === 0))); }
+  }
+  set(card, open) {
+    card.setAttribute('data-open', open ? '1' : '0');
+    const b = card.querySelector('[data-faq-toggle]');
+    if (b) b.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  topic(i, focus) {
+    const tabs = this.q('[data-faq-topic]');
+    tabs.forEach((t, k) => { t.setAttribute('aria-selected', k === i ? 'true' : 'false'); t.setAttribute('tabindex', k === i ? '0' : '-1'); });
+    this.q('[data-faq-set]').forEach((s, k) => {
+      s.setAttribute('data-on', k === i ? '1' : '0');
+      if (k === i) this.q('[data-faq-card]', s).forEach((c, j) => this.set(c, (this.props.startOpen ?? true) !== false && j === 0));
+    });
+    if (focus && tabs[i]) { tabs[i].focus(); if (tabs[i].scrollIntoView) tabs[i].scrollIntoView({ block: 'nearest', inline: 'nearest' }); }
+  }
+  onClick = (e) => {
+    const tg = e.target.closest && e.target.closest('[data-faq-topic]');
+    if (tg && this.root.contains(tg)) { this.topic(this.q('[data-faq-topic]').indexOf(tg)); return; }
+    const btn = e.target.closest && e.target.closest('[data-faq-toggle]');
+    if (!btn || !this.root || !this.root.contains(btn)) return;
+    const card = btn.closest('[data-faq-card]');
+    if (!card) return;
+    const wasOpen = card.getAttribute('data-open') === '1';
+    if ((this.props.singleOpen ?? true) !== false) this.q('[data-faq-card]', card.closest('[data-faq-set]')).forEach((c) => { if (c !== card) this.set(c, false); });
+    this.set(card, !wasOpen);
+  };
+  onKey = (e) => {
+    const tg = e.target.closest && e.target.closest('[data-faq-topic]');
+    if (!tg) return;
+    const tabs = this.q('[data-faq-topic]'); const i = tabs.indexOf(tg); const n = tabs.length;
+    const rtl = document.documentElement.dir === 'rtl';
+    let to = -1;
+    if (e.key === 'ArrowDown' || (e.key === 'ArrowRight' && !rtl) || (e.key === 'ArrowLeft' && rtl)) to = (i + 1) % n;
+    else if (e.key === 'ArrowUp' || (e.key === 'ArrowLeft' && !rtl) || (e.key === 'ArrowRight' && rtl)) to = (i + n - 1) % n;
+    else if (e.key === 'Home') to = 0;
+    else if (e.key === 'End') to = n - 1;
+    if (to < 0) return;
+    e.preventDefault();
+    this.topic(to, true);
+  };
+  componentDidUpdate() { this.boot(); }
+  componentWillUnmount() {
+    if (this._offLocale) this._offLocale();
+    if (this._bound) { this._bound.removeEventListener('click', this.onClick); this._bound.removeEventListener('keydown', this.onKey); }
+  }
+  renderVals() { return { rootRef: this.rootRef, n18: 18 }; }
+}
+
+</script>
+</body>
+</html>

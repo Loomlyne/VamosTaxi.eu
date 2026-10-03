@@ -45,161 +45,65 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 body{margin:0}
 a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}
 [data-svc-inner]{box-sizing:border-box;max-inline-size:var(--vt-container-lg);margin-inline:auto;padding-inline:clamp(var(--vt-space-4),3.2vw,var(--vt-space-9));display:flex;flex-direction:column;align-items:stretch;gap:clamp(var(--vt-space-7),4vw,var(--vt-space-8))}
-/* BENTO GRID.
-   Tiles no longer share one aspect ratio: every tile stretches to the grid area it
-   is given, so the airport tile can be a 2x2 hero while the yellow CTA is a full
-   height column. Tile identity is positional — inside [data-svc-track] the
-   ServiceCard hosts are <div data-sc-name="ServiceCard">, so div:nth-of-type()
-   numbers them 1 airport (hero), 2 city to city, 3 professional drivers,
-   4 chauffeur-by-the-hour (behind showChauffeurByHour, normally absent). The CTA is
-   the <a data-svc-cta>, a different element type, so it is never counted by those
-   selectors. Phone first: one column. */
-[data-svc-track]{display:grid;gap:var(--vt-space-5);grid-template-columns:minmax(0,1fr);grid-auto-rows:minmax(212px,auto);width:100%;align-items:stretch}
-[data-svc-track] > [data-sc-name="ServiceCard"]{min-inline-size:0;min-block-size:0;position:relative;display:flex;flex-direction:column;width:auto;height:100%;overflow:visible;transform:none;opacity:1;pointer-events:auto}
-[data-svc-track] > [data-sc-name="ServiceCard"] [data-svc-card]{flex:1 1 auto;width:100%;aspect-ratio:auto;block-size:100%;min-block-size:100%}
-[data-svc-track] > div[data-sc-name="ServiceCard"]:nth-of-type(1){grid-column:1/-1;grid-row:span 2}
-[data-svc-track] > div[data-sc-name="ServiceCard"]:nth-of-type(2),
-[data-svc-track] > div[data-sc-name="ServiceCard"]:nth-of-type(3),
-[data-svc-track] > div[data-sc-name="ServiceCard"]:nth-of-type(4){grid-column:1/-1;grid-row:span 1}
-[data-svc-ticks]{display:none}
-[data-svc-cta]{position:relative;grid-column:1/-1;grid-row:span 1;box-sizing:border-box;display:flex;flex-direction:column;justify-content:flex-start;align-items:stretch;gap:var(--vt-space-4);min-inline-size:0;min-block-size:0;block-size:100%;padding:clamp(var(--vt-space-5),2.4vw,var(--vt-space-7));background:var(--vt-bg-accent);border-radius:var(--vt-radius-xl);text-decoration:none;color:var(--vt-text-on-accent);overflow:hidden;box-shadow:none}
-[data-svc-cta]:hover,[data-svc-cta]:focus,[data-svc-cta]:active,[data-svc-cta]:visited{color:var(--vt-text-on-accent);box-shadow:none}
-[data-svc-cta]:focus-visible{outline:3px solid var(--vt-charcoal-900);outline-offset:3px}
-[data-svc-cta-copy]{display:flex;flex-direction:column;align-items:flex-start;gap:var(--vt-space-2);min-inline-size:0}
-[data-svc-cta-kicker]{display:block;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);font-weight:var(--vt-label-weight);letter-spacing:var(--vt-label-tracking);line-height:1.3;text-transform:uppercase;color:var(--vt-text-on-accent)}
-[data-svc-cta-title]{display:block;margin:0;min-inline-size:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);line-height:1.4;text-wrap:balance;color:var(--vt-text-on-accent)}
-[data-svc-cta-route]{position:relative;flex:1 1 auto;min-block-size:var(--vt-space-10);min-inline-size:0;color:var(--vt-charcoal-900)}
-[data-svc-cta-route] svg{position:absolute;inset-block-start:var(--vt-space-2);inset-inline-start:var(--vt-space-2);display:block;width:calc(100% - var(--vt-space-4));height:calc(100% - var(--vt-space-4));overflow:visible}
-[data-svc-cta-pin]{position:absolute;z-index:1;box-sizing:border-box;inline-size:var(--vt-space-4);block-size:var(--vt-space-4);border-radius:var(--vt-radius-pill);transition:background-color var(--vt-dur-fast) var(--vt-ease-standard)}
-[data-svc-cta-pin="start"]{inset-inline-start:0;inset-block-end:0;background:currentColor}
-[data-svc-cta-pin="end"]{inset-inline-end:0;inset-block-start:0;background:var(--vt-bg-accent);border:var(--vt-border-w-strong) solid currentColor}
-[data-svc-cta-btn]{display:flex;align-items:center;justify-content:space-between;gap:var(--vt-space-3);box-sizing:border-box;inline-size:100%;min-block-size:var(--vt-control-h-md);padding-block:var(--vt-space-3);padding-inline:var(--vt-space-5);border-radius:var(--vt-radius-pill);background:var(--vt-charcoal-900);color:var(--vt-text-inverse);font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-semibold);line-height:var(--vt-body-leading-tight);box-shadow:none;transition:background-color var(--vt-dur-fast) var(--vt-ease-standard),transform var(--vt-dur-instant) var(--vt-ease-standard)}
-[data-svc-cta-label]{min-inline-size:0;text-wrap:balance}
-[data-svc-cta-arrow]{display:inline-flex;flex:0 0 auto;align-items:center;color:var(--vt-text-inverse);transition:transform var(--vt-dur-fast) var(--vt-ease-standard)}
-[dir="rtl"] [data-svc-cta-route] svg{transform:scaleX(-1)}
-@media (min-width:1024px){[data-svc-cta-title]{font-size:var(--vt-heading-3)}[data-svc-cta-route]{min-block-size:var(--vt-space-8)}}
-/* TABLET BENTO — 2 columns. Hero keeps a 2x2 footprint across the full width, the
-   two remaining photo tiles pair up on the next row, the yellow CTA is a full width
-   band under them. Hourly (row 5) sits below the CTA so that row never exists, and
-   never leaves a 200px hole, while the flag is off. */
-@media (min-width:640px){
-[data-svc-track]{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:minmax(200px,auto);gap:var(--vt-space-6)}
-[data-svc-track] > div[data-sc-name="ServiceCard"]:nth-of-type(1){grid-column:1/3;grid-row:1/3}
-[data-svc-track] > div[data-sc-name="ServiceCard"]:nth-of-type(2){grid-column:1/2;grid-row:3/4}
-[data-svc-track] > div[data-sc-name="ServiceCard"]:nth-of-type(3){grid-column:2/3;grid-row:3/4}
-[data-svc-track] > div[data-sc-name="ServiceCard"]:nth-of-type(4){grid-column:1/3;grid-row:5/6}
-[data-svc-cta]{grid-column:1/3;grid-row:4/5}
-}
-/* The CTA is a wide short band only in the tablet band, so lay its copy, route arc
-   and button on one row there. Phone and desktop keep the stacked column. */
-@media (min-width:768px) and (max-width:1099.98px){
-[data-svc-cta]{flex-direction:row;align-items:center;justify-content:space-between;gap:clamp(var(--vt-space-5),2.6vw,var(--vt-space-7))}
-[data-svc-cta-copy]{flex:1 1 auto;max-inline-size:46ch}
-[data-svc-cta-title]{font-size:var(--vt-heading-3)}
-[data-svc-cta-route]{flex:0 0 clamp(96px,13vw,168px);align-self:stretch;min-block-size:var(--vt-space-9)}
-[data-svc-cta-btn]{inline-size:auto;flex:0 0 auto;justify-content:center}
-}
-/* DESKTOP BENTO — 4 columns x 2 rows.
-     cols 1-2 rows 1-2  airport transfers (hero, 2x2)
-     col 3   row 1      city to city
-     col 3   row 2      professional drivers
-     col 4   rows 1-2   yellow CTA, a full height column
-   Hourly, if the flag is ever turned on, takes a full width row 3. */
-@media (min-width:1100px){
-[data-svc-track]{grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:minmax(0,clamp(200px,17vw,264px));gap:var(--vt-space-6)}
-[data-svc-track] > div[data-sc-name="ServiceCard"]:nth-of-type(1){grid-column:1/3;grid-row:1/3}
-[data-svc-track] > div[data-sc-name="ServiceCard"]:nth-of-type(2){grid-column:3/4;grid-row:1/2}
-[data-svc-track] > div[data-sc-name="ServiceCard"]:nth-of-type(3){grid-column:3/4;grid-row:2/3}
-[data-svc-track] > div[data-sc-name="ServiceCard"]:nth-of-type(4){grid-column:1/-1;grid-row:3/4}
-[data-svc-cta]{grid-column:4/5;grid-row:1/3}
-[data-svc-cta-title]{font-size:var(--vt-heading-2)}
-[data-svc-cta-route]{min-block-size:var(--vt-space-10)}
-}
-@media (hover:hover){[data-svc-cta]:hover [data-svc-cta-btn]{background:var(--vt-charcoal-800);box-shadow:none}[data-svc-cta]:hover [data-svc-cta-pin="end"]{background:var(--vt-charcoal-900)}[data-svc-cta]:hover [data-svc-cta-arrow]{transform:translateX(var(--vt-space-1))}[dir="rtl"] [data-svc-cta]:hover [data-svc-cta-arrow]{transform:translateX(calc(-1 * var(--vt-space-1)))}}
-[data-svc-cta]:active [data-svc-cta-btn]{transform:scale(0.96)}
-@media (prefers-reduced-motion:reduce){[data-svc-cta-btn],[data-svc-cta-arrow],[data-svc-cta-pin]{transition:none}[data-svc-cta]:active [data-svc-cta-btn],[data-svc-cta]:hover [data-svc-cta-arrow]{transform:none}[dir="rtl"] [data-svc-cta-arrow],[dir="rtl"] [data-svc-cta]:hover [data-svc-cta-arrow]{transform:none}}
+/* Four equal photo cards: 4 across on desktop, 2 on tablet, 1 on phone. */
+[data-svc-track]{display:grid;gap:var(--vt-space-5);grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));width:100%;align-items:stretch}
+[data-svc-track] > [data-sc-name="ServiceCard"]{min-inline-size:0;position:relative;display:flex;flex-direction:column;width:auto;overflow:visible;transform:none;opacity:1;pointer-events:auto}
+[data-svc-track] > [data-sc-name="ServiceCard"] [data-svc-card]{flex:1 1 auto;width:100%;aspect-ratio:auto;min-block-size:clamp(300px,26vw,340px)}
+@media (min-width:600px) and (max-width:1099.98px){[data-svc-track]{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (min-width:1024px){[data-svc-track]{gap:var(--vt-space-6)}}
 :focus-visible:not(input):not(select):not(textarea):not(.vt-btn):not([data-svc-card]){outline:3px solid var(--vt-charcoal-900)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}</style>
 </helmet>
 <section data-svc-sec="1" data-screen-label="Services" aria-labelledby="svc-title" style="position:relative;overflow:visible;color:var(--vt-text-primary);font-family:var(--vt-font-body);padding:clamp(56px,7vw,104px) 0">
-
-<div aria-hidden="true" style="position:absolute;inset:0;background-image:url(data:image/png;base64,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);background-size:88px 88px;background-repeat:repeat;opacity:.028;pointer-events:none;z-index:0"></div>
 <div data-svc-wrap="1" style="position:relative;z-index:1">
-<div data-svc-stage="1">
 <div data-svc-inner="1">
 
-<div data-svc-head="1" style="display:flex;align-items:flex-start;justify-content:space-between;gap:32px;flex:0 0 auto">
-<div style="display:flex;flex-direction:column;gap:14px;max-width:58ch">
+<div data-svc-head="1" style="display:flex;flex-direction:column;gap:14px;max-width:58ch">
 <p style="margin:0;display:inline-flex;align-self:flex-start;align-items:center;gap:9px;height:32px;padding:0 15px 0 12px;border:1px solid var(--vt-grey-200);border-radius:999px;background:var(--vt-white);font-size:12px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;line-height:1;white-space:nowrap;color:var(--vt-charcoal-900)"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKAAAAChCAYAAABAk7SIAAAEi0lEQVR4AeyUS27bQBQETR1BuU58o1wqZ9F9nEX2YWCuaIA/c379XpcBGYYkznRXF/yYX8852+st4c/8+vF7TrjVI+FWVApEAAEDjZUxKgJmXDVQJwQMNFbGqAiYcdVAnXwFDDRS5qgImHndAN0QMMBImSMiYOZ1A3RDwAAjZY6IgJnXDdANAQOMVDmi1HEIKDWHXxgE9NtcqjECSs3hFwYB/TaXaoyAUnP4hUFAv82lGncVUKo5YSQIIKDEDL4hENB3e4nmCCgxg28IBPTdXqI5AkrM4BsCAbtszyV7BBBwjwzvdyGAgF0wc8keAQTcI8P7XQggYBfMXLJHAAH3yPB+FwII2AWz7yVnzRHwjBCfNyWAgE3xcvgZAQQ8I8TnTQkgYFO8HH5GAAHPCPF5UwII2BQvh58RyCvgWXM+lyCAgBIz+IZAQN/tJZojoMQMviEQ0Hd7ieYIKDGDbwgEzLd9qEYIGGqufGERMN+moRohYKi58oVFwHybhmqEgKHmyhcWAfNtGqpRVQFDNSesBAEElJjBNwQC+m4v0fwxvX9M2V7z6zlne71N//5m2+mzD/8BJf4P+IZAQN/tJZojYJUZOOQuAQS8S47nqhBAwCoYOeQuAQS8S47nqhBAwCoYOeQuAQS8S47nqhBAwCoYfQ8pbY6ApQR5vogAAhbh4+FSAghYSpDniwggYBE+Hi4lgIClBHm+iAACFuHj4VICcQUsbc7zEgQQUGIG3xAI6Lu9RHMElJjBNwQC+m4v0RwBJWbwDYGA8bZPlRgBU80ZrwwCxtssVWIETDVnvDIIGG+zVIkRMNWc8cogYLzNUiX+loCpmlNGggACSszgGwIBfbeXaI6AEjP4hkBA3+0lmiOgxAy+IRDw0vZ8qRUBBGxFlnMvEUDAS5j4UisCCNiKLOdeIoCAlzDxpVYEELAVWc69RAABL2Hy/VLr5gjYmjDnHxJAwEM8fNiaAAK2Jsz5hwQQ8BAPH7YmgICtCXP+IQEEPMTDh60J6ArYujnnSxBAQIkZfEMgoO/2Es0RUGIG3xAI6Lu9RPPH/HrO2V7T+8eU7vXzzy8JYyqH4D9gZaAVjrM6AgGt5tYri4B6m1glQkCrufXKIqDeJlaJENBqbr2yCKi3iVWiLwJaNaesBAEElJjBNwQC+m4v0RwBJWbwDYGAvttLNEdAiRl8QyDgsj2/RhFAwFHkuXchgIALBn6NIoCAo8hz70IAARcM/BpFAAFHkefehQACLhh8f41ujoCjFzC/HwHNBRhdHwFHL2B+PwKaCzC6PgKOXsD8fgQ0F2B0/XECjm7O/RIEEFBiBt8QCOi7vURzBJSYwTcEAvpuL9EcASVm8A2BgP2358YVAQRcweDP/gQQsD9zblwRQMAVDP7sTwAB+zPnxhUBBFzB4M/+BBCwP3PfGzeaI+AGFN7qRwAB+7Hmpg0CCLgBhbf6EUDAfqy5aYMAAm5A4a1+BBCwH2tu2iBgIuBGc96SIICAEjP4hkBA3+0lmiOgxAy+IRDQd3uJ5ggoMYNvCARMvr16PQRUXyh5vv8AAAD//3BQ2wUAAAAGSURBVAMAfqEZH/MwL3sAAAAASUVORK5CYII=" alt="" style="width:13px;height:13px;display:block">Services</p>
-<h2 id="svc-title" style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-display-3);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:1.08">Core services</h2>
-<p style="margin:0;font-size:var(--vt-body-md);line-height:1.6;color:var(--vt-text-secondary);text-wrap:pretty">Every one is booked ahead, priced up front and assigned to a driver before you travel.</p>
-</div>
-<span data-svc-ticks="1" aria-hidden="true">
-<span data-svc-tick="1" data-on="1"></span>
-<span data-svc-tick="1"></span>
-<span data-svc-tick="1"></span>
-<span data-svc-tick="1"></span>
-</span>
+<h2 id="svc-title" style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-display-3);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:1.08">What we drive.</h2>
+<p style="margin:0;font-size:var(--vt-body-md);line-height:1.6;color:var(--vt-text-secondary);text-wrap:pretty">One-way transfers, booked ahead, at a price fixed before you pay.</p>
 </div>
 
 <div data-svc-track="1">
 
-<dc-import name="ServiceCard" href="/#book" image="/photos/site/svc-airport.jpg" image-focus="58% center" title-id="svc-t1" icon="plane-landing" tone="{{ tone }}" hint-size="100%,auto">
+<dc-import name="ServiceCard" href="/#book" scroll-to="book" cta="Book" image="/photos/site/svc-airport.jpg" image-focus="58% center" title-id="svc-t1" icon="plane-landing" tone="{{ tone }}" hint-size="100%,auto">
 <h3 data-svc-title="1" id="svc-t1">Airport transfers</h3>
-<span data-svc-desc="1">Fixed-price rides to and from the airport, timed to your flight.</span>
+<span data-svc-desc="1">To and from Zurich, Geneva and Basel airports, timed to your flight.</span>
 </dc-import>
 
-<dc-import name="ServiceCard" href="/#book" image="/photos/site/svc-city.jpg" image-focus="84% center" title-id="svc-t2" icon="navigation" tone="{{ tone }}" hint-size="100%,auto">
+<dc-import name="ServiceCard" href="/#book" scroll-to="book" cta="Book" image="/photos/site/svc-city.jpg" image-focus="84% center" title-id="svc-t2" icon="navigation" tone="{{ tone }}" hint-size="100%,auto">
 <h3 data-svc-title="1" id="svc-t2">City to city</h3>
-<span data-svc-desc="1">Private transfers between Swiss cities, scheduled for one exact time.</span>
+<span data-svc-desc="1">Door to door between Swiss cities, at the time you choose.</span>
 </dc-import>
 
-<dc-import name="ServiceCard" href="/about" image="/photos/site/why-driver-door.jpg" image-focus="50% 28%" title-id="svc-t3" icon="users" tone="{{ tone }}" hint-size="100%,auto">
-<h3 data-svc-title="1" id="svc-t3">Professional drivers</h3>
-<span data-svc-desc="1">Your driver is assigned to your booking and waits at the curb with a name board.</span>
+<dc-import name="ServiceCard" href="/#book" scroll-to="book" cta="Book" image="/photos/site/why-alpine-route.jpg" image-focus="center" title-id="svc-t3" icon="snowflake" tone="{{ tone }}" hint-size="100%,auto">
+<h3 data-svc-title="1" id="svc-t3">Mountain and ski resorts</h3>
+<span data-svc-desc="1">Davos, St. Moritz, Zermatt and the Alps. Tell us about skis when you book.</span>
 </dc-import>
 
-<sc-if value="{{ showHourly }}" hint-placeholder-val="{{ false }}">
-<dc-import name="ServiceCard" href="/#book" image="/photos/site/svc-hourly.jpg" title-id="svc-t4" icon="clock" tone="{{ tone }}" hint-size="100%,auto">
-<h3 data-svc-title="1" id="svc-t4">Chauffeur by the hour</h3>
-<span data-svc-desc="1">Book a driver and vehicle for multiple stops across the day.</span>
+<dc-import name="ServiceCard" href="/#book" scroll-to="book" cta="Book" image="/photos/site/svc-corporate.jpg" image-focus="center" title-id="svc-t4" icon="briefcase" tone="{{ tone }}" hint-size="100%,auto">
+<h3 data-svc-title="1" id="svc-t4">Business travel</h3>
+<span data-svc-desc="1">Book for a guest or a colleague in their name.</span>
 </dc-import>
-</sc-if>
-
-<a data-svc-cta="1" href="/#book">
-<span data-svc-cta-copy="1">
-<span data-svc-cta-kicker="1">Any route</span>
-<span data-svc-cta-title="1">Tell us where you are going and we price it now.</span>
-</span>
-<span data-svc-cta-route="1" aria-hidden="true">
-<svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" focusable="false"><path d="M0 100C0 42 58 0 100 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" vector-effect="non-scaling-stroke"></path></svg>
-<span data-svc-cta-pin="start"></span>
-<span data-svc-cta-pin="end"></span>
-</span>
-<span data-svc-cta-btn="1"><span data-svc-cta-label="1">Book a transfer</span><span data-svc-cta-arrow="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n18 }}" hint-size="18px,18px"></x-import></span></span>
-</a>
 
 </div>
 
-</div>
 </div>
 </div>
 
 </section>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;showChauffeurByHour&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Scope&quot;},&quot;mediaTone&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;grey&quot;,&quot;charcoal&quot;],&quot;default&quot;:&quot;grey&quot;,&quot;tsType&quot;:&quot;'grey'|'charcoal'&quot;,&quot;section&quot;:&quot;Card treatment&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;mediaTone&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;grey&quot;,&quot;charcoal&quot;],&quot;default&quot;:&quot;grey&quot;,&quot;tsType&quot;:&quot;'grey'|'charcoal'&quot;,&quot;section&quot;:&quot;Card treatment&quot;}}">
 /**
- * Portrait grid under How it works. Airport, city, and professional drivers
- * always show. Hourly stays behind showChauffeurByHour (default false) and
- * must not paint. No chauffeur-by-the-hour card in the visible grid.
+ * Services: four equal photo cards under the kicker, title and lede. Each card is one
+ * link that scrolls to the booking card (#book).
  */
 class Component extends DCLogic {
+  componentDidMount() {
+    this._offLocale = window.VamosLocale.onChange((v) => this.setState({ lang: v.lang }));
+  }
+  componentWillUnmount() { if (this._offLocale) this._offLocale(); }
   renderVals() {
-    const hourly = (this.props.showChauffeurByHour ?? false) !== false;
-    return {
-      n18: 18,
-      tone: this.props.mediaTone === 'charcoal' ? 'charcoal' : 'grey',
-      showHourly: hourly,
-    };
+    return { tone: this.props.mediaTone === 'charcoal' ? 'charcoal' : 'grey' };
   }
 }
 </script>

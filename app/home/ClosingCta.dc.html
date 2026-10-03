@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<!-- Ground colour + cover live in the STATIC head/body on purpose (see HowItWorks.dc.html). -->
+<style id="vt-boot">html{background:#F6F6F6}body{margin:0}#vt-boot-cover{position:fixed;inset:0;z-index:2147483000;background:#F6F6F6;pointer-events:none;animation:vt-boot-fail 0s linear 6s forwards}@keyframes vt-boot-fail{to{visibility:hidden}}</style>
+</head>
+<body>
+<div id="vt-boot-cover" aria-hidden="true"></div>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
+<script src="../vamos-i18n-dict.js"></script>
+<script src="../vamos-locale.js"></script>
+<script src="../vamos-page-transition.js"></script>
+<style>
+:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}
+body{margin:0}
+a{color:inherit;text-decoration:none;border-bottom:0}
+[data-cta]{
+  box-sizing:border-box;
+  background:var(--vt-charcoal-900);
+  color:var(--vt-text-inverse);
+}
+[data-cta-wrap]{
+  box-sizing:border-box;
+  max-inline-size:var(--vt-container-lg);
+  margin-inline:auto;
+  padding-block:clamp(48px,6vw,80px);
+  padding-inline:var(--vt-gutter);
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:space-between;
+  gap:24px 32px;
+}
+[data-cta-copy]{display:flex;flex-direction:column;gap:12px;min-inline-size:0;max-inline-size:60ch}
+[data-cta-title]{
+  margin:0;
+  max-inline-size:16ch;
+  font-family:var(--vt-font-display);
+  font-size:clamp(32px,4.4vw,56px);
+  font-weight:var(--vt-weight-semibold);
+  letter-spacing:var(--vt-display-tracking);
+  line-height:1.02;
+  text-wrap:balance;
+  color:var(--vt-text-inverse);
+}
+[data-cta-lede]{
+  margin:0;
+  max-inline-size:56ch;
+  font-family:var(--vt-font-body);
+  font-size:var(--vt-body-md);
+  line-height:var(--vt-body-leading);
+  text-wrap:pretty;
+  color:rgb(255 255 255/.72);
+}
+[data-cta-actions]{display:flex;flex-wrap:wrap;gap:12px;min-inline-size:0}
+[data-cta-btn]{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  box-sizing:border-box;
+  min-block-size:var(--vt-control-h-lg);
+  padding-inline:28px;
+  border:1px solid transparent;
+  border-radius:var(--vt-radius-pill);
+  font-family:var(--vt-font-body);
+  font-size:13px;
+  font-weight:var(--vt-weight-semibold);
+  letter-spacing:var(--vt-label-tracking);
+  text-transform:uppercase;
+  line-height:1;
+  white-space:nowrap;
+  cursor:pointer;
+  transition:background-color var(--vt-dur-fast) var(--vt-ease-standard),border-color var(--vt-dur-fast) var(--vt-ease-standard),color var(--vt-dur-fast) var(--vt-ease-standard);
+}
+[data-cta-btn]:active{transform:translateY(1px)}
+[data-cta-btn="primary"]{background:var(--vt-yellow-500);color:var(--vt-charcoal-900)}
+[data-cta-btn="primary"]:hover{background:var(--vt-yellow-400)}
+[data-cta-btn="ghost"]{background:transparent;color:var(--vt-white);border-color:var(--vt-white)}
+[data-cta-btn="ghost"]:hover{background:var(--vt-white);color:var(--vt-charcoal-900)}
+[data-cta-btn]:focus-visible{outline:none;box-shadow:var(--vt-ring-inverse)}
+[data-cta-icon]{display:inline-flex;flex:0 0 auto}
+[data-cta-icon][data-flip="1"]{transform:scaleX(-1)}
+@media (max-width:560px){
+  [data-cta-actions]{flex-direction:column;inline-size:100%}
+  [data-cta-btn]{inline-size:100%}
+}
+@media (prefers-reduced-motion:reduce){
+  [data-cta-btn]{transition:none}
+}
+</style>
+</helmet>
+<section data-cta="1" data-screen-label="Closing call to action" aria-labelledby="cta-title">
+<div data-cta-wrap="1">
+<div data-cta-copy="1">
+<h2 id="cta-title" data-cta-title="1">Your driver is waiting.</h2>
+<p data-cta-lede="1">Fixed price, booked in under a minute.</p>
+</div>
+<div data-cta-actions="1">
+<a data-cta-btn="primary" href="#book" onClick="{{ toBook }}"><span>Book a transfer</span><span data-cta-icon="1" data-flip="{{ flip }}" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n18 }}" hint-size="18px,18px"></x-import></span></a>
+<a data-cta-btn="ghost" href="https://wa.me/41796267082" target="_blank" rel="noopener"><span data-cta-icon="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="message-circle" size="{{ n18 }}" hint-size="18px,18px"></x-import></span><span>WhatsApp us</span></a>
+</div>
+</div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+/**
+ * Closing band. The primary pill scrolls to #book (offset for the sticky header);
+ * the ghost pill opens WhatsApp. No data fetching.
+ */
+class Component extends DCLogic {
+  state = { lang: (window.VamosLocale && typeof VamosLocale.lang === 'function' && VamosLocale.lang()) || 'en' };
+  componentDidMount() {
+    if (window.VamosLocale && typeof VamosLocale.onChange === 'function') {
+      this._offLocale = window.VamosLocale.onChange((v) => this.setState({ lang: v.lang }));
+    }
+  }
+  componentWillUnmount() {
+    if (this._offLocale) this._offLocale();
+  }
+  toBook = (e) => {
+    if (e && (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || (e.button && e.button > 0))) return;
+    const el = document.getElementById('book');
+    if (!el) return;
+    if (e && e.preventDefault) e.preventDefault();
+    const reduce = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const top = el.getBoundingClientRect().top + window.pageYOffset - 88;
+    window.scrollTo({ top: top, behavior: reduce ? 'auto' : 'smooth' });
+  };
+  renderVals() {
+    return { n18: 18, flip: this.state.lang === 'ar' ? '1' : '0', toBook: this.toBook };
+  }
+}
+</script>
+</body>
+</html>

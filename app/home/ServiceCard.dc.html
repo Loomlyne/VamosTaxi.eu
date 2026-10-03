@@ -76,19 +76,24 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-svc-title]{font-size:var(--vt-heading-2)}
 [data-svc-desc]{font-size:var(--vt-body-sm);max-inline-size:48ch}
 }
+[data-svc-go]{position:relative;z-index:1;display:inline-flex;align-items:center;gap:var(--vt-space-2);margin-block-start:var(--vt-space-2);font-family:var(--vt-font-body);font-size:var(--vt-label-sm);font-weight:var(--vt-label-weight);letter-spacing:var(--vt-label-tracking);line-height:1.3;text-transform:uppercase;color:var(--vt-text-inverse)}
+[data-svc-go-arrow]{display:inline-flex;align-items:center;transition:transform var(--vt-dur-fast) var(--vt-ease-standard)}
+[dir="rtl"] [data-svc-go-arrow]{transform:scaleX(-1)}
+@media (hover:hover){[data-svc-card]:hover [data-svc-go-arrow]{transform:translateX(var(--vt-space-1))}[dir="rtl"] [data-svc-card]:hover [data-svc-go-arrow]{transform:scaleX(-1) translateX(var(--vt-space-1))}}
+@media (prefers-reduced-motion:reduce){[data-svc-go-arrow],[data-svc-card]:hover [data-svc-go-arrow]{transition:none;transform:none}[dir="rtl"] [data-svc-go-arrow],[dir="rtl"] [data-svc-card]:hover [data-svc-go-arrow]{transform:scaleX(-1)}}
 @media (prefers-reduced-motion:reduce){[data-svc-card],[data-svc-photo]{transition:none}[data-svc-card]:active,[data-svc-card]:hover [data-svc-photo]{transform:none}}@media (prefers-reduced-transparency:reduce){[data-svc-foot]::before{-webkit-backdrop-filter:none;backdrop-filter:none}}
 :focus-visible:not(input):not(select):not(textarea):not(.vt-btn):not([data-svc-card]){outline:3px solid var(--vt-charcoal-900)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}</style>
 </helmet>
-<a data-svc-card="1" data-accent="{{ accentAttr }}" data-tone="{{ toneAttr }}" data-has-image="{{ hasImageAttr }}" href="{{ href }}" aria-labelledby="{{ titleId }}">
+<a data-svc-card="1" data-accent="{{ accentAttr }}" data-tone="{{ toneAttr }}" data-has-image="{{ hasImageAttr }}" href="{{ href }}" onClick="{{ onGo }}" aria-labelledby="{{ titleId }}">
 <span data-svc-media="1" ref="{{ mediaRef }}" style="--svc-focus:{{ imageFocus }}">
 <span data-svc-fx="1" aria-hidden="true" ref="{{ fxRef }}"></span>
 <sc-if value="{{ hasImage }}" hint-placeholder-val="{{ false }}"><img data-svc-photo="1" src="{{ image }}" alt=""></sc-if>
 <span data-svc-glyph="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ glyph }}" size="{{ n44 }}" hint-size="44px,44px"></x-import></span>
 </span>
-<span data-svc-foot="1">{{ children }}</span>
+<span data-svc-foot="1">{{ children }}<sc-if value="{{ hasCta }}" hint-placeholder-val="{{ false }}"><span data-svc-go="1">{{ cta }}<span data-svc-go-arrow="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n16 }}" hint-size="16px,16px"></x-import></span></span></sc-if></span>
 </a>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:460,&quot;height&quot;:400},&quot;href&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;#&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;titleId&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;icon&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;plane-landing&quot;,&quot;navigation&quot;,&quot;briefcase&quot;,&quot;clock&quot;,&quot;car-front&quot;,&quot;map-pin&quot;,&quot;snowflake&quot;,&quot;users&quot;],&quot;default&quot;:&quot;car-front&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;tone&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;grey&quot;,&quot;charcoal&quot;],&quot;default&quot;:&quot;grey&quot;,&quot;tsType&quot;:&quot;'grey'|'charcoal'&quot;,&quot;section&quot;:&quot;Media block&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;shineColor&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#FDC20B&quot;,&quot;options&quot;:[&quot;#FDC20B&quot;,&quot;#1E1F1F&quot;,&quot;#A67B05&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Specular edge&quot;},&quot;shineIntensity&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:0,&quot;max&quot;:2.5,&quot;step&quot;:0.05,&quot;default&quot;:1.25,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Specular edge&quot;},&quot;proximity&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:80,&quot;max&quot;:600,&quot;step&quot;:20,&quot;unit&quot;:&quot;px&quot;,&quot;default&quot;:280,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Specular edge&quot;},&quot;image&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Media block&quot;},&quot;imageFocus&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;center&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Media block&quot;},&quot;children&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;ReactNode&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:460,&quot;height&quot;:400},&quot;href&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;#&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;titleId&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;icon&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;plane-landing&quot;,&quot;navigation&quot;,&quot;briefcase&quot;,&quot;clock&quot;,&quot;car-front&quot;,&quot;map-pin&quot;,&quot;snowflake&quot;,&quot;users&quot;],&quot;default&quot;:&quot;car-front&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;tone&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;grey&quot;,&quot;charcoal&quot;],&quot;default&quot;:&quot;grey&quot;,&quot;tsType&quot;:&quot;'grey'|'charcoal'&quot;,&quot;section&quot;:&quot;Media block&quot;},&quot;accent&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;shineColor&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#FDC20B&quot;,&quot;options&quot;:[&quot;#FDC20B&quot;,&quot;#1E1F1F&quot;,&quot;#A67B05&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Specular edge&quot;},&quot;shineIntensity&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:0,&quot;max&quot;:2.5,&quot;step&quot;:0.05,&quot;default&quot;:1.25,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Specular edge&quot;},&quot;proximity&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:80,&quot;max&quot;:600,&quot;step&quot;:20,&quot;unit&quot;:&quot;px&quot;,&quot;default&quot;:280,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Specular edge&quot;},&quot;image&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Media block&quot;},&quot;imageFocus&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;center&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Media block&quot;},&quot;cta&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Action label&quot;},&quot;scrollTo&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Action label&quot;},&quot;children&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;ReactNode&quot;}}">
 /**
  * Specular edge highlight (after React Bits' SpecularButton, ported off `ogl` to raw
  * WebGL2 — no npm here). A rounded-rect SDF is lit by a streak that points at the cursor
@@ -260,6 +265,19 @@ class Component extends DCLogic {
     if (this.bright > 0.002 || this.prox > 0.002 || Math.abs(diff) > 0.004) this.raf = requestAnimationFrame(this.tick);
     else { this.bright = 0; this.draw(); }
   };
+  // scrollTo="book" scrolls to #book on this page (offset for the sticky header);
+  // without that element the href is followed normally.
+  onGo = (e) => {
+    const id = (this.props.scrollTo || '').trim();
+    if (!id) return;
+    const el = document.getElementById(id);
+    if (!el) return;
+    e.preventDefault();
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const top = el.getBoundingClientRect().top + window.pageYOffset - 88;
+    window.scrollTo({ top, behavior: reduce ? 'auto' : 'smooth' });
+    if (history.replaceState) history.replaceState(null, '', '#' + id);
+  };
   componentDidMount() {}
   componentDidUpdate() { this.resize(); this.draw(); }
   componentWillUnmount() {
@@ -273,6 +291,10 @@ class Component extends DCLogic {
     const image = (this.props.image || '').trim();
     return {
       n44: 44,
+      n16: 16,
+      onGo: this.onGo,
+      cta: (this.props.cta || '').trim(),
+      hasCta: !!(this.props.cta || '').trim(),
       glyph: this.props.icon || 'car-front',
       accentAttr: this.props.accent ? '1' : '0',
       toneAttr: this.props.tone === 'charcoal' ? 'charcoal' : 'grey',

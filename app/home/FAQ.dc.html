@@ -46,57 +46,94 @@ body{margin:0}
 a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}
 [data-faq]{background:var(--vt-bg-page)}
 [data-faq-wrap]{box-sizing:border-box;max-width:1200px;margin:0 auto;padding:clamp(56px,7vw,90px) clamp(16px,3.2vw,56px)}
-[data-faq-layout]{display:grid;grid-template-columns:minmax(0,1fr);gap:clamp(28px,3.6vw,48px);align-items:start}
-[data-faq-intro]{display:flex;flex-direction:column;align-items:flex-start;gap:14px;min-width:0}
-[data-faq-intro] h2{margin:0;font-family:var(--vt-font-display);font-size:clamp(36px,4.6vw,52px);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:1.06;max-width:14ch;text-wrap:balance;color:var(--vt-text-primary)}
-[data-faq-list]{display:flex;flex-direction:column;min-width:0;border-block-start:1px solid var(--vt-grey-200)}
-[data-faq-card]{position:relative;box-sizing:border-box;min-width:0;border-block-end:1px solid var(--vt-grey-200);background:transparent}
-[data-faq-toggle]{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:var(--vt-space-4);width:100%;min-height:72px;padding-block:18px;cursor:pointer;font-family:var(--vt-font-display);font-size:clamp(20px,2vw,24px);font-weight:var(--vt-weight-semibold);letter-spacing:-0.03em;line-height:1.3;color:var(--vt-text-primary);text-align:start;text-wrap:pretty}
-[data-faq-n]{flex:0 0 3.2ch;font-family:var(--vt-font-display);font-size:var(--vt-label-sm);font-weight:var(--vt-label-weight);letter-spacing:var(--vt-label-tracking);line-height:1;font-variant-numeric:tabular-nums;color:var(--vt-text-muted);transition:color 140ms var(--vt-ease-standard)}
+[data-faq-intro]{display:flex;flex-direction:column;align-items:flex-start;gap:14px;min-width:0;margin-block-end:clamp(28px,3.6vw,48px)}
+[data-faq-intro] h2{margin:0;font-family:var(--vt-font-display);font-size:clamp(36px,4.6vw,52px);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:1.06;text-wrap:balance;color:var(--vt-text-primary)}
+[data-faq-layout]{display:grid;grid-template-columns:minmax(0,1fr);gap:24px;align-items:start}
+[data-faq-rail]{min-width:0;display:flex;flex-direction:column;gap:24px}
+[data-faq-topics]{display:flex;gap:8px;overflow-x:auto;overscroll-behavior-x:contain;padding-block:2px;scrollbar-width:none}
+[data-faq-topics]::-webkit-scrollbar{display:none}
+[data-faq-topic]{all:unset;box-sizing:border-box;flex:0 0 auto;display:inline-flex;align-items:center;gap:10px;min-height:44px;padding-inline:18px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-pill);background:var(--vt-white);cursor:pointer;white-space:nowrap;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary);transition:background-color 140ms var(--vt-ease-standard),border-color 140ms var(--vt-ease-standard),color 140ms var(--vt-ease-standard),transform 80ms var(--vt-ease-standard)}
+[data-faq-topic] small{font-size:var(--vt-label-sm);font-weight:var(--vt-weight-semibold);color:var(--vt-text-muted);font-variant-numeric:tabular-nums}
+[data-faq-topic]:hover{border-color:var(--vt-charcoal-900)}
+[data-faq-topic]:active{transform:translateY(1px)}
+[data-faq-topic][aria-selected="true"]{background:var(--vt-charcoal-900);border-color:var(--vt-charcoal-900);color:var(--vt-white)}
+[data-faq-topic][aria-selected="true"] small{color:var(--vt-yellow-500)}
+[data-faq-topic]:focus-visible{outline:none;box-shadow:var(--vt-ring)}
+[data-faq-help]{box-sizing:border-box;display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:24px;border-radius:var(--vt-radius-lg);background:var(--vt-charcoal-900);color:var(--vt-white)}
+[data-faq-help] b{font-family:var(--vt-font-display);font-size:20px;font-weight:var(--vt-weight-semibold);letter-spacing:-0.02em;line-height:1.2}
+[data-faq-help] p{margin:0;font-size:var(--vt-body-sm);line-height:1.5;color:var(--vt-text-inverse-muted)}
+[data-faq-help] a[data-faq-wa]{display:inline-flex;align-items:center;gap:8px;min-height:44px;margin-block-start:4px;color:var(--vt-yellow-500);font-size:13px;font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;text-decoration:none;border-bottom:0;transition:color 140ms var(--vt-ease-standard)}
+[data-faq-help] a[data-faq-wa]:hover{color:var(--vt-white)}
+[data-faq-help] a[data-faq-wa]:focus-visible{outline:none;box-shadow:var(--vt-ring);border-radius:var(--vt-radius-xs)}
+[data-faq-help="rail"]{display:none}
+[data-faq-help="after"]{margin-block-start:24px}
+[data-faq-main]{min-width:0}
+[data-faq-set]{display:none;flex-direction:column;min-width:0}
+[data-faq-set][data-on="1"]{display:flex}
+[data-faq-card]{position:relative;box-sizing:border-box;min-width:0;padding-inline:20px;border:1px solid transparent;border-block-end-color:var(--vt-grey-200);border-radius:0;background:transparent;transition:background-color 140ms var(--vt-ease-standard)}
+[data-faq-card][data-open="1"]{border-radius:var(--vt-radius-lg);background:var(--vt-white);border-color:var(--vt-grey-200)}
+[data-faq-toggle]{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:var(--vt-space-4);width:100%;min-height:64px;padding-block:16px;cursor:pointer;font-family:var(--vt-font-display);font-size:clamp(18px,1.8vw,22px);font-weight:var(--vt-weight-semibold);letter-spacing:-0.03em;line-height:1.3;color:var(--vt-text-primary);text-align:start;text-wrap:pretty}
 [data-faq-q]{min-width:0;flex:1 1 auto}
-[data-faq-card][data-open="1"] [data-faq-n]{color:var(--vt-text-primary)}
-[data-faq-card][data-open="0"]:hover [data-faq-n]{color:var(--vt-charcoal-800)}
 [data-faq-toggle]:focus-visible{outline:none;border-radius:var(--vt-radius-xs);box-shadow:var(--vt-ring)}
 [data-faq-mark]{box-sizing:border-box;flex:0 0 36px;width:36px;height:36px;margin-inline-start:auto;border:1px solid var(--vt-charcoal-900);border-radius:var(--vt-radius-pill);background:transparent;color:var(--vt-charcoal-900);display:inline-flex;align-items:center;justify-content:center;transition:background-color 140ms var(--vt-ease-standard),border-color 140ms var(--vt-ease-standard),color 140ms var(--vt-ease-standard),transform 80ms var(--vt-ease-standard)}
 [data-faq-card][data-open="0"] [data-faq-toggle]:hover [data-faq-mark]{background:var(--vt-charcoal-900);color:var(--vt-white)}
-[data-faq-card][data-open="1"] [data-faq-mark]{background:var(--vt-yellow);border-color:var(--vt-charcoal-900);color:var(--vt-charcoal-950)}
+[data-faq-card][data-open="1"] [data-faq-mark]{background:var(--vt-yellow-500);border-color:var(--vt-yellow-500);color:var(--vt-charcoal-950)}
 [data-faq-card][data-open="1"] [data-faq-toggle]:hover [data-faq-mark]{background:var(--vt-accent-hover)}
 [data-faq-toggle]:active [data-faq-mark]{transform:translateY(1px)}
 [data-faq-plus]{display:inline-flex;transition:transform var(--faq-ms,200ms) var(--vt-ease-standard)}
 [data-faq-card][data-open="1"] [data-faq-plus]{transform:rotate(45deg)}
 [data-faq-panel]{display:grid;grid-template-rows:0fr;visibility:hidden;transition:grid-template-rows var(--faq-ms,200ms) var(--vt-ease-standard),visibility 0s linear var(--faq-ms,200ms)}
 [data-faq-card][data-open="1"] [data-faq-panel]{grid-template-rows:1fr;visibility:visible;transition:grid-template-rows var(--faq-ms,200ms) var(--vt-ease-standard),visibility 0s}
-[data-faq-inner]{overflow:hidden;min-height:0;padding-block:0 22px;padding-inline-start:calc(3.2ch + var(--vt-space-4));padding-inline-end:36px;opacity:0;transition:opacity var(--faq-ms,200ms) var(--vt-ease-standard)}
+[data-faq-inner]{overflow:hidden;min-height:0;padding-block:0;padding-inline-end:52px;opacity:0;transition:opacity var(--faq-ms,200ms) var(--vt-ease-standard)}
 [data-faq-card][data-open="1"] [data-faq-inner]{opacity:1}
 [data-faq-a]{margin:0 0 10px;max-width:62ch;font-family:var(--vt-font-body);font-size:var(--vt-body-md);line-height:1.6;color:var(--vt-text-secondary);text-wrap:pretty}
 [data-faq-a]:last-child{margin-bottom:0}
+[data-faq-inner]>:last-child{margin-block-end:20px}
 [data-faq-a] a{color:var(--vt-charcoal-900);font-weight:var(--vt-weight-medium);text-decoration:none;border-bottom:1px solid var(--vt-grey-300)}
 [data-faq-a] a:hover{color:var(--vt-charcoal-800);border-bottom-color:var(--vt-charcoal-900)}
 [data-faq-acts]{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:12px 0 0;max-width:100%}
 [data-faq-acts] .vt-btn,[data-faq-acts] a{text-decoration:none;max-width:100%;box-sizing:border-box}
 [data-faq-acts] a:not(.vt-btn){border-bottom:0}
 [data-faq-acts] .vt-btn--ghost{border:var(--vt-border-w) solid var(--vt-charcoal-900)}
-@media (max-width:560px){[data-faq-acts]{flex-direction:column;align-items:stretch}[data-faq-acts] .vt-btn{width:100%;white-space:normal;height:auto;min-height:var(--vt-control-h-md);padding-block:10px;text-align:center}}
-@media (min-width:900px){
-[data-faq-layout]{grid-template-columns:minmax(240px,.36fr) minmax(0,1fr);column-gap:clamp(40px,5vw,72px);align-items:start}
-[data-faq-intro]{position:sticky;top:96px}
+@media (max-width:560px){[data-faq-card]{padding-inline:16px}[data-faq-inner]{padding-inline-end:0}[data-faq-acts]{flex-direction:column;align-items:stretch}[data-faq-acts] .vt-btn{width:100%;white-space:normal;height:auto;min-height:var(--vt-control-h-md);padding-block:10px;text-align:center}}
+@media (min-width:901px){
+[data-faq-layout]{grid-template-columns:280px minmax(0,1fr);column-gap:clamp(40px,5vw,72px)}
+[data-faq-topics]{flex-direction:column;overflow:visible;gap:6px}
+[data-faq-topic]{display:flex;justify-content:space-between;width:100%;min-height:48px;border-color:transparent;border-radius:var(--vt-radius-md);background:transparent}
+[data-faq-topic]:hover{background:var(--vt-white);border-color:var(--vt-border-subtle)}
+[data-faq-topic][aria-selected="true"]:hover{background:var(--vt-charcoal-900);border-color:var(--vt-charcoal-900)}
+[data-faq-help="rail"]{display:flex}
+[data-faq-help="after"]{display:none}
 }
-@media (prefers-reduced-motion:reduce){[data-faq-card],[data-faq-panel],[data-faq-inner],[data-faq-plus],[data-faq-mark],[data-faq-n]{transition:none}}:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}</style>
+@media (prefers-reduced-motion:reduce){[data-faq-card],[data-faq-panel],[data-faq-inner],[data-faq-plus],[data-faq-mark],[data-faq-topic]{transition:none}}:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}</style>
 </helmet>
+
 <section id="faq" data-faq="1" data-screen-label="FAQ" aria-labelledby="faq-title" ref="{{ rootRef }}" style="color:var(--vt-text-primary);font-family:var(--vt-font-body);position:relative;overflow:hidden">
 <div aria-hidden="true" style="position:absolute;inset:0;background-image:url(data:image/png;base64,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);background-size:88px 88px;background-repeat:repeat;opacity:.028;pointer-events:none;z-index:0"></div>
 <div data-faq-wrap="1" style="position:relative;z-index:1">
-<div data-faq-layout="1">
 <div data-faq-intro="1">
 <p style="margin:0;display:inline-flex;align-self:flex-start;align-items:center;gap:9px;height:32px;padding:0 15px 0 12px;border:1px solid var(--vt-grey-200);border-radius:999px;background:var(--vt-white);font-size:12px;font-weight:600;letter-spacing:0.09em;text-transform:uppercase;line-height:1;white-space:nowrap;color:var(--vt-charcoal-900)"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKAAAAChCAYAAABAk7SIAAAEi0lEQVR4AeyUS27bQBQETR1BuU58o1wqZ9F9nEX2YWCuaIA/c379XpcBGYYkznRXF/yYX8852+st4c/8+vF7TrjVI+FWVApEAAEDjZUxKgJmXDVQJwQMNFbGqAiYcdVAnXwFDDRS5qgImHndAN0QMMBImSMiYOZ1A3RDwAAjZY6IgJnXDdANAQOMVDmi1HEIKDWHXxgE9NtcqjECSs3hFwYB/TaXaoyAUnP4hUFAv82lGncVUKo5YSQIIKDEDL4hENB3e4nmCCgxg28IBPTdXqI5AkrM4BsCAbtszyV7BBBwjwzvdyGAgF0wc8keAQTcI8P7XQggYBfMXLJHAAH3yPB+FwII2AWz7yVnzRHwjBCfNyWAgE3xcvgZAQQ8I8TnTQkgYFO8HH5GAAHPCPF5UwII2BQvh58RyCvgWXM+lyCAgBIz+IZAQN/tJZojoMQMviEQ0Hd7ieYIKDGDbwgEzLd9qEYIGGqufGERMN+moRohYKi58oVFwHybhmqEgKHmyhcWAfNtGqpRVQFDNSesBAEElJjBNwQC+m4v0fwxvX9M2V7z6zlne71N//5m2+mzD/8BJf4P+IZAQN/tJZojYJUZOOQuAQS8S47nqhBAwCoYOeQuAQS8S47nqhBAwCoYOeQuAQS8S47nqhBAwCoYfQ8pbY6ApQR5vogAAhbh4+FSAghYSpDniwggYBE+Hi4lgIClBHm+iAACFuHj4VICcQUsbc7zEgQQUGIG3xAI6Lu9RHMElJjBNwQC+m4v0RwBJWbwDYGA8bZPlRgBU80ZrwwCxtssVWIETDVnvDIIGG+zVIkRMNWc8cogYLzNUiX+loCpmlNGggACSszgGwIBfbeXaI6AEjP4hkBA3+0lmiOgxAy+IRDw0vZ8qRUBBGxFlnMvEUDAS5j4UisCCNiKLOdeIoCAlzDxpVYEELAVWc69RAABL2Hy/VLr5gjYmjDnHxJAwEM8fNiaAAK2Jsz5hwQQ8BAPH7YmgICtCXP+IQEEPMTDh60J6ArYujnnSxBAQIkZfEMgoO/2Es0RUGIG3xAI6Lu9RPPH/HrO2V7T+8eU7vXzzy8JYyqH4D9gZaAVjrM6AgGt5tYri4B6m1glQkCrufXKIqDeJlaJENBqbr2yCKi3iVWiLwJaNaesBAEElJjBNwQC+m4v0RwBJWbwDYGAvttLNEdAiRl8QyDgsj2/RhFAwFHkuXchgIALBn6NIoCAo8hz70IAARcM/BpFAAFHkefehQACLhh8f41ujoCjFzC/HwHNBRhdHwFHL2B+PwKaCzC6PgKOXsD8fgQ0F2B0/XECjm7O/RIEEFBiBt8QCOi7vURzBJSYwTcEAvpuL9EcASVm8A2BgP2358YVAQRcweDP/gQQsD9zblwRQMAVDP7sTwAB+zPnxhUBBFzB4M/+BBCwP3PfGzeaI+AGFN7qRwAB+7Hmpg0CCLgBhbf6EUDAfqy5aYMAAm5A4a1+BBCwH2tu2iBgIuBGc96SIICAEjP4hkBA3+0lmiOgxAy+IRDQd3uJ5ggoMYNvCARMvr16PQRUXyh5vv8AAAD//3BQ2wUAAAAGSURBVAMAfqEZH/MwL3sAAAAASUVORK5CYII=" alt="" style="width:13px;height:13px;display:block">Answers</p>
 <h2 id="faq-title">Frequently asked questions</h2>
 </div>
-<div data-faq-list="1" data-faq-grid="1">
-
+<div data-faq-layout="1">
+<div data-faq-rail="1">
+<div data-faq-topics="1" role="tablist" aria-label="Question topics" aria-orientation="vertical">
+<button type="button" role="tab" data-faq-topic="1" id="faq-t1" aria-selected="true" aria-controls="faq-s1" tabindex="0"><span>Booking and price</span><small class="vt-dir-keep" data-vt-no-i18n="1">4</small></button>
+<button type="button" role="tab" data-faq-topic="1" id="faq-t2" aria-selected="false" aria-controls="faq-s2" tabindex="-1"><span>At the airport</span><small class="vt-dir-keep" data-vt-no-i18n="1">4</small></button>
+<button type="button" role="tab" data-faq-topic="1" id="faq-t3" aria-selected="false" aria-controls="faq-s3" tabindex="-1"><span>Luggage and seats</span><small class="vt-dir-keep" data-vt-no-i18n="1">2</small></button>
+<button type="button" role="tab" data-faq-topic="1" id="faq-t4" aria-selected="false" aria-controls="faq-s4" tabindex="-1"><span>Changes and cancellation</span><small class="vt-dir-keep" data-vt-no-i18n="1">2</small></button>
+</div>
+<div data-faq-help="rail">
+<b>Still a question?</b>
+<p>We answer by phone, WhatsApp or email.</p>
+<a href="https://wa.me/41796267082" target="_blank" rel="noopener" data-faq-wa="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="message-circle" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import><span>WhatsApp us</span></a>
+</div>
+</div>
+<div data-faq-main="1">
+<div data-faq-set="1" role="tabpanel" id="faq-s1" aria-labelledby="faq-t1" data-on="1">
 <div data-faq-card="1" data-open="1">
 <h3 style="margin:0">
-<button type="button" data-faq-toggle="1" id="faq-q1" aria-expanded="true" aria-controls="faq-a1"><span data-faq-n="1" data-vt-no-i18n="1" aria-hidden="true">01</span>
-<span data-faq-q="1">Is the price I see the final price?</span>
+<button type="button" data-faq-toggle="1" id="faq-q1" aria-expanded="true" aria-controls="faq-a1"><span data-faq-q="1">Is the price I see the final price?</span>
 <span data-faq-mark="1" aria-hidden="true"><span data-faq-plus="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="plus" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></span></span>
 </button>
 </h3>
@@ -109,8 +146,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 
 <div data-faq-card="1" data-open="0">
 <h3 style="margin:0">
-<button type="button" data-faq-toggle="1" id="faq-q2" aria-expanded="false" aria-controls="faq-a2"><span data-faq-n="1" data-vt-no-i18n="1" aria-hidden="true">02</span>
-<span data-faq-q="1">Do I need an account to book?</span>
+<button type="button" data-faq-toggle="1" id="faq-q2" aria-expanded="false" aria-controls="faq-a2"><span data-faq-q="1">Do I need an account to book?</span>
 <span data-faq-mark="1" aria-hidden="true"><span data-faq-plus="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="plus" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></span></span>
 </button>
 </h3>
@@ -123,26 +159,11 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 
 <div data-faq-card="1" data-open="0">
 <h3 style="margin:0">
-<button type="button" data-faq-toggle="1" id="faq-q3" aria-expanded="false" aria-controls="faq-a3"><span data-faq-n="1" data-vt-no-i18n="1" aria-hidden="true">03</span>
-<span data-faq-q="1">What payment methods do you accept?</span>
+<button type="button" data-faq-toggle="1" id="faq-q3" aria-expanded="false" aria-controls="faq-a3"><span data-faq-q="1">How far in advance do I need to book?</span>
 <span data-faq-mark="1" aria-hidden="true"><span data-faq-plus="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="plus" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></span></span>
 </button>
 </h3>
 <div data-faq-panel="1" id="faq-a3" role="region" aria-labelledby="faq-q3">
-<div data-faq-inner="1">
-<p data-faq-a="1">Card payment, processed by Stripe. Every method available for your booking is shown at checkout before you pay.</p>
-</div>
-</div>
-</div>
-
-<div data-faq-card="1" data-open="0">
-<h3 style="margin:0">
-<button type="button" data-faq-toggle="1" id="faq-q4" aria-expanded="false" aria-controls="faq-a4"><span data-faq-n="1" data-vt-no-i18n="1" aria-hidden="true">04</span>
-<span data-faq-q="1">How far in advance do I need to book?</span>
-<span data-faq-mark="1" aria-hidden="true"><span data-faq-plus="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="plus" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></span></span>
-</button>
-</h3>
-<div data-faq-panel="1" id="faq-a4" role="region" aria-labelledby="faq-q4">
 <div data-faq-inner="1">
 <p data-faq-a="1">Every transfer is booked ahead and assigned to a named driver. You are not waiting for a car to be found — at the agreed time it is already there.</p>
 </div>
@@ -151,12 +172,109 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 
 <div data-faq-card="1" data-open="0">
 <h3 style="margin:0">
-<button type="button" data-faq-toggle="1" id="faq-q5" aria-expanded="false" aria-controls="faq-a5"><span data-faq-n="1" data-vt-no-i18n="1" aria-hidden="true">05</span>
-<span data-faq-q="1">Can I cancel or change my booking?</span>
+<button type="button" data-faq-toggle="1" id="faq-q4" aria-expanded="false" aria-controls="faq-a4"><span data-faq-q="1">What payment methods do you accept?</span>
+<span data-faq-mark="1" aria-hidden="true"><span data-faq-plus="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="plus" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></span></span>
+</button>
+</h3>
+<div data-faq-panel="1" id="faq-a4" role="region" aria-labelledby="faq-q4">
+<div data-faq-inner="1">
+<p data-faq-a="1">Card or TWINT, processed by Stripe. Every method available for your booking is shown at checkout before you pay.</p>
+</div>
+</div>
+</div>
+</div>
+<div data-faq-set="1" role="tabpanel" id="faq-s2" aria-labelledby="faq-t2" data-on="0">
+<div data-faq-card="1" data-open="1">
+<h3 style="margin:0">
+<button type="button" data-faq-toggle="1" id="faq-q5" aria-expanded="true" aria-controls="faq-a5"><span data-faq-q="1">Where do I meet my driver?</span>
 <span data-faq-mark="1" aria-hidden="true"><span data-faq-plus="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="plus" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></span></span>
 </button>
 </h3>
 <div data-faq-panel="1" id="faq-a5" role="region" aria-labelledby="faq-q5">
+<div data-faq-inner="1">
+<p data-faq-a="1">After customs, in the arrivals hall. Your driver holds a board with your name.</p>
+</div>
+</div>
+</div>
+
+<div data-faq-card="1" data-open="0">
+<h3 style="margin:0">
+<button type="button" data-faq-toggle="1" id="faq-q6" aria-expanded="false" aria-controls="faq-a6"><span data-faq-q="1">What if my flight is late?</span>
+<span data-faq-mark="1" aria-hidden="true"><span data-faq-plus="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="plus" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></span></span>
+</button>
+</h3>
+<div data-faq-panel="1" id="faq-a6" role="region" aria-labelledby="faq-q6">
+<div data-faq-inner="1">
+<p data-faq-a="1">We track your flight. The pickup time moves with the real arrival, at no extra cost.</p>
+</div>
+</div>
+</div>
+
+<div data-faq-card="1" data-open="0">
+<h3 style="margin:0">
+<button type="button" data-faq-toggle="1" id="faq-q7" aria-expanded="false" aria-controls="faq-a7"><span data-faq-q="1">How long does the driver wait?</span>
+<span data-faq-mark="1" aria-hidden="true"><span data-faq-plus="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="plus" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></span></span>
+</button>
+</h3>
+<div data-faq-panel="1" id="faq-a7" role="region" aria-labelledby="faq-q7">
+<div data-faq-inner="1">
+<p data-faq-a="1">Sixty minutes of airport waiting are included on every airport pickup.</p>
+</div>
+</div>
+</div>
+
+<div data-faq-card="1" data-open="0">
+<h3 style="margin:0">
+<button type="button" data-faq-toggle="1" id="faq-q8" aria-expanded="false" aria-controls="faq-a8"><span data-faq-q="1">What if I can’t find my driver?</span>
+<span data-faq-mark="1" aria-hidden="true"><span data-faq-plus="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="plus" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></span></span>
+</button>
+</h3>
+<div data-faq-panel="1" id="faq-a8" role="region" aria-labelledby="faq-q8">
+<div data-faq-inner="1">
+<p data-faq-a="1">Call or WhatsApp <a href="tel:+41796267082" class="vt-dir-keep" data-vt-no-i18n="1">+41 79 626 70 82</a>.</p>
+<div data-faq-acts="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" href="tel:+41796267082" hint-size="120px,44px">Call</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" href="https://wa.me/41796267082" hint-size="160px,44px">WhatsApp</x-import>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div data-faq-set="1" role="tabpanel" id="faq-s3" aria-labelledby="faq-t3" data-on="0">
+<div data-faq-card="1" data-open="1">
+<h3 style="margin:0">
+<button type="button" data-faq-toggle="1" id="faq-q9" aria-expanded="true" aria-controls="faq-a9"><span data-faq-q="1">How many bags fit?</span>
+<span data-faq-mark="1" aria-hidden="true"><span data-faq-plus="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="plus" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></span></span>
+</button>
+</h3>
+<div data-faq-panel="1" id="faq-a9" role="region" aria-labelledby="faq-q9">
+<div data-faq-inner="1">
+<p data-faq-a="1">Each class shows its seats and bags before you pay.</p>
+</div>
+</div>
+</div>
+
+<div data-faq-card="1" data-open="0">
+<h3 style="margin:0">
+<button type="button" data-faq-toggle="1" id="faq-q10" aria-expanded="false" aria-controls="faq-a10"><span data-faq-q="1">Skis, bikes or child seats?</span>
+<span data-faq-mark="1" aria-hidden="true"><span data-faq-plus="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="plus" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></span></span>
+</button>
+</h3>
+<div data-faq-panel="1" id="faq-a10" role="region" aria-labelledby="faq-q10">
+<div data-faq-inner="1">
+<p data-faq-a="1">Skis, folding bicycles, collapsible wheelchairs, instruments and pets all travel — declare them when you book so the right vehicle is assigned. Child and booster seats on request, and your own is welcome.</p>
+</div>
+</div>
+</div>
+</div>
+<div data-faq-set="1" role="tabpanel" id="faq-s4" aria-labelledby="faq-t4" data-on="0">
+<div data-faq-card="1" data-open="1">
+<h3 style="margin:0">
+<button type="button" data-faq-toggle="1" id="faq-q11" aria-expanded="true" aria-controls="faq-a11"><span data-faq-q="1">Can I cancel or change my booking?</span>
+<span data-faq-mark="1" aria-hidden="true"><span data-faq-plus="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="plus" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></span></span>
+</button>
+</h3>
+<div data-faq-panel="1" id="faq-a11" role="region" aria-labelledby="faq-q11">
 <div data-faq-inner="1">
 <p data-faq-a="1">Change or cancel from the link in your confirmation email, or from your account if you made one. A change is effective when we confirm it in writing, not when you send it.</p>
 <p data-faq-a="1">We do not restate the windows or the shares here, on purpose. One page owns them, and it is kept correct.</p>
@@ -168,59 +286,111 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 </div>
 </div>
 
+<div data-faq-card="1" data-open="0">
+<h3 style="margin:0">
+<button type="button" data-faq-toggle="1" id="faq-q12" aria-expanded="false" aria-controls="faq-a12"><span data-faq-q="1">Until when is cancellation free?</span>
+<span data-faq-mark="1" aria-hidden="true"><span data-faq-plus="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="plus" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></span></span>
+</button>
+</h3>
+<div data-faq-panel="1" id="faq-a12" role="region" aria-labelledby="faq-q12">
+<div data-faq-inner="1">
+<p data-faq-a="1">Until 24 hours before pickup.</p>
+<div data-faq-acts="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" href="/cancellation" hint-size="200px,44px">Cancellation policy</x-import>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div data-faq-help="after">
+<b>Still a question?</b>
+<p>We answer by phone, WhatsApp or email.</p>
+<a href="https://wa.me/41796267082" target="_blank" rel="noopener" data-faq-wa="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="message-circle" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import><span>WhatsApp us</span></a>
+</div>
 </div>
 </div>
 </div>
 </section>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1200,&quot;height&quot;:640},&quot;expandMs&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:400,&quot;min&quot;:0,&quot;max&quot;:400,&quot;step&quot;:20,&quot;unit&quot;:&quot;ms&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Motion&quot;},&quot;singleOpen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Behaviour&quot;},&quot;startOpen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Behaviour&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1200,&quot;height&quot;:640},&quot;expandMs&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:400,&quot;min&quot;:0,&quot;max&quot;:400,&quot;step&quot;:20,&quot;unit&quot;:&quot;ms&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Motion&quot;},&quot;singleOpen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Behaviour&quot;},&quot;startOpen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Behaviour&quot;}}">
 /**
- * Home · FAQ — editorial split, not the old 3-up card wrap. Desktop: sticky
- * intro (kicker + heading) beside a single-column numbered accordion. Mobile:
- * stack. Hairline rows on --vt-bg-page, no boxed cards, no 50px charcoal
- * circles, no yellow tint fills, no glow. Open control is a 36px outline
- * plus that rotates 45° to an × and fills --vt-accent (one yellow in the
- * region). Qurova questions / Poppins answers. Public FAQs stay on homepage
- * #faq. Copy from existing FAQ + terms; no invented CHF, windows, or fees.
- *
- * Panel animates 0fr → 1fr; visibility flips with it so a collapsed answer
- * is out of the a11y tree. 200ms system panel timing. prefers-reduced-motion
- * → instant. Exclusive open via one delegated click listener; markup stays
- * literal so every string is directly editable.
+ * Home · FAQ — topics rail + accordion. Desktop (above 900px): a 280px rail of
+ * four topic buttons (count beside each) and a charcoal "Still a question?" box,
+ * beside the accordion of the selected topic. At 900px and below the topics are a
+ * sideways swipe row and the help box moves under the questions. The open item is
+ * a white card with the answer straight under the question: no divider inside.
+ * Closed items are hairline rows. One item open at a time; picking a topic opens
+ * its first item. Topics are a tablist (arrow keys move), items are buttons with
+ * aria-expanded / aria-controls. Panel animates 0fr to 1fr; reduced motion is
+ * instant. Markup stays literal so every string is directly editable and
+ * translated by the locale runtime. No invented CHF, windows, or fees.
  */
 class Component extends DCLogic {
+  state = { lang: 'en' };
   rootRef = (el) => { this.root = el; this.boot(); };
   ms() { return Math.max(0, Math.round(this.props.expandMs ?? 200)); }
-  cards() { return this.root ? Array.from(this.root.querySelectorAll('[data-faq-card]')) : []; }
+  q(sel, scope) { const s = scope || this.root; return s ? Array.from(s.querySelectorAll(sel)) : []; }
+  componentDidMount() {
+    if (window.VamosLocale && window.VamosLocale.onChange) this._offLocale = window.VamosLocale.onChange((v) => this.setState({ lang: v.lang }));
+  }
   boot() {
     if (!this.root) return;
     this.root.style.setProperty('--faq-ms', this.ms() + 'ms');
     if (this._bound !== this.root) {
-      if (this._bound) this._bound.removeEventListener('click', this.onClick);
+      if (this._bound) { this._bound.removeEventListener('click', this.onClick); this._bound.removeEventListener('keydown', this.onKey); }
       this.root.addEventListener('click', this.onClick);
+      this.root.addEventListener('keydown', this.onKey);
       this._bound = this.root;
     }
-    /* Initial open state comes from the prop once, and again only if the prop itself changes —
+    /* Initial open state comes from the prop once, and again only if the prop itself changes,
        never on an unrelated re-render, which would slam the reader's open card shut. */
     const start = (this.props.startOpen ?? true) !== false;
-    if (this._start !== start) { this._start = start; this.cards().forEach((c, i) => this.set(c, start && i === 0)); }
+    if (this._start !== start) { this._start = start; this.q('[data-faq-set]').forEach((s) => this.q('[data-faq-card]', s).forEach((c, i) => this.set(c, start && i === 0))); }
   }
   set(card, open) {
     card.setAttribute('data-open', open ? '1' : '0');
     const b = card.querySelector('[data-faq-toggle]');
     if (b) b.setAttribute('aria-expanded', open ? 'true' : 'false');
   }
+  topic(i, focus) {
+    const tabs = this.q('[data-faq-topic]');
+    tabs.forEach((t, k) => { t.setAttribute('aria-selected', k === i ? 'true' : 'false'); t.setAttribute('tabindex', k === i ? '0' : '-1'); });
+    this.q('[data-faq-set]').forEach((s, k) => {
+      s.setAttribute('data-on', k === i ? '1' : '0');
+      if (k === i) this.q('[data-faq-card]', s).forEach((c, j) => this.set(c, (this.props.startOpen ?? true) !== false && j === 0));
+    });
+    if (focus && tabs[i]) { tabs[i].focus(); if (tabs[i].scrollIntoView) tabs[i].scrollIntoView({ block: 'nearest', inline: 'nearest' }); }
+  }
   onClick = (e) => {
+    const tg = e.target.closest && e.target.closest('[data-faq-topic]');
+    if (tg && this.root.contains(tg)) { this.topic(this.q('[data-faq-topic]').indexOf(tg)); return; }
     const btn = e.target.closest && e.target.closest('[data-faq-toggle]');
     if (!btn || !this.root || !this.root.contains(btn)) return;
     const card = btn.closest('[data-faq-card]');
     if (!card) return;
     const wasOpen = card.getAttribute('data-open') === '1';
-    if ((this.props.singleOpen ?? true) !== false) this.cards().forEach((c) => { if (c !== card) this.set(c, false); });
+    if ((this.props.singleOpen ?? true) !== false) this.q('[data-faq-card]', card.closest('[data-faq-set]')).forEach((c) => { if (c !== card) this.set(c, false); });
     this.set(card, !wasOpen);
   };
+  onKey = (e) => {
+    const tg = e.target.closest && e.target.closest('[data-faq-topic]');
+    if (!tg) return;
+    const tabs = this.q('[data-faq-topic]'); const i = tabs.indexOf(tg); const n = tabs.length;
+    const rtl = document.documentElement.dir === 'rtl';
+    let to = -1;
+    if (e.key === 'ArrowDown' || (e.key === 'ArrowRight' && !rtl) || (e.key === 'ArrowLeft' && rtl)) to = (i + 1) % n;
+    else if (e.key === 'ArrowUp' || (e.key === 'ArrowLeft' && !rtl) || (e.key === 'ArrowRight' && rtl)) to = (i + n - 1) % n;
+    else if (e.key === 'Home') to = 0;
+    else if (e.key === 'End') to = n - 1;
+    if (to < 0) return;
+    e.preventDefault();
+    this.topic(to, true);
+  };
   componentDidUpdate() { this.boot(); }
-  componentWillUnmount() { if (this._bound) this._bound.removeEventListener('click', this.onClick); }
+  componentWillUnmount() {
+    if (this._offLocale) this._offLocale();
+    if (this._bound) { this._bound.removeEventListener('click', this.onClick); this._bound.removeEventListener('keydown', this.onKey); }
+  }
   renderVals() { return { rootRef: this.rootRef, n18: 18 }; }
 }
 
