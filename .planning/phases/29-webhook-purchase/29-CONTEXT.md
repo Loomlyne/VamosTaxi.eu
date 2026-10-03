@@ -3,8 +3,8 @@
 **Gathered:** 2026-10-03
 **Status:** Discuss signed by the owner (question form, 2026-10-03). Plan not written.
 **Branch:** `gsd/phase-29-purchase`, worktree `/Users/koss/.t3/worktrees/VamosTaxi.eu/gsd-phase-29-purchase`, cut from origin/main `a8e78ec2`
-**Builds on:** Phase 28, branch `fix/phase-28-review-2` (`d1ebf1aa`). It is not on main yet. Read it, do not merge it.
-**Migrations:** see "Open for the controller" below. Do not write one before the controller gives the number.
+**Builds on:** Phase 28, live on main since 2026-10-03 20:00 (`da25c7d5`, Worker `d937114f`). Merged into this branch.
+**Migrations:** `20261007260000` (reserved by the controller 2026-10-03 20:05, board `1554b16d`). One file, additive.
 
 <domain>
 ## Phase Boundary
@@ -99,11 +99,8 @@ success criteria 1–5; not repeated here).
 <open_items>
 ## Open for the controller (before the plan is written)
 
-- **Migration number.** The board reserves `20261004100000`–`20261004190000` for Phase 29, but main is
-  already at `20261007220000`. Phase 28 uses `20261007240000` and fare lines use `20261007230000`. A 1004
-  file would sort before migrations already applied on live. Phase 29 likely needs one additive
-  migration (a sent marker, plus whatever D-01 needs). The controller gives the number. Owner, 2026-10-03 (question form): "Let the controller pick". Free on every remote branch at that time: 20261007250000 and up. Planning waits for the number on the board.
-- **Order.** Phase 29 needs Phase 28's columns on live first. The plan assumes 28 ships before 29.
+- **Migration number.** Settled: `20261007260000` (controller, 2026-10-03 20:05). The 1004 block is withdrawn.
+- **Order.** Settled: Phase 28 is live (`da25c7d5`). The 4242 payment after its deploy is still owed by the controller.
 </open_items>
 
 <canonical_refs>
