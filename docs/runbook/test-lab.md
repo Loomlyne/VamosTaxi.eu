@@ -23,6 +23,26 @@ The build is the slow part (several minutes). `up` skips it when `apps/web/.open
 `apps/web`, `app` and `packages`. Run a first build in its own tool call if you must stay under 10 minutes per call:
 `pnpm --filter web exec opennextjs-cloudflare build 2>&1 | tail -20`, then `lab.sh up`.
 
+## Runtime: Docker or native (no Docker)
+
+`LAB_RUNTIME=auto|docker|native scripts/test-lab/lab.sh up <name>`. `auto` (the default) uses Docker when its daemon
+answers, otherwise native. A lab keeps the runtime it was made with; to switch, `destroy` it and make a new one.
+
+- **docker**: the repo's pinned CLI (`pnpm exec supabase`, 2.115.0) starts one container per service.
+- **native**: Supabase CLI 2.118+ runs a managed stack as plain processes on macOS arm64 or Linux: no Docker or
+  Podman. It needs the CLI on PATH (`brew upgrade supabase`; `SUPABASE_NATIVE_CLI` to point elsewhere), because the
+  pinned 2.115 predates it. The lab turns it on in its own copy of `config.toml` (`[experimental] stack = true`) and
+  starts it with `--runtime native --eager` (eager: services stay up instead of stopping when idle). SQL runs through
+  the stack's own `psql` (`LAB_PSQL`, `LAB_DB_URL` from `lab.sh env`); `db()` in `lab-browser.mjs` follows. The
+  sign-in hook goes to `127.0.0.1` instead of Docker's host name. `destroy` stops the stack and deletes only the
+  stack folders under `~/.supabase/stacks/` whose recorded project root is the lab's own workdir.
+- Checked 2026-10-03 with CLI 2.119.0 while Docker Desktop was down: all migrations, the seed, `db reset` and the full
+  pgTAP suite (99 files, 2653 tests) pass natively.
+
+`lab.sh pgtap <name>` runs the whole pgTAP suite on the lab's stack (either runtime). The suite needs a clean database
+(it makes its own live price book) and the two login roles without passwords, so it resets the stack, runs, then puts
+the lab's seed, role passwords and admin back. Bookings made in the lab before are gone after it.
+
 ## Ports and state
 
 State dir `${VAMOS_LAB_HOME:-$HOME/.vamos-scratch}/lab-<name>/`: `lab.env` (ports, container, URLs), `pids`, `sb/supabase/` (stack workdir, symlinks into this tree),

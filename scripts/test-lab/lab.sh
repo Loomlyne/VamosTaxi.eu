@@ -2,7 +2,8 @@
 # Test lab: one command for a local copy of the site (own Supabase stack, built Worker, local stand-ins for
 # Stripe / Mapbox / Turnstile / Resend). General form of apps/web/tests/e2e-worker/p6-run.sh.
 #   lab.sh up <name> [--rebuild] [--no-dash]   lab.sh status <name>   lab.sh env <name>   lab.sh reseed <name>
-#   lab.sh down <name>                          lab.sh destroy <name>  lab.sh gates [base]
+#   lab.sh down <name>                          lab.sh destroy <name>  lab.sh gates [base]   lab.sh pgtap <name>
+# LAB_RUNTIME=auto|docker|native (see "runtime" below): native needs no Docker at all.
 # Local only. Never live. Amounts in the lab copy are stand-ins (seed-live-like.sql). No secret is printed.
 # Never stops a process or stack it did not record; never kills by port or pattern.
 set -u
@@ -78,8 +79,54 @@ stop_services() {
 }
 hash_cfg() { cat "$WEB/wrangler.e2e.jsonc" "$WEB/.dev.vars" 2>/dev/null | shasum -a 256 | cut -d' ' -f1; }
 
-stack_running() { [ "$(docker inspect -f '{{.State.Running}}' "$DBC" 2>/dev/null)" = "true" ]; }
-sb_cli() { (cd "$TREE" && pnpm exec supabase "$@" --workdir "$SB"); }
+# ---- runtime ----------------------------------------------------------------------------------------------------
+# docker: the repo's pinned CLI (pnpm exec supabase) starts one container per service.
+# native: Supabase CLI >= 2.118 runs a managed stack as plain processes (macOS arm64, Linux), no Docker or Podman
+#   (config `[experimental] stack = true`, `start --runtime native`). The pinned 2.115 has no native stack, so this
+#   mode uses the CLI on PATH (SUPABASE_NATIVE_CLI to override). Verified 2026-10-03 with 2.119.0: migrations, seed,
+#   db reset and the full pgTAP suite (99 files, 2653 tests) pass.
+# LAB_RUNTIME=auto|docker|native picks it for a new lab (auto: docker when its daemon answers, else native);
+# a lab keeps its runtime for life (LAB_SB_RUNTIME in lab.env).
+NATIVE_CLI=${SUPABASE_NATIVE_CLI:-supabase}
+RUNTIME=""
+pick_runtime() {
+  if [ -n "${LAB_SB_RUNTIME:-}" ]; then
+    RUNTIME=$LAB_SB_RUNTIME
+    case "${LAB_RUNTIME:-auto}" in auto|"$RUNTIME") ;; *) fail "lab $NAME runs on $RUNTIME; LAB_RUNTIME=$LAB_RUNTIME needs a new lab (destroy this one first)";; esac
+  else
+    case "${LAB_RUNTIME:-auto}" in
+      docker|native) RUNTIME=$LAB_RUNTIME;;
+      auto) if docker info >/dev/null 2>&1; then RUNTIME=docker; else RUNTIME=native; fi;;
+      *) fail "LAB_RUNTIME must be auto, docker or native (got ${LAB_RUNTIME})";;
+    esac
+  fi
+  [ "$RUNTIME" = native ] && need_native_cli
+  return 0
+}
+need_native_cli() {
+  local v
+  case "$(uname -s)-$(uname -m)" in Darwin-arm64|Linux-*) ;; *) fail "the native runtime needs macOS arm64 or Linux; start Docker and use LAB_RUNTIME=docker";; esac
+  v=$("$NATIVE_CLI" --version 2>/dev/null | grep -Eo '^[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+  [ -n "$v" ] || fail "no Supabase CLI at '$NATIVE_CLI' (brew install supabase/tap/supabase, or set SUPABASE_NATIVE_CLI)"
+  [ "$(printf '2.118.0\n%s\n' "$v" | sort -V | head -1)" = "2.118.0" ] || fail "the native runtime needs Supabase CLI >= 2.118.0 ('$NATIVE_CLI' is $v): brew upgrade supabase"
+}
+# The managed stack brings its own psql; the newest cached Postgres build is used.
+psql_bin() { ls -d "$HOME"/.supabase/cache/stack/slim-services/postgres/*/*/bin/psql 2>/dev/null | sort -V | tail -1; }
+db_url() { echo "postgresql://postgres:postgres@127.0.0.1:$SB_DB/postgres?connect_timeout=5"; }
+
+stack_running() {
+  if [ "$RUNTIME" = native ]; then
+    local pb; pb=$(psql_bin); [ -n "$pb" ] && "$pb" "$(db_url)" -Atqc 'select 1' >/dev/null 2>&1
+  else
+    [ "$(docker inspect -f '{{.State.Running}}' "$DBC" 2>/dev/null)" = "true" ]
+  fi
+}
+sb_cli() {
+  if [ "$RUNTIME" = native ]; then (cd "$SB" && "$NATIVE_CLI" "$@" --workdir "$SB")
+  else (cd "$TREE" && pnpm exec supabase "$@" --workdir "$SB"); fi
+}
+load_runtime() { RUNTIME=${LAB_SB_RUNTIME:-docker}; [ "$RUNTIME" = native ] && need_native_cli; return 0; }
+db_label() { if [ "$RUNTIME" = native ]; then echo "native postgres 127.0.0.1:$SB_DB"; else echo "$DBC"; fi; }
 
 # The workdir symlinks must point into this tree and the project id must be this lab's own: nothing else is ever
 # started, reset or stopped.
@@ -103,7 +150,7 @@ make_workdir() {
       -e "s/54324/$SB_SMTP/g" -e "s/54327/$SB_ANALYTICS/g" -e "s/54329/$SB_POOLER/g" \
       -e "s/^inspector_port = .*/inspector_port = $SB_EDGE/" \
       "$TREE/packages/db/supabase/config.toml" \
-    | awk -v pub="$PUB" '{print} /^additional_redirect_urls = \[/{print "  \"http://localhost:" pub "/**\","}' > "$cfg"
+    | awk -v pub="$PUB" -v native="$([ "$RUNTIME" = native ] && echo 1)" '{print} /^additional_redirect_urls = \[/{print "  \"http://localhost:" pub "/**\","} native && /^\[experimental\]$/{print "stack = true"}' > "$cfg"
   umask 077
   [ -f "$STATE/hook-secret" ] || printf 'v1,whsec_%s\n' "$(openssl rand -base64 32)" > "$STATE/hook-secret"
   umask 022
@@ -111,7 +158,9 @@ make_workdir() {
     echo
     echo "[auth.hook.send_email]"
     echo "enabled = true"
-    echo "uri = \"http://host.docker.internal:$PUB/api/auth/email-hook\""
+    # Auth reaches the Worker on the Mac: through Docker's host name from a container, directly when native.
+    if [ "$RUNTIME" = native ]; then echo "uri = \"http://127.0.0.1:$PUB/api/auth/email-hook\""
+    else echo "uri = \"http://host.docker.internal:$PUB/api/auth/email-hook\""; fi
     echo "secrets = \"$(tr -d '\n' < "$STATE/hook-secret")\""
   } >> "$cfg"
   chmod 600 "$cfg"
@@ -120,11 +169,19 @@ make_workdir() {
   ln -s "$TREE/packages/db/supabase/seed.sql" "$SB/supabase/seed.sql"
 }
 
-psql_lab() { docker exec -i "$DBC" psql -U postgres -d postgres -At -v ON_ERROR_STOP=1 "$@"; }
+psql_lab() {
+  if [ "$RUNTIME" = native ]; then "$(psql_bin)" "$(db_url)" -At -v ON_ERROR_STOP=1 "$@"
+  else docker exec -i "$DBC" psql -U postgres -d postgres -At -v ON_ERROR_STOP=1 "$@"; fi
+}
 
 write_sb_env() {
   umask 077
-  (cd "$TREE" && pnpm exec supabase status -o env --workdir "$SB" 2>/dev/null | grep '^[A-Z_]*=' > "$STATE/sb.env")
+  if [ "$RUNTIME" = native ]; then
+    # The managed stack answers `status --env` with one JSON object; mkcfg.mjs reads KEY="value" lines.
+    sb_cli status --env 2>/dev/null | node -e 'let t="";process.stdin.on("data",d=>t+=d).on("end",()=>{const l=t.split("\n").find(x=>x.trim().startsWith("{"));if(!l)process.exit(1);for(const[k,v]of Object.entries(JSON.parse(l)))if(/^[A-Z_]+$/.test(k))console.log(k+"=\""+v+"\"")})' > "$STATE/sb.env"
+  else
+    (cd "$TREE" && pnpm exec supabase status -o env --workdir "$SB" 2>/dev/null | grep '^[A-Z_]*=' > "$STATE/sb.env")
+  fi
   chmod 600 "$STATE/sb.env"
   umask 022
   grep -q '^SERVICE_ROLE_KEY=' "$STATE/sb.env" || fail "the stack $PROJECT gave no keys (is it running?)"
@@ -213,6 +270,7 @@ cmd_up() {
   else
     pick_slot || fail "no free slot in 1..9 (ports busy or slots held by other labs)"
   fi
+  pick_runtime
   # Two labs of one tree would overwrite each other's wrangler.e2e.jsonc and .dev.vars.
   local d p
   for d in "$LABHOME"/lab-*; do
@@ -235,12 +293,13 @@ cmd_up() {
   {
     echo "LAB_NAME=$NAME"; echo "LAB_SLOT=$SLOT"; echo "LAB_TREE=$TREE"
     echo "LAB_PUB=$PUB"; echo "LAB_DASH_PORT=$DASH"; echo "LAB_FAKE_PORT=$FAKE"; echo "LAB_INSPECT=$INSP"; echo "LAB_INSPECT_DASH=$INSP_DASH"
-    echo "LAB_SB_API=$SB_API"; echo "LAB_SB_DB=$SB_DB"; echo "LAB_DB_CONTAINER=$DBC"
+    echo "LAB_SB_API=$SB_API"; echo "LAB_SB_DB=$SB_DB"; echo "LAB_DB_CONTAINER=$DBC"; echo "LAB_SB_RUNTIME=$RUNTIME"
   } > "$STATE/lab.env"
 
   if stack_running; then note "stack $PROJECT already running"; else
-    note "supabase start ($PROJECT, api $SB_API, db $SB_DB); log $STATE/logs/supabase-start.log"
-    sb_cli start > "$STATE/logs/supabase-start.log" 2>&1 || { tail -5 "$STATE/logs/supabase-start.log"; fail "supabase start failed (log $STATE/logs/supabase-start.log)"; }
+    note "supabase start ($PROJECT, $RUNTIME, api $SB_API, db $SB_DB); log $STATE/logs/supabase-start.log"
+    if [ "$RUNTIME" = native ]; then set -- start --runtime native --eager; else set -- start; fi
+    sb_cli "$@" > "$STATE/logs/supabase-start.log" 2>&1 || { tail -5 "$STATE/logs/supabase-start.log"; fail "supabase start failed (log $STATE/logs/supabase-start.log)"; }
   fi
   write_sb_env
   if [ ! -f "$STATE/seeded" ]; then data_steps; else set_roles; make_admin; fi
@@ -294,19 +353,20 @@ cmd_up() {
     stop_services
     fail "the Workers did not come up in 120 s (logs $STATE/logs/public.log, dashboard.log, fakes.log)"
   fi
-  echo "up | public http://localhost:$PUB | dashboard http://dashboard.localhost:$DASH | fakes http://127.0.0.1:$FAKE | db $DBC | state $STATE"
+  echo "up | public http://localhost:$PUB | dashboard http://dashboard.localhost:$DASH | fakes http://127.0.0.1:$FAKE | db $(db_label) | state $STATE"
 }
 
 cmd_status() {
   need_name "${1:-}"
   [ -f "$STATE/lab.env" ] || fail "no lab named $NAME ($STATE)"
   load_env; set_ports "$LAB_SLOT"
-  echo "lab $NAME | slot $SLOT | tree $LAB_TREE"
+  RUNTIME=${LAB_SB_RUNTIME:-docker}
+  echo "lab $NAME | slot $SLOT | runtime $RUNTIME | tree $LAB_TREE"
   echo "ports | public $PUB | dashboard $DASH | fakes $FAKE | inspectors $INSP $INSP_DASH | supabase api $SB_API db $SB_DB shadow $SB_SHADOW"
   local p n=0 live=0
   if [ -f "$PIDS" ]; then for p in $(cat "$PIDS"); do n=$((n+1)); alive "$p" && live=$((live+1)); done; fi
   echo "pids | $live of $n alive"
-  if stack_running; then echo "stack | running ($DBC)"; else echo "stack | not running ($DBC)"; fi
+  if stack_running; then echo "stack | running ($(db_label))"; else echo "stack | not running ($(db_label))"; fi
   local u
   for u in "http://localhost:$PUB/api/auth/session" "http://127.0.0.1:$FAKE/__stats"; do
     echo "http | $u | $(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "$u")"
@@ -322,6 +382,10 @@ cmd_env() {
   printf 'export LAB_DASH=%q\n' "http://dashboard.localhost:$LAB_DASH_PORT"
   printf 'export LAB_FAKE=%q\n' "http://127.0.0.1:$LAB_FAKE_PORT"
   printf 'export LAB_DB_CONTAINER=%q\n' "$LAB_DB_CONTAINER"
+  RUNTIME=${LAB_SB_RUNTIME:-docker}; SB_DB=$LAB_SB_DB
+  printf 'export LAB_RUNTIME=%q\n' "$RUNTIME"
+  printf 'export LAB_DB_URL=%q\n' "$(db_url)"
+  if [ "$RUNTIME" = native ]; then printf 'export LAB_PSQL=%q\n' "$(psql_bin)"; else echo "unset LAB_PSQL"; fi
   printf 'export LAB_STATE=%q\n' "$STATE"
   printf 'export LAB_ADMIN_FILE=%q\n' "$STATE/admin.txt"
   printf 'export WEB_DIR=%q\n' "$LAB_TREE/apps/web"
@@ -330,10 +394,10 @@ cmd_env() {
 cmd_reseed() {
   need_name "${1:-}"
   [ -f "$STATE/lab.env" ] || fail "no lab named $NAME ($STATE)"
-  load_env; set_ports "$LAB_SLOT"
+  load_env; set_ports "$LAB_SLOT"; load_runtime
   check_own_stack
   stack_running || fail "stack $PROJECT is not running: lab.sh up $NAME first"
-  note "supabase db reset (own workdir $SB)"
+  note "supabase db reset (own workdir $SB, $RUNTIME)"
   sb_cli db reset > "$STATE/logs/reset.log" 2>&1 || { tail -5 "$STATE/logs/reset.log"; fail "db reset failed (log $STATE/logs/reset.log)"; }
   rm -f "$STATE/seeded" "$STATE/admin.txt"
   write_sb_env
@@ -358,12 +422,52 @@ cmd_down() {
 cmd_destroy() {
   need_name "${1:-}"
   [ -f "$STATE/lab.env" ] || fail "no lab named $NAME ($STATE)"
-  load_env
+  load_env; set_ports "$LAB_SLOT"; load_runtime
   check_own_stack
   cmd_down "$NAME" >/dev/null
-  sb_cli stop --no-backup > "$STATE/logs/stop.log" 2>&1 || { tail -5 "$STATE/logs/stop.log"; fail "supabase stop failed (log $STATE/logs/stop.log)"; }
+  if [ "$RUNTIME" = native ]; then
+    sb_cli stop > "$STATE/logs/stop.log" 2>&1 || { tail -5 "$STATE/logs/stop.log"; fail "supabase stop failed (log $STATE/logs/stop.log)"; }
+    # The CLI has no delete for a managed stack yet: remove the stopped stack folders whose recorded project root
+    # is this lab's own workdir, and nothing else.
+    local d root
+    for d in "$HOME"/.supabase/stacks/*/; do
+      [ -f "$d/state.json" ] || continue
+      root=$(node -e 'try{console.log(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).identity.projectRoot||"")}catch{console.log("")}' "$d/state.json")
+      [ "$root" = "$SB" ] || continue
+      # pgrep never matches itself (a `ps | grep <id>` would match its own grep). Give the stack up to 30 s to exit.
+      local id i; id=$(basename "$d")
+      for i in $(seq 30); do pgrep -f -- "$id" >/dev/null || break; sleep 1; done
+      pgrep -f -- "$id" >/dev/null && fail "stack $id still has processes 30 s after stop; not deleting it"
+      rm -rf "$d"
+    done
+  else
+    sb_cli stop --no-backup > "$STATE/logs/stop.log" 2>&1 || { tail -5 "$STATE/logs/stop.log"; fail "supabase stop failed (log $STATE/logs/stop.log)"; }
+  fi
   case "$STATE" in "$LABHOME"/lab-?*) rm -rf "$STATE";; *) fail "refusing to delete $STATE";; esac
-  echo "PASS | destroy | $NAME stack and state removed"
+  echo "PASS | destroy | $NAME stack ($RUNTIME) and state removed"
+}
+
+# pgTAP on the lab's own stack. The suite needs a clean database (it makes its own live price book, which the lab's
+# stand-in one would collide with) and the two login roles without passwords: so the stack is reset, the suite runs,
+# then the lab's data (seed, role passwords, admin) is put back. Lab bookings made before are gone after it.
+cmd_pgtap() {
+  need_name "${1:-}"
+  [ -f "$STATE/lab.env" ] || fail "no lab named $NAME ($STATE)"
+  load_env; set_ports "$LAB_SLOT"; load_runtime
+  check_own_stack
+  stack_running || fail "stack $PROJECT is not running: lab.sh up $NAME first"
+  note "supabase db reset for a clean suite (own workdir $SB, $RUNTIME)"
+  sb_cli db reset > "$STATE/logs/reset.log" 2>&1 || { tail -5 "$STATE/logs/reset.log"; fail "db reset failed (log $STATE/logs/reset.log)"; }
+  psql_lab -q -c "alter role vamos_public with password null; alter role vamos_edge with password null;" >/dev/null || fail "could not clear the login passwords"
+  local rc
+  if [ "$RUNTIME" = native ]; then sb_cli test db --local > "$STATE/logs/pgtap.log" 2>&1; rc=$?
+  else sb_cli test db > "$STATE/logs/pgtap.log" 2>&1; rc=$?; fi
+  rm -f "$STATE/seeded" "$STATE/admin.txt"
+  write_sb_env
+  data_steps
+  note "lab data restored; restart the Workers if they held connections: lab.sh up $NAME"
+  if [ "$rc" = 0 ]; then echo "PASS | pgtap | $(grep -Eo 'Files=[0-9]+, Tests=[0-9]+' "$STATE/logs/pgtap.log" | tail -1)"
+  else grep -E "^Failed|Result:" "$STATE/logs/pgtap.log" | head -3; echo "FAIL | pgtap | see $STATE/logs/pgtap.log"; exit 1; fi
 }
 
 # ---- gates ------------------------------------------------------------------------------------------------------
@@ -409,6 +513,7 @@ case "${1:-}" in
   reseed) shift; cmd_reseed "$@";;
   down) shift; cmd_down "$@";;
   destroy) shift; cmd_destroy "$@";;
+  pgtap) shift; cmd_pgtap "$@";;
   gates) shift; cmd_gates "$@";;
-  *) echo "usage: lab.sh up <name> [--rebuild] [--no-dash] | status|env|reseed|down|destroy <name> | gates [base]"; exit 2;;
+  *) echo "usage: lab.sh up <name> [--rebuild] [--no-dash] | status|env|reseed|down|destroy|pgtap <name> | gates [base]   (LAB_RUNTIME=auto|docker|native)"; exit 2;;
 esac
