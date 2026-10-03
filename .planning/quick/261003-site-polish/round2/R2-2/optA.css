@@ -1,0 +1,26 @@
+/* R2-2 option A — the booking card returns at 681–1080 (no bar + sheet), two-column grid.
+   Everything is tokens; no new colour/radius/shadow. Applied after the page's own CSS. */
+@media (min-width:681px) and (max-width:1080px){
+  [data-bar-wrap],[data-bar-dock]{display:none!important}
+  [data-bookcard]{display:block!important;max-width:none;margin-top:clamp(20px,3vw,28px);padding:var(--vt-space-4)}
+  [data-hero] [data-trust][data-in-bar="1"]{display:flex!important}
+  #book [data-box]{gap:var(--vt-space-3);align-items:start;grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr)}
+  #book [data-box]:not([data-flt="1"]){grid-template-areas:"from swap to" "when when trav" "cta cta cta" "note note note"}
+  #book [data-box][data-flt="1"]{grid-template-areas:"flight flight flight" "from swap to" "when when trav" "cta cta cta" "note note note"}
+  #book [data-bx=swap]{margin-block-start:29px;align-self:start}
+  #book [data-swaprot]{transform:none}
+  #book [data-bx=cta]{margin-block-start:var(--vt-space-1)}
+  #book [data-bx=trav]{inline-size:auto}
+  #book [data-bx=flight]{min-inline-size:0;max-inline-size:none}
+  #book [data-bx=note]{justify-content:flex-start;margin-block-start:0}
+  #book [data-trav-shell][data-open="1"]{inset-inline-start:auto;inset-inline-end:0;inline-size:320px}
+}
+/* wide tablet / landscape iPad: two rows, travellers + CTA share the second row */
+@media (min-width:900px) and (max-width:1080px){
+  #book [data-box]:not([data-flt="1"]){grid-template-areas:"from swap to" "when tc tc" "note note note"}
+  #book [data-box][data-flt="1"]{grid-template-areas:"flight flight flight" "from swap to" "when tc tc" "note note note"}
+  #book [data-bx=trav],#book [data-bx=cta]{grid-area:tc}
+  #book [data-bx=trav]{justify-self:start;inline-size:168px}
+  #book [data-bx=cta]{justify-self:end;inline-size:max-content;min-inline-size:200px;margin-block-start:var(--vt-space-6)}
+  #book [data-bx=cta] .vt-btn{white-space:nowrap}
+}
