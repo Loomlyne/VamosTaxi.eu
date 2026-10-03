@@ -28,7 +28,7 @@ async function inTx<T>(fn: (tx: Tx) => Promise<T>): Promise<T> {
     await withIdentity(
       SUPER,
       "checkout",
-      undefined,
+      null,
       async (tx) => {
         await tx`select set_config('role', 'postgres', true)`;
         await tx`
