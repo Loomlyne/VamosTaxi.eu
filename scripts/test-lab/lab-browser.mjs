@@ -172,11 +172,16 @@ export async function step(id, title, fn, opts = {}) {
 }
 
 const SELECT_ONLY = /^\s*(select|with)\b/i, FORBIDDEN = /\b(insert|update|delete|drop|alter|truncate|create|grant|revoke|copy|call|do)\b/i;
-/** Read-only SQL on the lab database (docker exec psql -At); anything but select/with is refused. Returns the text. */
+/** Read-only SQL on the lab database (psql -At; inside the container, or the native stack's own psql); anything but
+ *  select/with is refused. Returns the text. */
 export function db(sql) {
   if (!SELECT_ONLY.test(sql) || FORBIDDEN.test(sql.replace(/'[^']*'/g, "''"))) throw new Error("db(): select only");
   // default_transaction_read_only makes the database itself refuse a write, on top of the verb check above.
-  return execFileSync("docker", ["exec", "-i", "-e", "PGOPTIONS=-c default_transaction_read_only=on", need("LAB_DB_CONTAINER"), "psql", "-U", "postgres", "-d", "postgres", "-At", "-v", "ON_ERROR_STOP=1", "-c", sql]).toString().trim();
+  const ro = "-c default_transaction_read_only=on";
+  if (process.env.LAB_RUNTIME === "native") {
+    return execFileSync(need("LAB_PSQL"), [need("LAB_DB_URL"), "-At", "-v", "ON_ERROR_STOP=1", "-c", sql], { env: { ...process.env, PGOPTIONS: ro } }).toString().trim();
+  }
+  return execFileSync("docker", ["exec", "-i", "-e", `PGOPTIONS=${ro}`, need("LAB_DB_CONTAINER"), "psql", "-U", "postgres", "-d", "postgres", "-At", "-v", "ON_ERROR_STOP=1", "-c", sql]).toString().trim();
 }
 /** JSON from the fakes server: "/__sessions", "/__mails" or "/__stats". */
 export async function fakes(path) { return (await fetch(FAKE + path)).json(); }
