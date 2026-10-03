@@ -1,0 +1,2 @@
+PASS | vt_manage de 1440 | row "vt_manage Damit Sie Ihre Buchung in diesem Browser ohne Anmeldung öffnen und ändern können Vamos Taxi 30 Tage" | coverage 0 [] | dir ltr | sideways false | visible true
+PASS | NEXT_LOCALE de 1440 | row "NEXT_LOCALE Zeigt die Website in der Sprache, die Sie gewählt haben Vamos Taxi 1 Jahr" | coverage 0 [] | dir ltr | sideways false | visible true
