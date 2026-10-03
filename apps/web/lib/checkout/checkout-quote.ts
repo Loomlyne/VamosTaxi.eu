@@ -237,6 +237,14 @@ async function post(fetchImpl: FetchLike, body: QuoteRequestBody): Promise<Quote
  * Research assumption A3: a shared trip URL can carry a stale or foreign Search Box
  * session. The server refuses the place (`place_unresolved`); the page then looks the
  * address text up again under a fresh session (suggest, then retrieve) and asks once more.
+ *
+ * Rate limit (quick 261003 review): on this path one price request spends TWO /api/quote
+ * tokens (4/60 bare) plus two lookup tokens. The second POST is deliberately counted: the
+ * server cannot tell a genuine re-ask from a forged one, and an uncounted "retry" flag would
+ * be a free Directions call for anyone. The first refusal happens after the limiter step
+ * (Mapbox retrieve is what fails), so it cannot be refunded either. It only happens for a
+ * stale or foreign Search Box session (a shared or old link), not normally on a fresh
+ * home → /checkout hand-off.
  */
 async function resolveByText(
   fetchImpl: FetchLike,
