@@ -21,6 +21,8 @@ import { effectiveNextLevel, staffGateDecision } from "./lib/ops/staff-gate";
 import { MANAGE_COOKIE_NAME } from "./lib/checkout/manage-token";
 import { applySeoToHtml, iconHeadTags, isSeoLang, seoPageFor, seoRoute, type SeoLang } from "./lib/seo/head";
 import { applySecurityHeaders } from "./lib/security/headers";
+import { metaMeasurementAllowed } from "./lib/meta/legal-gate";
+import { metaPixelCspFor } from "./lib/meta/pixel-csp";
 import {
   createSupabaseMiddlewareClient,
   updateSession,
@@ -683,10 +685,14 @@ export default async function middleware(request: NextRequest) {
         return applyPublicCacheHeaders(request, applyStagingNoindex(request, NextResponse.redirect(url, 302)));
       }
       const html = await serveDcHtml(request, mock);
-      return applyPublicCacheHeaders(
-        request,
-        applyStagingNoindex(request, await updateSession(request, await withSeoHead(html, seo))),
+      const served = applyStagingNoindex(request, await updateSession(request, await withSeoHead(html, seo)));
+      // Phase 28: Meta's hosts only on the clean pages, only while both flags are on. By address, never by visitor.
+      const metaCsp = metaPixelCspFor(
+        new URL(`${request.nextUrl.pathname}${request.nextUrl.search}`, `https://${hostnameOf(request)}`),
+        metaMeasurementAllowed(),
       );
+      if (metaCsp) served.headers.set("Content-Security-Policy", metaCsp);
+      return applyPublicCacheHeaders(request, served);
     }
   }
 
