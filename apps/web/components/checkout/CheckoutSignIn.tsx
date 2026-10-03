@@ -13,6 +13,7 @@ import {
   requestSignInLink,
   type FetchLike,
 } from "./account-sign-in-api";
+import { localePath } from "@/lib/checkout/steps";
 import "./account-choice.css";
 
 export type CheckoutSignInStage = "form" | "sent";
@@ -207,7 +208,8 @@ export function CheckoutSignIn({
         ) : null}
         <a
           data-acct-link="1"
-          href={`/${locale}/sign-in?returnTo=${encodeURIComponent(returnTo)}`}
+          // 26.2 audit U06-16: English links carry no `/en` (which answers 308).
+          href={`${localePath(locale, "/sign-in")}?returnTo=${encodeURIComponent(returnTo)}`}
           onClick={onMoreWays}
         >
           {t("acctMoreWays")}

@@ -104,7 +104,6 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-ac-more]:hover{color:var(--vt-charcoal-900)}
 [data-ac-more-go]{display:grid;place-items:center;flex:0 0 auto;width:32px;height:32px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-grey-300);transition:background 140ms var(--vt-ease-standard),border-color 140ms var(--vt-ease-standard),color 140ms var(--vt-ease-standard)}
 [data-ac-more]:hover [data-ac-more-go]{background:var(--vt-charcoal-900);border-color:var(--vt-charcoal-900);color:var(--vt-white)}
-[dir="rtl"] [data-ac-more-go]{transform:scaleX(-1)}
 [data-ac-close]{display:flex;flex-direction:column;gap:14px;align-items:flex-start;box-sizing:border-box;padding:clamp(20px,2.4vw,26px);border:1px solid var(--vt-danger);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface)}
 [data-ac-close] [data-ac-h2]{color:var(--vt-danger)}
 [data-ac-close] [data-ac-kick]{color:var(--vt-danger)}
@@ -210,7 +209,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div data-ac-grid="1" style="display:grid;align-items:start">
 
 <aside data-ac-side="1">
-<div data-ac-rail="1" data-lenis-prevent="1">
+<div data-ac-rail="1">
 <nav data-ac-nav="1" aria-label="Account sections" onClick="{{ jump }}">
 <a data-ac-navitem="1" data-no-transition="1" href="/account/transfers" aria-current="{{ acTransfers }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="calendar-days" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
@@ -255,7 +254,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 </div>
 <div style="display:flex;flex-wrap:wrap;align-items:center;gap:4px 16px;margin-top:14px;padding-top:14px;border-top:1px solid var(--vt-border-inverse)">
 <a href="tel:+41796267082" style="display:inline-flex;align-items:center;gap:8px;min-height:36px;font-family:var(--vt-font-display);font-size:var(--vt-body-lg);font-weight:var(--vt-weight-semibold);letter-spacing:-.01em;white-space:nowrap;color:var(--vt-white);text-decoration:none" style-hover="color:var(--vt-accent)">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="phone" size="{{ n16 }}" color="var(--vt-accent)" hint-size="16px,16px"></x-import>+41 79 626 70 82</a>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="phone" size="{{ n16 }}" color="var(--vt-accent)" hint-size="16px,16px"></x-import><span class="vt-dir-keep">+41 79 626 70 82</span></a>
 <a href="/contact" style="min-height:36px;display:inline-flex;align-items:center;font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);color:rgb(255 255 255 / .82)" style-hover="color:var(--vt-white)">Contact us</a>
 </div>
 </div>
@@ -522,7 +521,7 @@ class Component extends DCLogic {
 
   componentDidMount() {
     const v = window.VamosLocale;
-    fetch('/api/auth/session', { credentials: 'same-origin' })
+    fetch('/api/auth/session?finish=1', { credentials: 'same-origin' })
       .then((r) => r.json())
       .then((snap) => {
         let stored = null;
@@ -530,6 +529,12 @@ class Component extends DCLogic {
         if (!snap || !snap.signedIn) {
           clearAuth();
           location.replace('/sign-in');
+          return;
+        }
+        /* 27.1 (27 D-37): an account the sign-in link made finishes first (name, optional phone, the tick). */
+        if (snap.finishRequired === true) {
+          const l = this.state.lang;
+          location.replace((l && l !== 'en' ? '/' + l : '') + '/sign-up?state=finish');
           return;
         }
         const full = (snap.displayName || '').trim();

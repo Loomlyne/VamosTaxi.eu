@@ -18,8 +18,9 @@
 //
 // Sequence:
 //   1. Guard: local host/port only; refuse a bare CI run.
-//   2. Reset to a clean, password-free baseline; confirm the pgTAP suite is green (a gate run
-//      against a red baseline proves nothing).
+//   2. Reset to a clean, password-free baseline and re-mark it as a throwaway stack (every reset
+//      drops the marker role); confirm the pgTAP suite is green (a gate run against a red
+//      baseline proves nothing).
 //   3. Set local role passwords; confirm the local Vitest suite (`test/local`) is green.
 //   4. For each `packages/db/mutants/*.sql` file, sorted:
 //        a. apply it as the superuser, committed, not inside a transaction (pgTAP opens its
@@ -68,14 +69,27 @@ function assertNotBareCI() {
   }
 }
 
+// 26.0 (main-green-3): the throwaway-stack marker the test/local guards demand (plans 02 and 04).
+const MARK_SCRIPT = join(PACKAGE_ROOT, "..", "..", "scripts", "mark-test-stack.mjs");
+
 /** Runs a command from `PACKAGE_ROOT`, capturing output, never throwing on a non-zero exit. */
-function run(cmd, args) {
+function run(cmd, args, env = {}) {
   try {
-    const stdout = execFileSync(cmd, args, { cwd: PACKAGE_ROOT, encoding: "utf8", stdio: "pipe" });
+    const stdout = execFileSync(cmd, args, {
+      cwd: PACKAGE_ROOT,
+      encoding: "utf8",
+      stdio: "pipe",
+      env: { ...process.env, ...env },
+    });
     return { ok: true, output: stdout };
   } catch (err) {
     return { ok: false, output: `${err.stdout ?? ""}${err.stderr ?? ""}` };
   }
+}
+
+/** Last lines of a suite's output, so a red baseline says which test failed. */
+function tail(output, lines = 60) {
+  return output.split("\n").slice(-lines).join("\n");
 }
 
 function resetDatabase() {
@@ -83,6 +97,15 @@ function resetDatabase() {
   if (!result.ok) {
     console.error("mutation-gate: supabase db reset failed");
     console.error(result.output);
+    process.exit(1);
+  }
+  // `supabase db reset` (CLI 2.115.0) rebuilds the cluster: the marker role goes with it, and since
+  // 26.0 (6ec73c52) worker-client-parity and test-stack-guard refuse a stack without it. Re-mark
+  // after every reset, before any suite runs.
+  const mark = run("node", [MARK_SCRIPT, LOCAL_ADMIN_CONNECTION_STRING]);
+  if (!mark.ok) {
+    console.error("mutation-gate: mark-test-stack.mjs failed");
+    console.error(mark.output);
     process.exit(1);
   }
 }
@@ -101,7 +124,12 @@ function runPgTapSuite(files = []) {
 }
 
 function runVitestSuite(files = []) {
-  return run("pnpm", ["exec", "vitest", "run", ...files]);
+  // test/local reads its port from these names (consent-reader defaults to another session's 59322,
+  // class-change-reprice skips without one); the gate only ever talks to REQUIRED_PORT.
+  return run("pnpm", ["exec", "vitest", "run", ...files], {
+    VAMOS_LOCAL_DB_PORT: REQUIRED_PORT,
+    VAMOS_TEST_DB_PORT: REQUIRED_PORT,
+  });
 }
 
 /** Parses the `-- TARGET: pgtap:<file> vitest:<file>` header line every mutant file carries. */
@@ -144,8 +172,10 @@ async function main() {
   resetDatabase();
 
   console.log("mutation-gate: baseline pgTAP suite");
-  if (!runPgTapSuite().ok) {
+  const pgtapBaseline = runPgTapSuite();
+  if (!pgtapBaseline.ok) {
     console.error("mutation-gate: baseline is not green (pgTAP) -- fix the suite before running the gate");
+    console.error(tail(pgtapBaseline.output));
     process.exit(1);
   }
 
@@ -153,8 +183,10 @@ async function main() {
   setLocalRolePasswords();
 
   console.log("mutation-gate: baseline Vitest local suite");
-  if (!runVitestSuite(["test/local"]).ok) {
+  const vitestBaseline = runVitestSuite(["test/local"]);
+  if (!vitestBaseline.ok) {
     console.error("mutation-gate: baseline is not green (Vitest test/local) -- fix the suite before running the gate");
+    console.error(tail(vitestBaseline.output));
     process.exit(1);
   }
 

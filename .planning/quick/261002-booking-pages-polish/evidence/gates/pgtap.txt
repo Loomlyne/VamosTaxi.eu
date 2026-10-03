@@ -1,0 +1,113 @@
+Connecting to local database...
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/account_agreement_records.test.sql ............... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/account_finish.test.sql .......................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/account_list_grants_customer_on_demand.test.sql .. ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/append_only.test.sql ............................. ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/assign_by_class.test.sql ......................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/audit_trigger.test.sql ........................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/booking_edit_requests.test.sql ................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/booking_status_rollup.test.sql ................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/bookings_customer_rls.test.sql ................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/bookings_manage_token_rls.test.sql ............... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/cancellation_refund_d02.test.sql ................. ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/canton_zones.test.sql ............................ ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/charge_gate.test.sql ............................. ok
+psql:/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/checkout_booking_details.test.sql:165: WARNING:  no privileges were granted for "cd_a"
+psql:/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/checkout_booking_details.test.sql:165: WARNING:  no privileges were granted for "cd_b"
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/checkout_booking_details.test.sql ................ ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/checkout_pay_presses.test.sql .................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/checkout_paylink.test.sql ........................ ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/checkout_resume_read.test.sql .................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/checkout_roles.test.sql .......................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/checkout_rpc.test.sql ............................ ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/claim_guest_bookings.test.sql .................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/class_change_reprice.test.sql .................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/confirmation_mail.test.sql ....................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/confirmation_payload_presentment.test.sql ........ ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/confirmation_refund_facts.test.sql ............... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/consent_choice_reader.test.sql ................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/consent_write.test.sql ........................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/contact_delivery_outbox.test.sql ................. ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/contact_forms.test.sql ........................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/coupon_evaluate.test.sql ......................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/cross_claim.test.sql ............................. ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/customer_columns.test.sql ........................ ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/customer_hide_unpaid_bookings.test.sql ........... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/customer_request_staff_waiting.test.sql .......... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/customers_link_trigger.test.sql .................. ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/distance_bands.test.sql .......................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/exclusion.test.sql ............................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/extensions.test.sql .............................. ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/extra_labels.test.sql ............................ ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/extra_labels_prune.test.sql ...................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/fail_closed.test.sql ............................. ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/flight_provenance.test.sql ....................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/guest_claim.test.sql ............................. ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/identity_helpers.test.sql ........................ ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/last_admin_guard.test.sql ........................ ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/manage_booking_money_driver.test.sql ............. ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/manage_booking_mutation.test.sql ................. ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/manage_token_purpose.test.sql .................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/manage_token_shape.test.sql ...................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/ops_assign_leg.test.sql .......................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/ops_refund.test.sql .............................. ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/ops_role_rls.test.sql ............................ ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/ops_write_denied.test.sql ........................ ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/pay_link_erased_booking.test.sql ................. ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/pay_link_hold.test.sql ........................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/pay_link_lines.test.sql .......................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/payment_fx.test.sql .............................. ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/phase20_grant_leftovers.test.sql ................. ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/policy_draft_publish.test.sql .................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/pricing_frozen.test.sql .......................... ok
+psql:/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/purge_unpaid.test.sql:171: WARNING:  no privileges were granted for "pu_a"
+psql:/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/purge_unpaid.test.sql:171: WARNING:  no privileges were granted for "pu_paid"
+psql:/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/purge_unpaid.test.sql:171: WARNING:  no privileges were granted for "pu_link"
+psql:/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/purge_unpaid.test.sql:171: WARNING:  no privileges were granted for "pu_note"
+psql:/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/purge_unpaid.test.sql:171: WARNING:  no privileges were granted for "pu_exp"
+psql:/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/purge_unpaid.test.sql:171: WARNING:  no privileges were granted for "pu_explink"
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/purge_unpaid.test.sql ............................ ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/quote_identity.test.sql .......................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/quote_lock_24h.test.sql .......................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/quote_lock_clock.test.sql ........................ ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/quote_read_rpc.test.sql .......................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/quote_snapshot_rpc.test.sql ...................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/rate_version_publish.test.sql .................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/reference_format.test.sql ........................ ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/reference_tables.test.sql ........................ ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/refund_review.test.sql ........................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/refunds_by_hand.test.sql ......................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/reminder_24h_paid_only.test.sql .................. ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/reminder_24h_read.test.sql ....................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/review_submission.test.sql ....................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/reviews_column_grants.test.sql ................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/security_hardening.test.sql ...................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/seed_idempotent.test.sql ......................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/set_local_without_begin.test.sql ................. ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/settings_public.test.sql ......................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/settings_versions_append_only_console.test.sql ... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/settle_revive.test.sql ........................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/settle_safety.test.sql ........................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/settlement_rpcs.test.sql ......................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/signup_agreement_grant.test.sql .................. ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/snapshot_lines_reconcile.test.sql ................ ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/snapshot_shape.test.sql .......................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/staff_aal2_factor.test.sql ....................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/staff_hook_claim.test.sql ........................ ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/staff_quote_rate_book_execute.test.sql ........... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/staff_self_service.test.sql ...................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/stripe_money_events.test.sql ..................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/support_tickets.test.sql ......................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/surcharge_predicate.test.sql ..................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/system_role_narrow_reads.test.sql ................ ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/system_role_reads.test.sql ....................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/trip_change_reprice.test.sql ..................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/unpaid_cancel_session.test.sql ................... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/vehicle_class_delete_hide.test.sql ............... ok
+/private/tmp/claude-501/-Users-koss-Developer-VamosTaxi-eu/23eb56d5-4a0c-4e8f-975f-19ef09ab4ea7/scratchpad/sbbpp/supabase/tests/webhook_ordering.test.sql ........................ ok
+All tests successful.
+Files=98, Tests=2648,  9 wallclock secs ( 0.62 usr  0.20 sys +  0.73 cusr  0.54 csys =  2.09 CPU)
+Result: PASS
+A new version of Supabase CLI is available: v2.119.0 (currently installed v2.115.0)
+We recommend updating regularly for new features and bug fixes: https://supabase.com/docs/guides/cli/getting-started#updating-the-supabase-cli
+pgtap exit 0

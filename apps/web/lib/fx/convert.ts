@@ -37,31 +37,6 @@ export function chfRappenToMinor(rappen: number, rateMillionths: number): number
   return roundRatioHalfUp(rappen * rateMillionths, CHF_RATE_MILLIONTHS);
 }
 
-/** Cross a display amount between two CHF-quoted rates (100 USD → AED). */
-export function crossMinor(
-  fromMinor: number,
-  fromMillionths: number,
-  toMillionths: number,
-): number {
-  if (!Number.isSafeInteger(fromMinor) || fromMinor < 0) {
-    throw new RangeError(
-      `crossMinor: fromMinor must be a non-negative safe integer (got ${String(fromMinor)})`,
-    );
-  }
-  if (!Number.isSafeInteger(fromMillionths) || fromMillionths <= 0) {
-    throw new RangeError(
-      `crossMinor: fromMillionths must be a positive safe integer (got ${String(fromMillionths)})`,
-    );
-  }
-  if (!Number.isSafeInteger(toMillionths) || toMillionths <= 0) {
-    throw new RangeError(
-      `crossMinor: toMillionths must be a positive safe integer (got ${String(toMillionths)})`,
-    );
-  }
-  if (fromMillionths === toMillionths) return fromMinor;
-  return roundRatioHalfUp(fromMinor * toMillionths, fromMillionths);
-}
-
 export function rateToMillionths(rate: number): number {
   if (!Number.isFinite(rate) || rate <= 0) {
     throw new RangeError(

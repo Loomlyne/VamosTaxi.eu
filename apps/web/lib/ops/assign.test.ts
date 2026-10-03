@@ -49,9 +49,13 @@ describe("mapAssignSqlError", () => {
       ok: false,
       code: "no-email",
     });
-    expect(mapAssignSqlError({ code: "P0001", message: "no-vehicle" })).toEqual({
+    expect(mapAssignSqlError({ code: "P0001", message: "no-class" })).toEqual({
       ok: false,
-      code: "no-vehicle",
+      code: "no-class",
+    });
+    expect(mapAssignSqlError({ code: "P0001", message: "class-mismatch" })).toEqual({
+      ok: false,
+      code: "class-mismatch",
     });
     expect(mapAssignSqlError({ code: "P0001", message: "not-paid" })).toEqual({
       ok: false,

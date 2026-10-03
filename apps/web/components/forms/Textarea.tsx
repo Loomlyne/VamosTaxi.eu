@@ -34,11 +34,15 @@ export function Textarea({
   style,
   onFocus,
   onBlur,
+  "aria-describedby": ariaDescribedBy,
   ...rest
 }: TextareaProps) {
   const [focus, setFocus] = useState(false);
   const generatedId = useId();
   const fid = id || generatedId;
+  // 26.2 audit U06-7: tie the error/hint text to the control so a screen reader reads it.
+  const msgId = `${fid}-msg`;
+  const describedBy = [ariaDescribedBy, error || hint ? msgId : ""].filter(Boolean).join(" ") || undefined;
 
   const box = [
     "vt-input",
@@ -75,18 +79,19 @@ export function Textarea({
           rows={rows}
           disabled={disabled}
           aria-invalid={error ? true : undefined}
+          aria-describedby={describedBy}
           onFocus={handleFocus}
           onBlur={handleBlur}
           {...rest}
         />
       </div>
       {error ? (
-        <span className="vt-field__err">
+        <span className="vt-field__err" id={msgId}>
           <Icon name="triangle-alert" size={13} />
           {error}
         </span>
       ) : hint ? (
-        <span className="vt-field__hint">{hint}</span>
+        <span className="vt-field__hint" id={msgId}>{hint}</span>
       ) : null}
     </div>
   );

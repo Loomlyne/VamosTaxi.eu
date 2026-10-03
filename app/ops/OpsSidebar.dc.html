@@ -11,15 +11,14 @@
 <style>
 [data-nav-badge]{margin-inline-start:auto;min-width:18px;height:18px;padding:0 5px;border-radius:999px;font-size:11px;font-weight:600;line-height:18px;align-items:center;justify-content:center}
 [data-rail-profile]{display:block}
-@media (max-width:899px){
+@media (max-width:1080px){
   [data-rail-toggle]{display:none!important}
-  [data-rail-profile]{display:none!important}
 }
-@media (min-width:900px){
+@media (min-width:1081px){
   [data-rail-profile]{display:block!important}
 }
 </style>
-<aside data-lenis-prevent="1" style="background:var(--vt-bg-inverse);height:100vh;max-height:100vh;box-sizing:border-box;overflow-y:auto;padding:22px 16px;display:flex;flex-direction:column;gap:22px;width:{{ railWidth }};transition:width 200ms cubic-bezier(.2,0,.2,1)">
+<aside style="background:var(--vt-bg-inverse);height:100vh;max-height:100vh;box-sizing:border-box;overflow-y:auto;padding:22px 16px;display:flex;flex-direction:column;gap:22px;width:{{ railWidth }};transition:width 200ms cubic-bezier(.2,0,.2,1)">
 
 <div style="display:flex;align-items:center;gap:8px;padding:0 2px;min-height:34px">
 <a href="/dashboard" onClick="{{ goPath }}" style="border:0;display:{{ logoWideShow }};align-items:center;flex:1 1 auto;min-width:0">
@@ -151,9 +150,17 @@ const COPY = {
 };
 const KEY = 'vamosOpsNavCollapsed';
 
+/** Active language from the shared store; raw storage only before vamos-locale.js has loaded (26.2 audit U08-9). */
+function vtLang() {
+  try {
+    const L = window.VamosLocale;
+    if (L && typeof L.lang === 'function') return L.lang() || 'en';
+    return (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en';
+  } catch (e) { return 'en'; }
+}
 class Component extends DCLogic {
   state = {
-    lang: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en',
+    lang: vtLang(),
     collapsed: (typeof localStorage !== 'undefined' && localStorage.getItem(KEY) === '1'),
     open: {},
     menuOpen: false,
@@ -257,7 +264,7 @@ class Component extends DCLogic {
   renderVals() {
     const active = this.props.active || 'dashboard';
     const lang = this.state.lang;
-    const drawer = (typeof window !== 'undefined' && window.matchMedia) ? window.matchMedia('(max-width: 899px)').matches : false;
+    const drawer = (typeof window !== 'undefined' && window.matchMedia) ? window.matchMedia('(max-width: 1080px)').matches : false;
     const col = drawer ? false : this.state.collapsed;
     const t = COPY[lang] || COPY.en;
     const profile = window.VamosOps ? window.VamosOps.profile.get() : {};
@@ -299,7 +306,8 @@ class Component extends DCLogic {
     return {
       n14: 14, n16: 16, n18: 18, n22: 22, n26: 26,
       toggleShow: drawer ? 'none' : 'flex',
-      profileShow: drawer ? 'none' : 'block',
+      // 260930-dash-design: the phone bar has no avatar any more, so the drawer carries the profile row.
+      profileShow: 'block',
       railWidth: col ? '76px' : '236px',
       labelShow: col ? 'none' : 'inline-flex',
       kickerShow: col ? 'none' : 'block',

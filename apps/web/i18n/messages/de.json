@@ -714,7 +714,15 @@
     "acctCodeError": "Prüfen Sie den Code. Er hat {digits} Ziffern und gilt eine Stunde lang.",
     "acctResend": "Neuen Link senden",
     "acctResent": "Soeben erneut gesendet.",
-    "acctRateLimit": "Zu viele Versuche. Warten Sie eine Minute und versuchen Sie es erneut."
+    "acctRateLimit": "Zu viele Versuche. Warten Sie eine Minute und versuchen Sie es erneut.",
+    "nextAssignTitle": "Wir teilen Ihnen einen Fahrer zu.",
+    "nextAssignBody": "Sie erhalten eine E-Mail mit dem Namen des Fahrers und dem Kennzeichen.",
+    "nextReminderTitle": "Eine Erinnerung 24 Stunden vor der Abholung.",
+    "nextReminderBody": "Per E-Mail, mit den Angaben zu Ihrem Fahrer, sobald er zugeteilt ist.",
+    "nextCancelTitle": "Kostenlose Stornierung bis <h>{hours}</h> Stunden vor der Abholung.",
+    "nextCancelBody": "Unter «Buchung verwalten».",
+    "manageHint": "Zeit oder Flugnummer ändern oder stornieren: unter «Buchung verwalten».",
+    "helpLine": "Fragen zu dieser Fahrt? Rufen Sie <tel>{phone}</tel> an oder schreiben Sie auf <wa>WhatsApp</wa>."
   },
   "common": {
     "4-not-live": "4 nicht live",
@@ -1197,7 +1205,9 @@
     "payment-twint": "TWINT",
     "payment-visa": "Visa",
     "vamos-taxi-on-facebook": "Vamos Taxi auf Facebook",
-    "vamos-taxi-on-instagram": "Vamos Taxi auf Instagram"
+    "vamos-taxi-on-instagram": "Vamos Taxi auf Instagram",
+    "vamos-taxi-on-youtube": "Vamos Taxi auf YouTube",
+    "vamos-taxi-on-tiktok": "Vamos Taxi auf TikTok"
   },
   "header": {
     "call-41-79-626-70-82": "+41 79 626 70 82 anrufen",
@@ -1505,7 +1515,6 @@
     "the-gratuity-tipping-is-not-expected-on-top": "Das Trinkgeld. Ein zusätzliches Trinkgeld wird nicht erwartet.",
     "the-journey-between-the-two-addresses-you-gave-u": "Die Fahrt zwischen den beiden von Ihnen genannten Adressen und die Zeit des Fahrers dafür.",
     "the-platform-we-are-building": "Die Plattform, die wir bauen",
-    "the-previous-site": "Die frühere Website",
     "the-price-shown-at-the-last-step-is-the-price-yo": "Der im letzten Schritt angezeigte Preis ist der Preis, den Sie zahlen. Er ist in Schweizer Franken angegeben und ändert sich danach nicht mehr — nicht wegen Verkehr, nicht wegen einer längeren Route als erwartet, nicht wegen eines vollen Abends.",
     "the-price-you-paid-in-swiss-francs": "Der von Ihnen bezahlte Preis in Schweizer Franken.",
     "the-record-of-your-cookie-choice": "Den Nachweis Ihrer Cookie-Wahl",
@@ -1630,7 +1639,8 @@
     "flight-delayed-allowance-moves": "Bei einer Flugverspätung verschiebt sich das Kontingent mit dem Flug — Sie müssen uns nicht anrufen.",
     "our-team-decides-refund-email": "Unser Team entscheidet über die Rückerstattung und teilt sie Ihnen per E-Mail mit.",
     "extended-city-stay-15-shown-on-quote": "Verlängerter Stadtaufenthalt, bis zu 15 Minuten: in Ihrem Angebot ausgewiesen.",
-    "changes-free-before-pickup": "Zeit, Adresse, Passagierzahl und Fahrzeugklasse lassen sich vor der Abholung kostenlos ändern. Verschiebt die Änderung den Fahrpreis, zahlen Sie die Differenz oder wir erstatten sie — nie mehr als die Differenz."
+    "changes-free-before-pickup": "Zeit, Adresse, Passagierzahl und Fahrzeugklasse lassen sich vor der Abholung kostenlos ändern. Verschiebt die Änderung den Fahrpreis, zahlen Sie die Differenz oder wir erstatten sie — nie mehr als die Differenz.",
+    "terms-driver-details-by-email": "Fahrername, Fahrzeug und Kennzeichen senden wir per E-Mail, sobald ein Fahrer zugeteilt ist, und nochmals in der Erinnerung 24 Stunden vor der Abholung. Die Nummer des Fahrers steht auf Ihrer Seite «Buchung verwalten»."
   },
   "ops": {
     "add-a-note-visible-to-dispatch-only": "Notiz hinzufügen, nur für die Disposition sichtbar…",
@@ -2800,7 +2810,8 @@
       "legal.all-other-pickups-30-minutes-booked": "fixed legal-page figure from the vamostaxi.eu terms or privacy text, owner-approved 2026-09-30 (docs/legal-source/vamostaxi-eu-2026-09-30/MAPPING.md list A), not a live count",
       "legal.team-refund-paid-30-days-acceptance": "fixed legal-page figure from the vamostaxi.eu terms or privacy text, owner-approved 2026-09-30 (docs/legal-source/vamostaxi-eu-2026-09-30/MAPPING.md list A), not a live count",
       "legal.and-we-resolve-within-30-days": "fixed legal-page figure from the vamostaxi.eu terms or privacy text, owner-approved 2026-09-30 (docs/legal-source/vamostaxi-eu-2026-09-30/MAPPING.md list A), not a live count",
-      "legal.extended-city-stay-15-shown-on-quote": "fixed legal-page figure (owner decision 2026-09-30, .planning/quick/260930-lgl-legal-pages-from-eu/DECISIONS.md), not a live count"
+      "legal.extended-city-stay-15-shown-on-quote": "fixed legal-page figure (owner decision 2026-09-30, .planning/quick/260930-lgl-legal-pages-from-eu/DECISIONS.md), not a live count",
+      "legal.terms-driver-details-by-email": "fixed legal-page figure (owner decision 2026-09-30, .planning/quick/260930-lgl-legal-pages-from-eu/DECISIONS.md), not a live count"
     }
   },
   "quote": {
@@ -2890,7 +2901,8 @@
         "cancelled": "Dieser Flug ist annulliert, es wurde nichts ausgefüllt. Kommen Sie mit der neuen Nummer zurück.",
         "departed": "Dieser Flug hat {ap} bereits verlassen, es gibt nichts auszufüllen.",
         "off": "Wir fahren Zürich, Genf und Basel — dieser Flug berührt keinen davon. Setzen Sie den Abholort selbst."
-      }
+      },
+      "dayGroup": "An welchem Tag ist Ihr Flug"
     },
     "geo": {
       "no_results": "Keine passenden Orte — versuchen Sie eine vollständigere Adresse",

@@ -1,21 +1,16 @@
 // apps/web/tests/integration/dev-exclusion.spec.ts
 //
-// D-28's own three-way contract for the dev-only states gallery (01-UI-SPEC.md §
-// Dev-Only States Gallery, "Production/sitemap exclusion" row): reachable in local dev
-// and on staging (for review), absent from a genuine production deploy, and carrying
-// `X-Robots-Tag: noindex` on /dev in every one of those cases.
+// D-02 (Phase 26.0, 2026-09-29): the dev-only states gallery is reachable ONLY under
+// `next dev` with VAMOS_DEV_GALLERY=1 (`lib/dev-gallery.ts` devGalleryEnabled()). A
+// production build answers 404 on every /dev route whatever DEPLOY_ENV says (production
+// or staging) and even when VAMOS_DEV_GALLERY=1 is in its env; staging no longer serves
+// the gallery. `X-Robots-Tag: noindex` stays on /dev in every case.
 // D-03: public home on vamostaxi.site is indexable even when DEPLOY_ENV=staging.
-// Keep /dev noindex.
 //
-// This project builds ONCE (`opennextjs-cloudflare build`/`next build`) and deploys the
-// SAME artifact to `env.staging` and `env.production` — the two differ only in the
-// Cloudflare `vars`/bindings injected at request time (`apps/web/wrangler.jsonc`'s own
-// comment). `apps/web/app/[locale]/dev/layout.tsx`'s own comment records why this means
-// the exclusion check MUST run per-request (`export const dynamic = "force-dynamic"`)
-// rather than at build time — this suite proves that claim against a real, once-built
-// `next start` server, toggling only the runtime `DEPLOY_ENV` env var between the
-// "production" and "staging" checks, never rebuilding — the same "one build, two
-// deploys" shape the real Cloudflare setup has.
+// This project builds ONCE and deploys the SAME artifact to `env.staging` and
+// `env.production`; this suite builds once and toggles only the runtime env of
+// `next start`, never rebuilding, and sets VAMOS_DEV_GALLERY=1 on purpose in every
+// production-mode server to prove the flag cannot open the gallery there.
 //
 // Sequential, not parallel (`test.describe.configure({ mode: "serial" })`): only one
 // `next start` process is ever alive at a time, since `DEPLOY_ENV` is read once at
@@ -30,10 +25,12 @@
 //
 // Tagged "@dev-exclusion" per this plan's own artifact list.
 
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../support/test";
+import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { existsSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
+import { nextDevEnv } from "../support/test-stack";
 import { execFileLogged, NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 
 const NEXT = process.env.NEXT_BIN ?? (existsSync(NEXT_BIN) ? NEXT_BIN : join(WEB_ROOT, "../../../../apps/web/node_modules/.bin/next"));
@@ -98,26 +95,29 @@ test.describe("Dev gallery production exclusion @dev-exclusion", () => {
   // file forever.
   const distDir = "test-results/.next-dev-exclusion";
 
-  test.beforeAll(async ({}, testInfo) => {
-    if (testInfo.project.name !== RUN_PROJECT) return;
-    testInfo.setTimeout(180_000);
-    // One production build, reused by every `next start` in this file — the exact
-    // "build once, toggle DEPLOY_ENV at request time" shape this suite exists to prove.
+  // One production build, reused by every `next start` in this file — the "build once,
+  // toggle DEPLOY_ENV at request time" shape this suite exists to prove. Built lazily inside
+  // the first production test (not in a hook) so a failing build is scoped to those tests.
+  let built = false;
+  function buildOnce(): void {
+    if (built) return;
     execFileLogged(NEXT, ["build"], {
       cwd: WEB_ROOT,
       env: { ...process.env, TEST_DIST_DIR: distDir } as NodeJS.ProcessEnv,
       timeoutMs: 180_000,
     });
-  });
+    built = true;
+  }
 
-  test("a genuine production deploy (no DEPLOY_ENV) returns not-found for every walked /dev route, with the noindex header still present", async ({}, testInfo) => {
-    testInfo.setTimeout(120_000);
-    const port = 4200 + testInfo.workerIndex;
+  test("a genuine production deploy (no DEPLOY_ENV, VAMOS_DEV_GALLERY=1 in env) returns not-found for every walked /dev route, with the noindex header still present", async ({}, testInfo) => {
+    testInfo.setTimeout(240_000);
+    buildOnce();
+    const port = testPort(4200) + testInfo.workerIndex;
     const baseURL = `http://localhost:${port}`;
     // `DEPLOY_ENV` genuinely absent (deleted, not set to an empty string) — matching
     // `apps/web/wrangler.jsonc`'s own documented state under `env.production`, which
     // carries no `vars.DEPLOY_ENV` entry at all rather than an empty one.
-    const prodEnv: NodeJS.ProcessEnv = { ...process.env, TEST_DIST_DIR: distDir };
+    const prodEnv: NodeJS.ProcessEnv = { ...process.env, NODE_ENV: "production", VAMOS_DEV_GALLERY: "1", TEST_DIST_DIR: distDir };
     delete prodEnv.DEPLOY_ENV;
     const paths = devRoutePaths();
     expect(paths.length, "walk of app/[locale]/dev/** must not be vacuously empty").toBeGreaterThanOrEqual(MIN_DEV_ROUTES);
@@ -139,41 +139,31 @@ test.describe("Dev gallery production exclusion @dev-exclusion", () => {
     }
   });
 
-  test("staging (DEPLOY_ENV=staging) resolves the gallery and /dev/quote normally, with the noindex header present", async ({}, testInfo) => {
-    testInfo.setTimeout(60_000);
-    const port = 4300 + testInfo.workerIndex;
+  test("staging (DEPLOY_ENV=staging, VAMOS_DEV_GALLERY=1 in env) returns not-found for the gallery and /dev/quote, with the noindex header present", async ({}, testInfo) => {
+    testInfo.setTimeout(240_000);
+    buildOnce();
+    const port = testPort(4300) + testInfo.workerIndex;
     const baseURL = `http://localhost:${port}`;
     const server = spawn(NEXT, ["start", "-p", String(port)], {
       cwd: WEB_ROOT,
       stdio: "ignore",
       detached: true,
-      env: { ...process.env, DEPLOY_ENV: "staging", TEST_DIST_DIR: distDir },
+      env: { ...process.env, NODE_ENV: "production", VAMOS_DEV_GALLERY: "1", DEPLOY_ENV: "staging", TEST_DIST_DIR: distDir },
     });
     try {
       await waitForServer(baseURL);
 
-      // All seven gallery pages resolve (the index + the six design-system categories
-      // + the shell review surface).
-      for (const category of ["core", "forms", "navigation", "feedback", "data", "transfer", "shell"]) {
-        const res = await fetch(`${baseURL}/dev/components/${category}`);
-        expect(res.status, `category "${category}" should resolve on staging`).toBe(200);
+      for (const path of [
+        ...["core", "forms", "navigation", "feedback", "data", "transfer", "shell"].map((c) => `/dev/components/${c}`),
+        "/dev/quote",
+        "/de/dev/quote",
+        "/dev/components",
+        "/de/dev/components/core",
+      ]) {
+        const res = await fetch(`${baseURL}${path}`);
+        expect(res.status, `${path} must 404 on staging (D-02)`).toBe(404);
         expect(res.headers.get("x-robots-tag")).toMatch(/noindex/i);
       }
-      const quoteRes = await fetch(`${baseURL}/dev/quote`);
-      expect(quoteRes.status, "/dev/quote should resolve on staging").toBe(200);
-      expect(quoteRes.headers.get("x-robots-tag")).toMatch(/noindex/i);
-      const quoteDeRes = await fetch(`${baseURL}/de/dev/quote`);
-      expect(quoteDeRes.status).toBe(200);
-      expect(quoteDeRes.headers.get("x-robots-tag")).toMatch(/noindex/i);
-      const indexRes = await fetch(`${baseURL}/dev/components`);
-      expect(indexRes.status).toBe(200);
-      expect(indexRes.headers.get("x-robots-tag")).toMatch(/noindex/i);
-
-      // The prefixed-locale URL shape (`/de/dev/components/core`) carries the same
-      // header — the two next.config.ts `headers()` source patterns this plan adds,
-      // proven independently rather than assumed from the unprefixed English case above.
-      const dePrefixedRes = await fetch(`${baseURL}/de/dev/components/core`);
-      expect(dePrefixedRes.headers.get("x-robots-tag")).toMatch(/noindex/i);
 
       // D-03: public home must not carry noindex even on staging. /dev stays noindex.
       const homeRes = await fetch(`${baseURL}/`);
@@ -193,4 +183,28 @@ test.describe("Dev gallery production exclusion @dev-exclusion", () => {
       killServer(server);
     }
   });
+
+  for (const gallery of [false, true]) {
+    test(`next dev ${gallery ? "with" : "without"} VAMOS_DEV_GALLERY=1 ${gallery ? "serves" : "404s"} /dev/components/core`, async ({}, testInfo) => {
+      testInfo.setTimeout(180_000);
+      const port = testPort(gallery ? 4320 : 4310) + testInfo.workerIndex;
+      const baseURL = `http://localhost:${port}`;
+      const server = spawn(NEXT, ["dev", "-p", String(port)], {
+        cwd: WEB_ROOT,
+        stdio: "ignore",
+        detached: true,
+        env: nextDevEnv({ TEST_DIST_DIR: `test-results/.next-dev-exclusion-dev-${gallery ? "on" : "off"}` }, { gallery }),
+      });
+      try {
+        await waitForNextServer(baseURL, 180_000);
+        for (const path of ["/dev/components/core", "/dev/quote"]) {
+          const res = await fetch(`${baseURL}${path}`);
+          expect(res.status, `${path} under next dev, gallery=${gallery}`).toBe(gallery ? 200 : 404);
+          expect(res.headers.get("x-robots-tag")).toMatch(/noindex/i);
+        }
+      } finally {
+        killServer(server);
+      }
+    });
+  }
 });

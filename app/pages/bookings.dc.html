@@ -449,13 +449,20 @@ class Component extends DCLogic {
 
   componentDidMount() {
     this._offLocale = window.VamosLocale && window.VamosLocale.onChange(() => this.forceUpdate());
-    fetch('/api/auth/session', { credentials: 'same-origin' })
+    fetch('/api/auth/session?finish=1', { credentials: 'same-origin' })
       .then((r) => r.json())
       .then((s) => {
         let stored = null;
         try { const raw = localStorage.getItem('vamosAuth'); if (raw) stored = JSON.parse(raw); } catch (e) {}
         if (!s || !s.signedIn) {
           if (stored) this.setState({ auth: stored });
+          return;
+        }
+        /* 27.1 (27 D-37): an account the sign-in link made finishes first, like /account. */
+        if (s.finishRequired === true) {
+          let l = 'en';
+          try { const v = window.VamosLocale && window.VamosLocale.lang; l = (typeof v === 'function' ? v() : v) || 'en'; } catch (e) {}
+          location.replace((l !== 'en' ? '/' + l : '') + '/sign-up?state=finish');
           return;
         }
         const full = (s.displayName || '').trim();

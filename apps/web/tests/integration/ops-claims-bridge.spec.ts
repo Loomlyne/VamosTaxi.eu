@@ -3,13 +3,12 @@
 // Proof that getStaffClaims / requireStaffClaims / requireAdminClaims map a
 // session into the VamosClaims object asStaff expects, and refuse aal1 once a factor is enrolled (D-16a) and
 // non-admin staff (D-16b) with distinguishable reasons. Tagged @ops-claims. Runs under
-// component-1440 only. Live local-auth cases skip (not fail) when
-// http://127.0.0.1:54321/auth/v1/health is down — this spec never starts
-// supabase.
+// component-1440 only. Live local-auth cases skip when the throwaway stack's auth health is
+// down (fail under CI / REQUIRE_DB=1) — this spec never starts supabase.
 
 import { createHmac } from "node:crypto";
-import { createRequire } from "node:module";
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../support/test";
+import { dbRequired, ownerDbUrl, requireFromWorktree, stackKeys, supabaseApiUrl } from "../support/test-stack";
 import {
   getStaffClaims,
   requireAdminClaims,
@@ -19,9 +18,6 @@ import {
 } from "../../lib/ops/session";
 
 const RUN_PROJECT = "component-1440";
-const AUTH_HEALTH = "http://127.0.0.1:54321/auth/v1/health";
-const AUTH_URL = "http://127.0.0.1:54321";
-const MAIN_WEB_PKG = "/Users/koss/Developer/VamosTaxi.eu/apps/web/package.json";
 
 test.beforeEach(async ({}, testInfo) => {
   test.skip(
@@ -186,7 +182,7 @@ test.describe("ops claims bridge @ops-claims", () => {
 
 async function localAuthUp(): Promise<boolean> {
   try {
-    const res = await fetch(AUTH_HEALTH, { signal: AbortSignal.timeout(1500) });
+    const res = await fetch(`${supabaseApiUrl()}/auth/v1/health`, { signal: AbortSignal.timeout(1500) });
     return res.ok;
   } catch {
     return false;
@@ -229,17 +225,18 @@ test.describe("ops claims bridge live local auth @ops-claims", () => {
   test.describe.configure({ mode: "serial" });
 
   const createdUserIds: string[] = [];
-  const anonKey = process.env.SUPABASE_ANON_KEY ?? "";
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
-  const url = process.env.SUPABASE_URL ?? AUTH_URL;
+  let anonKey = "";
+  let serviceKey = "";
+  let url = "";
 
   test.beforeAll(async () => {
     const up = await localAuthUp();
-    test.skip(!up, "local auth health is down — run pnpm db:start to exercise live aal1/aal2 proofs");
-    test.skip(
-      anonKey.length === 0 || serviceKey.length === 0,
-      "SUPABASE_ANON_KEY / SUPABASE_SERVICE_ROLE_KEY unset — live proofs skipped (keys stay out of the spec)",
-    );
+    if (!up && dbRequired()) throw new Error("local auth health is down — start the test stack (scripts/local-test-stack.sh start)");
+    test.skip(!up, "local auth health is down — start the test stack to exercise live aal1/aal2 proofs");
+    const keys = stackKeys();
+    anonKey = keys.anonKey;
+    serviceKey = keys.serviceRoleKey;
+    url = keys.apiUrl;
   });
 
   test.afterAll(async () => {
@@ -278,8 +275,7 @@ test.describe("ops claims bridge live local auth @ops-claims", () => {
       };
     };
   } {
-    const req = createRequire(MAIN_WEB_PKG);
-    const mod = req("@supabase/supabase-js") as {
+    const mod = requireFromWorktree("@supabase/supabase-js") as {
       createClient: ReturnType<typeof loadCreateClient>;
     };
     return mod.createClient;
@@ -301,23 +297,18 @@ test.describe("ops claims bridge live local auth @ops-claims", () => {
     return body.id;
   }
 
+  // public.staff has no INSERT grant for service_role (by design); the fixture writes it as the owner role.
   async function insertStaff(userId: string, role: "dispatcher" | "admin"): Promise<void> {
-    const res = await fetch(`${url}/rest/v1/staff`, {
-      method: "POST",
-      headers: {
-        apikey: serviceKey,
-        Authorization: `Bearer ${serviceKey}`,
-        "Content-Type": "application/json",
-        Prefer: "return=minimal",
-      },
-      body: JSON.stringify({
-        user_id: userId,
-        role,
-        full_name: role,
-        accepted_at: new Date().toISOString(),
-      }),
-    });
-    if (!res.ok) throw new Error(`insert staff ${res.status}: ${await res.text()}`);
+    const postgres = requireFromWorktree("postgres") as (u: string) => {
+      (strings: TemplateStringsArray, ...v: unknown[]): Promise<unknown>;
+      end(o?: { timeout?: number }): Promise<void>;
+    };
+    const sql = postgres(ownerDbUrl());
+    try {
+      await sql`insert into public.staff (user_id, role, full_name, accepted_at) values (${userId}::uuid, ${role}, ${role}, now())`;
+    } finally {
+      await sql.end({ timeout: 5 });
+    }
   }
 
   // D-16/D-16a/D-16b (26.1-20): this case used to sign in a dispatcher and expect needs-mfa at

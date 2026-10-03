@@ -8,7 +8,6 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Alert } from "@/components/feedback/Alert";
-import { Dialog } from "@/components/feedback/Dialog";
 import { ProgressIndicator } from "@/components/feedback/ProgressIndicator";
 import { Button, Card, Icon } from "@/components/core";
 import type { IconName } from "@/components/core";
@@ -29,7 +28,6 @@ import type { ReceiptRow } from "@/lib/checkout/confirmation-receipt";
 import type { BookingReceipt } from "@/lib/checkout/booking-read";
 import { formatAmount } from "@/lib/currency";
 import { voucherBadgeStatus, voucherNeedsPayment } from "@/lib/checkout/voucher-badge";
-import { customerCancelWindow } from "@/lib/checkout/cancel-window";
 
 /**
  * Where the server left the page. "processing" is the return path from Stripe
@@ -57,6 +55,8 @@ export type ConfirmationClientProps = {
   initialPhase: ConfirmationPhase;
   booking: ConfirmationFacts | null;
   freeCancelHours: number | null;
+  /** MANAGE BOOKING target, picked by the server from how it read this booking. */
+  manageHref?: string;
 };
 
 function asStringField(json: object, key: string): string {
@@ -65,38 +65,31 @@ function asStringField(json: object, key: string): string {
   return typeof value === "string" ? value : "";
 }
 
-function hoursBeforePickup(scheduledLocal: string, now: Date): number {
-  const match = /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/.exec(scheduledLocal.trim());
-  if (!match) return 0;
-  const wall = `${match[1]}-${match[2]}-${match[3]}T${match[4]}:${match[5]}:00`;
-  const asUtc = Date.parse(`${wall}Z`);
-  if (!Number.isFinite(asUtc)) return 0;
-  const zurich = new Date(asUtc).toLocaleString("sv-SE", { timeZone: "Europe/Zurich" });
-  const zurichUtc = Date.parse(zurich.replace(" ", "T") + "Z");
-  if (!Number.isFinite(zurichUtc)) return (asUtc - now.getTime()) / 3_600_000;
-  const pickup = asUtc + (asUtc - zurichUtc);
-  return (pickup - now.getTime()) / 3_600_000;
-}
-
 function pollStatus(json: unknown): { status: string; paymentStatus: string } | null {
   if (!json || typeof json !== "object") return null;
   if ("visible" in json && (json as { visible: unknown }).visible === false) return null;
   return { status: asStringField(json, "status"), paymentStatus: asStringField(json, "paymentStatus") };
 }
 
-function HelpRow() {
-  const tCommon = useTranslations("common");
+/** One line, two links: the public phone and WhatsApp (approved wording 2026-10-01). */
+function HelpLine() {
+  const t = useTranslations("checkout");
   return (
-    <div className="vt-confirmation__help">
-      <Button href={PHONE_HREF} variant="secondary" size="md">
-        <Icon name="phone" size={18} />
-        <span className="vt-dir-keep">{PHONE_DISPLAY}</span>
-      </Button>
-      <Button href={WHATSAPP_HREF} variant="ghost" size="md">
-        <Icon name="message-circle" size={18} />
-        {tCommon("whatsapp")}
-      </Button>
-    </div>
+    <p className="vt-confirmation__help-line" data-confirmation-help>
+      {t.rich("helpLine", {
+        phone: PHONE_DISPLAY,
+        tel: (chunks) => (
+          <a className="vt-confirmation__help-link vt-dir-keep" href={PHONE_HREF}>
+            {chunks}
+          </a>
+        ),
+        wa: (chunks) => (
+          <a className="vt-confirmation__help-link" href={WHATSAPP_HREF} target="_blank" rel="noopener noreferrer">
+            {chunks}
+          </a>
+        ),
+      })}
+    </p>
   );
 }
 
@@ -167,7 +160,7 @@ function LoadingScreen({
   );
 }
 
-/** S4 head: disc, kicker, display heading, reference and e-mail line, status badge. */
+/** S4 head (2026-10-01): disc and status badge in one row, heading, reference and e-mail line. */
 function BookedHero({
   firstName: name,
   reference,
@@ -185,10 +178,12 @@ function BookedHero({
   );
   return (
     <div className="vt-confirmation__hero vt-confirmation__hero--booked">
-      <span className="vt-confirmation__disc" aria-hidden="true">
-        <Icon name="check" size={28} color="var(--vt-yellow)" />
-      </span>
-      <p className="vt-confirmation__kicker vt-confirmation__kicker--booked">{t("statusBooked")}</p>
+      <div className="vt-confirmation__hero-row">
+        <span className="vt-confirmation__disc" aria-hidden="true">
+          <Icon name="check" size={24} color="var(--vt-yellow)" />
+        </span>
+        <StatusBadge status="confirmed" label={t("statusBooked")} />
+      </div>
       <h1 className="vt-confirmation__title">
         {name ? t("bookedTitle", { firstName: name }) : t("bookedTitleNoName")}
       </h1>
@@ -202,9 +197,6 @@ function BookedHero({
             })
           : t.rich("bookedLedeNoEmail", { reference, ref: refTag })}
       </p>
-      <div>
-        <StatusBadge status="confirmed" label={t("statusBooked")} />
-      </div>
     </div>
   );
 }
@@ -224,9 +216,9 @@ function classNameOf(
 
 function FactRow({ icon, label, children }: { icon: IconName; label: string; children: ReactNode }) {
   return (
-    <div className="vt-confirmation__receipt-row">
+    <div className="vt-confirmation__fact">
       <dt>
-        <Icon name={icon} size={12} />
+        <Icon name={icon} size={14} />
         {label}
       </dt>
       <dd>{children}</dd>
@@ -264,17 +256,15 @@ function moneyLines(
   return { lines, total };
 }
 
-/** S4 body: route, trip facts, the e-mail's money rows, the legal line. */
+/** S4 trip card: route, four labelled facts, the e-mail's money rows. */
 function BookedCard({
   locale,
   booking,
   fallback,
-  cancelSlot,
 }: {
   locale: string;
   booking: ConfirmationFacts | null;
   fallback: { pickup: string; dropoff: string; date: string; time: string; passengers: number };
-  cancelSlot: ReactNode;
 }) {
   const t = useTranslations("checkout");
   const tCommon = useTranslations("common");
@@ -324,7 +314,7 @@ function BookedCard({
           ) : undefined
         }
       />
-      <dl className="vt-confirmation__receipt" data-confirmation-receipt>
+      <dl className="vt-confirmation__facts" data-confirmation-receipt>
         {dateLabel ? (
           <FactRow icon="calendar" label={t("factWhen")}>
             <span className="vt-dir-keep">{dateLabel}</span>
@@ -357,9 +347,91 @@ function BookedCard({
           })}
         </p>
       ) : null}
-      <p className="vt-confirmation__legal">{t("by-continuing-you-accept-the-terms-and-the-cance")}</p>
-      {cancelSlot ? <div className="vt-confirmation__booked-cancel">{cancelSlot}</div> : null}
     </Card>
+  );
+}
+
+/**
+ * "What happens next" (approved wording 2026-10-01): the two e-mails the site really
+ * sends (assignmentCustomer, reminder24h) and the free-cancel window from settings.
+ * When settings cannot be read the hours are a labelled data-tok gap, never a guess.
+ */
+function NextSteps({ freeCancelHours }: { freeCancelHours: number | null }) {
+  const t = useTranslations("checkout");
+  const hoursKnown = freeCancelHours != null;
+  const steps: { icon: IconName; key: string; title: ReactNode; body: string }[] = [
+    { icon: "user", key: "assign", title: t("nextAssignTitle"), body: t("nextAssignBody") },
+    { icon: "bell", key: "reminder", title: t("nextReminderTitle"), body: t("nextReminderBody") },
+    {
+      icon: "shield-check",
+      key: "cancel",
+      title: t.rich("nextCancelTitle", {
+        hours: hoursKnown ? String(freeCancelHours) : "free cancel window",
+        h: (chunks) =>
+          hoursKnown ? (
+            <span className="vt-dir-keep" data-confirmation-cancel-hours>
+              {chunks}
+            </span>
+          ) : (
+            <span data-tok>{chunks}</span>
+          ),
+      }),
+      body: t("nextCancelBody"),
+    },
+  ];
+  return (
+    <Card padding="lg" className="vt-confirmation__next" data-confirmation-next>
+      <h2 className="vt-confirmation__next-title">{t("whatHappensNext")}</h2>
+      <ol className="vt-confirmation__next-list">
+        {steps.map((step) => (
+          <li key={step.key} className="vt-confirmation__next-step" data-confirmation-step={step.key}>
+            <span className="vt-confirmation__next-disc" aria-hidden="true">
+              <Icon name={step.icon} size={16} color="var(--vt-yellow)" />
+            </span>
+            <span className="vt-confirmation__next-copy">
+              <span className="vt-confirmation__next-head">{step.title}</span>
+              <span className="vt-confirmation__next-body">{step.body}</span>
+            </span>
+          </li>
+        ))}
+      </ol>
+    </Card>
+  );
+}
+
+/**
+ * The page's only two buttons (signed 2026-10-01): MANAGE BOOKING and DOWNLOAD
+ * VOUCHER. An unpaid booking shows FINISH PAYMENT alone: Manage booking refuses an
+ * unpaid booking and there is no voucher before payment.
+ */
+function ActionRow({
+  locale,
+  manageHref,
+  unpaid,
+}: {
+  locale: string;
+  manageHref: string;
+  unpaid: boolean;
+}) {
+  const t = useTranslations("checkout");
+  if (unpaid) {
+    return (
+      <div className="vt-confirmation__actions vt-confirmation__actions--pair" data-confirmation-actions>
+        <Button size="lg" href={`/${locale}/checkout`}>
+          {t("finishPayment")}
+        </Button>
+      </div>
+    );
+  }
+  return (
+    <div className="vt-confirmation__actions vt-confirmation__actions--pair" data-confirmation-actions>
+      <Button size="lg" href={manageHref} data-confirmation-manage>
+        {t("manageBooking")}
+      </Button>
+      <Button size="lg" variant="secondary" onClick={() => window.print()} data-confirmation-print>
+        {t("download-voucher")}
+      </Button>
+    </div>
   );
 }
 
@@ -369,9 +441,9 @@ export function ConfirmationClient({
   initialPhase,
   booking,
   freeCancelHours,
+  manageHref,
 }: ConfirmationClientProps) {
   const t = useTranslations("checkout");
-  const tCommon = useTranslations("common");
   const [draft] = useBookingDraft();
   // 26.1-16 (D-22): the return route adds charge=refunded when this payer's
   // charge lost the race and was refunded. Display hint only.
@@ -380,19 +452,6 @@ export function ConfirmationClient({
   const [elapsedMs, setElapsedMs] = useState(0);
   const [liveStatus, setLiveStatus] = useState(booking?.status ?? "");
   const [livePayment, setLivePayment] = useState(booking?.paymentStatus ?? null);
-  const [sheetOpen, setSheetOpen] = useState(false);
-  const [cancelling, setCancelling] = useState(false);
-  const [refundFailed, setRefundFailed] = useState(false);
-  const [refundStatus, setRefundStatus] = useState(booking?.refundStatus ?? null);
-  // D-23a: refund amount from the cancel response, printed on the voucher.
-  const [refundRappen, setRefundRappen] = useState<number | null>(booking?.refundOwedRappen ?? null);
-  const [payoutCountry, setPayoutCountry] = useState(booking?.payoutCountry ?? null);
-  const [availableOn, setAvailableOn] = useState(booking?.availableOn ?? null);
-  const [reviewedStay] = useState(Boolean(booking?.reviewSubmitted));
-  const [newPickup, setNewPickup] = useState("");
-  const [flightNo, setFlightNo] = useState("");
-  const [lifeMsg, setLifeMsg] = useState("");
-  const [lifeBusy, setLifeBusy] = useState(false);
   // Return path: S3 until booked. Later visits skip straight to the page.
   const onReturnPath = initialPhase === "processing";
   const returnPhase = onReturnPath
@@ -496,11 +555,6 @@ export function ConfirmationClient({
         ...booking,
         status: liveStatus || booking.status,
         paymentStatus: livePayment ?? booking.paymentStatus,
-        refundStatus: refundStatus ?? booking.refundStatus,
-        refundOwedRappen: refundRappen ?? booking.refundOwedRappen ?? null,
-        payoutCountry: payoutCountry ?? booking.payoutCountry,
-        availableOn: availableOn ?? booking.availableOn,
-        reviewSubmitted: reviewedStay,
       }
     : null;
   const badge = voucherBadgeStatus(facts?.status, facts?.paymentStatus ?? null);
@@ -509,98 +563,18 @@ export function ConfirmationClient({
   // S4: the booked page. Cancelled, refunded and finished trips keep their own headings.
   const booked = isBookedBadge && (returnPhase === "booked" || !onReturnPath);
   const pageState = booked ? "booked" : badge;
-  const rawStatus = (facts?.status || "").toLowerCase();
-  const hideCancel =
-    unpaid ||
-    reviewedStay ||
-    badge === "completed" ||
-    badge === "no-show" ||
-    badge === "cancelled" ||
-    badge === "refunded" ||
-    badge === "pending" ||
-    badge === "quote" ||
-    rawStatus === "completed" ||
-    rawStatus === "no_show" ||
-    rawStatus === "cancelled";
-  const showCancel = Boolean(facts) && !hideCancel;
-  // D-23/D-24 (26.1-18): >24 h auto full refund; every later paid cancel goes to
-  // the admin review. No time-based "too close to cancel" state is left.
-  const windowKind = customerCancelWindow(hoursBeforePickup(facts?.scheduledLocal || "", new Date()));
-  const canConfirmCancel = showCancel;
-  const sheetCopy = windowKind === "auto_full" ? t("cancelSheetFull") : t("cancelSheetOps");
   const reviewHref =
-    badge === "completed" && !reviewedStay ? `/${locale}/review` : undefined;
-
-  async function confirmPaidCancel() {
-    if (cancelling || !canConfirmCancel) return;
-    setCancelling(true);
-    try {
-      const res = await fetch("/api/account/bookings/paid-cancel", {
-        method: "POST",
-        credentials: "include",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ ref: reference }),
-      });
-      const json: unknown = await res.json().catch(() => null);
-      const code =
-        json && typeof json === "object" && "code" in json && typeof (json as { code: unknown }).code === "string"
-          ? (json as { code: string }).code
-          : "";
-      const ok = json && typeof json === "object" && "ok" in json && (json as { ok: unknown }).ok === true;
-      const stripeFail = code === "stripe-failed" || code === "stripe-test-only";
-      if (!ok && !stripeFail) return;
-      const rec = json && typeof json === "object" ? (json as Record<string, unknown>) : {};
-      setLiveStatus("cancelled");
-      setRefundStatus(typeof rec.refundStatus === "string" ? rec.refundStatus : stripeFail ? "failed" : null);
-      setRefundRappen(typeof rec.refundRappen === "number" && rec.refundRappen > 0 ? rec.refundRappen : null);
-      setPayoutCountry(typeof rec.payoutCountry === "string" ? rec.payoutCountry : null);
-      setAvailableOn(typeof rec.availableOn === "string" ? rec.availableOn : null);
-      setRefundFailed(stripeFail);
-      setSheetOpen(false);
-    } finally {
-      setCancelling(false);
-    }
-  }
-
-  async function requestTimeChange() {
-    if (lifeBusy || !newPickup.trim()) return;
-    setLifeBusy(true);
-    try {
-      const res = await fetch("/api/account/bookings/time-change", {
-        method: "POST",
-        credentials: "include",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ ref: reference, scheduled_local: newPickup.trim() }),
-      });
-      const json: unknown = await res.json().catch(() => null);
-      const ok = json && typeof json === "object" && "ok" in json && (json as { ok: unknown }).ok === true;
-      setLifeMsg(
-        ok
-          ? t("timeChangeRequested", { original: facts?.scheduledLocal || newPickup })
-          : t("timeChangeFailed"),
-      );
-    } finally {
-      setLifeBusy(false);
-    }
-  }
-
-  async function saveFlightNumber() {
-    if (lifeBusy || !flightNo.trim()) return;
-    setLifeBusy(true);
-    try {
-      const res = await fetch("/api/account/bookings/flight", {
-        method: "POST",
-        credentials: "include",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ ref: reference, flight_no: flightNo.trim() }),
-      });
-      const json: unknown = await res.json().catch(() => null);
-      const ok = json && typeof json === "object" && "ok" in json && (json as { ok: unknown }).ok === true;
-      setLifeMsg(ok ? t("flightSaved") : t("flightSaveFailed"));
-    } finally {
-      setLifeBusy(false);
-    }
-  }
+    badge === "completed" && !facts?.reviewSubmitted ? `/${locale}/review` : undefined;
+  // Time, flight and cancel live on Manage booking only (owner decision 2026-10-01):
+  // the old buttons here called sign-in-only routes and did nothing for a guest.
+  const manageTo = manageHref || `/${locale}/manage-booking`;
+  const fallback = {
+    pickup: draft.pickup,
+    dropoff: draft.destination,
+    date: draft.date,
+    time: draft.time,
+    passengers: draft.passengers,
+  };
 
   const title =
     badge === "cancelled" || badge === "no-show"
@@ -630,7 +604,6 @@ export function ConfirmationClient({
         {t("is-confirmed-the-voucher-is-on-its-way-to-your-i")}
       </>
     );
-  const showConfirmedChrome = !unpaid && badge !== "cancelled" && badge !== "refunded" && badge !== "no-show";
 
   return (
     <main className="vt-confirmation" data-confirmation data-confirmation-state={pageState}>
@@ -666,150 +639,29 @@ export function ConfirmationClient({
       ) : null}
 
       {booked ? (
-        <BookedCard
-          locale={locale}
-          booking={facts}
-          fallback={{
-            pickup: draft.pickup,
-            dropoff: draft.destination,
-            date: draft.date,
-            time: draft.time,
-            passengers: draft.passengers,
-          }}
-          cancelSlot={
-            showCancel ? (
-              <Button variant="ghost" size="md" onClick={() => setSheetOpen(true)}>
-                {t("cancelBooking")}
-              </Button>
-            ) : null
-          }
-        />
+        <BookedCard locale={locale} booking={facts} fallback={fallback} />
       ) : (
         <BookingVoucher
           locale={locale}
           reference={reference}
           booking={facts}
-          fallback={{
-            pickup: draft.pickup,
-            dropoff: draft.destination,
-            date: draft.date,
-            time: draft.time,
-            passengers: draft.passengers,
-          }}
+          fallback={fallback}
           reviewHref={reviewHref}
-          cancelSlot={
-            showCancel ? (
-              <Button variant="ghost" size="md" onClick={() => setSheetOpen(true)}>
-                {t("cancelBooking")}
-              </Button>
-            ) : null
-          }
         />
       )}
 
-      {showConfirmedChrome && facts ? (
-        <div className="vt-confirmation__actions" data-time-change data-flight>
-          <label>
-            {t("requestTimeChange")}
-            <input
-              type="datetime-local"
-              value={newPickup}
-              onChange={(e) => setNewPickup(e.target.value)}
-            />
-          </label>
-          <Button size="md" onClick={() => void requestTimeChange()} disabled={lifeBusy}>
-            {t("requestTimeChange")}
-          </Button>
-          <label>
-            {t("saveFlightNumber")}
-            <input value={flightNo} onChange={(e) => setFlightNo(e.target.value.toUpperCase())} />
-          </label>
-          <Button size="md" variant="secondary" onClick={() => void saveFlightNumber()} disabled={lifeBusy}>
-            {t("saveFlightNumber")}
-          </Button>
-          {lifeMsg ? <p>{lifeMsg}</p> : null}
-        </div>
-      ) : null}
+      <ActionRow locale={locale} manageHref={manageTo} unpaid={unpaid} />
+      {booked ? <p className="vt-confirmation__hint">{t("manageHint")}</p> : null}
 
-      <Dialog
-        open={sheetOpen}
-        title={t("cancelThisTransfer")}
-        closeLabel={tCommon("close")}
-        onClose={() => {
-          if (!cancelling) setSheetOpen(false);
-        }}
-        footer={
-          <>
-            {canConfirmCancel ? (
-              <Button variant="danger" size="md" onClick={() => void confirmPaidCancel()} disabled={cancelling}>
-                {t("confirmCancellation")}
-              </Button>
-            ) : null}
-            <Button variant="ghost" size="md" onClick={() => setSheetOpen(false)} disabled={cancelling}>
-              {t("keepMyBooking")}
-            </Button>
-          </>
-        }
-      >
-        <p>{sheetCopy}</p>
-      </Dialog>
+      {booked ? <NextSteps freeCancelHours={freeCancelHours} /> : null}
 
-      {booked ? (
-        <div className="vt-confirmation__actions">
-          <Button variant="secondary" href={`/${locale}/manage-booking`}>
-            {t("manageBooking")}
-          </Button>
-          <Button variant="ghost" href={`/${locale}`}>
-            {t("book-another-transfer")}
-          </Button>
-        </div>
-      ) : (
-        <div className="vt-confirmation__actions">
-          {unpaid ? (
-            <Button icon="credit-card" href={`/${locale}/checkout`}>
-              {t("finishPayment")}
-            </Button>
-          ) : (
-            <Button icon="printer" variant="secondary" onClick={() => window.print()}>
-              {t("download-voucher")}
-            </Button>
-          )}
-          <Button icon="pencil" variant="ghost" href={`/${locale}/manage-booking`}>
-            {t("manageBooking")}
-          </Button>
-        </div>
-      )}
+      <HelpLine />
 
-      <HelpRow />
-
-      {refundFailed ? (
-        <div className="vt-confirmation__alerts">
-          <Alert tone="danger" title={t("bookingCancelledTitle")}>
-            {t("refundFailedRetry")}
-          </Alert>
-        </div>
-      ) : null}
-
-      {showConfirmedChrome ? (
-        <div className="vt-confirmation__alerts">
-          <Alert tone="success" title={t("whatHappensNext")}>
-            {t("whatHappensNextBody")}
-          </Alert>
-          <Alert tone="inverse" title={t("changed-plans")}>
-            {freeCancelHours == null
-              ? t("cancel-free-of-charge-up-to-24-hours-before-pick")
-              : t("freeCancelHours", { hours: freeCancelHours })}
-          </Alert>
-        </div>
-      ) : null}
-
-      {booked ? null : (
-        <div className="vt-confirmation__footer">
-          <Button variant="ghost" iconEnd="arrow-right" href={`/${locale}`}>
-            {t("book-another-transfer")}
-          </Button>
-        </div>
-      )}
+      <div className="vt-confirmation__another">
+        <Button variant="ghost" href={`/${locale}`}>
+          {t("book-another-transfer")}
+        </Button>
+      </div>
     </main>
   );
 }

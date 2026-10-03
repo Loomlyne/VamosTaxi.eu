@@ -15,7 +15,7 @@
 // /api/consent and /api/consent/state are answered by page.route; no database is used.
 // The spec runs under every viewport project and sets its own viewport per case; nothing is skipped.
 
-import { test, expect, type Page, type Route } from "@playwright/test";
+import { test, expect, type Page, type Route } from "../support/test";
 import { spawn, type ChildProcess } from "node:child_process";
 import { createServer, type Server } from "node:http";
 import { existsSync, readFileSync, statSync } from "node:fs";

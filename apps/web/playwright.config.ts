@@ -1,4 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
+import { E2E_SPECS } from "./tests/e2e-specs";
 
 // The D-25 screenshot-diff gate: one `.dc.html` mock (or, for the six components no mock
 // uses, the vendored bundle — apps/web/tests/support/mock-harness.ts) diffed against its
@@ -21,8 +22,11 @@ const VIEWPORTS: Record<string, { width: number; height: number }> = {
 
 export default defineConfig({
   testDir: "./tests",
-  testMatch: "**/*.spec.ts",
+  testMatch: process.env.VAMOS_E2E === "1" ? E2E_SPECS : "**/*.spec.ts",
   fullyParallel: true,
+  // e2e-linux-3: in the Linux e2e job the first request to a page makes `next dev` compile it on a 2-core runner,
+  // and 30 s was not enough for several specs (home, about, legal-terms, currency...). 90 s there; unchanged elsewhere.
+  ...(process.env.VAMOS_E2E === "1" ? { timeout: 90_000 } : {}),
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   reporter: [["list"]],
@@ -75,69 +79,20 @@ export default defineConfig({
   },
 
   // Every spec under tests/visual carries "@component" as a literal substring of its
-  // test title, which is what `--grep @component` matches against — `--grep @component`
-  // and the plain `pnpm test:visual` therefore run the exact same suite until a
-  // non-component visual project is added later.
+  // test title, which is what `--grep @component` matches against.
   //
-  // GitHub's visual job is macos-latest so the darwin screenshot baselines match.
-  // That runner has no Docker, so it cannot `pnpm db:start`. Specs that boot Next
-  // or require that database throw or hang there and block Deploy Staging. They
-  // still run locally. Offline screenshots and file-read checks stay in the gate.
-  ...(process.env.CI
-    ? {
-        testIgnore: [
-          "**/about.spec.ts",
-          "**/account-session-guard.spec.ts",
-          "**/auth-confirm-email.spec.ts",
-          "**/auth-flows.spec.ts",
-          "**/auth-forms.spec.ts",
-          "**/auth-session.spec.ts",
-          "**/auth-signout.spec.ts",
-          "**/checkout-page.spec.ts",
-          "**/checkout-pay-19.spec.ts",
-          "**/checkout-hosted.spec.ts",
-          "**/checkout-languages-22.spec.ts",
-          "**/checkout-server-db.spec.ts",
-          "**/intent-supersede-db.spec.ts",
-          "**/extras-charged-recorded-db.spec.ts",
-          "**/account-bookings-26-3.spec.ts",
-          "**/account-i18n-coverage-26-3.spec.ts",
-          "**/locale-follow-26-3.spec.ts",
-          "**/checkout-sections.spec.ts",
-          "**/checkout-account.spec.ts",
-          "**/checkout-other-device-265.spec.ts",
-          "**/pay-link-page.spec.ts",
-          "**/confirmation.spec.ts",
-          "**/confirmation-poll.spec.ts",
-          "**/contact.spec.ts",
-          "**/contact-form.spec.ts",
-          "**/contact-lifecycle.spec.ts",
-          "**/content-string-edit.spec.ts",
-          "**/currency.spec.ts",
-          "**/dev-exclusion.spec.ts",
-          "**/email-hook.spec.ts",
-          "**/error-pages.spec.ts",
-          "**/faq.spec.ts",
-          "**/feedback-behaviour.spec.ts",
-          "**/home.spec.ts",
-          "**/home-content.spec.ts",
-          "**/home-hero.spec.ts",
-          "**/home-how-it-works.spec.ts",
-          "**/home-reviews.spec.ts",
-          "**/home-services.spec.ts",
-          "**/home-widget.spec.ts",
-          "**/home-why-vamos.spec.ts",
-          "**/lang-switch.spec.ts",
-          "**/legal-cancellation-imprint.spec.ts",
-          "**/legal-notice.spec.ts",
-          "**/legal-privacy-cookies.spec.ts",
-          "**/legal-terms.spec.ts",
-          "**/public-routes.spec.ts",
-          "**/quote-api.spec.ts",
-          "**/ssr-locale.spec.ts",
-        ],
-      }
-    : {}),
+  // 26.0 D-01, three modes:
+  //   - macOS CI job (CI=1): offline darwin screenshots and file-read checks only. That runner
+  //     has no Docker, so the specs in E2E_SPECS (they boot Next or need the database) are ignored.
+  //   - Linux e2e job (CI=1 VAMOS_E2E=1): runs exactly E2E_SPECS against its own throwaway
+  //     Supabase stack. darwin screenshot assertions are skipped there (ignoreSnapshots); the
+  //     pictures are compared on the owner's Mac. No Linux baselines exist.
+  //   - local (neither set): every spec runs.
+  ...(process.env.VAMOS_E2E === "1"
+    ? { ignoreSnapshots: process.platform !== "darwin" }
+    : process.env.CI
+      ? { testIgnore: E2E_SPECS }
+      : {}),
   projects: Object.entries(VIEWPORTS).map(([label, viewport]) => ({
     name: `component-${label}`,
     use: {

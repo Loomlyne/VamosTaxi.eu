@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<script src="./support.js"></script>
+<!-- Ground colour + cover live in the STATIC head/body on purpose. The DC runtime
+     injects every stylesheet and script from <helmet> only after React has loaded, so
+     without these the arriving document paints uncovered frames before
+     vamos-page-transition.js exists and can build its overlay. That script adopts
+     #vt-boot-cover and removes it once its own sheet is painted at COVER; the 6s
+     animation below is the fallback for when the script never runs. -->
+<style id="vt-boot">html{background:#F6F6F6}body{margin:0}#vt-boot-cover{position:fixed;inset:0;z-index:2147483000;background:#F6F6F6;pointer-events:none;animation:vt-boot-fail 0s linear 6s forwards}@keyframes vt-boot-fail{to{visibility:hidden}}</style>
+</head>
+<body>
+<div id="vt-boot-cover" aria-hidden="true"></div>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/components/mobile/fig-tokens.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/components/mobile/fig-assets.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
+<script src="../vamos-i18n-dict.js"></script>
+<script src="../vamos-locale.js"></script>
+<style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}
+/* Button hover/press — colour step only, no shadow, no glow */
+.vt-btn{transition:background 140ms cubic-bezier(.2,0,.2,1),border-color 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1),transform 80ms cubic-bezier(.2,0,.2,1)}
+.vt-btn:hover,.vt-btn:active{box-shadow:none!important}
+.vt-btn--primary:hover:not([disabled]){background:var(--vt-accent-hover)}
+.vt-btn--primary:active:not([disabled]){background:var(--vt-accent-press);transform:translateY(1px)}
+.vt-btn:focus-visible{box-shadow:var(--vt-ring)!important}
+.vt-btn[disabled],.vt-btn[aria-disabled="true"]{transform:none}
+body{margin:0}a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}
+[data-cf-h1]{margin:0;font-family:var(--vt-font-display);font-size:clamp(30px,4.4vw,44px);font-weight:var(--vt-weight-semibold);letter-spacing:-.02em;line-height:1.1;color:var(--vt-text-primary);text-wrap:balance}
+[data-cf-sub]{margin:0;max-width:40ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary);text-wrap:pretty}
+[data-cf-dest]{display:flex;flex-direction:column;gap:5px;padding:16px 18px;border-radius:var(--vt-radius-md);background:var(--vt-grey-50);border:1px solid var(--vt-border-subtle)}
+[data-cf-dest-k]{font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-cf-dest-v]{font-family:var(--vt-font-display);font-size:var(--vt-body-lg);font-weight:var(--vt-weight-semibold);letter-spacing:-.01em;line-height:1.25;color:var(--vt-charcoal-900);overflow-wrap:anywhere;min-height:1.25em}
+[data-cf-skel]{display:block;height:1.25em;width:min(260px,80%);border-radius:var(--vt-radius-xs);background:var(--vt-grey-200);animation:vt-cf-pulse 1.2s ease-in-out infinite}
+[data-cf-other]{margin:0;padding:14px 16px;border-radius:var(--vt-radius-md);background:var(--vt-charcoal);color:var(--vt-white);font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);overflow-wrap:anywhere;unicode-bidi:plaintext;text-align:start}
+[data-cf-gone]{display:flex;align-items:flex-start;gap:12px;padding:16px 18px;border-radius:var(--vt-radius-md);background:var(--vt-grey-50);border:1px solid var(--vt-border-subtle)}
+[data-cf-gone] p{margin:0;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-charcoal-900);text-wrap:pretty}
+[data-cf-err]{margin:0;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-danger)}
+[data-cf-alt]{margin:0;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-muted)}
+[data-cf-alt] a{font-weight:var(--vt-weight-medium);color:var(--vt-text-secondary);text-decoration:underline;text-decoration-color:var(--vt-grey-400);text-underline-offset:3px}
+[data-cf-alt] a:hover{color:var(--vt-charcoal-900);text-decoration-color:currentColor}
+[data-cf-view]{animation:vt-cf-in 200ms var(--vt-ease-out) both}
+[data-cf-cta] .vt-btn,[data-cf-cta] button,[data-cf-cta] a{width:100%;min-height:54px}
+@keyframes vt-cf-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes vt-cf-pulse{50%{opacity:.5}}
+:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}
+button,.vt-btn{box-shadow:none}
+@media (prefers-reduced-motion:reduce){[data-cf-view],[data-cf-skel]{animation:none}}</style>
+</helmet>
+<div data-cf-root="1" style="width:100%;display:flex;flex-direction:column;gap:26px;font-family:var(--vt-font-body);color:var(--vt-text-primary)" role="region" aria-live="polite" aria-busy="{{ ariaBusy }}">
+
+<div data-cf-view="head" style="display:flex;flex-direction:column;gap:12px">
+<h1 data-cf-h1="1">{{ heading }}</h1>
+</div>
+
+<sc-if value="{{ isLoading }}" hint-placeholder-val="{{ true }}">
+<div data-cf-view="loading" style="display:flex;flex-direction:column;gap:26px">
+<div data-cf-dest="1" aria-hidden="true"><span data-cf-skel="1"></span></div>
+<div data-cf-cta="1" style="width:100%">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" block="{{ yes }}" disabled="{{ yes }}" hint-size="100%,54px">SIGN IN</x-import>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ isReady }}">
+<div data-cf-view="ready" style="display:flex;flex-direction:column;gap:26px">
+<div data-cf-dest="1">
+<sc-if value="{{ showSigningAs }}"><span data-cf-dest-k="1">You are signing in as</span></sc-if>
+<span data-cf-dest-v="1" translate="no" data-vt-no-i18n="1"><span class="vt-dir-keep" dir="ltr">{{ email }}</span></span>
+</div>
+<p data-cf-sub="1">Only continue if this is your e-mail address.</p>
+<sc-if value="{{ hasOther }}"><p data-cf-other="1" role="status">{{ otherLine }}</p></sc-if>
+<div style="display:flex;flex-direction:column;gap:14px">
+<div data-cf-cta="1" style="width:100%">
+<sc-if value="{{ isSignIn }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" block="{{ yes }}" disabled="{{ busy }}" onClick="{{ confirm }}" hint-size="100%,54px">SIGN IN</x-import></sc-if>
+<sc-if value="{{ isChange }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" block="{{ yes }}" disabled="{{ busy }}" onClick="{{ confirm }}" hint-size="100%,54px">CONFIRM</x-import></sc-if>
+</div>
+<sc-if value="{{ failed }}"><p data-cf-err="1" role="alert">Could not sign you in. Try again.</p></sc-if>
+</div>
+<p data-cf-alt="1"><span>Not you?</span> <a href="{{ requestHref }}">Request a new link</a></p>
+</div>
+</sc-if>
+
+<sc-if value="{{ isPending }}">
+<div data-cf-view="pending" style="display:flex;flex-direction:column;gap:26px">
+<div data-cf-dest="1">
+<span data-cf-dest-v="1" translate="no" data-vt-no-i18n="1"><span class="vt-dir-keep" dir="ltr">{{ email }}</span></span>
+</div>
+<p data-cf-sub="1" role="status">Now open the link we sent to your other address.</p>
+</div>
+</sc-if>
+
+<sc-if value="{{ isExpired }}">
+<div data-cf-view="expired" style="display:flex;flex-direction:column;gap:26px">
+<div data-cf-gone="1" role="alert">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-alert" size="{{ n22 }}" color="var(--vt-charcoal-900)" hint-size="22px,22px"></x-import>
+<p>This link has expired or was already used.</p>
+</div>
+<div data-cf-cta="1" style="width:100%">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="lg" block="{{ yes }}" href="{{ requestHref }}" hint-size="100%,54px">REQUEST A NEW LINK</x-import>
+</div>
+</div>
+</sc-if>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;surface&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;site&quot;,&quot;ops&quot;],&quot;default&quot;:&quot;site&quot;,&quot;tsType&quot;:&quot;'site'|'ops'&quot;}}">
+/* F12: the e-mailed sign-in link lands here. Opening it (GET) spends nothing: the address comes from the
+   server, the token is only used when the person presses the button (POST /api/auth/callback). */
+const REQUEST_RE = /^\/(?:(?:en|de|fr|ar)\/)?checkout(?:[/?#]|$)/;
+class Component extends DCLogic {
+  state = { view: 'loading', email: '', other: '', busy: false, failed: false, type: 'magiclink', requestHref: '/sign-in' };
+  link = { tokenHash: '', type: '', e: '', next: '', nextb: '' };
+  componentDidMount() {
+    const ops = this.props.surface === 'ops';
+    let q;
+    try { q = new URLSearchParams(location.search); } catch (x) { q = new URLSearchParams(''); }
+    this.link = {
+      tokenHash: q.get('token_hash') || '', type: q.get('type') || '', e: q.get('e') || '',
+      next: q.get('next') || '', nextb: q.get('nextb') || '',
+    };
+    /* The token leaves the address bar, history and any later Referer as soon as it is read. */
+    try { history.replaceState(null, '', location.pathname); } catch (x) {}
+    const target = this.link.nextb ? this.decode(this.link.nextb) : this.link.next;
+    const requestHref = ops ? '/login'
+      : (REQUEST_RE.test(target) && target.charAt(1) !== '/' ? '/sign-in?returnTo=' + encodeURIComponent(target) : '/sign-in');
+    const l = this.link;
+    if (!l.tokenHash || !l.type || !l.e) { this.setState({ view: 'expired', requestHref }); return; }
+    const get = (url) => fetch(url, { credentials: 'same-origin', cache: 'no-store' }).then((r) => r.json()).catch(() => null);
+    Promise.all([
+      get('/api/auth/confirm/preview?' + new URLSearchParams({ token_hash: l.tokenHash, type: l.type, e: l.e }).toString()),
+      get('/api/auth/session'),
+    ]).then((res) => {
+      const p = res[0], s = res[1];
+      if (!p || !p.ok || !p.email) { this.setState({ view: 'expired', requestHref }); return; }
+      const me = s && s.signedIn && s.email ? String(s.email) : '';
+      const other = l.type !== 'email_change' && me && me.toLowerCase() !== String(p.email).toLowerCase() ? me : '';
+      this.setState({ view: 'ready', email: p.email, other, type: l.type, requestHref });
+    });
+  }
+  decode(v) {
+    try {
+      const b = String(v).replace(/-/g, '+').replace(/_/g, '/');
+      return decodeURIComponent(escape(atob(b + '='.repeat((4 - (b.length % 4)) % 4))));
+    } catch (x) { return ''; }
+  }
+  confirm = () => {
+    if (this.state.busy) return;
+    const l = this.link;
+    this.setState({ busy: true, failed: false });
+    fetch('/api/auth/callback', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      credentials: 'same-origin',
+      cache: 'no-store',
+      body: JSON.stringify({ token_hash: l.tokenHash, type: l.type, e: l.e, next: l.next || undefined, nextb: l.nextb || undefined }),
+    }).then((r) => r.json().catch(() => null)).then((j) => {
+      if (j && j.ok && typeof j.target === 'string' && j.target.charAt(0) === '/' && j.target.charAt(1) !== '/') {
+        location.assign(j.target);
+        return;
+      }
+      /* E-mail change, first of two clicks: confirmed here, the link to the other address finishes it. */
+      if (j && j.ok && j.pending === true) { this.setState({ view: 'pending', busy: false }); return; }
+      if (j && j.code === 'expired') { this.setState({ view: 'expired', busy: false }); return; }
+      this.setState({ busy: false, failed: true });
+    }).catch(() => this.setState({ busy: false, failed: true }));
+  };
+  renderVals() {
+    const { view, email, other, busy, failed, type, requestHref } = this.state;
+    const change = type === 'email_change';
+    return {
+      n22: 22, yes: true,
+      isLoading: view === 'loading', isReady: view === 'ready', isPending: view === 'pending', isExpired: view === 'expired',
+      ariaBusy: view === 'loading' ? 'true' : 'false',
+      heading: change && (view === 'ready' || view === 'pending') ? 'Confirm your new e-mail address' : 'Sign in to Vamos Taxi',
+      email, busy, failed, requestHref,
+      showSigningAs: !change, isSignIn: !change, isChange: change,
+      hasOther: Boolean(other),
+      otherLine: other ? 'You are signed in as ' + other + '. Continuing signs you out of that account.' : '',
+      confirm: this.confirm,
+    };
+  }
+}
+
+</script>
+</body>
+</html>

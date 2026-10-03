@@ -25,26 +25,59 @@
 [data-ops-refund-full]{margin:0;font-size:var(--vt-body-md);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)}
 [data-ops-refund-unit] .vt-tab{height:44px;min-width:72px}
 [data-ops-decide-body]{margin:0;font-size:var(--vt-body-sm);line-height:1.6;color:var(--vt-text-secondary);text-wrap:pretty}
+/* 26.2 P1: the Edit fields stack on a phone so a value (the class list too) is never cut. */
+[data-ops-edit-grid]{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px}
+[data-ops-edit-grid]>*{min-width:0}
+[data-ops-class-box]{margin-top:14px;padding:14px 16px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);min-width:0}
+/* 26.2 P6: Edit of a paid trip in two groups — the trip (priced again, confirmed in the next step) and the
+   contact (saved at once). Layout only; every control is a kit component or PlaceSearch. */
+[data-ops-edit]{display:flex;flex-direction:column;gap:22px;container-type:inline-size;min-width:0}
+[data-ops-edit-group]{display:flex;flex-direction:column;gap:14px;min-width:0}
+[data-ops-edit-group]+[data-ops-edit-group]{padding-top:22px;border-top:1px solid var(--vt-border-subtle)}
+[data-ops-edit-h]{margin:0;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:600;color:var(--vt-text-muted)}
+[data-ops-edit-lead]{margin:4px 0 0;max-width:72ch;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);line-height:1.5;color:var(--vt-text-secondary);text-wrap:pretty}
+[data-ops-flight-row]{inline-size:calc(50% - 6px);min-width:0}
+[data-ops-trip-grid]{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+[data-ops-trip-grid]>*{min-width:0}
+[data-ops-span="2"]{grid-column:span 2}
+[data-ops-span="all"]{grid-column:1/-1}
+@container (max-width:760px){[data-ops-trip-grid]{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@container (max-width:520px){[data-ops-trip-grid] [data-ops-span]{grid-column:1/-1}[data-ops-flight-row]{inline-size:100%}}
+@container (max-width:280px){[data-ops-trip-grid]{grid-template-columns:minmax(0,1fr)}}
+[data-ops-change-box]{margin-top:2px;display:flex;flex-direction:column;gap:12px}
+/* A narrow box: the big figure goes under its label instead of past the box edge. */
+[data-ops-change-box] .vt-price__total,[data-ops-confirm] .vt-price__total{flex-wrap:wrap;row-gap:6px}
+@container (max-width:420px){[data-ops-change-box]{padding:12px}}
+[data-ops-chg-kicker]{margin:0;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:600;color:var(--vt-text-muted)}
+[data-ops-chg-list]{display:flex;flex-direction:column;min-width:0}
+[data-ops-chg-row]{display:grid;grid-template-columns:minmax(7rem,150px) minmax(0,1fr);gap:4px 14px;align-items:baseline;padding-block:9px;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);line-height:1.45}
+[data-ops-chg-row]+[data-ops-chg-row]{border-top:1px solid var(--vt-border-subtle)}
+[data-ops-chg-k]{color:var(--vt-text-muted);min-width:0}
+[data-ops-chg-v]{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;min-width:0}
+[data-ops-chg-old]{color:var(--vt-text-muted);text-decoration:line-through;text-decoration-thickness:1px;overflow-wrap:anywhere;unicode-bidi:isolate}
+[data-ops-chg-new]{color:var(--vt-text-primary);font-weight:var(--vt-weight-semibold);overflow-wrap:anywhere;unicode-bidi:isolate}
+[data-ops-chg-arrow]{display:inline-flex;align-self:center}
+[data-ops-chg-busy]{margin:0;display:flex;align-items:center;gap:10px;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-secondary)}
+[data-ops-spin]{inline-size:14px;block-size:14px;flex:0 0 auto;border-radius:999px;border:2px solid var(--vt-grey-200);border-top-color:var(--vt-charcoal-900);animation:vt-ops-spin .7s linear infinite}
+@keyframes vt-ops-spin{to{transform:rotate(360deg)}}
+[data-ops-chg-same]{margin:0;padding-top:10px;border-top:2px solid var(--vt-charcoal-900);font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)}
+[data-ops-chg-driver]{display:flex;align-items:flex-start;gap:8px}
+[data-ops-chg-driver] > :first-child{flex:0 0 auto;margin-top:3px}
+[data-ops-clash]{display:flex;flex-direction:column;gap:10px}
+[data-ops-choice]{border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-bg-surface);overflow:hidden}
+[data-ops-choice-row]+[data-ops-choice-row]{border-block-start:1px solid var(--vt-border-subtle)}
+[data-ops-choice-row] .vt-check{display:flex;width:100%;box-sizing:border-box;min-height:44px;padding:12px 16px}
+[data-ops-choice-row] .vt-check__text{min-width:0;overflow-wrap:anywhere}
+[data-ops-confirm]{display:flex;flex-direction:column;gap:14px;min-width:0}
+[data-ops-confirm] [data-ops-chg-row]{grid-template-columns:minmax(0,1fr)}
+[data-ops-confirm] [data-ops-decide-body]{margin:0}
+@media (max-width:680px){[data-ops-chg-row]{grid-template-columns:minmax(0,1fr)}}
 [data-ops-decide-foot]{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--vt-border-subtle)}
-[data-ops-detail-bar]{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:start;column-gap:12px;row-gap:10px;width:100%}
-[data-ops-bar-nav]{grid-column:1;display:flex;flex-wrap:nowrap;align-items:center}
-[data-ops-bar-main]{grid-column:2;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px}
-[data-ops-bar-end]{grid-column:3;justify-self:end;margin-inline-start:auto;display:flex;flex-wrap:nowrap;align-items:center;gap:8px}
-[data-ops-bar-cluster]{display:flex;flex-wrap:nowrap;align-items:center;gap:8px}
-[data-ops-bar-cluster]:not(:has(x-import,button,.vt-btn)){display:none}
-[data-ops-bar-cluster]:has(.vt-btn)~[data-ops-bar-cluster]:has(.vt-btn),[data-ops-bar-cluster]:has(x-import)~[data-ops-bar-cluster]:has(x-import){padding-inline-start:16px;border-inline-start:1px solid var(--vt-border-subtle)}
-@media (max-width:860px){
-[data-ops-detail-bar]{grid-template-columns:auto minmax(0,1fr)}
-[data-ops-bar-nav]{grid-column:1;grid-row:1}
-[data-ops-bar-end]{grid-column:2;grid-row:1;justify-self:end;min-width:0;flex-wrap:wrap;justify-content:flex-end}
-[data-ops-bar-main]{grid-column:1/-1;grid-row:2}
-}
-@media (max-width:520px){
-[data-ops-detail-bar]{grid-template-columns:minmax(0,1fr)}
-[data-ops-bar-nav]{grid-column:1;grid-row:1}
-[data-ops-bar-end]{grid-column:1;grid-row:2;justify-self:start;margin-inline-start:0}
-[data-ops-bar-main]{grid-column:1;grid-row:3}
-}
+[data-ops-detail-bar]{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 12px;width:100%}
+[data-ops-bar-nav]{display:flex;flex-wrap:nowrap;align-items:center;min-width:0}
+[data-ops-bar-end]{margin-inline-start:auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:8px;min-width:0}
+[data-ops-bar-end]:not(:has(x-import,dc-import,button,.vt-btn)){display:none}
+[data-ops-edit-acts]{display:contents}
 [data-ops-detail-col]{min-width:0;width:100%;display:flex;flex-direction:column;gap:14px}
 [data-ops-route-leg]{display:grid;grid-template-columns:14px minmax(0,1fr);grid-template-rows:auto auto auto;column-gap:12px;align-items:stretch}
 [data-ops-route-pip]{grid-column:1;grid-row:1;align-self:start;margin-top:4px;position:relative;z-index:1;inline-size:10px;block-size:10px;border-radius:var(--vt-radius-pill);background:var(--vt-accent);border:2px solid var(--vt-charcoal-900);box-sizing:content-box}
@@ -61,11 +94,28 @@
 [data-ops-tags]{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
 [data-ops-tag]{display:inline-flex;align-items:center;gap:6px;min-height:28px;padding:4px 10px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-pill);background:var(--vt-bg-surface);font-family:var(--vt-font-body);font-size:var(--vt-body-xs);line-height:1.3;color:var(--vt-text-primary)}
 [data-ops-tag] b{font-weight:600;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-muted);font-size:10px}
-[data-ops-assign-head]{display:flex;align-items:center;gap:12px;padding-bottom:12px;border-bottom:1px solid var(--vt-border-subtle)}
-[data-ops-assign-body]{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:12px}
-[data-ops-assign-list]{flex:1 1 220px;min-width:0}
-[data-ops-assign-side]{flex:0 0 auto;display:flex;align-items:center;gap:8px}
-[data-ops-assign-side]:not(:has(.vt-btn,x-import)){display:none}
+/* 261001-chauffeur-car, decision 7: Assign is one row — Driver [Choose a chauffeur ▾] [ASSIGN];
+   assigned, it reads "Name · Plate" with Change and Unassign as text buttons. */
+[data-ops-assign-row]{grid-column:2;min-width:0;max-inline-size:640px;display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+[data-ops-assign-select]{flex:1 1 240px;min-width:0}
+[data-ops-assign-row="done"]{gap:4px 12px}
+[data-ops-assign-line]{min-width:0;overflow-wrap:anywhere;font-size:var(--vt-body-sm);font-weight:600;line-height:1.4;color:var(--vt-text-primary)}
+[data-ops-assign-act]{display:inline-flex;flex-wrap:wrap;align-items:center;gap:4px}
+[data-ops-assign-act] .vt-btn{min-height:44px;padding-inline:10px;border-color:transparent;background:transparent;text-decoration:underline;text-underline-offset:3px}
+[data-ops-assign-act] .vt-btn.vt-btn--ghost:hover:not([disabled]){border-color:transparent;background:var(--vt-grey-50)}
+[data-ops-assign] [data-ops-pax-k]{align-self:center;padding-top:0}
+[data-ops-assign-under]{grid-column:2;max-inline-size:640px}
+[data-ops-assign-note]{margin:0;font-size:var(--vt-body-sm);line-height:1.5;color:var(--vt-text-muted)}
+[data-ops-assign-err]{margin:0;display:flex;align-items:flex-start;gap:8px;font-size:var(--vt-body-sm);line-height:1.5;color:var(--vt-danger);text-wrap:pretty}
+[data-ops-assign-err] > :first-child{flex:0 0 auto;margin-top:2px}
+/* Phone: the dropdown full width, ASSIGN full width under it. */
+@media (max-width:680px){
+[data-ops-assign-row]{grid-column:1/-1}
+[data-ops-assign-row="pick"]{flex-direction:column;align-items:stretch}
+[data-ops-assign-row="pick"] .vt-btn{width:100%}
+[data-ops-assign-select]{flex:0 0 auto}
+[data-ops-assign-under]{grid-column:1/-1}
+}
 [data-ops-pax] > h3{overflow:visible;white-space:normal}
 [data-ops-pax-grid]{display:grid;grid-template-columns:minmax(7rem,132px) minmax(0,1fr);gap:8px 14px;align-items:start;font-family:var(--vt-font-body);font-size:var(--vt-body-sm)}
 [data-ops-pax-k]{color:var(--vt-text-muted);min-width:0;padding-top:2px}
@@ -77,46 +127,19 @@
 <div data-ops-bar-nav>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" icon="chevron-left" onClick="{{ goBack }}" hint-size="auto,36px">{{ tBackToBookings }}</x-import>
 </div>
-<div data-ops-bar-main>
-<sc-if value="{{ viewing }}" hint-placeholder-val="{{ true }}">
-<div data-ops-bar-cluster data-ops-bar-assign>
-<sc-if value="{{ canAssign }}" hint-placeholder-val="{{ true }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="{{ assignVariant }}" onClick="{{ openAssignDialog }}" hint-size="170px,36px">{{ assignLabel }}</x-import>
-</sc-if>
-<sc-if value="{{ canUnassign }}" hint-placeholder-val="{{ false }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ confirmUnassign }}" hint-size="110px,36px">{{ tUnassign }}</x-import>
-</sc-if>
-</div>
-<div data-ops-bar-cluster data-ops-bar-utils>
-<sc-if value="{{ canEdit }}" hint-placeholder-val="{{ true }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" icon="pencil" onClick="{{ openEdit }}" hint-size="140px,36px">{{ tEditBooking }}</x-import>
-</sc-if>
-</div>
-<div data-ops-bar-cluster data-ops-bar-trip>
-<sc-if value="{{ canAction }}" hint-placeholder-val="{{ true }}">
-<dc-import name="BrandSelect" size="compact" icon="settings" placeholder="{{ tAction }}" value="{{ actionValue }}" options="{{ actionOptions }}" onSelect="{{ pickAction }}" a11y-label="{{ tAction }}" hint-size="160px,36px"></dc-import>
-</sc-if>
-<sc-if value="{{ canNoShow }}" hint-placeholder-val="{{ true }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ markNoShow }}" hint-size="120px,36px">{{ tNoShow }}</x-import>
-</sc-if>
-</div>
-</sc-if>
-</div>
 <div data-ops-bar-end>
-<sc-if value="{{ viewing }}" hint-placeholder-val="{{ true }}">
-<sc-if value="{{ canCancel }}" hint-placeholder-val="{{ true }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="danger" icon="x" onClick="{{ openCancel }}" hint-size="110px,36px">{{ tCancelBooking }}</x-import>
-</sc-if>
-<sc-if value="{{ canFullRefund }}" hint-placeholder-val="{{ false }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="primary" disabled="{{ refundBusy }}" onClick="{{ markRefund }}" hint-size="200px,36px">{{ tMarkRefund }}</x-import>
-</sc-if>
-<sc-if value="{{ postTripEligible }}" hint-placeholder-val="{{ false }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="primary" disabled="{{ refundBusy }}" onClick="{{ openRequested }}" hint-size="200px,36px">{{ tMarkRefund }}</x-import>
-</sc-if>
+<sc-if value="{{ showActions }}" hint-placeholder-val="{{ true }}">
+<div data-ops-fold="1">
+<dc-import name="ActionsMenu" label="{{ tActions }}" items="{{ actionItems }}" onPick="{{ pickAction }}" tone="light" size="sm" hint-size="130px,36px"></dc-import>
+</div>
 </sc-if>
 <sc-if value="{{ editing }}" hint-placeholder-val="{{ false }}">
+<!-- 26.2 P6: "Save changes" when only the contact, note or flight changed (saved at once); "Continue" when
+     the trip changed (the next step shows the price and asks you to confirm). -->
+<span data-ops-edit-acts data-vt-no-i18n="1">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ cancelEdit }}" hint-size="110px,36px">{{ tCancelEdit }}</x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="primary" onClick="{{ saveEdit }}" hint-size="150px,36px">{{ tContinue }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="primary" onClick="{{ saveEdit }}" hint-size="150px,36px">{{ tEditPrimary }}</x-import>
+</span>
 </sc-if>
 </div>
 </div>
@@ -172,47 +195,145 @@
 </sc-for>
 </div>
 
-<div data-ops-assign>
-<div data-ops-assign-head>
-<span style="flex:1 1 auto;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:600;color:var(--vt-text-muted)">{{ tAssignment }}</span>
+<div data-ops-assign ref="{{ assignRef }}">
+<h3 style="margin:0 0 12px;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:600;color:var(--vt-text-muted)">{{ tAssignment }}</h3>
+<div data-ops-pax-grid>
+<span data-ops-pax-k>{{ tDriver }}</span>
+<sc-if value="{{ showAssigned }}" hint-placeholder-val="{{ false }}">
+<div data-ops-assign-row="done">
+<span data-ops-assign-line data-vt-no-i18n="1">{{ driverLine }}</span>
+<span data-ops-assign-act>
+<sc-if value="{{ canAssign }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" onClick="{{ openChange }}" hint-size="90px,44px">{{ tChange }}</x-import>
+</sc-if>
+<sc-if value="{{ canUnassign }}" hint-placeholder-val="{{ true }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" onClick="{{ confirmUnassign }}" hint-size="110px,44px">{{ tUnassign }}</x-import>
+</sc-if>
+</span>
 </div>
-<div data-ops-assign-body>
-<div data-ops-assign-list>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.List" hint-size="100%,72px">
-<sc-if value="{{ hasDriver }}" hint-placeholder-val="{{ false }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.ListRow" icon="car-front" title="{{ driverName }}" subtitle="{{ driverVehicle }}" hint-size="100%,60px"></x-import>
 </sc-if>
-<sc-if value="{{ noDriver }}" hint-placeholder-val="{{ true }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.ListRow" icon="triangle-alert" title="{{ tNoDriver }}" subtitle="{{ tNoDriverSub }}" hint-size="100%,60px"></x-import>
-</sc-if>
-</x-import>
+<sc-if value="{{ showAssignPicker }}" hint-placeholder-val="{{ true }}">
+<div data-ops-assign-row="pick">
+<div data-ops-assign-select data-vt-no-i18n="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Select" size="md" options="{{ driverOptions }}" value="{{ pickDriver }}" placeholder="{{ tChooseChauffeur }}" onChange="{{ pickDriverFromSelect }}" aria-label="{{ tChooseChauffeur }}" hint-size="100%,44px"></x-import>
 </div>
-<div data-ops-assign-side>
-<sc-if value="{{ showAssignSide }}" hint-placeholder-val="{{ true }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="primary" onClick="{{ openAssignDialog }}" hint-size="140px,36px">{{ tAssign }}</x-import>
-</sc-if>
-<sc-if value="{{ canUnassign }}" hint-placeholder-val="{{ false }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ confirmUnassign }}" hint-size="110px,36px">{{ tUnassign }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="primary" disabled="{{ assignDisabled }}" onClick="{{ confirmAssign }}" hint-size="130px,44px">{{ tAssignBtn }}</x-import>
+<sc-if value="{{ assignCancelable }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" onClick="{{ closeAssign }}" hint-size="110px,44px">{{ tCancel }}</x-import>
 </sc-if>
 </div>
+</sc-if>
+<sc-if value="{{ showNoDriverText }}" hint-placeholder-val="{{ false }}">
+<span data-ops-pax-v style="display:flex;flex-direction:column;gap:2px"><span>{{ tNoDriver }}</span><span style="font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tNoDriverSub }}</span></span>
+</sc-if>
+<sc-if value="{{ showNoDrivers }}" hint-placeholder-val="{{ false }}">
+<p data-ops-assign-note data-ops-assign-under>{{ tNoDrivers }}</p>
+</sc-if>
+<sc-if value="{{ hasAssignError }}" hint-placeholder-val="{{ false }}">
+<p data-ops-assign-err data-ops-assign-under role="alert"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="triangle-alert" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import><span data-vt-no-i18n="1">{{ assignError }}</span></p>
+</sc-if>
 </div>
 </div>
 
 <div data-ops-pax>
+<sc-if value="{{ viewing }}" hint-placeholder-val="{{ true }}">
 <h3 style="margin:0 0 12px;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:600;color:var(--vt-text-muted)">{{ tPassengerTrip }}</h3>
+</sc-if>
 <sc-if value="{{ editing }}" hint-placeholder-val="{{ false }}">
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+<!-- 26.2 P6 (D1–D8): two groups. The trip (places, date, time, party, class) is priced again and
+     confirmed in the next step; the contact and the note are saved at once. Every label below comes
+     from this page's own four-language table, so the runtime leaves the subtree alone. -->
+<div data-ops-edit data-vt-no-i18n="1">
+<section data-ops-edit-group="trip">
+<div>
+<h3 data-ops-edit-h>{{ tEditTripHead }}</h3>
+<p data-ops-edit-lead>{{ tEditTripLead }}</p>
+</div>
+<sc-if value="{{ tripLocked }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="info" title="{{ tTripTooLate }}" hint-size="100%,56px"></x-import>
+</sc-if>
+<!-- Booking field order (owner, 2026-09-30): Flight → From → To → When → Travellers. The flight
+     shows only for an airport pickup, before the pickup; it is saved at once (D8). -->
+<sc-if value="{{ flightShown }}" hint-placeholder-val="{{ false }}">
+<div data-ops-flight-row>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" icon="plane" label="{{ tFlight }}" value="{{ edit.flight }}" onChange="{{ setEditFlight }}" hint="{{ flightHint }}" error="{{ flightError }}" hint-size="100%,96px"></x-import>
+</div>
+</sc-if>
+<div data-ops-trip-grid>
+<div data-ops-span="2">
+<dc-import name="PlaceSearch" label="{{ tPickup }}" value="{{ edit.pickup }}" picked="{{ pickupPicked }}" error="{{ pickupError }}" disabled="{{ tripLocked }}" locale="{{ geoLang }}" onText="{{ typePickup }}" onPick="{{ pickPickup }}" hint-size="100%,76px"></dc-import>
+</div>
+<div data-ops-span="2">
+<dc-import name="PlaceSearch" label="{{ tDropoff }}" value="{{ edit.dropoff }}" picked="{{ dropoffPicked }}" error="{{ dropoffError }}" disabled="{{ tripLocked }}" locale="{{ geoLang }}" onText="{{ typeDropoff }}" onPick="{{ pickDropoff }}" hint-size="100%,76px"></dc-import>
+</div>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" icon="calendar" label="{{ tDate }}" value="{{ edit.dateIso }}" onChange="{{ setEditDate }}" disabled="{{ tripLocked }}" error="{{ dateError }}" inputMode="numeric" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" icon="clock" label="{{ tTime }}" value="{{ edit.time }}" onChange="{{ setEditTime }}" disabled="{{ tripLocked }}" error="{{ timeError }}" inputMode="numeric" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" icon="users" label="{{ tPassengers }}" value="{{ edit.pax }}" onChange="{{ setEditPax }}" disabled="{{ tripLocked }}" error="{{ paxError }}" inputMode="numeric" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" icon="luggage" label="{{ tBagsLabel }}" value="{{ edit.bags }}" onChange="{{ setEditBags }}" disabled="{{ tripLocked }}" error="{{ bagsError }}" inputMode="numeric" hint-size="100%,76px"></x-import>
+<div data-ops-span="2">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Select" size="md" label="{{ tVehicleClass }}" options="{{ classOptions }}" value="{{ classValue }}" onChange="{{ setEditKlass }}" disabled="{{ classSelectOff }}" hint="{{ classHint }}" error="{{ classError }}" hint-size="100%,76px"></x-import>
+</div>
+</div>
+<!-- 26.2 P1 + P6: the change box — every changed field old → new, then paid so far, new total and the
+     difference (today's price book), or "no new price" for a time or party change (D1, D5). Nothing is
+     written before the confirm step; the server prices again. -->
+<sc-if value="{{ changeBoxShown }}" hint-placeholder-val="{{ false }}">
+<div data-ops-class-box data-ops-change-box>
+<p data-ops-chg-kicker>{{ tWhatChanges }}</p>
+<div data-ops-chg-list>
+<sc-for list="{{ changeRows }}" as="c" hint-placeholder-count="2">
+<div data-ops-chg-row>
+<span data-ops-chg-k>{{ c.k }}</span>
+<span data-ops-chg-v><span data-ops-chg-old>{{ c.o }}</span><span data-ops-chg-arrow aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n14 }}" color="var(--vt-text-muted)" hint-size="14px,14px"></x-import></span><span data-ops-chg-new>{{ c.n }}</span></span>
+</div>
+</sc-for>
+</div>
+<sc-if value="{{ changeBusy }}" hint-placeholder-val="{{ false }}">
+<p data-ops-chg-busy role="status"><i data-ops-spin aria-hidden="true"></i><span>{{ tClassLoading }}</span></p>
+</sc-if>
+<sc-if value="{{ classBoxShown }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.PriceSummary" lines="{{ classBoxLines }}" total="{{ classBoxTotal }}" totalLabel="{{ classBoxTotalLabel }}" hint-size="100%,150px"></x-import>
+</sc-if>
+<sc-if value="{{ noPriceShown }}" hint-placeholder-val="{{ false }}">
+<p data-ops-chg-same>{{ tNoNewPrice }}</p>
+</sc-if>
+<sc-if value="{{ changeNoteShown }}" hint-placeholder-val="{{ false }}">
+<p data-ops-decide-body>{{ classBoxNote }}</p>
+</sc-if>
+<sc-if value="{{ driverNoteShown }}" hint-placeholder-val="{{ false }}">
+<p data-ops-decide-body data-ops-chg-driver><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="user" size="{{ n14 }}" color="var(--vt-text-muted)" hint-size="14px,14px"></x-import><span>{{ driverNote }}</span></p>
+</sc-if>
+<!-- D7: the assigned driver stays; if the new time clashes with another of his trips, you choose. -->
+<sc-if value="{{ clashShown }}" hint-placeholder-val="{{ false }}">
+<div data-ops-clash>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" title="{{ clashTitle }}" hint-size="100%,70px">{{ clashBody }}</x-import>
+<div data-ops-choice role="radiogroup" aria-label="{{ clashTitle }}">
+<div data-ops-choice-row>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Radio" name="ops-clash" label="{{ clashKeepLabel }}" description="{{ tClashKeepSub }}" checked="{{ clashKeepOn }}" onChange="{{ pickClashKeep }}" hint-size="100%,44px"></x-import>
+</div>
+<div data-ops-choice-row>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Radio" name="ops-clash" label="{{ clashOffLabel }}" description="{{ tClashOffSub }}" checked="{{ clashOffOn }}" onChange="{{ pickClashOff }}" hint-size="100%,44px"></x-import>
+</div>
+</div>
+</div>
+</sc-if>
+</div>
+</sc-if>
+</section>
+<section data-ops-edit-group="contact">
+<div>
+<h3 data-ops-edit-h>{{ tEditContactHead }}</h3>
+<p data-ops-edit-lead>{{ tEditContactLead }}</p>
+</div>
+<div data-ops-edit-grid>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tCustomer }}" value="{{ edit.customer }}" onChange="{{ setEditCustomer }}" hint-size="100%,76px"></x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tEmail }}" value="{{ edit.email }}" onChange="{{ setEditEmail }}" hint-size="100%,76px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tMobile }}" value="{{ edit.phone }}" onChange="{{ setEditPhone }}" hint-size="100%,76px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tVehicleClass }}" value="{{ edit.klass }}" onChange="{{ setEditKlass }}" hint-size="100%,76px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tPickup }}" value="{{ edit.pickup }}" onChange="{{ setEditPickup }}" hint-size="100%,76px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tDropoff }}" value="{{ edit.dropoff }}" onChange="{{ setEditDropoff }}" hint-size="100%,76px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tDate }}" value="{{ edit.dateIso }}" onChange="{{ setEditDate }}" hint-size="100%,76px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tTime }}" value="{{ edit.time }}" onChange="{{ setEditTime }}" hint-size="100%,76px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tPassengers }}" value="{{ edit.pax }}" onChange="{{ setEditPax }}" hint-size="100%,76px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tBagsLabel }}" value="{{ edit.bags }}" onChange="{{ setEditBags }}" hint-size="100%,76px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tFlight }}" value="{{ edit.flight }}" onChange="{{ setEditFlight }}" hint-size="100%,76px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" label="{{ tMobile }}" value="{{ edit.phone }}" onChange="{{ setEditPhone }}" dir="ltr" inputMode="tel" hint-size="100%,76px"></x-import>
+<div data-ops-span="all">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Textarea" label="{{ tNote }}" value="{{ edit.note }}" onChange="{{ setEditNote }}" rows="{{ n3 }}" hint="{{ tNoteHint }}" hint-size="100%,120px"></x-import>
+</div>
+</div>
+</section>
 </div>
 </sc-if>
 <sc-if value="{{ viewing }}" hint-placeholder-val="{{ true }}">
@@ -222,22 +343,35 @@
 <span data-ops-pax-k>{{ tEmail }}</span>
 <span data-ops-pax-v data-vt-no-i18n="1">{{ emailTitle }}</span>
 <span data-ops-pax-k>{{ tMobile }}</span>
-<span data-ops-pax-v data-vt-no-i18n="1">{{ phoneTitle }}</span>
+<span data-ops-pax-v data-vt-no-i18n="1"><span class="vt-dir-keep">{{ phoneTitle }}</span></span>
 <span data-ops-pax-k>{{ tPassengers }}</span>
 <span data-ops-pax-v data-ops-pax-facts>
 <span data-vt-pb="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="users" size="{{ n14 }}" color="var(--vt-text-muted)" hint-size="14px,14px"></x-import><span data-vt-no-i18n="1">{{ paxText }}</span></span>
 <span data-vt-pb="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="luggage" size="{{ n14 }}" color="var(--vt-text-muted)" hint-size="14px,14px"></x-import><span data-vt-no-i18n="1">{{ bagsText }}</span></span>
 </span>
+<!-- 26.2 P6: the note you keep on the booking (Edit → Contact and note); only you see it. -->
+<sc-if value="{{ hasNote }}" hint-placeholder-val="{{ false }}">
+<span data-ops-pax-k data-vt-no-i18n="1">{{ tNote }}</span>
+<span data-ops-pax-v data-vt-no-i18n="1" style="white-space:pre-line">{{ noteText }}</span>
+</sc-if>
 </div>
 </sc-if>
 </div>
 
 <sc-if value="{{ hasPendingEdit }}" hint-placeholder-val="{{ false }}">
+<sc-if value="{{ pendingNeedsAnswer }}" hint-placeholder-val="{{ true }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="info" title="{{ tPendingEditTitle }}" hint-size="100%,70px">{{ pendingEditDiff }}</x-import>
 <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="primary" onClick="{{ acceptPending }}" hint-size="120px,36px">{{ tAccept }}</x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="secondary" onClick="{{ refusePending }}" hint-size="120px,36px">{{ tRefuse }}</x-import>
 </div>
+</sc-if>
+<!-- 26.2 P1: your dearer class change waits for the customer's payment of the difference (D1, D4). -->
+<sc-if value="{{ pendingClassWait }}" hint-placeholder-val="{{ false }}">
+<div data-vt-no-i18n="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="info" title="{{ tClassWaitingTitle }}" hint-size="100%,70px">{{ classWaitingLine }}</x-import>
+</div>
+</sc-if>
 <sc-if value="{{ hasExtraPay }}" hint-placeholder-val="{{ false }}">
 <div data-ops-extra-pay style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="primary" icon="external-link" onClick="{{ openExtraPay }}" hint-size="220px,36px">{{ tOpenStripe }}</x-import>
@@ -304,7 +438,7 @@
 </div>
 </sc-if>
 <sc-if value="{{ refundFormShown }}" hint-placeholder-val="{{ false }}">
-<div data-ops-refund-region>
+<div data-ops-refund-region ref="{{ refundRef }}">
 <sc-if value="{{ reviewShown }}" hint-placeholder-val="{{ false }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="info" title="{{ tReviewTitle }}" hint-size="100%,70px">{{ tReviewBody }}</x-import>
 </sc-if>
@@ -322,6 +456,11 @@
 </sc-if>
 <sc-if value="{{ fullShown }}" hint-placeholder-val="{{ false }}">
 <p data-ops-refund-full>{{ fullLine }}</p>
+</sc-if>
+<!-- 26.2 P1: a cheaper class left exactly this much due; nothing goes to Stripe before your click. -->
+<sc-if value="{{ creditShown }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" title="{{ tRefundTitle }}" hint-size="100%,70px">{{ tClassCreditBody }}</x-import>
+<p data-ops-refund-full>{{ creditLine }}</p>
 </sc-if>
 <sc-if value="{{ unitSwitchShown }}" hint-placeholder-val="{{ false }}">
 <div data-ops-refund-unit>
@@ -350,7 +489,7 @@
 </div>
 </sc-if>
 <sc-if value="{{ requestedShown }}" hint-placeholder-val="{{ false }}">
-<div data-ops-refund-region>
+<div data-ops-refund-region ref="{{ refundRef }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="info" title="{{ tRequestedTitle }}" hint-size="100%,70px">{{ tRequestedBody }}</x-import>
 <div data-ops-refund-row>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="primary" disabled="{{ refundBusy }}" aria-busy="{{ acceptBusy }}" onClick="{{ acceptPostTrip }}" hint-size="170px,44px">{{ tAcceptRefund }}</x-import>
@@ -359,7 +498,7 @@
 </div>
 </sc-if>
 <sc-if value="{{ refundFailedShown }}" hint-placeholder-val="{{ false }}">
-<div data-ops-refund-region>
+<div data-ops-refund-region ref="{{ refundRef }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Alert" tone="danger" title="{{ tRefundFailedTitle }}" hint-size="100%,70px">{{ tRefundFailedBody }}</x-import>
 <div data-ops-refund-row>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" disabled="{{ refundBusy }}" onClick="{{ retryRefund }}" hint-size="140px,44px">{{ tTryAgain }}</x-import>
@@ -369,13 +508,51 @@
 </div>
 </x-import>
 
-<sc-if value="{{ dialogOpen }}" hint-placeholder-val="{{ false }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" title="{{ tAssignDriver }}" size="sm" subtitle="{{ dialogSubtitle }}" onClose="{{ closeDialog }}" hint-size="400px,280px">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Select" label="{{ tDriver }}" options="{{ driverOptions }}" value="{{ pickDriver }}" onChange="{{ setPickDriver }}" hint-size="100%,78px"></x-import>
-<p style="font-family:var(--vt-font-body);font-size:var(--vt-body-xs);color:var(--vt-text-muted);margin:16px 0 0">{{ tManualNote }}</p>
-<div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--vt-border-subtle)">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" onClick="{{ closeDialog }}" hint-size="90px,44px">{{ tCancel }}</x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" onClick="{{ confirmAssign }}" hint-size="90px,44px">{{ tAssign }}</x-import>
+<!-- 26.2 P1 + P6: the confirm step of a class or trip change. Nothing is written before you confirm. -->
+<sc-if value="{{ classConfirmOpen }}" hint-placeholder-val="{{ false }}">
+<div data-vt-no-i18n="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" title="{{ tClassConfirmTitle }}" size="md" subtitle="{{ booking.id }}" onClose="{{ closeClassConfirm }}" hint-size="560px,520px">
+<div data-ops-confirm data-vt-no-i18n="1">
+<div data-ops-chg-list>
+<sc-for list="{{ changeRows }}" as="c" hint-placeholder-count="2">
+<div data-ops-chg-row>
+<span data-ops-chg-k>{{ c.k }}</span>
+<span data-ops-chg-v><span data-ops-chg-old>{{ c.o }}</span><span data-ops-chg-arrow aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n14 }}" color="var(--vt-text-muted)" hint-size="14px,14px"></x-import></span><span data-ops-chg-new>{{ c.n }}</span></span>
+</div>
+</sc-for>
+</div>
+<sc-if value="{{ classBoxShown }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.PriceSummary" lines="{{ classBoxLines }}" total="{{ classBoxTotal }}" totalLabel="{{ classBoxTotalLabel }}" hint-size="100%,150px"></x-import>
+</sc-if>
+<sc-if value="{{ noPriceShown }}" hint-placeholder-val="{{ false }}">
+<p data-ops-chg-same>{{ tNoNewPrice }}</p>
+</sc-if>
+<p data-ops-decide-body>{{ classBoxNote }}</p>
+<sc-if value="{{ classDriverOff }}" hint-placeholder-val="{{ false }}">
+<p data-ops-decide-body>{{ tClassNoteDriver }}</p>
+</sc-if>
+<sc-if value="{{ confirmDriverShown }}" hint-placeholder-val="{{ false }}">
+<p data-ops-decide-body>{{ confirmDriverNote }}</p>
+</sc-if>
+<sc-if value="{{ alsoSavedShown }}" hint-placeholder-val="{{ false }}">
+<p data-ops-decide-body>{{ alsoSavedLine }}</p>
+</sc-if>
+</div>
+<div data-ops-decide-foot>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="outline" disabled="{{ classBusy }}" onClick="{{ closeClassConfirm }}" hint-size="150px,44px">{{ tClassKeep }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="primary" disabled="{{ classBusy }}" aria-busy="{{ classBusyAria }}" onClick="{{ confirmClassChange }}" hint-size="170px,44px">{{ tClassConfirm }}</x-import>
+</div>
+</x-import>
+</div>
+</sc-if>
+
+<!-- 26.2 P1 (owner sign-off 2026-10-01): withdraw your dearer class change that waits for the payment. -->
+<sc-if value="{{ withdrawOpen }}" hint-placeholder-val="{{ false }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" title="{{ tWithdrawTitle }}" size="sm" subtitle="{{ booking.id }}" onClose="{{ closeWithdraw }}" hint-size="400px,260px">
+<p data-ops-decide-body>{{ tWithdrawBody }}</p>
+<div data-ops-decide-foot>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="outline" disabled="{{ withdrawBusy }}" onClick="{{ closeWithdraw }}" hint-size="170px,44px">{{ tWithdrawKeep }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="primary" disabled="{{ withdrawBusy }}" aria-busy="{{ withdrawBusyAria }}" onClick="{{ confirmWithdraw }}" hint-size="170px,44px">{{ tWithdrawChange }}</x-import>
 </div>
 </x-import>
 </sc-if>
@@ -414,7 +591,7 @@
 </sc-if>
 
 <sc-if value="{{ showToast }}" hint-placeholder-val="{{ false }}">
-<div style="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:60">
+<div data-vt-no-i18n="1" style="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:60">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Toast" tone="success" onClose="{{ closeToast }}" hint-size="320px,50px">{{ toastMsg }}</x-import>
 </div>
 </sc-if>
@@ -443,13 +620,29 @@ function isolate(s) { return '⁦' + s + '⁩'; }
 function fillAmounts(str, map) {
   return String(str || '').replace(/\{(\w+)\}/g, (m, k) => (Object.prototype.hasOwnProperty.call(map, k) ? isolate(map[k]) : m));
 }
-function assignableChauffeurOptions() {
+/* 261001-chauffeur-car (owner, 2026-10-01): "When I assign a driver the driver that appear must
+   match the request of the class." Only the chauffeurs whose class is the trip's class; no car.
+   A row without a known trip class (an old store) lists everyone — the server still refuses. */
+function assignableChauffeurs(tripClassId) {
   const ops = window.VamosOps;
   if (!ops || !ops.chauffeurs) return [];
-  return (ops.chauffeurs.all() || []).filter((c) => c && c.id).map((c) => ({
-    value: String(c.id),
-    label: String(c.name || c.fullName || c.email || c.id),
-  }));
+  const want = String(tripClassId || '');
+  return (ops.chauffeurs.all() || []).filter((c) => c && c.id && (!want || String(c.vehicleClassId || '') === want));
+}
+/* Signed 2026-10-01: Complete and No-show are offered once the pickup time has passed (Zurich).
+   pickupAt is the instant; without it, the row's Zurich date and time are turned into one. */
+function pickupMs(booking) {
+  const at = Date.parse(String((booking && booking.pickupAt) || ''));
+  if (Number.isFinite(at)) return at;
+  const d = String((booking && booking.dateIso) || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+  const hm = String((booking && booking.time) || '').match(/^(\d{2}):(\d{2})/);
+  if (!d || !hm) return NaN;
+  const guess = Date.UTC(+d[1], +d[2] - 1, +d[3], +hm[1], +hm[2]);
+  const p = {};
+  new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Zurich', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
+    .formatToParts(new Date(guess)).forEach((x) => { p[x.type] = x.value; });
+  const wall = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute);
+  return guess - (wall - guess);
 }
 function eventTitle(kind, t) {
   if (kind === 'assignment.chauffeur_set') return t.evAssigned;
@@ -579,6 +772,54 @@ function addMinutesHhmm(time, minutes) {
   const mm = String(wrapped % 60).padStart(2, '0');
   return hh + ':' + mm;
 }
+/* 26.2 P6: the trip as edited against the trip as booked. A place counts as changed only when one was
+   picked from the address search (typed text cannot be priced); date and time count together (the server
+   needs both); passengers 1–16 and bags 0–16 are the database's own limits. */
+function tripFields(booking, ed) {
+  const e = ed || {};
+  const s = (v) => String(v == null ? '' : v).trim();
+  const pickupChanged = !!(e.pickupPlace && e.pickupPlace.mapbox_id && s(e.pickupPlace.text) !== s(booking.pickup));
+  const dropoffChanged = !!(e.dropoffPlace && e.dropoffPlace.mapbox_id && s(e.dropoffPlace.text) !== s(booking.dropoff));
+  const pickupTyped = !e.pickupPlace && e.pickup != null && s(e.pickup) !== s(booking.pickup);
+  const dropoffTyped = !e.dropoffPlace && e.dropoff != null && s(e.dropoff) !== s(booking.dropoff);
+  const dateChanged = e.dateIso != null && s(e.dateIso) !== s(booking.dateIso);
+  const timeChanged = e.time != null && s(e.time) !== s(booking.time);
+  const dateBad = dateChanged && !/^\d{4}-\d{2}-\d{2}$/.test(s(e.dateIso));
+  const timeBad = timeChanged && !/^([01]\d|2[0-3]):[0-5]\d$/.test(s(e.time));
+  const paxChanged = e.pax != null && s(e.pax) !== String(booking.pax ?? '');
+  const bagsChanged = e.bags != null && s(e.bags) !== String(booking.bags ?? '');
+  const paxBad = paxChanged && !(/^\d{1,2}$/.test(s(e.pax)) && Number(e.pax) >= 1 && Number(e.pax) <= 16);
+  const bagsBad = bagsChanged && !(/^\d{1,2}$/.test(s(e.bags)) && Number(e.bags) >= 0 && Number(e.bags) <= 16);
+  return {
+    pickupChanged, dropoffChanged, pickupTyped, dropoffTyped,
+    dateChanged, timeChanged, whenChanged: dateChanged || timeChanged, dateBad, timeBad,
+    paxChanged, bagsChanged, paxBad, bagsBad,
+  };
+}
+/* The fields saved at once (D6, D8): what differs from the booking, in form order. */
+function instantFields(booking, ed) {
+  const e = ed || {};
+  const s = (v) => String(v == null ? '' : v).trim();
+  const list = ['flight', 'customer', 'email', 'phone', 'note'].filter((k) => e[k] != null && s(e[k]) !== s(booking[k]));
+  return { list, changed: list.length > 0, flight: list.indexOf('flight') !== -1 };
+}
+/* A place picked from the address search, as the quote reads it (kind "retrieve"). */
+function placeInput(place) {
+  if (!place || !place.mapbox_id) return null;
+  return { kind: 'retrieve', mapbox_id: String(place.mapbox_id).slice(0, 256), session_token: String(place.session_token || '').slice(0, 128), text: String(place.text || '').slice(0, 200) };
+}
+/* The preview body: only what changed in the trip. An empty body asks for today's classes of the trip as booked. */
+function tripPreviewBody(booking, ed) {
+  const tf = tripFields(booking, ed);
+  const e = ed || {};
+  const body = {};
+  if (tf.pickupChanged) body.pickup = placeInput(e.pickupPlace);
+  if (tf.dropoffChanged) body.dropoff = placeInput(e.dropoffPlace);
+  if (tf.whenChanged && !tf.dateBad && !tf.timeBad) { body.dateIso = String(e.dateIso).trim(); body.time = String(e.time).trim(); }
+  if (tf.paxChanged && !tf.paxBad) body.pax = Number(e.pax);
+  if (tf.bagsChanged && !tf.bagsBad) body.bags = Number(e.bags);
+  return body;
+}
 const T = {
   en: { backToBookings:'Back to bookings', bookedBy:'booked by', moreActions:'More actions', details:'Details', history:'History', historyEmpty:'No events yet.',
     assignment:'Assignment', assign:'Assign driver', reassign:'Reassign', unassign:'Unassign', onShift:'On shift', noDriver:'No driver assigned', noDriverSub:'Assign before the pickup reminder goes out',
@@ -595,8 +836,9 @@ const T = {
     voucherResent:'Voucher re-sent to ', driverAssigned:'Driver assigned to ', unassignedOk:'Assignment cleared for ',
     evPayment:'Payment captured', evRefund:'Refund issued', evVoucher:'Voucher sent', evAssigned:'Driver assigned', evVehicle:'Vehicle assigned', evCleared:'Assignment cleared',
     evQuoted:'Quote saved', evCreated:'Booking created', evPayStarted:'Payment started', evStatus:'Status changed', included:'Included',
-    overlap:'Overlaps {ref} at {time}', noEmail:'Cannot assign until this chauffeur has an email on file.', noVehicle:'Cannot assign until this chauffeur has a vehicle.',
-    notPaid:'Unpaid trips cannot be assigned.', frozen:'This trip is frozen.', capacity:'This vehicle cannot take this trip’s passengers and bags.', assignFailed:'Could not assign ',
+    overlap:'Overlaps {ref} at {time}', noEmail:'Cannot assign until this chauffeur has an email on file.', noClass:'{name} has no class yet. Choose one on Chauffeurs.', classMismatch:'{name} drives {driver}; the trip is {trip}.',
+    actions:'Actions', plate:'Plate', chooseChauffeur:'Choose a chauffeur', assignBtn:'Assign', change:'Change', noDrivers:'No drivers yet. Add one on Chauffeurs.', noDriversClass:'No chauffeur has the class {class} yet. Choose it on Chauffeurs.', chooseDriver:'Choose the driver',
+    notPaid:'Unpaid trips cannot be assigned.', frozen:'This trip is frozen.', capacity:'This trip has more passengers or bags than its class takes.', assignFailed:'Could not assign ',
     pickChauffeur:'Pick a chauffeur first.', voucherFailed:'Could not resend voucher ',
     website:'Website', stripeWebhook:'Stripe webhook', resend:'Resend', dispatch:'Dispatch',
     lineTransfer:'Transfer, ', lineAirportFee:'Airport pickup fee',
@@ -613,6 +855,8 @@ const T = {
  extraWaiting:'Extra payment is open for the difference.',
     refundClick:'Use Refund for the difference.',
     mustFix:'Reassign the chauffeur before this change can apply.',
+    acceptPaid:'The customer has already paid the difference. The change is applied when the payment is recorded.',
+    acceptPriceChanged:'The amount to pay changed since you first accepted, so no new link was made. Refuse this request; the customer can ask again.',
     editFailed:'Could not apply edit ',
     refuse:'Refuse',
     refuseFailed:'Could not refuse edit ',
@@ -645,6 +889,78 @@ const T = {
     errTestOnly:'Refunds can only be sent on the Stripe test account for now.',
     errDecided:'This refund is no longer waiting for a decision. The page now shows where it stands.',
     errNotPostTrip:'A refund can only be rejected after a completed trip or a no-show.',
+    classLoading:'Working out the prices…', classCurrentTag:'current class',
+    classPaidSoFar:'Paid so far', classNewTotal:'New total',
+    classDiffToPay:'Difference to pay', classDiffRefund:'Refund due', classDiffNone:'No difference',
+    classNoteDearer:'The booking keeps its class until the customer pays the difference. The site e-mails the payment link; it works for 24 hours.',
+    classNoteCheaper:'The class changes when you confirm. The difference shows as Refund due; nothing is sent until you press Confirm refund.',
+    classNoteSame:'The class changes when you confirm. The customer gets the confirmation again.',
+    classNoteDriver:'The driver is taken off the trip and told by e-mail.',
+    classConfirmTitle:'Change the class?', classKeep:'Keep the class', classConfirm:'Change the class',
+    classWaitingTitle:'Waiting for payment of the difference',
+    classWaitingBody:'{class} · {a} to pay · the link works until {until}',
+    classCreditBody:'The class was changed to a cheaper one. Nothing is sent until you confirm.',
+    tripCreditBody:'The trip was changed and costs less now. Nothing is sent until you confirm.',
+    classCreditLine:'Difference to refund: {a}',
+    classDoneApplied:'Class changed. The customer got the confirmation again.',
+    classDoneRefund:'Class changed. Refund due: {a}. Press Confirm refund to send it.',
+    classDoneWaiting:'The customer was e-mailed the link to pay {a}. The class changes when it is paid.',
+    classDoneNoMail:'The e-mail did not go out. Copy the payment link and send it to the customer.',
+    classDoneNoConfirm:'Class changed. The confirmation e-mail did not go out: use Resend voucher.',
+    classDoneDriver:'The driver was taken off the trip and told.',
+    errClassTripData:'The saved price of this trip cannot be worked out again, so the class cannot change here. Cancel it and make a new trip.',
+    errClassSmall:'This class cannot take the passengers or bags of this trip.',
+    errClassNotSold:'This class is not offered for this trip.',
+    errClassTooLate:'The pickup time has passed. The class cannot change any more.',
+    errClassCustomer:'The customer’s own change request is waiting. Accept or refuse it first.',
+    errClassRefundOpen:'A refund is being sent on this booking. Finish it first.',
+    errClassPriceChanged:'The price changed since you looked. Check the new figures and confirm again.',
+    errClassBook:'The price book changed since you looked. Check the new figures and confirm again.',
+    errClassPricingOff:'No price book is live, so no new price can be worked out.',
+    errClassFailed:'Could not change the class of ',
+    withdrawChange:'Withdraw change', withdrawTitle:'Withdraw the class change?', withdrawKeep:'Keep the change',
+    withdrawBody:'The payment link stops working and nothing is charged. The booking stays {class}.',
+    withdrawDone:'Change withdrawn. The payment link no longer works.',
+    withdrawPaid:'The customer has just paid the difference. The class changes now.',
+    withdrawStripe:'Stripe did not close the payment page. Nothing changed; try again.',
+    withdrawNothing:'No class change is waiting on this booking.',
+    // 26.2 P6: Edit of a paid trip — places, date, time, party and class priced again; contact saved at once.
+    editTripHead:'Trip', editTripLead:'Priced again before anything changes. You confirm on the next step.',
+    editContactHead:'Contact and note', editContactLead:'Saved at once, with no new price. Each change is kept in the history.',
+    note:'Note', noteHint:'Only you see the note.',
+    flightHintDriver:'Saved at once, with no new price. The driver gets the new flight number by e-mail.',
+    flightHintNoDriver:'Saved at once, with no new price.',
+    flightNeeded:'Enter the flight number: the new pickup is an airport.',
+    whatChanges:'What changes', noNewPrice:'No new price: the customer keeps the price paid.',
+    tripNoteDearer:'The trip stays as booked until the customer pays the difference. The site e-mails the payment link; it works for 24 hours.',
+    tripNoteCheaper:'The trip changes when you confirm. The difference shows as Refund due; nothing is sent until you press Confirm refund.',
+    tripNoteSame:'The trip changes when you confirm. The customer gets the confirmation again.',
+    driverKeepNote:'{name} stays on the trip and gets the new details by e-mail.',
+    clashTitle:'{name} has another trip at that time', clashBody:'{ref}, pickup at {time}.',
+    clashKeep:'Keep {name} on this trip', clashKeepSub:'Both trips stay with the driver, who gets the new details by e-mail.',
+    clashOff:'Take {name} off this trip', clashOffSub:'The trip goes back to unassigned and the driver is told by e-mail.',
+    clashChoose:'Choose whether {name} keeps this trip.',
+    tripConfirmTitle:'Change the trip?', tripKeep:'Go back', tripConfirm:'Change the trip',
+    alsoSaved:'Saved at the same time: {fields}.',
+    savedInstant:'Saved. The change is in the history.', savedFlight:'Saved. The driver gets the new flight number by e-mail.',
+    pickFromList:'Pick the new place from the list.',
+    errPlaceNotServed:'The site cannot book this place. Nothing has changed.',
+    errSamePlace:'Pickup and destination are the same place.',
+    errNoRoute:'No road route was found to this place. Nothing has changed.',
+    errPastTime:'That time has passed. Choose a time ahead.',
+    errDateForm:'Write the date as YYYY-MM-DD.', errTimeForm:'Write the time as HH:MM.',
+    errPaxRange:'Enter 1 to 16 passengers.', errBagsRange:'Enter 0 to 16 bags.',
+    errPartyTooBig:'{class} cannot take this party.', classesThatFit:'Classes that fit: {list}.', noClassFits:'No class takes this party.',
+    tooSmallTag:'too small',
+    tripTooLate:'The pickup time has passed. Places, time, party and class can no longer change.',
+    tripWaiting:'Trip change', withdrawTripTitle:'Withdraw the trip change?',
+    withdrawTripBody:'The payment link stops working and nothing is charged. The trip stays as booked.',
+    tripDoneApplied:'Trip changed. The customer got the confirmation again.',
+    tripDoneRefund:'Trip changed. Refund due: {a}. Press Confirm refund to send it.',
+    tripDoneWaiting:'The customer was e-mailed the link to pay {a}. The trip changes when it is paid.',
+    tripDoneNoConfirm:'Trip changed. The confirmation e-mail did not go out: use Resend voucher.',
+    tripDoneDriverKept:'{name} got the new details by e-mail.',
+    errTripFailed:'Could not change the trip of ',
  },
   de: { backToBookings:'Zurück zu Buchungen', bookedBy:'gebucht von', moreActions:'Weitere Aktionen', details:'Details', history:'Verlauf', historyEmpty:'Noch keine Ereignisse.',
     assignment:'Zuweisung', assign:'Fahrer zuweisen', reassign:'Neu zuweisen', unassign:'Zuweisung aufheben', onShift:'Im Dienst', noDriver:'Kein Fahrer zugewiesen', noDriverSub:'Vor der Abholerinnerung zuweisen',
@@ -659,8 +975,9 @@ const T = {
     keepBooking:'Behalten', confirmCancel:'Buchung stornieren', confirmCancelUnpaid:'Buchung entfernen', bookingCancelled:'Storniert ', bookingRemoved:'Entfernt ', cancelFailed:'Konnte nicht stornieren ', refundFailed:'Konnte nicht erstatten ',
     voucherResent:'Gutschein erneut gesendet an ', driverAssigned:'Fahrer zugewiesen zu ', unassignedOk:'Zuweisung aufgehoben für ',
     evPayment:'Zahlung erfasst', evRefund:'Rückerstattung ausgezahlt', evVoucher:'Gutschein gesendet', evAssigned:'Fahrer zugewiesen', evVehicle:'Fahrzeug zugewiesen', evCleared:'Zuweisung aufgehoben',
-    overlap:'Überschneidet sich mit {ref} um {time}', noEmail:'Zuweisung erst, wenn dieser Chauffeur eine E-Mail hat.', noVehicle:'Zuweisung erst, wenn dieser Chauffeur ein Fahrzeug hat.',
-    notPaid:'Unbezahlte Fahrten können nicht zugewiesen werden.', frozen:'Diese Fahrt ist gesperrt.', capacity:'Dieses Fahrzeug kann Passagiere und Gepäck dieser Fahrt nicht aufnehmen.', assignFailed:'Zuweisung fehlgeschlagen für ',
+    overlap:'Überschneidet sich mit {ref} um {time}', noEmail:'Zuweisung erst, wenn dieser Chauffeur eine E-Mail hat.', noClass:'{name} hat noch keine Klasse. Wählen Sie eine unter Chauffeure.', classMismatch:'{name} fährt {driver}; die Fahrt ist {trip}.',
+    actions:'Aktionen', plate:'Kennzeichen', chooseChauffeur:'Chauffeur wählen', assignBtn:'Zuweisen', change:'Ändern', noDrivers:'Noch keine Fahrer. Unter Chauffeure hinzufügen.', noDriversClass:'Noch kein Chauffeur hat die Klasse {class}. Wählen Sie sie unter Chauffeure.', chooseDriver:'Fahrer wählen',
+    notPaid:'Unbezahlte Fahrten können nicht zugewiesen werden.', frozen:'Diese Fahrt ist gesperrt.', capacity:'Diese Fahrt hat mehr Passagiere oder Gepäck, als ihre Klasse aufnimmt.', assignFailed:'Zuweisung fehlgeschlagen für ',
     pickChauffeur:'Zuerst einen Fahrer wählen.', voucherFailed:'Gutschein konnte nicht gesendet werden ',
     website:'Website', stripeWebhook:'Stripe-Webhook', resend:'Resend', dispatch:'Dispatch',
     lineTransfer:'Transfer, ', lineAirportFee:'Flughafengebühr',
@@ -681,6 +998,8 @@ const T = {
  extraWaiting:'Zusatzzahlung für die Differenz ist offen.',
     refundClick:'Rückerstatten für die Differenz verwenden.',
     mustFix:'Chauffeur neu zuweisen, bevor diese Änderung gilt.',
+    acceptPaid:'Der Kunde hat die Differenz bereits bezahlt. Die Änderung gilt, sobald die Zahlung verbucht ist.',
+    acceptPriceChanged:'Der zu zahlende Betrag hat sich seit Ihrer ersten Annahme geändert, daher wurde kein neuer Link erstellt. Lehnen Sie diese Anfrage ab; der Kunde kann erneut fragen.',
     editFailed:'Änderung fehlgeschlagen für ',
     refuse:'Ablehnen',
     refuseFailed:'Änderung abgelehnt fehlgeschlagen für ',
@@ -713,11 +1032,84 @@ const T = {
     errTestOnly:'Rückerstattungen können vorerst nur im Stripe-Testkonto gesendet werden.',
     errDecided:'Diese Rückerstattung wartet nicht mehr auf einen Entscheid. Die Seite zeigt jetzt den aktuellen Stand.',
     errNotPostTrip:'Eine Rückerstattung kann nur nach einer abgeschlossenen Fahrt oder einem No-show zurückgewiesen werden.',
+    classLoading:'Preise werden berechnet …', classCurrentTag:'aktuelle Klasse',
+    classPaidSoFar:'Bisher bezahlt', classNewTotal:'Neuer Gesamtbetrag',
+    classDiffToPay:'Differenz zu bezahlen', classDiffRefund:'Rückerstattung fällig', classDiffNone:'Keine Differenz',
+    classNoteDearer:'Die Buchung behält ihre Klasse, bis der Kunde die Differenz bezahlt hat. Die Website sendet ihm den Zahlungslink per E-Mail; er gilt 24 Stunden.',
+    classNoteCheaper:'Die Klasse ändert sich, wenn Sie bestätigen. Die Differenz erscheint als «Rückerstattung fällig»; es wird nichts gesendet, bis Sie «Rückerstattung bestätigen» drücken.',
+    classNoteSame:'Die Klasse ändert sich, wenn Sie bestätigen. Der Kunde erhält die Bestätigung erneut.',
+    classNoteDriver:'Der Fahrer wird von der Fahrt genommen und per E-Mail informiert.',
+    classConfirmTitle:'Klasse ändern?', classKeep:'Klasse behalten', classConfirm:'Klasse ändern',
+    classWaitingTitle:'Warten auf Zahlung der Differenz',
+    classWaitingBody:'{class} · {a} zu bezahlen · Link gültig bis {until}',
+    classCreditBody:'Die Klasse wurde auf eine günstigere geändert. Es wird nichts gesendet, bis Sie bestätigen.',
+    tripCreditBody:'Die Fahrt wurde geändert und kostet jetzt weniger. Es wird nichts gesendet, bis Sie bestätigen.',
+    classCreditLine:'Zurückzuerstattende Differenz: {a}',
+    classDoneApplied:'Klasse geändert. Der Kunde hat die Bestätigung erneut erhalten.',
+    classDoneRefund:'Klasse geändert. Rückerstattung fällig: {a}. Drücken Sie «Rückerstattung bestätigen», um sie zu senden.',
+    classDoneWaiting:'Der Kunde hat den Link erhalten, um {a} zu bezahlen. Die Klasse ändert sich, sobald bezahlt ist.',
+    classDoneNoMail:'Die E-Mail wurde nicht gesendet. Kopieren Sie den Zahlungslink und senden Sie ihn dem Kunden.',
+    classDoneNoConfirm:'Klasse geändert. Die Bestätigung wurde nicht gesendet: Verwenden Sie «Gutschein erneut senden».',
+    classDoneDriver:'Der Fahrer wurde von der Fahrt genommen und informiert.',
+    errClassTripData:'Der gespeicherte Preis dieser Fahrt lässt sich nicht neu berechnen, daher kann die Klasse hier nicht geändert werden. Stornieren Sie sie und erstellen Sie eine neue Fahrt.',
+    errClassSmall:'Diese Klasse bietet nicht genug Platz für die Passagiere oder das Gepäck dieser Fahrt.',
+    errClassNotSold:'Diese Klasse wird für diese Fahrt nicht angeboten.',
+    errClassTooLate:'Die Abholzeit ist vorbei. Die Klasse kann nicht mehr geändert werden.',
+    errClassCustomer:'Ein eigener Änderungswunsch des Kunden wartet. Nehmen Sie ihn zuerst an oder lehnen Sie ihn ab.',
+    errClassRefundOpen:'Für diese Buchung wird gerade eine Rückerstattung gesendet. Schliessen Sie diese zuerst ab.',
+    errClassPriceChanged:'Der Preis hat sich geändert. Prüfen Sie die neuen Beträge und bestätigen Sie erneut.',
+    errClassBook:'Die Preisliste hat sich geändert. Prüfen Sie die neuen Beträge und bestätigen Sie erneut.',
+    errClassPricingOff:'Es ist keine Preisliste live, daher kann kein neuer Preis berechnet werden.',
+    errClassFailed:'Klasse konnte nicht geändert werden: ',
+    withdrawChange:'Änderung zurückziehen', withdrawTitle:'Klassenwechsel zurückziehen?', withdrawKeep:'Änderung behalten',
+    withdrawBody:'Der Zahlungslink funktioniert nicht mehr und es wird nichts belastet. Die Buchung bleibt {class}.',
+    withdrawDone:'Änderung zurückgezogen. Der Zahlungslink funktioniert nicht mehr.',
+    withdrawPaid:'Der Kunde hat die Differenz soeben bezahlt. Die Klasse ändert sich jetzt.',
+    withdrawStripe:'Stripe hat die Zahlungsseite nicht geschlossen. Nichts wurde geändert; versuchen Sie es erneut.',
+    withdrawNothing:'Auf dieser Buchung wartet kein Klassenwechsel.',
+    // 26.2 P6
+    editTripHead:'Fahrt', editTripLead:'Wird neu berechnet, bevor sich etwas ändert. Sie bestätigen im nächsten Schritt.',
+    editContactHead:'Kontakt und Notiz', editContactLead:'Wird sofort gespeichert, ohne neuen Preis. Jede Änderung bleibt im Verlauf.',
+    note:'Notiz', noteHint:'Nur Sie sehen die Notiz.',
+    flightHintDriver:'Wird sofort gespeichert, ohne neuen Preis. Der Fahrer erhält die neue Flugnummer per E-Mail.',
+    flightHintNoDriver:'Wird sofort gespeichert, ohne neuen Preis.',
+    flightNeeded:'Geben Sie die Flugnummer ein: Die neue Abholung ist ein Flughafen.',
+    whatChanges:'Was sich ändert', noNewPrice:'Kein neuer Preis: Der Kunde behält den bezahlten Preis.',
+    tripNoteDearer:'Die Fahrt bleibt wie gebucht, bis der Kunde die Differenz bezahlt hat. Die Website sendet ihm den Zahlungslink per E-Mail; er gilt 24 Stunden.',
+    tripNoteCheaper:'Die Fahrt ändert sich, wenn Sie bestätigen. Die Differenz erscheint als «Rückerstattung fällig»; es wird nichts gesendet, bis Sie «Rückerstattung bestätigen» drücken.',
+    tripNoteSame:'Die Fahrt ändert sich, wenn Sie bestätigen. Der Kunde erhält die Bestätigung erneut.',
+    driverKeepNote:'{name} bleibt auf der Fahrt und erhält die neuen Angaben per E-Mail.',
+    clashTitle:'{name} hat zu dieser Zeit eine andere Fahrt', clashBody:'{ref}, Abholung um {time}.',
+    clashKeep:'{name} auf dieser Fahrt lassen', clashKeepSub:'Beide Fahrten bleiben beim Fahrer; er erhält die neuen Angaben per E-Mail.',
+    clashOff:'{name} von dieser Fahrt nehmen', clashOffSub:'Die Fahrt ist wieder ohne Fahrer; der Fahrer wird per E-Mail informiert.',
+    clashChoose:'Wählen Sie, ob {name} diese Fahrt behält.',
+    tripConfirmTitle:'Fahrt ändern?', tripKeep:'Zurück', tripConfirm:'Fahrt ändern',
+    alsoSaved:'Gleichzeitig gespeichert: {fields}.',
+    savedInstant:'Gespeichert. Die Änderung steht im Verlauf.', savedFlight:'Gespeichert. Der Fahrer erhält die neue Flugnummer per E-Mail.',
+    pickFromList:'Wählen Sie den neuen Ort aus der Liste.',
+    errPlaceNotServed:'Dieser Ort kann auf der Website nicht gebucht werden. Es hat sich nichts geändert.',
+    errSamePlace:'Abholung und Ziel sind derselbe Ort.',
+    errNoRoute:'Zu diesem Ort wurde keine Strassenroute gefunden. Es hat sich nichts geändert.',
+    errPastTime:'Diese Zeit ist vorbei. Wählen Sie eine spätere Zeit.',
+    errDateForm:'Schreiben Sie das Datum als JJJJ-MM-TT.', errTimeForm:'Schreiben Sie die Uhrzeit als HH:MM.',
+    errPaxRange:'Geben Sie 1 bis 16 Passagiere ein.', errBagsRange:'Geben Sie 0 bis 16 Gepäckstücke ein.',
+    errPartyTooBig:'{class} bietet nicht genug Platz für diese Gruppe.', classesThatFit:'Passende Klassen: {list}.', noClassFits:'Keine Klasse bietet genug Platz für diese Gruppe.',
+    tooSmallTag:'zu klein',
+    tripTooLate:'Die Abholzeit ist vorbei. Orte, Zeit, Gruppe und Klasse können nicht mehr geändert werden.',
+    tripWaiting:'Fahrtänderung', withdrawTripTitle:'Fahrtänderung zurückziehen?',
+    withdrawTripBody:'Der Zahlungslink funktioniert nicht mehr und es wird nichts belastet. Die Fahrt bleibt wie gebucht.',
+    tripDoneApplied:'Fahrt geändert. Der Kunde hat die Bestätigung erneut erhalten.',
+    tripDoneRefund:'Fahrt geändert. Rückerstattung fällig: {a}. Drücken Sie «Rückerstattung bestätigen», um sie zu senden.',
+    tripDoneWaiting:'Der Kunde hat den Link erhalten, um {a} zu bezahlen. Die Fahrt ändert sich, sobald bezahlt ist.',
+    tripDoneNoConfirm:'Fahrt geändert. Die Bestätigung wurde nicht gesendet: Verwenden Sie «Gutschein erneut senden».',
+    tripDoneDriverKept:'{name} hat die neuen Angaben per E-Mail erhalten.',
+    errTripFailed:'Fahrt konnte nicht geändert werden: ',
  },
   fr: {
     unassign:'Désassigner', action:'Action', complete:'Terminer', historyEmpty:'Aucun événement.', passengerTrip:'Passager et trajet',
-    overlap:'Chevauche {ref} à {time}', noEmail:'Impossible d’assigner tant que ce chauffeur n’a pas d’e-mail.', noVehicle:'Impossible d’assigner tant que ce chauffeur n’a pas de véhicule.',
-    notPaid:'Les courses non payées ne peuvent pas être assignées.', frozen:'Cette course est gelée.', capacity:'Ce véhicule ne peut pas prendre les passagers et bagages de cette course.', assignFailed:'Assignation impossible pour ',
+    overlap:'Chevauche {ref} à {time}', noEmail:'Impossible d’assigner tant que ce chauffeur n’a pas d’e-mail.', noClass:'{name} n’a pas encore de classe. Choisissez-en une sous Chauffeurs.', classMismatch:'{name} conduit en {driver} ; la course est en {trip}.',
+    actions:'Actions', plate:'Plaque', chooseChauffeur:'Choisir un chauffeur', assignBtn:'Assigner', change:'Modifier', noDrivers:'Aucun chauffeur. Ajoutez-en un sous Chauffeurs.', noDriversClass:'Aucun chauffeur n’a encore la classe {class}. Choisissez-la sous Chauffeurs.', chooseDriver:'Choisir le chauffeur',
+    notPaid:'Les courses non payées ne peuvent pas être assignées.', frozen:'Cette course est gelée.', capacity:'Cette course compte plus de passagers ou de bagages que sa classe n’en prend.', assignFailed:'Assignation impossible pour ',
     pickChauffeur:'Choisissez d’abord un chauffeur.', voucherFailed:'Impossible de renvoyer le bon ',
     unassignedOk:'Assignation retirée pour ', evVehicle:'Véhicule assigné', evCleared:'Assignation retirée',
     continue:'Continuer', accept:'Accepter',
@@ -728,6 +1120,8 @@ const T = {
     extraWaiting:'Paiement supplémentaire ouvert pour la différence.',
     refundClick:'Utiliser Rembourser pour la différence.',
     mustFix:'Réassigner le chauffeur avant d’appliquer ce changement.',
+    acceptPaid:'Le client a déjà payé la différence. Le changement s’applique dès que le paiement est enregistré.',
+    acceptPriceChanged:'Le montant à payer a changé depuis votre première acceptation, aucun nouveau lien n’a donc été créé. Refusez cette demande ; le client peut redemander.',
     editFailed:'Modification impossible pour ',
     refuse:'Refuser',
     refuseFailed:'Impossible de refuser la modification pour ',
@@ -784,11 +1178,84 @@ const T = {
     cardPaid:'Paiement par carte', cardRefund:'Remboursement sur la carte', bookedSite:'Réservé sur le site', emailed:'E-mail envoyé', dispatcher:'Répartiteur',
     saveEdit:'Enregistrer les modifications', cancelEdit:'Annuler', markRefund:'Rembourser',
     customer:'Nom', pickup:'Prise en charge', dropoff:'Destination', date:'Date', time:'Heure', bagsLabel:'Bagages',
+    classLoading:'Calcul des prix…', classCurrentTag:'classe actuelle',
+    classPaidSoFar:'Déjà payé', classNewTotal:'Nouveau total',
+    classDiffToPay:'Différence à payer', classDiffRefund:'Remboursement dû', classDiffNone:'Aucune différence',
+    classNoteDearer:'La réservation garde sa classe jusqu’à ce que le client paie la différence. Le site lui envoie le lien de paiement par e-mail ; il est valable 24 heures.',
+    classNoteCheaper:'La classe change à votre confirmation. La différence apparaît comme « Remboursement dû » ; rien n’est envoyé avant que vous appuyiez sur « Confirmer le remboursement ».',
+    classNoteSame:'La classe change à votre confirmation. Le client reçoit de nouveau la confirmation.',
+    classNoteDriver:'Le chauffeur est retiré de la course et prévenu par e-mail.',
+    classConfirmTitle:'Changer la classe ?', classKeep:'Garder la classe', classConfirm:'Changer la classe',
+    classWaitingTitle:'En attente du paiement de la différence',
+    classWaitingBody:'{class} · {a} à payer · lien valable jusqu’au {until}',
+    classCreditBody:'La classe a été changée pour une moins chère. Rien n’est envoyé avant votre confirmation.',
+    tripCreditBody:'La course a été modifiée et coûte maintenant moins cher. Rien n’est envoyé avant votre confirmation.',
+    classCreditLine:'Différence à rembourser : {a}',
+    classDoneApplied:'Classe changée. Le client a reçu de nouveau la confirmation.',
+    classDoneRefund:'Classe changée. Remboursement dû : {a}. Appuyez sur « Confirmer le remboursement » pour l’envoyer.',
+    classDoneWaiting:'Le client a reçu par e-mail le lien pour payer {a}. La classe change une fois le paiement reçu.',
+    classDoneNoMail:'L’e-mail n’est pas parti. Copiez le lien de paiement et envoyez-le au client.',
+    classDoneNoConfirm:'Classe changée. L’e-mail de confirmation n’est pas parti : utilisez « Renvoyer le bon ».',
+    classDoneDriver:'Le chauffeur a été retiré de la course et prévenu.',
+    errClassTripData:'Le prix enregistré de cette course ne peut pas être recalculé ; la classe ne peut donc pas changer ici. Annulez-la et créez une nouvelle course.',
+    errClassSmall:'Cette classe ne peut pas prendre les passagers ou les bagages de cette course.',
+    errClassNotSold:'Cette classe n’est pas proposée pour cette course.',
+    errClassTooLate:'L’heure de prise en charge est passée. La classe ne peut plus changer.',
+    errClassCustomer:'Une demande de modification du client attend. Acceptez-la ou refusez-la d’abord.',
+    errClassRefundOpen:'Un remboursement est en cours d’envoi pour cette réservation. Terminez-le d’abord.',
+    errClassPriceChanged:'Le prix a changé. Vérifiez les nouveaux montants et confirmez à nouveau.',
+    errClassBook:'La grille tarifaire a changé. Vérifiez les nouveaux montants et confirmez à nouveau.',
+    errClassPricingOff:'Aucune grille tarifaire n’est en ligne ; aucun nouveau prix ne peut être calculé.',
+    errClassFailed:'Impossible de changer la classe de ',
+    withdrawChange:'Retirer le changement', withdrawTitle:'Retirer le changement de classe ?', withdrawKeep:'Garder le changement',
+    withdrawBody:'Le lien de paiement ne fonctionne plus et rien n’est débité. La réservation reste en {class}.',
+    withdrawDone:'Changement retiré. Le lien de paiement ne fonctionne plus.',
+    withdrawPaid:'Le client vient de payer la différence. La classe change maintenant.',
+    withdrawStripe:'Stripe n’a pas fermé la page de paiement. Rien n’a changé ; réessayez.',
+    withdrawNothing:'Aucun changement de classe n’attend sur cette réservation.',
+    // 26.2 P6
+    editTripHead:'Course', editTripLead:'Recalculée avant tout changement. Vous confirmez à l’étape suivante.',
+    editContactHead:'Contact et note', editContactLead:'Enregistré tout de suite, sans nouveau prix. Chaque changement reste dans l’historique.',
+    note:'Note', noteHint:'Vous seul voyez la note.',
+    flightHintDriver:'Enregistré tout de suite, sans nouveau prix. Le chauffeur reçoit le nouveau numéro de vol par e-mail.',
+    flightHintNoDriver:'Enregistré tout de suite, sans nouveau prix.',
+    flightNeeded:'Saisissez le numéro de vol : la nouvelle prise en charge est un aéroport.',
+    whatChanges:'Ce qui change', noNewPrice:'Pas de nouveau prix : le client garde le prix payé.',
+    tripNoteDearer:'La course reste telle que réservée jusqu’à ce que le client paie la différence. Le site lui envoie le lien de paiement par e-mail ; il est valable 24 heures.',
+    tripNoteCheaper:'La course change à votre confirmation. La différence apparaît comme « Remboursement dû » ; rien n’est envoyé avant que vous appuyiez sur « Confirmer le remboursement ».',
+    tripNoteSame:'La course change à votre confirmation. Le client reçoit de nouveau la confirmation.',
+    driverKeepNote:'{name} reste sur la course et reçoit les nouveaux détails par e-mail.',
+    clashTitle:'{name} a une autre course à cette heure-là', clashBody:'{ref}, prise en charge à {time}.',
+    clashKeep:'Garder {name} sur cette course', clashKeepSub:'Les deux courses restent au chauffeur, qui reçoit les nouveaux détails par e-mail.',
+    clashOff:'Retirer {name} de cette course', clashOffSub:'La course redevient sans chauffeur et le chauffeur est prévenu par e-mail.',
+    clashChoose:'Choisissez si {name} garde cette course.',
+    tripConfirmTitle:'Changer la course ?', tripKeep:'Retour', tripConfirm:'Changer la course',
+    alsoSaved:'Enregistré en même temps : {fields}.',
+    savedInstant:'Enregistré. Le changement figure dans l’historique.', savedFlight:'Enregistré. Le chauffeur reçoit le nouveau numéro de vol par e-mail.',
+    pickFromList:'Choisissez le nouveau lieu dans la liste.',
+    errPlaceNotServed:'Ce lieu ne peut pas être réservé sur le site. Rien n’a changé.',
+    errSamePlace:'La prise en charge et la destination sont au même endroit.',
+    errNoRoute:'Aucun itinéraire routier n’a été trouvé vers ce lieu. Rien n’a changé.',
+    errPastTime:'Cette heure est passée. Choisissez une heure à venir.',
+    errDateForm:'Écrivez la date sous la forme AAAA-MM-JJ.', errTimeForm:'Écrivez l’heure sous la forme HH:MM.',
+    errPaxRange:'Saisissez de 1 à 16 passagers.', errBagsRange:'Saisissez de 0 à 16 bagages.',
+    errPartyTooBig:'{class} ne peut pas prendre ce groupe.', classesThatFit:'Classes qui conviennent : {list}.', noClassFits:'Aucune classe ne peut prendre ce groupe.',
+    tooSmallTag:'trop petite',
+    tripTooLate:'L’heure de prise en charge est passée. Lieux, heure, groupe et classe ne peuvent plus changer.',
+    tripWaiting:'Changement de course', withdrawTripTitle:'Retirer le changement de course ?',
+    withdrawTripBody:'Le lien de paiement ne fonctionne plus et rien n’est débité. La course reste telle que réservée.',
+    tripDoneApplied:'Course changée. Le client a reçu de nouveau la confirmation.',
+    tripDoneRefund:'Course changée. Remboursement dû : {a}. Appuyez sur « Confirmer le remboursement » pour l’envoyer.',
+    tripDoneWaiting:'Le client a reçu par e-mail le lien pour payer {a}. La course change une fois le paiement reçu.',
+    tripDoneNoConfirm:'Course changée. L’e-mail de confirmation n’est pas parti : utilisez « Renvoyer le bon ».',
+    tripDoneDriverKept:'{name} a reçu les nouveaux détails par e-mail.',
+    errTripFailed:'Impossible de changer la course de ',
   },
   ar: {
     unassign:'إلغاء التعيين', action:'إجراء', complete:'إكمال', historyEmpty:'لا أحداث بعد.', passengerTrip:'الراكب والرحلة',
-    overlap:'يتداخل مع {ref} عند {time}', noEmail:'لا يمكن التعيين قبل وجود بريد إلكتروني لهذا السائق.', noVehicle:'لا يمكن التعيين قبل وجود مركبة لهذا السائق.',
-    notPaid:'لا يمكن تعيين الرحلات غير المدفوعة.', frozen:'هذه الرحلة مجمّدة.', capacity:'هذه المركبة لا تتسع لركاب وأمتعة هذه الرحلة.', assignFailed:'تعذّر التعيين لـ ',
+    overlap:'يتداخل مع {ref} عند {time}', noEmail:'لا يمكن التعيين قبل وجود بريد إلكتروني لهذا السائق.', noClass:'لا فئة لـ {name} بعد. اختر له فئة في صفحة السائقين.', classMismatch:'يقود {name} فئة {driver}، والرحلة من فئة {trip}.',
+    actions:'الإجراءات', plate:'اللوحة', chooseChauffeur:'اختر سائقًا', assignBtn:'تعيين', change:'تغيير', noDrivers:'لا يوجد سائقون بعد. أضف سائقًا من صفحة السائقين.', noDriversClass:'لا يوجد سائق من فئة {class} بعد. اخترها في صفحة السائقين.', chooseDriver:'اختر السائق',
+    notPaid:'لا يمكن تعيين الرحلات غير المدفوعة.', frozen:'هذه الرحلة مجمّدة.', capacity:'في هذه الرحلة ركاب أو حقائب أكثر مما تتسع له فئتها.', assignFailed:'تعذّر التعيين لـ ',
     pickChauffeur:'اختر سائقاً أولاً.', voucherFailed:'تعذّر إعادة إرسال القسيمة ',
     unassignedOk:'أُلغي التعيين لـ ', evVehicle:'عُيّنت المركبة', evCleared:'أُلغي التعيين',
     continue:'متابعة', accept:'قبول',
@@ -799,6 +1266,8 @@ const T = {
     extraWaiting:'دفع إضافي مفتوح للفرق.',
     refundClick:'استخدم استرداد للفرق.',
     mustFix:'أعد تعيين السائق قبل تطبيق هذا التغيير.',
+    acceptPaid:'دفع العميل الفرق بالفعل. يُطبَّق التغيير عند تسجيل الدفعة.',
+    acceptPriceChanged:'تغيّر المبلغ المطلوب منذ قبولك الأول، لذلك لم يُنشأ رابط جديد. ارفض هذا الطلب؛ ويمكن للعميل أن يطلب مرة أخرى.',
     editFailed:'تعذّر تطبيق التعديل لـ ',
     refuse:'رفض',
     refuseFailed:'تعذّر رفض التعديل لـ ',
@@ -855,23 +1324,122 @@ const T = {
     cardPaid:'الدفع بالبطاقة', cardRefund:'استرداد إلى البطاقة', bookedSite:'حُجز عبر الموقع', emailed:'أُرسل البريد الإلكتروني', dispatcher:'المُوزّع',
     saveEdit:'حفظ التغييرات', cancelEdit:'إلغاء', markRefund:'استرداد',
     customer:'الاسم', pickup:'مكان الانطلاق', dropoff:'الوجهة', date:'التاريخ', time:'الوقت', bagsLabel:'الحقائب',
+    classLoading:'جارٍ حساب الأسعار…', classCurrentTag:'الفئة الحالية',
+    classPaidSoFar:'المدفوع حتى الآن', classNewTotal:'الإجمالي الجديد',
+    classDiffToPay:'الفرق المطلوب دفعه', classDiffRefund:'استرداد مستحق', classDiffNone:'لا فرق',
+    classNoteDearer:'يحتفظ الحجز بفئته حتى يدفع العميل الفرق. يرسل الموقع رابط الدفع بالبريد الإلكتروني؛ وهو صالح لمدة 24 ساعة.',
+    classNoteCheaper:'تتغير الفئة عند تأكيدك. يظهر الفرق كاسترداد مستحق؛ لا يُرسَل شيء حتى تضغط «تأكيد الاسترداد».',
+    classNoteSame:'تتغير الفئة عند تأكيدك. يتلقى العميل التأكيد مرة أخرى.',
+    classNoteDriver:'يُزال السائق من الرحلة ويُبلَّغ بالبريد الإلكتروني.',
+    classConfirmTitle:'تغيير الفئة؟', classKeep:'الإبقاء على الفئة', classConfirm:'تغيير الفئة',
+    classWaitingTitle:'بانتظار دفع الفرق',
+    classWaitingBody:'{class} · {a} للدفع · الرابط صالح حتى {until}',
+    classCreditBody:'غُيّرت الفئة إلى فئة أرخص. لا يُرسَل شيء قبل تأكيدك.',
+    tripCreditBody:'عُدّلت الرحلة وأصبحت أرخص الآن. لا يُرسَل شيء قبل تأكيدك.',
+    classCreditLine:'الفرق المطلوب استرداده: {a}',
+    classDoneApplied:'غُيّرت الفئة. تلقّى العميل التأكيد مرة أخرى.',
+    classDoneRefund:'غُيّرت الفئة. استرداد مستحق: {a}. اضغط «تأكيد الاسترداد» لإرساله.',
+    classDoneWaiting:'أُرسل إلى العميل رابط لدفع {a}. تتغير الفئة عند الدفع.',
+    classDoneNoMail:'لم يُرسَل البريد الإلكتروني. انسخ رابط الدفع وأرسله إلى العميل.',
+    classDoneNoConfirm:'غُيّرت الفئة. لم يُرسَل بريد التأكيد: استخدم «إعادة إرسال القسيمة».',
+    classDoneDriver:'أُزيل السائق من الرحلة وأُبلغ.',
+    errClassTripData:'لا يمكن إعادة حساب السعر المحفوظ لهذه الرحلة، لذا لا يمكن تغيير الفئة هنا. ألغِها وأنشئ رحلة جديدة.',
+    errClassSmall:'لا تتسع هذه الفئة لركاب هذه الرحلة أو حقائبها.',
+    errClassNotSold:'هذه الفئة غير متاحة لهذه الرحلة.',
+    errClassTooLate:'انقضى موعد الاستلام. لم يعد بالإمكان تغيير الفئة.',
+    errClassCustomer:'هناك طلب تغيير من العميل بانتظار الرد. اقبله أو ارفضه أولاً.',
+    errClassRefundOpen:'يجري إرسال استرداد لهذا الحجز. أكمله أولاً.',
+    errClassPriceChanged:'تغيّر السعر. راجع المبالغ الجديدة وأكّد مرة أخرى.',
+    errClassBook:'تغيّرت قائمة الأسعار. راجع المبالغ الجديدة وأكّد مرة أخرى.',
+    errClassPricingOff:'لا توجد قائمة أسعار نشطة، لذا لا يمكن حساب سعر جديد.',
+    errClassFailed:'تعذّر تغيير فئة ',
+    withdrawChange:'سحب التغيير', withdrawTitle:'سحب تغيير الفئة؟', withdrawKeep:'الإبقاء على التغيير',
+    withdrawBody:'يتوقف رابط الدفع عن العمل ولا يُخصم أي مبلغ. يبقى الحجز بفئة {class}.',
+    withdrawDone:'سُحب التغيير. لم يعد رابط الدفع يعمل.',
+    withdrawPaid:'دفع العميل الفرق للتو. تتغير الفئة الآن.',
+    withdrawStripe:'لم يُغلق Stripe صفحة الدفع. لم يتغير شيء؛ حاول مرة أخرى.',
+    withdrawNothing:'لا يوجد تغيير فئة بانتظار هذا الحجز.',
+    // 26.2 P6
+    editTripHead:'الرحلة', editTripLead:'يُعاد حساب السعر قبل أي تغيير. تؤكّد في الخطوة التالية.',
+    editContactHead:'التواصل والملاحظة', editContactLead:'يُحفظ فورًا، دون سعر جديد. يبقى كل تغيير في السجل.',
+    note:'ملاحظة', noteHint:'أنت وحدك ترى الملاحظة.',
+    flightHintDriver:'يُحفظ فورًا، دون سعر جديد. يتلقى السائق رقم الرحلة الجوية الجديد بالبريد الإلكتروني.',
+    flightHintNoDriver:'يُحفظ فورًا، دون سعر جديد.',
+    flightNeeded:'أدخل رقم الرحلة الجوية: مكان الانطلاق الجديد مطار.',
+    whatChanges:'ما الذي يتغيّر', noNewPrice:'لا سعر جديد: يحتفظ العميل بالسعر المدفوع.',
+    tripNoteDearer:'تبقى الرحلة كما حُجزت حتى يدفع العميل الفرق. يرسل الموقع رابط الدفع بالبريد الإلكتروني؛ وهو صالح لمدة 24 ساعة.',
+    tripNoteCheaper:'تتغيّر الرحلة عند تأكيدك. يظهر الفرق كاسترداد مستحق؛ لا يُرسَل شيء حتى تضغط «تأكيد الاسترداد».',
+    tripNoteSame:'تتغيّر الرحلة عند تأكيدك. يتلقى العميل التأكيد مرة أخرى.',
+    driverKeepNote:'يبقى {name} على الرحلة ويتلقى التفاصيل الجديدة بالبريد الإلكتروني.',
+    clashTitle:'لدى {name} رحلة أخرى في ذلك الوقت', clashBody:'{ref}، الانطلاق الساعة {time}.',
+    clashKeep:'إبقاء {name} على هذه الرحلة', clashKeepSub:'تبقى الرحلتان مع السائق، ويتلقى التفاصيل الجديدة بالبريد الإلكتروني.',
+    clashOff:'إزالة {name} من هذه الرحلة', clashOffSub:'تعود الرحلة دون سائق ويُبلَّغ السائق بالبريد الإلكتروني.',
+    clashChoose:'اختر ما إذا كان {name} سيبقى على هذه الرحلة.',
+    tripConfirmTitle:'تغيير الرحلة؟', tripKeep:'رجوع', tripConfirm:'تغيير الرحلة',
+    alsoSaved:'حُفظ في الوقت نفسه: {fields}.',
+    savedInstant:'تم الحفظ. التغيير موجود في السجل.', savedFlight:'تم الحفظ. يتلقى السائق رقم الرحلة الجوية الجديد بالبريد الإلكتروني.',
+    pickFromList:'اختر المكان الجديد من القائمة.',
+    errPlaceNotServed:'لا يمكن حجز هذا المكان على الموقع. لم يتغيّر شيء.',
+    errSamePlace:'مكان الانطلاق والوجهة هما المكان نفسه.',
+    errNoRoute:'لم يُعثر على طريق بري إلى هذا المكان. لم يتغيّر شيء.',
+    errPastTime:'هذا الوقت قد مضى. اختر وقتًا لاحقًا.',
+    errDateForm:'اكتب التاريخ بالشكل YYYY-MM-DD.', errTimeForm:'اكتب الوقت بالشكل HH:MM.',
+    errPaxRange:'أدخل من 1 إلى 16 راكبًا.', errBagsRange:'أدخل من 0 إلى 16 حقيبة.',
+    errPartyTooBig:'لا تتسع فئة {class} لهذه المجموعة.', classesThatFit:'الفئات المناسبة: {list}.', noClassFits:'لا توجد فئة تتسع لهذه المجموعة.',
+    tooSmallTag:'صغيرة جدًا',
+    tripTooLate:'انقضى موعد الانطلاق. لم يعد بالإمكان تغيير الأماكن أو الوقت أو المجموعة أو الفئة.',
+    tripWaiting:'تغيير الرحلة', withdrawTripTitle:'سحب تغيير الرحلة؟',
+    withdrawTripBody:'يتوقف رابط الدفع عن العمل ولا يُخصم أي مبلغ. تبقى الرحلة كما حُجزت.',
+    tripDoneApplied:'غُيّرت الرحلة. تلقّى العميل التأكيد مرة أخرى.',
+    tripDoneRefund:'غُيّرت الرحلة. استرداد مستحق: {a}. اضغط «تأكيد الاسترداد» لإرساله.',
+    tripDoneWaiting:'أُرسل إلى العميل رابط لدفع {a}. تتغيّر الرحلة عند الدفع.',
+    tripDoneNoConfirm:'غُيّرت الرحلة. لم يُرسَل بريد التأكيد: استخدم «إعادة إرسال القسيمة».',
+    tripDoneDriverKept:'تلقّى {name} التفاصيل الجديدة بالبريد الإلكتروني.',
+    errTripFailed:'تعذّر تغيير رحلة ',
   },
 };
 class Component extends DCLogic {
-  state = { lang: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en', dialogOpen:false, cancelOpen:false, pickDriver:'', toastMsg:'', showToast:false, editing:false, edit:{}, historyOpen:false,
+  state = { lang: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en', assignOpen:false, assignError:'', cancelOpen:false, pickDriver:'', toastMsg:'', showToast:false, editing:false, edit:{}, historyOpen:false,
     // 26.1-18 refund review (UI-SPEC §4): percentage starts empty, never 100.
     percentText: '', percentFor:'', refundBusy:'', requestedFor:'', declineOpen:false, rejectOpen:false,
     // 20-10: GET …/refund answer, the last partial/failed POST answer, an inline error, the %/CHF switch and the payment choice.
-    refundData:null, refundAnswer:null, refundError:null, refundUnit:'pct', refundPick:'all', refundPickFor:'' };
+    refundData:null, refundAnswer:null, refundError:null, refundUnit:'pct', refundPick:'all', refundPickFor:'',
+    // 26.2 P1: the class-change preview (POST …/change/preview) of the booking in Edit, its confirm step, a request in flight.
+    classPreview:null, classConfirmOpen:false, classBusy:false, withdrawOpen:false, withdrawBusy:false,
+    // 26.2 P6: your choice when the new time clashes with another trip of the assigned driver (D7), per preview.
+    clashChoice:'', clashFor:'' };
   toggleHistory = () => this.setState((s) => ({ historyOpen: !s.historyOpen }));
+  // The dc-runtime hands componentDidUpdate the previous props only (support.js), so the overlay
+  // scroll lock keeps its own last value instead of reading a prevState that never arrives.
+  // (The assign dialog is gone — 260930-dash-design — so dialogOpen no longer counts.)
   componentDidUpdate() {
-    // The DC runtime calls this with prevProps only, so the previous overlay state is kept on the instance.
-    const overlay = !!(this.state.dialogOpen || this.state.cancelOpen || this.state.declineOpen || this.state.rejectOpen);
+    this.publishBar();
+    const overlay = !!(this.state.cancelOpen || this.state.declineOpen || this.state.rejectOpen || this.state.classConfirmOpen || this.state.withdrawOpen);
     const was = !!this._overlayWas;
     this._overlayWas = overlay;
     if (was !== overlay) { try { document.body.style.overflow = overlay ? 'hidden' : ''; } catch (e) {} }
     this.syncRefund();
   }
+  // 260930-dash-design: at phone width the console's top bar lists this page's actions
+  // (app/vamos-ops-bar.js); the page's own Actions button is folded there ([data-ops-fold]).
+  publishBar = () => {
+    const bar = window.VamosOpsBar;
+    if (!bar || typeof bar.set !== 'function') return;
+    const v = this._barVals || { title: '', label: '', items: [] };
+    bar.set('detail', { title: v.title, label: v.label, items: v.items, onPick: (value) => { if (this._barPick) this._barPick(value); } });
+  };
+  _assignRef = (el) => { this._assignEl = el; };
+  // Merge with 20-10 (refunds by hand): Actions → Refund brings the admin to main's refund panel.
+  _refundRef = (el) => { if (el) this._refundEl = el; };
+  goRefund = () => {
+    setTimeout(() => {
+      const el = this._refundEl;
+      if (!el || el.isConnected === false) return;
+      try { el.scrollIntoView({ block: 'center' }); } catch (e) {}
+      const first = el.querySelector && el.querySelector('input:not([disabled]), button:not([disabled])');
+      if (first) { try { first.focus({ preventScroll: true }); } catch (e) {} }
+    }, 0);
+  };
   // 20-10: the payment list and the amounts come from GET …/refund. Load it when the booking has a refund
   // due, processing or failed (and again after every refund answer).
   syncRefund = () => {
@@ -893,13 +1461,16 @@ class Component extends DCLogic {
     });
   };
   componentWillUnmount() {
-    try { if (this.state.dialogOpen || this.state.cancelOpen || this.state.declineOpen || this.state.rejectOpen) document.body.style.overflow = ''; } catch (e) {}
+    if (window.VamosOpsBar && typeof window.VamosOpsBar.clear === 'function') window.VamosOpsBar.clear('detail');
+    try { if (this.state.cancelOpen || this.state.declineOpen || this.state.rejectOpen || this.state.classConfirmOpen || this.state.withdrawOpen) document.body.style.overflow = ''; } catch (e) {}
     if (this._onLocale) window.removeEventListener('vamos:locale', this._onLocale);
     if (this._off) this._off();
     clearTimeout(this._retry);
+    clearTimeout(this._tripT);
   }
   componentDidMount() {
     this.bind();
+    this.publishBar();
     this._onLocale = (e) => this.setState({ lang: e.detail.lang, cur: e.detail.cur });
     window.addEventListener('vamos:locale', this._onLocale);
     this.syncRefund();
@@ -912,9 +1483,11 @@ class Component extends DCLogic {
       offs.push(window.VamosOps.chauffeurs.onChange(() => this.forceUpdate()));
       window.VamosOps.chauffeurs.all();
     }
-    if (window.VamosOps.vehicles) {
-      offs.push(window.VamosOps.vehicles.onChange(() => this.forceUpdate()));
-      window.VamosOps.vehicles.all();
+    // 261001-chauffeur-car: no cars; the Assign box reads the drivers and their class only. The rate
+    // book still carries the class names the owner typed (VamosOps.CLASSES).
+    if (window.VamosOps.rates) {
+      offs.push(window.VamosOps.rates.onChange(() => this.forceUpdate()));
+      window.VamosOps.rates.all();
     }
     // D-16b: refund controls follow the signed-in role from /api/staff/me.
     if (window.VamosOps.profile && typeof window.VamosOps.profile.onChange === 'function') {
@@ -949,15 +1522,72 @@ class Component extends DCLogic {
       if (tab) { tab.opener = null; tab.location.href = url; } else window.open(url, '_blank', 'noopener');
     }, () => { if (tab) tab.close(); this.notify(failText + id); });
   };
+  // 26.2 P1: what every class of today's live price book would cost for this paid trip (read-only).
+  loadClassPreview = (booking) => {
+    const key = booking.bookingId || booking.id || '';
+    const client = window.VamosOpsApi;
+    if (!key || !booking.paid || !client || typeof client.request !== 'function') return;
+    this.setState({ classPreview: { key, sig: '{}', busy: true, data: null, code: '', field: '' } });
+    client.request('POST', '/api/staff/bookings/' + encodeURIComponent(key) + '/change/preview', {}).then((json) => {
+      if (!this.state.classPreview || this.state.classPreview.key !== key || this.state.classPreview.sig !== '{}') return;
+      if (json && json.ok && json.data) {
+        const data = json.data;
+        this.setState((s) => ({
+          classPreview: { key, sig: '{}', busy: false, data, code: '', field: '' },
+          edit: Object.assign({}, s.edit, { klass: (s.edit && s.edit.klass) || data.currentClass || '' }),
+        }));
+      } else {
+        this.setState({ classPreview: { key, sig: '{}', busy: false, data: null, code: String((json && json.code) || 'unknown'), field: '' } });
+      }
+    }, () => this.setState({ classPreview: { key, sig: '{}', busy: false, data: null, code: 'unknown', field: '' } }));
+  };
+  // 26.2 P6: the same preview for the trip as edited — new places (picked from the address search), date and
+  // time, passengers, bags. Only what changed is sent; a refusal names its field and changes nothing.
+  // The last figures stay on the class list while the next ones are worked out.
+  loadTripPreview = (booking) => {
+    const key = booking.bookingId || booking.id || '';
+    const client = window.VamosOpsApi;
+    if (!key || !booking.paid || !client || typeof client.request !== 'function') return;
+    const body = tripPreviewBody(booking, this.state.edit);
+    const sig = JSON.stringify(body);
+    const prev = this.state.classPreview && this.state.classPreview.key === key ? this.state.classPreview : null;
+    if (prev && prev.sig === sig && (prev.busy || prev.data)) return;
+    if (sig === '{}') { this.loadClassPreview(booking); return; }
+    this.setState({ classPreview: { key, sig, busy: true, data: prev ? prev.data : null, code: '', field: '' } });
+    client.request('POST', '/api/staff/bookings/' + encodeURIComponent(key) + '/change/preview', body).then((json) => {
+      const cur = this.state.classPreview;
+      if (!cur || cur.key !== key || cur.sig !== sig) return;
+      if (json && json.ok && json.data) {
+        this.setState({ classPreview: { key, sig, busy: false, data: json.data, code: '', field: '' } });
+      } else {
+        const code = String((json && json.code) || 'unknown');
+        const field = String((json && json.field) || '');
+        this.setState({ classPreview: { key, sig, busy: false, data: cur.data, code, field } });
+      }
+    }, () => this.setState({ classPreview: { key, sig, busy: false, data: null, code: 'unknown', field: '' } }));
+  };
+  queueTripPreview = () => {
+    clearTimeout(this._tripT);
+    this._tripT = setTimeout(() => {
+      if (!this.state.editing) return;
+      this.loadTripPreview(this.getBooking());
+    }, 450);
+  };
+  setTripField = (key) => (e) => {
+    const value = e && e.target ? e.target.value : e;
+    this.setState((s) => ({ edit: Object.assign({}, s.edit, { [key]: value }) }), this.queueTripPreview);
+  };
   setEditField = (key) => (e) => {
     const value = e && e.target ? e.target.value : e;
     this.setState((s) => ({ edit: Object.assign({}, s.edit, { [key]: value }) }));
   };
+  // 26.2 P1: the class field holds a class of today's price book (its slug), filled by the preview — never the
+  // assigned car (it used to pre-fill with "plate · model").
   snapshotEdit = (booking) => ({
     customer: booking.customer || '',
     email: booking.email || '',
     phone: booking.phone || '',
-    klass: booking.vehicle || booking.klass || '',
+    klass: '',
     pickup: booking.pickup || '',
     dropoff: booking.dropoff || '',
     dateIso: booking.dateIso || '',
@@ -965,6 +1595,10 @@ class Component extends DCLogic {
     pax: String(booking.pax ?? ''),
     bags: String(booking.bags ?? ''),
     flight: booking.flight || '',
+    // 26.2 P6: a place picked from the address search (null = the place as booked); the note is saved at once.
+    pickupPlace: null,
+    dropoffPlace: null,
+    note: booking.note || '',
   });
   renderVals() {
     const t = Object.assign({}, T.en, T[this.state.lang] || {});
@@ -988,7 +1622,8 @@ class Component extends DCLogic {
     } else {
       booking.sessionLeft = 'No open session';
     }
-    const drivers = assignableChauffeurOptions();
+    const drivers = assignableChauffeurs(booking.vehicleClassId);
+    const tripClassName = String(booking.className || booking.klass || '').trim();
     const assignedDriver = booking.driver || booking.chauffeur || null;
     const frozen = ['completed','cancelled','refunded','no-show','no_show','partially_cancelled','partially_completed'].indexOf(booking.status) !== -1;
     const canAssign = !!booking.paid && !frozen;
@@ -1013,10 +1648,18 @@ class Component extends DCLogic {
     // The booking row already says whether an amount is owed, so the tier is known before GET …/refund answers.
     const rd = this.state.refundData && this.state.refundData.key === refundKey ? this.state.refundData.data : null;
     const owedBk = Number(booking.refundOwedRappen);
-    const fullTier = rd ? rd.fullTier === true : (refundStatus === 'pending_ops' && Number.isFinite(owedBk) && owedBk > 0);
+    // 26.2 P1 credit tier: owed on a trip that still runs = a cheaper class left exactly that much due.
+    const refundedBk = Number(booking.refundRappen) || 0;
+    const tripEnded = booking.status === 'cancelled' || booking.status === 'refunded' || booking.status === 'partially_cancelled';
+    const creditTier = rd ? rd.creditTier === true : (refundStatus === 'pending_ops' && !tripEnded && Number.isFinite(owedBk) && owedBk > refundedBk);
+    const fullTier = rd ? rd.fullTier === true : (refundStatus === 'pending_ops' && !creditTier && Number.isFinite(owedBk) && owedBk > 0);
     const paidAdmin = isAdmin && !!booking.paid;
     const fullShown = paidAdmin && refundStatus === 'pending_ops' && fullTier;
-    const reviewNeeded = paidAdmin && refundStatus === 'pending_ops' && !fullTier;
+    const creditShown = paidAdmin && refundStatus === 'pending_ops' && creditTier;
+    const creditDue = rd ? Number(rd.dueRappen) || 0 : Math.max(0, (Number.isFinite(owedBk) ? owedBk : 0) - refundedBk);
+    // 26.2 P6 D21 (owner, 2026-10-02): a cheaper place, time or party change says the trip changed, not the class.
+    const tripCredit = !!(rd && rd.lastChange === 'trip');
+    const reviewNeeded = paidAdmin && refundStatus === 'pending_ops' && !fullTier && !creditTier;
     const legacyDue = booking.status === 'cancelled' && !!booking.paid && refundStatus === 'none';
     const postTripEligible = isAdmin && !!booking.paid && booking.tripPassed === true && refundStatus === 'none' && postTripStatus;
     const canFullRefund = isAdmin && legacyDue;
@@ -1039,6 +1682,8 @@ class Component extends DCLogic {
     // (the list then forces a choice); with one captured payment the server finds it.
     const refundBody = () => {
       if (fullShown) return chosen ? { paymentId: chosen.id, percent: 100 } : { percent: 100 };
+      // Credit: exactly what is due — on the chosen payment, or spread by the database over the payments.
+      if (creditShown) return chosen ? { paymentId: chosen.id, amountRappen: Math.min(creditDue, Number(chosen.leftRappen) || 0) } : {};
       if (unit === 'chf') return chosen ? { paymentId: chosen.id, amountRappen } : { amountRappen };
       return chosen ? { paymentId: chosen.id, percent: Number(percentText) } : { percent: Number(percentText) };
     };
@@ -1066,7 +1711,7 @@ class Component extends DCLogic {
       'not-pending': t.errDecided, 'not-open': t.errDecided, 'not-post-trip': t.errNotPostTrip,
     };
     const refundErrorText = refundErr ? (errByCode[refundErr] || (t.refundFailed + booking.id)) : '';
-    const refundFormShown = (fullShown || reviewNeeded) && !refundFailedShown;
+    const refundFormShown = (fullShown || reviewNeeded || creditShown) && !refundFailedShown;
     const dispute = booking.dispute && typeof booking.dispute === 'object' ? booking.dispute : null;
     const disputeWord = (status) => {
       const st = String(status || '');
@@ -1130,6 +1775,44 @@ class Component extends DCLogic {
     const distanceChip = booking.distanceKm ? (booking.distanceKm + ' km') : '';
     const extras = Array.isArray(booking.extras) ? booking.extras : [];
     const extrasText = extras.length ? extras.map((code) => extraName(booking, code, this.state.lang)).filter(Boolean).join(', ') : t.noExtras;
+    // 261001-chauffeur-car, decision 7: one row — the dropdown lists the drivers of the trip's class
+    // as "Name · Plate"; assigned, the row reads "Name · Plate" with Change and Unassign.
+    const allDrivers = (window.VamosOps && window.VamosOps.chauffeurs) ? (window.VamosOps.chauffeurs.all() || []) : [];
+    const assignedRow = allDrivers.filter((c) => c && booking.assignedChauffeurId && String(c.id) === String(booking.assignedChauffeurId))[0] || null;
+    const driverPlate = String(booking.chauffeurPlate || (assignedRow && assignedRow.plate) || '').trim();
+    const showAssignPicker = canAssign && (!assignedDriver || !!this.state.assignOpen);
+    const driverOptions = drivers.map((c) => ({
+      value: String(c.id),
+      label: [String(c.name || c.fullName || c.email || c.id), String(c.plate || '').trim()].filter(Boolean).join(' \u00b7 '),
+    }));
+    const showAssigned = !!assignedDriver && !showAssignPicker;
+    const driverLine = [assignedDriver || '', driverPlate].filter(Boolean).join(' \u00b7 ');
+    const canEdit = !!booking.paid && !cancelled;
+    const canCancel = !cancelled && booking.status !== 'completed';
+    // Item 1 (owner, 2026-09-30): every action valid for this booking, in one menu. Cancel is last
+    // and set apart (danger). Each value runs the handler its old button ran (pickAction).
+    // A trip with no readable time keeps both (the owner can still close a broken row).
+    const pickAt = pickupMs(booking);
+    const pickupReached = !Number.isFinite(pickAt) || pickAt <= Date.now();
+    // 26.2 P1: your own dearer class change waits for the customer's payment of the difference.
+    // 26.2 P6: or your dearer trip change (places, time, party) — the board names the class only for a class change.
+    const pendingClassWait = !!booking.pendingEditId && booking.pendingEditActor === 'staff';
+    const actionItems = [
+      canAssign ? { value: 'assign', label: assignedDriver ? t.reassign : t.assign, icon: assignedDriver ? 'users' : 'user-plus' } : null,
+      canUnassign ? { value: 'unassign', label: t.unassign, icon: 'minus' } : null,
+      canEdit ? { value: 'edit', label: t.editBooking, icon: 'pencil' } : null,
+      // 26.2 P1 (owner sign-off 2026-10-01): withdraw the waiting change; the payment link stops working.
+      pendingClassWait ? { value: 'withdraw', label: t.withdrawChange, icon: 'x' } : null,
+      !!booking.paid && !cancelled ? { value: 'resend', label: t.resendVoucher, icon: 'mail' } : null,
+      !frozen && !booking.arrivedAt ? { value: 'arrival', label: t.markArrival, icon: 'map-pin' } : null,
+      !frozen && pickupReached ? { value: 'complete', label: t.complete, icon: 'circle-check' } : null,
+      !frozen && pickupReached ? { value: 'noShow', label: t.noShow, icon: 'circle-alert' } : null,
+      // Merge with 20-10: Refund is offered for main's refund panel (due, review, failed) as well as
+      // for an old cancelled row and a post-trip request.
+      refundFormShown || refundFailedShown || canFullRefund || postTripEligible ? { value: 'refund', label: t.markRefund, icon: 'receipt', disabled: !!refundBusy } : null,
+      canCancel ? { value: 'cancel', label: booking.paid ? t.confirmCancel : t.confirmCancelUnpaid, icon: 'x', tone: 'danger' } : null,
+    ].filter(Boolean);
+    const viewing = !this.state.editing;
     const tags = [
       { icon: 'user', k: t.driver, v: assignedDriver || t.unassigned },
       { icon: 'clock', k: t.when, v: pickupWhen || '—' },
@@ -1147,8 +1830,161 @@ class Component extends DCLogic {
     if (booking.vehicle && booking.vehicle !== booking.klass) {
       tags.splice(3, 0, { icon: 'car', k: t.vehicleAssigned, v: booking.vehicle });
     }
-    return {
+    // 26.2 P1 + P6: a change of class, places, date, time or party on a paid trip. The class list and every
+    // figure come from POST …/change/preview (today's price book, the trip as edited); the box lists each
+    // changed field old → new with paid so far, new total and the difference, or "no new price" for a time
+    // or party change inside the class (D1, D5). Nothing is written before the confirm step, and the server
+    // prices again (the browser sends the changed fields, the signed trip facts and the two figures shown).
+    const bookingKey = booking.bookingId || booking.id || '';
+    const ed = this.state.edit || {};
+    const cp = this.state.classPreview && this.state.classPreview.key === bookingKey ? this.state.classPreview : null;
+    const cpData = cp && cp.data ? cp.data : null;
+    const classRows = cpData && Array.isArray(cpData.classes) ? cpData.classes : [];
+    const classValue = String(ed.klass || (cpData ? cpData.currentClass : '') || '');
+    const pickedClass = classRows.find((c) => c.slug === classValue) || null;
+    const currentClassRow = classRows.find((c) => c.current) || null;
+    const classChanged = !!(cpData && pickedClass && !pickedClass.current);
+    // The trip as edited against the trip as booked.
+    const tf = tripFields(booking, ed);
+    const pickupChanged = tf.pickupChanged;
+    const dropoffChanged = tf.dropoffChanged;
+    const placesChanged = pickupChanged || dropoffChanged;
+    const otherTripChanged = tf.whenChanged || tf.paxChanged || tf.bagsChanged;
+    const tripChanged = placesChanged || otherTripChanged || classChanged;
+    const onlyClass = classChanged && !placesChanged && !otherTripChanged;
+    const instant = instantFields(booking, ed);
+    const editLang = this.state.lang;
+    const tripLocked = pickupReached || frozen;
+    // A refusal names its field (place-not-served, same-place, no-route under a place; past-time under the time).
+    const refusal = cp && !cp.busy && cp.field ? { field: cp.field, code: cp.code } : null;
+    const refusalText = (code) => ({
+      'place-not-served': t.errPlaceNotServed, 'outside-area': t.errPlaceNotServed, 'same-place': t.errSamePlace,
+      'no-route': t.errNoRoute, 'past-time': t.errPastTime,
+    })[code] || t.errPlaceNotServed;
+    const fieldError = (name) => (refusal && refusal.field === name ? refusalText(refusal.code) : '');
+    const fitRows = classRows.filter((c) => c.ok === true);
+    const partyTooBig = (tf.paxChanged || tf.bagsChanged) && !!currentClassRow && currentClassRow.code === 'class-too-small';
+    const pickedFits = !!pickedClass && pickedClass.ok === true;
+    const partyError = partyTooBig && !(classChanged && pickedFits)
+      ? fillAmounts(t.errPartyTooBig, { class: currentClassRow.name }) : '';
+    const classOk = classChanged ? pickedClass.ok === true : (!!currentClassRow && currentClassRow.ok === true);
+    const classDiff = classOk ? Number((classChanged ? pickedClass : currentClassRow).differenceRappen) || 0 : 0;
+    const priceRow = classChanged ? pickedClass : currentClassRow;
+    const classErrByCode = {
+      'class-too-small': t.errClassSmall, 'class-not-sold': t.errClassNotSold, 'unknown-class': t.errClassNotSold,
+      'trip-data': t.errClassTripData, 'too-late': t.errClassTooLate, 'customer-request-waiting': t.errClassCustomer,
+      'refund-open': t.errClassRefundOpen, 'pricing-not-live': t.errClassPricingOff, 'unpaid': t.unpaidNoEditBody,
+      'price-changed': t.errClassPriceChanged, 'paid-changed': t.errClassPriceChanged, 'price-book-changed': t.errClassBook,
+      'stripe-test-only': t.errTestOnly, 'not-editable': t.errClassTooLate,
+      // 26.2 P6 server step: the reasons the change route can still answer, in the page's own words.
+      'must-fix': t.mustFix, 'driver-overlap': t.mustFix, 'flight-needed': t.flightNeeded, 'past-time': t.errPastTime,
+      // 261002 settle safety: the waiting change's page was paid in the same second; the payment applies that change.
+      'already-paid': t.acceptPaid,
+    };
+    const classError = cp && !cp.busy && cp.code && !cp.field
+      ? (classErrByCode[cp.code] || (t.errClassFailed + booking.id))
+      : (classChanged && !pickedFits ? (classErrByCode[pickedClass.code] || t.errClassNotSold) : '');
+    const classOptions = classRows.length
+      ? classRows.filter((c) => c.current || !partyTooBig || c.ok === true).map((c) => ({
+        value: c.slug,
+        label: [c.name, c.current ? (partyTooBig ? t.tooSmallTag : t.classCurrentTag) : ''].filter(Boolean).join(' · '),
+      }))
+      : [{ value: '', label: booking.klass || '—' }];
+    const fitList = fitRows.map((c) => c.name).join(', ');
+    const classHint = cp && cp.busy && !cpData ? t.classLoading
+      : (partyTooBig && !classChanged ? (fitRows.length ? fillAmounts(t.classesThatFit, { list: fitList }) : t.noClassFits) : '');
+    // Field checks the browser can make before asking the server.
+    const dateError = tf.dateBad ? t.errDateForm : '';
+    const timeError = tf.timeBad ? t.errTimeForm : fieldError('when');
+    const paxError = tf.paxBad ? t.errPaxRange : (tf.paxChanged || !tf.bagsChanged ? partyError : '');
+    const bagsError = tf.bagsBad ? t.errBagsRange : (tf.bagsChanged && !tf.paxChanged ? partyError : '');
+    const pickupError = fieldError('pickup');
+    const dropoffError = fieldError('dropoff');
+    // Flight first, and only for an airport pickup (booking field order); the server names the airport.
+    const pickupAirport = cpData && typeof cpData.pickupIsAirport === 'boolean' ? cpData.pickupIsAirport : (!pickupChanged && !!String(booking.flight || '').trim());
+    const flightShown = pickupAirport || (!pickupChanged && !!String(booking.flight || '').trim());
+    const flightError = flightShown && pickupChanged && pickupAirport && !String(ed.flight || '').trim() ? t.flightNeeded : '';
+    const driverName = String(booking.driver || booking.chauffeur || '').trim();
+    const hasDriver = !!booking.assignedChauffeurId && !!driverName;
+    const clash = cpData && cpData.driverClash && hasDriver && !classChanged ? cpData.driverClash : null;
+    const clashChoice = clash && this.state.clashFor === (cp && cp.sig) ? this.state.clashChoice : '';
+    const fillName = (str) => fillAmounts(str, { name: driverName, ref: clash ? clash.reference : '', time: clash ? clash.time : '' });
+    const busy = !!(cp && cp.busy);
+    // What stops the confirm step, in the order the form reads.
+    const tripBlock = !tripChanged ? '' : (tripLocked ? t.tripTooLate
+      : (tf.pickupTyped || tf.dropoffTyped ? t.pickFromList
+      : (dateError || timeError || tf.paxBad || tf.bagsBad ? (dateError || timeError || paxError || bagsError)
+      : (pickupError || dropoffError || flightError || partyError
+      || (busy ? t.classLoading : '') || classError
+      || (!classOk ? (t.errClassFailed + booking.id) : '')
+      || (clash && !clashChoice ? fillName(t.clashChoose) : '')))));
+    const tripReady = tripChanged && !tripBlock;
+    const priced = placesChanged || classChanged;
+    const classBoxLines = tripReady && priced ? [
+      { label: t.classPaidSoFar, value: chfText(cpData.paidRappen) },
+      { label: t.classNewTotal, value: chfText(priceRow.newTotalRappen) },
+    ] : [];
+    const classBoxTotalLabel = classDiff > 0 ? t.classDiffToPay : (classDiff < 0 ? t.classDiffRefund : t.classDiffNone);
+    const classBoxNote = !priced ? t.tripNoteSame
+      : (onlyClass ? (classDiff > 0 ? t.classNoteDearer : (classDiff < 0 ? t.classNoteCheaper : t.classNoteSame))
+      : (classDiff > 0 ? t.tripNoteDearer : (classDiff < 0 ? t.tripNoteCheaper : t.tripNoteSame)));
+    const changeRows = [];
+    if (pickupChanged) changeRows.push({ k: t.pickup, o: booking.pickup || '—', n: ed.pickupPlace.text });
+    if (dropoffChanged) changeRows.push({ k: t.dropoff, o: booking.dropoff || '—', n: ed.dropoffPlace.text });
+    if (tf.dateChanged) changeRows.push({ k: t.date, o: booking.dateIso || '—', n: String(ed.dateIso || '').trim() });
+    if (tf.timeChanged) changeRows.push({ k: t.time, o: booking.time || '—', n: String(ed.time || '').trim() });
+    if (tf.paxChanged) changeRows.push({ k: t.passengers, o: String(booking.pax ?? ''), n: String(ed.pax || '').trim() });
+    if (tf.bagsChanged) changeRows.push({ k: t.bagsLabel, o: String(booking.bags ?? ''), n: String(ed.bags || '').trim() });
+    if (classChanged) changeRows.push({ k: t.vehicleClass, o: currentClassRow ? currentClassRow.name : (booking.klass || '—'), n: pickedClass.name });
+    const instantNames = instant.list.map((k) => ({ customer: t.customer, email: t.email, phone: t.mobile, note: t.note, flight: t.flight })[k]).filter(Boolean);
+    const changeBody = () => {
+      const body = { expectPaidRappen: cpData.paidRappen };
+      if (classChanged) body.klass = pickedClass.slug;
+      body.expectTotalRappen = priceRow.newTotalRappen;
+      if (pickupChanged) body.pickup = placeInput(ed.pickupPlace);
+      if (dropoffChanged) body.dropoff = placeInput(ed.dropoffPlace);
+      if (tf.whenChanged) { body.dateIso = String(ed.dateIso).trim(); body.time = String(ed.time).trim(); }
+      if (tf.paxChanged) body.pax = Number(ed.pax);
+      if (tf.bagsChanged) body.bags = Number(ed.bags);
+      if (cpData.lock) body.lock = cpData.lock;
+      if (clash) body.driver = clashChoice === 'off' ? 'unassign' : 'keep';
+      // A class-only change sends exactly P1's body: klass, expectTotalRappen, expectPaidRappen.
+      return onlyClass ? { klass: pickedClass.slug, expectTotalRappen: pickedClass.newTotalRappen, expectPaidRappen: cpData.paidRappen } : body;
+    };
+    const postClassChange = () => {
+      const client = window.VamosOpsApi;
+      if (!client || typeof client.request !== 'function' || !tripReady) {
+        this.setState({ classConfirmOpen: false, classBusy: false });
+        this.notify((onlyClass ? t.errClassFailed : t.errTripFailed) + booking.id);
+        return;
+      }
+      client.request('POST', '/api/staff/bookings/' + encodeURIComponent(bookingKey) + '/change', changeBody()).then((json) => {
+        if (window.VamosOps) window.VamosOps.bookings.reset();
+        if (json && json.ok && json.data) {
+          const d = json.data;
+          let msg;
+          if (d.outcome === 'extra_required') msg = d.mailed ? fillAmounts(onlyClass ? t.classDoneWaiting : t.tripDoneWaiting, { a: chfText(d.differenceRappen) }) : t.classDoneNoMail;
+          else if (d.outcome === 'refund_due') msg = fillAmounts(onlyClass ? t.classDoneRefund : t.tripDoneRefund, { a: chfText(Math.abs(Number(d.differenceRappen) || 0)) });
+          else msg = d.confirmationSent ? (onlyClass ? t.classDoneApplied : t.tripDoneApplied) : (onlyClass ? t.classDoneNoConfirm : t.tripDoneNoConfirm);
+          if (d.driverTakenOff) msg += ' ' + t.classDoneDriver;
+          else if (d.driverUpdated && driverName) msg += ' ' + fillName(t.tripDoneDriverKept);
+          this.setState({ classConfirmOpen: false, classBusy: false, editing: false, edit: {}, classPreview: null, clashChoice: '', clashFor: '' });
+          this.notify(msg);
+          return;
+        }
+        // The contact fields were saved; the trip was not. Show the reason and the figures as they are now.
+        const code = String((json && json.code) || 'unknown');
+        this.setState((s) => ({ classConfirmOpen: false, classBusy: false, edit: Object.assign({}, s.edit, { klass: '' }) }));
+        this.notify(classErrByCode[code] || ((onlyClass ? t.errClassFailed : t.errTripFailed) + booking.id));
+        this.loadTripPreview(booking);
+      }, () => {
+        this.setState({ classConfirmOpen: false, classBusy: false });
+        this.notify((onlyClass ? t.errClassFailed : t.errTripFailed) + booking.id);
+      });
+    };
+    const vals = {
       n14:14, n15:15, n16:16, yes:true,
+      tActions: t.actions, actionItems, showActions: viewing && actionItems.length > 0,
       tBackToBookings: t.backToBookings, tMoreActions: t.moreActions, tBookedBy: t.bookedBy,
       goBack: () => {
         history.pushState({}, '', '/bookings');
@@ -1164,14 +2000,8 @@ class Component extends DCLogic {
       hasRouteMid: !!(durationChip || distanceChip),
       tags,
       tAssignment: t.assignment,
-      assignVariant: assignedDriver ? 'ghost' : 'primary',
-      assignLabel: assignedDriver ? t.reassign : t.assign,
       canAssign, canUnassign, tUnassign: t.unassign,
       canResend: !!booking.paid && !cancelled,
-      openAssignDialog: () => {
-        if (!canAssign) return;
-        this.setState({ dialogOpen: true, pickDriver: (drivers[0] && drivers[0].value) || '' });
-      },
       confirmUnassign: () => {
         const id = booking.bookingId || booking.id;
         const client = window.VamosOpsApi;
@@ -1188,8 +2018,20 @@ class Component extends DCLogic {
           }
         });
       },
-      hasDriver: !!assignedDriver, noDriver: !assignedDriver, showAssignSide: !assignedDriver && canAssign,
-      driverName: assignedDriver || '', driverVehicle: booking.vehicle || '',
+      hasDriver: !!assignedDriver, noDriver: !assignedDriver,
+      driverName: assignedDriver || '', driverPlate, driverLine, showAssigned,
+      showNoDriverText: !assignedDriver && !showAssignPicker,
+      tChooseChauffeur: t.chooseChauffeur, tAssignBtn: t.assignBtn, tChange: t.change,
+      openChange: () => this.setState({ assignOpen: true, pickDriver: '', assignError: '' }),
+      pickDriverFromSelect: (e) => this.setState({ pickDriver: String((e && e.target ? e.target.value : e) || ''), assignError: '' }),
+      tNoDrivers: (booking.vehicleClassId && tripClassName) ? t.noDriversClass.replace('{class}', tripClassName) : t.noDrivers,
+      assignRef: this._assignRef, refundRef: this._refundRef,
+      showAssignPicker, assignCancelable: showAssignPicker && !!assignedDriver,
+      closeAssign: () => this.setState({ assignOpen: false, pickDriver: '', assignError: '' }),
+      driverOptions, noDrivers: driverOptions.length === 0, showNoDrivers: showAssignPicker && driverOptions.length === 0,
+      // Never a disabled primary: at 42 % the yellow reads as a cream pill (law 02). No pick → the box says so.
+      assignDisabled: false,
+      assignError: this.state.assignError || '', hasAssignError: !!this.state.assignError,
       tNoDriver: t.noDriver, tNoDriverSub: t.noDriverSub,
       tPassengerTrip: t.passengerTrip, tPassengers: t.passengers, tBags: t.bags, tVehicleClass: t.vehicleClass,
       tFlight: t.flight, tEmail: t.email, tMobile: t.mobile, tPayment: t.payment, tPayLink: t.payLink, tSession: t.session,
@@ -1208,7 +2050,9 @@ class Component extends DCLogic {
       tHistory: t.history, tHistoryEmpty: t.historyEmpty, historyRows, historyEmpty: historyRows.length === 0, historyHas: historyRows.length > 0,
       historyOpen: !!this.state.historyOpen, historyClosed: !this.state.historyOpen, toggleHistory: this.toggleHistory,
       isPending: !booking.paid && !cancelled, isCancelled: booking.status === 'cancelled', isRefunded: booking.status === 'refunded' || refundStatus === 'refunded',
-      showRefundDue: booking.status === 'cancelled' && !refundFailedShown && ((refundStatus === 'pending_ops' && fullTier) || legacyDue),
+      showRefundDue: !refundFailedShown && ((booking.status === 'cancelled' && ((refundStatus === 'pending_ops' && fullTier) || legacyDue))
+        || (refundStatus === 'pending_ops' && creditTier && !creditShown)),
+      creditShown, creditLine: fillAmounts(t.classCreditLine, { a: chfText(creditDue) }), tClassCreditBody: tripCredit ? t.tripCreditBody : t.classCreditBody,
       canFullRefund, postTripEligible, reviewNeeded,
       refundFormShown, reviewShown: reviewNeeded, decidedShown: reviewNeeded, declineShown: reviewNeeded, fullShown,
       pickerShown: multi, payRows, fullLine: fillAmounts(t.refundFullLine, { a: chfText(fullAmount) }),
@@ -1223,7 +2067,7 @@ class Component extends DCLogic {
       refundFailedShown, hasDispute: !!dispute,
       disputeLine: dispute ? [disputeWord(dispute.status), t.disputeManage].filter(Boolean).join(' · ') : '',
       percentText, refundBusy: !!refundBusy,
-      confirmDisabled: fullShown ? !!refundBusy : (!(unit === 'chf' ? amountValid : percentValid) || !!refundBusy),
+      confirmDisabled: fullShown || creditShown ? !!refundBusy : (!(unit === 'chf' ? amountValid : percentValid) || !!refundBusy),
       confirmBusy: refundBusy === 'percent' ? 'true' : 'false',
       acceptBusy: refundBusy === 'post-trip' ? 'true' : 'false',
       decideBusy: refundBusy === 'decline' || refundBusy === 'reject' ? 'true' : 'false',
@@ -1242,7 +2086,7 @@ class Component extends DCLogic {
       // D-24: 0 % means nothing back, which is a decline — send it through the decline dialog (decided tier only).
       confirmPercent: () => {
         if (refundBusy) return;
-        if (fullShown) { postRefund('percent', refundBody()); return; }
+        if (fullShown || creditShown) { postRefund('percent', refundBody()); return; }
         if (unit === 'chf' ? !amountValid : !percentValid) return;
         if (unit === 'pct' && Number(percentText) === 0) { this.setState({ declineOpen: true, rejectOpen: false }); return; }
         postRefund('percent', refundBody());
@@ -1256,7 +2100,7 @@ class Component extends DCLogic {
       acceptPostTrip: () => { if (!refundBusy) postRefund('post-trip', { postTrip: true }); },
       // Try again asks the server to finish what is still open; it never sends a new amount.
       retryRefund: () => { if (!refundBusy) postRefund('retry', { retry: true }); },
-      tOutstandingTitle: t.outstandingTitle, tOutstandingBody: t.outstandingBody, tRefundTitle: t.refundTitle, tRefundBody: fullTier ? t.refundBody : t.dueLegacyBody,
+      tOutstandingTitle: t.outstandingTitle, tOutstandingBody: t.outstandingBody, tRefundTitle: t.refundTitle, tRefundBody: creditTier ? (tripCredit ? t.tripCreditBody : t.classCreditBody) : (fullTier ? t.refundBody : t.dueLegacyBody),
       tRefundedTitle: t.refundedTitle, tRefundedBody: t.refundedBody,
       tSendPayLink: t.sendPayLink, tTakeCard: t.takeCard, tOpenStripe: t.openStripe, tCopyPayLink: t.copyPayLink, hasExtraPay: !!booking.pendingEditExtraSessionId,
       tResendVoucher: t.resendVoucher, tEditBooking: t.editBooking, tCancelBooking: t.cancelBooking,
@@ -1265,10 +2109,75 @@ class Component extends DCLogic {
       tSaveEdit: t.saveEdit, tContinue: t.continue, tAccept: t.accept, tRefuse: t.refuse, tCancelEdit: t.cancelEdit, tMarkRefund: t.markRefund,
       tCustomer: t.customer, tPickup: t.pickup, tDropoff: t.dropoff, tDate: t.date, tTime: t.time, tBagsLabel: t.bagsLabel,
       tPendingEditTitle: t.pendingEditTitle, tUnpaidNoEditTitle: t.unpaidNoEditTitle, tUnpaidNoEditBody: t.unpaidNoEditBody, tUnpaidNewTrip: t.unpaidNewTrip,
-      editing: !!this.state.editing, viewing: !this.state.editing,
-      canEdit: !!booking.paid && !cancelled,
+      editing: !!this.state.editing, viewing,
+      canEdit,
       unpaidNoEdit: !booking.paid && !cancelled,
       hasPendingEdit: !!booking.pendingEditId,
+      // 26.2 P1: a customer's request is answered with Accept / Refuse; your own class change waits for the payment.
+      pendingNeedsAnswer: !!booking.pendingEditId && !pendingClassWait, pendingClassWait,
+      tClassWaitingTitle: t.classWaitingTitle,
+      classWaitingLine: pendingClassWait ? fillAmounts(t.classWaitingBody, {
+        class: booking.pendingEditClass || t.tripWaiting, a: chfText(booking.pendingEditDifferenceRappen), until: eventWhen(booking.pendingEditPayUntil),
+      }) : '',
+      classOptions, classValue, classError, classSelectOff: !cpData || !!this.state.classBusy || tripLocked,
+      classHint,
+      // 26.2 P6: the change box (every changed field old → new, then the money or "no new price").
+      changeBoxShown: tripChanged && !tripLocked, changeRows, changeBusy: busy,
+      classBoxShown: tripReady && priced, classBoxLines, classBoxTotal: tripReady && priced ? chfText(Math.abs(classDiff)) : '',
+      classBoxTotalLabel, classBoxNote, noPriceShown: tripReady && !priced, changeNoteShown: tripReady,
+      tWhatChanges: t.whatChanges, tNoNewPrice: t.noNewPrice, tClassLoading: t.classLoading,
+      driverNoteShown: tripReady && hasDriver && !classChanged && !clash && (placesChanged || tf.whenChanged), driverNote: fillName(t.driverKeepNote),
+      clashShown: !!clash && tripChanged && !busy, clashTitle: fillName(t.clashTitle), clashBody: fillName(t.clashBody),
+      clashKeepLabel: fillName(t.clashKeep), clashOffLabel: fillName(t.clashOff), tClashKeepSub: t.clashKeepSub, tClashOffSub: t.clashOffSub,
+      clashKeepOn: clashChoice === 'keep', clashOffOn: clashChoice === 'off',
+      pickClashKeep: () => this.setState({ clashChoice: 'keep', clashFor: cp ? cp.sig : '' }),
+      pickClashOff: () => this.setState({ clashChoice: 'off', clashFor: cp ? cp.sig : '' }),
+      confirmDriverShown: hasDriver && !classChanged && (placesChanged || tf.whenChanged) && (!clash || clashChoice === 'keep'),
+      confirmDriverNote: fillName(t.driverKeepNote),
+      alsoSavedShown: tripChanged && instant.changed, alsoSavedLine: fillAmounts(t.alsoSaved, { fields: instantNames.join(', ') }),
+      tEditPrimary: tripChanged ? t.continue : t.saveEdit,
+      tEditTripHead: t.editTripHead, tEditTripLead: t.editTripLead, tEditContactHead: t.editContactHead, tEditContactLead: t.editContactLead,
+      tNote: t.note, tNoteHint: t.noteHint, hasNote: !!String(booking.note || '').trim(), noteText: String(booking.note || '').trim(), tTripTooLate: t.tripTooLate, tripLocked,
+      flightShown, flightHint: hasDriver ? t.flightHintDriver : t.flightHintNoDriver, flightError,
+      pickupPicked: !tf.pickupTyped, dropoffPicked: !tf.dropoffTyped, pickupError, dropoffError,
+      dateError, timeError, paxError, bagsError, n3: 3,
+      geoLang: ['de', 'fr', 'ar'].indexOf(editLang) !== -1 ? editLang : 'en',
+      // The class (P1) shows the driver line "taken off"; a trip change keeps the driver unless you chose otherwise.
+      classConfirmOpen: !!this.state.classConfirmOpen && tripReady, classDriverOff: !!booking.assignedChauffeurId && (classChanged || clashChoice === 'off'),
+      classBusy: !!this.state.classBusy, classBusyAria: this.state.classBusy ? 'true' : 'false',
+      withdrawOpen: !!this.state.withdrawOpen && pendingClassWait, withdrawBusy: !!this.state.withdrawBusy,
+      withdrawBusyAria: this.state.withdrawBusy ? 'true' : 'false',
+      tWithdrawTitle: booking.pendingEditClass ? t.withdrawTitle : t.withdrawTripTitle, tWithdrawKeep: t.withdrawKeep, tWithdrawChange: t.withdrawChange,
+      tWithdrawBody: booking.pendingEditClass ? fillAmounts(t.withdrawBody, { class: booking.klass || '—' }) : t.withdrawTripBody,
+      closeWithdraw: () => { if (!this.state.withdrawBusy) this.setState({ withdrawOpen: false }); },
+      confirmWithdraw: () => {
+        if (this.state.withdrawBusy) return;
+        const client = window.VamosOpsApi;
+        if (!client || typeof client.request !== 'function') { this.notify(t.withdrawStripe); return; }
+        this.setState({ withdrawBusy: true });
+        client.request('POST', '/api/staff/bookings/' + encodeURIComponent(bookingKey) + '/change/withdraw', {}).then((json) => {
+          if (window.VamosOps) window.VamosOps.bookings.reset();
+          const code = json && json.code;
+          this.setState({ withdrawOpen: false, withdrawBusy: false });
+          if (json && json.ok) { this.notify(t.withdrawDone); return; }
+          if (code === 'already-paid') this.notify(t.withdrawPaid);
+          else if (code === 'nothing-waiting') this.notify(t.withdrawNothing);
+          else if (code === 'stripe-test-only') this.notify(t.errTestOnly);
+          else this.notify(t.withdrawStripe);
+        }, () => {
+          this.setState({ withdrawOpen: false, withdrawBusy: false });
+          this.notify(t.withdrawStripe);
+        });
+      },
+      tClassConfirmTitle: onlyClass ? t.classConfirmTitle : t.tripConfirmTitle, tClassKeep: onlyClass ? t.classKeep : t.tripKeep,
+      tClassConfirm: onlyClass ? t.classConfirm : t.tripConfirm, tClassNoteDriver: classChanged ? t.classNoteDriver : fillName(t.clashOffSub),
+      closeClassConfirm: () => { if (!this.state.classBusy) this.setState({ classConfirmOpen: false }); },
+      confirmClassChange: () => {
+        if (this.state.classBusy || !tripReady) return;
+        this._classConfirmed = true;
+        this.setState({ classBusy: true });
+        vals.saveEdit();
+      },
       hasFlightBanner: !!(booking.flight && String(booking.flight).trim()),
       tFlightBanner: t.flightBanner,
       pendingEditDiff: (function () {
@@ -1298,12 +2207,16 @@ class Component extends DCLogic {
           if (json && json.ok) {
             if (ops) ops.bookings.reset();
             if (outcome === 'extra_required') this.notify(t.extraWaiting);
-            else if (outcome === 'refund_click') this.notify(t.refundClick);
-            else if (outcome === 'refund_immediate') this.notify(t.evRefund + ' ' + booking.id);
+            // 26.2 P1 / refunds by hand: a cheaper change is Refund due; nothing went to Stripe.
+            else if (outcome === 'refund_due') this.notify(t.refundClick);
             return;
           }
           if (code === 'must-fix' || code === 'capacity') this.notify(t.mustFix);
           else if (code === 'unpaid') this.notify(t.unpaidNoEditBody);
+          // 261002 review round 3: the page of this request is already paid; nothing was replaced.
+          else if (code === 'already-paid') { if (ops) ops.bookings.reset(); this.notify(t.acceptPaid); }
+          // 261002 settle safety: a second Accept after the amount to pay moved; nothing was written, no new link.
+          else if (code === 'price-changed') { if (ops) ops.bookings.reset(); this.notify(t.acceptPriceChanged); }
           else this.notify(t.editFailed + booking.id);
         });
       },
@@ -1328,15 +2241,19 @@ class Component extends DCLogic {
       setEditEmail: this.setEditField('email'),
       setEditPhone: this.setEditField('phone'),
       setEditKlass: this.setEditField('klass'),
-      setEditPickup: this.setEditField('pickup'),
-      setEditDropoff: this.setEditField('dropoff'),
-      setEditDate: this.setEditField('dateIso'),
-      setEditTime: this.setEditField('time'),
-      setEditPax: this.setEditField('pax'),
-      setEditBags: this.setEditField('bags'),
+      setEditNote: this.setEditField('note'),
+      // 26.2 P6: places come from the address search only; date, time, passengers and bags ask for a new preview.
+      typePickup: (text) => this.setState((s) => ({ edit: Object.assign({}, s.edit, { pickup: text, pickupPlace: null }) }), this.queueTripPreview),
+      typeDropoff: (text) => this.setState((s) => ({ edit: Object.assign({}, s.edit, { dropoff: text, dropoffPlace: null }) }), this.queueTripPreview),
+      pickPickup: (place) => this.setState((s) => ({ edit: Object.assign({}, s.edit, { pickup: place.text, pickupPlace: place }) }), this.queueTripPreview),
+      pickDropoff: (place) => this.setState((s) => ({ edit: Object.assign({}, s.edit, { dropoff: place.text, dropoffPlace: place }) }), this.queueTripPreview),
+      setEditDate: this.setTripField('dateIso'),
+      setEditTime: this.setTripField('time'),
+      setEditPax: this.setTripField('pax'),
+      setEditBags: this.setTripField('bags'),
       setEditFlight: this.setEditField('flight'),
-      openEdit: () => this.setState({ editing: true, edit: this.snapshotEdit(booking) }),
-      cancelEdit: () => this.setState({ editing: false, edit: {} }),
+      openEdit: () => { this.setState({ editing: true, edit: this.snapshotEdit(booking), clashChoice: '', clashFor: '' }); this.loadClassPreview(booking); },
+      cancelEdit: () => { clearTimeout(this._tripT); this.setState({ editing: false, edit: {}, classPreview: null, classConfirmOpen: false, clashChoice: '', clashFor: '' }); },
       saveEdit: () => {
         const draft = Object.assign({}, booking, this.state.edit);
         const id = booking.bookingId || booking.id;
@@ -1349,33 +2266,71 @@ class Component extends DCLogic {
         // The route reads customer / email / phone (26.2-u08: contact_* was never read, so these edits were dropped).
         // An emptied contact field is left out: the stored value stays rather than being blanked.
         const keep = (v) => { const s = String(v == null ? '' : v).trim(); return s ? s : undefined; };
+        // 26.2 P1 + P6: this PATCH carries only what is saved at once — name, e-mail, phone, note, flight (D6, D8).
+        // A change of places, date, time, party or class first goes through its confirm step; after "Change the
+        // trip" the contact is saved here, then the trip goes to …/change, priced on the server.
+        if (tripChanged && !this._classConfirmed) {
+          if (tripBlock) { this.notify(tripBlock); return; }
+          this.setState({ classConfirmOpen: true });
+          return;
+        }
+        const withClass = tripReady && this._classConfirmed === true;
+        this._classConfirmed = false;
+        if (!instant.changed) {
+          if (withClass) { postClassChange(); return; }
+          this.setState({ editing: false, edit: {}, classPreview: null });
+          return;
+        }
         client.request('PATCH', '/api/staff/bookings/' + encodeURIComponent(id), {
           customer: keep(draft.customer),
           email: keep(draft.email),
           phone: keep(draft.phone),
-          pickup: draft.pickup, dropoff: draft.dropoff, dateIso: draft.dateIso, time: draft.time,
-          pax: Number(draft.pax), bags: Number(draft.bags), flight: draft.flight,
+          note: draft.note,
+          flight: draft.flight,
         }).then((json) => {
           if (json && json.ok) {
+            if (withClass) { postClassChange(); return; }
             if (ops) ops.bookings.reset();
-            this.setState({ editing: false, edit: {} });
+            this.setState({ editing: false, edit: {}, classPreview: null });
+            this.notify(instant.flight && hasDriver ? t.savedFlight : t.savedInstant);
           } else {
+            this.setState({ classConfirmOpen: false, classBusy: false });
             this.notify(t.editFailed + id);
           }
         });
       },
       markRefund: () => { if (!refundBusy) postRefund('full', {}); },
-      canCancel: !cancelled && booking.status !== 'completed',
+      canCancel,
       canComplete: !frozen,
       canNoShow: !frozen,
-      canAction: !frozen || (!!booking.paid && !cancelled),
-      actionValue: '',
-      actionOptions: [
-        !!booking.paid && !cancelled ? { value: 'resend', label: t.resendVoucher } : null,
-        !frozen && !booking.arrivedAt ? { value: 'arrival', label: t.markArrival } : null,
-        !frozen ? { value: 'complete', label: t.complete } : null,
-      ].filter(Boolean),
       pickAction: (v) => {
+        if (v === 'assign') {
+          if (!canAssign) return;
+          this.setState({ assignOpen: true, pickDriver: '', assignError: '' });
+          setTimeout(() => {
+            const el = this._assignEl;
+            if (!el) return;
+            try { el.scrollIntoView({ block: 'center' }); } catch (e) {}
+            const first = el.querySelector && el.querySelector('input[type="radio"]');
+            if (first) { try { first.focus({ preventScroll: true }); } catch (e) {} }
+          }, 0);
+          return;
+        }
+        if (v === 'unassign') { vals.confirmUnassign(); return; }
+        if (v === 'edit') { if (canEdit) vals.openEdit(); return; }
+        if (v === 'withdraw') { if (pendingClassWait) this.setState({ withdrawOpen: true }); return; }
+        if (v === 'noShow') { vals.markNoShow(); return; }
+        if (v === 'refund') {
+          if (refundBusy) return;
+          // 20-10 (main): a refund due, a review or a failed refund has its panel on this page — the
+          // menu takes the admin there; nothing is sent until he presses the panel's own button.
+          if (refundFormShown || refundFailedShown) { this.goRefund(); return; }
+          // An old cancelled row (refund_status none) keeps main's one-press full refund.
+          if (canFullRefund) { vals.markRefund(); return; }
+          if (postTripEligible) { vals.openRequested(); this.goRefund(); }
+          return;
+        }
+        if (v === 'cancel') { if (canCancel) vals.openCancel(); return; }
         if (v === 'resend') {
           const id = booking.bookingId || booking.id;
           const client = window.VamosOpsApi;
@@ -1569,37 +2524,49 @@ class Component extends DCLogic {
           navigator.clipboard.writeText(url).then(() => this.notify(t.payLinkCopied), () => this.notify(t.cardFailed + id));
         });
       },
-      dialogOpen: this.state.dialogOpen, tAssignDriver: t.assign, dialogSubtitle: booking.id + ' · ' + booking.time + ' · ' + booking.vehicle,
-      closeDialog: () => this.setState({ dialogOpen: false }),
-      tDriver: t.driver, driverOptions: drivers, pickDriver: this.state.pickDriver, setPickDriver: (e) => this.setState({ pickDriver: e.target.value }),
-      tManualNote: t.manualNote, tCancel: t.cancel, tAssign: t.assign,
+      tDriver: t.driver, pickDriver: this.state.pickDriver,
+      tCancel: t.cancel, tAssign: t.assign,
       confirmAssign: () => {
         const chosen = this.state.pickDriver;
         const id = booking.bookingId || booking.id;
         const client = window.VamosOpsApi;
         const ops = window.VamosOps;
         if (!canAssign || !client || typeof client.request !== 'function') return;
-        if (!chosen) { this.notify(t.pickChauffeur); return; }
+        if (!chosen) { this.setState({ assignError: t.pickChauffeur }); return; }
+        this.setState({ assignError: '' });
         this.once(() => client.request('POST', '/api/staff/bookings/' + encodeURIComponent(id) + '/assign', { chauffeurId: chosen }), (json) => {
           if (json && json.ok) {
             if (ops) ops.bookings.reset();
-            this.setState({ dialogOpen: false });
+            this.setState({ assignOpen: false, pickDriver: '', assignError: '' });
             this.notify(t.driverAssigned + booking.id);
             return;
           }
+          // A refusal stays on the Assign box, in plain words, until the next pick.
           const code = json && json.code;
-          if (code === 'overlap') {
-            this.notify((t.overlap || '').replace('{ref}', json.otherRef || '').replace('{time}', json.otherLocal || ''));
-          } else if (code === 'no-email') this.notify(t.noEmail);
-          else if (code === 'no-vehicle') this.notify(t.noVehicle);
-          else if (code === 'not-paid') this.notify(t.notPaid);
-          else if (code === 'frozen') this.notify(t.frozen);
-          else if (code === 'capacity') this.notify(t.capacity);
-          else this.notify(t.assignFailed + booking.id);
+          let msg = t.assignFailed + booking.id;
+          if (code === 'overlap') msg = (t.overlap || '').replace('{ref}', json.otherRef || '').replace('{time}', json.otherLocal || '');
+          else if (code === 'no-email') msg = t.noEmail;
+          else if (code === 'no-class' || code === 'class-mismatch') {
+            // The server names the driver and both classes; without them, the picked row and the trip say it.
+            const row = drivers.filter((c) => String(c.id) === String(chosen))[0] || {};
+            const name = String(json.driverName || row.name || '').trim() || '\u2014';
+            const driverClass = String(json.driverClass || row.vehicleClassName || '').trim() || '\u2014';
+            const trip = String(json.tripClass || tripClassName).trim() || '\u2014';
+            msg = code === 'no-class'
+              ? t.noClass.replace('{name}', name)
+              : t.classMismatch.replace('{name}', name).replace('{driver}', driverClass).replace('{trip}', trip);
+          }
+          else if (code === 'not-paid') msg = t.notPaid;
+          else if (code === 'frozen') msg = t.frozen;
+          else if (code === 'capacity') msg = t.capacity;
+          this.setState({ assignError: msg });
         });
       },
       showToast: this.state.showToast, toastMsg: this.state.toastMsg, closeToast: () => this.setState({ showToast: false }),
     };
+    this._barVals = { title: booking.id, label: t.actions, items: viewing ? actionItems : [] };
+    this._barPick = vals.pickAction;
+    return vals;
   }
 }
 </script>

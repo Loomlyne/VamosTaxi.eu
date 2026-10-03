@@ -1,12 +1,14 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../support/test";
+import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { nextDevEnv } from "../support/test-stack";
 
 const PORTS: Record<string, number> = {
-  "component-1440": 4160,
-  "component-1024": 4161,
-  "component-768": 4162,
-  "component-390": 4163,
+  "component-1440": testPort(4160),
+  "component-1024": testPort(4161),
+  "component-768": testPort(4162),
+  "component-390": testPort(4163),
 };
 
 const LOCALES = ["en", "de", "fr", "ar"] as const;
@@ -23,15 +25,19 @@ test.describe("Home hero @component", () => {
   test.describe.configure({ mode: "serial" });
 
   test.beforeAll(async ({}, testInfo) => {
-    testInfo.setTimeout(90_000);
-    const port = PORTS[testInfo.project.name] ?? 4169;
+    testInfo.setTimeout(240_000);
+    const port = PORTS[testInfo.project.name] ?? testPort(4169);
     baseURL = `http://localhost:${port}`;
     devServer = spawn(NEXT_BIN, ["dev", "-p", String(port)], {
       cwd: WEB_ROOT,
       stdio: "ignore",
       detached: true,
+      env: nextDevEnv({}, { gallery: true }),
     });
-    await waitForNextServer(baseURL);
+    await waitForNextServer(baseURL, 180_000);
+    // `next dev` compiles a route on its first request (the first run died with net::ERR_ABORTED mid-compile).
+    // Warm the gallery route here, inside the 240 s hook, so the first screenshot test measures the page.
+    await waitForNextServer(baseURL + pathFor("en"), 180_000);
   });
 
   test.afterAll(() => {
@@ -116,7 +122,8 @@ test.describe("Home hero @component", () => {
   test("no CHF amount @component", async ({ page }) => {
     await page.goto(baseURL + pathFor("en"));
     const text = await page.locator("main").innerText();
-    expect(text).not.toMatch(/\bCHF\b/);
+    // The header's currency picker prints a bare "CHF" label; only an amount (CHF then digits) is banned.
+    expect(text).not.toMatch(/\bCHF\s*\d/);
     expect(text).not.toMatch(/\d{1,3}['’]\d{3}/);
   });
 });

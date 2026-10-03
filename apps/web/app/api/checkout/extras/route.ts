@@ -1,10 +1,10 @@
 // GET /api/checkout/extras — the tick-box extras of the live book, with names in
 // en/de/fr/ar. Amounts come from the live rate version. No invented CHF.
-// vat_rate_bps is settings via loadLaunchFlags (fallback 81). preferDraft stays false.
+// vat_rate_bps is settings via loadLaunchFlags. preferDraft stays false.
+// A database failure answers 503 { ok: false } — never an empty list that reads as "no extras".
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { loadCheckoutCatalog } from "@/lib/checkout/checkout-catalog";
-import { CH_VAT_RATE_BPS } from "@/lib/checkout/vat";
 import { loadLaunchFlags } from "@/lib/db/quote";
 
 export const dynamic = "force-dynamic";
@@ -28,9 +28,8 @@ export async function GET() {
       { headers: HEADERS },
     );
   } catch {
-    return Response.json(
-      { ok: true, extras: [], vat_rate_bps: CH_VAT_RATE_BPS },
-      { headers: HEADERS },
-    );
+    // 26.2 audit U11-6: an outage is not an empty price book. The client keeps the
+    // extras it already has and the intent fails closed on the same read.
+    return Response.json({ ok: false }, { status: 503, headers: HEADERS });
   }
 }

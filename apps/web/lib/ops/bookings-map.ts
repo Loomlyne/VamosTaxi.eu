@@ -20,6 +20,10 @@ export type OpsBookingRow = {
   pickup: string;
   dropoff: string;
   klass: string;
+  /** The trip's class row (first leg); Assign lists only the chauffeurs of this class (2026-10-01). */
+  vehicleClassId: string;
+  /** The class as the owner named it on the price book, "" when unnamed. */
+  className: string;
   vehicle: string;
   pax: number;
   bags: number;
@@ -29,6 +33,8 @@ export type OpsBookingRow = {
   chauffeurEmail: string;
   assignedChauffeurId: string;
   assignedVehicleId: string;
+  /** chauffeurs.plate of the assigned driver (no cars, 2026-10-01). */
+  chauffeurPlate: string;
   flight: string;
   note: string;
   paid: boolean;
@@ -54,6 +60,12 @@ export type OpsBookingRow = {
   pendingEditActor: string;
   pendingEditQuoteRappen: number;
   pendingEditExtraSessionId: string;
+  /** 26.2 P1: the class a change waits to become (dearer: until the difference is paid), or "". */
+  pendingEditClass: string;
+  /** 26.2 P1: the difference to pay, rappen (0 when none). */
+  pendingEditDifferenceRappen: number;
+  /** 26.2 P1: until when the difference can be paid (ISO), or "". */
+  pendingEditPayUntil: string;
   durationMin: number;
   distanceKm: number | null;
   couponCode: string;
@@ -82,7 +94,10 @@ export type SqlBoardRow = {
   pax: number | null;
   bags: number | null;
   class_slug: string | null;
+  vehicle_class_id?: string | null;
+  class_name?: string | null;
   chauffeur_name: string | null;
+  chauffeur_plate?: string | null;
   chauffeur_email?: string | null;
   assigned_chauffeur_id?: string | null;
   assigned_vehicle_id?: string | null;
@@ -107,6 +122,10 @@ export type SqlBoardRow = {
   edit_actor?: string | null;
   edit_quote_total?: number | string | null;
   extra_session_id?: string | null;
+  edit_class_slug?: string | null;
+  edit_class_name?: string | null;
+  edit_extra_rappen?: number | string | null;
+  edit_extra_expires_at?: string | Date | null;
   estimated_duration_minutes?: number | string | null;
   duration_min?: number | string | null;
   distance_km?: number | string | null;
@@ -336,6 +355,8 @@ export function mapBoardBooking(row: SqlBoardRow): OpsBookingRow {
     pickup: str(row.pickup_text),
     dropoff: str(row.dropoff_text),
     klass,
+    vehicleClassId: str(row.vehicle_class_id),
+    className: str(row.class_name).trim(),
     vehicle: fleetVehicle(str(row.vehicle_plate), str(row.vehicle_model)),
     pax: Number(row.pax ?? 1) || 1,
     bags: Number(row.bags ?? 0) || 0,
@@ -345,6 +366,7 @@ export function mapBoardBooking(row: SqlBoardRow): OpsBookingRow {
     chauffeurEmail: str(row.chauffeur_email),
     assignedChauffeurId: str(row.assigned_chauffeur_id),
     assignedVehicleId: str(row.assigned_vehicle_id),
+    chauffeurPlate: str(row.chauffeur_plate).trim(),
     flight: str(row.flight_no),
     note: str(row.note),
     paid,
@@ -370,6 +392,10 @@ export function mapBoardBooking(row: SqlBoardRow): OpsBookingRow {
     pendingEditActor: str(row.edit_actor),
     pendingEditQuoteRappen: rappen(row.edit_quote_total),
     pendingEditExtraSessionId: str(row.extra_session_id),
+    // 26.2 P1: a class change waiting for the difference (name as the owner typed it, else the D-14 name).
+    pendingEditClass: str(row.edit_class_name).trim() || (row.edit_class_slug ? classDisplayName(str(row.edit_class_slug)) ?? str(row.edit_class_slug) : ""),
+    pendingEditDifferenceRappen: rappen(row.edit_extra_rappen),
+    pendingEditPayUntil: iso(row.edit_extra_expires_at),
     durationMin: minutes(row.duration_min, row.estimated_duration_minutes),
     distanceKm: kmOrNull(row.distance_km),
     couponCode: str(row.coupon_code).trim(),

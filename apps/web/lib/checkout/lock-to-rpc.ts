@@ -9,7 +9,6 @@ import type { QuoteLockPayload } from "../quote/lock";
 import { zurichLocalToUtcMs } from "../geo/serviceArea";
 import type { ChargeLine } from "./checkout-charge";
 import type { SnapshotExtraFare } from "./extras-catalog";
-import { payLinkExtras } from "./pay-link";
 
 /**
  * A lock leg whose wall clock cannot be turned into an instant (D-36,
@@ -238,29 +237,17 @@ export function snapshotFromLock(
   vehicleClassId: string,
   chargedRappen: number,
   snapshotPolicy: Record<string, unknown>,
-  extraFares: SnapshotExtraFare[] = [],
-  chargeLines?: ChargeLine[],
+  chargeLines: ChargeLine[],
 ) {
   const legs = checkoutLegsFromLock(payload, vehicleClassId);
-  let extras: string[];
-  let lines: SnapshotLine[];
-  if (chargeLines) {
-    // D-35: every ticked extra, by exact code, from the one charge function.
-    extras = [];
-    for (const line of chargeLines) {
-      if (line.kind === "surcharge" && line.code && !extras.includes(line.code)) {
-        extras.push(line.code);
-      }
+  // D-35: every ticked extra, by exact code, from the one charge function.
+  const extras: string[] = [];
+  for (const line of chargeLines) {
+    if (line.kind === "surcharge" && line.code && !extras.includes(line.code)) {
+      extras.push(line.code);
     }
-    lines = snapshotLinesFromCharge(chargeLines);
-  } else {
-    // Legacy path until intent.ts switches to checkoutCharge (plan 26.3-09).
-    extras = payLinkExtras(payload.extras);
-    for (const row of extraFares) {
-      if (!extras.includes(row.code)) extras.push(row.code);
-    }
-    lines = snapshotFareLines(vehicleClass, chargedRappen, extraFares);
   }
+  const lines = snapshotLinesFromCharge(chargeLines);
   return {
     vehicle_class_id: vehicleClassId,
     vehicle_class_slug: vehicleClass,
@@ -275,7 +262,8 @@ export function snapshotFromLock(
       ...snapshotPolicy,
       extras,
     },
-    shown_alternatives: payload.class_totals,
+    // 26.2 audit: slug + net only; the lock's pre_coupon_rappen is not a shown figure.
+    shown_alternatives: payload.class_totals.map((row) => ({ slug: row.slug, total_rappen: row.total_rappen })),
     legs,
     display_currency: payload.display_currency,
     source: "web",

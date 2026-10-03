@@ -4,16 +4,18 @@
 // against `next dev`. The choice is the NEXT_LOCALE cookie exactly as
 // VamosLocale.setLang writes it on home; the page is opened at its unprefixed address.
 
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "../support/test";
+import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { NEXT_BIN, settleCloudflareDev, waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { nextDevEnv } from "../support/test-stack";
 import { openInLocale, setChosenLanguage } from "../support/locale";
 import { stubConsentChosen } from "../support/consent-state";
 
 const RUN_PROJECT = "component-1440";
-const PORT = 4290;
+const PORT = testPort(4443);
 const REF = "VT-26-0001";
 const DRAFT = {
   pickup: "Zurich Airport (ZRH)",
@@ -51,8 +53,9 @@ test.beforeAll(async ({}, testInfo) => {
     cwd: WEB_ROOT,
     stdio: "ignore",
     detached: true,
-    env: { ...process.env, NODE_ENV: "development", TEST_DIST_DIR: ".next-locale-follow" },
+    env: nextDevEnv({ NODE_ENV: "development", TEST_DIST_DIR: ".next-locale-follow" }),
   });
+  await settleCloudflareDev();
   await waitForNextServer(baseURL, 180_000);
 });
 
@@ -161,8 +164,15 @@ test("an invalid cookie value falls back to English @checkout", async ({ page })
   await expect(page.locator("html")).toHaveAttribute("dir", "ltr");
 });
 
-test("DC pages still 308 away from a locale prefix @checkout", async ({ request }) => {
-  const res = await request.get(`${baseURL}/de/about`, { maxRedirects: 0 });
+test("DC pages that are not indexable still 308 away from a locale prefix @checkout", async ({ request }) => {
+  // 26.0: since the SEO ship /de /fr /ar are real addresses on the indexable pages (/about is one);
+  // the pages with indexable:false in lib/seo/pages.json (sign-in, account...) keep the redirect.
+  const res = await request.get(`${baseURL}/de/sign-in`, { maxRedirects: 0 });
   expect(res.status()).toBe(308);
-  expect(new URL(res.headers()["location"] ?? "", baseURL).pathname).toBe("/about");
+  expect(new URL(res.headers()["location"] ?? "", baseURL).pathname).toBe("/sign-in");
+});
+
+test("an indexable DC page answers at its locale address @checkout", async ({ request }) => {
+  const res = await request.get(`${baseURL}/de/about`, { maxRedirects: 0 });
+  expect(res.status()).toBe(200);
 });

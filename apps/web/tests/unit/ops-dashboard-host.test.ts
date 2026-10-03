@@ -21,10 +21,10 @@ describe("dashboard host DC login @ops-dashboard-host", () => {
   it("named host /ops 308s; dashboardHostMiddleware serves DC, never Next ops rewrite", () => {
     expect(middleware).toMatch(/host === "dashboard\.vamostaxi\.site"/);
     expect(middleware).toContain("return dashboardHostMiddleware(request)");
-    expect(middleware).toMatch(/NextResponse\.redirect\(dashboardAbs\(request, dest\), 308\)/);
+    expect(middleware).toMatch(/dashboardRedirect\(dashboardAbs\(request, dest\), 308\)/);
     expect(middleware).toMatch(/const loginUrl = dashboardAbs\(request, "\/login"\);/);
     expect(middleware).toMatch(
-      /copyCookies\(client\.response, NextResponse\.redirect\(loginUrl, 308\)\)/,
+      /copyCookies\(client\.response, dashboardRedirect\(loginUrl\)\)/,
     );
     // The link callback answers /sign-in?error=1; on this host the query rides along to /login.
     expect(middleware).toMatch(
@@ -85,5 +85,17 @@ describe("dashboard host DC login @ops-dashboard-host", () => {
     expect(combined).not.toMatch(/OpsSignIn/);
     expect(combined).not.toContain("koss@vamostaxi.site");
     expect(combined).not.toMatch(/data-page=["']ops/);
+  });
+});
+
+describe("dashboard redirects are never cached (26.2 audit U07-1)", () => {
+  it("session-dependent redirects are 307 with private, no-store", () => {
+    expect(middleware).toMatch(
+      /function dashboardRedirect\(url: URL, status: 307 \| 308 = 307\): NextResponse \{\s*const out = NextResponse\.redirect\(url, status\);\s*out\.headers\.set\("Cache-Control", "private, no-store"\);/,
+    );
+    const host = middleware.slice(middleware.indexOf("async function dashboardHostMiddleware"));
+    const body = host.slice(0, host.indexOf("\nfunction opsRedirectUrl"));
+    expect(body).not.toMatch(/NextResponse\.redirect\(/);
+    expect(body.match(/dashboardRedirect\(/g)).toHaveLength(4);
   });
 });

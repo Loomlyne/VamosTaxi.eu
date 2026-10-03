@@ -12,7 +12,8 @@
 // does. Server answers are route fixtures; Stripe is never reached. Amounts are fixtures.
 // Runs once under component-1440 with its own `next dev`. Tagged @checkout.
 
-import { test, expect, type Page, type Route } from "@playwright/test";
+import { test, expect, type Page, type Route } from "../support/test";
+import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -43,7 +44,7 @@ test.describe.configure({ mode: "default" });
 test.beforeAll(async ({}, testInfo) => {
   if (testInfo.project.name !== RUN_PROJECT) return;
   testInfo.setTimeout(240_000);
-  const port = 4310 + testInfo.workerIndex;
+  const port = testPort(4310) + testInfo.workerIndex;
   baseURL = `http://127.0.0.1:${port}`;
   devServer = spawn(NEXT_BIN, ["dev", "-p", String(port)], {
     cwd: WEB_ROOT,

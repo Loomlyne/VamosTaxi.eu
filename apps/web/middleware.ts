@@ -42,6 +42,7 @@ const DC_PAGES: Record<string, string> = {
   "/imprint": "/app/pages/imprint.html",
   "/sign-in": "/app/pages/sign-in.html",
   "/sign-up": "/app/pages/sign-in.html",
+  "/sign-in/confirm": "/app/pages/sign-in-confirm.html",
   "/reset-password": "/app/pages/reset-password.html",
   "/manage-booking": "/app/pages/manage-booking.html",
   "/booking-detail": "/app/pages/booking-detail.html",
@@ -180,6 +181,16 @@ async function serveOpsDc(
   return applyStagingNoindex(request, await updateSession(request, out));
 }
 
+/**
+ * F12: the e-mail link's confirm page on the staff host. Same DC page as /sign-in/confirm (it picks the
+ * ops look from the path); private, never indexed, and never a console session by itself.
+ */
+async function serveDashboardConfirm(request: NextRequest, cookieSource: NextResponse): Promise<NextResponse> {
+  const res = await serveDcHtml(request, "/app/pages/sign-in-confirm.html");
+  res.headers.set("Cache-Control", "private, no-store");
+  return applyStagingNoindex(request, copyCookies(cookieSource, res));
+}
+
 function qsSecret(): string {
   const value = process.env.VAMOS_QS_SECRET;
   return typeof value === "string" ? value : "";
@@ -297,21 +308,36 @@ function opsConsoleNotFound(request: NextRequest, cookieSource: NextResponse): N
   return applyStagingNoindex(request, out);
 }
 
+/**
+ * 26.2 audit: a dashboard redirect is never cached. The target of `/` and of a signed-out
+ * console path depends on the session, and a 308 is cached by the browser with no expiry, so
+ * after one signed-out visit a signed-in `/dashboard` kept landing on `/login`. Session
+ * redirects are 307; every one carries `private, no-store`.
+ */
+function dashboardRedirect(url: URL, status: 307 | 308 = 307): NextResponse {
+  const out = NextResponse.redirect(url, status);
+  out.headers.set("Cache-Control", "private, no-store");
+  return out;
+}
+
 async function dashboardHostMiddleware(request: NextRequest): Promise<NextResponse> {
   const { path } = localeStrippedPath(request.nextUrl.pathname);
 
   if (path === "/ops" || path.startsWith("/ops/")) {
     const pub = publicDashboardPath(path);
     const dest = pub === "/" || pub === "" ? "/" : "/login";
-    return applyStagingNoindex(request, NextResponse.redirect(dashboardAbs(request, dest), 308));
+    return applyStagingNoindex(request, dashboardRedirect(dashboardAbs(request, dest), 308));
   }
 
   if (process.env.DEPLOY_ENV === "ops-changes") {
+    if (normalizeDashboardPath(path) === "/login/confirm") {
+      return serveDashboardConfirm(request, new NextResponse());
+    }
     if (path === "/login") {
       return serveOpsDc(request, new NextResponse(), "ops-login.dc.html", false);
     }
     if (normalizeDashboardPath(path) === "/") {
-      return applyStagingNoindex(request, NextResponse.redirect(dashboardAbs(request, "/dashboard"), 308));
+      return applyStagingNoindex(request, dashboardRedirect(dashboardAbs(request, "/dashboard")));
     }
     if (isOpsConsolePath(path)) {
       return serveOpsDc(request, new NextResponse(), "ops.dc.html", true);
@@ -347,6 +373,11 @@ async function dashboardHostMiddleware(request: NextRequest): Promise<NextRespon
   const inConsole = role === "admin" && gate === "allow";
   const dashPath = normalizeDashboardPath(path);
 
+  // F12: the e-mailed link's confirm page, whatever the session state (it may switch accounts).
+  if (dashPath === "/login/confirm") {
+    return serveDashboardConfirm(request, client.response);
+  }
+
   // /login is the staff sign-in document even with a leftover console session.
   // Putting it after inConsole made signed-in /login return plain "Not Found".
   if (dashPath === "/login") {
@@ -357,7 +388,7 @@ async function dashboardHostMiddleware(request: NextRequest): Promise<NextRespon
     if (dashPath === "/") {
       return applyStagingNoindex(
         request,
-        copyCookies(client.response, NextResponse.redirect(dashboardAbs(request, "/dashboard"), 308)),
+        copyCookies(client.response, dashboardRedirect(dashboardAbs(request, "/dashboard"))),
       );
     }
     if (isOpsConsolePath(path)) {
@@ -374,7 +405,7 @@ async function dashboardHostMiddleware(request: NextRequest): Promise<NextRespon
   }
   return applyStagingNoindex(
     request,
-    copyCookies(client.response, NextResponse.redirect(loginUrl, 308)),
+    copyCookies(client.response, dashboardRedirect(loginUrl)),
   );
 }
 
@@ -412,12 +443,18 @@ function isPrivateNoindexPath(path: string): boolean {
   return PRIVATE_NOINDEX_PREFIXES.some((prefix) => path === prefix || path.startsWith(`${prefix}/`));
 }
 
-function applyStagingNoindex(request: NextRequest, response: NextResponse): NextResponse {
+function applyStagingNoindex(
+  request: NextRequest,
+  response: NextResponse,
+  // A rewrite to /__vamos_gone is rendered by Next, and next.config headers() already
+  // adds the security pairs to it; setting them here too sent each one twice.
+  securityHeaders = true,
+): NextResponse {
   // D-03: public vamostaxi.site and www.vamostaxi.site stay indexable on Worker
   // vamos (DEPLOY_ENV staging). D-04: dashboard / ops-changes always noindex.
   // D-08: env.production is unused — host-split is the indexable path, not an
   // undefined DEPLOY_ENV.
-  applySecurityHeaders(response.headers);
+  if (securityHeaders) applySecurityHeaders(response.headers);
   if (isDashboardHost(request) || process.env.DEPLOY_ENV === "ops-changes") {
     response.headers.set("X-Robots-Tag", "noindex");
   }
@@ -611,7 +648,7 @@ export default async function middleware(request: NextRequest) {
     const gone = request.nextUrl.clone();
     gone.pathname = "/__vamos_gone";
     gone.search = "";
-    return applyStagingNoindex(request, NextResponse.rewrite(gone));
+    return applyStagingNoindex(request, NextResponse.rewrite(gone), false);
   }
 
   // Named dashboard host: public URLs have no /ops prefix.
@@ -635,7 +672,7 @@ export default async function middleware(request: NextRequest) {
       const gone = request.nextUrl.clone();
       gone.pathname = "/__vamos_gone";
       gone.search = "";
-      return applyStagingNoindex(request, NextResponse.rewrite(gone));
+      return applyStagingNoindex(request, NextResponse.rewrite(gone), false);
     }
     const mock = dcMockPath(pathname);
     if (mock) {

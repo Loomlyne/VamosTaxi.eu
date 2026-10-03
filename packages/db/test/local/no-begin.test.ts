@@ -9,12 +9,12 @@
 // transaction with a warning, so `vamos_edge` never actually becomes `authenticated`, and its
 // zero grants (D-02) answer with `42501`.
 import { afterAll, describe, expect, it } from "vitest";
-import postgres from "postgres";
+import { testDbUrl, workerSql } from "../support/worker-client.js";
 
-const CS = "postgres://vamos_edge:vamos_edge@127.0.0.1:54322/postgres";
+const CS = testDbUrl("edge");
 
 describe("no-begin (ISOL-10, failure mode #4, autocommit)", () => {
-  const sql = postgres(CS, { max: 1, fetch_types: false, prepare: true, connect_timeout: 10 });
+  const sql = workerSql(CS);
 
   afterAll(async () => {
     await sql.end();

@@ -6,7 +6,8 @@
 // Every /api/quote answer is a route fixture in the real response shape; totals are null
 // so cards read `CHF 000` (no book price is ever asserted). Tagged @checkout.
 
-import { test, expect, type Page, type Route } from "@playwright/test";
+import { test, expect, type Page, type Route } from "../support/test";
+import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -29,7 +30,7 @@ test.describe.configure({ mode: "serial" });
 test.beforeAll(async ({}, testInfo) => {
   if (testInfo.project.name !== RUN_PROJECT) return;
   testInfo.setTimeout(180_000);
-  const port = 4260 + testInfo.workerIndex;
+  const port = testPort(4260) + testInfo.workerIndex;
   baseURL = `http://127.0.0.1:${port}`;
   devServer = spawn(NEXT_BIN, ["dev", "-p", String(port)], {
     cwd: WEB_ROOT,
@@ -172,13 +173,10 @@ test("trip strip and three class cards at 1440, 1024, 768 and 390 @checkout", as
         return { top: Math.round(r.top), left: Math.round(r.left), w: Math.round(r.width) };
       }),
     );
-    if (width >= 768) {
-      // >=681: cards sit side by side in one row.
-      expect(new Set(boxes.map((b) => b.top)).size).toBe(1);
-    } else {
-      // <=680: stacked rows at the full width of the section.
-      expect(new Set(boxes.map((b) => b.top)).size).toBe(3);
-    }
+    // 26.0: layout E (f7a3528b) stacks the class cards in one column at every width: three rows,
+    // one left edge.
+    expect(new Set(boxes.map((b) => b.top)).size).toBe(3);
+    expect(new Set(boxes.map((b) => b.left)).size).toBe(1);
     await page.screenshot({ path: join(process.env.TMPDIR ?? "/tmp", `26.3-15-cards-${width}.png`) });
   }
   // The server got retrieve kinds and never an airport flag or a price.
@@ -363,11 +361,11 @@ test("Edit trip: fields in home order, UPDATE PRICES re-quotes, replaces the URL
   // Focus moves to From, which is prefilled.
   await expect(page.locator('[data-co-field="from"] input')).toBeFocused();
   await expect(page.locator('[data-co-field="from"] input')).toHaveValue("Zurich Airport");
-  // Home order: From, Flight (airport), To, When, Travellers.
+  // Home order since 26.4.2: Flight, From, To, When, Travellers.
   const order = await editor
     .locator("[data-co-field]")
     .evaluateAll((els) => els.map((el) => el.getAttribute("data-co-field")));
-  expect(order).toEqual(["from", "flight", "to", "when", "travellers"]);
+  expect(order).toEqual(["flight", "from", "to", "when", "travellers"]);
   await expect(page.locator('[data-co-field="flight"] input')).toHaveValue("LX 318");
   await page.screenshot({ path: join(process.env.TMPDIR ?? "/tmp", "26.3-15-editor-1440.png") });
   await page.setViewportSize({ width: 390, height: 900 });
@@ -496,10 +494,20 @@ test("de, fr and ar render the page in the chosen language, ar mirrored, no side
       const text = await page.locator("[data-checkout-page]").innerText();
       expect(text).not.toContain("ß");
       if (c.lang === "ar") {
-        const back = await page.locator(".vt-co__strip-back").evaluate((el) => getComputedStyle(el).transform);
-        const arrow = await page.locator(".vt-co__strip-arrow").evaluate((el) => getComputedStyle(el).transform);
-        expect(back).toBe("matrix(-1, 0, 0, 1, 0, 0)");
-        expect(arrow).toBe("matrix(-1, 0, 0, 1, 0, 0)");
+        // Each glyph is mirrored exactly once, by laws.css (03): the product of the x-scale
+        // signs of the icon and all its ancestors is -1.
+        const xScale = (el: Element) => {
+          let product = 1;
+          for (let n: Element | null = el; n; n = n.parentElement) {
+            const a = Number(/^matrix\(([-\d.e]+),/.exec(getComputedStyle(n).transform)?.[1] ?? "1");
+            if (a < 0) product = -product;
+          }
+          return product;
+        };
+        const back = await page.locator('.vt-co__strip-back [style*="chevron-left.svg"]').evaluate(xScale);
+        const arrow = await page.locator(".vt-co__strip-arrow").evaluate(xScale);
+        expect(back).toBe(-1);
+        expect(arrow).toBe(-1);
         // Logical layout: Edit trip sits at the inline end, which is the left edge in rtl.
         const edit = await page.locator("[data-co-edit]").boundingBox();
         const strip = await page.locator("[data-co-strip]").boundingBox();

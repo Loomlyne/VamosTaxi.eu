@@ -12,7 +12,8 @@ export type AuthRunResult =
   | { stage: "sent" }
   | { ok: true };
 
-export type ProfileRunResult = { ok: true } | { ok: false; reason: string };
+/** `finish`: 27.1, a sign-in that must go to the finish step first. */
+export type ProfileRunResult = { ok: true; finish?: true } | { ok: false; reason: string };
 
 export type AuthError = { code?: string; message?: string } | null;
 
@@ -103,7 +104,7 @@ export async function runSignInPassword(
 
 export async function runSignUpPassword(
   supabase: AuthClient,
-  input: { email: string; password: string; firstName: string; lastName: string; locale: string },
+  input: { email: string; password: string; firstName: string; lastName: string; locale: string; phone?: string },
   origin: string,
   home: string,
 ): Promise<{ result: AuthRunResult; reason: string | null }> {
@@ -115,6 +116,7 @@ export async function runSignUpPassword(
       data: {
         full_name: fullName(input.firstName, input.lastName),
         [AUTH_LOCALE_METADATA_KEY]: input.locale,
+        ...(input.phone ? { phone: input.phone } : {}),
       },
     },
   });
@@ -129,6 +131,8 @@ export async function runOtp(
     locale: string;
     firstName?: string;
     lastName?: string;
+    /** 27.1: optional mobile number on a sign-up. */
+    phone?: string;
     /** false on the staff dashboard: an e-mail link must never create a customer account there. */
     createUser?: boolean;
   },
@@ -138,6 +142,7 @@ export async function runOtp(
   const data: Record<string, string> = { [AUTH_LOCALE_METADATA_KEY]: input.locale };
   if (input.mode === "signup") {
     data.full_name = fullName(input.firstName ?? "", input.lastName ?? "");
+    if (input.phone) data.phone = input.phone;
   }
   const { error } = await supabase.auth.signInWithOtp({
     email: input.email,
@@ -222,9 +227,19 @@ export function parseProfileFields(fields: Record<string, unknown>): ProfileFiel
   return null;
 }
 
+/** Extra work after the profile is saved in Supabase Auth. */
+export type ProfileRunDeps = {
+  /**
+   * The new number also goes onto the customer row (the dashboard and checkout read it there).
+   * A throw answers `ok: false`, so the page says "Could not save" and the person tries again.
+   */
+  storePhone?: (user: { id: string; email: string | null }, phone: string) => Promise<void>;
+};
+
 export async function runUpdateProfile(
   supabase: AuthClient,
   input: ProfileFields,
+  deps: ProfileRunDeps = {},
 ): Promise<{ result: ProfileRunResult; reason: string | null }> {
   try {
     const {
@@ -252,6 +267,12 @@ export async function runUpdateProfile(
     const { error } = await supabase.auth.updateUser({ data });
     if (error) {
       return { result: { ok: false, reason: "auth-failed" }, reason: error.code ?? "auth-failed" };
+    }
+    if ("phone" in input && deps.storePhone) {
+      const who = user as { id?: unknown; email?: unknown };
+      if (typeof who.id === "string") {
+        await deps.storePhone({ id: who.id, email: typeof who.email === "string" ? who.email : null }, input.phone);
+      }
     }
     return { result: { ok: true }, reason: null };
   } catch {

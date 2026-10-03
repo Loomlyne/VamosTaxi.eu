@@ -5,7 +5,7 @@
 // in English and Arabic. The page is generated in this Node process by mountPort from a
 // test-only component (tests/support/CheckoutStatesGallery.tsx); it is never a Worker route.
 
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "../support/test";
 import { mountPort } from "../support/mock-harness";
 import { waitForMockReady } from "../support/mock-harness";
 import { stubConsentChosen } from "../support/consent-state";

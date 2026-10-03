@@ -39,3 +39,23 @@ describe("meWithDeps", () => {
     expect(splitName("  Ada   Rider ")).toEqual({ first: "Ada", last: "Rider" });
   });
 });
+
+describe("meWithDeps, 27.1 finish step", () => {
+  it("an unfinished sign-in-link account answers finish_required and reads nothing else", async () => {
+    const customerId = vi.fn(async () => "c1");
+    const readOwnRow = vi.fn();
+    const a = await meWithDeps({ customerId, readOwnRow, finishRequired: async () => true });
+    expect(a).toEqual({ signed_in: true, finish_required: true });
+    expect(customerId).not.toHaveBeenCalled();
+    expect(readOwnRow).not.toHaveBeenCalled();
+  });
+
+  it("a finished account gets the usual prefill", async () => {
+    const a = await meWithDeps({
+      customerId: async () => "c1",
+      readOwnRow: async () => ({ full_name: "Mia Keller", email: "mia@example.test", phone: "+41790000000" }),
+      finishRequired: async () => false,
+    });
+    expect(a).toEqual({ signed_in: true, email: "mia@example.test", first_name: "Mia", last_name: "Keller", phone: "+41790000000" });
+  });
+});

@@ -1,0 +1,114 @@
+[
+  {
+    "label": "mb-time-refused before en 1440",
+    "toast": {
+      "shown": true,
+      "vw": 1440,
+      "left": 550,
+      "right": 890,
+      "width": 340,
+      "centreOffset": 0,
+      "cutLeft": false,
+      "cutRight": false,
+      "lines": 1
+    }
+  },
+  {
+    "label": "mb-time-refused before en 390",
+    "toast": {
+      "shown": true,
+      "vw": 390,
+      "left": 98,
+      "right": 293,
+      "width": 195,
+      "centreOffset": 0,
+      "cutLeft": false,
+      "cutRight": false,
+      "lines": 3
+    }
+  },
+  {
+    "label": "mb-time-refused before ar 1440",
+    "toast": {
+      "shown": true,
+      "vw": 1440,
+      "left": 390,
+      "right": 610,
+      "width": 220,
+      "centreOffset": -220,
+      "cutLeft": false,
+      "cutRight": false,
+      "lines": 1
+    }
+  },
+  {
+    "label": "mb-time-refused before ar 390",
+    "toast": {
+      "shown": true,
+      "vw": 390,
+      "left": -97,
+      "right": 98,
+      "width": 195,
+      "centreOffset": -195,
+      "cutLeft": true,
+      "cutRight": false,
+      "lines": 2
+    }
+  },
+  {
+    "label": "bd-time-refused before en 1440",
+    "toast": {
+      "shown": true,
+      "vw": 1440,
+      "left": 550,
+      "right": 890,
+      "width": 340,
+      "centreOffset": 0,
+      "cutLeft": false,
+      "cutRight": false,
+      "lines": 1
+    }
+  },
+  {
+    "label": "bd-time-refused before en 390",
+    "toast": {
+      "shown": true,
+      "vw": 390,
+      "left": 98,
+      "right": 293,
+      "width": 195,
+      "centreOffset": 0,
+      "cutLeft": false,
+      "cutRight": false,
+      "lines": 3
+    }
+  },
+  {
+    "label": "bd-time-refused before ar 1440",
+    "toast": {
+      "shown": true,
+      "vw": 1440,
+      "left": 390,
+      "right": 610,
+      "width": 220,
+      "centreOffset": -220,
+      "cutLeft": false,
+      "cutRight": false,
+      "lines": 1
+    }
+  },
+  {
+    "label": "bd-time-refused before ar 390",
+    "toast": {
+      "shown": true,
+      "vw": 390,
+      "left": -97,
+      "right": 98,
+      "width": 195,
+      "centreOffset": -195,
+      "cutLeft": true,
+      "cutRight": false,
+      "lines": 2
+    }
+  }
+]

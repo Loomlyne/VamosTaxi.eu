@@ -42,6 +42,7 @@ import {
   type LockSecrets,
   type QuoteLockPayload,
 } from "./lock";
+import { preCouponTotalOfClass } from "../pricing/policy";
 import type { ClassBoardEntry, PolicySnapshot, QuoteInput } from "../pricing/types";
 import {
   parseQuoteRequest,
@@ -253,12 +254,30 @@ async function defaultResolvePlace(
   deps: QuotePipelineDeps,
 ): Promise<ResolvedPlace | null> {
   if (place.kind === "coords") {
-    return {
-      lng: place.lng,
-      lat: place.lat,
-      text: place.text,
-      place_id: place.place_id,
-    };
+    // 26.2 audit (U04-2): the browser's text never decides the airport fee or the city pair.
+    // Resolve the coordinates the way a pin is resolved (Geocoding v6 /reverse, one Mapbox unit)
+    // and take name, canton, city and airport from Mapbox only. A reverse that fails or finds
+    // nothing is unresolved: unlike a pin, a coords place has no trusted fallback text.
+    const reverse = deps.reverse ?? defaultReverse;
+    try {
+      await countMapboxUnit(deps.env, deps.nowMs);
+      const got = await reverse(
+        { lng: place.lng, lat: place.lat, language: locale },
+        deps.env,
+      );
+      if (!got.place) return null;
+      return {
+        lng: place.lng,
+        lat: place.lat,
+        text: got.place.name,
+        canton: got.place.canton,
+        cityId: got.place.cityId,
+        cityName: got.place.cityName,
+        isAirport: got.place.isAirport,
+      };
+    } catch {
+      return null;
+    }
   }
   if (place.kind === "pin") {
     const reverse = deps.reverse ?? defaultReverse;
@@ -494,6 +513,8 @@ function classTotals(
   return classes.map((c) => ({
     slug: c.slug,
     total_rappen: c.total_rappen,
+    // 26.2 audit (U04-1): HMAC-covered with the rest of the lock.
+    pre_coupon_rappen: preCouponTotalOfClass(c),
   }));
 }
 

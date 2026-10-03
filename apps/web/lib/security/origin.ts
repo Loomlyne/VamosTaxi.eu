@@ -38,6 +38,13 @@ export function authOriginAllowed(origin: string | null): boolean {
   return originAllowed(origin, AUTH_CSRF_HOSTS);
 }
 
+function csrfRefusal(): Response {
+  return Response.json(
+    { ok: false, code: "csrf" },
+    { status: 403, headers: { "cache-control": "private, no-store" } },
+  );
+}
+
 export function csrfForbidden(
   request: Request,
   kind: "public" | "auth" = "public",
@@ -45,10 +52,54 @@ export function csrfForbidden(
   const origin = request.headers.get("Origin");
   const ok = kind === "auth" ? authOriginAllowed(origin) : publicOriginAllowed(origin);
   if (ok) return null;
-  return Response.json(
-    { ok: false, code: "csrf" },
-    { status: 403, headers: { "cache-control": "private, no-store" } },
-  );
+  return csrfRefusal();
+}
+
+/** The staff console hosts. Never part of PUBLIC_CSRF_HOSTS. */
+export const DASHBOARD_CSRF_HOSTS: readonly string[] = Object.freeze([
+  "dashboard.vamostaxi.site",
+  "dashboard.localhost",
+]);
+
+export function dashboardOriginAllowed(origin: string | null): boolean {
+  return originAllowed(origin, DASHBOARD_CSRF_HOSTS);
+}
+
+/**
+ * CSRF for the two public money routes the dashboard's New trip also posts to
+ * (`/api/checkout/price`, `/api/checkout/intent`). Quick 261003.
+ *
+ * - A public-site Origin passes exactly as `csrfForbidden(request)` does.
+ * - The dashboard Origin passes only when the request itself is addressed to the
+ *   dashboard host (same-origin call from the console, so only dashboard-host cookies
+ *   travel) AND `hasStaffSession()` confirms a gated staff session on those cookies.
+ *   It is asked only for a dashboard Origin, so public checkout pays nothing extra.
+ * - Missing Origin, any other Origin, or a staff check that throws: 403 `csrf`.
+ *
+ * PUBLIC_CSRF_HOSTS is not widened: every other cookie-backed public route still
+ * refuses the dashboard Origin.
+ */
+export async function csrfForbiddenPublicOrStaff(
+  request: Request,
+  hasStaffSession: () => Promise<boolean>,
+): Promise<Response | null> {
+  const origin = request.headers.get("Origin");
+  if (publicOriginAllowed(origin)) return null;
+  if (!dashboardOriginAllowed(origin)) return csrfRefusal();
+  let host: string | null = null;
+  try {
+    host = new URL(request.url).host;
+  } catch {
+    return csrfRefusal();
+  }
+  if (!isDashboardHost(host)) return csrfRefusal();
+  let staff = false;
+  try {
+    staff = (await hasStaffSession()) === true;
+  } catch {
+    staff = false;
+  }
+  return staff ? null : csrfRefusal();
 }
 
 /** Password-reset / invite URLs. Never trust x-forwarded-host. */

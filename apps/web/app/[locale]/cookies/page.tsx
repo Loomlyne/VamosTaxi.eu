@@ -96,21 +96,21 @@ export default async function CookiesPage({
             rows={[
               {
                 slug: "locale",
-                name: <span data-i18n-skip>NEXT_LOCALE</span>,
+                name: <span data-vt-no-i18n>NEXT_LOCALE</span>,
                 purpose: tCookies("language-cookie-purpose"),
                 provider: "Vamos Taxi",
                 duration: <PendingSlot label="Language cookie duration" />,
               },
               {
                 slug: "session",
-                name: <span data-i18n-skip>sb-*-auth-token</span>,
+                name: <span data-vt-no-i18n>sb-*-auth-token</span>,
                 purpose: tCookies("session-cookie-purpose"),
                 provider: "Vamos Taxi · Supabase",
                 duration: <PendingSlot label="Session duration" />,
               },
               {
                 slug: "consent",
-                name: <span data-i18n-skip>consent_subject · vamosCookieConsent</span>,
+                name: <span data-vt-no-i18n>consent_subject · vamosCookieConsent</span>,
                 purpose: tCookies("consent-subject-purpose"),
                 provider: "Vamos Taxi",
                 duration: <PendingSlot label="Consent duration" />,

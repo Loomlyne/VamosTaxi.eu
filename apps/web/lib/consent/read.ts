@@ -37,7 +37,7 @@ export async function readConsentChoice(
   asOf?: Date | null,
 ): Promise<ConsentChoice | null> {
   await tx`select set_config('request.vamos.consent_subject', ${subject}, true)`;
-  const rows = (await tx`select method, necessary, functional, analytics, marketing, recorded_at
+  const rows = (await tx`select method, functional, analytics, marketing, recorded_at
     from public.consent_choice(${CONSENT_POLICY_VERSION}, ${asOf ?? null})`) as unknown as Row[];
   const row = rows[0];
   if (!row) return null;

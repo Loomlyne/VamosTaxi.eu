@@ -121,7 +121,7 @@ function FooterLink({
   const external = /^(mailto:|tel:|https?:)/i.test(href);
   const rolled = !plain && !rtl && !/[؀-ۿ]/.test(label);
   const inner = rolled ? (
-    <span aria-hidden="true" data-i18n-skip="">
+    <span aria-hidden="true" data-vt-no-i18n="">
       {splitCells(label)}
     </span>
   ) : (
@@ -332,7 +332,7 @@ export function SiteFooter({
                     href={YOUTUBE}
                     target="_blank"
                     rel="noreferrer noopener"
-                    aria-label="Vamos Taxi on YouTube"
+                    aria-label={tFooter("vamos-taxi-on-youtube")}
                   >
                     <Icon name="youtube" size={26} color="var(--vt-ft-soc)" />
                   </a>
@@ -341,7 +341,7 @@ export function SiteFooter({
                     href={TIKTOK}
                     target="_blank"
                     rel="noreferrer noopener"
-                    aria-label="Vamos Taxi on TikTok"
+                    aria-label={tFooter("vamos-taxi-on-tiktok")}
                   >
                     <span aria-hidden="true">TikTok</span>
                   </a>

@@ -1,0 +1,147 @@
+name: E2E Linux
+
+# 26.0 D-01 / e2e-linux-3: the booking-funnel specs on Linux, against the runner's own throwaway Supabase stack.
+# One file, used three ways: pr.yml, deploy-staging.yml and deploy-production.yml call it (workflow_call), and a
+# push to a `ci/**` branch runs it alone, so a change to this file can be proven on GitHub before it reaches main.
+# No secrets, no deploy: permissions are contents: read.
+on:
+  workflow_call:
+  push:
+    branches: ["ci/**"]
+
+# Nine jobs a run, so a push (a ci/** branch, main or a v* tag) cancels the older run
+# of the same ref instead of leaving nine duplicates racing the new one. A run called
+# from pr.yml or by a hand-started deploy is not cancelled. Re-pushing the same v* tag
+# cancels the earlier e2e, and with it that run's production deploy, which then does
+# not run (fails safe).
+concurrency:
+  group: e2e-linux-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'push' }}
+
+permissions:
+  contents: read
+
+jobs:
+  # Timing before this change (local, one worker, CI retries on): 1440 px 37 min, each narrow width about 7 min.
+  # On GitHub the dev servers of the /dev gallery and sign-up specs never became ready within 180 s, and each
+  # such failure costs two 180 s waits (test and retry), which is what cut the jobs at 30 min. See the dev logs.
+  e2e-linux:
+    name: ${{ matrix.label }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { label: "1440 px, shard 1 of 5", args: "--project=component-1440 --shard=1/5" }
+          - { label: "1440 px, shard 2 of 5", args: "--project=component-1440 --shard=2/5" }
+          - { label: "1440 px, shard 3 of 5", args: "--project=component-1440 --shard=3/5" }
+          - { label: "1440 px, shard 4 of 5", args: "--project=component-1440 --shard=4/5" }
+          - { label: "1440 px, shard 5 of 5", args: "--project=component-1440 --shard=5/5" }
+          - { label: "1024 px, shard 1 of 2", args: "--project=component-1024 --shard=1/2" }
+          - { label: "1024 px, shard 2 of 2", args: "--project=component-1024 --shard=2/2" }
+          - { label: "768 px", args: "--project=component-768" }
+          - { label: "390 px", args: "--project=component-390" }
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+        with:
+          version: 11.7.0
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Chromium
+        run: pnpm --filter web exec playwright install --with-deps chromium
+
+      - name: Set up Supabase CLI
+        uses: supabase/setup-cli@ab058987d8d6c725971f6cf9d0b5c98467e30bd1 # v1.7.1
+        with:
+          version: 2.115.0
+
+      # Auth only redirects to a listed URL, or to any port on the site_url host (127.0.0.1). The specs open their dev
+      # servers on http://localhost:<port>, and packages/db/supabase/config.toml lists only three of those ports, so a
+      # mailed link of any other spec (auth-confirm-email, port 4455) fell back to the site_url, http://127.0.0.1:3000,
+      # and the browser got "connection refused" (all three runs of 26.0 part 3). This edit is to the runner's own
+      # checkout and is the one scripts/local-test-stack.sh already makes on its scratch copy; the repository file
+      # keeps its exact list.
+      - name: Allow the spec dev-server ports for Auth redirects (runner copy of config.toml)
+        run: sed -i -E 's#^(additional_redirect_urls = \[)#\1\n  "http://localhost:*/**",#' packages/db/supabase/config.toml
+
+      - name: Start local stack
+        run: pnpm db:start
+
+      - name: Apply every migration from zero + seed
+        run: pnpm db:reset
+
+      # The specs and the guard refuse a database without this marker role (plans 02 and 04).
+      - name: Mark the throwaway stack
+        run: node scripts/mark-test-stack.mjs postgres://postgres:postgres@127.0.0.1:54322/postgres
+
+      - name: Local role passwords (D-04)
+        env:
+          ALLOW_LOCAL_ROLE_PASSWORDS: "1"
+        run: pnpm db:local-roles
+
+      # The local stack's own keys, never a repository secret. Masked before they reach the environment file.
+      - name: Export the stack environment
+        working-directory: packages/db
+        run: |
+          eval "$(pnpm exec supabase status -o env | grep -E '^(API_URL|ANON_KEY|SERVICE_ROLE_KEY)=')"
+          echo "::add-mask::$ANON_KEY"
+          echo "::add-mask::$SERVICE_ROLE_KEY"
+          {
+            echo "SUPABASE_URL=$API_URL"
+            echo "SUPABASE_ANON_KEY=$ANON_KEY"
+            echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY"
+            echo "VAMOS_TEST_DB_PORT=54322"
+            echo "VAMOS_LOCAL_DB_PORT=54322"
+            echo "VAMOS_TEST_DB_URL=postgres://postgres:postgres@127.0.0.1:54322/postgres"
+            echo "VAMOS_TEST_MAIL_URL=http://127.0.0.1:54324"
+            echo "REQUIRE_DB=1"
+          } >> "$GITHUB_ENV"
+
+      # --global-timeout ends Playwright by itself 8 minutes before the job limit, with totals, instead of the
+      # job being cancelled with none. VAMOS_DEV_LOG_DIR makes the specs start `next dev` through
+      # tests/support/next-dev-logged.sh, which keeps its output in the dev-logs folder; both are uploaded below.
+      - name: Booking-funnel specs (VAMOS_E2E list, screenshots skipped)
+        env:
+          VAMOS_E2E: "1"
+          # Read by apps/web/next.config.ts (dev only): no remote Cloudflare session (the runner has no API
+          # token) and one miniflare state folder per dev server (shared state gave SQLITE_BUSY).
+          VAMOS_DEV_REMOTE_BINDINGS: "0"
+          VAMOS_DEV_PERSIST_PER_PROCESS: "1"
+          VAMOS_DEV_LOG_DIR: ${{ github.workspace }}/apps/web/test-results/dev-logs
+          PLAYWRIGHT_JSON_OUTPUT_NAME: ${{ github.workspace }}/apps/web/e2e-report.json
+        run: >-
+          pnpm test:visual --tsconfig=tests/tsconfig.playwright.json ${{ matrix.args }} --workers=2
+          --reporter=line,json --global-timeout=1320000
+
+      - name: Totals and failing specs in the job summary
+        if: always()
+        run: node apps/web/tests/support/e2e-summary.mjs apps/web/e2e-report.json >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload test results, dev-server logs and report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: e2e-linux-${{ strategy.job-index }}
+          path: |
+            apps/web/test-results
+            apps/web/e2e-report.json
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Stop local stack
+        if: always()
+        run: pnpm db:stop
+

@@ -7,6 +7,9 @@ import { routing } from "@/i18n/routing";
 import { checkWriteRateLimit } from "@/lib/abuse/rate-limit";
 import { holdCheckoutFloor, sendCheckoutSignInLink } from "@/lib/auth/checkout-sign-in";
 import { CONSENT_REQUIRED, SIGNUP_UNAVAILABLE, recordSignupAgreement, signupConsentGiven } from "@/lib/auth/signup-agreement";
+import { finishAccount } from "@/lib/auth/account-finish";
+import { storeProfilePhone, syncSignupPhone } from "@/lib/auth/account-phone";
+import { finishRequiredStrict, markFinished, markFinishPending, mustFinish } from "@/lib/auth/finish-target";
 import { log } from "@/lib/logger";
 import { verifyTurnstile } from "@/lib/turnstile";
 import {
@@ -202,7 +205,7 @@ export async function POST(request: Request): Promise<Response> {
   };
 
   /** One more bucket per e-mail address (code checks and confirmation re-sends). Fail-open like the IP one. */
-  const perAddressAllowed = async (kind: "code" | "resend" | "checkout", email: string): Promise<boolean> => {
+  const perAddressAllowed = async (kind: "code" | "resend" | "checkout" | "link", email: string): Promise<boolean> => {
     if (!env.AUTH_RATE_LIMITER) return true;
     try {
       const out = await env.AUTH_RATE_LIMITER.limit({ key: `auth-${kind}:${email.toLowerCase()}` });
@@ -296,13 +299,41 @@ export async function POST(request: Request): Promise<Response> {
       if (blockedChange) return blockedChange;
     }
     try {
-      const { result, reason } = await runUpdateProfile(supabase, parsed);
+      // The number also goes onto the customer row: the dashboard's Customers list reads it there.
+      const { result, reason } = await runUpdateProfile(supabase, parsed, {
+        storePhone: (user, phone) => storeProfilePhone(env, user, phone, ctx),
+      });
       if (reason) log("error", "auth", ctx, { reason, action: "update-profile" });
       return sessionJson(result, setCookies);
     } catch {
       log("error", "auth", ctx, { reason: "throw", action: "update-profile" });
       return json({ ok: false, reason: "throw" });
     }
+  }
+
+  if (action === "finish-account") {
+    // 27.1 (27 D-37): the finish step after a sign-in link made the account. Public host only.
+    if (dashboard) return json({ ok: false, reason: "invalid" }, 404);
+    const { result, reason } = await finishAccount(
+      {
+        getUser: async () => {
+          const { data, error } = await supabase.auth.getUser();
+          return error || !data.user ? null : { id: data.user.id, email: data.user.email ?? null };
+        },
+        finishRequired: (userId) => finishRequiredStrict(env, userId, ctx),
+        record: (email) => recordSignupAgreement(env, { email, locale, headers: request.headers }),
+        markDone: (userId, profile) => markFinished(env, userId, profile, ctx),
+        updateProfile: async (data) => {
+          const { error } = await supabase.auth.updateUser({ data });
+          return error ? (error.code ?? "auth-failed") : null;
+        },
+      },
+      fields,
+    );
+    if (reason) log("error", "auth", ctx, { reason, action: "finish-account" });
+    const status = result.ok ? 200 : result.reason === "no-user" ? 401 : result.reason === "signup-unavailable" ? 503 : 400;
+    // updateUser refreshes the session: its cookies must ride on this response.
+    return sessionJson(result, setCookies, status);
   }
 
   if (action === "passkey-start") {
@@ -552,6 +583,15 @@ export async function POST(request: Request): Promise<Response> {
     }
     const notStaff = await refuseNonStaff();
     if (notStaff) return notStaff;
+    // 27.1: an account the sign-in link just made goes to the finish step, not to where it was going.
+    if (!dashboard) {
+      const { data: signedIn } = await supabase.auth.getUser();
+      // A number given at sign-up goes onto the customer row now that the address is confirmed.
+      if (signedIn.user) await syncSignupPhone(env, signedIn.user, ctx);
+      if (signedIn.user && (await mustFinish(env, signedIn.user.id, ctx))) {
+        return sessionJson({ ok: true, finish: true }, setCookies);
+      }
+    }
     return sessionJson({ ok: true }, setCookies);
   }
 
@@ -636,6 +676,11 @@ export async function POST(request: Request): Promise<Response> {
         return json(SIGNUP_UNAVAILABLE, 503);
       }
     }
+    // 27.1: the sign-in link can now make an account, so it gets the same per-address limit as the
+    // other mail sends (same answer for every address; a 429 says nothing about the address).
+    if (parsed.data.mode === "signin" && !dashboard && !(await perAddressAllowed("link", parsed.data.email))) {
+      return json(RATE_LIMITED, 429);
+    }
     const { result, reason } = await runOtp(
       supabase,
       parsed.data.mode === "signup"
@@ -645,20 +690,26 @@ export async function POST(request: Request): Promise<Response> {
             locale,
             firstName: parsed.data.firstName,
             lastName: parsed.data.lastName,
+            phone: parsed.data.phone,
             createUser: !dashboard,
           }
         : {
             mode: "signin",
             email: parsed.data.email,
             locale,
-            // 27 D-36: the sign-in link never creates an account; sign-up does, with the notice and the tick.
-            createUser: false,
+            // 27.1 (27 D-37, owner 2026-10-01): on the public site the sign-in link makes the account for a
+            // new address; after the link it must finish (name, optional phone, the tick). Replaces 27 D-36
+            // there. The staff dashboard never makes an account.
+            createUser: !dashboard,
           },
       origin,
       emailNext(returnToRaw, localizedHome(locale)),
     );
-    // Sign-in: an unknown address gets no mail and would answer faster than a known one.
-    // The checkout branch's floor makes both answers take the same minimum time (T-27-57).
+    // 27.1: mark the account this link just made, if it made one. The database decides (unconfirmed,
+    // made in the last 10 minutes, no agreement row), so a known address does the same work.
+    if (parsed.data.mode === "signin" && !dashboard && !reason) await markFinishPending(env, parsed.data.email, ctx);
+    // Sign-in: the known and the new address do different work. The checkout branch's floor makes
+    // both answers take the same minimum time (T-27-57).
     if (parsed.data.mode !== "signup") await holdCheckoutFloor({ startedAt });
     if (reason) log("error", "auth", ctx, { reason, action: "otp" });
     return sessionJson(result, setCookies);

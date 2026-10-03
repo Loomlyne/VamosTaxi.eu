@@ -30,12 +30,28 @@ import { join } from "node:path";
 export const WEB_ROOT = join(__dirname, "..", "..");
 
 /** Absolute path to the workspace-pinned `next` binary — never a pnpm/npx wrapper. */
-export const NEXT_BIN = join(WEB_ROOT, "node_modules", ".bin", "next");
+// e2e-linux-3: with VAMOS_DEV_LOG_DIR set (the Linux e2e workflow) the same binary runs through a wrapper that
+// keeps the dev server's output; see next-dev-logged.sh.
+export const NEXT_BIN = process.env.VAMOS_DEV_LOG_DIR
+  ? join(WEB_ROOT, "tests", "support", "next-dev-logged.sh")
+  : join(WEB_ROOT, "node_modules", ".bin", "next");
 
 /**
  * Poll `url` until the app itself answers (< 400), not merely a bound socket.
  * Connection-refused windows and premature-404 windows are both "not ready yet".
  */
+/**
+ * `next dev` binds and answers before `initOpenNextCloudflareForDev()` (fire-and-forget in
+ * next.config.ts) has finished. A route that calls `getCloudflareContext()` in that window
+ * throws, and the dev server then keeps answering 500 for every such route. Call this right
+ * after spawning a dev server whose pages/APIs use bindings, BEFORE the first request.
+ * VAMOS_DEV_SETTLE_MS overrides the 15 s default.
+ */
+export async function settleCloudflareDev(): Promise<void> {
+  const ms = Number(process.env.VAMOS_DEV_SETTLE_MS ?? 15_000);
+  await new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export async function waitForNextServer(url: string, timeoutMs = 90_000): Promise<void> {
   const start = Date.now();
   let lastError: unknown = null;

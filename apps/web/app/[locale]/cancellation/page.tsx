@@ -252,7 +252,7 @@ export default async function CancellationPage({
           <PendingSlot label="Driver noshow share" /> {tCommon("back")}
         </p>
         <p>{tLegal("both-at-meeting-point-80-20")}</p>
-        <div data-slot="1" data-i18n-skip>
+        <div data-slot="1" data-vt-no-i18n>
           <p data-slot-k="1">Client legal text · consequential costs</p>
           <p>
             Must say whether anything beyond the fare is covered when a driver does not arrive — a
@@ -281,7 +281,7 @@ export default async function CancellationPage({
           {tLegal("snow-strikes-closures")}
         </h2>
         <p>{tLegal("where-a-journey-becomes-impossible-or-unsafe-thr")}</p>
-        <div data-slot="1" data-i18n-skip>
+        <div data-slot="1" data-vt-no-i18n>
           <p data-slot-k="1">Client legal text · disruption outcome</p>
           <p>
             Must state the outcome — refund, voucher, or re-planning at no cost — and how long a

@@ -8,7 +8,8 @@
 // Assertions are against the raw server response (same discipline as
 // ssr-locale.spec.ts), not the hydrated DOM.
 
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../support/test";
+import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -18,7 +19,7 @@ const RUN_PROJECT = "component-1440";
 const LOCALES = ["en", "de", "fr", "ar"] as const;
 const SITE_URL = "https://vamostaxi.site";
 const UNOWNED = "/coming-soon";
-const PORT = 4410;
+const PORT = testPort(4410);
 
 const NEXT = process.env.NEXT_BIN ?? (existsSync(NEXT_BIN) ? NEXT_BIN : join(WEB_ROOT, "../../../../apps/web/node_modules/.bin/next"));
 
@@ -34,6 +35,25 @@ function loadPhase5Routes(): { path: string; phase: number }[] {
   const entries = [...src.matchAll(/\{\s*path:\s*"([^"]+)",\s*phase:\s*(\d+)/g)];
   if (entries.length === 0) throw new Error("PHASE_5_ROUTES entries not found");
   return entries.map((m) => ({ path: m[1] as string, phase: Number(m[2]) }));
+}
+
+function loadLegalLanguages(): Record<string, string[]> {
+  const src = readFileSync(join(WEB_ROOT, "lib/legal-languages.ts"), "utf8");
+  const block = /export const LEGAL_LANGUAGES[^=]*=\s*\{([\s\S]*?)\n\};/.exec(src);
+  if (!block?.[1]) throw new Error("LEGAL_LANGUAGES not found");
+  const out: Record<string, string[]> = {};
+  for (const m of block[1].matchAll(/^\s*(\w+):\s*\[([^\]]*)\]/gm)) {
+    out[m[1]!] = [...m[2]!.matchAll(/"(\w+)"/g)].map((x) => x[1]!);
+  }
+  return out;
+}
+
+/** The indexable pages of the SEO head table: the only ones with language addresses (owner option B, 2026-09-30). */
+function loadIndexablePaths(): Set<string> {
+  const table = JSON.parse(readFileSync(join(WEB_ROOT, "lib/seo/pages.json"), "utf8")) as {
+    pages: { path: string; indexable?: boolean }[];
+  };
+  return new Set(table.pages.filter((p) => p.indexable === true).map((p) => p.path));
 }
 
 function localePath(locale: string, path: string): string {
@@ -117,14 +137,20 @@ test.describe("Public route contract @public-routes", () => {
     }
   });
 
+  // 26.0 (main-green-3): was a KNOWN-RED mark ("the mocks have no hreflang"). Since the SEO head table
+  // (5b394833, owner option B) the served mocks carry hreflang on the indexable pages only; private pages
+  // (sign-in, reset-password, account...) keep one address and no language links, by design.
   test("reachable routes carry four hreflang links plus x-default matching buildAlternates", async () => {
     const routes = loadPublicRoutes();
     const phase5 = loadPhase5Routes();
     const later = new Set(
       phase5.filter((r) => r.phase === 7 || r.phase === 8 || r.phase === 9).map((r) => r.path),
     );
+    const indexable = loadIndexablePaths();
+    const checked = routes.filter((path) => path !== UNOWNED && !later.has(path) && indexable.has(path));
+    expect(checked.length, "indexable public routes").toBeGreaterThanOrEqual(9);
     for (const path of routes) {
-      if (path === UNOWNED || later.has(path)) continue;
+      if (path === UNOWNED || later.has(path) || !indexable.has(path)) continue;
       const res = await fetch(baseURL + localePath("en", path));
       expect(res.status).toBe(200);
       const body = await res.text();
@@ -170,7 +196,8 @@ test.describe("Public route contract @public-routes", () => {
     expect(urlBlocks.length, "sitemap.xml url count must not equal PUBLIC_ROUTES").not.toBe(
       routes.length,
     );
-    expect(urlBlocks.length, "sitemap.xml url count vs D-30 allowlist").toBe(allowlist.length);
+    // 26.0: since the SEO ship every allowlisted page is listed at its en address and at /de /fr /ar.
+    expect(urlBlocks.length, "sitemap.xml url count vs D-30 allowlist x 4 languages").toBe(allowlist.length * 4);
     for (const path of allowlist) {
       const locSuffix = path === "/" ? "" : path;
       const loc = `${SITE_URL}${locSuffix}`;
@@ -209,24 +236,38 @@ test.describe("Public route contract @public-routes", () => {
       if (path === UNOWNED || later.has(path)) continue;
       const res = await fetch(baseURL + localePath("en", path));
       const body = await res.text();
-      const headers = body.match(/<header\b[^>]*data-screen-label="Header"/g) ?? [];
-      const footers = body.match(/<footer\b[^>]*data-ft="1"/g) ?? [];
+      // A Next page renders the header and footer on the server; a served DC mock (lib/dc-mock-urls.ts,
+      // middleware DC_PAGES) carries them as one <dc-import> each that the browser renders (CLAUDE.md).
+      const headers = [
+        ...(body.match(/<header\b[^>]*data-screen-label="Header"/g) ?? []),
+        ...(body.match(/<dc-import\b[^>]*name="SiteHeader"/g) ?? []),
+      ];
+      const footers = [
+        ...(body.match(/<footer\b[^>]*data-ft="1"/g) ?? []),
+        ...(body.match(/<dc-import\b[^>]*name="SiteFooter"/g) ?? []),
+      ];
       expect(headers.length, `header on ${path}`).toBe(1);
       expect(footers.length, `footer on ${path}`).toBe(1);
     }
   });
 
-  test("no reachable route emits a data-vt-legal attribute", async () => {
+  // Corrected per D-05 (26.0): the served legal mocks carry data-vt-legal on purpose.
+  test("legal routes declare exactly their LEGAL_LANGUAGES; other routes declare nothing", async () => {
     const routes = loadPublicRoutes();
     const phase5 = loadPhase5Routes();
     const later = new Set(
       phase5.filter((r) => r.phase === 7 || r.phase === 8 || r.phase === 9).map((r) => r.path),
     );
+    const legal = loadLegalLanguages();
+    expect(Object.keys(legal).sort()).toEqual(["cancellation", "cookies", "imprint", "privacy", "terms"]);
     for (const path of routes) {
       if (path === UNOWNED || later.has(path)) continue;
       const res = await fetch(baseURL + localePath("en", path));
       const body = await res.text();
-      expect(body, path).not.toMatch(/data-vt-legal/);
+      const declared = /data-vt-legal="([^"]*)"/.exec(body)?.[1];
+      const expected = legal[path.slice(1)];
+      if (expected) expect(declared, path).toBe(expected.join(" "));
+      else expect(declared, path).toBeUndefined();
     }
   });
 });

@@ -155,7 +155,8 @@ describe("OpsDetail refund review panel (UI-SPEC §4)", () => {
     expect(dc).toMatch(/const paidAdmin = isAdmin && !!booking\.paid;/);
     expect(dc).toMatch(/const reviewNeeded = paidAdmin && /);
     expect(dc).toMatch(/const postTripEligible = isAdmin && /);
-    expect(dc).toMatch(/sc-if value="\{\{ canFullRefund \}\}"/);
+    // 260930-dash-design: Refund is an item of the Actions menu, still admin-only through canFullRefund.
+    expect(dc).toMatch(/canFullRefund \|\| postTripEligible \? \{ value: 'refund'/);
     expect(dc).not.toMatch(/sc-if value="\{\{ isCancelled \}\}"[^>]*>\s*<x-import[^>]*onClick="\{\{ markRefund \}\}"/);
   });
 
@@ -181,7 +182,8 @@ describe("20-10 dashboard refund screen", () => {
     expect(dc).toMatch(/declineShown: reviewNeeded/);
     expect(dc).toMatch(/decidedShown: reviewNeeded/);
     expect(dc).toMatch(/const fullShown = paidAdmin && refundStatus === 'pending_ops' && fullTier;/);
-    expect(dc).toMatch(/const reviewNeeded = paidAdmin && refundStatus === 'pending_ops' && !fullTier;/);
+    // 26.2 P1: the review tier excludes the credit tier (a cheaper class on a live trip).
+    expect(dc).toMatch(/const reviewNeeded = paidAdmin && refundStatus === 'pending_ops' && !fullTier && !creditTier;/);
     expect(dc).toMatch(/if \(fullShown\) return chosen \? \{ paymentId: chosen\.id, percent: 100 \} : \{ percent: 100 \};/);
     expect(dc).toMatch(/data-ops-refund-full/);
   });
@@ -228,10 +230,21 @@ describe("20-10 dashboard refund screen", () => {
     expect(dc).toMatch(/window\.VamosLocale\.money\(\(n \/ 100\)\.toFixed\(2\), 'CHF'\)/);
   });
 
-  it("Refund due only for the full tier and old rows; success alert on refunded", () => {
-    expect(dc).toMatch(/showRefundDue: booking\.status === 'cancelled' && !refundFailedShown && \(\(refundStatus === 'pending_ops' && fullTier\) \|\| legacyDue\)/);
+  it("Refund due for the full tier, old rows and (26.2 P1) a cheaper class; success alert on refunded", () => {
+    expect(dc).toMatch(/\(booking\.status === 'cancelled' && \(\(refundStatus === 'pending_ops' && fullTier\) \|\| legacyDue\)\)/);
+    expect(dc).toMatch(/\(refundStatus === 'pending_ops' && creditTier && !creditShown\)/);
     expect(dc).toMatch(/isRefunded: booking\.status === 'refunded' \|\| refundStatus === 'refunded'/);
-    expect(dc).toMatch(/tRefundBody: fullTier \? t\.refundBody : t\.dueLegacyBody/);
+    // 26.2 P6 D21: a cheaper trip change names the trip; a class change keeps the class line.
+    expect(dc).toMatch(/tRefundBody: creditTier \? \(tripCredit \? t\.tripCreditBody : t\.classCreditBody\) : \(fullTier \? t\.refundBody : t\.dueLegacyBody\)/);
+  });
+
+  it("26.2 P1 credit tier: exactly what is due, one press, no percentage field, no Decline", () => {
+    expect(dc).toMatch(/const creditTier = rd \? rd\.creditTier === true :/);
+    expect(dc).toMatch(/const creditShown = paidAdmin && refundStatus === 'pending_ops' && creditTier;/);
+    expect(dc).toMatch(/if \(creditShown\) return chosen \? \{ paymentId: chosen\.id, amountRappen: Math\.min\(creditDue, Number\(chosen\.leftRappen\) \|\| 0\) \} : \{\};/);
+    expect(dc).toMatch(/const refundFormShown = \(fullShown \|\| reviewNeeded \|\| creditShown\) && !refundFailedShown;/);
+    expect(dc).toMatch(/sc-if value="\{\{ creditShown \}\}"/);
+    expect(dc).not.toMatch(/declineShown: reviewNeeded \|\| creditShown/);
   });
 
   it("the new English copy is the approved wording; German has no ß", () => {

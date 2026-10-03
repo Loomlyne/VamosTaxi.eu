@@ -1,0 +1,14 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - ESM syntax in a file loaded as CommonJS (vitest.config.ts:10:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v4.1.11 /Users/koss/Developer/VamosTaxi.eu/.claude/worktrees/booking-pages-polish/apps/web
+
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  01:48:49
+   Duration  1.67s (transform 589ms, setup 0ms, import 66ms, tests 1.49s, environment 0ms)
+
+exit 0

@@ -691,11 +691,6 @@
   display: inline-flex;
 }
 
-[dir="rtl"] .vt-co__strip-back,
-[dir="rtl"] .vt-co__strip-arrow {
-  transform: scaleX(-1);
-}
-
 .vt-co__strip-copy {
   flex: 1 1 auto;
   min-inline-size: 0;

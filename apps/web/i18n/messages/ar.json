@@ -675,8 +675,8 @@
     "expiredBooking": "انتهت صلاحية هذا الحجز – اطّلع على الأسعار الحالية",
     "seeCurrentPrices": "عرض الأسعار الحالية",
     "emptyTitle": "لا توجد فئة تناسب هذه الرحلة",
-    "emptyBody": "غيّر عدد المسافرين أو اتصل بنا على +41 79 626 70 82 – نرتّب المجموعات الأكبر.",
-    "quoteGeneric": "تعذّر جلب أسعار هذه الرحلة. حاول مرة أخرى أو اتصل بنا على +41 79 626 70 82.",
+    "emptyBody": "غيّر عدد المسافرين أو اتصل بنا على ‎+41 79 626 70 82‎ – نرتّب المجموعات الأكبر.",
+    "quoteGeneric": "تعذّر جلب أسعار هذه الرحلة. حاول مرة أخرى أو اتصل بنا على ‎+41 79 626 70 82‎.",
     "tryAgain": "حاول مرة أخرى",
     "tripMissing": "أضف رحلتك لعرض الأسعار",
     "chooseClassAria": "الفئات",
@@ -714,7 +714,15 @@
     "acctCodeError": "تحقق من الرمز. يتكوّن من {digits} أرقام ويصلح لمدة ساعة.",
     "acctResend": "أرسل رابطًا آخر",
     "acctResent": "أُرسل مجددًا للتو.",
-    "acctRateLimit": "محاولات كثيرة. انتظر دقيقة ثم حاول مرة أخرى."
+    "acctRateLimit": "محاولات كثيرة. انتظر دقيقة ثم حاول مرة أخرى.",
+    "nextAssignTitle": "نعيّن سائقك.",
+    "nextAssignBody": "تصلك رسالة بريد إلكتروني باسم السائق ورقم اللوحة.",
+    "nextReminderTitle": "تذكير قبل الاستلام بـ 24 ساعة.",
+    "nextReminderBody": "عبر البريد الإلكتروني، مع بيانات سائقك بعد تعيينه.",
+    "nextCancelTitle": "إلغاء مجاني حتى <h>{hours}</h> ساعة قبل الاستلام.",
+    "nextCancelBody": "من صفحة «إدارة الحجز».",
+    "manageHint": "غيّر الوقت أو رقم الرحلة، أو ألغِ الحجز، من صفحة «إدارة الحجز».",
+    "helpLine": "أسئلة حول هذه الرحلة؟ اتصل على <tel>{phone}</tel> أو اكتب لنا على <wa>WhatsApp</wa>."
   },
   "common": {
     "4-not-live": "4 غير مفعّلة",
@@ -989,8 +997,8 @@
     "verified-google-review": "تقييم Google موثّق",
     "verified-tripadvisor-review": "تقييم Tripadvisor موثّق",
     "verified-trustpilot-review": "تقييم Trustpilot موثّق",
-    "waiting-airport": "الانتطار، المطار",
-    "waiting-city": "الانتطار، المدينة",
+    "waiting-airport": "الانتظار، المطار",
+    "waiting-city": "الانتظار، المدينة",
     "we-are-the-carrier": "نحن الناقل",
     "we-are-the-intermediary": "نحن الوسيط",
     "we-arrange-your-transfer-with-a-licensed-carrier": "نرتّب رحلتك مع شركة نقل مرخّصة ونتابعها من الحجز حتى الوصول، ونُلزم كل شريك في الشبكة بمعيار نضعه ونتحقّق منه.",
@@ -1197,7 +1205,9 @@
     "payment-twint": "TWINT",
     "payment-visa": "Visa",
     "vamos-taxi-on-facebook": "فاموس تاكسي على فيسبوك",
-    "vamos-taxi-on-instagram": "فاموس تاكسي على إنستغرام"
+    "vamos-taxi-on-instagram": "فاموس تاكسي على إنستغرام",
+    "vamos-taxi-on-youtube": "Vamos Taxi على يوتيوب",
+    "vamos-taxi-on-tiktok": "Vamos Taxi على تيك توك"
   },
   "header": {
     "call-41-79-626-70-82": "اتصل بـ ‎+41 79 626 70 82‎",
@@ -1505,7 +1515,6 @@
     "the-gratuity-tipping-is-not-expected-on-top": "الإكرامية. لا يُتوقع منك دفع إكرامية إضافية.",
     "the-journey-between-the-two-addresses-you-gave-u": "الرحلة بين العنوانين اللذين أعطيتنا إياهما، ووقت السائق لأدائها.",
     "the-platform-we-are-building": "المنصّة التي نبنيها",
-    "the-previous-site": "الموقع السابق",
     "the-price-shown-at-the-last-step-is-the-price-yo": "السعر الظاهر في الخطوة الأخيرة هو ما تدفعه. يُذكر بالفرنك السويسري ولا يتغيّر بعد ذلك — لا بسبب الازدحام، ولا لمسار أطول من المتوقع، ولا لأمسية مزدحمة.",
     "the-price-you-paid-in-swiss-francs": "المبلغ الذي دفعته بالفرنك السويسري.",
     "the-record-of-your-cookie-choice": "سجل اختيارك لملفات تعريف الارتباط",
@@ -1630,7 +1639,8 @@
     "flight-delayed-allowance-moves": "وإذا تأخّرت رحلتك الجوية، تتحرّك المدة مع الرحلة — لا حاجة للاتصال بنا.",
     "our-team-decides-refund-email": "يقرّر فريقنا مبلغ الاسترداد ويُبلغك به عبر البريد الإلكتروني.",
     "extended-city-stay-15-shown-on-quote": "إقامة ممتدة في المدينة، حتى 15 دقيقة: مبيّنة في عرض السعر الخاص بك.",
-    "changes-free-before-pickup": "يمكن تعديل الوقت والعنوان وعدد الركاب وفئة السيارة قبل الانطلاق، دون رسوم. وإن غيّر التعديل السعر، تدفع الفرق أو نردّه لك — ولا شيء أكثر من الفرق."
+    "changes-free-before-pickup": "يمكن تعديل الوقت والعنوان وعدد الركاب وفئة السيارة قبل الانطلاق، دون رسوم. وإن غيّر التعديل السعر، تدفع الفرق أو نردّه لك — ولا شيء أكثر من الفرق.",
+    "terms-driver-details-by-email": "نرسل اسم السائق والمركبة ولوحتها عبر البريد الإلكتروني فور تعيين السائق، ثم مرة أخرى في التذكير قبل 24 ساعة من موعد الانطلاق. رقم السائق موجود في صفحة إدارة حجزك."
   },
   "ops": {
     "add-a-note-visible-to-dispatch-only": "أضف ملاحظة يراها قسم التشغيل وحده…",
@@ -1649,8 +1659,8 @@
     "available-for-booking": "متاح للحجز",
     "available-to-assign": "متاحون للإسناد",
     "average-fare": "متوسط الأجرة",
-    "awaiting-live-stripe-data": "بانتطار بيانات Stripe المباشرة",
-    "awaiting-payment": "بانتطار الدفع",
+    "awaiting-live-stripe-data": "بانتظار بيانات Stripe المباشرة",
+    "awaiting-payment": "بانتظار الدفع",
     "back-to-bookings": "العودة إلى الحجوزات",
     "back-to-sign-in": "العودة لتسجيل الدخول",
     "base-fare": "السعر الأساسي",
@@ -2800,7 +2810,8 @@
       "legal.all-other-pickups-30-minutes-booked": "fixed legal-page figure from the vamostaxi.eu terms or privacy text, owner-approved 2026-09-30 (docs/legal-source/vamostaxi-eu-2026-09-30/MAPPING.md list A), not a live count",
       "legal.team-refund-paid-30-days-acceptance": "fixed legal-page figure from the vamostaxi.eu terms or privacy text, owner-approved 2026-09-30 (docs/legal-source/vamostaxi-eu-2026-09-30/MAPPING.md list A), not a live count",
       "legal.and-we-resolve-within-30-days": "fixed legal-page figure from the vamostaxi.eu terms or privacy text, owner-approved 2026-09-30 (docs/legal-source/vamostaxi-eu-2026-09-30/MAPPING.md list A), not a live count",
-      "legal.extended-city-stay-15-shown-on-quote": "fixed legal-page figure (owner decision 2026-09-30, .planning/quick/260930-lgl-legal-pages-from-eu/DECISIONS.md), not a live count"
+      "legal.extended-city-stay-15-shown-on-quote": "fixed legal-page figure (owner decision 2026-09-30, .planning/quick/260930-lgl-legal-pages-from-eu/DECISIONS.md), not a live count",
+      "legal.terms-driver-details-by-email": "fixed legal-page figure (owner decision 2026-09-30, .planning/quick/260930-lgl-legal-pages-from-eu/DECISIONS.md), not a live count"
     }
   },
   "quote": {
@@ -2890,7 +2901,8 @@
         "cancelled": "هذه الرحلة ملغاة، لم يُعبّأ أي حقل. عد برقم الرحلة الجديد.",
         "departed": "أقلعت هذه الرحلة من {ap} بالفعل، لا يوجد ما يُعبّأ.",
         "off": "نخدم زيورخ وجنيف وبازل — هذه الرحلة لا تمر بأي منها. حدّد الانطلاق بنفسك."
-      }
+      },
+      "dayGroup": "في أي يوم رحلتك"
     },
     "geo": {
       "no_results": "لا أماكن مطابقة — جرّب عنوانًا أوضح",

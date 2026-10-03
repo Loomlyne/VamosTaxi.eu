@@ -1,0 +1,22 @@
+{
+  // 26.0 / e2e-linux-2: the one tsconfig Playwright uses for every file it loads (CLI flag
+  // --tsconfig=tests/tsconfig.playwright.json, run from apps/web). Why: specs start `next dev`, and Next
+  // rewrites apps/web/tsconfig.json ("include was updated to add test-results/.next-*/types"). With several
+  // workers, another worker read that file mid-write and failed with "Failed to load tsconfig file"
+  // (290 times in the first split run). Nothing rewrites this file, and it does not extend apps/web/tsconfig.json
+  // either (an extends would read it again). Same alias and JSX settings as apps/web/tsconfig.json.
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "baseUrl": "..",
+    "paths": { "@/*": ["./*"] },
+    "types": ["node"],
+    "noEmit": true
+  }
+}

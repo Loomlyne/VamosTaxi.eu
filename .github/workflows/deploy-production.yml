@@ -119,9 +119,17 @@ jobs:
       - name: Visual + integration tests (screenshot diffs, D-25)
         run: pnpm test:visual
 
+  # 26.0 D-01 / e2e-linux-3: the booking-funnel specs on Linux. The jobs live in one reusable workflow
+  # (e2e-linux.yml) so a push to a ci/** branch can prove a change to them on GitHub before main sees it.
+  e2e-linux:
+    name: Booking funnel e2e on Linux (D-01)
+    uses: ./.github/workflows/e2e-linux.yml
+    permissions:
+      contents: read
+
   deploy:
     name: Deploy to production
-    needs: [gate, visual]
+    needs: [gate, visual, e2e-linux]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

@@ -1,0 +1,188 @@
+admin API: customer 200, admin 200
+signed in customer: 3 cookie(s), landed /account/transfers
+signed in dashboard admin: 3 cookie(s), landed /dashboard
+ok       ar 1440  home  /  div[data-bx] > button.vt-btn > span  arrow-right  -1  flip:self
+ok       ar 1440  home  /  span[data-svc-cta-btn] > span[data-svc-cta-arrow] > span  arrow-right  -1  flip:self
+ok       ar 1440  home  /  div[data-ft-band-actions] > a.vt-btn > span  arrow-right  -1  flip:self
+ok       ar  390  home  /  button[data-bb] > span[data-bb-icon] > span  chevron-right  -1  flip:self
+ok       ar  390  home  /  span[data-svc-cta-btn] > span[data-svc-cta-arrow] > span  arrow-right  -1  flip:self
+ok       ar  390  home  /  div[data-ft-band-actions] > a.vt-btn > span  arrow-right  -1  flip:self
+ok       en 1440  home  /  div[data-bx] > button.vt-btn > span  arrow-right  +1
+ok       en 1440  home  /  span[data-svc-cta-btn] > span[data-svc-cta-arrow] > span  arrow-right  +1
+ok       en 1440  home  /  div[data-ft-band-actions] > a.vt-btn > span  arrow-right  +1
+ok       en  390  home  /  button[data-bb] > span[data-bb-icon] > span  chevron-right  +1
+ok       en  390  home  /  span[data-svc-cta-btn] > span[data-svc-cta-arrow] > span  arrow-right  +1
+ok       en  390  home  /  div[data-ft-band-actions] > a.vt-btn > span  arrow-right  +1
+ok       ar  390  home-sheet  /  button[data-bb] > span[data-bb-icon] > span  chevron-right  -1  flip:self
+ok       ar  390  home-sheet  /  span[data-svc-cta-btn] > span[data-svc-cta-arrow] > span  arrow-right  -1  flip:self
+ok       ar  390  home-sheet  /  div[data-ft-band-actions] > a.vt-btn > span  arrow-right  -1  flip:self
+ok       ar  390  home-sheet  /  div[data-bs-next] > button.vt-btn > span  arrow-right  -1  flip:self
+ok       en  390  home-sheet  /  button[data-bb] > span[data-bb-icon] > span  chevron-right  +1
+ok       en  390  home-sheet  /  span[data-svc-cta-btn] > span[data-svc-cta-arrow] > span  arrow-right  +1
+ok       en  390  home-sheet  /  div[data-ft-band-actions] > a.vt-btn > span  arrow-right  +1
+ok       en  390  home-sheet  /  div[data-bs-next] > button.vt-btn > span  arrow-right  +1
+ok       ar  390  home-bar-trip  /  span#vtbb1-1 > span[data-bb-icon] > span  arrow-right  -1  flip:self
+ok       ar  390  home-bar-trip  /  span[data-svc-cta-btn] > span[data-svc-cta-arrow] > span  arrow-right  -1  flip:self
+ok       ar  390  home-bar-trip  /  div[data-ft-band-actions] > a.vt-btn > span  arrow-right  -1  flip:self
+ok       en  390  home-bar-trip  /  span#vtbb1-1 > span[data-bb-icon] > span  arrow-right  +1
+ok       en  390  home-bar-trip  /  span[data-svc-cta-btn] > span[data-svc-cta-arrow] > span  arrow-right  +1
+ok       en  390  home-bar-trip  /  div[data-ft-band-actions] > a.vt-btn > span  arrow-right  +1
+ok       ar 1440  home-picker  /  div[data-wp-row] > div[data-wp-cal] > span  chevron-left  -1  flip:self
+ok       ar 1440  home-picker  /  div[data-wp-row] > div[data-wp-cal] > span  chevron-right  -1  flip:self
+ok       ar 1440  home-picker  /  div[data-bx] > button.vt-btn > span  arrow-right  -1  flip:self
+ok       ar 1440  home-picker  /  span[data-svc-cta-btn] > span[data-svc-cta-arrow] > span  arrow-right  -1  flip:self
+ok       ar 1440  home-picker  /  div[data-ft-band-actions] > a.vt-btn > span  arrow-right  -1  flip:self
+ok       ar  390  home-picker  /  span#vtbb1-1 > span[data-bb-icon] > span  arrow-right  -1  flip:self
+ok       ar  390  home-picker  /  span[data-svc-cta-btn] > span[data-svc-cta-arrow] > span  arrow-right  -1  flip:self
+ok       ar  390  home-picker  /  div[data-ft-band-actions] > a.vt-btn > span  arrow-right  -1  flip:self
+ok       ar  390  home-picker  /  div[data-wp-row] > div[data-wp-cal] > span  chevron-left  -1  flip:self
+ok       ar  390  home-picker  /  div[data-wp-row] > div[data-wp-cal] > span  chevron-right  -1  flip:self
+ok       ar  390  home-picker  /  div[data-bs-next] > button.vt-btn > span  arrow-right  -1  flip:self
+ok       en 1440  home-picker  /  div[data-wp-row] > div[data-wp-cal] > span  chevron-left  +1
+ok       en 1440  home-picker  /  div[data-wp-row] > div[data-wp-cal] > span  chevron-right  +1
+ok       en 1440  home-picker  /  div[data-bx] > button.vt-btn > span  arrow-right  +1
+ok       en 1440  home-picker  /  span[data-svc-cta-btn] > span[data-svc-cta-arrow] > span  arrow-right  +1
+ok       en 1440  home-picker  /  div[data-ft-band-actions] > a.vt-btn > span  arrow-right  +1
+ok       en  390  home-picker  /  span#vtbb1-1 > span[data-bb-icon] > span  arrow-right  +1
+ok       en  390  home-picker  /  span[data-svc-cta-btn] > span[data-svc-cta-arrow] > span  arrow-right  +1
+ok       en  390  home-picker  /  div[data-ft-band-actions] > a.vt-btn > span  arrow-right  +1
+ok       en  390  home-picker  /  div[data-wp-row] > div[data-wp-cal] > span  chevron-left  +1
+ok       en  390  home-picker  /  div[data-wp-row] > div[data-wp-cal] > span  chevron-right  +1
+ok       en  390  home-picker  /  div[data-bs-next] > button.vt-btn > span  arrow-right  +1
+ok       ar 1440  account  /account  div[data-hd-row] > div[data-hd-wide] > span  arrow-right  -1  flip:self
+ok       ar 1440  account  /account  a.vt-btn > span  arrow-right  -1  flip:self
+ok       ar 1440  account  /account  nav[data-ac-nav] > button[data-ac-signout] > span  log-out  -1  flip:self
+ok       ar 1440  account  /account  div.vt-card > a.vt-btn > span  arrow-right  -1  flip:self
+ok       ar 1440  account  /account  span[data-bk-actions] > span[data-bk-go] > span  chevron-right  -1  flip:self x3
+ok       ar 1440  account  /account  a[data-ac-more] > span[data-ac-more-go] > span  arrow-right  -1  flip:self
+ok       ar 1440  account  /account  span[data-ac-act] > button.vt-btn > span  log-out  -1  flip:self
+ok       ar 1440  account  /account  div[data-ft-band-actions] > a.vt-btn > span  arrow-right  -1  flip:self
+ok       ar  390  account  /account  a.vt-btn > span  arrow-right  -1  flip:self
+ok       ar  390  account  /account  div.vt-card > a.vt-btn > span  arrow-right  -1  flip:self
+ok       ar  390  account  /account  span[data-bk-actions] > span[data-bk-go] > span  chevron-right  -1  flip:self x3
+ok       ar  390  account  /account  a[data-ac-more] > span[data-ac-more-go] > span  arrow-right  -1  flip:self
+ok       ar  390  account  /account  span[data-ac-act] > button.vt-btn > span  log-out  -1  flip:self
+ok       ar  390  account  /account  div[data-ft-band-actions] > a.vt-btn > span  arrow-right  -1  flip:self
+ok       en 1440  account  /account  div[data-hd-row] > div[data-hd-wide] > span  arrow-right  +1
+ok       en 1440  account  /account  a.vt-btn > span  arrow-right  +1
+ok       en 1440  account  /account  nav[data-ac-nav] > button[data-ac-signout] > span  log-out  +1
+ok       en 1440  account  /account  div.vt-card > a.vt-btn > span  arrow-right  +1
+ok       en 1440  account  /account  span[data-bk-actions] > span[data-bk-go] > span  chevron-right  +1  x3
+ok       en 1440  account  /account  a[data-ac-more] > span[data-ac-more-go] > span  arrow-right  +1
+ok       en 1440  account  /account  span[data-ac-act] > button.vt-btn > span  log-out  +1
+ok       en 1440  account  /account  div[data-ft-band-actions] > a.vt-btn > span  arrow-right  +1
+ok       en  390  account  /account  a.vt-btn > span  arrow-right  +1
+ok       en  390  account  /account  div.vt-card > a.vt-btn > span  arrow-right  +1
+ok       en  390  account  /account  span[data-bk-actions] > span[data-bk-go] > span  chevron-right  +1  x3
+ok       en  390  account  /account  a[data-ac-more] > span[data-ac-more-go] > span  arrow-right  +1
+ok       en  390  account  /account  span[data-ac-act] > button.vt-btn > span  log-out  +1
+ok       en  390  account  /account  div[data-ft-band-actions] > a.vt-btn > span  arrow-right  +1
+ok       ar 1440  bookings  /bookings  div[data-hd-row] > div[data-hd-wide] > span  arrow-right  -1  flip:self
+ok       ar 1440  bookings  /bookings  span[data-bk-actions] > span[data-bk-go] > span  chevron-right  -1  flip:self x3
+ok       ar 1440  bookings  /bookings  div[data-ft-band-actions] > a.vt-btn > span  arrow-right  -1  flip:self
+ok       ar  390  bookings  /bookings  span[data-bk-actions] > span[data-bk-go] > span  chevron-right  -1  flip:self x3
+ok       ar  390  bookings  /bookings  div[data-ft-band-actions] > a.vt-btn > span  arrow-right  -1  flip:self
+ok       en 1440  bookings  /bookings  div[data-hd-row] > div[data-hd-wide] > span  arrow-right  +1
+ok       en 1440  bookings  /bookings  span[data-bk-actions] > span[data-bk-go] > span  chevron-right  +1  x3
+ok       en 1440  bookings  /bookings  div[data-ft-band-actions] > a.vt-btn > span  arrow-right  +1
+ok       en  390  bookings  /bookings  span[data-bk-actions] > span[data-bk-go] > span  chevron-right  +1  x3
+ok       en  390  bookings  /bookings  div[data-ft-band-actions] > a.vt-btn > span  arrow-right  +1
+ok       ar 1440  manage-picker  /manage-booking?token=SjKdipokIyLqnp-SnZRwjTq9E2vEZyYwrWCMVPxHRz0  div[data-hd-row] > div[data-hd-wide] > span  arrow-right  -1  flip:self
+ok       ar 1440  manage-picker  /manage-booking?token=SjKdipokIyLqnp-SnZRwjTq9E2vEZyYwrWCMVPxHRz0  div[data-noprint] > button[data-back] > span  chevron-left  -1  flip:self
+ok       ar 1440  manage-picker  /manage-booking?token=SjKdipokIyLqnp-SnZRwjTq9E2vEZyYwrWCMVPxHRz0  div[data-mb-grid] > div[data-noprint] > span  arrow-right  -1  flip:self
+ok       ar 1440  manage-picker  /manage-booking?token=SjKdipokIyLqnp-SnZRwjTq9E2vEZyYwrWCMVPxHRz0  div[data-wp-row] > div[data-wp-cal] > span  chevron-left  -1  flip:self
+ok       ar 1440  manage-picker  /manage-booking?token=SjKdipokIyLqnp-SnZRwjTq9E2vEZyYwrWCMVPxHRz0  div[data-wp-row] > div[data-wp-cal] > span  chevron-right  -1  flip:self
+ok       ar 1440  manage-picker  /manage-booking?token=SjKdipokIyLqnp-SnZRwjTq9E2vEZyYwrWCMVPxHRz0  div[data-mb-acts] > button.vt-btn > span  arrow-right  -1  flip:self
+ok       ar 1440  manage-picker  /manage-booking?token=SjKdipokIyLqnp-SnZRwjTq9E2vEZyYwrWCMVPxHRz0  div[data-ft-band-actions] > a.vt-btn > span  arrow-right  -1  flip:self
+ok       ar  390  manage-picker  /manage-booking?token=SjKdipokIyLqnp-SnZRwjTq9E2vEZyYwrWCMVPxHRz0  div[data-noprint] > button[data-back] > span  chevron-left  -1  flip:self
+ok       ar  390  manage-picker  /manage-booking?token=SjKdipokIyLqnp-SnZRwjTq9E2vEZyYwrWCMVPxHRz0  div[data-mb-grid] > div[data-noprint] > span  arrow-right  -1  flip:self
+ok       ar  390  manage-picker  /manage-booking?token=SjKdipokIyLqnp-SnZRwjTq9E2vEZyYwrWCMVPxHRz0  div[data-wp-row] > div[data-wp-cal] > span  chevron-left  -1  flip:self
+ok       ar  390  manage-picker  /manage-booking?token=SjKdipokIyLqnp-SnZRwjTq9E2vEZyYwrWCMVPxHRz0  div[data-wp-row] > div[data-wp-cal] > span  chevron-right  -1  flip:self
+ok       ar  390  manage-picker  /manage-booking?token=SjKdipokIyLqnp-SnZRwjTq9E2vEZyYwrWCMVPxHRz0  div[data-mb-acts] > button.vt-btn > span  arrow-right  -1  flip:self
+ok       ar  390  manage-picker  /manage-booking?token=SjKdipokIyLqnp-SnZRwjTq9E2vEZyYwrWCMVPxHRz0  div[data-ft-band-actions] > a.vt-btn > span  arrow-right  -1  flip:self
+ok       en 1440  manage-picker  /manage-booking?token=SjKdipokIyLqnp-SnZRwjTq9E2vEZyYwrWCMVPxHRz0  div[data-hd-row] > div[data-hd-wide] > span  arrow-right  +1
+ok       en 1440  manage-picker  /manage-booking?token=SjKdipokIyLqnp-SnZRwjTq9E2vEZyYwrWCMVPxHRz0  div[data-noprint] > button[data-back] > span  chevron-left  +1
+ok       en 1440  manage-picker  /manage-booking?token=SjKdipokIyLqnp-SnZRwjTq9E2vEZyYwrWCMVPxHRz0  div[data-mb-grid] > div[data-noprint] > span  arrow-right  +1
+ok       en 1440  manage-picker  /manage-booking?token=SjKdipokIyLqnp-SnZRwjTq9E2vEZyYwrWCMVPxHRz0  div[data-wp-row] > div[data-wp-cal] > span  chevron-left  +1
+ok       en 1440  manage-picker  /manage-booking?token=SjKdipokIyLqnp-SnZRwjTq9E2vEZyYwrWCMVPxHRz0  div[data-wp-row] > div[data-wp-cal] > span  chevron-right  +1
+ok       en 1440  manage-picker  /manage-booking?token=SjKdipokIyLqnp-SnZRwjTq9E2vEZyYwrWCMVPxHRz0  div[data-mb-acts] > button.vt-btn > span  arrow-right  +1
+ok       en 1440  manage-picker  /manage-booking?token=SjKdipokIyLqnp-SnZRwjTq9E2vEZyYwrWCMVPxHRz0  div[data-ft-band-actions] > a.vt-btn > span  arrow-right  +1
+ok       en  390  manage-picker  /manage-booking?token=SjKdipokIyLqnp-SnZRwjTq9E2vEZyYwrWCMVPxHRz0  div[data-noprint] > button[data-back] > span  chevron-left  +1
+ok       en  390  manage-picker  /manage-booking?token=SjKdipokIyLqnp-SnZRwjTq9E2vEZyYwrWCMVPxHRz0  div[data-mb-grid] > div[data-noprint] > span  arrow-right  +1
+ok       en  390  manage-picker  /manage-booking?token=SjKdipokIyLqnp-SnZRwjTq9E2vEZyYwrWCMVPxHRz0  div[data-wp-row] > div[data-wp-cal] > span  chevron-left  +1
+ok       en  390  manage-picker  /manage-booking?token=SjKdipokIyLqnp-SnZRwjTq9E2vEZyYwrWCMVPxHRz0  div[data-wp-row] > div[data-wp-cal] > span  chevron-right  +1
+ok       en  390  manage-picker  /manage-booking?token=SjKdipokIyLqnp-SnZRwjTq9E2vEZyYwrWCMVPxHRz0  div[data-mb-acts] > button.vt-btn > span  arrow-right  +1
+ok       en  390  manage-picker  /manage-booking?token=SjKdipokIyLqnp-SnZRwjTq9E2vEZyYwrWCMVPxHRz0  div[data-ft-band-actions] > a.vt-btn > span  arrow-right  +1
+ok       ar 1440  ops-calendar  /calendar  aside[data-lenis-prevent] > button[data-rail-toggle] > span  chevron-left  -1  flip:self
+ok       ar 1440  ops-calendar  /calendar  main[data-vt-cal] > button.vt-iconbtn > span  chevron-left  -1  flip:self
+ok       ar 1440  ops-calendar  /calendar  main[data-vt-cal] > button.vt-iconbtn > span  chevron-right  -1  flip:self
+ok       ar  390  ops-calendar  /calendar  main[data-vt-cal] > button.vt-iconbtn > span  chevron-left  -1  flip:self
+ok       ar  390  ops-calendar  /calendar  main[data-vt-cal] > button.vt-iconbtn > span  chevron-right  -1  flip:self
+ok       en 1440  ops-calendar  /calendar  aside[data-lenis-prevent] > button[data-rail-toggle] > span  chevron-left  +1
+ok       en 1440  ops-calendar  /calendar  main[data-vt-cal] > button.vt-iconbtn > span  chevron-left  +1
+ok       en 1440  ops-calendar  /calendar  main[data-vt-cal] > button.vt-iconbtn > span  chevron-right  +1
+ok       en  390  ops-calendar  /calendar  main[data-vt-cal] > button.vt-iconbtn > span  chevron-left  +1
+ok       en  390  ops-calendar  /calendar  main[data-vt-cal] > button.vt-iconbtn > span  chevron-right  +1
+ok       ar 1440  ops-bookings  /bookings  aside[data-lenis-prevent] > button[data-rail-toggle] > span  chevron-left  -1  flip:self
+ok       ar 1440  ops-bookings  /bookings  div.vt-card > button.vt-btn > span  chevron-left  -1  flip:self
+ok       ar 1440  ops-bookings  /bookings  div.vt-card > button.vt-btn > span  chevron-right  -1  flip:self
+ok       ar  390  ops-bookings  /bookings  div.vt-card > button.vt-btn > span  chevron-left  -1  flip:self
+ok       ar  390  ops-bookings  /bookings  div.vt-card > button.vt-btn > span  chevron-right  -1  flip:self
+ok       en 1440  ops-bookings  /bookings  aside[data-lenis-prevent] > button[data-rail-toggle] > span  chevron-left  +1
+ok       en 1440  ops-bookings  /bookings  div.vt-card > button.vt-btn > span  chevron-left  +1
+ok       en 1440  ops-bookings  /bookings  div.vt-card > button.vt-btn > span  chevron-right  +1
+ok       en  390  ops-bookings  /bookings  div.vt-card > button.vt-btn > span  chevron-left  +1
+ok       en  390  ops-bookings  /bookings  div.vt-card > button.vt-btn > span  chevron-right  +1
+ok       ar 1440  checkout-strip  /checkout?from=Zurich%20Airport&to=Zermatt&when=2026-10-09T08:15&pax=2&bags=1  span.vt-co__strip-back > button[data-co-back] > span  chevron-left  -1  flip:self
+ok       ar 1440  checkout-strip  /checkout?from=Zurich%20Airport&to=Zermatt&when=2026-10-09T08:15&pax=2&bags=1  div.vt-co__strip-copy > p[data-co-route] > span.vt-co__strip-arrow  arrow-right  -1  flip:self
+ok       ar 1440  checkout-strip  /checkout?from=Zurich%20Airport&to=Zermatt&when=2026-10-09T08:15&pax=2&bags=1  span.vt-check__text > span[data-acct-title] > span  log-in  -1  flip:self
+ok       ar  390  checkout-strip  /checkout?from=Zurich%20Airport&to=Zermatt&when=2026-10-09T08:15&pax=2&bags=1  span.vt-co__strip-back > button[data-co-back] > span  chevron-left  -1  flip:self
+ok       ar  390  checkout-strip  /checkout?from=Zurich%20Airport&to=Zermatt&when=2026-10-09T08:15&pax=2&bags=1  div.vt-co__strip-copy > p[data-co-route] > span.vt-co__strip-arrow  arrow-right  -1  flip:self
+ok       ar  390  checkout-strip  /checkout?from=Zurich%20Airport&to=Zermatt&when=2026-10-09T08:15&pax=2&bags=1  span.vt-check__text > span[data-acct-title] > span  log-in  -1  flip:self
+ok       en 1440  checkout-strip  /checkout?from=Zurich%20Airport&to=Zermatt&when=2026-10-09T08:15&pax=2&bags=1  span.vt-co__strip-back > button[data-co-back] > span  chevron-left  +1
+ok       en 1440  checkout-strip  /checkout?from=Zurich%20Airport&to=Zermatt&when=2026-10-09T08:15&pax=2&bags=1  div.vt-co__strip-copy > p[data-co-route] > span.vt-co__strip-arrow  arrow-right  +1
+ok       en 1440  checkout-strip  /checkout?from=Zurich%20Airport&to=Zermatt&when=2026-10-09T08:15&pax=2&bags=1  span.vt-check__text > span[data-acct-title] > span  log-in  +1
+ok       en  390  checkout-strip  /checkout?from=Zurich%20Airport&to=Zermatt&when=2026-10-09T08:15&pax=2&bags=1  span.vt-co__strip-back > button[data-co-back] > span  chevron-left  +1
+ok       en  390  checkout-strip  /checkout?from=Zurich%20Airport&to=Zermatt&when=2026-10-09T08:15&pax=2&bags=1  div.vt-co__strip-copy > p[data-co-route] > span.vt-co__strip-arrow  arrow-right  +1
+ok       en  390  checkout-strip  /checkout?from=Zurich%20Airport&to=Zermatt&when=2026-10-09T08:15&pax=2&bags=1  span.vt-check__text > span[data-acct-title] > span  log-in  +1
+skip     dev-forms (needs a dev server with VAMOS_DEV_GALLERY=1: use --base ... --dev-gallery)
+skip     dev-data (needs a dev server with VAMOS_DEV_GALLERY=1: use --base ... --dev-gallery)
+skip     dev-services (needs a dev server with VAMOS_DEV_GALLERY=1: use --base ... --dev-gallery)
+ok       ar 1440  booking-detail-picker  /booking-detail?ref=VT-26-0041  div[data-hd-row] > div[data-hd-wide] > span  arrow-right  -1  flip:self
+ok       ar 1440  booking-detail-picker  /booking-detail?ref=VT-26-0041  div[data-noprint] > button[data-back] > span  chevron-left  -1  flip:self
+ok       ar 1440  booking-detail-picker  /booking-detail?ref=VT-26-0041  div[data-mb-grid] > div[data-noprint] > span  arrow-right  -1  flip:self
+ok       ar 1440  booking-detail-picker  /booking-detail?ref=VT-26-0041  div[data-wp-row] > div[data-wp-cal] > span  chevron-left  -1  flip:self
+ok       ar 1440  booking-detail-picker  /booking-detail?ref=VT-26-0041  div[data-wp-row] > div[data-wp-cal] > span  chevron-right  -1  flip:self
+ok       ar 1440  booking-detail-picker  /booking-detail?ref=VT-26-0041  div[data-mb-acts] > button.vt-btn > span  arrow-right  -1  flip:self
+ok       ar 1440  booking-detail-picker  /booking-detail?ref=VT-26-0041  div[data-ft-band-actions] > a.vt-btn > span  arrow-right  -1  flip:self
+ok       ar  390  booking-detail-picker  /booking-detail?ref=VT-26-0041  div[data-noprint] > button[data-back] > span  chevron-left  -1  flip:self
+ok       ar  390  booking-detail-picker  /booking-detail?ref=VT-26-0041  div[data-mb-grid] > div[data-noprint] > span  arrow-right  -1  flip:self
+ok       ar  390  booking-detail-picker  /booking-detail?ref=VT-26-0041  div[data-wp-row] > div[data-wp-cal] > span  chevron-left  -1  flip:self
+ok       ar  390  booking-detail-picker  /booking-detail?ref=VT-26-0041  div[data-wp-row] > div[data-wp-cal] > span  chevron-right  -1  flip:self
+ok       ar  390  booking-detail-picker  /booking-detail?ref=VT-26-0041  div[data-mb-acts] > button.vt-btn > span  arrow-right  -1  flip:self
+ok       ar  390  booking-detail-picker  /booking-detail?ref=VT-26-0041  div[data-ft-band-actions] > a.vt-btn > span  arrow-right  -1  flip:self
+ok       en 1440  booking-detail-picker  /booking-detail?ref=VT-26-0041  div[data-hd-row] > div[data-hd-wide] > span  arrow-right  +1
+ok       en 1440  booking-detail-picker  /booking-detail?ref=VT-26-0041  div[data-noprint] > button[data-back] > span  chevron-left  +1
+ok       en 1440  booking-detail-picker  /booking-detail?ref=VT-26-0041  div[data-mb-grid] > div[data-noprint] > span  arrow-right  +1
+ok       en 1440  booking-detail-picker  /booking-detail?ref=VT-26-0041  div[data-wp-row] > div[data-wp-cal] > span  chevron-left  +1
+ok       en 1440  booking-detail-picker  /booking-detail?ref=VT-26-0041  div[data-wp-row] > div[data-wp-cal] > span  chevron-right  +1
+ok       en 1440  booking-detail-picker  /booking-detail?ref=VT-26-0041  div[data-mb-acts] > button.vt-btn > span  arrow-right  +1
+ok       en 1440  booking-detail-picker  /booking-detail?ref=VT-26-0041  div[data-ft-band-actions] > a.vt-btn > span  arrow-right  +1
+ok       en  390  booking-detail-picker  /booking-detail?ref=VT-26-0041  div[data-noprint] > button[data-back] > span  chevron-left  +1
+ok       en  390  booking-detail-picker  /booking-detail?ref=VT-26-0041  div[data-mb-grid] > div[data-noprint] > span  arrow-right  +1
+ok       en  390  booking-detail-picker  /booking-detail?ref=VT-26-0041  div[data-wp-row] > div[data-wp-cal] > span  chevron-left  +1
+ok       en  390  booking-detail-picker  /booking-detail?ref=VT-26-0041  div[data-wp-row] > div[data-wp-cal] > span  chevron-right  +1
+ok       en  390  booking-detail-picker  /booking-detail?ref=VT-26-0041  div[data-mb-acts] > button.vt-btn > span  arrow-right  +1
+ok       en  390  booking-detail-picker  /booking-detail?ref=VT-26-0041  div[data-ft-band-actions] > a.vt-btn > span  arrow-right  +1
+ok       ar 1440  ops-change-arrow  /calendar  aside[data-lenis-prevent] > button[data-rail-toggle] > span  chevron-left  -1  flip:self
+ok       ar 1440  ops-change-arrow  /calendar  div[data-ops-bar-nav] > button.vt-btn > span  chevron-left  -1  flip:self
+ok       ar 1440  ops-change-arrow  /calendar  span[data-ops-chg-v] > span[data-ops-chg-arrow] > span  arrow-right  -1  flip:self
+ok       ar  390  ops-change-arrow  /calendar  div[data-ops-bar-nav] > button.vt-btn > span  chevron-left  -1  flip:self
+ok       ar  390  ops-change-arrow  /calendar  span[data-ops-chg-v] > span[data-ops-chg-arrow] > span  arrow-right  -1  flip:self
+ok       en 1440  ops-change-arrow  /calendar  aside[data-lenis-prevent] > button[data-rail-toggle] > span  chevron-left  +1
+ok       en 1440  ops-change-arrow  /calendar  div[data-ops-bar-nav] > button.vt-btn > span  chevron-left  +1
+ok       en 1440  ops-change-arrow  /calendar  span[data-ops-chg-v] > span[data-ops-chg-arrow] > span  arrow-right  +1
+ok       en  390  ops-change-arrow  /calendar  div[data-ops-bar-nav] > button.vt-btn > span  chevron-left  +1
+ok       en  390  ops-change-arrow  /calendar  span[data-ops-chg-v] > span[data-ops-chg-arrow] > span  arrow-right  +1
+
+PASS: 196 icon(s) checked, 0 failure(s)

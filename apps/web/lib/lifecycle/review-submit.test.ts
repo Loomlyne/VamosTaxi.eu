@@ -68,6 +68,15 @@ describe("POST /api/reviews/photo", () => {
     expect(src).not.toMatch(/\bTRIP\b/);
     expect(src).not.toMatch(/LX1234/);
   });
+
+  it("is write-limited before the body is read, and a broken body is a 400 (26.2 audit U05-1)", () => {
+    const src = read("apps/web/app/api/reviews/photo/route.ts");
+    const limit = src.indexOf("await accountWriteForbidden(request)");
+    const body = src.indexOf("await request.formData()");
+    expect(limit).toBeGreaterThan(0);
+    expect(body).toBeGreaterThan(limit);
+    expect(src).toMatch(/try \{\s*formData = await request\.formData\(\);\s*\} catch \{\s*return jsonErr\("invalid-input", 400\);/);
+  });
 });
 
 describe("/review page", () => {

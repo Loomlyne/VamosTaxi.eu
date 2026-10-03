@@ -7,7 +7,8 @@
 // Stripe is the plan 05 fake, so no key or network is needed. The amount is a TEST
 // FIXTURE, not a price-book number. Tagged @component.
 
-import { test, expect, type Page, type Route } from "@playwright/test";
+import { test, expect, type Page, type Route } from "../support/test";
+import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 import { openInLocale, type Lang } from "../support/locale";
@@ -30,7 +31,7 @@ test.describe.configure({ mode: "serial" });
 test.beforeAll(async ({}, testInfo) => {
   if (testInfo.project.name !== RUN_PROJECT) return;
   testInfo.setTimeout(180_000);
-  const port = 4280 + testInfo.workerIndex;
+  const port = testPort(4280) + testInfo.workerIndex;
   baseURL = `http://127.0.0.1:${port}`;
   devServer = spawn(NEXT_BIN, ["dev", "-p", String(port)], {
     cwd: WEB_ROOT,

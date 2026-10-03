@@ -1,5 +1,6 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "../support/test";
 import { serveMock, waitForMockReady } from "../support/mock-harness";
+import { stubConsentChosen } from "../support/consent-state";
 
 // Quick 260930-phm (owner, 2026-09-30). Phone and tablet (<=1080): the Trustpilot figures sit as one row inside the
 // white card under the booking bar; the menu is a full page under the dark header bar; the page ground is charcoal
@@ -10,6 +11,9 @@ const width = (page: Page) => page.viewportSize()!.width;
 
 async function openHome(page: Page, reviews: number) {
   await page.route("**/api/**", (r) => r.fulfill({ status: 200, contentType: "application/json", body: '{"ok":true,"suggestions":[],"classes":[]}' }));
+  // Phase 27: the consent banner is a fixed sheet over the page and over the open menu. Not this spec's subject:
+  // the state call answers "already chosen" (registered after the catch-all above, so it wins for this URL).
+  await stubConsentChosen(page);
   await page.goto(await serveMock("app/home/home.dc.html"));
   await waitForMockReady(page);
   const accept = page.getByRole("button", { name: /Accept all/i });

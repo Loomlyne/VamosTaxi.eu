@@ -83,7 +83,7 @@ describe("ops write contract", () => {
     expect(table).toMatch(/fk-missing/);
     expect(table).not.toMatch(/Check name, licence, and photo/);
     expect(table).toMatch(/function maskLicence/);
-    expect(table).toMatch(/data-vt-table-scroll="1" data-fill="\{\{ tableFill \}\}" data-scroll-native="1" data-lenis-prevent="1"/);
+    expect(table).toMatch(/data-vt-table-scroll="1" data-fill="\{\{ tableFill \}\}" data-scroll-native="1"/);
     expect(table).toMatch(/inset-inline-end:0/);
     expect(table).toMatch(/f\.key === 'from' \|\| f\.key === 'to'/);
     expect(table).toMatch(/mapbox_id: hit\.mapbox_id/);

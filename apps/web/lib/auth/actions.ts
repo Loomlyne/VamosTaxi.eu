@@ -168,6 +168,8 @@ export async function requestOtpAction(
           locale: loc.data,
           firstName: body.data.firstName,
           lastName: body.data.lastName,
+          // 26.2 audit: keep the number the schema accepted, as the password path does.
+          phone: body.data.phone,
         }
       : { mode: "signin", email: body.data.email, locale: loc.data, createUser: false },
     origin,

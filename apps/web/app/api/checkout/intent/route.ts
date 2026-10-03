@@ -30,16 +30,16 @@ import {
 import { evaluateCoupon, loadLaunchFlags, loadSettingsVersion } from "@/lib/db/quote";
 import { lookupVehicleClassId, snapshotPolicyFromSettings } from "@/lib/checkout/lock-to-rpc";
 import { policyHours } from "@/lib/checkout/policy-settings";
-import { loadCheckoutReprice } from "@/lib/checkout/reprice";
-import type { IntentRecompute } from "@/lib/quote/intent";
-import { publicSiteOrigin, csrfForbidden } from "@/lib/security/origin";
+import { loadCheckoutReprice, repriceFromLock } from "@/lib/checkout/reprice";
+import { publicSiteOrigin, csrfForbiddenPublicOrStaff } from "@/lib/security/origin";
+import { requestHasStaffSession } from "@/lib/ops/staff-origin";
 import {
   intentIpAllowed,
   intentLimitResponse,
   notePayPressFromEnv,
   payPressAllowed,
 } from "@/lib/checkout/intent-limits";
-import { gateAccountForRequest } from "@/lib/checkout/account-gate";
+import { gateAccountForRequest, type AccountRecord } from "@/lib/checkout/account-gate";
 import { truncateClientIp, cfConnectingIp } from "@/lib/consent/ip";
 import { lockSecretMissingResponse, lockSecretPresent } from "@/lib/quote/lock-secret";
 
@@ -68,7 +68,8 @@ export async function POST(request: Request) {
 
 async function postIntent(request: Request) {
   const startedAt = Date.now();
-  const blocked = csrfForbidden(request);
+  // Quick 261003: the dashboard New trip saves here too; its Origin needs a staff session.
+  const blocked = await csrfForbiddenPublicOrStaff(request, () => requestHasStaffSession(request));
   if (blocked) return blocked;
   const { env } = getCloudflareContext();
   if (!lockSecretPresent(env.QUOTE_LOCK_SECRET, "/api/checkout/intent")) return lockSecretMissingResponse();
@@ -155,57 +156,56 @@ async function postIntent(request: Request) {
     return refuse("pricing_not_live");
   }
 
-  // 26.5: the account choice is checked before any Stripe session exists. A refusal
-  // or "sign in first" answer returns here; only the record to write comes forward.
+  // 26.5: the account choice is checked before any Stripe session exists, but only
+  // once the signed lock has verified (26.2 audit U11-4): runCheckoutIntent calls
+  // `accountGate` right after the lock check. A refusal or "sign in first" answer
+  // returns from there; only the record to write comes forward.
   const actorCustomerId = await resolveActorCustomerId(env, request);
-  const gate = await gateAccountForRequest({
-    env,
-    request,
-    startedAt,
-    account: body.account,
-    email: body.contact.email,
-    locale: body.locale,
-    signedIn: actorCustomerId !== null,
-  });
-  if ("response" in gate) return gate.response;
-  const accountRecord = gate.record;
+  let accountRecord: AccountRecord | null = null;
+  const accountGate = async (): Promise<Response | null> => {
+    const gate = await gateAccountForRequest({
+      env,
+      request,
+      startedAt,
+      account: body.account,
+      email: body.contact.email,
+      locale: body.locale,
+      signedIn: actorCustomerId !== null,
+    });
+    if ("response" in gate) return gate.response;
+    accountRecord = gate.record;
+    return null;
+  };
   const userAgent = (request.headers.get("user-agent") ?? "").slice(0, 300) || null;
   const ipTruncated = truncateClientIp(cfConnectingIp(request.headers));
 
   return runCheckoutIntent(body, {
+    accountGate,
     // D-06/D-19: written after the booking exists; the DB copies the booking's e-mail (p_email is null).
-    afterBooking: accountRecord
-      ? (bookingId) =>
-          asCheckout(env, null, async (sql) => {
-            await sql`
-              select public.record_account_agreement(
-                'checkout',
-                ${bookingId}::uuid,
-                null,
-                ${accountRecord.choice},
-                ${accountRecord.textVersion},
-                ${body.locale},
-                ${userAgent},
-                ${ipTruncated}::inet
-              )
-            `;
-          })
-      : undefined,
+    afterBooking: async (bookingId) => {
+      const record = accountRecord;
+      if (!record) return;
+      await asCheckout(env, null, async (sql) => {
+        await sql`
+          select public.record_account_agreement(
+            'checkout',
+            ${bookingId}::uuid,
+            null,
+            ${record.choice},
+            ${record.textVersion},
+            ${body.locale},
+            ${userAgent},
+            ${ipTruncated}::inet
+          )
+        `;
+      });
+    },
     mode: "web",
     lockSecrets: previous ? { current, previous } : { current },
     workerNowIso: new Date().toISOString(),
     postgresNowIso,
     holdUntilIso,
-    reprice: (payload) => ({
-      pricing_live: repriced.pricingLive,
-      engine_version: payload.engine_version,
-      live_rate_version_id: repriced.liveRateVersionId,
-      classes: payload.class_totals.map((row) => ({
-        slug: row.slug as IntentRecompute["classes"][number]["slug"],
-        total_rappen: row.total_rappen,
-        eligible: row.total_rappen != null,
-      })),
-    }),
+    reprice: (payload) => repriceFromLock(payload, repriced),
     mintManageToken,
     manageLinkMaxAgeSeconds: 30 * 24 * 60 * 60,
     // D-02: always the Stripe-hosted page; no card form on our site.

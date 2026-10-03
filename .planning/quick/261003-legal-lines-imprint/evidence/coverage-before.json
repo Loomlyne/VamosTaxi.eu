@@ -1,0 +1,274 @@
+{
+  "terms": {
+    "de": {
+      "count": 3,
+      "strings": [
+        "Registered as Vamos Taxi GmbH, company number CH-020.4.077.792-7 at the commercial register of the Canton of Zurich. Full company details are on the",
+        "Oversized or unusual items declared at booking: shown on your quote.",
+        "Accepted methods: Visa, Mastercard, Apple Pay, Google Pay and TWINT."
+      ],
+      "attrs": [],
+      "dataTok": []
+    },
+    "fr": {
+      "count": 3,
+      "strings": [
+        "Registered as Vamos Taxi GmbH, company number CH-020.4.077.792-7 at the commercial register of the Canton of Zurich. Full company details are on the",
+        "Oversized or unusual items declared at booking: shown on your quote.",
+        "Accepted methods: Visa, Mastercard, Apple Pay, Google Pay and TWINT."
+      ],
+      "attrs": [],
+      "dataTok": []
+    },
+    "ar": {
+      "count": 3,
+      "strings": [
+        "Registered as Vamos Taxi GmbH, company number CH-020.4.077.792-7 at the commercial register of the Canton of Zurich. Full company details are on the",
+        "Oversized or unusual items declared at booking: shown on your quote.",
+        "Accepted methods: Visa, Mastercard, Apple Pay, Google Pay and TWINT."
+      ],
+      "attrs": [],
+      "dataTok": []
+    },
+    "overflow390_ar": {
+      "scrollWidth": 390,
+      "clientWidth": 390
+    },
+    "overflow390_de": {
+      "scrollWidth": 390,
+      "clientWidth": 390
+    }
+  },
+  "privacy": {
+    "de": {
+      "count": 15,
+      "strings": [
+        "no DPO appointed",
+        "none appointed",
+        "Stripe Payments Europe Ltd",
+        "Supabase",
+        "Booking database and sign-in · Zurich",
+        "Cloudflare",
+        "Mapbox",
+        "Confirmation and driver-detail emails · used when transactional mail is on",
+        "Sentry",
+        "Error diagnostics · not in use",
+        "Cloudflare Web Analytics (cookieless)",
+        "Site analytics, only with your consent · Cloudflare",
+        "10 years (Swiss books) for accounting and tax.",
+        "as long as needed to run the service",
+        "as long as needed to show consent — proof of what you chose, and when."
+      ],
+      "attrs": [],
+      "dataTok": []
+    },
+    "fr": {
+      "count": 15,
+      "strings": [
+        "no DPO appointed",
+        "none appointed",
+        "Stripe Payments Europe Ltd",
+        "Supabase",
+        "Booking database and sign-in · Zurich",
+        "Cloudflare",
+        "Mapbox",
+        "Confirmation and driver-detail emails · used when transactional mail is on",
+        "Sentry",
+        "Error diagnostics · not in use",
+        "Cloudflare Web Analytics (cookieless)",
+        "Site analytics, only with your consent · Cloudflare",
+        "10 years (Swiss books) for accounting and tax.",
+        "as long as needed to run the service",
+        "as long as needed to show consent — proof of what you chose, and when."
+      ],
+      "attrs": [],
+      "dataTok": []
+    },
+    "ar": {
+      "count": 15,
+      "strings": [
+        "no DPO appointed",
+        "none appointed",
+        "Stripe Payments Europe Ltd",
+        "Supabase",
+        "Booking database and sign-in · Zurich",
+        "Cloudflare",
+        "Mapbox",
+        "Confirmation and driver-detail emails · used when transactional mail is on",
+        "Sentry",
+        "Error diagnostics · not in use",
+        "Cloudflare Web Analytics (cookieless)",
+        "Site analytics, only with your consent · Cloudflare",
+        "10 years (Swiss books) for accounting and tax.",
+        "as long as needed to run the service",
+        "as long as needed to show consent — proof of what you chose, and when."
+      ],
+      "attrs": [],
+      "dataTok": []
+    },
+    "overflow390_ar": {
+      "scrollWidth": 390,
+      "clientWidth": 390
+    },
+    "overflow390_de": {
+      "scrollWidth": 390,
+      "clientWidth": 390
+    }
+  },
+  "cookies": {
+    "de": {
+      "count": 14,
+      "strings": [
+        "sb-yaumjzvylngfjhtuffqs-auth-token",
+        "Vamos Taxi · Supabase",
+        "__stripe_mid · __stripe_sid",
+        "Stripe",
+        "not in use until live payments",
+        "cf_clearance",
+        "Cloudflare",
+        "as set by Cloudflare",
+        "vamosLang",
+        "until you change language",
+        "vamos:recent-places",
+        "until you clear it",
+        "Cloudflare Web Analytics (cookieless)",
+        "Sentry"
+      ],
+      "attrs": [],
+      "dataTok": []
+    },
+    "fr": {
+      "count": 14,
+      "strings": [
+        "sb-yaumjzvylngfjhtuffqs-auth-token",
+        "Vamos Taxi · Supabase",
+        "__stripe_mid · __stripe_sid",
+        "Stripe",
+        "not in use until live payments",
+        "cf_clearance",
+        "Cloudflare",
+        "as set by Cloudflare",
+        "vamosLang",
+        "until you change language",
+        "vamos:recent-places",
+        "until you clear it",
+        "Cloudflare Web Analytics (cookieless)",
+        "Sentry"
+      ],
+      "attrs": [],
+      "dataTok": []
+    },
+    "ar": {
+      "count": 14,
+      "strings": [
+        "sb-yaumjzvylngfjhtuffqs-auth-token",
+        "Vamos Taxi · Supabase",
+        "__stripe_mid · __stripe_sid",
+        "Stripe",
+        "not in use until live payments",
+        "cf_clearance",
+        "Cloudflare",
+        "as set by Cloudflare",
+        "vamosLang",
+        "until you change language",
+        "vamos:recent-places",
+        "until you clear it",
+        "Cloudflare Web Analytics (cookieless)",
+        "Sentry"
+      ],
+      "attrs": [],
+      "dataTok": []
+    },
+    "overflow390_ar": {
+      "scrollWidth": 390,
+      "clientWidth": 390
+    },
+    "overflow390_de": {
+      "scrollWidth": 390,
+      "clientWidth": 390
+    }
+  },
+  "cancellation": {
+    "de": {
+      "count": 1,
+      "strings": [
+        "Where our records show you were at the pickup point and no vehicle came, you receive full refund back."
+      ],
+      "attrs": [],
+      "dataTok": []
+    },
+    "fr": {
+      "count": 1,
+      "strings": [
+        "Where our records show you were at the pickup point and no vehicle came, you receive full refund back."
+      ],
+      "attrs": [],
+      "dataTok": []
+    },
+    "ar": {
+      "count": 1,
+      "strings": [
+        "Where our records show you were at the pickup point and no vehicle came, you receive full refund back."
+      ],
+      "attrs": [],
+      "dataTok": []
+    },
+    "overflow390_ar": {
+      "scrollWidth": 390,
+      "clientWidth": 390
+    },
+    "overflow390_de": {
+      "scrollWidth": 390,
+      "clientWidth": 390
+    }
+  },
+  "imprint": {
+    "de": {
+      "count": 6,
+      "strings": [
+        "GmbH",
+        "CH-020.4.077.792-7",
+        "vamostaxi.site",
+        "Ben Othman Houssein",
+        "Vamos Taxi / Loomlyne",
+        "Loomlyne"
+      ],
+      "attrs": [],
+      "dataTok": []
+    },
+    "fr": {
+      "count": 6,
+      "strings": [
+        "GmbH",
+        "CH-020.4.077.792-7",
+        "vamostaxi.site",
+        "Ben Othman Houssein",
+        "Vamos Taxi / Loomlyne",
+        "Loomlyne"
+      ],
+      "attrs": [],
+      "dataTok": []
+    },
+    "ar": {
+      "count": 6,
+      "strings": [
+        "GmbH",
+        "CH-020.4.077.792-7",
+        "vamostaxi.site",
+        "Ben Othman Houssein",
+        "Vamos Taxi / Loomlyne",
+        "Loomlyne"
+      ],
+      "attrs": [],
+      "dataTok": []
+    },
+    "overflow390_ar": {
+      "scrollWidth": 390,
+      "clientWidth": 390
+    },
+    "overflow390_de": {
+      "scrollWidth": 390,
+      "clientWidth": 390
+    }
+  }
+}

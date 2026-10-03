@@ -5,6 +5,7 @@
 
 import { asCheckout } from "../db/identity";
 import { withRequestContext } from "../logger";
+import { isDashboardHost } from "../security/origin";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -37,13 +38,29 @@ export async function resolveActorCustomerIdWithDeps(deps: ActorCustomerDeps): P
 }
 
 /**
+ * True when a checkout request may carry a customer actor. Quick 261003: a request to
+ * the dashboard host is the owner's New trip (phone booking); its session is staff,
+ * never the traveller, so the booking stays a guest booking (customer_id null) that the
+ * traveller can claim later, and per-customer coupon limits never count against staff.
+ */
+export function actorCustomerAllowed(request: Request): boolean {
+  try {
+    return !isDashboardHost(new URL(request.url).host);
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Resolves `bookings.customer_id` for a checkout request: Supabase session sub →
- * `public.customer_id_for_user` (definer, EXECUTE vamos_checkout only).
+ * `public.customer_id_for_user` (definer, EXECUTE vamos_checkout only). Null on the
+ * dashboard host ({@link actorCustomerAllowed}).
  */
 export async function resolveActorCustomerId(
   env: CloudflareEnv,
   request: Request,
 ): Promise<string | null> {
+  if (!actorCustomerAllowed(request)) return null;
   const emit = withRequestContext({
     requestId: request.headers.get("cf-ray") ?? crypto.randomUUID(),
     route: new URL(request.url).pathname,

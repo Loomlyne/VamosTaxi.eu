@@ -98,7 +98,7 @@ export function PriceSummary({
     <div className={cls}>
       {lines.map((l, i) => (
         <div
-          key={typeof l.label === "string" ? l.label : i}
+          key={`${i}-${typeof l.label === "string" ? l.label : ""}`}
           className={"vt-price__row" + (l.credit ? " vt-price__row--credit" : l.muted ? " vt-price__row--muted" : "")}
         >
           <span className="vt-price__label">

@@ -341,13 +341,27 @@ const readAuth = () => {
   } catch (e) { return null; }
 };
 
+/** Active language from the shared store; raw storage only before vamos-locale.js has loaded (26.2 audit U08-9). */
+function vtLang() {
+  try {
+    const L = window.VamosLocale;
+    if (L && typeof L.lang === 'function') return L.lang() || 'en';
+    return (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en';
+  } catch (e) { return 'en'; }
+}
+/** Active currency from the shared store; raw storage only before vamos-locale.js has loaded (26.2 audit U08-9). */
+function vtCur() {
+  try {
+    const L = window.VamosLocale;
+    if (L && typeof L.cur === 'function') return L.cur() || 'CHF';
+    return (typeof localStorage !== 'undefined' && localStorage.getItem('vamosCurrency')) || 'CHF';
+  } catch (e) { return 'CHF'; }
+}
 class Component extends DCLogic {
   state = (() => {
     let lang = 'en', cur = 'CHF';
-    try {
-      lang = localStorage.getItem('vamosLang') || 'en';
-      cur = localStorage.getItem('vamosCurrency') || 'CHF';
-    } catch (e) {}
+    lang = vtLang();
+    cur = vtCur();
     return { lang: LANGS.indexOf(lang) > -1 ? lang : 'en', cur, menuOpen: false, menuClosing: false, acctOpen: false, floating: false, auth: readAuth() };
   })();
   _menuRoot = (el) => { this._root = el; };

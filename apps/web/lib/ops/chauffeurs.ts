@@ -114,6 +114,9 @@ export function normalizeChauffeurEmail(email: string | null | undefined): strin
   return trimmed || null;
 }
 
+/** chauffeurs_plate_shape (20261007160000): a plate is 1–32 characters. */
+export const PLATE_MAX = 32;
+
 export function assertChauffeurInput(input: ChauffeurInput): AssertedChauffeurInput {
   const fullName = input.fullName.trim();
   if (!fullName) {
@@ -137,12 +140,26 @@ export function assertChauffeurInput(input: ChauffeurInput): AssertedChauffeurIn
   }
 
   const classRaw = input.vehicleClassId == null ? "" : input.vehicleClassId.trim();
-  const vehicleClassId = classRaw === "" ? null : classRaw;
+  const vehicleClassId = input.vehicleClassId === undefined ? undefined : classRaw === "" ? null : classRaw;
   if (
     vehicleClassId &&
     !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(vehicleClassId)
   ) {
     throw new ChauffeurInputError("chauffeurs-failure-class");
+  }
+
+  // 2026-10-01: the plate number on the chauffeur. Trimmed, case as typed; the column holds 32.
+  // undefined = the caller did not send one (an update keeps the stored plate).
+  let plate: string | undefined;
+  if (input.plate === undefined) plate = undefined;
+  else {
+    const plateRaw = input.plate == null ? "" : input.plate.trim();
+    // Owner, decision 7 (2026-10-01): the plate number is required.
+    if (plateRaw === "") throw new ChauffeurInputError("chauffeurs-failure-plate-required");
+    if (plateRaw.length > PLATE_MAX) {
+      throw new ChauffeurInputError("chauffeurs-failure-plate");
+    }
+    plate = plateRaw;
   }
 
   const expiryRaw = input.licenceExpiresOn == null ? "" : input.licenceExpiresOn.trim();
@@ -168,6 +185,7 @@ export function assertChauffeurInput(input: ChauffeurInput): AssertedChauffeurIn
     email,
     defaultVehicleId,
     vehicleClassId,
+    plate,
     licenceNumber,
     licenceExpiresOn,
     languages: normalizeLanguages(input.languages),
@@ -190,6 +208,7 @@ type ListSqlRow = {
   default_vehicle_plate: string | null;
   vehicle_class_id: string | null;
   vehicle_class_name: string | null;
+  plate?: string | null;
   licence_expires_on: Date | string | null;
   languages: string[] | null;
   status: string;
@@ -230,6 +249,7 @@ function mapListRow(row: ListSqlRow): ChauffeurRow {
     defaultVehiclePlate: rowText(row, "default_vehicle_plate", "defaultVehiclePlate"),
     vehicleClassId: rowText(row, "vehicle_class_id", "vehicleClassId"),
     vehicleClassName: rowText(row, "vehicle_class_name", "vehicleClassName"),
+    plate: rowText(row, "plate", "plate"),
     licenceExpiresOn: expiry,
     languages: mapLanguages(row.languages),
     status,
@@ -291,6 +311,7 @@ export async function loadChauffeurDetailsList(
         v.plate as default_vehicle_plate,
         c.vehicle_class_id,
         cls.name as vehicle_class_name,
+        c.plate,
         c.licence_number,
         c.licence_expires_on,
         c.languages,
@@ -303,6 +324,7 @@ export async function loadChauffeurDetailsList(
       from public.chauffeurs c
       left join public.vehicles v on v.id = c.default_vehicle_id
       left join public.vehicle_classes cls on cls.id = c.vehicle_class_id
+      where c.deleted_at is null
       order by c.active desc, c.licence_expires_on asc nulls last, c.full_name asc
     `;
     const extras = await loadDeskExtras(sql);
@@ -325,6 +347,7 @@ export async function loadChauffeurs(
         v.plate as default_vehicle_plate,
         c.vehicle_class_id,
         cls.name as vehicle_class_name,
+        c.plate,
         c.licence_expires_on,
         c.languages,
         c.status,
@@ -336,6 +359,7 @@ export async function loadChauffeurs(
       from public.chauffeurs c
       left join public.vehicles v on v.id = c.default_vehicle_id
       left join public.vehicle_classes cls on cls.id = c.vehicle_class_id
+      where c.deleted_at is null
       order by c.active desc, c.licence_expires_on asc nulls last, c.full_name asc
     `;
     const extras = await loadDeskExtras(sql);
@@ -359,6 +383,7 @@ export async function loadChauffeur(
         v.plate as default_vehicle_plate,
         c.vehicle_class_id,
         cls.name as vehicle_class_name,
+        c.plate,
         c.licence_number,
         c.licence_expires_on,
         c.languages,
@@ -372,6 +397,7 @@ export async function loadChauffeur(
       left join public.vehicles v on v.id = c.default_vehicle_id
       left join public.vehicle_classes cls on cls.id = c.vehicle_class_id
       where c.id = ${id}
+        and c.deleted_at is null
       limit 1
     `;
     const row = rows[0];
@@ -399,6 +425,7 @@ export async function loadChauffeurByEmail(
         v.plate as default_vehicle_plate,
         c.vehicle_class_id,
         cls.name as vehicle_class_name,
+        c.plate,
         c.licence_number,
         c.licence_expires_on,
         c.languages,
@@ -411,7 +438,8 @@ export async function loadChauffeurByEmail(
       from public.chauffeurs c
       left join public.vehicles v on v.id = c.default_vehicle_id
       left join public.vehicle_classes cls on cls.id = c.vehicle_class_id
-      where c.email is not null
+      where c.deleted_at is null
+        and c.email is not null
         and length(trim(c.email)) > 0
         and lower(trim(c.email)) = ${normalized}
       limit 1

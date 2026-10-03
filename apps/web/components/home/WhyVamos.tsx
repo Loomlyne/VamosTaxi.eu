@@ -267,7 +267,7 @@ export function WhyVamos({
                 <div className="vt-why-fare">
                   <p className="vt-why-fare-kicker">{tHome("fare-quoted-at-booking")}</p>
                   <div>
-                    <strong className="vt-why-fare-amount" data-i18n-skip>
+                    <strong className="vt-why-fare-amount" data-vt-no-i18n>
                       CHF 000
                     </strong>
                     <p className="vt-why-fare-copy">

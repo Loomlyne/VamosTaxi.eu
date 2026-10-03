@@ -6,11 +6,27 @@
 // is fail-closed on a live limiter throw.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { log } from "../logger";
 import { checkWriteRateLimit } from "./rate-limit";
+
+let missingBindingLogged = false;
 
 export async function accountWriteForbidden(request: Request): Promise<Response | null> {
   try {
     const { env } = getCloudflareContext();
+    if (!env.QUOTE_RATE_LIMITER_BARE) {
+      // 26.2 audit: the header promised fail-open here, but checkWriteRateLimit fails closed
+      // on a limiter that is not there (429 on every write). Let the request through and say so once.
+      if (!missingBindingLogged) {
+        missingBindingLogged = true;
+        log("warn", "account_write_limiter_missing", {
+          requestId: "abuse",
+          route: "account-write",
+          locale: null,
+        });
+      }
+      return null;
+    }
     const ip = request.headers.get("cf-connecting-ip")?.trim() || "unknown";
     const limited = await checkWriteRateLimit({
       limiter: env.QUOTE_RATE_LIMITER_BARE,

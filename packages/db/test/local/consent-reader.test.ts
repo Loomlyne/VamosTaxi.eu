@@ -6,9 +6,8 @@
 // Local only: the host is fixed to 127.0.0.1; the port comes from VAMOS_LOCAL_DB_PORT (default 59322,
 // this worktree's own stack, never another session's stack).
 import { describe, expect, it } from "vitest";
-import postgres from "postgres";
 import { withIdentity } from "../../src/identity.js";
-import { pgArrayTypes } from "../../src/pg-types.js";
+import { workerSql } from "../support/worker-client.js";
 
 const PORT = process.env["VAMOS_LOCAL_DB_PORT"] ?? "59322";
 const SUPER = `postgres://postgres:postgres@127.0.0.1:${PORT}/postgres`;
@@ -30,13 +29,7 @@ describe("consent_choice through the Worker client options (fetch_types: false)"
   it("returns booleans and a timestamp, latest wins, as-of hides later rows", async () => {
     // Same option set as identity.ts client(); the pinned client lets withIdentity's own role
     // switch run inside a transaction this test rolls back.
-    const sql = postgres(SUPER, {
-      max: 1,
-      fetch_types: false,
-      types: pgArrayTypes,
-      prepare: true,
-      connect_timeout: 10,
-    });
+    const sql = workerSql(SUPER, "identity");
     let latest: Choice | undefined;
     let asOf: Choice | undefined;
     let none: Choice[] | undefined;

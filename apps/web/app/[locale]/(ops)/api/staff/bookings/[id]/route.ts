@@ -1,6 +1,9 @@
 // apps/web/app/[locale]/(ops)/api/staff/bookings/[id]/route.ts
 //
 // PATCH /api/staff/bookings/:id — cancel, complete, no-show, or in-place field update.
+// 26.2 P6: the in-place update is name, e-mail, phone, note and flight only (D6, D8), recorded in
+// the history. A body that still carries pickup, dropoff, dateIso, time, pax, bags or klass is
+// refused ("use-change"): those are priced and confirmed through POST …/change.
 // DELETE — soft-delete (erased_at). Dual-mounted at app/api/staff/bookings/[id].
 // Refund is POST /api/staff/bookings/:id/refund (Stripe first).
 // D-31: completed / no_show go through ops_mark_* RPCs, never a client status write.
@@ -20,6 +23,9 @@ import { isCheckoutEmail } from "@/lib/checkout/contact-validate";
 import { jsonErr, jsonOk, withStaff } from "@/lib/ops/staff-json";
 
 export const dynamic = "force-dynamic";
+
+/** 26.2 P6: the trip fields this route refuses on a paid booking (named refusal "use-change"). */
+const TRIP_PATCH_FIELDS: readonly string[] = Object.freeze(["pickup", "dropoff", "dateIso", "time", "pax", "bags", "klass"]);
 
 function bookingId(request: Request): string | null {
   const parts = new URL(request.url).pathname.split("/").filter(Boolean);
@@ -109,6 +115,11 @@ export const PATCH = withStaff(async (claims, request) => {
     return jsonErr("use-refund", 400);
   }
 
+  // 26.2 P6: places, date, time, party and class of a paid trip are priced again first.
+  if (TRIP_PATCH_FIELDS.some((field) => Object.prototype.hasOwnProperty.call(record, field))) {
+    return jsonErr("use-change", 400);
+  }
+
   // G20: a present e-mail must be a real address (same rule as checkout); absent keeps today's value.
   let email: string | undefined;
   if (Object.prototype.hasOwnProperty.call(record, "email")) {
@@ -122,20 +133,14 @@ export const PATCH = withStaff(async (claims, request) => {
     email,
     phone: typeof record.phone === "string" ? record.phone : undefined,
     note: typeof record.note === "string" ? record.note : undefined,
-    pickup: typeof record.pickup === "string" ? record.pickup : undefined,
-    dropoff: typeof record.dropoff === "string" ? record.dropoff : undefined,
-    dateIso: typeof record.dateIso === "string" ? record.dateIso : undefined,
-    time: typeof record.time === "string" ? record.time : undefined,
-    pax: typeof record.pax === "number" ? record.pax : undefined,
-    bags: typeof record.bags === "number" ? record.bags : undefined,
     flight: typeof record.flight === "string" ? record.flight : undefined,
-    klass: typeof record.klass === "string" ? record.klass : undefined,
   });
   if (!result.ok) {
     if (result.code === "unpaid") return jsonErr("unpaid", 409);
+    if (result.code === "unknown") return jsonErr("unknown", 500);
     return jsonErr("not-found", 404);
   }
-  return jsonOk({ id });
+  return jsonOk({ id, changed: result.changed, driverMailed: result.driverMailed });
 });
 
 export const DELETE = withStaff(async (claims, request) => {

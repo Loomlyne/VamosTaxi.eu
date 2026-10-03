@@ -7,6 +7,7 @@ import {
   payableWithVatRappen,
   vatIncludedRappen,
   vatOnTopRappen,
+  vatPercentLabel,
 } from "./vat";
 
 describe("vatIncludedRappen", () => {
@@ -96,3 +97,23 @@ describe("intent / receipt pass settings bps (D-22)", () => {
     expect(receipt).toMatch(/vatOnTopRappen\(fareRappen \+ extraSum, args\.vatRateBps\)/);
   });
 });
+
+describe("vatPercentLabel (26.2 audit: /checkout and the pay link showed 0.81 %)", () => {
+  it("reads the tenths-of-a-percent scale as the customer reads it", () => {
+    expect(vatPercentLabel(81)).toBe("8.1");
+    expect(vatPercentLabel(77)).toBe("7.7");
+    expect(vatPercentLabel(80)).toBe("8");
+    expect(vatPercentLabel(0)).toBe("0");
+    expect(vatPercentLabel(null)).toBe("");
+    expect(vatPercentLabel(Number.NaN)).toBe("");
+  });
+
+  it("both customer price pages use it, and no page divides the rate by 100", () => {
+    for (const rel of ["../../app/[locale]/checkout/sections/SummaryRail.tsx", "../../app/[locale]/checkout/pay/[token]/PayClient.tsx"]) {
+      const src = readFileSync(join(dirname(fileURLToPath(import.meta.url)), rel), "utf8");
+      expect(src, rel).toContain("vatPercentLabel(");
+      expect(src, rel).not.toMatch(/[Bb]ps\s*\/\s*100\b/);
+    }
+  });
+});
+

@@ -284,7 +284,30 @@ export async function resolvePaymentIntentId(
  * app-made or dashboard-made, is visible with its metadata.
  */
 export async function retrieveCharge(stripe: Stripe, chargeId: string): Promise<Stripe.Charge> {
-  return stripe.charges.retrieve(chargeId, { expand: ["refunds"] });
+  const charge = await stripe.charges.retrieve(chargeId, { expand: ["refunds"] });
+  const list = charge.refunds;
+  if (!list?.has_more) return charge;
+  // 26.2 audit U11-3: the expanded list stops at 10. Page through the rest (100 a page)
+  // so no refund past the tenth is dropped; a failed page throws and the event retries.
+  const data = [...list.data];
+  const seen = new Set(data.map((refund) => refund.id));
+  let more = true;
+  for (let page = 0; more && page < 50; page += 1) {
+    const last = data[data.length - 1];
+    const next = await stripe.refunds.list({
+      charge: chargeId,
+      limit: 100,
+      ...(last ? { starting_after: last.id } : {}),
+    });
+    for (const refund of next.data) {
+      if (!seen.has(refund.id)) {
+        seen.add(refund.id);
+        data.push(refund);
+      }
+    }
+    more = next.has_more === true && next.data.length > 0;
+  }
+  return { ...charge, refunds: { ...list, data, has_more: more } };
 }
 
 /** 26.1-08 D-07: charge.dispute.* is re-read from Stripe for its current status (T-26.1-26). */

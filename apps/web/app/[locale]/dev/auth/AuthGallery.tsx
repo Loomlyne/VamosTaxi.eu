@@ -25,7 +25,7 @@ function Tile({
 }) {
   return (
     <section data-auth-state={label}>
-      <p data-i18n-skip>{label}</p>
+      <p data-vt-no-i18n>{label}</p>
       <AuthForm
         mode={mode}
         method={method}
@@ -46,7 +46,7 @@ function LiveInvalid() {
   const [banner, setBanner] = useState<AuthBanner>(null);
   return (
     <section data-auth-state="live-invalid">
-      <p data-i18n-skip>live invalid email</p>
+      <p data-vt-no-i18n>live invalid email</p>
       <AuthForm
         mode="signin"
         method="password"
@@ -64,7 +64,7 @@ function LiveInvalid() {
 export function AuthGallery() {
   return (
     <div>
-      <p data-i18n-skip>
+      <p data-vt-no-i18n>
         Deferred: passkey/verifying, surface=ops (Phase 6), signup enumeration default is
         non-distinguishing; registered banner remains gallery-only.
       </p>
@@ -100,15 +100,15 @@ export function AuthGallery() {
       />
       <LiveInvalid />
       <section data-auth-state="reset-form">
-        <p data-i18n-skip>reset form</p>
+        <p data-vt-no-i18n>reset form</p>
         <ResetForm stage="form" email="anna@example.test" onSubmit={noop} />
       </section>
       <section data-auth-state="reset-saved">
-        <p data-i18n-skip>reset saved</p>
+        <p data-vt-no-i18n>reset saved</p>
         <ResetForm stage="saved" email="anna@example.test" onSubmit={noop} />
       </section>
       <section data-auth-state="reset-expired">
-        <p data-i18n-skip>reset expired</p>
+        <p data-vt-no-i18n>reset expired</p>
         <ResetForm stage="expired" email="anna@example.test" onSubmit={noop} />
       </section>
     </div>

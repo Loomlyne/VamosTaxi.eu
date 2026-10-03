@@ -895,17 +895,21 @@ export const PUT = withAdmin(async (claims, request) => {
               `;
             }
           } else {
-            const pairPayload = JSON.stringify({ vehicleClassId: parsed.vehicleClassId, pairId });
+            // 26.2 audit: through the driver's JSON helper, like the surcharge rule below.
+            // `${JSON.stringify(x)}::jsonb` is serialised a second time by the Worker's client
+            // (`fetch_types: false`, prepared statements) and stores a JSON string, so every
+            // reader has to unwrap it; `rulePayload` above does, but the stored shape was wrong.
+            const pairPayload = tx.json({ vehicleClassId: parsed.vehicleClassId, pairId });
             if (existingRule) {
               await tx`
                 update public.rate_version_rules
-                   set payload = ${pairPayload}::jsonb
+                   set payload = ${pairPayload}
                  where id = ${existingRule.id} and rate_version_id = ${versionId} and kind = 'city_pair'
               `;
             } else {
               await tx`
                 insert into public.rate_version_rules (rate_version_id, kind, payload)
-                values (${versionId}, 'city_pair', ${pairPayload}::jsonb)
+                values (${versionId}, 'city_pair', ${pairPayload})
               `;
             }
           }
@@ -1055,10 +1059,12 @@ export const PUT = withAdmin(async (claims, request) => {
         const zones = await loadServiceZones(env, claims);
         return jsonOk(bookPayload(next, zones));
       }
-      const payload = JSON.stringify({
+      // 26.2 audit: bound through the driver's JSON helper below (`tx.json`), never as
+      // `${JSON.stringify(x)}::jsonb`, which the Worker's client stores as a JSON string.
+      const payload = {
         hours: payloadObj.hours ?? recBody.quoteLockHours ?? recBody.quote_lock_hours ?? null,
         ...payloadObj,
-      });
+      };
       if (ruleKind === "quote_lock" || ruleKind === "lock") {
         const minutes = quoteLockMinutesFromHours(
           payloadObj.hours ?? recBody.quoteLockHours ?? recBody.quote_lock_hours,
@@ -1080,13 +1086,13 @@ export const PUT = withAdmin(async (claims, request) => {
           await tx`
             update public.rate_version_rules set
               kind = ${ruleKind},
-              payload = ${payload}::jsonb
+              payload = ${tx.json(payload as Parameters<typeof tx.json>[0])}
             where id = ${rowId} and rate_version_id = ${versionId}
           `;
         } else {
           await tx`
             insert into public.rate_version_rules (rate_version_id, kind, payload)
-            values (${versionId}, ${ruleKind}, ${payload}::jsonb)
+            values (${versionId}, ${ruleKind}, ${tx.json(payload as Parameters<typeof tx.json>[0])})
           `;
         }
         return null;

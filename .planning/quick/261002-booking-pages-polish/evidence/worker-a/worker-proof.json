@@ -1,0 +1,168 @@
+{
+  "base": "http://127.0.0.1:4777",
+  "when": "2026-10-02T20:34:40.590Z",
+  "passed": 28,
+  "failed": 0,
+  "results": [
+    {
+      "ok": true,
+      "what": "bd en: Worker serves /booking-detail",
+      "detail": "200"
+    },
+    {
+      "ok": true,
+      "what": "bd en: badge is the real status, not \"Awaiting payment\"",
+      "detail": "CONFIRMED"
+    },
+    {
+      "ok": true,
+      "what": "bd en: Change and Cancel tiles both show",
+      "detail": "2"
+    },
+    {
+      "ok": true,
+      "what": "bd en: cancel screen offers the confirm button (window auto_full)",
+      "detail": ""
+    },
+    {
+      "ok": true,
+      "what": "bd en: cancel POSTs the account route with this booking",
+      "detail": "{\"ref\":\"VT-26-0807\"}"
+    },
+    {
+      "ok": true,
+      "what": "bd en: refunded line names the country in en",
+      "detail": "Refunded to your Switzerland card. Stripe pays out on Fri 9 Oct."
+    },
+    {
+      "ok": true,
+      "what": "bd ar: Worker serves /booking-detail",
+      "detail": "200"
+    },
+    {
+      "ok": true,
+      "what": "bd ar: badge is the real status, not \"Awaiting payment\"",
+      "detail": "مؤكَّدة"
+    },
+    {
+      "ok": true,
+      "what": "bd ar: Change and Cancel tiles both show",
+      "detail": "2"
+    },
+    {
+      "ok": true,
+      "what": "bd ar: cancel screen offers the confirm button (window auto_full)",
+      "detail": ""
+    },
+    {
+      "ok": true,
+      "what": "bd ar: cancel POSTs the account route with this booking",
+      "detail": "{\"ref\":\"VT-26-0807\"}"
+    },
+    {
+      "ok": true,
+      "what": "bd ar: refunded line names the country in ar",
+      "detail": "أُعيد إلى بطاقتك في سويسرا. سترايب يدفع في الجمعة، 9 أكتوبر."
+    },
+    {
+      "ok": true,
+      "what": "voucher ar: 0 bags reads 0 حقيبة",
+      "detail": "0 حقيبة"
+    },
+    {
+      "ok": true,
+      "what": "voucher ar: 1 bags reads حقيبة واحدة",
+      "detail": "حقيبة واحدة"
+    },
+    {
+      "ok": true,
+      "what": "voucher ar: 2 bags reads حقيبتان",
+      "detail": "حقيبتان"
+    },
+    {
+      "ok": true,
+      "what": "voucher ar: 5 bags reads 5 حقائب",
+      "detail": ""
+    },
+    {
+      "ok": true,
+      "what": "voucher ar: 10 bags reads 10 حقائب",
+      "detail": ""
+    },
+    {
+      "ok": true,
+      "what": "voucher ar: 11 bags reads 11 حقيبةً",
+      "detail": "11 حقيبةً"
+    },
+    {
+      "ok": true,
+      "what": "voucher ar: 12 bags reads 12 حقيبةً",
+      "detail": "12 حقيبةً"
+    },
+    {
+      "ok": true,
+      "what": "voucher ar: 16 bags reads 16 حقيبةً",
+      "detail": "16 حقيبةً"
+    },
+    {
+      "ok": true,
+      "what": "refund line en: country and payout day in en",
+      "detail": "Refunded to your Switzerland card. Stripe pays out on Fri 9 Oct."
+    },
+    {
+      "ok": true,
+      "what": "refund line de: country and payout day in de",
+      "detail": "Erstattet auf Ihre Karte in Schweiz. Stripe zahlt am Fr. 9. Okt. aus."
+    },
+    {
+      "ok": true,
+      "what": "refund line fr: country and payout day in fr",
+      "detail": "Remboursé sur votre carte Suisse. Stripe verse le ven. 9 oct."
+    },
+    {
+      "ok": true,
+      "what": "refund line ar: country and payout day in ar",
+      "detail": "أُعيد إلى بطاقتك في سويسرا. سترايب يدفع في الجمعة، 9 أكتوبر."
+    },
+    {
+      "ok": true,
+      "what": "home ar 1440: time picker reads hour : minute left to right",
+      "detail": {
+        "h": "01",
+        "m": "35",
+        "hx": 481.15625,
+        "mx": 546.171875
+      }
+    },
+    {
+      "ok": true,
+      "what": "home ar 390: time picker reads hour : minute left to right",
+      "detail": {
+        "h": "01",
+        "m": "35",
+        "hx": 142.65625,
+        "mx": 207.671875
+      }
+    },
+    {
+      "ok": true,
+      "what": "home en 1440: time picker reads hour : minute left to right",
+      "detail": {
+        "h": "01",
+        "m": "35",
+        "hx": 1127.15625,
+        "mx": 1192.171875
+      }
+    },
+    {
+      "ok": true,
+      "what": "home en 390: time picker reads hour : minute left to right",
+      "detail": {
+        "h": "01",
+        "m": "35",
+        "hx": 142.65625,
+        "mx": 207.671875
+      }
+    }
+  ]
+}

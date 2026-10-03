@@ -59,6 +59,24 @@ export type Database = {
           },
         ]
       }
+      account_finish_pending: {
+        Row: {
+          created_at: string
+          finished_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          finished_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          finished_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       audit_log: {
         Row: {
           action: string
@@ -374,6 +392,7 @@ export type Database = {
           note: string
           origin_zone_id: string | null
           original_scheduled_at: string
+          overlap_kept_range: unknown
           pax: number
           pickup_lat: number | null
           pickup_lng: number | null
@@ -409,6 +428,7 @@ export type Database = {
           note?: string
           origin_zone_id?: string | null
           original_scheduled_at: string
+          overlap_kept_range?: unknown
           pax?: number
           pickup_lat?: number | null
           pickup_lng?: number | null
@@ -444,6 +464,7 @@ export type Database = {
           note?: string
           origin_zone_id?: string | null
           original_scheduled_at?: string
+          overlap_kept_range?: unknown
           pax?: number
           pickup_lat?: number | null
           pickup_lng?: number | null
@@ -968,6 +989,7 @@ export type Database = {
           active: boolean
           created_at: string
           default_vehicle_id: string | null
+          deleted_at: string | null
           email: string | null
           full_name: string
           id: string
@@ -977,6 +999,7 @@ export type Database = {
           note: string
           phone: string
           photo_path: string | null
+          plate: string | null
           shift_end: string | null
           shift_start: string | null
           shift_tz: string
@@ -990,6 +1013,7 @@ export type Database = {
           active?: boolean
           created_at?: string
           default_vehicle_id?: string | null
+          deleted_at?: string | null
           email?: string | null
           full_name: string
           id?: string
@@ -999,6 +1023,7 @@ export type Database = {
           note?: string
           phone: string
           photo_path?: string | null
+          plate?: string | null
           shift_end?: string | null
           shift_start?: string | null
           shift_tz?: string
@@ -1012,6 +1037,7 @@ export type Database = {
           active?: boolean
           created_at?: string
           default_vehicle_id?: string | null
+          deleted_at?: string | null
           email?: string | null
           full_name?: string
           id?: string
@@ -1021,6 +1047,7 @@ export type Database = {
           note?: string
           phone?: string
           photo_path?: string | null
+          plate?: string | null
           shift_end?: string | null
           shift_start?: string | null
           shift_tz?: string
@@ -2135,6 +2162,36 @@ export type Database = {
         }
         Relationships: []
       }
+      settings_policy_draft: {
+        Row: {
+          airport_waiting_minutes: number | null
+          city_waiting_minutes: number | null
+          free_cancel_hours: number | null
+          id: number
+          min_advance_minutes: number | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          airport_waiting_minutes?: number | null
+          city_waiting_minutes?: number | null
+          free_cancel_hours?: number | null
+          id?: number
+          min_advance_minutes?: number | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          airport_waiting_minutes?: number | null
+          city_waiting_minutes?: number | null
+          free_cancel_hours?: number | null
+          id?: number
+          min_advance_minutes?: number | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       settings_versions: {
         Row: {
           airport_waiting_minutes: number | null
@@ -2661,12 +2718,67 @@ export type Database = {
     }
     Functions: {
       __seed_apply: { Args: never; Returns: undefined }
+      account_finish_done: {
+        Args: { p_full_name: string; p_phone: string; p_user_id: string }
+        Returns: undefined
+      }
+      account_finish_mark: { Args: { p_email: string }; Returns: undefined }
+      account_finish_required: { Args: { p_user_id: string }; Returns: boolean }
+      booking_cancel_change_pages: {
+        Args: { p_booking_id: string }
+        Returns: {
+          extra_session_id: string
+        }[]
+      }
+      booking_cancel_resend_facts: {
+        Args: { p_booking_id: string }
+        Returns: {
+          contact_email: string
+          dropoff_text: string
+          locale: string
+          pickup_text: string
+          reference: string
+          refund_mode: string
+          refund_rappen: number
+          scheduled_local: string
+        }[]
+      }
       booking_captured_payment: {
         Args: { p_booking_id: string }
         Returns: {
           charged_rappen: number
           id: number
           stripe_payment_intent_id: string
+        }[]
+      }
+      booking_change_mail_facts: {
+        Args: { p_booking_id: string; p_chauffeur_id: string }
+        Returns: {
+          dropoff_text: string
+          email: string
+          languages_csv: string
+          pickup_text: string
+          reference: string
+          scheduled_local: string
+        }[]
+      }
+      booking_change_request_facts: {
+        Args: { p_request_id: string }
+        Returns: {
+          assigned_chauffeur_id: string
+          booking_id: string
+          class_changed: boolean
+          party_changed: boolean
+          places_changed: boolean
+          time_changed: boolean
+        }[]
+      }
+      booking_change_withdraw: {
+        Args: { p_actor_id: string; p_booking_id: string; p_request_id: string }
+        Returns: {
+          booking_id: string
+          extra_session_id: string
+          request_id: string
         }[]
       }
       booking_edit_apply_payload: {
@@ -2767,6 +2879,79 @@ export type Database = {
         Returns: undefined
       }
       booking_snapshot_policy: { Args: { p_booking_id: string }; Returns: Json }
+      booking_staff_change: {
+        Args: {
+          p_actor_id: string
+          p_booking_id: string
+          p_engine_version: string
+          p_expected_paid_rappen: number
+          p_lines: Json
+          p_rate_version_id: number
+          p_total_rappen: number
+          p_vehicle_class_slug: string
+        }
+        Returns: {
+          booking_id: string
+          difference_rappen: number
+          extra_snapshot_id: number
+          new_total_rappen: number
+          old_extra_session_id: string
+          old_extra_snapshot_id: number
+          outcome: string
+          paid_rappen: number
+          quote_snapshot_id: number
+          request_id: string
+          unassigned_chauffeur_id: string
+        }[]
+      }
+      booking_staff_contact_update: {
+        Args: {
+          p_actor_id: string
+          p_booking_id: string
+          p_contact_email: string
+          p_contact_name: string
+          p_contact_phone: string
+          p_flight_no: string
+          p_note: string
+        }
+        Returns: {
+          assigned_chauffeur_id: string
+          booking_id: string
+          changed_fields: string
+          flight_changed: boolean
+        }[]
+      }
+      booking_staff_trip_change: {
+        Args: {
+          p_actor_id: string
+          p_booking_id: string
+          p_distance_km: number
+          p_driver: string
+          p_duration_min: number
+          p_engine_version: string
+          p_expected_paid_rappen: number
+          p_lines: Json
+          p_rate_version_id: number
+          p_shown_alternatives: Json
+          p_total_rappen: number
+          p_trip: Json
+          p_vehicle_class_slug: string
+        }
+        Returns: {
+          booking_id: string
+          difference_rappen: number
+          extra_snapshot_id: number
+          kept_chauffeur_id: string
+          new_total_rappen: number
+          old_extra_session_id: string
+          old_extra_snapshot_id: number
+          outcome: string
+          paid_rappen: number
+          quote_snapshot_id: number
+          request_id: string
+          unassigned_chauffeur_id: string
+        }[]
+      }
       booking_trip_for_mail: {
         Args: { p_booking_id: string }
         Returns: {
@@ -2954,10 +3139,14 @@ export type Database = {
         }
         Returns: {
           already_settled: boolean
+          applied: boolean
           booking_id: string
+          class_changed: boolean
           contact_email: string
           locale: string
           reference: string
+          request_id: string
+          unassigned_chauffeur_id: string
         }[]
       }
       checkout_issue_manage_token: {
@@ -3391,6 +3580,12 @@ export type Database = {
           stripe_checkout_session_ids: string[]
         }[]
       }
+      ops_delete_chauffeur: {
+        Args: { p_actor_id: string; p_chauffeur_id: string }
+        Returns: {
+          reference: string
+        }[]
+      }
       ops_fill_canton_pairs: {
         Args: { p_price_rappen: unknown; p_rate_version_id: number }
         Returns: number
@@ -3574,6 +3769,7 @@ export type Database = {
           stripe_checkout_session_id: string
         }[]
       }
+      policy_publish_draft: { Args: { p_actor: string }; Returns: number }
       price_changed_unpaid_contacts: {
         Args: never
         Returns: {

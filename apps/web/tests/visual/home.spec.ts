@@ -1,27 +1,32 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page, emulateMedia } from "../support/test";
+import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
-import { existsSync } from "node:fs";
-import { join } from "node:path";
-import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { NEXT_BIN, settleCloudflareDev, waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { nextDevEnv } from "../support/test-stack";
+
+// The live home page. Since 0f591fa6 ("serve the mock at / and drop the old React homepage") `/` is the DC
+// mock app/home/home.dc.html, served by middleware.ts (DC_PAGES); app/[locale]/page.tsx returns null. So this
+// spec drives a real `next dev` at `/` and reads the MOCK's markers ([data-hero], [data-hiw], [data-svc-sec],
+// [data-rv], [data-faq]). The React-only markers it used to wait for ([data-home], [data-home-faq]) exist
+// only on the /dev gallery pages. Why Vamos is hidden on the live home on purpose (commented dc-import in
+// home.dc.html), so it is not in the section list. The four full-page pictures were baselined from the
+// React home: they differ from the mock until the owner signs new pictures (a session never rebaselines).
 
 const PORTS: Record<string, number> = {
-  "component-1440": 4280,
-  "component-1024": 4281,
-  "component-768": 4282,
-  "component-390": 4283,
+  "component-1440": testPort(4280),
+  "component-1024": testPort(4281),
+  "component-768": testPort(4282),
+  "component-390": testPort(4283),
 };
 
 const LOCALES = ["en", "de", "fr", "ar"] as const;
-const MAIN_NEXT = join("/Users/koss/Developer/VamosTaxi.eu/apps/web/node_modules/.bin/next");
-const NEXT = existsSync(NEXT_BIN) ? NEXT_BIN : MAIN_NEXT;
 
 const SECTION_SEL = [
   "[data-hero]",
   "[data-hiw]",
   "[data-svc-sec]",
-  "[data-why]",
   "[data-rv]",
-  "[data-home-faq]",
+  "[data-faq]",
 ] as const;
 
 let devServer: ChildProcess | null = null;
@@ -32,17 +37,24 @@ function pathFor(locale: string) {
 }
 
 async function gotoHome(page: Page, locale: string) {
-  await page.emulateMedia({ reducedMotion: "reduce" });
+  await emulateMedia(page, { reducedMotion: "reduce" });
   const res = await page.goto(baseURL + pathFor(locale), { timeout: 60_000, waitUntil: "domcontentloaded" });
   if (!res || res.status() >= 400) {
     throw new Error(`Home ${locale} returned ${res?.status() ?? "no response"}`);
   }
-  await expect(page.locator("[data-home]")).toBeVisible({ timeout: 30_000 });
+  // The mock compiles in the browser: the hero is visible and the FAQ section exists once it has mounted.
+  await expect(page.locator("[data-hero]")).toBeVisible({ timeout: 30_000 });
   await expect(page.locator("[data-bookcard]")).toBeAttached();
-  const reviewState = await page.locator("[data-rv]").getAttribute("data-state");
-  const faqState = await page.locator("[data-home-faq]").getAttribute("data-state");
-  if (reviewState === "error" || faqState === "error") {
-    throw new Error("Local stack is not running. Run `pnpm db:start && pnpm db:reset`.");
+  await expect(page.locator("[data-faq]")).toBeAttached();
+}
+
+/** The consent banner sits fixed over the hero; a picture of the page is taken without it. Second button = Necessary only (any language). */
+async function dismissCookieBanner(page: Page) {
+  const banner = page.locator("[data-ck-banner]");
+  await banner.waitFor({ state: "visible", timeout: 5_000 }).catch(() => {});
+  if (await banner.isVisible().catch(() => false)) {
+    await banner.locator("[data-ck-acts] button").nth(1).click();
+    await expect(banner).toBeHidden({ timeout: 10_000 });
   }
 }
 
@@ -51,22 +63,18 @@ test.describe("Home page @component", () => {
 
   test.beforeAll(async ({}, testInfo) => {
     testInfo.setTimeout(240_000);
-    const port = PORTS[testInfo.project.name] ?? 4280;
+    const port = PORTS[testInfo.project.name] ?? testPort(4280);
     baseURL = `http://localhost:${port}`;
-    devServer = spawn(NEXT, ["dev", "-p", String(port)], {
+    devServer = spawn(NEXT_BIN, ["dev", "-p", String(port)], {
       cwd: WEB_ROOT,
       stdio: "ignore",
       detached: true,
-      env: {
-        ...process.env,
+      env: nextDevEnv({
         TEST_DIST_DIR: `test-results/.next-home-${port}`,
         CLOUDFLARE_ENV: "staging",
-        WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE:
-          "postgres://vamos_public:vamos_public@127.0.0.1:54322/postgres",
-        WRANGLER_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE_NOCACHE:
-          "postgres://vamos_edge:vamos_edge@127.0.0.1:54322/postgres",
-      },
+      }),
     });
+    await settleCloudflareDev();
     await waitForNextServer(baseURL, 180_000);
   });
 
@@ -83,6 +91,7 @@ test.describe("Home page @component", () => {
   for (const locale of LOCALES) {
     test(`screenshot ${locale} @component`, async ({ page }) => {
       await gotoHome(page, locale);
+      await dismissCookieBanner(page);
       await expect(page).toHaveScreenshot(`home-${locale}.png`, {
         fullPage: true,
         animations: "disabled",
@@ -93,7 +102,8 @@ test.describe("Home page @component", () => {
 
   test("booking card is above the fold at every viewport @component", async ({ page }) => {
     await gotoHome(page, "en");
-    const box = await page.locator("[data-bookcard]").boundingBox();
+    // #book is the laptop box above 1080px and the one-line bar at 1080px and under (26.4 D-01).
+    const box = await page.locator("#book").boundingBox();
     expect(box).toBeTruthy();
     const viewport = page.viewportSize();
     expect(viewport).toBeTruthy();
@@ -101,7 +111,7 @@ test.describe("Home page @component", () => {
     expect(box!.y + box!.height).toBeGreaterThan(0);
   });
 
-  test("six sections appear in the mock order @component", async ({ page }) => {
+  test("the live sections appear in the mock order @component", async ({ page }) => {
     await gotoHome(page, "en");
     const tops = await page.evaluate((sels) => {
       return sels.map((sel) => {
@@ -155,7 +165,7 @@ test.describe("Home page @component", () => {
     expect(body).not.toMatch(/CHF\s+\d+[.,]\d{2}/);
     await expect(page.locator("[data-image-proof]")).toHaveCount(0);
     // 26.4 D-14: the hidden hourly card no longer has its own href; assert by its title id.
-    await expect(page.locator("[data-home] #svc-t4")).toHaveCount(0);
+    await expect(page.locator("#svc-t4")).toHaveCount(0);
   });
 
   test("german sections do not overflow their containers @component", async ({ page }) => {

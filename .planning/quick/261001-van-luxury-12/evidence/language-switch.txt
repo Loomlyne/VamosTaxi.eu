@@ -1,0 +1,8 @@
+PASS | S1 de→ar: 7 travellers keep the 3-10 form | before "7 Passagiere · 0 Gepäckstücke" → after "7 ركاب · 0 حقائب" (title "7 ركاب · 0 حقائب"), dir=rtl, via header menu
+PASS | S2 de→ar: 12 travellers take the 11-99 form | "12 راكبًا · 0 حقائب"
+PASS | S3 de→ar→en: back to English | "12 passengers · 0 bags"
+errors de [] 
+PASS | S1 fr→ar: 7 travellers keep the 3-10 form | before "7 passagers · 0 bagages" → after "7 ركاب · 0 حقائب" (title "7 ركاب · 0 حقائب"), dir=rtl, via header menu
+PASS | S2 fr→ar: 12 travellers take the 11-99 form | "12 راكبًا · 0 حقائب"
+PASS | S3 fr→ar→en: back to English | "12 passengers · 0 bags"
+errors fr [] 

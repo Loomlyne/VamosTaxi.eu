@@ -19,6 +19,11 @@
    /api/staff/rate-versions/:id/{publish,discard} and PUT rate-book for VAT.
    OpsPricing does not call Preview or test unpaid. Never sets public preferDraft. */
 (function () {
+  // 261001-chauffeur-car: the shell's helmet runs this file twice (parser, then the dc-runtime). A
+  // second store replaced the first while screens were still subscribed to it, so a list could
+  // stay empty (main's Chauffeurs: 6 of 12 offline loads, found on the rejected Cars branch).
+  // Keep the first store, as vamos-ops-bar.js already does.
+  if (window.VamosOps) return;
   var subs = [];
 
   function emit(name) {
@@ -91,6 +96,57 @@
     });
   }
 
+  /* 261001-chauffeur-car (owner, 2026-10-01): a chauffeur is chosen by a class of TODAY's price
+     book. GET rate-versions → the live one → GET rate-book?versionId= → its classes whose rate row
+     is available. Never the draft's, never a fixed list. All class names come from
+     vehicle-classes too, so a driver whose class left the live book still reads its own name.
+     status: "loading" | "ok" | "none" (no live book) | "failed". */
+  var liveBook = { status: "idle", classes: [], names: {} };
+  function loadLiveClasses() {
+    if (liveBook.status !== "idle") return;
+    liveBook.status = "loading";
+    var names = api("GET", "/api/staff/vehicle-classes").then(function (json) {
+      var map = {};
+      var rows = json && json.ok && Array.isArray(json.data) ? json.data : [];
+      rows.forEach(function (c) {
+        var id = str(c && c.id);
+        var name = str(c && (c.name || c.klass)).trim();
+        if (id && name) map[id] = name;
+      });
+      return map;
+    });
+    var live = api("GET", "/api/staff/rate-versions").then(function (json) {
+      var versions = json && json.ok && json.data && Array.isArray(json.data.versions) ? json.data.versions : null;
+      if (!versions) return { failed: true };
+      var on = versions.filter(function (v) { return v && v.status === "live"; })[0];
+      if (!on) return { classes: [] };
+      return api("GET", "/api/staff/rate-book?versionId=" + encodeURIComponent(String(on.id))).then(function (book) {
+        if (!book || !book.ok || !book.data || !Array.isArray(book.data.classes)) return { failed: true };
+        var open = {};
+        (Array.isArray(book.data.rates) ? book.data.rates : []).forEach(function (r) {
+          if (r && r.available === true && r.vehicleClassId) open[String(r.vehicleClassId)] = true;
+        });
+        return {
+          classes: book.data.classes
+            .map(function (c) { return { id: str(c && c.id), name: str(c && (c.label || c.name)).trim() }; })
+            .filter(function (c) { return c.id && c.name && open[c.id]; })
+        };
+      });
+    });
+    Promise.all([names, live]).then(function (both) {
+      var res = both[1] || { failed: true };
+      liveBook = {
+        status: res.failed ? "failed" : (res.classes.length ? "ok" : "none"),
+        classes: res.failed ? [] : res.classes,
+        names: both[0] || {}
+      };
+      emit("liveClasses");
+    }, function () {
+      liveBook = { status: "failed", classes: [], names: {} };
+      emit("liveClasses");
+    });
+  }
+
   function subscribe(name, fn) {
     var s = { name: name, fn: fn };
     subs.push(s);
@@ -138,6 +194,13 @@
       pending = true;
       readyPromise = api("GET", base).then(function (json) {
         pending = false;
+        if (!json || json.ok === false) {
+          // 26.2 audit U08-2: a failed poll keeps the last good rows. Bookings retry
+          // on the next poll tick; the other collections ask again on the next read.
+          loaded = name === "bookings";
+          schedulePoll();
+          return;
+        }
         loaded = true;
         list = pickRows(json, name).map(clean);
         emit(name);
@@ -578,6 +641,9 @@
     return {
       id: str(v.id),
       klass: cleanKlass(v.klass),
+      // 260930-dash-design: the class row itself, so a class the owner named reads its own name
+      // (klass falls back to Economy for any slug outside the D-14 three).
+      vehicleClassId: str(v.vehicleClassId || v.vehicle_class_id),
       model: str(v.model), plate: str(v.plate), year: str(v.year),
       seats: num(v.seats, 3), bags: num(v.bags, 3),
       status: VEHICLE_STATUS.indexOf(v.status) === -1 ? "service" : v.status,
@@ -601,6 +667,8 @@
       vehicle: vehicleId, defaultVehicleId: vehicleId,
       vehicleClassId: classId,
       vehicleClassName: str(c.vehicleClassName || c.className || c.vehicle_class_name),
+      // 2026-10-01: the plate number on the chauffeur (chauffeurs.plate).
+      plate: str(c.plate),
       licence: str(c.licence || c.licenceNumber || c.licence_number),
       languages: Array.isArray(c.languages) ? c.languages.join(", ") : str(c.languages),
       status: CHAUFFEUR_STATUS.indexOf(c.status) === -1 ? "off" : c.status,
@@ -640,6 +708,10 @@
       chauffeurEmail: str(b.chauffeurEmail),
       assignedChauffeurId: str(b.assignedChauffeurId),
       assignedVehicleId: str(b.assignedVehicleId),
+      // No cars (2026-10-01): the trip's class row and the assigned chauffeur's plate.
+      vehicleClassId: str(b.vehicleClassId),
+      className: str(b.className),
+      chauffeurPlate: str(b.chauffeurPlate),
       vehicle: str(b.vehicle),
       flight: str(b.flight),
       // The admin's Mark arrival time; booking detail shows "Arrived HH:MM" from it.
@@ -663,6 +735,10 @@
       pendingEditActor: str(b.pendingEditActor),
       pendingEditQuoteRappen: num(b.pendingEditQuoteRappen, 0),
       pendingEditExtraSessionId: str(b.pendingEditExtraSessionId),
+      // 26.2 P1: a class change waiting for the difference (class, amount, until when).
+      pendingEditClass: str(b.pendingEditClass),
+      pendingEditDifferenceRappen: num(b.pendingEditDifferenceRappen, 0),
+      pendingEditPayUntil: str(b.pendingEditPayUntil),
       durationMin: num(b.durationMin, 0),
       distanceKm: b.distanceKm == null || b.distanceKm === "" ? null : num(b.distanceKm, 0),
       couponCode: str(b.couponCode),
@@ -742,7 +818,8 @@
     row.languages = languageCodes(c.languages);
     row.defaultVehicleId = vehicleId;
     row.vehicle = vehicleId;
-    row.vehicleClassId = classId;
+    // Signed 2026-10-01: the driver form sends no class; without the key the server keeps the column.
+    if (Object.prototype.hasOwnProperty.call(c, "vehicleClassId")) row.vehicleClassId = classId;
     return row;
   }
 
@@ -923,6 +1000,11 @@
     settings: remoteSingleton("settings", "/api/staff/settings", settingsFromPayload),
     profile: remoteSingleton("profile", "/api/staff/me", profileFromMe),
     onAny: function (fn) { return subscribe(null, fn); },
+    /* The classes of today's live price book (see loadLiveClasses). Loads once per page. */
+    liveClasses: function () {
+      loadLiveClasses();
+      return { status: liveBook.status, classes: liveBook.classes.slice(), names: Object.assign({}, liveBook.names) };
+    },
     publish: function (id, extra) {
       if (id == null || id === "") return Promise.resolve({ ok: false, code: "missing-id" });
       return api("POST", "/api/staff/rate-versions/" + encodeURIComponent(String(id)) + "/publish", extra && typeof extra === "object" ? extra : undefined).then(function (json) {

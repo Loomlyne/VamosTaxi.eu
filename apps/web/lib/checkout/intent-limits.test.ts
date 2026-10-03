@@ -84,7 +84,7 @@ describe("D-20 answers and order", () => {
     const route = readFileSync(join(here, "../../app/api/checkout/intent/route.ts"), "utf8");
     const at = (s: string) => route.indexOf(s);
     const order = [
-      "const blocked = csrfForbidden(request)",
+      "const blocked = await csrfForbiddenPublicOrStaff(request",
       "intentIpAllowed(",
       "checkoutIntentSchema.safeParse",
       "payPressAllowed(",

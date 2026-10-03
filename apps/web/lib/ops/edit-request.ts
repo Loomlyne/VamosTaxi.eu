@@ -2,9 +2,12 @@
 //
 // 08-07: paid-edit request + ops accept. Extra Checkout Session is the
 // fare difference only (D-67). Merge supersedes the previous requested row
-// and expires the old extra session when the amount changed (D-73).
-// Stripe-first difference refund uses 08-05 createRefund. Never asStaff INSERT
-// payments. Hyperdrive DIRECT only.
+// and expires the old extra session (D-73; since 261002 always: one page, one request).
+// 26.2 P1: accept answers applied, refund_due or extra_required. A cheaper change is "Refund due"
+// for the admin's Refund click (refunds by hand): nothing goes to Stripe from here except the
+// Stripe page for a difference to pay. Accept needs the request id of a stored request: no
+// change is built from fields the browser sends. Never asStaff INSERT payments. Hyperdrive
+// DIRECT only.
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +17,6 @@ import {
   loadEditBookingContact,
   loadEditExtraSession,
   loadEditPendingPayload,
-  loadEditSnapshotTotal,
   loadTripForMail,
   supersedePendingEditRequest,
   writeFlightNumber,
@@ -22,14 +24,12 @@ import {
 import { notifyFlightNumber, notifyTimeChange } from "@/lib/lifecycle/notify-lifecycle";
 import {
   createCheckoutSession,
-  createRefund,
   expireCheckoutSession,
   retrieveCheckoutSession,
   hostedSessionIsPayable,
   stripeFromEnv,
 } from "@/lib/checkout/stripe";
 import type { CheckoutLocale } from "@/lib/checkout/currency";
-import { verifyLock } from "@/lib/quote/lock";
 import { zurichLocalToUtcMs } from "../geo/serviceArea";
 import { PUBLIC_SITE_ORIGIN } from "./phone-booking-map";
 import { stripeCheckoutReturnUrl } from "@/lib/checkout/return-url";
@@ -51,7 +51,7 @@ export const DASHBOARD_ORIGIN = "https://dashboard.vamostaxi.site";
 
 export type EditAcceptOk = {
   ok: true;
-  outcome: "applied" | "extra_required" | "refund_immediate" | "refund_click";
+  outcome: "applied" | "extra_required" | "refund_due";
   requestId: string;
   bookingId: string;
   differenceRappen: number;
@@ -63,21 +63,19 @@ export type EditAcceptResult = EditAcceptOk | EditAcceptFail;
 export type AcceptPaidEditInput = {
   payload: EditPayload;
   requestId?: string;
-  quoteSnapshotId?: number;
+  /** Kept for the F14 guard only: a lock is not read by accept any more (26.2 P1). */
   lock?: string;
-  vehicleClassSlug?: string;
 };
 
 export type CustomerEditAuth =
   | { kind: "customer"; claims: VamosClaims }
   | { kind: "guest"; manageTokenHashHex: string };
 
-export type RequestPaidEditInput = {
-  payload: EditPayload;
-  quoteSnapshotId?: number;
-  lock?: string;
-  vehicleClassSlug?: string;
-};
+/**
+ * P6 review 1 (2026-10-02): what a customer may ask for — a new time (D9). Nothing else comes from the
+ * browser: no quote lock, no price record, no place, party or contact (the database refuses them too).
+ */
+type CustomerTimePayload = { scheduled_local: string; scheduled_at: string };
 
 export type RequestPaidEditOk = {
   ok: true;
@@ -102,18 +100,159 @@ function checkoutLocale(raw: string): CheckoutLocale {
   return "en";
 }
 
-async function resolveBookingId(
-  sql: Parameters<Parameters<typeof asSystem>[1]>[0],
-  key: string,
-): Promise<string | null> {
-  const rows = await sql<{ id: string }[]>`
-    select id
-      from public.bookings
-     where erased_at is null
-       and (id::text = ${key} or reference = ${key})
-     limit 1
-  `;
-  return rows[0]?.id ?? null;
+export type DifferencePaymentOk = { ok: true; sessionId: string; url: string | null };
+
+type StripeClient = ReturnType<typeof stripeFromEnv>;
+
+/** Best effort: closes a Stripe page. A page already paid or expired is left as it is. */
+async function closePage(stripe: StripeClient, sessionId: string): Promise<void> {
+  try {
+    await expireCheckoutSession(stripe, sessionId);
+  } catch {
+    // Already expired or paid: a payment that still arrives is recorded (P1 C6).
+  }
+}
+
+type OwnPageClose = "closed" | "already-paid" | "stripe-failed";
+
+/**
+ * 261002 review round 3, finding 1 (and 2): the request's own page is replaced only once Stripe says
+ * it can no longer be paid. A paid page ("complete") is never replaced: its payment applies the
+ * change when the settle records it, and a second page would leave that payment on no request. A
+ * close Stripe refuses is read again; anything but "expired" or "complete" leaves the page as it is.
+ */
+async function closeOwnPage(
+  stripe: StripeClient,
+  sessionId: string,
+  seen: { status?: string | null } | null,
+): Promise<OwnPageClose> {
+  const statusOf = (page: { status?: string | null } | null | undefined) => String(page?.status ?? "");
+  if (statusOf(seen) === "complete") return "already-paid";
+  if (statusOf(seen) === "expired") return "closed";
+  try {
+    if (statusOf(await expireCheckoutSession(stripe, sessionId)) === "expired") return "closed";
+  } catch {
+    // Refused: read the page again to learn why.
+  }
+  let now = "";
+  try {
+    now = statusOf(await retrieveCheckoutSession(stripe, sessionId));
+  } catch {
+    now = "";
+  }
+  if (now === "complete") return "already-paid";
+  if (now === "expired") return "closed";
+  return "stripe-failed";
+}
+
+/**
+ * The Stripe page for the difference of a requested change (D-67, D-48: Stripe's hosted page).
+ * One page belongs to one request (261002, review of item 4, finding 1): the settle finds its
+ * request by page id, so a page shared with an ended request would record the payment on that
+ * one and leave the change waiting. So:
+ *   - `ownSessionId`: the page already stored on THIS request (the dashboard's Accept of the same
+ *     request again). Reused while it is open for the same amount. Already paid: already-paid, and
+ *     nothing changes. Otherwise it is closed, and replaced only once Stripe says it is closed (the
+ *     replacement's Stripe key names the page it replaces). If Stripe cannot read it, or the close
+ *     cannot be confirmed: stripe-failed, and the page is left as it is.
+ *   - `supersededSessionId`: the page of the request this one replaced (the dashboard's class and
+ *     trip changes). Never reused: always closed (best effort), and a new page is opened.
+ * Opens 24 h; stores the page id on the request. 26.2 P1 calls this after the admin's dearer class
+ * change, P6 after a dearer trip change; the dashboard's Accept calls it for a customer request.
+ */
+export async function openDifferencePayment(
+  env: CloudflareEnv,
+  args: {
+    requestId: string;
+    bookingId: string;
+    differenceRappen: number;
+    ownSessionId?: string | null;
+    supersededSessionId?: string | null;
+    dashboardOrigin: string;
+  },
+): Promise<DifferencePaymentOk | EditAcceptFail> {
+  const difference = fareDifferenceRappen(args.differenceRappen, 0);
+  if (difference <= 0) return { ok: false, code: "unknown" };
+
+  const stripe = stripeFromEnv(env);
+  let reuse: { id: string; url: string | null } | null = null;
+  const ownSessionId = (args.ownSessionId ?? "").trim();
+  const supersededSessionId = (args.supersededSessionId ?? "").trim();
+
+  if (ownSessionId) {
+    // 261002 review round 2, warning 2: a page we cannot read is left alone (it may still be good;
+    // closing it would end the request through its expired event). The owner tries again.
+    let existing: Awaited<ReturnType<typeof retrieveCheckoutSession>>;
+    try {
+      existing = await retrieveCheckoutSession(stripe, ownSessionId);
+    } catch {
+      return { ok: false, code: "stripe-failed" };
+    }
+    if (hostedSessionIsPayable(existing, difference)) {
+      reuse = { id: ownSessionId, url: existing?.url ?? null };
+    } else {
+      const closed = await closeOwnPage(stripe, ownSessionId, existing);
+      if (closed !== "closed") return { ok: false, code: closed };
+    }
+  }
+
+  if (supersededSessionId && supersededSessionId !== reuse?.id) {
+    await closePage(stripe, supersededSessionId);
+  }
+
+  let session = reuse;
+  if (!session) {
+    const booking = await loadEditBookingContact(env, args.bookingId);
+    if (!booking) return { ok: false, code: "not-found" };
+    const email = String(booking.contact_email ?? "").trim();
+    if (!email) return { ok: false, code: "not-found" };
+    const reference = String(booking.reference);
+    const locale = checkoutLocale(String(booking.locale ?? "en"));
+    const meta = extraCheckoutMetadata(args.bookingId, args.requestId);
+    try {
+      const created = await createCheckoutSession(stripe, {
+        chargedRappen: difference,
+        bookingId: meta.booking_id,
+        bookingReference: reference,
+        customerEmail: email,
+        locale,
+        // The page it replaces is part of the key (review round 2, warning 2), so a replacement page for
+        // the same request and amount is a new Stripe request. The key does not make a retry return the
+        // first page: Stripe replays a key only for identical parameters, and expiresAt below moves every
+        // second. A retry of the same state is therefore refused (idempotency_error, answered as
+        // stripe-failed): no second page is made. A page the first attempt made but never stored stays
+        // open for 24 h; its url never left the server (review round 3, warning 3).
+        idempotencyKey: `extra:${args.requestId}:${difference}:${ownSessionId || "0"}`,
+        // D4 (owner, 2026-09-30): the difference can be paid for 24 hours.
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        // D-48: Stripe's hosted page, no card form of ours. Paid returns through
+        // the settle route to the confirmation; Back returns to the ops booking.
+        uiMode: "hosted_page",
+        successUrl: stripeCheckoutReturnUrl(PUBLIC_SITE_ORIGIN, locale),
+        cancelUrl: `${args.dashboardOrigin.replace(/\/$/, "")}/bookings/${encodeURIComponent(reference)}`,
+        productName: "Fare difference",
+        extra: { extraId: meta.extra_id },
+      });
+      session = { id: created.id, url: created.url ?? null };
+    } catch {
+      return { ok: false, code: "stripe-failed" };
+    }
+  }
+
+  try {
+    await asSystem(env, async (sql) => {
+      await sql`
+        select public.booking_edit_request_set_extra_session(
+          ${args.requestId}::uuid,
+          ${session.id}::text
+        )
+      `;
+    });
+  } catch (err) {
+    return mapEditSqlError(err);
+  }
+
+  return { ok: true, sessionId: session.id, url: session.url };
 }
 
 export async function acceptPaidEdit(
@@ -131,85 +270,14 @@ export async function acceptPaidEdit(
     return { ok: false, code: "temporarily_unavailable" };
   }
 
+  // 26.2 P1 (lead note 3): only a stored request is accepted. A change the admin makes himself
+  // goes through the class-change route (lib/ops/booking-change.ts), priced on the server.
+  const requestId = (input.requestId ?? "").trim();
+  if (!requestId) return { ok: false, code: "invalid-body" };
+
   const secret = env.STRIPE_SECRET_KEY ?? "";
   if (secret.startsWith("sk_live_")) {
     return { ok: false, code: "stripe-test-only" };
-  }
-
-  type UpsertRow = {
-    request_id: string;
-    superseded_id: string | null;
-    old_extra_session_id: string | null;
-    old_extra_snapshot_id: number | null;
-  };
-
-  let upsert: UpsertRow | null = null;
-  let requestId = (input.requestId ?? "").trim();
-
-  if (!requestId) {
-    try {
-      upsert = await asSystem(env, async (sql) => {
-        const bookingId = await resolveBookingId(sql, key);
-        if (!bookingId) throw Object.assign(new Error("not-found"), { code: "P0002" });
-
-        let quoteSnapshotId = input.quoteSnapshotId ?? 0;
-        if (!Number.isFinite(quoteSnapshotId) || quoteSnapshotId <= 0) {
-          let newTotal: number | null = null;
-          let quoteId: string | null = null;
-          const lockToken = (input.lock ?? "").trim();
-          if (lockToken) {
-            const current = env.QUOTE_LOCK_SECRET ?? "";
-            const previous = env.QUOTE_LOCK_SECRET_PREVIOUS;
-            const verified = await verifyLock(
-              previous ? { current, previous } : { current },
-              lockToken,
-              new Date().toISOString(),
-            );
-            if (!verified.ok) throw Object.assign(new Error("not-found"), { code: "P0002" });
-            const slug = (input.vehicleClassSlug ?? input.payload.vehicle_class_slug ?? "economy")
-              .trim()
-              .toLowerCase();
-            const row = verified.payload.class_totals.find((c) => c.slug === slug);
-            if (row?.total_rappen == null) throw Object.assign(new Error("not-found"), { code: "P0002" });
-            newTotal = Number(row.total_rappen);
-            quoteId = verified.payload.quote_id;
-          }
-          const cloned = await sql<{ id: number }[]>`
-            select public.booking_edit_clone_quote_snapshot(
-              ${bookingId}::uuid,
-              ${newTotal}::rappen,
-              ${quoteId}::uuid
-            ) as id
-          `;
-          quoteSnapshotId = Number(cloned[0]?.id ?? 0);
-        }
-        if (!Number.isFinite(quoteSnapshotId) || quoteSnapshotId <= 0) {
-          throw Object.assign(new Error("not-found"), { code: "P0002" });
-        }
-
-        const rows = await sql<UpsertRow[]>`
-          select * from public.booking_edit_request_upsert(
-            ${bookingId}::uuid,
-            'staff',
-            ${claims.sub}::uuid,
-            ${JSON.stringify(input.payload)}::jsonb,
-            ${quoteSnapshotId}::bigint
-          )
-        `;
-        const row = rows[0];
-        if (!row) throw Object.assign(new Error("not-found"), { code: "P0002" });
-        return {
-          request_id: String(row.request_id),
-          superseded_id: row.superseded_id ? String(row.superseded_id) : null,
-          old_extra_session_id: row.old_extra_session_id ? String(row.old_extra_session_id) : null,
-          old_extra_snapshot_id:
-            row.old_extra_snapshot_id == null ? null : Number(row.old_extra_snapshot_id),
-        };
-      });
-      requestId = upsert.request_id;
-    } catch (err) {
-      return mapEditSqlError(err);
-    }
   }
 
   type AcceptRow = {
@@ -219,9 +287,6 @@ export async function acceptPaidEdit(
     difference_rappen: number;
     extra_snapshot_id: number | null;
     extra_session_id: string | null;
-    hours_before: number | null;
-    original_payment_id: number | null;
-    original_intent_id: string | null;
   };
 
   let accepted: AcceptRow;
@@ -242,9 +307,6 @@ export async function acceptPaidEdit(
         difference_rappen: Number(row.difference_rappen),
         extra_snapshot_id: row.extra_snapshot_id == null ? null : Number(row.extra_snapshot_id),
         extra_session_id: row.extra_session_id ? String(row.extra_session_id) : null,
-        hours_before: row.hours_before == null ? null : Number(row.hours_before),
-        original_payment_id: row.original_payment_id == null ? null : Number(row.original_payment_id),
-        original_intent_id: row.original_intent_id ? String(row.original_intent_id) : null,
       };
     });
   } catch (err) {
@@ -259,66 +321,10 @@ export async function acceptPaidEdit(
     return mapped;
   }
 
-  if (accepted.outcome === "applied") {
+  if (accepted.outcome === "applied" || accepted.outcome === "refund_due") {
     return {
       ok: true,
-      outcome: "applied",
-      requestId: accepted.request_id,
-      bookingId: accepted.booking_id,
-      differenceRappen: 0,
-      extraSessionId: null,
-    };
-  }
-
-  if (accepted.outcome === "refund_click") {
-    return {
-      ok: true,
-      outcome: "refund_click",
-      requestId: accepted.request_id,
-      bookingId: accepted.booking_id,
-      differenceRappen: accepted.difference_rappen,
-      extraSessionId: null,
-    };
-  }
-
-  if (accepted.outcome === "refund_immediate") {
-    const refundRappen = Math.abs(accepted.difference_rappen);
-    if (refundRappen <= 0 || !accepted.original_intent_id) {
-      return { ok: false, code: "unknown" };
-    }
-    let refundId = "";
-    try {
-      const stripe = stripeFromEnv(env);
-      const refund = await createRefund(stripe, {
-        paymentIntentId: accepted.original_intent_id,
-        amountRappen: refundRappen,
-        idempotencyKey: `edit-refund:${accepted.request_id}:${refundRappen}`,
-        bookingId: accepted.booking_id,
-        paymentId: accepted.original_payment_id ?? 0,
-        reason: "modification_credit",
-      });
-      if (!refund?.id) return { ok: false, code: "stripe-failed" };
-      refundId = refund.id;
-    } catch {
-      return { ok: false, code: "stripe-failed" };
-    }
-    try {
-      await asSystem(env, async (sql) => {
-        await sql`
-          select * from public.booking_edit_refund_record(
-            ${accepted.request_id}::uuid,
-            ${refundId}::text,
-            ${claims.sub}::uuid,
-            ${refundRappen}::rappen
-          )
-        `;
-      });
-    } catch (err) {
-      return mapEditSqlError(err);
-    }
-    return {
-      ok: true,
-      outcome: "refund_immediate",
+      outcome: accepted.outcome,
       requestId: accepted.request_id,
       bookingId: accepted.booking_id,
       differenceRappen: accepted.difference_rappen,
@@ -330,88 +336,23 @@ export async function acceptPaidEdit(
     return { ok: false, code: "unknown" };
   }
 
-  const difference = fareDifferenceRappen(accepted.difference_rappen, 0);
-  if (difference <= 0) return { ok: false, code: "unknown" };
-
-  const stripe = stripeFromEnv(env);
-  let reuseSessionId: string | null = null;
-  const oldSessionId = upsert?.old_extra_session_id ?? null;
-  let oldExtraTotal: number | null = null;
-  if (upsert?.old_extra_snapshot_id != null) {
-    oldExtraTotal = await loadEditSnapshotTotal(env, upsert.old_extra_snapshot_id);
-  }
-
-  if (oldSessionId && !shouldExpireOldExtraSession(oldExtraTotal, difference)) {
-    try {
-      const existing = await retrieveCheckoutSession(stripe, oldSessionId);
-      if (hostedSessionIsPayable(existing, difference)) {
-        reuseSessionId = oldSessionId;
-      }
-    } catch {
-      reuseSessionId = null;
-    }
-  }
-
-  if (oldSessionId && reuseSessionId !== oldSessionId) {
-    try {
-      await expireCheckoutSession(stripe, oldSessionId);
-    } catch {
-      // Already expired / consumed — merge still proceeds with one extra payment.
-    }
-  }
-
-  let extraSessionId = reuseSessionId;
-  if (!extraSessionId) {
-    const booking = await loadEditBookingContact(env, accepted.booking_id);
-    if (!booking) return { ok: false, code: "not-found" };
-    const email = String(booking.contact_email ?? "").trim();
-    if (!email) return { ok: false, code: "not-found" };
-    const reference = String(booking.reference);
-    const locale = checkoutLocale(String(booking.locale ?? "en"));
-    const meta = extraCheckoutMetadata(accepted.booking_id, accepted.request_id);
-    try {
-      const session = await createCheckoutSession(stripe, {
-        chargedRappen: difference,
-        bookingId: meta.booking_id,
-        bookingReference: reference,
-        customerEmail: email,
-        locale,
-        idempotencyKey: `extra:${accepted.request_id}:${difference}`,
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-        // D-48: Stripe's hosted page, no card form of ours. Paid returns through
-        // the settle route to the confirmation; Back returns to the ops booking.
-        uiMode: "hosted_page",
-        successUrl: stripeCheckoutReturnUrl(PUBLIC_SITE_ORIGIN, locale),
-        cancelUrl: `${dashboardOrigin.replace(/\/$/, "")}/bookings/${encodeURIComponent(reference)}`,
-        productName: "Fare difference",
-        extra: { extraId: meta.extra_id },
-      });
-      extraSessionId = session.id;
-    } catch {
-      return { ok: false, code: "stripe-failed" };
-    }
-  }
-
-  try {
-    await asSystem(env, async (sql) => {
-      await sql`
-        select public.booking_edit_request_set_extra_session(
-          ${accepted.request_id}::uuid,
-          ${extraSessionId}::text
-        )
-      `;
-    });
-  } catch (err) {
-    return mapEditSqlError(err);
-  }
+  const opened = await openDifferencePayment(env, {
+    requestId: accepted.request_id,
+    bookingId: accepted.booking_id,
+    differenceRappen: accepted.difference_rappen,
+    // The page this same request already has (a second Accept): reused while it is still payable.
+    ownSessionId: accepted.extra_session_id,
+    dashboardOrigin,
+  });
+  if (!opened.ok) return opened;
 
   return {
     ok: true,
     outcome: "extra_required",
     requestId: accepted.request_id,
     bookingId: accepted.booking_id,
-    differenceRappen: difference,
-    extraSessionId,
+    differenceRappen: fareDifferenceRappen(accepted.difference_rappen, 0),
+    extraSessionId: opened.sessionId,
   };
 }
 
@@ -420,14 +361,16 @@ async function loadOwnedBooking(
   auth: CustomerEditAuth,
   key: string,
 ): Promise<OwnedBooking | null> {
+  // 26.2 P6: only columns both customer roles may read (their column grants leave out erased_at,
+  // so filtering on it refused every call with 42501). A staff-erased booking is refused by the
+  // definer writes themselves (the request upsert checks erased_at).
   const query = async (
     sql: Parameters<Parameters<typeof asSystem>[1]>[0],
   ): Promise<OwnedBooking | null> => {
     const rows = await sql<OwnedBooking[]>`
       select b.id
         from public.bookings b
-       where b.erased_at is null
-         and (b.id::text = ${key} or b.reference = ${key})
+       where b.id::text = ${key} or b.reference = ${key}
        limit 1
     `;
     return rows[0] ?? null;
@@ -445,18 +388,20 @@ async function loadOwnedBooking(
  * Identity is JWT email (asCustomer) or manage token (asGuest); upsert is asSystem.
  * Never asStaff from this door.
  */
-export async function requestCustomerPaidEdit(
+/**
+ * Customer/guest time-change request. Writes `booking_edit_requests` `requested`, priced at the
+ * booking's own total (its price record cloned at its own total): a time change keeps the price paid
+ * (D1). Does not mutate booking columns. Identity is JWT email (asCustomer) or manage token (asGuest);
+ * the upsert is asSystem. Never asStaff from this door.
+ */
+async function requestCustomerTime(
   env: CloudflareEnv,
   auth: CustomerEditAuth,
   bookingKey: string,
-  input: RequestPaidEditInput,
+  payload: CustomerTimePayload,
 ): Promise<RequestPaidEditResult> {
   const key = bookingKey.trim();
   if (!key) return { ok: false, code: "not-found" };
-
-  if ((input.lock ?? "").trim() && !lockSecretPresent(env.QUOTE_LOCK_SECRET, "edit-request/customer")) {
-    return { ok: false, code: "temporarily_unavailable" };
-  }
 
   const owned = await loadOwnedBooking(env, auth, key);
   if (!owned) return { ok: false, code: "not-found" };
@@ -465,47 +410,27 @@ export async function requestCustomerPaidEdit(
 
   try {
     const upsert = await asSystem(env, async (sql) => {
-      let quoteSnapshotId = input.quoteSnapshotId ?? 0;
-      if (!Number.isFinite(quoteSnapshotId) || quoteSnapshotId <= 0) {
-        let newTotal: number | null = null;
-        let quoteId: string | null = null;
-        const lockToken = (input.lock ?? "").trim();
-        if (lockToken) {
-          const current = env.QUOTE_LOCK_SECRET ?? "";
-          const previous = env.QUOTE_LOCK_SECRET_PREVIOUS;
-          const verified = await verifyLock(
-            previous ? { current, previous } : { current },
-            lockToken,
-            new Date().toISOString(),
-          );
-          if (!verified.ok) throw Object.assign(new Error("not-found"), { code: "P0002" });
-          const slug = (input.vehicleClassSlug ?? input.payload.vehicle_class_slug ?? "economy")
-            .trim()
-            .toLowerCase();
-          const row = verified.payload.class_totals.find((c) => c.slug === slug);
-          if (row?.total_rappen == null) throw Object.assign(new Error("not-found"), { code: "P0002" });
-          newTotal = Number(row.total_rappen);
-          quoteId = verified.payload.quote_id;
-        }
-        const cloned = await sql<{ id: number }[]>`
-          select public.booking_edit_clone_quote_snapshot(
-            ${owned.id}::uuid,
-            ${newTotal}::rappen,
-            ${quoteId}::uuid
-          ) as id
-        `;
-        quoteSnapshotId = Number(cloned[0]?.id ?? 0);
-      }
+      // The booking's own record at its own total (the function returns the bound record when it can).
+      const cloned = await sql<{ id: number }[]>`
+        select public.booking_edit_clone_quote_snapshot(
+          ${owned.id}::uuid,
+          ${null}::rappen,
+          ${null}::uuid
+        ) as id
+      `;
+      const quoteSnapshotId = Number(cloned[0]?.id ?? 0);
       if (!Number.isFinite(quoteSnapshotId) || quoteSnapshotId <= 0) {
         throw Object.assign(new Error("not-found"), { code: "P0002" });
       }
 
+      // 26.2 P1: a JSON parameter, not `JSON.stringify(...)::jsonb` — through the Worker's client
+      // that text arrives as a JSON string and the payload check refused every request (23514).
       const rows = await sql<UpsertRow[]>`
         select * from public.booking_edit_request_upsert(
           ${owned.id}::uuid,
           'customer',
           ${actorId}::uuid,
-          ${JSON.stringify(input.payload)}::jsonb,
+          ${sql.json(payload as Parameters<typeof sql.json>[0])},
           ${quoteSnapshotId}::bigint
         )
       `;
@@ -513,12 +438,19 @@ export async function requestCustomerPaidEdit(
       if (!row) throw Object.assign(new Error("not-found"), { code: "P0002" });
       return {
         request_id: String(row.request_id),
-        superseded_id: row.superseded_id ? String(row.superseded_id) : null,
-        old_extra_session_id: row.old_extra_session_id ? String(row.old_extra_session_id) : null,
-        old_extra_snapshot_id:
-          row.old_extra_snapshot_id == null ? null : Number(row.old_extra_snapshot_id),
+        old_extra_session_id: row.old_extra_session_id ? String(row.old_extra_session_id) : "",
       };
     });
+    // 261002 (review of item 4, finding 3): the request this one replaced may still have a page for a
+    // difference (only once its price record expired, so the page is normally dead already). Closed
+    // best effort, as the dashboard's changes do; a failure never fails the customer's request.
+    if (upsert.old_extra_session_id) {
+      try {
+        await closePage(stripeFromEnv(env), upsert.old_extra_session_id);
+      } catch {
+        // No Stripe key here: the page ends by itself.
+      }
+    }
     return {
       ok: true,
       requestId: upsert.request_id,
@@ -546,11 +478,9 @@ export async function requestCustomerTimeChange(
   const scheduledMs = zurichLocalToUtcMs(scheduledLocal);
   if (scheduledMs == null) return { ok: false, code: "not-found" };
   const scheduledAt = new Date(scheduledMs).toISOString();
-  return requestCustomerPaidEdit(env, auth, bookingKey, {
-    payload: {
-      scheduled_local: scheduledLocal,
-      scheduled_at: scheduledAt,
-    },
+  return requestCustomerTime(env, auth, bookingKey, {
+    scheduled_local: scheduledLocal,
+    scheduled_at: scheduledAt,
   });
 }
 
@@ -650,16 +580,24 @@ export async function writeCustomerFlightNo(
       trip.scheduled_local instanceof Date
         ? trip.scheduled_local.toISOString()
         : String(trip.scheduled_local ?? "");
-    await notifyFlightNumber(env, {
-      bookingId: trip.booking_id,
-      locale: checkoutLocale(trip.locale || "en"),
-      reference: trip.reference,
-      pickupText: trip.pickup_text || "",
-      dropoffText: trip.dropoff_text || "",
-      scheduledLocal,
-      flightNo: no,
-      chauffeurEmail: trip.chauffeur_email,
-    });
+    // The flight number is saved before the notice goes out; a notice that fails must not turn a
+    // saved number into "Could not save" on the page. Found 2026-10-01 (P6, D19): the mail ledger's
+    // kind list (booking_notifications_kind_check) still refuses 'flight_no' (open since 09-06), so
+    // the claim raises 23514 on every save.
+    try {
+      await notifyFlightNumber(env, {
+        bookingId: trip.booking_id,
+        locale: checkoutLocale(trip.locale || "en"),
+        reference: trip.reference,
+        pickupText: trip.pickup_text || "",
+        dropoffText: trip.dropoff_text || "",
+        scheduledLocal,
+        flightNo: no,
+        chauffeurEmail: trip.chauffeur_email,
+      });
+    } catch (err) {
+      console.error("writeCustomerFlightNo notice", owned.id, err instanceof Error ? err.message : String(err));
+    }
     return { ok: true, bookingId: owned.id, flightNo: no };
   } catch (err) {
     return mapEditSqlError(err);

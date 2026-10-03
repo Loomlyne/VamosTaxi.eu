@@ -38,7 +38,8 @@ vi.mock("../checkout/stripe", async (importOriginal) => {
   };
 });
 
-describe("bookings-write arrival clock (D-38)", () => {
+// 26.0: a cold import of bookings-write takes 4-6 s; vitest's 5 s default timed the first test out.
+describe("bookings-write arrival clock (D-38)", { timeout: 15_000 }, () => {
   it("persists booking_legs.arrived_at on markArrival and does not charge Stripe", () => {
     const src = read("bookings-write.ts");
     expect(src).toMatch(/export async function markArrival/);
@@ -54,7 +55,7 @@ describe("bookings-write arrival clock (D-38)", () => {
   });
 });
 
-describe("cancelBooking expires open Stripe Checkout Sessions (D-04)", () => {
+describe("cancelBooking expires open Stripe Checkout Sessions (D-04)", { timeout: 15_000 }, () => {
   beforeEach(() => {
     asStaff.mockReset();
     asSystem.mockReset();
@@ -133,7 +134,7 @@ describe("cancelBooking expires open Stripe Checkout Sessions (D-04)", () => {
   });
 });
 
-describe("cancelBooking on an unpaid booking expires its open Stripe Checkout Sessions (26.2-bp B1)", () => {
+describe("cancelBooking on an unpaid booking expires its open Stripe Checkout Sessions (26.2-bp B1)", { timeout: 15_000 }, () => {
   beforeEach(() => {
     asStaff.mockReset();
     asSystem.mockReset();
@@ -222,46 +223,44 @@ describe("cancelBooking on an unpaid booking expires its open Stripe Checkout Se
   });
 });
 
-describe("updateBooking class edit (D-14)", () => {
+describe("updateBooking never changes the class in place (26.2 P1, A8)", { timeout: 15_000 }, () => {
   const ENV = {} as CloudflareEnv;
   const CLAIMS = { sub: "staff-1", role: "authenticated" } as VamosClaims;
   const BOOKING_ID = "00000000-0000-4000-8000-000000000002";
 
-  /** Runs updateBooking with a recording sql tag; returns the slug bound in the class update. */
-  async function classSlugFor(klass: string): Promise<unknown> {
+  it("the in-place PATCH writes no vehicle class, whatever it is sent", async () => {
+    // 26.2 P6: the in-place save is the definer function booking_staff_contact_update (name,
+    // e-mail, phone, note, flight); no table is written from the Worker and no class reaches it.
     const calls: { text: string; values: unknown[] }[] = [];
+    const record = (strings: TemplateStringsArray, ...values: unknown[]) => {
+      calls.push({ text: strings.join("?"), values });
+      if (strings.join("?").includes("booking_staff_contact_update")) {
+        return Promise.resolve([{ booking_id: BOOKING_ID, changed_fields: "", flight_changed: false, assigned_chauffeur_id: null }]);
+      }
+      return Promise.resolve([{ id: BOOKING_ID }]);
+    };
     asStaff.mockReset();
-    asStaff.mockImplementation(async (_env: CloudflareEnv, _claims: unknown, fn: (sql: unknown) => unknown) => {
-      const sql = async (strings: TemplateStringsArray, ...values: unknown[]) => {
-        calls.push({ text: strings.join("?"), values });
-        if (calls.length === 1) return [{ id: BOOKING_ID }];
-        if (calls.length === 2) return [{ id: 1 }];
-        return [];
-      };
-      return fn(sql);
-    });
+    asStaff.mockImplementation(async (_env: CloudflareEnv, _claims: unknown, fn: (sql: unknown) => unknown) => fn(record));
+    asSystem.mockReset();
+    asSystem.mockImplementation(async (_env: CloudflareEnv, fn: (sql: unknown) => unknown) => fn(record));
     const { updateBooking } = await import("./bookings-write");
-    const result = await updateBooking(ENV, CLAIMS, "VT-2", { klass });
-    expect(result).toEqual({ ok: true });
-    const leg = calls.find((c) => c.text.includes("vehicle_class_id = case"));
-    expect(leg).toBeDefined();
-    const at = leg!.text.split("?").findIndex((part) => part.includes("vehicle_class_id = case"));
-    return leg!.values[at];
-  }
-
-  it("resolves Economy, Business and Van luxury to the live slugs", async () => {
-    expect(await classSlugFor("Economy")).toBe("saden");
-    expect(await classSlugFor("Business")).toBe("mercedes-benz-v-class");
-    expect(await classSlugFor("Van luxury")).toBe("van-luxury");
+    const result = await updateBooking(ENV, CLAIMS, "VT-2", { klass: "Business" } as never);
+    expect(result).toEqual({ ok: true, changed: [], flightChanged: false, driverMailed: false });
+    expect(calls.some((c) => c.text.includes("vehicle_class_id"))).toBe(false);
+    expect(calls.some((c) => /update\s+public\./i.test(c.text))).toBe(false);
+    expect(calls.find((c) => c.text.includes("booking_staff_contact_update"))!.values).not.toContain("Business");
   });
 
-  it("accepts a live slug and keeps the stored class for First", async () => {
-    expect(await classSlugFor("mercedes-benz-v-class")).toBe("mercedes-benz-v-class");
-    expect(await classSlugFor("First")).toBeNull();
+  it("the PATCH route and the write no longer read a class", () => {
+    const write = readFileSync(join(here, "bookings-write.ts"), "utf8");
+    const route = readFileSync(join(here, "../../app/[locale]/(ops)/api/staff/bookings/[id]/route.ts"), "utf8");
+    expect(write).not.toMatch(/klass/);
+    expect(write).not.toMatch(/liveClassSlug/);
+    expect(route).not.toMatch(/record\.klass/);
   });
 });
 
-describe("detail read model carries refund review and dispute facts (D-07, D-24, D-25)", () => {
+describe("detail read model carries refund review and dispute facts (D-07, D-24, D-25)", { timeout: 15_000 }, () => {
   const base: SqlBoardRow = {
     id: "22222222-2222-2222-2222-222222222222",
     reference: "VT-26-0808",

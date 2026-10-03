@@ -116,7 +116,7 @@ These are **non-negotiable** product constraints, not style preferences. Every s
 - Pattern: `data-*` (hyphenated)
 - Examples: `data-bookcard="1"`, `data-upto-wide="1"`, `data-hide-narrow="true"`, `data-fields="1"`, `data-sugroot="1"`, `data-shell="1"`, `data-sheetbody="1"`, `data-sheetonly="1"`, `data-scroll-native` (native scrolling inside region), `data-lenis-prevent` (nested scroller — Lenis skips it), `data-om-label="Flight"` (observer/instrumentation)
 - **Purpose:** Responsive layout rules hang off these attributes; they are **never class selectors** (CSS classes are design-system only)
-- **Localisation:** `data-i18n-skip` opts a subtree out of translation; `data-vt-legal="<languages>"` marks legal pages with restricted language coverage
+- **Localisation:** `data-vt-no-i18n` (or `translate="no"`) opts a subtree out of translation (the runtime ignores `data-i18n-skip`); `data-vt-legal="<languages>"` marks legal pages with restricted language coverage
 
 **Pending values:**
 - Pattern: `data-tok`
@@ -295,7 +295,7 @@ VamosI18nDict.patterns = {
 - The runtime sets `dir="rtl"` on the document; never set it per-element
 - Use logical properties everywhere: `margin-inline-start`, `inset-inline-end`, `padding-inline`, `float: inline-start`
 - Put `.vt-dir-keep` on anything that must stay LTR inside Arabic: references, times, flight numbers, CHF figures, codes like `VT-4821`
-- Use `[data-i18n-skip]` to opt a subtree out of translation (e.g., a language switcher that labels itself in its own language)
+- Use `[data-vt-no-i18n]` (or `translate="no"`) to opt a subtree out of translation (e.g., a language switcher that labels itself in its own language)
 - Check every new surface in Arabic with `dir="rtl"` before saying done; `VamosLocale.coverage(root)` must return empty
 
 ## Lenis Smooth Scrolling

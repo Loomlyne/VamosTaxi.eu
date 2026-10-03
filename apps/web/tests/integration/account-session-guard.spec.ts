@@ -1,9 +1,11 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "../support/test";
+import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
-import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { NEXT_BIN, settleCloudflareDev, waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { nextDevEnv } from "../support/test-stack";
 
 const RUN_PROJECT = "component-1440";
-const PORT = 4290;
+const PORT = testPort(4442);
 
 let devServer: ChildProcess | null = null;
 let baseURL = "";
@@ -34,12 +36,9 @@ test.beforeAll(async ({}, testInfo) => {
     cwd: WEB_ROOT,
     stdio: "ignore",
     detached: true,
-    env: {
-      ...process.env,
-      SUPABASE_URL: process.env.SUPABASE_URL ?? "http://127.0.0.1:54321",
-      SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY ?? "anon-placeholder",
-    },
+    env: nextDevEnv({ SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY ?? "anon-placeholder" }),
   });
+  await settleCloudflareDev();
   await waitForNextServer(baseURL);
 });
 
@@ -66,7 +65,7 @@ test.describe("account session guard", () => {
 
   test("signed-out snapshot clears stale local auth and redirects", async ({ page }) => {
     await seedCachedAuth(page);
-    await page.route("**/api/auth/session", (route) =>
+    await page.route("**/api/auth/session*", (route) =>
       route.fulfill({ json: { signedIn: false, displayName: null, emailConfirmed: false } }),
     );
 
@@ -76,7 +75,7 @@ test.describe("account session guard", () => {
 
   test("unavailable snapshot clears stale local auth and redirects", async ({ page }) => {
     await seedCachedAuth(page);
-    await page.route("**/api/auth/session", (route) => route.abort("failed"));
+    await page.route("**/api/auth/session*", (route) => route.abort("failed"));
 
     await page.goto(`${baseURL}/account`);
     await expectSignedOut(page);
@@ -84,7 +83,7 @@ test.describe("account session guard", () => {
 
   test("server session replaces mismatched cached account identity", async ({ page }) => {
     await seedCachedAuth(page);
-    await page.route("**/api/auth/session", (route) =>
+    await page.route("**/api/auth/session*", (route) =>
       route.fulfill({
         json: {
           signedIn: true,
@@ -110,7 +109,7 @@ test.describe("account session guard", () => {
 
   test("expired save clears local auth and redirects instead of showing a generic error", async ({ page }) => {
     await seedCachedAuth(page);
-    await page.route("**/api/auth/session", (route) =>
+    await page.route("**/api/auth/session*", (route) =>
       route.fulfill({ json: { signedIn: true, displayName: "Grace Rider", emailConfirmed: true } }),
     );
     await page.route("**/api/auth", (route) =>
@@ -118,6 +117,9 @@ test.describe("account session guard", () => {
     );
 
     await page.goto(`${baseURL}/account`);
+    // Wait until the page has read its session, prefs and bookings: a re-render after any of them
+    // closes an edit box opened too early, and Save is then never pressed.
+    await expect(page.getByRole("heading", { name: "Grace Rider", level: 1 })).toBeVisible();
     await page.getByRole("button", { name: "Change" }).first().click();
     await page.getByLabel("First name").fill("Grace");
     await page.getByLabel("Last name").fill("Rider");

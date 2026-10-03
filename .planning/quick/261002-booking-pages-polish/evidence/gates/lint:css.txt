@@ -1,0 +1,2 @@
+$ stylelint "**/*.css" --ignore-path .gitignore --ignore-path .stylelintignore
+lint:css exit 0

@@ -3,7 +3,15 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { readCheckoutPageSource } from "../../tests/support/checkout-sources";
-import { resolveActorCustomerIdWithDeps } from "./actor-customer";
+import { actorCustomerAllowed, resolveActorCustomerId, resolveActorCustomerIdWithDeps } from "./actor-customer";
+
+let claimsAsked = 0;
+vi.mock("../account/session", () => ({
+  customerClaims: async () => {
+    claimsAsked += 1;
+    return { sub: "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee" };
+  },
+}));
 
 const USER = "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee";
 const CUSTOMER = "11111111-2222-4333-8444-555555555555";
@@ -78,5 +86,26 @@ describe("checkout routes use the signed-in actor", () => {
     const client = readCheckoutPageSource();
     expect(client).not.toContain("sendPayLink");
     expect(client).not.toContain("/api/checkout/pay-link");
+  });
+});
+
+describe("dashboard host never has a customer actor (quick 261003)", () => {
+  const req = (url: string) => new Request(url, { method: "POST" });
+
+  it("public hosts may carry a customer; dashboard hosts may not", () => {
+    expect(actorCustomerAllowed(req("https://vamostaxi.site/api/checkout/intent"))).toBe(true);
+    expect(actorCustomerAllowed(req("http://localhost:3000/api/checkout/price"))).toBe(true);
+    expect(actorCustomerAllowed(req("https://dashboard.vamostaxi.site/api/checkout/intent"))).toBe(false);
+    expect(actorCustomerAllowed(req("https://DASHBOARD.vamostaxi.site/api/checkout/price"))).toBe(false);
+    expect(actorCustomerAllowed(req("http://dashboard.localhost:4591/api/checkout/intent"))).toBe(false);
+  });
+
+  it("New trip on the dashboard host: null before any session is read (booking stays a guest booking)", async () => {
+    claimsAsked = 0;
+    const env = {} as CloudflareEnv;
+    for (const path of ["/api/checkout/intent", "/api/checkout/price", "/api/checkout/me"]) {
+      expect(await resolveActorCustomerId(env, req(`https://dashboard.vamostaxi.site${path}`))).toBeNull();
+    }
+    expect(claimsAsked).toBe(0);
   });
 });

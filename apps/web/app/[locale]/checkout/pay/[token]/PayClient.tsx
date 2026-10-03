@@ -7,6 +7,7 @@ import { Alert } from "@/components/feedback/Alert";
 import { formatAmount } from "@/lib/currency";
 import { PriceSummary, RouteSummary, type PriceLine } from "@/components/transfer";
 import { hasPayLinkExtras, payLinkExtraName, type PayLinkLine } from "@/lib/checkout/pay-link-lines";
+import { vatPercentLabel } from "@/lib/checkout/vat";
 import {
   payLinkSessionKey,
   payStateFromOpen,
@@ -285,7 +286,7 @@ export function PayClient({ token }: { token: string }) {
           case "coupon":
             return { label: t("couponCode", { code: line.code }), amount, credit: true };
           default: {
-            const rate = line.vatRateBps == null ? "" : String(Number((line.vatRateBps / 100).toFixed(2)));
+            const rate = vatPercentLabel(line.vatRateBps);
             return { label: rate ? t("receiptVat", { rate }) : t("receiptVatPlain"), amount };
           }
         }

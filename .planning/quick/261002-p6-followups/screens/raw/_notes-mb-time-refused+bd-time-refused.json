@@ -1,0 +1,226 @@
+[
+  {
+    "label": "mb-time-refused before en 1440",
+    "toast": {
+      "shown": true,
+      "vw": 1440,
+      "left": 0,
+      "right": 0,
+      "width": 0,
+      "centreOffset": -720,
+      "cutLeft": false,
+      "cutRight": false,
+      "lines": 1
+    }
+  },
+  {
+    "label": "mb-time-refused before en 390",
+    "toast": {
+      "shown": true,
+      "vw": 390,
+      "left": 0,
+      "right": 0,
+      "width": 0,
+      "centreOffset": -195,
+      "cutLeft": false,
+      "cutRight": false,
+      "lines": 3
+    }
+  },
+  {
+    "label": "mb-time-refused before ar 1440",
+    "toast": {
+      "shown": true,
+      "vw": 1440,
+      "left": 0,
+      "right": 0,
+      "width": 0,
+      "centreOffset": -720,
+      "cutLeft": false,
+      "cutRight": false,
+      "lines": 1
+    }
+  },
+  {
+    "label": "mb-time-refused before ar 390",
+    "toast": {
+      "shown": true,
+      "vw": 390,
+      "left": 0,
+      "right": 0,
+      "width": 0,
+      "centreOffset": -195,
+      "cutLeft": false,
+      "cutRight": false,
+      "lines": 2
+    }
+  },
+  {
+    "label": "mb-time-refused after en 1440",
+    "toast": {
+      "shown": true,
+      "vw": 1440,
+      "left": 510,
+      "right": 930,
+      "width": 420,
+      "centreOffset": 0,
+      "cutLeft": false,
+      "cutRight": false,
+      "lines": 3
+    }
+  },
+  {
+    "label": "mb-time-refused after en 390",
+    "toast": {
+      "shown": true,
+      "vw": 390,
+      "left": 16,
+      "right": 374,
+      "width": 358,
+      "centreOffset": 0,
+      "cutLeft": false,
+      "cutRight": false,
+      "lines": 3
+    }
+  },
+  {
+    "label": "mb-time-refused after ar 1440",
+    "toast": {
+      "shown": true,
+      "vw": 1440,
+      "left": 510,
+      "right": 930,
+      "width": 420,
+      "centreOffset": 0,
+      "cutLeft": false,
+      "cutRight": false,
+      "lines": 2
+    }
+  },
+  {
+    "label": "mb-time-refused after ar 390",
+    "toast": {
+      "shown": true,
+      "vw": 390,
+      "left": 16,
+      "right": 374,
+      "width": 358,
+      "centreOffset": 0,
+      "cutLeft": false,
+      "cutRight": false,
+      "lines": 3
+    }
+  },
+  {
+    "label": "bd-time-refused before en 1440",
+    "toast": {
+      "shown": true,
+      "vw": 1440,
+      "left": 0,
+      "right": 0,
+      "width": 0,
+      "centreOffset": -720,
+      "cutLeft": false,
+      "cutRight": false,
+      "lines": 1
+    }
+  },
+  {
+    "label": "bd-time-refused before en 390",
+    "toast": {
+      "shown": true,
+      "vw": 390,
+      "left": 0,
+      "right": 0,
+      "width": 0,
+      "centreOffset": -195,
+      "cutLeft": false,
+      "cutRight": false,
+      "lines": 3
+    }
+  },
+  {
+    "label": "bd-time-refused before ar 1440",
+    "toast": {
+      "shown": true,
+      "vw": 1440,
+      "left": 0,
+      "right": 0,
+      "width": 0,
+      "centreOffset": -720,
+      "cutLeft": false,
+      "cutRight": false,
+      "lines": 1
+    }
+  },
+  {
+    "label": "bd-time-refused before ar 390",
+    "toast": {
+      "shown": true,
+      "vw": 390,
+      "left": 0,
+      "right": 0,
+      "width": 0,
+      "centreOffset": -195,
+      "cutLeft": false,
+      "cutRight": false,
+      "lines": 2
+    }
+  },
+  {
+    "label": "bd-time-refused after en 1440",
+    "toast": {
+      "shown": true,
+      "vw": 1440,
+      "left": 510,
+      "right": 930,
+      "width": 420,
+      "centreOffset": 0,
+      "cutLeft": false,
+      "cutRight": false,
+      "lines": 3
+    }
+  },
+  {
+    "label": "bd-time-refused after en 390",
+    "toast": {
+      "shown": true,
+      "vw": 390,
+      "left": 16,
+      "right": 374,
+      "width": 358,
+      "centreOffset": 0,
+      "cutLeft": false,
+      "cutRight": false,
+      "lines": 3
+    }
+  },
+  {
+    "label": "bd-time-refused after ar 1440",
+    "toast": {
+      "shown": true,
+      "vw": 1440,
+      "left": 510,
+      "right": 930,
+      "width": 420,
+      "centreOffset": 0,
+      "cutLeft": false,
+      "cutRight": false,
+      "lines": 2
+    }
+  },
+  {
+    "label": "bd-time-refused after ar 390",
+    "toast": {
+      "shown": true,
+      "vw": 390,
+      "left": 16,
+      "right": 374,
+      "width": 358,
+      "centreOffset": 0,
+      "cutLeft": false,
+      "cutRight": false,
+      "lines": 3
+    }
+  }
+]

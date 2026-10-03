@@ -71,6 +71,7 @@ type BookingRow = {
   refund_status: string;
   refund_owed_rappen: number | string | null;
   refunded_rappen: number | string | null;
+  last_change?: string | null;
 };
 
 export type RefundPayment = {
@@ -90,8 +91,15 @@ type RefundState = {
   refundedRappen: number;
   dueRappen: number;
   fullTier: boolean;
+  /** 26.2 P1: a change on a live booking left an amount due (refund exactly that). */
+  creditTier: boolean;
+  /** 26.2 P6 D21: the last accepted change was a class change alone ("class") or of places, time or party ("trip"). */
+  lastChange: "class" | "trip" | null;
   payments: RefundPayment[];
 };
+
+/** Booking statuses where the trip no longer runs (a refund owed there is a cancel refund). */
+const ENDED_STATUSES: readonly string[] = Object.freeze(["cancelled", "partially_cancelled", "refunded"]);
 
 const n = (v: number | string | null | undefined): number => {
   const x = Number(v ?? 0);
@@ -105,7 +113,22 @@ async function readRefundState(env: CloudflareEnv, claims: VamosClaims, bookingI
       select b.status::text as status,
              b.refund_status::text as refund_status,
              b.refund_owed_rappen,
-             b.refunded_rappen
+             b.refunded_rappen,
+             -- 26.2 P6 D21: same rule as manage_money_for.last_change (the customer's D15 line).
+             (select case
+                       when pg_catalog.jsonb_typeof(r.payload) = 'object'
+                        and r.payload ? 'vehicle_class_slug'
+                        and not exists (
+                          select 1 from pg_catalog.jsonb_object_keys(r.payload) as k(key)
+                           where k.key <> 'vehicle_class_slug'
+                        ) then 'class'
+                       else 'trip'
+                     end
+                from public.booking_edit_requests as r
+               where r.booking_id = b.id
+                 and r.status = 'accepted'
+               order by r.accepted_at desc nulls last, r.created_at desc
+               limit 1) as last_change
         from public.bookings as b
        where b.id = ${bookingId}::uuid
        limit 1
@@ -148,13 +171,19 @@ async function readRefundState(env: CloudflareEnv, claims: VamosClaims, bookingI
     });
     const owed = n(b.refund_owed_rappen);
     const refunded = n(b.refunded_rappen);
+    const pendingOps = String(b.refund_status) === "pending_ops";
+    // 26.2 P1: owed on a trip that still runs = a class change made it cheaper (credit tier);
+    // owed on a cancelled trip = the full cancel refund (20-10 full tier). Same rule as ops_refund_plan.
+    const creditTier = pendingOps && owed > refunded && !ENDED_STATUSES.includes(String(b.status));
     return {
       status: String(b.status),
       refundStatus: String(b.refund_status),
       owedRappen: owed,
       refundedRappen: refunded,
       dueRappen: Math.max(0, owed - refunded),
-      fullTier: String(b.refund_status) === "pending_ops" && owed > 0,
+      fullTier: pendingOps && owed > 0 && !creditTier,
+      creditTier,
+      lastChange: b.last_change === "class" || b.last_change === "trip" ? b.last_change : null,
       payments,
     };
   });
@@ -167,8 +196,12 @@ export type RefundPicker = {
   refundedRappen: number;
   dueRappen: number;
   refundStatus: string;
-  /** pending_ops with an owed amount: full amount only, no decline. */
+  /** pending_ops with an owed amount on a cancelled booking: full amount only, no decline. */
   fullTier: boolean;
+  /** 26.2 P1: a change on a live booking left this much due: refund exactly that. */
+  creditTier: boolean;
+  /** 26.2 P6 D21: which change it was, so the panel names a class change or a trip change. */
+  lastChange: "class" | "trip" | null;
 };
 
 /** GET …/refund: what the picker and a reloaded page need. Admin only (the route wraps it). */
@@ -191,6 +224,8 @@ export async function loadRefundPicker(
     dueRappen: state.dueRappen,
     refundStatus: state.refundStatus,
     fullTier: state.fullTier,
+    creditTier: state.creditTier,
+    lastChange: state.lastChange,
   };
 }
 
@@ -300,6 +335,11 @@ function checkRequest(
   if (state.fullTier) {
     if (percent !== null && percent < 100) return { ok: false, code: "full-refund-only" };
     if (amount !== null && chosen && amount < chosen.leftRappen) return { ok: false, code: "full-refund-only" };
+  }
+  if (state.creditTier) {
+    // The amount due is exact (what the change made cheaper): no percentage, never more than due.
+    if (percent !== null) return { ok: false, code: "invalid-amount" };
+    if (amount !== null && amount > state.dueRappen) return { ok: false, code: "refund-exceeds-remaining" };
   }
   return {
     paymentId: chosen ? chosen.id : null,

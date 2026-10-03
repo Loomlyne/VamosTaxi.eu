@@ -29,9 +29,3 @@
 .vt-row--selected{background:var(--vt-grey-50)}
 .vt-row--selected .vt-row__title{font-weight:var(--vt-weight-semibold)}
 .vt-row--inverse.vt-row--selected{background:var(--vt-charcoal-800)}
-
-/* RTL mirror — a forward-pointing chevron must flip under dir="rtl" (UI-SPEC's
-   Four-Language Layout Contract). ListRow.tsx wraps the chevron icon in this class
-   specifically so this rule has something to target, mirroring DatePicker's own nav-
-   chevron fix (01-09-SUMMARY.md § Deviations). */
-[dir="rtl"] .vt-row__chevron{transform:scaleX(-1)}

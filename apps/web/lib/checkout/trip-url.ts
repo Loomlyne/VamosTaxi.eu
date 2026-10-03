@@ -49,7 +49,12 @@ export type Trip = {
 export type ParsedTrip = { trip: Trip; errors: TripFieldError[] };
 
 export const PAX_MIN = 1;
-export const PAX_MAX = 8;
+/**
+ * Database limit on one leg (`booking_legs.pax` 1..16), the same bound `POST /api/quote` accepts.
+ * Which class fits a party is decided by the class rows (quote eligibility; `lib/quote/intent.ts`
+ * refuses an ineligible class), not by this number.
+ */
+export const PAX_MAX = 16;
 export const BAGS_MAX = 16;
 export const TEXT_MAX = 200;
 export const EXTRAS_MAX = 20;

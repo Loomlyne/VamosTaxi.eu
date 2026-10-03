@@ -41,6 +41,18 @@ export async function resendVoucher(
   });
   if (!paid) return { ok: false, code: "not-paid" };
 
+  return deliverBookingConfirmation(env, bookingId);
+}
+
+/**
+ * The confirmation mail with a fresh manage link, built from the booking as it is now (class,
+ * total, extras). System role only: every read is a SECURITY DEFINER function. 26.2 P1 sends it
+ * again after a class change (D7); the staff resend above checks the payment first.
+ */
+export async function deliverBookingConfirmation(
+  env: CloudflareEnv,
+  bookingId: string,
+): Promise<VoucherResult> {
   const key = env.RESEND_API_KEY;
   if (!key) return { ok: false, code: "email-failed" };
 

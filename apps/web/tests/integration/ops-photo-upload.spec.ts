@@ -4,7 +4,7 @@
 // Tagged @ops-photo. component-1440 only. No R2, no live Next server.
 // OpsPhotoField React chrome is gone (06-01); DC mock will call POST /api/photos/upload.
 
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../support/test";
 import {
   PHOTO_MAX_BYTES,
   PHOTO_PREFIXES,

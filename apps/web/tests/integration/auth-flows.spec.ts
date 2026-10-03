@@ -3,11 +3,13 @@
 // Queries go through a child process so this file never imports `postgres`
 // (D-10 / apps/web restricted-imports).
 
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "../support/test";
+import { testPort } from "../support/port";
 import { execFileSync, spawn, type ChildProcess } from "node:child_process";
+import { NEXT_BIN, settleCloudflareDev, waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { mailUrl, nextDevEnv, ownerDbUrl, REPO_ROOT, requireTestStack, stackKeys } from "../support/test-stack";
 import { join } from "node:path";
-import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
-import { devBindingEnv, ownClientIpHeaders, waitForDevBindings, warmAuthPages, MAIL_URL, OWNER_CS, supabaseStatusArgs } from "../support/dev-binding";
+import { devBindingEnv, ownClientIpHeaders, supabaseStatusArgs, waitForDevBindings, warmAuthPages } from "../support/dev-binding";
 import deMessages from "../../i18n/messages/de.json";
 
 const RUN_PROJECT = "component-1440";
@@ -28,7 +30,7 @@ function ownerQuery(sqlJs: string): string {
         "--input-type=module",
         "-e",
         `import postgres from "postgres";
-         const sql = postgres(${JSON.stringify(OWNER_CS)}, { max: 1, connect_timeout: 5 });
+         const sql = postgres(${JSON.stringify(ownerDbUrl())}, { max: 1, connect_timeout: 5 });
          try {
            ${sqlJs}
          } finally {
@@ -90,14 +92,14 @@ async function waitForMail(
 ): Promise<{ html: string; text: string }> {
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
-    const search = await fetch(`${MAIL_URL}/api/v1/search?query=${encodeURIComponent(`to:${address}`)}`);
+    const search = await fetch(`${mailUrl()}/api/v1/search?query=${encodeURIComponent(`to:${address}`)}`);
     if (search.ok) {
       const data = (await search.json()) as {
         messages?: Array<{ ID: string; Created: string }>;
       };
       const hit = (data.messages ?? []).find((m) => !afterIso || m.Created >= afterIso);
       if (hit?.ID) {
-        const msg = await fetch(`${MAIL_URL}/api/v1/message/${hit.ID}`);
+        const msg = await fetch(`${mailUrl()}/api/v1/message/${hit.ID}`);
         if (msg.ok) {
           const body = (await msg.json()) as { HTML?: string; Text?: string };
           return { html: body.HTML ?? "", text: body.Text ?? "" };
@@ -105,12 +107,12 @@ async function waitForMail(
       }
     }
     const local = address.split("@")[0] ?? address;
-    const ib = await fetch(`${MAIL_URL}/api/v1/mailbox/${encodeURIComponent(local)}`);
+    const ib = await fetch(`${mailUrl()}/api/v1/mailbox/${encodeURIComponent(local)}`);
     if (ib.ok) {
       const list = (await ib.json()) as Array<{ id?: string }>;
       const last = list.at(-1);
       if (last?.id) {
-        const msg = await fetch(`${MAIL_URL}/api/v1/mailbox/${encodeURIComponent(local)}/${last.id}`);
+        const msg = await fetch(`${mailUrl()}/api/v1/mailbox/${encodeURIComponent(local)}/${last.id}`);
         if (msg.ok) {
           const body = (await msg.json()) as { body?: { html?: string; text?: string }; html?: string; text?: string };
           return {
@@ -122,7 +124,7 @@ async function waitForMail(
     }
     await new Promise((r) => setTimeout(r, 400));
   }
-  throw new Error(`No auth email for ${address} at ${MAIL_URL} (Mailpit/Inbucket).`);
+  throw new Error(`No auth email for ${address} at ${mailUrl()} (Mailpit/Inbucket).`);
 }
 
 function extractLinks(html: string, text: string): string[] {
@@ -191,7 +193,8 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
   test.beforeAll(async ({}, testInfo) => {
     if (testInfo.project.name !== RUN_PROJECT) return;
     testInfo.setTimeout(180_000);
-    const stack = requireLocalStack();
+    await requireTestStack();
+    const stack = stackKeys();
     baseURL = `http://localhost:${PORT}`;
     devServer = spawn(NEXT_BIN, ["dev", "-p", String(PORT)], {
       cwd: WEB_ROOT,
@@ -204,6 +207,7 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
         SUPABASE_ANON_KEY: stack.anonKey,
       },
     });
+    await settleCloudflareDev();
     await waitForNextServer(baseURL);
     await waitForDevBindings(baseURL);
     await warmAuthPages(baseURL);
@@ -258,6 +262,7 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
   });
 
   test("AUTH-01 account name save persists metadata for a live session", async ({ page, context }) => {
+    page.setDefaultTimeout(15_000);
     const email = uniqueEmail("account");
     const after = new Date(Date.now() - 1000).toISOString();
     await page.goto(`${baseURL}/sign-up`);
@@ -283,7 +288,14 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
     await page.getByRole("button", { name: "Change" }).first().click();
     await page.getByLabel("First name").fill("Grace");
     await page.getByLabel("Last name").fill("Rider");
+    // The save queues behind `next dev` compiling /api/account/prefs and /bookings on first use (5 s and more
+    // on a loaded machine or the 2-core runner); wait for its own answer, not the 5 s assertion default.
+    const saved = page.waitForResponse(
+      (r) => r.request().method() === "POST" && new URL(r.url()).pathname === "/api/auth",
+      { timeout: 60_000 },
+    );
     await page.getByRole("button", { name: "Save", exact: true }).click();
+    expect((await saved).ok()).toBe(true);
     await expect(page.locator("[data-ac-row]").filter({ hasText: "Name" })).toContainText("Grace Rider");
 
     expect(userMetadata(email)).toMatchObject({
@@ -295,8 +307,9 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
   });
 
   test("AUTH-01 magic sign-in link from the mail catcher establishes a session", async ({ page, context }) => {
+    page.setDefaultTimeout(15_000);
     const email = uniqueEmail("otp");
-    // 27 D-36: the sign-in link never creates an account, so make a confirmed one first.
+    // A confirmed sign-up account first, so the link signs in without the finish step (27.1).
     const signupAfter = new Date(Date.now() - 1000).toISOString();
     await page.goto(`${baseURL}/sign-up`);
     await fillSignup(page, email, "Ada", "Lovelace", PASSWORD);
@@ -331,8 +344,8 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
     await context.clearCookies();
   });
 
-  test("AUTH-01 sign-in link for an unknown address shows the same view and makes no account (27 D-36)", async ({ page }) => {
-    const email = uniqueEmail("nolink");
+  test("AUTH-01 sign-in link for a new address shows the same view and makes one unconfirmed account to finish (27.1, 27 D-37)", async ({ page }) => {
+    const email = uniqueEmail("newlink");
     await page.goto(`${baseURL}/sign-in`);
     await page.getByRole("button", { name: "Email me a link instead" }).click();
     await page.getByLabel("Email").fill(email);
@@ -340,10 +353,12 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
     await expect(page.locator("[data-af]")).toContainText("Send another link");
     const n = ownerQuery(
       `const email = ${JSON.stringify(email)};
-       const rows = await sql\`select count(*)::int as n from auth.users where email = \${email}\`;
+       const rows = await sql\`select count(*)::int as n from auth.users u
+         join public.account_finish_pending p on p.user_id = u.id
+        where u.email = \${email} and u.email_confirmed_at is null and p.finished_at is null\`;
        console.log(String(rows[0].n));`,
     );
-    expect(n).toBe("0");
+    expect(n).toBe("1");
   });
 
   test("AUTH-01 enumeration: two signups with the same address look the same", async ({ page }) => {
@@ -363,6 +378,7 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
   });
 
   test("AUTH-02 reset password from emailed link, expired without a session", async ({ page, context }) => {
+    page.setDefaultTimeout(15_000);
     const email = uniqueEmail("reset");
     await page.goto(`${baseURL}/sign-up`);
     await fillSignup(page, email, "Ada", "Lovelace", PASSWORD);
@@ -416,6 +432,7 @@ test.describe("AUTH-01 AUTH-02 AUTH-03 auth-flows", () => {
   });
 
   test("AUTH-03 Set-Cookie folding on a real callback response", async ({ page, context }) => {
+    page.setDefaultTimeout(15_000);
     const email = uniqueEmail("cookie");
     const after = new Date(Date.now() - 1000).toISOString();
     await page.goto(`${baseURL}/sign-up`);

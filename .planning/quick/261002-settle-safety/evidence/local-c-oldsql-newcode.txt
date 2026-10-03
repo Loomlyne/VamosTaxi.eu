@@ -1,0 +1,89 @@
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - ESM syntax in a file loaded as CommonJS (vitest.config.ts:10:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v4.1.11 /Users/koss/Developer/VamosTaxi.eu/.claude/worktrees/settle-safety/apps/web
+
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+ ❯ lib/ops/settle-safety.local.test.ts (3 tests | 3 failed) 2832ms
+     × P-1: the difference settle waits for the booking instead of deadlocking with a customer request, then records and applies 1227ms
+     × P-1: the dashboard's Accept of a customer request waits for the booking instead of deadlocking with a new customer request 1041ms
+     × P-2: a cancel ends the waiting change and names its page; a difference paid after it is Refund due, never applied 208ms
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/ops/settle-safety.local.test.ts > difference settle safety through the real Worker client (local, committed rows) > P-1: the difference settle waits for the booking instead of deadlocking with a customer request, then records and applies
+AssertionError: expected { call: '40P01', side: null } to deeply equal { call: null, side: null }
+
+- Expected
++ Received
+
+  {
+-   "call": null,
++   "call": "40P01",
+    "side": null,
+  }
+
+ ❯ lib/ops/settle-safety.local.test.ts:147:84
+    145|                                                              'CHF', nu…
+    146|     );
+    147|     expect({ call: sqlStateOf(seen.callError), side: sqlStateOf(seen.s…
+       |                                                                                    ^
+    148|     expect(seen.callResult).toMatchObject({ applied: true, already_set…
+    149|     expect(await leg(booking.id)).toMatchObject({ pickup_text: "Zug st…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  lib/ops/settle-safety.local.test.ts > difference settle safety through the real Worker client (local, committed rows) > P-1: the dashboard's Accept of a customer request waits for the booking instead of deadlocking with a new customer request
+AssertionError: expected { call: '40P01', side: null } to deeply equal { call: null, side: null }
+
+- Expected
++ Received
+
+  {
+-   "call": null,
++   "call": "40P01",
+    "side": null,
+  }
+
+ ❯ lib/ops/settle-safety.local.test.ts:171:84
+    169|         (await sql<{ outcome: string }[]>`select * from public.booking…
+    170|     );
+    171|     expect({ call: sqlStateOf(seen.callError), side: sqlStateOf(seen.s…
+       |                                                                                    ^
+    172|     expect(seen.callResult).toMatchObject({ outcome: "applied" });
+    173|     const status = await su<{ status: string }[]>`select status from p…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  lib/ops/settle-safety.local.test.ts > difference settle safety through the real Worker client (local, committed rows) > P-2: a cancel ends the waiting change and names its page; a difference paid after it is Refund due, never applied
+AssertionError: expected 'requested' to be 'superseded' // Object.is equality
+
+Expected: "superseded"
+Received: "requested"
+
+ ❯ lib/ops/settle-safety.local.test.ts:186:30
+    184|     expect(cancelled.refund_mode).toBe("auto_full");
+    185|     const ended = await su<{ status: string }[]>`select status from pu…
+    186|     expect(ended[0]!.status).toBe("superseded");
+       |                              ^
+    187|     const pages = await asSystem(env, async (sql) =>
+    188|       sql<{ extra_session_id: string }[]>`select * from public.booking…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed | 12 passed (13)
+      Tests  3 failed | 22 passed (25)
+   Start at  15:23:10
+   Duration  11.94s (transform 477ms, setup 0ms, import 1.23s, tests 9.74s, environment 1ms)
+
+exit 1

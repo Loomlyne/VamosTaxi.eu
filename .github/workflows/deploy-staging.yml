@@ -17,10 +17,13 @@ on:
   workflow_dispatch:
 
 # A second deploy queues behind the first instead of racing it — cancelling a
-# half-finished deploy is worse than waiting (T-01-07).
+# half-finished deploy is worse than waiting (T-01-07). A push-triggered run deploys
+# nothing (the `deploy` job is workflow_dispatch only), so a superseded one is just a
+# duplicate: it gets its own group per ref and is cancelled. The hand-started deploy
+# keeps the old, uncancellable group.
 concurrency:
-  group: deploy-staging
-  cancel-in-progress: false
+  group: deploy-staging-${{ github.event_name == 'workflow_dispatch' && 'deploy' || github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
 
 jobs:
   gate:
@@ -102,10 +105,18 @@ jobs:
   # Owner decision 2026-09-29: Worker `vamos` is deployed from the owner's Mac only. A push
   # to main runs the gate and the visual job and stops there, so a push never deploys a
   # second time next to the Mac. To hand deploys back to GitHub, remove this `if`.
+  # 26.0 D-01 / e2e-linux-3: the booking-funnel specs on Linux. The jobs live in one reusable workflow
+  # (e2e-linux.yml) so a push to a ci/** branch can prove a change to them on GitHub before main sees it.
+  e2e-linux:
+    name: Booking funnel e2e on Linux (D-01)
+    uses: ./.github/workflows/e2e-linux.yml
+    permissions:
+      contents: read
+
   deploy:
     name: Deploy to staging
     if: github.event_name == 'workflow_dispatch'
-    needs: [gate, visual]
+    needs: [gate, visual, e2e-linux]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

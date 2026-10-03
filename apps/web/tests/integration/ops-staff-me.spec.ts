@@ -6,7 +6,7 @@
 
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../support/test";
 import { jsonErr, staffStatus } from "../../lib/ops/staff-json";
 
 const RUN_PROJECT = "component-1440";

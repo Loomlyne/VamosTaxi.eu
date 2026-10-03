@@ -4,6 +4,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { mintLock, type QuoteLockPayload } from "../quote/lock";
 import { runCheckoutIntent, type CheckoutIntentDeps } from "./intent";
+import { priceCheckoutWithDeps } from "./price-route";
 
 const SECRETS = { current: "lock-secret-current" };
 const NOW = "2026-09-05T12:00:00.000Z";
@@ -317,7 +318,7 @@ describe("runCheckoutIntent mode web (26.3)", () => {
   });
 
   it("keeps a fixed coupon before VAT (9729 case)", async () => {
-    const p = payload({ coupon: "TEN", class_totals: [{ slug: "economy", total_rappen: 9000 }] });
+    const p = payload({ coupon: "TEN", class_totals: [{ slug: "economy", total_rappen: 9000, pre_coupon_rappen: 10000 }] });
     const w = world(p, {
       reprice: () => ({ pricing_live: true, engine_version: p.engine_version, classes: [{ slug: "economy", total_rappen: 9000, eligible: true }] }),
       evaluateCoupon: async () => ({ ok: true, coupon_id: 7, kind: "amount", percent: null, amount_rappen: 1000 }),
@@ -325,6 +326,81 @@ describe("runCheckoutIntent mode web (26.3)", () => {
     const res = await runCheckoutIntent(await webBody(p, { coupon: "TEN" }), w.d as never);
     // fare 100.00 - 10.00 = 90.00, plus 8.1 % VAT = 97.29
     expect(((await res.json()) as { amount_rappen: number }).amount_rappen).toBe(9729);
+  });
+
+  it("26.2 audit U11-1: a voucher signed into the lock is accepted by the price route and by PAY, at the same amount", async () => {
+    const evaluateCoupon = async () => ({ ok: true, coupon_id: 7, kind: "amount", percent: null, amount_rappen: 1000 });
+    const p = payload({ coupon: "TEN", class_totals: [{ slug: "economy", total_rappen: 9000, pre_coupon_rappen: 10000 }] });
+    const reprice = () => ({ pricing_live: true, engine_version: p.engine_version, classes: [{ slug: "economy", total_rappen: 9000, eligible: true }] });
+
+    const priced = await priceCheckoutWithDeps(
+      { lock: await mintLock(SECRETS, p), vehicle_class: "economy", extra_codes: [], coupon: "TEN" },
+      { lockSecrets: SECRETS, nowIso: NOW, loadCatalog: async () => CATALOG, loadVatBps: async () => 81, evaluateCoupon, actorCustomerId: null },
+    );
+    if (!priced.body.ok) throw new Error("price route refused the signed voucher");
+
+    const w = world(p, { reprice, evaluateCoupon });
+    const res = await runCheckoutIntent(await webBody(p, { coupon: "TEN" }), w.d as never);
+    expect(res.status).toBe(200);
+    expect(((await res.json()) as { amount_rappen: number }).amount_rappen).toBe(priced.body.charged_rappen);
+  });
+
+  it("26.2 audit U04-1: PAY charges max(0, fare + extras - coupon) from the pinned fare, not fare + the coupon's face value", async () => {
+    // Fare 3000 rappen, fixed coupon 3500 (clamped to the fare: lock total 0), ski bag 2000.
+    // 30.00 + 20.00 - 35.00 = 15.00, plus 8.1 % VAT = 16.22. The old gross-up read the fare as 35.00 and charged 21.62.
+    const p = payload({ coupon: "TEN", class_totals: [{ slug: "economy", total_rappen: 0, pre_coupon_rappen: 3000 }] });
+    const w = world(p, {
+      reprice: () => ({ pricing_live: true, engine_version: p.engine_version, classes: [{ slug: "economy", total_rappen: 0, eligible: true }] }),
+      evaluateCoupon: async () => ({ ok: true, coupon_id: 7, kind: "amount", percent: null, amount_rappen: 3500 }),
+    });
+    const res = await runCheckoutIntent(await webBody(p, { coupon: "TEN", extra_codes: ["ski_bag"] }), w.d as never);
+    expect(res.status).toBe(200);
+    expect(((await res.json()) as { amount_rappen: number }).amount_rappen).toBe(1622);
+  });
+
+  it("26.2 audit U04-1: a lock minted before pre_coupon_rappen existed, carrying a coupon, is price_changed at PAY", async () => {
+    const p = payload({ coupon: "TEN", class_totals: [{ slug: "economy", total_rappen: 9000 }] });
+    const w = world(p, {
+      reprice: () => ({ pricing_live: true, engine_version: p.engine_version, classes: [{ slug: "economy", total_rappen: 9000, eligible: true }] }),
+      evaluateCoupon: async () => ({ ok: true, coupon_id: 7, kind: "amount", percent: null, amount_rappen: 1000 }),
+    });
+    const res = await runCheckoutIntent(await webBody(p, { coupon: "TEN" }), w.d as never);
+    expect(((await res.json()) as { code: string }).code).toBe("price_changed");
+    expect(w.created).toHaveLength(0);
+    expect(w.bookings.size).toBe(0);
+  });
+
+  it("26.2 audit U11-1: a lock without the voucher still refuses a body voucher at PAY (the safety check stays)", async () => {
+    const p = payload();
+    const w = world(p, { evaluateCoupon: async () => ({ ok: true, coupon_id: 7, kind: "amount", percent: null, amount_rappen: 1000 }) });
+    const res = await runCheckoutIntent(await webBody(p, { coupon: "TEN" }), w.d as never);
+    expect(((await res.json()) as { code: string }).code).toBe("coupon_no_longer_valid");
+    expect(w.created).toHaveLength(0);
+    expect(w.bookings.size).toBe(0);
+  });
+
+  it("26.2 audit U11-5: launch flags that cannot be read refuse pricing_not_live and open nothing", async () => {
+    const p = payload();
+    for (const loadLaunchFlags of [
+      async () => {
+        throw new Error("db down");
+      },
+      async () => ({ vat_rate_bps: Number.NaN }),
+      async () => ({ vat_rate_bps: -1 }),
+    ]) {
+      const w = world(p, { loadLaunchFlags });
+      const res = await runCheckoutIntent(await webBody(p), w.d as never);
+      expect(((await res.json()) as { code: string }).code).toBe("pricing_not_live");
+      expect(w.created).toHaveLength(0);
+      expect(w.bookings.size).toBe(0);
+    }
+  });
+
+  it("26.2 audit U11-5: a readable VAT rate is used as read, not 8.1 %", async () => {
+    const p = payload();
+    const w = world(p, { loadLaunchFlags: async () => ({ vat_rate_bps: 0 }) });
+    const res = await runCheckoutIntent(await webBody(p), w.d as never);
+    expect(((await res.json()) as { amount_rappen: number }).amount_rappen).toBe(8000);
   });
 
   it("uses the Zurich instant for the manage-link expiry (D-36)", async () => {

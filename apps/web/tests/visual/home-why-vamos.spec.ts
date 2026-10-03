@@ -1,13 +1,15 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page, emulateMedia } from "../support/test";
+import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { join } from "node:path";
 import { waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { nextDevEnv } from "../support/test-stack";
 
 const PORTS: Record<string, number> = {
-  "component-1440": 4230,
-  "component-1024": 4231,
-  "component-768": 4232,
-  "component-390": 4233,
+  "component-1440": testPort(4230),
+  "component-1024": testPort(4231),
+  "component-768": testPort(4232),
+  "component-390": testPort(4233),
 };
 
 const LOCALES = ["en", "de", "fr", "ar"] as const;
@@ -47,14 +49,18 @@ test.describe("Home why-vamos @component", () => {
 
   test.beforeAll(async ({}, testInfo) => {
     testInfo.setTimeout(240_000);
-    const port = PORTS[testInfo.project.name] ?? 4239;
+    const port = PORTS[testInfo.project.name] ?? testPort(4239);
     baseURL = `http://localhost:${port}`;
     devServer = spawn(NEXT_BIN, ["dev", "-p", String(port)], {
       cwd: WEB_ROOT,
       stdio: "ignore",
       detached: true,
+      env: nextDevEnv({}, { gallery: true }),
     });
     await waitForNextServer(baseURL, 180_000);
+    // `next dev` compiles a route on its first request; on a loaded machine that is longer than a 30 s test.
+    // Warm the gallery route here, inside the 240 s hook, so the first screenshot test measures the page.
+    await waitForNextServer(baseURL + pathFor("en"), 180_000);
   });
 
   test.afterAll(() => {
@@ -89,7 +95,7 @@ test.describe("Home why-vamos @component", () => {
   });
 
   test("reduced motion paints every step @component", async ({ page }) => {
-    await page.emulateMedia({ reducedMotion: "reduce" });
+    await emulateMedia(page, { reducedMotion: "reduce" });
     await gotoReady(page, "en");
     const titles = page.locator('[data-state="support-on-driven"] [data-why-t]');
     await expect(titles).toHaveCount(4);

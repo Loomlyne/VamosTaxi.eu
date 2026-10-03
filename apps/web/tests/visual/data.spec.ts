@@ -28,7 +28,7 @@
 // Contract's reduced-viewport allowance (1440/390 only) applies to them, same as
 // core.spec.ts/forms.spec.ts.
 
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect, type Page } from "../support/test";
 import { mountBundle, mountPort, waitForMockReady } from "../support/mock-harness";
 
 const REDUCED_VIEWPORT_PROJECTS = new Set(["component-1440", "component-390"]);
@@ -222,9 +222,9 @@ test.describe("ListRow @component", () => {
 
   test("chevron (mirrors under RTL, port only — see ListRow.tsx) @component", async ({ page }) => {
     // Port only, not a bundle-vs-port diff: ListRow.tsx wraps the chevron icon in a
-    // `<span className="vt-row__chevron">` specifically so the RTL mirror rule
-    // (`[dir="rtl"] .vt-row__chevron{transform:scaleX(-1)}`, ListRow.css) has
-    // something to target — the compiled bundle renders the same chevron `Icon`
+    // `<span className="vt-row__chevron">` (it once carried a local RTL flip; since 261002
+    // the chevron is mirrored only by design-system/tokens/laws.css 03, and the wrapper
+    // stays so the row's markup is unchanged) — the compiled bundle renders the same chevron `Icon`
     // unwrapped (confirmed by reading `function ListRow` in `_ds_bundle.js`
     // directly), a deliberate structural difference (not a Fidelity Contract
     // regression) that changes the row's own flex-item height by a few px, since the

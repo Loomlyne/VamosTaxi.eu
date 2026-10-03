@@ -7,7 +7,7 @@
 // Local only. Prints no secrets: mail links, codes, tokens and access tokens are parsed in-process.
 import crypto from "node:crypto";
 import {
-  PORT, RUN, ORIGIN, rec, finish, sql, sqlFile, Jar, req, newIp, nap, timed, before, newMail, mailCount, linkOf, codeOf, subjectOf, linkType, follow,
+  PORT, RUN, ORIGIN, rec, finish, sql, sqlFile, Jar, req, newIp, nap, timed, before, newMail, mailCount, linkOf, codeOf, subjectOf, linkType, follow, sealE,
   admin, createAuthUser, authUserCount, confirmedAt, ensureFixture, setGuestSwitch, mintQuote, intentBody, payReq, agreementRows, consentLogCount,
   sessionCookie, CLASS_SLUG, freshWindow,
 } from "./checkout-common.mjs";
@@ -113,13 +113,14 @@ rec("6 before the link: nothing is linked to the account (customer_id null) and 
   linkedBefore === "f" && noSession.status === 401 && pwSess.json?.signedIn !== true,
   `booking customer_id set=${linkedBefore}; /api/account/bookings without session ${noSession.status}; password sign-in gives a session=${pwSess.json?.signedIn === true} (answer ${pwTry.status} ${JSON.stringify(pwTry.json)})`);
 
-// Follow the callback link built exactly as provision-account.ts builds it: verify type = generateLink's verification_type, else magiclink.
+// Follow the link built exactly as provision-account.ts builds it (F12): the confirm page with the address sealed in `e`.
+// verify type = generateLink's verification_type, else magiclink.
 const gl = await admin("POST", "/auth/v1/admin/generate_link", { type: "magiclink", email: PROV });
 const hashed = gl.json?.hashed_token ?? gl.json?.properties?.hashed_token;
 const vtype = gl.json?.verification_type ?? gl.json?.properties?.verification_type ?? "magiclink";
-const cb = (t) => `/api/auth/callback?token_hash=${encodeURIComponent(hashed)}&type=${t}&next=${encodeURIComponent("/en/account")}`;
+const cb = async (h, t) => `http://localhost:${PORT}/sign-in/confirm?token_hash=${encodeURIComponent(h)}&type=${t}&next=${encodeURIComponent("/en/account")}&e=${encodeURIComponent(await sealE(PROV, h))}`;
 const jar5 = new Jar();
-let f5 = await follow(`http://localhost:${PORT}${cb(vtype)}`, jar5);
+let f5 = await follow(await cb(hashed, vtype), jar5);
 let s5 = await req("GET", "/api/auth/session", { jar: jar5 });
 let usedType = vtype;
 let fallbackNeeded = false;
@@ -129,7 +130,7 @@ if (s5.json?.signedIn !== true) {
   const gl2 = await admin("POST", "/auth/v1/admin/generate_link", { type: "magiclink", email: PROV });
   const h2 = gl2.json?.hashed_token ?? gl2.json?.properties?.hashed_token;
   const jarE = new Jar();
-  await follow(`http://localhost:${PORT}/api/auth/callback?token_hash=${encodeURIComponent(h2)}&type=email&next=${encodeURIComponent("/en/account")}`, jarE);
+  await follow(await cb(h2, "email"), jarE);
   const sE = await req("GET", "/api/auth/session", { jar: jarE });
   usedType = sE.json?.signedIn === true ? "email (fallback works)" : "none works";
 }

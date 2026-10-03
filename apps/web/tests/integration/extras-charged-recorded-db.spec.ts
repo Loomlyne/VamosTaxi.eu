@@ -10,11 +10,16 @@
 // `pet-crate` 1500. Nothing is written to any hosted database; the local stack is never reset;
 // everything runs in ONE transaction that is rolled back.
 // Needs the stack: `bash scripts/local-stack-263.sh start`. Not run in CI.
+// Port contract (26.0-09, D-01/D-07): the port is VAMOS_TEST_DB_PORT, default 55322 so the 26.3
+// session's workflow is unchanged (no env = 127.0.0.1:55322, loopback check only, no marker).
+// With the env set (CI, local-test-stack.sh) the throwaway marker is also required. The
+// connection uses the Worker's own client options (workerSql, fetch_types:false), so array
+// bugs like VT-26-0733 show here.
 
-import { execFileSync } from "node:child_process";
-import { join } from "node:path";
-import { test, expect } from "@playwright/test";
-import postgres from "postgres";
+import { test, expect } from "../support/test";
+import type postgres from "postgres";
+import { workerSql } from "../../../../packages/db/test/support/worker-client";
+import { requireTestStack, testDbPort } from "../support/test-stack";
 import { runCheckoutIntent, type CheckoutIntentDeps } from "../../lib/checkout/intent";
 import { checkoutIntentSchema } from "../../lib/checkout/intent-schema";
 import { createBooking, issueManageToken } from "../../lib/checkout/create-booking";
@@ -29,20 +34,22 @@ import { mapBoardBooking, type SqlBoardRow } from "../../lib/ops/bookings-map";
 import { mintLock, type QuoteLockPayload } from "../../lib/quote/lock";
 
 const RUN_PROJECT = "component-1440";
-const REPO_ROOT = join(process.cwd(), "..", "..");
 const SECRETS = { current: "lock-secret-extras-g6" };
 const CLASS_NET = 6000;
 
 function localUrl(): string {
-  const url = execFileSync("bash", ["scripts/local-stack-263.sh", "url"], {
-    cwd: REPO_ROOT,
-    encoding: "utf8",
-  }).trim();
+  const port = testDbPort("55322");
+  const url = `postgres://postgres:postgres@127.0.0.1:${port}/postgres`;
   const parsed = new URL(url);
-  if (parsed.hostname !== "127.0.0.1" || parsed.port !== "55322") {
-    throw new Error(`refusing to run against ${parsed.host}: only the 127.0.0.1:55322 stack is allowed`);
+  if (parsed.hostname !== "127.0.0.1" || parsed.port !== port) {
+    throw new Error(`refusing to run against ${parsed.host}: only loopback port ${port} is allowed`);
   }
   return url;
+}
+
+/** With VAMOS_TEST_DB_PORT set (CI, $STACK) the throwaway marker is required before any write. */
+async function guardStack(url: string): Promise<void> {
+  if (process.env.VAMOS_TEST_DB_PORT) await requireTestStack(url, testDbPort("55322"));
 }
 
 class Rollback extends Error {}
@@ -86,7 +93,9 @@ type Outcome = {
 };
 
 test("child-seat and pet-crate: labelled, priced, sent to Stripe, saved and shown in ops; unticked adds nothing @checkout", async () => {
-  const sql = postgres(localUrl(), { max: 1, onnotice: () => undefined });
+  const url = localUrl();
+  await guardStack(url);
+  const sql = workerSql(url, "identity");
   const outcomes: Outcome[] = [];
   let labelRows: Array<{ code: string; label_en: string; label_de: string; label_fr: string; label_ar: string }> = [];
   let catalogLabels: Record<string, Record<string, string>> = {};
@@ -131,7 +140,11 @@ test("child-seat and pet-crate: labelled, priced, sent to Stripe, saved and show
           predicate: { kind: "manual" },
         });
         const loadLabels = async (): Promise<ExtraLabelsByCode> => {
+          // The real reader runs as anon (asQuote in lib/checkout/checkout-catalog.ts); since
+          // 20261007180000 (G12) vamos_checkout holds no EXECUTE on extra_labels_read.
+          await tx`set local role anon`;
           const rows = await tx<typeof labelRows>`select * from public.extra_labels_read()`;
+          await tx`set local role vamos_checkout`;
           labelRows = rows;
           const out: ExtraLabelsByCode = {};
           for (const r of rows) out[r.code] = { en: r.label_en, de: r.label_de, fr: r.label_fr, ar: r.label_ar };

@@ -17,9 +17,13 @@
 // mapping for I18N-03/I18N-04) runs this suite alone, and the plain `pnpm test:visual`
 // still picks it up as part of the full run.
 
-import { test, expect } from "@playwright/test";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { test, expect } from "../support/test";
+import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { nextDevEnv } from "../support/test-stack";
 
 const RUN_PROJECT = "component-1440";
 
@@ -32,14 +36,15 @@ test.beforeAll(async ({}, testInfo) => {
   // don't vary by viewport at all, so there is nothing a second project would add.
   if (testInfo.project.name !== RUN_PROJECT) return;
 
-  testInfo.setTimeout(90_000);
+  testInfo.setTimeout(240_000); // 26.0: a cold next dev start passes 90 s when the Mac is busy
 
-  const port = 4000 + testInfo.workerIndex;
+  const port = testPort(4400) + testInfo.workerIndex; // 26.0: 4000 + the 2000 offset was 6000, a port fetch refuses (X11)
   baseURL = `http://localhost:${port}`;
   devServer = spawn("pnpm", ["exec", "next", "dev", "-p", String(port)], {
     cwd: WEB_ROOT,
     stdio: "ignore",
     detached: true,
+    env: nextDevEnv({}, { gallery: true }),
   });
   await waitForNextServer(baseURL);
 });
@@ -68,14 +73,19 @@ interface LocaleExpectation {
   title: string;
 }
 
-// The exact HomePage.title strings from apps/web/i18n/messages/{locale}.json — asserted
-// against the literal migrated copy, not re-derived, so a translation regression in the
-// dictionary itself would also fail this suite.
+// 26.0: since the SEO ship the tab title of each home address is the owner-approved one in
+// lib/seo/pages.json (key "home"), not the old HomePage.title copy of the mock. Read from that file.
+const HOME_TITLES = (
+  JSON.parse(readFileSync(join(__dirname, "../../lib/seo/pages.json"), "utf8")) as {
+    pages: { key: string; title: Record<string, string> }[];
+  }
+).pages.find((p) => p.key === "home")!.title;
+
 const LOCALE_EXPECTATIONS: Record<string, LocaleExpectation> = {
-  en: { path: "/", dir: "ltr", title: "Fixed-price transfers, Zurich first" },
-  de: { path: "/de", dir: "ltr", title: "Festpreis-Transfers, zuerst in Zürich" },
-  fr: { path: "/fr", dir: "ltr", title: "Transferts à prix fixe, Zurich en premier" },
-  ar: { path: "/ar", dir: "rtl", title: "نقلات بسعر ثابت، زيورخ أولاً" },
+  en: { path: "/", dir: "ltr", title: HOME_TITLES["en"]! },
+  de: { path: "/de", dir: "ltr", title: HOME_TITLES["de"]! },
+  fr: { path: "/fr", dir: "ltr", title: HOME_TITLES["fr"]! },
+  ar: { path: "/ar", dir: "rtl", title: HOME_TITLES["ar"]! },
 };
 
 test.describe("Server-rendered locale @ssr-locale", () => {

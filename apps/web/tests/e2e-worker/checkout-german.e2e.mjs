@@ -131,6 +131,8 @@ try {
 
   if (link) {
     await p2.goto(link, { waitUntil: "load", timeout: 60000 });
+    // F12: the link opens the confirm page; the session starts when its button is pressed.
+    await p2.locator("[data-cf-cta] button").first().click({ timeout: 45000 });
     await p2.locator("[data-co-classes]").waitFor({ timeout: 30000 });
     await p2.waitForTimeout(1500);
     const u = new URL(p2.url());

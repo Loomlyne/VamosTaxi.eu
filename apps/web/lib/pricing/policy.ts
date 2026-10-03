@@ -287,3 +287,19 @@ export function sumPreCouponTotal(lines: Line[]): number | null {
   }
   return sum;
 }
+
+/**
+ * 26.2 audit (U04-1): a class's total BEFORE the coupon line, read from the lines
+ * the kernel built. Null when the class is unpriced or any amount is null. Checkout
+ * pins this on the lock so it never has to gross a post-coupon total back up
+ * (a fixed coupon is clamped to the total, a percent one is rounded: neither inverts).
+ */
+export function preCouponTotalOfClass(entry: {
+  lines: Line[];
+  total_rappen: number | null;
+}): number | null {
+  if (entry.total_rappen === null) return null;
+  return sumPreCouponTotal(
+    entry.lines.filter((l) => !(l.kind === "discount" && l.code === "coupon")),
+  );
+}

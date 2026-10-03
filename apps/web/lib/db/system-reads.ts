@@ -89,6 +89,21 @@ export const loadPaidCancelMail = async (env: CloudflareEnv, bookingId: string) 
     sql<PaidCancelMailRow[]>`select * from public.paid_cancel_mail_read(${bookingId}::uuid)`,
   ))[0] ?? null;
 
+/**
+ * 261002 settle safety (P-2): the Stripe pages of the change requests a cancel just ended (unpaid, the
+ * difference record not expired). Definer function `booking_cancel_change_pages` (migration 20261007200000),
+ * a cancelled booking only: any other booking lists nothing. The Worker closes each page best effort.
+ */
+export const loadCancelChangePages = async (env: CloudflareEnv, bookingId: string): Promise<string[]> =>
+  (
+    await asSystem(env, (sql) =>
+      sql<{ extra_session_id: string | null }[]>`
+        select extra_session_id from public.booking_cancel_change_pages(${bookingId}::uuid)`,
+    )
+  )
+    .map((row) => String(row.extra_session_id ?? "").trim())
+    .filter((id) => id !== "");
+
 export const loadCapturedPaymentRow = async (env: CloudflareEnv, bookingId: string) =>
   (await asSystem(env, (sql) =>
     sql<CapturedPaymentRow[]>`select * from public.booking_captured_payment(${bookingId}::uuid)`,
@@ -192,3 +207,24 @@ export const readCheckoutAccountUserState = async (
   (await asSystem(env, (sql) =>
     sql<CheckoutAccountUserState[]>`select * from public.checkout_account_user_state(${email})`,
   ))[0] ?? { user_exists: false, confirmed: false, checkout_origin: false };
+
+/** 27.1: true while an account the public sign-in link made has not finished. Definer, boolean only. */
+export const readAccountFinishRequired = async (env: CloudflareEnv, userId: string): Promise<boolean> =>
+  (await asSystem(env, (sql) =>
+    sql<{ required: boolean }[]>`select public.account_finish_required(${userId}::uuid) as required`,
+  ))[0]?.required === true;
+
+/** 27.1: marks the unconfirmed account the sign-in link just made for this address (definer). */
+export const markAccountFinishPending = async (env: CloudflareEnv, email: string): Promise<void> => {
+  await asSystem(env, (sql) => sql`select public.account_finish_mark(${email})`);
+};
+
+/** 27.1: the finish step stored the tick; the account is finished and the customer row gets the name and phone (definer). */
+export const markAccountFinished = async (
+  env: CloudflareEnv,
+  userId: string,
+  fullName: string,
+  phone: string,
+): Promise<void> => {
+  await asSystem(env, (sql) => sql`select public.account_finish_done(${userId}::uuid, ${fullName}, ${phone})`);
+};

@@ -10,8 +10,8 @@
 //
 //   1. Declaration (D-27)     — LEGAL_LANGUAGES.imprint is exactly ["en","de","fr","ar"],
 //                                matching the served mock's data-vt-legal on
-//                                app/pages/imprint.dc.html. Owner confirmed all four
-//                                imprint texts on 2026-09-27 (docs/audit §6), superseding D-12.
+//                                app/pages/imprint.dc.html. Owner 2026-10-01 (replaces
+//                                D-05): the imprint reads in all four languages.
 //   2. Positive coverage (D-29)— every key the page source actually renders exists
 //                                and is non-empty in every language the page claims.
 //   3. No over-claim (I18N-08) — a claimed language whose derived keys (excluding
@@ -222,7 +222,7 @@ function main() {
   if (!imprintOk) {
     d12.push(
       `apps/web/lib/legal-languages.ts LEGAL_LANGUAGES.imprint is ${JSON.stringify(imprintLangs)}, ` +
-        `must be exactly ${JSON.stringify(IMPRINT_LANGS)} (D-27, owner-confirmed 2026-09-27).`,
+        `must be exactly ${JSON.stringify(IMPRINT_LANGS)} (owner 2026-10-01, replaces D-05).`,
     );
   }
   const imprintMock = readFileSync(join(repoRoot, "app/pages/imprint.dc.html"), "utf8");

@@ -35,4 +35,3 @@
 .vt-sh--inverse .vt-sh__eyebrow{color:var(--vt-accent)}
 .vt-sh--inverse.vt-sh--rule{border-block-end-color:var(--vt-border-inverse)}
 .vt-sh__link{display:inline-flex;align-items:center;gap:7px;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium);border:0}
-[dir="rtl"] .vt-sh__link-icon{transform:scaleX(-1)}

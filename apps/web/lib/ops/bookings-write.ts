@@ -4,13 +4,13 @@
 // (by hand, 20-10: a cancel never calls Stripe). Board `id` is the public reference; bookingId is the uuid.
 // DATA-08: ops_cancel_booking writes booking_events (booking.status_changed) in the same tx.
 
+import { chauffeurEmailLocale, sendFlightNumber } from "@vamos/emails/confirmation";
 import { mintManageToken } from "@/lib/checkout/manage-token";
 import { asStaff, asSystem, type VamosClaims } from "@/lib/db/identity";
 import { expireSessionIds } from "../checkout/cancel-unpaid";
 import { stripeAccountIsLegacyUaeTest } from "../checkout/charge-gate";
 import { expireCheckoutSession, stripeFromEnv } from "../checkout/stripe";
 import { finishPaidCancel } from "../lifecycle/paid-cancel";
-import { liveClassSlug } from "./class-slug";
 import { mapRefundSqlError, sqlErrorCode } from "./refund-map";
 import { resolveStaffBookingId } from "./resolve-booking-id";
 import { OPS_SQLSTATE } from "./sqlstate";
@@ -26,19 +26,16 @@ export type CancelledBooking = {
   paid: boolean;
 };
 
+/**
+ * 26.2 P6 (D6, D8): what the in-place save of a paid booking may still change. Places, date, time,
+ * passengers, bags and class are priced and confirmed through …/change (booking-trip-change.ts).
+ */
 export type BookingPatch = {
   customer?: string;
   email?: string;
   phone?: string;
   note?: string;
-  pickup?: string;
-  dropoff?: string;
-  dateIso?: string;
-  time?: string;
-  pax?: number;
-  bags?: number;
   flight?: string;
-  klass?: string;
 };
 
 
@@ -232,89 +229,97 @@ export type UpdateResult =
   | { ok: true }
   | { ok: false; code: "not-found" | "unpaid" };
 
+export type ContactUpdateResult =
+  | { ok: true; changed: string[]; flightChanged: boolean; driverMailed: boolean }
+  | { ok: false; code: "not-found" | "unpaid" | "unknown" };
+
+type ContactUpdateRow = {
+  booking_id: string;
+  changed_fields: string | null;
+  flight_changed: boolean;
+  assigned_chauffeur_id: string | null;
+};
+
+/**
+ * 26.2 P6 (D6, D8): name, e-mail, phone, note and flight number of a PAID booking, saved at once
+ * with no new price through booking_staff_contact_update (one booking.modified event names what
+ * changed). An emptied name, e-mail or phone keeps the stored value; no other field is written.
+ * A new flight number: the driver on the trip gets the existing flight-number e-mail (best effort).
+ * The refusal is mapped AROUND asSystem (postgres.js begin() rethrows).
+ */
 export async function updateBooking(
   env: CloudflareEnv,
   claims: VamosClaims,
   id: string,
   patch: BookingPatch,
-): Promise<UpdateResult> {
+): Promise<ContactUpdateResult> {
   const key = id.trim();
   if (!key) return { ok: false, code: "not-found" };
-  return asStaff(env, claims, async (sql) => {
-    const found = await sql<{ id: string }[]>`
-      select id from public.bookings
-      where erased_at is null and (id::text = ${key} or reference = ${key})
-      limit 1
-    `;
-    const bookingId = found[0]?.id;
-    if (!bookingId) return { ok: false, code: "not-found" };
-
-    const paid = await sql<{ id: number }[]>`
-      select 1 as id
-        from public.booking_payments
-       where booking_id = ${bookingId}::uuid
-         and captured_at is not null
-       limit 1
-    `;
-    if (paid.length === 0) return { ok: false, code: "unpaid" };
-
-    await sql`
-      update public.bookings
-      set
-        contact_name = coalesce(${patch.customer ?? null}, contact_name),
-        contact_email = coalesce(${patch.email ?? null}, contact_email),
-        contact_phone = coalesce(${patch.phone ?? null}, contact_phone),
-        note = coalesce(${patch.note ?? null}, note),
-        updated_at = now()
-      where id = ${bookingId}::uuid
-    `;
-
-    const pickup = patch.pickup ?? null;
-    const dropoff = patch.dropoff ?? null;
-    const flight = patch.flight ?? null;
-    // D-14: Economy / Business / Van luxury (or a live slug) -> live slug; First keeps the stored class.
-    const slug = patch.klass ? liveClassSlug(patch.klass) : null;
-    const dateIso = (patch.dateIso ?? "").trim();
-    const time = (patch.time ?? "").trim();
-    const local = dateIso && time ? `${dateIso}T${time}:00` : null;
-    const pax = typeof patch.pax === "number" && Number.isFinite(patch.pax) ? patch.pax : null;
-    const bags = typeof patch.bags === "number" && Number.isFinite(patch.bags) ? patch.bags : null;
-
-    await sql`
-      update public.booking_legs
-      set
-        pickup_text = coalesce(${pickup}, pickup_text),
-        dropoff_text = coalesce(${dropoff}, dropoff_text),
-        flight_no = coalesce(${flight}, flight_no),
-        scheduled_local = coalesce(${local}, scheduled_local),
-        scheduled_at = case
-          when ${local} is null then scheduled_at
-          else (${local}::timestamp at time zone 'Europe/Zurich')
-        end,
-        vehicle_class_id = case
-          when ${slug} is null then vehicle_class_id
-          else coalesce(
-            (select id from public.vehicle_classes where slug = ${slug} limit 1),
-            vehicle_class_id
-          )
-        end
-      where booking_id = ${bookingId}::uuid
-        and leg_seq = (
-          select min(leg_seq) from public.booking_legs where booking_id = ${bookingId}::uuid
+  const bookingId = await resolveStaffBookingId(env, claims, key);
+  if (!bookingId) return { ok: false, code: "not-found" };
+  let row: ContactUpdateRow | null;
+  try {
+    row = await asSystem(env, async (sql) => {
+      const rows = await sql<ContactUpdateRow[]>`
+        select * from public.booking_staff_contact_update(
+          ${bookingId}::uuid,
+          ${claims.sub}::uuid,
+          ${patch.customer ?? null}::text,
+          ${patch.email ?? null}::text,
+          ${patch.phone ?? null}::text,
+          ${patch.note ?? null}::text,
+          ${patch.flight ?? null}::text
         )
-    `;
-    await sql`
-      update public.booking_legs
-      set
-        pax = coalesce(${pax}, pax),
-        bags = coalesce(${bags}, bags)
-      where booking_id = ${bookingId}::uuid
-        and leg_seq = (
-          select min(leg_seq) from public.booking_legs where booking_id = ${bookingId}::uuid
-        )
-    `;
-    return { ok: true };
-  });
+      `;
+      return rows[0] ?? null;
+    });
+  } catch (err) {
+    if (sqlErrorCode(err) === OPS_SQLSTATE.noData) return { ok: false, code: "not-found" };
+    const message = err instanceof Error ? err.message : "";
+    if (message === "unpaid") return { ok: false, code: "unpaid" };
+    console.error("updateBooking", bookingId, sqlErrorCode(err) ?? "", message);
+    return { ok: false, code: "unknown" };
+  }
+  if (!row) return { ok: false, code: "not-found" };
+  const changed = String(row.changed_fields ?? "").split(",").map((f) => f.trim()).filter(Boolean);
+  const flightNo = String(patch.flight ?? "").trim().toUpperCase();
+  let driverMailed = false;
+  if (row.flight_changed && flightNo && row.assigned_chauffeur_id) {
+    driverMailed = await mailDriverFlight(env, bookingId, String(row.assigned_chauffeur_id), flightNo);
+  }
+  return { ok: true, changed, flightChanged: row.flight_changed === true, driverMailed };
+}
+
+/** D8: the existing flight-number e-mail to the driver on the trip, in his language. */
+async function mailDriverFlight(env: CloudflareEnv, bookingId: string, chauffeurId: string, flightNo: string): Promise<boolean> {
+  const key = env.RESEND_API_KEY ?? "";
+  if (!key) return false;
+  try {
+    const facts = await asSystem(env, async (sql) => {
+      const rows = await sql<
+        { email: string | null; languages_csv: string | null; reference: string; pickup_text: string | null; dropoff_text: string | null; scheduled_local: string | null }[]
+      >`select * from public.booking_change_mail_facts(${bookingId}::uuid, ${chauffeurId}::uuid)`;
+      return rows[0] ?? null;
+    });
+    const to = String(facts?.email ?? "").trim();
+    if (!facts || !to) return false;
+    const sent = await sendFlightNumber(
+      { RESEND_API_KEY: key },
+      {
+        reference: String(facts.reference),
+        locale: chauffeurEmailLocale(String(facts.languages_csv ?? "").split(",").map((x) => x.trim()).filter(Boolean)),
+        pickupText: String(facts.pickup_text ?? ""),
+        dropoffText: String(facts.dropoff_text ?? ""),
+        scheduledLocal: String(facts.scheduled_local ?? ""),
+        flightNo,
+      },
+      to,
+    );
+    return sent.ok;
+  } catch {
+    // The flight number is saved either way; the driver sees it on the next mail.
+    return false;
+  }
 }
 
 export async function markArrival(

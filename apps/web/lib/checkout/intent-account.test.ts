@@ -93,12 +93,21 @@ async function pay(opts: {
     hasAccount: async () => opts.known === true,
     sendLink: async () => undefined,
   };
-  const gate = await runAccountGate({ decision, email: parsed.contact.email, account: parsed.account }, gateDeps);
-  if (!gate.proceed) return { gate, stripe, writes, res: null as Response | null };
+  // The route's gate runs inside runCheckoutIntent, right after the lock verifies (U11-4).
+  let gate: Awaited<ReturnType<typeof runAccountGate>> | null = null;
+  let record: { choice: "guest" | "create"; textVersion: string } | null = null;
+  const accountGate = async () => {
+    gate = await runAccountGate({ decision, email: parsed.contact.email, account: parsed.account }, gateDeps);
+    if (gate.proceed) {
+      record = gate.record;
+      return null;
+    }
+    return new Response(JSON.stringify({ ok: false, code: gate.code }), { status: gate.status });
+  };
 
-  const record = gate.record;
   const deps = {
     mode: "web",
+    accountGate,
     origin: "https://vamostaxi.site",
     checkoutWindowMinutes: 31,
     lockSecrets: SECRETS,
@@ -130,16 +139,16 @@ async function pay(opts: {
     loadCatalog: async () => [],
     ownsBooking: async () => false,
     setBookingDetails: async () => undefined,
-    afterBooking: record
-      ? async (bookingId: string) => {
-          // Mirrors the route: surface checkout, e-mail null (D-19).
-          writes.push(["checkout", bookingId, null, record.choice, record.textVersion, parsed.locale]);
-          if (opts.writeThrows) throw Object.assign(new Error("secret detail"), { code: "23514" });
-        }
-      : undefined,
+    afterBooking: async (bookingId: string) => {
+      const r = record as { choice: string; textVersion: string } | null;
+      if (!r) return;
+      // Mirrors the route: surface checkout, e-mail null (D-19).
+      writes.push(["checkout", bookingId, null, r.choice, r.textVersion, parsed.locale]);
+      if (opts.writeThrows) throw Object.assign(new Error("secret detail"), { code: "23514" });
+    },
   } as unknown as CheckoutIntentDeps;
   const res = await runCheckoutIntent(parsed, deps);
-  return { gate, stripe, writes, res };
+  return { gate: gate as Awaited<ReturnType<typeof runAccountGate>> | null, stripe, writes, res };
 }
 
 describe("intent schema account block", () => {
@@ -219,11 +228,59 @@ describe("PAY with the account block (26.5-04)", () => {
   });
 });
 
+describe("account gate waits for the lock (26.2 audit U11-4)", () => {
+  async function forged(known: boolean) {
+    const sendLink = vi.fn(async () => undefined);
+    const hasAccount = vi.fn(async () => known);
+    const parsed = checkoutIntentSchema.parse(await body({ choice: "guest", consent: false }));
+    const decision = decideAccount({ signedIn: false, account: parsed.account, guestOn: true, createAvailable: true });
+    const gateDeps: AccountGateDeps = {
+      verifyTurnstile: async () => true,
+      ipLimit: async () => true,
+      emailLimit: async () => true,
+      hasAccount,
+      sendLink,
+    };
+    const stripe: string[] = [];
+    const deps = {
+      mode: "web",
+      lockSecrets: SECRETS,
+      workerNowIso: NOW,
+      postgresNowIso: NOW,
+      reprice: () => ({ pricing_live: true, engine_version: "quote-engine@test", classes: [] }),
+      accountGate: async () => {
+        const gate = await runAccountGate({ decision, email: parsed.contact.email, account: parsed.account }, gateDeps);
+        return gate.proceed ? null : new Response(JSON.stringify({ ok: false, code: gate.code }), { status: gate.status });
+      },
+      createCheckoutSession: async () => {
+        stripe.push("create");
+        throw new Error("never");
+      },
+    } as unknown as CheckoutIntentDeps;
+    const res = await runCheckoutIntent({ ...parsed, lock: "forged-lock" }, deps);
+    return { res, sendLink, hasAccount, stripe };
+  }
+
+  it("a forged lock with a known e-mail gets the lock refusal, no account lookup and no mail", async () => {
+    const out = await forged(true);
+    expect(out.res.status).toBe(404);
+    expect(((await out.res.json()) as { code: string }).code).toBe("quote_not_found");
+    expect(out.hasAccount).not.toHaveBeenCalled();
+    expect(out.sendLink).not.toHaveBeenCalled();
+    expect(out.stripe).toEqual([]);
+  });
+});
+
 describe("route wiring", () => {
   const route = readFileSync(join(here, "../../app/api/checkout/intent/route.ts"), "utf8");
-  it("gates before the intent runs and passes an e-mail-less record write", () => {
+  it("hands the gate to the intent, which runs it after the lock check, and passes an e-mail-less record write", () => {
     expect(route.indexOf("gateAccountForRequest(")).toBeGreaterThan(-1);
-    expect(route.indexOf("gateAccountForRequest(")).toBeLessThan(route.indexOf("return runCheckoutIntent("));
+    expect(route).toContain("accountGate,");
+    // U11-4: the route itself no longer asks about the e-mail before the lock is verified.
+    expect(route.indexOf("gateAccountForRequest(")).toBeGreaterThan(route.indexOf("const accountGate"));
+    const intent = readFileSync(join(here, "intent.ts"), "utf8");
+    expect(intent.indexOf("if (!checked.ok)")).toBeLessThan(intent.indexOf("deps.accountGate?.()"));
+    expect(intent.indexOf("deps.accountGate?.()")).toBeLessThan(intent.indexOf("deps.createCheckoutSession"));
     expect(route).toContain("public.record_account_agreement");
     expect(route).toMatch(/'checkout',\s+\$\{bookingId\}::uuid,\s+null,/);
   });

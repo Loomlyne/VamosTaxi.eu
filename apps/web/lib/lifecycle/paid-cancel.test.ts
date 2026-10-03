@@ -18,6 +18,7 @@ function read(rel: string): string {
 const createRefund = vi.fn();
 const retrieveRefund = vi.fn();
 const stripeFromEnv = vi.fn();
+const expireCheckoutSession = vi.fn();
 const asSystem = vi.fn();
 
 vi.mock("../checkout/stripe", async (importOriginal) => {
@@ -27,6 +28,7 @@ vi.mock("../checkout/stripe", async (importOriginal) => {
     createRefund: (...args: unknown[]) => createRefund(...args),
     retrieveRefund: (...args: unknown[]) => retrieveRefund(...args),
     stripeFromEnv: (...args: unknown[]) => stripeFromEnv(...args),
+    expireCheckoutSession: (...args: unknown[]) => expireCheckoutSession(...args),
   };
 });
 
@@ -38,6 +40,7 @@ vi.mock("../db/identity", () => ({
 
 const notifyCancellation = vi.fn();
 const loadPaidCancelMail = vi.fn();
+const loadCancelChangePages = vi.fn();
 const asGuest = vi.fn();
 
 vi.mock("./notify-lifecycle", async (importOriginal) => {
@@ -47,7 +50,11 @@ vi.mock("./notify-lifecycle", async (importOriginal) => {
 
 vi.mock("../db/system-reads", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../db/system-reads")>();
-  return { ...actual, loadPaidCancelMail: (...args: unknown[]) => loadPaidCancelMail(...args) };
+  return {
+    ...actual,
+    loadPaidCancelMail: (...args: unknown[]) => loadPaidCancelMail(...args),
+    loadCancelChangePages: (...args: unknown[]) => loadCancelChangePages(...args),
+  };
 });
 
 const BOOKING_ID = "00000000-0000-4000-8000-000000000009";
@@ -68,11 +75,18 @@ describe("createRefund contract", () => {
   });
 });
 
-describe("paid-cancel makes no Stripe call (20-10)", () => {
+describe("paid-cancel makes no Stripe refund call (20-10)", () => {
   it("has no refund helper, no createRefund, no live-key branch", () => {
     const src = read("apps/web/lib/lifecycle/paid-cancel.ts");
-    expect(src).not.toMatch(/applyStripeRefund|createRefund|record_booking_refund|stripeFromEnv|sk_live_/);
+    expect(src).not.toMatch(/applyStripeRefund|createRefund|record_booking_refund|sk_live_/);
     expect(src).toMatch(/notifyCancellation/);
+  });
+
+  // 261002 settle safety (P-2): the one Stripe call a cancel makes is closing the page of a change it ended.
+  it("the only Stripe call it makes is expireCheckoutSession (a page it closes, never a refund)", () => {
+    const src = read("apps/web/lib/lifecycle/paid-cancel.ts");
+    expect(src).toMatch(/import \{ expireCheckoutSession, stripeFromEnv \} from "\.\.\/checkout\/stripe";/);
+    expect(src).not.toMatch(/stripe\.refunds|retrieveRefund|payment_intents/);
   });
 
   it("neither the cancel routes, bookings-write nor this file call createRefund", () => {
@@ -173,25 +187,31 @@ describe("paid cancel, refunds by hand (20-10)", () => {
     chauffeur_email: null,
   };
 
+  // The guest role sees its own booking only (row security): the ownership read answers it, the cancel answers row.
   function guestReturns(row: Record<string, unknown>) {
     asGuest.mockImplementation(async (_env: CloudflareEnv, _hash: string, fn: (sql: unknown) => unknown) => {
-      const sql = async () => [row];
+      const sql = async (strings: TemplateStringsArray) =>
+        strings.join("?").includes("manage_booking_cancel") ? [row] : [{ id: BOOKING_ID, reference: "VT-26-0101" }];
       return fn(sql);
     });
   }
 
   beforeEach(() => {
-    for (const m of [createRefund, retrieveRefund, stripeFromEnv, asSystem, asGuest, notifyCancellation, loadPaidCancelMail]) {
+    for (const m of [
+      createRefund, retrieveRefund, stripeFromEnv, expireCheckoutSession, asSystem, asGuest, notifyCancellation,
+      loadPaidCancelMail, loadCancelChangePages,
+    ]) {
       m.mockReset();
     }
     loadPaidCancelMail.mockResolvedValue(MAIL_ROW);
+    loadCancelChangePages.mockResolvedValue([]);
     stripeFromEnv.mockReturnValue({});
   });
 
   it("more than 24 h ahead: zero Stripe refund calls, answers refund due with the owed amount", async () => {
     guestReturns({ booking_id: BOOKING_ID, refund_mode: "auto_full", refund_rappen: 10000, stripe_payment_intent_id: PI });
     const { paidCancelGuest } = await import("./paid-cancel");
-    const result = await paidCancelGuest(ENV, "ab".repeat(32));
+    const result = await paidCancelGuest(ENV, "ab".repeat(32), "VT-26-0101");
     expect(result).toEqual({
       ok: true,
       bookingId: BOOKING_ID,
@@ -210,7 +230,7 @@ describe("paid cancel, refunds by hand (20-10)", () => {
   it("the same with a live key: still ok, still zero Stripe calls", async () => {
     guestReturns({ booking_id: BOOKING_ID, refund_mode: "auto_full", refund_rappen: 10000, stripe_payment_intent_id: PI });
     const { paidCancelGuest } = await import("./paid-cancel");
-    const result = await paidCancelGuest({ STRIPE_SECRET_KEY: "sk_live_x" } as CloudflareEnv, "ab".repeat(32));
+    const result = await paidCancelGuest({ STRIPE_SECRET_KEY: "sk_live_x" } as CloudflareEnv, "ab".repeat(32), "VT-26-0101");
     expect(result).toMatchObject({ ok: true, refundStatus: "pending_ops", refundRappen: 10000 });
     expect(createRefund).not.toHaveBeenCalled();
     expect(stripeFromEnv).not.toHaveBeenCalled();
@@ -220,7 +240,7 @@ describe("paid cancel, refunds by hand (20-10)", () => {
   it("inside 24 h: pending_ops, the team decides, mail line pending_ops", async () => {
     guestReturns({ booking_id: BOOKING_ID, refund_mode: "pending_ops", refund_rappen: null, stripe_payment_intent_id: PI });
     const { paidCancelGuest } = await import("./paid-cancel");
-    const result = await paidCancelGuest(ENV, "ab".repeat(32));
+    const result = await paidCancelGuest(ENV, "ab".repeat(32), "VT-26-0101");
     expect(result).toMatchObject({ ok: true, refundMode: "pending_ops", refundStatus: "pending_ops", refundRappen: 0 });
     expect(createRefund).not.toHaveBeenCalled();
     expect(notifyCancellation.mock.calls[0]![1]).toMatchObject({ refundLine: "pending_ops" });
@@ -229,9 +249,154 @@ describe("paid cancel, refunds by hand (20-10)", () => {
   it("auto_full with nothing captured is none, mail line none", async () => {
     guestReturns({ booking_id: BOOKING_ID, refund_mode: "auto_full", refund_rappen: 0, stripe_payment_intent_id: null });
     const { paidCancelGuest } = await import("./paid-cancel");
-    const result = await paidCancelGuest(ENV, "ab".repeat(32));
+    const result = await paidCancelGuest(ENV, "ab".repeat(32), "VT-26-0101");
     expect(result).toMatchObject({ ok: true, refundStatus: "none", refundRappen: 0 });
     expect(createRefund).not.toHaveBeenCalled();
     expect(notifyCancellation.mock.calls[0]![1]).toMatchObject({ refundLine: "none" });
+  });
+});
+
+// 261002 settle safety (P-2): a difference paid after a cancel was applied to the cancelled trip. The
+// database now ends a waiting change inside the cancel's own transaction (migration 20261007200000); here
+// the Worker closes the Stripe page of each change the cancel ended, so the customer cannot pay it at all.
+// Synthetic rappen and fake page ids only.
+describe("a paid cancel closes the pages of the changes it ended (261002 settle safety, P-2)", () => {
+  const MAIL_ROW = {
+    reference: "VT-26-0801",
+    locale: "en",
+    contact_email: "anna@example.test",
+    pickup_text: "A",
+    dropoff_text: "B",
+    scheduled_local: "2026-10-20 10:00",
+    assigned_chauffeur_id: null,
+    chauffeur_email: null,
+  };
+  const ROW = { booking_id: BOOKING_ID, refund_mode: "auto_full", refund_rappen: 10000, stripe_payment_intent_id: PI };
+  const STRIPE = { fake: "stripe" };
+
+  beforeEach(() => {
+    for (const m of [
+      createRefund, retrieveRefund, stripeFromEnv, expireCheckoutSession, asSystem, asGuest, notifyCancellation,
+      loadPaidCancelMail, loadCancelChangePages,
+    ]) {
+      m.mockReset();
+    }
+    loadPaidCancelMail.mockResolvedValue(MAIL_ROW);
+    stripeFromEnv.mockReturnValue(STRIPE);
+    expireCheckoutSession.mockResolvedValue({ status: "expired" });
+    notifyCancellation.mockResolvedValue(undefined);
+  });
+
+  it("every listed page is expired once, with the booking's own read, BEFORE the mail (the customer may be on the pay page)", async () => {
+    const order: string[] = [];
+    loadCancelChangePages.mockImplementation(async () => {
+      order.push("read");
+      return ["cs_test_wait_1", "cs_test_wait_2"];
+    });
+    expireCheckoutSession.mockImplementation(async (_stripe: unknown, id: string) => {
+      order.push(`expire:${id}`);
+      return { status: "expired" };
+    });
+    notifyCancellation.mockImplementation(async () => {
+      order.push("mail");
+    });
+    const { finishPaidCancel } = await import("./paid-cancel");
+    const result = await finishPaidCancel(ENV, ROW);
+    expect(loadCancelChangePages).toHaveBeenCalledTimes(1);
+    expect(loadCancelChangePages.mock.calls[0]).toEqual([ENV, BOOKING_ID]);
+    expect(expireCheckoutSession).toHaveBeenCalledTimes(2);
+    expect(expireCheckoutSession.mock.calls.map((c) => [c[0], c[1]])).toEqual([
+      [STRIPE, "cs_test_wait_1"],
+      [STRIPE, "cs_test_wait_2"],
+    ]);
+    expect(order[0]).toBe("read");
+    expect(order.indexOf("mail")).toBeGreaterThan(order.indexOf("expire:cs_test_wait_1"));
+    expect(order.indexOf("mail")).toBeGreaterThan(order.indexOf("expire:cs_test_wait_2"));
+    // The answer is the cancel's own, unchanged by the page close.
+    expect(result).toEqual({
+      ok: true,
+      bookingId: BOOKING_ID,
+      refundMode: "auto_full",
+      refundStatus: "pending_ops",
+      refundRappen: 10000,
+    });
+    // A page close is not a refund.
+    expect(createRefund).not.toHaveBeenCalled();
+    expect(retrieveRefund).not.toHaveBeenCalled();
+  });
+
+  it("the guest door reaches it (the link, the signed-in door and the dashboard all end in finishPaidCancel)", async () => {
+    loadCancelChangePages.mockResolvedValue(["cs_test_wait_1"]);
+    asGuest.mockImplementation(async (_env: CloudflareEnv, _hash: string, fn: (sql: unknown) => unknown) => {
+      const sql = async (strings: TemplateStringsArray) =>
+        strings.join("?").includes("manage_booking_cancel") ? [ROW] : [{ id: BOOKING_ID, reference: "VT-26-0801" }];
+      return fn(sql);
+    });
+    const { paidCancelGuest } = await import("./paid-cancel");
+    const result = await paidCancelGuest(ENV, "ab".repeat(32), "VT-26-0801");
+    expect(result).toMatchObject({ ok: true, bookingId: BOOKING_ID });
+    expect(expireCheckoutSession).toHaveBeenCalledTimes(1);
+    expect(expireCheckoutSession.mock.calls[0]![1]).toBe("cs_test_wait_1");
+
+    for (const f of ["apps/web/lib/lifecycle/paid-cancel.ts", "apps/web/lib/ops/bookings-write.ts"]) {
+      expect(read(f)).toMatch(/finishPaidCancel\(/);
+    }
+    const lib = read("apps/web/lib/lifecycle/paid-cancel.ts");
+    expect(lib.match(/return finishPaidCancel\(env, /g)).toHaveLength(2);
+  });
+
+  it("no change ended, no page: no Stripe client is even built", async () => {
+    loadCancelChangePages.mockResolvedValue([]);
+    const { finishPaidCancel } = await import("./paid-cancel");
+    expect(await finishPaidCancel(ENV, ROW)).toMatchObject({ ok: true, bookingId: BOOKING_ID });
+    expect(stripeFromEnv).not.toHaveBeenCalled();
+    expect(expireCheckoutSession).not.toHaveBeenCalled();
+    expect(notifyCancellation).toHaveBeenCalledTimes(1);
+  });
+
+  it("a blank page id is not sent to Stripe", async () => {
+    loadCancelChangePages.mockResolvedValue(["", "  ", "cs_test_wait_1"]);
+    const { finishPaidCancel } = await import("./paid-cancel");
+    await finishPaidCancel(ENV, ROW);
+    expect(expireCheckoutSession.mock.calls.map((c) => c[1])).toEqual(["cs_test_wait_1"]);
+  });
+
+  it("the read failing changes nothing: same answer, the mail still goes, Stripe is not called", async () => {
+    loadCancelChangePages.mockRejectedValue(new Error("function booking_cancel_change_pages does not exist"));
+    const { finishPaidCancel } = await import("./paid-cancel");
+    const result = await finishPaidCancel(ENV, ROW);
+    expect(result).toEqual({
+      ok: true,
+      bookingId: BOOKING_ID,
+      refundMode: "auto_full",
+      refundStatus: "pending_ops",
+      refundRappen: 10000,
+    });
+    expect(expireCheckoutSession).not.toHaveBeenCalled();
+    expect(notifyCancellation).toHaveBeenCalledTimes(1);
+  });
+
+  it("Stripe refusing a page (already paid or expired) changes nothing, and the other pages are still tried", async () => {
+    loadCancelChangePages.mockResolvedValue(["cs_test_done", "cs_test_wait_2"]);
+    expireCheckoutSession.mockImplementation(async (_stripe: unknown, id: string) => {
+      if (id === "cs_test_done") throw new Error("This Checkout Session is not open");
+      return { status: "expired" };
+    });
+    const { finishPaidCancel } = await import("./paid-cancel");
+    const result = await finishPaidCancel(ENV, ROW);
+    expect(result).toMatchObject({ ok: true, refundStatus: "pending_ops", refundRappen: 10000 });
+    expect(expireCheckoutSession.mock.calls.map((c) => c[1])).toEqual(["cs_test_done", "cs_test_wait_2"]);
+    expect(notifyCancellation).toHaveBeenCalledTimes(1);
+  });
+
+  it("no Stripe key on the Worker (the client cannot be built) changes nothing either", async () => {
+    loadCancelChangePages.mockResolvedValue(["cs_test_wait_1"]);
+    stripeFromEnv.mockImplementation(() => {
+      throw new Error("STRIPE_SECRET_KEY is not set");
+    });
+    const { finishPaidCancel } = await import("./paid-cancel");
+    expect(await finishPaidCancel(ENV, ROW)).toMatchObject({ ok: true, bookingId: BOOKING_ID });
+    expect(expireCheckoutSession).not.toHaveBeenCalled();
+    expect(notifyCancellation).toHaveBeenCalledTimes(1);
   });
 });

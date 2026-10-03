@@ -10,11 +10,10 @@ import type { CSSProperties, ImgHTMLAttributes } from "react";
 // that").
 const FALLBACK_BASE = "/brand/patterns/";
 
+// 26.2 audit U06-20: the app never sets `--vt-pattern-base` (only the mock test harness does), so the
+// per-render getComputedStyle read always fell back to this constant. Use it directly.
 function patternBase(): string {
-  if (typeof window === "undefined") return FALLBACK_BASE;
-  const raw = getComputedStyle(document.documentElement).getPropertyValue("--vt-pattern-base");
-  const clean = (raw || "").trim().replace(/^["']|["']$/g, "");
-  return clean || FALLBACK_BASE;
+  return FALLBACK_BASE;
 }
 
 interface CheckerMarkOwnProps {

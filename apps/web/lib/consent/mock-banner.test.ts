@@ -91,6 +91,6 @@ describe("mock cookie banners", () => {
     expect(src).toContain("../vamos-consent.js");
     expect(src).not.toContain("Strictly necessary cookies keep the booking flow working");
     expect(src).not.toContain("Nothing in this category is running today");
-    expect(src).toContain('data-lenis-prevent="1"');
+    expect(src).not.toContain("data-lenis-prevent");
   });
 });

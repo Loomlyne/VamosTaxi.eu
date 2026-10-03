@@ -19,6 +19,7 @@ import {
   rappenToMajor,
   receiptPriceSplit,
 } from "@/lib/checkout/confirmation-receipt";
+import type { ReceiptRow } from "@/lib/checkout/confirmation-receipt";
 import { formatAmount } from "@/lib/currency";
 import { isCapturedPayment } from "@/lib/checkout/booking-status";
 import {
@@ -59,6 +60,8 @@ export type BookingVoucherFacts = {
   payoutCountry?: string | null;
   availableOn?: string | null;
   reviewSubmitted?: boolean;
+  /** 26.2 audit U06-1: the snapshot receipt (same rows as the e-mail and the booked card). */
+  receipt?: { rows: ReceiptRow[]; vehicleClassName?: string | null };
 };
 
 export type BookingVoucherFallback = {
@@ -89,10 +92,51 @@ function regionName(iso: string, locale: string): string {
   }
 }
 
-function payoutDate(iso: string): string {
+/** 26.2 audit U06-19: the payout day as a localised date, never the raw ISO string. */
+function payoutDate(iso: string, locale: string): string {
   const trimmed = iso.trim();
   if (!trimmed) return "";
-  return trimmed.slice(0, 10);
+  const day = trimmed.slice(0, 10);
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(day);
+  if (!m) return day;
+  try {
+    const tag = locale === "ar" ? "ar" : locale === "de" ? "de-CH" : locale === "fr" ? "fr-CH" : "en-GB";
+    return new Intl.DateTimeFormat(tag, { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(
+      new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]))),
+    );
+  } catch {
+    return day;
+  }
+}
+
+/** 26.2 audit U06-1: money lines from the snapshot rows, so any owner-added extra shows by its own name. */
+function receiptMoneyLines(
+  rows: ReceiptRow[],
+  className: string,
+  t: ReturnType<typeof useTranslations>,
+): { lines: PriceLine[]; total: number | null } {
+  const lines: PriceLine[] = [];
+  let total: number | null = null;
+  for (const row of rows) {
+    const amount = rappenToMajor(row.amountRappen);
+    if (row.kind === "total") {
+      total = amount;
+    } else if (row.kind === "fare") {
+      lines.push({ label: className ? t("receiptFare", { class: className }) : t("receiptFarePlain"), amount });
+    } else if (row.kind === "extra") {
+      lines.push({ label: <span data-confirmation-extra="1">{row.label}</span>, amount });
+    } else if (row.kind === "coupon") {
+      lines.push({
+        label: <span data-confirmation-coupon={row.label}>{t("receiptVoucher", { code: row.label })}</span>,
+        amount,
+        credit: true,
+      });
+    } else if (row.kind === "vat") {
+      const rate = /([0-9]+(?:\.[0-9]+)?)\s*%/.exec(row.label)?.[1];
+      lines.push({ label: rate ? t("receiptVat", { rate }) : t("receiptVatPlain"), amount });
+    }
+  }
+  return { lines, total };
 }
 
 function wallTime(scheduledLocal: string): { date: string; time: string } {
@@ -175,6 +219,9 @@ export function BookingVoucher({
           : classSlug
             ? tCommon("vehicleClassOf", { class: classSlug })
             : t("vehicleClassFallback");
+  // Same rule as the booked card: a class name only when the class is one we can name.
+  const vehicleLabelOrEmpty =
+    classSlug === "economy" || classSlug === "business" || classSlug === "van" ? vehicleLabel : "";
   const classLabelOf = (slug: string) => {
     const value = slug.trim();
     if (value === "economy") return tCommon("vehicleClassEconomy");
@@ -184,7 +231,7 @@ export function BookingVoucher({
     return vehicleLabel;
   };
   const totalRappen = booking?.priceTotalRappen;
-  const totalMajor = rappenToMajor(totalRappen ?? null);
+  const totalMajorRaw = rappenToMajor(totalRappen ?? null);
   const fareLines = Array.isArray(booking?.fareLines) ? booking.fareLines : [];
   const coupon = couponOnReceipt({
     couponCode: booking?.couponCode,
@@ -199,7 +246,14 @@ export function BookingVoucher({
     discountRappen: coupon?.rappen ?? booking?.discountRappen,
   });
   const lines: PriceLine[] = [];
-  if (split) {
+  const snapshotRows = booking?.receipt?.rows ?? [];
+  const useRows = snapshotRows.length > 0;
+  let rowsTotal: number | null = null;
+  if (useRows) {
+    const shown = receiptMoneyLines(snapshotRows, booking?.receipt?.vehicleClassName?.trim() || vehicleLabelOrEmpty, t);
+    lines.push(...shown.lines);
+    rowsTotal = shown.total;
+  } else if (split) {
     lines.push({ label: t("fareExVat"), amount: rappenToMajor(split.fareRappen) });
     for (const extra of split.extras) {
       lines.push({
@@ -257,13 +311,15 @@ export function BookingVoucher({
       });
     }
   }
+  const totalMajor = totalMajorRaw ?? rowsTotal;
   if (lines.length === 0) {
     lines.push({ label: t("transferClass", { class: vehicleLabel }), amount: totalMajor });
   }
   const contactName = (booking?.contactName || "").trim();
   const contactEmail = (booking?.contactEmail || "").trim();
   const contactPhone = (booking?.contactPhone || "").trim();
-  const pricedExtra = new Set((split?.extras ?? []).map((row) => row.code));
+  // With snapshot rows every extra is already a priced line above, so the facts list shows none twice.
+  const pricedExtra = new Set(useRows ? extras : (split?.extras ?? []).map((row) => row.code));
   const paidAtLabel = booking?.paidAt ? formatPaidAt(booking.paidAt, locale) : "";
   const captured = isCapturedPayment(booking?.paymentStatus ?? "");
   const showCard = Boolean(paidAtLabel || captured || (!unpaid && badge !== "cancelled" && badge !== "refunded" && badge !== "no-show"));
@@ -285,13 +341,22 @@ export function BookingVoucher({
   const refundAmountMajor = rappenToMajor(refundAmountRappen);
   const country =
     regionName(booking?.payoutCountry || "", locale) || t("switzerland");
-  const onDate = booking?.availableOn ? payoutDate(booking.availableOn) : "";
+  const onDate = booking?.availableOn ? payoutDate(booking.availableOn, locale) : "";
+  // 26.2 audit U06-19: both sentences carry their own full stop; no literal joiner, and the
+  // date is wrapped in LRI/PDI isolates so it keeps its own direction inside Arabic text
+  // (the message text cannot take a className around one placeholder).
   const refundedCopy =
-    refundStatus === "refunded"
-      ? [t("refundedToCard", { country }), onDate ? t("stripePayoutOn", { date: onDate }) : ""]
-          .filter(Boolean)
-          .join(" ")
-      : "";
+    refundStatus === "refunded" ? (
+      <>
+        {t("refundedToCard", { country })}
+        {onDate ? (
+          <>
+            {" "}
+            {t("stripePayoutOn", { date: `\u2066${onDate}\u2069` })}
+          </>
+        ) : null}
+      </>
+    ) : null;
   const reviewed = Boolean(booking?.reviewSubmitted);
   const showReview = Boolean(reviewHref) && !reviewed && badge === "completed";
 
@@ -456,7 +521,11 @@ export function BookingVoucher({
                 </span>
               </>
             ) : null}
-            {refundedCopy ? `. ${refundedCopy}` : null}
+            {refundedCopy ? (
+              <span className="vt-confirmation__refund-copy" data-confirmation-refund-copy>
+                {refundedCopy}
+              </span>
+            ) : null}
           </ReceiptRow>
         ) : null}
       </dl>

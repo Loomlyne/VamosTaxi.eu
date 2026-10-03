@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<script src="./support.js"></script>
+<!-- Ground colour + cover live in the STATIC head/body on purpose. The DC runtime
+     injects every stylesheet and script from <helmet> only after React has loaded, so
+     without these the arriving document paints uncovered frames before
+     vamos-page-transition.js exists and can build its overlay. That script adopts
+     #vt-boot-cover and removes it once its own sheet is painted at COVER; the 6s
+     animation below is the fallback for when the script never runs. -->
+<style id="vt-boot">html{background:#F6F6F6}body{margin:0}#vt-boot-cover{position:fixed;inset:0;z-index:2147483000;background:#F6F6F6;pointer-events:none;animation:vt-boot-fail 0s linear 6s forwards}@keyframes vt-boot-fail{to{visibility:hidden}}</style>
+</head>
+<body>
+<div id="vt-boot-cover" aria-hidden="true"></div>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/components/mobile/fig-tokens.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/components/mobile/fig-assets.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
+<script src="../vamos-i18n-dict.js"></script>
+<script src="../vamos-locale.js"></script>
+<script src="../vamos-page-transition.js"></script>
+<style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}
+/* Button hover/press — colour step only, no shadow, no glow */
+.vt-btn{transition:background 140ms cubic-bezier(.2,0,.2,1),border-color 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1),transform 80ms cubic-bezier(.2,0,.2,1)}
+.vt-btn:hover,.vt-btn:active{box-shadow:none!important}
+.vt-btn--primary:hover:not([disabled]){background:var(--vt-accent-hover)}
+.vt-btn--primary:active:not([disabled]){background:var(--vt-accent-press);transform:translateY(1px)}
+.vt-btn--secondary:hover:not([disabled]){background:var(--vt-charcoal-800)}
+.vt-btn--secondary:active:not([disabled]){transform:translateY(1px)}
+.vt-btn--ghost:hover:not([disabled]),.vt-btn--outline:hover:not([disabled]),.vt-btn--tertiary:hover:not([disabled]){background:var(--vt-grey-50);border-color:var(--vt-charcoal-900)}
+.vt-btn--ghost:active:not([disabled]),.vt-btn--outline:active:not([disabled]),.vt-btn--tertiary:active:not([disabled]){transform:translateY(1px)}
+.vt-btn:focus-visible{box-shadow:var(--vt-ring)!important}
+.vt-btn[disabled],.vt-btn[aria-disabled="true"]{transform:none}input:focus-visible{outline:none;box-shadow:none}
+body{margin:0;background:var(--vt-bg-page)}a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}
+[data-auth]{display:grid;grid-template-columns:minmax(0,1fr);min-height:calc(100svh - 76px);background:var(--vt-bg-surface)}
+[data-auth-col]{display:flex;justify-content:flex-start;padding:48px clamp(20px,5vw,56px) 64px}
+[data-auth-panel]{display:none}
+[data-panel-line]{margin:0;font-family:var(--vt-font-display);font-size:clamp(28px,2.6vw,38px);font-weight:var(--vt-weight-semibold);letter-spacing:-.02em;line-height:1.1;color:var(--vt-white)}
+[data-panel-sub]{margin:0;max-width:34ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:rgb(255 255 255 / .78);text-wrap:pretty}
+:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}
+@media (min-width:960px){[data-auth]{grid-template-columns:640fr 800fr;min-height:calc(100svh - 76px)}
+[data-auth-col]{padding:96px clamp(24px,9.7vw,140px)}
+[data-auth-panel]{display:block}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* dashboard host: the ops-login look (charcoal ground, photo, centred card), no public header or footer */
+[data-ol-shell]{font-family:var(--vt-font-body);color:var(--vt-text-primary);background:var(--vt-bg-inverse);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;box-sizing:border-box;gap:24px;position:relative;overflow:hidden}
+[data-ol-note]{margin:0;text-align:center;max-width:34ch;font-family:var(--vt-font-body);font-size:var(--vt-body-xs);line-height:1.5;color:var(--vt-text-inverse-muted)}
+[data-ol-back]{display:inline-flex;align-items:center;gap:8px;color:var(--vt-text-inverse-muted);font-size:var(--vt-body-sm);text-decoration:none;border:0;transition:color 140ms var(--vt-ease-standard)}
+[data-ol-back]:hover{color:var(--vt-white)}
+</style>
+</helmet>
+<sc-if value="{{ isOps }}" hint-placeholder-val="{{ false }}">
+<div data-ol-shell="1" data-screen-label="Dispatch confirm sign in">
+<div aria-hidden="true" style="position:absolute;inset:0;background-image:url(/photos/site/ops-login-bg.jpg);background-size:cover;background-position:center"></div>
+<div aria-hidden="true" style="position:absolute;inset:0;background:rgb(30 31 31 / .58)"></div>
+<div style="position:relative;display:flex;flex-direction:column;align-items:center;gap:24px;width:100%;max-width:420px">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Logo" variant="reversed" height="{{ n28 }}" hint-size="130px,28px"></x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Card" padding="lg" hint-size="100%,420px">
+<dc-import name="ConfirmCard" surface="ops" hint-size="100%,420px"></dc-import>
+</x-import>
+<p data-ol-note="1">Internal tool — dispatcher and admin access only. Customer accounts sign in at <a href="https://vamostaxi.site/sign-in" style="color:var(--vt-yellow)">the site sign-in</a>.</p>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ isSite }}" hint-placeholder-val="{{ true }}">
+<div style="font-family:var(--vt-font-body);color:var(--vt-text-primary)">
+<dc-import name="SiteHeader" variant="inverse" hide-account="{{ yes }}" hint-size="100%,76px"></dc-import>
+<main data-auth="1" data-screen-label="Confirm sign in">
+<div data-auth-col="1">
+<div style="width:100%;max-width:400px">
+<dc-import name="ConfirmCard" surface="site" hint-size="100%,520px"></dc-import>
+</div>
+</div>
+<aside data-auth-panel="1" style="position:relative;overflow:hidden;background:var(--vt-charcoal)">
+<img src="/photos/site/auth-panel.jpg" alt="A Vamos Taxi V-Class waiting at the curb" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:52% 42%">
+<div style="position:absolute;inset:0;background:var(--vt-scrim-bottom)"></div>
+<img src="../../assets/patterns/checker-mark.png" alt="" aria-hidden="true" style="position:absolute;top:0;right:0;width:74px;height:auto">
+<div style="position:absolute;inset-inline:0;bottom:0;display:flex;flex-direction:column;gap:14px;padding:clamp(32px,4vw,56px)">
+<p data-panel-line="1">Ride with class</p>
+<p data-panel-sub="1">Booked ahead, priced up front, and your assigned driver is already there at the agreed time.</p>
+</div>
+</aside>
+</main>
+<dc-import name="SiteFooter" hint-size="100%,520px"></dc-import>
+<dc-import name="CookieBanner" hint-size="0,0"></dc-import>
+</div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}">
+/* F12: the same page serves the public site (/sign-in/confirm) and the staff host (/login/confirm). */
+class Component extends DCLogic {
+  state = { ops: (function () { try { return (location.pathname || '').indexOf('/login') === 0; } catch (e) { return false; } })() };
+  renderVals() {
+    return { isOps: this.state.ops, isSite: !this.state.ops, yes: true, n28: 28 };
+  }
+}
+
+</script>
+</body>
+</html>

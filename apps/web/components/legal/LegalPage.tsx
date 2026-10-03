@@ -97,7 +97,7 @@ export async function LegalPage({
             <div>
               <span>{tLegal("last-updated")}</span>
               {updatedLabel ? (
-                <span data-i18n-skip>{updatedLabel}</span>
+                <span data-vt-no-i18n>{updatedLabel}</span>
               ) : (
                 <PendingSlot label={effectiveDateLabel} />
               )}
@@ -108,7 +108,7 @@ export async function LegalPage({
             </div>
             <div>
               <span>{tCommon("language")}</span>
-              <span data-i18n-skip>{langs.map((c) => NATIVE_LANG[c]).join(" · ")}</span>
+              <span data-vt-no-i18n>{langs.map((c) => NATIVE_LANG[c]).join(" · ")}</span>
             </div>
             <LegalPrintButton label={tLegal("print-or-save-as-pdf")} />
           </div>

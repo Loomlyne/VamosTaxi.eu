@@ -14,7 +14,8 @@
 // price route answered and to the amount the intent answer hands to Stripe for the ticked
 // child seat. Runs once under component-1440 with its own `next dev`. Tagged @checkout.
 
-import { test, expect, type Page, type Route } from "@playwright/test";
+import { test, expect, type Page, type Route } from "../support/test";
+import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
 import { FAKE_STRIPE_HOST } from "../support/fake-stripe";
@@ -33,7 +34,7 @@ test.describe.configure({ mode: "serial" });
 test.beforeAll(async ({}, testInfo) => {
   if (testInfo.project.name !== RUN_PROJECT) return;
   testInfo.setTimeout(240_000);
-  const port = 4300 + testInfo.workerIndex;
+  const port = testPort(4300) + testInfo.workerIndex;
   baseURL = `http://127.0.0.1:${port}`;
   devServer = spawn(NEXT_BIN, ["dev", "-p", String(port)], {
     cwd: WEB_ROOT,
@@ -274,28 +275,55 @@ async function fillContact(page: Page) {
   await page.locator("[data-co-contact] [data-vt-phone] input").fill("41796267082");
 }
 
-/** Home on the real server: From (airport), To, When, SEE PRICES. Lands on /checkout with the trip in the URL. */
+/**
+ * Home on the real server: From (airport), To, When, SEE PRICES. Lands on /checkout with the trip in the URL.
+ * At 1081 px and over the laptop box takes the answers; at 1080 px and under (phone, tablet) the box is hidden and the
+ * one-page BookingSheet takes them (26.4 plans 09, 260930-obf): hero bar -> sheet -> same trip -> SEE PRICES.
+ * The consent banner never shows here: beforeEach answers "already chosen" (Phase 27), so there is nothing to accept.
+ */
 async function fromHomeToCheckout(page: Page, width: number) {
   await page.setViewportSize({ width, height: 900 });
   const res = await page.goto(`${baseURL}/`);
   expect(res?.ok()).toBeTruthy();
-  await expect(page.locator("[data-box]")).toBeVisible({ timeout: 60_000 });
-  // The consent banner mounts late and covers the When sheet; wait for it, then accept.
-  await page.getByRole("button", { name: /Accept all/i }).click({ timeout: 20_000 }).catch(() => undefined);
-
-  await page.getByRole("combobox", { name: "From", exact: true }).fill("Fixture Air");
-  await page.getByRole("option", { name: /Fixture Airport/ }).click();
-  await page.getByRole("textbox", { name: "Flight number" }).fill("LX 318");
-  await page.getByRole("combobox", { name: "To", exact: true }).fill("Fixture Street");
-  await page.getByRole("option", { name: /Fixture Street 1/ }).click();
-  await page.locator('[data-bx="when"] button[aria-haspopup="dialog"]').click();
-  const dialog = page.getByRole("dialog", { name: "When" });
-  await dialog.getByRole("button", { name: "Next month" }).click();
-  await dialog.getByRole("button", { name: "5", exact: true }).click();
-  const saved = dialog.getByRole("button", { name: "Saved" });
-  if (await saved.isVisible().catch(() => false)) await saved.click({ timeout: 10_000 });
-
-  await page.locator('[data-bx="cta"] button, [data-bx="cta"] a').first().click();
+  const sheetFlow = width <= 1080;
+  if (sheetFlow) {
+    const bar = page.locator("[data-bar-wrap] [data-bb]");
+    await expect(bar).toBeVisible({ timeout: 60_000 });
+    await bar.click();
+    const sheet = page.locator("[data-bs]");
+    await expect(sheet).toBeVisible();
+    await sheet.locator('input[id$="-from"]').fill("Fixture Air");
+    await sheet.locator('[id$="-list-from"] [role="option"]').filter({ hasText: "Fixture Airport" }).first().click();
+    // An airport pickup asks for the flight first; focus moves into that field.
+    await sheet.getByRole("textbox", { name: "Flight number" }).fill("LX 318");
+    await sheet.locator('input[id$="-to"]').fill("Fixture Street");
+    await sheet.locator('[id$="-list-to"] [role="option"]').filter({ hasText: "Fixture Street 1" }).first().click();
+    await sheet.locator("[data-bs-date] button[aria-haspopup]").click();
+    const cal = page.getByRole("dialog", { name: "Date" });
+    await cal.getByRole("button", { name: "Next month" }).click();
+    await cal.getByRole("button", { name: "5", exact: true }).click();
+    await expect(page.getByRole("dialog", { name: "Date" })).toHaveCount(0);
+    // The time the picker settles on is a valid one (past the lead time); keep it.
+    await sheet.locator("[data-bs-time] button[aria-haspopup]").click();
+    await expect(page.getByRole("dialog", { name: "Time" })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog", { name: "Time" })).toHaveCount(0);
+    await sheet.locator("[data-bs-next] button").click();
+  } else {
+    await expect(page.locator("[data-box]")).toBeVisible({ timeout: 60_000 });
+    await page.getByRole("combobox", { name: "From", exact: true }).fill("Fixture Air");
+    await page.getByRole("option", { name: /Fixture Airport/ }).click();
+    await page.getByRole("textbox", { name: "Flight number" }).fill("LX 318");
+    await page.getByRole("combobox", { name: "To", exact: true }).fill("Fixture Street");
+    await page.getByRole("option", { name: /Fixture Street 1/ }).click();
+    await page.locator('[data-bx="when"] button[aria-haspopup="dialog"]').click();
+    const dialog = page.getByRole("dialog", { name: "When" });
+    await dialog.getByRole("button", { name: "Next month" }).click();
+    await dialog.getByRole("button", { name: "5", exact: true }).click();
+    const saved = dialog.getByRole("button", { name: "Saved" });
+    if (await saved.isVisible().catch(() => false)) await saved.click({ timeout: 10_000 });
+    await page.locator('[data-bx="cta"] button, [data-bx="cta"] a').first().click();
+  }
   await page.waitForURL(/\/checkout\?/, { timeout: 30_000 });
   const url = new URL(page.url());
   expect(url.searchParams.get("from")).toContain("Fixture Airport");

@@ -13,6 +13,7 @@ import { useCheckoutSettings } from "../CheckoutSettings";
 import { useCheckoutFlow } from "../CheckoutPage";
 import { useCheckoutForm } from "../CheckoutForm";
 import { TripDistance } from "./TripDistance";
+import { vatPercentLabel } from "@/lib/checkout/vat";
 
 const DESKTOP_QUERY = "(min-width: 1081px)";
 
@@ -85,7 +86,7 @@ export function OrderSummary() {
               return { label: t("couponCode", { code: line.code ?? "" }), amount, credit: true as const };
             default: {
               const bps = Number((line.params as { vatRateBps?: number }).vatRateBps);
-              const rate = Number.isFinite(bps) ? String(Number((bps / 100).toFixed(2))) : "";
+              const rate = vatPercentLabel(bps);
               return { label: rate ? t("receiptVat", { rate }) : t("receiptVatPlain"), amount };
             }
           }

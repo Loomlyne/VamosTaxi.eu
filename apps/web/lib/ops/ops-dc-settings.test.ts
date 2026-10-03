@@ -5,6 +5,7 @@
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createContext, runInContext } from "node:vm";
 import { describe, expect, it } from "vitest";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -217,7 +218,7 @@ describe("26.1-23 Security: authenticator app, magic link switch, re-auth dialog
     expect(settings).toMatch(/icon="shield-check" onClick="\{\{ addTotp \}\}"[^>]*>\{\{ tSecTotpAdd \}\}/);
     expect(settings).toMatch(/<div data-totp-qr="1"><img src="\{\{ totpQr \}\}" alt="\{\{ tSecTotpQrAlt \}\}"/);
     expect(settings).toMatch(/\[data-totp-qr\]\{[^}]*border:1px solid var\(--vt-grey-200\);border-radius:var\(--vt-radius-lg\)/);
-    expect(settings).toMatch(/data-totp-secret="1" class="vt-dir-keep" data-i18n-skip="1"/);
+    expect(settings).toMatch(/data-totp-secret="1" class="vt-dir-keep" data-vt-no-i18n="1"/);
     expect(settings).toMatch(/\[data-totp-secret\]\{font-family:var\(--vt-font-mono\)/);
     expect(settings.match(/inputMode="numeric" pattern="\[0-9\]\*" maxLength="\{\{ n6 \}\}"/g)?.length).toBe(2);
     expect(settings).toMatch(/onClick="\{\{ verifyTotp \}\}"[^>]*>\{\{ tSecTotpVerify \}\}/);
@@ -268,7 +269,7 @@ describe("26.1-23 Security: authenticator app, magic link switch, re-auth dialog
 
   it("switches password and magic link, and hides the password fields for a magic-link admin", () => {
     expect(settings).toMatch(/<sc-if value="\{\{ isPasswordMethod \}\}"[\s\S]*?\{\{ tSecPasswordBtn \}\}[\s\S]*?onClick="\{\{ useMagicLink \}\}"[^>]*>\{\{ tSecMagicLinkSwitch \}\}/);
-    expect(settings).toMatch(/<sc-if value="\{\{ isMagicMethod \}\}"[\s\S]*?\{\{ magicPre \}\}<span class="vt-dir-keep" data-i18n-skip="1"[^>]*>\{\{ secEmail \}\}<\/span>\{\{ magicPost \}\}[\s\S]*?onClick="\{\{ usePassword \}\}"[^>]*>\{\{ tSecMagicLinkUseInstead \}\}/);
+    expect(settings).toMatch(/<sc-if value="\{\{ isMagicMethod \}\}"[\s\S]*?\{\{ magicPre \}\}<span class="vt-dir-keep" data-vt-no-i18n="1"[^>]*>\{\{ secEmail \}\}<\/span>\{\{ magicPost \}\}[\s\S]*?onClick="\{\{ usePassword \}\}"[^>]*>\{\{ tSecMagicLinkUseInstead \}\}/);
     expect(settings.match(/variant="ghost" size="md" sentenceCase="\{\{ yes \}\}" onClick="\{\{ use(MagicLink|Password) \}\}"/g)?.length).toBe(2);
     expect(settings.match(/display:\{\{ methodSavedShow \}\}[^>]*>\{\{ tSecUpdated \}\}/g)?.length).toBe(2);
   });
@@ -323,7 +324,7 @@ describe("26.1-25 Security: passkeys from the server, added and removed behind r
   it("renders one row per server passkey with a secondary Remove passkey button", () => {
     expect(settings).toMatch(/<sc-for list="\{\{ passkeyRows \}\}" as="pk"/);
     expect(settings).toMatch(/variant="secondary" size="md" onClick="\{\{ pk\.remove \}\}" disabled="\{\{ passkeyBusy \}\}"[^>]*>\{\{ tSecPasskeyRemove \}\}/);
-    expect(settings).toMatch(/data-i18n-skip="1"[^>]*>\{\{ pk\.name \}\}/);
+    expect(settings).toMatch(/data-vt-no-i18n="1"[^>]*>\{\{ pk\.name \}\}/);
   });
 
   it("after adding, confirms the new passkey with a passkey sign-in so the session passes the gate", () => {
@@ -333,5 +334,163 @@ describe("26.1-25 Security: passkeys from the server, added and removed behind r
     expect(confirm).toMatch(/action: 'passkey-verify', challengeId: start\.challenge_id, credential: serializeGet\(credential\)/);
     expect(method("addPasskey")).toMatch(/this\.confirmPasskey\(\)/);
     expect(settings).toMatch(/onClick="\{\{ confirmPasskey \}\}"[^>]*>\{\{ tSecPasskeyConfirm \}\}/);
+  });
+});
+
+// Review fixes 2026-10-03: the policy card runs as the page runs it — its own logic class with a
+// stand-in for the design-component base, the ops store and the staff API. What the boxes say and
+// what a refused Save shows are what is checked.
+describe("policy card: units, a refused Save, the change list", () => {
+  type El = { type: unknown; props: Record<string, unknown> | null; children: unknown[] };
+  type Vals = Record<string, unknown>;
+  type Page = {
+    state: Record<string, unknown>;
+    setState: (patch: Record<string, unknown>) => void;
+    set: (key: string, value: unknown) => void;
+    save: () => void;
+    renderVals: () => Vals;
+  };
+  const SAVED = {
+    company: "", address: "", uid: "", phone: "", email: "", defaultLang: "en", defaultCur: "CHF",
+    minAdvance: 180, cancelWindow: 24, airportWait: 60, cityWait: 30,
+    liveMinAdvance: 120, liveCancelWindow: 24, liveAirportWait: 60, liveCityWait: 30,
+    emailConfirm: true, emailReminder: true, smsReminder: false, opsAlerts: true,
+  };
+
+  function openPage(answer: Record<string, unknown>, lang = "en") {
+    const html = read("app/ops/OpsSettings.dc.html");
+    const tag = html.indexOf('<script type="text/x-dc" data-dc-script');
+    const start = html.indexOf(">", tag) + 1;
+    const logic = html.slice(start, html.indexOf("</script>", start));
+    const sent: { method: string; path: string; body: unknown }[] = [];
+    let stored: Record<string, unknown> = { ...SAVED };
+    const Fragment = Symbol("Fragment");
+    const ctx = createContext({
+      window: {
+        VamosOps: { settings: { get: () => ({ ...stored }), apply: (d: Record<string, unknown>) => { stored = { ...d }; } } },
+        VamosOpsApi: {
+          request: (method: string, path: string, body: unknown) => {
+            sent.push({ method, path, body });
+            return Promise.resolve(answer);
+          },
+        },
+      },
+      setTimeout: () => 0,
+      clearTimeout: () => undefined,
+      console,
+      React: {
+        Fragment,
+        createRef: () => ({ current: null }),
+        createElement: (type: unknown, props: Record<string, unknown> | null, ...children: unknown[]): El => ({ type, props, children }),
+      },
+      DCLogic: class {
+        props: Record<string, unknown>;
+        state: Record<string, unknown> = {};
+        constructor(props?: Record<string, unknown>) {
+          this.props = props ?? {};
+        }
+        setState(patch: Record<string, unknown> | ((s: Record<string, unknown>) => Record<string, unknown>), cb?: () => void) {
+          const next = typeof patch === "function" ? patch(this.state) : patch;
+          this.state = { ...this.state, ...next };
+          cb?.();
+        }
+        forceUpdate() {}
+      },
+    });
+    runInContext(`${logic}\n;globalThis.__Page = Component;`, ctx);
+    const Page = (ctx as unknown as { __Page: new (p: Record<string, unknown>) => Page }).__Page;
+    const page = new Page({});
+    page.setState({ lang, pane: "policy", draft: { ...SAVED } });
+    return { page, sent };
+  }
+  const flush = () => new Promise((r) => setImmediate(r));
+  const text = (node: unknown): string =>
+    typeof node === "string" || typeof node === "number" ? String(node)
+      : node && typeof node === "object" ? (node as El).children.map(text).join("") : "";
+  const keptLtr = (node: unknown): string[] =>
+    node && typeof node === "object"
+      ? [
+          ...((node as El).props?.className === "vt-dir-keep" ? [text(node)] : []),
+          ...(node as El).children.flatMap(keptLtr),
+        ]
+      : [];
+
+  it("minimum advance reads minutes in the box, the live line and the change list", () => {
+    const { page } = openPage({ ok: true });
+    const v = page.renderVals();
+    expect(v.vLiveMinAdvance && text(v.vLiveMinAdvance)).toBe("Live now 120 min");
+    const rows = v.policyChangeRows as { key: string; label: string; from: string; to: string; unit: string }[];
+    expect(rows).toEqual([{ key: "minAdvance", label: "Minimum advance", from: "120", to: "180", unit: "min" }]);
+  });
+
+  it("the live number stays left to right in Arabic; the unit follows the line", () => {
+    const { page } = openPage({ ok: true }, "ar");
+    const line = page.renderVals().vLiveMinAdvance;
+    expect(keptLtr(line)).toEqual(["120"]);
+    expect(text(line)).toContain("دقيقة");
+  });
+
+  it("a refused fraction (400 settings-error-min-advance) shows under that box until the box changes", async () => {
+    const { page, sent } = openPage({ ok: false, code: "settings-error-min-advance" });
+    page.set("minAdvance", "30.5");
+    page.save();
+    await flush();
+    expect(sent[0]).toMatchObject({ method: "PATCH", path: "/api/staff/settings" });
+    let v = page.renderVals();
+    expect(v.errMinAdvance).toBe("Check the value: a whole number from 0 to 10080.");
+    expect(v.errCityWait).toBe("");
+    expect(v.saveErrShow).toBe("none"); // the box carries it on this pane
+    page.setState({ pane: "company" });
+    expect(page.renderVals().saveErrShow).toBe("inline"); // another pane: the bar carries it
+    page.setState({ pane: "policy" });
+    page.set("minAdvance", "30");
+    v = page.renderVals();
+    expect(v.errMinAdvance).toBe("");
+    expect(v.saveErr).toBe("");
+  });
+
+  it("text such as '45 min' (400 settings-error-policy-number) is pinned on the box that holds it", async () => {
+    const { page } = openPage({ ok: false, code: "settings-error-policy-number" });
+    page.set("airportWait", "45 min");
+    page.save();
+    await flush();
+    const v = page.renderVals();
+    expect(v.errAirportWait).toBe("Check the value: a whole number from 0 to 1440.");
+    expect(v.errMinAdvance).toBe("");
+  });
+
+  it("any other refusal is said in the bar, in the page's language, and a good save clears it", async () => {
+    const { page } = openPage({ ok: false, code: "settings-error-input" }, "de");
+    page.set("company", "Vamos Taxi");
+    page.save();
+    await flush();
+    const v = page.renderVals();
+    expect(v.saveErr).toBe("Konnte nicht gespeichert werden. Bitte erneut versuchen.");
+    expect(v.saveErrShow).toBe("inline");
+  });
+
+  it("ships the new strings in en, de, fr and ar, Swiss German without ß", () => {
+    const html = read("app/ops/OpsSettings.dc.html");
+    const script = html.slice(html.indexOf('<script type="text/x-dc"'));
+    for (const key of ["policyChangesTitle", "policySaveCheck", "policySaveWhole"]) {
+      expect(script.match(new RegExp(`\\b${key}:'`, "g"))?.length, key).toBe(4);
+    }
+    expect(script).toMatch(/minutes:'min'/);
+    expect(script).toMatch(/minutes:'Min\.'/);
+    expect(script).toMatch(/minutes:'دقيقة'/);
+    expect(html).not.toMatch(/ß/);
+  });
+
+  it("markup: Cancel is a kit variant, the hint shows once, the arrow is the Lucide icon", () => {
+    const html = read("app/ops/OpsSettings.dc.html");
+    const markup = html.slice(0, html.indexOf('<script type="text/x-dc"'));
+    expect(markup).not.toMatch(/ghost-inverse/);
+    expect(markup).toMatch(/variant="light" size="md" onClick="\{\{ cancelPublish \}\}"/);
+    expect(markup.match(/\{\{ tPolicyPublishHint \}\}/g)?.length).toBe(1);
+    expect(markup).toMatch(/\{\{ tPolicyChangesTitle \}\}/);
+    expect(html).not.toMatch(/→/);
+    expect(markup).toMatch(/data-pol-chg-arrow="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1\.Icon" name="arrow-right"/);
+    // The arrow sits outside vt-dir-keep so laws.css mirrors it in Arabic; the numbers sit inside.
+    expect(markup).toMatch(/<span data-pol-chg-old="1" class="vt-dir-keep">\{\{ c\.from \}\}<\/span><span data-pol-chg-arrow/);
   });
 });

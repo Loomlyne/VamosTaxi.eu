@@ -8,6 +8,7 @@ import { Resend } from "resend";
 import { renderAuthEmail, type AuthEmailType } from "@vamos/emails";
 import { AUTH_LOCALE_METADATA_KEY } from "@/lib/supabase/constants";
 import { routing } from "@/i18n/routing";
+import { buildConfirmLink, siteFromRedirect } from "@/lib/auth/confirm-link";
 import { log } from "@/lib/logger";
 
 export const dynamic = "force-dynamic";
@@ -18,11 +19,15 @@ const FROM_NAME = "Vamos Taxi";
 const Body = z.object({
   user: z.object({
     email: z.string().email(),
+    new_email: z.string().email().optional(),
     user_metadata: z.record(z.string(), z.unknown()).optional(),
   }),
   email_data: z.object({
     token: z.string(),
     token_hash: z.string(),
+    // Secure e-mail change (double confirm): the second token pair. Names are reversed by Supabase.
+    token_new: z.string().optional(),
+    token_hash_new: z.string().optional(),
     redirect_to: z.string(),
     site_url: z.string(),
     email_action_type: z.enum([
@@ -57,6 +62,34 @@ function verifyLink(supabaseUrl: string, emailData: {
   const origin = raw.replace(/\/auth\/v1$/i, "");
   const redirect = encodeURIComponent(emailData.redirect_to);
   return `${origin}/auth/v1/verify?token=${emailData.token_hash}&type=${emailData.email_action_type}&redirect_to=${redirect}`;
+}
+
+/** Link types that start a session. The staff invite stays confirm-only (owner decision, F12 section 6). */
+const CONFIRM_TYPES: readonly string[] = Object.freeze(["signup", "magiclink", "email_otp", "recovery", "email_change"]);
+
+/**
+ * F12: the mailed link is the site's confirm page with the recipient sealed in `e`. The token is only
+ * spent when the person presses the button there, so mail scanners and look-alike links do nothing.
+ */
+async function mailedLink(
+  env: CloudflareEnv,
+  secret: string,
+  parsed: { user: { email: string }; email_data: { token_hash: string; email_action_type: string; redirect_to: string; site_url: string } },
+  /** The token_hash and recipient this mail is for (an e-mail change sends two). */
+  to: { tokenHash: string; email: string } = { tokenHash: parsed.email_data.token_hash, email: parsed.user.email },
+): Promise<string | null> {
+  const data = parsed.email_data;
+  if (!CONFIRM_TYPES.includes(data.email_action_type)) return verifyLink(env.SUPABASE_URL, data);
+  const site = siteFromRedirect(data.redirect_to);
+  return buildConfirmLink({
+    origin: site.origin,
+    tokenHash: to.tokenHash,
+    type: data.email_action_type === "email_otp" ? "email" : data.email_action_type,
+    email: to.email,
+    secret,
+    next: site.next,
+    nextb: site.nextb,
+  });
 }
 
 function hookVerifySecret(raw: string): string {
@@ -158,19 +191,37 @@ export async function POST(request: Request) {
   const finalKind =
     kind === "signup" && typeof origin === "string" && origin.startsWith("checkout") ? "account_signin" : kind;
 
-  const link = verifyLink(env.SUPABASE_URL, parsed.email_data);
   const name =
     typeof parsed.user.user_metadata?.full_name === "string"
       ? parsed.user.user_metadata.full_name
       : "";
-  const rendered = renderAuthEmail(finalKind, locale, {
-    code: parsed.email_data.token,
-    link,
-    name,
-  });
+
+  // One mail per recipient. A secure e-mail change has two: Supabase names the pairs backwards, so
+  // token_hash_new + token go to the CURRENT address and token_hash + token_new to the NEW one.
+  type Mail = { to: string; tokenHash: string; code: string; kind: AuthEmailType };
+  const d = parsed.email_data;
+  const mails: Mail[] = [];
+  if (d.email_action_type === "email_change") {
+    const newAddress = parsed.user.new_email;
+    if (d.token_hash_new && newAddress) {
+      mails.push({ to: parsed.user.email, tokenHash: d.token_hash_new, code: d.token, kind: "email_change_current" });
+      mails.push({ to: newAddress, tokenHash: d.token_hash, code: d.token_new ?? "", kind: "email_change" });
+    } else {
+      mails.push({ to: newAddress ?? parsed.user.email, tokenHash: d.token_hash, code: d.token, kind: "email_change" });
+    }
+  } else {
+    mails.push({ to: parsed.user.email, tokenHash: d.token_hash, code: d.token, kind: finalKind });
+  }
 
   try {
-    await sendBranded(env, parsed.user.email, rendered);
+    for (const mail of mails) {
+      const link = await mailedLink(env, secret, parsed, { tokenHash: mail.tokenHash, email: mail.to });
+      if (!link) {
+        log("error", "email-hook", { ...ctx, locale }, { reason: "seal-failed" });
+        return empty(500);
+      }
+      await sendBranded(env, mail.to, renderAuthEmail(mail.kind, locale, { code: mail.code, link, name }));
+    }
   } catch {
     return empty(502);
   }

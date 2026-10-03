@@ -13,10 +13,8 @@ export const LEGAL_LANGUAGES: Record<LegalPageId, readonly Locale[]> = {
   privacy: ["en", "de", "fr", "ar"],
   cookies: ["en", "de", "fr", "ar"],
   cancellation: ["en", "de", "fr", "ar"],
-  // D-27 (11-10): imprint is four languages after extract + same-pass translation.
-  // .eu imprint does not say the German version is binding, so that sentence was
-  // dropped rather than invented. I18N-08 still forbids claiming a language we
-  // did not actually fill.
+  // Owner 2026-10-01 (replaces D-05): the imprint reads in all four languages;
+  // the German text stays the binding one (said on the page itself).
   imprint: ["en", "de", "fr", "ar"],
 };
 

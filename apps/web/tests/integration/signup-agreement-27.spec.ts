@@ -19,7 +19,7 @@
 // path is real: nothing is injected into the page except the chosen language (a returning customer).
 // The spec sets its own viewport per case and skips nothing.
 
-import { test, expect, type Page, type Route } from "@playwright/test";
+import { test, expect, type Page, type Route } from "../support/test";
 import { createServer, type Server } from "node:http";
 import { existsSync, mkdirSync, readFileSync, statSync } from "node:fs";
 import { extname, join, normalize } from "node:path";

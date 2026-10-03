@@ -246,7 +246,7 @@ describe("handleStripeMessageWithDeps", () => {
     expect(d.deliverConfirmation).not.toHaveBeenCalled();
   });
 
-  it("retries on P0002 and acks other SQLSTATEs after recording", async () => {
+  it("retries on P0002; a permanent error is recorded and acked only when no money was captured", async () => {
     const retry = deps({
       settlePayment: vi.fn(async () => {
         const err = new Error("payment_not_found") as Error & { code: string };
@@ -257,15 +257,27 @@ describe("handleStripeMessageWithDeps", () => {
     expect(await handleStripeMessageWithDeps(message(), retry)).toEqual({ retry: true });
     expect(retry.eventSettle).not.toHaveBeenCalled();
 
-    const permanent = deps({
+    // 261002 settle safety: a paid session (money captured) is never acknowledged on a permanent
+    // error; it is recorded and retried until the dead-letter queue sends the stuck-payment mail.
+    const paid = deps({
       settlePayment: vi.fn(async () => {
         const err = new Error("one_success") as Error & { code: string };
         err.code = "23505";
         throw err;
       }),
     });
-    expect(await handleStripeMessageWithDeps(message(), permanent)).toEqual({ ack: true });
-    expect(permanent.eventSettle).toHaveBeenCalled();
+    expect(await handleStripeMessageWithDeps(message(), paid)).toEqual({ retry: true, delaySeconds: 300 });
+    expect(paid.eventSettle).toHaveBeenCalledWith("evt_1", "23505");
+
+    // Nothing captured (an expired page): unchanged, recorded and acknowledged.
+    const unpaid = deps({
+      retrieveSession: vi.fn(async () => session({ status: "expired", payment_status: "unpaid" } as Partial<Stripe.Checkout.Session>)),
+      settlePayment: vi.fn(async () => {
+        throw Object.assign(new Error("invalid"), { code: "22023" });
+      }),
+    });
+    expect(await handleStripeMessageWithDeps(message({ type: "checkout.session.expired" }), unpaid)).toEqual({ ack: true });
+    expect(unpaid.eventSettle).toHaveBeenCalledWith("evt_1", "22023");
   });
 
   it("does not send a second email when already_settled is true", async () => {
@@ -781,5 +793,243 @@ describe("26.3-12 purge on expired, refund when the booking is gone (D-25, Pitfa
     await handleStripeMessageWithDeps(message(), unpaid);
     expect(extra.refund).not.toHaveBeenCalled();
     expect(unpaid.refund).not.toHaveBeenCalled();
+  });
+});
+
+describe("261002 settle safety: a database hiccup is retried, never acknowledged", () => {
+  const sqlErr = (code: string) => Object.assign(new Error(`pg ${code}`), { code });
+  const expiredMsg = () => message({ type: "checkout.session.expired" } as Partial<StripeQueueMessage>);
+  const expiredSession = () =>
+    session({ status: "expired", payment_status: "unpaid" } as Partial<Stripe.Checkout.Session>);
+
+  it("begin: a deadlock retries after 5 s and records nothing", async () => {
+    const d = deps({
+      begin: vi.fn(async () => {
+        throw sqlErr("40P01");
+      }),
+    });
+    expect(await handleStripeMessageWithDeps(message(), d)).toEqual({ retry: true, delaySeconds: 5 });
+    expect(d.eventSettle).not.toHaveBeenCalled();
+    expect(d.settlePayment).not.toHaveBeenCalled();
+  });
+
+  it("begin: an error with no code, and a permanent code, retry after 60 s without recording", async () => {
+    const plain = deps({
+      begin: vi.fn(async () => {
+        throw new Error("socket hang up");
+      }),
+    });
+    expect(await handleStripeMessageWithDeps(message(), plain)).toEqual({ retry: true, delaySeconds: 60 });
+    expect(plain.eventSettle).not.toHaveBeenCalled();
+    const permanent = deps({
+      begin: vi.fn(async () => {
+        throw sqlErr("42501");
+      }),
+    });
+    expect(await handleStripeMessageWithDeps(message(), permanent)).toEqual({ retry: true, delaySeconds: 60 });
+    expect(permanent.eventSettle).not.toHaveBeenCalled();
+  });
+
+  it("begin: P0002 still retries with the queue's default backoff", async () => {
+    const d = deps({
+      begin: vi.fn(async () => {
+        throw sqlErr("P0002");
+      }),
+    });
+    expect(await handleStripeMessageWithDeps(message(), d)).toEqual({ retry: true });
+  });
+
+  it("settle: a deadlock retries after 5 s and never records the event as failed", async () => {
+    const d = deps({
+      settlePayment: vi.fn(async () => {
+        throw sqlErr("40P01");
+      }),
+    });
+    expect(await handleStripeMessageWithDeps(message(), d)).toEqual({ retry: true, delaySeconds: 5 });
+    expect(d.eventSettle).not.toHaveBeenCalled();
+  });
+
+  it("settle: a dropped connection, a connection-class error and a plain Error retry after 60 s", async () => {
+    for (const err of [
+      Object.assign(new Error("closed"), { code: "CONNECTION_CLOSED" }),
+      sqlErr("08006"),
+      new Error("boom"),
+    ]) {
+      const d = deps({
+        settlePayment: vi.fn(async () => {
+          throw err;
+        }),
+      });
+      expect(await handleStripeMessageWithDeps(message(), d)).toEqual({ retry: true, delaySeconds: 60 });
+      expect(d.eventSettle).not.toHaveBeenCalled();
+    }
+  });
+
+  it("settle: a paid difference page that fails on P0001 is recorded and retried after 300 s", async () => {
+    const d = deps({
+      retrieveSession: vi.fn(async () =>
+        session({ metadata: { kind: "extra", booking_id: "b1" } } as Partial<Stripe.Checkout.Session>),
+      ),
+      settlePayment: vi.fn(async () => {
+        throw sqlErr("P0001");
+      }),
+    });
+    expect(await handleStripeMessageWithDeps(message(), d)).toEqual({ retry: true, delaySeconds: 300 });
+    expect(d.eventSettle).toHaveBeenCalledWith("evt_1", "P0001");
+  });
+
+  it("settle: a paid page whose eventSettle also fails still retries after 300 s", async () => {
+    const d = deps({
+      settlePayment: vi.fn(async () => {
+        throw sqlErr("23505");
+      }),
+      eventSettle: vi.fn(async () => {
+        throw new Error("db down");
+      }),
+    });
+    expect(await handleStripeMessageWithDeps(message(), d)).toEqual({ retry: true, delaySeconds: 300 });
+  });
+
+  it("settle: an expired page (nothing captured) that fails on 22023 is recorded and acked", async () => {
+    const d = deps({
+      retrieveSession: vi.fn(async () => expiredSession()),
+      settlePayment: vi.fn(async () => {
+        throw sqlErr("22023");
+      }),
+    });
+    expect(await handleStripeMessageWithDeps(expiredMsg(), d)).toEqual({ ack: true });
+    expect(d.eventSettle).toHaveBeenCalledWith("evt_1", "22023");
+  });
+
+  it("settle: an expired page whose eventSettle fails retries (unchanged)", async () => {
+    const d = deps({
+      retrieveSession: vi.fn(async () => expiredSession()),
+      settlePayment: vi.fn(async () => {
+        throw sqlErr("22023");
+      }),
+      eventSettle: vi.fn(async () => {
+        throw new Error("db down");
+      }),
+    });
+    expect(await handleStripeMessageWithDeps(expiredMsg(), d)).toEqual({ retry: true });
+  });
+});
+
+describe("261002 settle safety: an unpaid difference page that belongs to no request", () => {
+  const sqlErr = (code: string) => Object.assign(new Error(`pg ${code}`), { code });
+  const expiredMsg = () => message({ type: "checkout.session.expired" } as Partial<StripeQueueMessage>);
+  const extraSession = (patch: Partial<Stripe.Checkout.Session> = {}) =>
+    session({ metadata: { kind: "extra", booking_id: "b1" }, ...patch } as Partial<Stripe.Checkout.Session>);
+  const expiredExtra = () => extraSession({ status: "expired", payment_status: "unpaid" } as Partial<Stripe.Checkout.Session>);
+
+  it("an expired difference page with no request is recorded as no_request and acked, no alert", async () => {
+    const d = deps({
+      retrieveSession: vi.fn(async () => expiredExtra()),
+      settlePayment: vi.fn(async () => {
+        throw sqlErr("P0002");
+      }),
+    });
+    expect(await handleStripeMessageWithDeps(expiredMsg(), d)).toEqual({ ack: true });
+    expect(d.eventSettle).toHaveBeenCalledWith("evt_1", "no_request");
+    expect(d.alertStuckPayment).not.toHaveBeenCalled();
+    expect(d.refund).not.toHaveBeenCalled();
+  });
+
+  it("if recording no_request fails the message is retried", async () => {
+    const d = deps({
+      retrieveSession: vi.fn(async () => expiredExtra()),
+      settlePayment: vi.fn(async () => {
+        throw sqlErr("P0002");
+      }),
+      eventSettle: vi.fn(async () => {
+        throw new Error("db down");
+      }),
+    });
+    expect(await handleStripeMessageWithDeps(expiredMsg(), d)).toEqual({ retry: true });
+  });
+
+  it("a PAID difference page with no request yet still retries (the request may not be committed)", async () => {
+    const d = deps({
+      retrieveSession: vi.fn(async () => extraSession()),
+      settlePayment: vi.fn(async () => {
+        throw sqlErr("P0002");
+      }),
+    });
+    expect(await handleStripeMessageWithDeps(message(), d)).toEqual({ retry: true });
+    expect(d.eventSettle).not.toHaveBeenCalled();
+  });
+});
+
+describe("261002 settle safety: a difference that settled but was not applied (T1 mail)", () => {
+  const extraSession = () =>
+    session({ metadata: { kind: "extra", booking_id: "b1" } } as Partial<Stripe.Checkout.Session>);
+  type ExtraDeps = ReturnType<typeof deps> & {
+    afterExtraApplied: ReturnType<typeof vi.fn>;
+    alertDifferenceNotApplied: ReturnType<typeof vi.fn>;
+  };
+  const extraDeps = (row: SettleRow, patch: Partial<SettleDeps> = {}): ExtraDeps =>
+    deps({
+      retrieveSession: vi.fn(async () => extraSession()),
+      settlePayment: vi.fn(async () => row),
+      afterExtraApplied: vi.fn(async () => undefined),
+      alertDifferenceNotApplied: vi.fn(async () => undefined),
+      ...patch,
+    }) as ExtraDeps;
+
+  it("applied = false and not already settled: one alert with the row, no change mail, ack", async () => {
+    const row = settleRow({ applied: false, already_settled: false });
+    const d = extraDeps(row);
+    expect(await handleStripeMessageWithDeps(message(), d)).toEqual({ ack: true });
+    expect(d.alertDifferenceNotApplied).toHaveBeenCalledTimes(1);
+    expect(d.alertDifferenceNotApplied).toHaveBeenCalledWith(row);
+    expect(d.afterExtraApplied).not.toHaveBeenCalled();
+    expect(d.deliverConfirmation).not.toHaveBeenCalled();
+  });
+
+  it("applied = true: the change mail goes out, no alert", async () => {
+    const d = extraDeps(settleRow({ applied: true, already_settled: false }));
+    expect(await handleStripeMessageWithDeps(message(), d)).toEqual({ ack: true });
+    expect(d.afterExtraApplied).toHaveBeenCalledTimes(1);
+    expect(d.alertDifferenceNotApplied).not.toHaveBeenCalled();
+  });
+
+  it("already settled: neither mail", async () => {
+    const d = extraDeps(settleRow({ applied: false, already_settled: true }));
+    expect(await handleStripeMessageWithDeps(message(), d)).toEqual({ ack: true });
+    expect(d.afterExtraApplied).not.toHaveBeenCalled();
+    expect(d.alertDifferenceNotApplied).not.toHaveBeenCalled();
+  });
+
+  it("a refund-required difference row (refunded by the refund branch) sends no alert from this branch", async () => {
+    const d = extraDeps(
+      settleRow({ applied: false, already_settled: false, refund_required: true, refund_reason: "paid_after_cancel" }),
+    );
+    await handleStripeMessageWithDeps(message(), d);
+    expect(d.alertDifferenceNotApplied).not.toHaveBeenCalled();
+  });
+
+  it("a failing alert still acks and emits an error with the booking id only", async () => {
+    const emit = vi.fn();
+    const d = extraDeps(settleRow({ applied: false, already_settled: false }), {
+      alertDifferenceNotApplied: vi.fn(async () => {
+        throw new Error("resend down");
+      }),
+      emit,
+    });
+    expect(await handleStripeMessageWithDeps(message(), d)).toEqual({ ack: true });
+    expect(emit).toHaveBeenCalledWith("error", "difference_not_applied_alert_failed", {
+      bookingId: "11111111-1111-1111-1111-111111111111",
+    });
+  });
+
+  it("an ordinary (non-difference) settle never sends the alert", async () => {
+    const d = deps({ alertDifferenceNotApplied: vi.fn(async () => undefined) });
+    await handleStripeMessageWithDeps(message(), d);
+    expect(d.alertDifferenceNotApplied).not.toHaveBeenCalled();
+  });
+
+  it("production wiring sends the T1 mail through deliverDifferenceNotAppliedAlert", () => {
+    const src = readFileSync(new URL("./settle.ts", import.meta.url), "utf8");
+    expect(src).toContain("alertDifferenceNotApplied: (row) => deliverDifferenceNotAppliedAlert(env, row.booking_id)");
   });
 });

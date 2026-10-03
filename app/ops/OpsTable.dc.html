@@ -57,6 +57,22 @@
 [data-vt-order][disabled]{opacity:.35;cursor:default;pointer-events:none}
 [data-vt-table-scroll] .vt-table td:has([data-vt-order-pair]){padding-block:8px;padding-inline:6px;width:44px;white-space:nowrap}
 [data-vt-editor-foot]{position:sticky;bottom:0;z-index:3;display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:20px;margin-inline:-24px;padding:18px 24px var(--vt-space-6);border-top:1px solid var(--vt-border-subtle);background:var(--vt-bg-surface)}
+/* Owner, 2026-10-01 ("one row at the bottom"): Delete is a red text button at the start (kit ghost
+   Button, danger token, no fill, no border, no glow); Cancel and Save sit together at the end. */
+[data-vt-foot-del]{flex:0 0 auto;min-width:0}
+[data-vt-foot-del] .vt-btn{color:var(--vt-danger);background:transparent;border-color:transparent;padding-inline:12px;margin-inline-start:-12px}
+[data-vt-foot-del] .vt-btn.vt-btn--ghost:hover:not([disabled]){color:var(--vt-danger);background:var(--vt-grey-50);border-color:transparent}
+[data-vt-foot-main]{margin-inline-start:auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:10px;min-width:0}
+/* Phone: Save full width on top, Cancel under it, Delete centred at the very bottom. */
+@media (max-width:680px){
+[data-vt-editor-foot]{flex-direction:column;align-items:stretch;gap:6px}
+[data-vt-foot-main]{flex-direction:column-reverse;align-items:stretch;margin-inline-start:0}
+[data-vt-foot-main] .vt-btn{width:100%}
+[data-vt-foot-del]{order:2;align-self:center}
+[data-vt-foot-del] .vt-btn{margin-inline-start:0}
+/* A field that asks for it (phoneFull) takes the whole row on a phone, so its value is not cut. */
+[data-vt-phone-full="1"]{grid-column:1 / -1 !important}
+}
 [data-vt-save-err]{box-sizing:border-box;display:flex;align-items:center;gap:10px;padding:8px 14px;margin-bottom:16px;border:1px solid var(--vt-danger);border-radius:var(--vt-radius-pill);background:var(--vt-danger-tint);font-size:var(--vt-body-sm);font-weight:500;color:var(--vt-danger)}
 [data-vt-time-wrap] input{all:unset;flex:1 1 auto;min-width:0;width:100%;font:inherit;color:inherit;background:transparent;caret-color:var(--vt-charcoal-900)}
 [data-vt-date-pop]{position:fixed;z-index:220;box-sizing:border-box;width:280px;padding:12px;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-lg)}
@@ -140,7 +156,7 @@
 </sc-if>
 
 <sc-if value="{{ hasRows }}" hint-placeholder-val="{{ true }}">
-<div data-vt-table-scroll="1" data-fill="{{ tableFill }}" data-scroll-native="1" data-lenis-prevent="1" ref="{{ tableRef }}">
+<div data-vt-table-scroll="1" data-fill="{{ tableFill }}" data-scroll-native="1" ref="{{ tableRef }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Table" columns="{{ tableColumns }}" rows="{{ visibleRows }}" onRowClick="{{ rowClick }}" hint-size="100%,320px"></x-import>
 </div>
 </sc-if>
@@ -183,14 +199,14 @@
 </sc-if>
 <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px">
 <sc-for list="{{ formFields }}" as="f" hint-placeholder-count="5">
-<div style="grid-column:{{ f.span }};min-width:0;display:{{ f.show }};position:{{ f.sugPos }};z-index:{{ f.sugZ }}">
+<div data-vt-phone-full="{{ f.phoneFull }}" style="grid-column:{{ f.span }};min-width:0;display:{{ f.show }};position:{{ f.sugPos }};z-index:{{ f.sugZ }}">
 
 <sc-if value="{{ f.isText }}" hint-placeholder-val="{{ true }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Input" size="md" icon="{{ f.inputIcon }}" label="{{ f.label }}" value="{{ f.value }}" onChange="{{ f.set }}" placeholder="{{ f.placeholder }}" hint="{{ f.hint }}" error="{{ f.error }}" suffix="{{ f.suffix }}" required="{{ f.required }}" hint-size="100%,76px"></x-import>
 </sc-if>
 
 <sc-if value="{{ f.fromSug }}" hint-placeholder-val="{{ false }}">
-<div data-vt-from-sug="1" data-scroll-native="1" data-lenis-prevent="1" role="listbox" ref="{{ sugPopRef }}">
+<div data-vt-from-sug="1" data-scroll-native="1" role="listbox" ref="{{ sugPopRef }}">
 <sc-for list="{{ f.fromSugItems }}" as="s" hint-placeholder-count="3">
 <button type="button" data-vt-sug-opt="1" onMouseDown="{{ s.pick }}">
 <span data-vt-sug-lab="1">{{ s.label }}</span>
@@ -201,7 +217,7 @@
 </sc-if>
 
 <sc-if value="{{ f.toSug }}" hint-placeholder-val="{{ false }}">
-<div data-vt-to-sug="1" data-scroll-native="1" data-lenis-prevent="1" role="listbox" ref="{{ sugPopRef }}">
+<div data-vt-to-sug="1" data-scroll-native="1" role="listbox" ref="{{ sugPopRef }}">
 <sc-for list="{{ f.toSugItems }}" as="s" hint-placeholder-count="3">
 <button type="button" data-vt-sug-opt="1" onMouseDown="{{ s.pick }}">
 <span data-vt-sug-lab="1">{{ s.label }}</span>
@@ -262,7 +278,7 @@
 <span data-vt-date-label="1" data-vt-date-empty="{{ f.dateEmpty }}">{{ f.dateLabel }}</span>
 </button>
 <sc-if value="{{ f.dateOpen }}" hint-placeholder-val="{{ false }}">
-<div data-vt-date-pop="1" data-lenis-prevent="1" ref="{{ datePopRef }}" style="top:{{ f.popTop }};left:{{ f.popLeft }}">
+<div data-vt-date-pop="1" ref="{{ datePopRef }}" style="top:{{ f.popTop }};left:{{ f.popLeft }}">
 <div data-vt-date-nav="1">
 <button type="button" aria-label="Previous month" onClick="{{ f.prevMonth }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="chevron-left" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></button>
 <strong>{{ f.monthName }}</strong>
@@ -385,7 +401,7 @@
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ historyChevron }}" size="{{ n16 }}" color="var(--vt-text-muted)" hint-size="16px,16px"></x-import>
 </button>
 <sc-if value="{{ historyOpen }}" hint-placeholder-val="{{ true }}">
-<div data-lenis-prevent="1" data-scroll-native="1" style="display:flex;flex-direction:column;gap:8px;margin-top:12px;max-height:360px;overflow-y:auto;overscroll-behavior:contain">
+<div data-scroll-native="1" style="display:flex;flex-direction:column;gap:8px;margin-top:12px;max-height:360px;overflow-y:auto;overscroll-behavior:contain">
 <sc-if value="{{ historyUses }}" hint-placeholder-val="{{ false }}">
 <sc-for list="{{ historyList }}" as="h" hint-placeholder-count="0">
 <div data-coupon-use="1" style="box-sizing:border-box;display:flex;flex-direction:column;gap:2px;padding:10px 12px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-md);background:var(--vt-grey-50);width:100%">
@@ -419,17 +435,17 @@
 </div>
 </sc-if>
 <div data-vt-editor-foot>
-<span style="display:{{ deleteShow }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" icon="trash-2" onClick="{{ askDeleteCurrent }}" hint-size="110px,44px">Delete</x-import>
+<span data-vt-foot-del="1" style="display:{{ deleteShow }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" onClick="{{ askDeleteCurrent }}" hint-size="90px,44px">Delete</x-import>
 </span>
-<span style="margin-inline-start:auto;display:flex;flex-wrap:wrap;gap:10px">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="outline" onClick="{{ requestClose }}" hint-size="110px,44px">Cancel</x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ save }}" disabled="{{ saveOff }}" hint-size="130px,44px">{{ saveLabel }}</x-import>
+<span data-vt-foot-main="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" onClick="{{ requestClose }}" hint-size="110px,44px">Cancel</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="primary" onClick="{{ save }}" disabled="{{ saveOff }}" hint-size="130px,44px">{{ saveLabel }}</x-import>
 </span>
 </div>
 </x-import>
 <sc-if value="{{ routeSugOpen }}" hint-placeholder-val="{{ false }}">
-<div data-vt-sug="1" data-vt-route-sug="1" data-scroll-native="1" data-lenis-prevent="1" role="listbox" ref="{{ sugPopRef }}" style="top:{{ sugTop }};left:{{ sugLeft }};width:{{ sugWidth }}">
+<div data-vt-sug="1" data-vt-route-sug="1" data-scroll-native="1" role="listbox" ref="{{ sugPopRef }}" style="top:{{ sugTop }};left:{{ sugLeft }};width:{{ sugWidth }}">
 <sc-for list="{{ sugItems }}" as="s" hint-placeholder-count="3">
 <button type="button" data-vt-sug-opt="1" data-vt-sug-wait="{{ s.wait }}" onMouseDown="{{ s.pick }}">
 <span data-vt-sug-lab="1">{{ s.label }}</span>
@@ -491,7 +507,7 @@
 
    columns: [{ key, header, width, align, kind, subKey, tones, emptyLabel, prefix }]
      kind  'text' | 'stack' | 'mono' | 'badge' | 'money' | 'need' | 'bool'
-   fields:  [{ key, label, editor, options, placeholder, hint, required, half, icon, readonly }]
+   fields:  [{ key, label, editor, options, placeholder, hint, required, half, phoneFull, icon, readonly }]
      editor 'text' | 'number' | 'year' | 'phone' | 'date' | 'time' | 'select' | 'switch' | 'area' | 'photo' */
 /* A leading icon is what makes a console field read like the client-facing ones on the
    booking widget, so the schema's key picks the same glyph the front page uses. */
@@ -1556,6 +1572,7 @@ class Component extends DCLogic {
         placeholder: f.placeholder || '', suffix: f.suffix || '',
         error: err, required: !!f.required,
         span: f.half ? 'span 1' : 'span 2',
+        phoneFull: f.phoneFull ? '1' : '0',
         pair: f.pair || '',
         show: this.fieldVisible(f, d) ? 'block' : 'none',
         icon: f.icon || 'settings',

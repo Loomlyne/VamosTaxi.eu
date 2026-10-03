@@ -146,11 +146,14 @@ export async function notifyCancellation(
     { bookingId: trip.bookingId, kind: "cancellation", locale: trip.locale },
     async () => {
       const customer = await sendCancellation(mail, { ...trip, urgent: false }, trip.customerEmail);
-      const ops = await sendCancellation(mail, { ...trip, urgent: assigned }, BOOKINGS_OPS_EMAIL);
+      // 26.2 audit: the ops and chauffeur copies are best effort. The claim settles on the
+      // customer's outcome only, so a failed customer mail is recorded as failed (retryable),
+      // never as sent because bookings@ received its copy.
+      await sendCancellation(mail, { ...trip, urgent: assigned }, BOOKINGS_OPS_EMAIL);
       if (trip.chauffeurEmail) {
         await sendCancellation(mail, { ...trip, urgent: false }, trip.chauffeurEmail);
       }
-      return customer.ok ? customer : ops;
+      return customer;
     },
   );
 }

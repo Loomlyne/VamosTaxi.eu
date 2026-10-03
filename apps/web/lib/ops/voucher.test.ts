@@ -33,7 +33,8 @@ describe("staff voucher resend", () => {
     const t = read("app/ops/OpsDetail.dc.html");
     expect(t).toMatch(/\/voucher/);
     expect(t).not.toMatch(/resendVoucher: \(\) => this\.notify/);
-    expect(t).toMatch(/sc-if value="\{\{ dialogOpen \}\}"/);
+    // 260930-dash-design: Assign is the box on the page (no dialog any more).
+    expect(t).toMatch(/sc-if value="\{\{ showAssignPicker \}\}"/);
     expect(t).toMatch(/sc-if value="\{\{ cancelOpen \}\}"/);
     expect(t).toMatch(/chauffeurs\.onChange/);
     expect(t).toMatch(/data-ops-detail-acts/);
@@ -72,11 +73,9 @@ describe("customer refund words and amount (26.1-18, UI-SPEC §2)", () => {
   it("customer cancel screens use the shared D-24 window, not a 6 hour cut-off", () => {
     const route = read("apps/web/app/api/manage/booking/route.ts");
     const client = read("apps/web/app/[locale]/confirmation/[ref]/ConfirmationClient.tsx");
-    for (const src of [route, client]) {
-      expect(src).toMatch(/customerCancelWindow\(/);
-      expect(src).not.toMatch(/hours > 6/);
-    }
-    expect(client).not.toMatch(/cancelSheetClose/);
-    expect(client).toMatch(/refundRappen/);
+    expect(route).toMatch(/customerCancelWindow\(/);
+    expect(route).not.toMatch(/hours > 6/);
+    // 2026-10-01: cancelling left /confirmation for Manage booking (owner decision).
+    expect(client).not.toMatch(/cancelSheet|paid-cancel|hours > 6/);
   });
 });

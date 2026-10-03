@@ -1,5 +1,6 @@
-import { test, expect, webkit, chromium, devices, type Page, type Browser } from "@playwright/test";
+import { test, expect, webkit, chromium, devices, type Page, type Browser } from "../support/test";
 import { serveMock, waitForMockReady } from "../support/mock-harness";
+import { stubConsentChosen } from "../support/consent-state";
 
 // Quick 260930-bp2 item 4. The phone booking page (BookingSheet) owns one history entry while open and walks
 // back over it when it closes (history.go(-1) + a pending-pop marker).
@@ -28,6 +29,9 @@ async function launch(engine: (typeof ENGINES)[number], traverse = 0): Promise<{
   }, traverse);
   const page = await ctx.newPage();
   await page.route("**/api/**", API);
+  // Phase 27: consent is a server answer now (GET /api/consent/state), not the old localStorage seed above. Without
+  // this the banner paints over the bar on a phone. Registered after the catch-all, so it wins for this URL.
+  await stubConsentChosen(page);
   return { br, page };
 }
 

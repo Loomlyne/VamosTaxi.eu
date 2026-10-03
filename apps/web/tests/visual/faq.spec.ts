@@ -1,12 +1,14 @@
-import { test, expect } from "@playwright/test";
+import { test, expect } from "../support/test";
+import { testPort } from "../support/port";
 import { spawn, type ChildProcess } from "node:child_process";
 import { NEXT_BIN, waitForNextServer, WEB_ROOT } from "../support/server-harness";
+import { nextDevEnv } from "../support/test-stack";
 
 const PORTS: Record<string, number> = {
-  "component-1440": 4213,
-  "component-1024": 4211,
-  "component-768": 4212,
-  "component-390": 4210,
+  "component-1440": testPort(4213),
+  "component-1024": testPort(4211),
+  "component-768": testPort(4212),
+  "component-390": testPort(4210),
 };
 
 const LOCALES = ["en", "de", "fr", "ar"] as const;
@@ -22,7 +24,7 @@ function pathFor(locale: string, route: "/faq" | "/dev/faq"): string {
 async function startServer(port: number): Promise<void> {
   if (devServer?.pid) {
     try {
-      process.kill(devServer.pid, "SIGTERM");
+      process.kill(-devServer.pid, "SIGTERM");
     } catch {
       /* gone */
     }
@@ -34,10 +36,7 @@ async function startServer(port: number): Promise<void> {
     cwd: WEB_ROOT,
     stdio: "ignore",
     detached: true,
-    env: {
-      ...process.env,
-      TEST_DIST_DIR: `test-results/.next-faq-${port}`,
-    },
+    env: nextDevEnv({ TEST_DIST_DIR: `test-results/.next-faq-${port}` }, { gallery: true }),
   });
   await waitForNextServer(baseURL, 180_000);
   for (const path of ["/faq", "/dev/faq"] as const) {
@@ -63,7 +62,7 @@ test.describe("FAQ page and gallery @component", () => {
 
   test.beforeAll(async ({}, testInfo) => {
     testInfo.setTimeout(240_000);
-    await startServer(PORTS[testInfo.project.name] ?? 4219);
+    await startServer(PORTS[testInfo.project.name] ?? testPort(4219));
   });
 
   test.beforeEach(async () => {
@@ -73,7 +72,9 @@ test.describe("FAQ page and gallery @component", () => {
   test.afterAll(() => {
     if (devServer?.pid) {
       try {
-        process.kill(devServer.pid, "SIGTERM");
+        // The whole group: on the Linux runner the leader is the logging wrapper (next-dev-logged.sh) and a signal
+        // to the leader alone left `next dev` running on the port.
+        process.kill(-devServer.pid, "SIGTERM");
       } catch {
         // already gone
       }
@@ -132,12 +133,17 @@ test.describe("FAQ page and gallery @component", () => {
     expect(controls).toBeTruthy();
     const panel = page.locator(`#${controls}`);
     await expect(panel).toHaveCount(1);
-    expect(await toggle.getAttribute("aria-expanded")).toBe("false");
+    // /faq is the DC mock (apps/web/middleware.ts DC_PAGES), whose first answer is open on arrival
+    // (app/pages/faq.dc.html, `open: { 1: true }`). Enter and Space each flip the state from there.
+    const first = await toggle.getAttribute("aria-expanded");
+    expect(first === "true" || first === "false").toBe(true);
+    const flipped = first === "true" ? "false" : "true";
     await page.keyboard.press("Enter");
-    expect(await toggle.getAttribute("aria-expanded")).toBe("true");
+    await expect(toggle).toHaveAttribute("aria-expanded", flipped);
     await page.keyboard.press("Space");
-    expect(await toggle.getAttribute("aria-expanded")).toBe("false");
+    await expect(toggle).toHaveAttribute("aria-expanded", first ?? "");
     await page.keyboard.press("Enter");
+    await expect(toggle).toHaveAttribute("aria-expanded", flipped);
     const shadow = await toggle.evaluate((el) => getComputedStyle(el).boxShadow);
     const ring = await page.evaluate(() =>
       getComputedStyle(document.documentElement).getPropertyValue("--vt-ring").trim(),
@@ -200,13 +206,21 @@ test.describe("FAQ page and gallery @component", () => {
       els.map((el) => (el as HTMLButtonElement).innerText.trim()),
     );
     await page.goto(baseURL + "/de/faq");
-    const deNames = await page.locator("[data-faq-toggle]").evaluateAll((els) =>
-      els.map((el) => (el as HTMLButtonElement).innerText.trim()),
-    );
     expect(enNames.length).toBeGreaterThan(0);
-    expect(enNames.length).toBe(deNames.length);
-    for (let i = 0; i < enNames.length; i += 1) {
-      expect(deNames[i]).not.toBe(enNames[i]);
-    }
+    // The page is a mock: its English markup is translated by the locale runtime after the load event, so a read
+    // straight after goto can still see English on a slow runner (flaky on Linux, one toggle each time). Poll until
+    // every toggle has changed, and print the ones that did not.
+    await expect
+      .poll(
+        async () => {
+          const deNames = await page.locator("[data-faq-toggle]").evaluateAll((els) =>
+            els.map((el) => (el as HTMLButtonElement).innerText.trim()),
+          );
+          if (deNames.length !== enNames.length) return `${deNames.length} toggles in de, ${enNames.length} in en`;
+          return deNames.filter((name, i) => name === enNames[i]).join(" | ") || "all differ";
+        },
+        { timeout: 15_000, message: "every FAQ toggle reads German" },
+      )
+      .toBe("all differ");
   });
 });

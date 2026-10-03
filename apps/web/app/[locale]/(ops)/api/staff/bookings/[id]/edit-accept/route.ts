@@ -1,6 +1,8 @@
 // apps/web/app/[locale]/(ops)/api/staff/bookings/[id]/edit-accept/route.ts
 //
-// POST /api/staff/bookings/:id/edit-accept — ops accept of a paid edit.
+// POST /api/staff/bookings/:id/edit-accept — ops accept of a stored paid-edit request.
+// Body: { requestId }. 26.2 P1: nothing else is read from the browser — a change the admin makes
+// himself goes through …/change (priced on the server); accept never copies a field it is sent.
 // Dual-mounted at app/api/staff/bookings/[id]/edit-accept.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
@@ -22,15 +24,6 @@ function str(value: unknown): string | undefined {
   return typeof value === "string" && value.trim() ? value.trim() : undefined;
 }
 
-function num(value: unknown): number | undefined {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
-  if (typeof value === "string" && value.trim()) {
-    const n = Number(value);
-    if (Number.isFinite(n)) return n;
-  }
-  return undefined;
-}
-
 export const POST = withStaff(async (claims, request) => {
   const id = bookingKey(request);
   if (!id) return jsonErr("not-found", 404);
@@ -41,33 +34,13 @@ export const POST = withStaff(async (claims, request) => {
     body = {};
   }
   const record = body && typeof body === "object" && !Array.isArray(body) ? (body as Record<string, unknown>) : {};
-  const payloadRaw =
-    record.payload && typeof record.payload === "object" && !Array.isArray(record.payload)
-      ? (record.payload as Record<string, unknown>)
-      : record;
+  const requestId = str(record.requestId);
+  if (!requestId) return jsonErr("invalid-body", 400);
   const { env } = getCloudflareContext();
   const timeChange = await pendingEditHasTimeChange(env, id);
-  const result = await acceptPaidEdit(env, claims, id, {
-    requestId: str(record.requestId),
-    quoteSnapshotId: num(record.quoteSnapshotId),
-    lock: str(record.lock),
-    vehicleClassSlug: str(record.vehicleClassSlug) ?? str(payloadRaw.vehicle_class_slug) ?? str(payloadRaw.klass),
-    payload: {
-      contact_name: str(payloadRaw.contact_name) ?? str(payloadRaw.customer),
-      contact_email: str(payloadRaw.contact_email) ?? str(payloadRaw.email),
-      contact_phone: str(payloadRaw.contact_phone) ?? str(payloadRaw.phone),
-      note: str(payloadRaw.note),
-      pickup_text: str(payloadRaw.pickup_text) ?? str(payloadRaw.pickup),
-      dropoff_text: str(payloadRaw.dropoff_text) ?? str(payloadRaw.dropoff),
-      flight_no: str(payloadRaw.flight_no) ?? str(payloadRaw.flight),
-      scheduled_local: str(payloadRaw.scheduled_local),
-      pax: num(payloadRaw.pax),
-      bags: num(payloadRaw.bags),
-      vehicle_class_slug: str(payloadRaw.vehicle_class_slug) ?? str(payloadRaw.klass),
-    },
-  }, request.headers.get("origin") ?? DASHBOARD_ORIGIN);
+  const result = await acceptPaidEdit(env, claims, id, { requestId, payload: {} }, request.headers.get("origin") ?? DASHBOARD_ORIGIN);
   if (!result.ok) return jsonErr(result.code, failStatus(result.code));
-  if (timeChange && result.outcome === "applied") {
+  if (timeChange && (result.outcome === "applied" || result.outcome === "refund_due")) {
     await notifyTimeChangeOutcome(env, result.bookingId, "confirmed");
   }
   return jsonOk({

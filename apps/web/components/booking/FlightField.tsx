@@ -52,9 +52,13 @@ export function FlightField({
   const today = zurichCivilDate();
   const tomorrow = addCivilDays(today, 1);
   const tripDate = date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : today;
-  const [choice, setChoice] = useState<"today" | "tomorrow" | "trip">(
-    tripDate === tomorrow ? "tomorrow" : tripDate === today ? "today" : "trip",
-  );
+  const dayOf = (d: string): "today" | "tomorrow" | "trip" => (d === tomorrow ? "tomorrow" : d === today ? "today" : "trip");
+  const [choice, setChoice] = useState<"today" | "tomorrow" | "trip">(dayOf(tripDate));
+  // 26.2 audit U06-2: the host keeps this field mounted while the trip editor changes the date,
+  // so `choice` must follow the trip date or the lookup stays pinned to the old day.
+  useEffect(() => {
+    setChoice(dayOf(tripDate));
+  }, [tripDate]);
   const [state, setState] = useState<"idle" | "checking" | "ok" | "none" | "err">("idle");
   const [flight, setFlight] = useState<FlightJson | null>(null);
   const [confirmed, setConfirmed] = useState(false);
@@ -163,7 +167,8 @@ export function FlightField({
         }}
       />
       {showCard && !confirmed ? (
-        <div className="vt-flight__card" role="group" aria-label={t("cardTitle")}>
+        // 26.2 audit U06-8: polite live region so "Looking up…", "No flight" and the match sentence are announced.
+        <div className="vt-flight__card" role="group" aria-label={t("cardTitle")} aria-live="polite">
           <div className="vt-flight__head">
             <span className="vt-flight__code">{formatFlightInput(flight?.number || value)}</span>
           </div>
@@ -172,7 +177,7 @@ export function FlightField({
           {ready ? (
             <>
               <p className="vt-flight__copy">{sentence}</p>
-              <div className="vt-flight__days" role="radiogroup" aria-label={t("today")}>
+              <div className="vt-flight__days" role="radiogroup" aria-label={t("dayGroup")}>
                 <button
                   type="button"
                   role="radio"
