@@ -12,10 +12,9 @@
   [data-tseg-tx]{display:flex;flex-direction:column;min-inline-size:0;gap:1px}
   [data-tseg-k]{font-size:var(--vt-label-sm);line-height:14px;font-weight:var(--vt-label-weight);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-secondary)}
   [data-tseg-v]{font-size:var(--vt-body-md);line-height:20px;color:var(--vt-text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  [data-tgo]{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;gap:var(--vt-space-2);block-size:var(--vt-control-h-lg);padding-inline:var(--vt-space-6);border-radius:var(--vt-radius-pill);background:var(--vt-accent);color:var(--vt-charcoal-900);font-family:var(--vt-font-body);font-size:var(--vt-label-md);font-weight:var(--vt-label-weight);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;white-space:nowrap;cursor:pointer;transition:var(--vt-transition-control)}
-  [data-tgo]:hover{background:var(--vt-yellow-600)}
-  [data-tgo]:active{transform:translateY(1px)}
-  [data-tgo]:focus-visible{box-shadow:var(--vt-ring)}
+  /* CTA is the design-system Button (primary, lg), not a hand-built pill: hover = --vt-accent-hover from the kit itself */
+  [data-tgo]{display:flex;align-items:stretch}
+  [data-tgo] .vt-btn{inline-size:auto;white-space:nowrap}
   [data-bar-notes]{padding:var(--vt-space-3) var(--vt-space-3) var(--vt-space-3)}
   /* sheet: two columns */
   [data-bs-col]{max-inline-size:880px!important;display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:var(--vt-space-10);row-gap:var(--vt-space-6);align-items:start}
@@ -30,5 +29,5 @@
 @media (min-width:681px) and (max-width:899px){
   [data-tseg-ic]{display:none}
   [data-tseg]{padding-inline:var(--vt-space-4)}
-  [data-tgo]{padding-inline:var(--vt-space-5)}
+  [data-tgo] .vt-btn{padding-inline:var(--vt-space-5)}
 }

@@ -10,7 +10,7 @@
 7. Sheet (BookingSheet) rows are the same as desktop but without the group head, so the two lists drift.
 
 ## Proposal (one direction, both surfaces)
-- Row: 56px, no outline, 12px radius, 36px tile (grey-100, charcoal glyph), name 500 with the typed part 700, sub 13px muted, kind label at the end (10px uppercase muted: AIRPORT / HOTEL / STATION / ADDRESS / CITY / PLACE). The label says in words what the glyph means (also helps colour-blind / small-glyph reading).
+- Row: 56px, no outline, 12px radius, 36px tile (grey-100, charcoal glyph), name 500 with the typed part 700, sub 13px muted, kind label at the end (`--vt-label-sm` 11px uppercase muted: AIRPORT / HOTEL / STATION / ADDRESS / CITY / PLACE). The label says in words what the glyph means (also helps colour-blind / small-glyph reading).
 - Hover = grey-50 fill. Keyboard-active (`aria-selected=true`) = grey-100 fill + tile inverts to charcoal/white. No glow, no tint, no left accent.
 - Sub line = `context` (Mapbox `place_formatted`: "8302 Kloten, Switzerland"); hotels/pois: street + locality (`Talstrasse 1, 8001 Zurich`). Falls back to `address`.
 - Loading: 3 skeleton rows (grey-100 tile + two bars, pulse; static under reduced-motion).
@@ -57,7 +57,8 @@ Row (replace the inline-styled spans):
 Airport, Hotel, Station, Address, City, Place, Popular, No places found for, hint line. "Search results" exists already (`results`). The empty-state title is a concatenation -> pattern entry.
 
 ## Files the coder touches
-- apps/web/lib/geo/mapbox.ts (SuggestHit + mapSuggestion + kind derivation), apps/web/lib/geo/session.ts (publicSuggestion), their unit tests, any `/api/geo/suggest` contract test
+- apps/web/lib/geo/mapbox.ts (SuggestHit + mapSuggestion + kind derivation), apps/web/lib/geo/session.ts (publicSuggestion), apps/web/lib/geo/session.test.ts, apps/web/app/api/geo/suggest/route.ts, any `/api/geo/suggest` contract test
+- app/home/BookingSheetStates.dc.html (the sheet's states gallery: show kinds, active, loading, empty)
 - app/home/home.dc.html (+ twin check), app/home/BookingSheet.dc.html (+ twin app/pages if one exists), `hitsFor()` passes kind/pre/hit/post
 - assets/icons/bed.svg, train-front.svg, map.svg (+ apps/web/public copy via sync script)
 - app/vamos-i18n-dict.js (lead merges)
@@ -71,7 +72,7 @@ Airport, Hotel, Station, Address, City, Place, Popular, No places found for, hin
 
 ## Extra findings
 - Desktop list (home.dc.html `[data-sug]`) has no `data-vt-no-i18n` on the name/sub spans: in Arabic the live runtime translates Mapbox names ("Zurich Airport (ZRH)" came out as an Arabic name in the picture run). The sheet already protects them. Fix is part of the markup above.
-- RTL: Latin names/postcodes inside an Arabic page need `[dir=rtl] [data-sug-name],[data-sug-sub]{direction:ltr;text-align:end}` (in proposal.css) or the postcode jumps to the wrong end of "8302 Kloten".
+- RTL (sheet and dropdown share one global rule, re-shot in the sheet at 1024/768/390): Latin names/postcodes inside an Arabic page need `[dir=rtl] [data-sug-name],[data-sug-sub]{direction:ltr;text-align:end}` (in proposal.css) or the postcode jumps to the wrong end of "8302 Kloten".
 
 ## Recommendation
 Single direction (no A/B): one neutral tile + kind label + bold match is the quietest list that still tells hotel from street; keep the black tile only for the keyboard-active row.

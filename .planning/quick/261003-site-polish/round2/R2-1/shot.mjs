@@ -26,7 +26,7 @@ for (const lang of langs.split(',')) for (const w of widths.split(',').map(Numbe
     await inp.click(); if (q) await inp.type(q, { delay: 40 });
   } else {
     await page.evaluate(()=>window.scrollTo(0,0));
-    await page.waitForSelector('[data-bb][data-docked="0"]',{state:'attached',timeout:20000}); for (let t=0;t<4;t++){ await page.evaluate(()=>document.querySelector('[data-bb][data-docked="0"]').click()); try{ await page.waitForSelector('[data-bs] input[role=combobox]',{timeout:4000}); break;}catch(e){} }
+    await page.waitForSelector('[data-bb][data-docked="0"]',{state:'attached',timeout:20000}); for (let t=0;t<4;t++){ if (!(await page.$('[data-bs]'))) await page.evaluate(()=>document.querySelector('[data-bb][data-docked="0"]').click()); try{ await page.waitForSelector('[data-bs] input[role=combobox]',{timeout:8000}); break;}catch(e){} }
     await page.waitForTimeout(800);
     const inp = page.locator('[data-bs] input[role=combobox]').first();
     await inp.click(); if (q) await inp.type(q, { delay: 40 });

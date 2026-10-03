@@ -13,7 +13,7 @@
 [data-sug-hit]{font-weight:700;color:var(--vt-text-primary);background:transparent}
 [data-sug-sub]{font-size:var(--vt-body-xs);line-height:1.3;font-weight:400;color:var(--vt-text-muted)}
 /* Kind label at the end: AIRPORT / HOTEL / STATION / ADDRESS / CITY — what the glyph means, in words. */
-[data-sug-kind]{flex:0 0 auto;font-size:10px;line-height:1;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
+[data-sug-kind]{flex:0 0 auto;font-size:var(--vt-label-sm);line-height:1;letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)}
 /* Hover (pointer devices) and keyboard-active row share one look: grey fill, inverted tile. */
 @media (hover:hover) and (pointer:fine){[data-sug-row]:hover{background:var(--vt-grey-50)}}
 [data-sug-row][aria-selected=true]{background:var(--vt-grey-100)}
@@ -45,4 +45,5 @@
 /* Key hints only where there is a keyboard */
 @media (hover:none){[data-sug-foot]{display:none}}
 /* Mixed-script lines (Latin name/postcode inside an Arabic page) keep their own reading order, aligned to the inline start. */
+/* Applies to BOTH lists (desktop dropdown and sheet): the rule is global, not scoped to [data-sug]. */
 [dir="rtl"] [data-sug-name],[dir="rtl"] [data-sug-sub]{direction:ltr;text-align:end}
