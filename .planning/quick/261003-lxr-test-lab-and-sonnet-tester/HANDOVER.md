@@ -23,5 +23,5 @@ the 4242 payment after deploy still is."
   with `fix/quote-rate-buckets` merged (temporarily, not committed) it passes 7/7 with zero 429s. That is independent proof for that fix.
 - Sonnet tester (reading the agent file itself) on `RECHECK-BRIEF.md`: T4, T6 pass; T1-T3 fail on the same live 429; T5 failed on a
   helper race (sign-in typed before the page was ready), fixed and re-run 3/3. Details in `evidence/recheck/RESULT.md`.
-- Order for the controller: land `fix/quote-rate-buckets` before or with this, otherwise every brief that books on home hits the live 429.
+- `fix/quote-rate-buckets` went live as `709c51aa` during this recheck and is merged into this branch (`fb1fd714`), so briefs that book on home no longer hit the 429.
 - Lab `chk` destroyed; no `vamos-lab` container or state dir left.
