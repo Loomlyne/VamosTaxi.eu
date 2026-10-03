@@ -1205,7 +1205,22 @@ that the change was saved on pixel `1595596972063765`; then the Meta job builds
 (`.planning/decisions/2026-10-01-meta-events-manager-switches.md`). Meta legal lines: the three texts in
 `.planning/decisions/2026-09-30-meta-wording.md`, verbatim.
 
-**Plans**: TBD
+**State, 2026-10-03: plans written, waiting for the owner's signature.** The owner turned both Meta
+switches off; Meta's setup file no longer opts in to automatic matching (re-read 12:03:53 UTC), it still
+serves inferred events, which the code switches off and plan 28-07 proves with Meta's real script.
+Migration number comes from the controller.
+
+**Plans**: 7 plans
+
+Plans:
+- [ ] 28-01-PLAN.md — database: two Meta id columns, pending-only writer and trigger (migration number from controller)
+- [ ] 28-02-PLAN.md — the browser loader app/vamos-meta.js and its server twin allow-list (flags off)
+- [ ] 28-03-PLAN.md — mount through the cookie banner, switch flag, Meta-string scan rewrite
+- [ ] 28-04-PLAN.md — path-scoped Meta security policy, Referrer-Policy strict-origin
+- [ ] 28-05-PLAN.md — save _fbp/_fbc on the unpaid booking at Pay (consent, public site only)
+- [ ] 28-06-PLAN.md — browser proof at the public addresses, Meta hosts intercepted
+- [ ] 28-07-PLAN.md — real-script proof, open the flags, full gate, hand-over
+
 **UI hint**: no new screen. Pixel `1595596972063765`. PageView only.
 
 ### Phase 29: Webhook Purchase
