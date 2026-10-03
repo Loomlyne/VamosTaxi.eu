@@ -65,8 +65,9 @@ A green lab is never proof for the live site: after a deploy that touches checko
 
 - A Mac sleep kills wrangler. After a sleep: `lab.sh down <name>`, `lab.sh up <name>`.
 - Under load a Worker can drop ("Network connection lost", a refused port). `down`, `up`, rerun only the steps that were cut. Several sessions share this Mac.
-- The dashboard `/api/quote` allows 4 a minute per client address (bare bucket): space dashboard quotes about 61 s apart. The public site has the 8 a minute verified bucket;
-  the lab sets `VAMOS_QS_SECRET` in `.dev.vars` so the visitor cookie is minted (without it home -> /checkout -> voucher -> PAY hits 429).
+- The lab runs like live: no `VAMOS_QS_SECRET`, so every visitor is on the bare per-IP quote bucket (live has none, read-only check 2026-10-03).
+  A flow that asks for many prices in a minute (home -> /checkout -> voucher -> PAY) can hit 429 there exactly as on live; that is a finding, not a lab fault.
+  `LAB_QS_SECRET=1 lab.sh up <name>` adds a local secret only when the change under test also sets it on live. Dashboard quotes: space them about 61 s apart.
   `lab-browser.mjs` gives each page its own `cf-connecting-ip`.
 - A quote with no class chosen has no `quote_id`; the lock and the id come with the class.
 - An airport pickup needs `distance_rates.airport_start_rappen`; without it the quote answers `partially_priced_class` (500).

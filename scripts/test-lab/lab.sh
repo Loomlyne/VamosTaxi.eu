@@ -261,9 +261,15 @@ cmd_up() {
   # mkcfg takes the API and DB ports from the environment
   SB_API_PORT=$SB_API SB_DB_PORT=$SB_DB node "$WEB/tests/e2e-worker/mkcfg.mjs" "$WEB" "$STATE/sb.env" "$STATE/hook-secret" p6 \
     || fail "mkcfg.mjs failed"
-  # Without VAMOS_QS_SECRET no visitor cookie is minted and every quote call falls into the 4-a-minute bare-IP bucket:
-  # home -> /checkout -> voucher -> PAY then hits 429. With it the real 8-a-minute verified bucket applies, as live.
-  grep -q '^VAMOS_QS_SECRET=' "$WEB/.dev.vars" || printf 'VAMOS_QS_SECRET="lab-local-qs-secret-0123456789abcdef"\n' >> "$WEB/.dev.vars"
+  # The lab runs like live: Worker `vamos` has no VAMOS_QS_SECRET (read-only check 2026-10-03), so no visitor cookie
+  # is minted and every quote call is on the bare per-IP bucket. A lab kinder than live hides live bugs (it hid the
+  # "Too many prices" refusal on /checkout). LAB_QS_SECRET=1 adds a local secret, only for a change that sets it on live.
+  if [ "${LAB_QS_SECRET:-0}" = "1" ]; then
+    grep -q '^VAMOS_QS_SECRET=' "$WEB/.dev.vars" || printf 'VAMOS_QS_SECRET="lab-local-qs-secret-0123456789abcdef"\n' >> "$WEB/.dev.vars"
+    note "VAMOS_QS_SECRET set (LAB_QS_SECRET=1): NOT like live"
+  else
+    note "no VAMOS_QS_SECRET, like live (LAB_QS_SECRET=1 to add one)"
+  fi
   hash_cfg > "$STATE/cfg.sha"
 
   cd "$WEB" || fail "no $WEB"
