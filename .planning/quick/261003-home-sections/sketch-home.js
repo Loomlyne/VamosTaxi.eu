@@ -59,7 +59,7 @@
     if (lang === 'ar') html = html.replace(/ → /g, ' ← ');
   } else if (s === 'meet') {
     var m = T.meet;
-    html = sec(head(m) + '<div data-meet><ol data-steps>' + m.steps.map(function (x) { return '<li><span data-tile>' + I(x[0]) + '</span><div style="display:flex;flex-direction:column;gap:6px"><h3 data-h3>' + x[1] + '</h3><p data-p>' + x[2] + '</p></div></li>'; }).join('') + '</ol><div data-board><div data-sign>' + m.sign + '<small>' + m.signSub + '</small></div><div data-airports>' + m.ap.map(function (a) { return '<div data-ap><b class="vt-dir-keep">' + a[0] + '</b>' + a[1] + '<br>' + m.points + ':' + note() + '</div>'; }).join('') + '</div></div></div>', true);
+    html = sec(head(m) + '<div data-meet><ol data-steps>' + m.steps.map(function (x) { return '<li><span data-tile>' + I(x[0]) + '</span><div style="display:flex;flex-direction:column;gap:6px"><h3 data-h3b>' + x[1] + '</h3><p data-p>' + x[2] + '</p></div></li>'; }).join('') + '</ol><div data-board><div data-sign>' + m.sign + '<small>' + m.signSub + '</small></div><div data-airports>' + m.ap.map(function (a) { return '<div data-ap><b class="vt-dir-keep">' + a[0] + '</b>' + a[1] + '<br>' + m.points + ':' + note() + '</div>'; }).join('') + '</div></div></div>', true);
   } else if (s === 'services') {
     var v = T.services;
     html = sec(head(v) + '<div data-grid style="--min:240px">' + v.items.map(function (x) { var src = x[0].indexOf('http') === 0 ? x[0] : P + x[0]; return '<a data-svc href="#book"><img src="' + src + '" alt=""><div data-svc-body><h3 data-h3>' + x[1] + '</h3><p data-p>' + x[2] + '</p><span data-link>' + v.cta + I('arrow-right', 1) + '</span></div></a>'; }).join('') + '</div>');
