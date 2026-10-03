@@ -37,12 +37,17 @@ describe("26.4 D-13/D-14 service links", () => {
     }
   });
 
-  it("HowItWorks sends the destination only", () => {
-    const s = read("app/home/HowItWorks.dc.html");
+  // Quick 261003: the destination rows moved from HowItWorks to WhereWeDrive, which also sends the
+  // airport (From) so the booking card fills both ends. Still no mode switch and no URL rewrite.
+  it("WhereWeDrive sends the airport and the destination, no mode", () => {
+    expect(read("app/home/HowItWorks.dc.html")).not.toContain("vamos:dest-pick");
+    const s = read("app/home/WhereWeDrive.dc.html");
     expect(s).not.toContain("replaceState");
-    const m = s.match(/const detail = (\{[^}]*\});\s*try \{\s*window\.dispatchEvent\(new CustomEvent\('vamos:dest-pick'/);
+    const m = s.match(/const detail = (\{[^}]*\});/);
     expect(m).not.toBeNull();
     expect(m![1]).not.toMatch(/mode/);
     expect(m![1]).toContain("handled");
+    expect(m![1]).toContain("from:");
+    expect(s).toContain("window.dispatchEvent(new CustomEvent('vamos:dest-pick'");
   });
 });

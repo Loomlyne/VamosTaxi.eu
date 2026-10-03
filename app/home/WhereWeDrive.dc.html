@@ -54,7 +54,7 @@ a{color:inherit;text-decoration:none;border-bottom:0}a:hover{color:inherit}
 [data-ww-arrow]{display:inline-flex;align-items:center;color:var(--vt-text-muted)}
 [data-ww-chev]{display:inline-flex;align-items:center;flex:0 0 auto;color:var(--vt-text-muted)}
 [dir="rtl"] [data-ww-arrow],[dir="rtl"] [data-ww-chev]{transform:scaleX(-1)}
-[data-ww-tag]{display:inline-flex;align-items:center;min-block-size:24px;padding-inline:10px;border-radius:var(--vt-radius-pill);background:var(--vt-charcoal-900);color:var(--vt-yellow-500);font-size:11px;font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;line-height:1}
+[data-ww-tag]{display:inline-flex;align-items:center;min-block-size:24px;padding-inline:10px;border-radius:var(--vt-radius-pill);background:var(--vt-charcoal-900);color:var(--vt-accent);font-size:11px;font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;line-height:1}
 [data-ww-skel]{min-block-size:52px;border-block-end:1px solid var(--vt-border-subtle);display:flex;align-items:center}
 [data-ww-skel]::before{content:"";display:block;block-size:14px;inline-size:min(60%,260px);border-radius:var(--vt-radius-pill);background:var(--vt-grey-200)}
 [data-ww-note]{margin:var(--vt-space-4) 0 0;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)}
@@ -137,7 +137,8 @@ class Component extends DCLogic {
           out.push({ name: label, fixed: true, toMapboxId: f.to_mapbox_id || '', fromMapboxId: f.from_mapbox_id || '' });
         });
       }
-      this.setState({ fixed: out });
+      /* Every ZRH row can send Zurich Airport as a chosen place: the fixed routes carry its mapbox id. */
+      this.setState({ fixed: out, zrhId: (out[0] && out[0].fromMapboxId) || '' });
     }).catch(() => { if (this._on) this.setState({ fixed: [] }); });
   }
   componentWillUnmount() {
@@ -173,6 +174,7 @@ class Component extends DCLogic {
     if (place.length < 2) return;
     const detail = { name: place, kind: row.fixed ? 'route' : 'city', from: airport.label, fromCode: airport.code, handled: false };
     if (row.fixed) { detail.fromMapboxId = row.fromMapboxId; detail.toMapboxId = row.toMapboxId; }
+    else if (airport.code === 'ZRH' && this.state.zrhId) detail.fromMapboxId = this.state.zrhId;
     try { window.dispatchEvent(new CustomEvent('vamos:dest-pick', { detail: detail })); } catch (err) {}
     if (detail.handled === true) return;
     const reduce = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
