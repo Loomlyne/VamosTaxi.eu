@@ -113,7 +113,7 @@ export function PayBar({
             <>
               <Icon name="lock" size={16} />
               <span>{payLabel}</span>
-              {payAmount ? <span className="vt-dir-keep">{payAmount}</span> : null}
+              {payAmount ? <span className="vt-dir-keep vt-copay__pay-amount">{payAmount}</span> : null}
             </>
           )}
         </Button>

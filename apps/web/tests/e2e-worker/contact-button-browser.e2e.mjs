@@ -23,6 +23,9 @@ const log = (ok, what, detail = "") => {
   console.log(ok ? "PASS" : "FAIL", "|", what, detail ? "| " + String(detail).slice(0, 200) : "");
 };
 
+// REAL_QUOTE=1: the Worker has a real local Supabase (price book of the local seed) and the Mapbox/Stripe/Turnstile stand-ins;
+// /api/quote is then answered by the Worker, not by this script. Base must be http://localhost:<port> (origin check).
+const REAL = process.env.REAL_QUOTE === "1";
 const LANGS = ["en", "de", "fr", "ar"];
 const WIDTHS = [1440, 1024, 768, 390];
 const DC = [
@@ -45,13 +48,14 @@ const url = (route, lang, file) => {
 
 let consentChosen = true;
 async function newCtx(browser, w, lang, h) {
-  const ctx = await browser.newContext({ viewport: { width: w, height: h ?? (w <= 680 ? 844 : 900) }, isMobile: w <= 680, hasTouch: w <= 680 });
+  const ctx = await browser.newContext({ viewport: { width: w, height: h ?? (w <= 680 ? 844 : 900) }, isMobile: w <= 680, hasTouch: w <= 680, ...(REAL ? { extraHTTPHeaders: { "cf-connecting-ip": `10.79.${w % 250}.${Math.floor(Math.random() * 250)}` } } : {}) });
   await ctx.addInitScript((l) => { try { localStorage.setItem("vamosLang", l); } catch {} }, lang);
   await ctx.route("**/api/**", (r) => {
     const p = new URL(r.request().url()).pathname;
     if (p === "/api/consent/state") {
       return r.fulfill({ json: consentChosen ? { ok: true, chosen: true, choice: { functional: false, analytics: false, marketing: false }, policyVersion: "test" } : { ok: true, chosen: false, policyVersion: "test" } });
     }
+    if (REAL && p !== "/api/consent/state" && p !== "/api/fx") return r.fallback();
     if (p === "/api/quote") {
       // Two eligible classes, no amounts: `total_rappen: null` keeps every figure on the page at CHF 000 (never an invented price).
       return r.fulfill({ json: { ok: true, quote_id: "q-261003", lock: "l-261003", expires_at: new Date(Date.now() + 3600e3).toISOString(), pricing_live: true, route: { legs: [{ distance_m: 18400, road: true }] }, classes: [
@@ -244,7 +248,9 @@ if (want("keyboard")) {
 
 // ── 6. /checkout (worker only): the PAY bar docks the button at 1080 and below; above it the float stays ──────
 if (want("checkout") && mode === "worker") {
-  const trip = new URLSearchParams({ from: "Zurich Airport (ZRH)", fid: "f-261003", to: "Bahnhofstrasse 1, Zurich", tid: "t-261003", gs: "6f1c2f2a-5f0b-4f0e-9d3b-1b2c3d4e5f60", when: "2027-01-15T10:30", pax: "2", bags: "1" });
+  const trip = new URLSearchParams(REAL
+    ? { from: "Zurich HB", fid: "fake.zrh-hb", to: "Zug Bahnhof", tid: "fake.zug", gs: "6f1c2f2a-5f0b-4f0e-9d3b-1b2c3d4e5f60", when: "2027-01-15T10:30", pax: "2", bags: "1" }
+    : { from: "Zurich Airport (ZRH)", fid: "f-261003", to: "Bahnhofstrasse 1, Zurich", tid: "t-261003", gs: "6f1c2f2a-5f0b-4f0e-9d3b-1b2c3d4e5f60", when: "2027-01-15T10:30", pax: "2", bags: "1" });
   const co = (lang) => `${base}${lang === "en" ? "" : "/" + lang}/checkout?${trip}`;
   /** Geometry of the bar's three parts and what the browser says is on top at PAY's centre. */
   const bar = (page) => page.evaluate(() => {
@@ -266,9 +272,32 @@ if (want("checkout") && mode === "worker") {
       payLabel: pay.innerText.replace(/\s+/g, " ").trim(),
     };
   });
-  for (const lang of ["en", "ar"]) {
+  /** Choose Economy so the Total shows a figure (the click goes to the card's own button; the bar may sit over it). */
+  const chooseClass = (page) => page.evaluate(() => { const c = document.querySelector('[data-co-class="economy"]'); if (c) (c.querySelector("button,[role=radio],[role=button],input") || c.firstElementChild).click(); });
+  /** One line? scrollWidth <= clientWidth on the figure? Does it sit clear of the contact button, under its label? PAY whole, 54+ high, on top? */
+  const figure = (page) => page.evaluate(() => {
+    const bar = document.querySelector('[data-co-pay-bar="bar"]');
+    const amount = bar.querySelector("[data-co-total]");
+    if (!amount) return { ok: false, why: "no figure in the Total" };
+    const label = bar.querySelector(".vt-copay__label");
+    const dock = bar.querySelector('[data-contact-btn][data-variant="docked"] [data-cb-trigger]').getBoundingClientRect();
+    const pay = bar.querySelector("[data-co-pay]");
+    const pr = pay.getBoundingClientRect();
+    const a = amount.getBoundingClientRect();
+    const lr = label.getBoundingClientRect();
+    const rg = document.createRange(); rg.selectNodeContents(amount);
+    const lines = new Set([...rg.getClientRects()].filter((r) => r.width > 0).map((r) => Math.round(r.top))).size;
+    const rtl = document.documentElement.dir === "rtl";
+    const top = document.elementFromPoint(pr.left + pr.width / 2, pr.top + pr.height / 2);
+    const clear = rtl ? a.left >= dock.right - 0.5 && a.right <= innerWidth : a.right <= dock.left + 0.5 && a.left >= 0;
+    const r = { lines, scroll: amount.scrollWidth <= amount.clientWidth, clear, labelAbove: lr.bottom <= a.top + 1, payWhole: pr.left >= 0 && pr.right <= innerWidth, payH: Math.round(pr.height), payOnTop: !!top && !!top.closest("[data-co-pay]"), dock: [Math.round(dock.width), Math.round(dock.height)], page: document.scrollingElement.scrollWidth <= innerWidth, fs: getComputedStyle(amount).fontSize, text: amount.textContent, amountBox: [Math.round(a.left), Math.round(a.right)] };
+    r.ok = r.lines === 1 && r.scroll && r.clear && r.labelAbove && r.payWhole && r.payH >= 54 && r.payOnTop && r.dock[0] >= 44 && r.dock[1] >= 44 && r.page;
+    return r;
+  });
+  const FIGURES = ["CHF 9'999.00", "AED 9'999.00", "€ 9'999.00", "$9'999.00"];
+  for (const lang of ["en", "de", "fr", "ar"]) {
     for (const w of [1024, 768, 390]) {
-      for (const cookie of [false, true]) {
+      for (const cookie of lang === "en" || lang === "ar" ? [false, true] : [false]) {
         consentChosen = !cookie;
         const ctx = await newCtx(browser, w, lang);
         const page = await ctx.newPage();
@@ -277,6 +306,9 @@ if (want("checkout") && mode === "worker") {
           await page.goto(co(lang), { waitUntil: "load", timeout: 60000 });
           await page.waitForSelector('[data-co-pay-bar="bar"] [data-contact-btn]', { state: "attached", timeout: 30000 });
           await page.waitForTimeout(1400);
+          if (REAL) await page.waitForSelector('[data-co-class="economy"]', { timeout: 30000 });
+          await chooseClass(page);
+          await page.waitForTimeout(900);
           const g = await bar(page);
           const ltr = g.dir !== "rtl";
           const order = g.bar && g.total && g.dock && g.pay && (ltr ? g.total.l < g.dock.l && g.dock.l < g.pay.l : g.pay.l < g.dock.l && g.dock.l < g.total.l);
@@ -300,17 +332,21 @@ if (want("checkout") && mode === "worker") {
           const ae = await page.evaluate(() => { const a = document.activeElement; return !!a && !!a.closest('[data-contact-btn][data-variant="docked"]'); });
           log(ae, `Esc closes, focus back on the docked button | ${tag}`);
           if (w === 390 || cookie) await page.screenshot({ path: `${out}/checkout-${w}-${lang}${cookie ? "-cookie" : ""}.png` });
-          // Longest real figure the bar can show: set as text only (never saved in a screenshot); PAY must stay on top and inside the screen.
+          // The figure the page shows now (REAL_QUOTE: from the local seed price book; otherwise the CHF 000 shell): one line, clear of the contact button.
           if (!cookie) {
-            await page.evaluate(() => {
-              for (const n of document.querySelectorAll('[data-co-pay-bar="bar"] [data-co-total]')) n.textContent = "CHF 12'450.00";
-              const pay = document.querySelector('[data-co-pay-bar="bar"] [data-co-pay]');
-              const spans = pay.querySelectorAll("span.vt-dir-keep");
-              if (spans[0]) spans[0].textContent = "CHF 12'450.00";
-            });
-            await page.waitForTimeout(200);
-            const g2 = await bar(page);
-            log(g2.payOnTop && g2.pay.l >= 0 && g2.pay.r <= g2.iw && g2.total.l >= 0 && g2.total.r <= g2.iw && g2.sw <= g2.iw, `longest figure in the bar: PAY on top, everything inside the screen | ${tag}`, JSON.stringify({ total: g2.total, dock: g2.dock, pay: g2.pay }));
+            const f0 = await figure(page);
+            log(f0.ok, `Total figure on one line, clear of the contact button, label above (as rendered: ${f0.text}) | ${tag}`, JSON.stringify(f0));
+            // Longest figures: set as text only inside this test, never typed into a saved picture. Up to CHF 9'999.00 and the EUR / USD / AED marks.
+            for (const fig of FIGURES) {
+              await page.evaluate((t) => {
+                const b = document.querySelector('[data-co-pay-bar="bar"]');
+                b.querySelector("[data-co-total]").textContent = t;
+                const sp = b.querySelector("[data-co-pay] .vt-copay__pay-amount, [data-co-pay] span.vt-dir-keep"); if (sp) sp.textContent = t;
+              }, fig);
+              await page.waitForTimeout(120);
+              const f1 = await figure(page);
+              log(f1.ok, `Total figure ${fig} stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | ${tag}`, JSON.stringify(f1));
+            }
           }
         } catch (e) {
           log(false, `checkout run | ${tag}`, String(e).slice(0, 200));
