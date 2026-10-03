@@ -28,12 +28,17 @@
   {
    "n": "B4 Save trip: /api/checkout/intent 200 with a reference",
    "ok": true,
-   "ev": "200 {\"ok\":true,\"reference\":\"VT-26-0014\",\"booking_id\":\"e1a68555-00e1-4327-8c85-db376b4dc63e\",\"u"
+   "ev": "200 {\"ok\":true,\"reference\":\"VT-26-0028\",\"booking_id\":\"49d3392c-c426-47e8-ba61-c818e1dd1225\",\"u"
   },
   {
    "n": "B5 the screen moves to the new booking and the row exists",
    "ok": true,
-   "ev": "url http://dashboard.localhost:4591/bookings/VT-26-0014; row \"VT-26-0014 pending\"; bookings 13→14"
+   "ev": "url http://dashboard.localhost:4591/bookings/VT-26-0028; row \"VT-26-0028 pending\"; bookings 27→28"
+  },
+  {
+   "n": "B7 the saved booking has customer_id null and no customers row was created for the admin's auth user",
+   "ok": true,
+   "ev": "customer_id null; admin customers rows 1→1; all customers rows 2→2"
   },
   {
    "n": "B6 staff cookie + dashboard Origin, empty body: intent passes CSRF (400 invalid_request)",
@@ -46,7 +51,7 @@
    "path": "/api/quote",
    "status": 200,
    "origin": "http://dashboard.localhost:4591",
-   "body": "{\"ok\":true,\"quote_id\":\"b7285103-ec42-417f-8981-0120f1f45bb3\",\"lock\":\"v1.eyJiYWdzIjowLCJjbG"
+   "body": "{\"ok\":true,\"quote_id\":\"59daa70b-d8f6-4ee2-a6d9-7319d5fde21e\",\"lock\":\"v1.eyJiYWdzIjowLCJjbG"
   },
   {
    "path": "/api/checkout/price",
@@ -58,13 +63,13 @@
    "path": "/api/checkout/intent",
    "status": 200,
    "origin": "http://dashboard.localhost:4591",
-   "body": "{\"ok\":true,\"reference\":\"VT-26-0014\",\"booking_id\":\"e1a68555-00e1-4327-8c85-db376b4dc63e\",\"u"
+   "body": "{\"ok\":true,\"reference\":\"VT-26-0028\",\"booking_id\":\"49d3392c-c426-47e8-ba61-c818e1dd1225\",\"u"
   },
   {
    "path": "/api/checkout/intent",
    "status": 400,
    "origin": "http://dashboard.localhost:4591",
-   "body": "{\"code\":\"invalid_request\"}"
+   "body": ""
   }
  ],
  "errors": []

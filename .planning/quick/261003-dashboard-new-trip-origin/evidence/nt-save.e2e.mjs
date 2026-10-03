@@ -96,6 +96,8 @@ await page.getByLabel("Email").fill(`nt-${LABEL}-${S.tag}@example.test`);
 await page.getByLabel("Mobile").fill("+41 79 000 00 00");
 await page.screenshot({ path: `${SHOTS}/nt-${LABEL}-filled.png` });
 const before = Number(sql("select count(*) from public.bookings"));
+const adminCustBefore = Number(sql(`select count(*) from public.customers where user_id='${S.adminId}'`));
+const custTotalBefore = Number(sql("select count(*) from public.customers"));
 await page.getByRole("button", { name: "Save trip" }).click();
 for (let i = 0; i < 60 && !/\/bookings\/VT-/.test(page.url()); i++) await nap(250);
 await nap(1500);
@@ -118,6 +120,10 @@ if (LABEL === "after") {
   rec("B3 /api/checkout/price answers 200 (not 403 csrf)", priceCalls.length > 0 && priceCalls.every((c) => c.status === 200), priceCalls.map((c) => `${c.status} ${c.body}`).join(" | "));
   rec("B4 Save trip: /api/checkout/intent 200 with a reference", intentCalls.length === 1 && intentCalls[0].status === 200 && /reference/.test(intentCalls[0].body), intentCalls.map((c) => `${c.status} ${c.body}`).join(" | "));
   rec("B5 the screen moves to the new booking and the row exists", !!ref && row.startsWith(ref) && after === before + 1, `url ${page.url()}; row "${row}"; bookings ${before}→${after}`);
+  const custOfBooking = ref ? sql(`select coalesce(customer_id::text,'null') from public.bookings where reference='${ref}'`) : "(no booking)";
+  const adminCustAfter = Number(sql(`select count(*) from public.customers where user_id='${S.adminId}'`));
+  const custTotalAfter = Number(sql("select count(*) from public.customers"));
+  rec("B7 the saved booking has customer_id null and no customers row was created for the admin's auth user", custOfBooking === "null" && adminCustAfter === adminCustBefore, `customer_id ${custOfBooking}; admin customers rows ${adminCustBefore}→${adminCustAfter}; all customers rows ${custTotalBefore}→${custTotalAfter}`);
   rec("B6 staff cookie + dashboard Origin, empty body: intent passes CSRF (400 invalid_request)", /^400 /.test(direct), direct);
 } else {
   rec("B3 /api/checkout/price answers 403 csrf (the live bug)", priceCalls.length > 0 && priceCalls.every((c) => c.status === 403 && /csrf/.test(c.body)), priceCalls.map((c) => `${c.status} ${c.body}`).join(" | "));
