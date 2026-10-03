@@ -173,6 +173,48 @@
           "name": "INTENT_RATE_LIMITER",
           "namespace_id": "1004",
           "simple": { "limit": 8, "period": 60 }
+        },
+        // Quick 261003: geo lookups (/api/geo/suggest, /retrieve, /reverse) have their
+        // own counter. Sharing 1001/1002 let address typing on home spend the /api/quote
+        // allowance, so /checkout refused its first price on live (2026-10-03). Home asks
+        // suggest 160 ms after a keystroke (2+ characters): two addresses plus retrieves and the
+        // checkout retrieve come to ~20-25 calls in a minute. Keys are per IPv4 address or IPv6
+        // /64. Warning: the Mapbox breaker (MAPBOX_DAILY_UNIT_SENTINEL) is site-wide; one /64 at
+        // the bare 30/min trips it in ~170 min and then the whole site stops pricing until
+        // midnight UTC. Sizing in lib/abuse/guards.ts `RateCounter`.
+        {
+          "name": "LOOKUP_RATE_LIMITER",
+          "namespace_id": "1005",
+          "simple": { "limit": 60, "period": 60 }
+        },
+        {
+          "name": "LOOKUP_RATE_LIMITER_BARE",
+          "namespace_id": "1006",
+          "simple": { "limit": 30, "period": 60 }
+        },
+        // Quick 261003: /api/quote/reprice and the voucher check in /api/checkout/price. No
+        // Directions call; the limit guards voucher guessing. One booking spends 1-4.
+        {
+          "name": "PRICE_RATE_LIMITER",
+          "namespace_id": "1007",
+          "simple": { "limit": 12, "period": 60 }
+        },
+        {
+          "name": "PRICE_RATE_LIMITER_BARE",
+          "namespace_id": "1008",
+          "simple": { "limit": 8, "period": 60 }
+        },
+        // Quick 261003 review: /api/flight/:no has its own small counter. AeroDataBox bills
+        // every call and a not_found answer is never cached; one flight number costs 1-3 calls.
+        {
+          "name": "FLIGHT_RATE_LIMITER",
+          "namespace_id": "1009",
+          "simple": { "limit": 10, "period": 60 }
+        },
+        {
+          "name": "FLIGHT_RATE_LIMITER_BARE",
+          "namespace_id": "1010",
+          "simple": { "limit": 6, "period": 60 }
         }
       ],
       // Rule 2 addition (plan 03-06, D-36): uncommented from the placeholder block plan
@@ -321,6 +363,48 @@
           "name": "INTENT_RATE_LIMITER",
           "namespace_id": "1004",
           "simple": { "limit": 8, "period": 60 }
+        },
+        // Quick 261003: geo lookups (/api/geo/suggest, /retrieve, /reverse) have their
+        // own counter. Sharing 1001/1002 let address typing on home spend the /api/quote
+        // allowance, so /checkout refused its first price on live (2026-10-03). Home asks
+        // suggest 160 ms after a keystroke (2+ characters): two addresses plus retrieves and the
+        // checkout retrieve come to ~20-25 calls in a minute. Keys are per IPv4 address or IPv6
+        // /64. Warning: the Mapbox breaker (MAPBOX_DAILY_UNIT_SENTINEL) is site-wide; one /64 at
+        // the bare 30/min trips it in ~170 min and then the whole site stops pricing until
+        // midnight UTC. Sizing in lib/abuse/guards.ts `RateCounter`.
+        {
+          "name": "LOOKUP_RATE_LIMITER",
+          "namespace_id": "1005",
+          "simple": { "limit": 60, "period": 60 }
+        },
+        {
+          "name": "LOOKUP_RATE_LIMITER_BARE",
+          "namespace_id": "1006",
+          "simple": { "limit": 30, "period": 60 }
+        },
+        // Quick 261003: /api/quote/reprice and the voucher check in /api/checkout/price. No
+        // Directions call; the limit guards voucher guessing. One booking spends 1-4.
+        {
+          "name": "PRICE_RATE_LIMITER",
+          "namespace_id": "1007",
+          "simple": { "limit": 12, "period": 60 }
+        },
+        {
+          "name": "PRICE_RATE_LIMITER_BARE",
+          "namespace_id": "1008",
+          "simple": { "limit": 8, "period": 60 }
+        },
+        // Quick 261003 review: /api/flight/:no has its own small counter. AeroDataBox bills
+        // every call and a not_found answer is never cached; one flight number costs 1-3 calls.
+        {
+          "name": "FLIGHT_RATE_LIMITER",
+          "namespace_id": "1009",
+          "simple": { "limit": 10, "period": 60 }
+        },
+        {
+          "name": "FLIGHT_RATE_LIMITER_BARE",
+          "namespace_id": "1010",
+          "simple": { "limit": 6, "period": 60 }
         }
       ],
       // Two Hyperdrive configs (D-01/D-03), never one: `HYPERDRIVE` is the cacheable,
