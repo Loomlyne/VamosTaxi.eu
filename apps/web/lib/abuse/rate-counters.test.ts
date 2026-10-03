@@ -160,6 +160,14 @@ describe("routes and wrangler.jsonc agree (quick 261003)", () => {
     expect(read("app/api/checkout/price/route.ts")).toMatch(/wireQuoteAbuse\(env, request, "price"\)/);
   });
 
+  it("/checkout retries a rate_limited price once by itself, after the 60 s window", () => {
+    const src = read("app/[locale]/checkout/CheckoutPage.tsx");
+    expect(src).toMatch(/phase\.refusal\.code !== "rate_limited" \|\| autoRetried\.current/);
+    expect(src).toMatch(/if \(seq\.current !== mine\) return;\s*autoRetried\.current = true;/);
+    expect(src).toMatch(/\}, 61_000\);/);
+    expect(src).toMatch(/return \(\) => window\.clearTimeout\(id\);\s*\}, \[phase\]\);/);
+  });
+
   it("both env blocks declare the new bindings with unique namespaces and leave 1001/1002 at 8 and 4", () => {
     const wr = read("wrangler.jsonc");
     const expected: Array<[string, string, number]> = [

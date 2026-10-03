@@ -172,6 +172,24 @@ export function CheckoutPage({
     // The trip in the URL is read once; later changes go through applyTrip.
   }, []);
 
+  // Quick 261003: "Too many prices — wait a moment" asks the customer to wait, so the page
+  // asks again by itself once, after the 60 s rate-limit window, unless they already pressed
+  // TRY AGAIN or changed the trip. One time per page: never a loop against the limiter.
+  const runQuoteRef = useRef(runQuote);
+  runQuoteRef.current = runQuote;
+  const autoRetried = useRef(false);
+  useEffect(() => {
+    if (phase.kind !== "error" || phase.refusal.code !== "rate_limited" || autoRetried.current) return;
+    const mine = seq.current;
+    const id = window.setTimeout(() => {
+      if (seq.current !== mine) return;
+      autoRetried.current = true;
+      setPhase({ kind: "loading" });
+      void runQuoteRef.current(tripRef.current);
+    }, 61_000);
+    return () => window.clearTimeout(id);
+  }, [phase]);
+
   const applyTrip = useCallback(
     async (next: Trip, token?: string | null): Promise<QuoteResult> => {
       const before = phaseRef.current;
