@@ -2,7 +2,7 @@
 //
 // Pins for the Meta gate. Phase 28 plan 28-03: two flags (legal texts live, Events Manager switches off),
 // both false until plan 28-07. The needle scan allows Meta strings in exactly the loader and the
-// security-header file. Do not place owner lines. Do not read a token.
+// security-header file. Phase 29 adds the server Purchase in capi.ts / purchase.ts. Do not place owner lines. Do not read a token.
 
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -130,16 +130,16 @@ describe("meta legal gate", () => {
     expect(consent?.[1]).toBe(version);
   }, 30_000);
 
-  it("Meta strings only where allowed (Phase 28 per-needle allow map)", () => {
+  it("Meta strings only where allowed (Phase 28 per-needle allow map, Phase 29 server Purchase)", () => {
     const LOADER = ["app/vamos-meta.js", "apps/web/public/app/vamos-meta.js"];
     const allow: Record<string, string[]> = {
       "fbevents.js": LOADER,
       "fbq(": LOADER,
-      [PIXEL_ID]: LOADER,
+      [PIXEL_ID]: [...LOADER, "apps/web/lib/meta/capi.ts", "apps/web/lib/meta/capi.test.ts"],
       "connect.facebook.net": [...LOADER, "apps/web/lib/security/headers.ts"],
       "facebook.com/tr": [],
-      "graph.facebook.com": [],
-      META_CAPI_ACCESS_TOKEN: [],
+      "graph.facebook.com": ["apps/web/lib/meta/capi.ts", "apps/web/lib/meta/capi.test.ts"],
+      META_CAPI_ACCESS_TOKEN: ["apps/web/lib/meta/purchase.ts", "apps/web/lib/env.d.ts"],
     };
     const hits: string[] = [];
     for (const rel of scannedFiles()) {

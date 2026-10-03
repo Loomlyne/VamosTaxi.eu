@@ -341,6 +341,20 @@ interface CloudflareEnv {
    */
   CONTENT_SOURCE?: string;
 
+  // ── Phase 29 Meta server Purchase ──
+
+  /**
+   * Meta Conversions API token. Wrangler secret on Worker vamos, set by the owner.
+   * Never read, print or log its value; only lib/meta/purchase.ts reads it.
+   */
+  META_CAPI_ACCESS_TOKEN?: string;
+
+  /**
+   * Meta Events Manager test event code (Worker var, staging only, value from the owner, D-07).
+   * A test-mode Stripe payment sends nothing when it is missing; a live payment never uses it (D-04).
+   */
+  META_TEST_EVENT_CODE?: string;
+
   // ── Phase 7 checkout / Stripe bindings (plan 07-04) ──
 
   /**
