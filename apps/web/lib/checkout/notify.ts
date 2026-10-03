@@ -111,25 +111,46 @@ export function moneyFromRow(row: ConfirmationMailRow, locale: EmailLocale): Ema
     let fare = 0;
     let vat = 0;
     let sawVat = false;
+    const parts: EmailMoneyLine[] = [];
     const surcharges: EmailMoneyLine[] = [];
     let coupon = 0;
     let couponLabel = couponCode;
     for (const line of snapLines as SnapshotLineJson[]) {
-      const amount = intOrNull(line.amount_rappen) ?? 0;
       const kind = String(line.kind ?? "");
       const code = String(line.code ?? "");
-      if (kind === "fare") fare += amount;
+      const params = line.params && typeof line.params === "object" ? (line.params as Record<string, unknown>) : {};
+      // A fare or extra line a voucher was taken from keeps its pre-voucher figure in params.list_rappen;
+      // the voucher is its own row, so the rows add up to the charged total (261003).
+      const saved = intOrNull(line.amount_rappen) ?? 0;
+      const listed = intOrNull(params.list_rappen);
+      const amount = listed != null && listed > 0 ? listed : saved;
+      if (kind === "fare" && code === "airport_fee") {
+        parts.push({ kind: "airport_fee", label: "", amountRappen: amount });
+      } else if (kind === "fare" && code === "fixed_route") {
+        const origin = typeof params.origin === "string" ? params.origin.trim() : "";
+        const destination = typeof params.destination === "string" ? params.destination.trim() : "";
+        parts.push({
+          kind: "route",
+          label: "",
+          amountRappen: amount,
+          ...(origin && destination ? { origin, destination } : {}),
+        });
+      } else if (kind === "fare") fare += amount;
       else if (kind === "vat" || code === "vat") {
-        vat += amount;
+        vat += saved;
         sawVat = true;
       } else if (kind === "coupon" || kind === "discount" || code === "coupon" || code === "discount") {
-        coupon -= Math.abs(amount);
+        // checkout saves the coupon line with amount_rappen null and the discount in params;
+        // a line saved as a negative amount (older shape) keeps working.
+        const discount = intOrNull(params.discount_rappen);
+        coupon -= discount != null && discount > 0 ? discount : Math.abs(saved);
         if (!couponLabel) couponLabel = code;
-      } else if (isSurchargeLine(line)) {
+      } else if (isSurchargeLine({ ...line, amount_rappen: amount })) {
         surcharges.push({ kind: "surcharge", label: surchargeLabel(line, locale), amountRappen: amount });
       }
     }
     lines.push({ kind: "fare", label: className, amountRappen: fare });
+    lines.push(...parts);
     lines.push(...surcharges);
     if (coupon !== 0) lines.push({ kind: "coupon", label: couponLabel, amountRappen: coupon });
     if (sawVat) lines.push({ kind: "vat", label: "", amountRappen: vat });

@@ -9,6 +9,12 @@ import { PriceSummary, RouteSummary, StatusBadge } from "@/components/transfer";
 import type { BookingStatus } from "@/components/transfer/StatusBadge";
 import type { PriceLine } from "@/components/transfer/PriceSummary";
 import {
+  AIRPORT_FEE_ICON,
+  ROUTE_ICON,
+  airportFeeLabel,
+  routeLabel,
+} from "@/components/checkout/fare-line-label";
+import {
   addMinutesLocal,
   couponOnReceipt,
   extraRappenByCode,
@@ -114,6 +120,7 @@ function receiptMoneyLines(
   rows: ReceiptRow[],
   className: string,
   t: ReturnType<typeof useTranslations>,
+  tPrice: ReturnType<typeof useTranslations>,
 ): { lines: PriceLine[]; total: number | null } {
   const lines: PriceLine[] = [];
   let total: number | null = null;
@@ -123,6 +130,10 @@ function receiptMoneyLines(
       total = amount;
     } else if (row.kind === "fare") {
       lines.push({ label: className ? t("receiptFare", { class: className }) : t("receiptFarePlain"), amount });
+    } else if (row.kind === "airport_fee") {
+      lines.push({ label: airportFeeLabel(tPrice), amount, icon: AIRPORT_FEE_ICON });
+    } else if (row.kind === "route") {
+      lines.push({ label: routeLabel(t, row.origin, row.destination), amount, icon: ROUTE_ICON });
     } else if (row.kind === "extra") {
       lines.push({ label: <span data-confirmation-extra="1">{row.label}</span>, amount });
     } else if (row.kind === "coupon") {
@@ -176,6 +187,7 @@ export function BookingVoucher({
 }: BookingVoucherProps) {
   const t = useTranslations("checkout");
   const tCommon = useTranslations("common");
+  const tPrice = useTranslations("price");
   const tBadge = useTranslations("statusBadge");
 
   const badge: BookingStatus = voucherBadgeStatus(booking?.status, booking?.paymentStatus ?? null);
@@ -250,7 +262,7 @@ export function BookingVoucher({
   const useRows = snapshotRows.length > 0;
   let rowsTotal: number | null = null;
   if (useRows) {
-    const shown = receiptMoneyLines(snapshotRows, booking?.receipt?.vehicleClassName?.trim() || vehicleLabelOrEmpty, t);
+    const shown = receiptMoneyLines(snapshotRows, booking?.receipt?.vehicleClassName?.trim() || vehicleLabelOrEmpty, t, tPrice);
     lines.push(...shown.lines);
     rowsTotal = shown.total;
   } else if (split) {

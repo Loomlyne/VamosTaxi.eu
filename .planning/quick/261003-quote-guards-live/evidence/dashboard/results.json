@@ -1,0 +1,18 @@
+{
+ "at": "2026-10-03T14:40:28.039Z",
+ "base": "http://localhost:4710",
+ "results": [
+  {
+   "id": "D-1",
+   "title": "signed-in owner on the dashboard host: 4 quotes, none is turnstile_required",
+   "status": "PASS",
+   "evidence": "403:retrieve_without_suggest 403:retrieve_without_suggest 403:retrieve_without_suggest 403:retrieve_without_suggest"
+  },
+  {
+   "id": "D-2",
+   "title": "no staff session on the dashboard host: the 3rd quote is turnstile_required",
+   "status": "PASS",
+   "evidence": "403:retrieve_without_suggest 403:retrieve_without_suggest 403:turnstile_required"
+  }
+ ]
+}

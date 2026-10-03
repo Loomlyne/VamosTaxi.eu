@@ -1,0 +1,54 @@
+{
+ "at": "2026-10-03T14:39:22.834Z",
+ "base": "http://localhost:4710",
+ "results": [
+  {
+   "id": "A-interactive-1440-1",
+   "title": "home -> /checkout, prices on the first quote",
+   "status": "PASS",
+   "evidence": "quotes 200:ok"
+  },
+  {
+   "id": "A-interactive-1440-2",
+   "title": "reloads until the 3rd quote: the challenge shows in the class list",
+   "status": "PASS",
+   "evidence": "quotes 200:ok 200:ok 403:turnstile_required; widget box shown true"
+  },
+  {
+   "id": "A-interactive-1440-3",
+   "title": "the solved challenge prices the trip (token in the body, real siteverify)",
+   "status": "PASS",
+   "evidence": "quotes 200:ok 200:ok 403:turnstile_required 200+token:ok; widget token lengths []; page errors "
+  },
+  {
+   "id": "A-interactive-1440-4",
+   "title": "Economy, traveller, PAY: one fake Stripe session for the shown total",
+   "status": "PASS",
+   "evidence": "intent 200; fake Stripe sessions 0->1; amount 49 rappen = PAY label 0.49"
+  },
+  {
+   "id": "A-interactive-390-1",
+   "title": "home -> /checkout, prices on the first quote",
+   "status": "PASS",
+   "evidence": "quotes 200:ok"
+  },
+  {
+   "id": "A-interactive-390-2",
+   "title": "reloads until the 3rd quote: the challenge shows in the class list",
+   "status": "PASS",
+   "evidence": "quotes 200:ok 200:ok 403:turnstile_required; widget box shown true"
+  },
+  {
+   "id": "A-interactive-390-3",
+   "title": "the solved challenge prices the trip (token in the body, real siteverify)",
+   "status": "PASS",
+   "evidence": "quotes 200:ok 200:ok 403:turnstile_required 200+token:ok; widget token lengths []; page errors "
+  },
+  {
+   "id": "A-interactive-390-4",
+   "title": "Economy, traveller, PAY: one fake Stripe session for the shown total",
+   "status": "PASS",
+   "evidence": "intent 200; fake Stripe sessions 1->2; amount 49 rappen = PAY label 0.49"
+  }
+ ]
+}

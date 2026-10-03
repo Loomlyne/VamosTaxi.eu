@@ -1,0 +1,48 @@
+{
+ "base": "http://localhost:4710",
+ "at": "2026-10-03T14:43:07.692Z",
+ "pages": {
+  "/": {
+   "status": 200,
+   "vamos_qs": {
+    "signed": true,
+    "attrs": "HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=86400"
+   },
+   "cacheControl": "private, no-store"
+  },
+  "/checkout?from=Zurich%20Airport&to=Zug%20station": {
+   "status": 200,
+   "vamos_qs": {
+    "signed": true,
+    "attrs": "HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=86400"
+   },
+   "cacheControl": "private, no-store"
+  },
+  "/ (second visit with cookie)": {
+   "status": 200,
+   "vamos_qs": null,
+   "cacheControl": "public, s-maxage=300, stale-while-revalidate=3600"
+  }
+ },
+ "withCookie": [
+  "422:place_unresolved",
+  "422:place_unresolved",
+  "422:place_unresolved",
+  "422:place_unresolved",
+  "422:place_unresolved",
+  "422:place_unresolved",
+  "422:place_unresolved",
+  "422:place_unresolved",
+  "429:rate_limited"
+ ],
+ "withoutCookie": [
+  "403:retrieve_without_suggest",
+  "403:retrieve_without_suggest",
+  "403:retrieve_without_suggest",
+  "403:retrieve_without_suggest",
+  "429:rate_limited",
+  "429:rate_limited",
+  "429:rate_limited",
+  "429:rate_limited"
+ ]
+}

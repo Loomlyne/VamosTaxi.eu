@@ -21,6 +21,7 @@
 
 import { checkoutCharge, type ChargeLine, type CheckoutChargeCoupon, type ExtraCatalogRow } from "../checkout/checkout-charge";
 import { snapshotLinesFromCharge, type SnapshotLine } from "../checkout/lock-to-rpc";
+import { farePartsFromLines, type BreakdownLine } from "../checkout/price-rows";
 import { priceQuote } from "../pricing/priceQuote";
 import { preCouponTotalOfClass, type CouponFacts, type SettingsVersionRow } from "../pricing/policy";
 import { classDisplayName } from "../pricing/public-board";
@@ -118,6 +119,9 @@ function labelsOf(params: Rec | null): ExtraCatalogRow["labels"] {
  * The booking's price record as the charge it was: extras at the amount paid (before any coupon
  * took from them), the coupon rule, the VAT rate. Null when the record is not the one-charge shape
  * checkout writes (fare + extras + optional coupon + VAT): an older record cannot be reproduced.
+ * 261003: the fare may be one `distance_fare` line or that line plus the `airport_fee` and
+ * `fixed_route` pieces of it; the pieces sit inside the class net the kernel rebuilds, so they are
+ * read and ignored here. Any other fare code (a customer-change `extra_fare`) still refuses.
  */
 export function savedChargeFromSnapshot(snapshot: {
   total_rappen: unknown;
@@ -141,7 +145,9 @@ export function savedChargeFromSnapshot(snapshot: {
     const kind = str(line.kind);
     const params = rec(line.params);
     if (kind === "fare") {
-      fares += 1;
+      const code = str(line.code);
+      if (code === "distance_fare") fares += 1;
+      else if (code !== "airport_fee" && code !== "fixed_route") return null;
     } else if (kind === "vat") {
       vatRateBps = int(params?.vatRateBps);
     } else if (kind === "surcharge") {
@@ -227,6 +233,12 @@ function board(book: PriceBook, facts: TripFacts, distanceM: number, saved: Save
   return { classes: quote.classes, partial: new Set(quote.partially_priced_class_slugs) };
 }
 
+/** A kernel line reduced to what the fare split reads (code, amount, place names). */
+function breakdownLine(line: ClassBoardEntry["lines"][number]): BreakdownLine {
+  const params = line.params as Record<string, string | number | null> | undefined;
+  return { code: line.code, amount_rappen: line.amount_rappen, ...(params ? { params } : {}) };
+}
+
 type Charged = { ok: true; chargedRappen: number; lines: ChargeLine[] } | { ok: false; code: ChangeRefusal };
 
 /** The checkout charge for one class of a priced board (intent.ts order: lock net, pinned pre-coupon fare, checkoutCharge). */
@@ -255,6 +267,8 @@ function chargeFor(b: Board, slug: string, saved: SavedCharge, vatRateBps: numbe
     coupon: saved.coupon,
     vatRateBps,
     vehicleClassSlug: slug,
+    // 261003: the board entry's own kernel lines cut the new price record the way checkout does.
+    fareParts: farePartsFromLines(entry.lines.map(breakdownLine)),
   });
   if (!charge.ok) return { ok: false, code: "trip-data" };
   return { ok: true, chargedRappen: charge.chargedRappen, lines: charge.lines };

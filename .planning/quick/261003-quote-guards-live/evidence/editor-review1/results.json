@@ -1,0 +1,24 @@
+{
+ "at": "2026-10-03T15:07:22.023Z",
+ "base": "http://localhost:4710",
+ "results": [
+  {
+   "id": "A-editor-1",
+   "title": "home -> /checkout (quote 1), then UPDATE PRICES in the editor (quote 2)",
+   "status": "PASS",
+   "evidence": "quotes 200:ok 200:ok"
+  },
+  {
+   "id": "A-editor-2",
+   "title": "3rd quote from the editor: challenge in the editor; the refused token is NOT retried by itself",
+   "status": "PASS",
+   "evidence": "quotes 200:ok 200:ok 403:turnstile_required 403+token:turnstile_required; after 25 s 4, after 40 s 4; token posts 1"
+  },
+  {
+   "id": "A-editor-3",
+   "title": "UPDATE PRICES again: at most one round (priced if the 60 s window rolled over, else no token + one token), then quiet",
+   "status": "PASS",
+   "evidence": "+2 quotes (unchanged over the last 15 s): 200:ok 200:ok 403:turnstile_required 403+token:turnstile_required 403:turnstile_required 403+token:turnstile_required"
+  }
+ ]
+}

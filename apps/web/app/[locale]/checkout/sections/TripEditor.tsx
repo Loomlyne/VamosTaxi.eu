@@ -189,11 +189,15 @@ export function TripEditor({
     if (result) setRefusal(result);
   }
 
-  /** The server asked for a challenge: the widget shows here, where the customer is. */
+  /**
+   * The server asked for a challenge: the widget shows here, where the customer is.
+   * Quick 261003 review: the refusal stays set while the token is checked, so the widget stays
+   * mounted. Clearing it re-mounted an interaction-only widget that solved itself and posted
+   * again in a loop whenever siteverify refused. A refused token now waits for UPDATE PRICES.
+   */
   async function retryWithToken(token: string | null) {
     if (!token || busy || !lastNext.current) return;
     setBusy(true);
-    setRefusal(null);
     const result = await onSubmit(lastNext.current, token);
     setBusy(false);
     if (result) setRefusal(result);

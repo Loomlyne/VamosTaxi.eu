@@ -154,8 +154,10 @@ export interface QuoteLockPayload {
   }>;
   /**
    * 26.1-11 / UI-SPEC §8: per class, the airport pickup fee and matched route
-   * pair lines so checkout shows them as their own rows. Display only — never
-   * read by intent, pay-link or the booking RPC. Omitted when no class has one.
+   * pair lines so checkout shows them as their own rows. Read for the breakdown
+   * only (261003: intent and /api/checkout/price cut the Fare line with it) —
+   * never for an amount: the charge still comes from class_totals. Covered by
+   * the lock signature. Omitted when no class has one.
    */
   price_rows?: Array<{ slug: string; lines: LockPriceRow[] }>;
 }

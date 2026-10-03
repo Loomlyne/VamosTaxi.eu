@@ -1081,6 +1081,8 @@
     "choice-recorded": "Choix enregistré.",
     "choose-your-categories": "Choisissez vos catégories",
     "consent-subject-purpose": "Enregistre que vous avez choisi, pour que nous cessions de demander.",
+    "qs-cookie-purpose": "Répartit équitablement les demandes de prix entre les visiteurs et bloque les abus automatisés",
+    "qs-cookie-duration": "24 heures",
     "cookie-banner": "Bannière de cookies",
     "cookie-choices": "Choix de cookies",
     "cookie-policy": "politique relative aux cookies",

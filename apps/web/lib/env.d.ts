@@ -147,6 +147,8 @@ interface CloudflareEnv {
    * Cloudflare Turnstile siteverify secret (D-47 owner-gated). OPTIONAL — degrades
    * rather than blocks boot. First consumer: plan 04-13 Turnstile gate.
    * Never appears in wrangler.jsonc `vars`.
+   * Quick 261003: never set on live. The quote guard now reads TURNSTILE_SECRET_KEY and uses
+   * this name only as a fallback (lib/abuse/guards.ts quoteTurnstileSecret).
    */
   TURNSTILE_SECRET?: string;
 
@@ -222,6 +224,13 @@ interface CloudflareEnv {
 
   /** Flight lookups, bare IP: 6 per 60 s per IPv4 address or IPv6 /64 (quick 261003 review). */
   FLIGHT_RATE_LIMITER_BARE?: RateLimit;
+
+  /**
+   * Quote challenge attempt counter (quick 261003 review 5): 2 per 60 s per `ip` or
+   * `ip:visitor`; the 3rd quote in the window is challenged. Replaces a KV write per quote
+   * (Workers Free: 1,000 KV writes a day). Absent: the KV counter is used.
+   */
+  TURNSTILE_ATTEMPT_LIMITER?: RateLimit;
 
   /**
    * POST /api/quote/reprice and the voucher check in POST /api/checkout/price, verified

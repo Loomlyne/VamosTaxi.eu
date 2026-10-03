@@ -3197,8 +3197,12 @@ export type Database = {
         Returns: {
           amount_rappen: number
           code: string
+          destination: string
+          discount_rappen: number
           kind: string
+          list_rappen: number
           names: Json
+          origin: string
           seq: number
           vat_rate_bps: number
         }[]

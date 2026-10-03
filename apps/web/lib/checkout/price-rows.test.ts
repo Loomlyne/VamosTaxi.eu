@@ -1,11 +1,10 @@
 // 26.1-11 / UI-SPEC §8: the airport pickup fee and the matched route pair are
 // their own labelled rows in the checkout breakdown. Pure builder — no React.
 import { describe, expect, it } from "vitest";
-import { base64urlEncode } from "../crypto/hmac";
 import {
   breakdownRappen,
   breakdownRows,
-  peekLockPriceRows,
+  farePartsFromLines,
   type BreakdownLabelKey,
   type BreakdownLine,
 } from "./price-rows";
@@ -18,11 +17,6 @@ function t(key: BreakdownLabelKey, values?: { origin: string; destination: strin
 
 /** Display-side amount: rappen → major units, null stays null (PriceSummary → CHF 000). */
 const toMajor = (rappen: number | null): number | null => (rappen == null ? null : rappen / 100);
-
-function lockWith(payload: unknown): string {
-  const body = base64urlEncode(new TextEncoder().encode(JSON.stringify(payload)));
-  return `h.${body}.s`;
-}
 
 describe("breakdownRows", () => {
   it("returns one airport-fee row and one route-pair row, in line order, with icons", () => {
@@ -91,51 +85,44 @@ describe("breakdownRappen", () => {
   });
 });
 
-describe("peekLockPriceRows", () => {
-  const payload = {
-    class_totals: [{ slug: "mercedes-benz-v-class", total_rappen: null }],
-    price_rows: [
-      {
-        slug: "mercedes-benz-v-class",
-        lines: [
-          { code: "airport_fee", leg_seq: 1, amount_rappen: null },
-          { code: "fixed_route", leg_seq: 1, amount_rappen: null, params: { origin: "Zürich", destination: "Bern" } },
-        ],
-      },
-    ],
-  };
-
-  it("reads the selected class's rows from the lock payload", () => {
-    const lines = peekLockPriceRows(lockWith(payload), "mercedes-benz-v-class");
-    expect(lines.map((l) => l.code)).toEqual(["airport_fee", "fixed_route"]);
-    expect(lines[1]?.params).toEqual({ origin: "Zürich", destination: "Bern" });
-  });
-
-  it("returns [] for another class, an old lock without price_rows, or an unreadable lock", () => {
-    expect(peekLockPriceRows(lockWith(payload), "mercedes-s-class-special")).toEqual([]);
-    expect(peekLockPriceRows(lockWith({ class_totals: [] }), "mercedes-benz-v-class")).toEqual([]);
-    expect(peekLockPriceRows("not-a-lock", "mercedes-benz-v-class")).toEqual([]);
-    expect(peekLockPriceRows(undefined, "mercedes-benz-v-class")).toEqual([]);
-  });
-
-  it("drops malformed rows and negative or non-finite amounts become null (never invent a figure)", () => {
-    const lock = lockWith({
-      price_rows: [
-        {
-          slug: "x",
-          lines: [
-            { code: "airport_fee", amount_rappen: -5 },
-            { code: "fixed_route", amount_rappen: "12" },
-            { code: "other", amount_rappen: 10 },
-            null,
-          ],
-        },
-      ],
+describe("farePartsFromLines", () => {
+  it("sums per code and keeps the first pair of names", () => {
+    expect(
+      farePartsFromLines([
+        { code: "distance_fare", amount_rappen: 1 },
+        { code: "airport_fee", amount_rappen: 1_000 },
+        { code: "fixed_route", amount_rappen: 2_000, params: { origin: "Zürich", destination: "Bern" } },
+        { code: "fixed_route", amount_rappen: 500 },
+      ]),
+    ).toEqual({
+      airportFeeRappen: 1_000,
+      route: { amountRappen: 2_500, origin: "Zürich", destination: "Bern" },
     });
-    const lines = peekLockPriceRows(lock, "x");
-    expect(lines).toEqual([
-      { code: "airport_fee", amount_rappen: null },
+  });
+
+  it("only a fee: no route; only a route without names: null names", () => {
+    expect(farePartsFromLines([{ code: "airport_fee", amount_rappen: 700 }])).toEqual({
+      airportFeeRappen: 700,
+      route: null,
+    });
+    expect(farePartsFromLines([{ code: "fixed_route", amount_rappen: 700 }])).toEqual({
+      airportFeeRappen: null,
+      route: { amountRappen: 700, origin: null, destination: null },
+    });
+  });
+
+  it("undefined for an old lock, no rows or no matching code", () => {
+    expect(farePartsFromLines(undefined)).toBeUndefined();
+    expect(farePartsFromLines([])).toBeUndefined();
+    expect(farePartsFromLines([{ code: "distance_fare", amount_rappen: 100 }])).toBeUndefined();
+  });
+
+  it("an unreadable amount poisons the split so checkoutCharge keeps one Fare line", () => {
+    const parts = farePartsFromLines([
+      { code: "airport_fee", amount_rappen: 1_000 },
       { code: "fixed_route", amount_rappen: null },
     ]);
+    expect(Number.isNaN(parts?.airportFeeRappen)).toBe(true);
+    expect(parts?.route).toBeNull();
   });
 });

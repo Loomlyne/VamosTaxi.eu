@@ -34,12 +34,16 @@ export type EmailExtraLine = {
 /**
  * One row of the S6 money block. `label` is the variable part only:
  * fare = class name, surcharge = extra name, coupon = voucher code, vat = unused.
+ * 261003: airport_fee = unused (the template says "Airport pickup fee"); route = unused, the two
+ * town names ride in `origin` / `destination` when both were known, else "Route price".
  * The template owns the surrounding words so they translate.
  */
 export type EmailMoneyLine = {
-  kind: "fare" | "surcharge" | "coupon" | "vat";
+  kind: "fare" | "airport_fee" | "route" | "surcharge" | "coupon" | "vat";
   label: string;
   amountRappen: number;
+  origin?: string;
+  destination?: string;
 };
 
 export type EmailMoney = {

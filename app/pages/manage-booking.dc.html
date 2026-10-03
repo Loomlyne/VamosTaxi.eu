@@ -1063,10 +1063,19 @@ class Component extends DCLogic {
       // Saved snapshot lines only; the API sends none unless they add up to the amount charged.
       lines = (money.lines || []).map((l) => {
         let label = (l.labels && (l.labels[lang] || l.labels.en)) || l.code;
-        if (l.kind === 'fare') label = money.className || 'Fare';
+        let icon = '';
+        if (l.kind === 'fare' && l.code === 'airport_fee') {
+          // 261003: the airport pickup fee and the route extra are their own lines.
+          label = 'Airport pickup fee';
+          icon = 'plane-landing';
+        } else if (l.kind === 'fare' && l.code === 'fixed_route') {
+          // Both towns as quoted, each isolated left-to-right so Arabic reverses the sentence, never the names.
+          label = l.origin && l.destination ? '\u2066' + l.origin + '\u2069 \u2013 \u2066' + l.destination + '\u2069 route' : 'Route price';
+          icon = 'map-pin';
+        } else if (l.kind === 'fare') label = money.className || 'Fare';
         else if (l.kind === 'coupon') label = 'Voucher';
         else if (l.kind === 'vat') label = t('VAT') + (l.vatRateBps ? ' ' + Number((l.vatRateBps / 10).toFixed(1)) + ' %' : '');
-        return { label, value: signed(l.amountRappen) };
+        return icon ? { label, value: signed(l.amountRappen), icon } : { label, value: signed(l.amountRappen) };
       });
     }
     const METHODS = { card: 'Card', twint: 'TWINT', apple_pay: 'Apple Pay', google_pay: 'Google Pay', link: 'Link' };

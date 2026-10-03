@@ -144,4 +144,73 @@ describe("receiptRows", () => {
     const row = receiptRows(legacy, "en", 2162, null)[0]!;
     expect(row).toMatchObject({ kind: "extra", labelKey: "price.surcharge.child_seat.label", amountRappen: 2162 });
   });
+
+  // 261003: the fee and the route are their own rows; an old one-line booking reads as before.
+  describe("fare pieces (261003)", () => {
+    const fare = (code: string, amountRappen: number, params: Record<string, unknown> = {}): ConfirmationFareLine => ({
+      code,
+      vehicleClass: "",
+      amountRappen,
+      kind: "fare",
+      i18nKey: code === "distance_fare" ? "price.line.transfer" : `price.line.${code}`,
+      params,
+    });
+    const vat = (n: number): ConfirmationFareLine => ({ code: "vat", vehicleClass: "", amountRappen: n, kind: "vat", i18nKey: "price.line.vat", params: { vatRateBps: 81 } });
+
+    it("airport fee and route become rows of their own, in line order, with the town names", () => {
+      const rows = receiptRows(
+        [
+          fare("distance_fare", 4000),
+          fare("airport_fee", 1500),
+          fare("fixed_route", 2500, { origin: "Zürich", destination: "Genève" }),
+          lines[1]!,
+          vat(800),
+        ],
+        "de",
+        10800,
+        null,
+      );
+      expect(rows.map((r) => r.kind)).toEqual(["fare", "airport_fee", "route", "extra", "vat", "total"]);
+      expect(rows[0]).toMatchObject({ kind: "fare", amountRappen: 4000 });
+      expect(rows[1]).toMatchObject({ labelKey: "price.line.airport_fee", amountRappen: 1500 });
+      expect(rows[2]).toMatchObject({ labelKey: "checkout.routePair", origin: "Zürich", destination: "Genève", amountRappen: 2500 });
+    });
+
+    it("a route line without both names reads the plain label and carries no names", () => {
+      const rows = receiptRows([fare("distance_fare", 4000), fare("fixed_route", 2500, { origin: "Zürich" }), vat(1)], "en", 6501, null);
+      expect(rows[1]).toMatchObject({ kind: "route", labelKey: "checkout.routePairPlain" });
+      expect(rows[1]).not.toHaveProperty("origin");
+    });
+
+    it("a voucher folded into the fare pieces still shows every list figure; rows minus voucher equal the sum of saved amounts plus discount", () => {
+      const rows = receiptRows(
+        [
+          fare("distance_fare", 0, { list_rappen: 4000 }),
+          fare("airport_fee", 500, { list_rappen: 1500 }),
+          fare("fixed_route", 2500, { origin: "A", destination: "B" }),
+          { code: "SAVE", vehicleClass: "", amountRappen: 0, kind: "coupon", i18nKey: "price.line.coupon", params: { discount_rappen: 5000 } },
+          vat(240),
+        ],
+        "en",
+        3240,
+        null,
+      );
+      expect(rows.map((r) => [r.kind, r.amountRappen])).toEqual([
+        ["fare", 4000],
+        ["airport_fee", 1500],
+        ["route", 2500],
+        ["coupon", -5000],
+        ["vat", 240],
+        ["total", 3240],
+      ]);
+      expect(rows.filter((r) => r.kind !== "total").reduce((s, r) => s + r.amountRappen, 0)).toBe(3240);
+    });
+
+    it("an old one-line booking renders exactly as before; an unknown fare code is merged into Fare", () => {
+      const old = receiptRows([lines[0]!, vat(800)], "en", 10800, null);
+      expect(old.map((r) => r.kind)).toEqual(["fare", "vat", "total"]);
+      const odd = receiptRows([lines[0]!, fare("extra_fare", 700), vat(800)], "en", 11500, null);
+      expect(odd.map((r) => [r.kind, r.amountRappen])).toEqual([["fare", 10700], ["vat", 800], ["total", 11500]]);
+    });
+  });
 });

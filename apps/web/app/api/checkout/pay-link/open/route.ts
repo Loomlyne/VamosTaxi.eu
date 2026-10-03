@@ -153,7 +153,7 @@ export async function POST(request: Request) {
   }
 
   const lineRows = await asCheckout(env, null, (sql) => sql`
-    select kind, code, names, vat_rate_bps, amount_rappen
+    select kind, code, names, vat_rate_bps, amount_rappen, list_rappen, discount_rappen, origin, destination
       from public.checkout_pay_link_lines(decode(${tokenHex}, 'hex'))
   `);
   const lines = payLinkLinesForCharge(payLinkLinesFromRows(lineRows as never), charged);

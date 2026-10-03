@@ -224,6 +224,9 @@ export type OpsFareLine = {
   names: Record<string, string> | null;
   /** Signed: the voucher is negative. Each amount is shown once, never derived. */
   rappen: number | null;
+  /** 261003: the `fixed_route` line's two town names as quoted at quote time, when both were known. */
+  origin?: string;
+  destination?: string;
 };
 
 function cleanNames(raw: unknown): Record<string, string> | null {
@@ -272,7 +275,16 @@ function mapFareLines(raw: unknown, klass: string): OpsFareLine[] {
       if (list != null) rappenValue = list;
     }
     let label: string;
-    if (kind === "fare" || code === "distance_fare" || code === "fare" || code === "transfer") {
+    let route: { origin: string; destination: string } | null = null;
+    if (kind === "fare" && code === "airport_fee") {
+      // 261003: the airport pickup fee and the route extra are their own fare lines.
+      label = "Airport pickup fee";
+    } else if (kind === "fare" && code === "fixed_route") {
+      const origin = typeof params.origin === "string" ? params.origin.trim() : "";
+      const destination = typeof params.destination === "string" ? params.destination.trim() : "";
+      if (origin && destination) route = { origin, destination };
+      label = route ? `${route.origin} \u2013 ${route.destination} route` : "Route price";
+    } else if (kind === "fare" || code === "distance_fare" || code === "fare" || code === "transfer") {
       label = `Transfer, ${klass}`;
     } else if (kind === "coupon" || code === "coupon") label = "Coupon";
     else if (kind === "vat" || code === "vat") label = "VAT";
@@ -280,7 +292,7 @@ function mapFareLines(raw: unknown, klass: string): OpsFareLine[] {
       const named = typeof params.name === "string" && params.name.trim() ? params.name.trim() : "";
       label = names?.en ?? (named || humaniseCode(code));
     }
-    out.push({ kind, code, label, names, rappen: rappenValue });
+    out.push({ kind, code, label, names, rappen: rappenValue, ...(route ?? {}) });
   }
   return out;
 }

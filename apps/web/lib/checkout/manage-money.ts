@@ -7,7 +7,7 @@
 // The driver has exactly four fields: first name, phone, vehicle model, plate.
 
 import { extraLabel, type ExtraNames } from "./extra-label";
-import { payLinkLinesForCharge, payLinkLinesFromRows } from "./pay-link-lines";
+import { payLinkLinesForCharge, payLinkLinesFromRows, payLinkShownRappen } from "./pay-link-lines";
 
 export const MANAGE_LOCALES = ["en", "de", "fr", "ar"] as const;
 
@@ -21,8 +21,14 @@ export type ManageMoneyLine = {
   /** The owner's name in each page language (names[locale] -> names.en -> humanised code). */
   labels: Record<(typeof MANAGE_LOCALES)[number], string>;
   vatRateBps: number | null;
-  /** Negative for a voucher. */
+  /**
+   * What the page shows: the pre-voucher figure of a fare or extra line, a voucher as its negative
+   * discount (261003; a price saved before that shows its saved amounts as they were).
+   */
   amountRappen: number;
+  /** 261003: the `fixed_route` line's two town names, when both were known; null on every other line. */
+  origin: string | null;
+  destination: string | null;
 };
 
 export type ManageMoney = {
@@ -67,7 +73,9 @@ export function moneyFromJson(raw: unknown): ManageMoney | null {
       MANAGE_LOCALES.map((loc) => [loc, extraLabel(line.names as ExtraNames, line.code, loc)]),
     ) as ManageMoneyLine["labels"],
     vatRateBps: line.vatRateBps,
-    amountRappen: line.amountRappen,
+    amountRappen: payLinkShownRappen(line),
+    origin: line.code === "fixed_route" ? line.origin : null,
+    destination: line.code === "fixed_route" ? line.destination : null,
   }));
   const minor = Number(rec.presentment_amount_minor);
   const currency = text(rec.presentment_currency).toUpperCase();

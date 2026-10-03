@@ -1,0 +1,24 @@
+{
+ "at": "2026-10-03T14:38:20.384Z",
+ "base": "http://localhost:4710",
+ "results": [
+  {
+   "id": "A-block-1",
+   "title": "home -> /checkout, prices",
+   "status": "PASS",
+   "evidence": "quotes 200:ok"
+  },
+  {
+   "id": "A-block-2",
+   "title": "3rd quote: challenge; a refused/blocked token ends on the message and TRY AGAIN, not a spinner",
+   "status": "PASS",
+   "evidence": "quotes 200:ok 200:ok 403:turnstile_required; code turnstile_required; loading 0; TRY AGAIN 1; alert \"Confirm this request and try again\""
+  },
+  {
+   "id": "A-block-3",
+   "title": "TRY AGAIN answers again (challenge or rate limit), still never a spinner",
+   "status": "PASS",
+   "evidence": "quotes 200:ok 200:ok 403:turnstile_required 403:turnstile_required; now turnstile_required"
+  }
+ ]
+}

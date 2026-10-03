@@ -172,7 +172,7 @@ describe("routes and wrangler.jsonc agree (quick 261003)", () => {
     const flight = read("app/api/flight/[no]/route.ts");
     expect(flight).toMatch(/wireRateLimitGuard\(env, request, "flight"\)/);
     expect(flight).not.toMatch(/wireQuoteAbuse/);
-    expect(read("app/api/quote/route.ts")).toMatch(/wireQuoteAbuse\(env, request\)/);
+    expect(read("app/api/quote/route.ts")).toMatch(/wireQuoteAbuse\(env, request, "quote", \{/);
     expect(read("app/api/quote/reprice/route.ts")).toMatch(/wireQuoteAbuse\(env, request, "price"\)/);
     expect(read("app/api/checkout/price/route.ts")).toMatch(/wireQuoteAbuse\(env, request, "price"\)/);
   });
@@ -188,6 +188,7 @@ describe("routes and wrangler.jsonc agree (quick 261003)", () => {
       ["PRICE_RATE_LIMITER_BARE", "1008", 8],
       ["FLIGHT_RATE_LIMITER", "1009", 10],
       ["FLIGHT_RATE_LIMITER_BARE", "1010", 6],
+      ["TURNSTILE_ATTEMPT_LIMITER", "1011", 2],
     ];
     for (const [name, ns, limit] of expected) {
       const re = new RegExp(

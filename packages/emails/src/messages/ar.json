@@ -23,6 +23,9 @@
     "fare": "الأجرة · {class}",
     "voucher": "قسيمة {code}",
     "vat": "ضريبة القيمة المضافة {rate} %",
+    "airportFee": "رسوم الاستقبال من المطار",
+    "routePair": "مسار {origin} – {destination}",
+    "routePairPlain": "سعر المسار",
     "total": "الإجمالي المدفوع",
     "presented": "دفعت {paid} بعملة {currency}. استلمت فاموس {received}."
   },

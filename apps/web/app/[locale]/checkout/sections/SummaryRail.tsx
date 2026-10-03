@@ -6,6 +6,12 @@ import { Alert } from "@/components/feedback/Alert";
 import { PayBar } from "@/components/checkout/PayBar";
 import { TurnstileWidget } from "@/components/forms/TurnstileWidget";
 import { PriceSummary, RouteSummary, type PriceLine, type RouteMetaItem } from "@/components/transfer";
+import {
+  AIRPORT_FEE_ICON,
+  ROUTE_ICON,
+  airportFeeLabel,
+  routeLabel,
+} from "@/components/checkout/fare-line-label";
 import { extraLabel } from "@/lib/checkout/extra-label";
 import { kmFigure } from "@/lib/checkout/checkout-quote";
 import { formatTripWhen } from "@/lib/checkout/trip-format";
@@ -44,6 +50,7 @@ export function LegalLines() {
 /** Route, trip facts and the server price. Rail on desktop, Section 3 on phone and tablet. */
 export function OrderSummary() {
   const t = useTranslations("checkout");
+  const tPrice = useTranslations("price");
   const flow = useCheckoutFlow();
   const f = useCheckoutForm();
   const { trip, quote, selectedClass, locale } = flow;
@@ -76,8 +83,19 @@ export function OrderSummary() {
       ? p.lines.map((line) => {
           const amount = f.displayAmount(line.amount_rappen).major;
           switch (line.kind) {
-            case "fare":
+            case "fare": {
+              // 261003: the airport pickup fee and the route extra are their own lines.
+              if (line.code === "airport_fee") {
+                return { label: airportFeeLabel(tPrice), amount, icon: AIRPORT_FEE_ICON };
+              }
+              if (line.code === "fixed_route") {
+                const names = line.params as { origin?: unknown; destination?: unknown };
+                const o = typeof names.origin === "string" ? names.origin : null;
+                const d = typeof names.destination === "string" ? names.destination : null;
+                return { label: routeLabel(t, o, d), amount, icon: ROUTE_ICON };
+              }
               return { label: t("fareExVat"), amount };
+            }
             case "surcharge": {
               const names = (line.params as { names?: Record<string, string> }).names;
               return { label: `+ ${extraLabel(names, line.code ?? "", locale)}`, amount };

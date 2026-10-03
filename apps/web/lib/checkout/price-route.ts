@@ -9,6 +9,7 @@ import { z } from "zod";
 import { verifyLock, type LockSecrets } from "../quote/lock";
 import { percentToHundredths } from "../pricing/round";
 import { checkoutCharge, type ChargeLine, type ExtraCatalogRow } from "./checkout-charge";
+import { farePartsFromLock } from "./price-rows";
 
 const CLASS_SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -179,6 +180,8 @@ export async function priceCheckoutWithDeps(body: unknown, deps: PriceDeps): Pro
       : null,
     vatRateBps,
     vehicleClassSlug: req.vehicle_class,
+    // 261003: same parts as the intent, from the verified lock (D-19: screen = charge lines).
+    fareParts: farePartsFromLock(payload.price_rows, req.vehicle_class),
   });
   if (!charge.ok) return fail("price_changed");
 

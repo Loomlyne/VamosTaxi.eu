@@ -1,0 +1,30 @@
+{
+ "at": "2026-10-03T14:35:04.187Z",
+ "base": "http://localhost:4710",
+ "results": [
+  {
+   "id": "A-lang-de-390",
+   "title": "challenge state in de at 390",
+   "status": "PASS",
+   "evidence": "lang de dir ltr; alert \"Bestätigen Sie diese Anfrage und versuchen Sie es erneut\"; sideways false; quotes 200:ok 200:ok 403:turnstile_required"
+  },
+  {
+   "id": "A-lang-fr-390",
+   "title": "challenge state in fr at 390",
+   "status": "PASS",
+   "evidence": "lang fr dir ltr; alert \"Confirmez cette demande et réessayez\"; sideways false; quotes 200:ok 200:ok 403:turnstile_required"
+  },
+  {
+   "id": "A-lang-ar-390",
+   "title": "challenge state in ar at 390",
+   "status": "PASS",
+   "evidence": "lang ar dir rtl; alert \"أكّد هذا الطلب ثم حاول مجددًا\"; sideways false; quotes 200:ok 200:ok 403:turnstile_required"
+  },
+  {
+   "id": "A-lang-en-768",
+   "title": "challenge state in en at 768",
+   "status": "PASS",
+   "evidence": "lang en dir ltr; alert \"Confirm this request and try again\"; sideways false; quotes 200:ok 200:ok 403:turnstile_required"
+  }
+ ]
+}

@@ -1081,6 +1081,8 @@
     "choice-recorded": "Choice recorded.",
     "choose-your-categories": "Choose your categories",
     "consent-subject-purpose": "Records that you chose, so we stop asking.",
+    "qs-cookie-purpose": "Keeps price requests fair between visitors and blocks automated abuse",
+    "qs-cookie-duration": "24 hours",
     "cookie-banner": "Cookie banner",
     "cookie-choices": "Cookie choices",
     "cookie-policy": "cookie policy",
@@ -2740,6 +2742,7 @@
     ],
     "noParamKeys": {
       "cookies.meta-row": "owner legal text verbatim, .planning/decisions/2026-09-30-meta-wording.md §2",
+      "cookies.qs-cookie-duration": "vamos_qs Max-Age 86400 (lib/abuse/vamos-qs.ts), owner-approved row, .planning/decisions/2026-10-03-vamos-qs-cookie-row.md",
       "checkout.payLinkExpiredBody": "fixed 24-hour pay-link hold policy (D-20), not a live count",
       "checkout.nextReminderTitle": "fixed 24-hour reminder e-mail (reminder24h), not a live count",
       "partner.mercedes-v-class-7-seats": "fixed vehicle-class specification copy, not a live count",

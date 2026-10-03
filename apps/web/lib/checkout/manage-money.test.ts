@@ -53,6 +53,43 @@ describe("moneyFromJson", () => {
     expect(moneyFromJson(null)).toBeNull();
     expect(moneyFromJson({ charged_rappen: 0, lines })).toBeNull();
   });
+
+  // 261003: fare pieces and a voucher saved the way checkout writes them (coupon amount null).
+  it("shows the fee, the route with its towns and a voucher as its discount; the lines still add up to the charge", () => {
+    const money = moneyFromJson({
+      charged_rappen: 4400,
+      vehicle_class_name: "Business",
+      lines: [
+        { kind: "fare", code: "distance_fare", amount_rappen: 0, list_rappen: 4000, discount_rappen: null, origin: null, destination: null },
+        { kind: "fare", code: "airport_fee", amount_rappen: 500, list_rappen: 1500, discount_rappen: null, origin: null, destination: null },
+        { kind: "fare", code: "fixed_route", amount_rappen: 2500, list_rappen: null, discount_rappen: null, origin: "Zürich", destination: "Genève" },
+        { kind: "surcharge", code: "child-seat", names: { en: "Child seat" }, amount_rappen: 1000, list_rappen: null, discount_rappen: null, origin: null, destination: null },
+        { kind: "coupon", code: "WELCOME", amount_rappen: null, list_rappen: null, discount_rappen: 5000, origin: null, destination: null },
+        { kind: "vat", code: "vat", vat_rate_bps: 81, amount_rappen: 400, list_rappen: null, discount_rappen: null, origin: null, destination: null },
+      ],
+    })!;
+    expect(money.lines.map((l) => [l.code, l.amountRappen])).toEqual([
+      ["distance_fare", 4000],
+      ["airport_fee", 1500],
+      ["fixed_route", 2500],
+      ["child-seat", 1000],
+      ["WELCOME", -5000],
+      ["vat", 400],
+    ]);
+    expect(money.lines.reduce((s, l) => s + l.amountRappen, 0)).toBe(4400);
+    expect(money.lines[2]).toMatchObject({ origin: "Zürich", destination: "Genève" });
+    expect(money.lines[1]).toMatchObject({ origin: null, destination: null });
+  });
+
+  it("a booking saved before the change reads exactly as before (one Fare line, a negative legacy voucher)", () => {
+    const money = moneyFromJson({ charged_rappen: 10270, lines })!;
+    expect(money.lines.map((l) => [l.code, l.amountRappen, l.origin])).toEqual([
+      ["distance_fare", 9000, null],
+      ["child-seat", 1000, null],
+      ["coupon", -500, null],
+      ["vat", 770, null],
+    ]);
+  });
 });
 
 describe("methodFromStored", () => {
