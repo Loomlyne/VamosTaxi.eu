@@ -156,14 +156,22 @@ export function receiptPriceSplit(args: {
 }
 
 export type ReceiptRow = {
-  kind: "fare" | "extra" | "coupon" | "vat" | "total";
+  /** 261003: `airport_fee` and `route` are the two parts cut out of the fare; old bookings have neither. */
+  kind: "fare" | "airport_fee" | "route" | "extra" | "coupon" | "vat" | "total";
   /** Text to show. For fare/vat/total this is the English fallback of `labelKey`. */
   label: string;
   /** Message key when the UI has one (fare, VAT, total, legacy three-code extras). */
   labelKey?: string;
   /** Negative for a voucher. */
   amountRappen: number;
+  /** `route` rows only: the two town names as quoted at quote time, when both were known. */
+  origin?: string;
+  destination?: string;
 };
+
+function placeName(value: unknown): string {
+  return typeof value === "string" ? value.trim() : "";
+}
 
 function listRappen(line: ConfirmationFareLine): number {
   const list = Number(line.params?.list_rappen);
@@ -185,8 +193,9 @@ function extraLabel(line: ConfirmationFareLine, locale: string): { label: string
 }
 
 /**
- * The receipt, built only from the booking's price-snapshot lines: fare, every
- * ticked extra by name, voucher, VAT, total paid. Any extra code renders; the
+ * The receipt, built only from the booking's price-snapshot lines: fare, the airport
+ * pickup fee and the route extra when the price has them as their own lines (261003;
+ * older bookings keep one Fare line), every ticked extra by name, voucher, VAT, total paid. Any extra code renders; the
  * name comes from the line (its per-language names, then the English name, then
  * the humanised code). `presentment` is accepted for symmetry with the mail;
  * the total row is always the CHF figure that was charged.
@@ -203,7 +212,19 @@ export function receiptRows(
   let couponRow: ReceiptRow | null = null;
   for (const line of lines) {
     const kind = line.kind ?? (line.code === "vat" ? "vat" : line.code === "coupon" || line.code === "discount" ? "coupon" : line.code === "distance_fare" ? "fare" : "surcharge");
-    if (kind === "fare") {
+    if (kind === "fare" && line.code === "airport_fee") {
+      rows.push({ kind: "airport_fee", label: "Airport pickup fee", labelKey: "price.line.airport_fee", amountRappen: listRappen(line) });
+    } else if (kind === "fare" && line.code === "fixed_route") {
+      const origin = placeName(line.params?.origin);
+      const destination = placeName(line.params?.destination);
+      rows.push({
+        kind: "route",
+        label: origin && destination ? `${origin} – ${destination} route` : "Route price",
+        labelKey: origin && destination ? "checkout.routePair" : "checkout.routePairPlain",
+        amountRappen: listRappen(line),
+        ...(origin && destination ? { origin, destination } : {}),
+      });
+    } else if (kind === "fare") {
       if (fareIndex === -1) {
         fareIndex = rows.length;
         rows.push({ kind: "fare", label: "Fare", labelKey: "price.line.transfer", amountRappen: listRappen(line) });

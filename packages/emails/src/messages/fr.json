@@ -17,6 +17,9 @@
     "fare": "Course · {class}",
     "voucher": "Bon {code}",
     "vat": "TVA {rate} %",
+    "airportFee": "Frais de prise en charge à l’aéroport",
+    "routePair": "Trajet {origin} – {destination}",
+    "routePairPlain": "Prix du trajet",
     "total": "Total payé",
     "presented": "Vous avez payé {paid} en {currency}. Vamos a reçu {received}."
   },

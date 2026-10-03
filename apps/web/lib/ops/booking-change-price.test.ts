@@ -9,6 +9,8 @@
 import { describe, expect, it } from "vitest";
 import { checkoutCharge, type CheckoutChargeCoupon, type ExtraCatalogRow } from "../checkout/checkout-charge";
 import { snapshotLinesFromCharge } from "../checkout/lock-to-rpc";
+import { farePartsFromLines } from "../checkout/price-rows";
+import { preCouponTotalOfClass } from "../pricing/policy";
 import { priceQuote } from "../pricing/priceQuote";
 import type { SettingsVersionRow } from "../pricing/policy";
 import { roundHalfUp } from "../pricing/round";
@@ -131,6 +133,8 @@ function checkout(b: RateBook, f: TripFacts, metres: number, slug: string, opts:
   extras?: ExtraCatalogRow[];
   coupon?: CheckoutChargeCoupon | null;
   vat?: number;
+  /** 261003: save the fee and route pieces as their own fare lines (what checkout writes now). */
+  split?: boolean;
 } = {}) {
   const coupon = opts.coupon ?? null;
   const quote = priceQuote(b, SETTINGS, quoteInputFromFacts(f, metres, AT), { coupon: couponFactsOf(coupon) });
@@ -148,6 +152,17 @@ function checkout(b: RateBook, f: TripFacts, metres: number, slug: string, opts:
     coupon,
     vatRateBps: opts.vat ?? 81,
     vehicleClassSlug: slug,
+    ...(opts.split
+      ? {
+          fareParts: farePartsFromLines(
+            entry.lines.map((l) => ({
+              code: l.code,
+              amount_rappen: l.amount_rappen,
+              ...(l.params ? { params: l.params as Record<string, string | number | null> } : {}),
+            })),
+          ),
+        }
+      : {}),
   });
   if (!charge.ok) throw new Error("fixture charge failed");
   return {
@@ -295,6 +310,91 @@ describe("class change price step (D3, D5)", () => {
       expect(priceOf(result, slug)).toMatchObject({ ok: true, newTotalRappen: checkout(today, f, EXACT_M, slug).total_rappen });
     }
     expect(priceOf(result, ECO.slug)).toMatchObject({ current: true, differenceRappen: 0 });
+  });
+});
+
+// 261003 fare lines: a booking saved with fare pieces (distance_fare + airport_fee + fixed_route)
+// must reproduce and re-price (it was "trip-data" before the rule), and the new price record is cut
+// the same way. Internal rappen only.
+describe("fare lines: airport fee and route pieces", () => {
+  const airportBook = book(18, RATES, true);
+  const withRoute: RateBook = {
+    ...airportBook,
+    zones: [
+      ...airportBook.zones,
+      { id: "z-a", slug: "zurich", iata: null, active: true, zone_type: "city", tags: ["mapbox_place:city-zurich"] },
+      { id: "z-b", slug: "zug", iata: null, active: true, zone_type: "city", tags: ["mapbox_place:city-zug"] },
+    ],
+    fixed_routes: [ECO, BIZ, VAN].map((c, i) => ({
+      id: 900 + i,
+      rate_version_id: 18,
+      origin_zone_id: "z-a",
+      dest_zone_id: "z-b",
+      vehicle_class_id: c.id,
+      price_rappen: 800 + 100 * i,
+      live: true,
+      kind: "city" as const,
+      origin_label: "Zurich",
+      dest_label: "Zug",
+    })),
+  };
+  const atAirport = facts({ originIsAirport: true, originPlace: "Zurich Airport, Zurich" });
+  const feeCodes = (r: ReturnType<typeof checkout>) => r.lines.filter((l) => l.kind === "fare").map((l) => l.code);
+
+  it("a saved price with distance_fare + airport_fee reproduces and re-prices to the same totals as the one-line price", () => {
+    const one = checkout(airportBook, atAirport, EXACT_M, ECO.slug);
+    const split = checkout(airportBook, atAirport, EXACT_M, ECO.slug, { split: true });
+    expect(feeCodes(one)).toEqual(["distance_fare"]);
+    expect(feeCodes(split)).toEqual(["distance_fare", "airport_fee"]);
+    expect(split.total_rappen).toBe(one.total_rappen);
+    const a = run({ booked: one, bookingBook: airportBook, today: airportBook, f: atAirport });
+    const b = run({ booked: split, bookingBook: airportBook, today: airportBook, f: atAirport });
+    expect(b.ok).toBe(true);
+    for (const slug of [ECO.slug, BIZ.slug, VAN.slug]) {
+      expect(priceOf(b, slug)).toMatchObject({ ok: true, newTotalRappen: checkout(airportBook, atAirport, EXACT_M, slug).total_rappen });
+      expect(priceOf(b, slug)).toMatchObject({ newTotalRappen: (priceOf(a, slug) as { newTotalRappen: number }).newTotalRappen });
+    }
+  });
+
+  it("airport + route + extras + coupon: reproduces, and the new record is split with lines adding up to the new total", () => {
+    const coupon: CheckoutChargeCoupon = { code: "SPRING", kind: "percent", percentHundredths: 1000, amountRappen: null };
+    const booked = checkout(withRoute, atAirport, EXACT_M, ECO.slug, { split: true, extras: EXTRAS, coupon });
+    expect(feeCodes(booked)).toEqual(["distance_fare", "airport_fee", "fixed_route"]);
+    const result = run({ booked, bookingBook: withRoute, today: withRoute, f: atAirport });
+    const row = priceOf(result, BIZ.slug);
+    if (!row.ok) throw new Error("refused");
+    const want = checkout(withRoute, atAirport, EXACT_M, BIZ.slug, { split: true, extras: EXTRAS, coupon });
+    expect(row.newTotalRappen).toBe(want.total_rappen);
+    expect(row.lines.filter((l) => l.kind === "fare").map((l) => l.code)).toEqual(["distance_fare", "airport_fee", "fixed_route"]);
+    expect(row.lines.find((l) => l.code === "fixed_route")?.params).toEqual({ origin: "Zurich", destination: "Zug" });
+    expect(row.lines.reduce((s, l) => s + (l.amount_rappen ?? 0), 0)).toBe(row.newTotalRappen);
+    // Every saved non-fare line (extras, coupon, VAT) equals the same charge without parts, rappen
+    // for rappen (same board, same pinned pre-coupon fare as the price step reads).
+    const entry = priceQuote(withRoute, SETTINGS, quoteInputFromFacts(atAirport, EXACT_M, AT), { coupon: couponFactsOf(coupon) })
+      .classes.find((c) => c.slug === BIZ.slug)!;
+    const plain = checkoutCharge({
+      classNetRappen: entry.total_rappen!,
+      preCouponRappen: preCouponTotalOfClass(entry),
+      extraCodes: EXTRAS.map((e) => e.code),
+      catalog: EXTRAS,
+      coupon,
+      vatRateBps: 81,
+      vehicleClassSlug: BIZ.slug,
+    });
+    if (!plain.ok) throw new Error("fixture charge failed");
+    const rest = (lines: Array<{ kind: string; seq: number }>) => lines.filter((l) => l.kind !== "fare").map(({ seq: _s, ...r }) => r);
+    expect(rest(row.lines)).toEqual(rest(snapshotLinesFromCharge(plain.lines)));
+    expect(row.newTotalRappen).toBe(plain.chargedRappen);
+  });
+
+  it("savedChargeFromSnapshot accepts the two new fare codes and still refuses any other fare code", () => {
+    const base = { total_rappen: 10, rate_version_id: 1, class_slug: "eco-x" };
+    const vat = { kind: "vat", code: "vat", params: { vatRateBps: 81 }, amount_rappen: 0 };
+    const fare = (code: string) => ({ kind: "fare", code, amount_rappen: 3 });
+    expect(savedChargeFromSnapshot({ ...base, lines: [fare("distance_fare"), fare("airport_fee"), fare("fixed_route"), vat] })).not.toBeNull();
+    expect(savedChargeFromSnapshot({ ...base, lines: [fare("distance_fare"), fare("extra_fare"), vat] })).toBeNull();
+    expect(savedChargeFromSnapshot({ ...base, lines: [fare("airport_fee"), vat] })).toBeNull();
+    expect(savedChargeFromSnapshot({ ...base, lines: [fare("distance_fare"), fare("distance_fare"), vat] })).toBeNull();
   });
 });
 

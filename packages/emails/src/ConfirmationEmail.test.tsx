@@ -234,3 +234,76 @@ describe("money block (S6)", () => {
     expect(html).toContain("8.1");
   });
 });
+
+// 261003 fare lines: the airport pickup fee and the route extra are their own rows, no icons in a mail.
+describe("money block with fare pieces (261003)", () => {
+  const money: EmailMoney = {
+    lines: [
+      { kind: "fare", label: "Business", amountRappen: 4000 },
+      { kind: "airport_fee", label: "", amountRappen: 1500 },
+      { kind: "route", label: "", amountRappen: 2500, origin: "Zürich", destination: "Genève" },
+      { kind: "surcharge", label: "Skis", amountRappen: 1000 },
+      { kind: "coupon", label: "WELCOME", amountRappen: -5000 },
+      { kind: "vat", label: "", amountRappen: 400 },
+    ],
+    vatRateBps: 81,
+    chargedRappen: 4400,
+    presentment: null,
+  };
+  const withMoney = (locale: EmailLocale, m: EmailMoney = money) => ({ ...booking(locale), money: m });
+
+  it("English: rows in order, then the total paid", async () => {
+    const html = await render(ConfirmationEmail({ booking: withMoney("en") }));
+    const order = [
+      "Fare · Business",
+      "Airport pickup fee",
+      "Zürich – Genève route",
+      "Skis",
+      "Voucher WELCOME",
+      "VAT 8.1 %",
+      "Total paid",
+    ];
+    let at = -1;
+    for (const label of order) {
+      const idx = html.indexOf(label, at + 1);
+      expect(idx, label).toBeGreaterThan(at);
+      at = idx;
+    }
+    expect(html).toContain("CHF 44.00");
+    expect(html).not.toMatch(/\{[a-zA-Z.]+\}/);
+    // No icons in a mail: no icon image, no mask.
+    expect(html).not.toMatch(/plane-landing|map-pin|mask-image/);
+  });
+
+  it("German and French use the same words as the site", () => {
+    const de = confirmationPlainText(withMoney("de"));
+    expect(de).toContain("Flughafen-Abholgebühr: CHF 15.00");
+    expect(de).toContain("Strecke Zürich – Genève: CHF 25.00");
+    const fr = confirmationPlainText(withMoney("fr"));
+    expect(fr).toContain("Frais de prise en charge à l’aéroport: CHF 15.00");
+    expect(fr).toContain("Trajet Zürich – Genève: CHF 25.00");
+    expect(de).not.toMatch(/[‎‏‪-‮⁦-⁩]/);
+  });
+
+  it("Arabic: the sentence is Arabic, the two towns sit in left-to-right isolates (plain text)", () => {
+    const ar = confirmationPlainText(withMoney("ar"));
+    expect(ar).toContain("رسوم الاستقبال من المطار");
+    expect(ar).toContain("مسار ⁦Zürich⁩ – ⁦Genève⁩");
+  });
+
+  it("a route without both towns reads the plain label in every language", () => {
+    const plain: EmailMoney = {
+      ...money,
+      lines: money.lines.map((l) => (l.kind === "route" ? { kind: "route", label: "", amountRappen: l.amountRappen } : l)),
+    };
+    expect(confirmationPlainText(withMoney("en", plain))).toContain("Route price: CHF 25.00");
+    expect(confirmationPlainText(withMoney("de", plain))).toContain("Streckenpreis: CHF 25.00");
+    expect(confirmationPlainText(withMoney("fr", plain))).toContain("Prix du trajet: CHF 25.00");
+    expect(confirmationPlainText(withMoney("ar", plain))).toContain("سعر المسار");
+  });
+
+  it.each(LOCALES)("%s: the rows add up to the total paid", (locale) => {
+    expect(money.lines.reduce((n, l) => n + l.amountRappen, 0)).toBe(money.chargedRappen);
+    expect(confirmationPlainText(withMoney(locale))).not.toMatch(/\{[a-zA-Z.]+\}/);
+  });
+});

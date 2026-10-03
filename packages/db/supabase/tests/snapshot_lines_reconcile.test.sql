@@ -6,7 +6,7 @@
 --
 -- D-46: synthetic unit-free integers only; no CHF figure. Rolled back at end.
 begin;
-select plan(6);
+select plan(8);
 
 insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity)
 values ('first', 3, 3);
@@ -151,6 +151,64 @@ select lives_ok(
             now() + interval '30 minutes', now() + interval '30 minutes'
        from fx, pol $$,
   '(6) well-formed fully-unpriced snapshot inserts (launch state)'
+);
+
+-- (7) 261003: the fare saved as three fare lines (distance_fare, airport_fee, fixed_route) -
+select lives_ok(
+  $$ insert into public.price_snapshots (
+       quote_id, vehicle_class_id, rate_version_id, rate_version_is_live, settings_version_id,
+       engine_version, pax, bags, lines, policy,
+       subtotal_rappen, surcharges_rappen, discount_rappen, total_rappen,
+       expires_at, quote_lock_expires_at
+     )
+     select gen_random_uuid(), fx.vehicle_class_id, fx.rate_version_id, false, fx.settings_version_id,
+            'quote-engine@slr-three-fare', 1, 0,
+            jsonb_build_array(
+              jsonb_build_object('seq', 1, 'code', 'distance_fare', 'kind', 'fare',
+                'i18n_key', 'price.line.transfer', 'amount_rappen', 4),
+              jsonb_build_object('seq', 2, 'code', 'airport_fee', 'kind', 'fare',
+                'i18n_key', 'price.line.airport_fee', 'amount_rappen', 3),
+              jsonb_build_object('seq', 3, 'code', 'fixed_route', 'kind', 'fare',
+                'i18n_key', 'price.line.fixed_route', 'amount_rappen', 2,
+                'params', jsonb_build_object('origin', 'A', 'destination', 'B')),
+              jsonb_build_object('seq', 4, 'code', 'vat', 'kind', 'vat',
+                'i18n_key', 'price.line.vat', 'amount_rappen', 1)
+            ),
+            pol.policy, 10, 0, 0, 10,
+            now() + interval '30 minutes', now() + interval '30 minutes'
+       from fx, pol $$,
+  '(7) three fare lines (fare, airport fee, route) plus VAT insert when they sum to the total'
+);
+
+-- (8) 261003: the same with a voucher folded into the pieces (coupon line amount null) ----
+select lives_ok(
+  $$ insert into public.price_snapshots (
+       quote_id, vehicle_class_id, rate_version_id, rate_version_is_live, settings_version_id,
+       engine_version, pax, bags, lines, policy,
+       subtotal_rappen, surcharges_rappen, discount_rappen, total_rappen,
+       expires_at, quote_lock_expires_at
+     )
+     select gen_random_uuid(), fx.vehicle_class_id, fx.rate_version_id, false, fx.settings_version_id,
+            'quote-engine@slr-three-fare-coupon', 1, 0,
+            jsonb_build_array(
+              jsonb_build_object('seq', 1, 'code', 'distance_fare', 'kind', 'fare',
+                'i18n_key', 'price.line.transfer', 'amount_rappen', 0,
+                'params', jsonb_build_object('list_rappen', 4)),
+              jsonb_build_object('seq', 2, 'code', 'airport_fee', 'kind', 'fare',
+                'i18n_key', 'price.line.airport_fee', 'amount_rappen', 1,
+                'params', jsonb_build_object('list_rappen', 3)),
+              jsonb_build_object('seq', 3, 'code', 'fixed_route', 'kind', 'fare',
+                'i18n_key', 'price.line.fixed_route', 'amount_rappen', 2),
+              jsonb_build_object('seq', 4, 'code', 'WELCOME', 'kind', 'coupon',
+                'i18n_key', 'price.line.coupon', 'amount_rappen', null,
+                'params', jsonb_build_object('discount_rappen', 6)),
+              jsonb_build_object('seq', 5, 'code', 'vat', 'kind', 'vat',
+                'i18n_key', 'price.line.vat', 'amount_rappen', 1)
+            ),
+            pol.policy, 4, 0, 0, 4,
+            now() + interval '30 minutes', now() + interval '30 minutes'
+       from fx, pol $$,
+  '(8) three fare lines with a voucher taken off them (coupon amount null) insert when they sum to the total'
 );
 
 select * from finish();

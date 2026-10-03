@@ -7,6 +7,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { checkoutCharge } from "../checkout/checkout-charge";
 import { snapshotLinesFromCharge } from "../checkout/lock-to-rpc";
+import { farePartsFromLines } from "../checkout/price-rows";
 import { priceQuote } from "../pricing/priceQuote";
 import type { SettingsVersionRow } from "../pricing/policy";
 import type { RateBook } from "../pricing/types";
@@ -678,6 +679,83 @@ describe("afterExtraSettled: the difference of a trip change was paid", () => {
 });
 
 // ---------------------------------------------------------------------------------------------
+// 261003 fare lines: an airport pickup is saved as distance_fare + airport_fee. A place or class
+// change used to refuse it (more than one fare line, "trip-data"); now it prices, and the new price
+// record is cut the same way.
+describe("an airport booking saved with split fare lines (261003)", () => {
+  const bookAir = (rv: number): RateBook => {
+    const b = book(rv);
+    return { ...b, distance_rates: b.distance_rates.map((r) => ({ ...r, airport_start_rappen: 1500 })) };
+  };
+  const AIR: TripFacts = { ...BOOKED, originIsAirport: true, originPlace: "Zurich Airport", destPlace: "Zurich Oerlikon" };
+
+  function airCharge(facts: TripFacts, slug: string, split: boolean) {
+    const quote = priceQuote(bookAir(18), SETTINGS, quoteInputFromFacts(facts, facts.distanceM, AT));
+    const entry = quote.classes.find((c) => c.slug === slug)!;
+    const parts = farePartsFromLines(
+      entry.lines.map((l) => ({ code: l.code, amount_rappen: l.amount_rappen })),
+    );
+    const c = checkoutCharge({
+      classNetRappen: entry.total_rappen!, preCouponRappen: null, extraCodes: [], catalog: [], coupon: null,
+      vatRateBps: 81, vehicleClassSlug: slug, ...(split ? { fareParts: parts } : {}),
+    });
+    if (!c.ok) throw new Error("fixture");
+    return {
+      total: c.chargedRappen,
+      lines: snapshotLinesFromCharge(c.lines),
+      shown: quote.classes.map((x) => ({ slug: x.slug, total_rappen: x.eligible ? x.total_rappen : null })),
+    };
+  }
+
+  function airContext(split: boolean): ChangeContext {
+    const booked = airCharge(AIR, ECO, split);
+    const ctx = context();
+    return {
+      ...ctx,
+      paidRappen: booked.total,
+      snapshot: { ...ctx.snapshot!, totalRappen: booked.total, lines: booked.lines, shownAlternatives: booked.shown },
+    };
+  }
+
+  const airDeps = (ctx: ChangeContext, over: Partial<ChangeDeps> = {}) =>
+    deps(ctx, {
+      loadLiveBook: async () => docOf(bookAir(18)),
+      loadBookByVersion: vi.fn(async () => docOf(bookAir(18))),
+      // The booked pickup resolves to an airport again, as it did when it was paid.
+      resolvePlace: vi.fn(async (_e, place) =>
+        place.placeId === "mb-oerlikon" ? { canton: "ZH", cityId: null, cityName: null, isAirport: true } : null,
+      ),
+      ...over,
+    });
+
+  it("the saved lines really are three pieces when split (fixture check) and the total is unchanged", () => {
+    const split = airCharge(AIR, ECO, true);
+    expect(split.lines.filter((l) => l.kind === "fare").map((l) => l.code)).toEqual(["distance_fare", "airport_fee"]);
+    expect(split.total).toBe(airCharge(AIR, ECO, false).total);
+  });
+
+  it("a class change on the same airport trip is priced (it was refused as trip-data), to the one-line totals", async () => {
+    const ctx = airContext(true);
+    const res = await previewTripChange(env, claims, "VT-26-0801", { ...NO_CHANGE, pax: 3 }, airDeps(ctx));
+    expect(res).toMatchObject({ ok: true });
+    if (!res.ok) return;
+    const biz = res.classes.find((c) => c.slug === BIZ)!;
+    expect(biz).toMatchObject({ ok: true, newTotalRappen: airCharge(AIR, BIZ, false).total });
+  });
+
+  it("a new pickup away from the airport drops the airport line and still prices", async () => {
+    const ctx = airContext(true);
+    const facts = zugFacts(42_517, {
+      facts: { ...AIR, distanceM: 42_517, durationS: 3_300, originPlace: "Zug station", originCanton: "ZG", originCityId: "city-zug", originIsAirport: false },
+    });
+    const res = await previewTripChange(env, claims, "VT-26-0801", { ...NO_CHANGE, pickup: ZUG }, airDeps(ctx, { tripFacts: vi.fn(async () => facts) }));
+    expect(res).toMatchObject({ ok: true });
+    if (!res.ok) return;
+    const eco = res.classes.find((c) => c.slug === ECO)!;
+    expect(eco).toMatchObject({ ok: true, newTotalRappen: airCharge({ ...AIR, distanceM: 42_517, durationS: 3_300, originIsAirport: false, originPlace: "Zug station" }, ECO, false).total });
+  });
+});
+
 describe("a price record that cannot be priced again (older shape, or an old in-place class edit)", () => {
   const oldShape = (ctx: ChangeContext): ChangeContext => ({
     ...ctx,

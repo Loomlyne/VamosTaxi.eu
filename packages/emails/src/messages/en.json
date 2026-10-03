@@ -17,6 +17,9 @@
     "fare": "Fare · {class}",
     "voucher": "Voucher {code}",
     "vat": "VAT {rate} %",
+    "airportFee": "Airport pickup fee",
+    "routePair": "{origin} – {destination} route",
+    "routePairPlain": "Route price",
     "total": "Total paid",
     "presented": "You paid {paid} in {currency}. Vamos received {received}."
   },
