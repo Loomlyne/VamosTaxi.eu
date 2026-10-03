@@ -16,6 +16,7 @@ import { Alert } from "@/components/feedback";
 import { Switch } from "@/components/forms";
 import { TurnstileWidget } from "@/components/forms/TurnstileWidget";
 import { loadWebAnalytics } from "@/lib/consent/web-analytics";
+import { clearMetaBrowserState } from "@/lib/meta/clear-browser-state";
 
 const { Link } = createNavigation(routing);
 
@@ -136,6 +137,7 @@ export function CookieBanner({ siteKey }: { siteKey: string | undefined }) {
         versionRef.current = typeof j.policyVersion === "string" ? j.policyVersion : null;
         if (j.chosen && j.choice) {
           if (j.choice.analytics === true) loadWebAnalytics();
+          if (j.choice.marketing !== true) clearMetaBrowserState();
           setCats({
             functional: j.choice.functional === true,
             analytics: j.choice.analytics === true,
@@ -256,6 +258,8 @@ export function CookieBanner({ siteKey }: { siteKey: string | undefined }) {
       if (result.ok) {
         writeCache(versionRef.current, method, chosen);
         if (chosen.analytics) loadWebAnalytics();
+        // Phase 28 CR-01: a saved choice without Marketing removes what Meta's script left in this browser.
+        if (!chosen.marketing) clearMetaBrowserState();
         setCats(chosen);
         setMode("hidden");
         setPending(null);
