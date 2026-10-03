@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Signing sketch — vehicle classes on home</title>
+<!-- Signing sketch only (not product code). Tokens straight from the vendored design system;
+     class names, seats, bags and photos are the live GET /api/quote idle board of 2026-10-03. -->
+<link rel="stylesheet" href="../../../design-system/styles.css">
+<style>
+:root{--vt-shadow-accent:none}
+body{margin:0;background:var(--vt-bg-page);color:var(--vt-text-primary);font-family:var(--vt-font-body)}
+[dir="rtl"] body{font-family:var(--vt-font-body)}
+[data-ico]{display:inline-block;inline-size:16px;block-size:16px;flex:0 0 16px;background:currentColor;-webkit-mask:var(--m) center/contain no-repeat;mask:var(--m) center/contain no-repeat}
+[data-sec]{border-block-start:1px solid var(--vt-border-subtle)}
+[data-wrap]{box-sizing:border-box;max-inline-size:var(--vt-container-lg);margin-inline:auto;padding-block:clamp(56px,7vw,96px);padding-inline:var(--vt-gutter)}
+[data-head]{display:flex;flex-direction:column;align-items:flex-start;gap:12px;margin-block-end:clamp(28px,4vw,48px)}
+[data-kicker]{margin:0;display:inline-flex;align-items:center;gap:9px;min-block-size:32px;padding-inline:12px 15px;border:1px solid var(--vt-grey-200);border-radius:var(--vt-radius-pill);background:var(--vt-white);font-size:12px;font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;line-height:1;white-space:nowrap}
+[data-kicker]::before{content:"";inline-size:13px;block-size:13px;background:url(../../../assets/patterns/checker-mark.png) center/contain no-repeat}
+[data-title]{margin:0;max-inline-size:18ch;font-family:var(--vt-font-display);font-size:var(--vt-display-3);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:var(--vt-display-leading);text-wrap:balance}
+[data-lede]{margin:0;max-inline-size:52ch;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary);text-wrap:pretty}
+
+/* Direction A: three white class cards, photo on top */
+[data-grid]{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:20px}
+[data-card]{display:flex;flex-direction:column;min-inline-size:0;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);overflow:hidden}
+[data-photo]{aspect-ratio:4/3;background:var(--vt-grey-100);overflow:hidden}
+[data-photo] img{display:block;inline-size:100%;block-size:100%;object-fit:cover;object-position:50% 72%}
+[data-body]{display:flex;flex-direction:column;gap:14px;padding:20px;flex:1}
+[data-name]{margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);line-height:1.1}
+[data-ex]{margin:0;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)}
+[data-specs]{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
+[data-specs] li{display:inline-flex;align-items:center;gap:8px;min-block-size:32px;padding-inline:12px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-pill);font-size:13px;font-weight:var(--vt-weight-medium)}
+[data-fig]{font-family:var(--vt-font-display);font-weight:var(--vt-weight-bold);font-variant-numeric:tabular-nums}
+[data-for]{margin:0;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)}
+[data-cta]{border:0;margin-block-start:auto;display:inline-flex;align-items:center;justify-content:center;gap:10px;min-block-size:44px;padding-inline:20px;border-radius:var(--vt-radius-pill);background:var(--vt-charcoal-900);color:var(--vt-white);font-size:13px;font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;text-decoration:none;align-self:flex-start}
+[dir="rtl"] [data-cta] [data-ico]{transform:scaleX(-1)}
+
+/* Direction B: charcoal band, one class at a time behind tabs */
+[data-b]{background:var(--vt-charcoal-900);color:var(--vt-text-inverse)}
+[data-b] [data-kicker]{background:transparent;border-color:var(--vt-border-inverse);color:var(--vt-white)}
+[data-b] [data-lede]{color:rgb(255 255 255/.72)}
+[data-tabs]{display:flex;gap:8px;flex-wrap:wrap;margin-block-end:24px}
+[data-tab]{min-block-size:44px;padding-inline:18px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-inverse);background:transparent;color:var(--vt-white);font:inherit;font-size:13px;font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-label-tracking);text-transform:uppercase}
+[data-tab][aria-selected="true"]{background:var(--vt-yellow-500);border-color:var(--vt-yellow-500);color:var(--vt-charcoal-900)}
+[data-stage]{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:clamp(24px,4vw,56px);align-items:center}
+@media (max-width:900px){[data-stage]{grid-template-columns:1fr}}
+[data-stage] [data-photo]{border-radius:var(--vt-radius-lg);aspect-ratio:16/10;background:var(--vt-charcoal-800)}
+[data-stage] [data-name]{font-size:var(--vt-display-3)}
+[data-stage] [data-ex],[data-stage] [data-for]{color:rgb(255 255 255/.72)}
+[data-stage] [data-specs] li{border-color:var(--vt-border-inverse)}
+[data-stage] [data-cta]{background:var(--vt-yellow-500);color:var(--vt-charcoal-900);min-block-size:54px}
+[data-stage-copy]{display:flex;flex-direction:column;gap:16px}
+</style>
+</head>
+<body>
+<main id="root"></main>
+<script>
+const q = new URLSearchParams(location.search);
+const v = q.get('v') || 'a';
+const lang = q.get('lang') || 'en';
+document.documentElement.lang = lang;
+document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+const ICON = (n) => `<span data-ico style="--m:url(../../../assets/icons/${n}.svg)" aria-hidden="true"></span>`;
+const PHOTO = {
+  economy: 'https://vamostaxi.site/photos/classes/34ac8983-94ba-49fc-be44-366f5ce7f2c0/0975620a-98e5-4657-9986-24fd637bfc0a.png',
+  business: 'https://vamostaxi.site/photos/classes/7f4a6dd2-245c-499d-9d11-a8d9d4fd34f9/458aece6-c409-4f3f-af58-93abb941854f.png',
+  van: 'https://vamostaxi.site/photos/classes/66f5fbcd-bae4-4ded-bae2-d04bf490aef1/64c03f0d-6ec4-4b58-b63d-1cf255db6727.png',
+};
+const CLASSES = [
+  { id: 'economy', name: 'Economy', pax: 3, bags: 3 },
+  { id: 'business', name: 'Business', pax: 7, bags: 6 },
+  { id: 'van', name: 'Van luxury', pax: 12, bags: 9 },
+];
+const T = {
+  en: { kicker: 'Our classes', title: 'Three classes. Pick the one that fits.', lede: 'Seats and bags are set per class. The price for your route shows once you enter it.', ex: { economy: 'Sedan or similar', business: 'Executive sedan', van: 'Minivan or similar' }, for: { economy: 'One to three travellers with a suitcase each.', business: 'Business trips and families with more luggage.', van: 'Groups, ski trips and large luggage.' }, pax: 'passengers', bags: 'bags', upTo: 'Up to', cta: 'Price this class' },
+  de: { kicker: 'Unsere Klassen', title: 'Drei Klassen. Wählen Sie, was passt.', lede: 'Plätze und Gepäck sind je Klasse festgelegt. Den Preis für Ihre Strecke sehen Sie, sobald Sie sie eingeben.', ex: { economy: 'Limousine oder ähnlich', business: 'Business-Limousine', van: 'Minivan oder ähnlich' }, for: { economy: 'Eine bis drei Personen mit je einem Koffer.', business: 'Geschäftsreisen und Familien mit mehr Gepäck.', van: 'Gruppen, Skiferien und grosses Gepäck.' }, pax: 'Passagiere', bags: 'Gepäckstücke', upTo: 'Bis zu', cta: 'Diese Klasse berechnen' },
+  fr: { kicker: 'Nos classes', title: 'Trois classes. Choisissez la bonne.', lede: 'Places et bagages sont fixés par classe. Le prix de votre trajet s’affiche dès que vous le saisissez.', ex: { economy: 'Berline ou similaire', business: 'Berline affaires', van: 'Monospace ou similaire' }, for: { economy: 'Un à trois voyageurs, une valise chacun.', business: 'Voyages d’affaires et familles avec plus de bagages.', van: 'Groupes, ski et gros bagages.' }, pax: 'passagers', bags: 'bagages', upTo: 'Jusqu’à', cta: 'Calculer cette classe' },
+  ar: { kicker: 'فئاتنا', title: 'ثلاث فئات. اختر ما يناسبك.', lede: 'عدد المقاعد والحقائب محدد لكل فئة. يظهر سعر مسارك بمجرد إدخاله.', ex: { economy: 'سيدان أو ما شابه', business: 'سيدان تنفيذية', van: 'ميني فان أو ما شابه' }, for: { economy: 'من راكب إلى ثلاثة ركاب مع حقيبة لكل منهم.', business: 'رحلات العمل والعائلات مع أمتعة أكثر.', van: 'المجموعات ورحلات التزلج والأمتعة الكبيرة.' }, pax: 'ركاب', bags: 'حقائب', upTo: 'حتى', cta: 'احسب سعر هذه الفئة' },
+}[lang];
+const specs = (c) => `<ul data-specs>
+  <li>${ICON('users')}<span>${T.upTo} <span data-fig class="vt-dir-keep">${c.pax}</span> ${T.pax}</span></li>
+  <li>${ICON('luggage')}<span>${T.upTo} <span data-fig class="vt-dir-keep">${c.bags}</span> ${T.bags}</span></li>
+</ul>`;
+const head = `<div data-head><p data-kicker>${T.kicker}</p><h2 data-title>${T.title}</h2><p data-lede>${T.lede}</p></div>`;
+const root = document.getElementById('root');
+if (v === 'a') {
+  root.innerHTML = `<section data-sec><div data-wrap>${head}<div data-grid>${CLASSES.map((c) => `
+    <article data-card>
+      <div data-photo><img src="${PHOTO[c.id]}" alt="${c.name}"></div>
+      <div data-body>
+        <h3 data-name>${c.name}</h3>
+        ${specs(c)}
+        <p data-for>${T.for[c.id]}</p>
+        <a data-cta href="#book">${T.cta}${ICON('arrow-right')}</a>
+      </div>
+    </article>`).join('')}</div></div></section>`;
+} else {
+  const c = CLASSES[1];
+  root.innerHTML = `<section data-sec data-b><div data-wrap>${head}
+    <div data-tabs role="tablist">${CLASSES.map((x) => `<button data-tab role="tab" aria-selected="${x.id === c.id}">${x.name}</button>`).join('')}</div>
+    <div data-stage>
+      <div data-photo><img src="${PHOTO[c.id]}" alt="${c.name}"></div>
+      <div data-stage-copy>
+        <h3 data-name>${c.name}</h3>
+        ${specs(c)}
+        <p data-for>${T.for[c.id]}</p>
+        <a data-cta href="#book">${T.cta}${ICON('arrow-right')}</a>
+      </div>
+    </div></div></section>`;
+}
+</script>
+</body>
+</html>
