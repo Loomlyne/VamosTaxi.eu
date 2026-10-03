@@ -71,3 +71,56 @@ describe("serveDcHtml carries no per-visitor state (D-23, T-27-16)", () => {
     expect(middleware).toContain('"public, s-maxage=300, stale-while-revalidate=3600"');
   });
 });
+
+describe("pixel loader mounts (META-07, Phase 28)", () => {
+  const LOADER_LINE = '<script src="../vamos-meta.js"></script>';
+  const CONSENT_LINE = '<script src="../vamos-consent.js"></script>';
+  const twins = ["app/pages/CookieBanner.dc.html", "app/home/CookieBanner.dc.html"];
+
+  for (const file of twins) {
+    it(`${file} loads the loader exactly once, right after the consent runtime`, () => {
+      const text = read(file);
+      expect(text.split(LOADER_LINE).length - 1).toBe(1);
+      expect(text.indexOf(LOADER_LINE)).toBeGreaterThan(text.indexOf(CONSENT_LINE));
+    });
+  }
+
+  it("no ops page and no other mock references the loader", () => {
+    const offenders: string[] = [];
+    for (const dir of ["app/ops", "app/pages", "app/home"]) {
+      for (const f of readdirSync(join(repoRoot, dir)).filter((n) => n.endsWith(".html"))) {
+        const rel = `${dir}/${f}`;
+        if (twins.includes(rel)) continue;
+        if (read(rel).includes("vamos-meta.js")) offenders.push(rel);
+      }
+    }
+    expect(offenders).toEqual([]);
+  });
+
+  it("no Next page or component references the loader (no Next page loads the pixel)", () => {
+    const hits: string[] = [];
+    const walk = (dir: string) => {
+      for (const e of readdirSync(join(repoRoot, dir), { withFileTypes: true })) {
+        const rel = `${dir}/${e.name}`;
+        if (e.isDirectory()) {
+          if (e.name !== "node_modules" && e.name !== ".next") walk(rel);
+        } else if (/\.(ts|tsx|js|jsx|html)$/.test(e.name) && read(rel).includes("vamos-meta.js")) {
+          hits.push(rel);
+        }
+      }
+    };
+    walk("apps/web/app");
+    walk("apps/web/components");
+    expect(hits).toEqual([]);
+  });
+
+  it("serveDcHtml puts no loader and no Meta call in server HTML (D-05)", () => {
+    const start = middleware.indexOf("async function serveDcHtml");
+    const rest = middleware.slice(start + 10);
+    const next = rest.search(/\n(?:async )?function /);
+    const body = middleware.slice(start, next === -1 ? middleware.length : start + 10 + next);
+    expect(body).not.toContain("vamos-meta");
+    expect(body).not.toContain("fb" + "q");
+    expect(body).not.toContain("pixel");
+  });
+});
