@@ -39,7 +39,7 @@ async function inTx<T>(fn: (tx: Tx) => Promise<T>): Promise<T> {
     await withIdentity(
       SUPER,
       "system",
-      null,
+      undefined,
       async (tx) => {
         await tx`select set_config('role', 'postgres', true)`;
         await tx`set local session_replication_role = replica`;
