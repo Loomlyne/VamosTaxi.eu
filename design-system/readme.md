@@ -442,6 +442,22 @@ from each platform's own brand kit — the same treatment the payment-provider
 marks get (§7). Until they are supplied, a footer states the channels in type or
 uses `share-2` / `at-sign`. Do not draw an approximation.
 
+**Third-party brand marks (owner, 2026-10-03).** Where a control belongs to another
+brand, it shows that brand's own mark in its own colour — the one place a non-token
+colour is allowed, and only on that brand's control:
+
+- **WhatsApp** — `assets/social/whatsapp.svg` (glyph in `#25D366`) on a white, grey or
+  charcoal ground; `assets/social/whatsapp-white.svg` only on a `#25D366` ground. Every
+  WhatsApp button, row and link uses it instead of `message-circle`. A filled
+  WhatsApp button carries a charcoal label (white on `#25D366` fails AA at body size).
+- **Review platforms** — each review shows its platform's own rating look:
+  Trustpilot star boxes (`#00B67A`), Google gold stars (`#FBBC04`), Tripadvisor
+  bubbles (`#00AA6C`), with the platform logo from `assets/reviews/`. A review with no
+  platform keeps the Vamos star in `--vt-accent`.
+
+Rendered as `<img alt="">` (the control's label names the brand) or a CSS background;
+never as paths drawn into the markup, never recoloured to brand yellow.
+
 ### Brand assets on disk
 
 | Path | What |
@@ -452,6 +468,8 @@ uses `share-2` / `at-sign`. Do not draw an approximation.
 | `assets/logo/favicon.svg` | `mark-primary`; pages also link `mark-reversed` for dark tabs |
 | `assets/logo/*.png` | the earlier PNG crops, kept for consumers that cannot take SVG |
 | `assets/logo/vamos-lockup-{light,charcoal,yellow}.jpg` | original supplied square lockups |
+| `assets/social/whatsapp{,-white}.svg` | WhatsApp glyph: green for light/charcoal grounds, white for a `#25D366` ground |
+| `assets/reviews/{google,trustpilot,tripadvisor}{,-star}.svg` | review-platform logos and rating marks |
 | `assets/patterns/checker-mark.png` | the 3-pixel checker mark, transparent |
 | `assets/patterns/checker-tile.png` | seamless yellow/white checkerboard |
 | `assets/photography/fleet-van-street.jpg` | supplied V-Class photograph (only clean photo available) |

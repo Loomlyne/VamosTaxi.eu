@@ -14,6 +14,8 @@ of restyling raw HTML to look like them.
   `[data-*]` rules are for layout and for things the kit genuinely has no component for.
 - Amounts always read `CHF 000` / `CHF 00.00` (§2). Icons always come from the vendored
   Lucide set through `Icon` — never hand-drawn SVG, never emoji, never `→` as an icon.
+  The one exception is another brand's own control: WhatsApp uses `assets/social/whatsapp*.svg`
+  in `#25D366`, reviews use each platform's rating mark from `assets/reviews/` (design system §5).
 - Photography is the supplied brand photography, on a scrim when type sits over it.
 
 ## Nothing may look AI-generated
