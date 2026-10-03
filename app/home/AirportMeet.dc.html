@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<!-- Ground colour + cover live in the STATIC head/body on purpose (see HowItWorks.dc.html). -->
+<style id="vt-boot">html{background:#F6F6F6}body{margin:0}#vt-boot-cover{position:fixed;inset:0;z-index:2147483000;background:#F6F6F6;pointer-events:none;animation:vt-boot-fail 0s linear 6s forwards}@keyframes vt-boot-fail{to{visibility:hidden}}</style>
+</head>
+<body>
+<div id="vt-boot-cover" aria-hidden="true"></div>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
+<script src="../vamos-i18n-dict.js"></script>
+<script src="../vamos-locale.js"></script>
+<script src="../vamos-page-transition.js"></script>
+<style>
+:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}
+body{margin:0}
+a{color:inherit;text-decoration:none;border-bottom:0}
+[data-meet]{
+  box-sizing:border-box;
+  background:var(--vt-charcoal-900);
+  color:var(--vt-text-inverse);
+}
+[data-meet-wrap]{
+  box-sizing:border-box;
+  max-inline-size:var(--vt-container-lg);
+  margin-inline:auto;
+  padding-block:clamp(56px,7vw,96px);
+  padding-inline:var(--vt-gutter);
+}
+[data-meet-head]{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  gap:12px;
+  margin-block-end:clamp(28px,4vw,48px);
+}
+[data-meet-kicker]{
+  margin:0;
+  display:inline-flex;
+  align-self:flex-start;
+  align-items:center;
+  gap:9px;
+  box-sizing:border-box;
+  min-block-size:32px;
+  padding-block:0;
+  padding-inline:12px 15px;
+  border:1px solid var(--vt-border-inverse);
+  border-radius:var(--vt-radius-pill);
+  background:transparent;
+  font-family:var(--vt-font-body);
+  font-size:12px;
+  font-weight:var(--vt-weight-semibold);
+  letter-spacing:var(--vt-label-tracking);
+  text-transform:uppercase;
+  line-height:1;
+  white-space:nowrap;
+  color:var(--vt-white);
+}
+[data-meet-kicker]::before{
+  content:"";
+  flex:0 0 13px;
+  inline-size:13px;
+  block-size:13px;
+  background:url(../../assets/patterns/checker-mark.png) center / contain no-repeat;
+}
+[data-meet-title]{
+  margin:0;
+  max-inline-size:20ch;
+  font-family:var(--vt-font-display);
+  font-size:var(--vt-display-3);
+  font-weight:var(--vt-weight-semibold);
+  letter-spacing:var(--vt-display-tracking);
+  line-height:var(--vt-display-leading);
+  text-wrap:balance;
+  color:var(--vt-text-inverse);
+}
+[data-meet-lede]{
+  margin:0;
+  max-inline-size:56ch;
+  font-family:var(--vt-font-body);
+  font-size:var(--vt-body-md);
+  line-height:var(--vt-body-leading);
+  text-wrap:pretty;
+  color:rgb(255 255 255/.72);
+}
+[data-meet-grid]{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:clamp(24px,4vw,56px);
+  align-items:start;
+}
+@media (max-width:900px){
+  [data-meet-grid]{grid-template-columns:minmax(0,1fr)}
+}
+[data-meet-steps]{display:flex;flex-direction:column;margin:0;padding:0;list-style:none;min-inline-size:0}
+[data-meet-step]{
+  display:grid;
+  grid-template-columns:44px minmax(0,1fr);
+  column-gap:16px;
+  padding-block:18px;
+  border-block-end:1px solid var(--vt-border-inverse);
+}
+[data-meet-step]:first-child{padding-block-start:0}
+[data-meet-tile]{
+  display:grid;
+  place-items:center;
+  inline-size:44px;
+  block-size:44px;
+  border-radius:12px;
+  background:var(--vt-charcoal-800);
+  color:var(--vt-yellow);
+}
+[data-meet-text]{display:flex;flex-direction:column;gap:6px;min-inline-size:0}
+[data-meet-step] h3{
+  margin:0;
+  font-family:var(--vt-font-body);
+  font-size:16px;
+  font-weight:var(--vt-weight-semibold);
+  line-height:1.35;
+  text-wrap:balance;
+  color:var(--vt-text-inverse);
+}
+[data-meet-step] p{
+  margin:0;
+  font-family:var(--vt-font-body);
+  font-size:var(--vt-body-sm);
+  line-height:var(--vt-body-leading);
+  text-wrap:pretty;
+  overflow-wrap:break-word;
+  color:rgb(255 255 255/.72);
+}
+[data-meet-link]{
+  display:inline-block;
+  direction:ltr;
+  unicode-bidi:isolate;
+  white-space:nowrap;
+  color:var(--vt-white);
+  font-weight:var(--vt-weight-semibold);
+  text-decoration:underline;
+  text-underline-offset:3px;
+  text-decoration-color:var(--vt-border-inverse);
+  border-radius:var(--vt-radius-xs);
+  transition:text-decoration-color var(--vt-dur-fast) var(--vt-ease-standard),color var(--vt-dur-fast) var(--vt-ease-standard);
+}
+[data-meet-link]:hover{color:var(--vt-yellow);text-decoration-color:var(--vt-yellow)}
+[data-meet-link]:focus-visible{outline:none;box-shadow:var(--vt-ring-inverse)}
+@media (prefers-reduced-motion:reduce){
+  [data-meet-link]{transition:none}
+}
+[data-meet-board]{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  min-inline-size:0;
+  padding:clamp(16px,2.4vw,24px);
+  background:var(--vt-charcoal-800);
+  border:var(--vt-border-w) solid var(--vt-border-inverse);
+  border-radius:var(--vt-radius-lg);
+  box-shadow:none;
+}
+[data-meet-sign]{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+  padding:clamp(18px,2.4vw,22px);
+  background:var(--vt-white);
+  border-radius:12px;
+  text-align:center;
+  color:var(--vt-charcoal-900);
+}
+[data-meet-sign-name]{
+  max-inline-size:100%;
+  font-family:var(--vt-font-display);
+  font-size:clamp(24px,3vw,34px);
+  font-weight:var(--vt-weight-semibold);
+  line-height:1.15;
+  overflow-wrap:break-word;
+}
+[data-meet-sign-brand]{
+  font-family:var(--vt-font-body);
+  font-size:12px;
+  font-weight:var(--vt-weight-semibold);
+  letter-spacing:var(--vt-label-tracking);
+  text-transform:uppercase;
+  color:var(--vt-charcoal-600);
+}
+[data-meet-airports]{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+}
+@media (max-width:520px){
+  [data-meet-airports]{grid-template-columns:minmax(0,1fr)}
+}
+[data-meet-ap]{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+  min-inline-size:0;
+  padding:12px;
+  border:1px solid var(--vt-border-inverse);
+  border-radius:12px;
+  font-family:var(--vt-font-body);
+  font-size:13px;
+  line-height:1.45;
+  color:rgb(255 255 255/.72);
+}
+[data-meet-ap] b{
+  font-family:var(--vt-font-display);
+  font-size:16px;
+  font-weight:var(--vt-weight-semibold);
+  color:var(--vt-white);
+}
+</style>
+</helmet>
+<section data-meet="1" data-screen-label="Airport meet" data-lang="{{ lang }}" aria-labelledby="meet-title">
+<div data-meet-wrap="1">
+<div data-meet-head="1">
+<p data-meet-kicker="1">At the airport</p>
+<h2 id="meet-title" data-meet-title="1">Where your driver waits.</h2>
+<p data-meet-lede="1">Every airport pickup works the same way, whatever time you land.</p>
+</div>
+<div data-meet-grid="1">
+<ol data-meet-steps="1">
+<li data-meet-step="1">
+<span data-meet-tile="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="plane-landing" size="{{ n20 }}" hint-size="20px,20px"></x-import></span>
+<div data-meet-text="1"><h3>We track your flight</h3><p>Your pickup time moves with the real arrival. Nothing to change if you land early or late.</p></div>
+</li>
+<li data-meet-step="1">
+<span data-meet-tile="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="user" size="{{ n20 }}" hint-size="20px,20px"></x-import></span>
+<div data-meet-text="1"><h3>Name board in arrivals</h3><p>Your driver waits after customs with your name on a board.</p></div>
+</li>
+<li data-meet-step="1">
+<span data-meet-tile="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="clock" size="{{ n20 }}" hint-size="20px,20px"></x-import></span>
+<div data-meet-text="1"><h3>60 minutes free waiting</h3><p>Bags last off the belt or a long passport queue: the first hour is included.</p></div>
+</li>
+<li data-meet-step="1">
+<span data-meet-tile="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="phone" size="{{ n20 }}" hint-size="20px,20px"></x-import></span>
+<div data-meet-text="1"><h3>Can’t see your driver?</h3><p><span>Call or</span> <a data-meet-link="1" href="https://wa.me/41796267082" target="_blank" rel="noopener" data-vt-no-i18n="1">WhatsApp</a> <a data-meet-link="1" class="vt-dir-keep" href="tel:+41796267082" data-vt-no-i18n="1">+41 79 626 70 82</a><span data-vt-no-i18n="1">.</span> <span>We answer and guide you.</span></p></div>
+</li>
+</ol>
+<div data-meet-board="1">
+<div data-meet-sign="1"><span data-meet-sign-name="1">Your name</span><span data-meet-sign-brand="1">Vamos Taxi</span></div>
+<div data-meet-airports="1">
+<div data-meet-ap="1"><b class="vt-dir-keep" data-vt-no-i18n="1">ZRH</b><span>Zurich</span></div>
+<div data-meet-ap="1"><b class="vt-dir-keep" data-vt-no-i18n="1">GVA</b><span>Geneva</span></div>
+<div data-meet-ap="1"><b class="vt-dir-keep" data-vt-no-i18n="1">BSL</b><span>Basel</span></div>
+</div>
+</div>
+</div>
+</div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+/**
+ * Airport meeting section: four plain steps, the name board and the three airports.
+ * No data fetching. Copy is translated by the shared runtime from the home dictionary.
+ */
+class Component extends DCLogic {
+  state = { lang: (window.VamosLocale && typeof VamosLocale.lang === 'function' && VamosLocale.lang()) || 'en' };
+  componentDidMount() {
+    if (window.VamosLocale && typeof VamosLocale.onChange === 'function') {
+      this._offLocale = window.VamosLocale.onChange((v) => this.setState({ lang: v.lang }));
+    }
+  }
+  componentWillUnmount() {
+    if (this._offLocale) this._offLocale();
+  }
+  renderVals() {
+    return { n20: 20, lang: this.state.lang };
+  }
+}
+</script>
+</body>
+</html>

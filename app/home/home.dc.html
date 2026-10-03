@@ -573,7 +573,13 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 
 
 
-<dc-import name="HowItWorks" hint-size="100%,900px"></dc-import>
+<dc-import name="HowItWorks" hint-size="100%,760px"></dc-import>
+
+<dc-import name="VehicleClasses" hint-size="100%,820px"></dc-import>
+
+<dc-import name="WhereWeDrive" hint-size="100%,760px"></dc-import>
+
+<dc-import name="AirportMeet" hint-size="100%,720px"></dc-import>
 
 <dc-import name="Services" hint-size="100%,620px"></dc-import>
 
@@ -581,7 +587,13 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 
 <dc-import name="Reviews" hint-size="100%,780px"></dc-import>
 
+<dc-import name="TrustFacts" hint-size="100%,520px"></dc-import>
+
+<dc-import name="BusinessTravel" hint-size="100%,420px"></dc-import>
+
 <dc-import name="FAQ" hint-size="100%,780px"></dc-import>
+
+<dc-import name="ClosingCta" hint-size="100%,300px"></dc-import>
 
 <dc-import name="SiteFooter" hint-size="100%,520px" show-payment-marks="{{ true }}"></dc-import>
 <dc-import name="CookieBanner" hint-size="0,0"></dc-import>
@@ -1248,16 +1260,35 @@ class Component extends DCLogic {
       const narrow = NARROW();
       /* ≤1080 the chip opens the sheet at step 1 with To pre-filled, so HowItWorks must not scroll. */
       if (narrow) d.handled = true;
-      this.setState((s) => ({
-        dropText: name,
-        dropLoc: null,
-        touched: Object.assign({}, s.touched, { dest: true }),
-        autofill: Object.assign({}, s.autofill, { dest: null }),
-        errs: Object.assign({}, s.errs, { dest: '' }),
-        sug: CLOSED,
-        sugIdx: -1,
-        announce: ((window.VamosLocale && window.VamosLocale.t) ? window.VamosLocale.t('To') : 'To') + ', ' + name,
-      }), () => { if (narrow) this.openSheetAt(1); });
+      /* Where we drive sends the airport too (261003): fill From as well. A fixed route carries both
+         mapbox ids, so both ends are chosen places; an id-less end stays typed text, as To always was. */
+      const from = String(d.from || '').replace(/\s+/g, ' ').trim().slice(0, 200);
+      const asLoc = (id, n, air) => (id ? { id: String(id), n: n, s: '', air: !!air, mapbox_id: String(id), session_token: geoSession(), geoHit: true } : null);
+      const fromLoc = from.length >= 2 ? asLoc(d.fromMapboxId, from, true) : null;
+      const toLoc = asLoc(d.toMapboxId, name, false);
+      this.setState((s) => {
+        const patch = {
+          dropText: name,
+          dropLoc: toLoc,
+          touched: Object.assign({}, s.touched, { dest: true }),
+          autofill: Object.assign({}, s.autofill, { dest: null }),
+          errs: Object.assign({}, s.errs, { dest: '' }),
+          sug: CLOSED,
+          sugIdx: -1,
+          announce: ((window.VamosLocale && window.VamosLocale.t) ? window.VamosLocale.t('To') : 'To') + ', ' + name,
+        };
+        if (from.length >= 2) {
+          patch.pickupText = from;
+          patch.pickupLoc = fromLoc;
+          patch.touched = Object.assign({}, patch.touched, { pickup: true });
+          patch.autofill = Object.assign({}, patch.autofill, { pickup: null });
+          patch.errs = Object.assign({}, patch.errs, { pickup: '' });
+        }
+        return patch;
+      }, () => {
+        if (fromLoc) this.resolveAir();
+        if (narrow) this.openSheetAt(1);
+      });
     };
     window.addEventListener('vamos:dest-pick', this._onDestPick);
     /* Arriving from a footer service link: preset the booking card and land on it.
