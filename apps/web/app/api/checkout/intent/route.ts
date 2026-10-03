@@ -4,7 +4,7 @@
 // Business rules live in lib/checkout/intent.ts. The write is createBooking.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { asCheckout, asQuote } from "@/lib/db/identity";
+import { asAnon, asCheckout, asQuote } from "@/lib/db/identity";
 import { checkoutIntentSchema } from "@/lib/checkout/intent-schema";
 import { refusalForMissingClassId } from "@/lib/checkout/charge-gate";
 import { refuse } from "@/lib/checkout/errors";
@@ -41,6 +41,9 @@ import {
 } from "@/lib/checkout/intent-limits";
 import { gateAccountForRequest, type AccountRecord } from "@/lib/checkout/account-gate";
 import { truncateClientIp, cfConnectingIp } from "@/lib/consent/ip";
+import { readConsentChoice } from "@/lib/consent/read";
+import { metaClickIdsToSave } from "@/lib/meta/click-ids";
+import { metaMeasurementAllowed } from "@/lib/meta/legal-gate";
 import { lockSecretMissingResponse, lockSecretPresent } from "@/lib/quote/lock-secret";
 
 export const dynamic = "force-dynamic";
@@ -178,11 +181,33 @@ async function postIntent(request: Request) {
   };
   const userAgent = (request.headers.get("user-agent") ?? "").slice(0, 300) || null;
   const ipTruncated = truncateClientIp(cfConnectingIp(request.headers));
+  // Phase 28 (D-09): the two Meta cookie values ride the Pay press, never the Stripe session.
+  const cookieHeader = request.headers.get("cookie");
+  const requestOrigin = request.headers.get("origin");
 
   return runCheckoutIntent(body, {
     accountGate,
     // D-06/D-19: written after the booking exists; the DB copies the booking's e-mail (p_email is null).
     afterBooking: async (bookingId) => {
+      // Best effort and first: a failure here never changes the Pay answer or the account record below.
+      try {
+        const save = await metaClickIdsToSave({
+          cookieHeader,
+          origin: requestOrigin,
+          measurementAllowed: metaMeasurementAllowed(),
+          readMarketing: (subject) =>
+            asAnon(env, (tx) => readConsentChoice(tx, subject)).then((c) => c?.marketing === true),
+        });
+        if (!save.skip) {
+          await asCheckout(env, null, async (sql) => {
+            await sql`select public.checkout_set_meta_click_ids(${bookingId}::uuid, ${save.fbp}, ${save.fbc})`;
+          });
+        }
+      } catch (err) {
+        // SQLSTATE only: the values are never logged.
+        const code = err && typeof err === "object" && "code" in err ? (err as { code?: unknown }).code : null;
+        console.error("checkout_meta_click_ids_failed", typeof code === "string" && code.length === 5 ? code : "no-sqlstate");
+      }
       const record = accountRecord;
       if (!record) return;
       await asCheckout(env, null, async (sql) => {
