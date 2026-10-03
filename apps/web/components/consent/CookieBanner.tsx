@@ -16,6 +16,7 @@ import { Alert } from "@/components/feedback";
 import { Switch } from "@/components/forms";
 import { TurnstileWidget } from "@/components/forms/TurnstileWidget";
 import { loadWebAnalytics } from "@/lib/consent/web-analytics";
+import { clearMetaBrowserState, clearMetaUnlessMarketingOn } from "@/lib/meta/clear-browser-state";
 
 const { Link } = createNavigation(routing);
 
@@ -134,6 +135,9 @@ export function CookieBanner({ siteKey }: { siteKey: string | undefined }) {
       .then((j) => {
         if (!live) return;
         versionRef.current = typeof j.policyVersion === "string" ? j.policyVersion : null;
+        // The server answered: with no choice recorded, or Marketing off, remove what Meta left here.
+        // A failed check (the catch below) deletes nothing.
+        clearMetaUnlessMarketingOn(j);
         if (j.chosen && j.choice) {
           if (j.choice.analytics === true) loadWebAnalytics();
           setCats({
@@ -256,6 +260,8 @@ export function CookieBanner({ siteKey }: { siteKey: string | undefined }) {
       if (result.ok) {
         writeCache(versionRef.current, method, chosen);
         if (chosen.analytics) loadWebAnalytics();
+        // Phase 28 CR-01: a saved choice without Marketing removes what Meta's script left in this browser.
+        if (!chosen.marketing) clearMetaBrowserState();
         setCats(chosen);
         setMode("hidden");
         setPending(null);

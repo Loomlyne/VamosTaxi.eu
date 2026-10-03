@@ -861,6 +861,8 @@ export type Database = {
           is_return: boolean
           is_test: boolean
           locale: string
+          meta_fbc: string | null
+          meta_fbp: string | null
           note: string
           pay_link_sent_at: string | null
           payer_email: string | null
@@ -893,6 +895,8 @@ export type Database = {
           is_return?: boolean
           is_test?: boolean
           locale?: string
+          meta_fbc?: string | null
+          meta_fbp?: string | null
           note?: string
           pay_link_sent_at?: string | null
           payer_email?: string | null
@@ -925,6 +929,8 @@ export type Database = {
           is_return?: boolean
           is_test?: boolean
           locale?: string
+          meta_fbc?: string | null
+          meta_fbp?: string | null
           note?: string
           pay_link_sent_at?: string | null
           payer_email?: string | null
@@ -3285,6 +3291,10 @@ export type Database = {
           p_driver_note: string
           p_trip_query: string
         }
+        Returns: undefined
+      }
+      checkout_set_meta_click_ids: {
+        Args: { p_booking_id: string; p_fbc: string; p_fbp: string }
         Returns: undefined
       }
       checkout_set_pay_link: {

@@ -4,7 +4,7 @@
 // Business rules live in lib/checkout/intent.ts. The write is createBooking.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { asCheckout, asQuote } from "@/lib/db/identity";
+import { asAnon, asCheckout, asQuote } from "@/lib/db/identity";
 import { checkoutIntentSchema } from "@/lib/checkout/intent-schema";
 import { refusalForMissingClassId } from "@/lib/checkout/charge-gate";
 import { refuse } from "@/lib/checkout/errors";
@@ -41,6 +41,9 @@ import {
 } from "@/lib/checkout/intent-limits";
 import { gateAccountForRequest, type AccountRecord } from "@/lib/checkout/account-gate";
 import { truncateClientIp, cfConnectingIp } from "@/lib/consent/ip";
+import { readConsentChoice } from "@/lib/consent/read";
+import { scheduleMetaClickIdSave } from "@/lib/meta/click-ids";
+import { metaMeasurementAllowed } from "@/lib/meta/legal-gate";
 import { lockSecretMissingResponse, lockSecretPresent } from "@/lib/quote/lock-secret";
 
 export const dynamic = "force-dynamic";
@@ -71,7 +74,7 @@ async function postIntent(request: Request) {
   // Quick 261003: the dashboard New trip saves here too; its Origin needs a staff session.
   const blocked = await csrfForbiddenPublicOrStaff(request, () => requestHasStaffSession(request));
   if (blocked) return blocked;
-  const { env } = getCloudflareContext();
+  const { env, ctx } = getCloudflareContext();
   if (!lockSecretPresent(env.QUOTE_LOCK_SECRET, "/api/checkout/intent")) return lockSecretMissingResponse();
 
   // D-20 (a): 8 Pay presses per minute per IP, before anything is read or checked.
@@ -178,11 +181,30 @@ async function postIntent(request: Request) {
   };
   const userAgent = (request.headers.get("user-agent") ?? "").slice(0, 300) || null;
   const ipTruncated = truncateClientIp(cfConnectingIp(request.headers));
+  // Phase 28 (D-09): the two Meta cookie values ride the Pay press, never the Stripe session.
+  const cookieHeader = request.headers.get("cookie");
+  const requestOrigin = request.headers.get("origin");
 
   return runCheckoutIntent(body, {
     accountGate,
     // D-06/D-19: written after the booking exists; the DB copies the booking's e-mail (p_email is null).
     afterBooking: async (bookingId) => {
+      // Review 2 (item 3): handed to ctx.waitUntil, so the Pay answer never waits for it. A failure logs the
+      // SQLSTATE only and changes nothing else. Public Origin only, Meta format only, marketing on only.
+      await scheduleMetaClickIdSave({
+        ctx,
+        decide: {
+          cookieHeader,
+          origin: requestOrigin,
+          measurementAllowed: metaMeasurementAllowed(),
+          readMarketing: (subject) =>
+            asAnon(env, (tx) => readConsentChoice(tx, subject)).then((c) => c?.marketing === true),
+        },
+        write: (fbp, fbc) =>
+          asCheckout(env, null, async (sql) => {
+            await sql`select public.checkout_set_meta_click_ids(${bookingId}::uuid, ${fbp}, ${fbc})`;
+          }),
+      });
       const record = accountRecord;
       if (!record) return;
       await asCheckout(env, null, async (sql) => {

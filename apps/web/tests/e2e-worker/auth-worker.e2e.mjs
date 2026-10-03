@@ -6,6 +6,7 @@ import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
+import os from "node:os";
 
 const LABEL = process.argv[2] ?? "run";
 const PORT = Number(process.env.E2E_PORT ?? 4290);
@@ -18,7 +19,17 @@ const out = [];
 const seenCookies = [];
 const rec = (n, ok, ev) => { out.push({ n, ok, ev }); console.log(`${ok === null ? "N/A " : ok ? "PASS" : "FAIL"} | ${n} | ${ev}`); };
 
-const sql = (q) => execFileSync("docker", ["exec", "-i", DB, "psql", "-U", "postgres", "-d", "postgres", "-At", "-c", q]).toString().trim();
+// Native (Docker-free) stack: SB_DB_URL set -> the stack's own psql; else `docker exec` into $DB.
+const nativePsql = () => {
+  if (process.env.SB_PSQL) return process.env.SB_PSQL;
+  const base = path.join(os.homedir(), ".supabase/cache/stack/slim-services/postgres");
+  const found = fs.readdirSync(base).flatMap((v) => fs.readdirSync(path.join(base, v)).map((p) => path.join(base, v, p, "bin/psql"))).filter((f) => fs.existsSync(f));
+  return found.sort((a, b) => a.localeCompare(b, undefined, { numeric: true })).pop();
+};
+const psql = (extra, input) => process.env.SB_DB_URL
+  ? execFileSync(nativePsql(), [process.env.SB_DB_URL, "-At", "-v", "ON_ERROR_STOP=1", ...extra], { input }).toString().trim()
+  : execFileSync("docker", ["exec", "-i", DB, "psql", "-U", "postgres", "-d", "postgres", "-At", "-v", "ON_ERROR_STOP=1", ...extra], { input }).toString().trim();
+const sql = (q) => psql(["-c", q]);
 
 function req(method, url, { host = `localhost:${PORT}`, headers = {}, body, jar } = {}) {
   return new Promise((resolve, reject) => {

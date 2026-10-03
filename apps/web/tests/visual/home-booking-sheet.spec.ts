@@ -515,11 +515,14 @@ test.describe("Home bar and sheet @component", () => {
   test("a destination chip opens the sheet with To pre-filled @component", async ({ page }) => {
     test.skip(width(page) > 1080, "tablet and phone only");
     await openHome(page);
-    const chip = page.locator('a[href="/#book"]:visible').filter({ hasText: "Zermatt" }).first();
+    // Quick 261003: the destination rows live in Where we drive and carry the airport too
+    // (the Services "Mountain and ski resorts" card also names Zermatt, so target the row).
+    const chip = page.locator("[data-ww-row]:visible").filter({ hasText: "Zermatt" }).first();
     await chip.scrollIntoViewIfNeeded();
     await chip.click();
     await expect(page.getByRole("dialog", { name: "Book a transfer" })).toBeVisible();
     await expect(sheet(page).locator('input[id$="-to"]')).toHaveValue("Zermatt");
+    await expect(sheet(page).locator('input[id$="-from"]')).toHaveValue("Zurich Airport");
     await pickFrom(page, "Fixture Street", "Fixture Street 1");
     await expect(sheet(page).locator('input[id$="-to"]')).toHaveValue("Zermatt");
   });

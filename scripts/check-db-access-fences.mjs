@@ -146,7 +146,13 @@ function reportCheck(name, violations) {
 // D-10's real target is a VALUE import that can construct a raw client bypassing the wrapper;
 // a type-only reference for a signature (e.g. `apps/web/lib/db/identity.ts`'s
 // `postgres.TransactionSql` parameter annotation, plan 03-03's own deviation) is not that.
-const POSTGRES_IMPORT_RE = /^import\s+(?!type\s)[^;]*\bfrom\s+["']postgres["']/;
+// Matched against the whole comment-stripped file, not line by line, so an `import { ... }
+// from "postgres"` split over several lines cannot slip past; `export ... from`, `require()` and
+// a dynamic `import()` are value imports too. The clause class excludes quotes so a match never
+// runs on from one statement into the next in semicolon-less code. Anchored at column 0 like
+// before, so code held inside a template string (the spec files spawn scripts) is not read.
+const POSTGRES_IMPORT_RE =
+  /^(?:import|export)\s+(?!type\s)[^;'"]*?\bfrom\s+["']postgres["']|\brequire\(\s*["']postgres["']\s*\)|\bimport\(\s*["']postgres["']\s*\)/gm;
 
 function checkPostgresImports(files, allowlist) {
   const allowed = new Set(allowlist.allowed_postgres_importers);
@@ -154,10 +160,10 @@ function checkPostgresImports(files, allowlist) {
   for (const file of files) {
     const rel = relPath(file);
     if (allowed.has(rel)) continue;
-    const lines = stripComments(readFileSync(file, "utf8"));
-    lines.forEach((line, i) => {
-      if (POSTGRES_IMPORT_RE.test(line)) violations.push(`${rel}:${i + 1}`);
-    });
+    const text = stripComments(readFileSync(file, "utf8")).join("\n");
+    for (const m of text.matchAll(POSTGRES_IMPORT_RE)) {
+      violations.push(`${rel}:${text.slice(0, m.index).split("\n").length}`);
+    }
   }
   return reportCheck("raw `postgres` import outside the allow-list (D-10)", violations);
 }

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<!-- Ground colour + cover live in the STATIC head/body on purpose. The DC runtime
+     injects every stylesheet and script from <helmet> only after React has loaded, so
+     without these the arriving document paints uncovered frames before
+     vamos-page-transition.js exists and can build its overlay. That script adopts
+     #vt-boot-cover and removes it once its own sheet is painted at COVER; the 6s
+     animation below is the fallback for when the script never runs. -->
+<style id="vt-boot">html{background:#F6F6F6}body{margin:0}#vt-boot-cover{position:fixed;inset:0;z-index:2147483000;background:#F6F6F6;pointer-events:none;animation:vt-boot-fail 0s linear 6s forwards}@keyframes vt-boot-fail{to{visibility:hidden}}</style>
+</head>
+<body>
+<div id="vt-boot-cover" aria-hidden="true"></div>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
+<script src="../vamos-i18n-dict.js"></script>
+<script src="../vamos-locale.js"></script>
+<script src="../vamos-page-transition.js"></script>
+<style>
+:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}
+body{margin:0}
+a{color:inherit;text-decoration:none;border-bottom:0}
+[data-vc]{border-block-start:1px solid var(--vt-border-subtle);background:var(--vt-bg-page);color:var(--vt-text-primary)}
+[data-vc-wrap]{box-sizing:border-box;max-inline-size:var(--vt-container-lg);margin-inline:auto;padding-block:clamp(56px,7vw,96px);padding-inline:var(--vt-gutter)}
+[data-vc-head]{display:flex;flex-direction:column;align-items:flex-start;gap:12px;margin-block-end:clamp(28px,4vw,48px)}
+[data-vc-kicker]{margin:0;display:inline-flex;align-self:flex-start;align-items:center;gap:9px;box-sizing:border-box;min-block-size:32px;padding-block:0;padding-inline:12px 15px;border:1px solid var(--vt-grey-200);border-radius:var(--vt-radius-pill);background:var(--vt-white);font-family:var(--vt-font-body);font-size:12px;font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;line-height:1;white-space:nowrap;color:var(--vt-charcoal-900)}
+[data-vc-kicker]::before{content:"";flex:0 0 13px;inline-size:13px;block-size:13px;background:url(../../assets/patterns/checker-mark.png) center / contain no-repeat}
+[data-vc-title]{margin:0;max-inline-size:18ch;font-family:var(--vt-font-display);font-size:var(--vt-display-3);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:var(--vt-display-leading);text-wrap:balance}
+[data-vc-lede]{margin:0;max-inline-size:52ch;font-family:var(--vt-font-body);font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary);text-wrap:pretty}
+[data-vc-grid]{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:20px}
+[data-vc-card]{display:flex;flex-direction:column;min-inline-size:0;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);overflow:hidden}
+[data-vc-photo]{aspect-ratio:4/3;background:var(--vt-grey-100);overflow:hidden}
+[data-vc-photo] img{display:block;inline-size:100%;block-size:100%;object-fit:cover;object-position:50% 72%}
+[data-vc-body]{display:flex;flex-direction:column;align-items:flex-start;gap:14px;padding:20px;flex:1;min-inline-size:0}
+[data-vc-name]{margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-heading-tracking);line-height:1.1}
+[data-vc-specs]{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
+[data-vc-specs] li{display:inline-flex;align-items:center;gap:8px;min-block-size:32px;padding-inline:12px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-pill);font-family:var(--vt-font-body);font-size:13px;font-weight:var(--vt-weight-medium)}
+[data-vc-fig]{font-family:var(--vt-font-display);font-weight:var(--vt-weight-bold);font-variant-numeric:tabular-nums}
+[data-vc-who]{margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)}
+[data-vc-cta]{box-sizing:border-box;margin-block-start:auto;display:inline-flex;align-items:center;justify-content:center;gap:10px;min-block-size:44px;padding-inline:20px;border:1px solid var(--vt-charcoal-900);border-radius:var(--vt-radius-pill);background:var(--vt-charcoal-900);color:var(--vt-white);font-family:var(--vt-font-body);font-size:13px;font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;line-height:1;cursor:pointer;transition:background-color 120ms ease,border-color 120ms ease}
+[data-vc-cta]:hover{background:var(--vt-charcoal-700);border-color:var(--vt-charcoal-700)}
+[data-vc-cta]:active{transform:translateY(1px)}
+[data-vc-cta]:focus-visible{outline:none;box-shadow:var(--vt-ring)}
+[data-vc-arrow]{display:inline-flex}
+[dir="rtl"] [data-vc-arrow]{transform:scaleX(-1)}
+[data-vc-sk]{pointer-events:none}
+[data-vc-bar]{display:block;border-radius:var(--vt-radius-pill);background:var(--vt-grey-100);animation:vc-pulse 1.4s ease-in-out infinite}
+@keyframes vc-pulse{0%,100%{opacity:1}50%{opacity:.5}}
+@media (prefers-reduced-motion:reduce){[data-vc-bar]{animation:none}[data-vc-cta]{transition:none}}
+</style>
+</helmet>
+
+<sc-if value="{{ show }}" hint-placeholder-val="{{ true }}">
+<section data-vc="1" dir="{{ dir }}" data-screen-label="Vehicle classes" aria-labelledby="vc-title" aria-busy="{{ busy }}">
+<div data-vc-wrap="1">
+<div data-vc-head="1">
+<p data-vc-kicker="1">Our classes</p>
+<h2 id="vc-title" data-vc-title="1">Three classes. Pick the one that fits.</h2>
+<p data-vc-lede="1">Seats and bags are set per class. The price for your route shows once you enter it.</p>
+</div>
+<div data-vc-grid="1">
+<sc-for list="{{ skeletons }}" as="k" hint-placeholder-count="3">
+<div data-vc-card="1" data-vc-sk="1" aria-hidden="true">
+<div data-vc-photo="1"></div>
+<div data-vc-body="1">
+<span data-vc-bar="1" style="inline-size:42%;block-size:26px"></span>
+<span data-vc-bar="1" style="inline-size:64%;block-size:32px"></span>
+<span data-vc-bar="1" style="inline-size:88%;block-size:14px"></span>
+<span data-vc-bar="1" style="inline-size:48%;block-size:44px;margin-block-start:auto"></span>
+</div>
+</div>
+</sc-for>
+<sc-for list="{{ cards }}" as="c" hint-placeholder-count="3">
+<article data-vc-card="1" data-slug="{{ c.slug }}" aria-labelledby="{{ c.nameId }}">
+<div data-vc-photo="1">
+<sc-if value="{{ c.hasPhoto }}" hint-placeholder-val="{{ true }}"><img src="{{ c.photo }}" alt="" loading="lazy" decoding="async"></sc-if>
+</div>
+<div data-vc-body="1">
+<h3 id="{{ c.nameId }}" data-vc-name="1" data-vt-no-i18n>{{ c.name }}</h3>
+<ul data-vc-specs="1">
+<li><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="users" size="{{ n16 }}" hint-size="16px,16px"></x-import><span>Up to <span data-vc-fig="1" class="vt-dir-keep" data-vt-no-i18n>{{ c.pax }}</span> {{ c.paxWord }}</span></li>
+<li><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="luggage" size="{{ n16 }}" hint-size="16px,16px"></x-import><span>Up to <span data-vc-fig="1" class="vt-dir-keep" data-vt-no-i18n>{{ c.bags }}</span> {{ c.bagWord }}</span></li>
+</ul>
+<sc-if value="{{ c.hasWho }}" hint-placeholder-val="{{ true }}"><p data-vc-who="1">{{ c.who }}</p></sc-if>
+<a data-vc-cta="1" href="#book" aria-describedby="{{ c.nameId }}" onClick="{{ c.pick }}"><span>Price this class</span><span data-vc-arrow="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n16 }}" hint-size="16px,16px"></x-import></span></a>
+</div>
+</article>
+</sc-for>
+</div>
+</div>
+</section>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}">
+/** One GET /api/quote per page: the idle class list (seats per class). home.dc.html, HowItWorks and VehicleClasses share it. */
+function idleBoard() {
+  if (typeof window === 'undefined' || typeof fetch === 'undefined') return Promise.resolve(null);
+  if (!window.__vamosIdleBoard) {
+    window.__vamosIdleBoard = fetch('/api/quote', { headers: { accept: 'application/json' } })
+      .then((r) => r.json().catch(() => null))
+      .catch(() => null);
+  }
+  return window.__vamosIdleBoard;
+}
+/* Who-it-suits lines by class slug. Any other slug shows no line. */
+const WHO = {
+  'saden': 'One to three travellers with a suitcase each.',
+  'mercedes-benz-v-class': 'Business trips and families with more luggage.',
+  'van-luxury': 'Groups, ski trips and large luggage.',
+};
+function num(v) { return typeof v === 'number' && isFinite(v) && v >= 0 ? v : null; }
+class Component extends DCLogic {
+  state = { status: 'loading', rows: [], lang: '' };
+  componentDidMount() {
+    this._on = true;
+    this._offLocale = window.VamosLocale && window.VamosLocale.onChange
+      ? window.VamosLocale.onChange((v) => this.setState({ lang: v.lang }))
+      : null;
+    idleBoard().then((j) => {
+      if (!this._on) return;
+      if (!j || j.ok !== true || !Array.isArray(j.classes)) { this.setState({ status: 'empty', rows: [] }); return; }
+      const seen = {};
+      const rows = [];
+      j.classes.forEach((c) => {
+        const slug = String((c && c.slug) || '');
+        const name = String((c && c.name) || '').replace(/\s+/g, ' ').trim();
+        const pax = num(c && c.effective_max_pax);
+        const bags = num(c && c.max_bags);
+        if (!slug || !name || seen[slug] || pax === null || bags === null) return;
+        seen[slug] = 1;
+        rows.push({ slug: slug, name: name, pax: pax, bags: bags, photo: String((c && c.photo_url) || '') });
+      });
+      this.setState({ status: rows.length ? 'ok' : 'empty', rows: rows });
+    }).catch(() => { if (this._on) this.setState({ status: 'empty', rows: [] }); });
+  }
+  componentWillUnmount() {
+    this._on = false;
+    if (this._offLocale) this._offLocale();
+  }
+  pickClass(e, slug) {
+    if (e && (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || (e.button && e.button > 0))) return;
+    if (e && e.preventDefault) e.preventDefault();
+    try { window.dispatchEvent(new CustomEvent('vamos:class-pick', { detail: { slug: slug } })); } catch (err) {}
+    const el = document.getElementById('book');
+    if (!el) return;
+    const reduce = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const top = el.getBoundingClientRect().top + window.pageYOffset - 88;
+    window.scrollTo({ top: top, behavior: reduce ? 'auto' : 'smooth' });
+  }
+  renderVals() {
+    const st = this.state.status;
+    const lang = this.state.lang || (window.VamosLocale && window.VamosLocale.lang ? window.VamosLocale.lang() : 'en');
+    const cards = st === 'ok' ? this.state.rows.map((r) => ({
+      slug: r.slug,
+      nameId: 'vc-name-' + r.slug,
+      name: r.name,
+      pax: r.pax,
+      bags: r.bags,
+      paxWord: r.pax === 1 ? 'passenger' : 'passengers',
+      bagWord: r.bags === 1 ? 'bag' : 'bags',
+      photo: r.photo,
+      hasPhoto: r.photo ? true : false,
+      who: WHO[r.slug] || '',
+      hasWho: WHO[r.slug] ? true : false,
+      pick: (e) => this.pickClass(e, r.slug),
+    })) : [];
+    return {
+      show: st !== 'empty',
+      busy: st === 'loading' ? 'true' : 'false',
+      dir: lang === 'ar' ? 'rtl' : 'ltr',
+      n16: 16,
+      skeletons: st === 'loading' ? [{ k: 1 }, { k: 2 }, { k: 3 }] : [],
+      cards: cards,
+    };
+  }
+}
+</script>
+</body>
+</html>
