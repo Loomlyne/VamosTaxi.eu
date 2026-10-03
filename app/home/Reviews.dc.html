@@ -61,6 +61,12 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-rv-stars]{display:flex;align-items:center;gap:2px}
 [data-rv-star]{display:block;inline-size:18px;block-size:18px;flex:0 0 auto;background:var(--vt-accent);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2.6l2.4 6.5h6.8l-5.5 4.2 2.1 6.6L12 16.2 6.2 19.9l2.1-6.6L2.8 9.1h6.8z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2.6l2.4 6.5h6.8l-5.5 4.2 2.1 6.6L12 16.2 6.2 19.9l2.1-6.6L2.8 9.1h6.8z'/%3E%3C/svg%3E") center/contain no-repeat}
 [data-rv-star][data-off]{background:var(--vt-grey-300)}
+[data-rv-rate]{display:flex;align-items:center;min-width:0}
+/* Owner's original-review link (#50): borderless icon after the stars. The 44px target is cancelled out of the row height so the card keeps its signed spacing. */
+[data-rv-link]{position:relative;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;inline-size:var(--vt-control-h-md);block-size:var(--vt-control-h-md);flex:0 0 auto;margin:0;margin-block:calc((18px - var(--vt-control-h-md)) / 2);padding:0;border:0;border-radius:var(--vt-radius-pill);background:transparent;color:var(--vt-charcoal-900);text-decoration:none;box-shadow:none;transition:background-color 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1)}
+@media (hover:hover){[data-rv-link]:hover{background:var(--vt-grey-50);color:var(--vt-charcoal-900)}}
+[data-rv-link]:active{background:var(--vt-grey-100);color:var(--vt-charcoal-900)}
+[data-rv-link]:focus-visible{outline:none;box-shadow:var(--vt-ring)}
 [data-rv-q]{margin:0;padding:0;min-width:0}
 [data-rv-text]{margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-regular);line-height:1.5;text-align:start;text-wrap:pretty;overflow-wrap:break-word;white-space:pre-line;color:var(--vt-text-primary);quotes:"\201C" "\201D"}
 [dir="rtl"] [data-rv-text]{quotes:"\00AB" "\00BB"}
@@ -121,9 +127,14 @@ a[data-rv-mark]:focus-visible{outline:none;box-shadow:var(--vt-ring)}
 <sc-for list="{{ cards }}" as="r" hint-placeholder-count="3">
 <li data-rv-item="1">
 <article data-rv-card="1">
+<div data-rv-rate="1">
 <span data-rv-stars="1" role="img" aria-label="{{ r.ratingLabel }}" style="display:{{ r.starsShow }}">
 <i data-rv-star="1" data-off="{{ r.off1 }}"></i><i data-rv-star="1" data-off="{{ r.off2 }}"></i><i data-rv-star="1" data-off="{{ r.off3 }}"></i><i data-rv-star="1" data-off="{{ r.off4 }}"></i><i data-rv-star="1" data-off="{{ r.off5 }}"></i>
 </span>
+<a data-rv-link="1" href="{{ r.linkUrl }}" target="_blank" rel="noopener noreferrer" aria-label="{{ r.linkLabel }}" title="{{ r.linkLabel }}" hidden="{{ r.linkHidden }}" style="display:{{ r.linkShow }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="external-link" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
+</a>
+</div>
 <blockquote data-rv-q="1">
 <p data-rv-text="1" data-vt-no-i18n="1" dir="auto"><bdi>{{ r.text }}</bdi></p>
 </blockquote>
@@ -215,6 +226,15 @@ class Component extends DCLogic {
     else if (source === 'tripadvisor') ok = /(^|\.)tripadvisor\.[a-z.]{2,}$/.test(h);
     return ok ? v : '';
   }
+  /** The owner's per-review link (OpsReviews "Link to the original"): any http(s) URL, else ''. */
+  linkOf(raw) {
+    const v = String(raw || '').trim();
+    if (!v) return '';
+    try {
+      const u = new URL(v);
+      return (u.protocol === 'http:' || u.protocol === 'https:') && u.hostname ? v : '';
+    } catch (e) { return ''; }
+  }
   renderVals() {
     const store = window.VamosReviews;
     const rows = store ? store.published() : [];
@@ -241,6 +261,7 @@ class Component extends DCLogic {
       const platform = PLATFORMS.indexOf(r.source) >= 0;
       const href = platform ? this.hrefOf(r.url, r.source) : '';
       const label = platform ? store.sourceLabel(r.source) : '';
+      const linkUrl = this.linkOf(r.url);
       const o = {
         text: r.text || '',
         name: r.name || '',
@@ -254,7 +275,10 @@ class Component extends DCLogic {
         markLink: !!href,
         markImg: platform && !href,
         markText: !platform,
-        linkLabel: href ? 'Read on ' + label : '',
+        linkLabel: !linkUrl ? '' : (platform ? 'Read on ' + label : 'Read the review'),
+        linkUrl: linkUrl || '#',
+        linkShow: linkUrl ? 'inline-flex' : 'none',
+        linkHidden: linkUrl ? null : true,
       };
       for (let s = 1; s <= 5; s++) o['off' + s] = s <= r.rating ? null : '1';
       return o;
