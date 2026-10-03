@@ -5,7 +5,7 @@
 -- changed value on any non-pending booking for every role; setting to NULL is always allowed;
 -- formats are checked by the database. Synthetic data only.
 begin;
-select plan(45);
+select plan(47);
 
 -- columns: two nullable text columns, no default
 select has_column('public', 'bookings', 'meta_fbp', 'column meta_fbp exists');
@@ -37,7 +37,13 @@ select ok((select p.proconfig @> array['search_path=""']
              from pg_proc p where p.oid = 'public.tg_bookings_meta_click_ids_pending_only()'::regprocedure),
           'trigger function has search_path ""');
 
+select ok(not has_function_privilege('public', 'public.tg_bookings_meta_click_ids_pending_only()', 'EXECUTE'), 'trigger function is not executable by public');
+
 -- fixtures
+insert into auth.users (id, email, aud, role, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
+values ('28000000-0000-4000-a000-000000000001', 'meta-admin@example.test', 'authenticated', 'authenticated', '{}', '{}', now(), now());
+insert into public.staff (user_id, role, active, accepted_at) values
+  ('28000000-0000-4000-a000-000000000001', 'admin', true, now());
 insert into public.bookings (id, contact_name, contact_email, status) values
   ('c2800000-0000-0000-0000-000000000001', 'Meta Pending', 'meta-a@example.test', 'pending'),
   ('c2800000-0000-0000-0000-000000000002', 'Meta Paid', 'meta-b@example.test', 'paid'),
@@ -67,6 +73,8 @@ select throws_ok($$ update public.bookings set meta_fbp = 'fb.1.1727771234567.12
 select throws_ok($$ update public.bookings set meta_fbc = 'fb.1.1727771234567.abc' where id = 'c2800000-0000-0000-0000-000000000003' $$, '55000', null, 'superuser update on a confirmed booking refused');
 -- trigger: a staff role cannot either (staff hold whole-table UPDATE)
 set local role vamos_staff;
+select set_config('request.jwt.claims', jsonb_build_object('sub','28000000-0000-4000-a000-000000000001','role','authenticated','aal','aal2','app_metadata',jsonb_build_object('vamos_role','admin'))::text, true);
+select is((select count(*)::int from public.bookings where id = 'c2800000-0000-0000-0000-000000000002'), 1, 'staff sees the paid fixture (so the refusal below is the trigger, not row security)');
 select throws_ok($$ update public.bookings set meta_fbp = 'fb.1.1727771234567.1234567890' where id = 'c2800000-0000-0000-0000-000000000002' $$, '55000', null, 'staff update on a paid booking refused');
 reset role;
 -- trigger: insert of a paid booking with a value
