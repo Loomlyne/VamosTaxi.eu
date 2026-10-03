@@ -2434,6 +2434,7 @@
     S["Your driver is waiting."] = { de: "Ihr Fahrer wartet.", fr: "Votre chauffeur vous attend.", ar: "سائقك في الانتظار." };
     S["Fixed price, booked in under a minute."] = { de: "Fester Preis, in unter einer Minute gebucht.", fr: "Prix fixe, réservé en moins d’une minute.", ar: "سعر ثابت، يُحجز في أقل من دقيقة." };
     S["WhatsApp us"] = { de: "WhatsApp", fr: "Écrivez-nous sur WhatsApp", ar: "راسلنا عبر واتساب" };
+    S["Email us"] = { de: "E-Mail senden", fr: "Écrivez-nous", ar: "راسلنا بالبريد" };
     S["What we drive."] = { de: "Was wir fahren.", fr: "Ce que nous conduisons.", ar: "ما نقدمه." };
     S["One-way transfers, booked ahead, at a price fixed before you pay."] = { de: "Einfache Fahrten, im Voraus gebucht, zu einem Preis, der vor der Zahlung feststeht.", fr: "Transferts aller simple, réservés à l’avance, à un prix fixé avant le paiement.", ar: "نقل باتجاه واحد، يُحجز مسبقًا، بسعر ثابت قبل الدفع." };
     S["To and from Zurich, Geneva and Basel airports, timed to your flight."] = { de: "Zu und von den Flughäfen Zürich, Genf und Basel, abgestimmt auf Ihren Flug.", fr: "Depuis et vers les aéroports de Zurich, Genève et Bâle, selon l’horaire de votre vol.", ar: "من وإلى مطارات زيورخ وجنيف وبازل، بتوقيت رحلتك." };
