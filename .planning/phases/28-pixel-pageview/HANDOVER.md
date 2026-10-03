@@ -135,7 +135,7 @@ Not changed: the flags, the allow-list semantics beyond item 4, the migration.
 ## Final hand-over (2026-10-03, branch `fix/phase-28-review-2`)
 Tip: the commit that adds this section (see `git log -1 origin/fix/phase-28-review-2`). Base: merge of `origin/main` at `a8e78ec2` (home sections hand-over 2 `923c7fea` + board notes) into `d1ebf1aa`, merge commit `5bdfad47`; no conflict.
 
-Verified on that tree (about 15:45 to 16:10 UTC):
+Verified on that tree (15:46 to 15:48 UTC):
 - `sync-dc-mock-to-public`, `pnpm install --frozen-lockfile`, `pnpm test:unit` (web 408 files / 4666 passed, 31 skipped; db 14; emails 239; scripts ok), `typecheck`, `lint` (0 errors, 6 warnings), `lint:css`, `check:numbers`, `check:legal-claims`, `check:public-env`, `check:db-fences`, `i18n:check`, `db:seed:check`: all exit 0.
 - Own native stack `vamos-lab-p28` (Supabase CLI 2.119.0, `--runtime native`, DB 45122, no Docker): every migration from zero including `20261007240000_booking_meta_click_ids`, seed ok; `supabase test db` 100 files / 2704 tests PASS. Stack stopped, scratch folder removed. `lab.sh up` on main still calls Docker (no native mode in the script yet), so the stack was started by hand in the lab's workdir.
 - The three Meta texts in `app/vamos-meta-texts.js` equal `.planning/decisions/2026-09-30-meta-wording.md` cell for cell (12/12, independent script, plus `owner-texts.test.ts`).
