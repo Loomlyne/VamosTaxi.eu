@@ -2431,8 +2431,6 @@
     S["Can’t see your driver?"] = { de: "Fahrer nicht gefunden?", fr: "Vous ne voyez pas votre chauffeur ?", ar: "لا ترى السائق؟" };
     S["Call or"] = { de: "Rufen Sie an oder schreiben Sie per", fr: "Appelez ou écrivez sur", ar: "اتصل أو راسلنا عبر" };
     S["We answer and guide you."] = { de: "Wir helfen Ihnen weiter.", fr: "Nous répondons et vous guidons.", ar: "نجيبك ونرشدك." };
-    S["Your driver is waiting."] = { de: "Ihr Fahrer wartet.", fr: "Votre chauffeur vous attend.", ar: "سائقك في الانتظار." };
-    S["Fixed price, booked in under a minute."] = { de: "Fester Preis, in unter einer Minute gebucht.", fr: "Prix fixe, réservé en moins d’une minute.", ar: "سعر ثابت، يُحجز في أقل من دقيقة." };
     S["WhatsApp us"] = { de: "WhatsApp", fr: "Écrivez-nous sur WhatsApp", ar: "راسلنا عبر واتساب" };
     S["Email us"] = { de: "E-Mail senden", fr: "Écrivez-nous", ar: "راسلنا بالبريد" };
     S["What we drive."] = { de: "Was wir fahren.", fr: "Ce que nous conduisons.", ar: "ما نقدمه." };

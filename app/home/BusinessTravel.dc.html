@@ -36,7 +36,7 @@ a{color:inherit;text-decoration:none;border-bottom:0}
 [data-kicker]::before{content:"";flex:0 0 13px;inline-size:13px;block-size:13px;background:url(../../assets/patterns/checker-mark.png) center / contain no-repeat}
 [data-title]{margin:0;max-inline-size:18ch;font-family:var(--vt-font-display);font-size:var(--vt-display-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:var(--vt-display-leading);text-wrap:balance;color:var(--vt-text-inverse)}
 :focus-visible:not(input):not(select):not(textarea){outline:none;box-shadow:var(--vt-ring-inverse)}
-/* Section: charcoal ground in both looks, so it stops the eye between the two grey
+/* Section: charcoal ground, so it stops the eye between the two grey
    sections around it (TrustFacts above, FAQ below). The closing CTA is also charcoal,
    but FAQ sits between them, so the two dark bands never touch. */
 [data-biz]{position:relative;overflow:hidden;isolation:isolate;background:var(--vt-bg-inverse);color:var(--vt-text-inverse);font-family:var(--vt-font-body)}
@@ -44,7 +44,7 @@ a{color:inherit;text-decoration:none;border-bottom:0}
 [data-biz-grid]{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:"media" "copy" "act";gap:clamp(24px,3vw,32px);align-items:start}
 [data-biz-media]{grid-area:media;position:relative;margin:0;min-inline-size:0;overflow:hidden;border-radius:var(--vt-radius-lg);background:var(--vt-bg-inverse-raised)}
 [data-biz-photo]{display:block;inline-size:100%;block-size:100%;aspect-ratio:3 / 2;object-fit:cover;object-position:50% 60%}
-@media (min-width:600px) and (max-width:899.98px){[data-biz][data-look="a"] [data-biz-photo]{aspect-ratio:16 / 9}}
+@media (min-width:600px) and (max-width:899.98px){[data-biz] [data-biz-photo]{aspect-ratio:16 / 9}}
 [data-band-copy]{grid-area:copy;display:flex;flex-direction:column;align-items:flex-start;gap:16px;min-inline-size:0}
 [data-lede]{margin:0;max-inline-size:44ch;font-family:var(--vt-font-body);font-size:var(--vt-body-lg);line-height:var(--vt-body-leading);text-wrap:pretty;color:var(--vt-text-inverse-muted)}
 [data-chips]{display:flex;flex-direction:column;gap:0;margin:8px 0 0;padding:0;list-style:none;inline-size:100%;max-inline-size:440px;border-block-start:1px solid rgb(255 255 255 / 0.14)}
@@ -60,40 +60,21 @@ a{color:inherit;text-decoration:none;border-bottom:0}
 [data-btn="wa"]:hover{background:var(--vt-white);border-color:var(--vt-white);color:var(--vt-charcoal-900)}
 /* Services.dc.html ships a page-wide :focus-visible rule with !important (charcoal outline,
    4px radius) that would square these pills and vanish on charcoal; win it back here. */
-[data-biz][data-look] [data-band-act] [data-btn]:focus-visible{outline:none!important;border-radius:var(--vt-radius-pill)!important;box-shadow:var(--vt-ring-inverse)}
+section[data-biz] [data-band-act] [data-btn]:focus-visible{outline:none!important;border-radius:var(--vt-radius-pill)!important;box-shadow:var(--vt-ring-inverse)}
 [data-wa-mark]{display:block;flex:0 0 20px;inline-size:20px;block-size:20px}
 
-/* Look A — split: copy at the start, the framed fleet photograph at the end. */
+/* Split: copy at the start, the framed fleet photograph at the end. */
 @media (min-width:900px){
-  [data-biz][data-look="a"] [data-biz-grid]{grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);grid-template-areas:". media" "copy media" "act media" ". media";grid-template-rows:1fr auto auto 1fr;column-gap:clamp(40px,5vw,80px);row-gap:0;align-items:center}
-  [data-biz][data-look="a"] [data-band-act]{margin-block-start:32px}
-  [data-biz][data-look="a"] [data-biz-photo]{aspect-ratio:4 / 3}
-}
-
-/* Look B — cinematic: the photograph runs edge to edge across the top of the band and
-   fades into the charcoal ground (a mask, not a coloured gradient); the copy rises onto
-   the faded road, protected by the design system's bottom scrim. */
-[data-biz][data-look="b"] [data-biz-media]{position:absolute;inset-block-start:0;inset-inline:0;block-size:var(--biz-media-h);border-radius:0;background:transparent;z-index:0;-webkit-mask-image:linear-gradient(to bottom,#000 58%,transparent 100%);mask-image:linear-gradient(to bottom,#000 58%,transparent 100%)}
-[data-biz][data-look="b"] [data-biz-media]::after{content:"";position:absolute;inset:0;background:var(--vt-scrim-bottom);pointer-events:none}
-[data-biz][data-look="b"] [data-biz-photo]{aspect-ratio:auto;object-position:50% 58%}
-[data-biz][data-look="b"]{--biz-media-h:min(86vw,440px)}
-[data-biz][data-look="b"] [data-wrap]{position:static}
-[data-biz][data-look="b"] [data-biz-grid]{grid-template-areas:"copy" "act"}
-[data-biz][data-look="b"] [data-band-copy],[data-biz][data-look="b"] [data-band-act]{position:relative;z-index:1}
-[data-biz][data-look="b"] [data-wrap]{padding-block-start:calc(var(--biz-media-h) - 72px)}
-@media (min-width:900px){
-  [data-biz][data-look="b"]{--biz-media-h:clamp(420px,40vw,580px)}
-  [data-biz][data-look="b"] [data-wrap]{padding-block-start:calc(var(--biz-media-h) - 150px)}
-  [data-biz][data-look="b"] [data-biz-grid]{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"copy act";column-gap:clamp(32px,5vw,72px);align-items:end}
-  [data-biz][data-look="b"] [data-chips]{flex-direction:row;flex-wrap:wrap;gap:8px 24px;border-block-start:0;max-inline-size:none}
-  [data-biz][data-look="b"] [data-chip]{border-block-end:0;min-block-size:32px;padding-block:0}
+  [data-biz] [data-biz-grid]{grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);grid-template-areas:". media" "copy media" "act media" ". media";grid-template-rows:1fr auto auto 1fr;column-gap:clamp(40px,5vw,80px);row-gap:0;align-items:center}
+  [data-biz] [data-band-act]{margin-block-start:32px}
+  [data-biz] [data-biz-photo]{aspect-ratio:4 / 3}
 }
 
 @media (max-width:640px){[data-band-act]{flex-direction:column;align-items:stretch;inline-size:100%}[data-btn]{inline-size:100%}}
 @media (prefers-reduced-motion:reduce){[data-btn]{transition:none}[data-btn]:active{transform:none}}
 </style>
 </helmet>
-<section data-biz="1" data-look="{{ look }}" data-screen-label="BusinessTravel" aria-labelledby="biz-title">
+<section data-biz="1" data-screen-label="BusinessTravel" aria-labelledby="biz-title">
 <div data-wrap="1">
 <div data-biz-grid="1">
 <figure data-biz-media="1"><img data-biz-photo="1" src="/assets/photography/fleet-van-street-1200.jpg" alt="A charcoal Mercedes V-Class van on a city street" width="1200" height="800" loading="lazy" decoding="async"></figure>
@@ -114,11 +95,10 @@ a{color:inherit;text-decoration:none;border-bottom:0}
 </div>
 </section>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:640},&quot;look&quot;:{&quot;editor&quot;:&quot;select&quot;,&quot;options&quot;:[&quot;a&quot;,&quot;b&quot;],&quot;default&quot;:&quot;a&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:640}}">
 /**
  * Business travel band. Re-renders when the platform language changes; static copy.
- * look="a" (default): charcoal split, copy beside the framed fleet photograph.
- * look="b": the photograph runs edge to edge and fades into charcoal, copy below it.
+ * Charcoal split, copy beside the framed fleet photograph.
  */
 class Component extends DCLogic {
   state = { lang: null };
@@ -129,7 +109,7 @@ class Component extends DCLogic {
     if (this._offLocale) this._offLocale();
   }
   renderVals() {
-    return { n16: 16, n18: 18, look: this.props.look === 'b' ? 'b' : 'a' };
+    return { n16: 16, n18: 18 };
   }
 }
 </script>

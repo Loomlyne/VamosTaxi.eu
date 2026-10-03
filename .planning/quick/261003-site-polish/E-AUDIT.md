@@ -13,7 +13,7 @@ Not in scope: legal text pages (terms, privacy, cookies, cancellation, imprint),
 | about | "Where we drive" (3 cards + client-input slot) | same kind as WhereWeDrive | DONE: home `WhereWeDrive`; `vamos:dest-pick` is marked handled and opens `home#book` (no prefill). |
 | about | Reviews | absent | DONE: home `Reviews` above the closing band. |
 | about | Founder story, "Our drivers" dark panel | unique | KEPT. |
-| about | "Ride with class" CTA band | same kind as ClosingCta | KEPT: home `ClosingCta` hard-codes `#book` / scroll; needs a book-link prop first (not my file). |
+| about | "Ride with class" CTA band | same kind as ClosingCta | KEPT: home `ClosingCta` hard-codes `#book` / scroll; needs a book-link prop first (not my file). | Moot: ClosingCta removed 2026-10-03 (owner).
 | contact | FAQ (4 questions, own accordion + script) | same kind as home FAQ | DONE: home FAQ (`FaqSection`, home set); own CSS and script removed. |
 | contact | Reviews | absent | DONE. |
 | contact | WhatsApp row | Lucide message-circle | DONE: `assets/social/whatsapp.svg` in a white tile. |
