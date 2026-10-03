@@ -1,0 +1,35 @@
+WhereWeDrive en 1440 sw=1440/1440 cov={"lang":"de","count":0,"strings":[],"attrs":[]}
+keys: ww-tab-gva true | ww-tab-bsl | rows ["Zurich Airport Davos FIXED ROUTE","Zurich Airport St. Moritz FIXED ROUTE","Zurich Airport Zurich","Zurich Airport Lucerne","Zurich Airport Interlaken","Zurich Airport Zermatt","Zurich Airport Bern"] | events [{"name":"Davos","kind":"route","from":"Zurich Airport","fromCode":"ZRH","handled":false,"fromMapboxId":"f1","toMapboxId":"t1"},{"name":"Lucerne","kind":"city","from":"Zurich Airport","fromCode":"ZRH","handled":false}]
+WhereWeDrive de 1440 sw=1440/1440 cov={"lang":"de","count":0,"strings":[],"attrs":[]}
+WhereWeDrive fr 1440 sw=1440/1440 cov={"lang":"fr","count":0,"strings":[],"attrs":[]}
+WhereWeDrive ar 1440 sw=1440/1440 cov={"lang":"ar","count":0,"strings":[],"attrs":[]}
+WhereWeDrive en 1024 sw=1024/1024 cov={"lang":"de","count":0,"strings":[],"attrs":[]}
+WhereWeDrive de 1024 sw=1024/1024 cov={"lang":"de","count":0,"strings":[],"attrs":[]}
+WhereWeDrive fr 1024 sw=1024/1024 cov={"lang":"fr","count":0,"strings":[],"attrs":[]}
+WhereWeDrive ar 1024 sw=1024/1024 cov={"lang":"ar","count":0,"strings":[],"attrs":[]}
+WhereWeDrive en 768 sw=768/768 cov={"lang":"de","count":0,"strings":[],"attrs":[]}
+WhereWeDrive de 768 sw=768/768 cov={"lang":"de","count":0,"strings":[],"attrs":[]}
+WhereWeDrive fr 768 sw=768/768 cov={"lang":"fr","count":0,"strings":[],"attrs":[]}
+WhereWeDrive ar 768 sw=768/768 cov={"lang":"ar","count":0,"strings":[],"attrs":[]}
+WhereWeDrive en 390 sw=390/390 cov={"lang":"de","count":0,"strings":[],"attrs":[]}
+WhereWeDrive de 390 sw=390/390 cov={"lang":"de","count":0,"strings":[],"attrs":[]}
+WhereWeDrive fr 390 sw=390/390 cov={"lang":"fr","count":0,"strings":[],"attrs":[]}
+WhereWeDrive ar 390 sw=390/390 cov={"lang":"ar","count":0,"strings":[],"attrs":[]}
+HowItWorks en 1440 sw=1440/1440 cov={"lang":"de","count":0,"strings":[],"attrs":[]}
+HowItWorks de 1440 sw=1440/1440 cov={"lang":"de","count":0,"strings":[],"attrs":[]}
+HowItWorks fr 1440 sw=1440/1440 cov={"lang":"fr","count":0,"strings":[],"attrs":[]}
+HowItWorks ar 1440 sw=1440/1440 cov={"lang":"ar","count":0,"strings":[],"attrs":[]}
+HowItWorks en 1024 sw=1024/1024 cov={"lang":"de","count":0,"strings":[],"attrs":[]}
+HowItWorks de 1024 sw=1024/1024 cov={"lang":"de","count":0,"strings":[],"attrs":[]}
+HowItWorks fr 1024 sw=1024/1024 cov={"lang":"fr","count":0,"strings":[],"attrs":[]}
+HowItWorks ar 1024 sw=1024/1024 cov={"lang":"ar","count":0,"strings":[],"attrs":[]}
+HowItWorks en 768 sw=768/768 cov={"lang":"de","count":0,"strings":[],"attrs":[]}
+HowItWorks de 768 sw=768/768 cov={"lang":"de","count":0,"strings":[],"attrs":[]}
+HowItWorks fr 768 sw=768/768 cov={"lang":"fr","count":0,"strings":[],"attrs":[]}
+HowItWorks ar 768 sw=768/768 cov={"lang":"ar","count":0,"strings":[],"attrs":[]}
+HowItWorks en 390 sw=390/390 cov={"lang":"de","count":0,"strings":[],"attrs":[]}
+HowItWorks de 390 sw=390/390 cov={"lang":"de","count":0,"strings":[],"attrs":[]}
+HowItWorks fr 390 sw=390/390 cov={"lang":"fr","count":0,"strings":[],"attrs":[]}
+HowItWorks ar 390 sw=390/390 cov={"lang":"ar","count":0,"strings":[],"attrs":[]}
+fail rows: 5
+overlap: {"arrBottom":0,"signTop":0,"signBottom":0,"rows":[0,0,0,0,0,451,478,505,532,559,0,0,0,0,0]}

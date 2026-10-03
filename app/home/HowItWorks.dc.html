@@ -32,7 +32,7 @@
 :root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
 body{margin:0}
 a{color:inherit;text-decoration:none;border-bottom:0}
-[data-hiw],[data-dest]{
+[data-hiw]{
   --s-bg:var(--vt-bg-page);
   --s-fg:var(--vt-text-primary);
   --s-sec:var(--vt-text-secondary);
@@ -46,7 +46,7 @@ a{color:inherit;text-decoration:none;border-bottom:0}
   background:var(--s-bg);
   color:var(--s-fg);
 }
-[data-hiw][data-tone="dark"],[data-dest][data-tone="dark"]{
+[data-hiw][data-tone="dark"]{
   --s-bg:var(--vt-charcoal-900);
   --s-fg:var(--vt-text-inverse);
   --s-sec:rgb(255 255 255/.72);
@@ -58,17 +58,14 @@ a{color:inherit;text-decoration:none;border-bottom:0}
   --s-board-fg:var(--vt-charcoal-900);
   --s-board-mut:var(--vt-charcoal-600);
 }
-[data-hiw-wrap],[data-dest-wrap]{
+[data-hiw-wrap]{
   box-sizing:border-box;
   max-inline-size:var(--vt-container-lg);
   margin-inline:auto;
   padding-block:clamp(56px,7vw,96px);
   padding-inline:var(--vt-gutter);
 }
-[data-dest]{border-block-start:1px solid var(--s-line);scroll-margin-top:calc(var(--vt-space-11) + var(--vt-space-3))}
-[data-dest-wrap]{container-type:inline-size;container-name:dest;scroll-margin-top:calc(var(--vt-space-11) + var(--vt-space-3))}
-[data-dest-head],[data-dest-title]{scroll-margin-top:calc(var(--vt-space-11) + var(--vt-space-8))}
-[data-hiw-head],[data-dest-head]{
+[data-hiw-head]{
   display:flex;
   flex-direction:column;
   align-items:flex-start;
@@ -97,37 +94,7 @@ a{color:inherit;text-decoration:none;border-bottom:0}
   white-space:nowrap;
   color:var(--vt-charcoal-900);
 }
-[data-dest] [data-dest-kicker]{
-  margin:0;
-  display:inline-flex;
-  align-self:flex-start;
-  align-items:center;
-  gap:9px;
-  box-sizing:border-box;
-  min-block-size:var(--vt-space-7);
-  padding-block:0;
-  padding-inline:var(--vt-space-3) 15px;
-  border:var(--vt-border-w) solid var(--vt-grey-200);
-  border-radius:var(--vt-radius-pill);
-  background:var(--vt-white);
-  box-shadow:none;
-  font-family:var(--vt-font-body);
-  font-size:12px;
-  font-weight:var(--vt-weight-semibold);
-  letter-spacing:var(--vt-label-tracking);
-  text-transform:uppercase;
-  line-height:1;
-  white-space:nowrap;
-  color:var(--vt-charcoal-900);
-}
-[data-dest] [data-dest-kicker]::before{
-  content:"";
-  flex:0 0 13px;
-  inline-size:13px;
-  block-size:13px;
-  background:url(../../assets/patterns/checker-mark.png) center / contain no-repeat;
-}
-[data-hiw-title],[data-dest-title]{
+[data-hiw-title]{
   margin:0;
   max-inline-size:16ch;
   font-family:var(--vt-font-display);
@@ -138,7 +105,7 @@ a{color:inherit;text-decoration:none;border-bottom:0}
   text-wrap:balance;
   color:var(--s-fg);
 }
-[data-hiw-lede],[data-dest-lede]{
+[data-hiw-lede]{
   margin:0;
   max-inline-size:46ch;
   font-family:var(--vt-font-body);
@@ -334,29 +301,32 @@ a{color:inherit;text-decoration:none;border-bottom:0}
 [data-mock="meet"] [data-i="15"]{--i:15}
 [data-mock="meet"] [data-i="16"]{--i:16}
 [data-mock="meet"] [data-hiw-sign]{
-  position:absolute;
-  inset-inline:0;
-  inset-block-end:var(--vt-space-3);
+  position:relative;
   z-index:1;
+  flex:0 0 auto;
   display:flex;
   justify-content:center;
-  margin-block-start:0;
-  transform:rotate(2.5deg);
+  margin-block-start:var(--vt-space-2);
+  transform:rotate(-0.6deg);
   transition:transform var(--vt-dur-base) var(--vt-ease-out);
 }
 [data-mock="meet"] [data-hiw-sign-in]{
   display:flex;
-  flex-direction:column;
+  flex-direction:row;
+  flex-wrap:wrap;
   align-items:center;
-  gap:4px;
-  inline-size:min(82%,220px);
-  padding-block:12px 10px;
-  padding-inline:12px;
+  justify-content:space-between;
+  column-gap:var(--vt-space-3);
+  row-gap:2px;
+  inline-size:100%;
+  box-sizing:border-box;
+  padding-block:var(--vt-space-2);
+  padding-inline:var(--vt-space-3);
   background:var(--vt-white);
   color:var(--vt-text-primary);
   border:var(--vt-border-w) solid var(--vt-yellow);
   border-radius:var(--vt-radius-sm);
-  box-shadow:var(--vt-shadow-md);
+  box-shadow:var(--vt-shadow-sm);
   text-align:center;
 }
 [data-mock="meet"] [data-hiw-sign-mark]{display:flex;direction:ltr;block-size:14px}
@@ -387,7 +357,7 @@ a{color:inherit;text-decoration:none;border-bottom:0}
   [data-mock="meet"] [data-hiw-cell="st"]{display:none}
 }
 @media (hover:hover) and (prefers-reduced-motion:no-preference){
-  [data-hiw-card]:hover [data-mock="meet"] [data-hiw-sign]{transform:rotate(1deg) translateY(-3px)}
+  [data-hiw-card]:hover [data-mock="meet"] [data-hiw-sign]{transform:rotate(0deg) translateY(-2px)}
 }
 @media (prefers-reduced-motion:no-preference){
   [data-hiw][data-anim="1"]:not([data-seen="1"]) [data-mock="meet"] [data-hiw-sign-in]{opacity:0;transform:translateY(10px)}
@@ -852,214 +822,13 @@ a{color:inherit;text-decoration:none;border-bottom:0}
   font-variant-numeric:tabular-nums;
   color:var(--s-fg);
 }
-[data-dest-mosaic]{
-  display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:var(--vt-space-4);
-  align-items:stretch;
-  min-inline-size:0;
-}
-@media (min-width:1100px){
-  [data-dest-mosaic]{grid-template-columns:repeat(3,minmax(0,1fr))}
-}
-[data-dest-tile]{
-  position:relative;
-  isolation:isolate;
-  overflow:hidden;
-  display:flex;
-  flex-direction:column;
-  justify-content:flex-end;
-  inline-size:100%;
-  max-inline-size:100%;
-  min-inline-size:0;
-  min-block-size:200px;
-  aspect-ratio:16/10;
-  padding:16px;
-  background:var(--vt-charcoal-900);
-  border:var(--vt-border-w) solid var(--vt-border-subtle);
-  border-radius:var(--vt-radius-lg);
-  color:var(--vt-text-inverse);
-  text-decoration:none;
-  --dest-zoom:116%;
-  --dest-x:-9.3%;
-  --dest-y:0;
-}
-[data-dest-tile][data-airport="gva"]{--dest-zoom:118%;--dest-x:0;--dest-y:0}
-[data-dest-tile][data-airport="bsl"]{--dest-zoom:122%;--dest-x:-19.5%;--dest-y:-22%}
-[data-dest-tile]::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  z-index:2;
-  pointer-events:none;
-  border-radius:inherit;
-  box-shadow:inset 0 0 0 1px color-mix(in oklab, var(--vt-charcoal-900) 10%, transparent);
-}
-[data-tone="dark"] [data-dest-tile]{border-color:var(--vt-border-inverse)}
-[data-tone="dark"] [data-dest-tile]::after{
-  box-shadow:inset 0 0 0 1px color-mix(in oklab, var(--vt-white) 10%, transparent);
-}
-[data-dest-tile]:hover{border-color:var(--vt-border-strong)}
-[data-dest-photo]{
-  position:absolute;
-  z-index:0;
-  left:var(--dest-x);
-  top:var(--dest-y);
-  inline-size:var(--dest-zoom);
-  block-size:var(--dest-zoom);
-  max-inline-size:none;
-  object-fit:cover;
-}
-[data-dest-copy]{
-  position:relative;
-  z-index:1;
-  display:flex;
-  flex-direction:column;
-  flex:0 0 auto;
-  align-self:stretch;
-  gap:4px;
-  margin-inline:-16px;
-  margin-block-end:-16px;
-  padding:28px 16px 16px;
-  background:linear-gradient(to top, color-mix(in oklab, var(--vt-charcoal-900) 78%, transparent) 0px, color-mix(in oklab, var(--vt-charcoal-900) 78%, transparent) 92px, transparent 124px);
-}
-[data-dest-tile] > [data-dest-copy]{flex:0 0 auto}
-[data-dest-code]:empty{display:none}
-[data-dest-code]{
-  font-family:var(--vt-font-body);
-  font-size:var(--vt-label-md);
-  font-weight:var(--vt-label-weight);
-  letter-spacing:var(--vt-label-tracking);
-  text-transform:uppercase;
-  color:var(--vt-text-inverse-muted);
-}
-[data-dest-name]{
-  font-family:var(--vt-font-display);
-  font-size:var(--vt-heading-3);
-  font-weight:var(--vt-weight-semibold);
-  letter-spacing:var(--vt-heading-tracking);
-  line-height:1.15;
-  text-wrap:balance;
-  color:var(--vt-text-inverse);
-}
-[data-dest-meta]{
-  font-family:var(--vt-font-body);
-  font-size:var(--vt-body-sm);
-  line-height:1.4;
-  color:var(--vt-text-inverse-muted);
-}
-[data-dest-rows]{
-  display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  column-gap:var(--vt-space-7);
-  margin-block-start:var(--vt-space-4);
-  border-block-start:var(--vt-border-w) solid var(--s-line);
-  overflow-wrap:break-word;
-}
-[data-dest-rows] [data-dest-row]{
-  min-inline-size:0;
-}
-@media (min-width:640px){
-  [data-dest-rows]{grid-template-columns:repeat(2,minmax(0,1fr))}
-}
-@media (min-width:1100px){
-  [data-dest-rows]{grid-template-columns:repeat(3,minmax(0,1fr))}
-}
-@container dest (max-width:479px){
-  [data-dest-mosaic]{grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--vt-space-3)}
-  [data-dest-tile]{
-    aspect-ratio:auto;
-    min-block-size:0;
-    justify-content:flex-start;
-    padding:0;
-  }
-  [data-dest-photo]{
-    position:relative;
-    inset:auto;
-    left:auto;
-    top:auto;
-    inline-size:100%;
-    aspect-ratio:16/10;
-    block-size:auto;
-  }
-  [data-dest-tile] > [data-dest-copy]{
-    margin:0;
-    padding:var(--vt-space-3);
-    background:var(--vt-charcoal-900);
-  }
-  [data-dest-tile]:last-child:nth-child(odd){grid-column:1 / -1}
-}
-@container dest (min-width:480px){
-  [data-dest-mosaic]{grid-template-columns:repeat(2,minmax(0,1fr))}
-  [data-dest-rows]{grid-template-columns:repeat(2,minmax(0,1fr))}
-}
-@container dest (min-width:880px){
-  [data-dest-mosaic]{grid-template-columns:repeat(3,minmax(0,1fr))}
-  [data-dest-rows]{grid-template-columns:repeat(3,minmax(0,1fr))}
-}
-[data-dest-row]{
-  display:flex;
-  align-items:center;
-  min-block-size:var(--vt-control-h-md);
-  padding-block:8px;
-  padding-inline:0 20px;
-  border-block-end:1px solid var(--s-line);
-  color:var(--s-fg);
-}
-[data-dest-row-main]{
-  display:inline-flex;
-  flex-wrap:wrap;
-  align-items:baseline;
-  column-gap:8px;
-  row-gap:2px;
-  min-inline-size:0;
-  max-inline-size:100%;
-}
-[data-dest-row]:hover [data-dest-book]{text-decoration:underline;text-underline-offset:3px}
-[data-dest-row-name]{
-  min-inline-size:0;
-  overflow-wrap:anywhere;
-  font-family:var(--vt-font-display);
-  font-size:var(--vt-heading-4);
-  font-weight:var(--vt-weight-semibold);
-  letter-spacing:var(--vt-heading-tracking);
-  line-height:1.2;
-}
-[data-dest-row-meta]{
-  flex:0 1 auto;
-  min-inline-size:0;
-  font-family:var(--vt-font-body);
-  font-size:var(--vt-body-sm);
-  color:var(--s-sec);
-}
-[data-dest-book]{
-  flex:0 0 auto;
-  margin-inline-start:0;
-  font-family:var(--vt-font-body);
-  font-size:var(--vt-body-sm);
-  font-weight:var(--vt-weight-semibold);
-  line-height:1.2;
-  white-space:nowrap;
-  color:var(--s-fg);
-  text-decoration:underline;
-  text-decoration-skip-ink:auto;
-  text-decoration-thickness:from-font;
-  text-underline-offset:3px;
-  text-underline-position:from-font;
-}
 :focus-visible:not(input):not(select):not(textarea){
   outline:3px solid var(--vt-focus);
   outline-offset:3px;
   border-radius:var(--vt-radius-xs);
 }
-@media (prefers-reduced-motion: no-preference){
-  [data-dest-tile]{transition:border-color var(--vt-dur-fast) var(--vt-ease-standard)}
-  [data-dest-photo]{transition:transform var(--vt-dur-fast) var(--vt-ease-standard)}
-  [data-dest-tile]:hover [data-dest-photo]{transform:scale(1.02)}
-}
 @media (prefers-reduced-motion:reduce){
   [data-hiw-route]{inline-size:100%;transition:none}
-  [data-dest-tile],[data-dest-photo]{transition:none}
 }
 [data-hiw-mock][data-mock="book"]{
   flex:1 1 auto;
@@ -1442,43 +1211,6 @@ a{color:inherit;text-decoration:none;border-bottom:0}
 </div>
 </div>
 </section>
-
-<section data-dest="1" data-vt-no-i18n="1" data-tone="{{ tone }}" dir="{{ dir }}" data-screen-label="Destinations" aria-labelledby="dest-title">
-<div data-dest-wrap="1">
-<div data-dest-head="1">
-<p data-dest-kicker="1">{{ destEyebrow }}</p>
-<h2 id="dest-title" data-dest-title="1">{{ destTitle }}</h2>
-<p data-dest-lede="1">{{ destLede }}</p>
-</div>
-<sc-if value="{{ showTiles }}" hint-placeholder-val="{{ true }}">
-<div data-dest-mosaic="1">
-<sc-for list="{{ tiles }}" as="c" hint-placeholder-count="3">
-<a data-dest-tile="1" data-airport="{{ c.id }}" href="{{ c.href }}" aria-label="{{ c.aria }}" onClick="{{ c.pick }}">
-<img data-dest-photo="1" src="{{ c.photo }}" alt="">
-<span data-dest-copy="1">
-<span data-dest-code="1">{{ c.code }}</span>
-<span data-dest-name="1">{{ c.name }}</span>
-<span data-dest-meta="1">{{ c.meta }}</span>
-</span>
-</a>
-</sc-for>
-</div>
-</sc-if>
-<sc-if value="{{ showRows }}" hint-placeholder-val="{{ true }}">
-<div data-dest-rows="1">
-<sc-for list="{{ rows }}" as="r" hint-placeholder-count="4">
-<a data-dest-row="1" href="{{ r.href }}" aria-label="{{ r.aria }}" onClick="{{ r.pick }}">
-<span data-dest-row-main="1">
-<span data-dest-row-name="1">{{ r.name }}</span>
-<span data-dest-row-meta="1">{{ r.meta }}</span>
-<span data-dest-book="1">{{ book }}</span>
-</span>
-</a>
-</sc-for>
-</div>
-</sc-if>
-</div>
-</section>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;tone&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;'light'|'dark'&quot;,&quot;section&quot;:&quot;Appearance&quot;},&quot;revealOnScroll&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Motion&quot;}}">
 const LANGS = ['en', 'de', 'fr', 'ar'];
@@ -1504,16 +1236,6 @@ const T = {
     arrivals: 'Arrivals',
     paid: 'Paid by card',
     payCap: '{seats} seats · {bags} bags',
-    destEyebrow: 'Where we drive',
-    destTitle: 'Airports and the places we already drive.',
-    destLede: 'Zurich, Geneva and Basel airports, plus Bern, Lucerne, Lausanne, Interlaken, Zermatt, St. Moritz and Davos. One-way transfers, booked ahead.',
-    bookAirport: 'Book an airport transfer',
-    bookCity: 'Book a city transfer',
-    meet: 'Meet in arrivals',
-    cityPickup: 'City pickup',
-    homeTown: 'Our home town',
-    namedRoute: 'Named route',
-    book: 'Book',
   },
   de: {
     eyebrow: 'So funktioniert es',
@@ -1536,16 +1258,6 @@ const T = {
     arrivals: 'Ankunft',
     paid: 'Per Karte bezahlt',
     payCap: '{seats} Sitze · {bags} Gepäckstücke',
-    destEyebrow: 'Wohin wir fahren',
-    destTitle: 'Flughäfen und Orte, die wir bereits fahren.',
-    destLede: 'Die Flughäfen Zürich, Genf und Basel, dazu Bern, Luzern, Lausanne, Interlaken, Zermatt, St. Moritz und Davos. Einfache Fahrt, im Voraus gebucht.',
-    bookAirport: 'Flughafentransfer buchen',
-    bookCity: 'Stadttransfer buchen',
-    meet: 'Treffen in der Ankunft',
-    cityPickup: 'Abholung in der Stadt',
-    homeTown: 'Unser Sitz',
-    namedRoute: 'Genannte Route',
-    book: 'Buchen',
   },
   fr: {
     eyebrow: 'Comment ça marche',
@@ -1568,16 +1280,6 @@ const T = {
     arrivals: 'Arrivées',
     paid: 'Payé par carte',
     payCap: '{seats} places · {bags} bagages',
-    destEyebrow: 'Où nous roulons',
-    destTitle: 'Aéroports et lieux que nous desservons déjà.',
-    destLede: 'Les aéroports de Zurich, Genève et Bâle, plus Berne, Lucerne, Lausanne, Interlaken, Zermatt, Saint-Moritz et Davos. Transferts aller simple, réservés à l’avance.',
-    bookAirport: 'Réserver un transfert aéroport',
-    bookCity: 'Réserver un transfert ville',
-    meet: 'Accueil aux arrivées',
-    cityPickup: 'Prise en charge en ville',
-    homeTown: 'Notre siège',
-    namedRoute: 'Trajet déjà nommé',
-    book: 'Réserver',
   },
   ar: {
     eyebrow: 'كيف يعمل',
@@ -1600,34 +1302,8 @@ const T = {
     arrivals: 'الوصول',
     paid: 'مدفوع بالبطاقة',
     payCap: '{seats} مقاعد · {bags} حقائب',
-    destEyebrow: 'إلى أين نسير',
-    destTitle: 'المطارات والأماكن التي نخدمها فعلاً.',
-    destLede: 'مطارات زيورخ وجنيف وبازل، إضافة إلى برن ولوتسيرن ولوزان وإنترلاكن وزيرمات وسانت موريتز ودافوس. نقل باتجاه واحد، يُحجز مسبقاً.',
-    bookAirport: 'احجز نقل المطار',
-    bookCity: 'احجز نقل المدينة',
-    meet: 'نلتقي في صالة الوصول',
-    cityPickup: 'التقاط من المدينة',
-    homeTown: 'مقرّنا',
-    namedRoute: 'مسار مذكور',
-    book: 'احجز',
   },
 };
-/* Served airports plus places already named in the product. No extra catalog. */
-const PLACES = [
-  { id: 'zrh', kind: 'airport', code: 'ZRH', name: 'Zurich Airport (ZRH)', href: '/#book', lead: true },
-  { id: 'gva', kind: 'airport', code: 'GVA', name: 'Geneva Airport (GVA)', href: '/#book' },
-  { id: 'bsl', kind: 'airport', code: 'BSL', name: 'Basel EuroAirport (BSL)', href: '/#book' },
-  { id: 'zurich', kind: 'city', code: '', name: 'Zurich', href: '/#book' },
-  { id: 'geneva', kind: 'city', code: '', name: 'Geneva', href: '/#book' },
-  { id: 'basel', kind: 'city', code: '', name: 'Basel', href: '/#book' },
-  { id: 'bern', kind: 'city', code: '', name: 'Bern', href: '/#book' },
-  { id: 'lucerne', kind: 'city', code: '', name: 'Lucerne', href: '/#book' },
-  { id: 'lausanne', kind: 'city', code: '', name: 'Lausanne', href: '/#book' },
-  { id: 'interlaken', kind: 'city', code: '', name: 'Interlaken', href: '/#book' },
-  { id: 'zermatt', kind: 'city', code: '', name: 'Zermatt', href: '/#book' },
-  { id: 'stmoritz', kind: 'city', code: '', name: 'St. Moritz', href: '/#book' },
-  { id: 'davos', kind: 'city', code: '', name: 'Davos', href: '/#book' },
-];
 function readLang() {
   try {
     const fromApi = window.VamosLocale && typeof VamosLocale.lang === 'function' ? VamosLocale.lang() : '';
@@ -1745,52 +1421,8 @@ class Component extends DCLogic {
     if (this.io) this.io.disconnect();
     clearTimeout(this.safety);
   }
-  metaFor(place, t) {
-    if (place.kind === 'airport') return t.meet;
-    if (place.id === 'dietikon') return t.homeTown;
-    if (place.kind === 'route') return t.namedRoute;
-    return t.cityPickup;
-  }
-  pickDest = (e, name, kind) => {
-    if (e && (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || (e.button && e.button > 0))) return;
-    if (e && e.preventDefault) e.preventDefault();
-    const place = String(name || '').replace(/\s+/g, ' ').trim().slice(0, 200);
-    if (place.length < 2) return;
-    const detail = { name: place, kind: kind || '', handled: false };
-    try {
-      window.dispatchEvent(new CustomEvent('vamos:dest-pick', { detail: detail }));
-    } catch (err) {}
-    if (detail.handled === true) return;
-    const reduce = typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const el = document.getElementById('book');
-    if (!el) return;
-    const top = el.getBoundingClientRect().top + window.pageYOffset - 24;
-    window.scrollTo({ top: top, behavior: reduce ? 'auto' : 'smooth' });
-  };
-  paintPlace(place, t) {
-    const book = place.kind === 'airport' ? t.bookAirport : t.bookCity;
-    return {
-      id: place.id,
-      name: place.name,
-      code: place.code,
-      href: place.href,
-      photo: place.kind === 'airport' ? '/photos/site/dest-' + place.id + '.jpg?v=2' : '',
-      meta: this.metaFor(place, t),
-      aria: book + ', ' + place.name,
-      lead: place.lead ? '1' : '0',
-      pick: (e) => this.pickDest(e, place.name, place.kind),
-    };
-  }
-  visibleTiles() {
-    return PLACES.filter((p) => p.kind === 'airport');
-  }
-  visibleRows() {
-    return PLACES.filter((p) => p.kind === 'city');
-  }
   renderVals() {
     const t = this.t();
-    const rows = this.visibleRows().map((p) => this.paintPlace(p, t));
-    const tiles = this.visibleTiles().map((p) => this.paintPlace(p, t));
     return {
       tone: (this.props.tone ?? 'light') === 'dark' ? 'dark' : 'light',
       dir: this.state.lang === 'ar' ? 'rtl' : 'ltr',
@@ -1809,14 +1441,6 @@ class Component extends DCLogic {
       meetMark: 14,
       paid: t.paid,
       payClasses: this.payClasses(),
-      destEyebrow: t.destEyebrow,
-      destTitle: t.destTitle,
-      destLede: t.destLede,
-      book: t.book,
-      showRows: rows.length > 0,
-      showTiles: tiles.length > 0,
-      tiles: tiles,
-      rows: rows,
       steps: [
         { num: '01', kind: 'book', kicker: t.kickerBook, title: t.s1t, copy: t.s1c },
         { num: '02', kind: 'meet', kicker: t.kickerMeet, title: t.s2t, copy: t.s2c },
