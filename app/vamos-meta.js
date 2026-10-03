@@ -189,7 +189,7 @@
         if (seq !== withdrawSeq) return; /* a withdraw happened while we asked */
         if (!r || r.ok !== true) return; /* server unreachable: do nothing */
         if (r.chosen === true && r.choice && r.choice.marketing === true) { if (mayStart) bootPixel(); }
-        else clearMeta();
+        else withdraw(); /* revokes Meta's consent when the pixel already runs here, and deletes what it left */
       }, function () { /* ignore */ });
     } catch (e) { /* ignore */ }
   }

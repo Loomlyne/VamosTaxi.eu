@@ -337,6 +337,70 @@ describe("app/vamos-meta.js: flags open", () => {
     expect(h.calls().filter((c) => c[0] === "consent").length).toBe(n + 1);
   });
 
+  it("review 2 item 2: page restored from the back-forward cache, pixel already loaded, server says Marketing is not on: consent revoked and everything deleted", async () => {
+    let answer: State = ACCEPTED;
+    const h = load({ open: true, state: () => Promise.resolve(answer), cached: { marketing: true } /* stale cache says yes */ });
+    await h.settle();
+    expect(h.api().loaded()).toBe(true);
+    expect(h.api().revoked()).toBe(false);
+    h.cookieWrites.length = 0;
+    h.store.multiFbc = "x";
+    h.store.aemSource = "y";
+    // Withdrawn elsewhere while this page sat in the cache; this page heard no event.
+    answer = { ok: true, chosen: true, choice: { marketing: false } };
+    h.fire("pageshow", { persisted: true });
+    await h.settle();
+    expect(h.calls().at(-1)).toEqual(["consent", "revoke"]);
+    expect(h.api().revoked()).toBe(true);
+    expect(h.cookieWrites.some((w) => w.startsWith("_fbp=; Max-Age=0"))).toBe(true);
+    expect(h.cookieWrites.some((w) => w.startsWith("_fbc=; Max-Age=0"))).toBe(true);
+    expect(h.store.multiFbc).toBeUndefined();
+    expect(h.store.aemSource).toBeUndefined();
+    // And it never counts again on this page, even if the server later says yes.
+    answer = ACCEPTED;
+    h.fire("pageshow", { persisted: true });
+    await h.settle();
+    expect(h.calls().filter((c) => c[0] === "track")).toHaveLength(1); // the one PageView from before
+    expect(h.calls().some((c) => c[0] === "consent" && c[1] !== "revoke")).toBe(false); // never granted again
+    expect(h.appended).toHaveLength(1);
+    expect(h.api().revoked()).toBe(true);
+  });
+
+  it("review 2 item 2: restored page where the server has no choice recorded revokes too", async () => {
+    let answer: State = ACCEPTED;
+    const h = load({ open: true, state: () => Promise.resolve(answer), cached: { marketing: true } });
+    await h.settle();
+    answer = { ok: true, chosen: false, choice: null };
+    h.fire("pageshow", { persisted: true });
+    await h.settle();
+    expect(h.calls().at(-1)).toEqual(["consent", "revoke"]);
+    expect(h.api().revoked()).toBe(true);
+  });
+
+  it("review 2 item 2: restored page, server unreachable: nothing is revoked or deleted", async () => {
+    let answer: State = ACCEPTED;
+    const h = load({ open: true, state: () => Promise.resolve(answer), cached: { marketing: true } });
+    await h.settle();
+    h.cookieWrites.length = 0;
+    answer = { ok: false };
+    h.fire("pageshow", { persisted: true });
+    await h.settle();
+    expect(h.api().revoked()).toBe(false);
+    expect(h.calls().some((c) => c[0] === "consent")).toBe(false);
+    expect(h.cookieWrites).toHaveLength(0);
+  });
+
+  it("review 2 item 2: restored page where Marketing is still on does not revoke or boot a second time", async () => {
+    const h = load({ open: true, cached: { marketing: true } });
+    await h.settle();
+    const before = h.calls().length;
+    h.fire("pageshow", { persisted: true });
+    await h.settle();
+    expect(h.calls()).toHaveLength(before);
+    expect(h.appended).toHaveLength(1);
+    expect(h.api().revoked()).toBe(false);
+  });
+
   it("pageshow is the first listener registered, before anything else could run", () => {
     const h = load({ open: true, consentAfterTicks: null });
     expect(Object.keys(h.listeners)[0]).toBe("pageshow");
