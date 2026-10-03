@@ -143,9 +143,16 @@ export async function pressPay(s) {
 export async function dashboardSignIn(s) {
   const f = Object.fromEntries(fs.readFileSync(need("LAB_ADMIN_FILE"), "utf8").split("\n").filter(Boolean).map((l) => [l.slice(0, l.indexOf("=")), l.slice(l.indexOf("=") + 1)]));
   const { page } = s;
-  await page.goto(DASH + "/login", { waitUntil: "domcontentloaded" });
-  await page.locator('input[type="email"], input[autocomplete="email"], input[autocomplete="username"]').first().fill(f.email);
-  await page.locator('input[type="password"]').first().fill(f.password);
+  // Wait for the page to settle: typing before React hydrates is discarded and the form then refuses empty fields.
+  await page.goto(DASH + "/login", { waitUntil: "networkidle" });
+  const email = page.locator('input[type="email"], input[autocomplete="email"], input[autocomplete="username"]').first();
+  const pass = page.locator('input[type="password"]').first();
+  for (let i = 0; i < 3; i++) {
+    await email.fill(f.email);
+    await pass.fill(f.password);
+    await page.waitForTimeout(200);
+    if ((await email.inputValue()) === f.email && (await pass.inputValue()) === f.password) break;
+  }
   await page.getByRole("button", { name: /^sign in$/i }).click();
   await page.waitForURL((u) => !/\/login/.test(u.pathname), { timeout: 20000 });
 }

@@ -1,0 +1,42 @@
+{
+ "at": "2026-10-03T13:44:49.735Z",
+ "base": "http://localhost:4710",
+ "results": [
+  {
+   "id": "T1",
+   "title": "768 home to /checkout",
+   "status": "FAIL",
+   "evidence": "locator.waitFor: Timeout 20000ms exceeded."
+  },
+  {
+   "id": "T2",
+   "title": "Economy, traveller, voucher LABPCT",
+   "status": "FAIL",
+   "evidence": "locator.click: Timeout 30000ms exceeded."
+  },
+  {
+   "id": "T3",
+   "title": "PAY: intent 200, one new session, amount matches",
+   "status": "FAIL",
+   "evidence": "intent undefined; sessions 0->0; amount_total undefined; second PAY undefined x100 = NaN"
+  },
+  {
+   "id": "T4",
+   "title": "Arabic home at 390",
+   "status": "PASS",
+   "evidence": "dir rtl; coverage 0 []; scrollWidth 390 innerWidth 390"
+  },
+  {
+   "id": "T5",
+   "title": "Dashboard sign-in",
+   "status": "FAIL",
+   "evidence": "page.waitForURL: Timeout 20000ms exceeded."
+  },
+  {
+   "id": "T6",
+   "title": "recent bookings in DB",
+   "status": "PASS",
+   "evidence": "count 7"
+  }
+ ]
+}
