@@ -1243,7 +1243,7 @@ Migration `20261007260000` reserved by the controller (2026-10-03 20:05); the ea
 
 **Plans**: 7 plans
 Plans:
-- [ ] 29-01-PLAN.md — setup: merge origin/main, lockfile install, own native stack, base commit
+- [x] 29-01-PLAN.md — setup: merge origin/main, lockfile install, own native stack, base commit
 - [ ] 29-02-PLAN.md — migration 20261007260000 (claim, once-only table, consent subject, clear-ids) + pgTAP + types
 - [ ] 29-03-PLAN.md — capi.ts: locked Purchase payload and one POST; needle scan allow map; Meta bindings typed
 - [ ] 29-04-PLAN.md — Pay press saves the consent subject with the Meta ids (D-01)
