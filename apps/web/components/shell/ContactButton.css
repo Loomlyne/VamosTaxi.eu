@@ -1,0 +1,351 @@
+/* ContactButton + ContactRow (261003, owner-signed direction B). Twin of the rules in
+   app/{home,pages}/ContactButton.dc.html and ContactRow.dc.html. Tokens only, no glow, no tinted
+   yellow, logical properties only. Motion: 200 ms fade + 8 px rise (sheet 320 ms), nothing rotates
+   or scales; none under reduced motion. Hidden in print. */
+
+/* ── trigger ─────────────────────────────────────────────────────────────── */
+.vt-cbtn {
+  font-family: var(--vt-font-body);
+}
+
+.vt-cbtn--float {
+  position: fixed;
+  z-index: 80;
+  inset-inline-end: 24px;
+  /* The tablet/desktop pill clears the cookie card's reserve (Phase 27). */
+  inset-block-end: calc(24px + var(--vt-ck-reserve, 0px));
+}
+
+.vt-cbtn--docked {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
+.vt-cbtn[data-open="1"] {
+  z-index: 500;
+}
+
+.vt-cbtn .vt-cbtn__pill {
+  box-shadow: var(--vt-shadow-lg);
+}
+
+.vt-cbtn .vt-cbtn__pill:hover:not([disabled]) {
+  background: var(--vt-charcoal-800);
+  box-shadow: var(--vt-shadow-lg);
+}
+
+.vt-cbtn .vt-cbtn__pill:active:not([disabled]) {
+  background: var(--vt-charcoal-950);
+  transform: translateY(1px);
+}
+
+.vt-cbtn .vt-cbtn__pill:focus-visible {
+  outline: none;
+  box-shadow: var(--vt-shadow-lg), var(--vt-ring);
+}
+
+.vt-cbtn__disc {
+  all: unset;
+  box-sizing: border-box;
+  display: none;
+  inline-size: 54px;
+  block-size: 54px;
+  border-radius: var(--vt-radius-pill);
+  background: var(--vt-charcoal-900);
+  box-shadow: var(--vt-shadow-lg);
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background var(--vt-dur-fast) var(--vt-ease-out),
+    transform 80ms var(--vt-ease-out);
+}
+
+.vt-cbtn__disc:hover {
+  background: var(--vt-charcoal-800);
+}
+
+.vt-cbtn__disc:active {
+  background: var(--vt-charcoal-950);
+  transform: translateY(1px);
+}
+
+.vt-cbtn__disc:focus-visible {
+  outline: none;
+  box-shadow: var(--vt-shadow-lg), var(--vt-ring);
+}
+
+.vt-cbtn .vt-iconbtn:focus-visible,
+.vt-cbtn__head .vt-iconbtn:focus-visible {
+  outline: none;
+  box-shadow: var(--vt-ring);
+}
+
+/* ── menu: card above 680 px ─────────────────────────────────────────────── */
+.vt-cbtn__panel {
+  position: absolute;
+  inset-block-end: calc(100% + 12px);
+  inset-inline-end: 0;
+  inline-size: 344px;
+  max-inline-size: calc(100vw - 32px);
+  box-sizing: border-box;
+  background: var(--vt-bg-surface);
+  border: 1px solid var(--vt-border-subtle);
+  border-radius: var(--vt-radius-lg);
+  box-shadow: var(--vt-shadow-xl);
+  padding: 8px;
+  text-align: start;
+  animation: vt-cbtn-rise 200ms var(--vt-ease-out) both;
+}
+
+.vt-cbtn__panel:focus,
+.vt-cbtn__sheet:focus {
+  outline: none;
+}
+
+/* ── menu: bottom sheet at 680 px and below (portalled to <body>) ───────── */
+.vt-cbtn__layer {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+}
+
+.vt-cbtn__scrim {
+  position: absolute;
+  inset: 0;
+  background: var(--vt-bg-scrim);
+  animation: vt-cbtn-fade 200ms var(--vt-ease-out) both;
+}
+
+.vt-cbtn__sheet {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  box-sizing: border-box;
+  max-block-size: calc(100dvh - 24px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  background: var(--vt-bg-surface);
+  border-start-start-radius: var(--vt-radius-xl);
+  border-start-end-radius: var(--vt-radius-xl);
+  box-shadow: var(--vt-shadow-xl);
+  padding: 8px 12px calc(16px + env(safe-area-inset-bottom, 0px));
+  text-align: start;
+  font-family: var(--vt-font-body);
+  animation: vt-cbtn-rise 320ms var(--vt-ease-out) both;
+}
+
+.vt-cbtn__grab {
+  inline-size: 40px;
+  block-size: 4px;
+  border-radius: var(--vt-radius-pill);
+  background: var(--vt-grey-300);
+  margin: 4px auto;
+}
+
+.vt-cbtn__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 12px 8px;
+}
+
+.vt-cbtn__head > div {
+  min-inline-size: 0;
+}
+
+.vt-cbtn__kick {
+  margin: 0;
+  font-size: var(--vt-label-sm);
+  letter-spacing: var(--vt-label-tracking);
+  text-transform: uppercase;
+  font-weight: var(--vt-label-weight);
+  color: var(--vt-text-muted);
+}
+
+.vt-cbtn__title {
+  margin: 2px 0 0;
+  font-family: var(--vt-font-display);
+  font-size: var(--vt-heading-4);
+  letter-spacing: var(--vt-heading-tracking);
+  font-weight: var(--vt-weight-semibold);
+  line-height: 1.2;
+  color: var(--vt-text-primary);
+}
+
+.vt-cbtn__rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.vt-cbtn__rows > li {
+  margin: 0;
+  padding: 0;
+}
+
+/* ── ContactRow ──────────────────────────────────────────────────────────── */
+a.vt-crow {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  box-sizing: border-box;
+  min-block-size: 60px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: var(--vt-radius-md);
+  background: transparent;
+  color: var(--vt-text-primary);
+  text-decoration: none;
+  font-family: var(--vt-font-body);
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background var(--vt-dur-fast) var(--vt-ease-out),
+    transform 80ms var(--vt-ease-out);
+}
+
+a.vt-crow[data-size="sheet"] {
+  min-block-size: 64px;
+}
+
+a.vt-crow:hover,
+a.vt-crow[data-s="hover"] {
+  background: var(--vt-grey-50);
+  color: var(--vt-text-primary);
+}
+
+a.vt-crow:active,
+a.vt-crow[data-s="press"] {
+  background: var(--vt-grey-100);
+  transform: translateY(1px);
+}
+
+a.vt-crow:active .vt-crow__lead,
+a.vt-crow[data-s="press"] .vt-crow__lead {
+  background: var(--vt-white);
+}
+
+a.vt-crow:focus-visible,
+a.vt-crow[data-s="focus"] {
+  outline: none;
+  box-shadow: var(--vt-ring);
+}
+
+.vt-crow__lead {
+  inline-size: 40px;
+  block-size: 40px;
+  border-radius: var(--vt-radius-pill);
+  background: var(--vt-grey-100);
+  color: var(--vt-charcoal-900);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vt-crow__main {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-inline-size: 0;
+}
+
+.vt-crow__title {
+  font-size: var(--vt-body-sm);
+  font-weight: var(--vt-weight-semibold);
+  line-height: 1.35;
+}
+
+.vt-crow__sub {
+  font-size: var(--vt-body-xs);
+  line-height: 1.4;
+  color: var(--vt-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+[dir="rtl"] .vt-crow__sub.vt-dir-keep {
+  text-align: end;
+}
+
+.vt-crow__end {
+  display: inline-flex;
+  color: var(--vt-text-muted);
+}
+
+@keyframes vt-cbtn-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes vt-cbtn-fade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* ── phone: disc instead of pill, and where the float steps aside ───────── */
+@media (max-width: 680px) {
+  .vt-cbtn--float {
+    inset-inline-end: 16px;
+    inset-block-end: 16px;
+  }
+
+  .vt-cbtn--float .vt-cbtn__pill {
+    display: none;
+  }
+
+  .vt-cbtn--float .vt-cbtn__disc {
+    display: inline-flex;
+  }
+
+  html[data-vt-ck-open] .vt-cbtn--float,
+  .vt-cbtn--float[data-kb="1"] {
+    display: none;
+  }
+}
+
+html[data-vt-contact-docked] .vt-cbtn--float,
+html[data-vt-sheet-open] .vt-cbtn--float,
+html[data-vt-trav-open] .vt-cbtn--float {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vt-cbtn__panel,
+  .vt-cbtn__sheet,
+  .vt-cbtn__scrim {
+    animation: none;
+  }
+
+  .vt-cbtn__disc,
+  a.vt-crow {
+    transition: none;
+  }
+}
+
+@media print {
+  .vt-cbtn,
+  .vt-cbtn__layer {
+    display: none !important;
+  }
+}

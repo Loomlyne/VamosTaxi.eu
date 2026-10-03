@@ -354,6 +354,7 @@ class Component extends DCLogic {
     this._y = window.scrollY;
     this._ov = [de.style.overflow, b.style.overflow];
     de.style.overflow = 'hidden'; b.style.overflow = 'hidden';
+    de.setAttribute('data-vt-sheet-open', '1'); /* ContactButton steps aside while the sheet is open */
     this._inerted = [];
     let n = this._root;
     while (n && n !== document.body && n.parentNode) {
@@ -368,6 +369,7 @@ class Component extends DCLogic {
     if (!this._locked) return; this._locked = false;
     const de = document.documentElement, b = document.body;
     de.style.overflow = this._ov[0]; b.style.overflow = this._ov[1];
+    de.removeAttribute('data-vt-sheet-open');
     this._inerted.forEach((c) => c.removeAttribute('inert')); this._inerted = [];
     window.scrollTo(0, this._y);
     const o = this._opener; this._opener = null;

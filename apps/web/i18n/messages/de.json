@@ -2908,5 +2908,17 @@
       "no_results": "Keine passenden Orte — versuchen Sie eine vollständigere Adresse",
       "suggest_unavailable": "Die Ortssuche ist ausgefallen — tippen Sie die Adresse oder setzen Sie eine Stecknadel"
     }
+  },
+  "contactButton": {
+    "contact": "Kontakt",
+    "close": "Schliessen",
+    "talk": "Sprechen Sie mit einem Menschen",
+    "whatsapp": "WhatsApp",
+    "callUs": "Rufen Sie uns an",
+    "email": "E-Mail",
+    "sendMessage": "Schreiben Sie uns",
+    "contactForm": "Kontaktformular",
+    "openOptions": "Kontaktoptionen öffnen",
+    "closeOptions": "Kontaktoptionen schliessen"
   }
 }

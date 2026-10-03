@@ -75,6 +75,9 @@ export default defineConfig({
       // In-flight hover/press/dialog-entrance transitions must never cause a flaky
       // capture — every screenshot in this suite is taken with motion switched off.
       animations: "disabled",
+      // 261003: the contact button floats over every page; page baselines predate it. Its own
+      // pictures are in tests/visual/contact-button.spec.ts (stylePath: [] there).
+      stylePath: "./tests/visual/hide-contact-button.css",
     },
   },
 

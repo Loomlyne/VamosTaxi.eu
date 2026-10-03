@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { WEB_ROOT } from "../../tests/support/server-harness";
 
 const placeCombo = readFileSync(join(WEB_ROOT, "components/forms/PlaceCombo.tsx"), "utf8");
-const fab = readFileSync(join(WEB_ROOT, "components/shell/ContactFab.tsx"), "utf8");
+const fab = readFileSync(join(WEB_ROOT, "components/shell/ContactButton.tsx"), "utf8");
 const css = readFileSync(join(WEB_ROOT, "app/[locale]/checkout/checkout.css"), "utf8");
 const layout = readFileSync(join(WEB_ROOT, "app/[locale]/checkout/layout.tsx"), "utf8");
 const route = readFileSync(join(WEB_ROOT, "components/transfer/RouteSummary.css"), "utf8");
@@ -35,7 +35,8 @@ describe("checkout comment pack", () => {
     expect(header).not.toContain("data-hd-pill");
     expect(header).toContain("isCheckout");
     expect(account).toContain("vamosPhoto");
-    expect(shell).toContain("ContactFab");
+    expect(shell).toContain("ContactButton");
+    expect(fab).toContain('data-contact-btn="1"');
   });
 
   it("loads checkout window from settings and does not send place subtitle s", () => {

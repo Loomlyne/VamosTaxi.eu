@@ -28,7 +28,7 @@ import type { SessionSnapshot } from "./SiteHeaderAccount";
 //
 // The control row is fixed and identical everywhere, in this order: logo,
 // language switcher, currency switcher, sign-in control, primary call to
-// action. Public phone is the ContactFab overlay, not a header pill.
+// action. Public phone is the ContactButton (every page), not a header pill.
 // `cta={false}` drops the CTA on a page that already shows the booking card;
 // checkout hides it because the traveller is already in the funnel.
 // `hideAccount` drops the account control.
