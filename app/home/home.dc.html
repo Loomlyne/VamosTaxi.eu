@@ -358,7 +358,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 <p style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-accent)">{{ tKicker }}</p>
 <h1 style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-display-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:var(--vt-display-leading);color:var(--vt-white);max-width:16ch;text-wrap:balance">{{ tH1 }}</h1>
 <p style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-lg);line-height:1.6;color:var(--vt-text-inverse-muted);max-width:52ch;text-wrap:pretty">{{ tSub }}</p>
-</div><div id="{{ barId }}" data-bar-wrap="1" data-trust-in="{{ trustInBar }}" data-om-label="Booking bar">
+</div><div id="{{ barId }}" data-bar-wrap="1" data-contact-lift="1" data-trust-in="{{ trustInBar }}" data-om-label="Booking bar">
 <div ref="{{ barSlotRef }}"><dc-import name="BookingBar" from="{{ barFrom }}" to="{{ barTo }}" whenLabel="{{ whenLabel }}" pax="{{ paxN }}" bags="{{ bagsN }}" travellersSet="{{ travSet }}" complete="{{ tripComplete }}" expanded="{{ sheetOpen }}" onOpen="{{ openFromHero }}" hint-size="100%,54px"></dc-import></div>
 <sc-if value="{{ trustHas }}" hint-placeholder-val="{{ false }}">
 <a data-bar-trust="1" data-vt-no-i18n="1" href="{{ trustHref }}" target="_blank" rel="noopener noreferrer" aria-label="{{ trustAria }}" data-om-label="Reviews">
@@ -597,6 +597,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] i
 
 <dc-import name="SiteFooter" hint-size="100%,520px" show-payment-marks="{{ true }}"></dc-import>
 <dc-import name="CookieBanner" hint-size="0,0"></dc-import>
+<dc-import name="ContactButton" variant="float" hint-size="0,0"></dc-import>
 
 <div data-bar-dock="1" data-show="{{ dockAttr }}" style="{{ dockStyle }}" data-om-label="Docked booking bar">
 <dc-import name="BookingBar" docked="{{ yes }}" from="{{ barFrom }}" to="{{ barTo }}" whenLabel="{{ whenLabel }}" pax="{{ paxN }}" bags="{{ bagsN }}" travellersSet="{{ travSet }}" complete="{{ tripComplete }}" expanded="{{ sheetOpen }}" onOpen="{{ openFromDock }}" hint-size="100%,54px"></dc-import>
@@ -1870,7 +1871,7 @@ class Component extends DCLogic {
     patch.errs = Object.assign({}, this.state.errs, { [touch === 'pickup' ? 'pickup' : 'dest']: '' });
     this.setState(patch, () => { if (f === 'pickup') this.resolveAir(); });
   };
-  lockScroll(on) { try { document.body.style.overflow = on ? 'hidden' : ''; } catch (e) {} }
+  lockScroll(on) { try { document.body.style.overflow = on ? 'hidden' : ''; document.documentElement.toggleAttribute('data-vt-trav-open', !!on); } catch (e) {} }
   /* ── 26.4 bar + sheet (≤1080) ─────────────────────────────────────────────
      The sheet is a view of the same trip state as the laptop box: no copy, no storage.
      It owns its scroll lock, history entries, focus trap and inert background (BookingSheet). */

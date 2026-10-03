@@ -229,6 +229,16 @@ export function CookieBanner({ siteKey }: { siteKey: string | undefined }) {
     };
   }, [showCard]);
 
+  // The floating contact button steps aside on a phone while the card is open (ContactButton.css).
+  useEffect(() => {
+    if (!showCard) return;
+    const root = document.documentElement;
+    root.setAttribute("data-vt-ck-open", "1");
+    return () => {
+      root.removeAttribute("data-vt-ck-open");
+    };
+  }, [showCard]);
+
   function setBusyBoth(v: boolean) {
     busyRef.current = v;
     setBusy(v);

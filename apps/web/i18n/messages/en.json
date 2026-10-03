@@ -2933,5 +2933,17 @@
       "no_results": "No matching places — try a fuller address",
       "suggest_unavailable": "Place search is down — type the address, or drop a pin"
     }
+  },
+  "contactButton": {
+    "contact": "Contact",
+    "close": "Close",
+    "talk": "Talk to a person",
+    "whatsapp": "WhatsApp",
+    "callUs": "Call us",
+    "email": "Email",
+    "sendMessage": "Send us a message",
+    "contactForm": "Contact form",
+    "openOptions": "Open contact options",
+    "closeOptions": "Close contact options"
   }
 }

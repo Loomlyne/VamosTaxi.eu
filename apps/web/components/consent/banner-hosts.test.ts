@@ -10,7 +10,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 const state = { pathname: "/" };
 
 vi.mock("next/navigation", () => ({ usePathname: () => state.pathname }));
-vi.mock("@/components/shell/ContactFab", () => ({ ContactFab: () => null }));
+vi.mock("@/components/shell/ContactButton", () => ({ ContactButton: () => null }));
 
 import { SiteShell } from "@/components/shell/SiteShell";
 

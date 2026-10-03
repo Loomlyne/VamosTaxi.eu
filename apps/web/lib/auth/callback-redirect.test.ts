@@ -40,7 +40,9 @@ describe("checkout public origin", () => {
       "app/api/checkout/pay-link/open/route.ts",
     ]) {
       const file = readFileSync(join(root, rel), "utf8");
-      const csrfAt = file.indexOf("csrfForbidden(request)");
+      // Quick 261003: the intent uses the public-or-staff form (dashboard New trip).
+      const plainAt = file.indexOf("csrfForbidden(request)");
+      const csrfAt = plainAt > -1 ? plainAt : file.indexOf("csrfForbiddenPublicOrStaff(request");
       const jsonAt = file.indexOf("request.json()");
       expect(csrfAt, rel).toBeGreaterThan(-1);
       expect(jsonAt, rel).toBeGreaterThan(csrfAt);

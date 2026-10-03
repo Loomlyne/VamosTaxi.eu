@@ -1,5 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { renderToString } from "react-dom/server";
+
+// 261003: the bar docks the contact button (it needs next-intl, covered in lib/contact-button.test.ts).
+vi.mock("@/components/shell/ContactButton", () => ({
+  ContactButton: ({ variant }: { variant?: string }) => <span data-contact-mock={variant ?? "float"} />,
+}));
+
 import { DisclosureRow } from "./DisclosureRow";
 import { ExtraRow } from "./ExtraRow";
 import { PayBar } from "./PayBar";
@@ -21,6 +27,15 @@ describe("PayBar", () => {
     expect(html).toContain('data-co-total-link');
     expect(html).not.toMatch(/data-co-pay[^-][^>]*disabled/);
     expect(html).not.toContain("Opening payment");
+  });
+
+  it("the bar docks the contact button between Total and PAY; the rail does not", () => {
+    const bar = renderToString(<PayBar {...base} variant="bar" total="CHF 000" onTotal={() => {}} />);
+    const i = bar.indexOf('data-contact-mock="docked"');
+    expect(i).toBeGreaterThan(bar.indexOf("data-co-total-link"));
+    expect(i).toBeLessThan(bar.indexOf('data-co-pay="'));
+    const rail = renderToString(<PayBar {...base} variant="rail" total="CHF 000" />);
+    expect(rail).not.toContain("data-contact-mock");
   });
 
   it("no class: label reads only Pay and the total shows the words", () => {

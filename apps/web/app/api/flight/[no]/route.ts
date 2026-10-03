@@ -121,7 +121,8 @@ export async function GET(
 
   // Worker-limit only. Invisible challenge stays off (§8).
   // No Mapbox breaker — this path spends no Mapbox unit.
-  const limited = await wireRateLimitGuard(env, request)();
+  // Own small counter (quick 261003 review): AeroDataBox bills every call, not_found is never cached.
+  const limited = await wireRateLimitGuard(env, request, "flight")();
   if (!limited.ok) return quoteErrorResponse(limited.code);
 
   const now = new Date();
