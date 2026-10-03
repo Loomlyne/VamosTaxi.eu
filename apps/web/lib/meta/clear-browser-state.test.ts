@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { clearMetaBrowserState, cookieDomainForms } from "./clear-browser-state";
+import { clearMetaBrowserState, clearMetaUnlessMarketingOn, cookieDomainForms } from "./clear-browser-state";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const banner = readFileSync(join(here, "../../components/consent/CookieBanner.tsx"), "utf8");
@@ -46,7 +46,25 @@ describe("the React banner calls it (CR-01 a)", () => {
     const block = banner.slice(at, banner.indexOf("return;", at));
     expect(block).toContain("if (!chosen.marketing) clearMetaBrowserState();");
   });
-  it("and when the server's saved choice has Marketing off", () => {
-    expect(banner).toContain("if (j.choice.marketing !== true) clearMetaBrowserState();");
+  it("and on load for every answer the server gives where Marketing is not on (behaviour: components/consent/banner-meta-clear.test.ts)", () => {
+    expect(banner).toContain("clearMetaUnlessMarketingOn(j);");
   });
+});
+
+describe("clearMetaUnlessMarketingOn (review 2 item 1)", () => {
+  const cases: [string, Parameters<typeof clearMetaUnlessMarketingOn>[0], boolean][] = [
+    ["no choice recorded", { chosen: false }, true],
+    ["chosen without a choice body", { chosen: true }, true],
+    ["Marketing off", { chosen: true, choice: { marketing: false } }, true],
+    ["Marketing missing", { chosen: true, choice: {} }, true],
+    ["Marketing on", { chosen: true, choice: { marketing: true } }, false],
+    ["a choice body but chosen false", { chosen: false, choice: { marketing: true } }, true],
+  ];
+  for (const [name, reply, clears] of cases) {
+    it(`${name}: ${clears ? "clears" : "keeps"}`, () => {
+      const clear = vi.fn();
+      clearMetaUnlessMarketingOn(reply, clear);
+      expect(clear).toHaveBeenCalledTimes(clears ? 1 : 0);
+    });
+  }
 });

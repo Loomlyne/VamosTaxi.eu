@@ -16,6 +16,20 @@ export function cookieDomainForms(hostname: string): string[] {
   return forms;
 }
 
+/**
+ * What the banner does with the server's answer from GET /api/consent/state (review 2, item 1).
+ * Marketing on under the current policy: nothing. No choice recorded (`chosen: false`), or a choice with
+ * Marketing off: delete what Meta left in this browser, the same rule as the mock loader. The caller
+ * runs this only for an answer the server actually gave; an unreachable server deletes nothing.
+ */
+export function clearMetaUnlessMarketingOn(
+  reply: { chosen?: boolean; choice?: { marketing?: boolean } | null },
+  clear: () => void = clearMetaBrowserState,
+): void {
+  if (reply.chosen === true && reply.choice && reply.choice.marketing === true) return;
+  clear();
+}
+
 /** Ends `_fbp`, `_fbc`, `_fbleid` (every domain form) and removes Meta's two local storage keys. */
 export function clearMetaBrowserState(): void {
   if (typeof document === "undefined") return;
