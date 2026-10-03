@@ -95,17 +95,20 @@
     return true;
   }
 
-  /* The previous address travels to Meta as 'rl'. Fail closed (research Pattern 3). */
+  /* The previous address travels to Meta as 'rl'. Fail closed (research Pattern 3). A page of ours
+     counts only when the previous page was a clean one or the bare origin; any other site counts only
+     when it sent just its bare origin (path '/', no query, no hash), so no outside address, with a
+     token or a name in it, can ride along. */
   function referrerAllowed(ref) {
     if (!ref) return true;
     var u = parse(ref);
     if (!u) return false;
+    var bare = u.pathname === '/' && ref.indexOf('?') === -1 && ref.indexOf('#') === -1;
     var h = u.hostname;
     if (h === HOST || h.slice(-(HOST.length + 1)) === '.' + HOST) {
-      if (u.pathname === '/' && ref.indexOf('?') === -1 && ref.indexOf('#') === -1) return true;
-      return urlAllowed(ref);
+      return bare || urlAllowed(ref);
     }
-    return !/vt-\d|token|session|returnTo|@/i.test(ref);
+    return bare;
   }
 
   function allowed(href, referrer) {
@@ -147,7 +150,7 @@
 
   function bootPixel() {
     if (loaded || revokedHere || window.fbq) return; /* another fbq on the page: fail closed */
-    if (!allowed(location.href, document.referrer)) return; /* re-checked in the same tick as track */
+    if (!allowed(location.href, document.referrer)) return; /* re-checked right before the stub is built */
     try {
       var n = function () {
         if (n.callMethod) n.callMethod.apply(n, arguments);
@@ -175,15 +178,17 @@
   function check() {
     if (!GATE_OPEN || !SWITCHES_OFF) { clearMeta(); return; }
     if (revokedHere) return;
-    if (!allowed(location.href, document.referrer)) return;
     var consent = window.VamosConsent;
     if (!consent || typeof consent.state !== 'function') return;
+    /* Pages that are not on the allow-list never start the pixel, but they still remove what Meta left in
+       this browser when the server says marketing is not on (CR-01 b). */
+    var mayStart = allowed(location.href, document.referrer);
     var seq = withdrawSeq;
     try {
       consent.state().then(function (r) {
         if (seq !== withdrawSeq) return; /* a withdraw happened while we asked */
         if (!r || r.ok !== true) return; /* server unreachable: do nothing */
-        if (r.chosen === true && r.choice && r.choice.marketing === true) bootPixel();
+        if (r.chosen === true && r.choice && r.choice.marketing === true) { if (mayStart) bootPixel(); }
         else clearMeta();
       }, function () { /* ignore */ });
     } catch (e) { /* ignore */ }

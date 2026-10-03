@@ -223,11 +223,36 @@ describe("app/vamos-meta.js: flags open", () => {
     ["denied referrer", { href: "https://vamostaxi.site/about", referrer: "https://vamostaxi.site/confirmation/VT-26-07331" }],
     ["dashboard host", { href: "https://dashboard.vamostaxi.site/about" }],
     ["localhost", { href: "http://localhost:4300/about" }],
-  ])("%s: no script and state() is not asked", async (_n, extra) => {
+  ])("%s: no script, and a marketing-on visitor keeps their cookies", async (_n, extra) => {
     const h = load({ open: true, ...extra });
     await h.settle();
     expect(h.appended).toHaveLength(0);
-    expect(h.stateCalls).toHaveLength(0);
+    expect(h.cookieWrites).toHaveLength(0);
+  });
+
+  it.each([
+    ["denied path", { href: "https://vamostaxi.site/manage-booking" }],
+    ["denied referrer", { href: "https://vamostaxi.site/about", referrer: "https://vamostaxi.site/confirmation/VT-26-07331" }],
+    ["dashboard host", { href: "https://dashboard.vamostaxi.site/about" }],
+  ])("CR-01 b, %s: marketing off or not chosen still deletes the Meta cookies and storage", async (_n, extra) => {
+    for (const state of [
+      { ok: true, chosen: true, choice: { marketing: false } } as State,
+      { ok: true, chosen: false, choice: null } as State,
+    ]) {
+      const h = load({ open: true, state, ...extra });
+      await h.settle();
+      expect(h.appended).toHaveLength(0);
+      expect(h.cookieWrites.some((w) => w.startsWith("_fbp=; Max-Age=0"))).toBe(true);
+      expect(h.cookieWrites.some((w) => w.startsWith("_fbc=; Max-Age=0"))).toBe(true);
+      expect(h.store.multiFbc).toBeUndefined();
+      expect(h.store.aemSource).toBeUndefined();
+    }
+  });
+
+  it("CR-01 b: a server that cannot be reached on a denied page deletes nothing", async () => {
+    const h = load({ open: true, href: "https://vamostaxi.site/manage-booking", state: { ok: false } });
+    await h.settle();
+    expect(h.cookieWrites).toHaveLength(0);
   });
 
   it("another fbq already on the page: do nothing (fail closed)", async () => {
@@ -324,6 +349,42 @@ describe("app/vamos-meta.js: flags open", () => {
     vm.createContext(ctx);
     vm.runInContext(withFlags(true), ctx);
     expect(h.win.VamosMeta).toBe(first);
+  });
+});
+
+describe("app/vamos-meta.js: in-place address changes stay on the allow-list (WR-05)", () => {
+  const meta = load({ open: false });
+
+  it("the account page only ever moves to /account/<section> with the same query", () => {
+    const text = readFileSync(resolve(APP_DIR, "pages/account.dc.html"), "utf8");
+    const sections = /const SECTIONS = \[([^\]]+)\]/.exec(text)![1]!.split(",").map((x) => x.trim().replace(/'/g, ""));
+    expect(sections).toEqual(["transfers", "details", "mobile", "preferences", "security", "close"]);
+    const calls = text.split("\n").filter((l) => /history\.replaceState\(/.test(l));
+    expect(calls.length).toBeGreaterThan(0);
+    for (const l of calls) expect(l).toMatch(/replaceState\(null, '', '\/account\/' \+ \w+ \+ location\.search\)/);
+    for (const s of sections) {
+      expect(meta.api().allowed(`https://vamostaxi.site/account/${s}`, ""), s).toBe(true);
+      expect(meta.api().allowed(`https://vamostaxi.site/account/${s}?fbclid=x`, ""), s).toBe(true);
+    }
+  });
+
+  it("the language runtime only moves the nine public pages between their per-language addresses", () => {
+    const text = readFileSync(resolve(APP_DIR, "vamos-locale.js"), "utf8");
+    const keys = [...(/var SEO_PATHS = \{([^}]+)\}/.exec(text)![1]!).matchAll(/'([^']+)'/g)].map((m) => m[1]!);
+    expect(keys).toHaveLength(9);
+    expect(text).toContain("history.replaceState(history.state, '', want + location.search + location.hash)");
+    for (const bare of keys) {
+      for (const lang of ["en", "de", "fr", "ar"]) {
+        const want = lang === "en" ? bare : "/" + lang + (bare === "/" ? "" : bare);
+        expect(meta.api().allowed(`https://vamostaxi.site${want}`, ""), want).toBe(true);
+      }
+    }
+  });
+
+  it("the footer anchor and the confirm card only keep the page on its own clean path", () => {
+    const footer = readFileSync(resolve(APP_DIR, "pages/SiteFooter.dc.html"), "utf8");
+    expect(footer).toContain("history.replaceState(null, '', '#faq')");
+    expect(meta.api().allowed("https://vamostaxi.site/faq#faq", "")).toBe(true);
   });
 });
 
