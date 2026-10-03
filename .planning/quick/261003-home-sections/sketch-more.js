@@ -1,7 +1,7 @@
 /* Round 2 directions (English only until the owner picks): routes-b/c/d, reviews-b/c/d, faq-a/b/c/d. Not product code. */
 (function () {
   var s = new URLSearchParams(location.search).get('v') || '';
-  var SETS = ['routes-b', 'routes-c', 'routes-d', 'reviews-b', 'reviews-c', 'reviews-d', 'faq-a', 'faq-b', 'faq-c', 'faq-d'];
+  var SETS = ['routes-b', 'routes-c', 'routes-d', 'reviews-b', 'reviews-c', 'reviews-d', 'faq-a', 'faq-b', 'faq-c', 'faq-d', 'faq-e'];
   if (SETS.indexOf(s) < 0) return;
   var css = document.createElement('style');
   css.textContent = [
@@ -65,6 +65,8 @@
     '[data-faq3]{display:grid;grid-template-columns:minmax(0,280px) minmax(0,1fr);gap:clamp(24px,5vw,72px)}',
     '@media (max-width:900px){[data-faq3]{grid-template-columns:1fr}}',
     '[data-faq3] > *{min-inline-size:0}',
+    '[data-help-after]{display:none}',
+    '@media (max-width:900px){[data-faq3] [data-help]:not([data-help-after]){display:none}[data-help-after]{display:flex}}',
     '[data-cats]{display:flex;flex-direction:column;gap:6px}',
     '@media (max-width:900px){[data-cats]{flex-direction:row;overflow-x:auto;overscroll-behavior-x:contain}}',
     '[data-cat]{display:flex;align-items:center;justify-content:space-between;gap:12px;min-block-size:48px;padding-inline:16px;border-radius:12px;font-size:14px;font-weight:var(--vt-weight-semibold);white-space:nowrap}',
@@ -134,6 +136,8 @@
   } else if (s === 'faq-c') {
     html = sec(head('Answers', 'Frequently asked questions') + '<div data-faq3><div><div data-cats>' + CATS.map(function (c, i) { return '<span data-cat aria-selected="' + (i === 1) + '">' + c[0] + '<small class="vt-dir-keep">' + c[1] + '</small></span>'; }).join('') + '</div><div data-help><b>Still a question?</b><p>We answer every day by phone, WhatsApp or email.</p><span data-link style="color:var(--vt-yellow-500)">' + I('message-circle') + 'WhatsApp us</span></div></div><div>' + QS.map(function (x, i) { return '<div data-qa><div data-q' + (i === 0 ? ' data-open' : '') + '><span>' + x[0] + '</span><span data-pm>' + I(i === 0 ? 'x' : 'plus') + '</span></div>' + (i === 0 ? '<p data-a2>' + x[1] + '</p>' : '') + '</div>'; }).join('') + '</div></div>');
     html = html.replace('We answer every day by phone', 'We answer by phone');
+  } else if (s === 'faq-e') {
+    html = sec(head('Answers', 'Frequently asked questions') + '<div data-faq3><div><div data-cats>' + CATS.map(function (c, i) { return '<span data-cat aria-selected="' + (i === 1) + '">' + c[0] + '<small class="vt-dir-keep">' + c[1] + '</small></span>'; }).join('') + '</div><div data-help><b>Still a question?</b><p>We answer by phone, WhatsApp or email.</p><span data-link style="color:var(--vt-yellow-500)">' + I('message-circle') + 'WhatsApp us</span></div></div><div>' + QS.map(function (x, i) { return i === 0 ? '<div data-qcard><div data-q data-open><span>' + x[0] + '</span><span data-pm>' + I('x') + '</span></div><p data-a2 style="margin:0;padding-block-end:20px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">' + x[1] + '</p></div>' : '<div data-qa style="padding-inline:20px"><div data-q><span>' + x[0] + '</span><span data-pm>' + I('plus') + '</span></div></div>'; }).join('') + '<div data-help data-help-after><b>Still a question?</b><p>We answer by phone, WhatsApp or email.</p><span data-link style="color:var(--vt-yellow-500)">' + I('message-circle') + 'WhatsApp us</span></div></div></div>');
   } else if (s === 'faq-d') {
     html = sec(head('Answers', 'Frequently asked questions') + '<div data-tabs2>' + CATS.map(function (c, i) { return '<span data-tab2 aria-selected="' + (i === 1) + '">' + c[0] + '</span>'; }).join('') + '</div><div data-qgrid>' + QS.concat([['Is the price I see the final price?', '']]).map(function (x, i) { return '<div data-qcard><div data-q' + (i === 0 ? ' data-open' : '') + '><span>' + x[0] + '</span><span data-pm>' + I(i === 0 ? 'x' : 'plus') + '</span></div>' + (i === 0 ? '<p data-a2 style="margin:0;padding-block-end:20px;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)">' + x[1] + '</p>' : '') + '</div>'; }).join('') + '</div>' +
       '<div data-helpband><span style="display:flex;flex-direction:column;gap:4px"><b>Still a question?</b><span data-p>Call, WhatsApp or email us.</span></span><span style="display:flex;gap:12px;flex-wrap:wrap"><a data-btn href="/contact">Contact us' + I('arrow-right', 1) + '</a><a data-btn="ghost" href="#">' + I('message-circle') + 'WhatsApp</a></span></div>');

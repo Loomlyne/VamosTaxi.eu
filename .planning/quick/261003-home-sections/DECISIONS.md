@@ -14,3 +14,10 @@ Verbatim intent from the owner's ten comments, in his order.
 8. Business travel (new): **add it.**
 9. FAQ: no line between the question and its answer when it opens; fix it and **give more suggestions.**
 10. Closing call to action (new): **add it.**
+
+## Layout choices (question form, 2026-10-03)
+
+- Where we drive: **C, airport tabs.**
+- Reviews: **C, platform scores on top + wall of reviews.**
+- FAQ: **open card (B) and topics rail (C) together** — drawn as `faq-e`.
+- Vehicle classes: **A, three cards.**
