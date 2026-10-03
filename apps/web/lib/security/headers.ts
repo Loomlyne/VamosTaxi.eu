@@ -13,17 +13,44 @@
 // cloudflareinsights.com receives it. Our own code loads it only after the
 // visitor allows Analytics (lib/consent/web-analytics.ts); Cloudflare's
 // automatic injection must stay off, or this allowance lets it run unasked.
+//
+// Meta (Phase 28): its hosts appear only through `contentSecurityPolicy({ metaPixel: true })`, which
+// `lib/meta/pixel-csp.ts` chooses per address for the clean mock pages while both Meta flags are on.
+// SECURITY_HEADER_PAIRS (the Next pages, the dashboard, every other response) never names a Meta host.
+//
+// Referrer-Policy is strict-origin: a move from a checkout, confirmation or pay-link address to another
+// page of ours tells that page only https://vamostaxi.site/, never the previous address (Meta's script
+// reads document.referrer). Cross-site requests already sent the origin only, so Mapbox, Turnstile and
+// Stripe see what they saw before. No product code reads Referer.
+
+/**
+ * The Content-Security-Policy string. `metaPixel: false` is the policy of every page today; `true`
+ * adds Meta's script, beacon and fallback-frame hosts and nothing else (connect-src does not gain the
+ * script host, so Meta's telemetry stays blocked; no Instagram or gateway host).
+ */
+export function contentSecurityPolicy(opts: { metaPixel: boolean }): string {
+  const meta = opts.metaPixel;
+  return [
+    "default-src 'self'",
+    `script-src 'self' 'unsafe-inline' 'unsafe-eval' challenges.cloudflare.com static.cloudflareinsights.com${meta ? " https://connect.facebook.net" : ""}`,
+    `frame-src challenges.cloudflare.com${meta ? " https://www.facebook.com" : ""}`,
+    `connect-src 'self' challenges.cloudflare.com api.mapbox.com events.mapbox.com cloudflareinsights.com${meta ? " https://www.facebook.com" : ""}`,
+    `img-src 'self' data: blob: https://*.mapbox.com${meta ? " https://www.facebook.com" : ""}`,
+    "worker-src 'self' blob:",
+    "style-src 'self' 'unsafe-inline'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "frame-ancestors 'none'",
+  ].join("; ");
+}
 
 export const SECURITY_HEADER_PAIRS: ReadonlyArray<readonly [string, string]> = [
   ["Strict-Transport-Security", "max-age=31536000; includeSubDomains"],
-  ["Referrer-Policy", "strict-origin-when-cross-origin"],
+  ["Referrer-Policy", "strict-origin"],
   ["X-Content-Type-Options", "nosniff"],
   ["X-Frame-Options", "DENY"],
   ["Permissions-Policy", "camera=(), microphone=(), geolocation=()"],
-  [
-    "Content-Security-Policy",
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' challenges.cloudflare.com static.cloudflareinsights.com; frame-src challenges.cloudflare.com; connect-src 'self' challenges.cloudflare.com api.mapbox.com events.mapbox.com cloudflareinsights.com; img-src 'self' data: blob: https://*.mapbox.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'",
-  ],
+  ["Content-Security-Policy", contentSecurityPolicy({ metaPixel: false })],
 ];
 
 export function applySecurityHeaders(headers: Headers): void {
