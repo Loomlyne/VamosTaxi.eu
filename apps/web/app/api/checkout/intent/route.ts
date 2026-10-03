@@ -42,7 +42,7 @@ import {
 import { gateAccountForRequest, type AccountRecord } from "@/lib/checkout/account-gate";
 import { truncateClientIp, cfConnectingIp } from "@/lib/consent/ip";
 import { readConsentChoice } from "@/lib/consent/read";
-import { metaClickIdsToSave } from "@/lib/meta/click-ids";
+import { scheduleMetaClickIdSave } from "@/lib/meta/click-ids";
 import { metaMeasurementAllowed } from "@/lib/meta/legal-gate";
 import { lockSecretMissingResponse, lockSecretPresent } from "@/lib/quote/lock-secret";
 
@@ -74,7 +74,7 @@ async function postIntent(request: Request) {
   // Quick 261003: the dashboard New trip saves here too; its Origin needs a staff session.
   const blocked = await csrfForbiddenPublicOrStaff(request, () => requestHasStaffSession(request));
   if (blocked) return blocked;
-  const { env } = getCloudflareContext();
+  const { env, ctx } = getCloudflareContext();
   if (!lockSecretPresent(env.QUOTE_LOCK_SECRET, "/api/checkout/intent")) return lockSecretMissingResponse();
 
   // D-20 (a): 8 Pay presses per minute per IP, before anything is read or checked.
@@ -189,25 +189,22 @@ async function postIntent(request: Request) {
     accountGate,
     // D-06/D-19: written after the booking exists; the DB copies the booking's e-mail (p_email is null).
     afterBooking: async (bookingId) => {
-      // Best effort and first: a failure here never changes the Pay answer or the account record below.
-      try {
-        const save = await metaClickIdsToSave({
+      // Review 2 (item 3): handed to ctx.waitUntil, so the Pay answer never waits for it. A failure logs the
+      // SQLSTATE only and changes nothing else. Public Origin only, Meta format only, marketing on only.
+      await scheduleMetaClickIdSave({
+        ctx,
+        decide: {
           cookieHeader,
           origin: requestOrigin,
           measurementAllowed: metaMeasurementAllowed(),
           readMarketing: (subject) =>
             asAnon(env, (tx) => readConsentChoice(tx, subject)).then((c) => c?.marketing === true),
-        });
-        if (!save.skip) {
-          await asCheckout(env, null, async (sql) => {
-            await sql`select public.checkout_set_meta_click_ids(${bookingId}::uuid, ${save.fbp}, ${save.fbc})`;
-          });
-        }
-      } catch (err) {
-        // SQLSTATE only: the values are never logged.
-        const code = err && typeof err === "object" && "code" in err ? (err as { code?: unknown }).code : null;
-        console.error("checkout_meta_click_ids_failed", typeof code === "string" && code.length === 5 ? code : "no-sqlstate");
-      }
+        },
+        write: (fbp, fbc) =>
+          asCheckout(env, null, async (sql) => {
+            await sql`select public.checkout_set_meta_click_ids(${bookingId}::uuid, ${fbp}, ${fbc})`;
+          }),
+      });
       const record = accountRecord;
       if (!record) return;
       await asCheckout(env, null, async (sql) => {

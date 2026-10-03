@@ -52,6 +52,13 @@ export function readMetaClickIds(cookieHeader: string | null | undefined): MetaC
 
 export type MetaSaveDecision = { skip: true } | { skip: false; fbp: string | null; fbc: string | null };
 
+type SaveDecisionInput = {
+  cookieHeader: string | null;
+  origin: string | null;
+  measurementAllowed: boolean;
+  readMarketing: (subject: string) => Promise<boolean | null>;
+};
+
 /**
  * What to write at the Pay press (D-09). `skip` when the two code flags are not both on. Otherwise the
  * two values are kept only when the request comes from the public site (a dashboard Origin shares the
@@ -59,12 +66,7 @@ export type MetaSaveDecision = { skip: true } | { skip: false; fbp: string | nul
  * and the server says marketing is on under the current policy version right now. Anything else gives
  * nulls, which clears values from an earlier press.
  */
-export async function metaClickIdsToSave(input: {
-  cookieHeader: string | null;
-  origin: string | null;
-  measurementAllowed: boolean;
-  readMarketing: (subject: string) => Promise<boolean | null>;
-}): Promise<MetaSaveDecision> {
+export async function metaClickIdsToSave(input: SaveDecisionInput): Promise<MetaSaveDecision> {
   if (!input.measurementAllowed) return { skip: true };
   const none = { skip: false, fbp: null, fbc: null } as const;
   // A non-public Origin (the dashboard) neither saves nor clears: it must never touch a booking's values (WR-06).
@@ -81,4 +83,41 @@ export async function metaClickIdsToSave(input: {
   }
   if (marketing !== true) return none;
   return { skip: false, fbp: ids.fbp, fbc: ids.fbc };
+}
+
+/** What the route needs from the Workers execution context (`getCloudflareContext().ctx`). */
+export interface BackgroundContext {
+  waitUntil?: (promise: Promise<unknown>) => void;
+}
+
+/**
+ * Decide and write the click ids for one booking without ever delaying the Pay answer (review 2, item 3).
+ *
+ * With a context the whole job (consent read, decision, write) goes to `ctx.waitUntil` and this returns
+ * at once. Without one (a test, or a local run that has no context) the job runs inline: the ids are
+ * still saved, only the speed guarantee is gone.
+ *
+ * The job never rejects. A failure logs the SQLSTATE only (never a value) and changes nothing else.
+ * Flags off or a non-public Origin decide `skip` before any database call.
+ */
+export function scheduleMetaClickIdSave(args: {
+  ctx: BackgroundContext | null | undefined;
+  decide: SaveDecisionInput;
+  write: (fbp: string | null, fbc: string | null) => Promise<void>;
+}): Promise<void> {
+  const job = async (): Promise<void> => {
+    try {
+      const save = await metaClickIdsToSave(args.decide);
+      if (!save.skip) await args.write(save.fbp, save.fbc);
+    } catch (err) {
+      const code = err && typeof err === "object" && "code" in err ? (err as { code?: unknown }).code : null;
+      console.error("checkout_meta_click_ids_failed", typeof code === "string" && code.length === 5 ? code : "no-sqlstate");
+    }
+  };
+  const waitUntil = args.ctx?.waitUntil;
+  if (typeof waitUntil === "function") {
+    waitUntil.call(args.ctx, job());
+    return Promise.resolve();
+  }
+  return job();
 }
