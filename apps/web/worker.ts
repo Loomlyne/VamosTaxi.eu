@@ -201,7 +201,8 @@ export default {
       const body = message.body as StripeQueueMessage;
       let ackOutcome: "acked" | "retry" | "ack-failed" = "acked";
       try {
-        const result = await handleStripeMessage(env, body);
+        // Phase 29: only the queue may send the Purchase; the return route never does.
+        const result = await handleStripeMessage(env, body, { metaPurchase: true });
         // 26.1-08: a delayed retry (app_refund_pending) passes delaySeconds through.
         ackOutcome = applyHandleResult(message, result);
       } catch {

@@ -1,3 +1,5 @@
+import { readdirSync, readFileSync, statSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import type Stripe from "stripe";
 import {
@@ -146,5 +148,59 @@ describe("returnRedirectTarget per-visitor limit (F6)", () => {
     const allowRead = vi.fn(async () => true);
     await returnRedirectTarget(deps({ allowRead }), { sessionId: "nope", ref: "", locale: "en" });
     expect(allowRead).not.toHaveBeenCalled();
+  });
+});
+
+describe("Phase 29: no Purchase from the return route", () => {
+  const web = join(__dirname, "..", "..");
+  const src = (rel: string) => readFileSync(join(web, rel), "utf8");
+
+  function filesUnder(dir: string): string[] {
+    let out: string[] = [];
+    try {
+      for (const name of readdirSync(dir)) {
+        const full = join(dir, name);
+        out = statSync(full).isDirectory() ? out.concat(filesUnder(full)) : out.concat(full);
+      }
+    } catch {
+      // folder absent: nothing to scan
+    }
+    return out;
+  }
+
+  it("worker.ts opts the queue in exactly once", () => {
+    const worker = src("worker.ts");
+    expect(worker.split("handleStripeMessage(env, body, { metaPurchase: true })").length - 1).toBe(1);
+    expect(worker.split("handleStripeMessage(").length - 1).toBe(1);
+  });
+
+  it("return-settle.ts calls handleStripeMessage with two arguments and never mentions Meta", () => {
+    const file = src("lib/checkout/return-settle.ts");
+    const from = file.indexOf("handleStripeMessage(env, {");
+    expect(from).toBeGreaterThan(-1);
+    const call = file.slice(from, file.indexOf("});", from));
+    expect(call).not.toContain("metaPurchase");
+    for (const needle of ["metaPurchase", "sendMetaPurchase", "lib/meta", "graph.facebook"]) {
+      expect(file).not.toContain(needle);
+    }
+  });
+
+  it("customer-facing routes and mocks import no Meta sender and name no Graph host", () => {
+    const dirs = ["app/[locale]/confirmation", "app/[locale]/checkout", "app/api/checkout/return"].map((d) => join(web, d));
+    for (const file of dirs.flatMap(filesUnder)) {
+      if (!/\.(ts|tsx)$/.test(file)) continue;
+      const text = readFileSync(file, "utf8");
+      expect(text, file).not.toMatch(/lib\/meta\/(purchase|capi)/);
+    }
+    for (const mock of ["../../app/pages/checkout.dc.html", "../../app/pages/confirmation.dc.html"]) {
+      const path = join(web, mock);
+      let text = "";
+      try {
+        text = readFileSync(path, "utf8");
+      } catch {
+        continue;
+      }
+      expect(text, mock).not.toContain("graph.facebook");
+    }
   });
 });
