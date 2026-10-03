@@ -1248,7 +1248,7 @@ Plans:
 - [x] 29-03-PLAN.md — capi.ts: locked Purchase payload and one POST; needle scan allow map; Meta bindings typed
 - [x] 29-04-PLAN.md — Pay press saves the consent subject with the Meta ids (D-01)
 - [x] 29-05-PLAN.md — purchase.ts orchestrator (gate, token, Stripe mode, claim, one POST, finish) + Worker-client DB proof
-- [ ] 29-06-PLAN.md — settle queue hook after the money steps; queue opts in; return route pinned out
+- [x] 29-06-PLAN.md — settle queue hook after the money steps; queue opts in; return route pinned out
 - [ ] 29-07-PLAN.md — owner's test event code, full gates, HANDOVER for the controller
 **UI hint**: no. One Purchase from the settle queue. Do not change quote, pay, or confirmation.
 
