@@ -25,8 +25,9 @@ The build is the slow part (several minutes). `up` skips it when `apps/web/.open
 
 ## Runtime: Docker or native (no Docker)
 
-`LAB_RUNTIME=auto|docker|native scripts/test-lab/lab.sh up <name>`. `auto` (the default) uses Docker when its daemon
-answers, otherwise native. A lab keeps the runtime it was made with; to switch, `destroy` it and make a new one.
+`LAB_RUNTIME=auto|docker|native scripts/test-lab/lab.sh up <name>`. `auto` (the default) uses native whenever this
+machine can (macOS arm64 or Linux, CLI 2.118+ on PATH), otherwise Docker. Owner, 2026-10-03: Vamos runs its local
+stacks without Docker; the Vamos Docker containers and images were deleted that day. A lab keeps the runtime it was made with; to switch, `destroy` it and make a new one.
 
 - **docker**: the repo's pinned CLI (`pnpm exec supabase`, 2.115.0) starts one container per service.
 - **native**: Supabase CLI 2.118+ runs a managed stack as plain processes on macOS arm64 or Linux: no Docker or

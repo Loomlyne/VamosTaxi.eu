@@ -85,7 +85,7 @@ hash_cfg() { cat "$WEB/wrangler.e2e.jsonc" "$WEB/.dev.vars" 2>/dev/null | shasum
 #   (config `[experimental] stack = true`, `start --runtime native`). The pinned 2.115 has no native stack, so this
 #   mode uses the CLI on PATH (SUPABASE_NATIVE_CLI to override). Verified 2026-10-03 with 2.119.0: migrations, seed,
 #   db reset and the full pgTAP suite (99 files, 2653 tests) pass.
-# LAB_RUNTIME=auto|docker|native picks it for a new lab (auto: docker when its daemon answers, else native);
+# LAB_RUNTIME=auto|docker|native picks it for a new lab (auto: native whenever possible, else docker);
 # a lab keeps its runtime for life (LAB_SB_RUNTIME in lab.env).
 NATIVE_CLI=${SUPABASE_NATIVE_CLI:-supabase}
 RUNTIME=""
@@ -96,13 +96,16 @@ pick_runtime() {
   else
     case "${LAB_RUNTIME:-auto}" in
       docker|native) RUNTIME=$LAB_RUNTIME;;
-      auto) if docker info >/dev/null 2>&1; then RUNTIME=docker; else RUNTIME=native; fi;;
+      # Owner 2026-10-03: Vamos runs its local stacks without Docker. auto = native whenever this machine can
+      # (macOS arm64 / Linux and a CLI >= 2.118 on PATH); Docker only when native is impossible, or LAB_RUNTIME=docker.
+      auto) if native_possible; then RUNTIME=native; else RUNTIME=docker; fi;;
       *) fail "LAB_RUNTIME must be auto, docker or native (got ${LAB_RUNTIME})";;
     esac
   fi
   [ "$RUNTIME" = native ] && need_native_cli
   return 0
 }
+native_possible() { ( need_native_cli ) >/dev/null 2>&1; }
 need_native_cli() {
   local v
   case "$(uname -s)-$(uname -m)" in Darwin-arm64|Linux-*) ;; *) fail "the native runtime needs macOS arm64 or Linux; start Docker and use LAB_RUNTIME=docker";; esac

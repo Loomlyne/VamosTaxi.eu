@@ -17,6 +17,11 @@ date: 2026-10-03
 - Docker lab `dk` (regression, Docker back): self-test 7/7, `pgtap` 99/2653, `destroy` clean.
 - `bash -n`, `node --check` pass.
 
+- Owner 2026-10-03 ~19:15: "delete all vamos now and continue without docker". Deleted: the Vamos Docker containers
+  (`vamos-taxi`, `vamos-taxi-fl`), their volumes and networks, and all 14 Supabase images (~8 GB). Kept: Twenty CRM's
+  volumes (not Vamos) and one unlabelled volume of 2026-09-28 (owner not provable). `auto` now prefers native.
+- Auto lab `nod` (full rebuild): picked native, self-test 7/7, `destroy` clean.
+
 ## Found and fixed on the way
 
 - `pgtap` on a seeded lab failed (the lab's live stand-in price book collides with the suite's own): it now resets first.
