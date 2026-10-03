@@ -4,10 +4,13 @@
 //
 // Display only. The charge still comes from the signed lock's class_totals and
 // the kernel re-run at intent time; these rows never feed a payable amount.
+// 261003: `farePartsFromLines` hands the same two figures to checkoutCharge so the
+// Fare line is cut into labelled pieces; they only ever split, never add.
 // Amounts go through the caller's `toAmount` (FX display conversion); a null
 // amount stays null so PriceSummary renders `formatAmount(null)` — the Law 04
 // `CHF 000` mark — and nothing here ever invents a figure.
-import { base64urlDecode } from "../crypto/hmac";
+import type { QuoteLockPayload } from "../quote/lock";
+import type { FareParts } from "./checkout-charge";
 
 /** The two kernel line codes this builder turns into rows. */
 export type BreakdownCode = "airport_fee" | "fixed_route";
@@ -88,46 +91,66 @@ export function breakdownRappen(rows: readonly BreakdownRow[]): number {
   return rows.reduce((sum, row) => sum + (row.amount_rappen ?? 0), 0);
 }
 
-function cleanRappen(value: unknown): number | null {
-  return typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : null;
+/**
+ * 261003: the airport fee and the route extra of one class, summed per code over
+ * legs (V1 is one way: one leg), for `checkoutCharge({ fareParts })`. The lines
+ * come only from the VERIFIED lock's `price_rows` or the ops board's own kernel
+ * lines — never from a request body. A null, negative or non-finite amount is
+ * kept as given so checkoutCharge refuses to split on it (one Fare line, as
+ * today). Returns undefined when neither code is present (old lock).
+ */
+export function farePartsFromLines(
+  lines: readonly BreakdownLine[] | null | undefined,
+): FareParts | undefined {
+  if (!lines || lines.length === 0) return undefined;
+  let fee: number | null = null;
+  let route = null as FareParts["route"];
+  let bad = false;
+  for (const line of lines) {
+    if (line.code !== "airport_fee" && line.code !== "fixed_route") continue;
+    const amount = line.amount_rappen;
+    if (typeof amount !== "number" || !Number.isInteger(amount) || amount < 0) {
+      bad = true;
+      continue;
+    }
+    if (line.code === "airport_fee") {
+      fee = (fee ?? 0) + amount;
+    } else {
+      const names = placeNames(line.params);
+      route = {
+        amountRappen: (route?.amountRappen ?? 0) + amount,
+        origin: route?.origin ?? names?.origin ?? null,
+        destination: route?.destination ?? names?.destination ?? null,
+      };
+    }
+  }
+  // One unreadable part poisons the split: a NaN fee makes checkoutCharge keep one line.
+  if (bad) return { airportFeeRappen: Number.NaN, route: null };
+  if (fee == null && route == null) return undefined;
+  return { airportFeeRappen: fee, route };
 }
 
 /**
- * Display-only peek at the lock's `price_rows` for one class (26.1-11). Does
- * not verify the HMAC — same contract as `peekLockClassRappen`. An older lock
- * without `price_rows`, another class, or an unreadable token returns [].
+ * 261003: the chosen class's parts from a VERIFIED lock payload (`verifyLock` ok).
+ * Reads `price_rows` for the breakdown only, never for an amount. A lock without
+ * the field, another class or a malformed entry gives undefined: one Fare line.
  */
-export function peekLockPriceRows(lock: string | undefined, slug: string): BreakdownLine[] {
-  if (!lock || !slug) return [];
-  const parts = lock.split(".");
-  if (parts.length !== 3 || !parts[1]) return [];
-  try {
-    const payload: unknown = JSON.parse(new TextDecoder().decode(base64urlDecode(parts[1])));
-    if (!payload || typeof payload !== "object") return [];
-    const all = (payload as { price_rows?: unknown }).price_rows;
-    if (!Array.isArray(all)) return [];
-    const entry: unknown = all.find(
-      (row: unknown) => !!row && typeof row === "object" && (row as { slug?: unknown }).slug === slug,
-    );
-    const lines = entry ? (entry as { lines?: unknown }).lines : null;
-    if (!Array.isArray(lines)) return [];
-    const out: BreakdownLine[] = [];
-    for (const raw of lines as unknown[]) {
-      if (!raw || typeof raw !== "object") continue;
-      const r = raw as { code?: unknown; amount_rappen?: unknown; params?: unknown };
-      if (r.code !== "airport_fee" && r.code !== "fixed_route") continue;
-      const names =
-        r.params && typeof r.params === "object"
-          ? placeNames(r.params as BreakdownLine["params"])
-          : null;
-      out.push({
-        code: r.code,
-        amount_rappen: cleanRappen(r.amount_rappen),
-        ...(names ? { params: names } : {}),
-      });
-    }
-    return out;
-  } catch {
-    return [];
+export function farePartsFromLock(
+  priceRows: QuoteLockPayload["price_rows"] | undefined,
+  slug: string,
+): FareParts | undefined {
+  if (!Array.isArray(priceRows)) return undefined;
+  const entry = priceRows.find((row) => !!row && typeof row === "object" && row.slug === slug);
+  if (!entry || !Array.isArray(entry.lines)) return undefined;
+  const lines: BreakdownLine[] = [];
+  for (const raw of entry.lines) {
+    if (!raw || typeof raw !== "object") continue;
+    const names = placeNames(raw.params);
+    lines.push({
+      code: raw.code,
+      amount_rappen: typeof raw.amount_rappen === "number" ? raw.amount_rappen : null,
+      ...(names ? { params: names } : {}),
+    });
   }
+  return farePartsFromLines(lines);
 }
