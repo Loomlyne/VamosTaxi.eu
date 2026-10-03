@@ -1241,14 +1241,15 @@ do not change.
 **State, 2026-10-01: waiting.** Starts after 28. No Purchase event until the legal gate is open (owner rule).
 Migration `20261007260000` reserved by the controller (2026-10-03 20:05); the earlier `20261004100000`-`190000` block is withdrawn.
 
-**Plans**: 6 plans
+**Plans**: 7 plans
 Plans:
-- [ ] 29-01-PLAN.md — merge origin/main; migration 20261007260000 (claim, once-only table, consent subject) + pgTAP + types
-- [ ] 29-02-PLAN.md — capi.ts: locked Purchase payload and one POST; needle scan allow map; Meta bindings typed
-- [ ] 29-03-PLAN.md — Pay press saves the consent subject with the Meta ids (D-01)
-- [ ] 29-04-PLAN.md — purchase.ts orchestrator (gate, token, Stripe mode, claim, one POST, finish) + Worker-client DB proof
-- [ ] 29-05-PLAN.md — settle queue hook after the money steps; queue opts in; return route pinned out
-- [ ] 29-06-PLAN.md — owner's test event code, full gates, HANDOVER for the controller
+- [ ] 29-01-PLAN.md — setup: merge origin/main, lockfile install, own native stack, base commit
+- [ ] 29-02-PLAN.md — migration 20261007260000 (claim, once-only table, consent subject, clear-ids) + pgTAP + types
+- [ ] 29-03-PLAN.md — capi.ts: locked Purchase payload and one POST; needle scan allow map; Meta bindings typed
+- [ ] 29-04-PLAN.md — Pay press saves the consent subject with the Meta ids (D-01)
+- [ ] 29-05-PLAN.md — purchase.ts orchestrator (gate, token, Stripe mode, claim, one POST, finish) + Worker-client DB proof
+- [ ] 29-06-PLAN.md — settle queue hook after the money steps; queue opts in; return route pinned out
+- [ ] 29-07-PLAN.md — owner's test event code, full gates, HANDOVER for the controller
 **UI hint**: no. One Purchase from the settle queue. Do not change quote, pay, or confirmation.
 
 ## Progress
