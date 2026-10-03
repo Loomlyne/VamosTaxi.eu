@@ -16,6 +16,7 @@ import { checkoutCharge, type CheckoutChargeCoupon, type ExtraCatalogRow } from 
 import { buildTripQuery } from "./trip-url";
 import { zurichLocalToUtcMs } from "../geo/serviceArea";
 import { checkoutLegsFromLock, snapshotFromLock } from "./lock-to-rpc";
+import { farePartsFromLock } from "./price-rows";
 import { flightKey } from "./flight-no";
 import { manageTokenCookie } from "./manage-token";
 import { CHARGE_CURRENCY } from "./currency";
@@ -471,6 +472,9 @@ async function runWebIntent(
     coupon,
     vatRateBps,
     vehicleClassSlug: body.vehicle_class,
+    // 261003: the breakdown of the class net, from the VERIFIED lock only (never the body);
+    // it cuts the Fare line, it cannot move an amount.
+    fareParts: farePartsFromLock(payload.price_rows, body.vehicle_class),
   });
   if (!charge.ok) return refuse("price_changed");
   const chargedRappen = charge.chargedRappen;

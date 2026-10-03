@@ -345,6 +345,94 @@ describe("runCheckoutIntent mode web (26.3)", () => {
     expect(((await res.json()) as { amount_rappen: number }).amount_rappen).toBe(priced.body.charged_rappen);
   });
 
+  describe("261003 fare lines: the verified lock's price_rows only cut the Fare line", () => {
+    const PRICE_ROWS = [
+      {
+        slug: "economy",
+        lines: [
+          { code: "airport_fee" as const, leg_seq: 1, amount_rappen: 1500 },
+          {
+            code: "fixed_route" as const,
+            leg_seq: 1,
+            amount_rappen: 2500,
+            params: { origin: "Zürich", destination: "Genève" },
+          },
+        ],
+      },
+    ];
+
+    async function run(p: QuoteLockPayload, patch: Record<string, unknown>, over: Partial<CheckoutIntentDeps> = {}) {
+      const w = world(p, over);
+      let snap: { lines: Array<{ code: string; kind: string; amount_rappen: number | null }>; total_rappen: number } | null = null;
+      const base = w.d.createBooking;
+      w.d.createBooking = async (a) => {
+        snap = a.snapshot as never;
+        return base(a);
+      };
+      const res = await runCheckoutIntent(await webBody(p, patch), w.d as never);
+      expect(res.status).toBe(200);
+      const json = (await res.json()) as { amount_rappen: number };
+      return { json, snap: snap!, created: w.created[0]! };
+    }
+
+    it("airport pickup with a route extra and an extra: Stripe amount and total equal the old one-line run; pieces add up", async () => {
+      const old = await run(payload(), { extra_codes: ["child_seat"] });
+      const split = await run(payload({ price_rows: PRICE_ROWS }), { extra_codes: ["child_seat"] });
+      expect(split.json.amount_rappen).toBe(old.json.amount_rappen);
+      expect(split.created.chargedRappen).toBe(old.created.chargedRappen);
+      expect(split.snap.total_rappen).toBe(old.snap.total_rappen);
+      expect(old.snap.lines.map((l) => l.code)).toEqual(["distance_fare", "child_seat", "vat"]);
+      expect(split.snap.lines.map((l) => [l.code, l.amount_rappen])).toEqual([
+        ["distance_fare", 4000],
+        ["airport_fee", 1500],
+        ["fixed_route", 2500],
+        ["child_seat", 1000],
+        ["vat", old.snap.lines.find((l) => l.kind === "vat")!.amount_rappen],
+      ]);
+      expect(split.snap.lines.reduce((s, l) => s + (l.amount_rappen ?? 0), 0)).toBe(split.snap.total_rappen);
+    });
+
+    it("the price route shows the same lines the booking saves (D-19), and the same total", async () => {
+      const p = payload({ price_rows: PRICE_ROWS });
+      const priced = await priceCheckoutWithDeps(
+        { lock: await mintLock(SECRETS, p), vehicle_class: "economy", extra_codes: ["child_seat"], coupon: null },
+        { lockSecrets: SECRETS, nowIso: NOW, loadCatalog: async () => CATALOG, loadVatBps: async () => 81, evaluateCoupon: async () => ({ ok: false }), actorCustomerId: null },
+      );
+      if (!priced.body.ok) throw new Error("price route refused");
+      const saved = await run(p, { extra_codes: ["child_seat"] });
+      expect(saved.json.amount_rappen).toBe(priced.body.charged_rappen);
+      expect(priced.body.lines.filter((l) => l.kind !== "coupon").map((l) => [l.code, l.amount_rappen])).toEqual(
+        saved.snap.lines.map((l) => [l.code, l.amount_rappen]),
+      );
+    });
+
+    it("with a voucher: the charge equals the one-line run and the saved total reconciles", async () => {
+      const lockTotals = [{ slug: "economy", total_rappen: 7000, pre_coupon_rappen: 8000 }];
+      const evaluateCoupon = async () => ({ ok: true, coupon_id: 7, kind: "amount", percent: null, amount_rappen: 1000 });
+      const reprice = () => ({ pricing_live: true, engine_version: "quote-engine@test", classes: [{ slug: "economy", total_rappen: 7000, eligible: true }] });
+      const patch = { coupon: "TEN", extra_codes: ["child_seat"] };
+      const old = await run(payload({ coupon: "TEN", class_totals: lockTotals }), patch, { reprice, evaluateCoupon });
+      const split = await run(payload({ coupon: "TEN", class_totals: lockTotals, price_rows: PRICE_ROWS }), patch, { reprice, evaluateCoupon });
+      expect(split.json.amount_rappen).toBe(old.json.amount_rappen);
+      expect(split.snap.total_rappen).toBe(old.snap.total_rappen);
+      expect(split.snap.lines.reduce((s, l) => s + (l.amount_rappen ?? 0), 0)).toBe(split.snap.total_rappen);
+      const fare = (s: typeof old) => s.snap.lines.filter((l) => l.kind === "fare").reduce((a, l) => a + (l.amount_rappen ?? 0), 0);
+      expect(fare(split)).toBe(fare(old));
+    });
+
+    it("a request body cannot send a part: price_rows in the body is not read (strict schema), only the lock is", async () => {
+      // A lock without price_rows plus a body that carries some: the saved lines never gain a part.
+      const r = await run(payload(), { price_rows: PRICE_ROWS, airport_fee: 1500 });
+      expect(r.snap.lines.map((l) => l.code)).toEqual(["distance_fare", "vat"]);
+    });
+
+    it("parts that do not fit under the class net fall back to one Fare line, never a refusal", async () => {
+      const bad = [{ slug: "economy", lines: [{ code: "airport_fee" as const, leg_seq: 1, amount_rappen: 9000 }] }];
+      const r = await run(payload({ price_rows: bad }), {});
+      expect(r.snap.lines.map((l) => l.code)).toEqual(["distance_fare", "vat"]);
+    });
+  });
+
   it("26.2 audit U04-1: PAY charges max(0, fare + extras - coupon) from the pinned fare, not fare + the coupon's face value", async () => {
     // Fare 3000 rappen, fixed coupon 3500 (clamped to the fare: lock total 0), ski bag 2000.
     // 30.00 + 20.00 - 35.00 = 15.00, plus 8.1 % VAT = 16.22. The old gross-up read the fare as 35.00 and charged 21.62.

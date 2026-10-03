@@ -54,8 +54,21 @@ ports_free() {
 
 if [ "$MODE" = "down" ]; then stop_all; exit 0; fi
 
-# Keys of the local stack only (never printed).
-supabase status -o env --workdir "$SBDIR" > "$WEB/.e2e-sb.env" 2>/dev/null
+# Keys of the local stack. Docker stack: `status -o env`. Native (Docker-free) stack: that prints nothing, so the JSON of
+# `status --env` is turned into KEY="value" lines, and the e2e files get SB_DB_URL + SB_PSQL (native psql instead of docker exec).
+sb_status_env() {
+  supabase status -o env --workdir "$SBDIR" > "$1" 2>/dev/null
+  if ! grep -q '^SERVICE_ROLE_KEY=' "$1"; then
+    "${SUPABASE_NATIVE_CLI:-supabase}" status --env --workdir "$SBDIR" 2>/dev/null | node -e 'let t="";process.stdin.on("data",d=>t+=d).on("end",()=>{const l=t.split("\n").find(x=>x.trim().startsWith("{"));if(!l)process.exit(1);for(const[k,v]of Object.entries(JSON.parse(l)))if(/^[A-Z_]+$/.test(k))console.log(k+"=\""+v+"\"")})' > "$1"
+    grep -q '^SERVICE_ROLE_KEY=' "$1" && SB_RUNTIME=native
+  fi
+  if [ "${SB_RUNTIME:-}" = native ]; then
+    SB_DB_URL="postgresql://postgres:postgres@127.0.0.1:${SB_DB_PORT}/postgres"
+    SB_PSQL=$(ls -d "$HOME"/.supabase/cache/stack/slim-services/postgres/*/*/bin/psql 2>/dev/null | sort -V | tail -1)
+    export SB_DB_URL SB_PSQL
+  fi
+}
+sb_status_env "$WEB/.e2e-sb.env"
 SB_ANON_KEY=$(sed -n 's/^ANON_KEY=//p' "$WEB/.e2e-sb.env" | tr -d '"'); SB_SERVICE_KEY=$(sed -n 's/^SERVICE_ROLE_KEY=//p' "$WEB/.e2e-sb.env" | tr -d '"')
 export SB_ANON_KEY SB_SERVICE_KEY
 if [ -z "$SB_SERVICE_KEY" ]; then echo "FAIL | p6-run | the local Supabase stack at $SBDIR is not running"; exit 2; fi
@@ -73,7 +86,7 @@ if [ "$MODE" = "seed" ]; then seed; exit 0; fi
 stop_all
 ports_free || exit 5
 rm -rf "$WEB/.wrangler/p6" "$WEB/.wrangler/p6-dash"
-supabase status -o env --workdir "$SBDIR" > "$WEB/.e2e-sb.env" 2>/dev/null
+sb_status_env "$WEB/.e2e-sb.env"
 node "$TREE/apps/web/tests/e2e-worker/mkcfg.mjs" "$WEB" "$WEB/.e2e-sb.env" "$HOOK" p6
 # The built worker.js gets its own fetch rewrite (marker P6): Stripe, Turnstile, Mapbox and Resend reach the fakes.
 if ! grep -q "E2E_FETCH_PATCH P6" "$WEB/.open-next/worker.js"; then

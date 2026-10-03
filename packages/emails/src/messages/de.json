@@ -17,6 +17,9 @@
     "fare": "Fahrpreis · {class}",
     "voucher": "Gutschein {code}",
     "vat": "MwSt. {rate} %",
+    "airportFee": "Flughafen-Abholgebühr",
+    "routePair": "Strecke {origin} – {destination}",
+    "routePairPlain": "Streckenpreis",
     "total": "Total bezahlt",
     "presented": "Sie haben {paid} in {currency} bezahlt. Vamos hat {received} erhalten."
   },

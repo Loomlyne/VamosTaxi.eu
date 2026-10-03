@@ -929,7 +929,7 @@ begin
       ($vt$common.add$vt$, $vt$Add$vt$, $vt$Hinzufügen$vt$, $vt$Ajouter$vt$, $vt$إضافة$vt$, false, false, null),
       ($vt$common.airline$vt$, $vt$Airline$vt$, $vt$Fluggesellschaft$vt$, $vt$Compagnie aérienne$vt$, $vt$شركة الطيران$vt$, false, false, null),
       ($vt$common.airport-pickup$vt$, $vt$Airport pickup$vt$, $vt$Flughafenabholung$vt$, $vt$Prise en charge à l’aéroport$vt$, $vt$استقبال في المطار$vt$, false, false, null),
-      ($vt$common.airport-pickup-fee$vt$, $vt$Airport pickup fee$vt$, $vt$Flughafengebühr$vt$, $vt$Frais de prise en charge à l’aéroport$vt$, $vt$رسم الاستقبال في المطار$vt$, false, false, null),
+      ($vt$common.airport-pickup-fee$vt$, $vt$Airport pickup fee$vt$, $vt$Flughafen-Abholgebühr$vt$, $vt$Frais de prise en charge à l’aéroport$vt$, $vt$رسوم الاستقبال من المطار$vt$, false, false, null),
       ($vt$common.airport-pickups$vt$, $vt$Airport pickups$vt$, $vt$Flughafenabholungen$vt$, $vt$Prises en charge aéroport$vt$, $vt$استقبالات المطار$vt$, false, false, null),
       ($vt$common.airport-transfers$vt$, $vt$Airport transfers$vt$, $vt$Flughafentransfers$vt$, $vt$Transferts aéroport$vt$, $vt$نقل المطار$vt$, false, false, null),
       ($vt$common.all$vt$, $vt$All$vt$, $vt$Alle$vt$, $vt$Tous$vt$, $vt$الكل$vt$, false, false, null),

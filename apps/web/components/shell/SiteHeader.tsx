@@ -352,7 +352,7 @@ function SiteHeaderView({
               <Logo variant="reversed" form="wordmark" height={24} />
             </span>
             <span data-hd-narrow="1">
-              <Logo variant="reversed" form="mark" height={30} />
+              <Logo variant="reversed" form="wordmark" height={22} />
             </span>
           </Link>
 

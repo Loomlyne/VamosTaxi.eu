@@ -98,6 +98,16 @@ function moneyRowLabel(locale: EmailLocale, line: EmailMoneyLine, vatRateBps: nu
   switch (line.kind) {
     case "fare":
       return t(locale, "money.fare", { class: line.label });
+    case "airport_fee":
+      return t(locale, "money.airportFee");
+    case "route":
+      // The two towns as quoted: left-to-right islands in Arabic, byte for byte unchanged in en/de/fr.
+      return line.origin && line.destination
+        ? t(locale, "money.routePair", {
+            origin: ltrText(locale, line.origin),
+            destination: ltrText(locale, line.destination),
+          })
+        : t(locale, "money.routePairPlain");
     case "coupon":
       return t(locale, "money.voucher", { code: line.label });
     case "vat":
