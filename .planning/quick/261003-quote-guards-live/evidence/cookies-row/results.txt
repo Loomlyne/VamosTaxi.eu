@@ -1,0 +1,8 @@
+PASS | en 390 | row "vamos_qs Keeps price requests fair between visitors and blocks automated abuse Vamos Taxi 24 hours" | coverage 0 [] | dir ltr | sideways false | visible true
+PASS | de 390 | row "vamos_qs Verteilt Preisanfragen fair auf die Besucher und blockiert automatisierten Missbrauch Vamos Taxi 24 Stunden" | coverage 0 [] | dir ltr | sideways false | visible true
+PASS | fr 390 | row "vamos_qs Répartit équitablement les demandes de prix entre les visiteurs et bloque les abus automatisés Vamos Taxi 24 heures" | coverage 0 [] | dir ltr | sideways false | visible true
+PASS | ar 390 | row "vamos_qs يوزّع طلبات الأسعار بإنصاف بين الزوار ويمنع الاستخدام الآلي المسيء Vamos Taxi 24 ساعة" | coverage 0 [] | dir rtl | sideways false | visible true
+PASS | en 1440 | row "vamos_qs Keeps price requests fair between visitors and blocks automated abuse Vamos Taxi 24 hours" | coverage 0 [] | dir ltr | sideways false | visible true
+PASS | de 1440 | row "vamos_qs Verteilt Preisanfragen fair auf die Besucher und blockiert automatisierten Missbrauch Vamos Taxi 24 Stunden" | coverage 0 [] | dir ltr | sideways false | visible true
+PASS | fr 1440 | row "vamos_qs Répartit équitablement les demandes de prix entre les visiteurs et bloque les abus automatisés Vamos Taxi 24 heures" | coverage 0 [] | dir ltr | sideways false | visible true
+PASS | ar 1440 | row "vamos_qs يوزّع طلبات الأسعار بإنصاف بين الزوار ويمنع الاستخدام الآلي المسيء Vamos Taxi 24 ساعة" | coverage 0 [] | dir rtl | sideways false | visible true

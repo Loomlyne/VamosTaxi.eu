@@ -23,6 +23,7 @@ import {
 } from "@/lib/quote/pipeline";
 import { errorResponse, quoteResponse } from "@/lib/quote/respond";
 import { csrfForbidden } from "@/lib/security/origin";
+import { copyAuthCookies, requestHasStaffSession, type AuthCookieSink } from "@/lib/ops/staff-origin";
 import { lockSecretPresent } from "@/lib/quote/lock-secret";
 
 export const dynamic = "force-dynamic";
@@ -113,12 +114,20 @@ export async function POST(request: Request) {
     locale = pre.body.locale;
   }
 
-  const deps = buildQuotePipelineDeps(env, {
-    dashboardHost: isNamedDashboardHost(new URL(request.url).host),
-  });
+  const dashboardHost = isNamedDashboardHost(new URL(request.url).host);
+  const deps = buildQuotePipelineDeps(env, { dashboardHost });
 
+  // Quick 261003 review: the staff check may refresh the session; its rotated cookies are copied
+  // onto whatever this handler answers (OpenNext: cookies().set does not reach a hand-built Response).
+  const authCookies: AuthCookieSink = { cookies: [] };
   try {
-    const abuse = await wireQuoteAbuse(env, request);
+    // Quick 261003: the token rides in the body (`turnstile_token`). The dashboard New trip has
+    // no challenge widget, so a signed-in staff session on the dashboard host is never challenged;
+    // the staff check runs only when the challenge would otherwise refuse.
+    const abuse = await wireQuoteAbuse(env, request, "quote", {
+      body: pre.body,
+      turnstileExempt: dashboardHost ? () => requestHasStaffSession(request, undefined, authCookies) : undefined,
+    });
     deps.rateLimit = abuse.rateLimit;
     deps.turnstile = abuse.turnstile;
     deps.mapboxBreaker = abuse.mapboxBreaker;
@@ -127,13 +136,13 @@ export async function POST(request: Request) {
     const result = await runQuotePipeline(pre.body, deps);
     if (!result.ok) {
       emit("info", "quote", { ok: 0 });
-      return refuse(result);
+      return copyAuthCookies(refuse(result), authCookies);
     }
     emit("info", "quote", { ok: 1 });
-    return quoteResponse(result);
+    return copyAuthCookies(quoteResponse(result), authCookies);
   } catch (err) {
     const name = err instanceof Error ? err.name : "unknown";
     emit("warn", "quote", { ok: 0, err_name: name });
-    return errorResponse("temporarily_unavailable");
+    return copyAuthCookies(errorResponse("temporarily_unavailable"), authCookies);
   }
 }
