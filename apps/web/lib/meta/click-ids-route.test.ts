@@ -128,10 +128,10 @@ describe("POST /api/checkout/intent and the Meta click-id save", () => {
     const res = await answer;
     expect(res.status).toBe(200);
     expect(state.waited).toHaveLength(1);
-    expect(await settledWithin(state.waited[0])).toBe(false); // still waiting on the held write
+    expect(await settledWithin(state.waited[0]!)).toBe(false); // still waiting on the held write
 
     state.release!();
-    await state.waited[0];
+    await state.waited[0]!;
     expect(state.writes).toHaveLength(1);
     expect(state.writes[0]).toEqual(["11111111-0000-4000-8000-000000000001", FBP, FBC]);
   });
