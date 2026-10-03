@@ -84,3 +84,5 @@
   flex-wrap: wrap;
   gap: 12px;
 }
+
+[data-wa-ico]{display:inline-block;inline-size:16px;block-size:16px;vertical-align:-3px;margin-inline-end:8px}

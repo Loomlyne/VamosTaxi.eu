@@ -26,55 +26,105 @@
   z-index: 500;
 }
 
-.vt-cbtn .vt-cbtn__pill {
-  box-shadow: var(--vt-shadow-lg);
-}
-
-.vt-cbtn .vt-cbtn__pill:hover:not([disabled]) {
-  background: var(--vt-charcoal-800);
-  box-shadow: var(--vt-shadow-lg);
-}
-
-.vt-cbtn .vt-cbtn__pill:active:not([disabled]) {
-  background: var(--vt-charcoal-950);
-  transform: translateY(1px);
-}
-
-.vt-cbtn .vt-cbtn__pill:focus-visible {
-  outline: none;
-  box-shadow: var(--vt-shadow-lg), var(--vt-ring);
-}
-
-.vt-cbtn__disc {
+/* The float: one button that widens by itself (disc <-> pill with a channel). Above 680 px the
+   label is always there (CONTACT at rest); at 680 px and below it only shows while it is open. */
+.vt-cbtn__float {
   all: unset;
   box-sizing: border-box;
-  display: none;
-  inline-size: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  inline-size: auto;
   block-size: 54px;
+  padding-inline: 16px 24px;
+  overflow: hidden;
   border-radius: var(--vt-radius-pill);
   background: var(--vt-charcoal-900);
+  color: var(--vt-text-inverse);
   box-shadow: var(--vt-shadow-lg);
-  align-items: center;
-  justify-content: center;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  font-family: var(--vt-font-body);
+  font-weight: var(--vt-weight-semibold);
+  font-size: 14px;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: var(--vt-label-tracking);
   transition:
+    inline-size var(--vt-dur-slow) var(--vt-ease-out),
     background var(--vt-dur-fast) var(--vt-ease-out),
+    color var(--vt-dur-fast) var(--vt-ease-out),
     transform 80ms var(--vt-ease-out);
 }
 
-.vt-cbtn__disc:hover {
+.vt-cbtn__float:hover {
   background: var(--vt-charcoal-800);
 }
 
-.vt-cbtn__disc:active {
+.vt-cbtn__float:active {
   background: var(--vt-charcoal-950);
   transform: translateY(1px);
 }
 
-.vt-cbtn__disc:focus-visible {
+.vt-cbtn__float:focus-visible {
   outline: none;
   box-shadow: var(--vt-shadow-lg), var(--vt-ring);
+}
+
+/* Over the footer: the brand-yellow ground, charcoal icon and text. */
+.vt-cbtn__float[data-over="1"] {
+  background: var(--vt-accent);
+  color: var(--vt-charcoal-900);
+}
+
+.vt-cbtn__float[data-over="1"]:hover {
+  background: var(--vt-accent-hover);
+}
+
+.vt-cbtn__float[data-over="1"]:active {
+  background: var(--vt-accent-press);
+}
+
+.vt-cbtn__inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex: none;
+  white-space: nowrap;
+}
+
+.vt-cbtn__ico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 22px;
+  block-size: 22px;
+  flex: none;
+}
+
+.vt-cbtn__lbl {
+  opacity: 1;
+  transition: opacity var(--vt-dur-base) var(--vt-ease-standard) 120ms;
+}
+
+/* The WhatsApp brand glyph in its own green; charcoal (same shape) on the yellow ground. */
+.vt-cbtn__wa {
+  display: block;
+  inline-size: 22px;
+  block-size: 22px;
+  background: url("/assets/social/whatsapp.svg") center / contain no-repeat;
+}
+
+.vt-cbtn__float[data-over="1"] .vt-cbtn__wa {
+  background: var(--vt-charcoal-900);
+  -webkit-mask: url("/assets/social/whatsapp.svg") center / contain no-repeat;
+  mask: url("/assets/social/whatsapp.svg") center / contain no-repeat;
+}
+
+.vt-crow__logo {
+  display: block;
+  inline-size: 22px;
+  block-size: 22px;
 }
 
 .vt-cbtn .vt-iconbtn:focus-visible,
@@ -310,12 +360,13 @@ a.vt-crow[data-s="focus"] {
     inset-block-end: 16px;
   }
 
-  .vt-cbtn--float .vt-cbtn__pill {
-    display: none;
+  .vt-cbtn__float:not([data-x="1"]) {
+    inline-size: 54px;
   }
 
-  .vt-cbtn--float .vt-cbtn__disc {
-    display: inline-flex;
+  .vt-cbtn__float:not([data-x="1"]) .vt-cbtn__lbl {
+    opacity: 0;
+    transition: opacity var(--vt-dur-fast) var(--vt-ease-standard);
   }
 
   html[data-vt-ck-open] .vt-cbtn--float,
@@ -337,9 +388,10 @@ html[data-vt-trav-open] .vt-cbtn--float {
     animation: none;
   }
 
-  .vt-cbtn__disc,
+  .vt-cbtn__float,
+  .vt-cbtn__lbl,
   a.vt-crow {
-    transition: none;
+    transition: none !important;
   }
 }
 

@@ -106,6 +106,7 @@ function FooterLink({
   href,
   label,
   plain = false,
+  glyph,
   rtl,
   onClick,
 }: {
@@ -115,17 +116,28 @@ function FooterLink({
    *  serialise one character per line on selection. The mock skips `mailto:`/`tel:`
    *  for exactly this reason. */
   plain?: boolean;
+  /** Brand glyph shown before the label (WhatsApp). Decorative: the label names the link. */
+  glyph?: string;
   rtl: boolean;
   onClick?: (event: MouseEvent<HTMLAnchorElement>) => void;
 }) {
   const external = /^(mailto:|tel:|https?:)/i.test(href);
   const rolled = !plain && !rtl && !/[؀-ۿ]/.test(label);
-  const inner = rolled ? (
+  const text = rolled ? (
     <span aria-hidden="true" data-vt-no-i18n="">
       {splitCells(label)}
     </span>
   ) : (
     label
+  );
+  const inner = glyph ? (
+    <>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={glyph} width={18} height={18} alt="" data-ft-wa="1" />
+      {text}
+    </>
+  ) : (
+    text
   );
   const props = {
     "data-ft-link": "1",
@@ -273,7 +285,7 @@ export function SiteFooter({
             </a>
           </li>
           <li>
-            <FooterLink href={WHATSAPP_HREF} label="WhatsApp" plain rtl={rtl} />
+            <FooterLink href={WHATSAPP_HREF} label="WhatsApp" plain glyph="/assets/social/whatsapp.svg" rtl={rtl} />
           </li>
         </>
       ),

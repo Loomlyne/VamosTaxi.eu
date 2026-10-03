@@ -92,6 +92,10 @@ a{color:inherit;text-decoration:none;border-bottom:0}
 [data-cta-btn="primary"]:hover{background:var(--vt-accent-hover)}
 [data-cta-btn="ghost"]{background:transparent;color:var(--vt-white);border-color:var(--vt-white)}
 [data-cta-btn="ghost"]:hover{background:var(--vt-white);color:var(--vt-charcoal-900)}
+/* Brand-mark exception (owner, 2026-10-03): WhatsApp keeps its own green. Charcoal label on #25D366 passes AA (about 7.7:1); a white label would not. */
+[data-cta-btn="whatsapp"]{background:#25D366;color:var(--vt-charcoal-900);border-color:#25D366}
+[data-cta-btn="whatsapp"]:hover{background:var(--vt-white);border-color:var(--vt-white)}
+[data-cta-wa]{display:block;inline-size:20px;block-size:20px}
 [data-cta-btn]:focus-visible{outline:none;box-shadow:var(--vt-ring-inverse)}
 [data-cta-icon]{display:inline-flex;flex:0 0 auto}
 [data-cta-icon][data-flip="1"]{transform:scaleX(-1)}
@@ -112,7 +116,7 @@ a{color:inherit;text-decoration:none;border-bottom:0}
 </div>
 <div data-cta-actions="1">
 <a data-cta-btn="primary" href="#book" onClick="{{ toBook }}"><span>Book a transfer</span><span data-cta-icon="1" data-flip="{{ flip }}" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="arrow-right" size="{{ n18 }}" hint-size="18px,18px"></x-import></span></a>
-<a data-cta-btn="ghost" href="https://wa.me/41796267082" target="_blank" rel="noopener"><span data-cta-icon="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="message-circle" size="{{ n18 }}" hint-size="18px,18px"></x-import></span><span>WhatsApp us</span></a>
+<a data-cta-btn="whatsapp" href="https://wa.me/41796267082" target="_blank" rel="noopener"><span data-cta-icon="1" aria-hidden="true"><img src="/assets/social/whatsapp-white.svg" width="20" height="20" alt="" data-cta-wa="1"></span><span>WhatsApp us</span></a>
 </div>
 </div>
 </section>
