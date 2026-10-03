@@ -183,4 +183,73 @@ describe("meta_purchase_claim / finish / clear_ids through the Worker client opt
     expect(r.again).toBe(0);
     expect(r.after).toEqual({ meta_fbp: null, state: "skipped", skip_reason: "interrupted" });
   });
+
+  it("two concurrent claims for one booking: exactly one 'send', the other 'already' (IN-04)", async () => {
+    const B3 = "c2905000-0000-4000-8000-000000000a03";
+    const SUBJECT3 = "29a05000-0000-4000-8000-000000000003";
+    const admin = workerSql(SUPER, "identity");
+    const c1 = workerSql(SUPER, "identity");
+    const c2 = workerSql(SUPER, "identity");
+    try {
+      // Committed fixtures (two real transactions cannot see a rolled-back one); removed in `finally`.
+      await admin.begin(async (tx) => {
+        await tx`set local session_replication_role = replica`;
+        await tx`
+          insert into public.consent_log (consent_subject_id, policy_version, method, necessary, functional, analytics, marketing, locale, recorded_at)
+          values (${SUBJECT3}::uuid, ${POLICY}, 'accept_all', true, true, true, true, 'en', now() - interval '3 hours')`;
+        await tx`
+          insert into public.bookings (id, contact_name, contact_email, status, is_test, meta_fbp, meta_fbc, meta_consent_subject)
+          values (${B3}::uuid, 'Claim Race', 'claim-race@example.test', 'paid', false, ${FBP}, ${null}, ${SUBJECT3}::uuid)`;
+        await tx`
+          insert into public.booking_payments (booking_id, snapshot_id, stripe_payment_intent_id, charged_rappen, status, captured_at)
+          values (${B3}::uuid, 0, 'pi_29_05_race', 12000, 'succeeded', now() - interval '1 hour')`;
+      });
+      const pidRows = await admin<{ id: string }[]>`select id::text as id from public.booking_payments where booking_id = ${B3}::uuid`;
+      const pid = Number(pidRows[0]!.id);
+
+      let second: Promise<ClaimRow> | undefined;
+      let secondSettled = false;
+      const first = await withIdentity(
+        SUPER,
+        "system",
+        undefined,
+        async (tx1) => {
+          const row = await claim(tx1, B3, pid, null);
+          // The first transaction still holds the booking lock; the second must block on it.
+          second = withIdentity(SUPER, "system", undefined, (tx2) => claim(tx2, B3, pid, null), { client: c2 });
+          void second.then(
+            () => {
+              secondSettled = true;
+            },
+            () => {
+              secondSettled = true;
+            },
+          );
+          await new Promise((r) => setTimeout(r, 500));
+          expect(secondSettled).toBe(false);
+          return row;
+        },
+        { client: c1 },
+      );
+      const other = await second!;
+      expect(first.decision).toBe("send");
+      expect(other.decision).toBe("already");
+      const rows = await admin<{ event_id: string }[]>`select event_id::text as event_id from public.meta_purchase_events where booking_id = ${B3}::uuid`;
+      expect(rows).toHaveLength(1);
+      expect(rows[0]!.event_id).toBe(first.event_id);
+      expect(other.event_id).toBeNull();
+    } finally {
+      // consent_log is append-only and payments do not cascade: triggers off for this clean-up only.
+      await admin
+        .begin(async (tx) => {
+          await tx`set local session_replication_role = replica`;
+          await tx`delete from public.meta_purchase_events where booking_id = ${B3}::uuid`;
+          await tx`delete from public.booking_payments where booking_id = ${B3}::uuid`;
+          await tx`delete from public.bookings where id = ${B3}::uuid`;
+          await tx`delete from public.consent_log where consent_subject_id = ${SUBJECT3}::uuid`;
+        })
+        .catch(() => {});
+      await Promise.all([c1.end({ timeout: 5 }), c2.end({ timeout: 5 }), admin.end({ timeout: 5 })]);
+    }
+  });
 });
