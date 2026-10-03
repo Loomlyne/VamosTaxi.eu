@@ -140,7 +140,7 @@ describe("quote route wiring", () => {
   it("passes the parsed body and a staff check limited to the dashboard host", () => {
     const src = readFileSync(join(WEB, "app/api/quote/route.ts"), "utf8");
     expect(src).toMatch(/body: pre\.body/);
-    expect(src).toMatch(/turnstileExempt: dashboardHost \? \(\) => requestHasStaffSession\(request\) : undefined/);
+    expect(src).toMatch(/turnstileExempt: dashboardHost \? \(\) => requestHasStaffSession\(request, undefined, authCookies\) : undefined/);
   });
   it("guards.ts no longer reads env.TURNSTILE_SECRET directly for the guard", () => {
     const src = readFileSync(join(WEB, "lib/abuse/guards.ts"), "utf8");
