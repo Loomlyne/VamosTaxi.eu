@@ -14,6 +14,12 @@ import type { IconName } from "@/components/core";
 import { PriceSummary, RouteSummary, StatusBadge } from "@/components/transfer";
 import type { PriceLine } from "@/components/transfer/PriceSummary";
 import { BookingVoucher, type BookingVoucherFacts } from "@/components/booking/BookingVoucher";
+import {
+  AIRPORT_FEE_ICON,
+  ROUTE_ICON,
+  airportFeeLabel,
+  routeLabel,
+} from "@/components/checkout/fare-line-label";
 import { useBookingDraft } from "@/lib/booking-draft";
 import { PHONE_DISPLAY, PHONE_HREF, WHATSAPP_HREF } from "@/lib/contact-channels";
 import { isFailedStatus } from "@/lib/checkout/booking-status";
@@ -231,6 +237,7 @@ function moneyLines(
   rows: ReceiptRow[],
   className: string,
   t: ReturnType<typeof useTranslations>,
+  tPrice: ReturnType<typeof useTranslations>,
 ): { lines: PriceLine[]; total: number | null } {
   const lines: PriceLine[] = [];
   let total: number | null = null;
@@ -240,6 +247,10 @@ function moneyLines(
       total = amount;
     } else if (row.kind === "fare") {
       lines.push({ label: className ? t("receiptFare", { class: className }) : t("receiptFarePlain"), amount });
+    } else if (row.kind === "airport_fee") {
+      lines.push({ label: airportFeeLabel(tPrice), amount, icon: AIRPORT_FEE_ICON });
+    } else if (row.kind === "route") {
+      lines.push({ label: routeLabel(t, row.origin, row.destination), amount, icon: ROUTE_ICON });
     } else if (row.kind === "extra") {
       lines.push({ label: row.label, amount });
     } else if (row.kind === "coupon") {
@@ -268,6 +279,7 @@ function BookedCard({
 }) {
   const t = useTranslations("checkout");
   const tCommon = useTranslations("common");
+  const tPrice = useTranslations("price");
   const pickup = (booking?.pickupText || "").trim() || fallback.pickup;
   const dropoff = (booking?.dropoffText || "").trim() || fallback.dropoff;
   const scheduled = booking?.scheduledLocal || "";
@@ -279,7 +291,7 @@ function BookedCard({
   const flightNo = (booking?.flightNo || "").trim();
   const cls = classNameOf(booking, tCommon);
   const receipt = booking?.receipt;
-  const { lines, total } = moneyLines(receipt?.rows ?? [], cls, t);
+  const { lines, total } = moneyLines(receipt?.rows ?? [], cls, t, tPrice);
   const totalMajor = total ?? rappenToMajor(booking?.priceTotalRappen ?? null);
   const presentment = receipt?.presentment ?? null;
   let paidIn = "";

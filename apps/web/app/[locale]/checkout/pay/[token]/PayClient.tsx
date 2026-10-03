@@ -6,7 +6,18 @@ import { Button, Card, Icon } from "@/components/core";
 import { Alert } from "@/components/feedback/Alert";
 import { formatAmount } from "@/lib/currency";
 import { PriceSummary, RouteSummary, type PriceLine } from "@/components/transfer";
-import { hasPayLinkExtras, payLinkExtraName, type PayLinkLine } from "@/lib/checkout/pay-link-lines";
+import {
+  hasPayLinkExtras,
+  payLinkExtraName,
+  payLinkShownRappen,
+  type PayLinkLine,
+} from "@/lib/checkout/pay-link-lines";
+import {
+  AIRPORT_FEE_ICON,
+  ROUTE_ICON,
+  airportFeeLabel,
+  routeLabel,
+} from "@/components/checkout/fare-line-label";
 import { vatPercentLabel } from "@/lib/checkout/vat";
 import {
   payLinkSessionKey,
@@ -136,6 +147,7 @@ function PayLinkDone({ view, reference }: { view: DoneView; reference: string })
 
 export function PayClient({ token }: { token: string }) {
   const t = useTranslations("checkout");
+  const tPrice = useTranslations("price");
   const locale = useLocale();
   const [busy, setBusy] = useState(true);
   const [opening, setOpening] = useState(false);
@@ -277,9 +289,16 @@ export function PayClient({ token }: { token: string }) {
   // G9: with extras on the booking, each saved line is shown above the total. Without, the total alone.
   const priceLines: PriceLine[] = hasPayLinkExtras(saved)
     ? saved.map((line): PriceLine => {
-        const amount = line.amountRappen / 100;
+        // 261003: fare and extra lines at their pre-voucher figure, the voucher as its discount.
+        const amount = payLinkShownRappen(line) / 100;
         switch (line.kind) {
           case "fare":
+            if (line.code === "airport_fee") {
+              return { label: airportFeeLabel(tPrice), amount, icon: AIRPORT_FEE_ICON };
+            }
+            if (line.code === "fixed_route") {
+              return { label: routeLabel(t, line.origin, line.destination), amount, icon: ROUTE_ICON };
+            }
             return { label: t("fareExVat"), amount };
           case "surcharge":
             return { label: `+ ${payLinkExtraName(line, locale)}`, amount };
