@@ -1,0 +1,71 @@
+{
+ "out": [
+  {
+   "n": "0 local admin gets a password (local admin API)",
+   "ok": true,
+   "ev": "status 200"
+  },
+  {
+   "n": "A signed-out page on the dashboard origin: price and intent answer 403 csrf",
+   "ok": true,
+   "ev": "/api/checkout/price 403 {\"ok\":false,\"code\":\"csrf\"} | /api/checkout/intent 403 {\"ok\":false,\"code\":\"csrf\"}"
+  },
+  {
+   "n": "B1 admin signs in on the dashboard host",
+   "ok": true,
+   "ev": "http://dashboard.localhost:4591/dashboard"
+  },
+  {
+   "n": "B2 every quote/price/intent call carries the dashboard Origin",
+   "ok": true,
+   "ev": "http://dashboard.localhost:4591"
+  },
+  {
+   "n": "B3 /api/checkout/price answers 200 (not 403 csrf)",
+   "ok": true,
+   "ev": "200 {\"ok\":true,\"lines\":[{\"kind\":\"fare\",\"code\":\"distance_fare\",\"i18n_key\":\"price.line.transfer\""
+  },
+  {
+   "n": "B4 Save trip: /api/checkout/intent 200 with a reference",
+   "ok": true,
+   "ev": "200 {\"ok\":true,\"reference\":\"VT-26-0014\",\"booking_id\":\"e1a68555-00e1-4327-8c85-db376b4dc63e\",\"u"
+  },
+  {
+   "n": "B5 the screen moves to the new booking and the row exists",
+   "ok": true,
+   "ev": "url http://dashboard.localhost:4591/bookings/VT-26-0014; row \"VT-26-0014 pending\"; bookings 13→14"
+  },
+  {
+   "n": "B6 staff cookie + dashboard Origin, empty body: intent passes CSRF (400 invalid_request)",
+   "ok": true,
+   "ev": "400 {\"code\":\"invalid_request\"}"
+  }
+ ],
+ "calls": [
+  {
+   "path": "/api/quote",
+   "status": 200,
+   "origin": "http://dashboard.localhost:4591",
+   "body": "{\"ok\":true,\"quote_id\":\"b7285103-ec42-417f-8981-0120f1f45bb3\",\"lock\":\"v1.eyJiYWdzIjowLCJjbG"
+  },
+  {
+   "path": "/api/checkout/price",
+   "status": 200,
+   "origin": "http://dashboard.localhost:4591",
+   "body": "{\"ok\":true,\"lines\":[{\"kind\":\"fare\",\"code\":\"distance_fare\",\"i18n_key\":\"price.line.transfer\""
+  },
+  {
+   "path": "/api/checkout/intent",
+   "status": 200,
+   "origin": "http://dashboard.localhost:4591",
+   "body": "{\"ok\":true,\"reference\":\"VT-26-0014\",\"booking_id\":\"e1a68555-00e1-4327-8c85-db376b4dc63e\",\"u"
+  },
+  {
+   "path": "/api/checkout/intent",
+   "status": 400,
+   "origin": "http://dashboard.localhost:4591",
+   "body": "{\"code\":\"invalid_request\"}"
+  }
+ ],
+ "errors": []
+}
