@@ -30,6 +30,11 @@ export type AbuseEmit = (
   fields?: LogFields,
 ) => void;
 
+/**
+ * The verified slot and the bare slot of one counter. The field names are the original
+ * quote pair's; since quick 261003 guards.ts `counterBindings` also puts the LOOKUP_* and
+ * PRICE_* bindings in these two slots.
+ */
 export type RateLimitBindings = {
   QUOTE_RATE_LIMITER: RateLimit;
   QUOTE_RATE_LIMITER_BARE: RateLimit;

@@ -34,7 +34,7 @@ export async function POST(request: Request) {
       const value = rows[0]?.now;
       return value instanceof Date ? value.toISOString() : String(value);
     });
-    const abuse = await wireQuoteAbuse(env, request);
+    const abuse = await wireQuoteAbuse(env, request, "price");
     const actor = await resolveActorCustomerId(env, request).catch(() => null);
     const current = env.QUOTE_LOCK_SECRET || "";
     const previous = env.QUOTE_LOCK_SECRET_PREVIOUS;

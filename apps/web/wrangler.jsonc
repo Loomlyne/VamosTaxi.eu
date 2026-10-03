@@ -173,6 +173,34 @@
           "name": "INTENT_RATE_LIMITER",
           "namespace_id": "1004",
           "simple": { "limit": 8, "period": 60 }
+        },
+        // Quick 261003: lookups (/api/geo/suggest|retrieve|reverse, /api/flight/:no) have their
+        // own counter. Sharing 1001/1002 let address typing on home spend the /api/quote
+        // allowance, so /checkout refused its first price on live (2026-10-03). Home asks
+        // suggest 160 ms after a keystroke: two addresses plus retrieves, reverse, flight and the
+        // checkout retrieve come to ~30-35 calls in a minute. Mapbox spend is capped by the daily
+        // breaker, not here. Sizing in lib/abuse/guards.ts `RateCounter`.
+        {
+          "name": "LOOKUP_RATE_LIMITER",
+          "namespace_id": "1005",
+          "simple": { "limit": 60, "period": 60 }
+        },
+        {
+          "name": "LOOKUP_RATE_LIMITER_BARE",
+          "namespace_id": "1006",
+          "simple": { "limit": 40, "period": 60 }
+        },
+        // Quick 261003: /api/quote/reprice and the voucher check in /api/checkout/price. No
+        // Directions call; the limit guards voucher guessing. One booking spends 1-4.
+        {
+          "name": "PRICE_RATE_LIMITER",
+          "namespace_id": "1007",
+          "simple": { "limit": 12, "period": 60 }
+        },
+        {
+          "name": "PRICE_RATE_LIMITER_BARE",
+          "namespace_id": "1008",
+          "simple": { "limit": 8, "period": 60 }
         }
       ],
       // Rule 2 addition (plan 03-06, D-36): uncommented from the placeholder block plan
@@ -320,6 +348,34 @@
         {
           "name": "INTENT_RATE_LIMITER",
           "namespace_id": "1004",
+          "simple": { "limit": 8, "period": 60 }
+        },
+        // Quick 261003: lookups (/api/geo/suggest|retrieve|reverse, /api/flight/:no) have their
+        // own counter. Sharing 1001/1002 let address typing on home spend the /api/quote
+        // allowance, so /checkout refused its first price on live (2026-10-03). Home asks
+        // suggest 160 ms after a keystroke: two addresses plus retrieves, reverse, flight and the
+        // checkout retrieve come to ~30-35 calls in a minute. Mapbox spend is capped by the daily
+        // breaker, not here. Sizing in lib/abuse/guards.ts `RateCounter`.
+        {
+          "name": "LOOKUP_RATE_LIMITER",
+          "namespace_id": "1005",
+          "simple": { "limit": 60, "period": 60 }
+        },
+        {
+          "name": "LOOKUP_RATE_LIMITER_BARE",
+          "namespace_id": "1006",
+          "simple": { "limit": 40, "period": 60 }
+        },
+        // Quick 261003: /api/quote/reprice and the voucher check in /api/checkout/price. No
+        // Directions call; the limit guards voucher guessing. One booking spends 1-4.
+        {
+          "name": "PRICE_RATE_LIMITER",
+          "namespace_id": "1007",
+          "simple": { "limit": 12, "period": 60 }
+        },
+        {
+          "name": "PRICE_RATE_LIMITER_BARE",
+          "namespace_id": "1008",
           "simple": { "limit": 8, "period": 60 }
         }
       ],

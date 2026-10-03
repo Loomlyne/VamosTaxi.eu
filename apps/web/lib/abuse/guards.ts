@@ -17,6 +17,7 @@ import {
   bucketFor,
   checkRateLimit,
   type BucketForInput,
+  type RateLimitBindings,
   type AbuseEmit as RateEmit,
 } from "./rate-limit";
 import {
@@ -143,10 +144,52 @@ export type QuoteAbuseWire = {
   geoSession: { token: string; bucket: string } | null;
 };
 
-/** Quote / reprice: all three guards in step order 2, 3, 4. */
+/**
+ * Which Worker rate-limit counter a route spends (quick 261003). Each is its own pair of
+ * namespaces in wrangler.jsonc, because a Workers rate limit counts per namespace + key:
+ * sharing one pair let every address keystroke on home spend the allowance /checkout
+ * needed for its first price (live, 2026-10-03).
+ *
+ * - quote:  POST /api/quote only. QUOTE_RATE_LIMITER 8/60 (ip:subject) / _BARE 4/60 (ip).
+ *           Unchanged numbers: each call can bill Mapbox Directions. One booking spends
+ *           1–2 (checkout load, maybe one trip edit). Namespaces 1001/1002 also hold the
+ *           prefixed write keys (contact, review, consent, auth code), so they are not raised.
+ * - price:  POST /api/quote/reprice and the voucher check in POST /api/checkout/price.
+ *           PRICE_RATE_LIMITER 12/60 / _BARE 8/60. No Directions call; the limit is there
+ *           against voucher guessing. One booking spends 1–4 (voucher, flight edit).
+ * - lookup: /api/geo/suggest|retrieve|reverse and /api/flight/[no].
+ *           LOOKUP_RATE_LIMITER 60/60 / _BARE 40/60. Home asks suggest 160 ms after each
+ *           keystroke: "ZRH" + "Zurich Main Station" alone is ~25 calls, plus two retrieves,
+ *           one reverse, a few flight lookups and the checkout retrieve ≈ 30–35 in a minute.
+ *           Mapbox spend stays capped by the daily breaker (step 4), not by this counter.
+ */
+export type RateCounter = "quote" | "price" | "lookup";
+
+/** The verified/bare binding pair for one counter, in the shape bucketFor reads. */
+export function counterBindings(env: CloudflareEnv, counter: RateCounter): RateLimitBindings {
+  if (counter === "lookup") {
+    return {
+      QUOTE_RATE_LIMITER: env.LOOKUP_RATE_LIMITER ?? passLimiter(),
+      QUOTE_RATE_LIMITER_BARE: env.LOOKUP_RATE_LIMITER_BARE ?? passLimiter(),
+    };
+  }
+  if (counter === "price") {
+    return {
+      QUOTE_RATE_LIMITER: env.PRICE_RATE_LIMITER ?? passLimiter(),
+      QUOTE_RATE_LIMITER_BARE: env.PRICE_RATE_LIMITER_BARE ?? passLimiter(),
+    };
+  }
+  return {
+    QUOTE_RATE_LIMITER: env.QUOTE_RATE_LIMITER ?? passLimiter(),
+    QUOTE_RATE_LIMITER_BARE: env.QUOTE_RATE_LIMITER_BARE ?? passLimiter(),
+  };
+}
+
+/** Quote / reprice / checkout price: all three guards in step order 2, 3, 4. */
 export async function wireQuoteAbuse(
   env: CloudflareEnv,
   request: Request,
+  counter: Exclude<RateCounter, "lookup"> = "quote",
 ): Promise<QuoteAbuseWire> {
   const ip = clientIp(request);
   const cookie = readCookie(request, VAMOS_QS_COOKIE);
@@ -162,10 +205,7 @@ export async function wireQuoteAbuse(
       ip,
       cookie,
       secret,
-      bindings: {
-        QUOTE_RATE_LIMITER: env.QUOTE_RATE_LIMITER ?? passLimiter(),
-        QUOTE_RATE_LIMITER_BARE: env.QUOTE_RATE_LIMITER_BARE ?? passLimiter(),
-      },
+      bindings: counterBindings(env, counter),
     }),
     turnstile: turnstileGuard({
       ip,
@@ -184,7 +224,7 @@ export async function wireQuoteAbuse(
   };
 }
 
-/** Geo: rate-limit + breaker only. Flight: rate-limit only. */
+/** Geo: rate-limit + breaker only. Flight: rate-limit only. Both spend the lookup counter. */
 export function wireRateLimitGuard(env: CloudflareEnv, request: Request): InjectedGuard {
   const ip = clientIp(request);
   const cookie = readCookie(request, VAMOS_QS_COOKIE);
@@ -193,10 +233,7 @@ export function wireRateLimitGuard(env: CloudflareEnv, request: Request): Inject
     ip,
     cookie,
     secret,
-    bindings: {
-      QUOTE_RATE_LIMITER: env.QUOTE_RATE_LIMITER ?? passLimiter(),
-      QUOTE_RATE_LIMITER_BARE: env.QUOTE_RATE_LIMITER_BARE ?? passLimiter(),
-    },
+    bindings: counterBindings(env, "lookup"),
   });
 }
 

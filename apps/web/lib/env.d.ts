@@ -173,7 +173,9 @@ interface CloudflareEnv {
   QUOTE_ABUSE_METRICS: AnalyticsEngineDataset;
 
   /**
-   * Rate-limit binding for the verified-cookie 8/60 bucket (D-36 layer 2a).
+   * Rate-limit binding for the verified-cookie 8/60 bucket (D-36 layer 2a). Since quick 261003
+   * only POST /api/quote counts here (plus the prefixed write keys); lookups and reprice have
+   * their own namespaces below.
    * REQUIRED. Limit is fixed per binding — see QUOTE_RATE_LIMITER_BARE for the bare-IP half.
    * First consumer: plan 04-13.
    */
@@ -200,6 +202,26 @@ interface CloudflareEnv {
    * the database still applies.
    */
   INTENT_RATE_LIMITER?: RateLimit;
+
+  /**
+   * Lookups (/api/geo/suggest|retrieve|reverse, /api/flight/[no]), verified vamos_qs visitor:
+   * 60 per 60 s per `ip:subject`. Own namespace so address typing never spends the quote
+   * allowance (quick 261003). OPTIONAL in types: missing → fail open, like the quote pair.
+   */
+  LOOKUP_RATE_LIMITER?: RateLimit;
+
+  /** Lookups, bare IP / unverifiable cookie: 40 per 60 s per IP (quick 261003). */
+  LOOKUP_RATE_LIMITER_BARE?: RateLimit;
+
+  /**
+   * POST /api/quote/reprice and the voucher check in POST /api/checkout/price, verified
+   * visitor: 12 per 60 s per `ip:subject`. Own namespace so a flight or voucher edit never
+   * spends the /api/quote allowance (quick 261003). OPTIONAL: missing → fail open.
+   */
+  PRICE_RATE_LIMITER?: RateLimit;
+
+  /** Reprice / voucher check, bare IP: 8 per 60 s per IP (quick 261003). */
+  PRICE_RATE_LIMITER_BARE?: RateLimit;
 
   /**
    * Engineering unit-count sentinel for the daily Mapbox breaker (D-54 / U37).

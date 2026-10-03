@@ -72,7 +72,7 @@ export async function POST(request: Request) {
   });
 
   try {
-    const abuse = await wireQuoteAbuse(env, request);
+    const abuse = await wireQuoteAbuse(env, request, "price");
     deps.rateLimit = abuse.rateLimit;
     deps.turnstile = abuse.turnstile;
     deps.mapboxBreaker = abuse.mapboxBreaker;
