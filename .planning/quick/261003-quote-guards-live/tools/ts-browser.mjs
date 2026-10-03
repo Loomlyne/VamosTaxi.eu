@@ -89,14 +89,68 @@ if (MODE === "pass" || MODE === "interactive") {
     await step(`A-${MODE}-${vp}-3`, "the solved challenge prices the trip (token in the body, real siteverify)", async () => {
       if (MODE === "interactive") await clickCheckbox(s);
       const priced = await s.page.locator("[data-co-class]").first().waitFor({ timeout: 25000 }).then(() => true, () => false);
+      s.coUrl = s.page.url();
       await s.page.waitForTimeout(800);
       const q = last(s);
       const tokenOnPage = await s.page.evaluate(() => [...document.querySelectorAll('input[name="cf-turnstile-response"]')].map((i) => i.value.length));
       return { s, ok: priced && q?.status === 200 && /turnstile_token/.test(q.request ?? ""), evidence: `quotes ${trace(s)}; widget token lengths ${JSON.stringify(tokenOnPage)}; page errors ${s.errors.slice(0, 2).join(" | ")}` };
     }, { shot: true });
     await step(`A-${MODE}-${vp}-4`, "Economy, traveller, PAY: one fake Stripe session for the shown total", async () => ({ s, ...(await payFlow(s)) }), { shot: true });
+    await step(`A-${MODE}-${vp}-5`, "review 4 grace: two more reloads right after the pass are priced with no challenge", async () => {
+      const n = quotes(s).length;
+      for (let i = 0; i < 2; i++) {
+        await s.page.goto(s.coUrl, { waitUntil: "load" });
+        await s.page.locator("[data-co-class], [data-co-classes-error]").first().waitFor({ timeout: 25000 });
+        await s.page.waitForTimeout(800);
+      }
+      const after = quotes(s).slice(n);
+      return { s, ok: after.length >= 2 && after.every((q) => q.status === 200), evidence: `quotes ${trace(s)}` };
+    }, { shot: true });
     await s.ctx.close();
   }
+}
+
+// Review 1: the trip editor with the always-fail secret (SITEKEY=pass TS_SECRET=fail). Before the fix, clearing the
+// refusal re-mounted the self-solving widget and posted again and again; now one click = one challenge round.
+if (MODE === "editor") {
+  const s = await openReal({ viewport: 1440, name: "editor-1440" });
+  const openEditor = async () => {
+    await s.page.getByRole("button", { name: /^edit trip$/i }).first().click();
+    await s.page.locator("[data-co-update]").waitFor({ timeout: 10000 });
+  };
+  const update = async () => {
+    await s.page.locator("[data-co-update]").click();
+    await s.page.waitForTimeout(1500);
+  };
+  await step("A-editor-1", "home -> /checkout (quote 1), then UPDATE PRICES in the editor (quote 2)", async () => {
+    await bookFromHome(s);
+    await openEditor();
+    await update();
+    return { s, ok: quotes(s).length === 2 && quotes(s).every((q) => q.status === 200), evidence: `quotes ${trace(s)}` };
+  });
+  await step("A-editor-2", "3rd quote from the editor: challenge in the editor; the refused token is NOT retried by itself", async () => {
+    if (!(await s.page.locator("[data-co-update]").isVisible())) await openEditor();
+    await update();
+    await s.page.locator("[data-co-editor-challenge]").waitFor({ timeout: 15000 });
+    await s.page.waitForTimeout(25000); // the widget solves itself; watch for a loop
+    const n = quotes(s).length;
+    await s.page.waitForTimeout(15000);
+    const later = quotes(s).length;
+    await s.shot("A-editor-2-refused");
+    const tokenPosts = quotes(s).filter((q) => /turnstile_token/.test(q.request ?? "")).length;
+    return { s, ok: n === 4 && later === 4 && tokenPosts === 1 && (await s.page.locator("[data-co-editor-challenge]").count()) === 1,
+             evidence: `quotes ${trace(s)}; after 25 s ${n}, after 40 s ${later}; token posts ${tokenPosts}` };
+  });
+  await step("A-editor-3", "UPDATE PRICES again: at most one round (priced if the 60 s window rolled over, else no token + one token), then quiet", async () => {
+    const n = quotes(s).length;
+    await update();
+    await s.page.waitForTimeout(12000);
+    const mid = quotes(s).length - n;
+    await s.page.waitForTimeout(15000);
+    const after = quotes(s).length - n;
+    return { s, ok: after >= 1 && after <= 2 && after === mid, evidence: `+${after} quotes (unchanged over the last 15 s): ${trace(s)}` };
+  }, { shot: true });
+  await s.ctx.close();
 }
 
 if (MODE === "secretfail" || MODE === "block") {
