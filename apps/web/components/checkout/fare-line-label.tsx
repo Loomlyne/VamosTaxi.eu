@@ -42,9 +42,14 @@ export function routeLabel(
   const d = typeof destination === "string" ? destination.trim() : "";
   if (!o || !d) return tCheckout("routePairPlain");
   const sentence = tCheckout("routePair", { origin: MARK_ORIGIN, destination: MARK_DESTINATION });
-  return sentence.split(/([])/).map((part, i) => {
-    if (part === MARK_ORIGIN) return <Name key={i}>{o}</Name>;
-    if (part === MARK_DESTINATION) return <Name key={i}>{d}</Name>;
-    return <Fragment key={i}>{part}</Fragment>;
-  });
+  // One inline span: the price row's label is a flex box, and loose pieces would each become a flex item.
+  return (
+    <span>
+      {sentence.split(/([])/).map((part, i) => {
+        if (part === MARK_ORIGIN) return <Name key={i}>{o}</Name>;
+        if (part === MARK_DESTINATION) return <Name key={i}>{d}</Name>;
+        return <Fragment key={i}>{part}</Fragment>;
+      })}
+    </span>
+  );
 }
