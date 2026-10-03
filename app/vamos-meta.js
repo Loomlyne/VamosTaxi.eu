@@ -89,10 +89,18 @@
 
     if (u.hash !== '' && !/^#[A-Za-z0-9_-]{1,64}$/.test(u.hash)) return false;
 
+    /* Decoded once strictly (an undecodable address fails closed), then again leniently, level by level,
+       so a double-encoded @ (%2540) or reference (vt%252D1) cannot slip through. Anything that still
+       changes after five rounds is refused. */
     var decoded;
     try { decoded = decodeURIComponent(u.href); } catch (e) { return false; }
-    if (/vt-\d/i.test(decoded) || decoded.indexOf('@') !== -1) return false;
-    return true;
+    for (var round = 0; ; round++) {
+      if (/vt-\d/i.test(decoded) || decoded.indexOf('@') !== -1) return false;
+      var next = decoded.replace(/%([0-9A-Fa-f]{2})/g, function (m, h) { return String.fromCharCode(parseInt(h, 16)); });
+      if (next === decoded) return true;
+      if (round >= 5) return false;
+      decoded = next;
+    }
   }
 
   /* The previous address travels to Meta as 'rl'. Fail closed (research Pattern 3). A page of ours

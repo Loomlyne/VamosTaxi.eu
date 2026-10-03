@@ -85,6 +85,12 @@ export const PIXEL_CASES: readonly PixelCase[] = [
   { href: `${SITE}/faq?q=refund`, allowed: false, why: "key q (free text)" },
   { href: `${SITE}/about?utm_source=a%40b.com`, allowed: false, why: "an e-mail address inside a value" },
   { href: `${SITE}/about?utm_source=vt-26-1`, allowed: false, why: "reference inside a value, lower case" },
+  { href: `${SITE}/about?utm_source=a%2540b.com`, allowed: false, why: "a double-encoded @ (%2540) in a value" },
+  { href: `${SITE}/about?utm_source=a%252540b.com`, allowed: false, why: "a triple-encoded @" },
+  { href: `${SITE}/about?utm_source=a%2540b.com%25`, allowed: false, why: "a double-encoded @ with a stray %25 after it" },
+  { href: `${SITE}/about?utm_source=vt%252D26-1`, allowed: false, why: "a double-encoded reference (vt%252D)" },
+  { href: `${SITE}/about?utm_source=%${"25".repeat(7)}41`, allowed: false, why: "still decoding after five rounds" },
+  { href: `${SITE}/about?utm_source=100%25`, allowed: true, why: "a single-encoded percent sign is harmless" },
   { href: `${SITE}/about?fbclid=%`, allowed: false, why: "undecodable value fails closed" },
 
   // Hashes.

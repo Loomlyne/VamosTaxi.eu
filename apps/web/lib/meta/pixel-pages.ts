@@ -47,13 +47,20 @@ export function pixelPageAllowed(url: URL): boolean {
 
   if (url.hash !== "" && !/^#[A-Za-z0-9_-]{1,64}$/.test(url.hash)) return false;
 
+  // Decoded once strictly (an undecodable address fails closed), then again leniently, level by level, so a
+  // double-encoded @ (%2540) or reference (vt%252D1) cannot slip through. Still changing after five rounds: refuse.
   let decoded: string;
   try {
     decoded = decodeURIComponent(url.href);
   } catch {
     return false;
   }
-  if (/vt-\d/i.test(decoded) || decoded.includes("@")) return false;
-  // Credentials were refused above; an @ anywhere else is an e-mail address.
-  return true;
+  for (let round = 0; ; round++) {
+    // Credentials were refused above; an @ anywhere else is an e-mail address.
+    if (/vt-\d/i.test(decoded) || decoded.includes("@")) return false;
+    const next = decoded.replace(/%([0-9A-Fa-f]{2})/g, (_m, h: string) => String.fromCharCode(parseInt(h, 16)));
+    if (next === decoded) return true;
+    if (round >= 5) return false;
+    decoded = next;
+  }
 }
