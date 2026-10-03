@@ -28,8 +28,8 @@
   if (window.VamosMeta) return;
 
   /* Flipped by plan 28-07 only, one line each. */
-  var GATE_OPEN = false;
-  var SWITCHES_OFF = false;
+  var GATE_OPEN = true;
+  var SWITCHES_OFF = true;
 
   var PIXEL_ID = '1595596972063765';
   var SRC = 'https://connect.facebook.net/en_US/fbevents.js';

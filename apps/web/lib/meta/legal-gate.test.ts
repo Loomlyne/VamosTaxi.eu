@@ -161,10 +161,10 @@ describe("meta legal gate", () => {
     expect(SECURITY_HEADER_PAIRS.map(([, v]) => v).join("\n")).not.toMatch(/facebook|instagram/i);
   });
 
-  it("flags: both exist, both false until plan 28-07, together they decide", () => {
-    expect(META_LEGAL_GATE_OPEN).toBe(false);
-    expect(META_EVENTS_MANAGER_SWITCHES_OFF).toBe(false);
-    expect(metaMeasurementAllowed()).toBe(false);
+  it("flags: both open (Phase 28 plan 28-07), together they decide", () => {
+    expect(META_LEGAL_GATE_OPEN).toBe(true);
+    expect(META_EVENTS_MANAGER_SWITCHES_OFF).toBe(true);
+    expect(metaMeasurementAllowed()).toBe(true);
     const gate = source("lib/meta/legal-gate.ts");
     expect(gate).toContain("META_LEGAL_GATE_OPEN === true");
     expect(gate).toContain("META_EVENTS_MANAGER_SWITCHES_OFF === true");
