@@ -117,7 +117,8 @@ select is((select count(*) from public.reviews where published)::int, 0, 'no see
 -- B7 refreshed on main 50a2a050: seed header after both: 2693 keys, 97 no-param-reason.
 -- 2026-10-02: the dead /cookies rail link "The previous site" is removed with its key (owner decision): seed header 2692 keys, 97 no-param-reason.
 -- 2026-10-03 26.2 audit: three component keys (flight day group, footer YouTube and TikTok names): seed header 2695 keys, 97 no-param-reason.
-select is((select count(*) from public.content_strings)::int, 2695 + 26, 'content_strings row count = flattened en.json key count + 26 migration canton names');
+-- 2026-10-03 contact button: +10 keys (contactButton.*): seed header 2705 keys, 97 no-param-reason.
+select is((select count(*) from public.content_strings)::int, 2705 + 26, 'content_strings row count = flattened en.json key count + 26 migration canton names');
 select is((select count(*) from public.content_strings where pending_value)::int, 16, '16 pending-value keys (ADR-011, Law 04 data-tok)');
 select is((select count(*) from public.content_strings where non_translatable)::int, 8 + 26, '8 non-translatable seed keys (ADR-012) + 26 migration canton names');
 select is((select count(*) from public.content_strings where no_param_reason is not null)::int, 97, '97 no-param-reason keys (I18N-06; count re-read from the seed header after B7 + /confirmation)');

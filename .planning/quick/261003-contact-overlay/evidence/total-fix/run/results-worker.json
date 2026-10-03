@@ -1,0 +1,893 @@
+{
+ "base": "http://localhost:4783",
+ "mode": "worker",
+ "pass": 177,
+ "fail": 0,
+ "results": [
+  {
+   "ok": true,
+   "what": "PAY bar order Total · contact · PAY, contact 54 px, no overlap | /checkout 1024 en",
+   "detail": "{\"total\":{\"l\":51,\"r\":693,\"t\":841,\"b\":885,\"w\":642,\"h\":44},\"dock\":{\"l\":705,\"r\":759,\"t\":836,\"b\":890,\"w\":54,\"h\":54},\"pay\":{\"l\":771,\"r\":973,\"t\":836,\"b\":890,\"w\":201,\"h\":54}}"
+  },
+  {
+   "ok": true,
+   "what": "elementFromPoint at PAY's centre is PAY | /checkout 1024 en",
+   "detail": "SPAN.vt-dir-keep vt-copay__pay-amount"
+  },
+  {
+   "ok": true,
+   "what": "float not shown on /checkout at 1024 (docked only) | /checkout 1024 en",
+   "detail": ""
+  },
+  {
+   "ok": true,
+   "what": "no sideways scroll | /checkout 1024 en",
+   "detail": "1024 <= 1024"
+  },
+  {
+   "ok": true,
+   "what": "docked button opens the menu with four rows | /checkout 1024 en",
+   "detail": "[\"https://wa.me/41796267082\",\"tel:+41796267082\",\"mailto:info@vamostaxi.site\",\"/contact\"]"
+  },
+  {
+   "ok": true,
+   "what": "Esc closes, focus back on the docked button | /checkout 1024 en",
+   "detail": ""
+  },
+  {
+   "ok": true,
+   "what": "Total figure on one line, clear of the contact button, label above (as rendered: CHF 0.66) | /checkout 1024 en",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"CHF 0.66\",\"amountBox\":[51,141],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure CHF 9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 1024 en",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"CHF 9'999.00\",\"amountBox\":[51,184],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure AED 9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 1024 en",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"AED 9'999.00\",\"amountBox\":[51,183],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure € 9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 1024 en",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"€ 9'999.00\",\"amountBox\":[51,160],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure $9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 1024 en",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"$9'999.00\",\"amountBox\":[51,151],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "PAY bar order Total · contact · PAY, contact 54 px, no overlap | /checkout 1024 en cookie card open",
+   "detail": "{\"total\":{\"l\":51,\"r\":693,\"t\":425,\"b\":469,\"w\":642,\"h\":44},\"dock\":{\"l\":705,\"r\":759,\"t\":420,\"b\":474,\"w\":54,\"h\":54},\"pay\":{\"l\":771,\"r\":973,\"t\":420,\"b\":474,\"w\":201,\"h\":54}}"
+  },
+  {
+   "ok": true,
+   "what": "elementFromPoint at PAY's centre is PAY | /checkout 1024 en cookie card open",
+   "detail": "SPAN.vt-dir-keep vt-copay__pay-amount"
+  },
+  {
+   "ok": true,
+   "what": "float not shown on /checkout at 1024 (docked only) | /checkout 1024 en cookie card open",
+   "detail": ""
+  },
+  {
+   "ok": true,
+   "what": "no sideways scroll | /checkout 1024 en cookie card open",
+   "detail": "1024 <= 1024"
+  },
+  {
+   "ok": true,
+   "what": "cookie card open: docked button still rides in the lifted bar | /checkout 1024 en cookie card open",
+   "detail": "{\"attr\":true,\"dockedShown\":true}"
+  },
+  {
+   "ok": true,
+   "what": "docked button opens the menu with four rows | /checkout 1024 en cookie card open",
+   "detail": "[\"https://wa.me/41796267082\",\"tel:+41796267082\",\"mailto:info@vamostaxi.site\",\"/contact\"]"
+  },
+  {
+   "ok": true,
+   "what": "Esc closes, focus back on the docked button | /checkout 1024 en cookie card open",
+   "detail": ""
+  },
+  {
+   "ok": true,
+   "what": "PAY bar order Total · contact · PAY, contact 54 px, no overlap | /checkout 768 en",
+   "detail": "{\"total\":{\"l\":38,\"r\":450,\"t\":841,\"b\":885,\"w\":412,\"h\":44},\"dock\":{\"l\":462,\"r\":516,\"t\":836,\"b\":890,\"w\":54,\"h\":54},\"pay\":{\"l\":528,\"r\":730,\"t\":836,\"b\":890,\"w\":201,\"h\":54}}"
+  },
+  {
+   "ok": true,
+   "what": "elementFromPoint at PAY's centre is PAY | /checkout 768 en",
+   "detail": "SPAN.vt-dir-keep vt-copay__pay-amount"
+  },
+  {
+   "ok": true,
+   "what": "float not shown on /checkout at 768 (docked only) | /checkout 768 en",
+   "detail": ""
+  },
+  {
+   "ok": true,
+   "what": "no sideways scroll | /checkout 768 en",
+   "detail": "768 <= 768"
+  },
+  {
+   "ok": true,
+   "what": "docked button opens the menu with four rows | /checkout 768 en",
+   "detail": "[\"https://wa.me/41796267082\",\"tel:+41796267082\",\"mailto:info@vamostaxi.site\",\"/contact\"]"
+  },
+  {
+   "ok": true,
+   "what": "Esc closes, focus back on the docked button | /checkout 768 en",
+   "detail": ""
+  },
+  {
+   "ok": true,
+   "what": "Total figure on one line, clear of the contact button, label above (as rendered: CHF 0.66) | /checkout 768 en",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"CHF 0.66\",\"amountBox\":[38,128],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure CHF 9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 768 en",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"CHF 9'999.00\",\"amountBox\":[38,171],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure AED 9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 768 en",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"AED 9'999.00\",\"amountBox\":[38,171],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure € 9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 768 en",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"€ 9'999.00\",\"amountBox\":[38,147],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure $9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 768 en",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"$9'999.00\",\"amountBox\":[38,138],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "PAY bar order Total · contact · PAY, contact 54 px, no overlap | /checkout 768 en cookie card open",
+   "detail": "{\"total\":{\"l\":38,\"r\":450,\"t\":425,\"b\":469,\"w\":412,\"h\":44},\"dock\":{\"l\":462,\"r\":516,\"t\":420,\"b\":474,\"w\":54,\"h\":54},\"pay\":{\"l\":528,\"r\":730,\"t\":420,\"b\":474,\"w\":201,\"h\":54}}"
+  },
+  {
+   "ok": true,
+   "what": "elementFromPoint at PAY's centre is PAY | /checkout 768 en cookie card open",
+   "detail": "SPAN.vt-dir-keep vt-copay__pay-amount"
+  },
+  {
+   "ok": true,
+   "what": "float not shown on /checkout at 768 (docked only) | /checkout 768 en cookie card open",
+   "detail": ""
+  },
+  {
+   "ok": true,
+   "what": "no sideways scroll | /checkout 768 en cookie card open",
+   "detail": "768 <= 768"
+  },
+  {
+   "ok": true,
+   "what": "cookie card open: docked button still rides in the lifted bar | /checkout 768 en cookie card open",
+   "detail": "{\"attr\":true,\"dockedShown\":true}"
+  },
+  {
+   "ok": true,
+   "what": "docked button opens the menu with four rows | /checkout 768 en cookie card open",
+   "detail": "[\"https://wa.me/41796267082\",\"tel:+41796267082\",\"mailto:info@vamostaxi.site\",\"/contact\"]"
+  },
+  {
+   "ok": true,
+   "what": "Esc closes, focus back on the docked button | /checkout 768 en cookie card open",
+   "detail": ""
+  },
+  {
+   "ok": true,
+   "what": "PAY bar order Total · contact · PAY, contact 54 px, no overlap | /checkout 390 en",
+   "detail": "{\"total\":{\"l\":20,\"r\":179,\"t\":785,\"b\":829,\"w\":159,\"h\":44},\"dock\":{\"l\":187,\"r\":241,\"t\":780,\"b\":834,\"w\":54,\"h\":54},\"pay\":{\"l\":249,\"r\":370,\"t\":780,\"b\":834,\"w\":121,\"h\":54}}"
+  },
+  {
+   "ok": true,
+   "what": "elementFromPoint at PAY's centre is PAY | /checkout 390 en",
+   "detail": "SPAN."
+  },
+  {
+   "ok": true,
+   "what": "float not shown on /checkout at 390 (docked only) | /checkout 390 en",
+   "detail": ""
+  },
+  {
+   "ok": true,
+   "what": "no sideways scroll | /checkout 390 en",
+   "detail": "390 <= 390"
+  },
+  {
+   "ok": true,
+   "what": "docked button opens the menu with four rows | /checkout 390 en",
+   "detail": "[\"https://wa.me/41796267082\",\"tel:+41796267082\",\"mailto:info@vamostaxi.site\",\"/contact\"]"
+  },
+  {
+   "ok": true,
+   "what": "Esc closes, focus back on the docked button | /checkout 390 en",
+   "detail": ""
+  },
+  {
+   "ok": true,
+   "what": "Total figure on one line, clear of the contact button, label above (as rendered: CHF 0.66) | /checkout 390 en",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"CHF 0.66\",\"amountBox\":[20,109],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure CHF 9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 390 en",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"CHF 9'999.00\",\"amountBox\":[20,153],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure AED 9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 390 en",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"AED 9'999.00\",\"amountBox\":[20,152],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure € 9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 390 en",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"€ 9'999.00\",\"amountBox\":[20,129],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure $9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 390 en",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"$9'999.00\",\"amountBox\":[20,120],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "PAY bar order Total · contact · PAY, contact 54 px, no overlap | /checkout 390 en cookie card open",
+   "detail": "{\"total\":{\"l\":20,\"r\":179,\"t\":287,\"b\":331,\"w\":159,\"h\":44},\"dock\":{\"l\":187,\"r\":241,\"t\":282,\"b\":336,\"w\":54,\"h\":54},\"pay\":{\"l\":249,\"r\":370,\"t\":282,\"b\":336,\"w\":121,\"h\":54}}"
+  },
+  {
+   "ok": true,
+   "what": "elementFromPoint at PAY's centre is PAY | /checkout 390 en cookie card open",
+   "detail": "SPAN."
+  },
+  {
+   "ok": true,
+   "what": "float not shown on /checkout at 390 (docked only) | /checkout 390 en cookie card open",
+   "detail": ""
+  },
+  {
+   "ok": true,
+   "what": "no sideways scroll | /checkout 390 en cookie card open",
+   "detail": "390 <= 390"
+  },
+  {
+   "ok": true,
+   "what": "cookie card open: docked button still rides in the lifted bar | /checkout 390 en cookie card open",
+   "detail": "{\"attr\":true,\"dockedShown\":true}"
+  },
+  {
+   "ok": true,
+   "what": "docked button opens the menu with four rows | /checkout 390 en cookie card open",
+   "detail": "[\"https://wa.me/41796267082\",\"tel:+41796267082\",\"mailto:info@vamostaxi.site\",\"/contact\"]"
+  },
+  {
+   "ok": true,
+   "what": "Esc closes, focus back on the docked button | /checkout 390 en cookie card open",
+   "detail": ""
+  },
+  {
+   "ok": true,
+   "what": "PAY bar order Total · contact · PAY, contact 54 px, no overlap | /checkout 1024 de",
+   "detail": "{\"total\":{\"l\":51,\"r\":646,\"t\":841,\"b\":885,\"w\":595,\"h\":44},\"dock\":{\"l\":658,\"r\":712,\"t\":836,\"b\":890,\"w\":54,\"h\":54},\"pay\":{\"l\":724,\"r\":973,\"t\":836,\"b\":890,\"w\":249,\"h\":54}}"
+  },
+  {
+   "ok": true,
+   "what": "elementFromPoint at PAY's centre is PAY | /checkout 1024 de",
+   "detail": "SPAN."
+  },
+  {
+   "ok": true,
+   "what": "float not shown on /checkout at 1024 (docked only) | /checkout 1024 de",
+   "detail": ""
+  },
+  {
+   "ok": true,
+   "what": "no sideways scroll | /checkout 1024 de",
+   "detail": "1024 <= 1024"
+  },
+  {
+   "ok": true,
+   "what": "docked button opens the menu with four rows | /checkout 1024 de",
+   "detail": "[\"https://wa.me/41796267082\",\"tel:+41796267082\",\"mailto:info@vamostaxi.site\",\"/de/contact\"]"
+  },
+  {
+   "ok": true,
+   "what": "Esc closes, focus back on the docked button | /checkout 1024 de",
+   "detail": ""
+  },
+  {
+   "ok": true,
+   "what": "Total figure on one line, clear of the contact button, label above (as rendered: CHF 0.66) | /checkout 1024 de",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"CHF 0.66\",\"amountBox\":[51,141],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure CHF 9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 1024 de",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"CHF 9'999.00\",\"amountBox\":[51,184],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure AED 9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 1024 de",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"AED 9'999.00\",\"amountBox\":[51,183],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure € 9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 1024 de",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"€ 9'999.00\",\"amountBox\":[51,160],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure $9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 1024 de",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"$9'999.00\",\"amountBox\":[51,151],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "PAY bar order Total · contact · PAY, contact 54 px, no overlap | /checkout 768 de",
+   "detail": "{\"total\":{\"l\":38,\"r\":403,\"t\":841,\"b\":885,\"w\":364,\"h\":44},\"dock\":{\"l\":415,\"r\":469,\"t\":836,\"b\":890,\"w\":54,\"h\":54},\"pay\":{\"l\":481,\"r\":730,\"t\":836,\"b\":890,\"w\":249,\"h\":54}}"
+  },
+  {
+   "ok": true,
+   "what": "elementFromPoint at PAY's centre is PAY | /checkout 768 de",
+   "detail": "SPAN."
+  },
+  {
+   "ok": true,
+   "what": "float not shown on /checkout at 768 (docked only) | /checkout 768 de",
+   "detail": ""
+  },
+  {
+   "ok": true,
+   "what": "no sideways scroll | /checkout 768 de",
+   "detail": "768 <= 768"
+  },
+  {
+   "ok": true,
+   "what": "docked button opens the menu with four rows | /checkout 768 de",
+   "detail": "[\"https://wa.me/41796267082\",\"tel:+41796267082\",\"mailto:info@vamostaxi.site\",\"/de/contact\"]"
+  },
+  {
+   "ok": true,
+   "what": "Esc closes, focus back on the docked button | /checkout 768 de",
+   "detail": ""
+  },
+  {
+   "ok": true,
+   "what": "Total figure on one line, clear of the contact button, label above (as rendered: CHF 0.66) | /checkout 768 de",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"CHF 0.66\",\"amountBox\":[38,128],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure CHF 9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 768 de",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"CHF 9'999.00\",\"amountBox\":[38,171],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure AED 9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 768 de",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"AED 9'999.00\",\"amountBox\":[38,171],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure € 9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 768 de",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"€ 9'999.00\",\"amountBox\":[38,147],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure $9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 768 de",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"$9'999.00\",\"amountBox\":[38,138],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "PAY bar order Total · contact · PAY, contact 54 px, no overlap | /checkout 390 de",
+   "detail": "{\"total\":{\"l\":20,\"r\":131,\"t\":785,\"b\":829,\"w\":111,\"h\":44},\"dock\":{\"l\":139,\"r\":193,\"t\":780,\"b\":834,\"w\":54,\"h\":54},\"pay\":{\"l\":201,\"r\":370,\"t\":780,\"b\":834,\"w\":169,\"h\":54}}"
+  },
+  {
+   "ok": true,
+   "what": "elementFromPoint at PAY's centre is PAY | /checkout 390 de",
+   "detail": "SPAN."
+  },
+  {
+   "ok": true,
+   "what": "float not shown on /checkout at 390 (docked only) | /checkout 390 de",
+   "detail": ""
+  },
+  {
+   "ok": true,
+   "what": "no sideways scroll | /checkout 390 de",
+   "detail": "390 <= 390"
+  },
+  {
+   "ok": true,
+   "what": "docked button opens the menu with four rows | /checkout 390 de",
+   "detail": "[\"https://wa.me/41796267082\",\"tel:+41796267082\",\"mailto:info@vamostaxi.site\",\"/de/contact\"]"
+  },
+  {
+   "ok": true,
+   "what": "Esc closes, focus back on the docked button | /checkout 390 de",
+   "detail": ""
+  },
+  {
+   "ok": true,
+   "what": "Total figure on one line, clear of the contact button, label above (as rendered: CHF 0.66) | /checkout 390 de",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"16.1199px\",\"text\":\"CHF 0.66\",\"amountBox\":[20,92],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure CHF 9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 390 de",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"16.1199px\",\"text\":\"CHF 9'999.00\",\"amountBox\":[20,127],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure AED 9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 390 de",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"16.1199px\",\"text\":\"AED 9'999.00\",\"amountBox\":[20,127],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure € 9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 390 de",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"16.1199px\",\"text\":\"€ 9'999.00\",\"amountBox\":[20,107],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure $9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 390 de",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"16.1199px\",\"text\":\"$9'999.00\",\"amountBox\":[20,100],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "PAY bar order Total · contact · PAY, contact 54 px, no overlap | /checkout 1024 fr",
+   "detail": "{\"total\":{\"l\":51,\"r\":674,\"t\":841,\"b\":885,\"w\":623,\"h\":44},\"dock\":{\"l\":686,\"r\":740,\"t\":836,\"b\":890,\"w\":54,\"h\":54},\"pay\":{\"l\":752,\"r\":973,\"t\":836,\"b\":890,\"w\":220,\"h\":54}}"
+  },
+  {
+   "ok": true,
+   "what": "elementFromPoint at PAY's centre is PAY | /checkout 1024 fr",
+   "detail": "BUTTON.vt-btn vt-btn--primary vt-btn--lg vt-cop"
+  },
+  {
+   "ok": true,
+   "what": "float not shown on /checkout at 1024 (docked only) | /checkout 1024 fr",
+   "detail": ""
+  },
+  {
+   "ok": true,
+   "what": "no sideways scroll | /checkout 1024 fr",
+   "detail": "1024 <= 1024"
+  },
+  {
+   "ok": true,
+   "what": "docked button opens the menu with four rows | /checkout 1024 fr",
+   "detail": "[\"https://wa.me/41796267082\",\"tel:+41796267082\",\"mailto:info@vamostaxi.site\",\"/fr/contact\"]"
+  },
+  {
+   "ok": true,
+   "what": "Esc closes, focus back on the docked button | /checkout 1024 fr",
+   "detail": ""
+  },
+  {
+   "ok": true,
+   "what": "Total figure on one line, clear of the contact button, label above (as rendered: CHF 0.66) | /checkout 1024 fr",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"CHF 0.66\",\"amountBox\":[51,141],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure CHF 9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 1024 fr",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"CHF 9'999.00\",\"amountBox\":[51,184],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure AED 9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 1024 fr",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"AED 9'999.00\",\"amountBox\":[51,183],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure € 9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 1024 fr",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"€ 9'999.00\",\"amountBox\":[51,160],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure $9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 1024 fr",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"$9'999.00\",\"amountBox\":[51,151],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "PAY bar order Total · contact · PAY, contact 54 px, no overlap | /checkout 768 fr",
+   "detail": "{\"total\":{\"l\":38,\"r\":431,\"t\":841,\"b\":885,\"w\":393,\"h\":44},\"dock\":{\"l\":443,\"r\":497,\"t\":836,\"b\":890,\"w\":54,\"h\":54},\"pay\":{\"l\":509,\"r\":730,\"t\":836,\"b\":890,\"w\":220,\"h\":54}}"
+  },
+  {
+   "ok": true,
+   "what": "elementFromPoint at PAY's centre is PAY | /checkout 768 fr",
+   "detail": "BUTTON.vt-btn vt-btn--primary vt-btn--lg vt-cop"
+  },
+  {
+   "ok": true,
+   "what": "float not shown on /checkout at 768 (docked only) | /checkout 768 fr",
+   "detail": ""
+  },
+  {
+   "ok": true,
+   "what": "no sideways scroll | /checkout 768 fr",
+   "detail": "768 <= 768"
+  },
+  {
+   "ok": true,
+   "what": "docked button opens the menu with four rows | /checkout 768 fr",
+   "detail": "[\"https://wa.me/41796267082\",\"tel:+41796267082\",\"mailto:info@vamostaxi.site\",\"/fr/contact\"]"
+  },
+  {
+   "ok": true,
+   "what": "Esc closes, focus back on the docked button | /checkout 768 fr",
+   "detail": ""
+  },
+  {
+   "ok": true,
+   "what": "Total figure on one line, clear of the contact button, label above (as rendered: CHF 0.66) | /checkout 768 fr",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"CHF 0.66\",\"amountBox\":[38,128],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure CHF 9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 768 fr",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"CHF 9'999.00\",\"amountBox\":[38,171],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure AED 9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 768 fr",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"AED 9'999.00\",\"amountBox\":[38,171],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure € 9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 768 fr",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"€ 9'999.00\",\"amountBox\":[38,147],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure $9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 768 fr",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"$9'999.00\",\"amountBox\":[38,138],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "PAY bar order Total · contact · PAY, contact 54 px, no overlap | /checkout 390 fr",
+   "detail": "{\"total\":{\"l\":20,\"r\":160,\"t\":785,\"b\":829,\"w\":140,\"h\":44},\"dock\":{\"l\":168,\"r\":222,\"t\":780,\"b\":834,\"w\":54,\"h\":54},\"pay\":{\"l\":230,\"r\":370,\"t\":780,\"b\":834,\"w\":140,\"h\":54}}"
+  },
+  {
+   "ok": true,
+   "what": "elementFromPoint at PAY's centre is PAY | /checkout 390 fr",
+   "detail": "SPAN."
+  },
+  {
+   "ok": true,
+   "what": "float not shown on /checkout at 390 (docked only) | /checkout 390 fr",
+   "detail": ""
+  },
+  {
+   "ok": true,
+   "what": "no sideways scroll | /checkout 390 fr",
+   "detail": "390 <= 390"
+  },
+  {
+   "ok": true,
+   "what": "docked button opens the menu with four rows | /checkout 390 fr",
+   "detail": "[\"https://wa.me/41796267082\",\"tel:+41796267082\",\"mailto:info@vamostaxi.site\",\"/fr/contact\"]"
+  },
+  {
+   "ok": true,
+   "what": "Esc closes, focus back on the docked button | /checkout 390 fr",
+   "detail": ""
+  },
+  {
+   "ok": true,
+   "what": "Total figure on one line, clear of the contact button, label above (as rendered: CHF 0.66) | /checkout 390 fr",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"CHF 0.66\",\"amountBox\":[20,109],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure CHF 9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 390 fr",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"CHF 9'999.00\",\"amountBox\":[20,153],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure AED 9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 390 fr",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"AED 9'999.00\",\"amountBox\":[20,152],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure € 9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 390 fr",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"€ 9'999.00\",\"amountBox\":[20,129],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure $9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 390 fr",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"$9'999.00\",\"amountBox\":[20,120],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "PAY bar order PAY · contact · Total (mirrored), contact 54 px, no overlap | /checkout 1024 ar",
+   "detail": "{\"total\":{\"l\":322,\"r\":973,\"t\":841,\"b\":885,\"w\":651,\"h\":44},\"dock\":{\"l\":256,\"r\":310,\"t\":836,\"b\":890,\"w\":54,\"h\":54},\"pay\":{\"l\":51,\"r\":244,\"t\":836,\"b\":890,\"w\":193,\"h\":54}}"
+  },
+  {
+   "ok": true,
+   "what": "elementFromPoint at PAY's centre is PAY | /checkout 1024 ar",
+   "detail": "SPAN.vt-dir-keep vt-copay__pay-amount"
+  },
+  {
+   "ok": true,
+   "what": "float not shown on /checkout at 1024 (docked only) | /checkout 1024 ar",
+   "detail": ""
+  },
+  {
+   "ok": true,
+   "what": "no sideways scroll | /checkout 1024 ar",
+   "detail": "1024 <= 1024"
+  },
+  {
+   "ok": true,
+   "what": "docked button opens the menu with four rows | /checkout 1024 ar",
+   "detail": "[\"https://wa.me/41796267082\",\"tel:+41796267082\",\"mailto:info@vamostaxi.site\",\"/ar/contact\"]"
+  },
+  {
+   "ok": true,
+   "what": "Esc closes, focus back on the docked button | /checkout 1024 ar",
+   "detail": ""
+  },
+  {
+   "ok": true,
+   "what": "Total figure on one line, clear of the contact button, label above (as rendered: CHF 0.66) | /checkout 1024 ar",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"CHF 0.66\",\"amountBox\":[887,973],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure CHF 9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 1024 ar",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"CHF 9'999.00\",\"amountBox\":[849,973],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure AED 9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 1024 ar",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"AED 9'999.00\",\"amountBox\":[849,973],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure € 9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 1024 ar",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"€ 9'999.00\",\"amountBox\":[873,973],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure $9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 1024 ar",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"$9'999.00\",\"amountBox\":[882,973],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "PAY bar order PAY · contact · Total (mirrored), contact 54 px, no overlap | /checkout 1024 ar cookie card open",
+   "detail": "{\"total\":{\"l\":322,\"r\":973,\"t\":479,\"b\":523,\"w\":651,\"h\":44},\"dock\":{\"l\":256,\"r\":310,\"t\":474,\"b\":528,\"w\":54,\"h\":54},\"pay\":{\"l\":51,\"r\":244,\"t\":474,\"b\":528,\"w\":193,\"h\":54}}"
+  },
+  {
+   "ok": true,
+   "what": "elementFromPoint at PAY's centre is PAY | /checkout 1024 ar cookie card open",
+   "detail": "SPAN.vt-dir-keep vt-copay__pay-amount"
+  },
+  {
+   "ok": true,
+   "what": "float not shown on /checkout at 1024 (docked only) | /checkout 1024 ar cookie card open",
+   "detail": ""
+  },
+  {
+   "ok": true,
+   "what": "no sideways scroll | /checkout 1024 ar cookie card open",
+   "detail": "1024 <= 1024"
+  },
+  {
+   "ok": true,
+   "what": "cookie card open: docked button still rides in the lifted bar | /checkout 1024 ar cookie card open",
+   "detail": "{\"attr\":true,\"dockedShown\":true}"
+  },
+  {
+   "ok": true,
+   "what": "docked button opens the menu with four rows | /checkout 1024 ar cookie card open",
+   "detail": "[\"https://wa.me/41796267082\",\"tel:+41796267082\",\"mailto:info@vamostaxi.site\",\"/ar/contact\"]"
+  },
+  {
+   "ok": true,
+   "what": "Esc closes, focus back on the docked button | /checkout 1024 ar cookie card open",
+   "detail": ""
+  },
+  {
+   "ok": true,
+   "what": "PAY bar order PAY · contact · Total (mirrored), contact 54 px, no overlap | /checkout 768 ar",
+   "detail": "{\"total\":{\"l\":309,\"r\":730,\"t\":841,\"b\":885,\"w\":420,\"h\":44},\"dock\":{\"l\":243,\"r\":297,\"t\":836,\"b\":890,\"w\":54,\"h\":54},\"pay\":{\"l\":38,\"r\":231,\"t\":836,\"b\":890,\"w\":193,\"h\":54}}"
+  },
+  {
+   "ok": true,
+   "what": "elementFromPoint at PAY's centre is PAY | /checkout 768 ar",
+   "detail": "SPAN.vt-dir-keep vt-copay__pay-amount"
+  },
+  {
+   "ok": true,
+   "what": "float not shown on /checkout at 768 (docked only) | /checkout 768 ar",
+   "detail": ""
+  },
+  {
+   "ok": true,
+   "what": "no sideways scroll | /checkout 768 ar",
+   "detail": "768 <= 768"
+  },
+  {
+   "ok": true,
+   "what": "docked button opens the menu with four rows | /checkout 768 ar",
+   "detail": "[\"https://wa.me/41796267082\",\"tel:+41796267082\",\"mailto:info@vamostaxi.site\",\"/ar/contact\"]"
+  },
+  {
+   "ok": true,
+   "what": "Esc closes, focus back on the docked button | /checkout 768 ar",
+   "detail": ""
+  },
+  {
+   "ok": true,
+   "what": "Total figure on one line, clear of the contact button, label above (as rendered: CHF 0.66) | /checkout 768 ar",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"CHF 0.66\",\"amountBox\":[644,730],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure CHF 9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 768 ar",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"CHF 9'999.00\",\"amountBox\":[606,730],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure AED 9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 768 ar",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"AED 9'999.00\",\"amountBox\":[606,730],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure € 9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 768 ar",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"€ 9'999.00\",\"amountBox\":[630,730],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure $9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 768 ar",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"$9'999.00\",\"amountBox\":[639,730],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "PAY bar order PAY · contact · Total (mirrored), contact 54 px, no overlap | /checkout 768 ar cookie card open",
+   "detail": "{\"total\":{\"l\":309,\"r\":730,\"t\":479,\"b\":523,\"w\":420,\"h\":44},\"dock\":{\"l\":243,\"r\":297,\"t\":474,\"b\":528,\"w\":54,\"h\":54},\"pay\":{\"l\":38,\"r\":231,\"t\":474,\"b\":528,\"w\":193,\"h\":54}}"
+  },
+  {
+   "ok": true,
+   "what": "elementFromPoint at PAY's centre is PAY | /checkout 768 ar cookie card open",
+   "detail": "SPAN.vt-dir-keep vt-copay__pay-amount"
+  },
+  {
+   "ok": true,
+   "what": "float not shown on /checkout at 768 (docked only) | /checkout 768 ar cookie card open",
+   "detail": ""
+  },
+  {
+   "ok": true,
+   "what": "no sideways scroll | /checkout 768 ar cookie card open",
+   "detail": "768 <= 768"
+  },
+  {
+   "ok": true,
+   "what": "cookie card open: docked button still rides in the lifted bar | /checkout 768 ar cookie card open",
+   "detail": "{\"attr\":true,\"dockedShown\":true}"
+  },
+  {
+   "ok": true,
+   "what": "docked button opens the menu with four rows | /checkout 768 ar cookie card open",
+   "detail": "[\"https://wa.me/41796267082\",\"tel:+41796267082\",\"mailto:info@vamostaxi.site\",\"/ar/contact\"]"
+  },
+  {
+   "ok": true,
+   "what": "Esc closes, focus back on the docked button | /checkout 768 ar cookie card open",
+   "detail": ""
+  },
+  {
+   "ok": true,
+   "what": "PAY bar order PAY · contact · Total (mirrored), contact 54 px, no overlap | /checkout 390 ar",
+   "detail": "{\"total\":{\"l\":205,\"r\":370,\"t\":785,\"b\":829,\"w\":165,\"h\":44},\"dock\":{\"l\":143,\"r\":197,\"t\":780,\"b\":834,\"w\":54,\"h\":54},\"pay\":{\"l\":20,\"r\":135,\"t\":780,\"b\":834,\"w\":115,\"h\":54}}"
+  },
+  {
+   "ok": true,
+   "what": "elementFromPoint at PAY's centre is PAY | /checkout 390 ar",
+   "detail": "SPAN."
+  },
+  {
+   "ok": true,
+   "what": "float not shown on /checkout at 390 (docked only) | /checkout 390 ar",
+   "detail": ""
+  },
+  {
+   "ok": true,
+   "what": "no sideways scroll | /checkout 390 ar",
+   "detail": "390 <= 390"
+  },
+  {
+   "ok": true,
+   "what": "docked button opens the menu with four rows | /checkout 390 ar",
+   "detail": "[\"https://wa.me/41796267082\",\"tel:+41796267082\",\"mailto:info@vamostaxi.site\",\"/ar/contact\"]"
+  },
+  {
+   "ok": true,
+   "what": "Esc closes, focus back on the docked button | /checkout 390 ar",
+   "detail": ""
+  },
+  {
+   "ok": true,
+   "what": "Total figure on one line, clear of the contact button, label above (as rendered: CHF 0.66) | /checkout 390 ar",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"CHF 0.66\",\"amountBox\":[284,370],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure CHF 9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 390 ar",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"CHF 9'999.00\",\"amountBox\":[246,370],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure AED 9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 390 ar",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"AED 9'999.00\",\"amountBox\":[246,370],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure € 9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 390 ar",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"€ 9'999.00\",\"amountBox\":[270,370],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "Total figure $9'999.00 stays on one line (scrollWidth <= clientWidth), clear of the contact button; PAY whole, >= 54 px, on top; no sideways scroll | /checkout 390 ar",
+   "detail": "{\"lines\":1,\"scroll\":true,\"clear\":true,\"labelAbove\":true,\"payWhole\":true,\"payH\":54,\"payOnTop\":true,\"dock\":[54,54],\"page\":true,\"fs\":\"20px\",\"text\":\"$9'999.00\",\"amountBox\":[279,370],\"ok\":true}"
+  },
+  {
+   "ok": true,
+   "what": "PAY bar order PAY · contact · Total (mirrored), contact 54 px, no overlap | /checkout 390 ar cookie card open",
+   "detail": "{\"total\":{\"l\":205,\"r\":370,\"t\":309,\"b\":353,\"w\":165,\"h\":44},\"dock\":{\"l\":143,\"r\":197,\"t\":304,\"b\":358,\"w\":54,\"h\":54},\"pay\":{\"l\":20,\"r\":135,\"t\":304,\"b\":358,\"w\":115,\"h\":54}}"
+  },
+  {
+   "ok": true,
+   "what": "elementFromPoint at PAY's centre is PAY | /checkout 390 ar cookie card open",
+   "detail": "SPAN."
+  },
+  {
+   "ok": true,
+   "what": "float not shown on /checkout at 390 (docked only) | /checkout 390 ar cookie card open",
+   "detail": ""
+  },
+  {
+   "ok": true,
+   "what": "no sideways scroll | /checkout 390 ar cookie card open",
+   "detail": "390 <= 390"
+  },
+  {
+   "ok": true,
+   "what": "cookie card open: docked button still rides in the lifted bar | /checkout 390 ar cookie card open",
+   "detail": "{\"attr\":true,\"dockedShown\":true}"
+  },
+  {
+   "ok": true,
+   "what": "docked button opens the menu with four rows | /checkout 390 ar cookie card open",
+   "detail": "[\"https://wa.me/41796267082\",\"tel:+41796267082\",\"mailto:info@vamostaxi.site\",\"/ar/contact\"]"
+  },
+  {
+   "ok": true,
+   "what": "Esc closes, focus back on the docked button | /checkout 390 ar cookie card open",
+   "detail": ""
+  },
+  {
+   "ok": true,
+   "what": "float shown, rail PAY on top, float does not cover PAY | /checkout 1440x900 en",
+   "detail": "{\"floatShown\":true,\"railPay\":true,\"bottomBar\":false,\"payOnTop\":true,\"overlap\":false,\"fr\":[1242,822,174,54],\"pr\":[929,517,310,54]}"
+  },
+  {
+   "ok": true,
+   "what": "float shown, rail PAY on top, float does not cover PAY | /checkout 1280x720 en",
+   "detail": "{\"floatShown\":true,\"railPay\":true,\"bottomBar\":false,\"payOnTop\":true,\"overlap\":false,\"fr\":[1082,642,174,54],\"pr\":[849,517,310,54]}"
+  },
+  {
+   "ok": true,
+   "what": "float shown, rail PAY on top, float does not cover PAY | /checkout 1181x700 en",
+   "detail": "{\"floatShown\":true,\"railPay\":true,\"bottomBar\":false,\"payOnTop\":true,\"overlap\":false,\"fr\":[983,622,174,54],\"pr\":[790,517,310,54]}"
+  }
+ ]
+}
