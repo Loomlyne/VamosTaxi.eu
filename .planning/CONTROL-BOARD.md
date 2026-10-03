@@ -14,7 +14,7 @@
 - Deploy with `--env staging` (Worker `vamos`, live on vamostaxi.site). A deploy without it made the stray Worker `vamos-web` on 2026-10-01.
 - Types with the pinned CLI: `pnpm exec supabase` (2.115.0), then `db:types:check`.
 - After any seed change, re-pin `packages/db/supabase/tests/seed_idempotent.test.sql` to the counts in the seed header.
-- Next migration number: `20261007240000` (`200000` settle safety, `210000` policy settings, `220000` booking reference — all live; `230000` is reserved for the fare-lines job). Ask the controller first and check every remote branch for the file name.
+- Next migration number: `20261007270000` (`200000` settle safety, `210000` policy settings, `220000` booking reference, `240000` phase 28 — all live; `230000` fare lines and `250000` frozen price book restore on their branches; `260000` reserved for Phase 29). Ask the controller first and check every remote branch for the file name.
 - Standing order (owner, 2026-10-01 17:41 +04, verbatim): "coomit and deply all after verify dont ask me". It is never used for the live Stripe key, the vamostaxi.eu cutover, price book row 18 Publish, deleting test bookings, or wiping data. Those need his word every time.
 
 Kept by the control session. One page: what is live, what is being built, what waits for
@@ -22,7 +22,7 @@ the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 Rewritten short on 2026-09-30 14:25; the long version is in git history (`8230227c`).
 
-**Last update:** 2026-10-03 20:05 (+04)
+**Last update:** 2026-10-03 20:12 (+04)
 
 ## Landing queue, 2026-10-03 00:45 (+04)
 
@@ -303,14 +303,17 @@ The owner decided every finding F1 to F14. Every Phase 20 ship needs his Ship.
 | 26.5 | `20261001100000` agreement record, `110000` unpaid hidden, `120000` paid-only reminder, `130000` pay-press cap |
 | Phase 27 | `20261002100000` to `190000` |
 | Phase 28 | `20261003100000` to `190000` |
-| Phase 29 | `20261004100000` to `190000` |
+| Phase 29 | ~~`20261004100000` to `190000`~~ withdrawn 2026-10-03 20:1x (sorts before migrations already on live); **`20261007260000`** reserved for Phase 29 (controller, 2026-10-03 20:1x) |
 | Phase 20 | `20261005100000`, `110000` (live) |
 | Class photos | `20261006100000` to `190000` |
 | 26.2 | `20261007100000` staff price preview (live); P4-A `110000`, trigger clean-up `120000`, P4-C `130000`; P1 `140000` (live); P6 `150000`; chauffeurs by class `160000` (live); **27.1 finish your account `170000`** (taken by the project chat "Finish your account" on 2026-10-01, reserved here after the fact) |
 | Phase 20 (more) | `20261005120000` reviews column grants (B1), `130000` erased-booking pay link (20-12), `140000` refunds by hand (20-10); leftovers G7/G10/G11/G12/G28 `20261007180000` (live 23:51); P6 `20261007150000` live 02:58 |
 | P6 follow-ups | `20261007190000` booking_edit_request_upsert: a customer time request waits while a staff change awaits payment (**live 14:13**; reserved 03:09, `fix/p6-followups`) |
 | Settle safety | `20261007200000` difference-payment settle: one lock order, retry on deadlock, paid-after-cancel is Refund due (reserved 2026-10-02 14:15, `fix/settle-safety`) |
-| **Next free** | **`20261007210000`**. Ask the controller first; check every remote branch for the file name |
+| Fare lines | `20261007230000` reserved (`feat/fare-lines`) |
+| Phase 28 | `20261007240000` booking_meta_click_ids (**live 2026-10-03 19:58**, live version `20261003155826`) |
+| Frozen price book restore | `20261007250000` pricing_row_frozen_restore (on `fix/pricing-frozen-restore`, GitHub, written 20:01; not reserved through the board) |
+| **Next free** | **`20261007270000`**. Ask the controller first; check every remote branch and worktree for the file name. Never a number that sorts before one already on main |
 
 ## Decisions that stand
 
