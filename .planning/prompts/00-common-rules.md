@@ -18,7 +18,7 @@ since 2026-10-03 17:41 +04, the owner's word in its chat; `.planning/CONTROL-BOA
 - Deploy with `--env staging` (Worker `vamos`, live on vamostaxi.site). A deploy without it made the stray Worker `vamos-web` on 2026-10-01.
 - Types with the pinned CLI: `pnpm exec supabase` (2.115.0), then `db:types:check`.
 - After any seed change, re-pin `packages/db/supabase/tests/seed_idempotent.test.sql` to the counts in the seed header.
-- Next migration number: `20261007240000` (`200000` settle safety, `210000` policy settings, `220000` booking reference — all live; `230000` is reserved for the fare-lines job). Ask the controller first and check every remote branch for the file name.
+- Next migration number: `20261007270000` (`200000` settle safety, `210000` policy settings, `220000` booking reference, `240000` phase 28 — all live; `230000` fare lines and `250000` frozen price book restore on their branches; `260000` reserved for Phase 29). Ask the controller first and check every remote branch for the file name.
 - Standing order (owner, 2026-10-01 17:41 +04, verbatim): "coomit and deply all after verify dont ask me". It is never used for the live Stripe key, the vamostaxi.eu cutover, price book row 18 Publish, deleting test bookings, or wiping data. Those need his word every time.
 
 ## Read first, in this order
