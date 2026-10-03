@@ -1081,6 +1081,8 @@
     "choice-recorded": "تم تسجيل الاختيار.",
     "choose-your-categories": "اختر الفئات",
     "consent-subject-purpose": "يسجّل أنك اخترت حتى نتوقف عن السؤال.",
+    "qs-cookie-purpose": "يوزّع طلبات الأسعار بإنصاف بين الزوار ويمنع الاستخدام الآلي المسيء",
+    "qs-cookie-duration": "24 ساعة",
     "cookie-banner": "شريط ملفات الارتباط",
     "cookie-choices": "خيارات ملفات الارتباط",
     "cookie-policy": "سياسة ملفات تعريف الارتباط",

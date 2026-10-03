@@ -115,6 +115,14 @@ export default async function CookiesPage({
                 provider: "Vamos Taxi",
                 duration: <PendingSlot label="Consent duration" />,
               },
+              {
+                // Owner-approved row, .planning/decisions/2026-10-03-vamos-qs-cookie-row.md
+                slug: "visitor",
+                name: <span data-vt-no-i18n>vamos_qs</span>,
+                purpose: tCookies("qs-cookie-purpose"),
+                provider: "Vamos Taxi",
+                duration: tCookies("qs-cookie-duration"),
+              },
             ]}
           />
         </div>

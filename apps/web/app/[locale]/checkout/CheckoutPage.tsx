@@ -362,6 +362,9 @@ export function CheckoutPage({
               money={money}
               siteKey={settings.turnstileSiteKey}
               onChallengeToken={(token) => {
+                // Quick 261003: no loading state here on purpose. A refused token keeps the same
+                // widget mounted (no new token by itself), so a failing challenge waits for TRY AGAIN
+                // instead of re-mounting the widget and posting again in a loop.
                 if (token) void runQuote(tripRef.current, token);
               }}
               onSelect={choose}
