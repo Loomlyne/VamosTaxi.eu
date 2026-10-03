@@ -29,6 +29,7 @@ import { createDigestDependencies } from "./lib/supabase/service";
 import { applyHandleResult, handleStripeMessage } from "./lib/checkout/settle";
 import { handleDlqMessage } from "./lib/checkout/dlq";
 import { sweepStuckNotifications } from "./lib/checkout/notify";
+import { sweepMetaPurchaseIds } from "./lib/meta/purchase";
 import { expireUnpaidBookings } from "./lib/checkout/expire-unpaid";
 import { purgeExpiredUnpaid } from "./lib/checkout/purge-unpaid";
 import { runReminder24h } from "./lib/lifecycle/reminder";
@@ -101,6 +102,14 @@ export default {
         emit("info", "notification_sweep", { outcome: "ok" });
       } catch {
         emit("error", "notification_sweep", { outcome: "failed" });
+      }
+      // Phase 29 WR-02: empty fbp, fbc and consent subject an interrupted queue run left on a paid
+      // booking. Own try/catch; the log carries the count only.
+      try {
+        const cleaned = await sweepMetaPurchaseIds(env);
+        emit("info", "meta_purchase_sweep", { cleaned });
+      } catch {
+        emit("error", "meta_purchase_sweep", { outcome: "failed" });
       }
       return;
     }

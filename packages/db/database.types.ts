@@ -3622,6 +3622,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      meta_purchase_sweep: { Args: never; Returns: number }
       must_fix_trip_read: {
         Args: { p_key: string }
         Returns: {

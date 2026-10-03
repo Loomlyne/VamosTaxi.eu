@@ -2,7 +2,7 @@
 --
 -- Phase 29 (META-10..14, D-01..D-07). One Purchase per booking from the settle queue. Additive:
 -- one nullable column on bookings (no default), one empty table, one writer overload, the Phase 28
--- trigger function widened to the new column, three definer functions for the system role. No row
+-- trigger function widened to the new column, four definer functions for the system role (claim, finish, clear_ids, sweep). No row
 -- is inserted, updated or deleted by this file.
 --
 -- One transaction (IN-05): apply it verbatim as a whole (connector apply_migration, never execute_sql
@@ -132,7 +132,8 @@ create table public.meta_purchase_events (
   state         pg_catalog.text not null check (state in ('sending', 'sent', 'rejected', 'failed', 'skipped')),
   skip_reason   pg_catalog.text check (skip_reason in
                   ('not_paid', 'erased', 'is_test', 'refunded', 'zero_charge', 'too_old',
-                   'gate_closed', 'no_token', 'no_test_code', 'no_ids', 'no_subject', 'consent_off')),
+                   'gate_closed', 'no_token', 'no_test_code', 'no_ids', 'no_subject', 'consent_off',
+                   'interrupted')),
   test_event    pg_catalog.bool not null,
   http_status   pg_catalog.int4,
   graph_code    pg_catalog.int4,
@@ -219,6 +220,12 @@ begin
     into v_charged, v_captured
     from public.booking_payments p
    where p.id = p_payment_id and p.booking_id = p_booking_id and p.status = 'succeeded';
+  -- A payment that is not the booking's first succeeded one writes no row and wipes nothing (WR-02).
+  -- Reasoned: the first payment's claim still needs fbp, fbc and the subject for its own Purchase, so a
+  -- later payment must never empty them. Every branch that is allowed to wipe has just written a row
+  -- (below), and a booking that already has a row never reaches this point (the 'already' answer above),
+  -- so this branch has no terminal row to justify a wipe. Values that an interrupted first payment left
+  -- behind are emptied by meta_purchase_sweep() instead.
   if not found or exists (
     select 1
       from public.booking_payments o
@@ -327,12 +334,71 @@ begin
 end
 $$;
 
+-- WR-02: the daily clean-up. A queue message that is interrupted between the settle commit and the claim
+-- commit is never redelivered into the claim (stripe_event_begin answers already_processed), so the
+-- three values would stay on a paid booking for good (D-05). The sweep finds non-pending bookings that
+-- still hold any of them and either already have a row, or whose first succeeded payment is older than
+-- the claim's seven-day limit, or which have not been touched for an hour (long past any queue run).
+-- It wipes the three values and, when no row exists and a succeeded payment exists, records the decision
+-- as skipped / 'interrupted' (no Purchase, D-06) so a late claim answers 'already'. Rows other sessions
+-- hold are skipped and caught the next day. Returns how many bookings it cleaned: one int4, no arrays.
+create or replace function public.meta_purchase_sweep()
+returns pg_catalog.int4
+language plpgsql
+security definer
+set search_path = ''
+set lock_timeout = '2s'
+set statement_timeout = '5s'
+as $$
+declare
+  v_id    pg_catalog.uuid;
+  v_pay   pg_catalog.int8;
+  v_count pg_catalog.int4 := 0;
+begin
+  for v_id in
+    select b.id
+      from public.bookings b
+     where b.status <> 'pending'::public.booking_status
+       and (b.meta_fbp is not null or b.meta_fbc is not null or b.meta_consent_subject is not null)
+       and (
+         exists (select 1 from public.meta_purchase_events e where e.booking_id = b.id)
+         or exists (select 1 from public.booking_payments p
+                     where p.booking_id = b.id and p.status = 'succeeded'
+                       and coalesce(p.captured_at, p.created_at) < pg_catalog.now() - interval '7 days')
+         or b.updated_at < pg_catalog.now() - interval '1 hour'
+       )
+     order by b.id
+     limit 500
+       for update of b skip locked
+  loop
+    select p.id into v_pay
+      from public.booking_payments p
+     where p.booking_id = v_id and p.status = 'succeeded'
+     order by coalesce(p.captured_at, p.created_at), p.id
+     limit 1;
+    if v_pay is not null then
+      insert into public.meta_purchase_events (booking_id, payment_id, state, skip_reason, test_event)
+      values (v_id, v_pay, 'skipped', 'interrupted', false)
+      on conflict (booking_id) do nothing;
+    end if;
+
+    update public.bookings
+       set meta_fbp = null, meta_fbc = null, meta_consent_subject = null
+     where id = v_id;
+    v_count := v_count + 1;
+  end loop;
+  return v_count;
+end
+$$;
+
 revoke all on function public.meta_purchase_claim(pg_catalog.uuid, pg_catalog.int8, pg_catalog.text, pg_catalog.bool, pg_catalog.bool, pg_catalog.text) from public, anon, authenticated;
 revoke all on function public.meta_purchase_finish(pg_catalog.uuid, pg_catalog.uuid, pg_catalog.text, pg_catalog.int4, pg_catalog.int4, pg_catalog.int4) from public, anon, authenticated;
 revoke all on function public.meta_purchase_clear_ids(pg_catalog.uuid) from public, anon, authenticated;
+revoke all on function public.meta_purchase_sweep() from public, anon, authenticated;
 grant execute on function public.meta_purchase_claim(pg_catalog.uuid, pg_catalog.int8, pg_catalog.text, pg_catalog.bool, pg_catalog.bool, pg_catalog.text) to vamos_system;
 grant execute on function public.meta_purchase_finish(pg_catalog.uuid, pg_catalog.uuid, pg_catalog.text, pg_catalog.int4, pg_catalog.int4, pg_catalog.int4) to vamos_system;
 grant execute on function public.meta_purchase_clear_ids(pg_catalog.uuid) to vamos_system;
+grant execute on function public.meta_purchase_sweep() to vamos_system;
 
 comment on function public.meta_purchase_claim(pg_catalog.uuid, pg_catalog.int8, pg_catalog.text, pg_catalog.bool, pg_catalog.bool, pg_catalog.text) is
   'Phase 29: decide send / skip / already for the first succeeded payment of a booking, once. EXECUTE: vamos_system only.';
@@ -340,5 +406,7 @@ comment on function public.meta_purchase_finish(pg_catalog.uuid, pg_catalog.uuid
   'Phase 29: record the Graph answer on the sending row. EXECUTE: vamos_system only.';
 comment on function public.meta_purchase_clear_ids(pg_catalog.uuid) is
   'Phase 29 D-05: best-effort wipe of fbp, fbc and consent subject on one booking. EXECUTE: vamos_system only.';
+comment on function public.meta_purchase_sweep() is
+  'Phase 29 D-05: daily wipe of fbp, fbc and consent subject on non-pending bookings whose Purchase was decided or interrupted; records skipped/interrupted when no row exists; returns the count. EXECUTE: vamos_system only.';
 
 commit;

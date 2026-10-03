@@ -187,7 +187,7 @@ type DbClaimRow = {
 };
 
 /** WR-01: per-transaction limits, set before the call so a stuck lock or socket cannot hold the queue. */
-async function limits(sql: { (strings: TemplateStringsArray, ...values: unknown[]): PromiseLike<unknown> }): Promise<void> {
+async function limits(sql: Parameters<Parameters<typeof asSystem>[1]>[0]): Promise<void> {
   await sql`select set_config('lock_timeout', '2s', true), set_config('statement_timeout', '5s', true)`;
 }
 
@@ -236,4 +236,17 @@ export function metaPurchaseDepsFromEnv(env: CloudflareEnv, emit: Emit): MetaPur
     fetch: (...a) => fetch(...a),
     emit,
   };
+}
+
+/**
+ * WR-02 / D-05: daily clean-up of fbp, fbc and consent subject left on non-pending bookings by an
+ * interrupted queue run. Returns how many bookings were cleaned. Throws on a database error; the
+ * caller logs the count only.
+ */
+export async function sweepMetaPurchaseIds(env: CloudflareEnv): Promise<number> {
+  const rows = await asSystem(env, async (sql) => {
+    await limits(sql);
+    return sql<{ n: number | string }[]>`select public.meta_purchase_sweep() as n`;
+  });
+  return Number(rows[0]?.n ?? 0);
 }

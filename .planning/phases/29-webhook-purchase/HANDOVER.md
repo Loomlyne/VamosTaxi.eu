@@ -22,7 +22,7 @@ Pay-path files (quote, pricing, checkout and confirmation pages, return route, r
 
 ## 2. Migration, ship order
 
-`packages/db/supabase/migrations/20261007260000_meta_purchase.sql`. Additive: one nullable column (`bookings.meta_consent_subject`), one empty table (`meta_purchase_events`, RLS enabled and forced), the 4-arg writer next to the 3-arg one, the trigger re-created over three columns, two definer functions (claim, finish) plus `meta_purchase_clear_ids`. Safe on live paid rows (nothing is backfilled).
+`packages/db/supabase/migrations/20261007260000_meta_purchase.sql`. Additive: one nullable column (`bookings.meta_consent_subject`), one empty table (`meta_purchase_events`, RLS enabled and forced), the 4-arg writer next to the 3-arg one (the 3-arg one is replaced so it also clears the consent subject), the trigger re-created over three columns, four definer functions: `meta_purchase_claim`, `meta_purchase_finish`, `meta_purchase_clear_ids` and `meta_purchase_sweep` (all with lock_timeout 2s and statement_timeout 5s). Safe on live paid rows (nothing is backfilled).
 
 The file is one transaction (`begin;` ... `commit;`). Apply it verbatim, as one transaction (connector `apply_migration`, never `execute_sql` statement by statement, never in pieces).
 
@@ -35,7 +35,7 @@ Deploy gap, both directions safe (research Pitfall 10): old Worker plus new DB, 
 1. `bookings` row count equal before and after.
 2. `select count(*) from bookings where meta_consent_subject is not null` is 0.
 3. `meta_purchase_events` is empty.
-4. `has_function_privilege`: `meta_purchase_claim`, `meta_purchase_finish`, `meta_purchase_clear_ids` true only for `vamos_system`; the 4-arg `checkout_set_meta_click_ids` true only for `vamos_checkout`. anon, authenticated, vamos_guest, public false. `service_role` may be true on hosted (it is true locally too).
+4. `has_function_privilege`: `meta_purchase_claim`, `meta_purchase_finish`, `meta_purchase_clear_ids`, `meta_purchase_sweep` true only for `vamos_system`; the 4-arg `checkout_set_meta_click_ids` true only for `vamos_checkout`. anon, authenticated, vamos_guest, public false. `service_role` may be true on hosted (it is true locally too).
 5. `has_column_privilege('authenticated'|'vamos_guest','public.bookings','meta_consent_subject','SELECT')` false.
 6. `meta_purchase_events`: `relrowsecurity` and `relforcerowsecurity` both true.
 7. Trigger `bookings_meta_click_ids_pending_only` is enabled (`O`) and fires on `INSERT OR UPDATE OF meta_fbp, meta_fbc, meta_consent_subject`.
@@ -44,11 +44,12 @@ Deploy gap, both directions safe (research Pitfall 10): old Worker plus new DB, 
 | md5 | function |
 |---|---|
 | 7812387444a2045b5cc8f0745acb2a2e | checkout_set_meta_click_ids(uuid,text,text,uuid) |
-| aba30c9881e2f1b26f2aa3de3d4bc267 | checkout_set_meta_click_ids(uuid,text,text) |
+| c84ea82a9172717cb7bf960b62aa3b44 | checkout_set_meta_click_ids(uuid,text,text) (replaced: clears the consent subject) |
 | 6e51e9a137e25ad9fabae6e2449ef7f2 | tg_bookings_meta_click_ids_pending_only() |
-| 805e589e77d56da636f06a09ed8b0ce9 | meta_purchase_claim(uuid,bigint,text,boolean,boolean,text) |
-| 9eec156a2208b0610b6653b86823769f | meta_purchase_finish(uuid,uuid,text,integer,integer,integer) |
-| 916308f5086c9753292846c4ac60c3c6 | meta_purchase_clear_ids(uuid) |
+| 187d1eb46c348d9cec6be3f818f59bb5 | meta_purchase_claim(uuid,bigint,text,boolean,boolean,text) |
+| fa9f141957d7c85c320a9d14bbc497fa | meta_purchase_finish(uuid,uuid,text,integer,integer,integer) |
+| 44b30de59aab9fcdff8ee744e4bafb07 | meta_purchase_clear_ids(uuid) |
+| 104302525db4942445d4a1dc025374e7 | meta_purchase_sweep() |
 
 ## 4. Config
 
@@ -99,7 +100,7 @@ Send inline in the queue consumer; table `meta_purchase_events`; Graph v26.0; 5 
 
 ## 8. Claim-failure case (D-05)
 
-If the claim call fails (42883 before the migration, or a database error), the Worker wipes the ids best-effort with `meta_purchase_clear_ids`. If that also fails, values can stay on a paid booking. Read-only query for the controller after deploy and weekly until the first live sale (ids only, never select the values):
+If the claim call fails (42883 before the migration, or a database error), the Worker wipes the ids best-effort with `meta_purchase_clear_ids`. If that also fails, values can stay on a paid booking. The Worker's daily `0 3 * * *` cron also calls `meta_purchase_sweep()` (WR-02): it covers interrupted queue runs too (a message cut off between the settle commit and the claim is never redelivered into the claim). For a non-pending booking that still holds any of the three values and either already has a row, or has a first succeeded payment older than 7 days, or has not been touched for an hour, it empties them and, when no row exists and a succeeded payment exists, records `skipped` / `interrupted` (no Purchase, D-06). It logs the count only (`meta_purchase_sweep cleaned=N`). Read-only query for the controller after deploy and weekly until the first live sale (ids only, never select the values):
 
 `select b.id, b.status from public.bookings b where b.status in ('paid','confirmed','assigned','completed') and (b.meta_fbp is not null or b.meta_fbc is not null or b.meta_consent_subject is not null) and not exists (select 1 from public.meta_purchase_events e where e.booking_id = b.id)`
 

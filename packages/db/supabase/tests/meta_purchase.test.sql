@@ -6,7 +6,7 @@
 -- the three cookie values; the Pay press writer takes a consent subject. Synthetic data only,
 -- rappen integers only. Run as postgres by `supabase test db`.
 begin;
-select plan(98);
+select plan(115);
 
 -- ── objects and grants ───────────────────────────────────────────────────────────────────────
 select has_column('public', 'bookings', 'meta_consent_subject', 'bookings.meta_consent_subject exists');
@@ -29,6 +29,15 @@ select function_privs_are('public', 'meta_purchase_claim', '{uuid,bigint,text,bo
 select function_privs_are('public', 'meta_purchase_finish', '{uuid,uuid,text,integer,integer,integer}'::text[], 'vamos_system', '{EXECUTE}'::text[], 'finish: vamos_system has EXECUTE');
 select function_privs_are('public', 'meta_purchase_clear_ids', '{uuid}'::text[], 'vamos_system', '{EXECUTE}'::text[], 'clear_ids: vamos_system has EXECUTE');
 select function_privs_are('public', 'checkout_set_meta_click_ids', '{uuid,text,text,uuid}'::text[], 'vamos_checkout', '{EXECUTE}'::text[], '4-arg writer: vamos_checkout has EXECUTE');
+select function_privs_are('public', 'meta_purchase_sweep', '{}'::text[], 'vamos_system', '{EXECUTE}'::text[], 'sweep: vamos_system has EXECUTE');
+select ok(not exists (
+  select 1 from pg_roles r
+   where r.rolname in ('anon','authenticated','vamos_guest','vamos_checkout','vamos_edge','vamos_public')
+     and has_function_privilege(r.rolname, 'public.meta_purchase_sweep()', 'EXECUTE')
+), 'sweep: no EXECUTE for anon, authenticated, vamos_guest, vamos_checkout, vamos_edge, vamos_public');
+select ok((select p.prosecdef and p.proconfig @> array['search_path=""', 'lock_timeout=2s', 'statement_timeout=5s']
+             from pg_proc p where p.oid = 'public.meta_purchase_sweep()'::regprocedure),
+          'sweep: security definer, search_path "", lock_timeout 2s, statement_timeout 5s');
 select ok(not exists (
   select 1 from pg_roles r, (values
     ('public.meta_purchase_claim(uuid,int8,text,bool,bool,text)'),
@@ -148,6 +157,27 @@ select ('c2900000-0000-0000-0000-0000000000' || lpad(n::text, 2, '0'))::uuid, 0,
 insert into public.booking_refunds (booking_id, snapshot_id, payment_id, reason, basis_rappen, refund_percent, refund_rappen, tier_applied, hours_before)
 select b.booking_id, 0, b.id, 'customer_cancel', 12000, 100, 12000, '{}'::jsonb, 48
   from public.booking_payments b where b.stripe_payment_intent_id = 'pi_29_06';
+
+-- Sweep fixtures (WR-02): 27 recent and untouched, 28 old payment, 29 idle for two hours, 30 pending,
+-- 31 already has a row, 32 cancelled without a payment.
+insert into public.bookings (id, contact_name, contact_email, status, is_test, meta_fbp, meta_fbc, meta_consent_subject, updated_at)
+select ('c2900000-0000-0000-0000-0000000000' || lpad(n::text, 2, '0'))::uuid, 'Sweep ' || n, 'sweep-' || n || '@example.test',
+       st::public.booking_status, false, 'fb.1.1727771234567.1234567890', 'fb.1.1727771234567.IwAR0abc_DEF-123',
+       '29a00000-0000-4000-8000-000000000001', upd
+  from (values
+    (27, 'paid',      now()),
+    (28, 'paid',      now()),
+    (29, 'paid',      now() - interval '2 hours'),
+    (30, 'pending',   now() - interval '3 hours'),
+    (31, 'paid',      now()),
+    (32, 'cancelled', now() - interval '3 hours')
+  ) as v(n, st, upd);
+insert into public.booking_payments (booking_id, snapshot_id, stripe_payment_intent_id, charged_rappen, status, captured_at)
+select ('c2900000-0000-0000-0000-0000000000' || lpad(n::text, 2, '0'))::uuid, 0, 'pi_29_' || n, 12000, 'succeeded', cap
+  from (values (27, now() - interval '30 minutes'), (28, now() - interval '8 days'), (29, now() - interval '3 hours'), (31, now() - interval '3 hours')) as v(n, cap);
+insert into public.meta_purchase_events (booking_id, payment_id, state, skip_reason, test_event)
+select ('c2900000-0000-0000-0000-000000000031')::uuid, id, 'skipped', 'no_ids', false
+  from public.booking_payments where stripe_payment_intent_id = 'pi_29_31';
 
 set local session_replication_role = origin;
 
@@ -287,6 +317,27 @@ select lives_ok($$ select public.meta_purchase_clear_ids(pg_temp.bid(20)) $$, 'c
 select ok(pg_temp.wiped(20), 'clear_ids: fbp, fbc and consent subject emptied');
 select lives_ok($$ select public.meta_purchase_clear_ids('c2900000-0000-0000-0000-0000000000ff') $$, 'clear_ids: unknown booking returns without error');
 select is((select count(*)::int from public.meta_purchase_events where booking_id = pg_temp.bid(20)), 0, 'clear_ids: writes no event row');
+
+-- ── sweep (WR-02) ────────────────────────────────────────────────────────────────────────────
+set local role vamos_system;
+select set_config('t29.swept', public.meta_purchase_sweep()::text, false);
+reset role;
+select ok(current_setting('t29.swept')::int >= 4, 'sweep: cleaned at least the four fixture bookings');
+select ok(not pg_temp.wiped(27), 'sweep: a paid booking without a row, touched and paid minutes ago, is left alone');
+select ok(not pg_temp.wiped(30), 'sweep: a pending booking is left alone');
+select ok(pg_temp.wiped(28), 'sweep: first payment older than seven days: values wiped');
+select is((select state || '|' || skip_reason from public.meta_purchase_events where booking_id = pg_temp.bid(28)), 'skipped|interrupted', 'sweep: old payment without a row records skipped / interrupted');
+select ok(pg_temp.wiped(29), 'sweep: idle for two hours without a row: values wiped');
+select is((select state || '|' || skip_reason from public.meta_purchase_events where booking_id = pg_temp.bid(29)), 'skipped|interrupted', 'sweep: idle booking without a row records skipped / interrupted');
+select ok(pg_temp.wiped(31), 'sweep: booking that already has a row: values wiped');
+select is((select count(*)::int || '|' || min(skip_reason) from public.meta_purchase_events where booking_id = pg_temp.bid(31)), '1|no_ids', 'sweep: existing row left as it was');
+select ok(pg_temp.wiped(32), 'sweep: cancelled booking without a payment: values wiped');
+select is((select count(*)::int from public.meta_purchase_events where booking_id = pg_temp.bid(32)), 0, 'sweep: no payment, no row written');
+set local role vamos_system;
+select is(public.meta_purchase_sweep(), 0, 'sweep: a second run has nothing left to clean');
+select is(pg_typeof(public.meta_purchase_sweep())::text, 'integer', 'sweep: returns one int4');
+reset role;
+select is((select decision from public.meta_purchase_claim(pg_temp.bid(28), pg_temp.pid('28'), '2026-10-01', false, false, null)), 'already', 'sweep: a late claim on a swept booking answers already');
 
 -- ── role path: the system role can run claim, finish, clear_ids ──────────────────────────────
 select set_config('t29.pid26', pg_temp.pid('26')::text, false);

@@ -158,4 +158,29 @@ describe("meta_purchase_claim / finish / clear_ids through the Worker client opt
     });
     expect(b).toEqual({ meta_fbp: null, meta_fbc: null, meta_consent_subject: null });
   });
+
+  it("meta_purchase_sweep returns one JS number and wipes an idle paid booking (WR-02)", async () => {
+    const r = await inTx(async (tx) => {
+      await asPostgres(tx, async () => {
+        await tx`set local session_replication_role = replica`;
+        await tx`update public.bookings set updated_at = now() - interval '2 hours' where id = ${B2}::uuid`;
+        await tx`set local session_replication_role = origin`;
+      });
+      const swept = await tx<{ n: unknown }[]>`select public.meta_purchase_sweep() as n`;
+      const again = await tx<{ n: unknown }[]>`select public.meta_purchase_sweep() as n`;
+      const after = await asPostgres(
+        tx,
+        () =>
+          tx<{ meta_fbp: string | null; state: string | null; skip_reason: string | null }[]>`
+            select b.meta_fbp, e.state, e.skip_reason
+              from public.bookings b left join public.meta_purchase_events e on e.booking_id = b.id
+             where b.id = ${B2}::uuid`,
+      );
+      return { first: swept[0]!.n, again: again[0]!.n, after: after[0]! };
+    });
+    expect(typeof r.first).toBe("number");
+    expect(r.first as number).toBeGreaterThanOrEqual(1);
+    expect(r.again).toBe(0);
+    expect(r.after).toEqual({ meta_fbp: null, state: "skipped", skip_reason: "interrupted" });
+  });
 });
