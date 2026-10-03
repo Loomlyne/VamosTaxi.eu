@@ -8,6 +8,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { counterBindings, wireQuoteAbuse, wireRateLimitGuard } from "./guards";
+import { limiterIp } from "./rate-limit";
 import { mintVamosQs } from "./vamos-qs";
 
 const FAKE_QS_SECRET = "test-vamos-qs-secret-not-a-real-credential-00";
@@ -49,7 +50,7 @@ function makeEnv() {
     PRICE_RATE_LIMITER: new CountingLimiter(12),
     PRICE_RATE_LIMITER_BARE: new CountingLimiter(8),
     LOOKUP_RATE_LIMITER: new CountingLimiter(60),
-    LOOKUP_RATE_LIMITER_BARE: new CountingLimiter(40),
+    LOOKUP_RATE_LIMITER_BARE: new CountingLimiter(30),
   };
   const env = {
     ...limiters,
@@ -66,14 +67,14 @@ function req(cookie?: string): Request {
 }
 
 describe("rate counters are separate (quick 261003)", () => {
-  it("bare visitor: 40 lookups, then the first quote still passes and the quote counter saw only it", async () => {
+  it("bare visitor: 30 lookups, then the first quote still passes and the quote counter saw only it", async () => {
     const { env, limiters } = makeEnv();
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < 30; i++) {
       expect(await wireRateLimitGuard(env, req())()).toEqual({ ok: true });
     }
     const quote = await wireQuoteAbuse(env, req());
     expect(await quote.rateLimit()).toEqual({ ok: true });
-    expect(limiters.LOOKUP_RATE_LIMITER_BARE.total).toBe(40);
+    expect(limiters.LOOKUP_RATE_LIMITER_BARE.total).toBe(30);
     expect(limiters.QUOTE_RATE_LIMITER_BARE.total).toBe(1);
     expect(limiters.QUOTE_RATE_LIMITER.total).toBe(0);
     expect(limiters.PRICE_RATE_LIMITER_BARE.total).toBe(0);
@@ -108,8 +109,8 @@ describe("rate counters are separate (quick 261003)", () => {
   it("one normal booking fits every counter: home lookups, checkout load, voucher, flight edit", async () => {
     const { env } = makeEnv();
     const results: boolean[] = [];
-    // home: ~25 suggest keystrokes, 2 retrieves, 1 reverse, 2 flight lookups
-    for (let i = 0; i < 30; i++) results.push((await wireRateLimitGuard(env, req())()).ok);
+    // home: ~20 suggest keystrokes ("ZRH" + "Zurich Main Station"), 2 retrieves, 1 reverse
+    for (let i = 0; i < 23; i++) results.push((await wireRateLimitGuard(env, req())()).ok);
     // checkout: retrieve, quote, voucher reprice + its price check, flight reprice, one trip edit
     results.push((await wireRateLimitGuard(env, req())()).ok);
     results.push((await (await wireQuoteAbuse(env, req())).rateLimit()).ok);
@@ -120,13 +121,13 @@ describe("rate counters are separate (quick 261003)", () => {
     expect(results.every(Boolean)).toBe(true);
   });
 
-  it("abuse protection kept: the 5th bare quote, the 9th bare price and the 41st bare lookup are refused", async () => {
+  it("abuse protection kept: the 5th bare quote, the 9th bare price and the 31st bare lookup are refused", async () => {
     const { env } = makeEnv();
     for (let i = 0; i < 4; i++) expect((await (await wireQuoteAbuse(env, req())).rateLimit()).ok).toBe(true);
     expect(await (await wireQuoteAbuse(env, req())).rateLimit()).toEqual({ ok: false, code: "rate_limited" });
     for (let i = 0; i < 8; i++) expect((await (await wireQuoteAbuse(env, req(), "price")).rateLimit()).ok).toBe(true);
     expect(await (await wireQuoteAbuse(env, req(), "price")).rateLimit()).toEqual({ ok: false, code: "rate_limited" });
-    for (let i = 0; i < 40; i++) expect((await wireRateLimitGuard(env, req())()).ok).toBe(true);
+    for (let i = 0; i < 30; i++) expect((await wireRateLimitGuard(env, req())()).ok).toBe(true);
     expect(await wireRateLimitGuard(env, req())()).toEqual({ ok: false, code: "rate_limited" });
   });
 
@@ -174,7 +175,7 @@ describe("routes and wrangler.jsonc agree (quick 261003)", () => {
       ["QUOTE_RATE_LIMITER", "1001", 8],
       ["QUOTE_RATE_LIMITER_BARE", "1002", 4],
       ["LOOKUP_RATE_LIMITER", "1005", 60],
-      ["LOOKUP_RATE_LIMITER_BARE", "1006", 40],
+      ["LOOKUP_RATE_LIMITER_BARE", "1006", 30],
       ["PRICE_RATE_LIMITER", "1007", 12],
       ["PRICE_RATE_LIMITER_BARE", "1008", 8],
     ];
@@ -191,5 +192,43 @@ describe("routes and wrangler.jsonc agree (quick 261003)", () => {
       const ids = [...block.matchAll(/"namespace_id": "(\d+)"/g)].map((m) => m[1]);
       expect(new Set(ids).size).toBe(ids.length);
     }
+  });
+});
+
+describe("limiterIp: IPv6 keyed by /64 (quick 261003 review)", () => {
+  it("leaves IPv4 and non-addresses unchanged", () => {
+    expect(limiterIp("203.0.113.10")).toBe("203.0.113.10");
+    expect(limiterIp("unknown")).toBe("unknown");
+    expect(limiterIp("::ffff:203.0.113.10")).toBe("::ffff:203.0.113.10");
+    expect(limiterIp("2001:db8::1::2")).toBe("2001:db8::1::2");
+    expect(limiterIp("2001:db8:zz::1")).toBe("2001:db8:zz::1");
+    expect(limiterIp("1:2:3:4:5:6:7:8:9")).toBe("1:2:3:4:5:6:7:8:9");
+  });
+
+  it("cuts IPv6 to its /64 in one canonical form", () => {
+    expect(limiterIp("2001:0db8:0001:0002:aaaa:bbbb:cccc:dddd")).toBe("2001:db8:1:2::/64");
+    expect(limiterIp("2001:db8:1:2::9")).toBe("2001:db8:1:2::/64");
+    expect(limiterIp("2001:DB8:1:2:ffff::")).toBe("2001:db8:1:2::/64");
+    expect(limiterIp("2001:db8::")).toBe("2001:db8:0:0::/64");
+    expect(limiterIp("fe80::1%en0")).toBe("fe80:0:0:0::/64");
+  });
+
+  it("two addresses in one /64 share one bucket; another /64 gets its own", async () => {
+    const { env, limiters } = makeEnv();
+    const from = (ip: string) =>
+      new Request("https://vamostaxi.site/api/x", { headers: { "cf-connecting-ip": ip } });
+    for (let i = 0; i < 30; i++) {
+      const ip = `2001:db8:1:2::${(i + 1).toString(16)}`;
+      expect((await wireRateLimitGuard(env, from(ip))()).ok).toBe(true);
+    }
+    expect(await wireRateLimitGuard(env, from("2001:db8:1:2:ffff::1"))()).toEqual({
+      ok: false,
+      code: "rate_limited",
+    });
+    expect((await wireRateLimitGuard(env, from("2001:db8:1:3::1"))()).ok).toBe(true);
+    expect([...limiters.LOOKUP_RATE_LIMITER_BARE.calls.keys()].sort()).toEqual([
+      "2001:db8:1:2::/64",
+      "2001:db8:1:3::/64",
+    ]);
   });
 });

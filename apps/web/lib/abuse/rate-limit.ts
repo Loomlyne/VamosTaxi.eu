@@ -70,6 +70,29 @@ const fallbackEmit: AbuseEmit = (level, type, fields = {}) => {
 };
 
 /**
+ * The address a rate-limit key is built from (quick 261003 review). IPv4 stays as it is.
+ * IPv6 is cut to its /64: one subscriber is usually handed a whole /64, so keying the full
+ * address lets a single client rotate through 2^64 fresh buckets. Anything that does not
+ * parse as IPv6 (including "unknown" and IPv4-embedded forms) is returned unchanged.
+ * Only for limiter keys; the geo session bucket and the Turnstile attempt counter keep
+ * the full address.
+ */
+export function limiterIp(ip: string): string {
+  if (!ip.includes(":") || ip.includes(".")) return ip;
+  const bare = ip.split("%")[0] ?? "";
+  const halves = bare.split("::");
+  if (halves.length > 2) return ip;
+  const head = halves[0] ? halves[0].split(":") : [];
+  const tail = halves.length === 2 && halves[1] ? halves[1].split(":") : [];
+  const fill = 8 - head.length - tail.length;
+  if (halves.length === 2 ? fill < 1 : fill !== 0) return ip;
+  const groups = [...head, ...Array<string>(halves.length === 2 ? fill : 0).fill("0"), ...tail];
+  if (!groups.every((g) => /^[0-9a-f]{1,4}$/i.test(g))) return ip;
+  const prefix = groups.slice(0, 4).map((g) => Number.parseInt(g, 16).toString(16));
+  return `${prefix.join(":")}::/64`;
+}
+
+/**
  * Pick the 8/60 verified binding or the 4/60 bare-IP binding.
  * An unverifiable cookie is treated as missing — never as a new identity.
  */
@@ -79,16 +102,17 @@ export async function bucketFor(input: BucketForInput): Promise<Bucket> {
     input.secret,
     input.previousSecret,
   );
+  const ip = limiterIp(input.ip);
   if (subject) {
     return {
       limiter: input.bindings.QUOTE_RATE_LIMITER,
-      key: `${input.ip}:${subject}`,
+      key: `${ip}:${subject}`,
       kind: "verified",
     };
   }
   return {
     limiter: input.bindings.QUOTE_RATE_LIMITER_BARE,
-    key: input.ip,
+    key: ip,
     kind: "bare",
   };
 }

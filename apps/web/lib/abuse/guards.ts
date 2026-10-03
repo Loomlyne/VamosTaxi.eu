@@ -158,10 +158,15 @@ export type QuoteAbuseWire = {
  *           PRICE_RATE_LIMITER 12/60 / _BARE 8/60. No Directions call; the limit is there
  *           against voucher guessing. One booking spends 1–4 (voucher, flight edit).
  * - lookup: /api/geo/suggest|retrieve|reverse and /api/flight/[no].
- *           LOOKUP_RATE_LIMITER 60/60 / _BARE 40/60. Home asks suggest 160 ms after each
- *           keystroke: "ZRH" + "Zurich Main Station" alone is ~25 calls, plus two retrieves,
- *           one reverse, a few flight lookups and the checkout retrieve ≈ 30–35 in a minute.
- *           Mapbox spend stays capped by the daily breaker (step 4), not by this counter.
+ *           LOOKUP_RATE_LIMITER 60/60 / _BARE 30/60. Home asks suggest 160 ms after each
+ *           keystroke once 2 characters are typed: "ZRH" + "Zurich Main Station" is ~20
+ *           calls, plus two retrieves and the checkout retrieve ≈ 20–25 in a minute.
+ *           The daily Mapbox breaker (step 4, MAPBOX_DAILY_UNIT_SENTINEL) is SITE-WIDE: when
+ *           it trips, every quote on the site answers temporarily_unavailable until midnight
+ *           UTC. One IPv4 address or IPv6 /64 at the bare 30/min reaches 5000 units in
+ *           ~170 min, so this counter is what keeps a single client from closing pricing.
+ *
+ * All keys are built from limiterIp(): IPv4 as is, IPv6 cut to its /64.
  */
 export type RateCounter = "quote" | "price" | "lookup";
 

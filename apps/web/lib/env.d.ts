@@ -210,7 +210,7 @@ interface CloudflareEnv {
    */
   LOOKUP_RATE_LIMITER?: RateLimit;
 
-  /** Lookups, bare IP / unverifiable cookie: 40 per 60 s per IP (quick 261003). */
+  /** Lookups, bare IP / unverifiable cookie: 30 per 60 s per IPv4 address or IPv6 /64 (quick 261003). */
   LOOKUP_RATE_LIMITER_BARE?: RateLimit;
 
   /**
