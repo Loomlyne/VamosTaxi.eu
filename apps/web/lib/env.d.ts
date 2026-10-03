@@ -147,6 +147,8 @@ interface CloudflareEnv {
    * Cloudflare Turnstile siteverify secret (D-47 owner-gated). OPTIONAL — degrades
    * rather than blocks boot. First consumer: plan 04-13 Turnstile gate.
    * Never appears in wrangler.jsonc `vars`.
+   * Quick 261003: never set on live. The quote guard now reads TURNSTILE_SECRET_KEY and uses
+   * this name only as a fallback (lib/abuse/guards.ts quoteTurnstileSecret).
    */
   TURNSTILE_SECRET?: string;
 

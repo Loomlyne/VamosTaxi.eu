@@ -23,6 +23,7 @@ import {
 } from "@/lib/quote/pipeline";
 import { errorResponse, quoteResponse } from "@/lib/quote/respond";
 import { csrfForbidden } from "@/lib/security/origin";
+import { requestHasStaffSession } from "@/lib/ops/staff-origin";
 import { lockSecretPresent } from "@/lib/quote/lock-secret";
 
 export const dynamic = "force-dynamic";
@@ -113,12 +114,17 @@ export async function POST(request: Request) {
     locale = pre.body.locale;
   }
 
-  const deps = buildQuotePipelineDeps(env, {
-    dashboardHost: isNamedDashboardHost(new URL(request.url).host),
-  });
+  const dashboardHost = isNamedDashboardHost(new URL(request.url).host);
+  const deps = buildQuotePipelineDeps(env, { dashboardHost });
 
   try {
-    const abuse = await wireQuoteAbuse(env, request);
+    // Quick 261003: the token rides in the body (`turnstile_token`). The dashboard New trip has
+    // no challenge widget, so a signed-in staff session on the dashboard host is never challenged;
+    // the staff check runs only when the challenge would otherwise refuse.
+    const abuse = await wireQuoteAbuse(env, request, "quote", {
+      body: pre.body,
+      turnstileExempt: dashboardHost ? () => requestHasStaffSession(request) : undefined,
+    });
     deps.rateLimit = abuse.rateLimit;
     deps.turnstile = abuse.turnstile;
     deps.mapboxBreaker = abuse.mapboxBreaker;

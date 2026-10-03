@@ -40,6 +40,12 @@ export type TurnstileGuardInput = {
   fetch?: typeof fetch;
   attemptStore: AttemptStore;
   emit?: RateEmit;
+  /**
+   * Asked only when the challenge would refuse. True lets the request through without a
+   * token: the dashboard New trip (a signed-in staff session on the dashboard host) has no
+   * challenge widget, so enforcing there would lock the owner out of his own quotes.
+   */
+  exempt?: () => Promise<boolean>;
 };
 
 export type BreakerGuardInput = {
@@ -92,6 +98,9 @@ export function turnstileGuard(input: TurnstileGuardInput): InjectedGuard {
     if (!decision.enforce || decision.passed) {
       return { ok: true };
     }
+    if (input.exempt && (await input.exempt().catch(() => false))) {
+      return { ok: true };
+    }
     return { ok: false, code: "turnstile_required" };
   };
 }
@@ -135,6 +144,46 @@ function qsSecret(env: CloudflareEnv): string {
   }
   return "";
 }
+
+/**
+ * The Turnstile siteverify secret the price guard uses (quick 261003, owner decision A).
+ * Live Worker `vamos` carries `TURNSTILE_SECRET_KEY` only (contact, auth, consent and reviews
+ * verify with it). The Phase 4 name `TURNSTILE_SECRET` was never set on live, so the quote
+ * challenge never enforced there; it stays as a fallback only, read when the shared key is absent.
+ * Empty means "not configured": the guard then fails open (challengeDecision fellBackToEdge).
+ */
+export function quoteTurnstileSecret(env: CloudflareEnv): string | undefined {
+  const pick = (v: unknown): string | undefined => (typeof v === "string" && v.length > 0 ? v : undefined);
+  const proc: Record<string, string | undefined> = typeof process !== "undefined" ? process.env : {};
+  return (
+    pick(env.TURNSTILE_SECRET_KEY) ??
+    pick(proc.TURNSTILE_SECRET_KEY) ??
+    pick(env.TURNSTILE_SECRET) ??
+    pick(proc.TURNSTILE_SECRET)
+  );
+}
+
+/**
+ * The challenge token a quote request carries. /checkout sends it in the JSON body
+ * (`turnstile_token`, lib/checkout/checkout-quote.ts, allowed by lib/quote/schema.ts); the
+ * `cf-turnstile-response` header is the older shape and stays as a fallback. Before quick
+ * 261003 the guard read the header only, so a solved challenge never reached siteverify.
+ */
+export function turnstileTokenOf(request: Request, body: unknown): string | null {
+  if (body && typeof body === "object") {
+    const t = (body as { turnstile_token?: unknown }).turnstile_token;
+    if (typeof t === "string" && t.length > 0) return t;
+  }
+  const header = request.headers.get("cf-turnstile-response");
+  return typeof header === "string" && header.length > 0 ? header : null;
+}
+
+export type QuoteAbuseOptions = {
+  /** The parsed JSON body, so the guard can read `turnstile_token`. */
+  body?: unknown;
+  /** See TurnstileGuardInput.exempt. The quote route passes a staff check on the dashboard host only. */
+  turnstileExempt?: () => Promise<boolean>;
+};
 
 export type QuoteAbuseWire = {
   rateLimit: InjectedGuard;
@@ -205,6 +254,7 @@ export async function wireQuoteAbuse(
   env: CloudflareEnv,
   request: Request,
   counter: "quote" | "price" = "quote",
+  options: QuoteAbuseOptions = {},
 ): Promise<QuoteAbuseWire> {
   const ip = clientIp(request);
   const cookie = readCookie(request, VAMOS_QS_COOKIE);
@@ -226,9 +276,10 @@ export async function wireQuoteAbuse(
       ip,
       cookie,
       secret,
-      turnstileSecret: env.TURNSTILE_SECRET,
-      token: request.headers.get("cf-turnstile-response"),
+      turnstileSecret: quoteTurnstileSecret(env),
+      token: turnstileTokenOf(request, options.body),
       attemptStore: kvAttemptStore(env.QUOTE_ABUSE),
+      exempt: options.turnstileExempt,
     }),
     mapboxBreaker: breakerGuard({
       env,

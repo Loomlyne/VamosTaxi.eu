@@ -362,7 +362,11 @@ export function CheckoutPage({
               money={money}
               siteKey={settings.turnstileSiteKey}
               onChallengeToken={(token) => {
-                if (token) void runQuote(tripRef.current, token);
+                if (!token) return;
+                // Loading unmounts the used widget, so a second refusal mounts a fresh one
+                // instead of leaving a spent token on screen (quick 261003).
+                setPhase({ kind: "loading" });
+                void runQuote(tripRef.current, token);
               }}
               onSelect={choose}
               onRetry={() => {
