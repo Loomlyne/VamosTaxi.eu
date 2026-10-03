@@ -61,6 +61,18 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-rv-stars]{display:flex;align-items:center;gap:2px}
 [data-rv-star]{display:block;inline-size:18px;block-size:18px;flex:0 0 auto;background:var(--vt-accent);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2.6l2.4 6.5h6.8l-5.5 4.2 2.1 6.6L12 16.2 6.2 19.9l2.1-6.6L2.8 9.1h6.8z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2.6l2.4 6.5h6.8l-5.5 4.2 2.1 6.6L12 16.2 6.2 19.9l2.1-6.6L2.8 9.1h6.8z'/%3E%3C/svg%3E") center/contain no-repeat}
 [data-rv-star][data-off]{background:var(--vt-grey-300)}
+/* Platform rating marks (brand-mark exception, owner 2026-10-03): each platform shows its own rating look. Star rows stay LTR in Arabic so 4/5 fills four from the left, as Trustpilot and Google draw it. */
+[data-rv-stars]{direction:ltr}
+[data-plat="trustpilot"] [data-rv-star]{border-radius:2px;background:#00B67A url("data:image/svg+xml,%3Csvg width='24' height='24' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpolygon fill='%23fff' points='12,3 14.6,9 21,9.5 16.1,13.8 17.6,20.2 12,16.8 6.4,20.2 7.9,13.8 3,9.5 9.4,9'/%3E%3C/svg%3E") center/14px 14px no-repeat;-webkit-mask:none;mask:none}
+[data-plat="trustpilot"] [data-rv-star][data-off]{background-color:#DCDCE6}
+[data-plat="google"] [data-rv-star]{background:#FBBC04;-webkit-mask:url("data:image/svg+xml,%3Csvg width='24' height='24' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z'/%3E%3C/svg%3E") center/100% 100% no-repeat;mask:url("data:image/svg+xml,%3Csvg width='24' height='24' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z'/%3E%3C/svg%3E") center/100% 100% no-repeat}
+[data-plat="google"] [data-rv-star][data-off]{background:#DADCE0}
+[data-plat="tripadvisor"] [data-rv-star]{box-sizing:border-box;inline-size:16px;block-size:16px;margin-block:1px;border-radius:50%;background:#00AA6C;border:2px solid #00AA6C;-webkit-mask:none;mask:none}
+[data-plat="tripadvisor"] [data-rv-star][data-off]{background:transparent}
+[data-plat="tripadvisor"][data-rv-stars]{gap:3px}
+[data-rv-chip] [data-rv-stars]{flex:0 0 auto}
+[data-rv-chip] [data-rv-star]{inline-size:16px;block-size:16px}
+[data-rv-chip] [data-plat="tripadvisor"] [data-rv-star],[data-rv-chip] [data-rv-star][data-plat]{margin-block:0}
 [data-rv-rate]{display:flex;align-items:center;min-width:0}
 /* Owner's original-review link (#50): borderless icon after the stars. The 44px target is cancelled out of the row height so the card keeps its signed spacing. */
 [data-rv-link]{position:relative;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;inline-size:var(--vt-control-h-md);block-size:var(--vt-control-h-md);flex:0 0 auto;margin:0;margin-block:calc((18px - var(--vt-control-h-md)) / 2);padding:0;border:0;border-radius:var(--vt-radius-pill);background:transparent;color:var(--vt-charcoal-900);text-decoration:none;box-shadow:none;transition:background-color 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1)}
@@ -118,7 +130,7 @@ a[data-rv-mark]:focus-visible{outline:none;box-shadow:var(--vt-ring)}
 <li data-rv-chip="1" data-src="{{ c.id }}">
 <img data-vt-no-i18n="1" src="{{ c.logo }}" alt="{{ c.label }}" height="20">
 <b data-rv-chip-score="1" class="vt-dir-keep" data-vt-no-i18n="1">{{ c.score }}</b>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
+<span data-rv-stars="1" data-plat="{{ c.id }}" aria-hidden="true"><i data-rv-star="1"></i></span>
 <span data-rv-chip-n="1">{{ c.countLabel }}</span>
 </li>
 </sc-for>
@@ -128,7 +140,7 @@ a[data-rv-mark]:focus-visible{outline:none;box-shadow:var(--vt-ring)}
 <li data-rv-item="1">
 <article data-rv-card="1">
 <div data-rv-rate="1">
-<span data-rv-stars="1" role="img" aria-label="{{ r.ratingLabel }}" style="display:{{ r.starsShow }}">
+<span data-rv-stars="1" data-plat="{{ r.plat }}" role="img" aria-label="{{ r.ratingLabel }}" style="display:{{ r.starsShow }}">
 <i data-rv-star="1" data-off="{{ r.off1 }}"></i><i data-rv-star="1" data-off="{{ r.off2 }}"></i><i data-rv-star="1" data-off="{{ r.off3 }}"></i><i data-rv-star="1" data-off="{{ r.off4 }}"></i><i data-rv-star="1" data-off="{{ r.off5 }}"></i>
 </span>
 <a data-rv-link="1" href="{{ r.linkUrl }}" target="_blank" rel="noopener noreferrer" aria-label="{{ r.linkLabel }}" title="{{ r.linkLabel }}" hidden="{{ r.linkHidden }}" style="display:{{ r.linkShow }}">
@@ -269,6 +281,7 @@ class Component extends DCLogic {
         routeShow: r.route ? 'block' : 'none',
         starsShow: r.rating > 0 ? 'flex' : 'none',
         ratingLabel: 'Rated ' + r.rating + ' out of 5',
+        plat: platform ? r.source : 'own',
         label: label,
         logo: platform ? '/assets/reviews/' + r.source + '.svg' : '',
         url: href,
