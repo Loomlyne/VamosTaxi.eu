@@ -215,6 +215,13 @@
           "name": "FLIGHT_RATE_LIMITER_BARE",
           "namespace_id": "1010",
           "simple": { "limit": 6, "period": 60 }
+        },
+        // Quick 261003 review 5: quote challenge attempt counter (2 per 60 s; the 3rd quote is
+        // challenged). Counts in the Worker instead of one KV write per quote (Workers Free).
+        {
+          "name": "TURNSTILE_ATTEMPT_LIMITER",
+          "namespace_id": "1011",
+          "simple": { "limit": 2, "period": 60 }
         }
       ],
       // Rule 2 addition (plan 03-06, D-36): uncommented from the placeholder block plan
@@ -405,6 +412,13 @@
           "name": "FLIGHT_RATE_LIMITER_BARE",
           "namespace_id": "1010",
           "simple": { "limit": 6, "period": 60 }
+        },
+        // Quick 261003 review 5: quote challenge attempt counter (2 per 60 s; the 3rd quote is
+        // challenged). Counts in the Worker instead of one KV write per quote (Workers Free).
+        {
+          "name": "TURNSTILE_ATTEMPT_LIMITER",
+          "namespace_id": "1011",
+          "simple": { "limit": 2, "period": 60 }
         }
       ],
       // Two Hyperdrive configs (D-01/D-03), never one: `HYPERDRIVE` is the cacheable,

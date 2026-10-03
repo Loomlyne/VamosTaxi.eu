@@ -188,6 +188,7 @@ describe("routes and wrangler.jsonc agree (quick 261003)", () => {
       ["PRICE_RATE_LIMITER_BARE", "1008", 8],
       ["FLIGHT_RATE_LIMITER", "1009", 10],
       ["FLIGHT_RATE_LIMITER_BARE", "1010", 6],
+      ["TURNSTILE_ATTEMPT_LIMITER", "1011", 2],
     ];
     for (const [name, ns, limit] of expected) {
       const re = new RegExp(

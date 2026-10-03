@@ -23,8 +23,11 @@ import {
 import {
   challengeDecision,
   kvAttemptStore,
+  kvPassStore,
+  rateLimitAttemptStore,
   siteverify,
   type AttemptStore,
+  type PassStore,
 } from "./turnstile";
 import { VAMOS_QS_COOKIE, verifyVamosQs } from "./vamos-qs";
 
@@ -39,6 +42,7 @@ export type TurnstileGuardInput = {
   turnstileSecret?: string;
   fetch?: typeof fetch;
   attemptStore: AttemptStore;
+  passStore?: PassStore;
   emit?: RateEmit;
   /**
    * Asked only when the challenge would refuse. True lets the request through without a
@@ -90,6 +94,7 @@ export function turnstileGuard(input: TurnstileGuardInput): InjectedGuard {
       secret: input.secret,
       previousSecret: input.previousSecret,
       attemptStore: input.attemptStore,
+      passStore: input.passStore,
       token: input.token,
       verify,
       configured,
@@ -278,7 +283,10 @@ export async function wireQuoteAbuse(
       secret,
       turnstileSecret: quoteTurnstileSecret(env),
       token: turnstileTokenOf(request, options.body),
-      attemptStore: kvAttemptStore(env.QUOTE_ABUSE),
+      // Review 5: the attempt count lives on a rate-limit binding (no KV write per quote); KV only
+      // as a fallback when the binding is absent. Review 4: a passed challenge gives 10 min grace.
+      attemptStore: rateLimitAttemptStore(env.TURNSTILE_ATTEMPT_LIMITER, kvAttemptStore(env.QUOTE_ABUSE)),
+      passStore: kvPassStore(env.QUOTE_ABUSE),
       exempt: options.turnstileExempt,
     }),
     mapboxBreaker: breakerGuard({

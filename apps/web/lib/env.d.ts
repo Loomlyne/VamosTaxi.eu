@@ -226,6 +226,13 @@ interface CloudflareEnv {
   FLIGHT_RATE_LIMITER_BARE?: RateLimit;
 
   /**
+   * Quote challenge attempt counter (quick 261003 review 5): 2 per 60 s per `ip` or
+   * `ip:visitor`; the 3rd quote in the window is challenged. Replaces a KV write per quote
+   * (Workers Free: 1,000 KV writes a day). Absent: the KV counter is used.
+   */
+  TURNSTILE_ATTEMPT_LIMITER?: RateLimit;
+
+  /**
    * POST /api/quote/reprice and the voucher check in POST /api/checkout/price, verified
    * visitor: 12 per 60 s per `ip:subject`. Own namespace so a flight or voucher edit never
    * spends the /api/quote allowance (quick 261003). OPTIONAL: missing → fail open.

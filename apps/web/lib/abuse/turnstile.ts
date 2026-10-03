@@ -57,11 +57,72 @@ export function kvAttemptStore(kv: KVNamespace | undefined): AttemptStore {
   };
 }
 
+/**
+ * Attempt counter on a Workers rate-limit binding (quick 261003 review 5): the binding counts in
+ * the Worker, so a quote costs no KV write. On Workers Free KV allows 1,000 writes a day for the
+ * whole account, and the KV counter wrote once per quote. The binding is set to 2 per 60 s:
+ * calls 1–2 answer 1 (log only), from the 3rd it answers 3 (enforce), the same ladder as the KV
+ * counter. No binding: the KV counter as before. A throwing binding never climbs (fails open).
+ */
+export function rateLimitAttemptStore(
+  binding: RateLimit | undefined,
+  fallback: AttemptStore,
+): AttemptStore {
+  if (!binding) return fallback;
+  return {
+    async increment(key: string): Promise<number> {
+      try {
+        const { success } = await binding.limit({ key: "ts:" + key });
+        return success ? 1 : 3;
+      } catch {
+        return 1;
+      }
+    },
+  };
+}
+
+/** Grace after a passed challenge (quick 261003 review 4): no new challenge for this long. */
+export const TURNSTILE_PASS_TTL_SECONDS = 600;
+
+/** Remembers a passed challenge per counter key, so the next prices are not challenged at once. */
+export type PassStore = {
+  has(key: string): Promise<boolean>;
+  mark(key: string): Promise<void>;
+};
+
+/**
+ * KV pass mark: one write per PASSED challenge (rare), one read per quote that reached the
+ * challenge step. Missing or throwing KV means "no mark": the challenge simply applies as before.
+ */
+export function kvPassStore(kv: KVNamespace | undefined): PassStore {
+  const kvKey = (key: string) => "quote:turnstile-pass:" + key;
+  return {
+    async has(key: string): Promise<boolean> {
+      if (!kv) return false;
+      try {
+        return (await kv.get(kvKey(key))) !== null;
+      } catch {
+        return false;
+      }
+    },
+    async mark(key: string): Promise<void> {
+      if (!kv) return;
+      try {
+        await kv.put(kvKey(key), "1", { expirationTtl: TURNSTILE_PASS_TTL_SECONDS });
+      } catch {
+        // best-effort: without the mark the next price is challenged, as before
+      }
+    },
+  };
+}
+
 export type ChallengeDecision = {
   enforce: boolean;
   passed?: boolean;
   fellBackToEdge?: true;
   mintFreshToken?: true;
+  /** A challenge passed for this visitor within TURNSTILE_PASS_TTL_SECONDS. */
+  graced?: true;
 };
 
 export type SiteverifyInput = {
@@ -78,6 +139,8 @@ export type ChallengeDecisionInput = {
   secret: string;
   previousSecret?: string;
   attemptStore: AttemptStore;
+  /** Optional grace store: a recent passed challenge skips the ladder (quick 261003 review 4). */
+  passStore?: PassStore;
   token?: string | null;
   verify?: SiteverifyResult;
   configured: boolean;
@@ -197,11 +260,17 @@ export async function challengeDecision(
     return { enforce: false, fellBackToEdge: true };
   }
 
+  // Read only here, at or above the threshold: below it nothing would change.
+  if (input.passStore && (await input.passStore.has(key))) {
+    return { enforce: false, graced: true };
+  }
+
   if (verifyMintFresh(input.verify)) {
     return { enforce: true, passed: false, mintFreshToken: true };
   }
 
   if (verifyPassed(input.verify)) {
+    await input.passStore?.mark(key);
     return { enforce: true, passed: true };
   }
 
