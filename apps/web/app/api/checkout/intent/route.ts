@@ -31,7 +31,8 @@ import { evaluateCoupon, loadLaunchFlags, loadSettingsVersion } from "@/lib/db/q
 import { lookupVehicleClassId, snapshotPolicyFromSettings } from "@/lib/checkout/lock-to-rpc";
 import { policyHours } from "@/lib/checkout/policy-settings";
 import { loadCheckoutReprice, repriceFromLock } from "@/lib/checkout/reprice";
-import { publicSiteOrigin, csrfForbidden } from "@/lib/security/origin";
+import { publicSiteOrigin, csrfForbiddenPublicOrStaff } from "@/lib/security/origin";
+import { requestHasStaffSession } from "@/lib/ops/staff-origin";
 import {
   intentIpAllowed,
   intentLimitResponse,
@@ -67,7 +68,8 @@ export async function POST(request: Request) {
 
 async function postIntent(request: Request) {
   const startedAt = Date.now();
-  const blocked = csrfForbidden(request);
+  // Quick 261003: the dashboard New trip saves here too; its Origin needs a staff session.
+  const blocked = await csrfForbiddenPublicOrStaff(request, () => requestHasStaffSession(request));
   if (blocked) return blocked;
   const { env } = getCloudflareContext();
   if (!lockSecretPresent(env.QUOTE_LOCK_SECRET, "/api/checkout/intent")) return lockSecretMissingResponse();
