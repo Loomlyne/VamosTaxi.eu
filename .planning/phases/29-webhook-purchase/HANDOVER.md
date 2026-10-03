@@ -69,7 +69,7 @@ Verified (UTC, 2026-10-03):
 | `i18n:check`, `db:seed:check` | pass | 17:23 |
 | `pnpm build` | pass | 17:30 |
 | `opennextjs-cloudflare build` | pass, Worker saved to `.open-next/worker.js` | 17:34 |
-| must-not greps on added non-planning lines | `sk_live_` 0, `vamostaxi.eu` 0, `CHF [0-9]` 0, `client_user_agent|client_ip_address|external_id` 0 | 17:35 |
+| must-not greps on added non-planning lines | live-key prefix 0, old .eu host 0, `CHF [0-9]` 0, `client_user_agent|client_ip_address|external_id` 0 | 17:35 |
 | Graph URL, pixel id, token name | only in capi.ts, purchase.ts, env.d.ts and their tests | 17:35 |
 
 Failed, then fixed: the first `pnpm typecheck` failed with TS2345 in `packages/db/test/local/meta-purchase.test.ts` line 42 (`null` passed where the system identity takes `undefined`). Fixed in bc6bd568; typecheck and that test re-ran green. The full unit and lint runs preceded this one-line test-file change; the changed file was re-run on its own.
