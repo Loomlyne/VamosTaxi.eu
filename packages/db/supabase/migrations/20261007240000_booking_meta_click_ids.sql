@@ -4,6 +4,11 @@
 -- Additive: two nullable columns with no default, format checks, one guard trigger, one definer
 -- writer for the checkout role. No existing row is changed.
 
+-- Adding a CHECK takes a lock on a table that holds real bookings: give up fast instead of queueing
+-- behind a long transaction, and add the checks NOT VALID then VALIDATE (VALIDATE only blocks writes
+-- of a kind that conflict with SHARE UPDATE EXCLUSIVE). The columns are all NULL, so validation passes.
+set lock_timeout = '5s';
+
 alter table public.bookings add column if not exists meta_fbp text;
 alter table public.bookings add column if not exists meta_fbc text;
 
@@ -15,33 +20,38 @@ alter table public.bookings add constraint bookings_meta_fbp_format check (
     length(meta_fbp) <= 64
     and meta_fbp ~ '^fb\.[0-9]\.[0-9]{10,13}\.[0-9]{1,20}(\.(AQ|Ag|Aw|BA|BQ|Bg|[A-Za-z0-9_-]{8}))?$'
   )
-);
+) not valid;
 alter table public.bookings add constraint bookings_meta_fbc_format check (
   meta_fbc is null or (
     length(meta_fbc) <= 600
     and meta_fbc ~ '^fb\.[0-9]\.[0-9]{10,13}\.[A-Za-z0-9_-]+(\.(AQ|Ag|Aw|BA|BQ|Bg|[A-Za-z0-9_-]{8}))?$'
   )
-);
+) not valid;
+alter table public.bookings validate constraint bookings_meta_fbp_format;
+alter table public.bookings validate constraint bookings_meta_fbc_format;
+reset lock_timeout;
 
 comment on column public.bookings.meta_fbp is
   'Phase 28 D-09: Meta browser id (_fbp cookie), saved at the Pay press with marketing consent. Pending bookings only.';
 comment on column public.bookings.meta_fbc is
   'Phase 28 D-09: Meta click id (_fbc cookie), saved at the Pay press with marketing consent. Pending bookings only.';
 
--- A booking that is not pending can never be given or changed a value, whoever asks (the checkout
--- role, staff with whole-table UPDATE, the database owner). Setting a value to NULL is always allowed
--- so an erasure is never blocked. The effective status is the old one on UPDATE, the new one on INSERT.
+-- A booking that is not pending can never be given a value, or have one changed to another value,
+-- whoever asks (the checkout role, staff with whole-table UPDATE, the database owner). Clearing is
+-- always allowed, one column at a time: a column that ends up NULL is never refused, so an erasure
+-- is never blocked even when the other column keeps its value. A column that is unchanged is not
+-- looked at. The effective status is the old one on UPDATE, the new one on INSERT.
 create or replace function public.tg_bookings_meta_click_ids_pending_only()
 returns trigger
 language plpgsql
 set search_path = ''
 as $$
 begin
-  if (new.meta_fbp is not null or new.meta_fbc is not null)
-     and (tg_op = 'INSERT'
-          or new.meta_fbp is distinct from old.meta_fbp
-          or new.meta_fbc is distinct from old.meta_fbc)
-     and (case when tg_op = 'UPDATE' then old.status else new.status end) <> 'pending'::public.booking_status then
+  if (case when tg_op = 'UPDATE' then old.status else new.status end) <> 'pending'::public.booking_status
+     and (
+       (new.meta_fbp is not null and (tg_op = 'INSERT' or new.meta_fbp is distinct from old.meta_fbp))
+       or (new.meta_fbc is not null and (tg_op = 'INSERT' or new.meta_fbc is distinct from old.meta_fbc))
+     ) then
     raise exception 'meta click ids: booking is not pending' using errcode = '55000';
   end if;
   return new;

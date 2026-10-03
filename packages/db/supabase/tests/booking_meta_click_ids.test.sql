@@ -5,7 +5,7 @@
 -- changed value on any non-pending booking for every role; setting to NULL is always allowed;
 -- formats are checked by the database. Synthetic data only.
 begin;
-select plan(47);
+select plan(51);
 
 -- columns: two nullable text columns, no default
 select has_column('public', 'bookings', 'meta_fbp', 'column meta_fbp exists');
@@ -87,6 +87,15 @@ select lives_ok($$ update public.bookings set note = 'later note' where id = 'c2
 select lives_ok($$ update public.bookings set status = 'confirmed' where id = 'c2800000-0000-0000-0000-000000000005' $$, 'status change on a booking with values is not blocked');
 select lives_ok($$ update public.bookings set meta_fbp = null, meta_fbc = null where id = 'c2800000-0000-0000-0000-000000000005' $$, 'NULL on a non-pending booking is allowed (erasure)');
 select is((select meta_fbp is null from public.bookings where id = 'c2800000-0000-0000-0000-000000000005'), true, 'value erased on the confirmed booking');
+
+-- WR-01: clearing ONE column on a non-pending booking that holds both works, the other keeps its value
+update public.bookings set status = 'pending' where id = 'c2800000-0000-0000-0000-000000000005';
+update public.bookings set meta_fbp = 'fb.1.1727771234567.1234567890', meta_fbc = 'fb.1.1727771234567.abc' where id = 'c2800000-0000-0000-0000-000000000005';
+update public.bookings set status = 'paid' where id = 'c2800000-0000-0000-0000-000000000005';
+select lives_ok($$ update public.bookings set meta_fbp = null where id = 'c2800000-0000-0000-0000-000000000005' $$, 'clearing only meta_fbp on a paid booking is allowed');
+select is((select meta_fbp is null and meta_fbc = 'fb.1.1727771234567.abc' from public.bookings where id = 'c2800000-0000-0000-0000-000000000005'), true, 'meta_fbp cleared, meta_fbc keeps its value');
+select throws_ok($$ update public.bookings set meta_fbp = 'fb.1.1727771234567.1234567890' where id = 'c2800000-0000-0000-0000-000000000005' $$, '55000', null, 'setting the cleared column again on a paid booking is refused');
+select lives_ok($$ update public.bookings set meta_fbc = null where id = 'c2800000-0000-0000-0000-000000000005' $$, 'clearing the last column works too');
 
 -- formats (pending booking, as the checkout role)
 set local role vamos_checkout;
