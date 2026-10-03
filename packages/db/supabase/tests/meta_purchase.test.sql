@@ -6,7 +6,7 @@
 -- the three cookie values; the Pay press writer takes a consent subject. Synthetic data only,
 -- rappen integers only. Run as postgres by `supabase test db`.
 begin;
-select plan(97);
+select plan(98);
 
 -- ── objects and grants ───────────────────────────────────────────────────────────────────────
 select has_column('public', 'bookings', 'meta_consent_subject', 'bookings.meta_consent_subject exists');
@@ -59,6 +59,12 @@ select ok((select bool_and(p.prosecdef and p.proconfig @> array['search_path=""'
                'public.meta_purchase_clear_ids(uuid)'::regprocedure,
                'public.checkout_set_meta_click_ids(uuid,text,text,uuid)'::regprocedure)),
           'claim, finish, clear_ids, 4-arg writer are security definer with search_path ""');
+select ok((select bool_and(p.proconfig @> array['lock_timeout=2s', 'statement_timeout=5s'])
+             from pg_proc p where p.oid in (
+               'public.meta_purchase_claim(uuid,int8,text,bool,bool,text)'::regprocedure,
+               'public.meta_purchase_finish(uuid,uuid,text,int4,int4,int4)'::regprocedure,
+               'public.meta_purchase_clear_ids(uuid)'::regprocedure)),
+          'claim, finish, clear_ids carry lock_timeout 2s and statement_timeout 5s (WR-01)');
 select ok((select p.proconfig @> array['search_path=""'] from pg_proc p where p.oid = 'public.tg_bookings_meta_click_ids_pending_only()'::regprocedure), 'trigger function has search_path ""');
 
 -- ── fixtures (triggers off: rows are shaped directly, as postgres) ───────────────────────────

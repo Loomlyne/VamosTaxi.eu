@@ -152,6 +152,11 @@ comment on table public.meta_purchase_events is
 
 reset lock_timeout;
 
+-- WR-01: the three functions below run inside the serial queue loop, so each gives up on a lock after
+-- 2 s and on a statement after 5 s (function-level SET: applies to every lock wait inside; the Worker
+-- also sets statement_timeout before the call, because a function-level value cannot re-arm the timer
+-- of the call that is already running). A refusal (55P03, 57014) goes down the Worker's claim_failed path.
+--
 -- The decision. The booking row is locked first, so two queue deliveries of one booking take turns.
 -- A row for the booking already exists -> 'already'. A payment that is not the booking's first
 -- succeeded payment gets no row and clears nothing, so it can never block or steal the first
@@ -176,6 +181,8 @@ create or replace function public.meta_purchase_claim(
 language plpgsql
 security definer
 set search_path = ''
+set lock_timeout = '2s'
+set statement_timeout = '5s'
 as $$
 #variable_conflict use_column
 declare
@@ -289,6 +296,8 @@ create or replace function public.meta_purchase_finish(
 language plpgsql
 security definer
 set search_path = ''
+set lock_timeout = '2s'
+set statement_timeout = '5s'
 as $$
 begin
   if p_state is null or p_state not in ('sent', 'rejected', 'failed') then
@@ -307,6 +316,8 @@ returns void
 language plpgsql
 security definer
 set search_path = ''
+set lock_timeout = '2s'
+set statement_timeout = '5s'
 as $$
 begin
   update public.bookings

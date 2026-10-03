@@ -1,6 +1,6 @@
 // Phase 29 plan 05: orchestrator proof with injected fakes. No network, no database.
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { sendMetaPurchase, type ClaimRow, type MetaPurchaseDeps, type MetaPurchaseInput } from "./purchase";
+import { META_PURCHASE_BUDGET_MS, sendMetaPurchase, type ClaimRow, type MetaPurchaseDeps, type MetaPurchaseInput } from "./purchase";
 
 const TOKEN = "fake-token-aaaa1111";
 const FBP = "fb.1.1727771234567.1234567890";
@@ -180,6 +180,39 @@ describe("sendMetaPurchase quiet failures", () => {
     await sendMetaPurchase(base, deps);
     expect(f).toHaveBeenCalledTimes(1);
     expect(deps.finish).toHaveBeenCalledWith("b-1", EVENT_ID, "failed", null, null, null);
+  });
+});
+
+describe("sendMetaPurchase time budget (WR-01)", () => {
+  it("a claim that never resolves: resolves within the budget, logs failed/timeout, never posts", async () => {
+    vi.useFakeTimers();
+    try {
+      const { deps, emit } = make({ claim: vi.fn(() => new Promise<ClaimRow>(() => {})) });
+      let done = false;
+      const run = sendMetaPurchase(base, deps).then(() => {
+        done = true;
+      });
+      await vi.advanceTimersByTimeAsync(META_PURCHASE_BUDGET_MS - 1);
+      expect(done).toBe(false);
+      await vi.advanceTimersByTimeAsync(2);
+      await run;
+      expect(done).toBe(true);
+      expect(emit).toHaveBeenCalledWith("error", "meta_purchase", { bookingId: "b-1", outcome: "failed", reason: "timeout" });
+      expect(deps.fetch).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("a normal run leaves no timer behind", async () => {
+    vi.useFakeTimers();
+    try {
+      const { deps } = make();
+      await sendMetaPurchase(base, deps);
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 

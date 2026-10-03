@@ -58,12 +58,36 @@ function codeField(code: number | null, subcode: number | null): string | null {
   return subcode === null ? String(code) : `${code}.${subcode}`;
 }
 
+/** WR-01: the whole Meta step may hold the queue message for this long, never longer. */
+export const META_PURCHASE_BUDGET_MS = 10_000;
+
 /**
- * Sends the Purchase for one paid booking, at most once. Never rejects.
+ * Sends the Purchase for one paid booking, at most once, within `META_PURCHASE_BUDGET_MS`. Never rejects.
+ * On the time limit it resolves with outcome `failed`, reason `timeout`. Giving up is safe: the claim row
+ * is the once-only guard, so a claim that commits late stays in `sending` and is never posted twice.
  * @param input booking, payment, Stripe mode and whether a refund exists
  * @param deps injected gate, token, database calls, fetch and logger
  */
 export async function sendMetaPurchase(input: MetaPurchaseInput, deps: MetaPurchaseDeps): Promise<void> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timedOut = new Promise<"timeout">((resolve) => {
+    timer = setTimeout(() => resolve("timeout"), META_PURCHASE_BUDGET_MS);
+  });
+  try {
+    const first = await Promise.race([runMetaPurchase(input, deps).then(() => "done" as const), timedOut]);
+    if (first === "timeout") {
+      try {
+        deps.emit("error", "meta_purchase", { bookingId: input.bookingId, outcome: "failed", reason: "timeout" });
+      } catch {
+        // logging must never break the caller
+      }
+    }
+  } finally {
+    if (timer !== undefined) clearTimeout(timer);
+  }
+}
+
+async function runMetaPurchase(input: MetaPurchaseInput, deps: MetaPurchaseDeps): Promise<void> {
   const { bookingId } = input;
   const log = (level: "info" | "warn" | "error", fields: Record<string, ScalarValue>) => {
     try {
@@ -162,6 +186,11 @@ type DbClaimRow = {
   captured_at: Date | string | null;
 };
 
+/** WR-01: per-transaction limits, set before the call so a stuck lock or socket cannot hold the queue. */
+async function limits(sql: { (strings: TemplateStringsArray, ...values: unknown[]): PromiseLike<unknown> }): Promise<void> {
+  await sql`select set_config('lock_timeout', '2s', true), set_config('statement_timeout', '5s', true)`;
+}
+
 /**
  * Production wiring. This is the only file that reads the CAPI token binding; it is never logged.
  * Database errors are thrown out of `asSystem` to the caller, never caught inside its callback.
@@ -172,12 +201,12 @@ export function metaPurchaseDepsFromEnv(env: CloudflareEnv, emit: Emit): MetaPur
     token: () => env.META_CAPI_ACCESS_TOKEN || null,
     testEventCode: () => env.META_TEST_EVENT_CODE || null,
     claim: async (bookingId, paymentId, policyVersion, testEvent, refundRequired, workerSkip) => {
-      const rows = await asSystem(
-        env,
-        (sql) => sql<DbClaimRow[]>`
+      const rows = await asSystem(env, async (sql) => {
+        await limits(sql);
+        return sql<DbClaimRow[]>`
           select * from public.meta_purchase_claim(${bookingId}::uuid, ${paymentId}::int8, ${policyVersion},
-            ${testEvent}, ${refundRequired}, ${workerSkip})`,
-      );
+            ${testEvent}, ${refundRequired}, ${workerSkip})`;
+      });
       const r = rows[0];
       if (!r) throw new Error("meta_purchase_claim returned no row");
       return {
@@ -191,15 +220,18 @@ export function metaPurchaseDepsFromEnv(env: CloudflareEnv, emit: Emit): MetaPur
       };
     },
     finish: async (bookingId, eventId, state, http, code, subcode) => {
-      await asSystem(
-        env,
-        (sql) => sql`
+      await asSystem(env, async (sql) => {
+        await limits(sql);
+        await sql`
           select public.meta_purchase_finish(${bookingId}::uuid, ${eventId}::uuid, ${state},
-            ${http}::int4, ${code}::int4, ${subcode}::int4)`,
-      );
+            ${http}::int4, ${code}::int4, ${subcode}::int4)`;
+      });
     },
     clearIds: async (bookingId) => {
-      await asSystem(env, (sql) => sql`select public.meta_purchase_clear_ids(${bookingId}::uuid)`);
+      await asSystem(env, async (sql) => {
+        await limits(sql);
+        await sql`select public.meta_purchase_clear_ids(${bookingId}::uuid)`;
+      });
     },
     fetch: (...a) => fetch(...a),
     emit,
