@@ -499,7 +499,6 @@ function SiteHeaderView({
                       <span>info@vamostaxi.site</span>
                     </a>
                     <a data-hd-menuitem="1" href="https://wa.me/41796267082" rel="noreferrer noopener">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src="/assets/social/whatsapp.svg" width={18} height={18} alt="" data-hd-wa="1" />
                       <span>{t("whatsapp")}</span>
                     </a>

@@ -132,7 +132,6 @@ function FooterLink({
   );
   const inner = glyph ? (
     <>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={glyph} width={18} height={18} alt="" data-ft-wa="1" />
       {text}
     </>

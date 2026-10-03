@@ -198,6 +198,8 @@ test.describe("FAQ page and gallery @component", () => {
 
   test("toggle accessible name differs en vs de @component", async ({ page }) => {
     await page.goto(baseURL + "/faq");
+    // The questions come from the FaqSection import, which mounts after the page shell: wait for all of them.
+    await expect(page.locator("[data-faq-toggle]")).toHaveCount(19);
     const enNames = await page.locator("[data-faq-toggle]").evaluateAll((els) =>
       els.map((el) => (el as HTMLButtonElement).innerText.trim()),
     );

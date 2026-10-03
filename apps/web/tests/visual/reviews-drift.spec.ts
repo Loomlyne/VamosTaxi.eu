@@ -1,4 +1,4 @@
-import { test, expect } from "../support/test";
+import { test, expect, emulateMedia } from "../support/test";
 import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
@@ -33,7 +33,7 @@ test.describe("Reviews drift @component", () => {
   test.describe.configure({ mode: "serial" });
   test.beforeAll(async () => {
     server = http.createServer((q, s) => {
-      const p = path.join(PUBLIC_DIR, decodeURIComponent((q.url ?? "/").split("?")[0]));
+      const p = path.join(PUBLIC_DIR, decodeURIComponent((q.url ?? "/").split("?")[0] ?? "/"));
       fs.readFile(p, (e, d) => {
         if (e) { s.statusCode = 404; return s.end(); }
         s.setHeader("content-type", TYPES[path.extname(p)] ?? "application/octet-stream");
@@ -61,13 +61,17 @@ test.describe("Reviews drift @component", () => {
     await page.waitForSelector("#reviews [data-rv-wall] [data-rv-item]", { timeout: 20_000 });
   }
 
+  /** Phones (<=680) never drift (owner R2-4): at the 390 project the drift checks run at 768. */
+  const driftWidth = (page: import("@playwright/test").Page) => ((page.viewportSize()?.width ?? 1440) <= 680 ? 768 : undefined);
+
   test("6 published reviews stay static, 7 drift @component", async ({ page }) => {
-    await open(page, 6);
+    const w = driftWidth(page);
+    await open(page, 6, w);
     await expect(page.locator("#reviews [data-rv-drift]")).toHaveCount(0);
     await expect(page.locator("#reviews [data-rv-wall] [data-rv-item]")).toHaveCount(6);
     await page.unrouteAll();
     const p2 = await page.context().newPage();
-    await open(p2, 7);
+    await open(p2, 7, w);
     await expect(p2.locator("#reviews [data-rv-drift]")).toHaveCount(1);
     await expect(p2.locator("#reviews [data-rv-col]")).toHaveCount((p2.viewportSize()?.width ?? 1440) > 1080 ? 3 : 2);
     const name = await p2.locator("#reviews [data-rv-col]").first().evaluate((el) => getComputedStyle(el).animationName);
@@ -75,7 +79,7 @@ test.describe("Reviews drift @component", () => {
   });
 
   test("clones (3 repeats per review) are aria-hidden and inert @component", async ({ page }) => {
-    await open(page, 7);
+    await open(page, 7, driftWidth(page));
     const clones = page.locator("#reviews [data-rv-clone]");
     await expect(clones).toHaveCount(21);
     for (let i = 0; i < 21; i++) {
@@ -86,7 +90,7 @@ test.describe("Reviews drift @component", () => {
   });
 
   test("7 reviews: every column track outlasts the wall, no gap at any point of the loop @component", async ({ page }) => {
-    await open(page, 7);
+    await open(page, 7, driftWidth(page));
     const m = await page.evaluate(() => {
       const wall = document.querySelector("#reviews [data-rv-wall]") as HTMLElement;
       const wh = wall.getBoundingClientRect().height;
@@ -102,7 +106,7 @@ test.describe("Reviews drift @component", () => {
   });
 
   test("hover pauses the drift @component", async ({ page }) => {
-    await open(page, 7);
+    await open(page, 7, driftWidth(page));
     const state = () => page.locator("#reviews [data-rv-col]").first().evaluate((el) => el.getAnimations()[0]?.playState);
     expect(await state()).toBe("running");
     await page.locator("#reviews [data-rv-wall]").hover();
@@ -110,8 +114,8 @@ test.describe("Reviews drift @component", () => {
   });
 
   test("reduced motion: no animation, clones hidden, every review shown @component", async ({ page }) => {
-    await page.emulateMedia({ reducedMotion: "reduce" });
-    await open(page, 7);
+    await emulateMedia(page, { reducedMotion: "reduce" });
+    await open(page, 7, driftWidth(page));
     const col = page.locator("#reviews [data-rv-col]").first();
     expect(await col.evaluate((el) => getComputedStyle(el).animationName)).toBe("none");
     await expect(page.locator("#reviews [data-rv-clone]").first()).toBeHidden();

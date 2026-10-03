@@ -117,7 +117,6 @@ export default async function ImprintPage({
           </DlRow>
           <DlRow term={<span data-vt-no-i18n>WhatsApp</span>}>
             <a href="https://wa.me/41796267082" target="_blank" rel="noreferrer noopener">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/assets/social/whatsapp.svg" width={16} height={16} alt="" data-wa-ico="1" />
               +41 79 626 70 82
             </a>

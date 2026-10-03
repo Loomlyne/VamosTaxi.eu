@@ -45,6 +45,9 @@
   --vt-yellow-300:var(--vt-grey-200);
   --vt-yellow-600:var(--vt-charcoal-900);
   --vt-yellow-700:var(--vt-charcoal-800);
+  /* The kit's press step pointed at yellow-600, which this law turns charcoal: a pressed primary button lost its
+     label (charcoal on charcoal). Press uses the hover step instead (owner 2026-10-03, quick 261003-site-polish). */
+  --vt-accent-press:var(--vt-yellow-500);
 }
 /* A disabled primary button is a grey fill with muted text. The kit fades
    every disabled button to 42% opacity, which turns #FDC20B into the pale

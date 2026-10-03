@@ -395,10 +395,13 @@ test.describe("Home laptop booking bar @component", () => {
       expect(u.searchParams.get("bags")).toBe("1");
     });
 
-    test("boundary: at 1080 the box is hidden and the bar shows", async ({ page }) => {
-      await open(page, 1080);
+    test("boundary: at 680 the box is hidden and the bar shows; at 681 the tablet card shows (R2-2)", async ({ page }) => {
+      await open(page, 680);
       await expect(page.locator("[data-bookcard]")).toBeHidden();
       await expect(page.locator("[data-bar-wrap] [data-bb]")).toBeVisible();
+      await page.setViewportSize({ width: 681, height: 900 });
+      await expect(page.locator("[data-bookcard]")).toBeVisible();
+      await expect(page.locator("[data-bar-wrap]")).toBeHidden();
     });
 
     const EN_DAY_ANY = /\b(Mon|Tue|Wed|Thu|Fri|Sat|Sun)\b|\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/;
