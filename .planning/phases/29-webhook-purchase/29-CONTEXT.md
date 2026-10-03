@@ -71,6 +71,11 @@ success criteria 1–5; not repeated here).
   (`META_CAPI_ACCESS_TOKEN`): never read, print or log it. If the test event code is missing, a
   test-mode payment sends nothing.
 
+### After the decision (owner, 2026-10-03, question form)
+- **D-05:** Once the Purchase for a booking is sent or decided against, the saved `meta_fbp`, `meta_fbc` (and the saved consent subject, if research adds one) are wiped from the booking. Example: VT-26-0800 is paid and Meta is told, so its two cookie values become empty.
+- **D-06:** One try only. If Meta times out or returns an error, the Purchase is not sent again. Missing one sale beats counting it twice. The failure is recorded on the database row and in the Worker log (status and Graph error code only). There is **no new dashboard screen**: an earlier question wording said "the dashboard log shows", and that was wrong.
+- **D-07:** The test event code is a Worker var `META_TEST_EVENT_CODE`. The owner copies it from Events Manager → Test events before the deploy. Not a secret, but never invented. If it is missing, a test-mode payment sends nothing.
+
 ### Carried forward (locked, not re-asked)
 - Payload: `event_name` Purchase, `action_source` website, `event_source_url`
   `https://vamostaxi.site` (no path), `custom_data` `{ currency: "CHF", value: <francs charged> }`,
