@@ -196,6 +196,26 @@ function qsSecret(): string {
   return typeof value === "string" ? value : "";
 }
 
+/**
+ * QUOTE-09 visitor cookie. Appends a fresh signed `vamos_qs` Set-Cookie when VAMOS_QS_SECRET is set
+ * and the request has no cookie that verifies; returns whether it did. No secret: nothing, exactly as
+ * before. The response then carries a per-visitor value, so it is forced `private, no-store`: a
+ * shared cache must never hand one visitor's cookie to another (the D-24 cache pitfall).
+ *
+ * Quick 261003 (owner decision B): the DC pages (home is one) returned before the mint at the end of
+ * this middleware, so a visitor who typed addresses on home stayed on the bare per-IP buckets.
+ */
+async function appendVisitorCookie(request: NextRequest, response: NextResponse): Promise<boolean> {
+  const secret = qsSecret();
+  if (secret.length === 0) return false;
+  const existing = request.cookies.get(VAMOS_QS_COOKIE)?.value;
+  if (await verifyVamosQs(secret, existing)) return false;
+  const token = await mintVamosQs(secret, crypto.randomUUID());
+  response.headers.append("Set-Cookie", `${VAMOS_QS_COOKIE}=${token}; ${VAMOS_QS_ATTRS}`);
+  response.headers.set("Cache-Control", "private, no-store");
+  return true;
+}
+
 const REQUEST_HOST_HEADER = "x-vamos-request-host";
 
 function hostnameOf(request: NextRequest): string {
@@ -683,10 +703,13 @@ export default async function middleware(request: NextRequest) {
         return applyPublicCacheHeaders(request, applyStagingNoindex(request, NextResponse.redirect(url, 302)));
       }
       const html = await serveDcHtml(request, mock);
-      return applyPublicCacheHeaders(
+      const page = applyPublicCacheHeaders(
         request,
         applyStagingNoindex(request, await updateSession(request, await withSeoHead(html, seo))),
       );
+      // After the cache headers on purpose: a minted cookie turns the page private, no-store.
+      await appendVisitorCookie(request, page);
+      return page;
     }
   }
 
@@ -761,20 +784,10 @@ export default async function middleware(request: NextRequest) {
   // vamos_qs is minted here, not in a route handler: the cookie must exist
   // before the first /api/quote, and the first thing a visitor requests is a
   // page. Matcher carves /api/* out, so this is the first document response.
-  const secret = qsSecret();
-  if (secret.length > 0) {
-    const existing = request.cookies.get(VAMOS_QS_COOKIE)?.value;
-    const subject = await verifyVamosQs(secret, existing);
-    if (!subject) {
-      const token = await mintVamosQs(secret, crypto.randomUUID());
-      finalResponse.headers.append(
-        "Set-Cookie",
-        `${VAMOS_QS_COOKIE}=${token}; ${VAMOS_QS_ATTRS}`,
-      );
-    }
-  }
-
-  return applyPublicCacheHeaders(request, finalResponse, true);
+  // The DC pages (home) mint in their own branch above, which returns earlier.
+  const cached = applyPublicCacheHeaders(request, finalResponse, true);
+  await appendVisitorCookie(request, cached);
+  return cached;
 }
 
 export const config = {
