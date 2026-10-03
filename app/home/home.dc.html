@@ -1981,8 +1981,8 @@ class Component extends DCLogic {
     if (!e || e.defaultPrevented || (e.button && e.button > 0) || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     const a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
     if (!a || !BOOK_HREF.test(a.getAttribute('href') || '')) return;
-    /* HowItWorks chips carry their own click handler (vamos:dest-pick, handled below); it opens the sheet with To filled. */
-    if (a.closest('[data-dest-tile],[data-dest-row]')) return;
+    /* Where we drive rows carry their own click handler (vamos:dest-pick, handled below); it opens the sheet with From and To filled. */
+    if (a.closest('[data-ww-row]')) return;
     if (NARROW()) {
       /* Stop here: the browser's own #book anchor jump would otherwise scroll to the bar behind the sheet. */
       e.preventDefault(); e.stopPropagation();
