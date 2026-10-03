@@ -75,6 +75,8 @@ Verified (UTC, 2026-10-03):
 | must-not greps on added non-planning lines | live-key prefix 0, old .eu host 0, `CHF [0-9]` 0, `client_user_agent|client_ip_address|external_id` 0 | 17:35 |
 | Graph URL, pixel id, token name | only in capi.ts, purchase.ts, env.d.ts and their tests | 17:35 |
 
+Review-fix run (WR-01..03, IN-04, IN-05; own stack `vamos-taxi-290`, reset from zero, UTC 2026-10-03): pgTAP PASS, 102 files, 2845 tests (meta_purchase.test.sql now 115); test/local meta-purchase (6 tests, incl. two concurrent claims and the sweep), meta-click-ids, consent-reader: 3 files, 11 tests pass; `vitest run lib/meta lib/checkout/settle.test.ts lib/checkout/return-settle.test.ts`: 11 files, 458 tests pass; `pnpm typecheck` and `pnpm check:db-fences` pass. The md5 list in section 3 and the function count (six rows) are the post-fix values. `db:types:check` still not run (needs Docker); `meta_purchase_sweep` added to `database.types.ts` by hand in the committed style (`Args: never; Returns: number`).
+
 Failed, then fixed: the first `pnpm typecheck` failed with TS2345 in `packages/db/test/local/meta-purchase.test.ts` line 42 (`null` passed where the system identity takes `undefined`). Fixed in bc6bd568; typecheck and that test re-ran green. The full unit and lint runs preceded this one-line test-file change; the changed file was re-run on its own.
 
 Not verified:

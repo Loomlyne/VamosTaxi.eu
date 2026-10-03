@@ -28,7 +28,17 @@ findings:
   warning: 3
   info: 6
   total: 9
-status: issues_found
+status: fixed_partial
+fixes:
+  WR-01: fixed (cd6b8ff9, typecheck fix in 01845205)
+  WR-02: fixed (01845205)
+  WR-03: fixed (93430ec1)
+  IN-04: fixed (6588eb18)
+  IN-05: fixed (d6027a9e)
+  IN-01: not in scope
+  IN-02: not in scope
+  IN-03: not in scope
+  IN-06: not in scope
 ---
 
 # Phase 29: Code Review Report
