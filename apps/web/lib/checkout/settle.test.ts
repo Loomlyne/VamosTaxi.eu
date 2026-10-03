@@ -47,6 +47,7 @@ import {
   captureAllowed,
   handleStripeMessage,
   handleStripeMessageWithDeps,
+  metaPurchaseDepFor,
   pgTextArrayLiteral,
   type SettleDeps,
   type SettleRow,
@@ -1031,5 +1032,169 @@ describe("261002 settle safety: a difference that settled but was not applied (T
   it("production wiring sends the T1 mail through deliverDifferenceNotAppliedAlert", () => {
     const src = readFileSync(new URL("./settle.ts", import.meta.url), "utf8");
     expect(src).toContain("alertDifferenceNotApplied: (row) => deliverDifferenceNotAppliedAlert(env, row.booking_id)");
+  });
+});
+
+describe("meta purchase (Phase 29)", () => {
+  const purchaseInput = (patch = {}) => ({
+    bookingId: "11111111-1111-1111-1111-111111111111",
+    paymentId: 1,
+    livemode: false,
+    refundRequired: false,
+    ...patch,
+  });
+
+  it("calls the dep once after a first succeeded settle", async () => {
+    const send = vi.fn(async () => undefined);
+    const d = deps({ sendMetaPurchase: send });
+    expect(await handleStripeMessageWithDeps(message(), d)).toEqual({ ack: true });
+    expect(send).toHaveBeenCalledTimes(1);
+    expect(send).toHaveBeenCalledWith(purchaseInput());
+  });
+
+  it("still calls it when the return route settled first (already_settled)", async () => {
+    const send = vi.fn(async () => undefined);
+    const d = deps({ sendMetaPurchase: send, settlePayment: vi.fn(async () => settleRow({ already_settled: true })) });
+    await handleStripeMessageWithDeps(message(), d);
+    expect(send).toHaveBeenCalledTimes(1);
+  });
+
+  it("passes refundRequired true for a refunded payment, after the refund", async () => {
+    const order: string[] = [];
+    const d = deps({
+      sendMetaPurchase: vi.fn(async () => {
+        order.push("purchase");
+      }),
+      settlePayment: vi.fn(async () => settleRow({ refund_required: true, refund_reason: "duplicate_charge" })),
+    });
+    d.refund.mockImplementation(async () => {
+      order.push("refund");
+      return { id: "re_1" };
+    });
+    await handleStripeMessageWithDeps(message(), d);
+    expect(order).toEqual(["refund", "purchase"]);
+    expect(d.sendMetaPurchase).toHaveBeenCalledWith(purchaseInput({ refundRequired: true }));
+  });
+
+  it("never calls it for an extra", async () => {
+    const send = vi.fn(async () => undefined);
+    const d = deps({
+      sendMetaPurchase: send,
+      retrieveSession: vi.fn(async () => session({ metadata: { kind: "extra" } } as Partial<Stripe.Checkout.Session>)),
+    });
+    await handleStripeMessageWithDeps(message(), d);
+    expect(send).not.toHaveBeenCalled();
+  });
+
+  it("never calls it for failed, expired or money events", async () => {
+    const send = vi.fn(async () => undefined);
+    await handleStripeMessageWithDeps(
+      message(),
+      deps({
+        sendMetaPurchase: send,
+        retrieveSession: vi.fn(async () => session({ payment_status: "unpaid" } as Partial<Stripe.Checkout.Session>)),
+      }),
+    );
+    await handleStripeMessageWithDeps(
+      message({ type: "checkout.session.expired" }),
+      deps({
+        sendMetaPurchase: send,
+        retrieveSession: vi.fn(async () => session({ status: "expired", payment_status: "unpaid" } as Partial<Stripe.Checkout.Session>)),
+      }),
+    );
+    await handleStripeMessageWithDeps(
+      message({ type: "charge.refunded", objectId: "ch_test_1" }),
+      deps({ sendMetaPurchase: send }),
+    );
+    await handleStripeMessageWithDeps(
+      message({ type: "charge.dispute.created", objectId: "du_test_1" }),
+      deps({ sendMetaPurchase: send }),
+    );
+    expect(send).not.toHaveBeenCalled();
+  });
+
+  it("maps session.livemode to livemode, false when absent", async () => {
+    const live = vi.fn(async () => undefined);
+    await handleStripeMessageWithDeps(
+      message(),
+      deps({ sendMetaPurchase: live, retrieveSession: vi.fn(async () => session({ livemode: true } as Partial<Stripe.Checkout.Session>)) }),
+    );
+    expect(live).toHaveBeenCalledWith(purchaseInput({ livemode: true }));
+    const test = vi.fn(async () => undefined);
+    await handleStripeMessageWithDeps(
+      message(),
+      deps({ sendMetaPurchase: test, retrieveSession: vi.fn(async () => session({ livemode: false } as Partial<Stripe.Checkout.Session>)) }),
+    );
+    expect(test).toHaveBeenCalledWith(purchaseInput({ livemode: false }));
+  });
+
+  it("never calls it for payment_id 0", async () => {
+    const send = vi.fn(async () => undefined);
+    await handleStripeMessageWithDeps(
+      message(),
+      deps({ sendMetaPurchase: send, settlePayment: vi.fn(async () => settleRow({ payment_id: 0 })) }),
+    );
+    expect(send).not.toHaveBeenCalled();
+  });
+
+  it("a throwing or rejecting dep leaves the result identical and emits meta_purchase_failed", async () => {
+    for (const fail of [
+      vi.fn(() => {
+        throw new Error("boom");
+      }),
+      vi.fn(async () => {
+        throw new Error("boom");
+      }),
+    ]) {
+      const emit = vi.fn();
+      const plain = await handleStripeMessageWithDeps(message(), deps());
+      const withDep = await handleStripeMessageWithDeps(message(), deps({ sendMetaPurchase: fail, emit }));
+      expect(withDep).toEqual(plain);
+      expect(emit).toHaveBeenCalledWith("error", "meta_purchase_failed", { bookingId: "11111111-1111-1111-1111-111111111111" });
+    }
+    const dup = () =>
+      settleRow({ already_settled: true, duplicate: true, refund_required: true, refund_reason: "duplicate_charge" });
+    const plainDup = await handleStripeMessageWithDeps(message(), deps({ settlePayment: vi.fn(async () => dup()) }));
+    const failDup = await handleStripeMessageWithDeps(
+      message(),
+      deps({
+        settlePayment: vi.fn(async () => dup()),
+        sendMetaPurchase: vi.fn(async () => {
+          throw new Error("boom");
+        }),
+      }),
+    );
+    expect(failDup).toEqual(plainDup);
+    expect(failDup).toEqual({ ack: true, settled: { duplicate: true, revived: false } });
+  });
+
+  it("absent dep: same result, no error", async () => {
+    const emit = vi.fn();
+    expect(await handleStripeMessageWithDeps(message(), deps({ emit }))).toEqual({ ack: true });
+    expect(emit).not.toHaveBeenCalledWith("error", "meta_purchase_failed", expect.anything());
+  });
+
+  it("runs after every other open session was expired", async () => {
+    const order: string[] = [];
+    const d = deps({
+      sendMetaPurchase: vi.fn(async () => {
+        order.push("purchase");
+      }),
+      settlePayment: vi.fn(async () => settleRow({ other_open_session_ids: ["cs_a", "cs_b"] })),
+    });
+    d.expireSession.mockImplementation(async (id: string) => {
+      order.push(id);
+    });
+    await handleStripeMessageWithDeps(message(), d);
+    expect(order).toEqual(["cs_a", "cs_b", "purchase"]);
+  });
+
+  it("metaPurchaseDepFor builds the dep only when the caller opts in", () => {
+    const emit = vi.fn();
+    const env = {} as CloudflareEnv;
+    expect(metaPurchaseDepFor(env, undefined, emit)).toBeUndefined();
+    expect(metaPurchaseDepFor(env, {}, emit)).toBeUndefined();
+    expect(metaPurchaseDepFor(env, { metaPurchase: false }, emit)).toBeUndefined();
+    expect(typeof metaPurchaseDepFor(env, { metaPurchase: true }, emit)).toBe("function");
   });
 });
