@@ -521,14 +521,17 @@ log(result.state === "sent" ? "info" : "error", result.state, { http: result.htt
 | A6 | Code 100 is "invalid parameter" (permanent) | Finding 6 | Classification of logs only; no behaviour depends on it (no retries anyway) |
 | A7 | Owner accepts losing one Purchase if the Worker dies between claim and POST, or the webhook never reaches the queue | Finding 1, 6 | Alternative is at-least-once, which META-13 forbids |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Does Graph accept the locked payload?**
    - Known: UA is documented "required" for website events; fbp/fbc-only is not an invalid combination.
    - Unclear: hard 400 vs accepted with diagnostic.
    - Recommendation: the plan's last task is a human checkpoint: controller deploys, owner opens Test events, one 4242 payment with Accept, read `meta_purchase_events` (state, http, code, test_event) read-only. `rejected` ⇒ stop and ask with the code/subcode.
+   - RESOLVED: by the HANDOVER live check (plan 29-07 Task 3, item 7): state `rejected` ⇒ stop and ask the owner with the code/subcode; the payload is never widened (META-14).
 2. **The test event code value.** Owner copies it from Events Manager → Test events. Planner adds a `checkpoint:human-action` (one numbered step) before the config line is written.
+   - RESOLVED: by the 29-07 test-code checkpoint (Task 1, D-07); the value goes into `env.staging.vars` only; missing ⇒ a test-mode payment sends nothing.
 3. **Clear fbp/fbc after the decision?** (A3) Ask in the plan sign-off; default recommendation: clear subject always, clear ids too.
+   - RESOLVED: by D-05 (owner, 2026-10-03): every decision row wipes meta_fbp, meta_fbc and meta_consent_subject (plan 29-02); the claim-failure path wipes best-effort through `meta_purchase_clear_ids` (plan 29-05).
 
 ## Environment Availability
 
