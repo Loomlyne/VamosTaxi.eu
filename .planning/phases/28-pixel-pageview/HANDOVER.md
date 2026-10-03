@@ -34,7 +34,7 @@ Owner's answers (question form, 2026-10-03) are in `28-SIGNED.md`: plan signed; 
 
 ### Hosted read-only checks after apply
 1. `select count(*) from public.bookings` before and after: equal. `select count(*) from public.bookings where meta_fbp is not null or meta_fbc is not null` = 0.
-2. `has_function_privilege('vamos_checkout','public.checkout_set_meta_click_ids(uuid,text,text)','EXECUTE')` true; `anon`, `authenticated`, `vamos_system`, `vamos_guest` false; `public` false for both the writer and `tg_bookings_meta_click_ids_pending_only()`.
+2. `has_function_privilege('vamos_checkout','public.checkout_set_meta_click_ids(uuid,text,text)','EXECUTE')` true; `anon`, `authenticated`, `vamos_system`, `vamos_guest` and `service_role` false (check `service_role` on hosted: it may hold default EXECUTE there, see memory live-service-role-default-execute; if true, note it, it is a trusted role and the trigger still refuses a non-pending backfill); `public` false for both the writer and `tg_bookings_meta_click_ids_pending_only()`.
 3. `has_column_privilege('authenticated','public.bookings','meta_fbp','SELECT')` false, same for `meta_fbc`, same for `vamos_guest`.
 4. md5 of `pg_get_functiondef` for the writer and the trigger function equals local; the trigger `bookings_meta_click_ids_pending_only` exists, enabled.
 
@@ -96,9 +96,9 @@ Controller, after the UAT: one 4242 payment after Accept on `/about`, then read 
 - Policy rule: if the owner ever reports an Events Manager switch back on, the switch flag goes false.
 
 ## Facts for the owner and the reviewer
-- Cookie text "Kept for up to 90 days": true. Meta's script rewrites `_fbp`/`_fbc` with a fresh 90 days on each counted page view, so a returning visitor keeps the id longer than 90 days in total; Safari caps script-set cookies at 7 days. No code change needed.
+- Cookie text "Kept for up to 90 days": settled by the owner (question form, 2026-10-03, Q5 in `28-SIGNED.md`): the text stays as is; "up to 90 days" counts from the last visit. Safari caps script-set cookies at 7 days. No code change.
 - Meta also keeps two local-storage items (`multiFbc`, `aemSource`) that the cookies page does not name. The owner decided to leave the text as is; our withdraw deletes both.
-- A "Necessary only" made on a Next page (checkout) stops saving at once (server reads consent) but leaves the two cookies in the browser until the next mock page loads, which clears them.
+- Withdraw deletes `_fbp`, `_fbc`, `_fbleid` (host-only and `.vamostaxi.site` forms) and `multiFbc`/`aemSource` everywhere: on the mock pages in `app/vamos-meta.js` (also on pages that are not on the allow-list, whenever the server says marketing is not on), and on the React pages (checkout, confirmation, pay link) in `CookieBanner.tsx` after a save with Marketing off and when the saved choice read on load has Marketing off (`lib/meta/clear-browser-state.ts`). The `HttpOnly` flag is not involved: Meta's cookies are script-written.
 - The Pay press now writes on every press (NULLs when there are no cookies or no consent), so a later press without consent clears earlier values. One extra database round trip per press, inside a try/catch; failure logs the SQLSTATE only.
 - Tightening beyond the plan (in both implementations): no port or credentials in the address, no `@` anywhere in it, undecodable addresses fail closed; `/sign-in` and `/sign-up` count only with no query string at all (owner's Q2).
 - `Referrer-Policy` changed from `strict-origin-when-cross-origin` to `strict-origin` on every page (one existing test pin changed on purpose). No product code reads `Referer`; cross-site requests already sent the origin only.
