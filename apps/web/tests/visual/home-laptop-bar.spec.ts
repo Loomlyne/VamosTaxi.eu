@@ -348,7 +348,7 @@ test.describe("Home laptop booking bar @component", () => {
       await page.setViewportSize({ width: 1181, height: 900 });
       await page.waitForTimeout(200);
       expect(await vals()).toEqual(v0);
-      await page.setViewportSize({ width: 1024, height: 900 });
+      await page.setViewportSize({ width: 600, height: 900 });
       await page.waitForTimeout(200);
       await expect(page.locator("[data-bookcard]")).toBeHidden();
       await expect(page.locator("[data-bar-wrap] [data-bb]")).toBeVisible();
@@ -454,9 +454,9 @@ test.describe("Home laptop booking bar @component", () => {
     }
   });
 
-  test.describe("26.4 bar unchanged at 1080 and under", () => {
+  test.describe("26.4 bar unchanged at 680 and under; tablet card at 681-1080 (R2-2)", () => {
     test.beforeEach(({}, testInfo) => {
-      test.skip(testInfo.project.name === "component-1440", "runs at 1024, 768, 390");
+      test.skip(testInfo.project.name !== "component-390", "the bar is phone only; the tablet card test below runs at 1024 and 768");
     });
 
     for (const lang of ["en", "ar"]) {
@@ -475,5 +475,51 @@ test.describe("Home laptop booking bar @component", () => {
         expect(w.sw).toBeLessThanOrEqual(w.iw);
       });
     }
+  });
+
+  test.describe("tablet card at 681-1080 (R2-2)", () => {
+    test.beforeEach(({}, testInfo) => {
+      test.skip(!["component-1024", "component-768"].includes(testInfo.project.name), "runs at 1024 and 768");
+    });
+
+    for (const lang of ["en", "ar"]) {
+      test(`card shows, bar and dock hidden, fields 54px, fits above the fold, no sideways scroll in ${lang}`, async ({ page }) => {
+        await stubGeo(page);
+        const url = await serveMock("app/home/home.dc.html");
+        await page.goto(url);
+        await waitForMockReady(page);
+        await dismissCookies(page);
+        if (lang !== "en") await setLang(page, lang);
+        await expect(page.locator("[data-bar-wrap]")).toBeHidden();
+        await expect(page.locator("[data-bar-dock]")).toBeHidden();
+        const card = page.locator("#book[data-bookcard]");
+        await expect(card).toBeVisible();
+        for (const k of ["from", "to"]) {
+          const box = await page.locator(`#book [data-bx="${k}"] [data-vtcombo]`).boundingBox();
+          expect(Math.abs(box!.height - 54)).toBeLessThanOrEqual(1);
+        }
+        const cta = await page.locator('#book [data-bx="cta"] button').boundingBox();
+        expect(Math.abs(cta!.height - 54)).toBeLessThanOrEqual(1);
+        const g = await page.evaluate(() => ({ bottom: document.querySelector("#book")!.getBoundingClientRect().bottom, ih: window.innerHeight, sw: document.scrollingElement!.scrollWidth, iw: window.innerWidth }));
+        expect(g.bottom).toBeLessThanOrEqual(g.ih);
+        expect(g.sw).toBeLessThanOrEqual(g.iw);
+      });
+    }
+
+    test("an airport pick shows the flight row full width above From and moves focus to it; the card still fits above the fold", async ({ page }) => {
+      await stubGeo(page);
+      const url = await serveMock("app/home/home.dc.html");
+      await page.goto(url);
+      await waitForMockReady(page);
+      await dismissCookies(page);
+      await pickFrom(page, "Fixture Air", "Fixture Airport");
+      const flight = page.locator('#book [data-bx="flight"]');
+      await expect(flight).toBeVisible();
+      await expect(flight.locator("input")).toBeFocused();
+      const g = await geom(page);
+      expect(g.flight!.bottom).toBeLessThanOrEqual(g.from!.top + 1);
+      const b = await page.evaluate(() => ({ bottom: document.querySelector("#book")!.getBoundingClientRect().bottom, ih: window.innerHeight }));
+      expect(b.bottom).toBeLessThanOrEqual(b.ih);
+    });
   });
 });
