@@ -99,7 +99,7 @@ export default async function CookiesPage({
                 name: <span data-vt-no-i18n>NEXT_LOCALE</span>,
                 purpose: tCookies("language-cookie-purpose"),
                 provider: "Vamos Taxi",
-                duration: <PendingSlot label="Language cookie duration" />,
+                duration: tCookies("locale-cookie-duration"),
               },
               {
                 slug: "session",
@@ -122,6 +122,14 @@ export default async function CookiesPage({
                 purpose: tCookies("qs-cookie-purpose"),
                 provider: "Vamos Taxi",
                 duration: tCookies("qs-cookie-duration"),
+              },
+              {
+                // Owner-approved row, .planning/decisions/2026-10-03-cookies-manage-locale-rows.md
+                slug: "manage",
+                name: <span data-vt-no-i18n>vt_manage</span>,
+                purpose: tCookies("manage-cookie-purpose"),
+                provider: "Vamos Taxi",
+                duration: tCookies("manage-cookie-duration"),
               },
             ]}
           />
