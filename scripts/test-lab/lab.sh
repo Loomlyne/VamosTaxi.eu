@@ -380,7 +380,7 @@ cmd_gates() {
   changed=$( { git diff --name-only --diff-filter=ACMR "$base" 2>/dev/null; git ls-files -o --exclude-standard; } | sort -u)
   gate typecheck pnpm -s typecheck
   local js; js=$(printf '%s\n' "$changed" | grep -E '\.(ts|tsx|js|mjs)$' | while read -r f; do [ -f "$f" ] && echo "$f"; done)
-  if [ -n "$js" ]; then gate eslint pnpm exec eslint $js; else echo "PASS | eslint | no changed ts/tsx/js/mjs files"; fi
+  if [ -n "$js" ]; then gate eslint bash -c "pnpm exec eslint $(printf '%s ' $js) && echo \"$(printf '%s\n' $js | wc -l | tr -d ' ') changed files clean\""; else echo "PASS | eslint | no changed ts/tsx/js/mjs files"; fi
   gate i18n:check pnpm -s i18n:check
   gate check:numbers pnpm -s check:numbers
   gate check:db-fences pnpm -s check:db-fences
