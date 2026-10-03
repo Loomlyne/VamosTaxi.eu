@@ -89,11 +89,22 @@ export type SuggestInput = {
   proximity?: GeoPoint;
 };
 
+/** Public place kind drawn as an icon + label in the address list. */
+export type SuggestKind =
+  | "airport"
+  | "hotel"
+  | "station"
+  | "address"
+  | "city"
+  | "place"
+  | "poi";
+
 export type SuggestHit = {
   mapbox_id: string;
   name: string;
   address: string;
   context: string;
+  kind: SuggestKind;
 };
 
 export type SuggestResult = {
@@ -226,7 +237,57 @@ function mapSuggestion(raw: unknown): SuggestHit | null {
     name: textField(rec, "name"),
     address: textField(rec, "full_address", "address", "place_formatted"),
     context: suggestionContext(rec),
+    kind: suggestionKind(rec),
   };
+}
+
+function listHas(value: unknown, needles: string[]): boolean {
+  return (
+    Array.isArray(value) &&
+    value.some(
+      (c) =>
+        typeof c === "string" &&
+        needles.some((n) => c.toLowerCase().includes(n)),
+    )
+  );
+}
+
+/**
+ * Kind of a suggestion for the address list icon. Read from Search Box
+ * `feature_type`, `poi_category[]`, `poi_category_ids[]` and `maki` — the same
+ * inputs isAirportFeature trusts — never from the name text.
+ */
+function suggestionKind(props: Record<string, unknown>): SuggestKind {
+  const type = typeof props.feature_type === "string" ? props.feature_type : "";
+  const maki = typeof props.maki === "string" ? props.maki.toLowerCase() : "";
+  if (isAirportFeature(props)) return "airport";
+  if (type === "poi") {
+    const hotel = ["hotel", "lodging", "motel", "hostel", "resort", "guest house", "guesthouse", "bed and breakfast", "bed_and_breakfast"];
+    const rail = ["railway station", "train station", "rail"];
+    if (
+      listHas(props.poi_category, hotel) ||
+      listHas(props.poi_category_ids, hotel) ||
+      maki === "lodging"
+    ) {
+      return "hotel";
+    }
+    if (
+      listHas(props.poi_category, rail) ||
+      listHas(props.poi_category_ids, rail) ||
+      maki === "rail" ||
+      maki === "rail-metro" ||
+      maki === "rail-light"
+    ) {
+      return "station";
+    }
+    return "poi";
+  }
+  if (type === "address" || type === "street") return "address";
+  if (["place", "locality", "region", "postcode", "country"].includes(type)) {
+    return "city";
+  }
+  if (type === "neighborhood" || type === "district") return "place";
+  return "poi";
 }
 
 function cantonFromProperties(props: Record<string, unknown>): string | null {

@@ -16,6 +16,8 @@
     patterns: [
       { re: /^You are signed in as (.+)\. Continuing signs you out of that account\.$/,
         de: 'Sie sind als $1 angemeldet. Wenn Sie fortfahren, werden Sie dort abgemeldet.', fr: 'Vous êtes connecté en tant que $1. Continuer vous déconnecte de ce compte.', ar: 'أنت مسجّل الدخول باسم $1. المتابعة تسجّل خروجك من هذا الحساب.' },
+      { re: /^No places found for “(.+)”$/,
+        de: 'Keine Orte gefunden für «$1»', fr: 'Aucun lieu trouvé pour « $1 »', ar: 'لم نجد أماكن لـ «$1»' },
       { re: /^Saved on (.+)$/,
         de: 'Gespeichert am $1', fr: 'Enregistré le $1', ar: 'تم الحفظ في $1' },
       { re: /^Your driver is waiting at (.+)$/,
@@ -2433,6 +2435,15 @@
     S["We answer and guide you."] = { de: "Wir helfen Ihnen weiter.", fr: "Nous répondons et vous guidons.", ar: "نجيبك ونرشدك." };
     S["WhatsApp us"] = { de: "WhatsApp", fr: "Écrivez-nous sur WhatsApp", ar: "راسلنا عبر واتساب" };
     S["Email us"] = { de: "E-Mail senden", fr: "Écrivez-nous", ar: "راسلنا بالبريد" };
+    S["Airport"] = { de: "Flughafen", fr: "Aéroport", ar: "مطار" };
+    S["Hotel"] = { de: "Hotel", fr: "Hôtel", ar: "فندق" };
+    S["Station"] = { de: "Bahnhof", fr: "Gare", ar: "محطة" };
+    S["Address"] = { de: "Adresse", fr: "Adresse", ar: "عنوان" };
+    S["City"] = { de: "Stadt", fr: "Ville", ar: "مدينة" };
+    S["Place"] = { de: "Ort", fr: "Lieu", ar: "مكان" };
+    S["Search results"] = { de: "Suchergebnisse", fr: "Résultats de recherche", ar: "نتائج البحث" };
+    S["Popular"] = { de: "Beliebt", fr: "Populaires", ar: "الأكثر طلبًا" };
+    S["Try the street and city, a hotel name or an airport code."] = { de: "Versuchen Sie Strasse und Ort, einen Hotelnamen oder einen Flughafencode.", fr: "Essayez la rue et la ville, un nom d’hôtel ou un code d’aéroport.", ar: "جرّب الشارع والمدينة أو اسم فندق أو رمز مطار." };
     S["What we drive."] = { de: "Was wir fahren.", fr: "Ce que nous conduisons.", ar: "ما نقدمه." };
     S["One-way transfers, booked ahead, at a price fixed before you pay."] = { de: "Einfache Fahrten, im Voraus gebucht, zu einem Preis, der vor der Zahlung feststeht.", fr: "Transferts aller simple, réservés à l’avance, à un prix fixé avant le paiement.", ar: "نقل باتجاه واحد، يُحجز مسبقًا، بسعر ثابت قبل الدفع." };
     S["To and from Zurich, Geneva and Basel airports, timed to your flight."] = { de: "Zu und von den Flughäfen Zürich, Genf und Basel, abgestimmt auf Ihren Flug.", fr: "Depuis et vers les aéroports de Zurich, Genève et Bâle, selon l’horaire de votre vol.", ar: "من وإلى مطارات زيورخ وجنيف وبازل، بتوقيت رحلتك." };

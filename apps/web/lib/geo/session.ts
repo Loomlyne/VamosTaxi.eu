@@ -13,6 +13,8 @@
 // Plan 04-13 wraps the /api/geo/* routes with rate-limit, breaker and
 // Turnstile; this module is only the suggest→retrieve session gate.
 
+import type { SuggestKind } from "./mapbox";
+
 const SESSION_TTL_SECONDS = 30 * 60;
 
 export { SESSION_TTL_SECONDS };
@@ -24,6 +26,8 @@ export type PublicSuggestion = {
   name: string;
   address: string;
   context: string;
+  /** Place kind for the list icon; absent on an old Worker response. */
+  kind?: SuggestKind;
 };
 
 /**
@@ -36,6 +40,7 @@ export function publicSuggestion(hit: PublicSuggestion): PublicSuggestion {
     name: hit.name,
     address: hit.address,
     context: hit.context,
+    ...(hit.kind ? { kind: hit.kind } : {}),
   };
 }
 
