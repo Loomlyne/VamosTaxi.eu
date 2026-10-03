@@ -204,7 +204,7 @@ interface CloudflareEnv {
   INTENT_RATE_LIMITER?: RateLimit;
 
   /**
-   * Lookups (/api/geo/suggest|retrieve|reverse, /api/flight/[no]), verified vamos_qs visitor:
+   * Geo lookups (/api/geo/suggest|retrieve|reverse), verified vamos_qs visitor:
    * 60 per 60 s per `ip:subject`. Own namespace so address typing never spends the quote
    * allowance (quick 261003). OPTIONAL in types: missing → fail open, like the quote pair.
    */
@@ -212,6 +212,16 @@ interface CloudflareEnv {
 
   /** Lookups, bare IP / unverifiable cookie: 30 per 60 s per IPv4 address or IPv6 /64 (quick 261003). */
   LOOKUP_RATE_LIMITER_BARE?: RateLimit;
+
+  /**
+   * GET /api/flight/[no], verified visitor: 10 per 60 s per `ip:subject`. Own namespace:
+   * AeroDataBox bills every call and not_found is never cached (quick 261003 review).
+   * OPTIONAL: missing → fail open.
+   */
+  FLIGHT_RATE_LIMITER?: RateLimit;
+
+  /** Flight lookups, bare IP: 6 per 60 s per IPv4 address or IPv6 /64 (quick 261003 review). */
+  FLIGHT_RATE_LIMITER_BARE?: RateLimit;
 
   /**
    * POST /api/quote/reprice and the voucher check in POST /api/checkout/price, verified

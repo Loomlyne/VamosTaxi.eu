@@ -174,7 +174,7 @@
           "namespace_id": "1004",
           "simple": { "limit": 8, "period": 60 }
         },
-        // Quick 261003: lookups (/api/geo/suggest|retrieve|reverse, /api/flight/:no) have their
+        // Quick 261003: geo lookups (/api/geo/suggest, /retrieve, /reverse) have their
         // own counter. Sharing 1001/1002 let address typing on home spend the /api/quote
         // allowance, so /checkout refused its first price on live (2026-10-03). Home asks
         // suggest 160 ms after a keystroke (2+ characters): two addresses plus retrieves and the
@@ -203,6 +203,18 @@
           "name": "PRICE_RATE_LIMITER_BARE",
           "namespace_id": "1008",
           "simple": { "limit": 8, "period": 60 }
+        },
+        // Quick 261003 review: /api/flight/:no has its own small counter. AeroDataBox bills
+        // every call and a not_found answer is never cached; one flight number costs 1-3 calls.
+        {
+          "name": "FLIGHT_RATE_LIMITER",
+          "namespace_id": "1009",
+          "simple": { "limit": 10, "period": 60 }
+        },
+        {
+          "name": "FLIGHT_RATE_LIMITER_BARE",
+          "namespace_id": "1010",
+          "simple": { "limit": 6, "period": 60 }
         }
       ],
       // Rule 2 addition (plan 03-06, D-36): uncommented from the placeholder block plan
@@ -352,7 +364,7 @@
           "namespace_id": "1004",
           "simple": { "limit": 8, "period": 60 }
         },
-        // Quick 261003: lookups (/api/geo/suggest|retrieve|reverse, /api/flight/:no) have their
+        // Quick 261003: geo lookups (/api/geo/suggest, /retrieve, /reverse) have their
         // own counter. Sharing 1001/1002 let address typing on home spend the /api/quote
         // allowance, so /checkout refused its first price on live (2026-10-03). Home asks
         // suggest 160 ms after a keystroke (2+ characters): two addresses plus retrieves and the
@@ -381,6 +393,18 @@
           "name": "PRICE_RATE_LIMITER_BARE",
           "namespace_id": "1008",
           "simple": { "limit": 8, "period": 60 }
+        },
+        // Quick 261003 review: /api/flight/:no has its own small counter. AeroDataBox bills
+        // every call and a not_found answer is never cached; one flight number costs 1-3 calls.
+        {
+          "name": "FLIGHT_RATE_LIMITER",
+          "namespace_id": "1009",
+          "simple": { "limit": 10, "period": 60 }
+        },
+        {
+          "name": "FLIGHT_RATE_LIMITER_BARE",
+          "namespace_id": "1010",
+          "simple": { "limit": 6, "period": 60 }
         }
       ],
       // Two Hyperdrive configs (D-01/D-03), never one: `HYPERDRIVE` is the cacheable,

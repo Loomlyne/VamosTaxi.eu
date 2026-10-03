@@ -157,7 +157,11 @@ export type QuoteAbuseWire = {
  * - price:  POST /api/quote/reprice and the voucher check in POST /api/checkout/price.
  *           PRICE_RATE_LIMITER 12/60 / _BARE 8/60. No Directions call; the limit is there
  *           against voucher guessing. One booking spends 1–4 (voucher, flight edit).
- * - lookup: /api/geo/suggest|retrieve|reverse and /api/flight/[no].
+ * - flight: /api/flight/[no]. FLIGHT_RATE_LIMITER 10/60 / _BARE 6/60. AeroDataBox bills
+ *           every call and a not_found answer is never cached, so it does not share the
+ *           generous lookup counter. Home and checkout ask 900 ms after typing stops, so
+ *           entering one flight number costs 1–3 calls.
+ * - lookup: /api/geo/suggest|retrieve|reverse.
  *           LOOKUP_RATE_LIMITER 60/60 / _BARE 30/60. Home asks suggest 160 ms after each
  *           keystroke once 2 characters are typed: "ZRH" + "Zurich Main Station" is ~20
  *           calls, plus two retrieves and the checkout retrieve ≈ 20–25 in a minute.
@@ -168,10 +172,16 @@ export type QuoteAbuseWire = {
  *
  * All keys are built from limiterIp(): IPv4 as is, IPv6 cut to its /64.
  */
-export type RateCounter = "quote" | "price" | "lookup";
+export type RateCounter = "quote" | "price" | "lookup" | "flight";
 
 /** The verified/bare binding pair for one counter, in the shape bucketFor reads. */
 export function counterBindings(env: CloudflareEnv, counter: RateCounter): RateLimitBindings {
+  if (counter === "flight") {
+    return {
+      QUOTE_RATE_LIMITER: env.FLIGHT_RATE_LIMITER ?? passLimiter(),
+      QUOTE_RATE_LIMITER_BARE: env.FLIGHT_RATE_LIMITER_BARE ?? passLimiter(),
+    };
+  }
   if (counter === "lookup") {
     return {
       QUOTE_RATE_LIMITER: env.LOOKUP_RATE_LIMITER ?? passLimiter(),
@@ -194,7 +204,7 @@ export function counterBindings(env: CloudflareEnv, counter: RateCounter): RateL
 export async function wireQuoteAbuse(
   env: CloudflareEnv,
   request: Request,
-  counter: Exclude<RateCounter, "lookup"> = "quote",
+  counter: "quote" | "price" = "quote",
 ): Promise<QuoteAbuseWire> {
   const ip = clientIp(request);
   const cookie = readCookie(request, VAMOS_QS_COOKIE);
@@ -229,8 +239,12 @@ export async function wireQuoteAbuse(
   };
 }
 
-/** Geo: rate-limit + breaker only. Flight: rate-limit only. Both spend the lookup counter. */
-export function wireRateLimitGuard(env: CloudflareEnv, request: Request): InjectedGuard {
+/** Geo: rate-limit + breaker, lookup counter. Flight: rate-limit only, its own flight counter. */
+export function wireRateLimitGuard(
+  env: CloudflareEnv,
+  request: Request,
+  counter: "lookup" | "flight" = "lookup",
+): InjectedGuard {
   const ip = clientIp(request);
   const cookie = readCookie(request, VAMOS_QS_COOKIE);
   const secret = qsSecret(env);
@@ -238,7 +252,7 @@ export function wireRateLimitGuard(env: CloudflareEnv, request: Request): Inject
     ip,
     cookie,
     secret,
-    bindings: counterBindings(env, "lookup"),
+    bindings: counterBindings(env, counter),
   });
 }
 
