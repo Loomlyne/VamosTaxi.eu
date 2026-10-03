@@ -6,7 +6,7 @@
 -- the three cookie values; the Pay press writer takes a consent subject. Synthetic data only,
 -- rappen integers only. Run as postgres by `supabase test db`.
 begin;
-select plan(100);
+select plan(94);
 
 -- ── objects and grants ───────────────────────────────────────────────────────────────────────
 select has_column('public', 'bookings', 'meta_consent_subject', 'bookings.meta_consent_subject exists');
@@ -111,7 +111,7 @@ select ('c2900000-0000-0000-0000-0000000000' || lpad(n::text, 2, '0'))::uuid, 'P
 -- The table rule "charged above zero" and "one succeeded payment per booking" are dropped inside
 -- this rolled-back transaction so the zero-charge and not-first branches can be shaped.
 alter table public.booking_payments drop constraint booking_payments_charged_rappen_check;
-drop index public.booking_payments_one_success;
+drop index public.booking_payments_one_success_per_snapshot;
 
 insert into public.booking_payments (booking_id, snapshot_id, stripe_payment_intent_id, charged_rappen, status, captured_at)
 select ('c2900000-0000-0000-0000-0000000000' || lpad(n::text, 2, '0'))::uuid, 0, 'pi_29_' || tag, rap, 'succeeded', cap
@@ -275,8 +275,9 @@ select lives_ok($$ select public.meta_purchase_clear_ids('c2900000-0000-0000-000
 select is((select count(*)::int from public.meta_purchase_events where booking_id = pg_temp.bid(20)), 0, 'clear_ids: writes no event row');
 
 -- ── role path: the system role can run claim, finish, clear_ids ──────────────────────────────
+select set_config('t29.pid26', pg_temp.pid('26')::text, false);
 set local role vamos_system;
-select lives_ok($$ select * from public.meta_purchase_claim(pg_temp.bid(26), pg_temp.pid('26'), '2026-10-01', false, false, null) $$, 'vamos_system can call the claim');
+select lives_ok($$ select * from public.meta_purchase_claim(pg_temp.bid(26), current_setting('t29.pid26')::int8, '2026-10-01', false, false, null) $$, 'vamos_system can call the claim');
 select lives_ok($$ select public.meta_purchase_clear_ids(pg_temp.bid(26)) $$, 'vamos_system can call clear_ids');
 reset role;
 select is((select count(*)::int from public.meta_purchase_events where booking_id = pg_temp.bid(26)), 1, 'vamos_system claim wrote its row');

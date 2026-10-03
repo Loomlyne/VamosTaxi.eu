@@ -861,6 +861,7 @@ export type Database = {
           is_return: boolean
           is_test: boolean
           locale: string
+          meta_consent_subject: string | null
           meta_fbc: string | null
           meta_fbp: string | null
           note: string
@@ -895,6 +896,7 @@ export type Database = {
           is_return?: boolean
           is_test?: boolean
           locale?: string
+          meta_consent_subject?: string | null
           meta_fbc?: string | null
           meta_fbp?: string | null
           note?: string
@@ -929,6 +931,7 @@ export type Database = {
           is_return?: boolean
           is_test?: boolean
           locale?: string
+          meta_consent_subject?: string | null
           meta_fbc?: string | null
           meta_fbp?: string | null
           note?: string
@@ -1675,6 +1678,63 @@ export type Database = {
             columns: ["vehicle_class_id"]
             isOneToOne: false
             referencedRelation: "vehicle_classes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meta_purchase_events: {
+        Row: {
+          booking_id: string
+          claimed_at: string
+          event_id: string
+          finished_at: string | null
+          graph_code: number | null
+          graph_subcode: number | null
+          http_status: number | null
+          payment_id: number
+          skip_reason: string | null
+          state: string
+          test_event: boolean
+        }
+        Insert: {
+          booking_id: string
+          claimed_at?: string
+          event_id?: string
+          finished_at?: string | null
+          graph_code?: number | null
+          graph_subcode?: number | null
+          http_status?: number | null
+          payment_id: number
+          skip_reason?: string | null
+          state: string
+          test_event: boolean
+        }
+        Update: {
+          booking_id?: string
+          claimed_at?: string
+          event_id?: string
+          finished_at?: string | null
+          graph_code?: number | null
+          graph_subcode?: number | null
+          http_status?: number | null
+          payment_id?: number
+          skip_reason?: string | null
+          state?: string
+          test_event?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meta_purchase_events_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meta_purchase_events_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "booking_payments"
             referencedColumns: ["id"]
           },
         ]
@@ -3293,10 +3353,20 @@ export type Database = {
         }
         Returns: undefined
       }
-      checkout_set_meta_click_ids: {
-        Args: { p_booking_id: string; p_fbc: string; p_fbp: string }
-        Returns: undefined
-      }
+      checkout_set_meta_click_ids:
+        | {
+            Args: { p_booking_id: string; p_fbc: string; p_fbp: string }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              p_booking_id: string
+              p_consent_subject: string
+              p_fbc: string
+              p_fbp: string
+            }
+            Returns: undefined
+          }
       checkout_set_pay_link: {
         Args: {
           p_billing_kind: string
@@ -3521,6 +3591,37 @@ export type Database = {
       }
       manage_driver_for: { Args: { p_booking_id: string }; Returns: Json }
       manage_money_for: { Args: { p_booking_id: string }; Returns: Json }
+      meta_purchase_claim: {
+        Args: {
+          p_booking_id: string
+          p_payment_id: number
+          p_policy_version: string
+          p_refund_required: boolean
+          p_test_event: boolean
+          p_worker_skip: string
+        }
+        Returns: {
+          captured_at: string
+          charged_rappen: number
+          decision: string
+          event_id: string
+          fbc: string
+          fbp: string
+          reason: string
+        }[]
+      }
+      meta_purchase_clear_ids: { Args: { p_booking_id: string }; Returns: undefined }
+      meta_purchase_finish: {
+        Args: {
+          p_booking_id: string
+          p_event_id: string
+          p_graph_code: number
+          p_graph_subcode: number
+          p_http_status: number
+          p_state: string
+        }
+        Returns: undefined
+      }
       must_fix_trip_read: {
         Args: { p_key: string }
         Returns: {

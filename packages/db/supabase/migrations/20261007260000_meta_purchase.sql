@@ -1,0 +1,289 @@
+-- 20261007260000_meta_purchase.sql
+--
+-- Phase 29 (META-10..14, D-01..D-07). One Purchase per booking from the settle queue. Additive:
+-- one nullable column on bookings (no default), one empty table, one writer overload, the Phase 28
+-- trigger function widened to the new column, three definer functions for the system role. No row
+-- is inserted, updated or deleted by this file.
+
+-- Brief ACCESS EXCLUSIVE locks on bookings and booking_payments (live holds real rows): give up
+-- fast instead of queueing behind a long transaction. Held until the last lock-taking statement.
+set lock_timeout = '5s';
+
+alter table public.bookings add column if not exists meta_consent_subject pg_catalog.uuid;
+
+comment on column public.bookings.meta_consent_subject is
+  'Phase 29 D-01: consent_subject cookie of the browser that pressed Pay with marketing on. Pending only; emptied when the Purchase is decided.';
+
+-- Same rule as Phase 28, now over three columns: a column that ends non-NULL and changed is refused
+-- unless the booking is pending; NULL is always allowed so an erasure or a wipe is never blocked.
+create or replace function public.tg_bookings_meta_click_ids_pending_only()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if (case when tg_op = 'UPDATE' then old.status else new.status end) <> 'pending'::public.booking_status
+     and (
+       (new.meta_fbp is not null and (tg_op = 'INSERT' or new.meta_fbp is distinct from old.meta_fbp))
+       or (new.meta_fbc is not null and (tg_op = 'INSERT' or new.meta_fbc is distinct from old.meta_fbc))
+       or (new.meta_consent_subject is not null
+           and (tg_op = 'INSERT' or new.meta_consent_subject is distinct from old.meta_consent_subject))
+     ) then
+    raise exception 'meta click ids: booking is not pending' using errcode = '55000';
+  end if;
+  return new;
+end
+$$;
+
+revoke all on function public.tg_bookings_meta_click_ids_pending_only() from public;
+
+drop trigger if exists bookings_meta_click_ids_pending_only on public.bookings;
+create trigger bookings_meta_click_ids_pending_only
+  before insert or update of meta_fbp, meta_fbc, meta_consent_subject on public.bookings
+  for each row execute function public.tg_bookings_meta_click_ids_pending_only();
+
+-- Pay press writer with the consent subject (D-01). The 3-argument writer stays for the deploy gap
+-- (this migration ships before the Worker that calls the 4-argument one).
+create or replace function public.checkout_set_meta_click_ids(
+  p_booking_id pg_catalog.uuid,
+  p_fbp pg_catalog.text,
+  p_fbc pg_catalog.text,
+  p_consent_subject pg_catalog.uuid
+) returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_status public.booking_status;
+begin
+  select b.status into v_status from public.bookings b where b.id = p_booking_id for update;
+  if not found then
+    raise exception 'checkout_set_meta_click_ids: booking not found' using errcode = 'P0002';
+  end if;
+  if v_status <> 'pending'::public.booking_status then
+    raise exception 'checkout_set_meta_click_ids: booking is not pending' using errcode = '55000';
+  end if;
+  if (p_fbp is not null or p_fbc is not null) and p_consent_subject is null then
+    raise exception 'checkout_set_meta_click_ids: ids need a consent subject' using errcode = '22023';
+  end if;
+
+  -- All three every time, NULLs included: a later Pay press without consent clears earlier values.
+  update public.bookings
+     set meta_fbp = p_fbp, meta_fbc = p_fbc, meta_consent_subject = p_consent_subject
+   where id = p_booking_id;
+end
+$$;
+
+revoke all on function public.checkout_set_meta_click_ids(pg_catalog.uuid, pg_catalog.text, pg_catalog.text, pg_catalog.uuid) from public, anon, authenticated;
+grant execute on function public.checkout_set_meta_click_ids(pg_catalog.uuid, pg_catalog.text, pg_catalog.text, pg_catalog.uuid) to vamos_checkout;
+
+comment on function public.checkout_set_meta_click_ids(pg_catalog.uuid, pg_catalog.text, pg_catalog.text, pg_catalog.uuid) is
+  'Phase 29 D-01: stores _fbp/_fbc and the consent subject on a PENDING booking (55000 otherwise; 22023 ids without subject); all NULL clears. EXECUTE: vamos_checkout only.';
+
+-- One row per booking, written only by the claim and finish functions below. Never holds personal
+-- data: no ids, no subject, no email. No policies and no grants on purpose.
+create table public.meta_purchase_events (
+  booking_id    pg_catalog.uuid primary key references public.bookings (id) on delete cascade,
+  event_id      pg_catalog.uuid not null unique default extensions.gen_random_uuid(),
+  payment_id    pg_catalog.int8 not null references public.booking_payments (id) on delete cascade,
+  state         pg_catalog.text not null check (state in ('sending', 'sent', 'rejected', 'failed', 'skipped')),
+  skip_reason   pg_catalog.text check (skip_reason in
+                  ('not_paid', 'erased', 'is_test', 'refunded', 'zero_charge', 'too_old',
+                   'gate_closed', 'no_token', 'no_test_code', 'no_ids', 'no_subject', 'consent_off')),
+  test_event    pg_catalog.bool not null,
+  http_status   pg_catalog.int4,
+  graph_code    pg_catalog.int4,
+  graph_subcode pg_catalog.int4,
+  claimed_at    pg_catalog.timestamptz not null default pg_catalog.now(),
+  finished_at   pg_catalog.timestamptz,
+  constraint meta_purchase_events_skip_reason check ((state = 'skipped') = (skip_reason is not null))
+);
+
+alter table public.meta_purchase_events enable row level security;
+alter table public.meta_purchase_events force row level security;
+revoke all on table public.meta_purchase_events
+  from public, anon, authenticated, vamos_guest, vamos_edge, vamos_public, vamos_checkout, vamos_system;
+
+comment on table public.meta_purchase_events is
+  'Phase 29: the once-only record of the Meta Purchase per booking (event id, state, skip reason). Written only by meta_purchase_claim / meta_purchase_finish.';
+
+reset lock_timeout;
+
+-- The decision. The booking row is locked first, so two queue deliveries of one booking take turns.
+-- A row for the booking already exists -> 'already'. A payment that is not the booking's first
+-- succeeded payment gets no row and clears nothing, so it can never block or steal the first
+-- payment's Purchase (D-02, D-03). Every decision that writes a row empties the three cookie values
+-- on the booking in the same transaction (D-05).
+create or replace function public.meta_purchase_claim(
+  p_booking_id pg_catalog.uuid,
+  p_payment_id pg_catalog.int8,
+  p_policy_version pg_catalog.text,
+  p_test_event pg_catalog.bool,
+  p_refund_required pg_catalog.bool,
+  p_worker_skip pg_catalog.text
+) returns table (
+  decision pg_catalog.text,
+  reason pg_catalog.text,
+  event_id pg_catalog.uuid,
+  fbp pg_catalog.text,
+  fbc pg_catalog.text,
+  charged_rappen pg_catalog.int4,
+  captured_at pg_catalog.timestamptz
+)
+language plpgsql
+security definer
+set search_path = ''
+as $$
+#variable_conflict use_column
+declare
+  v_status    public.booking_status;
+  v_is_test   pg_catalog.bool;
+  v_erased    pg_catalog.timestamptz;
+  v_fbp       pg_catalog.text;
+  v_fbc       pg_catalog.text;
+  v_subject   pg_catalog.uuid;
+  v_charged   pg_catalog.int4;
+  v_captured  pg_catalog.timestamptz;
+  v_skip      pg_catalog.text;
+  v_marketing pg_catalog.bool;
+  v_event     pg_catalog.uuid;
+begin
+  if p_worker_skip is not null and p_worker_skip not in ('gate_closed', 'no_token', 'no_test_code') then
+    raise exception 'meta_purchase_claim: unknown worker skip' using errcode = '22023';
+  end if;
+
+  select b.status, b.is_test, b.erased_at, b.meta_fbp, b.meta_fbc, b.meta_consent_subject
+    into v_status, v_is_test, v_erased, v_fbp, v_fbc, v_subject
+    from public.bookings b where b.id = p_booking_id for update;
+  if not found then
+    raise exception 'meta_purchase_claim: booking not found' using errcode = 'P0002';
+  end if;
+
+  if exists (select 1 from public.meta_purchase_events e where e.booking_id = p_booking_id) then
+    return query select 'already'::pg_catalog.text, null::pg_catalog.text, null::pg_catalog.uuid,
+      null::pg_catalog.text, null::pg_catalog.text, null::pg_catalog.int4, null::pg_catalog.timestamptz;
+    return;
+  end if;
+
+  select p.charged_rappen::pg_catalog.int4, coalesce(p.captured_at, p.created_at)
+    into v_charged, v_captured
+    from public.booking_payments p
+   where p.id = p_payment_id and p.booking_id = p_booking_id and p.status = 'succeeded';
+  if not found or exists (
+    select 1
+      from public.booking_payments o
+      join public.booking_payments me on me.id = p_payment_id
+     where o.booking_id = p_booking_id and o.status = 'succeeded' and o.id <> p_payment_id
+       and (coalesce(o.captured_at, o.created_at), o.id) < (coalesce(me.captured_at, me.created_at), me.id)
+  ) then
+    return query select 'skip'::pg_catalog.text, 'not_first_payment'::pg_catalog.text, null::pg_catalog.uuid,
+      null::pg_catalog.text, null::pg_catalog.text, null::pg_catalog.int4, null::pg_catalog.timestamptz;
+    return;
+  end if;
+
+  if p_refund_required then
+    v_skip := 'refunded';
+  elsif v_erased is not null then
+    v_skip := 'erased';
+  elsif v_status not in ('paid'::public.booking_status, 'confirmed'::public.booking_status,
+                         'assigned'::public.booking_status, 'completed'::public.booking_status) then
+    v_skip := 'not_paid';
+  elsif v_is_test then
+    v_skip := 'is_test';
+  elsif exists (select 1 from public.booking_refunds r where r.payment_id = p_payment_id) then
+    v_skip := 'refunded';
+  elsif v_charged is null or v_charged <= 0 then
+    v_skip := 'zero_charge';
+  elsif v_captured < pg_catalog.now() - interval '7 days' then
+    v_skip := 'too_old';
+  elsif p_worker_skip is not null then
+    v_skip := p_worker_skip;
+  elsif v_fbp is null and v_fbc is null then
+    v_skip := 'no_ids';
+  elsif v_subject is null then
+    v_skip := 'no_subject';
+  else
+    perform pg_catalog.set_config('request.vamos.consent_subject', v_subject::pg_catalog.text, true);
+    select c.marketing into v_marketing from public.consent_choice(p_policy_version, null) c;
+    perform pg_catalog.set_config('request.vamos.consent_subject', '', true);
+    if v_marketing is not true then
+      v_skip := 'consent_off';
+    end if;
+  end if;
+
+  if v_skip is not null then
+    insert into public.meta_purchase_events (booking_id, payment_id, state, skip_reason, test_event)
+    values (p_booking_id, p_payment_id, 'skipped', v_skip, coalesce(p_test_event, false));
+  else
+    insert into public.meta_purchase_events (booking_id, payment_id, state, test_event)
+    values (p_booking_id, p_payment_id, 'sending', coalesce(p_test_event, false))
+    returning meta_purchase_events.event_id into v_event;
+  end if;
+
+  update public.bookings
+     set meta_fbp = null, meta_fbc = null, meta_consent_subject = null
+   where id = p_booking_id;
+
+  if v_skip is not null then
+    return query select 'skip'::pg_catalog.text, v_skip, null::pg_catalog.uuid,
+      null::pg_catalog.text, null::pg_catalog.text, null::pg_catalog.int4, null::pg_catalog.timestamptz;
+  else
+    return query select 'send'::pg_catalog.text, null::pg_catalog.text, v_event, v_fbp, v_fbc, v_charged, v_captured;
+  end if;
+end
+$$;
+
+-- Records the Graph answer. Only the row with this booking and event id that is still 'sending'
+-- changes; anything else is a quiet no-op, so a replay cannot rewrite history.
+create or replace function public.meta_purchase_finish(
+  p_booking_id pg_catalog.uuid,
+  p_event_id pg_catalog.uuid,
+  p_state pg_catalog.text,
+  p_http_status pg_catalog.int4,
+  p_graph_code pg_catalog.int4,
+  p_graph_subcode pg_catalog.int4
+) returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if p_state is null or p_state not in ('sent', 'rejected', 'failed') then
+    raise exception 'meta_purchase_finish: state must be sent, rejected or failed' using errcode = '22023';
+  end if;
+  update public.meta_purchase_events
+     set state = p_state, http_status = p_http_status, graph_code = p_graph_code,
+         graph_subcode = p_graph_subcode, finished_at = pg_catalog.now()
+   where booking_id = p_booking_id and event_id = p_event_id and state = 'sending';
+end
+$$;
+
+-- Best-effort wipe for the Worker's claim-failure path (D-05). No error when nothing matches.
+create or replace function public.meta_purchase_clear_ids(p_booking_id pg_catalog.uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  update public.bookings
+     set meta_fbp = null, meta_fbc = null, meta_consent_subject = null
+   where id = p_booking_id
+     and (meta_fbp is not null or meta_fbc is not null or meta_consent_subject is not null);
+end
+$$;
+
+revoke all on function public.meta_purchase_claim(pg_catalog.uuid, pg_catalog.int8, pg_catalog.text, pg_catalog.bool, pg_catalog.bool, pg_catalog.text) from public, anon, authenticated;
+revoke all on function public.meta_purchase_finish(pg_catalog.uuid, pg_catalog.uuid, pg_catalog.text, pg_catalog.int4, pg_catalog.int4, pg_catalog.int4) from public, anon, authenticated;
+revoke all on function public.meta_purchase_clear_ids(pg_catalog.uuid) from public, anon, authenticated;
+grant execute on function public.meta_purchase_claim(pg_catalog.uuid, pg_catalog.int8, pg_catalog.text, pg_catalog.bool, pg_catalog.bool, pg_catalog.text) to vamos_system;
+grant execute on function public.meta_purchase_finish(pg_catalog.uuid, pg_catalog.uuid, pg_catalog.text, pg_catalog.int4, pg_catalog.int4, pg_catalog.int4) to vamos_system;
+grant execute on function public.meta_purchase_clear_ids(pg_catalog.uuid) to vamos_system;
+
+comment on function public.meta_purchase_claim(pg_catalog.uuid, pg_catalog.int8, pg_catalog.text, pg_catalog.bool, pg_catalog.bool, pg_catalog.text) is
+  'Phase 29: decide send / skip / already for the first succeeded payment of a booking, once. EXECUTE: vamos_system only.';
+comment on function public.meta_purchase_finish(pg_catalog.uuid, pg_catalog.uuid, pg_catalog.text, pg_catalog.int4, pg_catalog.int4, pg_catalog.int4) is
+  'Phase 29: record the Graph answer on the sending row. EXECUTE: vamos_system only.';
+comment on function public.meta_purchase_clear_ids(pg_catalog.uuid) is
+  'Phase 29 D-05: best-effort wipe of fbp, fbc and consent subject on one booking. EXECUTE: vamos_system only.';
