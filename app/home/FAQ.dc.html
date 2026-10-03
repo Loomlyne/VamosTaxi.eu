@@ -64,6 +64,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-faq-help] p{margin:0;font-size:var(--vt-body-sm);line-height:1.5;color:var(--vt-text-inverse-muted)}
 [data-faq-help] a[data-faq-wa]{display:inline-flex;align-items:center;gap:8px;min-height:44px;margin-block-start:4px;color:var(--vt-accent);font-size:13px;font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;text-decoration:none;border-bottom:0;transition:color 140ms var(--vt-ease-standard)}
 [data-faq-help] a[data-faq-wa]:hover{color:var(--vt-white)}
+[data-faq-wa-mark]{display:block;flex:0 0 20px;inline-size:20px;block-size:20px}
 [data-faq-help] a[data-faq-wa]:focus-visible{outline:none;box-shadow:var(--vt-ring);border-radius:var(--vt-radius-xs)}
 [data-faq-help="rail"]{display:none}
 [data-faq-help="after"]{margin-block-start:24px}
@@ -118,15 +119,15 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div data-faq-layout="1">
 <div data-faq-rail="1">
 <div data-faq-topics="1" role="tablist" aria-label="Question topics" aria-orientation="vertical">
-<button type="button" role="tab" data-faq-topic="1" id="faq-t1" aria-selected="true" aria-controls="faq-s1" tabindex="0"><span>Booking and price</span><small class="vt-dir-keep" data-vt-no-i18n="1">4</small></button>
-<button type="button" role="tab" data-faq-topic="1" id="faq-t2" aria-selected="false" aria-controls="faq-s2" tabindex="-1"><span>At the airport</span><small class="vt-dir-keep" data-vt-no-i18n="1">4</small></button>
-<button type="button" role="tab" data-faq-topic="1" id="faq-t3" aria-selected="false" aria-controls="faq-s3" tabindex="-1"><span>Luggage and seats</span><small class="vt-dir-keep" data-vt-no-i18n="1">2</small></button>
-<button type="button" role="tab" data-faq-topic="1" id="faq-t4" aria-selected="false" aria-controls="faq-s4" tabindex="-1"><span>Changes and cancellation</span><small class="vt-dir-keep" data-vt-no-i18n="1">2</small></button>
+<button type="button" role="tab" data-faq-topic="1" id="faq-t1" aria-selected="true" aria-controls="faq-s1" tabindex="0"><span>Booking and price</span><small class="vt-dir-keep" data-vt-no-i18n="1">{{ c1 }}</small></button>
+<button type="button" role="tab" data-faq-topic="1" id="faq-t2" aria-selected="false" aria-controls="faq-s2" tabindex="-1"><span>At the airport</span><small class="vt-dir-keep" data-vt-no-i18n="1">{{ c2 }}</small></button>
+<button type="button" role="tab" data-faq-topic="1" id="faq-t3" aria-selected="false" aria-controls="faq-s3" tabindex="-1"><span>Luggage and seats</span><small class="vt-dir-keep" data-vt-no-i18n="1">{{ c3 }}</small></button>
+<button type="button" role="tab" data-faq-topic="1" id="faq-t4" aria-selected="false" aria-controls="faq-s4" tabindex="-1"><span>Changes and cancellation</span><small class="vt-dir-keep" data-vt-no-i18n="1">{{ c4 }}</small></button>
 </div>
 <div data-faq-help="rail">
 <b>Still a question?</b>
 <p>We answer by phone, WhatsApp or email.</p>
-<a href="https://wa.me/41796267082" target="_blank" rel="noopener" data-faq-wa="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="message-circle" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import><span>WhatsApp us</span></a>
+<a href="https://wa.me/41796267082" target="_blank" rel="noopener" data-faq-wa="1"><img data-faq-wa-mark="1" src="../../assets/social/whatsapp.svg" alt="" width="20" height="20"><span>WhatsApp us</span></a>
 </div>
 </div>
 <div data-faq-main="1">
@@ -182,6 +183,37 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 </div>
 </div>
 </div>
+<sc-if value="{{ full }}" hint-placeholder-val="{{ false }}">
+<div data-faq-card="1" data-open="0">
+<h3 style="margin:0">
+<button type="button" data-faq-toggle="1" id="faq-q13" aria-expanded="false" aria-controls="faq-a13"><span data-faq-q="1">When will I receive my booking confirmation?</span>
+<span data-faq-mark="1" aria-hidden="true"><span data-faq-plus="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="plus" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></span></span>
+</button>
+</h3>
+<div data-faq-panel="1" id="faq-a13" role="region" aria-labelledby="faq-q13">
+<div data-faq-inner="1">
+<p data-faq-a="1">Immediately after payment, by email. It carries your booking reference, the pickup time and address, the vehicle class and the price you paid.</p>
+<p data-faq-a="1">Your driver's name, vehicle and plate arrive separately, by email, as soon as a driver is assigned, and again in the reminder 24 hours before pickup. The driver's number is on your manage-booking page.</p>
+</div>
+</div>
+</div>
+
+<div data-faq-card="1" data-open="0">
+<h3 style="margin:0">
+<button type="button" data-faq-toggle="1" id="faq-q14" aria-expanded="false" aria-controls="faq-a14"><span data-faq-q="1">Do I need to tip the chauffeur?</span>
+<span data-faq-mark="1" aria-hidden="true"><span data-faq-plus="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="plus" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></span></span>
+</button>
+</h3>
+<div data-faq-panel="1" id="faq-a14" role="region" aria-labelledby="faq-q14">
+<div data-faq-inner="1">
+<p data-faq-a="1">No. The gratuity is already in the price you were shown, along with tolls and airport access fees. Nothing is expected on top and no driver will ask.</p>
+<div data-faq-acts="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" href="/terms#price" hint-size="300px,44px">Terms &amp; conditions, section 04</x-import>
+</div>
+</div>
+</div>
+</div>
+</sc-if>
 </div>
 <div data-faq-set="1" role="tabpanel" id="faq-s2" aria-labelledby="faq-t2" data-on="0">
 <div data-faq-card="1" data-open="1">
@@ -239,6 +271,21 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 </div>
 </div>
 </div>
+<sc-if value="{{ full }}" hint-placeholder-val="{{ false }}">
+<div data-faq-card="1" data-open="0">
+<h3 style="margin:0">
+<button type="button" data-faq-toggle="1" id="faq-q15" aria-expanded="false" aria-controls="faq-a15"><span data-faq-q="1">How do I get in touch with my chauffeur?</span>
+<span data-faq-mark="1" aria-hidden="true"><span data-faq-plus="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="plus" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></span></span>
+</button>
+</h3>
+<div data-faq-panel="1" id="faq-a15" role="region" aria-labelledby="faq-q15">
+<div data-faq-inner="1">
+<p data-faq-a="1">You get their name by email as soon as a driver is assigned, and their direct number on your manage-booking page. Call or message them directly on the day.</p>
+<p data-faq-a="1">Before that, or if nobody answers, call our number and quote your booking reference. Keep your mobile reachable on the day of travel — the driver calls it on arrival.</p>
+</div>
+</div>
+</div>
+</sc-if>
 </div>
 <div data-faq-set="1" role="tabpanel" id="faq-s3" aria-labelledby="faq-t3" data-on="0">
 <div data-faq-card="1" data-open="1">
@@ -266,6 +313,24 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 </div>
 </div>
 </div>
+<sc-if value="{{ full }}" hint-placeholder-val="{{ false }}">
+<div data-faq-card="1" data-open="0">
+<h3 style="margin:0">
+<button type="button" data-faq-toggle="1" id="faq-q16" aria-expanded="false" aria-controls="faq-a16"><span data-faq-q="1">Can I bring my own child or booster seat?</span>
+<span data-faq-mark="1" aria-hidden="true"><span data-faq-plus="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="plus" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></span></span>
+</button>
+</h3>
+<div data-faq-panel="1" id="faq-a16" role="region" aria-labelledby="faq-q16">
+<div data-faq-inner="1">
+<p data-faq-a="1">Yes, and it travels free. We can also provide one — request it when you book so the right seat is in the right vehicle.</p>
+<p data-faq-a="1">Swiss law decides which seat a child needs, and the driver will not set off without it. Tell us the children's ages at booking and we will get it right.</p>
+<div data-faq-acts="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" href="/terms#luggage" hint-size="300px,44px">Terms &amp; conditions, section 07</x-import>
+</div>
+</div>
+</div>
+</div>
+</sc-if>
 </div>
 <div data-faq-set="1" role="tabpanel" id="faq-s4" aria-labelledby="faq-t4" data-on="0">
 <div data-faq-card="1" data-open="1">
@@ -301,18 +366,69 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 </div>
 </div>
 </div>
+<sc-if value="{{ full }}" hint-placeholder-val="{{ false }}">
+<div data-faq-card="1" data-open="0">
+<h3 style="margin:0">
+<button type="button" data-faq-toggle="1" id="faq-q17" aria-expanded="false" aria-controls="faq-a17"><span data-faq-q="1">How can I change the date or time of my booking?</span>
+<span data-faq-mark="1" aria-hidden="true"><span data-faq-plus="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="plus" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></span></span>
+</button>
+</h3>
+<div data-faq-panel="1" id="faq-a17" role="region" aria-labelledby="faq-q17">
+<div data-faq-inner="1">
+<p data-faq-a="1">Open your booking from the link in your confirmation email, or from your account, and change it there. The change takes effect when we confirm it in writing — not when you send it.</p>
+<p data-faq-a="1">If the new time changes the fare, you pay or we refund the difference, and never more than the difference.</p>
+<div data-faq-acts="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" href="/cancellation#modify" hint-size="340px,44px">Cancellation &amp; refunds, section 03</x-import>
+</div>
+</div>
+</div>
+</div>
+
+<div data-faq-card="1" data-open="0">
+<h3 style="margin:0">
+<button type="button" data-faq-toggle="1" id="faq-q18" aria-expanded="false" aria-controls="faq-a18"><span data-faq-q="1">How do I cancel my ride?</span>
+<span data-faq-mark="1" aria-hidden="true"><span data-faq-plus="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="plus" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></span></span>
+</button>
+</h3>
+<div data-faq-panel="1" id="faq-a18" role="region" aria-labelledby="faq-q18">
+<div data-faq-inner="1">
+<p data-faq-a="1">From the manage-booking link in your confirmation email, or from your account if you made one. You get a cancellation confirmation in writing; keep it, because that is what the refund is calculated from.</p>
+<p data-faq-a="1">Cannot reach either? Call us and quote your booking reference and we will do it for you.</p>
+<div data-faq-acts="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" href="/cancellation#tiers" hint-size="340px,44px">Cancellation &amp; refunds, section 01</x-import>
+</div>
+</div>
+</div>
+</div>
+
+<div data-faq-card="1" data-open="0">
+<h3 style="margin:0">
+<button type="button" data-faq-toggle="1" id="faq-q19" aria-expanded="false" aria-controls="faq-a19"><span data-faq-q="1">What is the cancellation policy?</span>
+<span data-faq-mark="1" aria-hidden="true"><span data-faq-plus="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="plus" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import></span></span>
+</button>
+</h3>
+<div data-faq-panel="1" id="faq-a19" role="region" aria-labelledby="faq-q19">
+<div data-faq-inner="1">
+<p data-faq-a="1">Cancel early and you get the most back; the closer to pickup, the less, because a driver is already committed to your journey. Flight delays are handled separately and cost you nothing when we have your flight number.</p>
+<div data-faq-acts="1">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" href="/cancellation" hint-size="320px,44px">Read the cancellation &amp; refund policy</x-import>
+</div>
+</div>
+</div>
+</div>
+</sc-if>
 </div>
 <div data-faq-help="after">
 <b>Still a question?</b>
 <p>We answer by phone, WhatsApp or email.</p>
-<a href="https://wa.me/41796267082" target="_blank" rel="noopener" data-faq-wa="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="message-circle" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import><span>WhatsApp us</span></a>
+<a href="https://wa.me/41796267082" target="_blank" rel="noopener" data-faq-wa="1"><img data-faq-wa-mark="1" src="../../assets/social/whatsapp.svg" alt="" width="20" height="20"><span>WhatsApp us</span></a>
 </div>
 </div>
 </div>
 </div>
 </section>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1200,&quot;height&quot;:640},&quot;expandMs&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:400,&quot;min&quot;:0,&quot;max&quot;:400,&quot;step&quot;:20,&quot;unit&quot;:&quot;ms&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Motion&quot;},&quot;singleOpen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Behaviour&quot;},&quot;startOpen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Behaviour&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1200,&quot;height&quot;:640},&quot;full&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Content&quot;},&quot;expandMs&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:400,&quot;min&quot;:0,&quot;max&quot;:400,&quot;step&quot;:20,&quot;unit&quot;:&quot;ms&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Motion&quot;},&quot;singleOpen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Behaviour&quot;},&quot;startOpen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Behaviour&quot;}}">
 /**
  * Home · FAQ — topics rail + accordion. Desktop (above 900px): a 280px rail of
  * four topic buttons (count beside each) and a charcoal "Still a question?" box,
@@ -324,6 +440,9 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
  * aria-expanded / aria-controls. Panel animates 0fr to 1fr; reduced motion is
  * instant. Markup stays literal so every string is directly editable and
  * translated by the locale runtime. No invented CHF, windows, or fees.
+ * Prop `full` (default false = the home set) adds the questions that only the FAQ page
+ * carries (confirmation, tipping, chauffeur contact, own child seat, change / cancel steps),
+ * with links to the page that owns each rule. The home set renders unchanged.
  */
 class Component extends DCLogic {
   state = { lang: 'en' };
@@ -391,7 +510,10 @@ class Component extends DCLogic {
     if (this._offLocale) this._offLocale();
     if (this._bound) { this._bound.removeEventListener('click', this.onClick); this._bound.removeEventListener('keydown', this.onKey); }
   }
-  renderVals() { return { rootRef: this.rootRef, n18: 18 }; }
+  renderVals() {
+    const full = this.props.full === true || this.props.full === 'true';
+    return { rootRef: this.rootRef, n18: 18, full: full, c1: full ? 6 : 4, c2: full ? 5 : 4, c3: full ? 3 : 2, c4: full ? 5 : 2 };
+  }
 }
 
 </script>

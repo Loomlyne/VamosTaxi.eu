@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+<!-- Ground colour + cover live in the STATIC head/body on purpose. The DC runtime
+     injects every stylesheet and script from <helmet> only after React has loaded, so
+     without these the arriving document paints uncovered frames before
+     vamos-page-transition.js exists and can build its overlay. That script adopts
+     #vt-boot-cover and removes it once its own sheet is painted at COVER; the 6s
+     animation below is the fallback for when the script never runs. -->
+<style id="vt-boot">html{background:#F6F6F6}body{margin:0}#vt-boot-cover{position:fixed;inset:0;z-index:2147483000;background:#F6F6F6;pointer-events:none;animation:vt-boot-fail 0s linear 6s forwards}@keyframes vt-boot-fail{to{visibility:hidden}}</style>
+</head>
+<body>
+<div id="vt-boot-cover" aria-hidden="true"></div>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/fonts.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/colors.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/typography.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/spacing.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/elevation.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/motion.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/tokens/base.css">
+<link rel="stylesheet" href="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/styles.css">
+<script src="../../_ds/vamos-taxi-design-system-245af154-0455-4c10-af76-5254642c3786/_ds_bundle.js"></script>
+<script src="../vamos-i18n-dict.js"></script>
+<script src="../vamos-locale.js"></script>
+<script src="../vamos-reviews.js"></script>
+<script src="../vamos-page-transition.js"></script>
+<style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
+.vt-input--focus{box-shadow:none}
+/* Button hover/press — colour step only, no shadow, no glow */
+.vt-btn{transition:background 140ms cubic-bezier(.2,0,.2,1),border-color 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1),transform 80ms cubic-bezier(.2,0,.2,1)}
+.vt-btn:hover,.vt-btn:active{box-shadow:none!important}
+.vt-btn--primary:hover:not([disabled]){background:var(--vt-accent-hover)}
+.vt-btn--primary:active:not([disabled]){background:var(--vt-accent-press);transform:translateY(1px)}
+.vt-btn--secondary:hover:not([disabled]){background:var(--vt-charcoal-800)}
+.vt-btn--secondary:active:not([disabled]){transform:translateY(1px)}
+.vt-btn--ghost:hover:not([disabled]),.vt-btn--outline:hover:not([disabled]),.vt-btn--tertiary:hover:not([disabled]){background:var(--vt-grey-50);border-color:var(--vt-charcoal-900)}
+.vt-btn--ghost:active:not([disabled]),.vt-btn--outline:active:not([disabled]),.vt-btn--tertiary:active:not([disabled]){transform:translateY(1px)}
+.vt-btn:focus-visible{box-shadow:var(--vt-ring)!important}
+.vt-btn[disabled],.vt-btn[aria-disabled="true"]{transform:none}.vt-select .vt-input--focus{box-shadow:none}
+input:focus-visible,select:focus-visible,textarea:focus-visible,[data-vtcombo] input:focus{outline:none;box-shadow:none}
+body{margin:0}
+a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hover)}
+[data-rv-wrap]{box-sizing:border-box;max-width:var(--vt-container-lg);margin-inline:auto;padding-block:clamp(56px,7vw,90px);padding-inline:clamp(16px,3.2vw,56px)}
+[data-rv-head]{display:flex;flex-direction:column;align-items:flex-start;gap:var(--vt-space-3);margin-bottom:clamp(var(--vt-space-6),3vw,var(--vt-space-7))}
+[data-rv-kicker]{margin:0;display:inline-flex;align-self:start;align-items:center;gap:9px;min-block-size:32px;padding-block:0;padding-inline:12px 15px;border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-pill);background:var(--vt-bg-surface);font-family:var(--vt-font-body);font-size:12px;font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;line-height:1;white-space:nowrap;color:var(--vt-charcoal-900)}
+[data-rv-kicker] img{inline-size:13px;block-size:13px;display:block}
+[data-rv-title]{margin:0;font-family:var(--vt-font-display);font-size:var(--vt-display-2);font-weight:var(--vt-weight-semibold);letter-spacing:var(--vt-display-tracking);line-height:var(--vt-display-leading);max-width:22ch;text-wrap:balance;text-align:start}
+[data-rv-chips]{display:flex;flex-wrap:wrap;gap:var(--vt-space-3);margin:0 0 var(--vt-space-7);padding:0;list-style:none}
+[data-rv-chip]{box-sizing:border-box;display:inline-flex;align-items:center;gap:var(--vt-space-3);min-block-size:56px;padding-block:0;padding-inline:var(--vt-space-5);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-pill);background:var(--vt-white);color:var(--vt-text-primary);max-inline-size:100%}
+[data-rv-chip] img{display:block;block-size:20px;inline-size:auto;flex:0 0 auto}
+[data-rv-chip-score]{font-family:var(--vt-font-display);font-size:20px;font-weight:var(--vt-weight-semibold);line-height:1}
+[data-rv-chip-n]{font-family:var(--vt-font-body);font-size:12px;line-height:1.3;color:var(--vt-text-muted)}
+[data-rv-wall]{columns:3 280px;column-gap:var(--vt-space-5);margin:0;padding:0;list-style:none}
+[data-rv-item]{break-inside:avoid;margin:0 0 var(--vt-space-5);padding:0}
+[data-rv-card]{box-sizing:border-box;display:flex;flex-direction:column;align-items:stretch;gap:var(--vt-space-4);width:100%;min-width:0;padding:var(--vt-space-5);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-white);box-shadow:none;text-align:start}
+[data-rv-stars]{display:flex;align-items:center;gap:2px}
+[data-rv-star]{display:block;inline-size:18px;block-size:18px;flex:0 0 auto;background:var(--vt-accent);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2.6l2.4 6.5h6.8l-5.5 4.2 2.1 6.6L12 16.2 6.2 19.9l2.1-6.6L2.8 9.1h6.8z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2.6l2.4 6.5h6.8l-5.5 4.2 2.1 6.6L12 16.2 6.2 19.9l2.1-6.6L2.8 9.1h6.8z'/%3E%3C/svg%3E") center/contain no-repeat}
+[data-rv-star][data-off]{background:var(--vt-grey-300)}
+/* Platform rating marks (brand-mark exception, owner 2026-10-03): each platform shows its own rating look. Star rows stay LTR in Arabic so 4/5 fills four from the left, as Trustpilot and Google draw it. */
+[data-rv-stars]{direction:ltr}
+[data-plat="trustpilot"] [data-rv-star]{border-radius:2px;background:#00B67A url("data:image/svg+xml,%3Csvg width='24' height='24' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpolygon fill='%23fff' points='12,3 14.6,9 21,9.5 16.1,13.8 17.6,20.2 12,16.8 6.4,20.2 7.9,13.8 3,9.5 9.4,9'/%3E%3C/svg%3E") center/14px 14px no-repeat;-webkit-mask:none;mask:none}
+[data-plat="trustpilot"] [data-rv-star][data-off]{background-color:#DCDCE6}
+[data-plat="google"] [data-rv-star]{background:#FBBC04;-webkit-mask:url("data:image/svg+xml,%3Csvg width='24' height='24' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z'/%3E%3C/svg%3E") center/100% 100% no-repeat;mask:url("data:image/svg+xml,%3Csvg width='24' height='24' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z'/%3E%3C/svg%3E") center/100% 100% no-repeat}
+[data-plat="google"] [data-rv-star][data-off]{background:#DADCE0}
+[data-plat="tripadvisor"] [data-rv-star]{box-sizing:border-box;inline-size:16px;block-size:16px;margin-block:1px;border-radius:50%;background:#00AA6C;border:2px solid #00AA6C;-webkit-mask:none;mask:none}
+[data-plat="tripadvisor"] [data-rv-star][data-off]{background:transparent}
+[data-plat="tripadvisor"][data-rv-stars]{gap:3px}
+[data-rv-chip] [data-rv-stars]{flex:0 0 auto}
+[data-rv-chip] [data-rv-star]{inline-size:16px;block-size:16px}
+[data-rv-chip] [data-plat="tripadvisor"] [data-rv-star],[data-rv-chip] [data-rv-star][data-plat]{margin-block:0}
+[data-rv-rate]{display:flex;align-items:center;min-width:0}
+/* Owner's original-review link (#50): borderless icon after the stars. The 44px target is cancelled out of the row height so the card keeps its signed spacing. */
+[data-rv-link]{position:relative;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;inline-size:var(--vt-control-h-md);block-size:var(--vt-control-h-md);flex:0 0 auto;margin:0;margin-block:calc((18px - var(--vt-control-h-md)) / 2);padding:0;border:0;border-radius:var(--vt-radius-pill);background:transparent;color:var(--vt-charcoal-900);text-decoration:none;box-shadow:none;transition:background-color 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1)}
+@media (hover:hover){[data-rv-link]:hover{background:var(--vt-grey-50);color:var(--vt-charcoal-900)}}
+[data-rv-link]:active{background:var(--vt-grey-100);color:var(--vt-charcoal-900)}
+[data-rv-link]:focus-visible{outline:none;box-shadow:var(--vt-ring)}
+[data-rv-q]{margin:0;padding:0;min-width:0}
+[data-rv-text]{margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-regular);line-height:1.5;text-align:start;text-wrap:pretty;overflow-wrap:break-word;white-space:pre-line;color:var(--vt-text-primary);quotes:"\201C" "\201D"}
+[dir="rtl"] [data-rv-text]{quotes:"\00AB" "\00BB"}
+[data-rv-text]::before{content:open-quote}
+[data-rv-text]::after{content:close-quote}
+[data-rv-who]{display:flex;flex-direction:column;align-items:start;gap:var(--vt-space-1);min-width:0}
+[data-rv-name]{font-family:var(--vt-font-body);font-size:var(--vt-body-md);font-weight:var(--vt-weight-semibold);line-height:1.3;color:var(--vt-text-primary);overflow-wrap:anywhere}
+[data-rv-sub]{font-family:var(--vt-font-body);font-size:var(--vt-body-sm);line-height:1.45;color:var(--vt-text-secondary);overflow-wrap:anywhere}
+[data-rv-mark]{display:inline-flex;align-items:center;align-self:flex-start;min-block-size:24px;max-inline-size:100%;color:var(--vt-text-secondary);font-family:var(--vt-font-body);font-size:var(--vt-body-sm);font-weight:var(--vt-weight-medium)}
+[data-rv-mark] img{display:block;block-size:18px;inline-size:auto;max-inline-size:100%}
+a[data-rv-mark]{text-decoration:none;border-bottom:0;border-radius:var(--vt-radius-xs);transition:opacity 140ms cubic-bezier(.2,0,.2,1)}
+a[data-rv-mark]:hover{opacity:.7}
+a[data-rv-mark]:active{transform:translateY(1px)}
+a[data-rv-mark]:focus-visible{outline:none;box-shadow:var(--vt-ring)}
+[data-rv-sk]{display:block;background:var(--vt-grey-100);border-radius:var(--vt-radius-pill);block-size:14px}
+[data-rv-sk="chip"]{inline-size:200px;block-size:56px;max-inline-size:100%}
+[data-rv-sk="line"]{inline-size:100%}
+[data-rv-sk="short"]{inline-size:55%}
+[data-rv-sk="stars"]{inline-size:100px;block-size:18px}
+@media (prefers-reduced-motion:no-preference){
+[data-rv-sk]{animation:rvpulse 1.4s ease-in-out infinite}
+@keyframes rvpulse{0%,100%{opacity:1}50%{opacity:.5}}
+}
+:focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid var(--vt-focus)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}
+</style>
+</helmet>
+<sc-if value="{{ showSection }}" hint-placeholder-val="{{ true }}">
+<section id="reviews" data-rv="1" data-state="{{ viewState }}" data-screen-label="Reviews" aria-labelledby="reviews-title" aria-busy="{{ busy }}" style="color:var(--vt-text-primary);font-family:var(--vt-font-body);position:relative">
+<div data-rv-wrap="1">
+<div data-rv-head="1">
+<p data-rv-kicker="1"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKAAAAChCAYAAABAk7SIAAAEi0lEQVR4AeyUS27bQBQETR1BuU58o1wqZ9F9nEX2YWCuaIA/c379XpcBGYYkznRXF/yYX8852+st4c/8+vF7TrjVI+FWVApEAAEDjZUxKgJmXDVQJwQMNFbGqAiYcdVAnXwFDDRS5qgImHndAN0QMMBImSMiYOZ1A3RDwAAjZY6IgJnXDdANAQOMVDmi1HEIKDWHXxgE9NtcqjECSs3hFwYB/TaXaoyAUnP4hUFAv82lGncVUKo5YSQIIKDEDL4hENB3e4nmCCgxg28IBPTdXqI5AkrM4BsCAbtszyV7BBBwjwzvdyGAgF0wc8keAQTcI8P7XQggYBfMXLJHAAH3yPB+FwII2AWz7yVnzRHwjBCfNyWAgE3xcvgZAQQ8I8TnTQkgYFO8HH5GAAHPCPF5UwII2BQvh58RyCvgWXM+lyCAgBIz+IZAQN/tJZojoMQMviEQ0Hd7ieYIKDGDbwgEzLd9qEYIGGqufGERMN+moRohYKi58oVFwHybhmqEgKHmyhcWAfNtGqpRVQFDNSesBAEElJjBNwQC+m4v0fwxvX9M2V7z6zlne71N//5m2+mzD/8BJf4P+IZAQN/tJZojYJUZOOQuAQS8S47nqhBAwCoYOeQuAQS8S47nqhBAwCoYOeQuAQS8S47nqhBAwCoYfQ8pbY6ApQR5vogAAhbh4+FSAghYSpDniwggYBE+Hi4lgIClBHm+iAACFuHj4VICcQUsbc7zEgQQUGIG3xAI6Lu9RHMElJjBNwQC+m4v0RwBJWbwDYGA8bZPlRgBU80ZrwwCxtssVWIETDVnvDIIGG+zVIkRMNWc8cogYLzNUiX+loCpmlNGggACSszgGwIBfbeXaI6AEjP4hkBA3+0lmiOgxAy+IRDw0vZ8qRUBBGxFlnMvEUDAS5j4UisCCNiKLOdeIoCAlzDxpVYEELAVWc69RAABL2Hy/VLr5gjYmjDnHxJAwEM8fNiaAAK2Jsz5hwQQ8BAPH7YmgICtCXP+IQEEPMTDh60J6ArYujnnSxBAQIkZfEMgoO/2Es0RUGIG3xAI6Lu9RPPH/HrO2V7T+8eU7vXzzy8JYyqH4D9gZaAVjrM6AgGt5tYri4B6m1glQkCrufXKIqDeJlaJENBqbr2yCKi3iVWiLwJaNaesBAEElJjBNwQC+m4v0RwBJWbwDYGAvttLNEdAiRl8QyDgsj2/RhFAwFHkuXchgIALBn6NIoCAo8hz70IAARcM/BpFAAFHkefehQACLhh8f41ujoCjFzC/HwHNBRhdHwFHL2B+PwKaCzC6PgKOXsD8fgQ0F2B0/XECjm7O/RIEEFBiBt8QCOi7vURzBJSYwTcEAvpuL9EcASVm8A2BgP2358YVAQRcweDP/gQQsD9zblwRQMAVDP7sTwAB+zPnxhUBBFzB4M/+BBCwP3PfGzeaI+AGFN7qRwAB+7Hmpg0CCLgBhbf6EUDAfqy5aYMAAm5A4a1+BBCwH2tu2iBgIuBGc96SIICAEjP4hkBA3+0lmiOgxAy+IRDQd3uJ5ggoMYNvCARMvr16PQRUXyh5vv8AAAD//3BQ2wUAAAAGSURBVAMAfqEZH/MwL3sAAAAASUVORK5CYII=" alt="" style="width:13px;height:13px;display:block">Reviews</p>
+<h2 id="reviews-title" data-rv-title="1">What travellers say.</h2>
+</div>
+<sc-if value="{{ loading }}" hint-placeholder-val="{{ false }}">
+<div data-rv-skeleton="1" aria-hidden="true">
+<div data-rv-chips="1">
+<span data-rv-sk="chip"></span><span data-rv-sk="chip"></span><span data-rv-sk="chip"></span>
+</div>
+<div data-rv-wall="1">
+<div data-rv-item="1"><div data-rv-card="1"><span data-rv-sk="stars"></span><span data-rv-sk="line"></span><span data-rv-sk="line"></span><span data-rv-sk="short"></span></div></div>
+<div data-rv-item="1"><div data-rv-card="1"><span data-rv-sk="stars"></span><span data-rv-sk="line"></span><span data-rv-sk="short"></span></div></div>
+<div data-rv-item="1"><div data-rv-card="1"><span data-rv-sk="stars"></span><span data-rv-sk="line"></span><span data-rv-sk="line"></span><span data-rv-sk="line"></span><span data-rv-sk="short"></span></div></div>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ ready }}" hint-placeholder-val="{{ true }}">
+<ul data-rv-chips="1" aria-label="Review scores by platform">
+<sc-for list="{{ chips }}" as="c" hint-placeholder-count="3">
+<li data-rv-chip="1" data-src="{{ c.id }}">
+<img data-vt-no-i18n="1" src="{{ c.logo }}" alt="{{ c.label }}" height="20">
+<b data-rv-chip-score="1" class="vt-dir-keep" data-vt-no-i18n="1">{{ c.score }}</b>
+<span data-rv-stars="1" data-plat="{{ c.id }}" aria-hidden="true"><i data-rv-star="1"></i></span>
+<span data-rv-chip-n="1">{{ c.countLabel }}</span>
+</li>
+</sc-for>
+</ul>
+<ul data-rv-wall="1">
+<sc-for list="{{ cards }}" as="r" hint-placeholder-count="3">
+<li data-rv-item="1">
+<article data-rv-card="1">
+<div data-rv-rate="1">
+<span data-rv-stars="1" data-plat="{{ r.plat }}" role="img" aria-label="{{ r.ratingLabel }}" style="display:{{ r.starsShow }}">
+<i data-rv-star="1" data-off="{{ r.off1 }}"></i><i data-rv-star="1" data-off="{{ r.off2 }}"></i><i data-rv-star="1" data-off="{{ r.off3 }}"></i><i data-rv-star="1" data-off="{{ r.off4 }}"></i><i data-rv-star="1" data-off="{{ r.off5 }}"></i>
+</span>
+<a data-rv-link="1" href="{{ r.linkUrl }}" target="_blank" rel="noopener noreferrer" aria-label="{{ r.linkLabel }}" title="{{ r.linkLabel }}" hidden="{{ r.linkHidden }}" style="display:{{ r.linkShow }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="external-link" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
+</a>
+</div>
+<blockquote data-rv-q="1">
+<p data-rv-text="1" data-vt-no-i18n="1" dir="auto"><bdi>{{ r.text }}</bdi></p>
+</blockquote>
+<div data-rv-who="1" data-vt-no-i18n="1">
+<strong data-rv-name="1" dir="auto">{{ r.name }}</strong>
+<span data-rv-sub="1" dir="auto" style="display:{{ r.routeShow }}">{{ r.route }}</span>
+</div>
+<sc-if value="{{ r.markLink }}" hint-placeholder-val="{{ false }}">
+<a data-rv-mark="1" href="{{ r.url }}" target="_blank" rel="noopener" aria-label="{{ r.linkLabel }}" title="{{ r.linkLabel }}"><img data-vt-no-i18n="1" src="{{ r.logo }}" alt="{{ r.label }}" height="18"></a>
+</sc-if>
+<sc-if value="{{ r.markImg }}" hint-placeholder-val="{{ false }}">
+<span data-rv-mark="1"><img data-vt-no-i18n="1" src="{{ r.logo }}" alt="{{ r.label }}" height="18"></span>
+</sc-if>
+<sc-if value="{{ r.markText }}" hint-placeholder-val="{{ false }}">
+<span data-rv-mark="1">Collected by us</span>
+</sc-if>
+</article>
+</li>
+</sc-for>
+</ul>
+</sc-if>
+</div>
+</section>
+</sc-if>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1200,&quot;height&quot;:720}}">
+/**
+ * Home · Reviews — platform score chips on top, a masonry wall of full reviews below.
+ * Rows come from VamosReviews (GET /api/reviews, published only) and are never
+ * edited or truncated. A chip shows only for a source that has at least one
+ * published row; its score is the mean of that source's rated rows. The whole
+ * section renders nothing while fewer than 3 published rows exist (once the
+ * store has answered); until then it shows a skeleton. A card's logo links out
+ * only when sourceUrl is an http(s) URL on that platform's own domain.
+ */
+class Component extends DCLogic {
+  state = { lang: 'en', settled: false };
+  componentDidMount() {
+    this._onReviews = () => {
+      clearTimeout(this._settle);
+      this.setState({ settled: true });
+    };
+    window.addEventListener('vamos:reviews', this._onReviews);
+    this.bindReviews();
+    this._reviewsWait = setInterval(() => {
+      this.bindReviews();
+      if (this._offReviews) clearInterval(this._reviewsWait);
+    }, 50);
+    this._reviewsStop = setTimeout(() => clearInterval(this._reviewsWait), 10000);
+    /* A failed load never emits; stop showing the skeleton after a while. */
+    this._settle = setTimeout(() => this.setState({ settled: true }), 4000);
+    if (window.VamosLocale) {
+      this._offLocale = window.VamosLocale.onChange((v) => this.setState({ lang: v.lang }));
+    }
+  }
+  bindReviews() {
+    const store = window.VamosReviews;
+    if (!store || this._offReviews) return;
+    this._offReviews = store.onChange(() => {
+      clearTimeout(this._settle);
+      this.setState({ settled: true });
+    });
+    store.published();
+    if (store.ready && store.ready()) this.setState({ settled: true });
+  }
+  componentWillUnmount() {
+    clearInterval(this._reviewsWait);
+    clearTimeout(this._reviewsStop);
+    clearTimeout(this._settle);
+    if (this._onReviews) window.removeEventListener('vamos:reviews', this._onReviews);
+    if (this._offReviews) this._offReviews();
+    if (this._offLocale) this._offLocale();
+  }
+  lang() {
+    return (this.state && this.state.lang) || (window.VamosLocale ? window.VamosLocale.lang() : 'en');
+  }
+  /** Returns raw when it is an http(s) URL on the platform's own domain, else ''. */
+  hrefOf(raw, source) {
+    const v = String(raw || '').trim();
+    if (!v) return '';
+    let u;
+    try { u = new URL(v); } catch (e) { return ''; }
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') return '';
+    const h = u.hostname.toLowerCase();
+    const on = (d) => h === d || h.endsWith('.' + d);
+    let ok = false;
+    if (source === 'google') ok = /(^|\.)google\.[a-z.]{2,}$/.test(h) || on('g.page') || on('goo.gl');
+    else if (source === 'trustpilot') ok = on('trustpilot.com');
+    else if (source === 'tripadvisor') ok = /(^|\.)tripadvisor\.[a-z.]{2,}$/.test(h);
+    return ok ? v : '';
+  }
+  /** The owner's per-review link (OpsReviews "Link to the original"): any http(s) URL, else ''. */
+  linkOf(raw) {
+    const v = String(raw || '').trim();
+    if (!v) return '';
+    try {
+      const u = new URL(v);
+      return (u.protocol === 'http:' || u.protocol === 'https:') && u.hostname ? v : '';
+    } catch (e) { return ''; }
+  }
+  renderVals() {
+    const store = window.VamosReviews;
+    const rows = store ? store.published() : [];
+    const lang = this.lang();
+    const settled = !!(this.state && this.state.settled) || rows.length > 0 || !!(store && store.ready && store.ready());
+    const enough = rows.length >= 3;
+    const loading = !enough && !settled;
+    const PLATFORMS = ['google', 'trustpilot', 'tripadvisor'];
+    const dec = (lang === 'de' || lang === 'fr') ? ',' : '.';
+    const chips = PLATFORMS.map((id) => {
+      const mine = rows.filter((r) => r.source === id);
+      if (!mine.length) return null;
+      const rated = mine.filter((r) => r.rating > 0);
+      const tenths = rated.length ? Math.round(rated.reduce((a, r) => a + r.rating, 0) / rated.length * 10) : 0;
+      return {
+        id: id,
+        label: store.sourceLabel(id),
+        logo: '/assets/reviews/' + id + '.svg',
+        score: rated.length ? Math.floor(tenths / 10) + dec + (tenths % 10) : '',
+        countLabel: mine.length === 1 ? '1 review' : mine.length + ' reviews',
+      };
+    }).filter(Boolean);
+    const cards = rows.map((r) => {
+      const platform = PLATFORMS.indexOf(r.source) >= 0;
+      const href = platform ? this.hrefOf(r.url, r.source) : '';
+      const label = platform ? store.sourceLabel(r.source) : '';
+      const linkUrl = this.linkOf(r.url);
+      const o = {
+        text: r.text || '',
+        name: r.name || '',
+        route: r.route || '',
+        routeShow: r.route ? 'block' : 'none',
+        starsShow: r.rating > 0 ? 'flex' : 'none',
+        ratingLabel: 'Rated ' + r.rating + ' out of 5',
+        plat: platform ? r.source : 'own',
+        label: label,
+        logo: platform ? '/assets/reviews/' + r.source + '.svg' : '',
+        url: href,
+        markLink: !!href,
+        markImg: platform && !href,
+        markText: !platform,
+        linkLabel: !linkUrl ? '' : (platform ? 'Read on ' + label : 'Read the review'),
+        linkUrl: linkUrl || '#',
+        linkShow: linkUrl ? 'inline-flex' : 'none',
+        linkHidden: linkUrl ? null : true,
+      };
+      for (let s = 1; s <= 5; s++) o['off' + s] = s <= r.rating ? null : '1';
+      return o;
+    });
+    return {
+      n16: 16,
+      showSection: enough || loading,
+      viewState: enough ? 'ready' : 'loading',
+      busy: enough ? 'false' : 'true',
+      loading: loading,
+      ready: enough,
+      chips: chips,
+      cards: cards,
+    };
+  }
+}
+</script>
+
+</body>
+</html>

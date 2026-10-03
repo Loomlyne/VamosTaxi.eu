@@ -97,20 +97,31 @@ test.describe("FAQ page and gallery @component", () => {
     });
   }
 
-  test("grid-template-columns 390/1024/1440 @component", async ({ page }, testInfo) => {
+  test("topics rail: swipe row at 390, rail beside the questions above 900 @component", async ({ page }, testInfo) => {
     const project = testInfo.project.name;
     test.skip(
       project !== "component-390" && project !== "component-1024" && project !== "component-1440",
-      "column steps",
+      "layout steps",
     );
     await page.goto(baseURL + "/faq");
-    const cols = await page.locator("[data-faq-grid]").first().evaluate((el) => {
-      return getComputedStyle(el).gridTemplateColumns;
-    });
+    await expect(page.locator("[data-faq-topic]")).toHaveCount(4);
+    const dir = await page.locator("[data-faq-topics]").evaluate((el) => getComputedStyle(el).flexDirection);
+    const cols = await page.locator("[data-faq-layout]").evaluate((el) => getComputedStyle(el).gridTemplateColumns);
     const count = cols.split(" ").filter(Boolean).length;
-    if (project === "component-390") expect(count).toBe(1);
-    if (project === "component-1024") expect(count).toBe(2);
-    if (project === "component-1440") expect(count).toBe(3);
+    if (project === "component-390") {
+      expect(dir).toBe("row");
+      expect(count).toBe(1);
+    } else {
+      expect(dir).toBe("column");
+      expect(count).toBe(2);
+    }
+  });
+
+  test("full set: the FAQ page carries the page-only questions @component", async ({ page }) => {
+    await page.goto(baseURL + "/faq");
+    await expect(page.locator("[data-faq-toggle]")).toHaveCount(19);
+    await page.locator("[data-faq-topic]").nth(3).click();
+    await expect(page.locator('[data-faq-set][data-on="1"] [data-faq-toggle]')).toHaveCount(5);
   });
 
   test("no sideways scroll at 390 @component", async ({ page }, testInfo) => {
@@ -153,7 +164,7 @@ test.describe("FAQ page and gallery @component", () => {
     expect(shadow).not.toMatch(/hsl/i);
   });
 
-  test("open circle stays full-strength yellow @component", async ({ page }) => {
+  test("open mark stays full-strength yellow @component", async ({ page }) => {
     await page.goto(baseURL + "/faq");
     const card = page.locator("[data-faq-card]").first();
     const toggle = card.locator("[data-faq-toggle]");
@@ -163,41 +174,26 @@ test.describe("FAQ page and gallery @component", () => {
       }
       expect(await toggle.getAttribute("aria-expanded")).toBe("true");
     }).toPass();
-    const circle = card.locator("[data-faq-circle]");
-    const yellow = await page.evaluate(() =>
-      getComputedStyle(document.documentElement).getPropertyValue("--vt-yellow").trim(),
-    );
-    const brown = await page.evaluate(() => {
+    const accent = await page.evaluate(() => {
       const probe = document.createElement("div");
-      probe.style.background = "#D19C04";
+      probe.style.background = "var(--vt-accent)";
       document.body.appendChild(probe);
       const value = getComputedStyle(probe).backgroundColor;
       probe.remove();
       return value;
     });
-    const yellowRgb = await page.evaluate((token) => {
-      const probe = document.createElement("div");
-      probe.style.background = token;
-      document.body.appendChild(probe);
-      const value = getComputedStyle(probe).backgroundColor;
-      probe.remove();
-      return value;
-    }, yellow);
-    await expect(circle).toHaveCSS("background-color", yellowRgb);
-    expect(await circle.evaluate((el) => getComputedStyle(el).backgroundColor)).not.toBe(brown);
+    const mark = card.locator("[data-faq-mark]");
+    await expect(mark).toHaveCSS("background-color", accent);
     await toggle.hover();
-    await expect(circle).toHaveCSS("background-color", yellowRgb);
-    expect(await circle.evaluate((el) => getComputedStyle(el).backgroundColor)).not.toBe(brown);
+    await expect(mark).not.toHaveCSS("background-color", "rgb(209, 156, 4)");
   });
 
-  test("rtl circle inset-inline-end @component", async ({ page }) => {
+  test("rtl: the mark sits at the inline end @component", async ({ page }) => {
     await page.goto(baseURL + "/ar/faq");
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
-    const inset = await page
-      .locator("[data-faq-circle]")
-      .first()
-      .evaluate((el) => getComputedStyle(el).insetInlineEnd);
-    expect(inset).not.toBe("auto");
+    const left = await page.locator("[data-faq-mark]").first().evaluate((el) => el.getBoundingClientRect().left);
+    const textLeft = await page.locator("[data-faq-q]").first().evaluate((el) => el.getBoundingClientRect().left);
+    expect(left).toBeLessThan(textLeft);
   });
 
   test("toggle accessible name differs en vs de @component", async ({ page }) => {
