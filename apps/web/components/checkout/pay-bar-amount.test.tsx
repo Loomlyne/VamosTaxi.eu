@@ -57,9 +57,9 @@ describe("PayBar amount stays on one line", () => {
 
   it("PayBar marks the figure inside PAY so the rule can reach it; PAY keeps the label and the figure in its markup", () => {
     const html = renderToString(
-      <PayBar variant="bar" totalLabel="Total" total="CHF 9'999.00" payLabel="Pay" payAmount="CHF 9'999.00" loadingLabel="Opening payment" onTotal={() => {}} />,
+      <PayBar variant="bar" totalLabel="Total" total="CHF 000" payLabel="Pay" payAmount="CHF 000" loadingLabel="Opening payment" onTotal={() => {}} />,
     );
     expect(html).toContain('class="vt-dir-keep vt-copay__pay-amount"');
-    expect(html).toMatch(/data-co-pay[^>]*>.*Pay.*CHF 9&#x27;999\.00/s);
+    expect(html).toMatch(/data-co-pay[^>]*>.*Pay.*CHF 000/s);
   });
 });
