@@ -74,18 +74,27 @@ function checkChfAndRappen() {
     "apps/web/lib",
     "apps/web/components",
     "apps/web/app",
+    "apps/web/i18n", // message files are what customers read
+    "packages/emails/src", // production files only: its tests hold synthetic amounts, no allow entry yet
     "packages/db/supabase/migrations",
     "packages/db/supabase/tests",
     "packages/db/seed",
   ];
   const files = [];
   for (const r of roots) {
-    walk(join(repoRoot, r), files, (p) => /\.(ts|tsx|js|mjs|sql)$/.test(p));
+    walk(join(repoRoot, r), files, (p) => /\.(ts|tsx|js|mjs|sql|json|html)$/.test(p));
   }
-  const chf = /CHF\s+(?!000\b)\d+/;
+  // Top-level entry files (worker.ts, middleware.ts) sit outside every root above.
+  const webRoot = join(repoRoot, "apps/web");
+  for (const name of existsSync(webRoot) ? readdirSync(webRoot) : []) {
+    if (/\.(ts|tsx|mjs)$/.test(name)) files.push(join(repoRoot, "apps/web", name));
+  }
+  // "CHF 12", "CHF12", "CHF&nbsp;12" — only the CHF 000 placeholder is legal.
+  const chf = /CHF(?:\s|&nbsp;)*(?!000\b)\d/;
   const rappenAssign = /(\w*_rappen)\s*:\s*(-?\d+)/;
   for (const file of files) {
     const pathRel = rel(file);
+    if (pathRel.startsWith("packages/emails/") && isTest(pathRel)) continue;
     readFileSync(file, "utf8").split(/\n/).forEach((line, i) => {
       if (commentLine(line)) return;
       if (chf.test(line) && !(CHF_ALLOW[pathRel] && String(CHF_ALLOW[pathRel]).trim())) {
@@ -122,8 +131,7 @@ function checkPolicyLiterals() {
       if (commentLine(line)) return;
       for (const { token, re } of patterns) {
         if (!re.test(line)) continue;
-        if (allow(pathRel, token) || allow(pathRel, "60")) continue;
-        if (token === "60" && allow(pathRel, "60")) continue;
+        if (allow(pathRel, token)) continue;
         failures.push(
           `${pathRel}:${i + 1}: policy literal ${token} belongs on settings_versions, not TypeScript (D-40)`,
         );
