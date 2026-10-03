@@ -8,7 +8,8 @@ import { resolveActorCustomerId } from "@/lib/checkout/actor-customer";
 import { priceCheckoutWithDeps } from "@/lib/checkout/price-route";
 import { asQuote } from "@/lib/db/identity";
 import { evaluateCoupon, loadLaunchFlags } from "@/lib/db/quote";
-import { csrfForbidden } from "@/lib/security/origin";
+import { csrfForbiddenPublicOrStaff } from "@/lib/security/origin";
+import { requestHasStaffSession } from "@/lib/ops/staff-origin";
 import { lockSecretMissingResponse, lockSecretPresent } from "@/lib/quote/lock-secret";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +17,8 @@ export const dynamic = "force-dynamic";
 const HEADERS = { "content-type": "application/json", "cache-control": "private, no-store" };
 
 export async function POST(request: Request) {
-  const blocked = csrfForbidden(request);
+  // Quick 261003: the dashboard New trip prices here too; its Origin needs a staff session.
+  const blocked = await csrfForbiddenPublicOrStaff(request, () => requestHasStaffSession(request));
   if (blocked) return blocked;
   try {
     const { env } = getCloudflareContext();
