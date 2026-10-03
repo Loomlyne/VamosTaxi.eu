@@ -6,7 +6,7 @@
 -- the three cookie values; the Pay press writer takes a consent subject. Synthetic data only,
 -- rappen integers only. Run as postgres by `supabase test db`.
 begin;
-select plan(94);
+select plan(97);
 
 -- ── objects and grants ───────────────────────────────────────────────────────────────────────
 select has_column('public', 'bookings', 'meta_consent_subject', 'bookings.meta_consent_subject exists');
@@ -167,6 +167,14 @@ select lives_ok($$ select public.checkout_set_meta_click_ids(pg_temp.bid(25), 'f
 reset role;
 select ok(pg_temp.wiped(21), 'writer: all three empty after clearing');
 select is((select meta_fbp from public.bookings where id = pg_temp.bid(25)), 'fb.1.1727771234567.1234567890', '3-arg writer stored the id');
+-- WR-03: the 3-arg writer clears a subject the new Worker saved earlier
+reset role;
+update public.bookings set meta_consent_subject = '29a00000-0000-4000-8000-000000000001' where id = pg_temp.bid(25);
+set local role vamos_checkout;
+select lives_ok($$ select public.checkout_set_meta_click_ids(pg_temp.bid(25), 'fb.1.1727771234567.1234567890', null) $$, '3-arg writer: second press on a booking that holds a subject');
+reset role;
+select is((select meta_consent_subject from public.bookings where id = pg_temp.bid(25)), null, '3-arg writer: consent subject cleared (WR-03)');
+select function_privs_are('public', 'checkout_set_meta_click_ids', '{uuid,text,text}'::text[], 'vamos_checkout', '{EXECUTE}'::text[], '3-arg writer: vamos_checkout keeps EXECUTE');
 
 -- ── trigger over three columns ───────────────────────────────────────────────────────────────
 select throws_ok($$ update public.bookings set meta_consent_subject = '29a00000-0000-4000-8000-000000000009' where id = pg_temp.bid(22) $$, '55000', null, 'trigger: subject set on a paid booking raises 55000 (postgres too)');

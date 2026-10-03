@@ -86,6 +86,43 @@ grant execute on function public.checkout_set_meta_click_ids(pg_catalog.uuid, pg
 comment on function public.checkout_set_meta_click_ids(pg_catalog.uuid, pg_catalog.text, pg_catalog.text, pg_catalog.uuid) is
   'Phase 29 D-01: stores _fbp/_fbc and the consent subject on a PENDING booking (55000 otherwise; 22023 ids without subject); all NULL clears. EXECUTE: vamos_checkout only.';
 
+-- WR-03: the Phase 28 3-argument writer, replaced. After a Worker rollback the old Worker still calls
+-- it; it must not leave a consent subject saved by the new Worker behind (the subject would then
+-- belong to ids it never vouched for). It now clears the subject on every call, so ids written by
+-- the old Worker have no subject and the claim skips them as 'no_subject' (fail closed). Same
+-- signature, same pending-only rule, same grant: vamos_checkout only.
+create or replace function public.checkout_set_meta_click_ids(
+  p_booking_id uuid,
+  p_fbp text,
+  p_fbc text
+) returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_status public.booking_status;
+begin
+  select b.status into v_status from public.bookings b where b.id = p_booking_id for update;
+  if not found then
+    raise exception 'checkout_set_meta_click_ids: booking not found' using errcode = 'P0002';
+  end if;
+  if v_status <> 'pending'::public.booking_status then
+    raise exception 'checkout_set_meta_click_ids: booking is not pending' using errcode = '55000';
+  end if;
+
+  update public.bookings
+     set meta_fbp = p_fbp, meta_fbc = p_fbc, meta_consent_subject = null
+   where id = p_booking_id;
+end
+$$;
+
+revoke all on function public.checkout_set_meta_click_ids(uuid, text, text) from public, anon, authenticated;
+grant execute on function public.checkout_set_meta_click_ids(uuid, text, text) to vamos_checkout;
+
+comment on function public.checkout_set_meta_click_ids(uuid, text, text) is
+  'Phase 28 D-09/D-10, widened in Phase 29: stores _fbp/_fbc on a PENDING booking and clears the consent subject (55000 otherwise); NULLs clear. EXECUTE: vamos_checkout only.';
+
 -- One row per booking, written only by the claim and finish functions below. Never holds personal
 -- data: no ids, no subject, no email. No policies and no grants on purpose.
 create table public.meta_purchase_events (
