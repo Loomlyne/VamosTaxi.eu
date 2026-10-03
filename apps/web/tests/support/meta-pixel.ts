@@ -57,6 +57,8 @@ export function mockFor(pathname: string): string | null {
 export interface SiteOptions {
   /** Rewrite the two baked flags in /app/vamos-meta.js. */
   flagsOn: boolean;
+  /** Content-Security-Policy to send on mock pages (the real specs pass the policy the Worker would send). */
+  csp?: string;
 }
 
 export interface Outside {
@@ -88,7 +90,7 @@ export async function routeSite(context: BrowserContext, opts: SiteOptions): Pro
     return route.fulfill({
       status: 200,
       contentType: TYPES[extname(file)] ?? "application/octet-stream",
-      headers: { "cache-control": "no-store" },
+      headers: { "cache-control": "no-store", ...(mock && opts.csp ? { "content-security-policy": opts.csp } : {}) },
       body,
     });
   });
