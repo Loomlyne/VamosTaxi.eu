@@ -33,6 +33,11 @@ select rv.id, z1.id, z2.id, vc.id, 1, false
   from public.rate_versions rv, public.service_zones z1, public.service_zones z2, public.vehicle_classes vc
  where rv.slug = 'live-frozen' and z1.slug = 'pf-zone-a' and z2.slug = 'pf-zone-b' and vc.slug = 'first';
 
+-- An extra priced while the version is still a draft (any name: no rule is keyed on it).
+insert into public.surcharges (rate_version_id, code, kind, amount_rappen, predicate, quantity_source)
+select rv.id, 'pf_any_extra', 'amount', 2000, '{"kind":"quantity"}'::jsonb, 'child_seats'
+  from public.rate_versions rv where rv.slug = 'live-frozen';
+
 update public.rate_versions set status = 'live' where slug = 'live-frozen';
 
 -- (1) A non-availability field is frozen. --------------------------------------------------
@@ -83,24 +88,31 @@ select throws_ok(
   'fixed_routes: editing price_rappen on a live version is refused'
 );
 
--- (7–9) Passenger extras stay a live catalog (ops checkout extras).
-select lives_ok(
+-- (7–9) Extras change like every other price: draft, then Publish (owner, 2026-10-02,
+-- decisions/2026-10-02-live-extras-draft-then-publish.md; matches live tg_pricing_row_frozen).
+select throws_ok(
   $$ insert into public.surcharges (rate_version_id, code, kind, amount_rappen, predicate, quantity_source)
      select rv.id, 'child_seat', 'amount', 2000, '{"kind":"quantity"}'::jsonb, 'child_seats'
        from public.rate_versions rv where rv.slug = 'live-frozen' $$,
-  'surcharges: inserting a passenger extra on a live version succeeds'
+  '23001',
+  null,
+  'surcharges: adding an extra to a live version is refused, whatever its name'
 );
-select lives_ok(
+select throws_ok(
   $$ update public.surcharges set amount_rappen = 2500
        where rate_version_id = (select id from public.rate_versions where slug = 'live-frozen')
-         and code = 'child_seat' $$,
-  'surcharges: editing a passenger extra amount on a live version succeeds'
+         and code = 'pf_any_extra' $$,
+  '23001',
+  null,
+  'surcharges: editing an extra amount on a live version is refused'
 );
-select lives_ok(
+select throws_ok(
   $$ delete from public.surcharges
        where rate_version_id = (select id from public.rate_versions where slug = 'live-frozen')
-         and code = 'child_seat' $$,
-  'surcharges: deleting a passenger extra on a live version succeeds'
+         and code = 'pf_any_extra' $$,
+  '23001',
+  null,
+  'surcharges: deleting an extra on a live version is refused'
 );
 
 -- === A draft control — every one of the same statements succeeds ==========================
