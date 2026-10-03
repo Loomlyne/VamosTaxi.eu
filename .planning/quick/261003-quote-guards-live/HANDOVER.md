@@ -2,7 +2,7 @@
 
 Branch `fix/quote-guards-live`. Job session: nothing on main, nothing deployed, live database not touched, no secret read or set.
 
-**Base.** The brief said to stack this on `fix/quote-rate-buckets`. That branch was already shipped (709c51aa, Worker 74521422) and archived (`archive/fix-quote-rate-buckets`; its code is identical to main). So this branch is cut from `origin/main` **befb6e54**, which is still the tip. No merge was needed, and it ships on its own, on top of main. History was not rewritten after the review started: the review fixes are added commits.
+**Base.** The brief said to stack this on `fix/quote-rate-buckets`. That branch was already shipped (709c51aa, Worker 74521422) and archived (`archive/fix-quote-rate-buckets`; its code is identical to main). So this branch is cut from `origin/main` **befb6e54**, and **`origin/main` 041b56df** (home sections 412ac19b and two board notes) was merged in afterwards (fac56bf5, clean; main won nothing because nothing conflicted). Gates were re-run on the merged tree: typecheck, i18n:check, db:seed:check, check:numbers, check:legal-claims and apps/web vitest (4363 passed). It ships on its own, on top of main. History was not rewritten after the review started: the review fixes are added commits.
 
 **Review.**
 - A fresh reviewer read tip 5e110fbc and said **FIX FIRST**.
