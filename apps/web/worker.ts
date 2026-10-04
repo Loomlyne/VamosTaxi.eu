@@ -30,6 +30,7 @@ import { createDigestDependencies } from "./lib/supabase/service";
 import { applyHandleResult, handleStripeMessage } from "./lib/checkout/settle";
 import { handleDlqMessage } from "./lib/checkout/dlq";
 import { sweepStuckNotifications } from "./lib/checkout/notify";
+import { sweepStripeFees } from "./lib/checkout/stripe-fee";
 import { sweepMetaPurchaseIds } from "./lib/meta/purchase";
 import { expireUnpaidBookings } from "./lib/checkout/expire-unpaid";
 import { purgeExpiredUnpaid } from "./lib/checkout/purge-unpaid";
@@ -165,6 +166,16 @@ export default {
       emit("info", "notification_sweep", { outcome: "ok" });
     } catch {
       emit("error", "notification_sweep", { outcome: "failed" });
+    }
+
+    // Owner decision 2026-10-04 (dashboard numbers, answer 3): the fee Stripe took on each captured
+    // payment, read from its balance transaction, written once. Apart from settlement; a failure leaves
+    // the fee empty for the next hour. Counts only.
+    try {
+      const fees = await sweepStripeFees(env);
+      emit("info", "stripe_fee_sweep", fees);
+    } catch {
+      emit("error", "stripe_fee_sweep", { outcome: "failed" });
     }
 
     // In-process hourly probe (LAUNCH-03). Do not HTTP-loopback to the route.
