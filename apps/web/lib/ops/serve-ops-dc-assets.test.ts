@@ -134,7 +134,7 @@ describe("dashboard documents read their DC file from the assets binding", () =>
     ];
     const screen = { fetch: async () => new Response("SCREEN", { status: 200 }) };
     for (const [label, person, inConsole] of people) {
-      const cookie = person ? { cookie: cookieOf(person) } : {};
+      const cookie: Record<string, string> = person ? { cookie: cookieOf(person) } : {};
       const doc = await middleware(dash("/bookings/VT-1", cookie));
       const file = await serveGatedOpsAsset(
         new Request("https://dashboard.vamostaxi.site/app/ops/OpsDetail.dc.html", { headers: cookie }),
