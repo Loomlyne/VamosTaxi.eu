@@ -2,13 +2,14 @@
 
 // Submit review. Thank you. Company, Chauffeur, Overall.
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button, Icon } from "@/components/core";
 import { Textarea } from "@/components/forms";
 import { Alert } from "@/components/feedback";
 import { TurnstileWidget } from "@/components/forms/TurnstileWidget";
 import type { Locale } from "@/i18n/routing";
+import { urlWithoutToken } from "@/lib/security/url-without-token";
 
 type StarKey = "company" | "chauffeur" | "overall";
 
@@ -68,6 +69,13 @@ export function ReviewForm({ siteKey, locale, token, bookingRef }: ReviewFormPro
   const [busy, setBusy] = useState(false);
   const [thanks, setThanks] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // The token arrived as a prop; take it out of the address bar so it is not kept in history
+  // or recorded by an analytics beacon (owner 2026-10-04, hide all tokens).
+  useEffect(() => {
+    const clean = urlWithoutToken(window.location.href);
+    if (clean) window.history.replaceState(window.history.state, "", clean);
+  }, []);
 
   const setStar = (key: StarKey, n: number) => {
     if (key === "company") setCompany(n);
