@@ -3,7 +3,7 @@
 // 08-07: pure paid-edit mapping. No identity, no Hyperdrive.
 
 import { OPS_SQLSTATE } from "./sqlstate";
-import { sqlErrorCode } from "./refund-map";
+import { PAYMENT_CHANGED, isPaymentChanged, sqlErrorCode } from "./refund-map";
 
 export type EditPayload = {
   contact_name?: string;
@@ -86,6 +86,9 @@ export function mapEditSqlError(err: unknown): EditAcceptFail {
       return { ok: false, code: name };
     }
   }
+  // 261004 lock order (migration 20261007280000): a payment settled for this booking in the same
+  // instant (SQLSTATE 40001); nothing was written, Accept again is safe.
+  if (isPaymentChanged(err)) return { ok: false, code: PAYMENT_CHANGED };
   if (sqlErrorCode(err) === OPS_SQLSTATE.noData) return { ok: false, code: "not-found" };
   if (sqlErrorCode(err) === OPS_SQLSTATE.exclusion) return { ok: false, code: "must-fix" };
   return { ok: false, code: "unknown" };
@@ -101,6 +104,8 @@ export function failStatus(code: string): number {
   if (code === "already-paid") return 409;
   // 261002 settle safety: Accept again after the amount moved; the owner refuses the request, the customer asks again.
   if (code === "price-changed") return 409;
+  // 261004 lock order: a payment settled in the same instant; nothing was written, the owner presses Accept again.
+  if (code === PAYMENT_CHANGED) return 409;
   if (code === "stripe-failed" || code === "stripe-test-only") return 502;
   if (code === "temporarily_unavailable") return 503;
   return 400;

@@ -591,7 +591,7 @@
 </sc-if>
 
 <sc-if value="{{ showToast }}" hint-placeholder-val="{{ false }}">
-<div data-vt-no-i18n="1" style="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:60">
+<div data-vt-no-i18n="1" style="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:60;width:max-content;max-width:calc(100vw - 32px)">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Toast" tone="success" onClose="{{ closeToast }}" hint-size="320px,50px">{{ toastMsg }}</x-import>
 </div>
 </sc-if>
@@ -923,6 +923,7 @@ const T = {
     errClassCustomer:'The customer’s own change request is waiting. Accept or refuse it first.',
     errClassRefundOpen:'A refund is being sent on this booking. Finish it first.',
     errClassPriceChanged:'The price changed since you looked. Check the new figures and confirm again.',
+    errPaymentChanged:'This booking\'s payment was being recorded at the same time, so nothing was changed. Press the button again.',
     errClassBook:'The price book changed since you looked. Check the new figures and confirm again.',
     errClassPricingOff:'No price book is live, so no new price can be worked out.',
     errClassFailed:'Could not change the class of ',
@@ -1066,6 +1067,7 @@ const T = {
     errClassCustomer:'Ein eigener Änderungswunsch des Kunden wartet. Nehmen Sie ihn zuerst an oder lehnen Sie ihn ab.',
     errClassRefundOpen:'Für diese Buchung wird gerade eine Rückerstattung gesendet. Schliessen Sie diese zuerst ab.',
     errClassPriceChanged:'Der Preis hat sich geändert. Prüfen Sie die neuen Beträge und bestätigen Sie erneut.',
+    errPaymentChanged:'Die Zahlung dieser Buchung wurde zur gleichen Zeit verbucht, daher wurde nichts geändert. Drücken Sie die Schaltfläche erneut.',
     errClassBook:'Die Preisliste hat sich geändert. Prüfen Sie die neuen Beträge und bestätigen Sie erneut.',
     errClassPricingOff:'Es ist keine Preisliste live, daher kann kein neuer Preis berechnet werden.',
     errClassFailed:'Klasse konnte nicht geändert werden: ',
@@ -1212,6 +1214,7 @@ const T = {
     errClassCustomer:'Une demande de modification du client attend. Acceptez-la ou refusez-la d’abord.',
     errClassRefundOpen:'Un remboursement est en cours d’envoi pour cette réservation. Terminez-le d’abord.',
     errClassPriceChanged:'Le prix a changé. Vérifiez les nouveaux montants et confirmez à nouveau.',
+    errPaymentChanged:'Le paiement de cette réservation était en cours d’enregistrement au même moment, rien n’a donc été modifié. Appuyez à nouveau sur le bouton.',
     errClassBook:'La grille tarifaire a changé. Vérifiez les nouveaux montants et confirmez à nouveau.',
     errClassPricingOff:'Aucune grille tarifaire n’est en ligne ; aucun nouveau prix ne peut être calculé.',
     errClassFailed:'Impossible de changer la classe de ',
@@ -1358,6 +1361,7 @@ const T = {
     errClassCustomer:'هناك طلب تغيير من العميل بانتظار الرد. اقبله أو ارفضه أولاً.',
     errClassRefundOpen:'يجري إرسال استرداد لهذا الحجز. أكمله أولاً.',
     errClassPriceChanged:'تغيّر السعر. راجع المبالغ الجديدة وأكّد مرة أخرى.',
+    errPaymentChanged:'كانت دفعة هذا الحجز قيد التسجيل في الوقت نفسه، لذلك لم يتغيّر شيء. اضغط على الزر مرة أخرى.',
     errClassBook:'تغيّرت قائمة الأسعار. راجع المبالغ الجديدة وأكّد مرة أخرى.',
     errClassPricingOff:'لا توجد قائمة أسعار نشطة، لذا لا يمكن حساب سعر جديد.',
     errClassFailed:'تعذّر تغيير فئة ',
@@ -1715,6 +1719,8 @@ class Component extends DCLogic {
     const errByCode = {
       'full-refund-only': t.errFullOnly, 'refund-exceeds-remaining': t.errExceeds, 'invalid-percent': t.errInvalid, 'invalid-amount': t.errInvalid,
       'invalid-body': t.errInvalid, 'already-refunded': t.errAlready, 'not-paid': t.errNotPaid, 'nothing-to-retry': t.errNothing, 'stripe-test-only': t.errTestOnly,
+      // 261004 lock order: a payment settled for this booking in the same instant; nothing was written, press again.
+      'payment-changed': t.errPaymentChanged,
       // 261001-refusal-messages: Decline / Reject refusals from ops_refund_decide.
       'not-pending': t.errDecided, 'not-open': t.errDecided, 'not-post-trip': t.errNotPostTrip,
     };
@@ -1883,6 +1889,8 @@ class Component extends DCLogic {
       'trip-data': t.errClassTripData, 'too-late': t.errClassTooLate, 'customer-request-waiting': t.errClassCustomer,
       'refund-open': t.errClassRefundOpen, 'pricing-not-live': t.errClassPricingOff, 'unpaid': t.unpaidNoEditBody,
       'price-changed': t.errClassPriceChanged, 'paid-changed': t.errClassPriceChanged, 'price-book-changed': t.errClassBook,
+      // 261004 lock order: a payment settled for this booking in the same instant; nothing was changed, press again.
+      'payment-changed': t.errPaymentChanged,
       'stripe-test-only': t.errTestOnly, 'not-editable': t.errClassTooLate,
       // 26.2 P6 server step: the reasons the change route can still answer, in the page's own words.
       'must-fix': t.mustFix, 'driver-overlap': t.mustFix, 'flight-needed': t.flightNeeded, 'past-time': t.errPastTime,
@@ -2225,6 +2233,8 @@ class Component extends DCLogic {
           else if (code === 'already-paid') { if (ops) ops.bookings.reset(); this.notify(t.acceptPaid); }
           // 261002 settle safety: a second Accept after the amount to pay moved; nothing was written, no new link.
           else if (code === 'price-changed') { if (ops) ops.bookings.reset(); this.notify(t.acceptPriceChanged); }
+          // 261004 lock order: a payment settled for this booking in the same instant; nothing was written, Accept again is safe.
+          else if (code === 'payment-changed') { if (ops) ops.bookings.reset(); this.notify(t.errPaymentChanged); }
           else this.notify(t.editFailed + booking.id);
         });
       },

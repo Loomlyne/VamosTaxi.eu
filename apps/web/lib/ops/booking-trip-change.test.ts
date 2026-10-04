@@ -455,6 +455,13 @@ describe("confirmTripChange", () => {
       .toEqual({ ok: false, code: "driver-choice-needed" });
   });
 
+  it("261004 lock order: a payment settled in the same instant (40001 payment-changed) is its own refusal for a trip change", async () => {
+    const ctx = context();
+    systemReturns(() => Object.assign(new Error("payment-changed"), { code: "40001" }));
+    expect(await confirmTripChange(env, claims, "VT-26-0801", body({ scheduledLocal: "2026-10-08T10:00" }, { total: ctx.paidRappen, paid: ctx.paidRappen }), undefined, deps(ctx)))
+      .toEqual({ ok: false, code: "payment-changed" });
+  });
+
   it("the owner took Marco off: he gets 'trip taken off', the driver choice goes to the write", async () => {
     const ctx = context();
     systemReturns((text) => {
