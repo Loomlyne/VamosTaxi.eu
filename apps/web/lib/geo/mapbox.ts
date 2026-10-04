@@ -87,6 +87,12 @@ export type SuggestInput = {
   sessionToken: string;
   language: GeoLanguage;
   proximity?: GeoPoint;
+  /**
+   * True keeps Mapbox's own order. Only for a caller that takes the first hit
+   * as the answer to a full address (checkout's stale-link lookup); a list the
+   * customer reads gets airports first.
+   */
+  mapboxOrder?: boolean;
 };
 
 /** Public place kind drawn as an icon + label in the address list. */
@@ -252,14 +258,30 @@ function listHas(value: unknown, needles: string[]): boolean {
   );
 }
 
+/** Owner 2026-10-04: a result named "… Station" is a station, even when Mapbox gives it no rail category. */
+const STATION_WORD = /\bstation\b/i;
+/** Owner 2026-10-04: "Zürich HB", "Bern HB". Capitals only, so "hb" or "Hb" inside other text is not a station. */
+const HB_WORD = /\bHB\b/;
+
+/**
+ * The one place a name decides a kind. It only fills the two generic kinds
+ * (poi, place): a specific kind from Mapbox's own data (airport, hotel, address,
+ * city) always wins over the name.
+ */
+function genericKind(name: string, fallback: "poi" | "place"): SuggestKind {
+  return STATION_WORD.test(name) || HB_WORD.test(name) ? "station" : fallback;
+}
+
 /**
  * Kind of a suggestion for the address list icon. Read from Search Box
  * `feature_type`, `poi_category[]`, `poi_category_ids[]` and `maki` — the same
- * inputs isAirportFeature trusts — never from the name text.
+ * inputs isAirportFeature trusts. The name is read only by genericKind
+ * (Station / HB), never to decide an airport, a hotel, an address or a city.
  */
 function suggestionKind(props: Record<string, unknown>): SuggestKind {
   const type = typeof props.feature_type === "string" ? props.feature_type : "";
   const maki = typeof props.maki === "string" ? props.maki.toLowerCase() : "";
+  const name = textField(props, "name");
   if (isAirportFeature(props)) return "airport";
   if (type === "poi") {
     const hotel = ["hotel", "lodging", "motel", "hostel", "resort", "guest house", "guesthouse", "bed and breakfast", "bed_and_breakfast"];
@@ -280,14 +302,30 @@ function suggestionKind(props: Record<string, unknown>): SuggestKind {
     ) {
       return "station";
     }
-    return "poi";
+    return genericKind(name, "poi");
   }
   if (type === "address" || type === "street") return "address";
   if (["place", "locality", "region", "postcode", "country"].includes(type)) {
     return "city";
   }
-  if (type === "neighborhood" || type === "district") return "place";
-  return "poi";
+  if (type === "neighborhood" || type === "district") {
+    return genericKind(name, "place");
+  }
+  return genericKind(name, "poi");
+}
+
+/**
+ * Airports first (owner 2026-10-04): when any suggestion is an airport, every
+ * airport leads, in Mapbox's order among themselves, then the rest in Mapbox's
+ * order. No airport in the list: the list is returned untouched. This is the
+ * single place the list order is decided; no client re-sorts.
+ */
+export function airportsFirst(hits: SuggestHit[]): SuggestHit[] {
+  if (!hits.some((h) => h.kind === "airport")) return hits;
+  return [
+    ...hits.filter((h) => h.kind === "airport"),
+    ...hits.filter((h) => h.kind !== "airport"),
+  ];
 }
 
 function cantonFromProperties(props: Record<string, unknown>): string | null {
@@ -447,7 +485,7 @@ export async function suggest(
     const hit = mapSuggestion(raw);
     if (hit) suggestions.push(hit);
   }
-  return { suggestions };
+  return { suggestions: input.mapboxOrder ? suggestions : airportsFirst(suggestions) };
 }
 
 export async function retrieve(
