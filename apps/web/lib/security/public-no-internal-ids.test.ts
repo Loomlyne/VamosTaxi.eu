@@ -106,3 +106,27 @@ describe("legal pages say nothing about test mode or unused vendors (COPY-DRAFT 
   });
 });
 
+describe("no internal phrases in strings the browser receives (reviewer F2, 2026-10-04)", () => {
+  const files = [
+    "apps/web/i18n/messages/en.json",
+    "apps/web/i18n/messages/de.json",
+    "apps/web/i18n/messages/fr.json",
+    "apps/web/i18n/messages/ar.json",
+    "app/vamos-i18n-dict.js",
+  ];
+  it.each(files)("%s names no Sentry, Supabase Auth, test mode or mail switch", (rel) => {
+    const s = readFileSync(join(repoRoot, rel), "utf8");
+    for (const b of ["Sentry", "Supabase Auth", "not in use until", "transactional mail is on"]) expect(s, b).not.toContain(b);
+  });
+
+  it("the React cookie banner uses the approved wording (COPY-DRAFT §3)", () => {
+    const en = JSON.parse(readFileSync(join(repoRoot, "apps/web/i18n/messages/en.json"), "utf8")) as {
+      cookies: Record<string, string>;
+    };
+    expect(en.cookies["sheet-necessary-duration"]).toBe("Up to 400 days");
+    expect(en.cookies["sheet-analytics-providers"]).toBe("Cloudflare Web Analytics (cookieless)");
+    expect(en.cookies["sheet-not-used"]).toBe("No cookie");
+    expect(en.cookies["tells-us-which-step-of-a-booking-people-abandon"]).toBe("Tells us which step of a booking people abandon.");
+  });
+});
+
