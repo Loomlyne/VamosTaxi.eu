@@ -34,8 +34,22 @@ import { purgeExpiredUnpaid } from "./lib/checkout/purge-unpaid";
 import { runReminder24h } from "./lib/lifecycle/reminder";
 import { probeHealth } from "./lib/health/probe";
 import type { StripeQueueMessage } from "./lib/checkout/webhook";
+import { withRetiredAuthCookiesExpired } from "./lib/supabase/cookies";
 
+/**
+ * Every answer, public and dashboard: a browser still holding the `vt-auth*` cookies of the
+ * rolled-back rename gets them expired on its first request.
+ */
 async function handleFetch(
+  request: Request,
+  env: CloudflareEnv,
+  ctx: ExecutionContext,
+  surface: VamosSurface,
+): Promise<Response> {
+  return withRetiredAuthCookiesExpired(request, await routeFetch(request, env, ctx, surface));
+}
+
+async function routeFetch(
   request: Request,
   env: CloudflareEnv,
   ctx: ExecutionContext,
