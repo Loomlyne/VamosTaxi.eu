@@ -59,7 +59,31 @@ describe("/cookies Meta row renders as one line", () => {
   });
 
   it("the auth cookie reads sb-…-auth-token", () => {
-    expect(cookies).toContain('<span class="vt-dir-keep">sb-…-auth-token</span>');
+    expect(cookies).toContain('<span data-ck-tech="1" class="vt-dir-keep" data-vt-no-i18n="1">sb-…-auth-token</span>');
+  });
+
+  it("every cookie row leads with its plain name; the technical name sits underneath, left to right, untranslated", () => {
+    const names: [string, string][] = [
+      ["Sign-in", "sb-…-auth-token"],
+      ["Your cookie choice", "consent_subject · vamosCookieConsent"],
+      ["Stripe payment", "__stripe_mid · __stripe_sid"],
+      ["Cloudflare check", "cf_clearance"],
+      ["Fair pricing", "vamos_qs"],
+      ["Booking access", "vt_manage"],
+      ["Language", "NEXT_LOCALE"],
+      ["Language (this browser)", "vamosLang"],
+      ["Recent addresses", "vamos:recent-places"],
+    ];
+    const dict = readFileSync(join(repoRoot, "app/vamos-i18n-dict.js"), "utf8");
+    for (const [plain, tech] of names) {
+      expect(cookies).toContain(
+        `<td data-l="Name"><span data-ck-name="1"><span data-ck-plain="1">${plain}</span><span data-ck-tech="1" class="vt-dir-keep" data-vt-no-i18n="1">${tech}</span></span></td>`,
+      );
+      expect(dict, plain).toContain(`'${plain}': { de: '`);
+    }
+    // The Meta row keeps the owner's verbatim text, no plain-name cell.
+    const meta = cookies.match(/<tr data-cookies-row="1">[\s\S]*?<\/tr>/)?.[0] ?? "";
+    expect(meta).not.toContain("data-ck-name");
   });
 });
 

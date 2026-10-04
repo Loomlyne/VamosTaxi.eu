@@ -1,12 +1,12 @@
-# COPY DRAFT — awaiting owner approval (2026-10-04)
+# COPY DRAFT — sections 1–4 APPROVED, section 5 partly awaiting approval (2026-10-04)
 
-Status: **DRAFT, applied on branch `fix/hide-internal-ids`, NOT approved.** The controller must not
-ship the commit "copy(legal): …" before Koss approves this text through the question form. No lawyer
-has read it. The owner's Meta texts (`.planning/decisions/2026-09-30-meta-wording.md`) are not touched.
+Status: **sections 1–4 approved by Koss, 2026-10-04, "Approve as drafted"** (question form, relayed by the
+controller; recorded in `.planning/decisions/2026-10-04-hide-internal-ids-copy.md`). Applied in `d8f25617`.
+Section 5: the English plain names in 5a are his; the de/fr/ar and the two Functional names in 5b are
+**drafts awaiting his approval**. No lawyer has read any of it. The owner's Meta texts are not touched.
 
 Why: owner 2026-10-04, "hide all tokens hide all ids … everything is expose". These lines told a
 visitor about test mode, vendors we do not use, or engineering plumbing.
-
 ## 1. /cookies — Strictly necessary
 
 | Row | Was | Draft en | de | fr | ar |
@@ -51,6 +51,38 @@ Facts behind the drafts (check before approving):
 - The Meta row on /cookies and the Meta line on /privacy: only their rendering on phones was fixed.
 - `vt_manage`, `NEXT_LOCALE`, `vamos_qs`, consent rows: owner-approved 2026-10-03, unchanged.
 
+## 5. /cookies — plain names (owner 2026-10-04: "Plain names everywhere")
+
+Every row: plain name first, technical name small underneath in the mono face, left to right, never translated.
+Same in the React twin (`app/[locale]/cookies/page.tsx`, messages `cookies.name-*`). The banner's
+"Manage preferences" panel lists providers, not cookie names, so it is unchanged. The Meta row is unchanged.
+
+### 5a. English names — owner's words; de/fr/ar — draft, awaiting approval
+
+| Technical name | en (owner) | de (draft) | fr (draft) | ar (draft) |
+|---|---|---|---|---|
+| sb-…-auth-token | Sign-in | Anmeldung | Connexion au compte | جلسة تسجيل الدخول |
+| consent_subject · vamosCookieConsent | Your cookie choice | Ihre Cookie-Wahl | Votre choix de cookies | اختيارك لملفات تعريف الارتباط |
+| vt_manage | Booking access | Zugang zur Buchung | Accès à la réservation | الوصول إلى الحجز |
+| NEXT_LOCALE | Language | Sprache | Langue | اللغة |
+| vamos_qs | Fair pricing | Faire Preise | Tarifs équitables | تسعير عادل |
+| cf_clearance | Cloudflare check | Cloudflare-Prüfung | Vérification Cloudflare | تحقق Cloudflare |
+| __stripe_mid · __stripe_sid | Stripe payment | Stripe-Zahlung | Paiement Stripe | دفع Stripe |
+
+"Language" reuses the site's existing approved translation (Sprache / Langue / اللغة). "Sign-in" is not
+"Connexion" / "تسجيل الدخول" in fr/ar because those already translate the "Sign in" button; the runtime needs
+each translation to be unique, so the draft says "Connexion au compte" / "جلسة تسجيل الدخول".
+
+### 5b. Functional rows — whole name is a draft, awaiting approval
+
+| Technical name | en (draft) | de | fr | ar |
+|---|---|---|---|---|
+| vamosLang | Language (this browser) | Sprache (dieser Browser) | Langue (ce navigateur) | اللغة (هذا المتصفح) |
+| vamos:recent-places | Recent addresses | Letzte Adressen | Adresses récentes | العناوين الأخيرة |
+
 ## How to approve
 
-One question per section above, in the question form: "Use this wording on vamostaxi.site/cookies (section 1)? Example: Duration of the sign-in cookie becomes 'Up to 400 days, or until you sign out'." On approval, copy this file to `.planning/decisions/2026-10-04-hide-internal-copy.md` with his answer, then ship.
+Sections 1–4: done (approved). Section 5: two questions in the question form — (a) "Use these German, French
+and Arabic names for the cookie rows on vamostaxi.site/cookies? Example: Booking access = Zugang zur Buchung."
+(b) "Name the two Functional rows 'Language (this browser)' and 'Recent addresses'?" Record the answers in
+`.planning/decisions/2026-10-04-hide-internal-ids-copy.md`.

@@ -95,6 +95,9 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-ct] tbody td{display:grid;grid-template-columns:96px minmax(0,1fr);gap:4px 14px;padding:5px 0;color:var(--vt-text-secondary);vertical-align:top;text-align:start}
 [data-ct] tbody td::before{content:attr(data-l);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted);padding-top:2px}
 [data-ct] tbody td:first-child{font-family:var(--vt-font-mono);font-size:var(--vt-body-xs);color:var(--vt-text-primary)}
+[data-ck-name]{display:block;min-width:0;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-primary)}
+[data-ck-plain]{display:block;font-weight:var(--vt-weight-semibold)}
+[data-ck-tech]{display:block;margin-top:2px;font-family:var(--vt-font-mono);font-size:var(--vt-body-xs);color:var(--vt-text-muted);overflow-wrap:anywhere}
 [data-ct] tbody tr[data-cookies-row] td{display:block;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)}
 [data-ct] tbody tr[data-cookies-row] td::before{display:none}
 @media (min-width:720px){
@@ -216,13 +219,13 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <caption>Strictly necessary — cannot be switched off</caption>
 <thead><tr><th scope="col">Name</th><th scope="col">Purpose</th><th scope="col">Provider</th><th scope="col">Duration</th></tr></thead>
 <tbody>
-<tr><td data-l="Name" data-vt-no-i18n="1"><span class="vt-dir-keep">sb-…-auth-token</span></td><td data-l="Purpose">Keeps you signed in and holds the booking while you fill it in</td><td data-l="Provider" data-vt-no-i18n="1">Vamos Taxi · Supabase</td><td data-l="Duration">Up to 400 days, or until you sign out</td></tr>
-<tr><td data-l="Name"><span class="vt-dir-keep" data-vt-no-i18n="1">consent_subject · vamosCookieConsent</span></td><td data-l="Purpose">Records which categories you allowed, so we can prove it and stop asking</td><td data-l="Provider">Vamos Taxi</td><td data-l="Duration">1 year</td></tr>
-<tr><td data-l="Name" data-vt-no-i18n="1"><span class="vt-dir-keep">__stripe_mid · __stripe_sid</span></td><td data-l="Purpose">Fraud checks on the payment step</td><td data-l="Provider" data-vt-no-i18n="1">Stripe</td><td data-l="Duration">1 year · 30 minutes</td></tr>
-<tr><td data-l="Name" data-vt-no-i18n="1">cf_clearance</td><td data-l="Purpose">Routes your request and keeps the site available</td><td data-l="Provider" data-vt-no-i18n="1">Cloudflare</td><td data-l="Duration">30 minutes</td></tr>
-<tr><td data-l="Name" data-vt-no-i18n="1">vamos_qs</td><td data-l="Purpose">Keeps price requests fair between visitors and blocks automated abuse</td><td data-l="Provider" data-vt-no-i18n="1">Vamos Taxi</td><td data-l="Duration">24 hours</td></tr>
-<tr><td data-l="Name" data-vt-no-i18n="1">vt_manage</td><td data-l="Purpose">Lets you open and change your booking from this browser without signing in</td><td data-l="Provider" data-vt-no-i18n="1">Vamos Taxi</td><td data-l="Duration">30 days</td></tr>
-<tr><td data-l="Name" data-vt-no-i18n="1">NEXT_LOCALE</td><td data-l="Purpose">Keeps the site in the language you chose</td><td data-l="Provider" data-vt-no-i18n="1">Vamos Taxi</td><td data-l="Duration">1 year</td></tr>
+<tr><td data-l="Name"><span data-ck-name="1"><span data-ck-plain="1">Sign-in</span><span data-ck-tech="1" class="vt-dir-keep" data-vt-no-i18n="1">sb-…-auth-token</span></span></td><td data-l="Purpose">Keeps you signed in and holds the booking while you fill it in</td><td data-l="Provider" data-vt-no-i18n="1">Vamos Taxi · Supabase</td><td data-l="Duration">Up to 400 days, or until you sign out</td></tr>
+<tr><td data-l="Name"><span data-ck-name="1"><span data-ck-plain="1">Your cookie choice</span><span data-ck-tech="1" class="vt-dir-keep" data-vt-no-i18n="1">consent_subject · vamosCookieConsent</span></span></td><td data-l="Purpose">Records which categories you allowed, so we can prove it and stop asking</td><td data-l="Provider">Vamos Taxi</td><td data-l="Duration">1 year</td></tr>
+<tr><td data-l="Name"><span data-ck-name="1"><span data-ck-plain="1">Stripe payment</span><span data-ck-tech="1" class="vt-dir-keep" data-vt-no-i18n="1">__stripe_mid · __stripe_sid</span></span></td><td data-l="Purpose">Fraud checks on the payment step</td><td data-l="Provider" data-vt-no-i18n="1">Stripe</td><td data-l="Duration">1 year · 30 minutes</td></tr>
+<tr><td data-l="Name"><span data-ck-name="1"><span data-ck-plain="1">Cloudflare check</span><span data-ck-tech="1" class="vt-dir-keep" data-vt-no-i18n="1">cf_clearance</span></span></td><td data-l="Purpose">Routes your request and keeps the site available</td><td data-l="Provider" data-vt-no-i18n="1">Cloudflare</td><td data-l="Duration">30 minutes</td></tr>
+<tr><td data-l="Name"><span data-ck-name="1"><span data-ck-plain="1">Fair pricing</span><span data-ck-tech="1" class="vt-dir-keep" data-vt-no-i18n="1">vamos_qs</span></span></td><td data-l="Purpose">Keeps price requests fair between visitors and blocks automated abuse</td><td data-l="Provider" data-vt-no-i18n="1">Vamos Taxi</td><td data-l="Duration">24 hours</td></tr>
+<tr><td data-l="Name"><span data-ck-name="1"><span data-ck-plain="1">Booking access</span><span data-ck-tech="1" class="vt-dir-keep" data-vt-no-i18n="1">vt_manage</span></span></td><td data-l="Purpose">Lets you open and change your booking from this browser without signing in</td><td data-l="Provider" data-vt-no-i18n="1">Vamos Taxi</td><td data-l="Duration">30 days</td></tr>
+<tr><td data-l="Name"><span data-ck-name="1"><span data-ck-plain="1">Language</span><span data-ck-tech="1" class="vt-dir-keep" data-vt-no-i18n="1">NEXT_LOCALE</span></span></td><td data-l="Purpose">Keeps the site in the language you chose</td><td data-l="Provider" data-vt-no-i18n="1">Vamos Taxi</td><td data-l="Duration">1 year</td></tr>
 </tbody>
 </table></div>
 </section>
@@ -234,8 +237,8 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <caption>Functional — off until you allow them</caption>
 <thead><tr><th scope="col">Name</th><th scope="col">Purpose</th><th scope="col">Provider</th><th scope="col">Duration</th></tr></thead>
 <tbody>
-<tr><td data-l="Name" data-vt-no-i18n="1">vamosLang</td><td data-l="Purpose">Remembers which language you read the site in</td><td data-l="Provider">Vamos Taxi</td><td data-l="Duration">until you change language</td></tr>
-<tr><td data-l="Name" data-vt-no-i18n="1">vamos:recent-places</td><td data-l="Purpose">Offers your last pickup address the next time you book</td><td data-l="Provider">Vamos Taxi</td><td data-l="Duration">until you clear it</td></tr>
+<tr><td data-l="Name"><span data-ck-name="1"><span data-ck-plain="1">Language (this browser)</span><span data-ck-tech="1" class="vt-dir-keep" data-vt-no-i18n="1">vamosLang</span></span></td><td data-l="Purpose">Remembers which language you read the site in</td><td data-l="Provider">Vamos Taxi</td><td data-l="Duration">until you change language</td></tr>
+<tr><td data-l="Name"><span data-ck-name="1"><span data-ck-plain="1">Recent addresses</span><span data-ck-tech="1" class="vt-dir-keep" data-vt-no-i18n="1">vamos:recent-places</span></span></td><td data-l="Purpose">Offers your last pickup address the next time you book</td><td data-l="Provider">Vamos Taxi</td><td data-l="Duration">until you clear it</td></tr>
 </tbody>
 </table></div>
 </section>
