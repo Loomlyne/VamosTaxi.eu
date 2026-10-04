@@ -1,132 +1,166 @@
 # HANDOVER — fix/hide-internal-ids (quick 261004)
 
-Job session, 2026-10-04. Branch `fix/hide-internal-ids`, cut from `origin/fix/cookies-manage-locale-rows`
-(its two owner-approved /cookies rows are kept), `origin/main` merged in (0c7adc39). Pushed, no PR.
-Nothing deployed, no live database write.
+Job session, 2026-10-04, rewritten 16:55 +04 for the controller. Branch `fix/hide-internal-ids`, pushed. No PR.
+Nothing deployed, no live database read or write in this pass, no migration.
 
 Owner, 2026-10-04: "hide all tokens hide all ids like be more fucking secure about the data everything is expose".
 
+- **Code tip: `4f398ead`** (evidence on top of `e6dca1e4`); this file is the one commit after it. Folder clean.
+- `origin/main` `0be589db` merged in at `2dcf9d88` (16:40); `origin/main` had not moved at 16:52.
+- Merge conflicts: `cookies.dc.html`, the React cookies twin, the four message files, `seed.sql`, `seed_idempotent.test.sql`.
+  Only main commit touching them was `7b5dfb25`, whose patch is byte-identical to `c4a0e25b` already in this branch
+  (the branch was cut from `fix/cookies-manage-locale-rows`). Resolved to the branch side, so main's content is kept
+  and the approved §5 plain names stay. `legal-gate.test.ts` (`6af249d7` on both sides) merged cleanly.
+
 ## STOP — before shipping
 
-1. **Copy commit `d8f25617`: APPROVED** — Koss, question form 2026-10-04, "Approve as drafted" (COPY-DRAFT
-   sections 1–4), recorded in `.planning/decisions/2026-10-04-hide-internal-ids-copy.md`.
-   **Commit `2f412c4b` (plain cookie names)**: the English names are his; the **de/fr/ar of those names and the
-   two Functional names are drafts awaiting approval** (COPY-DRAFT §5). Ask the two §5 questions before shipping
-   `2f412c4b`, or ship without it.
-2. **A fresh reviewer session (security) must read this branch before it ships**: the served-file comment
-   stripper (`scripts/strip-public-comments.mjs`) rewrites every public page and script; the API changes
-   touch guest/customer booking routes.
-3. After deploy: the controller's usual 4242 payment (no checkout code changed, but every served page
-   changed) and a live look at /cookies, /privacy, / and /manage-booking in en and ar.
+1. **A fresh security reviewer session must read this branch.** Not done yet. The reviewer of 15:00 found F1–F7 and F9
+   (fixed below); nobody has read those fixes. Money/sign-in surfaces touched: guest/customer booking routes (answer
+   bodies), the review link (new cookie), the Worker's response headers, the served-file comment stripper (rewrites
+   every public page, script and stylesheet at sync, so at build and deploy).
+2. After deploy: the 4242 payment first (`/checkout` changed: its HTML now carries fewer message namespaces, `d10e7c96`),
+   then read `booking_payments` by status.
+3. If `fix/auth-cookie-rename` lands first, the Sign-in row's technical name becomes `vt-auth` (decision file §2); expect a
+   conflict on `cookies.dc.html` / the twin.
 
-## Commits (oldest first)
+## Owner approvals
 
-| Commit | What |
-|---|---|
-| 17e82686 | Served DC copy loses developer comments (sources keep them); design-system `readme.md`, `_ds_manifest.json`, `_adherence.oxlintrc.json` no longer served |
-| 4b61e2bf | /cookies: auth cookie shown as `sb-…-auth-token` (mock + React twin); Meta row is one block on phones; Marketing table drops the 4 headers over its single sentence |
-| 6af249d7 | legal-gate test pins the base branch's approved language-cookie duration (was red on the base branch) |
-| d92a9c26 | Guest/customer booking answers drop internal UUIDs (`booking.id`, `bookingId`, `requestId`, `reviewId`) |
-| 7f0e0eb4 | /review?token=… removes the token from the address bar on load |
-| d8f25617 | Copy, **approved 2026-10-04** (COPY-DRAFT §1–4); also two rendering fixes in the same files: Stripe cookie names stay LTR in Arabic, "Resend" no longer translated to Arabic "إعادة الإرسال" |
-| 8e7eb9fa | This hand-over (first version) |
-| 2f412c4b | /cookies rows: plain name first, technical name small underneath (mock + React twin, messages `cookies.name-*`, seed regenerated, `seed_idempotent` re-pinned 2710→2715); decision record. de/fr/ar + Functional names awaiting approval (§5) |
+| What | Answer | When | Record |
+|---|---|---|---|
+| COPY-DRAFT §1–4 (legal copy) | "Approve as drafted" | 2026-10-04 (question form) | `.planning/decisions/2026-10-04-hide-internal-ids-copy.md` §1, applied `d8f25617`, React banner follow-up `83a34cbc` |
+| Stripe row stays; plain names everywhere (English names his words) | his answers | 2026-10-04 | same file §2, applied `2f412c4b` |
+| COPY-DRAFT §5 (de/fr/ar of the names, two Functional names) | "Approve all as drafted" | 2026-10-04, later | same file §2, recorded `a9eda62b` |
+| COPY-DRAFT §6 (`vt_review` row) | "Approve as drafted" | 2026-10-04 16:38 +04 | `.planning/decisions/2026-10-04-vt-review-cookie-row.md` (came in with the main merge), applied verbatim `e6dca1e4` |
+| D2 rename the Supabase auth cookie | its own job | 2026-10-04 | same file §3 |
+
+No lawyer has read any of it.
+
+## Commits since the 15:05 hand-over (`ce07aaf1`), oldest first
+
+| Commit | Time | What |
+|---|---|---|
+| `de6b05ec` | 15:41 | **F1, the `vt_review` cookie.** `GET /review?token=…` → middleware answers 302 `/review` and sets `vt_review` (HttpOnly, Secure, SameSite=Lax, Path=/review, Max-Age 30 days); the page reads the query first, then the cookie. Replaces `7f0e0eb4`'s client `replaceState` (lost the token on refresh or language switch). Files: `middleware.ts`, `lib/reviews/review-cookie.ts` (+test), `app/[locale]/review/page.tsx`, `ReviewForm.tsx`; `lib/security/url-without-token.*` deleted |
+| `83a34cbc` | 15:42 | F2: React cookie banner (/checkout, /review, 404) carries the approved §3 wording — no Sentry, no "Supabase Auth"; React privacy twin loses the Sentry row and `legal.error-diagnostics`. Seed 2714 keys / 101 reasons. Test: no messages file or dictionary names Sentry, Supabase Auth, test mode or the mail switch |
+| `252c309b` | 15:46 | F5: the comment strip is a gate — acorn parses every served script before and after, tokens must be identical, no non-licence comment may remain, else the sync throws (build and deploy stop). HTML strip never enters tags, `<textarea>` or `<title>`. Also strips `.css` and the `support.js` copies. `acorn ^8.18.0` root devDependency (lockfile) |
+| `8cf45166` | 15:46 | F3: the served design-system copy is stripped (bundle header, ~4,000 doc comments, styles, tokens); committed `apps/web/public/brand/tokens/*.css` stripped in source; both `OFL.txt` lose the internal provenance note (licence text unchanged) |
+| `8750fc09` | 15:46 | F4: the four `support.js` copies drop an internal note inside a CSS template string |
+| `85f41007` | 15:47 | F6: the served-copy test skips visibly without a sync and fails in CI; also checks served JS/CSS |
+| `d10e7c96` | 15:49 | F7: the locale layout ships only public message namespaces to the browser (`lib/i18n/client-messages.ts`): no dashboard strings, no `$meta`, no review-scaffold notes in public HTML |
+| `f2cccc3f` | 15:49 | F9: the Worker removes Next's `x-middleware-set-cookie` from every response (`lib/security/strip-internal-headers.ts`, `worker.ts`) |
+| `dc7dff50` | 15:51 | client-messages uses arrays, not a module-scope Set (db-fences isolate rule) |
+| `aa05fa7a` | 15:52 | TEST-BRIEF for the lab run |
+| `a9eda62b` | 15:53 | COPY-DRAFT §5 approved; §6 drafted |
+| `2dcf9d88` | 16:40 | merge `origin/main` `0be589db` (see top) |
+| `e6dca1e4` | 16:48 | **`vt_review` row on /cookies**, owner wording verbatim: Strictly necessary, after `vt_manage`; mock `app/pages/cookies.dc.html` + `app/vamos-i18n-dict.js`; twin `app/[locale]/cookies/page.tsx` + messages `cookies.name-review-access`, `review-cookie-purpose`, `review-cookie-duration` (no-param reason: Max-Age in `review-cookie.ts`); seed regenerated 2717 keys / 102 reasons; `seed_idempotent` re-pinned; COPY-DRAFT §6 marked approved |
+| `4f398ead` | 16:51 | evidence: the lab run (`evidence/lab/`) and the new row in four languages (`evidence/vt-review-row-*`) |
+
+## Earlier commits on this branch (before 15:05)
+
+`17e82686` served DC copy without developer comments, design-system docs no longer served · `4b61e2bf` /cookies shows `sb-…-auth-token`, Meta row on phones, Marketing table headers · `6af249d7` legal-gate test pin (also on main) · `d92a9c26` booking answers drop internal UUIDs · `7f0e0eb4` review token out of the address bar (superseded by `de6b05ec`) · `d8f25617` approved copy §1–4 · `2f412c4b` plain cookie names.
 
 ## Finding table
 
-Live = read-only GET on https://vamostaxi.site, 2026-10-04 ~10:30–10:50 UTC.
+Live = read-only GETs on https://vamostaxi.site, 2026-10-04 ~10:30–10:50 UTC (first pass). Not re-read in this pass.
 
 ### MUST HIDE
 
-| # | Where (file:line) | Live URL | What leaked | Status |
-|---|---|---|---|---|
-| H1 | `app/pages/cookies.dc.html:219` (was :216) | /cookies | `sb-yaumjzvylngfjhtuffqs-auth-token` — Supabase project ref | **Fixed** → `sb-…-auth-token` (4b61e2bf). The real cookie name still contains the ref: see owner decision D2 |
-| H2 | every served `app/**/*.dc.html` and `app/*.js` (e.g. `home.dc.html` 93 comment blocks; `vamos-i18n-dict.js:1819,2345`; `vamos-meta.js:1-10`; `vamos-consent.js:5,21,32`; `vamos-manage-ticket.js:277`; `booking-detail.dc.html:261`; `AuthForm.dc.html:96`; `SiteHeader.dc.html:345`) | /app/vamos-i18n-dict.js, /app/home/home.dc.html, view-source of every page | Phase/decision ids, `.planning/decisions/*.md` names, repo paths (`apps/web/lib/…`), owner notes ("owner 2026-10-01", "Events Manager switches off") | **Fixed** in the served copy (17e82686). Proof: acorn token streams identical for 105 script bodies, 147 style blocks identical, pages render in Chromium |
-| H3 | `design-system/readme.md:41`, `_ds_manifest.json`, `_adherence.oxlintrc.json` | /_ds/vamos-taxi-design-system-245af154-…/readme.md (200) | GitHub repo `Loomlyne/VamosTaxi.eu`, internal doc names, source paths | **Fixed** — no longer copied (17e82686). Live still serves them until deploy |
-| H4 | `app/api/manage/booking/route.ts:167` | GET /api/manage/booking (token holder) | internal booking UUID `booking.id` | **Fixed** (d92a9c26) |
-| H5 | `manage/{cancel:61,time-change:64,flight:60,resend:58}`, `account/bookings/{paid-cancel:57,time-change:57,flight:53,resend:49}` route.ts | POST only | `bookingId` (+ `requestId`) UUIDs in success JSON | **Fixed** (d92a9c26) |
-| H6 | `app/api/reviews/submit/route.ts:158,211` | POST only | `reviewId`, `bookingId` | **Fixed** (d92a9c26) |
-| H7 | `apps/web/app/[locale]/review/page.tsx:52` | /review?token=… (200, token stays in URL) | Review token kept in address bar/history; recorded by Cloudflare Web Analytics beacon if analytics allowed | **Fixed** (7f0e0eb4) — client `replaceState` |
-| H8 | `/cookies` Analytics, banner panel, `/privacy` processors | /cookies, /privacy, banner | "not in use until live payments" (test mode), Sentry rows "none / not used", "as issued by Supabase Auth", "as set by Cloudflare", "The platform we are building", "used when transactional mail is on" | **Drafted + applied, awaiting approval** (d8f25617, COPY-DRAFT.md) |
-| H9 | `lib/ops/fleet-http.ts:335-362`, `lib/ops/rate-book.ts:191-205` | /api/staff/* (401 without session) | raw SQLSTATE codes (`23505`, `42501`…) as `code` to the signed-in dashboard | **Not fixed** — staff-only, the dashboard UI branches on these codes; change both sides in one job. Low |
-| H10 | `reviews/submit:179`, `reviews/photo:113`, `manage/*` + `account/*` body fallbacks `bookingId`/`id` | POST | internal UUID accepted as a booking lookup key (only together with a valid token/session) | **Not fixed** — input change on money/booking routes needs its own reviewed job. Low |
-| H11 | `apps/web/middleware.ts:530` | every marketing page | `X-Consent-Present: 0/1` response header (cache key) | Not fixed — no data, low; could become a request-only header |
-| H12 | Next/OpenNext | /manage-booking?token=… | `x-middleware-set-cookie` header duplicates `Set-Cookie: vt_manage=<token>` on the 302 to the same browser | Not fixed — framework header, same browser that sent the token; listed for the reviewer |
+| # | What leaked | Where | Status |
+|---|---|---|---|
+| H1 | Supabase project ref in `sb-yaumjzvylngfjhtuffqs-auth-token` on /cookies | `app/pages/cookies.dc.html`, twin | **Fixed** `4b61e2bf` (shown as `sb-…-auth-token`). The real cookie name keeps the ref until the auth-cookie rename job |
+| H2 | Phase/decision ids, `.planning` file names, repo paths, owner notes in served pages and scripts | every served `app/**/*.dc.html`, `app/*.js` | **Fixed** `17e82686`, now a hard gate `252c309b` (acorn token equality or the sync fails); CSS and `support.js` copies `252c309b`/`8750fc09` |
+| H3 | GitHub repo name, internal docs in the served design system | `/_ds/…/readme.md`, `_ds_manifest.json`, `_adherence.oxlintrc.json`, bundle header and doc comments, `public/brand` tokens, `OFL.txt` notes | **Fixed** `17e82686` + `8cf45166`. Lab S9: dictionary and bundle start without notes |
+| H4 | `booking.id` in GET /api/manage/booking | `app/api/manage/booking/route.ts` | **Fixed** `d92a9c26` |
+| H5 | `bookingId`/`requestId` in manage and account POST answers | 8 routes | **Fixed** `d92a9c26` |
+| H6 | `reviewId`, `bookingId` in review submit | `api/reviews/submit` | **Fixed** `d92a9c26`; lab S7 answer was `{"ok":true}` only |
+| H7 | Review token in the address bar, history, analytics | `/review?token=…` | **Fixed** `de6b05ec` (302 + HttpOnly `vt_review`, replaces `7f0e0eb4`); /cookies names the cookie `e6dca1e4`. Lab S1, S3–S7 pass |
+| H8 | Test-mode, Sentry, "Supabase Auth", "as set by Cloudflare", "the platform we are building" lines | /cookies, /privacy, both banners | **Fixed, approved** `d8f25617` + `83a34cbc`. Lab S8: /checkout HTML has none of them |
+| H9 | Raw SQLSTATE `code` to the signed-in dashboard | `lib/ops/fleet-http.ts`, `lib/ops/rate-book.ts` | **Not fixed** — staff only; UI branches on the codes; change both sides in one job. Low |
+| H10 | Internal UUID accepted as a booking lookup key (with a valid token/session) | reviews submit/photo, manage/account body fallbacks | **Not fixed** — input change on money routes needs its own reviewed job. Low |
+| H11 | `X-Consent-Present: 0/1` response header | `middleware.ts` | Not fixed — no data, low |
+| H12 | `x-middleware-set-cookie` repeating `Set-Cookie: vt_manage=<token>` | Next/OpenNext | **Fixed** `f2cccc3f`. Lab S1/S2: header absent |
+| H13 | Dashboard strings (`Stripe webhook`, `Refunds to issue`…), `$meta`, review-scaffold notes in public HTML | `[locale]/layout.tsx` | **Fixed** `d10e7c96`. Lab S8 |
 
-### MUST STAY (public by design)
+### MUST STAY (public by design) — unchanged
 
-| Item | Where | Why it is public |
-|---|---|---|
-| Cookie names (`vamos_qs`, `vt_manage`, `NEXT_LOCALE`, `consent_subject`, `_fbp`, `_fbc`, `__stripe_*`, `cf_clearance`) | /cookies | nFADP/GDPR cookie notice must name them; the browser shows them anyway |
-| Meta pixel id | served pages after consent | the browser must load it to fire the pixel |
-| Stripe publishable key `pk_test_51UIZmq…` | /checkout HTML | Stripe requires it in the browser. It reveals test mode and the account id prefix by design; disappears when the live key goes in |
-| Turnstile site key `0x4AAAAAAElByx…` | forms | Cloudflare requires it in the browser |
-| Operator name, "Loomlyne" | /about:101, /imprint:222,229 | imprint law |
-| `info@vamostaxi.site`, `+41 79 626 70 82` | footer, contact | public contact |
-| Component `.dc.html`, `support.js`, `vamos-*.js`, `_ds_bundle.js` | /app/…, /_ds/… | the DC runtime fetches them; now served without comments |
-| `vamos-ops-api.js`, `vamos-ops-data.js`, `vamos-ops-bar.js` | /app/… (200) | loaded by the dashboard shell from the same assets; name staff endpoints only (all 401 without session); comments now stripped. Moving them off the public host = separate job |
-| Vehicle class / photo UUIDs | /api/quote `photo_url` | public image paths |
-| Review row UUIDs | GET /api/reviews | the shared reviews store (home + dashboard) keys rows by id |
-| `cf-placement: remote-ZRH`, `server: cloudflare`, `cf-ray` | all responses | added by Cloudflare at the edge; app cannot remove |
-| robots.txt `Disallow: /ops /api/ /app/ /dev` | /robots.txt | names paths, no secrets |
+Cookie names on /cookies (now incl. `vt_review`); Meta pixel id after consent; Stripe publishable key `pk_test_51UIZmq…` on /checkout; Turnstile site key; operator name and Loomlyne on /about and /imprint; `info@vamostaxi.site` and `+41 79 626 70 82`; the DC runtime files (served without comments); `vamos-ops-*.js` on the public host (comments stripped; moving them off = separate job); vehicle photo and review row UUIDs; Cloudflare edge headers; robots.txt paths.
 
-### OK (checked, nothing to hide)
+### OK (checked in the first pass, nothing to hide)
 
-No `err.message`, stack, SQL text or env names in any public `/api/*` error body (quote/geo/flight/auth/
-consent/checkout/manage/account return closed codes); no source maps (no `sourceMappingURL`, .map 404);
-no `x-powered-by`; no project ref, `sk_`, `acct_` or `/Users/` in `_next` chunks; the browser never talks
-to Supabase directly; `Referrer-Policy: strict-origin` everywhere; /manage-booking?token 302-strips the
-token into the HttpOnly `vt_manage` cookie; `returnTo`/`next` validated on-site; sitemap and security.txt
-clean; `/app/ops/*` 404 on the public host.
-
-### Footer "one letter per line"
-
-Not a visible break. Screenshots `evidence/live-before-en-1440-footer.png`, `live-before-en-390-footer.png`:
-links render as normal words. The per-letter roll splits each label into `<span aria-hidden>` cells and puts
-the label in `aria-label` on the link (`SiteFooter.dc.html:300-307`), so screen readers read the word once.
-Copy-pasting the footer gives one letter per line (each letter twice) — a selection artefact. Not changed.
+No error text, stack, SQL or env names in public `/api/*` error bodies; no source maps; no `x-powered-by`; no project ref, `sk_`, `acct_` or `/Users/` in `_next` chunks; browser never talks to Supabase; `Referrer-Policy: strict-origin`; /manage-booking?token 302s into HttpOnly `vt_manage`; `returnTo`/`next` validated; sitemap and security.txt clean; `/app/ops/*` 404 on the public host.
 
 ### Seen, outside this brief (not changed)
 
-- Live `/api/reviews` returns placeholder reviews marked published ("One verbatim sentence from a real review sits here", a stock iconscout link as `sourceUrl`). Owner should look.
-- /cookies mobile cards in Arabic show the column labels (NAME, PURPOSE…) in English (`data-l` attribute content is not translated) — pre-existing.
-- React twins (`app/[locale]/cookies|privacy/page.tsx`, `i18n/messages`) still mention Sentry; they reach no customer.
+- Live `/api/reviews` returns placeholder reviews marked published (stock iconscout link as `sourceUrl`). Owner should look.
+- /cookies mobile cards in Arabic show the column labels (NAME, PURPOSE…) in English (`data-l` attribute) — pre-existing, visible in `evidence/vt-review-row-ar-390.png`.
 
-## Owner decisions
+## Gates on the merged tree (`e6dca1e4` code = `4f398ead` code), 16:41–16:51
 
-- **D1 — copy sections 1–4: approved** ("Approve as drafted", 2026-10-04). `cf_clearance` "30 minutes" is Cloudflare's default; the zone's Challenge Passage setting is still not read.
-- **D1b — open: COPY-DRAFT §5** — the de/fr/ar of the plain cookie names, and "Language (this browser)" / "Recent addresses" for the Functional rows.
-- **D2 — rename the Supabase auth cookie?** Possible: `@supabase/ssr` 0.12.5 takes `cookieOptions.name` (used as the storage key, `createServerClient.js:33`), so setting e.g. `name: "vt-auth"` in `authCookieOptions` (`apps/web/lib/supabase/cookies.ts:54`, used by `lib/supabase/server.ts` and `middleware.ts`) removes the ref from the browser's cookie jar. Cost: every signed-in customer and the dashboard admin are signed out once; sign-up confirmation / magic / reset links issued before the deploy that rely on the PKCE `-code-verifier` cookie fail once; tests that name `sb-*-auth-token` (about 20 files, e.g. `lib/supabase/cookies.test.ts`, `tests/unit/auth/*`, `tests/e2e-worker/*`) and the dashboard gateway's cookie handling must move in the same job. **Owner: its own job, not this one.** The ref is no longer printed on the page; it is only visible in the cookie jar of a signed-in visitor's own browser.
+| Gate | Result |
+|---|---|
+| `pnpm install --frozen-lockfile` | pass (lockfile up to date) |
+| `node scripts/sync-dc-mock-to-public.mjs` | pass: 20 pages, 19 app entries, comments stripped from 90 files (acorn gate passed) |
+| `pnpm run typecheck` | pass |
+| `pnpm run lint` | 0 errors, 6 warnings, all in files this branch does not touch |
+| `pnpm run lint:css` | pass |
+| `check:numbers` · `check:legal-claims` · `check:public-env` · `check:db-fences` | pass · pass (3/3) · pass · pass (8/8, 1186 files) |
+| `i18n:check` | pass, 2709 keys |
+| `db:seed:check` | pass, no drift (2717 keys, 102 no-param reasons) |
+| `test:unit` | scripts 29/29, db 14/14, emails 247/247, web 4852 passed / 31 skipped (421 files + 16 skipped) |
+| `pnpm --filter web run build` (via `pnpm run build`) | pass |
+| pgTAP, full suite on the lab's native stack (`lab.sh pgtap hide-ids`, reset + all migrations incl. main's 260000/270000) | pass, 103 files, 2857 tests; `seed_idempotent` ok with the 2717/102 pins |
+| `db:types:check` | not run: needs a default-port local stack; this branch adds no migration and does not touch `database.types.ts` |
 
-## Verified
+New row in a browser (static copy of `apps/web/public`, Chromium): en/de/fr/ar at 390/768/1024/1440 — `VamosLocale.coverage` 0 in all 16, Arabic `dir=rtl`, `vt_review` left to right, no sideways scroll, no page errors (`evidence/vt-review-row.txt`, screenshots at 390 and 1440).
 
-- `pnpm test:unit`: scripts 27/27, db 14/14, emails 247/247, web 4791 passed / 31 skipped (417 files), after merging origin/main.
-- `pnpm typecheck` clean; `pnpm lint` 0 errors (6 pre-existing warnings in files not touched); `i18n:check`, `check:legal-claims`, `check:numbers`, `check:public-env`, `db:seed:check` pass.
-- Comment strip: `evidence/verify-strip.mjs` (acorn token equality, 105 script bodies, 0 problems) and `evidence/verify-css.mjs` (147 style blocks) after the merge.
-- Chromium on a static server of `apps/web/public` (port 47391, stopped): home, cookies, privacy, sign-in, about, contact, manage-booking, booking-detail, account, faq, terms, imprint, cancellation, reset-password, sitemap render with no script errors; same text length as the unstripped copy where comparable.
-- /cookies and /privacy in en/de/fr/ar at 390 and 1440: `VamosLocale.coverage` = 0, Arabic `dir=rtl`, no sideways scroll (`evidence/coverage.txt`, screenshots `evidence/branch-*`). Before: `evidence/live-before-*`.
-- Live checks listed above (read-only GETs).
+## TEST-BRIEF on a local Worker — run 15:55–16:00 on code tip `a9eda62b` (before the merge and the row)
 
-- Plain names (2f412c4b, after merging origin/main 6737c53c): `pnpm test:unit` scripts 27/27, db 14/14, emails 247/247, web 4794 passed / 31 skipped; typecheck clean; lint 0 errors; `i18n:check` (2707 keys) and `db:seed:check` pass. /cookies and /privacy en/de/fr/ar at 390 and 1440: coverage 0, Arabic rtl, no sideways scroll (`evidence/coverage-names.txt`, screenshots `evidence/names-*`); technical names stay left to right in Arabic.
+Lab `hide-ids`, native stack, Worker built 15:54 from this worktree. The tester's written reply was not saved; these come
+from the files in `evidence/lab/` (`results.json`, `steps-run2.txt`, headers, screenshots):
+
+| Step | Result | From |
+|---|---|---|
+| S1 `/review?token=…` | 302 to `/review`, one `vt_review` cookie with HttpOnly, Secure, SameSite=lax, Path=/review, Max-Age=2592000; no `x-middleware-set-cookie` | `S1-headers.txt` |
+| S2 `/manage-booking?token=abc` | 302, `vt_manage=abc`, no `x-middleware-set-cookie` | `S2-headers.txt` |
+| S3–S7 | PASS: form shows at `/review` without token; after reload; in German; at 390 in Arabic (rtl, no sideways scroll); submit → 1 review row, answer `{"ok":true}` | `results.json`, `S3`–`S7.png` |
+| S8 | /checkout HTML (195,889 bytes) has none of the five strings; has cookie text | counted by me from `checkout.html` |
+| S9 | dictionary and bundle start with no `/*` note or `@ds-bundle` header; **readme.md 404 not recorded** | `S9-*-head.txt` |
+| S10 | "Sign-in" over `sb-…-auth-token`; console showed one `ERR_INVALID_URL` and 404s for `/photos/site/*.jpg` (lab has no photos); a follow-up run logged only the photo 404s and no page error | `results.json`, `s10-detail.txt` |
 
 ## Not verified
 
-- Not run on a local Worker build (`opennextjs-cloudflare build`): the strip runs in `prebuild`/`deploy` via the sync script, proven on the static copy only.
-- `/review` token strip not clicked in a browser (unit + source pin only).
+- The TEST-BRIEF was not re-run after the main merge and the `vt_review` row (Worker code from main changed `worker.ts` queue and cron paths; the row is static markup). The lab stack `hide-ids` (native, db 127.0.0.1:45122) is still up for that re-run; Workers are down. Re-run: `scripts/test-lab/lab.sh up hide-ids` then the brief. Remove with `scripts/test-lab/lab.sh destroy hide-ids`.
+- S9 readme.md 404 on the lab Worker (not in the saved files).
+- A review link with a language prefix, e.g. `/de/review?token=…`: by reading the code the 302 keeps `/de/review` while the cookie's Path is `/review`, so the browser would not send it there. Review e-mails link to `/review?token=…` only (`ReviewRequestEmail.tsx:23`), and the lab's language switch stayed on `/review` (S5). For the reviewer.
+- Dashboard host pages with the stripped `vamos-ops-*.js` not opened in a browser (token-equal proof only).
 - `cf_clearance` lifetime on the live zone.
-- `seed_idempotent.test.sql` re-pin (2715) not run as pgTAP (no local database stack in this job); `db:seed:check` passes.
-- Dashboard host pages with the stripped `vamos-ops-*.js` not opened in a browser (token-equal proof only; `app/ops/` itself is not stripped).
+- The React twin `/cookies` is not reached by customers; it was not opened in a browser (typecheck, i18n:check and build only).
+- Nothing on live in this pass.
 
 ## Failed
 
 - None.
 
+## Owner UAT (after the controller deploys)
+
+1. Pay one test booking with 4242 4242 4242 4242 on https://vamostaxi.site → the confirmation page shows; the controller reads `booking_payments` = succeeded.
+2. Open https://vamostaxi.site/cookies → the Strictly necessary table has "Review access" with `vt_review` small underneath, "Lets you open the review form from the link in your e-mail without signing in", Vamos Taxi, 30 days.
+3. Switch the language to Deutsch → that row reads "Zugang zur Bewertung", "Damit Sie das Bewertungsformular …", "30 Tage". Switch to العربية → Arabic row, page right to left, `vt_review` still reads left to right.
+4. Same page on a phone → the row is a card like the others; nothing scrolls sideways.
+5. Open a review link from a review e-mail → the address bar ends in `/review` with no token, the form shows; reload → the form still shows.
+6. Open the manage link from a confirmation e-mail → your booking opens; the address bar shows no token.
+7. On /cookies and /privacy search the page for "Sentry" and "test mode" → no match.
+
+## Ship notes
+
+- No migration, no new setting, no live data change. `seed.sql` is regenerated (generated file; 2717 keys).
+- Each fix is its own commit; the row is `e6dca1e4`.
+- New root devDependency `acorn` (lockfile updated in `252c309b`): the sync, so build and deploy, now fail if stripping would change any served script's tokens.
+
 ## Rollback
 
-- Before deploy: drop the commit(s) from the ship branch (`git revert <sha>`); each item is its own commit.
-- After deploy: `git revert` the commit on main and redeploy, or `wrangler rollback` to the previous Worker version. The comment strip only changes the generated public copy; reverting `17e82686` restores the old served files on the next sync/deploy. No database change anywhere.
+- Before deploy: `git revert <sha>` on the ship branch; each item is its own commit.
+- After deploy: revert on main and redeploy, or `wrangler rollback` to the previous Worker version. The comment strip only changes the generated public copy. No database change anywhere.
 
 ## Tools
 
-`tools/shot-legal.mjs` (screenshots + coverage; copy into `apps/web/` to run, needs a static server of
-`apps/web/public` on 47391) and `tools/render-pages.mjs` (page error check).
+`tools/shot-legal.mjs`, `tools/render-pages.mjs` (static server of `apps/web/public` on 47391), `tools/f2-messages.py`, `tools/strip-brand-css.mjs`, `tools/twin-names.py`; lab step scripts in `evidence/lab/` (`steps.mjs`, `run.sh` sets the lab env).
