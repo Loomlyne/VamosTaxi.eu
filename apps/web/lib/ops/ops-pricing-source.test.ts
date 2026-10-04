@@ -10,6 +10,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { stripJs } from "../../../../scripts/strip-public-comments.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const webRoot = join(here, "../..");
@@ -52,7 +53,8 @@ describe("OpsPricing source of truth dual copy (D-27 D-28 D-31)", () => {
     expect(existsSync(OPS_CANONICAL)).toBe(true);
     expect(existsSync(OPS_PUBLIC)).toBe(true);
     expect(readFileSync(OPS_PUBLIC, "utf8")).toContain('<base href="/app/ops/">');
-    byteEqual(DATA_CANONICAL, DATA_PUBLIC);
+    // The public copy is the source with its developer comments stripped (sync-dc-mock-to-public).
+    expect(readFileSync(DATA_PUBLIC, "utf8")).toBe(stripJs(readFileSync(DATA_CANONICAL, "utf8")));
   });
 
   it("names four UI-SPEC tabs and header Publish fare book / Discard draft", () => {

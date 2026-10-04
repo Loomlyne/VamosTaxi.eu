@@ -19,6 +19,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { assertHeadBase, injectBaseInto } from "./dc-page-base.mjs";
 import { pruneMissing } from "./sync-prune.mjs";
+import { stripTree } from "./strip-public-comments.mjs";
 
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const pub = resolve(repo, "apps/web/public");
@@ -54,6 +55,10 @@ const SKIP_PUBLIC = new Set([
   "confirmation.dc.html",
 ]);
 
+// Design-system tooling, not runtime: the readme names the repo and internal documents,
+// the manifest and lint config list source paths. No page or bundle loads them.
+const SKIP_DS = new Set(["readme.md", "_ds_manifest.json", "_adherence.oxlintrc.json"]);
+
 /** Real Name.dc files are banned. html_handling none serves Name.dc.html only. */
 function isDcCopy(name) {
   return name.endsWith(".dc") && !name.endsWith(".dc.html");
@@ -73,6 +78,7 @@ function copy(from, to) {
         !parts.includes("standalone") &&
         !parts.includes(".DS_Store") &&
         !SKIP_PUBLIC.has(base) &&
+        !(SKIP_DS.has(base) && parts.includes("design-system")) &&
         !isDcCopy(base)
       );
     },
@@ -98,7 +104,14 @@ const pruned = [
 if (pruned.length > 0) console.log(`pruned ${pruned.length} stale public file(s): ${pruned.join(", ")}`);
 
 copy(resolve(repo, "app"), resolve(pub, "app"));
+// Served copy only: developer comments (phase ids, decision files, repo paths) stay in the
+// sources and never reach a visitor. Pages are copied to .html below, after this strip.
+const stripped = stripTree(resolve(pub, "app"));
 copy(resolve(repo, "design-system"), resolve(pub, "_ds", uuid));
+for (const name of SKIP_DS) {
+  const leftover = resolve(pub, "_ds", uuid, name);
+  if (existsSync(leftover)) rmSync(leftover);
+}
 copy(resolve(repo, "assets"), resolve(pub, "assets"));
 
 const pagesPub = resolve(pub, "app/pages");
@@ -147,5 +160,5 @@ writeFileSync(join(pub, "_redirects"), redirectLines.join("\n") + "\n");
 stripDcCopies(resolve(pub, "app"));
 
 console.log(
-  `synced DC mock → apps/web/public (${PAGE_FILES.length} pages, ${readdirSync(resolve(pub, "app")).length} app entries)`,
+  `synced DC mock → apps/web/public (${PAGE_FILES.length} pages, ${readdirSync(resolve(pub, "app")).length} app entries, comments stripped from ${stripped.length} files)`,
 );
