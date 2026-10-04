@@ -1,0 +1,12 @@
+{
+  // Local copy of apps/web/wrangler.dashboard.jsonc for a two-Worker run: the gateway source as it is on main,
+  // bound to the lab's Worker (`vamos-e2e`) instead of `vamos`. No routes. Local only.
+  "name": "vamos-dashboard-local",
+  "main": "/Users/koss/Developer/VamosTaxi.eu/.claude/worktrees/agent-a27c298ece3746d96/apps/web/dashboard-gateway.ts",
+  "compatibility_date": "2026-08-20",
+  "workers_dev": false,
+  "services": [
+    { "binding": "APP", "service": "vamos-e2e", "entrypoint": "Dashboard" },
+    { "binding": "PUBLIC", "service": "vamos-e2e" }
+  ]
+}
