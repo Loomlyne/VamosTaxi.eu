@@ -2,9 +2,13 @@
 
 Owner decision 2026-10-04 (question form): "Rename it, own job". Job session, worktree `.claude/worktrees/agent-ad892723ff45e1689`,
 branch `fix/auth-cookie-rename` cut from `origin/main` 7c4818ec, origin/main 6737c53c merged in, then `origin/fix/hide-internal-ids`
-merged in twice (7e278ea5, 31aaa688; that branch already carries origin/main 0be589db). No PR. Not deployed. Nothing touched on live.
+merged in twice (7e278ea5, 31aaa688), then `origin/main` 5a027e71 (the hide-internal-ids squash, live as Worker `aecc2418`) merged in as
+`79022ec9`. No PR. Not deployed. Nothing touched on live.
 
-**Tip: see `git log -1 origin/fix/auth-cookie-rename` (the commit after `a5d688ab` that updates this file).**
+**Tip: `git log -1 origin/fix/auth-cookie-rename` — the commit right after `79022ec9` that updates this line. Code tree = `79022ec9`.**
+`git diff --stat origin/main HEAD`: 48 files, +743/-66 at `79022ec9` (this hand-over edit adds a few lines): only the 33 auth-rename
+files, the /cookies Name in its 2 pages and 3 pins in `public-no-internal-ids.test.ts`, and this job's `.planning/quick/261004-auth-cookie-rename/` files.
+No hide-internal-ids hunk is left in that diff and none is missing (main's tree = hide-internal-ids 31aaa688's tree, which this branch held).
 
 **A fresh reviewer session must read this before it ships: it changes sign-in (customer and dashboard).**
 Fresh review of bd2ed798: SHIP with conditions F1-F6. All six are done on this branch (see "Review conditions" at the end).
@@ -14,9 +18,19 @@ Fresh review of bd2ed798: SHIP with conditions F1-F6. All six are done on this b
 1. Done: the controller called `fix/hide-internal-ids` final for /cookies (2026-10-04, ~16:55).
 2. Done (16:56-17:05 +04): this job session merged `origin/fix/hide-internal-ids` here (7e278ea5 as `837c1ce1`; it moved during the
    job, so 31aaa688 again as `a5d688ab`) and set the `/cookies` "Sign-in" Name to `vt-auth` (`26da2a72`).
-3. **Now: the controller ships `fix/hide-internal-ids` first, then this branch after merging `origin/main` into it** (main will then
-   hold hide-internal-ids; this branch already contains every commit of it up to 31aaa688). If hide-internal-ids gains commits after
-   31aaa688, they arrive through that main merge. Deploy `vamos` once per ship.
+3. Done: the controller shipped `fix/hide-internal-ids` (squash 5a027e71, Worker `aecc2418`); this branch merged `origin/main` 5a027e71
+   (`79022ec9`, 17:12 +04).
+4. **Now: the controller ships this branch** and deploys `vamos` only.
+
+### Merge of origin/main 5a027e71 (17:12 +04)
+
+Five conflicts, all the same kind: this branch's auth-rename line against main's pre-rename text, because the squash re-adds the
+hide-internal-ids lines this branch had already changed. All resolved to this branch: `apps/web/middleware.ts` (import of
+`AUTH_SESSION_COOKIE_RE, LEGACY_AUTH_COOKIE_RE`), `app/pages/cookies.dc.html` and `apps/web/app/[locale]/cookies/page.tsx` (Sign-in Name
+`vt-auth`), `apps/web/lib/security/public-no-internal-ids.test.ts` (three `vt-auth` pins). `worker.ts` merged without conflict. The merge
+result tree is byte-identical to the previous tip `960a15c0`. Rerun on it: typecheck, `pnpm lint` (0 errors), vitest `lib/supabase`,
+`lib/security`, `lib/reviews`, `lib/consent`, `legal-updated`, `legal/extract-no-invent`, `meta/legal-gate` and every test importing
+`middleware`: 47 files / 485 tests pass.
 
 ### Merge of hide-internal-ids (step 2)
 
