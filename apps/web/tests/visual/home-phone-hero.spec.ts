@@ -2,9 +2,9 @@ import { test, expect, type Page } from "../support/test";
 import { serveMock, waitForMockReady } from "../support/mock-harness";
 import { stubConsentChosen } from "../support/consent-state";
 
-// Quick 260930-phm (owner, 2026-09-30). Phone and tablet (<=1080): the Trustpilot figures sit as one row inside the
+// Quick 260930-phm (owner, 2026-09-30). Phone (<=680; tablets have the booking card since R2-2): the Trustpilot figures sit as one row inside the
 // white card under the booking bar; the menu is a full page under the dark header bar; the page ground is charcoal
-// so the browser's own bars are not white. Laptop (>=1081) is unchanged.
+// so the browser's own bars are not white. Tablet and laptop (>=681) show the card.
 
 type Locale = { setLang(v: string): void; coverage(root: Element, l?: string): { count: number; strings: string[]; attrs: string[] } };
 const width = (page: Page) => page.viewportSize()!.width;
@@ -31,7 +31,7 @@ async function openHome(page: Page, reviews: number) {
 
 test.describe("Phone home: Trustpilot row, full-page menu, dark ground @component", () => {
   test("published reviews show as one row inside the bar card; the big block and the check lines are gone", async ({ page }) => {
-    test.skip(width(page) > 1080, "tablet and phone only");
+    test.skip(width(page) > 680, "phone only (the tablet card replaced the bar at 681-1080)");
     await openHome(page, 5);
     const row = page.locator("[data-bar-wrap] [data-bar-trust]");
     await expect(row).toBeVisible();
@@ -55,7 +55,7 @@ test.describe("Phone home: Trustpilot row, full-page menu, dark ground @componen
 
   for (const lang of ["de", "fr", "ar"] as const) {
     test(`the row reads in ${lang}, nothing left in English, no sideways scroll`, async ({ page }) => {
-      test.skip(width(page) > 1080, "tablet and phone only");
+      test.skip(width(page) > 680, "phone only (the tablet card replaced the bar at 681-1080)");
       await openHome(page, 5);
       await page.evaluate((l) => (window as unknown as { VamosLocale: Locale }).VamosLocale.setLang(l), lang);
       await page.waitForTimeout(400);
@@ -68,7 +68,7 @@ test.describe("Phone home: Trustpilot row, full-page menu, dark ground @componen
   }
 
   test("no published review: no row and no figure; the three check lines show in readable text", async ({ page }) => {
-    test.skip(width(page) > 1080, "tablet and phone only");
+    test.skip(width(page) > 680, "phone only (the tablet card replaced the bar at 681-1080)");
     await openHome(page, 0);
     await expect(page.locator("[data-bar-trust]")).toHaveCount(0);
     await expect(page.locator("[data-bar-notes]")).toBeVisible();
@@ -80,7 +80,7 @@ test.describe("Phone home: Trustpilot row, full-page menu, dark ground @componen
   });
 
   test("the menu is a full page under the dark header bar and closes again", async ({ page }) => {
-    test.skip(width(page) > 1080, "tablet and phone only");
+    test.skip(width(page) > 680, "phone only (the tablet card replaced the bar at 681-1080)");
     await openHome(page, 5);
     const btn = page.locator("[data-hd-menu-btn]");
     await btn.click();
@@ -116,8 +116,9 @@ test.describe("Phone home: Trustpilot row, full-page menu, dark ground @componen
     }
     expect(bg.html).toBe("rgb(30, 31, 31)");
     expect(bg.body).toBe("rgb(30, 31, 31)");
-    const g = await page.evaluate(() => ({ hero: document.querySelector("[data-hero]")!.getBoundingClientRect().height, cardBottom: document.querySelector("[data-bar-wrap]")!.getBoundingClientRect().bottom, ih: window.innerHeight }));
-    expect(g.hero).toBeGreaterThanOrEqual(g.ih - 1);
+    const g = await page.evaluate(() => ({ hero: document.querySelector("[data-hero]")!.getBoundingClientRect().height, cardBottom: document.querySelector(innerWidth > 680 ? "[data-bookcard]" : "[data-bar-wrap]")!.getBoundingClientRect().bottom, ih: window.innerHeight }));
+    // the hero is calc(100svh - 88px - safe area): never taller than the screen, and the card ends inside it
+    expect(g.hero).toBeLessThanOrEqual(g.ih);
     expect(g.cardBottom).toBeLessThanOrEqual(g.ih);
   });
 });

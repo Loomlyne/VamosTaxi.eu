@@ -8,6 +8,8 @@ const { Link } = createNavigation(routing);
 
 export type ContactRowProps = {
   icon: IconName;
+  /** A brand mark (e.g. the WhatsApp glyph) shown instead of the Lucide icon. */
+  logo?: string;
   title: string;
   /** Second line. A number or an address passes `keep` so it stays left to right in Arabic. */
   sub?: string;
@@ -32,6 +34,7 @@ export type ContactRowProps = {
  */
 export function ContactRow({
   icon,
+  logo,
   title,
   sub,
   keep = false,
@@ -46,7 +49,11 @@ export function ContactRow({
   const body = (
     <>
       <span className="vt-crow__lead" aria-hidden="true">
-        <Icon name={icon} size={20} color="currentColor" />
+        {logo ? (
+          <img src={logo} alt="" width={22} height={22} className="vt-crow__logo" />
+        ) : (
+          <Icon name={icon} size={20} color="currentColor" />
+        )}
       </span>
       <span className="vt-crow__main">
         <span className="vt-crow__title">{title}</span>

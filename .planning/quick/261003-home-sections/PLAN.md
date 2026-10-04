@@ -39,7 +39,7 @@ codes and numbers, Lucide icons through `Icon`, every visible string in `app/vam
 |---|---|
 | J1 Vehicle classes | new `app/home/VehicleClasses.dc.html` |
 | J2 Where we drive | new `app/home/WhereWeDrive.dc.html`; `app/home/HowItWorks.dc.html` (remove destinations block, fix card-02 overlay) |
-| J3 At the airport + Closing band | new `app/home/AirportMeet.dc.html`, new `app/home/ClosingCta.dc.html` |
+| J3 At the airport + Closing band | new `app/home/AirportMeet.dc.html`, new `app/home/ClosingCta.dc.html` | — ClosingCta removed 2026-10-03 (owner).
 | J4 Services | `app/home/Services.dc.html`, `app/home/ServiceCard.dc.html` |
 | J5 Reviews | `app/home/Reviews.dc.html` (per-platform score from published rows grouped by `source`; hide rule ≥ 3) |
 | J6 Why book with us + Business travel | new `app/home/TrustFacts.dc.html`, new `app/home/BusinessTravel.dc.html` |

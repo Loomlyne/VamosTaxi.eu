@@ -63,7 +63,7 @@ body{margin:0;background:var(--vt-grey-100)}
 </div>
 <div data-bg-card="1">
 <div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">3</span><span>From suggestions open</span></div>
-<div data-bg-frame="1" data-size="ph"><dc-import name="BookingSheet" inline="{{ yes }}" fromText="Zurich" fromHits="{{ hits }}" hint-size="100%,100%"></dc-import></div>
+<div data-bg-frame="1" data-size="ph"><dc-import name="BookingSheet" inline="{{ yes }}" fromText="Zurich" fromHits="{{ hits }}" fromSugHead="Search results" hint-size="100%,100%"></dc-import></div>
 </div>
 <div data-bg-card="1">
 <div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">4</span><span>Airport pickup, flight number directly under From (required)</span></div>
@@ -83,7 +83,7 @@ body{margin:0;background:var(--vt-grey-100)}
 </div>
 <div data-bg-card="1">
 <div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">8</span><span>To suggestions open</span></div>
-<div data-bg-frame="1" data-size="ph"><dc-import name="BookingSheet" inline="{{ yes }}" fromText="Zurich Airport (ZRH)" fromChosen="{{ yes }}" fromAirport="{{ yes }}" flight="LX 318" toText="Zurich" toHits="{{ hits }}" hint-size="100%,100%"></dc-import></div>
+<div data-bg-frame="1" data-size="ph"><dc-import name="BookingSheet" inline="{{ yes }}" fromText="Zurich Airport (ZRH)" fromChosen="{{ yes }}" fromAirport="{{ yes }}" flight="LX 318" toText="Zurich" toHits="{{ hits }}" toSugHead="Search results" hint-size="100%,100%"></dc-import></div>
 </div>
 <div data-bg-card="1">
 <div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">9</span><span>Same place (warning)</span></div>
@@ -107,7 +107,7 @@ body{margin:0;background:var(--vt-grey-100)}
 </div>
 <div data-bg-card="1">
 <div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">14</span><span>Keyboard open (390 by 420)</span></div>
-<div data-bg-frame="1" data-size="kb"><dc-import name="BookingSheet" inline="{{ yes }}" fromText="Bahn" fromHits="{{ hits }}" hint-size="100%,100%"></dc-import></div>
+<div data-bg-frame="1" data-size="kb"><dc-import name="BookingSheet" inline="{{ yes }}" fromText="Bahn" fromHits="{{ hitsBahn }}" fromSugHead="Search results" hint-size="100%,100%"></dc-import></div>
 </div>
 <div data-bg-card="1">
 <div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">15</span><span>Right to left, forced: airport with flight</span></div>
@@ -121,24 +121,53 @@ body{margin:0;background:var(--vt-grey-100)}
 <div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">17</span><span>Tablet 768 by 1024: centred column</span></div>
 <div data-bg-frame="1" data-size="tab"><dc-import name="BookingSheet" inline="{{ yes }}" fromText="Zurich Airport (ZRH)" fromChosen="{{ yes }}" toText="Bahnhofstrasse 1" toChosen="{{ yes }}" dayNum="{{ n6 }}" dateLabel="Tue 6 Oct" time="08:15" baseMonth="2026-10" pax="{{ n2 }}" bags="{{ n1 }}" hint-size="100%,100%"></dc-import></div>
 </div>
+<div data-bg-card="1">
+<div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">18</span><span>Suggestions: active row (keyboard)</span></div>
+<div data-bg-frame="1" data-size="ph"><dc-import name="BookingSheet" inline="{{ yes }}" fromText="Zurich" fromHits="{{ hits }}" fromSugHead="Search results" fromActive="{{ n1 }}" hint-size="100%,100%"></dc-import></div>
+</div>
+<div data-bg-card="1">
+<div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">19</span><span>Suggestions: loading (skeleton)</span></div>
+<div data-bg-frame="1" data-size="ph"><dc-import name="BookingSheet" inline="{{ yes }}" fromText="Zurich" fromSugState="loading" fromSugHead="Search results" hint-size="100%,100%"></dc-import></div>
+</div>
+<div data-bg-card="1">
+<div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">20</span><span>Suggestions: nothing found</span></div>
+<div data-bg-frame="1" data-size="ph"><dc-import name="BookingSheet" inline="{{ yes }}" fromText="Zxqvw" fromSugState="empty" fromSugQ="Zxqvw" hint-size="100%,100%"></dc-import></div>
+</div>
+<div data-bg-card="1">
+<div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">21</span><span>Suggestions: Popular, field empty</span></div>
+<div data-bg-frame="1" data-size="ph"><dc-import name="BookingSheet" inline="{{ yes }}" fromHits="{{ popular }}" fromSugHead="Popular" hint-size="100%,100%"></dc-import></div>
+</div>
+<div data-bg-card="1">
+<div data-bg-cap="1" data-vt-no-i18n><span data-bg-n="1">22</span><span>Right to left, forced: suggestions</span></div>
+<div data-bg-frame="1" data-size="ph" dir="rtl"><dc-import name="BookingSheet" inline="{{ yes }}" fromText="Zurich" fromHits="{{ hits }}" fromSugHead="Search results" fromActive="{{ n1 }}" hint-size="100%,100%"></dc-import></div>
+</div>
 </div>
 </section>
 <dc-import name="BookingSheet" open="{{ live.open }}" fromText="{{ live.fromText }}" fromHits="{{ live.fromHits }}" fromChosen="{{ live.fromChosen }}" fromAirport="{{ live.fromAirport }}" toText="{{ live.toText }}" toHits="{{ live.toHits }}" toChosen="{{ live.toChosen }}" samePlace="{{ live.samePlace }}" flight="{{ live.flight }}" flightOpen="{{ live.flightOpen }}" flightValid="{{ live.flightValid }}" dayNum="{{ live.dayNum }}" dateLabel="{{ live.dateLabel }}" time="{{ live.time }}" baseMonth="{{ live.baseMonth }}" lang="{{ live.lang }}" pax="{{ live.pax }}" bags="{{ live.bags }}" onFromInput="{{ h.fromInput }}" onFromPick="{{ h.fromPick }}" onFromClear="{{ h.fromClear }}" onToInput="{{ h.toInput }}" onToPick="{{ h.toPick }}" onToClear="{{ h.toClear }}" onFlight="{{ h.flight }}" onFlightOpen="{{ h.flightOpen }}" onDay="{{ h.day }}" onTime="{{ h.time }}" onWhenClear="{{ h.whenClear }}" onPax="{{ h.pax }}" onBags="{{ h.bags }}" onClose="{{ h.close }}" onSubmit="{{ h.submit }}" hint-size="0,0"></dc-import>
 
 </x-dc>
 <script type="text/x-dc" data-dc-script>
+const KINDS = { airport: ['plane', 'Airport'], hotel: ['bed', 'Hotel'], station: ['train-front', 'Station'], address: ['map-pin', 'Address'], city: ['map', 'City'] };
 const PLACES = [
-  { id: 'zrh', name: 'Zurich Airport (ZRH)', sub: 'Kloten', air: true, icon: 'plane-landing' },
-  { id: 'hb', name: 'Zurich Hauptbahnhof', sub: 'Bahnhofplatz 15, Zurich', icon: 'map-pin' },
-  { id: 'bs', name: 'Bahnhofstrasse 1', sub: 'Zurich', icon: 'map-pin' },
-  { id: 'gva', name: 'Geneva Airport (GVA)', sub: 'Grand-Saconnex', air: true, icon: 'plane-landing' },
+  { id: 'zrh', name: 'Zurich Airport (ZRH)', sub: '8302 Kloten, Switzerland', air: true, kind: 'airport' },
+  { id: 'hb', name: 'Zurich Hauptbahnhof', sub: '8001 Zurich, Switzerland', kind: 'station' },
+  { id: 'bs', name: 'Bahnhofstrasse 1', sub: '8001 Zurich, Switzerland', kind: 'address' },
+  { id: 'gva', name: 'Geneva Airport (GVA)', sub: '1215 Le Grand-Saconnex, Switzerland', air: true, kind: 'airport' },
+  { id: 'baur', name: 'Baur au Lac', sub: 'Talstrasse 1, 8001 Zurich', kind: 'hotel' },
+  { id: 'zh', name: 'Zurich', sub: 'Switzerland', kind: 'city' },
 ];
+/** Same shape home sends: kind, kind label, the typed letters split out of the name. */
+const row = (x, q) => {
+  const i = q ? x.name.toLowerCase().indexOf(String(q).toLowerCase()) : -1;
+  const k = KINDS[x.kind];
+  return { id: x.id, name: x.name, pre: i < 0 ? x.name : x.name.slice(0, i), hit: i < 0 ? '' : x.name.slice(i, i + q.length), post: i < 0 ? '' : x.name.slice(i + q.length), sub: x.sub, kind: x.kind, kindLabel: k[1], icon: k[0], tone: '' };
+};
 const hitsFor = (text) => {
   const q = String(text || '').trim().toLowerCase();
   if (!q) return [];
-  return PLACES.filter((x) => x.name.toLowerCase().indexOf(q) >= 0 || x.sub.toLowerCase().indexOf(q) >= 0)
-    .map((x) => ({ id: x.id, name: x.name, sub: x.sub, icon: x.icon, tone: x.air ? '' : '' }));
+  return PLACES.filter((x) => x.name.toLowerCase().indexOf(q) >= 0 || x.sub.toLowerCase().indexOf(q) >= 0).map((x) => row(x, q));
 };
+const popular = () => ['zrh', 'gva', 'hb', 'baur'].map((id) => row(PLACES.filter((x) => x.id === id)[0], ''));
 const EMPTY = () => ({ open: false, fromText: '', fromId: '', fromChosen: false, fromAirport: false, toText: '', toId: '', toChosen: false, flight: '', flightOpen: false, day: 0, dayLabel: '', dayY: 0, dayM: 0, time: '', pax: 1, bags: 0 });
 class Component extends DCLogic {
   constructor(props) { super(props); this.state = Object.assign(EMPTY(), { log: 'no submit yet' }); }
@@ -157,7 +186,7 @@ class Component extends DCLogic {
     const flightValid = !s.flight.trim() || /^[A-Za-z0-9]{2}\s?\d{1,4}$/.test(s.flight.trim());
     return {
       yes: true, n0: 0, n1: 1, n2: 2, n3: 3, n5: 5, n6: 6,
-      hits: hitsFor('zur').slice(0, 3), log: s.log,
+      hits: hitsFor('zur').slice(0, 5), hitsBahn: hitsFor('bahn'), popular: popular(), log: s.log,
       openEmpty: () => this._open(false), openTrip: () => this._open(true),
       live: {
         open: s.open, fromText: s.fromText, fromHits: s.fromChosen ? [] : hitsFor(s.fromText), fromChosen: s.fromChosen, fromAirport: s.fromAirport,

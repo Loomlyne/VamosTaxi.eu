@@ -1,7 +1,7 @@
 // apps/web/tests/unit/home-laptop-bar-2641.test.ts
 //
 // Phase 26.4.1 (D-01..D-04): text pins for the laptop booking bar in home.dc.html.
-// >=1081 two rows, >=1360 one row; <=1080 stays the 26.4 bar + sheet.
+// >=1081 two rows, >=1360 one row; <=680 stays the 26.4 bar + sheet (owner moved the boundary from 1080, R2-2); 681-1080 is the tablet card.
 
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -61,7 +61,7 @@ describe("home.dc.html laptop bar (26.4.1-01)", () => {
   });
 
   it("keeps the 26.4 pins", () => {
-    expect(raw).toContain("matchMedia('(max-width:1080px)')");
-    expect(raw).toContain("@media (max-width:1080px){\n[data-bookcard]{display:none!important}");
+    expect(raw).toContain("matchMedia('(max-width:680px)')");
+    expect(raw).toContain("@media (max-width:680px){\n[data-bookcard]{display:none!important}");
   });
 });

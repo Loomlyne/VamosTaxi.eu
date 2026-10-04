@@ -6,7 +6,7 @@ No database change, no migration, no API change, no money / sign-in code. Not de
 
 ## What changed (customer-facing: the live home is the DC mock)
 - New: `app/home/VehicleClasses.dc.html`, `WhereWeDrive.dc.html`, `AirportMeet.dc.html`, `TrustFacts.dc.html`,
-  `BusinessTravel.dc.html`, `ClosingCta.dc.html`.
+  `BusinessTravel.dc.html`, `ClosingCta.dc.html`. ClosingCta removed 2026-10-03 (owner).
 - Rebuilt: `app/home/Services.dc.html` + `ServiceCard.dc.html`, `Reviews.dc.html`, `FAQ.dc.html`.
 - `app/home/HowItWorks.dc.html`: destinations block removed (moved to WhereWeDrive); card 02 name board no longer covers the arrivals rows.
 - `app/home/home.dc.html`: new section order; `vamos:dest-pick` now also fills **From** (airport) — with both mapbox ids on fixed routes

@@ -51,7 +51,7 @@ a[data-crow][data-crow]:focus-visible,a[data-crow][data-s="focus"]{outline:none!
 @media (prefers-reduced-motion:reduce){a[data-crow][data-crow]{transition:none}}</style>
 </helmet>
 <a data-crow="1" data-size="{{ size }}" data-s="{{ stateAttr }}" href="{{ href }}" target="{{ target }}" rel="{{ rel }}" onClick="{{ follow }}">
-<span data-crow-lead="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ icon }}" size="{{ n20 }}" color="currentColor" hint-size="20px,20px"></x-import></span>
+<span data-crow-lead="1" aria-hidden="true"><sc-if value="{{ hasLogo }}" hint-placeholder-val="{{ false }}"><img src="{{ logo }}" alt="" width="22" height="22" data-vt-no-i18n="1" style="display:block;inline-size:22px;block-size:22px"></sc-if><sc-if value="{{ noLogo }}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ icon }}" size="{{ n20 }}" color="currentColor" hint-size="20px,20px"></x-import></sc-if></span>
 <span data-crow-main="1">
 <span data-crow-title="1">{{ title }}</span>
 <sc-if value="{{ keep }}" hint-placeholder-val="{{ true }}"><span data-crow-sub="1" class="vt-dir-keep" data-vt-no-i18n="1">{{ sub }}</span></sc-if>
@@ -60,9 +60,9 @@ a[data-crow][data-crow]:focus-visible,a[data-crow][data-s="focus"]{outline:none!
 <sc-if value="{{ hasEnd }}" hint-placeholder-val="{{ true }}"><span data-crow-end="1" aria-hidden="true"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ endIcon }}" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import></span></sc-if>
 </a>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:344,&quot;height&quot;:64},&quot;icon&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;phone&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;title&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Call us&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;sub&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;+41 79 626 70 82&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;keep&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;href&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;tel:+41796267082&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;endIcon&quot;:{&quot;editor&quot;:&quot;select&quot;,&quot;options&quot;:[&quot;&quot;,&quot;external-link&quot;,&quot;chevron-right&quot;],&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;newTab&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;size&quot;:{&quot;editor&quot;:&quot;select&quot;,&quot;options&quot;:[&quot;card&quot;,&quot;sheet&quot;],&quot;default&quot;:&quot;card&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;state&quot;:{&quot;editor&quot;:&quot;select&quot;,&quot;options&quot;:[&quot;&quot;,&quot;hover&quot;,&quot;press&quot;,&quot;focus&quot;],&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;onFollow&quot;:{&quot;editor&quot;:&quot;none&quot;,&quot;tsType&quot;:&quot;() =&gt; void&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:344,&quot;height&quot;:64},&quot;icon&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;phone&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;title&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Call us&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;logo&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;sub&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;+41 79 626 70 82&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;keep&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;href&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;tel:+41796267082&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;endIcon&quot;:{&quot;editor&quot;:&quot;select&quot;,&quot;options&quot;:[&quot;&quot;,&quot;external-link&quot;,&quot;chevron-right&quot;],&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;newTab&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;size&quot;:{&quot;editor&quot;:&quot;select&quot;,&quot;options&quot;:[&quot;card&quot;,&quot;sheet&quot;],&quot;default&quot;:&quot;card&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;state&quot;:{&quot;editor&quot;:&quot;select&quot;,&quot;options&quot;:[&quot;&quot;,&quot;hover&quot;,&quot;press&quot;,&quot;focus&quot;],&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;onFollow&quot;:{&quot;editor&quot;:&quot;none&quot;,&quot;tsType&quot;:&quot;() =&gt; void&quot;}}">
 /* One contact row. The host passes copy in English; the locale runtime translates the
-   title and a plain second line. A number or address (keep) is never translated and stays
+   title and a plain second line. `logo` (a brand mark, e.g. the WhatsApp glyph) replaces the Lucide icon in the lead. A number or address (keep) is never translated and stays
    left-to-right inside Arabic. `state` pins a look for the states gallery only. */
 class Component extends DCLogic {
   renderVals() {
@@ -73,6 +73,9 @@ class Component extends DCLogic {
     return {
       n16: 16, n20: 20,
       icon: p.icon || 'phone',
+      logo: p.logo || '',
+      hasLogo: !!p.logo,
+      noLogo: !p.logo,
       title: p.title || '',
       sub: p.sub || '',
       keep: keep && !!p.sub,

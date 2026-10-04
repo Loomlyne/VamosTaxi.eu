@@ -1,0 +1,54 @@
+/* R2-3 proposal — "Where we drive" route rows. Tokens only. No glow, no tinted yellow.
+   Coder: drop the `[data-ww-opt="A"]` / `[data-ww-opt="B"]` prefix once the owner picks one,
+   and replace the existing [data-ww-row] / [data-ww-row]:hover / :active rules in WhereWeDrive.dc.html
+   (app/home + app/pages twin, byte-identical). `[data-force=…]` selectors exist only so the states board can freeze a state. */
+
+/* Shared: root-cause fix. `a:hover{color:var(--vt-text-link-hover)}` (specificity 0,1,1, declared by home.dc.html, FAQ, Services...)
+   beats `[data-ww-row]{color}` (0,1,0), so the hovered row turned --vt-yellow-700 = #A67B05. Every state below sets colour explicitly. */
+[data-ww-opt] [data-ww-row]{
+  margin-inline:calc(-1 * var(--vt-space-3));padding-inline:var(--vt-space-3);
+  border-block-end-color:var(--vt-border-subtle);
+  -webkit-tap-highlight-color:transparent;
+}
+[data-ww-opt] [data-ww-row]:is(:hover,:focus-visible,:active,[data-force]){text-decoration:none;border-radius:var(--vt-radius-md)}
+[data-ww-opt] [data-ww-row]:not(:hover,:focus-visible,:active,[data-force]){border-radius:0}
+[data-ww-opt] [data-ww-arrow],[data-ww-opt] [data-ww-chev]{transition:color var(--vt-dur-fast) var(--vt-ease-standard),translate var(--vt-dur-fast) var(--vt-ease-standard)}
+
+/* ── A · charcoal fill, white text, yellow arrows, chevron slides inline-end ── */
+@media (hover:hover){
+  [data-ww-opt="A"] [data-ww-row]:hover{background:var(--vt-charcoal-900);color:var(--vt-white);border-block-end-color:var(--vt-charcoal-900)}
+}
+[data-ww-opt="A"] [data-ww-row][data-force="hover"],
+[data-ww-opt="A"] [data-ww-row]:focus-visible,
+[data-ww-opt="A"] [data-ww-row][data-force="focus"]{background:var(--vt-charcoal-900);color:var(--vt-white);border-block-end-color:var(--vt-charcoal-900)}
+[data-ww-opt="A"] [data-ww-row]:active,[data-ww-opt="A"] [data-ww-row][data-force="press"]{background:var(--vt-charcoal-800);color:var(--vt-white);border-block-end-color:var(--vt-charcoal-800);transform:translateY(1px)}
+@media (hover:hover){
+  [data-ww-opt="A"] [data-ww-row]:hover :is([data-ww-arrow],[data-ww-chev]){color:var(--vt-accent)}
+  [data-ww-opt="A"] [data-ww-row]:hover [data-ww-chev]{translate:var(--ww-nudge,4px) 0}
+  [data-ww-opt="A"] [data-ww-row]:hover [data-ww-tag]{background:var(--vt-accent);color:var(--vt-charcoal-900)}
+}
+[data-ww-opt="A"] [data-ww-row]:is(:focus-visible,:active,[data-force]) :is([data-ww-arrow],[data-ww-chev]){color:var(--vt-accent)}
+[data-ww-opt="A"] [data-ww-row]:is(:focus-visible,:active,[data-force]) [data-ww-chev]{translate:var(--ww-nudge,4px) 0}
+[data-ww-opt="A"] [data-ww-row]:is(:focus-visible,:active,[data-force]) [data-ww-tag]{background:var(--vt-accent);color:var(--vt-charcoal-900)}
+[data-ww-opt="A"] [data-ww-row]:focus-visible,[data-ww-opt="A"] [data-ww-row][data-force="focus"]{box-shadow:var(--vt-ring)}
+
+/* ── B · full-strength yellow fill, charcoal text and arrows ── */
+@media (hover:hover){
+  [data-ww-opt="B"] [data-ww-row]:hover{background:var(--vt-accent);color:var(--vt-charcoal-900);border-block-end-color:var(--vt-accent)}
+}
+[data-ww-opt="B"] [data-ww-row][data-force="hover"],
+[data-ww-opt="B"] [data-ww-row]:focus-visible,
+[data-ww-opt="B"] [data-ww-row][data-force="focus"]{background:var(--vt-accent);color:var(--vt-charcoal-900);border-block-end-color:var(--vt-accent)}
+[data-ww-opt="B"] [data-ww-row]:active,[data-ww-opt="B"] [data-ww-row][data-force="press"]{background:var(--vt-accent-hover);color:var(--vt-charcoal-900);border-block-end-color:var(--vt-accent-hover);transform:translateY(1px)}
+@media (hover:hover){
+  [data-ww-opt="B"] [data-ww-row]:hover :is([data-ww-arrow],[data-ww-chev]){color:var(--vt-charcoal-900)}
+  [data-ww-opt="B"] [data-ww-row]:hover [data-ww-chev]{translate:var(--ww-nudge,4px) 0}
+}
+[data-ww-opt="B"] [data-ww-row]:is(:focus-visible,:active,[data-force]) :is([data-ww-arrow],[data-ww-chev]){color:var(--vt-charcoal-900)}
+[data-ww-opt="B"] [data-ww-row]:is(:focus-visible,:active,[data-force]) [data-ww-chev]{translate:var(--ww-nudge,4px) 0}
+/* focus ring on yellow would vanish: a charcoal 2px inner outline keeps focus visible (border change, no glow) */
+[data-ww-opt="B"] [data-ww-row]:focus-visible,[data-ww-opt="B"] [data-ww-row][data-force="focus"]{box-shadow:inset 0 0 0 2px var(--vt-charcoal-900)}
+
+/* RTL: the arrows already mirror (scaleX(-1)); the nudge must go the other way. */
+[dir="rtl"] [data-ww-opt]{--ww-nudge:-4px}
+@media (prefers-reduced-motion:reduce){[data-ww-opt] [data-ww-arrow],[data-ww-opt] [data-ww-chev]{transition:none}[data-ww-opt] [data-ww-chev]{translate:none!important}[data-ww-opt] [data-ww-row]:active{transform:none}}

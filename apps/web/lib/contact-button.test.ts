@@ -15,7 +15,7 @@ vi.mock("next-intl/navigation", () => ({
     Link: ({ href, children, ...rest }: { href: string; children?: unknown }) => createElement("a", { href, ...rest }, children as never),
   }),
 }));
-import { CONTACT_CHANNELS, HIDE_FLAGS, contactPath, isTextField, triggerLabelKey } from "./contact-button";
+import { CONTACT_CHANNELS, HIDE_FLAGS, WHATSAPP_GREEN, WHATSAPP_LOGO_WHITE, contactPath, isTextField, triggerLabelKey } from "./contact-button";
 import { ContactButton } from "@/components/shell/ContactButton";
 
 const REPO = join(WEB_ROOT, "..", "..");
@@ -76,7 +76,7 @@ describe("twins and channels", () => {
 
   it("four rows in the owner's order with the exact hrefs, in the card and in the sheet", () => {
     const rowsOf = (html: string, size: string) =>
-      [...html.matchAll(/<dc-import name="ContactRow" icon="([^"]+)" title="([^"]+)"[^>]*?href="([^"]+)"[^>]*?size="([a-z]+)" onFollow/g)]
+      [...html.matchAll(/<dc-import name="ContactRow" icon="([^"]+)"(?: logo="[^"]+")? title="([^"]+)"[^>]*?href="([^"]+)"[^>]*?size="([a-z]+)" onFollow/g)]
         .filter((m) => m[4] === size)
         .map((m) => [m[2], m[3]]);
     const want = [
@@ -176,7 +176,7 @@ describe("where the float steps aside", () => {
 describe("accessibility markup", () => {
   it("trigger: aria-expanded, aria-controls and a label; card is a dialog; sheet is a modal dialog", () => {
     const triggers = BTN.pages.match(/data-cb-trigger="1"[^>]*>/g) ?? [];
-    expect(triggers.length).toBe(3);
+    expect(triggers.length).toBe(2);
     for (const t of triggers) {
       expect(t).toContain('aria-expanded="{{ openStr }}"');
       expect(t).toContain('aria-controls="{{ ariaControls }}"');
@@ -222,14 +222,14 @@ describe("lib/contact-button", () => {
 });
 
 describe("React twin renders closed with the right names", () => {
-  it("float: pill and disc, both named 'Open contact options', aria-expanded false", () => {
+  it("float: one animated button named 'Open contact options', aria-expanded false", () => {
     const messages = JSON.parse(read("apps/web/i18n/messages/de.json"));
     const html = renderToStaticMarkup(
       createElement(NextIntlClientProvider, { locale: "de", messages, children: createElement(ContactButton) }),
     );
     expect(html).toContain('data-contact-btn="1"');
     expect(html).toContain('data-variant="float"');
-    expect(html.match(/aria-label="Kontaktoptionen öffnen"/g)?.length).toBe(2);
+    expect(html.match(/aria-label="Kontaktoptionen öffnen"/g)?.length).toBe(1);
     expect(html).toContain('aria-expanded="false"');
     expect(html).toContain("Kontakt");
     expect(html).not.toContain('role="dialog"');
@@ -250,7 +250,7 @@ function openDc(narrow = false) {
   const el = (name: string, inside: boolean) => ({ name, inside, focus: () => focused.push(name), getClientRects: () => [1] });
   const trigger = el("trigger", true);
   const panel = { ...el("panel", true), contains: (n: { inside?: boolean }) => !!n && n.inside === true, querySelectorAll: () => [] };
-  const root = { contains: (n: { inside?: boolean }) => !!n && n.inside === true, querySelector: () => trigger, parentElement: null };
+  const root = { contains: (n: { inside?: boolean }) => !!n && n.inside === true, querySelector: () => trigger, parentElement: null, addEventListener: () => undefined, removeEventListener: () => undefined };
   const html = { attrs: {} as Record<string, string>, setAttribute(k: string, v: string) { this.attrs[k] = v; }, removeAttribute(k: string) { delete this.attrs[k]; } };
   const document = {
     documentElement: html,
@@ -264,7 +264,7 @@ function openDc(narrow = false) {
   const win = {
     location: { search: "" },
     innerWidth: narrow ? 390 : 1440, innerHeight: 844,
-    matchMedia: () => ({ matches: narrow, addEventListener: () => undefined }),
+    matchMedia: (q: string) => ({ matches: /max-width/.test(q) ? narrow : false, addEventListener: () => undefined }),
     addEventListener: () => undefined, removeEventListener: () => undefined,
     VamosLocale: { lang: () => "de", onChange: () => () => undefined },
   };
@@ -301,13 +301,13 @@ describe("DC menu logic", () => {
   it("opens on the trigger, moves focus into the menu, Esc closes and returns focus", () => {
     const { c, fire, focused } = openDc();
     const v = c.renderVals();
-    expect(v.showPill).toBe(true);
+    expect(v.showFloat).toBe(true);
     expect(v.triggerLabel).toBe("Open contact options");
     expect(v.contactHref).toBe("/de/contact");
     (v.toggle as () => void)();
     expect(c.state.open).toBe(true);
     expect(c.renderVals().showCard).toBe(true);
-    expect(c.renderVals().pillLabel).toBe("Close");
+    expect(c.renderVals().floatLabel).toBe("Close");
     expect(c.renderVals().ariaControls).toMatch(/^vt-cb-[a-z0-9]+-menu$/);
     expect(focused).toEqual(["panel"]);
     let prevented = false;
@@ -329,11 +329,76 @@ describe("DC menu logic", () => {
     expect(focused.at(-1)).toBe("trigger");
   });
 
+  it("the float cycles WhatsApp us, Call us, Email us by itself and stands still for the menu", () => {
+    const { c, flush } = openDc(true);
+    const label = () => c.renderVals().floatLabel;
+    expect(c.renderVals().xAttr).toBe("0");
+    expect(label()).toBe("Contact");
+    flush();
+    expect(c.renderVals().xAttr).toBe("1");
+    expect(label()).toBe("WhatsApp us");
+    expect(c.renderVals().isWa).toBe(true);
+    expect(c.renderVals().chAttr).toBe("whatsapp");
+    (c.renderVals().toggle as () => void)();
+    expect(c.renderVals().xAttr).toBe("0");
+    expect(label()).toBe("Close");
+    expect(c.renderVals().floatIcon).toBe("x");
+  });
+
+  it("under reduced motion nothing cycles: the plain closed button", () => {
+    const { c, flush } = openDc(true);
+    c.state.reduced = true;
+    flush();
+    expect(c.renderVals().xAttr).toBe("0");
+    expect(c.renderVals().floatIcon).toBe("message-circle");
+  });
+
+  it("over the footer the button takes the brand-yellow ground; both observers, no scroll handler", () => {
+    const { c } = openDc(true);
+    c.state.over = true;
+    expect(c.renderVals().overAttr).toBe("1");
+    expect(c.renderVals().iconColor).toBe("var(--vt-charcoal-900)");
+    expect(BTN.pages).toContain("footer[data-screen-label=\"Footer\"]");
+    expect(styles(BTN.pages)).toContain("button[data-cb-float][data-over=\"1\"]{background:var(--vt-accent)");
+    expect(BTN.pages).not.toMatch(/addEventListener\('scroll'/);
+    expect(BTN.pages).toContain('aria-hidden="true">{{ floatLabel }}');
+  });
+
+  it("the WhatsApp rows lead with the brand logo, not the Lucide message-circle", () => {
+    expect(BTN.pages.match(/logo="\/assets\/social\/whatsapp\.svg"/g)?.length).toBe(4);
+    expect(ROW.pages).toContain("hasLogo");
+  });
+
+  it("the WhatsApp step is WhatsApp green with the white logo and a charcoal label, on the page and over the footer", () => {
+    expect(WHATSAPP_GREEN).toBe("#25D366");
+    const green = /\[data-ch="whatsapp"\][^}]*\{background:#25D366;color:var\(--vt-charcoal-900\)\}/;
+    for (const css of [styles(BTN.pages), styles(BTN.home)]) {
+      expect(css).toMatch(green);
+      expect(css).toContain('[data-ch="whatsapp"][data-over="1"]:active');
+      expect(css).toContain(WHATSAPP_LOGO_WHITE);
+      expect(css).not.toContain("mask:url(/assets/social/whatsapp.svg)");
+    }
+    expect(reactCss).toContain("background: #25d366;");
+    expect(reactCss).toContain('.vt-cbtn__float[data-ch="whatsapp"][data-over="1"]');
+    expect(reactCss).toContain(WHATSAPP_LOGO_WHITE);
+    expect(reactCss).not.toMatch(/mask:\s*url/);
+    // the green exists nowhere else in the float's rules
+    expect(styles(BTN.pages).match(/background:#25D366/gi)?.length).toBe(1);
+    const { c, flush } = openDc(true);
+    flush();
+    expect(c.renderVals().chAttr).toBe("whatsapp");
+    c.state.over = true;
+    expect(c.renderVals().chAttr).toBe("whatsapp");
+    expect(c.renderVals().isWa).toBe(true);
+    // gallery pictures both WhatsApp states
+    expect(BTN.pages).toContain('data-ch="{{ g.ch }}"');
+  });
+
   it("following a row closes the menu; on a phone the menu is the sheet", () => {
     const { c } = openDc(true);
     const v = c.renderVals();
-    expect(v.showDisc).toBe(true);
-    expect(v.showPill).toBe(false);
+    expect(v.showFloat).toBe(true);
+    expect(v.wideAttr).toBe("0");
     (v.toggle as () => void)();
     expect(c.renderVals().showSheet).toBe(true);
     expect(c.renderVals().showCard).toBe(false);

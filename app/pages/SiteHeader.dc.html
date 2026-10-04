@@ -112,6 +112,7 @@ button[data-hd-signin]{width:calc(100% - 4px);appearance:none;-webkit-appearance
 }
 @media (prefers-reduced-motion:reduce){[data-hd-menu-btn]:active{transform:none}[data-hd-scrim],[data-hd-sheet]{animation:none}}
 @media (prefers-reduced-transparency:reduce){[data-hd-scrim]{background:rgb(17 18 18 / .86)}}
+[data-hd-wa]{display:block;flex:0 0 auto;inline-size:18px;block-size:18px}
 [data-hd-menuitem]:hover{background:var(--vt-charcoal-900);color:var(--vt-white)}
 /* The account control is the one thing in this bar that is about you. Signed out it is
    a plain outlined control; signed in it is not a link at all but a monogram disc that
@@ -281,7 +282,7 @@ button[data-hd-signin]{width:calc(100% - 4px);appearance:none;-webkit-appearance
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="mail" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
 <span>info@vamostaxi.site</span></a>
 <a data-hd-menuitem="1" href="https://wa.me/41796267082" rel="noreferrer noopener">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="message-circle" size="{{ n18 }}" color="currentColor" hint-size="18px,18px"></x-import>
+<img src="/assets/social/whatsapp.svg" width="18" height="18" alt="" data-hd-wa="1">
 <span>{{ tWhatsApp }}</span></a>
 </div>
 </div>
