@@ -3,13 +3,26 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { parse as acornParse } from "acorn";
 import { describe, expect, it } from "vitest";
+import { stripCss, stripHtml, stripJsChecked } from "../../../../scripts/strip-public-comments.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const webRoot = join(here, "../..");
 const repoRoot = join(webRoot, "../..");
 // Built from parts so this file does not itself carry the ref.
 const PROJECT_REF = ["yaumjzvyl", "ngfjhtuffqs"].join("");
+// An internal note in a served text file: an ADR or decision id, a planning path, the project ref.
+const INTERNAL_NOTE = new RegExp(`\\bADR-\\d|\\bD-\\d{2,}\\b|\\.planning\\b|${PROJECT_REF}`);
+
+const JS_SCRIPT_TYPES = new Set(["", "text/javascript", "application/javascript", "module", "text/x-dc", "text/babel"]);
+
+/** The bodies of the JS `<script>` blocks of a page (the same types the strip reads). */
+function jsScriptBlocks(html: string): string[] {
+  return [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)]
+    .filter((m) => JS_SCRIPT_TYPES.has((/\stype\s*=\s*["']?([^"'\s>]+)/i.exec(m[1] ?? "")?.[1] ?? "").toLowerCase()))
+    .map((m) => m[2] ?? "");
+}
 
 function files(dir: string, out: string[] = []): string[] {
   for (const e of readdirSync(dir, { withFileTypes: true })) {
@@ -44,13 +57,54 @@ describe("no internal ids on public surfaces", () => {
     expect(synced, "run node scripts/sync-dc-mock-to-public.mjs first").toBe(true);
     const served = [...files(join(pub, "app")), ...files(join(pub, "_ds"))];
     expect(served.filter((f) => readFileSync(f, "utf8").includes(PROJECT_REF))).toEqual([]);
-    const pages = served.filter((f) => f.endsWith(".html") && !f.includes(`${join("app", "ops")}`));
+    // Dashboard screens (app/ops) included: the dashboard host serves them without a sign-in.
+    const pages = served.filter((f) => f.endsWith(".html"));
     expect(pages.filter((f) => readFileSync(f, "utf8").includes("<!--"))).toEqual([]);
     expect(served.filter((f) => /(readme\.md|_ds_manifest\.json|_adherence\.oxlintrc\.json)$/.test(f))).toEqual([]);
     // Served scripts, styles and the bundle carry no developer comment (licence notices aside).
-    const code = served.filter((f) => /\.(js|css)$/.test(f) && !f.includes(`${join("app", "ops")}`));
+    const code = served.filter((f) => /\.(js|css)$/.test(f));
     const commented = code.filter((f) => hasBlockComment(readFileSync(f, "utf8")));
     expect(commented).toEqual([]);
+  });
+
+  // Review of fix/hide-internal-ids: /app/ops/* is answered on the dashboard host with no staff
+  // check, so its notes (OpsDetail ~120 comment lines, support.js ~50) were readable by anyone.
+  // Every served file must be its own strip (no `//`, `/* */` or `<!-- -->` left), and every
+  // script in it must parse, or the acorn proof never ran on it and a comment could hide there.
+  it.skipIf(!synced && !process.env.CI)("the served dashboard screens (public/app/ops) are stripped like every other served file", () => {
+    expect(synced, "run node scripts/sync-dc-mock-to-public.mjs first").toBe(true);
+    const ops = files(join(pub, "app", "ops")).filter((f) => /\.(html|js|css)$/.test(f));
+    expect(ops.length).toBeGreaterThan(20);
+    const served = [...files(join(pub, "app")), ...files(join(pub, "_ds"))].filter((f) => /\.(html|js|css)$/.test(f));
+    const unstripped = served.filter((f) => {
+      const t = readFileSync(f, "utf8");
+      const again = f.endsWith(".css") ? stripCss(t) : f.endsWith(".js") ? stripJsChecked(t, f) : stripHtml(t, f);
+      return again !== t;
+    });
+    expect(unstripped).toEqual([]);
+    const unreadable: string[] = [];
+    for (const f of ops) {
+      if (f.endsWith(".css")) continue;
+      const t = readFileSync(f, "utf8");
+      const scripts = f.endsWith(".js") ? [t] : jsScriptBlocks(t);
+      for (const s of scripts) {
+        try {
+          acornParse(s, { ecmaVersion: "latest", sourceType: "script", allowReturnOutsideFunction: true, allowHashBang: true });
+        } catch (e) {
+          unreadable.push(`${f}: ${(e as Error).message}`);
+        }
+      }
+    }
+    expect(unreadable).toEqual([]);
+  });
+
+  // A served licence or readme is copied as it is (no strip): an internal note there must fail here.
+  // public/brand is committed, so this runs without a sync; app, _ds and assets are added once synced.
+  it("no served .txt or .md file carries an internal note (ADR or decision ids, .planning, project ref)", () => {
+    const notes = files(pub).filter((f) => /\.(txt|md)$/i.test(f));
+    expect(notes.some((f) => f.endsWith(join("brand", "fonts", "OFL-NotoSansArabic.txt")))).toBe(true);
+    const flagged = notes.filter((f) => INTERNAL_NOTE.test(readFileSync(f, "utf8")));
+    expect(flagged).toEqual([]);
   });
 
   // public/brand is committed and served as it is (no sync strip), so its token CSS was stripped
