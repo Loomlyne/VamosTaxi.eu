@@ -1,0 +1,4 @@
+PASS | en 390 | tech "vt-auth" (ltr) | row "Sign-in vt-auth Keeps you signed in and holds the booking while you fill it in Vamos Taxi · Supabase Up to 400 days, or until you sign out" | auth-token on page false | coverage 0 | dir ltr | sideways false
+PASS | ar 390 | tech "vt-auth" (ltr) | row "جلسة تسجيل الدخول vt-auth يُبقيك مسجَّل الدخول ويحفظ الحجز أثناء تعبئته Vamos Taxi · Supabase حتى 400 يوم، أو حتى تسجيل خروجك" | auth-token on page false | coverage 0 | dir rtl | sideways false
+PASS | en 1440 | tech "vt-auth" (ltr) | row "Sign-in vt-auth Keeps you signed in and holds the booking while you fill it in Vamos Taxi · Supabase Up to 400 days, or until you sign out" | auth-token on page false | coverage 0 | dir ltr | sideways false
+PASS | ar 1440 | tech "vt-auth" (ltr) | row "جلسة تسجيل الدخول vt-auth يُبقيك مسجَّل الدخول ويحفظ الحجز أثناء تعبئته Vamos Taxi · Supabase حتى 400 يوم، أو حتى تسجيل خروجك" | auth-token on page false | coverage 0 | dir rtl | sideways false

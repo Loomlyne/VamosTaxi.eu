@@ -146,7 +146,7 @@ test.describe("AUTH-04 auth-signout", () => {
   });
 
   test("sign-out Set-Cookie values arrive as separate getSetCookie() entries", async ({ page }) => {
-    test.fail(true, "KNOWN-RED 26.0: product — POST /api/auth signout clears the session cookie as 'sb-127-auth-token=; Path=/; SameSite=Lax' with no Max-Age or Expires, so it is emptied but not expired (assertion /max-age=0|expires=/ at the cookie loop) — owner to rule");
+    test.fail(true, "KNOWN-RED 26.0: product — POST /api/auth signout clears the session cookie as 'vt-auth=; Path=/; SameSite=Lax' with no Max-Age or Expires, so it is emptied but not expired (assertion /max-age=0|expires=/ at the cookie loop) — owner to rule");
     const email = uniqueEmail("cookies");
     await createConfirmedUser(email, PASSWORD);
     await signIn(page, email, PASSWORD);

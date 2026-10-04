@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { stripHtml } from "../../../../scripts/strip-public-comments.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const webRoot = join(here, "../..");
@@ -15,6 +16,8 @@ function readWeb(rel: string): string {
 function readRepo(rel: string): string {
   return readFileSync(join(repoRoot, rel), "utf8");
 }
+
+// Every public twin below is the source with its developer comments stripped (sync-dc-mock-to-public).
 
 describe("ops customers board", () => {
   it("does not min(uuid) when grouping booking emails", () => {
@@ -57,7 +60,7 @@ describe("ops customers board", () => {
 
   it("OpsCustomers wires save, history under Notes, and remove", () => {
     const html = readRepo("app/ops/OpsCustomers.dc.html");
-    expect(html).toBe(readWeb("public/app/ops/OpsCustomers.dc.html"));
+    expect(readWeb("public/app/ops/OpsCustomers.dc.html")).toBe(stripHtml(html));
     expect(html).toMatch(/customers\.remove/);
     expect(html).toMatch(/customers\.update/);
     expect(html).toMatch(/historyRows/);
@@ -74,7 +77,7 @@ describe("ops customers board", () => {
 
   it("customers table drops Trips and lists email + since; history is paid only", () => {
     const html = readRepo("app/ops/OpsCustomers.dc.html");
-    expect(html).toBe(readWeb("public/app/ops/OpsCustomers.dc.html"));
+    expect(readWeb("public/app/ops/OpsCustomers.dc.html")).toBe(stripHtml(html));
     expect(html).not.toMatch(/key:'trips'/);
     expect(html).toMatch(/key:'email'/);
     expect(html).toMatch(/key:'since'/);
@@ -82,16 +85,16 @@ describe("ops customers board", () => {
     expect(html).toMatch(/!!b\.paid && charged/);
   });
 
-  it("OpsBoard fare cell is start-aligned and matches the public twin", () => {
+  it("OpsBoard fare cell is start-aligned and matches the public twin (source minus comments)", () => {
     const board = readRepo("app/ops/OpsBoard.dc.html");
-    expect(board).toBe(readWeb("public/app/ops/OpsBoard.dc.html"));
+    expect(readWeb("public/app/ops/OpsBoard.dc.html")).toBe(stripHtml(board));
     expect(board).toMatch(/align:'start'/);
     expect(board).toMatch(/data-vt-fare[^}]*text-align:start/);
   });
 
   it("OpsDetail Cancel recaps then PATCHes cancelled; History tab is gone", () => {
     const html = readRepo("app/ops/OpsDetail.dc.html");
-    expect(html).toBe(readWeb("public/app/ops/OpsDetail.dc.html"));
+    expect(readWeb("public/app/ops/OpsDetail.dc.html")).toBe(stripHtml(html));
     expect(html).toMatch(/openCancel/);
     expect(html).toMatch(/status: 'cancelled'/);
     expect(html).toMatch(/value: 'resend'/);
@@ -107,7 +110,7 @@ describe("ops customers board", () => {
 
   it("OpsPricing edits the live rate book, not a draft publish chrome", () => {
     const html = readRepo("app/ops/OpsPricing.dc.html");
-    expect(html).toBe(readWeb("public/app/ops/OpsPricing.dc.html"));
+    expect(readWeb("public/app/ops/OpsPricing.dc.html")).toBe(stripHtml(html));
     expect(html).toMatch(/ops\.rates/);
     expect(html).not.toMatch(/data-price-head-publish/);
     expect(html).not.toMatch(/data-pricing-publish/);

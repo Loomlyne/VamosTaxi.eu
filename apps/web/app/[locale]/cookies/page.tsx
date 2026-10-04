@@ -103,7 +103,7 @@ export default async function CookiesPage({
               },
               {
                 slug: "session",
-                name: <CookieName plain={tCookies("name-sign-in")} tech="sb-…-auth-token" />,
+                name: <CookieName plain={tCookies("name-sign-in")} tech="vt-auth" />,
                 purpose: tCookies("session-cookie-purpose"),
                 provider: "Vamos Taxi · Supabase",
                 duration: <PendingSlot label="Session duration" />,

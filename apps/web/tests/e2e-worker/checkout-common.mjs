@@ -224,4 +224,4 @@ export const payReq = (body, { jar, ip } = {}) =>
 export const agreementRows = (email) =>
   sql(`select coalesce(json_agg(json_build_object('surface',a.surface,'choice',a.choice,'kind',a.record_kind,'version',a.text_version,'locale',a.locale,'email',a.email,'booking',a.booking_id is not null)),'[]') from public.account_agreement_records a where lower(a.email)=lower('${email}')`);
 export const consentLogCount = () => Number(sql("select count(*) from public.consent_log"));
-export const sessionCookie = (setCookies) => setCookies.some((c) => /^sb-[^=]*-auth-token(\.\d+)?=/.test(c) && !/max-age=0/i.test(c));
+export const sessionCookie = (setCookies) => setCookies.some((c) => /^vt-auth(\.\d+)?=/.test(c) && !/max-age=0/i.test(c));
