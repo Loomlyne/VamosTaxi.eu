@@ -1,5 +1,4 @@
-/* Vamos Taxi webfonts — files supplied in the brand pack (brand-guideline-vamos-taxi/FONT).
-   Qurova = display / headings / logo voice. Poppins = body + UI (SIL OFL, see assets/fonts/OFL.txt). */
+ 
 @font-face{font-family:"Qurova";src:url("../fonts/Qurova-Light.ttf") format("truetype");font-weight:300;font-style:normal;font-display:swap}
 @font-face{font-family:"Qurova";src:url("../fonts/Qurova-Regular.ttf") format("truetype");font-weight:400;font-style:normal;font-display:swap}
 @font-face{font-family:"Qurova";src:url("../fonts/Qurova-Medium.ttf") format("truetype");font-weight:500;font-style:normal;font-display:swap}

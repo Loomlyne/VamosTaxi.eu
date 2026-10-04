@@ -95,12 +95,18 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-ct] tbody td{display:grid;grid-template-columns:96px minmax(0,1fr);gap:4px 14px;padding:5px 0;color:var(--vt-text-secondary);vertical-align:top;text-align:start}
 [data-ct] tbody td::before{content:attr(data-l);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted);padding-top:2px}
 [data-ct] tbody td:first-child{font-family:var(--vt-font-mono);font-size:var(--vt-body-xs);color:var(--vt-text-primary)}
+[data-ck-name]{display:block;min-width:0;font-family:var(--vt-font-body);font-size:var(--vt-body-sm);color:var(--vt-text-primary)}
+[data-ck-plain]{display:block;font-weight:var(--vt-weight-semibold)}
+[data-ck-tech]{display:block;margin-top:2px;font-family:var(--vt-font-mono);font-size:var(--vt-body-xs);color:var(--vt-text-muted);overflow-wrap:anywhere}
+[data-ct] tbody tr[data-cookies-row] td{display:block;font-size:var(--vt-body-sm);line-height:var(--vt-body-leading);color:var(--vt-text-secondary)}
+[data-ct] tbody tr[data-cookies-row] td::before{display:none}
 @media (min-width:720px){
 [data-ct] th[scope=col]{display:table-cell;text-align:start;padding-block:0 10px;padding-inline:0 16px;border-bottom:1px solid var(--vt-charcoal-900);font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-primary);white-space:nowrap}
 [data-ct] thead{display:table-header-group}
 [data-ct] tbody tr{display:table-row;background:none;border:0;border-radius:0;padding:0;margin:0}
 [data-ct] tbody td{display:table-cell;padding:13px 16px 13px 0;border-bottom:1px solid var(--vt-grey-200)}
 [data-ct] tbody td::before{display:none}
+[data-ct] tbody tr[data-cookies-row] td{display:table-cell;padding-inline-end:0}
 }
 [data-state-row]{display:flex;flex-wrap:wrap;align-items:center;gap:10px 12px}
 :focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}
@@ -213,13 +219,14 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <caption>Strictly necessary — cannot be switched off</caption>
 <thead><tr><th scope="col">Name</th><th scope="col">Purpose</th><th scope="col">Provider</th><th scope="col">Duration</th></tr></thead>
 <tbody>
-<tr><td data-l="Name" data-vt-no-i18n="1">sb-yaumjzvylngfjhtuffqs-auth-token</td><td data-l="Purpose">Keeps you signed in and holds the booking while you fill it in</td><td data-l="Provider" data-vt-no-i18n="1">Vamos Taxi · Supabase</td><td data-l="Duration">session / refresh as issued by Supabase Auth</td></tr>
-<tr><td data-l="Name"><span class="vt-dir-keep" data-vt-no-i18n="1">consent_subject · vamosCookieConsent</span></td><td data-l="Purpose">Records which categories you allowed, so we can prove it and stop asking</td><td data-l="Provider">Vamos Taxi</td><td data-l="Duration">1 year</td></tr>
-<tr><td data-l="Name" data-vt-no-i18n="1">__stripe_mid · __stripe_sid</td><td data-l="Purpose">Fraud checks on the payment step</td><td data-l="Provider" data-vt-no-i18n="1">Stripe</td><td data-l="Duration">not in use until live payments</td></tr>
-<tr><td data-l="Name" data-vt-no-i18n="1">cf_clearance</td><td data-l="Purpose">Routes your request and keeps the site available</td><td data-l="Provider" data-vt-no-i18n="1">Cloudflare</td><td data-l="Duration">as set by Cloudflare</td></tr>
-<tr><td data-l="Name" data-vt-no-i18n="1">vamos_qs</td><td data-l="Purpose">Keeps price requests fair between visitors and blocks automated abuse</td><td data-l="Provider" data-vt-no-i18n="1">Vamos Taxi</td><td data-l="Duration">24 hours</td></tr>
-<tr><td data-l="Name" data-vt-no-i18n="1">vt_manage</td><td data-l="Purpose">Lets you open and change your booking from this browser without signing in</td><td data-l="Provider" data-vt-no-i18n="1">Vamos Taxi</td><td data-l="Duration">30 days</td></tr>
-<tr><td data-l="Name" data-vt-no-i18n="1">NEXT_LOCALE</td><td data-l="Purpose">Keeps the site in the language you chose</td><td data-l="Provider" data-vt-no-i18n="1">Vamos Taxi</td><td data-l="Duration">1 year</td></tr>
+<tr><td data-l="Name"><span data-ck-name="1"><span data-ck-plain="1">Sign-in</span><span data-ck-tech="1" class="vt-dir-keep" data-vt-no-i18n="1">sb-…-auth-token</span></span></td><td data-l="Purpose">Keeps you signed in and holds the booking while you fill it in</td><td data-l="Provider" data-vt-no-i18n="1">Vamos Taxi · Supabase</td><td data-l="Duration">Up to 400 days, or until you sign out</td></tr>
+<tr><td data-l="Name"><span data-ck-name="1"><span data-ck-plain="1">Your cookie choice</span><span data-ck-tech="1" class="vt-dir-keep" data-vt-no-i18n="1">consent_subject · vamosCookieConsent</span></span></td><td data-l="Purpose">Records which categories you allowed, so we can prove it and stop asking</td><td data-l="Provider">Vamos Taxi</td><td data-l="Duration">1 year</td></tr>
+<tr><td data-l="Name"><span data-ck-name="1"><span data-ck-plain="1">Stripe payment</span><span data-ck-tech="1" class="vt-dir-keep" data-vt-no-i18n="1">__stripe_mid · __stripe_sid</span></span></td><td data-l="Purpose">Fraud checks on the payment step</td><td data-l="Provider" data-vt-no-i18n="1">Stripe</td><td data-l="Duration">1 year · 30 minutes</td></tr>
+<tr><td data-l="Name"><span data-ck-name="1"><span data-ck-plain="1">Cloudflare check</span><span data-ck-tech="1" class="vt-dir-keep" data-vt-no-i18n="1">cf_clearance</span></span></td><td data-l="Purpose">Routes your request and keeps the site available</td><td data-l="Provider" data-vt-no-i18n="1">Cloudflare</td><td data-l="Duration">30 minutes</td></tr>
+<tr><td data-l="Name"><span data-ck-name="1"><span data-ck-plain="1">Fair pricing</span><span data-ck-tech="1" class="vt-dir-keep" data-vt-no-i18n="1">vamos_qs</span></span></td><td data-l="Purpose">Keeps price requests fair between visitors and blocks automated abuse</td><td data-l="Provider" data-vt-no-i18n="1">Vamos Taxi</td><td data-l="Duration">24 hours</td></tr>
+<tr><td data-l="Name"><span data-ck-name="1"><span data-ck-plain="1">Booking access</span><span data-ck-tech="1" class="vt-dir-keep" data-vt-no-i18n="1">vt_manage</span></span></td><td data-l="Purpose">Lets you open and change your booking from this browser without signing in</td><td data-l="Provider" data-vt-no-i18n="1">Vamos Taxi</td><td data-l="Duration">30 days</td></tr>
+<tr><td data-l="Name"><span data-ck-name="1"><span data-ck-plain="1">Review access</span><span data-ck-tech="1" class="vt-dir-keep" data-vt-no-i18n="1">vt_review</span></span></td><td data-l="Purpose">Lets you open the review form from the link in your e-mail without signing in</td><td data-l="Provider" data-vt-no-i18n="1">Vamos Taxi</td><td data-l="Duration">30 days</td></tr>
+<tr><td data-l="Name"><span data-ck-name="1"><span data-ck-plain="1">Language</span><span data-ck-tech="1" class="vt-dir-keep" data-vt-no-i18n="1">NEXT_LOCALE</span></span></td><td data-l="Purpose">Keeps the site in the language you chose</td><td data-l="Provider" data-vt-no-i18n="1">Vamos Taxi</td><td data-l="Duration">1 year</td></tr>
 </tbody>
 </table></div>
 </section>
@@ -231,21 +238,20 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <caption>Functional — off until you allow them</caption>
 <thead><tr><th scope="col">Name</th><th scope="col">Purpose</th><th scope="col">Provider</th><th scope="col">Duration</th></tr></thead>
 <tbody>
-<tr><td data-l="Name" data-vt-no-i18n="1">vamosLang</td><td data-l="Purpose">Remembers which language you read the site in</td><td data-l="Provider">Vamos Taxi</td><td data-l="Duration">until you change language</td></tr>
-<tr><td data-l="Name" data-vt-no-i18n="1">vamos:recent-places</td><td data-l="Purpose">Offers your last pickup address the next time you book</td><td data-l="Provider">Vamos Taxi</td><td data-l="Duration">until you clear it</td></tr>
+<tr><td data-l="Name"><span data-ck-name="1"><span data-ck-plain="1">Language (this browser)</span><span data-ck-tech="1" class="vt-dir-keep" data-vt-no-i18n="1">vamosLang</span></span></td><td data-l="Purpose">Remembers which language you read the site in</td><td data-l="Provider">Vamos Taxi</td><td data-l="Duration">until you change language</td></tr>
+<tr><td data-l="Name"><span data-ck-name="1"><span data-ck-plain="1">Recent addresses</span><span data-ck-tech="1" class="vt-dir-keep" data-vt-no-i18n="1">vamos:recent-places</span></span></td><td data-l="Purpose">Offers your last pickup address the next time you book</td><td data-l="Provider">Vamos Taxi</td><td data-l="Duration">until you clear it</td></tr>
 </tbody>
 </table></div>
 </section>
 
 <section id="analytics">
 <h2><span data-lg-n="1">05</span>Analytics</h2>
-<p>Which step of a booking people give up on, and which errors are breaking. Aggregated, and never used to make a decision about you.</p>
+<p>Which step of a booking people give up on. Aggregated, and never used to make a decision about you.</p>
 <div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table data-ct="1">
 <caption>Analytics — off until you allow them</caption>
 <thead><tr><th scope="col">Name</th><th scope="col">Purpose</th><th scope="col">Provider</th><th scope="col">Duration</th></tr></thead>
 <tbody>
-<tr><td data-l="Name">none</td><td data-l="Purpose">Counts visits and measures where a booking is abandoned</td><td data-l="Provider">Cloudflare Web Analytics (cookieless)</td><td data-l="Duration">not used</td></tr>
-<tr><td data-l="Name">none</td><td data-l="Purpose">Links an error report to the session that produced it</td><td data-l="Provider" data-vt-no-i18n="1">Sentry</td><td data-l="Duration">not used</td></tr>
+<tr><td data-l="Name">No cookie</td><td data-l="Purpose">Counts visits and measures where a booking is abandoned</td><td data-l="Provider">Cloudflare Web Analytics (cookieless)</td><td data-l="Duration">Nothing is stored in your browser</td></tr>
 </tbody>
 </table></div>
 
@@ -255,7 +261,6 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <h2><span data-lg-n="1">06</span>Marketing</h2>
 <div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table data-ct="1">
 <caption>Marketing</caption>
-<thead><tr><th scope="col">Name</th><th scope="col">Purpose</th><th scope="col">Provider</th><th scope="col">Duration</th></tr></thead>
 <tbody>
 <tr data-cookies-row="1"><td colspan="4" data-vt-no-i18n="1" style="font-family:var(--vt-font-body)"><sc-for list="{{ rowSegs }}" as="g" hint-placeholder-count="3"><sc-if value="{{ g.isText }}" hint-placeholder-val="{{ true }}"><span>{{ g.t }}</span></sc-if><sc-if value="{{ g.isB }}" hint-placeholder-val="{{ false }}"><strong style="font-weight:var(--vt-weight-semibold)">{{ g.t }}</strong></sc-if><sc-if value="{{ g.isCode }}" hint-placeholder-val="{{ false }}"><code class="vt-dir-keep" style="font-family:var(--vt-font-mono);font-size:.92em;background:none">{{ g.t }}</code></sc-if></sc-for></td></tr>
 </tbody>

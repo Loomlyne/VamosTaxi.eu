@@ -96,21 +96,21 @@ export default async function CookiesPage({
             rows={[
               {
                 slug: "locale",
-                name: <span data-vt-no-i18n>NEXT_LOCALE</span>,
+                name: <CookieName plain={tCookies("name-language")} tech="NEXT_LOCALE" />,
                 purpose: tCookies("language-cookie-purpose"),
                 provider: "Vamos Taxi",
                 duration: tCookies("locale-cookie-duration"),
               },
               {
                 slug: "session",
-                name: <span data-vt-no-i18n>sb-*-auth-token</span>,
+                name: <CookieName plain={tCookies("name-sign-in")} tech="sb-…-auth-token" />,
                 purpose: tCookies("session-cookie-purpose"),
                 provider: "Vamos Taxi · Supabase",
                 duration: <PendingSlot label="Session duration" />,
               },
               {
                 slug: "consent",
-                name: <span data-vt-no-i18n>consent_subject · vamosCookieConsent</span>,
+                name: <CookieName plain={tCookies("name-cookie-choice")} tech="consent_subject · vamosCookieConsent" />,
                 purpose: tCookies("consent-subject-purpose"),
                 provider: "Vamos Taxi",
                 duration: <PendingSlot label="Consent duration" />,
@@ -118,7 +118,7 @@ export default async function CookiesPage({
               {
                 // Owner-approved row, .planning/decisions/2026-10-03-vamos-qs-cookie-row.md
                 slug: "visitor",
-                name: <span data-vt-no-i18n>vamos_qs</span>,
+                name: <CookieName plain={tCookies("name-fair-pricing")} tech="vamos_qs" />,
                 purpose: tCookies("qs-cookie-purpose"),
                 provider: "Vamos Taxi",
                 duration: tCookies("qs-cookie-duration"),
@@ -126,10 +126,18 @@ export default async function CookiesPage({
               {
                 // Owner-approved row, .planning/decisions/2026-10-03-cookies-manage-locale-rows.md
                 slug: "manage",
-                name: <span data-vt-no-i18n>vt_manage</span>,
+                name: <CookieName plain={tCookies("name-booking-access")} tech="vt_manage" />,
                 purpose: tCookies("manage-cookie-purpose"),
                 provider: "Vamos Taxi",
                 duration: tCookies("manage-cookie-duration"),
+              },
+              {
+                // Owner-approved row, .planning/decisions/2026-10-04-vt-review-cookie-row.md
+                slug: "review",
+                name: <CookieName plain={tCookies("name-review-access")} tech="vt_review" />,
+                purpose: tCookies("review-cookie-purpose"),
+                provider: "Vamos Taxi",
+                duration: tCookies("review-cookie-duration"),
               },
             ]}
           />
@@ -181,5 +189,28 @@ export default async function CookiesPage({
         </div>
       </Card>
     </LegalPage>
+  );
+}
+
+/** A cookie row's name: the plain name first, the technical name small underneath (owner, 2026-10-04). */
+function CookieName({ plain, tech }: { plain: string; tech: string }) {
+  return (
+    <span style={{ display: "block", minWidth: 0 }}>
+      <span style={{ display: "block", fontWeight: "var(--vt-weight-semibold)" }}>{plain}</span>
+      <span
+        data-vt-no-i18n
+        className="vt-dir-keep"
+        style={{
+          display: "block",
+          marginBlockStart: "2px",
+          fontFamily: "var(--vt-font-mono)",
+          fontSize: "var(--vt-body-xs)",
+          color: "var(--vt-text-muted)",
+          overflowWrap: "anywhere",
+        }}
+      >
+        {tech}
+      </span>
+    </span>
   );
 }

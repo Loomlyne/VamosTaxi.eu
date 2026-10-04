@@ -1,0 +1,38 @@
+ 
+
+(() => {
+
+const __ds_ns = (window.VamosTaxiDesignSystem_245af1 = window.VamosTaxiDesignSystem_245af1 || {});
+
+const __ds_scope = {};
+
+(__ds_ns.__errors = __ds_ns.__errors || []);
+
+
+try { (() => {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+window.VamosI18nDict = {
+  de: {
+     
+    'Airport transfers': 'Flughafentransfers',
+    'City & long distance': 'Stadt- & Fernstrecken',
+    'Ski transfers': 'Skitransfers',
+    'C

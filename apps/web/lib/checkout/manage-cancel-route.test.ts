@@ -90,7 +90,10 @@ describe("POST /api/manage/cancel names the booking it cancels", () => {
     jarCookie = "token-b";
     const byRef = await POST(post({ ref: B.reference }));
     expect(byRef.status).toBe(200);
-    expect(await byRef.json()).toMatchObject({ ok: true, bookingId: B.id });
+    const answer = await byRef.json();
+    expect(answer).toMatchObject({ ok: true });
+    // The answer never carries the internal booking id (owner 2026-10-04, hide all ids).
+    expect(answer).not.toHaveProperty("bookingId");
     expect(await (await POST(post({ ref: B.reference.toLowerCase() }))).json()).toMatchObject({ ok: true });
     expect(await (await POST(post({ bookingId: B.id }))).json()).toMatchObject({ ok: true });
     expect(cancelled).toEqual([B.reference, B.reference, B.reference]);

@@ -19,6 +19,9 @@ importers:
 
   .:
     devDependencies:
+      acorn:
+        specifier: ^8.18.0
+        version: 8.18.0
       eslint:
         specifier: 10.9.1
         version: 10.9.1

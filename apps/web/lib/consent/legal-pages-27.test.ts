@@ -40,7 +40,8 @@ describe("cookies mock (27-09)", () => {
 
   it("D-30: necessary row name and duration, purpose and provider unchanged", () => {
     expect(cookies.split("consent_subject · vamosCookieConsent")).toHaveLength(2);
-    const row = cookies.match(/<tr><td data-l="Name"><span class="vt-dir-keep"[^>]*>consent_subject[\s\S]*?<\/tr>/)?.[0] ?? "";
+    // 2026-10-04: plain name first ("Your cookie choice"), technical name underneath.
+    const row = cookies.match(/<tr><td data-l="Name"><span data-ck-name="1"><span data-ck-plain="1">Your cookie choice<\/span><span data-ck-tech="1" class="vt-dir-keep"[^>]*>consent_subject[\s\S]*?<\/tr>/)?.[0] ?? "";
     expect(row).toContain("Records which categories you allowed, so we can prove it and stop asking");
     expect(row).toContain('<td data-l="Provider">Vamos Taxi</td>');
     expect(row).toContain('<td data-l="Duration">1 year</td>');

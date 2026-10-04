@@ -34,6 +34,7 @@ import { expireUnpaidBookings } from "./lib/checkout/expire-unpaid";
 import { purgeExpiredUnpaid } from "./lib/checkout/purge-unpaid";
 import { runReminder24h } from "./lib/lifecycle/reminder";
 import { probeHealth } from "./lib/health/probe";
+import { stripInternalHeaders } from "./lib/security/strip-internal-headers";
 import type { StripeQueueMessage } from "./lib/checkout/webhook";
 
 async function handleFetch(
@@ -56,10 +57,10 @@ async function handleFetch(
     const gone = new URL(inbound.url);
     gone.pathname = "/__vamos_gone";
     gone.search = "";
-    return handler.fetch(new Request(gone, inbound), env, ctx);
+    return stripInternalHeaders(await handler.fetch(new Request(gone, inbound), env, ctx));
   }
   if (gated) return gated;
-  return handler.fetch(inbound, env, ctx);
+  return stripInternalHeaders(await handler.fetch(inbound, env, ctx));
 }
 
 /**

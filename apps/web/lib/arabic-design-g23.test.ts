@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { stripCss } from "../../../scripts/strip-public-comments.mjs";
 
 /**
  * Source-level checks for quick task 261001-arabic-design-g23: the laws and
@@ -24,8 +25,8 @@ const tokenCopies = (name: "laws" | "colors") =>
 describe("laws.css", () => {
   const [source, brand] = tokenCopies("laws");
 
-  it("keeps design-system and public brand copies identical", () => {
-    expect(read(brand)).toBe(read(source));
+  it("keeps the public brand copy identical to the design-system source minus its comments (served as-is, reviewer F3)", () => {
+    expect(read(brand)).toBe(stripCss(read(source)));
   });
 
   for (const file of tokenCopies("laws")) {
@@ -86,8 +87,8 @@ describe("laws.css", () => {
 describe("colors.css", () => {
   const [source, brand] = tokenCopies("colors");
 
-  it("keeps design-system and public brand copies identical", () => {
-    expect(read(brand)).toBe(read(source));
+  it("keeps the public brand copy identical to the design-system source minus its comments (served as-is, reviewer F3)", () => {
+    expect(read(brand)).toBe(stripCss(read(source)));
   });
 
   for (const file of tokenCopies("colors")) {

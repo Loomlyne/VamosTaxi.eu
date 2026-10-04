@@ -1,0 +1,16 @@
+cookies en 390 dir ltr sideways false untranslated {"lang":"de","count":0,"strings":[],"attrs":[]}
+cookies en 1440 dir ltr sideways false untranslated {"lang":"de","count":0,"strings":[],"attrs":[]}
+cookies de 390 dir ltr sideways false untranslated {"lang":"de","count":0,"strings":[],"attrs":[]}
+cookies de 1440 dir ltr sideways false untranslated {"lang":"de","count":0,"strings":[],"attrs":[]}
+cookies fr 390 dir ltr sideways false untranslated {"lang":"fr","count":0,"strings":[],"attrs":[]}
+cookies fr 1440 dir ltr sideways false untranslated {"lang":"fr","count":0,"strings":[],"attrs":[]}
+cookies ar 390 dir rtl sideways false untranslated {"lang":"ar","count":0,"strings":[],"attrs":[]}
+cookies ar 1440 dir rtl sideways false untranslated {"lang":"ar","count":0,"strings":[],"attrs":[]}
+privacy en 390 dir ltr sideways false untranslated {"lang":"de","count":0,"strings":[],"attrs":[]}
+privacy en 1440 dir ltr sideways false untranslated {"lang":"de","count":0,"strings":[],"attrs":[]}
+privacy de 390 dir ltr sideways false untranslated {"lang":"de","count":0,"strings":[],"attrs":[]}
+privacy de 1440 dir ltr sideways false untranslated {"lang":"de","count":0,"strings":[],"attrs":[]}
+privacy fr 390 dir ltr sideways false untranslated {"lang":"fr","count":0,"strings":[],"attrs":[]}
+privacy fr 1440 dir ltr sideways false untranslated {"lang":"fr","count":0,"strings":[],"attrs":[]}
+privacy ar 390 dir rtl sideways false untranslated {"lang":"ar","count":0,"strings":[],"attrs":[]}
+privacy ar 1440 dir rtl sideways false untranslated {"lang":"ar","count":0,"strings":[],"attrs":[]}

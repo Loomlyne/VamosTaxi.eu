@@ -1,0 +1,13 @@
+import { start, open, dismissCookies, BASE } from "/Users/koss/Developer/VamosTaxi.eu/.claude/worktrees/agent-acc772106f447cb8c/scripts/test-lab/lab-browser.mjs";
+const EV = "/Users/koss/Developer/VamosTaxi.eu/.claude/worktrees/agent-acc772106f447cb8c/.planning/quick/261004-hide-internal-ids/evidence/lab";
+await start({ evidenceDir: EV });
+const m = await open({ viewport: 390, name: "x" });
+await m.page.goto(`${BASE}/review?token=AQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyA`, { waitUntil: "load" });
+await m.page.waitForTimeout(2000);
+await dismissCookies(m.page);
+await m.page.locator("header button").last().click();
+await m.page.waitForTimeout(800);
+await m.page.screenshot({ path: `${EV}/explore-menu.png` });
+console.log((await m.page.locator("body").innerText()).slice(0, 600));
+console.log(await m.page.evaluate(() => [...document.querySelectorAll("button,a,[role=option]")].map((e) => (e.getAttribute("aria-label") || e.innerText || "").trim().slice(0, 30)).filter(Boolean).join(" | ")));
+process.exit(0);

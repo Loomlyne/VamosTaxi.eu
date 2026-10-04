@@ -50,5 +50,5 @@ export async function POST(request: Request): Promise<Response> {
     flightNo,
   );
   if (!result.ok) return json({ ok: false, code: result.code }, failStatus(result.code));
-  return json({ ok: true, bookingId: result.bookingId, flightNo: result.flightNo });
+  return json({ ok: true, flightNo: result.flightNo });
 }

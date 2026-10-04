@@ -9,15 +9,6 @@ under the SIL Open Font License at all — their own name tables carry no
 licence description and no licence URL. Do not read the presence of this
 file in this folder as evidence that both families are open-licensed.
 
-This is the file `design-system/tokens/fonts.css` line 2 has been
-pointing at since it was written; until this pass, the file it pointed
-at did not exist on disk.
-
-For the full provenance of both families — what each font file's own
-name table declares, the Qurova licence cost and terms, the Arabic
-glyph-coverage gap, and the open questions still owed to the foundry —
-see `.planning/ADR-009-qurova-webfont-licence.md`.
-
 The text below this rule is the SIL Open Font License, Version 1.1,
 fetched verbatim from https://openfontlicense.org/documents/OFL.txt on
 2026-08-19, with only the copyright/holder line filled in to match what

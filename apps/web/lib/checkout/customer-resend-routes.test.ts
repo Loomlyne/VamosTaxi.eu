@@ -53,7 +53,7 @@ describe("POST /api/manage/resend (D19)", () => {
     resend.mockResolvedValue({ ok: true, bookingId: "b1", email: "anna@example.test" });
     const res = await guestPost(post({ token: "raw-token", ref: "VT-26-0801" }));
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ ok: true, bookingId: "b1", email: "anna@example.test" });
+    expect(await res.json()).toEqual({ ok: true, email: "anna@example.test" });
     expect(resend).toHaveBeenCalledWith({ tag: "env" }, { kind: "guest", manageTokenHashHex: "hash(raw-token)" }, "VT-26-0801");
   });
 
@@ -85,7 +85,7 @@ describe("POST /api/account/bookings/resend (D19)", () => {
     resend.mockResolvedValue({ ok: true, bookingId: "b2", email: "anna@example.test" });
     const res = await accountPost(post({ ref: "VT-26-0802" }));
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ ok: true, bookingId: "b2", email: "anna@example.test" });
+    expect(await res.json()).toEqual({ ok: true, email: "anna@example.test" });
     expect(resend).toHaveBeenCalledWith({ tag: "env" }, { kind: "customer", claims }, "VT-26-0802");
   });
 
