@@ -5,8 +5,9 @@ branch `fix/auth-cookie-rename` cut from `origin/main` 7c4818ec, origin/main 673
 merged in twice (7e278ea5, 31aaa688), then `origin/main` 5a027e71 (the hide-internal-ids squash, live as Worker `aecc2418`) merged in as
 `79022ec9`. No PR. Not deployed. Nothing touched on live.
 
-**Tip: `git log -1 origin/fix/auth-cookie-rename` — the commit right after `79022ec9` that updates this line. Code tree = `79022ec9`.**
-`git diff --stat origin/main HEAD`: 48 files, +743/-66 at `79022ec9` (this hand-over edit adds a few lines): only the 33 auth-rename
+**Tip: `git log -1 origin/fix/auth-cookie-rename` (17:14 +04: the commit after `147f4020`, which merged main's board note 369cbd26).
+Last code change `79022ec9`; every later commit is planning only.**
+`git diff --stat origin/main HEAD`: 48 files, about +760/-66: only the 33 auth-rename
 files, the /cookies Name in its 2 pages and 3 pins in `public-no-internal-ids.test.ts`, and this job's `.planning/quick/261004-auth-cookie-rename/` files.
 No hide-internal-ids hunk is left in that diff and none is missing (main's tree = hide-internal-ids 31aaa688's tree, which this branch held).
 
