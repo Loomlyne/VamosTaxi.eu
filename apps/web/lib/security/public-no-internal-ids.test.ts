@@ -32,14 +32,23 @@ describe("no internal ids on public surfaces", () => {
     expect(twin).toContain("sb-…-auth-token");
   });
 
-  it("the served copy (after sync) has no project ref, no HTML comments, no design-system tooling", () => {
-    const pub = join(webRoot, "public");
-    if (!existsSync(join(pub, "app"))) return; // sync runs before `pnpm test`; nothing served yet
+  // `pnpm test` syncs first. Without a synced copy the case shows as skipped locally and fails in CI.
+  const pub = join(webRoot, "public");
+  const synced = existsSync(join(pub, "app"));
+  it.skipIf(!synced && !process.env.CI)("the served copy (after sync) has no project ref, no HTML comments, no design-system tooling", () => {
+    expect(synced, "run node scripts/sync-dc-mock-to-public.mjs first").toBe(true);
     const served = [...files(join(pub, "app")), ...files(join(pub, "_ds"))];
     expect(served.filter((f) => readFileSync(f, "utf8").includes(PROJECT_REF))).toEqual([]);
     const pages = served.filter((f) => f.endsWith(".html") && !f.includes(`${join("app", "ops")}`));
     expect(pages.filter((f) => readFileSync(f, "utf8").includes("<!--"))).toEqual([]);
     expect(served.filter((f) => /(readme\.md|_ds_manifest\.json|_adherence\.oxlintrc\.json)$/.test(f))).toEqual([]);
+    // Served scripts, styles and the bundle carry no developer comment (licence notices aside).
+    const code = served.filter((f) => /\.(js|css)$/.test(f) && !f.includes(`${join("app", "ops")}`));
+    const commented = code.filter((f) => {
+      const t = readFileSync(f, "utf8");
+      return /(^|[\s;{}(,])\/\*(?!!)/.test(t.replace(/(["'`])(?:\\.|(?!\1).)*\1/g, '""'));
+    });
+    expect(commented).toEqual([]);
   });
 });
 
