@@ -1,12 +1,15 @@
 # HANDOVER — fix/hide-internal-ids (quick 261004)
 
-Job session, 2026-10-04, rewritten 16:55 +04 for the controller. Branch `fix/hide-internal-ids`, pushed. No PR.
+Job session, 2026-10-04, rewritten 16:55 +04 and updated 17:02 +04 for the controller. Branch `fix/hide-internal-ids`, pushed. No PR.
 Nothing deployed, no live database read or write in this pass, no migration.
 
 Owner, 2026-10-04: "hide all tokens hide all ids like be more fucking secure about the data everything is expose".
 
-- **Code tip: `4f398ead`** (evidence on top of `e6dca1e4`); this file is the one commit after it. Folder clean.
-- `origin/main` `0be589db` merged in at `2dcf9d88` (16:40); `origin/main` had not moved at 16:52.
+- **Code tip: `996a3c0a`**; this file is the one commit after it. Folder clean.
+- **The security review (Opus, read-only) covered up to `2dcf9d88`, verdict SHIP-WITH-NOTES.** Commits after it, none re-reviewed:
+  `e6dca1e4` (vt_review row), `4f398ead` (evidence), `7e278ea5` (hand-over), and the review's three fixes
+  `651abfad`, `e6782588`, `996a3c0a` (table below), then this hand-over update.
+- `origin/main` `0be589db` merged in at `2dcf9d88` (16:40); `origin/main` had not moved at 17:01.
 - Merge conflicts: `cookies.dc.html`, the React cookies twin, the four message files, `seed.sql`, `seed_idempotent.test.sql`.
   Only main commit touching them was `7b5dfb25`, whose patch is byte-identical to `c4a0e25b` already in this branch
   (the branch was cut from `fix/cookies-manage-locale-rows`). Resolved to the branch side, so main's content is kept
@@ -14,10 +17,13 @@ Owner, 2026-10-04: "hide all tokens hide all ids like be more fucking secure abo
 
 ## STOP — before shipping
 
-1. **A fresh security reviewer session must read this branch.** Not done yet. The reviewer of 15:00 found F1–F7 and F9
-   (fixed below); nobody has read those fixes. Money/sign-in surfaces touched: guest/customer booking routes (answer
-   bodies), the review link (new cookie), the Worker's response headers, the served-file comment stripper (rewrites
-   every public page, script and stylesheet at sync, so at build and deploy).
+1. **Security review: done on `2dcf9d88`** (fresh Opus session, read-only, SHIP-WITH-NOTES). Its three fixes are in
+   `651abfad`, `e6782588`, `996a3c0a`; those and `e6dca1e4` were not re-reviewed. The reviewer's notes left for the ship
+   note (not in this job, unchanged): the ops copy under `/app/ops` is not stripped; `vt_review` is not expired after a
+   submit; the HTML/CSS strip has no structure proof (only JS has the acorn proof); H9/H10/H11; `quote_id` in the pay-link open.
+   Found by this session after the review, not fixed: `apps/web/public/brand/fonts/OFL-NotoSansArabic.txt` (served
+   as committed) still has an internal preamble naming D-22, ADR-013 and `.planning/ADR-013-arabic-webfont-licence.md`
+   — the same kind of note `8cf45166` removed from `OFL.txt`. The licence text below it is upstream's.
 2. After deploy: the 4242 payment first (`/checkout` changed: its HTML now carries fewer message namespaces, `d10e7c96`),
    then read `booking_payments` by status.
 3. If `fix/auth-cookie-rename` lands first, the Sign-in row's technical name becomes `vt-auth` (decision file §2); expect a
@@ -53,6 +59,10 @@ No lawyer has read any of it.
 | `2dcf9d88` | 16:40 | merge `origin/main` `0be589db` (see top) |
 | `e6dca1e4` | 16:48 | **`vt_review` row on /cookies**, owner wording verbatim: Strictly necessary, after `vt_manage`; mock `app/pages/cookies.dc.html` + `app/vamos-i18n-dict.js`; twin `app/[locale]/cookies/page.tsx` + messages `cookies.name-review-access`, `review-cookie-purpose`, `review-cookie-duration` (no-param reason: Max-Age in `review-cookie.ts`); seed regenerated 2717 keys / 102 reasons; `seed_idempotent` re-pinned; COPY-DRAFT §6 marked approved |
 | `4f398ead` | 16:51 | evidence: the lab run (`evidence/lab/`) and the new row in four languages (`evidence/vt-review-row-*`) |
+| `7e278ea5` | 16:53 | hand-over (first version of this rewrite) |
+| `651abfad` | 16:56 | Review item 1: `lib/security/booking-answer-keys.test.ts` pins the exact keys of the success answer of GET manage/booking, both time-change routes, both flight routes, account paid-cancel and reviews/submit (link token and signed in); library calls mocked to return the real ids. Mutation check: putting one id back in each of the 8 answers fails exactly its own case |
+| `e6782588` | 16:57 | Review item 2: the strip proof compared every regex token as "[object Object]"; `tokenValue()` now writes `/pattern/flags`. New case: `if (x) /a\/*[*/]b/.test(s)` is left alone without a comment, and with a real comment the sync throws instead of serving `/a\ ]b/`. Fails on the old comparison; the real sync (90 files) still passes |
+| `996a3c0a` | 16:58 | Review item 3: `public-no-internal-ids.test.ts` also scans `apps/web/public/brand` on every run: no developer comment in its CSS, no `<!--` in its SVGs, no project ref. Mutation check: a comment in `tokens/colors.css` or an icon SVG fails it |
 
 ## Earlier commits on this branch (before 15:05)
 
@@ -69,9 +79,9 @@ Live = read-only GETs on https://vamostaxi.site, 2026-10-04 ~10:30–10:50 UTC (
 | H1 | Supabase project ref in `sb-yaumjzvylngfjhtuffqs-auth-token` on /cookies | `app/pages/cookies.dc.html`, twin | **Fixed** `4b61e2bf` (shown as `sb-…-auth-token`). The real cookie name keeps the ref until the auth-cookie rename job |
 | H2 | Phase/decision ids, `.planning` file names, repo paths, owner notes in served pages and scripts | every served `app/**/*.dc.html`, `app/*.js` | **Fixed** `17e82686`, now a hard gate `252c309b` (acorn token equality or the sync fails); CSS and `support.js` copies `252c309b`/`8750fc09` |
 | H3 | GitHub repo name, internal docs in the served design system | `/_ds/…/readme.md`, `_ds_manifest.json`, `_adherence.oxlintrc.json`, bundle header and doc comments, `public/brand` tokens, `OFL.txt` notes | **Fixed** `17e82686` + `8cf45166`. Lab S9: dictionary and bundle start without notes |
-| H4 | `booking.id` in GET /api/manage/booking | `app/api/manage/booking/route.ts` | **Fixed** `d92a9c26` |
-| H5 | `bookingId`/`requestId` in manage and account POST answers | 8 routes | **Fixed** `d92a9c26` |
-| H6 | `reviewId`, `bookingId` in review submit | `api/reviews/submit` | **Fixed** `d92a9c26`; lab S7 answer was `{"ok":true}` only |
+| H4 | `booking.id` in GET /api/manage/booking | `app/api/manage/booking/route.ts` | **Fixed** `d92a9c26`; exact keys pinned `651abfad` |
+| H5 | `bookingId`/`requestId` in manage and account POST answers | 8 routes | **Fixed** `d92a9c26`; time-change, flight and paid-cancel answers pinned `651abfad` (resend and manage cancel already had tests) |
+| H6 | `reviewId`, `bookingId` in review submit | `api/reviews/submit` | **Fixed** `d92a9c26`; pinned `651abfad`; lab S7 answer was `{"ok":true}` only |
 | H7 | Review token in the address bar, history, analytics | `/review?token=…` | **Fixed** `de6b05ec` (302 + HttpOnly `vt_review`, replaces `7f0e0eb4`); /cookies names the cookie `e6dca1e4`. Lab S1, S3–S7 pass |
 | H8 | Test-mode, Sentry, "Supabase Auth", "as set by Cloudflare", "the platform we are building" lines | /cookies, /privacy, both banners | **Fixed, approved** `d8f25617` + `83a34cbc`. Lab S8: /checkout HTML has none of them |
 | H9 | Raw SQLSTATE `code` to the signed-in dashboard | `lib/ops/fleet-http.ts`, `lib/ops/rate-book.ts` | **Not fixed** — staff only; UI branches on the codes; change both sides in one job. Low |
@@ -93,21 +103,21 @@ No error text, stack, SQL or env names in public `/api/*` error bodies; no sourc
 - Live `/api/reviews` returns placeholder reviews marked published (stock iconscout link as `sourceUrl`). Owner should look.
 - /cookies mobile cards in Arabic show the column labels (NAME, PURPOSE…) in English (`data-l` attribute) — pre-existing, visible in `evidence/vt-review-row-ar-390.png`.
 
-## Gates on the merged tree (`e6dca1e4` code = `4f398ead` code), 16:41–16:51
+## Gates on the final code tip `996a3c0a`, 16:59–17:01 (first run on `e6dca1e4` at 16:41–16:51, all green too)
 
 | Gate | Result |
 |---|---|
 | `pnpm install --frozen-lockfile` | pass (lockfile up to date) |
-| `node scripts/sync-dc-mock-to-public.mjs` | pass: 20 pages, 19 app entries, comments stripped from 90 files (acorn gate passed) |
+| `node scripts/sync-dc-mock-to-public.mjs` | pass: 20 pages, 19 app entries, comments stripped from 90 files (acorn proof, now comparing regex contents, passed) |
 | `pnpm run typecheck` | pass |
 | `pnpm run lint` | 0 errors, 6 warnings, all in files this branch does not touch |
 | `pnpm run lint:css` | pass |
-| `check:numbers` · `check:legal-claims` · `check:public-env` · `check:db-fences` | pass · pass (3/3) · pass · pass (8/8, 1186 files) |
+| `check:numbers` · `check:legal-claims` · `check:public-env` · `check:db-fences` | pass · pass (3/3) · pass · pass (8/8, 1187 files) |
 | `i18n:check` | pass, 2709 keys |
 | `db:seed:check` | pass, no drift (2717 keys, 102 no-param reasons) |
-| `test:unit` | scripts 29/29, db 14/14, emails 247/247, web 4852 passed / 31 skipped (421 files + 16 skipped) |
+| `test:unit` | scripts 30/30, db 14/14, emails 247/247, web 4861 passed / 31 skipped (422 files + 16 skipped) |
 | `pnpm --filter web run build` (via `pnpm run build`) | pass |
-| pgTAP, full suite on the lab's native stack (`lab.sh pgtap hide-ids`, reset + all migrations incl. main's 260000/270000) | pass, 103 files, 2857 tests; `seed_idempotent` ok with the 2717/102 pins |
+| pgTAP, full suite on the lab's native stack (`lab.sh pgtap hide-ids`, reset + all migrations incl. main's 260000/270000), on `e6dca1e4`; the later commits change no SQL | pass, 103 files, 2857 tests; `seed_idempotent` ok with the 2717/102 pins |
 | `db:types:check` | not run: needs a default-port local stack; this branch adds no migration and does not touch `database.types.ts` |
 
 New row in a browser (static copy of `apps/web/public`, Chromium): en/de/fr/ar at 390/768/1024/1440 — `VamosLocale.coverage` 0 in all 16, Arabic `dir=rtl`, `vt_review` left to right, no sideways scroll, no page errors (`evidence/vt-review-row.txt`, screenshots at 390 and 1440).
@@ -128,6 +138,7 @@ from the files in `evidence/lab/` (`results.json`, `steps-run2.txt`, headers, sc
 
 ## Not verified
 
+- The three review fixes (`651abfad`, `e6782588`, `996a3c0a`) are tests and a stricter proof; the served output of the sync is unchanged by them. Not re-run on the lab Worker.
 - The TEST-BRIEF was not re-run after the main merge and the `vt_review` row (Worker code from main changed `worker.ts` queue and cron paths; the row is static markup). The lab stack `hide-ids` (native, db 127.0.0.1:45122) is still up for that re-run; Workers are down. Re-run: `scripts/test-lab/lab.sh up hide-ids` then the brief. Remove with `scripts/test-lab/lab.sh destroy hide-ids`.
 - S9 readme.md 404 on the lab Worker (not in the saved files).
 - A review link with a language prefix, e.g. `/de/review?token=…`: by reading the code the 302 keeps `/de/review` while the cookie's Path is `/review`, so the browser would not send it there. Review e-mails link to `/review?token=…` only (`ReviewRequestEmail.tsx:23`), and the lab's language switch stayed on `/review` (S5). For the reviewer.
