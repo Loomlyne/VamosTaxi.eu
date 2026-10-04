@@ -112,6 +112,8 @@ for (const name of SKIP_DS) {
   const leftover = resolve(pub, "_ds", uuid, name);
   if (existsSync(leftover)) rmSync(leftover);
 }
+// Same for the served design system: bundle, styles and tokens lose their developer notes.
+stripped.push(...stripTree(resolve(pub, "_ds", uuid)).map((p) => `_ds/${p}`));
 copy(resolve(repo, "assets"), resolve(pub, "assets"));
 
 const pagesPub = resolve(pub, "app/pages");
