@@ -28,8 +28,11 @@ Approved English plain names (his words):
 | Cloudflare check | cf_clearance |
 | Stripe payment | __stripe_mid · __stripe_sid |
 
-Still a **draft awaiting his approval**: the de/fr/ar of these names and the two Functional names
-("Language (this browser)" for vamosLang, "Recent addresses" for vamos:recent-places) — COPY-DRAFT.md §5.
+**Approved later the same day** (question form, relayed by the controller), verbatim option: **"Approve all as drafted"** —
+the de/fr/ar of these names and the two Functional names ("Language (this browser)" for vamosLang, "Recent addresses"
+for vamos:recent-places), exactly as in COPY-DRAFT.md §5. Applied in commit `2f412c4b`.
+
+When `fix/auth-cookie-rename` lands, the Sign-in row's technical name becomes `vt-auth`; this branch keeps `sb-…-auth-token`.
 
 The Meta marketing row keeps his verbatim text (2026-09-30-meta-wording.md); it gets no plain-name cell.
 

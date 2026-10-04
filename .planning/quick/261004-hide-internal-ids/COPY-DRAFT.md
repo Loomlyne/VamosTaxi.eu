@@ -1,9 +1,9 @@
-# COPY DRAFT — sections 1–4 APPROVED, section 5 partly awaiting approval (2026-10-04)
+# COPY DRAFT — sections 1–5 APPROVED; section 6 awaiting approval (2026-10-04)
 
 Status: **sections 1–4 approved by Koss, 2026-10-04, "Approve as drafted"** (question form, relayed by the
 controller; recorded in `.planning/decisions/2026-10-04-hide-internal-ids-copy.md`). Applied in `d8f25617`.
-Section 5: the English plain names in 5a are his; the de/fr/ar and the two Functional names in 5b are
-**drafts awaiting his approval**. No lawyer has read any of it. The owner's Meta texts are not touched.
+Section 5: approved the same day, "Approve all as drafted" (5a English names are his own words; the de/fr/ar and
+the two Functional names in 5b were drafts and are now approved). No lawyer has read any of it. The owner's Meta texts are not touched.
 
 Why: owner 2026-10-04, "hide all tokens hide all ids … everything is expose". These lines told a
 visitor about test mode, vendors we do not use, or engineering plumbing.
@@ -57,7 +57,7 @@ Every row: plain name first, technical name small underneath in the mono face, l
 Same in the React twin (`app/[locale]/cookies/page.tsx`, messages `cookies.name-*`). The banner's
 "Manage preferences" panel lists providers, not cookie names, so it is unchanged. The Meta row is unchanged.
 
-### 5a. English names — owner's words; de/fr/ar — draft, awaiting approval
+### 5a. English names — owner's words; de/fr/ar — approved 2026-10-04
 
 | Technical name | en (owner) | de (draft) | fr (draft) | ar (draft) |
 |---|---|---|---|---|
@@ -73,16 +73,28 @@ Same in the React twin (`app/[locale]/cookies/page.tsx`, messages `cookies.name-
 "Connexion" / "تسجيل الدخول" in fr/ar because those already translate the "Sign in" button; the runtime needs
 each translation to be unique, so the draft says "Connexion au compte" / "جلسة تسجيل الدخول".
 
-### 5b. Functional rows — whole name is a draft, awaiting approval
+### 5b. Functional rows — approved 2026-10-04
 
 | Technical name | en (draft) | de | fr | ar |
 |---|---|---|---|---|
 | vamosLang | Language (this browser) | Sprache (dieser Browser) | Langue (ce navigateur) | اللغة (هذا المتصفح) |
 | vamos:recent-places | Recent addresses | Letzte Adressen | Adresses récentes | العناوين الأخيرة |
 
+## 6. NEW — /cookies row for `vt_review` (DRAFT, awaiting approval, NOT applied)
+
+Reviewer F1 moved the review link's token into a new strictly necessary cookie `vt_review` (HttpOnly,
+Path=/review, 30 days). /cookies must name it before it ships live, in the same style as the other rows.
+
+| Column | en (draft) | de | fr | ar |
+|---|---|---|---|---|
+| Name (plain) | Review access | Zugang zur Bewertung | Accès à l’avis | الوصول إلى التقييم |
+| Name (technical) | vt_review | vt_review | vt_review | vt_review |
+| Purpose | Lets you open the review form from the link in your e-mail without signing in | Damit Sie das Bewertungsformular über den Link in Ihrer E-Mail ohne Anmeldung öffnen können | Vous permet d’ouvrir le formulaire d’avis depuis le lien de votre e-mail sans vous connecter | يتيح لك فتح نموذج التقييم من الرابط في بريدك الإلكتروني دون تسجيل الدخول |
+| Provider | Vamos Taxi | Vamos Taxi | Vamos Taxi | Vamos Taxi |
+| Duration | 30 days | 30 Tage | 30 jours | 30 يومًا |
+
+Question for the form: "Add this row for the review-link cookie to vamostaxi.site/cookies? Example: Review access · vt_review — 30 days."
+
 ## How to approve
 
-Sections 1–4: done (approved). Section 5: two questions in the question form — (a) "Use these German, French
-and Arabic names for the cookie rows on vamostaxi.site/cookies? Example: Booking access = Zugang zur Buchung."
-(b) "Name the two Functional rows 'Language (this browser)' and 'Recent addresses'?" Record the answers in
-`.planning/decisions/2026-10-04-hide-internal-ids-copy.md`.
+Sections 1–5: approved and recorded in `.planning/decisions/2026-10-04-hide-internal-ids-copy.md`. Section 6: one question (above); record the answer there, then apply the row.
