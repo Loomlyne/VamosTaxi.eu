@@ -2,8 +2,7 @@ SCOPE OF THIS FILE — READ BEFORE THE LICENCE BELOW
 ====================================================
 
 This licence file covers the Noto Sans Arabic family in this folder
-(`NotoSansArabic-*.ttf`) only — the self-hosted stand-in Arabic face vendored
-per D-22 and ADR-013, pending the designer's eventual pick. The Qurova and
+(`NotoSansArabic-*.ttf`) only. The Qurova and
 Poppins files in this same folder are covered by the separate `OFL.txt`
 (itself scoped to Poppins only for Qurova's part — see that file). Do not
 read the presence of this file as covering any other family in this folder.
@@ -11,9 +10,7 @@ read the presence of this file as covering any other family in this folder.
 The text below this rule is the SIL Open Font License, Version 1.1, copied
 verbatim, unaltered, from the `OFL.txt` shipped inside the upstream release
 zip `NotoSansArabic-v2.013.zip`, published by github.com/notofonts/arabic on
-2025-10-15 and fetched directly from that release on 2026-08-20 (see
-`.planning/ADR-013-arabic-webfont-licence.md` for the full provenance,
-including what each font file's own `name` table declares).
+2025-10-15 and fetched directly from that release on 2026-08-20.
 ====================================================
 
 Copyright 2022 The Noto Project Authors (https://github.com/notofonts/arabic)

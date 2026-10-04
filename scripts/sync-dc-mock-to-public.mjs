@@ -105,7 +105,8 @@ if (pruned.length > 0) console.log(`pruned ${pruned.length} stale public file(s)
 
 copy(resolve(repo, "app"), resolve(pub, "app"));
 // Served copy only: developer comments (phase ids, decision files, repo paths) stay in the
-// sources and never reach a visitor. Pages are copied to .html below, after this strip.
+// sources and never reach a visitor. That includes app/ops: the dashboard host serves those
+// files without a sign-in. Pages are copied to .html below, after this strip.
 const stripped = stripTree(resolve(pub, "app"));
 copy(resolve(repo, "design-system"), resolve(pub, "_ds", uuid));
 for (const name of SKIP_DS) {

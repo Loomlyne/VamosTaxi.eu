@@ -1,0 +1,12 @@
+FAIL /dashboard             en 1440  text=true (755 chars) elements=324/324 dom=true code=block 3 (script text/x-dc) is not the stripped before png-identical=true dir=ltr errors before=0 after=0
+FAIL /dashboard             en  390  text=true (714 chars) elements=324/324 dom=true code=block 3 (script text/x-dc) is not the stripped before png-identical=true dir=ltr errors before=0 after=0
+FAIL /dashboard             ar 1440  text=true (743 chars) elements=325/325 dom=true code=block 3 (script text/x-dc) is not the stripped before png-identical=true dir=rtl errors before=0 after=0
+FAIL /dashboard             ar  390  text=true (703 chars) elements=325/325 dom=true code=block 3 (script text/x-dc) is not the stripped before png-identical=true dir=rtl errors before=0 after=0
+FAIL /bookings              en 1440  text=true (664 chars) elements=296/296 dom=true code=block 2 (style ) is not the stripped before png-identical=false dir=ltr errors before=0 after=0
+FAIL /bookings              en  390  text=true (647 chars) elements=296/296 dom=true code=block 2 (style ) is not the stripped before png-identical=true dir=ltr errors before=0 after=0
+FAIL /bookings              ar 1440  text=true (668 chars) elements=297/297 dom=true code=block 2 (style ) is not the stripped before png-identical=false dir=rtl errors before=0 after=0
+FAIL /bookings              ar  390  text=true (649 chars) elements=297/297 dom=true code=block 2 (style ) is not the stripped before png-identical=true dir=rtl errors before=0 after=0
+FAIL /bookings/VT-26-0807   en 1440  text=true (743 chars) elements=327/327 dom=true code=block 1 (style ) is not the stripped before png-identical=true dir=ltr errors before=0 after=0
+FAIL /bookings/VT-26-0807   en  390  text=true (737 chars) elements=327/327 dom=true code=block 1 (style ) is not the stripped before png-identical=true dir=ltr errors before=0 after=0
+FAIL /bookings/VT-26-0807   ar 1440  text=true (745 chars) elements=328/328 dom=true code=block 1 (style ) is not the stripped before png-identical=true dir=rtl errors before=0 after=0
+FAIL /bookings/VT-26-0807   ar  390  text=true (737 chars) elements=328/328 dom=true code=block 1 (style ) is not the stripped before png-identical=true dir=rtl errors before=0 after=0
