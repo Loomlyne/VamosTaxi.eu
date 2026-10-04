@@ -19,6 +19,7 @@ import { publicDashboardPath } from "./lib/ops/paths";
 import { passkeyGateInputs, vamosRoleFromAccessToken, type StaffAuthClient } from "./lib/ops/session";
 import { effectiveNextLevel, staffGateDecision } from "./lib/ops/staff-gate";
 import { MANAGE_COOKIE_NAME } from "./lib/checkout/manage-token";
+import { reviewTokenRedirect } from "./lib/reviews/review-cookie";
 import { applySeoToHtml, iconHeadTags, isSeoLang, seoPageFor, seoRoute, type SeoLang } from "./lib/seo/head";
 import { applySecurityHeaders } from "./lib/security/headers";
 import { metaMeasurementAllowed } from "./lib/meta/legal-gate";
@@ -663,6 +664,12 @@ export default async function middleware(request: NextRequest) {
         return applyStagingNoindex(request, res);
       }
     }
+  }
+
+  // Same for the review link: /review?token=… → 302 /review, token in HttpOnly vt_review (Path=/review).
+  if (!isDashboardHost(request)) {
+    const reviewRedirect = reviewTokenRedirect(request, localeStrippedPath(pathname).path);
+    if (reviewRedirect) return applyStagingNoindex(request, reviewRedirect);
   }
 
   // Public host never serves the console (D-01a). Leftover /ops is 404.
