@@ -4,6 +4,19 @@ Owner decision 2026-10-04 (question form): "Rename it, own job". Job session, wo
 branch `fix/auth-cookie-rename` cut from `origin/main` 7c4818ec, origin/main 6737c53c merged in. No PR. Not deployed. Nothing touched on live.
 
 **A fresh reviewer session must read this before it ships: it changes sign-in (customer and dashboard).**
+Fresh review of bd2ed798: SHIP with conditions F1-F6. F2, F3, F4, F5, F6 are done on this branch (see "Review conditions" at the end).
+F1 stays open until `fix/hide-internal-ids` is final.
+
+## Ship order (F1)
+
+This branch must **not** ship before `fix/hide-internal-ids` (it edits the `/cookies` page). Order:
+
+1. `fix/hide-internal-ids` is final (the controller says so).
+2. This job session merges that branch into `fix/auth-cookie-rename` and sets the `/cookies` "Sign-in" row's technical name to `vt-auth`
+   in `app/pages/cookies.dc.html` and `apps/web/app/[locale]/cookies/page.tsx` (one commit, i18n/tests run), pushes, updates this file.
+3. Then the controller ships `fix/hide-internal-ids` and this branch (or this branch alone if it already contains the other), deploys `vamos`.
+
+Until step 2 the `/cookies` page on this branch still shows the old name on purpose.
 
 ## What changed
 
@@ -20,7 +33,7 @@ Not changed, on purpose: `dashboard-gateway.ts` / `wrangler.dashboard.jsonc` (th
 no browser Supabase client exists, no DC mock reads or clears the auth cookie, CSP has no cookie rule. `/cookies` copy is NOT changed here
 (branch `fix/hide-internal-ids` owns that page).
 
-## /cookies page: exact text for the controller after both branches land
+## /cookies page: exact text (set by this job session in ship-order step 2)
 
 "Sign-in" row, Name column (both `app/pages/cookies.dc.html` line ~216 and the Next twin `apps/web/app/[locale]/cookies/page.tsx` line ~106):
 
@@ -44,6 +57,11 @@ Everyone signed in (customers and the owner on the dashboard) is signed out once
 again. No error page: an old cookie is simply ignored and expired (checked: public pages, `/account`, `/api/*`, dashboard `/login`).
 A booking in progress is not affected (`vamos_qs`, `vt_manage`, `consent_subject`, `NEXT_LOCALE` are untouched).
 The owner's dashboard sign-in methods (password, link, code, passkey, authenticator app) are unchanged; after the deploy he signs in once more.
+
+What clearing does and does not do (F5): expiring the old cookie removes it from the browser only. It does **not** end the old session on
+the server: the Supabase session and refresh token behind it stay valid until they expire on their own (access token 3600 s; the refresh
+token until Supabase's session limits end it). Nobody can use them from that browser any more, because the cookie that held them is gone. To
+end every old session at once would need a sign-out of all sessions on the Supabase side; that is not part of this job.
 
 ## Deploy order
 
@@ -78,14 +96,39 @@ unchanged. After the deploy check live: dashboard `/login` 200, sign in, New tri
 - MFA: the lab admin has no authenticator app, so the aal2 step was not exercised in the browser. The aal2 gate reads the JWT, not the
   cookie name; `lib/auth/staff-mfa.test.ts` and the staff gate tests pass in the full unit run.
 
+## Review conditions (fresh review of bd2ed798)
+
+| item | status | commit |
+|---|---|---|
+| F1 ship after `fix/hide-internal-ids`; then merge it here and set `/cookies` Name to `vt-auth` | open, waits for the controller's word | — |
+| F2 ready rollback that expires `vt-auth*` | done, branch `rollback/auth-cookie-rename` | `a380f5bf`, `181e6200` |
+| F3 source test: `Dashboard.fetch` and `default.fetch` go through `handleFetch` | done, `apps/web/lib/supabase/worker-entry-cookies.test.ts` (4 tests) | `5d000385` |
+| F4 live check includes the owner's authenticator-code step | done, live check 3 | this file |
+| F5 clearing the cookie does not end the server session | done, "What the owner and customers will see" | this file |
+| F6 stale `/^sb-/` diagnostic in `confirm-link.e2e.mjs:74` | done, counts `vt-auth(.N)` | `9b4f75b0` |
+
 ## Rollback
 
-Revert the branch's code commit (one `git revert` on main) and deploy `vamos`. Everyone signed in with `vt-auth` is signed out once more (the
-old build ignores `vt-auth`; it is left in the browser, harmless, until it expires). No database or Supabase Auth setting is involved.
+A plain revert is not enough: the old build would ignore `vt-auth`, and those cookies would stay in browsers holding a live session token.
+The rollback is ready on branch **`rollback/auth-cookie-rename`** (pushed, tip `181e6200`, cut from this branch at `5d000385`):
+
+1. `a380f5bf` revert(auth): back to the Supabase default cookie name. It reverts `490d1a51`, `9b4f75b0` and `5d000385`; `apps/` is then
+   byte-identical to pre-rename main `7c4818ec` (checked with `git diff --quiet 7c4818ec a380f5bf -- apps`).
+2. `181e6200` fix(auth): rollback. `withRetiredAuthCookiesExpired` in `apps/web/lib/supabase/cookies.ts`, wrapped around every answer in
+   `apps/web/worker.ts` (default and `Dashboard`), expires `vt-auth`, `vt-auth.N`, `vt-auth-code-verifier` and the per-flow `vt-auth-…`
+   verifier keys (`Max-Age=0`, Path `/`, Secure on https), and leaves `sb-*-auth-token`, `vt_manage`, `vamos_qs` alone.
+   Test: `apps/web/lib/supabase/retired-cookies.test.ts` (expiry, untouched cookies, both Worker doors). Touched suites 27 files / 150 tests,
+   typecheck and eslint pass. Not run on a Worker build.
+
+How to use it: on main, cherry-pick `a380f5bf` and `181e6200` (or merge the branch if main has only this job on top), run the gates, deploy
+`vamos` only. Everyone is signed out once more and signs in with the old name. No database or Supabase Auth setting is involved. If anything
+other than this job has landed on main since, re-check that `a380f5bf` still reverts only these three commits.
 
 ## Live checks after deploy (controller)
 
 1. `curl -sI -H 'Cookie: sb-<any>-auth-token.0=x' https://vamostaxi.site/` → a `Set-Cookie: sb-<any>-auth-token.0=; Path=/; Max-Age=0 …; Secure` line.
 2. Customer sign-in in a browser → cookie list shows `vt-auth` (or `vt-auth.0`), nothing starting `sb-`.
-3. Dashboard: sign in (owner's usual method), open New trip.
-4. Update `/cookies` "Sign-in" row Name to `vt-auth` once `fix/hide-internal-ids` has landed.
+3. Dashboard on the owner's own account (F4): sign in with his usual method **including the authenticator-code step** on his account (the lab
+   admin had no authenticator app, so this step was never run before live). Expected: the code is accepted, the dashboard opens
+   at full access (aal2), cookie list shows `vt-auth*` on `dashboard.vamostaxi.site` and nothing starting `sb-`. Then open New trip.
+4. `/cookies` "Sign-in" row shows `vt-auth` (it ships with this branch after ship-order step 2).
