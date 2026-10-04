@@ -20,6 +20,11 @@ function files(dir: string, out: string[] = []): string[] {
   return out;
 }
 
+/** A developer block comment in JS/CSS (licence notices `/*!` aside), strings blanked first. */
+function hasBlockComment(text: string): boolean {
+  return /(^|[\s;{}(,])\/\*(?!!)/.test(text.replace(/(["'`])(?:\\.|(?!\1).)*\1/g, '""'));
+}
+
 describe("no internal ids on public surfaces", () => {
   it("the DC mock sources never name the Supabase project", () => {
     const hits = files(join(repoRoot, "app")).filter((f) => readFileSync(f, "utf8").includes(PROJECT_REF));
@@ -44,11 +49,29 @@ describe("no internal ids on public surfaces", () => {
     expect(served.filter((f) => /(readme\.md|_ds_manifest\.json|_adherence\.oxlintrc\.json)$/.test(f))).toEqual([]);
     // Served scripts, styles and the bundle carry no developer comment (licence notices aside).
     const code = served.filter((f) => /\.(js|css)$/.test(f) && !f.includes(`${join("app", "ops")}`));
-    const commented = code.filter((f) => {
-      const t = readFileSync(f, "utf8");
-      return /(^|[\s;{}(,])\/\*(?!!)/.test(t.replace(/(["'`])(?:\\.|(?!\1).)*\1/g, '""'));
-    });
+    const commented = code.filter((f) => hasBlockComment(readFileSync(f, "utf8")));
     expect(commented).toEqual([]);
+  });
+
+  // public/brand is committed and served as it is (no sync strip), so its token CSS was stripped
+  // by hand (8cf45166). Review of 2dcf9d88: a comment put back there must fail here.
+  it("public/brand (served as committed) has no developer comment and no project ref", () => {
+    const brandDir = join(pub, "brand");
+    const brand = files(brandDir);
+    const css = brand.filter((f) => f.endsWith(".css"));
+    expect(css.length).toBeGreaterThan(0);
+    expect(css.filter((f) => hasBlockComment(readFileSync(f, "utf8")))).toEqual([]);
+    expect(brand.filter((f) => readFileSync(f, "utf8").includes(PROJECT_REF))).toEqual([]);
+    const svg: string[] = [];
+    const walk = (dir: string) => {
+      for (const e of readdirSync(dir, { withFileTypes: true })) {
+        const p = join(dir, e.name);
+        if (e.isDirectory()) walk(p);
+        else if (e.name.endsWith(".svg")) svg.push(p);
+      }
+    };
+    walk(brandDir);
+    expect(svg.filter((f) => readFileSync(f, "utf8").includes("<!--"))).toEqual([]);
   });
 });
 
