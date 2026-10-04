@@ -164,7 +164,7 @@ export async function GET(request: Request): Promise<Response> {
     {
       ok: true,
       booking: {
-        id: row.booking_id,
+        // No internal booking id: the page works from the reference (owner 2026-10-04, hide all ids).
         reference: str(row.reference),
         status,
         locale: str(row.locale) || "en",

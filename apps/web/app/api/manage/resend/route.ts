@@ -55,5 +55,5 @@ export async function POST(request: Request): Promise<Response> {
     bookingKey,
   );
   if (!result.ok) return json({ ok: false, code: result.code }, result.code === "not-found" ? 404 : 502);
-  return json({ ok: true, bookingId: result.bookingId, email: result.email });
+  return json({ ok: true, email: result.email });
 }
