@@ -216,7 +216,9 @@ describe("meta legal gate", () => {
     const privacy = source("app/[locale]/privacy/page.tsx");
     const imprint = source("app/[locale]/imprint/page.tsx");
 
-    expect(cookies).toContain('<PendingSlot label="Language cookie duration" />');
+    // The language cookie row is owner-approved (.planning/decisions/2026-10-03-cookies-manage-locale-rows.md).
+    expect(cookies).not.toContain('<PendingSlot label="Language cookie duration" />');
+    expect(cookies).toContain('tCookies("locale-cookie-duration")');
     expect(cookies).toContain('<PendingSlot label="Session duration" />');
     expect(cookies).toContain('<PendingSlot label="Consent duration" />');
     expect(cookies).not.toMatch(/label="Meta [^"]*(?:name|purpose|duration)/i);
