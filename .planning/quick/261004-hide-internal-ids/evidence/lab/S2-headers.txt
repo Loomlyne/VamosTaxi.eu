@@ -1,0 +1,12 @@
+HTTP/1.1 302 Found
+Transfer-Encoding: chunked
+Location: /manage-booking
+Set-Cookie: vt_manage=abc; Path=/; Expires=Tue, 03 Nov 2026 11:55:10 GMT; Max-Age=2592000; Secure; HttpOnly; SameSite=lax
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+content-security-policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' challenges.cloudflare.com static.cloudflareinsights.com; frame-src challenges.cloudflare.com; connect-src 'self' challenges.cloudflare.com api.mapbox.com events.mapbox.com cloudflareinsights.com; img-src 'self' data: blob: https://*.mapbox.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'
+permissions-policy: camera=(), microphone=(), geolocation=()
+referrer-policy: strict-origin
+x-content-type-options: nosniff
+x-frame-options: DENY
+x-robots-tag: noindex, nofollow
+

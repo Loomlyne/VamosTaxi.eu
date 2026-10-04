@@ -1,0 +1,21 @@
+UPDATE 1
+INSERT 0 1
+INSERT 0 1
+DELETE 0
+                  id                  | status 
+--------------------------------------+--------
+ 0a66ef23-6410-49a0-8c1f-ed7e2a19820c | paid
+(1 row)
+
+              booking_id              |      status      
+--------------------------------------+------------------
+ 0a66ef23-6410-49a0-8c1f-ed7e2a19820c | requires_payment
+ 0a66ef23-6410-49a0-8c1f-ed7e2a19820c | succeeded
+(2 rows)
+
+              booking_id              | purpose |       expires_at       
+--------------------------------------+---------+------------------------
+ 0a66ef23-6410-49a0-8c1f-ed7e2a19820c | manage  | 2026-11-09 14:55:00+00
+ 0a66ef23-6410-49a0-8c1f-ed7e2a19820c | manage  | infinity
+(2 rows)
+

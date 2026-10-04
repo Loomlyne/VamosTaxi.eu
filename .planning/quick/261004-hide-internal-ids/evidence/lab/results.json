@@ -1,0 +1,42 @@
+{
+ "at": "2026-10-04T12:00:20.306Z",
+ "base": "http://localhost:4710",
+ "results": [
+  {
+   "id": "S3",
+   "title": "open token link at 1440 en",
+   "status": "PASS",
+   "evidence": "url http://localhost:4710/review; radiogroups 3; textarea 1; submit 1; notFound false"
+  },
+  {
+   "id": "S4",
+   "title": "reload",
+   "status": "PASS",
+   "evidence": "url http://localhost:4710/review; form true"
+  },
+  {
+   "id": "S5",
+   "title": "switch to Deutsch via header",
+   "status": "PASS",
+   "evidence": "lang de; url http://localhost:4710/review; form true; submit btn text: BEWERTUNG SENDEN"
+  },
+  {
+   "id": "S6",
+   "title": "390 token link, Arabic",
+   "status": "PASS",
+   "evidence": "open url http://localhost:4710/review; via burger menu; {\"dir\":\"rtl\",\"lang\":\"ar\",\"sw\":390,\"cw\":390,\"url\":\"http://localhost:4710/review\"}; form true"
+  },
+  {
+   "id": "S7",
+   "title": "submit review in S3 context",
+   "status": "PASS",
+   "evidence": "count 0->1; POST status 200 body {\"ok\":true}; thanks 1"
+  },
+  {
+   "id": "S10",
+   "title": "cookies and home",
+   "status": "PASS",
+   "evidence": "Sign-in text true; sb-*-auth-token true; row \"Sign-in sb-…-auth-token Keeps you signed in and holds the booking while you fill it in Vamos Taxi · Supabase Up to 400 d\"; console/page errors: [\"console: Failed to load resource: net::ERR_INVALID_URL\",\"console: Failed to load resource: the server responded with a status of 404 (Not Found)\",\"console: Failed to load resource: the server responded with a"
+  }
+ ]
+}

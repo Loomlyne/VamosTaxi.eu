@@ -1,0 +1,8 @@
+PASS | S3 | url http://localhost:4710/review; radiogroups 3; textarea 1; submit 1; notFound false
+PASS | S4 | url http://localhost:4710/review; form true
+PASS | S5 | lang de; url http://localhost:4710/review; form true; submit btn text: BEWERTUNG SENDEN
+PASS | S6 | open url http://localhost:4710/review; via burger menu; {"dir":"rtl","lang":"ar","sw":390,"cw":390,"url":"http://localhost:4710/review"}; form true
+PASS | S7 | count 0->1; POST status 200 body {"ok":true}; thanks 1
+PASS | S10 | Sign-in text true; sb-*-auth-token true; row "Sign-in sb-…-auth-token Keeps you signed in and holds the booking while you fill it in Vamos Taxi · Supabase Up to 400 d"; console/page errors: ["console: Failed to load resource: net::ERR_INVALID_URL","console: Failed to load resource: the server responded with a status of 404 (Not Found)","console: Failed to load resource: the server responded with a
+errors A: [] M: []
+6 pass, 0 fail
