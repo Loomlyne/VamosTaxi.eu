@@ -81,6 +81,25 @@ test("stripJsChecked: proves the result with acorn and refuses to change code", 
   assert.equal(stripJsChecked("const x = <div>// y</div>;"), "const x = <div>// y</div>;");
 });
 
+test("stripJsChecked: a regex the naive strip would cut is never served changed", () => {
+  // After `if (x)` the slash opens a regex; stripJs reads `/*[*/` inside it as a comment.
+  const regex = "/a\\/*[*/]b/";
+  const bare = `if (x) ${regex}.test(s)`;
+  const noted = `if (x) ${regex}.test(s); // note\n`;
+  for (const src of [bare, noted]) {
+    let out;
+    try { out = stripJsChecked(src); } catch (e) {
+      assert.match(e.message, /tokens changed/);
+      continue;
+    }
+    // Passing is only allowed with the regex intact.
+    assert.ok(out.includes(regex), `regex changed: ${out}`);
+  }
+  // The comment-free script is left alone; the one with a real comment must stop the sync.
+  assert.equal(stripJsChecked(bare), bare);
+  assert.throws(() => stripJsChecked(noted), /tokens changed/);
+});
+
 test("stripTree: strips .js, .css and .html in place (support.js too, licences kept), leaves ops/ and other files alone", () => {
   const root = mkdtempSync(join(tmpdir(), "strip-"));
   mkdirSync(join(root, "pages"));
