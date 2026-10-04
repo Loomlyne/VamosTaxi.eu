@@ -242,6 +242,10 @@ describe("the sentence the owner signed, in the dashboard's four language tables
     expect(ar).toContain("كانت دفعة هذا الحجز قيد التسجيل في الوقت نفسه، لذلك لم يتغيّر شيء.");
   });
 
+  it("the toast that carries it may use the phone's width (the signed sentence is long: 9 lines at 390 px before)", () => {
+    expect(dc).toMatch(/position:fixed;left:50%;bottom:24px;transform:translateX\(-50%\);z-index:60;width:max-content;max-width:calc\(100vw - 32px\)/);
+  });
+
   it("Refund error, class/trip change error and the Accept notice name it before the generic failure", () => {
     expect(dc).toMatch(/'payment-changed': t\.errPaymentChanged,/);
     expect(dc.match(/'payment-changed': t\.errPaymentChanged,/g)).toHaveLength(2);
