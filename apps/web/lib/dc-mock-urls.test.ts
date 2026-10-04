@@ -162,14 +162,37 @@ describe("dc mock URL gate", () => {
     }
   });
 
-  it("lets internal asset fetches through", () => {
-    expect(
-      gatePublicRequest(
-        req("/app/pages/contact.html", {
-          headers: { "x-vamos-dc-asset": "1" },
-        }),
-      ),
-    ).toBeNull();
+  it("the old x-vamos-dc-asset header unlocks nothing: same answer with or without it", () => {
+    const forged = { "x-vamos-dc-asset": "1", "sec-fetch-dest": "document" };
+    const cases: Array<[string, string]> = [
+      ["/app/pages/contact.html", "vamostaxi.site"], // mock file as a document: 308, not the raw file
+      ["/app/pages/OpsSoon.dc.html", "vamostaxi.site"], // unmapped mock file: 404
+      ["/login", "vamostaxi.site"], // leftover on the public host: 404
+      ["/ops/bookings", "vamostaxi.site"],
+      ["/become-a-partner", "vamostaxi.site"],
+      ["/dev", "vamostaxi.site"],
+      ["/app/home/home.dc.html", "dashboard.vamostaxi.site"],
+    ];
+    for (const [path, host] of cases) {
+      const plain = gatePublicRequest(doc(path, { host }));
+      const withHeader = gatePublicRequest(
+        new Request(`https://${host}${path}`, { headers: forged }),
+      );
+      expect(plain, path).not.toBeNull();
+      if (plain === "not-found") {
+        expect(withHeader, path).toBe("not-found");
+      } else {
+        expect((withHeader as Response).status, path).toBe((plain as Response).status);
+        expect((withHeader as Response).headers.get("location"), path).toBe(
+          (plain as Response).headers.get("location"),
+        );
+      }
+    }
+  });
+
+  it("a server-side mock fetch (no sec-fetch-dest) passes without any header", () => {
+    expect(gatePublicRequest(req("/app/pages/contact.html"))).toBeNull();
+    expect(gatePublicRequest(req("/app/home/home.html"))).toBeNull();
   });
 
   it("lets DC mocks and scripts through (dashboard must not 308 them to /login)", () => {

@@ -14,8 +14,8 @@ import {
   gatePublicRequest,
   guardOpsAsset,
   isOpsAssetRequest,
-  serveOpsAsset,
 } from "./lib/dc-mock-urls";
+import { serveGatedOpsAsset } from "./lib/ops/asset-gate";
 import {
   pinRequestToApexAssets,
   pinRequestToSurface,
@@ -60,11 +60,18 @@ async function routeFetch(
   const sni = sniFromCf((request as { cf?: unknown }).cf);
   const surfaced = pinRequestToSurface(request, surface, sni);
   // F16: dashboard screen files exist on the dashboard host only. Decide before the
-  // apex asset pin rewrites the host, and before the internal-asset header bypass.
+  // apex asset pin rewrites the host.
   const hiddenOps = guardOpsAsset(surfaced);
   if (hiddenOps) return hiddenOps;
-  // The Dashboard entrypoint skips the asset layer, so the screen file is read from ASSETS here.
-  if (isOpsAssetRequest(surfaced)) return serveOpsAsset(surfaced, env.ASSETS);
+  // The Dashboard entrypoint skips the asset layer, so the screen file is read from ASSETS here —
+  // only for a staff session that passes the console rule, except the sign-in page's own files.
+  if (isOpsAssetRequest(surfaced)) {
+    return serveGatedOpsAsset(surfaced, {
+      ASSETS: env.ASSETS,
+      SUPABASE_URL: env.SUPABASE_URL,
+      SUPABASE_ANON_KEY: env.SUPABASE_ANON_KEY,
+    });
+  }
   const inbound = pinRequestToApexAssets(surfaced);
   const gated = gatePublicRequest(inbound);
   if (gated === "not-found") {

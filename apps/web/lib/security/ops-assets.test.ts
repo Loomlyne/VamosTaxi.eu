@@ -69,9 +69,11 @@ describe("F16: dashboard screen files", () => {
     expect(surfaced).toBeGreaterThan(-1);
     expect(guard).toBeGreaterThan(surfaced);
     expect(apex).toBeGreaterThan(guard);
-    // F16: the screen file is read from ASSETS (after the guard, before the apex pin).
-    const serve = src.indexOf("serveOpsAsset(surfaced, env.ASSETS)");
+    // F16: the screen file is read from ASSETS (after the guard, before the apex pin), and only
+    // through the staff gate: worker.ts never serves an /app/ops/* file around it.
+    const serve = src.indexOf("serveGatedOpsAsset(surfaced,");
     expect(serve).toBeGreaterThan(guard);
     expect(apex).toBeGreaterThan(serve);
+    expect(src).not.toContain("serveOpsAsset(");
   });
 });
