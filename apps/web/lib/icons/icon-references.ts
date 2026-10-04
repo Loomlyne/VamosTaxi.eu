@@ -122,6 +122,12 @@ export function scanMocks(repoRoot: string): MockScan {
   for (const abs of files) {
     const file = relative(repoRoot, abs).split("\\").join("/");
     const text = readFileSync(abs, "utf8");
+    // A path into an icon folder written out (url(), src, a mask): the helmet's resource list is read as `meta` below.
+    for (const u of text.matchAll(/icons\/([a-z0-9-]+)\.svg/g)) {
+      const lineStart = text.lastIndexOf("\n", u.index) + 1;
+      if (text.slice(lineStart, text.indexOf("\n", u.index)).includes("ext-resource-dependency")) continue;
+      refs.push({ name: u[1] as string, file, line: lineAt(text, u.index), via: "url" });
+    }
     if (abs.endsWith(".js")) {
       refs.push(...scriptLiterals(text, file, 0, text, "script"));
       continue;
@@ -181,12 +187,12 @@ export function scanReact(repoRoot: string): ReactScan {
   const refs: IconRef[] = [];
   const roots = ["app", "components", "lib"].map((d) => join(repoRoot, "apps/web", d));
   const files = roots
-    .flatMap((r) => walk(r, (f) => /\.(ts|tsx)$/.test(f) && !/\.(test|spec)\.tsx?$/.test(f)))
+    .flatMap((r) => walk(r, (f) => /\.(tsx?|css)$/.test(f) && !/\.(test|spec)\.tsx?$/.test(f)))
     .filter((f) => !f.includes(`${join("apps/web/lib/icons")}/`));
   for (const abs of files) {
     const file = relative(repoRoot, abs).split("\\").join("/");
     const text = readFileSync(abs, "utf8");
-    for (const m of text.matchAll(KEY)) {
+    for (const m of abs.endsWith(".css") ? [] : text.matchAll(KEY)) {
       const at = m.index + m[0].length;
       const isAttr = /=\s*$/.test(m[0]) && !/:\s*$/.test(m[0]);
       let expr: string;
@@ -201,7 +207,7 @@ export function scanReact(repoRoot: string): ReactScan {
       for (const name of literalsIn(expr)) refs.push({ name, file, line: lineAt(text, m.index), via: "react" });
     }
     // <Icon name="x" /> and <Icon name={open ? "a" : "b"} />: typed as IconName, read here so the file is checked too.
-    for (const m of text.matchAll(/<Icon\b[^>]*?\bname=/g)) {
+    for (const m of abs.endsWith(".css") ? [] : text.matchAll(/<Icon\b[^>]*?\bname=/g)) {
       const at = m.index + m[0].length;
       let expr = "";
       if (text[at] === '"') expr = text.slice(at, text.indexOf('"', at + 1) + 1);

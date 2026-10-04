@@ -23,7 +23,6 @@ const brandIcons = join(repoRoot, "apps/web/public/brand/icons");
  * stops being asked for, so this list only ever shrinks.
  */
 const WAITING_FOR_DOWNLOAD: Record<string, string> = {
-  route: "Dashboard booking page, distance chip (OpsDetail). fix/ops-toast-tone vendors route.svg; remove this line once that is on main.",
   sun: "Dashboard Fleet, vehicle form: the Morning chauffeur select. Waiting for the owner's download approval.",
   moon: "Dashboard Fleet, vehicle form: the Night chauffeur select. Waiting for the owner's download approval.",
   tag: "Dashboard Pricing, extras form: the Extra name field. Waiting for the owner's download approval.",
@@ -113,8 +112,20 @@ describe("every icon name a screen asks for has a file", () => {
   });
 
   it("e-mail templates name no icon file (a mail carries the logo image only)", () => {
-    const chrome = readFileSync(join(repoRoot, "packages/emails/src/chrome.ts"), "utf8");
-    expect(chrome).not.toMatch(/\/icons\/|assets\/icons|brand\/icons/);
+    const dir = join(repoRoot, "packages/emails/src");
+    const sources = readdirSync(dir).filter((f) => /\.tsx?$/.test(f) && !/\.test\.tsx?$/.test(f));
+    expect(sources.length).toBeGreaterThan(10);
+    const hits = sources.filter((f) => /\/icons\/|assets\/icons|brand\/icons|mask-image/.test(readFileSync(join(dir, f), "utf8")));
+    expect(hits).toEqual([]);
+  });
+
+  // Folded in from tests/unit/dc-icons-vendored.test.ts (fix/ops-toast-tone): the file the dashboard distance chip draws.
+  it("route.svg is the Lucide route icon (24x24, stroke, no fill)", () => {
+    const svg = readFileSync(join(assetsIcons, "route.svg"), "utf8");
+    expect(svg).toMatch(/viewBox="0 0 24 24"/);
+    expect(svg).toMatch(/stroke="currentColor"/);
+    expect(svg).toMatch(/fill="none"/);
+    expect(svg).toContain('d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"');
   });
 
   // `pnpm test` syncs first. Without a synced copy this shows as skipped locally and fails in CI.
