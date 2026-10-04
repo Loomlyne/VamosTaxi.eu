@@ -177,14 +177,52 @@ describe("suggest", () => {
           { name: "Zürich HB", extra: poi },
           { name: "Bern HB", extra: poi },
           { name: "Basel Station", extra: { feature_type: "neighborhood" } },
-          { name: "station zurich", extra: poi },
         ]),
       ).toEqual({
         "Zurich Main Station": "station",
         "Zürich HB": "station",
         "Bern HB": "station",
         "Basel Station": "station",
-        "station zurich": "station",
+      });
+    });
+
+    it("allows trailing whitespace or punctuation after the final Station or HB, nothing else", async () => {
+      expect(
+        await kindsOf([
+          { name: "Zurich Main Station ", extra: poi },
+          { name: "Zurich Main Station.", extra: poi },
+          { name: "Zürich HB)", extra: poi },
+          { name: "Zürich HB ", extra: poi },
+          { name: "ZURICH MAIN STATION", extra: poi },
+        ]),
+      ).toEqual({
+        "Zurich Main Station ": "station",
+        "Zurich Main Station.": "station",
+        "Zürich HB)": "station",
+        "Zürich HB ": "station",
+        "ZURICH MAIN STATION": "station",
+      });
+    });
+
+    it("only a name that ENDS with Station or HB is a station (owner follow-up 2026-10-04 14:54)", async () => {
+      expect(
+        await kindsOf([
+          { name: "The cozy house - 15 min to Zurich main station", extra: poi },
+          { name: "The cozy house \u2013 15 min to Zurich main station", extra: poi },
+          { name: "Station Hotel Zurich", extra: poi },
+          { name: "station zurich", extra: poi },
+          { name: "Zürich HB Sihlquai", extra: poi },
+          { name: "Station Road Garage", extra: { feature_type: "neighborhood" } },
+          { name: "Zurich Main Station Taxi Rank", extra: poi },
+        ]),
+      ).toEqual({
+        "The cozy house - 15 min to Zurich main station": "poi",
+        "The cozy house \u2013 15 min to Zurich main station": "poi",
+        "Station Hotel Zurich": "poi",
+        "station zurich": "poi",
+        "Zürich HB Sihlquai": "poi",
+        "Station Road Garage": "place",
+        "Zurich Main Station Taxi Rank": "poi",
       });
     });
 
