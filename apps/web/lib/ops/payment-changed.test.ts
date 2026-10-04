@@ -252,7 +252,7 @@ describe("the sentence the owner signed, in the dashboard's four language tables
     const a = dc.indexOf("acceptPending: () => {");
     const b = dc.indexOf("refusePending: () => {", a);
     const handler = dc.slice(a, b);
-    expect(handler).toMatch(/code === 'payment-changed'\) \{ if \(ops\) ops\.bookings\.reset\(\); this\.notify\(t\.errPaymentChanged\); \}/);
+    expect(handler).toMatch(/code === 'payment-changed'\) \{ if \(ops\) ops\.bookings\.reset\(\); this\.notifyError\(t\.errPaymentChanged\); \}/);
     expect(handler.indexOf("t.errPaymentChanged")).toBeLessThan(handler.indexOf("t.editFailed"));
   });
 });

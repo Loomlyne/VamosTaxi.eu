@@ -592,7 +592,7 @@
 
 <sc-if value="{{ showToast }}" hint-placeholder-val="{{ false }}">
 <div data-vt-no-i18n="1" style="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:60;width:max-content;max-width:calc(100vw - 32px)">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Toast" tone="success" onClose="{{ closeToast }}" hint-size="320px,50px">{{ toastMsg }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Toast" tone="{{ toastTone }}" role="{{ toastRole }}" onClose="{{ closeToast }}" hint-size="320px,50px">{{ toastMsg }}</x-import>
 </div>
 </sc-if>
 </div>
@@ -1411,7 +1411,7 @@ const T = {
   },
 };
 class Component extends DCLogic {
-  state = { lang: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en', assignOpen:false, assignError:'', cancelOpen:false, pickDriver:'', toastMsg:'', showToast:false, editing:false, edit:{}, historyOpen:false,
+  state = { lang: (typeof localStorage !== 'undefined' && localStorage.getItem('vamosLang')) || 'en', assignOpen:false, assignError:'', cancelOpen:false, pickDriver:'', toastMsg:'', toastTone:'success', showToast:false, editing:false, edit:{}, historyOpen:false,
     // 26.1-18 refund review (UI-SPEC §4): percentage starts empty, never 100.
     percentText: '', percentFor:'', refundBusy:'', requestedFor:'', declineOpen:false, rejectOpen:false,
     // 20-10: GET …/refund answer, the last partial/failed POST answer, an inline error, the %/CHF switch and the payment choice.
@@ -1520,19 +1520,22 @@ class Component extends DCLogic {
     this._busy = true;
     send().then((json) => { this._busy = false; done(json); }, (err) => { this._busy = false; throw err; });
   };
-  notify = (msg) => { this.setState({ toastMsg: msg, showToast: true }); clearTimeout(this._t); this._t = setTimeout(() => this.setState({ showToast: false }), 3600); };
+  // The toast has two tones. 'success' (green check) says what was done; 'danger' (red warning sign, announced as an alert)
+  // says an action did not happen, or a step of it failed. Every refusal and failure goes through notifyError.
+  notify = (msg, tone) => { this.setState({ toastMsg: msg, toastTone: tone === 'danger' ? 'danger' : 'success', showToast: true }); clearTimeout(this._t); this._t = setTimeout(() => this.setState({ showToast: false }), 3600); };
+  notifyError = (msg) => this.notify(msg, 'danger');
   // Opens Stripe's hosted page for this booking in a new tab. The tab is opened on the click
   // (before the request) so the popup blocker allows it, then pointed at the returned URL.
   openStripePage = (route, booking, failText) => {
     const id = booking.bookingId || booking.id;
     const client = window.VamosOpsApi;
-    if (!client || typeof client.request !== 'function') { this.notify(failText + id); return; }
+    if (!client || typeof client.request !== 'function') { this.notifyError(failText + id); return; }
     const tab = window.open('about:blank', '_blank');
     client.request('POST', '/api/staff/bookings/' + encodeURIComponent(id) + '/' + route, {}).then((json) => {
       const url = json && json.ok && json.data && json.data.url;
-      if (!url) { if (tab) tab.close(); this.notify(failText + id); return; }
+      if (!url) { if (tab) tab.close(); this.notifyError(failText + id); return; }
       if (tab) { tab.opener = null; tab.location.href = url; } else window.open(url, '_blank', 'noopener');
-    }, () => { if (tab) tab.close(); this.notify(failText + id); });
+    }, () => { if (tab) tab.close(); this.notifyError(failText + id); });
   };
   // 26.2 P1: what every class of today's live price book would cost for this paid trip (read-only).
   loadClassPreview = (booking) => {
@@ -1748,7 +1751,7 @@ class Component extends DCLogic {
     const postRefund = (kind, body) => {
       const client = window.VamosOpsApi;
       if (!client || typeof client.request !== 'function' || !refundKey) {
-        this.notify(t.refundFailed + booking.id);
+        this.notifyError(t.refundFailed + booking.id);
         return;
       }
       this.setState({ refundBusy: kind, refundError: null });
@@ -1767,7 +1770,7 @@ class Component extends DCLogic {
     const postDecision = (kind) => {
       const client = window.VamosOpsApi;
       if (!client || typeof client.request !== 'function' || !refundKey) {
-        this.notify(t.refundFailed + booking.id);
+        this.notifyError(t.refundFailed + booking.id);
         return;
       }
       this.setState({ refundBusy: kind, refundError: null });
@@ -1971,7 +1974,7 @@ class Component extends DCLogic {
       const client = window.VamosOpsApi;
       if (!client || typeof client.request !== 'function' || !tripReady) {
         this.setState({ classConfirmOpen: false, classBusy: false });
-        this.notify((onlyClass ? t.errClassFailed : t.errTripFailed) + booking.id);
+        this.notifyError((onlyClass ? t.errClassFailed : t.errTripFailed) + booking.id);
         return;
       }
       client.request('POST', '/api/staff/bookings/' + encodeURIComponent(bookingKey) + '/change', changeBody()).then((json) => {
@@ -1979,23 +1982,30 @@ class Component extends DCLogic {
         if (json && json.ok && json.data) {
           const d = json.data;
           let msg;
-          if (d.outcome === 'extra_required') msg = d.mailed ? fillAmounts(onlyClass ? t.classDoneWaiting : t.tripDoneWaiting, { a: chfText(d.differenceRappen) }) : t.classDoneNoMail;
-          else if (d.outcome === 'refund_due') msg = fillAmounts(onlyClass ? t.classDoneRefund : t.tripDoneRefund, { a: chfText(Math.abs(Number(d.differenceRappen) || 0)) });
-          else msg = d.confirmationSent ? (onlyClass ? t.classDoneApplied : t.tripDoneApplied) : (onlyClass ? t.classDoneNoConfirm : t.tripDoneNoConfirm);
+          // The change went through, but an e-mail the owner relies on did not go out: that is a failed step, not a success.
+          let tone = 'success';
+          if (d.outcome === 'extra_required') {
+            msg = d.mailed ? fillAmounts(onlyClass ? t.classDoneWaiting : t.tripDoneWaiting, { a: chfText(d.differenceRappen) }) : t.classDoneNoMail;
+            if (!d.mailed) tone = 'danger';
+          } else if (d.outcome === 'refund_due') msg = fillAmounts(onlyClass ? t.classDoneRefund : t.tripDoneRefund, { a: chfText(Math.abs(Number(d.differenceRappen) || 0)) });
+          else {
+            msg = d.confirmationSent ? (onlyClass ? t.classDoneApplied : t.tripDoneApplied) : (onlyClass ? t.classDoneNoConfirm : t.tripDoneNoConfirm);
+            if (!d.confirmationSent) tone = 'danger';
+          }
           if (d.driverTakenOff) msg += ' ' + t.classDoneDriver;
           else if (d.driverUpdated && driverName) msg += ' ' + fillName(t.tripDoneDriverKept);
           this.setState({ classConfirmOpen: false, classBusy: false, editing: false, edit: {}, classPreview: null, clashChoice: '', clashFor: '' });
-          this.notify(msg);
+          this.notify(msg, tone);
           return;
         }
         // The contact fields were saved; the trip was not. Show the reason and the figures as they are now.
         const code = String((json && json.code) || 'unknown');
         this.setState((s) => ({ classConfirmOpen: false, classBusy: false, edit: Object.assign({}, s.edit, { klass: '' }) }));
-        this.notify(classErrByCode[code] || ((onlyClass ? t.errClassFailed : t.errTripFailed) + booking.id));
+        this.notifyError(classErrByCode[code] || ((onlyClass ? t.errClassFailed : t.errTripFailed) + booking.id));
         this.loadTripPreview(booking);
       }, () => {
         this.setState({ classConfirmOpen: false, classBusy: false });
-        this.notify((onlyClass ? t.errClassFailed : t.errTripFailed) + booking.id);
+        this.notifyError((onlyClass ? t.errClassFailed : t.errTripFailed) + booking.id);
       });
     };
     const vals = {
@@ -2028,9 +2038,9 @@ class Component extends DCLogic {
             if (ops) ops.bookings.reset();
             this.notify(t.unassignedOk + booking.id);
           } else if (json && json.code === 'frozen') {
-            this.notify(t.frozen);
+            this.notifyError(t.frozen);
           } else {
-            this.notify(t.assignFailed + booking.id);
+            this.notifyError(t.assignFailed + booking.id);
           }
         });
       },
@@ -2169,20 +2179,20 @@ class Component extends DCLogic {
       confirmWithdraw: () => {
         if (this.state.withdrawBusy) return;
         const client = window.VamosOpsApi;
-        if (!client || typeof client.request !== 'function') { this.notify(t.withdrawStripe); return; }
+        if (!client || typeof client.request !== 'function') { this.notifyError(t.withdrawStripe); return; }
         this.setState({ withdrawBusy: true });
         client.request('POST', '/api/staff/bookings/' + encodeURIComponent(bookingKey) + '/change/withdraw', {}).then((json) => {
           if (window.VamosOps) window.VamosOps.bookings.reset();
           const code = json && json.code;
           this.setState({ withdrawOpen: false, withdrawBusy: false });
           if (json && json.ok) { this.notify(t.withdrawDone); return; }
-          if (code === 'already-paid') this.notify(t.withdrawPaid);
-          else if (code === 'nothing-waiting') this.notify(t.withdrawNothing);
-          else if (code === 'stripe-test-only') this.notify(t.errTestOnly);
-          else this.notify(t.withdrawStripe);
+          if (code === 'already-paid') this.notifyError(t.withdrawPaid);
+          else if (code === 'nothing-waiting') this.notifyError(t.withdrawNothing);
+          else if (code === 'stripe-test-only') this.notifyError(t.errTestOnly);
+          else this.notifyError(t.withdrawStripe);
         }, () => {
           this.setState({ withdrawOpen: false, withdrawBusy: false });
-          this.notify(t.withdrawStripe);
+          this.notifyError(t.withdrawStripe);
         });
       },
       tClassConfirmTitle: onlyClass ? t.classConfirmTitle : t.tripConfirmTitle, tClassKeep: onlyClass ? t.classKeep : t.tripKeep,
@@ -2227,15 +2237,15 @@ class Component extends DCLogic {
             else if (outcome === 'refund_due') this.notify(t.refundClick);
             return;
           }
-          if (code === 'must-fix' || code === 'capacity') this.notify(t.mustFix);
-          else if (code === 'unpaid') this.notify(t.unpaidNoEditBody);
+          if (code === 'must-fix' || code === 'capacity') this.notifyError(t.mustFix);
+          else if (code === 'unpaid') this.notifyError(t.unpaidNoEditBody);
           // 261002 review round 3: the page of this request is already paid; nothing was replaced.
-          else if (code === 'already-paid') { if (ops) ops.bookings.reset(); this.notify(t.acceptPaid); }
+          else if (code === 'already-paid') { if (ops) ops.bookings.reset(); this.notifyError(t.acceptPaid); }
           // 261002 settle safety: a second Accept after the amount to pay moved; nothing was written, no new link.
-          else if (code === 'price-changed') { if (ops) ops.bookings.reset(); this.notify(t.acceptPriceChanged); }
+          else if (code === 'price-changed') { if (ops) ops.bookings.reset(); this.notifyError(t.acceptPriceChanged); }
           // 261004 lock order: a payment settled for this booking in the same instant; nothing was written, Accept again is safe.
-          else if (code === 'payment-changed') { if (ops) ops.bookings.reset(); this.notify(t.errPaymentChanged); }
-          else this.notify(t.editFailed + booking.id);
+          else if (code === 'payment-changed') { if (ops) ops.bookings.reset(); this.notifyError(t.errPaymentChanged); }
+          else this.notifyError(t.editFailed + booking.id);
         });
       },
       refusePending: () => {
@@ -2251,7 +2261,7 @@ class Component extends DCLogic {
             if (ops) ops.bookings.reset();
             return;
           }
-          this.notify(t.refuseFailed + booking.id);
+          this.notifyError(t.refuseFailed + booking.id);
         });
       },
       edit: this.state.edit || {},
@@ -2278,7 +2288,7 @@ class Component extends DCLogic {
         const client = window.VamosOpsApi;
         const ops = window.VamosOps;
         if (!client || typeof client.request !== 'function') {
-          this.notify(t.editFailed + id);
+          this.notifyError(t.editFailed + id);
           return;
         }
         // The route reads customer / email / phone (26.2-u08: contact_* was never read, so these edits were dropped).
@@ -2288,7 +2298,7 @@ class Component extends DCLogic {
         // A change of places, date, time, party or class first goes through its confirm step; after "Change the
         // trip" the contact is saved here, then the trip goes to …/change, priced on the server.
         if (tripChanged && !this._classConfirmed) {
-          if (tripBlock) { this.notify(tripBlock); return; }
+          if (tripBlock) { this.notifyError(tripBlock); return; }
           this.setState({ classConfirmOpen: true });
           return;
         }
@@ -2313,7 +2323,7 @@ class Component extends DCLogic {
             this.notify(instant.flight && hasDriver ? t.savedFlight : t.savedInstant);
           } else {
             this.setState({ classConfirmOpen: false, classBusy: false });
-            this.notify(t.editFailed + id);
+            this.notifyError(t.editFailed + id);
           }
         });
       },
@@ -2353,7 +2363,7 @@ class Component extends DCLogic {
           const id = booking.bookingId || booking.id;
           const client = window.VamosOpsApi;
           if (!client || typeof client.request !== 'function') {
-            this.notify(t.voucherFailed + (booking.email || id));
+            this.notifyError(t.voucherFailed + (booking.email || id));
             return;
           }
           client.request('POST', '/api/staff/bookings/' + encodeURIComponent(id) + '/voucher', {}).then((json) => {
@@ -2361,7 +2371,7 @@ class Component extends DCLogic {
               this.notify(t.voucherResent + ((json.data && json.data.email) || booking.email || id));
               return;
             }
-            this.notify(t.voucherFailed + (booking.email || id));
+            this.notifyError(t.voucherFailed + (booking.email || id));
           });
           return;
         }
@@ -2370,16 +2380,16 @@ class Component extends DCLogic {
           const client = window.VamosOpsApi;
           const ops = window.VamosOps;
           if (!client || typeof client.request !== 'function') {
-            this.notify(t.arrivalFailed + id);
+            this.notifyError(t.arrivalFailed + id);
             return;
           }
           this.once(() => client.request('PATCH', '/api/staff/bookings/' + encodeURIComponent(id), { arrived: true }), (json) => {
             if (json && json.ok) {
               if (ops) ops.bookings.reset();
             } else if (json && json.code === 'frozen') {
-              this.notify(t.frozen);
+              this.notifyError(t.frozen);
             } else {
-              this.notify(t.arrivalFailed + id);
+              this.notifyError(t.arrivalFailed + id);
             }
           });
           return;
@@ -2389,16 +2399,16 @@ class Component extends DCLogic {
           const client = window.VamosOpsApi;
           const ops = window.VamosOps;
           if (!client || typeof client.request !== 'function') {
-            this.notify(t.editFailed + id);
+            this.notifyError(t.editFailed + id);
             return;
           }
           this.once(() => client.request('PATCH', '/api/staff/bookings/' + encodeURIComponent(id), { status: 'completed' }), (json) => {
             if (json && json.ok) {
               if (ops) ops.bookings.reset();
             } else if (json && json.code === 'frozen') {
-              this.notify(t.frozen);
+              this.notifyError(t.frozen);
             } else {
-              this.notify(t.editFailed + id);
+              this.notifyError(t.editFailed + id);
             }
           });
         }
@@ -2408,16 +2418,16 @@ class Component extends DCLogic {
         const client = window.VamosOpsApi;
         const ops = window.VamosOps;
         if (!client || typeof client.request !== 'function') {
-          this.notify(t.arrivalFailed + id);
+          this.notifyError(t.arrivalFailed + id);
           return;
         }
         this.once(() => client.request('PATCH', '/api/staff/bookings/' + encodeURIComponent(id), { arrived: true }), (json) => {
           if (json && json.ok) {
             if (ops) ops.bookings.reset();
           } else if (json && json.code === 'frozen') {
-            this.notify(t.frozen);
+            this.notifyError(t.frozen);
           } else {
-            this.notify(t.arrivalFailed + id);
+            this.notifyError(t.arrivalFailed + id);
           }
         });
       },
@@ -2426,16 +2436,16 @@ class Component extends DCLogic {
         const client = window.VamosOpsApi;
         const ops = window.VamosOps;
         if (!client || typeof client.request !== 'function') {
-          this.notify(t.editFailed + id);
+          this.notifyError(t.editFailed + id);
           return;
         }
         this.once(() => client.request('PATCH', '/api/staff/bookings/' + encodeURIComponent(id), { status: 'completed' }), (json) => {
           if (json && json.ok) {
             if (ops) ops.bookings.reset();
           } else if (json && json.code === 'frozen') {
-            this.notify(t.frozen);
+            this.notifyError(t.frozen);
           } else {
-            this.notify(t.editFailed + id);
+            this.notifyError(t.editFailed + id);
           }
         });
       },
@@ -2444,16 +2454,16 @@ class Component extends DCLogic {
         const client = window.VamosOpsApi;
         const ops = window.VamosOps;
         if (!client || typeof client.request !== 'function') {
-          this.notify(t.editFailed + id);
+          this.notifyError(t.editFailed + id);
           return;
         }
         this.once(() => client.request('PATCH', '/api/staff/bookings/' + encodeURIComponent(id), { status: 'no_show' }), (json) => {
           if (json && json.ok) {
             if (ops) ops.bookings.reset();
           } else if (json && json.code === 'frozen') {
-            this.notify(t.frozen);
+            this.notifyError(t.frozen);
           } else {
-            this.notify(t.editFailed + id);
+            this.notifyError(t.editFailed + id);
           }
         });
       },
@@ -2473,7 +2483,7 @@ class Component extends DCLogic {
         const client = window.VamosOpsApi;
         this.setState({ cancelOpen: false });
         if (!client || typeof client.request !== 'function') {
-          this.notify(t.cancelFailed + id);
+          this.notifyError(t.cancelFailed + id);
           return;
         }
         const req = unpaid
@@ -2491,9 +2501,9 @@ class Component extends DCLogic {
             }
           } else if (json && json.code === 'frozen') {
             // 261001-refusal-messages: ops_cancel_booking refuses a finished or cancelled trip.
-            this.notify(t.frozen);
+            this.notifyError(t.frozen);
           } else {
-            this.notify(t.cancelFailed + id);
+            this.notifyError(t.cancelFailed + id);
           }
         });
       },
@@ -2501,7 +2511,7 @@ class Component extends DCLogic {
         const id = booking.bookingId || booking.id;
         const client = window.VamosOpsApi;
         if (!client || typeof client.request !== 'function') {
-          this.notify(t.voucherFailed + (booking.email || id));
+          this.notifyError(t.voucherFailed + (booking.email || id));
           return;
         }
         client.request('POST', '/api/staff/bookings/' + encodeURIComponent(id) + '/voucher', {}).then((json) => {
@@ -2509,7 +2519,7 @@ class Component extends DCLogic {
             this.notify(t.voucherResent + ((json.data && json.data.email) || booking.email || id));
             return;
           }
-          this.notify(t.voucherFailed + (booking.email || id));
+          this.notifyError(t.voucherFailed + (booking.email || id));
         });
       },
       sendPayLink: () => {
@@ -2517,7 +2527,7 @@ class Component extends DCLogic {
         const client = window.VamosOpsApi;
         const ops = window.VamosOps;
         if (!client || typeof client.request !== 'function') {
-          this.notify(t.payLinkFailed + id);
+          this.notifyError(t.payLinkFailed + id);
           return;
         }
         this.once(() => client.request('POST', '/api/staff/bookings/' + encodeURIComponent(id) + '/pay-link', { send: true }), (json) => {
@@ -2526,7 +2536,7 @@ class Component extends DCLogic {
             this.notify(t.payLinkSent + (booking.email || id));
             return;
           }
-          this.notify(t.payLinkFailed + id);
+          this.notifyError(t.payLinkFailed + id);
         });
       },
       // D-48: no card form of ours. Stripe's hosted page opens in a new tab; staff type the card there.
@@ -2535,11 +2545,11 @@ class Component extends DCLogic {
       copyExtraPay: () => {
         const id = booking.bookingId || booking.id;
         const client = window.VamosOpsApi;
-        if (!client || typeof client.request !== 'function') { this.notify(t.cardFailed + id); return; }
+        if (!client || typeof client.request !== 'function') { this.notifyError(t.cardFailed + id); return; }
         client.request('POST', '/api/staff/bookings/' + encodeURIComponent(id) + '/extra-pay', {}).then((json) => {
           const url = json && json.ok && json.data && json.data.url;
-          if (!url || !navigator.clipboard) { this.notify(t.cardFailed + id); return; }
-          navigator.clipboard.writeText(url).then(() => this.notify(t.payLinkCopied), () => this.notify(t.cardFailed + id));
+          if (!url || !navigator.clipboard) { this.notifyError(t.cardFailed + id); return; }
+          navigator.clipboard.writeText(url).then(() => this.notify(t.payLinkCopied), () => this.notifyError(t.cardFailed + id));
         });
       },
       tDriver: t.driver, pickDriver: this.state.pickDriver,
@@ -2581,6 +2591,7 @@ class Component extends DCLogic {
         });
       },
       showToast: this.state.showToast, toastMsg: this.state.toastMsg, closeToast: () => this.setState({ showToast: false }),
+      toastTone: this.state.toastTone === 'danger' ? 'danger' : 'success', toastRole: this.state.toastTone === 'danger' ? 'alert' : 'status',
     };
     this._barVals = { title: booking.id, label: t.actions, items: viewing ? actionItems : [] };
     this._barPick = vals.pickAction;
