@@ -24,7 +24,7 @@ export type DynamicIconBinding = {
   expr: string;
 };
 
-const SKIP_DIRS = new Set(["node_modules", ".git", ".open-next", ".turbo"]);
+const SKIP_DIRS = ["node_modules", ".git", ".open-next", ".turbo"];
 const KEBAB = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
 // A property or variable that carries an icon name: icon, iconEnd, endIcon, floatIcon, FIELD_ICONS, glyph, chevron.
 const KEY =
@@ -37,7 +37,7 @@ const ATTR = /\s([a-zA-Z_:][\w:.-]*)=(?:"([^"]*)"|'([^']*)')/g;
 function walk(dir: string, accept: (file: string) => boolean, out: string[] = []): string[] {
   if (!existsSync(dir)) return out;
   for (const e of readdirSync(dir, { withFileTypes: true })) {
-    if (SKIP_DIRS.has(e.name) || e.name.startsWith(".next")) continue;
+    if (SKIP_DIRS.includes(e.name) || e.name.startsWith(".next")) continue;
     const p = join(dir, e.name);
     if (e.isDirectory()) walk(p, accept, out);
     else if (accept(p)) out.push(p);
