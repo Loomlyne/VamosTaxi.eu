@@ -283,7 +283,9 @@ class Component extends DCLogic {
       return line ? Number(line.rappen) || 0 : 0;
     };
     const onShift = chauffeurs.filter((c) => c.status === 'shift').length;
-    const pickups = periodBookings.filter((b) => b.status !== 'cancelled' && b.status !== 'refunded').length;
+    /* 261004: a trip runs only once it is paid (the board's "Pickups today" counts the same); an unpaid
+       checkout that was left open is not scheduled to run. */
+    const pickups = periodBookings.filter((b) => b.paid && b.status !== 'cancelled' && b.status !== 'refunded').length;
     const unassignedPaid = periodBookings.filter((b) => b.paid && !b.driver && ['cancelled', 'refunded', 'completed', 'no-show', 'no_show'].indexOf(b.status) === -1).length;
     const unpaidPending = periodBookings.filter((b) => b.payLinkSent && !b.paid && b.status !== 'cancelled' && b.status !== 'refunded' && b.status !== 'completed').length;
     const pendingEdits = periodBookings.filter((b) => b.paid && b.pendingEditId).length;

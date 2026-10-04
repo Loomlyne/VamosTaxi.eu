@@ -163,6 +163,22 @@ describe("money tiles read the server's captured payments", () => {
   });
 });
 
+describe("Pickups counts trips that will run", () => {
+  it("an unpaid checkout left open is not a pickup; a cancelled trip is not either", () => {
+    const row = (id: string, paid: boolean, status: string): Json => ({
+      id, paid, status, capturedAt: paid ? "2026-10-01T10:00:00.000Z" : "", dateIso: zurichDay(-2), klass: "Economy", driver: "",
+    });
+    const dash = loadDash([
+      row("paid-1", true, "confirmed"),
+      row("paid-2", true, "completed"),
+      row("unpaid", false, "pending"),
+      row("gone", true, "cancelled"),
+    ]);
+    dash.state = { ...dash.state, period: "week", money: null };
+    expect(count(dash.renderVals(), "Pickups")).toBe("2");
+  });
+});
+
 describe("switching periods", () => {
   it("an answer that lands after the period changed does not overwrite the period on screen", async () => {
     const pending: Record<string, (v: unknown) => void> = {};
