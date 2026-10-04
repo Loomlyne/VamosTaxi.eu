@@ -33,7 +33,7 @@ vi.mock("@/lib/supabase/server", async () => {
       auth: {
         signInWithOtp: async (args: unknown) => {
           // The PKCE verifier cookie the real client writes while starting the flow.
-          sink?.cookies.push({ name: "vt-auth-code-verifier", value: "v", options: { path: "/", httpOnly: true } });
+          sink?.cookies.push({ name: "sb-pkce-code-verifier", value: "v", options: { path: "/", httpOnly: true } });
           return state.otp(args);
         },
       },
@@ -98,8 +98,8 @@ describe("POST /api/auth origin checkout", () => {
   it("carries the PKCE verifier cookie and no session cookie", async () => {
     const res = await run(good);
     const cookies = res.headers.getSetCookie();
-    expect(cookies.some((c) => c.startsWith("vt-auth-code-verifier="))).toBe(true);
-    expect(cookies.some((c) => /^vt-auth(\.\d+)?=/.test(c))).toBe(false);
+    expect(cookies.some((c) => c.startsWith("sb-pkce-code-verifier="))).toBe(true);
+    expect(cookies.some((c) => /auth-token/.test(c))).toBe(false);
   });
 
   it("holds the response until the floor", async () => {

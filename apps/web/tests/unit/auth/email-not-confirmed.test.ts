@@ -29,7 +29,7 @@ describe("unconfirmed e-mail", () => {
 describe("resend-confirmation", () => {
   it("re-sends the sign-up mail with the callback url and answers sent", async () => {
     const resend = vi.fn(async () => {
-      writeCookies({ name: "vt-auth-code-verifier", value: "v", options: { path: "/" } });
+      writeCookies({ name: "sb-x-auth-token-code-verifier", value: "v", options: { path: "/" } });
       return { error: null };
     });
     state.auth.resend = resend as never;

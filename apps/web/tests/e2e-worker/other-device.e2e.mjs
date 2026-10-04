@@ -198,7 +198,7 @@ rec("b4 signed in: account details of the pending reference is 404", r.status ==
 // b5: Data API with B's own access token (parsed in-process, never printed)
 let access = "";
 try {
-  const chunks = [...jarB.m].filter(([k]) => /^vt-auth(\.\d+)?$/.test(k)).sort((a, b) => a[0].localeCompare(b[0], "en", { numeric: true })).map(([, v]) => decodeURIComponent(v));
+  const chunks = [...jarB.m].filter(([k]) => /^sb-.*-auth-token(\.\d+)?$/.test(k)).sort((a, b) => a[0].localeCompare(b[0], "en", { numeric: true })).map(([, v]) => decodeURIComponent(v));
   let joined = chunks.join("");
   if (joined.startsWith("base64-")) joined = Buffer.from(joined.slice(7), "base64url").toString("utf8");
   access = JSON.parse(joined).access_token ?? "";

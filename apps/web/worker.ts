@@ -24,7 +24,6 @@ import {
   type VamosSurface,
 } from "./lib/security/pin-sni";
 import { withRequestContext } from "./lib/logger";
-import { withLegacyAuthCookiesExpired } from "./lib/supabase/cookies";
 import { isZurichDigestTime, runStaffDigest } from "./lib/ops/digest";
 import { createDigestDependencies } from "./lib/supabase/service";
 import { applyHandleResult, handleStripeMessage } from "./lib/checkout/settle";
@@ -36,20 +35,7 @@ import { runReminder24h } from "./lib/lifecycle/reminder";
 import { probeHealth } from "./lib/health/probe";
 import type { StripeQueueMessage } from "./lib/checkout/webhook";
 
-/**
- * Every answer, public and dashboard: a browser still holding the old `sb-<ref>-auth-token*`
- * cookies (renamed to `vt-auth`, 2026-10-04) gets them expired on its first request.
- */
 async function handleFetch(
-  request: Request,
-  env: CloudflareEnv,
-  ctx: ExecutionContext,
-  surface: VamosSurface,
-): Promise<Response> {
-  return withLegacyAuthCookiesExpired(request, await routeFetch(request, env, ctx, surface));
-}
-
-async function routeFetch(
   request: Request,
   env: CloudflareEnv,
   ctx: ExecutionContext,

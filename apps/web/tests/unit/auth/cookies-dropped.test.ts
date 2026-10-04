@@ -15,8 +15,8 @@ vi.mock("@/lib/db/identity", () => ({
 const { POST } = await import("@/app/api/auth/route");
 const { GET } = await import("@/app/api/auth/callback/route");
 
-const verifier = { name: "vt-auth-code-verifier", value: "verifier-1", options: { path: "/", maxAge: 3600 } };
-const session = { name: "vt-auth", value: "session-1", options: { path: "/", maxAge: 3600 } };
+const verifier = { name: "sb-x-auth-token-code-verifier", value: "verifier-1", options: { path: "/", maxAge: 3600 } };
+const session = { name: "sb-x-auth-token", value: "session-1", options: { path: "/", maxAge: 3600 } };
 
 beforeEach(() => resetHarness());
 
@@ -30,7 +30,7 @@ describe("PKCE verifier reaches the browser", () => {
       authPost({ mode: "signup", method: "password", email: "a@b.co", password: "12345678", firstName: "A", lastName: "B", consent: true }),
     );
     expect(await res.json()).toEqual({ stage: "sent" });
-    expect(setCookieHeaders(res).join("\n")).toContain("vt-auth-code-verifier=verifier-1");
+    expect(setCookieHeaders(res).join("\n")).toContain("sb-x-auth-token-code-verifier=verifier-1");
   });
 
   it("magic link sends the verifier cookie", async () => {
@@ -61,7 +61,7 @@ describe("PKCE verifier reaches the browser", () => {
     }) as never;
     const res = await POST(authPost({ action: "update-password", password: "12345678" }));
     expect(await res.json()).toEqual({ ok: true });
-    expect(setCookieHeaders(res).join("\n")).toContain("vt-auth=session-1");
+    expect(setCookieHeaders(res).join("\n")).toContain("sb-x-auth-token=session-1");
   });
 
   it("update-profile copies the refreshed session cookies", async () => {
@@ -72,7 +72,7 @@ describe("PKCE verifier reaches the browser", () => {
     }) as never;
     const res = await POST(authPost({ action: "update-profile", firstName: "A", lastName: "B", consent: true }));
     expect(await res.json()).toEqual({ ok: true });
-    expect(setCookieHeaders(res).join("\n")).toContain("vt-auth=session-1");
+    expect(setCookieHeaders(res).join("\n")).toContain("sb-x-auth-token=session-1");
   });
 });
 
@@ -87,7 +87,7 @@ describe("callback", () => {
     }) as never;
     const res = await GET(cb("code=abc&next=%2F"));
     expect(res.status).toBe(302);
-    expect(setCookieHeaders(res).join("\n")).toContain("vt-auth=session-1");
+    expect(setCookieHeaders(res).join("\n")).toContain("sb-x-auth-token=session-1");
   });
 
   it("still copies the verifier removal on a failed exchange", async () => {

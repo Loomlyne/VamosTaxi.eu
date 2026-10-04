@@ -36,7 +36,7 @@ vi.mock("@/lib/db/identity", () => ({
 
 const { POST } = await import("@/app/api/auth/route");
 const { GET: SESSION } = await import("@/app/api/auth/session/route");
-const session = { name: "vt-auth", value: "session-2", options: { path: "/" } };
+const session = { name: "sb-x-auth-token", value: "session-2", options: { path: "/" } };
 const mia = { id: "user-1", email: "mia@example.test", user_metadata: {}, app_metadata: {}, email_confirmed_at: "2026-10-01" };
 const body = { action: "finish-account", firstName: "Mia", lastName: "Keller", phone: "+41 79 000 00 00", consent: true };
 
@@ -65,7 +65,7 @@ describe("POST /api/auth finish-account", () => {
     expect(update).toHaveBeenCalledWith({
       data: { first_name: "Mia", last_name: "Keller", full_name: "Mia Keller", phone: "+41790000000" },
     });
-    expect(setCookieHeaders(res).join("\n")).toContain("vt-auth=session-2");
+    expect(setCookieHeaders(res).join("\n")).toContain("sb-x-auth-token=session-2");
     expect(res.headers.get("cache-control")).toBe("private, no-store");
   });
 

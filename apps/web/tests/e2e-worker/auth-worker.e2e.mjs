@@ -134,7 +134,7 @@ if (link) {
   const cust = sql(`select count(*) from public.customers c join auth.users u on u.id=c.user_id where u.email='${A}'`);
   const cons = sql(`select count(*) from public.consent_log l join public.customers c on c.id=l.customer_id join auth.users u on u.id=c.user_id where u.email='${A}'`);
   rec("1b confirm link -> callback -> session/customer, no consent row (27 D-01)", f.hops.join(">").includes("POST 200") && s?.signedIn === true && cust === "1" && Number(cons) === 0,
-    `hops=${f.hops.join(">")} final=${f.final} vt-auth cookie=${jarA.has(/^vt-auth(\.\d+)?$/)}; session.signedIn=${s?.signedIn}; customers=${cust}; consent_log=${cons}; agreement rows=${agreements(A)}`);
+    `hops=${f.hops.join(">")} final=${f.final} sb-auth-token cookie=${jarA.has(/^sb-.*-auth-token/)}; session.signedIn=${s?.signedIn}; customers=${cust}; consent_log=${cons}; agreement rows=${agreements(A)}`);
 } else rec("1b confirm link", false, "no mail/link");
 
 // 2 password sign-in / sign out
@@ -144,7 +144,7 @@ let s = await session(jar2);
 const in2 = r.status === 200 && s?.signedIn === true;
 r = await auth({ action: "signout" }, jar2, { ip: newIp() });
 s = await session(jar2);
-rec("2 password sign-in then sign-out", in2 && s?.signedIn === false, `signin->signedIn=${in2}; after signout status ${r.status} signedIn=${s?.signedIn}; token cookie left=${jar2.has(/^vt-auth(\.\d+)?$/)}`);
+rec("2 password sign-in then sign-out", in2 && s?.signedIn === false, `signin->signedIn=${in2}; after signout status ${r.status} signedIn=${s?.signedIn}; token cookie left=${jar2.has(/^sb-.*-auth-token/)}`);
 
 // 3 magic link
 const jar3 = new Jar(); seen = before();
@@ -289,12 +289,12 @@ const DH = `dashboard.localhost:${DASH_PORT}`;
 const jar8 = new Jar();
 r = await auth({ mode: "signin", method: "password", email: A, password: PW2 }, jar8, { host: DH, ip: newIp() });
 s = await session(jar8, DH);
-const r8a = `customer pw signin on dashboard: ${r.status} ${JSON.stringify(r.json)}; token cookie left=${jar8.has(/^vt-auth(\.\d+)?$/)}; signedIn=${s?.signedIn}`;
+const r8a = `customer pw signin on dashboard: ${r.status} ${JSON.stringify(r.json)}; token cookie left=${jar8.has(/^sb-.*-auth-token/)}; signedIn=${s?.signedIn}`;
 r = await auth({ mode: "signin", method: "magic", email: U }, new Jar(), { host: DH, ip: newIp() });
 const m8 = `magic unknown on dashboard: ${r.status}, auth.users=${users(U)}`;
 r = await auth({ mode: "signup", method: "password", email: U2, password: PW1, firstName: "U", lastName: "Two", consent: true }, new Jar(), { host: DH, ip: newIp() });
 const s8 = `pw signup on dashboard: ${r.status}, auth.users=${users(U2)}, agreement rows=${agreements(U2)}`;
-rec("8 dashboard host", r.status && users(U) === 0 && users(U2) === 0 && agreements(U2) === 0 && r8a.includes("403") && !jar8.has(/^vt-auth(\.\d+)?$/), `${r8a}; ${m8}; ${s8}`);
+rec("8 dashboard host", r.status && users(U) === 0 && users(U2) === 0 && agreements(U2) === 0 && r8a.includes("403") && !jar8.has(/^sb-.*-auth-token/), `${r8a}; ${m8}; ${s8}`);
 
 // 7 rate limit (last: same ip bucket)
 // The local limiter (miniflare) counts in fixed windows aligned to the wall-clock minute and keeps its state in .wrangler/e2e:

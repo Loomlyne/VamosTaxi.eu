@@ -15,7 +15,7 @@ beforeEach(() => resetHarness());
 describe("secure auth cookies", () => {
   it("server client asks for Secure, Lax, path / and no Domain on https", async () => {
     await createServerSupabaseClient(new Request("https://vamostaxi.site/api/auth"));
-    expect(state.options?.cookieOptions).toEqual({ name: "vt-auth", path: "/", sameSite: "lax", secure: true });
+    expect(state.options?.cookieOptions).toEqual({ path: "/", sameSite: "lax", secure: true });
     expect(state.options?.cookieOptions).not.toHaveProperty("domain");
   });
 
@@ -41,7 +41,7 @@ describe("secure auth cookies", () => {
 
   it("Set-Cookie header carries Secure when the option is set", () => {
     const header = authSetCookieHeader({
-      name: "vt-auth",
+      name: "sb-x-auth-token",
       value: "v",
       options: { path: "/", sameSite: "lax", secure: true, maxAge: 60 },
     });

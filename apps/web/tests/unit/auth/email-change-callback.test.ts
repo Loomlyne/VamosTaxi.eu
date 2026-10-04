@@ -17,11 +17,11 @@ vi.mock("@/lib/supabase/server", () => ({
   createServerSupabaseClient: async (_r: Request, sink?: { cookies: { name: string; value: string }[] }) => {
     auth.verifyOtp.mockImplementation(async () => {
       const r = verify.result as { data: { user: unknown; session?: unknown }; error: unknown };
-      if (r.data.user) sink?.cookies.push({ name: "vt-auth", value: "session" });
+      if (r.data.user) sink?.cookies.push({ name: "sb-test-auth-token", value: "session" });
       return r;
     });
     auth.signOut.mockImplementation(async () => {
-      sink?.cookies.push({ name: "vt-auth", value: "" });
+      sink?.cookies.push({ name: "sb-test-auth-token", value: "" });
       return { error: null };
     });
     return { auth };
@@ -75,7 +75,7 @@ describe("callback POST: e-mail change", () => {
     const res = await POST(post({ token_hash: "h2", type: "email_change", e, next: "/account" }));
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ ok: true, target: "/account" });
-    expect(res.headers.get("set-cookie")).toContain("vt-auth=session");
+    expect(res.headers.get("set-cookie")).toContain("sb-test-auth-token=session");
   });
 
   it("second click from the OLD address link completes and signs in (change is done, old address is gone from the account)", async () => {
@@ -101,7 +101,7 @@ describe("callback POST: e-mail change", () => {
     const res = await POST(post({ token_hash: "h3", type: "email_change", e }));
     expect(res.status).toBe(400);
     expect(auth.signOut).toHaveBeenCalled();
-    expect(res.headers.get("set-cookie")).not.toContain("vt-auth=session");
+    expect(res.headers.get("set-cookie")).not.toContain("sb-test-auth-token=session");
   });
 
   it("keeps the seal bound to the token: a seal made for another token is refused before verify", async () => {

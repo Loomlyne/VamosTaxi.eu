@@ -7,8 +7,8 @@ vi.mock("next/headers", async () => (await import("./harness")).headersMock);
 vi.mock("@supabase/ssr", async () => (await import("./harness")).ssrMock);
 
 const { POST } = await import("@/app/api/auth/route");
-const session = { name: "vt-auth", value: "session-1", options: { path: "/" } };
-const removal = { name: "vt-auth", value: "", options: { path: "/", maxAge: 0 } };
+const session = { name: "sb-x-auth-token", value: "session-1", options: { path: "/" } };
+const removal = { name: "sb-x-auth-token", value: "", options: { path: "/", maxAge: 0 } };
 
 beforeEach(() => resetHarness());
 
@@ -23,7 +23,7 @@ describe("verify-code", () => {
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ ok: true });
     expect(verify).toHaveBeenCalledWith({ email: "a@b.co", token: "123456", type: "email" });
-    expect(setCookieHeaders(res).join("\n")).toContain("vt-auth=session-1");
+    expect(setCookieHeaders(res).join("\n")).toContain("sb-x-auth-token=session-1");
   });
 
   it("wrong code: 400 code-invalid, no cookie", async () => {

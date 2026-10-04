@@ -13,8 +13,8 @@ vi.mock("@/lib/auth/staff-sign-in-method", async (orig) => ({
 
 const { POST } = await import("@/app/api/auth/route");
 const password = { mode: "signin", method: "password", email: "a@b.co", password: "12345678" };
-const session = { name: "vt-auth", value: "session-1", options: { path: "/" } };
-const removal = { name: "vt-auth", value: "", options: { path: "/", maxAge: 0 } };
+const session = { name: "sb-x-auth-token", value: "session-1", options: { path: "/" } };
+const removal = { name: "sb-x-auth-token", value: "", options: { path: "/", maxAge: 0 } };
 
 function signedIn(user: Record<string, unknown>, signOut = vi.fn()) {
   state.auth.signInWithPassword = (async () => {

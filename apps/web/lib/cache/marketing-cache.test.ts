@@ -36,7 +36,7 @@ describe("marketing cache (D-24)", () => {
 
   it("auth cookie forces no-store (D-25)", () => {
     const src = readRepo("apps/web/middleware.ts");
-    expect(src).toMatch(/AUTH_SESSION_COOKIE_RE/);
+    expect(src).toMatch(/sb-.*auth-token|auth-token/);
     expect(src).toMatch(/no-store/);
   });
 });

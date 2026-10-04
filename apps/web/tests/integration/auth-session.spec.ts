@@ -80,7 +80,7 @@ test.describe("Auth session middleware @auth-session", () => {
   test("Set-Cookie values arrive as separate getSetCookie() entries (D-02)", async () => {
     const res = await fetch(baseURL + "/", {
       headers: {
-        cookie: "vt-auth.0=chunk-a; vt-auth.1=chunk-b",
+        cookie: "sb-test-auth-token.0=chunk-a; sb-test-auth-token.1=chunk-b",
       },
     });
     expect(res.status).toBeLessThan(400);
