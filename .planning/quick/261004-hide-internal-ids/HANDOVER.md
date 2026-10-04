@@ -8,9 +8,11 @@ Owner, 2026-10-04: "hide all tokens hide all ids like be more fucking secure abo
 
 ## STOP — before shipping
 
-1. **The copy commit `d8f25617` is a DRAFT.** Koss must approve `COPY-DRAFT.md` (four sections, en/de/fr/ar)
-   in the question form first. Without approval, ship everything except that commit (revert it on the
-   ship branch) or wait.
+1. **Copy commit `d8f25617`: APPROVED** — Koss, question form 2026-10-04, "Approve as drafted" (COPY-DRAFT
+   sections 1–4), recorded in `.planning/decisions/2026-10-04-hide-internal-ids-copy.md`.
+   **Commit `2f412c4b` (plain cookie names)**: the English names are his; the **de/fr/ar of those names and the
+   two Functional names are drafts awaiting approval** (COPY-DRAFT §5). Ask the two §5 questions before shipping
+   `2f412c4b`, or ship without it.
 2. **A fresh reviewer session (security) must read this branch before it ships**: the served-file comment
    stripper (`scripts/strip-public-comments.mjs`) rewrites every public page and script; the API changes
    touch guest/customer booking routes.
@@ -26,7 +28,9 @@ Owner, 2026-10-04: "hide all tokens hide all ids like be more fucking secure abo
 | 6af249d7 | legal-gate test pins the base branch's approved language-cookie duration (was red on the base branch) |
 | d92a9c26 | Guest/customer booking answers drop internal UUIDs (`booking.id`, `bookingId`, `requestId`, `reviewId`) |
 | 7f0e0eb4 | /review?token=… removes the token from the address bar on load |
-| d8f25617 | **DRAFT copy, awaiting approval** (see COPY-DRAFT.md); also two rendering fixes in the same files: Stripe cookie names stay LTR in Arabic, "Resend" no longer translated to Arabic "إعادة الإرسال" |
+| d8f25617 | Copy, **approved 2026-10-04** (COPY-DRAFT §1–4); also two rendering fixes in the same files: Stripe cookie names stay LTR in Arabic, "Resend" no longer translated to Arabic "إعادة الإرسال" |
+| 8e7eb9fa | This hand-over (first version) |
+| 2f412c4b | /cookies rows: plain name first, technical name small underneath (mock + React twin, messages `cookies.name-*`, seed regenerated, `seed_idempotent` re-pinned 2710→2715); decision record. de/fr/ar + Functional names awaiting approval (§5) |
 
 ## Finding table
 
@@ -90,8 +94,9 @@ Copy-pasting the footer gives one letter per line (each letter twice) — a sele
 
 ## Owner decisions
 
-- **D1 — approve the copy** in `COPY-DRAFT.md` (sections 1–4). `cf_clearance` "30 minutes" is Cloudflare's default and is not verified against the zone's Challenge Passage setting.
-- **D2 — rename the Supabase auth cookie?** Possible: `@supabase/ssr` 0.12.5 takes `cookieOptions.name` (used as the storage key, `createServerClient.js:33`), so setting e.g. `name: "vt-auth"` in `authCookieOptions` (`apps/web/lib/supabase/cookies.ts:54`, used by `lib/supabase/server.ts` and `middleware.ts`) removes the ref from the browser's cookie jar. Cost: every signed-in customer and the dashboard admin are signed out once; sign-up confirmation / magic / reset links issued before the deploy that rely on the PKCE `-code-verifier` cookie fail once; tests that name `sb-*-auth-token` (about 20 files, e.g. `lib/supabase/cookies.test.ts`, `tests/unit/auth/*`, `tests/e2e-worker/*`) and the dashboard gateway's cookie handling must move in the same job. **Not done.** The ref is no longer printed on the page; it is only visible in the cookie jar of a signed-in visitor's own browser.
+- **D1 — copy sections 1–4: approved** ("Approve as drafted", 2026-10-04). `cf_clearance` "30 minutes" is Cloudflare's default; the zone's Challenge Passage setting is still not read.
+- **D1b — open: COPY-DRAFT §5** — the de/fr/ar of the plain cookie names, and "Language (this browser)" / "Recent addresses" for the Functional rows.
+- **D2 — rename the Supabase auth cookie?** Possible: `@supabase/ssr` 0.12.5 takes `cookieOptions.name` (used as the storage key, `createServerClient.js:33`), so setting e.g. `name: "vt-auth"` in `authCookieOptions` (`apps/web/lib/supabase/cookies.ts:54`, used by `lib/supabase/server.ts` and `middleware.ts`) removes the ref from the browser's cookie jar. Cost: every signed-in customer and the dashboard admin are signed out once; sign-up confirmation / magic / reset links issued before the deploy that rely on the PKCE `-code-verifier` cookie fail once; tests that name `sb-*-auth-token` (about 20 files, e.g. `lib/supabase/cookies.test.ts`, `tests/unit/auth/*`, `tests/e2e-worker/*`) and the dashboard gateway's cookie handling must move in the same job. **Owner: its own job, not this one.** The ref is no longer printed on the page; it is only visible in the cookie jar of a signed-in visitor's own browser.
 
 ## Verified
 
@@ -102,11 +107,14 @@ Copy-pasting the footer gives one letter per line (each letter twice) — a sele
 - /cookies and /privacy in en/de/fr/ar at 390 and 1440: `VamosLocale.coverage` = 0, Arabic `dir=rtl`, no sideways scroll (`evidence/coverage.txt`, screenshots `evidence/branch-*`). Before: `evidence/live-before-*`.
 - Live checks listed above (read-only GETs).
 
+- Plain names (2f412c4b, after merging origin/main 6737c53c): `pnpm test:unit` scripts 27/27, db 14/14, emails 247/247, web 4794 passed / 31 skipped; typecheck clean; lint 0 errors; `i18n:check` (2707 keys) and `db:seed:check` pass. /cookies and /privacy en/de/fr/ar at 390 and 1440: coverage 0, Arabic rtl, no sideways scroll (`evidence/coverage-names.txt`, screenshots `evidence/names-*`); technical names stay left to right in Arabic.
+
 ## Not verified
 
 - Not run on a local Worker build (`opennextjs-cloudflare build`): the strip runs in `prebuild`/`deploy` via the sync script, proven on the static copy only.
 - `/review` token strip not clicked in a browser (unit + source pin only).
 - `cf_clearance` lifetime on the live zone.
+- `seed_idempotent.test.sql` re-pin (2715) not run as pgTAP (no local database stack in this job); `db:seed:check` passes.
 - Dashboard host pages with the stripped `vamos-ops-*.js` not opened in a browser (token-equal proof only; `app/ops/` itself is not stripped).
 
 ## Failed
