@@ -29,7 +29,8 @@ describe("no internal ids on public surfaces", () => {
   it("the React cookies twin shows the auth cookie without the project ref", () => {
     const twin = readFileSync(join(webRoot, "app/[locale]/cookies/page.tsx"), "utf8");
     expect(twin).not.toContain(PROJECT_REF);
-    expect(twin).toContain("sb-…-auth-token");
+    expect(twin).toContain('tech="vt-auth"');
+    expect(twin).not.toContain("auth-token");
   });
 
   // `pnpm test` syncs first. Without a synced copy the case shows as skipped locally and fails in CI.
@@ -67,13 +68,14 @@ describe("/cookies Meta row renders as one line", () => {
     expect(sec).not.toContain("<thead>");
   });
 
-  it("the auth cookie reads sb-…-auth-token", () => {
-    expect(cookies).toContain('<span data-ck-tech="1" class="vt-dir-keep" data-vt-no-i18n="1">sb-…-auth-token</span>');
+  it("the auth cookie reads vt-auth", () => {
+    expect(cookies).toContain('<span data-ck-tech="1" class="vt-dir-keep" data-vt-no-i18n="1">vt-auth</span>');
+    expect(cookies).not.toContain("auth-token");
   });
 
   it("every cookie row leads with its plain name; the technical name sits underneath, left to right, untranslated", () => {
     const names: [string, string][] = [
-      ["Sign-in", "sb-…-auth-token"],
+      ["Sign-in", "vt-auth"],
       ["Your cookie choice", "consent_subject · vamosCookieConsent"],
       ["Stripe payment", "__stripe_mid · __stripe_sid"],
       ["Cloudflare check", "cf_clearance"],
