@@ -4,15 +4,18 @@
 // from Stripe"): each payment saves the fee Stripe actually took. The dashboard's Expenses and Net
 // already sum booking_payments.stripe_fee_rappen.
 //
-// Where the fee comes from: the balance transaction of the PaymentIntent's charge. Stripe may attach it
-// after the payment succeeded (it then sends charge.updated, which the webhook endpoint is not
-// subscribed to), so the fee is not read during settlement. The Worker's hourly cron lists captured
-// payments of the last 72 hours whose fee is still NULL (checkout_payment_fee_pending) and records
-// each fee Stripe reports in CHF (checkout_payment_fee_record, write-once, migration 20261007290000).
+// Where the fee comes from: the balance transaction of the payment's charge. Stripe may attach it after
+// the payment succeeded (it then sends charge.updated, which the webhook endpoint is not subscribed to),
+// so the fee is not read during settlement. The Worker's hourly cron lists captured payments of the last
+// 30 days whose fee is still NULL (checkout_payment_fee_pending) and records each fee Stripe reports in
+// CHF (checkout_payment_fee_record, write-once, migration 20261007290000). The same run fills in the
+// payments made before the migration (controller decision 2026-10-04: no one reads Stripe by hand).
 //
 // Rules: a payment never waits on this; a failed Stripe or database call leaves the fee NULL and the
-// next hour tries again; a balance transaction in another currency is never converted (the fee stays
-// NULL and the run counts it as notChf); nothing is guessed. Logs carry counts only.
+// next hour tries again; a payment Stripe does not know (404, e.g. one made on the retired test account)
+// is skipped; a balance transaction in another currency is never converted (the fee stays NULL); nothing
+// is guessed. Only transient Stripe errors (network, 5xx, rate limit) count toward stopping a run. Logs
+// carry counts only.
 
 import type Stripe from "stripe";
 import { asSystem } from "../db/identity";
@@ -27,10 +30,13 @@ export type StripeFeeRead =
   | { kind: "skip"; reason: "not_captured" | "no_fee" | "not_chf" | "unexpected" };
 
 /** Payments one hourly run reads at most. */
-export const STRIPE_FEE_SWEEP_LIMIT = 25;
+export const STRIPE_FEE_SWEEP_LIMIT = 20;
 
-/** Stripe failures in a row after which a run stops (Stripe is down or the key is refused). */
+/** Transient Stripe failures in a row after which a run stops (Stripe is down or refusing calls). */
 export const STRIPE_FEE_MAX_FAILURES_IN_A_ROW = 3;
+
+/** The Stripe ids a payment row can store: its PaymentIntent, or its Checkout Session before the write-back. */
+const STRIPE_PAYMENT_ID = /^(pi|cs)_[A-Za-z0-9_]{1,250}$/;
 
 function objectOrNull(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" ? (value as Record<string, unknown>) : null;
@@ -62,23 +68,49 @@ export function stripeFeeOfCharge(charge: unknown): StripeFeeRead {
 }
 
 /**
- * Reads the fee of a PaymentIntent's latest charge from Stripe. A Stripe error is thrown to the caller
- * (the sweep counts it and tries again next hour); an id that is not a PaymentIntent never reaches Stripe.
+ * Reads the fee of a payment's charge from Stripe: a PaymentIntent (pi_) directly, a Checkout Session
+ * (cs_) through its PaymentIntent. A Stripe error is thrown to the caller (the sweep sorts it with
+ * stripeReadErrorKind); an id of any other shape never reaches Stripe.
  */
-export async function readStripeFee(stripe: Stripe, paymentIntentId: string): Promise<StripeFeeRead> {
-  if (!/^pi_[A-Za-z0-9_]{1,250}$/.test(paymentIntentId)) return { kind: "skip", reason: "unexpected" };
-  const pi = await stripe.paymentIntents.retrieve(paymentIntentId, {
+export async function readStripeFee(stripe: Stripe, stripeId: string): Promise<StripeFeeRead> {
+  if (!STRIPE_PAYMENT_ID.test(stripeId)) return { kind: "skip", reason: "unexpected" };
+  if (stripeId.startsWith("cs_")) {
+    const session = await stripe.checkout.sessions.retrieve(stripeId, {
+      expand: ["payment_intent.latest_charge.balance_transaction"],
+    });
+    const pi = objectOrNull(session.payment_intent);
+    return pi ? stripeFeeOfCharge(pi.latest_charge) : { kind: "skip", reason: "unexpected" };
+  }
+  const pi = await stripe.paymentIntents.retrieve(stripeId, {
     expand: ["latest_charge.balance_transaction"],
   });
   return stripeFeeOfCharge(pi.latest_charge);
 }
 
+/**
+ * How a failed Stripe read counts. `missing`: Stripe does not know the object (404 / resource_missing),
+ * skipped for this run. `transient`: no answer, a 5xx or a rate limit; counts toward stopping the run.
+ * `other`: any other refusal (400, 401, 403, ...); counted as failed, never stops the run.
+ */
+export function stripeReadErrorKind(err: unknown): "missing" | "transient" | "other" {
+  const e = objectOrNull(err);
+  const status = e && typeof e.statusCode === "number" ? e.statusCode : null;
+  const code = e && typeof e.code === "string" ? e.code : "";
+  const type = e && typeof e.type === "string" ? e.type : "";
+  if (code === "resource_missing" || status === 404) return "missing";
+  if (type === "StripeConnectionError" || type === "StripeAPIError" || type === "StripeRateLimitError") {
+    return "transient";
+  }
+  if (status === null || status === 429 || status >= 500) return "transient";
+  return "other";
+}
+
 export type StripeFeeSweepDeps = {
-  /** PaymentIntent ids still without a fee. A database error is thrown (the run then fails as a whole). */
+  /** Stripe ids still without a fee. A database error is thrown (the run then fails as a whole). */
   pending: (limit: number) => Promise<string[]>;
-  read: (paymentIntentId: string) => Promise<StripeFeeRead>;
+  read: (stripeId: string) => Promise<StripeFeeRead>;
   /** true when the fee was written; false when the row refused it (already set, not captured, out of range). */
-  record: (paymentIntentId: string, feeRappen: number) => Promise<boolean>;
+  record: (stripeId: string, feeRappen: number) => Promise<boolean>;
 };
 
 export type StripeFeeSweepResult = {
@@ -88,6 +120,9 @@ export type StripeFeeSweepResult = {
   waiting: number;
   /** The balance transaction is not in CHF: never converted, the fee stays empty. */
   notChf: number;
+  /** Stripe does not know the payment (404), e.g. one made on the retired test account. */
+  missing: number;
+  /** Anything else that is not a fee to record, or a row that refused the fee. */
   skipped: number;
   failed: number;
   stopped: boolean;
@@ -100,14 +135,15 @@ export async function sweepStripeFeesWithDeps(deps: StripeFeeSweepDeps): Promise
     recorded: 0,
     waiting: 0,
     notChf: 0,
+    missing: 0,
     skipped: 0,
     failed: 0,
     stopped: false,
   };
   const ids = await deps.pending(STRIPE_FEE_SWEEP_LIMIT);
-  let failuresInARow = 0;
+  let transientInARow = 0;
   for (const id of ids) {
-    if (failuresInARow >= STRIPE_FEE_MAX_FAILURES_IN_A_ROW) {
+    if (transientInARow >= STRIPE_FEE_MAX_FAILURES_IN_A_ROW) {
       result.stopped = true;
       break;
     }
@@ -115,10 +151,19 @@ export async function sweepStripeFeesWithDeps(deps: StripeFeeSweepDeps): Promise
     let read: StripeFeeRead;
     try {
       read = await deps.read(id);
-      failuresInARow = 0;
-    } catch {
-      result.failed += 1;
-      failuresInARow += 1;
+      transientInARow = 0;
+    } catch (err) {
+      const kind = stripeReadErrorKind(err);
+      if (kind === "missing") {
+        result.missing += 1;
+        transientInARow = 0;
+      } else if (kind === "transient") {
+        result.failed += 1;
+        transientInARow += 1;
+      } else {
+        result.failed += 1;
+        transientInARow = 0;
+      }
       continue;
     }
     if (read.kind === "pending") {
@@ -149,12 +194,12 @@ export function stripeFeeDbDeps(env: CloudflareEnv): Pick<StripeFeeSweepDeps, "p
           select stripe_payment_intent_id from public.checkout_payment_fee_pending(${limit}::int4)
         `;
       });
-      return rows.map((row) => String(row.stripe_payment_intent_id ?? "")).filter((id) => id.startsWith("pi_"));
+      return rows.map((row) => String(row.stripe_payment_intent_id ?? "")).filter((id) => STRIPE_PAYMENT_ID.test(id));
     },
-    record: async (paymentIntentId, feeRappen) => {
+    record: async (stripeId, feeRappen) => {
       const rows = await asSystem(env, async (sql) => {
         return sql<{ recorded: boolean | null }[]>`
-          select public.checkout_payment_fee_record(${paymentIntentId}::text, ${feeRappen}::int4) as recorded
+          select public.checkout_payment_fee_record(${stripeId}::text, ${feeRappen}::int4) as recorded
         `;
       });
       return rows[0]?.recorded === true;
@@ -167,6 +212,6 @@ export async function sweepStripeFees(env: CloudflareEnv): Promise<StripeFeeSwee
   const stripe = stripeFromEnv(env);
   return sweepStripeFeesWithDeps({
     ...stripeFeeDbDeps(env),
-    read: (paymentIntentId) => readStripeFee(stripe, paymentIntentId),
+    read: (stripeId) => readStripeFee(stripe, stripeId),
   });
 }

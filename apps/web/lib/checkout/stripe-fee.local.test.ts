@@ -1,8 +1,9 @@
 // apps/web/lib/checkout/stripe-fee.local.test.ts
 //
 // 20261007290000 through the REAL Worker client (asSystem: login `vamos_edge`, role vamos_system,
-// `fetch_types: false`, prepared statements): the hourly sweep's two database calls list a captured
-// payment without a fee, write the fee once, and the row then leaves the list. Stripe is a stand-in
+// `fetch_types: false`, prepared statements): the hourly sweep's two database calls list captured
+// payments without a fee (a new one by its PaymentIntent, a 10-day-old one still stored by its Checkout
+// Session id: the backfill), write each fee once, and the rows then leave the list. Stripe is a stand-in
 // here (stripe-fee.test.ts covers the Stripe side).
 //
 // Skipped unless VAMOS_LOCAL_DB_PORT names a DISPOSABLE local stack (the test lab). The fixture rows
@@ -10,7 +11,7 @@
 // Synthetic rappen integers only, never a product CHF figure.
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { workerSql } from "../../../../packages/db/test/support/worker-client";
-import { stripeFeeDbDeps, sweepStripeFeesWithDeps } from "./stripe-fee";
+import { stripeFeeDbDeps, sweepStripeFeesWithDeps, type StripeFeeRead } from "./stripe-fee";
 
 const PORT = process.env["VAMOS_LOCAL_DB_PORT"];
 const tag = Math.random().toString(16).slice(2, 10).padEnd(8, "0");
@@ -21,14 +22,15 @@ const env = {
 describe.skipIf(!PORT)("stripe fee sweep through the real Worker client (local, committed rows)", () => {
   let owner!: ReturnType<typeof workerSql>;
   const pi = `pi_sfl_${tag}`;
+  const cs = `cs_test_sfl_${tag}`;
 
-  beforeAll(async () => {
-    owner = workerSql(`postgres://postgres:postgres@127.0.0.1:${PORT}/postgres`);
+  /** One booking, its snapshot and one captured CHF payment storing `stripeId`, `ageHours` ago. */
+  const captured = async (stripeId: string, ageHours: number, key: string) => {
     await owner.begin(async (tx) => {
       await tx`set local session_replication_role = replica`;
       const booking = await tx<{ id: string }[]>`
         insert into public.bookings (reference, contact_name, contact_email, status, locale)
-        values (public.next_booking_reference(), ${`SFL ${tag}`}, ${`sfl-${tag}@vamostaxi.eu`}, 'confirmed', 'en')
+        values (public.next_booking_reference(), ${`SFL ${tag} ${key}`}, ${`sfl-${tag}-${key}@vamostaxi.eu`}, 'confirmed', 'en')
         returning id`;
       const bookingId = booking[0]!.id;
       const snap = await tx<{ id: string }[]>`
@@ -54,40 +56,57 @@ describe.skipIf(!PORT)("stripe fee sweep through the real Worker client (local, 
       await tx`
         insert into public.booking_payments (booking_id, snapshot_id, stripe_payment_intent_id, charged_rappen,
                                              charged_currency, status, captured_at)
-        values (${bookingId}::uuid, ${snap[0]!.id}::int8, ${pi}, 10000, 'CHF', 'succeeded', now())`;
+        values (${bookingId}::uuid, ${snap[0]!.id}::int8, ${stripeId}, 10000, 'CHF', 'succeeded',
+                now() - make_interval(hours => ${ageHours}::int4))`;
     });
+  };
+
+  beforeAll(async () => {
+    owner = workerSql(`postgres://postgres:postgres@127.0.0.1:${PORT}/postgres`);
+    await captured(pi, 0, "new");
+    await captured(cs, 240, "old");
   });
 
   afterAll(async () => {
     await owner?.end({ timeout: 5 });
   });
 
-  const feeOf = async (): Promise<number | null> => {
+  const feeOf = async (stripeId: string): Promise<number | null> => {
     const rows = await owner<{ fee: number | null }[]>`
-      select stripe_fee_rappen::int4 as fee from public.booking_payments where stripe_payment_intent_id = ${pi}`;
+      select stripe_fee_rappen::int4 as fee from public.booking_payments where stripe_payment_intent_id = ${stripeId}`;
     return rows[0]?.fee ?? null;
   };
 
-  it("lists the payment, records the fee once, then the payment leaves the list", async () => {
+  it("lists both payments, records each fee once, then they leave the list", async () => {
     const db = stripeFeeDbDeps(env);
-    expect(await db.pending(100)).toContain(pi);
+    const listed = await db.pending(100);
+    expect(listed).toContain(pi);
+    expect(listed).toContain(cs);
 
+    const fees: Record<string, StripeFeeRead> = {
+      [pi]: { kind: "fee", feeRappen: 271 },
+      [cs]: { kind: "fee", feeRappen: 268 },
+    };
     const result = await sweepStripeFeesWithDeps({
-      ...db,
-      read: async (id) => (id === pi ? { kind: "fee", feeRappen: 271 } : { kind: "pending" }),
+      pending: async () => [pi, cs],
+      record: db.record,
+      read: async (id) => fees[id] ?? { kind: "pending" },
     });
-    expect(result.recorded).toBeGreaterThanOrEqual(1);
-    expect(result.failed).toBe(0);
-    expect(await feeOf()).toBe(271);
+    expect(result).toMatchObject({ recorded: 2, failed: 0 });
+    expect(await feeOf(pi)).toBe(271);
+    expect(await feeOf(cs)).toBe(268);
 
-    expect(await db.pending(100)).not.toContain(pi);
+    const after = await db.pending(100);
+    expect(after).not.toContain(pi);
+    expect(after).not.toContain(cs);
     expect(await db.record(pi, 272)).toBe(false);
-    expect(await feeOf()).toBe(271);
+    expect(await feeOf(pi)).toBe(271);
   });
 
   it("a refused value writes nothing and does not throw", async () => {
     const db = stripeFeeDbDeps(env);
     expect(await db.record(`pi_sfl_${tag}_none`, 271)).toBe(false);
     expect(await db.record(pi, 0)).toBe(false);
+    expect(await db.record(`ch_sfl_${tag}`, 271)).toBe(false);
   });
 });
