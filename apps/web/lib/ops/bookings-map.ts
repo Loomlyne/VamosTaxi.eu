@@ -13,6 +13,8 @@ export type OpsBookingRow = {
   dateIso: string;
   pickupAt: string;
   capturedAt: string;
+  /** bookings.created_at as a UTC ISO string: when the booking was made. The board's "Booked" column (owner, 2026-10-04). "" when unknown. */
+  createdAt: string;
   customer: string;
   email: string;
   phone: string;
@@ -86,6 +88,7 @@ export type SqlBoardRow = {
   company_name: string | null;
   note: string | null;
   pay_link_sent_at: string | Date | null;
+  created_at?: string | Date | null;
   pickup_text: string | null;
   dropoff_text: string | null;
   scheduled_local: string | null;
@@ -360,6 +363,7 @@ export function mapBoardBooking(row: SqlBoardRow): OpsBookingRow {
     dateIso: when.dateIso,
     pickupAt: iso(row.scheduled_at),
     capturedAt,
+    createdAt: iso(row.created_at),
     customer: str(row.contact_name),
     email: str(row.contact_email),
     phone: str(row.contact_phone),

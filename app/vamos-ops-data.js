@@ -723,6 +723,7 @@
       dateIso: str(b.dateIso || b.date),
       pickupAt: str(b.pickupAt),
       capturedAt: str(b.capturedAt),
+      createdAt: str(b.createdAt),
       bookingId: str(b.bookingId),
       paid: !!b.paid,
       paidByCard: !!b.paidByCard,

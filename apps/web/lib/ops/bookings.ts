@@ -58,6 +58,7 @@ export async function loadBookings(
         b.company_name,
         b.note,
         b.pay_link_sent_at,
+        b.created_at,
         l.pickup_text,
         l.dropoff_text,
         l.scheduled_local,
