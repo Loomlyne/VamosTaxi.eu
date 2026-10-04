@@ -2,7 +2,7 @@
 
 Branch `fix/stripe-fee-record`, cut from `origin/main` 86803493; `origin/main` f0be1bbe, 2f08d689 (dashboard
 numbers) and 8ca4881d merged in, no conflicts.
-Work session, 2026-10-04 21:56 to about 23:10 +04. Owner decision: `.planning/decisions/2026-10-04-dashboard-numbers.md`,
+Work session, 2026-10-04 21:56 to 22:38 +04. Owner decision: `.planning/decisions/2026-10-04-dashboard-numbers.md`,
 answer 3. Controller decision, 2026-10-04 evening: no one reads Stripe by hand and no key is touched; the Worker's
 hourly sweep also fills in the past payments (30-day window, 20 a run, 404 skipped).
 Money change: a fresh reviewer reads it before it ships (owner's condition).
@@ -190,7 +190,7 @@ select bp.id, b.reference, bp.stripe_payment_intent_id, bp.charged_rappen, bp.st
 
 ## Checks
 
-Revision, 2026-10-04 ~23:05 +04:
+Revision, 2026-10-04 22:35 +04:
 
 | Check | Result |
 |---|---|
