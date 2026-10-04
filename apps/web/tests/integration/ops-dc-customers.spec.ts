@@ -8,6 +8,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { test, expect } from "../support/test";
 import { jsonErr, jsonOk, staffStatus } from "../../lib/ops/staff-json";
+import { stripHtml } from "../../../../scripts/strip-public-comments.mjs";
 
 const RUN_PROJECT = "component-1440";
 const here = __dirname;
@@ -77,7 +78,8 @@ test.describe("GET /api/staff/customers @ops-dc-customers", () => {
   test("OpsCustomers.dc.html saves, lists History under Notes, deletes via remove", () => {
     const html = readRepo("app/ops/OpsCustomers.dc.html");
     const twin = readWeb("public/app/ops/OpsCustomers.dc.html");
-    expect(html).toBe(twin);
+    // The served twin is the source with its developer comments stripped (sync-dc-mock-to-public).
+    expect(twin).toBe(stripHtml(html));
     expect(html).not.toMatch(/Traveller/);
     expect(html).toMatch(/customers\.remove/);
     expect(html).toMatch(/customers\.update/);
@@ -105,7 +107,7 @@ test.describe("GET /api/staff/customers @ops-dc-customers", () => {
   test("OpsDetail Cancel opens a recap dialog; History tab is gone", () => {
     const html = readRepo("app/ops/OpsDetail.dc.html");
     const twin = readWeb("public/app/ops/OpsDetail.dc.html");
-    expect(html).toBe(twin);
+    expect(twin).toBe(stripHtml(html));
     expect(html).toMatch(/openCancel/);
     expect(html).toMatch(/confirmCancel/);
     expect(html).toMatch(/status: 'cancelled'/);

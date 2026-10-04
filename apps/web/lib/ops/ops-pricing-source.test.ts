@@ -10,7 +10,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { stripJs } from "../../../../scripts/strip-public-comments.mjs";
+import { stripHtml, stripJs } from "../../../../scripts/strip-public-comments.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const webRoot = join(here, "../..");
@@ -34,19 +34,20 @@ const FOUR_TABS = [
 
 const LANGS = ["en", "de", "fr", "ar"] as const;
 
-function byteEqual(a: string, b: string) {
+/** The public copy b is the source a with its developer comments stripped (sync-dc-mock-to-public). */
+function servedCopyOf(a: string, b: string) {
   expect(existsSync(a)).toBe(true);
   expect(existsSync(b)).toBe(true);
-  expect(readFileSync(b, "utf8")).toBe(readFileSync(a, "utf8"));
+  expect(readFileSync(b, "utf8")).toBe(stripHtml(readFileSync(a, "utf8")));
 }
 
 describe("OpsPricing source of truth dual copy (D-27 D-28 D-31)", () => {
-  it("both OpsPricing.dc.html copies exist and are byte-equal", () => {
-    byteEqual(PRICING_CANONICAL, PRICING_PUBLIC);
+  it("both OpsPricing.dc.html copies exist; the public copy is the source minus its comments", () => {
+    servedCopyOf(PRICING_CANONICAL, PRICING_PUBLIC);
   });
 
-  it("both OpsSidebar.dc.html copies exist and are byte-equal", () => {
-    byteEqual(SIDEBAR_CANONICAL, SIDEBAR_PUBLIC);
+  it("both OpsSidebar.dc.html copies exist; the public copy is the source minus its comments", () => {
+    servedCopyOf(SIDEBAR_CANONICAL, SIDEBAR_PUBLIC);
   });
 
   it("ops.dc.html public copy keeps the injected ops base href", () => {

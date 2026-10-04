@@ -8,6 +8,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { stripHtml } from "../../../../scripts/strip-public-comments.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const webRoot = join(here, "../..");
@@ -34,10 +35,11 @@ function langBlock(src: string, lang: string): string {
 }
 
 describe("OpsPricing VAT field dual copy (D-16 D-22)", () => {
-  it("both OpsPricing.dc.html copies exist and are byte-equal", () => {
+  it("both OpsPricing.dc.html copies exist; the public copy is the source minus its comments", () => {
     expect(existsSync(CANONICAL)).toBe(true);
     expect(existsSync(PUBLIC_COPY)).toBe(true);
-    expect(readFileSync(PUBLIC_COPY, "utf8")).toBe(readFileSync(CANONICAL, "utf8"));
+    // The served copy is the source with its developer comments stripped (sync-dc-mock-to-public).
+    expect(readFileSync(PUBLIC_COPY, "utf8")).toBe(stripHtml(readFileSync(CANONICAL, "utf8")));
   });
 
   it("shows VAT 8.1 from 81 bps and persists vat_rate_bps", () => {

@@ -302,17 +302,17 @@ export function stripHtml(src, where = "html") {
 
 /**
  * Strip every served text file under dir in place: .html (stripHtml), .js (stripJsChecked),
- * .css (stripCss). Folders named in `skipDirs` are left alone: `ops/` (the public host answers
- * 404 there; the dashboard serves it behind sign-in and its tests pin it byte-equal to the
- * source). Licence notices stay. Returns the paths that changed.
+ * .css (stripCss). No folder is skipped: the dashboard screens under `ops/` are files anyone
+ * can fetch on the dashboard host without signing in, so they lose their notes too. Licence
+ * notices stay. Returns the paths that changed.
  */
-export function stripTree(dir, skipDirs = new Set(["ops"])) {
+export function stripTree(dir) {
   const changed = [];
   const walk = (d, rel) => {
     for (const ent of readdirSync(d, { withFileTypes: true })) {
       const p = join(d, ent.name);
       const r = rel ? `${rel}/${ent.name}` : ent.name;
-      if (ent.isDirectory()) { if (!(rel === "" && skipDirs.has(ent.name))) walk(p, r); continue; }
+      if (ent.isDirectory()) { walk(p, r); continue; }
       let fn = null;
       if (ent.name.endsWith(".html")) fn = (x) => stripHtml(x, r);
       else if (ent.name.endsWith(".js")) fn = (x) => stripJsChecked(x, r);

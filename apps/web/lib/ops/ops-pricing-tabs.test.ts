@@ -7,6 +7,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { stripHtml } from "../../../../scripts/strip-public-comments.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const webRoot = join(here, "../..");
@@ -25,11 +26,12 @@ function paneKeys(html: string): string[] {
 }
 
 describe("OpsPricing tabs (D-11 D-12 D-17 D-25)", () => {
-  it("both OpsPricing.dc.html copies exist and are byte-equal", () => {
+  it("both OpsPricing.dc.html copies exist; the public copy is the source minus its comments", () => {
     expect(existsSync(CANONICAL)).toBe(true);
     expect(existsSync(PUBLIC_COPY)).toBe(true);
+    // The served copy is the source with its developer comments stripped (sync-dc-mock-to-public).
     expect(readFileSync(PUBLIC_COPY, "utf8")).toBe(
-      readFileSync(CANONICAL, "utf8"),
+      stripHtml(readFileSync(CANONICAL, "utf8")),
     );
   });
 
