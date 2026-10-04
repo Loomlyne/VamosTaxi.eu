@@ -1,22 +1,33 @@
 # Hand-over: sign-in cookie renamed to `vt-auth` (fix/auth-cookie-rename)
 
 Owner decision 2026-10-04 (question form): "Rename it, own job". Job session, worktree `.claude/worktrees/agent-ad892723ff45e1689`,
-branch `fix/auth-cookie-rename` cut from `origin/main` 7c4818ec, origin/main 6737c53c merged in. No PR. Not deployed. Nothing touched on live.
+branch `fix/auth-cookie-rename` cut from `origin/main` 7c4818ec, origin/main 6737c53c merged in, then `origin/fix/hide-internal-ids`
+merged in twice (7e278ea5, 31aaa688; that branch already carries origin/main 0be589db). No PR. Not deployed. Nothing touched on live.
+
+**Tip: see `git log -1 origin/fix/auth-cookie-rename` (the commit after `a5d688ab` that updates this file).**
 
 **A fresh reviewer session must read this before it ships: it changes sign-in (customer and dashboard).**
-Fresh review of bd2ed798: SHIP with conditions F1-F6. F2, F3, F4, F5, F6 are done on this branch (see "Review conditions" at the end).
-F1 stays open until `fix/hide-internal-ids` is final.
+Fresh review of bd2ed798: SHIP with conditions F1-F6. All six are done on this branch (see "Review conditions" at the end).
 
 ## Ship order (F1)
 
-This branch must **not** ship before `fix/hide-internal-ids` (it edits the `/cookies` page). Order:
+1. Done: the controller called `fix/hide-internal-ids` final for /cookies (2026-10-04, ~16:55).
+2. Done (16:56-17:05 +04): this job session merged `origin/fix/hide-internal-ids` here (7e278ea5 as `837c1ce1`; it moved during the
+   job, so 31aaa688 again as `a5d688ab`) and set the `/cookies` "Sign-in" Name to `vt-auth` (`26da2a72`).
+3. **Now: the controller ships `fix/hide-internal-ids` first, then this branch after merging `origin/main` into it** (main will then
+   hold hide-internal-ids; this branch already contains every commit of it up to 31aaa688). If hide-internal-ids gains commits after
+   31aaa688, they arrive through that main merge. Deploy `vamos` once per ship.
 
-1. `fix/hide-internal-ids` is final (the controller says so).
-2. This job session merges that branch into `fix/auth-cookie-rename` and sets the `/cookies` "Sign-in" row's technical name to `vt-auth`
-   in `app/pages/cookies.dc.html` and `apps/web/app/[locale]/cookies/page.tsx` (one commit, i18n/tests run), pushes, updates this file.
-3. Then the controller ships `fix/hide-internal-ids` and this branch (or this branch alone if it already contains the other), deploys `vamos`.
+### Merge of hide-internal-ids (step 2)
 
-Until step 2 the `/cookies` page on this branch still shows the old name on purpose.
+| file | what met | resolution |
+|---|---|---|
+| `apps/web/middleware.ts` | **conflict**, import block only: this branch added `AUTH_SESSION_COOKIE_RE, LEGACY_AUTH_COOKIE_RE` from `lib/supabase/cookies`, hide-internal-ids added `reviewTokenRedirect` from `lib/reviews/review-cookie` on the same line | kept both imports. Everything else auto-merged: their `/review?token=` → `vt_review` redirect block and this branch's D-25 `isAuthTokenCookieName` (`vt-auth(.N)` + old `sb-*-auth-token*` for the transition answer) are in different places and both stay |
+| `apps/web/worker.ts` | no conflict | their `stripInternalHeaders(...)` sits inside `routeFetch` (both `handler.fetch` calls); this branch's `handleFetch` wraps `routeFetch` with `withLegacyAuthCookiesExpired`. Order on every answer: strip internal headers, then expire old auth cookies. Their cron `sweepMetaPurchaseIds` and queue `{ metaPurchase: true }` untouched |
+| `app/pages/cookies.dc.html`, `apps/web/app/[locale]/cookies/page.tsx` | changed only on their side (vt_manage, NEXT_LOCALE, vt_review rows, plain + technical name cells) | taken as theirs, then step 2 changed the one Name |
+| `apps/web/lib/security/public-no-internal-ids.test.ts` | theirs only in merge 1; in merge 2 their public/brand case + this branch's vt-auth pins | auto-merged, both kept |
+
+No file outside the sign-in cookie needed a choice; hide-internal-ids wins everything else as it stands.
 
 ## What changed
 
@@ -30,17 +41,19 @@ Until step 2 the `/cookies` page on this branch still shows the old name on purp
 | tests | fixtures renamed (`sb-x-auth-token` / `sb-test-auth-token` → `vt-auth`), `secure-cookies` expects `name: "vt-auth"`, new cases in `lib/supabase/cookies.test.ts`; e2e Worker runners (`auth-worker`, `checkout-common`, `confirm-link`, `other-device`) match `vt-auth` |
 
 Not changed, on purpose: `dashboard-gateway.ts` / `wrangler.dashboard.jsonc` (the gateway never reads, writes or strips cookies; grep clean),
-no browser Supabase client exists, no DC mock reads or clears the auth cookie, CSP has no cookie rule. `/cookies` copy is NOT changed here
-(branch `fix/hide-internal-ids` owns that page).
+no browser Supabase client exists, no DC mock reads or clears the auth cookie, CSP has no cookie rule. `/cookies` changes only the Sign-in
+Name (step 2); the rest of that page is `fix/hide-internal-ids`'.
 
-## /cookies page: exact text (set by this job session in ship-order step 2)
+## /cookies page: exact text (applied in `26da2a72`)
 
 "Sign-in" row, Name column (both `app/pages/cookies.dc.html` line ~216 and the Next twin `apps/web/app/[locale]/cookies/page.tsx` line ~106):
 
 `vt-auth`
 
-(Optional detail if the row lists variants: `vt-auth`, `vt-auth.0`, `vt-auth.1`, `vt-auth-code-verifier`.) The name stays inside
-`data-vt-no-i18n` as today.
+Applied as the single name `vt-auth` (no variant list), inside `data-ck-tech` with `vt-dir-keep` and `data-vt-no-i18n` like every other
+technical name; the Next twin passes `tech="vt-auth"`. Plain name, purpose, provider (`Vamos Taxi · Supabase`) and duration unchanged.
+No dictionary, message or seed string changed, so no `db:seed:gen` and no `seed_idempotent` re-pin. `public-no-internal-ids.test.ts`
+now pins `vt-auth` in both files and fails if any `auth-token` name comes back.
 
 ## In-flight e-mail links (magic link, reset, sign-up confirm, e-mail change)
 
@@ -96,11 +109,26 @@ unchanged. After the deploy check live: dashboard `/login` 200, sign in, New tri
 - MFA: the lab admin has no authenticator app, so the aal2 step was not exercised in the browser. The aal2 gate reads the JWT, not the
   cookie name; `lib/auth/staff-mfa.test.ts` and the staff gate tests pass in the full unit run.
 
+## Proof of step 2 (final tip, 2026-10-04 16:57-17:05 +04)
+
+- `pnpm install --frozen-lockfile` ok; `node scripts/sync-dc-mock-to-public.mjs` ok.
+- typecheck, `pnpm lint` (0 errors, 6 old warnings), `lint:css`, `i18n:check` (2709 keys), `db:seed:check` (no drift),
+  `check:db-fences` (8/8), `check:public-env`, `check:numbers`, `check:legal-claims` (3/3): all pass.
+- vitest after merge 1 + step 2: 82 files / 810 tests pass (`lib/supabase`, `lib/reviews`, `lib/security`, `lib/consent`,
+  `legal-updated`, `legal/extract-no-invent`, `tests/unit/auth`, every test importing `middleware` or `worker`, every test file the merge
+  touched). After merge 2: `lib/security`, `lib/supabase`, `lib/reviews` 16 files / 124 tests; typecheck and lint again; `node --test
+  scripts/strip-public-comments.test.mjs` 10/10. Full `test:unit` not run here (shared Mac; the controller runs full gates).
+- Headless Chromium on `apps/web/public` (static server, consent API stubbed so the banner stays shut), en and ar at 390 and 1440:
+  Sign-in row technical name `vt-auth`, left to right, no `auth-token` anywhere on the page, `VamosLocale.coverage(#necessary)` 0,
+  `dir=rtl` in Arabic, nothing scrolls sideways. 4/4 PASS. `evidence/cookies-row-check.mjs`, `evidence/cookies/`.
+- Not run in step 2: the auth e2e on a Worker build and the browser brief (the sign-in code did not change since they passed);
+  pgTAP for the merged-in Meta migrations (hide-internal-ids' own proof).
+
 ## Review conditions (fresh review of bd2ed798)
 
 | item | status | commit |
 |---|---|---|
-| F1 ship after `fix/hide-internal-ids`; then merge it here and set `/cookies` Name to `vt-auth` | open, waits for the controller's word | — |
+| F1 ship after `fix/hide-internal-ids`; then merge it here and set `/cookies` Name to `vt-auth` | done: merged, Name set; controller ships hide-internal-ids first | `837c1ce1`, `26da2a72`, `a5d688ab` |
 | F2 ready rollback that expires `vt-auth*` | done, branch `rollback/auth-cookie-rename` | `a380f5bf`, `181e6200` |
 | F3 source test: `Dashboard.fetch` and `default.fetch` go through `handleFetch` | done, `apps/web/lib/supabase/worker-entry-cookies.test.ts` (4 tests) | `5d000385` |
 | F4 live check includes the owner's authenticator-code step | done, live check 3 | this file |
@@ -120,7 +148,8 @@ The rollback is ready on branch **`rollback/auth-cookie-rename`** (pushed, tip `
    Test: `apps/web/lib/supabase/retired-cookies.test.ts` (expiry, untouched cookies, both Worker doors). Touched suites 27 files / 150 tests,
    typecheck and eslint pass. Not run on a Worker build.
 
-How to use it: on main, cherry-pick `a380f5bf` and `181e6200` (or merge the branch if main has only this job on top), run the gates, deploy
+How to use it: on main, cherry-pick `a380f5bf` and `181e6200` **and revert `26da2a72`** (the /cookies Name and its test pins go back to
+`sb-…-auth-token`; the rollback branch predates that commit), run the gates, deploy
 `vamos` only. Everyone is signed out once more and signs in with the old name. No database or Supabase Auth setting is involved. If anything
 other than this job has landed on main since, re-check that `a380f5bf` still reverts only these three commits.
 
@@ -131,4 +160,4 @@ other than this job has landed on main since, re-check that `a380f5bf` still rev
 3. Dashboard on the owner's own account (F4): sign in with his usual method **including the authenticator-code step** on his account (the lab
    admin had no authenticator app, so this step was never run before live). Expected: the code is accepted, the dashboard opens
    at full access (aal2), cookie list shows `vt-auth*` on `dashboard.vamostaxi.site` and nothing starting `sb-`. Then open New trip.
-4. `/cookies` "Sign-in" row shows `vt-auth` (it ships with this branch after ship-order step 2).
+4. `/cookies` "Sign-in" row shows `vt-auth` (in this branch since `26da2a72`).
