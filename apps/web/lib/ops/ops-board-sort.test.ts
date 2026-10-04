@@ -535,3 +535,22 @@ describe("header look (source pins)", () => {
     expect(html).toMatch(/header: sortHead\('booked'/);
   });
 });
+
+describe("the line under the page title names no order (owner, 2026-10-04: \"Paid trips\")", () => {
+  const { loaded } = loadBoard();
+  it("says Paid trips in each language, in the words the page already used for paid trips", () => {
+    expect(loaded.T.en.ordered).toBe("Paid trips");
+    expect(loaded.T.de.ordered).toBe("Bezahlte Fahrten");
+    expect(loaded.T.fr.ordered).toBe("Courses payées");
+    expect(loaded.T.ar.ordered).toBe("الرحلات المدفوعة");
+  });
+
+  it("no language mentions pickup time any more, because the table opens newest booked first", () => {
+    for (const lang of LANGS) expect(loaded.T[lang].ordered, lang).not.toMatch(/pickup|Abhol|prise en charge|الاستلام/i);
+  });
+
+  it("only this screen uses the key", () => {
+    const others = ["app/ops/OpsDash.dc.html", "app/ops/OpsCalendarBoard.dc.html", "app/ops/OpsCalendar.dc.html", "app/ops/OpsCustomers.dc.html"];
+    for (const f of others) expect(read(f), f).not.toMatch(/\btOrdered\b|\bordered:\s*'/);
+  });
+});

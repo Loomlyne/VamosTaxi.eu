@@ -13,9 +13,11 @@ Quick 261004-ops-board-sort. Job session, not the controller. Written 2026-10-04
 
 ## Read these three first
 
-1. **The line under the page title is now wrong.** `OpsBoard.dc.html` still says "Paid trips by pickup time"
-   (de, fr and ar the same) while the table opens newest booked first. I left it: the brief said to change only the table.
-   It is one copy line in four languages (`ordered` in the file's `T` tables); the words are the owner's to approve.
+1. **The line under the page title is done (owner, question form, 2026-10-04; commit after the hand-over).** The
+   subtitle (`ordered` in the `T` tables, used by this screen only) is now en "Paid trips", de "Bezahlte Fahrten",
+   fr "Courses payées", ar "الرحلات المدفوعة": the old words without the order part. No test pinned the old line; a new
+   pin is in `ops-board-sort.test.ts`; `tools/header-coverage.mjs` checks the header in all four languages on the local
+   sync (the English subtitle is not in the shared dictionary, so `VamosLocale.coverage` lists it, exactly as it listed the old line).
 2. **Where the Vehicle order comes from.** The decision file says "from the class rows". I used the dashboard's own
    ordered class list, `VamosOps.VEHICLE_CLASSES` (Economy, Business, Van luxury; it also feeds the Class filter and the
    editor), matched against the label the column shows (`klass`). I did not use the price book's class sort order
