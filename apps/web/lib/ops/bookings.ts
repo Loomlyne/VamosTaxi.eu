@@ -6,6 +6,7 @@
 
 import { asStaff, type VamosClaims } from "@/lib/db/identity";
 import { mapBoardBooking, type OpsBookingRow, type SqlBoardRow } from "@/lib/ops/bookings-map";
+import { classDisplayName } from "@/lib/ops/class-slug";
 
 export type { OpsBookingRow } from "@/lib/ops/bookings-map";
 export { mapBoardBooking } from "@/lib/ops/bookings-map";
@@ -230,11 +231,21 @@ export type DashboardRefundLine = {
   amountRappen: number;
 };
 
+/** The three classes the dashboard's "Money in" lists, in its order (D-14). */
+export const DASHBOARD_CLASSES = ["Economy", "Business", "Van luxury"] as const;
+export type DashboardClass = (typeof DASHBOARD_CLASSES)[number];
+
+export type DashboardClassLine = { klass: DashboardClass; rappen: number };
+
 export type DashboardMoney = {
   period: MoneyPeriod;
   incomeRappen: number;
   refundRappen: number;
   feeRappen: number;
+  /** Captured fares in the period: captured payments that are not a class-change difference. Average fare = income / this. */
+  fareCount: number;
+  /** Income split by the booking's class. The three lines add up to incomeRappen. */
+  byClass: DashboardClassLine[];
   refunds: DashboardRefundLine[];
 };
 
@@ -278,7 +289,68 @@ export function periodFromYmd(period: MoneyPeriod, todayYmd: string): string | n
   return addDaysYmd(todayYmd, -29);
 }
 
+/** Milliseconds Zurich's wall clock is ahead of UTC at `ms` (3 600 000 in winter, 7 200 000 in summer). */
+function zurichOffsetMs(ms: number): number {
+  const parts: Record<string, string> = {};
+  new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Zurich",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+  })
+    .formatToParts(new Date(ms))
+    .forEach((part) => {
+      parts[part.type] = part.value;
+    });
+  const wall = Date.UTC(
+    Number(parts.year),
+    Number(parts.month) - 1,
+    Number(parts.day),
+    Number(parts.hour),
+    Number(parts.minute),
+    Number(parts.second),
+  );
+  return wall - Math.floor(ms / 1000) * 1000;
+}
+
+/**
+ * The instant 00:00 Europe/Zurich starts on `ymd` (YYYY-MM-DD), as a UTC ISO string: 2026-10-04 starts at
+ * 2026-10-03T22:00:00.000Z, 2026-01-15 at 2026-01-14T23:00:00.000Z. Zurich's clock changes at 02:00/03:00,
+ * never at midnight, so every day has exactly one midnight.
+ *
+ * 261004: the dashboard used `${ymd}::date at time zone 'Europe/Zurich'`, which turns a date into a
+ * wall-clock timestamp read in the session's zone (UTC on Supabase): the day started at 02:00 UTC
+ * (04:00 Zurich in summer), so a fare captured between midnight and 04:00 fell out of Today, 7 days and 30 days.
+ */
+export function zurichMidnightUtc(ymd: string): string {
+  const bits = ymd.split("-");
+  const guess = Date.UTC(Number(bits[0]), Number(bits[1]) - 1, Number(bits[2]));
+  const first = guess - zurichOffsetMs(guess);
+  return new Date(guess - zurichOffsetMs(first)).toISOString();
+}
+
+/** Where a dashboard period starts (UTC ISO instant, Zurich midnight), or null for all time. */
+export function periodStartUtc(period: MoneyPeriod, now = new Date()): string | null {
+  const fromYmd = periodFromYmd(period, zurichYmd(now));
+  return fromYmd === null ? null : zurichMidnightUtc(fromYmd);
+}
+
+/** A booking's class as the dashboard lists it: the D-14 three; anything else reads Economy, as on the board. */
+export function dashboardClassOf(slug: string | null | undefined): DashboardClass {
+  const name = slug ? classDisplayName(String(slug)) : null;
+  return (DASHBOARD_CLASSES as readonly string[]).includes(name ?? "") ? (name as DashboardClass) : "Economy";
+}
+
 function rappenOf(value: unknown): number {
+  const n = Number(value ?? 0);
+  return Number.isFinite(n) && n > 0 ? Math.trunc(n) : 0;
+}
+
+function countOf(value: unknown): number {
   const n = Number(value ?? 0);
   return Number.isFinite(n) && n > 0 ? Math.trunc(n) : 0;
 }
@@ -289,25 +361,56 @@ export async function loadDashboardMoney(
   period: MoneyPeriod,
   now = new Date(),
 ): Promise<DashboardMoney> {
-  const fromYmd = periodFromYmd(period, zurichYmd(now));
+  // An instant with its zone (…Z), never a bare date: the bound value means the same on the Worker and on a Mac.
+  const fromUtc = periodStartUtc(period, now);
   return asStaff(env, claims, async (sql) => {
-    const sums = await sql<{ income_rappen: number | string; fee_rappen: number | string }[]>`
+    // One row per captured payment in the period, with the booking's class (first leg) and whether the
+    // payment is a class-change difference (an extra, as the board reads it), so income, the class lines
+    // and the fare count come from the same rows and always agree.
+    const rows = await sql<
+      {
+        class_slug: string | null;
+        income_rappen: number | string;
+        fee_rappen: number | string;
+        fare_count: number | string;
+      }[]
+    >`
+      with paid as (
+        select
+          p.charged_rappen,
+          p.stripe_fee_rappen,
+          vc.slug as class_slug,
+          exists (
+            select 1
+            from public.booking_edit_requests as extra
+            where extra.extra_snapshot_id = p.snapshot_id
+          ) as is_extra
+        from public.booking_payments as p
+        left join lateral (
+          select leg.vehicle_class_id
+          from public.booking_legs as leg
+          where leg.booking_id = p.booking_id
+          order by leg.leg_seq
+          limit 1
+        ) as l on true
+        left join public.vehicle_classes as vc on vc.id = l.vehicle_class_id
+        where p.captured_at is not null
+          and (${fromUtc}::timestamptz is null or p.captured_at >= ${fromUtc}::timestamptz)
+      )
       select
-        coalesce(sum(p.charged_rappen), 0)::int as income_rappen,
-        coalesce(sum(p.stripe_fee_rappen) filter (where p.stripe_fee_rappen is not null), 0)::int as fee_rappen
-      from public.booking_payments as p
-      where p.captured_at is not null
-        and (
-          ${fromYmd}::text is null
-          or p.captured_at >= (${fromYmd}::date at time zone 'Europe/Zurich')
-        )
+        class_slug,
+        coalesce(sum(charged_rappen), 0)::int as income_rappen,
+        coalesce(sum(stripe_fee_rappen) filter (where stripe_fee_rappen is not null), 0)::int as fee_rappen,
+        (count(*) filter (where not is_extra))::int as fare_count
+      from paid
+      group by class_slug
     `;
     const refundSum = await sql<{ refund_rappen: number | string }[]>`
       select coalesce(sum(r.refund_rappen), 0)::int as refund_rappen
       from public.booking_refunds as r
       where
-        ${fromYmd}::text is null
-        or r.decided_at >= (${fromYmd}::date at time zone 'Europe/Zurich')
+        ${fromUtc}::timestamptz is null
+        or r.decided_at >= ${fromUtc}::timestamptz
     `;
     const lines = await sql<
       { customer: string | null; booking: string | null; amount_rappen: number | string }[]
@@ -319,15 +422,29 @@ export async function loadDashboardMoney(
       from public.booking_refunds as r
       join public.bookings as b on b.id = r.booking_id
       where
-        ${fromYmd}::text is null
-        or r.decided_at >= (${fromYmd}::date at time zone 'Europe/Zurich')
+        ${fromUtc}::timestamptz is null
+        or r.decided_at >= ${fromUtc}::timestamptz
       order by r.decided_at desc, r.id desc
     `;
+    let incomeRappen = 0;
+    let feeRappen = 0;
+    let fareCount = 0;
+    const byClass: DashboardClassLine[] = DASHBOARD_CLASSES.map((klass) => ({ klass, rappen: 0 }));
+    for (const row of rows) {
+      const income = rappenOf(row.income_rappen);
+      incomeRappen += income;
+      feeRappen += rappenOf(row.fee_rappen);
+      fareCount += countOf(row.fare_count);
+      const line = byClass.find((l) => l.klass === dashboardClassOf(row.class_slug));
+      if (line) line.rappen += income;
+    }
     return {
       period,
-      incomeRappen: rappenOf(sums[0]?.income_rappen),
+      incomeRappen,
       refundRappen: rappenOf(refundSum[0]?.refund_rappen),
-      feeRappen: rappenOf(sums[0]?.fee_rappen),
+      feeRappen,
+      fareCount,
+      byClass,
       refunds: lines.map((line) => ({
         customer: String(line.customer ?? "").trim(),
         booking: String(line.booking ?? "").trim(),
