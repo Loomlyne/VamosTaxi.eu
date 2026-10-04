@@ -1,0 +1,118 @@
+{
+ "label": "before",
+ "at": "2026-10-04T17:38:52.392Z",
+ "runs": [
+  {
+   "view": "en-1440",
+   "period": "first-paint",
+   "text": "Dashboard\n\nSunday 4 October\n\nToday\n7 days\n30 days\nAll time\nMONEY\nINCOME\nCHF 000\nFares captured, before costs\nEXPENSES\nCHF 000\nNone recorded\nNET\nCHF 000\nIncome minus fees and refunds\nAVERAGE FARE\nCHF 000\nPer captured fare\nOPERATION\nBOOKINGS\n0\nTaken in this period\nPICKUPS\n0\nScheduled to run\nCHAUFFEURS ON SHIFT\n0\n/ 0\nAvailable to assign\nWhere the money goes\n\nMONEY IN\n\nEconomy\nCHF 000\nBusiness\nCHF 000\nVan luxury\nCHF 000\n\nMONEY OUT\n\nNET\nCHF 000\nNeeds attention\nUnassigned bookings\nPaid, no chauffeur yet\n0\nAwaiting payment\nPay link sent, not paid\n0\nPending edits\nPaid trips waiting for accept\n0\nChauffeurs\n0/0\nChauffeurs on shift\nCHAUFFEURS",
+   "storeBookings": 0,
+   "storeChauffeurs": 0
+  },
+  {
+   "view": "en-1440",
+   "period": "today",
+   "text": "Dashboard\n\nSunday 4 October\n\nToday\n7 days\n30 days\nAll time\nMONEY\nINCOME\nCHF 100.39\nFares captured, before costs\nEXPENSES\nCHF 000\nNone recorded\nNET\nCHF 100.39\nIncome minus fees and refunds\nAVERAGE FARE\nCHF 100.39\nPer captured fare\nOPERATION\nBOOKINGS\n0\nTaken in this period\nPICKUPS\n0\nScheduled to run\nCHAUFFEURS ON SHIFT\n0\n/ 1\nAvailable to assign\nWhere the money goes\n\nMONEY IN\n\nEconomy\nCHF 000\nBusiness\nCHF 100.39\nVan luxury\nCHF 000\n\nMONEY OUT\n\nNET\nCHF 100.39\nNeeds attention\nUnassigned bookings\nPaid, no chauffeur yet\n0\nAwaiting payment\nPay link sent, not paid\n0\nPending edits\nPaid trips waiting for accept\n0\nChauffeurs\n0/1\nChauffeurs on shift\nCHAUFFEURS",
+   "storeBookings": 25,
+   "storeChauffeurs": 1
+  },
+  {
+   "view": "en-1440",
+   "period": "week",
+   "text": "Dashboard\n\nLast seven days\n\nToday\n7 days\n30 days\nAll time\nMONEY\nINCOME\nCHF 859.22\nFares captured, before costs\nEXPENSES\nCHF 35.56\nNone recorded\nNET\nCHF 823.66\nIncome minus fees and refunds\nAVERAGE FARE\nCHF 78.11\nPer captured fare\nOPERATION\nBOOKINGS\n9\nTaken in this period\nPICKUPS\n8\nScheduled to run\nCHAUFFEURS ON SHIFT\n0\n/ 1\nAvailable to assign\nWhere the money goes\n\nMONEY IN\n\nEconomy\nCHF 336.60\nBusiness\nCHF 287.94\nVan luxury\nCHF 234.68\n\nMONEY OUT\n\nLab Rider 11 · VT-26-9011\nCHF 35.56\nNET\nCHF 823.66\nNeeds attention\nUnassigned bookings\nPaid, no chauffeur yet\n7\nAwaiting payment\nPay link sent, not paid\n0\nPending edits\nPaid trips waiting for accept\n0\nChauffeurs\n0/1\nChauffeurs on shift\nCHAUFFEURS",
+   "storeBookings": 25,
+   "storeChauffeurs": 1
+  },
+  {
+   "view": "en-1440",
+   "period": "month",
+   "text": "Dashboard\n\nLast thirty days\n\nToday\n7 days\n30 days\nAll time\nMONEY\nINCOME\nCHF 1307.32\nFares captured, before costs\nEXPENSES\nCHF 35.56\nNone recorded\nNET\nCHF 1271.76\nIncome minus fees and refunds\nAVERAGE FARE\nCHF 93.38\nPer captured fare\nOPERATION\nBOOKINGS\n19\nTaken in this period\nPICKUPS\n9\nScheduled to run\nCHAUFFEURS ON SHIFT\n0\n/ 1\nAvailable to assign\nWhere the money goes\n\nMONEY IN\n\nEconomy\nCHF 336.60\nBusiness\nCHF 636.04\nVan luxury\nCHF 234.68\n\nMONEY OUT\n\nLab Rider 11 · VT-26-9011\nCHF 35.56\nNET\nCHF 1271.76\nNeeds attention\nUnassigned bookings\nPaid, no chauffeur yet\n7\nAwaiting payment\nPay link sent, not paid\n0\nPending edits\nPaid trips waiting for accept\n0\nChauffeurs\n0/1\nChauffeurs on shift\nCHAUFFEURS",
+   "storeBookings": 25,
+   "storeChauffeurs": 1
+  },
+  {
+   "view": "en-1440",
+   "period": "all",
+   "text": "Dashboard\n\nAll captured fares\n\nToday\n7 days\n30 days\nAll time\nMONEY\nINCOME\nCHF 1307.32\nFares captured, before costs\nEXPENSES\nCHF 35.56\nNone recorded\nNET\nCHF 1271.76\nIncome minus fees and refunds\nAVERAGE FARE\nCHF 93.38\nPer captured fare\nOPERATION\nBOOKINGS\n25\nTaken in this period\nPICKUPS\n14\nScheduled to run\nCHAUFFEURS ON SHIFT\n0\n/ 1\nAvailable to assign\nWhere the money goes\n\nMONEY IN\n\nEconomy\nCHF 336.60\nBusiness\nCHF 636.04\nVan luxury\nCHF 234.68\n\nMONEY OUT\n\nLab Rider 11 · VT-26-9011\nCHF 35.56\nNET\nCHF 1271.76\nNeeds attention\nUnassigned bookings\nPaid, no chauffeur yet\n10\nAwaiting payment\nPay link sent, not paid\n0\nPending edits\nPaid trips waiting for accept\n0\nChauffeurs\n0/1\nChauffeurs on shift\nCHAUFFEURS",
+   "storeBookings": 25,
+   "storeChauffeurs": 1
+  },
+  {
+   "view": "ar-390",
+   "period": "today",
+   "text": "لوحة المعلومات\n\nSunday 4 October\n\nاليوم\nالمال\nالإيرادات\nCHF 100.39\nالأجور المحصّلة قبل التكاليف\nالمصروفات\nCHF 000\nلا شيء مسجّل\nالصافي\nCHF 100.39\nالإيرادات ناقص الرسوم والمبالغ المستردة\nمتوسط الأجرة\nCHF 100.39\nلكل أجرة محصّلة\nالتشغيل\nالحجوزات\n0\nالمستلمة في هذه الفترة\nالاستقبالات\n0\nالمجدولة\nالسائقون في الدورية\n0\n/ 1\nمتاحون للإسناد\nأين يذهب المال\n\nالوارد\n\nEconomy\nCHF 000\nBusiness\nCHF 100.39\nVan luxury\nCHF 000\n\nالصادر\n\nالصافي\nCHF 100.39\nيحتاج انتباهًا\nحجوزات بلا إسناد\nمدفوع، بلا سائق بعد\n0\nبانتظار الدفع\nأُرسل رابط الدفع ولم يُدفع\n0\nتعديلات معلّقة\nرحلات مدفوعة بانتظار القبول\n0\nالسائقون\n0/1\nالسائقون في الدورية\nالسائقون",
+   "storeBookings": 25,
+   "storeChauffeurs": 1
+  }
+ ],
+ "calls": [
+  {
+   "at": "2026-10-04T17:38:54.214Z",
+   "path": "/api/staff/chauffeurs",
+   "status": 200,
+   "body": "{\"ok\":true,\"data\":[{\"id\":\"70630311-6362-4580-85e3-ae479703baec\",\"fullName\":\"Lab "
+  },
+  {
+   "at": "2026-10-04T17:38:54.218Z",
+   "path": "/api/staff/bookings",
+   "status": 200,
+   "body": "{\"ok\":true,\"data\":[{\"id\":\"VT-26-9024\",\"bookingId\":\"f384353c-fde3-411b-b716-a342d"
+  },
+  {
+   "at": "2026-10-04T17:38:54.234Z",
+   "path": "/api/staff/dashboard?period=today",
+   "status": 200,
+   "body": "{\"ok\":true,\"data\":{\"period\":\"today\",\"incomeRappen\":10039,\"refundRappen\":0,\"feeRappen\":0,\"refunds\":[]}}"
+  },
+  {
+   "at": "2026-10-04T17:38:56.387Z",
+   "path": "/api/staff/dashboard?period=week",
+   "status": 200,
+   "body": "{\"ok\":true,\"data\":{\"period\":\"week\",\"incomeRappen\":85922,\"refundRappen\":3556,\"feeRappen\":0,\"refunds\":[{\"customer\":\"Lab Rider 11\",\"booking\":\"VT-26-9011\",\"amountRappen\":3556}]}}"
+  },
+  {
+   "at": "2026-10-04T17:38:57.294Z",
+   "path": "/api/staff/bookings",
+   "status": 200,
+   "body": "{\"ok\":true,\"data\":[{\"id\":\"VT-26-9024\",\"bookingId\":\"f384353c-fde3-411b-b716-a342d"
+  },
+  {
+   "at": "2026-10-04T17:38:58.924Z",
+   "path": "/api/staff/dashboard?period=month",
+   "status": 200,
+   "body": "{\"ok\":true,\"data\":{\"period\":\"month\",\"incomeRappen\":130732,\"refundRappen\":3556,\"feeRappen\":0,\"refunds\":[{\"customer\":\"Lab Rider 11\",\"booking\":\"VT-26-9011\",\"amountRappen\":3556}]}}"
+  },
+  {
+   "at": "2026-10-04T17:39:00.361Z",
+   "path": "/api/staff/bookings",
+   "status": 200,
+   "body": "{\"ok\":true,\"data\":[{\"id\":\"VT-26-9024\",\"bookingId\":\"f384353c-fde3-411b-b716-a342d"
+  },
+  {
+   "at": "2026-10-04T17:39:01.452Z",
+   "path": "/api/staff/dashboard?period=all",
+   "status": 200,
+   "body": "{\"ok\":true,\"data\":{\"period\":\"all\",\"incomeRappen\":130732,\"refundRappen\":3556,\"feeRappen\":0,\"refunds\":[{\"customer\":\"Lab Rider 11\",\"booking\":\"VT-26-9011\",\"amountRappen\":3556}]}}"
+  },
+  {
+   "at": "2026-10-04T17:39:03.439Z",
+   "path": "/api/staff/bookings",
+   "status": 200,
+   "body": "{\"ok\":true,\"data\":[{\"id\":\"VT-26-9024\",\"bookingId\":\"f384353c-fde3-411b-b716-a342d"
+  }
+ ],
+ "errors": [],
+ "coverageEn": {
+  "lang": "de",
+  "count": 3,
+  "strings": [
+   "7 days",
+   "All time",
+   "Lab Rider 11 · VT-26-9011"
+  ],
+  "attrs": []
+ },
+ "scrollX390": 0,
+ "dirAr": "rtl",
+ "errorsAr": []
+}
