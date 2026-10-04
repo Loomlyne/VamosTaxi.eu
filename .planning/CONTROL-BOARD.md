@@ -45,6 +45,7 @@ Rewritten short on 2026-09-30 14:25; the long version is in git history (`823022
 | `fix/ops-strip-comments` | **Live 17:31 2026-10-04** (`e66eae74`, Worker `cb16b92b`) | Owner question later: staff-session check in front of /app/ops/* (proposal in quick/261004-ops-strip-comments/HANDOVER.md) |
 | `fix/payment-changed-message` | **Live 18:31 2026-10-04** (`07246087`, Worker `326d2055`) | Owner question later: dashboard change/Accept notices show a green check even for errors (all of them, before this job) |
 | `fix/ops-asset-gate` | Opus job building since 18:00: /app/ops/* on the dashboard host only with a staff session (login page's own files exempt); the forgeable `x-vamos-dc-asset` self-fetch replaced | Fresh sign-in review, control check, ship `vamos`; owner opens dashboard, board, a booking |
+| `fix/ops-toast-tone` | Sonnet job building since 18:35: dashboard error notices get the red warning sign (success keeps the check); distance chip gets Lucide `route` (owner chose the download) | Control check, ship `vamos` |
 | Landed and cleaned 00:4x | settle safety, Dependabot, Actions trim: branches deleted on GitHub (archive tags), folders removed; the settle-safety folder waits for its session to close | |
 
 ## Controller take-over, 2026-10-02 15:26 (+04)
