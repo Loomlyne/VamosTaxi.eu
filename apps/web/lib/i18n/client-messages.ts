@@ -6,7 +6,7 @@ import type { AbstractIntlMessages } from "next-intl";
  * Server components still read everything through getTranslations(); only the client provider
  * gets the reduced set (reviewer F7, 2026-10-04: no internal strings in /checkout HTML).
  */
-const SERVER_ONLY = new Set(["ops", "$meta"]);
+const SERVER_ONLY: readonly string[] = ["ops", "$meta"];
 
 /** Single keys in shipped namespaces that are internal review copy and no client component reads. */
 const SERVER_ONLY_KEYS: Record<string, readonly string[]> = {
@@ -20,7 +20,7 @@ const PUBLIC_OPS_KEYS = ["waiting-time"] as const;
 export function clientMessages(all: AbstractIntlMessages): AbstractIntlMessages {
   const out: AbstractIntlMessages = {};
   for (const [ns, value] of Object.entries(all)) {
-    if (SERVER_ONLY.has(ns)) continue;
+    if (SERVER_ONLY.includes(ns)) continue;
     const drop = SERVER_ONLY_KEYS[ns];
     if (drop && value && typeof value === "object") {
       const kept: AbstractIntlMessages = {};
