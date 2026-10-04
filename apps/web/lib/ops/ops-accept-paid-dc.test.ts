@@ -26,7 +26,7 @@ describe("Accept on a request whose difference is already paid", () => {
     expect(a).toBeGreaterThan(-1);
     expect(b).toBeGreaterThan(a);
     const handler = dc.slice(a, b);
-    expect(handler).toMatch(/code === 'already-paid'\) \{ if \(ops\) ops\.bookings\.reset\(\); this\.notify\(t\.acceptPaid\); \}/);
+    expect(handler).toMatch(/code === 'already-paid'\) \{ if \(ops\) ops\.bookings\.reset\(\); this\.notifyError\(t\.acceptPaid\); \}/);
     // It comes before the generic failure.
     expect(handler.indexOf("t.acceptPaid")).toBeLessThan(handler.indexOf("t.editFailed"));
   });
@@ -165,7 +165,7 @@ describe("Accept: a second Accept after the amount moved shows T2 (261002 settle
     const a = dc.indexOf("acceptPending: () => {");
     const b = dc.indexOf("refusePending: () => {", a);
     const handler = dc.slice(a, b);
-    expect(handler).toMatch(/code === 'price-changed'\) \{ if \(ops\) ops\.bookings\.reset\(\); this\.notify\(t\.acceptPriceChanged\); \}/);
+    expect(handler).toMatch(/code === 'price-changed'\) \{ if \(ops\) ops\.bookings\.reset\(\); this\.notifyError\(t\.acceptPriceChanged\); \}/);
     expect(handler.indexOf("t.acceptPriceChanged")).toBeLessThan(handler.indexOf("t.editFailed"));
   });
 

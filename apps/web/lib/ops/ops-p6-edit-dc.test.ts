@@ -85,7 +85,7 @@ describe("saving: the PATCH carries only what is saved at once; the trip goes th
   });
 
   it("a trip change opens the confirm step; a blocked one says why instead", () => {
-    expect(save).toMatch(/if \(tripChanged && !this\._classConfirmed\) \{\n\s+if \(tripBlock\) \{ this\.notify\(tripBlock\); return; \}\n\s+this\.setState\(\{ classConfirmOpen: true \}\);/);
+    expect(save).toMatch(/if \(tripChanged && !this\._classConfirmed\) \{\n\s+if \(tripBlock\) \{ this\.notifyError\(tripBlock\); return; \}\n\s+this\.setState\(\{ classConfirmOpen: true \}\);/);
   });
 
   it("the bar's primary reads Save changes for the contact only, Continue for a trip change", () => {
