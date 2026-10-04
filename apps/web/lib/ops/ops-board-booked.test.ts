@@ -40,7 +40,8 @@ const noop = () => undefined;
 
 type Column = {
   key: string;
-  header: string;
+  // A plain word, or the sort button the board puts in Booked, Vehicle, Driver and Total (ops-board-sort.test.ts).
+  header: string | React.ReactElement;
   width?: string;
   render?: (row: Json) => React.ReactElement;
 };
@@ -231,7 +232,8 @@ describe("Booked column on the board", () => {
       seen.add(word as string);
       const { comp } = loadBoard([], lang);
       comp.state = { ...comp.state, lang };
-      expect(comp.renderVals().columns[0]?.header).toBe(word);
+      const header = comp.renderVals().columns[0]?.header;
+      expect(typeof header === "string" ? header : textOf(header as React.ReactElement)).toBe(word);
     }
   });
 
