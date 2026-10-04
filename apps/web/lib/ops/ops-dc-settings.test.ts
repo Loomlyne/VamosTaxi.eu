@@ -66,7 +66,8 @@ describe("06-09 DC mocks", () => {
     const sidebar = read("app/ops/OpsSidebar.dc.html");
     expect(settings).toMatch(/\/api\/staff\/settings/);
     expect(settings).toMatch(/\/api\/staff\/profile/);
-    expect(settings).toMatch(/\/api\/staff\/invite/);
+    // No invite form since Staff was deleted (D-12): its only mention was an unused developer
+    // note string ("needs Resend as Auth SMTP"), removed from the served screen on 2026-10-04.
     expect(settings).toMatch(/\/api\/staff\/me/);
     expect(profile).toMatch(/\/api\/staff\/profile/);
     expect(profile).toMatch(/\/api\/staff\/me/);
