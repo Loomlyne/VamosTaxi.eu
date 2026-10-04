@@ -4,15 +4,16 @@ Owner, 2026-10-04 (verbatim): "now i want to fix the dashboard because it not re
 
 Branch `fix/ops-dash-numbers`, cut from `origin/main` `71d0da5a` (origin/main had moved from `d40ad326` by the time
 the branch was cut). Nothing deployed, no live writes. Live reads were read-only SELECTs (MCP), including the
-dashboard SQL run as `vamos_staff` inside `begin read only … rollback`.
+dashboard SQL run as `vamos_staff` inside `begin read only … rollback`. `origin/main` `1af6c5e1` (the owner's
+decision file) merged in at `231996b7`.
 
 ## What "nothing" was
 
 The money API works on live: `pg_stat_statements` shows 8 calls of the income query and no Postgres errors in the
 last 24 h, and the lab answers `200 {ok:true,data:{…}}` for every period. The stores fill on `/dashboard` itself
 (lab: 0 rows at first paint, 25 bookings and 1 chauffeur about a second later, no board visit needed). On the
-default period (Today) the screen shows mostly zeros because of what three tiles count (questions Q1–Q3 below,
-not built) plus the faults fixed here.
+default period (Today) the screen showed mostly zeros because of what three tiles counted (owner answers below,
+now built) plus the faults fixed here.
 
 ## Root causes, fixed
 
@@ -43,7 +44,34 @@ not built) plus the faults fixed here.
    an unpaid pending booking with a pickup in the period counted as "Scheduled to run". Live 7 days 8 → 7
    (the extra one is an unpaid checkout with pickup 2 Oct). The board's own "Pickups today" counts paid only.
 
-Commits: `61f6b718` (server), `a59499d2` (screen), `cb9db290` (Pickups), plus this planning commit.
+Commits: `61f6b718` (server), `a59499d2` (screen), `cb9db290` (Pickups, kept: the controller ruled it a fix).
+
+## Owner answers, built (`.planning/decisions/2026-10-04-dashboard-numbers.md`)
+
+8. **Bookings counts the bookings made in the period** (answer 1, commit `a5ab7665`): by the Zurich day of
+   `createdAt`, any status. Live: Today 0 → **1** (VT-26-0753), 7 days 9 → **15**, 30 days 19 → 25, All 25.
+9. **Needs attention ignores the period and counts upcoming trips** (answers 2 and 5, commit `a18df66c`): pickup
+   (`pickupAt`, the first leg's `scheduled_at`) from now on. Unassigned = paid, no driver, not
+   cancelled/refunded/completed/no-show: live **3** in every period (it read 0 under Today). Awaiting payment keeps
+   "pay link sent, not paid": live 0. Pending edits = paid with a pending edit: live 0. Links unchanged.
+   Chauffeurs on shift unchanged (answer 4). Stripe fee left to `fix/stripe-fee-record` (answer 3).
+
+Why the board's Unassigned filter shows 10 and the dashboard 3 (live, read-only, ~22:00 +04): the board lists every
+paid open trip without a driver, past ones included. These seven ran (pickup passed) but are still `confirmed`
+with no driver, so the board keeps them:
+
+| Reference | Pickup (Zurich) |
+|---|---|
+| VT-26-0737 | 2026-09-29 00:40 |
+| VT-26-0736 | 2026-09-29 01:25 |
+| VT-26-0743 | 2026-09-29 20:15 |
+| VT-26-0742 | 2026-09-30 15:25 |
+| VT-26-0739 | 2026-09-30 16:00 |
+| VT-26-0738 | 2026-09-30 16:35 |
+| VT-26-0747 | 2026-09-30 19:30 |
+
+The three the dashboard counts: VT-26-0750 (2026-10-05 04:10), VT-26-0753 (2026-10-15 21:35), VT-26-0752
+(2026-10-16 19:20). Marking the seven completed (or no-show) on the board makes both read 3.
 
 ## Tests (fail before, pass after)
 
@@ -55,6 +83,11 @@ Commits: `61f6b718` (server), `a59499d2` (screen), `cb9db290` (Pickups), plus th
   date line in the reader's language.
 - Run against `origin/main`'s `bookings.ts` + `OpsDash.dc.html`: all 17 failed (Pickups: 3 instead of 2;
   average: CHF 93.38 instead of CHF 87.15).
+- Owner answers, in `ops-dash-numbers.test.ts` (5 more): Bookings by booked day (Today 1, 7 days 2, 30 days 3,
+  All 4 on a four-row fixture) and Needs attention in each of the four periods (Unassigned 3, Awaiting payment 1,
+  Pending edits 1, links unchanged). Against the screen before these two commits: all 5 failed (Bookings Today 2
+  instead of 1; Unassigned 1 under Today, 2 under 7 days, 5 under All time, instead of 3).
+- `ops-dc-u08.test.ts`: the Unassigned rule is now read from `openTrips` (same predicate).
 - `ops-live-data.test.ts`: one assertion moved from "screen filters by capturedAt" to "server filters by captured_at;
   screen reads fareCount/byClass".
 
@@ -73,12 +106,12 @@ Today = Sun 4 Oct, Zurich. "Before → After"; unchanged where one value.
 | Money in Business | CHF 100.39 | CHF 287.94 | CHF 636.04 → **CHF 736.04** | CHF 636.04 → **CHF 736.04** |
 | Money in Van luxury | CHF 000 | CHF 234.68 | CHF 234.68 | CHF 234.68 |
 | Money out | none | VT-26-0746 refund CHF 35.56 | same | same |
-| Bookings (by pickup date) | 0 | 9 | 19 | 25 |
+| Bookings (by pickup day → by booked day) | 0 → **1** | 9 → **15** | 19 → **25** | 25 |
 | Pickups | 0 | 8 → 7 | 9 → 8 | 14 → 11 |
 | Chauffeurs on shift | 0 / 1 | 0 / 1 | 0 / 1 | 0 / 1 |
-| Unassigned (pickup in period) | 0 | 7 | 7 | 10 |
-| Awaiting payment (pay link sent) | 0 | 0 | 0 | 0 |
-| Pending edits | 0 | 0 | 0 | 0 |
+| Unassigned (pickup in period → upcoming) | 0 → **3** | 7 → **3** | 7 → **3** | 10 → **3** |
+| Awaiting payment (pay link sent; upcoming) | 0 | 0 | 0 | 0 |
+| Pending edits (upcoming) | 0 | 0 | 0 | 0 |
 
 The boundary fault (1) changes nothing on today's live rows (no capture between 00:00 and 04:00 Zurich in any window
 start day); it shows on the first such capture. Network: `/api/staff/dashboard?period=…` 200 for all four,
@@ -88,41 +121,25 @@ Four languages: `VamosLocale.coverage(main)` empty in en, de, fr and ar at 1440 
 no sideways scroll at 390; Arabic `dir=rtl`, date "الأحد، 4 أكتوبر".
 
 Pictures (`screens/`, bare crops): `before-en-1440-today.png`, `before-en-1440-all.png`, `before-ar-390-today.png`,
-and the same three `after-*`. Reads per period: `evidence/before-read.json`, `evidence/after-read.json`.
+and the same three `after-*` (retaken ~22:05 +04 with the owner's answers built). Reads per period: `evidence/before-read.json`, `evidence/after-read.json`.
 Tools: `tools/live-shaped-fixture.sql` (lab rows), `tools/dash-proof.mjs`, `tools/dash-langs.mjs`,
 `tools/day-boundary-proof.sql`.
 
-## Questions for the owner (not built)
+## Open
 
-Q1. **Bookings "Taken in this period" counts by pickup date.** Recommended: count by when the booking was made.
-Example: Today reads 0 although VT-26-0753 was booked today at 18:34; 7 days would read 15 instead of 9.
-
-Q2. **"Needs attention" only counts trips whose pickup falls in the chosen period, and the periods only look back.**
-Recommended: count every open item, whatever the period, exactly what the linked board filter opens.
-Example: Today shows "Unassigned 0" while VT-26-0750 runs tomorrow at 04:10 with no chauffeur; the board's
-Unassigned filter lists 10.
-
-Q3. **"Awaiting payment" means "pay link sent, not paid" on the dashboard but "not paid yet" on the board it opens.**
-Recommended: the number counts what the link opens (the board's Awaiting payment), note "Not paid yet".
-Example: the dashboard shows 0, the board shows 3 (unpaid checkouts from 1 and 2 Oct).
-
-Q4. **The Stripe fee is never recorded** (`stripe_fee_rappen` is empty on all 16 payments), so Expenses and Net leave
-it out. Recommended: record each payment's Stripe fee when the payment settles and show it as the existing
-"Stripe fee" line. Example: Net for 4 Oct reads CHF 100.39, the full VT-26-0753 fare, before what Stripe kept.
-
-Q5. **"Chauffeurs on shift" counts chauffeurs whose weekly shift (days and hours) covers this minute.** Recommended:
-keep that meaning and set the shift on the chauffeur's page. Example: it reads 0 / 1 because the one chauffeur has
-no shift days or hours set.
-
-Q6. **Loading and failure look like zero.** For about a second after opening, and for good if
-`/api/staff/dashboard` fails (session expired, 500), every money tile reads CHF 000, the same as a real zero.
-Showing "Loading" or "Could not load, try again" needs a picture to sign. Recommended: a short muted line under the
-Money heading, drawn first. Example: in the lab the first paint read Income CHF 000 before CHF 100.39.
+- **Loading and failure look like zero** (design question, owner: not now). For about a second after opening,
+  and for good if `/api/staff/dashboard` fails (session expired, 500), every money tile reads CHF 000, the same as a
+  real zero. Showing "Loading" or "Could not load, try again" needs a picture to sign first. Example: in the lab the
+  first paint read Income CHF 000 before CHF 100.39.
+- Stripe fee: job `fix/stripe-fee-record`. The dashboard already sums `stripe_fee_rappen` into Expenses and Net and
+  lists a "Stripe fee" line once any is recorded.
+- The Bookings tile's link under Today still opens the board's "Today" filter (paid trips picked up today), not the
+  bookings made today. Left as it is (links unchanged).
 
 ## Checks run (this worktree)
 
 - `pnpm --filter web exec vitest run` on dashboard-money, ops-dash-numbers, ops-live-data, ops-dc-u08,
-  edit-request, ops-dc-finalize, tests/unit/locale-pattern-switch: 7 files, 121 tests pass.
+  edit-request, ops-dc-finalize, tests/unit/locale-pattern-switch: 7 files, 126 tests pass.
 - `pnpm typecheck` pass. `pnpm lint` 0 errors (6 warnings, none in changed files). `pnpm i18n:check` pass.
   `pnpm check:db-fences` 8/8 pass.
 - Not run: full `test:unit`, pgTAP, visual specs (controller's gates).
@@ -133,3 +150,4 @@ Money heading, drawn first. Example: in the lab the first paint read Income CHF 
   the expected class split (Business 44810 + 28794, Economy 33660, Van luxury 23468, 15 fares).
 - A real capture between 00:00 and 04:00 Zurich through the Worker (shown on the lab database with SQL only).
 - Tablet widths 1024/768 (checked 1440 and 390 only; layout untouched).
+- The upcoming rule at the exact minute a pickup passes (unit-tested with pickups an hour either side only).
