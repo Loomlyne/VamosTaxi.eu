@@ -382,7 +382,7 @@ describe("ops live data — comments 8–10", () => {
     expect(row.id).not.toMatch(/VT-48/);
   });
 
-  it("OpsDash has no chauffeur-pay placeholders and filters money by capturedAt", () => {
+  it("OpsDash has no chauffeur-pay placeholders and money is filtered by captured_at on the server", () => {
     const dash = read("app/ops/OpsDash.dc.html");
     expect(dash).not.toMatch(/Chauffeur pay/);
     expect(dash).not.toMatch(/Fuel and tolls/);
@@ -390,7 +390,10 @@ describe("ops live data — comments 8–10", () => {
     expect(dash).not.toMatch(/emptyBookings/);
     expect(dash).not.toMatch(/VT-48/);
     expect(dash).not.toMatch(/Isolation/);
-    expect(dash).toMatch(/capturedAt/);
+    // 261004: the average and the class lines come from the server's captured payments, not the board rows.
+    expect(dash).toMatch(/money\.fareCount/);
+    expect(dash).toMatch(/money\.byClass/);
+    expect(read("apps/web/lib/ops/bookings.ts")).toMatch(/p\.captured_at >= \$\{fromUtc\}::timestamptz/);
     expect(dash).toMatch(/zurichToday/);
     expect(dash).not.toMatch(/href="#/);
     expect(dash).not.toMatch(/href:'#/);
