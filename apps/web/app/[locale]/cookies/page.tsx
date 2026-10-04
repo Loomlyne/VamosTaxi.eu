@@ -131,6 +131,14 @@ export default async function CookiesPage({
                 provider: "Vamos Taxi",
                 duration: tCookies("manage-cookie-duration"),
               },
+              {
+                // Owner-approved row, .planning/decisions/2026-10-04-vt-review-cookie-row.md
+                slug: "review",
+                name: <CookieName plain={tCookies("name-review-access")} tech="vt_review" />,
+                purpose: tCookies("review-cookie-purpose"),
+                provider: "Vamos Taxi",
+                duration: tCookies("review-cookie-duration"),
+              },
             ]}
           />
         </div>

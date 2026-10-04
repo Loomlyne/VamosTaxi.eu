@@ -1,9 +1,9 @@
-# COPY DRAFT — sections 1–5 APPROVED; section 6 awaiting approval (2026-10-04)
+# COPY DRAFT — sections 1–6 APPROVED (2026-10-04)
 
 Status: **sections 1–4 approved by Koss, 2026-10-04, "Approve as drafted"** (question form, relayed by the
 controller; recorded in `.planning/decisions/2026-10-04-hide-internal-ids-copy.md`). Applied in `d8f25617`.
 Section 5: approved the same day, "Approve all as drafted" (5a English names are his own words; the de/fr/ar and
-the two Functional names in 5b were drafts and are now approved). No lawyer has read any of it. The owner's Meta texts are not touched.
+the two Functional names in 5b were drafts and are now approved). Section 6 (`vt_review` row): approved 2026-10-04 16:38 +04, "Approve as drafted" (question form, asked by the controller), recorded in `.planning/decisions/2026-10-04-vt-review-cookie-row.md`. No lawyer has read any of it. The owner's Meta texts are not touched.
 
 Why: owner 2026-10-04, "hide all tokens hide all ids … everything is expose". These lines told a
 visitor about test mode, vendors we do not use, or engineering plumbing.
@@ -80,7 +80,7 @@ each translation to be unique, so the draft says "Connexion au compte" / "جلس
 | vamosLang | Language (this browser) | Sprache (dieser Browser) | Langue (ce navigateur) | اللغة (هذا المتصفح) |
 | vamos:recent-places | Recent addresses | Letzte Adressen | Adresses récentes | العناوين الأخيرة |
 
-## 6. NEW — /cookies row for `vt_review` (DRAFT, awaiting approval, NOT applied)
+## 6. /cookies row for `vt_review` — APPROVED 2026-10-04 16:38 +04 ("Approve as drafted"), applied verbatim
 
 Reviewer F1 moved the review link's token into a new strictly necessary cookie `vt_review` (HttpOnly,
 Path=/review, 30 days). /cookies must name it before it ships live, in the same style as the other rows.
@@ -97,4 +97,4 @@ Question for the form: "Add this row for the review-link cookie to vamostaxi.sit
 
 ## How to approve
 
-Sections 1–5: approved and recorded in `.planning/decisions/2026-10-04-hide-internal-ids-copy.md`. Section 6: one question (above); record the answer there, then apply the row.
+Sections 1–5: approved and recorded in `.planning/decisions/2026-10-04-hide-internal-ids-copy.md`. Section 6: approved and recorded in `.planning/decisions/2026-10-04-vt-review-cookie-row.md`; applied on the mock `app/pages/cookies.dc.html` (after the `vt_manage` row), `app/vamos-i18n-dict.js`, the React twin `app/[locale]/cookies/page.tsx` and messages `cookies.name-review-access`, `cookies.review-cookie-purpose`, `cookies.review-cookie-duration`.
