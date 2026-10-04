@@ -178,6 +178,11 @@ function zurichDayLabel(lang) {
   return new Intl.DateTimeFormat(DATE_TAG[lang] || 'en-GB', { timeZone: 'Europe/Zurich', weekday: 'long', day: 'numeric', month: 'long' })
     .format(new Date());
 }
+/* The Zurich calendar day (YYYY-MM-DD) of an instant, '' when there is none. */
+function zurichDayOf(value) {
+  const ms = Date.parse(value || '');
+  return Number.isFinite(ms) ? new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Zurich' }).format(new Date(ms)) : '';
+}
 function zurichToday() {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Zurich' }).format(new Date());
 }
@@ -286,6 +291,9 @@ class Component extends DCLogic {
     /* 261004: a trip runs only once it is paid (the board's "Pickups today" counts the same); an unpaid
        checkout that was left open is not scheduled to run. */
     const pickups = periodBookings.filter((b) => b.paid && b.status !== 'cancelled' && b.status !== 'refunded').length;
+    /* Owner, 2026-10-04 (.planning/decisions/2026-10-04-dashboard-numbers.md #1): Bookings counts the bookings
+       made in the period, by the Zurich day they were booked (createdAt), not by pickup day. */
+    const bookedInPeriod = bookings.filter((b) => inPeriod(zurichDayOf(b.createdAt), periodKey, today)).length;
     const unassignedPaid = periodBookings.filter((b) => b.paid && !b.driver && ['cancelled', 'refunded', 'completed', 'no-show', 'no_show'].indexOf(b.status) === -1).length;
     const unpaidPending = periodBookings.filter((b) => b.payLinkSent && !b.paid && b.status !== 'cancelled' && b.status !== 'refunded' && b.status !== 'completed').length;
     const pendingEdits = periodBookings.filter((b) => b.paid && b.pendingEditId).length;
@@ -317,7 +325,7 @@ class Component extends DCLogic {
         select: () => this.select(x.key),
       })),
       counts: [
-        { label:'Bookings', value:String(periodBookings.length), of:'', icon:'list', href:bookingsHref, foot:'Taken in this period' },
+        { label:'Bookings', value:String(bookedInPeriod), of:'', icon:'list', href:bookingsHref, foot:'Taken in this period' },
         { label:'Pickups', value:String(pickups), of:'', icon:'car-front', href:pickupsHref, foot:'Scheduled to run' },
         { label:'Chauffeurs on shift', value:String(onShift), of:'/ ' + chauffeurs.length, icon:'users', href:'/fleet/chauffeurs', foot:'Available to assign' },
       ],
