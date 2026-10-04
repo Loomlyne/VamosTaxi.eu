@@ -35,7 +35,7 @@ const cb = () =>
 
 function confirmedUser(signupConsent: string) {
   const updateUser = vi.fn(async () => {
-    writeCookies({ name: "sb-x-auth-token", value: "refreshed", options: { path: "/" } });
+    writeCookies({ name: "vt-auth", value: "refreshed", options: { path: "/" } });
     return { error: null };
   });
   state.auth.exchangeCodeForSession = (async () => ({ error: null })) as never;

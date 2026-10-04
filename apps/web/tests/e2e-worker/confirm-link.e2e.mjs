@@ -57,7 +57,7 @@ if (p1) {
   const wrongE = await press(p1, new Jar(), { e: await sealE(ATT, p1.token_hash) }); // a seal for another address on this token: verifyOtp gives A, so the address check refuses
   const sAfterRefusals = await sess(jarB);
   rec("3 POST from another site or without Origin is 403; without e 400; a seal for another address is refused and leaves no session",
-    evil.status === 403 && noOrigin.status === 403 && noE.status === 400 && wrongE.status === 400 && !(wrongE.setCookies ?? []).some((c) => /sb-.*-auth-token=[^;]+/.test(c) && !/Max-Age=0/i.test(c)),
+    evil.status === 403 && noOrigin.status === 403 && noE.status === 400 && wrongE.status === 400 && !(wrongE.setCookies ?? []).some((c) => /^vt-auth(\.\d+)?=[^;]+/.test(c) && !/Max-Age=0/i.test(c)),
     `evil ${evil.status}; no origin ${noOrigin.status}; no e ${noE.status}; foreign seal ${wrongE.status} ${JSON.stringify(wrongE.json)}`);
 
   // 4 the link was spent by the refused address check? (verifyOtp runs before the address check) -> request a fresh link for the real press
@@ -70,7 +70,7 @@ if (p1) {
   const ok = await press(p4, jarD);
   const sD = await sess(jarD);
   rec("4 the button (POST) on another device signs in for the address the page showed; target is validated and cookies reach the response",
-    ok.status === 200 && ok.json?.ok === true && typeof ok.json?.target === "string" && ok.json.target.startsWith("/") && sD?.signedIn === true && (ok.setCookies ?? []).some((c) => /^sb-.*-auth-token/.test(c)),
+    ok.status === 200 && ok.json?.ok === true && typeof ok.json?.target === "string" && ok.json.target.startsWith("/") && sD?.signedIn === true && (ok.setCookies ?? []).some((c) => /^vt-auth(\.\d+)?=/.test(c)),
     `status ${ok.status}; target=${ok.json?.target}; signedIn=${sD?.signedIn}; session cookies set=${(ok.setCookies ?? []).filter((c) => /^sb-/.test(c)).length}`);
   const again = await press(p4, new Jar());
   rec("5 the same link pressed again is expired (one use)", again.status === 400 && again.json?.code === "expired", `status ${again.status} ${JSON.stringify(again.json)}`);

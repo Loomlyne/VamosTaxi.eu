@@ -224,7 +224,7 @@ describe("PAY with the account block (26.5-04)", () => {
     const out = await pay({ account: { choice: "create", consent: true } });
     const cookie = out.res!.headers.get("set-cookie") ?? "";
     expect(cookie).toMatch(/^vt_manage=/);
-    expect(cookie).not.toMatch(/sb-[^=]*-auth-token/);
+    expect(cookie).not.toMatch(/vt-auth(\.\d+)?=/);
   });
 });
 

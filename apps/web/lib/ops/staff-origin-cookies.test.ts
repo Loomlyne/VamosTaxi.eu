@@ -23,7 +23,7 @@ describe("staff check cookie sink", () => {
     gate.mockResolvedValue({ sub: "u" });
     const sink: AuthCookieSink = { cookies: [] };
     const factory = vi.fn(async (_r: Request, s?: AuthCookieSink) => {
-      s?.cookies.push({ name: "sb-x-auth-token", value: "rotated", options: { path: "/", httpOnly: true, secure: true, sameSite: "lax", maxAge: 400 } });
+      s?.cookies.push({ name: "vt-auth", value: "rotated", options: { path: "/", httpOnly: true, secure: true, sameSite: "lax", maxAge: 400 } });
       return {} as never;
     });
     expect(await requestHasStaffSession(request, factory, sink)).toBe(true);
@@ -34,15 +34,15 @@ describe("staff check cookie sink", () => {
   it("copyAuthCookies appends one Set-Cookie per rotated cookie to the quote response", () => {
     const sink: AuthCookieSink = {
       cookies: [
-        { name: "sb-x-auth-token.0", value: "a b", options: { path: "/", httpOnly: true, secure: true, sameSite: "lax", maxAge: 400 } },
-        { name: "sb-x-auth-token.1", value: "c", options: { path: "/", httpOnly: true, secure: true, sameSite: "lax", maxAge: 400 } },
+        { name: "vt-auth.0", value: "a b", options: { path: "/", httpOnly: true, secure: true, sameSite: "lax", maxAge: 400 } },
+        { name: "vt-auth.1", value: "c", options: { path: "/", httpOnly: true, secure: true, sameSite: "lax", maxAge: 400 } },
       ],
     };
     const res = copyAuthCookies(new Response("{}", { status: 200, headers: { "content-type": "application/json" } }), sink);
     const set = res.headers.getSetCookie();
     expect(set).toEqual([
-      "sb-x-auth-token.0=a%20b; Path=/; Max-Age=400; HttpOnly; Secure; SameSite=Lax",
-      "sb-x-auth-token.1=c; Path=/; Max-Age=400; HttpOnly; Secure; SameSite=Lax",
+      "vt-auth.0=a%20b; Path=/; Max-Age=400; HttpOnly; Secure; SameSite=Lax",
+      "vt-auth.1=c; Path=/; Max-Age=400; HttpOnly; Secure; SameSite=Lax",
     ]);
   });
 

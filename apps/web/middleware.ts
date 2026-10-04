@@ -19,6 +19,7 @@ import { publicDashboardPath } from "./lib/ops/paths";
 import { passkeyGateInputs, vamosRoleFromAccessToken, type StaffAuthClient } from "./lib/ops/session";
 import { effectiveNextLevel, staffGateDecision } from "./lib/ops/staff-gate";
 import { MANAGE_COOKIE_NAME } from "./lib/checkout/manage-token";
+import { AUTH_SESSION_COOKIE_RE, LEGACY_AUTH_COOKIE_RE } from "./lib/supabase/cookies";
 import { applySeoToHtml, iconHeadTags, isSeoLang, seoPageFor, seoRoute, type SeoLang } from "./lib/seo/head";
 import { applySecurityHeaders } from "./lib/security/headers";
 import { metaMeasurementAllowed } from "./lib/meta/legal-gate";
@@ -70,8 +71,13 @@ const MARKETING_CACHE_PATHS = new Set([
 /** Never CDN-cache tickets or APIs (D-24). Matcher already skips /api; keep the prefix in source. */
 const NO_STORE_PATH_PREFIXES = ["/api", "/checkout", "/confirmation", "/bookings", "/account"] as const;
 
-/** D-25: sb-yaumjzvylngfjhtuffqs-auth-token* or any sb-*-auth-token → private, no-store. */
-const AUTH_TOKEN_COOKIE_RE = /^sb-.+-auth-token(?:\..+)?$/;
+/**
+ * D-25: the session cookie (vt-auth, vt-auth.0…) → private, no-store. A leftover old
+ * sb-*-auth-token cookie counts too: the Worker entry expires it on this very answer.
+ */
+function isAuthTokenCookieName(name: string): boolean {
+  return AUTH_SESSION_COOKIE_RE.test(name) || LEGACY_AUTH_COOKIE_RE.test(name);
+}
 
 /** Bare `/app/pages/contact` (and home) → public `/contact`. Skip aliases that share a file. */
 const DC_FILE_ROUTE: Record<string, string> = {};
@@ -492,7 +498,7 @@ function isNoStorePath(path: string): boolean {
 }
 
 function hasAuthTokenCookie(request: NextRequest): boolean {
-  return request.cookies.getAll().some((cookie) => AUTH_TOKEN_COOKIE_RE.test(cookie.name));
+  return request.cookies.getAll().some((cookie) => isAuthTokenCookieName(cookie.name));
 }
 
 /**
