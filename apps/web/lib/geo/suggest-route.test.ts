@@ -25,11 +25,12 @@ import { GET } from "@/app/api/geo/suggest/route";
 
 const SESSION = "00000000-0000-4000-8000-000000000001";
 
-function suggestRequest(q: string): Request {
+function suggestRequest(q: string, extra: Record<string, string> = {}): Request {
   const url = new URL("https://vamos.example/api/geo/suggest");
   url.searchParams.set("q", q);
   url.searchParams.set("session_token", SESSION);
   url.searchParams.set("locale", "en");
+  for (const [key, value] of Object.entries(extra)) url.searchParams.set(key, value);
   return new Request(url);
 }
 
@@ -56,5 +57,51 @@ describe("GET /api/geo/suggest short queries", () => {
     expect(response.status).toBe(200);
     expect(fetchFn).toHaveBeenCalledTimes(1);
     expect([...kvStore.entries()].some(([k, v]) => k.startsWith("quote:mapbox-budget:") && v === "1")).toBe(true);
+  });
+});
+
+describe("GET /api/geo/suggest order", () => {
+  const upstream = {
+    suggestions: [
+      { mapbox_id: "sbx.city", name: "Zürich", feature_type: "place" },
+      {
+        mapbox_id: "sbx.airport",
+        name: "Zurich Airport",
+        feature_type: "poi",
+        poi_category: ["airport"],
+      },
+      { mapbox_id: "sbx.station", name: "Zurich Main Station", feature_type: "poi" },
+    ],
+  };
+
+  async function idsAndKinds(request: Request): Promise<{ ids: string[]; kinds: string[] }> {
+    const response = await GET(request);
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as {
+      suggestions: { mapbox_id: string; kind: string }[];
+    };
+    return {
+      ids: body.suggestions.map((s) => s.mapbox_id),
+      kinds: body.suggestions.map((s) => s.kind),
+    };
+  }
+
+  it("answers airports first and the station by name", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => Response.json(upstream)));
+    expect(await idsAndKinds(suggestRequest("zur"))).toEqual({
+      ids: ["sbx.airport", "sbx.city", "sbx.station"],
+      kinds: ["airport", "city", "station"],
+    });
+  });
+
+  it("keeps Mapbox's order with order=mapbox and refuses any other order value", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => Response.json(upstream)));
+    expect((await idsAndKinds(suggestRequest("zur", { order: "mapbox" }))).ids).toEqual([
+      "sbx.city",
+      "sbx.airport",
+      "sbx.station",
+    ]);
+    const refused = await GET(suggestRequest("zur", { order: "price" }));
+    expect(refused.status).toBe(400);
   });
 });

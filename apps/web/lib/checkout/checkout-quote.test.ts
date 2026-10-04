@@ -102,6 +102,21 @@ describe("fetchQuote", () => {
     expect(r).toMatchObject({ kind: "ok", quoteId: "fresh-id" });
     expect(calls).toEqual(["/api/quote", "/api/geo/suggest", "/api/geo/suggest", "/api/quote"]);
   });
+  it("asks suggest for Mapbox's own order, because the fallback takes the first hit", async () => {
+    const urls: string[] = [];
+    const f = vi.fn(async (input: string) => {
+      if (input.startsWith("/api/geo/suggest")) {
+        urls.push(input);
+        return new Response(JSON.stringify({ ok: true, suggestions: [{ mapbox_id: "fresh-id", name: "x", address: "" }] }));
+      }
+      return urls.length === 0
+        ? new Response(JSON.stringify({ ok: false, error: "place_unresolved" }), { status: 422 })
+        : new Response(JSON.stringify(okJson));
+    });
+    await fetchQuote(f, url(), ctx);
+    expect(urls).toHaveLength(2);
+    for (const u of urls) expect(new URL(u, "https://x.test").searchParams.get("order")).toBe("mapbox");
+  });
   it("reports place_unresolved when the fallback finds nothing, and a network failure", async () => {
     const f = vi.fn(async (input: string) =>
       input.startsWith("/api/geo/suggest")

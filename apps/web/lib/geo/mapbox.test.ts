@@ -22,6 +22,7 @@ import {
 } from "./fixtures";
 import {
   MAPBOX_FETCH_TIMEOUT_MS,
+  airportsFirst,
   retrieve,
   reverse,
   routeLegs,
@@ -101,7 +102,7 @@ describe("suggest", () => {
     expect(fetchFn).not.toHaveBeenCalled();
   });
 
-  it("derives kind from feature_type, poi_category, ids and maki, never the name", async () => {
+  it("derives kind from feature_type, poi_category, ids and maki; a name decides only Station and HB", async () => {
     const mk = (name: string, extra: Record<string, unknown>) => ({
       mapbox_id: `sbx.${name}`,
       name,
@@ -113,7 +114,7 @@ describe("suggest", () => {
           mk("Zurich Airport Hotel", { feature_type: "poi", poi_category: ["hotel"] }),
           mk("Flughafen", { feature_type: "poi", poi_category: ["airport"] }),
           mk("Airport Inn", { feature_type: "poi", poi_category_ids: ["lodging"] }),
-          mk("HB", { feature_type: "poi", poi_category: ["railway station"] }),
+          mk("Hauptbahnhof", { feature_type: "poi", poi_category: ["railway station"] }),
           mk("Metro", { feature_type: "poi", maki: "rail-metro" }),
           mk("Zoo", { feature_type: "poi", poi_category: ["zoo"] }),
           mk("Bahnhofstrasse 21", { feature_type: "address" }),
@@ -130,20 +131,220 @@ describe("suggest", () => {
       TOKEN_ENV,
       { fetch: fetchFn },
     );
-    expect(result.suggestions.map((s) => s.kind)).toEqual([
-      "hotel",
-      "airport",
-      "hotel",
-      "station",
-      "station",
-      "poi",
-      "address",
-      "address",
-      "city",
-      "city",
-      "place",
-      "poi",
-    ]);
+    const kinds = Object.fromEntries(result.suggestions.map((s) => [s.name, s.kind]));
+    expect(kinds).toEqual({
+      "Zurich Airport Hotel": "hotel",
+      Flughafen: "airport",
+      "Airport Inn": "hotel",
+      Hauptbahnhof: "station",
+      Metro: "station",
+      Zoo: "poi",
+      "Bahnhofstrasse 21": "address",
+      Bahnhofstrasse: "address",
+      Zürich: "city",
+      "8001": "city",
+      Altstadt: "place",
+      Unknown: "poi",
+    });
+  });
+
+  describe("station by name (owner 2026-10-04)", () => {
+    async function kindsOf(
+      entries: { name: string; extra: Record<string, unknown> }[],
+    ): Promise<Record<string, string>> {
+      const { fetchFn } = captureFetch(() =>
+        jsonResponse({
+          suggestions: entries.map((e) => ({
+            mapbox_id: `sbx.${e.name}`,
+            name: e.name,
+            ...e.extra,
+          })),
+        }),
+      );
+      const result = await suggest(
+        { q: "zurich", sessionToken: SESSION, language: "en" },
+        TOKEN_ENV,
+        { fetch: fetchFn },
+      );
+      return Object.fromEntries(result.suggestions.map((s) => [s.name, s.kind]));
+    }
+    const poi = { feature_type: "poi" };
+
+    it("maps 'Zurich Main Station' and 'Zürich HB' to station without any rail category", async () => {
+      expect(
+        await kindsOf([
+          { name: "Zurich Main Station", extra: poi },
+          { name: "Zürich HB", extra: poi },
+          { name: "Bern HB", extra: poi },
+          { name: "Basel Station", extra: { feature_type: "neighborhood" } },
+          { name: "station zurich", extra: poi },
+        ]),
+      ).toEqual({
+        "Zurich Main Station": "station",
+        "Zürich HB": "station",
+        "Bern HB": "station",
+        "Basel Station": "station",
+        "station zurich": "station",
+      });
+    });
+
+    it("matches Station and HB as whole words only, and HB in capitals only", async () => {
+      expect(
+        await kindsOf([
+          { name: "Stationsstrasse Garage", extra: poi },
+          { name: "Substation 12", extra: poi },
+          { name: "Hb Zurich", extra: poi },
+          { name: "Zurich hb", extra: poi },
+          { name: "HBF Zurich", extra: poi },
+          { name: "SHB Arena", extra: poi },
+        ]),
+      ).toEqual({
+        "Stationsstrasse Garage": "poi",
+        "Substation 12": "poi",
+        "Hb Zurich": "poi",
+        "Zurich hb": "poi",
+        "HBF Zurich": "poi",
+        "SHB Arena": "poi",
+      });
+    });
+
+    it("keeps an airport an airport even when its name says Station or HB", async () => {
+      expect(
+        await kindsOf([
+          { name: "Zurich Airport Station", extra: { ...poi, poi_category: ["airport"] } },
+          { name: "Zürich HB Airport Shuttle", extra: { ...poi, maki: "airport" } },
+        ]),
+      ).toEqual({
+        "Zurich Airport Station": "airport",
+        "Zürich HB Airport Shuttle": "airport",
+      });
+    });
+
+    it("lets Mapbox's own category win over the name: a hotel named Station stays a hotel", async () => {
+      expect(
+        await kindsOf([
+          { name: "Station Hotel Zurich", extra: { ...poi, poi_category: ["hotel"] } },
+          { name: "Hotel Zürich HB", extra: { ...poi, poi_category_ids: ["lodging"] } },
+          { name: "Station Inn", extra: { ...poi, maki: "lodging" } },
+        ]),
+      ).toEqual({
+        "Station Hotel Zurich": "hotel",
+        "Hotel Zürich HB": "hotel",
+        "Station Inn": "hotel",
+      });
+    });
+
+    it("never turns a street, address or city into a station by name", async () => {
+      expect(
+        await kindsOf([
+          { name: "Station Road 4", extra: { feature_type: "address" } },
+          { name: "Station Road", extra: { feature_type: "street" } },
+          { name: "Station", extra: { feature_type: "place" } },
+          { name: "HB", extra: { feature_type: "locality" } },
+        ]),
+      ).toEqual({
+        "Station Road 4": "address",
+        "Station Road": "address",
+        Station: "city",
+        HB: "city",
+      });
+    });
+  });
+
+  describe("airports first (owner 2026-10-04)", () => {
+    const airport = { feature_type: "poi", poi_category: ["airport"], maki: "airport" };
+
+    async function idsFor(
+      entries: { id: string; extra: Record<string, unknown> }[],
+      mapboxOrder?: boolean,
+    ): Promise<string[]> {
+      const { fetchFn } = captureFetch(() =>
+        jsonResponse({
+          suggestions: entries.map((e) => ({
+            mapbox_id: e.id,
+            name: e.id,
+            ...e.extra,
+          })),
+        }),
+      );
+      const result = await suggest(
+        { q: "zur", sessionToken: SESSION, language: "en", mapboxOrder },
+        TOKEN_ENV,
+        { fetch: fetchFn },
+      );
+      return result.suggestions.map((h) => h.mapbox_id);
+    }
+
+    it("puts the airport first for 'zur' and keeps Mapbox's order for the rest", async () => {
+      const ids = await idsFor([
+        { id: "Zürich", extra: { feature_type: "place" } },
+        { id: "Zurich", extra: { feature_type: "place" } },
+        { id: "Bad Zurzach", extra: { feature_type: "place" } },
+        { id: "Zur Frohen Aussicht", extra: { feature_type: "address" } },
+        { id: "Zurich Airport", extra: airport },
+        { id: "Zurich Main Station", extra: { feature_type: "poi" } },
+      ]);
+      expect(ids).toEqual([
+        "Zurich Airport",
+        "Zürich",
+        "Zurich",
+        "Bad Zurzach",
+        "Zur Frohen Aussicht",
+        "Zurich Main Station",
+      ]);
+    });
+
+    it("leaves Mapbox's order exactly as it is when no suggestion is an airport", async () => {
+      const entries = [
+        { id: "Zürich", extra: { feature_type: "place" } },
+        { id: "Zurich Main Station", extra: { feature_type: "poi" } },
+        { id: "Hotel Baur", extra: { feature_type: "poi", poi_category: ["hotel"] } },
+        { id: "Bahnhofstrasse", extra: { feature_type: "street" } },
+      ];
+      expect(await idsFor(entries)).toEqual(entries.map((e) => e.id));
+    });
+
+    it("keeps two airports in their Mapbox order, ahead of everything else", async () => {
+      const ids = await idsFor([
+        { id: "Zürich", extra: { feature_type: "place" } },
+        { id: "Basel Airport", extra: airport },
+        { id: "Hotel Baur", extra: { feature_type: "poi", poi_category: ["hotel"] } },
+        { id: "Zurich Airport", extra: airport },
+        { id: "Zürich HB", extra: { feature_type: "poi" } },
+      ]);
+      expect(ids).toEqual([
+        "Basel Airport",
+        "Zurich Airport",
+        "Zürich",
+        "Hotel Baur",
+        "Zürich HB",
+      ]);
+    });
+
+    it("keeps Mapbox's order when the caller asks for it (checkout's first-hit lookup)", async () => {
+      const entries = [
+        { id: "Zürich", extra: { feature_type: "place" } },
+        { id: "Zurich Airport", extra: airport },
+      ];
+      expect(await idsFor(entries, true)).toEqual(["Zürich", "Zurich Airport"]);
+      expect(await idsFor(entries, false)).toEqual(["Zurich Airport", "Zürich"]);
+    });
+
+    it("airportsFirst is stable and returns an empty list as is", () => {
+      const hit = (id: string, kind: "airport" | "city") => ({
+        mapbox_id: id,
+        name: id,
+        address: "",
+        context: "",
+        kind,
+      });
+      expect(airportsFirst([])).toEqual([]);
+      expect(
+        airportsFirst([hit("a", "city"), hit("b", "airport"), hit("c", "city"), hit("d", "airport")]).map(
+          (h) => h.mapbox_id,
+        ),
+      ).toEqual(["b", "d", "a", "c"]);
+    });
   });
 
   it("maps four fixture suggestions without any coordinate field", async () => {
