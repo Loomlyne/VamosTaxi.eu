@@ -51,8 +51,8 @@ describe("home.dc.html bar and sheet on one trip state (26.4-09)", () => {
   });
 
   it("uses one media boundary for bar and box", () => {
-    expect(home).toContain("matchMedia('(max-width:1080px)')");
-    expect(home).toContain("@media (max-width:1080px){\n[data-bookcard]{display:none!important}");
+    expect(home).toContain("matchMedia('(max-width:680px)')");
+    expect(home).toContain("@media (max-width:680px){\n[data-bookcard]{display:none!important}");
   });
 
   it("docks with an IntersectionObserver, resets on bfcache and hands chips to the sheet", () => {

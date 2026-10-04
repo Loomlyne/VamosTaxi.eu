@@ -1,0 +1,14 @@
+/* R2-4 reviews wall: slow self-drift. Plain CSS. Applies only when the wall carries data-rv-drift (component sets it when published reviews > 6). */
+[data-rv-wall][data-rv-drift]{--rv-gap:var(--vt-space-5);columns:auto;display:grid;grid-template-columns:repeat(var(--rv-cols,3),minmax(0,1fr));column-gap:var(--rv-gap);align-items:start;block-size:clamp(520px,80svh,720px);overflow:hidden;overscroll-behavior:contain;
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 56px,#000 calc(100% - 56px),transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 56px,#000 calc(100% - 56px),transparent 100%)}
+[data-rv-drift] [data-rv-col]{margin:0;padding:0;list-style:none;min-width:0;will-change:transform;animation:rvdrift calc(var(--rv-count,5) * 9s * var(--rv-k,1)) linear infinite}
+[data-rv-drift] [data-rv-col]:nth-child(2){--rv-k:1.15}
+[data-rv-drift] [data-rv-col]:nth-child(3){--rv-k:.9}
+@keyframes rvdrift{from{transform:translateY(0)}to{transform:translateY(-50%)}}
+[data-rv-drift]:hover [data-rv-col],[data-rv-drift]:focus-within [data-rv-col]{animation-play-state:paused}
+/* the wall must not clip a focused link: scroll it into the viewport instead of hiding it */
+@media (prefers-reduced-motion:reduce){
+  [data-rv-wall][data-rv-drift]{block-size:auto;overflow:visible;-webkit-mask-image:none;mask-image:none}
+  [data-rv-drift] [data-rv-col]{animation:none}
+  [data-rv-drift] [data-rv-clone]{display:none}
+}

@@ -19,6 +19,12 @@
      React twin for the Next pages: apps/web/components/shell/ContactButton.tsx.
        float, above 680px  : charcoal CONTACT pill bottom inline-end; open, it reads CLOSE.
        float, 680px down   : 54px charcoal disc with the yellow icon; the menu is a bottom sheet.
+       float, every width  : one button that moves by itself (owner, 2026-10-03): rests closed about
+                             4 s, widens for about 3 s to show a channel (WhatsApp us, Call us,
+                             Email us, in turn), closes again. It stands still while the menu is open,
+                             the pointer is on it, the tab is hidden or reduced motion is on (then:
+                             the plain disc / CONTACT pill). While the footer reaches the button it
+                             takes the brand-yellow ground. IntersectionObserver only.
        docked              : 54px outline IconButton for a bottom bar (the checkout PAY bar).
      Hidden (each rule is a data attribute the owning component sets; no scroll handler):
        html[data-vt-ck-open]  cookie card open, phone only (CookieBanner);
@@ -66,6 +72,22 @@ button[data-cb-disc]{all:unset;box-sizing:border-box;inline-size:54px;block-size
 button[data-cb-disc]:hover{background:var(--vt-charcoal-800)}
 button[data-cb-disc]:active{background:var(--vt-charcoal-950);transform:translateY(1px)}
 button[data-cb-disc][data-cb-disc]:focus-visible{outline:none!important;box-shadow:var(--vt-shadow-lg),var(--vt-ring)}
+/* ── float: one animated button (closed disc <-> pill with a channel) ── */
+button[data-cb-float]{all:unset;box-sizing:border-box;display:flex;align-items:center;justify-content:flex-start;inline-size:54px;block-size:54px;padding-inline:16px 24px;overflow:hidden;border-radius:var(--vt-radius-pill);background:var(--vt-charcoal-900);color:var(--vt-text-inverse);box-shadow:var(--vt-shadow-lg);cursor:pointer;-webkit-tap-highlight-color:transparent;font-family:var(--vt-font-body);font-weight:var(--vt-weight-semibold);font-size:14px;line-height:1;text-transform:uppercase;letter-spacing:var(--vt-label-tracking);transition:inline-size var(--vt-dur-slow) var(--vt-ease-out),background var(--vt-dur-fast) var(--vt-ease-out),color var(--vt-dur-fast) var(--vt-ease-out),transform 80ms var(--vt-ease-out)}
+button[data-cb-float][data-wide="1"],button[data-cb-float][data-x="1"]{inline-size:auto}
+button[data-cb-float]:hover{background:var(--vt-charcoal-800)}
+button[data-cb-float]:active{background:var(--vt-charcoal-950);transform:translateY(1px)}
+button[data-cb-float][data-cb-float]:focus-visible{outline:none!important;box-shadow:var(--vt-shadow-lg),var(--vt-ring)}
+button[data-cb-float][data-over="1"]{background:var(--vt-accent);color:var(--vt-charcoal-900)}
+button[data-cb-float][data-over="1"]:hover{background:var(--vt-accent-hover)}
+button[data-cb-float][data-over="1"]:active{background:var(--vt-accent-press)}
+[data-cb-inner]{display:inline-flex;align-items:center;gap:10px;flex:none;white-space:nowrap}
+[data-cb-ico]{display:inline-flex;align-items:center;justify-content:center;inline-size:22px;block-size:22px;flex:none}
+[data-cb-lbl]{opacity:0;transition:opacity var(--vt-dur-fast) var(--vt-ease-standard)}
+button[data-cb-float][data-wide="1"] [data-cb-lbl],button[data-cb-float][data-x="1"] [data-cb-lbl]{opacity:1;transition:opacity var(--vt-dur-base) var(--vt-ease-standard) 120ms}
+/* WhatsApp step (owner, 2026-10-03): WhatsApp green with the white WhatsApp logo and a charcoal label, on the page AND over the footer. #25D366 is the WhatsApp brand green, allowed only on this state (design system §5 brand-mark rule). Hover keeps the same green (a darker green is not a token); press = translateY(1px); focus ring as everywhere. */
+[data-cb-wa]{display:block;inline-size:22px;block-size:22px;background:url(/assets/social/whatsapp-white.svg) center/contain no-repeat}
+button[data-cb-float][data-ch="whatsapp"],button[data-cb-float][data-ch="whatsapp"]:hover,button[data-cb-float][data-ch="whatsapp"]:active,button[data-cb-float][data-ch="whatsapp"][data-over="1"],button[data-cb-float][data-ch="whatsapp"][data-over="1"]:hover,button[data-cb-float][data-ch="whatsapp"][data-over="1"]:active{background:#25D366;color:var(--vt-charcoal-900)}
 .vt-iconbtn[data-cb-dock][data-cb-dock]:focus-visible,[data-cb-x] .vt-iconbtn.vt-iconbtn:focus-visible{outline:none!important}
 /* ── menu: card above 680px, bottom sheet below ── */
 [data-cb-panel]{position:absolute;inset-block-end:calc(100% + 12px);inset-inline-end:0;inline-size:344px;max-inline-size:calc(100vw - 32px);box-sizing:border-box;background:var(--vt-bg-surface);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);box-shadow:var(--vt-shadow-xl);padding:8px;text-align:start;animation:cb-rise 200ms var(--vt-ease-out) both}
@@ -88,7 +110,7 @@ html[data-vt-ck-open] [data-contact-btn][data-variant="float"],[data-contact-btn
 }
 html[data-vt-sheet-open] [data-contact-btn][data-variant="float"],html[data-vt-trav-open] [data-contact-btn][data-variant="float"],html[data-vt-contact-docked] [data-contact-btn][data-variant="float"]{display:none}
 [data-contact-btn][data-variant="float"][data-lift="1"]{position:absolute;inset-block-end:auto}
-@media (prefers-reduced-motion:reduce){[data-cb-panel],[data-cb-sheet],[data-cb-scrim]{animation:none}button[data-cb-disc]{transition:none}}
+@media (prefers-reduced-motion:reduce){[data-cb-panel],[data-cb-sheet],[data-cb-scrim]{animation:none}button[data-cb-disc]{transition:none}button[data-cb-float],[data-cb-lbl]{transition:none!important}}
 @media print{[data-contact-btn],[data-cb-gal]{display:none!important}}
 /* ── states gallery (review scaffold) ── */
 [data-cb-gal]{background:var(--vt-white);padding:clamp(20px,4vw,48px);font-family:var(--vt-font-body);color:var(--vt-text-primary)}
@@ -97,6 +119,8 @@ html[data-vt-sheet-open] [data-contact-btn][data-variant="float"],html[data-vt-t
 [data-cb-cell]{display:flex;flex-direction:column;align-items:center;gap:12px;min-inline-size:96px;max-inline-size:100%}
 [data-cb-cap]{font-size:var(--vt-body-xs);color:var(--vt-text-muted)}
 [data-cb-cell] [data-crow]{inline-size:min(320px,80vw)}
+[data-cb-cell][data-ground="inv"]{background:var(--vt-bg-inverse);padding:20px;border-radius:var(--vt-radius-lg)}
+[data-cb-cell][data-ground="inv"] [data-cb-cap]{color:var(--vt-text-inverse-muted)}
 [data-cb-gal] .vt-btn[data-s="hover"]{background:var(--vt-charcoal-800)}
 [data-cb-gal] .vt-btn[data-s="press"]{background:var(--vt-charcoal-950);transform:translateY(1px)}
 [data-cb-gal] .vt-btn[data-s="focus"]{box-shadow:var(--vt-shadow-lg),var(--vt-ring)!important}
@@ -107,15 +131,14 @@ html[data-vt-sheet-open] [data-contact-btn][data-variant="float"],html[data-vt-t
 [data-cb-gal] [data-cb-sheet]{inline-size:min(390px,100%);max-block-size:none;overflow:visible}</style>
 </helmet>
 <div data-contact-btn="1" data-variant="{{ variant }}" data-narrow="{{ narrowAttr }}" data-open="{{ openAttr }}" data-lift="{{ liftAttr }}" data-kb="{{ kbAttr }}" style="{{ rootStyle }}" ref="{{ rootRef }}" data-screen-label="Contact button">
-<sc-if value="{{ showPill }}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="secondary" size="lg" data-cb-pill="1" data-cb-trigger="1" aria-expanded="{{ openStr }}" aria-controls="{{ ariaControls }}" aria-label="{{ triggerLabel }}" onClick="{{ toggle }}" hint-size="150px,54px"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ triggerIcon }}" size="{{ n20 }}" color="var(--vt-yellow)" hint-size="20px,20px"></x-import><span>{{ pillLabel }}</span></x-import></sc-if>
-<sc-if value="{{ showDisc }}" hint-placeholder-val="{{ false }}"><button type="button" data-cb-disc="1" data-cb-trigger="1" aria-expanded="{{ openStr }}" aria-controls="{{ ariaControls }}" aria-label="{{ triggerLabel }}" onClick="{{ toggle }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ triggerIcon }}" size="{{ n22 }}" color="var(--vt-yellow)" hint-size="22px,22px"></x-import></button></sc-if>
+<sc-if value="{{ showFloat }}" hint-placeholder-val="{{ true }}"><button type="button" data-cb-float="1" data-cb-trigger="1" data-wide="{{ wideAttr }}" data-x="{{ xAttr }}" data-over="{{ overAttr }}" data-ch="{{ chAttr }}" style="{{ floatStyle }}" aria-expanded="{{ openStr }}" aria-controls="{{ ariaControls }}" aria-label="{{ triggerLabel }}" onClick="{{ toggle }}"><span data-cb-inner="1" ref="{{ innerRef }}"><span data-cb-ico="1" aria-hidden="true"><sc-if value="{{ isWa }}" hint-placeholder-val="{{ false }}"><span data-cb-wa="1"></span></sc-if><sc-if value="{{ notWa }}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ floatIcon }}" size="{{ n22 }}" color="{{ iconColor }}" hint-size="22px,22px"></x-import></sc-if></span><span data-cb-lbl="1" aria-hidden="true">{{ floatLabel }}</span></span></button></sc-if>
 <sc-if value="{{ showDocked }}" hint-placeholder-val="{{ false }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.IconButton" icon="{{ triggerIcon }}" label="{{ triggerLabel }}" variant="outline" size="lg" data-cb-dock="1" data-cb-trigger="1" aria-expanded="{{ openStr }}" aria-controls="{{ ariaControls }}" onClick="{{ toggle }}" hint-size="54px,54px"></x-import></sc-if>
 
 <sc-if value="{{ showCard }}" hint-placeholder-val="{{ false }}">
 <div data-cb-panel="1" id="{{ menuId }}" role="dialog" aria-labelledby="{{ titleId }}" tabindex="-1" ref="{{ panelRef }}">
 <div data-cb-head="1"><div><p data-cb-kick="1">Contact</p><p data-cb-title="1" id="{{ titleId }}">Talk to a person</p></div></div>
 <ul data-cb-rows="1">
-<li><dc-import name="ContactRow" icon="message-circle" title="WhatsApp" sub="+41 79 626 70 82" href="https://wa.me/41796267082" newTab="{{ yes }}" endIcon="external-link" size="card" onFollow="{{ follow }}" hint-size="100%,60px"></dc-import></li>
+<li><dc-import name="ContactRow" icon="message-circle" logo="/assets/social/whatsapp.svg" title="WhatsApp" sub="+41 79 626 70 82" href="https://wa.me/41796267082" newTab="{{ yes }}" endIcon="external-link" size="card" onFollow="{{ follow }}" hint-size="100%,60px"></dc-import></li>
 <li><dc-import name="ContactRow" icon="phone" title="Call us" sub="+41 79 626 70 82" href="tel:+41796267082" size="card" onFollow="{{ follow }}" hint-size="100%,60px"></dc-import></li>
 <li><dc-import name="ContactRow" icon="mail" title="Email" sub="info@vamostaxi.site" href="mailto:info@vamostaxi.site" size="card" onFollow="{{ follow }}" hint-size="100%,60px"></dc-import></li>
 <li><dc-import name="ContactRow" icon="file-text" title="Send us a message" sub="Contact form" keep="{{ no }}" href="{{ contactHref }}" endIcon="chevron-right" size="card" onFollow="{{ follow }}" hint-size="100%,60px"></dc-import></li>
@@ -129,7 +152,7 @@ html[data-vt-sheet-open] [data-contact-btn][data-variant="float"],html[data-vt-t
 <div data-cb-grab="1" aria-hidden="true"></div>
 <div data-cb-head="1"><div><p data-cb-kick="1">Contact</p><p data-cb-title="1" id="{{ titleId }}">Talk to a person</p></div><span data-cb-x="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.IconButton" icon="x" label="Close" variant="outline" size="md" onClick="{{ closeBtn }}" hint-size="44px,44px"></x-import></span></div>
 <ul data-cb-rows="1">
-<li><dc-import name="ContactRow" icon="message-circle" title="WhatsApp" sub="+41 79 626 70 82" href="https://wa.me/41796267082" newTab="{{ yes }}" endIcon="external-link" size="sheet" onFollow="{{ follow }}" hint-size="100%,64px"></dc-import></li>
+<li><dc-import name="ContactRow" icon="message-circle" logo="/assets/social/whatsapp.svg" title="WhatsApp" sub="+41 79 626 70 82" href="https://wa.me/41796267082" newTab="{{ yes }}" endIcon="external-link" size="sheet" onFollow="{{ follow }}" hint-size="100%,64px"></dc-import></li>
 <li><dc-import name="ContactRow" icon="phone" title="Call us" sub="+41 79 626 70 82" href="tel:+41796267082" size="sheet" onFollow="{{ follow }}" hint-size="100%,64px"></dc-import></li>
 <li><dc-import name="ContactRow" icon="mail" title="Email" sub="info@vamostaxi.site" href="mailto:info@vamostaxi.site" size="sheet" onFollow="{{ follow }}" hint-size="100%,64px"></dc-import></li>
 <li><dc-import name="ContactRow" icon="file-text" title="Send us a message" sub="Contact form" keep="{{ no }}" href="{{ contactHref }}" endIcon="chevron-right" size="sheet" onFollow="{{ follow }}" hint-size="100%,64px"></dc-import></li>
@@ -152,6 +175,12 @@ html[data-vt-sheet-open] [data-contact-btn][data-variant="float"],html[data-vt-t
 <div data-cb-cell="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.IconButton" icon="{{ g.icon }}" label="{{ g.aria }}" variant="outline" size="lg" data-cb-dock="1" hint-size="54px,54px"></x-import><span data-cb-cap="1" data-vt-no-i18n="1">{{ g.cap }}</span></div>
 </sc-for>
 </div>
+<h2 data-vt-no-i18n="1">Float button: every state (animated by itself on the page)</h2>
+<div data-cb-grow="1">
+<sc-for list="{{ galFloats }}" as="g" hint-placeholder-count="9">
+<div data-cb-cell="1" data-ground="{{ g.ground }}"><button type="button" data-cb-float="1" data-wide="{{ g.wide }}" data-x="{{ g.x }}" data-over="{{ g.over }}" data-ch="{{ g.ch }}" aria-label="{{ g.aria }}"><span data-cb-inner="1" ><span data-cb-ico="1" aria-hidden="true"><sc-if value="{{ g.wa }}" hint-placeholder-val="{{ false }}"><span data-cb-wa="1"></span></sc-if><sc-if value="{{ g.notWa }}" hint-placeholder-val="{{ true }}"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="{{ g.icon }}" size="{{ n22 }}" color="{{ g.color }}" hint-size="22px,22px"></x-import></sc-if></span><span data-cb-lbl="1" aria-hidden="true">{{ g.label }}</span></span></button><span data-cb-cap="1" data-vt-no-i18n="1">{{ g.cap }}</span></div>
+</sc-for>
+</div>
 <h2 data-vt-no-i18n="1">Menu row (ContactRow)</h2>
 <div data-cb-grow="1">
 <sc-for list="{{ galRows }}" as="g" hint-placeholder-count="5">
@@ -164,7 +193,7 @@ html[data-vt-sheet-open] [data-contact-btn][data-variant="float"],html[data-vt-t
 <div data-cb-panel="1" role="group" aria-label="Talk to a person">
 <div data-cb-head="1"><div><p data-cb-kick="1">Contact</p><p data-cb-title="1">Talk to a person</p></div></div>
 <ul data-cb-rows="1">
-<li><dc-import name="ContactRow" icon="message-circle" title="WhatsApp" sub="+41 79 626 70 82" href="https://wa.me/41796267082" newTab="{{ yes }}" endIcon="external-link" size="card" hint-size="100%,60px"></dc-import></li>
+<li><dc-import name="ContactRow" icon="message-circle" logo="/assets/social/whatsapp.svg" title="WhatsApp" sub="+41 79 626 70 82" href="https://wa.me/41796267082" newTab="{{ yes }}" endIcon="external-link" size="card" hint-size="100%,60px"></dc-import></li>
 <li><dc-import name="ContactRow" icon="phone" title="Call us" sub="+41 79 626 70 82" href="tel:+41796267082" size="card" hint-size="100%,60px"></dc-import></li>
 <li><dc-import name="ContactRow" icon="mail" title="Email" sub="info@vamostaxi.site" href="mailto:info@vamostaxi.site" size="card" hint-size="100%,60px"></dc-import></li>
 <li><dc-import name="ContactRow" icon="file-text" title="Send us a message" sub="Contact form" keep="{{ no }}" href="{{ contactHref }}" endIcon="chevron-right" size="card" hint-size="100%,60px"></dc-import></li>
@@ -177,7 +206,7 @@ html[data-vt-sheet-open] [data-contact-btn][data-variant="float"],html[data-vt-t
 <div data-cb-grab="1" aria-hidden="true"></div>
 <div data-cb-head="1"><div><p data-cb-kick="1">Contact</p><p data-cb-title="1">Talk to a person</p></div><span data-cb-x="1"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.IconButton" icon="x" label="Close" variant="outline" size="md" hint-size="44px,44px"></x-import></span></div>
 <ul data-cb-rows="1">
-<li><dc-import name="ContactRow" icon="message-circle" title="WhatsApp" sub="+41 79 626 70 82" href="https://wa.me/41796267082" newTab="{{ yes }}" endIcon="external-link" size="sheet" hint-size="100%,64px"></dc-import></li>
+<li><dc-import name="ContactRow" icon="message-circle" logo="/assets/social/whatsapp.svg" title="WhatsApp" sub="+41 79 626 70 82" href="https://wa.me/41796267082" newTab="{{ yes }}" endIcon="external-link" size="sheet" hint-size="100%,64px"></dc-import></li>
 <li><dc-import name="ContactRow" icon="phone" title="Call us" sub="+41 79 626 70 82" href="tel:+41796267082" size="sheet" hint-size="100%,64px"></dc-import></li>
 <li><dc-import name="ContactRow" icon="mail" title="Email" sub="info@vamostaxi.site" href="mailto:info@vamostaxi.site" size="sheet" hint-size="100%,64px"></dc-import></li>
 <li><dc-import name="ContactRow" icon="file-text" title="Send us a message" sub="Contact form" keep="{{ no }}" href="{{ contactHref }}" endIcon="chevron-right" size="sheet" hint-size="100%,64px"></dc-import></li>
@@ -195,16 +224,26 @@ html[data-vt-sheet-open] [data-contact-btn][data-variant="float"],html[data-vt-t
    card is not. Copy is English in the markup; the locale runtime translates it in place. */
 const CB_PHONE = '(max-width: 680px)';
 const CB_ZONE = 16 + 54 + 16;
+const CB_RM = '(prefers-reduced-motion: reduce)';
+/* The channels the float shows in turn (labels are English here; the runtime translates them). */
+const CB_CH = [
+  { k: 'whatsapp', icon: 'message-circle', label: 'WhatsApp us' },
+  { k: 'call', icon: 'phone', label: 'Call us' },
+  { k: 'email', icon: 'mail', label: 'Email us' },
+];
+const CB_REST = 4000, CB_SHOW = 3000, CB_CLOSE = 340;
 class Component extends DCLogic {
   constructor(props) {
     super(props);
     this.uid = 'vt-cb-' + Math.random().toString(36).slice(2, 9);
     this.rootRef = React.createRef();
     this.panelRef = React.createRef();
+    this.innerRef = React.createRef();
     this.gallery = props.gallery === true || props.gallery === 'true' || /[?&]cb-gallery=1(&|$)/.test(String(window.location.search || ''));
     this.state = {
       open: props.open === true || props.open === 'true',
       narrow: this.isNarrow(), lang: this.curLang(), kb: false, lift: false, liftTop: 0,
+      ph: 'closed', ci: -1, reduced: this.isReduced(), over: false, innerW: 0,
     };
   }
   variant() { return this.props.variant === 'docked' ? 'docked' : 'float'; }
@@ -212,6 +251,7 @@ class Component extends DCLogic {
     if (typeof window.matchMedia === 'function') return window.matchMedia(CB_PHONE).matches;
     return (window.innerWidth || 0) <= 680;
   }
+  isReduced() { return typeof window.matchMedia === 'function' && window.matchMedia(CB_RM).matches; }
   curLang() {
     const L = window.VamosLocale;
     const v = L && (typeof L.lang === 'function' ? L.lang() : L.lang);
@@ -226,6 +266,18 @@ class Component extends DCLogic {
       this._mq = window.matchMedia(CB_PHONE);
       if (this._mq.addEventListener) this._mq.addEventListener('change', this.onMq); else if (this._mq.addListener) this._mq.addListener(this.onMq);
     }
+    if (typeof window.matchMedia === 'function') {
+      this._rm = window.matchMedia(CB_RM);
+      if (this._rm.addEventListener) this._rm.addEventListener('change', this.onRm); else if (this._rm.addListener) this._rm.addListener(this.onRm);
+    }
+    document.addEventListener('visibilitychange', this.sched);
+    const root = this.rootRef.current;
+    if (root) { root.addEventListener('pointerenter', this.onEnter); root.addEventListener('pointerleave', this.onLeave); }
+    const inner = this.innerRef.current;
+    if (inner) {
+      this.measure();
+      if (typeof window.ResizeObserver === 'function') { this._ro = new window.ResizeObserver(this.measure); this._ro.observe(inner); }
+    }
     document.addEventListener('keydown', this.onKey);
     document.addEventListener('pointerdown', this.onDocDown, true);
     document.addEventListener('focusin', this.onFocusIn);
@@ -234,7 +286,13 @@ class Component extends DCLogic {
     if (this.variant() === 'docked') document.documentElement.setAttribute('data-vt-contact-docked', '1');
     this._h = window.innerHeight || 0;
     this.setupLift();
+    this.setupFooter();
+    this.sched();
     if (this.state.open) this.focusPanel();
+  }
+  componentDidUpdate() {
+    const s = this.state, k = s.ph + '|' + s.open + '|' + s.reduced;
+    if (k !== this._k) { this._k = k; this.sched(); }
   }
   componentWillUnmount() {
     this.unmounted = true;
@@ -246,15 +304,65 @@ class Component extends DCLogic {
     document.removeEventListener('focusout', this.onFocusOut);
     window.removeEventListener('resize', this.onResize);
     if (this._io) this._io.disconnect();
+    if (this._fio) this._fio.disconnect();
+    if (this._ro) this._ro.disconnect();
+    if (this._rm) { if (this._rm.removeEventListener) this._rm.removeEventListener('change', this.onRm); else if (this._rm.removeListener) this._rm.removeListener(this.onRm); }
+    document.removeEventListener('visibilitychange', this.sched);
+    const root = this.rootRef.current;
+    if (root) { root.removeEventListener('pointerenter', this.onEnter); root.removeEventListener('pointerleave', this.onLeave); }
+    clearTimeout(this._cT); clearTimeout(this._fT);
     clearTimeout(this._kbT); clearTimeout(this._outT);
     if (this.variant() === 'docked') document.documentElement.removeAttribute('data-vt-contact-docked');
   }
-  onMq = () => { if (!this.unmounted) this.setState({ narrow: this.isNarrow() }, this.setupLift); };
+  onMq = () => { if (!this.unmounted) this.setState({ narrow: this.isNarrow() }, () => { this.setupLift(); this.setupFooter(); }); };
+  onRm = () => { if (!this.unmounted) this.setState({ reduced: this.isReduced(), ph: 'closed' }); };
+  onEnter = (e) => { if (e.pointerType && e.pointerType !== 'mouse') return; this._hover = true; this.sched(); };
+  onLeave = () => { this._hover = false; this.sched(); };
+  /* The float cycles: closed (rest) -> open (a channel) -> closing -> closed, next channel.
+     It stands still while the menu is open, the pointer is on it, the tab is hidden or
+     reduced motion is on. */
+  sched = () => {
+    clearTimeout(this._cT);
+    const s = this.state;
+    if (this.unmounted || this.variant() !== 'float' || s.open || s.reduced || this._hover || document.hidden) return;
+    if (s.ph === 'closed') this._cT = setTimeout(() => this.setState((o) => ({ ph: 'open', ci: (o.ci + 1) % CB_CH.length })), CB_REST);
+    else if (s.ph === 'open') this._cT = setTimeout(() => this.setState({ ph: 'closing' }), CB_SHOW);
+    else this._cT = setTimeout(() => this.setState({ ph: 'closed' }), CB_CLOSE);
+  };
+  /** Width of icon + label as laid out now; the button animates between this and the disc. */
+  measure = () => {
+    const el = this.innerRef.current;
+    if (!el || this.unmounted) return;
+    const w = Math.ceil(el.getBoundingClientRect().width);
+    if (w && w !== this.state.innerW) this.setState({ innerW: w });
+  };
+  /* Over the footer: an observer whose root is a 2px band through the middle of the button.
+     While the footer crosses it the button takes the brand-yellow ground. */
+  setupFooter = () => {
+    if (this._fio) { this._fio.disconnect(); this._fio = null; }
+    clearTimeout(this._fT);
+    if (this.variant() !== 'float' || typeof window.IntersectionObserver !== 'function') return;
+    const f = document.querySelector('footer[data-screen-label="Footer"]');
+    if (!f) {
+      this._tries = (this._tries || 0) + 1;
+      if (this._tries < 20) this._fT = setTimeout(this.setupFooter, 500);
+      return;
+    }
+    const vh = window.innerHeight || 0;
+    const mid = vh - (this.state.narrow ? 16 : 24) - 27;
+    this._fio = new window.IntersectionObserver((entries) => {
+      const e = entries[entries.length - 1];
+      if (!e || this.unmounted) return;
+      if (e.isIntersecting !== this.state.over) this.setState({ over: e.isIntersecting });
+    }, { rootMargin: '-' + Math.max(0, mid - 1) + 'px 0px -' + Math.max(0, vh - mid - 1) + 'px 0px', threshold: 0 });
+    this._fio.observe(f);
+  };
   onResize = () => {
     const h = window.innerHeight || 0;
     if (Math.abs(h - (this._h || 0)) < 2) return;
     this._h = h;
     this.setupLift();
+    this.setupFooter();
   };
   /* Home on a phone: the observer's root is the bottom strip the disc lives in. While the
      "Where to?" card reaches into that strip the disc sits just above the card, in the page,
@@ -310,7 +418,7 @@ class Component extends DCLogic {
   trigger() { const r = this.rootRef.current; return r ? r.querySelector('[data-cb-trigger]') : null; }
   focusTrigger() { const t = this.trigger(); if (t) { try { t.focus({ preventScroll: true }); } catch (e) { t.focus(); } } }
   focusPanel() { const p = this.panelRef.current; if (p) { try { p.focus({ preventScroll: true }); } catch (e) { p.focus(); } } }
-  openMenu() { this.setState({ open: true }, () => this.focusPanel()); }
+  openMenu() { this.setState({ open: true, ph: 'closed' }, () => this.focusPanel()); }
   close(restore) {
     if (!this.state.open) return;
     this.setState({ open: false }, () => { if (restore) this.focusTrigger(); });
@@ -353,14 +461,46 @@ class Component extends DCLogic {
     const contactHref = s.lang === 'en' ? '/contact' : '/' + s.lang + '/contact';
     const aria = (o) => (o ? 'Close contact options' : 'Open contact options');
     const gal = this.gallery;
+    const wide = !narrow;
+    const live = !open && !s.reduced;
+    const expanded = live && s.ph === 'open';
+    const keep = live && (narrow ? s.ph !== 'closed' : s.ph === 'open');
+    const ch = CB_CH[Math.max(0, s.ci)];
+    const isWa = keep && ch.k === 'whatsapp';
+    const floatIcon = open ? 'x' : keep ? ch.icon : 'message-circle';
+    const floatLabel = open ? 'Close' : keep ? ch.label : 'Contact';
+    const fullW = s.innerW ? 16 + s.innerW + 24 : 0;
+    const w = wide || expanded ? fullW : 54;
+    const iconColor = s.over ? 'var(--vt-charcoal-900)' : 'var(--vt-yellow)';
+    const fl = (cap, o) => Object.assign({ cap, wide: '0', x: '0', over: '0', icon: 'message-circle', label: 'Contact', wa: false, ch: '', notWa: true, color: 'var(--vt-yellow)', ground: '', aria: aria(false) }, o);
+    const ov = { over: '1', color: 'var(--vt-charcoal-900)', ground: 'inv' };
+    const waO = { x: '1', wa: true, ch: 'whatsapp', notWa: false, label: 'WhatsApp us' };
+    const callO = { x: '1', icon: 'phone', label: 'Call us' };
+    const mailO = { x: '1', icon: 'mail', label: 'Email us' };
     return {
+      innerRef: this.innerRef,
+      showFloat: v === 'float',
+      wideAttr: wide ? '1' : '0', xAttr: expanded ? '1' : '0', overAttr: s.over ? '1' : '0',
+      chAttr: keep ? ch.k : '',
+      floatStyle: w ? 'inline-size:' + w + 'px' : '',
+      floatIcon, floatLabel, iconColor, isWa, notWa: !isWa,
+      galFloats: gal ? [
+        fl('closed · phone, at rest'),
+        fl('open · WhatsApp us', waO),
+        fl('open · Call us', callO),
+        fl('open · Email us', mailO),
+        fl('closed · over the footer', ov),
+        fl('closed · phone disc, WhatsApp icon', { wa: true, ch: 'whatsapp', notWa: false }),
+        fl('open · over the footer, WhatsApp (green too)', Object.assign({}, ov, waO)),
+        fl('open · over the footer, Call', Object.assign({}, ov, callO)),
+        fl('tablet and desktop · at rest', { wide: '1' }),
+        fl('reduced motion · static disc, chat icon'),
+      ] : [],
       yes: true, no: false, n20: 20, n22: 22,
       rootRef: this.rootRef, panelRef: this.panelRef,
       variant: v,
       narrowAttr: narrow ? '1' : '0', openAttr: open ? '1' : '0', liftAttr: lifted ? '1' : '0', kbAttr: s.kb ? '1' : '0',
       rootStyle: lifted ? 'top:' + s.liftTop + 'px' : '',
-      showPill: v === 'float' && !narrow,
-      showDisc: v === 'float' && narrow,
       showDocked: v === 'docked',
       showCard: open && !narrow,
       showSheet: open && narrow,

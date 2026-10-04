@@ -39,6 +39,7 @@
 [data-ft-link]{color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;text-decoration:none;border:0}
 [data-ft-btnlink]{appearance:none;background:none;border:0;padding:0;text-align:start;font-family:inherit;color:rgb(255 255 255 / .84);font-size:18px;line-height:1.35;cursor:pointer}
 [data-ft-addr]{color:rgb(255 255 255 / .84);font-size:18px;line-height:1.45}
+[data-ft-wa]{display:inline-block;inline-size:18px;block-size:18px;vertical-align:-3px;margin-inline-end:10px}
 [data-ft-link],[data-ft-quiet]{transition:color var(--vt-dur-fast,140ms) var(--vt-ease-standard,cubic-bezier(.2,0,.2,1))}
 [data-ft-link]:hover,[data-ft-quiet]:hover{color:var(--vt-accent)}
 [data-ft-link][data-split]:hover{color:rgb(255 255 255 / .84)}

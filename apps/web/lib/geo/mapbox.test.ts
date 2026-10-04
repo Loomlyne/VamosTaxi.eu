@@ -101,6 +101,51 @@ describe("suggest", () => {
     expect(fetchFn).not.toHaveBeenCalled();
   });
 
+  it("derives kind from feature_type, poi_category, ids and maki, never the name", async () => {
+    const mk = (name: string, extra: Record<string, unknown>) => ({
+      mapbox_id: `sbx.${name}`,
+      name,
+      ...extra,
+    });
+    const { fetchFn } = captureFetch(() =>
+      jsonResponse({
+        suggestions: [
+          mk("Zurich Airport Hotel", { feature_type: "poi", poi_category: ["hotel"] }),
+          mk("Flughafen", { feature_type: "poi", poi_category: ["airport"] }),
+          mk("Airport Inn", { feature_type: "poi", poi_category_ids: ["lodging"] }),
+          mk("HB", { feature_type: "poi", poi_category: ["railway station"] }),
+          mk("Metro", { feature_type: "poi", maki: "rail-metro" }),
+          mk("Zoo", { feature_type: "poi", poi_category: ["zoo"] }),
+          mk("Bahnhofstrasse 21", { feature_type: "address" }),
+          mk("Bahnhofstrasse", { feature_type: "street" }),
+          mk("Zürich", { feature_type: "place" }),
+          mk("8001", { feature_type: "postcode" }),
+          mk("Altstadt", { feature_type: "neighborhood" }),
+          mk("Unknown", {}),
+        ],
+      }),
+    );
+    const result = await suggest(
+      { q: "zurich", sessionToken: SESSION, language: "en" },
+      TOKEN_ENV,
+      { fetch: fetchFn },
+    );
+    expect(result.suggestions.map((s) => s.kind)).toEqual([
+      "hotel",
+      "airport",
+      "hotel",
+      "station",
+      "station",
+      "poi",
+      "address",
+      "address",
+      "city",
+      "city",
+      "place",
+      "poi",
+    ]);
+  });
+
   it("maps four fixture suggestions without any coordinate field", async () => {
     const { fetchFn, calls } = captureFetch(() =>
       jsonResponse(FIXTURE_SUGGEST_OK),
@@ -118,6 +163,9 @@ describe("suggest", () => {
         name: expect.any(String),
         address: expect.any(String),
         context: expect.any(String),
+        kind: expect.stringMatching(
+          /^(airport|hotel|station|address|city|place|poi)$/,
+        ),
       });
       expect(hit).not.toHaveProperty("lng");
       expect(hit).not.toHaveProperty("lat");

@@ -110,6 +110,7 @@ describe("publicSuggestion", () => {
       name: "Zürich HB",
       address: "Museumstrasse 1",
       context: "Zürich, Switzerland",
+      kind: "station",
       lng: 8.5417,
       lat: 47.3769,
       longitude: 8.5417,
@@ -122,6 +123,7 @@ describe("publicSuggestion", () => {
       name: "Zürich HB",
       address: "Museumstrasse 1",
       context: "Zürich, Switzerland",
+      kind: "station",
     });
     expect(publicHit).not.toHaveProperty("lng");
     expect(publicHit).not.toHaveProperty("lat");
@@ -132,6 +134,18 @@ describe("publicSuggestion", () => {
     expect(serialized).not.toMatch(/"lng"/);
     expect(serialized).not.toMatch(/"lat"/);
     expect(serialized).not.toMatch(/"coordinates"/);
+  });
+});
+
+describe("publicSuggestion kind", () => {
+  it("omits kind when the hit has none (old response shape)", () => {
+    const publicHit = publicSuggestion({
+      mapbox_id: "x",
+      name: "n",
+      address: "a",
+      context: "c",
+    });
+    expect(publicHit).not.toHaveProperty("kind");
   });
 });
 

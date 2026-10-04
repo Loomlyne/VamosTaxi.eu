@@ -385,3 +385,14 @@
     padding-block: 0;
   }
 }
+
+/* WhatsApp brand mark before the link text (owner, 2026-10-03). */
+.vt-confirmation__help-link[href*="wa.me"]::before {
+  content: "";
+  display: inline-block;
+  inline-size: 1.1em;
+  block-size: 1.1em;
+  margin-inline-end: 0.35em;
+  vertical-align: -0.2em;
+  background: url("/assets/social/whatsapp.svg") center / contain no-repeat;
+}

@@ -3,9 +3,9 @@ import { serveMock, waitForMockReady } from "../support/mock-harness";
 import { stubConsentChosen } from "../support/consent-state";
 
 // Phase 26.4 plan 09 (D-01…D-06, D-09, D-13), sheet reshaped to ONE page by quick 260930-obf.
-// At 1080px and under, home shows one BookingBar
+// At 680px and under (owner, R2-2: the tablet card returned at 681-1080), home shows one BookingBar
 // and the full-screen one-page BookingSheet instead of the laptop box; both read and write the box's
-// one trip state. At 1081px and over the 26.3 box is unchanged and no bar or sheet exists.
+// one trip state. At 681px and over the box shows and no bar or sheet exists.
 // Runs at 1440 / 1024 / 768 / 390 in en, de, fr and ar.
 
 const SUGGESTIONS = [
@@ -112,8 +112,8 @@ async function storageKeys(page: Page) {
 }
 
 test.describe("Home bar and sheet @component", () => {
-  test("at 1081px and over the box shows; no bar, dock or sheet exists @component", async ({ page }) => {
-    test.skip(width(page) <= 1080, "laptop only");
+  test("at 681px and over the box shows; no bar, dock or sheet exists @component", async ({ page }) => {
+    test.skip(width(page) <= 680, "tablet and laptop only");
     await openHome(page);
     await expect(page.locator("[data-box]")).toBeVisible();
     await expect(heroBar(page)).toBeHidden();
@@ -125,8 +125,8 @@ test.describe("Home bar and sheet @component", () => {
     await expect(page.locator("[data-bar-dock]")).toHaveAttribute("data-show", "0");
   });
 
-  test("at 1080px and under the bar replaces the box: 54px, 'Where to?', id=book @component", async ({ page }) => {
-    test.skip(width(page) > 1080, "tablet and phone only");
+  test("at 680px and under the bar replaces the box: 54px, 'Where to?', id=book @component", async ({ page }) => {
+    test.skip(width(page) > 680, "phone only (the tablet card replaced the bar at 681-1080)");
     await openHome(page);
     await expect(page.locator("[data-box]")).toBeHidden();
     await expect(heroBar(page)).toBeVisible();
@@ -140,7 +140,7 @@ test.describe("Home bar and sheet @component", () => {
   });
 
   test("one page goes to /checkout with the trip in the URL, no flight for a street pickup @component", async ({ page }) => {
-    test.skip(width(page) > 1080, "tablet and phone only");
+    test.skip(width(page) > 680, "phone only (the tablet card replaced the bar at 681-1080)");
     await openHome(page);
     const before = await storageKeys(page);
     const len0 = await page.evaluate(() => history.length);
@@ -197,7 +197,7 @@ test.describe("Home bar and sheet @component", () => {
   });
 
   test("Flight number, From and To are one block, flight first; an airport pickup needs a flight; LX318 goes to checkout @component", async ({ page }) => {
-    test.skip(width(page) > 1080, "tablet and phone only");
+    test.skip(width(page) > 680, "phone only (the tablet card replaced the bar at 681-1080)");
     await openHome(page);
     await openSheet(page);
     await pickFrom(page, "Fixture Air", "Fixture Airport");
@@ -228,7 +228,7 @@ test.describe("Home bar and sheet @component", () => {
 
   for (const lang of ["en", "ar"] as const) {
     test(`Tab order equals the page order: Flight, From, To, Date, Time, travellers, SEE PRICES in ${lang} @component`, async ({ page }) => {
-      test.skip(width(page) > 1080, "tablet and phone only");
+      test.skip(width(page) > 680, "phone only (the tablet card replaced the bar at 681-1080)");
       await openHome(page);
       if (lang !== "en") await setLang(page, lang);
       await openSheet(page);
@@ -261,7 +261,7 @@ test.describe("Home bar and sheet @component", () => {
 
   for (const lang of ["de", "fr", "ar"] as const) {
     test(`the sheet writes the chosen date in ${lang}, not English, and follows a switch @component`, async ({ page }) => {
-      test.skip(width(page) > 1080, "tablet and phone only");
+      test.skip(width(page) > 680, "phone only (the tablet card replaced the bar at 681-1080)");
       const EN_DAY_ANY = /\b(Mon|Tue|Wed|Thu|Fri|Sat|Sun)\b|\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/;
       // 26.0: "Nov" is the same word in German, so a November date must not fail the de check.
       const EN_DAY = (lang: string): RegExp => (lang === "de" ? new RegExp(EN_DAY_ANY.source.replace("|Nov", "")) : EN_DAY_ANY);
@@ -281,7 +281,7 @@ test.describe("Home bar and sheet @component", () => {
   }
 
   test("close keeps the entries in the bar; reopening shows them; a reload starts empty and stores nothing @component", async ({ page }) => {
-    test.skip(width(page) > 1080, "tablet and phone only");
+    test.skip(width(page) > 680, "phone only (the tablet card replaced the bar at 681-1080)");
     await openHome(page);
     const before = await storageKeys(page);
     await openSheet(page);
@@ -310,7 +310,7 @@ test.describe("Home bar and sheet @component", () => {
   });
 
   test("the sheet locks scroll, inerts the page and restores the scroll position @component", async ({ page }) => {
-    test.skip(width(page) > 1080, "tablet and phone only");
+    test.skip(width(page) > 680, "phone only (the tablet card replaced the bar at 681-1080)");
     await openHome(page);
     await page.evaluate(() => window.scrollTo(0, 900));
     await expect(page.locator("[data-bar-dock]")).toHaveAttribute("data-show", "1");
@@ -334,7 +334,7 @@ test.describe("Home bar and sheet @component", () => {
   });
 
   test("after the sheet closes the page scrolls again: the lock is released and the wheel moves the page @component", async ({ page }) => {
-    test.skip(width(page) > 1080, "tablet and phone only");
+    test.skip(width(page) > 680, "phone only (the tablet card replaced the bar at 681-1080)");
     await openHome(page);
     for (const how of ["escape", "close", "back"] as const) {
       await page.evaluate(() => window.scrollTo(0, 0));
@@ -362,7 +362,7 @@ test.describe("Home bar and sheet @component", () => {
   });
 
   test("SEE PRICES then browser Back: the home page scrolls @component", async ({ page }) => {
-    test.skip(width(page) > 1080, "tablet and phone only");
+    test.skip(width(page) > 680, "phone only (the tablet card replaced the bar at 681-1080)");
     await openHome(page);
     await openSheet(page);
     await pickFrom(page, "Fixture Street", "Fixture Street 1");
@@ -389,7 +389,7 @@ test.describe("Home bar and sheet @component", () => {
   });
 
   test("with the keyboard up (visual viewport shrunk) the sheet still covers the page and the typed field stays visible @component", async ({ page }) => {
-    test.skip(width(page) > 1080, "tablet and phone only");
+    test.skip(width(page) > 680, "phone only (the tablet card replaced the bar at 681-1080)");
     await openHome(page);
     await openSheet(page);
     const full = page.viewportSize()!.height;
@@ -440,7 +440,7 @@ test.describe("Home bar and sheet @component", () => {
   });
 
   test("browser back closes the sheet in one press and the bar keeps the entry @component", async ({ page }) => {
-    test.skip(width(page) > 1080, "tablet and phone only");
+    test.skip(width(page) > 680, "phone only (the tablet card replaced the bar at 681-1080)");
     await openHome(page);
     await openSheet(page);
     await pickFrom(page, "Fixture Street", "Fixture Street 1");
@@ -451,7 +451,7 @@ test.describe("Home bar and sheet @component", () => {
   });
 
   test("the docked bar sits under the header on scroll and opens the same sheet @component", async ({ page }) => {
-    test.skip(width(page) > 1080, "tablet and phone only");
+    test.skip(width(page) > 680, "phone only (the tablet card replaced the bar at 681-1080)");
     await openHome(page);
     await expect(page.locator("[data-bar-dock]")).toHaveAttribute("data-show", "0");
     await page.evaluate(() => window.scrollTo(0, 1200));
@@ -474,7 +474,7 @@ test.describe("Home bar and sheet @component", () => {
   });
 
   test("the docked bar hides while the header menu is open @component", async ({ page }) => {
-    test.skip(width(page) > 1080, "tablet and phone only");
+    test.skip(width(page) > 680, "phone only (the tablet card replaced the bar at 681-1080)");
     await openHome(page);
     await page.evaluate(() => window.scrollTo(0, 1200));
     await expect(page.locator("[data-bar-dock]")).toHaveAttribute("data-show", "1");
@@ -483,7 +483,7 @@ test.describe("Home bar and sheet @component", () => {
   });
 
   test("a /#book link on home opens the sheet: footer link and header menu CTA @component", async ({ page }) => {
-    test.skip(width(page) > 1080, "tablet and phone only");
+    test.skip(width(page) > 680, "phone only (the tablet card replaced the bar at 681-1080)");
     await openHome(page);
     await page.locator('a[href="/#book"]:visible').filter({ hasText: /City to city/i }).first().click();
     await expect(page.getByRole("dialog", { name: "Book a transfer" })).toBeVisible();
@@ -504,7 +504,7 @@ test.describe("Home bar and sheet @component", () => {
   });
 
   test("arriving on /#book lands on the bar without opening the sheet @component", async ({ page }) => {
-    test.skip(width(page) > 1080, "tablet and phone only");
+    test.skip(width(page) > 680, "phone only (the tablet card replaced the bar at 681-1080)");
     await openHome(page, "#book");
     await page.waitForTimeout(1200);
     await expect(sheet(page)).toHaveCount(0);
@@ -513,7 +513,7 @@ test.describe("Home bar and sheet @component", () => {
   });
 
   test("a destination chip opens the sheet with To pre-filled @component", async ({ page }) => {
-    test.skip(width(page) > 1080, "tablet and phone only");
+    test.skip(width(page) > 680, "phone only (the tablet card replaced the bar at 681-1080)");
     await openHome(page);
     // Quick 261003: the destination rows live in Where we drive and carry the airport too
     // (the Services "Mountain and ski resorts" card also names Zermatt, so target the row).
@@ -528,7 +528,7 @@ test.describe("Home bar and sheet @component", () => {
   });
 
   test("resizing to laptop closes the sheet silently and the box shows the same values @component", async ({ page }) => {
-    test.skip(width(page) > 1080, "tablet and phone only");
+    test.skip(width(page) > 680, "phone only (the tablet card replaced the bar at 681-1080)");
     await openHome(page);
     await openSheet(page);
     await pickFrom(page, "Fixture Street", "Fixture Street 1");
@@ -550,7 +550,7 @@ test.describe("Home bar and sheet @component", () => {
 
   for (const lang of LANGS) {
     test(`bar and sheet read correctly in ${lang} @component`, async ({ page }) => {
-      test.skip(width(page) > 1080, "tablet and phone only");
+      test.skip(width(page) > 680, "phone only (the tablet card replaced the bar at 681-1080)");
       await openHome(page);
       await setLang(page, lang);
       // `en` is the source language: the dictionary has nothing to check, so coverage runs for de/fr/ar.

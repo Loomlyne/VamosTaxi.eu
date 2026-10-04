@@ -1,0 +1,2 @@
+/* Picture only: hides the ClosingCta import wrapper. The coder deletes the dc-import line instead. */
+div:has(> [data-cta]){display:none!important}

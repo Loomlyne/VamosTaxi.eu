@@ -56,11 +56,38 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-rv-chip-score]{font-family:var(--vt-font-display);font-size:20px;font-weight:var(--vt-weight-semibold);line-height:1}
 [data-rv-chip-n]{font-family:var(--vt-font-body);font-size:12px;line-height:1.3;color:var(--vt-text-muted)}
 [data-rv-wall]{columns:3 280px;column-gap:var(--vt-space-5);margin:0;padding:0;list-style:none}
-[data-rv-item]{break-inside:avoid;margin:0 0 var(--vt-space-5);padding:0}
+[data-rv-item]{break-inside:avoid;margin:0;margin-block-end:var(--vt-space-5);padding:0}
+/* Drift wall (quick 261003 R2-4): only when more than 6 reviews are published and the screen is wider than 680px. One list per column, every card twice (the copy is aria-hidden + inert), the track holds 4 copy-sets (the original plus 3 aria-hidden + inert repeats) and moves translateY(-25%), one set, in a loop. A set is never shorter than a quarter of what must stay covered (every column has at least 2 cards, so 4 sets always reach past the tallest wall), so no gap can show. Plain CSS animation: no scroll handler, nothing written to <html>. The edge fade is an alpha mask, it adds no colour. */
+[data-rv-wall][data-rv-drift]{--rv-gap:var(--vt-space-5);columns:auto;display:grid;grid-template-columns:repeat(var(--rv-cols,3),minmax(0,1fr));column-gap:var(--rv-gap);align-items:start;block-size:clamp(520px,80svh,720px);overflow:hidden;overscroll-behavior:contain;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 56px,#000 calc(100% - 56px),transparent 100%);mask-image:linear-gradient(to bottom,transparent 0,#000 56px,#000 calc(100% - 56px),transparent 100%)}
+[data-rv-drift] [data-rv-col]{margin:0;padding:0;list-style:none;min-width:0;will-change:transform;animation:rvdrift calc(var(--rv-count,5) * 9s * var(--rv-k,1)) linear infinite}
+[data-rv-drift] [data-rv-col]:nth-child(2){--rv-k:1.15}
+[data-rv-drift] [data-rv-col]:nth-child(3){--rv-k:.9}
+@keyframes rvdrift{from{transform:translateY(0)}to{transform:translateY(-25%)}}
+[data-rv-drift]:hover [data-rv-col],[data-rv-drift]:focus-within [data-rv-col]{animation-play-state:paused}
+/* A tabbed-to card: the browser scrolls it clear of the edge fade, and the card shows a charcoal border while it holds focus. */
+[data-rv-drift] [data-rv-item]{scroll-margin-block:56px}
+[data-rv-drift] [data-rv-item]:focus-within [data-rv-card]{border-color:var(--vt-charcoal-900)}
+@media (prefers-reduced-motion:reduce){
+[data-rv-wall][data-rv-drift]{block-size:auto;overflow:visible;-webkit-mask-image:none;mask-image:none}
+[data-rv-drift] [data-rv-col]{animation:none}
+[data-rv-drift] [data-rv-clone]{display:none}
+}
 [data-rv-card]{box-sizing:border-box;display:flex;flex-direction:column;align-items:stretch;gap:var(--vt-space-4);width:100%;min-width:0;padding:var(--vt-space-5);border:1px solid var(--vt-border-subtle);border-radius:var(--vt-radius-lg);background:var(--vt-white);box-shadow:none;text-align:start}
 [data-rv-stars]{display:flex;align-items:center;gap:2px}
 [data-rv-star]{display:block;inline-size:18px;block-size:18px;flex:0 0 auto;background:var(--vt-accent);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2.6l2.4 6.5h6.8l-5.5 4.2 2.1 6.6L12 16.2 6.2 19.9l2.1-6.6L2.8 9.1h6.8z'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2.6l2.4 6.5h6.8l-5.5 4.2 2.1 6.6L12 16.2 6.2 19.9l2.1-6.6L2.8 9.1h6.8z'/%3E%3C/svg%3E") center/contain no-repeat}
 [data-rv-star][data-off]{background:var(--vt-grey-300)}
+/* Platform rating marks (brand-mark exception, owner 2026-10-03): each platform shows its own rating look. Star rows stay LTR in Arabic so 4/5 fills four from the left, as Trustpilot and Google draw it. */
+[data-rv-stars]{direction:ltr}
+[data-plat="trustpilot"] [data-rv-star]{border-radius:2px;background:#00B67A url("data:image/svg+xml,%3Csvg width='24' height='24' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpolygon fill='%23fff' points='12,3 14.6,9 21,9.5 16.1,13.8 17.6,20.2 12,16.8 6.4,20.2 7.9,13.8 3,9.5 9.4,9'/%3E%3C/svg%3E") center/14px 14px no-repeat;-webkit-mask:none;mask:none}
+[data-plat="trustpilot"] [data-rv-star][data-off]{background-color:#DCDCE6}
+[data-plat="google"] [data-rv-star]{background:#FBBC04;-webkit-mask:url("data:image/svg+xml,%3Csvg width='24' height='24' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z'/%3E%3C/svg%3E") center/100% 100% no-repeat;mask:url("data:image/svg+xml,%3Csvg width='24' height='24' xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z'/%3E%3C/svg%3E") center/100% 100% no-repeat}
+[data-plat="google"] [data-rv-star][data-off]{background:#DADCE0}
+[data-plat="tripadvisor"] [data-rv-star]{box-sizing:border-box;inline-size:16px;block-size:16px;margin-block:1px;border-radius:50%;background:#00AA6C;border:2px solid #00AA6C;-webkit-mask:none;mask:none}
+[data-plat="tripadvisor"] [data-rv-star][data-off]{background:transparent}
+[data-plat="tripadvisor"][data-rv-stars]{gap:3px}
+[data-rv-chip] [data-rv-stars]{flex:0 0 auto}
+[data-rv-chip] [data-rv-star]{inline-size:16px;block-size:16px}
+[data-rv-chip] [data-plat="tripadvisor"] [data-rv-star],[data-rv-chip] [data-rv-star][data-plat]{margin-block:0}
 [data-rv-rate]{display:flex;align-items:center;min-width:0}
 /* Owner's original-review link (#50): borderless icon after the stars. The 44px target is cancelled out of the row height so the card keeps its signed spacing. */
 [data-rv-link]{position:relative;box-sizing:border-box;display:inline-flex;align-items:center;justify-content:center;inline-size:var(--vt-control-h-md);block-size:var(--vt-control-h-md);flex:0 0 auto;margin:0;margin-block:calc((18px - var(--vt-control-h-md)) / 2);padding:0;border:0;border-radius:var(--vt-radius-pill);background:transparent;color:var(--vt-charcoal-900);text-decoration:none;box-shadow:none;transition:background-color 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1)}
@@ -118,17 +145,18 @@ a[data-rv-mark]:focus-visible{outline:none;box-shadow:var(--vt-ring)}
 <li data-rv-chip="1" data-src="{{ c.id }}">
 <img data-vt-no-i18n="1" src="{{ c.logo }}" alt="{{ c.label }}" height="20">
 <b data-rv-chip-score="1" class="vt-dir-keep" data-vt-no-i18n="1">{{ c.score }}</b>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="star" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
+<span data-rv-stars="1" data-plat="{{ c.id }}" aria-hidden="true"><i data-rv-star="1"></i></span>
 <span data-rv-chip-n="1">{{ c.countLabel }}</span>
 </li>
 </sc-for>
 </ul>
+<sc-if value="{{ still }}" hint-placeholder-val="{{ true }}">
 <ul data-rv-wall="1">
 <sc-for list="{{ cards }}" as="r" hint-placeholder-count="3">
 <li data-rv-item="1">
 <article data-rv-card="1">
 <div data-rv-rate="1">
-<span data-rv-stars="1" role="img" aria-label="{{ r.ratingLabel }}" style="display:{{ r.starsShow }}">
+<span data-rv-stars="1" data-plat="{{ r.plat }}" role="img" aria-label="{{ r.ratingLabel }}" style="display:{{ r.starsShow }}">
 <i data-rv-star="1" data-off="{{ r.off1 }}"></i><i data-rv-star="1" data-off="{{ r.off2 }}"></i><i data-rv-star="1" data-off="{{ r.off3 }}"></i><i data-rv-star="1" data-off="{{ r.off4 }}"></i><i data-rv-star="1" data-off="{{ r.off5 }}"></i>
 </span>
 <a data-rv-link="1" href="{{ r.linkUrl }}" target="_blank" rel="noopener noreferrer" aria-label="{{ r.linkLabel }}" title="{{ r.linkLabel }}" hidden="{{ r.linkHidden }}" style="display:{{ r.linkShow }}">
@@ -156,6 +184,46 @@ a[data-rv-mark]:focus-visible{outline:none;box-shadow:var(--vt-ring)}
 </sc-for>
 </ul>
 </sc-if>
+<sc-if value="{{ drift }}" hint-placeholder-val="{{ false }}">
+<div data-rv-wall="1" data-rv-drift="y" style="--rv-cols:{{ colCount }}">
+<sc-for list="{{ cols }}" as="col" hint-placeholder-count="3">
+<ul data-rv-col="1" style="--rv-count:{{ col.count }}">
+<sc-for list="{{ col.items }}" as="r" hint-placeholder-count="3">
+<li data-rv-item="1" data-rv-clone="{{ r.cloneAttr }}" aria-hidden="{{ r.hiddenAttr }}" inert="{{ r.inertAttr }}">
+<article data-rv-card="1">
+<div data-rv-rate="1">
+<span data-rv-stars="1" data-plat="{{ r.plat }}" role="img" aria-label="{{ r.ratingLabel }}" style="display:{{ r.starsShow }}">
+<i data-rv-star="1" data-off="{{ r.off1 }}"></i><i data-rv-star="1" data-off="{{ r.off2 }}"></i><i data-rv-star="1" data-off="{{ r.off3 }}"></i><i data-rv-star="1" data-off="{{ r.off4 }}"></i><i data-rv-star="1" data-off="{{ r.off5 }}"></i>
+</span>
+<a data-rv-link="1" href="{{ r.linkUrl }}" target="_blank" rel="noopener noreferrer" aria-label="{{ r.linkLabel }}" title="{{ r.linkLabel }}" hidden="{{ r.linkHidden }}" style="display:{{ r.linkShow }}">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="external-link" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>
+</a>
+</div>
+<blockquote data-rv-q="1">
+<p data-rv-text="1" data-vt-no-i18n="1" dir="auto"><bdi>{{ r.text }}</bdi></p>
+</blockquote>
+<div data-rv-who="1" data-vt-no-i18n="1">
+<strong data-rv-name="1" dir="auto">{{ r.name }}</strong>
+<span data-rv-sub="1" dir="auto" style="display:{{ r.routeShow }}">{{ r.route }}</span>
+</div>
+<sc-if value="{{ r.markLink }}" hint-placeholder-val="{{ false }}">
+<a data-rv-mark="1" href="{{ r.url }}" target="_blank" rel="noopener" aria-label="{{ r.linkLabel }}" title="{{ r.linkLabel }}"><img data-vt-no-i18n="1" src="{{ r.logo }}" alt="{{ r.label }}" height="18"></a>
+</sc-if>
+<sc-if value="{{ r.markImg }}" hint-placeholder-val="{{ false }}">
+<span data-rv-mark="1"><img data-vt-no-i18n="1" src="{{ r.logo }}" alt="{{ r.label }}" height="18"></span>
+</sc-if>
+<sc-if value="{{ r.markText }}" hint-placeholder-val="{{ false }}">
+<span data-rv-mark="1">Collected by us</span>
+</sc-if>
+</article>
+</li>
+</sc-for>
+</ul>
+</sc-for>
+</div>
+</sc-if>
+
+</sc-if>
 </div>
 </section>
 </sc-if>
@@ -171,7 +239,7 @@ a[data-rv-mark]:focus-visible{outline:none;box-shadow:var(--vt-ring)}
  * only when sourceUrl is an http(s) URL on that platform's own domain.
  */
 class Component extends DCLogic {
-  state = { lang: 'en', settled: false };
+  state = { lang: 'en', settled: false, cols: 3 };
   componentDidMount() {
     this._onReviews = () => {
       clearTimeout(this._settle);
@@ -186,6 +254,12 @@ class Component extends DCLogic {
     this._reviewsStop = setTimeout(() => clearInterval(this._reviewsWait), 10000);
     /* A failed load never emits; stop showing the skeleton after a while. */
     this._settle = setTimeout(() => this.setState({ settled: true }), 4000);
+    /* Column count for the drift wall: 1 (<=680, no drift), 2 (<=1080), 3. Re-split when a breakpoint is crossed. */
+    if (window.matchMedia) {
+      this._mqs = [window.matchMedia('(max-width:680px)'), window.matchMedia('(max-width:1080px)')];
+      this._onMq = () => this.setState({ cols: this.colsNow() });
+      this._mqs.forEach((m) => { if (m.addEventListener) m.addEventListener('change', this._onMq); else if (m.addListener) m.addListener(this._onMq); });
+    }
     if (window.VamosLocale) {
       this._offLocale = window.VamosLocale.onChange((v) => this.setState({ lang: v.lang }));
     }
@@ -207,6 +281,13 @@ class Component extends DCLogic {
     if (this._onReviews) window.removeEventListener('vamos:reviews', this._onReviews);
     if (this._offReviews) this._offReviews();
     if (this._offLocale) this._offLocale();
+    if (this._mqs) this._mqs.forEach((m) => { if (m.removeEventListener) m.removeEventListener('change', this._onMq); else if (m.removeListener) m.removeListener(this._onMq); });
+  }
+  /** 1 on phones (<=680px), 2 up to 1080px, else 3 — the repo breakpoints. */
+  colsNow() {
+    if (!window.matchMedia) return 3;
+    if (window.matchMedia('(max-width:680px)').matches) return 1;
+    return window.matchMedia('(max-width:1080px)').matches ? 2 : 3;
   }
   lang() {
     return (this.state && this.state.lang) || (window.VamosLocale ? window.VamosLocale.lang() : 'en');
@@ -269,6 +350,7 @@ class Component extends DCLogic {
         routeShow: r.route ? 'block' : 'none',
         starsShow: r.rating > 0 ? 'flex' : 'none',
         ratingLabel: 'Rated ' + r.rating + ' out of 5',
+        plat: platform ? r.source : 'own',
         label: label,
         logo: platform ? '/assets/reviews/' + r.source + '.svg' : '',
         url: href,
@@ -283,8 +365,25 @@ class Component extends DCLogic {
       for (let s = 1; s <= 5; s++) o['off' + s] = s <= r.rating ? null : '1';
       return o;
     });
+    /* Drift only above 6 published reviews and never on phones; otherwise the static wall stays as it was. */
+    const n = this.colsNow();
+    const drift = enough && rows.length > 6 && n > 1;
+    const cols = [];
+    if (drift) {
+      for (let c = 0; c < n; c++) cols.push({ count: 0, items: [] });
+      cards.forEach((o, i) => cols[i % n].items.push(Object.assign({}, o, { cloneAttr: null, hiddenAttr: null, inertAttr: null })));
+      cols.forEach((col) => {
+        col.count = col.items.length;
+        const set = col.items;
+        for (let k = 0; k < 3; k++) col.items = col.items.concat(set.map((o) => Object.assign({}, o, { cloneAttr: '1', hiddenAttr: 'true', inertAttr: '' })));
+      });
+    }
     return {
       n16: 16,
+      drift: drift,
+      still: enough && !drift,
+      cols: cols,
+      colCount: n,
       showSection: enough || loading,
       viewState: enough ? 'ready' : 'loading',
       busy: enough ? 'false' : 'true',

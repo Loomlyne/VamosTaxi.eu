@@ -1,0 +1,33 @@
+/* R2-2 option B — keep bar + sheet. Bar becomes one 54px strip of segments (From | To | When · Travellers | SEE PRICES);
+   any tap opens the sheet. Sheet becomes a two-column page from 681px up (Where | When + Who) so it never scrolls at 1024x768. */
+@media (min-width:681px) and (max-width:1080px){
+  [data-bar-dock]{display:none!important}   /* the docked copy follows the strip once the coder wires it */
+  [data-bar-wrap]{max-width:none;padding:var(--vt-space-2) var(--vt-space-2) 0;background:var(--vt-bg-surface);border-radius:var(--vt-radius-xl);box-shadow:var(--vt-shadow-lg)}
+  [data-bar-wrap]>div:not([data-tbar],[data-bar-notes]){display:none}               /* the single "Where to?" button */
+  [data-tbar]{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1.1fr) auto;gap:var(--vt-space-2);align-items:stretch;min-inline-size:0}
+  [data-tseg]{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:var(--vt-space-3);min-inline-size:0;block-size:var(--vt-control-h-lg);padding-inline:var(--vt-space-4);background:var(--vt-bg-surface);border:var(--vt-border-w) solid var(--vt-border-subtle);border-radius:var(--vt-radius-field);cursor:pointer;font-family:var(--vt-font-body);color:var(--vt-text-primary);transition:var(--vt-transition-control)}
+  [data-tseg]:hover{border-color:var(--vt-grey-300);background:var(--vt-grey-50)}
+  [data-tseg]:focus-visible{box-shadow:var(--vt-ring)}
+  [data-tseg-ic]{flex:0 0 20px;inline-size:20px;block-size:20px;background:currentColor;-webkit-mask:var(--ic) center/contain no-repeat;mask:var(--ic) center/contain no-repeat}
+  [data-tseg-tx]{display:flex;flex-direction:column;min-inline-size:0;gap:1px}
+  [data-tseg-k]{font-size:var(--vt-label-sm);line-height:14px;font-weight:var(--vt-label-weight);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-secondary)}
+  [data-tseg-v]{font-size:var(--vt-body-md);line-height:20px;color:var(--vt-text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* CTA is the design-system Button (primary, lg), not a hand-built pill: hover = --vt-accent-hover from the kit itself */
+  [data-tgo]{display:flex;align-items:stretch}
+  [data-tgo] .vt-btn{inline-size:auto;white-space:nowrap}
+  [data-bar-notes]{padding:var(--vt-space-3) var(--vt-space-3) var(--vt-space-3)}
+  /* sheet: two columns */
+  [data-bs-col]{max-inline-size:880px!important;display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:var(--vt-space-10);row-gap:var(--vt-space-6);align-items:start}
+  [data-bs-col]>[data-bs-title]{grid-column:1/-1}
+  [data-bs-col]>[data-bs-sec]{border-block-start:0;padding-block-start:0}
+  [data-bs-col]>[data-bs-sec]:nth-of-type(1){grid-column:1;grid-row:2}
+  [data-bs-col]>[data-bs-sec]:nth-of-type(2){grid-column:2;grid-row:2}
+  [data-bs-col]>[data-bs-sec]:nth-of-type(3){grid-column:1/-1;grid-row:3;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:var(--vt-space-10);padding-block-start:var(--vt-space-6);border-block-start:1px solid var(--vt-border-subtle)}
+  [data-bs-col]>[data-bs-sec]:nth-of-type(3)>[data-bs-sech]{grid-column:1/-1}
+  [data-bs-msg],[data-bs-next]{max-inline-size:880px}
+}
+@media (min-width:681px) and (max-width:899px){
+  [data-tseg-ic]{display:none}
+  [data-tseg]{padding-inline:var(--vt-space-4)}
+  [data-tgo] .vt-btn{padding-inline:var(--vt-space-5)}
+}
