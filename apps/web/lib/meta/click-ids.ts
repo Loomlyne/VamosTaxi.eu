@@ -50,7 +50,9 @@ export function readMetaClickIds(cookieHeader: string | null | undefined): MetaC
   };
 }
 
-export type MetaSaveDecision = { skip: true } | { skip: false; fbp: string | null; fbc: string | null };
+export type MetaSaveDecision =
+  | { skip: true }
+  | { skip: false; fbp: string | null; fbc: string | null; subject: string | null };
 
 type SaveDecisionInput = {
   cookieHeader: string | null;
@@ -65,10 +67,13 @@ type SaveDecisionInput = {
  * owner's own browser cookies and must never stamp a phone booking), the visitor has a consent subject,
  * and the server says marketing is on under the current policy version right now. Anything else gives
  * nulls, which clears values from an earlier press.
+ *
+ * Phase 29 D-01: the consent subject is returned and stored beside the ids so the settle queue (which has
+ * no browser cookie) can re-check the latest consent just before sending. The subject is never logged.
  */
 export async function metaClickIdsToSave(input: SaveDecisionInput): Promise<MetaSaveDecision> {
   if (!input.measurementAllowed) return { skip: true };
-  const none = { skip: false, fbp: null, fbc: null } as const;
+  const none = { skip: false, fbp: null, fbc: null, subject: null } as const;
   // A non-public Origin (the dashboard) neither saves nor clears: it must never touch a booking's values (WR-06).
   if (!publicOriginAllowed(input.origin)) return { skip: true };
   const ids = readMetaClickIds(input.cookieHeader);
@@ -82,7 +87,7 @@ export async function metaClickIdsToSave(input: SaveDecisionInput): Promise<Meta
     return none;
   }
   if (marketing !== true) return none;
-  return { skip: false, fbp: ids.fbp, fbc: ids.fbc };
+  return { skip: false, fbp: ids.fbp, fbc: ids.fbc, subject };
 }
 
 /** What the route needs from the Workers execution context (`getCloudflareContext().ctx`). */
@@ -103,12 +108,12 @@ export interface BackgroundContext {
 export function scheduleMetaClickIdSave(args: {
   ctx: BackgroundContext | null | undefined;
   decide: SaveDecisionInput;
-  write: (fbp: string | null, fbc: string | null) => Promise<void>;
+  write: (fbp: string | null, fbc: string | null, subject: string | null) => Promise<void>;
 }): Promise<void> {
   const job = async (): Promise<void> => {
     try {
       const save = await metaClickIdsToSave(args.decide);
-      if (!save.skip) await args.write(save.fbp, save.fbc);
+      if (!save.skip) await args.write(save.fbp, save.fbc, save.subject);
     } catch (err) {
       const code = err && typeof err === "object" && "code" in err ? (err as { code?: unknown }).code : null;
       console.error("checkout_meta_click_ids_failed", typeof code === "string" && code.length === 5 ? code : "no-sqlstate");
