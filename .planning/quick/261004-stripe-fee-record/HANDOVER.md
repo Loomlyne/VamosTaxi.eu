@@ -1,6 +1,7 @@
 # Hand-over: record the Stripe fee (quick 261004-stripe-fee-record)
 
-Branch `fix/stripe-fee-record`, cut from `origin/main` 86803493, `origin/main` f0be1bbe merged in.
+Branch `fix/stripe-fee-record`, cut from `origin/main` 86803493; `origin/main` f0be1bbe and then 2f08d689
+(dashboard numbers) merged in, no conflicts.
 Work session, 2026-10-04 21:56 to 22:25 +04. Owner decision: `.planning/decisions/2026-10-04-dashboard-numbers.md`, answer 3.
 Money change: a fresh reviewer reads it before it ships (owner's condition).
 
@@ -26,7 +27,7 @@ Nothing found in 1a changes a refund amount, a customer page or an e-mail, so th
 | `tg_payment_update_whitelist` (live md5 `a771ed5ced38216b10d119b075dd043c`) | allows one write on a succeeded row (and on any non-succeeded row), refuses a change once set | none; the new writer goes through it |
 | `ops_refund_intent_sent` (live md5 `dd9e9a3203a3b4e4a33d8c1470ba4fe3`) | writes `p_stripe_fee_rappen` only when the column is NULL | none on amounts: refund amounts come from `charged_rappen` minus refunds. Once the charge fee is in, this write stops happening (guarded by `is null`) |
 | `ops_refund_record` (live md5 `8e047ff1c529a8974e408fa28eb14d6e`) | same guarded write | no TS caller any more; none on amounts |
-| `loadDashboardMoney` `apps/web/lib/ops/bookings.ts:297` | sums it into the dashboard fee | Expenses and Net now include it (the owner's intent) |
+| `loadDashboardMoney` `apps/web/lib/ops/bookings.ts:403` (after `2f08d689`, merged in) | sums it over every captured payment (any status with `captured_at`, so a refunded duplicate too) | Expenses and Net now include it (the owner's intent) |
 | `mapBoardBooking` `apps/web/lib/ops/bookings-map.ts:355` → `app/vamos-ops-data.js:757` | maps `row.stripe_fee_rappen` | the board SQL never selects the column, and no screen reads `stripeFeeRappen`: nothing changes |
 | `manage_money_for` (customer manage page), confirmation and other mails, `packages/emails` | do not read it (`manage_money_for` builds its object from named columns) | none |
 
