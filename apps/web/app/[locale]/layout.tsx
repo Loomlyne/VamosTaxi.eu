@@ -10,6 +10,7 @@ import { SEO_SITE_URL } from "@/lib/seo/head";
 import { CookieBanner } from "@/components/consent/CookieBanner";
 import { SiteFooter, SiteHeader, SiteShell } from "@/components/shell";
 import { Providers } from "./providers";
+import { clientMessages } from "@/lib/i18n/client-messages";
 import "../globals.css";
 
 function turnstileSiteKey(): string | undefined {
@@ -83,7 +84,7 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} dir={dir}>
       <body>
-        <Providers locale={locale} messages={messages}>
+        <Providers locale={locale} messages={clientMessages(messages)}>
           {/* CLAUDE.md: "`SiteHeader` and `SiteFooter` are mandatory on every public
               page — old ones and any new one. Never hand-roll a header or footer."
               Composing them here, once, is what makes that rule structural rather than
