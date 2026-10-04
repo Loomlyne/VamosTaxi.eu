@@ -229,8 +229,18 @@ function readTokens(src) {
   };
   // A full parse, not just the tokenizer: JSX tokenizes "fine" (`<div>// y` reads as a
   // comparison and a comment) but does not parse, and must then be left alone.
-  acorn.parse(src, { ...opts, onToken: (t) => { tokens.push(`${t.type.label}\u0000${t.value ?? ""}`); } });
+  acorn.parse(src, { ...opts, onToken: (t) => { tokens.push(`${t.type.label}\u0000${tokenValue(t.value)}`); } });
   return { tokens: tokens.join("\u0001"), left };
+}
+
+/**
+ * A token's value as text. A regex token's value is an object ({ pattern, flags, value }), which
+ * would read as "[object Object]" for every regex and let a changed regex pass the proof.
+ */
+function tokenValue(value) {
+  if (value == null) return "";
+  if (typeof value === "object" && typeof value.pattern === "string") return `/${value.pattern}/${value.flags ?? ""}`;
+  return String(value);
 }
 
 /**
