@@ -22,6 +22,13 @@
 [data-vt-board] .vt-table{min-width:956px;width:100%;table-layout:fixed}
 [data-vt-board] .vt-table th,[data-vt-board] .vt-table td{vertical-align:middle;min-width:0}
 [data-vt-board] .vt-table th{overflow:visible;white-space:nowrap}
+[data-vt-board] .vt-table th:has([data-vt-sort]){padding:0}
+[data-vt-sort]{all:unset;box-sizing:border-box;display:flex;align-items:center;justify-content:flex-start;gap:6px;inline-size:100%;min-block-size:44px;padding-inline:16px;cursor:pointer;color:inherit;font:inherit;white-space:nowrap}
+[data-vt-sort]:hover,[data-vt-sort][data-active]{color:var(--vt-text-primary)}
+[data-vt-board] [data-vt-sort]:focus-visible{box-shadow:inset var(--vt-ring)}
+[data-vt-sort-ico]{display:inline-flex;flex:0 0 auto;opacity:0}
+[data-vt-sort]:hover [data-vt-sort-ico],[data-vt-sort]:focus-visible [data-vt-sort-ico],[data-vt-sort][data-active] [data-vt-sort-ico]{opacity:1}
+@media (hover:none){[data-vt-sort-ico]{opacity:1}}
 [data-vt-board] .vt-table td{padding:12px 14px}
 [data-vt-when]{display:flex;flex-direction:column;gap:2px;line-height:1.25;white-space:nowrap}
 [data-vt-when] strong{font-family:var(--vt-font-display);font-size:var(--vt-figure-sm);font-weight:var(--vt-weight-bold);font-variant-numeric:tabular-nums}
@@ -145,9 +152,12 @@ function zurichYmd(d) {
    added only when it is not this year ("4 Oct 2025 · 14:32"). The month stays an English token in its own
    text node, which the shared dictionary turns into Okt / oct / أكتوبر. A value with no zone is not read. */
 const BOOKED_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-function bookedParts(at, now) {
+function bookedMs(at) {
   const raw = String(at || '').trim();
-  const ms = /\d{2}:\d{2}.*(Z|[+-]\d{2}(:?\d{2})?)$/.test(raw) ? Date.parse(raw) : NaN;
+  return /\d{2}:\d{2}.*(Z|[+-]\d{2}(:?\d{2})?)$/.test(raw) ? Date.parse(raw) : NaN;
+}
+function bookedParts(at, now) {
+  const ms = bookedMs(at);
   if (!Number.isFinite(ms)) return null;
   const p = {};
   new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Zurich', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' })
@@ -163,6 +173,45 @@ function bookedParts(at, now) {
 }
 /* Keeps a left-to-right value whole inside right-to-left text (a tooltip has no span to wrap). */
 function isolate(s) { return '\u2066' + s + '\u2069'; }
+/* Table order (owner, 2026-10-04): every load opens newest booked first; Booked, Vehicle, Driver and Total
+   sort, one at a time. A header's first click goes the way SORT_FIRST says; the next click on it flips.
+   asc = older first / smaller first / class order / not assigned first. Ties go newest booked first; a row
+   with no readable value (no booking time, no total, a class outside the dashboard's list) goes last in both
+   directions. The class order is the dashboard's own list (VamosOps.VEHICLE_CLASSES), never names written here. */
+const SORT_FIRST = { booked: 'desc', vehicle: 'asc', driver: 'asc', total: 'desc' };
+function nextSort(cur, key) {
+  if (cur && cur.key === key) return { key: key, dir: cur.dir === 'asc' ? 'desc' : 'asc' };
+  return { key: key, dir: SORT_FIRST[key] };
+}
+function sortBoardRows(rows, key, dir, classOrder) {
+  const sign = dir === 'asc' ? 1 : -1;
+  const order = Array.isArray(classOrder) ? classOrder : [];
+  const value = (r) => {
+    if (key === 'booked') return bookedMs(r.createdAt);
+    if (key === 'total') { const n = Number(r.totalRappen); return n > 0 ? n : NaN; }
+    if (key === 'vehicle') { const i = order.indexOf(String(r.klass || r.vehicle || '')); return i === -1 ? NaN : i; }
+    if (key === 'driver') return r.driver ? 1 : 0;
+    return NaN;
+  };
+  const keyed = rows.map((r, i) => ({ r: r, i: i, v: value(r), t: bookedMs(r.createdAt) }));
+  keyed.sort((a, b) => {
+    const am = Number.isNaN(a.v);
+    if (am !== Number.isNaN(b.v)) return am ? 1 : -1;
+    if (!am && a.v !== b.v) return (a.v - b.v) * sign;
+    const at = Number.isNaN(a.t);
+    if (at !== Number.isNaN(b.t)) return at ? 1 : -1;
+    if (!at && a.t !== b.t) return b.t - a.t;
+    return a.i - b.i;
+  });
+  return keyed.map((k) => k.r);
+}
+/* aria-sort belongs on the <th>. The design-system Table draws its cells without a prop for it, so the header
+   button sets it on its own cell, and clears it when another column is the sorted one. */
+function markSort(el, value) {
+  const th = el && el.closest ? el.closest('th') : null;
+  if (!th) return;
+  if (value) th.setAttribute('aria-sort', value); else th.removeAttribute('aria-sort');
+}
 function listBookings() {
   return window.VamosOps ? window.VamosOps.bookings.all() : [];
 }
@@ -207,7 +256,7 @@ function filterFromLocation() {
   }
 }
 const T = {
-  en: { bookings:'Bookings', ordered:'Paid trips by pickup time', searchPh:'Reference, name, phone or address', newBooking:'New booking',
+  en: { sortBy:'Sort by %s', bookings:'Bookings', ordered:'Paid trips by pickup time', searchPh:'Reference, name, phone or address', newBooking:'New booking',
     pickupsToday:'Pickups today', pickupsFoot:'Paid trips still on the board', awaitingPayment:'Awaiting payment', awaitingFoot:'Not paid yet', emptyAwaiting:'No bookings awaiting payment.',
     unassigned:'Unassigned', unassignedFoot:'Paid, no driver yet', revenue:'Revenue, 7 days', revenueFoot:'Captured fares',
     moreFilters:'More filters', export_:'Export CSV', filter:'Filter', print:'Print', boardFilter:'Show', classFilter:'Class', allClasses:'All classes', statusFilter:'Status', allStatuses:'All statuses', clearFilt:'Clear', showingRange:'Showing %a–%b of %c', showingNone:'Nothing to show',
@@ -219,7 +268,7 @@ const T = {
     editBooking:'Edit booking', deleteBooking:'Delete this booking?', noun:'booking', nounPlural:'bookings',
     emptyTitle:'Nothing booked', emptyBody:'Add a booking and it appears on this board.', deleteBody:'The booking is removed from the board.',
   },
-  de: { bookings:'Buchungen', ordered:'Bezahlte Fahrten nach Abholzeit', searchPh:'Referenz, Name, Telefon oder Adresse', newBooking:'Neue Buchung',
+  de: { sortBy:'Nach %s sortieren', bookings:'Buchungen', ordered:'Bezahlte Fahrten nach Abholzeit', searchPh:'Referenz, Name, Telefon oder Adresse', newBooking:'Neue Buchung',
     pickupsToday:'Abholungen heute', pickupsFoot:'Bezahlte Fahrten auf dem Board', awaitingPayment:'Zahlung ausstehend', awaitingFoot:'Noch nicht bezahlt', emptyAwaiting:'Keine Buchungen mit ausstehender Zahlung.',
     unassigned:'Nicht zugewiesen', unassignedFoot:'Bezahlt, noch kein Fahrer', revenue:'Umsatz, 7 Tage', revenueFoot:'Erfasste Fahrpreise',
     moreFilters:'Weitere Filter', export_:'CSV exportieren', filter:'Filter', print:'Drucken', boardFilter:'Anzeigen', classFilter:'Klasse', allClasses:'Alle Klassen', statusFilter:'Status', allStatuses:'Alle Status', clearFilt:'Zurücksetzen', showingRange:'Zeigt %a–%b von %c', showingNone:'Nichts anzuzeigen',
@@ -231,7 +280,7 @@ const T = {
     editBooking:'Buchung bearbeiten', deleteBooking:'Diese Buchung löschen?', noun:'Buchung', nounPlural:'Buchungen',
     emptyTitle:'Nichts gebucht', emptyBody:'Buchung hinzufügen — sie erscheint auf diesem Board.', deleteBody:'Die Buchung verschwindet vom Board.',
   },
-  fr: { bookings:'Réservations', ordered:'Courses payées, par heure de prise en charge', searchPh:'Référence, nom, téléphone ou adresse', newBooking:'Nouvelle réservation',
+  fr: { sortBy:'Trier par %s', bookings:'Réservations', ordered:'Courses payées, par heure de prise en charge', searchPh:'Référence, nom, téléphone ou adresse', newBooking:'Nouvelle réservation',
     pickupsToday:'Prises en charge aujourd’hui', pickupsFoot:'Courses payées encore au tableau', awaitingPayment:'Paiement en attente', awaitingFoot:'Pas encore payé', emptyAwaiting:'Aucune réservation en attente de paiement.',
     unassigned:'Non assigné', unassignedFoot:'Payé, pas encore de chauffeur', revenue:'Recette, 7 jours', revenueFoot:'Tarifs encaissés',
     moreFilters:'Plus de filtres', export_:'Exporter CSV', filter:'Filtrer', print:'Imprimer', boardFilter:'Afficher', classFilter:'Classe', allClasses:'Toutes les classes', statusFilter:'Statut', allStatuses:'Tous les statuts', clearFilt:'Effacer', showingRange:'Affiche %a–%b sur %c', showingNone:'Rien à afficher',
@@ -243,7 +292,7 @@ const T = {
     editBooking:'Modifier la réservation', deleteBooking:'Supprimer cette réservation ?', noun:'réservation', nounPlural:'réservations',
     emptyTitle:'Aucune réservation', emptyBody:'Ajoutez une réservation — elle apparaît sur ce tableau.', deleteBody:'La réservation disparaît du tableau.',
   },
-  ar: { bookings:'الحجوزات', ordered:'الرحلات المدفوعة حسب وقت الاستلام', searchPh:'المرجع أو الاسم أو الهاتف أو العنوان', newBooking:'حجز جديد',
+  ar: { sortBy:'الترتيب حسب %s', bookings:'الحجوزات', ordered:'الرحلات المدفوعة حسب وقت الاستلام', searchPh:'المرجع أو الاسم أو الهاتف أو العنوان', newBooking:'حجز جديد',
     pickupsToday:'الاستلام اليوم', pickupsFoot:'رحلات مدفوعة ما زالت على اللوحة', awaitingPayment:'بانتظار الدفع', awaitingFoot:'لم يُدفع بعد', emptyAwaiting:'لا حجوزات بانتظار الدفع.',
     unassigned:'غير معيّن', unassignedFoot:'مدفوعة بلا سائق بعد', revenue:'الإيراد، 7 أيام', revenueFoot:'الأجور المحصّلة',
     moreFilters:'مزيد من التصفية', export_:'تصدير CSV', filter:'تصفية', print:'طباعة', boardFilter:'عرض', classFilter:'الفئة', allClasses:'كل الفئات', statusFilter:'الحالة', allStatuses:'كل الحالات', clearFilt:'مسح', showingRange:'عرض %a–%b من %c', showingNone:'لا شيء للعرض',
@@ -257,7 +306,7 @@ const T = {
   },
 };
 class Component extends DCLogic {
-  state = { lang: vtLang(), filter: 'All', page: 0, query: '', klass: '', statusMore: '', moreOpen: false, addTick: 0, editTick: 0, editId: '' };
+  state = { lang: vtLang(), filter: 'All', page: 0, query: '', klass: '', statusMore: '', moreOpen: false, addTick: 0, editTick: 0, editId: '', sortKey: 'booked', sortDir: SORT_FIRST.booked };
   bind = () => {
     if (!window.VamosOps) { this._retry = setTimeout(this.bind, 120); return; }
     this._off = window.VamosOps.bookings.onChange(() => this.forceUpdate());
@@ -299,6 +348,10 @@ class Component extends DCLogic {
   openNew = () => { location.assign('/bookings/new'); };
   toggleMore = () => this.setState((s) => ({ moreOpen: !s.moreOpen }));
   printBoard = () => { try { window.print(); } catch (e) {} };
+  setSort = (key) => this.setState((s) => {
+    const n = nextSort({ key: s.sortKey, dir: s.sortDir }, key);
+    return { sortKey: n.key, sortDir: n.dir, page: 0 };
+  });
   setClass = (v) => this.setState({ klass: v || '', page: 0 });
   setStatus = (v) => this.setState({ statusMore: v || '', page: 0 });
   setBoardFilter = (v) => this.setState({ filter: v || 'All', page: 0 });
@@ -338,11 +391,12 @@ class Component extends DCLogic {
     const formClass = ((ops && ops.VEHICLE_CLASSES) || ['Economy', 'Business', 'Van luxury']).map((c) => ({ value: c, label: c }));
     const formStatus = ((ops && ops.BOOKING_STATUS) || []).map((s) => ({ value: s, label: s }));
     const chauffeurOptions = ((ops && ops.chauffeurs && ops.chauffeurs.all) ? ops.chauffeurs.all() : []).map((c) => ({ value: c.id, label: c.name || c.id }));
+    const orderedRows = sortBoardRows(visibleRows, this.state.sortKey, this.state.sortDir, (ops && ops.VEHICLE_CLASSES) || []);
     const PAGE_SIZE = 20;
     const pageCount = Math.max(1, Math.ceil(visibleRows.length / PAGE_SIZE));
     const page = Math.min(this.state.page || 0, pageCount - 1);
     const pageStart = page * PAGE_SIZE;
-    const pageRows = visibleRows.slice(pageStart, pageStart + PAGE_SIZE);
+    const pageRows = orderedRows.slice(pageStart, pageStart + PAGE_SIZE);
     const showingFrom = visibleRows.length ? pageStart + 1 : 0;
     const showingTo = Math.min(visibleRows.length, pageStart + PAGE_SIZE);
     const pickupsToday = BOOKINGS.filter((b) => isBoardTrip(b) && (b.dateIso === todayIso || b.date === today)).length;
@@ -385,6 +439,25 @@ class Component extends DCLogic {
         select: () => this.setState({ filter: key, page: 0 }),
       };
     };
+    /* A sortable header is a real button inside the Table's own <th> (the Table has no sort props: it draws
+       whatever `header` holds). Active: the arrow of the way it sorts now. Inactive: the arrow of the way a
+       click would sort, shown muted on hover and focus. */
+    const sortHead = (key, label) => {
+      const on = this.state.sortKey === key;
+      const dir = on ? this.state.sortDir : SORT_FIRST[key];
+      const ariaSort = on ? (dir === 'asc' ? 'ascending' : 'descending') : '';
+      const sortIcon = dir === 'asc' ? 'arrow-up' : 'arrow-down';
+      const SortIcon = DS.Icon;
+      return React.createElement('button', {
+          type: 'button', 'data-vt-sort': '1', 'data-active': on ? '1' : undefined, 'data-vt-no-i18n': '1',
+          'aria-label': t.sortBy.replace('%s', label),
+          onClick: () => this.setSort(key),
+          ref: (el) => markSort(el, ariaSort),
+        },
+        React.createElement('span', null, label),
+        React.createElement('span', { 'data-vt-sort-ico': '1' },
+          SortIcon ? React.createElement(SortIcon, { name: sortIcon, size: 14, color: on ? 'var(--vt-text-primary)' : 'var(--vt-text-muted)' }) : null));
+    };
     return {
       n18: 18, yes: true,
       statCards: [
@@ -414,7 +487,7 @@ class Component extends DCLogic {
       noPrev: page <= 0, noNext: page >= pageCount - 1,
       filters: FILTERS.map((f) => ({ label: f.label, active: f.key === this.state.filter, select: () => this.setState({ filter: f.key, page: 0 }) })),
       columns: [
-        { key:'booked', header: t.colBooked, width:'140px', render:(r) => {
+        { key:'booked', header: sortHead('booked', t.colBooked), width:'140px', render:(r) => {
             const b = bookedParts(r.createdAt);
             if (!b) return React.createElement('span', { 'data-vt-quiet': '1' }, '—');
             const keep = (v) => React.createElement('span', { className: 'vt-dir-keep', 'data-vt-no-i18n': '1' }, v);
@@ -435,7 +508,7 @@ class Component extends DCLogic {
         { key:'route', header: t.colRoute, width:'148px', render:(r) => React.createElement('span', { 'data-vt-stack': '1', 'data-vt-route': '1', title: [r.pickup, r.dropoff].filter(Boolean).join(' → ') },
             React.createElement('span', { 'data-vt-clip': '1', title: r.pickup || '' }, r.pickup || '—'),
             React.createElement('span', { 'data-vt-sub': '1', title: r.dropoff || '' }, r.dropoff ? ('→ ' + r.dropoff) : '')) },
-        { key:'vehicle', header: t.colVehicle, width:'120px', render:(r) => {
+        { key:'vehicle', header: sortHead('vehicle', t.colVehicle), width:'120px', render:(r) => {
             const Icon = (window.VamosTaxiDesignSystem_245af1 || {}).Icon;
             return React.createElement('span', { 'data-vt-stack': '1' },
             React.createElement('span', { 'data-vt-clip': '1', title: r.klass || r.vehicle || '' }, r.klass || r.vehicle || '—'),
@@ -444,14 +517,14 @@ class Component extends DCLogic {
               '·',
               React.createElement('span', { 'data-vt-pb': '1' }, Icon ? React.createElement(Icon, { name:'luggage', size:14, color:'var(--vt-text-muted)' }) : null, r.bags + ' ' + t.bagsShort)));
           } },
-        { key:'driver', header: t.colDriver, width:'168px', render:(r) => r.driver
+        { key:'driver', header: sortHead('driver', t.colDriver), width:'168px', render:(r) => r.driver
             ? React.createElement('span', { 'data-vt-driver': '1', title: r.driver }, r.driver)
             : (isBoardTrip(r)
               ? (DS.Badge
                 ? React.createElement(DS.Badge, { tone: 'warning', icon: 'triangle-alert' }, t.unassignedCell)
                 : React.createElement('span', { 'data-ops-tag': '1' }, t.unassignedCell))
               : React.createElement('span', { 'data-vt-quiet': '1' }, '—')) },
-        { key:'total', header: t.colTotal, width:'112px', align:'start', render:(r) => React.createElement('span', { 'data-vt-fare': '1' }, fareLabel(r.totalRappen)) },
+        { key:'total', header: sortHead('total', t.colTotal), width:'112px', align:'start', render:(r) => React.createElement('span', { 'data-vt-fare': '1' }, fareLabel(r.totalRappen)) },
       ],
       visibleRows, openRow: this.openRow,
       filtRef: this._filtRef, openNew: this.openNew, addTick: this.state.addTick || 0, editTick: this.state.editTick || 0, editId: this.state.editId || '',
