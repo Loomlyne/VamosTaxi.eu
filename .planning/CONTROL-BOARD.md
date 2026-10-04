@@ -324,7 +324,8 @@ The owner decided every finding F1 to F14. Every Phase 20 ship needs his Ship.
 | Fare lines | `20261007230000` fare_line_reads (**live 2026-10-03 20:39**, live version `20261003163944`) |
 | Phase 28 | `20261007240000` booking_meta_click_ids (**live 2026-10-03 19:58**, live version `20261003155826`) |
 | Frozen price book restore | `20261007250000` pricing_row_frozen_restore (**live 2026-10-03 20:11**, live version `20261003161120`) |
-| **Next free** | **`20261007270000`**. Ask the controller first; check every remote branch and worktree for the file name. Never a number that sorts before one already on main |
+| Phase 29 lock order | `20261007270000` reserved 2026-10-04 for the claim/sweep lock-order fix (owner, question form: "Yes, small job now") |
+| **Next free** | **`20261007280000`**. Ask the controller first; check every remote branch and worktree for the file name. Never a number that sorts before one already on main |
 
 ## Decisions that stand
 
