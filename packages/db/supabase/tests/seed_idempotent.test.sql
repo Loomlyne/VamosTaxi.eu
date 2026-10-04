@@ -119,10 +119,11 @@ select is((select count(*) from public.reviews where published)::int, 0, 'no see
 -- 2026-10-03 26.2 audit: three component keys (flight day group, footer YouTube and TikTok names): seed header 2695 keys, 97 no-param-reason.
 -- 2026-10-03 contact button: +10 keys (contactButton.*): seed header 2705 keys, 97 no-param-reason.
 -- 2026-10-03 vamos_qs cookie row: +2 keys (cookies.qs-cookie-*): seed header 2707 keys, 98 no-param-reason.
-select is((select count(*) from public.content_strings)::int, 2707 + 26, 'content_strings row count = flattened en.json key count + 26 migration canton names');
+-- 2026-10-04 vt_manage + NEXT_LOCALE cookie rows: +3 keys (cookies.locale-cookie-duration, manage-cookie-*): seed header 2710 keys, 100 no-param-reason.
+select is((select count(*) from public.content_strings)::int, 2710 + 26, 'content_strings row count = flattened en.json key count + 26 migration canton names');
 select is((select count(*) from public.content_strings where pending_value)::int, 16, '16 pending-value keys (ADR-011, Law 04 data-tok)');
 select is((select count(*) from public.content_strings where non_translatable)::int, 8 + 26, '8 non-translatable seed keys (ADR-012) + 26 migration canton names');
-select is((select count(*) from public.content_strings where no_param_reason is not null)::int, 98, '98 no-param-reason keys (I18N-06; count re-read from the seed header after B7 + /confirmation)');
+select is((select count(*) from public.content_strings where no_param_reason is not null)::int, 100, '100 no-param-reason keys (I18N-06; count re-read from the seed header after B7 + /confirmation)');
 select ok(
   (select de is not null and fr is not null and ar is not null from public.content_strings where key = 'price.surcharge.night.rule'),
   'price.surcharge.night.rule (Plan 02-04) has a non-null de/fr/ar translation'
