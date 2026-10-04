@@ -8,7 +8,7 @@
 // (booking_staff_trip_change, migration 20261007150000) checks them again.
 
 import { zurichLocalToUtcMs } from "../geo/serviceArea";
-import { sqlErrorCode } from "./refund-map";
+import { PAYMENT_CHANGED, isPaymentChanged, sqlErrorCode } from "./refund-map";
 import { OPS_SQLSTATE } from "./sqlstate";
 
 /** Every named refusal a change can answer. The dashboard has a sentence for each. */
@@ -29,6 +29,8 @@ export const CHANGE_FAIL_CODES = [
   "price-book-changed",
   "price-changed",
   "paid-changed",
+  // 261004 lock order (migration 20261007280000): a payment settled in the same instant; nothing written.
+  "payment-changed",
   "must-fix",
   "stripe-test-only",
   "stripe-failed",
@@ -121,6 +123,7 @@ export function mapChangeSqlError(err: unknown): ChangeFail {
     }
   }
   if (message === "capacity") return { ok: false, code: "must-fix" };
+  if (isPaymentChanged(err)) return { ok: false, code: PAYMENT_CHANGED };
   const code = sqlErrorCode(err);
   if (code === OPS_SQLSTATE.noData) return { ok: false, code: "not-found" };
   if (code === OPS_SQLSTATE.exclusion) return { ok: false, code: "must-fix" };

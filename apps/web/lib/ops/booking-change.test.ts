@@ -331,6 +331,18 @@ describe("confirmBookingChange", () => {
     });
   });
 
+  it("261004 lock order: a payment settled in the same instant (40001 payment-changed) is its own refusal, nothing else is written", async () => {
+    const ctx = context();
+    const total = charged(book(18), BIZ);
+    systemReturns(() => Object.assign(new Error("payment-changed"), { code: "40001" }));
+    expect(await confirmBookingChange(env, claims, "VT-26-0801", { klass: BIZ, expectTotalRappen: total, expectPaidRappen: ctx.paidRappen }, undefined, deps(ctx))).toEqual({
+      ok: false,
+      code: "payment-changed",
+    });
+    expect(openDifferencePayment).not.toHaveBeenCalled();
+    expect(sendClassChangePay).not.toHaveBeenCalled();
+  });
+
   it("no Stripe page: the request ends, nothing waits without a way to pay", async () => {
     const ctx = context();
     const total = charged(book(18), BIZ);
