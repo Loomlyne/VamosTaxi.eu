@@ -238,6 +238,9 @@ async function post(fetchImpl: FetchLike, body: QuoteRequestBody): Promise<Quote
  * session. The server refuses the place (`place_unresolved`); the page then looks the
  * address text up again under a fresh session (suggest, then retrieve) and asks once more.
  *
+ * `order=mapbox`: this takes the first hit, so it asks for Mapbox's own order. The list a
+ * customer reads puts airports first; "Zürich, Switzerland" must not resolve to the airport.
+ *
  * Rate limit (quick 261003 review): on this path one price request spends TWO /api/quote
  * tokens (4/60 bare) plus two lookup tokens. The second POST is deliberately counted: the
  * server cannot tell a genuine re-ask from a forged one, and an uncounted "retry" flag would
@@ -254,7 +257,7 @@ async function resolveByText(
 ): Promise<QuotePlace | null> {
   try {
     const res = await fetchImpl(
-      `/api/geo/suggest?q=${encodeURIComponent(text)}&session_token=${encodeURIComponent(session)}&locale=${locale}`,
+      `/api/geo/suggest?q=${encodeURIComponent(text)}&session_token=${encodeURIComponent(session)}&locale=${locale}&order=mapbox`,
       { credentials: "same-origin" },
     );
     const json = asRecord(await res.json().catch(() => null));
