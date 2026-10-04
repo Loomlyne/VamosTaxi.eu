@@ -5,7 +5,7 @@
 //
 // The overview screen (app/ops/OpsDash.dc.html) run against a stub DCLogic, as ops-board-sort.test.ts does:
 // no DOM, no network. The rows are the live dashboard of 2026-10-04 (read-only): 25 bookings on the board,
-// 16 captured payments for CHF 1,307.32 (one on an erased booking, one a class-change difference), one refund.
+// 16 captured payments for 130732 rappen (one on an erased booking, one a class-change difference), one refund.
 
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -43,6 +43,7 @@ class StubLogic {
   forceUpdate() {}
 }
 const noop = () => undefined;
+/** The screen's money text for an amount in rappen: the stand-in VamosLocale.fromChf the screen calls. */
 const chf = (n: number) => `CHF ${(n / 100).toFixed(2)}`;
 
 type Fetch = (url: string) => Promise<{ json: () => Promise<unknown> }>;
@@ -84,8 +85,8 @@ function zurichDay(days = 0): string {
   return dt.toISOString().slice(0, 10);
 }
 
-// The board rows the store holds on live: the erased booking (CHF 100.00) is not among them, and the van
-// booking's snapshot total (CHF 106.31) is its fare plus the class-change difference paid later.
+// The board rows the store holds on live: the erased booking (10000 rappen) is not among them, and the van
+// booking's snapshot total (10631 rappen) is its fare plus the class-change difference paid later.
 const boardRow = (id: string, klass: string, totalRappen: number, capturedAt: string, status = "confirmed"): Json => ({
   id, klass, totalRappen, capturedAt, paid: Boolean(capturedAt), status, dateIso: zurichDay(-40), driver: "",
 });
@@ -124,13 +125,13 @@ const LIVE_ALL_MONEY = {
 const count = (v: Vals, label: string) => v.counts.find((c) => c.label === label)?.value;
 
 describe("money tiles read the server's captured payments", () => {
-  it("Average fare is income over the server's fare count (live all time: CHF 87.15, not CHF 93.38)", () => {
+  it("Average fare is income over the server's fare count (live all time: 8715 rappen a fare, not 9338)", () => {
     const dash = loadDash(LIVE_BOARD);
     dash.state = { ...dash.state, period: "all", money: LIVE_ALL_MONEY };
     const v = dash.renderVals();
-    expect(v.incomeMoney).toBe("CHF 1307.32");
-    expect(v.avgMoney).toBe("CHF 87.15");
-    expect(v.netMoney).toBe("CHF 1271.76");
+    expect(v.incomeMoney).toBe(chf(130732));
+    expect(v.avgMoney).toBe(chf(8715));
+    expect(v.netMoney).toBe(chf(130732 - 3556));
   });
 
   it("the Money in class lines are the server's split and add up to Income", () => {
@@ -138,9 +139,9 @@ describe("money tiles read the server's captured payments", () => {
     dash.state = { ...dash.state, period: "all", money: LIVE_ALL_MONEY };
     const v = dash.renderVals();
     expect(v.income).toEqual([
-      { label: "Economy", amount: "CHF 336.60" },
-      { label: "Business", amount: "CHF 736.04" },
-      { label: "Van luxury", amount: "CHF 234.68" },
+      { label: "Economy", amount: chf(33660) },
+      { label: "Business", amount: chf(73604) },
+      { label: "Van luxury", amount: chf(23468) },
     ]);
   });
 
@@ -148,14 +149,14 @@ describe("money tiles read the server's captured payments", () => {
     const dash = loadDash([]);
     dash.state = { ...dash.state, period: "all", money: LIVE_ALL_MONEY };
     const v = dash.renderVals();
-    expect(v.avgMoney).toBe("CHF 87.15");
-    expect(v.income.map((l) => l.amount)).toEqual(["CHF 336.60", "CHF 736.04", "CHF 234.68"]);
+    expect(v.avgMoney).toBe(chf(8715));
+    expect(v.income.map((l) => l.amount)).toEqual([chf(33660), chf(73604), chf(23468)]);
   });
 
   it("the Expenses foot says what is in it once there is something", () => {
     const dash = loadDash(LIVE_BOARD);
     dash.state = { ...dash.state, period: "all", money: LIVE_ALL_MONEY };
-    expect(dash.renderVals().expensesMoney).toBe("CHF 35.56");
+    expect(dash.renderVals().expensesMoney).toBe(chf(3556));
     expect(dash.renderVals().expensesFoot).toBe("Refunds and fees");
     dash.state = { ...dash.state, money: { ...LIVE_ALL_MONEY, refundRappen: 0, refunds: [] } };
     expect(dash.renderVals().expensesFoot).toBe("None recorded");
@@ -268,7 +269,7 @@ describe("switching periods", () => {
     pending.month?.({ ok: true, data: { ...LIVE_ALL_MONEY, period: "month" } });
     for (let i = 0; i < 4; i++) await Promise.resolve();
     expect(dash.state.period).toBe("today");
-    expect(dash.renderVals().incomeMoney).toBe("CHF 100.39");
+    expect(dash.renderVals().incomeMoney).toBe(chf(10039));
   });
 });
 

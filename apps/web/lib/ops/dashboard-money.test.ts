@@ -9,7 +9,7 @@
 //     Zurich. A fare captured between midnight and 04:00 was left out of Today, 7 days and 30 days.
 //  2. The average fare and the "Money in" class lines were worked out in the browser from the board's rows,
 //     which leave out an erased booking and fold a class-change difference into the first capture date. On
-//     live (16 captures, CHF 1,307.32) 30 days read CHF 93.38 a fare and the class lines summed CHF 1,207.32.
+//     live (16 captures, 130732 rappen) 30 days read 9338 rappen a fare and the class lines summed 120732 rappen.
 // The server now returns the fare count and the class split from the same captured payments as Income.
 // No database: asStaff is replaced by a recorder that answers each statement with live-shaped rows.
 
@@ -119,14 +119,14 @@ describe("loadDashboardMoney", () => {
     for (const values of db.values) for (const v of values) expect(v).toBeNull();
   });
 
-  it("live all time: income CHF 1,307.32 over 15 fares, and the class lines add up to income", async () => {
+  it("live all time: income 130732 rappen over 15 fares, and the class lines add up to income", async () => {
     db.classRows = LIVE_ALL_TIME;
     db.refund = 3556;
     db.lines = [{ customer: " Rider ", booking: "VT-26-0746", amount_rappen: 3556 }];
     const money = await loadDashboardMoney(env, claims, "all", NOW);
     expect(money.incomeRappen).toBe(130732);
     expect(money.fareCount).toBe(15);
-    expect(Math.round(money.incomeRappen / money.fareCount)).toBe(8715); // CHF 87.15, not CHF 93.38
+    expect(Math.round(money.incomeRappen / money.fareCount)).toBe(8715); // 8715 rappen a fare, not 9338
     expect(money.byClass).toEqual([
       { klass: "Economy", rappen: 33660 },
       { klass: "Business", rappen: 73604 },
