@@ -206,14 +206,6 @@ export default async function PrivacyPage({
             }
           />
           <ListRow
-            title="Sentry"
-            subtitle={
-              <>
-                {t("error-diagnostics")} <PendingSlot label="Sentry region" />
-              </>
-            }
-          />
-          <ListRow
             title={<PendingSlot label="Analytics provider" />}
             subtitle={
               <>

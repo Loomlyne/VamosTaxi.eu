@@ -153,11 +153,7 @@ export async function POST(request: Request): Promise<Response> {
     }
     if (!row?.review_id) return jsonErr("not-found", 404);
     return Response.json(
-      {
-        ok: true,
-        reviewId: row.review_id,
-        bookingId: row.booking_id,
-      },
+      { ok: true },
       { headers: noStore },
     );
   }
@@ -206,11 +202,7 @@ export async function POST(request: Request): Promise<Response> {
   }
   if (!row?.review_id) return jsonErr("not-found", 404);
   return Response.json(
-    {
-      ok: true,
-      reviewId: row.review_id,
-      bookingId: row.booking_id,
-    },
+    { ok: true },
     { headers: noStore },
   );
 }

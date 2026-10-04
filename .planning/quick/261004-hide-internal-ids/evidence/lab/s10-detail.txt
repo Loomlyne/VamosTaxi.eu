@@ -1,0 +1,7 @@
+== /cookies
+== /
+404 http://localhost:4710/photos/site/hero-oneway.jpg
+404 http://localhost:4710/photos/site/svc-airport.jpg
+404 http://localhost:4710/photos/site/why-alpine-route.jpg
+404 http://localhost:4710/photos/site/svc-city.jpg
+404 http://localhost:4710/photos/site/svc-corporate.jpg

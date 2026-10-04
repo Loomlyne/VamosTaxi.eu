@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it, vi } from "vitest";
-import { META_FBC_RE, META_FBP_RE, metaClickIdsToSave, readMetaClickIds } from "./click-ids";
+import { META_FBC_RE, META_FBP_RE, metaClickIdsToSave, readMetaClickIds, scheduleMetaClickIdSave } from "./click-ids";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const webRoot = join(here, "../..");
@@ -59,23 +59,40 @@ describe("metaClickIdsToSave", () => {
   it("no consent subject gives nulls", async () => {
     const readMarketing = vi.fn(async () => true);
     const r = await metaClickIdsToSave({ ...base, cookieHeader: `_fbp=${FBP}`, readMarketing });
-    expect(r).toEqual({ skip: false, fbp: null, fbc: null });
+    expect(r).toEqual({ skip: false, fbp: null, fbc: null, subject: null });
   });
   it("marketing off, unknown or a failing read gives nulls", async () => {
     for (const readMarketing of [async () => false, async () => null, async () => { throw new Error("db"); }]) {
-      expect(await metaClickIdsToSave({ ...base, readMarketing })).toEqual({ skip: false, fbp: null, fbc: null });
+      expect(await metaClickIdsToSave({ ...base, readMarketing })).toEqual({ skip: false, fbp: null, fbc: null, subject: null });
     }
   });
   it("marketing on gives the parsed values", async () => {
     const readMarketing = vi.fn(async () => true);
-    expect(await metaClickIdsToSave({ ...base, readMarketing })).toEqual({ skip: false, fbp: FBP, fbc: FBC });
+    expect(await metaClickIdsToSave({ ...base, readMarketing })).toEqual({ skip: false, fbp: FBP, fbc: FBC, subject: SUBJECT });
     expect(readMarketing).toHaveBeenCalledWith(SUBJECT);
   });
   it("does not ask for consent when both parsed values are null", async () => {
     const readMarketing = vi.fn(async () => true);
     const r = await metaClickIdsToSave({ ...base, cookieHeader: `consent_subject=${SUBJECT}; _fbp=junk`, readMarketing });
-    expect(r).toEqual({ skip: false, fbp: null, fbc: null });
+    expect(r).toEqual({ skip: false, fbp: null, fbc: null, subject: null });
     expect(readMarketing).not.toHaveBeenCalled();
+  });
+});
+
+describe("scheduleMetaClickIdSave", () => {
+  const decide = (readMarketing: () => Promise<boolean>) => ({ cookieHeader: COOKIES, origin: SITE, measurementAllowed: true, readMarketing });
+  it("passes the subject as the third write argument", async () => {
+    const write = vi.fn(async () => {});
+    await scheduleMetaClickIdSave({ ctx: null, decide: decide(async () => true), write });
+    expect(write).toHaveBeenCalledWith(FBP, FBC, SUBJECT);
+  });
+  it("writes three nulls when consent is off, nothing on skip", async () => {
+    const write = vi.fn(async () => {});
+    await scheduleMetaClickIdSave({ ctx: null, decide: decide(async () => false), write });
+    expect(write).toHaveBeenCalledWith(null, null, null);
+    const w2 = vi.fn(async () => {});
+    await scheduleMetaClickIdSave({ ctx: null, decide: { ...decide(async () => true), origin: null }, write: w2 });
+    expect(w2).not.toHaveBeenCalled();
   });
 });
 

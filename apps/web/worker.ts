@@ -30,10 +30,12 @@ import { createDigestDependencies } from "./lib/supabase/service";
 import { applyHandleResult, handleStripeMessage } from "./lib/checkout/settle";
 import { handleDlqMessage } from "./lib/checkout/dlq";
 import { sweepStuckNotifications } from "./lib/checkout/notify";
+import { sweepMetaPurchaseIds } from "./lib/meta/purchase";
 import { expireUnpaidBookings } from "./lib/checkout/expire-unpaid";
 import { purgeExpiredUnpaid } from "./lib/checkout/purge-unpaid";
 import { runReminder24h } from "./lib/lifecycle/reminder";
 import { probeHealth } from "./lib/health/probe";
+import { stripInternalHeaders } from "./lib/security/strip-internal-headers";
 import type { StripeQueueMessage } from "./lib/checkout/webhook";
 
 /**
@@ -69,10 +71,10 @@ async function routeFetch(
     const gone = new URL(inbound.url);
     gone.pathname = "/__vamos_gone";
     gone.search = "";
-    return handler.fetch(new Request(gone, inbound), env, ctx);
+    return stripInternalHeaders(await handler.fetch(new Request(gone, inbound), env, ctx));
   }
   if (gated) return gated;
-  return handler.fetch(inbound, env, ctx);
+  return stripInternalHeaders(await handler.fetch(inbound, env, ctx));
 }
 
 /**
@@ -115,6 +117,14 @@ export default {
         emit("info", "notification_sweep", { outcome: "ok" });
       } catch {
         emit("error", "notification_sweep", { outcome: "failed" });
+      }
+      // Phase 29 WR-02: empty fbp, fbc and consent subject an interrupted queue run left on a paid
+      // booking. Own try/catch; the log carries the count only.
+      try {
+        const cleaned = await sweepMetaPurchaseIds(env);
+        emit("info", "meta_purchase_sweep", { cleaned });
+      } catch {
+        emit("error", "meta_purchase_sweep", { outcome: "failed" });
       }
       return;
     }
@@ -215,7 +225,8 @@ export default {
       const body = message.body as StripeQueueMessage;
       let ackOutcome: "acked" | "retry" | "ack-failed" = "acked";
       try {
-        const result = await handleStripeMessage(env, body);
+        // Phase 29: only the queue may send the Purchase; the return route never does.
+        const result = await handleStripeMessage(env, body, { metaPurchase: true });
         // 26.1-08: a delayed retry (app_refund_pending) passes delaySeconds through.
         ackOutcome = applyHandleResult(message, result);
       } catch {

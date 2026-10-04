@@ -1,0 +1,18 @@
+
+
+
+
+
+
+
+
+(function () {
+  var DICT = {
+    langs: ['en', 'de', 'fr', 'ar'],
+    langNames: { en: 'English', de: 'Deutsch', fr: 'Français', ar: 'العربية' },
+
+    
+
+    patterns: [
+      { re: /^You are signed in as (.+)\. Continuing signs you out of that account\.$/,
+        de: 'Sie sind als $1 angemeldet. Wenn Sie fortfahren, werden Sie dort abgemeldet.', fr: 'Vous êtes connecté en tant 

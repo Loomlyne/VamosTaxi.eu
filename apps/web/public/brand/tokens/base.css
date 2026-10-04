@@ -1,6 +1,4 @@
-/* ── Base ─────────────────────────────────────────────────────────────────
-   Element defaults only. Component styling lives in the components.
-   ------------------------------------------------------------------------ */
+ 
 *,*::before,*::after{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--vt-bg-page);color:var(--vt-text-primary);font-family:var(--vt-font-body);font-size:var(--vt-body-md);line-height:var(--vt-body-leading);font-weight:var(--vt-weight-regular);-webkit-font-smoothing:antialiased}

@@ -1,0 +1,8 @@
+PASS | vt_manage en 1440 | row "vt_manage Lets you open and change your booking from this browser without signing in Vamos Taxi 30 days" | coverage 0 [] | dir ltr | sideways false | visible true
+PASS | NEXT_LOCALE en 1440 | row "NEXT_LOCALE Keeps the site in the language you chose Vamos Taxi 1 year" | coverage 0 [] | dir ltr | sideways false | visible true
+FAIL | vt_manage de 1440 | row "vt_manage Lets you open and change your booking from this browser without signing in Vamos Taxi 30 days" | coverage 21 ["Strictly necessary","Set for everyone, no consent needed, because without them | dir ltr | sideways false | visible true
+FAIL | NEXT_LOCALE de 1440 | row "NEXT_LOCALE Keeps the site in the language you chose Vamos Taxi 1 year" | coverage 21 ["Strictly necessary","Set for everyone, no consent needed, because without them | dir ltr | sideways false | visible true
+PASS | vt_manage fr 1440 | row "vt_manage Vous permet d'ouvrir et de modifier votre réservation depuis ce navigateur sans vous connecter Vamos Taxi 30 jours" | coverage 0 [] | dir ltr | sideways false | visible true
+PASS | NEXT_LOCALE fr 1440 | row "NEXT_LOCALE Affiche le site dans la langue que vous avez choisie Vamos Taxi 1 an" | coverage 0 [] | dir ltr | sideways false | visible true
+PASS | vt_manage ar 1440 | row "vt_manage يتيح لك فتح حجزك وتعديله من هذا المتصفح دون تسجيل الدخول Vamos Taxi 30 يومًا" | coverage 0 [] | dir rtl | sideways false | visible true
+PASS | NEXT_LOCALE ar 1440 | row "NEXT_LOCALE يُبقي الموقع باللغة التي اخترتها Vamos Taxi سنة واحدة" | coverage 0 [] | dir rtl | sideways false | visible true

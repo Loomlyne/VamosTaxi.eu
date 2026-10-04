@@ -54,7 +54,6 @@ export async function POST(request: Request): Promise<Response> {
   if (!result.ok) return json({ ok: false, code: result.code }, failStatus(result.code));
   return json({
     ok: true,
-    bookingId: result.bookingId,
     refundMode: result.refundMode,
     refundStatus: result.refundStatus,
     refundRappen: result.refundRappen,

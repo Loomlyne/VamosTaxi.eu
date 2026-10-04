@@ -1,0 +1,17 @@
+en 390 dir ltr sideways false coverage 0 ["Review access vt_review","Lets you open the review form from the link in your e-mail without signing in","Vamos Taxi","30 days"] tech ltr
+en 768 dir ltr sideways false coverage 0 ["Review access vt_review","Lets you open the review form from the link in your e-mail without signing in","Vamos Taxi","30 days"] tech ltr
+en 1024 dir ltr sideways false coverage 0 ["Review access vt_review","Lets you open the review form from the link in your e-mail without signing in","Vamos Taxi","30 days"] tech ltr
+en 1440 dir ltr sideways false coverage 0 ["Review access vt_review","Lets you open the review form from the link in your e-mail without signing in","Vamos Taxi","30 days"] tech ltr
+de 390 dir ltr sideways false coverage 0 ["Zugang zur Bewertung vt_review","Damit Sie das Bewertungsformular über den Link in Ihrer E-Mail ohne Anmeldung öffnen können","Vamos Taxi","30 Tage"] tech ltr
+de 768 dir ltr sideways false coverage 0 ["Zugang zur Bewertung vt_review","Damit Sie das Bewertungsformular über den Link in Ihrer E-Mail ohne Anmeldung öffnen können","Vamos Taxi","30 Tage"] tech ltr
+de 1024 dir ltr sideways false coverage 0 ["Zugang zur Bewertung vt_review","Damit Sie das Bewertungsformular über den Link in Ihrer E-Mail ohne Anmeldung öffnen können","Vamos Taxi","30 Tage"] tech ltr
+de 1440 dir ltr sideways false coverage 0 ["Zugang zur Bewertung vt_review","Damit Sie das Bewertungsformular über den Link in Ihrer E-Mail ohne Anmeldung öffnen können","Vamos Taxi","30 Tage"] tech ltr
+fr 390 dir ltr sideways false coverage 0 ["Accès à l’avis vt_review","Vous permet d’ouvrir le formulaire d’avis depuis le lien de votre e-mail sans vous connecter","Vamos Taxi","30 jours"] tech ltr
+fr 768 dir ltr sideways false coverage 0 ["Accès à l’avis vt_review","Vous permet d’ouvrir le formulaire d’avis depuis le lien de votre e-mail sans vous connecter","Vamos Taxi","30 jours"] tech ltr
+fr 1024 dir ltr sideways false coverage 0 ["Accès à l’avis vt_review","Vous permet d’ouvrir le formulaire d’avis depuis le lien de votre e-mail sans vous connecter","Vamos Taxi","30 jours"] tech ltr
+fr 1440 dir ltr sideways false coverage 0 ["Accès à l’avis vt_review","Vous permet d’ouvrir le formulaire d’avis depuis le lien de votre e-mail sans vous connecter","Vamos Taxi","30 jours"] tech ltr
+ar 390 dir rtl sideways false coverage 0 ["الوصول إلى التقييم vt_review","يتيح لك فتح نموذج التقييم من الرابط في بريدك الإلكتروني دون تسجيل الدخول","Vamos Taxi","30 يومًا"] tech ltr
+ar 768 dir rtl sideways false coverage 0 ["الوصول إلى التقييم vt_review","يتيح لك فتح نموذج التقييم من الرابط في بريدك الإلكتروني دون تسجيل الدخول","Vamos Taxi","30 يومًا"] tech ltr
+ar 1024 dir rtl sideways false coverage 0 ["الوصول إلى التقييم vt_review","يتيح لك فتح نموذج التقييم من الرابط في بريدك الإلكتروني دون تسجيل الدخول","Vamos Taxi","30 يومًا"] tech ltr
+ar 1440 dir rtl sideways false coverage 0 ["الوصول إلى التقييم vt_review","يتيح لك فتح نموذج التقييم من الرابط في بريدك الإلكتروني دون تسجيل الدخول","Vamos Taxi","30 يومًا"] tech ltr
+page errors / failed non-api requests: []

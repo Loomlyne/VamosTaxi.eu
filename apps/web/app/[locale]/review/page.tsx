@@ -1,3 +1,5 @@
+import { cookies } from "next/headers";
+import { REVIEW_COOKIE_NAME, reviewTokenFor } from "@/lib/reviews/review-cookie";
 import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { createNavigation } from "next-intl/navigation";
@@ -49,7 +51,8 @@ export default async function ReviewPage({
   const t = await getTranslations("reviews");
   const tCommon = await getTranslations("common");
   const siteKey = turnstileSiteKey();
-  const token = typeof query.token === "string" ? query.token.trim() : "";
+  // The middleware moves ?token= into the vt_review cookie; the query stays a fallback.
+  const token = reviewTokenFor(query.token, (await cookies()).get(REVIEW_COOKIE_NAME)?.value);
   const bookingRef = typeof query.bookingRef === "string" ? query.bookingRef.trim() : "";
 
   return (

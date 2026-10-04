@@ -1,22 +1,14 @@
-/* ── Colour ───────────────────────────────────────────────────────────────
-   Three colours are fixed by the brand guide (COLORS.pdf / p."COLOR"):
-   #FDC20B yellow, #1E1F1F charcoal, #DEDEDE light grey.
-   Everything else is a tint/shade derived from those three, plus a small
-   semantic set the guide does not define (needed for booking states).
-   ------------------------------------------------------------------------ */
+ 
 :root{
-  /* Brand — exact values from the guide */
+   
   --vt-yellow:#FDC20B;
   --vt-charcoal:#1E1F1F;
   --vt-grey:#DEDEDE;
 
-  /* Fourth guideline swatch (COLORS.pdf), parked with no assigned role (D-07).
-     The guide's own body text names only the three colours above; this one
-     is never assigned a job in that text. No surface may reference this
-     token until the designer states what it is for. */
+   
   --vt-orange:#D4632B;
 
-  /* Yellow scale (derived) */
+   
   --vt-yellow-50:#FFFBEE;
   --vt-yellow-100:#FEF3CD;
   --vt-yellow-200:#FEE79B;
@@ -26,7 +18,7 @@
   --vt-yellow-600:#D19C04;
   --vt-yellow-700:#A67B05;
 
-  /* Charcoal / neutral scale (derived) */
+   
   --vt-black:#000000;
   --vt-charcoal-950:#111212;
   --vt-charcoal-900:#1E1F1F;
@@ -41,7 +33,7 @@
   --vt-grey-50:#F6F6F6;
   --vt-white:#FFFFFF;
 
-  /* Semantic — NOT in the brand guide, derived in oklch to sit beside the yellow */
+   
   --vt-success:oklch(0.60 0.13 152);
   --vt-success-tint:oklch(0.95 0.04 152);
   --vt-warning:var(--vt-yellow-500);
@@ -51,7 +43,7 @@
   --vt-info:oklch(0.55 0.10 240);
   --vt-info-tint:oklch(0.95 0.03 240);
 
-  /* ── Semantic aliases — use these in components ── */
+   
   --vt-bg-page:var(--vt-grey-50);
   --vt-bg-surface:var(--vt-white);
   --vt-bg-inset:var(--vt-grey-100);
@@ -81,11 +73,7 @@
   --vt-focus:var(--vt-yellow-400);
 }
 
-/* Muted text (field hints, captions) must reach 4.5:1. --vt-grey-500 alone is
-   4.45:1 on white and 4.11:1 on --vt-bg-page. A 60/40 mix toward
-   --vt-charcoal-600 reads 5.4:1 on white, 5.0:1 on the page grey and 4.6:1 on
-   --vt-bg-inset, and stays a step lighter than --vt-text-secondary (7.3:1).
-   Browsers without color-mix keep --vt-grey-500. */
+ 
 @supports (color:color-mix(in oklab,red,blue)){
   :root{--vt-text-muted:color-mix(in oklab,var(--vt-grey-500) 60%,var(--vt-charcoal-600))}
 }
