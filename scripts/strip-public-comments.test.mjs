@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
-import { stripCss, stripHtml, stripJs, stripTree } from "./strip-public-comments.mjs";
+import { stripCss, stripHtml, stripJs, stripJsChecked, stripTree } from "./strip-public-comments.mjs";
 
 test("JS: line and block comments go, code stays", () => {
   const src = "/* Phase 26 D-14, .planning/decisions/x.md */\nvar a = 1; // owner 2026-10-01\nvar b = 2;\n";
@@ -69,19 +69,33 @@ test("HTML: markup comments, script and style comments go; attributes, text and 
   assert.ok(out.includes('<script src="../vamos-locale.js"></script>'));
 });
 
-test("stripTree: strips .js and .html in place, leaves support.js, ops/ and other files alone", () => {
+test("HTML: comment-like text inside attribute values, textarea and title is left alone (reviewer probe)", () => {
+  const src = '<p title="<!-- t -->">x</p><textarea><!-- keep --> // a</textarea><title>a <!-- b --></title><!-- go -->';
+  assert.equal(stripHtml(src), '<p title="<!-- t -->">x</p><textarea><!-- keep --> // a</textarea><title>a <!-- b --></title>');
+});
+
+test("stripJsChecked: proves the result with acorn and refuses to change code", () => {
+  assert.equal(stripJsChecked("var a = 1; // note\n"), "var a = 1; \n");
+  assert.equal(stripJsChecked("var a = 1;\n"), "var a = 1;\n");
+  // Not readable JS (JSX): left exactly as it is.
+  assert.equal(stripJsChecked("const x = <div>// y</div>;"), "const x = <div>// y</div>;");
+});
+
+test("stripTree: strips .js, .css and .html in place (support.js too, licences kept), leaves ops/ and other files alone", () => {
   const root = mkdtempSync(join(tmpdir(), "strip-"));
   mkdirSync(join(root, "pages"));
   mkdirSync(join(root, "ops"));
   writeFileSync(join(root, "ops", "OpsBoard.dc.html"), "<!-- dashboard only -->");
   writeFileSync(join(root, "vamos-x.js"), "// internal\nvar a;");
-  writeFileSync(join(root, "support.js"), "// vendor\nvar b;");
+  writeFileSync(join(root, "support.js"), "/** @license MIT */\n// src/boot.ts\nvar b;");
+  writeFileSync(join(root, "t.css"), "/* note */a{b:c}");
   writeFileSync(join(root, "pages", "p.dc.html"), "<!-- internal --><p>x</p>");
   writeFileSync(join(root, "pages", "n.svg"), "<!-- svg -->");
   const changed = stripTree(root).sort();
-  assert.deepEqual(changed, ["pages/p.dc.html", "vamos-x.js"]);
+  assert.deepEqual(changed, ["pages/p.dc.html", "support.js", "t.css", "vamos-x.js"]);
   assert.equal(readFileSync(join(root, "vamos-x.js"), "utf8"), "\nvar a;");
-  assert.equal(readFileSync(join(root, "support.js"), "utf8"), "// vendor\nvar b;");
+  assert.equal(readFileSync(join(root, "support.js"), "utf8"), "/** @license MIT */\n\nvar b;");
+  assert.equal(readFileSync(join(root, "t.css"), "utf8"), " a{b:c}");
   assert.equal(readFileSync(join(root, "pages", "p.dc.html"), "utf8"), "<p>x</p>");
   assert.equal(readFileSync(join(root, "pages", "n.svg"), "utf8"), "<!-- svg -->");
   assert.equal(readFileSync(join(root, "ops", "OpsBoard.dc.html"), "utf8"), "<!-- dashboard only -->");
