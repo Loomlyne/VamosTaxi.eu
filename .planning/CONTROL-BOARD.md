@@ -49,7 +49,8 @@ Rewritten short on 2026-09-30 14:25; the long version is in git history (`823022
 | `fix/icon-audit` | **Live 19:25 2026-10-04** (`d026de2a`, Worker `c692dfdf`) | done |
 | `fix/ops-booked-column` | **Live 20:28 2026-10-04** (`105e8191`, Worker `2700f59c`) | Owner: the Booked column on the bookings board (top rows VT-26-0752 "3 Oct · 19:19", VT-26-0751 "2 Oct · 20:47") |
 | Owner checks 2026-10-04 ~20:35 | **Passed** (owner "done"): dashboard sign-in after the vt-auth rename and the file gate, board and a booking; the Booked column; 4242 payment VT-26-0753 (confirmed, succeeded, CHF 100.39 = snapshot total, shown as AED 462.60 by Stripe adaptive pricing; Meta row skipped/no_test_code, nothing sent). Not covered: checkout signed in as a customer (VT-26-0753 is a guest booking; the only sign-in then was staff) | — |
-| `fix/ops-board-sort` | **Live 21:13 2026-10-04** (`771115f4`, Worker `f7018d2a`) | Owner: on the dashboard bookings board, newest booked first; click Booked, Vehicle, Driver, Total to flip; subtitle "Paid trips" |
+| `fix/ops-board-sort` | **Live 21:13 2026-10-04** (`771115f4`, Worker `f7018d2a`); **owner check passed** (owner "done nice all good working", ~21:20) | done |
+| `fix/ops-dash-numbers` | Opus job since 21:30: owner "fix the dashboard, it is not reading or calculating anything". Live rows read-only: today 1 capture CHF 100.39, 7 days 12 / CHF 859.22, all 16 / CHF 1,307.32, refunds CHF 35.56, Stripe fee never recorded (null on all 16). Job reproduces signed in, fixes proven reading bugs, brings meaning changes back as questions | Control check, owner questions, ship `vamos` |
 | Landed and cleaned 00:4x | settle safety, Dependabot, Actions trim: branches deleted on GitHub (archive tags), folders removed; the settle-safety folder waits for its session to close | |
 
 ## Controller take-over, 2026-10-02 15:26 (+04)
