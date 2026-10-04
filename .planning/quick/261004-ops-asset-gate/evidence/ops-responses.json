@@ -1,0 +1,344 @@
+{
+ "G1": {
+  "ops": [
+   "/app/ops/support.js 200",
+   "/app/ops/AuthForm.dc.html 200"
+  ],
+  "count": 2,
+  "consoleErrors": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)",
+   "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+  ],
+  "pageErrors": [],
+  "r404": [
+   "dashboard.localhost:4711/photos/site/ops-login-bg.jpg"
+  ]
+ },
+ "G2": [
+  {
+   "p": "/app/ops/ops.dc.html",
+   "status": 404,
+   "len": 0,
+   "cc": "private, no-store",
+   "loc": null
+  },
+  {
+   "p": "/app/ops/ops-login.dc.html",
+   "status": 404,
+   "len": 0,
+   "cc": "private, no-store",
+   "loc": null
+  },
+  {
+   "p": "/app/ops/ops.html",
+   "status": 404,
+   "len": 0,
+   "cc": "private, no-store",
+   "loc": null
+  },
+  {
+   "p": "/app/ops/OpsDetail.dc.html",
+   "status": 404,
+   "len": 0,
+   "cc": "private, no-store",
+   "loc": null
+  },
+  {
+   "p": "/app/ops/OpsBoard.dc.html",
+   "status": 404,
+   "len": 0,
+   "cc": "private, no-store",
+   "loc": null
+  },
+  {
+   "p": "/app/ops/OpsSettings.dc.html",
+   "status": 404,
+   "len": 0,
+   "cc": "private, no-store",
+   "loc": null
+  },
+  {
+   "p": "/app/ops/OpsSidebar.dc.html",
+   "status": 404,
+   "len": 0,
+   "cc": "private, no-store",
+   "loc": null
+  },
+  {
+   "p": "/app/ops/OpsTable.dc.html",
+   "status": 404,
+   "len": 0,
+   "cc": "private, no-store",
+   "loc": null
+  }
+ ],
+ "G3": [
+  {
+   "p": "/app/ops/support.js",
+   "status": 200,
+   "len": 65807,
+   "cc": "public, max-age=300",
+   "loc": null
+  },
+  {
+   "p": "/app/ops/AuthForm.dc.html",
+   "status": 200,
+   "len": 47373,
+   "cc": "public, max-age=300",
+   "loc": null
+  }
+ ],
+ "G4": [
+  {
+   "p": "/app/ops/ops.dc.html",
+   "status": 404,
+   "len": 0,
+   "cc": "private, no-store",
+   "loc": null
+  },
+  {
+   "p": "/app/ops/ops-login.dc.html",
+   "status": 404,
+   "len": 0,
+   "cc": "private, no-store",
+   "loc": null
+  },
+  {
+   "p": "/app/ops/ops.html",
+   "status": 404,
+   "len": 0,
+   "cc": "private, no-store",
+   "loc": null
+  },
+  {
+   "p": "/app/ops/OpsDetail.dc.html",
+   "status": 404,
+   "len": 0,
+   "cc": "private, no-store",
+   "loc": null
+  },
+  {
+   "p": "/app/ops/OpsBoard.dc.html",
+   "status": 404,
+   "len": 0,
+   "cc": "private, no-store",
+   "loc": null
+  },
+  {
+   "p": "/app/ops/OpsSettings.dc.html",
+   "status": 404,
+   "len": 0,
+   "cc": "private, no-store",
+   "loc": null
+  },
+  {
+   "p": "/app/ops/OpsSidebar.dc.html",
+   "status": 404,
+   "len": 0,
+   "cc": "private, no-store",
+   "loc": null
+  },
+  {
+   "p": "/app/ops/OpsTable.dc.html",
+   "status": 404,
+   "len": 0,
+   "cc": "private, no-store",
+   "loc": null
+  }
+ ],
+ "G5": {
+  "ops": [
+   "/app/ops/support.js 200",
+   "/app/ops/AuthForm.dc.html 200",
+   "/app/ops/OpsSidebar.dc.html 200",
+   "/app/ops/OpsDash.dc.html 200",
+   "/app/ops/BrandSelect.dc.html 200"
+  ],
+  "count": 5,
+  "consoleErrors": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)",
+   "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+  ],
+  "pageErrors": [],
+  "r404": [
+   "dashboard.localhost:4711/photos/site/ops-login-bg.jpg"
+  ]
+ },
+ "G6": {
+  "ops": [
+   "/app/ops/OpsBoard.dc.html 200",
+   "/app/ops/OpsSidebar.dc.html 200",
+   "/app/ops/OpsTable.dc.html 200"
+  ],
+  "count": 3,
+  "consoleErrors": [],
+  "pageErrors": [],
+  "r404": []
+ },
+ "G7": {
+  "ops": [
+   "/app/ops/OpsSidebar.dc.html 200",
+   "/app/ops/OpsBoard.dc.html 200",
+   "/app/ops/OpsTable.dc.html 200"
+  ],
+  "count": 3,
+  "consoleErrors": [],
+  "pageErrors": [],
+  "r404": []
+ },
+ "G8": [
+  {
+   "p": "/app/ops/OpsDetail.dc.html",
+   "status": 200,
+   "len": 187284,
+   "cc": "private, no-store",
+   "loc": null
+  },
+  {
+   "p": "/app/ops/ops.dc.html",
+   "status": 200,
+   "len": 32565,
+   "cc": "private, no-store",
+   "loc": null
+  }
+ ],
+ "G9": [
+  {
+   "p": "/app/ops/ops.dc.html",
+   "status": 404,
+   "len": 0,
+   "cc": "private, no-store",
+   "loc": null
+  },
+  {
+   "p": "/app/ops/ops-login.dc.html",
+   "status": 404,
+   "len": 0,
+   "cc": "private, no-store",
+   "loc": null
+  },
+  {
+   "p": "/app/ops/ops.html",
+   "status": 404,
+   "len": 0,
+   "cc": "private, no-store",
+   "loc": null
+  },
+  {
+   "p": "/app/ops/OpsDetail.dc.html",
+   "status": 404,
+   "len": 0,
+   "cc": "private, no-store",
+   "loc": null
+  },
+  {
+   "p": "/app/ops/OpsBoard.dc.html",
+   "status": 404,
+   "len": 0,
+   "cc": "private, no-store",
+   "loc": null
+  },
+  {
+   "p": "/app/ops/OpsSettings.dc.html",
+   "status": 404,
+   "len": 0,
+   "cc": "private, no-store",
+   "loc": null
+  },
+  {
+   "p": "/app/ops/OpsSidebar.dc.html",
+   "status": 404,
+   "len": 0,
+   "cc": "private, no-store",
+   "loc": null
+  },
+  {
+   "p": "/app/ops/OpsTable.dc.html",
+   "status": 404,
+   "len": 0,
+   "cc": "private, no-store",
+   "loc": null
+  }
+ ],
+ "G10": {
+  "ops": [
+   "/app/ops/support.js 200",
+   "/app/ops/AuthForm.dc.html 200",
+   "/app/ops/support.js 200",
+   "/app/ops/AuthForm.dc.html 200",
+   "/app/ops/OpsDash.dc.html 200",
+   "/app/ops/OpsSidebar.dc.html 200",
+   "/app/ops/BrandSelect.dc.html 200"
+  ],
+  "count": 7,
+  "consoleErrors": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found)",
+   "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+   "Failed to load resource: the server responded with a status of 404 (Not Found)",
+   "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+  ],
+  "pageErrors": [],
+  "r404": [
+   "dashboard.localhost:4711/photos/site/ops-login-bg.jpg",
+   "dashboard.localhost:4711/photos/site/ops-login-bg.jpg"
+  ]
+ },
+ "P1": [
+  {
+   "p": "/app/ops/OpsDetail.dc.html",
+   "status": 404,
+   "len": 0,
+   "cc": "private, no-store",
+   "loc": null
+  },
+  {
+   "p": "/app/ops/support.js",
+   "status": 404,
+   "len": 0,
+   "cc": "private, no-store",
+   "loc": null
+  },
+  {
+   "p": "/app/ops/AuthForm.dc.html",
+   "status": 404,
+   "len": 0,
+   "cc": "private, no-store",
+   "loc": null
+  }
+ ],
+ "P2": [
+  {
+   "path": "/",
+   "status": 200,
+   "heading": "Land in Zurich. Your driver is waiting.",
+   "perr": 0,
+   "cerr": 6,
+   "cerrText": [
+    "Failed to load resource: net::ERR_INVALID_URL",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)",
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+   ]
+  },
+  {
+   "path": "/terms",
+   "status": 200,
+   "heading": "Terms & conditions",
+   "perr": 0,
+   "cerr": 0,
+   "cerrText": []
+  }
+ ],
+ "P3": {
+  "with": {
+   "status": 308,
+   "location": "http://vamostaxi.site:4710/terms"
+  },
+  "without": {
+   "status": 308,
+   "location": "http://vamostaxi.site:4710/terms"
+  }
+ }
+}

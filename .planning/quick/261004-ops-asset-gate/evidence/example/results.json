@@ -1,0 +1,48 @@
+{
+ "at": "2026-10-04T14:40:57.099Z",
+ "base": "http://localhost:4710",
+ "results": [
+  {
+   "id": "S1",
+   "title": "home to /checkout at 1440 (en)",
+   "status": "PASS",
+   "evidence": "/checkout; 3 classes"
+  },
+  {
+   "id": "S2",
+   "title": "Economy chosen",
+   "status": "PASS",
+   "evidence": "PAY label \"PAY CHF 0.49\""
+  },
+  {
+   "id": "S3",
+   "title": "traveller filled",
+   "status": "PASS",
+   "evidence": "email lab-mutxgv9s@example.com"
+  },
+  {
+   "id": "S4",
+   "title": "PAY makes one fake Stripe session equal to the shown total",
+   "status": "PASS",
+   "evidence": "intent 200; sessions 0->1; fake Stripe 49 rappen; PAY label shows 0.49"
+  },
+  {
+   "id": "S5",
+   "title": "same flow at 390 (phone sheet)",
+   "status": "PASS",
+   "evidence": "intent 200; sessions 1->2; fake Stripe 49 rappen; PAY label shows 0.49"
+  },
+  {
+   "id": "S6",
+   "title": "German: /checkout labels, then the home booking widget has no untranslated strings",
+   "status": "PASS",
+   "evidence": "/checkout lang de, PAY in German true, English left []; #book coverage count 0 []"
+  },
+  {
+   "id": "S7",
+   "title": "LABFIX lowers the total and the fake session amount matches",
+   "status": "PASS",
+   "evidence": "full 0.49 -> 0.38; intent 200; sessions 2->3; fake Stripe 38 rappen; PAY label shows 0.38; DB bookings 3"
+  }
+ ]
+}

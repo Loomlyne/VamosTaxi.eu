@@ -1,0 +1,24 @@
+{
+ "at": "2026-10-04T14:41:37.096Z",
+ "base": "http://localhost:4710",
+ "results": [
+  {
+   "id": "X2",
+   "title": "booking detail after sign-in",
+   "status": "PASS",
+   "evidence": "reference VT-26-0003; page 200; shows reference true; url /bookings/VT-26-0003; /app/ops in detail window 3 (/app/ops/OpsSidebar.dc.html 200, /app/ops/OpsDetail.dc.html 200, /app/ops/ActionsMenu.dc.html 200); sign-in window 5; all /app/ops 200 true; console errors detail 1, sign-in 2"
+  },
+  {
+   "id": "X3-G1",
+   "title": "signed-out /login, photos stubbed",
+   "status": "PASS",
+   "evidence": "login 200; >=400: 401 GET dashboard.localhost:4711/api/staff/me; console errors 1: Failed to load resource: the server responded with a status of 401 (Unauthorized) @ dashboard.localhost:4711/api/staff/me; /app/ops (2): /app/ops/support.js 200, /app/ops/AuthForm.dc.html 200"
+  },
+  {
+   "id": "X3-G10",
+   "title": "390 px login + sign-in + dashboard, photos stubbed",
+   "status": "PASS",
+   "evidence": "url /dashboard; >=400: 401 GET dashboard.localhost:4711/api/staff/me | 401 GET dashboard.localhost:4711/api/staff/me; console errors 2: Failed to load resource: the server responded with a status of 401 (Unauthorized) @ dashboard.localhost:4711/api/staff/me || Failed to load resource: the server responded with a status of 401 (Unauthorized) @ dashboard.localhost:4711/api/staff/me; /app/ops (7): /a"
+  }
+ ]
+}

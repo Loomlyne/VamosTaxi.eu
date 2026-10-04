@@ -1,0 +1,90 @@
+{
+ "at": "2026-10-04T14:37:33.905Z",
+ "base": "http://localhost:4710",
+ "results": [
+  {
+   "id": "G1",
+   "title": "signed out /login",
+   "status": "FAIL",
+   "evidence": "login 200; email true, password true; errors 2; /app/ops (2): /app/ops/support.js 200, /app/ops/AuthForm.dc.html 200; 404s 1"
+  },
+  {
+   "id": "G2",
+   "title": "signed out: screen files 404",
+   "status": "PASS",
+   "evidence": "ops.dc.html:404/0b/private, no-store; ops-login.dc.html:404/0b/private, no-store; ops.html:404/0b/private, no-store; OpsDetail.dc.html:404/0b/private, no-store; OpsBoard.dc.html:404/0b/private, no-store; OpsSettings.dc.html:404/0b/private, no-store; OpsSidebar.dc.html:404/0b/private, no-store; OpsTable.dc.html:404/0b/private, no-store"
+  },
+  {
+   "id": "G3",
+   "title": "signed out: the two open files",
+   "status": "PASS",
+   "evidence": "support.js:200/65807b/public, max-age=300; AuthForm.dc.html:200/47373b/public, max-age=300"
+  },
+  {
+   "id": "G4",
+   "title": "signed out + x-vamos-dc-asset header",
+   "status": "PASS",
+   "evidence": "ops.dc.html:404/0b/private, no-store; ops-login.dc.html:404/0b/private, no-store; ops.html:404/0b/private, no-store; OpsDetail.dc.html:404/0b/private, no-store; OpsBoard.dc.html:404/0b/private, no-store; OpsSettings.dc.html:404/0b/private, no-store; OpsSidebar.dc.html:404/0b/private, no-store; OpsTable.dc.html:404/0b/private, no-store"
+  },
+  {
+   "id": "G5",
+   "title": "dashboardSignIn",
+   "status": "FAIL",
+   "evidence": "url /dashboard; sidebar text seen true; errors 2; /app/ops count 5, all 200: true: /app/ops/support.js 200, /app/ops/AuthForm.dc.html 200, /app/ops/OpsSidebar.dc.html 200, /app/ops/OpsDash.dc.html 200, /app/ops/BrandSelect.dc.html 200"
+  },
+  {
+   "id": "G6",
+   "title": "/bookings board",
+   "status": "PASS",
+   "evidence": "page 200; rows 0; empty message true; errors 0; /app/ops count 3, all 200: true; text: \"Dashboard Bookings Calendar Chauffeurs Pricing & routes Customers Support Content Collapse sidebar L\""
+  },
+  {
+   "id": "G7",
+   "title": "booking detail",
+   "status": "FAIL",
+   "evidence": "no row; db reference ; url /bookings; reference shown undefined; errors 0; /app/ops count 3, all 200: true"
+  },
+  {
+   "id": "G8",
+   "title": "signed in: screen files",
+   "status": "PASS",
+   "evidence": "OpsDetail.dc.html:200/187284b/private, no-store; ops.dc.html:200/32565b/private, no-store"
+  },
+  {
+   "id": "G9",
+   "title": "sign out",
+   "status": "PASS",
+   "evidence": "after opening menu control #0; url /login; signed-out probes 404,404,404,404,404,404,404,404; vt-auth cookies present 1 (names vt-auth), non-empty 0"
+  },
+  {
+   "id": "G10",
+   "title": "390 login + sign-in + dashboard",
+   "status": "FAIL",
+   "evidence": "login visible true, errors at login 2; after sign-in url /dashboard; errors total 4; /app/ops count 7, non-200 0; text \"Dashboard Bookings Calendar Chauffeurs Pricing & routes Customers Support Conten\""
+  },
+  {
+   "id": "P1",
+   "title": "public host: dashboard asset files",
+   "status": "PASS",
+   "evidence": "OpsDetail.dc.html:404/0b/private, no-store; support.js:404/0b/private, no-store; AuthForm.dc.html:404/0b/private, no-store"
+  },
+  {
+   "id": "P2",
+   "title": "public / and /terms",
+   "status": "PASS",
+   "evidence": "/ 200 heading \"Land in Zurich. Your driver is waiting.\" page errors 0 console errors 6 Failed to load resource: net::ERR_INVALID_URL|Failed to load resource: the server responded with a status of 404 (Not Found)|Failed to load resource: the server responded with a status of 404 (Not Found)|Failed to load resource: the server responded with a status of 404 (Not Found)|Failed to load resource: the s"
+  },
+  {
+   "id": "P3",
+   "title": "public /app/pages/terms.dc.html with and without header",
+   "status": "PASS",
+   "evidence": "with header 308 http://vamostaxi.site:4710/terms; without 308 http://vamostaxi.site:4710/terms"
+  },
+  {
+   "id": "P4",
+   "title": "dashboard /login/confirm",
+   "status": "PASS",
+   "evidence": "status 200; body 8245 chars; contains <html true"
+  }
+ ]
+}

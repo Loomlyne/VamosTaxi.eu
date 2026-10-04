@@ -1,0 +1,90 @@
+{
+ "X2_signin": {
+  "ops": [
+   "/app/ops/support.js 200",
+   "/app/ops/AuthForm.dc.html 200",
+   "/app/ops/OpsDash.dc.html 200",
+   "/app/ops/OpsSidebar.dc.html 200",
+   "/app/ops/BrandSelect.dc.html 200"
+  ],
+  "count": 5,
+  "bad": [
+   "404 GET dashboard.localhost:4711/photos/site/ops-login-bg.jpg",
+   "401 GET dashboard.localhost:4711/api/staff/me"
+  ],
+  "failed": [],
+  "cerr": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found) @ dashboard.localhost:4711/photos/site/ops-login-bg.jpg",
+   "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ dashboard.localhost:4711/api/staff/me"
+  ],
+  "perr": []
+ },
+ "X2_detail": {
+  "ops": [
+   "/app/ops/OpsSidebar.dc.html 200",
+   "/app/ops/OpsDetail.dc.html 200",
+   "/app/ops/ActionsMenu.dc.html 200"
+  ],
+  "count": 3,
+  "bad": [
+   "404 GET dashboard.localhost:4711/assets/icons/route.svg"
+  ],
+  "failed": [],
+  "cerr": [
+   "Failed to load resource: the server responded with a status of 404 (Not Found) @ dashboard.localhost:4711/assets/icons/route.svg"
+  ],
+  "perr": []
+ },
+ "X3_G1": {
+  "ops": [
+   "/app/ops/support.js 200",
+   "/app/ops/AuthForm.dc.html 200"
+  ],
+  "count": 2,
+  "bad": [
+   "401 GET dashboard.localhost:4711/api/staff/me"
+  ],
+  "failed": [],
+  "cerr": [
+   "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ dashboard.localhost:4711/api/staff/me"
+  ],
+  "perr": []
+ },
+ "X3_G10_login": {
+  "ops": [
+   "/app/ops/support.js 200",
+   "/app/ops/AuthForm.dc.html 200"
+  ],
+  "count": 2,
+  "bad": [
+   "401 GET dashboard.localhost:4711/api/staff/me"
+  ],
+  "failed": [],
+  "cerr": [
+   "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ dashboard.localhost:4711/api/staff/me"
+  ],
+  "perr": []
+ },
+ "X3_G10_total": {
+  "ops": [
+   "/app/ops/support.js 200",
+   "/app/ops/AuthForm.dc.html 200",
+   "/app/ops/support.js 200",
+   "/app/ops/AuthForm.dc.html 200",
+   "/app/ops/OpsSidebar.dc.html 200",
+   "/app/ops/OpsDash.dc.html 200",
+   "/app/ops/BrandSelect.dc.html 200"
+  ],
+  "count": 7,
+  "bad": [
+   "401 GET dashboard.localhost:4711/api/staff/me",
+   "401 GET dashboard.localhost:4711/api/staff/me"
+  ],
+  "failed": [],
+  "cerr": [
+   "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ dashboard.localhost:4711/api/staff/me",
+   "Failed to load resource: the server responded with a status of 401 (Unauthorized) @ dashboard.localhost:4711/api/staff/me"
+  ],
+  "perr": []
+ }
+}
