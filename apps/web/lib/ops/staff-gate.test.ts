@@ -81,32 +81,41 @@ describe("staffGateDecision: a passkey is a sign-in option, not a forced step (q
 });
 
 describe("middleware wiring (source contract)", () => {
-  const middleware = readFileSync(join(dirname(fileURLToPath(import.meta.url)), "../../middleware.ts"), "utf8");
+  const here = dirname(fileURLToPath(import.meta.url));
+  const middleware = readFileSync(join(here, "../../middleware.ts"), "utf8");
+  const session = readFileSync(join(here, "session.ts"), "utf8");
+  const assetGate = readFileSync(join(here, "asset-gate.ts"), "utf8");
+  // The dashboard host's console rule lives in one function, shared by the documents
+  // (dashboardHostMiddleware) and the /app/ops/* screen files (asset-gate.ts).
+  const consoleRule = session.slice(
+    session.indexOf("export async function dashboardConsoleAllowed("),
+    session.indexOf("export async function getStaffClaims("),
+  );
+  const dash = middleware.slice(
+    middleware.indexOf("async function dashboardHostMiddleware("),
+    middleware.indexOf("function opsRedirectUrl("),
+  );
+  const ops = middleware.slice(
+    middleware.indexOf("async function opsStaffGate("),
+    middleware.indexOf("export default async function middleware("),
+  );
 
-  it("both the dashboard host gate and the /ops gate call staffGateDecision", () => {
-    expect(middleware.split("staffGateDecision(").length - 1).toBeGreaterThanOrEqual(2);
-    const dash = middleware.slice(
-      middleware.indexOf("async function dashboardHostMiddleware("),
-      middleware.indexOf("function opsRedirectUrl("),
-    );
-    expect(dash).toContain("staffGateDecision(");
-    const ops = middleware.slice(
-      middleware.indexOf("async function opsStaffGate("),
-      middleware.indexOf("export default async function middleware("),
-    );
+  it("the dashboard host gate and the /ops gate both decide through staffGateDecision", () => {
+    expect(consoleRule.length).toBeGreaterThan(0);
+    expect(consoleRule).toContain("staffGateDecision(");
+    expect(dash).toContain("dashboardConsoleAllowed(client.supabase");
+    expect(dash).not.toContain("staffGateDecision(");
     expect(ops).toContain("staffGateDecision(");
   });
 
+  it("the screen-file gate uses the very same console rule as the dashboard documents", () => {
+    expect(assetGate).toContain("dashboardConsoleAllowed(client.supabase");
+    expect(assetGate).not.toContain("staffGateDecision(");
+    expect(assetGate).not.toContain("vamos_role");
+  });
+
   it("both gates pass the amr inputs to staffGateDecision", () => {
-    const dash = middleware.slice(
-      middleware.indexOf("async function dashboardHostMiddleware("),
-      middleware.indexOf("function opsRedirectUrl("),
-    );
-    const ops = middleware.slice(
-      middleware.indexOf("async function opsStaffGate("),
-      middleware.indexOf("export default async function middleware("),
-    );
-    for (const gate of [dash, ops]) {
+    for (const gate of [consoleRule, ops]) {
       expect(gate).toContain("passkeyGateInputs(");
       expect(gate).toMatch(/\.\.\.passkey/);
     }
@@ -118,6 +127,8 @@ describe("middleware wiring (source contract)", () => {
 
   it("the dashboard console admits only an allow decision for the admin role (D-16b)", () => {
     expect(middleware).not.toMatch(/role === "dispatcher"/);
-    expect(middleware).toMatch(/const inConsole = role === "admin" && gate === "allow"/);
+    expect(consoleRule).not.toMatch(/role === "dispatcher"/);
+    expect(consoleRule).toMatch(/const inConsole = role === "admin" && gate === "allow"/);
+    expect(dash).toMatch(/const inConsole = await dashboardConsoleAllowed\(/);
   });
 });

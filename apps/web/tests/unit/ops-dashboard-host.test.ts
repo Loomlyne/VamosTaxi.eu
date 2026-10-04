@@ -51,7 +51,8 @@ describe("dashboard host DC login @ops-dashboard-host", () => {
   });
 
   it("signed-in /login serves ops-login before console 404", () => {
-    const afterRole = middleware.slice(middleware.indexOf("const inConsole = role"));
+    const afterRole = middleware.slice(middleware.indexOf("const inConsole = await dashboardConsoleAllowed("));
+    expect(middleware.indexOf("const inConsole = await dashboardConsoleAllowed(")).toBeGreaterThan(-1);
     const loginIdx = afterRole.indexOf('dashPath === "/login"');
     const loginHtmlIdx = afterRole.indexOf("ops-login.dc.html");
     const notFoundIdx = afterRole.indexOf("opsConsoleNotFound");

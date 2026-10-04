@@ -1,0 +1,120 @@
+{
+ "nav": "Dashboard Bookings Calendar Chauffeurs Pricing & routes Customers Support Content Collapse sidebar Lab Admin admin Dashboard Bookings Calendar Chauffeurs Pricing & routes Customers Support Content",
+ "controls": [
+  {
+   "tag": "A",
+   "text": "Dashboard",
+   "aria": null
+  },
+  {
+   "tag": "A",
+   "text": "Bookings",
+   "aria": null
+  },
+  {
+   "tag": "A",
+   "text": "Calendar",
+   "aria": null
+  },
+  {
+   "tag": "A",
+   "text": "Chauffeurs",
+   "aria": null
+  },
+  {
+   "tag": "A",
+   "text": "Pricing & routes",
+   "aria": null
+  },
+  {
+   "tag": "A",
+   "text": "Customers",
+   "aria": null
+  },
+  {
+   "tag": "A",
+   "text": "Support",
+   "aria": null
+  },
+  {
+   "tag": "BUTTON",
+   "text": "Content",
+   "aria": null
+  },
+  {
+   "tag": "BUTTON",
+   "text": "Collapse sidebar",
+   "aria": "Collapse sidebar"
+  },
+  {
+   "tag": "BUTTON",
+   "text": "Lab Admin admin",
+   "aria": null
+  },
+  {
+   "tag": "BUTTON",
+   "text": "",
+   "aria": "Open navigation"
+  },
+  {
+   "tag": "BUTTON",
+   "text": "Today",
+   "aria": null
+  },
+  {
+   "tag": "BUTTON",
+   "text": "7 days",
+   "aria": null
+  },
+  {
+   "tag": "BUTTON",
+   "text": "30 days",
+   "aria": null
+  },
+  {
+   "tag": "BUTTON",
+   "text": "All time",
+   "aria": null
+  },
+  {
+   "tag": "BUTTON",
+   "text": "Today",
+   "aria": "Time"
+  },
+  {
+   "tag": "A",
+   "text": "BOOKINGS 0 Taken in this period",
+   "aria": null
+  },
+  {
+   "tag": "A",
+   "text": "PICKUPS 0 Scheduled to run",
+   "aria": null
+  },
+  {
+   "tag": "A",
+   "text": "CHAUFFEURS ON SHIFT 0 / 0 Available to a",
+   "aria": null
+  },
+  {
+   "tag": "A",
+   "text": "Unassigned bookings Paid, no chauffeur y",
+   "aria": null
+  },
+  {
+   "tag": "A",
+   "text": "Awaiting payment Pay link sent, not paid",
+   "aria": null
+  },
+  {
+   "tag": "A",
+   "text": "Pending edits Paid trips waiting for acc",
+   "aria": null
+  },
+  {
+   "tag": "A",
+   "text": "CHAUFFEURS",
+   "aria": null
+  }
+ ]
+}

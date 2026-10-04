@@ -1,0 +1,234 @@
+Sun Oct  4 18:56:52 +04 2026
+PASS | 1a0 sign-up without the tick is refused | password 400 {"ok":false,"reason":"consent-required"}; magic 400 {"ok":false,"reason":"consent-required"}; mail=false; auth.users=0+0; agreement rows=0+0
+PASS | 1a signup: response + mail + auth.users row + one agreement record + optional phone kept on the account (27.1) | status 200 stage=sent; mail=true; auth.users=1; code-verifier cookie=true; agreement rows=1 matching=1; phone kept=true; finish mark=0
+PASS | 1b confirm link -> callback -> session/customer, no consent row (27 D-01) | hops=GET 200>POST 200 final=/de vt-auth cookie=true; session.signedIn=true; customers=1; consent_log=0; agreement rows=1
+PASS | 2 password sign-in then sign-out | signin->signedIn=true; after signout status 200 signedIn=false; token cookie left=false
+PASS | 3 magic link | request 200; hops=GET 200>POST 200 final=/; verifier=true; signedIn=true
+PASS | 3b sign-in link for a new address: same answer as a known one, a sealed confirm mail, one unconfirmed account, no record (27 D-37) | took 1311 ms; status 200 vs known 200; body equal=true; mail=true sealed confirm link=true; auth.users=1; agreement rows=0
+PASS | 3c confirm button signs in and lands on the finish step; the session and /api/checkout/me say it must finish | hops=GET 200>POST 200 target=/sign-up?state=finish; signedIn=true finishRequired=true; checkout/me={"signed_in":true,"finish_required":true}
+PASS | 3d finish without the tick: 400 consent-required, no record, no name written | 400 {"ok":false,"reason":"consent-required"}; agreement rows=0; first_name=""
+PASS | 3e finish with the tick: exactly one sign-up record, names and phone saved, finished; a second press writes nothing | 200 {"ok":true}; matching row=1; rows=1; full_name=Mia Keller; phone kept=true; customer row=Mia Keller|+41790000000; finishRequired=false; second press 200, rows=1; checkout/me after={"signed_in":true,"email":"e2e-newlink-1791125832111@example.com","first_name":"
+PASS | 3f the 6-digit code for a new address answers finish: true | code in mail=true; verify-code 200 {"ok":true,"finish":true}; finishRequired=true
+PASS | 3h link then a ticked /sign-up for the same address: signed in without a second tick | marked=1; signup 200; second mail=true; records=1; target=/; signedIn=true finishRequired=false
+PASS | 3i a past guest who signs in by link for the first time is asked to finish (a guest row is not a tick) | target=/sign-up?state=finish; finishRequired=true
+PASS | 3g a sign-up account is never asked to finish | signedIn=true finishRequired=false
+PASS | 4 e-mail code | verify-code status 200 body={"ok":true}; signedIn=true
+PASS | 5 reset flow | forgot 200; hops=GET 200>POST 200 final=/reset-password; signedIn=true; update-password 200 {"ok":true}; new pw signIn=true; old pw signedIn=false
+PASS | 6 unconfirmed sign-in + resend | signin status 400 {"ok":false,"reason":"email-not-confirmed"}; resend 200 {"stage":"sent"}; new mail=true
+PASS | 8 dashboard host | customer pw signin on dashboard: 403 {"ok":false,"reason":"not-staff"}; token cookie left=false; signedIn=false; magic unknown on dashboard: 200, auth.users=0; pw signup on dashboard: 200, auth.users=0, agreement rows=0
+PASS | 7 rate limit (11 wrong tries, same IP) | statuses=200,200,200,200,200,200,200,200,200,200,429
+COOKIE ATTR SETS:
+  1x vt-auth-flow-ac04f58b6c721e6fc528659c25cacc76-code-verifier | expires=… max-age=… path=/ samesite=lax
+  11x vt-auth-flows-code-verifier | expires=… max-age=… path=/ samesite=lax
+  12x vt-auth-code-verifier | expires=… max-age=… path=/ samesite=lax
+  18x vt-auth.N | expires=… max-age=… path=/ samesite=lax
+  6x vt-auth.N | path=/ samesite=lax
+  2x vt_reauth | httponly path=/ samesite=strict secure
+  1x vt-auth-flow-65ca09cdc3e9fb9403bf7f4ee3724810-code-verifier | expires=… max-age=… path=/ samesite=lax
+  1x vt-auth-flow-91c67be7873f92496f400f8ab12cd7ec-code-verifier | expires=… max-age=… path=/ samesite=lax
+  4x vt-auth | expires=… max-age=… path=/ samesite=lax
+  2x vt-auth | path=/ samesite=lax
+  1x vt-auth-flow-0f516684864400b5d31ad7dae0ac1dd5-code-verifier | expires=… max-age=… path=/ samesite=lax
+  1x vt-auth-flow-08d617f2e9dcb1016e5ea9a16b44786a-code-verifier | expires=… max-age=… path=/ samesite=lax
+  1x vt-auth-flow-4e554d210c5be605bbfe6d31da190ed1-code-verifier | expires=… max-age=… path=/ samesite=lax
+  1x vt-auth-flow-abcc82e0061af49e1eddb15f36b6efb1-code-verifier | expires=… max-age=… path=/ samesite=lax
+  1x vt-auth-flow-261e77a865a4f9eaedee80256c4e5cff-code-verifier | expires=… max-age=… path=/ samesite=lax
+  1x vt-auth-flow-b75f5658a2dac15f717d475e9c95b820-code-verifier | expires=… max-age=… path=/ samesite=lax
+  1x vt-auth-flow-b75f5658a2dac15f717d475e9c95b820-code-verifier | path=/ samesite=lax
+  2x vt-auth-flows-code-verifier | path=/ samesite=lax
+  1x vt-auth-code-verifier | path=/ samesite=lax
+  1x vt-auth-flow-3a114f832e1412ff4ebfac33694b8fa3-code-verifier | expires=… max-age=… path=/ samesite=lax
+  1x vt-auth-flow-c5c0d028cacbd89b7bed3372ad7d5964-code-verifier | expires=… max-age=… path=/ samesite=lax
+  1x vt-auth-flow-f5e8d6a769c9e320df2ef1dea3fdd1af-code-verifier | path=/ samesite=lax
+PASS | 9 cookie attributes (no Domain, Path=/, SameSite=Lax) | 22 distinct sets; violations=0; Secure present=true
+PASS | A0 same device with vt_manage: resume returns the booking | status 200 state=expired contact.email matches=true
+PASS | a1 second browser: resume answers exactly none | status 200 body={"state":"none"}
+PASS | a2 second browser: pasted checkout link shows no contact data of the first | hops=200 leaked=0
+FAIL | a3 second browser: intent with a forged lock (and supersedes) is refused, first booking untouched | status 503 code=temporarily_unavailable leaked=0 first booking status=pending
+PASS | b1 second browser signed in: /api/checkout/me is profile only | signedIn=true keys=signed_in,email,first_name,last_name,phone leaked(non-email)=0
+PASS | b2 signed in: resume still answers exactly none | status 200 body={"state":"none"}
+PASS | b3 signed in: account list hides the pending row (also after linking), shows the pay-link row | status 200 P listed=false S listed=true Q listed=true; P customer_id set after list=t
+PASS | b4 signed in: account details of the pending reference is 404 | status 404
+PASS | b5 Data API as the customer: unpaid row absent, pay-link and paid rows present (G1) | status 200 P present=false S present=true Q present=true rows=2
+PASS | c1 fresh browser: paid booking opens from its manage link and sets vt_manage | status 200 reference present=true vt_manage set=true
+PASS | c2 same browser: resume of the paid quote answers paid with the reference | status 200 state=paid reference matches=true
+PASS | c3 fresh browser: an unpaid booking's manage token answers 404 and sets no vt_manage | status 404 vt_manage set=false
+PASS | d1 fresh browser: staff pay-link page opens | hops=200
+N/A  | d2 fresh browser: pay-link open accepts the staff link with no cookie | N/A for the Stripe leg (no Stripe test key in the local Worker): valid token status 500 = "STRIPE_SECRET_KEY is not bound" in the Worker log, after the link lookups; unknown token status 409 code=pay_link_expired
+(node:75943) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/koss/Developer/VamosTaxi.eu/.claude/worktrees/agent-a27c298ece3746d96/apps/web/lib/crypto/hmac.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/koss/Developer/VamosTaxi.eu/.claude/worktrees/agent-a27c298ece3746d96/apps/web/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS | 0 three test users exist (sign-up link pressed on the confirm page) | A=true attacker=true ana=true; auth.users=1/1/1
+PASS | 1 magic link mail is /sign-in/confirm with token_hash, type and a sealed e (no /auth/v1/verify, no callback, no plain address) | request 200; path=/sign-in/confirm; type=magiclink; e present=true
+PASS | 2 GET of the confirm page: 200, private/no-store/noindex, no session; preview answers only the address (no-store); a moved seal answers expired | page 200; session after GET=false; preview={"ok":true,"email":"<the address>"}; moved seal={"ok":false,"code":"expired"}
+PASS | 3 POST from another site or without Origin is 403; without e 400; a seal for another address is refused and leaves no session | evil 403; no origin 403; no e 400; foreign seal 400 {"ok":false,"code":"expired"}
+PASS | 4 the button (POST) on another device signs in for the address the page showed; target is validated and cookies reach the response | status 200; target=/; signedIn=true; session cookies set=2
+PASS | 5 the same link pressed again is expired (one use) | status 400 {"ok":false,"code":"expired"}
+PASS | 6 crafted /api/auth/callback?token_hash=... (attacker's token): 302 to the confirm page, no cookie, no session | status 302; location path=http://localhost:4710/sign-in/confirm; cookies=0; signedIn=false
+PASS | 7 an attacker link shown to a victim names the attacker's address (the screen the victim reads) | preview address equals the attacker's=true
+PASS | 8 signed in as Ana, pressing A's link switches to A (the session is A's afterwards) | before=true; press 200; after signedIn=true is A=true
+PASS | 9 the password-reset mail is a confirm link of type recovery | path=/sign-in/confirm; type=recovery
+(node:79183) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/koss/Developer/VamosTaxi.eu/.claude/worktrees/agent-a27c298ece3746d96/apps/web/lib/crypto/hmac.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/koss/Developer/VamosTaxi.eu/.claude/worktrees/agent-a27c298ece3746d96/apps/web/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS | 0 test user exists and is signed in (sign-up link pressed on the confirm page) | signedIn=true
+PASS | 1 e-mail change request sends two mails: one to the current and one to the new address, each a confirm link (type email_change) with its own token_hash | request 200 {"ok":true}; mails=2; old-link=true; new-link=true; distinct hashes=true
+PASS | 2 each link's confirm page names its own recipient (preview) | old link names old=true; new link names new=true
+PASS | 3 first press (new-address link): answers confirmed-waiting-for-the-other (not an error), no session, e-mail unchanged | status 200 {"ok":true,"pending":true}; signedIn=false; auth.users email unchanged=true
+PASS | 4 the first link pressed again is expired | status 400 {"ok":false,"code":"expired"}
+PASS | 5 second press (current-address link) completes the change: auth.users email is the new address and the visitor is signed in as it | status 200 {"ok":true,"target":"/account"}; auth.users email is new=true; session email is new=true
+PASS | 6 other order: current-address link first answers pending and keeps the signed-in session; the new-address link second completes the change | sign-in 200; request 200; first {"ok":true,"pending":true} (e-mail still old=true, session kept=true); second 200 {"ok":true,"target":"/account"}; e-mail now third=true
+(node:80478) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/koss/Developer/VamosTaxi.eu/.claude/worktrees/agent-a27c298ece3746d96/apps/web/lib/crypto/hmac.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/koss/Developer/VamosTaxi.eu/.claude/worktrees/agent-a27c298ece3746d96/apps/web/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS | F1 the page shows 'check your email' and the mail holds a confirm link | mail=true link=true
+PASS | F2 the link lands on 'Finish your account' with the address read-only and no sign-in/sign-up tabs | url=/sign-up?state=finish; address shown=true; tabs=0
+PASS | F2b /checkout while unfinished sends the person back to the finish step, keeping the checkout | url=/sign-up?state=finish&returnTo=%2Fcheckout%3Ffrom%3DZurich%2520Airport%26to%3DZurich%2520HB%26pax%3D1%26bags%3D0
+PASS | F3 Finish without the tick shows the tick error and writes no record | records=0
+PASS | F4 with the tick: back on the checkout it came from, and it stays there; one sign-up record; name and phone on the customer row | url=/checkout?from=Zurich%20Airport&to=Zurich%20HB&pax=1&bags=0; /api/auth answers=200 {"stage":"sent"} / 200 {"ok":true}; typed phone=+41 79 000 00 00; records=1; customer=Mia Keller|+41790000000; unfinished marks=0; sideways scroll=false
+PASS | F5 no page errors | none
+apps/web/tests/e2e-worker/run.sh: line 53: 72806 Terminated: 15          pnpm exec wrangler dev -c wrangler.e2e.jsonc --port "$E2E_PORT" --ip 0.0.0.0 --local --persist-to .wrangler/e2e --inspector-port "$E2E_INSPECT" > .wrangler/e2e-public.log 2>&1
+(node:82317) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/koss/Developer/VamosTaxi.eu/.claude/worktrees/agent-a27c298ece3746d96/apps/web/lib/crypto/hmac.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/koss/Developer/VamosTaxi.eu/.claude/worktrees/agent-a27c298ece3746d96/apps/web/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ERROR:  duplicate key value violates unique constraint "rate_versions_one_live"
+DETAIL:  Key ((true))=(t) already exists.
+node:internal/errors:999
+  const err = new Error(message);
+              ^
+
+Error: Command failed: /Users/koss/.supabase/cache/stack/slim-services/postgres/17.11.0.002-r0/darwin-arm64/bin/psql postgresql://postgres:postgres@127.0.0.1:45122/postgres -At -v ON_ERROR_STOP=1
+ERROR:  duplicate key value violates unique constraint "rate_versions_one_live"
+DETAIL:  Key ((true))=(t) already exists.
+
+    at genericNodeError (node:internal/errors:999:15)
+    at wrappedFn (node:internal/errors:544:14)
+    at checkExecSyncError (node:child_process:942:11)
+    at execFileSync (node:child_process:978:15)
+    at psql (file:///Users/koss/Developer/VamosTaxi.eu/.claude/worktrees/agent-a27c298ece3746d96/apps/web/tests/e2e-worker/checkout-common.mjs:42:5)
+    at sqlFile (file:///Users/koss/Developer/VamosTaxi.eu/.claude/worktrees/agent-a27c298ece3746d96/apps/web/tests/e2e-worker/checkout-common.mjs:45:34)
+    at ensureFixture (file:///Users/koss/Developer/VamosTaxi.eu/.claude/worktrees/agent-a27c298ece3746d96/apps/web/tests/e2e-worker/checkout-common.mjs:176:3)
+    at file:///Users/koss/Developer/VamosTaxi.eu/.claude/worktrees/agent-a27c298ece3746d96/apps/web/tests/e2e-worker/checkout-account.e2e.mjs:16:1
+    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+  status: 3,
+  signal: null,
+  output: [
+    null,
+    Buffer(33) [Uint8Array] [
+      73, 78, 83, 69, 82, 84, 32, 48, 32,
+      48, 10, 73, 78, 83, 69, 82, 84, 32,
+      48, 32, 48, 10, 73, 78, 83, 69, 82,
+      84, 32, 48, 32, 48, 10
+    ],
+    Buffer(122) [Uint8Array] [
+       69,  82,  82,  79,  82,  58,  32,  32, 100, 117, 112, 108,
+      105,  99,  97, 116, 101,  32, 107, 101, 121,  32, 118,  97,
+      108, 117, 101,  32, 118, 105, 111, 108,  97, 116, 101, 115,
+       32, 117, 110, 105, 113, 117, 101,  32,  99, 111, 110, 115,
+      116, 114,  97, 105, 110, 116,  32,  34, 114,  97, 116, 101,
+       95, 118, 101, 114, 115, 105, 111, 110, 115,  95, 111, 110,
+      101,  95, 108, 105, 118, 101,  34,  10,  68,  69,  84,  65,
+       73,  76,  58,  32,  32,  75, 101, 121,  32,  40,  40, 116,
+      114, 117, 101,  41,
+      ... 22 more items
+    ]
+  ],
+  pid: 82331,
+  stdout: Buffer(33) [Uint8Array] [
+    73, 78, 83, 69, 82, 84, 32, 48, 32,
+    48, 10, 73, 78, 83, 69, 82, 84, 32,
+    48, 32, 48, 10, 73, 78, 83, 69, 82,
+    84, 32, 48, 32, 48, 10
+  ],
+  stderr: Buffer(122) [Uint8Array] [
+     69,  82,  82,  79,  82,  58,  32,  32, 100, 117, 112, 108,
+    105,  99,  97, 116, 101,  32, 107, 101, 121,  32, 118,  97,
+    108, 117, 101,  32, 118, 105, 111, 108,  97, 116, 101, 115,
+     32, 117, 110, 105, 113, 117, 101,  32,  99, 111, 110, 115,
+    116, 114,  97, 105, 110, 116,  32,  34, 114,  97, 116, 101,
+     95, 118, 101, 114, 115, 105, 111, 110, 115,  95, 111, 110,
+    101,  95, 108, 105, 118, 101,  34,  10,  68,  69,  84,  65,
+     73,  76,  58,  32,  32,  75, 101, 121,  32,  40,  40, 116,
+    114, 117, 101,  41,
+    ... 22 more items
+  ]
+}
+
+Node.js v26.7.0
+(node:82360) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///Users/koss/Developer/VamosTaxi.eu/.claude/worktrees/agent-a27c298ece3746d96/apps/web/lib/crypto/hmac.ts is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /Users/koss/Developer/VamosTaxi.eu/.claude/worktrees/agent-a27c298ece3746d96/apps/web/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ERROR:  duplicate key value violates unique constraint "rate_versions_one_live"
+DETAIL:  Key ((true))=(t) already exists.
+node:internal/errors:999
+  const err = new Error(message);
+              ^
+
+Error: Command failed: /Users/koss/.supabase/cache/stack/slim-services/postgres/17.11.0.002-r0/darwin-arm64/bin/psql postgresql://postgres:postgres@127.0.0.1:45122/postgres -At -v ON_ERROR_STOP=1
+ERROR:  duplicate key value violates unique constraint "rate_versions_one_live"
+DETAIL:  Key ((true))=(t) already exists.
+
+    at genericNodeError (node:internal/errors:999:15)
+    at wrappedFn (node:internal/errors:544:14)
+    at checkExecSyncError (node:child_process:942:11)
+    at execFileSync (node:child_process:978:15)
+    at psql (file:///Users/koss/Developer/VamosTaxi.eu/.claude/worktrees/agent-a27c298ece3746d96/apps/web/tests/e2e-worker/checkout-common.mjs:42:5)
+    at sqlFile (file:///Users/koss/Developer/VamosTaxi.eu/.claude/worktrees/agent-a27c298ece3746d96/apps/web/tests/e2e-worker/checkout-common.mjs:45:34)
+    at ensureFixture (file:///Users/koss/Developer/VamosTaxi.eu/.claude/worktrees/agent-a27c298ece3746d96/apps/web/tests/e2e-worker/checkout-common.mjs:176:3)
+    at file:///Users/koss/Developer/VamosTaxi.eu/.claude/worktrees/agent-a27c298ece3746d96/apps/web/tests/e2e-worker/checkout-german.e2e.mjs:14:1
+    at ModuleJob.run (node:internal/modules/esm/module_job:569:25)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+  status: 3,
+  signal: null,
+  output: [
+    null,
+    Buffer(33) [Uint8Array] [
+      73, 78, 83, 69, 82, 84, 32, 48, 32,
+      48, 10, 73, 78, 83, 69, 82, 84, 32,
+      48, 32, 48, 10, 73, 78, 83, 69, 82,
+      84, 32, 48, 32, 48, 10
+    ],
+    Buffer(122) [Uint8Array] [
+       69,  82,  82,  79,  82,  58,  32,  32, 100, 117, 112, 108,
+      105,  99,  97, 116, 101,  32, 107, 101, 121,  32, 118,  97,
+      108, 117, 101,  32, 118, 105, 111, 108,  97, 116, 101, 115,
+       32, 117, 110, 105, 113, 117, 101,  32,  99, 111, 110, 115,
+      116, 114,  97, 105, 110, 116,  32,  34, 114,  97, 116, 101,
+       95, 118, 101, 114, 115, 105, 111, 110, 115,  95, 111, 110,
+      101,  95, 108, 105, 118, 101,  34,  10,  68,  69,  84,  65,
+       73,  76,  58,  32,  32,  75, 101, 121,  32,  40,  40, 116,
+      114, 117, 101,  41,
+      ... 22 more items
+    ]
+  ],
+  pid: 82433,
+  stdout: Buffer(33) [Uint8Array] [
+    73, 78, 83, 69, 82, 84, 32, 48, 32,
+    48, 10, 73, 78, 83, 69, 82, 84, 32,
+    48, 32, 48, 10, 73, 78, 83, 69, 82,
+    84, 32, 48, 32, 48, 10
+  ],
+  stderr: Buffer(122) [Uint8Array] [
+     69,  82,  82,  79,  82,  58,  32,  32, 100, 117, 112, 108,
+    105,  99,  97, 116, 101,  32, 107, 101, 121,  32, 118,  97,
+    108, 117, 101,  32, 118, 105, 111, 108,  97, 116, 101, 115,
+     32, 117, 110, 105, 113, 117, 101,  32,  99, 111, 110, 115,
+    116, 114,  97, 105, 110, 116,  32,  34, 114,  97, 116, 101,
+     95, 118, 101, 114, 115, 105, 111, 110, 115,  95, 111, 110,
+    101,  95, 108, 105, 118, 101,  34,  10,  68,  69,  84,  65,
+     73,  76,  58,  32,  32,  75, 101, 121,  32,  40,  40, 116,
+    114, 117, 101,  41,
+    ... 22 more items
+  ]
+}
+
+Node.js v26.7.0
+apps/web/tests/e2e-worker/run.sh: line 62: 72805 Terminated: 15          node "$TREE/apps/web/tests/e2e-worker/fakes.mjs" > "$WEB/.wrangler/e2e-fakes.log" 2>&1  (wd: ~/Developer/VamosTaxi.eu/.claude/worktrees/agent-a27c298ece3746d96)
+exit 0
+Sun Oct  4 18:58:31 +04 2026

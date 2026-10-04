@@ -9,14 +9,19 @@ import {
   verifyVamosQs,
 } from "./lib/abuse/vamos-qs";
 import { readConsentSubject } from "./lib/consent/cookie";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import {
-  INTERNAL_ASSET_HEADER,
   accountDcPath,
   canonicalPublicFromLeak,
   should404MockLeak,
 } from "./lib/dc-mock-urls";
 import { publicDashboardPath } from "./lib/ops/paths";
-import { passkeyGateInputs, vamosRoleFromAccessToken, type StaffAuthClient } from "./lib/ops/session";
+import {
+  dashboardConsoleAllowed,
+  passkeyGateInputs,
+  vamosRoleFromAccessToken,
+  type StaffAuthClient,
+} from "./lib/ops/session";
 import { effectiveNextLevel, staffGateDecision } from "./lib/ops/staff-gate";
 import { MANAGE_COOKIE_NAME } from "./lib/checkout/manage-token";
 import { AUTH_SESSION_COOKIE_RE, LEGACY_AUTH_COOKIE_RE } from "./lib/supabase/cookies";
@@ -121,7 +126,9 @@ function dcMockPath(pathname: string): string | null {
 
 async function serveDcHtml(request: NextRequest, mock: string): Promise<NextResponse> {
   const asset = new URL(mock, request.url);
-  const res = await fetch(asset, { headers: { [INTERNAL_ASSET_HEADER]: "1" } });
+  // A plain fetch of a public mock file, no marker header: no header unlocks anything in the
+  // Worker gate any more. Not a document navigation, so the gate lets it through.
+  const res = await fetch(asset);
   let html = await res.text();
   const siteKey = process.env.TURNSTILE_SITE_KEY ?? "";
   html = html.replace(/<head([^>]*)>/i, `<head$1><meta name="vt-turnstile-site-key" content="${siteKey.replace(/&/g, "&amp;").replace(/\"/g, "&quot;")}">`);
@@ -166,8 +173,11 @@ async function serveOpsDc(
   file: "ops.dc.html" | "ops-login.dc.html",
   injectAuth: boolean,
 ): Promise<NextResponse> {
-  const asset = new URL(`/app/ops/${file}`, request.url);
-  const res = await fetch(asset, { headers: { [INTERNAL_ASSET_HEADER]: "1" } });
+  // Read straight from the assets binding, never over HTTP: a self-fetch of /app/ops/* would carry
+  // no session (the screen files are staff-only now, lib/ops/asset-gate.ts), and an internal
+  // header marking it would be a header any client can send.
+  const { env } = getCloudflareContext();
+  const res = await env.ASSETS.fetch(new URL(`/app/ops/${file}`, request.url));
   let html = await res.text();
   const boot = [
     html.includes('href="/app/ops/"') ? "" : '<base href="/app/ops/">',
@@ -375,31 +385,9 @@ async function dashboardHostMiddleware(request: NextRequest): Promise<NextRespon
   }
 
   const client = createSupabaseMiddlewareClient(request);
-  const {
-    data: { user },
-  } = await client.supabase.auth.getUser();
-  const { data: sessionData } = await client.supabase.auth.getSession();
-  const role = user
-    ? (vamosRoleFromAccessToken(sessionData.session?.access_token) ??
-        (typeof user.app_metadata?.vamos_role === "string" ? user.app_metadata.vamos_role : ""))
-    : "";
   // INT-09 / D-16 / D-16a / D-16b: admin only; aal2 on every request once a factor is verified.
-  // Step-up and deny both fall through to /login, which hosts the step-up (26.1-23).
-  const { data: aalData } = user
-    ? await client.supabase.auth.mfa.getAuthenticatorAssuranceLevel()
-    : { data: null };
-  const currentLevel = aalData?.currentLevel;
-  const nextLevel = effectiveNextLevel(aalData?.nextLevel, user?.factors);
-  const passkey = user
-    ? await passkeyGateInputs(client.supabase as StaffAuthClient, {
-        role,
-        currentLevel,
-        nextLevel,
-        accessToken: sessionData.session?.access_token,
-      })
-    : {};
-  const gate = staffGateDecision({ role, currentLevel, nextLevel, ...passkey });
-  const inConsole = role === "admin" && gate === "allow";
+  // The same function gates the screen files under /app/ops/* in worker.ts (lib/ops/asset-gate.ts).
+  const inConsole = await dashboardConsoleAllowed(client.supabase as StaffAuthClient);
   const dashPath = normalizeDashboardPath(path);
 
   // F12: the e-mailed link's confirm page, whatever the session state (it may switch accounts).

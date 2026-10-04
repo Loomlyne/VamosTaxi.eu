@@ -4,16 +4,15 @@
  *
  * Keep `DC_MOCK_CANONICAL` in lockstep with `DC_PAGES` in middleware.ts.
  *
- * Never 404 `/app/ops/*` on the dashboard host and never intercept script/css
- * / `.dc.html` mocks — those are how DC pages load. Only document navigations of
- * leftover pretty-URLs 308/404.
+ * Never intercept script/css / `.dc.html` mocks — those are how DC pages load. Only
+ * document navigations of leftover pretty-URLs 308/404. `/app/ops/*` is answered before
+ * this gate (worker.ts): 404 on the public host, staff-only on the dashboard host
+ * (`lib/ops/asset-gate.ts`). No request header unlocks anything here.
  */
 import { devGalleryEnabled, isDevGalleryPath } from "./dev-gallery";
 
 import { applySecurityHeaders } from "./security/headers";
 import { seoPageFor } from "./seo/head";
-
-export const INTERNAL_ASSET_HEADER = "x-vamos-dc-asset";
 
 export const ACCOUNT_SECTIONS = [
   "transfers",
@@ -101,10 +100,6 @@ function isDashboardHost(hostname: string): boolean {
 function isDocumentNav(request: Request): boolean {
   const dest = (request.headers.get("sec-fetch-dest") || "").toLowerCase();
   return DOC_DEST.includes(dest);
-}
-
-function isInternalAsset(request: Request): boolean {
-  return request.headers.get(INTERNAL_ASSET_HEADER) === "1";
 }
 
 function empty404(): Response {
@@ -213,8 +208,6 @@ export function gatePublicRequest(request: Request): Response | "not-found" | nu
     return null;
   }
 
-  if (isInternalAsset(request)) return null;
-
   // Dashboard mocks (`OpsSidebar.dc.html`, design-system, …) must hit CF assets.
   if (dashboard && isOpsAssetPath(path)) return null;
 
@@ -243,18 +236,27 @@ export function isOpsAssetRequest(request: Request): boolean {
 }
 
 /**
+ * The private 404 for a dashboard screen file nobody may read here: no body, `private, no-store`,
+ * the security headers. The public host answers it for every `/app/ops/*` path; the dashboard host
+ * answers the very same one when the staff check fails (`lib/ops/asset-gate.ts`), so a signed-out
+ * visitor cannot tell a gated file from a missing one.
+ */
+export function opsAssetNotFound(): Response {
+  const headers = new Headers({ "cache-control": "private, no-store" });
+  applySecurityHeaders(headers);
+  return new Response(null, { status: 404, headers });
+}
+
+/**
  * F16: the dashboard screens are served on the dashboard host only. Call with the
  * request already pinned to this Worker's surface (host = dashboard host on the
- * `vamos-dashboard` entrypoint), BEFORE any asset-host rewrite and BEFORE the
- * internal-asset header check (a public client can send that header).
- * Public host: a private no-store 404. Dashboard host: null (serve it).
+ * `vamos-dashboard` entrypoint), BEFORE any asset-host rewrite.
+ * Public host: a private no-store 404. Dashboard host: null (the staff gate decides next).
  */
 export function guardOpsAsset(request: Request): Response | null {
   if (!isOpsAssetRequest(request)) return null;
   if (isDashboardHost(new URL(request.url).hostname)) return null;
-  const headers = new Headers({ "cache-control": "private, no-store" });
-  applySecurityHeaders(headers);
-  return new Response(null, { status: 404, headers });
+  return opsAssetNotFound();
 }
 
 /** Full security headers and noindex on a dashboard screen file (asset responses carry none). */
@@ -268,8 +270,8 @@ export function withOpsAssetHeaders(res: Response): Response {
 /**
  * F16: answer a dashboard screen file straight from the assets binding. A named entrypoint
  * (`Dashboard`) does not pass through the asset layer, so the file is fetched here. Call only
- * after `guardOpsAsset` let the request through. A missing file stays a private no-store 404
- * that carries the security headers.
+ * after `guardOpsAsset` and the staff gate (`lib/ops/asset-gate.ts`) let the request through.
+ * A missing file stays a private no-store 404 that carries the security headers.
  */
 export async function serveOpsAsset(
   request: Request,

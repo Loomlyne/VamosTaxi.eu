@@ -1,0 +1,50 @@
+{
+ "at": "2026-10-04T15:17:22.995Z",
+ "results": [
+  {
+   "id": "GW1 signed out: screen files 404, sign-in files 200",
+   "status": "PASS",
+   "evidence": "OpsDetail.dc.html 404/0B/private, no-store; ops.dc.html 404/0B/private, no-store; ops-login.dc.html 404/0B/private, no-store; OpsSettings.dc.html 404/0B/private, no-store; OpsBoard.dc.html 404/0B/private, no-store; support.js 200/65807B; AuthForm.dc.html 200/47351B"
+  },
+  {
+   "id": "GW2 signed out + forged x-vamos-dc-asset: still 404",
+   "status": "PASS",
+   "evidence": "OpsDetail.dc.html 404/0B/private, no-store; ops.dc.html 404/0B/private, no-store; ops-login.dc.html 404/0B/private, no-store; OpsSettings.dc.html 404/0B/private, no-store; OpsBoard.dc.html 404/0B/private, no-store"
+  },
+  {
+   "id": "GW3 /login through the gateway renders (ops-login.dc.html read from ASSETS, no self-fetch)",
+   "status": "PASS",
+   "evidence": "status 200, 5919 B, 28 ms, cache private, no-store"
+  },
+  {
+   "id": "GW4 admin password sign-in through the gateway",
+   "status": "PASS",
+   "evidence": "status 200 ok=true vt-auth cookie=true"
+  },
+  {
+   "id": "GW5 admin /dashboard: the console shell (ops.dc.html from ASSETS)",
+   "status": "PASS",
+   "evidence": "status 200, 32783 B"
+  },
+  {
+   "id": "GW6 admin /bookings: the console shell",
+   "status": "PASS",
+   "evidence": "status 200, 32783 B"
+  },
+  {
+   "id": "GW7 admin: every screen file 200, private no-store",
+   "status": "PASS",
+   "evidence": "OpsDetail.dc.html 200/181295B/private, no-store; ops.dc.html 200/32458B/private, no-store; ops-login.dc.html 200/5666B/private, no-store; OpsSettings.dc.html 200/93551B/private, no-store; OpsBoard.dc.html 200/35940B/private, no-store; support.js 200/65807B/public, max-age=300; AuthForm.dc.html 200/47351B/public, max-age=300; OpsSidebar.dc.html 200/21536B/private, no-store; OpsTable.dc.html 200/101095B/private, no-store; ActionsMenu.dc.html 200/9301B/private, no-store"
+  },
+  {
+   "id": "GW8 customer vt-auth cookie on the dashboard: screen files 404, /dashboard to /login",
+   "status": "PASS",
+   "evidence": "customer made 200; public sign-in ok=true; OpsDetail.dc.html 404/0B/private, no-store; ops.dc.html 404/0B/private, no-store; ops-login.dc.html 404/0B/private, no-store; OpsSettings.dc.html 404/0B/private, no-store; OpsBoard.dc.html 404/0B/private, no-store; /dashboard 307"
+  },
+  {
+   "id": "GW9 after sign-out: screen files 404 again (no cookie, and the old cookie replayed)",
+   "status": "PASS",
+   "evidence": "signout 200; no cookie: OpsDetail.dc.html 404/0B/private, no-store; ops.dc.html 404/0B/private, no-store; ops-login.dc.html 404/0B/private, no-store; OpsSettings.dc.html 404/0B/private, no-store; OpsBoard.dc.html 404/0B/private, no-store; old cookie: OpsDetail.dc.html 404/0B/private, no-store; ops.dc.html 404/0B/private, no-store; ops-login.dc.html 404/0B/private, no-store; OpsSettings.dc.html 404/0B/private, no-store; OpsBoard.dc.html 404/0B/private, no-store"
+  }
+ ]
+}

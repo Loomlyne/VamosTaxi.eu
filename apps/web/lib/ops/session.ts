@@ -133,6 +133,41 @@ export async function passkeyGateInputs(
   return { amrMethods: amrMethodsFromAccessToken(input.accessToken) };
 }
 
+/**
+ * INT-09 / D-16 / D-16a / D-16b: the dashboard host's console rule, one function for its two doors —
+ * the console documents in middleware.ts (`dashboardHostMiddleware`) and the screen files under
+ * `/app/ops/*` in worker.ts (`lib/ops/asset-gate.ts`). True only for the admin role with an `allow`
+ * decision (aal2 once a verified factor exists). `getUser()` asks the auth server, so a forged or
+ * expired cookie never passes; the role comes from the hook-minted access token it verified.
+ */
+export async function dashboardConsoleAllowed(supabase: StaffAuthClient): Promise<boolean> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const { data: sessionData } = await supabase.auth.getSession();
+  const role = user
+    ? (vamosRoleFromAccessToken(sessionData.session?.access_token) ??
+        (typeof user.app_metadata?.vamos_role === "string" ? user.app_metadata.vamos_role : ""))
+    : "";
+  // Step-up and deny both fall through to /login, which hosts the step-up (26.1-23).
+  const { data: aalData } = user
+    ? await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+    : { data: null };
+  const currentLevel = aalData?.currentLevel;
+  const nextLevel = effectiveNextLevel(aalData?.nextLevel, user?.factors);
+  const passkey = user
+    ? await passkeyGateInputs(supabase, {
+        role,
+        currentLevel,
+        nextLevel,
+        accessToken: sessionData.session?.access_token,
+      })
+    : {};
+  const gate = staffGateDecision({ role, currentLevel, nextLevel, ...passkey });
+  const inConsole = role === "admin" && gate === "allow";
+  return inConsole;
+}
+
 export async function getStaffClaims(supabase: StaffAuthClient): Promise<StaffSession | null> {
   const { data, error } = await supabase.auth.getUser();
   if (error || !data.user) return null;
