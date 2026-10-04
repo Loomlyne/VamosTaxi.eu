@@ -62,3 +62,23 @@ describe("/cookies Meta row renders as one line", () => {
     expect(cookies).toContain('<span class="vt-dir-keep">sb-…-auth-token</span>');
   });
 });
+
+describe("legal pages say nothing about test mode or unused vendors (COPY-DRAFT 2026-10-04)", () => {
+  const pages = ["app/pages/cookies.dc.html", "app/pages/privacy.dc.html", "app/pages/CookieBanner.dc.html", "app/home/CookieBanner.dc.html"];
+  const banned = ["not in use until live payments", "Sentry", "as set by Cloudflare", "as issued by Supabase Auth", "The platform we are building", "transactional mail is on", ">none<", ">not used<"];
+
+  it.each(pages)("%s carries none of the internal phrases", (rel) => {
+    const html = readFileSync(join(repoRoot, rel), "utf8");
+    for (const b of banned) expect(html, b).not.toContain(b);
+  });
+
+  it("every new visible string has de, fr and ar", () => {
+    const dict = readFileSync(join(repoRoot, "app/vamos-i18n-dict.js"), "utf8");
+    for (const k of [
+      "Up to 400 days, or until you sign out", "Up to 400 days", "1 year · 30 minutes", "30 minutes",
+      "No cookie", "Nothing is stored in your browser", "Tells us which step of a booking people abandon.",
+      "Our suppliers", "Confirmation and driver-detail emails",
+    ]) expect(dict, k).toMatch(new RegExp(`'${k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}': \\{ de: '[^']+', fr: '[^']+', ar: '[^']+' \\}`));
+  });
+});
+
