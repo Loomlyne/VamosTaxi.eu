@@ -19,15 +19,11 @@ const brandIcons = join(repoRoot, "apps/web/public/brand/icons");
 
 /**
  * Names the screens ask for that have no file in assets/icons yet. Each waits for the owner's
- * download approval (one Lucide icon at a time). The test fails when a name here gets its file or
- * stops being asked for, so this list only ever shrinks.
+ * download approval (one Lucide icon at a time): `name: "where it shows, waiting for the owner's download approval"`.
+ * The test fails when a name here gets its file or stops being asked for, so this list only ever shrinks.
+ * Empty since 2026-10-04: route, arrow-down, tag, sun and moon were all approved and vendored.
  */
-const WAITING_FOR_DOWNLOAD: Record<string, string> = {
-  sun: "Dashboard Fleet, vehicle form: the Morning chauffeur select. Waiting for the owner's download approval.",
-  moon: "Dashboard Fleet, vehicle form: the Night chauffeur select. Waiting for the owner's download approval.",
-  tag: "Dashboard Pricing, extras form: the Extra name field. Waiting for the owner's download approval.",
-  "arrow-down": "Dashboard Support board: the column sort button when the newest card is first. Waiting for the owner's download approval.",
-};
+const WAITING_FOR_DOWNLOAD: Record<string, string> = {};
 
 /** The React app asks for no name without a file today. */
 const REACT_WAITING_FOR_DOWNLOAD: Record<string, string> = {};
