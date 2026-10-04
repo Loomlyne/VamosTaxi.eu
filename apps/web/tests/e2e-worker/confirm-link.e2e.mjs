@@ -71,7 +71,7 @@ if (p1) {
   const sD = await sess(jarD);
   rec("4 the button (POST) on another device signs in for the address the page showed; target is validated and cookies reach the response",
     ok.status === 200 && ok.json?.ok === true && typeof ok.json?.target === "string" && ok.json.target.startsWith("/") && sD?.signedIn === true && (ok.setCookies ?? []).some((c) => /^vt-auth(\.\d+)?=/.test(c)),
-    `status ${ok.status}; target=${ok.json?.target}; signedIn=${sD?.signedIn}; session cookies set=${(ok.setCookies ?? []).filter((c) => /^sb-/.test(c)).length}`);
+    `status ${ok.status}; target=${ok.json?.target}; signedIn=${sD?.signedIn}; session cookies set=${(ok.setCookies ?? []).filter((c) => /^vt-auth(\.\d+)?=/.test(c)).length}`);
   const again = await press(p4, new Jar());
   rec("5 the same link pressed again is expired (one use)", again.status === 400 && again.json?.code === "expired", `status ${again.status} ${JSON.stringify(again.json)}`);
 }
