@@ -8,6 +8,7 @@
 //   { postTrip: true }          D-25: accept a post-trip request (all that is left, reason post_trip)
 //   { retry: true }             resume the open parts only; 409 nothing-to-retry when none
 // A booking cancelled more than 24 h ahead takes 100 % only (409 full-refund-only otherwise).
+// A payment settled for the booking in the same instant: 409 payment-changed, nothing written, press again.
 // Some parts failed: 502 refund-partial | stripe-failed with refundedRappen, dueRappen, parts.
 // The "Refund issued" mail goes once, when the batch is complete.
 // GET returns the payments, open parts and the due amount for the picker and after a reload.
@@ -17,7 +18,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { sendRefund, refundMailRecipients } from "@vamos/emails/confirmation";
 import type { EmailLocale } from "@vamos/emails/confirmation";
 import { loadRefundPicker, refundBooking } from "@/lib/ops/refund";
-import { parseRefundBody, type RefundRequest } from "@/lib/ops/refund-map";
+import { parseRefundBody, refundFailStatus, type RefundRequest } from "@/lib/ops/refund-map";
 import { jsonErr, jsonOk, withAdmin } from "@/lib/ops/staff-json";
 
 export const dynamic = "force-dynamic";
@@ -28,24 +29,6 @@ function bookingKey(request: Request): string | null {
   const id = parts[i + 1] ?? "";
   if (!id || id === "refund") return null;
   return id;
-}
-
-function failStatus(code: string): number {
-  if (code === "not-found") return 404;
-  if (code === "csrf" || code === "not-admin") return 403;
-  if (
-    code === "frozen" ||
-    code === "not-paid" ||
-    code === "already-refunded" ||
-    code === "not-post-trip" ||
-    code === "refund-exceeds-remaining" ||
-    code === "nothing-to-retry" ||
-    code === "full-refund-only"
-  ) {
-    return 409;
-  }
-  if (code === "stripe-failed" || code === "stripe-test-only") return 502;
-  return 400;
 }
 
 function emailLocale(raw: string): EmailLocale {
@@ -76,7 +59,7 @@ export const POST = withAdmin(async (claims, request) => {
         parts: result.parts,
       });
     }
-    return jsonErr(result.code, failStatus(result.code));
+    return jsonErr(result.code, refundFailStatus(result.code));
   }
 
   // 20-10: "Refund issued" goes once, when nothing is owed any more. A full refund sent one
@@ -113,7 +96,7 @@ export const GET = withAdmin(async (claims, request) => {
   if (!id) return jsonErr("not-found", 404);
   const { env } = getCloudflareContext();
   const picker = await loadRefundPicker(env, claims, id);
-  if (!picker.ok) return jsonErr(picker.code, failStatus(picker.code));
+  if (!picker.ok) return jsonErr(picker.code, refundFailStatus(picker.code));
   const { ok: _ok, ...data } = picker;
   return jsonOk({ id, ...data });
 });

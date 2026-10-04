@@ -77,6 +77,23 @@ export function sqlErrorCode(err: unknown): string | undefined {
   return codeOf(err);
 }
 
+/**
+ * 261004 lock order (migration 20261007280000): a payment settled for the same booking in the same
+ * instant. Nine functions raise `payment-changed` with SQLSTATE 40001 and write nothing, so pressing
+ * the same button again is safe. One name for every dashboard answer (Refund, Accept, class and trip
+ * change); the three maps (refund, edit-request, booking-change) share this test.
+ */
+export const PAYMENT_CHANGED = "payment-changed";
+const SERIALIZATION_FAILURE = "40001";
+
+export function isPaymentChanged(err: unknown): boolean {
+  const message = messageOf(err);
+  if (message === PAYMENT_CHANGED || message.startsWith(`${PAYMENT_CHANGED}\n`) || message.startsWith(`${PAYMENT_CHANGED} `)) {
+    return true;
+  }
+  return codeOf(err) === SERIALIZATION_FAILURE;
+}
+
 export function mapRefundSqlError(err: unknown): RefundFail {
   const message = messageOf(err);
   for (const name of NAMED) {
@@ -84,6 +101,7 @@ export function mapRefundSqlError(err: unknown): RefundFail {
       return { ok: false, code: name };
     }
   }
+  if (isPaymentChanged(err)) return { ok: false, code: PAYMENT_CHANGED };
   if (codeOf(err) === OPS_SQLSTATE.noData) return { ok: false, code: "not-found" };
   // ops_refund_decide raises 42501 unless app.is_admin() (T-26.1-53).
   if (codeOf(err) === OPS_SQLSTATE.privilege) return { ok: false, code: "not-admin" };
@@ -207,4 +225,28 @@ export function parseRefundDecision(body: unknown): RefundDecision | null {
   const decision = (body as Record<string, unknown>).decision;
   if (decision === "decline" || decision === "reject") return decision;
   return null;
+}
+
+/**
+ * HTTP status of a refund answer (POST ../refund). A conflict the owner answers by looking again
+ * (409): not-paid, already-refunded, … and `payment-changed` (a payment settled in the same instant;
+ * nothing was written, press Refund again). Stripe trouble is 502; anything unnamed is 400.
+ */
+export function refundFailStatus(code: string): number {
+  if (code === "not-found") return 404;
+  if (code === "csrf" || code === "not-admin") return 403;
+  if (
+    code === "frozen" ||
+    code === "not-paid" ||
+    code === "already-refunded" ||
+    code === "not-post-trip" ||
+    code === "refund-exceeds-remaining" ||
+    code === "nothing-to-retry" ||
+    code === "full-refund-only" ||
+    code === PAYMENT_CHANGED
+  ) {
+    return 409;
+  }
+  if (code === "stripe-failed" || code === "stripe-test-only") return 502;
+  return 400;
 }
