@@ -1,0 +1,66 @@
+{
+ "at": "2026-10-04T11:19:36.955Z",
+ "base": "http://localhost:4710",
+ "results": [
+  {
+   "id": "C1",
+   "title": "old cookies cleared on home",
+   "status": "PASS",
+   "evidence": "status 200; errors 0; sb- left 0; signedIn false; names [NEXT_LOCALE]"
+  },
+  {
+   "id": "C2",
+   "title": "customer password sign-in",
+   "status": "PASS",
+   "evidence": "url /account/transfers; finishStep false; signedIn true; vt cookies vt-auth; sb- 0; names [NEXT_LOCALE,consent_subject,vt-auth]"
+  },
+  {
+   "id": "C3",
+   "title": "/account shows email",
+   "status": "PASS",
+   "evidence": "status 200; errors 0; email shown true"
+  },
+  {
+   "id": "C4",
+   "title": "old cookies re-planted while signed in",
+   "status": "PASS",
+   "evidence": "status 200; signedIn true; vt vt-auth; sb- 0"
+  },
+  {
+   "id": "C5",
+   "title": "sign out via site",
+   "status": "PASS",
+   "evidence": "control found true; signedIn false; non-empty vt cookies 0; url /sign-in"
+  },
+  {
+   "id": "C6",
+   "title": "phone: old cookies, /account",
+   "status": "PASS",
+   "evidence": "status 200; url /sign-in; sb- 0; signedIn false"
+  },
+  {
+   "id": "D1",
+   "title": "dashboard login with old cookies",
+   "status": "PASS",
+   "evidence": "status 200; password field 1; errors 0; sb- 0"
+  },
+  {
+   "id": "D2",
+   "title": "dashboard sign-in",
+   "status": "PASS",
+   "evidence": "url /dashboard; mfa text false; vt vt-auth@dashboard.localhost; sb- 0"
+  },
+  {
+   "id": "D3",
+   "title": "New trip form",
+   "status": "FAIL",
+   "evidence": "url /bookings/new; From/pickup inputs 0; errors 0"
+  },
+  {
+   "id": "D4",
+   "title": "old cookies re-planted, reload",
+   "status": "PASS",
+   "evidence": "url /bookings/new; sb- 0"
+  }
+ ]
+}
