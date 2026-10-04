@@ -50,7 +50,8 @@ Rewritten short on 2026-09-30 14:25; the long version is in git history (`823022
 | `fix/ops-booked-column` | **Live 20:28 2026-10-04** (`105e8191`, Worker `2700f59c`) | Owner: the Booked column on the bookings board (top rows VT-26-0752 "3 Oct · 19:19", VT-26-0751 "2 Oct · 20:47") |
 | Owner checks 2026-10-04 ~20:35 | **Passed** (owner "done"): dashboard sign-in after the vt-auth rename and the file gate, board and a booking; the Booked column; 4242 payment VT-26-0753 (confirmed, succeeded, CHF 100.39 = snapshot total, shown as AED 462.60 by Stripe adaptive pricing; Meta row skipped/no_test_code, nothing sent). Not covered: checkout signed in as a customer (VT-26-0753 is a guest booking; the only sign-in then was staff) | — |
 | `fix/ops-board-sort` | **Live 21:13 2026-10-04** (`771115f4`, Worker `f7018d2a`); **owner check passed** (owner "done nice all good working", ~21:20) | done |
-| `fix/ops-dash-numbers` | Opus job since 21:30: owner "fix the dashboard, it is not reading or calculating anything". Live rows read-only: today 1 capture CHF 100.39, 7 days 12 / CHF 859.22, all 16 / CHF 1,307.32, refunds CHF 35.56, Stripe fee never recorded (null on all 16). Job reproduces signed in, fixes proven reading bugs, brings meaning changes back as questions | Control check, owner questions, ship `vamos` |
+| `fix/ops-dash-numbers` | Opus job: first pass `5ad695f6` fixed 7 bugs (day started 04:00 Zurich, not midnight; average fare and class split from board rows, not payments; Expenses foot; period race; date language; Pickups counted unpaid checkouts). Now building the owner answers (decisions/2026-10-04-dashboard-numbers.md): Bookings by booked date; Needs attention upcoming, whatever the period; Awaiting payment stays "pay link sent" | Control check, ship `vamos` |
+| `fix/stripe-fee-record` | Opus job since 21:50 (owner answer 3): record the fee Stripe took on each payment; 16 past payments backfilled by the controller from a reviewed script; migration `20261007290000` reserved | Fresh reviewer, control check, migration, ship `vamos`, backfill |
 | Landed and cleaned 00:4x | settle safety, Dependabot, Actions trim: branches deleted on GitHub (archive tags), folders removed; the settle-safety folder waits for its session to close | |
 
 ## Controller take-over, 2026-10-02 15:26 (+04)
@@ -350,7 +351,7 @@ The owner decided every finding F1 to F14. Every Phase 20 ship needs his Ship.
 | Frozen price book restore | `20261007250000` pricing_row_frozen_restore (**live 2026-10-03 20:11**, live version `20261003161120`) |
 | Phase 29 lock order | `20261007270000` meta_purchase_lock_order (**live 2026-10-04 16:27**, live version `20261004122704`) |
 | Refund lock order | `20261007280000` refund_lock_order (**live 2026-10-04 17:53**, live version `20261004135322`) |
-| **Next free** | **`20261007290000`**. Ask the controller first; check every remote branch and worktree for the file name. Never a number that sorts before one already on main |
+| **Next free** | **`20261007300000`** (`290000` reserved for fix/stripe-fee-record). Ask the controller first; check every remote branch and worktree for the file name. Never a number that sorts before one already on main |
 
 ## Decisions that stand
 
