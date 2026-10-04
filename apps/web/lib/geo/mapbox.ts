@@ -258,15 +258,22 @@ function listHas(value: unknown, needles: string[]): boolean {
   );
 }
 
-/** Owner 2026-10-04: a result named "… Station" is a station, even when Mapbox gives it no rail category. */
-const STATION_WORD = /\bstation\b/i;
-/** Owner 2026-10-04: "Zürich HB", "Bern HB". Capitals only, so "hb" or "Hb" inside other text is not a station. */
-const HB_WORD = /\bHB\b/;
+/**
+ * Owner 2026-10-04 (follow-up, question form 14:54): a result is a station by name only when the
+ * name ENDS with the word Station ("Zurich Main Station") or HB ("Zürich HB"), even when Mapbox
+ * gives it no rail category. Trailing whitespace and punctuation are allowed, nothing else after the
+ * word. Capitalised ("Station") or all capitals only: a rental named
+ * "The cozy house - 15 min to Zurich main station" also ends in the word, in running lower case,
+ * and must stay a pin.
+ */
+const STATION_WORD = /\b(?:Station|STATION)[\s\p{P}]*$/u;
+/** "Zürich HB", "Bern HB": last word, capitals only, so "hb" or "Hb" in other text is not a station. */
+const HB_WORD = /\bHB[\s\p{P}]*$/u;
 
 /**
  * The one place a name decides a kind. It only fills the two generic kinds
  * (poi, place): a specific kind from Mapbox's own data (airport, hotel, address,
- * city) always wins over the name.
+ * city) always wins over the name. Only a name that ends with Station or HB counts.
  */
 function genericKind(name: string, fallback: "poi" | "place"): SuggestKind {
   return STATION_WORD.test(name) || HB_WORD.test(name) ? "station" : fallback;
