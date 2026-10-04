@@ -1,10 +1,10 @@
 # Hand-over: sortable headers on the dashboard bookings table
 
-Quick 261004-ops-board-sort. Job session, not the controller. Written 2026-10-04 20:57 +0400.
+Quick 261004-ops-board-sort. Job session, not the controller. Written 2026-10-04 20:55 +0400.
 
 - Branch: `fix/ops-board-sort`, cut from `origin/main` `c4a35174` (20:38). `origin/main` moved once while I worked
   (`9d19379d`, planning files only: the board note and `.planning/decisions/2026-10-04-bookings-table-sort.md`); merged in
-  at `f6d25592` (no conflict, no code). The branch tip is the commit that adds this file on top of it
+  at `f6d25592` (no conflict, no code). The branch tip is the last commit on the branch
   (`git rev-parse origin/fix/ops-board-sort`).
 - Code commit: `ea745189`.
 - Decision: `.planning/decisions/2026-10-04-bookings-table-sort.md` (on main, written by the controller).
