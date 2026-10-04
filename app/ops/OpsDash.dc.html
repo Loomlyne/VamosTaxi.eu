@@ -294,9 +294,18 @@ class Component extends DCLogic {
     /* Owner, 2026-10-04 (.planning/decisions/2026-10-04-dashboard-numbers.md #1): Bookings counts the bookings
        made in the period, by the Zurich day they were booked (createdAt), not by pickup day. */
     const bookedInPeriod = bookings.filter((b) => inPeriod(zurichDayOf(b.createdAt), periodKey, today)).length;
-    const unassignedPaid = periodBookings.filter((b) => b.paid && !b.driver && ['cancelled', 'refunded', 'completed', 'no-show', 'no_show'].indexOf(b.status) === -1).length;
-    const unpaidPending = periodBookings.filter((b) => b.payLinkSent && !b.paid && b.status !== 'cancelled' && b.status !== 'refunded' && b.status !== 'completed').length;
-    const pendingEdits = periodBookings.filter((b) => b.paid && b.pendingEditId).length;
+    /* Owner, same decision #2 and #5: Needs attention ignores the period and counts upcoming trips only,
+       pickup from now on. A trip whose pickup has passed is not waiting for a chauffeur any more. */
+    const nowMs = Date.now();
+    const upcoming = (b) => {
+      const ms = Date.parse(b.pickupAt || '');
+      if (Number.isFinite(ms)) return ms >= nowMs;
+      return !!b.dateIso && b.dateIso >= today;
+    };
+    const openTrips = bookings.filter(upcoming);
+    const unassignedPaid = openTrips.filter((b) => b.paid && !b.driver && ['cancelled', 'refunded', 'completed', 'no-show', 'no_show'].indexOf(b.status) === -1).length;
+    const unpaidPending = openTrips.filter((b) => b.payLinkSent && !b.paid && b.status !== 'cancelled' && b.status !== 'refunded' && b.status !== 'completed').length;
+    const pendingEdits = openTrips.filter((b) => b.paid && b.pendingEditId).length;
     const refundLines = Array.isArray(money.refunds) ? money.refunds : [];
     /* A refund line is a customer's name and a booking reference: data, so the row opts out of the
        page translation; the one fixed label is translated here (re-run on every language change). */

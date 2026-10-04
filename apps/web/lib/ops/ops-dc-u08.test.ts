@@ -100,7 +100,7 @@ describe("OpsDash 'Unassigned bookings' count", () => {
     const src = readDc("OpsDash.dc.html");
     const arrow = grab(
       src,
-      /const unassignedPaid = periodBookings\.filter\((\(b\) => [^\n]*)\)\.length;/,
+      /const unassignedPaid = openTrips\.filter\((\(b\) => [^\n]*)\)\.length;/,
       "OpsDash unassignedPaid",
     );
     const counted = new Function(`return ${arrow};`)() as (b: Record<string, unknown>) => boolean;

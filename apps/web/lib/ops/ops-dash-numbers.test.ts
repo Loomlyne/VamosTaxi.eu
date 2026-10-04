@@ -217,3 +217,73 @@ describe("Bookings counts the bookings made in the period (owner answer 1)", () 
     expect(bookingsFor("all")).toBe("4");
   });
 });
+
+describe("Needs attention ignores the period and counts upcoming trips (owner answers 2 and 5)", () => {
+  // Live on 4 Oct: 10 paid trips without a driver on the board, 3 of them still to run (5, 15 and 16 Oct).
+  const rows = [
+    trip("tomorrow-04-10", { pickupInHours: 10 }),
+    trip("in-11-days", { pickupInHours: 24 * 11 }),
+    trip("in-12-days", { pickupInHours: 24 * 12 }),
+    trip("ran-5-days-ago", { pickupInHours: -24 * 5 }),
+    trip("ran-an-hour-ago", { pickupInHours: -1 }),
+    trip("assigned", { pickupInHours: 30, driver: "Marco" }),
+    trip("cancelled", { pickupInHours: 30, status: "cancelled" }),
+    trip("link-open", { pickupInHours: 72, paid: false, capturedAt: "", status: "pending", payLinkSent: true }),
+    trip("link-past", { pickupInHours: -72, paid: false, capturedAt: "", status: "pending", payLinkSent: true }),
+    trip("left-unpaid", { pickupInHours: 72, paid: false, capturedAt: "", status: "pending" }),
+    trip("edit-open", { pickupInHours: 96, driver: "Sofia", pendingEditId: "e1" }),
+    trip("edit-past", { pickupInHours: -96, driver: "Sofia", pendingEditId: "e2" }),
+  ];
+  for (const period of ["today", "week", "month", "all"]) {
+    it(`${period}: Unassigned 3, Awaiting payment 1 (pay link sent), Pending edits 1; links unchanged`, () => {
+      const dash = loadDash(rows);
+      dash.state = { ...dash.state, period, money: null };
+      const v = dash.renderVals();
+      expect(attentionCount(v, "Unassigned bookings")).toBe("3");
+      expect(attentionCount(v, "Awaiting payment")).toBe("1");
+      expect(attentionCount(v, "Pending edits")).toBe("1");
+      expect(v.attention.map((a) => a.href)).toEqual([
+        "/bookings?filter=Unassigned",
+        "/bookings?filter=Awaiting%20payment",
+        "/bookings",
+      ]);
+    });
+  }
+});
+
+describe("switching periods", () => {
+  it("an answer that lands after the period changed does not overwrite the period on screen", async () => {
+    const pending: Record<string, (v: unknown) => void> = {};
+    const fetchImpl: Fetch = (url) =>
+      new Promise((resolve) => {
+        const period = new URL(url, "http://x").searchParams.get("period") ?? "";
+        pending[period] = (body) => resolve({ json: () => Promise.resolve(body) });
+      });
+    const dash = loadDash(LIVE_BOARD, { fetch: fetchImpl });
+    dash.state = { ...dash.state, period: "today" };
+    dash.select("month");
+    dash.select("today");
+    pending.today?.({ ok: true, data: { ...LIVE_ALL_MONEY, period: "today", incomeRappen: 10039, fareCount: 1 } });
+    for (let i = 0; i < 4; i++) await Promise.resolve();
+    pending.month?.({ ok: true, data: { ...LIVE_ALL_MONEY, period: "month" } });
+    for (let i = 0; i < 4; i++) await Promise.resolve();
+    expect(dash.state.period).toBe("today");
+    expect(dash.renderVals().incomeMoney).toBe("CHF 100.39");
+  });
+});
+
+describe("the date under the title is in the reader's language", () => {
+  it("Arabic, German and French get their own date, English keeps \"Sunday 4 October\" style", () => {
+    const sub = (lang: string) => {
+      const dash = loadDash([], { lang });
+      dash.state = { ...dash.state, period: "today", lang };
+      return dash.renderVals().subtitle;
+    };
+    const en = sub("en");
+    expect(en).toMatch(/^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday) \d{1,2} [A-Z][a-z]+$/);
+    expect(sub("ar")).not.toMatch(/[A-Za-z]/);
+    expect(sub("de")).not.toBe(en);
+    expect(sub("fr")).not.toBe(en);
+    expect(html).toMatch(/<p data-vt-no-i18n="1"[^>]*>\{\{ subtitle \}\}<\/p>/);
+  });
+});
