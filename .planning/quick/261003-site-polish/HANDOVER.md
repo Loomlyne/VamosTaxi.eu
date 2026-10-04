@@ -26,11 +26,11 @@ Strings: merged into `app/vamos-i18n-dict.js` (Email us, kind labels, Popular, S
 See `VERIFY-CODE.md` (single verifier, 2026-10-04): every owner item PASS; i18n check pass; coverage empty de/fr/ar on faq/about/contact
 (home lists the same 5–6 hero strings as clean origin/main); 32/32 no sideways scroll; laws; twins byte-identical; tsc 0 code errors;
 eslint/stylelint on changed files pass; unit 413 files (2 branch failures fixed); Playwright 10 specs × 4 widths: 306 passed.
+Clean rerun 2026-10-04 14:26 +04 (load 9, tip a7912899+): full unit suite 415 files / 4764 tests passed, 0 failed; `tsc --noEmit -p apps/web` exit 0.
 
 ## Not checked / owed
 - Full-page screenshot baselines stale (already red on clean origin/main): `faq` (en/de/fr/ar), `home`, `about`, `contact`,
   `legal-cancellation-imprint` × 4 widths — regenerate in the clean clone; wait for the 19 FAQ questions before the faq shot.
-- A clean full unit rerun (the second run near midnight hit 7 timeouts in untouched files under load average 194).
 - Not seen on the local Worker build or on a real iPhone (hero vs Safari bar is judged on his phone).
 - React twins (not customer-facing) only unit/static checked.
 
