@@ -12,7 +12,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies, headers } from "next/headers";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { authCookieOptions, authCookiesFrom, isSecureRequest } from "./cookies";
+import { AUTH_COOKIE_NAME, authCookieOptions, authCookiesFrom, isSecureRequest } from "./cookies";
 
 /** One cookie `setAll` asked the server client to write. */
 export type AuthSetCookie = {
@@ -121,6 +121,8 @@ export function createIsolatedSupabaseClient() {
     throw new Error("Supabase server credentials are not configured.");
   }
   return createServerClient(supabaseUrl, supabaseAnonKey, {
+    // Writes nothing, but never names a cookie after the project either.
+    cookieOptions: { name: AUTH_COOKIE_NAME },
     cookies: {
       getAll() {
         return [];

@@ -23,11 +23,11 @@ vi.mock("@/lib/supabase/server", () => ({
   authSetCookieHeader: (c: { name: string; value: string }) => `${c.name}=${c.value}; Path=/`,
   createServerSupabaseClient: async (_r: Request, sink?: { cookies: { name: string; value: string }[] }) => {
     auth.verifyOtp.mockImplementation(async () => {
-      sink?.cookies.push({ name: "sb-test-auth-token", value: "session" });
+      sink?.cookies.push({ name: "vt-auth", value: "session" });
       return { data: { user: { email: "mia@example.com" } }, error: null };
     });
     auth.signOut.mockImplementation(async () => {
-      sink?.cookies.push({ name: "sb-test-auth-token", value: "" });
+      sink?.cookies.push({ name: "vt-auth", value: "" });
       return { error: null };
     });
     return { auth };
@@ -124,7 +124,7 @@ describe("callback POST (confirm)", () => {
     const res = await POST(post({ token_hash: "abc", type: "magiclink", e, next: "/account" }));
     expect(res.status).toBe(200);
     expect(res.headers.get("cache-control")).toContain("no-store");
-    expect(res.headers.get("set-cookie")).toContain("sb-test-auth-token=session");
+    expect(res.headers.get("set-cookie")).toContain("vt-auth=session");
     expect(await res.json()).toEqual({ ok: true, target: "/account" });
     expect(auth.verifyOtp).toHaveBeenCalledWith({ type: "magiclink", token_hash: "abc" });
   });
@@ -153,8 +153,8 @@ describe("callback POST (confirm)", () => {
     expect(await res.json()).toMatchObject({ ok: false, code: "not-staff" });
     expect(auth.signOut).toHaveBeenCalled();
     // The refused session's cookie must not ride on the answer.
-    expect(res.headers.get("set-cookie")).toContain("sb-test-auth-token=;");
-    expect(res.headers.get("set-cookie")).not.toContain("sb-test-auth-token=session");
+    expect(res.headers.get("set-cookie")).toContain("vt-auth=;");
+    expect(res.headers.get("set-cookie")).not.toContain("vt-auth=session");
   });
 
   it("dashboard host: a staff account signs in", async () => {
@@ -165,7 +165,7 @@ describe("callback POST (confirm)", () => {
       post({ token_hash: "abc", type: "magiclink", e }, "https://dashboard.vamostaxi.site", "dashboard.vamostaxi.site"),
     );
     expect(res.status).toBe(200);
-    expect(res.headers.get("set-cookie")).toContain("sb-test-auth-token=session");
+    expect(res.headers.get("set-cookie")).toContain("vt-auth=session");
   });
 
   it("public host: no staff check (customers sign in)", async () => {
