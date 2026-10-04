@@ -2248,6 +2248,11 @@
       'Time': { de: 'Uhrzeit', fr: 'Heure', ar: 'الوقت' },
       /* ── 26.2-u08: dashboard literals that had no entry (OpsDash, OpsTable, calendar board) ── */
       'None recorded': { de: 'Keine erfasst', fr: 'Aucune enregistrée', ar: 'لا شيء مسجّل' },
+      /* 261004 ops-dash-numbers: the Expenses foot once refunds or fees exist, and the two period pills
+         the dictionary could not resolve (OpsDash keeps its own labels; these make coverage() clean). */
+      'Refunds and fees': { de: 'Rückerstattungen und Gebühren', fr: 'Remboursements et frais', ar: 'المبالغ المستردة والرسوم' },
+      '7 days': { de: '7 Tage', fr: '7 jours', ar: '7 أيام' },
+      'All time': { de: 'Gesamt', fr: 'Tout', ar: 'الكل' },
       'Income minus fees and refunds': { de: 'Einnahmen abzüglich Gebühren und Rückerstattungen', fr: 'Recettes moins frais et remboursements', ar: 'الإيرادات ناقص الرسوم والمبالغ المستردة' },
       'Per captured fare': { de: 'Pro eingezogenem Fahrpreis', fr: 'Par course encaissée', ar: 'لكل أجرة محصّلة' },
       'Last seven days': { de: 'Letzte sieben Tage', fr: 'Sept derniers jours', ar: 'آخر سبعة أيام' },
