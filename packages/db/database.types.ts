@@ -3274,6 +3274,16 @@ export type Database = {
           state: string
         }[]
       }
+      checkout_payment_fee_pending: {
+        Args: { p_limit?: number }
+        Returns: {
+          stripe_payment_intent_id: string
+        }[]
+      }
+      checkout_payment_fee_record: {
+        Args: { p_fee_rappen: number; p_payment_intent_id: string }
+        Returns: boolean
+      }
       checkout_payment_method_record: {
         Args: { p_method: string; p_payment_intent_id: string }
         Returns: boolean
