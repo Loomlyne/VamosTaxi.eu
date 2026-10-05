@@ -9,6 +9,7 @@ import {
   paymentIntentIdOfDispute,
   type MoneyEventDeps,
 } from "./money-events";
+import { PAID_ERROR_RETRY_SECONDS } from "./settle-errors";
 import { retrieveCharge } from "./stripe";
 import type { StripeQueueMessage } from "./webhook";
 
@@ -220,15 +221,57 @@ describe("handleChargeRefundedWithDeps", () => {
     expect(d.recordChargeRefund).not.toHaveBeenCalled();
   });
 
-  it("a permanent SQL error settles the event with its state and acks", async () => {
+  it("a real refusal is written on the event and retried slowly to the dead-letter mail, never acknowledged (U4)", async () => {
     const d = deps({
       recordChargeRefund: vi.fn(async () => {
         throw pgError("23514", "check violation");
       }),
     });
     const result = await handleChargeRefundedWithDeps(message(), charge([refund()]), d);
-    expect(result).toEqual({ ack: true });
+    expect(result).toEqual({ retry: true, delaySeconds: PAID_ERROR_RETRY_SECONDS });
     expect(d.eventSettle).toHaveBeenCalledWith("evt_ch_1", "23514");
+  });
+
+  it("a refusal whose stamp also fails is still retried, never acknowledged (U4)", async () => {
+    const d = deps({
+      recordChargeRefund: vi.fn(async () => {
+        throw pgError("P0001", "stripe-refund-id-required");
+      }),
+      eventSettle: vi.fn(async () => {
+        throw new Error("connection closed");
+      }),
+    });
+    const result = await handleChargeRefundedWithDeps(message(), charge([refund()]), d);
+    expect(result).toEqual({ retry: true, delaySeconds: PAID_ERROR_RETRY_SECONDS });
+  });
+
+  it.each([
+    ["40P01", "deadlock detected", 5],
+    ["40001", "payment-changed", 5],
+    ["55P03", "lock not available", 5],
+    ["57014", "canceling statement due to statement timeout", 60],
+    ["08006", "connection failure", 60],
+    ["57P01", "terminating connection due to administrator command", 60],
+  ])("a database hiccup %s (%s) is retried after %ss, never written on the event (U4)", async (code, text, delay) => {
+    const d = deps({
+      recordChargeRefund: vi.fn(async () => {
+        throw pgError(code, text);
+      }),
+    });
+    const result = await handleChargeRefundedWithDeps(message(), charge([refund()]), d);
+    expect(result).toEqual({ retry: true, delaySeconds: delay });
+    expect(d.eventSettle).not.toHaveBeenCalled();
+  });
+
+  it("an error with no SQLSTATE (a dropped socket) is retried, never written on the event (U4)", async () => {
+    const d = deps({
+      recordChargeRefund: vi.fn(async () => {
+        throw Object.assign(new Error("write CONNECTION_CLOSED"), { code: "CONNECTION_CLOSED" });
+      }),
+    });
+    const result = await handleChargeRefundedWithDeps(message(), charge([refund()]), d);
+    expect(result).toEqual({ retry: true, delaySeconds: 60 });
+    expect(d.eventSettle).not.toHaveBeenCalled();
   });
 
   it("a refund in a currency other than CHF is never written as rappen", async () => {
@@ -280,15 +323,32 @@ describe("handleDisputeWithDeps", () => {
     expect(d.eventSettle).not.toHaveBeenCalled();
   });
 
-  it("a permanent SQL error settles the event and acks", async () => {
+  it("a real refusal is written on the event and retried slowly to the dead-letter mail, never acknowledged (U4)", async () => {
     const d = deps({
       upsertDispute: vi.fn(async () => {
         throw pgError("22P02", "bad input");
       }),
     });
     const result = await handleDisputeWithDeps(disputeMessage, dispute(), d);
-    expect(result).toEqual({ ack: true });
+    expect(result).toEqual({ retry: true, delaySeconds: PAID_ERROR_RETRY_SECONDS });
     expect(d.eventSettle).toHaveBeenCalledWith("evt_du_1", "22P02");
+  });
+
+  it.each([
+    ["40P01", 5],
+    ["40001", 5],
+    ["55P03", 5],
+    ["57014", 60],
+    ["08003", 60],
+  ])("a database hiccup %s is retried after %ss, never written on the event (U4)", async (code, delay) => {
+    const d = deps({
+      upsertDispute: vi.fn(async () => {
+        throw pgError(code, "hiccup");
+      }),
+    });
+    const result = await handleDisputeWithDeps(disputeMessage, dispute(), d);
+    expect(result).toEqual({ retry: true, delaySeconds: delay });
+    expect(d.eventSettle).not.toHaveBeenCalled();
   });
 });
 

@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const recordConsent = vi.fn();
 const verifyTurnstile = vi.fn();
 const checkWriteRateLimit = vi.fn();
-const asAnon = vi.fn();
+const asCheckout = vi.fn();
 
 vi.mock("@opennextjs/cloudflare", () => ({ getCloudflareContext: () => ({ env: {} }) }));
 vi.mock("@/lib/security/origin", () => ({ csrfForbidden: () => null }));
@@ -13,7 +13,7 @@ vi.mock("@/lib/abuse/rate-limit", () => ({
   checkWriteRateLimit: (...a: unknown[]) => checkWriteRateLimit(...a),
 }));
 vi.mock("@/lib/turnstile", () => ({ verifyTurnstile: (...a: unknown[]) => verifyTurnstile(...a) }));
-vi.mock("@/lib/db/identity", () => ({ asAnon: (...a: unknown[]) => asAnon(...a) }));
+vi.mock("@/lib/db/identity", () => ({ asCheckout: (...a: unknown[]) => asCheckout(...a) }));
 vi.mock("@/lib/consent/bind", () => ({ recordConsent: (...a: unknown[]) => recordConsent(...a) }));
 
 import { POST } from "@/app/api/consent/route";
@@ -34,7 +34,7 @@ beforeEach(() => {
   recordConsent.mockReset();
   verifyTurnstile.mockReset();
   checkWriteRateLimit.mockReset().mockResolvedValue({ ok: true });
-  asAnon.mockReset().mockImplementation(async (_env: unknown, fn: (tx: unknown) => Promise<void>) => fn({}));
+  asCheckout.mockReset().mockImplementation(async (_env: unknown, _claims: unknown, fn: (tx: unknown) => Promise<void>) => fn({}));
 });
 
 describe("POST /api/consent", () => {
@@ -43,7 +43,7 @@ describe("POST /api/consent", () => {
     const res = await post({ method: "accept_all", locale: "en", turnstileToken: "bad" });
     expect(res.status).toBe(403);
     expect(await res.json()).toEqual({ ok: false, code: "challenge_failed" });
-    expect(asAnon).not.toHaveBeenCalled();
+    expect(asCheckout).not.toHaveBeenCalled();
     expect(recordConsent).not.toHaveBeenCalled();
   });
 
@@ -52,6 +52,8 @@ describe("POST /api/consent", () => {
     const res = await post({ method: "accept_all", locale: "de", turnstileToken: "ok" });
     expect(res.status).toBe(200);
     expect(recordConsent.mock.calls[0]?.[1]).toMatchObject({ method: "accept_all", categories: ALL_TRUE });
+    // 261005 S6: written as vamos_checkout with no claims, never as anon (Supabase REST cannot call it).
+    expect(asCheckout.mock.calls[0]?.[1]).toBeNull();
     expect(res.headers.get("Set-Cookie")).toContain("consent_subject=");
     expect(res.headers.get("Cache-Control")).toBe("private, no-store");
   });
@@ -101,12 +103,12 @@ describe("POST /api/consent", () => {
       expect(await res.json()).toEqual({ ok: false, code: "invalid_input" });
       expect(res.headers.get("Set-Cookie")).toBeNull();
     }
-    expect(asAnon).not.toHaveBeenCalled();
+    expect(asCheckout).not.toHaveBeenCalled();
     expect(verifyTurnstile).not.toHaveBeenCalled();
   });
 
   it("a database failure is 503 unavailable with no cookie", async () => {
-    asAnon.mockRejectedValue(new Error("db down"));
+    asCheckout.mockRejectedValue(new Error("db down"));
     const res = await post({ method: "reject_all", locale: "en" });
     expect(res.status).toBe(503);
     expect(await res.json()).toEqual({ ok: false, code: "unavailable" });

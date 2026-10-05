@@ -12,6 +12,7 @@ import type postgres from "postgres";
 import { asStaff, type VamosClaims } from "../db/identity";
 import { mapSqlState } from "./sqlstate";
 import { loadRateVersions, type RateVersionStatus } from "./pricing";
+import { draftLabelFrom } from "./rate-version-label";
 
 type StaffTx = postgres.TransactionSql;
 
@@ -707,7 +708,7 @@ async function cloneRateVersionFrom(
     )
     select
       ${slug},
-      ${`${source.label} draft`},
+      ${draftLabelFrom(source.label)},
       'draft',
       vat_rate_bps, quote_lock_minutes, service_area_geojson,
       free_wait_minutes

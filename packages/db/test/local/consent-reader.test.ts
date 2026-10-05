@@ -1,8 +1,10 @@
 // packages/db/test/local/consent-reader.test.ts
 //
 // Phase 27 plan 01. public.consent_choice() through the SAME options the Worker's client uses
-// (`fetch_types: false`, `types: pgArrayTypes`), under role `anon` exactly as `withIdentity(..., "anon")`
-// sets it, with the subject GUC bound. Everything runs in one transaction that is rolled back.
+// (`fetch_types: false`, `types: pgArrayTypes`), under role `vamos_checkout` exactly as
+// `withIdentity(..., "checkout", null)` sets it (the Worker reads consent through asCheckout since
+// 261005 S6; anon no longer holds EXECUTE), with the subject GUC bound. Everything runs in one
+// transaction that is rolled back.
 // Local only: the host is fixed to 127.0.0.1; the port comes from VAMOS_LOCAL_DB_PORT (default 59322,
 // this worktree's own stack, never another session's stack).
 import { describe, expect, it } from "vitest";
@@ -36,10 +38,10 @@ describe("consent_choice through the Worker client options (fetch_types: false)"
     try {
       await withIdentity(
         SUPER,
-        "anon",
-        undefined,
+        "checkout",
+        null,
         async (tx) => {
-          // Fixtures as postgres (the pinned client logs in as postgres), then back to anon.
+          // Fixtures as postgres (the pinned client logs in as postgres), then back to vamos_checkout.
           await tx`select set_config('role', 'postgres', true)`;
           await tx`
             insert into public.consent_log
@@ -47,7 +49,7 @@ describe("consent_choice through the Worker client options (fetch_types: false)"
             values
               (${SUBJECT}::uuid, ${VERSION}, 'accept_all', true, true, true, true, 'en', '2026-10-02 10:00+00'),
               (${SUBJECT}::uuid, ${VERSION}, 'reject_all', true, false, false, false, 'en', '2026-10-02 12:00+00')`;
-          await tx`select set_config('role', 'anon', true)`;
+          await tx`select set_config('role', 'vamos_checkout', true)`;
           await tx`select set_config('request.vamos.consent_subject', ${SUBJECT}, true)`;
           latest = (await tx<Choice[]>`select * from public.consent_choice(${VERSION}, null)`)[0];
           asOf = (
