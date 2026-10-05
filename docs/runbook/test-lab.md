@@ -17,6 +17,7 @@ Run from any worktree. `<name>` matches `^[a-z0-9-]{1,24}$`.
 | `lab.sh reseed <name>` | `supabase db reset` on the lab's own stack, then the seed, passwords and admin again. Restart the Workers afterwards: `lab.sh up <name>` |
 | `lab.sh down <name>` | Stops the recorded PIDs and their process trees; removes `apps/web/.dev.vars` and `wrangler.e2e.jsonc` only if this lab wrote them. The stack keeps running |
 | `lab.sh destroy <name>` | `down`, then `supabase stop --no-backup` on the lab's stack, then deletes the state dir |
+| `lab.sh dbtests [name] [--keep]` | The database-backed tests, on the lab's own stack only (no Worker, no build): resets the stack to the repository seed, sets the login role passwords and the marker role, runs `packages/db` `test/local` and every `apps/web` `*.local.test.ts`, then destroys the lab it made. Also `pnpm test:db-lab`. See "Database-backed tests" below |
 | `lab.sh gates [base]` | Cheap gates for the change against `base` (default merge-base with `origin/main`): typecheck, eslint on changed files, `i18n:check`, `check:numbers`, `check:db-fences`, `check:legal-claims`, `vitest related` per package (without `*.local.test.ts`). One `PASS | gate | detail` or `FAIL | gate | first lines` per gate; exit 1 on any FAIL |
 
 The build is the slow part (several minutes). `up` skips it when `apps/web/.open-next/worker.js` is newer than every tracked or untracked file under
@@ -43,6 +44,22 @@ stacks without Docker; the Vamos Docker containers and images were deleted that 
 `lab.sh pgtap <name>` runs the whole pgTAP suite on the lab's stack (either runtime). The suite needs a clean database
 (it makes its own live price book) and the two login roles without passwords, so it resets the stack, runs, then puts
 the lab's seed, role passwords and admin back. Bookings made in the lab before are gone after it.
+
+## Database-backed tests (money paths)
+
+`pnpm test:db-lab` (same as `scripts/test-lab/lab.sh dbtests`, optional name and `--keep`) is the one command for the tests that
+`pnpm test:unit` skips because they need a real local database: every `apps/web/**/*.local.test.ts` (refund by hand, settle safety, class
+change, trip change, assign, Stripe fee, customer paths, chauffeur delete, account phone, system reads) and `packages/db/test/local`. Without
+a database they are skipped, and a skipped test proves nothing about a money path.
+
+- It makes a stack-only lab (native runtime when the machine can, no Docker), runs `supabase db reset`, sets the `vamos_public` / `vamos_edge`
+  passwords and the marker role, exports `VAMOS_LOCAL_DB_PORT`, `VAMOS_TEST_DB_PORT`, `VAMOS_TEST_DB_URL` and `REQUIRE_DB=1`, and runs both suites.
+- The `apps/web` files run one at a time: each makes its own live price book and the database allows only one (`rate_versions_one_live`).
+- A skipped test counts as FAIL (the summary line must show no `skipped`). The last line is `PASS | dbtests | ...` or `FAIL | dbtests | ...`.
+- Both suites commit rows, so every run starts from a reset. Never point `VAMOS_LOCAL_DB_PORT` at anything but a throwaway stack.
+- Without a name the lab is called `db-<checksum of the tree path>`; a lab the run made is destroyed at the end, one that already existed or
+  `--keep` is left (`lab.sh destroy <name>` removes it). It takes about 1.5 minutes on a warm machine.
+- It is a different database state from `lab.sh pgtap` (that one needs no passwords and no leftover rows): run them one after the other, never together.
 
 ## Ports and state
 

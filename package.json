@@ -17,6 +17,7 @@
     "check:numbers": "node scripts/check-no-invented-numbers.mjs",
     "test:unit": "pnpm test:scripts && pnpm -r --if-present run test",
     "test:scripts": "node --test scripts/*.test.mjs",
+    "test:db-lab": "bash scripts/test-lab/lab.sh dbtests",
     "test:visual": "node scripts/sync-dc-mock-to-public.mjs && pnpm --filter web exec playwright test",
     "check:public-env": "node scripts/check-next-public-allowlist.mjs",
     "check:db-fences": "node scripts/check-db-access-fences.mjs",
