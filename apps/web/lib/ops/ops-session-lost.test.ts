@@ -1,0 +1,190 @@
+// apps/web/lib/ops/ops-session-lost.test.ts
+//
+// U8a (2026-10-05): the dashboard shell is one document. When the session dies while it is open, the
+// next screen file it fetches is a private 404 (the gate), the DC runtime renders an empty placeholder,
+// and the person sat on a blank page with a sidebar. `app/vamos-ops-api.js` now sends the browser to
+// /login when a staff answer says the session is gone, or when a screen file 404s and /api/staff/me
+// says the same. This runs the real file in a vm with a stub window, fetch and storage. No DOM, no network.
+
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import vm from "node:vm";
+import { describe, expect, it } from "vitest";
+
+const here = dirname(fileURLToPath(import.meta.url));
+const SOURCE = readFileSync(join(here, "../../../../app/vamos-ops-api.js"), "utf8");
+const ORIGIN = "https://dashboard.vamostaxi.site";
+
+type Answer = { status: number; body?: unknown; url?: string };
+type Route = (url: string, init?: RequestInit) => Answer | Promise<Answer> | "network";
+
+function jsonResponse(answer: Answer, url: string): Response {
+  const res = new Response(answer.body === undefined ? null : JSON.stringify(answer.body), {
+    status: answer.status,
+    headers: { "content-type": "application/json" },
+  });
+  Object.defineProperty(res, "url", { value: answer.url ?? url });
+  return res;
+}
+
+function storage(initial: Record<string, string> = {}) {
+  const data = new Map(Object.entries(initial));
+  return {
+    getItem: (k: string) => (data.has(k) ? data.get(k)! : null),
+    setItem: (k: string, v: string) => void data.set(k, v),
+    removeItem: (k: string) => void data.delete(k),
+    has: (k: string) => data.has(k),
+  };
+}
+
+/** One browser tab: the file loaded `loads` times (the shell's helmet runs it twice). */
+function tab(route: Route, opts: { loads?: number; session?: Record<string, string> } = {}) {
+  const calls: string[] = [];
+  const replaced: string[] = [];
+  const local = storage({ vamosOpsAuth: "1" });
+  const session = storage(opts.session);
+  const sandbox: Record<string, unknown> = {
+    location: {
+      origin: ORIGIN,
+      href: `${ORIGIN}/customers`,
+      replace: (to: string) => void replaced.push(to),
+    },
+    localStorage: local,
+    sessionStorage: session,
+    URL,
+    Promise,
+    Date,
+    Number,
+    JSON,
+    Response,
+  };
+  sandbox.window = sandbox;
+  sandbox.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+    calls.push(`${init?.method ?? "GET"} ${url}`);
+    const answer = await route(url, init);
+    if (answer === "network") throw new TypeError("network down");
+    return jsonResponse(answer, new URL(url, ORIGIN).href);
+  };
+  vm.createContext(sandbox);
+  for (let i = 0; i < (opts.loads ?? 1); i++) vm.runInContext(SOURCE, sandbox);
+  const win = sandbox as {
+    fetch: (input: string, init?: RequestInit) => Promise<Response>;
+    VamosOpsApi: { request: (m: string, p: string, b?: unknown) => Promise<Record<string, unknown>> };
+  };
+  return { win, calls, replaced, local, session };
+}
+
+const flush = async () => {
+  for (let i = 0; i < 12; i++) await new Promise((resolve) => setImmediate(resolve));
+};
+
+const SCREEN = "/app/ops/OpsCustomers.dc.html";
+const NO_SESSION = { status: 401, body: { ok: false, code: "no-session" } };
+
+describe("dashboard shell: a dead session goes to /login, not a blank screen (U8a)", () => {
+  it("a screen file answers 404 and /api/staff/me says no-session: to /login, flag cleared, one redirect", async () => {
+    const t = tab((url) => (url.startsWith("/app/ops/") ? { status: 404 } : NO_SESSION));
+    const res = await t.win.fetch(SCREEN);
+    expect(res.status).toBe(404); // the runtime still gets its answer
+    await flush();
+    expect(t.replaced).toEqual(["/login"]);
+    expect(t.local.has("vamosOpsAuth")).toBe(false);
+    expect(t.calls).toEqual([`GET ${SCREEN}`, "GET /api/staff/me"]);
+  });
+
+  it("a second 404 while the first is being checked or after it, still one redirect and one /api/staff/me call", async () => {
+    const t = tab((url) => (url.startsWith("/app/ops/") ? { status: 404 } : NO_SESSION));
+    await Promise.all([t.win.fetch(SCREEN), t.win.fetch("/app/ops/OpsFleet.dc.html")]);
+    await flush();
+    await t.win.fetch("/app/ops/OpsReviews.dc.html");
+    await flush();
+    expect(t.replaced).toEqual(["/login"]);
+    expect(t.calls.filter((c) => c === "GET /api/staff/me")).toHaveLength(1);
+  });
+
+  it("a screen file 404 with a live session is a missing file, not a dead session: no redirect", async () => {
+    const t = tab((url) => (url.startsWith("/app/ops/") ? { status: 404 } : { status: 200, body: { ok: true, data: {} } }));
+    await t.win.fetch(SCREEN);
+    await flush();
+    expect(t.replaced).toEqual([]);
+    expect(t.local.has("vamosOpsAuth")).toBe(true);
+  });
+
+  it("a screen file 404 while the session check cannot reach the server: no redirect (offline is not signed out)", async () => {
+    const t = tab((url) => (url.startsWith("/app/ops/") ? { status: 404 } : "network"));
+    await t.win.fetch(SCREEN);
+    await flush();
+    expect(t.replaced).toEqual([]);
+  });
+
+  it("a staff API call that answers 401 no-session: to /login, and the screen still gets the answer", async () => {
+    const t = tab(() => NO_SESSION);
+    const answer = await t.win.VamosOpsApi.request("GET", "/api/staff/bookings");
+    expect(answer).toMatchObject({ ok: false, code: "no-session" });
+    await flush();
+    expect(t.replaced).toEqual(["/login"]);
+  });
+
+  it("403 needs-mfa (the code is asked on /login): to /login", async () => {
+    const t = tab(() => ({ status: 403, body: { ok: false, code: "needs-mfa" } }));
+    await t.win.VamosOpsApi.request("POST", "/api/staff/settings", { a: 1 });
+    await flush();
+    expect(t.replaced).toEqual(["/login"]);
+  });
+
+  it("other refusals stay the screen's own message: not-admin, csrf, a 401 without the code, /api/auth", async () => {
+    for (const [path, answer] of [
+      ["/api/staff/pricing", { status: 403, body: { ok: false, code: "not-admin" } }],
+      ["/api/staff/settings", { status: 403, body: { ok: false, code: "csrf" } }],
+      ["/api/staff/claim-invite", { status: 401, body: { ok: false } }],
+      ["/api/auth", { status: 401, body: { ok: false, code: "no-session" } }],
+    ] as const) {
+      const t = tab(() => answer);
+      await t.win.VamosOpsApi.request("POST", path, {});
+      await flush();
+      expect(t.replaced, path).toEqual([]);
+      expect(t.local.has("vamosOpsAuth"), path).toBe(true);
+    }
+  });
+
+  it("an answer from another origin is ignored", async () => {
+    const t = tab(() => ({ status: 404, url: "https://elsewhere.example/app/ops/OpsCustomers.dc.html" }));
+    await t.win.fetch("https://elsewhere.example/app/ops/OpsCustomers.dc.html");
+    await flush();
+    expect(t.calls).toEqual(["GET https://elsewhere.example/app/ops/OpsCustomers.dc.html"]);
+    expect(t.replaced).toEqual([]);
+  });
+
+  it("the shell's helmet runs the file twice: one watcher, so one probe per 404", async () => {
+    const t = tab((url) => (url.startsWith("/app/ops/") ? { status: 404 } : NO_SESSION), { loads: 2 });
+    await t.win.fetch(SCREEN);
+    await flush();
+    expect(t.calls).toEqual([`GET ${SCREEN}`, "GET /api/staff/me"]);
+    expect(t.replaced).toEqual(["/login"]);
+  });
+
+  it("a page that just came back from /login and sees a dead session again stays put (no bounce loop)", async () => {
+    const t = tab(() => NO_SESSION, { session: { vamosOpsSessionLostAt: String(Date.now() - 2000) } });
+    await t.win.VamosOpsApi.request("GET", "/api/staff/bookings");
+    await flush();
+    expect(t.replaced).toEqual([]);
+  });
+
+  it("an old mark (a sign-in an hour ago) does not block a new redirect", async () => {
+    const t = tab(() => NO_SESSION, { session: { vamosOpsSessionLostAt: String(Date.now() - 3_600_000) } });
+    await t.win.VamosOpsApi.request("GET", "/api/staff/bookings");
+    await flush();
+    expect(t.replaced).toEqual(["/login"]);
+  });
+
+  it("ordinary traffic is untouched: 200s and 404s of data are returned as before, nothing is checked", async () => {
+    const t = tab((url) => (url === "/api/staff/me" ? { status: 200, body: { ok: true, data: { role: "admin" } } } : { status: 404, body: { ok: false, code: "not-found" } }));
+    expect(await t.win.VamosOpsApi.request("GET", "/api/staff/me")).toMatchObject({ ok: true });
+    expect(await t.win.VamosOpsApi.request("GET", "/api/staff/bookings/VT-1")).toMatchObject({ code: "not-found" });
+    await flush();
+    expect(t.replaced).toEqual([]);
+    expect(t.calls).toEqual(["GET /api/staff/me", "GET /api/staff/bookings/VT-1"]);
+  });
+});
