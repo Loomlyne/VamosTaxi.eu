@@ -8,7 +8,10 @@
 //
 // Scenario (D-24, D-25): Pay → Back → the trip is re-quoted (a NEW quote_id) →
 // Pay again with `supersedes` = the first booking. The store must end with
-// exactly ONE pending booking for this contact.
+// exactly ONE pending booking for this contact. Every Pay writes the account
+// record as the route does since 26.5 (guest, the live default); the purge
+// detaches the first one and keeps it (20261007300000; before it the second
+// Pay was refused with quote_already_booked).
 //
 // Safety: the URL must be the 55322 stack (refuses anything else). Everything
 // runs inside ONE transaction that is rolled back at the end — nothing is ever
@@ -65,7 +68,12 @@ test("Pay, Back, new quote_id + supersedes leaves exactly one pending booking @c
   await guardStack(url);
   const sql = workerSql(url, "identity");
   const email = `supersede-${Date.now()}@example.test`;
-  let result: { pending: Array<{ quote_id: string; company_name: string; note: string; trip: string }>; purged: number } | null = null;
+  let result: {
+    pending: Array<{ quote_id: string; company_name: string; note: string; trip: string }>;
+    purged: number;
+    records: Array<{ booking_id: string | null; choice: string }>;
+    secondId: string;
+  } | null = null;
   try {
     await sql
       .begin(async (tx) => {
@@ -77,6 +85,7 @@ test("Pay, Back, new quote_id + supersedes leaves exactly one pending booking @c
           select rv.id, vc.id, 3, 1, 2, 3 from public.rate_versions rv, public.vehicle_classes vc
            where rv.slug = 'is-rv' and vc.slug = 'is-first'`;
         await tx`update public.rate_versions set status = 'live' where slug = 'is-rv'`;
+        await tx`update public.settings set guest_accounts_live = true where id = 1`;
         const [fx] = await tx<{ class_id: string; rate_version_id: string; settings_version_id: string }[]>`
           select vc.id::text as class_id, rv.id::text as rate_version_id, sv.id::text as settings_version_id
             from public.vehicle_classes vc
@@ -178,6 +187,12 @@ test("Pay, Back, new quote_id + supersedes leaves exactly one pending booking @c
             const rows = await tx<{ ids: string[] | null }[]>`select public.checkout_booking_session_ids(${bookingId}::uuid) as ids`;
             return rows[0]?.ids ?? [];
           },
+          // As the route: the account record is written after the booking exists (26.5).
+          afterBooking: async (bookingId) => {
+            await tx`
+              select public.record_account_agreement(
+                'checkout', ${bookingId}::uuid, null, 'guest', 'supersede-db', 'en', null, null)`;
+          },
           purgeUnpaid: async (bookingId, reason) => {
             const rows = await tx<{ purged: boolean | null }[]>`select public.purge_unpaid_booking(${bookingId}::uuid, ${reason}) as purged`;
             return rows[0]?.purged === true;
@@ -265,7 +280,12 @@ test("Pay, Back, new quote_id + supersedes leaves exactly one pending booking @c
           select count(*)::int as n from public.audit_log
            where table_name = 'bookings' and record_id = ${firstJson.booking_id}
              and action = 'delete' and before_value ->> 'reason' = 'superseded'`;
-        result = { pending, purged: purged[0]!.n };
+        const records = await tx<{ booking_id: string | null; choice: string }[]>`
+          select r.booking_id::text as booking_id, r.choice
+            from public.account_agreement_records r
+           where lower(r.email) = lower(${email})
+           order by r.id`;
+        result = { pending, purged: purged[0]!.n, records, secondId: secondJson.booking_id };
         throw new Rollback();
       })
       .catch((err) => {
@@ -282,4 +302,9 @@ test("Pay, Back, new quote_id + supersedes leaves exactly one pending booking @c
   expect(result!.pending[0]!.note).toBe("Meet at arrivals");
   expect(result!.pending[0]!.trip).toContain("fid=mbx-a");
   expect(result!.purged).toBe(1);
+  // The first booking's record survives, detached; the new booking has its own.
+  expect(result!.records).toEqual([
+    { booking_id: null, choice: "guest" },
+    { booking_id: result!.secondId, choice: "guest" },
+  ]);
 });
