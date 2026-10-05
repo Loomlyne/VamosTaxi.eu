@@ -113,7 +113,7 @@ describe("U10: the class list is the live vehicle classes", () => {
     expect(store.VEHICLE_CLASSES).toEqual(["Zeta van", "Mid", "Alpha sedan"]);
   });
 
-  it("a class that is no longer on offer is listed while a booking still carries it, under its own name", async () => {
+  it("a class that is no longer on offer is listed while a booking still carries it, under its own name, at its price-book place", async () => {
     const { store, settle } = await openStore({
       bookings: [
         { id: "VT-1", klass: "Economy", status: "confirmed", paid: true },
@@ -123,7 +123,8 @@ describe("U10: the class list is the live vehicle classes", () => {
     void store.VEHICLE_CLASSES;
     store.bookings.all();
     await settle();
-    expect(store.VEHICLE_CLASSES).toEqual(["Economy", "Business", "Van luxury", "First"]);
+    // First sits at sort_order 3, between Business (2 / 10) and Van luxury (20): the Money in lines use the same order.
+    expect(store.VEHICLE_CLASSES).toEqual(["Economy", "Business", "First", "Van luxury"]);
   });
 
   it("a booking of class First stays First in the store: no name is turned into Economy", async () => {
@@ -179,6 +180,8 @@ describe("U10: no screen writes a class list", () => {
     expect(board).toMatch(/const classNames = \(ops && ops\.VEHICLE_CLASSES\) \|\| \[\];/);
     expect(board).toMatch(/sortBoardRows\(visibleRows, this\.state\.sortKey, this\.state\.sortDir, classNames\)/);
     expect(board).not.toMatch(/'Economy', 'Business', 'Van luxury'/);
+    // A class name is data: the vehicle cell opts out of the translator (the dictionary turns "Van" into Arabic).
+    expect(board).toMatch(/'data-vt-clip': '1', 'data-vt-no-i18n': '1', title: r\.klass/);
   });
 
   it("the dashboard's Money in lines are the server's byClass, with no names written in the screen", () => {
@@ -240,8 +243,9 @@ describe("U9: the pickup day line follows the language", () => {
 
   it("the cell uses it: the day line and the tooltip come from the row and the page's language", () => {
     const src = read("app/ops/OpsBoard.dc.html");
-    expect(src).toMatch(/title: pickupDayFull\(r, this\.state\.lang\)/);
-    expect(src).toMatch(/'data-vt-no-i18n': '1' \}, pickupDay\(r, this\.state\.lang\)/);
+    // Written by Intl already, so the cell opts out of the translator (day line and tooltip are data).
+    expect(src).toMatch(/'data-vt-when': '1', 'data-vt-no-i18n': '1', title: pickupDayFull\(r, this\.state\.lang\)/);
+    expect(src).toMatch(/\{ 'data-vt-sub': '1' \}, pickupDay\(r, this\.state\.lang\)/);
     expect(src).not.toMatch(/pickupDay\(r\.date\)/);
   });
 });

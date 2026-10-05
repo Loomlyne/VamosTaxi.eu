@@ -970,8 +970,8 @@
   /* U10 (2026-10-05): the class names the dashboard lists (the board's class filter and its sort by
      vehicle, the calendars, the reviews form), from the live vehicle classes: GET /api/staff/vehicle-classes,
      one row per class, read in price-book order (sort_order, then slug). A class on offer (active) is
-     listed; a class that is no longer on offer is listed, after those, only while a booking or vehicle in
-     the store still carries it, under its own name. Two rows with one name are one entry (the live
+     listed; a class that is no longer on offer is listed only while a booking or vehicle in the store still
+     carries it, under its own name, at its place in the price-book order. Two rows with one name are one entry (the live
      `saden` and the legacy `economy` are both Economy). Loads once per page, retries after 30 s if it
      failed, and tells screens when it lands. Until then the list holds only what the store's rows carry:
      there is no built-in list of names. */
@@ -1001,23 +1001,30 @@
     var rows = classBook.rows.slice().sort(function (a, b) {
       return a.order - b.order || (a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0);
     });
-    var out = [];
-    function has(name) { return out.some(function (n) { return n.toLowerCase() === name.toLowerCase(); }); }
-    rows.forEach(function (r) { if (r.active && !has(r.name)) out.push(r.name); });
     var carried = [];
     ["bookings", "vehicles"].forEach(function (key) {
       var store = window.VamosOps && window.VamosOps[key];
       (store && typeof store.all === "function" ? store.all() : []).forEach(function (x) {
         var name = str(x && x.klass).trim();
-        if (name && !has(name) && carried.indexOf(name) === -1) carried.push(name);
+        if (name && !isIn(carried, name)) carried.push(name);
       });
     });
-    function rank(name) {
-      for (var i = 0; i < rows.length; i++) if (rows[i].name.toLowerCase() === name.toLowerCase()) return i;
-      return rows.length;
-    }
-    carried.sort(function (a, b) { return rank(a) - rank(b) || (a < b ? -1 : a > b ? 1 : 0); });
-    return out.concat(carried);
+    var out = [];
+    var place = {};
+    // The classes on offer, and the ones no longer on offer that something still carries, all in
+    // price-book order (the same order the dashboard's Money in uses): a name sits where the first
+    // class row with that name sits, whether or not that row is still on offer.
+    rows.forEach(function (r, i) {
+      var key = r.name.toLowerCase();
+      if (!(key in place)) place[key] = i;
+      if ((r.active || isIn(carried, r.name)) && !isIn(out, r.name)) out.push(r.name);
+    });
+    out.sort(function (a, b) { return place[a.toLowerCase()] - place[b.toLowerCase()]; });
+    // A name no class row has (nothing to place it by): after the rest, alphabetical.
+    return out.concat(carried.filter(function (n) { return !isIn(out, n); }).sort());
+  }
+  function isIn(list, name) {
+    return list.some(function (n) { return n.toLowerCase() === name.toLowerCase(); });
   }
 
   window.VamosOps = {

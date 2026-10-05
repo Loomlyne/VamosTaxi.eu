@@ -527,9 +527,9 @@ class Component extends DCLogic {
               ' ',
               React.createElement('span', { 'data-vt-booked-t': '1' }, keep(b.time)));
           } },
-        { key:'time', header: t.colPickup, width:'100px', render:(r) => React.createElement('span', { 'data-vt-when': '1', title: pickupDayFull(r, this.state.lang) },
+        { key:'time', header: t.colPickup, width:'100px', render:(r) => React.createElement('span', { 'data-vt-when': '1', 'data-vt-no-i18n': '1', title: pickupDayFull(r, this.state.lang) },
             React.createElement('strong', null, r.time),
-            React.createElement('span', { 'data-vt-sub': '1', 'data-vt-no-i18n': '1' }, pickupDay(r, this.state.lang))) },
+            React.createElement('span', { 'data-vt-sub': '1' }, pickupDay(r, this.state.lang))) },
         { key:'customer', header: t.colCustomer, width:'168px', render:(r) => React.createElement('span', { 'data-vt-stack': '1' },
             React.createElement('span', { 'data-vt-clip': '1', title: r.customer || '' }, r.customer || '—'),
             React.createElement('span', { 'data-vt-sub': '1', title: [r.email, r.phone].filter(Boolean).join(' · ') }, r.phone || r.email || t.noContact)) },
@@ -539,7 +539,7 @@ class Component extends DCLogic {
         { key:'vehicle', header: sortHead('vehicle', t.colVehicle), width:'120px', render:(r) => {
             const Icon = (window.VamosTaxiDesignSystem_245af1 || {}).Icon;
             return React.createElement('span', { 'data-vt-stack': '1' },
-            React.createElement('span', { 'data-vt-clip': '1', title: r.klass || r.vehicle || '' }, r.klass || r.vehicle || '—'),
+            React.createElement('span', { 'data-vt-clip': '1', 'data-vt-no-i18n': '1', title: r.klass || r.vehicle || '' }, r.klass || r.vehicle || '—'),
             React.createElement('span', { 'data-vt-sub': '1', 'data-vt-paxbags': '1' },
               React.createElement('span', { 'data-vt-pb': '1' }, Icon ? React.createElement(Icon, { name:'users', size:14, color:'var(--vt-text-muted)' }) : null, r.pax + ' ' + t.paxShort),
               '·',

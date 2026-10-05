@@ -104,7 +104,7 @@
 <p style="margin:0 0 6px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Money in</p>
 <sc-for list="{{ income }}" as="r" hint-placeholder-count="3">
 <div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px;padding:11px 0;border-bottom:1px solid var(--vt-grey-200)">
-<span style="flex:1 1 160px;min-width:0;font-size:var(--vt-body-sm);color:var(--vt-text-primary)">{{ r.label }}</span>
+<span data-vt-no-i18n="1" style="flex:1 1 160px;min-width:0;font-size:var(--vt-body-sm);color:var(--vt-text-primary)">{{ r.label }}</span>
 <span style="font-family:var(--vt-font-display);font-size:var(--vt-body-md);font-weight:var(--vt-weight-semibold);font-variant-numeric:tabular-nums;color:var(--vt-text-primary)">{{ r.amount }}</span>
 </div>
 </sc-for>
@@ -337,7 +337,7 @@ class Component extends DCLogic {
         { label:'Pickups', value:String(pickups), of:'', icon:'car-front', href:pickupsHref, foot:'Scheduled to run' },
         { label:'Chauffeurs on shift', value:String(onShift), of:'/ ' + chauffeurs.length, icon:'users', href:'/fleet/chauffeurs', foot:'Available to assign' },
       ],
-      income: classLines.map((l) => ({ label: String(l.klass || '').trim() || 'Class not stated', amount: fareLabel(Number(l.rappen) || 0) })),
+      income: classLines.map((l) => ({ label: String(l.klass || '').trim() || (window.VamosLocale && window.VamosLocale.t ? window.VamosLocale.t('Class not stated') : 'Class not stated'), amount: fareLabel(Number(l.rappen) || 0) })),
       expenses: moneyOut,
       attention: [
         { icon:'triangle-alert', title:'Unassigned bookings', note:'Paid, no chauffeur yet', count:String(unassignedPaid), href:'/bookings?filter=Unassigned' },
