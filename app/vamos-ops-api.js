@@ -26,6 +26,15 @@
   var RETRY_WINDOW_MS = 600000;
   var lost = false;
   var probing = false;
+  var reloadWanted = false;
+  // The screens ops.dc.html mounts by route. Only a miss of one of these may reload the page: every other
+  // file under /app/ops/ is a part a screen fetches while it runs (PlaceSearch when OpsDetail enters edit
+  // mode, BrandSelect, ActionsMenu, OpsTable, OpsSidebar ...), and a reload there would throw the edit away.
+  // A test keeps this list equal to the shell's route mounts.
+  var ROUTE_SCREENS = {
+    OpsDash: 1, OpsBoard: 1, OpsNewTrip: 1, OpsFleet: 1, OpsDetail: 1, OpsPricing: 1, OpsReviews: 1,
+    OpsContent: 1, OpsCalendarBoard: 1, OpsCustomers: 1, OpsSupportTicket: 1, OpsSettings: 1, OpsProfile: 1
+  };
 
   function endSession() {
     if (lost) return;
@@ -93,17 +102,20 @@
         if (res.status === 401 || res.status === 403) {
           return readJson(res).then(function (json) { if (deadSessionBody(res.status, json)) endSession(); });
         }
-        if (res.ok) reloadOnce();
+        if (res.ok && reloadWanted) reloadOnce();
       })
       .catch(function () {})
-      .then(function () { probing = false; });
+      .then(function () { probing = false; reloadWanted = false; });
   }
 
   function inspect(rawFetch, url, res) {
     if (!res || typeof res.status !== "number") return;
     var path = sameOriginPath(res.url || url);
     if (!path) return;
-    if (res.status === 404 && /^\/app\/ops\/[^/]+\.dc\.html$/.test(path)) {
+    var screen = /^\/app\/ops\/([^/]+)\.dc\.html$/.exec(path);
+    if (res.status === 404 && screen) {
+      // Any miss asks whether the session is dead; only a route screen's miss may reload a live one.
+      if (Object.prototype.hasOwnProperty.call(ROUTE_SCREENS, screen[1])) reloadWanted = true;
       probeSession(rawFetch);
       return;
     }

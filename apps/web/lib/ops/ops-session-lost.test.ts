@@ -6,7 +6,7 @@
 // /login when a staff answer says the session is gone, or when a screen file 404s and /api/staff/me
 // says the same. This runs the real file in a vm with a stub window, fetch and storage. No DOM, no network.
 
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import vm from "node:vm";
@@ -14,6 +14,20 @@ import { describe, expect, it } from "vitest";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const SOURCE = readFileSync(join(here, "../../../../app/vamos-ops-api.js"), "utf8");
+const OPS_DIR = join(here, "../../../../app/ops");
+
+// The screens the shell mounts by route (ops.dc.html: each `<sc-if value="{{ isX }}">` holds one dc-import), and
+// every other file in app/ops: the parts those screens fetch while they run (PlaceSearch when OpsDetail enters
+// edit mode, BrandSelect, ActionsMenu, OpsTable, OpsSidebar ...).
+const ROUTE_SCREENS = [
+  ...readFileSync(join(OPS_DIR, "ops.dc.html"), "utf8").matchAll(
+    /<sc-if value="\{\{\s*is\w+\s*\}\}"[^>]*>\s*(?:<!--[\s\S]*?-->\s*)?<dc-import name="(\w+)"/g,
+  ),
+].map((m) => m[1] as string);
+const NESTED_PARTS = readdirSync(OPS_DIR)
+  .filter((name) => name.endsWith(".dc.html"))
+  .map((name) => name.replace(/\.dc\.html$/, ""))
+  .filter((name) => !ROUTE_SCREENS.includes(name));
 const ORIGIN = "https://dashboard.vamostaxi.site";
 
 type Answer = { status: number; body?: unknown; url?: string };
@@ -189,6 +203,84 @@ describe("dashboard shell: a dead session goes to /login, not a blank screen (U8
     await flush();
     expect(t.reloaded).toEqual(["reload"]);
     expect(t.session.getItem("vamosOpsScreenRetryCount")).toBe("1");
+  });
+
+  // U8 review 2: the reload is for a screen that did not load, not for a part a screen fetches while it runs.
+  // PlaceSearch is first fetched when OpsDetail enters edit mode: a reload then would throw the edit away.
+  it("finds the shell's route screens and the nested parts (the next tests are not reading nothing)", () => {
+    expect(ROUTE_SCREENS).toContain("OpsBoard");
+    expect(ROUTE_SCREENS).toContain("OpsDetail");
+    expect(ROUTE_SCREENS.length).toBeGreaterThanOrEqual(13);
+    for (const nested of ["PlaceSearch", "BrandSelect", "ActionsMenu", "OpsTable", "OpsSidebar"]) {
+      expect(NESTED_PARTS, nested).toContain(nested);
+      expect(ROUTE_SCREENS, nested).not.toContain(nested);
+    }
+  });
+
+  const aliveAnswer = { status: 200, body: { ok: true, data: {} } };
+
+  it("every route screen of the shell that 404s while the session is alive reloads the page once", async () => {
+    for (const name of ROUTE_SCREENS) {
+      const t = tab((url) => (url === `/app/ops/${name}.dc.html` ? { status: 404 } : aliveAnswer));
+      await t.win.fetch(`/app/ops/${name}.dc.html`);
+      await flush();
+      expect(t.reloaded, name).toEqual(["reload"]);
+    }
+  });
+
+  it("no nested part that 404s while the session is alive reloads the page (a reload would discard an edit)", async () => {
+    for (const name of NESTED_PARTS) {
+      const t = tab((url) => (url === `/app/ops/${name}.dc.html` ? { status: 404 } : aliveAnswer));
+      await t.win.fetch(`/app/ops/${name}.dc.html`);
+      await flush();
+      expect(t.reloaded, name).toEqual([]);
+      expect(t.replaced, name).toEqual([]);
+    }
+  });
+
+  it("a nested part that 404s because the session is dead still goes to /login", async () => {
+    const t = tab((url) => (url.startsWith("/app/ops/") ? { status: 404 } : NO_SESSION));
+    await t.win.fetch("/app/ops/PlaceSearch.dc.html");
+    await flush();
+    expect(t.replaced).toEqual(["/login"]);
+    expect(t.reloaded).toEqual([]);
+  });
+
+  it("a route screen that 404s while the check for a nested part is still running is not forgotten: one probe, one reload", async () => {
+    let release: () => void = () => undefined;
+    const gate = new Promise<void>((resolve) => (release = resolve));
+    const t = tab(async (url) => {
+      if (url === "/api/staff/me") {
+        await gate; // the probe is slow
+        return aliveAnswer;
+      }
+      return { status: 404 };
+    });
+    await t.win.fetch("/app/ops/PlaceSearch.dc.html");
+    await t.win.fetch("/app/ops/OpsDetail.dc.html");
+    await flush();
+    expect(t.reloaded).toEqual([]);
+    release();
+    await flush();
+    expect(t.calls.filter((c) => c === "GET /api/staff/me")).toHaveLength(1);
+    expect(t.reloaded).toEqual(["reload"]);
+  });
+
+  it("a nested part and nothing else missing while the check is running: no reload", async () => {
+    let release: () => void = () => undefined;
+    const gate = new Promise<void>((resolve) => (release = resolve));
+    const t = tab(async (url) => {
+      if (url === "/api/staff/me") {
+        await gate;
+        return aliveAnswer;
+      }
+      return { status: 404 };
+    });
+    await t.win.fetch("/app/ops/PlaceSearch.dc.html");
+    await t.win.fetch("/app/ops/BrandSelect.dc.html");
+    release();
+    await flush();
+    expect(t.reloaded).toEqual([]);
   });
 
   it("an old retry mark does not block a new reload", async () => {
