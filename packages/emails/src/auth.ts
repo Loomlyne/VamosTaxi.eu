@@ -62,13 +62,22 @@ const KEYS: Record<AuthEmailType, { subject: string; heading: string; body: stri
   },
 };
 
+/**
+ * Mails that never greet by name (security S5, owner 2026-10-05). The sign-up confirmation goes out before the
+ * address is confirmed, so the name in it is whatever the person at the form typed, not the owner of the inbox.
+ * Same layout as the sign-in mail for an account without a name: no "Hello {name}.", no new wording.
+ * An array, not a module-scope Set (apps/web bans those; this package follows the same habit).
+ */
+const NO_GREETING: readonly AuthEmailType[] = ["signup"];
+
 export function renderAuthEmail(
   type: AuthEmailType,
   locale: EmailLocale,
   data: AuthEmailData,
 ): { subject: string; html: string; text: string } {
   const keys = KEYS[type];
-  const name = escapeHtml(data.name.trim());
+  const typedName = NO_GREETING.includes(type) ? "" : data.name.trim();
+  const name = escapeHtml(typedName);
   const link = escapeHtml(data.link);
   const code = escapeHtml(data.code);
   const params = { name, link, code };
@@ -78,10 +87,10 @@ export function renderAuthEmail(
   const cta = t(locale, "auth", keys.cta, params);
   const hello = name ? `<p style="margin:0 0 16px 0;">${t(locale, "auth", "email-hello", { name })}</p>` : "";
   const inner = `${hello}<p style="margin:0 0 8px 0;font-size:22px;line-height:28px;font-weight:700;">${heading}</p><p style="margin:0;">${lead}</p>${ctaButton(link, cta)}${code ? codeBlock(code, locale) : ""}`;
-  const textLead = name ? `${t(locale, "auth", "email-hello", { name: data.name.trim() })}\n\n` : "";
+  const textLead = name ? `${t(locale, "auth", "email-hello", { name: typedName })}\n\n` : "";
   return {
     subject,
     html: layoutHtml(locale, inner),
-    text: layoutText(`${textLead}${heading}\n\n${t(locale, "auth", keys.body, { name: data.name.trim(), link: data.link, code: data.code })}\n\n${cta}: ${data.link}\n${data.code}`, { locale }),
+    text: layoutText(`${textLead}${heading}\n\n${t(locale, "auth", keys.body, { name: typedName, link: data.link, code: data.code })}\n\n${cta}: ${data.link}\n${data.code}`, { locale }),
   };
 }

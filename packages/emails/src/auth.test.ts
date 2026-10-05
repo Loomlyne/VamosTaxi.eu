@@ -68,7 +68,8 @@ describe("renderAuthEmail", () => {
   });
 
   it("escapes script in name", () => {
-    const out = renderAuthEmail("signup", "en", {
+    // A kind that greets by name: the sign-up confirmation no longer does (auth-signup-greeting.test.ts).
+    const out = renderAuthEmail("recovery", "en", {
       name: "<script>alert(1)</script>",
       code: "123456",
       link: "https://vamostaxi.site/x",
