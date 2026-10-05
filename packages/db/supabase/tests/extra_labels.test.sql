@@ -18,7 +18,7 @@ select has_table('public', 'extra_labels', 'extra_labels exists');
 select ok((select relrowsecurity from pg_class where oid = 'public.extra_labels'::regclass), 'RLS is on');
 select function_privs_are('public', 'staff_extra_label_upsert', '{text,text,text,text,text,text[]}'::text[], 'anon', '{}'::text[], 'upsert: anon has no EXECUTE');
 select function_privs_are('public', 'staff_extra_label_upsert', '{text,text,text,text,text,text[]}'::text[], 'vamos_checkout', '{}'::text[], 'upsert: vamos_checkout has no EXECUTE');
-select function_privs_are('public', 'extra_labels_read', '{}'::text[], 'anon', '{EXECUTE}'::text[], 'read: anon has EXECUTE');
+select function_privs_are('public', 'extra_labels_read', '{}'::text[], 'vamos_checkout', '{EXECUTE}'::text[], 'read: vamos_checkout (the Worker) has EXECUTE; anon not since 20261007320000');
 
 -- Dispatcher refused, admin accepted.
 set local role vamos_staff;
@@ -35,9 +35,11 @@ select is((select count(*)::int from public.extra_labels where code = 'child_sea
 select is((select label_en || '|' || label_de || '|' || label_fr || '|' || coalesce(label_ar, 'null') from public.extra_labels where code = 'child_seat'),
   'Child seat|Kindersitz|Siege enfant|null', 'the update replaced every language, trimmed');
 
--- Anyone reads; anon cannot write or read the table directly.
+-- The Worker reads (checkout catalog, asCheckout); anon cannot write or read the table directly.
+set local role vamos_checkout;
+select is((select label_de from public.extra_labels_read() where code = 'child_seat'), 'Kindersitz', 'vamos_checkout reads through extra_labels_read');
+reset role;
 set local role anon;
-select is((select label_de from public.extra_labels_read() where code = 'child_seat'), 'Kindersitz', 'anon reads through extra_labels_read');
 select throws_ok($$ insert into public.extra_labels (code, label_en) values ('anon_try', 'x') $$, '42501', null, 'anon cannot write the table');
 reset role;
 

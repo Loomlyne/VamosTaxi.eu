@@ -1198,3 +1198,48 @@ describe("meta purchase (Phase 29)", () => {
     expect(typeof metaPurchaseDepFor(env, { metaPurchase: true }, emit)).toBe("function");
   });
 });
+
+describe("261005 U15: an expired checkout page with no payment row", () => {
+  const sqlErr = (code: string) => Object.assign(new Error(`pg ${code}`), { code });
+  const expiredMsg = () => message({ type: "checkout.session.expired" } as Partial<StripeQueueMessage>);
+  const expiredMain = (patch: Partial<Stripe.Checkout.Session> = {}) =>
+    session({ status: "expired", payment_status: "unpaid", metadata: { booking_id: "quote-1" }, ...patch } as Partial<Stripe.Checkout.Session>);
+  const noRow = (s: Stripe.Checkout.Session, patch: Partial<SettleDeps> = {}) =>
+    deps({
+      retrieveSession: vi.fn(async () => s),
+      settlePayment: vi.fn(async () => {
+        throw sqlErr("P0002");
+      }),
+      ...patch,
+    });
+
+  it("is recorded as no_payment and acked: nothing was charged, no stuck-payment mail, no refund", async () => {
+    const d = noRow(expiredMain());
+    expect(await handleStripeMessageWithDeps(expiredMsg(), d)).toEqual({ ack: true });
+    expect(d.eventSettle).toHaveBeenCalledWith("evt_1", "no_payment");
+    expect(d.alertStuckPayment).not.toHaveBeenCalled();
+    expect(d.refund).not.toHaveBeenCalled();
+    expect(d.purgeOnSessionExpired).not.toHaveBeenCalled();
+  });
+
+  it("if recording no_payment fails the message is retried", async () => {
+    const d = noRow(expiredMain(), {
+      eventSettle: vi.fn(async () => {
+        throw new Error("db down");
+      }),
+    });
+    expect(await handleStripeMessageWithDeps(expiredMsg(), d)).toEqual({ retry: true });
+  });
+
+  it("a page Stripe reports as paid is never closed this way (unchanged: retried)", async () => {
+    const d = noRow(expiredMain({ payment_status: "paid", created: Math.floor(Date.now() / 1000) - 5 }));
+    expect(await handleStripeMessageWithDeps(expiredMsg(), d)).toEqual({ retry: true });
+    expect(d.eventSettle).not.toHaveBeenCalled();
+  });
+
+  it("a completed-but-unpaid page with no row is not closed this way (unchanged: retried)", async () => {
+    const d = noRow(expiredMain({ status: "complete" } as Partial<Stripe.Checkout.Session>));
+    expect(await handleStripeMessageWithDeps(message(), d)).toEqual({ retry: true });
+    expect(d.eventSettle).not.toHaveBeenCalled();
+  });
+});

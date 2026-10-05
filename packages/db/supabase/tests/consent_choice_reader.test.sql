@@ -2,15 +2,15 @@
 --
 -- Proves public.consent_choice(): the latest consent_log row for the bound subject under one policy
 -- version decides (ties to the higher id), rows under an older version never decide (D-03b), an
--- as-of time hides later rows (META-05, no backfill), only anon can execute it, and no table
--- privilege on consent_log was added.
+-- as-of time hides later rows (META-05, no backfill), only vamos_checkout can execute it (the Worker,
+-- asCheckout; anon until 20261007320000, S6), and no table privilege on consent_log was added.
 --
 -- Fixtures carry explicit recorded_at values: record_consent rows in one transaction all share now().
 -- Versions are literals; the test does not depend on the TS constant.
 --
 -- Run as `postgres` by `supabase test db`.
 begin;
-select plan(24);
+select plan(25);
 
 -- Fixtures (as postgres) ----------------------------------------------------------------------
 -- Subject A: t1 Accept, t3 Necessary only, plus an old-version reject_all shaped like live row id 3.
@@ -31,8 +31,10 @@ values
   ('e0000000-0000-0000-0000-00000000000e', '9999-01-01', 'reject_all',   true, false, false, false, 'en', '2026-10-02 10:00+00');
 
 -- G1: EXECUTE grants ---------------------------------------------------------------------------
-select ok(has_function_privilege('anon', 'public.consent_choice(text,timestamptz)', 'EXECUTE'),
-  'G1 anon can execute consent_choice');
+select ok(has_function_privilege('vamos_checkout', 'public.consent_choice(text,timestamptz)', 'EXECUTE'),
+  'G1 vamos_checkout (the Worker) can execute consent_choice');
+select ok(not has_function_privilege('anon', 'public.consent_choice(text,timestamptz)', 'EXECUTE'),
+  'G1 anon cannot execute consent_choice (Supabase REST, 20261007320000)');
 select ok(not has_function_privilege('authenticated', 'public.consent_choice(text,timestamptz)', 'EXECUTE'),
   'G1 authenticated cannot execute consent_choice');
 select ok(not has_function_privilege('vamos_guest', 'public.consent_choice(text,timestamptz)', 'EXECUTE'),
@@ -57,7 +59,7 @@ select is((select proconfig from pg_proc where oid = 'public.consent_choice(text
   array['search_path=""'],
   'G2 proconfig is exactly search_path=""');
 
-set local role anon;
+set local role vamos_checkout;
 
 -- G4: no subject bound -> 0 rows, no error -----------------------------------------------------
 select is((select count(*)::int from public.consent_choice('9999-01-01')), 0,
@@ -68,7 +70,7 @@ select is((select count(*)::int from public.consent_choice('9999-01-01')), 0,
 
 -- G3: no table privilege was added -------------------------------------------------------------
 select throws_ok($$ select 1 from public.consent_log limit 1 $$, '42501', null,
-  'G3 anon still cannot select from consent_log');
+  'G3 vamos_checkout cannot select from consent_log (no table privilege)');
 
 -- Subject A ------------------------------------------------------------------------------------
 select set_config('request.vamos.consent_subject', 'a0000000-0000-0000-0000-00000000000a', true);
@@ -109,12 +111,12 @@ select is((select method from public.consent_choice('9999-01-01')), 'reject_all'
 
 reset role;
 
--- G5: end to end, record_consent as anon then the reader ---------------------------------------
-set local role anon;
+-- G5: end to end, record_consent as the Worker then the reader ---------------------------------
+set local role vamos_checkout;
 select set_config('request.vamos.consent_subject', 'f0000000-0000-0000-0000-00000000000f', true);
 select lives_ok(
   $$ select public.record_consent(true, true, true, true, 'accept_all', 'en', '9999-01-01') $$,
-  'G5 record_consent lives_ok as anon with a bound subject');
+  'G5 record_consent lives_ok as vamos_checkout with a bound subject');
 select is((select marketing from public.consent_choice('9999-01-01')), true,
   'G5 the reader returns the row record_consent just wrote');
 reset role;

@@ -7,7 +7,11 @@
 // surface, and this module is the only place apps/web names them.
 //
 // Three hard rules:
-//   1. Every call goes through asQuote, which is on env.HYPERDRIVE_NOCACHE.
+//   1. Every call goes through asCheckout with no claims (role vamos_checkout,
+//      no identity bound), which is on env.HYPERDRIVE_NOCACHE. 261005 S6: these
+//      four functions were executable by anon (asQuote), and so by anyone
+//      through Supabase REST with the public key, bypassing the Worker's rate
+//      limits; 20261007310000 granted vamos_checkout, 20261007320000 revoked anon.
 //      The cacheable public-content helper and its binding are never imported
 //      here. D-34: a cached lag on a pricing_live flip is not an acceptable
 //      billing read, and lib/db/public.ts's own header already refuses the
@@ -29,7 +33,7 @@
 // (the logger's credential-key pattern does not match `code`, so this is a
 // discipline the call site owns).
 
-import { asQuote } from "./identity";
+import { asCheckout } from "./identity";
 import {
   withRequestContext,
   type LogFields,
@@ -72,7 +76,7 @@ export async function loadRateBook(
   opts: { preferDraft: boolean },
   request?: RequestContext,
 ): Promise<unknown> {
-  const result = await asQuote(env, async (tx) => {
+  const result = await asCheckout(env, null, async (tx) => {
     const rows = await tx`select public.quote_rate_book(${opts.preferDraft}) as result`;
     return rows[0]?.result ?? null;
   });
@@ -85,7 +89,7 @@ export async function loadSettingsVersion(
   asOfIso: string,
   request?: RequestContext,
 ): Promise<unknown> {
-  const result = await asQuote(env, async (tx) => {
+  const result = await asCheckout(env, null, async (tx) => {
     const rows = await tx`select public.quote_settings_version(${asOfIso}) as result`;
     return rows[0]?.result ?? null;
   });
@@ -99,7 +103,7 @@ export async function mintLockDeadline(
   settingsVersionId: number,
   request?: RequestContext,
 ): Promise<string | null> {
-  const result = await asQuote(env, async (tx) => {
+  const result = await asCheckout(env, null, async (tx) => {
     const rows = await tx`select public.quote_lock_deadline(${settingsVersionId}) as result`;
     return rows[0]?.result ?? null;
   });
@@ -115,7 +119,7 @@ export async function evaluateCoupon(
   ids: { customerId: string | null; contactEmail: string | null },
   request?: RequestContext,
 ): Promise<unknown> {
-  const result = await asQuote(env, async (tx) => {
+  const result = await asCheckout(env, null, async (tx) => {
     const rows = await tx`select public.evaluate_coupon(${code}, ${ids.customerId}, ${ids.contactEmail}) as result`;
     return rows[0]?.result ?? null;
   });
@@ -153,7 +157,7 @@ export async function loadLaunchFlags(
 ): Promise<LaunchFlags> {
   const preferLive = false;
   try {
-    const result = await asQuote(env, async (tx) => {
+    const result = await asCheckout(env, null, async (tx) => {
       const rows = await tx`select public.quote_rate_book(${preferLive}) as result`;
       return rows[0]?.result ?? null;
     });

@@ -1,7 +1,9 @@
 // POST /api/consent — record_consent after GUC bind (SITE-08 / D-03 / D-14).
 // The row carries the categories the visitor chose (27 D-05). Turnstile is fail-closed
 // whenever that row has marketing true (27 D-33); rows with marketing false never wait on it.
-// Guest writes use asAnon only (D-08). Do not import @vamos/db.
+// Guest writes use asCheckout with no claims only (D-08; 261005 S6: record_consent is executable by
+// vamos_checkout, not by anon, so Supabase REST cannot write consent rows past this route's limits).
+// Do not import @vamos/db.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { checkWriteRateLimit } from "@/lib/abuse/rate-limit";
@@ -17,7 +19,7 @@ import {
   readConsentSubject,
 } from "@/lib/consent/cookie";
 import { cfConnectingIp, truncateClientIp } from "@/lib/consent/ip";
-import { asAnon } from "@/lib/db/identity";
+import { asCheckout } from "@/lib/db/identity";
 import { csrfForbidden } from "@/lib/security/origin";
 import { verifyTurnstile } from "@/lib/turnstile";
 
@@ -109,7 +111,7 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   try {
-    await asAnon(env, async (tx) => {
+    await asCheckout(env, null, async (tx) => {
       await recordConsent(tx, {
         subject,
         method,

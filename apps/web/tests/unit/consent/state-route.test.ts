@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const asAnon = vi.fn();
+const asCheckout = vi.fn();
 const readConsentChoice = vi.fn();
 
 vi.mock("@opennextjs/cloudflare", () => ({ getCloudflareContext: () => ({ env: {} }) }));
 vi.mock("@/lib/db/identity", () => ({
-  asAnon: (env: unknown, fn: (tx: unknown) => unknown) => {
-    asAnon(env);
+  asCheckout: (env: unknown, claims: unknown, fn: (tx: unknown) => unknown) => {
+    asCheckout(env, claims);
     return fn({});
   },
 }));
@@ -32,7 +32,7 @@ function expectHeaders(res: Response) {
 }
 
 beforeEach(() => {
-  asAnon.mockReset();
+  asCheckout.mockReset();
   readConsentChoice.mockReset();
 });
 
@@ -40,14 +40,14 @@ describe("GET /api/consent/state", () => {
   it("no cookie: chosen false, no DB", async () => {
     const res = await GET(req());
     expect(await res.json()).toEqual({ ok: true, chosen: false, policyVersion: CONSENT_POLICY_VERSION });
-    expect(asAnon).not.toHaveBeenCalled();
+    expect(asCheckout).not.toHaveBeenCalled();
     expectHeaders(res);
   });
 
   it("non-UUID cookie: chosen false, no DB", async () => {
     const res = await GET(req("consent_subject=not-a-uuid"));
     expect(((await res.json()) as { chosen: boolean }).chosen).toBe(false);
-    expect(asAnon).not.toHaveBeenCalled();
+    expect(asCheckout).not.toHaveBeenCalled();
     expectHeaders(res);
   });
 
@@ -56,6 +56,8 @@ describe("GET /api/consent/state", () => {
     const res = await GET(req(`consent_subject=${SUBJECT}`));
     expect(((await res.json()) as { chosen: boolean }).chosen).toBe(false);
     expect(readConsentChoice.mock.calls[0]![1]).toBe(SUBJECT);
+    // 261005 S6: read as vamos_checkout with no claims, never as anon.
+    expect(asCheckout.mock.calls[0]![1]).toBeNull();
     expectHeaders(res);
   });
 

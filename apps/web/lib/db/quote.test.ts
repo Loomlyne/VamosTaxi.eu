@@ -45,10 +45,11 @@ describe("quote RPC contract", () => {
 describe("quote.ts source shape", () => {
   const source = readFileSync(quoteSourcePath, "utf8");
 
-  it("calls asQuote once per wrapper", () => {
-    const matches = source.match(/asQuote/g);
+  it("calls asCheckout (no claims) once per wrapper, never asQuote or asAnon (261005 S6)", () => {
+    const matches = source.match(/asCheckout\(env, null,/g);
     expect(matches).not.toBeNull();
-    expect(matches!.length).toBeGreaterThanOrEqual(4);
+    expect(matches!.length).toBe(5);
+    expect(source).not.toMatch(/\basQuote\(|\basAnon\(|import \{[^}]*\basQuote\b/);
   });
 
   it("never imports the cacheable public helper, the cacheable binding, or the core package", () => {
