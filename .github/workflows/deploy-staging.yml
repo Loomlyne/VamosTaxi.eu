@@ -1,10 +1,10 @@
 name: Deploy Staging
 
-# A push to main re-runs every check that runs on Ubuntu: the gate (typecheck, lint, the Law 04 and legal
-# gates, build), the unit tests, the database suite (reset from zero, pgTAP, seed and types drift, mutation gate)
-# and the booking-funnel e2e shards. The repo is private, so every minute bills and macOS bills 10x: nothing here
-# runs on macOS by itself. The screenshot-diff job (`visual`) runs only when this workflow is started by hand with
-# the `visual` box ticked. The deploy to https://vamostaxi.site is a hand-started run only (owner decision
+# A push to main runs the cheap Ubuntu checks: the gate (typecheck, lint, the Law 04 and legal gates, build), the
+# unit tests and the database suite (reset from zero, pgTAP, seed and types drift, mutation gate). The repo is
+# private, so every minute bills and macOS bills 10x. The two expensive jobs run only when this workflow is started
+# by hand with their box ticked: `e2e` (the booking-funnel shards on Linux, about 109 billed minutes) and `visual`
+# (the macOS screenshot diffs). The deploy to https://vamostaxi.site is not done here at all (owner decision
 # 2026-09-29: Worker `vamos` ships from the owner's Mac). Never vamostaxi.eu. Never db:push the live bookings project.
 on:
   push:
@@ -15,9 +15,13 @@ on:
       - ".planning/**"
       - "deliverables/**"
       - "**/*.md"
-  # The only way the `deploy` job below runs: someone starts this workflow by hand.
+  # A hand-started run: the only way the `e2e` and `visual` jobs below run.
   workflow_dispatch:
     inputs:
+      e2e:
+        description: "Also run the Linux booking-funnel e2e shards (about 109 billed minutes)"
+        type: boolean
+        default: false
       visual:
         description: "Also run the macOS screenshot-diff job (billed at 10x: about 25 minutes is about 250 billed minutes)"
         type: boolean
@@ -165,8 +169,11 @@ jobs:
   # to the Mac. To hand deploys back to GitHub, remove the `workflow_dispatch` condition of `deploy`.
   # 26.0 D-01 / e2e-linux-3: the booking-funnel specs on Linux. The jobs live in one reusable workflow
   # (e2e-linux.yml) so a push to a ci/** branch can prove a change to them on GitHub before main sees it.
+  # Nine shards, about 109 billed minutes: hand-started only (the `e2e` box), like `visual`. A pull request
+  # (pr.yml) and a ci/** push keep their own runs of it.
   e2e-linux:
     name: Booking funnel e2e on Linux (D-01)
+    if: github.event_name == 'workflow_dispatch' && inputs.e2e
     uses: ./.github/workflows/e2e-linux.yml
     permissions:
       contents: read
