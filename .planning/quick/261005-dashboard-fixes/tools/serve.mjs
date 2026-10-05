@@ -30,7 +30,9 @@ const LOGIN_FILES = new Set(["/app/ops/support.js", "/app/ops/AuthForm.dc.html"]
 
 // `gate.failFiles` is a Set of /app/ops/<Name>.dc.html paths that always answer 404 (a nested part that did not
 // load: PlaceSearch when OpsDetail enters edit mode), whatever the session.
-export const gate = { dead: false, failNext: 0, failFiles: new Set(), hits: [] };
+// `gate.failOnceFiles` is a Set of the same kind of paths that answer 404 once and are then served (261005-dashboard-followups:
+// the sidebar's slow-Auth miss at boot).
+export const gate = { dead: false, failNext: 0, failFiles: new Set(), failOnceFiles: new Set(), hits: [] };
 
 export function serve(root) {
   return new Promise((resolve) => {
@@ -40,6 +42,12 @@ export function serve(root) {
       if (OPS.test(p)) p = "/app/ops/ops.html";
       else if (p === "/login") p = "/app/ops/ops-login.html";
       const screenFile = p.startsWith("/app/ops/") && p.endsWith(".dc.html") && !LOGIN_FILES.has(p);
+      if (gate.failOnceFiles.has(p)) {
+        gate.failOnceFiles.delete(p);
+        res.writeHead(404, { "cache-control": "private, no-store" });
+        res.end();
+        return;
+      }
       if (gate.failFiles.has(p)) {
         res.writeHead(404, { "cache-control": "private, no-store" });
         res.end();
