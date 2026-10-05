@@ -14,6 +14,10 @@
        switched off, security S13);
      - a screen file answering 404 while /api/staff/me says the same (a 404 alone can be a missing file).
    Only those answers count: every other 4xx stays the screen's own message.
+   A WRITE (POST, PUT, PATCH, DELETE) answered that way does not redirect at once: that would throw away
+   the form the person is typing. The page stays, the screen shows its own error, the page marks the
+   session lost, and the next read (a staff/API call or a screen file), history.pushState or popstate
+   goes to /login instead. A staff write that then goes through clears the mark.
    A screen file 404 while /api/staff/me says the session is alive (the gate waits at most 5 s for
    Supabase Auth and answers the private 404 past that) reloads the page once: the DC runtime keeps the
    miss and never asks for that file again, so without the reload the screen stays blank. */
@@ -26,6 +30,9 @@
   var RETRY_MAX = 2;
   var RETRY_WINDOW_MS = 600000;
   var lost = false;
+  // A write the server refused for a dead session leaves the page where it is (the typed form stays, the screen
+  // shows its own error) and sets this mark; the next read, screen load or navigation then goes to /login.
+  var lostPending = false;
   var probing = false;
   var reloadWanted = false;
   // The files a miss of which may reload a live page: the screens ops.dc.html mounts by route, and its
@@ -54,7 +61,31 @@
       sessionStorage.setItem(LOST_KEY, String(now));
     } catch (e) {}
     lost = true;
+    lostPending = false;
     location.replace("/login");
+  }
+
+  // The page's session is known lost (a write was refused for it) and the person has moved on: go now.
+  function leaveIfLostPending() {
+    if (!lostPending) return;
+    try { endSession(); } catch (e) {}
+  }
+
+  function isWrite(method) {
+    return /^(POST|PUT|PATCH|DELETE)$/.test(method);
+  }
+
+  function methodOf(input, init) {
+    var m = (init && init.method) || (input && typeof input === "object" && input.method) || "GET";
+    return String(m).toUpperCase();
+  }
+
+  // The reads that count as "the next read": the console's own, a staff/API call or a screen file. Fonts, photos,
+  // other origins and the sign-in calls do not.
+  function consoleRead(method, url) {
+    if (method !== "GET" && method !== "HEAD") return false;
+    var path = sameOriginPath(url);
+    return (path.indexOf("/api/") === 0 && path !== "/api/auth") || /^\/app\/ops\/[^/]+\.dc\.html$/.test(path);
   }
 
   function sameOriginPath(url) {
@@ -128,7 +159,7 @@
       .then(function () { probing = false; reloadWanted = false; });
   }
 
-  function inspect(rawFetch, url, res) {
+  function inspect(rawFetch, url, res, method) {
     if (!res || typeof res.status !== "number") return;
     var path = sameOriginPath(res.url || url);
     if (!path) return;
@@ -141,22 +172,49 @@
       return;
     }
     if ((res.status === 401 || res.status === 403) && path.indexOf("/api/") === 0 && path !== "/api/auth") {
-      readJson(res).then(function (json) { if (deadSessionBody(res.status, json, path)) endSession(); });
+      readJson(res).then(function (json) {
+        if (!deadSessionBody(res.status, json, path)) return;
+        // A read goes to /login at once. A write must not: the redirect would throw away the form it was sent
+        // from. It marks the session lost and the next read, screen load or navigation goes instead.
+        if (isWrite(method)) lostPending = true;
+        else endSession();
+      });
+      return;
     }
+    // A staff write that went through proves the session is alive (a refresh race refused the first try):
+    // the mark of an earlier refused write is void.
+    if (res.ok && isWrite(method) && path.indexOf("/api/staff/") === 0) lostPending = false;
   }
 
   function watchFetch() {
     var rawFetch = window.fetch;
     if (typeof rawFetch !== "function" || rawFetch.__vamosOpsWatch) return;
-    var watched = function (input) {
+    var watched = function (input, init) {
       var url = typeof input === "string" ? input : (input && input.url) || "";
+      var method = methodOf(input, init);
+      if (lostPending && consoleRead(method, url)) leaveIfLostPending();
       return rawFetch.apply(window, arguments).then(function (res) {
-        try { inspect(function () { return rawFetch.apply(window, arguments); }, url, res); } catch (e) {}
+        try { inspect(function () { return rawFetch.apply(window, arguments); }, url, res, method); } catch (e) {}
         return res;
       });
     };
     watched.__vamosOpsWatch = true;
     window.fetch = watched;
+  }
+
+  // The shell changes screen with history.pushState (and fires popstate itself); the back and forward buttons
+  // fire popstate. With a refused write pending, either one is the person moving on: go to /login.
+  function watchNavigation() {
+    var h = window.history;
+    if (!h || typeof h.pushState !== "function" || h.pushState.__vamosOpsWatch) return;
+    var push = h.pushState;
+    var watchedPush = function () {
+      leaveIfLostPending();
+      return push.apply(h, arguments);
+    };
+    watchedPush.__vamosOpsWatch = true;
+    h.pushState = watchedPush;
+    if (typeof window.addEventListener === "function") window.addEventListener("popstate", leaveIfLostPending);
   }
 
   function request(method, path, body) {
@@ -193,5 +251,6 @@
   }
 
   watchFetch();
+  watchNavigation();
   window.VamosOpsApi = { request: request };
 })();

@@ -70,13 +70,21 @@ function storage(initial: Record<string, string> = {}) {
 }
 
 /** One browser tab: the file loaded `loads` times (the shell's helmet runs it twice). */
-function tab(route: Route, opts: { loads?: number; session?: Record<string, string>; clock?: { now: number } } = {}) {
+function tab(
+  route: Route,
+  opts: { loads?: number; session?: Record<string, string>; clock?: { now: number }; bare?: boolean } = {},
+) {
   const calls: string[] = [];
   const replaced: string[] = [];
   const reloaded: string[] = [];
+  const pushes: string[] = [];
+  const listeners: Record<string, Array<() => void>> = {};
   const local = storage({ vamosOpsAuth: "1" });
   const session = storage(opts.session);
   const sandbox: Record<string, unknown> = {
+    // The shell navigates with history.pushState (+ a popstate event) and the browser's back button fires popstate.
+    history: { pushState: (_state: unknown, _title: string, url?: string) => void pushes.push(String(url ?? "")) },
+    addEventListener: (type: string, fn: () => void) => void (listeners[type] ??= []).push(fn),
     location: {
       origin: ORIGIN,
       href: `${ORIGIN}/customers`,
@@ -98,10 +106,14 @@ function tab(route: Route, opts: { loads?: number; session?: Record<string, stri
     JSON,
     Response,
   };
+  if (opts.bare) {
+    delete sandbox.history;
+    delete sandbox.addEventListener;
+  }
   sandbox.window = sandbox;
   sandbox.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
-    calls.push(`${init?.method ?? "GET"} ${url}`);
+    calls.push(`${init?.method ?? (typeof input === "object" && "method" in input ? input.method : "GET")} ${url}`);
     const answer = await route(url, init);
     if (answer === "network") throw new TypeError("network down");
     return jsonResponse(answer, new URL(url, ORIGIN).href);
@@ -109,10 +121,12 @@ function tab(route: Route, opts: { loads?: number; session?: Record<string, stri
   vm.createContext(sandbox);
   for (let i = 0; i < (opts.loads ?? 1); i++) vm.runInContext(SOURCE, sandbox);
   const win = sandbox as {
-    fetch: (input: string, init?: RequestInit) => Promise<Response>;
+    fetch: (input: string | { url: string; method?: string }, init?: RequestInit) => Promise<Response>;
+    history: { pushState: (state: unknown, title: string, url?: string) => void };
     VamosOpsApi: { request: (m: string, p: string, b?: unknown) => Promise<Record<string, unknown>> };
   };
-  return { win, calls, replaced, reloaded, local, session };
+  const fire = (type: string) => (listeners[type] ?? []).forEach((fn) => fn());
+  return { win, calls, replaced, reloaded, local, session, pushes, fire, listeners };
 }
 
 const flush = async () => {
@@ -121,6 +135,9 @@ const flush = async () => {
 
 const SCREEN = "/app/ops/OpsCustomers.dc.html";
 const NO_SESSION = { status: 401, body: { ok: false, code: "no-session" } };
+const NEEDS_MFA = { status: 403, body: { ok: false, code: "needs-mfa" } };
+// Security S13: the staff row was switched off; every /api/staff/* call answers it.
+const NOT_STAFF = { status: 403, body: { ok: false, code: "not-staff" } };
 
 describe("dashboard shell: a dead session goes to /login, not a blank screen (U8a)", () => {
   it("a screen file answers 404 and /api/staff/me says no-session: to /login, flag cleared, one redirect", async () => {
@@ -444,15 +461,13 @@ describe("dashboard shell: a dead session goes to /login, not a blank screen (U8
 
   it("403 needs-mfa (the code is asked on /login): to /login", async () => {
     const t = tab(() => ({ status: 403, body: { ok: false, code: "needs-mfa" } }));
-    await t.win.VamosOpsApi.request("POST", "/api/staff/settings", { a: 1 });
+    await t.win.VamosOpsApi.request("GET", "/api/staff/settings");
     await flush();
     expect(t.replaced).toEqual(["/login"]);
   });
 
   // Follow-up 3 (2026-10-05, controller): security S13 answers a switched-off staff row 403 not-staff on every
   // /api/staff/* call. That left a blank screen with an error. It is a dead session as far as this person goes.
-  const NOT_STAFF = { status: 403, body: { ok: false, code: "not-staff" } };
-
   it("a switched-off staff row (403 not-staff from /api/staff/*) is a dead session: to /login, flag cleared, the screen still gets the answer", async () => {
     const t = tab(() => NOT_STAFF);
     const answer = await t.win.VamosOpsApi.request("GET", "/api/staff/bookings");
@@ -578,5 +593,214 @@ describe("dashboard shell: a dead session goes to /login, not a blank screen (U8
     await flush();
     expect(t.replaced).toEqual([]);
     expect(t.calls).toEqual(["GET /api/staff/me", "GET /api/staff/bookings/VT-1"]);
+  });
+});
+
+// Follow-up 4 (2026-10-05, controller): a write (POST, PUT, PATCH, DELETE) answered with a dead session used to send the
+// browser to /login at once, and the form the person had typed went with it. Now the page stays (the screen shows its
+// own error as before), the page marks the session lost, and the next read, screen load or navigation goes to /login.
+describe("a write that fails on a dead session keeps the page; the next read, screen load or navigation goes to /login", () => {
+  const WRITES = ["POST", "PUT", "PATCH", "DELETE"] as const;
+  const DEAD = [
+    ["no-session", NO_SESSION],
+    ["needs-mfa", NEEDS_MFA],
+    ["not-staff", NOT_STAFF],
+  ] as const;
+  const ALIVE = { status: 200, body: { ok: true, data: {} } };
+
+  /** Writes answer `writeAnswer`, everything else answers `readAnswer`. */
+  const split = (writeAnswer: Answer | "network", readAnswer: Answer) => (_url: string, init?: RequestInit) =>
+    init?.method && init.method !== "GET" ? writeAnswer : readAnswer;
+
+  for (const method of WRITES) {
+    for (const [code, answer] of DEAD) {
+      it(`a failed ${method} (${code}) keeps the page: no redirect, the sign-in flag stays, the screen still gets its answer`, async () => {
+        const t = tab(split(answer, ALIVE));
+        const got = await t.win.VamosOpsApi.request(method, "/api/staff/settings", { a: 1 });
+        await flush();
+        expect(got).toMatchObject({ ok: false, code });
+        expect(t.replaced).toEqual([]);
+        expect(t.reloaded).toEqual([]);
+        expect(t.local.has("vamosOpsAuth")).toBe(true);
+      });
+    }
+  }
+
+  it("the next staff read after the failed write goes to /login, whatever that read answers; it still gets its answer", async () => {
+    for (const readAnswer of [ALIVE, NO_SESSION]) {
+      const t = tab(split(NO_SESSION, readAnswer));
+      await t.win.VamosOpsApi.request("PATCH", "/api/staff/bookings/VT-1", { status: "cancelled" });
+      await flush();
+      expect(t.replaced).toEqual([]);
+      const got = await t.win.VamosOpsApi.request("GET", "/api/staff/bookings");
+      await flush();
+      expect(got).toMatchObject({ ok: readAnswer === ALIVE });
+      expect(t.replaced).toEqual(["/login"]);
+      expect(t.local.has("vamosOpsAuth")).toBe(false);
+    }
+  });
+
+  it("the next screen load goes to /login", async () => {
+    const t = tab(split(NO_SESSION, ALIVE));
+    await t.win.VamosOpsApi.request("POST", "/api/staff/settings", {});
+    await flush();
+    expect(t.replaced).toEqual([]);
+    await t.win.fetch("/app/ops/OpsPricing.dc.html");
+    await flush();
+    expect(t.replaced).toEqual(["/login"]);
+  });
+
+  it("the next navigation goes to /login: history.pushState (the shell's own route change) and popstate (back / forward)", async () => {
+    const pushed = tab(split(NO_SESSION, ALIVE));
+    await pushed.win.VamosOpsApi.request("PUT", "/api/staff/rate-book", {});
+    await flush();
+    expect(pushed.replaced).toEqual([]);
+    pushed.win.history.pushState({}, "", "/pricing");
+    expect(pushed.replaced).toEqual(["/login"]);
+    expect(pushed.pushes).toEqual(["/pricing"]); // the browser's own pushState still runs
+
+    const popped = tab(split(NOT_STAFF, ALIVE));
+    await popped.win.VamosOpsApi.request("POST", "/api/staff/settings", {});
+    await flush();
+    expect(popped.replaced).toEqual([]);
+    popped.fire("popstate");
+    expect(popped.replaced).toEqual(["/login"]);
+  });
+
+  it("before any failed write nothing is redirected: reads, screen loads, pushState and popstate all pass through", async () => {
+    const t = tab(() => ALIVE);
+    await t.win.VamosOpsApi.request("GET", "/api/staff/bookings");
+    await t.win.fetch("/app/ops/OpsPricing.dc.html");
+    t.win.history.pushState({}, "", "/pricing");
+    t.fire("popstate");
+    await t.win.VamosOpsApi.request("POST", "/api/staff/settings", {});
+    await flush();
+    expect(t.replaced).toEqual([]);
+    expect(t.pushes).toEqual(["/pricing"]);
+    expect(t.local.has("vamosOpsAuth")).toBe(true);
+  });
+
+  it("a write refused for another reason does not mark the page: not-admin, csrf, no code, a 500, a dropped connection", async () => {
+    for (const writeAnswer of [
+      { status: 403, body: { ok: false, code: "not-admin" } },
+      { status: 403, body: { ok: false, code: "csrf" } },
+      { status: 401, body: { ok: false } },
+      { status: 503, body: { ok: false, code: "staff-check-failed" } },
+      { status: 500, body: { ok: false, code: "http" } },
+      "network" as const,
+    ]) {
+      const t = tab(split(writeAnswer, ALIVE));
+      await t.win.VamosOpsApi.request("POST", "/api/staff/settings", {});
+      await flush();
+      await t.win.VamosOpsApi.request("GET", "/api/staff/bookings");
+      await t.win.fetch("/app/ops/OpsPricing.dc.html");
+      t.win.history.pushState({}, "", "/pricing");
+      t.fire("popstate");
+      await flush();
+      expect(t.replaced, JSON.stringify(writeAnswer)).toEqual([]);
+    }
+  });
+
+  it("not-staff from a write counts only on /api/staff/*, like for reads", async () => {
+    const t = tab(split(NOT_STAFF, ALIVE));
+    await t.win.VamosOpsApi.request("POST", "/api/checkout/intent", {});
+    await flush();
+    await t.win.VamosOpsApi.request("GET", "/api/staff/bookings");
+    await flush();
+    expect(t.replaced).toEqual([]);
+  });
+
+  it("many reads after the failed write are one redirect; a second failed write adds nothing", async () => {
+    const t = tab(split(NO_SESSION, ALIVE));
+    await t.win.VamosOpsApi.request("POST", "/api/staff/settings", {});
+    await Promise.all([t.win.VamosOpsApi.request("GET", "/api/staff/bookings"), t.win.fetch("/app/ops/OpsPricing.dc.html")]);
+    await t.win.VamosOpsApi.request("PATCH", "/api/staff/settings", {});
+    t.win.history.pushState({}, "", "/pricing");
+    await flush();
+    expect(t.replaced).toEqual(["/login"]);
+  });
+
+  it("the 15 s loop guard still applies: held back, the mark waits, and the next read after the window goes to /login", async () => {
+    const clock = { now: 5_000_000 };
+    const t = tab(split(NO_SESSION, ALIVE), { clock, session: { vamosOpsSessionLostAt: String(clock.now - 2000) } });
+    await t.win.VamosOpsApi.request("POST", "/api/staff/settings", {});
+    await t.win.VamosOpsApi.request("GET", "/api/staff/bookings");
+    await flush();
+    expect(t.replaced).toEqual([]); // it just came back from /login
+    clock.now += 20_000;
+    await t.win.VamosOpsApi.request("GET", "/api/staff/bookings");
+    await flush();
+    expect(t.replaced).toEqual(["/login"]);
+  });
+
+  it("a staff write that goes through after the refused one proves the session is alive: the mark is cleared", async () => {
+    let writes = 0;
+    const t = tab((_url, init) => {
+      if (init?.method === "POST") return ++writes === 1 ? NO_SESSION : ALIVE; // a refresh race: the retry works
+      return ALIVE;
+    });
+    await t.win.VamosOpsApi.request("POST", "/api/staff/settings", {});
+    await t.win.VamosOpsApi.request("POST", "/api/staff/settings", {});
+    await flush();
+    await t.win.VamosOpsApi.request("GET", "/api/staff/bookings");
+    t.win.history.pushState({}, "", "/pricing");
+    await flush();
+    expect(t.replaced).toEqual([]);
+  });
+
+  it("the method is read from the init (any case) and from a Request-like input", async () => {
+    const lower = tab(split(NO_SESSION, ALIVE));
+    await lower.win.fetch("/api/staff/settings", { method: "post" });
+    await flush();
+    expect(lower.replaced).toEqual([]);
+    await lower.win.fetch("/api/staff/bookings");
+    await flush();
+    expect(lower.replaced).toEqual(["/login"]);
+
+    const byRequest = tab((url, init) => (url === "/api/staff/settings" && !init ? NO_SESSION : ALIVE));
+    await byRequest.win.fetch({ url: "/api/staff/settings", method: "PATCH" });
+    await flush();
+    expect(byRequest.replaced).toEqual([]);
+    await byRequest.win.fetch({ url: "/api/staff/bookings", method: "GET" });
+    await flush();
+    expect(byRequest.replaced).toEqual(["/login"]);
+  });
+
+  it("only the console's own reads count: another origin, a font, a photo and a non-console path do not redirect", async () => {
+    const t = tab(split(NO_SESSION, ALIVE));
+    await t.win.VamosOpsApi.request("POST", "/api/staff/settings", {});
+    await flush();
+    await t.win.fetch("https://elsewhere.example/api/staff/bookings");
+    await t.win.fetch("/photos/driver.jpg");
+    await t.win.fetch("/_ds/fonts/Poppins.woff2");
+    await t.win.fetch("/app/ops/ops.dc.html.map");
+    await flush();
+    expect(t.replaced).toEqual([]);
+  });
+
+  it("a read that is dead by itself still goes at once, as before (reads are not held back)", async () => {
+    const t = tab(() => NOT_STAFF);
+    await t.win.VamosOpsApi.request("GET", "/api/staff/bookings");
+    await flush();
+    expect(t.replaced).toEqual(["/login"]);
+  });
+
+  it("the shell's helmet runs the file twice: pushState is wrapped once and one redirect is made", async () => {
+    const t = tab(split(NO_SESSION, ALIVE), { loads: 2 });
+    expect(t.listeners.popstate).toHaveLength(1);
+    await t.win.VamosOpsApi.request("POST", "/api/staff/settings", {});
+    await flush();
+    t.win.history.pushState({}, "", "/pricing");
+    await flush();
+    expect(t.pushes).toEqual(["/pricing"]); // the original ran once, not once per wrapper
+    expect(t.replaced).toEqual(["/login"]);
+  });
+
+  it("a page without history or addEventListener still runs: no navigation hook, but reads still redirect", async () => {
+    const t = tab(split(NO_SESSION, ALIVE), { bare: true });
+    await t.win.VamosOpsApi.request("POST", "/api/staff/settings", {});
+    await t.win.VamosOpsApi.request("GET", "/api/staff/bookings");
+    await flush();
+    expect(t.replaced).toEqual(["/login"]);
   });
 });
