@@ -165,7 +165,7 @@ describe("POST /api/auth magic from /sign-in", () => {
   });
 
   it("sign-up is never affected", async () => {
-    await run({ locale: "en", method: "magic", mode: "signup", email: "n@example.com", firstName: "A", lastName: "B", consent: true, returnTo: "/checkout?class=economy" });
+    await run({ locale: "en", method: "magic", mode: "signup", email: "n@example.com", firstName: "A", lastName: "B", consent: true, turnstileToken: "tok", returnTo: "/checkout?class=economy" });
     expect((state.otp.mock.calls[0]?.[0] as { options: { shouldCreateUser: boolean } }).options.shouldCreateUser).toBe(true);
   });
 });

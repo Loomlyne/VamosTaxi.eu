@@ -243,7 +243,7 @@ button,.vt-btn,.vt-iconbtn{box-shadow:none}
 <div data-af-steps="1">
 <div data-af-step="1">
 <span data-af-step-n="1">01</span>
-<span><span data-af-step-k="1">Sent to</span><span data-af-step-v="1">{{ emailEcho }}</span></span>
+<span><span data-af-step-k="1">Sent to</span><span data-af-step-v="1" class="vt-dir-keep" data-vt-no-i18n="1">{{ emailEcho }}</span></span>
 </div>
 <div data-af-step="1">
 <span data-af-step-n="1">02</span>
@@ -439,8 +439,10 @@ class Component extends DCLogic {
       })
       .catch(() => {});
   }
-  componentDidUpdate(prev, prevState) {
-    if (prevState && prevState.mode !== this.state.mode) this.ensureChallenge();
+  componentDidUpdate(prev) {
+    /* The DC runtime hands the logic only the previous props, so ask every time: it returns at once unless
+       the mode is now sign-up or forgot and the check is not up yet (a /sign-up arrival sets the mode after mount). */
+    this.ensureChallenge();
     const keys = ['mode', 'method', 'stage', 'banner', 'email', 'nonce'];
     if (keys.some((k) => prev[k] !== this.props[k])) {
       this.setState({
@@ -481,7 +483,11 @@ class Component extends DCLogic {
     }
     const ready = !!window.VamosAccountNotice;
     if (ready && !this.state.noticeReady) this.setState({ noticeReady: true });
-    if ((!ready || !this._offLocale) && tries < 200) this.globalsTimer = setTimeout(() => this.bindGlobals(tries + 1), 50);
+    /* vamos-consent.js (the shared Turnstile helper) loads from the helmet too, and can land after the form is up:
+       bring the check up the moment it exists. */
+    const consentReady = !!(window.VamosConsent && typeof window.VamosConsent.turnstile === 'function');
+    if (consentReady) this.ensureChallenge();
+    if ((!ready || !this._offLocale || !consentReady) && tries < 200) this.globalsTimer = setTimeout(() => this.bindGlobals(tries + 1), 50);
   }
   armExit() {
     clearTimeout(this.exitTimer);
@@ -642,13 +648,15 @@ class Component extends DCLogic {
     if (this._tsPromise) return this._tsPromise;
     this.ensureChallenge();
     if (!this.ts) return Promise.resolve(null);
-    this._tsPromise = new Promise((resolve) => {
-      this._tsWait = (token) => { this._tsPromise = null; resolve(token); };
-      this._tsTimer = setTimeout(() => this.challengeDone(null), 90000);
-      this.ts.reset();
-      this.ts.execute();
-    });
-    return this._tsPromise;
+    let settle;
+    const promise = new Promise((resolve) => { settle = resolve; });
+    this._tsPromise = promise;
+    this._tsWait = (token) => { this._tsPromise = null; settle(token); };
+    this._tsTimer = setTimeout(() => this.challengeDone(null), 90000);
+    /* Set up first, then start: an answer that comes back at once must find the waiter in place. */
+    this.ts.reset();
+    this.ts.execute();
+    return promise;
   }
   liveAuth(body) {
     return fetch('/api/auth', {

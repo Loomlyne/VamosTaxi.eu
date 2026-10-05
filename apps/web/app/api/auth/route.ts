@@ -237,9 +237,13 @@ export async function POST(request: Request): Promise<Response> {
    */
   const challengePassed = async (): Promise<boolean> => {
     const bindings = env as unknown as Record<string, string | undefined>;
+    const token = typeof fields.turnstileToken === "string" ? fields.turnstileToken : "";
+    // Nothing to check, or no real Turnstile token (they stay well under 2048 characters): refuse here, without
+    // asking Cloudflare, instead of relying on its answer for an empty response.
+    if (token.length === 0 || token.length > 2048) return false;
     const challenge = await verifyTurnstile(
       env.TURNSTILE_SECRET_KEY ?? process.env.TURNSTILE_SECRET_KEY,
-      typeof fields.turnstileToken === "string" ? fields.turnstileToken : "",
+      token,
       {
         action: "account",
         idempotencyKey: typeof fields.idempotencyKey === "string" ? fields.idempotencyKey : "",

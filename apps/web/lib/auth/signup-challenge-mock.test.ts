@@ -29,12 +29,13 @@ type Form = {
 /** What the fake Turnstile does when the form calls execute(): hand out the next token, or fail. */
 type Plan = Array<string | null>;
 
-function load(opts: { props?: Record<string, unknown>; lang?: string; plan?: Plan; replies?: Reply[]; noHelper?: boolean }) {
+function load(opts: { props?: Record<string, unknown>; lang?: string; plan?: Plan; replies?: Reply[]; noHelper?: boolean; syncAnswer?: boolean; lateHelper?: boolean }) {
   const widgets: Array<{ opts: Record<string, unknown>; executes: number; resets: number; removed: boolean }> = [];
   const fetched: Array<{ url: string; body: Record<string, unknown> }> = [];
   const plan = [...(opts.plan ?? ["tok-1", "tok-2", "tok-3"])];
   const replies = [...(opts.replies ?? [])];
   const box = { scrollIntoView: vi.fn() };
+  const timers: Array<() => void> = [];
 
   const helper = {
     turnstile: (_box: unknown, onToken: (t: string) => void, onError: (c: string) => void, o: Record<string, unknown>) => {
@@ -44,8 +45,10 @@ function load(opts: { props?: Record<string, unknown>; lang?: string; plan?: Pla
         execute: () => {
           w.executes++;
           const next = plan.shift();
-          // Cloudflare answers after the call returns.
-          Promise.resolve().then(() => (next ? onToken(next) : onError("error")));
+          // Cloudflare answers after the call returns, unless the test wants the answer inside execute().
+          const answer = () => (next ? onToken(next) : onError("error"));
+          if (opts.syncAnswer) answer();
+          else Promise.resolve().then(answer);
         },
         reset: () => void w.resets++,
         remove: () => void (w.removed = true),
@@ -56,7 +59,7 @@ function load(opts: { props?: Record<string, unknown>; lang?: string; plan?: Pla
   const win: Record<string, unknown> = {
     VamosLocale: { lang: () => opts.lang ?? "en", onChange: () => () => undefined },
     VamosAccountNotice: { segments: () => [] },
-    VamosConsent: opts.noHelper ? undefined : helper,
+    VamosConsent: opts.noHelper || opts.lateHelper ? undefined : helper,
     crypto: { randomUUID: () => `uuid-${fetched.length + 1}` },
     matchMedia: () => ({ matches: false }),
   };
@@ -72,7 +75,7 @@ function load(opts: { props?: Record<string, unknown>; lang?: string; plan?: Pla
       const reply = replies.shift() ?? { stage: "sent" };
       return { json: async () => reply };
     },
-    setTimeout: () => 1,
+    setTimeout: (fn: () => void) => { timers.push(fn); return timers.length; },
     clearTimeout: () => undefined,
     console,
     React: { createElement: () => null },
@@ -95,7 +98,12 @@ function load(opts: { props?: Record<string, unknown>; lang?: string; plan?: Pla
   const settle = async () => {
     for (let i = 0; i < 10; i++) await new Promise((r) => setImmediate(r));
   };
-  return { form, widgets, fetched, box, settle };
+  /** The helmet script (vamos-consent.js) lands after the form is up. */
+  const landHelper = () => {
+    win.VamosConsent = helper;
+    while (timers.length) timers.shift()!();
+  };
+  return { form, widgets, fetched, box, settle, landHelper };
 }
 
 const SIGNUP = { mode: "signup", method: "password", email: "mia@example.test", password: "12345678", firstName: "Mia", lastName: "K", consent: true };
@@ -119,6 +127,17 @@ describe("sign-up on the sign-in page", () => {
     expect(t.form.state.stage).toBe("sent");
   });
 
+  it("an answer that arrives inside execute() is not lost, and the next send still asks again", async () => {
+    const t = load({ props: { mode: "signup" }, syncAnswer: true, plan: ["tok-1", "tok-2"] });
+    t.form.setState(SIGNUP);
+    t.form.submit();
+    await t.settle();
+    expect(t.fetched[0]!.body).toMatchObject({ turnstileToken: "tok-1" });
+    t.form.resend();
+    await t.settle();
+    expect(t.fetched[1]!.body).toMatchObject({ turnstileToken: "tok-2" });
+  });
+
   it("the link sign-up asks as well", async () => {
     const t = load({ props: { mode: "signup", method: "magic" } });
     t.form.setState({ ...SIGNUP, method: "magic" });
@@ -135,6 +154,14 @@ describe("sign-up on the sign-in page", () => {
     expect(t.fetched).toHaveLength(0);
     expect(t.form.state).toMatchObject({ stage: "form", banner: "send-failed" });
     expect(t.form.renderVals().bannerSendFailed).toBe(true);
+  });
+
+  it("the helper script landing after the form is up still warms the check up (no re-render needed)", () => {
+    const t = load({ props: { mode: "signup" }, lateHelper: true });
+    expect(t.widgets).toHaveLength(0);
+    t.landHelper();
+    expect(t.widgets).toHaveLength(1);
+    expect(t.widgets[0]!.opts).toMatchObject({ action: "account" });
   });
 
   it("with no Turnstile helper on the page it fails closed the same way", async () => {
@@ -205,7 +232,8 @@ describe("forgot password on the sign-in page", () => {
     const t = load({ props: { mode: "signin" } });
     expect(t.widgets).toHaveLength(0); // sign-in never loads Cloudflare's script
     t.form.setState({ mode: "forgot" });
-    (t.form as unknown as { componentDidUpdate(p: unknown, s: { mode: string }): void }).componentDidUpdate({}, { mode: "signin" });
+    // The DC runtime calls componentDidUpdate with the previous props only.
+    (t.form as unknown as { componentDidUpdate(p: unknown): void }).componentDidUpdate({});
     expect(t.widgets).toHaveLength(1);
   });
 });

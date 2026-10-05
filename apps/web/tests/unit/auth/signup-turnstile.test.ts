@@ -69,8 +69,18 @@ describe("S5: Turnstile on the public sign-up and forgot-password", () => {
     expect(await res.json()).toEqual({ ok: false, reason: "challenge-failed" });
     expect(calls).toEqual([]);
     expect(db.order).toEqual([]);
+    // Cloudflare is not even asked about an empty answer.
+    expect(state.turnstileCalls).toEqual([]);
     // Only the per-IP bucket was spent: a bot with no token cannot use up a real person's address bucket.
     expect(state.limiterCalls.map((c) => c.key)).toEqual(["auth:203.0.113.9"]);
+  });
+
+  it.each(flows)("%s with a token far longer than any Turnstile token: refused without asking Cloudflare", async (_n, body) => {
+    const calls = mailCalls();
+    const res = await POST(authPost({ ...body, turnstileToken: "x".repeat(2049) }));
+    expect(res.status).toBe(403);
+    expect(state.turnstileCalls).toEqual([]);
+    expect(calls).toEqual([]);
   });
 
   it.each(flows)("%s with a token Cloudflare refuses: same 403, nothing sent", async (_n, body) => {
