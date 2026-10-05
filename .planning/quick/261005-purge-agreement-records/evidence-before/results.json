@@ -1,0 +1,36 @@
+{
+ "at": "2026-10-05T08:58:07.118Z",
+ "base": "http://localhost:4710",
+ "results": [
+  {
+   "id": "R1",
+   "title": "home -> /checkout, Economy, traveller filled, guest choice preselected",
+   "status": "PASS",
+   "evidence": "guest_accounts_live=t; account choice checked=guest; /checkout"
+  },
+  {
+   "id": "R2",
+   "title": "PAY: one booking, one account record",
+   "status": "PASS",
+   "evidence": "intent 200 VT-26-0002; account block sent: guest; records on the booking: 1; quote df5b7f47-34d0-481f-b0e6-d11587f354c7"
+  },
+  {
+   "id": "R3",
+   "title": "back from Stripe (cancel_url with resume), Business chosen",
+   "status": "PASS",
+   "evidence": "resume=df5b7f47-34d0-481f-b0e6-d11587f354c7; email restored=true"
+  },
+  {
+   "id": "R4",
+   "title": "PAY again after the change",
+   "status": "PASS",
+   "evidence": "BUG REPRODUCED: intent 409 {\"code\":\"quote_already_booked\"}; supersedes sent=efaef3c0-4642-4ce3-8b7c-d6141b13d5ea; same quote=false; message \"This quote already has a booking.\" visible=true; pending bookings for the e-mail=1; first booking left=1; records still on it=1; detached records=0; superseded audit lines=0"
+  },
+  {
+   "id": "R5",
+   "title": "hourly purge of the unpaid booking that is left (session expired at the stand-in)",
+   "status": "PASS",
+   "evidence": "BUG REPRODUCED: session expired; candidate listed=1; purge -> ERROR \"append-only table public.account_agreement_records: UPDATE is not permitted\"; booking left=1; records for the e-mail=1, still attached=1"
+  }
+ ]
+}

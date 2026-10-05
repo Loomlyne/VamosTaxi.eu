@@ -1,0 +1,36 @@
+{
+ "at": "2026-10-05T09:07:49.379Z",
+ "base": "http://localhost:4710",
+ "results": [
+  {
+   "id": "R1",
+   "title": "home -> /checkout, Economy, traveller filled, guest choice preselected",
+   "status": "PASS",
+   "evidence": "guest_accounts_live=t; account choice checked=guest; /checkout"
+  },
+  {
+   "id": "R2",
+   "title": "PAY: one booking, one account record",
+   "status": "PASS",
+   "evidence": "intent 200 VT-26-0001; account block sent: guest; records on the booking: 1; quote d06e6073-96e8-4e9c-82b0-d75d15db49e7"
+  },
+  {
+   "id": "R3",
+   "title": "back from Stripe (cancel_url with resume), Business chosen",
+   "status": "PASS",
+   "evidence": "resume=d06e6073-96e8-4e9c-82b0-d75d15db49e7; email restored=true"
+  },
+  {
+   "id": "R4",
+   "title": "PAY again after the change",
+   "status": "PASS",
+   "evidence": "intent 200 {\"ok\":true,\"reference\":\"VT-26-0002\",\"booking_id\":\"62560c56-552d-4683-8fca-b06381c424a6\",\"url\":\"https://checkout.stripe.c; supersedes sent=fbcda16e-f609-4794-9c7a-503e4e2a315f; same quote=false; message \"This quote already has a booking.\" visible=null; pending bookings for the e-mail=1; first booking left=0; records still on it=0; detached records=1; superseded audit lines=1; new booking"
+  },
+  {
+   "id": "R5",
+   "title": "hourly purge of the unpaid booking that is left (session expired at the stand-in)",
+   "status": "PASS",
+   "evidence": "session expired; candidate listed=1; purge -> SET t; booking left=0; records for the e-mail=2, still attached=0"
+  }
+ ]
+}
