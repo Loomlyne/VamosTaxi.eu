@@ -61,8 +61,9 @@ a database they are skipped, and a skipped test proves nothing about a money pat
   The `apps/web` passes run with a 60 s test timeout: the 5 s default timed out a committed-rows test on a busy Mac.
 - A skipped test counts as FAIL (the summary line must show no `skipped`). The last line is `PASS | dbtests | ...` or `FAIL | dbtests | ...`.
 - Both suites commit rows, so every run starts from a reset. Never point `VAMOS_LOCAL_DB_PORT` at anything but a throwaway stack.
-- Without a name the lab is called `db-<checksum of the tree path>`; a lab the run made is destroyed at the end, one that already existed or
-  `--keep` is left (`lab.sh destroy <name>` removes it). It takes about 1.5 minutes on a warm machine.
+- Without a name the lab is called `db-<checksum of the tree path>`; a lab the run made is destroyed at the end, and also when the run dies
+  after the stack started (a failed start, reset or password step, a crash): only its own recorded stack is stopped. One that already existed or
+  `--keep` is left (`lab.sh destroy <name>` removes it). It takes about 2.5 minutes on a warm machine.
 - It is a different database state from `lab.sh pgtap` (that one needs no passwords and no leftover rows): run them one after the other, never together.
 
 ## Ports and state

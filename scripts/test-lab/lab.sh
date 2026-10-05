@@ -506,12 +506,17 @@ dbtests_abort() {
   [ "${DBTESTS_DONE:-0}" = 1 ] && return 0
   [ "${DBTESTS_MADE:-0}" = 1 ] || return 0
   case "$STATE" in "$LABHOME"/lab-?*) ;; *) return 0;; esac
-  [ -f "$STATE/lab.env" ] || return 0
-  if stack_running 2>/dev/null; then
-    echo "lab $NAME was made by this run and its stack is running: lab.sh destroy $NAME removes it" >&2
-  else
-    rm -rf "$STATE"  # the run died before a stack existed: nothing half-built is left behind
-  fi
+  [ -d "$STATE" ] || return 0
+  # A lab this run made and that never got as far as a workdir has no stack: nothing half-built is left behind.
+  if [ ! -f "$STATE/lab.env" ] || [ ! -f "$SB/supabase/config.toml" ]; then rm -rf "$STATE"; return 0; fi
+  # Otherwise the run died after the stack may have started (start, reset, passwords, a vitest crash): destroy it, as a
+  # finished run does. cmd_destroy checks that the stack is this lab's own (its project and its workdir) and stops only
+  # that one; it runs in a subshell because it ends with `exit` on a failure, which must not end this handler.
+  echo "lab $NAME was made by this run and the run did not finish: destroying it" >&2
+  local out rc
+  out=$( ( cmd_destroy "$NAME" ) 2>&1 ); rc=$?
+  printf '%s\n' "$out" | sed 's/^/  /' >&2
+  [ "$rc" = 0 ] || echo "lab $NAME could not be destroyed (above): lab.sh destroy $NAME removes it" >&2
 }
 cmd_dbtests() {
   local name="" keep=0 a
