@@ -3,8 +3,9 @@
 Work session (not control), 2026-10-05. Owner decisions: `.planning/decisions/2026-10-05-signup-safety.md` (question form).
 
 - Branch `fix/signup-safety`, cut from `origin/main` `16f1cfa7`; `origin/main` then moved to `cc0c9c6d` (planning files only, no overlap) and is merged in with no conflict.
-- No commit on `main`, no push of `main`, no deploy, no write to the live database, Cloudflare or Supabase Auth. No migration. No message keys added (`db:seed:gen` not needed; `db:seed:check` clean).
-- Test lab `su-s5` was built from this branch, used, and destroyed. Build output removed.
+- No commit on `main`, no push of `main`, no deploy, no write to the live database, Cloudflare or Supabase Auth. One migration file, written for the review follow-up (item 4): `20261007330000_staff_reset_recipient.sql`, not applied anywhere but a test lab. No message keys added (`db:seed:gen` not needed; `db:seed:check` clean).
+- Test labs `su-s5` and `su-s6` were built from this branch, used, and destroyed. Build output removed.
+- After the Fable review of `2921fe79` the controller asked for two fixes (items 4 and 5 below), each its own commit with tests.
 
 ## Items
 
@@ -42,6 +43,30 @@ Work session (not control), 2026-10-05. Owner decisions: `.planning/decisions/20
 
 ### 3. S9 (two manage links): no change, as decided.
 
+### 4. Token replay (review, Medium): the Turnstile idempotency key is made on the server
+
+**Cause.** Cloudflare answers the same success for a token re-verified with the same `idempotency_key` for 300 s. The key came from the browser's body, so one solved token could be posted for many addresses from many IPs. `apps/web/app/api/auth/route.ts:249` (`challengePassed()`, used by sign-up, link sign-up, forgot-password and the checkout sign-in link) and `apps/web/lib/checkout/account-gate.ts` (`accountGateDeps().verifyTurnstile`, the checkout "account" check, key from `input.account.idempotency_key`).
+
+**Fix (commit `247b9daa`).** Both send `crypto.randomUUID()` and ignore the body's key, as `lib/auth/actions.ts` already did. A second use of the same token is then refused by Cloudflare as a duplicate.
+
+**Tests.** `signup-turnstile-real.test.ts` (a fake siteverify with Cloudflare's rule: same token + same key repeats the success, any other key is refused; the same token posted for two addresses with the browser's key held equal: first 200, second 403, two different keys sent, neither is the browser's), `signup-turnstile.test.ts` (the three flows: same token twice gives two different UUID keys, "key-1" never sent), `checkout-route.test.ts` (the checkout link: key is not "k1"), `lib/checkout/account-gate.test.ts` (the real gate dep: two checks with the same browser key send two different UUIDs). 10 of them fail on the old code.
+
+**Same pattern, not changed (listed as open).** `app/api/contact/route.ts:41`, `app/api/consent/route.ts:97` and `app/api/reviews/submit/route.ts:106` also pass the browser's key to siteverify.
+
+### 5. Dashboard forgot-password: a reset link goes to active staff only (controller decision)
+
+**Cause.** `route.ts` forgot branch skips the check on the dashboard host, so a reset mail could be sent to any customer address from `dashboard.vamostaxi.site`.
+
+**Fix (commit `ffab6c6f`).** On the dashboard host the route asks the new read `public.staff_active_for_email(text)` (migration `20261007330000`: SECURITY DEFINER, empty `search_path`, boolean only, `vamos_system` only; anon, authenticated, PUBLIC and the other Worker roles hold nothing) through `staffActiveForEmail` in `lib/db/system-reads.ts`. Active staff row: the real address goes to Supabase as before. Anyone else, or a check that cannot be made (fails closed): the same Supabase call goes out with an address no account can have (`no-recovery-<uuid>@invalid.invalid`), so nothing is mailed and the answer, the verifier cookie and the work done are those of an unknown address. The real address is never sent to Supabase for a non-staff. Every dashboard answer is held to the sign-in branch's floor (1.2 s plus up to 0.15 s), so time says nothing either. Public-host recovery, dashboard sign-in and everything else are unchanged.
+
+Why in the route and not in the mail hook: on the lab, Supabase replaces a `redirect_to` that is not on its Auth allow-list with the site URL, so a hook cannot always see that the request came through the dashboard host. I could not read the live allow-list (not reachable read-only). The route knows the host.
+
+**Tests.** `tests/unit/auth/dashboard-forgot-staff-only.test.ts` (8; four fail on the old route): staff gets the real address once, any other address never reaches Supabase and gets the same body, status and cookies, decoy is new each time, a failed staff check fails closed, every dashboard answer is held to the floor and the public host is not, public host unchanged, sign-in never asks who is staff. `packages/db/supabase/tests/staff_reset_recipient.test.sql` (23): active admin and dispatcher, case and spaces, inactive, invited-not-accepted (counts, the person owns the address), customer, unknown, empty, null, live toggling, definer and `search_path`, grants (vamos_system only), refused for anon, authenticated and vamos_staff. `database.types.ts` has the one new line, written in the generator's format (the generator needs the standard-port stack; run `pnpm db:types:check` on the controller's stack).
+
+**Lab proof (`run/dashboard-forgot.mjs`, `evidence/dashboard-forgot.json`).** Real Worker and local Supabase with the migration: public host, a customer's recovery mail still goes out. Dashboard host: the lab's active admin gets the recovery mail; a customer address gets none and the same `{"stage":"sent"}`; an unknown address gets none; staff, customer and unknown have the same status, body and Set-Cookie count and none comes back before the floor; password sign-in unchanged. Timing, four rounds each (`evidence/dashboard-forgot-timing.txt`): 1223 to 1359 ms for all three.
+
+**Controller steps (database).** Apply `20261007330000_staff_reset_recipient.sql` verbatim and read back (`pg_get_functiondef`, `md5(prosrc)`, ACL: `postgres`, `service_role` default, `vamos_system`; nothing for anon, authenticated, PUBLIC). Apply it BEFORE the Worker that calls it: it only adds a function. If the Worker goes first, the dashboard's forgot-password mails nobody (fails closed, log reason `staff-check-failed`) until the migration lands; public-host recovery is not affected either way. The number is my pick (`310000` and `320000` are on `main`); I did not confirm it with you, renumber if another job holds it.
+
 ## Proof
 
 | Check | Result |
@@ -73,16 +98,20 @@ Before/after bare crops are in `screens/` (`before-signup-390.png`, `before-sign
 | `pnpm test:scripts` | 40 of 40 |
 | `packages/emails` tests | 263 of 263 (16 files) |
 | `packages/db` unit tests | 14 of 14 |
-| `apps/web` tests (whole suite, the touched folders `lib/auth`, `tests/unit/auth`, `app/api/auth`, `lib/consent` included) | 453 files, 5355 tests pass; 20 files / 41 tests skipped (database specs that need a lab, as on `main`). 12 s, no load flake seen |
-| First full `pnpm test:unit` | stopped at one failure in `packages/emails/src/layout.test.ts`: it pinned the old sign-up text with "Hello Amira.". That is decision 2, so the expectation was updated; the suite was then run again in full (`pnpm -r --no-bail run test`) |
+| `apps/web` tests (whole suite, the touched folders `lib/auth`, `tests/unit/auth`, `app/api/auth`, `lib/checkout`, `lib/consent` included) | 454 files, 5369 tests pass; 20 files / 41 tests skipped (database specs that need a lab, as on `main`). No load flake seen |
+| One full `pnpm test:unit` after the review fixes (tip before the merge) | exit 0 |
+| Database, lab `su-s6`, `lab.sh pgtap` (whole suite, migration `20261007330000` included) | PASS, Files=109, Tests=3050; `staff_reset_recipient.test.sql` 23 of 23 |
+| Earlier first full `pnpm test:unit` (before the review) | stopped at one failure in `packages/emails/src/layout.test.ts`: it pinned the old sign-up text with "Hello Amira.". That is decision 2, so the expectation was updated and the suite run again in full |
 
-Not run here: Playwright e2e and visual specs (by hand only since the checks job change), database pgTAP (no migration in this branch).
+Not run here: Playwright e2e and visual specs (by hand only since the checks job change), `pnpm db:types:check` (needs the standard-port stack; the one new line in `database.types.ts` is in the generator's format).
 
 
 ## Not verified
 
 - The Cloudflare widget itself. The lab uses a stand-in for `challenges.cloudflare.com` (the page cannot reach Cloudflare in the lab); how Cloudflare draws and decides on the real widget is only seen live. Whether the widget allows the host `vamostaxi.site` is a Cloudflare setting (owner step 1).
 - Recovery, code and email-change mails with an untrusted name: read in code, not run.
+- Whether Supabase's hosted Auth redirect allow-list holds `https://dashboard.vamostaxi.site/**` (not readable from here). Item 5 does not depend on it.
+- Cloudflare's real replay answer (`timeout-or-duplicate`) for a token used with a second key: shown against a fake that follows Cloudflare's documented rule, not against Cloudflare.
 - Live: nothing was deployed or applied.
 
 ## Failed
@@ -97,13 +126,15 @@ Nothing is failing now. Found and fixed on the way: the DC runtime passes only t
 ## Open questions (plain words)
 
 1. Resend of the confirmation mail (`runResendConfirmation`) has no check. It only re-sends to an account that already exists and is limited per address. Add the same check?
-2. Forgot-password on the dashboard host (`dashboard.vamostaxi.site`) is not asked for a token, as decided (dashboard login is out of scope). It is the one forgot-password path still without a check.
-3. The sign-in link (not sign-up) can create an account for a new address (it is limited per address, has no check, by decision 1). Keep it that way?
+2. (Closed by item 5.) Forgot-password on the dashboard host still asks the visitor for no token, but now mails an active staff address only.
+3. The sign-in link (not sign-up) can create an account for a new address (it is limited per address, has no check, by decision 1). Keep it that way? (The controller said to leave it while the owner is asked.)
 4. The React twin `app/[locale]/sign-in/SignInClient.tsx` no longer sends sign-up or forgot-password (it passes no token, so the actions answer "sent" and send nothing). No customer reaches it (the DC mock serves /sign-in), so I left it. Delete it, or leave it?
 5. Recovery, code and email-change mails still greet by the stored name (item 2, last list). Change them too?
 6. Not a change by me, noticed: `Hello {name}` appears in the dead key `email-hello` only; the seed would need a regeneration if you remove it.
+7. Same token-replay pattern as item 4, not changed: the contact form (`app/api/contact/route.ts:41`), the cookie banner (`app/api/consent/route.ts:97`) and the review form (`app/api/reviews/submit/route.ts:106`) take the Turnstile idempotency key from the browser too. One solved token can be replayed on each. Same one-line fix, one test each. Do it?
+8. The check lives in our Worker. If Supabase's Auth endpoints (`/auth/v1/signup`, `/recover`, `/otp`) can be reached directly by someone holding the project's public key, they skip it. Supabase has its own CAPTCHA protection (Auth settings, Turnstile secret, and the page then passes a `captchaToken`) that would close that. I did not check whether the key is reachable from outside and I touched no Auth setting. Look at it?
 
 ## Close-out
 
-- Files: `app/pages/AuthForm.dc.html`, `app/vamos-consent.js`, `app/vamos-i18n-dict.js`, `apps/web/app/api/auth/route.ts`, `apps/web/lib/auth/actions.ts`, `packages/emails/src/auth.ts`, tests listed above, this folder (`run/` scripts, `evidence/`, `screens/`).
-- Next migration number untouched (`20261007330000`).
+- Files: `app/pages/AuthForm.dc.html`, `app/vamos-consent.js`, `app/vamos-i18n-dict.js`, `apps/web/app/api/auth/route.ts`, `apps/web/lib/auth/actions.ts`, `apps/web/lib/checkout/account-gate.ts`, `apps/web/lib/db/system-reads.ts`, `packages/emails/src/auth.ts`, `packages/db/supabase/migrations/20261007330000_staff_reset_recipient.sql`, `packages/db/database.types.ts` (one line), tests listed above, this folder (`run/` scripts, `evidence/`, `screens/`).
+- Migration number `20261007330000` is now used by this branch (next free: `20261007340000`).
