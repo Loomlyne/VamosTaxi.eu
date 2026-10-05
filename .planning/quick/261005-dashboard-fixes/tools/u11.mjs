@@ -1,15 +1,18 @@
 #!/usr/bin/env node
-// U11 pictures (NOT committed as a fix): the design-system Button has no `outline` variant, so every
-// <Button variant="outline"> renders as bare text. Each screen is shot twice, from the same stubs:
-//   before  the screens as they are on this branch (variant="outline")
-//   after   a scratch copy of the public tree in which every Button (not IconButton, whose `outline` exists)
-//           says variant="ghost" instead. Nothing in app/ is changed by this script.
+// U11 pictures. The design-system Button has no `outline` variant, so every <Button variant="outline"> drew the
+// browser's own grey button face. The owner signed "all 26 white with a line" (ghost) on 2026-10-05.
 //
-//   [ONLY=<screen/state substring>] node u11.mjs <public tree> <scratch dir> <out dir>
+//   [ONLY=<screen/state substring>] node u11.mjs <before|after> <public tree> <scratch dir> <out dir>
+//
+//   after   shoots the REAL files: the synced public tree of this branch (node scripts/sync-dc-mock-to-public.mjs
+//           first), nothing swapped.
+//   before  shoots the screens as they were before U11: a copy of that public tree whose app/ops/*.dc.html are put
+//           back to their text at the commit in $U11_BEFORE_REF (the branch tip before the U11 commit).
 //
 // Pictures: u11-<screen>-<state>-<before|after>-<w>.png, English, 1440 and 390 wide, bare crop of the console's
-// main column. A scenario that cannot reach its state says so and is listed at the end.
-import { cpSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+// main column (or of the open dialog). A scenario that cannot reach its state says so and is listed at the end.
+import { cpSync, mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { createRequire } from "node:module";
 import { join, resolve } from "node:path";
 import { serve } from "./serve.mjs";
@@ -17,27 +20,29 @@ import { answer, stubRows, MONEY_AFTER } from "./fixtures.mjs";
 
 const require = createRequire(new URL("../../../../apps/web/package.json", import.meta.url));
 const { chromium } = require("@playwright/test");
-const [, , treeArg, scratchArg, outArg] = process.argv;
-const tree = resolve(treeArg);
+const [, , labelArg, treeArg, scratchArg, outArg] = process.argv;
+if (!["before", "after"].includes(labelArg) || !treeArg || !scratchArg || !outArg) {
+  throw new Error("usage: u11.mjs <before|after> <public tree> <scratch dir> <out dir>");
+}
+const repo = resolve(new URL("../../../../", import.meta.url).pathname);
 const scratch = mkdtempSync(join(resolve(scratchArg), "u11-"));
 const out = resolve(outArg);
 mkdirSync(out, { recursive: true });
 
-// The "after" tree.
-const ghost = join(scratch, "ghost-public");
-cpSync(tree, ghost, { recursive: true });
-let swapped = 0;
-for (const f of readdirSync(join(ghost, "app/ops")).filter((n) => n.endsWith(".dc.html"))) {
-  const p = join(ghost, "app/ops", f);
-  const src = readFileSync(p, "utf8");
-  let next = src.replace(/(VamosTaxiDesignSystem_245af1\.Button"[^>\n]*?)variant="outline"/g, (_m, head) => { swapped += 1; return `${head}variant="ghost"`; });
-  // OpsCalendarBoard picks the Button variant of its Kanban / Table switch in code: '' (primary) when active, else 'outline'.
-  next = next.replace(/(kanbanVariant: view === 'kanban' \? '' : |tableVariant: view === 'table' \? '' : )'outline'/g, (_m, head) => { swapped += 1; return `${head}'ghost'`; });
-  if (next !== src) writeFileSync(p, next);
+let tree = resolve(treeArg);
+if (labelArg === "before") {
+  const ref = process.env.U11_BEFORE_REF;
+  if (!ref) throw new Error("before needs U11_BEFORE_REF (the commit before the U11 commit)");
+  const copy = join(scratch, "before-public");
+  cpSync(tree, copy, { recursive: true });
+  for (const f of readdirSync(join(repo, "app/ops")).filter((n) => n.endsWith(".dc.html"))) {
+    const text = execFileSync("git", ["show", `${ref}:app/ops/${f}`], { cwd: repo, maxBuffer: 64 * 1024 * 1024 });
+    writeFileSync(join(copy, "app/ops", f), text);
+  }
+  tree = copy;
 }
-console.log(`ghost tree: ${swapped} Button(s) switched outline -> ghost (IconButton left alone)`);
 
-const rows = await stubRows(resolve(new URL("../../../../", import.meta.url).pathname), scratch);
+const rows = await stubRows(repo, scratch);
 const TICKET = {
   id: "t1", ticketId: "T-0001", status: "new", name: "Ada Example", email: "ada@example.test", phone: "+41 79 000 00 00",
   bookingRef: "VT-26-0829", locale: "en", when: "5 Oct 2026 · 09:10", last: "5 Oct 2026 · 09:10", note: "",
@@ -93,7 +98,8 @@ const SCENARIOS = [
     } },
 ];
 
-const browser = await chromium.launch({ headless: true });
+// U11_CHROMIUM: path of a headless Chromium to use when Playwright's own download is missing from the cache.
+const browser = await chromium.launch({ headless: true, executablePath: process.env.U11_CHROMIUM || undefined });
 const skipped = [];
 
 async function shoot(base, label, sc, width) {
@@ -124,13 +130,17 @@ async function shoot(base, label, sc, width) {
   }
 }
 
-for (const [label, root] of [["before", tree], ["after", ghost]]) {
-  const { server, base } = await serve(root);
+{
+  const { server, base } = await serve(tree);
   for (const sc of SCENARIOS) {
     if (process.env.ONLY && !`${sc.screen}/${sc.state}`.includes(process.env.ONLY)) continue;
     for (const width of [1440, 390]) {
-      const b = await shoot(base, label, sc, width);
-      if (width === 1440) console.log(`${label}  ${sc.screen}/${sc.state}: ${b ? JSON.stringify(b.slice(0, 6)) : "NOT PICTURED"}`);
+      const b = await shoot(base, labelArg, sc, width);
+      if (width === 1440) {
+        const outline = b ? b.filter((x) => x.cls === "outline").length : 0;
+        const ghost = b ? b.filter((x) => x.cls === "ghost").length : 0;
+        console.log(`${labelArg}  ${sc.screen}/${sc.state}: ${b ? `vt-btn--outline x${outline}, vt-btn--ghost x${ghost}` : "NOT PICTURED"}`);
+      }
     }
   }
   server.close();

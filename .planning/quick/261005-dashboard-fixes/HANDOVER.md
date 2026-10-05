@@ -4,6 +4,9 @@ Work session. Branch `fix/dashboard-fixes`, cut from `origin/main` `328b133c`; `
 (two merges, no conflicts: the purge migration and board notes, then security hardening S4-S15; the only
 shared area is `apps/web/lib/ops/`, see the S13 note under U8a).
 Worktree `.claude/worktrees/agent-a75f53f12dd10a4a8`. Nothing deployed, no live write, no migration.
+Owner and controller answers, 2026-10-05 (recorded in `.planning/decisions/2026-10-05-dashboard-fixes.md` on main):
+U11 all 26 to ghost; error toasts stay until closed; a class taken off sale shows its own name; no "You were
+signed out" message in this job; the 5 s Auth timeout stays as built.
 Line numbers: "was" = `328b133c`, "now" = this branch.
 
 A fresh reviewer (not the builder) must read U8 before it ships: it changes what happens when a dashboard
@@ -16,7 +19,7 @@ sign-in dies, and the gate's Auth wait.
 | U8b optional file move | not done, reasons below |
 | U9 Dismiss label, Arabic chip, pickup day, error toast | fixed, proven in Chromium |
 | U10 classes from the live data | fixed, proven in Chromium |
-| U11 `variant="outline"` | pictures and proposal only. No source change committed. Needs the owner's answer |
+| U11 `variant="outline"` | fixed after the owner signed ghost for all 26 (own commit `fix(ops): grey outline buttons become ghost (U11)`), guard test, pictures re-taken from the real files |
 
 ---
 
@@ -144,46 +147,51 @@ success toast gone after 5 s, the pickup day line and tooltip per language.
   left the list. It is not empty: what remains is fixture data (names, addresses, emails) and a few strings
   that were there before (for example "2 Pax").
 
-## U11. `variant="outline"` (pictures and proposal, no source change committed)
+## U11. `variant="outline"` becomes `ghost` (owner: "Yes, all 26 white with a line")
 
-- Finding: the design-system `Button` knows `primary`, `secondary`, `ghost`, `light`, `danger`
-  (`design-system/_ds_bundle.js` :43120-:43147). There is no `outline`. A Button with `variant="outline"`
-  gets the class `vt-btn--outline`, which has no rule, so Chromium draws the browser's own button face (light
-  grey fill, `rgb(239 239 239)`, no border, and no hover or press look). `IconButton` does have `outline`; those
-  five uses (OpsCalendar 2, OpsCalendarBoard 2, the row edit button in OpsTable) are correct and stay.
-- The intended look is the quiet one: `ghost` (transparent, 1px `#DEDEDE` hairline, grey-50 on hover,
-  charcoal border). `OpsFleet` ("All chauffeurs"), `OpsPricing` ("Save VAT") and the OpsTable delete icon
-  already use `ghost` beside the broken ones.
-- 26 Button uses are affected: 24 written `variant="outline"` plus the 2 computed in `OpsCalendarBoard.dc.html`
-  :386-:387 (the Kanban / Table switch). No law is touched (no glow, no tint).
-- Pictures: `screens/u11-<screen>-<state>-<before|after>-<1440|390>.png`, English, bare crops. "Before" is this
-  branch as it is; "after" is a scratch copy of the public tree with every Button outline turned into ghost
-  (`tools/u11.mjs`; nothing in `app/` is changed).
+- Root cause: the design-system `Button` knows `primary`, `secondary`, `ghost`, `light`, `danger`
+  (`design-system/_ds_bundle.js` :43120-:43147). There is no `outline`. A Button with `variant="outline"` gets the
+  class `vt-btn--outline`, which has no rule, so Chromium drew the browser's own button face (light grey
+  fill, `rgb(239 239 239)`, no border, and no hover or press look). `IconButton` and `Badge` do have `outline`.
+- Fix (commit `fix(ops): grey outline buttons become ghost (U11)`): 26 Button uses to `ghost` (transparent, 1px
+  `#DEDEDE` hairline, grey-50 and charcoal border on hover): 24 written `variant="outline"` in OpsBoard (4),
+  OpsCalendar (1), OpsCalendarBoard (1), OpsDetail (3), OpsFleet (1), OpsNewTrip (1), OpsPricing (4), OpsProfile (1),
+  OpsSettings (1), OpsSupportTicket (4), OpsTable (3), plus the 2 computed in `OpsCalendarBoard.dc.html` :386-:387
+  (the Kanban / Table switch when it is not the open view). The 5 IconButton outline uses (OpsCalendar 2,
+  OpsCalendarBoard 2, the row edit button in OpsTable) and the Badge `tone="outline"` in OpsFleet are real kit
+  styles and are untouched. No law is touched (no glow, no tint, no new colour).
+- Test: `apps/web/lib/ops/ops-button-variants-dc.test.ts` (7 tests). No `<Button>` in `app/ops` says
+  `variant="outline"` (IconButton excepted); a written-out Button variant is one of the kit's five; a bound
+  `variant="{{ name }}"` never gets `'outline'` for that name in its screen; the calendar switch is ghost; and the
+  premise (the kit has a rule for each of the five and none for `vt-btn--outline`, while IconButton and Badge
+  keep theirs). 4 of the 7 fail on the previous screens, all pass now.
+- Pictures: `screens/u11-<screen>-<state>-<before|after>-<1440|390>.png`, English, bare crops, 48 in all.
+  "Before" is the screens at the branch tip before this commit; "after" is shot from the real files (the synced
+  public tree of this branch, nothing swapped; they are byte for byte the same as the first, scratch-copy
+  pictures). `node tools/u11.mjs <before|after> apps/web/public <scratch> <out>`; `before` needs
+  `U11_BEFORE_REF=<commit before U11>` and was checked to reproduce a committed before picture exactly. The
+  script also counts the buttons on each page: `vt-btn--outline` x0 on all 12 screens after.
   Screens: OpsBoard (Filter, Print, paging), OpsCalendarBoard (Today, Kanban/Table), OpsNewTrip (Back),
-  OpsSettings and OpsProfile (Discard, with unsaved text), OpsTable (Clear the search, delete
-  dialog "Keep it"), OpsDetail (Cancel dialog "Keep it"), OpsFleet (chauffeur edit), OpsSupportTicket (Close ticket, Mail,
-  Call, WhatsApp), OpsPricing (publish dialog, discard dialog).
+  OpsSettings and OpsProfile (Discard, with unsaved text), OpsTable (Clear the search, delete dialog "Keep it"),
+  OpsDetail (Cancel dialog "Keep it"), OpsFleet (chauffeur edit), OpsSupportTicket (Close ticket, Mail, Call,
+  WhatsApp), OpsPricing (publish dialog, discard dialog).
   Not pictured: OpsDetail's class-change "Keep" and withdraw "Keep" dialogs (same Button, same change), the
   "Cancel" of OpsTable's nested edit form, OpsCalendar (not mounted anywhere).
-- Question for the owner (one decision): "The grey buttons on the dashboard (Filter, Print, Previous page, Back,
-  Discard, Keep it, Clear the search, Mail / Call / WhatsApp and so on) are meant to be white with a thin grey
-  line. Change all 26 to that style?"
-  - Recommended: yes, all 26 to `ghost`. One rule, no new colour.
-  - Alternative for the three "keep" buttons in OpsDetail's dialogs (Keep it / class Keep / withdraw Keep):
-    `secondary` (charcoal fill), because the sibling dialogs in the same file ("Keep reviewing") already use
-    `secondary`. This makes the safe choice louder than the red one beside it, so it is not recommended.
-  Once he signs: replace `variant="outline"` with `variant="ghost"` on the 24 Button lines and `'outline'`
-  with `'ghost'` on `OpsCalendarBoard.dc.html` :386-:387, add one source-pin test that no
-  `.Button" ... variant="outline"` remains, run the touched DC tests.
+- Found, not changed: the calendar switch's open view is `variant=''` (an empty string, also not a kit variant), so
+  it draws the browser grey face while the closed one is now white with a line. That happens to show which view
+  is open (before, both were the same grey), but it is an accident, not a design: see question 5.
 
 ---
 
-## Checks (merged tree, `43fba58d` + this branch)
+## Checks (merged tree, `4bb245f9` + this branch)
 
-- 11 touched or neighbouring test files (the 10 of this job plus `dc-mock-urls.test.ts`), 196 tests: pass.
-  `apps/web/lib/ops` as a whole: 1511 pass, 4 time out at 5 s on the first import of `bookings-write`
-  (`refund-by-hand`, `staff-cancel-by-hand`, `edit-request-customer`) while the Mac ran at load average
-  115 with the other jobs; the same three files pass alone (40 tests). `bookings-write.ts` imports none of the files this job changed.
+- After U11: `apps/web/lib/ops` plus every other test that reads `app/ops` (`lib/security`, `lib/dc-mock-urls`,
+  `tests/unit/ops-*`, `vendor-runtime-no-unpkg`, `signup-notice-mock`, `phase-26-3-laws`): 148 files, 1713 tests
+  pass, 11 skipped files as before.
+  Earlier, on the merged tree before U11, 4 tests of `refund-by-hand`, `staff-cancel-by-hand` and
+  `edit-request-customer` timed out at 5 s on the first import of `bookings-write` while the Mac ran at load
+  average 115 with the other jobs; they pass alone, and passed in the full run once the load fell.
+  `bookings-write.ts` imports none of the files this job changed.
 - `pnpm typecheck`: pass. `pnpm lint`: 0 errors, 6 warnings (unused eslint-disable directives, none in files of
   this job). `pnpm check:db-fences`: 8 of 8 pass. `pnpm check:numbers`: ok. `pnpm i18n:check`: pass.
 - Chromium: `tools/session-lost.mjs` all passed; `tools/proof.mjs` 140 PASS, 0 FAIL.
@@ -196,22 +204,24 @@ success toast gone after 5 s, the pickup day line and tooltip per language.
 - `before-` / `after-dashboard-<en|ar>-<1440|390>`: Money in lines.
 - `before-` / `after-chip-<en|ar>-...`: the distance chip. `before-` / `after-toast-error-<en|ar>-...`: the error toast.
 - `before-coverage.json` / `after-coverage.json`: `VamosLocale.coverage` per screen and language.
-- `u11-*`: 48 pictures for U11.
+- `u11-*`: 48 pictures for U11 (`before` from the branch tip before the U11 commit, `after` from the real files).
 - `tools/`: `serve.mjs` (static server over the synced public tree), `fixtures.mjs` (stub rows, classes, money),
   `before-tree.mjs`, `session-lost.mjs`, `proof.mjs`, `u11.mjs`. All offline; `/api/**` is stubbed.
 
-## Open questions for the owner
+## Closed by the owner / controller (2026-10-05)
 
-1. U11: ghost for all 26 (recommended), or `secondary` for the three "keep" buttons in OpsDetail's dialogs?
-2. An error toast now stays until its close button is pressed (success toasts still close after 3.6 s). Right?
-3. Classes outside Economy / Business / Van luxury now show their own name (First, Studio) on the board, in
-   fleet and in Money in. Before, they showed as Economy (D-14 alias behaviour). The D-14 aliases themselves
-   (saden, mercedes-benz-v-class) are unchanged. Is that what he wants for a class he has taken off sale?
-4. The write path still matches a class by name on the server (`liveClassSlug`); a new class name he adds in the
-   price book is shown everywhere but an edit that names it still resolves through the D-14 table. Not changed
-   in this job; say if it should be.
-5. After a dead session the person lands on the normal /login with no message and no return to the page they
-   were on. Add "You were signed out" and a return-to?
-6. The Auth timeout (5 s) stops waiting but does not cancel the Supabase request. Acceptable?
-7. A switched-off staff row (403 `not-staff`) leaves the person on a screen with an error instead of /login.
-   Send that to /login too?
+- U11: all 26 to `ghost`, the 5 IconButton outlines left alone. Done.
+- Error toasts stay until closed (success toasts still close after 3.6 s): keep as built.
+- A class taken off sale shows its own name (First, Studio) on the board, in fleet and in Money in: keep as built.
+- No "You were signed out" message or return-to page in this job.
+- The 5 s Auth timeout stays as built (it stops waiting; it does not cancel the Supabase request).
+
+## Still open
+
+1. The write path still matches a class by name on the server (`liveClassSlug`, D-14 table): a new class name he adds
+   in the price book is shown everywhere, but an edit that names it still resolves through that table. Not
+   changed in this job; say if it should be.
+2. A switched-off staff row (403 `not-staff`, security hardening S13) leaves the person on a screen with an error
+   instead of /login. Send that to /login too?
+3. The open view of the calendar's Kanban / Table switch uses `variant=''`, which is not a kit variant and draws the
+   browser grey. Give it a real one (for example `secondary`, charcoal), or leave it as the grey it is?
