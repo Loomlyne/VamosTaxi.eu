@@ -92,9 +92,6 @@ async function setup(
           "window.turnstile={render:function(el,o){setTimeout(function(){o.callback('fixture-token')},0);return 'w1'},remove:function(){},reset:function(){}};",
       }),
   );
-  await page.route("**/api/flight/**", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: false }) }),
-  );
   await page.route("**/api/quote", async (route: Route) => {
     if (route.request().method() !== "POST") return route.fallback();
     await route.fulfill({

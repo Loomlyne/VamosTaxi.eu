@@ -74,7 +74,7 @@ export default async function ImprintPage({
       kickerKey="common.legal"
       effectiveDateLabel="Imprint effective date"
       versionLabel="Imprint version"
-      shipDated
+      dated
     >
       {/* LegalPage PendingSlot: Imprint effective date */}
       {/* LegalPage PendingSlot: Imprint version */}
@@ -237,7 +237,6 @@ export default async function ImprintPage({
             <PendingSlot label="Build agency credit" />
           </DlRow>
         </dl>
-        <p>{tLegal("credit-only-where-the-agencies-agree-otherwise-t")}</p>
       </section>
 
       <div className="vt-imprint-cta" data-lg-noprint="1">

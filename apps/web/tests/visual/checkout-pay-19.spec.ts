@@ -171,9 +171,6 @@ async function setup(page: Page, opts: { resume?: Record<string, unknown> | null
     (url) => url.hostname.includes("cloudflare") || url.hostname.includes("turnstile"),
     (route) => route.abort(),
   );
-  await page.route("**/api/flight/**", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: false }) }),
-  );
   await page.route("**/api/quote", async (route: Route) => {
     if (route.request().method() !== "POST") return route.fallback();
     const body = JSON.parse(route.request().postData() ?? "{}") as Record<string, unknown>;

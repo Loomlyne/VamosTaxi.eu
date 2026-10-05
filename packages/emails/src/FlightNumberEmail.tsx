@@ -2,7 +2,7 @@
 //
 // D-27: flight number write-through. Mail bookings@ + assigned chauffeur.
 // Caller supplies flightNo — never invent a number. PayLink envelope.
-// No WhatsApp. No AeroDataBox.
+// No WhatsApp.
 
 import type { EmailLocale } from "./lib/types";
 import { t } from "./lib/t";

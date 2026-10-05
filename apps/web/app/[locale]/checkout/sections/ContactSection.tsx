@@ -127,7 +127,6 @@ export function ContactSection() {
           <div className="vt-co__block" data-co-s2-flight data-co-flight-optional={f.airport ? "false" : "true"}>
             <FlightField
               value={f.flight}
-              date={flow.trip.when ? flow.trip.when.slice(0, 10) : undefined}
               onChange={f.setFlight}
               onBlur={f.flightBlur}
             />

@@ -175,16 +175,7 @@ describe("review/photo/invite JSON cache", () => {
   });
 });
 
-describe("flight/contact/reviews/publish cache", () => {
-  it("flight success JSON uses FLIGHT_JSON private no-store", () => {
-    const src = readFileSync(
-      join(dirname(fileURLToPath(import.meta.url)), "../../app/api/flight/[no]/route.ts"),
-      "utf8",
-    );
-    expect(src).toContain('Cache-Control": "private, no-store"');
-    expect(src.match(/headers: FLIGHT_JSON/g)?.length).toBeGreaterThanOrEqual(3);
-  });
-
+describe("contact/reviews/publish cache", () => {
   it("contact formFailure/formSuccess send private no-store", () => {
     const src = readFileSync(
       join(dirname(fileURLToPath(import.meta.url)), "../forms/notify.ts"),
