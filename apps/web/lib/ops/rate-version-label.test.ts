@@ -43,4 +43,17 @@ describe("rate version labels (M18)", () => {
     expect(publish).toMatch(/baseRateVersionLabel\(row\.label\)/);
     expect(publish).not.toMatch(/nullif\(\$\{row\.label\}/);
   });
+
+  it("Publish writes the label on the rate_versions row in the same UPDATE that flips it live", () => {
+    const web = join(__dirname, "..", "..");
+    const publish = readFileSync(join(web, "app/[locale]/(ops)/api/staff/rate-versions/[id]/publish/route.ts"), "utf8");
+    // The flip UPDATE: status live and the label together (the dashboard shows the live row's label).
+    expect(publish).toMatch(
+      /update public\.rate_versions\s+set status = 'live',\s+label = coalesce\(nullif\(\$\{publishLabel\}, ''\), label\),/,
+    );
+    // The label is computed once, before the flip, and the settings_versions insert reuses it.
+    expect(publish.match(/baseRateVersionLabel\(row\.label\)/g)?.length).toBe(1);
+    expect(publish.indexOf("const publishLabel")).toBeLessThan(publish.indexOf("set status = 'live'"));
+    expect(publish).toMatch(/coalesce\(nullif\(\$\{publishLabel\}, ''\), sv\.label\)/);
+  });
 });
