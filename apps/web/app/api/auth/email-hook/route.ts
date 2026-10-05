@@ -9,7 +9,7 @@ import { renderAuthEmail, type AuthEmailType } from "@vamos/emails";
 import { AUTH_LOCALE_METADATA_KEY } from "@/lib/supabase/constants";
 import { routing } from "@/i18n/routing";
 import { buildConfirmLink, siteFromRedirect } from "@/lib/auth/confirm-link";
-import { log } from "@/lib/logger";
+import { log, type RequestContext } from "@/lib/logger";
 
 export const dynamic = "force-dynamic";
 
@@ -96,11 +96,24 @@ function hookVerifySecret(raw: string): string {
   return raw.startsWith("v1,whsec_") ? raw.slice("v1,whsec_".length) : raw.replace(/^v1,/, "");
 }
 
+/**
+ * /api/auth answers some requests with an address no account can have (`no-recovery-<uuid>@invalid.invalid`,
+ * `no-link-<uuid>@invalid.invalid`), so the person sees the same answer whoever the address is. If Supabase
+ * ever reaches the hook for one of them, nothing may be mailed: defence in depth behind the route.
+ */
+const DECOY_RECIPIENT = /@invalid\.invalid$/i;
+
 async function sendBranded(
   env: CloudflareEnv,
   to: string,
   rendered: { subject: string; html: string; text: string },
+  ctx: RequestContext,
 ): Promise<void> {
+  if (DECOY_RECIPIENT.test(to.trim())) {
+    // Same answer as a sent mail (the caller goes on to a 200). The line carries no address.
+    log("info", "email-hook", ctx, { skipped: "decoy-recipient" });
+    return;
+  }
   if (env.EMAIL?.send) {
     await env.EMAIL.send({
       to,
@@ -220,7 +233,7 @@ export async function POST(request: Request) {
         log("error", "email-hook", { ...ctx, locale }, { reason: "seal-failed" });
         return empty(500);
       }
-      await sendBranded(env, mail.to, renderAuthEmail(mail.kind, locale, { code: mail.code, link, name }));
+      await sendBranded(env, mail.to, renderAuthEmail(mail.kind, locale, { code: mail.code, link, name }), { ...ctx, locale });
     }
   } catch {
     return empty(502);
