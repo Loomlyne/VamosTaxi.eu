@@ -13,7 +13,8 @@ Branch `fix/content-flight-promise`, cut from `origin/main` `328b133c`, merged w
 | docs commit | this file and the pictures | no |
 | `053147d3` `content: flight lines — NEEDS OWNER APPROVAL` | item 2 | yes: **approved by the owner on 2026-10-05, all lines as drafted** (see "Owner answers" below) |
 | `18998303` `content: legal pages show the day their text last changed` | item 5 follow-up, owner answer 4 | one date per legal page, no wording |
-| **`content: terms 08 one start rule; German flight hint names the number`** (the tip) | owner answers 5 and 6 | two wording changes, listed under "Owner answers" |
+| `9730c25a` `content: terms 08 one start rule; German flight hint names the number` | owner answers 5 and 6 | two wording changes, listed under "Owner answers" |
+| **`fix(quote): no flight-time param left to keep LTR`** (the tip) | controller gate | `DIR_KEEP_PARAMS` loses `t` and `ap`, see "Lesson" |
 
 `053147d3` only touches the lines in the tables below, their dictionary and message entries, the pages that render them, `seed.sql` and two tests. `18998303` only touches the "Last updated" machinery, its tests and this file.
 
@@ -154,6 +155,12 @@ What changed: `app/vamos-legal-updated.js` no longer has `LEGAL_UPDATED` and `CO
 Tests run (touched plus the ones that read the changed pages): `lib/flight`, `lib/abuse`, `lib/auth/callback-redirect`, `lib/ops/edit-request`, `lib/checkout`, `lib/consent`, `lib/legal*`, `lib/meta`, `lib/pricing`, `lib/live-no-tbc`, `lib/about-imprint-content`, `lib/flight-lines`, `lib/dc-mock-urls`, `lib/contact-button`, `lib/audit-26-2-u08`, `lib/arabic-design-g23`, `tests/unit/home-*`, `tests/unit/van-luxury-12-mocks`, `tests/unit/audit-26-2-u06-components`: all pass with `--testTimeout=60000` (the one load flake above). Not run: the full `test:unit`, the build, Playwright visual and Worker specs, the database suites (no migration touched).
 
 New tests (fail before, pass after): `lib/flight/no-provider.test.ts` (provider, route, key, counter, lookup client named nowhere; the number field stays), `lib/about-imprint-content.test.ts` (box hidden with a restore line, note gone in four languages, credits stay), `lib/flight-lines.test.ts` (no promise shape in the mocks, dictionary, messages or Next pages in en/de/fr/ar; each drafted line has de/fr/ar and no eszett; the 60 and 30 minute values stay). Changed to follow the code: `tests/unit/audit-26-2-u06-components.test.ts`, `tests/unit/home-flight-fixtures.test.ts`, `lib/pricing/home-fleet-from-quote.test.ts`, `lib/checkout/manage-pages-i18n.test.ts`, `lib/abuse/rate-counters.test.ts`, `lib/auth/callback-redirect.test.ts`, `lib/ops/edit-request.test.ts`.
+
+## Lesson: a key removal needs the whole test folder
+
+Removing the `quote.flight` day lines (`Departs {ap} at {t} …`, `Arriving at {ap} at {t} …`) and the `departed` note (`{ap}`) left `DIR_KEEP_PARAMS` in `apps/web/lib/quote/client-contract.ts` naming two params no message uses. `lib/quote/client-contract.test.ts` checks that every name in that list still appears as `{name}` in a `quote.*` or `price.*` value, and it failed at the controller gate. My touched-file list did not include `lib/quote`. Fixed in the tip commit: the list is now `["time", "code"]` (the coordinator named `ap` to stay; `{ap}` was in the removed `departed` note too, nothing produces an `ap` or `t` param any more, so the same test would have failed on it next) and the doc comment no longer mentions flight times. `BookingBoard.tsx` only builds a `Set` from the list and compiles unchanged.
+
+Rule for the next removal of message keys: run the whole folder that owns the namespace (`lib/quote` for `quote.*` and `price.*`), then the full `apps/web` unit run once. This time after the fix: `vitest run lib/quote components/home` 11 files, 227 tests passed; the full `apps/web` unit run 435 files passed, 17 skipped (5097 tests passed, 33 skipped); `packages/emails` 15 files, 247 tests passed.
 
 ## Notes
 
