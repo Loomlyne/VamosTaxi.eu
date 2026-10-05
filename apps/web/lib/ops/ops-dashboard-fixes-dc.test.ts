@@ -43,7 +43,7 @@ type Store = {
 async function openStore(opts: {
   classes?: ClassRow[] | "fail";
   bookings?: Array<Record<string, unknown>>;
-  vehicles?: Array<Record<string, unknown>>;
+  vehicles?: Array<Record<string, unknown>> | "fail";
 }) {
   const calls: string[] = [];
   const events: string[] = [];
@@ -57,7 +57,9 @@ async function openStore(opts: {
           );
         }
         if (path === "/api/staff/bookings") return Promise.resolve({ ok: true, data: opts.bookings ?? [] });
-        if (path === "/api/staff/vehicles") return Promise.resolve({ ok: true, data: opts.vehicles ?? [] });
+        if (path === "/api/staff/vehicles") {
+          return Promise.resolve(opts.vehicles === "fail" ? { ok: false, code: "staff-check-failed", status: 503 } : { ok: true, data: opts.vehicles ?? [] });
+        }
         return Promise.resolve({ ok: true, data: [] });
       },
     },
@@ -171,6 +173,46 @@ describe("U10: the class list is the live vehicle classes", () => {
     store.bookings.all();
     await settle();
     expect(store.VEHICLE_CLASSES).toEqual(["First"]);
+  });
+});
+
+describe("U10 review: reading the class list looks at the store, it does not load it", () => {
+  const booking = { id: "VT-1", klass: "First", status: "confirmed", paid: true };
+
+  it("rendering the board (bookings load, the class list is read on every render) never requests /api/staff/vehicles", async () => {
+    const { store, calls, settle } = await openStore({ bookings: [booking], vehicles: "fail" });
+    for (let render = 0; render < 5; render += 1) {
+      store.bookings.all(); // what the board reads
+      void store.VEHICLE_CLASSES; // the filter, the form and the sort read it
+      await settle();
+    }
+    expect(calls.filter((c) => c === "/api/staff/vehicles")).toEqual([]);
+    expect(calls.filter((c) => c === "/api/staff/bookings")).toHaveLength(1);
+  });
+
+  it("a failing vehicles call is not fired again by reading the list, however often it is read", async () => {
+    const { store, calls, settle } = await openStore({ vehicles: "fail" });
+    for (let read = 0; read < 10; read += 1) {
+      void store.VEHICLE_CLASSES;
+      await settle();
+    }
+    expect(calls.filter((c) => c === "/api/staff/vehicles")).toHaveLength(0);
+    expect(calls.filter((c) => c === "/api/staff/bookings")).toHaveLength(0);
+  });
+
+  it("the names of what the store already holds still show: a loaded booking and a loaded vehicle", async () => {
+    const { store, calls, settle } = await openStore({
+      bookings: [booking],
+      vehicles: [{ id: "v1", klass: "Sedan Plus", model: "x", plate: "ZH 1" }],
+    });
+    void store.VEHICLE_CLASSES;
+    await settle();
+    expect(store.VEHICLE_CLASSES).toEqual(["Economy", "Business", "Van luxury"]); // nothing loaded yet: only the book
+    store.bookings.all(); // the board's own load
+    store.vehicles.all(); // the fleet screen's own load
+    await settle();
+    expect(store.VEHICLE_CLASSES).toEqual(["Economy", "Business", "First", "Van luxury", "Sedan Plus"]);
+    expect(calls.filter((c) => c === "/api/staff/vehicles")).toHaveLength(1); // the screen's, not the list's
   });
 });
 

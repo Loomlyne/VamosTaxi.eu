@@ -300,6 +300,9 @@
     return {
       name: name,
       all: function () { hydrate(); return list.slice(); },
+      /* The rows already in the store, without asking the server for anything (all() hydrates). For code
+         that only wants to look at what a screen has loaded, such as the class list (U10 review). */
+      peek: function () { return list.slice(); },
       get: function (id) {
         hydrate();
         return findRow(id);
@@ -1001,10 +1004,14 @@
     var rows = classBook.rows.slice().sort(function (a, b) {
       return a.order - b.order || (a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0);
     });
+    // What a booking or vehicle already in the store carries. Looked at, never loaded: this getter runs on
+    // every render, and a read that asks the server (all()) would fire GET /api/staff/vehicles again and
+    // again from a screen that never used vehicles whenever that call failed. The screens that own those
+    // lists load them; the names show up when they have.
     var carried = [];
     ["bookings", "vehicles"].forEach(function (key) {
       var store = window.VamosOps && window.VamosOps[key];
-      (store && typeof store.all === "function" ? store.all() : []).forEach(function (x) {
+      (store && typeof store.peek === "function" ? store.peek() : []).forEach(function (x) {
         var name = str(x && x.klass).trim();
         if (name && !isIn(carried, name)) carried.push(name);
       });
