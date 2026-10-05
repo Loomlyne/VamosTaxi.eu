@@ -2,9 +2,9 @@
 --
 -- 261005 sign-up safety (review, controller decision): forgot-password on the dashboard host
 -- (dashboard.vamostaxi.site) asks for no check and mailed a reset link to ANY customer address.
--- The send-email hook now mails a recovery link that was asked for through the dashboard host only when
--- the address belongs to an active staff row. This is the one question it needs answered: a boolean for
--- an e-mail, nothing else (no user id, no role, no name).
+-- /api/auth (the dashboard-host forgot-password) now asks Supabase for a recovery link for the typed address
+-- only when the address belongs to an active staff row. This is the one question it needs answered: a boolean
+-- for an e-mail, nothing else (no user id, no role, no name).
 --
 -- Why a function: public.staff holds no e-mail (it is auth.users.email) and no Worker role may read
 -- either table, so the join has to be a SECURITY DEFINER read, the same shape as
@@ -35,6 +35,6 @@ revoke all on function public.staff_active_for_email(pg_catalog.text) from publi
 grant execute on function public.staff_active_for_email(pg_catalog.text) to vamos_system;
 
 comment on function public.staff_active_for_email(pg_catalog.text) is
-  'True while an e-mail belongs to an ACTIVE staff row (auth.users joined to staff), false for every other address. Boolean only. vamos_system only. The send-email hook uses it to mail dashboard recovery links to staff only.';
+  'True while an e-mail belongs to an ACTIVE staff row (auth.users joined to staff), false for every other address. Boolean only. vamos_system only. Called by /api/auth (dashboard-host forgot-password) so a recovery link is requested for staff addresses only.';
 
 commit;
