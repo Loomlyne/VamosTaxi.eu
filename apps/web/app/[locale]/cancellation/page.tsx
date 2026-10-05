@@ -71,7 +71,7 @@ export default async function CancellationPage({
       kickerKey="common.legal"
       effectiveDateLabel="Cancellation effective date"
       versionLabel="Cancellation version"
-      shipDated
+      dated
     >
       {/* LegalPage PendingSlot: Cancellation effective date */}
       {/* LegalPage PendingSlot: Cancellation version */}
@@ -227,16 +227,12 @@ export default async function CancellationPage({
           <span data-lg-n="1">04</span>
           {tLegal("flight-delays")}
         </h2>
-        <p>{tLegal("give-us-the-flight-number-and-a-delay-costs-you")}</p>
+        <p>{tLegal("give-us-the-flight-number-for-an-airport-pickup")}</p>
         <ul>
-          <li>{tLegal("delay-within-the-same-day-the-pickup-moves-autom")}</li>
+          <li>{tLegal("delay-within-the-same-day-tell-us-as-soon-as-you")}</li>
           <li>
             {tLegal("flight-cancelled-or-diverted-tell-us-as-soon-as")} <a href="#disruption">07</a>
             {tLegal("not-as-a-late-cancellation")}
-          </li>
-          <li>
-            {tLegal("no-flight-number-on-the-booking-we-cannot-see-th")}{" "}
-            <Link href="/terms">{tCommon("terms-conditions")}</Link> {tLegal("apply")}
           </li>
         </ul>
       </section>

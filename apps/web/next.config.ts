@@ -6,6 +6,7 @@ import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 import { SECURITY_HEADER_PAIRS } from "./lib/security/headers";
+import { parseLegalUpdated } from "./lib/legal-updated-dates";
 import { resolveEngineVersion } from "./lib/version";
 
 function gitShortSha(): string | undefined {
@@ -24,22 +25,13 @@ function gitShortSha(): string | undefined {
 // more request-config responsibilities.
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
-// Owner decision 14 (2026-09-30): one "Last updated" date for privacy, terms, cancellation and
-// imprint, set by the control session in app/vamos-legal-updated.js on the ship day. The mocks
-// read that file in the browser; the Next.js pages get the same value here at build time.
-function legalUpdatedIso(): string {
+// "Last updated" of each legal page: the day that page's own text last changed (owner, 2026-10-05),
+// one line per page in app/vamos-legal-updated.js. The mocks read that file in the browser; the
+// Next.js pages get the same dates here at build time, as one JSON map keyed by page. It is a
+// display date only; the consent version (lib/consent/policy.ts) is a separate constant.
+function legalUpdatedByPage(): string {
   const src = readFileSync(join(process.cwd(), "../../app/vamos-legal-updated.js"), "utf8");
-  const match = /var LEGAL_UPDATED = '(\d{4}-\d{2}-\d{2})';/.exec(src);
-  if (!match?.[1]) throw new Error("app/vamos-legal-updated.js: LEGAL_UPDATED is not a YYYY-MM-DD date");
-  return match[1];
-}
-
-// D-31: consent date shown on /cookies and /privacy; a separate constant from LEGAL_UPDATED.
-function consentUpdatedIso(): string {
-  const src = readFileSync(join(process.cwd(), "../../app/vamos-legal-updated.js"), "utf8");
-  const match = /var CONSENT_UPDATED = '(\d{4}-\d{2}-\d{2})';/.exec(src);
-  if (!match?.[1]) throw new Error("app/vamos-legal-updated.js: CONSENT_UPDATED is not a YYYY-MM-DD date");
-  return match[1];
+  return JSON.stringify(parseLegalUpdated(src));
 }
 
 const nextConfig: NextConfig = {
@@ -51,8 +43,7 @@ const nextConfig: NextConfig = {
   // The `dev-` prefix on the fallback is what makes an unversioned deploy
   // visible in a lock payload rather than indistinguishable from a real one.
   env: {
-    LEGAL_UPDATED_ISO: legalUpdatedIso(),
-    CONSENT_UPDATED_ISO: consentUpdatedIso(),
+    LEGAL_UPDATED_BY_PAGE: legalUpdatedByPage(),
     QUOTE_ENGINE_VERSION: resolveEngineVersion({
       cfPagesCommitSha: process.env.CF_PAGES_COMMIT_SHA,
       githubSha: process.env.GITHUB_SHA,

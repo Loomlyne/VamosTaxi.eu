@@ -51,7 +51,7 @@ export default async function AboutPage({
             <h2 id="promise-h-title">{t("four-things-we-will-hold-to")}</h2>
             <p>{t("the-price-does-not-move")}</p>
             <p>{t("the-car-is-there-first")}</p>
-            <p>{t("we-watch-your-flight")}</p>
+            <p>{t("your-driver-waits-for-you-after-you-land")}</p>
             <p>{t("a-real-company-behind-it")}</p>
           </ProseSection>
           <ProseSection id="fleet-h" labelledBy="fleet-h-title">

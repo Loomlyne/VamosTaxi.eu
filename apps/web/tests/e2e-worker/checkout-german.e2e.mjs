@@ -32,7 +32,6 @@ async function stubs(page) {
   await page.route((u) => u.hostname.includes("cloudflare") || u.hostname.includes("turnstile"), (route) =>
     route.fulfill({ status: 200, contentType: "application/javascript",
       body: "window.turnstile={render:function(el,o){setTimeout(function(){o.callback('e2e-token')},0);return 'w1'},remove:function(){},reset:function(){}};" }));
-  await page.route("**/api/flight/**", (r) => r.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: false }) }));
   await page.route("**/api/geo/retrieve**", (r) => r.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ place: { isAirport: false } }) }));
   await page.route("**/api/quote", (route) => {
     if (route.request().method() !== "POST") return route.fallback();

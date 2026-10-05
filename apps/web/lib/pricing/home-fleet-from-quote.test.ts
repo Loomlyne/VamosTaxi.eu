@@ -34,10 +34,10 @@ describe("home hands the trip to checkout and shows no class section or price", 
     const sheet = readFileSync(join(here, "../../../../app/home/BookingSheet.dc.html"), "utf8");
     expect(sheet).toMatch(/const flightReq = !!p\.fromAirport;/);
     expect(sheet).toMatch(/flightOptional: !flightReq/);
-    expect(home).toMatch(/flightNeed:'Enter a flight number'/);
-    expect(home).toMatch(/flightNeed:'Geben Sie die Flugnummer ein'/);
-    expect(home).toMatch(/flightNeed:'Saisissez le numéro de vol'/);
-    expect(home).toMatch(/flightNeed:'أدخل رقم الرحلة'/);
+    // The live rule is checkTrip's English line; de/fr/ar come from the shared dictionary.
+    expect(home).toMatch(/if \(air && !fl\) errs\.flight = 'Enter the flight number'/);
+    const dict = readFileSync(join(here, "../../../../app/vamos-i18n-dict.js"), "utf8");
+    expect(dict).toMatch(/'Enter the flight number': \{ de: 'Flugnummer eingeben', fr: 'Saisissez le numéro de vol', ar: 'أدخل رقم الرحلة' \}/);
   });
 
   it("does not starve Mapbox typeahead with a five-row Swiss locHits merge", () => {

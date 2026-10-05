@@ -598,7 +598,7 @@ class Component extends DCLogic {
       errDate: errBool('date'), errTime: errBool('time'),
       flightShown: flightVis, flightOptional: !flightReq, flightRequiredStr: flightReq ? 'true' : 'false',
       flightIcon: flightReq ? 'plane-landing' : 'plane',
-      flightHint: flightReq ? 'We track it and move the pickup if you land late' : 'It does not change the price.',
+      flightHint: flightReq ? 'So your driver knows which flight to meet' : 'It does not change the price.',
       flight: p.flight || '', inFlight: ed('onFlight'),
       opener: !flightVis && !!p.fromChosen, openFlight: () => this._cb('onFlightOpen'),
       dateLabel: p.dateLabel || '', dayNum: +p.dayNum || 0, dayY: +p.dayY || 0, dayM: +p.dayM || 0, time: p.time || '', baseMonth: p.baseMonth || '', lang: p.lang || 'en',

@@ -147,7 +147,6 @@ async function setup(page: Page, world: Partial<World> = {}): Promise<World> {
     (url) => url.hostname.includes("cloudflare") || url.hostname.includes("turnstile"),
     (route) => route.abort(),
   );
-  await page.route("**/api/flight/**", (route) => json(route, { ok: false }));
   await page.route("**/api/geo/suggest**", async (route) => {
     const q = (new URL(route.request().url()).searchParams.get("q") ?? "").toLowerCase();
     const hits = SUGGESTIONS.filter((s) => s.name.toLowerCase().includes(q)).map(({ mapbox_id, name, address }) => ({ mapbox_id, name, address }));

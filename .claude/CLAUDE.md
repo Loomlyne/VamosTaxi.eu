@@ -19,7 +19,7 @@ be there. If nothing else works, the booking funnel — quote, pay, confirmation
 
 ### Constraints
 
-- **Tech stack**: Next.js 15 App Router + TypeScript on Cloudflare Workers via `@opennextjs/cloudflare`; Supabase (Postgres, Auth, Storage, Realtime) behind Hyperdrive; Stripe standard; Resend; Mapbox; AeroDataBox; Cloudflare Queues, KV, R2, Turnstile, WAF — fixed by `HANDOFF-CLAUDE-CODE.md` §3, no Vercel anywhere
+- **Tech stack**: Next.js 15 App Router + TypeScript on Cloudflare Workers via `@opennextjs/cloudflare`; Supabase (Postgres, Auth, Storage, Realtime) behind Hyperdrive; Stripe standard; Resend; Mapbox; Cloudflare Queues, KV, R2, Turnstile, WAF — fixed by `HANDOFF-CLAUDE-CODE.md` §3, no Vercel anywhere
 - **Design**: the bound Vamos design system is the only source of visual truth — never invent a colour, font, radius or shadow; compose from its components rather than restyling raw HTML
 - **Four platform laws**: no glow, no tinted yellow or brownish surfaces, `CHF 000` until the matrix lands with `data-tok` gaps as labelled TBC pills, four languages in the same pass — a change that breaks one of these is wrong even if it looks fine
 - **Localisation**: English, German, French and Arabic ship together, always. Arabic is first-class RTL — lay out with logical properties. Swiss German, "ss" not "ß"
@@ -125,9 +125,8 @@ be there. If nothing else works, the booking funnel — quote, pay, confirmation
 - Stripe standard (not Connect) — PaymentIntent, webhook handling, test-mode required before launch
 - Resend — transactional email, templates in `packages/emails` (4 languages: en, de, fr, ar)
 - Mapbox Geocoding + Directions APIs — cached in Cloudflare KV by place-id pair (24 h TTL)
-- AeroDataBox or FlightAware — aviation API for flight autofill, cached in KV
 - Queues — webhook fan-out (e.g., Stripe → multiple handlers)
-- KV — geo cache, quote cache, flight data cache
+- KV — geo cache, quote cache
 - R2 — photo storage (alternative to Supabase Storage)
 - Turnstile — CAPTCHA on public forms and quote API
 - WAF — managed rules, rate limiting
@@ -362,7 +361,7 @@ Scrolling is native. No smooth-scroll library: Lenis and the design system's own
 
 - Form field: `error="{{ message }}"` on the component; it renders in red with the text
 - Toast/alert: semantic colour (`--vt-danger` for critical, `--vt-warning` for recoverable)
-- HTTP: graceful degradation (flight autofill API down → prompt for manual time)
+- HTTP: graceful degradation (place search down → type the address, or drop a pin)
 - Validation: "Check the flight number" not "Invalid flight"
 - Always offer next step (retry, alternative, contact support)
 - Keep error state until the user fixes the input
