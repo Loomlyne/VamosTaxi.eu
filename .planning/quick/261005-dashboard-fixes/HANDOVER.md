@@ -1,7 +1,8 @@
 # Hand-over: dashboard fixes (U8, U9, U10, U11)
 
-Work session. Branch `fix/dashboard-fixes`, cut from `origin/main` `328b133c`, `origin/main` `9d0c8bf7` merged in
-(no file overlap: main only added the purge migration, its tests and board notes).
+Work session. Branch `fix/dashboard-fixes`, cut from `origin/main` `328b133c`; `origin/main` `43fba58d` merged in
+(two merges, no conflicts: the purge migration and board notes, then security hardening S4-S15; the only
+shared area is `apps/web/lib/ops/`, see the S13 note under U8a).
 Worktree `.claude/worktrees/agent-a75f53f12dd10a4a8`. Nothing deployed, no live write, no migration.
 Line numbers: "was" = `328b133c`, "now" = this branch.
 
@@ -44,6 +45,10 @@ sign-in dies, and the gate's Auth wait.
   dead-nav, dead-api, mfa-api end on /login with the flag cleared; missing-file stays on /customers with the
   flag kept. Before-tree: stays on a blank main column (`screens/before-dead-nav.png`), after: the sign-in page
   (`screens/after-dead-nav.png`; also `-dead-api`, `-mfa-api`, `-missing-file`).
+- Security hardening S13 (on main, merged here) answers a switched-off staff row with 403 `not-staff`, and
+  now needs the admin for writes (403 `not-admin`). The watcher leaves both alone on purpose: the person stays
+  on the screen with its own message, as before. S7 hides `/api/staff/*` on the public host only; the
+  dashboard host, where `/api/staff/me` is probed, is unchanged.
 - Not verified: against the real Supabase session on the dashboard host (needs a deploy and a real sign-out in
   another tab). The redirect carries no "you were signed out" message and no return-to page: /login shows
   its normal form (see questions).
@@ -173,10 +178,12 @@ success toast gone after 5 s, the pickup day line and tooltip per language.
 
 ---
 
-## Checks (merged tree, `9d0c8bf7` + this branch)
+## Checks (merged tree, `43fba58d` + this branch)
 
-- 10 touched test files, 173 tests: pass. `apps/web/lib/ops` as a whole: 1504 pass; two files timed out at 5 s while
-  Chromium and other jobs were running (`staff-cancel-by-hand`, `edit-request*`), and pass alone (33 tests).
+- 11 touched or neighbouring test files (the 10 of this job plus `dc-mock-urls.test.ts`), 196 tests: pass.
+  `apps/web/lib/ops` as a whole: 1511 pass, 4 time out at 5 s on the first import of `bookings-write`
+  (`refund-by-hand`, `staff-cancel-by-hand`, `edit-request-customer`) while the Mac ran at load average
+  115 with the other jobs; the same three files pass alone (40 tests). `bookings-write.ts` imports none of the files this job changed.
 - `pnpm typecheck`: pass. `pnpm lint`: 0 errors, 6 warnings (unused eslint-disable directives, none in files of
   this job). `pnpm check:db-fences`: 8 of 8 pass. `pnpm check:numbers`: ok. `pnpm i18n:check`: pass.
 - Chromium: `tools/session-lost.mjs` all passed; `tools/proof.mjs` 140 PASS, 0 FAIL.
@@ -206,3 +213,5 @@ success toast gone after 5 s, the pickup day line and tooltip per language.
 5. After a dead session the person lands on the normal /login with no message and no return to the page they
    were on. Add "You were signed out" and a return-to?
 6. The Auth timeout (5 s) stops waiting but does not cancel the Supabase request. Acceptable?
+7. A switched-off staff row (403 `not-staff`) leaves the person on a screen with an error instead of /login.
+   Send that to /login too?
