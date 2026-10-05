@@ -55,6 +55,10 @@ a database they are skipped, and a skipped test proves nothing about a money pat
 - It makes a stack-only lab (native runtime when the machine can, no Docker), runs `supabase db reset`, sets the `vamos_public` / `vamos_edge`
   passwords and the marker role, exports `VAMOS_LOCAL_DB_PORT`, `VAMOS_TEST_DB_PORT`, `VAMOS_TEST_DB_URL` and `REQUIRE_DB=1`, and runs both suites.
 - The `apps/web` files run one at a time: each makes its own live price book and the database allows only one (`rate_versions_one_live`).
+  A file whose header says it is "seeded with seed-live-like.sql" (today `lib/db/rest-grants.local.test.ts`) reads the lab's stand-in price
+  book instead of making one: the command applies that seed and runs those files first, then every other file (each of them retires
+  whatever live book it finds). A new test that needs the stand-in book names `seed-live-like` in its header and is picked up.
+  The `apps/web` passes run with a 60 s test timeout: the 5 s default timed out a committed-rows test on a busy Mac.
 - A skipped test counts as FAIL (the summary line must show no `skipped`). The last line is `PASS | dbtests | ...` or `FAIL | dbtests | ...`.
 - Both suites commit rows, so every run starts from a reset. Never point `VAMOS_LOCAL_DB_PORT` at anything but a throwaway stack.
 - Without a name the lab is called `db-<checksum of the tree path>`; a lab the run made is destroyed at the end, one that already existed or

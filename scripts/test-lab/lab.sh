@@ -550,13 +550,34 @@ cmd_dbtests() {
   export VAMOS_LOCAL_DB_PORT=$SB_DB VAMOS_TEST_DB_PORT=$SB_DB REQUIRE_DB=1
   export VAMOS_TEST_DB_URL="postgres://postgres:postgres@127.0.0.1:$SB_DB/postgres"
   (cd "$TREE" && node scripts/sync-dc-mock-to-public.mjs >/dev/null) || fail "sync-dc-mock-to-public failed"
-  local rc_db rc_web sum_db sum_web
+  local rc_db rc_web=0 rc_seeded=0 sum_db sum_web sum_seeded="" seeded_files="" other_files="" f
   note "packages/db test/local on 127.0.0.1:$SB_DB; log $STATE/logs/dbtests-db.log"
   (cd "$TREE/packages/db" && pnpm exec vitest run test/local) > "$STATE/logs/dbtests-db.log" 2>&1; rc_db=$?
-  note "apps/web *.local.test.ts on 127.0.0.1:$SB_DB; log $STATE/logs/dbtests-web.log"
-  (cd "$WEB" && pnpm exec vitest run --no-file-parallelism .local.test.ts) > "$STATE/logs/dbtests-web.log" 2>&1; rc_web=$?
+  # A few web files read the lab's stand-in price book (seed-live-like.sql) instead of making their own, as rest-grants
+  # does ("seeded with seed-live-like.sql" in its header). They run first, on that seed; every other file retires
+  # whatever live book it finds and makes its own, so they run after. Files are told apart by that header line.
+  rm -f "$STATE/logs/dbtests-web-seeded.log"
+  for f in $(cd "$WEB" && find . -name '*.local.test.ts' -not -path '*/node_modules/*' | sed 's#^\./##' | sort); do
+    if grep -q 'seed-live-like' "$WEB/$f"; then seeded_files="$seeded_files $f"; else other_files="$other_files $f"; fi
+  done
+  if [ -n "$seeded_files" ]; then
+    note "seed-live-like.sql, then the web files that read it:$seeded_files; log $STATE/logs/dbtests-web-seeded.log"
+    psql_lab -q < "$HERE/seed-live-like.sql" >/dev/null || fail "seed-live-like.sql failed on the dbtests stack"
+    # shellcheck disable=SC2086
+    (cd "$WEB" && pnpm exec vitest run --no-file-parallelism --testTimeout=60000 $seeded_files) > "$STATE/logs/dbtests-web-seeded.log" 2>&1; rc_seeded=$?
+    sum_seeded=$(grep -E '^ +Tests ' "$STATE/logs/dbtests-web-seeded.log" | tail -1 | sed 's/^ *//')
+  fi
+  note "the other apps/web *.local.test.ts on 127.0.0.1:$SB_DB; log $STATE/logs/dbtests-web.log"
+  # shellcheck disable=SC2086
+  (cd "$WEB" && pnpm exec vitest run --no-file-parallelism --testTimeout=60000 $other_files) > "$STATE/logs/dbtests-web.log" 2>&1; rc_web=$?
   sum_db=$(grep -E '^ +Tests ' "$STATE/logs/dbtests-db.log" | tail -1 | sed 's/^ *//')
   sum_web=$(grep -E '^ +Tests ' "$STATE/logs/dbtests-web.log" | tail -1 | sed 's/^ *//')
+  if [ -n "$seeded_files" ]; then
+    [ "$rc_seeded" = 0 ] || rc_web=$rc_seeded
+    [ -n "$sum_seeded" ] || rc_web=1  # the seeded pass printed no result: that is a failure, not a pass
+    [ -n "$sum_web" ] || rc_web=1
+    sum_web="${sum_seeded:-no result} (seeded files) + ${sum_web:-no result}"
+  fi
 
   # A skipped database test proves nothing: it must not read as a pass.
   local skipped_web=0 skipped_db=0
@@ -566,6 +587,7 @@ cmd_dbtests() {
   if [ "$rc_db" != 0 ] || [ "$rc_web" != 0 ] || [ "$skipped_web" = 1 ] || [ "$skipped_db" = 1 ] || [ -z "$sum_web" ] || [ -z "$sum_db" ]; then
     verdict=FAIL
     tail -40 "$STATE/logs/dbtests-db.log" | sed 's/^/db  | /'
+    [ -f "$STATE/logs/dbtests-web-seeded.log" ] && tail -40 "$STATE/logs/dbtests-web-seeded.log" | sed 's/^/web seeded | /'
     tail -40 "$STATE/logs/dbtests-web.log" | sed 's/^/web | /'
   fi
   echo "$verdict | dbtests | packages/db test/local: ${sum_db:-no result} | apps/web .local.test.ts: ${sum_web:-no result}"
