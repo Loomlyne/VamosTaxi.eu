@@ -5,8 +5,11 @@
 
 import { publicSql } from "@/lib/db/public";
 
+/**
+ * One published review as GET /api/reviews sends it. Security S10 (2026-10-05): no row id. The
+ * home carousel, the header score and the review store (app/vamos-reviews.js) never read it.
+ */
 export type PublicReview = {
-  id: string;
   source: string;
   authorName: string;
   authorRole: string;
@@ -22,7 +25,6 @@ export type PublicReview = {
 };
 
 type ReviewSqlRow = {
-  id: string;
   source: string;
   author_name: string;
   author_role: string;
@@ -53,7 +55,6 @@ export async function loadPublishedReviews(env: CloudflareEnv): Promise<PublicRe
   const sql = publicSql(env);
   const rows = await sql<ReviewSqlRow[]>`
     select
-      r.id,
       r.source,
       r.author_name,
       r.author_role,
@@ -72,7 +73,6 @@ export async function loadPublishedReviews(env: CloudflareEnv): Promise<PublicRe
     order by r.sort_order asc, r.created_at desc
   `;
   return rows.map((row) => ({
-    id: row.id,
     source: row.source,
     authorName: row.author_name,
     authorRole: row.author_role,

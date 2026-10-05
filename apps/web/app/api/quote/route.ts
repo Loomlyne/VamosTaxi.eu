@@ -21,10 +21,11 @@ import {
   runQuotePipeline,
   type PipelineRefusal,
 } from "@/lib/quote/pipeline";
-import { errorResponse, quoteResponse } from "@/lib/quote/respond";
+import { errorResponse, sealedQuoteResponse } from "@/lib/quote/respond";
 import { csrfForbidden } from "@/lib/security/origin";
 import { copyAuthCookies, requestHasStaffSession, type AuthCookieSink } from "@/lib/ops/staff-origin";
 import { lockSecretPresent } from "@/lib/quote/lock-secret";
+import { sealClassPhotoUrls } from "@/lib/photos/sealed-url";
 
 export const dynamic = "force-dynamic";
 
@@ -57,7 +58,8 @@ export async function GET() {
     return Response.json(
       {
         ok: true,
-        classes: liveBookBoard(book),
+        // Security S10: class photos go out sealed, never as /photos/classes/<class id>/….
+        classes: await sealClassPhotoUrls(env.QUOTE_LOCK_SECRET || process.env.QUOTE_LOCK_SECRET, liveBookBoard(book)),
         fixed_routes: publicCatalogRoutes(book, names),
       },
       { headers: { "Cache-Control": "private, no-store" } },
@@ -145,7 +147,10 @@ export async function POST(request: Request) {
       return copyAuthCookies(refuse(result), authCookies);
     }
     emit("info", "quote", { ok: 1 });
-    return copyAuthCookies(quoteResponse(result), authCookies);
+    return copyAuthCookies(
+      await sealedQuoteResponse(result, env.QUOTE_LOCK_SECRET || process.env.QUOTE_LOCK_SECRET),
+      authCookies,
+    );
   } catch (err) {
     const name = err instanceof Error ? err.name : "unknown";
     emit("warn", "quote", { ok: 0, err_name: name });

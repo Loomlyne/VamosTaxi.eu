@@ -22,7 +22,7 @@ import {
   runRepricePipeline,
   type PipelineRefusal,
 } from "@/lib/quote/pipeline";
-import { errorResponse, quoteResponse } from "@/lib/quote/respond";
+import { errorResponse, sealedQuoteResponse } from "@/lib/quote/respond";
 import { csrfForbidden } from "@/lib/security/origin";
 import { lockSecretPresent } from "@/lib/quote/lock-secret";
 
@@ -93,7 +93,10 @@ export async function POST(request: Request) {
       return copyAuthCookies(refuse(result), authCookies);
     }
     emit("info", "quote_reprice", { ok: 1 });
-    return copyAuthCookies(quoteResponse(result), authCookies);
+    return copyAuthCookies(
+      await sealedQuoteResponse(result, env.QUOTE_LOCK_SECRET || process.env.QUOTE_LOCK_SECRET),
+      authCookies,
+    );
   } catch {
     emit("warn", "quote_reprice", { ok: 0 });
     return copyAuthCookies(errorResponse("temporarily_unavailable"), authCookies);
