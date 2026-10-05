@@ -555,6 +555,57 @@ describe("runCheckoutIntent mode web (26.3)", () => {
     expect(res.headers.get("set-cookie")).toBeNull();
   });
 
+  // Security S15 (2026-10-05): two Pay presses on one quote. The loser's first open-payment read
+  // sees nothing (the winner has not committed), its createBooking then hits 23505 and it reads the
+  // winner. Before the fix it got a manage token, the vt_manage cookie and a detail write for the
+  // winner's booking.
+  function raceLoser(w: ReturnType<typeof world>) {
+    const real = w.d.loadOpenPayment;
+    let reads = 0;
+    w.d.loadOpenPayment = async (quoteId: string) => {
+      reads += 1;
+      return reads === 1 ? null : real(quoteId);
+    };
+    const issued: string[] = [];
+    w.d.issueManageToken = async (a: { bookingId: string }) => {
+      issued.push(a.bookingId);
+    };
+    w.details.length = 0;
+    return issued;
+  }
+
+  it("S15: the race loser that does not own the winning booking gets its Stripe page, no manage token, cookie or detail write", async () => {
+    const p = payload();
+    const w = world(p);
+    const first = (await (await runCheckoutIntent(await webBody(p), w.d as never)).json()) as Record<string, unknown>;
+    const issued = raceLoser(w);
+    w.d.ownsBooking = async () => false;
+    const res = await runCheckoutIntent(
+      await webBody(p, { idempotency_key: "idem-race", company_name: "Other Ltd", driver_note: "not yours" }),
+      w.d as never,
+    );
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as Record<string, unknown>;
+    expect(body.reference).toBe(first.reference);
+    expect(body.url).toBe(first.url);
+    expect(issued).toEqual([]);
+    expect(w.details).toEqual([]);
+    expect(res.headers.get("set-cookie")).toBeNull();
+    expect(w.bookings.size).toBe(1);
+  });
+
+  it("S15: the race loser whose cookie already owns the winning booking (same browser) still gets its manage token", async () => {
+    const p = payload();
+    const w = world(p);
+    const first = (await (await runCheckoutIntent(await webBody(p), w.d as never)).json()) as Record<string, unknown>;
+    const issued = raceLoser(w);
+    w.d.ownsBooking = async (id: string) => id === first.booking_id;
+    const res = await runCheckoutIntent(await webBody(p, { idempotency_key: "idem-race" }), w.d as never);
+    expect(res.status).toBe(200);
+    expect(issued).toEqual([first.booking_id]);
+    expect(res.headers.get("set-cookie")).toMatch(/^vt_manage=/);
+  });
+
   it("an expired session on a still-pending booking gets a new hosted session on the same booking", async () => {
     const p = payload();
     const w = world(p);
