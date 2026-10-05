@@ -25,16 +25,18 @@
 
   function endSession() {
     if (lost) return;
-    lost = true;
     try { localStorage.removeItem("vamosOpsAuth"); } catch (e) {}
     // A page that came back from /login a moment ago and still sees a dead session would bounce
-    // for ever; the second time within 15 s it stays where it is.
+    // for ever; the second time within 15 s it stays where it is. `lost` is set only once the guard has
+    // let the redirect through: a held-back redirect must not use up the page, or a death after the
+    // window would never redirect until a reload.
     try {
       var last = Number(sessionStorage.getItem(LOST_KEY) || 0);
       var now = Date.now();
       if (last && now - last < 15000) return;
       sessionStorage.setItem(LOST_KEY, String(now));
     } catch (e) {}
+    lost = true;
     location.replace("/login");
   }
 

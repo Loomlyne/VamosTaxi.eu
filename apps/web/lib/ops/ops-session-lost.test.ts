@@ -256,6 +256,33 @@ describe("dashboard shell: a dead session goes to /login, not a blank screen (U8
     expect(t.replaced).toEqual([]);
   });
 
+  // U8 review nit: the "already redirected" flag was set before the 15 s guard, so a redirect the guard
+  // held back left it set for the life of the page and a later, real death never redirected.
+  it("a redirect the 15 s guard held back does not use up the page: a death 20 s later still goes to /login", async () => {
+    const clock = { now: 5_000_000 };
+    const t = tab(() => NO_SESSION, { clock, session: { vamosOpsSessionLostAt: String(clock.now - 2000) } });
+    await t.win.VamosOpsApi.request("GET", "/api/staff/bookings");
+    await flush();
+    expect(t.replaced).toEqual([]); // held back: it just came back from /login
+    clock.now += 20_000;
+    await t.win.VamosOpsApi.request("GET", "/api/staff/bookings");
+    await flush();
+    expect(t.replaced).toEqual(["/login"]);
+    expect(t.session.has("vamosOpsSessionLostAt")).toBe(true);
+  });
+
+  it("inside the 15 s window every further death answer stays held back, and a redirect is not repeated once it was made", async () => {
+    const clock = { now: 5_000_000 };
+    const held = tab(() => NO_SESSION, { clock, session: { vamosOpsSessionLostAt: String(clock.now - 2000) } });
+    for (let i = 0; i < 3; i += 1) await held.win.VamosOpsApi.request("GET", "/api/staff/bookings");
+    await flush();
+    expect(held.replaced).toEqual([]);
+    const fresh = tab(() => NO_SESSION, { clock });
+    for (let i = 0; i < 3; i += 1) await fresh.win.VamosOpsApi.request("GET", "/api/staff/bookings");
+    await flush();
+    expect(fresh.replaced).toEqual(["/login"]);
+  });
+
   it("an old mark (a sign-in an hour ago) does not block a new redirect", async () => {
     const t = tab(() => NO_SESSION, { session: { vamosOpsSessionLostAt: String(Date.now() - 3_600_000) } });
     await t.win.VamosOpsApi.request("GET", "/api/staff/bookings");
