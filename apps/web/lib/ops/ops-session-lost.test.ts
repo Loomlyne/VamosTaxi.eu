@@ -449,18 +449,68 @@ describe("dashboard shell: a dead session goes to /login, not a blank screen (U8
     expect(t.replaced).toEqual(["/login"]);
   });
 
-  it("other refusals stay the screen's own message: not-admin, csrf, a 401 without the code, /api/auth", async () => {
-    for (const [path, answer] of [
-      ["/api/staff/pricing", { status: 403, body: { ok: false, code: "not-admin" } }],
-      ["/api/staff/settings", { status: 403, body: { ok: false, code: "csrf" } }],
-      ["/api/staff/claim-invite", { status: 401, body: { ok: false } }],
-      ["/api/auth", { status: 401, body: { ok: false, code: "no-session" } }],
-    ] as const) {
-      const t = tab(() => answer);
-      await t.win.VamosOpsApi.request("POST", path, {});
+  // Follow-up 3 (2026-10-05, controller): security S13 answers a switched-off staff row 403 not-staff on every
+  // /api/staff/* call. That left a blank screen with an error. It is a dead session as far as this person goes.
+  const NOT_STAFF = { status: 403, body: { ok: false, code: "not-staff" } };
+
+  it("a switched-off staff row (403 not-staff from /api/staff/*) is a dead session: to /login, flag cleared, the screen still gets the answer", async () => {
+    const t = tab(() => NOT_STAFF);
+    const answer = await t.win.VamosOpsApi.request("GET", "/api/staff/bookings");
+    expect(answer).toMatchObject({ ok: false, code: "not-staff" });
+    await flush();
+    expect(t.replaced).toEqual(["/login"]);
+    expect(t.local.has("vamosOpsAuth")).toBe(false);
+  });
+
+  it("a screen file 404 while /api/staff/me says not-staff goes to /login too (the probe counts it)", async () => {
+    const t = tab((url) => (url.startsWith("/app/ops/") ? { status: 404 } : NOT_STAFF));
+    await t.win.fetch(SCREEN);
+    await flush();
+    expect(t.replaced).toEqual(["/login"]);
+    expect(t.reloaded).toEqual([]);
+    expect(t.local.has("vamosOpsAuth")).toBe(false);
+    expect(t.calls).toEqual([`GET ${SCREEN}`, "GET /api/staff/me"]);
+  });
+
+  it("not-staff counts only on /api/staff/*: the same code from another path stays that screen's own message", async () => {
+    for (const path of ["/api/auth/callback", "/api/photos/upload", "/api/checkout/intent"]) {
+      const t = tab(() => NOT_STAFF);
+      await t.win.VamosOpsApi.request("GET", path);
       await flush();
       expect(t.replaced, path).toEqual([]);
       expect(t.local.has("vamosOpsAuth"), path).toBe(true);
+    }
+  });
+
+  it("not-staff on a 401, or any other status, is not the dead-session answer", async () => {
+    for (const answer of [
+      { status: 401, body: { ok: false, code: "not-staff" } },
+      { status: 404, body: { ok: false, code: "not-staff" } },
+      { status: 500, body: { ok: false, code: "not-staff" } },
+    ]) {
+      const t = tab(() => answer);
+      await t.win.VamosOpsApi.request("GET", "/api/staff/bookings");
+      await flush();
+      expect(t.replaced, String(answer.status)).toEqual([]);
+    }
+  });
+
+  it("other refusals stay the screen's own message: not-admin, csrf, staff-check-failed, a 401 without the code, /api/auth", async () => {
+    for (const method of ["GET", "POST"]) {
+      for (const [path, answer] of [
+        ["/api/staff/pricing", { status: 403, body: { ok: false, code: "not-admin" } }],
+        ["/api/staff/settings", { status: 403, body: { ok: false, code: "csrf" } }],
+        ["/api/staff/bookings", { status: 503, body: { ok: false, code: "staff-check-failed" } }],
+        ["/api/staff/claim-invite", { status: 401, body: { ok: false } }],
+        ["/api/staff/settings", { status: 403, body: { ok: false } }],
+        ["/api/auth", { status: 401, body: { ok: false, code: "no-session" } }],
+      ] as const) {
+        const t = tab(() => answer);
+        await t.win.VamosOpsApi.request(method, path, method === "GET" ? undefined : {});
+        await flush();
+        expect(t.replaced, `${method} ${path}`).toEqual([]);
+        expect(t.local.has("vamosOpsAuth"), `${method} ${path}`).toBe(true);
+      }
     }
   });
 

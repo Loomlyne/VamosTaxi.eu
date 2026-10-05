@@ -9,8 +9,9 @@
    files are staff-only: once the session has died the gate answers the same private 404 a missing file
    gets, and the runtime renders an empty placeholder, so the person saw a blank page with a sidebar.
    Two answers now send the browser to /login instead:
-     - a staff API answer that says the session is gone (401 `no-session`, or 403 `needs-mfa`, the
-       second factor is asked for on /login);
+     - a staff API answer that says the session is gone (401 `no-session`, 403 `needs-mfa`, the
+       second factor is asked for on /login, or 403 `not-staff` from /api/staff/*: the staff row was
+       switched off, security S13);
      - a screen file answering 404 while /api/staff/me says the same (a 404 alone can be a missing file).
    Only those answers count: every other 4xx stays the screen's own message.
    A screen file 404 while /api/staff/me says the session is alive (the gate waits at most 5 s for
@@ -65,9 +66,17 @@
     }
   }
 
-  function deadSessionBody(status, json) {
+  // The answers that say this person has no console session any more: 401 no-session, 403 needs-mfa (the second
+  // factor is asked for on /login), and 403 not-staff from /api/staff/* (security S13: the staff row was switched
+  // off while the token still looked fine; every staff call answers it and the screens stay blank). Anything
+  // else, not-admin, csrf, staff-check-failed (503), a code-less 401/403, stays the screen's own message.
+  function deadSessionBody(status, json, path) {
     if (!json || typeof json !== "object") return false;
-    return (status === 401 && json.code === "no-session") || (status === 403 && json.code === "needs-mfa");
+    if (status === 401) return json.code === "no-session";
+    if (status === 403) {
+      return json.code === "needs-mfa" || (json.code === "not-staff" && String(path).indexOf("/api/staff/") === 0);
+    }
+    return false;
   }
 
   function readJson(res) {
@@ -111,7 +120,7 @@
     rawFetch("/api/staff/me", { method: "GET", credentials: "include" })
       .then(function (res) {
         if (res.status === 401 || res.status === 403) {
-          return readJson(res).then(function (json) { if (deadSessionBody(res.status, json)) endSession(); });
+          return readJson(res).then(function (json) { if (deadSessionBody(res.status, json, "/api/staff/me")) endSession(); });
         }
         if (res.ok && reloadWanted) reloadOnce();
       })
@@ -132,7 +141,7 @@
       return;
     }
     if ((res.status === 401 || res.status === 403) && path.indexOf("/api/") === 0 && path !== "/api/auth") {
-      readJson(res).then(function (json) { if (deadSessionBody(res.status, json)) endSession(); });
+      readJson(res).then(function (json) { if (deadSessionBody(res.status, json, path)) endSession(); });
     }
   }
 
