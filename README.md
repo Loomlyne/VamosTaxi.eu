@@ -27,7 +27,7 @@ Vamos Taxi V1: a Swiss pre-booked airport-transfer platform (Zurich first). Cust
 
 Checks, from the repo root: `pnpm typecheck`, `pnpm lint`, `pnpm lint:css`, `pnpm i18n:check`, `pnpm check:numbers`, `pnpm test:unit`. The database suite is `pnpm db:start`, `pnpm db:reset`, `pnpm db:test`. The database-backed web tests (money paths) run through `pnpm test:db-lab`; its header explains how it starts and destroys a throwaway lab.
 
-On GitHub, a push to `main` runs the gate, the unit tests, the database suite and the Linux e2e jobs on Ubuntu only. Screenshot diffs need macOS and run by hand.
+On GitHub, a push to `main` runs the gate, the unit tests and the database suite, on Ubuntu only. The Linux booking-funnel e2e shards (about 109 billed minutes) and the macOS screenshot diffs run only when someone starts the Deploy Staging workflow by hand and ticks `e2e` or `visual`. Docs-only pushes run nothing.
 
 ## How a change reaches the live site
 
@@ -38,7 +38,7 @@ One session, the control session, ships; every other session builds on its own b
 3. The Worker is deployed from the owner's Mac with wrangler, through the `deploy` script of `apps/web`. The script refuses to run without an explicit `--env`, and only `staging` is allowed: in `wrangler.jsonc`, `env.staging` is the live Worker `vamos` (custom domains `vamostaxi.site` and `www`), while the top-level config is an empty shell that would create a stray Worker. `env.production` is a placeholder for the cutover and is not deployable. The dashboard gateway has its own script, `deploy:dashboard`.
 4. After the deploy the controller reads the log (`Uploaded vamos`, the custom domains listed), checks the live pages, and, when checkout changed, makes one test payment and reads `booking_payments`.
 
-GitHub Actions never deploys on a push. The `deploy` job in `.github/workflows/deploy-staging.yml` runs only when someone starts the workflow by hand, and the owner's rule is that deploys come from the Mac.
+GitHub Actions never deploys, not on a push and not by hand: the `deploy` job in `deploy-staging.yml` is switched off (`if: false`), `deploy-production.yml` only echoes that the cutover is owner-gated and starts by hand only, and the owner's rule is that deploys come from the Mac.
 
 ## Rules for the code
 
