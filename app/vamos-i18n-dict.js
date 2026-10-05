@@ -2157,7 +2157,6 @@
       'Image credits': { de: 'Bildnachweis', fr: 'Crédits photo', ar: 'مصادر الصور' },
       'Design and build': { de: 'Gestaltung und Umsetzung', fr: 'Conception et réalisation', ar: 'التصميم والتنفيذ' },
       'Brand and design': { de: 'Marke und Gestaltung', fr: 'Marque et identité', ar: 'العلامة والهوية' },
-      'Credit only where the agencies agree — otherwise the rows come out.': { de: 'Nennung nur, wenn die Agenturen zustimmen — sonst entfallen die Zeilen.', fr: 'Mention uniquement si les agences l’acceptent — sinon les lignes disparaissent.', ar: 'يُذكر الاسم فقط بموافقة الوكالات — وإلا تُحذف الأسطر.' },
       'One number, one address, one person who answers.': { de: 'Eine Nummer, eine Adresse, eine Person, die antwortet.', fr: 'Un numéro, une adresse, une personne qui répond.', ar: 'رقم واحد، وعنوان واحد، وشخص واحد يجيب.' },
 
       /* ══════════════════════════════════════════════════════════════════

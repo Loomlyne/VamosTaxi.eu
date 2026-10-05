@@ -124,7 +124,8 @@ select is((select count(*) from public.reviews where published)::int, 0, 'no see
 -- 2026-10-04 F2: legal.error-diagnostics removed (Sentry row gone), cookies.sheet-necessary-duration gains a no-param reason: 2714 keys, 101 reasons.
 -- 2026-10-04 vt_review cookie row: +3 keys (cookies.name-review-access, review-cookie-*), review-cookie-duration gains a no-param reason: seed header 2717 keys, 102 no-param-reason.
 -- 2026-10-05 flight provider removed: -17 keys (quote.flight.* lookup card, day group, candidate, effect, note; legal.flight-number-and-arrival-time): seed header 2700 keys, 102 no-param-reason.
-select is((select count(*) from public.content_strings)::int, 2700 + 26, 'content_strings row count = flattened en.json key count + 26 migration canton names');
+-- 2026-10-05 /imprint 09: the internal credit note removed (owner decision) with its key (legal.credit-only-where-the-agencies-agree-otherwise-t): seed header 2699 keys, 102 no-param-reason.
+select is((select count(*) from public.content_strings)::int, 2699 + 26, 'content_strings row count = flattened en.json key count + 26 migration canton names');
 select is((select count(*) from public.content_strings where pending_value)::int, 16, '16 pending-value keys (ADR-011, Law 04 data-tok)');
 select is((select count(*) from public.content_strings where non_translatable)::int, 8 + 26, '8 non-translatable seed keys (ADR-012) + 26 migration canton names');
 select is((select count(*) from public.content_strings where no_param_reason is not null)::int, 102, '102 no-param-reason keys (I18N-06; count re-read from the seed header after B7 + /confirmation)');
