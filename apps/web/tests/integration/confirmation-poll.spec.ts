@@ -150,6 +150,42 @@ test("never confirmed: Payment received. after 20 s, no error copy, still pollin
   await expect(page.locator("[data-confirmation-state=booked]")).toBeVisible();
 });
 
+test("a 429 from the status route waits for Retry-After, then keeps polling and swaps in place @checkout", async ({ page }) => {
+  // 261005 S12: customers behind one address can use up the route's per-address limit. The page honours the
+  // 429 (Retry-After 30 s, plus up to 2 s spread) instead of asking again every poll.
+  await page.clock.install();
+  const state = { hits: 0, limited: true };
+  await page.route("**/api/checkout/status/**", async (route) => {
+    state.hits += 1;
+    if (state.limited) {
+      await route.fulfill({
+        status: 429,
+        contentType: "application/json",
+        headers: { "retry-after": "30", "cache-control": "private, no-store" },
+        body: JSON.stringify({ visible: false }),
+      });
+      return;
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ status: "confirmed" }),
+    });
+  });
+  await openConfirmation(page);
+  await expect.poll(() => state.hits).toBe(1);
+  await expect(page.locator("[data-confirmation-state=confirming]")).toBeVisible();
+  // Inside the Retry-After window: no second request (it used to be one every second).
+  await page.clock.fastForward(29_000);
+  expect(state.hits).toBe(1);
+  // Past the window the poll resumes, quietly, and the confirmation lands in place.
+  state.limited = false;
+  await page.clock.fastForward(5_000);
+  await expect.poll(() => state.hits).toBeGreaterThan(1);
+  await expect(page.locator("[data-confirmation-state=booked]")).toBeVisible();
+  await expect(page.locator("main")).not.toContainText(/failed|error|try again|retry/i);
+});
+
 test("a booking that is not visible yet is the loading screen, never an error @checkout", async ({ page }) => {
   await stubStatus(page, () => ({ visible: false }));
   const res = await page.goto(`${baseURL}/confirmation/${REF}`);
