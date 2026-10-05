@@ -246,7 +246,10 @@ export async function POST(request: Request): Promise<Response> {
       token,
       {
         action: "account",
-        idempotencyKey: typeof fields.idempotencyKey === "string" ? fields.idempotencyKey : "",
+        // Always a fresh key made here, never the one in the body: Cloudflare answers the same success for one
+        // token re-verified with the same idempotency_key for 300 s, so a client-chosen key would let one solved
+        // token be posted for many addresses. With a fresh key the second verify of a token is refused.
+        idempotencyKey: crypto.randomUUID(),
         // Reuses the contact form's hostname binding (no separate sign-in binding exists).
         allowedHostnames:
           bindings.CONTACT_TURNSTILE_ALLOWED_HOSTNAMES ?? process.env.CONTACT_TURNSTILE_ALLOWED_HOSTNAMES,

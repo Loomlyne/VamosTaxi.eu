@@ -121,6 +121,16 @@ describe("POST /api/auth origin checkout", () => {
     expect((state.turnstile.mock.calls[0]?.[2] as { action: string }).action).toBe("account");
   });
 
+  it("verifies the token with a key made on the server, not the one in the body (token replay, S5 review)", async () => {
+    await run(good);
+    await run(good);
+    const keys = state.turnstile.mock.calls.map((c) => (c[2] as { idempotencyKey: string }).idempotencyKey);
+    expect(keys).toHaveLength(2);
+    expect(keys).not.toContain("k1");
+    expect(keys[0]).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/);
+    expect(keys[0]).not.toBe(keys[1]);
+  });
+
   it("answers 429 when the per-address limiter refuses", async () => {
     state.limit = vi.fn(async () => ({ success: false }));
     const res = await run(good);

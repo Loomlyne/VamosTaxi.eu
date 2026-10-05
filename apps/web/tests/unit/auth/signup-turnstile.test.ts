@@ -22,6 +22,7 @@ vi.mock("@/lib/db/system-reads", () => ({
 
 const { POST } = await import("@/app/api/auth/route");
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const base = { email: "Mia@Example.test", firstName: "Mia", lastName: "K", consent: true };
 const flows = [
   ["password sign-up", { mode: "signup", method: "password", password: "12345678", ...base }, "signUp"],
@@ -56,7 +57,11 @@ describe("S5: Turnstile on the public sign-up and forgot-password", () => {
     const calls = mailCalls();
     const res = await POST(authPost({ ...body, turnstileToken: "tok", idempotencyKey: "key-1" }));
     expect(res.status).toBe(200);
-    expect(state.turnstileCalls).toEqual([{ secret: undefined, token: "tok", action: "account", idempotencyKey: "key-1" }]);
+    // The key is made on the server; the "key-1" in the body is ignored (token replay, S5 review).
+    expect(state.turnstileCalls).toEqual([
+      { secret: undefined, token: "tok", action: "account", idempotencyKey: expect.stringMatching(UUID) },
+    ]);
+    expect(state.turnstileCalls[0]?.idempotencyKey).not.toBe("key-1");
     expect(calls.map((c) => c.kind)).toEqual([kind]);
     // The token pair never reaches Supabase or the stored metadata.
     expect(JSON.stringify(calls[0]?.args)).not.toContain("tok");
@@ -155,5 +160,15 @@ describe("S5: what stays as it was", () => {
     expect(res.status).toBe(403);
     expect(await res.json()).toEqual({ stage: "form", banner: "send_failed" });
     expect(state.turnstileCalls.map((c) => c.action)).toEqual(["account"]);
+  });
+
+  it.each(flows)("%s: the same token posted twice is verified with a different key each time", async (_n, body) => {
+    mailCalls();
+    await POST(authPost({ ...body, turnstileToken: "tok", idempotencyKey: "same-key" }));
+    await POST(authPost({ ...body, email: "other@example.test", turnstileToken: "tok", idempotencyKey: "same-key" }));
+    const keys = state.turnstileCalls.map((c) => c.idempotencyKey);
+    expect(keys).toHaveLength(2);
+    expect(keys).not.toContain("same-key");
+    expect(keys[0]).not.toBe(keys[1]);
   });
 });

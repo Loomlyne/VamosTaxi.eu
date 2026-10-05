@@ -117,13 +117,15 @@ export function accountGateDeps(
   const bindings = env as unknown as Record<string, string | undefined>;
   const host = new URL(request.url);
   return {
-    verifyTurnstile: async (token, idempotencyKey) => {
+    // The key the browser sent is ignored: Cloudflare repeats a success for a token re-verified with the same
+    // idempotency_key for 300 s, so a client-chosen key would let one solved token be replayed for many addresses.
+    verifyTurnstile: async (token, _clientKey) => {
       const out = await verifyTurnstile(
         env.TURNSTILE_SECRET_KEY ?? process.env.TURNSTILE_SECRET_KEY,
         token,
         {
           action: "account",
-          idempotencyKey,
+          idempotencyKey: crypto.randomUUID(),
           allowedHostnames:
             bindings.CONTACT_TURNSTILE_ALLOWED_HOSTNAMES ?? process.env.CONTACT_TURNSTILE_ALLOWED_HOSTNAMES,
           remoteip: request.headers.get("cf-connecting-ip") ?? undefined,

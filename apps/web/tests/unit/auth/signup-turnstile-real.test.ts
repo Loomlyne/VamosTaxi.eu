@@ -21,6 +21,8 @@ const signup = {
   firstName: "Mia", lastName: "K", consent: true, turnstileToken: "real-token", idempotencyKey: "22222222-2222-4222-8222-222222222222",
 };
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
 let sent: number;
 let siteverify: ReturnType<typeof vi.fn>;
 
@@ -58,7 +60,9 @@ describe("S5: the real check, fail closed", () => {
     const sentForm = new URLSearchParams(String((siteverify.mock.calls[0]?.[1] as { body: URLSearchParams }).body));
     expect(sentForm.get("response")).toBe("real-token");
     expect(sentForm.get("action")).toBe("account");
-    expect(sentForm.get("idempotency_key")).toBe(forgot.idempotencyKey);
+    // The key is made on the server: the one in the body is ignored (token replay, S5 review).
+    expect(sentForm.get("idempotency_key")).toMatch(UUID);
+    expect(sentForm.get("idempotency_key")).not.toBe(forgot.idempotencyKey);
     expect(sentForm.get("remoteip")).toBe("203.0.113.9");
   });
 
@@ -121,5 +125,38 @@ describe("S5: the real check, fail closed", () => {
     expect(res.status).toBe(403);
     expect(await res.json()).toEqual({ ok: false, reason: "challenge-failed" });
     expect(sent).toBe(0);
+  });
+
+  it("one solved token cannot be posted again for another address: the second verify carries a new key and is refused", async () => {
+    // Cloudflare's rule: a token re-verified with the SAME idempotency_key within 300 s gets the same success;
+    // a second use with another key is "timeout-or-duplicate".
+    const firstKeyOfToken = new Map<string, string>();
+    const keysSeen: string[] = [];
+    siteverify.mockImplementation(async (_url: unknown, init: { body: URLSearchParams }) => {
+      const form = new URLSearchParams(String(init.body));
+      const token = form.get("response") ?? "";
+      const key = form.get("idempotency_key") ?? "";
+      keysSeen.push(key);
+      const first = firstKeyOfToken.get(token);
+      if (first === undefined) firstKeyOfToken.set(token, key);
+      return new Response(
+        JSON.stringify(
+          first === undefined || first === key
+            ? { success: true, action: "account", hostname: "vamostaxi.site" }
+            : { success: false, "error-codes": ["timeout-or-duplicate"] },
+        ),
+        { status: 200 },
+      );
+    });
+    // Same token, and the browser's key the same both times (what a replaying bot would send).
+    const one = await POST(authPost({ ...forgot, email: "one@example.test" }));
+    const two = await POST(authPost({ ...forgot, email: "two@example.test" }));
+    expect(one.status).toBe(200);
+    expect(two.status).toBe(403);
+    expect(await two.json()).toEqual({ ok: false, reason: "challenge-failed" });
+    expect(sent).toBe(1);
+    expect(keysSeen).toHaveLength(2);
+    expect(keysSeen[0]).not.toBe(keysSeen[1]);
+    expect(keysSeen).not.toContain(forgot.idempotencyKey);
   });
 });
