@@ -329,6 +329,20 @@ export async function handleStripeMessageWithDeps(
 
   if (!admission.should_process) {
     deps.emit("info", "stripe_event", { reason: admission.reason, eventId: message.eventId });
+    // 261005 review follow-up (U15, the other arrival order): the return route stamps its own event
+    // with the session's `created`, always older than the webhook's. When the webhook settled first,
+    // begin() answers `superseded` for the return event: the payment is already decided, there is
+    // nothing left to settle, so this event is closed here. Left open, its stripe_events row stayed
+    // unprocessed for good. Only `superseded`: `already_processed` is already stamped, and a paid
+    // error never reaches this branch (it returns above or below as a retry).
+    if (admission.reason === "superseded") {
+      try {
+        await deps.eventSettle(message.eventId, null);
+      } catch {
+        // begin() answers superseded again on the retry, which stamps then.
+        return { retry: true };
+      }
+    }
     return { ack: true };
   }
 
