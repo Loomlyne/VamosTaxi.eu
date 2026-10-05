@@ -182,10 +182,27 @@ async function setup(page: Page, opts: { resume?: Record<string, unknown> | null
     await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(json) });
   });
   // A flight edit first tries the silent re-sign; here it always falls back to the full re-quote,
-  // so the answer does not depend on a cold dev compile of the reprice route.
-  await page.route("**/api/quote/reprice", (route) =>
-    route.fulfill({ status: 409, contentType: "application/json", body: JSON.stringify({ ok: false, error: "quote_expired" }) }),
-  );
+  // so the answer does not depend on a cold dev compile of the reprice route. A voucher is re-signed through
+  // the same route with `coupon` (26.2 audit U11-1, eec7951f): the page sends that lock to the price call and
+  // PAY, and a 409 there left every voucher "not applied". The fixture signs that one, a lock that carries it.
+  await page.route("**/api/quote/reprice", (route) => {
+    const body = JSON.parse(route.request().postData() ?? "{}") as { coupon?: string | null };
+    if (!body.coupon) {
+      return route.fulfill({ status: 409, contentType: "application/json", body: JSON.stringify({ ok: false, error: "quote_expired" }) });
+    }
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        ok: true,
+        quote_id: QID,
+        lock: `v1.fixture.lock.${body.coupon}`,
+        expires_at: new Date(Date.now() + 30 * 60_000).toISOString(),
+        pricing_live: true,
+        classes: [],
+      }),
+    });
+  });
   await page.route("**/api/checkout/extras", (route) => {
     fx.extrasCalls += 1;
     return route.fulfill({

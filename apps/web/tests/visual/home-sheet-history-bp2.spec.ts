@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { test, expect, webkit, chromium, devices, type Page, type Browser } from "../support/test";
 import { serveMock, waitForMockReady } from "../support/mock-harness";
 import { stubConsentChosen } from "../support/consent-state";
@@ -11,6 +12,18 @@ import { stubConsentChosen } from "../support/consent-state";
 
 const API = (r: any) => r.fulfill({ status: 200, contentType: "application/json", body: '{"ok":true,"suggestions":[],"classes":[]}' });
 const ENGINES = ["chromium", "webkit"] as const;
+
+// WebKit is its own download (`playwright install webkit`); the CI jobs install only Chromium unless they say
+// otherwise, and a missing browser surfaced as "Executable doesn't exist" failures. The webkit rows now skip with the
+// reason when the browser is not there, and the macOS visual job installs it so they run where they can.
+const WEBKIT_MISSING = (() => {
+  try {
+    return !existsSync(webkit.executablePath());
+  } catch {
+    return true;
+  }
+})();
+const WEBKIT_SKIP_REASON = "WebKit is not installed: run `pnpm --filter web exec playwright install webkit`";
 
 // TRAVERSE: the delay (ms) before a history.go() takes effect. Safari's traversal is slower than a desktop
 // engine's, which is what opens the window in which the sheet's own pop is still pending.
@@ -57,6 +70,7 @@ test.describe("Phone booking page and the browser Back button @component", () =>
   for (const engine of ENGINES) {
     for (const [wait, traverse] of [[0, 0], [300, 0], [700, 0], [100, 600], [500, 600]]) {
       test(`${engine}: (a) close with X, Back ${wait} ms later (traversal ${traverse} ms) -> previous page`, async () => {
+        test.skip(engine === "webkit" && WEBKIT_MISSING, WEBKIT_SKIP_REASON);
         test.setTimeout(90_000);
         const { br, page } = await launch(engine, traverse);
         try {
@@ -78,6 +92,7 @@ test.describe("Phone booking page and the browser Back button @component", () =>
 
     for (const [gap, traverse] of [[0, 0], [100, 0], [300, 0], [0, 600], [100, 600], [300, 600]]) {
       test(`${engine}: (b) close with X, reopen after ${gap} ms (traversal ${traverse} ms), Back closes it (x10)`, async () => {
+        test.skip(engine === "webkit" && WEBKIT_MISSING, WEBKIT_SKIP_REASON);
         test.setTimeout(180_000);
         const { br, page } = await launch(engine, traverse);
         try {

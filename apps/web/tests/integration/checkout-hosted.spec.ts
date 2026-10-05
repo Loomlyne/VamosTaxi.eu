@@ -187,6 +187,20 @@ async function setup(page: Page, world: Partial<World> = {}): Promise<World> {
       }),
     });
   });
+  // A voucher is re-signed through /api/quote/reprice with `coupon` (26.2 audit U11-1, eec7951f); the page then sends
+  // that lock to the price call and PAY. Unstubbed, the real route refused the fixture lock and no voucher applied.
+  await page.route("**/api/quote/reprice", async (route) => {
+    const body = JSON.parse(route.request().postData() ?? "{}") as { coupon?: string | null };
+    if (!body.coupon) return json(route, { ok: false, error: "quote_expired" }, 409);
+    await json(route, {
+      ok: true,
+      quote_id: QID,
+      lock: `v1.fixture.lock.${body.coupon}`,
+      expires_at: new Date(Date.now() + 30 * 60_000).toISOString(),
+      pricing_live: true,
+      classes: [],
+    });
+  });
   await page.route("**/api/checkout/extras", (route) => json(route, { ok: true, extras: EXTRAS, vat_rate_bps: VAT_BPS }));
   await page.route("**/api/checkout/price", async (route) => {
     const body = JSON.parse(route.request().postData() ?? "{}") as World["priceBodies"][number];

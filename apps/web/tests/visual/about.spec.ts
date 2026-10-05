@@ -86,8 +86,13 @@ test.describe("About page @component", () => {
   });
 
   test("van photo is the small file (site speed A, 02c1bd3d) @component", async ({ page }) => {
-    await page.goto(baseURL + "/about");
-    const src = await page.locator('img[src*="fleet-van-street"]').first().getAttribute("src");
+    // 9deff568 (site polish) took the van photo off About. The one page that carries it now is the home page's
+    // Business travel section, so the 1200 px file is asserted there, and About must not load the 3 MB original.
+    await page.goto(baseURL + "/");
+    const src = await page.locator("img[data-biz-photo]").first().getAttribute("src");
     expect(src ?? "").toMatch(/fleet-van-street-1200\.jpg$/);
+    await page.goto(baseURL + "/about");
+    await expect(page.locator("main")).toBeVisible();
+    await expect(page.locator('img[src$="/fleet-van-street.jpg"]')).toHaveCount(0);
   });
 });

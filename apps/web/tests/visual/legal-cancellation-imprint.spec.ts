@@ -16,14 +16,15 @@ const CANCELLATION_IDS = [
 ]; // 26.0: the legal ship (owner-approved text) removed the vouchers section
 
 
+// Owner rule 2026-10-03 (3cac1fc5, "/imprint hides its unfilled sections"): 05 aufsicht (supervisory authority) and
+// 07 haftung (liability) have no text yet, so the page carries neither the section nor its TOC link. They come back
+// here, in order, when the owner supplies the wording.
 const IMPRINT_IDS = [
   "register",
   "kontakt",
   "vertretung",
   "mwst",
-  "aufsicht",
   "dispute",
-  "haftung",
   "urheberrecht",
   "credits",
 ];
