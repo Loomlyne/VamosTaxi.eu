@@ -190,14 +190,6 @@ export default async function PrivacyPage({
           />
           <ListRow title="Mapbox" subtitle={t("address-lookup-and-route-distance-united-states")} />
           <ListRow
-            title="AeroDataBox"
-            subtitle={
-              <>
-                {t("flight-number-and-arrival-time")} <PendingSlot label="AeroDataBox region" />
-              </>
-            }
-          />
-          <ListRow
             title={tCommon("resend")}
             subtitle={
               <>

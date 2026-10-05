@@ -19,7 +19,14 @@ describe("home.dc.html flight field", () => {
     expect(home).not.toMatch(/sampleFeed/);
   });
 
-  it("defaults simulateLiveUpdates to false", () => {
-    expect(home).toMatch(/&quot;simulateLiveUpdates&quot;:\{[^}]*&quot;default&quot;:false/);
+  it("has no flight feed: no live-update switches, no autofill (the provider itself: lib/flight/no-provider.test.ts)", () => {
+    expect(home).not.toMatch(/simulateLiveUpdates|flightTrackingEnabled|flightRefreshMs/);
+    expect(home).not.toMatch(/searchFlights|refreshFlight|applyFlight|flightData/);
+  });
+
+  it("keeps the plain flight number field", () => {
+    expect(home).toContain("FLIGHT_RE");
+    expect(home).toContain('data-bx="flight"');
+    expect(home).toContain("setFno");
   });
 });

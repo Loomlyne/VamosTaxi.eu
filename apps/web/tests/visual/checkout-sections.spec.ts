@@ -155,9 +155,6 @@ async function setup(
     (url) => url.hostname.includes("cloudflare") || url.hostname.includes("turnstile"),
     (route) => route.abort(),
   );
-  await page.route("**/api/flight/**", (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: false }) }),
-  );
   await page.route("**/photos/classes/**", (route) =>
     route.fulfill({ status: 200, contentType: "image/svg+xml", body: '<svg xmlns="http://www.w3.org/2000/svg" width="640" height="400" viewBox="0 0 640 400"><rect width="640" height="400" fill="#c9cacb"/><rect x="170" y="160" width="300" height="90" rx="30" fill="#e4e5e5"/></svg>' }),
   );

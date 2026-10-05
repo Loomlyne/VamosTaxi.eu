@@ -1390,7 +1390,6 @@
     "extended-city-stay-maximum": "Séjour en ville prolongé, maximum",
     "flight-cancelled-or-diverted-tell-us-as-soon-as": "Vol annulé ou dérouté : prévenez-nous dès que vous le savez et nous traitons le cas selon la section",
     "flight-delays": "Retards de vol",
-    "flight-number-and-arrival-time": "Numéro de vol et heure d’arrivée ·",
     "flight-number-where-you-gave-one-and-the-arrival": "Numéro de vol, si vous en avez donné un, et l’heure d’arrivée que nous en déduisons.",
     "for-accounting-and-tax": "pour la comptabilité et la fiscalité.",
     "force-majeure": "Force majeure",
@@ -2890,31 +2889,9 @@
     "flight": {
       "label": "Vol (facultatif)",
       "placeholder": "EK 87 · LX 318",
-      "use": "Utiliser ce vol",
-      "dismiss": "Pas mon vol",
-      "cardTitle": "Détails du vol",
-      "checking": "Recherche du vol…",
       "unavailable": "Impossible de vérifier les vols pour le moment — indiquez votre heure de prise en charge.",
-      "recheck": "Vérifier à nouveau",
       "malformed": "Vérifiez le numéro de vol",
-      "not_found": "Aucun vol sous ce numéro aujourd'hui",
-      "pick_one": "Quel vol voulez-vous dire ?",
-      "today": "aujourd'hui",
-      "tomorrow": "demain",
-      "candidate": {
-        "depart": "Départ {time} {day}",
-        "arrive": "Arrivée {time} {day}"
-      },
-      "effect": {
-        "to_airport": "Départ {ap} à {t} — nous vous y conduisons.",
-        "from_airport": "Arrivée {ap} à {t} — nous vous y accueillons."
-      },
-      "note": {
-        "cancelled": "Ce vol est annulé, rien n'a été prérempli. Revenez avec le nouveau numéro.",
-        "departed": "Ce vol a déjà quitté {ap}, il n'y a rien à préremplir.",
-        "off": "Nous desservons Zurich, Genève et Bâle — ce vol n'en touche aucun. Indiquez le départ vous-même."
-      },
-      "dayGroup": "Quel jour a lieu votre vol"
+      "not_found": "Aucun vol sous ce numéro aujourd'hui"
     },
     "geo": {
       "no_results": "Aucun lieu correspondant — essayez une adresse plus complète",

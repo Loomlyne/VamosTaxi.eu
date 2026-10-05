@@ -1390,7 +1390,6 @@
     "extended-city-stay-maximum": "Verlängerter Stadtaufenthalt, maximal",
     "flight-cancelled-or-diverted-tell-us-as-soon-as": "Flug annulliert oder umgeleitet: Sagen Sie es uns, sobald Sie es wissen — wir behandeln es nach Abschnitt",
     "flight-delays": "Flugverspätungen",
-    "flight-number-and-arrival-time": "Flugnummer und Ankunftszeit ·",
     "flight-number-where-you-gave-one-and-the-arrival": "Flugnummer, sofern angegeben, und die daraus gelesene Ankunftszeit.",
     "for-accounting-and-tax": "für Buchhaltung und Steuern.",
     "force-majeure": "Höhere Gewalt",
@@ -2890,31 +2889,9 @@
     "flight": {
       "label": "Flug (optional)",
       "placeholder": "EK 87 · LX 318",
-      "use": "Diesen Flug verwenden",
-      "dismiss": "Nicht mein Flug",
-      "cardTitle": "Flugdetails",
-      "checking": "Flug wird gesucht…",
       "unavailable": "Wir können Flüge gerade nicht prüfen — geben Sie Ihre Abholzeit ein.",
-      "recheck": "Erneut prüfen",
       "malformed": "Prüfen Sie die Flugnummer",
-      "not_found": "Zu dieser Nummer liegt heute kein Flug vor",
-      "pick_one": "Welche dieser Flüge meinen Sie?",
-      "today": "heute",
-      "tomorrow": "morgen",
-      "candidate": {
-        "depart": "Abflug {time} {day}",
-        "arrive": "Ankunft {time} {day}"
-      },
-      "effect": {
-        "to_airport": "Abflug {ap} um {t} — wir bringen Sie dorthin.",
-        "from_airport": "Ankunft {ap} um {t} — wir holen Sie dort ab."
-      },
-      "note": {
-        "cancelled": "Dieser Flug ist annulliert, es wurde nichts ausgefüllt. Kommen Sie mit der neuen Nummer zurück.",
-        "departed": "Dieser Flug hat {ap} bereits verlassen, es gibt nichts auszufüllen.",
-        "off": "Wir fahren Zürich, Genf und Basel — dieser Flug berührt keinen davon. Setzen Sie den Abholort selbst."
-      },
-      "dayGroup": "An welchem Tag ist Ihr Flug"
+      "not_found": "Zu dieser Nummer liegt heute kein Flug vor"
     },
     "geo": {
       "no_results": "Keine passenden Orte — versuchen Sie eine vollständigere Adresse",

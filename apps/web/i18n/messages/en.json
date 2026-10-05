@@ -1390,7 +1390,6 @@
     "extended-city-stay-maximum": "Extended city stay, maximum",
     "flight-cancelled-or-diverted-tell-us-as-soon-as": "Flight cancelled or diverted: tell us as soon as you know and we treat it under section",
     "flight-delays": "Flight delays",
-    "flight-number-and-arrival-time": "Flight number and arrival time ·",
     "flight-number-where-you-gave-one-and-the-arrival": "Flight number, where you gave one, and the arrival time we read from it.",
     "for-accounting-and-tax": "for accounting and tax.",
     "force-majeure": "Force majeure",
@@ -2920,31 +2919,9 @@
     "flight": {
       "label": "Flight (optional)",
       "placeholder": "EK 87 · LX 318",
-      "use": "Use this flight",
-      "dismiss": "Not my flight",
-      "cardTitle": "Flight details",
-      "checking": "Looking up the flight…",
       "unavailable": "We can't check flights right now — enter your pickup time.",
-      "recheck": "Check again",
       "malformed": "Check the flight number",
-      "not_found": "No flight on that number today",
-      "pick_one": "Pick which flight you mean",
-      "today": "today",
-      "tomorrow": "tomorrow",
-      "candidate": {
-        "depart": "Departs {time} {day}",
-        "arrive": "Arrives {time} {day}"
-      },
-      "effect": {
-        "to_airport": "Departs {ap} at {t} — we take you there.",
-        "from_airport": "Arriving at {ap} at {t} — we'll meet you there."
-      },
-      "note": {
-        "cancelled": "This flight is cancelled, so nothing was filled in. Come back with the new number.",
-        "departed": "This flight has already left {ap}, so there is nothing to fill in.",
-        "off": "We drive Zurich, Geneva and Basel — this flight touches none of them. Set the pickup yourself."
-      },
-      "dayGroup": "Which day is your flight"
+      "not_found": "No flight on that number today"
     },
     "geo": {
       "no_results": "No matching places — try a fuller address",
