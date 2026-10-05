@@ -5,7 +5,25 @@
 // fields (contact, locale, display_currency) live here.
 
 import { z } from "zod";
+import { isCheckoutEmail } from "./contact-validate";
 import { parseTripQuery, type Trip } from "./trip-url";
+
+/**
+ * Security S11 (2026-10-05): length caps on everything the browser types or holds. The caps sit
+ * well above what the pages send, so no real booking meets them: the name is first + last
+ * (contact form allows 200), the e-mail is the RFC 5321 maximum of 254, the mobile is E.164
+ * (16 characters with the plus; the contact form allows 40), a coupon is at most 64 (the quote
+ * schema's cap), the idempotency key is a UUID (36), and the lock is twice the 8192 the reprice
+ * route already accepts.
+ */
+export const CHECKOUT_FIELD_MAX = Object.freeze({
+  name: 200,
+  email: 254,
+  phone: 40,
+  coupon: 64,
+  idempotencyKey: 200,
+  lock: 16384,
+});
 
 const FORBIDDEN_SERVER_FIELDS = [
   "total_rappen",
@@ -42,6 +60,7 @@ const vehicleClassField = z.string().min(1).transform((value, ctx) => {
 
 const couponField = z
   .string()
+  .max(CHECKOUT_FIELD_MAX.coupon)
   .nullable()
   .optional()
   .transform((value) => {
@@ -65,9 +84,14 @@ const flightNoField = z
 
 const contactField = z
   .object({
-    name: z.string().min(1),
-    email: z.string().min(1),
-    phone: z.string().min(1),
+    name: z.string().min(1).max(CHECKOUT_FIELD_MAX.name),
+    // The same check the page runs before Pay (lib/checkout/contact-validate.ts), now on the server.
+    email: z
+      .string()
+      .min(1)
+      .max(CHECKOUT_FIELD_MAX.email)
+      .refine((value) => isCheckoutEmail(value), { message: "contact.email" }),
+    phone: z.string().min(1).max(CHECKOUT_FIELD_MAX.phone),
   })
   .strict();
 
@@ -77,7 +101,7 @@ const displayCurrencyField = z.enum(["CHF", "EUR", "USD", "AED"]);
 const checkoutIntentObject = z
   .object({
     quote_id: z.string().uuid(),
-    lock: z.string().min(1),
+    lock: z.string().min(1).max(CHECKOUT_FIELD_MAX.lock),
     vehicle_class: vehicleClassField,
     extras: extrasSchema,
     coupon: couponField,
@@ -86,7 +110,7 @@ const checkoutIntentObject = z
     locale: localeField,
     display_currency: displayCurrencyField,
     // Required — Phase 4 D-57. Never .optional(). Never derived from quote_id.
-    idempotency_key: z.string().min(1),
+    idempotency_key: z.string().min(1).max(CHECKOUT_FIELD_MAX.idempotencyKey),
   })
   .strict();
 
@@ -141,7 +165,7 @@ const accountField = z
 const webIntentObject = z
   .object({
     quote_id: z.string().uuid(),
-    lock: z.string().min(1),
+    lock: z.string().min(1).max(CHECKOUT_FIELD_MAX.lock),
     vehicle_class: vehicleClassField,
     // D-35: every ticked extra, by exact code. The old three-code `extras`
     // object is refused here (strict).
@@ -163,7 +187,7 @@ const webIntentObject = z
     supersedes: z.string().uuid().optional(),
     trip: tripField,
     account: accountField.optional(),
-    idempotency_key: z.string().min(1),
+    idempotency_key: z.string().min(1).max(CHECKOUT_FIELD_MAX.idempotencyKey),
   })
   .strict();
 
