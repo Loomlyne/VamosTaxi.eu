@@ -7,6 +7,8 @@ import { describe, expect, it, vi } from "vitest";
 
 const gate = vi.fn();
 vi.mock("./session", () => ({ requireStaffClaims: (...a: unknown[]) => gate(...a) }));
+// S13: the staff row check is its own module; here the row is active.
+vi.mock("./staff-active", () => ({ staffRowActive: async () => true }));
 vi.mock("../supabase/server", async (importOriginal) => ({
   ...(await importOriginal<typeof import("../supabase/server")>()),
   createSupabaseServerClient: async () => {
@@ -55,7 +57,8 @@ describe("staff check cookie sink", () => {
     const src = readFileSync(join(__dirname, "..", "..", "app/api/quote/route.ts"), "utf8");
     expect(src).toMatch(/requestHasStaffSession\(request, undefined, authCookies\)/);
     expect(src).toMatch(/copyAuthCookies\(refuse\(result\), authCookies\)/);
-    expect(src).toMatch(/copyAuthCookies\(quoteResponse\(result\), authCookies\)/);
+    // S10: the success answer is the sealed-photo quote response.
+    expect(src).toMatch(/copyAuthCookies\(\s*await sealedQuoteResponse\(result, [^)]*\),\s*authCookies,?\s*\)/);
     expect(src).toMatch(/copyAuthCookies\(errorResponse\("temporarily_unavailable"\), authCookies\)/);
   });
 });

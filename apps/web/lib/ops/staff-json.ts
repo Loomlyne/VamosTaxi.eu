@@ -15,6 +15,7 @@ import {
   type StaffSession,
 } from "./session";
 import { createSupabaseServerClient } from "../supabase/server";
+import { staffRowActive } from "./staff-active";
 
 export type StaffJsonHandler = (
   claims: StaffSession,
@@ -97,11 +98,31 @@ async function staffResponse(
       return jsonErr("csrf", 403);
     }
   }
+  // Security S13: the token's role is not enough; the staff row must still be active (and
+  // accepted) right now. A row switched off answers like any other non-staff session.
+  let active: boolean;
+  try {
+    active = await staffRowActive(claims);
+  } catch {
+    return jsonErr("staff-check-failed", 503);
+  }
+  if (!active) return jsonErr("not-staff", 403);
   return handler(claims, request);
 }
 
+function isReadMethod(request: Request): boolean {
+  const method = request.method.toUpperCase();
+  return method === "GET" || method === "HEAD";
+}
+
+/**
+ * Reads need a staff session; every write (POST, PUT, PATCH, DELETE) needs the admin, the same as
+ * withAdmin (security S13, 2026-10-05). Today the one staff row is the admin, so nothing changes for
+ * him; a dispatcher, once there is one, can read the board but not change it until a route says so.
+ */
 export function withStaff(handler: StaffJsonHandler): (request: Request) => Promise<Response> {
-  return (request) => staffResponse(request, requireStaffClaims, handler);
+  return (request) =>
+    staffResponse(request, isReadMethod(request) ? requireStaffClaims : requireAdminClaims, handler);
 }
 
 export function withAdmin(handler: StaffJsonHandler): (request: Request) => Promise<Response> {

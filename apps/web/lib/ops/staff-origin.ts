@@ -5,7 +5,8 @@
 // Origin. Same gate as every /api/staff/* route (requireStaffClaims: a staff role, and
 // aal2 once a factor exists). Any error, no session or a refused gate is `false`.
 
-import { requireStaffClaims, type StaffAuthClient } from "./session";
+import { requireStaffClaims, type StaffAuthClient, type StaffSession } from "./session";
+import { staffRowActive } from "./staff-active";
 import { authSetCookieHeader, createSupabaseServerClient, type AuthSetCookie } from "../supabase/server";
 
 /** Where the Supabase client puts the cookies it wants to write (a refreshed, rotated session). */
@@ -28,10 +29,12 @@ export async function requestHasStaffSession(
   request: Request,
   factory: StaffClientFactory = defaultFactory,
   sink?: AuthCookieSink,
+  isActive: (claims: StaffSession) => Promise<boolean> = staffRowActive,
 ): Promise<boolean> {
   try {
-    await requireStaffClaims(await factory(request, sink));
-    return true;
+    const claims = await requireStaffClaims(await factory(request, sink));
+    // Security S13: the staff row must still be active and accepted, not only the token's role.
+    return (await isActive(claims)) === true;
   } catch {
     return false;
   }

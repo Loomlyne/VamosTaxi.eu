@@ -12,6 +12,10 @@ vi.mock("../supabase/server", () => ({
   createServerSupabaseClient: (...args: unknown[]) => createSupabaseServerClient(...args),
 }));
 
+// Security S13: the staff row's own active flag, asked on every staff call. True unless a test says.
+const rowActive = vi.fn(async (_claims: unknown): Promise<boolean> => true);
+vi.mock("./staff-active", () => ({ staffRowActive: (claims: unknown) => rowActive(claims) }));
+
 import { jsonErr, jsonOk, staffStatus, withAdmin, withStaff } from "./staff-json";
 
 function jwtWithRole(role?: "dispatcher" | "admin"): string {
@@ -158,6 +162,74 @@ describe("withStaff / withAdmin", () => {
         throw new OpsAuthError("not-staff");
       })(request),
     ).rejects.toBeInstanceOf(OpsAuthError);
+  });
+});
+
+describe("S13: active staff row and admin-only writes", () => {
+  const admin = {
+    id: "66666666-6666-4666-8666-666666666666",
+    email: "admin@vamos.test",
+    app_metadata: { vamos_role: "admin" as const },
+  };
+  const dispatcher = {
+    id: "77777777-7777-4777-8777-777777777777",
+    email: "disp@vamos.test",
+    app_metadata: { vamos_role: "dispatcher" as const },
+  };
+  const write = (method: string) =>
+    new Request("https://dashboard.vamostaxi.site/api/staff/vehicles", {
+      method,
+      headers: { origin: "https://dashboard.vamostaxi.site" },
+    });
+
+  beforeEach(() => {
+    createSupabaseServerClient.mockReset();
+    rowActive.mockReset();
+    rowActive.mockResolvedValue(true);
+  });
+
+  it("an active admin row reaches the handler; the check gets the session's claims", async () => {
+    createSupabaseServerClient.mockResolvedValue(mockClient({ user: admin }));
+    const handler = vi.fn(async () => jsonOk({ ok: 1 }));
+    const res = await withStaff(handler)(new Request("http://vamos.test/api/staff/me"));
+    expect(res.status).toBe(200);
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect((rowActive.mock.calls[0]?.[0] as { sub?: string }).sub).toBe(admin.id);
+  });
+
+  it("a staff row switched off (active = false) is refused 403 not-staff, reads and writes, before the handler", async () => {
+    rowActive.mockResolvedValue(false);
+    createSupabaseServerClient.mockResolvedValue(mockClient({ user: admin }));
+    const handler = vi.fn(async () => jsonOk({ leaked: true }));
+    for (const req of [new Request("http://vamos.test/api/staff/me"), write("POST")]) {
+      const result = await readJson(await withStaff(handler)(req));
+      expect(result.status).toBe(403);
+      expect(result.body).toEqual({ ok: false, code: "not-staff" });
+    }
+    const viaAdmin = await readJson(await withAdmin(handler)(write("PATCH")));
+    expect(viaAdmin.status).toBe(403);
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it("a database that cannot answer the check is a 503, never the handler", async () => {
+    rowActive.mockRejectedValue(new Error("down"));
+    createSupabaseServerClient.mockResolvedValue(mockClient({ user: admin }));
+    const handler = vi.fn(async () => jsonOk({}));
+    const result = await readJson(await withStaff(handler)(new Request("http://vamos.test/api/staff/me")));
+    expect(result.status).toBe(503);
+    expect(result.body).toEqual({ ok: false, code: "staff-check-failed" });
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it("every write through withStaff needs the admin, the same as withAdmin", async () => {
+    createSupabaseServerClient.mockResolvedValue(mockClient({ user: dispatcher }));
+    const handler = vi.fn(async () => jsonOk({}));
+    for (const method of ["POST", "PUT", "PATCH", "DELETE"]) {
+      const result = await readJson(await withStaff(handler)(write(method)));
+      expect(result.status, method).toBe(403);
+      expect(result.body, method).toEqual({ ok: false, code: "not-admin" });
+    }
+    expect(handler).not.toHaveBeenCalled();
   });
 });
 
