@@ -16,14 +16,15 @@ const CANCELLATION_IDS = [
 ]; // 26.0: the legal ship (owner-approved text) removed the vouchers section
 
 
+// Owner rule 2026-10-03 (3cac1fc5, "/imprint hides its unfilled sections"): 05 aufsicht (supervisory authority) and
+// 07 haftung (liability) have no text yet, so the page carries neither the section nor its TOC link. They come back
+// here, in order, when the owner supplies the wording.
 const IMPRINT_IDS = [
   "register",
   "kontakt",
   "vertretung",
   "mwst",
-  "aufsicht",
   "dispute",
-  "haftung",
   "urheberrecht",
   "credits",
 ];
@@ -139,10 +140,29 @@ test.describe("Cancellation and imprint pages @component", () => {
       "/ar/imprint",
     ]) {
       await page.goto(baseURL + path);
-      const overflow = await page.evaluate(
-        () => document.documentElement.scrollWidth <= window.innerWidth,
-      );
-      expect(overflow).toBe(true);
+      // Measure the rendered mock, not the boot frame: at `load` the mock is still compiling on a slow runner, and a
+      // measurement taken then is what went red on Linux at 390 (e2e run 37230443570). Same wait as legal-terms.spec.ts.
+      const firstId = path.endsWith("/imprint") ? IMPRINT_IDS[0] : CANCELLATION_IDS[0];
+      await expect(page.locator(`#${firstId}`)).toHaveCount(1, { timeout: 60_000 });
+      // On a miss the poll's last value names the widest elements, so a red run says what overflows and where.
+      await expect
+        .poll(
+          () =>
+            page.evaluate(() => {
+              const iw = window.innerWidth;
+              const sw = document.documentElement.scrollWidth;
+              if (sw <= iw) return "fits";
+              const wide = [...document.querySelectorAll("body *")]
+                .map((el) => ({ el, right: Math.round(el.getBoundingClientRect().right) }))
+                .filter((x) => x.right > iw)
+                .sort((a, b) => b.right - a.right)
+                .slice(0, 4)
+                .map((x) => `${x.el.tagName.toLowerCase()}${x.el.id ? "#" + x.el.id : ""} right=${x.right}`);
+              return `scrollWidth ${sw} > ${iw}: ${wide.join(" ; ")}`;
+            }),
+          { message: `no sideways scroll on ${path}` },
+        )
+        .toBe("fits");
     }
   });
 

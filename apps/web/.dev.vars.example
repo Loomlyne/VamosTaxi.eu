@@ -1,17 +1,115 @@
-# Credential-free template for local `wrangler dev` / `next dev`.
-# Copy to `.dev.vars` (git-ignored). Staging/production values reach the Worker
-# only via `wrangler secret put` — never a committed `vars` block.
+# Credential-free template for local `wrangler dev` / `next dev`: every environment NAME the Worker reads.
+# Copy to `.dev.vars` (git-ignored) and fill only what you need, with local values.
+# Never commit a value. Never paste a live key here. Names only, values empty.
+#
+# On the live Worker `vamos` the secrets below are set with `wrangler secret put <NAME>` (the owner or the
+# control session) and the non-secret flags come from the `vars` block of apps/web/wrangler.jsonc. A name
+# marked "optional" makes its feature degrade or stay off when it is empty; "required" is a boot or request
+# failure. Types: apps/web/lib/env.d.ts. Contact-form names are read outside that file (app/api/contact).
 
-# Local `supabase status` → API URL / anon key. Hosted: Dashboard → Settings → API.
+# ── Supabase (server-only; local `supabase status` prints the API URL and keys) ──
+# Required. Supabase Auth / API URL. Local stack: http://127.0.0.1:54321 (or your lab's API port).
 SUPABASE_URL=
+# Required. Supabase anon (publishable) key. Never exposed to the browser bundle.
 SUPABASE_ANON_KEY=
+# Required. Service-role key; only the scheduled digest uses it (lib/supabase/service.ts).
+SUPABASE_SERVICE_ROLE_KEY=
 
-# Plan 05-12 Send Email Hook (owner-gated; leave empty until that gate).
-SEND_EMAIL_HOOK_SECRET=
+# ── Quote, price lock and abuse guard ──
+# Required. HMAC secret that signs the quote lock token. Local: any 32+ character random string.
+QUOTE_LOCK_SECRET=
+# Optional. Previous lock secret, set only for one lock lifetime while rotating QUOTE_LOCK_SECRET.
+QUOTE_LOCK_SECRET_PREVIOUS=
+# Required. HMAC secret for the `vamos_qs` visitor cookie. Must differ from QUOTE_LOCK_SECRET.
+VAMOS_QS_SECRET=
+# Optional. Daily Mapbox unit count at which the breaker trips (a number of units, not francs).
+MAPBOX_DAILY_UNIT_SENTINEL=
+# Optional. "true" lets quote and reprice show the newest draft price book. Absent on live production.
+PRICING_PREVIEW=
 
-# Plans 05-12 / 05-13 Resend (owner-gated).
-RESEND_API_KEY=
+# ── Maps ──
+# Optional. Mapbox access token for /api/geo/* and Directions; without it address search and distance pricing degrade.
+MAPBOX_TOKEN=
 
-# Plan 05-13 Turnstile widget (site key is public-by-design but still server-passed).
+# ── Turnstile (bot check on the quote, contact, sign-up and review forms) ──
+# Optional. Public widget site key, passed to the page by the server.
 TURNSTILE_SITE_KEY=
+# Optional. Secret for the form checks (contact, sign-up, consent, reviews, quote guard).
 TURNSTILE_SECRET_KEY=
+# Optional. Older name for the quote guard's secret, used only as a fallback. Never set on live.
+TURNSTILE_SECRET=
+# Optional. Comma-separated hostnames a Turnstile token may come from (localhost, 127.0.0.1 locally).
+CONTACT_TURNSTILE_ALLOWED_HOSTNAMES=
+
+# ── E-mail ──
+# Optional. Resend API key for booking e-mails and the contact form. Empty: no mail leaves.
+RESEND_API_KEY=
+# Optional. Resend webhook signing secret (`whsec_...`) for inbound support replies.
+RESEND_WEBHOOK_SECRET=
+# Optional. Supabase Auth "Send Email" hook signing secret; empty: auth mail is not sent through the Worker.
+SEND_EMAIL_HOOK_SECRET=
+# Optional. From address of the contact-form mail.
+CONTACT_EMAIL_FROM=
+# Optional. Inbox that receives contact-form mail (the support address).
+CONTACT_SUPPORT_RECIPIENT=
+
+# ── Stripe (test mode only on a local machine: sk_test_ / pk_test_) ──
+# Required. Stripe secret key.
+STRIPE_SECRET_KEY=
+# Required. Stripe webhook signing secret (`whsec_...`) of the endpoint or `stripe listen` session.
+STRIPE_WEBHOOK_SECRET=
+# Required. Stripe publishable key. Not a secret; on live it comes from wrangler.jsonc `vars`.
+STRIPE_PUBLISHABLE_KEY=
+# Optional. "on" adds TWINT to the hosted Checkout page; anything else is card only.
+STRIPE_CHECKOUT_TWINT=
+
+# ── Meta (server Purchase event; owner-gated) ──
+# Optional. Conversions API token. Only lib/meta/purchase.ts reads it; never print or log it.
+META_CAPI_ACCESS_TOKEN=
+# Optional. Events Manager test event code. A test-mode payment sends no event while this is empty.
+META_TEST_EVENT_CODE=
+
+# ── Staff, health and content switches ──
+# Optional. HMAC key (32+ characters) for the staff re-auth cookie; empty: password, e-mail and factor changes are refused.
+STAFF_REAUTH_SECRET=
+# Optional. Secret for GET /api/internal/health; empty: that route answers 404.
+HEALTH_PROBE_SECRET=
+# Optional. "db" reads content strings from the database; anything else serves the repository JSON.
+CONTENT_SOURCE=
+# Optional. Deploy marker ("staging" adds X-Robots-Tag: noindex). Set by wrangler.jsonc `vars` on live.
+DEPLOY_ENV=
+# Optional. Worker surface pin, "public" or "dashboard". Set by wrangler.jsonc `vars` on live.
+VAMOS_SURFACE=
+
+# ── Bindings (declared in apps/web/wrangler.jsonc, not set in this file) ──
+# Setting one of these names here would shadow the binding, so they stay comments. Wrangler gives local
+# stand-ins for them under `wrangler dev` / `next dev`; `localConnectionString` in wrangler.jsonc points
+# HYPERDRIVE and HYPERDRIVE_NOCACHE at the local Supabase database (port 54322).
+#   ASSETS                      static assets of the OpenNext Worker
+#   HYPERDRIVE                  database, cacheable public-content path (login role vamos_public)
+#   HYPERDRIVE_NOCACHE          database, identity and billing path (login role vamos_edge)
+#   GEO_CACHE                   KV: geo and quote cache
+#   QUOTE_ABUSE                 KV: abuse and daily-breaker counters
+#   PHOTOS                      R2: chauffeur and class photos
+#   SUPPORT_FILES               R2: inbound support-mail files
+#   AI                          Workers AI: translates extra names on save
+#   IMAGES                      Cloudflare Images: resizes /_next/image
+#   EMAIL                       Cloudflare Email Sending (auth mail)
+#   STRIPE_EVENTS               Queue: Stripe webhook fan-out (and its dead-letter queue)
+#   DB_LATENCY                  Analytics Engine: database latency points
+#   QUOTE_ABUSE_METRICS         Analytics Engine: quote abuse and Mapbox trip metrics
+#   QUOTE_RATE_LIMITER, QUOTE_RATE_LIMITER_BARE            rate limits: POST /api/quote
+#   AUTH_RATE_LIMITER                                      rate limit: /api/auth
+#   INTENT_RATE_LIMITER                                    rate limit: POST /api/checkout/intent
+#   LOOKUP_RATE_LIMITER, LOOKUP_RATE_LIMITER_BARE          rate limits: /api/geo/*
+#   PRICE_RATE_LIMITER, PRICE_RATE_LIMITER_BARE            rate limits: reprice and voucher check
+#   TURNSTILE_ATTEMPT_LIMITER                              rate limit: quote challenge counter
+#   READ_RATE_LIMITER                                      rate limit: public database reads (status, resume, manage, reviews)
+#   APP, PUBLIC                 service bindings of the dashboard gateway (wrangler.dashboard.jsonc)
+
+# ── Not for this file ──
+# Build time (next.config.ts writes them; never set by hand): QUOTE_ENGINE_VERSION, LEGAL_UPDATED_ISO,
+# CONSENT_UPDATED_ISO. Read at build for the engine version if set by CI: CF_PAGES_COMMIT_SHA, GITHUB_SHA.
+# Test and dev-server switches, set in the shell of a spec run, never here: VAMOS_DEV_GALLERY,
+# VAMOS_DEV_REMOTE_BINDINGS, VAMOS_DEV_PERSIST_PER_PROCESS, VAMOS_DEV_WRANGLER_ENV, TEST_DIST_DIR,
+# QUOTE_TEST_STUB_GEO.

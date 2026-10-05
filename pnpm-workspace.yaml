@@ -15,6 +15,15 @@ overrides:
   undici@8: ^8.10.2
   js-yaml: ^4.3.2           # CPU exhaustion via merge keys
   qs: ^6.16.0
+# braces <= 3.0.3 (GHSA-vfj7-8cjw-p6xm, high, stack exhaustion on deeply nested patterns): no patched
+# version exists. 3.0.3 is the newest on npm (checked 2026-10-05) and the advisory lists no fixed
+# release, so an override to ^3.0.4 fails with ERR_PNPM_NO_MATCHING_VERSION. It is reachable only from
+# stylelint > fast-glob > micromatch, a dev tool that globs this repo's own CSS files; it never ships
+# in the Worker (`pnpm audit --prod` is clean). Ignored here so `pnpm audit` stays a useful gate.
+# Remove this entry as soon as braces publishes a fix and `pnpm audit` stops listing it.
+auditConfig:
+  ignoreGhsas:
+    - GHSA-vfj7-8cjw-p6xm
 allowBuilds:
   '@parcel/watcher': true
   '@swc/core': true

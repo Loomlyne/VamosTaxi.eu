@@ -96,8 +96,10 @@ test.describe("Contact page and form @component", () => {
     test(`screenshot contact ${locale} @component`, async ({ page }) => {
       await gotoLocale(page, locale, "/contact");
       await expect(page.locator("#dc-root")).toBeVisible({ timeout: 30_000 });
-      await expect(page.locator("#dc-root [data-ch]")).toHaveCount(3, { timeout: 30_000 });
-      await expect(page.locator("#dc-root [data-ch]").first()).toBeVisible({ timeout: 30_000 });
+      // The three channel links (phone, WhatsApp, e-mail) are anchors. The floating contact button also carries
+      // data-ch (its current channel), so a bare [data-ch] counts four since 6a019ac1.
+      await expect(page.locator("#dc-root a[data-ch]")).toHaveCount(3, { timeout: 30_000 });
+      await expect(page.locator("#dc-root a[data-ch]").first()).toBeVisible({ timeout: 30_000 });
       // Playwright freezes motion for deterministic captures. The production page
       // transition therefore remains over the DC page unless the test removes it.
       await page.addStyleTag({ content: "#vt-page-transition{display:none!important}" });
@@ -142,9 +144,12 @@ test.describe("Contact page and form @component", () => {
   test("channel tiles and form controls are at least 44px @component", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "component-390", "390 only");
     await gotoLocale(page, "en", "/contact");
+    // Only the channel anchors of the page: the floating contact button also carries data-ch (its current channel)
+    // and is measured by contact-button.spec.ts. Wait for the page to render before measuring.
+    await expect(page.locator("#dc-root a[data-ch]")).toHaveCount(3, { timeout: 30_000 });
     const sizes = await page.evaluate(() => {
       const nodes = [
-        ...document.querySelectorAll("[data-ch]"),
+        ...document.querySelectorAll("#dc-root a[data-ch]"),
         ...document.querySelectorAll("form input, form textarea, form button"),
       ];
       return nodes.map((el) => (el as HTMLElement).getBoundingClientRect().height);

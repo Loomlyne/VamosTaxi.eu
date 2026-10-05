@@ -178,8 +178,11 @@ describe.skipIf(!PORT)("refunds by hand through the real Worker client (local, c
       expect(intent).toMatchObject({ attempts: 1, state: "failed" });
       expect(intent!.last_error).toMatch(/^stripe: balance too low/);
       createRefund.mockImplementation(async (_s: unknown, input: { metadata: { vamos_intent: string } }) => {
-        atStripe.push({ id: "re_retry", intent: input.metadata.vamos_intent, status: "succeeded" });
-        return { id: "re_retry", status: "succeeded" };
+        // Unique per run: booking_refunds.stripe_refund_id is unique and these rows are committed, so a fixed
+        // id made the second run on the same database fail. `tag` is random per run, like the other ids here.
+        const refundId = `re_retry_${tag}`;
+        atStripe.push({ id: refundId, intent: input.metadata.vamos_intent, status: "succeeded" });
+        return { id: refundId, status: "succeeded" };
       });
       const retried = await refundBooking(env, claims, book["near"]!.reference, { retry: true });
       expect(retried).toMatchObject({ ok: true, dueRappen: 0 });

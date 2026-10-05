@@ -3,6 +3,7 @@
 # Stripe / Mapbox / Turnstile / Resend). General form of apps/web/tests/e2e-worker/p6-run.sh.
 #   lab.sh up <name> [--rebuild] [--no-dash]   lab.sh status <name>   lab.sh env <name>   lab.sh reseed <name>
 #   lab.sh down <name>                          lab.sh destroy <name>  lab.sh gates [base]   lab.sh pgtap <name>
+#   lab.sh dbtests [name] [--keep]   database-backed tests (*.local.test.ts) on a throwaway stack: `pnpm test:db-lab`
 # LAB_RUNTIME=auto|docker|native (see "runtime" below): native needs no Docker at all.
 # Local only. Never live. Amounts in the lab copy are stand-ins (seed-live-like.sql). No secret is printed.
 # Never stops a process or stack it did not record; never kills by port or pattern.
@@ -87,7 +88,19 @@ hash_cfg() { cat "$WEB/wrangler.e2e.jsonc" "$WEB/.dev.vars" 2>/dev/null | shasum
 #   db reset and the full pgTAP suite (99 files, 2653 tests) pass.
 # LAB_RUNTIME=auto|docker|native picks it for a new lab (auto: native whenever possible, else docker);
 # a lab keeps its runtime for life (LAB_SB_RUNTIME in lab.env).
-NATIVE_CLI=${SUPABASE_NATIVE_CLI:-supabase}
+# The first `supabase` on PATH that is >= 2.118.0. Under `pnpm run` the repo's pinned CLI (2.115.0, no native stack)
+# comes first on PATH, so a plain `supabase` there is the wrong one and the lab fell back to Docker.
+find_native_cli() {
+  local c v
+  if [ -n "${SUPABASE_NATIVE_CLI:-}" ]; then echo "$SUPABASE_NATIVE_CLI"; return; fi
+  for c in $(type -aP supabase 2>/dev/null); do
+    v=$("$c" --version 2>/dev/null | grep -Eo '^[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+    [ -n "$v" ] || continue
+    if [ "$(printf '2.118.0\n%s\n' "$v" | sort -V | head -1)" = "2.118.0" ]; then echo "$c"; return; fi
+  done
+  echo supabase
+}
+NATIVE_CLI=$(find_native_cli)
 RUNTIME=""
 pick_runtime() {
   if [ -n "${LAB_SB_RUNTIME:-}" ]; then
@@ -261,6 +274,22 @@ patch_worker() {
   note "worker.js patched for fakes port $FAKE (build output only)"
 }
 
+# lab.env (ports, runtime) and the stack start are shared by `up` and `dbtests`.
+write_lab_env() {
+  {
+    echo "LAB_NAME=$NAME"; echo "LAB_SLOT=$SLOT"; echo "LAB_TREE=$TREE"
+    echo "LAB_PUB=$PUB"; echo "LAB_DASH_PORT=$DASH"; echo "LAB_FAKE_PORT=$FAKE"; echo "LAB_INSPECT=$INSP"; echo "LAB_INSPECT_DASH=$INSP_DASH"
+    echo "LAB_SB_API=$SB_API"; echo "LAB_SB_DB=$SB_DB"; echo "LAB_DB_CONTAINER=$DBC"; echo "LAB_SB_RUNTIME=$RUNTIME"
+  } > "$STATE/lab.env"
+}
+start_stack() {
+  if stack_running; then note "stack $PROJECT already running"; else
+    note "supabase start ($PROJECT, $RUNTIME, api $SB_API, db $SB_DB); log $STATE/logs/supabase-start.log"
+    if [ "$RUNTIME" = native ]; then set -- start --runtime native --eager; else set -- start; fi
+    sb_cli "$@" > "$STATE/logs/supabase-start.log" 2>&1 || { tail -5 "$STATE/logs/supabase-start.log"; fail "supabase start failed (log $STATE/logs/supabase-start.log)"; }
+  fi
+}
+
 # ---- subcommands ------------------------------------------------------------------------------------------------
 cmd_up() {
   need_name "${1:-}"; shift
@@ -293,17 +322,8 @@ cmd_up() {
     [ -z "$busy" ] || fail "port(s)$busy busy (not this lab's stack): choose another slot with LAB_SLOT=<n>"
   fi
   make_workdir; check_own_stack
-  {
-    echo "LAB_NAME=$NAME"; echo "LAB_SLOT=$SLOT"; echo "LAB_TREE=$TREE"
-    echo "LAB_PUB=$PUB"; echo "LAB_DASH_PORT=$DASH"; echo "LAB_FAKE_PORT=$FAKE"; echo "LAB_INSPECT=$INSP"; echo "LAB_INSPECT_DASH=$INSP_DASH"
-    echo "LAB_SB_API=$SB_API"; echo "LAB_SB_DB=$SB_DB"; echo "LAB_DB_CONTAINER=$DBC"; echo "LAB_SB_RUNTIME=$RUNTIME"
-  } > "$STATE/lab.env"
-
-  if stack_running; then note "stack $PROJECT already running"; else
-    note "supabase start ($PROJECT, $RUNTIME, api $SB_API, db $SB_DB); log $STATE/logs/supabase-start.log"
-    if [ "$RUNTIME" = native ]; then set -- start --runtime native --eager; else set -- start; fi
-    sb_cli "$@" > "$STATE/logs/supabase-start.log" 2>&1 || { tail -5 "$STATE/logs/supabase-start.log"; fail "supabase start failed (log $STATE/logs/supabase-start.log)"; }
-  fi
+  write_lab_env
+  start_stack
   write_sb_env
   if [ ! -f "$STATE/seeded" ]; then data_steps; else set_roles; make_admin; fi
 
@@ -473,6 +493,118 @@ cmd_pgtap() {
   else grep -E "^Failed|Result:" "$STATE/logs/pgtap.log" | head -3; echo "FAIL | pgtap | see $STATE/logs/pgtap.log"; exit 1; fi
 }
 
+# The database-backed tests (apps/web `*.local.test.ts` and packages/db test/local) need a real local database and
+# are skipped without VAMOS_LOCAL_DB_PORT, so a plain `pnpm test:unit` proves none of the money paths (refund by
+# hand, settle safety, class and trip change, assign, Stripe fee, customer paths). `dbtests` is the one command
+# that runs them: the lab's own stack only (no Worker, no build), reset to a clean database, the two login role
+# passwords and the marker role, then both suites, then the lab it made is destroyed. A lab that already existed,
+# or --keep, is left in place. Without a name the lab is called db-<checksum of this tree's path>.
+# Both suites commit rows, so the stack is reset at the start of every run and nothing here is ever the live database.
+# The web files run one at a time (--no-file-parallelism, as packages/db's own config does): each makes its own live
+# price book, and the database allows only one (rate_versions_one_live), so two files at once fail each other.
+dbtests_abort() {
+  [ "${DBTESTS_DONE:-0}" = 1 ] && return 0
+  [ "${DBTESTS_MADE:-0}" = 1 ] || return 0
+  case "$STATE" in "$LABHOME"/lab-?*) ;; *) return 0;; esac
+  [ -d "$STATE" ] || return 0
+  # A lab this run made and that never got as far as a workdir has no stack: nothing half-built is left behind.
+  if [ ! -f "$STATE/lab.env" ] || [ ! -f "$SB/supabase/config.toml" ]; then rm -rf "$STATE"; return 0; fi
+  # Otherwise the run died after the stack may have started (start, reset, passwords, a vitest crash): destroy it, as a
+  # finished run does. cmd_destroy checks that the stack is this lab's own (its project and its workdir) and stops only
+  # that one; it runs in a subshell because it ends with `exit` on a failure, which must not end this handler.
+  echo "lab $NAME was made by this run and the run did not finish: destroying it" >&2
+  local out rc
+  out=$( ( cmd_destroy "$NAME" ) 2>&1 ); rc=$?
+  printf '%s\n' "$out" | sed 's/^/  /' >&2
+  [ "$rc" = 0 ] || echo "lab $NAME could not be destroyed (above): lab.sh destroy $NAME removes it" >&2
+}
+cmd_dbtests() {
+  local name="" keep=0 a
+  for a in "$@"; do
+    case "$a" in --) ;; --keep) keep=1;; -*) fail "unknown option $a";; *) name=$a;; esac
+  done
+  [ -n "$name" ] || name="db-$(printf '%s' "$TREE" | cksum | cut -d' ' -f1)"
+  need_name "$name"
+  mkdir -p "$STATE/logs"
+  local made=0 p busy
+  if [ -f "$STATE/lab.env" ]; then
+    load_env; set_ports "$LAB_SLOT"
+    [ "${LAB_TREE:-}" = "$TREE" ] || fail "lab $NAME belongs to another tree (${LAB_TREE:-?}); pass another name"
+    if [ -s "$PIDS" ]; then
+      for p in $(cat "$PIDS"); do alive "$p" && fail "lab $NAME has Workers running and this run resets its database: lab.sh down $NAME first, or pass another name"; done
+    fi
+  else
+    pick_slot || fail "no free slot in 1..9 (ports busy or slots held by other labs)"
+    made=1
+  fi
+  DBTESTS_MADE=$made
+  trap dbtests_abort EXIT
+  pick_runtime
+  if ! stack_running; then
+    busy=$(busy_of $(stack_ports))
+    [ -z "$busy" ] || fail "port(s)$busy busy (not this lab's stack): choose another slot with LAB_SLOT=<n>"
+  fi
+  make_workdir; check_own_stack
+  write_lab_env
+  start_stack
+  note "supabase db reset: clean database, repository seed only"
+  sb_cli db reset > "$STATE/logs/reset.log" 2>&1 || { tail -5 "$STATE/logs/reset.log"; fail "db reset failed (log $STATE/logs/reset.log)"; }
+  set_roles
+  rm -f "$STATE/seeded" "$STATE/admin.txt"  # the lab's own data (seed-live-like, admin) is not here; a later `up` adds it
+
+  export VAMOS_LOCAL_DB_PORT=$SB_DB VAMOS_TEST_DB_PORT=$SB_DB REQUIRE_DB=1
+  export VAMOS_TEST_DB_URL="postgres://postgres:postgres@127.0.0.1:$SB_DB/postgres"
+  (cd "$TREE" && node scripts/sync-dc-mock-to-public.mjs >/dev/null) || fail "sync-dc-mock-to-public failed"
+  local rc_db rc_web=0 rc_seeded=0 sum_db sum_web sum_seeded="" seeded_files="" other_files="" f
+  note "packages/db test/local on 127.0.0.1:$SB_DB; log $STATE/logs/dbtests-db.log"
+  (cd "$TREE/packages/db" && pnpm exec vitest run test/local) > "$STATE/logs/dbtests-db.log" 2>&1; rc_db=$?
+  # A few web files read the lab's stand-in price book (seed-live-like.sql) instead of making their own, as rest-grants
+  # does ("seeded with seed-live-like.sql" in its header). They run first, on that seed; every other file retires
+  # whatever live book it finds and makes its own, so they run after. Files are told apart by that header line.
+  rm -f "$STATE/logs/dbtests-web-seeded.log"
+  for f in $(cd "$WEB" && find . -name '*.local.test.ts' -not -path '*/node_modules/*' | sed 's#^\./##' | sort); do
+    if grep -q 'seed-live-like' "$WEB/$f"; then seeded_files="$seeded_files $f"; else other_files="$other_files $f"; fi
+  done
+  if [ -n "$seeded_files" ]; then
+    note "seed-live-like.sql, then the web files that read it:$seeded_files; log $STATE/logs/dbtests-web-seeded.log"
+    psql_lab -q < "$HERE/seed-live-like.sql" >/dev/null || fail "seed-live-like.sql failed on the dbtests stack"
+    # shellcheck disable=SC2086
+    (cd "$WEB" && pnpm exec vitest run --no-file-parallelism --testTimeout=60000 $seeded_files) > "$STATE/logs/dbtests-web-seeded.log" 2>&1; rc_seeded=$?
+    sum_seeded=$(grep -E '^ +Tests ' "$STATE/logs/dbtests-web-seeded.log" | tail -1 | sed 's/^ *//')
+  fi
+  note "the other apps/web *.local.test.ts on 127.0.0.1:$SB_DB; log $STATE/logs/dbtests-web.log"
+  # shellcheck disable=SC2086
+  (cd "$WEB" && pnpm exec vitest run --no-file-parallelism --testTimeout=60000 $other_files) > "$STATE/logs/dbtests-web.log" 2>&1; rc_web=$?
+  sum_db=$(grep -E '^ +Tests ' "$STATE/logs/dbtests-db.log" | tail -1 | sed 's/^ *//')
+  sum_web=$(grep -E '^ +Tests ' "$STATE/logs/dbtests-web.log" | tail -1 | sed 's/^ *//')
+  if [ -n "$seeded_files" ]; then
+    [ "$rc_seeded" = 0 ] || rc_web=$rc_seeded
+    [ -n "$sum_seeded" ] || rc_web=1  # the seeded pass printed no result: that is a failure, not a pass
+    [ -n "$sum_web" ] || rc_web=1
+    sum_web="${sum_seeded:-no result} (seeded files) + ${sum_web:-no result}"
+  fi
+
+  # A skipped database test proves nothing: it must not read as a pass.
+  local skipped_web=0 skipped_db=0
+  printf '%s' "$sum_web" | grep -q 'skipped' && skipped_web=1
+  printf '%s' "$sum_db" | grep -q 'skipped' && skipped_db=1
+  local verdict=PASS
+  if [ "$rc_db" != 0 ] || [ "$rc_web" != 0 ] || [ "$skipped_web" = 1 ] || [ "$skipped_db" = 1 ] || [ -z "$sum_web" ] || [ -z "$sum_db" ]; then
+    verdict=FAIL
+    tail -40 "$STATE/logs/dbtests-db.log" | sed 's/^/db  | /'
+    [ -f "$STATE/logs/dbtests-web-seeded.log" ] && tail -40 "$STATE/logs/dbtests-web-seeded.log" | sed 's/^/web seeded | /'
+    tail -40 "$STATE/logs/dbtests-web.log" | sed 's/^/web | /'
+  fi
+  echo "$verdict | dbtests | packages/db test/local: ${sum_db:-no result} | apps/web .local.test.ts: ${sum_web:-no result}"
+  DBTESTS_DONE=1
+  if [ "$made" = 1 ] && [ "$keep" = 0 ]; then
+    cmd_destroy "$NAME" | sed 's/^/  /'
+  else
+    echo "lab $NAME kept (database 127.0.0.1:$SB_DB, logs $STATE/logs); lab.sh destroy $NAME removes it"
+  fi
+  [ "$verdict" = PASS ]
+}
+
 # ---- gates ------------------------------------------------------------------------------------------------------
 GATE_FAIL=0
 gate() { # gate <name> <cmd...>
@@ -517,6 +649,7 @@ case "${1:-}" in
   down) shift; cmd_down "$@";;
   destroy) shift; cmd_destroy "$@";;
   pgtap) shift; cmd_pgtap "$@";;
+  dbtests) shift; cmd_dbtests "$@";;
   gates) shift; cmd_gates "$@";;
-  *) echo "usage: lab.sh up <name> [--rebuild] [--no-dash] | status|env|reseed|down|destroy|pgtap <name> | gates [base]   (LAB_RUNTIME=auto|docker|native)"; exit 2;;
+  *) echo "usage: lab.sh up <name> [--rebuild] [--no-dash] | status|env|reseed|down|destroy|pgtap <name> | dbtests [name] [--keep] | gates [base]   (LAB_RUNTIME=auto|docker|native)"; exit 2;;
 esac

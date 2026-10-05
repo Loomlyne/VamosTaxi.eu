@@ -28,6 +28,11 @@ const SECTION_SEL = [
   "[data-rv]",
   "[data-faq]",
 ] as const;
+// Reviews.dc.html renders its section only while it loads or once enough reviews are published
+// (showSection = enough || loading). The test database has none, the live one has some, so [data-rv] is
+// checked when present and never required; the order and overflow checks below skip it when absent.
+const OPTIONAL_SECTION_SEL = new Set<string>(["[data-rv]"]);
+const REQUIRED_SECTION_SEL = SECTION_SEL.filter((sel) => !OPTIONAL_SECTION_SEL.has(sel));
 
 let devServer: ChildProcess | null = null;
 let baseURL = "";
@@ -42,10 +47,14 @@ async function gotoHome(page: Page, locale: string) {
   if (!res || res.status() >= 400) {
     throw new Error(`Home ${locale} returned ${res?.status() ?? "no response"}`);
   }
-  // The mock compiles in the browser: the hero is visible and the FAQ section exists once it has mounted.
+  // The mock compiles in the browser, and every section is its own dc-import that mounts when its own file has
+  // compiled, in no fixed order: the FAQ (small) can be there before Services. So wait for each required section,
+  // not only the last one, and for the Reviews section to settle: it is there while /api/reviews is loading and
+  // disappears again when fewer reviews than it needs are published (the test database has none).
   await expect(page.locator("[data-hero]")).toBeVisible({ timeout: 30_000 });
   await expect(page.locator("[data-bookcard]")).toBeAttached();
-  await expect(page.locator("[data-faq]")).toBeAttached();
+  for (const sel of REQUIRED_SECTION_SEL) await expect(page.locator(sel)).toBeAttached({ timeout: 30_000 });
+  await expect(page.locator('[data-rv][data-state="loading"]')).toHaveCount(0, { timeout: 30_000 });
 }
 
 /** The consent banner sits fixed over the hero; a picture of the page is taken without it. Second button = Necessary only (any language). */
@@ -116,13 +125,18 @@ test.describe("Home page @component", () => {
     const tops = await page.evaluate((sels) => {
       return sels.map((sel) => {
         const el = document.querySelector(sel);
-        if (!el) return Number.POSITIVE_INFINITY;
+        if (!el) return null;
         const rect = el.getBoundingClientRect();
         return rect.top + window.scrollY;
       });
     }, [...SECTION_SEL]);
-    for (let i = 1; i < tops.length; i++) {
-      expect(tops[i]).toBeGreaterThan(tops[i - 1]!);
+    // A required section that is missing is a failure that names it; an optional one is simply left out.
+    SECTION_SEL.forEach((sel, i) => {
+      if (!OPTIONAL_SECTION_SEL.has(sel)) expect(tops[i], `${sel} is on the page`).not.toBeNull();
+    });
+    const present = tops.filter((t): t is number => t !== null);
+    for (let i = 1; i < present.length; i++) {
+      expect(present[i]).toBeGreaterThan(present[i - 1]!);
     }
   });
 
@@ -164,8 +178,9 @@ test.describe("Home page @component", () => {
     expect(body).not.toMatch(/CHF\s+[1-9]/);
     expect(body).not.toMatch(/CHF\s+\d+[.,]\d{2}/);
     await expect(page.locator("[data-image-proof]")).toHaveCount(0);
-    // 26.4 D-14: the hidden hourly card no longer has its own href; assert by its title id.
-    await expect(page.locator("#svc-t4")).toHaveCount(0);
+    // 26.4 D-14: the hourly card is hidden. #svc-t4 was its title id; since 412ac19b (seven home sections) the
+    // fourth card is "Business travel" and owns that id, so the check is on the title text instead.
+    await expect(page.locator("[data-svc-title]").filter({ hasText: /hour/i })).toHaveCount(0);
   });
 
   test("german sections do not overflow their containers @component", async ({ page }) => {
@@ -173,7 +188,7 @@ test.describe("Home page @component", () => {
     const overflow = await page.evaluate((sels) => {
       return sels.some((sel) => {
         const el = document.querySelector(sel);
-        if (!el) return true;
+        if (!el) return false; // a required section is awaited in gotoHome; the optional one may be absent
         return el.scrollWidth > el.clientWidth + 1;
       });
     }, [...SECTION_SEL]);
