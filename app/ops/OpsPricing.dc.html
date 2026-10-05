@@ -183,13 +183,13 @@
 <sc-for list="{{ gaps }}" as="g" hint-placeholder-count="1">
 <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px">
 <p data-price-err="1" style="margin:0;flex:1 1 auto">{{ g.label }}</p>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" onClick="{{ g.fix }}" hint-size="90px,36px">{{ tFixThis }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ g.fix }}" hint-size="90px,36px">{{ tFixThis }}</x-import>
 </div>
 </sc-for>
 <p data-price-warn="1" style="display:{{ bandWarnDisplay }}">{{ tBandOverlapWarn }}</p>
 <p style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);line-height:1.6;color:var(--vt-text-secondary)">{{ tCompletenessBody }}</p>
 <div style="display:flex;flex-wrap:wrap;justify-content:flex-end;gap:var(--vt-space-2);margin-top:var(--vt-space-4)">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" onClick="{{ closePublish }}" hint-size="130px,36px">{{ tKeepEditing }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ closePublish }}" hint-size="130px,36px">{{ tKeepEditing }}</x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" onClick="{{ publish }}" disabled="{{ publishBusyDisabled }}" hint-size="160px,36px">{{ tPublishAction }}</x-import>
 </div>
 </x-import>
@@ -199,7 +199,7 @@
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" size="sm" title="{{ tDiscard }}" onClose="{{ closeDiscard }}" hint-size="400px,240px">
 <p style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);line-height:1.6;color:var(--vt-text-secondary)">{{ tDiscardConfirm }}</p>
 <div style="display:flex;flex-wrap:wrap;justify-content:flex-end;gap:var(--vt-space-2);margin-top:var(--vt-space-4)">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" onClick="{{ closeDiscard }}" hint-size="130px,36px">{{ tKeepEditing }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ closeDiscard }}" hint-size="130px,36px">{{ tKeepEditing }}</x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="danger" onClick="{{ discard }}" hint-size="140px,36px">{{ tDiscard }}</x-import>
 </div>
 </x-import>
@@ -223,7 +223,7 @@
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" size="md" title="{{ tViewChanges }}" onClose="{{ closeChanges }}" hint-size="520px,420px">
 <p style="margin:0;font-family:var(--vt-font-body);font-size:var(--vt-body-md);line-height:1.6;color:var(--vt-text-secondary);white-space:pre-wrap">{{ changesBody }}</p>
 <div style="display:flex;flex-wrap:wrap;justify-content:flex-end;gap:var(--vt-space-2);margin-top:var(--vt-space-4)">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" onClick="{{ closeChanges }}" hint-size="130px,36px">{{ tKeepEditing }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ closeChanges }}" hint-size="130px,36px">{{ tKeepEditing }}</x-import>
 </div>
 </x-import>
 </sc-if>

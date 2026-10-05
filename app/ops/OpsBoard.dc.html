@@ -93,7 +93,7 @@
 </div>
 <div data-ops-tools-act="1">
   <div data-vt-filt="1" ref="{{ filtRef }}">
-    <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" iconEnd="funnel" onClick="{{ toggleMore }}" hint-size="110px,36px">{{ tFilter }}</x-import>
+    <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" iconEnd="funnel" onClick="{{ toggleMore }}" hint-size="110px,36px">{{ tFilter }}</x-import>
     <sc-if value="{{ moreOpen }}" hint-placeholder-val="{{ false }}">
       <div data-vt-filt-pop="1">
         <span data-vt-filt-lab="1">{{ tBoardFilter }}</span>
@@ -108,7 +108,7 @@
       </div>
     </sc-if>
   </div>
-  <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" iconEnd="printer" onClick="{{ printBoard }}" hint-size="110px,36px">{{ tPrint }}</x-import>
+  <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" iconEnd="printer" onClick="{{ printBoard }}" hint-size="110px,36px">{{ tPrint }}</x-import>
 </div>
 </div>
 <div data-vt-board="1" data-scroll-native="1">
@@ -121,8 +121,8 @@
 <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
 <span style="font-family:var(--vt-font-body);font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tShowing }}</span>
 <div style="margin-inline-start:auto;display:flex;flex-wrap:wrap;gap:8px;min-width:0">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="outline" size="sm" icon="chevron-left" onClick="{{ prevPage }}" disabled="{{ noPrev }}" hint-size="110px,36px">{{ tPrevPage }}</x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="outline" size="sm" icon="chevron-right" onClick="{{ nextPage }}" disabled="{{ noNext }}" hint-size="90px,36px">{{ tNextPage }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" size="sm" icon="chevron-left" onClick="{{ prevPage }}" disabled="{{ noPrev }}" hint-size="110px,36px">{{ tPrevPage }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" size="sm" icon="chevron-right" onClick="{{ nextPage }}" disabled="{{ noNext }}" hint-size="90px,36px">{{ tNextPage }}</x-import>
 </div>
 </div>
 </x-import>
@@ -177,7 +177,8 @@ function isolate(s) { return '\u2066' + s + '\u2069'; }
    sort, one at a time. A header's first click goes the way SORT_FIRST says; the next click on it flips.
    asc = older first / smaller first / class order / not assigned first. Ties go newest booked first; a row
    with no readable value (no booking time, no total, a class outside the dashboard's list) goes last in both
-   directions. The class order is the dashboard's own list (VamosOps.VEHICLE_CLASSES), never names written here. */
+   directions. The class order is the price book's (VamosOps.VEHICLE_CLASSES: the live vehicle classes in the
+   order the price book lists them), never names written here. */
 const SORT_FIRST = { booked: 'desc', vehicle: 'asc', driver: 'asc', total: 'desc' };
 function nextSort(cur, key) {
   if (cur && cur.key === key) return { key: key, dir: cur.dir === 'asc' ? 'desc' : 'asc' };
@@ -222,10 +223,36 @@ function fareLabel(rappen) {
   }
   return window.VamosLocale ? window.VamosLocale.money('000') : 'CHF 000';
 }
-function pickupDay(date) {
-  const parts = String(date || '').trim().split(/\s+/);
-  if (parts.length >= 2) return parts[0] + ' ' + parts[1];
-  return date || '';
+/* Pickup day line (U9, 2026-10-05): "Fri 9" in the reader's language ("Fr. 9", "ven. 9", "الجمعة 9"). It is
+   read from the stored Zurich calendar date (dateIso), or from the pickup instant read in Zurich, never from
+   the English text the server sends in `date`; that text is only the fallback for a row with neither. Latin
+   digits in Arabic, like the Booked column. */
+const DAY_LOCALE = { en: 'en-GB', de: 'de-CH', fr: 'fr-CH', ar: 'ar-u-nu-latn' };
+function pickupCalendarDate(row) {
+  let ymd = String((row && row.dateIso) || '');
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(ymd)) {
+    const ms = Date.parse(String((row && row.pickupAt) || ''));
+    ymd = Number.isFinite(ms) ? zurichYmd(new Date(ms)) : '';
+  }
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd);
+  return m ? new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 12)) : null;
+}
+function pickupDay(row, lang) {
+  const d = pickupCalendarDate(row);
+  if (!d) {
+    const parts = String((row && row.date) || '').trim().split(/\s+/);
+    return parts.length >= 2 ? parts[0] + ' ' + parts[1] : ((row && row.date) || '');
+  }
+  const p = {};
+  new Intl.DateTimeFormat(DAY_LOCALE[lang] || DAY_LOCALE.en, { timeZone: 'UTC', weekday: 'short', day: 'numeric' })
+    .formatToParts(d).forEach((x) => { p[x.type] = x.value; });
+  return (p.weekday || '') + ' ' + (p.day || '');
+}
+/* The tooltip over the pickup cell: weekday, day and month in the same language. */
+function pickupDayFull(row, lang) {
+  const d = pickupCalendarDate(row);
+  if (!d) return (row && row.date) || '';
+  return new Intl.DateTimeFormat(DAY_LOCALE[lang] || DAY_LOCALE.en, { timeZone: 'UTC', weekday: 'short', day: 'numeric', month: 'short' }).format(d);
 }
 function isClosedStatus(b) {
   const s = b.status;
@@ -386,12 +413,13 @@ class Component extends DCLogic {
     });
     const ops = window.VamosOps;
     const DS = window.VamosTaxiDesignSystem_245af1 || {};
-    const classOptions = [{ value: '', label: t.allClasses }].concat(((ops && ops.VEHICLE_CLASSES) || ['Economy', 'Business', 'Van luxury']).map((c) => ({ value: c, label: c })));
+    const classNames = (ops && ops.VEHICLE_CLASSES) || [];
+    const classOptions = [{ value: '', label: t.allClasses }].concat(classNames.map((c) => ({ value: c, label: c })));
     const statusOptions = [{ value: '', label: t.allStatuses }].concat(((ops && ops.BOOKING_STATUS) || []).map((s) => ({ value: s, label: s })));
-    const formClass = ((ops && ops.VEHICLE_CLASSES) || ['Economy', 'Business', 'Van luxury']).map((c) => ({ value: c, label: c }));
+    const formClass = classNames.map((c) => ({ value: c, label: c }));
     const formStatus = ((ops && ops.BOOKING_STATUS) || []).map((s) => ({ value: s, label: s }));
     const chauffeurOptions = ((ops && ops.chauffeurs && ops.chauffeurs.all) ? ops.chauffeurs.all() : []).map((c) => ({ value: c.id, label: c.name || c.id }));
-    const orderedRows = sortBoardRows(visibleRows, this.state.sortKey, this.state.sortDir, (ops && ops.VEHICLE_CLASSES) || []);
+    const orderedRows = sortBoardRows(visibleRows, this.state.sortKey, this.state.sortDir, classNames);
     const PAGE_SIZE = 20;
     const pageCount = Math.max(1, Math.ceil(visibleRows.length / PAGE_SIZE));
     const page = Math.min(this.state.page || 0, pageCount - 1);
@@ -499,9 +527,9 @@ class Component extends DCLogic {
               ' ',
               React.createElement('span', { 'data-vt-booked-t': '1' }, keep(b.time)));
           } },
-        { key:'time', header: t.colPickup, width:'100px', render:(r) => React.createElement('span', { 'data-vt-when': '1', title: r.date || '' },
+        { key:'time', header: t.colPickup, width:'100px', render:(r) => React.createElement('span', { 'data-vt-when': '1', 'data-vt-no-i18n': '1', title: pickupDayFull(r, this.state.lang) },
             React.createElement('strong', null, r.time),
-            React.createElement('span', { 'data-vt-sub': '1' }, pickupDay(r.date))) },
+            React.createElement('span', { 'data-vt-sub': '1' }, pickupDay(r, this.state.lang))) },
         { key:'customer', header: t.colCustomer, width:'168px', render:(r) => React.createElement('span', { 'data-vt-stack': '1' },
             React.createElement('span', { 'data-vt-clip': '1', title: r.customer || '' }, r.customer || '—'),
             React.createElement('span', { 'data-vt-sub': '1', title: [r.email, r.phone].filter(Boolean).join(' · ') }, r.phone || r.email || t.noContact)) },
@@ -511,7 +539,7 @@ class Component extends DCLogic {
         { key:'vehicle', header: sortHead('vehicle', t.colVehicle), width:'120px', render:(r) => {
             const Icon = (window.VamosTaxiDesignSystem_245af1 || {}).Icon;
             return React.createElement('span', { 'data-vt-stack': '1' },
-            React.createElement('span', { 'data-vt-clip': '1', title: r.klass || r.vehicle || '' }, r.klass || r.vehicle || '—'),
+            React.createElement('span', { 'data-vt-clip': '1', 'data-vt-no-i18n': '1', title: r.klass || r.vehicle || '' }, r.klass || r.vehicle || '—'),
             React.createElement('span', { 'data-vt-sub': '1', 'data-vt-paxbags': '1' },
               React.createElement('span', { 'data-vt-pb': '1' }, Icon ? React.createElement(Icon, { name:'users', size:14, color:'var(--vt-text-muted)' }) : null, r.pax + ' ' + t.paxShort),
               '·',

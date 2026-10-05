@@ -4,8 +4,10 @@
 // nextLevel is stored on the claims and is aal2 when the server-verified user (getUser) holds a
 // verified factor, even if the cookie-derived AAL report says otherwise.
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
+  CONSOLE_AUTH_TIMEOUT_MS,
+  dashboardConsoleAllowed,
   getStaffClaims,
   requireAdminClaims,
   requireStaffClaims,
@@ -188,5 +190,64 @@ describe("a registered passkey does not force itself (quick 260928-wg9)", () => 
   it("a dispatcher is still denied", async () => {
     const { client: sb } = passkeyClient({ role: "dispatcher", currentLevel: "aal1", amr: [{ method: "passkey" }] });
     await expect(requireStaffClaims(sb)).rejects.toMatchObject({ reason: "not-staff" });
+  });
+});
+
+describe("dashboardConsoleAllowed waits a bounded time for Supabase Auth (U8b)", () => {
+  it("is a limit of a few seconds, not minutes", () => {
+    expect(CONSOLE_AUTH_TIMEOUT_MS).toBeGreaterThanOrEqual(2000);
+    expect(CONSOLE_AUTH_TIMEOUT_MS).toBeLessThanOrEqual(10000);
+  });
+
+  it("an admin who would pass is refused when getUser never answers (fail closed, never open)", async () => {
+    vi.useFakeTimers();
+    try {
+      const sb = client({ role: "admin", currentLevel: "aal1" });
+      expect(await dashboardConsoleAllowed(sb)).toBe(true); // the same client, answering: allowed
+      const stalled: StaffAuthClient = {
+        auth: { ...sb.auth, getUser: () => new Promise(() => undefined) },
+      };
+      const pending = dashboardConsoleAllowed(stalled, 1000);
+      let answer: boolean | undefined;
+      void pending.then((value) => {
+        answer = value;
+      });
+      await vi.advanceTimersByTimeAsync(999);
+      expect(answer).toBeUndefined(); // still inside the limit
+      await vi.advanceTimersByTimeAsync(1);
+      expect(await pending).toBe(false);
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("a getUser that fails after the deadline is not an unhandled rejection", async () => {
+    vi.useFakeTimers();
+    const unhandled = vi.fn();
+    process.on("unhandledRejection", unhandled);
+    try {
+      const sb = client({ role: "admin", currentLevel: "aal1" });
+      let fail: (reason: Error) => void = () => undefined;
+      const late: StaffAuthClient = {
+        auth: {
+          ...sb.auth,
+          getUser: () =>
+            new Promise((_, reject) => {
+              fail = reject;
+            }),
+        },
+      };
+      const pending = dashboardConsoleAllowed(late, 50);
+      await vi.advanceTimersByTimeAsync(50);
+      expect(await pending).toBe(false);
+      fail(new Error("socket closed late"));
+      vi.useRealTimers();
+      await new Promise((resolve) => setImmediate(resolve));
+      expect(unhandled).not.toHaveBeenCalled();
+    } finally {
+      process.off("unhandledRejection", unhandled);
+      vi.useRealTimers();
+    }
   });
 });

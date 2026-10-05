@@ -24,7 +24,7 @@ import {
   type VehicleInput,
   type VehicleRow,
 } from "./fleet";
-import { classDisplayName, liveClassSlug } from "./class-slug";
+import { classOwnName, liveClassSlug } from "./class-slug";
 import { jsonErr, jsonOk } from "./staff-json";
 import { mapSqlState } from "./sqlstate";
 
@@ -56,9 +56,9 @@ export function isUuid(value: string): boolean {
   return UUID_RE.test(value);
 }
 
-/** D-14 display name for a live or legacy class slug; unknown slugs read Economy. */
+/** D-14 display name for a live or legacy class slug; any other slug reads as its own name (U10), never Economy. */
 export function slugToKlass(slug: string): string {
-  return classDisplayName(slug) ?? "Economy";
+  return classOwnName(slug);
 }
 
 /** Live class slug for a DC klass name or slug (D-14); First and unknown values are null. */

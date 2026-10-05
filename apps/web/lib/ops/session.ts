@@ -134,13 +134,42 @@ export async function passkeyGateInputs(
 }
 
 /**
+ * Longest the console rule waits for Supabase Auth (U8b, 2026-10-05). Auth normally answers in a few
+ * hundred milliseconds; without a limit a stalled call held every dashboard document and every screen
+ * file open until the platform gave up. Past this the answer is "not allowed".
+ */
+export const CONSOLE_AUTH_TIMEOUT_MS = 5000;
+
+/**
  * INT-09 / D-16 / D-16a / D-16b: the dashboard host's console rule, one function for its two doors —
  * the console documents in middleware.ts (`dashboardHostMiddleware`) and the screen files under
  * `/app/ops/*` in worker.ts (`lib/ops/asset-gate.ts`). True only for the admin role with an `allow`
  * decision (aal2 once a verified factor exists). `getUser()` asks the auth server, so a forged or
  * expired cookie never passes; the role comes from the hook-minted access token it verified.
+ *
+ * Fails closed on time: when the auth server has not answered within `timeoutMs` the answer is false
+ * (the document door sends the browser to /login, the file door answers the private 404). A slow
+ * answer that arrives later changes nothing.
  */
-export async function dashboardConsoleAllowed(supabase: StaffAuthClient): Promise<boolean> {
+export async function dashboardConsoleAllowed(
+  supabase: StaffAuthClient,
+  timeoutMs: number = CONSOLE_AUTH_TIMEOUT_MS,
+): Promise<boolean> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const deadline = new Promise<false>((resolve) => {
+    timer = setTimeout(() => resolve(false), timeoutMs);
+  });
+  const decision = consoleDecision(supabase);
+  // After the deadline nobody awaits `decision`: a late failure must not surface as an unhandled rejection.
+  decision.catch(() => undefined);
+  try {
+    return await Promise.race([decision, deadline]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function consoleDecision(supabase: StaffAuthClient): Promise<boolean> {
   const {
     data: { user },
   } = await supabase.auth.getUser();

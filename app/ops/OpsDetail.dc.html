@@ -176,7 +176,7 @@
 <sc-if value="{{ hasDistance }}" hint-placeholder-val="{{ true }}">
 <span data-ops-route-chip>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="route" size="{{ n14 }}" color="var(--vt-text-muted)" hint-size="14px,14px"></x-import>
-<span data-vt-no-i18n="1">{{ distanceChip }}</span>
+<span class="vt-dir-keep" data-vt-no-i18n="1">{{ distanceChip }}</span>
 </span>
 </sc-if>
 </div>
@@ -539,7 +539,7 @@
 </sc-if>
 </div>
 <div data-ops-decide-foot>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="outline" disabled="{{ classBusy }}" onClick="{{ closeClassConfirm }}" hint-size="150px,44px">{{ tClassKeep }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" disabled="{{ classBusy }}" onClick="{{ closeClassConfirm }}" hint-size="150px,44px">{{ tClassKeep }}</x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="primary" disabled="{{ classBusy }}" aria-busy="{{ classBusyAria }}" onClick="{{ confirmClassChange }}" hint-size="170px,44px">{{ tClassConfirm }}</x-import>
 </div>
 </x-import>
@@ -551,7 +551,7 @@
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" title="{{ tWithdrawTitle }}" size="sm" subtitle="{{ booking.id }}" onClose="{{ closeWithdraw }}" hint-size="400px,260px">
 <p data-ops-decide-body>{{ tWithdrawBody }}</p>
 <div data-ops-decide-foot>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="outline" disabled="{{ withdrawBusy }}" onClick="{{ closeWithdraw }}" hint-size="170px,44px">{{ tWithdrawKeep }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" disabled="{{ withdrawBusy }}" onClick="{{ closeWithdraw }}" hint-size="170px,44px">{{ tWithdrawKeep }}</x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="primary" disabled="{{ withdrawBusy }}" aria-busy="{{ withdrawBusyAria }}" onClick="{{ confirmWithdraw }}" hint-size="170px,44px">{{ tWithdrawChange }}</x-import>
 </div>
 </x-import>
@@ -564,7 +564,7 @@
 <p data-vt-no-i18n="1" style="margin:4px 0 0;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)">{{ cancelRoute }}</p>
 <p data-vt-no-i18n="1" style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ cancelWhen }} · {{ cancelPay }}</p>
 <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--vt-border-subtle)">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="outline" onClick="{{ closeCancel }}" hint-size="110px,44px">{{ tKeepBooking }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" onClick="{{ closeCancel }}" hint-size="110px,44px">{{ tKeepBooking }}</x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="danger" onClick="{{ confirmCancel }}" hint-size="150px,44px">{{ tConfirmCancel }}</x-import>
 </div>
 </x-import>
@@ -591,8 +591,8 @@
 </sc-if>
 
 <sc-if value="{{ showToast }}" hint-placeholder-val="{{ false }}">
-<div data-vt-no-i18n="1" style="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:60;width:max-content;max-width:calc(100vw - 32px)">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Toast" tone="{{ toastTone }}" role="{{ toastRole }}" onClose="{{ closeToast }}" hint-size="320px,50px">{{ toastMsg }}</x-import>
+<div style="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:60;width:max-content;max-width:calc(100vw - 32px)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Toast" tone="{{ toastTone }}" role="{{ toastRole }}" onClose="{{ closeToast }}" hint-size="320px,50px"><span data-vt-no-i18n="1">{{ toastMsg }}</span></x-import>
 </div>
 </sc-if>
 </div>
@@ -1522,7 +1522,14 @@ class Component extends DCLogic {
   };
   // The toast has two tones. 'success' (green check) says what was done; 'danger' (red warning sign, announced as an alert)
   // says an action did not happen, or a step of it failed. Every refusal and failure goes through notifyError.
-  notify = (msg, tone) => { this.setState({ toastMsg: msg, toastTone: tone === 'danger' ? 'danger' : 'success', showToast: true }); clearTimeout(this._t); this._t = setTimeout(() => this.setState({ showToast: false }), 3600); };
+  // A success fades after 3.6 s. An error says something did not happen, so it stays until it is closed (U9, 2026-10-05):
+  // 3.6 s is not long enough to read what to do next, and a toast that vanished left no trace of what failed.
+  notify = (msg, tone) => {
+    const danger = tone === 'danger';
+    this.setState({ toastMsg: msg, toastTone: danger ? 'danger' : 'success', showToast: true });
+    clearTimeout(this._t);
+    this._t = danger ? null : setTimeout(() => this.setState({ showToast: false }), 3600);
+  };
   notifyError = (msg) => this.notify(msg, 'danger');
   // Opens Stripe's hosted page for this booking in a new tab. The tab is opened on the click
   // (before the request) so the popup blocker allows it, then pointed at the returned URL.

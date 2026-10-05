@@ -38,3 +38,13 @@ export function liveClassSlug(label: string): string | null {
 export function classDisplayName(slug: string): string | null {
   return own(DISPLAY_NAME_BY_SLUG, slug.trim().toLowerCase());
 }
+
+/**
+ * The name a class reads when its stored name is not at hand (U10, 2026-10-05): the D-14 name for the
+ * three, otherwise the slug's own words, capitalised ("first" reads First). Never another class's name:
+ * a class outside the three used to read Economy, which put its trips and its money on the wrong line.
+ */
+export function classOwnName(slug: string): string {
+  const key = slug.trim();
+  return classDisplayName(key) ?? (key ? key.charAt(0).toUpperCase() + key.slice(1) : "");
+}

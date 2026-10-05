@@ -3,7 +3,7 @@
 // Pure board mapping. Keep Hyperdrive out of this file so vitest can import it.
 
 import { humaniseCode } from "../checkout/extras-catalog";
-import { classDisplayName } from "./class-slug";
+import { classDisplayName, classOwnName } from "./class-slug";
 
 export type OpsBookingRow = {
   id: string;
@@ -143,10 +143,15 @@ function str(value: unknown): string {
   return String(value);
 }
 
-function classLabel(slug: string | null): string {
-  if (!slug) return "Economy";
-  // 26.1-19 D-14: live and legacy slugs read Economy / Business / Van luxury.
-  return classDisplayName(slug) ?? slug.charAt(0).toUpperCase() + slug.slice(1);
+/**
+ * The class a booking reads on the dashboard (U10, 2026-10-05): the stored name of its class row, so a
+ * name the owner gives or changes shows at once; else the slug's own name (D-14 for the three, the slug's
+ * words for any other class). A booking whose class is not known reads empty, never Economy.
+ */
+function classLabel(slug: string | null, storedName?: string | null): string {
+  const stored = str(storedName).trim();
+  if (stored) return stored;
+  return slug ? classOwnName(slug) : "";
 }
 
 function boardParts(scheduledLocal: string | null): { date: string; time: string; dateIso: string } {
@@ -288,7 +293,7 @@ function mapFareLines(raw: unknown, klass: string): OpsFareLine[] {
       if (origin && destination) route = { origin, destination };
       label = route ? `${route.origin} \u2013 ${route.destination} route` : "Route price";
     } else if (kind === "fare" || code === "distance_fare" || code === "fare" || code === "transfer") {
-      label = `Transfer, ${klass}`;
+      label = klass ? `Transfer, ${klass}` : "Transfer";
     } else if (kind === "coupon" || code === "coupon") label = "Coupon";
     else if (kind === "vat" || code === "vat") label = "VAT";
     else {
@@ -349,7 +354,7 @@ export function mapBoardBooking(row: SqlBoardRow): OpsBookingRow {
     !paid && str(row.payment_status) === "requires_payment" && row.payment_created_at
       ? addHours(row.payment_created_at, 24)
       : "";
-  const klass = classLabel(row.class_slug);
+  const klass = classLabel(row.class_slug, row.class_name);
   const when = boardParts(row.scheduled_local);
   const chauffeur = str(row.chauffeur_name);
   const feeRaw = row.stripe_fee_rappen;
