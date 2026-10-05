@@ -12,10 +12,14 @@
      - a staff API answer that says the session is gone (401 `no-session`, or 403 `needs-mfa`, the
        second factor is asked for on /login);
      - a screen file answering 404 while /api/staff/me says the same (a 404 alone can be a missing file).
-   Only those answers count: every other 4xx stays the screen's own message. */
+   Only those answers count: every other 4xx stays the screen's own message.
+   A screen file 404 while /api/staff/me says the session is alive (the gate waits at most 5 s for
+   Supabase Auth and answers the private 404 past that) reloads the page once: the DC runtime keeps the
+   miss and never asks for that file again, so without the reload the screen stays blank. */
 (function () {
   // The shell's helmet can run this file twice (parser, then the dc-runtime): one watcher only.
   var LOST_KEY = "vamosOpsSessionLostAt";
+  var RETRY_KEY = "vamosOpsScreenRetryAt";
   var lost = false;
   var probing = false;
 
@@ -52,6 +56,21 @@
     return res.clone().json().then(function (json) { return json; }, function () { return null; });
   }
 
+  // The session is alive but a screen file came back 404 (Auth was slow, or the file is really missing):
+  // one reload, then leave it. The mark is per tab and lasts 15 s; without storage there is no guard, so
+  // there is no reload (a blank screen is better than a loop).
+  function reloadOnce() {
+    try {
+      var last = Number(sessionStorage.getItem(RETRY_KEY) || 0);
+      var now = Date.now();
+      if (last && now - last < 15000) return;
+      sessionStorage.setItem(RETRY_KEY, String(now));
+    } catch (e) {
+      return;
+    }
+    location.reload();
+  }
+
   // A screen file answered 404: ask the session itself before calling it dead.
   function probeSession(rawFetch) {
     if (probing || lost) return;
@@ -61,6 +80,7 @@
         if (res.status === 401 || res.status === 403) {
           return readJson(res).then(function (json) { if (deadSessionBody(res.status, json)) endSession(); });
         }
+        if (res.ok) reloadOnce();
       })
       .catch(function () {})
       .then(function () { probing = false; });

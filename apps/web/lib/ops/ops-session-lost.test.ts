@@ -39,9 +39,10 @@ function storage(initial: Record<string, string> = {}) {
 }
 
 /** One browser tab: the file loaded `loads` times (the shell's helmet runs it twice). */
-function tab(route: Route, opts: { loads?: number; session?: Record<string, string> } = {}) {
+function tab(route: Route, opts: { loads?: number; session?: Record<string, string>; clock?: { now: number } } = {}) {
   const calls: string[] = [];
   const replaced: string[] = [];
+  const reloaded: string[] = [];
   const local = storage({ vamosOpsAuth: "1" });
   const session = storage(opts.session);
   const sandbox: Record<string, unknown> = {
@@ -49,12 +50,19 @@ function tab(route: Route, opts: { loads?: number; session?: Record<string, stri
       origin: ORIGIN,
       href: `${ORIGIN}/customers`,
       replace: (to: string) => void replaced.push(to),
+      reload: () => void reloaded.push("reload"),
     },
     localStorage: local,
     sessionStorage: session,
     URL,
     Promise,
-    Date,
+    Date: opts.clock
+      ? class extends Date {
+          static now() {
+            return opts.clock!.now;
+          }
+        }
+      : Date,
     Number,
     JSON,
     Response,
@@ -73,7 +81,7 @@ function tab(route: Route, opts: { loads?: number; session?: Record<string, stri
     fetch: (input: string, init?: RequestInit) => Promise<Response>;
     VamosOpsApi: { request: (m: string, p: string, b?: unknown) => Promise<Record<string, unknown>> };
   };
-  return { win, calls, replaced, local, session };
+  return { win, calls, replaced, reloaded, local, session };
 }
 
 const flush = async () => {
@@ -110,6 +118,82 @@ describe("dashboard shell: a dead session goes to /login, not a blank screen (U8
     await flush();
     expect(t.replaced).toEqual([]);
     expect(t.local.has("vamosOpsAuth")).toBe(true);
+  });
+
+  // U8 review nit: the gate waits at most 5 s for Supabase Auth and answers the private 404 past that. A
+  // session that is alive but was slow once left the screen blank for good, because the DC runtime keeps
+  // the miss and never asks for that file again. The page is reloaded once; the second miss stays.
+  it("slow Auth: a screen file 404 while /api/staff/me says the session is alive reloads the page once", async () => {
+    const t = tab((url) => (url.startsWith("/app/ops/") ? { status: 404 } : { status: 200, body: { ok: true, data: { role: "admin" } } }));
+    await t.win.fetch(SCREEN);
+    await flush();
+    expect(t.reloaded).toEqual(["reload"]);
+    expect(t.replaced).toEqual([]);
+    expect(t.local.has("vamosOpsAuth")).toBe(true);
+    expect(t.calls).toEqual([`GET ${SCREEN}`, "GET /api/staff/me"]);
+  });
+
+  it("several screen files missing at once are one probe and one reload", async () => {
+    const t = tab((url) => (url.startsWith("/app/ops/") ? { status: 404 } : { status: 200, body: { ok: true, data: {} } }));
+    await Promise.all([t.win.fetch(SCREEN), t.win.fetch("/app/ops/OpsFleet.dc.html")]);
+    await flush();
+    await t.win.fetch("/app/ops/OpsReviews.dc.html");
+    await flush();
+    expect(t.reloaded).toHaveLength(1);
+  });
+
+  it("a page that was just reloaded for a missing screen and misses again stays put (a missing file is not a loop)", async () => {
+    const clock = { now: 1_000_000 };
+    const t = tab((url) => (url.startsWith("/app/ops/") ? { status: 404 } : { status: 200, body: { ok: true, data: {} } }), {
+      clock,
+      session: { vamosOpsScreenRetryAt: String(clock.now - 3000) },
+    });
+    await t.win.fetch(SCREEN);
+    await flush();
+    expect(t.reloaded).toEqual([]);
+    expect(t.replaced).toEqual([]);
+  });
+
+  it("an old retry mark does not block a new reload", async () => {
+    const clock = { now: 1_000_000 };
+    const t = tab((url) => (url.startsWith("/app/ops/") ? { status: 404 } : { status: 200, body: { ok: true, data: {} } }), {
+      clock,
+      session: { vamosOpsScreenRetryAt: String(clock.now - 600_000) },
+    });
+    await t.win.fetch(SCREEN);
+    await flush();
+    expect(t.reloaded).toEqual(["reload"]);
+  });
+
+  it("no reload when the check itself failed (server down, a 5xx, or a dead session that goes to /login)", async () => {
+    const down = tab((url) => (url.startsWith("/app/ops/") ? { status: 404 } : "network"));
+    await down.win.fetch(SCREEN);
+    const sick = tab((url) => (url.startsWith("/app/ops/") ? { status: 404 } : { status: 503, body: { ok: false, code: "staff-check-failed" } }));
+    await sick.win.fetch(SCREEN);
+    const dead = tab((url) => (url.startsWith("/app/ops/") ? { status: 404 } : NO_SESSION));
+    await dead.win.fetch(SCREEN);
+    await flush();
+    expect(down.reloaded).toEqual([]);
+    expect(sick.reloaded).toEqual([]);
+    expect(dead.reloaded).toEqual([]);
+    expect(dead.replaced).toEqual(["/login"]);
+  });
+
+  it("without session storage there is no guard, so no reload (a blank screen is better than a loop)", async () => {
+    const t = tab((url) => (url.startsWith("/app/ops/") ? { status: 404 } : { status: 200, body: { ok: true, data: {} } }));
+    Object.defineProperty(t.win, "sessionStorage", {
+      value: {
+        getItem: () => {
+          throw new Error("blocked");
+        },
+        setItem: () => {
+          throw new Error("blocked");
+        },
+      },
+    });
+    await t.win.fetch(SCREEN);
+    await flush();
+    expect(t.reloaded).toEqual([]);
   });
 
   it("a screen file 404 while the session check cannot reach the server: no redirect (offline is not signed out)", async () => {
