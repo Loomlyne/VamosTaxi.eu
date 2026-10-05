@@ -93,7 +93,7 @@
 </div>
 <div data-ops-tools-act="1">
   <div data-vt-filt="1" ref="{{ filtRef }}">
-    <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" iconEnd="funnel" onClick="{{ toggleMore }}" hint-size="110px,36px">{{ tFilter }}</x-import>
+    <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" iconEnd="funnel" onClick="{{ toggleMore }}" hint-size="110px,36px">{{ tFilter }}</x-import>
     <sc-if value="{{ moreOpen }}" hint-placeholder-val="{{ false }}">
       <div data-vt-filt-pop="1">
         <span data-vt-filt-lab="1">{{ tBoardFilter }}</span>
@@ -108,7 +108,7 @@
       </div>
     </sc-if>
   </div>
-  <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" iconEnd="printer" onClick="{{ printBoard }}" hint-size="110px,36px">{{ tPrint }}</x-import>
+  <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" iconEnd="printer" onClick="{{ printBoard }}" hint-size="110px,36px">{{ tPrint }}</x-import>
 </div>
 </div>
 <div data-vt-board="1" data-scroll-native="1">
@@ -121,8 +121,8 @@
 <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
 <span style="font-family:var(--vt-font-body);font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tShowing }}</span>
 <div style="margin-inline-start:auto;display:flex;flex-wrap:wrap;gap:8px;min-width:0">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="outline" size="sm" icon="chevron-left" onClick="{{ prevPage }}" disabled="{{ noPrev }}" hint-size="110px,36px">{{ tPrevPage }}</x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="outline" size="sm" icon="chevron-right" onClick="{{ nextPage }}" disabled="{{ noNext }}" hint-size="90px,36px">{{ tNextPage }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" size="sm" icon="chevron-left" onClick="{{ prevPage }}" disabled="{{ noPrev }}" hint-size="110px,36px">{{ tPrevPage }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" size="sm" icon="chevron-right" onClick="{{ nextPage }}" disabled="{{ noNext }}" hint-size="90px,36px">{{ tNextPage }}</x-import>
 </div>
 </div>
 </x-import>

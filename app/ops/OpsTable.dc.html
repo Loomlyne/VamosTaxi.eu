@@ -166,7 +166,7 @@
 <p style="margin:0;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">{{ noMatchTitle }}</p>
 <p style="margin:0;font-size:var(--vt-body-sm);color:var(--vt-text-muted);text-wrap:pretty">{{ noMatchBody }}</p>
 <div style="margin-top:6px;display:flex;gap:8px">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" onClick="{{ clearQuery }}" hint-size="130px,36px">Clear the search</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ clearQuery }}" hint-size="130px,36px">Clear the search</x-import>
 </div>
 </div>
 </sc-if>
@@ -477,7 +477,7 @@
 </sc-for>
 </div>
 <div style="display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:18px;border-top:1px solid var(--vt-border-subtle)">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="outline" onClick="{{ closeNested }}" hint-size="110px,44px">Cancel</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" onClick="{{ closeNested }}" hint-size="110px,44px">Cancel</x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ saveNested }}" hint-size="150px,44px">{{ nestedSaveLabel }}</x-import>
 </div>
 </x-import>
@@ -491,7 +491,7 @@
 <div data-vt-save-err="1">{{ deleteError }}</div>
 </sc-if>
 <div style="display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px;margin-top:20px">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="outline" onClick="{{ cancelDelete }}" hint-size="110px,44px">Keep it</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" onClick="{{ cancelDelete }}" hint-size="110px,44px">Keep it</x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="danger" onClick="{{ confirmDelete }}" hint-size="130px,44px">Delete</x-import>
 </div>
 </x-import>

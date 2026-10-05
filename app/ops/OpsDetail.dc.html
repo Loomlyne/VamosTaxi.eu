@@ -539,7 +539,7 @@
 </sc-if>
 </div>
 <div data-ops-decide-foot>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="outline" disabled="{{ classBusy }}" onClick="{{ closeClassConfirm }}" hint-size="150px,44px">{{ tClassKeep }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" disabled="{{ classBusy }}" onClick="{{ closeClassConfirm }}" hint-size="150px,44px">{{ tClassKeep }}</x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="primary" disabled="{{ classBusy }}" aria-busy="{{ classBusyAria }}" onClick="{{ confirmClassChange }}" hint-size="170px,44px">{{ tClassConfirm }}</x-import>
 </div>
 </x-import>
@@ -551,7 +551,7 @@
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Dialog" open="{{ yes }}" title="{{ tWithdrawTitle }}" size="sm" subtitle="{{ booking.id }}" onClose="{{ closeWithdraw }}" hint-size="400px,260px">
 <p data-ops-decide-body>{{ tWithdrawBody }}</p>
 <div data-ops-decide-foot>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="outline" disabled="{{ withdrawBusy }}" onClick="{{ closeWithdraw }}" hint-size="170px,44px">{{ tWithdrawKeep }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" disabled="{{ withdrawBusy }}" onClick="{{ closeWithdraw }}" hint-size="170px,44px">{{ tWithdrawKeep }}</x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="primary" disabled="{{ withdrawBusy }}" aria-busy="{{ withdrawBusyAria }}" onClick="{{ confirmWithdraw }}" hint-size="170px,44px">{{ tWithdrawChange }}</x-import>
 </div>
 </x-import>
@@ -564,7 +564,7 @@
 <p data-vt-no-i18n="1" style="margin:4px 0 0;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)">{{ cancelRoute }}</p>
 <p data-vt-no-i18n="1" style="margin:4px 0 0;font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ cancelWhen }} · {{ cancelPay }}</p>
 <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--vt-border-subtle)">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="outline" onClick="{{ closeCancel }}" hint-size="110px,44px">{{ tKeepBooking }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" onClick="{{ closeCancel }}" hint-size="110px,44px">{{ tKeepBooking }}</x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="danger" onClick="{{ confirmCancel }}" hint-size="150px,44px">{{ tConfirmCancel }}</x-import>
 </div>
 </x-import>

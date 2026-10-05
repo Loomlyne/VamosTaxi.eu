@@ -243,7 +243,7 @@
 <p data-hint="1" style="margin:0">{{ tClosedBody }}</p>
 </sc-if>
 <div data-ov-actions="1">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="outline" onClick="{{ closeTicket }}" hint-size="160px,44px">{{ tCloseTicket }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" onClick="{{ closeTicket }}" hint-size="160px,44px">{{ tCloseTicket }}</x-import>
 <sc-if value="{{ isClosed }}" hint-placeholder-val="{{ false }}">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ reopenTicket }}" hint-size="120px,44px">{{ tReopen }}</x-import>
 </sc-if>
@@ -274,10 +274,10 @@
 </sc-if>
 </div>
 <div data-acts="1">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" icon="mail" href="{{ mailHref }}" hint-size="110px,36px">{{ tMail }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" icon="mail" href="{{ mailHref }}" hint-size="110px,36px">{{ tMail }}</x-import>
 <sc-if value="{{ hasPhone }}" hint-placeholder-val="{{ true }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" icon="phone" href="{{ telHref }}" hint-size="100px,36px">{{ tCall }}</x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" icon="message-circle" href="{{ waHref }}" hint-size="140px,36px">{{ tWhatsApp }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" icon="phone" href="{{ telHref }}" hint-size="100px,36px">{{ tCall }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" icon="message-circle" href="{{ waHref }}" hint-size="140px,36px">{{ tWhatsApp }}</x-import>
 </sc-if>
 </div>
 </div>

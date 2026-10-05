@@ -40,7 +40,7 @@
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.IconButton" icon="chevron-left" label="{{ tPrev }}" variant="outline" size="sm" onClick="{{ prevMonth }}" hint-size="36px,36px"></x-import>
 <span style="min-width:170px;text-align:center;font-family:var(--vt-font-display);font-size:var(--vt-heading-4);font-weight:var(--vt-weight-semibold)">{{ monthLabel }}</span>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.IconButton" icon="chevron-right" label="{{ tNext }}" variant="outline" size="sm" onClick="{{ nextMonth }}" hint-size="36px,36px"></x-import>
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="outline" onClick="{{ goToday }}" hint-size="90px,36px">{{ tToday }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="sm" variant="ghost" onClick="{{ goToday }}" hint-size="90px,36px">{{ tToday }}</x-import>
 </div>
 </header>
 
@@ -383,8 +383,8 @@ class Component extends DCLogic {
       tNoun: t.nBooking, tNounPlural: t.nBookings, tEditTitle: t.editTitle, tDeleteTitle: t.deleteTitle,
       tKanban: t.kanban, tTable: t.table, tColEmpty: t.colEmpty, tDropHere: t.dropHere, tDragHint: t.dragHint,
       showKanban: showKanban,
-      kanbanVariant: view === 'kanban' ? '' : 'outline',
-      tableVariant: view === 'table' ? '' : 'outline',
+      kanbanVariant: view === 'kanban' ? '' : 'ghost',
+      tableVariant: view === 'table' ? '' : 'ghost',
       setKanban: this.setKanban, setTable: this.setTable, startKanbanAdd: this.startKanbanAdd,
       tableEmbedded: showKanban ? '1' : '',
       openTick: this.state.openTick || 0,

@@ -40,7 +40,7 @@
 <span style="display:{{ savedShow }};font-size:var(--vt-body-xs);color:var(--vt-text-muted)">{{ tSaved }}</span>
 <span role="alert" style="display:{{ saveErrShow }};font-size:var(--vt-body-xs);color:var(--vt-danger)">{{ saveErr }}</span>
 <span style="display:{{ dirtyShow }}">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="outline" onClick="{{ discard }}" hint-size="110px,44px">{{ tDiscard }}</x-import>
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" onClick="{{ discard }}" hint-size="110px,44px">{{ tDiscard }}</x-import>
 </span>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" onClick="{{ save }}" disabled="{{ notDirty }}" hint-size="150px,44px">{{ tSave }}</x-import>
 </div>
