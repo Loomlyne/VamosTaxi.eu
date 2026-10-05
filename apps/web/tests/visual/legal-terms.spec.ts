@@ -30,9 +30,6 @@ const PORTS: Record<string, number> = {
   "component-390": testPort(4143),
 };
 
-// The one page the 390 sideways-scroll test skips, until the section-10 button wraps (see the comment in that test).
-const KNOWN_OVERFLOW_PATH = "/de/terms";
-
 let devServer: ChildProcess | null = null;
 let baseURL = "";
 
@@ -72,41 +69,38 @@ test.describe("Terms page @component", () => {
     });
   }
 
-  test("no sideways scroll at 390 @component", async ({ page }, testInfo) => {
+  test("no sideways scroll at 390 and 360 @component", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "component-390", "390 only");
-    // REAL PRODUCT BUG, not a stale spec (2026-10-05, .planning/quick/261005-checks-and-tests/HANDOVER.md): in section
-    // 10 of app/pages/terms.dc.html the primary button "Cancellation & refund policy" is nowrap and 338 px wide in
-    // German, 17 px wider on the Linux runner. It sticks out of its card and makes /de/terms 379 px wide, so the page
-    // scrolls sideways on 360 and 375 px phones (and at 390 on the Linux runner: scrollWidth 396). Pictures in
-    // .planning/quick/261005-checks-and-tests/evidence/. Product code is not changed here; drop this fixme in the
-    // change that lets the button wrap. Only /de/terms is held back: /terms, /fr/terms and /ar/terms are still checked.
-    for (const path of ["/terms", "/de/terms", "/fr/terms", "/ar/terms"]) {
-      if (path === KNOWN_OVERFLOW_PATH) {
-        testInfo.annotations.push({ type: "fixme", description: `${path}: the German section-10 button is wider than a phone (HANDOVER 261005)` });
-        continue;
+    // 360 px is where /de/terms overflowed: the German section-10 button ("Stornierung & Rückerstattung") was a
+    // single-line pill wider than its card, so the page was 379 px wide and scrolled sideways on 360 and 375 px
+    // phones (and at 390 on the Linux runner, scrollWidth 396). Found in quick 261005-checks-and-tests, fixed by the
+    // content job (the legal buttons wrap, lib/legal-buttons-wrap.test.ts); this keeps it fixed at both widths.
+    for (const width of [390, 360]) {
+      await page.setViewportSize({ width, height: 900 });
+      for (const path of ["/terms", "/de/terms", "/fr/terms", "/ar/terms"]) {
+        await page.goto(baseURL + path);
+        // Measure the rendered mock, not the boot frame (flaky on Linux at 390).
+        await expect(page.locator(`#${SECTION_IDS[0]}`)).toHaveCount(1);
+        // On a miss the poll's last value names the widest elements, so a red run says what overflows and where.
+        await expect
+          .poll(
+            () =>
+              page.evaluate(() => {
+                const iw = window.innerWidth;
+                const sw = document.documentElement.scrollWidth;
+                if (sw <= iw) return "fits";
+                const wide = [...document.querySelectorAll("body *")]
+                  .map((el) => ({ el, right: Math.round(el.getBoundingClientRect().right) }))
+                  .filter((x) => x.right > iw)
+                  .sort((a, b) => b.right - a.right)
+                  .slice(0, 4)
+                  .map((x) => `${x.el.tagName.toLowerCase()}${x.el.id ? "#" + x.el.id : ""}[${String(x.el.getAttribute("class") ?? "").slice(0, 30)}] right=${x.right}`);
+                return `scrollWidth ${sw} > ${iw}: ${wide.join(" ; ")}`;
+              }),
+            { message: `no sideways scroll on ${path} at ${width}` },
+          )
+          .toBe("fits");
       }
-      await page.goto(baseURL + path);
-      // Measure the rendered mock, not the boot frame (flaky on Linux at 390).
-      await expect(page.locator(`#${SECTION_IDS[0]}`)).toHaveCount(1);
-      // On a miss the poll's last value names the widest elements, so a red run says what overflows and where.
-      await expect
-        .poll(
-          () =>
-            page.evaluate(() => {
-              const iw = window.innerWidth;
-              const sw = document.documentElement.scrollWidth;
-              if (sw <= iw) return "fits";
-              const wide = [...document.querySelectorAll("body *")]
-                .map((el) => ({ el, right: Math.round(el.getBoundingClientRect().right) }))
-                .filter((x) => x.right > iw)
-                .sort((a, b) => b.right - a.right)
-                .slice(0, 4)
-                .map((x) => `${x.el.tagName.toLowerCase()}${x.el.id ? "#" + x.el.id : ""}[${String(x.el.getAttribute("class") ?? "").slice(0, 30)}] right=${x.right}`);
-              return `scrollWidth ${sw} > ${iw}: ${wide.join(" ; ")}`;
-            }),
-          { message: `no sideways scroll on ${path}` },
-        )
-        .toBe("fits");
     }
   });
 
