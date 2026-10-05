@@ -2,7 +2,7 @@
 
 Work session (not control), 2026-10-05. Owner decisions: `.planning/decisions/2026-10-05-signup-safety.md` (question form).
 
-- Branch `fix/signup-safety`, cut from `origin/main` `16f1cfa7`; `origin/main` then moved to `cc0c9c6d` (planning files only, no overlap) and is merged in with no conflict.
+- Branch `fix/signup-safety`, cut from `origin/main` `16f1cfa7`; `origin/main` then moved to `cc0c9c6d` (planning files only, no overlap), and later to `b902321e` (dashboard follow-ups: ops files and planning, no overlap); both are merged in with no conflict.
 - No commit on `main`, no push of `main`, no deploy, no write to the live database, Cloudflare or Supabase Auth. One migration file, written for the review follow-up (item 4): `20261007330000_staff_reset_recipient.sql`, not applied anywhere but a test lab. No message keys added (`db:seed:gen` not needed; `db:seed:check` clean).
 - Test labs `su-s5`, `su-s6` and `su-s7` were built from this branch, used, and destroyed. Build output and synced public files removed.
 - After the Fable review of `2921fe79` the controller asked for two fixes (items 4 and 5 below), each its own commit with tests.
@@ -126,8 +126,9 @@ Before/after bare crops are in `screens/` (`before-signup-390.png`, `before-sign
 | `pnpm test:scripts` | 40 of 40 |
 | `packages/emails` tests | 263 of 263 (16 files) |
 | `packages/db` unit tests | 14 of 14 |
-| `apps/web` tests (whole suite, the touched folders `lib/auth`, `lib/security`, `tests/unit/auth`, `app/api/auth`, `lib/checkout`, `lib/consent` included) | 456 files, 5400 tests pass; 20 files / 41 tests skipped (database specs that need a lab, as on `main`). No load flake seen |
-| One full `pnpm test:unit` after items 6 and 7 (needs `node scripts/sync-dc-mock-to-public.mjs` first for `lib/contact-source.test.ts`, as before) | exit 0 |
+| `apps/web` tests (whole suite, the touched folders `lib/auth`, `lib/security`, `tests/unit/auth`, `app/api/auth`, `lib/checkout`, `lib/consent` included) | after items 6 and 7: 456 files, 5400 tests pass; 20 files / 41 tests skipped (database specs that need a lab, as on `main`). No load flake seen |
+| One full `pnpm test:unit` after merging `origin/main` `b902321e` (needs `node scripts/sync-dc-mock-to-public.mjs` first: `lib/contact-source.test.ts` and the ops source twins read the synced copy, as before) | exit 0; `apps/web` 457 files, 5464 tests pass, 20 files / 41 tests skipped; `packages/emails` 263, `packages/db` 14 |
+| After the merge: `pnpm typecheck`, `pnpm lint` (0 errors, the same 6 warnings), `pnpm check:db-fences`, `pnpm check:numbers` | pass |
 | Database, lab `su-s6`, `lab.sh pgtap` (whole suite, migration `20261007330000` included) | PASS, Files=109, Tests=3050; `staff_reset_recipient.test.sql` 23 of 23 |
 | Earlier first full `pnpm test:unit` (before the review) | stopped at one failure in `packages/emails/src/layout.test.ts`: it pinned the old sign-up text with "Hello Amira.". That is decision 2, so the expectation was updated and the suite run again in full |
 
