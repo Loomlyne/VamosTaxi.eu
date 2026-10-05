@@ -6,7 +6,7 @@ completed: null
 written_by: GSD bookkeeping 2026-10-05; the plan itself never ran
 ---
 
-# Quick 260819-vjz summary: C27 hosting party to Cloudflare, closed as obsolete
+# Summary: quick 260819-vjz (C27 hosting party to Cloudflare, closed as obsolete)
 
 **Outcome: obsolete, not executed as planned.** Both halves are settled without it:
 
