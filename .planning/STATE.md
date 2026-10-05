@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Meta measurement
 status: executing
-stopped_at: "GSD bookkeeping B10 on docs/gsd-bookkeeping: summaries, ROADMAP rows and this file brought to the control board of 2026-10-01"
-last_updated: "2026-10-01T19:56:00.000Z"
-last_activity: "2026-10-01 23:56 (+04) - GSD bookkeeping B10: missing summaries written, ROADMAP rows for 26.0/26.2/26.5/27.1, closed and replaced phases marked"
+stopped_at: "branch `docs/gsd-bookkeeping-1005` pushed for the control session to review and land."
+last_updated: "2026-10-05T14:09:00.000Z"
+last_activity: "2026-10-05 18:09 (+04) - GSD bookkeeping: phases 28 and 29 ticked as shipped, STATE brought to the 2026-10-05 investigation jobs (all live 14:25 to 17:44), quick 260819-279 and 260819-vjz closed as superseded"
 progress:
   total_phases: 42
-  completed_phases: 38
-  total_plans: 337
-  completed_plans: 323
-  percent: 96
+  completed_phases: 41
+  total_plans: 352
+  completed_plans: 352
+  percent: 100
 ---
 
 # Project State
@@ -22,68 +22,53 @@ See: .planning/PROJECT.md (updated 2026-09-23)
 
 **Core value:** quote → pay → confirmation. A customer books a fixed-price transfer in under a minute and the driver is there.
 **Live:** https://vamostaxi.site and https://dashboard.vamostaxi.site, Worker `vamos`. The control board is the live source: `.planning/CONTROL-BOARD.md`.
-**Current focus:** the lanes of the control board's "What is left" (below). GSD's current phase is 20 (plan 20-09 open); 26.2 is the other open phase; 28 and 29 wait for the owner.
+**Current focus:** the control board's landing queue. GSD has no current phase: every phase is ticked except 26.2 (open for its found rows only). 28 and 29 are shipped and live; the owner holds the Meta test event code and the Events Manager Test events check.
 
 ## Current Position
 
-Last updated: 2026-10-01 23:56 (+04), by the bookkeeping job B10 (branch `docs/gsd-bookkeeping`).
-Source: `.planning/CONTROL-BOARD.md`, "What is left, 2026-10-01 23:38 (+04)", and origin/main up to `ea1141e7` read at 23:56.
-main = origin/main `ea1141e7` (B7 content and legal, 23:55), after `3e2bba66` (Phase 20 leftovers, 23:49). Last deploy on the board: Worker `vamos` `6eb1d700` (27.1, 17:44), gateway `vamos-dashboard` `71a307da`.
+Last updated: 2026-10-05 18:09 (+04), by the bookkeeping job `docs/gsd-bookkeeping-1005` (planning files only).
+Source: `.planning/CONTROL-BOARD.md` (last update 2026-10-05 17:45), `.planning/audits/2026-10-05-repo-investigation.md` and origin/main `16f1cfa7`.
+main = origin/main `16f1cfa7` (planning note) over `001f4d40` (checks and tests, 17:44). Last deploy on the board: Worker `vamos` `13ed22ae` (2026-10-05 17:44; the same site code as `8c8ef984` of 17:40), gateway `vamos-dashboard` `71a307da`.
 
-**Lanes that run now, in parallel (no shared files; each job in its own app worktree under `.claude/worktrees/`):**
+**Live on 2026-10-05** (jobs of the owner's repo investigation, `.planning/audits/2026-10-05-repo-investigation.md`; all jobs closed 17:45, branches deleted on GitHub with archive tags, GitHub has `main` only):
 
-| Lane | Job | Branch | State | After it |
-|---|---|---|---|---|
-| R | Phase 20 leftovers G7, G10, G11, G12, G28 | was `claude/project-thread-cwny3q` `84cb34cb` | On main `3e2bba66` 23:49; migration `20261007180000` applied and read back (commit message). Worker deploy for G28 not yet on the board | 20-09 live proof |
-| A | Finish P6: change place or time of a paid trip (26.2) | `gsd/26.2-p6-build` `6af6b74c` (saved WIP) | Building | Fresh review (money path), then ship; migration `20261007150000` |
-| B | Main green, 26.0 finish (B4): Linux `confirmation.spec.ts:130`, mutation-gate patch, schema job, home reds | `ci/e2e-linux-3`, `fix/e2e-linux-2` | In work; tests and CI files only | Ship without deploy; the 48 SiteHeader picture diffs go to the owner one page at a time |
-| D | GSD bookkeeping (B10) | `docs/gsd-bookkeeping` | Handed over | Ship as a planning note |
-| V | Van luxury up to 12 travellers (owner chose "Raise to 12", 2026-10-01 16:03) | new | Not started | Stops if it needs a file P6 touches; owner test: 4242 for 10 travellers |
+| Job | main | Live |
+|---|---|---|
+| Purge of unpaid bookings detaches account records (U1) | `3c66208f` | 14:25 (migration `20261007300000`, no Worker deploy); VT-26-0748, 0749, 0751 swept |
+| Security hardening (S4, S5 part, S7, S8, S10 to S15) | `43fba58d` | 16:15 (Worker `1061b530`) |
+| Money and database (U4, U15, U26, U27, M18, S6 step 1) | `5aa3ddd0` | 16:29 (Worker `bca6e755`, migration `20261007310000`) |
+| Content: flight promise removed, legal dates per page | `1ca1beda` | 17:15 (Worker `09af5fdb`) |
+| Dashboard fixes (U8 to U11) | `a2a40794` | 17:33 (Worker `90e401b3`) |
+| Review follow-ups | `40a09eb9` | 17:40 (Worker `8c8ef984`) |
+| Checks and tests (U20 to U22, S16, D3, D4) | `001f4d40` | 17:44 (Worker `13ed22ae`, same site code) |
 
-**Then, one at a time after P6 (same money and checkout files):** B2 extras part B (CHF 0 shows "included") and
-part C (count per extra, with a maximum; migrations `20261007120000`, `130000`) → drop the price-band tables
-G8/G9 (deletes rows of old price-book rows 1 to 5; fresh review) → B5 follow-ups (mobile number to the dashboard
-customer list; gate `/checkout` and `/booking-detail`) → B3 live-key refusals (one helper for `^(sk|rk)_live_`;
-after the owner's refund-by-hand test) → 26.2 rows (airport fee inside the fare line, JSON double encoding in
-`stripe_events.payload` and `rate_version_rules.payload`, `data-i18n-skip` leftovers).
+Earlier the same day: the Stripe fee record (`f1cc8726`, 00:02, Worker `b15beb82`, migration `20261007290000`). The GitHub repo was made private at 11:58. GitHub Actions are blocked on billing since 2026-10-04 about 20:00 (owner step).
 
-**Web Analytics line:** the owner switched Cloudflare's automatic Web Analytics off (23:4x, per the B7 commit message) and B7
-content and legal reached main as `ea1141e7` at 23:55 (Web Analytics only after consent; deploy not yet on the board when read)
-→ G23 (drop `maps.googleapis.com` from CSP `connect-src`) → Arabic and design-canvas fixes (5 + 19).
+**Held:** migration `20261007320000` (revokes anon and authenticated EXECUTE on eight functions). Apply after the 16:29 Worker has run about a day and the owner's 4242 payment, one voucher quote and one cookie-banner choice pass. Next free migration number: `20261007330000`.
 
-**Last:** u13 stricter check scripts (`gsd/phase-26.2-u13`). **After the owner's Meta check:** Phase 28, then 29.
+**Open for the owner** (board, "Waiting for the owner"): Cloudflare Always Use HTTPS; add an authenticator (Settings, Security); city waiting 30 minutes and Publish; a chauffeur for Business and one for Van luxury; GitHub Billing; one 4242 payment; the Meta test event code and the Events Manager Test events check; read /terms 08 and the FAQ flight line on a phone; sign in and look at the dashboard board, calendar, one booking and Money in.
 
-**The owner's own steps** (board): (1) Cloudflare Web Analytics automatic setup off (done 23:4x per the B7 commit). (2) Waiting time 30 minutes
-in dashboard settings, after B7. (3) Real texts of the 5 published reviews. (4) 4242 payment as guest and with
-"Create an account". (5) /contact real message. (6) Refund by hand. (7) Pay in de, fr, ar and on a tablet.
-(8) UAT of the live jobs. (9) Meta switches on pixel 1595596972063765. (10) The 48 SiteHeader picture diffs.
-(11) Repo public or private. (12) The rest of his 18:01 message.
+**Open jobs (controller):** sign-up safety (S5 Turnstile on sign-up and forgot-password, no name in the mail before the address is confirmed; the owner answered 2026-10-05, S9 stays as it is: `.planning/decisions/2026-10-05-signup-safety.md`); a later dashboard job (not-staff 403 blank screen, "You were signed out" message, keep the page when a write fails on a dead session, dashboard shows CHF 000 while loading or on failure, U7); quote and consent on their own nologin role; the signed quote lock still names two version ids; U15 webhook-first order leaves the return row unprocessed; live-key refusals for `rk_live_` (after the owner's refund-by-hand test); signed P4 parts B and C (U17).
 
-**Launch, his word only, never under the standing order:** prices + Publish of price book row 18 (plan 11-12),
-delete test bookings (26.3 D-37), the live Stripe key, the vamostaxi.eu cutover, wiping any data.
+**Launch, his word only, never under the standing order:** price book Publish (row 18 has been live since 2026-09-26; row 19 is a draft from 2026-09-27), delete test bookings (26.3 D-37), the live Stripe key, the vamostaxi.eu cutover, wiping any data.
 
-### GSD routing after B10
+### GSD routing after the 2026-10-05 bookkeeping
 
-- `roadmap.analyze`: current phase 20, next 28. `init.progress`: current 20; open phases 20, 26.2, 28, 29.
-- Phase 20: plan 20-09 (live proof) is the only plan without a SUMMARY. It waits for the owner's 4242 payment and
-  refund by hand (owner steps 4 and 6), then re-probes batches A to C2 and the leftovers.
-- Phase 26.2: units 01, 02, 04 to 08, 11 and the close-out 12 have no SUMMARY because they are not finished;
-  P6 is lane A. Units 04, 05, 06 and the rest of 01, 02, 07, 08, 11 are on no board lane (question for the controller).
-- No agent starts 11-12 (owner's Publish), 17 (closed), 19 (deferred, status question), 21 to 25 (replaced),
-  4.3 (replaced). The ROADMAP marks each.
+- `roadmap.analyze`: 42 phases, 352 plans, 353 summaries; current phase and next phase none; `roadmap_complete` is false only for 26.2.
+- `progress`: 29 and 26.1 read "Needs Review" because their VERIFICATION.md say `human_needed` (29: the Meta test event code, still the owner's). Not a gap in the work.
+- No agent starts 11-12 (owner's Publish), 17 (closed), 19 (closed by the owner), 21 to 25 (replaced), 4.3 (replaced). The ROADMAP marks each.
 
 ### Open questions for the controller
 
-None. Answered by the owner 2026-10-01 23:59 (+04): Phase 19 closed (no surge test); the 26.2 units that
-never ran are closed (`.planning/decisions/2026-10-01-phase19-and-26.2-units-closed.md`).
+None. The owner's S5 and S9 answers are recorded (2026-10-05).
 
 ## Blockers
 
 Stripe live key, Search Console and the vamostaxi.eu cutover stay the owner's word. The agent never clicks
-Publish on price book row 18 and does not raise it. No `supabase db push`; never restore onto or wipe
+Publish on the price book and does not raise it. No `supabase db push`; never restore onto or wipe
 `yaumjzvylngfjhtuffqs` (real paid bookings). No `sk_live_`. Meta: no Purchase event until the legal gate is open;
-the pixel stays off until the owner's Meta check. Only the control session commits on main, applies live
-migrations and deploys.
+the pixel loads only after a marketing Accept, and no Purchase is sent today because the test event code is missing.
+Only the control session commits on main, applies live migrations and deploys.
 
 ### Quick Tasks Completed
 
@@ -103,10 +88,10 @@ History up to 2026-09-29. Later quick jobs are listed on the control board ("Shi
 
 ## Session Continuity
 
-Last session: 2026-10-01T19:56:00.000Z (bookkeeping job B10, planning files only)
-Stopped at: hand-over `.planning/quick/261001-gsd-bookkeeping/HANDOVER.md` written for the control session.
-Resume: a job session takes its job from the control board lanes above, in its own app worktree, and hands over to
-the controller "VamosTaxi - session control". Do not `phases.clear`. Do not new-project.
+Last session: 2026-10-05T14:09:00.000Z (bookkeeping job, planning files only)
+Stopped at: branch `docs/gsd-bookkeeping-1005` pushed for the control session to review and land.
+Resume: a job session takes its job from the control board's landing queue, in its own app worktree, and hands over to
+the controller (the Claude desktop session "Vamos Taxi controller", named on the board). Do not `phases.clear`. Do not new-project.
 
 ## Accumulated Context
 
@@ -124,9 +109,13 @@ the controller "VamosTaxi - session control". Do not `phases.clear`. Do not new-
 - Phase closure (owner, 2026-09-29, `.planning/PHASE-CLOSURE-2026-09-29.md`): 16 complete; 17 closed, feature removed; 21 to 25 and 4.3 replaced by 26.1/26.3; 05-19 dropped; 11-12 owner-held; 19, 20 and 26.2 rewritten and signed.
 - Phase 26.0 main green inserted (discuss signed 2026-09-29); shipped 2026-10-01 (`6ec73c52`).
 - Phases 26.4.2 (owner booking feedback) and 26.5 (checkout guest / sign in / create account) shipped 2026-09-30.
-- Phase 19 closed by the owner 2026-09-30 per the control board (`571bf701`); the 2026-10-01 hand-over still lists it before launch. Deferred, status question open.
+- Phase 19 closed by the owner (2026-09-30, confirmed 2026-10-01 23:59): no surge test, not a launch item.
 - Phase 27 shipped 2026-10-01 (`ce55cd75`); Phase 27.1 finish your account inserted and shipped 2026-10-01 (`96a17ab7`).
 - GSD bookkeeping B10 (2026-10-01): summaries for every finished, superseded or owner-held plan; ROADMAP rows for 5.1, 5.2, 6.1, 26.0, 26.2, 26.4.2, 26.5, 27.1; closed and replaced phases marked. Open plans keep no SUMMARY.
+- Phase 20 complete 2026-10-02 (batches A, B1, C1, C2, refunds by hand, e-mail change fix, leftovers; live proof and the owner's 4242 payment passed).
+- Phase 28 shipped 2026-10-03 20:00 (`da25c7d5`); Phase 29 shipped 2026-10-04 15:57 (`54599783`), lock-order fix 16:27 (`41ba7b7d`). Owner-held: the Meta test event code and the Events Manager Test events check.
+- 2026-10-05: the owner's repo investigation (`.planning/audits/2026-10-05-repo-investigation.md`); repo made private; the six fix jobs are live (table above). They have no phase of their own: their hand-overs are the quick folders `261005-*`.
+- GSD bookkeeping 2026-10-05: ROADMAP rows for 28 and 29, this file, quick 260819-279 and 260819-vjz closed as superseded, the control board's waiting table.
 
 ## Decisions
 
