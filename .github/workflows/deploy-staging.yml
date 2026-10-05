@@ -135,6 +135,8 @@ jobs:
     name: Visual + integration tests (D-25)
     if: github.event_name == 'workflow_dispatch' && inputs.visual
     runs-on: macos-latest
+    # Whole job (install, browsers, tests): macOS bills 10x, so a stuck run must not reach the 6-hour default.
+    timeout-minutes: 60
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
