@@ -1,11 +1,11 @@
 name: Deploy Production
 
-# PLAT-03's production deploy half. Triggers on a tag only — never on a branch push
-# (T-01-06). Do not bind vamostaxi.eu. Public product is vamostaxi.site.
+# PLAT-03's production deploy half. Started by hand only — never on a branch push (T-01-06) and no longer on a
+# `v*` tag either: every tag push ran the gate, the macOS visual job and the nine e2e shards (about 380 billed
+# minutes on a private repo) for a deploy job that only prints a note. Do not bind vamostaxi.eu. Public product is
+# vamostaxi.site.
 on:
-  push:
-    tags:
-      - "v*"
+  workflow_dispatch:
 
 # A second deploy queues behind the first instead of racing it — cancelling a
 # half-finished deploy is worse than waiting (T-01-07).
