@@ -9,7 +9,7 @@ vi.mock("@/lib/public/reviews", () => ({ loadPublishedReviews: async () => [{ id
 describe("/api/reviews cache headers", () => {
   it("GET is public for 5 minutes", async () => {
     const { GET } = await import("@/app/api/reviews/route");
-    const res = await GET();
+    const res = await GET(new Request("https://vamostaxi.site/api/reviews"));
     expect(res.status).toBe(200);
     expect(res.headers.get("cache-control")).toBe("public, max-age=300, s-maxage=300");
     expect(res.headers.get("set-cookie")).toBeNull();

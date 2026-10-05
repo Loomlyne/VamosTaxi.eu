@@ -6,6 +6,7 @@
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { z } from "zod";
+import { readAllowed, readRateLimited } from "@/lib/abuse/read-rate-limit";
 import { asCheckout } from "@/lib/db/identity";
 import { refuse } from "@/lib/checkout/errors";
 import { hashRawToken } from "@/lib/checkout/manage-token";
@@ -85,6 +86,8 @@ export async function POST(request: Request) {
   const blocked = csrfForbidden(request);
   if (blocked) return blocked;
   const { env } = getCloudflareContext();
+  // Security S12: rate limited before the database or Stripe is asked.
+  if (!(await readAllowed(env.READ_RATE_LIMITER, "paylink", request))) return readRateLimited();
   let json: unknown;
   try {
     json = await request.json();

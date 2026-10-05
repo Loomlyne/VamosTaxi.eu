@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { NextResponse } from "next/server";
+import { readAllowed, readRateLimited } from "@/lib/abuse/read-rate-limit";
 import { MANAGE_COOKIE_NAME, hashManageToken, rawManageTokenFromRequest } from "@/lib/checkout/manage-token";
 import { customerCancelWindow, customerCanCancel } from "@/lib/checkout/cancel-window";
 import { manageExtrasFromJson, type ManageExtras } from "@/lib/checkout/manage-money";
@@ -110,6 +111,8 @@ export async function GET(request: Request): Promise<Response> {
   if (!tokenHashHex) return json({ ok: false, code: "not-found", error: NOT_FOUND }, 404);
 
   const { env } = await getCloudflareContext({ async: true });
+  // Security S12: rate limited before the database is asked.
+  if (!(await readAllowed(env.READ_RATE_LIMITER, "manage", request))) return readRateLimited();
   let row: ReadRow | undefined;
   try {
     row = await asGuest(env, tokenHashHex, async (sql) => {
