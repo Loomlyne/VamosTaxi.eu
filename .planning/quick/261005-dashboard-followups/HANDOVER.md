@@ -3,7 +3,8 @@
 Work session. Branch `fix/dashboard-followups`, cut from `origin/main` `16f1cfa7`; `origin/main` merged once more
 (`cc0c9c6d`, planning notes only, no conflict). Worktree `.claude/worktrees/agent-a90f6822d690b12ce`.
 Nothing deployed, no live write, no migration, no process killed. No new visible wording: nothing was added to
-`app/vamos-i18n-dict.js` and no screen text changed. The only product file touched is `app/vamos-ops-api.js`.
+`app/vamos-i18n-dict.js` and no screen text changed. The product files touched are `app/vamos-ops-api.js` (items 1-4) and
+`app/vamos-ops-data.js` (4b, the poll hold: three small edits).
 Context: `.planning/quick/261005-dashboard-fixes/HANDOVER.md`. Line numbers are of this branch.
 
 A fresh reviewer (not the builder) must read item 4: it changes what happens when a dashboard session dies
@@ -14,7 +15,8 @@ while a form is open, and item 3 sends one more answer to /login.
 | 1 | non-numeric reload count no longer switches the guard off | `b1da9fc9` | fixed, unit + Chromium |
 | 2 | sidebar 404 at boot reloads the page | `ccb9eb15` | fixed, unit + Chromium |
 | 3 | 403 `not-staff` from `/api/staff/*` goes to /login | `23e64520` | fixed, unit + Chromium |
-| 4 | a refused write keeps the page; the next read, screen load or navigation goes to /login | `c5459812` | fixed, unit + Chromium; one finding, see "Finding" |
+| 4 | a refused write keeps the page; the next read, screen load or navigation goes to /login | `c5459812` | fixed, unit + Chromium |
+| 4b | the 3 s bookings poll and the focus refetch are held while a refused write waits (controller, on the finding) | see tip | fixed, unit + Chromium |
 | - | Chromium tool, before/after pictures | `94df1552` | |
 
 "You were signed out" message: not built (needs the owner's wording). Listed under Open.
@@ -74,7 +76,8 @@ while a form is open, and item 3 sends one more answer to /login.
 - Fix, no new words: in `inspect`, a dead answer to a POST, PUT, PATCH or DELETE sets `lostPending` and does nothing else:
   the page stays, the screen shows its own refusal as before, the sign-in flag stays. Then, with `lostPending` set:
   - the start of the next same-origin read (GET/HEAD of `/api/*` except `/api/auth`, or a `/app/ops/*.dc.html` screen
-    file) calls `endSession()`, whatever that read answers;
+    file) calls `endSession()`, whatever that read answers (the store's own automatic reads, the bookings poll and the focus
+    refetch, are held while the mark is set: 4b);
   - `history.pushState` (the shell's own route change; every screen's `goBack`/`goTo` uses it) and `popstate` (back and
     forward) call it too (`watchNavigation`, wrapped once, `__vamosOpsWatch` guard like the fetch wrapper).
   Reads and screen loads that are dead by themselves redirect at once, as before. The 15 s loop guard still applies; a
@@ -97,31 +100,47 @@ while a form is open, and item 3 sends one more answer to /login.
   (`screens/before-write-keeps-form-dead.png`); not-staff stays on the page and the later nav gives the blank screen.
   `write-then-read`: the next `fetch('/api/staff/bookings')` goes to /login.
 
-### Finding (not changed): on a polling screen the hold is short
+## 4b. The bookings poll is held while a refused write waits (controller decision on the finding below)
 
-The bookings store re-reads `/api/staff/bookings` every 3 s while it is loaded (`vamos-ops-data.js` :166-:178), also
-after a failed poll. OpsDetail, OpsBoard and any screen that touched bookings are therefore redirected by the next poll,
-which is "the next read". Measured (`detail-poll`, OpsDetail edit with a typed note, Save while dead): the edit stays
-about 1.8 s, then /login (before: 0.3 s). The screens without a poll (Settings, Pricing, Profile, Fleet, Content,
-Reviews, Support, Customers) hold until the person navigates, which is the case that mattered. If the hold should last
-on the polling screens too: stop scheduling the bookings poll while `VamosOpsApi` has a refused write pending (a
-two-line change in `schedulePoll`, `vamos-ops-data.js`, plus the window-focus/visibility refetch). Not done: it is
-outside the brief's file and changes what "the next read" means. Say if you want it.
+Finding, as first reported: the bookings store re-reads `/api/staff/bookings` every 3 s while it is loaded (also after a
+failed poll) and on window focus. OpsDetail, OpsBoard and any screen that touched bookings were therefore redirected by
+that automatic read, "the next read": measured on OpsDetail (edit with a typed note, Save while dead) the edit stayed
+about 1.8 s. Controller: fix it.
 
-## Checks (merged tree `01e544c4`)
+- `app/vamos-ops-api.js` (end of file): `window.VamosOpsApi.sessionLostPending()`, a read-only function that returns the
+  mark `lostPending` item 4 sets. The file's last line no longer replaces `VamosOpsApi` on the helmet's second run: the first
+  run owns the watcher and its mark, and a second object would answer for a mark nothing sets (a test fails if it does).
+- `app/vamos-ops-data.js` (`writeRefused()`, `schedulePoll`, `onVisible`): the poll tick and the window-focus /
+  visibility refetch ask `writeRefused()` first. While it is true they send no request: the tick looks again in 3 s, so the
+  poll resumes by itself within one tick of the mark clearing (a staff write that goes through). Everything else is as
+  built: a navigation (`pushState`, `popstate`), a screen load and a manual read (`bookings.reset()`, a screen's own
+  reload) are still "the next read" and still go to /login. No other collection polls.
+- Tests: new `apps/web/lib/ops/ops-poll-hold.test.ts` (9 tests; 6 fail on the code before): both real files in one vm with a
+  fake clock, a stub fetch, history and focus. The premise (without a refusal the store reads every 3 s and on focus);
+  OpsDetail: a refused save, then 10 s in 1 s steps: no booking read, no other request, no redirect, then `pushState` goes
+  to /login; focus and visibility changes are held too; `reset()` and a screen load still go to /login; the poll resumes
+  after a staff write goes through; the helmet's double run (fails if the second run replaces the API object);
+  `sessionLostPending` is false at first; a source pin.
+- Chromium (`detail-poll`, OpsDetail edit, Save while dead): after, the page and the typed note are still there 10 s later,
+  0 booking reads in those 10 s, and pressing Customers goes to /login (`screens/after-detail-poll.png`). On the tip
+  before this change (`8756fd1a`, `BEFORE_REF=8756fd1a node tools/before-tree.mjs <dir>`): /login after 1.9 s and 1
+  booking read (FAIL x2).
+
+## Checks (tip after 4b, `origin/main` `cc0c9c6d` merged)
 
 | Check | Result |
 |---|---|
 | `apps/web/lib/ops/ops-session-lost.test.ts` | 73 tests pass (29 before this job); 31 of the 73 fail against `app/vamos-ops-api.js` of `16f1cfa7` |
-| `lib/ops` + `lib/security` folders (after `node scripts/sync-dc-mock-to-public.mjs`) | 140 files pass; 3 files (`refund-by-hand`, `staff-cancel-by-hand`, `edit-request-customer`) timed out at 5 s once under parallel load (6-7 s first imports) and pass alone, 40/40 (none imports a changed file) |
-| `pnpm test:unit` (full, once) | exit 0: scripts 40/40, db 14, emails 247, web 447 files and 5332 tests pass, 20 files and 41 tests skipped as before; no flake in this run |
+| `apps/web/lib/ops/ops-poll-hold.test.ts` | 9 tests pass; 6 fail against the two files before 4b |
+| `lib/ops`, `lib/security` and `tests/unit` folders (after `node scripts/sync-dc-mock-to-public.mjs`) | 192 files, 2028 tests pass, 12 files skipped as before |
+| `pnpm test:unit` (full), run once on the tip before 4b | exit 0: scripts 40/40, db 14, emails 247, web 447 files and 5332 tests pass, 20 files and 41 tests skipped as before. Earlier the same day a parallel folder run saw `refund-by-hand`, `staff-cancel-by-hand` and `edit-request-customer` time out at 5 s on first import (load flakes; they pass alone, 40/40) |
 | `pnpm typecheck` | pass |
 | `pnpm lint` | 0 errors, 6 warnings (unused eslint-disable directives, none in this job's files) |
 | `pnpm i18n:check` | pass (2684 keys) |
 | `pnpm check:numbers` | ok |
 | `pnpm check:db-fences` | 8 of 8 pass |
-| Chromium `session-lost-followups.mjs` after (`apps/web/public`, `chromium.launch({ channel: "chromium" })`) | 29 PASS, 0 FAIL, plus `junk-count` 1 PASS |
-| same on the before tree (`16f1cfa7` file) | 12 PASS, 17 FAIL (as intended), `junk-count` FAIL (4 loads, count `NaN`) |
+| Chromium `session-lost-followups.mjs` after (`apps/web/public`, `chromium.launch({ channel: "chromium" })`) | 31 PASS, 0 FAIL (incl. `detail-poll` 3 checks), plus `junk-count` 1 PASS (run before 4b; item 1 is untouched by it) |
+| same on the before tree (`16f1cfa7` file) | 12 PASS, 17 FAIL (as intended), `junk-count` FAIL (4 loads, count `NaN`); `detail-poll` on the `8756fd1a` files: 2 FAIL, 1 PASS |
 | Not run, on purpose | build, live data, deploy |
 
 ## Not verified
@@ -145,18 +164,19 @@ outside the brief's file and changes what "the next read" means. Say if you want
    (`app/[locale]/(ops)/api/photos/upload/route.ts` :32-:35), so the watcher never reads its refusals: a dead session or a
    switched-off row on a photo upload stays that screen's own message, as before. Changing the route's body is outside this
    job.
-4. The polling-screen hold (Finding above).
-5. The mark redirects at the start of the next read whatever it answers (the brief's wording). If a session came back in
-   another tab the page still goes to /login once; a staff write that goes through clears the mark first.
+4. (closed by 4b: the polling-screen hold.)
+5. The mark redirects at the start of the next manual read whatever it answers (the brief's wording). If a session came back
+   in another tab the page still goes to /login once; a staff write that goes through clears the mark first.
 6. From the earlier hand-over, still open: the server write path matches a class by name (`liveClassSlug`); `endSession` with
    blocked storage; the local-dev /login host; the old `componentWillUnmount` `_t` timer.
 
 ## Tools and pictures
 
 - `tools/session-lost-followups.mjs <public tree> <label> <out dir>`: all offline, `/api/**` stubbed by Playwright. `ONLY=a,b`
-  runs some; `junk-count` is opt-in (`ONLY=junk-count`, 53 s). `tools/before-tree.mjs <scratch>` puts `app/vamos-ops-api.js` back
-  to its `16f1cfa7` text in a copy of the synced public tree. Run `node scripts/sync-dc-mock-to-public.mjs` first (the public
+  runs some; `junk-count` is opt-in (`ONLY=junk-count`, 53 s). `tools/before-tree.mjs <scratch>` puts `app/vamos-ops-api.js` and `app/vamos-ops-data.js` back
+  to their `16f1cfa7` text (or `BEFORE_REF=<ref>`) in a copy of the synced public tree. Run `node scripts/sync-dc-mock-to-public.mjs` first (the public
   tree is gitignored). Uses `../../261005-dashboard-fixes/tools/serve.mjs` and `fixtures.mjs`; `serve.mjs` gained
   `gate.failOnceFiles` (a file that answers 404 once).
 - `screens/` (bare 1440 x 900 crops): `before-` / `after-` `write-keeps-form-dead`, `-mfa`, `-notstaff`, `notstaff-api`,
-  `notstaff-nav`, `sidebar-slow-auth`.
+  `notstaff-nav`, `sidebar-slow-auth`, `detail-poll` (after: the edit still there after 10 s; `before-hold-detail-poll.png`:
+  the page on /login after 1.9 s, the tip before 4b).

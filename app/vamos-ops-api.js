@@ -252,5 +252,10 @@
 
   watchFetch();
   watchNavigation();
-  window.VamosOpsApi = { request: request };
+  // The shell's helmet can run this file twice. The first run owns the watcher and its mark (`lostPending`), so its API
+  // object stays: a second one would answer for a mark nothing sets. `sessionLostPending()` is read-only; the console store
+  // asks it to hold its automatic bookings poll while a refused write waits (vamos-ops-data.js).
+  if (!(window.VamosOpsApi && typeof window.VamosOpsApi.sessionLostPending === "function")) {
+    window.VamosOpsApi = { request: request, sessionLostPending: function () { return lostPending; } };
+  }
 })();

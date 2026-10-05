@@ -14,6 +14,8 @@
 //   notstaff-nav                          Dashboard, the next screen file 404s and /api/staff/me says not-staff -> /login
 //   sidebar-slow-auth                     the sidebar file 404s once at boot (slow Auth), the session is alive -> the page reloads
 //                                          once and the sidebar is there
+//   detail-poll                           OpsDetail edit (a polling screen), Save while dead: the edit and the page stay 10 s with no
+//                                          booking read asked for; pressing Customers then goes to /login
 //   nested-part                           (unchanged from the dashboard-fixes job) PlaceSearch 404s in edit mode: no reload
 //   junk-count (ONLY=junk-count, ~55 s)   a non-numeric reload count and a screen file that 404s while /api/staff/me answers
 //                                          slowly: the page may not reload more than twice
@@ -199,10 +201,10 @@ if (wanted("nested-part")) {
   await ctx.close();
 }
 
-// What the hold is worth on a screen that polls: the bookings store re-reads every 3 s while it is loaded (OpsDetail uses it),
-// and that next read is the redirect. Informational: prints how long the typed edit stayed.
+// A screen that polls: the bookings store re-reads every 3 s while it is loaded (OpsDetail uses it). While a refused write waits
+// that automatic read is held (vamos-ops-data.js writeRefused), so the typed edit stays; a navigation then goes to /login.
 if (wanted("detail-poll")) {
-  const { ctx, page, state } = await open("/bookings/VT-26-0829", { rowsNeeded: true });
+  const { ctx, page, state, calls } = await open("/bookings/VT-26-0829", { rowsNeeded: true });
   await page.waitForSelector("[data-ops-route-chip]", { timeout: 15000 });
   await page.waitForTimeout(800);
   await page.locator("button:visible", { hasText: /^actions$/i }).first().click();
@@ -216,15 +218,23 @@ if (wanted("detail-poll")) {
   gate.dead = true;
   await page.getByRole("button", { name: "Save changes" }).click();
   const t0 = Date.now();
-  await page.waitForTimeout(300);
-  const keptAt300 = where(page) !== "/login" ? await note.inputValue({ timeout: 800 }).catch(() => null) : null;
+  await page.waitForTimeout(500);
+  const callsAtRefusal = calls.length;
   let leftAfter = null;
-  while (Date.now() - t0 < 7000) {
+  while (Date.now() - t0 < 10500) {
     if (where(page) === "/login") { leftAfter = Date.now() - t0; break; }
     await page.waitForTimeout(100);
   }
-  check("detail-poll: right after the refused save the edit is still on the page", keptAt300 === "Gate B, he waits with a sign", String(keptAt300));
-  console.log(`INFO  ${label}: detail-poll: the page went to /login ${leftAfter === null ? "never (within 7 s)" : `${leftAfter} ms after the save`} (the next bookings poll)`);
+  const kept = leftAfter === null ? await note.inputValue({ timeout: 1500 }).catch(() => null) : null;
+  const readsSince = calls.slice(callsAtRefusal).filter((c) => c === "GET /api/staff/bookings").length;
+  check("detail-poll: the page and the typed edit are still there 10 s after the refused save", leftAfter === null && kept === "Gate B, he waits with a sign", leftAfter === null ? String(kept) : `went to /login after ${leftAfter} ms`);
+  check("detail-poll: no booking read was asked for in those 10 s (the 3 s poll is held)", readsSince === 0, `${readsSince} reads`);
+  await shot(page, "detail-poll");
+  if (leftAfter === null) {
+    await page.locator('a[href="/customers"]').first().click();
+    await page.waitForTimeout(2000);
+  }
+  check("detail-poll: pressing Customers then goes to /login", where(page) === "/login", where(page));
   await ctx.close();
 }
 

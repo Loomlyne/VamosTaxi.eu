@@ -39,6 +39,15 @@
     return client.request(method, path, body);
   }
 
+  // True while a write the server refused for a dead session waits (vamos-ops-api.js keeps the page where it is so the typed
+  // form survives, and sends it to /login on the next read, screen load or navigation). The automatic bookings reads, the 3 s
+  // poll and the window-focus refetch, must not be that "next read": they ask for nothing until the mark clears. A manual
+  // read (reset, a screen load) is still the person moving on and still goes to /login.
+  function writeRefused() {
+    var client = window.VamosOpsApi;
+    return !!(client && typeof client.sessionLostPending === "function" && client.sessionLostPending());
+  }
+
   function pickRows(json, name) {
     if (!json || json.ok === false) return [];
     var data = json.data;
@@ -168,6 +177,8 @@
       if (name !== "bookings") return;
       if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
       pollTimer = setTimeout(function () {
+        // A refused write waits: no request, look again in 3 s (the poll resumes by itself once the mark clears).
+        if (writeRefused()) { schedulePoll(); return; }
         loaded = false;
         readyPromise = null;
         hydrate();
@@ -180,6 +191,7 @@
         pollTimer = null;
         return;
       }
+      if (writeRefused()) { schedulePoll(); return; }
       loaded = false;
       readyPromise = null;
       hydrate();
