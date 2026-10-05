@@ -107,6 +107,7 @@ VAMOS_SURFACE=
 #   PRICE_RATE_LIMITER, PRICE_RATE_LIMITER_BARE            rate limits: reprice and voucher check
 #   FLIGHT_RATE_LIMITER, FLIGHT_RATE_LIMITER_BARE          rate limits: /api/flight/*
 #   TURNSTILE_ATTEMPT_LIMITER                              rate limit: quote challenge counter
+#   READ_RATE_LIMITER                                      rate limit: public database reads (status, resume, manage, reviews)
 #   APP, PUBLIC                 service bindings of the dashboard gateway (wrangler.dashboard.jsonc)
 
 # ── Not for this file ──
