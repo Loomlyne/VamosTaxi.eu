@@ -1,0 +1,14 @@
+to: s5-pw-muvcpwk4@example.test
+subject: Confirm your Vamos Taxi account
+
+Vamos Taxi
+
+Confirm your email
+
+Tap the button to confirm this address. The link works once and expires after 1 hour.
+
+Confirm email: http://localhost:4710/sign-in/confirm?token_hash=pkce_42d11bc4fc997399dd9b16da9f895e2240654c18541da1745ad3ac7d&type=signup&next=%2F&e=A5IYy6xjxEhlaC-Mi0DQu_-o0gZ-neVSlprIdK69rqKIOxRMFiFz3kZKIoG2HjbHlOo2OvYSIA
+162803
+
+This link works once and expires after 1 hour.
++41 79 626 70 82

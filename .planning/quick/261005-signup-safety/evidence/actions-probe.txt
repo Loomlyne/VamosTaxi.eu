@@ -1,0 +1,13 @@
+Server actions posted straight at a Next route (Next-Action header, POST /checkout), test lab su-s5, 2026-10-05.
+Tool: run/actions-probe.mjs (reads the action ids from the build's server-reference-manifest).
+
+Before the fix (lab Worker built from origin/main behaviour of lib/auth/actions.ts):
+  signUpAction(valid sign-up body, "en")   no token       -> HTTP 200, a sign-up confirmation mail was written for the typed address
+                                                              (public.log: "To: actionprobe-...@example.test")
+
+After the fix (lab Worker rebuilt with the check in the action):
+  signUpAction(..., "en")                  no token       -> HTTP 200 neutral { stage: "sent" }, log reason "challenge-failed", NO mail
+  signUpAction(..., "en", "fail")          refused token  -> HTTP 200 neutral { stage: "sent" }, log reason "challenge-failed", NO mail
+  signUpAction(..., "en", "good-token")    passed token   -> HTTP 200, mail written (the check is the only difference)
+
+The lab's siteverify stand-in accepts any non-empty token except "fail".
