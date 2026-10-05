@@ -162,6 +162,28 @@ describe("dc mock URL gate", () => {
     }
   });
 
+  it("S7: the dashboard APIs answer a bare 404 on the public host, for every method, and pass on the dashboard host", async () => {
+    const paths = ["/api/staff/me", "/api/staff/bookings", "/api/staff/rate-book", "/api/staff", "/api/photos/upload", "/de/api/staff/me"];
+    for (const path of paths) {
+      for (const method of ["GET", "POST", "PATCH", "DELETE"]) {
+        for (const host of ["vamostaxi.site", "www.vamostaxi.site", "localhost"]) {
+          const gated = gatePublicRequest(req(path, { method, host }));
+          expect(gated, `${method} ${host}${path}`).toBeInstanceOf(Response);
+          const res = gated as Response;
+          expect(res.status).toBe(404);
+          expect(res.headers.get("cache-control")).toBe("private, no-store");
+          expect(await res.text()).toBe("");
+        }
+      }
+      expect(gatePublicRequest(doc(path)), path).toBe("not-found");
+      expect(gatePublicRequest(req(path, { method: "POST", host: "dashboard.vamostaxi.site" })), path).toBeNull();
+      expect(gatePublicRequest(req(path, { host: "dashboard.localhost:3000" })), path).toBeNull();
+    }
+    // Look-alikes are not the staff API and stay public.
+    expect(gatePublicRequest(req("/api/staffing"))).toBeNull();
+    expect(gatePublicRequest(req("/api/reviews/photo", { method: "POST" }))).toBeNull();
+  });
+
   it("the old x-vamos-dc-asset header unlocks nothing: same answer with or without it", () => {
     const forged = { "x-vamos-dc-asset": "1", "sec-fetch-dest": "document" };
     const cases: Array<[string, string]> = [

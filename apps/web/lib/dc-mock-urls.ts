@@ -173,6 +173,21 @@ const BROWSER_API_EXACT: readonly string[] = Object.freeze([
 ]);
 const BROWSER_API_ONE_SEGMENT: readonly string[] = Object.freeze([]);
 
+/**
+ * Security S7 (2026-10-05): the dashboard's own APIs. The public host answers them with a bare
+ * 404, the same as a path that does not exist, so a visitor cannot even learn they are there
+ * (they used to answer 401 no-session). Only `dashboard.vamostaxi.site` and, locally,
+ * `dashboard.localhost` reach them; the staff gate still runs there.
+ */
+export function isDashboardOnlyApi(path: string): boolean {
+  return (
+    path === "/api/staff" ||
+    path.startsWith("/api/staff/") ||
+    path === "/api/photos" ||
+    path.startsWith("/api/photos/")
+  );
+}
+
 function isBrowserApiLink(path: string): boolean {
   if (BROWSER_API_EXACT.includes(path)) return true;
   return BROWSER_API_ONE_SEGMENT.some((prefix) => {
@@ -195,6 +210,7 @@ export function gatePublicRequest(request: Request): Response | "not-found" | nu
   if (path === "/api" || path.startsWith("/api/")) {
     const hiddenDev = path === "/api/dev" || path.startsWith("/api/dev/");
     if (hiddenDev) return isDocumentNav(request) ? "not-found" : empty404();
+    if (!dashboard && isDashboardOnlyApi(path)) return isDocumentNav(request) ? "not-found" : empty404();
     if (isBrowserApiLink(path)) return null;
     if (isDocumentNav(request)) {
       if (
