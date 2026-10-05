@@ -106,7 +106,7 @@ export default async function PrivacyPage({
         <ul>
           <li>{t("lead-passenger-name-email-address-and-mobile-num")}</li>
           <li>{t("pickup-and-drop-off-address-and-any-additional-s")}</li>
-          <li>{t("flight-number-where-you-gave-one-and-the-arrival")}</li>
+          <li>{t("flight-number-where-you-gave-one")}</li>
           <li>{t("passenger-and-luggage-count-child-seat-requests")}</li>
           <li>{t("anything-you-type-into-the-notes-field-for-the-d")}</li>
         </ul>

@@ -50,8 +50,8 @@ export function HowItWorks({ tone = "light", revealOnScroll = true }: HowItWorks
       time: tHome("now"),
       sub: tHome("today"),
       icon: "map-pin",
-      title: tHome("route-or-flight-number"),
-      copy: tHome("type-a-flight-number-and-the-pickup-point-and-ti"),
+      title: tHome("route-and-flight-number"),
+      copy: tHome("enter-your-pickup-drop-off-and-time-for-an-airpo"),
     },
     {
       time: tHome("now"),
@@ -65,7 +65,7 @@ export function HowItWorks({ tone = "light", revealOnScroll = true }: HowItWorks
       sub: tHome("today"),
       icon: "plane-landing",
       title: tHome("your-flight-lands"),
-      copy: tHome("your-pickup-is-set-from-the-arrival-not-from-a-g"),
+      copy: tHome("your-driver-is-in-arrivals-at-the-time-you-booke"),
     },
     {
       time: tHome("tomorrow"),

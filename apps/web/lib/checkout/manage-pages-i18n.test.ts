@@ -113,7 +113,7 @@ const STEP3 = [
   "This link opens booking",
   "and nothing else. To see other trips, sign in or look them up one at a time.",
   "Sent by pay link. Not confirmed until money lands.",
-  "Airline code and number, as printed on your boarding pass. Your driver watches this flight, so a change of flight matters more than a change of time.",
+  "Airline code and number, as printed on your boarding pass. Your driver meets this flight, so keep it up to date.",
   "Confirmation sent to",
   "Refund",
   "Cancel this transfer",

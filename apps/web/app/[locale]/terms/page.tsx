@@ -215,7 +215,7 @@ export default async function TermsPage({
           <li>{t("all-other-pickups-30-minutes-counted")}</li>
         </ul>
         <p>
-          {t("beyond-allowance-per-commenced-hour")} {t("flight-delayed-allowance-moves")}
+          {t("beyond-allowance-per-commenced-hour")} {t("if-your-flight-is-delayed-tell-us-as-soon-as-you")}
         </p>
       </section>
 
