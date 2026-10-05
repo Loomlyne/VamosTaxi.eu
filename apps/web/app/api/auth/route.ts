@@ -10,6 +10,7 @@ import { CONSENT_REQUIRED, SIGNUP_UNAVAILABLE, recordSignupAgreement, signupCons
 import { finishAccount } from "@/lib/auth/account-finish";
 import { storeProfilePhone, syncSignupPhone } from "@/lib/auth/account-phone";
 import { finishRequiredStrict, markFinished, markFinishPending, mustFinish } from "@/lib/auth/finish-target";
+import { staffActiveForEmail } from "@/lib/db/system-reads";
 import { log } from "@/lib/logger";
 import { verifyTurnstile } from "@/lib/turnstile";
 import {
@@ -667,13 +668,27 @@ export async function POST(request: Request): Promise<Response> {
     if (!dashboard && !(await challengePassed())) return json(CHALLENGE_FAILED, 403);
     // S5: same answer for a known and an unknown address; a 429 says nothing about the address.
     if (!(await perAddressAllowed("forgot", parsed.data.email))) return json(RATE_LIMITED, 429);
-    const { result, reason } = await runPasswordReset(
-      supabase,
-      parsed.data.email,
-      origin,
-      localizedPath("/reset-password", locale),
-    );
-    if (reason) log("error", "auth", ctx, { reason, action: "reset" });
+    // S5 review (2026-10-05, controller decision): the dashboard's own forgot-password asks for no check, so on
+    // that host a recovery link is mailed to an ACTIVE staff row only. For any other address the same call
+    // goes out with an address no account can have: Supabase mails nothing, and the answer, the verifier
+    // cookie and the work done are those of any unknown address, so nothing tells a staff address from a
+    // customer's. The real address is never sent to Supabase. A staff check that cannot be made fails closed
+    // the same way (no mail; the person asks again). The public host is unchanged.
+    let target = parsed.data.email;
+    if (dashboard) {
+      let staff = false;
+      try {
+        staff = await staffActiveForEmail(env, parsed.data.email);
+      } catch {
+        log("error", "auth", ctx, { reason: "staff-check-failed", action: "reset" });
+      }
+      if (!staff) target = `no-recovery-${crypto.randomUUID()}@invalid.invalid`;
+    }
+    const { result, reason } = await runPasswordReset(supabase, target, origin, localizedPath("/reset-password", locale));
+    if (reason && target === parsed.data.email) log("error", "auth", ctx, { reason, action: "reset" });
+    // Dashboard host: staff and everyone else do different work above, so hold every answer to the same floor
+    // as the sign-in branch; the time then says nothing about the address either.
+    if (dashboard) await holdCheckoutFloor({ startedAt });
     // The PKCE verifier cookie rides on the answer, known address or not (same body either way).
     return sessionJson(result, setCookies);
   }

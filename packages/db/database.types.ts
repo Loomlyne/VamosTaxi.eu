@@ -3986,6 +3986,7 @@ export type Database = {
           vehicle: string
         }[]
       }
+      staff_active_for_email: { Args: { p_email: string }; Returns: boolean }
       staff_claim_invite: { Args: never; Returns: undefined }
       staff_digest_claim: {
         Args: { p_digest_date: string; p_staff_user_id: string }

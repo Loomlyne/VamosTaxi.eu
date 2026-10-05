@@ -18,6 +18,7 @@ vi.mock("@/lib/db/identity", () => ({
 }));
 vi.mock("@/lib/db/system-reads", () => ({
   markAccountFinishPending: async () => undefined,
+  staffActiveForEmail: async () => true,
 }));
 
 const { POST } = await import("@/app/api/auth/route");
@@ -143,12 +144,13 @@ describe("S5: what stays as it was", () => {
     expect(state.turnstileCalls).toEqual([]);
   });
 
-  it("the dashboard host: sign-up is still answered 'sent' with no check, forgot-password is untouched (out of scope)", async () => {
+  it("the dashboard host: sign-up is still answered 'sent' with no check; forgot-password asks the browser for no token (the mail hook keeps its mail to staff)", async () => {
     const calls = mailCalls();
     const signup = await POST(authPost({ mode: "signup", method: "password", password: "12345678", ...base }, "dashboard.vamostaxi.site"));
     expect(await signup.json()).toEqual({ stage: "sent" });
     const forgot = await POST(authPost({ mode: "forgot", email: "mia@example.test" }, "dashboard.vamostaxi.site"));
     expect(forgot.status).toBe(200);
+    expect(await forgot.json()).toEqual({ stage: "sent" });
     expect(calls.map((c) => c.kind)).toEqual(["reset"]);
     expect(state.turnstileCalls).toEqual([]);
   });
