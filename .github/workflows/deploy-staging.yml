@@ -1,13 +1,15 @@
 name: Deploy Staging
 
-# PLAT-03's staging deploy half: a push to main re-runs the full gate set (a merge
-# queue is not a guarantee that main is green) and, only if it's green, deploys and
-# smoke-tests https://vamostaxi.site. Never vamostaxi.eu. Never db:push the live bookings project.
+# A push to main re-runs every check that runs on Ubuntu: the gate (typecheck, lint, the Law 04 and legal
+# gates, build), the unit tests, the database suite (reset from zero, pgTAP, seed and types drift, mutation gate)
+# and the booking-funnel e2e shards. The repo is private, so every minute bills and macOS bills 10x: nothing here
+# runs on macOS by itself. The screenshot-diff job (`visual`) runs only when this workflow is started by hand with
+# the `visual` box ticked. The deploy to https://vamostaxi.site is a hand-started run only (owner decision
+# 2026-09-29: Worker `vamos` ships from the owner's Mac). Never vamostaxi.eu. Never db:push the live bookings project.
 on:
   push:
     branches: [main]
-    # A docs- or planning-only merge changes nothing that deploys; skip the gate,
-    # the macOS visual job and the deploy so it spends no Actions minutes.
+    # A docs- or planning-only merge changes nothing that deploys; skip every job so it spends no Actions minutes.
     paths-ignore:
       - "docs/**"
       - ".planning/**"
@@ -15,6 +17,11 @@ on:
       - "**/*.md"
   # The only way the `deploy` job below runs: someone starts this workflow by hand.
   workflow_dispatch:
+    inputs:
+      visual:
+        description: "Also run the macOS screenshot-diff job (billed at 10x: about 25 minutes is about 250 billed minutes)"
+        type: boolean
+        default: false
 
 # A second deploy queues behind the first instead of racing it — cancelling a
 # half-finished deploy is worse than waiting (T-01-07). A push-triggered run deploys
@@ -29,6 +36,7 @@ jobs:
   gate:
     name: Typecheck, build, secret scan
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout (full history for the secret scan)
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -65,15 +73,65 @@ jobs:
       - name: CSS law + RTL logical-property lint (D-21, D-32)
         run: pnpm lint:css
 
+      # The three checks below ran only in pr.yml, and no pull request is ever opened, so they never ran on main.
+      - name: Import and return-type fences (D-08, D-10)
+        run: pnpm lint
+
       - name: i18n key-coverage check (D-17)
         run: pnpm i18n:check
+
+      - name: Legal language claims (I18N-08)
+        run: pnpm check:legal-claims
+
+      - name: Law 04 invented-numbers gate (D-40, D-46)
+        run: pnpm check:numbers
 
       - name: Build
         run: pnpm build
 
-  # See pr.yml — darwin baselines cannot pass on ubuntu-latest.
+  # `pnpm test:unit`: the script tests plus every package's vitest suite. The database-backed tests inside it are
+  # skipped without a database; `pnpm test:db-lab` runs those (docs/runbook/test-lab.md). It ran only in pr.yml
+  # before, so never on main. About 3 minutes on Ubuntu (1 m 44 s of tests on 2026-10-01).
+  unit:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+        with:
+          version: 11.7.0
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Unit tests (kernel + route contracts)
+        run: pnpm test:unit
+
+  # The database suite lives in schema.yml (reused by pr.yml and by a push to a ci/** branch): the stack is reset
+  # from zero, then pgTAP, seed and generated-types drift, the DATA-06 local half, the mutation gate and the
+  # data-access fences. Ubuntu only, about 14 minutes. It ran only for a pull request or a ci/** branch before.
+  database:
+    name: "Schema: reset from zero, pgTAP, seed + types drift"
+    uses: ./.github/workflows/schema.yml
+    permissions:
+      contents: read
+
+  # Screenshot diffs against committed darwin baselines cannot pass on Ubuntu, and macOS bills 10x (the job hit its
+  # 25-minute limit and went red on every push). So it runs only on a hand-started run with `visual` ticked, with a
+  # longer limit so it can finish. The WebKit specs need WebKit installed; they skip with a reason when it is not.
   visual:
     name: Visual + integration tests (D-25)
+    if: github.event_name == 'workflow_dispatch' && inputs.visual
     runs-on: macos-latest
     steps:
       - name: Checkout
@@ -93,18 +151,18 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Install Playwright Chromium
-        run: pnpm --filter web exec playwright install chromium
+      - name: Install Playwright Chromium and WebKit
+        run: pnpm --filter web exec playwright install chromium webkit
 
       # Specs that boot Next or need local Postgres are ignored when CI is set
       # (playwright.config.ts). This runner has no Docker, so those cannot pass here.
       - name: Visual + integration tests (screenshot diffs, D-25)
-        timeout-minutes: 25
+        timeout-minutes: 45
         run: pnpm test:visual
 
   # Owner decision 2026-09-29: Worker `vamos` is deployed from the owner's Mac only. A push
-  # to main runs the gate and the visual job and stops there, so a push never deploys a
-  # second time next to the Mac. To hand deploys back to GitHub, remove this `if`.
+  # to main runs the checks above and stops there, so a push never deploys a second time next
+  # to the Mac. To hand deploys back to GitHub, remove the `workflow_dispatch` condition of `deploy`.
   # 26.0 D-01 / e2e-linux-3: the booking-funnel specs on Linux. The jobs live in one reusable workflow
   # (e2e-linux.yml) so a push to a ci/** branch can prove a change to them on GitHub before main sees it.
   e2e-linux:
@@ -115,8 +173,14 @@ jobs:
 
   deploy:
     name: Deploy to staging
-    if: github.event_name == 'workflow_dispatch'
-    needs: [gate, visual, e2e-linux]
+    # Hand-started runs only. `visual` is optional (skipped unless ticked), so a skipped needs-job must not block
+    # this one; everything else must have passed.
+    if: >-
+      ${{ !cancelled() && github.event_name == 'workflow_dispatch'
+      && needs.gate.result == 'success' && needs.unit.result == 'success'
+      && needs.database.result == 'success' && needs.e2e-linux.result == 'success'
+      && (needs.visual.result == 'success' || needs.visual.result == 'skipped') }}
+    needs: [gate, unit, database, visual, e2e-linux]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

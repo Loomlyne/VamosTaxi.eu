@@ -103,9 +103,11 @@ jobs:
   visual:
     name: Visual + integration tests (D-25)
     # macOS minutes count 10x on a private repo. On a PR this job runs only when the PR
-    # carries the `visual` label; every push to main still runs it before the staging deploy.
+    # carries the `visual` label. A push to main does not run it any more: deploy-staging.yml
+    # starts it only by hand (the `visual` box). The time limit caps a stuck run at 450 billed minutes.
     if: contains(github.event.pull_request.labels.*.name, 'visual')
     runs-on: macos-latest
+    timeout-minutes: 45
     permissions:
       contents: read
     steps:
@@ -126,8 +128,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Install Playwright Chromium
-        run: pnpm --filter web exec playwright install chromium
+      - name: Install Playwright Chromium and WebKit
+        run: pnpm --filter web exec playwright install chromium webkit
 
       # webhook_ordering.test.sql runs in the database job (`pnpm db:test`).
       # webhook-replay.spec.ts is in this glob (PAY-05 offline half).

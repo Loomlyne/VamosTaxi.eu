@@ -1,8 +1,9 @@
 name: Schema
 
 # 26.0 (main-green-3): pr.yml's database job, moved here unchanged so it can be proven on GitHub without
-# a pull request. One file, used two ways: pr.yml calls it (workflow_call), and a push to a `ci/**`
-# branch runs it alone, the same pattern as e2e-linux.yml. No secrets, no deploy: contents: read.
+# a pull request. One file, used three ways: pr.yml and deploy-staging.yml (every push to main) call it
+# (workflow_call), and a push to a `ci/**` branch runs it alone, the same pattern as e2e-linux.yml.
+# No secrets, no deploy: contents: read.
 on:
   workflow_call:
   push:
@@ -15,6 +16,8 @@ jobs:
   database:
     name: "Schema: reset from zero, pgTAP, seed + types drift"
     runs-on: ubuntu-latest
+    # About 14 minutes when green. Without a limit a stuck stack start would run for the 6-hour default.
+    timeout-minutes: 30
     permissions:
       contents: read
     steps:
