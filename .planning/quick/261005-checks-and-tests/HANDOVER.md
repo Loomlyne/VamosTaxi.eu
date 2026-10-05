@@ -13,7 +13,7 @@ A `fix/**` push starts no workflow (checked: no workflow triggers on it), so pus
 | Item | State |
 |---|---|
 | U21 unit tests and pgTAP on every push to main | Fixed (workflow change; unproven on GitHub, see the billing note) |
-| U20 CI red on every push | Workflow fixed; 8 stale specs fixed and re-run green locally; 1 real product bug `/de/terms` skipped in the 390 test (annotated); WebKit rows skip with a reason |
+| U20 CI red on every push | Workflow fixed; 8 stale specs fixed and re-run green locally; 1 real product bug (`/de/terms`), fixed since by the content job and proven here at 390 and 360; WebKit rows skip with a reason |
 | U22 database-backed tests | Fixed: `pnpm test:db-lab`; refund-by-hand id fixed; on the merged tree 72 + 4 + 31 passed, lab destroyed |
 | S16 audit | undici pinned; `braces` cannot be fixed (no patched release exists), audit-ignored with the reason |
 | D3 deploy script | Fixed: refuses without `--env`, only `staging` allowed |
@@ -71,7 +71,7 @@ runs that also tick `e2e`. A `v*` tag push now costs 0 as well (review fix 7; it
 | `visual/legal-cancellation-imprint` "no sideways scroll at 390" | Red on the Linux runner only (it passes on the Mac); not reproducible here. It measured at `load`, while the mock may still be compiling on a slow runner. If the cause is real overflow on Linux fonts (like `/de/terms`), the new message names the element | waits for the first section, then polls with the widest elements named on a miss (same shape as `legal-terms`) | 60 passed (whole spec, after this change) |
 | `visual/home` "live sections appear in the mock order" | Sections are separate `dc-import`s that mount in no fixed order, and Reviews renders only while loading or with enough published reviews (the test database has none); `#svc-t4` now belongs to Business travel (`412ac19b`) | wait for each required section; Reviews optional; hourly card checked by title | 41 passed (one load flake in the 1024 German banner dismissal, 4/4 on re-run) |
 | `visual/home-sheet-history-bp2` WebKit rows | WebKit is a separate download the Linux jobs do not install ("Executable doesn't exist") | rows `test.skip` with the reason when WebKit is absent; the macOS visual job installs it | not run here (no WebKit locally) |
-| `visual/legal-terms` "no sideways scroll at 390" | **Real product bug**, not stale | only `/de/terms` skipped (annotated, with the measurement and a pointer here) | 390 test passes for the other three pages |
+| `visual/legal-terms` "no sideways scroll at 390" | **Real product bug**, not stale | no skip any more: the test now checks all four locales at 390 and at 360 | 33 passed, 3 skipped (other viewports); with the pre-fix page put back it fails at `/de/terms` 360, scrollWidth 379 |
 
 ## Product bugs (reported, not fixed)
 
@@ -90,8 +90,10 @@ Evidence (`.planning/quick/261005-checks-and-tests/evidence/`):
 
 Affects: every phone narrower than about 380 px (iPhone SE, mini sizes) and 390 px phones on fonts that render wider. Four-language
 law (CLAUDE.md "Build every surface desktop to mobile"): "nothing may scroll sideways at 390 px" is broken.
-Not changed here (product code). A fix is a label that may wrap, or the button at full card width; that is the controller's choice.
-When it lands, delete `KNOWN_OVERFLOW_PATH` and its `continue` branch in `legal-terms.spec.ts` (its comment says so).
+Not changed here (product code). **Fixed since** by the content job (`1ca1beda`, live 2026-10-05 17:15: the legal buttons wrap, 44 px minimum). After merging it, the skip
+is removed and the sideways test runs at 390 and at 360 on `/terms`, `/de/terms`, `/fr/terms`, `/ar/terms`: 33 passed (the whole spec, full Chromium).
+To show the test is not vacuous, `app/pages/terms.dc.html` from before the fix was put back for one run (nothing of it committed): it failed with
+`no sideways scroll on /de/terms at 360: scrollWidth 379 > 360`, the same 379 px measured at the start.
 
 ### 2. "Voucher applied" never shows at 390 in the checkout funnel (not a product bug)
 
@@ -144,8 +146,8 @@ The README describes the controller's deploy; it carries no runnable deploy line
 
 ## D4: `apps/web/.dev.vars.example`
 
-30 empty `NAME=` lines grouped by area (secrets, vars, the contact-form names read outside `env.d.ts`), one comment each; the wrangler bindings
-as comments (setting them would shadow the binding; `READ_RATE_LIMITER`, added by main's S12, included after the merge); a "Not for this file" section for build-time and test-only names. Names only, no value was
+29 empty `NAME=` lines grouped by area (secrets, vars, the contact-form names read outside `env.d.ts`), one comment each; the wrangler bindings
+as comments (setting them would shadow the binding; `READ_RATE_LIMITER`, added by main's S12, is included; `FLIGHT_API_KEY` and the two `FLIGHT_RATE_LIMITER*` bindings are gone after the content job removed the flight provider); a "Not for this file" section for build-time and test-only names. Names only, no value was
 read from `.dev.vars` or any `.env`, nothing copied.
 
 ## Review fixes (Fable 5.1, SHIP AFTER FIXES), one commit each
@@ -155,10 +157,13 @@ read from `.dev.vars` or any `.env`, nothing copied.
 | 1 | `deploy-staging.yml`: `workflow_dispatch` input `e2e` (default false) beside `visual`; `e2e-linux` runs only when it is ticked. `pr.yml` and a `ci/**` push keep their own runs of `e2e-linux.yml` | job graph script; header comment rewritten |
 | 2 | `deploy` job is `if: false` with the owner rule (CLAUDE.local.md) in a comment, like `data-06`; it can no longer run from a hand-started run with `visual` or `e2e` ticked. The concurrency comment is corrected | job graph script |
 | 3 | `visual` job: `timeout-minutes: 60` on the job (the test step keeps 45) | job graph script |
-| 4 | `legal-terms.spec.ts`: the blanket `test.fixme` is gone; only `/de/terms` is skipped (an annotation with the reason); `/terms`, `/fr/terms`, `/ar/terms` are checked again | 390 project run: passes (the 3 skipped are the other viewports) |
+| 4 | `legal-terms.spec.ts`: the blanket `test.fixme` is gone; first only `/de/terms` was skipped, and after the content job's fix the skip is gone altogether (all four locales, 390 and 360) | 390 project run: passes (the 3 skipped are the other viewports) |
 | 5 | `scripts/deploy-worker.mjs`: `isEntryPoint()` compares `realpathSync` of both sides, plain comparison only if a path cannot be resolved | the old guard through a symlink exits 0 silently (shown); 3 new tests (symlink to the file, to the folder, the function); `pnpm test:scripts` 40 pass |
 | 6 | `lab.sh dbtests_abort`: when the run made the lab and fails after the workdir exists, it runs `cmd_destroy` (own project and workdir checked) in a subshell; with no workdir it removes the state folder as before | injected failure after `set_roles`: stack stopped, port closed, state and stack folders gone, other stacks untouched; runbook updated |
 | 7 | `deploy-production.yml`: `workflow_dispatch` only, no `v*` tag trigger | job graph script |
+
+Second review (SHIP) asked for two more, done: `deploy-production.yml` visual job now has `timeout-minutes: 60` on the job and 45 on the test step; `e2e-linux.yml`
+no longer carries the sentences about `v*` tag pushes cancelling a production deploy.
 
 The README lines that said the e2e jobs run on every push and the deploy job runs by hand were corrected in the same pass.
 
@@ -186,9 +191,8 @@ the throwaway DB lab destroyed by the command itself. The worktree `apps/web/pub
 ## Open questions for the controller and the owner
 
 Decided by the controller after the review: the e2e shards become hand-started (done, fix 1); keep the `braces` audit-ignore; the content job fixes
-the `/de/terms` button (the label wraps) and the skip comes out when that lands on main; the Supabase CLI bump is a later job.
+the `/de/terms` button (done and merged here, the skip is removed); the Supabase CLI bump is a later job.
 
 Still open:
 1. The owner must fix GitHub billing before any of the workflow changes can be proven.
-2. When the content job's `/de/terms` fix is on main: merge `origin/main`, delete `KNOWN_OVERFLOW_PATH` and its `continue` branch in `legal-terms.spec.ts`,
-   and run the 390 test (and look at 360) to prove `/de/terms`.
+
