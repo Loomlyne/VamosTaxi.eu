@@ -1,0 +1,76 @@
+{
+ "at": "2026-10-05T16:43:49.662Z",
+ "base": "http://localhost:4710",
+ "results": [
+  {
+   "status": "PASS",
+   "name": "390 en: existing customer, unseen check: the page sends the token, the link is mailed to the address",
+   "detail": "token sent, link mailed (Your Vamos Taxi sign-in link)"
+  },
+  {
+   "status": "PASS",
+   "name": "390 en: existing customer, the check cannot run: the request still goes with no token, link mailed, no failure line",
+   "detail": ""
+  },
+  {
+   "status": "PASS",
+   "name": "390 en: new address, unseen check: token sent, the account is made and the confirmation mailed",
+   "detail": "mail: Confirm your Vamos Taxi account"
+  },
+  {
+   "status": "PASS",
+   "name": "390 en: new address, the check cannot run: the SAME sent page as an existing customer, nothing mailed, no account made",
+   "detail": "same status, body and page text as an existing customer"
+  },
+  {
+   "status": "PASS",
+   "name": "390 en: new address, Cloudflare refuses the token: the same sent page, nothing mailed, no account",
+   "detail": ""
+  },
+  {
+   "status": "PASS",
+   "name": "390 en: new address, a suspicious visitor sees the small box, in view, no sideways scroll; ticking sends and the mail goes",
+   "detail": ""
+  },
+  {
+   "status": "PASS",
+   "name": "390 en: 'Send another link' asks again (token 2, a fresh key) for the link too",
+   "detail": ""
+  },
+  {
+   "status": "PASS",
+   "name": "1440 en: password sign-in still sends no token and never loads the check",
+   "detail": ""
+  },
+  {
+   "status": "PASS",
+   "name": "390 de: the sign-in link form and the sent page have no untranslated string",
+   "detail": ""
+  },
+  {
+   "status": "PASS",
+   "name": "390 fr: the sign-in link form and the sent page have no untranslated string",
+   "detail": ""
+  },
+  {
+   "status": "PASS",
+   "name": "390 ar: the sign-in link form and the sent page have no untranslated string, rtl, no sideways scroll",
+   "detail": ""
+  },
+  {
+   "status": "PASS",
+   "name": "API: existing vs new address with no token: same status, body, cookie names and the same timing floor; only the existing one is mailed",
+   "detail": "1276 ms vs 1275 ms, cookies vt-auth-code-verifier+vt-auth-flow-<id>-code-verifier+vt-auth-flows-code-verifier"
+  },
+  {
+   "status": "PASS",
+   "name": "API: new address, empty / refused token -> same neutral answer, nothing mailed; good token -> mailed; an existing customer is not blocked by a refused token",
+   "detail": "siteverify asked 2 times (new addresses only)"
+  },
+  {
+   "status": "PASS",
+   "name": "API: the link SIGN-UP still needs the token; dashboard host unchanged",
+   "detail": ""
+  }
+ ]
+}

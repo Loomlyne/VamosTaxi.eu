@@ -11,3 +11,17 @@ After the fix (lab Worker rebuilt with the check in the action):
   signUpAction(..., "en", "good-token")    passed token   -> HTTP 200, mail written (the check is the only difference)
 
 The lab's siteverify stand-in accepts any non-empty token except "fail".
+
+Second run, test lab su-s7, 2026-10-05, built from fix/signup-safety at d7c56a10 (run/actions-probe.mjs, now with requestOtpAction).
+Each call: POST /checkout with a Next-Action header, no browser; "mail written" = "To: <address>" appears in the lab Worker log.
+
+  signUpAction, no token                              HTTP 200 neutral {stage:"sent"}  mail written: false
+  signUpAction, refused token                         HTTP 200 neutral                 mail written: false
+  signUpAction, good token                            HTTP 200                         mail written: true
+  requestOtpAction (link sign-up), no token           HTTP 200 neutral                 mail written: false
+  requestOtpAction (link sign-up), refused token      HTTP 200 neutral                 mail written: false
+  requestOtpAction (link sign-up), good token         HTTP 200                         mail written: true
+  requestOtpAction (link sign-IN), new address        HTTP 200 neutral                 mail written: false (createUser false: no account, no mail)
+
+The before-state of requestOtpAction (link sign-up with no token mailing a confirmation) is shown by the unit test
+tests/unit/auth/signup-actions-turnstile.test.ts, which fails on the old actions.ts (5 cases); it was not rebuilt on the lab.
