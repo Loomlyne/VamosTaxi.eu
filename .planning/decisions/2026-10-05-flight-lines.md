@@ -10,3 +10,10 @@ Follows answer 6 of `2026-10-05-repo-investigation-answers.md` ("if we dont need
 | 4 | /privacy and /cookies show "Last updated 1 October" though their text changed on 4 October and changes again. What should the date do? | "Real date, no new cookie banner (Recommended)": each page shows the day its text last changed; the consent version (`CONSENT_POLICY_VERSION` 2026-10-01) stays and the banner only returns when what we ask permission for changes |
 
 These lines are his adopted wording: use them verbatim; a change needs his approval again. They replace the de/fr/ar legal lines he approved on 2026-10-03 (`3cac1fc5`) for those sentences only.
+
+## Follow-up answers (2026-10-05, question form, after the Fable review)
+
+| # | Question | Answer (verbatim choice) |
+|---|---|---|
+| 5 | /terms 08 starts "Waiting is included, measured from the pickup time in your confirmation." but the next line says "Airport pickups: 60 minutes after landing." Fix the first sentence? | "Cut it to \"Waiting is included.\" (Recommended)": EN "Waiting is included." DE "Wartezeit ist inbegriffen." FR "L’attente est incluse." AR "الانتظار مشمول." The two bullets under it stay unchanged |
+| 6 | Manage-booking German line "halten Sie ihn deshalb aktuell" ("ihn" = the flight) | "\"halten Sie die Nummer deshalb aktuell\" (Recommended)" |
