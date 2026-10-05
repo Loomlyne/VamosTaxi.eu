@@ -2,7 +2,7 @@
 
 Work session (not control), 2026-10-05. Owner decisions: `.planning/decisions/2026-10-05-signup-safety.md` (question form).
 
-- Branch `fix/signup-safety`, cut from `origin/main` `cc0c9c6d`. Merge of the newest `origin/main` and the branch tip are in the last section.
+- Branch `fix/signup-safety`, cut from `origin/main` `16f1cfa7`; `origin/main` then moved to `cc0c9c6d` (planning files only, no overlap) and is merged in with no conflict.
 - No commit on `main`, no push of `main`, no deploy, no write to the live database, Cloudflare or Supabase Auth. No migration. No message keys added (`db:seed:gen` not needed; `db:seed:check` clean).
 - Test lab `su-s5` was built from this branch, used, and destroyed. Build output removed.
 
