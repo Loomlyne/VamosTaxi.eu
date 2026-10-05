@@ -30,6 +30,9 @@ const PORTS: Record<string, number> = {
   "component-390": testPort(4143),
 };
 
+// The one page the 390 sideways-scroll test skips, until the section-10 button wraps (see the comment in that test).
+const KNOWN_OVERFLOW_PATH = "/de/terms";
+
 let devServer: ChildProcess | null = null;
 let baseURL = "";
 
@@ -76,9 +79,12 @@ test.describe("Terms page @component", () => {
     // German, 17 px wider on the Linux runner. It sticks out of its card and makes /de/terms 379 px wide, so the page
     // scrolls sideways on 360 and 375 px phones (and at 390 on the Linux runner: scrollWidth 396). Pictures in
     // .planning/quick/261005-checks-and-tests/evidence/. Product code is not changed here; drop this fixme in the
-    // change that lets the button wrap.
-    test.fixme(true, "real bug: the German section-10 button is wider than a phone; see HANDOVER 261005");
+    // change that lets the button wrap. Only /de/terms is held back: /terms, /fr/terms and /ar/terms are still checked.
     for (const path of ["/terms", "/de/terms", "/fr/terms", "/ar/terms"]) {
+      if (path === KNOWN_OVERFLOW_PATH) {
+        testInfo.annotations.push({ type: "fixme", description: `${path}: the German section-10 button is wider than a phone (HANDOVER 261005)` });
+        continue;
+      }
       await page.goto(baseURL + path);
       // Measure the rendered mock, not the boot frame (flaky on Linux at 390).
       await expect(page.locator(`#${SECTION_IDS[0]}`)).toHaveCount(1);
