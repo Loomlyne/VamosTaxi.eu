@@ -27,11 +27,9 @@ on:
         type: boolean
         default: false
 
-# A second deploy queues behind the first instead of racing it — cancelling a
-# half-finished deploy is worse than waiting (T-01-07). A push-triggered run deploys
-# nothing (the `deploy` job is workflow_dispatch only), so a superseded one is just a
-# duplicate: it gets its own group per ref and is cancelled. The hand-started deploy
-# keeps the old, uncancellable group.
+# A push-triggered run deploys nothing, so a superseded one is just a duplicate: it gets its own group per ref and is
+# cancelled. A hand-started run keeps the old, uncancellable group (T-01-07), so two of them queue instead of
+# racing. (The `deploy` job itself never runs: see the comment on it.)
 concurrency:
   group: deploy-staging-${{ github.event_name == 'workflow_dispatch' && 'deploy' || github.ref }}
   cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
@@ -164,9 +162,6 @@ jobs:
         timeout-minutes: 45
         run: pnpm test:visual
 
-  # Owner decision 2026-09-29: Worker `vamos` is deployed from the owner's Mac only. A push
-  # to main runs the checks above and stops there, so a push never deploys a second time next
-  # to the Mac. To hand deploys back to GitHub, remove the `workflow_dispatch` condition of `deploy`.
   # 26.0 D-01 / e2e-linux-3: the booking-funnel specs on Linux. The jobs live in one reusable workflow
   # (e2e-linux.yml) so a push to a ci/** branch can prove a change to them on GitHub before main sees it.
   # Nine shards, about 109 billed minutes: hand-started only (the `e2e` box), like `visual`. A pull request
@@ -180,13 +175,11 @@ jobs:
 
   deploy:
     name: Deploy to staging
-    # Hand-started runs only. `visual` is optional (skipped unless ticked), so a skipped needs-job must not block
-    # this one; everything else must have passed.
-    if: >-
-      ${{ !cancelled() && github.event_name == 'workflow_dispatch'
-      && needs.gate.result == 'success' && needs.unit.result == 'success'
-      && needs.database.result == 'success' && needs.e2e-linux.result == 'success'
-      && (needs.visual.result == 'success' || needs.visual.result == 'skipped') }}
+    # Never runs, not even from a hand-started run. Owner decision 2026-09-29 (CLAUDE.local.md, "Live facts"):
+    # Worker `vamos` is deployed from the owner's Mac only, by the control session, with wrangler; this job is kept
+    # so the steps stay readable, like `data-06` below. A hand-started run with `visual` or `e2e` ticked used to
+    # deploy here when the rest passed. To hand deploys to GitHub, the owner changes that rule first, then this line.
+    if: false
     needs: [gate, unit, database, visual, e2e-linux]
     runs-on: ubuntu-latest
     steps:
