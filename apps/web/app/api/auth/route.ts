@@ -204,8 +204,15 @@ export async function POST(request: Request): Promise<Response> {
     return sessionJson(FORM_CREDENTIALS, setCookies.slice(from));
   };
 
-  /** One more bucket per e-mail address (code checks and confirmation re-sends). Fail-open like the IP one. */
-  const perAddressAllowed = async (kind: "code" | "resend" | "checkout" | "link", email: string): Promise<boolean> => {
+  /**
+   * One more bucket per e-mail address (code checks and every mail send). Fail-open like the IP one.
+   * Security S5 (2026-10-05): sign-up (password and link) and forgot-password get it too, so one
+   * address cannot be sent branded mail from many IP addresses.
+   */
+  const perAddressAllowed = async (
+    kind: "code" | "resend" | "checkout" | "link" | "signup" | "forgot",
+    email: string,
+  ): Promise<boolean> => {
     if (!env.AUTH_RATE_LIMITER) return true;
     try {
       const out = await env.AUTH_RATE_LIMITER.limit({ key: `auth-${kind}:${email.toLowerCase()}` });
@@ -612,6 +619,8 @@ export async function POST(request: Request): Promise<Response> {
   if (fields.mode === "forgot") {
     const parsed = resetEmailSchema.safeParse({ email: fields.email });
     if (!parsed.success) return json(SENT);
+    // S5: same answer for a known and an unknown address; a 429 says nothing about the address.
+    if (!(await perAddressAllowed("forgot", parsed.data.email))) return json(RATE_LIMITED, 429);
     const { result, reason } = await runPasswordReset(
       supabase,
       parsed.data.email,
@@ -670,6 +679,10 @@ export async function POST(request: Request): Promise<Response> {
     }
     const parsed = otpRequestSchema.safeParse(fields);
     if (!parsed.success) return json(SENT);
+    // S5: the link sign-up spends the per-address bucket before the agreement record or any mail.
+    if (parsed.data.mode === "signup" && !dashboard && !(await perAddressAllowed("signup", parsed.data.email))) {
+      return json(RATE_LIMITED, 429);
+    }
     if (parsed.data.mode === "signup" && !dashboard) {
       // The record comes first: no record, no account request. Same for known and unknown addresses.
       if (!(await recordSignupAgreement(env, { email: parsed.data.email, locale, headers: request.headers }))) {
@@ -722,6 +735,8 @@ export async function POST(request: Request): Promise<Response> {
     if (!signupConsentGiven(fields)) return json(CONSENT_REQUIRED, 400);
     const parsed = signUpPasswordSchema.safeParse(fields);
     if (!parsed.success) return json(SENT);
+    // S5: per-address bucket before the agreement record or the confirmation mail.
+    if (!(await perAddressAllowed("signup", parsed.data.email))) return json(RATE_LIMITED, 429);
     if (!(await recordSignupAgreement(env, { email: parsed.data.email, locale, headers: request.headers }))) {
       return json(SIGNUP_UNAVAILABLE, 503);
     }
