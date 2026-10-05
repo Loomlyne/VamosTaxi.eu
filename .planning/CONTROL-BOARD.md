@@ -22,7 +22,7 @@ the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 Rewritten short on 2026-09-30 14:25; the long version is in git history (`8230227c`).
 
-**Last update:** 2026-10-04 16:38 (+04)
+**Last update:** 2026-10-05 16:25 (+04)
 
 ## Landing queue, 2026-10-03 00:45 (+04)
 
@@ -54,6 +54,8 @@ Rewritten short on 2026-09-30 14:25; the long version is in git history (`823022
 | `fix/stripe-fee-record` | **Live 00:02 2026-10-05** (`f1cc8726`, Worker `b15beb82`; migration `20261007290000` applied 00:00, live version `20261004200012`). **01:00 sweep confirmed** (read 01:06): 12 of 16 payments have their fee, 2969 rappen in all (68 to 356 each), so Stripe reports the fee in CHF; the 4 of 9–10 Sep (cs_ ids, old account) stay empty as expected | Owner: All time Expenses CHF 65.25 (refunds 35.56 + fees 29.69), Net CHF 1,242.07 |
 | `fix/purge-agreement-records` | **Live 14:25 2026-10-05** (`3c66208f`; migration `20261007300000`, live version `20261005102535`; no Worker deploy). **15:00 sweep confirmed** (read 15:06): VT-26-0748, 0749, 0751 deleted (3 audit lines `unpaid_expired`), bookings 43 → 40, no pending left, agreement records 4 with 3 unlinked | done |
 | Repo investigation 2026-10-05 | Report `.planning/audits/2026-10-05-repo-investigation.md`; answers `.planning/decisions/2026-10-05-repo-investigation-answers.md`. Repo made private 11:58. Jobs starting: `fix/security-hardening`, `fix/money-db-hardening`, `fix/dashboard-fixes`, `fix/checks-and-tests`, `fix/content-flight-promise` | Owner: Cloudflare Always Use HTTPS; add an authenticator (Settings → Security); city waiting 30 + Publish; chauffeurs for Business and Van luxury |
+| `fix/security-hardening` (S4, S5 part, S7, S8, S10–S15) | **Live 16:12 2026-10-05** (`43fba58d`, Worker `1061b530`). Fable 5.1 review: SHIP. Gates green on 5c881670 (unit 5162). Live: pages 200, `/api/staff/me` and `/api/photos/upload` on vamostaxi.site 404, class photos load from `/photos/c/…` (200 image/png), a tampered token 404, no row ids in `GET /api/quote` | Owner: one 4242 payment, then sign out and in on the dashboard (writes the HttpOnly cookie) and save one thing. Open: S5 Turnstile on sign-up/forgot (owner question), S9 (owner question), the signed lock still names two version ids (later job). Follow-up: confirmation status poll can hit the 120/min read limit behind a shared mobile IP (Fable finding 1) |
+| Flight lines (content job) | Owner answers 16:0x in `.planning/decisions/2026-10-05-flight-lines.md`: all four recommended (delays: tell us, waiting counts from the new landing time; trust line "Waiting time included"; other lines as drafted; legal pages show the day their own text changed, no new cookie banner) | Content job adds the legal-date change, then control check and ship |
 | Landed and cleaned 00:4x | settle safety, Dependabot, Actions trim: branches deleted on GitHub (archive tags), folders removed; the settle-safety folder waits for its session to close | |
 
 ## Controller take-over, 2026-10-02 15:26 (+04)
