@@ -27,11 +27,9 @@ MAPBOX_DAILY_UNIT_SENTINEL=
 # Optional. "true" lets quote and reprice show the newest draft price book. Absent on live production.
 PRICING_PREVIEW=
 
-# ── Maps and flights ──
+# ── Maps ──
 # Optional. Mapbox access token for /api/geo/* and Directions; without it address search and distance pricing degrade.
 MAPBOX_TOKEN=
-# Optional. Flight-data API key (AeroDataBox); without it /api/flight/* answers 503.
-FLIGHT_API_KEY=
 
 # ── Turnstile (bot check on the quote, contact, sign-up and review forms) ──
 # Optional. Public widget site key, passed to the page by the server.
@@ -105,7 +103,6 @@ VAMOS_SURFACE=
 #   INTENT_RATE_LIMITER                                    rate limit: POST /api/checkout/intent
 #   LOOKUP_RATE_LIMITER, LOOKUP_RATE_LIMITER_BARE          rate limits: /api/geo/*
 #   PRICE_RATE_LIMITER, PRICE_RATE_LIMITER_BARE            rate limits: reprice and voucher check
-#   FLIGHT_RATE_LIMITER, FLIGHT_RATE_LIMITER_BARE          rate limits: /api/flight/*
 #   TURNSTILE_ATTEMPT_LIMITER                              rate limit: quote challenge counter
 #   READ_RATE_LIMITER                                      rate limit: public database reads (status, resume, manage, reviews)
 #   APP, PUBLIC                 service bindings of the dashboard gateway (wrangler.dashboard.jsonc)
