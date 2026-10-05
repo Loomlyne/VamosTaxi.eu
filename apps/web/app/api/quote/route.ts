@@ -15,7 +15,7 @@ import { loadRateBook } from "@/lib/db/quote";
 import { withRequestContext } from "@/lib/logger";
 import { liveBookBoard, publicCatalogRoutes } from "@/lib/pricing/public-board";
 import { mapRateBook } from "@/lib/pricing/rateBook";
-import { buildQuotePipelineDeps, isNamedDashboardHost } from "@/lib/quote/deps";
+import { buildQuotePipelineDeps, draftPreviewAllowed, isNamedDashboardHost } from "@/lib/quote/deps";
 import { preprocessWidgetTokens } from "@/lib/quote/preprocess";
 import {
   runQuotePipeline,
@@ -114,19 +114,25 @@ export async function POST(request: Request) {
     locale = pre.body.locale;
   }
 
+  const host = new URL(request.url).host;
   const dashboardHost = isNamedDashboardHost(new URL(request.url).host);
-  const deps = buildQuotePipelineDeps(env, { dashboardHost });
 
   // Quick 261003 review: the staff check may refresh the session; its rotated cookies are copied
   // onto whatever this handler answers (OpenNext: cookies().set does not reach a hand-built Response).
   const authCookies: AuthCookieSink = { cookies: [] };
+  // One staff check per request, shared by the draft-price gate (S14) and the Turnstile exemption.
+  let staffCheck: Promise<boolean> | null = null;
+  const isStaff = () => (staffCheck ??= requestHasStaffSession(request, undefined, authCookies));
   try {
+    // Security S14: draft prices only for a verified staff session on the dashboard host.
+    const staffSession = await draftPreviewAllowed(env, host, isStaff);
+    const deps = buildQuotePipelineDeps(env, { dashboardHost, staffSession });
     // Quick 261003: the token rides in the body (`turnstile_token`). The dashboard New trip has
     // no challenge widget, so a signed-in staff session on the dashboard host is never challenged;
     // the staff check runs only when the challenge would otherwise refuse.
     const abuse = await wireQuoteAbuse(env, request, "quote", {
       body: pre.body,
-      turnstileExempt: dashboardHost ? () => requestHasStaffSession(request, undefined, authCookies) : undefined,
+      turnstileExempt: dashboardHost ? isStaff : undefined,
     });
     deps.rateLimit = abuse.rateLimit;
     deps.turnstile = abuse.turnstile;
