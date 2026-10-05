@@ -3,7 +3,9 @@
    The mocks read it here; apps/web/next.config.ts reads the same line at build time for the
    Next.js pages. Format: ISO date, YYYY-MM-DD. The cookie policy keeps its own date. */
 (function () {
-  var LEGAL_UPDATED = '2026-09-30';
+  // Terms, cancellation and imprint: the day their text last changed on main (3cac1fc5, the owner-approved
+  // de/fr/ar lines; checked 2026-10-05). Set again on the ship day when any of the three changes.
+  var LEGAL_UPDATED = '2026-10-03';
   // Consent date shown on /cookies and /privacy (D-31); plan 27-10 sets it equal to CONSENT_POLICY_VERSION.
   var CONSENT_UPDATED = '2026-10-01';
 
