@@ -176,7 +176,7 @@
 <sc-if value="{{ hasDistance }}" hint-placeholder-val="{{ true }}">
 <span data-ops-route-chip>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="route" size="{{ n14 }}" color="var(--vt-text-muted)" hint-size="14px,14px"></x-import>
-<span data-vt-no-i18n="1">{{ distanceChip }}</span>
+<span class="vt-dir-keep" data-vt-no-i18n="1">{{ distanceChip }}</span>
 </span>
 </sc-if>
 </div>
@@ -591,8 +591,8 @@
 </sc-if>
 
 <sc-if value="{{ showToast }}" hint-placeholder-val="{{ false }}">
-<div data-vt-no-i18n="1" style="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:60;width:max-content;max-width:calc(100vw - 32px)">
-<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Toast" tone="{{ toastTone }}" role="{{ toastRole }}" onClose="{{ closeToast }}" hint-size="320px,50px">{{ toastMsg }}</x-import>
+<div style="position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:60;width:max-content;max-width:calc(100vw - 32px)">
+<x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Toast" tone="{{ toastTone }}" role="{{ toastRole }}" onClose="{{ closeToast }}" hint-size="320px,50px"><span data-vt-no-i18n="1">{{ toastMsg }}</span></x-import>
 </div>
 </sc-if>
 </div>
@@ -1522,7 +1522,14 @@ class Component extends DCLogic {
   };
   // The toast has two tones. 'success' (green check) says what was done; 'danger' (red warning sign, announced as an alert)
   // says an action did not happen, or a step of it failed. Every refusal and failure goes through notifyError.
-  notify = (msg, tone) => { this.setState({ toastMsg: msg, toastTone: tone === 'danger' ? 'danger' : 'success', showToast: true }); clearTimeout(this._t); this._t = setTimeout(() => this.setState({ showToast: false }), 3600); };
+  // A success fades after 3.6 s. An error says something did not happen, so it stays until it is closed (U9, 2026-10-05):
+  // 3.6 s is not long enough to read what to do next, and a toast that vanished left no trace of what failed.
+  notify = (msg, tone) => {
+    const danger = tone === 'danger';
+    this.setState({ toastMsg: msg, toastTone: danger ? 'danger' : 'success', showToast: true });
+    clearTimeout(this._t);
+    this._t = danger ? null : setTimeout(() => this.setState({ showToast: false }), 3600);
+  };
   notifyError = (msg) => this.notify(msg, 'danger');
   // Opens Stripe's hosted page for this booking in a new tab. The tab is opened on the click
   // (before the request) so the popup blocker allows it, then pointed at the returned URL.
