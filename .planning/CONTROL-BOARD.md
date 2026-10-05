@@ -441,15 +441,29 @@ Full texts in `.planning/decisions/`.
 
 ## Waiting for the owner
 
+Brought to 2026-10-05 18:12 (+04) by the GSD bookkeeping job (branch `docs/gsd-bookkeeping-1005`). Removed as done: the phone home, scroll and speed and refunds-by-hand signatures (all live), "Blocks Phase 28" (the owner turned both Meta switches off 2026-10-03; 28 is live), the unsigned Lenis folder (gone; Lenis removed 2026-09-30), and the 26.0 UAT except the /imprint wording (the 48 SiteHeader pictures were decided 2026-10-02, /dev answers 404, the e2e job was rebuilt by fix/checks-and-tests). Rows 15 to 19 are open controller jobs, not owner steps; each names its source.
+
 | # | What | Where |
 |---|---|---|
-| 5 | Signatures as they come: phone home pictures, scroll and speed plan, refunds-by-hand plan | the sessions |
-| 6 | **Blocks Phase 28.** Two switches in Meta Events Manager (Automatic advanced matching off; Track events automatically without code off): Meta's setup file for pixel 1595596972063765 still showed both on at 09:15 UTC on 2026-10-01. Check that the change was saved, on that pixel | Meta |
-| 7 | Older UAT not reported: manage link of VT-26-0743, dashboard New trip, sign-in 14 steps | e-mail, dashboard, phone |
-| 8 | The unsigned Lenis folder `.planning/quick/260928-q4t-…` (feeds the scroll and speed plan) | decision |
-| 9 | Empty the Trash; `brag-output` and `.pnpm-store` in the main checkout | his click |
-| 10 | 26.0 UAT: (1) vamostaxi.site/imprint in French, then Arabic: a notice says the page exists in English and German, English binding; is the French and Arabic wording right? (2) /dev and /dev/home/services answer 404 (checked by control 11:20). (3) The 48 SiteHeader screenshot diffs and the page diffs (about, contact, faq, home sections, legal pages, error pages de/fr): intended change (rebaseline on his Mac) or bug, one decision per page; images in `.planning/phases/26.0-main-green/evidence/`. (4) First run of the GitHub job "Booking funnel e2e on Linux" on `6ec73c52`: failures listed back to control | site, GitHub |
-| 11 | **P1 UAT, payment first** (dashboard.vamostaxi.site, test bookings paid with the Stripe test card): Economy to Business, pay the difference from the e-mail with 4242; Withdraw change on a second booking; Business to Economy, Refund due, the refund line on the customer page in four languages, Confirm refund. 11 steps in `.planning/quick/260930-p1-class-change-reprice/HANDOVER.md`. Control reads `booking_payments` and `booking_refunds` after steps 5 and 10 | dashboard, e-mail |
+| 1 | Cloudflare: switch on Always Use HTTPS (http:// pages still answer 200). Source: audit S3, owner answer 4 | Cloudflare |
+| 2 | Dashboard, Settings, Security: add an authenticator (the admin has no second factor yet). Source: audit S2, owner answer 3 | dashboard |
+| 3 | City waiting 30 minutes: set it in dashboard Settings and press Publish (live policy says 15; /terms and /cancellation say 30). Source: audit U16 | dashboard |
+| 4 | Chauffeurs: add one for Business and one for Van luxury in the dashboard; VT-26-0753 (15 Oct) and VT-26-0752 (16 Oct) are Business. Source: audit U2 | dashboard |
+| 5 | GitHub, Settings, Billing and plans: fix the failed payment or raise the Actions limit; every Actions job is blocked since 4 Oct ~20:00 and the repo is private. Source: fix/checks-and-tests | GitHub |
+| 6 | One 4242 payment, one voucher quote and one cookie-banner choice on the live site: they cover the 5 Oct ships and release the held migration 20261007320000. Source: fix/money-db-hardening | site |
+| 7 | Dashboard: sign out and in once (writes the HttpOnly cookie), save one thing, open the board, the calendar, one booking and Money in. Source: fix/security-hardening, fix/dashboard-fixes | dashboard |
+| 8 | Read /terms 08 and the FAQ "What if my flight is late?" on a phone (new flight wording, 5 Oct). Source: fix/content-flight-promise | phone |
+| 9 | Phase 29, Meta: give the controller the test event code (Events Manager, pixel 1595596972063765, Test events). None is set, so test payments send nothing (no_test_code). Source: 29-VERIFICATION | Meta |
+| 10 | Phase 28, Meta: on /about press Accept all; Events Manager Test events must show exactly one PageView and nothing else. Source: phases/28-pixel-pageview/HANDOVER.md | site, Meta |
+| 11 | /imprint in French, then Arabic: is the wording right? The German text is the binding one. Source: audit U28, quick 261003-legal-lines-imprint | site |
+| 12 | Older UAT not reported: manage link of VT-26-0743, dashboard New trip, sign-in 14 steps | e-mail, dashboard, phone |
+| 13 | **P1 UAT, payment first** (dashboard.vamostaxi.site, test bookings paid with the Stripe test card): Economy to Business, pay the difference from the e-mail with 4242; Withdraw change on a second booking; Business to Economy, Refund due, the refund line on the customer page in four languages, Confirm refund. 11 steps in `.planning/quick/260930-p1-class-change-reprice/HANDOVER.md`. Control reads `booking_payments` and `booking_refunds` after steps 5 and 10 | dashboard, e-mail |
+| 14 | Empty the Trash; `brag-output` and `.pnpm-store` in the main checkout | his click |
+| 15 | Controller job: live-key refusals. Refund by hand and class or trip change refuse only sk_live_; rk_live_ is not handled. Waits for the owner's refund-by-hand test. Source: audit U3 | controller |
+| 16 | Controller job: the dashboard shows CHF 000 while loading or when a read fails; needs a design answer first. Source: audit U7 | controller |
+| 17 | Controller job: later dashboard fixes: not-staff 403 blank screen, "You were signed out" message (owner approves copy), keep the page when a write fails on a dead session. Source: fix/dashboard-fixes | controller |
+| 18 | Controller job: a webhook-first settle leaves the return row unprocessed (no money effect). Source: audit U15, fix/money-db-hardening (Fable finding 1) | controller |
+| 19 | Controller job: signed P4 parts B (a CHF 0 extra reads "included") and C (a count per extra, with a maximum) were never built. Source: audit U17, quick 260930-p4 PLAN | controller |
 
 ## Owed by the control session
 

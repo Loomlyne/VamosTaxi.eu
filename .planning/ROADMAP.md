@@ -122,8 +122,8 @@ the word "Phase", so GSD reads each line as one phase.
 - [x] **Phase 26.5: Checkout guest, sign in or create account (INSERTED)** - Account choice before Stripe; unpaid bookings hidden; paid-only reminder; pay-press limit (shipped 2026-09-30, 9a5263cd, Worker 2d5906ce)
 - [x] **Phase 27: Consent record** - Accept logs Meta on; Dismiss logs Meta off; existing banner until a choice, including a pay link (shipped 2026-10-01, ce55cd75, Worker c45d2782; Meta still off)
 - [x] **Phase 27.1: Finish your account (INSERTED)** - A sign-in-link account finishes (names, optional mobile, the account tick) before it can pay or open a booking (shipped 2026-10-01, 96a17ab7, Worker 6eb1d700)
-- [ ] **Phase 28: Pixel PageView** - WAITING for the owner's Meta check: both Events Manager switches saved off on pixel `1595596972063765`. Discuss signed, research on branch gsd/phase-28-pixel-pageview; nothing built
-- [ ] **Phase 29: Webhook Purchase** - WAITING: after 28. One Purchase from the settle queue in the CHF charged; quote, pay, and confirmation unchanged
+- [x] **Phase 28: Pixel PageView** - SHIPPED 2026-10-03 20:00 (+04): main da25c7d5, Worker d937114f, migration 20261007240000 live 19:58; plans 28-01 to 28-07 all with a SUMMARY. Owner-held: his Events Manager Test events check (UAT steps in HANDOVER.md)
+- [x] **Phase 29: Webhook Purchase** - SHIPPED 2026-10-04 15:57 (+04): main 54599783, Worker b9e15a18, migration 20261007260000 live 15:55; lock-order fix 16:27 (41ba7b7d, migration 20261007270000, no deploy); plans 29-01 to 29-07 all with a SUMMARY. Owner-held: the Meta test event code (not set, so a test-mode payment records no_test_code and nothing is sent)
 
 ## Phase Details
 
@@ -1197,29 +1197,30 @@ are saved on the unpaid booking. No new screen.
   4. `_fbp` and `_fbc` are saved on the unpaid booking after the pixel sets them. Not in Stripe. A paid booking cannot be updated to backfill them.
   5. Must-nots: no `sk_live_`, no `vamostaxi.eu`, no invented legal copy, no invented CHF, no hashed email or phone, no browser Purchase, no middle events (quote seen, checkout started, pay step). PageView only. Flag stays off until the owner lines are in. Do not change quote, pay, or confirmation.
 
-**State, 2026-10-01: waiting for the owner's Meta check.** Nothing built. Discuss signed, research committed
-(`99b2285d`, branch `gsd/phase-28-pixel-pageview`; the phase folder is on that branch, not on main). Migration
-`20261003100000` reserved, not written. The owner said both switches are off, but Meta's own setup file for the
-pixel, read 2026-10-01 09:15 UTC, still listed automatic matching and inferred events as on. The owner checks
-that the change was saved on pixel `1595596972063765`; then the Meta job builds
-(`.planning/decisions/2026-10-01-meta-events-manager-switches.md`). Meta legal lines: the three texts in
-`.planning/decisions/2026-09-30-meta-wording.md`, verbatim.
+**State**: Shipped 2026-10-03 20:00 (+04). Main `da25c7d5`, Worker `d937114f`. Migration `20261007240000`
+(booking_meta_click_ids) applied verbatim at 19:58 (live `20261003155826`) before the deploy. Reviews: FIX FIRST, then
+SHIP-WITH-NOTES (branch `fix/phase-28-review-2` `5c9f1078`). The loader runs on allow-listed pages after a marketing
+Accept and sends one PageView with `autoConfig` off; Pay saves `_fbp` and `_fbc` on the pending booking;
+Referrer-Policy strict-origin. The owner turned both Events Manager switches off on 2026-10-03 (Meta's setup file no
+longer opts in to automatic matching, re-read 12:03:53 UTC; inferred events stay off through the code). Live: the Meta
+policy on /, /about, /de/about, /privacy, /sign-in and /cookies; the plain policy on /sign-in?returnTo, /manage-booking,
+/checkout and the dashboard; no pixel string in any HTML; a fresh headless profile without Accept makes no request to a
+Meta host and sets no `_fb` cookie. The owner's payment VT-26-0752 (2026-10-03 21:19) saved `meta_fbp` in Meta format
+(`meta_fbc` empty: no ad click). Rollback tag `backup/main-before-phase-28-20261003-1958`. Meta legal lines: the three
+texts in `.planning/decisions/2026-09-30-meta-wording.md`, verbatim.
+**Left (owner)**: the Events Manager Test events check, UAT steps in `HANDOVER.md` (Accept all on /about shows exactly
+one PageView and nothing else).
 
-**State, 2026-10-03: plans written, waiting for the owner's signature.** The owner turned both Meta
-switches off; Meta's setup file no longer opts in to automatic matching (re-read 12:03:53 UTC), it still
-serves inferred events, which the code switches off and plan 28-07 proves with Meta's real script.
-Migration number comes from the controller.
-
-**Plans**: 7 plans
+**Plans**: 7/7, all with a SUMMARY
 
 Plans:
-- [ ] 28-01-PLAN.md — database: two Meta id columns, pending-only writer and trigger (migration number from controller)
-- [ ] 28-02-PLAN.md — the browser loader app/vamos-meta.js and its server twin allow-list (flags off)
-- [ ] 28-03-PLAN.md — mount through the cookie banner, switch flag, Meta-string scan rewrite
-- [ ] 28-04-PLAN.md — path-scoped Meta security policy, Referrer-Policy strict-origin
-- [ ] 28-05-PLAN.md — save _fbp/_fbc on the unpaid booking at Pay (consent, public site only)
-- [ ] 28-06-PLAN.md — browser proof at the public addresses, Meta hosts intercepted
-- [ ] 28-07-PLAN.md — real-script proof, open the flags, full gate, hand-over
+- [x] 28-01-PLAN.md — database: two Meta id columns, pending-only writer and trigger (migration number from controller)
+- [x] 28-02-PLAN.md — the browser loader app/vamos-meta.js and its server twin allow-list (flags off)
+- [x] 28-03-PLAN.md — mount through the cookie banner, switch flag, Meta-string scan rewrite
+- [x] 28-04-PLAN.md — path-scoped Meta security policy, Referrer-Policy strict-origin
+- [x] 28-05-PLAN.md — save _fbp/_fbc on the unpaid booking at Pay (consent, public site only)
+- [x] 28-06-PLAN.md — browser proof at the public addresses, Meta hosts intercepted
+- [x] 28-07-PLAN.md — real-script proof, open the flags, full gate, hand-over
 
 **UI hint**: no new screen. Pixel `1595596972063765`. PageView only.
 
@@ -1238,10 +1239,21 @@ do not change.
   4. A Meta failure does not unpay the booking and does not change the webhook response. A retry does not send a second Purchase. Staging uses a test event code. The token is a wrangler secret. If Graph rejects this payload, stop and ask. Do not widen it.
   5. Must-nots: no `sk_live_`, no `vamostaxi.eu`, no invented legal copy, no invented CHF, no hashed email or phone, no browser Purchase, no middle events (quote seen, checkout started, pay step). Do not change quote, pay, or confirmation. Do not call Graph from the thank-you page or as a second Purchase.
 
-**State, 2026-10-01: waiting.** Starts after 28. No Purchase event until the legal gate is open (owner rule).
-Migration `20261007260000` reserved by the controller (2026-10-03 20:05); the earlier `20261004100000`-`190000` block is withdrawn.
+**State**: Shipped 2026-10-04 15:57 (+04). Main `54599783`, Worker `b9e15a18`, branch `gsd/phase-29-purchase` `a42a7049`.
+Migration `20261007260000` (meta_purchase) applied at 15:55 (live `20261004115506`) before the Worker. After a settle
+commits, the queue claims a once-only `meta_purchase_events` row and sends one Conversions API Purchase (CHF charged,
+`_fbp` and `_fbc` only) when the gate, the switch, consent at claim and, in test mode, a test event code all hold; the
+ids are wiped with every decision; a daily 03:00 sweep closes what was left. Reviews: in-workflow 0 critical, then a
+fresh Opus review SHIP-WITH-NOTES, no blocker. Lock-order fix 2026-10-04 16:27 (`41ba7b7d`, migration `20261007270000`,
+live `20261004122704`, no Worker deploy): the claim and the sweep lock the payment before the booking, as settle does.
+Rollback tag `backup/main-before-phase-29-20261004-1553`.
+**Left (owner)**: `META_TEST_EVENT_CODE` is not set. Until he gives the code and it is in `env.staging.vars`, a
+test-mode payment records `no_test_code` and nothing is sent (his payment VT-26-0753, 2026-10-04: skipped,
+`no_test_code`). `29-VERIFICATION.md` stays `human_needed` for the same reason. Notes for later: the
+production database wiring is untested, and `PURCHASE_EVENT_SOURCE_URL` changes at the vamostaxi.eu cutover.
 
-**Plans**: 7 plans
+**Plans**: 7/7, all with a SUMMARY
+
 Plans:
 - [x] 29-01-PLAN.md — setup: merge origin/main, lockfile install, own native stack, base commit
 - [x] 29-02-PLAN.md — migration 20261007260000 (claim, once-only table, consent subject, clear-ids) + pgTAP + types
@@ -1262,6 +1274,7 @@ v1.2 Payment (leftovers 16/17/19/20 frozen): 21 → 22 → 23 → 24 → 25
 v1.3 Meta measurement (Phases 21–25 stay planned, not current): 26 → 26.1 → 27 → 28 → 29
 Order of 2026-09-30 (owner): 26.4.2 → 26.5 → 27 → 28 → 29 → 26.0 → 26.2 → 20 → 19. Source: .planning/decisions/2026-09-30-priorities-and-ship-mode.md
 Where it stands, 2026-10-01 (bookkeeping B10, from .planning/CONTROL-BOARD.md "What is left"): shipped 26.1, 26.3, 26.4, 26.4.1, 26.4.2, 26.5, 26.0, 27, 27.1. Open now, in parallel lanes: 26.2 P6 (A), 26.0 finish B4 (B), this bookkeeping (D), Van luxury up to 12 travellers (V, no phase); the 20 leftovers (R) reached main at 23:49 (3e2bba66), 20-09 live proof left. Then, one at a time after P6, the rest of 26.2. B7 content and legal reached main at 23:55 (ea1141e7) after the owner switched Cloudflare's automatic Web Analytics off; next in that line G23, then the Arabic and design-canvas fixes. Waiting for the owner: 28 then 29 (Meta check). 19 deferred, status question open. The control board is the live source; this line is a snapshot.
+Where it stands, 2026-10-05 (bookkeeping, from .planning/CONTROL-BOARD.md): 28 shipped 2026-10-03 and 29 shipped 2026-10-04, both live; 19 closed by the owner, 20 complete (2026-10-02); 26.2 is the one open phase, for its found rows. Left for the owner on 28 and 29: the Events Manager Test events check and the Meta test event code. The investigation jobs of 2026-10-05 (security, money and database, content, dashboard, review follow-ups, checks) are live and have no phase of their own: they are on the board.
 Plan-level states (owner, 2026-09-29; source record .planning/PHASE-CLOSURE-2026-09-29.md on main, commit 37e55d26), updated 2026-10-01: plan 04.3 replaced by 26.1/26.3, never build · plan 05-19 dropped · plan 05-24 folded into 27.1 and /contact, owner checks left · plan 05-28 shipped 2026-10-01 as B8 · plan 11-12 owner-held, never raise · plan 26.1-28 superseded
 
 | Phase | Plans Complete | Status | Completed |
@@ -1305,8 +1318,8 @@ Plan-level states (owner, 2026-09-29; source record .planning/PHASE-CLOSURE-2026
 | 26.5. Checkout guest / sign in / create account (INSERTED) | 11/11 | Shipped 9a5263cd, Worker 2d5906ce; guest accounts on | 2026-09-30 |
 | 27. Consent record | 18/18 | Shipped ce55cd75, Worker c45d2782; Meta gate still closed | 2026-10-01 |
 | 27.1. Finish your account (INSERTED) | 1/1 | Shipped 96a17ab7, Worker 6eb1d700 | 2026-10-01 |
-| 28. Pixel PageView | 0/TBD | Waiting for the owner's Meta check (Meta's setup file still showed both switches on at 2026-10-01 09:15 UTC). Discuss signed, research on gsd/phase-28-pixel-pageview, nothing built | - |
-| 29. Webhook Purchase | 0/TBD | Waiting, after 28 | - |
+| 28. Pixel PageView | 7/7 | Shipped da25c7d5, Worker d937114f (migration 20261007240000 live 19:58). Owner-held: his Events Manager Test events check | 2026-10-03 |
+| 29. Webhook Purchase | 7/7 | Shipped 54599783, Worker b9e15a18 (migration 20261007260000 live 15:55; lock-order fix 16:27, 41ba7b7d). Owner-held: the Meta test event code, not set (test payments record no_test_code, nothing is sent); 29-VERIFICATION.md stays human_needed | 2026-10-04 |
 
 ---
 *Roadmap created: 2026-08-17*
@@ -1318,3 +1331,4 @@ Plan-level states (owner, 2026-09-29; source record .planning/PHASE-CLOSURE-2026
 *v1.3 Meta measurement added: 2026-09-23 (phases 26–29; v1.2 phases 21–25 unchanged)*
 *Phase 26.1 inserted: 2026-09-27 (payment and pricing integrity; INT-01…INT-09; discuss signed the same day)*
 *GSD bookkeeping B10: 2026-10-01 (missing summaries, closed and replaced phases marked, rows for 5.1, 5.2, 6.1, 26.0, 26.2, 26.4.2, 26.5, 27.1)*
+*GSD bookkeeping 2026-10-05: phases 28 and 29 ticked as shipped with their owner-held items named; STATE.md brought to 2026-10-05*
