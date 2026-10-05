@@ -205,6 +205,55 @@ describe("dashboard shell: a dead session goes to /login, not a blank screen (U8
     expect(t.session.getItem("vamosOpsScreenRetryCount")).toBe("1");
   });
 
+  // Follow-up 1 (2026-10-05): the count is read from session storage. A value that is not a number made it NaN,
+  // `NaN >= 2` is false, and the writer stored String(NaN + 1) = "NaN" again: the reload came back every 16 s.
+  it("a count in session storage that is not a number is read as zero: two reloads, then it stops", async () => {
+    const clock = { now: 2_000_000 };
+    const t = tab((url) => (url.startsWith("/app/ops/") ? { status: 404 } : { status: 200, body: { ok: true, data: {} } }), {
+      clock,
+      session: { vamosOpsScreenRetryAt: String(clock.now - 20_000), vamosOpsScreenRetryCount: "abc" },
+    });
+    for (let round = 0; round < 6; round += 1) {
+      await t.win.fetch(SCREEN);
+      await flush();
+      clock.now += 16_000;
+    }
+    expect(t.reloaded).toEqual(["reload", "reload"]);
+    expect(t.session.getItem("vamosOpsScreenRetryCount")).toBe("2");
+  });
+
+  it.each(["", "NaN", "undefined", "-3", "-0.5", "Infinity", "1e999", "0x", "2px"])(
+    "whatever junk the count holds (%j), the page is reloaded at most twice and the stored count is a number again",
+    async (junk) => {
+      const clock = { now: 2_000_000 };
+      const t = tab((url) => (url.startsWith("/app/ops/") ? { status: 404 } : { status: 200, body: { ok: true, data: {} } }), {
+        clock,
+        session: { vamosOpsScreenRetryAt: String(clock.now - 20_000), vamosOpsScreenRetryCount: junk },
+      });
+      for (let round = 0; round < 6; round += 1) {
+        await t.win.fetch(SCREEN);
+        await flush();
+        clock.now += 16_000;
+      }
+      expect(t.reloaded.length).toBeLessThanOrEqual(2);
+      expect(Number.isFinite(Number(t.session.getItem("vamosOpsScreenRetryCount")))).toBe(true);
+    },
+  );
+
+  it("a time mark that is not a number does not stop the count: still at most two reloads", async () => {
+    const clock = { now: 2_000_000 };
+    const t = tab((url) => (url.startsWith("/app/ops/") ? { status: 404 } : { status: 200, body: { ok: true, data: {} } }), {
+      clock,
+      session: { vamosOpsScreenRetryAt: "soon", vamosOpsScreenRetryCount: "1" },
+    });
+    for (let round = 0; round < 6; round += 1) {
+      await t.win.fetch(SCREEN);
+      await flush();
+      clock.now += 16_000;
+    }
+    expect(t.reloaded).toEqual(["reload"]);
+  });
+
   // U8 review 2: the reload is for a screen that did not load, not for a part a screen fetches while it runs.
   // PlaceSearch is first fetched when OpsDetail enters edit mode: a reload then would throw the edit away.
   it("finds the shell's route screens and the nested parts (the next tests are not reading nothing)", () => {

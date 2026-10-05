@@ -71,6 +71,14 @@
     return res.clone().json().then(function (json) { return json; }, function () { return null; });
   }
 
+  // A number kept in session storage, or 0 when it is missing or is not a plain number >= 0. A junk value
+  // (NaN, a negative, text) must never switch the reload guard off: `NaN >= 2` is false, and the writer below
+  // would store "NaN" again, so the page would be reloaded every 16 s for ever.
+  function storedNumber(key) {
+    var n = Number(sessionStorage.getItem(key));
+    return isFinite(n) && n > 0 ? n : 0;
+  }
+
   // The session is alive but a screen file came back 404 (Auth was slow, or the file is really missing):
   // reload the page, but not for ever. Per tab, in session storage: never within 15 s of the last reload,
   // and at most twice (the probe behind this has no time limit of its own, so Auth that stays slow would
@@ -79,12 +87,12 @@
   // than a loop).
   function reloadOnce() {
     try {
-      var last = Number(sessionStorage.getItem(RETRY_KEY) || 0);
-      var count = Number(sessionStorage.getItem(RETRY_COUNT_KEY) || 0);
+      var last = storedNumber(RETRY_KEY);
+      var count = storedNumber(RETRY_COUNT_KEY);
       var now = Date.now();
       if (last && now - last >= RETRY_WINDOW_MS) count = 0;
       if (last && now - last < RETRY_GAP_MS) return;
-      if (count >= RETRY_MAX) return;
+      if (!(count < RETRY_MAX)) return;
       sessionStorage.setItem(RETRY_KEY, String(now));
       sessionStorage.setItem(RETRY_COUNT_KEY, String(count + 1));
     } catch (e) {
