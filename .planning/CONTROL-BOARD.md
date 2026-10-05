@@ -22,7 +22,7 @@ the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 Rewritten short on 2026-09-30 14:25; the long version is in git history (`8230227c`).
 
-**Last update:** 2026-10-05 17:45 (+04)
+**Last update:** 2026-10-05 20:30 (+04)
 
 ## Landing queue, 2026-10-03 00:45 (+04)
 
@@ -61,6 +61,8 @@ Rewritten short on 2026-09-30 14:25; the long version is in git history (`823022
 | `fix/review-followups` (Fable follow-ups of security and money) | **Live 17:40 2026-10-05** (`40a09eb9`, Worker `8c8ef984`). Superseded Stripe events close; Publish drops " draft" from the label (row 18 keeps its label until the next Publish); pgTAP 3d–3f; confirmation page polls every 2 s in one chain and honours 429. Fable: SHIP. Gates green on 7c015bc1 (unit 5288); lab pgTAP 108/3027 | Owner: one 4242 payment covers it |
 | `fix/checks-and-tests` (U20–U22, S16, D3, D4) | **On main 17:44 2026-10-05** (`001f4d40`; Worker `13ed22ae` = same site code, deployed to prove the new guarded deploy script). Push to main runs unit + pgTAP only; e2e and macOS visual by hand; GitHub deploy jobs never run; `pnpm test:db-lab`; deploy script refuses without `--env staging`. Fable: SHIP | **GitHub Actions blocked on billing** since 2026-10-04 ~20:00 ("recent account payments have failed or your spending limit needs to be increased"); the repo went private 2026-10-05, so Actions minutes now count. Owner: GitHub → Settings → Billing and plans |
 | All 2026-10-05 investigation jobs | **Closed 17:45**: security, money/db, content, dashboard, checks, follow-ups live; branches deleted on GitHub with archive tags; worktrees removed; GitHub has `main` only | Held: migration `20261007320000` (after a day + the owner's 4242). Later jobs: dashboard (not-staff 403, signed-out message, keep page on a failed write, two Fable lows), quote/consent own nologin role, signed quote lock still names two version ids, S5 Turnstile and S9 owner questions |
+| `fix/dashboard-followups` | **Live 20:30 2026-10-05** (`95752dba`, Worker `0be43ed1`). A refused save keeps the form (poll held at most 60 s, then /login); not-staff 403 goes to /login; OpsSidebar reload; junk/future marks read as none. Fable 5.1: SHIP (three passes). Gates green on e336d4ba (unit 5352) | Later: a transient Auth error on a save can sign him out after 60 s (Fable: let the next automatic read go through instead of redirecting blind); "You were signed out" wording (owner) |
+| `fix/signup-safety` (S5) | In review: Turnstile on sign-up, forgot-password and (owner answer, 2026-10-05) the sign-in link for a new address; no greeting before confirm; token replay closed; dashboard forgot-password mails staff only (migration `20261007330000`, apply before its Worker) | Ships after Fable + gates; then owner: sign up once with a fresh address on /sign-in |
 | Landed and cleaned 00:4x | settle safety, Dependabot, Actions trim: branches deleted on GitHub (archive tags), folders removed; the settle-safety folder waits for its session to close | |
 
 ## Controller take-over, 2026-10-02 15:26 (+04)
