@@ -95,6 +95,8 @@ jobs:
   visual:
     name: Visual + integration tests (D-25)
     runs-on: macos-latest
+    # macOS bills 10x: a stuck run must not reach the 6-hour default (same limits as deploy-staging.yml).
+    timeout-minutes: 60
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -117,6 +119,7 @@ jobs:
         run: pnpm --filter web exec playwright install chromium
 
       - name: Visual + integration tests (screenshot diffs, D-25)
+        timeout-minutes: 45
         run: pnpm test:visual
 
   # 26.0 D-01 / e2e-linux-3: the booking-funnel specs on Linux. The jobs live in one reusable workflow
