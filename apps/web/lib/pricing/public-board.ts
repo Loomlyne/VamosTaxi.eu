@@ -194,15 +194,18 @@ export function publicCatalogRoutes(
   const out: PublicCatalogRoute[] = [];
   for (const row of book.fixed_routes) {
     if (isCantonFixed(row, byId)) continue;
-    const key = `${row.origin_zone_id}::${row.dest_zone_id}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
     const origin = byId.get(row.origin_zone_id);
     const dest = byId.get(row.dest_zone_id);
+    // Security S10 (2026-10-05): the key and the labels are built from zone slugs, never from the
+    // zone row ids. A pair whose zone row is missing cannot be named without its id, so it stays out.
+    if (!origin || !dest) continue;
+    const key = `${origin.slug}::${dest.slug}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
     out.push({
       key,
-      from: zonePublicLabel(origin, row.origin_zone_id, names),
-      to: zonePublicLabel(dest, row.dest_zone_id, names),
+      from: zonePublicLabel(origin, origin.slug, names),
+      to: zonePublicLabel(dest, dest.slug, names),
       from_mapbox_id: mapboxIdFromTags(origin?.tags),
       to_mapbox_id: mapboxIdFromTags(dest?.tags),
     });

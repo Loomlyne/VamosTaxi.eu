@@ -20,8 +20,7 @@ const SUCCESS_KEYS = [
   "expires_at",
   "engine_version",
   "pricing_live",
-  "rate_version",
-  "settings_version_id",
+  // Security S10 (2026-10-05): rate_version and settings_version_id are internal row ids; gone.
   "display_currency",
   "route",
   "no_eligible_class",
@@ -183,11 +182,11 @@ describe("quoteResponse", () => {
     expect(body).not.toHaveProperty("error");
   });
 
-  it("against a fully-null board still emits complete lines, pricing_live false and rate_version null", async () => {
+  it("against a fully-null board still emits complete lines, pricing_live false and no rate_version", async () => {
     const res = quoteResponse(successQuote());
     const body = (await res.json()) as QuotePipelineOk;
     expect(body.pricing_live).toBe(false);
-    expect(body.rate_version).toBeNull();
+    expect(body).not.toHaveProperty("rate_version");
     expect(body.classes).toHaveLength(3);
     for (const cls of body.classes) {
       expect(cls.total_rappen).toBeNull();

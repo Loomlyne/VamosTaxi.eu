@@ -233,6 +233,13 @@ interface CloudflareEnv {
   TURNSTILE_ATTEMPT_LIMITER?: RateLimit;
 
   /**
+   * Security S12 (2026-10-05): the public database reads (checkout status and resume, manage
+   * booking, pay-link open, lock-expire, published reviews), 120 per 60 s per `read:<route>:<ip>`.
+   * Namespace 1012. OPTIONAL: missing → fail open (lib/abuse/read-rate-limit.ts).
+   */
+  READ_RATE_LIMITER?: RateLimit;
+
+  /**
    * POST /api/quote/reprice and the voucher check in POST /api/checkout/price, verified
    * visitor: 12 per 60 s per `ip:subject`. Own namespace so a flight or voucher edit never
    * spends the /api/quote allowance (quick 261003). OPTIONAL: missing → fail open.

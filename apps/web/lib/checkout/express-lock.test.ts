@@ -27,7 +27,8 @@ function sliceFunction(src: string, name: string): string {
 }
 
 describe("lock-expire stored session", () => {
-  const route = read("../../app/api/checkout/lock-expire/route.ts");
+  // S8: the route wires lib/checkout/lock-expire.ts; read both as one source.
+  const route = read("../../app/api/checkout/lock-expire/route.ts") + read("./lock-expire.ts");
   const pay = read("../../app/[locale]/checkout/pay/[token]/PayClient.tsx");
   const open = read("../../app/api/checkout/pay-link/open/route.ts");
   const expire = sliceFunction(pay, "expireStoredCheckoutSession");

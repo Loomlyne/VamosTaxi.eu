@@ -9,6 +9,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { loadAndPrice, type QuoteLoaders } from "./engine";
+import { draftPreviewAllowed } from "./deps";
 import type { DistanceRateRow, QuoteInput } from "../pricing/types";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -291,10 +292,11 @@ describe("loadAndPrice", () => {
     expect(draftTrue.quote.pricing_live).toBe(false);
   });
 
-  it("passes preferDraft true only when preview is true AND dashboardHost is true", async () => {
+  it("passes preferDraft true only when preview is true AND dashboardHost is true AND a staff session asked (S14)", async () => {
     const cases: Array<{
       preview?: string;
       dashboardHost?: boolean;
+      staffSession?: boolean;
       expected: boolean;
     }> = [
       { preview: undefined, expected: false },
@@ -303,9 +305,13 @@ describe("loadAndPrice", () => {
       { preview: "1", expected: false },
       { preview: "true", expected: false },
       { preview: "true", dashboardHost: false, expected: false },
-      { preview: "true", dashboardHost: true, expected: true },
-      { preview: "false", dashboardHost: true, expected: false },
-      { preview: undefined, dashboardHost: true, expected: false },
+      { preview: "true", dashboardHost: false, staffSession: true, expected: false },
+      // Security S14 (2026-10-05): the dashboard host without a staff session is the live book.
+      { preview: "true", dashboardHost: true, expected: false },
+      { preview: "true", dashboardHost: true, staffSession: false, expected: false },
+      { preview: "true", dashboardHost: true, staffSession: true, expected: true },
+      { preview: "false", dashboardHost: true, staffSession: true, expected: false },
+      { preview: undefined, dashboardHost: true, staffSession: true, expected: false },
     ];
     for (const c of cases) {
       let seen: boolean | undefined;
@@ -320,12 +326,36 @@ describe("loadAndPrice", () => {
           },
         }),
         undefined,
-        { dashboardHost: c.dashboardHost },
+        { dashboardHost: c.dashboardHost, staffSession: c.staffSession },
       );
       expect(
         seen,
-        `preview=${String(c.preview)} dashboardHost=${String(c.dashboardHost)}`,
+        `preview=${String(c.preview)} dashboardHost=${String(c.dashboardHost)} staff=${String(c.staffSession)}`,
       ).toBe(c.expected);
+    }
+  });
+
+  it("S14: draftPreviewAllowed asks the staff gate only on the dashboard host with preview on, and a throw is no", async () => {
+    const asked: string[] = [];
+    const staff = (answer: boolean | Error) => async () => {
+      asked.push("staff");
+      if (answer instanceof Error) throw answer;
+      return answer;
+    };
+    expect(await draftPreviewAllowed({ PRICING_PREVIEW: "true" }, "vamostaxi.site", staff(true))).toBe(false);
+    expect(await draftPreviewAllowed({ PRICING_PREVIEW: undefined }, "dashboard.vamostaxi.site", staff(true))).toBe(false);
+    expect(asked).toEqual([]);
+    expect(await draftPreviewAllowed({ PRICING_PREVIEW: "true" }, "dashboard.vamostaxi.site", staff(false))).toBe(false);
+    expect(await draftPreviewAllowed({ PRICING_PREVIEW: "true" }, "dashboard.vamostaxi.site", staff(new Error("x")))).toBe(false);
+    expect(await draftPreviewAllowed({ PRICING_PREVIEW: "true" }, "dashboard.vamostaxi.site", staff(true))).toBe(true);
+    expect(await draftPreviewAllowed({ PRICING_PREVIEW: "true" }, "dashboard.localhost:3000", staff(true))).toBe(true);
+  });
+
+  it("S14: both quote routes gate the draft book on a staff session, never on the host alone", () => {
+    for (const rel of ["../../app/api/quote/route.ts", "../../app/api/quote/reprice/route.ts"]) {
+      const src = readFileSync(join(here, rel), "utf8");
+      expect(src, rel).toMatch(/draftPreviewAllowed\(env, host,/);
+      expect(src, rel).toMatch(/buildQuotePipelineDeps\(env, \{[\s\S]{0,80}staffSession/);
     }
   });
 

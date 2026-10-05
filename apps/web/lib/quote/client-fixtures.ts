@@ -145,8 +145,6 @@ function baseQuote(
     expires_at: "2099-01-01T12:00:00.000Z",
     engine_version: "quote-engine@fixture",
     pricing_live: false,
-    rate_version: null,
-    settings_version_id: 1,
     display_currency: "CHF",
     route: { legs: [outboundLeg()] },
     no_eligible_class: false,

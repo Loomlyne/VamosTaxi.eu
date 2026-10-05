@@ -3,6 +3,7 @@
 // GET /api/reviews — published rows only. No staff session. No locked field.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { readAllowed, readRateLimited } from "@/lib/abuse/read-rate-limit";
 import { loadPublishedReviews } from "@/lib/public/reviews";
 
 export const dynamic = "force-dynamic";
@@ -22,8 +23,11 @@ function methodNotAllowed(): Response {
   return Response.json({ ok: false, code: "method_not_allowed" }, { status: 405, headers: noStore });
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   const { env } = getCloudflareContext();
+  // Security S12: rate limited; the refusal is private and never cached. The review store
+  // (app/vamos-reviews.js) asks again after 5 s.
+  if (!(await readAllowed(env.READ_RATE_LIMITER, "reviews", request))) return readRateLimited();
   const rows = await loadPublishedReviews(env);
   return jsonOk(rows);
 }

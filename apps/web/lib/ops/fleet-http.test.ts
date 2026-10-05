@@ -7,6 +7,8 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 vi.mock("../db/identity", () => ({
   asStaff: vi.fn(),
 }));
+// S13: the staff row check is its own module; here the row is active.
+vi.mock("./staff-active", () => ({ staffRowActive: async () => true }));
 
 const createSupabaseServerClient = vi.fn();
 
