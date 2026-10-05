@@ -136,7 +136,6 @@ async function fixtures(page: Page, opts: { status?: "pending" | "confirmed" } =
     (url) => url.hostname.includes("cloudflare") || url.hostname.includes("turnstile"),
     (route) => route.abort(),
   );
-  await page.route("**/api/flight/**", (route) => json(route, { ok: false }));
   await page.route("**/api/quote", (route) =>
     json(route, {
       ok: true,

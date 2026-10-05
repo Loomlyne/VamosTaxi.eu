@@ -2,7 +2,7 @@
 //
 // Quick 261003: lookups, quotes and reprices spend three different Worker rate-limit
 // counters. On live (2026-10-03) address typing on home spent the 4/60 the first
-// /checkout quote needed, because geo, flight and quote shared one namespace + key.
+// /checkout quote needed, because geo and quote shared one namespace + key.
 
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -42,15 +42,13 @@ class MemoryKV {
   }
 }
 
-/** The six bindings with the wrangler.jsonc numbers. */
+/** The bindings with the wrangler.jsonc numbers. */
 function makeEnv() {
   const limiters = {
     QUOTE_RATE_LIMITER: new CountingLimiter(8),
     QUOTE_RATE_LIMITER_BARE: new CountingLimiter(4),
     PRICE_RATE_LIMITER: new CountingLimiter(12),
     PRICE_RATE_LIMITER_BARE: new CountingLimiter(8),
-    FLIGHT_RATE_LIMITER: new CountingLimiter(10),
-    FLIGHT_RATE_LIMITER_BARE: new CountingLimiter(6),
     LOOKUP_RATE_LIMITER: new CountingLimiter(60),
     LOOKUP_RATE_LIMITER_BARE: new CountingLimiter(30),
   };
@@ -141,25 +139,13 @@ describe("rate counters are separate (quick 261003)", () => {
     expect(counterBindings(env, "price").QUOTE_RATE_LIMITER_BARE).toBe(limiters.PRICE_RATE_LIMITER_BARE);
     expect(counterBindings(env, "lookup").QUOTE_RATE_LIMITER).toBe(limiters.LOOKUP_RATE_LIMITER);
     expect(counterBindings(env, "lookup").QUOTE_RATE_LIMITER_BARE).toBe(limiters.LOOKUP_RATE_LIMITER_BARE);
-    expect(counterBindings(env, "flight").QUOTE_RATE_LIMITER).toBe(limiters.FLIGHT_RATE_LIMITER);
-    expect(counterBindings(env, "flight").QUOTE_RATE_LIMITER_BARE).toBe(limiters.FLIGHT_RATE_LIMITER_BARE);
-  });
-
-  it("flight lookups spend their own small counter: 6 bare, then refused, while geo lookups still pass", async () => {
-    const { env, limiters } = makeEnv();
-    for (let i = 0; i < 6; i++) expect((await wireRateLimitGuard(env, req(), "flight")()).ok).toBe(true);
-    expect(await wireRateLimitGuard(env, req(), "flight")()).toEqual({ ok: false, code: "rate_limited" });
-    expect(limiters.LOOKUP_RATE_LIMITER_BARE.total).toBe(0);
-    expect((await wireRateLimitGuard(env, req())()).ok).toBe(true);
-    expect((await (await wireQuoteAbuse(env, req())).rateLimit()).ok).toBe(true);
-    expect(limiters.FLIGHT_RATE_LIMITER_BARE.total).toBe(7);
   });
 });
 
 describe("routes and wrangler.jsonc agree (quick 261003)", () => {
   const read = (rel: string) => readFileSync(join(WEB, rel), "utf8");
 
-  it("geo routes use the lookup counter, flight its own; quote uses quote; reprice and price use price", () => {
+  it("geo routes use the lookup counter; quote uses quote; reprice and price use price", () => {
     for (const rel of [
       "app/api/geo/suggest/route.ts",
       "app/api/geo/retrieve/route.ts",
@@ -169,9 +155,6 @@ describe("routes and wrangler.jsonc agree (quick 261003)", () => {
       expect(src, rel).toMatch(/wireRateLimitGuard\(env, request\)/);
       expect(src, rel).not.toMatch(/wireQuoteAbuse/);
     }
-    const flight = read("app/api/flight/[no]/route.ts");
-    expect(flight).toMatch(/wireRateLimitGuard\(env, request, "flight"\)/);
-    expect(flight).not.toMatch(/wireQuoteAbuse/);
     expect(read("app/api/quote/route.ts")).toMatch(/wireQuoteAbuse\(env, request, "quote", \{/);
     expect(read("app/api/quote/reprice/route.ts")).toMatch(/wireQuoteAbuse\(env, request, "price"\)/);
     expect(read("app/api/checkout/price/route.ts")).toMatch(/wireQuoteAbuse\(env, request, "price"\)/);
@@ -186,8 +169,6 @@ describe("routes and wrangler.jsonc agree (quick 261003)", () => {
       ["LOOKUP_RATE_LIMITER_BARE", "1006", 30],
       ["PRICE_RATE_LIMITER", "1007", 12],
       ["PRICE_RATE_LIMITER_BARE", "1008", 8],
-      ["FLIGHT_RATE_LIMITER", "1009", 10],
-      ["FLIGHT_RATE_LIMITER_BARE", "1010", 6],
       ["TURNSTILE_ATTEMPT_LIMITER", "1011", 2],
     ];
     for (const [name, ns, limit] of expected) {

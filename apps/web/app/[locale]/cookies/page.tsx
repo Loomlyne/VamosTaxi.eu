@@ -70,7 +70,7 @@ export default async function CookiesPage({
       kickerKey="common.legal"
       effectiveDateLabel="Cookies effective date"
       versionLabel="Cookies version"
-      consentDated
+      dated
     >
       <LanguageCoverageNotice page="cookies" />
 

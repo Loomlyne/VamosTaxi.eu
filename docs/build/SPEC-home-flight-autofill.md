@@ -1,5 +1,7 @@
 # 06 — Home · flight number autofill (AeroDataBox)
 
+> **Superseded 2026-10-05 (owner, repo investigation answer 6):** no flight provider, no lookup, no tracking. The field only takes the flight number. `/api/flight`, `lib/flight/aerodatabox` and `FLIGHT_API_KEY` are removed. Kept for history only.
+
 **Surface:** `home.dc.html` (booking website, home) · **Component:** the hero quote widget's `Flight (optional)` field + flight panel
 **Source of truth:** client spec "Flight Auto-Fill Logic using AeroDataBox" (chat, 4 Aug 2026)
 **Status:** logic built 4 Aug 2026 · running on fixtures — one API key away from live

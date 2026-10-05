@@ -57,7 +57,7 @@ export default async function TermsPage({
       kickerKey="common.legal"
       effectiveDateLabel="Terms effective date"
       versionLabel="Terms version"
-      shipDated
+      dated
     >
       <LanguageCoverageNotice page="terms" />
 
@@ -209,13 +209,13 @@ export default async function TermsPage({
           <span data-lg-n="1">08</span>
           {tOps("waiting-time")}
         </h2>
-        <p>{t("waiting-is-included-measured-from-the-pickup-tim")}</p>
+        <p>{t("waiting-is-included")}</p>
         <ul>
           <li>{t("airport-pickups-60-minutes-after-landing")}</li>
           <li>{t("all-other-pickups-30-minutes-counted")}</li>
         </ul>
         <p>
-          {t("beyond-allowance-per-commenced-hour")} {t("flight-delayed-allowance-moves")}
+          {t("beyond-allowance-per-commenced-hour")} {t("if-your-flight-is-delayed-tell-us-as-soon-as-you")}
         </p>
       </section>
 

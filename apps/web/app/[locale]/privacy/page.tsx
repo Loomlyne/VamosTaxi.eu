@@ -60,7 +60,7 @@ export default async function PrivacyPage({
       kickerKey="common.legal"
       effectiveDateLabel="Privacy effective date"
       versionLabel="Privacy version"
-      consentDated
+      dated
     >
       {/* LegalPage PendingSlot: Privacy effective date */}
       {/* LegalPage PendingSlot: Privacy version */}
@@ -106,7 +106,7 @@ export default async function PrivacyPage({
         <ul>
           <li>{t("lead-passenger-name-email-address-and-mobile-num")}</li>
           <li>{t("pickup-and-drop-off-address-and-any-additional-s")}</li>
-          <li>{t("flight-number-where-you-gave-one-and-the-arrival")}</li>
+          <li>{t("flight-number-where-you-gave-one")}</li>
           <li>{t("passenger-and-luggage-count-child-seat-requests")}</li>
           <li>{t("anything-you-type-into-the-notes-field-for-the-d")}</li>
         </ul>
@@ -189,14 +189,6 @@ export default async function PrivacyPage({
             }
           />
           <ListRow title="Mapbox" subtitle={t("address-lookup-and-route-distance-united-states")} />
-          <ListRow
-            title="AeroDataBox"
-            subtitle={
-              <>
-                {t("flight-number-and-arrival-time")} <PendingSlot label="AeroDataBox region" />
-              </>
-            }
-          />
           <ListRow
             title={tCommon("resend")}
             subtitle={

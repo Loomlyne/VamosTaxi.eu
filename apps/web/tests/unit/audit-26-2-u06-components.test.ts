@@ -77,22 +77,18 @@ describe("U06-7: error and hint text is tied to the control", () => {
   });
 });
 
-describe("U06-8 / U06-2: flight field", () => {
-  it("every language has the day-group name, and it is not the word for today", () => {
-    for (const l of LOCALES) {
-      const q = messages[l].quote.flight;
-      expect(typeof q.dayGroup).toBe("string");
-      expect(q.dayGroup.length).toBeGreaterThan(3);
-      expect(q.dayGroup).not.toBe(q.today);
-    }
-  });
-  it("renders idle (no card) and keeps its source wired to the trip date and a live region", () => {
-    const html = render(createElement(FlightField, { value: "", date: "2031-05-02", onChange: () => {} }));
+describe("flight field: the number the traveller gives us, no lookup", () => {
+  it("renders the plain input with its label and no card", () => {
+    const html = render(createElement(FlightField, { value: "", onChange: () => {} }));
     expect(html).toContain("data-checkout-flight");
+    expect(html).toContain("Flight (optional)");
+    expect(html).not.toContain("vt-flight__card");
+  });
+  it("keeps the shape check and never calls a provider", () => {
     const src = readFileSync(resolve(__dirname, "../../components/booking/FlightField.tsx"), "utf8");
-    expect(src).toContain('aria-live="polite"');
-    expect(src).toContain('aria-label={t("dayGroup")}');
-    expect(src).toMatch(/useEffect\(\(\) => \{\s*setChoice\(dayOf\(tripDate\)\);[\s\S]*?\[tripDate\]/);
+    expect(src).toContain("FLIGHT_NUMBER_RE");
+    expect(src).toContain('t("malformed")');
+    expect(src).not.toMatch(/fetch\(|\/api\/flight/);
   });
 });
 

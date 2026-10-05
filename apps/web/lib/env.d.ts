@@ -153,13 +153,6 @@ interface CloudflareEnv {
   TURNSTILE_SECRET?: string;
 
   /**
-   * AeroDataBox (or successor) flight API key (D-47 / ADR-014 §4 deferred). OPTIONAL —
-   * may never arrive at all. First consumer: plan 04-12 `/api/flight`.
-   * Never appears in wrangler.jsonc `vars`.
-   */
-  FLIGHT_API_KEY?: string;
-
-  /**
    * Dedicated abuse / daily-breaker KV namespace (D-37) — never GEO_CACHE.
    * TTL semantics differ; mixing a daily counter with a cache is how one evicts the other.
    * REQUIRED. First consumer: plan 04-13 `quote:mapbox-budget:YYYY-MM-DD` breaker.
@@ -214,16 +207,6 @@ interface CloudflareEnv {
 
   /** Lookups, bare IP / unverifiable cookie: 30 per 60 s per IPv4 address or IPv6 /64 (quick 261003). */
   LOOKUP_RATE_LIMITER_BARE?: RateLimit;
-
-  /**
-   * GET /api/flight/[no], verified visitor: 10 per 60 s per `ip:subject`. Own namespace:
-   * AeroDataBox bills every call and not_found is never cached (quick 261003 review).
-   * OPTIONAL: missing → fail open.
-   */
-  FLIGHT_RATE_LIMITER?: RateLimit;
-
-  /** Flight lookups, bare IP: 6 per 60 s per IPv4 address or IPv6 /64 (quick 261003 review). */
-  FLIGHT_RATE_LIMITER_BARE?: RateLimit;
 
   /**
    * Quote challenge attempt counter (quick 261003 review 5): 2 per 60 s per `ip` or

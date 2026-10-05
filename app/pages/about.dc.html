@@ -67,7 +67,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 [data-seg] button:hover{color:var(--vt-text-inverse)}
 [data-seg] button[aria-pressed="true"]{background:var(--vt-accent);color:var(--vt-text-on-accent)}
 :focus-visible:not(input):not(select):not(textarea):not(.vt-btn){outline:3px solid rgb(253 194 11/.45)!important;outline-offset:3px;border-radius:var(--vt-radius-xs)}
-@media (min-width:980px){[data-split]{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}}
+@media (min-width:980px){[data-split]{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}[data-split][data-solo]{grid-template-columns:minmax(0,1fr)}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}</style>
 </helmet>
 
@@ -93,7 +93,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 </header>
 
 <section data-sec="1" aria-labelledby="story-h">
-<div data-split="1">
+<div data-split="1" data-solo="1">
 <div>
 <p data-kick="1">Who we are</p>
 <h2 data-h2="1" id="story-h">Founder-led, and answerable</h2>
@@ -101,12 +101,14 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <p data-p="1"><span data-a1="1">{{ sOperate }}</span> Every driver who works with us is licensed for passenger transport and insured for it, and we do not put a vehicle on a job we would not put a family member in.</p>
 <p data-p="1">We are a scheduled operator. You cannot hail us on the street and there is no app watching a car crawl towards you. What you get instead is a named driver, a confirmed time and a price that was agreed before anyone set off.</p>
 </div>
+<!-- Founder image box hidden until there is a photo (owner, 2026-10-05). Restore: delete data-solo from the split above and put this back as its second column:
 <div>
 <div data-imgslot="1">
 <strong>Image slot — the founder</strong>
 <span data-vt-no-i18n="1">A portrait of Ben Othman Houssein, or him beside a vehicle. Cool daylight, no studio background. No photograph exists today, and a founder-led story with a stock face is worse than one with none.</span>
 </div>
 </div>
+-->
 </div>
 </section>
 

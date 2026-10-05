@@ -555,7 +555,7 @@ export type WriteFlightResult =
   | { ok: true; bookingId: string; flightNo: string }
   | EditAcceptFail;
 
-/** D-27: flight number write-through. No ops confirm. Never AeroDataBox. */
+/** D-27: flight number write-through. No ops confirm. */
 export async function writeCustomerFlightNo(
   env: CloudflareEnv,
   auth: CustomerEditAuth,

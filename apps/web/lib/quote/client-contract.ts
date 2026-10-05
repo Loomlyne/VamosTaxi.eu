@@ -260,15 +260,17 @@ export const REFUSAL_BINDINGS: Record<QuoteErrorCode, Binding> = {
 };
 
 /**
- * ICU params that must wear `.vt-dir-keep` under Arabic: countdown `{time}`,
- * coupon `{code}`, flight times `{t}` / candidate `{time}`, airport codes
- * `{ap}`. Booking references are not in quote.* / price.* this phase.
+ * ICU params that must wear `.vt-dir-keep` under Arabic: countdown `{time}`
+ * and coupon `{code}`. The site takes a flight number and does not look the
+ * flight up (owner, 2026-10-05), so there are no flight times or airport
+ * codes in quote.* / price.* any more. Booking references are not in
+ * quote.* / price.* this phase.
  *
  * ADR-012: Economy, Business and Van are literals wearing `.vt-dir-keep` in
  * every locale and are already in `$meta.nonTranslatableKeys` — this
  * registry adds nothing for them.
  */
-export const DIR_KEEP_PARAMS = ["time", "code", "t", "ap"] as const;
+export const DIR_KEEP_PARAMS = ["time", "code"] as const;
 
 export type DirKeepParam = (typeof DIR_KEEP_PARAMS)[number];
 
