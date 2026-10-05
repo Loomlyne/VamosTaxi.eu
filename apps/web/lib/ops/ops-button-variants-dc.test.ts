@@ -59,8 +59,13 @@ describe("U11: no Button on the dashboard asks for a variant the kit does not ha
     expect(offenders).toEqual([]);
   });
 
-  it("a Button whose variant is bound ({{ name }}) never gets 'outline' for that name in its screen's code", () => {
+  // A bound variant (`variant="{{ name }}"`) is decided in the screen's code. The values it can take are read from
+  // the lines that assign it, in the two shapes the screens use: `name: cond ? 'a' : 'b'` and `name: 'a'`.
+  // Anything else fails loudly, so a new shape has to be looked at by a person. An empty string is not a
+  // variant either: the Button would class itself `vt-btn--` and draw the browser's grey face.
+  it("a Button whose variant is bound ({{ name }}) can only be one of the kit's five, never '' or 'outline'", () => {
     const offenders: string[] = [];
+    let checked = 0;
     for (const s of screens) {
       for (const tag of buttonTags(s.source)) {
         const bound = /\bvariant="\{\{\s*([\w.]+)\s*\}\}"/.exec(tag);
@@ -69,18 +74,27 @@ describe("U11: no Button on the dashboard asks for a variant the kit does not ha
         const assignments = s.source
           .split("\n")
           .filter((line) => new RegExp(`\\b${name}\\s*:`).test(line) && !line.includes("<x-import"));
+        if (assignments.length === 0) offenders.push(`${s.name}: nothing assigns ${name}`);
         for (const line of assignments) {
-          if (/['"]outline['"]/.test(line)) offenders.push(`${s.name}: ${line.trim().slice(0, 140)}`);
+          const ternary = /\?\s*'([^']*)'\s*:\s*'([^']*)'/.exec(line);
+          const plain = new RegExp(`\\b${name}\\s*:\\s*'([^']*)'`).exec(line);
+          const values = ternary ? [ternary[1], ternary[2]] : plain ? [plain[1]] : [];
+          if (values.length === 0) offenders.push(`${s.name}: cannot read the values of ${name}: ${line.trim().slice(0, 120)}`);
+          for (const value of values) {
+            checked += 1;
+            if (!KIT_BUTTON_VARIANTS.includes(value ?? "")) offenders.push(`${s.name}: ${name} can be '${value}'`);
+          }
         }
       }
     }
     expect(offenders).toEqual([]);
+    expect(checked).toBeGreaterThanOrEqual(8); // kanbanVariant, tableVariant, btnVariant, vatSaveVariant: two values each
   });
 
-  it("the Kanban / Table switch of the calendar board is ghost when it is not the open view", () => {
+  it("the Kanban / Table switch of the calendar board: the open view is secondary (charcoal), the other is ghost", () => {
     const board = screens.find((s) => s.name === "OpsCalendarBoard.dc.html")?.source ?? "";
-    expect(board).toContain("kanbanVariant: view === 'kanban' ? '' : 'ghost'");
-    expect(board).toContain("tableVariant: view === 'table' ? '' : 'ghost'");
+    expect(board).toContain("kanbanVariant: view === 'kanban' ? 'secondary' : 'ghost'");
+    expect(board).toContain("tableVariant: view === 'table' ? 'secondary' : 'ghost'");
   });
 });
 
