@@ -52,15 +52,20 @@ describe("status poll cadence and 429 back-off (S12)", () => {
     expect(nextPollDelayMs(429, null, 0)).toBe(POLL_BACKOFF_DEFAULT_MS);
   });
 
-  it("the confirmation client uses them: a 429 sets a floor that a hidden-then-shown tab also respects", () => {
+  it("the confirmation client uses them: a 429 sets a floor that a hidden-then-shown tab also respects, on one chain", () => {
     const client = readFileSync(join(WEB_ROOT, "app/[locale]/confirmation/[ref]/ConfirmationClient.tsx"), "utf8");
     expect(client).toContain('from "@/lib/checkout/status-poll"');
     expect(client).not.toMatch(/POLL_INTERVAL_MS\s*=\s*1000/);
     expect(client).toContain('nextPollDelayMs(res.status, res.headers.get("retry-after"), Math.random())');
     expect(client).toContain("res.status === 429");
     expect(client).toContain("notBefore = Date.now() + delay");
-    expect(client).toContain("window.setTimeout(tick, delay)");
-    expect(client).toContain("Math.max(POLL_INTERVAL_MS, notBefore - Date.now())");
+    expect(client).toContain("schedule(delay)");
+    expect(client).toContain("schedule(Math.max(POLL_INTERVAL_MS, notBefore - Date.now()))");
+    // One chain only: every poll after the first is armed through schedule(), which replaces the pending
+    // timer. A raw second setTimeout(tick, ...) would let a tab hidden and shown during an in-flight request
+    // run two chains (60 a minute per tab).
+    expect(client).toMatch(/function schedule\(ms: number\) \{\s+window\.clearTimeout\(timeoutId\);\s+timeoutId = window\.setTimeout\(tick, ms\);\s+\}/);
+    expect(client.match(/window\.setTimeout\(tick,/g)?.length).toBe(2); // the first poll (0) and schedule()
     // A 429 body is not parsed as a status answer.
     const afterRateLimit = client.slice(client.indexOf("res.status === 429"));
     expect(afterRateLimit.indexOf("pollStatus(await res.json())")).toBeGreaterThan(afterRateLimit.indexOf("} else {"));

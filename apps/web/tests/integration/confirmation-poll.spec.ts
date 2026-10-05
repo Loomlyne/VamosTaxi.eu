@@ -150,6 +150,41 @@ test("never confirmed: Payment received. after 20 s, no error copy, still pollin
   await expect(page.locator("[data-confirmation-state=booked]")).toBeVisible();
 });
 
+test("hiding and showing the tab while a request is in flight keeps one poll chain @checkout", async ({ page }) => {
+  // Review D1: the in-flight poll arms the next one when it ends, and the visibility handler arms one when the
+  // tab is shown. Two timers meant two chains (60 requests a minute per tab, one more per app switch).
+  // Real time: the first request is held, the tab is hidden and shown, then the request is released.
+  // Seven seconds of waiting plus a possible first compile of the page: more than the 30 s default.
+  test.setTimeout(90_000);
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const state = { hits: 0 };
+  await page.route("**/api/checkout/status/**", async (route) => {
+    state.hits += 1;
+    if (state.hits === 1) await gate;
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ status: "pending" }) });
+  });
+  await openConfirmation(page);
+  await expect.poll(() => state.hits).toBe(1);
+
+  await page.evaluate(() => {
+    Object.defineProperty(document, "hidden", { configurable: true, get: () => true });
+    document.dispatchEvent(new Event("visibilitychange"));
+    Object.defineProperty(document, "hidden", { configurable: true, get: () => false });
+    document.dispatchEvent(new Event("visibilitychange"));
+  });
+  release();
+
+  // Seven seconds at one poll every 2 s is 3 more requests on one chain (6 or 7 on two).
+  await page.waitForTimeout(7_000);
+  const after = state.hits - 1;
+  expect(after).toBeGreaterThanOrEqual(2);
+  expect(after).toBeLessThanOrEqual(4);
+  await expect(page.locator("main")).not.toContainText(/failed|error|try again|retry/i);
+});
+
 test("a 429 from the status route waits for Retry-After, then keeps polling and swaps in place @checkout", async ({ page }) => {
   // 261005 S12: customers behind one address can use up the route's per-address limit. The page honours the
   // 429 (Retry-After 30 s, plus up to 2 s spread) instead of asking again every poll.

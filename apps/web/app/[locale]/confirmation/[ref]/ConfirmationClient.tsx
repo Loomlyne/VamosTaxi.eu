@@ -495,6 +495,14 @@ export function ConfirmationClient({
     // S12: after a 429 no poll goes out before this time, also when the tab was hidden and shown again.
     let notBefore = 0;
 
+    // One pending poll at most. Every later poll is armed through here, so a tab hidden and shown while a
+    // request is in flight (the in-flight tick arms one when it ends, the visibility handler arms one when
+    // the tab is shown) replaces the earlier timer instead of starting a second chain.
+    function schedule(ms: number) {
+      window.clearTimeout(timeoutId);
+      timeoutId = window.setTimeout(tick, ms);
+    }
+
     async function tick() {
       if (stopped) return;
       const hidden = typeof document !== "undefined" && document.hidden;
@@ -521,7 +529,7 @@ export function ConfirmationClient({
         }
       }
       if (stopped) return;
-      timeoutId = window.setTimeout(tick, delay);
+      schedule(delay);
     }
 
     function onVisibility() {
@@ -530,7 +538,7 @@ export function ConfirmationClient({
         return;
       }
       if (stopped) return;
-      timeoutId = window.setTimeout(tick, Math.max(POLL_INTERVAL_MS, notBefore - Date.now()));
+      schedule(Math.max(POLL_INTERVAL_MS, notBefore - Date.now()));
     }
 
     document.addEventListener("visibilitychange", onVisibility);
