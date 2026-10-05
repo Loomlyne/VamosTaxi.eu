@@ -20,6 +20,10 @@
   // The shell's helmet can run this file twice (parser, then the dc-runtime): one watcher only.
   var LOST_KEY = "vamosOpsSessionLostAt";
   var RETRY_KEY = "vamosOpsScreenRetryAt";
+  var RETRY_COUNT_KEY = "vamosOpsScreenRetryCount";
+  var RETRY_GAP_MS = 15000;
+  var RETRY_MAX = 2;
+  var RETRY_WINDOW_MS = 600000;
   var lost = false;
   var probing = false;
 
@@ -59,14 +63,21 @@
   }
 
   // The session is alive but a screen file came back 404 (Auth was slow, or the file is really missing):
-  // one reload, then leave it. The mark is per tab and lasts 15 s; without storage there is no guard, so
-  // there is no reload (a blank screen is better than a loop).
+  // reload the page, but not for ever. Per tab, in session storage: never within 15 s of the last reload,
+  // and at most twice (the probe behind this has no time limit of its own, so Auth that stays slow would
+  // otherwise repeat "404, probe answers, 15 s have passed" for ever). After ten quiet minutes the count
+  // starts again. Without storage there is no guard, so there is no reload (a blank screen is better
+  // than a loop).
   function reloadOnce() {
     try {
       var last = Number(sessionStorage.getItem(RETRY_KEY) || 0);
+      var count = Number(sessionStorage.getItem(RETRY_COUNT_KEY) || 0);
       var now = Date.now();
-      if (last && now - last < 15000) return;
+      if (last && now - last >= RETRY_WINDOW_MS) count = 0;
+      if (last && now - last < RETRY_GAP_MS) return;
+      if (count >= RETRY_MAX) return;
       sessionStorage.setItem(RETRY_KEY, String(now));
+      sessionStorage.setItem(RETRY_COUNT_KEY, String(count + 1));
     } catch (e) {
       return;
     }

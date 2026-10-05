@@ -154,6 +154,43 @@ describe("dashboard shell: a dead session goes to /login, not a blank screen (U8
     expect(t.replaced).toEqual([]);
   });
 
+  // U8 review 2: the probe behind the reload (/api/staff/me) has no timeout of its own, so with Auth that
+  // stays slow the chain "404 at 5 s, probe answers at 6+ s, mark older than 15 s" repeats: a reload every ~16 s.
+  it("Auth that stays slow: a third 404 after the second reload (16 s apart each) does not reload", async () => {
+    const clock = { now: 2_000_000 };
+    const t = tab((url) => (url.startsWith("/app/ops/") ? { status: 404 } : { status: 200, body: { ok: true, data: {} } }), { clock });
+    for (let round = 0; round < 5; round += 1) {
+      await t.win.fetch(SCREEN);
+      await flush();
+      clock.now += 16_000;
+    }
+    expect(t.reloaded).toEqual(["reload", "reload"]);
+    expect(t.replaced).toEqual([]);
+  });
+
+  it("the count is per tab and lives in session storage: a page that came back after two reloads sees it", async () => {
+    const clock = { now: 2_000_000 };
+    const t = tab((url) => (url.startsWith("/app/ops/") ? { status: 404 } : { status: 200, body: { ok: true, data: {} } }), {
+      clock,
+      session: { vamosOpsScreenRetryAt: String(clock.now - 20_000), vamosOpsScreenRetryCount: "2" },
+    });
+    await t.win.fetch(SCREEN);
+    await flush();
+    expect(t.reloaded).toEqual([]);
+  });
+
+  it("after ten quiet minutes the count starts again: a person who navigates later is helped again", async () => {
+    const clock = { now: 2_000_000 };
+    const t = tab((url) => (url.startsWith("/app/ops/") ? { status: 404 } : { status: 200, body: { ok: true, data: {} } }), {
+      clock,
+      session: { vamosOpsScreenRetryAt: String(clock.now - 601_000), vamosOpsScreenRetryCount: "2" },
+    });
+    await t.win.fetch(SCREEN);
+    await flush();
+    expect(t.reloaded).toEqual(["reload"]);
+    expect(t.session.getItem("vamosOpsScreenRetryCount")).toBe("1");
+  });
+
   it("an old retry mark does not block a new reload", async () => {
     const clock = { now: 1_000_000 };
     const t = tab((url) => (url.startsWith("/app/ops/") ? { status: 404 } : { status: 200, body: { ok: true, data: {} } }), {
