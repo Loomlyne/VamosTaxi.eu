@@ -52,6 +52,7 @@ Rewritten short on 2026-09-30 14:25; the long version is in git history (`823022
 | `fix/ops-board-sort` | **Live 21:13 2026-10-04** (`771115f4`, Worker `f7018d2a`); **owner check passed** (owner "done nice all good working", ~21:20) | done |
 | `fix/ops-dash-numbers` | **Live 22:25 2026-10-04** (`2f08d689`, Worker `12521f7b`); **owner check passed** (owner "good verified", ~01:00) | Owner: open the dashboard signed in. Today: Bookings 1, Unassigned 3, Income CHF 100.39. Board Unassigned shows 10 (7 past trips 29–30 Sep still confirmed with no driver) |
 | `fix/stripe-fee-record` | **Live 00:02 2026-10-05** (`f1cc8726`, Worker `b15beb82`; migration `20261007290000` applied 00:00, live version `20261004200012`). **01:00 sweep confirmed** (read 01:06): 12 of 16 payments have their fee, 2969 rappen in all (68 to 356 each), so Stripe reports the fee in CHF; the 4 of 9–10 Sep (cs_ ids, old account) stay empty as expected | Owner: All time Expenses CHF 65.25 (refunds 35.56 + fees 29.69), Net CHF 1,242.07 |
+| `fix/purge-agreement-records` | Opus job since ~01:40 2026-10-05 (repo investigation finding): unpaid bookings can no longer be deleted since 26.5 (agreement record FK `on delete set null` + append-only trigger, not in the purge carve-out). Live: VT-26-0748, 0749, 0751 pending and purge-eligible, stuck since 1–2 Oct. Suspected: Pay → back → change → Pay refused. Job reproduces in the lab, fixes with migration `20261007300000` | Fresh reviewer, control check, migration, ship |
 | Landed and cleaned 00:4x | settle safety, Dependabot, Actions trim: branches deleted on GitHub (archive tags), folders removed; the settle-safety folder waits for its session to close | |
 
 ## Controller take-over, 2026-10-02 15:26 (+04)
@@ -353,7 +354,7 @@ The owner decided every finding F1 to F14. Every Phase 20 ship needs his Ship.
 | Frozen price book restore | `20261007250000` pricing_row_frozen_restore (**live 2026-10-03 20:11**, live version `20261003161120`) |
 | Phase 29 lock order | `20261007270000` meta_purchase_lock_order (**live 2026-10-04 16:27**, live version `20261004122704`) |
 | Refund lock order | `20261007280000` refund_lock_order (**live 2026-10-04 17:53**, live version `20261004135322`) |
-| **Next free** | **`20261007300000`** (`290000` Stripe fee record, live 2026-10-05 00:00). Ask the controller first; check every remote branch and worktree for the file name. Never a number that sorts before one already on main |
+| **Next free** | **`20261007310000`** (`300000` reserved for fix/purge-agreement-records; `290000` Stripe fee record, live 2026-10-05 00:00). Ask the controller first; check every remote branch and worktree for the file name. Never a number that sorts before one already on main |
 
 ## Decisions that stand
 
