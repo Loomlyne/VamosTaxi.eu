@@ -27,13 +27,16 @@
   var lost = false;
   var probing = false;
   var reloadWanted = false;
-  // The screens ops.dc.html mounts by route. Only a miss of one of these may reload the page: every other
-  // file under /app/ops/ is a part a screen fetches while it runs (PlaceSearch when OpsDetail enters edit
-  // mode, BrandSelect, ActionsMenu, OpsTable, OpsSidebar ...), and a reload there would throw the edit away.
-  // A test keeps this list equal to the shell's route mounts.
-  var ROUTE_SCREENS = {
+  // The files a miss of which may reload a live page: the screens ops.dc.html mounts by route, and its
+  // top-level imports (OpsSidebar: imported outside any sc-if, fetched once when the shell boots, so a miss
+  // leaves the shell without a sidebar until a reload). Every other file under /app/ops/ is a part a screen
+  // fetches while it runs (PlaceSearch when OpsDetail enters edit mode, BrandSelect, ActionsMenu inside the
+  // conditional top bar, OpsTable ...), and a reload there would throw the edit away. A test reads the shell's
+  // markup and keeps this list equal to its route mounts plus its top-level imports.
+  var SHELL_SCREENS = {
     OpsDash: 1, OpsBoard: 1, OpsNewTrip: 1, OpsFleet: 1, OpsDetail: 1, OpsPricing: 1, OpsReviews: 1,
-    OpsContent: 1, OpsCalendarBoard: 1, OpsCustomers: 1, OpsSupportTicket: 1, OpsSettings: 1, OpsProfile: 1
+    OpsContent: 1, OpsCalendarBoard: 1, OpsCustomers: 1, OpsSupportTicket: 1, OpsSettings: 1, OpsProfile: 1,
+    OpsSidebar: 1
   };
 
   function endSession() {
@@ -122,8 +125,9 @@
     if (!path) return;
     var screen = /^\/app\/ops\/([^/]+)\.dc\.html$/.exec(path);
     if (res.status === 404 && screen) {
-      // Any miss asks whether the session is dead; only a route screen's miss may reload a live one.
-      if (Object.prototype.hasOwnProperty.call(ROUTE_SCREENS, screen[1])) reloadWanted = true;
+      // Any miss asks whether the session is dead; only a shell screen's miss (route screen or the sidebar) may
+      // reload a live one.
+      if (Object.prototype.hasOwnProperty.call(SHELL_SCREENS, screen[1])) reloadWanted = true;
       probeSession(rawFetch);
       return;
     }

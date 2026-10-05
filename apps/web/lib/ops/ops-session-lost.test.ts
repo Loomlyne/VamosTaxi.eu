@@ -16,18 +16,35 @@ const here = dirname(fileURLToPath(import.meta.url));
 const SOURCE = readFileSync(join(here, "../../../../app/vamos-ops-api.js"), "utf8");
 const OPS_DIR = join(here, "../../../../app/ops");
 
-// The screens the shell mounts by route (ops.dc.html: each `<sc-if value="{{ isX }}">` holds one dc-import), and
-// every other file in app/ops: the parts those screens fetch while they run (PlaceSearch when OpsDetail enters
-// edit mode, BrandSelect, ActionsMenu, OpsTable, OpsSidebar ...).
-const ROUTE_SCREENS = [
-  ...readFileSync(join(OPS_DIR, "ops.dc.html"), "utf8").matchAll(
-    /<sc-if value="\{\{\s*is\w+\s*\}\}"[^>]*>\s*(?:<!--[\s\S]*?-->\s*)?<dc-import name="(\w+)"/g,
-  ),
-].map((m) => m[1] as string);
+// What ops.dc.html mounts, read from its markup. Three kinds of file under app/ops:
+//   - route screens: a `dc-import` inside `<sc-if value="{{ isX }}">`, one per route;
+//   - top-level imports: a `dc-import` outside every `sc-if` (OpsSidebar). The runtime fetches them when the
+//     shell boots and they stay on the page, so a miss leaves the shell without them until a reload;
+//   - nested parts: every other file, which a screen or a conditional bar fetches while it runs (PlaceSearch when
+//     OpsDetail enters edit mode, BrandSelect, ActionsMenu inside `hasBarItems`, OpsTable ...).
+// Only the first two may reload a live page after a 404: a reload for a nested part would throw an edit away.
+const SHELL_FILE = readFileSync(join(OPS_DIR, "ops.dc.html"), "utf8");
+const SHELL_MARKUP = SHELL_FILE.slice(SHELL_FILE.indexOf("<x-dc>"), SHELL_FILE.indexOf("</x-dc>")).replace(/<!--[\s\S]*?-->/g, "");
+function shellMounts(markup: string): { routes: string[]; topLevel: string[] } {
+  const routes: string[] = [];
+  const topLevel: string[] = [];
+  const open: boolean[] = []; // one entry per open sc-if: is it a route switch (`isX`)?
+  for (const m of markup.matchAll(/<sc-if\b([^>]*)>|<\/sc-if>|<dc-import\b[^>]*?\bname="(\w+)"/g)) {
+    if (m[0].startsWith("<sc-if")) open.push(/value="\{\{\s*is\w+\s*\}\}"/.test(m[1] ?? ""));
+    else if (m[0].startsWith("</sc-if")) open.pop();
+    else if (open.length === 0) topLevel.push(m[2] as string);
+    else if (open[open.length - 1]) routes.push(m[2] as string);
+  }
+  return { routes, topLevel };
+}
+const MOUNTS = shellMounts(SHELL_MARKUP);
+const ROUTE_SCREENS = MOUNTS.routes;
+const TOP_LEVEL_IMPORTS = MOUNTS.topLevel;
+const RELOAD_FILES = [...ROUTE_SCREENS, ...TOP_LEVEL_IMPORTS];
 const NESTED_PARTS = readdirSync(OPS_DIR)
   .filter((name) => name.endsWith(".dc.html"))
   .map((name) => name.replace(/\.dc\.html$/, ""))
-  .filter((name) => !ROUTE_SCREENS.includes(name));
+  .filter((name) => !RELOAD_FILES.includes(name));
 const ORIGIN = "https://dashboard.vamostaxi.site";
 
 type Answer = { status: number; body?: unknown; url?: string };
@@ -256,20 +273,25 @@ describe("dashboard shell: a dead session goes to /login, not a blank screen (U8
 
   // U8 review 2: the reload is for a screen that did not load, not for a part a screen fetches while it runs.
   // PlaceSearch is first fetched when OpsDetail enters edit mode: a reload then would throw the edit away.
-  it("finds the shell's route screens and the nested parts (the next tests are not reading nothing)", () => {
+  it("finds the shell's route screens, its top-level imports and the nested parts (the next tests are not reading nothing)", () => {
     expect(ROUTE_SCREENS).toContain("OpsBoard");
     expect(ROUTE_SCREENS).toContain("OpsDetail");
     expect(ROUTE_SCREENS.length).toBeGreaterThanOrEqual(13);
-    for (const nested of ["PlaceSearch", "BrandSelect", "ActionsMenu", "OpsTable", "OpsSidebar"]) {
+    // Follow-up 2 (2026-10-05): the sidebar is imported at the top level of the shell, outside any sc-if.
+    expect(TOP_LEVEL_IMPORTS).toContain("OpsSidebar");
+    expect(ROUTE_SCREENS).not.toContain("OpsSidebar");
+    for (const nested of ["PlaceSearch", "BrandSelect", "ActionsMenu", "OpsTable"]) {
       expect(NESTED_PARTS, nested).toContain(nested);
-      expect(ROUTE_SCREENS, nested).not.toContain(nested);
+      expect(RELOAD_FILES, nested).not.toContain(nested);
     }
+    // The action menu of the top bar sits inside `hasBarItems`, so it is not a top-level import.
+    expect(TOP_LEVEL_IMPORTS).not.toContain("ActionsMenu");
   });
 
   const aliveAnswer = { status: 200, body: { ok: true, data: {} } };
 
-  it("every route screen of the shell that 404s while the session is alive reloads the page once", async () => {
-    for (const name of ROUTE_SCREENS) {
+  it("every route screen and top-level import of the shell that 404s while the session is alive reloads the page once", async () => {
+    for (const name of RELOAD_FILES) {
       const t = tab((url) => (url === `/app/ops/${name}.dc.html` ? { status: 404 } : aliveAnswer));
       await t.win.fetch(`/app/ops/${name}.dc.html`);
       await flush();
@@ -293,6 +315,37 @@ describe("dashboard shell: a dead session goes to /login, not a blank screen (U8
     await flush();
     expect(t.replaced).toEqual(["/login"]);
     expect(t.reloaded).toEqual([]);
+  });
+
+  // Follow-up 2: the sidebar is fetched once, when the shell boots. With Auth slow at that moment it 404s while the
+  // screen file (asked a moment later) is a 200: the dashboard stayed without a sidebar until a hand reload.
+  it("the sidebar 404s at boot while the session is alive: the page reloads once (one probe)", async () => {
+    const t = tab((url) => (url === "/app/ops/OpsSidebar.dc.html" ? { status: 404 } : aliveAnswer));
+    await t.win.fetch("/app/ops/OpsSidebar.dc.html");
+    await t.win.fetch("/app/ops/OpsCustomers.dc.html");
+    await flush();
+    expect(t.reloaded).toEqual(["reload"]);
+    expect(t.replaced).toEqual([]);
+    expect(t.calls.filter((c) => c === "GET /api/staff/me")).toHaveLength(1);
+  });
+
+  it("the sidebar 404s because the session is dead: to /login, no reload", async () => {
+    const t = tab((url) => (url.startsWith("/app/ops/") ? { status: 404 } : NO_SESSION));
+    await t.win.fetch("/app/ops/OpsSidebar.dc.html");
+    await flush();
+    expect(t.replaced).toEqual(["/login"]);
+    expect(t.reloaded).toEqual([]);
+  });
+
+  it("the sidebar's reload is the same counted, spaced reload as a screen's: at most twice per tab", async () => {
+    const clock = { now: 2_000_000 };
+    const t = tab((url) => (url.startsWith("/app/ops/") ? { status: 404 } : aliveAnswer), { clock });
+    for (let round = 0; round < 5; round += 1) {
+      await t.win.fetch("/app/ops/OpsSidebar.dc.html");
+      await flush();
+      clock.now += 16_000;
+    }
+    expect(t.reloaded).toEqual(["reload", "reload"]);
   });
 
   it("a route screen that 404s while the check for a nested part is still running is not forgotten: one probe, one reload", async () => {
