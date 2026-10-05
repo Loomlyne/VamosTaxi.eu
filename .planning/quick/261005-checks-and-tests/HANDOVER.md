@@ -12,13 +12,14 @@ A `fix/**` push starts no workflow (checked: no workflow triggers on it), so pus
 
 | Item | State |
 |---|---|
-| U21 unit tests and pgTAP on every push to main | Fixed (workflow change; first real proof is the first push to main) |
-| U20 CI red on every push | Workflow fixed; 8 stale specs fixed and re-run green locally; 1 real product bug left as `test.fixme`; WebKit rows skip with a reason |
+| U21 unit tests and pgTAP on every push to main | Fixed (workflow change; unproven on GitHub, see the billing note) |
+| U20 CI red on every push | Workflow fixed; 8 stale specs fixed and re-run green locally; 1 real product bug `/de/terms` skipped in the 390 test (annotated); WebKit rows skip with a reason |
 | U22 database-backed tests | Fixed: `pnpm test:db-lab`; refund-by-hand id fixed; on the merged tree 72 + 4 + 31 passed, lab destroyed |
 | S16 audit | undici pinned; `braces` cannot be fixed (no patched release exists), audit-ignored with the reason |
 | D3 deploy script | Fixed: refuses without `--env`, only `staging` allowed |
 | D4 `.dev.vars.example` | Fixed: every name, no values |
 | README | Rewritten: layout, running locally, how the controller deploys (no runnable deploy line) |
+| Review fixes (Fable 5.1, 7 items) | All seven fixed, one commit each; see "Review fixes" below |
 
 ## U21 and U20: GitHub Actions (`deploy-staging.yml`, `pr.yml`, `schema.yml`)
 
@@ -30,15 +31,19 @@ Change.
 - New `unit` job (`pnpm test:unit`) and `database` job (reuses `schema.yml`: reset from zero, pgTAP, seed and types drift, the
   DATA-06 local half, mutation gate, fences). Ubuntu only.
 - The `gate` job also runs `pnpm lint`, `check:legal-claims` and `check:numbers` (they lived only in `pr.yml`).
-- `visual` (macOS, screenshot diffs) runs only on a hand-started run with the new `visual` box ticked; 45-minute limit; installs
+- `visual` (macOS, screenshot diffs) runs only on a hand-started run with the `visual` box ticked; 45-minute step limit and 60-minute job limit; installs
   Chromium and WebKit.
-- `deploy` stays hand-started (`workflow_dispatch` only); it needs gate, unit, database and e2e green, and visual green or skipped.
+- `e2e-linux` (nine shards) runs only on a hand-started run with the `e2e` box ticked (review fix 1).
+- The GitHub `deploy` job never runs, not even by hand (review fix 2).
 - Time limits on the gate, unit, schema and `pr.yml` visual jobs so a stuck run cannot bill the 6-hour default.
 - `paths-ignore` for docs, planning and `*.md` was already there and stays: a docs-only push runs nothing.
 
-Proof. The workflow files parse and the job graph reads as above (checked by reading). **Not verified:** a real run on GitHub. The
-first push to `main` after this lands is the proof; if `database` or `unit` fail there, that is a finding about the code, not about
-the wiring (both commands run green locally).
+Proof. Every workflow file parses (the `yaml` package, strict, duplicate keys refused; actionlint is not installed and I did not download
+it) and a script checks the job graph: every `needs` names a job, every local `uses` file exists, the `e2e` and `visual` conditions, the
+60-minute limit, `deploy` is `if: false`, `deploy-production.yml` has only `workflow_dispatch`. **Not verified on GitHub:** Actions is
+currently blocked on billing (runs `37309521486`, `37307684138`, `37296539209` died in 3 to 6 seconds: "recent account payments have
+failed or your spending limit needs to be increased"). Until the owner fixes billing none of the workflow changes has run. When it
+runs, a red `database` or `unit` job is a finding about the code, not the wiring (both commands run green locally).
 
 Estimated Actions minutes per push to `main` (billed, private repo):
 
@@ -48,11 +53,11 @@ Estimated Actions minutes per push to `main` (billed, private repo):
 | macOS visual | about 270 (25 min x 10, hit the limit) | 0 (manual) |
 | unit | 0 | about 4 |
 | database (schema.yml) | 0 | about 14 |
-| e2e Linux (9 shards, 1 run, retries add) | about 109 | about 109 |
-| **Total** | **about 383** | **about 132** (about 23 without the e2e shards) |
+| e2e Linux (9 shards, 1 run, retries add) | about 109 | 0 (hand-started, `e2e` box) |
+| **Total** | **about 383** | **about 23** (about 132 when a run also ticks `e2e`) |
 
-A docs-, planning- or markdown-only push: 0. At 3,000 minutes a month for the whole account that is about 22 code pushes a month with
-the e2e shards, about 130 without them. The e2e shards are now 83 percent of the cost. Open question 1.
+A docs-, planning- or markdown-only push: 0. At 3,000 minutes a month for the whole account that is about 130 code pushes a month, or about 22
+runs that also tick `e2e`. A `v*` tag push now costs 0 as well (review fix 7; it used to cost about 380).
 
 ### U20: each stale spec (all re-run locally on a port-shifted native stack, `VAMOS_E2E=1`, `--ignore-snapshots`, one worker)
 
@@ -66,7 +71,7 @@ the e2e shards, about 130 without them. The e2e shards are now 83 percent of the
 | `visual/legal-cancellation-imprint` "no sideways scroll at 390" | Red on the Linux runner only (it passes on the Mac); not reproducible here. It measured at `load`, while the mock may still be compiling on a slow runner. If the cause is real overflow on Linux fonts (like `/de/terms`), the new message names the element | waits for the first section, then polls with the widest elements named on a miss (same shape as `legal-terms`) | 60 passed (whole spec, after this change) |
 | `visual/home` "live sections appear in the mock order" | Sections are separate `dc-import`s that mount in no fixed order, and Reviews renders only while loading or with enough published reviews (the test database has none); `#svc-t4` now belongs to Business travel (`412ac19b`) | wait for each required section; Reviews optional; hourly card checked by title | 41 passed (one load flake in the 1024 German banner dismissal, 4/4 on re-run) |
 | `visual/home-sheet-history-bp2` WebKit rows | WebKit is a separate download the Linux jobs do not install ("Executable doesn't exist") | rows `test.skip` with the reason when WebKit is absent; the macOS visual job installs it | not run here (no WebKit locally) |
-| `visual/legal-terms` "no sideways scroll at 390" | **Real product bug**, not stale | `test.fixme` with the measurement and a pointer here | 32 passed, 1 fixme |
+| `visual/legal-terms` "no sideways scroll at 390" | **Real product bug**, not stale | only `/de/terms` skipped (annotated, with the measurement and a pointer here) | 390 test passes for the other three pages |
 
 ## Product bugs (reported, not fixed)
 
@@ -86,7 +91,7 @@ Evidence (`.planning/quick/261005-checks-and-tests/evidence/`):
 Affects: every phone narrower than about 380 px (iPhone SE, mini sizes) and 390 px phones on fonts that render wider. Four-language
 law (CLAUDE.md "Build every surface desktop to mobile"): "nothing may scroll sideways at 390 px" is broken.
 Not changed here (product code). A fix is a label that may wrap, or the button at full card width; that is the controller's choice.
-When it lands, delete the `test.fixme` line in `legal-terms.spec.ts` (its comment says so).
+When it lands, delete `KNOWN_OVERFLOW_PATH` and its `continue` branch in `legal-terms.spec.ts` (its comment says so).
 
 ### 2. "Voucher applied" never shows at 390 in the checkout funnel (not a product bug)
 
@@ -134,7 +139,7 @@ in `wrangler.jsonc` the top-level config is an empty shell; `env.staging` is the
 Change. `apps/web` `deploy` now runs `scripts/deploy-worker.mjs`, which refuses (exit 2, before the DC sync and the build) unless exactly one
 `--env staging` is given (`--env=staging` and `-e staging` also read); anything else, including `production`, a missing, doubled or flag-like value, is refused. It keeps the argument form every live
 deploy has used (`opennextjs-cloudflare deploy -- --env staging`). Why not "default to staging": a bare call that quietly deploys the live site is
-the wrong default; refusing forces the one explicit word. `scripts/deploy-worker.test.mjs` covers the parser (`pnpm test:scripts`, 37 pass).
+the wrong default; refusing forces the one explicit word. `scripts/deploy-worker.test.mjs` covers the parser and the entry-point check (`pnpm test:scripts`, 40 pass).
 The README describes the controller's deploy; it carries no runnable deploy line.
 
 ## D4: `apps/web/.dev.vars.example`
@@ -143,6 +148,20 @@ The README describes the controller's deploy; it carries no runnable deploy line
 as comments (setting them would shadow the binding; `READ_RATE_LIMITER`, added by main's S12, included after the merge); a "Not for this file" section for build-time and test-only names. Names only, no value was
 read from `.dev.vars` or any `.env`, nothing copied.
 
+## Review fixes (Fable 5.1, SHIP AFTER FIXES), one commit each
+
+| # | Change | Proof |
+|---|---|---|
+| 1 | `deploy-staging.yml`: `workflow_dispatch` input `e2e` (default false) beside `visual`; `e2e-linux` runs only when it is ticked. `pr.yml` and a `ci/**` push keep their own runs of `e2e-linux.yml` | job graph script; header comment rewritten |
+| 2 | `deploy` job is `if: false` with the owner rule (CLAUDE.local.md) in a comment, like `data-06`; it can no longer run from a hand-started run with `visual` or `e2e` ticked. The concurrency comment is corrected | job graph script |
+| 3 | `visual` job: `timeout-minutes: 60` on the job (the test step keeps 45) | job graph script |
+| 4 | `legal-terms.spec.ts`: the blanket `test.fixme` is gone; only `/de/terms` is skipped (an annotation with the reason); `/terms`, `/fr/terms`, `/ar/terms` are checked again | 390 project run: passes (the 3 skipped are the other viewports) |
+| 5 | `scripts/deploy-worker.mjs`: `isEntryPoint()` compares `realpathSync` of both sides, plain comparison only if a path cannot be resolved | the old guard through a symlink exits 0 silently (shown); 3 new tests (symlink to the file, to the folder, the function); `pnpm test:scripts` 40 pass |
+| 6 | `lab.sh dbtests_abort`: when the run made the lab and fails after the workdir exists, it runs `cmd_destroy` (own project and workdir checked) in a subshell; with no workdir it removes the state folder as before | injected failure after `set_roles`: stack stopped, port closed, state and stack folders gone, other stacks untouched; runbook updated |
+| 7 | `deploy-production.yml`: `workflow_dispatch` only, no `v*` tag trigger | job graph script |
+
+The README lines that said the e2e jobs run on every push and the deploy job runs by hand were corrected in the same pass.
+
 ## Checks run (final tree)
 
 | Check | Result |
@@ -150,7 +169,7 @@ read from `.dev.vars` or any `.env`, nothing copied.
 | `pnpm typecheck` | pass (4 projects) |
 | `pnpm lint` | 0 errors, 6 old warnings (unused disable directives, not mine) |
 | `pnpm check:numbers` | ok |
-| `pnpm test:scripts` | 37 pass (before the last spec edits; no script changed since) |
+| `pnpm test:scripts` | 40 pass |
 | `pnpm audit` | 0 un-ignored (braces ignored with the reason) |
 | `pnpm test:db-lab` (merged tree) | PASS, 72 + 4 + 31, lab destroyed |
 | voucher unit tests (`voucher-lock`, `voucher-badge`) | 15 pass |
@@ -166,7 +185,10 @@ the throwaway DB lab destroyed by the command itself. The worktree `apps/web/pub
 
 ## Open questions for the controller and the owner
 
-1. The nine Linux e2e shards are now 109 of about 132 billed minutes per code push. Keep them on every push, or make them hand-started like the visual job and run before a ship?
-2. `braces` has no patched release. Keep the audit-ignore (dev-only, via stylelint), or replace stylelint's glob dependency?
-3. `/de/terms` button: wrap the label, or full card width? (Product decision; the fixme waits for it.)
-4. `scripts/test-lab` runs on this Mac with the Homebrew CLI (2.119); the pinned `pnpm exec supabase` is 2.115 and cannot run natively. Bump the pin?
+Decided by the controller after the review: the e2e shards become hand-started (done, fix 1); keep the `braces` audit-ignore; the content job fixes
+the `/de/terms` button (the label wraps) and the skip comes out when that lands on main; the Supabase CLI bump is a later job.
+
+Still open:
+1. The owner must fix GitHub billing before any of the workflow changes can be proven.
+2. When the content job's `/de/terms` fix is on main: merge `origin/main`, delete `KNOWN_OVERFLOW_PATH` and its `continue` branch in `legal-terms.spec.ts`,
+   and run the 390 test (and look at 360) to prove `/de/terms`.
