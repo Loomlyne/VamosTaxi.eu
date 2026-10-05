@@ -1,4 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { authSetCookieHeader } from "./server";
+import { createRequestSupabaseClient } from "./request";
 import {
   AUTH_COOKIE_NAME,
   authCookieOptions,
@@ -47,7 +49,38 @@ describe("authCookiesFrom", () => {
 describe("auth cookie name (owner 2026-10-04: no project ref in the browser)", () => {
   it("every auth client is named vt-auth", () => {
     expect(AUTH_COOKIE_NAME).toBe("vt-auth");
-    expect(authCookieOptions(true)).toEqual({ name: "vt-auth", path: "/", sameSite: "lax", secure: true });
+    expect(authCookieOptions(true)).toEqual({ name: "vt-auth", path: "/", sameSite: "lax", secure: true, httpOnly: true });
+  });
+});
+
+describe("S4: the session cookie is HttpOnly (security report 2026-10-05)", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("authCookieOptions sets httpOnly on https and on local http alike", () => {
+    expect(authCookieOptions(true).httpOnly).toBe(true);
+    expect(authCookieOptions(false).httpOnly).toBe(true);
+  });
+
+  it("the route handlers' Set-Cookie writer prints HttpOnly for those options", () => {
+    const line = authSetCookieHeader({ name: "vt-auth.0", value: "base64-x", options: { ...authCookieOptions(true), maxAge: 60 } });
+    expect(line).toContain("; HttpOnly");
+    expect(line).toContain("; Secure");
+  });
+
+  it("a real @supabase/ssr write (the PKCE verifier of a sign-in link) carries HttpOnly", async () => {
+    // No network: the auth server answers 400 at once. The verifier is stored before the call.
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify({ code: 400, msg: "stub" }), { status: 400, headers: { "content-type": "application/json" } })),
+    );
+    const request = new Request("https://vamostaxi.site/api/auth", { method: "POST" });
+    const client = createRequestSupabaseClient(request, { url: "https://stub.invalid", anonKey: "anon" });
+    expect(client).not.toBeNull();
+    await client!.supabase.auth.signInWithOtp({ email: "a@example.com" }).catch(() => undefined);
+    await new Promise((r) => setTimeout(r, 0));
+    const verifier = client!.setCookies.filter((c) => c.startsWith("vt-auth-code-verifier="));
+    expect(verifier.length).toBeGreaterThan(0);
+    for (const line of verifier) expect(line).toMatch(/;\s*HttpOnly/i);
   });
 });
 
