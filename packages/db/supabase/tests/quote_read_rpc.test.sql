@@ -8,7 +8,7 @@
 -- D-46: no CHF figure. Catalog assertions plus seeded-draft reads; the null-lock
 -- fixture is a new settings_versions row (append-only — never mutate the seed).
 begin;
-select plan(22);
+select plan(25);
 
 -- 1. PUBLIC holds no EXECUTE on any of the three ---------------------------------------
 select function_privs_are(
@@ -80,6 +80,29 @@ select throws_ok(
   '42501',
   null,
   '(3c) anon selecting settings_versions raises 42501'
+);
+reset role;
+
+-- 3 (cont.) The quote identity the Worker really uses (vamos_checkout, 20261007310000) reads pricing only
+--     through the functions too: the same three tables stay locked to it (D-34 stays true).
+set local role vamos_checkout;
+select throws_ok(
+  $$ select count(*) from public.rate_versions $$,
+  '42501',
+  null,
+  '(3d) vamos_checkout selecting rate_versions raises 42501'
+);
+select throws_ok(
+  $$ select count(*) from public.surcharges $$,
+  '42501',
+  null,
+  '(3e) vamos_checkout selecting surcharges raises 42501'
+);
+select throws_ok(
+  $$ select count(*) from public.settings_versions $$,
+  '42501',
+  null,
+  '(3f) vamos_checkout selecting settings_versions raises 42501'
 );
 reset role;
 

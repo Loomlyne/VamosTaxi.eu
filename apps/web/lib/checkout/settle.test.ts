@@ -223,6 +223,57 @@ describe("handleStripeMessageWithDeps", () => {
     expect(d.settlePayment).not.toHaveBeenCalled();
   });
 
+  // 261005 review follow-up (U15, the other arrival order): the return route's event carries the
+  // session's `created`, older than the webhook's. Webhook first, then return: begin() answers
+  // superseded for the return event. It is closed (processed), never settled a second time.
+  describe("261005 U15: a superseded event is closed", () => {
+    it("stamps the superseded event processed (error null), then acks, with no second settle", async () => {
+      const d = deps({
+        begin: vi.fn(async () => ({ should_process: false, reason: "superseded" })),
+      });
+      const result = await handleStripeMessageWithDeps(message({ eventId: "return_cs_test_1" }), d);
+      expect(result).toEqual({ ack: true });
+      expect(d.eventSettle).toHaveBeenCalledTimes(1);
+      expect(d.eventSettle).toHaveBeenCalledWith("return_cs_test_1", null);
+      expect(d.settlePayment).not.toHaveBeenCalled();
+      expect(d.deliverConfirmation).not.toHaveBeenCalled();
+      expect(d.refund).not.toHaveBeenCalled();
+    });
+
+    it("retries when the stamp itself fails (the next begin() answers superseded again)", async () => {
+      const d = deps({
+        begin: vi.fn(async () => ({ should_process: false, reason: "superseded" })),
+        eventSettle: vi.fn(async () => {
+          throw new Error("connection lost");
+        }),
+      });
+      const result = await handleStripeMessageWithDeps(message({ eventId: "return_cs_test_1" }), d);
+      expect(result).toEqual({ retry: true });
+      expect(d.settlePayment).not.toHaveBeenCalled();
+    });
+
+    it("already_processed is acked without a second stamp", async () => {
+      const d = deps({
+        begin: vi.fn(async () => ({ should_process: false, reason: "already_processed" })),
+      });
+      const result = await handleStripeMessageWithDeps(message(), d);
+      expect(result).toEqual({ ack: true });
+      expect(d.eventSettle).not.toHaveBeenCalled();
+    });
+
+    it("a paid error is never stamped processed: it is retried", async () => {
+      const d = deps({
+        settlePayment: vi.fn(async () => {
+          throw Object.assign(new Error("check violated"), { code: "23514" });
+        }),
+      });
+      const result = await handleStripeMessageWithDeps(message(), d);
+      expect(result).toMatchObject({ retry: true });
+      // The only stamp is the error record (non-null): processed_at stays null.
+      for (const call of d.eventSettle.mock.calls) expect(call[1]).not.toBeNull();
+    });
+  });
+
   it("a second delivery of the same event never issues a second refund (dedupe stays at begin)", async () => {
     const d = deps({
       begin: vi.fn(async () => ({ should_process: false, reason: "already_processed" })),

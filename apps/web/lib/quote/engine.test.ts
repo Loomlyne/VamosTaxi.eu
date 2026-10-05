@@ -561,4 +561,62 @@ describe("loadAndPrice", () => {
       kind: "percent",
     });
   });
+
+  // 261005 S6: the public book no longer carries coupon `code` or `note` (quote_rate_book strips them for
+  // everyone but staff). The voucher is matched by the id evaluate_coupon returned, never by a code.
+  describe("a book whose coupons carry no code (the public book since 20261007310000)", () => {
+    const evaluated = (couponId: number) => async () => ({
+      ok: true,
+      i18n_key: null,
+      coupon_id: couponId,
+      kind: "percent",
+      percent: "20.00",
+      amount_rappen: null,
+      code: "WELCOME",
+    });
+
+    it("still prices a voucher by its coupon id", async () => {
+      const result = await loadAndPrice(
+        fakeEnv(),
+        { ...input(), coupon: "WELCOME" },
+        {
+          ...stubLoaders({
+            book: {
+              ...launchDoc({ id: 8, slug: "live", status: "live" }),
+              coupons: [{ id: 2, kind: "percent", percent: "20.00", active: true }],
+            },
+            settings: settingsDoc(),
+          }),
+          evaluateCoupon: evaluated(2),
+        },
+      );
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.coupon).toMatchObject({ code: "WELCOME", applied: true, kind: "percent" });
+    });
+
+    it("a codeless coupon with another id never stands in for the voucher", async () => {
+      const result = await loadAndPrice(
+        fakeEnv(),
+        { ...input(), coupon: "WELCOME" },
+        {
+          ...stubLoaders({
+            book: {
+              ...launchDoc({ id: 8, slug: "live", status: "live" }),
+              coupons: [{ id: 3, kind: "percent", percent: "20.00", active: true }],
+            },
+            settings: settingsDoc(),
+          }),
+          evaluateCoupon: evaluated(2),
+        },
+      );
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.coupon).toEqual({
+        code: "WELCOME",
+        applied: false,
+        i18n_key: "quote.coupon.error.not_found",
+      });
+    });
+  });
 });

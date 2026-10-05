@@ -24,6 +24,7 @@ import { useBookingDraft } from "@/lib/booking-draft";
 import { PHONE_DISPLAY, PHONE_HREF, WHATSAPP_HREF } from "@/lib/contact-channels";
 import { isFailedStatus } from "@/lib/checkout/booking-status";
 import { confirmationPhase } from "@/lib/checkout/confirmation-phase";
+import { POLL_INTERVAL_MS, nextPollDelayMs } from "@/lib/checkout/status-poll";
 import {
   addMinutesLocal,
   formatTripDate,
@@ -43,9 +44,11 @@ export type ConfirmationPhase = "hidden" | "processing" | "confirmed" | "failed"
 
 /**
  * First status GET is immediate so a fast webhook paints the voucher
- * without a two-second blank wait.
+ * without a two-second blank wait. After that one GET every POLL_INTERVAL_MS
+ * (2 s, S12: the route is rate limited per address), and a 429 waits for its
+ * Retry-After before the next one (lib/checkout/status-poll.ts).
  */
-export const POLL_INTERVAL_MS = 1000;
+export { POLL_INTERVAL_MS };
 
 /** Loading screen phase A to B switch lives in confirmationPhase (D-27). */
 
@@ -489,27 +492,44 @@ export function ConfirmationClient({
     if (!waiting) return;
     let stopped = false;
     let timeoutId = 0;
+    // S12: after a 429 no poll goes out before this time, also when the tab was hidden and shown again.
+    let notBefore = 0;
+
+    // One pending poll at most. Every later poll is armed through here, so a tab hidden and shown while a
+    // request is in flight (the in-flight tick arms one when it ends, the visibility handler arms one when
+    // the tab is shown) replaces the earlier timer instead of starting a second chain.
+    function schedule(ms: number) {
+      window.clearTimeout(timeoutId);
+      timeoutId = window.setTimeout(tick, ms);
+    }
 
     async function tick() {
       if (stopped) return;
       const hidden = typeof document !== "undefined" && document.hidden;
+      let delay = POLL_INTERVAL_MS;
       if (!hidden) {
         try {
           const res = await fetch(`/api/checkout/status/${encodeURIComponent(reference)}`, {
             cache: "no-store",
             credentials: "include",
           });
-          const seen = pollStatus(await res.json());
-          if (seen) {
-            if (seen.status) setLiveStatus(seen.status);
-            if (seen.paymentStatus) setLivePayment(seen.paymentStatus);
+          delay = nextPollDelayMs(res.status, res.headers.get("retry-after"), Math.random());
+          if (res.status === 429) {
+            // Rate limited (several visitors behind one address): nothing new, ask again after Retry-After.
+            notBefore = Date.now() + delay;
+          } else {
+            const seen = pollStatus(await res.json());
+            if (seen) {
+              if (seen.status) setLiveStatus(seen.status);
+              if (seen.paymentStatus) setLivePayment(seen.paymentStatus);
+            }
           }
         } catch {
           // Network blip: keep polling quietly. No error copy on this path.
         }
       }
       if (stopped) return;
-      timeoutId = window.setTimeout(tick, POLL_INTERVAL_MS);
+      schedule(delay);
     }
 
     function onVisibility() {
@@ -518,7 +538,7 @@ export function ConfirmationClient({
         return;
       }
       if (stopped) return;
-      timeoutId = window.setTimeout(tick, POLL_INTERVAL_MS);
+      schedule(Math.max(POLL_INTERVAL_MS, notBefore - Date.now()));
     }
 
     document.addEventListener("visibilitychange", onVisibility);

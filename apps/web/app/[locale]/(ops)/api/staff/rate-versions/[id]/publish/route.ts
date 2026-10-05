@@ -124,9 +124,14 @@ export async function POST(
              set status = 'retired'
            where status = 'live' and id <> ${id}
         `;
+        // 261005 M18: the published label without the draft's trailing " draft" (it grew one per publish).
+        // Set on the rate_versions row too, in the same UPDATE that flips it live: the live book's label
+        // is what the dashboard shows. Rows already live keep their labels (no data is rewritten).
+        const publishLabel = baseRateVersionLabel(row.label);
         await tx`
           update public.rate_versions
              set status = 'live',
+                 label = coalesce(nullif(${publishLabel}, ''), label),
                  published_at = now(),
                  published_by = ${claims.sub},
                  quote_lock_minutes = ${QUOTE_LOCK_MINUTES}
@@ -140,8 +145,6 @@ export async function POST(
         `;
         // settings_versions is append-only (select+insert). UPDATE is 42501.
         const publishSlug = `fare-publish-${id}`;
-        // 261005 M18: the published label without the draft's trailing " draft" (it grew one per publish).
-        const publishLabel = baseRateVersionLabel(row.label);
         await tx`
           insert into public.settings_versions (
             slug, label, created_by, effective_from,

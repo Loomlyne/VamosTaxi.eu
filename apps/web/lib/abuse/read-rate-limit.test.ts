@@ -42,6 +42,7 @@ vi.mock("@/lib/db/public", () => ({
 }));
 
 import { GET as statusGet } from "../../app/api/checkout/status/[ref]/route";
+import { nextPollDelayMs } from "../checkout/status-poll";
 import { GET as resumeGet } from "../../app/api/checkout/resume/route";
 import { GET as manageGet } from "../../app/api/manage/booking/route";
 import { POST as payLinkOpen } from "../../app/api/checkout/pay-link/open/route";
@@ -91,6 +92,18 @@ describe("S12: every public database read answers 429 before the database when o
     expect(await res.json()).toEqual({ visible: false });
     expect(state.keys).toEqual(["read:status:203.0.113.7"]);
     expect(state.db).toBe(0);
+  });
+
+  // 261005 review follow-up (S12): a limited poll is an HTTP 429 with a Retry-After the confirmation page
+  // honours (status-poll.ts), never a 200 {visible:false} it would answer with another poll a second later.
+  it("checkout status poll: the 429 carries a Retry-After the client turns into a back-off", async () => {
+    const res = await statusGet(new Request("https://vamostaxi.site/api/checkout/status/VT-26-0101", { headers: IP }), {
+      params: Promise.resolve({ ref: "VT-26-0101" }),
+    });
+    expect(res.status).toBe(429);
+    expect(res.headers.get("retry-after")).toBe("60");
+    expect(res.headers.get("cache-control")).toBe("private, no-store");
+    expect(nextPollDelayMs(res.status, res.headers.get("retry-after"), 0)).toBe(60_000);
   });
 
   it("checkout resume: 429 with state none", async () => {
