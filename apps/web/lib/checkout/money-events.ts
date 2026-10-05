@@ -11,10 +11,19 @@
 // then treats it as a no-op -- so booking effects apply exactly once in
 // either arrival order. The retry is delayed so the queue's retry budget
 // spans minutes, not seconds, before a dead-letter (26.1-03 alert).
+//
+// 261005 money hardening (U4): a refund or a dispute is money Stripe already moved, so a
+// database error here follows the settle rule of 261002 (settle-errors.ts). A hiccup (deadlock,
+// serialization, lock or statement timeout, a lost connection, no SQLSTATE at all) is retried
+// after a short delay and never written on the event. A real refusal (P0001, 22xxx, 23xxx …) is
+// written on the event with its SQLSTATE and the event is still retried slowly, so after the
+// queue's last try the dead-letter queue mails info@ ("A Stripe payment event is stuck").
+// Neither is ever acknowledged.
 
 import type Stripe from "stripe";
 import type { ScalarValue } from "../logger";
 import type { HandleResult } from "./settle";
+import { PAID_ERROR_RETRY_SECONDS, retryDelaySeconds, settleErrorKind } from "./settle-errors";
 import type { StripeQueueMessage } from "./webhook";
 
 /** Seconds a charge.refunded waits before retrying while the app's own refund row has not landed yet. */
@@ -96,7 +105,7 @@ function isAppRefundPending(err: unknown): boolean {
   return sqlState(err) === "P0002" && err instanceof Error && err.message.includes("app_refund_pending");
 }
 
-/** Permanent SQL failure: stamp the event with its state and ack. A settle failure itself retries. */
+/** A refusal the app makes itself, before any SQL (non-CHF refund): stamp the event with the reason and ack. A settle failure itself retries. */
 async function settleWithError(
   eventId: string,
   err: unknown,
@@ -109,6 +118,29 @@ async function settleWithError(
     return { retry: true };
   }
   return { ack: true };
+}
+
+/**
+ * A database error while recording money Stripe already moved (U4, the settle rule of 261002).
+ * Transient: retried after `retryDelaySeconds` (5 s for contention, 60 s otherwise); the event is
+ * not written. Permanent: the SQLSTATE is written on the event (best effort) and the event is
+ * retried every PAID_ERROR_RETRY_SECONDS until the dead-letter queue mails info@. Never acknowledged.
+ */
+async function retryMoneyError(
+  eventId: string,
+  err: unknown,
+  fallback: string,
+  deps: MoneyEventDeps,
+): Promise<HandleResult> {
+  if (settleErrorKind(err) === "transient") {
+    return { retry: true, delaySeconds: retryDelaySeconds(err) };
+  }
+  try {
+    await deps.eventSettle(eventId, sqlState(err) ?? fallback);
+  } catch {
+    // Best effort: the retry below is the real handling.
+  }
+  return { retry: true, delaySeconds: PAID_ERROR_RETRY_SECONDS };
 }
 
 /**
@@ -173,7 +205,7 @@ export async function handleChargeRefundedWithDeps(
       // P0002 payment_not_found: the payment row may not be committed yet.
       // Retry; if it never resolves the DLQ consumer alerts (26.1-03).
       if (sqlState(err) === "P0002") return { retry: true };
-      return settleWithError(message.eventId, err, "charge_refund_failed", deps);
+      return retryMoneyError(message.eventId, err, "charge_refund_failed", deps);
     }
   }
 
@@ -222,7 +254,7 @@ export async function handleDisputeWithDeps(
     });
   } catch (err) {
     if (sqlState(err) === "P0002") return { retry: true };
-    return settleWithError(message.eventId, err, "dispute_upsert_failed", deps);
+    return retryMoneyError(message.eventId, err, "dispute_upsert_failed", deps);
   }
 
   deps.emit("info", "dispute_recorded", {
