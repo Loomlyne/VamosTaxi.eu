@@ -28,7 +28,9 @@ const MIME = {
 const OPS = /^\/(dashboard|bookings(\/[^/]+)?|calendar|customers(\/[^/]+)?|fleet(\/chauffeurs(\/[^/]+)?)?|support|pricing|profile|settings|coupons|reviews|pages|legal)$/;
 const LOGIN_FILES = new Set(["/app/ops/support.js", "/app/ops/AuthForm.dc.html"]);
 
-export const gate = { dead: false, failNext: 0, hits: [] };
+// `gate.failFiles` is a Set of /app/ops/<Name>.dc.html paths that always answer 404 (a nested part that did not
+// load: PlaceSearch when OpsDetail enters edit mode), whatever the session.
+export const gate = { dead: false, failNext: 0, failFiles: new Set(), hits: [] };
 
 export function serve(root) {
   return new Promise((resolve) => {
@@ -38,6 +40,11 @@ export function serve(root) {
       if (OPS.test(p)) p = "/app/ops/ops.html";
       else if (p === "/login") p = "/app/ops/ops-login.html";
       const screenFile = p.startsWith("/app/ops/") && p.endsWith(".dc.html") && !LOGIN_FILES.has(p);
+      if (gate.failFiles.has(p)) {
+        res.writeHead(404, { "cache-control": "private, no-store" });
+        res.end();
+        return;
+      }
       if (screenFile && !gate.dead && gate.failNext > 0) {
         gate.failNext -= 1;
         res.writeHead(404, { "cache-control": "private, no-store" });

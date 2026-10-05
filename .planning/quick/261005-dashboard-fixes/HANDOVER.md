@@ -20,7 +20,8 @@ sign-in dies, and the gate's Auth wait.
 | U9 Dismiss label, Arabic chip, pickup day, error toast | fixed, proven in Chromium |
 | U10 classes from the live data | fixed, proven in Chromium |
 | U11 `variant="outline"` | fixed after the owner signed ghost for all 26 (own commit `fix(ops): grey outline buttons become ghost (U11)`), guard test, pictures re-taken from the real files |
-| Fable 5.1 review of U8-U10 (SHIP AFTER FIXES) | the three findings fixed, each its own commit with a test, see "Review fixes" |
+| Fable 5.1 review of U8-U10, round 1 (SHIP AFTER FIXES) | the three findings fixed, each its own commit with a test, see "Review fixes" |
+| Fable 5.1 review of the round-1 fixes, round 2 (SHIP AFTER FIXES) | the three findings fixed, each its own commit with a test, see "Review fixes, round 2" |
 
 ---
 
@@ -34,7 +35,7 @@ sign-in dies, and the gate's Auth wait.
 - Fix: `app/vamos-ops-api.js` (now :18-:131) wraps `window.fetch` once (the shell's helmet runs the file
   twice; `__vamosOpsWatch` guard) and looks at two things:
   - a `/app/ops/<X>.dc.html` 404: asks `GET /api/staff/me`; only a 401 `no-session` or 403 `needs-mfa` answer
-    counts as dead. A 404 with a live session reloads the page once (slow Auth, see "Review fixes"). A probe
+    counts as dead. A 404 of a route screen with a live session reloads the page, at most twice (slow Auth, see "Review fixes"). A probe
     that cannot reach the server changes nothing (offline is not signed out).
   - a same-origin `/api/` answer of 401 `no-session` or 403 `needs-mfa` (not `/api/auth`, not a code-less
     401 such as `/api/staff/claim-invite`, not `not-admin` / `not-staff` / CSRF): same.
@@ -168,24 +169,30 @@ success toast gone after 5 s, the pickup day line and tooltip per language.
   styles and are untouched. No law is touched (no glow, no tint, no new colour).
 - Test: `apps/web/lib/ops/ops-button-variants-dc.test.ts` (7 tests). No `<Button>` in `app/ops` says
   `variant="outline"` (IconButton excepted); a written-out Button variant is one of the kit's five; a bound
-  `variant="{{ name }}"` never gets `'outline'` for that name in its screen; the calendar switch is ghost; and the
+  `variant="{{ name }}"` can only take values from the kit's five (read from the lines that assign it; never
+  `''` or `'outline'`; an unreadable shape fails loudly); the calendar switch is secondary / ghost; and the
   premise (the kit has a rule for each of the five and none for `vt-btn--outline`, while IconButton and Badge
-  keep theirs). 4 of the 7 fail on the previous screens, all pass now.
-- Pictures: `screens/u11-<screen>-<state>-<before|after>-<1440|390>.png`, English, bare crops, 48 in all.
+  keep theirs). 4 of the 7 failed on the previous screens; the bound-variant test and the calendar pin failed
+  again on the `''` version and pass now.
+- Pictures: `screens/u11-<screen>-<state>-<before|after>-<1440|390>.png`, English, bare crops, 52 in all.
   "Before" is the screens at the branch tip before this commit; "after" is shot from the real files (the synced
   public tree of this branch, nothing swapped; they are byte for byte the same as the first, scratch-copy
   pictures). `node tools/u11.mjs <before|after> apps/web/public <scratch> <out>`; `before` needs
   `U11_BEFORE_REF=<commit before U11>` and was checked to reproduce a committed before picture exactly. The
-  script also counts the buttons on each page: `vt-btn--outline` x0 on all 12 screens after.
+  script also counts the buttons on each page: `vt-btn--outline` x0 on all 13 screen states after.
   Screens: OpsBoard (Filter, Print, paging), OpsCalendarBoard (Today, Kanban/Table), OpsNewTrip (Back),
   OpsSettings and OpsProfile (Discard, with unsaved text), OpsTable (Clear the search, delete dialog "Keep it"),
   OpsDetail (Cancel dialog "Keep it"), OpsFleet (chauffeur edit), OpsSupportTicket (Close ticket, Mail, Call,
   WhatsApp), OpsPricing (publish dialog, discard dialog).
   Not pictured: OpsDetail's class-change "Keep" and withdraw "Keep" dialogs (same Button, same change), the
   "Cancel" of OpsTable's nested edit form, OpsCalendar (not mounted anywhere).
-- Found, not changed: the calendar switch's open view is `variant=''` (an empty string, also not a kit variant), so
-  it draws the browser grey face while the closed one is now white with a line. That happens to show which view
-  is open (before, both were the same grey), but it is an accident, not a design: see question 5.
+- The open view of the calendar's Kanban / Table switch was `variant=''` (an empty string, also not a kit
+  variant), so it drew the browser grey face. Controller decision under the owner's answer (commit `fix(ops):
+  the open view of the calendar's Kanban / Table switch is secondary, not an empty variant (U11)`): the open view
+  is `secondary` (charcoal), the other `ghost`. `OpsCalendarBoard.dc.html` :386-:387. Pictures
+  `screens/u11-OpsCalendarBoard-switch-<before|after>-<1440|390>.png` (the row of the two buttons and Add a
+  booking; "before" is the tip `dac627ae`, the open view grey, the closed one ghost) and the re-taken
+  `u11-OpsCalendarBoard-month-after-*`. Chromium: clicking Table flips them (Table secondary, Kanban ghost).
 
 ---
 
@@ -202,9 +209,10 @@ Each is its own commit with a test that fails on the code before it.
    is not fired by reading the list ten times; a loaded booking and a loaded vehicle still add their class names.
 2. Nit, slow Auth: a screen file 404 while `/api/staff/me` says the session is alive left the screen blank for
    good (the DC runtime keeps the miss, `support.js` `ensureFetched` sets `fetched` once). A re-request from the
-   watcher cannot heal that, so the page is reloaded once (`vamos-ops-api.js` :64-:85, `reloadOnce`): a mark in
-   `sessionStorage` (`vamosOpsScreenRetryAt`, 15 s, per tab) stops a really missing file from looping; no storage
-   means no reload; a failed check (server down, 5xx) or a dead session changes nothing / goes to /login.
+   watcher cannot heal that, so the page is reloaded (`vamos-ops-api.js` `reloadOnce`; limited to a route
+   screen's miss and to two tries per tab in round 2): a mark in `sessionStorage` (`vamosOpsScreenRetryAt`, 15 s,
+   per tab) stops a really missing file from looping; no storage means no reload; a failed check (server down, 5xx)
+   or a dead session changes nothing / goes to /login.
    Tests (6 new, 3 fail before). Chromium (`tools/session-lost.mjs`, run `slow-auth`: the first screen file 404s,
    then the gate answers again): before, the page stays blank (`screens/before-slow-auth.png`); after, it
    reloads once and shows Customers (`screens/after-slow-auth.png`); `missing-file` (404 for good) reloads once and
@@ -220,27 +228,64 @@ Sign in link when a write fails on a dead session; the local-dev /login host; th
 
 ---
 
-## Checks (merged tree, `5aa3ddd0` + this branch)
+## Review fixes, round 2 (Fable 5.1 on `71258c2f..29ebab70`: SHIP AFTER FIXES)
+
+Each is its own commit with a test that fails on the code before it.
+
+1. `vamos-ops-api.js` `reloadOnce` only compared the age of its mark, and the probe `/api/staff/me` has no timeout
+   of its own (`staff-json.ts` `getStaffClaims`, `session.ts`), so Auth that stays slow repeated "404 at 5 s,
+   probe answers at 6 s+, mark older than 15 s" for a reload every ~16 s. Fix (commit `fix(dashboard): the
+   slow-Auth reload is counted, at most twice per tab`): the mark now comes with a count in `sessionStorage`
+   (`vamosOpsScreenRetryCount`): never within 15 s of the last reload, at most two, and after ten quiet
+   minutes the count starts again (a person who navigates later is helped again; nothing reloads by itself after
+   the second try, because a reload needs a fresh 404 and the first one that fails inside 15 s is refused).
+   Tests (3 new, all fail before): a 404 every 16 s reloads twice and then stops; a page that comes back with the
+   count at two sees it; after ten minutes the count starts again. Decision taken: the ten-minute window is mine,
+   the reviewer's wording was "at most two per tab"; say if it should be for the life of the tab.
+2. The reload fired for any `/app/ops/*.dc.html` 404, including parts a screen fetches while it runs: PlaceSearch is
+   first fetched when OpsDetail enters edit mode, and a reload discards the edit with no prompt. Fix (commit
+   `fix(dashboard): the slow-Auth reload is for route screens only, never for nested parts`): `ROUTE_SCREENS`
+   in `vamos-ops-api.js` is the 13 screens `ops.dc.html` mounts by route (OpsDash, OpsBoard, OpsNewTrip, OpsFleet,
+   OpsDetail, OpsPricing, OpsReviews, OpsContent, OpsCalendarBoard, OpsCustomers, OpsSupportTicket, OpsSettings,
+   OpsProfile). Any miss still asks whether the session is dead (a dead one goes to /login, nested or not); only a
+   route screen's miss may reload a live one. A route-screen miss that arrives while a nested part's check is
+   running is remembered (`reloadWanted`): one probe, one reload. Tests: the route mounts are read from
+   `ops.dc.html` and each reloads; every other file in `app/ops` (BrandSelect, PlaceSearch, PlaceSearchStates,
+   ActionsMenu, OpsTable, OpsSidebar, AuthForm, OpsCalendar, OpsCoupons, OpsSoon ...) does not; a nested 404 with
+   a dead session still goes to /login; the in-flight case both ways. 2 fail before, and the "every route screen"
+   test fails the day a screen is mounted in the shell and missing from the list. Chromium (`session-lost.mjs`
+   run `nested-part`: PlaceSearch 404s while OpsDetail is in edit mode, a passenger count is typed): with the
+   reviewed watcher the page reloads and the edit is gone (`screens/before-nested-part.png`, FAIL x2); now it
+   stays open with the typed value (`screens/after-nested-part.png`, PASS x3).
+3. U11 follow-up, the calendar switch's open view: see U11 above.
+
+Not in this job (controller): `endSession` with blocked storage; the 403 `not-staff` blank screen.
+
+---
+
+## Checks (merged tree, `2ef8bc03` + this branch)
 
 - `apps/web/lib/ops` and `lib/security`, plus every other test that reads `app/ops` (`lib/dc-mock-urls`,
-  `tests/unit/ops-*`, `vendor-runtime-no-unpkg`, `signup-notice-mock`, `phase-26-3-laws`): 1724 tests pass, 11
-  skipped files as before. Running `tsc` at the same moment makes 5 of them time out at 5 s on first import
-  (`refund-by-hand`, `staff-cancel-by-hand`, `edit-request-customer`, `public-no-internal-ids`); the same files
-  pass alone and in a quiet full run (143 files, 1650 tests). None of them imports a file this job changed.
+  `tests/unit/ops-*`, `vendor-runtime-no-unpkg`, `signup-notice-mock`, `phase-26-3-laws`): 149 files, 1738 tests
+  pass, 11 skipped files as before. (Earlier in the day, with `tsc` running at the same moment, a few of them
+  timed out at 5 s on first import and passed alone; none of them imports a file this job changed.)
 - `pnpm typecheck`: pass. `pnpm lint`: 0 errors, 6 warnings (unused eslint-disable directives, none in files of
   this job). `pnpm check:db-fences`: 8 of 8 pass. `pnpm check:numbers`: ok. `pnpm i18n:check`: pass.
-- Chromium: `tools/session-lost.mjs` all passed (dead-nav, dead-api, mfa-api, slow-auth, missing-file);
-  `tools/proof.mjs` 140 PASS, 0 FAIL; `tools/u11.mjs` after: `vt-btn--outline` x0 on all 12 screens.
+- Chromium: `tools/session-lost.mjs` all passed (dead-nav, dead-api, mfa-api, slow-auth, missing-file, nested-part);
+  `tools/proof.mjs` 140 PASS, 0 FAIL; `tools/u11.mjs` after: `vt-btn--outline` x0 on all 13 screens/states.
+  Not shown in Chromium: the two-reload limit (a unit test with a clock covers it; a 404 for good is shown to
+  reload once and stop).
 - Not run, on purpose: full `test:unit`, build, live data, deploy.
 
 ## Pictures (`screens/`)
 
-- `before-` / `after-dead-nav`, `-dead-api`, `-mfa-api`, `-missing-file`, `-slow-auth` (U8a and its review fix, 1440 x 900).
+- `before-` / `after-dead-nav`, `-dead-api`, `-mfa-api`, `-missing-file`, `-slow-auth`, `-nested-part` (U8a and its review fixes, 1440 x 900).
 - `before-` / `after-board-<en|ar>-<1440|390>`: vehicle column and pickup day line.
 - `before-` / `after-dashboard-<en|ar>-<1440|390>`: Money in lines.
 - `before-` / `after-chip-<en|ar>-...`: the distance chip. `before-` / `after-toast-error-<en|ar>-...`: the error toast.
 - `before-coverage.json` / `after-coverage.json`: `VamosLocale.coverage` per screen and language.
-- `u11-*`: 48 pictures for U11 (`before` from the branch tip before the U11 commit, `after` from the real files).
+- `u11-*`: 52 pictures for U11 (`before` from the branch tip before the U11 commit, `after` from the real files), among
+  them `u11-OpsCalendarBoard-switch-*` for the Kanban / Table switch.
 - `tools/`: `serve.mjs` (static server over the synced public tree), `fixtures.mjs` (stub rows, classes, money),
   `before-tree.mjs`, `session-lost.mjs`, `proof.mjs`, `u11.mjs`. All offline; `/api/**` is stubbed. The three browser
   scripts use Playwright's Chromium; if its download is missing from the cache, set `PW_CHROMIUM` to a headless
@@ -253,6 +298,7 @@ Sign in link when a write fails on a dead session; the local-dev /login host; th
 - A class taken off sale shows its own name (First, Studio) on the board, in fleet and in Money in: keep as built.
 - No "You were signed out" message or return-to page in this job.
 - The 5 s Auth timeout stays as built (it stops waiting; it does not cancel the Supabase request).
+- The open view of the calendar's Kanban / Table switch: `secondary` (controller decision, done).
 
 ## Still open
 
@@ -261,5 +307,3 @@ Sign in link when a write fails on a dead session; the local-dev /login host; th
    changed in this job; say if it should be.
 2. A switched-off staff row (403 `not-staff`, security hardening S13) leaves the person on a screen with an error
    instead of /login. Send that to /login too?
-3. The open view of the calendar's Kanban / Table switch uses `variant=''`, which is not a kit variant and draws the
-   browser grey. Give it a real one (for example `secondary`, charcoal), or leave it as the grey it is?

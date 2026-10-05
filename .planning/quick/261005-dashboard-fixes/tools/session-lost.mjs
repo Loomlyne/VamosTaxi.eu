@@ -11,11 +11,13 @@
 //   mfa-api      403 needs-mfa on an API call                                    -> must end on /login
 //   slow-auth    one screen file 404s (the gate's Auth wait ran out), the session is alive -> reloads once, shows the screen
 //   missing-file the screen file 404s for good but the session is alive          -> reloads once, then stays (a missing file)
+//   nested-part  PlaceSearch 404s while OpsDetail is in edit mode (session alive) -> no reload, the edit is kept
 // Prints PASS/FAIL per run and writes <label>-<run>.png (bare viewport crop, 1440 x 900).
-import { mkdirSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import { createRequire } from "node:module";
-import { resolve } from "node:path";
+import { join, resolve } from "node:path";
 import { serve, gate } from "./serve.mjs";
+import { answer, stubRows, MONEY_AFTER } from "./fixtures.mjs";
 
 const require = createRequire(new URL("../../../../apps/web/package.json", import.meta.url));
 const { chromium } = require("@playwright/test");
@@ -23,6 +25,8 @@ const [, , tree, label = "after", outArg = "screens"] = process.argv;
 if (!tree) throw new Error("usage: session-lost.mjs <public tree> <label> <out dir>");
 const out = resolve(outArg);
 mkdirSync(out, { recursive: true });
+const repo = resolve(new URL("../../../../", import.meta.url).pathname);
+const scratch = mkdtempSync(join(out, "tmp-"));
 
 const ME = { fullName: "Test Admin", role: "admin", email: "admin@example.com", lang: "en", twoFactor: true, userId: "u-1" };
 const { server, base } = await serve(resolve(tree));
@@ -90,7 +94,49 @@ await scenario("mfa-api", { dead: false, staffAnswer: "mfa", act: async (page) =
 await scenario("slow-auth", { dead: false, staffAnswer: "alive", act: clickCustomers, expectLogin: false, slow: true });
 await scenario("missing-file", { dead: true, staffAnswer: "alive", act: clickCustomers, expectLogin: false });
 
+// nested-part: a part a screen fetches while it runs (PlaceSearch, first fetched when OpsDetail enters edit mode) 404s
+// while the session is alive. The reload must not happen: it would throw away what the person has typed.
+async function nestedPart() {
+  gate.dead = false;
+  gate.failNext = 0;
+  gate.failFiles = new Set(["/app/ops/PlaceSearch.dc.html"]);
+  gate.hits.length = 0;
+  const rows = await stubRows(repo, scratch);
+  const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1, reducedMotion: "reduce" });
+  const page = await ctx.newPage();
+  await page.addInitScript(() => { localStorage.setItem("vamosLang", "en"); localStorage.setItem("vamosOpsAuth", "1"); });
+  await page.route("**/api/**", (route) => {
+    const req = route.request();
+    const a = answer(req.method(), new URL(req.url()).pathname, { rows, money: MONEY_AFTER });
+    return route.fulfill({ status: a.status, contentType: "application/json", body: JSON.stringify(a.json) });
+  });
+  let loads = 0;
+  page.on("load", () => { loads += 1; });
+  await page.goto(`${base}/bookings/VT-26-0829`, { waitUntil: "load" });
+  await page.waitForSelector("[data-ops-route-chip]", { timeout: 15000 });
+  await page.waitForTimeout(800);
+  await page.locator("button:visible", { hasText: /^actions$/i }).first().click();
+  await page.waitForTimeout(300);
+  await page.locator("button:visible", { hasText: /^edit booking$/i }).first().click();
+  const pax = page.getByLabel(/passengers/i).first();
+  // With a watcher that reloads on any 404 the page reloads about a second after the click and the form never stays.
+  const opened = await pax.waitFor({ timeout: 4000 }).then(() => true, () => false);
+  if (opened) await pax.fill("7").catch(() => {});
+  await page.waitForTimeout(5000);
+  const kept = await pax.inputValue({ timeout: 1500 }).catch(() => null);
+  const asked = gate.hits.includes("/app/ops/PlaceSearch.dc.html");
+  await page.screenshot({ path: resolve(out, `${label}-nested-part.png`) });
+  check("nested-part: the part was asked for and 404ed (the proof is real)", asked);
+  check("nested-part: the page was not reloaded", loads === 1, `page loads ${loads}`);
+  check("nested-part: what was typed is still there", kept === "7", String(kept));
+  gate.failFiles = new Set();
+  await ctx.close();
+}
+
+await nestedPart();
+
 await browser.close();
 server.close();
+rmSync(scratch, { recursive: true, force: true });
 console.log(bad ? `${bad} FAILED` : "all passed");
 process.exit(bad ? 1 : 0);

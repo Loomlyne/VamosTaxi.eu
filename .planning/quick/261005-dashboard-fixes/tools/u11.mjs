@@ -67,6 +67,9 @@ function respond(method, path) {
 const SCENARIOS = [
   { screen: "OpsBoard", state: "toolbar-and-paging", route: "/bookings", ready: "[data-vt-board] tbody tr" },
   { screen: "OpsCalendarBoard", state: "month", route: "/calendar", ready: "text=/Today/i" },
+  // The Kanban / Table switch of the calendar board, cropped to its row: the open view is secondary (charcoal) and
+  // the other ghost (U8 review, controller decision under the owner's U11 answer).
+  { screen: "OpsCalendarBoard", state: "switch", route: "/calendar", ready: "text=/Today/i", cropLocator: (page) => page.getByRole("button", { name: /kanban/i }).first().locator("xpath=../..") },
   { screen: "OpsNewTrip", state: "back", route: "/bookings/new", ready: "text=/Back/i" },
   { screen: "OpsSettings", state: "dirty-discard", route: "/settings", ready: "input", act: async (page) => { await page.locator("main input[type=text], main input:not([type])").first().fill("Changed AG"); } },
   { screen: "OpsProfile", state: "dirty-discard", route: "/profile", ready: "input", act: async (page) => { await page.locator("main input[type=text], main input:not([type])").first().fill("Changed Name"); } },
@@ -118,7 +121,8 @@ async function shoot(base, label, sc, width) {
     if (sc.act) await sc.act(page);
     await page.waitForTimeout(500);
     const file = resolve(out, `u11-${sc.screen}-${sc.state}-${label}-${width}.png`);
-    await page.locator(sc.crop || "[data-ops-main]").first().screenshot({ path: file });
+    const target = sc.cropLocator ? sc.cropLocator(page) : page.locator(sc.crop || "[data-ops-main]").first();
+    await target.screenshot({ path: file });
     const buttons = await page.evaluate(() => [...document.querySelectorAll(".vt-btn--outline, .vt-btn--ghost")].map((b) => ({ cls: b.className.match(/vt-btn--(outline|ghost)/)[1], bg: getComputedStyle(b).backgroundColor, border: getComputedStyle(b).borderTopColor, text: b.textContent.trim().slice(0, 24) })));
     return buttons;
   } catch (e) {
