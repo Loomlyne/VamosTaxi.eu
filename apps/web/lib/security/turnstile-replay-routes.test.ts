@@ -77,21 +77,21 @@ const cases = [
     action: "contact",
     run: (browserKey: string) =>
       contact.POST(post("/api/contact", { turnstileToken: "one-solved-token", idempotencyKey: browserKey })),
-    refused: async (res: Response) => res.status === 403 && (await res.json()).code === "challenge_failed",
+    refused: async (res: Response) => res.status === 403 && ((await res.json()) as { code?: string }).code === "challenge_failed",
   },
   {
     name: "cookie banner",
     action: "consent",
     run: (browserKey: string) =>
       consent.POST(post("/api/consent", { method: "accept_all", turnstileToken: "one-solved-token", idempotencyKey: browserKey })),
-    refused: async (res: Response) => res.status === 403 && (await res.json()).code === "challenge_failed",
+    refused: async (res: Response) => res.status === 403 && ((await res.json()) as { code?: string }).code === "challenge_failed",
   },
   {
     name: "review form",
     action: "contact",
     run: (browserKey: string) =>
       reviews.POST(post("/api/reviews/submit", { turnstileToken: "one-solved-token", idempotencyKey: browserKey })),
-    refused: async (res: Response) => res.status === 403 && (await res.json()).code === "challenge_failed",
+    refused: async (res: Response) => res.status === 403 && ((await res.json()) as { code?: string }).code === "challenge_failed",
   },
 ] as const;
 
