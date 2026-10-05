@@ -6,6 +6,7 @@ import { authPost, resetHarness, setCookieHeaders, state, writeCookies } from ".
 vi.mock("@opennextjs/cloudflare", async () => (await import("./harness")).cloudflareMock);
 vi.mock("next/headers", async () => (await import("./harness")).headersMock);
 vi.mock("@supabase/ssr", async () => (await import("./harness")).ssrMock);
+vi.mock("@/lib/turnstile", async () => (await import("./harness")).turnstileMock);
 vi.mock("@/lib/db/identity", () => ({
   asSystem: async (_env: unknown, fn: (tx: unknown) => Promise<void>) => {
     await fn(async () => []);
@@ -27,7 +28,7 @@ describe("PKCE verifier reaches the browser", () => {
       return { error: null };
     }) as never;
     const res = await POST(
-      authPost({ mode: "signup", method: "password", email: "a@b.co", password: "12345678", firstName: "A", lastName: "B", consent: true }),
+      authPost({ mode: "signup", method: "password", email: "a@b.co", password: "12345678", firstName: "A", lastName: "B", consent: true, turnstileToken: "tok" }),
     );
     expect(await res.json()).toEqual({ stage: "sent" });
     expect(setCookieHeaders(res).join("\n")).toContain("vt-auth-code-verifier=verifier-1");
@@ -48,7 +49,7 @@ describe("PKCE verifier reaches the browser", () => {
       writeCookies(verifier);
       return { error: { code: "over_email_send_rate_limit" } };
     }) as never;
-    const res = await POST(authPost({ mode: "forgot", email: "a@b.co" }));
+    const res = await POST(authPost({ mode: "forgot", email: "a@b.co", turnstileToken: "tok" }));
     expect(await res.json()).toEqual({ stage: "sent" });
     expect(setCookieHeaders(res).join("\n")).toContain("code-verifier=verifier-1");
   });

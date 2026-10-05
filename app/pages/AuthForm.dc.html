@@ -30,6 +30,7 @@
 <script src="../vamos-i18n-dict.js"></script>
 <script src="../vamos-locale.js"></script>
 <script src="../vamos-account-notice.js"></script>
+<script src="../vamos-consent.js"></script>
 <script src="../vamos-page-transition.js"></script>
 <style>:root{--vt-icon-base:"../../assets/icons/";--vt-logo-base:"../../assets/logo/";--vt-pattern-base:"../../assets/patterns/";--vt-shadow-accent:none}
 .vt-input--focus{box-shadow:none}
@@ -100,6 +101,10 @@ button,.vt-btn,.vt-iconbtn{box-shadow:none}
 [data-af-consent] input[aria-invalid="true"]+.vt-check__box{border-color:var(--vt-danger)}
 [data-af-consent] a{color:var(--vt-charcoal-900);text-decoration:underline;text-decoration-color:var(--vt-grey-400);text-underline-offset:3px;transition:color 140ms var(--vt-ease-standard)}
 [data-af-consent] a:hover{color:var(--vt-charcoal-700);text-decoration-color:currentColor}
+/* Turnstile (S5, 2026-10-05): the box is closed (no height, and the flex gap above it taken back) while the check
+   runs unseen, and opens only when Cloudflare asks the visitor to tick. Never display:none: the unseen check needs layout. */
+[data-af-ts]{min-inline-size:0;max-inline-size:100%;block-size:0;margin-block-start:-30px;overflow:hidden}
+[data-af-ts][data-open="true"]{block-size:auto;margin-block-start:0;overflow:visible}
 @media (prefers-reduced-motion:reduce){[data-af-view],[data-af-fill]{animation:none}[data-af-fill]{transform:scaleX(1)}}</style>
 </helmet>
 <div data-af="1" style="width:100%;display:flex;flex-direction:column;gap:30px;font-family:var(--vt-font-body);color:var(--vt-text-primary)">
@@ -268,6 +273,7 @@ button,.vt-btn,.vt-iconbtn{box-shadow:none}
 <div style="display:flex;flex-direction:column;gap:14px;align-items:stretch">
 <sc-if value="{{ resent }}"><p style="margin:0;display:flex;align-items:center;gap:8px;font-size:var(--vt-body-sm);color:var(--vt-text-secondary)"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="check" size="{{ n16 }}" color="var(--vt-success)" hint-size="16px,16px"></x-import>Sent again just now.</p></sc-if>
 <sc-if value="{{ resendLimited }}"><p data-af-err="1" role="alert"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-alert" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>Too many tries. Wait a minute and try again.</p></sc-if>
+<sc-if value="{{ resendFailed }}"><p data-af-err="1" role="alert"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-alert" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>Could not send the link. Try again.</p></sc-if>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" size="lg" block="{{ yes }}" icon="mail" onClick="{{ resend }}" hint-size="100%,54px">Send another link</x-import>
 <sc-if value="{{ sentForgot }}"><button type="button" data-af-link="1" onClick="{{ backToSignIn }}">Back to sign in</button></sc-if>
 <sc-if value="{{ sentMagicAny }}" hint-placeholder-val="{{ true }}"><button type="button" data-af-link="1" onClick="{{ usePassword }}">Use a password instead</button></sc-if>
@@ -300,11 +306,20 @@ button,.vt-btn,.vt-iconbtn{box-shadow:none}
 </div>
 </sc-if>
 
+<sc-if value="{{ canChallenge }}">
+<div data-af-ts="1" data-open="{{ tsOpen }}" id="af-turnstile" data-vt-no-i18n="1"></div>
+</sc-if>
+
 </div>
 
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:640},&quot;mode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;signin&quot;,&quot;signup&quot;,&quot;forgot&quot;,&quot;finish&quot;],&quot;default&quot;:&quot;signin&quot;,&quot;tsType&quot;:&quot;'signin'|'signup'|'forgot'|'finish'&quot;},&quot;method&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;password&quot;,&quot;magic&quot;],&quot;default&quot;:&quot;password&quot;,&quot;tsType&quot;:&quot;'password'|'magic'&quot;},&quot;stage&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;form&quot;,&quot;sent&quot;,&quot;verifying&quot;,&quot;returning&quot;],&quot;default&quot;:&quot;form&quot;,&quot;tsType&quot;:&quot;'form'|'sent'|'verifying'|'returning'&quot;},&quot;banner&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;&quot;,&quot;credentials&quot;,&quot;registered&quot;,&quot;expired&quot;,&quot;rate-limited&quot;,&quot;not-staff&quot;,&quot;unconfirmed&quot;,&quot;consent&quot;,&quot;send-failed&quot;,&quot;save-failed&quot;],&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;'credentials'|'registered'|'expired'|'rate-limited'|'not-staff'|'unconfirmed'|'consent'|'send-failed'|'save-failed'|null&quot;},&quot;email&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;firstName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;lastName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;frozen&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;onState&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(s: {mode:string;method:string;stage:string;banner:string|null}) =&gt; void&quot;}}">
 const REGISTERED = ['taken@vamostaxi.site'];
+/* One key per Turnstile token, so the server's siteverify call can be told apart (S5). No crypto: none is sent. */
+function uuid() {
+  try { if (window.crypto && typeof window.crypto.randomUUID === 'function') return window.crypto.randomUUID(); } catch (e) {}
+  return undefined;
+}
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i;
 function b64urlToBuf(s) {
   const pad = '='.repeat((4 - (s.length % 4)) % 4);
@@ -395,9 +410,12 @@ class Component extends DCLogic {
     confirmSent: false,
     confirmFailed: false,
     confirmBusy: false,
+    resendFailed: false,
+    tsOpen: false,
   };
   componentDidMount() {
     this.bindGlobals(0);
+    this.ensureChallenge();
     if (this.state.mode === 'finish') this.loadFinish();
     /* The email-link callback sends a failed, expired or already-used link here as ?error=1. */
     try {
@@ -421,7 +439,8 @@ class Component extends DCLogic {
       })
       .catch(() => {});
   }
-  componentDidUpdate(prev) {
+  componentDidUpdate(prev, prevState) {
+    if (prevState && prevState.mode !== this.state.mode) this.ensureChallenge();
     const keys = ['mode', 'method', 'stage', 'banner', 'email', 'nonce'];
     if (keys.some((k) => prev[k] !== this.props[k])) {
       this.setState({
@@ -443,8 +462,9 @@ class Component extends DCLogic {
     }
   }
   componentWillUnmount() {
-    clearTimeout(this.exitTimer); clearTimeout(this.pkTimer); clearTimeout(this.globalsTimer);
+    clearTimeout(this.exitTimer); clearTimeout(this.pkTimer); clearTimeout(this.globalsTimer); clearTimeout(this._tsTimer);
     if (this._offLocale) this._offLocale();
+    this.dropChallenge();
   }
   /* vamos-locale.js and vamos-account-notice.js load from this component's own helmet and can land
      after it mounts. Wait for them (up to 10 s) instead of assuming they are there: the notice
@@ -452,7 +472,11 @@ class Component extends DCLogic {
   bindGlobals(tries) {
     const L = window.VamosLocale;
     if (L && !this._offLocale && typeof L.onChange === 'function') {
-      this._offLocale = L.onChange((v) => this.setState({ lang: (v && v.lang) || this.locale() }));
+      this._offLocale = L.onChange((v) => {
+        this.setState({ lang: (v && v.lang) || this.locale() }, () => {
+          if (this.ts && !this._tsWait) { this.dropChallenge(); this.ensureChallenge(); }
+        });
+      });
       this.setState({ lang: this.locale() });
     }
     const ready = !!window.VamosAccountNotice;
@@ -547,7 +571,7 @@ class Component extends DCLogic {
   }
   cancelPasskey = () => { clearTimeout(this.pkTimer); this.go({ stage: 'form', method: 'password', banner: null }); };
   go(patch) {
-    this.setState(Object.assign({ errors: {}, resent: false, code: '', codeError: '', codeBusy: false, resendLimited: false, confirmSent: false, confirmFailed: false }, patch), () => {
+    this.setState(Object.assign({ errors: {}, resent: false, code: '', codeError: '', codeBusy: false, resendLimited: false, resendFailed: false, confirmSent: false, confirmFailed: false }, patch), () => {
       const s = this.state;
       if (this.props.onState) this.props.onState({ mode: s.mode, method: s.method, stage: s.stage, banner: s.banner });
       if (s.stage === 'returning') this.armExit();
@@ -575,6 +599,57 @@ class Component extends DCLogic {
       return localStorage.getItem('vamosLang') || 'en';
     } catch (e) { return 'en'; }
   }
+  /* S5 (2026-10-05): sign-up and "forgot password" prove a visitor before the server sends any mail, with the
+     same Cloudflare check the booking uses (action "account"). Most visitors see nothing: the check runs
+     unseen, and only a suspicious one gets the small box (#af-turnstile opens). A token works once, so every
+     send, "Send another link" included, asks for a fresh one. The gallery and the dispatch surface stay on the
+     demo rules and never ask. Sign-in itself (password, code, link) has no check. */
+  needsChallenge(mode) {
+    return !(this.props.frozen || this.props.surface === 'ops') && (mode === 'signup' || mode === 'forgot');
+  }
+  ensureChallenge() {
+    if (this.ts || !this.needsChallenge(this.state.mode)) return;
+    const V = window.VamosConsent;
+    const box = document.getElementById('af-turnstile');
+    if (!V || typeof V.turnstile !== 'function' || !box) return;
+    const l = this.locale();
+    this.ts = V.turnstile(box, (t) => this.challengeDone(t), () => this.challengeDone(null), {
+      action: 'account',
+      language: l === 'ar' ? 'ar-eg' : (l === 'de' || l === 'fr' ? l : 'en'),
+      onInteractive: (open) => {
+        this.setState({ tsOpen: !!open }, () => {
+          if (open && box.scrollIntoView) {
+            let calm = false;
+            try { calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+            box.scrollIntoView({ block: 'center', behavior: calm ? 'auto' : 'smooth' });
+          }
+        });
+      },
+    });
+  }
+  dropChallenge() {
+    if (this.ts) { try { this.ts.remove(); } catch (e) {} }
+    this.ts = null;
+  }
+  challengeDone(token) {
+    const done = this._tsWait;
+    this._tsWait = null;
+    clearTimeout(this._tsTimer);
+    if (done) done(token);
+  }
+  /* Resolves with a fresh token, or null when the check failed, timed out or cannot run. One at a time. */
+  challenge() {
+    if (this._tsPromise) return this._tsPromise;
+    this.ensureChallenge();
+    if (!this.ts) return Promise.resolve(null);
+    this._tsPromise = new Promise((resolve) => {
+      this._tsWait = (token) => { this._tsPromise = null; resolve(token); };
+      this._tsTimer = setTimeout(() => this.challengeDone(null), 90000);
+      this.ts.reset();
+      this.ts.execute();
+    });
+    return this._tsPromise;
+  }
   liveAuth(body) {
     return fetch('/api/auth', {
       method: 'POST',
@@ -600,7 +675,7 @@ class Component extends DCLogic {
     /* 27.1: the finish step's own failures. A lost session is the ordinary sign-in again. */
     if (mode === 'finish' && !result.ok && result.reason === 'no-user') return this.go({ mode: 'signin', method: 'password', stage: 'form', banner: null, email: '', consent: false });
     if (mode === 'finish' && !result.ok && (result.reason === 'signup-unavailable' || result.reason === 'invalid')) return this.go({ stage: 'form', banner: 'save-failed' });
-    if (!result.ok && result.reason === 'signup-unavailable') return this.go({ stage: 'form', banner: 'send-failed' });
+    if (!result.ok && (result.reason === 'signup-unavailable' || result.reason === 'challenge-failed')) return this.go({ stage: 'form', banner: 'send-failed' });
     if (!result.ok) {
       const shown = this.reasonBanner(result.reason);
       if (shown) return this.go({ stage: 'form', banner: shown });
@@ -636,11 +711,17 @@ class Component extends DCLogic {
     return { mode: 'signin', method: 'password', email: addr, password };
   }
   resend = () => {
-    this.setState({ resent: true, resendLimited: false });
+    this.setState({ resent: true, resendLimited: false, resendFailed: false });
     if (this.props.frozen || this.props.surface === 'ops') return;
-    this.liveAuth(this.payload()).then((result) => {
+    const send = (extra) => this.liveAuth(Object.assign(this.payload(), extra)).then((result) => {
       if (result && result.reason === 'rate-limited') this.setState({ resent: false, resendLimited: true });
+      else if (result && result.reason === 'challenge-failed') this.setState({ resent: false, resendFailed: true });
       else if (result && (result.reason === 'consent-required' || result.reason === 'signup-unavailable')) this.applyLive(result, this.state.mode, this.state.method);
+    });
+    if (!this.needsChallenge(this.state.mode)) return send({});
+    this.challenge().then((token) => {
+      if (!token) return this.setState({ resent: false, resendFailed: true });
+      send({ turnstileToken: token, idempotencyKey: uuid() });
     });
   };
   /* The same email carries a 6-digit code next to the link. Typing it is a sign-in of its
@@ -721,6 +802,14 @@ class Component extends DCLogic {
     }
     if (this._busy) return;
     this._busy = true;
+    if (this.needsChallenge(mode)) {
+      this.challenge().then((token) => {
+        if (!token) { this._busy = false; return this.go({ stage: 'form', banner: 'send-failed' }); }
+        return this.liveAuth(Object.assign(this.payload(), { turnstileToken: token, idempotencyKey: uuid() }))
+          .then((result) => this.applyLive(result, mode, method)).finally(() => { this._busy = false; });
+      });
+      return;
+    }
     this.liveAuth(this.payload()).then((result) => this.applyLive(result, mode, method)).finally(() => { this._busy = false; });
   };
   /* The label is 26.5's Text 1 from vamos-account-notice.js, never a sentence typed here.
@@ -812,7 +901,8 @@ class Component extends DCLogic {
       codeErrText: this.state.codeError === 'invalid' ? 'Check the code. It is 6 digits and works for one hour.'
         : this.state.codeError === 'limited' ? 'Too many tries. Wait a minute and try again.'
         : this.state.codeError === 'failed' ? 'Could not check the code. Try again.' : undefined,
-      resendLimited: this.state.resendLimited,
+      resendLimited: this.state.resendLimited, resendFailed: this.state.resendFailed,
+      canChallenge: !(this.props.frozen || isOps), tsOpen: this.state.tsOpen,
     };
   }
 }

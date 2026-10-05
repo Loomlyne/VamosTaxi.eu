@@ -14,7 +14,11 @@
      VamosConsent.save(method, cats, opts) -> Promise {ok:true} | {ok:false, code}
      VamosConsent.onChange(fn) -> off      subscribe to 'vamos:consent'
      VamosConsent.cached()                 display cache for the current policy version, or null
-     VamosConsent.turnstile(box, onToken, onError) -> {execute, reset, remove}
+     VamosConsent.turnstile(box, onToken, onError, opts) -> {execute, reset, remove}
+         opts.action defaults to 'consent'; the sign-in page asks for 'account' (S5, 2026-10-05).
+         opts.language is a Turnstile language code for the widget text, or omitted for 'auto'.
+         opts.onInteractive(open) is called with true when the visitor must tick a box (the widget
+         is about to show) and false once it is done; with 'interaction-only' most visitors never see it.
 
    Cloudflare Web Analytics (cookieless) starts only once a saved choice allows
    Analytics: when state() reads one from the server, or save() records one.
@@ -162,8 +166,10 @@
     document.head.appendChild(s);
   }
 
-  /** Renders an explicit Turnstile widget (action consent) into `box`. Nothing runs on load. */
-  function turnstile(box, onToken, onError) {
+  /** Renders an explicit Turnstile widget (action consent unless opts.action says so) into `box`. Nothing runs on load. */
+  function turnstile(box, onToken, onError, opts) {
+    var action = (opts && opts.action) || 'consent';
+    var language = opts && opts.language;
     var meta = document.querySelector('meta[name="vt-turnstile-site-key"]');
     var siteKey = meta && meta.getAttribute('content');
     var widgetId = null;
@@ -186,15 +192,21 @@
         timer = setTimeout(render, 50);
         return;
       }
-      widgetId = window.turnstile.render(box, {
+      var options = {
         sitekey: siteKey,
-        action: 'consent',
+        action: action,
         appearance: 'interaction-only',
         execution: 'execute',
         callback: function (token) { if (onToken) onToken(token); },
         'expired-callback': function () { if (onError) onError('expired'); },
         'error-callback': function () { if (onError) onError('error'); },
-      });
+      };
+      if (language) options.language = language;
+      if (opts && typeof opts.onInteractive === 'function') {
+        options['before-interactive-callback'] = function () { opts.onInteractive(true); };
+        options['after-interactive-callback'] = function () { opts.onInteractive(false); };
+      }
+      widgetId = window.turnstile.render(box, options);
       if (wantExecute) window.turnstile.execute(widgetId);
     }
     render();

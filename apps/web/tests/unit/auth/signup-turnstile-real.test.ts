@@ -1,0 +1,125 @@
+// Security S5 (2026-10-05): the sign-up / forgot-password check runs through the real lib/turnstile helper here
+// (only Cloudflare's siteverify answer is faked), to show it fails closed and is bound to the action and host.
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { authPost, resetHarness, state } from "./harness";
+
+vi.mock("@opennextjs/cloudflare", async () => (await import("./harness")).cloudflareMock);
+vi.mock("next/headers", async () => (await import("./harness")).headersMock);
+vi.mock("@supabase/ssr", async () => (await import("./harness")).ssrMock);
+vi.mock("@/lib/db/identity", () => ({
+  asSystem: async (_env: unknown, fn: (tx: unknown) => Promise<unknown>) => fn(async () => []),
+}));
+vi.mock("@/lib/db/system-reads", () => ({
+  markAccountFinishPending: async () => undefined,
+}));
+
+const { POST } = await import("@/app/api/auth/route");
+
+const forgot = { mode: "forgot", email: "mia@example.test", turnstileToken: "real-token", idempotencyKey: "11111111-1111-4111-8111-111111111111" };
+const signup = {
+  mode: "signup", method: "password", email: "mia@example.test", password: "12345678",
+  firstName: "Mia", lastName: "K", consent: true, turnstileToken: "real-token", idempotencyKey: "22222222-2222-4222-8222-222222222222",
+};
+
+let sent: number;
+let siteverify: ReturnType<typeof vi.fn>;
+
+function answer(body: unknown) {
+  siteverify.mockImplementation(async () => new Response(JSON.stringify(body), { status: 200 }));
+}
+
+beforeEach(() => {
+  resetHarness();
+  sent = 0;
+  state.auth.resetPasswordForEmail = (async () => {
+    sent++;
+    return { error: null };
+  }) as never;
+  state.auth.signUp = (async () => {
+    sent++;
+    return { error: null };
+  }) as never;
+  state.env.TURNSTILE_SECRET_KEY = "sekret";
+  state.env.CONTACT_TURNSTILE_ALLOWED_HOSTNAMES = "vamostaxi.site";
+  siteverify = vi.fn();
+  vi.stubGlobal("fetch", siteverify);
+});
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
+describe("S5: the real check, fail closed", () => {
+  it("a good answer for action 'account' on our host lets the mail go; the form carries action, key and IP", async () => {
+    answer({ success: true, action: "account", hostname: "vamostaxi.site" });
+    const res = await POST(authPost(forgot));
+    expect(res.status).toBe(200);
+    expect(sent).toBe(1);
+    const sentForm = new URLSearchParams(String((siteverify.mock.calls[0]?.[1] as { body: URLSearchParams }).body));
+    expect(sentForm.get("response")).toBe("real-token");
+    expect(sentForm.get("action")).toBe("account");
+    expect(sentForm.get("idempotency_key")).toBe(forgot.idempotencyKey);
+    expect(sentForm.get("remoteip")).toBe("203.0.113.9");
+  });
+
+  it("works the same for the password sign-up", async () => {
+    answer({ success: true, action: "account", hostname: "vamostaxi.site" });
+    const res = await POST(authPost(signup));
+    expect(res.status).toBe(200);
+    expect(sent).toBe(1);
+  });
+
+  it("no secret on the Worker: refused, and Cloudflare is not even asked", async () => {
+    delete state.env.TURNSTILE_SECRET_KEY;
+    const err = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const res = await POST(authPost(forgot));
+    expect(res.status).toBe(403);
+    expect(sent).toBe(0);
+    expect(siteverify).not.toHaveBeenCalled();
+    err.mockRestore();
+  });
+
+  it("no hostname binding on the Worker: refused", async () => {
+    delete state.env.CONTACT_TURNSTILE_ALLOWED_HOSTNAMES;
+    answer({ success: true, action: "account", hostname: "vamostaxi.site" });
+    const res = await POST(authPost(forgot));
+    expect(res.status).toBe(403);
+    expect(sent).toBe(0);
+  });
+
+  it("Cloudflare unreachable: refused, not waved through", async () => {
+    siteverify.mockRejectedValue(new Error("network down"));
+    const res = await POST(authPost(signup));
+    expect(res.status).toBe(403);
+    expect(sent).toBe(0);
+  });
+
+  it("Cloudflare answers non-200: refused", async () => {
+    siteverify.mockImplementation(async () => new Response("{}", { status: 500 }));
+    const res = await POST(authPost(forgot));
+    expect(res.status).toBe(403);
+    expect(sent).toBe(0);
+  });
+
+  it("a token minted for another action (the consent banner's) is refused", async () => {
+    answer({ success: true, action: "consent", hostname: "vamostaxi.site" });
+    const res = await POST(authPost(forgot));
+    expect(res.status).toBe(403);
+    expect(sent).toBe(0);
+  });
+
+  it("a token minted on another host is refused", async () => {
+    answer({ success: true, action: "account", hostname: "evil.example" });
+    const res = await POST(authPost(signup));
+    expect(res.status).toBe(403);
+    expect(sent).toBe(0);
+  });
+
+  it("success: false is refused", async () => {
+    answer({ success: false, "error-codes": ["timeout-or-duplicate"] });
+    const res = await POST(authPost(forgot));
+    expect(res.status).toBe(403);
+    expect(await res.json()).toEqual({ ok: false, reason: "challenge-failed" });
+    expect(sent).toBe(0);
+  });
+});

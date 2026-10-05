@@ -7,6 +7,7 @@ const db = vi.hoisted(() => ({ calls: [] as unknown[][], order: [] as string[], 
 vi.mock("@opennextjs/cloudflare", async () => (await import("./harness")).cloudflareMock);
 vi.mock("next/headers", async () => (await import("./harness")).headersMock);
 vi.mock("@supabase/ssr", async () => (await import("./harness")).ssrMock);
+vi.mock("@/lib/turnstile", async () => (await import("./harness")).turnstileMock);
 vi.mock("@/lib/db/identity", () => ({
   asSystem: async (_env: unknown, fn: (tx: unknown) => Promise<void>) => {
     db.order.push("db");
@@ -21,8 +22,8 @@ vi.mock("@/lib/db/identity", () => ({
 
 const { POST } = await import("@/app/api/auth/route");
 
-const pw = { mode: "signup", method: "password", email: "a@b.co", password: "12345678", firstName: "A", lastName: "B" };
-const magic = { mode: "signup", method: "magic", email: "a@b.co", firstName: "A", lastName: "B" };
+const pw = { mode: "signup", method: "password", email: "a@b.co", password: "12345678", firstName: "A", lastName: "B", turnstileToken: "tok" };
+const magic = { mode: "signup", method: "magic", email: "a@b.co", firstName: "A", lastName: "B", turnstileToken: "tok" };
 
 let signUp: ReturnType<typeof vi.fn>;
 let otp: ReturnType<typeof vi.fn>;
@@ -106,7 +107,7 @@ describe("other paths", () => {
 
   it("sign-in and forgot need no consent; password sign-in and forgot touch no database; the link writes no record", async () => {
     await POST(authPost({ mode: "signin", method: "password", email: "a@b.co", password: "12345678" }));
-    await POST(authPost({ mode: "forgot", email: "a@b.co" }));
+    await POST(authPost({ mode: "forgot", email: "a@b.co", turnstileToken: "tok" }));
     expect(db.order).not.toContain("db");
     db.calls = [];
     await POST(authPost({ mode: "signin", method: "magic", email: "a@b.co" }));

@@ -92,6 +92,13 @@ const EMAIL_NOT_CONFIRMED: ProfileRunResult = { ok: false, reason: "email-not-co
 
 const CODE_INVALID: ProfileRunResult = { ok: false, reason: "code-invalid" };
 
+/**
+ * S5 (2026-10-05): the sign-up or forgot-password send needs a Turnstile token and did not get a valid one.
+ * One answer for every cause (no token, bad token, check unavailable, check not configured): the sign-in
+ * page shows its "Could not send the link" line. Sent before the address is looked at, so it says nothing about it.
+ */
+const CHALLENGE_FAILED: ProfileRunResult = { ok: false, reason: "challenge-failed" };
+
 /** Checkout sign-in send refused (Turnstile failed). Read by the checkout UI, not the sign-in page. */
 type CheckoutSendRefused = { stage: "form"; banner: "send_failed" };
 
@@ -221,6 +228,34 @@ export async function POST(request: Request): Promise<Response> {
       log("warn", "auth", ctx, { reason: "auth-limiter-throw" });
       return true;
     }
+  };
+
+  /**
+   * Turnstile siteverify for the mail sends of the public sign-in page (action "account", the one the
+   * checkout sign-in link already uses). Fails closed: a missing secret, a missing token or an unreachable
+   * check all refuse. Never throws.
+   */
+  const challengePassed = async (): Promise<boolean> => {
+    const bindings = env as unknown as Record<string, string | undefined>;
+    const challenge = await verifyTurnstile(
+      env.TURNSTILE_SECRET_KEY ?? process.env.TURNSTILE_SECRET_KEY,
+      typeof fields.turnstileToken === "string" ? fields.turnstileToken : "",
+      {
+        action: "account",
+        idempotencyKey: typeof fields.idempotencyKey === "string" ? fields.idempotencyKey : "",
+        // Reuses the contact form's hostname binding (no separate sign-in binding exists).
+        allowedHostnames:
+          bindings.CONTACT_TURNSTILE_ALLOWED_HOSTNAMES ?? process.env.CONTACT_TURNSTILE_ALLOWED_HOSTNAMES,
+        remoteip: request.headers.get("cf-connecting-ip") ?? undefined,
+      },
+    );
+    return challenge.ok;
+  };
+
+  /** The form fields without the challenge pair: the sign-up and reset schemas are strict. */
+  const formFields = (): Record<string, unknown> => {
+    const { turnstileToken: _token, idempotencyKey: _key, ...rest } = fields;
+    return rest;
   };
 
   /**
@@ -619,6 +654,10 @@ export async function POST(request: Request): Promise<Response> {
   if (fields.mode === "forgot") {
     const parsed = resetEmailSchema.safeParse({ email: fields.email });
     if (!parsed.success) return json(SENT);
+    // S5 (2026-10-05): the public sign-in page proves a visitor first. Before the address bucket, so a
+    // bot with no token cannot use up a real person's bucket. The dashboard's own sign-in screen has
+    // no check (out of scope for this decision) and keeps working as before.
+    if (!dashboard && !(await challengePassed())) return json(CHALLENGE_FAILED, 403);
     // S5: same answer for a known and an unknown address; a 429 says nothing about the address.
     if (!(await perAddressAllowed("forgot", parsed.data.email))) return json(RATE_LIMITED, 429);
     const { result, reason } = await runPasswordReset(
@@ -639,20 +678,7 @@ export async function POST(request: Request): Promise<Response> {
       await holdCheckoutFloor({ startedAt });
       return json(SENT);
     }
-    const bindings = env as unknown as Record<string, string | undefined>;
-    const challenge = await verifyTurnstile(
-      env.TURNSTILE_SECRET_KEY ?? process.env.TURNSTILE_SECRET_KEY,
-      typeof fields.turnstileToken === "string" ? fields.turnstileToken : "",
-      {
-        action: "account",
-        idempotencyKey: typeof fields.idempotencyKey === "string" ? fields.idempotencyKey : "",
-        // Reuses the contact form's hostname binding (no separate checkout binding exists).
-        allowedHostnames:
-          bindings.CONTACT_TURNSTILE_ALLOWED_HOSTNAMES ?? process.env.CONTACT_TURNSTILE_ALLOWED_HOSTNAMES,
-        remoteip: request.headers.get("cf-connecting-ip") ?? undefined,
-      },
-    );
-    if (!challenge.ok) return json({ stage: "form", banner: "send_failed" }, 403);
+    if (!(await challengePassed())) return json({ stage: "form", banner: "send_failed" }, 403);
     const checkoutParsed = checkoutSignInSchema.safeParse(fields);
     if (!checkoutParsed.success) {
       await holdCheckoutFloor({ startedAt });
@@ -677,8 +703,12 @@ export async function POST(request: Request): Promise<Response> {
     if (fields.mode === "signup" && !dashboard && !signupConsentGiven(fields)) {
       return json(CONSENT_REQUIRED, 400);
     }
-    const parsed = otpRequestSchema.safeParse(fields);
+    const parsed = otpRequestSchema.safeParse(formFields());
     if (!parsed.success) return json(SENT);
+    // S5 (2026-10-05): a public sign-up proves a visitor before anything is written or sent.
+    if (parsed.data.mode === "signup" && !dashboard && !(await challengePassed())) {
+      return json(CHALLENGE_FAILED, 403);
+    }
     // S5: the link sign-up spends the per-address bucket before the agreement record or any mail.
     if (parsed.data.mode === "signup" && !dashboard && !(await perAddressAllowed("signup", parsed.data.email))) {
       return json(RATE_LIMITED, 429);
@@ -733,8 +763,10 @@ export async function POST(request: Request): Promise<Response> {
     // dashboard host must not create a customer account there.
     if (dashboard) return json(SENT);
     if (!signupConsentGiven(fields)) return json(CONSENT_REQUIRED, 400);
-    const parsed = signUpPasswordSchema.safeParse(fields);
+    const parsed = signUpPasswordSchema.safeParse(formFields());
     if (!parsed.success) return json(SENT);
+    // S5 (2026-10-05): a public sign-up proves a visitor before anything is written or sent.
+    if (!(await challengePassed())) return json(CHALLENGE_FAILED, 403);
     // S5: per-address bucket before the agreement record or the confirmation mail.
     if (!(await perAddressAllowed("signup", parsed.data.email))) return json(RATE_LIMITED, 429);
     if (!(await recordSignupAgreement(env, { email: parsed.data.email, locale, headers: request.headers }))) {
