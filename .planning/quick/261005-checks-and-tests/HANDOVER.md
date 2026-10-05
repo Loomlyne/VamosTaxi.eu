@@ -14,7 +14,7 @@ A `fix/**` push starts no workflow (checked: no workflow triggers on it), so pus
 |---|---|
 | U21 unit tests and pgTAP on every push to main | Fixed (workflow change; first real proof is the first push to main) |
 | U20 CI red on every push | Workflow fixed; 8 stale specs fixed and re-run green locally; 1 real product bug left as `test.fixme`; WebKit rows skip with a reason |
-| U22 database-backed tests | Fixed: `pnpm test:db-lab`; refund-by-hand id fixed; run once, 72 + 31 passed, lab destroyed |
+| U22 database-backed tests | Fixed: `pnpm test:db-lab`; refund-by-hand id fixed; on the merged tree 72 + 4 + 31 passed, lab destroyed |
 | S16 audit | undici pinned; `braces` cannot be fixed (no patched release exists), audit-ignored with the reason |
 | D3 deploy script | Fixed: refuses without `--env`, only `staging` allowed |
 | D4 `.dev.vars.example` | Fixed: every name, no values |
@@ -110,8 +110,16 @@ resets it to the repository seed, sets the role passwords and marker, runs `pack
 a native-capable Supabase CLI even though pnpm puts the pinned 2.115 first on PATH. Documented in `docs/runbook/test-lab.md` ("Database-backed
 tests") and in the README. `refund-by-hand.local.test.ts` now uses `re_retry_${tag}` with the run's random tag.
 
-Proof. Run once (final, after the last commit): `PASS | dbtests | packages/db test/local: Tests 72 passed (72) | apps/web .local.test.ts: Tests 31 passed (31)`,
-then `PASS | destroy | ... stack (native) and state removed`. About 2 minutes.
+Found when merging `origin/main` (new `lib/db/rest-grants.local.test.ts` from the money job): that file reads the lab's stand-in price book
+("seeded with seed-live-like.sql" in its header) and failed 2 tests on a repository-seed database, which has no live book. The command now
+applies `seed-live-like.sql` and runs the files that name it first, then every other file (they retire whatever live book they find).
+A second finding in the same run: `booking-change.local.test.ts` timed out at vitest's 5 s default on a busy Mac, so the web passes run
+with `--testTimeout=60000`.
+
+Proof. Run on the merged tree (this branch plus `origin/main` `5aa3ddd0`): first run FAIL (2, the seed above), second FAIL (1, the 5 s
+timeout), third, after both fixes: `PASS | dbtests | packages/db test/local: Tests 72 passed (72) | apps/web .local.test.ts: Tests 4 passed (4)
+(seeded files) + Tests 31 passed (31)`, then `PASS | destroy | ... stack (native) and state removed`. About 2.5 minutes. Before the merge the
+same command gave 72 + 31 passed.
 
 ## S16: dependency audit
 
@@ -132,7 +140,7 @@ The README describes the controller's deploy; it carries no runnable deploy line
 ## D4: `apps/web/.dev.vars.example`
 
 30 empty `NAME=` lines grouped by area (secrets, vars, the contact-form names read outside `env.d.ts`), one comment each; the wrangler bindings
-as comments (setting them would shadow the binding); a "Not for this file" section for build-time and test-only names. Names only, no value was
+as comments (setting them would shadow the binding; `READ_RATE_LIMITER`, added by main's S12, included after the merge); a "Not for this file" section for build-time and test-only names. Names only, no value was
 read from `.dev.vars` or any `.env`, nothing copied.
 
 ## Checks run (final tree)
@@ -144,7 +152,7 @@ read from `.dev.vars` or any `.env`, nothing copied.
 | `pnpm check:numbers` | ok |
 | `pnpm test:scripts` | 37 pass (before the last spec edits; no script changed since) |
 | `pnpm audit` | 0 un-ignored (braces ignored with the reason) |
-| `pnpm test:db-lab` | PASS, 72 + 31, lab destroyed |
+| `pnpm test:db-lab` (merged tree) | PASS, 72 + 4 + 31, lab destroyed |
 | voucher unit tests (`voucher-lock`, `voucher-badge`) | 15 pass |
 | the e2e and visual specs listed above | pass, one worker, own stack (stopped and its data deleted afterwards) |
 
