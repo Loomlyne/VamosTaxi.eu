@@ -1,0 +1,445 @@
+{
+ "board-en-1440": {
+  "lang": "de",
+  "count": 27,
+  "strings": [
+   "Luca Meier",
+   "Bahnhofstrasse 1, Zurich",
+   "→ Zurich Airport",
+   "Marco Bianchi",
+   "Amira Keller",
+   "→ Lausanne",
+   "Sofia Ricci",
+   "Nadia Frei",
+   "→ Lucerne",
+   "Jonas Weber",
+   "→ Bern",
+   "Elena Brunner",
+   "→ Zermatt"
+  ],
+  "attrs": [
+   "Luca Meier",
+   "rider@example.test · +41 79 000 00 00",
+   "Bahnhofstrasse 1, Zurich → Zurich Airport",
+   "Bahnhofstrasse 1, Zurich",
+   "Marco Bianchi",
+   "Amira Keller",
+   "Geneva Airport → Lausanne",
+   "Sofia Ricci",
+   "Nadia Frei",
+   "Zurich Airport → Lucerne",
+   "Jonas Weber",
+   "Basel EuroAirport → Bern",
+   "Elena Brunner",
+   "Zurich Airport → Zermatt"
+  ]
+ },
+ "dashboard-en-1440": {
+  "lang": "de",
+  "count": 7,
+  "strings": [
+   "Content",
+   "Collapse sidebar",
+   "Test Admin",
+   "admin"
+  ],
+  "attrs": [
+   "Content",
+   "Collapse sidebar",
+   "Open navigation"
+  ]
+ },
+ "detail-en-1440": {
+  "lang": "de",
+  "count": 12,
+  "strings": [
+   "Content",
+   "Collapse sidebar",
+   "Test Admin",
+   "admin",
+   "Actions",
+   "VT-26-0829",
+   "Amira Keller",
+   "Unassign",
+   "Transfer, Business"
+  ],
+  "attrs": [
+   "Content",
+   "Collapse sidebar",
+   "Open navigation"
+  ]
+ },
+ "board-en-390": {
+  "lang": "de",
+  "count": 27,
+  "strings": [
+   "Luca Meier",
+   "Bahnhofstrasse 1, Zurich",
+   "→ Zurich Airport",
+   "Marco Bianchi",
+   "Amira Keller",
+   "→ Lausanne",
+   "Sofia Ricci",
+   "Nadia Frei",
+   "→ Lucerne",
+   "Jonas Weber",
+   "→ Bern",
+   "Elena Brunner",
+   "→ Zermatt"
+  ],
+  "attrs": [
+   "Luca Meier",
+   "rider@example.test · +41 79 000 00 00",
+   "Bahnhofstrasse 1, Zurich → Zurich Airport",
+   "Bahnhofstrasse 1, Zurich",
+   "Marco Bianchi",
+   "Amira Keller",
+   "Geneva Airport → Lausanne",
+   "Sofia Ricci",
+   "Nadia Frei",
+   "Zurich Airport → Lucerne",
+   "Jonas Weber",
+   "Basel EuroAirport → Bern",
+   "Elena Brunner",
+   "Zurich Airport → Zermatt"
+  ]
+ },
+ "dashboard-en-390": {
+  "lang": "de",
+  "count": 7,
+  "strings": [
+   "Content",
+   "Collapse sidebar",
+   "Test Admin",
+   "admin"
+  ],
+  "attrs": [
+   "Content",
+   "Collapse sidebar",
+   "Open navigation"
+  ]
+ },
+ "detail-en-390": {
+  "lang": "de",
+  "count": 12,
+  "strings": [
+   "Content",
+   "Collapse sidebar",
+   "Test Admin",
+   "admin",
+   "Actions",
+   "VT-26-0829",
+   "Amira Keller",
+   "Unassign",
+   "Transfer, Business"
+  ],
+  "attrs": [
+   "Content",
+   "Collapse sidebar",
+   "Open navigation"
+  ]
+ },
+ "board-de-1440": {
+  "lang": "de",
+  "count": 29,
+  "strings": [
+   "Luca Meier",
+   "Bahnhofstrasse 1, Zurich",
+   "→ Zurich Airport",
+   "2 Pax",
+   "1 Gepäck",
+   "Marco Bianchi",
+   "Amira Keller",
+   "→ Lausanne",
+   "Sofia Ricci",
+   "Nadia Frei",
+   "→ Lucerne",
+   "Jonas Weber",
+   "→ Bern",
+   "Elena Brunner",
+   "→ Zermatt"
+  ],
+  "attrs": [
+   "Luca Meier",
+   "rider@example.test · +41 79 000 00 00",
+   "Bahnhofstrasse 1, Zurich → Zurich Airport",
+   "Bahnhofstrasse 1, Zurich",
+   "Marco Bianchi",
+   "Amira Keller",
+   "Geneva Airport → Lausanne",
+   "Sofia Ricci",
+   "Nadia Frei",
+   "Zurich Airport → Lucerne",
+   "Jonas Weber",
+   "Basel EuroAirport → Bern",
+   "Elena Brunner",
+   "Zurich Airport → Zermatt"
+  ]
+ },
+ "dashboard-de-1440": {
+  "lang": "de",
+  "count": 7,
+  "strings": [
+   "Inhalte",
+   "Seitenleiste einklappen",
+   "Test Admin",
+   "admin"
+  ],
+  "attrs": [
+   "Inhalte",
+   "Seitenleiste einklappen",
+   "Navigation öffnen"
+  ]
+ },
+ "detail-de-1440": {
+  "lang": "de",
+  "count": 15,
+  "strings": [
+   "Inhalte",
+   "Seitenleiste einklappen",
+   "Test Admin",
+   "admin",
+   "Aktionen",
+   "VT-26-0829",
+   "Amira Keller",
+   "Zuweisung",
+   "Zuweisung aufheben",
+   "Fahrpreis",
+   "Transfer, Business",
+   "Preis-Snapshot bei Buchung; spätere Regeländerungen ändern ihn nicht."
+  ],
+  "attrs": [
+   "Inhalte",
+   "Seitenleiste einklappen",
+   "Navigation öffnen"
+  ]
+ },
+ "board-fr-1440": {
+  "lang": "fr",
+  "count": 28,
+  "strings": [
+   "Luca Meier",
+   "Bahnhofstrasse 1, Zurich",
+   "→ Zurich Airport",
+   "Marco Bianchi",
+   "Amira Keller",
+   "→ Lausanne",
+   "Sofia Ricci",
+   "Nadia Frei",
+   "→ Lucerne",
+   "Jonas Weber",
+   "→ Bern",
+   "Non assigné",
+   "Elena Brunner",
+   "→ Zermatt"
+  ],
+  "attrs": [
+   "Luca Meier",
+   "rider@example.test · +41 79 000 00 00",
+   "Bahnhofstrasse 1, Zurich → Zurich Airport",
+   "Bahnhofstrasse 1, Zurich",
+   "Marco Bianchi",
+   "Amira Keller",
+   "Geneva Airport → Lausanne",
+   "Sofia Ricci",
+   "Nadia Frei",
+   "Zurich Airport → Lucerne",
+   "Jonas Weber",
+   "Basel EuroAirport → Bern",
+   "Elena Brunner",
+   "Zurich Airport → Zermatt"
+  ]
+ },
+ "dashboard-fr-1440": {
+  "lang": "fr",
+  "count": 7,
+  "strings": [
+   "Contenu",
+   "Réduire la barre latérale",
+   "Test Admin",
+   "admin"
+  ],
+  "attrs": [
+   "Contenu",
+   "Réduire la barre latérale",
+   "Ouvrir la navigation"
+  ]
+ },
+ "detail-fr-1440": {
+  "lang": "fr",
+  "count": 15,
+  "strings": [
+   "Contenu",
+   "Réduire la barre latérale",
+   "Test Admin",
+   "admin",
+   "Actions",
+   "VT-26-0829",
+   "Amira Keller",
+   "Assignation",
+   "Désassigner",
+   "Passager et trajet",
+   "Transfert, Business",
+   "Prix figé au moment de la réservation ; les changements de tarif ultérieurs ne le modifient pas."
+  ],
+  "attrs": [
+   "Contenu",
+   "Réduire la barre latérale",
+   "Ouvrir la navigation"
+  ]
+ },
+ "board-ar-1440": {
+  "lang": "ar",
+  "count": 29,
+  "strings": [
+   "الاستلام",
+   "Luca Meier",
+   "Bahnhofstrasse 1, Zurich",
+   "→ Zurich Airport",
+   "Marco Bianchi",
+   "Amira Keller",
+   "→ Lausanne",
+   "Sofia Ricci",
+   "Nadia Frei",
+   "→ Lucerne",
+   "Jonas Weber",
+   "→ Bern",
+   "غير معيّن",
+   "Elena Brunner",
+   "→ Zermatt"
+  ],
+  "attrs": [
+   "Luca Meier",
+   "rider@example.test · +41 79 000 00 00",
+   "Bahnhofstrasse 1, Zurich → Zurich Airport",
+   "Bahnhofstrasse 1, Zurich",
+   "Marco Bianchi",
+   "Amira Keller",
+   "Geneva Airport → Lausanne",
+   "Sofia Ricci",
+   "Nadia Frei",
+   "Zurich Airport → Lucerne",
+   "Jonas Weber",
+   "Basel EuroAirport → Bern",
+   "Elena Brunner",
+   "Zurich Airport → Zermatt"
+  ]
+ },
+ "dashboard-ar-1440": {
+  "lang": "ar",
+  "count": 7,
+  "strings": [
+   "المحتوى",
+   "طيّ الشريط الجانبي",
+   "Test Admin",
+   "admin"
+  ],
+  "attrs": [
+   "المحتوى",
+   "طيّ الشريط الجانبي",
+   "فتح التنقل"
+  ]
+ },
+ "detail-ar-1440": {
+  "lang": "ar",
+  "count": 17,
+  "strings": [
+   "المحتوى",
+   "طيّ الشريط الجانبي",
+   "Test Admin",
+   "admin",
+   "الإجراءات",
+   "الرجوع إلى الحجوزات",
+   "VT-26-0829",
+   "تم الحجز بواسطة",
+   "Amira Keller",
+   "التعيين",
+   "تغيير",
+   "إلغاء التعيين",
+   "نقل، Business",
+   "السعر مثبّت عند الحجز؛ تغييرات القواعد لاحقاً لا تُغيّره."
+  ],
+  "attrs": [
+   "المحتوى",
+   "طيّ الشريط الجانبي",
+   "فتح التنقل"
+  ]
+ },
+ "board-ar-390": {
+  "lang": "ar",
+  "count": 29,
+  "strings": [
+   "الاستلام",
+   "Luca Meier",
+   "Bahnhofstrasse 1, Zurich",
+   "→ Zurich Airport",
+   "Marco Bianchi",
+   "Amira Keller",
+   "→ Lausanne",
+   "Sofia Ricci",
+   "Nadia Frei",
+   "→ Lucerne",
+   "Jonas Weber",
+   "→ Bern",
+   "غير معيّن",
+   "Elena Brunner",
+   "→ Zermatt"
+  ],
+  "attrs": [
+   "Luca Meier",
+   "rider@example.test · +41 79 000 00 00",
+   "Bahnhofstrasse 1, Zurich → Zurich Airport",
+   "Bahnhofstrasse 1, Zurich",
+   "Marco Bianchi",
+   "Amira Keller",
+   "Geneva Airport → Lausanne",
+   "Sofia Ricci",
+   "Nadia Frei",
+   "Zurich Airport → Lucerne",
+   "Jonas Weber",
+   "Basel EuroAirport → Bern",
+   "Elena Brunner",
+   "Zurich Airport → Zermatt"
+  ]
+ },
+ "dashboard-ar-390": {
+  "lang": "ar",
+  "count": 7,
+  "strings": [
+   "المحتوى",
+   "طيّ الشريط الجانبي",
+   "Test Admin",
+   "admin"
+  ],
+  "attrs": [
+   "المحتوى",
+   "طيّ الشريط الجانبي",
+   "فتح التنقل"
+  ]
+ },
+ "detail-ar-390": {
+  "lang": "ar",
+  "count": 17,
+  "strings": [
+   "المحتوى",
+   "طيّ الشريط الجانبي",
+   "Test Admin",
+   "admin",
+   "الإجراءات",
+   "الرجوع إلى الحجوزات",
+   "VT-26-0829",
+   "تم الحجز بواسطة",
+   "Amira Keller",
+   "التعيين",
+   "تغيير",
+   "إلغاء التعيين",
+   "نقل، Business",
+   "السعر مثبّت عند الحجز؛ تغييرات القواعد لاحقاً لا تُغيّره."
+  ],
+  "attrs": [
+   "المحتوى",
+   "طيّ الشريط الجانبي",
+   "فتح التنقل"
+  ]
+ }
+}

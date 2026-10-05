@@ -7,7 +7,8 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { guardOpsAsset, opsAssetNotFound } from "../dc-mock-urls";
-import { OPS_LOGIN_ASSETS, isOpsLoginAsset, serveGatedOpsAsset } from "./asset-gate";
+import { OPS_LOGIN_ASSETS, gatedAssetCacheControl, isOpsLoginAsset, serveGatedOpsAsset } from "./asset-gate";
+import { CONSOLE_AUTH_TIMEOUT_MS } from "./session";
 
 const SUPABASE_URL = "https://auth.example.test";
 const DASH = "https://dashboard.vamostaxi.site";
@@ -110,15 +111,17 @@ const FILES: Record<string, string> = {
   "/app/ops/OpsSettings.dc.html": "<x-dc>settings</x-dc>",
 };
 
+const ETAG = '"x"';
+
 function assets() {
   return {
     fetch: vi.fn(async (request: Request) => {
       const body = FILES[new URL(request.url).pathname];
       if (body === undefined) return new Response("Not Found", { status: 404 });
-      return new Response(body, {
-        status: 200,
-        headers: { "content-type": "text/html", "cache-control": "public, max-age=0, must-revalidate", etag: '"x"' },
-      });
+      const headers = { "content-type": "text/html", "cache-control": "public, max-age=0, must-revalidate", etag: ETAG };
+      // The assets binding answers a conditional request itself.
+      if (request.headers.get("if-none-match") === ETAG) return new Response(null, { status: 304, headers });
+      return new Response(body, { status: 200, headers });
     }),
   };
 }
@@ -202,12 +205,13 @@ describe("dashboard screen files: staff only (lib/ops/asset-gate.ts)", () => {
     expect(authCalls).toEqual([]);
   });
 
-  it("admin session (no second factor): the screen file is served, private, no-store", async () => {
+  it("admin session (no second factor): the screen file is served, private, no-cache, with the asset's ETag", async () => {
     const a = assets();
     const res = await serveGatedOpsAsset(get(SCREEN, vtAuthCookie(ADMIN)), env(a));
     expect(res.status).toBe(200);
     expect(await res.text()).toBe(FILES[SCREEN]);
-    expect(res.headers.get("cache-control")).toBe("private, no-store");
+    expect(res.headers.get("cache-control")).toBe("private, no-cache");
+    expect(res.headers.get("etag")).toBe(ETAG);
     expect(res.headers.get("x-frame-options")).toBe("DENY");
     expect(res.headers.get("x-robots-tag")).toBe("noindex");
     expect(res.headers.getSetCookie()).toEqual([]);
@@ -298,5 +302,65 @@ describe("dashboard screen files: staff only (lib/ops/asset-gate.ts)", () => {
   it("Supabase Auth unreachable: fail closed (404)", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => { throw new TypeError("network down"); }));
     await expectPrivate404(await serveGatedOpsAsset(get(SCREEN, vtAuthCookie(ADMIN)), env()));
+  });
+});
+
+describe("screen file caching (U8b): private, no-cache, ETag; the gate still decides every time", () => {
+  it("a conditional request from an admin session gets 304 from the assets binding, still private, no-cache", async () => {
+    const a = assets();
+    const res = await serveGatedOpsAsset(get(SCREEN, vtAuthCookie(ADMIN), { "if-none-match": ETAG }), env(a));
+    expect(res.status).toBe(304);
+    expect(await res.text()).toBe("");
+    expect(res.headers.get("cache-control")).toBe("private, no-cache");
+    expect(res.headers.get("etag")).toBe(ETAG);
+    expect(res.headers.get("x-frame-options")).toBe("DENY");
+    expect(authCalls).toEqual(["/auth/v1/user"]); // the session was checked before the 304
+  });
+
+  it("a stored copy never opens the door: signed out, the same conditional request is the private no-store 404", async () => {
+    for (const cookie of [undefined, vtAuthCookie(CUSTOMER), vtAuthCookie(DISPATCHER), vtAuthCookie(ADMIN_MFA_AAL1)]) {
+      const a = assets();
+      const res = await serveGatedOpsAsset(get(SCREEN, cookie, { "if-none-match": ETAG }), env(a));
+      await expectPrivate404(res);
+      expect(a.fetch).not.toHaveBeenCalled();
+    }
+  });
+
+  it("only a served file or a 304 may be stored; every 404 stays no-store", async () => {
+    expect(gatedAssetCacheControl(200)).toBe("private, no-cache");
+    expect(gatedAssetCacheControl(304)).toBe("private, no-cache");
+    for (const status of [401, 403, 404, 500]) expect(gatedAssetCacheControl(status), String(status)).toBe("private, no-store");
+    const missing = await serveGatedOpsAsset(get("/app/ops/none.dc.html", vtAuthCookie(ADMIN)), env());
+    expect(missing.headers.get("cache-control")).toBe("private, no-store");
+  });
+});
+
+describe("Supabase Auth that does not answer (U8b): fail closed after the timeout", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("a stalled Auth call is the private 404 after CONSOLE_AUTH_TIMEOUT_MS, and nothing is read from the assets binding", async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal("fetch", vi.fn(() => new Promise<Response>(() => undefined)));
+    const a = assets();
+    const pending = serveGatedOpsAsset(get(SCREEN, vtAuthCookie(ADMIN)), env(a));
+    let settled = false;
+    void pending.then(() => {
+      settled = true;
+    });
+    await vi.advanceTimersByTimeAsync(CONSOLE_AUTH_TIMEOUT_MS - 1);
+    expect(settled).toBe(false); // still waiting inside the limit
+    await vi.advanceTimersByTimeAsync(1);
+    await expectPrivate404(await pending);
+    expect(a.fetch).not.toHaveBeenCalled();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("an Auth answer inside the limit is used as before, and the timer is cleared", async () => {
+    vi.useFakeTimers();
+    const res = await serveGatedOpsAsset(get(SCREEN, vtAuthCookie(ADMIN)), env());
+    expect(res.status).toBe(200);
+    expect(vi.getTimerCount()).toBe(0);
   });
 });

@@ -104,7 +104,7 @@ describe("call sites: failures use notifyError, successes use notify", () => {
   });
 
   it("notify takes the tone, anything but 'danger' is success", () => {
-    expect(dc).toMatch(/notify = \(msg, tone\) => \{ this\.setState\(\{ toastMsg: msg, toastTone: tone === 'danger' \? 'danger' : 'success', showToast: true \}\);/);
+    expect(dc).toMatch(/notify = \(msg, tone\) => \{\s*const danger = tone === 'danger';\s*this\.setState\(\{ toastMsg: msg, toastTone: danger \? 'danger' : 'success', showToast: true \}\);/);
     expect(dc).toMatch(/notifyError = \(msg\) => this\.notify\(msg, 'danger'\);/);
   });
 });
@@ -233,6 +233,72 @@ function editing(lang: string, edit: Record<string, unknown>, answer: (method: s
 }
 const changeAnswers = (json: unknown) => (method: string, url: string) =>
   method === "POST" && url.endsWith("/change") ? json : { ok: false, code: "unknown" };
+
+describe("how long the toast stays (U9)", () => {
+  type Notifier = { notify: (msg: string, tone?: string) => void; notifyError: (msg: string) => void };
+  const open = () => {
+    vi.useFakeTimers();
+    const { logic } = setup(booking(), null);
+    return { logic, notifier: logic as unknown as Notifier };
+  };
+
+  it("a success fades by itself after 3.6 s", () => {
+    try {
+      const { logic, notifier } = open();
+      notifier.notify("Cancelled VT-26-0801");
+      expect(toastOf(logic).shown).toBe(true);
+      vi.advanceTimersByTime(3599);
+      expect(toastOf(logic).shown).toBe(true);
+      vi.advanceTimersByTime(1);
+      expect(toastOf(logic).shown).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("an error stays until it is closed: still there after a minute, gone when the close button runs", () => {
+    try {
+      const { logic, notifier } = open();
+      notifier.notifyError("Could not cancel VT-26-0801");
+      vi.advanceTimersByTime(60_000);
+      expect(toastOf(logic)).toMatchObject({ shown: true, tone: "danger", role: "alert" });
+      logic.renderVals().closeToast();
+      expect(toastOf(logic).shown).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("a success that arrives after an error replaces it and fades; an error that arrives mid-success is not cut short by the old timer", () => {
+    try {
+      const { logic, notifier } = open();
+      notifier.notifyError("Could not cancel VT-26-0801");
+      notifier.notify("Voucher re-sent to anna@example.test");
+      expect(toastOf(logic)).toMatchObject({ shown: true, tone: "success" });
+      vi.advanceTimersByTime(3600);
+      expect(toastOf(logic).shown).toBe(false);
+
+      notifier.notify("Voucher re-sent to anna@example.test");
+      vi.advanceTimersByTime(1000);
+      notifier.notifyError("Could not resend voucher VT-26-0801");
+      vi.advanceTimersByTime(10_000); // the success timer from 1 s ago would have fired by now
+      expect(toastOf(logic)).toMatchObject({ shown: true, tone: "danger" });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("the close button's label is the dashboard language's: the page does not hide the whole toast from the translator", () => {
+    // The message arrives already in the page's language (data-vt-no-i18n on the message only); the
+    // kit's close button has a fixed English aria-label that the locale runtime translates from the
+    // dictionary, which it can only do when no ancestor opts the toast out.
+    const a = dc.indexOf('<sc-if value="{{ showToast }}"');
+    const b = dc.indexOf("</sc-if>", a);
+    const block = dc.slice(a, b);
+    expect(block).not.toMatch(/<div[^>]*data-vt-no-i18n/);
+    expect(block).toMatch(/<span data-vt-no-i18n="1">\{\{ toastMsg \}\}<\/span>/);
+  });
+});
 
 describe("the toast starts as a success status", () => {
   it("before anything is shown: success tone, status role", () => {

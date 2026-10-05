@@ -145,6 +145,37 @@ describe("money tiles read the server's captured payments", () => {
     ]);
   });
 
+  it("U10: the lines are the server's classes by their own names, in its order; a class outside the old three is not folded into Economy", () => {
+    const dash = loadDash(LIVE_BOARD);
+    dash.state = {
+      ...dash.state,
+      period: "all",
+      money: {
+        ...LIVE_ALL_MONEY,
+        byClass: [
+          { klass: "Economy", rappen: 33660 },
+          { klass: "Business", rappen: 73604 },
+          { klass: "First", rappen: 5000 },
+          { klass: "Van luxury", rappen: 23468 },
+          { klass: "", rappen: 40 },
+        ],
+      },
+    };
+    expect(dash.renderVals().income).toEqual([
+      { label: "Economy", amount: chf(33660) },
+      { label: "Business", amount: chf(73604) },
+      { label: "First", amount: chf(5000) },
+      { label: "Van luxury", amount: chf(23468) },
+      { label: "Class not stated", amount: chf(40) },
+    ]);
+  });
+
+  it("before the first server answer there are no class lines (no names are made up)", () => {
+    const dash = loadDash(LIVE_BOARD);
+    dash.state = { ...dash.state, period: "all", money: null };
+    expect(dash.renderVals().income).toEqual([]);
+  });
+
   it("before the stores fill, every money tile still reads the server (nothing waits on the board's rows)", () => {
     const dash = loadDash([]);
     dash.state = { ...dash.state, period: "all", money: LIVE_ALL_MONEY };
