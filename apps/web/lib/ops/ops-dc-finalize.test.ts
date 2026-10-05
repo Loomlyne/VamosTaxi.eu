@@ -16,11 +16,14 @@ function read(rel: string): string {
 }
 
 describe("Phase 6 finalize — class line-up and staff hash", () => {
-  it("uses Economy, Business, Van luxury on ops fleet data (26.1 D-14)", () => {
+  it("ops fleet data lists the live classes, not a fixed three (26.1 D-14, then U10 2026-10-05)", () => {
     const data = read("app/vamos-ops-data.js");
-    expect(data).toMatch(
-      /VEHICLE_CLASSES = \["Economy", "Business", "Van luxury"\]/,
-    );
+    // D-14 fixed the line-up at Economy, Business, Van luxury and wrote it into this file. The dashboard now
+    // reads the live vehicle classes in price-book order; the file holds no list of names.
+    expect(data).not.toMatch(/VEHICLE_CLASSES = \[/);
+    expect(data).not.toMatch(/KLASS_ALIASES/);
+    expect(data).toMatch(/get VEHICLE_CLASSES\(\) \{ return classNames\(\); \}/);
+    expect(data).toMatch(/api\("GET", "\/api\/staff\/vehicle-classes"\)/);
     const rateBook = readFileSync(
       join(webRoot, "app/[locale]/(ops)/api/staff/rate-book/route.ts"),
       "utf8",
@@ -30,14 +33,10 @@ describe("Phase 6 finalize — class line-up and staff hash", () => {
     );
     expect(rateBook).toMatch(/CLASS_SLUG = \/\^\[a-z0-9\]/);
     const fleet = read("app/ops/OpsFleet.dc.html");
-    expect(fleet).toMatch(/'Economy', 'Business', 'Van luxury'/);
+    expect(fleet).not.toMatch(/'Economy', 'Business', 'Van luxury'/);
   });
 
-  it("26.1 D-14: every ops list is the three classes and new-trip takes its classes from the quote", () => {
-    const data = read("app/vamos-ops-data.js");
-    const list = data.match(/VEHICLE_CLASSES = (\[[^\]]*\])/);
-    expect(JSON.parse((list && list[1]) || "null")).toEqual(["Economy", "Business", "Van luxury"]);
-
+  it("26.1 D-14: new-trip takes its classes from the quote; no screen writes a class list of its own (U10)", () => {
     const newTrip = read("app/ops/OpsNewTrip.dc.html");
     // 260929-nts: class options come from the quote answer, never hard-coded slugs.
     expect(newTrip).toMatch(/classOptions: classChoices\(s\.classes\)/);
@@ -48,6 +47,9 @@ describe("Phase 6 finalize — class line-up and staff hash", () => {
       const html = read(`app/ops/${name}.dc.html`);
       expect(html, name).not.toMatch(/'First'|"First"/);
       expect(html, name).not.toMatch(/mahaha/);
+    }
+    for (const name of ["OpsBoard", "OpsDash", "OpsFleet", "OpsReviews"]) {
+      expect(read(`app/ops/${name}.dc.html`), name).not.toMatch(/\['Economy', 'Business', 'Van luxury'\]/);
     }
     expect(read("app/home/HowItWorks.dc.html")).not.toMatch(/mahaha/);
   });

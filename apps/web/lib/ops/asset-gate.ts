@@ -60,10 +60,23 @@ export async function opsAssetSession(
 }
 
 /**
+ * Cache rule for a screen file the gate let through (U8b, 2026-10-05). It was `private, no-store`, so
+ * every screen change re-downloaded the whole file. `private, no-cache` keeps a copy in this browser
+ * only (`private`: no shared cache, no CDN) and makes it ask first: the request comes back to this
+ * gate, the session is checked again, and the assets binding answers 304 when the ETag still matches.
+ * A signed-out request therefore never gets the stored copy, it gets the 404 below.
+ * Anything that is not a served file or a 304 (the 404s) stays `private, no-store`.
+ */
+export function gatedAssetCacheControl(status: number): string {
+  return status === 200 || status === 304 ? "private, no-cache" : "private, no-store";
+}
+
+/**
  * Answer a `/app/ops/*` request on the dashboard host (worker.ts, after `guardOpsAsset`).
  *   - an allow-listed sign-in file: served as before, no session needed;
- *   - any other path: served only when `dashboardConsoleAllowed` passes, always `private, no-store`;
- *     otherwise the private 404 (`opsAssetNotFound`), identical to the public host's.
+ *   - any other path: served only when `dashboardConsoleAllowed` passes, `private, no-cache` with the
+ *     asset's ETag (the browser's conditional request goes through the same check); otherwise the
+ *     private no-store 404 (`opsAssetNotFound`), identical to the public host's.
  */
 export async function serveGatedOpsAsset(request: Request, env: OpsAssetGateEnv): Promise<Response> {
   const { pathname } = new URL(request.url);
@@ -71,7 +84,7 @@ export async function serveGatedOpsAsset(request: Request, env: OpsAssetGateEnv)
   const session = await opsAssetSession(request, env);
   const res = session.allowed ? await serveOpsAsset(request, env.ASSETS) : opsAssetNotFound();
   const headers = new Headers(res.headers);
-  headers.set("cache-control", "private, no-store");
+  headers.set("cache-control", gatedAssetCacheControl(res.status));
   for (const line of session.setCookies) headers.append("Set-Cookie", line);
   return new Response(res.body, { status: res.status, statusText: res.statusText, headers });
 }

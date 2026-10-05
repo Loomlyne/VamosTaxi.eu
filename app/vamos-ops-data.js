@@ -300,6 +300,9 @@
     return {
       name: name,
       all: function () { hydrate(); return list.slice(); },
+      /* The rows already in the store, without asking the server for anything (all() hydrates). For code
+         that only wants to look at what a screen has loaded, such as the class list (U10 review). */
+      peek: function () { return list.slice(); },
       get: function (id) {
         hydrate();
         return findRow(id);
@@ -621,19 +624,12 @@
     "Zermatt", "St. Moritz", "Chamonix", "Verbier"
   ];
 
-  var VEHICLE_CLASSES = ["Economy", "Business", "Van luxury"];
-  // D-14: live slugs and legacy names map onto the three classes (saden -> Economy,
-  // mercedes-benz-v-class -> Business, van-luxury and a stored Van -> Van luxury);
-  // any other unknown class (incl. the dropped First) becomes Economy.
-  var KLASS_ALIASES = {
-    "economy": "Economy", "saden": "Economy",
-    "business": "Business", "mercedes-benz-v-class": "Business",
-    "van": "Van luxury", "van-luxury": "Van luxury"
-  };
+  /* U10 (2026-10-05): a class reads its own name. The server sends the stored name of the class row
+     (an unknown slug reads as itself, an empty value means no class); nothing here maps a name onto
+     Economy, and no list of class names is written in this file. The names the dashboard lists come
+     from the live vehicle classes (see classNames below). */
   function cleanKlass(k) {
-    if (VEHICLE_CLASSES.indexOf(k) !== -1) return k;
-    var key = str(k).trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-    return KLASS_ALIASES[key] || "Economy";
+    return str(k).trim();
   }
   var VEHICLE_STATUS = ["service", "idle", "workshop"];
   function cleanVehicle(v) {
@@ -641,8 +637,7 @@
     return {
       id: str(v.id),
       klass: cleanKlass(v.klass),
-      // 260930-dash-design: the class row itself, so a class the owner named reads its own name
-      // (klass falls back to Economy for any slug outside the D-14 three).
+      // 260930-dash-design: the class row itself, so a class the owner named reads its own name.
       vehicleClassId: str(v.vehicleClassId || v.vehicle_class_id),
       model: str(v.model), plate: str(v.plate), year: str(v.year),
       seats: num(v.seats, 3), bags: num(v.bags, 3),
@@ -975,8 +970,72 @@
     };
   }
 
+  /* U10 (2026-10-05): the class names the dashboard lists (the board's class filter and its sort by
+     vehicle, the calendars, the reviews form), from the live vehicle classes: GET /api/staff/vehicle-classes,
+     one row per class, read in price-book order (sort_order, then slug). A class on offer (active) is
+     listed; a class that is no longer on offer is listed only while a booking or vehicle in the store still
+     carries it, under its own name, at its place in the price-book order. Two rows with one name are one entry (the live
+     `saden` and the legacy `economy` are both Economy). Loads once per page, retries after 30 s if it
+     failed, and tells screens when it lands. Until then the list holds only what the store's rows carry:
+     there is no built-in list of names. */
+  var classBook = { status: "idle", rows: [], at: 0 };
+  function cleanClassRow(c) {
+    var slug = str(c && c.slug).trim();
+    var name = str(c && (c.name || c.klass)).trim() || slug;
+    if (!name) return null;
+    return { slug: slug, name: name, order: num(c && c.sortOrder, 0), active: !!(c && c.active !== false) };
+  }
+  function loadClassBook() {
+    if (classBook.status === "loading" || classBook.status === "ok") return;
+    if (classBook.status === "failed" && Date.now() - classBook.at < 30000) return;
+    classBook.status = "loading";
+    api("GET", "/api/staff/vehicle-classes").then(function (json) {
+      var rows = json && json.ok && Array.isArray(json.data) ? json.data : null;
+      classBook = rows
+        ? { status: "ok", rows: rows.map(cleanClassRow).filter(Boolean), at: Date.now() }
+        : { status: "failed", rows: [], at: Date.now() };
+      emit("classes");
+      // The board and the calendars listen to the bookings; a new list changes what they offer.
+      emit("bookings");
+    });
+  }
+  function classNames() {
+    loadClassBook();
+    var rows = classBook.rows.slice().sort(function (a, b) {
+      return a.order - b.order || (a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0);
+    });
+    // What a booking or vehicle already in the store carries. Looked at, never loaded: this getter runs on
+    // every render, and a read that asks the server (all()) would fire GET /api/staff/vehicles again and
+    // again from a screen that never used vehicles whenever that call failed. The screens that own those
+    // lists load them; the names show up when they have.
+    var carried = [];
+    ["bookings", "vehicles"].forEach(function (key) {
+      var store = window.VamosOps && window.VamosOps[key];
+      (store && typeof store.peek === "function" ? store.peek() : []).forEach(function (x) {
+        var name = str(x && x.klass).trim();
+        if (name && !isIn(carried, name)) carried.push(name);
+      });
+    });
+    var out = [];
+    var place = {};
+    // The classes on offer, and the ones no longer on offer that something still carries, all in
+    // price-book order (the same order the dashboard's Money in uses): a name sits where the first
+    // class row with that name sits, whether or not that row is still on offer.
+    rows.forEach(function (r, i) {
+      var key = r.name.toLowerCase();
+      if (!(key in place)) place[key] = i;
+      if ((r.active || isIn(carried, r.name)) && !isIn(out, r.name)) out.push(r.name);
+    });
+    out.sort(function (a, b) { return place[a.toLowerCase()] - place[b.toLowerCase()]; });
+    // A name no class row has (nothing to place it by): after the rest, alphabetical.
+    return out.concat(carried.filter(function (n) { return !isIn(out, n); }).sort());
+  }
+  function isIn(list, name) {
+    return list.some(function (n) { return n.toLowerCase() === name.toLowerCase(); });
+  }
+
   window.VamosOps = {
-    VEHICLE_CLASSES: VEHICLE_CLASSES,
+    get VEHICLE_CLASSES() { return classNames(); },
     VEHICLE_STATUS: VEHICLE_STATUS,
     CHAUFFEUR_STATUS: CHAUFFEUR_STATUS,
     BOOKING_STATUS: BOOKING_STATUS,

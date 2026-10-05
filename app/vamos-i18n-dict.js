@@ -1434,6 +1434,8 @@
       'Business': { de: 'Business', fr: 'Business', ar: 'Business' },
       'Van': { de: 'Van', fr: 'Van', ar: 'فان' },
       'Van luxury': { de: 'Van luxury', fr: 'Van luxury', ar: 'Van luxury' },
+      /* dashboard fixes 2026-10-05 (U10): Money in, income whose booking has no class row */
+      'Class not stated': { de: 'Klasse nicht angegeben', fr: 'Classe non indiquée', ar: 'الفئة غير محددة' },
       'Sedan or similar': { de: 'Limousine oder ähnlich', fr: 'Berline ou similaire', ar: 'سيدان أو ما شابه' },
       'Executive sedan': { de: 'Business-Limousine', fr: 'Berline affaires', ar: 'سيدان تنفيذية' },
       'S-Class or similar': { de: 'S-Klasse oder ähnlich', fr: 'Classe S ou similaire', ar: 'إس-كلاس أو ما شابه' },

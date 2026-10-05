@@ -104,7 +104,7 @@
 <p style="margin:0 0 6px;font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;font-weight:var(--vt-label-weight);color:var(--vt-text-muted)">Money in</p>
 <sc-for list="{{ income }}" as="r" hint-placeholder-count="3">
 <div style="display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 16px;padding:11px 0;border-bottom:1px solid var(--vt-grey-200)">
-<span style="flex:1 1 160px;min-width:0;font-size:var(--vt-body-sm);color:var(--vt-text-primary)">{{ r.label }}</span>
+<span data-vt-no-i18n="1" style="flex:1 1 160px;min-width:0;font-size:var(--vt-body-sm);color:var(--vt-text-primary)">{{ r.label }}</span>
 <span style="font-family:var(--vt-font-display);font-size:var(--vt-body-md);font-weight:var(--vt-weight-semibold);font-variant-numeric:tabular-nums;color:var(--vt-text-primary)">{{ r.amount }}</span>
 </div>
 </sc-for>
@@ -169,7 +169,6 @@ const PERIODS = [
   { key:'month', en:'30 days', de:'30 Tage', fr:'30 jours', ar:'30 يومًا' },
   { key:'all', en:'All time', de:'Gesamt', fr:'Tout', ar:'الكل' },
 ];
-const MONEY_IN_CLASSES = ['Economy', 'Business', 'Van luxury'];
 
 /* 261004: today's date under the title, in the reader's language (it read "Sunday 4 October" in Arabic too).
    The line opts out of the page translation: Intl writes it, and the period lines go through VamosLocale.t. */
@@ -283,10 +282,10 @@ class Component extends DCLogic {
        and a class-change difference, so 30 days read CHF 93.38 a fare and the class lines did not add up. */
     const fareCount = Number(money.fareCount) || 0;
     const avgRappen = fareCount ? Math.round(incomeRappen / fareCount) : 0;
-    const classRappen = (label) => {
-      const line = (Array.isArray(money.byClass) ? money.byClass : []).find((l) => l && l.klass === label);
-      return line ? Number(line.rappen) || 0 : 0;
-    };
+    /* U10 (2026-10-05): the Money in lines are the server's, one per class by its own stored name in price-book
+       order (GET /api/staff/dashboard, byClass); no list of class names is written here. A line with no name is
+       income whose booking has no class. */
+    const classLines = (Array.isArray(money.byClass) ? money.byClass : []).filter((l) => l && typeof l === 'object');
     const onShift = chauffeurs.filter((c) => c.status === 'shift').length;
     /* 261004: a trip runs only once it is paid (the board's "Pickups today" counts the same); an unpaid
        checkout that was left open is not scheduled to run. */
@@ -338,7 +337,7 @@ class Component extends DCLogic {
         { label:'Pickups', value:String(pickups), of:'', icon:'car-front', href:pickupsHref, foot:'Scheduled to run' },
         { label:'Chauffeurs on shift', value:String(onShift), of:'/ ' + chauffeurs.length, icon:'users', href:'/fleet/chauffeurs', foot:'Available to assign' },
       ],
-      income: MONEY_IN_CLASSES.map((label) => ({ label, amount: fareLabel(classRappen(label)) })),
+      income: classLines.map((l) => ({ label: String(l.klass || '').trim() || (window.VamosLocale && window.VamosLocale.t ? window.VamosLocale.t('Class not stated') : 'Class not stated'), amount: fareLabel(Number(l.rappen) || 0) })),
       expenses: moneyOut,
       attention: [
         { icon:'triangle-alert', title:'Unassigned bookings', note:'Paid, no chauffeur yet', count:String(unassignedPaid), href:'/bookings?filter=Unassigned' },
