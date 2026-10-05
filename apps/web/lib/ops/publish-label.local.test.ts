@@ -12,11 +12,10 @@
 // Skipped unless VAMOS_LOCAL_DB_PORT names a DISPOSABLE local stack (the test lab, seeded with
 // seed-live-like.sql). Committed rows: one staff user and one published price book (this test leaves a new
 // live book; the lab is destroyed after the job). Existing rows are never rewritten by the app.
-// Test-only raw client to read and seed the disposable stack as the superuser; named in
-// scripts/db-access-fence-allowlist.json. Never bundled.
-// eslint-disable-next-line @typescript-eslint/no-restricted-imports
-import postgres from "postgres";
+// The superuser connection that seeds and reads the disposable stack is opened with the Worker's own client
+// options (workerSql, D-07).
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { workerSql } from "../../../../packages/db/test/support/worker-client";
 import type { VamosClaims } from "../db/identity";
 
 const PORT = process.env["VAMOS_LOCAL_DB_PORT"];
@@ -47,11 +46,11 @@ vi.mock("@/lib/ops/rate-book", async (importOriginal) => {
 type Row = { label: string; status: string };
 
 describe.skipIf(!PORT)("Publish writes the label without ' draft' on the live book (local lab, committed rows)", () => {
-  let su: postgres.Sql;
+  let su!: ReturnType<typeof workerSql>;
   const env = () => ctx.env as unknown as CloudflareEnv;
 
   beforeAll(async () => {
-    su = postgres(`postgres://postgres:postgres@127.0.0.1:${PORT}/postgres`, { max: 1, onnotice: () => undefined });
+    su = workerSql(`postgres://postgres:postgres@127.0.0.1:${PORT}/postgres`);
     const marker = await su`select 1 from pg_roles where rolname = ${MARKER_ROLE}`;
     if (marker.length === 0) throw new Error(`refusing: ${MARKER_ROLE} missing, not a throwaway test stack`);
     ctx.env = {
