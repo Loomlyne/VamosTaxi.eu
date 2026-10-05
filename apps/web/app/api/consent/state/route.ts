@@ -1,12 +1,13 @@
 // GET /api/consent/state — has this visitor chosen under the current policy version? (D-08)
 // Read-only: never mints or sets a cookie, never returns the subject UUID, never cached.
-// Guest read uses asAnon only, through lib/consent/read (public.consent_choice).
+// Guest read uses asCheckout with no claims only, through lib/consent/read (public.consent_choice;
+// 261005 S6: executable by vamos_checkout, not by anon or Supabase REST).
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { CONSENT_POLICY_VERSION } from "@/lib/consent/policy";
 import { readConsentSubject } from "@/lib/consent/cookie";
 import { readConsentChoice } from "@/lib/consent/read";
-import { asAnon } from "@/lib/db/identity";
+import { asCheckout } from "@/lib/db/identity";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +26,7 @@ export async function GET(request: Request): Promise<Response> {
   }
   const { env } = getCloudflareContext();
   try {
-    const choice = await asAnon(env, (tx) => readConsentChoice(tx, subject));
+    const choice = await asCheckout(env, null, (tx) => readConsentChoice(tx, subject));
     if (!choice) {
       return Response.json(
         { ok: true, chosen: false, policyVersion: CONSENT_POLICY_VERSION },

@@ -1,6 +1,6 @@
--- 20261007310000_settle_second_delivery_processed.sql
+-- 20261007310000_settle_processed_checkout_grants.sql
 --
--- 261005 money hardening (.planning/audits/2026-10-05-repo-investigation.md, U15 and U26).
+-- 261005 money hardening (.planning/audits/2026-10-05-repo-investigation.md, U15, U26 and S6 step 1).
 --
 -- (1) U15. Every paid checkout is settled twice: by the Stripe webhook (queue) and by the return route
 --     (event id `return_<cs_id>`), whichever comes first. The second call reaches the already-settled
@@ -18,6 +18,22 @@
 -- (2) U26. settings.vat_rate_bps and rate_versions.vat_rate_bps hold tenths of a percent (81 = 8.1 %),
 --     not hundredths as their column comments said. Comments only: no value, type or check changes.
 --
+-- (3) S6, step 1 of 2 (expand). Eight SECURITY DEFINER functions are executable by anon (and some by
+--     authenticated), so anyone can call them through Supabase REST with the public key, past the Worker's
+--     rate limits: quote_rate_book returned every coupon of the live book with its code, evaluate_coupon
+--     allowed unlimited voucher guessing, record_consent took unthrottled writes. The Worker (same branch)
+--     now calls all eight as vamos_checkout (asCheckout, no claims), a role REST can never become. This
+--     step only ADDS EXECUTE for vamos_checkout, so the Worker live today (asQuote/asAnon = anon) and the
+--     new one both work while it is in place. 20261007320000 (step 2) revokes anon, authenticated and
+--     PUBLIC and must be applied only AFTER the new Worker is live.
+--     quote_rate_book also stops returning a coupon's code and note unless app.is_staff() (the dashboard
+--     preview via asStaff); the quote engine matches a voucher by coupon_id, so old and new Workers both
+--     price vouchers as before. Body: 20260914190000, byte for byte (md5 of prosrc on live and in that
+--     file: 7295d6c3fcea67258eaf5f735e7e0083, read 2026-10-05), plus the lines marked 20261007310000.
+--     Same signature, STABLE, SECURITY DEFINER, search_path, owner, comment; grants as before plus
+--     vamos_checkout. No timeout added: a read-only function that never had one.
+--
+-- Order of apply and deploy: this file, then the Worker of fix/money-db-hardening, then 20261007320000.
 -- No table, row or other function changes. No CHF amount.
 -- One transaction: apply it verbatim as a whole (connector apply_migration).
 begin;
@@ -553,5 +569,171 @@ comment on column public.settings.vat_rate_bps is
   'D-22: Swiss VAT on top of net, in tenths of a percent despite the name: 81 = 8.1 %. Default 81 = CH_VAT_RATE_BPS (apps/web/lib/checkout/vat.ts). Show it with vatPercentLabel (divide by 10, never by 100). Not an invented rate.';
 comment on column public.rate_versions.vat_rate_bps is
   'D-03: VAT in tenths of a percent despite the name: 81 = 8.1 %. Applied to settings only in the Publish tx. Null until the admin sets it on the draft.';
+
+-- ---------------------------------------------------------------------------
+-- (3) S6, step 1 of 2 (expand): vamos_checkout may run the eight functions; quote_rate_book hides
+--     coupon codes and notes from everyone but staff. Body: 20260914190000, byte for byte, plus the
+--     lines marked 20261007310000.
+-- ---------------------------------------------------------------------------
+create or replace function public.quote_rate_book(p_prefer_draft boolean default false)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  v_id bigint;
+  v_slug text;
+  v_status public.rate_version_status;
+  v_public_chf boolean;
+  v_vat_rate_bps integer;
+  v_version_vat_rate_bps integer;
+  v_quote_lock_minutes integer;
+  v_service_area_geojson jsonb;
+  v_free_wait_minutes integer;
+  v_max_extra_stops integer;
+  -- 20261007310000 (S6): coupon codes and staff notes go to staff only.
+  v_staff boolean := coalesce(app.is_staff(), false);
+begin
+  select s.public_chf, s.vat_rate_bps
+    into v_public_chf, v_vat_rate_bps
+    from public.settings as s
+   where s.id = 1;
+
+  v_public_chf := coalesce(v_public_chf, false);
+  v_vat_rate_bps := coalesce(v_vat_rate_bps, 81);
+
+  select rv.id, rv.slug, rv.status,
+         rv.vat_rate_bps, rv.quote_lock_minutes, rv.service_area_geojson,
+         rv.free_wait_minutes, rv.max_extra_stops
+    into v_id, v_slug, v_status,
+         v_version_vat_rate_bps, v_quote_lock_minutes, v_service_area_geojson,
+         v_free_wait_minutes, v_max_extra_stops
+    from public.rate_versions as rv
+   where rv.status = 'live'
+   order by rv.id desc
+   limit 1;
+
+  if v_id is null and p_prefer_draft then
+    select rv.id, rv.slug, rv.status,
+           rv.vat_rate_bps, rv.quote_lock_minutes, rv.service_area_geojson,
+           rv.free_wait_minutes, rv.max_extra_stops
+      into v_id, v_slug, v_status,
+           v_version_vat_rate_bps, v_quote_lock_minutes, v_service_area_geojson,
+           v_free_wait_minutes, v_max_extra_stops
+      from public.rate_versions as rv
+     where rv.status = 'draft'
+     order by rv.created_at desc, rv.id desc
+     limit 1;
+  end if;
+
+  if v_id is null then
+    return jsonb_build_object(
+      'rate_version', null,
+      'classes', '[]'::jsonb,
+      'distance_rates', '[]'::jsonb,
+      'distance_bands', '[]'::jsonb,
+      'region_premiums', '[]'::jsonb,
+      'fixed_routes', '[]'::jsonb,
+      'surcharges', '[]'::jsonb,
+      'coupons', '[]'::jsonb,
+      'zones', '[]'::jsonb,
+      'public_chf', v_public_chf,
+      'vat_rate_bps', v_vat_rate_bps
+    );
+  end if;
+
+  return jsonb_build_object(
+    'rate_version', jsonb_build_object(
+      'id', v_id,
+      'slug', v_slug,
+      'status', v_status,
+      'vat_rate_bps', v_version_vat_rate_bps,
+      'quote_lock_minutes', v_quote_lock_minutes,
+      'service_area_geojson', v_service_area_geojson,
+      'free_wait_minutes', v_free_wait_minutes,
+      'max_extra_stops', v_max_extra_stops
+    ),
+    'classes', (
+      select coalesce(jsonb_agg(to_jsonb(c) order by c.sort_order, c.slug), '[]'::jsonb)
+        from public.vehicle_classes as c
+       where exists (
+               select 1
+                 from public.distance_rates as d
+                where d.rate_version_id = v_id
+                  and d.vehicle_class_id = c.id
+             )
+          or exists (
+               select 1
+                 from public.fixed_routes as f
+                where f.rate_version_id = v_id
+                  and f.vehicle_class_id = c.id
+             )
+    ),
+    'distance_rates', (
+      select coalesce(jsonb_agg(to_jsonb(d) order by d.vehicle_class_id), '[]'::jsonb)
+        from public.distance_rates as d
+       where d.rate_version_id = v_id
+    ),
+    'distance_bands', (
+      select coalesce(jsonb_agg(to_jsonb(b) order by b.vehicle_class_id, b.from_km), '[]'::jsonb)
+        from public.distance_bands as b
+       where b.rate_version_id = v_id
+    ),
+    'region_premiums', (
+      select coalesce(jsonb_agg(to_jsonb(p) order by p.zone_id), '[]'::jsonb)
+        from public.region_premiums as p
+       where p.rate_version_id = v_id
+    ),
+    'fixed_routes', (
+      select coalesce(
+               jsonb_agg(to_jsonb(f) order by f.origin_zone_id, f.dest_zone_id, f.vehicle_class_id),
+               '[]'::jsonb
+             )
+        from public.fixed_routes as f
+       where f.rate_version_id = v_id
+    ),
+    'surcharges', (
+      select coalesce(jsonb_agg(to_jsonb(s) order by s.code), '[]'::jsonb)
+        from public.surcharges as s
+       where s.rate_version_id = v_id
+    ),
+    -- 20261007310000 (S6): a caller who is not staff gets each coupon without its code and note. The
+    -- quote engine matches the voucher the traveller typed by the coupon_id evaluate_coupon returns
+    -- (apps/web/lib/quote/engine.ts couponOnBook), so it needs no code from the book.
+    'coupons', (
+      select coalesce(
+               jsonb_agg(
+                 case when v_staff then to_jsonb(cp) else to_jsonb(cp) - 'code' - 'note' end
+                 order by cp.code
+               ),
+               '[]'::jsonb
+             )
+        from public.coupons as cp
+       where cp.rate_version_id = v_id
+    ),
+    'zones', (
+      select coalesce(jsonb_agg(to_jsonb(z) order by z.slug), '[]'::jsonb)
+        from public.service_zones as z
+    ),
+    'public_chf', v_public_chf,
+    'vat_rate_bps', v_vat_rate_bps
+  );
+end;
+$$;
+
+grant execute on function public.quote_rate_book(pg_catalog.bool) to vamos_checkout;
+grant execute on function public.quote_settings_version(pg_catalog.timestamptz) to vamos_checkout;
+grant execute on function public.quote_lock_deadline(pg_catalog.int8) to vamos_checkout;
+grant execute on function public.evaluate_coupon(pg_catalog.text, pg_catalog.uuid, extensions.citext)
+  to vamos_checkout;
+grant execute on function public.extra_labels_read() to vamos_checkout;
+grant execute on function public.consent_choice(pg_catalog.text, pg_catalog.timestamptz) to vamos_checkout;
+grant execute on function public.record_consent(
+  pg_catalog.bool, pg_catalog.bool, pg_catalog.bool, pg_catalog.bool,
+  pg_catalog.text, pg_catalog.text, pg_catalog.text, pg_catalog.uuid, pg_catalog.text, pg_catalog.inet
+) to vamos_checkout;
+-- checkout_account_settings(): vamos_checkout already holds EXECUTE (20261001100000).
 
 commit;

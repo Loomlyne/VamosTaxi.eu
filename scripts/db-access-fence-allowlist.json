@@ -22,6 +22,7 @@
     "apps/web/lib/ops/booking-change.local.test.ts",
     "apps/web/lib/ops/trip-change.local-fixture.ts",
     "apps/web/lib/ops/settle-safety.local.test.ts",
+    "apps/web/lib/db/rest-grants.local.test.ts",
     "packages/db/test/local/class-change-reprice.test.ts",
     "packages/db/test/fixtures/two-customers.ts",
     "apps/web/tests/integration/checkout-server-db.spec.ts",

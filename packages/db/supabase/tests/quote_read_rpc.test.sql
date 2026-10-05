@@ -2,6 +2,8 @@
 --
 -- D-34: the anonymous quote identity reads pricing through three SECURITY DEFINER
 -- functions and still gets 42501 on every pricing table. No table grant opened.
+-- 20261007310000/20261007320000 (S6): the Worker's quote calls run as vamos_checkout (asCheckout, no claims), and
+-- EXECUTE moved there from anon, so Supabase REST cannot reach the three functions.
 --
 -- D-46: no CHF figure. Catalog assertions plus seeded-draft reads; the null-lock
 -- fixture is a new settings_versions row (append-only — never mutate the seed).
@@ -25,21 +27,21 @@ select function_privs_are(
   '(1c) PUBLIC holds no EXECUTE on quote_lock_deadline'
 );
 
--- 2. The quote identity (anon) holds EXECUTE on all three ------------------------------
+-- 2. The quote identity (vamos_checkout) holds EXECUTE on all three; anon none ---------
 select function_privs_are(
   'public', 'quote_rate_book', '{boolean}'::text[],
-  'anon', '{EXECUTE}'::text[],
-  '(2a) anon holds EXECUTE on quote_rate_book'
+  'vamos_checkout', '{EXECUTE}'::text[],
+  '(2a) vamos_checkout holds EXECUTE on quote_rate_book'
 );
 select function_privs_are(
   'public', 'quote_settings_version', '{timestamptz}'::text[],
-  'anon', '{EXECUTE}'::text[],
-  '(2b) anon holds EXECUTE on quote_settings_version'
+  'vamos_checkout', '{EXECUTE}'::text[],
+  '(2b) vamos_checkout holds EXECUTE on quote_settings_version'
 );
 select function_privs_are(
   'public', 'quote_lock_deadline', '{bigint}'::text[],
-  'anon', '{EXECUTE}'::text[],
-  '(2c) anon holds EXECUTE on quote_lock_deadline'
+  'anon', '{}'::text[],
+  '(2c) anon holds no EXECUTE on quote_lock_deadline (Supabase REST)'
 );
 
 -- Ids the invoker cannot read from locked tables; grant the temp table to public
@@ -59,10 +61,8 @@ select sv.id as null_lock_id
  where sv.slug = 'qrr-null-lock';
 grant select on qrr_null to public;
 
--- 3–8 under the quote identity ---------------------------------------------------------
+-- 3. Tables stay locked for anon; only the functions opened ----------------------------
 set local role anon;
-
--- 3. Tables stay locked; only the functions opened ------------------------------------
 select throws_ok(
   $$ select count(*) from public.rate_versions $$,
   '42501',
@@ -81,11 +81,15 @@ select throws_ok(
   null,
   '(3c) anon selecting settings_versions raises 42501'
 );
+reset role;
+
+-- 4–8 under the quote identity (vamos_checkout) ------------------------------------------
+set local role vamos_checkout;
 
 -- 4. Launch state: no live version, rate_version is SQL/JSON null (QUOTE-10) -----------
 select lives_ok(
   $$ select public.quote_rate_book() $$,
-  '(4a) anon can execute quote_rate_book()'
+  '(4a) vamos_checkout can execute quote_rate_book()'
 );
 select is(
   public.quote_rate_book() -> 'rate_version',

@@ -1,7 +1,7 @@
 // apps/web/lib/consent/bind.ts
 //
 // D-03 / D-04: set_config request.vamos.consent_subject then public.record_consent
-// on the same asAnon/asCustomer transaction. Subject is never an RPC argument.
+// on the same asCheckout transaction (no claims; 261005 S6). Subject is never an RPC argument.
 // Categories come from the visitor's choice (D-18), see choice.ts; necessary is always true.
 
 import type postgres from "postgres";
@@ -29,7 +29,7 @@ export type RecordConsentInput = {
 
 /**
  * Bind the Worker-minted subject GUC, then call record_consent.
- * Does not open Hyperdrive — caller already has tx from asAnon/asCustomer.
+ * Does not open Hyperdrive — caller already has tx from asCheckout (record_consent is vamos_checkout only).
  */
 export async function recordConsent(
   tx: postgres.TransactionSql,

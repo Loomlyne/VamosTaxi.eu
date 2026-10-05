@@ -29,6 +29,10 @@ select throws_ok(
 );
 
 -- (2) record_consent with no bound subject refuses -- no oracle, one generic error. -----------
+-- 20261007320000 (S6): record_consent is executable by vamos_checkout only (the Worker, asCheckout);
+-- anon and authenticated no longer reach it, so Supabase REST cannot write consent rows.
+reset role;
+set local role vamos_checkout;
 select throws_ok(
   $$ select public.record_consent(true, false, false, false, 'banner', 'en', '2026-08') $$,
   'P0001',
@@ -41,7 +45,7 @@ select throws_ok(
 select set_config('request.vamos.consent_subject', 'd0000000-0000-0000-0000-000000000001', true);
 select lives_ok(
   $$ select public.record_consent(true, true, false, false, 'accept_all', 'en', '2026-08') $$,
-  '(3) record_consent lives_ok as anon with a bound subject'
+  '(3) record_consent lives_ok as vamos_checkout (anonymous visitor) with a bound subject'
 );
 reset role;
 
@@ -60,13 +64,13 @@ select ok(
 );
 
 -- (7)-(8): a signed-in caller -- customer_id comes from app.uid(), never an argument. ----------
-set local role authenticated;
+set local role vamos_checkout;
 select set_config('request.jwt.claims',
   jsonb_build_object('sub', 'c0000000-0000-0000-0000-000000000001', 'role', 'authenticated')::text, true);
 select set_config('request.vamos.consent_subject', 'e0000000-0000-0000-0000-000000000001', true);
 select lives_ok(
   $$ select public.record_consent(true, false, true, false, 'settings_change', 'en', '2026-08') $$,
-  '(7) record_consent lives_ok as authenticated with a bound sub and subject'
+  '(7) record_consent lives_ok as vamos_checkout with a bound sub (signed-in visitor) and subject'
 );
 reset role;
 
@@ -80,8 +84,8 @@ select is(
 select function_privs_are(
   'public', 'record_consent',
   array['boolean','boolean','boolean','boolean','text','text','text','uuid','text','inet']::name[],
-  'anon', array['EXECUTE']::name[],
-  '(9) anon holds EXECUTE on record_consent(...)'
+  'anon', array[]::name[],
+  '(9) anon holds no EXECUTE on record_consent(...) (20261007320000)'
 );
 select throws_ok(
   $$ select public.record_consent(p_necessary => true, p_functional => false, p_analytics => false,
