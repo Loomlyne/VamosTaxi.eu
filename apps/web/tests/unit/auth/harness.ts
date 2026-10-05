@@ -14,6 +14,8 @@ export const state = {
     cookieOptions?: Record<string, unknown>;
   },
   limiterCalls: [] as Array<{ name: string; key: string }>,
+  /** Every siteverify the route asked for (S5, 2026-10-05). */
+  turnstileCalls: [] as Array<{ secret: string | undefined; token: string; action: string; idempotencyKey: string }>,
 };
 
 export function limiter(name: string, success = true) {
@@ -34,6 +36,7 @@ export const ok = { data: { user: null, session: null }, error: null };
 
 export function resetHarness(): void {
   state.limiterCalls = [];
+  state.turnstileCalls = [];
   state.env = {
     SUPABASE_URL: "https://example.supabase.co",
     SUPABASE_ANON_KEY: "anon",
@@ -58,6 +61,24 @@ resetHarness();
 
 export const cloudflareMock = {
   getCloudflareContext: () => ({ env: state.env }),
+};
+
+/**
+ * Stands in for Cloudflare's siteverify through lib/turnstile: a token passes unless it is empty or "fail".
+ * A test file that posts a sign-up or forgot-password adds
+ * `vi.mock("@/lib/turnstile", async () => (await import("./harness")).turnstileMock);` and sends `turnstileToken: "tok"`.
+ */
+export const turnstileMock = {
+  verifyTurnstile: async (
+    secret: string | undefined,
+    token: string,
+    opts: { action: string; idempotencyKey: string },
+  ) => {
+    state.turnstileCalls.push({ secret, token, action: opts.action, idempotencyKey: opts.idempotencyKey });
+    return token !== "" && token !== "fail"
+      ? { ok: true as const }
+      : { ok: false as const, codes: ["invalid-input-response"] };
+  },
 };
 
 export const headersMock = {

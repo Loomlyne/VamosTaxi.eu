@@ -5,9 +5,11 @@ import { describe, expect, it, vi } from "vitest";
 
 vi.mock("../supabase/service-role", () => ({ serviceRoleConfigured: vi.fn(() => true) }));
 vi.mock("../db/identity", () => ({ asCheckout: vi.fn() }));
+vi.mock("../turnstile", () => ({ verifyTurnstile: vi.fn(async () => ({ ok: true as const })) }));
 
 import { serviceRoleConfigured } from "../supabase/service-role";
 import { asCheckout } from "../db/identity";
+import { verifyTurnstile } from "../turnstile";
 import {
   ACCOUNT_NOTICE_VERSION,
   accountCreateAvailable,
@@ -15,7 +17,7 @@ import {
   guestAccountsOn,
   loadGuestAccountsLive,
 } from "./account-notice";
-import { decideAccount, runAccountGate, type AccountBlock, type AccountGateDeps } from "./account-gate";
+import { accountGateDeps, decideAccount, runAccountGate, type AccountBlock, type AccountGateDeps } from "./account-gate";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const env = {} as CloudflareEnv;
@@ -162,5 +164,29 @@ describe("runAccountGate", () => {
     const src = readFileSync(join(here, "account-gate.ts"), "utf8");
     expect(src).not.toMatch(/console\.log/);
     expect(src).not.toMatch(/log\([^)]*email\s*[,}]/);
+  });
+});
+
+describe("accountGateDeps: the Turnstile idempotency key", () => {
+  const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
+  it("is made on the server for every check and never taken from the browser (token replay, S5 review)", async () => {
+    vi.mocked(verifyTurnstile).mockClear();
+    const deps = accountGateDeps(
+      { TURNSTILE_SECRET_KEY: "s", CONTACT_TURNSTILE_ALLOWED_HOSTNAMES: "vamostaxi.site" } as unknown as CloudflareEnv,
+      new Request("https://vamostaxi.site/api/checkout/intent", { method: "POST" }),
+      0,
+      "en",
+      [],
+    );
+    // The same token, with the same key the browser chose, posted twice.
+    await deps.verifyTurnstile("tok", "client-key");
+    await deps.verifyTurnstile("tok", "client-key");
+    const keys = vi.mocked(verifyTurnstile).mock.calls.map((c) => c[2].idempotencyKey);
+    expect(keys).toHaveLength(2);
+    expect(keys[0]).toMatch(UUID);
+    expect(keys[1]).toMatch(UUID);
+    expect(keys).not.toContain("client-key");
+    expect(keys[0]).not.toBe(keys[1]);
   });
 });

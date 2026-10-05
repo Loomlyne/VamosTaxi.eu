@@ -9,6 +9,7 @@ const db = vi.hoisted(() => ({ calls: [] as unknown[][], claims: [] as unknown[]
 vi.mock("@opennextjs/cloudflare", async () => (await import("./harness")).cloudflareMock);
 vi.mock("next/headers", async () => (await import("./harness")).headersMock);
 vi.mock("@supabase/ssr", async () => (await import("./harness")).ssrMock);
+vi.mock("@/lib/turnstile", async () => (await import("./harness")).turnstileMock);
 vi.mock("@/lib/db/identity", () => ({
   asSystem: async (_env: unknown, fn: (tx: unknown) => Promise<void>) => {
     await fn(async () => []);
@@ -79,7 +80,7 @@ describe("sign-up sets no consent flag", () => {
     const signUp = vi.fn(async (..._a: unknown[]) => ({ error: null }));
     state.auth.signUp = signUp as never;
     await POST(
-      authPost({ mode: "signup", method: "password", email: "a@b.co", password: "12345678", firstName: "A", lastName: "B", consent: true }),
+      authPost({ mode: "signup", method: "password", email: "a@b.co", password: "12345678", firstName: "A", lastName: "B", consent: true, turnstileToken: "tok" }),
     );
     expect((signUp.mock.calls[0]?.[0] as { options: { data: object } }).options.data).not.toHaveProperty("signup_consent");
   });
@@ -87,7 +88,7 @@ describe("sign-up sets no consent flag", () => {
   it("magic-link sign-up sets none either", async () => {
     const otp = vi.fn(async (..._a: unknown[]) => ({ error: null }));
     state.auth.signInWithOtp = otp as never;
-    await POST(authPost({ mode: "signup", method: "magic", email: "a@b.co", firstName: "A", lastName: "B", consent: true }));
+    await POST(authPost({ mode: "signup", method: "magic", email: "a@b.co", firstName: "A", lastName: "B", consent: true, turnstileToken: "tok" }));
     expect((otp.mock.calls[0]?.[0] as { options: { data: object } }).options.data).not.toHaveProperty("signup_consent");
   });
 });

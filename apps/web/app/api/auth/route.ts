@@ -10,6 +10,7 @@ import { CONSENT_REQUIRED, SIGNUP_UNAVAILABLE, recordSignupAgreement, signupCons
 import { finishAccount } from "@/lib/auth/account-finish";
 import { storeProfilePhone, syncSignupPhone } from "@/lib/auth/account-phone";
 import { finishRequiredStrict, markFinished, markFinishPending, mustFinish } from "@/lib/auth/finish-target";
+import { readCheckoutAccountUserState, staffActiveForEmail } from "@/lib/db/system-reads";
 import { log } from "@/lib/logger";
 import { verifyTurnstile } from "@/lib/turnstile";
 import {
@@ -92,6 +93,13 @@ const EMAIL_NOT_CONFIRMED: ProfileRunResult = { ok: false, reason: "email-not-co
 
 const CODE_INVALID: ProfileRunResult = { ok: false, reason: "code-invalid" };
 
+/**
+ * S5 (2026-10-05): the sign-up or forgot-password send needs a Turnstile token and did not get a valid one.
+ * One answer for every cause (no token, bad token, check unavailable, check not configured): the sign-in
+ * page shows its "Could not send the link" line. Sent before the address is looked at, so it says nothing about it.
+ */
+const CHALLENGE_FAILED: ProfileRunResult = { ok: false, reason: "challenge-failed" };
+
 /** Checkout sign-in send refused (Turnstile failed). Read by the checkout UI, not the sign-in page. */
 type CheckoutSendRefused = { stage: "form"; banner: "send_failed" };
 
@@ -152,6 +160,26 @@ function localizedHome(locale: string): string {
 function localizedPath(path: string, locale: string): string {
   if (locale === routing.defaultLocale) return path;
   return path === "/" ? `/${locale}` : `/${locale}${path}`;
+}
+
+/**
+ * True only for an address that already has a CONFIRMED account (the database decides: definer, booleans only).
+ * An address with no account, or one whose sign-up was never confirmed, counts as new: a mail to it is a
+ * confirmation mail to someone nobody has proved owns the address, so it waits for the human check. A read that
+ * fails counts as new too (fails closed: no mail without the check). Never logs the address.
+ */
+async function hasConfirmedAccount(
+  env: CloudflareEnv,
+  email: string,
+  ctx: { requestId: string; route: string; locale: string | null },
+): Promise<boolean> {
+  try {
+    const state = await readCheckoutAccountUserState(env, email);
+    return state.user_exists === true && state.confirmed === true;
+  } catch {
+    log("error", "auth", ctx, { reason: "account-state-read-failed", action: "otp" });
+    return false;
+  }
 }
 
 function requestOrigin(request: Request): string {
@@ -221,6 +249,41 @@ export async function POST(request: Request): Promise<Response> {
       log("warn", "auth", ctx, { reason: "auth-limiter-throw" });
       return true;
     }
+  };
+
+  /**
+   * Turnstile siteverify for the mail sends of the public sign-in page (action "account", the one the
+   * checkout sign-in link already uses). Fails closed: a missing secret, a missing token or an unreachable
+   * check all refuse. Never throws.
+   */
+  const challengePassed = async (): Promise<boolean> => {
+    const bindings = env as unknown as Record<string, string | undefined>;
+    const token = typeof fields.turnstileToken === "string" ? fields.turnstileToken : "";
+    // Nothing to check, or no real Turnstile token (they stay well under 2048 characters): refuse here, without
+    // asking Cloudflare, instead of relying on its answer for an empty response.
+    if (token.length === 0 || token.length > 2048) return false;
+    const challenge = await verifyTurnstile(
+      env.TURNSTILE_SECRET_KEY ?? process.env.TURNSTILE_SECRET_KEY,
+      token,
+      {
+        action: "account",
+        // Always a fresh key made here, never the one in the body: Cloudflare answers the same success for one
+        // token re-verified with the same idempotency_key for 300 s, so a client-chosen key would let one solved
+        // token be posted for many addresses. With a fresh key the second verify of a token is refused.
+        idempotencyKey: crypto.randomUUID(),
+        // Reuses the contact form's hostname binding (no separate sign-in binding exists).
+        allowedHostnames:
+          bindings.CONTACT_TURNSTILE_ALLOWED_HOSTNAMES ?? process.env.CONTACT_TURNSTILE_ALLOWED_HOSTNAMES,
+        remoteip: request.headers.get("cf-connecting-ip") ?? undefined,
+      },
+    );
+    return challenge.ok;
+  };
+
+  /** The form fields without the challenge pair: the sign-up and reset schemas are strict. */
+  const formFields = (): Record<string, unknown> => {
+    const { turnstileToken: _token, idempotencyKey: _key, ...rest } = fields;
+    return rest;
   };
 
   /**
@@ -619,15 +682,33 @@ export async function POST(request: Request): Promise<Response> {
   if (fields.mode === "forgot") {
     const parsed = resetEmailSchema.safeParse({ email: fields.email });
     if (!parsed.success) return json(SENT);
+    // S5 (2026-10-05): the public sign-in page proves a visitor first. Before the address bucket, so a
+    // bot with no token cannot use up a real person's bucket. The dashboard's own sign-in screen has
+    // no check (out of scope for this decision) and keeps working as before.
+    if (!dashboard && !(await challengePassed())) return json(CHALLENGE_FAILED, 403);
     // S5: same answer for a known and an unknown address; a 429 says nothing about the address.
     if (!(await perAddressAllowed("forgot", parsed.data.email))) return json(RATE_LIMITED, 429);
-    const { result, reason } = await runPasswordReset(
-      supabase,
-      parsed.data.email,
-      origin,
-      localizedPath("/reset-password", locale),
-    );
-    if (reason) log("error", "auth", ctx, { reason, action: "reset" });
+    // S5 review (2026-10-05, controller decision): the dashboard's own forgot-password asks for no check, so on
+    // that host a recovery link is mailed to an ACTIVE staff row only. For any other address the same call
+    // goes out with an address no account can have: Supabase mails nothing, and the answer, the verifier
+    // cookie and the work done are those of any unknown address, so nothing tells a staff address from a
+    // customer's. The real address is never sent to Supabase. A staff check that cannot be made fails closed
+    // the same way (no mail; the person asks again). The public host is unchanged.
+    let target = parsed.data.email;
+    if (dashboard) {
+      let staff = false;
+      try {
+        staff = await staffActiveForEmail(env, parsed.data.email);
+      } catch {
+        log("error", "auth", ctx, { reason: "staff-check-failed", action: "reset" });
+      }
+      if (!staff) target = `no-recovery-${crypto.randomUUID()}@invalid.invalid`;
+    }
+    const { result, reason } = await runPasswordReset(supabase, target, origin, localizedPath("/reset-password", locale));
+    if (reason && target === parsed.data.email) log("error", "auth", ctx, { reason, action: "reset" });
+    // Dashboard host: staff and everyone else do different work above, so hold every answer to the same floor
+    // as the sign-in branch; the time then says nothing about the address either.
+    if (dashboard) await holdCheckoutFloor({ startedAt });
     // The PKCE verifier cookie rides on the answer, known address or not (same body either way).
     return sessionJson(result, setCookies);
   }
@@ -639,20 +720,7 @@ export async function POST(request: Request): Promise<Response> {
       await holdCheckoutFloor({ startedAt });
       return json(SENT);
     }
-    const bindings = env as unknown as Record<string, string | undefined>;
-    const challenge = await verifyTurnstile(
-      env.TURNSTILE_SECRET_KEY ?? process.env.TURNSTILE_SECRET_KEY,
-      typeof fields.turnstileToken === "string" ? fields.turnstileToken : "",
-      {
-        action: "account",
-        idempotencyKey: typeof fields.idempotencyKey === "string" ? fields.idempotencyKey : "",
-        // Reuses the contact form's hostname binding (no separate checkout binding exists).
-        allowedHostnames:
-          bindings.CONTACT_TURNSTILE_ALLOWED_HOSTNAMES ?? process.env.CONTACT_TURNSTILE_ALLOWED_HOSTNAMES,
-        remoteip: request.headers.get("cf-connecting-ip") ?? undefined,
-      },
-    );
-    if (!challenge.ok) return json({ stage: "form", banner: "send_failed" }, 403);
+    if (!(await challengePassed())) return json({ stage: "form", banner: "send_failed" }, 403);
     const checkoutParsed = checkoutSignInSchema.safeParse(fields);
     if (!checkoutParsed.success) {
       await holdCheckoutFloor({ startedAt });
@@ -677,8 +745,12 @@ export async function POST(request: Request): Promise<Response> {
     if (fields.mode === "signup" && !dashboard && !signupConsentGiven(fields)) {
       return json(CONSENT_REQUIRED, 400);
     }
-    const parsed = otpRequestSchema.safeParse(fields);
+    const parsed = otpRequestSchema.safeParse(formFields());
     if (!parsed.success) return json(SENT);
+    // S5 (2026-10-05): a public sign-up proves a visitor before anything is written or sent.
+    if (parsed.data.mode === "signup" && !dashboard && !(await challengePassed())) {
+      return json(CHALLENGE_FAILED, 403);
+    }
     // S5: the link sign-up spends the per-address bucket before the agreement record or any mail.
     if (parsed.data.mode === "signup" && !dashboard && !(await perAddressAllowed("signup", parsed.data.email))) {
       return json(RATE_LIMITED, 429);
@@ -693,6 +765,31 @@ export async function POST(request: Request): Promise<Response> {
     // other mail sends (same answer for every address; a 429 says nothing about the address).
     if (parsed.data.mode === "signin" && !dashboard && !(await perAddressAllowed("link", parsed.data.email))) {
       return json(RATE_LIMITED, 429);
+    }
+    // S5 (owner, 2026-10-05, question form): "Email me a sign-in link" for an address with NO account makes the
+    // account and mails a confirmation, so for a new address the same human check as sign-up runs first. An
+    // existing customer signs in as before, with no check. Nothing may tell the two apart from outside: the bucket
+    // above is spent first for every address (a 429 would otherwise show that an address has an account), and a
+    // new address without a passed check gets the same call with an address no account can have (nothing is
+    // mailed or made; same body, status and verifier cookie), then the same floor as every other answer here.
+    // The page asks for a token on this form too, unseen, and sends one when it can; the server only needs it
+    // when there is no confirmed account. A token for an existing address is never verified.
+    if (parsed.data.mode === "signin" && !dashboard) {
+      if (!(await hasConfirmedAccount(env, parsed.data.email, ctx)) && !(await challengePassed())) {
+        await runOtp(
+          supabase,
+          {
+            mode: "signin",
+            email: `no-link-${crypto.randomUUID()}@invalid.invalid`,
+            locale,
+            createUser: false,
+          },
+          origin,
+          emailNext(returnToRaw, localizedHome(locale)),
+        );
+        await holdCheckoutFloor({ startedAt });
+        return sessionJson(SENT, setCookies);
+      }
     }
     const { result, reason } = await runOtp(
       supabase,
@@ -733,8 +830,10 @@ export async function POST(request: Request): Promise<Response> {
     // dashboard host must not create a customer account there.
     if (dashboard) return json(SENT);
     if (!signupConsentGiven(fields)) return json(CONSENT_REQUIRED, 400);
-    const parsed = signUpPasswordSchema.safeParse(fields);
+    const parsed = signUpPasswordSchema.safeParse(formFields());
     if (!parsed.success) return json(SENT);
+    // S5 (2026-10-05): a public sign-up proves a visitor before anything is written or sent.
+    if (!(await challengePassed())) return json(CHALLENGE_FAILED, 403);
     // S5: per-address bucket before the agreement record or the confirmation mail.
     if (!(await perAddressAllowed("signup", parsed.data.email))) return json(RATE_LIMITED, 429);
     if (!(await recordSignupAgreement(env, { email: parsed.data.email, locale, headers: request.headers }))) {

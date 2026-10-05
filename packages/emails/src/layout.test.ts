@@ -85,11 +85,11 @@ describe("default footer of layout.ts (auth e-mails)", () => {
   it("plain text: Arabic footer phone in LRI…PDI, en/de/fr byte for byte as before", () => {
     const data = { name: "Amira", code: "123456", link: "https://vamostaxi.site/x" };
     expect(renderAuthEmail("signup", "ar", data).text.endsWith(`\n⁦${PHONE}⁩`)).toBe(true);
+    // The sign-up mail has no "Hello {name}." line since 2026-10-05 (owner, S5: the address is not confirmed yet,
+    // so a typed name is not trusted). Everything else, footer included, is as before.
     expect(renderAuthEmail("signup", "en", data).text).toBe(
       [
         "Vamos Taxi",
-        "",
-        "Hello Amira.",
         "",
         "Confirm your email",
         "",

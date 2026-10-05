@@ -1,0 +1,2 @@
+existing, no token: 200 {"stage":"sent"} 1276 ms cookies=vt-auth-code-verifier,vt-auth-flow-<id>-code-verifier,vt-auth-flows-code-verifier
+new, no token:      200 {"stage":"sent"} 1275 ms cookies=vt-auth-code-verifier,vt-auth-flow-<id>-code-verifier,vt-auth-flows-code-verifier

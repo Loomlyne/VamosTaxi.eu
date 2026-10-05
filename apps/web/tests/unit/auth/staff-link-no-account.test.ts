@@ -5,9 +5,10 @@ import { authPost, resetHarness, state } from "./harness";
 vi.mock("@opennextjs/cloudflare", async () => (await import("./harness")).cloudflareMock);
 vi.mock("next/headers", async () => (await import("./harness")).headersMock);
 vi.mock("@supabase/ssr", async () => (await import("./harness")).ssrMock);
+vi.mock("@/lib/turnstile", async () => (await import("./harness")).turnstileMock);
 
 const { POST } = await import("@/app/api/auth/route");
-const body = { mode: "signin", method: "magic", email: "nobody@example.com" };
+const body = { mode: "signin", method: "magic", email: "nobody@example.com", turnstileToken: "tok" };
 
 beforeEach(() => resetHarness());
 

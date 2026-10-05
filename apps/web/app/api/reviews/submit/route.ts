@@ -103,13 +103,14 @@ export async function POST(request: Request): Promise<Response> {
   if (!reviewFieldsWithinCaps(body)) return jsonErr("invalid-input", 400);
 
   const turnstileToken = str(body.turnstileToken);
-  const idempotencyKey = str(body.idempotencyKey);
   const challenge = await verifyTurnstile(
     env.TURNSTILE_SECRET_KEY ?? process.env.TURNSTILE_SECRET_KEY,
     turnstileToken,
     {
       action: "contact",
-      idempotencyKey,
+      // Always a fresh key made here, never the browser's: Cloudflare repeats a success for a token re-verified
+      // with the same idempotency_key for 300 s, so a client-chosen key would let one solved token be replayed.
+      idempotencyKey: crypto.randomUUID(),
       allowedHostnames:
         bindings.CONTACT_TURNSTILE_ALLOWED_HOSTNAMES ??
         process.env.CONTACT_TURNSTILE_ALLOWED_HOSTNAMES,

@@ -228,3 +228,13 @@ export const markAccountFinished = async (
 ): Promise<void> => {
   await asSystem(env, (sql) => sql`select public.account_finish_done(${userId}::uuid, ${fullName}, ${phone})`);
 };
+
+/**
+ * S5 review (2026-10-05): true while an e-mail belongs to an ACTIVE staff row. Definer, boolean only, vamos_system
+ * only (migration 20261007330000). /api/auth (dashboard-host forgot-password) uses it so a recovery link is
+ * requested for staff addresses only. Throws when the database cannot answer: the caller decides (it fails closed).
+ */
+export const staffActiveForEmail = async (env: CloudflareEnv, email: string): Promise<boolean> =>
+  (await asSystem(env, (sql) =>
+    sql<{ active: boolean | null }[]>`select public.staff_active_for_email(${email}) as active`,
+  ))[0]?.active === true;

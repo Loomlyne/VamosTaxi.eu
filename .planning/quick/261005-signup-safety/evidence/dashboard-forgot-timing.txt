@@ -1,0 +1,6 @@
+Dashboard forgot-password answer time in ms (lab su-s6, 4 rounds each), run/dashboard-forgot-timing.mjs.
+round 1 staff 1345, customer 1346, unknown 1276
+round 2 staff 1359, customer 1235, unknown 1271
+round 3 staff 1291, customer 1223, unknown 1346
+round 4 staff 1258, customer 1281, unknown 1294
+Floor is 1200 ms plus 0-150 ms jitter. The 2341 ms for the customer in the first proof run was one cold call.

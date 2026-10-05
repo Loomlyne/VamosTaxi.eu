@@ -1,0 +1,40 @@
+{
+ "at": "2026-10-05T14:57:11.179Z",
+ "results": [
+  {
+   "status": "PASS",
+   "name": "setup: a customer account exists for the test address",
+   "detail": ""
+  },
+  {
+   "status": "PASS",
+   "name": "control: the same customer address asking on the PUBLIC host still gets its recovery mail (unchanged)",
+   "detail": "subject: Reset your Vamos Taxi password"
+  },
+  {
+   "status": "PASS",
+   "name": "dashboard host: an active staff address gets the recovery mail",
+   "detail": "subject: Reset your Vamos Taxi password"
+  },
+  {
+   "status": "PASS",
+   "name": "dashboard host: a customer address gets NO mail, and the answer is the same neutral 'sent'",
+   "detail": ""
+  },
+  {
+   "status": "PASS",
+   "name": "dashboard host: an unknown address gets nothing, same answer",
+   "detail": ""
+  },
+  {
+   "status": "PASS",
+   "name": "dashboard host: staff, customer and unknown answers look the same (status, body, cookies) and none returns before the floor",
+   "detail": "ms staff 1339, customer 2341, unknown 1242; set-cookie staff 3, customer 3, unknown 3"
+  },
+  {
+   "status": "PASS",
+   "name": "dashboard host: password sign-in is untouched (the form still answers as before)",
+   "detail": ""
+  }
+ ]
+}

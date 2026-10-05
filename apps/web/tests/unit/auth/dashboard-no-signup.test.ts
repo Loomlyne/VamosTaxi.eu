@@ -5,6 +5,7 @@ import { authPost, resetHarness, state } from "./harness";
 vi.mock("@opennextjs/cloudflare", async () => (await import("./harness")).cloudflareMock);
 vi.mock("next/headers", async () => (await import("./harness")).headersMock);
 vi.mock("@supabase/ssr", async () => (await import("./harness")).ssrMock);
+vi.mock("@/lib/turnstile", async () => (await import("./harness")).turnstileMock);
 vi.mock("@/lib/db/identity", () => ({
   asSystem: async (_env: unknown, fn: (tx: unknown) => Promise<void>) => {
     await fn(async () => []);
@@ -20,6 +21,7 @@ const body = {
   firstName: "Mia",
   lastName: "Keller",
   consent: true,
+  turnstileToken: "tok",
 };
 
 beforeEach(() => resetHarness());

@@ -9,6 +9,7 @@ const db = vi.hoisted(() => ({ order: [] as string[] }));
 vi.mock("@opennextjs/cloudflare", async () => (await import("./harness")).cloudflareMock);
 vi.mock("next/headers", async () => (await import("./harness")).headersMock);
 vi.mock("@supabase/ssr", async () => (await import("./harness")).ssrMock);
+vi.mock("@/lib/turnstile", async () => (await import("./harness")).turnstileMock);
 vi.mock("@/lib/db/identity", () => ({
   asSystem: async (_env: unknown, fn: (tx: unknown) => Promise<unknown>) => {
     db.order.push("record");
@@ -21,9 +22,9 @@ vi.mock("@/lib/db/system-reads", () => ({
 
 const { POST } = await import("@/app/api/auth/route");
 
-const pw = { mode: "signup", method: "password", email: "Mia@Example.test", password: "12345678", firstName: "Mia", lastName: "K", consent: true };
-const magic = { mode: "signup", method: "magic", email: "Mia@Example.test", firstName: "Mia", lastName: "K", consent: true };
-const forgot = { mode: "forgot", email: "Mia@Example.test" };
+const pw = { mode: "signup", method: "password", email: "Mia@Example.test", password: "12345678", firstName: "Mia", lastName: "K", consent: true, turnstileToken: "tok" };
+const magic = { mode: "signup", method: "magic", email: "Mia@Example.test", firstName: "Mia", lastName: "K", consent: true, turnstileToken: "tok" };
+const forgot = { mode: "forgot", email: "Mia@Example.test", turnstileToken: "tok" };
 
 /** The per-IP key passes; any `auth-<kind>:` per-address key answers `perAddress`. */
 function perAddressLimiter(perAddress: boolean) {

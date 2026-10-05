@@ -1,0 +1,116 @@
+{
+ "at": "2026-10-05T14:35:33.172Z",
+ "base": "http://localhost:4710",
+ "results": [
+  {
+   "status": "PASS",
+   "name": "1440 en: password sign-up runs the unseen check and sends the token; the mail has no typed name",
+   "detail": "token sent, 1 siteverify, mail has no name and no greeting"
+  },
+  {
+   "status": "PASS",
+   "name": "390 en: the form looks as before (box closed), no sideways scroll",
+   "detail": ""
+  },
+  {
+   "status": "PASS",
+   "name": "390 en: a suspicious visitor sees the small box, in view, no sideways scroll; ticking sends the sign-up",
+   "detail": "box opened in view, sent after the tick"
+  },
+  {
+   "status": "PASS",
+   "name": "1440 en: check cannot run -> nothing sent, 'Could not send the link. Try again.' shows",
+   "detail": ""
+  },
+  {
+   "status": "PASS",
+   "name": "390 en: Cloudflare refuses the token -> server 403 challenge-failed, same line, no mail",
+   "detail": ""
+  },
+  {
+   "status": "PASS",
+   "name": "1440 en: 'Sign up with a link instead' also sends the token",
+   "detail": ""
+  },
+  {
+   "status": "PASS",
+   "name": "1440 en: 'Send another link' on the sent page asks again (token 2) and sends",
+   "detail": ""
+  },
+  {
+   "status": "PASS",
+   "name": "1440 en: 'Send another link' with the check failing shows the line on the sent page, sends nothing",
+   "detail": ""
+  },
+  {
+   "status": "PASS",
+   "name": "1440 en: forgot password runs the check and sends the token; the answer is 'sent'",
+   "detail": ""
+  },
+  {
+   "status": "PASS",
+   "name": "390 en: forgot password, suspicious visitor: box opens, ticking sends; crop",
+   "detail": ""
+  },
+  {
+   "status": "PASS",
+   "name": "390 en: forgot password with the check failing: nothing sent, line shows",
+   "detail": ""
+  },
+  {
+   "status": "PASS",
+   "name": "1440 en: password sign-in sends no token and never loads the check",
+   "detail": ""
+  },
+  {
+   "status": "PASS",
+   "name": "390 de: sign-up form, failure line and sent page have no untranslated string (coverage empty)",
+   "detail": "forms/banner/sent coverage 0"
+  },
+  {
+   "status": "PASS",
+   "name": "390 fr: sign-up form, failure line and sent page have no untranslated string (coverage empty)",
+   "detail": "forms/banner/sent coverage 0"
+  },
+  {
+   "status": "PASS",
+   "name": "390 ar: sign-up form, failure line and sent page have no untranslated string (coverage empty)",
+   "detail": "forms/banner/sent coverage 0, dir=rtl"
+  },
+  {
+   "status": "PASS",
+   "name": "390 ar: the Cloudflare widget is asked for Arabic (ar-eg), the box opens in view, no sideways scroll",
+   "detail": ""
+  },
+  {
+   "status": "PASS",
+   "name": "390 de: the widget is asked for de",
+   "detail": ""
+  },
+  {
+   "status": "PASS",
+   "name": "390 fr: the widget is asked for fr",
+   "detail": ""
+  },
+  {
+   "status": "PASS",
+   "name": "API: sign-up and forgot without a token, or with a refused token -> 403 challenge-failed; nothing mailed",
+   "detail": ""
+  },
+  {
+   "status": "PASS",
+   "name": "API: with a good token they still work (200 sent); sign-in, code and the checkout link are as before",
+   "detail": ""
+  },
+  {
+   "status": "PASS",
+   "name": "API: a sign-up without the tick is refused for the tick (400), before the check is asked",
+   "detail": ""
+  },
+  {
+   "status": "PASS",
+   "name": "API: dashboard host is unchanged (sign-up 'sent' without any check; forgot-password not asked for a token)",
+   "detail": ""
+  }
+ ]
+}

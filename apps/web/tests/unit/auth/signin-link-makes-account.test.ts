@@ -11,6 +11,7 @@ const floor = vi.hoisted(() => ({ calls: 0, release: null as null | (() => void)
 vi.mock("@opennextjs/cloudflare", async () => (await import("./harness")).cloudflareMock);
 vi.mock("next/headers", async () => (await import("./harness")).headersMock);
 vi.mock("@supabase/ssr", async () => (await import("./harness")).ssrMock);
+vi.mock("@/lib/turnstile", async () => (await import("./harness")).turnstileMock);
 vi.mock("@/lib/db/identity", () => ({
   asSystem: async (_env: unknown, fn: (tx: unknown) => Promise<void>) => {
     await fn(async () => []);
@@ -27,7 +28,8 @@ vi.mock("@/lib/auth/checkout-sign-in", async () => {
 });
 
 const { POST } = await import("@/app/api/auth/route");
-const body = { mode: "signin", method: "magic", email: "someone@example.com" };
+// S5 (owner, 2026-10-05): a link for an address with no account carries the human check's token.
+const body = { mode: "signin", method: "magic", email: "someone@example.com", turnstileToken: "tok" };
 
 beforeEach(() => {
   resetHarness();
@@ -70,7 +72,7 @@ describe("sign-in link on the public host (27 D-37)", () => {
   it("sign-up still creates the account and is not held", async () => {
     const otp = vi.fn(async (..._a: unknown[]) => ({ error: null }));
     state.auth.signInWithOtp = otp as never;
-    await POST(authPost({ mode: "signup", method: "magic", email: "n@example.com", firstName: "A", lastName: "B", consent: true }));
+    await POST(authPost({ mode: "signup", method: "magic", email: "n@example.com", firstName: "A", lastName: "B", consent: true, turnstileToken: "tok" }));
     expect(otp.mock.calls[0]?.[0]).toMatchObject({ options: { shouldCreateUser: true } });
     expect(floor.calls).toBe(0);
   });

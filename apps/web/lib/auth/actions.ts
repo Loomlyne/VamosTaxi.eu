@@ -16,6 +16,7 @@ import type { AuthBanner, AuthSubmitPayload } from "@/components/auth/types";
 import { checkWriteRateLimit } from "@/lib/abuse/rate-limit";
 import { recordSignupAgreement } from "./signup-agreement";
 import { log } from "@/lib/logger";
+import { verifyTurnstile } from "@/lib/turnstile";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { trustedSiteOrigin } from "@/lib/security/origin";
 import {
@@ -80,6 +81,31 @@ async function authWriteAllowed(): Promise<boolean> {
   }
 }
 
+/**
+ * The "Verify you are human" check for the two actions that send mail to an address the visitor typed
+ * (sign-up, forgot-password). Same helper, action name and hostname binding as the /api/auth route, so an
+ * action posted straight at a Next route (Next-Action header) cannot get around the check on /sign-in.
+ * Refuses on a missing or oversized token without asking Cloudflare; never throws.
+ */
+async function challengePassed(token: string | undefined): Promise<boolean> {
+  if (typeof token !== "string" || token.length === 0 || token.length > 2048) return false;
+  try {
+    const { env } = getCloudflareContext();
+    const bindings = env as unknown as Record<string, string | undefined>;
+    const h = await headers();
+    const challenge = await verifyTurnstile(env.TURNSTILE_SECRET_KEY ?? process.env.TURNSTILE_SECRET_KEY, token, {
+      action: "account",
+      idempotencyKey: crypto.randomUUID(),
+      allowedHostnames:
+        bindings.CONTACT_TURNSTILE_ALLOWED_HOSTNAMES ?? process.env.CONTACT_TURNSTILE_ALLOWED_HOSTNAMES,
+      remoteip: h.get("cf-connecting-ip") ?? undefined,
+    });
+    return challenge.ok;
+  } catch {
+    return false;
+  }
+}
+
 function localizedHome(locale: string): string {
   return locale === routing.defaultLocale ? "/" : `/${locale}`;
 }
@@ -114,6 +140,7 @@ export async function signInAction(
 export async function signUpAction(
   payload: AuthSubmitPayload,
   locale: string,
+  challengeToken?: string,
 ): Promise<AuthActionResult> {
   const loc = localeSchema.safeParse(locale);
   const body = signUpPasswordSchema.safeParse(payload);
@@ -122,6 +149,12 @@ export async function signUpAction(
     return { stage: "sent" };
   }
   if (!(await authWriteAllowed())) return { stage: "sent" };
+  // S5 (owner, 2026-10-05): no mail and no agreement record without a passed check. Fails closed with the
+  // same neutral answer as the rate limit above, so a bot learns nothing about the address.
+  if (!(await challengePassed(challengeToken))) {
+    authLog("signUpAction", loc.data, "challenge-failed");
+    return { stage: "sent" };
+  }
 
   const { env } = getCloudflareContext();
   if (!(await recordSignupAgreement(env, { email: body.data.email, locale: loc.data, headers: await headers() }))) {
@@ -142,6 +175,7 @@ export async function signUpAction(
 export async function requestOtpAction(
   payload: AuthSubmitPayload,
   locale: string,
+  challengeToken?: string,
 ): Promise<AuthActionResult> {
   const loc = localeSchema.safeParse(locale);
   const body = otpRequestSchema.safeParse(payload);
@@ -152,6 +186,13 @@ export async function requestOtpAction(
   if (!(await authWriteAllowed())) return { stage: "sent" };
 
   if (body.data.mode === "signup") {
+    // S5 (owner, 2026-10-05): the link sign-up makes an account and mails a confirmation, so it needs the same
+    // check as the password sign-up. The link sign-IN below never creates an account (createUser false), so it
+    // mails existing customers only and needs none.
+    if (!(await challengePassed(challengeToken))) {
+      authLog("requestOtpAction", loc.data, "challenge-failed");
+      return { stage: "sent" };
+    }
     const { env } = getCloudflareContext();
     if (!(await recordSignupAgreement(env, { email: body.data.email, locale: loc.data, headers: await headers() }))) {
       return { stage: "sent" };
@@ -182,6 +223,7 @@ export async function requestOtpAction(
 export async function requestPasswordResetAction(
   email: string,
   locale: string,
+  challengeToken?: string,
 ): Promise<AuthActionResult> {
   const loc = localeSchema.safeParse(locale);
   const body = resetEmailSchema.safeParse({ email });
@@ -190,6 +232,11 @@ export async function requestPasswordResetAction(
     return { stage: "sent" };
   }
   if (!(await authWriteAllowed())) return { stage: "sent" };
+  // S5 (owner, 2026-10-05): same check as sign-up; refuses with the neutral answer, sends nothing.
+  if (!(await challengePassed(challengeToken))) {
+    authLog("requestPasswordResetAction", loc.data, "challenge-failed");
+    return { stage: "sent" };
+  }
 
   const origin = await requestOrigin();
   const supabase = await createServerSupabaseClient();
