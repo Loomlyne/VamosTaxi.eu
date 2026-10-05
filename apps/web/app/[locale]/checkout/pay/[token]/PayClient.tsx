@@ -92,13 +92,16 @@ function onPayLinkLockZero(lock_expires_at: string | null): { locked: boolean } 
   return { locked: false };
 }
 
-/** Expire the stored session. Skip when open never stored a quote id. */
-function expireStoredCheckoutSession(quote_id: string | null): void {
+/**
+ * Expire the stored session. Skip when open never stored a quote id. The open session id goes
+ * with it: the server expires only for a caller that holds the payment (security S8).
+ */
+function expireStoredCheckoutSession(quote_id: string | null, session_id: string | null): void {
   if (!quote_id) return;
   void fetch("/api/checkout/lock-expire", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ quote_id }),
+    body: JSON.stringify(session_id ? { quote_id, session_id } : { quote_id }),
   });
 }
 
@@ -218,7 +221,7 @@ export function PayClient({ token }: { token: string }) {
         if (zero.locked || !json.url) {
           setPayLocked(true);
           setError(zero.locked ? "quoteExpired" : "paymentWindowClosed");
-          if (zero.locked) expireStoredCheckoutSession(openedQuoteId);
+          if (zero.locked) expireStoredCheckoutSession(openedQuoteId, storedPayLinkSessionId(json.session_id));
           return;
         }
         rememberSession(json);
@@ -249,7 +252,7 @@ export function PayClient({ token }: { token: string }) {
       if (!next.locked) return;
       setPayLocked(true);
       setError("quoteExpired");
-      expireStoredCheckoutSession(storedQuoteId);
+      expireStoredCheckoutSession(storedQuoteId, sessionIdRef.current);
     };
     const delay = at - Date.now();
     if (delay <= 0) {

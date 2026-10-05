@@ -367,6 +367,20 @@ export async function handleStripeMessageWithDeps(
         }
         return { ack: true };
       }
+      // 261005 money hardening (U15): an expired checkout page that has no payment row. Stripe never
+      // charges an expired page, so nothing was captured and there is nothing to record. Before, it
+      // was retried nine times into a false "payment event is stuck" mail (22 live rows of 7-12 Sept:
+      // pages opened by a second Pay press without a row of their own, or with no booking on live).
+      // Today it happens when the intent expires its own page after the database refused the
+      // booking. Close it quietly.
+      if (message.type === "checkout.session.expired" && session && session.payment_status !== "paid") {
+        try {
+          await deps.eventSettle(message.eventId, "no_payment");
+        } catch {
+          return { retry: true };
+        }
+        return { ack: true };
+      }
       const refunded = await refundPaidSessionWithoutBooking(message, session, piId, outcome, deps);
       if (refunded) {
         try {

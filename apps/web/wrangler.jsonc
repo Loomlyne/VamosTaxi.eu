@@ -222,6 +222,14 @@
           "name": "TURNSTILE_ATTEMPT_LIMITER",
           "namespace_id": "1011",
           "simple": { "limit": 2, "period": 60 }
+        },
+        // Security S12 (2026-10-05): the public database reads (checkout status and resume, manage
+        // booking, pay-link open, lock-expire, published reviews), key read:<route>:<ip>. Far above a
+        // real visitor (the confirmation page polls status once a second). lib/abuse/read-rate-limit.ts.
+        {
+          "name": "READ_RATE_LIMITER",
+          "namespace_id": "1012",
+          "simple": { "limit": 120, "period": 60 }
         }
       ],
       // Rule 2 addition (plan 03-06, D-36): uncommented from the placeholder block plan
@@ -419,6 +427,14 @@
           "name": "TURNSTILE_ATTEMPT_LIMITER",
           "namespace_id": "1011",
           "simple": { "limit": 2, "period": 60 }
+        },
+        // Security S12 (2026-10-05): the public database reads (checkout status and resume, manage
+        // booking, pay-link open, lock-expire, published reviews), key read:<route>:<ip>. Far above a
+        // real visitor (the confirmation page polls status once a second). lib/abuse/read-rate-limit.ts.
+        {
+          "name": "READ_RATE_LIMITER",
+          "namespace_id": "1012",
+          "simple": { "limit": 120, "period": 60 }
         }
       ],
       // Two Hyperdrive configs (D-01/D-03), never one: `HYPERDRIVE` is the cacheable,

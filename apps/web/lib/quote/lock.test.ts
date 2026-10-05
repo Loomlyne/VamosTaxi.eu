@@ -99,7 +99,7 @@ describe("mintLock", () => {
     expect(lockSrc).toMatch(/quote_lock_minutes/);
     expect(lockSrc).not.toMatch(/Date\.now/);
     expect(quoteSrc).toMatch(/quote_lock_deadline/);
-    expect(quoteSrc).toMatch(/asQuote/);
+    expect(quoteSrc).toMatch(/asCheckout\(env, null,/);
   });
 });
 

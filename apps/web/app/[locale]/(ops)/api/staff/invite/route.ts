@@ -16,6 +16,7 @@ import {
   type InviteErrorCode,
 } from "@/lib/ops/invite";
 import { OpsAuthError, requireAdminClaims, type StaffAuthClient } from "@/lib/ops/session";
+import { staffRowActive } from "@/lib/ops/staff-active";
 import { staffOriginAllowed } from "@/lib/ops/staff-json";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -68,6 +69,15 @@ export async function POST(request: Request): Promise<Response> {
 
   if (!staffOriginAllowed(request.headers.get("Origin"))) {
     return Response.json({ ok: false, code: "csrf" }, { status: 403, headers: noStore });
+  }
+  // Security S13: the inviting admin's own staff row must still be active.
+  try {
+    if (!(await staffRowActive(caller))) {
+      log("error", "ops-invite", ctx, { reason: "staff-inactive" });
+      return jsonForbidden();
+    }
+  } catch {
+    return Response.json({ ok: false, code: "staff-check-failed" }, { status: 503, headers: noStore });
   }
 
   let raw: unknown;

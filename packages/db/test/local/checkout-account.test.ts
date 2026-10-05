@@ -49,11 +49,13 @@ describe("account choice functions through the Worker's client options", () => {
     expect(out).toBe(false);
   });
 
-  it("checkout_account_settings arrives as a boolean for the anon public client", async () => {
+  it("checkout_account_settings arrives as a boolean through the Worker's client options (vamos_checkout)", async () => {
+    // 261005 S6: the Worker reads the switch as vamos_checkout (account-notice.ts asCheckout); anon and
+    // authenticated no longer hold EXECUTE.
     const sql = publicSql(EDGE);
     try {
       const r = await sql.begin(async (tx) => {
-        await tx.unsafe("set local role anon");
+        await tx.unsafe("set local role vamos_checkout");
         return tx<{ v: boolean }[]>`select public.checkout_account_settings() as v`;
       });
       expect(typeof r[0]?.v).toBe("boolean");

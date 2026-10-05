@@ -26,7 +26,7 @@ type Row = {
 
 /**
  * Bind the subject GUC on this transaction, then read the latest row.
- * @param tx transaction from asAnon/asCustomer
+ * @param tx transaction from asCheckout (no claims; 261005 S6: consent_choice is vamos_checkout only)
  * @param subject consent_subject UUID (already validated by the caller)
  * @param asOf only rows recorded at or before this time; null/omitted means now
  * @returns the choice, or null when the subject has no row under the current version

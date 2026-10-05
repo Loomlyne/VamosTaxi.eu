@@ -4,7 +4,7 @@
 // Business rules live in lib/checkout/intent.ts. The write is createBooking.
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { asAnon, asCheckout, asQuote } from "@/lib/db/identity";
+import { asCheckout, asQuote } from "@/lib/db/identity";
 import { checkoutIntentSchema } from "@/lib/checkout/intent-schema";
 import { refusalForMissingClassId } from "@/lib/checkout/charge-gate";
 import { refuse } from "@/lib/checkout/errors";
@@ -199,7 +199,7 @@ async function postIntent(request: Request) {
           origin: requestOrigin,
           measurementAllowed: metaMeasurementAllowed(),
           readMarketing: (subject) =>
-            asAnon(env, (tx) => readConsentChoice(tx, subject)).then((c) => c?.marketing === true),
+            asCheckout(env, null, (tx) => readConsentChoice(tx, subject)).then((c) => c?.marketing === true),
         },
         write: (fbp, fbc, subject) =>
           asCheckout(env, null, async (sql) => {

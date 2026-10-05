@@ -12,6 +12,7 @@
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { PHOTO_PREFIXES, readPhotoKeyFromPathname } from "@/lib/ops/photos";
+import { openSealedPhotoPath, SEALED_PHOTO_PREFIX } from "@/lib/photos/sealed-url";
 import {
   isVariantKey,
   PHOTO_VARIANT_QUALITY,
@@ -56,12 +57,18 @@ async function makeVariant(
 
 export async function GET(request: Request): Promise<Response> {
   const url = new URL(request.url);
-  const key = readPhotoKeyFromPathname(url.pathname);
+  const { env } = getCloudflareContext();
+  // Security S10: the public quote board hands out sealed class-photo addresses (no class id).
+  const key = url.pathname.startsWith(SEALED_PHOTO_PREFIX)
+    ? await openSealedPhotoPath(
+        [env.QUOTE_LOCK_SECRET || process.env.QUOTE_LOCK_SECRET, env.QUOTE_LOCK_SECRET_PREVIOUS || process.env.QUOTE_LOCK_SECRET_PREVIOUS],
+        url.pathname,
+      )
+    : readPhotoKeyFromPathname(url.pathname);
   if (!key || !PHOTO_PREFIXES.some((prefix) => key.startsWith(prefix))) {
     return notFound();
   }
 
-  const { env } = getCloudflareContext();
   const width = isVariantKey(key) ? null : readVariantWidth(url.searchParams);
 
   if (width) {

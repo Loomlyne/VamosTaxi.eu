@@ -71,12 +71,13 @@ describe("bind helper + policy stamp (D-03, D-04)", () => {
 });
 
 describe("POST /api/consent HTTP mapping (D-03, D-11, D-14)", () => {
-  it("exists as force-dynamic POST using asAnon + recordConsent", () => {
+  it("exists as force-dynamic POST using asCheckout (no claims) + recordConsent, never asAnon (261005 S6)", () => {
     const src = readRepo("apps/web/app/api/consent/route.ts");
     expect(src).toMatch(/export const dynamic = ["']force-dynamic["']/);
     expect(src).toMatch(/export async function POST/);
     expect(src).toMatch(/from ["']@\/lib\/db\/identity["']/);
-    expect(src).toMatch(/\basAnon\b/);
+    expect(src).toMatch(/\basCheckout\(env, null,/);
+    expect(src).not.toMatch(/\basAnon\b/);
     expect(src).toMatch(/recordConsent/);
     expect(src).not.toMatch(/from ["']@vamos\/db["']/);
     expect(src).not.toMatch(/from ["']@vamos\/db\//);

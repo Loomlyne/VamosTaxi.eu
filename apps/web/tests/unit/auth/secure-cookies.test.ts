@@ -15,7 +15,8 @@ beforeEach(() => resetHarness());
 describe("secure auth cookies", () => {
   it("server client asks for Secure, Lax, path / and no Domain on https", async () => {
     await createServerSupabaseClient(new Request("https://vamostaxi.site/api/auth"));
-    expect(state.options?.cookieOptions).toEqual({ name: "vt-auth", path: "/", sameSite: "lax", secure: true });
+    // S4 (2026-10-05): HttpOnly too.
+    expect(state.options?.cookieOptions).toEqual({ name: "vt-auth", path: "/", sameSite: "lax", secure: true, httpOnly: true });
     expect(state.options?.cookieOptions).not.toHaveProperty("domain");
   });
 

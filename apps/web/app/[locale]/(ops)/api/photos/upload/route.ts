@@ -11,9 +11,10 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import {
   OpsAuthError,
-  requireStaffClaims,
+  requireAdminClaims,
   type StaffAuthClient,
 } from "@/lib/ops/session";
+import { staffRowActive } from "@/lib/ops/staff-active";
 import {
   PhotoUploadError,
   assertPhotoRecordId,
@@ -35,14 +36,22 @@ function authResponse(reason: OpsAuthError["reason"]): Response {
 
 export async function POST(request: Request): Promise<Response> {
   const supabase = (await createServerSupabaseClient()) as StaffAuthClient;
+  let claims;
   try {
-    await requireStaffClaims(supabase);
+    // Security S13: an upload is a write, so the admin, like every other staff write.
+    claims = await requireAdminClaims(supabase);
   } catch (err) {
     if (err instanceof OpsAuthError) return authResponse(err.reason);
     throw err;
   }
   if (!staffOriginAllowed(request.headers.get("Origin"))) {
     return Response.json({ error: "csrf" }, { status: 403, headers: noStore });
+  }
+  // Security S13: the staff row must still be active, not only the token's role.
+  try {
+    if (!(await staffRowActive(claims))) return authResponse("not-staff");
+  } catch {
+    return Response.json({ error: "staff-check-failed" }, { status: 503, headers: noStore });
   }
 
   const formData = await request.formData();

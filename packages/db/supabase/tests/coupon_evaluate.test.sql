@@ -167,7 +167,7 @@ select count(*)::integer as n from public.coupon_redemptions;
 grant select on cev_counts to public;
 
 -- Seven-rule ladder + ok path + stored casing (quote identity) -------------------------
-set local role anon;
+set local role vamos_checkout; -- the Worker's quote identity since 20261007320000 (was anon)
 
 select is(
   public.evaluate_coupon('no-such-code') ->> 'i18n_key',
@@ -207,7 +207,7 @@ update public.coupon_redemptions
    set released_at = now(), released_reason = 'test-release'
  where coupon_id = (select id from public.coupons where code = 'EV-CAP');
 
-set local role anon;
+set local role vamos_checkout;
 
 select is(
   public.evaluate_coupon('EV-CAP') -> 'ok',

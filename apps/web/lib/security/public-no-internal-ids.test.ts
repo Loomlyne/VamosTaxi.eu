@@ -6,6 +6,10 @@ import { fileURLToPath } from "node:url";
 import { parse as acornParse } from "acorn";
 import { describe, expect, it } from "vitest";
 import { stripCss, stripHtml, stripJsChecked } from "../../../../scripts/strip-public-comments.mjs";
+import { openSealedPhotoPath, SEALED_PHOTO_PREFIX, sealClassPhotoKey, sealClassPhotoUrls } from "../photos/sealed-url";
+import { publicCatalogRoutes } from "../pricing/public-board";
+import type { QuotePipelineOk } from "../quote/pipeline";
+import { publicQuoteBody, sealedQuoteResponse } from "../quote/respond";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const webRoot = join(here, "../..");
@@ -215,6 +219,163 @@ describe("no internal phrases in strings the browser receives (reviewer F2, 2026
     expect(en.cookies["sheet-analytics-providers"]).toBe("Cloudflare Web Analytics (cookieless)");
     expect(en.cookies["sheet-not-used"]).toBe("No cookie");
     expect(en.cookies["tells-us-which-step-of-a-booking-people-abandon"]).toBe("Tells us which step of a booking people abandon.");
+  });
+});
+
+// Security S10 (2026-10-05): the public quote answer, the class photos and the review list carry no
+// internal row id. Every case below fails on the code before the fix.
+describe("S10: no internal ids in public API answers", () => {
+  const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
+  const CLASS_ID = "5b1f3c2a-9d4e-4f6a-8b7c-1d2e3f4a5b6c";
+  const ZONE_A = "aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa";
+  const ZONE_B = "bbbbbbbb-2222-4222-8222-bbbbbbbbbbbb";
+  const QUOTE_ID = "11111111-1111-4111-8111-111111111111";
+  const SECRET = "test-quote-lock-secret-0123456789abcdef";
+  const PHOTO_KEY = `classes/${CLASS_ID}/0975620a-98e5-4657-9986-24fd637bfc0a.png`;
+
+  function quote(): QuotePipelineOk {
+    return {
+      ok: true,
+      quote_id: QUOTE_ID,
+      lock: "v1.payload.mac",
+      expires_at: "2099-01-01T12:00:00.000Z",
+      engine_version: "quote-engine@abcdef1",
+      pricing_live: true,
+      rate_version: { id: 18, slug: "book-18" },
+      settings_version_id: 7,
+      display_currency: "CHF",
+      route: {
+        legs: [
+          {
+            leg_seq: 1,
+            distance_m: 12000,
+            duration_s: 1200,
+            geometry: { type: "LineString", coordinates: [[8.54, 47.37], [8.56, 47.45]] },
+            origin_zone_id: ZONE_A,
+            dest_zone_id: ZONE_B,
+          },
+        ],
+      },
+      no_eligible_class: false,
+      classes: [
+        {
+          slug: "saden",
+          eligible: true,
+          ineligible_reason: null,
+          effective_max_pax: 3,
+          max_bags: 3,
+          fixed_route: false,
+          total_rappen: 1000,
+          name: "Economy",
+          photo_url: `/photos/${PHOTO_KEY}`,
+          lines: [
+            {
+              seq: 1,
+              leg_seq: 1,
+              kind: "distance_start",
+              code: "distance_start",
+              i18n_key: "quote.line.distance_start",
+              basis: "per_trip",
+              source_row: { table: "distance_rates", id: 42, rate_version_id: 18 },
+              amount_rappen: 1000,
+            } as never,
+          ],
+        },
+      ],
+      policy: {
+        settings_version_id: 7,
+        free_cancel_hours: 24,
+        modification_deadline_hours: null,
+        min_advance_minutes: null,
+        airport_waiting_minutes: null,
+        city_waiting_minutes: null,
+        cancellation_tiers: [],
+        policy_doc: null,
+      },
+    };
+  }
+
+  it("the quote answer has no price book row, settings row, line source row or zone row", () => {
+    const body = publicQuoteBody(quote()) as unknown as Record<string, unknown>;
+    const text = JSON.stringify(body);
+    expect(body).not.toHaveProperty("rate_version");
+    expect(body).not.toHaveProperty("settings_version_id");
+    expect(body.policy).not.toHaveProperty("settings_version_id");
+    expect(text).not.toContain("source_row");
+    expect(text).not.toContain("distance_rates");
+    expect(text).not.toContain("zone_id");
+    expect(text).not.toContain(ZONE_A);
+    // What the pages read is still there.
+    expect(body.quote_id).toBe(QUOTE_ID);
+    expect((body.policy as Record<string, unknown>).free_cancel_hours).toBe(24);
+    expect((body.route as { legs: Array<Record<string, unknown>> }).legs[0]?.distance_m).toBe(12000);
+  });
+
+  it("the quote answer's class photo is sealed: no class id, and it opens back to the stored key", async () => {
+    const res = await sealedQuoteResponse(quote(), SECRET);
+    const body = (await res.json()) as { quote_id: string; classes: Array<{ photo_url: string | null }> };
+    const url = body.classes[0]?.photo_url ?? "";
+    expect(url.startsWith(SEALED_PHOTO_PREFIX)).toBe(true);
+    expect(url).toMatch(/\.png$/);
+    expect(JSON.stringify({ ...body, quote_id: "" })).not.toMatch(UUID_RE);
+    expect(await openSealedPhotoPath([SECRET], url)).toBe(PHOTO_KEY);
+    // The same photo always gets the same address (browsers keep caching it).
+    expect(await sealClassPhotoKey(SECRET, PHOTO_KEY)).toBe(url);
+  });
+
+  it("a sealed address opens only with the Worker secret, only to a classes/ key, and not when altered", async () => {
+    const url = (await sealClassPhotoKey(SECRET, `classes/${CLASS_ID}/brand.jpg`))!;
+    expect(await openSealedPhotoPath(["another-secret"], url)).toBeNull();
+    expect(await openSealedPhotoPath([undefined, SECRET], url)).toBe(`classes/${CLASS_ID}/brand.jpg`);
+    expect(await openSealedPhotoPath([SECRET], url.replace(/\.jpg$/, ".png"))).toBeNull();
+    const token = url.slice(SEALED_PHOTO_PREFIX.length, -".jpg".length);
+    const flipped = token.slice(0, -2) + (token.endsWith("A") ? "BB" : "AA");
+    expect(await openSealedPhotoPath([SECRET], `${SEALED_PHOTO_PREFIX}${flipped}.jpg`)).toBeNull();
+    expect(await sealClassPhotoKey(SECRET, "vehicles/x/y.jpg")).toBeNull();
+    expect(await sealClassPhotoKey(undefined, `classes/${CLASS_ID}/brand.jpg`)).toBeNull();
+  });
+
+  it("without the secret a class photo is left out rather than sent with its id", async () => {
+    const out = await sealClassPhotoUrls(undefined, quote().classes);
+    expect(out[0]?.photo_url).toBeNull();
+    const other = await sealClassPhotoUrls(undefined, [{ photo_url: "/photos/site/hero.jpg" }]);
+    expect(other[0]?.photo_url).toBe("/photos/site/hero.jpg");
+  });
+
+  it("the routes that send class photos send them sealed, and the photo route opens them", () => {
+    const quoteRoute = readFileSync(join(webRoot, "app/api/quote/route.ts"), "utf8");
+    const reprice = readFileSync(join(webRoot, "app/api/quote/reprice/route.ts"), "utf8");
+    const photos = readFileSync(join(webRoot, "app/photos/[key]/route.ts"), "utf8");
+    expect(quoteRoute).toMatch(/classes: await sealClassPhotoUrls\(/);
+    expect(quoteRoute).toMatch(/await sealedQuoteResponse\(result,/);
+    expect(quoteRoute).not.toMatch(/\bquoteResponse\(result\)/);
+    expect(reprice).toMatch(/await sealedQuoteResponse\(result,/);
+    expect(reprice).not.toMatch(/\bquoteResponse\(result\)/);
+    expect(photos).toMatch(/openSealedPhotoPath\(/);
+  });
+
+  it("the fixed-route list is keyed by zone slugs, never zone row ids", () => {
+    const zone = (id: string, slug: string) => ({ id, slug, kind: "city", iata: null, tags: [] }) as never;
+    const routes = publicCatalogRoutes({
+      zones: [zone(ZONE_A, "zurich-airport"), zone(ZONE_B, "zermatt")],
+      fixed_routes: [{ origin_zone_id: ZONE_A, dest_zone_id: ZONE_B, vehicle_class_id: CLASS_ID, live: true }],
+    } as never);
+    expect(routes).toHaveLength(1);
+    expect(JSON.stringify(routes)).not.toMatch(UUID_RE);
+    expect(routes[0]?.key).toBe("zurich-airport::zermatt");
+    // A pair whose zone row is missing could only be named by its id: it stays out.
+    const orphan = publicCatalogRoutes({
+      zones: [zone(ZONE_A, "zurich-airport")],
+      fixed_routes: [{ origin_zone_id: ZONE_A, dest_zone_id: ZONE_B, vehicle_class_id: CLASS_ID, live: true }],
+    } as never);
+    expect(orphan).toEqual([]);
+  });
+
+  it("the public review list selects and sends no review row id", () => {
+    const loader = readFileSync(join(webRoot, "lib/public/reviews.ts"), "utf8");
+    expect(loader).not.toMatch(/^\s*r\.id,/m);
+    expect(loader).not.toMatch(/^\s*id: row\.id,/m);
+    expect(loader).not.toMatch(/^\s*id: string;/m);
   });
 });
 

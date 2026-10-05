@@ -134,7 +134,7 @@ select fx.booking_id, s.id, p.id, 'customer_cancel', 6, 100.00, 6, '{}'::jsonb, 
 
 -- A consent_log row anchored to a real customer, via record_consent -- carve-out 2's target
 -- (F-10) and the generic-loop target below.
-set local role authenticated;
+set local role vamos_checkout; -- 20261007320000 (S6): record_consent is vamos_checkout only; a signed-in checkout binds the claims
 select set_config('request.jwt.claims',
   jsonb_build_object('sub', 'f0000000-0000-0000-0000-000000000001', 'role', 'authenticated')::text, true);
 select set_config('request.vamos.consent_subject', 'a9000000-0000-0000-0000-000000000001', true);

@@ -14,6 +14,7 @@ import { loadCompleteness, type CompletenessGap } from "@/lib/ops/pricing";
 import { notifyPriceChangedForUnpaid } from "@/lib/checkout/lock-mail";
 import { removeUnusedClassPhotos } from "@/lib/ops/class-photo-sweep";
 import { classifyPricingFailure, pruneExtraLabels } from "@/lib/ops/rate-book";
+import { baseRateVersionLabel } from "@/lib/ops/rate-version-label";
 import { jsonErr, jsonOk, withAdmin } from "@/lib/ops/staff-json";
 import { QUOTE_LOCK_MINUTES } from "@/lib/quote/lock";
 
@@ -139,6 +140,8 @@ export async function POST(
         `;
         // settings_versions is append-only (select+insert). UPDATE is 42501.
         const publishSlug = `fare-publish-${id}`;
+        // 261005 M18: the published label without the draft's trailing " draft" (it grew one per publish).
+        const publishLabel = baseRateVersionLabel(row.label);
         await tx`
           insert into public.settings_versions (
             slug, label, created_by, effective_from,
@@ -150,7 +153,7 @@ export async function POST(
           )
           select
             ${publishSlug},
-            coalesce(nullif(${row.label}, ''), sv.label),
+            coalesce(nullif(${publishLabel}, ''), sv.label),
             ${claims.sub},
             now(),
             sv.free_cancel_hours,

@@ -182,8 +182,8 @@ select col_default_is('public', 'settings', 'guest_accounts_live', 'false', 'swi
 select is(public.checkout_account_settings(), false, 'checkout_account_settings is false by default');
 
 -- Grants ----------------------------------------------------------------------------------------
-select is(has_function_privilege('anon', 'public.checkout_account_settings()', 'execute'), true, 'settings: anon EXECUTE');
-select is(has_function_privilege('authenticated', 'public.checkout_account_settings()', 'execute'), true, 'settings: authenticated EXECUTE');
+select is(has_function_privilege('anon', 'public.checkout_account_settings()', 'execute'), false, 'settings: anon has no EXECUTE (20261007320000, S6)');
+select is(has_function_privilege('authenticated', 'public.checkout_account_settings()', 'execute'), false, 'settings: authenticated has no EXECUTE (20261007320000, S6)');
 select is(has_function_privilege('vamos_checkout', 'public.checkout_account_settings()', 'execute'), true, 'settings: checkout EXECUTE');
 select is(has_function_privilege('vamos_system', 'public.checkout_account_settings()', 'execute'), true, 'settings: system EXECUTE');
 

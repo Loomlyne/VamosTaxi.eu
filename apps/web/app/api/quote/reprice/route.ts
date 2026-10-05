@@ -15,13 +15,14 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { wireQuoteAbuse } from "@/lib/abuse/guards";
 import { withRequestContext } from "@/lib/logger";
-import { buildQuotePipelineDeps, isNamedDashboardHost } from "@/lib/quote/deps";
+import { buildQuotePipelineDeps, draftPreviewAllowed, isNamedDashboardHost } from "@/lib/quote/deps";
+import { copyAuthCookies, requestHasStaffSession, type AuthCookieSink } from "@/lib/ops/staff-origin";
 import { preprocessWidgetTokens } from "@/lib/quote/preprocess";
 import {
   runRepricePipeline,
   type PipelineRefusal,
 } from "@/lib/quote/pipeline";
-import { errorResponse, quoteResponse } from "@/lib/quote/respond";
+import { errorResponse, sealedQuoteResponse } from "@/lib/quote/respond";
 import { csrfForbidden } from "@/lib/security/origin";
 import { lockSecretPresent } from "@/lib/quote/lock-secret";
 
@@ -67,11 +68,19 @@ export async function POST(request: Request) {
     return errorResponse("untrusted_input");
   }
 
-  const deps = buildQuotePipelineDeps(env, {
-    dashboardHost: isNamedDashboardHost(new URL(request.url).host),
-  });
+  const host = new URL(request.url).host;
+  // Security S14: a refreshed staff session rotates its cookies; they ride on every answer below.
+  const authCookies: AuthCookieSink = { cookies: [] };
 
   try {
+    // Security S14: draft prices only for a verified staff session on the dashboard host.
+    const staffSession = await draftPreviewAllowed(env, host, () =>
+      requestHasStaffSession(request, undefined, authCookies),
+    );
+    const deps = buildQuotePipelineDeps(env, {
+      dashboardHost: isNamedDashboardHost(new URL(request.url).host),
+      staffSession,
+    });
     const abuse = await wireQuoteAbuse(env, request, "price");
     deps.rateLimit = abuse.rateLimit;
     deps.turnstile = abuse.turnstile;
@@ -81,12 +90,15 @@ export async function POST(request: Request) {
     const result = await runRepricePipeline(pre.body, deps);
     if (!result.ok) {
       emit("info", "quote_reprice", { ok: 0 });
-      return refuse(result);
+      return copyAuthCookies(refuse(result), authCookies);
     }
     emit("info", "quote_reprice", { ok: 1 });
-    return quoteResponse(result);
+    return copyAuthCookies(
+      await sealedQuoteResponse(result, env.QUOTE_LOCK_SECRET || process.env.QUOTE_LOCK_SECRET),
+      authCookies,
+    );
   } catch {
     emit("warn", "quote_reprice", { ok: 0 });
-    return errorResponse("temporarily_unavailable");
+    return copyAuthCookies(errorResponse("temporarily_unavailable"), authCookies);
   }
 }

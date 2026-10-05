@@ -344,14 +344,14 @@ describe("publicCatalogRoutes", () => {
     );
     expect(catalog).toEqual([
       {
-        key: `${zrh.id}::${zermatt.id}`,
+        key: `${zrh.slug}::${zermatt.slug}`,
         from: "Zurich Airport (ZRH)",
         to: "Zermatt",
         from_mapbox_id: null,
         to_mapbox_id: null,
       },
       {
-        key: `${zrh.id}::${davos.id}`,
+        key: `${zrh.slug}::${davos.slug}`,
         from: "Zurich Airport (ZRH)",
         to: "Davos",
         from_mapbox_id: null,
@@ -402,7 +402,7 @@ describe("publicCatalogRoutes", () => {
     );
     expect(catalog).toEqual([
       {
-        key: `${origin.id}::${dest.id}`,
+        key: `${origin.slug}::${dest.slug}`,
         from: "Zurich Airport, The Circle 16-Flughafen CH, 8302 Kloten, Switzerland",
         to: "Swiss National Museum, Museumstrasse 2, 8001 Zürich, Switzerland",
         from_mapbox_id: "mbx-origin",
@@ -482,14 +482,14 @@ describe("publicCatalogRoutes", () => {
     const picker = catalog.filter((row) => row && row.key && row.from && row.to);
     expect(picker).toEqual([
       {
-        key: `${origin.id}::${davos.id}`,
+        key: `${origin.slug}::${davos.slug}`,
         from: "Zurich Airport, The Circle 16-Flughafen CH, 8302 Kloten, Switzerland",
         to: "Davos, the Grisons, Switzerland",
         from_mapbox_id: "dXJuOm1ieHBvaTpmNWZiMjZhYy1kOWYwLTQ0ZTQtOTg0NC01Yjc0ZmI2YmQ0ZWM",
         to_mapbox_id: "dXJuOm1ieHBsYzphNmdz",
       },
       {
-        key: `${origin.id}::${moritz.id}`,
+        key: `${origin.slug}::${moritz.slug}`,
         from: "Zurich Airport, The Circle 16-Flughafen CH, 8302 Kloten, Switzerland",
         to: "St. Moritz, the Grisons, Switzerland",
         from_mapbox_id: "dXJuOm1ieHBvaTpmNWZiMjZhYy1kOWYwLTQ0ZTQtOTg0NC01Yjc0ZmI2YmQ0ZWM",

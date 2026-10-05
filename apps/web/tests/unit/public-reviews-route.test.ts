@@ -56,7 +56,7 @@ describe("GET /api/reviews", () => {
       ok: true,
       data: [
         {
-          id: "r1",
+          // Security S10 (2026-10-05): no review row id in the public answer.
           source: "google",
           authorName: "Ada",
           authorRole: "Guest",
@@ -73,8 +73,11 @@ describe("GET /api/reviews", () => {
       ],
     });
     expect(JSON.stringify(json)).not.toMatch(/locked/);
+    expect(JSON.stringify(json)).not.toMatch(/"id"|r1/);
     const fragments = (sql.mock.calls[0]?.[0] as TemplateStringsArray | undefined) ?? [];
     expect(fragments.join(" ")).toMatch(/published\s*=\s*true/);
+    // Not even read: the select names no review row id.
+    expect(fragments.join(" ")).not.toMatch(/\br\.id\b(?!\s*=)/);
   });
 
   it("returns { ok: true, data: [] } when none are published, not 404", async () => {
@@ -125,7 +128,6 @@ describe("loadPublishedReviews", () => {
     const rows = await loadPublishedReviews(env);
     expect(rows).toEqual([
       {
-        id: "r2",
         source: "manual",
         authorName: "Bea",
         authorRole: "Guest",
