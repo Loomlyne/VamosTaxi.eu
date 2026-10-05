@@ -33,6 +33,8 @@
 .vt-input--focus{box-shadow:none}
 /* Button hover/press — colour step only, no shadow, no glow */
 .vt-btn{text-decoration:none;border-bottom:0;transition:background 140ms cubic-bezier(.2,0,.2,1),border-color 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1),transform 80ms cubic-bezier(.2,0,.2,1)}
+[data-lg-actions]{min-width:0;max-width:100%}
+[data-lg-prose] .vt-btn,[data-lg-actions] .vt-btn{max-width:100%;height:auto;min-height:44px;padding-block:8px;white-space:normal;text-align:center;line-height:1.3}
 .vt-btn:hover,.vt-btn:active{box-shadow:none!important;border-bottom:0}
 [data-lg-prose] a.vt-btn{text-decoration:none;border-bottom:0}
 [data-lg-prose] a.vt-btn--primary{color:var(--vt-text-on-accent)}
@@ -137,7 +139,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Last updated</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)" data-vt-no-i18n="1">{{ updatedLabel }}</span></div>
 <div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Version</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">1.0</span></div>
 <div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Applies to</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">Every booking made on this site</span></div>
-<button data-lg-noprint="1" type="button" onClick="{{ doPrint }}" style="margin-inline-start:auto;display:inline-flex;align-items:center;gap:9px;height:44px;padding:0 20px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-inverse);background:none;color:var(--vt-text-inverse);font-family:inherit;font-size:var(--vt-body-sm);white-space:nowrap;cursor:pointer">
+<button data-lg-noprint="1" type="button" onClick="{{ doPrint }}" style="margin-inline-start:auto;display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:44px;max-width:100%;padding:8px 20px;text-align:center;line-height:1.3;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-inverse);background:none;color:var(--vt-text-inverse);font-family:inherit;font-size:var(--vt-body-sm);cursor:pointer">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="printer" size="{{ n16 }}" color="var(--vt-accent)" hint-size="16px,16px"></x-import>Print or save as PDF</button>
 </div>
 </div>
@@ -297,7 +299,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <h2 style="margin:0 0 8px;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Need to cancel now?</h2>
 <p style="margin:0;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary);max-width:52ch">Open your booking from the confirmation email, or call us and quote the reference. Same outcome, same written confirmation.</p>
 </div>
-<div style="display:flex;flex-wrap:wrap;gap:12px">
+<div data-lg-actions="1" style="display:flex;flex-wrap:wrap;gap:12px">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" href="manage-booking.dc.html" iconEnd="arrow-right" hint-size="190px,44px">Manage a booking</x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" href="tel:+41796267082" icon="phone" hint-size="200px,44px"><span class="vt-dir-keep">+41 79 626 70 82</span></x-import>
 </div>

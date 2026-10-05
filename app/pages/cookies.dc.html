@@ -35,6 +35,8 @@
 .vt-input--focus{box-shadow:none}
 /* Button hover/press — colour step only, no shadow, no glow */
 .vt-btn{transition:background 140ms cubic-bezier(.2,0,.2,1),border-color 140ms cubic-bezier(.2,0,.2,1),color 140ms cubic-bezier(.2,0,.2,1),transform 80ms cubic-bezier(.2,0,.2,1)}
+[data-lg-actions]{min-width:0;max-width:100%}
+[data-lg-prose] .vt-btn,[data-lg-actions] .vt-btn{max-width:100%;height:auto;min-height:44px;padding-block:8px;white-space:normal;text-align:center;line-height:1.3}
 .vt-btn:hover,.vt-btn:active{box-shadow:none!important}
 .vt-btn--primary:hover:not([disabled]){background:var(--vt-accent-hover)}
 .vt-btn--primary:active:not([disabled]){background:var(--vt-accent-press);transform:translateY(1px)}
@@ -148,7 +150,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Last updated</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)" data-vt-no-i18n="1">{{ updatedLabel }}</span></div>
 <div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Version</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">1.0</span></div>
 <div style="display:flex;flex-direction:column;gap:3px"><span style="font-size:var(--vt-label-sm);letter-spacing:var(--vt-label-tracking);text-transform:uppercase;color:var(--vt-text-inverse-muted)">Consent model</span><span style="font-size:var(--vt-body-sm);color:var(--vt-text-inverse)">Opt-in by category</span></div>
-<button data-lg-noprint="1" type="button" onClick="{{ openCookiePrefs }}" style="margin-inline-start:auto;display:inline-flex;align-items:center;gap:9px;height:44px;padding:0 20px;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-inverse);background:none;color:var(--vt-text-inverse);font-family:inherit;font-size:var(--vt-body-sm);white-space:nowrap;cursor:pointer">
+<button data-lg-noprint="1" type="button" onClick="{{ openCookiePrefs }}" style="margin-inline-start:auto;display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:44px;max-width:100%;padding:8px 20px;text-align:center;line-height:1.3;border-radius:var(--vt-radius-pill);border:1px solid var(--vt-border-inverse);background:none;color:var(--vt-text-inverse);font-family:inherit;font-size:var(--vt-body-sm);cursor:pointer">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="settings" size="{{ n16 }}" color="var(--vt-accent)" hint-size="16px,16px"></x-import>Change your choices</button>
 </div>
 </div>
@@ -206,7 +208,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Badge" tone="{{ toneAnalytics }}" hint-size="130px,24px">{{ labelAnalytics }}</x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Badge" tone="{{ toneMarketing }}" hint-size="130px,24px">{{ labelMarketing }}</x-import>
 </div>
-<div style="display:flex;flex-wrap:wrap;gap:12px">
+<div data-lg-actions="1" style="display:flex;flex-wrap:wrap;gap:12px">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" onClick="{{ openCookiePrefs }}" hint-size="200px,44px">Change preferences</x-import>
 </div>
 </div>
@@ -283,7 +285,7 @@ a{color:var(--vt-text-link);border-bottom:0}a:hover{color:var(--vt-text-link-hov
 <h2 style="margin:0 0 8px;font-family:var(--vt-font-display);font-size:var(--vt-heading-2);line-height:var(--vt-heading-leading);letter-spacing:var(--vt-heading-tracking);font-weight:var(--vt-weight-semibold);color:var(--vt-text-primary)">Change your mind any time</h2>
 <p style="margin:0;font-size:var(--vt-body-md);line-height:var(--vt-body-leading);color:var(--vt-text-secondary);max-width:52ch">Your choice is a preference, not a contract. Reopen the panel whenever you like — no explanation needed.</p>
 </div>
-<div style="display:flex;flex-wrap:wrap;gap:12px">
+<div data-lg-actions="1" style="display:flex;flex-wrap:wrap;gap:12px">
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="secondary" onClick="{{ openCookiePrefs }}" hint-size="200px,44px">Cookie preferences</x-import>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" size="md" variant="ghost" href="privacy.dc.html" iconEnd="arrow-right" hint-size="170px,44px">Privacy policy</x-import>
 </div>

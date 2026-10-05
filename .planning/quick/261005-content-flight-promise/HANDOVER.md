@@ -14,7 +14,8 @@ Branch `fix/content-flight-promise`, cut from `origin/main` `328b133c`, merged w
 | `053147d3` `content: flight lines — NEEDS OWNER APPROVAL` | item 2 | yes: **approved by the owner on 2026-10-05, all lines as drafted** (see "Owner answers" below) |
 | `18998303` `content: legal pages show the day their text last changed` | item 5 follow-up, owner answer 4 | one date per legal page, no wording |
 | `9730c25a` `content: terms 08 one start rule; German flight hint names the number` | owner answers 5 and 6 | two wording changes, listed under "Owner answers" |
-| **`fix(quote): no flight-time param left to keep LTR`** (the tip) | controller gate | `DIR_KEEP_PARAMS` loses `t` and `ap`, see "Lesson" |
+| `5c40aa5d` `fix(quote): no flight-time param left to keep LTR` | controller gate | `DIR_KEEP_PARAMS` loses `t` and `ap`, see "Lesson" |
+| **`fix(legal): long button labels wrap on phones (no sideways scroll)`** (the tip) | controller decision, found by the checks job | layout only, see "Legal buttons wrap" |
 
 `053147d3` only touches the lines in the tables below, their dictionary and message entries, the pages that render them, `seed.sql` and two tests. `18998303` only touches the "Last updated" machinery, its tests and this file.
 
@@ -161,6 +162,21 @@ New tests (fail before, pass after): `lib/flight/no-provider.test.ts` (provider,
 Removing the `quote.flight` day lines (`Departs {ap} at {t} …`, `Arriving at {ap} at {t} …`) and the `departed` note (`{ap}`) left `DIR_KEEP_PARAMS` in `apps/web/lib/quote/client-contract.ts` naming two params no message uses. `lib/quote/client-contract.test.ts` checks that every name in that list still appears as `{name}` in a `quote.*` or `price.*` value, and it failed at the controller gate. My touched-file list did not include `lib/quote`. Fixed in the tip commit: the list is now `["time", "code"]` (the coordinator named `ap` to stay; `{ap}` was in the removed `departed` note too, nothing produces an `ap` or `t` param any more, so the same test would have failed on it next) and the doc comment no longer mentions flight times. `BookingBoard.tsx` only builds a `Set` from the list and compiles unchanged.
 
 Rule for the next removal of message keys: run the whole folder that owns the namespace (`lib/quote` for `quote.*` and `price.*`), then the full `apps/web` unit run once. This time after the fix: `vitest run lib/quote components/home` 11 files, 227 tests passed; the full `apps/web` unit run 435 files passed, 17 skipped (5097 tests passed, 33 skipped); `packages/emails` 15 files, 247 tests passed.
+
+## Legal buttons wrap (the tip commit)
+
+Problem: `/de/terms` scrolled sideways on phones. Section 10's primary Button ("Stornierung & Rückerstattung") is one line (`white-space:nowrap`, fixed 44 px, 24 px side padding) and wider than its card: measured here at 360 px the page was 365 px wide in en, 379 in de, 363 in fr; at 390 the button bled out of its card (Linux reported 396 px).
+
+Fix, in the five legal mocks (`terms`, `cancellation`, `privacy`, `cookies`, `imprint`), same button, no new design:
+- One rule next to each page's existing `.vt-btn` rules: `[data-lg-prose] .vt-btn,[data-lg-actions] .vt-btn{max-width:100%;height:auto;min-height:44px;padding-block:8px;white-space:normal;text-align:center;line-height:1.3}`, plus `[data-lg-actions]{min-width:0;max-width:100%}`. The label wraps to two lines centred when it has to; font size untouched (13 px); touch target 44 px minimum.
+- `data-lg-actions="1"` on the six rows of buttons that sit outside the prose (terms 1, cancellation 1, privacy 1, cookies 2, imprint 1).
+- The print pill in each hero: `height:44px;padding:0 20px` becomes `min-height:44px;padding:8px 20px` with `max-width:100%`, centred text, and the `white-space:nowrap` that privacy and cancellation carried is gone.
+
+Every other button and link pill on the five pages was measured the same way (not by reading): at 360, 390 and 768 only the terms button overflowed. At 320 (a stress width, my stand-in for Linux's wider text) four more did before the fix: cookies fr "Politique de confidentialité" and "Modifier les préférences", the print pill in privacy and cancellation fr, and cancellation fr "Gérer une réservation". All are fixed by the same rules.
+
+Proof (Chrome for Testing, repo harness, consent banner stubbed, a throw-away spec that was deleted): `scrollWidth == clientWidth` at 360, 390 and 768 for en, de, fr and ar on all five pages, and at 320 no control reaches past its card or the viewport; every `.vt-btn` and print pill in the content is at least 44 px high and at least 13 px type. Bare crops of the de button (`screens/after/terms-10-button-de-360.png` and `-390.png`; `screens/before/` has the old layout rebuilt with CSS on the new page for contrast). New test `lib/legal-buttons-wrap.test.ts` pins the rules; the whole `apps/web` unit run passes: 436 files, 5113 tests (17 files and 33 tests skipped).
+
+Not proven: Linux Chrome itself (this Mac renders the text narrower; the wrap rule does not depend on text width), the Mac-only visual baselines of the five pages (the button is taller where it wraps), and the Next `/[locale]/…` legal pages (not served, own components, not checked). The Playwright cache here holds only Chromium 1243, not the 1234 this Playwright asks for (another install pruned it), so the throw-away specs launched the 1243 headless shell by path.
 
 ## Notes
 
