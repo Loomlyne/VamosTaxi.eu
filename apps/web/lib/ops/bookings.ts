@@ -6,7 +6,7 @@
 
 import { asStaff, type VamosClaims } from "@/lib/db/identity";
 import { mapBoardBooking, type OpsBookingRow, type SqlBoardRow } from "@/lib/ops/bookings-map";
-import { classDisplayName } from "@/lib/ops/class-slug";
+import { classOwnName } from "@/lib/ops/class-slug";
 
 export type { OpsBookingRow } from "@/lib/ops/bookings-map";
 export { mapBoardBooking } from "@/lib/ops/bookings-map";
@@ -231,11 +231,21 @@ export type DashboardRefundLine = {
   amountRappen: number;
 };
 
-/** The three classes the dashboard's "Money in" lists, in its order (D-14). */
-export const DASHBOARD_CLASSES = ["Economy", "Business", "Van luxury"] as const;
-export type DashboardClass = (typeof DASHBOARD_CLASSES)[number];
+/**
+ * One line of the dashboard's "Money in": a class by its own name. An empty `klass` is income whose
+ * booking has no class row (it cannot happen today: a leg always has one); the dashboard words it.
+ */
+export type DashboardClassLine = { klass: string; rappen: number };
 
-export type DashboardClassLine = { klass: DashboardClass; rappen: number };
+/** What the money query returns per class row (and one row with no class row for income that has none). */
+export type DashboardClassSqlRow = {
+  class_slug: string | null;
+  class_name: string | null;
+  sort_order: number | string | null;
+  /** The class is on offer: active and not hidden. */
+  live: boolean | null;
+  income_rappen: number | string;
+};
 
 export type DashboardMoney = {
   period: MoneyPeriod;
@@ -244,7 +254,7 @@ export type DashboardMoney = {
   feeRappen: number;
   /** Captured fares in the period: captured payments that are not a class-change difference. Average fare = income / this. */
   fareCount: number;
-  /** Income split by the booking's class. The three lines add up to incomeRappen. */
+  /** Income split by the booking's class, in price-book order. The lines add up to incomeRappen. */
   byClass: DashboardClassLine[];
   refunds: DashboardRefundLine[];
 };
@@ -339,10 +349,50 @@ export function periodStartUtc(period: MoneyPeriod, now = new Date()): string | 
   return fromYmd === null ? null : zurichMidnightUtc(fromYmd);
 }
 
-/** A booking's class as the dashboard lists it: the D-14 three; anything else reads Economy, as on the board. */
-export function dashboardClassOf(slug: string | null | undefined): DashboardClass {
-  const name = slug ? classDisplayName(String(slug)) : null;
-  return (DASHBOARD_CLASSES as readonly string[]).includes(name ?? "") ? (name as DashboardClass) : "Economy";
+/**
+ * The dashboard's "Money in" lines (U10, 2026-10-05). One line per class name, from the live vehicle
+ * classes: every class on offer (active, not hidden), in price-book order (`sort_order`, then slug, the
+ * order the price book lists them), each by its own stored name. A class that is no longer on offer
+ * (the legacy rows, a dropped class) appears only while it has income in the period, under its own name:
+ * "first" is First, never Economy. Two class rows with the same name are one line (the live `saden` and
+ * the legacy `economy` are both Economy), placed where the first of them sits. The lines add up to the
+ * rows' income; income with no class row is the last line, with an empty name.
+ */
+export function moneyClassLines(rows: readonly DashboardClassSqlRow[]): DashboardClassLine[] {
+  type Line = { klass: string; order: number; slug: string; rappen: number; show: boolean };
+  const lines: Line[] = [];
+  let unclassed = 0;
+  for (const row of rows) {
+    const income = rappenOf(row.income_rappen);
+    const slug = row.class_slug ? String(row.class_slug) : "";
+    if (!slug) {
+      unclassed += income;
+      continue;
+    }
+    const stored = String(row.class_name ?? "").trim();
+    const name = stored || classOwnName(slug);
+    const sort = Number(row.sort_order);
+    const order = Number.isFinite(sort) ? sort : 0;
+    const show = row.live === true || income > 0;
+    const line = lines.find((l) => l.klass.toLowerCase() === name.toLowerCase());
+    if (!line) {
+      lines.push({ klass: name, order, slug, rappen: income, show });
+      continue;
+    }
+    line.rappen += income;
+    line.show = line.show || show;
+    if (order < line.order || (order === line.order && slug < line.slug)) {
+      line.klass = name;
+      line.order = order;
+      line.slug = slug;
+    }
+  }
+  const out = lines
+    .filter((l) => l.show)
+    .sort((a, b) => a.order - b.order || (a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0))
+    .map((l) => ({ klass: l.klass, rappen: l.rappen }));
+  if (unclassed > 0) out.push({ klass: "", rappen: unclassed });
+  return out;
 }
 
 function rappenOf(value: unknown): number {
@@ -367,19 +417,20 @@ export async function loadDashboardMoney(
     // One row per captured payment in the period, with the booking's class (first leg) and whether the
     // payment is a class-change difference (an extra, as the board reads it), so income, the class lines
     // and the fare count come from the same rows and always agree.
+    // U10: every class row comes back (price-book order), with its income in the period, so the class
+    // lines carry each class's own stored name and a class with no income yet still has its line. The
+    // full join keeps income whose booking has no class row (class_slug null) too.
     const rows = await sql<
-      {
-        class_slug: string | null;
-        income_rappen: number | string;
+      (DashboardClassSqlRow & {
         fee_rappen: number | string;
         fare_count: number | string;
-      }[]
+      })[]
     >`
       with paid as (
         select
           p.charged_rappen,
           p.stripe_fee_rappen,
-          vc.slug as class_slug,
+          l.vehicle_class_id as class_id,
           exists (
             select 1
             from public.booking_edit_requests as extra
@@ -393,17 +444,29 @@ export async function loadDashboardMoney(
           order by leg.leg_seq
           limit 1
         ) as l on true
-        left join public.vehicle_classes as vc on vc.id = l.vehicle_class_id
         where p.captured_at is not null
           and (${fromUtc}::timestamptz is null or p.captured_at >= ${fromUtc}::timestamptz)
+      ),
+      by_class as (
+        select
+          class_id,
+          coalesce(sum(charged_rappen), 0)::int as income_rappen,
+          coalesce(sum(stripe_fee_rappen) filter (where stripe_fee_rappen is not null), 0)::int as fee_rappen,
+          (count(*) filter (where not is_extra))::int as fare_count
+        from paid
+        group by class_id
       )
       select
-        class_slug,
-        coalesce(sum(charged_rappen), 0)::int as income_rappen,
-        coalesce(sum(stripe_fee_rappen) filter (where stripe_fee_rappen is not null), 0)::int as fee_rappen,
-        (count(*) filter (where not is_extra))::int as fare_count
-      from paid
-      group by class_slug
+        vc.slug as class_slug,
+        vc.name as class_name,
+        vc.sort_order,
+        (vc.active and vc.hidden_at is null) as live,
+        coalesce(b.income_rappen, 0)::int as income_rappen,
+        coalesce(b.fee_rappen, 0)::int as fee_rappen,
+        coalesce(b.fare_count, 0)::int as fare_count
+      from public.vehicle_classes as vc
+      full join by_class as b on b.class_id = vc.id
+      order by vc.sort_order, vc.slug
     `;
     const refundSum = await sql<{ refund_rappen: number | string }[]>`
       select coalesce(sum(r.refund_rappen), 0)::int as refund_rappen
@@ -429,15 +492,12 @@ export async function loadDashboardMoney(
     let incomeRappen = 0;
     let feeRappen = 0;
     let fareCount = 0;
-    const byClass: DashboardClassLine[] = DASHBOARD_CLASSES.map((klass) => ({ klass, rappen: 0 }));
     for (const row of rows) {
-      const income = rappenOf(row.income_rappen);
-      incomeRappen += income;
+      incomeRappen += rappenOf(row.income_rappen);
       feeRappen += rappenOf(row.fee_rappen);
       fareCount += countOf(row.fare_count);
-      const line = byClass.find((l) => l.klass === dashboardClassOf(row.class_slug));
-      if (line) line.rappen += income;
     }
+    const byClass = moneyClassLines(rows);
     return {
       period,
       incomeRappen,

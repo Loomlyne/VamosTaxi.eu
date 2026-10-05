@@ -5,6 +5,8 @@ const base = {
   id: "b1",
   reference: "VT-1",
   status: "confirmed",
+  // U10: a row with no class reads empty (the transfer line says only "Transfer"), no longer Economy.
+  class_slug: "saden",
   lines: [],
 } as unknown as SqlBoardRow;
 

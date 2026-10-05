@@ -6,10 +6,16 @@
 
 import { describe, expect, it } from "vitest";
 import { mapBoardBooking } from "./bookings-map";
+import { classOwnName } from "./class-slug";
+import { slugToKlass } from "./fleet-http";
 import { vehicleClassLabelKey } from "./vehicle-class-label";
 
 function boardRow(classSlug: string | null) {
-  return mapBoardBooking({
+  return mapBoardBooking(rowFor(classSlug));
+}
+
+function rowFor(classSlug: string | null) {
+  return {
     id: "55555555-5555-4555-8555-555555555555",
     reference: "VT-26-0901",
     status: "confirmed",
@@ -33,8 +39,34 @@ function boardRow(classSlug: string | null) {
     payment_created_at: "2026-09-28T08:50:00.000Z",
     stripe_checkout_session_id: "cs_test_labels",
     charged_rappen: 8000,
-  });
+  };
 }
+
+describe("a class outside the three keeps its own name (U10)", () => {
+  it("an unknown slug reads as itself, never Economy", () => {
+    expect(boardRow("first").klass).toBe("First");
+    expect(boardRow("mahaha").klass).toBe("Mahaha");
+    expect(classOwnName("first")).toBe("First");
+    expect(classOwnName("saden")).toBe("Economy");
+    expect(classOwnName("")).toBe("");
+    expect(slugToKlass("first")).toBe("First");
+    expect(slugToKlass("van")).toBe("Van luxury");
+  });
+
+  it("the stored name of the class row wins, so a name the owner changes shows at once", () => {
+    const row = (name: string | null) => ({ ...rowFor("saden"), class_name: name });
+    expect(mapBoardBooking(row("Sedan")).klass).toBe("Sedan");
+    expect(mapBoardBooking(row("  Sedan  ")).klass).toBe("Sedan");
+    expect(mapBoardBooking(row(null)).klass).toBe("Economy");
+    expect(mapBoardBooking(row("")).klass).toBe("Economy");
+  });
+
+  it("a booking whose class is not known reads empty, and its fare line says only Transfer", () => {
+    expect(boardRow(null).klass).toBe("");
+    const unknown = mapBoardBooking({ ...rowFor(null), lines: [{ code: "distance_fare", amount_rappen: 8000 }] });
+    expect(unknown.fareLines[0]?.label).toBe("Transfer");
+  });
+});
 
 describe("ops board class labels (D-14)", () => {
   it("labels the live slugs Economy, Business, Van luxury", () => {

@@ -39,27 +39,37 @@ vi.mock("@/lib/db/identity", () => ({
   },
 }));
 
-const {
-  loadDashboardMoney,
-  periodStartUtc,
-  zurichMidnightUtc,
-  dashboardClassOf,
-  DASHBOARD_CLASSES,
-} = await import("./bookings");
+const { loadDashboardMoney, periodStartUtc, zurichMidnightUtc, moneyClassLines } = await import("./bookings");
 
 const env = {} as CloudflareEnv;
 const claims = { sub: "staff", role: "authenticated" } as const;
 // 2026-10-04 18:34 in Zurich: the minute VT-26-0753 was paid on live.
 const NOW = new Date("2026-10-04T16:34:00.000Z");
 
-// Live, read-only, 2026-10-04 ~21:25 +04: captured payments by the booking's first-leg class slug.
-const LIVE_ALL_TIME: Row[] = [
-  { class_slug: "business", income_rappen: 44810, fee_rappen: 0, fare_count: 4 },
-  { class_slug: "mercedes-benz-v-class", income_rappen: 28794, fee_rappen: 0, fare_count: 3 },
-  { class_slug: "saden", income_rappen: 33660, fee_rappen: 0, fare_count: 6 },
+// Live, read-only, 2026-10-04 ~21:25 +04: every vehicle_classes row (price-book order: sort_order, slug) with
+// its captured income. Active and not hidden = live. U10 (2026-10-05): the query returns all of them.
+const CLASS_ROWS = (income: Record<string, [number, number, number]> = {}): Row[] =>
+  [
+    { class_slug: "mahaha", class_name: "mahaha", sort_order: 0, live: false },
+    { class_slug: "saden", class_name: "Economy", sort_order: 0, live: true },
+    { class_slug: "economy", class_name: "Economy", sort_order: 1, live: false },
+    { class_slug: "business", class_name: "Business", sort_order: 2, live: false },
+    { class_slug: "first", class_name: "First", sort_order: 3, live: false },
+    { class_slug: "van", class_name: "Van", sort_order: 4, live: false },
+    { class_slug: "mercedes-benz-v-class", class_name: "Business", sort_order: 10, live: true },
+    { class_slug: "van-luxury", class_name: "Van luxury", sort_order: 20, live: true },
+  ].map((row) => {
+    const [income_rappen, fee_rappen, fare_count] = income[row.class_slug] ?? [0, 0, 0];
+    return { ...row, income_rappen, fee_rappen, fare_count };
+  });
+
+const LIVE_ALL_TIME: Row[] = CLASS_ROWS({
+  business: [44810, 0, 4],
+  "mercedes-benz-v-class": [28794, 0, 3],
+  saden: [33660, 0, 6],
   // 9447 + the class-change difference 1184: two payments, one fare.
-  { class_slug: "van-luxury", income_rappen: 23468, fee_rappen: 0, fare_count: 2 },
-];
+  "van-luxury": [23468, 0, 2],
+});
 
 beforeEach(() => {
   db.texts = [];
@@ -146,22 +156,82 @@ describe("loadDashboardMoney", () => {
     expect(paid).toMatch(/order by leg\.leg_seq/);
   });
 
-  it("an empty period is zeros with all three class lines", async () => {
+  it("an empty period is zeros with a line for every class on offer, in price-book order", async () => {
+    db.classRows = CLASS_ROWS();
     const money = await loadDashboardMoney(env, claims, "today", NOW);
     expect(money).toMatchObject({ incomeRappen: 0, refundRappen: 0, feeRappen: 0, fareCount: 0, refunds: [] });
-    expect(money.byClass.map((l) => l.klass)).toEqual([...DASHBOARD_CLASSES]);
+    expect(money.byClass).toEqual([
+      { klass: "Economy", rappen: 0 },
+      { klass: "Business", rappen: 0 },
+      { klass: "Van luxury", rappen: 0 },
+    ]);
+  });
+
+  it("the class lines come from the live class rows (U10): the query lists every class with its name and order", async () => {
+    await loadDashboardMoney(env, claims, "week", NOW);
+    const paid = db.texts[0] ?? "";
+    expect(paid).toMatch(/from public\.vehicle_classes as vc\s+full join by_class as b on b\.class_id = vc\.id/);
+    expect(paid).toMatch(/vc\.name as class_name/);
+    expect(paid).toMatch(/\(vc\.active and vc\.hidden_at is null\) as live/);
+    expect(paid).toMatch(/order by vc\.sort_order, vc\.slug/);
   });
 });
 
-describe("dashboardClassOf", () => {
-  it("live and legacy slugs read Economy, Business, Van luxury; anything else reads Economy like the board", () => {
-    expect(dashboardClassOf("saden")).toBe("Economy");
-    expect(dashboardClassOf("economy")).toBe("Economy");
-    expect(dashboardClassOf("mercedes-benz-v-class")).toBe("Business");
-    expect(dashboardClassOf("business")).toBe("Business");
-    expect(dashboardClassOf("van-luxury")).toBe("Van luxury");
-    expect(dashboardClassOf("van")).toBe("Van luxury");
-    expect(dashboardClassOf("first")).toBe("Economy");
-    expect(dashboardClassOf(null)).toBe("Economy");
+describe("moneyClassLines (U10)", () => {
+  const rows = (income: Record<string, number>) =>
+    CLASS_ROWS(Object.fromEntries(Object.entries(income).map(([slug, n]) => [slug, [n, 0, 1]]))) as unknown as Parameters<typeof moneyClassLines>[0];
+
+  it("live and legacy rows with the same name are one line, at the first one's place", () => {
+    expect(moneyClassLines(rows({ saden: 100, economy: 50, business: 20, "mercedes-benz-v-class": 30 }))).toEqual([
+      { klass: "Economy", rappen: 150 },
+      { klass: "Business", rappen: 50 },
+      { klass: "Van luxury", rappen: 0 },
+    ]);
+  });
+
+  it("a class outside the old three keeps its own name and its own money: first is First, never Economy", () => {
+    const lines = moneyClassLines(rows({ saden: 100, first: 700, "van-luxury": 5 }));
+    expect(lines).toEqual([
+      { klass: "Economy", rappen: 100 },
+      { klass: "Business", rappen: 0 },
+      { klass: "First", rappen: 700 },
+      { klass: "Van luxury", rappen: 5 },
+    ]);
+    expect(lines.reduce((n, l) => n + l.rappen, 0)).toBe(805);
+  });
+
+  it("a dropped class with no income in the period has no line; the same class with income has one", () => {
+    expect(moneyClassLines(rows({})).map((l) => l.klass)).not.toContain("First");
+    expect(moneyClassLines(rows({})).map((l) => l.klass)).not.toContain("mahaha");
+    expect(moneyClassLines(rows({ mahaha: 9 })).map((l) => l.klass)).toContain("mahaha");
+  });
+
+  it("a name the owner gives a live class is the line's name, and the order is the price book's, not alphabet", () => {
+    const lines = moneyClassLines([
+      { class_slug: "z-van", class_name: "Zeta van", sort_order: 5, live: true, income_rappen: 10 },
+      { class_slug: "a-sedan", class_name: "Alpha sedan", sort_order: 9, live: true, income_rappen: 20 },
+      { class_slug: "m-mid", class_name: "Mid", sort_order: 7, live: true, income_rappen: 0 },
+    ]);
+    expect(lines).toEqual([
+      { klass: "Zeta van", rappen: 10 },
+      { klass: "Mid", rappen: 0 },
+      { klass: "Alpha sedan", rappen: 20 },
+    ]);
+  });
+
+  it("a class row without a stored name reads as its slug's own name", () => {
+    expect(moneyClassLines([{ class_slug: "first", class_name: null, sort_order: 1, live: true, income_rappen: 3 }])).toEqual([
+      { klass: "First", rappen: 3 },
+    ]);
+  });
+
+  it("income whose booking has no class row is not put on Economy: it is its own last line, so the lines still add up", () => {
+    const lines = moneyClassLines([
+      ...rows({ saden: 100 }),
+      { class_slug: null, class_name: null, sort_order: null, live: null, income_rappen: 40 },
+    ]);
+    expect(lines.at(-1)).toEqual({ klass: "", rappen: 40 });
+    expect(lines.find((l) => l.klass === "Economy")?.rappen).toBe(100);
+    expect(lines.reduce((n, l) => n + l.rappen, 0)).toBe(140);
   });
 });
