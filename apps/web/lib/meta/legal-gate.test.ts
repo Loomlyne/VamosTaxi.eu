@@ -111,7 +111,7 @@ describe("meta legal gate", () => {
     }
   });
 
-  it("policy version is the consent date", () => {
+  it("policy version is the consent version: set once, and 2026-10-01 until the owner moves it", () => {
     const assignment = /CONSENT_POLICY_VERSION\s*=(?!=)\s*(["'])([^"']+)\1/g;
     const found: string[] = [];
     for (const rel of walk("")) {
@@ -125,9 +125,10 @@ describe("meta legal gate", () => {
     expect(file).toBe("lib/consent/policy.ts");
     expect(version).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(version! > "2026-09-12").toBe(true);
-    const mock = readFileSync(join(webRoot, "../../app/vamos-legal-updated.js"), "utf8");
-    const consent = /var CONSENT_UPDATED = '(\d{4}-\d{2}-\d{2})';/.exec(mock);
-    expect(consent?.[1]).toBe(version);
+    // Owner, 2026-10-05: the legal pages show their own "Last updated" day (app/vamos-legal-updated.js)
+    // and that never moves this version. A new version asks every visitor for consent again, so
+    // change this line only with the owner's word.
+    expect(version).toBe("2026-10-01");
   }, 30_000);
 
   it("Meta strings only where allowed (Phase 28 per-needle allow map, Phase 29 server Purchase)", () => {

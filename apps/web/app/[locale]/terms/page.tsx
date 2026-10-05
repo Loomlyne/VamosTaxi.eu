@@ -57,7 +57,7 @@ export default async function TermsPage({
       kickerKey="common.legal"
       effectiveDateLabel="Terms effective date"
       versionLabel="Terms version"
-      shipDated
+      dated
     >
       <LanguageCoverageNotice page="terms" />
 

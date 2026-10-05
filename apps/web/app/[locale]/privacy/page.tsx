@@ -60,7 +60,7 @@ export default async function PrivacyPage({
       kickerKey="common.legal"
       effectiveDateLabel="Privacy effective date"
       versionLabel="Privacy version"
-      consentDated
+      dated
     >
       {/* LegalPage PendingSlot: Privacy effective date */}
       {/* LegalPage PendingSlot: Privacy version */}

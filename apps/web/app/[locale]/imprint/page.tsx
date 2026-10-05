@@ -74,7 +74,7 @@ export default async function ImprintPage({
       kickerKey="common.legal"
       effectiveDateLabel="Imprint effective date"
       versionLabel="Imprint version"
-      shipDated
+      dated
     >
       {/* LegalPage PendingSlot: Imprint effective date */}
       {/* LegalPage PendingSlot: Imprint version */}

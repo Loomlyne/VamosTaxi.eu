@@ -35,8 +35,7 @@ export async function LegalPage({
   kickerKey,
   effectiveDateLabel,
   versionLabel,
-  shipDated = false,
-  consentDated = false,
+  dated = false,
   children,
 }: {
   page: LegalPageId;
@@ -46,10 +45,8 @@ export async function LegalPage({
   kickerKey: string;
   effectiveDateLabel: string;
   versionLabel: string;
-  /** Owner decision 14: show the date from app/vamos-legal-updated.js (via next.config env). */
-  shipDated?: boolean;
-  /** D-31: show the consent date (CONSENT_UPDATED), which equals CONSENT_POLICY_VERSION. */
-  consentDated?: boolean;
+  /** Show this page's own "Last updated" date, the day its text last changed (app/vamos-legal-updated.js, via next.config env). */
+  dated?: boolean;
   children: ReactNode;
 }) {
   const tLegal = await getTranslations("legal");
@@ -57,11 +54,9 @@ export async function LegalPage({
   const tCookies = await getTranslations("cookies");
   const langs = LEGAL_LANGUAGES[page];
   const locale = await getLocale();
-  const updatedIso = consentDated
-    ? process.env.CONSENT_UPDATED_ISO
-    : shipDated
-      ? process.env.LEGAL_UPDATED_ISO
-      : undefined;
+  const updatedIso = dated
+    ? (JSON.parse(process.env.LEGAL_UPDATED_BY_PAGE ?? "{}") as Record<string, string | undefined>)[page]
+    : undefined;
   const updatedLabel = updatedIso
     ? new Intl.DateTimeFormat(DATE_LOCALE[locale] ?? "en-GB", {
         day: "numeric",

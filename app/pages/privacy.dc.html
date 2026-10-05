@@ -385,7 +385,7 @@ class Component extends DCLogic {
     const legalDate = window.VamosLegalUpdated;
     const lang = window.VamosLocale ? window.VamosLocale.lang() : 'en';
     return {
-      updatedLabel: legalDate ? legalDate.consentLabel(lang) : '',
+      updatedLabel: legalDate ? legalDate.label('privacy', lang) : '',
       lineSegs: this.segs('privacyLine', lang),
       n14: 14, n16: 16, n18: 18,
       tocOpen: this.state.tocOpen ? '1' : null,

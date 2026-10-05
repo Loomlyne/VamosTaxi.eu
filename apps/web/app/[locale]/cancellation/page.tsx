@@ -71,7 +71,7 @@ export default async function CancellationPage({
       kickerKey="common.legal"
       effectiveDateLabel="Cancellation effective date"
       versionLabel="Cancellation version"
-      shipDated
+      dated
     >
       {/* LegalPage PendingSlot: Cancellation effective date */}
       {/* LegalPage PendingSlot: Cancellation version */}

@@ -58,7 +58,8 @@ describe("privacy mock (27-09)", () => {
     expect(sec.match(/<p data-vt-no-i18n="1" data-privacy-line="1">[\s\S]*<\/p>/)?.[0]).not.toContain("data-tok");
   });
 
-  it("D-31: privacy uses consentLabel", () => {
-    expect(privacy).toContain("consentLabel(lang)");
+  it("D-31 (owner, 2026-10-05): privacy shows its own Last updated day, not the consent version", () => {
+    expect(privacy).toContain("label('privacy', lang)");
+    expect(privacy).not.toContain("consentLabel");
   });
 });

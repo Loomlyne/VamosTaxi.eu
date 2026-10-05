@@ -11,9 +11,10 @@ Branch `fix/content-flight-promise`, cut from `origin/main` `328b133c`, merged w
 | `083e278f` content: "Last updated" date of terms, cancellation and imprint is the day their text last changed | item 5 | no, one date |
 | `7737613c` Merge origin/main | | no |
 | docs commit | this file and the pictures | no |
-| **`content: flight lines — NEEDS OWNER APPROVAL`** (last commit, the tip) | item 2 | **yes, the owner approves the lines first** |
+| `053147d3` `content: flight lines — NEEDS OWNER APPROVAL` | item 2 | yes: **approved by the owner on 2026-10-05, all lines as drafted** (see "Owner answers" below) |
+| **`content: legal pages show the day their text last changed`** (the tip, this commit) | item 5 follow-up, owner answer 4 | one date per legal page, no wording |
 
-The tip's parent (`HEAD~1`) is shippable on its own. The last commit only touches the lines in the tables below, their dictionary and message entries, the pages that render them, `seed.sql` and two tests.
+`053147d3` only touches the lines in the tables below, their dictionary and message entries, the pages that render them, `seed.sql` and two tests. The tip only touches the "Last updated" machinery, its tests and this file.
 
 ## Items, one line each
 
@@ -21,8 +22,7 @@ The tip's parent (`HEAD~1`) is shippable on its own. The last commit only touche
 2. **Flight lines drafted** in en/de/fr/ar (tables below), one final commit.
 3. **/about** founder box hidden: the dashed "Image slot — the founder" box and its English brief no longer render; the story section uses one column (`data-solo`) so the text keeps its 62ch measure; the box markup sits in a comment with a restore line (`app/pages/about.dc.html`, like Why Vamos on home).
 4. **/imprint 09** note "Credit only where the agencies agree — otherwise the rows come out." removed in every language (page, dictionary, message files, key map, the unserved Next page); the two Loomlyne credit rows stay.
-5. **"Last updated"** (`app/vamos-legal-updated.js`): `LEGAL_UPDATED` 2026-09-30 → **2026-10-03**, the day the text of terms, cancellation and imprint last changed on main (`3cac1fc5`, the owner-approved de/fr/ar lines; checked from the git history of each page's visible text and of the dictionary lines its strings use). `CONSENT_UPDATED` stays **2026-10-01**: it is pinned to `CONSENT_POLICY_VERSION` and a test holds them equal, and moving it re-asks every visitor for consent. /privacy and /cookies show that date, and both pages changed on **2026-10-04** (`5a027e71`, `bce75750`). **Decision for the controller or the owner:** bump the consent version to 2026-10-04 (every visitor sees the banner again) or leave the date.
-   - **The flight lines change it again when they ship.** terms (06, 08), cancellation (04) and privacy (02) change, and the /imprint note removal changes imprint. Set `LEGAL_UPDATED` to the ship day then; privacy follows the consent-date decision above.
+5. **"Last updated"**: superseded by the owner's answer of 2026-10-05, see "Legal dates" below. The first version of this item (one `LEGAL_UPDATED` = 2026-10-03 for terms, cancellation and imprint, consent date left alone) is replaced by one date per page.
 
 ## Proof
 
@@ -107,14 +107,32 @@ Removed with no replacement: /cancellation 04 bullet 3, "No flight number on the
 
 "We watch your flight" (dictionary; the Next /about line is #14), "Give us the flight number and the pickup follows the actual landing time. A delay does not need a phone call and does not cost you anything. Your driver meets you in arrivals with a name sign.", "Zurich and Geneva, with meet & greet in arrivals and flight tracking on every booking that carries a flight number.", "Your driver waits in the arrivals hall … We watch the flight, so a delay moves the pickup without you doing anything. Available at …" (two forms), "Your driver tracks this flight and waits for it, delayed or early.", "We track the flight and hold the driver if you land late" (checkout mock; the mock now shows #1), the fragments ", counted from the actual landing time we see against your flight number." and ". If your flight is delayed, the allowance moves with the flight — you do not need to call us.", and the dictionary copies of "Type a flight number and the pickup point and time come from the arrival…", "Your flight lands" and "Your pickup is set from the arrival, not from a guess…" (the React How it works keeps its own keys, see #15 to #17). Eight message keys are gone (net -7 with the new `home.route-and-flight-number`); `seed.sql` count 2692.
 
-### Decisions for the owner
+### Owner answers (question form, 2026-10-05; `.planning/decisions/2026-10-05-flight-lines.md` on main)
 
-1. **Delays.** Drafted: tell us, and the waiting allowance counts from the new landing time (#5, #9, #11). If he does not want to promise the extension, the shorter forms are: #5 "Tell us as soon as you know, on the number in your confirmation." (drop the second sentence), #9 "If your flight is delayed, tell us as soon as you know.", #11 "Delay within the same day: tell us as soon as you know, on the number in your confirmation." #10 only says the allowance counts from the landing time, which the policy already said.
-2. **Trust line next to the booking box** (#2): "Waiting time included" replaces "Flight tracked". He may prefer to delete the line (two notes left) or name another true line.
-3. **/terms 08 first sentence** "Waiting is included, measured from the pickup time in your confirmation." sits next to the airport bullet "60 minutes after landing" (unchanged in meaning from before; the old bullet resolved it with "counted from the actual landing time we see"). Left as it was; the owner may want one rule for how the 60 minutes are counted without a feed.
-4. The legal lines #7 to #12 replace de, fr and ar translations he approved on 2026-10-03 (`3cac1fc5`).
+1. Delays: "Tell us; wait counts from new landing": lines 5, 9, 11 exactly as drafted.
+2. Trust line: "Waiting time included" (line 2 as drafted).
+3. All other lines (1, 3, 4, 6, 7, 8, 10, 12, 13, 14 to 17 and the removal of /cancellation 04 bullet 3): approved as drafted. `053147d3` stays as it is; nothing reworded.
+4. Legal date: "Real date, no new cookie banner": each legal page shows the day its own text last changed; `CONSENT_POLICY_VERSION` and the consent record stay 2026-10-01 (no re-ask).
 
-## Checks and results (final tree, run after the restart, before the last commit)
+## Legal dates (the tip commit)
+
+What changed: `app/vamos-legal-updated.js` no longer has `LEGAL_UPDATED` and `CONSENT_UPDATED`. It has one `UPDATED` block, a date per page, and `VamosLegalUpdated.label(page, lang)` / `.iso(page)`. Each mock asks for its own page; `consentLabel` and `consentIso` are gone. The Next side follows: `apps/web/lib/legal-updated-dates.ts` parses the block (strict: five pages, valid dates, no duplicates), `next.config.ts` hands it to the pages as `LEGAL_UPDATED_BY_PAGE` (replacing `LEGAL_UPDATED_ISO` and `CONSENT_UPDATED_ISO`), and `LegalPage` takes one `dated` flag instead of `shipDated` / `consentDated` and picks the date of its own `page`. Dates are written as before in en, de, fr and ar (same formats).
+
+| Page | Shows | Why |
+|---|---|---|
+| /terms | 5 October 2026 | 06 and 08 change with this ship |
+| /cancellation | 5 October 2026 | 04 changes with this ship |
+| /imprint | 5 October 2026 | the 09 note is removed |
+| /privacy | 5 October 2026 | 02 changes with this ship |
+| /cookies | 4 October 2026 | text last changed in `bce75750` / `5a027e71`; this branch does not touch the cookies page, its dictionary lines or its messages |
+
+- **If the ship day is not 2026-10-05**, set the four pages that change with the flight lines (terms, cancellation, imprint, privacy) to the ship day: one block in `app/vamos-legal-updated.js`, plus the pinned table in `apps/web/lib/legal-updated.test.ts`. Cookies stays 2026-10-04.
+- **The consent version is untouched.** `apps/web/lib/consent/policy.ts` keeps `CONSENT_POLICY_VERSION = "2026-10-01"` (only its comment changed). The test that used to tie the consent date to the version (`lib/meta/legal-gate.test.ts`) now pins the version only, to `2026-10-01`; no date is derived from it and it is derived from no date (`lib/legal-updated.test.ts`, "consent version is its own constant"). No visitor is asked for consent again.
+- **Tests.** `lib/legal-updated.test.ts` rewritten: one block, five valid dates, the owner's dates pinned, the mock helper run in a `vm` and compared per page and language with `Intl`, each mock asks for exactly its own page, the Next side reads the same block and picks its page's date. `lib/consent/legal-pages-27.test.ts` D-31 now says privacy shows its own date.
+- **Browser proof (throw-away spec, deleted).** The five mocks served with the repo's harness at 1440: each shows its own date after `setLang('en'|'de'|'fr'|'ar')`: terms, cancellation, imprint, privacy `5 October 2026 | 5. Oktober 2026 | 5 octobre 2026 | 5 أكتوبر 2026`; cookies `4 October 2026 | 4. Oktober 2026 | 4 octobre 2026 | 4 أكتوبر 2026`. `next dev` started with the new `next.config.ts` (no throw). The Next `/[locale]/...` legal pages themselves were not rendered: they are not served (the visitor URLs return the mocks).
+- **Visual baselines:** the Darwin PNGs of the legal pages show the date; they will drift by one or two days (Mac-only specs, not run).
+
+## Checks and results (run after the restart, on the tree of `053147d3`; the last row is the tip)
 
 | Check | Result |
 |---|---|
@@ -128,6 +146,7 @@ Removed with no replacement: /cancellation 04 bullet 3, "No flight number on the
 | `pnpm lint` | 0 errors, 6 warnings (unused eslint-disable directives, none in a file of this branch) |
 | touched vitest files (list below) | 176 files passed, 4 skipped; 2416 tests passed, 9 skipped; 24 s |
 | funnel spec | see Proof: 4/4 with the reprice stub, red at the voucher without it |
+| after the legal-date commit | `i18n:check`, `check:numbers`, `check:legal-claims`, `typecheck` pass; `lint` 0 errors, the same 6 warnings; the touched vitest files again: 176 files passed, 4 skipped; 2417 tests passed, 9 skipped |
 
 Tests run (touched plus the ones that read the changed pages): `lib/flight`, `lib/abuse`, `lib/auth/callback-redirect`, `lib/ops/edit-request`, `lib/checkout`, `lib/consent`, `lib/legal*`, `lib/meta`, `lib/pricing`, `lib/live-no-tbc`, `lib/about-imprint-content`, `lib/flight-lines`, `lib/dc-mock-urls`, `lib/contact-button`, `lib/audit-26-2-u08`, `lib/arabic-design-g23`, `tests/unit/home-*`, `tests/unit/van-luxury-12-mocks`, `tests/unit/audit-26-2-u06-components`: all pass with `--testTimeout=60000` (the one load flake above). Not run: the full `test:unit`, the build, Playwright visual and Worker specs, the database suites (no migration touched).
 
