@@ -209,7 +209,7 @@ export default async function TermsPage({
           <span data-lg-n="1">08</span>
           {tOps("waiting-time")}
         </h2>
-        <p>{t("waiting-is-included-measured-from-the-pickup-tim")}</p>
+        <p>{t("waiting-is-included")}</p>
         <ul>
           <li>{t("airport-pickups-60-minutes-after-landing")}</li>
           <li>{t("all-other-pickups-30-minutes-counted")}</li>

@@ -130,3 +130,48 @@ describe("the drafted flight lines", () => {
     expect(canc).toContain("All other pickups: 30 minutes from the booked time.");
   });
 });
+
+describe("terms 08 starts with one rule, and the German flight hint names the number (owner, 2026-10-05)", () => {
+  const OLD_KEY = "waiting-is-included-measured-from-the-pickup-tim";
+  const WANT = {
+    en: "Waiting is included.",
+    de: "Wartezeit ist inbegriffen.",
+    fr: "L’attente est incluse.",
+    ar: "الانتظار مشمول.",
+  };
+
+  it("the terms mock opens section 08 with 'Waiting is included.' and keeps the two bullets", () => {
+    const terms = read("app/pages/terms.dc.html");
+    expect(terms).toContain('<h2><span data-lg-n="1">08</span>Waiting time</h2>\n<p>Waiting is included.</p>\n<ul>');
+    expect(terms).toContain("<li>Airport pickups: 60 minutes after landing.</li>");
+    expect(terms).toContain("<li>All other pickups: 30 minutes, counted from the booked time.</li>");
+    expect(terms).not.toContain("measured from the pickup time");
+  });
+
+  it("the dictionary translates it, de, fr and ar, and the long form is gone", () => {
+    const dict = read("app/vamos-i18n-dict.js");
+    expect(dict).toContain(`'Waiting is included.': { de: '${WANT.de}', fr: '${WANT.fr}', ar: '${WANT.ar}' },`);
+    expect(dict).not.toContain("measured from the pickup time");
+  });
+
+  it("the messages, the key map and the Next terms page use one new key and no trace of the old one", () => {
+    for (const l of ["en", "de", "fr", "ar"] as const) {
+      const m = JSON.parse(read(`apps/web/i18n/messages/${l}.json`));
+      expect(m.legal["waiting-is-included"], l).toBe(WANT[l]);
+      expect(m.legal[OLD_KEY], l).toBeUndefined();
+    }
+    const map = JSON.parse(read("apps/web/i18n/key-map.json")) as Record<string, string>;
+    expect(map["Waiting is included."]).toBe("legal.waiting-is-included");
+    expect(Object.values(map)).not.toContain(`legal.${OLD_KEY}`);
+    const page = read("apps/web/app/[locale]/terms/page.tsx");
+    expect(page).toContain('t("waiting-is-included")');
+    expect(page).not.toContain(OLD_KEY);
+    expect(read("packages/db/supabase/seed.sql")).not.toContain(OLD_KEY);
+  });
+
+  it("the German manage-booking and booking-detail hint says 'die Nummer', not 'ihn'", () => {
+    const dict = read("app/vamos-i18n-dict.js");
+    expect(dict).toContain("Ihr Fahrer wartet auf diesen Flug, halten Sie die Nummer deshalb aktuell.");
+    expect(dict).not.toContain("halten Sie ihn deshalb aktuell");
+  });
+});

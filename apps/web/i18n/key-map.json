@@ -1305,7 +1305,7 @@
   "Voucher sent": "ops.voucher-sent",
   "Vouchers": "legal.vouchers",
   "Waiting beyond the included allowance:": "legal.waiting-beyond-the-included-allowance",
-  "Waiting is included, measured from the pickup time in your confirmation.": "legal.waiting-is-included-measured-from-the-pickup-tim",
+  "Waiting is included.": "legal.waiting-is-included",
   "Waiting time": "ops.waiting-time",
   "Waiting time as set out in section": "legal.waiting-time-as-set-out-in-section",
   "Waiting, airport": "common.waiting-airport",

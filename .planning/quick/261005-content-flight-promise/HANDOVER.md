@@ -12,9 +12,10 @@ Branch `fix/content-flight-promise`, cut from `origin/main` `328b133c`, merged w
 | `7737613c` Merge origin/main | | no |
 | docs commit | this file and the pictures | no |
 | `053147d3` `content: flight lines — NEEDS OWNER APPROVAL` | item 2 | yes: **approved by the owner on 2026-10-05, all lines as drafted** (see "Owner answers" below) |
-| **`content: legal pages show the day their text last changed`** (the tip, this commit) | item 5 follow-up, owner answer 4 | one date per legal page, no wording |
+| `18998303` `content: legal pages show the day their text last changed` | item 5 follow-up, owner answer 4 | one date per legal page, no wording |
+| **`content: terms 08 one start rule; German flight hint names the number`** (the tip) | owner answers 5 and 6 | two wording changes, listed under "Owner answers" |
 
-`053147d3` only touches the lines in the tables below, their dictionary and message entries, the pages that render them, `seed.sql` and two tests. The tip only touches the "Last updated" machinery, its tests and this file.
+`053147d3` only touches the lines in the tables below, their dictionary and message entries, the pages that render them, `seed.sql` and two tests. `18998303` only touches the "Last updated" machinery, its tests and this file.
 
 ## Items, one line each
 
@@ -113,8 +114,10 @@ Removed with no replacement: /cancellation 04 bullet 3, "No flight number on the
 2. Trust line: "Waiting time included" (line 2 as drafted).
 3. All other lines (1, 3, 4, 6, 7, 8, 10, 12, 13, 14 to 17 and the removal of /cancellation 04 bullet 3): approved as drafted. `053147d3` stays as it is; nothing reworded.
 4. Legal date: "Real date, no new cookie banner": each legal page shows the day its own text last changed; `CONSENT_POLICY_VERSION` and the consent record stay 2026-10-01 (no re-ask).
+5. /terms 08 first sentence is now exactly "Waiting is included." / "Wartezeit ist inbegriffen." / "L’attente est incluse." / "الانتظار مشمول.", the two bullets unchanged. Changed in the terms mock, the dictionary, the four message files, the key map (key `legal.waiting-is-included`; the old `…-measured-from-the-pickup-tim` key is gone, so the key count and the seed pin 2692 hold), the Next terms page and `seed.sql`.
+6. German manage-booking / booking-detail flight hint: "…halten Sie die Nummer deshalb aktuell." Dictionary only: that hint has no message-file entry, the two pages are mocks. Legal dates unchanged (terms already 2026-10-05). Four tests added to `lib/flight-lines.test.ts`.
 
-## Legal dates (the tip commit)
+## Legal dates (`18998303`)
 
 What changed: `app/vamos-legal-updated.js` no longer has `LEGAL_UPDATED` and `CONSENT_UPDATED`. It has one `UPDATED` block, a date per page, and `VamosLegalUpdated.label(page, lang)` / `.iso(page)`. Each mock asks for its own page; `consentLabel` and `consentIso` are gone. The Next side follows: `apps/web/lib/legal-updated-dates.ts` parses the block (strict: five pages, valid dates, no duplicates), `next.config.ts` hands it to the pages as `LEGAL_UPDATED_BY_PAGE` (replacing `LEGAL_UPDATED_ISO` and `CONSENT_UPDATED_ISO`), and `LegalPage` takes one `dated` flag instead of `shipDated` / `consentDated` and picks the date of its own `page`. Dates are written as before in en, de, fr and ar (same formats).
 
