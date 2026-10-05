@@ -1,8 +1,8 @@
 # Hand-over: dashboard fixes (U8, U9, U10, U11)
 
-Work session. Branch `fix/dashboard-fixes`, cut from `origin/main` `328b133c`; `origin/main` `43fba58d` merged in
-(two merges, no conflicts: the purge migration and board notes, then security hardening S4-S15; the only
-shared area is `apps/web/lib/ops/`, see the S13 note under U8a).
+Work session. Branch `fix/dashboard-fixes`, cut from `origin/main` `328b133c`; `origin/main` merged in four times
+(purge migration, security hardening S4-S15, board notes, money and database hardening), no conflicts; the only
+shared area is `apps/web/lib/ops/`, see the S13 note under U8a.
 Worktree `.claude/worktrees/agent-a75f53f12dd10a4a8`. Nothing deployed, no live write, no migration.
 Owner and controller answers, 2026-10-05 (recorded in `.planning/decisions/2026-10-05-dashboard-fixes.md` on main):
 U11 all 26 to ghost; error toasts stay until closed; a class taken off sale shows its own name; no "You were
@@ -20,6 +20,7 @@ sign-in dies, and the gate's Auth wait.
 | U9 Dismiss label, Arabic chip, pickup day, error toast | fixed, proven in Chromium |
 | U10 classes from the live data | fixed, proven in Chromium |
 | U11 `variant="outline"` | fixed after the owner signed ghost for all 26 (own commit `fix(ops): grey outline buttons become ghost (U11)`), guard test, pictures re-taken from the real files |
+| Fable 5.1 review of U8-U10 (SHIP AFTER FIXES) | the three findings fixed, each its own commit with a test, see "Review fixes" |
 
 ---
 
@@ -33,21 +34,23 @@ sign-in dies, and the gate's Auth wait.
 - Fix: `app/vamos-ops-api.js` (now :18-:131) wraps `window.fetch` once (the shell's helmet runs the file
   twice; `__vamosOpsWatch` guard) and looks at two things:
   - a `/app/ops/<X>.dc.html` 404: asks `GET /api/staff/me`; only a 401 `no-session` or 403 `needs-mfa` answer
-    counts as dead. A 404 with a live session is a missing file and changes nothing. A probe that cannot
-    reach the server changes nothing (offline is not signed out).
+    counts as dead. A 404 with a live session reloads the page once (slow Auth, see "Review fixes"). A probe
+    that cannot reach the server changes nothing (offline is not signed out).
   - a same-origin `/api/` answer of 401 `no-session` or 403 `needs-mfa` (not `/api/auth`, not a code-less
     401 such as `/api/staff/claim-invite`, not `not-admin` / `not-staff` / CSRF): same.
   Dead means: clear the `vamosOpsAuth` flag, `location.replace("/login")`. The screen still gets its answer.
   Loop guard: one redirect per 15 s per tab (`sessionStorage vamosOpsSessionLostAt`), so a /login that
-  bounces straight back cannot loop.
-- Tests: `apps/web/lib/ops/ops-session-lost.test.ts` (12 tests: 404 + no-session, one redirect for several
+  bounces straight back cannot loop. The "already redirected" flag is set only after the guard let the redirect
+  through (`vamos-ops-api.js` :26-:41).
+- Tests: `apps/web/lib/ops/ops-session-lost.test.ts` (20 tests: 404 + no-session, one redirect for several
   404s, live session stays, offline stays, 401, needs-mfa, other refusals stay, other origin ignored, double
-  helmet run, loop guard, old mark does not block, ordinary traffic untouched). They fail on `328b133c`
-  (no watcher) and pass now.
+  helmet run, loop guard, old mark does not block, ordinary traffic untouched, plus the 8 of the review
+  fixes). The 12 original ones fail on `328b133c` (no watcher) and pass now.
 - Verified: unit tests; Chromium run `tools/session-lost.mjs` against the real shell with a gate model:
-  dead-nav, dead-api, mfa-api end on /login with the flag cleared; missing-file stays on /customers with the
-  flag kept. Before-tree: stays on a blank main column (`screens/before-dead-nav.png`), after: the sign-in page
-  (`screens/after-dead-nav.png`; also `-dead-api`, `-mfa-api`, `-missing-file`).
+  dead-nav, dead-api, mfa-api end on /login with the flag cleared; slow-auth recovers (below); missing-file
+  reloads once and then stays on /customers with the flag kept. Before-tree: stays on a blank main column
+  (`screens/before-dead-nav.png`), after: the sign-in page (`screens/after-dead-nav.png`; also `-dead-api`,
+  `-mfa-api`, `-missing-file`, `-slow-auth`).
 - Security hardening S13 (on main, merged here) answers a switched-off staff row with 403 `not-staff`, and
   now needs the admin for writes (403 `not-admin`). The watcher leaves both alone on purpose: the person stays
   on the screen with its own message, as before. S7 hides `/api/staff/*` on the public host only; the
@@ -134,7 +137,10 @@ success toast gone after 5 s, the pickup day line and tooltip per language.
   - `OpsBoard`/`OpsFleet`/`OpsReviews`: no literal lists; the board's class filter, edit form and the sort by
     vehicle use the live list. Class names and the dashboard labels are data: `data-vt-no-i18n` (the
     dictionary would turn "Van" into Arabic).
-- Tests: `ops-dashboard-fixes-dc.test.ts` (8 store tests + 2 source pins), `dashboard-money.test.ts` (rewritten for
+  - Review fix: the list only looks at what the store holds. The collections have `peek()` (the rows already
+    loaded, no request); `classNames()` uses it (`vamos-ops-data.js` :305, :1002-:1014). Before, it called
+    `all()`, which hydrates.
+- Tests: `ops-dashboard-fixes-dc.test.ts` (8 store tests + 3 review tests + 2 source pins), `dashboard-money.test.ts` (rewritten for
   `moneyClassLines`), `class-labels.test.ts`, `ops-dc-finalize.test.ts`, `ops-dash-numbers.test.ts`,
   `bookings-map-extras.test.ts`. They fail on `328b133c` and pass now.
 - Verified in Chromium (en, de, fr, ar; 1440 and 390): the vehicle column shows First and Studio as
@@ -183,30 +189,62 @@ success toast gone after 5 s, the pickup day line and tooltip per language.
 
 ---
 
-## Checks (merged tree, `4bb245f9` + this branch)
+## Review fixes (Fable 5.1: SHIP AFTER FIXES, sign-in safety holds)
 
-- After U11: `apps/web/lib/ops` plus every other test that reads `app/ops` (`lib/security`, `lib/dc-mock-urls`,
-  `tests/unit/ops-*`, `vendor-runtime-no-unpkg`, `signup-notice-mock`, `phase-26-3-laws`): 148 files, 1713 tests
-  pass, 11 skipped files as before.
-  Earlier, on the merged tree before U11, 4 tests of `refund-by-hand`, `staff-cancel-by-hand` and
-  `edit-request-customer` timed out at 5 s on the first import of `bookings-write` while the Mac ran at load
-  average 115 with the other jobs; they pass alone, and passed in the full run once the load fell.
-  `bookings-write.ts` imports none of the files this job changed.
+Each is its own commit with a test that fails on the code before it.
+
+1. Should-fix, `app/vamos-ops-data.js` (was :1004-:1010): `classNames()` called `bookings.all()` and
+   `vehicles.all()` on every read, and `all()` hydrates. The board re-renders on every 3 s bookings poll, so a
+   failing `GET /api/staff/vehicles` (503 `staff-check-failed`) was asked again every 3 s by a screen that never
+   used vehicles. Fix (commit `fix(dashboard): reading the class list no longer loads bookings or vehicles`):
+   `peek()` on the collections, used by the list; the names of what a screen has loaded still show.
+   Tests (3, all fail before): rendering the board never requests `/api/staff/vehicles`; a failing vehicles call
+   is not fired by reading the list ten times; a loaded booking and a loaded vehicle still add their class names.
+2. Nit, slow Auth: a screen file 404 while `/api/staff/me` says the session is alive left the screen blank for
+   good (the DC runtime keeps the miss, `support.js` `ensureFetched` sets `fetched` once). A re-request from the
+   watcher cannot heal that, so the page is reloaded once (`vamos-ops-api.js` :64-:85, `reloadOnce`): a mark in
+   `sessionStorage` (`vamosOpsScreenRetryAt`, 15 s, per tab) stops a really missing file from looping; no storage
+   means no reload; a failed check (server down, 5xx) or a dead session changes nothing / goes to /login.
+   Tests (6 new, 3 fail before). Chromium (`tools/session-lost.mjs`, run `slow-auth`: the first screen file 404s,
+   then the gate answers again): before, the page stays blank (`screens/before-slow-auth.png`); after, it
+   reloads once and shows Customers (`screens/after-slow-auth.png`); `missing-file` (404 for good) reloads once and
+   stays.
+3. Nit, `vamos-ops-api.js` :26-:41: `lost = true` was set before the 15 s guard; a held-back redirect left it
+   set for the life of the page, so a later genuine death never redirected until a reload. It is set after the
+   guard now. Tests (2 new, 1 fails before): a death 20 s after a held-back one goes to /login; inside the window
+   everything stays held back and a made redirect is not repeated.
+
+Left for the later job with the "You were signed out" message (controller): keeping the page and showing a
+Sign in link when a write fails on a dead session; the local-dev /login host; the old `componentWillUnmount`
+`_t` timer.
+
+---
+
+## Checks (merged tree, `5aa3ddd0` + this branch)
+
+- `apps/web/lib/ops` and `lib/security`, plus every other test that reads `app/ops` (`lib/dc-mock-urls`,
+  `tests/unit/ops-*`, `vendor-runtime-no-unpkg`, `signup-notice-mock`, `phase-26-3-laws`): 1724 tests pass, 11
+  skipped files as before. Running `tsc` at the same moment makes 5 of them time out at 5 s on first import
+  (`refund-by-hand`, `staff-cancel-by-hand`, `edit-request-customer`, `public-no-internal-ids`); the same files
+  pass alone and in a quiet full run (143 files, 1650 tests). None of them imports a file this job changed.
 - `pnpm typecheck`: pass. `pnpm lint`: 0 errors, 6 warnings (unused eslint-disable directives, none in files of
   this job). `pnpm check:db-fences`: 8 of 8 pass. `pnpm check:numbers`: ok. `pnpm i18n:check`: pass.
-- Chromium: `tools/session-lost.mjs` all passed; `tools/proof.mjs` 140 PASS, 0 FAIL.
+- Chromium: `tools/session-lost.mjs` all passed (dead-nav, dead-api, mfa-api, slow-auth, missing-file);
+  `tools/proof.mjs` 140 PASS, 0 FAIL; `tools/u11.mjs` after: `vt-btn--outline` x0 on all 12 screens.
 - Not run, on purpose: full `test:unit`, build, live data, deploy.
 
 ## Pictures (`screens/`)
 
-- `before-` / `after-dead-nav`, `-dead-api`, `-mfa-api`, `-missing-file` (U8a, 1440 x 900).
+- `before-` / `after-dead-nav`, `-dead-api`, `-mfa-api`, `-missing-file`, `-slow-auth` (U8a and its review fix, 1440 x 900).
 - `before-` / `after-board-<en|ar>-<1440|390>`: vehicle column and pickup day line.
 - `before-` / `after-dashboard-<en|ar>-<1440|390>`: Money in lines.
 - `before-` / `after-chip-<en|ar>-...`: the distance chip. `before-` / `after-toast-error-<en|ar>-...`: the error toast.
 - `before-coverage.json` / `after-coverage.json`: `VamosLocale.coverage` per screen and language.
 - `u11-*`: 48 pictures for U11 (`before` from the branch tip before the U11 commit, `after` from the real files).
 - `tools/`: `serve.mjs` (static server over the synced public tree), `fixtures.mjs` (stub rows, classes, money),
-  `before-tree.mjs`, `session-lost.mjs`, `proof.mjs`, `u11.mjs`. All offline; `/api/**` is stubbed.
+  `before-tree.mjs`, `session-lost.mjs`, `proof.mjs`, `u11.mjs`. All offline; `/api/**` is stubbed. The three browser
+  scripts use Playwright's Chromium; if its download is missing from the cache, set `PW_CHROMIUM` to a headless
+  Chromium binary (they were run here with the `chromium_headless_shell-1243` one).
 
 ## Closed by the owner / controller (2026-10-05)
 

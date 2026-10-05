@@ -2,6 +2,8 @@
 // dashboard host mode: the console paths serve the one ops shell, /login serves the sign-in page, as
 // serveOpsDc does. Listens on a free port chosen by the OS; the caller closes it (no process is killed).
 //
+// `gate.failNext = n` models a slow Supabase Auth: the next n screen files answer the private 404 once, then the
+// session answers again (U8 review: a live session whose screen file 404ed stayed blank).
 // `gate.dead = true` models a session that has died: every /app/ops/*.dc.html except the two sign-in
 // files answers the gate's private 404 (lib/ops/asset-gate.ts). /api/* is stubbed by the Playwright
 // script, never here.
@@ -26,7 +28,7 @@ const MIME = {
 const OPS = /^\/(dashboard|bookings(\/[^/]+)?|calendar|customers(\/[^/]+)?|fleet(\/chauffeurs(\/[^/]+)?)?|support|pricing|profile|settings|coupons|reviews|pages|legal)$/;
 const LOGIN_FILES = new Set(["/app/ops/support.js", "/app/ops/AuthForm.dc.html"]);
 
-export const gate = { dead: false, hits: [] };
+export const gate = { dead: false, failNext: 0, hits: [] };
 
 export function serve(root) {
   return new Promise((resolve) => {
@@ -35,7 +37,14 @@ export function serve(root) {
       gate.hits.push(p);
       if (OPS.test(p)) p = "/app/ops/ops.html";
       else if (p === "/login") p = "/app/ops/ops-login.html";
-      if (gate.dead && p.startsWith("/app/ops/") && p.endsWith(".dc.html") && !LOGIN_FILES.has(p)) {
+      const screenFile = p.startsWith("/app/ops/") && p.endsWith(".dc.html") && !LOGIN_FILES.has(p);
+      if (screenFile && !gate.dead && gate.failNext > 0) {
+        gate.failNext -= 1;
+        res.writeHead(404, { "cache-control": "private, no-store" });
+        res.end();
+        return;
+      }
+      if (gate.dead && screenFile) {
         res.writeHead(404, { "cache-control": "private, no-store" });
         res.end();
         return;

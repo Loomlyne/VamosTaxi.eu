@@ -98,8 +98,7 @@ const SCENARIOS = [
     } },
 ];
 
-// U11_CHROMIUM: path of a headless Chromium to use when Playwright's own download is missing from the cache.
-const browser = await chromium.launch({ headless: true, executablePath: process.env.U11_CHROMIUM || undefined });
+const browser = await chromium.launch({ headless: true, executablePath: process.env.PW_CHROMIUM || undefined });
 const skipped = [];
 
 async function shoot(base, label, sc, width) {
