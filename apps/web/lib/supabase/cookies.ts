@@ -66,14 +66,22 @@ export const LEGACY_AUTH_COOKIE_RE = /^sb-[A-Za-z0-9_-]+-auth-token(?:[.-][A-Za-
 /**
  * Cookie attributes for every Supabase auth cookie. Path "/", SameSite Lax and NO Domain, so a
  * cookie stays host-only: the dashboard and the public site never share a session.
+ *
+ * HttpOnly (security report S4, 2026-10-05): no browser code reads the session. There is no browser
+ * Supabase client (server.ts), the mocks and the React pages ask /api/auth and /api/checkout/me,
+ * and the only `document.cookie` writers name NEXT_LOCALE and Meta's cookies. Without it, any
+ * injected script could lift the refresh token. @supabase/ssr spreads these options over its own
+ * defaults (`httpOnly: false`) on every write and every removal, so this one line covers the
+ * chunks (`vt-auth.0`…) and the PKCE verifier too.
  */
 export function authCookieOptions(secure: boolean): {
   name: typeof AUTH_COOKIE_NAME;
   path: "/";
   sameSite: "lax";
   secure: boolean;
+  httpOnly: true;
 } {
-  return { name: AUTH_COOKIE_NAME, path: "/", sameSite: "lax", secure };
+  return { name: AUTH_COOKIE_NAME, path: "/", sameSite: "lax", secure, httpOnly: true };
 }
 
 /** Names of the old `sb-*-auth-token*` cookies a request still carries (deduplicated). */

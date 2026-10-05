@@ -166,6 +166,13 @@ function couponFactsFromEval(typed: string, raw: unknown): {
 export type LoadAndPriceOpts = {
   /** Named dashboard host only. Omitted/false is public-safe. */
   dashboardHost?: boolean;
+  /**
+   * Security S14 (2026-10-05): the request carries a staff session that passes the staff gate
+   * (`requestHasStaffSession`). The host alone is not proof: anyone can call the dashboard host,
+   * so without this a signed-out visitor there was priced from the unpublished draft book.
+   * Omitted/false is public-safe.
+   */
+  staffSession?: boolean;
 };
 
 export async function loadAndPrice(
@@ -176,12 +183,13 @@ export async function loadAndPrice(
   opts?: LoadAndPriceOpts,
 ): Promise<LoadAndPriceResult> {
   // D-18/D-33: draft book only when PRICING_PREVIEW is the string true AND
-  // the request Host is a named dashboard host. Public vamostaxi.site is
-  // always live book (preferDraft stays false). asQuote reads
-  // HYPERDRIVE_NOCACHE so the next quote after Publish is the new book.
-  // Omitted dashboardHost defaults false.
+  // the request Host is a named dashboard host AND (S14) a verified staff
+  // session made the request. Public vamostaxi.site is always live book
+  // (preferDraft stays false). asQuote reads HYPERDRIVE_NOCACHE so the next
+  // quote after Publish is the new book. Omitted options default false.
   const dashboardHost = opts?.dashboardHost === true;
-  const preferDraft = dashboardHost && env.PRICING_PREVIEW === "true";
+  const staffSession = opts?.staffSession === true;
+  const preferDraft = dashboardHost && env.PRICING_PREVIEW === "true" && staffSession;
 
   const rawBook = await deps.loadRateBook(env, { preferDraft }, request);
   const book = rateBookMapper.mapRateBook(rawBook);

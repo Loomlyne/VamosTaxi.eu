@@ -2,6 +2,7 @@
 // (D-24, D-25). Needs the matching vt_manage cookie; otherwise nothing. Never a document (D-41).
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { readAllowed, readRateLimited } from "@/lib/abuse/read-rate-limit";
 import { hashManageToken, readManageCookie } from "@/lib/checkout/manage-token";
 import { resumeCheckoutWithDeps, type ResumeRow } from "@/lib/checkout/resume";
 import { retrieveCheckoutSession, stripeFromEnv } from "@/lib/checkout/stripe";
@@ -14,6 +15,10 @@ const HEADERS = { "content-type": "application/json", "cache-control": "private,
 export async function GET(request: Request) {
   try {
     const { env } = getCloudflareContext();
+    // Security S12: rate limited. The checkout reads { state: "none" } as "nothing to resume".
+    if (!(await readAllowed(env.READ_RATE_LIMITER, "resume", request))) {
+      return readRateLimited({ state: "none" });
+    }
     const quote = new URL(request.url).searchParams.get("quote");
     const raw = readManageCookie("", request.headers.get("cookie"));
     const answer = await resumeCheckoutWithDeps(quote, raw, {

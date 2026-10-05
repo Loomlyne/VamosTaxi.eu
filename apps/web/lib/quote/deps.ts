@@ -108,9 +108,25 @@ function stubLoadAndPrice(
   });
 }
 
+/**
+ * Security S14 (2026-10-05): may this request see draft prices? Only on the named dashboard host,
+ * only while PRICING_PREVIEW is "true", and only when `isStaff` (the staff gate on the request's
+ * own session) says yes. The staff check runs last, so the public site and a preview-off build
+ * never pay for a Supabase round trip. A throw is "no".
+ */
+export async function draftPreviewAllowed(
+  env: Pick<CloudflareEnv, "PRICING_PREVIEW">,
+  hostHeader: string | null | undefined,
+  isStaff: () => Promise<boolean>,
+): Promise<boolean> {
+  if (!isNamedDashboardHost(hostHeader)) return false;
+  if (env.PRICING_PREVIEW !== "true") return false;
+  return isStaff().catch(() => false);
+}
+
 export function buildQuotePipelineDeps(
   env: CloudflareEnv,
-  opts?: { dashboardHost?: boolean },
+  opts?: { dashboardHost?: boolean; staffSession?: boolean },
 ): QuotePipelineDeps {
   const computedAt = new Date().toISOString();
   const stubGeo = process.env.QUOTE_TEST_STUB_GEO === "1";
@@ -118,6 +134,7 @@ export function buildQuotePipelineDeps(
   const previous =
     env.QUOTE_LOCK_SECRET_PREVIOUS || process.env.QUOTE_LOCK_SECRET_PREVIOUS;
   const dashboardHost = opts?.dashboardHost === true;
+  const staffSession = opts?.staffSession === true;
 
   return {
     env,
@@ -132,7 +149,7 @@ export function buildQuotePipelineDeps(
     loadAndPrice: stubGeo
       ? stubLoadAndPrice
       : (e, input, loaders, request) =>
-          loadAndPrice(e, input, loaders, request, { dashboardHost }),
+          loadAndPrice(e, input, loaders, request, { dashboardHost, staffSession }),
     loadSettings: stubGeo
       ? async () => ({
           id: 1,

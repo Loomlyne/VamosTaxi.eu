@@ -673,6 +673,15 @@ async function runWebIntent(
         : null;
       await deps.expireCheckoutSession(created.id).catch(() => undefined);
       if (winner && stored && hostedPayable(stored, chargedRappen)) {
+        // Security S15 (2026-10-05): the same F8 rule as the Pay-again path above. The loser of
+        // the race gets the winner's Stripe page, but a manage token, the cookie and a detail write
+        // only when its own vt_manage cookie already owns the winning booking. Before this, any
+        // second Pay press with the quote and lock got a working manage link for someone else's
+        // booking and overwrote its company and driver note.
+        const ownsWinner = deps.ownsBooking
+          ? await deps.ownsBooking(winner.booking_id).catch(() => false)
+          : false;
+        if (!ownsWinner) return okWebResponse(winner, stored, chargedRappen, expiresAt, null);
         await deps.issueManageToken({ bookingId: winner.booking_id, hash: token.hash, expiresAt: manageExpiresAt });
         await saveDetails(winner.booking_id);
         await afterBooking(winner.booking_id);

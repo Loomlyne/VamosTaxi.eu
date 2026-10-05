@@ -11,6 +11,7 @@ import { customerClaims } from "@/lib/account/session";
 import { hashManageToken } from "@/lib/checkout/manage-token";
 import { asCustomer, asGuest, asSystem } from "@/lib/db/identity";
 import { isReadablePhotoKey } from "@/lib/ops/photos";
+import { reviewFieldsWithinCaps } from "@/lib/reviews/submit-caps";
 import { verifyTurnstile } from "@/lib/turnstile";
 import { csrfForbidden } from "@/lib/security/origin";
 
@@ -99,6 +100,7 @@ export async function POST(request: Request): Promise<Response> {
   if (!limited.ok) return jsonErr("rate_limited", 429);
 
   const body = raw as Record<string, unknown>;
+  if (!reviewFieldsWithinCaps(body)) return jsonErr("invalid-input", 400);
 
   const turnstileToken = str(body.turnstileToken);
   const idempotencyKey = str(body.idempotencyKey);

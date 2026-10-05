@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { cookies } from "next/headers";
+import { readAllowed, readRateLimited } from "@/lib/abuse/read-rate-limit";
 import { customerClaims } from "@/lib/account/session";
 import { BOOKING_REFERENCE_RE, readBookingStatus } from "@/lib/checkout/booking-read";
 import { MANAGE_COOKIE_NAME, readManageCookie } from "@/lib/checkout/manage-token";
@@ -38,6 +39,10 @@ export async function GET(
   }
   if (!env) {
     return json(HIDDEN);
+  }
+  // Security S12: rate limited. The poll reads { visible: false } as "nothing new" and keeps going.
+  if (!(await readAllowed(env.READ_RATE_LIMITER, "status", request))) {
+    return readRateLimited(HIDDEN);
   }
 
   try {
