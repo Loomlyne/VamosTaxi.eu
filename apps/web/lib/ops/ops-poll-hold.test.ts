@@ -120,7 +120,10 @@ function consoleTab(opts: { loads?: number } = {}) {
   const win = sandbox as { VamosOps: Store; VamosOpsApi: { request: (m: string, p: string, b?: unknown) => Promise<Record<string, unknown>>; sessionLostPending?: () => boolean }; history: { pushState: (s: unknown, t: string, u?: string) => void } };
   const bookingReads = () => calls.filter((c) => c === "GET /api/staff/bookings").length;
   const fire = (target: Record<string, Array<() => void>>, type: string) => (target[type] ?? []).forEach((fn) => fn());
-  return { win, calls, replaced, pushes, state, advance, flush, bookingReads, windowListeners, documentListeners, fire, document };
+  const setNow = (ms: number) => {
+    now = ms;
+  };
+  return { win, calls, replaced, pushes, state, advance, flush, bookingReads, windowListeners, documentListeners, fire, document, now: () => now, setNow };
 }
 
 /** OpsDetail has the booking open: the store is loaded (and polling), and a save is refused. */
@@ -231,6 +234,108 @@ describe("a refused write holds the bookings poll (follow-up 4b)", () => {
   it("source pin: the store holds the poll through one question to the api object, not a copy of the logic", () => {
     expect(DATA).toContain("sessionLostPending");
     expect(DATA.match(/writeRefused\(\)/g)?.length).toBeGreaterThanOrEqual(3); // definition + poll tick + focus refetch
-    expect(API).toContain("sessionLostPending: function () { return lostPending; }");
+    expect(API).toContain("sessionLostPending: sessionLostPending");
+  });
+});
+
+// Review F1 (2026-10-05): the hold had no end. OpsCalendarBoard fires its drag-and-drop write and ignores the answer, so a
+// refusal there set the mark with nobody looking at it; the poll and the focus refetch then sent nothing for ever, new
+// bookings never appeared and nothing took him to /login until he clicked a route. The hold now lasts 60 s from the
+// (latest) refused write; after that the next poll tick is an ordinary read, finds the page marked and goes to /login.
+describe("the hold ends after 60 s (review F1)", () => {
+  const refuse = async (t: Awaited<ReturnType<typeof openDetail>>) => {
+    const answer = await t.win.VamosOps.bookings.update("VT-26-0829", { status: "confirmed" });
+    await t.flush();
+    expect(answer).toMatchObject({ ok: false, code: "no-session" });
+  };
+
+  it("within 60 s of the refusal every tick is held; the first tick after the window is the next read and goes to /login", async () => {
+    const t = await openDetail();
+    await refuse(t);
+    const reads = t.bookingReads();
+    await t.advance(57_000); // ticks at 3, 6 ... 57 s: still inside the window
+    expect(t.bookingReads()).toBe(reads);
+    expect(t.replaced).toEqual([]);
+    expect(t.win.VamosOpsApi.sessionLostPending?.()).toBe(true);
+    await t.advance(3_000); // the tick at 60 s: the window is over
+    expect(t.replaced).toEqual(["/login"]);
+    expect(t.bookingReads()).toBe(reads + 1); // the read itself was sent: it is an ordinary read now
+  });
+
+  it("a page that comes back from the background after the window goes to /login (the focus refetch is a read again)", async () => {
+    const t = await openDetail();
+    await refuse(t);
+    t.document.visibilityState = "hidden";
+    t.fire(t.documentListeners, "visibilitychange"); // the tick is cleared while the page is hidden
+    await t.advance(59_000);
+    expect(t.win.VamosOpsApi.sessionLostPending?.()).toBe(true);
+    await t.advance(2_000);
+    expect(t.win.VamosOpsApi.sessionLostPending?.()).toBe(false);
+    expect(t.replaced).toEqual([]); // nothing has asked yet
+    t.document.visibilityState = "visible";
+    t.fire(t.documentListeners, "visibilitychange");
+    await t.flush();
+    expect(t.replaced).toEqual(["/login"]);
+  });
+
+  it("window focus inside the window is held, after it goes to /login", async () => {
+    const t = await openDetail();
+    await refuse(t);
+    const reads = t.bookingReads();
+    await t.advance(30_000);
+    t.fire(t.windowListeners, "focus");
+    await t.flush();
+    expect(t.bookingReads()).toBe(reads);
+    expect(t.replaced).toEqual([]);
+    t.document.visibilityState = "hidden";
+    t.fire(t.documentListeners, "visibilitychange");
+    await t.advance(40_000);
+    t.fire(t.windowListeners, "focus"); // 70 s after the refusal; the page is hidden so no tick ran
+    await t.flush();
+    expect(t.replaced).toEqual([]); // onVisible does not read while hidden
+    t.document.visibilityState = "visible";
+    t.fire(t.windowListeners, "focus");
+    await t.flush();
+    expect(t.replaced).toEqual(["/login"]);
+  });
+
+  it("another refused write starts the window again: the person who keeps saving keeps the form", async () => {
+    const t = await openDetail();
+    await refuse(t);
+    await t.advance(50_000);
+    await refuse(t); // the second refusal, 50 s in
+    const reads = t.bookingReads();
+    await t.advance(50_000); // 100 s after the first, 50 s after the second
+    expect(t.replaced).toEqual([]);
+    expect(t.bookingReads()).toBe(reads);
+    await t.advance(15_000); // 65 s after the second: over
+    expect(t.replaced).toEqual(["/login"]);
+  });
+
+  it("a navigation inside the window still goes to /login at once, as built", async () => {
+    const t = await openDetail();
+    await refuse(t);
+    await t.advance(20_000);
+    t.win.history.pushState({}, "", "/bookings");
+    expect(t.replaced).toEqual(["/login"]);
+  });
+
+  it("a clock that went back does not extend the hold: a negative age is no hold", async () => {
+    const t = await openDetail();
+    await refuse(t);
+    expect(t.win.VamosOpsApi.sessionLostPending?.()).toBe(true);
+    t.setNow(t.now() - 3_600_000);
+    expect(t.win.VamosOpsApi.sessionLostPending?.()).toBe(false);
+  });
+
+  it("a write that goes through clears the mark: no redirect after the window either", async () => {
+    const t = await openDetail();
+    await refuse(t);
+    t.state.writes = OK({ id: BOOKING_UUID });
+    await t.win.VamosOps.bookings.update("VT-26-0829", { status: "confirmed" });
+    await t.flush();
+    await t.advance(90_000);
+    expect(t.replaced).toEqual([]);
+    expect(t.win.VamosOpsApi.sessionLostPending?.()).toBe(false);
   });
 });

@@ -33,6 +33,11 @@
   // A write the server refused for a dead session leaves the page where it is (the typed form stays, the screen
   // shows its own error) and sets this mark; the next read, screen load or navigation then goes to /login.
   var lostPending = false;
+  // When the mark was last set (each refused write sets it again). The hold the console store keeps on its automatic
+  // bookings reads lasts HOLD_MS from here; after that the next poll tick is "the next read" and goes to /login, so a
+  // refusal nobody looks at (a drag on the calendar board whose answer the screen ignores) cannot freeze the page for ever.
+  var lostPendingAt = 0;
+  var HOLD_MS = 60000;
   var probing = false;
   var reloadWanted = false;
   // The files a miss of which may reload a live page: the screens ops.dc.html mounts by route, and its
@@ -55,8 +60,8 @@
     // let the redirect through: a held-back redirect must not use up the page, or a death after the
     // window would never redirect until a reload.
     try {
-      var last = Number(sessionStorage.getItem(LOST_KEY) || 0);
       var now = Date.now();
+      var last = storedTime(LOST_KEY, now);
       if (last && now - last < 15000) return;
       sessionStorage.setItem(LOST_KEY, String(now));
     } catch (e) {}
@@ -122,6 +127,22 @@
     return isFinite(n) && n > 0 ? n : 0;
   }
 
+  // A time mark kept in session storage, or 0 when it has not happened yet. A mark in the future (a clock that was set
+  // back, a bad value) would make `now - last` negative, which reads as "just now" for as long as the clock stays behind
+  // it: the 15 s guards would hold every reload and every redirect back. A mark that has not happened is no mark.
+  function storedTime(key, now) {
+    var t = storedNumber(key);
+    return t > now ? 0 : t;
+  }
+
+  // The question the console store asks before an automatic read: is a write the server refused for a dead session
+  // waiting, and is it still inside its hold? Read-only. Past HOLD_MS (or if the clock went back) the answer is no, and the
+  // store's next poll tick is an ordinary read that finds the page marked and goes to /login.
+  function sessionLostPending() {
+    var age = Date.now() - lostPendingAt;
+    return lostPending && age >= 0 && age < HOLD_MS;
+  }
+
   // The session is alive but a screen file came back 404 (Auth was slow, or the file is really missing):
   // reload the page, but not for ever. Per tab, in session storage: never within 15 s of the last reload,
   // and at most twice (the probe behind this has no time limit of its own, so Auth that stays slow would
@@ -130,9 +151,9 @@
   // than a loop).
   function reloadOnce() {
     try {
-      var last = storedNumber(RETRY_KEY);
-      var count = storedNumber(RETRY_COUNT_KEY);
       var now = Date.now();
+      var last = storedTime(RETRY_KEY, now);
+      var count = storedNumber(RETRY_COUNT_KEY);
       if (last && now - last >= RETRY_WINDOW_MS) count = 0;
       if (last && now - last < RETRY_GAP_MS) return;
       if (!(count < RETRY_MAX)) return;
@@ -176,8 +197,12 @@
         if (!deadSessionBody(res.status, json, path)) return;
         // A read goes to /login at once. A write must not: the redirect would throw away the form it was sent
         // from. It marks the session lost and the next read, screen load or navigation goes instead.
-        if (isWrite(method)) lostPending = true;
-        else endSession();
+        if (isWrite(method)) {
+          lostPending = true;
+          lostPendingAt = Date.now();
+        } else {
+          endSession();
+        }
       });
       return;
     }
@@ -256,6 +281,6 @@
   // object stays: a second one would answer for a mark nothing sets. `sessionLostPending()` is read-only; the console store
   // asks it to hold its automatic bookings poll while a refused write waits (vamos-ops-data.js).
   if (!(window.VamosOpsApi && typeof window.VamosOpsApi.sessionLostPending === "function")) {
-    window.VamosOpsApi = { request: request, sessionLostPending: function () { return lostPending; } };
+    window.VamosOpsApi = { request: request, sessionLostPending: sessionLostPending };
   }
 })();

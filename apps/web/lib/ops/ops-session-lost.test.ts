@@ -288,6 +288,59 @@ describe("dashboard shell: a dead session goes to /login, not a blank screen (U8
     expect(t.reloaded).toEqual(["reload"]);
   });
 
+  // Follow-up review F3: a time mark in the future (a clock that was set back, a bad value) made `now - last` negative, so
+  // "never within 15 s of the last reload" held for as long as the clock stayed behind the mark: no reload at all. A mark
+  // that has not happened yet is read as no mark; the count still limits the page to two reloads.
+  it("a reload mark in the future is read as no mark: the page is reloaded (counted), and the mark becomes the real time", async () => {
+    const clock = { now: 2_000_000 };
+    const t = tab((url) => (url.startsWith("/app/ops/") ? { status: 404 } : { status: 200, body: { ok: true, data: {} } }), {
+      clock,
+      session: { vamosOpsScreenRetryAt: String(clock.now + 3_600_000), vamosOpsScreenRetryCount: "1" },
+    });
+    await t.win.fetch(SCREEN);
+    await flush();
+    expect(t.reloaded).toEqual(["reload"]);
+    expect(t.session.getItem("vamosOpsScreenRetryAt")).toBe(String(clock.now));
+    expect(t.session.getItem("vamosOpsScreenRetryCount")).toBe("2");
+    for (let round = 0; round < 4; round += 1) {
+      clock.now += 16_000;
+      await t.win.fetch(SCREEN);
+      await flush();
+    }
+    expect(t.reloaded).toHaveLength(1); // at most two in all, the count still holds
+  });
+
+  it("a mark that is 14 s in the past still holds the page back, one in the future does not", async () => {
+    const clock = { now: 2_000_000 };
+    const past = tab((url) => (url.startsWith("/app/ops/") ? { status: 404 } : { status: 200, body: { ok: true, data: {} } }), {
+      clock,
+      session: { vamosOpsScreenRetryAt: String(clock.now - 14_000) },
+    });
+    await past.win.fetch(SCREEN);
+    await flush();
+    expect(past.reloaded).toEqual([]);
+  });
+
+  // U8a loop guard: the same flaw. A death mark in the future held every redirect back (`now - last < 15000` is true for a
+  // negative number), so a dead session never went to /login until the clock caught up.
+  it("a death mark in the future does not hold the redirect back: a dead session still goes to /login", async () => {
+    const clock = { now: 5_000_000 };
+    const t = tab(() => NO_SESSION, { clock, session: { vamosOpsSessionLostAt: String(clock.now + 3_600_000) } });
+    await t.win.VamosOpsApi.request("GET", "/api/staff/bookings");
+    await flush();
+    expect(t.replaced).toEqual(["/login"]);
+    expect(t.session.getItem("vamosOpsSessionLostAt")).toBe(String(clock.now));
+  });
+
+  it("a junk death mark does not hold the redirect back either", async () => {
+    for (const junk of ["soon", "NaN", "-5", ""]) {
+      const t = tab(() => NO_SESSION, { session: { vamosOpsSessionLostAt: junk } });
+      await t.win.VamosOpsApi.request("GET", "/api/staff/bookings");
+      await flush();
+      expect(t.replaced, JSON.stringify(junk)).toEqual(["/login"]);
+    }
+  });
+
   // U8 review 2: the reload is for a screen that did not load, not for a part a screen fetches while it runs.
   // PlaceSearch is first fetched when OpsDetail enters edit mode: a reload then would throw the edit away.
   it("finds the shell's route screens, its top-level imports and the nested parts (the next tests are not reading nothing)", () => {

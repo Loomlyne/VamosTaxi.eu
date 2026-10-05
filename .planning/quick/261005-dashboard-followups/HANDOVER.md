@@ -16,7 +16,8 @@ while a form is open, and item 3 sends one more answer to /login.
 | 2 | sidebar 404 at boot reloads the page | `ccb9eb15` | fixed, unit + Chromium |
 | 3 | 403 `not-staff` from `/api/staff/*` goes to /login | `23e64520` | fixed, unit + Chromium |
 | 4 | a refused write keeps the page; the next read, screen load or navigation goes to /login | `c5459812` | fixed, unit + Chromium |
-| 4b | the 3 s bookings poll and the focus refetch are held while a refused write waits (controller, on the finding) | see tip | fixed, unit + Chromium |
+| 4b | the 3 s bookings poll and the focus refetch are held while a refused write waits (controller, on the finding) | `0dcf5db5` | fixed, unit + Chromium |
+| 4c | review F1 (the hold ends after 60 s) and F3 (a time mark in the future is no mark) | see tip | fixed, unit + Chromium; F2 left open |
 | - | Chromium tool, before/after pictures | `94df1552` | |
 
 "You were signed out" message: not built (needs the owner's wording). Listed under Open.
@@ -112,7 +113,8 @@ about 1.8 s. Controller: fix it.
   run owns the watcher and its mark, and a second object would answer for a mark nothing sets (a test fails if it does).
 - `app/vamos-ops-data.js` (`writeRefused()`, `schedulePoll`, `onVisible`): the poll tick and the window-focus /
   visibility refetch ask `writeRefused()` first. While it is true they send no request: the tick looks again in 3 s, so the
-  poll resumes by itself within one tick of the mark clearing (a staff write that goes through). Everything else is as
+  poll resumes by itself within one tick of the mark clearing (a staff write that goes through). The hold is bounded to
+  60 s from the latest refused write (4c). Everything else is as
   built: a navigation (`pushState`, `popstate`), a screen load and a manual read (`bookings.reset()`, a screen's own
   reload) are still "the next read" and still go to /login. No other collection polls.
 - Tests: new `apps/web/lib/ops/ops-poll-hold.test.ts` (9 tests; 6 fail on the code before): both real files in one vm with a
@@ -126,20 +128,46 @@ about 1.8 s. Controller: fix it.
   before this change (`8756fd1a`, `BEFORE_REF=8756fd1a node tools/before-tree.mjs <dir>`): /login after 1.9 s and 1
   booking read (FAIL x2).
 
-## Checks (tip after 4b, `origin/main` `cc0c9c6d` merged)
+## 4c. Review fixes F1 and F3 (Fable 5.1 on `0dcf5db5`: SHIP AFTER FIXES)
+
+- **F1 (high), the hold was unbounded.** `OpsCalendarBoard.dc.html` :309-316 fires `upsert` for a card drag and ignores the
+  answer, and `afterWrite` (`vamos-ops-data.js` :305-308) snaps the card back silently. After a session death that left
+  the mark set with nobody looking at it: the poll and the focus refetch sent nothing for ever, new bookings never appeared
+  and nothing sent him to /login until he clicked a route. Fix (`app/vamos-ops-api.js`): `lostPendingAt` is recorded where
+  the mark is set (each refused write sets it again, so a person who keeps saving keeps the form); `sessionLostPending()`
+  is true only while the mark is set and `0 <= age < HOLD_MS` (60 s); a clock that went back reads as expired. After the
+  window the store's poll tick or focus refetch is an ordinary read: it finds the page marked and goes to /login. The
+  internal mark is not windowed: navigation, screen load and manual read still go at once, inside or outside the window.
+  Tests (`ops-poll-hold.test.ts`, 7 new, all fail before): inside 57 s every tick is held, the tick at 60 s sends the read and
+  goes to /login; a page back from the background after 61 s goes to /login; window focus inside the window is held, after
+  it redirects; a second refused write starts the window again; a navigation inside the window still goes at once; a clock
+  set back is no hold; a write that goes through clears the mark and nothing redirects after 90 s. Chromium (`hold-ends`,
+  opt-in, ~65 s, nobody touches the page after Save while dead): still held at 50 s with 0 booking reads, /login at 61.9 s.
+- **F3 (low), future time marks.** `storedNumber` accepted a mark in the future, so `now - last` was negative and read as
+  "just now" for as long as the clock stayed behind it: the 15 s guards held back every reload and every redirect. New
+  `storedTime(key, now)` reads a mark that has not happened as no mark. Used for the reload mark (`reloadOnce`) and, the same
+  flaw, for the death mark in `endSession` (a death mark in the future held every redirect back; not named in the review).
+  Tests (`ops-session-lost.test.ts`, 4 new; 2 fail before): a reload mark in the future is read as no mark, the page reloads
+  (counted, at most two) and the mark becomes the real time; a mark 14 s in the past still holds the page back; a death mark
+  in the future and junk death marks do not hold the redirect back.
+- **F2, left open on purpose** (a tab that holds a refused-write mark while he signs in again in another tab): that tab
+  still goes to /login at its next read or navigation (within ~63 s on a screen that polls, since the hold ends at 60 s)
+  although the session is alive again, and nothing in it sees the new session. See Open 5.
+
+## Checks (tip after 4c, `origin/main` `cc0c9c6d` merged)
 
 | Check | Result |
 |---|---|
-| `apps/web/lib/ops/ops-session-lost.test.ts` | 73 tests pass (29 before this job); 31 of the 73 fail against `app/vamos-ops-api.js` of `16f1cfa7` |
-| `apps/web/lib/ops/ops-poll-hold.test.ts` | 9 tests pass; 6 fail against the two files before 4b |
-| `lib/ops`, `lib/security` and `tests/unit` folders (after `node scripts/sync-dc-mock-to-public.mjs`) | 192 files, 2028 tests pass, 12 files skipped as before |
+| `apps/web/lib/ops/ops-session-lost.test.ts` | 77 tests pass (29 before this job); 33 of the 77 fail against `app/vamos-ops-api.js` of `16f1cfa7` (31 + the 2 F3 ones) |
+| `apps/web/lib/ops/ops-poll-hold.test.ts` | 16 tests pass (9 for 4b, 7 for F1); 6 + 7 fail against the files before them |
+| `lib/ops`, `lib/security` and `tests/unit` folders (after `node scripts/sync-dc-mock-to-public.mjs`) | 192 files, 2039 tests pass, 12 files skipped as before |
 | `pnpm test:unit` (full), run once on the tip before 4b | exit 0: scripts 40/40, db 14, emails 247, web 447 files and 5332 tests pass, 20 files and 41 tests skipped as before. Earlier the same day a parallel folder run saw `refund-by-hand`, `staff-cancel-by-hand` and `edit-request-customer` time out at 5 s on first import (load flakes; they pass alone, 40/40) |
 | `pnpm typecheck` | pass |
 | `pnpm lint` | 0 errors, 6 warnings (unused eslint-disable directives, none in this job's files) |
 | `pnpm i18n:check` | pass (2684 keys) |
 | `pnpm check:numbers` | ok |
 | `pnpm check:db-fences` | 8 of 8 pass |
-| Chromium `session-lost-followups.mjs` after (`apps/web/public`, `chromium.launch({ channel: "chromium" })`) | 31 PASS, 0 FAIL (incl. `detail-poll` 3 checks), plus `junk-count` 1 PASS (run before 4b; item 1 is untouched by it) |
+| Chromium `session-lost-followups.mjs` after (`apps/web/public`, `chromium.launch({ channel: "chromium" })`) | 31 PASS, 0 FAIL (incl. `detail-poll` 3 checks), plus the opt-in `hold-ends` 2 PASS (61.9 s) and `junk-count` 1 PASS (run before 4b; item 1 is untouched by it) |
 | same on the before tree (`16f1cfa7` file) | 12 PASS, 17 FAIL (as intended), `junk-count` FAIL (4 loads, count `NaN`); `detail-poll` on the `8756fd1a` files: 2 FAIL, 1 PASS |
 | Not run, on purpose | build, live data, deploy |
 
@@ -165,8 +193,10 @@ about 1.8 s. Controller: fix it.
    switched-off row on a photo upload stays that screen's own message, as before. Changing the route's body is outside this
    job.
 4. (closed by 4b: the polling-screen hold.)
-5. The mark redirects at the start of the next manual read whatever it answers (the brief's wording). If a session came back
-   in another tab the page still goes to /login once; a staff write that goes through clears the mark first.
+5. (Review F2.) The mark redirects at the start of the next manual read whatever it answers (the brief's wording), and
+   at the first poll tick after the 60 s hold. If a session came back in another tab (he signed in again elsewhere) this
+   tab still goes to /login once, and nothing in it sees the new session; a staff write that goes through clears the mark
+   first. Not fixed: it would need the tab to ask `/api/staff/me` before leaving.
 6. From the earlier hand-over, still open: the server write path matches a class by name (`liveClassSlug`); `endSession` with
    blocked storage; the local-dev /login host; the old `componentWillUnmount` `_t` timer.
 

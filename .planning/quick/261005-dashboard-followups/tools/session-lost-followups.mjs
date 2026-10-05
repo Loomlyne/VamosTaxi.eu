@@ -17,6 +17,7 @@
 //   detail-poll                           OpsDetail edit (a polling screen), Save while dead: the edit and the page stay 10 s with no
 //                                          booking read asked for; pressing Customers then goes to /login
 //   nested-part                           (unchanged from the dashboard-fixes job) PlaceSearch 404s in edit mode: no reload
+//   hold-ends (ONLY=hold-ends, ~65 s)     OpsDetail edit, Save while dead, nobody touches the page: still held at 50 s, /login at ~60 s
 //   junk-count (ONLY=junk-count, ~55 s)   a non-numeric reload count and a screen file that 404s while /api/staff/me answers
 //                                          slowly: the page may not reload more than twice
 // `ONLY=a,b` runs only those. Prints PASS/FAIL per check, writes <label>-<run>.png (bare 1440 x 900 viewport crop), exits 1 on
@@ -36,7 +37,7 @@ mkdirSync(out, { recursive: true });
 const repo = resolve(new URL("../../../../", import.meta.url).pathname);
 const scratch = mkdtempSync(join(out, "tmp-"));
 const only = process.env.ONLY ? process.env.ONLY.split(",") : null;
-const wanted = (name) => (only ? only.includes(name) : name !== "junk-count");
+const wanted = (name) => (only ? only.includes(name) : name !== "junk-count" && name !== "hold-ends");
 
 const { server, base } = await serve(resolve(tree));
 const browser = await chromium.launch({ channel: "chromium", headless: true });
@@ -235,6 +236,37 @@ if (wanted("detail-poll")) {
     await page.waitForTimeout(2000);
   }
   check("detail-poll: pressing Customers then goes to /login", where(page) === "/login", where(page));
+  await ctx.close();
+}
+
+// Review F1: the hold is not for ever. Nobody touches the page after the refused save (the calendar board's drag-and-drop
+// ignores its answer): 60 s after the refusal the next 3 s poll tick is an ordinary read and the page goes to /login.
+if (wanted("hold-ends")) {
+  const { ctx, page, state, calls } = await open("/bookings/VT-26-0829", { rowsNeeded: true });
+  await page.waitForSelector("[data-ops-route-chip]", { timeout: 15000 });
+  await page.waitForTimeout(800);
+  await page.locator("button:visible", { hasText: /^actions$/i }).first().click();
+  await page.waitForTimeout(300);
+  await page.locator("button:visible", { hasText: /^edit booking$/i }).first().click();
+  const note = page.getByLabel(/^note$/i).first();
+  await note.waitFor({ timeout: 4000 });
+  await note.fill("Typed, then nobody touches the page");
+  state.api = "dead";
+  gate.dead = true;
+  await page.getByRole("button", { name: "Save changes" }).click();
+  const t0 = Date.now();
+  await page.waitForTimeout(500);
+  const callsAtRefusal = calls.length;
+  await page.waitForTimeout(50000); // 50.5 s after the refusal
+  const stillThere = where(page) !== "/login" ? await note.inputValue({ timeout: 1500 }).catch(() => null) : null;
+  const readsAt50 = calls.slice(callsAtRefusal).filter((c) => c === "GET /api/staff/bookings").length;
+  let leftAfter = null;
+  while (Date.now() - t0 < 75000) {
+    if (where(page) === "/login") { leftAfter = Date.now() - t0; break; }
+    await page.waitForTimeout(250);
+  }
+  check("hold-ends: 50 s after the refused save the edit is still there with no booking read", stillThere === "Typed, then nobody touches the page" && readsAt50 === 0, `value ${stillThere}, ${readsAt50} reads`);
+  check("hold-ends: the page goes to /login about 60 s after the refusal, nobody touching it", leftAfter !== null && leftAfter >= 59000 && leftAfter <= 68000, `after ${leftAfter} ms`);
   await ctx.close();
 }
 
