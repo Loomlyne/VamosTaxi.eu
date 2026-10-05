@@ -94,13 +94,14 @@ export async function POST(request: Request): Promise<Response> {
 
   if (needsTurnstile(categories)) {
     const token = typeof body.turnstileToken === "string" ? body.turnstileToken : "";
-    const idempotencyKey = typeof body.idempotencyKey === "string" ? body.idempotencyKey : "";
     const challenge = await verifyTurnstile(
       env.TURNSTILE_SECRET_KEY ?? process.env.TURNSTILE_SECRET_KEY,
       token,
       {
         action: "consent",
-        idempotencyKey,
+        // Always a fresh key made here, never the browser's: Cloudflare repeats a success for a token re-verified
+        // with the same idempotency_key for 300 s, so a client-chosen key would let one solved token be replayed.
+        idempotencyKey: crypto.randomUUID(),
         allowedHostnames:
           bindings.CONTACT_TURNSTILE_ALLOWED_HOSTNAMES ??
           process.env.CONTACT_TURNSTILE_ALLOWED_HOSTNAMES,
