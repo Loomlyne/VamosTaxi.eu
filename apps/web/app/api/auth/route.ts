@@ -10,7 +10,7 @@ import { CONSENT_REQUIRED, SIGNUP_UNAVAILABLE, recordSignupAgreement, signupCons
 import { finishAccount } from "@/lib/auth/account-finish";
 import { storeProfilePhone, syncSignupPhone } from "@/lib/auth/account-phone";
 import { finishRequiredStrict, markFinished, markFinishPending, mustFinish } from "@/lib/auth/finish-target";
-import { staffActiveForEmail } from "@/lib/db/system-reads";
+import { readCheckoutAccountUserState, staffActiveForEmail } from "@/lib/db/system-reads";
 import { log } from "@/lib/logger";
 import { verifyTurnstile } from "@/lib/turnstile";
 import {
@@ -160,6 +160,26 @@ function localizedHome(locale: string): string {
 function localizedPath(path: string, locale: string): string {
   if (locale === routing.defaultLocale) return path;
   return path === "/" ? `/${locale}` : `/${locale}${path}`;
+}
+
+/**
+ * True only for an address that already has a CONFIRMED account (the database decides: definer, booleans only).
+ * An address with no account, or one whose sign-up was never confirmed, counts as new: a mail to it is a
+ * confirmation mail to someone nobody has proved owns the address, so it waits for the human check. A read that
+ * fails counts as new too (fails closed: no mail without the check). Never logs the address.
+ */
+async function hasConfirmedAccount(
+  env: CloudflareEnv,
+  email: string,
+  ctx: { requestId: string; route: string; locale: string | null },
+): Promise<boolean> {
+  try {
+    const state = await readCheckoutAccountUserState(env, email);
+    return state.user_exists === true && state.confirmed === true;
+  } catch {
+    log("error", "auth", ctx, { reason: "account-state-read-failed", action: "otp" });
+    return false;
+  }
 }
 
 function requestOrigin(request: Request): string {
@@ -745,6 +765,31 @@ export async function POST(request: Request): Promise<Response> {
     // other mail sends (same answer for every address; a 429 says nothing about the address).
     if (parsed.data.mode === "signin" && !dashboard && !(await perAddressAllowed("link", parsed.data.email))) {
       return json(RATE_LIMITED, 429);
+    }
+    // S5 (owner, 2026-10-05, question form): "Email me a sign-in link" for an address with NO account makes the
+    // account and mails a confirmation, so for a new address the same human check as sign-up runs first. An
+    // existing customer signs in as before, with no check. Nothing may tell the two apart from outside: the bucket
+    // above is spent first for every address (a 429 would otherwise show that an address has an account), and a
+    // new address without a passed check gets the same call with an address no account can have (nothing is
+    // mailed or made; same body, status and verifier cookie), then the same floor as every other answer here.
+    // The page asks for a token on this form too, unseen, and sends one when it can; the server only needs it
+    // when there is no confirmed account. A token for an existing address is never verified.
+    if (parsed.data.mode === "signin" && !dashboard) {
+      if (!(await hasConfirmedAccount(env, parsed.data.email, ctx)) && !(await challengePassed())) {
+        await runOtp(
+          supabase,
+          {
+            mode: "signin",
+            email: `no-link-${crypto.randomUUID()}@invalid.invalid`,
+            locale,
+            createUser: false,
+          },
+          origin,
+          emailNext(returnToRaw, localizedHome(locale)),
+        );
+        await holdCheckoutFloor({ startedAt });
+        return sessionJson(SENT, setCookies);
+      }
     }
     const { result, reason } = await runOtp(
       supabase,

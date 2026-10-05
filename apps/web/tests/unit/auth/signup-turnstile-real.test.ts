@@ -11,6 +11,8 @@ vi.mock("@/lib/db/identity", () => ({
 }));
 vi.mock("@/lib/db/system-reads", () => ({
   markAccountFinishPending: async () => undefined,
+  // No address has an account here: every sign-in link is for a new address and so needs the check.
+  readCheckoutAccountUserState: async () => ({ user_exists: false, confirmed: false, checkout_origin: false }),
 }));
 
 const { POST } = await import("@/app/api/auth/route");
@@ -158,5 +160,42 @@ describe("S5: the real check, fail closed", () => {
     expect(keysSeen).toHaveLength(2);
     expect(keysSeen[0]).not.toBe(keysSeen[1]);
     expect(keysSeen).not.toContain(forgot.idempotencyKey);
+  });
+
+  it("the sign-in link for a new address: one solved token is good once; replayed for another new address, nothing is sent", async () => {
+    const firstKeyOfToken = new Map<string, string>();
+    siteverify.mockImplementation(async (_url: unknown, init: { body: URLSearchParams }) => {
+      const form = new URLSearchParams(String(init.body));
+      const token = form.get("response") ?? "";
+      const key = form.get("idempotency_key") ?? "";
+      const first = firstKeyOfToken.get(token);
+      if (first === undefined) firstKeyOfToken.set(token, key);
+      return new Response(
+        JSON.stringify(
+          first === undefined || first === key
+            ? { success: true, action: "account", hostname: "vamostaxi.site" }
+            : { success: false, "error-codes": ["timeout-or-duplicate"] },
+        ),
+        { status: 200 },
+      );
+    });
+    const mailed: string[] = [];
+    state.auth.signInWithOtp = (async (args: { email: string }) => {
+      mailed.push(args.email);
+      return { error: /@invalid\.invalid$/.test(args.email) ? { code: "otp_disabled" } : null };
+    }) as never;
+    const link = (email: string) =>
+      POST(authPost({ mode: "signin", method: "magic", email, turnstileToken: "real-token", idempotencyKey: forgot.idempotencyKey }));
+    const one = await link("one@example.test");
+    const two = await link("two@example.test");
+    // Same neutral answer for both; only the first reached its own address.
+    expect(one.status).toBe(200);
+    expect(await one.json()).toEqual({ stage: "sent" });
+    expect(two.status).toBe(200);
+    expect(await two.json()).toEqual({ stage: "sent" });
+    expect(mailed).toHaveLength(2);
+    expect(mailed[0]).toBe("one@example.test");
+    expect(mailed[1]).toMatch(/^no-link-.*@invalid\.invalid$/);
+    expect(JSON.stringify(mailed)).not.toContain("two@example.test");
   });
 });

@@ -8,6 +8,7 @@ const db = vi.hoisted(() => ({ finish: true as boolean | Error, order: [] as str
 vi.mock("@opennextjs/cloudflare", async () => (await import("./harness")).cloudflareMock);
 vi.mock("next/headers", async () => (await import("./harness")).headersMock);
 vi.mock("@supabase/ssr", async () => (await import("./harness")).ssrMock);
+vi.mock("@/lib/turnstile", async () => (await import("./harness")).turnstileMock);
 vi.mock("@/lib/db/system-reads", () => ({
   readAccountFinishRequired: async () => {
     db.order.push("read");
@@ -113,20 +114,21 @@ describe("the sign-in link marks only a new address", () => {
   it("a public link request asks the database to mark the account it may have made", async () => {
     const otp = vi.fn(async (..._a: unknown[]) => ({ error: null }));
     state.auth.signInWithOtp = otp as never;
-    const res = await POST(authPost({ mode: "signin", method: "magic", email: "new@example.test" }));
+    const res = await POST(authPost({ mode: "signin", method: "magic", email: "new@example.test", turnstileToken: "tok" }));
     expect(await res.json()).toEqual({ stage: "sent" });
-    expect(db.order).toEqual(["mark"]);
+    // S5 (2026-10-05): the account state is read first (new address, so the check ran), then the account is marked.
+    expect(db.order).toEqual(["state", "mark"]);
   });
 
   it("a failed link request marks nothing", async () => {
     state.auth.signInWithOtp = (async () => ({ error: { code: "over_email_send_rate_limit" } })) as never;
-    await POST(authPost({ mode: "signin", method: "magic", email: "new@example.test" }));
-    expect(db.order).toEqual([]);
+    await POST(authPost({ mode: "signin", method: "magic", email: "new@example.test", turnstileToken: "tok" }));
+    expect(db.order).toEqual(["state"]);
   });
 
   it("a sign-up never marks", async () => {
     state.auth.signInWithOtp = (async () => ({ error: null })) as never;
-    await POST(authPost({ mode: "signup", method: "magic", email: "n@example.test", firstName: "A", lastName: "B", consent: true }));
+    await POST(authPost({ mode: "signup", method: "magic", email: "n@example.test", firstName: "A", lastName: "B", consent: true, turnstileToken: "tok" }));
     expect(db.order).not.toContain("mark");
   });
 

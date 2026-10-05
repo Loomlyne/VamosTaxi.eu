@@ -28,7 +28,8 @@ vi.mock("@/lib/auth/checkout-sign-in", async () => {
 });
 
 const { POST } = await import("@/app/api/auth/route");
-const body = { mode: "signin", method: "magic", email: "someone@example.com" };
+// S5 (owner, 2026-10-05): a link for an address with no account carries the human check's token.
+const body = { mode: "signin", method: "magic", email: "someone@example.com", turnstileToken: "tok" };
 
 beforeEach(() => {
   resetHarness();

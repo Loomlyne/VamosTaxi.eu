@@ -110,7 +110,7 @@ describe("other paths", () => {
     await POST(authPost({ mode: "forgot", email: "a@b.co", turnstileToken: "tok" }));
     expect(db.order).not.toContain("db");
     db.calls = [];
-    await POST(authPost({ mode: "signin", method: "magic", email: "a@b.co" }));
+    await POST(authPost({ mode: "signin", method: "magic", email: "a@b.co", turnstileToken: "tok" }));
     // 27.1: the link reads whether the address is new and marks a new one; it never records an agreement.
     expect(db.calls.flat()).not.toContain("2026-09-29");
     // 27 D-37: the public sign-in link makes the account; its tick comes on the finish step, not here.

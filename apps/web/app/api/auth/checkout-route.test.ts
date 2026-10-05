@@ -162,7 +162,8 @@ describe("POST /api/auth origin checkout", () => {
 });
 
 describe("POST /api/auth magic from /sign-in", () => {
-  const plain = { locale: "en", method: "magic", mode: "signin", email: "guest@example.com" };
+  // S5 (owner, 2026-10-05): a link for an address with no account carries the human check's token.
+  const plain = { locale: "en", method: "magic", mode: "signin", email: "guest@example.com", turnstileToken: "tok" };
 
   it("makes the account for a new address when returnTo is a checkout URL (27 D-37)", async () => {
     await run({ ...plain, returnTo: "/checkout?class=economy" });

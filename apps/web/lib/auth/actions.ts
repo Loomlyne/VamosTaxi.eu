@@ -175,6 +175,7 @@ export async function signUpAction(
 export async function requestOtpAction(
   payload: AuthSubmitPayload,
   locale: string,
+  challengeToken?: string,
 ): Promise<AuthActionResult> {
   const loc = localeSchema.safeParse(locale);
   const body = otpRequestSchema.safeParse(payload);
@@ -185,6 +186,13 @@ export async function requestOtpAction(
   if (!(await authWriteAllowed())) return { stage: "sent" };
 
   if (body.data.mode === "signup") {
+    // S5 (owner, 2026-10-05): the link sign-up makes an account and mails a confirmation, so it needs the same
+    // check as the password sign-up. The link sign-IN below never creates an account (createUser false), so it
+    // mails existing customers only and needs none.
+    if (!(await challengePassed(challengeToken))) {
+      authLog("requestOtpAction", loc.data, "challenge-failed");
+      return { stage: "sent" };
+    }
     const { env } = getCloudflareContext();
     if (!(await recordSignupAgreement(env, { email: body.data.email, locale: loc.data, headers: await headers() }))) {
       return { stage: "sent" };

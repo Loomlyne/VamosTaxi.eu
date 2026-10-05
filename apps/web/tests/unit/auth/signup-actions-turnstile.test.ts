@@ -24,7 +24,7 @@ vi.mock("@/lib/supabase/server", () => ({
   }),
 }));
 
-const { signUpAction, requestPasswordResetAction } = await import("@/lib/auth/actions");
+const { signUpAction, requestPasswordResetAction, requestOtpAction } = await import("@/lib/auth/actions");
 
 const signUpBody = {
   mode: "signup",
@@ -102,5 +102,49 @@ describe("S5: the server actions cannot walk around the sign-in check", () => {
     await signUpAction(signUpBody, "en", "");
     await requestPasswordResetAction("mia@example.test", "en", "x".repeat(2049));
     expect(state.turnstileCalls).toEqual([]);
+  });
+});
+
+describe("S5: the link sign-up action needs the check, the link sign-in action does not", () => {
+  const linkSignUp = { mode: "signup", method: "magic", email: "mia@example.test", firstName: "Mia", lastName: "K", consent: true } as never;
+  const linkSignIn = { mode: "signin", method: "magic", email: "mia@example.test" } as never;
+
+  function otpCalls() {
+    const calls: Array<{ email: string; shouldCreateUser: boolean }> = [];
+    state.auth.signInWithOtp = (async (args: { email: string; options: { shouldCreateUser: boolean } }) => {
+      calls.push({ email: args.email, shouldCreateUser: args.options.shouldCreateUser });
+      return { error: null };
+    }) as never;
+    return calls;
+  }
+
+  it("link sign-up with a valid token: checked as action 'account', agreement recorded, the account request is made", async () => {
+    const calls = otpCalls();
+    const result = await requestOtpAction(linkSignUp, "en", "tok");
+    expect(result).toEqual({ stage: "sent" });
+    expect(state.turnstileCalls.map((c) => [c.token, c.action])).toEqual([["tok", "account"]]);
+    expect(seen.agreements).toBe(1);
+    expect(calls).toEqual([{ email: "mia@example.test", shouldCreateUser: true }]);
+  });
+
+  it.each([
+    ["no token", undefined],
+    ["an empty token", ""],
+    ["a refused token", "fail"],
+    ["an oversized token", "x".repeat(2049)],
+  ])("link sign-up with %s: neutral answer, no agreement record, nothing sent", async (_n, token) => {
+    const calls = otpCalls();
+    const result = await requestOtpAction(linkSignUp, "en", token as string | undefined);
+    expect(result).toEqual({ stage: "sent" });
+    expect(seen.agreements).toBe(0);
+    expect(calls).toEqual([]);
+  });
+
+  it("link sign-in needs no token: it mails an existing customer and never makes an account", async () => {
+    const calls = otpCalls();
+    const result = await requestOtpAction(linkSignIn, "en");
+    expect(result).toEqual({ stage: "sent" });
+    expect(state.turnstileCalls).toEqual([]);
+    expect(calls).toEqual([{ email: "mia@example.test", shouldCreateUser: false }]);
   });
 });

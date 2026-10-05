@@ -609,12 +609,17 @@ class Component extends DCLogic {
      same Cloudflare check the booking uses (action "account"). Most visitors see nothing: the check runs
      unseen, and only a suspicious one gets the small box (#af-turnstile opens). A token works once, so every
      send, "Send another link" included, asks for a fresh one. The gallery and the dispatch surface stay on the
-     demo rules and never ask. Sign-in itself (password, code, link) has no check. */
-  needsChallenge(mode) {
-    return !(this.props.frozen || this.props.surface === 'ops') && (mode === 'signup' || mode === 'forgot');
+     demo rules and never ask. Password and code sign-in have no check.
+     The sign-in LINK asks too, but only so a NEW address can be let through: the server needs the token only
+     when the address has no account and answers an existing customer and a new address the same way. So here
+     the token is optional: a check that fails or cannot run still sends the request without it, and the person
+     never sees a failure line (an existing customer is mailed; a new address gets the same "sent" page). */
+  needsChallenge(mode, method) {
+    return !(this.props.frozen || this.props.surface === 'ops') &&
+      (mode === 'signup' || mode === 'forgot' || (mode === 'signin' && method === 'magic'));
   }
   ensureChallenge() {
-    if (this.ts || !this.needsChallenge(this.state.mode)) return;
+    if (this.ts || !this.needsChallenge(this.state.mode, this.state.method)) return;
     const V = window.VamosConsent;
     const box = document.getElementById('af-turnstile');
     if (!V || typeof V.turnstile !== 'function' || !box) return;
@@ -726,10 +731,11 @@ class Component extends DCLogic {
       else if (result && result.reason === 'challenge-failed') this.setState({ resent: false, resendFailed: true });
       else if (result && (result.reason === 'consent-required' || result.reason === 'signup-unavailable')) this.applyLive(result, this.state.mode, this.state.method);
     });
-    if (!this.needsChallenge(this.state.mode)) return send({});
+    if (!this.needsChallenge(this.state.mode, this.state.method)) return send({});
+    const optional = this.state.mode === 'signin';
     this.challenge().then((token) => {
-      if (!token) return this.setState({ resent: false, resendFailed: true });
-      send({ turnstileToken: token, idempotencyKey: uuid() });
+      if (!token && !optional) return this.setState({ resent: false, resendFailed: true });
+      send(token ? { turnstileToken: token, idempotencyKey: uuid() } : {});
     });
   };
   /* The same email carries a 6-digit code next to the link. Typing it is a sign-in of its
@@ -810,10 +816,11 @@ class Component extends DCLogic {
     }
     if (this._busy) return;
     this._busy = true;
-    if (this.needsChallenge(mode)) {
+    if (this.needsChallenge(mode, method)) {
+      const optional = mode === 'signin';
       this.challenge().then((token) => {
-        if (!token) { this._busy = false; return this.go({ stage: 'form', banner: 'send-failed' }); }
-        return this.liveAuth(Object.assign(this.payload(), { turnstileToken: token, idempotencyKey: uuid() }))
+        if (!token && !optional) { this._busy = false; return this.go({ stage: 'form', banner: 'send-failed' }); }
+        return this.liveAuth(Object.assign(this.payload(), token ? { turnstileToken: token, idempotencyKey: uuid() } : {}))
           .then((result) => this.applyLive(result, mode, method)).finally(() => { this._busy = false; });
       });
       return;

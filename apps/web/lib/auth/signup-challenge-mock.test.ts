@@ -1,6 +1,8 @@
 // Security S5 (owner, 2026-10-05): the sign-in page (app/pages/AuthForm.dc.html, the file customers are served)
 // runs the Cloudflare check before it sends a sign-up or a forgot-password, and asks again for every send
-// ("Send another link" included). Sign-in does not ask. The page logic runs here in a VM with a fake Turnstile.
+// ("Send another link" included). Password sign-in does not ask. The sign-in LINK asks too, but its token is
+// optional: the server needs it only for a new address, so a failed check still sends and shows no failure line.
+// The page logic runs here in a VM with a fake Turnstile.
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -238,6 +240,81 @@ describe("forgot password on the sign-in page", () => {
   });
 });
 
+describe("the sign-in link on the sign-in page (S5, owner answer: same check for a new address)", () => {
+  const LINK = { email: "mia@example.test" };
+
+  it("warms the check up on arrival and sends the token and a fresh key with the request", async () => {
+    const t = load({ props: { mode: "signin", method: "magic" }, lang: "fr" });
+    expect(t.widgets).toHaveLength(1);
+    expect(t.widgets[0]!.opts).toMatchObject({ action: "account", language: "fr" });
+    expect(t.widgets[0]!.executes).toBe(0);
+    t.form.setState(LINK);
+    t.form.submit();
+    expect(t.fetched).toHaveLength(0); // nothing leaves before the check has answered
+    await t.settle();
+    expect(t.widgets[0]!.executes).toBe(1);
+    expect(t.fetched).toHaveLength(1);
+    expect(t.fetched[0]!.body).toEqual({ locale: "fr", mode: "signin", method: "magic", email: "mia@example.test", turnstileToken: "tok-1", idempotencyKey: "uuid-1" });
+    expect(t.form.state.stage).toBe("sent");
+  });
+
+  it("asking for the link by switching the method on the page brings the check up", () => {
+    const t = load({ props: { mode: "signin" } });
+    expect(t.widgets).toHaveLength(0); // password sign-in never loads Cloudflare's script
+    t.form.setState({ method: "magic" });
+    (t.form as unknown as { componentDidUpdate(p: unknown): void }).componentDidUpdate({});
+    expect(t.widgets).toHaveLength(1);
+  });
+
+  it("if the check fails the request still goes without a token, and no failure line shows", async () => {
+    const t = load({ props: { mode: "signin", method: "magic" }, plan: [null] });
+    t.form.setState(LINK);
+    t.form.submit();
+    await t.settle();
+    expect(t.fetched).toHaveLength(1);
+    expect(t.fetched[0]!.body).toEqual({ locale: "en", mode: "signin", method: "magic", email: "mia@example.test" });
+    expect(t.form.state.stage).toBe("sent");
+    expect(t.form.state.banner).toBeNull();
+    expect(t.form.renderVals().bannerSendFailed).toBe(false);
+  });
+
+  it("with no Turnstile helper on the page the request still goes, with no token", async () => {
+    const t = load({ props: { mode: "signin", method: "magic" }, noHelper: true });
+    t.form.setState(LINK);
+    t.form.submit();
+    await t.settle();
+    expect(t.fetched).toHaveLength(1);
+    expect(t.fetched[0]!.body).not.toHaveProperty("turnstileToken");
+    expect(t.form.state.stage).toBe("sent");
+  });
+
+  it("the server's neutral answer for a new address without a passed check is the same 'sent' page", async () => {
+    const t = load({ props: { mode: "signin", method: "magic" }, replies: [{ stage: "sent" }] });
+    t.form.setState(LINK);
+    t.form.submit();
+    await t.settle();
+    expect(t.form.state).toMatchObject({ stage: "sent", banner: null });
+  });
+
+  it("'Send another link' asks again for a fresh token; a failed check sends without one and shows no failure line", async () => {
+    const t = load({ props: { mode: "signin", method: "magic" }, plan: ["tok-1", "tok-2", null] });
+    t.form.setState(LINK);
+    t.form.submit();
+    await t.settle();
+    t.form.resend();
+    await t.settle();
+    expect(t.fetched).toHaveLength(2);
+    expect(t.fetched[1]!.body).toMatchObject({ mode: "signin", method: "magic", turnstileToken: "tok-2" });
+    expect(t.fetched[1]!.body.idempotencyKey).not.toBe(t.fetched[0]!.body.idempotencyKey);
+    t.form.resend();
+    await t.settle();
+    expect(t.fetched).toHaveLength(3);
+    expect(t.fetched[2]!.body).not.toHaveProperty("turnstileToken");
+    expect(t.form.state).toMatchObject({ resendFailed: false });
+    expect(t.form.renderVals().resendFailed).toBe(false);
+  });
+});
+
 describe("what does not ask", () => {
   it("password sign-in sends no token and never touches Turnstile", async () => {
     const t = load({ props: { mode: "signin" }, replies: [{ ok: true }] });
@@ -249,16 +326,16 @@ describe("what does not ask", () => {
     expect(t.fetched[0]!.body).not.toHaveProperty("turnstileToken");
   });
 
-  it("the sign-in link and its 'Send another link' send no token", async () => {
-    const t = load({ props: { mode: "signin", method: "magic" } });
-    t.form.setState({ email: "mia@example.test" });
-    t.form.submit();
-    await t.settle();
-    t.form.resend();
-    await t.settle();
-    expect(t.widgets).toHaveLength(0);
-    expect(t.fetched).toHaveLength(2);
-    for (const f of t.fetched) expect(f.body).not.toHaveProperty("turnstileToken");
+  it("the gallery (frozen) and the dispatch surface stay on the demo rules for the sign-in link too", async () => {
+    for (const props of [{ mode: "signin", method: "magic", frozen: true }, { mode: "signin", method: "magic", surface: "ops" }]) {
+      const t = load({ props });
+      expect(t.widgets).toHaveLength(0);
+      t.form.setState({ email: "mia@example.test" });
+      t.form.submit();
+      await t.settle();
+      expect(t.fetched).toHaveLength(0);
+      expect(t.form.state.stage).toBe("sent");
+    }
   });
 
   it("the gallery (frozen) and the dispatch surface stay on the demo rules: no widget, no request", async () => {
