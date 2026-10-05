@@ -17,6 +17,7 @@
  * fills its placeholder ids.
  */
 import { spawnSync } from "node:child_process";
+import { realpathSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -96,6 +97,21 @@ function main() {
   run("opennextjs-cloudflare", openNextDeployArgs(parsed.args));
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+/**
+ * True when this file is the entry point. Node leaves `process.argv[1]` as the path it was started with (a symlink
+ * stays a symlink) but `import.meta.url` is the real path, so a plain comparison made a symlinked start exit 0 and do
+ * nothing. Both sides go through realpathSync; if a path cannot be resolved the plain comparison is the fallback.
+ */
+export function isEntryPoint(argv1 = process.argv[1], moduleUrl = import.meta.url) {
+  if (!argv1) return false;
+  const self = fileURLToPath(moduleUrl);
+  try {
+    return realpathSync(argv1) === realpathSync(self);
+  } catch {
+    return resolve(argv1) === self;
+  }
+}
+
+if (isEntryPoint()) {
   main();
 }
