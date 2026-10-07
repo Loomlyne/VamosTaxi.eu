@@ -1958,8 +1958,7 @@ class Component extends DCLogic {
     else if (pl && ((pl.mapbox_id && pl.mapbox_id === dl.mapbox_id) || pText.toLowerCase() === dText.toLowerCase())) errs.dest = 'Pickup and drop-off are the same place';
     const air = this.pickupAir();
     const fl = String(s.fno || '').trim();
-    if (air && !fl) errs.flight = 'Enter the flight number';
-    else if (fl && !FLIGHT_RE.test(fl)) errs.flight = 'Check the flight number';
+    if (fl && !FLIGHT_RE.test(fl)) errs.flight = 'Check the flight number';
     let when = '';
     if (s.day == null || s.dayY == null || s.dayM == null || !/^\d{2}:\d{2}$/.test(s.time || '')) errs.when = 'Choose a pickup time';
     else {
@@ -2002,8 +2001,8 @@ class Component extends DCLogic {
     const sugRows = this.sugRowsList();
     const sugHasHits = sugRows.some((r) => r.row);
     const air = this.pickupAir();
-    const showFlightField = air || (!!s.pickupLoc && (!!s.flightOpen || !!s.fno));
-    const showOpener = !!s.pickupLoc && !showFlightField;
+    const showFlightField = true;
+    const showOpener = false;
     const paxCapN = this.paxMax();
     const paxN = Math.min(paxCapN, Math.max(1, parseInt(s.pax, 10) || 1));
     const bagsN = Math.min(16, Math.max(0, parseInt(s.bags, 10) || 0));
@@ -2050,7 +2049,7 @@ class Component extends DCLogic {
       tClear: t.clear || 'Clear', tSave: t.save || 'Save',
       pickupErr: e.pickup || '', destErr: e.dest || '', whenErr: e.when || '', ferr: e.flight || '',
       pickupErrAttr: e.pickup ? 'true' : 'false', destErrAttr: e.dest ? 'true' : 'false', flightErrAttr: e.flight ? 'true' : 'false',
-      showFlight: showFlightField, flightOptional: !air, flightReq: air ? 'true' : 'false', flightIcon: air ? 'plane-landing' : 'plane', fhintOpt: !air && !e.flight, showFlightOpener: showOpener, openFlight: this.openFlight, fno: s.fno || '', setFno: this.setFno, focusFno: this.focusFno, blurFno: this.blurFno, fhint: air && !e.flight,
+      showFlight: showFlightField, flightOptional: true, flightReq: 'false', flightIcon: air ? 'plane-landing' : 'plane', fhintOpt: !air && !e.flight, showFlightOpener: showOpener, openFlight: this.openFlight, fno: s.fno || '', setFno: this.setFno, focusFno: this.focusFno, blurFno: this.blurFno, fhint: air && !e.flight,
       swap: this.swap,
       date: dateStr, day: s.day, setDay: this.setDay, time: s.time, setTime: this.setTime, timeSlots: slots, tWhenPh: t.whenPh, baseMonth: zurichYm(),
       tGroups: [t.morning, t.afternoon, t.evening], tPickupTime: t.pickupTime, tSaved: t.saved,
