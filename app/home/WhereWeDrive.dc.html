@@ -102,9 +102,9 @@ a{color:inherit;text-decoration:none;border-bottom:0}a:hover{color:inherit}
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{}">
 const AIRPORTS = [
-  { id: 'zrh', code: 'ZRH', city: 'Zurich', label: 'Zurich Airport', places: ['Zurich', 'Lucerne', 'Interlaken', 'Zermatt', 'Bern'] },
-  { id: 'gva', code: 'GVA', city: 'Geneva', label: 'Geneva Airport', places: ['Geneva', 'Lausanne', 'Zermatt', 'Bern'] },
-  { id: 'bsl', code: 'BSL', city: 'Basel', label: 'Basel EuroAirport', places: ['Basel', 'Bern', 'Lucerne', 'Zurich'] },
+  { id: 'zrh', code: 'ZRH', city: 'Zurich', label: 'Zurich Airport', photo: 'dest-zrh-v2.jpg', places: ['Zurich', 'Lucerne', 'Interlaken', 'Zermatt', 'Bern'] },
+  { id: 'gva', code: 'GVA', city: 'Geneva', label: 'Geneva Airport', photo: 'dest-gva-v3.jpg', places: ['Geneva', 'Lausanne', 'Zermatt', 'Bern'] },
+  { id: 'bsl', code: 'BSL', city: 'Basel', label: 'Basel EuroAirport', photo: 'dest-bsl-v2.jpg', places: ['Basel', 'Bern', 'Lucerne', 'Zurich'] },
 ];
 /** One GET /api/quote per page: shared with home.dc.html and HowItWorks via window.__vamosIdleBoard. */
 function idleBoard() {
@@ -207,7 +207,7 @@ class Component extends DCLogic {
       })),
       activeTabId: 'ww-tab-' + a.id,
       activeId: a.id,
-      photo: '/assets/photography/dest-' + a.id + '-v2.jpg',
+      photo: '/assets/photography/' + a.photo,
       airportName: a.label,
       showSkel: a.id === 'zrh' && this.state.fixed === null,
       rows: rows,
