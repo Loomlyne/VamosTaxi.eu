@@ -29,15 +29,17 @@ describe("home hands the trip to checkout and shows no class section or price", 
     expect(home).not.toMatch(/ccFire|ccSync/);
   });
 
-  it("requires a flight number on airport pickup and leaves other trips optional", () => {
-    // 26.4 D-09: the rule moved into the booking sheet: required only for an airport pickup.
+  it("shows the flight number on every trip and never requires it", () => {
+    // Owner change 2026-10-07: the flight field is always visible and always optional, airport pickup included.
     const sheet = readFileSync(join(here, "../../../../app/home/BookingSheet.dc.html"), "utf8");
-    expect(sheet).toMatch(/const flightReq = !!p\.fromAirport;/);
+    expect(sheet).toMatch(/const flightReq = false;/);
     expect(sheet).toMatch(/flightOptional: !flightReq/);
-    // The live rule is checkTrip's English line; de/fr/ar come from the shared dictionary.
-    expect(home).toMatch(/if \(air && !fl\) errs\.flight = 'Enter the flight number'/);
-    const dict = readFileSync(join(here, "../../../../app/vamos-i18n-dict.js"), "utf8");
-    expect(dict).toMatch(/'Enter the flight number': \{ de: 'Flugnummer eingeben', fr: 'Saisissez le numéro de vol', ar: 'أدخل رقم الرحلة' \}/);
+    expect(sheet).toMatch(/_flightVisible\(p\) \{ return true; \}/);
+    expect(sheet).not.toMatch(/Enter the flight number/);
+    // checkTrip still checks the format of a typed number, and no longer asks for a missing one.
+    expect(home).not.toMatch(/errs\.flight = 'Enter the flight number'/);
+    expect(home).toMatch(/errs\.flight = 'Check the flight number'/);
+    expect(home).toMatch(/const showFlightField = true;/);
   });
 
   it("does not starve Mapbox typeahead with a five-row Swiss locHits merge", () => {

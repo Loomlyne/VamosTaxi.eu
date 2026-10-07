@@ -160,7 +160,8 @@ test.describe("Home bar and sheet @component", () => {
     await expect(sheet(page).locator('input[id$="-from"]')).toBeFocused();
 
     await pickFrom(page, "Fixture Street", "Fixture Street 1");
-    await expect(sheet(page).getByRole("button", { name: "Add a flight number" })).toBeVisible();
+    await expect(sheet(page).getByRole("textbox", { name: "Flight number" })).toBeVisible();
+    await expect(sheet(page).getByRole("button", { name: "Add a flight number" })).toHaveCount(0);
     await nextBtn(page).click();
     await expect(msg(page)).toContainText("Enter a drop-off address");
     await expect(sheet(page).locator('input[id$="-to"]')).toBeFocused();
@@ -196,15 +197,17 @@ test.describe("Home bar and sheet @component", () => {
     expect(after.filter((k) => !allowed.has(k))).toEqual([]);
   });
 
-  test("Flight number, From and To are one block, flight first; an airport pickup needs a flight; LX318 goes to checkout @component", async ({ page }) => {
+  test("Flight number, From and To are one block, flight first; the flight is always shown and optional; LX318 goes to checkout @component", async ({ page }) => {
     test.skip(width(page) > 680, "phone only (the tablet card replaced the bar at 681-1080)");
     await openHome(page);
     await openSheet(page);
-    await pickFrom(page, "Fixture Air", "Fixture Airport");
     const flight = sheet(page).getByRole("textbox", { name: "Flight number" });
+    // Owner change (2026-10-07): the flight field is there before any pickup is chosen.
     await expect(flight).toBeVisible();
-    // Owner order (2026-09-30): Flight number, then From, then To, on the same page. Focus moves into the flight field.
-    await expect(flight).toBeFocused();
+    await expect(sheet(page).getByText("Optional")).toBeVisible();
+    await pickFrom(page, "Fixture Air", "Fixture Airport");
+    await expect(flight).toBeVisible();
+    // Owner order (2026-09-30): Flight number, then From, then To, on the same page.
     const g = await page.evaluate(() => {
       const r = (sel: string) => document.querySelector(sel)!.getBoundingClientRect();
       const from = r('[data-bs] input[id$="-from"]'), fl = r('[data-bs] input[id$="-flight"]'), to = r('[data-bs] input[id$="-to"]');
@@ -212,9 +215,10 @@ test.describe("Home bar and sheet @component", () => {
     });
     expect(g.fromT).toBeGreaterThanOrEqual(g.flB - 1);
     expect(g.toT).toBeGreaterThanOrEqual(g.fromB - 1);
+    // An airport pickup does not need a flight: the first missing answer is the drop-off.
     await nextBtn(page).click();
-    await expect(msg(page)).toContainText("Enter the flight number");
-    await expect(flight).toBeFocused();
+    await expect(msg(page)).toContainText("Enter a drop-off address");
+    await expect(msg(page)).not.toContainText("flight number");
     await flight.fill("lx318");
     await pickTo(page, "Fixture Street", "Fixture Street 1");
     await fillWhen(page);
@@ -234,6 +238,7 @@ test.describe("Home bar and sheet @component", () => {
       await openSheet(page);
       await pickFrom(page, "Fixture Air", "Fixture Airport");
       const flight = sheet(page).locator('input[id$="-flight"]');
+      await flight.focus();
       await expect(flight).toBeFocused();
       const kind = () =>
         page.evaluate(() => {

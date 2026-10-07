@@ -131,7 +131,7 @@ test.describe("Home laptop booking bar @component", () => {
           });
           await open(page, w);
           await expect(page.locator("[data-box]")).toBeVisible();
-          await expect(page.locator('#book [data-bx="flight"]')).toHaveCount(0);
+          await expect(page.locator('#book [data-bx="flight"]')).toHaveCount(1);
           await expect(page.locator('#book [role="tablist"]')).toHaveCount(0);
           if (lang !== "en") await setLang(page, lang);
           const g = await geom(page);
@@ -180,18 +180,16 @@ test.describe("Home laptop booking bar @component", () => {
           expect(g.to!.width).toBeGreaterThanOrEqual(120);
         });
 
-        test(`street pickup shows the opener, whole and centred at ${w} in ${lang}`, async ({ page }) => {
+        test(`street pickup shows the optional flight field, no opener, at ${w} in ${lang}`, async ({ page }) => {
           await open(page, w);
           await pickFrom(page, "Fixture Street", "Fixture Street 1");
           if (lang !== "en") await setLang(page, lang);
           const g = await geom(page);
-          expect(g.opener).not.toBeNull();
-          expect(g.opener!.height).toBe(44);
-          const mid = (g.opener!.top + g.opener!.bottom) / 2;
-          expect(Math.abs(mid - (g.from!.top + g.from!.bottom) / 2)).toBeLessThanOrEqual(2);
-          const clip = await page.locator('#book [data-bx="flight"] button').evaluate((el) => el.scrollWidth <= el.clientWidth + 1);
-          expect(clip).toBe(true);
-          if (lang === "en") await expect(page.locator('#book [data-bx="flight"] button')).toContainText("Add a flight number");
+          expect(g.opener).toBeNull();
+          expect(g.flight).not.toBeNull();
+          expect(g.flight!.height).toBe(54);
+          expect(Math.abs(g.flight!.top - g.from!.top)).toBeLessThanOrEqual(1);
+          if (lang === "en") await expect(page.locator('#book [data-bx="flight"]').getByText("Optional")).toBeVisible();
         });
       }
     }
@@ -435,6 +433,7 @@ test.describe("Home laptop booking bar @component", () => {
         await from.fill("Fixture Air");
         await page.getByRole("option", { name: /Fixture Airport/ }).click();
         const flight = page.locator('#book [data-bx="flight"] input');
+        await flight.focus();
         await expect(flight).toBeFocused();
         const kind = () =>
           page.evaluate(() => {
@@ -509,16 +508,16 @@ test.describe("Home laptop booking bar @component", () => {
       });
     }
 
-    test("an airport pick shows the flight row full width above From and moves focus to it; the card still fits above the fold", async ({ page }) => {
+    test("the flight row is shown full width above From from the start; the card still fits above the fold", async ({ page }) => {
       await stubGeo(page);
       const url = await serveMock("app/home/home.dc.html");
       await page.goto(url);
       await waitForMockReady(page);
       await dismissCookies(page);
-      await pickFrom(page, "Fixture Air", "Fixture Airport");
       const flight = page.locator('#book [data-bx="flight"]');
       await expect(flight).toBeVisible();
-      await expect(flight.locator("input")).toBeFocused();
+      await pickFrom(page, "Fixture Air", "Fixture Airport");
+      await expect(flight).toBeVisible();
       const g = await geom(page);
       expect(g.flight!.bottom).toBeLessThanOrEqual(g.from!.top + 1);
       const b = await page.evaluate(() => ({ bottom: document.querySelector("#book")!.getBoundingClientRect().bottom, ih: window.innerHeight }));
