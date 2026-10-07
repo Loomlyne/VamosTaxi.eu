@@ -53,9 +53,9 @@ test.afterAll(() => {
 });
 
 const CAPS = [
-  { slug: "economy", name: "Economy", pax: 3, bags: 3, photo: "/assets/photography/class-economy.jpg" },
-  { slug: "business", name: "Business", pax: 7, bags: 6, photo: "/assets/photography/class-business.jpg" },
-  { slug: "van-luxury", name: "Van luxury", pax: 12, bags: 9, photo: "/assets/photography/class-van.jpg" },
+  { slug: "economy", name: "Economy", pax: 3, bags: 3, photo: "/brand/photography/fleet-van-street.jpg" },
+  { slug: "business", name: "Business", pax: 7, bags: 6, photo: "/brand/photography/fleet-van-street.jpg" },
+  { slug: "van-luxury", name: "Van luxury", pax: 12, bags: 9, photo: "/brand/photography/fleet-van-street.jpg" },
 ];
 
 function quoteBody(noRoad = false) {

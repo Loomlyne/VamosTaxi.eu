@@ -24,9 +24,6 @@
 /assets/vendor/*
   ! Cache-Control
   Cache-Control: public, max-age=31536000, immutable
-/assets/photography/*
-  ! Cache-Control
-  Cache-Control: public, max-age=31536000, immutable
 /_ds/:pack/assets/fonts/*
   ! Cache-Control
   Cache-Control: public, max-age=31536000, immutable

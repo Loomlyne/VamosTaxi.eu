@@ -159,7 +159,7 @@ test.describe("CheckerMark @component", () => {
 // repeatable test — recorded in .planning/WINDOWS.md as an unrun-verify follow-up.
 test.describe("Avatar @component", () => {
   test("default (image) — port matches the vendored bundle @component", async ({ page }) => {
-    const props = { name: "Anna Keller", src: "/assets/photography/fleet-van-street.jpg" };
+    const props = { name: "Anna Keller", src: "/brand/photography/fleet-van-street.jpg" };
 
     const bundleUrl = await mountBundle("Avatar", props);
     await page.goto(bundleUrl);

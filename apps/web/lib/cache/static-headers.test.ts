@@ -52,7 +52,7 @@ describe("public/_headers cache rules", () => {
 
   it("long rules are immutable and only on versioned or fixed-name files", () => {
     const long = cacheRules.filter((r) => r.lines.some((l) => /max-age=31536000/.test(l)));
-    expect(long.map((r) => r.pattern).sort()).toEqual(["/_ds/:pack/assets/fonts/*", "/assets/photography/*", "/assets/vendor/*"]);
+    expect(long.map((r) => r.pattern).sort()).toEqual(["/_ds/:pack/assets/fonts/*", "/assets/vendor/*"]);
     for (const r of long) {
       expect(r.lines.some((l) => /immutable/.test(l))).toBe(true);
       expect(r.lines[0]).toBe("! Cache-Control"); // detach the short rule first
