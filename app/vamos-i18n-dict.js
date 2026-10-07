@@ -1095,7 +1095,7 @@
       'terms 01': { de: 'AGB 01', fr: 'conditions 01', ar: 'الشروط 01' },
       'Carrier or intermediary': { de: 'Transporteur oder Vermittler', fr: 'Transporteur ou intermédiaire', ar: 'ناقل أم وسيط' },
       'Arrivals hall at Zurich airport': { de: 'Ankunftshalle am Flughafen Zürich', fr: 'Hall des arrivées de l’aéroport de Zurich', ar: 'صالة الوصول في مطار زيورخ' },
-      'A charcoal Mercedes V-Class van on a city street': { de: 'Ein anthrazitfarbener Mercedes V-Klasse Van an einer Stadtstrasse', fr: 'Un van Mercedes Classe V anthracite dans une rue de la ville', ar: 'مركبة مرسيدس فئة V رمادية داكنة في شارع بالمدينة' },
+      'A chauffeur opens the door of a black Mercedes for a passenger with a suitcase': { de: 'Ein Chauffeur öffnet einem Fahrgast mit Koffer die Tür eines schwarzen Mercedes', fr: 'Un chauffeur ouvre la portière d\'une Mercedes noire pour un passager avec une valise', ar: 'سائق يفتح باب سيارة مرسيدس سوداء لراكب يحمل حقيبة' },
       'The V-Class, our Van class. The only vehicle photograph the brand currently owns.': { de: 'Die V-Klasse, unsere Van-Klasse. Die einzige Fahrzeugaufnahme, die die Marke derzeit besitzt.', fr: 'La Classe V, notre classe Van. La seule photographie de véhicule que la marque possède aujourd’hui.', ar: 'فئة V، وهي فئة الفان لدينا. وهي صورة المركبة الوحيدة التي تملكها العلامة حاليًا.' },
 
       /* ── Contact: form states and split sentences ──────────────────────── */
