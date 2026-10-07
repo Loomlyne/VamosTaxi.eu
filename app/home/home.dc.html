@@ -1826,25 +1826,6 @@ class Component extends DCLogic {
     return rows;
   }
   _sugRef = (el) => { this._sug = el; };
-  /** Laptop bar (26.4.2): the flight field slides in before From when the pickup turns out to be an airport;
-   *  focus goes into it so the traveller (and a screen reader, which reads its label and hint) lands there. */
-  componentDidUpdate() {
-    /* The DC runtime passes previous props only, so the previous airport answer is remembered here. */
-    const st = this.state;
-    const isAir = !!(st.pickupLoc && this.pickupAir());
-    const wasAir = !!this._wasAir;
-    this._wasAir = isAir;
-    if (st.narrow || wasAir || !isAir) return;
-    cancelAnimationFrame(this._flightFocusRaf);
-    this._flightFocusRaf = requestAnimationFrame(() => {
-      const i = this._box && this._box.querySelector('[data-bx="flight"] input');
-      if (!i || !this.pickupAir()) return;
-      /* Only when focus is still where the pick happened (From) or nowhere; a traveller who already moved on keeps their place. */
-      const a = document.activeElement;
-      if (a && a !== document.body && !(a.closest && a.closest('[data-bx="from"]'))) return;
-      try { i.focus({ preventScroll: true }); } catch (err) {}
-    });
-  }
   /** Keeps the highlighted row inside the scroll window without touching page scroll. */
   scrollSug(i) {
     const box = this._sug; if (!box || !box.querySelector) return;

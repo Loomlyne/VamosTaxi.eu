@@ -312,9 +312,6 @@ class Component extends DCLogic {
         this._onClosed();
       }
     }
-    if (!p.inline && p.open && prev.open && !this._flightVisible(prev) && this._flightVisible(p) && p.fromChosen) {
-      const el = this._el('flight'); if (el) el.focus();
-    }
     this._syncAria();
   }
   componentWillUnmount() {
