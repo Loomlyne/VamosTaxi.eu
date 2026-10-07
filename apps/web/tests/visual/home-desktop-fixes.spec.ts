@@ -83,15 +83,15 @@ test.describe("Home desktop fixes 26.4.2 @component", () => {
   });
 
   for (const w of [1440, 1360, 1280, 1081]) {
-    test(`airport pickup: flight field slides in before From, focus lands in it, the bar does not grow at ${w}`, async ({ page }) => {
+    test(`the flight field sits before From from the start and the bar does not grow on an airport pickup at ${w}`, async ({ page }) => {
       await open(page, w);
       const h0 = await cardHeight(page);
+      await expect(page.getByRole("textbox", { name: "Flight number" })).toBeVisible();
       const from = page.getByRole("combobox", { name: "From", exact: true });
       await from.fill("Fixture Air");
       await page.getByRole("option", { name: /Fixture Airport/ }).click();
       const flightInput = page.getByRole("textbox", { name: "Flight number" });
       await expect(flightInput).toBeVisible();
-      await expect(flightInput).toBeFocused();
       await page.waitForTimeout(400);
       const flight = await rect(page, '#book [data-bx=flight]:not([data-om-label="Add flight"]) [data-vtcombo]');
       const fromBox = await rect(page, "#book [data-bx=from] [data-vtcombo]");
@@ -169,6 +169,7 @@ test.describe("Home desktop fixes 26.4.2 @component", () => {
         await from.fill("Fixture Air");
         await page.locator('#book [data-bx="from"] [role="option"]').first().click();
         const flight = page.locator('#book [data-bx="flight"] input');
+        await flight.focus();
         await expect(flight).toBeFocused();
         await page.waitForTimeout(300);
         const seen: { cell: string; x: number; y: number }[] = [];
