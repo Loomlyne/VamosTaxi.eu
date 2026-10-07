@@ -105,9 +105,10 @@ test.describe("Home booking box @component", () => {
     expect(Math.abs(pos.to.top - pos.from.top)).toBeLessThanOrEqual(1);
   });
 
-  test("a street pickup offers an optional flight and keeps a typed value @component", async ({ page }) => {
+  test("the flight field is shown from the start, optional, and keeps a typed value @component", async ({ page }) => {
     await openHome(page);
     await expect(page.getByRole("button", { name: "Add a flight number" })).toHaveCount(0);
+    await expect(page.getByRole("textbox", { name: "Flight number" })).toBeVisible();
     await pickFrom(page, "Fixture Air", "Fixture Airport");
     const flight = page.getByRole("textbox", { name: "Flight number" });
     await flight.fill("lx  318");
@@ -121,16 +122,14 @@ test.describe("Home booking box @component", () => {
     await expect(page.locator("#bx-flight-hint")).toHaveText("It does not change the price.");
   });
 
-  test("a street pickup shows the opener, then an optional flight that must be valid @component", async ({ page }) => {
+  test("an optional flight that is typed must be valid @component", async ({ page }) => {
     await page.route("**/checkout?**", (route) =>
       route.fulfill({ status: 200, contentType: "text/html", body: "<html><body>checkout</body></html>" }),
     );
     await openHome(page);
     await pickFrom(page, "Fixture Street", "Fixture Street 1");
-    await expect(page.getByRole("textbox", { name: "Flight number" })).toHaveCount(0);
-    await page.getByRole("button", { name: "Add a flight number" }).click();
     const flight = page.getByRole("textbox", { name: "Flight number" });
-    await expect(flight).toBeFocused();
+    await expect(flight).toBeVisible();
     await expect(page.locator('[data-bx="flight"]').getByText("Optional")).toBeVisible();
     await pickTo(page, "Fixture Air", "Fixture Airport");
     await pickWhen(page);
@@ -170,14 +169,14 @@ test.describe("Home booking box @component", () => {
     expect(new URL(page.url()).pathname).not.toMatch(/checkout/);
   });
 
-  test("an airport pickup needs a valid flight number before it goes on @component", async ({ page }) => {
+  test("an airport pickup goes on without a flight number, and a typed one must be valid @component", async ({ page }) => {
+    await page.route("**/checkout?**", (route) =>
+      route.fulfill({ status: 200, contentType: "text/html", body: "<html><body>checkout</body></html>" }),
+    );
     await openHome(page);
     await pickFrom(page, "Fixture Air", "Fixture Airport");
     await pickTo(page, "Fixture Street", "Fixture Street 1");
     await pickWhen(page);
-    await page.getByRole("button", { name: /See prices/i }).click();
-    await expect(page.getByRole("alert").filter({ hasText: "Enter the flight number" })).toBeVisible();
-    await expect(page.getByRole("textbox", { name: "Flight number" })).toBeFocused();
     await page.getByRole("textbox", { name: "Flight number" }).fill("X");
     await page.getByRole("button", { name: /See prices/i }).click();
     await expect(page.getByRole("alert").filter({ hasText: "Check the flight number" })).toBeVisible();

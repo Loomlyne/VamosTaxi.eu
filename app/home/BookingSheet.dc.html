@@ -269,7 +269,7 @@ class Component extends DCLogic {
 
   /* ---------- helpers ---------- */
   _cb(name, a, b, c, d) { const f = this.props[name]; if (typeof f === 'function') f(a, b, c, d); }
-  _flightVisible(p) { return !!(p.fromAirport || p.flightOpen || (p.flight && String(p.flight).trim())); }
+  _flightVisible(p) { return true; }
   _el(field) { return document.getElementById(this._uid + '-' + field); }
   _reduced() { return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); }
 
@@ -282,7 +282,6 @@ class Component extends DCLogic {
     const has = (v) => !!(v && String(v).trim());
     if (!has(p.fromText)) return { msg: 'Enter a pickup address', field: 'from' };
     if (!p.fromChosen) return { msg: 'Choose a pickup address from the list', field: 'from' };
-    if (p.fromAirport && !has(p.flight)) return { msg: 'Enter the flight number', field: 'flight' };
     if (has(p.flight) && !p.flightValid) return { msg: 'Check the flight number', field: 'flight' };
     if (!has(p.toText)) return { msg: 'Enter a drop-off address', field: 'to' };
     if (!p.toChosen) return { msg: 'Choose a drop-off address from the list', field: 'to' };
@@ -312,9 +311,6 @@ class Component extends DCLogic {
       } else if (prev.open && !p.open) {
         this._onClosed();
       }
-    }
-    if (!p.inline && p.open && prev.open && !this._flightVisible(prev) && this._flightVisible(p) && p.fromChosen) {
-      const el = this._el('flight'); if (el) el.focus();
     }
     this._syncAria();
   }
@@ -562,7 +558,7 @@ class Component extends DCLogic {
     const inline = !!p.inline;
     const fieldErr = (f) => (show && issue.field === f ? 'true' : 'false');
     const errBool = (f) => show && issue.field === f;
-    const flightReq = !!p.fromAirport;
+    const flightReq = false;
     const flightVis = this._flightVisible(p);
     const sugFrom = this._sugOpen('from'), sugTo = this._sugOpen('to');
     const setPax = (n) => () => this._cb('onPax', n);
@@ -597,8 +593,8 @@ class Component extends DCLogic {
       errFrom: fieldErr('from'), errTo: fieldErr('to'), errFlight: fieldErr('flight'),
       errDate: errBool('date'), errTime: errBool('time'),
       flightShown: flightVis, flightOptional: !flightReq, flightRequiredStr: flightReq ? 'true' : 'false',
-      flightIcon: flightReq ? 'plane-landing' : 'plane',
-      flightHint: flightReq ? 'So your driver knows which flight to meet' : 'It does not change the price.',
+      flightIcon: p.fromAirport ? 'plane-landing' : 'plane',
+      flightHint: p.fromAirport ? 'So your driver knows which flight to meet' : 'It does not change the price.',
       flight: p.flight || '', inFlight: ed('onFlight'),
       opener: !flightVis && !!p.fromChosen, openFlight: () => this._cb('onFlightOpen'),
       dateLabel: p.dateLabel || '', dayNum: +p.dayNum || 0, dayY: +p.dayY || 0, dayM: +p.dayM || 0, time: p.time || '', baseMonth: p.baseMonth || '', lang: p.lang || 'en',
