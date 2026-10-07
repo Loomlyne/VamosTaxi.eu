@@ -255,8 +255,9 @@ nothing loops. `prefers-reduced-motion` is honoured globally in `tokens/base.css
   product is used one-handed at an airport.
 - **Selected:** 2px charcoal border (cards, vehicles) or charcoal fill (tags, tabs).
 - **Disabled:** 42 % opacity, no shadow, `not-allowed`.
-- **Loading / empty:** state it in words ("Awaiting live Stripe data"), never a
-  fake number or a shimmering block pretending to be data.
+- **Loading:** a skeleton of the real layout, at the final height so nothing
+  jumps when the data lands. Never a fake number.
+- **Empty:** state it in words ("Awaiting live Stripe data").
 
 ### Layout rules
 
