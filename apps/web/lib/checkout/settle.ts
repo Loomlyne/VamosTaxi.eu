@@ -387,7 +387,14 @@ export async function handleStripeMessageWithDeps(
       // pages opened by a second Pay press without a row of their own, or with no booking on live).
       // Today it happens when the intent expires its own page after the database refused the
       // booking. Close it quietly.
-      if (message.type === "checkout.session.expired" && session && session.payment_status !== "paid") {
+      // The same holds for the intent behind that page: Stripe cancels it when the page expires, and a
+      // canceled intent never captured money (Stripe refuses to cancel after capture). A declined card
+      // leaves no payment row either, so this event used to retry nine times into the same false mail.
+      const canceledNothingCaptured = message.type === "payment_intent.canceled";
+      if (
+        canceledNothingCaptured ||
+        (message.type === "checkout.session.expired" && session && session.payment_status !== "paid")
+      ) {
         try {
           await deps.eventSettle(message.eventId, "no_payment");
         } catch {

@@ -1273,6 +1273,19 @@ describe("261005 U15: an expired checkout page with no payment row", () => {
     expect(d.purgeOnSessionExpired).not.toHaveBeenCalled();
   });
 
+  it("a canceled intent with no payment row is closed the same way: a declined card, then the page expires", async () => {
+    const canceledMsg = message({ type: "payment_intent.canceled", objectId: "pi_1" } as Partial<StripeQueueMessage>);
+    const d = deps({
+      settlePayment: vi.fn(async () => {
+        throw sqlErr("P0002");
+      }),
+    });
+    expect(await handleStripeMessageWithDeps(canceledMsg, d)).toEqual({ ack: true });
+    expect(d.eventSettle).toHaveBeenCalledWith("evt_1", "no_payment");
+    expect(d.alertStuckPayment).not.toHaveBeenCalled();
+    expect(d.refund).not.toHaveBeenCalled();
+  });
+
   it("if recording no_payment fails the message is retried", async () => {
     const d = noRow(expiredMain(), {
       eventSettle: vi.fn(async () => {
