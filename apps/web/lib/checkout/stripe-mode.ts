@@ -17,16 +17,21 @@ const PUBLISHABLE_KEY = /^pk_(live|test)_[A-Za-z0-9_]+$/;
 /** The production block in wrangler.jsonc carries this until cutover; it names no mode. */
 const PUBLISHABLE_PLACEHOLDER = "pk_test_placeholder";
 
-/** Mode of a secret (`sk_`) or restricted (`rk_`) key; null for anything else, including padding. */
+/**
+ * Mode of a secret (`sk_`) or restricted (`rk_`) key; null for anything else. Surrounding
+ * whitespace is ignored, as it is on the wire (a header value is trimmed by fetch), so a key
+ * pasted with a trailing newline keeps working; use `stripeSecretKey` for the usable value.
+ */
 export function stripeSecretKeyMode(key: string | null | undefined): StripeMode | null {
-  const m = typeof key === "string" ? SECRET_KEY.exec(key) : null;
+  const m = typeof key === "string" ? SECRET_KEY.exec(key.trim()) : null;
   return m ? (m[1] as StripeMode) : null;
 }
 
 /** Mode of a publishable key; null for the placeholder, empty or malformed values. */
 export function stripePublishableKeyMode(key: string | null | undefined): StripeMode | null {
-  if (typeof key !== "string" || key === PUBLISHABLE_PLACEHOLDER) return null;
-  const m = PUBLISHABLE_KEY.exec(key);
+  const k = typeof key === "string" ? key.trim() : "";
+  if (!k || k === PUBLISHABLE_PLACEHOLDER) return null;
+  const m = PUBLISHABLE_KEY.exec(k);
   return m ? (m[1] as StripeMode) : null;
 }
 

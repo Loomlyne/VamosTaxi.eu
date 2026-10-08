@@ -22,7 +22,7 @@ export function stripeFromEnv(env: CloudflareEnv): Stripe {
   }
   // J1: a value that is not a Stripe secret or restricted key never reaches Stripe.
   requireStripeSecretMode(key);
-  return new Stripe(key, {
+  return new Stripe(key.trim(), {
     httpClient: Stripe.createFetchHttpClient(),
     apiVersion: STRIPE_API_VERSION,
     typescript: true,

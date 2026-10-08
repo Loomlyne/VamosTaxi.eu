@@ -10,7 +10,8 @@
 // post-trip request (reason post_trip), or declines/rejects (decideRefund -> ops_refund_decide).
 // 20-10 owner rule: a booking cancelled more than 24 h ahead (pending_ops with an owed amount)
 // gets the full amount only: no lower percent, no exact amount below what is left, no decline.
-// The live-key refusal below stays until the sandbox proof (20-10 spec D.3).
+// J1 (2026-10-09): the live-key refusal is gone; the owner runs live and refunds in the app. A key that
+// is not a Stripe key is still refused before any plan or Stripe call (stripeKeyRefused).
 
 import { stripeKeyRefused } from "@/lib/checkout/stripe-mode";
 import { asStaff, asSystem, type VamosClaims } from "../db/identity";

@@ -31,6 +31,7 @@ function completedBody(id: string, created: number, sessionId: string): string {
   return JSON.stringify({
     id,
     object: "event",
+    livemode: false,
     api_version: "2026-08-26.dahlia",
     created,
     type: "checkout.session.completed",
@@ -49,6 +50,7 @@ function canceledBody(id: string, created: number, pi: string): string {
   return JSON.stringify({
     id,
     object: "event",
+    livemode: false,
     api_version: "2026-08-26.dahlia",
     created,
     type: "payment_intent.canceled",

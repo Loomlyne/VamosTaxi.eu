@@ -181,7 +181,8 @@ export default {
     // In-process hourly probe (LAUNCH-03). Do not HTTP-loopback to the route.
     try {
       const health = await probeHealth(env);
-      emit("info", "health_probe", {
+      // J1: a down dependency, including payments down on a key-mode mismatch, is an error line.
+      emit(health.ok ? "info" : "error", "health_probe", {
         ok: health.ok,
         db: health.db,
         payments: health.payments,

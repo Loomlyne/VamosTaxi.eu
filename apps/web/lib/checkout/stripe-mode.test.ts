@@ -32,10 +32,19 @@ describe("stripeSecretKeyMode", () => {
     expect(stripeSecretKeyMode(RK_TEST)).toBe("test");
   });
 
-  it("refuses everything else: padding, case, other prefixes, empty", () => {
-    for (const bad of [` ${SK_LIVE}`, `${SK_LIVE}\n`, SK_LIVE.toUpperCase(), PK_LIVE, "whsec_abc", "sk_abc", "", null, undefined]) {
+  it("refuses everything else: case, inner spaces, other prefixes, empty; ignores surrounding whitespace", () => {
+    for (const bad of [SK_LIVE.toUpperCase(), `${SK_LIVE} x`, PK_LIVE, "whsec_abc", "sk_abc", "", "  ", null, undefined]) {
       expect(stripeSecretKeyMode(bad as string)).toBeNull();
     }
+  });
+});
+
+describe("surrounding whitespace", () => {
+  it("is ignored by the readers and by stripeFromEnv (fetch trims the header value anyway)", () => {
+    expect(stripeSecretKeyMode(`${SK_LIVE}\n`)).toBe("live");
+    expect(stripeSecretKeyMode(` ${RK_TEST} `)).toBe("test");
+    expect(stripePublishableKeyMode(`${PK_LIVE}\n`)).toBe("live");
+    expect(() => stripeFromEnv({ STRIPE_SECRET_KEY: `${SK_LIVE}\n` } as unknown as CloudflareEnv)).not.toThrow();
   });
 });
 
@@ -63,7 +72,7 @@ describe("stripeKeysAgree", () => {
 
 describe("stripeKeyRefused (staff early check)", () => {
   it("refuses a bound value that is not a Stripe key; an unbound key and any real key pass", () => {
-    expect(stripeKeyRefused({ STRIPE_SECRET_KEY: " not-a-key" })).toBe(true);
+    expect(stripeKeyRefused({ STRIPE_SECRET_KEY: "not-a-key" })).toBe(true);
     expect(stripeKeyRefused({})).toBe(false);
     expect(stripeKeyRefused({ STRIPE_SECRET_KEY: SK_LIVE })).toBe(false);
     expect(stripeKeyRefused({ STRIPE_SECRET_KEY: RK_LIVE })).toBe(false);
@@ -76,7 +85,7 @@ describe("stripeFromEnv", () => {
     expect(() => stripeFromEnv({ STRIPE_SECRET_KEY: SK_LIVE } as unknown as CloudflareEnv)).not.toThrow();
     expect(() => stripeFromEnv({ STRIPE_SECRET_KEY: RK_LIVE } as unknown as CloudflareEnv)).not.toThrow();
     expect(() => stripeFromEnv({ STRIPE_SECRET_KEY: SK_TEST } as unknown as CloudflareEnv)).not.toThrow();
-    expect(() => stripeFromEnv({ STRIPE_SECRET_KEY: `${SK_LIVE}\n` } as unknown as CloudflareEnv)).toThrow(StripeModeError);
+    expect(() => stripeFromEnv({ STRIPE_SECRET_KEY: `${SK_LIVE} x` } as unknown as CloudflareEnv)).toThrow(StripeModeError);
     expect(() => stripeFromEnv({ STRIPE_SECRET_KEY: "garbage" } as unknown as CloudflareEnv)).toThrow(StripeModeError);
     expect(() => requireStripeSecretMode(undefined)).toThrow(StripeModeError);
   });
@@ -116,5 +125,53 @@ describe("handleStripeWebhook mode handling", () => {
     });
     await expect(handleStripeWebhook("{}", "t=1,v1=x", d.deps)).rejects.toThrow("not bound");
     expect(d.emit).toHaveBeenCalledWith("error", "stripe_webhook_config", expect.any(Object));
+  });
+});
+
+// R05: the real verifier, not a stub. Signs a payload with Stripe's own test helper and runs it
+// through verifyStripeEvent, so inverting the livemode comparison fails here.
+describe("verifyStripeEvent livemode check (real signature)", async () => {
+  const Stripe = (await import("stripe")).default;
+  const { verifyStripeEvent } = await import("./webhook-verify");
+  const SECRET = "whsec_test_fixture_sign_only";
+
+  function signed(livemode: boolean) {
+    const payload = JSON.stringify({
+      id: "evt_mode_1",
+      object: "event",
+      api_version: "2026-08-26.dahlia",
+      created: 1_700_000_000,
+      livemode,
+      type: "checkout.session.completed",
+      data: { object: { id: "cs_mode_1", object: "checkout.session" } },
+    });
+    return { payload, header: Stripe.webhooks.generateTestHeaderString({ payload, secret: SECRET }) };
+  }
+  const env = (sk: string) => ({ STRIPE_SECRET_KEY: sk, STRIPE_WEBHOOK_SECRET: SECRET }) as unknown as CloudflareEnv;
+
+  it("accepts a live event with a live key and a test event with a test key", async () => {
+    const live = signed(true);
+    expect((await verifyStripeEvent(env(SK_LIVE), live.payload, live.header)).id).toBe("evt_mode_1");
+    const test = signed(false);
+    expect((await verifyStripeEvent(env(SK_TEST), test.payload, test.header)).id).toBe("evt_mode_1");
+  });
+
+  it("refuses a test event with a live key and a live event with a test key", async () => {
+    const test = signed(false);
+    await expect(verifyStripeEvent(env(SK_LIVE), test.payload, test.header)).rejects.toBeInstanceOf(WebhookModeError);
+    const live = signed(true);
+    await expect(verifyStripeEvent(env(RK_TEST), live.payload, live.header)).rejects.toBeInstanceOf(WebhookModeError);
+  });
+
+  it("a missing webhook secret is a plain error (500), not a verification error (400)", async () => {
+    const live = signed(true);
+    const err = await verifyStripeEvent({ STRIPE_SECRET_KEY: SK_LIVE } as unknown as CloudflareEnv, live.payload, live.header).catch((e) => e);
+    expect(err).toBeInstanceOf(Error);
+    expect(err).not.toBeInstanceOf(WebhookVerificationError);
+  });
+
+  it("a bad signature stays a verification error", async () => {
+    const live = signed(true);
+    await expect(verifyStripeEvent(env(SK_LIVE), live.payload, "t=1,v1=bad")).rejects.toBeInstanceOf(WebhookVerificationError);
   });
 });
