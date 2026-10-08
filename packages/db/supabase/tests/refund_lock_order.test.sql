@@ -45,7 +45,7 @@ insert into fns values
   ('public.booking_edit_refund_record(uuid,text,uuid,public.rappen)', 'booking_edit_refund_record'),
   ('public.booking_staff_change(uuid,uuid,text,int8,int4,jsonb,text,int4)', 'booking_staff_change'),
   ('public.booking_staff_trip_change(uuid,uuid,text,jsonb,int8,int4,jsonb,text,numeric,int4,jsonb,int4,text)', 'booking_staff_trip_change'),
-  ('public.checkout_extra_payment_settle(text,text,text,text,text,numeric,text,timestamptz,int8)', 'checkout_extra_payment_settle');
+  ('public.checkout_extra_payment_settle(text,text,text,text,text,numeric,text,timestamptz,int8,int8,text,int8,text)', 'checkout_extra_payment_settle');
 
 -- ── per function: the payment first, one booking lock, the re-check after it (27) ─────────────
 select ok(pg_catalog.cardinality(pg_temp.at(f.fn, 'pay')) >= 1
@@ -80,8 +80,8 @@ select ok((pg_temp.at(f.fn, 'changed'))[1] < (pg_temp.at(f.fn, 'accept'))[1],
   from fns f where f.label in ('booking_staff_change', 'booking_staff_trip_change') order by f.label;
 
 -- ── the order the others already follow (2) ────────────────────────────────────────────────────
-select ok((pg_temp.at('public.checkout_payment_settle(text,text,text,text,text,numeric,text,timestamptz,int8,text)', 'pay'))[1]
-          < (pg_temp.at('public.checkout_payment_settle(text,text,text,text,text,numeric,text,timestamptz,int8,text)', 'booking'))[1],
+select ok((pg_temp.at('public.checkout_payment_settle(text,text,text,text,text,numeric,text,timestamptz,int8,text,int8,text,int8,text)', 'pay'))[1]
+          < (pg_temp.at('public.checkout_payment_settle(text,text,text,text,text,numeric,text,timestamptz,int8,text,int8,text,int8,text)', 'booking'))[1],
           'settle: still locks the payment before the booking (if this changes, revisit 20261007280000)');
 select ok((pg_temp.at('public.meta_purchase_claim(uuid,int8,text,bool,bool,text)', 'pay'))[1]
           < (pg_temp.at('public.meta_purchase_claim(uuid,int8,text,bool,bool,text)', 'booking'))[1],

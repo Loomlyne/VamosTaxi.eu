@@ -15,11 +15,14 @@
 --   G  Accept: a second Accept after the amount moved is refused (price-changed), nothing written; the same
 --      amount still answers extra_required; the refusal order is unchanged.
 --   H  checkout_reference_for_session finds the booking of a difference page.
+--   J  J3 (20261009110000): a difference whose amount, currency or booking does not match what was asked is
+--      recorded but never applied (W4-07, W5-02); a difference paid after its price record expired is still
+--      recorded (W5-10); the gate flag does not leak.
 --   I  J2 (20261009100000): a late failed event never touches a paid difference (W4-17, W5-04); a currency or
 --      FX tuple the row cannot hold never makes the settle raise after capture (W5-12).
 -- Rolled back. Synthetic integer rappen only, never a product CHF.
 begin;
-select plan(135);
+select plan(150);
 
 insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity)
 values ('ssf-eco', 4, 4), ('ssf-biz', 7, 7), ('ssf-gone', 7, 7);
@@ -197,13 +200,13 @@ select is(
       and g.grantee <> 'service_role'::regrole::oid),
   array['vamos_system']::text[], 'pages: no EXECUTE grantee but vamos_system (owner and service_role apart)');
 select function_privs_are('public', 'checkout_extra_payment_settle',
-  '{text,text,text,text,text,numeric,text,timestamptz,int8}'::text[], 'vamos_system', '{EXECUTE}'::text[],
+  '{text,text,text,text,text,numeric,text,timestamptz,int8,int8,text,int8,text}'::text[], 'vamos_system', '{EXECUTE}'::text[],
   'settle: vamos_system holds EXECUTE');
 select function_privs_are('public', 'checkout_extra_payment_settle',
-  '{text,text,text,text,text,numeric,text,timestamptz,int8}'::text[], 'anon', '{}'::text[],
+  '{text,text,text,text,text,numeric,text,timestamptz,int8,int8,text,int8,text}'::text[], 'anon', '{}'::text[],
   'settle: anon holds no EXECUTE');
 select function_privs_are('public', 'checkout_extra_payment_settle',
-  '{text,text,text,text,text,numeric,text,timestamptz,int8}'::text[], 'authenticated', '{}'::text[],
+  '{text,text,text,text,text,numeric,text,timestamptz,int8,int8,text,int8,text}'::text[], 'authenticated', '{}'::text[],
   'settle: authenticated holds no EXECUTE');
 select function_privs_are('public', 'booking_edit_request_accept', '{uuid,uuid}'::text[],
   'vamos_system', '{EXECUTE}'::text[], 'accept: vamos_system holds EXECUTE');
@@ -735,6 +738,93 @@ create temporary table fxe_paid as
 select ok((select p.charged_currency = 'EUR' and p.fx_rate = 1.05 and p.presentment_amount_minor = 860
              from public.booking_payments p where p.stripe_checkout_session_id = 'cs_ssf_fxe'),
   'fx: a complete EUR tuple is stored unchanged');
+-- ---------------------------------------------------------------------------
+-- J. J3 (20261009110000): amount, currency and booking check on a difference; the charge gate never refuses a captured one
+-- ---------------------------------------------------------------------------
+select pg_temp.ssf_mk('am');
+create temporary table am_w as select * from pg_temp.ssf_change('am', 13);
+select pg_temp.ssf_page((select request_id from am_w), 'cs_ssf_am');
+create temporary table am_expect as select s.total_rappen::int as t from public.price_snapshots s where s.id = (select extra_snapshot_id from am_w);
+create temporary table am_paid as
+  select * from public.checkout_extra_payment_settle('evt_ssf_am', 'cs_ssf_am', 'pi_x_am', 'succeeded', 'CHF', null, null, null, null,
+                                                     (select t + 1 from am_expect), 'CHF', (select t + 1 from am_expect), null);
+select is((select applied from am_paid), false, 'amount: a difference of another amount is NOT applied (W4-07)');
+select is(pg_temp.ssf_class('am'), 'ssf-eco', 'amount: the class is unchanged');
+select ok((select p.status = 'succeeded' and p.captured_at is not null and p.charged_rappen = (select t from am_expect)
+             from public.booking_payments p where p.stripe_checkout_session_id = 'cs_ssf_am'),
+  'amount: the capture is recorded');
+select ok((select e.payload ->> 'reason' = 'amount_total,amount_received'
+              and (e.payload ->> 'amount_total_minor')::int = (select t + 1 from am_expect)
+             from public.booking_events e
+            where e.booking_id = pg_temp.ssf_b('am') and e.kind = 'refund.requested' and e.payload ->> 'via' = 'amount_mismatch'),
+  'amount: the event says via amount_mismatch with the reasons and what Stripe collected');
+select is((select r.status from public.booking_edit_requests r where r.id = (select request_id from am_w)), 'superseded',
+  'amount: the request ends (nothing will apply it later)');
+
+select pg_temp.ssf_mk('amc');
+create temporary table amc_w as select * from pg_temp.ssf_change('amc', 13);
+select pg_temp.ssf_page((select request_id from amc_w), 'cs_ssf_amc');
+create temporary table amc_paid as
+  select * from public.checkout_extra_payment_settle('evt_ssf_amc', 'cs_ssf_amc', 'pi_x_amc', 'succeeded', 'CHF', null, null, null, null,
+                                                     (select s.total_rappen from public.price_snapshots s where s.id = (select extra_snapshot_id from amc_w)),
+                                                     'chf',
+                                                     (select s.total_rappen from public.price_snapshots s where s.id = (select extra_snapshot_id from amc_w)),
+                                                     pg_temp.ssf_b('amc')::text);
+select is((select applied from amc_paid), true, 'match: the exact amount, CHF in lower case and the booking id in the metadata apply the change');
+select is(pg_temp.ssf_class('amc'), 'ssf-biz', 'match: the class she paid for');
+
+select pg_temp.ssf_mk('amx');
+create temporary table amx_w as select * from pg_temp.ssf_change('amx', 13);
+select pg_temp.ssf_page((select request_id from amx_w), 'cs_ssf_amx');
+select is((select applied from public.checkout_extra_payment_settle('evt_ssf_amx', 'cs_ssf_amx', 'pi_x_amx', 'succeeded', 'CHF', null, null, null, null,
+             (select s.total_rappen from public.price_snapshots s where s.id = (select extra_snapshot_id from amx_w)), 'EUR', null, null)),
+  false, 'currency: a session not in CHF is not applied');
+
+select pg_temp.ssf_mk('amb');
+create temporary table amb_w as select * from pg_temp.ssf_change('amb', 13);
+select pg_temp.ssf_page((select request_id from amb_w), 'cs_ssf_amb');
+select is((select applied from public.checkout_extra_payment_settle('evt_ssf_amb', 'cs_ssf_amb', 'pi_x_amb', 'succeeded', 'CHF', null, null, null, null,
+             null, null, null, gen_random_uuid()::text)),
+  false, 'booking: metadata naming another booking is not applied');
+
+-- W5-10: the difference page is paid after its price record expired. Stripe took the money, so the payment
+-- is recorded (before J3 the insert raised restrict_violation and the whole settle rolled back).
+select pg_temp.ssf_mk('ex');
+create temporary table ex_w as select * from pg_temp.ssf_change('ex', 13);
+select pg_temp.ssf_page((select request_id from ex_w), 'cs_ssf_ex');
+set local session_replication_role = replica;
+update public.price_snapshots set expires_at = now() - interval '2 hours', quote_lock_expires_at = now() - interval '2 hours'
+ where id = (select extra_snapshot_id from ex_w);
+set local session_replication_role = origin;
+create temporary table ex_paid as select * from pg_temp.ssf_settle('cs_ssf_ex', 'evt_ssf_ex');
+select ok((select p.status = 'succeeded' and p.captured_at is not null
+             from public.booking_payments p where p.stripe_checkout_session_id = 'cs_ssf_ex'),
+  'expired record: the captured difference is recorded (W5-10)');
+select is((select applied from ex_paid), true, 'expired record: and the change is applied as for any paid difference');
+select is(coalesce(pg_catalog.current_setting('vamos.settle_capture', true), 'off'), 'off', 'expired record: the gate flag is off again after the insert');
+
+-- the gate itself still refuses an ordinary insert against an expired record
+select pg_temp.ssf_mk('gt');
+set local session_replication_role = replica;
+update public.price_snapshots set expires_at = now() - interval '2 hours', quote_lock_expires_at = now() - interval '2 hours'
+ where booking_id = pg_temp.ssf_b('gt');
+set local session_replication_role = origin;
+select throws_like(
+  $$insert into public.booking_payments (booking_id, snapshot_id, stripe_payment_intent_id, stripe_checkout_session_id, charged_rappen, charged_currency, status)
+    select b.id, b.price_snapshot_id, 'cs_ssf_gt', 'cs_ssf_gt', 10, 'CHF', 'requires_payment' from public.bookings b where b.id = pg_temp.ssf_b('gt')$$,
+  '%expired%', 'gate: an ordinary payment against an expired record is still refused');
+select set_config('vamos.settle_capture', 'on', true);
+select throws_like(
+  $$insert into public.booking_payments (booking_id, snapshot_id, stripe_payment_intent_id, stripe_checkout_session_id, charged_rappen, charged_currency, status)
+    select b.id, b.price_snapshot_id, 'cs_ssf_gt2', 'cs_ssf_gt2', 10, 'CHF', 'requires_payment' from public.bookings b where b.id = pg_temp.ssf_b('gt')$$,
+  '%expired%', 'gate: the flag alone does not open it for a row that is not a captured succeeded row');
+select throws_like(
+  $$insert into public.booking_payments (booking_id, snapshot_id, stripe_payment_intent_id, stripe_checkout_session_id, charged_rappen, charged_currency, status)
+    select b.id, b.price_snapshot_id, 'cs_ssf_gt3', 'cs_ssf_gt3', 10, 'CHF', 'succeeded' from public.bookings b where b.id = pg_temp.ssf_b('gt')$$,
+  '%expired%', 'gate: nor for a succeeded row without captured_at');
+select set_config('vamos.settle_capture', 'off', true);
+
 select * from finish();
+
 
 rollback;

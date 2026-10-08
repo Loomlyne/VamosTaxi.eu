@@ -120,6 +120,25 @@ export async function deliverStuckPaymentAlert(
   await sendMustFixOrThrow(env, payload);
 }
 
+/**
+ * J3 (W4-07, W5-02): Stripe collected a payment that does not match what the checkout expected (amount,
+ * currency or booking). The capture is recorded, the booking is NOT confirmed and nothing is refunded; ops
+ * decides. Ids only: the Stripe event, the booking reference, no amount, name or address. Throws
+ * MustFixMailError when the mail did not go out (the caller keeps the event open and retries).
+ */
+export async function deliverAmountMismatchAlert(
+  env: CloudflareEnv,
+  input: StuckPaymentAlertInput,
+): Promise<void> {
+  const payload: OpsMustFixForEmail = {
+    locale: "en",
+    kind: "amount-mismatch",
+    trips: [{ reference: input.reference ?? "", pickupText: "", dropoffText: "", scheduledLocal: "" }],
+    detail: { eventId: input.eventId, eventType: input.type, objectId: input.objectId },
+  };
+  await sendMustFixOrThrow(env, payload);
+}
+
 /** D-22/D-25a: a payment landed on a booking that cannot run; the charge was refunded. */
 export async function deliverPaidAfterCancelAlert(
   env: CloudflareEnv,

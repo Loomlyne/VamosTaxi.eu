@@ -3205,11 +3205,15 @@ export type Database = {
       }
       checkout_extra_payment_settle: {
         Args: {
+          p_amount_currency?: string
+          p_amount_received_minor?: number
+          p_amount_total_minor?: number
           p_charged_currency: string
           p_event_id: string
           p_fx_quoted_at: string
           p_fx_rate: number
           p_fx_source: string
+          p_metadata_booking_id?: string
           p_outcome: string
           p_payment_intent_id: string
           p_presentment_amount_minor: number
@@ -3302,11 +3306,15 @@ export type Database = {
       }
       checkout_payment_settle: {
         Args: {
+          p_amount_currency?: string
+          p_amount_received_minor?: number
+          p_amount_total_minor?: number
           p_charged_currency: string
           p_event_id: string
           p_fx_quoted_at: string
           p_fx_rate: number
           p_fx_source: string
+          p_metadata_booking_id?: string
           p_outcome: string
           p_payment_intent_id: string
           p_presentment_amount_minor: number
@@ -3315,6 +3323,7 @@ export type Database = {
         }
         Returns: {
           already_settled: boolean
+          amount_mismatch: boolean
           booking_id: string
           charged_rappen: number
           contact_email: string

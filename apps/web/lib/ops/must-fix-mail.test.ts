@@ -7,6 +7,7 @@ vi.mock("../db/system-reads", () => ({ loadMustFixTrip: (...a: unknown[]) => loa
 
 import {
   MustFixMailError,
+  deliverAmountMismatchAlert,
   deliverDifferenceNotAppliedAlert,
   deliverOverlapMustFix,
   deliverPaidAfterCancelAlert,
@@ -64,5 +65,23 @@ describe("W4-02: an ops must-fix mail that did not go out is never read as sent"
     sendOpsMustFix.mockResolvedValue({ ok: true, providerMessageId: "m" });
     loadMustFixTrip.mockResolvedValue(tripRow);
     await expect(fn(env(), "booking-1")).resolves.toBeUndefined();
+  });
+});
+
+describe("J3 W4-07: the amount-mismatch mail", () => {
+  it("is the amount-mismatch kind with ids only (no amount, name or address)", async () => {
+    sendOpsMustFix.mockResolvedValue({ ok: true, providerMessageId: "m1" });
+    await deliverAmountMismatchAlert(env(), { eventId: "evt_1", type: "checkout.session.completed", objectId: "cs_1", reference: "VT-10001" });
+    const payload = sendOpsMustFix.mock.calls[0]?.[1];
+    expect(payload.kind).toBe("amount-mismatch");
+    expect(payload.detail).toEqual({ eventId: "evt_1", eventType: "checkout.session.completed", objectId: "cs_1" });
+    expect(payload.trips).toEqual([{ reference: "VT-10001", pickupText: "", dropoffText: "", scheduledLocal: "" }]);
+    expect(JSON.stringify(payload)).not.toMatch(/@|CHF/);
+  });
+
+  it("throws when the mail did not go out, and when no key is bound", async () => {
+    sendOpsMustFix.mockResolvedValue({ ok: false, error: "rate limited" });
+    await expect(deliverAmountMismatchAlert(env(), { eventId: "e", type: "t", objectId: "o", reference: null })).rejects.toMatchObject({ code: "send_failed" });
+    await expect(deliverAmountMismatchAlert(env(""), { eventId: "e", type: "t", objectId: "o", reference: null })).rejects.toMatchObject({ code: "no_api_key" });
   });
 });

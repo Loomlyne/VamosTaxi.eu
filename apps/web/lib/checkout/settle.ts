@@ -43,6 +43,7 @@ import { purgeDepsFromEnv, purgeOnSessionExpired } from "./purge-unpaid";
 import { deliverConfirmation } from "./notify";
 import { provisionCheckoutAccount, provisionDeps } from "./provision-account";
 import {
+  deliverAmountMismatchAlert,
   deliverDifferenceNotAppliedAlert,
   deliverOverlapMustFix,
   deliverPaidAfterCancelAlert,
@@ -81,6 +82,12 @@ export type SettleRow = {
   payment_id: number;
   charged_rappen: number;
   other_open_session_ids: string[];
+  /**
+   * J3 (W4-07, W5-02): Stripe collected an amount, currency or booking that does not match what this
+   * payment expected. The capture is recorded; the booking is NOT confirmed and nothing is refunded.
+   * Ops is mailed, then the event is closed.
+   */
+  amount_mismatch?: boolean;
   /** 26.2 P1, kind=extra only: the paid change was applied (it may have ended before payment). */
   applied?: boolean;
   /** 26.2 P1, kind=extra only: the driver the applied class change took off the trip. */
@@ -173,6 +180,8 @@ export type SettleDeps = MoneyEventDeps & {
   recordDuplicateRefund: (input: RecordDuplicateRefundInput) => Promise<void>;
   /** D-22/D-25a: a payment landed on a booking that cannot run; the charge was refunded. Rejects when the mail did not go out (W4-02). */
   alertPaidAfterCancel: (bookingKey: string) => Promise<void>;
+  /** J3 (W4-07): the amount Stripe collected does not match; ops decides. Rejects when the mail did not go out. */
+  alertAmountMismatch?: (input: StuckPaymentAlertInput) => Promise<void>;
   /** No PaymentIntent to refund. A human must look. Rejects when the mail did not go out (W4-02): the caller then retries, never reads it as sent. */
   alertStuckPayment: (input: StuckPaymentAlertInput) => Promise<void>;
   /** D-21/D-22: expire the booking's other open Checkout Sessions after a succeeded settle. */
@@ -230,6 +239,48 @@ function outcomeFor(
  */
 const CHARGE_ID = /^(?:ch|py)_[A-Za-z0-9_]+$/;
 const DISPUTE_ID = /^(?:du|dp)_[A-Za-z0-9_]+$/;
+
+/**
+ * J3 (W4-07, W5-02): what Stripe says it collected, in the shape `checkout_payment_settle` compares with the
+ * payment row. Stripe keeps the Checkout Session and its PaymentIntent in the integration currency (CHF)
+ * even when Adaptive Pricing shows the customer EUR, USD or AED (the presented amount only rides in
+ * `presentment_details`, which `fxFromSession` maps to the FX columns), so a legitimate presentment is
+ * never a mismatch. A session made before 2025-03-31 under the old Adaptive Pricing shape
+ * (`currency_conversion`) carries the customer's currency in `currency` and `amount_total`; there the
+ * creation currency and total of `currency_conversion` are the charge, and the PaymentIntent is not read.
+ * The PaymentIntent's `amount_received` is read only from an expanded, succeeded PaymentIntent in the
+ * session's own currency (a method still processing reports 0). A value that cannot be read is null: the
+ * database skips that check.
+ */
+export function chargeFactsFromSession(session: Stripe.Checkout.Session | null): {
+  amountTotalMinor: number | null;
+  currency: string | null;
+  amountReceivedMinor: number | null;
+  metadataBookingId: string | null;
+} {
+  if (!session) return { amountTotalMinor: null, currency: null, amountReceivedMinor: null, metadataBookingId: null };
+  const conversion = session.currency_conversion ?? null;
+  const currencyRaw = conversion?.source_currency ?? session.currency ?? null;
+  const total = conversion ? conversion.amount_total : session.amount_total;
+  const pi = session.payment_intent;
+  const received =
+    !conversion &&
+    pi &&
+    typeof pi === "object" &&
+    pi.status === "succeeded" &&
+    typeof pi.amount_received === "number" &&
+    typeof pi.currency === "string" &&
+    pi.currency.toLowerCase() === (session.currency ?? "").toLowerCase()
+      ? pi.amount_received
+      : null;
+  const bookingId = session.metadata?.booking_id;
+  return {
+    amountTotalMinor: typeof total === "number" && Number.isFinite(total) ? total : null,
+    currency: typeof currencyRaw === "string" && currencyRaw ? currencyRaw.toUpperCase() : null,
+    amountReceivedMinor: received,
+    metadataBookingId: typeof bookingId === "string" && bookingId ? bookingId : null,
+  };
+}
 
 /** Error-level log fields for a caught error: SQLSTATE and class, or the error's name. Never the message (it may carry values). */
 function errorFields(err: unknown): Record<string, ScalarValue> {
@@ -512,7 +563,29 @@ export async function handleStripeMessageWithDeps(
   if (outcome === "succeeded") {
     const extra = session?.metadata?.kind === "extra";
 
-    if (row.refund_required) {
+    if (row.amount_mismatch === true) {
+      // J3 (W4-07, W5-02): Stripe collected an amount, currency or booking that does not match what this
+      // payment expected. The settle recorded the capture and left the booking alone: it is not confirmed,
+      // not revived and nothing is refunded. Ops is mailed (ids only) and only then is the event closed; a
+      // mail that did not go out keeps the event open and retries (the settle answers the same again).
+      deps.emit("error", "amount_mismatch", { eventId: message.eventId, bookingId: row.booking_id });
+      try {
+        await (deps.alertAmountMismatch ?? deps.alertStuckPayment)({
+          eventId: message.eventId,
+          type: message.type,
+          objectId: message.objectId,
+          reference: row.reference ?? null,
+        });
+      } catch (err) {
+        deps.emit("error", "amount_mismatch_alert_failed", { eventId: message.eventId, ...errorFields(err) });
+        return { retry: true };
+      }
+      try {
+        await deps.eventClose(message.eventId, "amount_mismatch");
+      } catch {
+        return { retry: true };
+      }
+    } else if (row.refund_required) {
       const reason = row.refund_reason ?? "unknown";
       if (!piId) {
         // No PaymentIntent to refund. A human must resolve the money by hand: the stuck-payment mail
@@ -636,8 +709,9 @@ export async function handleStripeMessageWithDeps(
     }
 
     // Phase 29 (META-10): after every money step, also when the return route settled first.
-    // Extras never reach it; a refund-required payment reaches it as refundRequired (never sends).
-    if (session && !extra && deps.sendMetaPurchase && row.payment_id > 0) {
+    // Extras never reach it; a refund-required payment reaches it as refundRequired (never sends). A payment
+    // held for an amount mismatch never reaches it: the booking is not confirmed.
+    if (session && !extra && deps.sendMetaPurchase && row.payment_id > 0 && row.amount_mismatch !== true) {
       try {
         await deps.sendMetaPurchase({
           bookingId: row.booking_id,
@@ -726,6 +800,8 @@ export async function handleStripeMessage(
         presentmentCurrency: null,
       };
       const extra = input.session?.metadata?.kind === "extra";
+      // J3: what Stripe collected, compared with the payment row by the settle function (W4-07, W5-02).
+      const facts = chargeFactsFromSession(input.outcome === "succeeded" ? input.session : null);
       try {
         const rows = await asSystem(env, async (sql) => {
           if (extra) {
@@ -739,7 +815,11 @@ export async function handleStripeMessage(
                 ${fx.fxRate},
                 ${fx.fxSource},
                 ${fx.fxQuotedAt}::timestamptz,
-                ${fx.presentmentAmountMinor}
+                ${fx.presentmentAmountMinor},
+                ${facts.amountTotalMinor},
+                ${facts.currency},
+                ${facts.amountReceivedMinor},
+                ${facts.metadataBookingId}
               )
             `;
           }
@@ -754,7 +834,11 @@ export async function handleStripeMessage(
               ${fx.fxSource},
               ${fx.fxQuotedAt}::timestamptz,
               ${fx.presentmentAmountMinor},
-              ${fx.presentmentCurrency}
+              ${fx.presentmentCurrency},
+              ${facts.amountTotalMinor},
+              ${facts.currency},
+              ${facts.amountReceivedMinor},
+              ${facts.metadataBookingId}
             )
           `;
         });
@@ -781,6 +865,7 @@ export async function handleStripeMessage(
           applied: row.applied === true,
           unassigned_chauffeur_id: row.unassigned_chauffeur_id ? String(row.unassigned_chauffeur_id) : null,
           request_id: row.request_id ? String(row.request_id) : null,
+          amount_mismatch: row.amount_mismatch === true,
         };
       } catch (err) {
         if (extra && sqlStateOf(err) === "23P01") {
@@ -840,6 +925,7 @@ export async function handleStripeMessage(
       });
     },
     alertPaidAfterCancel: (bookingKey) => deliverPaidAfterCancelAlert(env, bookingKey),
+    alertAmountMismatch: (input) => deliverAmountMismatchAlert(env, input),
     alertStuckPayment: (input) => deliverStuckPaymentAlert(env, input),
     purgeOnSessionExpired: (sessionId, bookingId) =>
       purgeOnSessionExpired(purgeDepsFromEnv(env), sessionId, bookingId),

@@ -361,7 +361,7 @@ select is(
     where n.nspname = 'public' and p.proname = 'checkout_payment_settle'),
   1, '(71) the settle was replaced in place: one function, same signature');
 select ok(has_function_privilege('vamos_system',
-  'public.checkout_payment_settle(text,text,text,text,text,numeric,text,timestamptz,bigint,text)', 'EXECUTE'),
+  'public.checkout_payment_settle(text,text,text,text,text,numeric,text,timestamptz,bigint,text,bigint,text,bigint,text)', 'EXECUTE'),
   '(72) vamos_system keeps EXECUTE on the settle');
 select ok(
   (select position('from public.booking_payments' in p.prosrc) > 0

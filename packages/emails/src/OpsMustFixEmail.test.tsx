@@ -182,6 +182,44 @@ describe("OpsMustFixEmail difference-not-applied (T1)", () => {
   });
 });
 
+describe("OpsMustFixEmail amount-mismatch (J3, W4-07)", () => {
+  const HEADLINE: Record<EmailLocale, string> = {
+    en: "Payment held: the amount does not match",
+    de: "Zahlung zurückgehalten: Betrag stimmt nicht",
+    fr: "Paiement retenu : le montant ne correspond pas",
+    ar: "دفعة معلّقة: المبلغ لا يطابق",
+  };
+  function mismatchPayload(locale: EmailLocale): OpsMustFixForEmail {
+    return {
+      locale,
+      kind: "amount-mismatch",
+      trips: [{ reference: "VT-30004", pickupText: "", dropoffText: "", scheduledLocal: "" }],
+      detail: { eventId: "evt_mm_1", eventType: "checkout.session.completed", objectId: "cs_test_mm_1" },
+    };
+  }
+
+  it.each(LOCALES)("%s: headline and body are translated, the ids are shown, no raw key, no customer data, no amount", async (locale) => {
+    const html = await render(OpsMustFixEmail({ payload: mismatchPayload(locale) }));
+    expect(html).toContain(HEADLINE[locale]);
+    expect(html).toContain("VT-30004");
+    expect(html).toContain("evt_mm_1");
+    expect(html).toContain("cs_test_mm_1");
+    expect(html).not.toMatch(/opsMustFix\./);
+    expect(html).not.toContain("CHF");
+    expect(html).not.toMatch(/@/);
+    expect(opsMustFixPlainText(mismatchPayload(locale))).toContain(HEADLINE[locale]);
+  });
+
+  it("the four bodies are different texts (no copied English)", () => {
+    const bodies = LOCALES.map((l) => opsMustFixPlainText(mismatchPayload(l)).split("\n")[1]);
+    expect(new Set(bodies).size).toBe(LOCALES.length);
+  });
+
+  it("the subject carries the reference", () => {
+    expect(opsMustFixSubject(mismatchPayload("fr"))).toContain("VT-30004");
+  });
+});
+
 describe("send envelope", () => {
   it("uses noreply@vamostaxi.site and sendOpsMustFix", () => {
     const here = dirname(fileURLToPath(import.meta.url));

@@ -45,6 +45,7 @@ vi.mock("./stripe", async (importOriginal) => {
 import {
   applyHandleResult,
   captureAllowed,
+  chargeFactsFromSession,
   handleStripeMessage,
   handleStripeMessageWithDeps,
   metaPurchaseDepFor,
@@ -964,14 +965,160 @@ describe("settle stores the presentment currency (D-21)", () => {
       amount_total: 8000,
       presentment_details: { presentment_amount: 9000, presentment_currency: "eur" },
     } as Partial<Stripe.Checkout.Session>);
-    expect(values.slice(-2)).toEqual([9000, "EUR"]);
+    expect(values.slice(8, 10)).toEqual([9000, "EUR"]);
   });
 
   it("passes null and null for a CHF presentment", async () => {
     const values = await settleWith({
       presentment_details: { presentment_amount: 8000, presentment_currency: "chf" },
     } as Partial<Stripe.Checkout.Session>);
-    expect(values.slice(-2)).toEqual([null, null]);
+    expect(values.slice(8, 10)).toEqual([null, null]);
+  });
+});
+
+describe("J3 W4-07 / W5-02: what Stripe collected is compared with the payment row", () => {
+  async function settleWith(patch: Partial<Stripe.Checkout.Session>) {
+    sqlCalls.length = 0;
+    retrieved.session = session(patch);
+    await handleStripeMessage({} as CloudflareEnv, message());
+    const call = sqlCalls.find((c) => c.text.includes("checkout_payment_settle"));
+    expect(call).toBeDefined();
+    return call!.values;
+  }
+
+  it("passes the session's total, its currency, the PaymentIntent's amount_received and the metadata booking id", async () => {
+    const values = await settleWith({
+      amount_total: 8000,
+      currency: "chf",
+      metadata: { booking_id: "11111111-1111-4111-8111-111111111111" },
+      payment_intent: { id: "pi_test_1", status: "succeeded", amount_received: 8000, currency: "chf" },
+    } as unknown as Partial<Stripe.Checkout.Session>);
+    expect(values.slice(10)).toEqual([8000, "CHF", 8000, "11111111-1111-4111-8111-111111111111"]);
+  });
+
+  it("an unexpanded PaymentIntent leaves amount_received null (the database skips that check)", async () => {
+    const values = await settleWith({ amount_total: 8000, currency: "chf", payment_intent: "pi_test_1" } as Partial<Stripe.Checkout.Session>);
+    expect(values.slice(10)).toEqual([8000, "CHF", null, null]);
+  });
+
+  it("a legitimate EUR presentment of a CHF charge sends the CHF facts: it is not a mismatch", async () => {
+    const values = await settleWith({
+      amount_total: 8000,
+      currency: "chf",
+      presentment_details: { presentment_amount: 9000, presentment_currency: "eur" },
+      payment_intent: { id: "pi_test_1", status: "succeeded", amount_received: 8000, currency: "chf" },
+    } as unknown as Partial<Stripe.Checkout.Session>);
+    expect(values.slice(8, 10)).toEqual([9000, "EUR"]);
+    expect(values.slice(10, 13)).toEqual([8000, "CHF", 8000]);
+  });
+
+  describe("chargeFactsFromSession", () => {
+    it("a processing PaymentIntent (amount_received 0) is not read", () => {
+      const f = chargeFactsFromSession({
+        amount_total: 8000,
+        currency: "chf",
+        payment_intent: { id: "pi_1", status: "processing", amount_received: 0, currency: "chf" },
+      } as unknown as Stripe.Checkout.Session);
+      expect(f.amountReceivedMinor).toBeNull();
+      expect(f.amountTotalMinor).toBe(8000);
+    });
+
+    it("a PaymentIntent in another currency is not compared with the session total", () => {
+      const f = chargeFactsFromSession({
+        amount_total: 8000,
+        currency: "chf",
+        payment_intent: { id: "pi_1", status: "succeeded", amount_received: 9000, currency: "eur" },
+      } as unknown as Stripe.Checkout.Session);
+      expect(f.amountReceivedMinor).toBeNull();
+    });
+
+    it("the old Adaptive Pricing shape (currency_conversion): the creation currency and total are the charge, the PaymentIntent is not read", () => {
+      const f = chargeFactsFromSession({
+        amount_total: 9000,
+        currency: "eur",
+        currency_conversion: { source_currency: "chf", amount_total: 8000, amount_subtotal: 8000, fx_rate: "1.125" },
+        payment_intent: { id: "pi_1", status: "succeeded", amount_received: 9000, currency: "eur" },
+      } as unknown as Stripe.Checkout.Session);
+      expect(f).toEqual({ amountTotalMinor: 8000, currency: "CHF", amountReceivedMinor: null, metadataBookingId: null });
+    });
+
+    it("a session without a currency or total gives nulls, never a made-up number", () => {
+      expect(chargeFactsFromSession({ metadata: {} } as unknown as Stripe.Checkout.Session)).toEqual({
+        amountTotalMinor: null,
+        currency: null,
+        amountReceivedMinor: null,
+        metadataBookingId: null,
+      });
+      expect(chargeFactsFromSession(null).amountTotalMinor).toBeNull();
+    });
+  });
+
+  it("an expired / failed event sends no amount facts (nothing was collected)", async () => {
+    sqlCalls.length = 0;
+    retrieved.session = session({ status: "expired", payment_status: "unpaid", amount_total: 8000, currency: "chf" } as Partial<Stripe.Checkout.Session>);
+    await handleStripeMessage({} as CloudflareEnv, message({ type: "checkout.session.expired" }));
+    const call = sqlCalls.find((c) => c.text.includes("checkout_payment_settle"));
+    expect(call?.values.slice(10)).toEqual([null, null, null, null]);
+  });
+
+  describe("a mismatch row", () => {
+    const mismatchRow = () => settleRow({ already_settled: true, amount_mismatch: true });
+
+    it("mails ops (ids only), closes the event, and does NOT confirm, provision, refund or send the Purchase", async () => {
+      const alertAmountMismatch = vi.fn(async () => undefined);
+      const sendMetaPurchase = vi.fn(async () => undefined);
+      const emit = vi.fn();
+      const d = deps({
+        emit,
+        alertAmountMismatch,
+        sendMetaPurchase,
+        settlePayment: vi.fn(async () => settleRow({ already_settled: true, amount_mismatch: true, other_open_session_ids: ["cs_other"] })),
+      });
+      expect(await handleStripeMessageWithDeps(message(), d)).toEqual({ ack: true });
+      expect(alertAmountMismatch).toHaveBeenCalledWith({
+        eventId: "evt_1",
+        type: "checkout.session.completed",
+        objectId: "cs_test_1",
+        reference: "VT-1",
+      });
+      expect(d.eventClose).toHaveBeenCalledWith("evt_1", "amount_mismatch");
+      expect(d.deliverConfirmation).not.toHaveBeenCalled();
+      expect(d.provisionAccount).not.toHaveBeenCalled();
+      expect(d.refund).not.toHaveBeenCalled();
+      expect(sendMetaPurchase).not.toHaveBeenCalled();
+      expect(emit).toHaveBeenCalledWith("error", "amount_mismatch", expect.objectContaining({ eventId: "evt_1" }));
+      // the other open pages are still expired, so nobody can pay the held booking a second time
+      expect(d.expireSession).toHaveBeenCalledWith("cs_other");
+    });
+
+    it("a mail that did not go out keeps the event OPEN and retries; the next delivery mails again", async () => {
+      const alertAmountMismatch = vi
+        .fn()
+        .mockRejectedValueOnce(new Error("resend down"))
+        .mockResolvedValue(undefined);
+      const d = deps({ alertAmountMismatch, settlePayment: vi.fn(async () => mismatchRow()) });
+      expect(await handleStripeMessageWithDeps(message(), d)).toEqual({ retry: true });
+      expect(d.eventClose).not.toHaveBeenCalled();
+      expect(await handleStripeMessageWithDeps(message(), d)).toEqual({ ack: true });
+      expect(d.eventClose).toHaveBeenCalledWith("evt_1", "amount_mismatch");
+      expect(alertAmountMismatch).toHaveBeenCalledTimes(2);
+    });
+
+    it("an ordinary settled row (no mismatch) is unchanged: confirmation, no mismatch mail", async () => {
+      const alertAmountMismatch = vi.fn(async () => undefined);
+      const d = deps({ alertAmountMismatch, settlePayment: vi.fn(async () => settleRow()) });
+      expect(await handleStripeMessageWithDeps(message(), d)).toEqual({ ack: true });
+      expect(alertAmountMismatch).not.toHaveBeenCalled();
+      expect(d.deliverConfirmation).toHaveBeenCalledTimes(1);
+    });
+
+    it("production wiring mails through deliverAmountMismatchAlert", async () => {
+      const { readFileSync } = await import("node:fs");
+      const { dirname, join } = await import("node:path");
+      const { fileURLToPath } = await import("node:url");
+      const here = dirname(fileURLToPath(import.meta.url));
+      expect(readFileSync(join(here, "settle.ts"), "utf8")).toMatch(/alertAmountMismatch: \(input\) => deliverAmountMismatchAlert\(env, input\)/);
+    });
   });
 });
 

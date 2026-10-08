@@ -163,10 +163,10 @@ select function_privs_are('public', 'booking_change_mail_facts', '{uuid,uuid}'::
 select function_privs_are('public', 'booking_change_mail_facts', '{uuid,uuid}'::text[], 'anon', '{}'::text[],
   'booking_change_mail_facts: anon holds no EXECUTE');
 select function_privs_are('public', 'checkout_extra_payment_settle',
-  '{text,text,text,text,text,numeric,text,timestamptz,int8}'::text[], 'vamos_system', '{EXECUTE}'::text[],
+  '{text,text,text,text,text,numeric,text,timestamptz,int8,int8,text,int8,text}'::text[], 'vamos_system', '{EXECUTE}'::text[],
   'extra settle (recreated): vamos_system holds EXECUTE');
 select function_privs_are('public', 'checkout_extra_payment_settle',
-  '{text,text,text,text,text,numeric,text,timestamptz,int8}'::text[], 'anon', '{}'::text[],
+  '{text,text,text,text,text,numeric,text,timestamptz,int8,int8,text,int8,text}'::text[], 'anon', '{}'::text[],
   'extra settle (recreated): anon holds no EXECUTE');
 select is(
   (select p.prosecdef and p.proconfig @> array['search_path=""']
