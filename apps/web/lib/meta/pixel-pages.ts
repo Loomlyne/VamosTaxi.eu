@@ -29,7 +29,7 @@ export const PIXEL_ALLOWED_PATHS: readonly string[] = Object.freeze([
 /**
  * May a page view at this address go to Meta? (META-06, META-07; D-01, D-02, D-03.)
  * Only https://vamostaxi.site, only an allowed path, no query on /sign-in and /sign-up (strict
- * reading, owner 2026-10-03), elsewhere only fbclid and utm_* keys, only a plain anchor as hash, and
+ * reading, owner 2026-10-03), elsewhere only fbclid, utm_* and a plain `service` word, only a plain anchor as hash, and
  * never an address that carries a booking reference or an e-mail address.
  */
 export function pixelPageAllowed(url: URL): boolean {
@@ -40,8 +40,20 @@ export function pixelPageAllowed(url: URL): boolean {
   if (url.pathname === "/sign-in" || url.pathname === "/sign-up") {
     if (url.href.includes("?")) return false;
   } else if (url.search !== "") {
-    for (const key of new URLSearchParams(url.search).keys()) {
-      if (key !== "fbclid" && !/^utm_[a-z_]+$/.test(key)) return false;
+    // Read raw, like the browser loader: the key is decoded once, the value of `service` is not decoded at all.
+    for (const part of url.search.slice(1).split("&")) {
+      if (part === "") continue;
+      const eq = part.indexOf("=");
+      let key = (eq === -1 ? part : part.slice(0, eq)).replace(/\+/g, " ");
+      try {
+        key = decodeURIComponent(key);
+      } catch {
+        // raw key, it will not match below
+      }
+      if (key === "service") {
+        // The service link (/?service=airport#book): one lower-case word, no escapes.
+        if (eq === -1 || !/^[a-z_-]{1,32}$/.test(part.slice(eq + 1))) return false;
+      } else if (key !== "fbclid" && !/^utm_[a-z_]+$/.test(key)) return false;
     }
   }
 

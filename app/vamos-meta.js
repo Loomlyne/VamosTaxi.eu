@@ -1,8 +1,11 @@
-/* Vamos Taxi — the mock pages' Meta page-view loader (Phase 28).
+/* Vamos Taxi — the mock pages' Meta loader (Phase 28; events added 2026-10-09).
 
-   PageView only. Never in any HTML the server sends (D-05): this file adds Meta's script to the
-   page after every check below has passed, and only then. Nothing else goes to Meta: no other
-   event, no user data in init, no noscript image.
+   PageView, plus three fixed events sent through VamosMeta.track(): ViewContent (the price button),
+   Lead (the contact form was sent) and Contact (a WhatsApp, phone or email button). Each carries at most
+   one fixed word, never a number, an address or typed text. Never in any HTML the server sends (D-05):
+   this file adds Meta's script to the page after every check below has passed, and only then. Nothing
+   else goes to Meta: no other event, no user data in init, no noscript image. The booking steps
+   (vehicle chosen, go to payment, paid) go from our server, never from this file.
 
    A page view may be counted only when ALL of these are true, checked in the browser:
      1. GATE_OPEN    the owner's three legal texts are live (apps/web/lib/meta/legal-gate.ts).
@@ -21,7 +24,8 @@
      <script src="../vamos-consent.js"></script>
      <script src="../vamos-meta.js"></script>
 
-   API (for tests): VamosMeta.allowed(href, referrer), .loaded(), .revoked()
+   API: VamosMeta.track(name, params), and for tests VamosMeta.allowed(href, referrer), .loaded(), .revoked(),
+   .pending()
 
    Plain browser script (not transpiled): var, function. */
 (function () {
@@ -39,6 +43,8 @@
   var loaded = false;
   var revokedHere = false;
   var withdrawSeq = 0;
+  var queued = []; /* events asked for before the pixel booted; sent right after the PageView, dropped on withdraw */
+  var lastSent = {}; /* name + word -> time, so one press never counts twice */
 
   /* ---- allow-list: the same rules as apps/web/lib/meta/pixel-pages.ts (shared table in tests) ---- */
 
@@ -81,9 +87,13 @@
       var parts = u.search.slice(1).split('&');
       for (var i = 0; i < parts.length; i++) {
         if (parts[i] === '') continue;
-        var key = parts[i].split('=')[0].replace(/\+/g, ' ');
+        var eq = parts[i].indexOf('=');
+        var key = (eq === -1 ? parts[i] : parts[i].slice(0, eq)).replace(/\+/g, ' ');
         try { key = decodeURIComponent(key); } catch (e) { /* raw key, it will not match below */ }
-        if (key !== 'fbclid' && !/^utm_[a-z_]+$/.test(key)) return false;
+        if (key === 'service') {
+          /* The service link (/?service=airport#book): one lower-case word, read raw (no escapes). */
+          if (eq === -1 || !/^[a-z_-]{1,32}$/.test(parts[i].slice(eq + 1))) return false;
+        } else if (key !== 'fbclid' && !/^utm_[a-z_]+$/.test(key)) return false;
       }
     }
 
@@ -103,10 +113,41 @@
     }
   }
 
+  /* Meta's own registrable domains. A referrer from one of them (the redirect page an advert click passes
+     through, l.facebook.com/l.php?u=...&h=..., is long by Meta's design) is accepted with its full address,
+     but only when it is verified here: whole labels, never a suffix of another name. */
+  var META_DOMAINS = ['facebook.com', 'instagram.com', 'messenger.com', 'threads.net', 'fb.com', 'fb.me'];
+
+  function metaHost(h) {
+    for (var i = 0; i < META_DOMAINS.length; i++) {
+      var d = META_DOMAINS[i];
+      if (h === d || (h.length > d.length + 1 && h.slice(-(d.length + 1)) === '.' + d)) return true;
+    }
+    return false;
+  }
+
+  function metaReferrerAllowed(ref) {
+    if (ref.length > 2048 || ref.indexOf('#') !== -1) return false;
+    var u = parse(ref);
+    if (!u) return false;
+    if (u.protocol !== 'https:' || u.port !== '' || u.username !== '' || u.password !== '' || u.hash !== '') return false;
+    if (!metaHost(u.hostname)) return false;
+    /* No e-mail address and no booking reference anywhere in it, however often it is escaped. */
+    var decoded;
+    try { decoded = decodeURIComponent(u.href); } catch (e) { return false; }
+    for (var round = 0; ; round++) {
+      if (/vt-\d/i.test(decoded) || decoded.indexOf('@') !== -1) return false;
+      var next = decoded.replace(/%([0-9A-Fa-f]{2})/g, function (m, h) { return String.fromCharCode(parseInt(h, 16)); });
+      if (next === decoded) return true;
+      if (round >= 5) return false;
+      decoded = next;
+    }
+  }
+
   /* The previous address travels to Meta as 'rl'. Fail closed (research Pattern 3). A page of ours
-     counts only when the previous page was a clean one or the bare origin; any other site counts only
-     when it sent just its bare origin (path '/', no query, no hash), so no outside address, with a
-     token or a name in it, can ride along. */
+     counts only when the previous page was a clean one or the bare origin; a Meta product counts with its
+     full verified address (above); any other site counts only when it sent just its bare origin (path '/',
+     no query, no hash), so no outside address, with a token or a name in it, can ride along. */
   function referrerAllowed(ref) {
     if (!ref) return true;
     var u = parse(ref);
@@ -116,7 +157,7 @@
     if (h === HOST || h.slice(-(HOST.length + 1)) === '.' + HOST) {
       return bare || urlAllowed(ref);
     }
-    return bare;
+    return bare || metaReferrerAllowed(ref);
   }
 
   function allowed(href, referrer) {
@@ -145,6 +186,7 @@
 
   function withdraw() {
     withdrawSeq += 1;
+    queued = [];
     try {
       if (loaded && window.fbq) {
         window.fbq('consent', 'revoke');
@@ -152,6 +194,79 @@
       }
     } catch (e) { /* the cookies below are still removed */ }
     clearMeta();
+  }
+
+  /* ---- the three browser events: a fixed list, a fixed word each, never a number, an address or text ---- */
+
+  var EVENTS = {
+    ViewContent: { key: 'content_name', words: ['transfer'] },
+    Lead: { key: null, words: [] },
+    Contact: { key: 'content_category', words: ['whatsapp', 'phone', 'email'] },
+  };
+  var MAX_QUEUED = 5;
+
+  /* Returns the parameter object to send, or null when the name or the word is not on the list. */
+  function eventParams(name, params) {
+    if (!Object.prototype.hasOwnProperty.call(EVENTS, name)) return null;
+    var def = EVENTS[name];
+    if (def.key === null) return {};
+    var word = params && typeof params === 'object' ? params[def.key] : undefined;
+    if (typeof word !== 'string' || !inList(def.words, word)) return null;
+    var out = {};
+    out[def.key] = word;
+    return out;
+  }
+
+  function sendNow(item) {
+    try { window.fbq('track', item.name, item.params); } catch (e) { /* ignore */ }
+  }
+
+  function flushQueued() {
+    var list = queued;
+    queued = [];
+    for (var i = 0; i < list.length; i++) sendNow(list[i]);
+  }
+
+  /* Same four checks as the page view: both flags, the address, and a server-confirmed Marketing consent.
+     Before the pixel has started the event waits (at most five); after a withdraw it is dropped. */
+  function track(name, params) {
+    try {
+      if (!GATE_OPEN || !SWITCHES_OFF || revokedHere) return false;
+      var p = eventParams(name, params);
+      if (p === null) return false;
+      if (!allowed(location.href, document.referrer)) return false;
+      var stamp = name + ':' + (p.content_name || p.content_category || '');
+      var now = new Date().getTime();
+      if (lastSent[stamp] && now - lastSent[stamp] < 1500) return false;
+      lastSent[stamp] = now;
+      var item = { name: name, params: p };
+      if (loaded && window.fbq) { sendNow(item); return true; }
+      if (queued.length < MAX_QUEUED) queued.push(item);
+      return true;
+    } catch (e) { return false; }
+  }
+
+  /* One capturing listener for every WhatsApp, phone and email link of every mock page (also the ones a
+     component adds later). It reads the kind from the link address and sends only the kind. */
+  function contactKind(href) {
+    var h = String(href || '').replace(/^\s+/, '').toLowerCase();
+    if (h.indexOf('tel:') === 0) return 'phone';
+    if (h.indexOf('mailto:') === 0) return 'email';
+    if (/^https?:\/\/(wa\.me|api\.whatsapp\.com|web\.whatsapp\.com)(\/|\?|$)/.test(h)) return 'whatsapp';
+    return null;
+  }
+
+  function onContactClick(e) {
+    try {
+      var el = e && e.target;
+      for (var i = 0; el && i < 8; i++, el = el.parentNode) {
+        if (el.getAttribute && el.tagName && String(el.tagName).toLowerCase() === 'a') {
+          var kind = contactKind(el.getAttribute('href'));
+          if (kind) track('Contact', { content_category: kind });
+          return;
+        }
+      }
+    } catch (err) { /* a click is never an error for the visitor */ }
   }
 
   /* ---- start Meta's script: stub first, then the script, exactly one PageView queued ---- */
@@ -176,6 +291,7 @@
       window.fbq('set', 'autoConfig', false); /* and globally */
       window.fbq('init', PIXEL_ID); /* the id only: no user data, ever */
       window.fbq('track', 'PageView');
+      flushQueued();
       var s = document.createElement('script');
       s.async = true;
       s.src = SRC;
@@ -231,10 +347,14 @@
     if (!c || c.marketing !== true) withdraw();
   });
 
+  if (typeof document.addEventListener === 'function') document.addEventListener('click', onContactClick, true);
+
   window.VamosMeta = {
+    track: track,
     allowed: allowed,
     loaded: function () { return loaded; },
     revoked: function () { return revokedHere; },
+    pending: function () { return queued.length; },
   };
 
   /* Wait for the consent runtime, 5 s at most (same poll as the cookie banner). */

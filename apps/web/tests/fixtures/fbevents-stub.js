@@ -19,13 +19,13 @@
     document.cookie = '_fbp=fb.1.' + Date.now() + '.' + digits + '; expires=' + expires + '; domain=.vamostaxi.site; path=/';
   }
 
-  function pageView() {
+  function pageView(name, params) {
     writeFbp();
     if (location.search.indexOf('fbclid') !== -1) {
       try { localStorage.setItem('multiFbc', 'x'); } catch (e) {}
     }
     var img = new Image();
-    img.src = HOST + '?id=' + encodeURIComponent(id) + '&ev=PageView&dl=' + encodeURIComponent(location.href) + '&rl=' + encodeURIComponent(document.referrer) + '&n=' + Math.random();
+    img.src = HOST + '?id=' + encodeURIComponent(id) + '&ev=' + encodeURIComponent(name || 'PageView') + (params ? '&cd=' + encodeURIComponent(JSON.stringify(params)) : '') + '&dl=' + encodeURIComponent(location.href) + '&rl=' + encodeURIComponent(document.referrer) + '&n=' + Math.random();
   }
 
   function handle(args) {
@@ -35,7 +35,7 @@
     if (a[0] === 'init') { id = a[1]; return; }
     if (a[0] === 'track' || a[0] === 'trackCustom') {
       if (locked) { held.push(a); return; }
-      pageView();
+      pageView(a[0] === 'track' ? a[1] : 'PageView', a[0] === 'track' ? a[2] : null);
     }
   }
 

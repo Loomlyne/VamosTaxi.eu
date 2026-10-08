@@ -47,6 +47,7 @@ function load(o: Opts = {}) {
   const appended: { src?: string; async?: boolean; fbqPushState?: unknown }[] = [];
   const store: Record<string, string> = { multiFbc: "x", aemSource: "y" };
   const consentHandlers: ((d: unknown) => void)[] = [];
+  const docListeners: Record<string, ((e: unknown) => void)[]> = {};
   const stateCalls: number[] = [];
   const win: Record<string, unknown> = {};
   win.addEventListener = (n: string, fn: (e: unknown) => void) => {
@@ -74,6 +75,9 @@ function load(o: Opts = {}) {
       },
     },
     createElement: () => ({}) as Record<string, unknown>,
+    addEventListener: (n: string, fn: (e: unknown) => void) => {
+      (docListeners[n] = docListeners[n] || []).push(fn);
+    },
     set cookie(v: string) {
       cookieWrites.push(v);
     },
@@ -115,6 +119,8 @@ function load(o: Opts = {}) {
       allowed: (h: string, r?: string) => boolean;
       loaded: () => boolean;
       revoked: () => boolean;
+      pending: () => number;
+      track: (n: string, p?: Record<string, unknown>) => boolean;
     },
     calls: () => (((win.fbq as { queue?: ArrayLike<unknown>[] } | undefined)?.queue ?? []) as ArrayLike<unknown>[]).map((a) => Array.from(a)),
     /** Run due timers and let promises settle; the consent runtime shows up after N poll ticks. */
@@ -132,6 +138,10 @@ function load(o: Opts = {}) {
     fire(name: string, e: unknown) {
       (listeners[name] || []).forEach((f) => f(e));
     },
+    click(target: unknown) {
+      (docListeners.click || []).forEach((f) => f({ target }));
+    },
+    docListeners,
     change(detail: unknown) {
       consentHandlers.forEach((f) => f(detail));
     },
@@ -452,14 +462,161 @@ describe("app/vamos-meta.js: in-place address changes stay on the allow-list (WR
   });
 });
 
+function anchor(href: string, parent?: unknown) {
+  return { tagName: "A", getAttribute: (n: string) => (n === "href" ? href : null), parentNode: parent ?? null };
+}
+
+describe("app/vamos-meta.js: ViewContent, Lead and Contact (owner events, 2026-10-09)", () => {
+  const PIX = ["track", "PageView"];
+
+  it("flags closed: nothing is sent or queued", async () => {
+    const h = load({ open: false });
+    await h.settle();
+    expect(h.api().track("Lead")).toBe(false);
+    expect(h.api().pending()).toBe(0);
+    expect(h.win[FBQ]).toBeUndefined();
+  });
+
+  it("an event asked for before the pixel started waits and goes out right after the PageView, once", async () => {
+    const h = load({ open: true });
+    expect(h.api().track("ViewContent", { content_name: "transfer" })).toBe(true);
+    expect(h.api().pending()).toBe(1);
+    await h.settle();
+    expect(h.api().pending()).toBe(0);
+    expect(h.calls().filter((c) => c[0] === "track")).toEqual([PIX, ["track", "ViewContent", { content_name: "transfer" }]]);
+  });
+
+  it("after the pixel runs an event goes out at once", async () => {
+    const h = load({ open: true });
+    await h.settle();
+    expect(h.api().track("Lead")).toBe(true);
+    expect(h.calls().at(-1)).toEqual(["track", "Lead", {}]);
+  });
+
+  it("the same press twice within 1.5 s counts once", async () => {
+    const h = load({ open: true });
+    await h.settle();
+    h.api().track("Lead");
+    expect(h.api().track("Lead")).toBe(false);
+    expect(h.calls().filter((c) => c[1] === "Lead")).toHaveLength(1);
+  });
+
+  it.each([
+    ["an unknown name", "Purchase", {}],
+    ["a custom name", "Subscribe", {}],
+    ["a prototype name", "constructor", {}],
+    ["ViewContent without its word", "ViewContent", {}],
+    ["ViewContent with a free word", "ViewContent", { content_name: "Zurich Airport to Geneva" }],
+    ["Contact with a number", "Contact", { content_category: "+41796267070" }],
+    ["Contact with a different key", "Contact", { value: 12 }],
+  ])("refused: %s", async (_n, name, params) => {
+    const h = load({ open: true });
+    await h.settle();
+    expect(h.api().track(name as string, params as Record<string, unknown>)).toBe(false);
+    expect(h.calls().filter((c) => c[0] === "track")).toEqual([PIX]);
+  });
+
+  it("extra parameters are dropped: only the fixed word is sent", async () => {
+    const h = load({ open: true });
+    await h.settle();
+    h.api().track("Contact", { content_category: "email", value: 5, email: "a@b.c", extra: "x" });
+    expect(h.calls().at(-1)).toEqual(["track", "Contact", { content_category: "email" }]);
+  });
+
+  it("an address off the allow-list: refused", async () => {
+    const h = load({ open: true, href: "https://vamostaxi.site/checkout?from=a&to=b" });
+    await h.settle();
+    expect(h.api().track("Lead")).toBe(false);
+    expect(h.win[FBQ]).toBeUndefined();
+  });
+
+  it("marketing off: the queue is dropped and nothing is ever sent", async () => {
+    const h = load({ open: true, state: { ok: true, chosen: true, choice: { marketing: false } } });
+    h.api().track("Lead");
+    await h.settle();
+    expect(h.api().pending()).toBe(0);
+    expect(h.appended).toHaveLength(0);
+    expect(h.win[FBQ]).toBeUndefined();
+  });
+
+  it("after a withdraw nothing is sent any more", async () => {
+    const h = load({ open: true });
+    await h.settle();
+    h.change({ marketing: false });
+    expect(h.api().track("Lead")).toBe(false);
+    expect(h.calls().filter((c) => c[1] === "Lead")).toHaveLength(0);
+  });
+
+  it("the queue holds five events at most", async () => {
+    const h = load({ open: true });
+    for (let i = 0; i < 9; i++) {
+      // distinct stamps so the 1.5 s rule does not hide the cap
+      h.api().track(i % 3 === 0 ? "Lead" : i % 3 === 1 ? "Contact" : "ViewContent", i % 3 === 1 ? { content_category: ["phone", "email", "whatsapp"][i % 3] } : { content_name: "transfer" });
+    }
+    expect(h.api().pending()).toBeLessThanOrEqual(5);
+  });
+
+  it("one capturing click listener on the document", () => {
+    const h = load({ open: true });
+    expect(h.docListeners.click).toHaveLength(1);
+  });
+
+  it.each([
+    ["tel:+41796267082", "phone"],
+    ["TEL:+41796267082", "phone"],
+    ["mailto:info@vamostaxi.site", "email"],
+    ["https://wa.me/41796267082", "whatsapp"],
+    ["https://wa.me/41796267082?text=Hi", "whatsapp"],
+    ["https://api.whatsapp.com/send?phone=41796267082", "whatsapp"],
+  ])("a click on %s sends Contact with only %s", async (href, kind) => {
+    const h = load({ open: true });
+    await h.settle();
+    const inner = { tagName: "SPAN", getAttribute: () => null, parentNode: anchor(href) };
+    h.click(inner);
+    expect(h.calls().at(-1)).toEqual(["track", "Contact", { content_category: kind }]);
+    expect(JSON.stringify(h.calls())).not.toContain("41796267082");
+    expect(JSON.stringify(h.calls())).not.toContain("info@");
+  });
+
+  it.each(["/contact", "https://wa.me.evil.test/1", "https://evil.test/wa.me/1", "https://example.com/?u=tel:1", "javascript:void(0)"])(
+    "a click on %s sends nothing",
+    async (href) => {
+      const h = load({ open: true });
+      await h.settle();
+      h.click(anchor(href));
+      expect(h.calls().filter((c) => c[1] === "Contact")).toHaveLength(0);
+    },
+  );
+
+  it("a click that is not on a link sends nothing", async () => {
+    const h = load({ open: true });
+    await h.settle();
+    h.click({ tagName: "DIV", getAttribute: () => null, parentNode: null });
+    h.click(null);
+    expect(h.calls().filter((c) => c[1] === "Contact")).toHaveLength(0);
+  });
+});
+
 describe("app/vamos-meta.js: source pins", () => {
-  it("never allows consent again, tracks only PageView, never custom events or user data, no noscript", () => {
+  it("never allows consent again, tracks PageView and the three fixed events, never custom events or user data, no noscript", () => {
     expect(new RegExp("consent['\"],\\s*['\"]gr" + "ant").test(rawSrc)).toBe(false);
     const tracks = [...rawSrc.matchAll(new RegExp(FBQ + "\\('track',\\s*'([^']+)'", "g"))].map((m) => m[1]);
-    expect(tracks).toEqual(["PageView"]);
+    expect(tracks).toEqual(["PageView"]); // every other event goes through track() and its fixed list
     expect(rawSrc.includes("trackCustom")).toBe(false);
     expect(rawSrc.includes("userData")).toBe(false);
     expect(rawSrc.includes("<noscript")).toBe(false);
+  });
+
+  it("the hooks: ViewContent only after a valid trip on the home page, Lead only after the form was accepted", () => {
+    const home = readFileSync(resolve(APP_DIR, "home/home.dc.html"), "utf8");
+    const contact = readFileSync(resolve(APP_DIR, "pages/contact.dc.html"), "utf8");
+    expect(home.match(/VamosMeta\.track\('ViewContent', \{ content_name: 'transfer' \}\)/g)).toHaveLength(1);
+    const go = home.slice(home.indexOf("goCheckout() {"), home.indexOf("submitBox = "));
+    expect(go.indexOf("if (!r.ok) return;")).toBeGreaterThan(-1);
+    expect(go.indexOf("VamosMeta.track")).toBeGreaterThan(go.indexOf("if (!r.ok) return;"));
+    expect(go.indexOf("VamosMeta.track")).toBeLessThan(go.indexOf("location.assign"));
+    expect(contact.match(/VamosMeta\.track\('Lead'\)/g)).toHaveLength(1);
+    expect(contact).toContain("if (accepted) { try { if (window.VamosMeta");
   });
 
   it("every cookie write ends the cookie (Max-Age=0); our code never sets a value", () => {
