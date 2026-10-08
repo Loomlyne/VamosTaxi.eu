@@ -194,13 +194,13 @@ describe("stripe module", () => {
     expect(params).not.toHaveProperty("payment_intent_data");
   });
 
-  it("clamps Stripe session expiry to 30 minutes–24 hours", () => {
+  it("clamps Stripe session expiry to 31 minutes–24 hours", () => {
     const now = Date.parse("2026-09-08T12:00:00.000Z");
     expect(stripeSessionExpiresAtUnix(new Date(now + 1440 * 60_000), now)).toBe(
       Math.floor(now / 1000) + 24 * 60 * 60 - 30,
     );
     expect(stripeSessionExpiresAtUnix(new Date(now + 10 * 60_000), now)).toBe(
-      Math.floor(now / 1000) + 30 * 60,
+      Math.floor(now / 1000) + 31 * 60,
     );
     expect(stripeSessionExpiresAtUnix(new Date(now + 60 * 60_000), now)).toBe(
       Math.floor(now / 1000) + 60 * 60,

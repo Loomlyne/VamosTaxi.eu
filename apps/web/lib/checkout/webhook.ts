@@ -5,7 +5,7 @@
 // (settle.ts). This handler never marks paid and never captures.
 
 import type Stripe from "stripe";
-import { WebhookVerificationError } from "./webhook-verify";
+import { WebhookModeError, WebhookVerificationError } from "./webhook-verify";
 import type { ScalarValue } from "../logger";
 
 export type StripeQueueMessage = {
@@ -37,6 +37,11 @@ export async function handleStripeWebhook(
   try {
     event = await deps.verify(raw, signature);
   } catch (err) {
+    if (err instanceof WebhookModeError) {
+      // A correctly signed event from the wrong mode: configuration, not an attacker.
+      deps.emit("error", "stripe_webhook_mode_mismatch", { bodyLength: raw.length });
+      return new Response(null, { status: 400, headers: { "cache-control": "private, no-store" } });
+    }
     if (err instanceof WebhookVerificationError) {
       deps.emit("warn", "stripe_webhook", {
         hasSignature: Boolean(signature),
@@ -44,6 +49,9 @@ export async function handleStripeWebhook(
       });
       return new Response(null, { status: 400, headers: { "cache-control": "private, no-store" } });
     }
+    // Misconfiguration (no webhook secret, key that is not a Stripe key): 500 so Stripe retries
+    // and ops sees an error, never a 400 that reads like a forged request.
+    deps.emit("error", "stripe_webhook_config", { bodyLength: raw.length });
     throw err;
   }
 

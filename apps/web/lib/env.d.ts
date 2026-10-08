@@ -358,7 +358,9 @@ interface CloudflareEnv {
 
   /**
    * Stripe secret key. REQUIRED. `wrangler secret put STRIPE_SECRET_KEY`.
-   * Never in wrangler.jsonc `vars`. Test mode (`sk_test_`) on staging until Phase 11.
+   * Never in wrangler.jsonc `vars`. Must be an `sk_` or `rk_` key (stripe-mode.ts); anything
+   * else is refused before a Stripe call. Worker `vamos` runs the LIVE key since 2026-10-09
+   * (owner's word); `sk_test_` is for local and sandbox proof only and goes away in J10.
    */
   STRIPE_SECRET_KEY: string;
 
@@ -370,7 +372,8 @@ interface CloudflareEnv {
 
   /**
    * Stripe publishable key. REQUIRED. wrangler.jsonc `vars` — not a secret.
-   * `pk_test_` placeholder until the owner binds a real test key. Never `pk_live_`.
+   * Must name the same mode as STRIPE_SECRET_KEY: the hourly health probe reports payments
+   * down when they differ. `pk_test_placeholder` names no mode (production until cutover).
    */
   STRIPE_PUBLISHABLE_KEY: string;
   /** "on" adds TWINT to the hosted Checkout page; anything else is card only (D-20). */

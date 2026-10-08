@@ -277,7 +277,9 @@
         // Not a budget; not a franc figure.
         "MAPBOX_DAILY_UNIT_SENTINEL": "5000",
         "STRIPE_PUBLISHABLE_KEY": "pk_test_placeholder",
-        "STRIPE_CHECKOUT_TWINT": "on"
+        // Off until TWINT shows active on the live Stripe account (same as staging); an
+        // unactivated method makes every Checkout Session fail (W1-09).
+        "STRIPE_CHECKOUT_TWINT": "off"
       },
       "kv_namespaces": [
         { "binding": "GEO_CACHE", "id": "a11bc8c7d13d4eeb9c2dad091e978dcb" },

@@ -17,6 +17,7 @@
 // Reads run as staff (the system role has no table SELECT); writes are SECURITY DEFINER functions
 // under asSystem, with refusals mapped AROUND the wrapper (postgres.js begin() rethrows).
 
+import { stripeKeyRefused } from "@/lib/checkout/stripe-mode";
 import {
   chauffeurEmailLocale,
   sendChauffeurAssign,
@@ -627,8 +628,8 @@ export async function confirmBookingChange(
   if (!body.klass || body.expectTotalRappen == null || body.expectPaidRappen == null) {
     return { ok: false, code: "invalid-body" };
   }
-  // Plan: the change machine refuses a live key until the security session's pre-launch proof.
-  if ((env.STRIPE_SECRET_KEY ?? "").startsWith("sk_live_")) return { ok: false, code: "stripe-test-only" };
+  // J1: a key that is not a Stripe key of a known mode stops the change before anything is written.
+  if (stripeKeyRefused(env)) return { ok: false, code: "stripe-failed" };
 
   const priced = await priceForBooking(env, claims, bookingKey, deps);
   if (!priced.ok) return priced;
@@ -965,7 +966,7 @@ export async function withdrawBookingChange(
   claims: VamosClaims,
   bookingKey: string,
 ): Promise<{ ok: true; bookingId: string; reference: string } | ChangeFail> {
-  if ((env.STRIPE_SECRET_KEY ?? "").startsWith("sk_live_")) return { ok: false, code: "stripe-test-only" };
+  if (stripeKeyRefused(env)) return { ok: false, code: "stripe-failed" };
   const key = bookingKey.trim();
   if (!key) return { ok: false, code: "not-found" };
 

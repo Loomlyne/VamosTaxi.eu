@@ -6,6 +6,7 @@
 
 import Stripe from "stripe";
 import { CHARGE_CURRENCY, stripeLocale, type CheckoutLocale } from "./currency";
+import { requireStripeSecretMode } from "./stripe-mode";
 
 const STRIPE_API_VERSION: Stripe.LatestApiVersion = "2026-08-26.dahlia";
 
@@ -19,6 +20,8 @@ export function stripeFromEnv(env: CloudflareEnv): Stripe {
   if (!key) {
     throw missingEnvError("STRIPE_SECRET_KEY");
   }
+  // J1: a value that is not a Stripe secret or restricted key never reaches Stripe.
+  requireStripeSecretMode(key);
   return new Stripe(key, {
     httpClient: Stripe.createFetchHttpClient(),
     apiVersion: STRIPE_API_VERSION,
@@ -28,7 +31,7 @@ export function stripeFromEnv(env: CloudflareEnv): Stripe {
   });
 }
 
-/** Publishable key from wrangler `vars` — never a secret, never `pk_live_` here. */
+/** Publishable key from wrangler `vars` — public by design, never a secret. Its mode must match the secret key (stripe-mode.ts, health probe). */
 export function stripePublishableKey(env: CloudflareEnv): string {
   const key = env.STRIPE_PUBLISHABLE_KEY;
   if (!key) {
@@ -65,11 +68,13 @@ export interface CreateCheckoutSessionInput {
 
 /**
  * Stripe Checkout Session `expires_at` must be 30 minutes–24 hours from now.
- * The quote lock can be 1440 minutes; clamp only the Stripe clock.
+ * The quote lock can be 1440 minutes; clamp only the Stripe clock. The floor is 31 minutes,
+ * one minute above Stripe's, so the request still lands inside the window after a slow
+ * first try or an SDK retry (J1, W1-11).
  */
 export function stripeSessionExpiresAtUnix(expiresAt: Date, nowMs = Date.now()): number {
   const nowSec = Math.floor(nowMs / 1000);
-  const min = nowSec + 30 * 60;
+  const min = nowSec + 31 * 60;
   const max = nowSec + 24 * 60 * 60 - 30;
   const exp = Math.floor(expiresAt.getTime() / 1000);
   return Math.min(max, Math.max(min, exp));

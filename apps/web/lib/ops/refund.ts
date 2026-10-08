@@ -12,6 +12,7 @@
 // gets the full amount only: no lower percent, no exact amount below what is left, no decline.
 // The live-key refusal below stays until the sandbox proof (20-10 spec D.3).
 
+import { stripeKeyRefused } from "@/lib/checkout/stripe-mode";
 import { asStaff, asSystem, type VamosClaims } from "../db/identity";
 import {
   createRefund,
@@ -358,10 +359,8 @@ export async function refundBooking(
   const key = bookingKey.trim();
   if (!key) return { ok: false, code: "not-found" };
 
-  const secret = env.STRIPE_SECRET_KEY ?? "";
-  if (secret.startsWith("sk_live_")) {
-    return { ok: false, code: "stripe-test-only" };
-  }
+  // J1: the key must be a Stripe key of a known mode; test and live both work.
+  if (stripeKeyRefused(env)) return { ok: false, code: "stripe-failed" };
 
   const bookingId = await resolveStaffBookingId(env, claims, key);
   if (!bookingId) return { ok: false, code: "not-found" };

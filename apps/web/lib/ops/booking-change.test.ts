@@ -353,9 +353,9 @@ describe("confirmBookingChange", () => {
     expect(sendClassChangePay).not.toHaveBeenCalled();
   });
 
-  it("a live Stripe key is refused (pre-launch item of the security session, not lifted here)", async () => {
-    const live = { ...env, STRIPE_SECRET_KEY: "sk_live_x" } as unknown as CloudflareEnv;
-    expect(await confirmBookingChange(live, claims, "VT-26-0801", { klass: BIZ, expectTotalRappen: 1, expectPaidRappen: 1 }, undefined, deps(context()))).toEqual({ ok: false, code: "stripe-test-only" });
+  it("a bound key that is not a Stripe key is refused before anything is read or written (J1)", async () => {
+    const bad = { ...env, STRIPE_SECRET_KEY: " not-a-stripe-key" } as unknown as CloudflareEnv;
+    expect(await confirmBookingChange(bad, claims, "VT-26-0801", { klass: BIZ, expectTotalRappen: 1, expectPaidRappen: 1 }, undefined, deps(context()))).toEqual({ ok: false, code: "stripe-failed" });
   });
 
   it("the body must name a class and both figures", async () => {

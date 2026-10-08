@@ -77,7 +77,7 @@ describe("08-05 refund file proofs", () => {
     expect(src).not.toMatch(/public\.ops_refund_record\(/);
     expect(src).toMatch(/asStaff/);
     expect(src).toMatch(/asSystem/);
-    expect(src).toMatch(/sk_live_/);
+    expect(src).toMatch(/stripeKeyRefused/);
     expect(src).not.toMatch(/asStaff[\s\S]*insert into public\.booking_refunds/i);
     expect(src).not.toMatch(/:6543/);
   });

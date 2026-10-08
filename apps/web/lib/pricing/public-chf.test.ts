@@ -128,11 +128,11 @@ describe("D-40 grep gates: Worker vamos, no .eu, no sk_live_, SQL does not flip 
     }
   });
 
-  it("staging Stripe publishable stays pk_test_; wrangler has no sk_live_", () => {
+  it("wrangler carries a publishable key only, never a secret key (live mode is the owner's, 2026-10-09)", () => {
     const wrangler = source("wrangler.jsonc");
-    expect(wrangler).not.toMatch(/sk_live_/);
+    expect(wrangler).not.toMatch(/sk_live_|rk_live_|sk_test_|rk_test_|whsec_/);
     const key = wranglerConfig().env.staging.vars?.STRIPE_PUBLISHABLE_KEY ?? "";
-    expect(key).toMatch(/^pk_test_/);
+    expect(key).toMatch(/^pk_(live|test)_/);
   });
 
   it("checkout and stripe implementation files have no sk_live_", () => {

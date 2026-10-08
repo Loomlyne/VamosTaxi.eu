@@ -3,9 +3,13 @@
 For whoever is on the hook at 07:00 when a customer paid and the board still
 shows pending.
 
-Test mode until Phase 11. Never paste `sk_live_` / `whsec_` for live into
-staging. Secrets go through `wrangler secret put`, never the chat, never
-`wrangler.jsonc` `vars`.
+Worker `vamos` runs Stripe LIVE mode since 2026-10-09 (owner's word). The secret
+key, the webhook signing secret and the publishable key must all come from the
+same mode and account: the webhook refuses any event whose `livemode` differs
+from the key's mode (log `stripe_webhook_mode_mismatch`, HTTP 400), and the
+hourly health probe reports payments down when the key modes disagree. Secrets
+go through `wrangler secret put`, never the chat, never `wrangler.jsonc`
+`vars`.
 
 ## Is the webhook arriving?
 

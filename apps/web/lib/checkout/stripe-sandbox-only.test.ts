@@ -1,9 +1,10 @@
 // apps/web/lib/checkout/stripe-sandbox-only.test.ts
 //
-// INT-01 repo-side pin (26.1-CONTEXT D-01/D-02). Only the Vamos Taxi sandbox
-// (acct_1UIZmqHcNp9GZYjz) is used. No sk_live_ outside the refusal-guard
-// shape. No retired-account suffix. No vamostaxi.eu route. Never reads a
-// secret, `.dev.vars`, or `.env*` file — asserts prefixes and shapes only.
+// INT-01 repo-side pin (26.1-CONTEXT D-01/D-02), reworked in J1 (2026-10-09): Worker `vamos`
+// runs Stripe LIVE mode on the owner's word. What stays pinned: the publishable key is one of
+// the two known Vamos keys (sandbox or live), no secret or restricted key literal sits in
+// source or in wrangler.jsonc, no retired-account suffix, no vamostaxi.eu route. Test keys go
+// away in J10. Never reads a secret, `.dev.vars`, or `.env*` file — asserts prefixes and shapes only.
 // The webhook signing secret is owner-only and is checked in 26.1-13, not here.
 
 import { readdirSync, readFileSync } from "node:fs";
@@ -43,7 +44,9 @@ const SKIP_EXTENSIONS = new Set([
 const SANDBOX_PUBLISHABLE_PREFIX = "pk_test_51UIZmqHcNp9GZYjz";
 const LIVE_PUBLISHABLE_PREFIX = "pk_live_51UIZmAQbJiSLxJfu";
 const RETIRED_ACCOUNT_SUFFIX = "AJS2YBf21S";
-const GUARD_SHAPE = 'startsWith("sk_live_")';
+// Built from parts so this file itself carries no key-prefix literal.
+const SECRET_KEY_LITERAL = /\b(?:sk|rk)_(?:live|test)_[A-Za-z0-9]/;
+const LIVE_SECRET_KEY_LITERAL = /\b(?:sk|rk)_live_[A-Za-z0-9]/;
 
 function source(rel: string): string {
   return readFileSync(join(webRoot, rel), "utf8");
@@ -99,30 +102,26 @@ function isThisTest(rel: string): boolean {
 }
 
 describe("INT-01 sandbox-only Stripe facts (repo side)", () => {
-  it("wrangler.jsonc env.staging publishable key is the Vamos Taxi sandbox", () => {
+  it("wrangler.jsonc env.staging publishable key is a known Vamos key (sandbox or live)", () => {
     const key = wranglerConfig().env.staging.vars?.STRIPE_PUBLISHABLE_KEY ?? "";
     expect(
       key.startsWith(SANDBOX_PUBLISHABLE_PREFIX) || key.startsWith(LIVE_PUBLISHABLE_PREFIX),
     ).toBe(true);
   });
 
-  it("wrangler.jsonc itself has no sk_live_", () => {
-    expect(source("wrangler.jsonc")).not.toMatch(/sk_live_/);
+  it("wrangler.jsonc itself carries no secret or restricted key", () => {
+    expect(source("wrangler.jsonc")).not.toMatch(SECRET_KEY_LITERAL);
   });
 
   it(
-    "no sk_live_ outside the refusal-guard shape under lib/ and app/",
+    "no live secret or restricted key literal in non-test source under lib/ and app/",
     () => {
       const offenders: string[] = [];
       for (const dir of ["lib", "app"]) {
         for (const rel of walk(dir)) {
           if (rel.endsWith(".test.ts") || rel.endsWith(".test.tsx")) continue;
           if (isThisTest(rel)) continue;
-          const src = source(rel);
-          if (!src.includes("sk_live_")) continue;
-          // Allow exactly the refusal-guard shape; any other occurrence fails.
-          const withoutGuard = src.split(GUARD_SHAPE).join("");
-          if (withoutGuard.includes("sk_live_")) offenders.push(rel);
+          if (LIVE_SECRET_KEY_LITERAL.test(source(rel))) offenders.push(rel);
         }
       }
       expect(offenders).toEqual([]);
