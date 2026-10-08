@@ -143,26 +143,10 @@ describe("08-05 refund file proofs", () => {
 });
 
 describe("09-05 D-12 remaining refund", () => {
+  // J7 W6-18: the unit-tested cap helper (opsRefundAmount) was not the one production used; it is gone. The
+  // cap is the SQL one (ops_refund_plan, and tg_refund_cap on every insert), proven in pgTAP
+  // (refunds_by_hand, refund_ledger_mirroring); TypeScript only mirrors it in checkRequest before the call.
   it("already-refunded only when remaining is 0; prior row with remaining > 0 is allowed", async () => {
-    const { opsRefundAmount } = await import("./refund-map");
-    expect(opsRefundAmount({ capturedRappen: 8000, refundedRappen: 3000 })).toEqual({
-      remaining: 5000,
-      amount: 5000,
-    });
-    expect(opsRefundAmount({ capturedRappen: 8000, refundedRappen: 8000 })).toEqual({
-      remaining: 0,
-      amount: 0,
-    });
-    expect(
-      opsRefundAmount({ capturedRappen: 8000, refundedRappen: 3000, rappen: 2000 }),
-    ).toEqual({ remaining: 5000, amount: 2000 });
-    expect(
-      opsRefundAmount({ capturedRappen: 8000, refundedRappen: 0, percent: 50 }),
-    ).toEqual({ remaining: 8000, amount: 4000 });
-    expect(
-      opsRefundAmount({ capturedRappen: 8000, refundedRappen: 5000, rappen: 99999 }),
-    ).toEqual({ remaining: 3000, amount: 3000 });
-
     const src = read("apps/web/lib/ops/refund.ts");
     expect(src).not.toMatch(/if \(existing\[0\]\) return \{ ok: false, code: "already-refunded" \}/);
     expect(src).toMatch(/already-refunded/);
@@ -204,11 +188,22 @@ describe("09-05 D-12 remaining refund", () => {
   });
 });
 
+describe("J7 W6-05: a refund Stripe later failed is not counted as refunded", () => {
+  it.each(["apps/web/lib/ops/refund.ts", "apps/web/lib/ops/bookings.ts", "apps/web/lib/ops/booking-change.ts"])(
+    "%s sums booking_refunds net of booking_refund_reversals",
+    (file) => {
+      const src = read(file);
+      const sums = src.split("\n").filter((l) => /sum\((r|br)\.refund_rappen\)/.test(l));
+      expect(sums.length).toBeGreaterThan(0);
+      expect(src).toMatch(/not exists \(select 1 from public\.booking_refund_reversals/);
+    },
+  );
+});
+
 describe("26.1-17 D-24/D-25 admin refund decisions", () => {
   it("parseRefundBody: integer percent 0-100, postTrip alone, {} = full remaining", async () => {
     const { parseRefundBody } = await import("./refund-map");
     expect(parseRefundBody({})).toEqual({ ok: true, value: {} });
-    expect(parseRefundBody(null)).toEqual({ ok: true, value: {} });
     expect(parseRefundBody({ percent: 40 })).toEqual({ ok: true, value: { percent: 40 } });
     expect(parseRefundBody({ percent: 0 })).toEqual({ ok: true, value: { percent: 0 } });
     expect(parseRefundBody({ percent: 100 })).toEqual({ ok: true, value: { percent: 100 } });
@@ -224,6 +219,28 @@ describe("26.1-17 D-24/D-25 admin refund decisions", () => {
     // 20-10: the exact amount is amountRappen; the old name `rappen` is accepted as the same thing.
     expect(parseRefundBody({ rappen: 1200.7 })).toEqual({ ok: true, value: { amountRappen: 1200 } });
     expect(parseRefundBody({ amountRappen: 1200 })).toEqual({ ok: true, value: { amountRappen: 1200 } });
+  });
+
+  it("J7 W6-04: a body that is not a JSON object, or has an unknown key, is invalid-body, never 'refund everything left'", async () => {
+    const { parseRefundBody } = await import("./refund-map");
+    for (const bad of [null, undefined, [], [{}], "refund", 5, true]) {
+      expect(parseRefundBody(bad)).toEqual({ ok: false, code: "invalid-body" });
+    }
+    // The typo from the review: `amount` instead of `amountRappen`.
+    expect(parseRefundBody({ amount: 500 })).toEqual({ ok: false, code: "invalid-body" });
+    expect(parseRefundBody({ percent: 50, note: "x" })).toEqual({ ok: false, code: "invalid-body" });
+    // The explicit full refund stays: `{}` (the dashboard button) and `{ all: true }`.
+    expect(parseRefundBody({})).toEqual({ ok: true, value: {} });
+    expect(parseRefundBody({ all: true })).toEqual({ ok: true, value: {} });
+    expect(parseRefundBody({ all: false })).toEqual({ ok: false, code: "invalid-body" });
+    expect(parseRefundBody({ all: true, percent: 50 })).toEqual({ ok: false, code: "invalid-body" });
+  });
+
+  it("J7 W6-04: the route answers 400 invalid-body for an unparseable body instead of defaulting to {}", () => {
+    const route = read("apps/web/app/[locale]/(ops)/api/staff/bookings/[id]/refund/route.ts");
+    const post = route.slice(route.indexOf("export const POST"), route.indexOf("export const GET"));
+    expect(post).toMatch(/catch \{\s*return jsonErr\("invalid-body", 400\);/);
+    expect(post).not.toMatch(/body = \{\}/);
   });
 
   it("parseRefundBody 20-10: paymentId, retry, and one of percent / amountRappen, never both", async () => {
@@ -262,18 +279,6 @@ describe("26.1-17 D-24/D-25 admin refund decisions", () => {
     for (const bad of [{ decision: "accept" }, { decision: "" }, {}, null, "decline", []]) {
       expect(parseRefundDecision(bad)).toBeNull();
     }
-  });
-
-  it("opsRefundAmount: 40 % of captured; a zero percent is zero", async () => {
-    const { opsRefundAmount } = await import("./refund-map");
-    expect(opsRefundAmount({ capturedRappen: 8000, refundedRappen: 0, percent: 40 })).toEqual({
-      remaining: 8000,
-      amount: 3200,
-    });
-    expect(opsRefundAmount({ capturedRappen: 8000, refundedRappen: 0, percent: 0 })).toEqual({
-      remaining: 8000,
-      amount: 0,
-    });
   });
 
   it("maps the new SQL refusals, and 42501 to not-admin", async () => {

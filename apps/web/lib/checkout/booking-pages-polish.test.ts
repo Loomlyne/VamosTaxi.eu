@@ -371,7 +371,7 @@ describe("customerCanCancel (261002 item 1, shared by the manage link and the si
 
   it("the manage route uses it in place of its own list", () => {
     const route = read("apps/web/app/api/manage/booking/route.ts");
-    expect(route).toMatch(/import \{ customerCancelWindow, customerCanCancel \} from "@\/lib\/checkout\/cancel-window";/);
+    expect(route).toMatch(/import \{ cancelWindowFromMode, customerCanCancel \} from "@\/lib\/checkout\/cancel-window";/);
     expect(route).toMatch(/const canCancel = customerCanCancel\(status, reviewSubmitted\);/);
     expect(route).not.toContain("HIDE_CANCEL");
   });

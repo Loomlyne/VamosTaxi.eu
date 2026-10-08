@@ -11,6 +11,23 @@ hourly health probe reports payments down when the key modes disagree. Secrets
 go through `wrangler secret put`, never the chat, never `wrangler.jsonc`
 `vars`.
 
+## Event types the Stripe endpoint must be subscribed to
+
+Dashboard → Developers → Webhooks → the endpoint → "Listen to". The Worker
+handles these and ignores every other type:
+
+- `checkout.session.completed`, `checkout.session.expired`,
+  `checkout.session.async_payment_failed`, `payment_intent.canceled`:
+  settlement.
+- `charge.refunded`: a refund made in the Stripe Dashboard, or by the app,
+  reaches the database.
+- `charge.dispute.created`, `charge.dispute.updated`, `charge.dispute.closed`:
+  the dispute row and the ops mail (J7 W6-07).
+- `refund.failed`, `refund.updated`, `charge.refund.updated` (J7 W6-05): a
+  refund Stripe accepted and later reports failed or canceled. The refund is
+  reversed in the database, the booking shows the refund as due again and ops
+  is mailed. A type that is missing here means that case is never seen.
+
 ## Is the webhook arriving?
 
 Stripe Dashboard → Developers → Events. Filter `checkout.session.completed`.
@@ -40,8 +57,14 @@ Read `attempts` and `last_error`.
   both reached `succeeded` on one booking. That is a refund conversation, not
   a retry.
 
-The consumer acks permanent errors so they do not loop. It retries only
-`P0002`.
+The consumer never acknowledges a database error on a payment, refund or
+dispute event (U4, `settle-errors.ts`). A transient one (deadlock,
+serialization failure, lock or statement timeout, a lost connection, no
+SQLSTATE) is retried after a few seconds and nothing is written on the event.
+Any other SQLSTATE is written on the event as `last_error` and the event is
+retried every 5 minutes; after the last try the dead-letter queue mails
+info@vamostaxi.site ("A Stripe payment event is stuck"). `P0002` is retried
+the same way.
 
 ## A customer paid but got no email
 

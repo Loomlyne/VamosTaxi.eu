@@ -75,7 +75,11 @@
     "paidAfterCancelHeadline": "Nach Stornierung bezahlt — zurückerstattet",
     "paidAfterCancelBody": "Eine Zahlung ist für eine Buchung eingegangen, die nicht stattfinden konnte. Der Betrag wurde automatisch zurückerstattet. Es ist keine Aktion nötig, ausser wenn sich der Kunde meldet.",
     "differenceNotAppliedHeadline": "Differenz bezahlt, Änderung nicht übernommen",
-    "differenceNotAppliedBody": "Der Kunde hat die Differenz für diese Buchung bezahlt, aber die Änderung wurde nicht übernommen: Die Fahrt wurde storniert, eine neuere Änderung hat sie ersetzt, oder sie passt nicht mehr. Die Zahlung ist verbucht und erscheint als fällige Rückerstattung. Senden Sie sie im Dashboard zurück oder nehmen Sie die Änderung erneut vor."
+    "differenceNotAppliedBody": "Der Kunde hat die Differenz für diese Buchung bezahlt, aber die Änderung wurde nicht übernommen: Die Fahrt wurde storniert, eine neuere Änderung hat sie ersetzt, oder sie passt nicht mehr. Die Zahlung ist verbucht und erscheint als fällige Rückerstattung. Senden Sie sie im Dashboard zurück oder nehmen Sie die Änderung erneut vor.",
+    "refundFailedHeadline": "Eine Rückerstattung wurde von Stripe rückgängig gemacht",
+    "refundFailedBody": "Stripe hat eine bereits verbuchte Rückerstattung als fehlgeschlagen gemeldet. Die Buchung zeigt die Rückerstattung wieder als fällig. Öffnen Sie die Buchung im Dashboard und senden Sie die Rückerstattung erneut, oder prüfen Sie sie in Stripe.",
+    "disputeHeadline": "Eine Kartenstreitigkeit wurde eröffnet oder geändert",
+    "disputeBody": "Stripe hat eine Streitigkeit zu einer Zahlung dieser Buchung gemeldet. Öffnen Sie sie in Stripe, um Status und Frist für Nachweise zu sehen. Die Buchung zeigt die Streitigkeit im Dashboard."
   },
   "cancellation": {
     "subject": "Buchung {reference} ist storniert",

@@ -61,7 +61,8 @@ function cancelRow(mode: string, rappen: number) {
 }
 
 function mock(mode: string, rappen: number, paid = true) {
-  asStaff.mockImplementation(async (_e: unknown, _c: unknown, fn: (sql: unknown) => unknown) => fn(async () => [{ id: 1 }]));
+  // J7 W6-09: the erase attempt answers "paid" (a payment is captured), so the cancel runs ops_cancel_booking.
+  asStaff.mockImplementation(async (_e: unknown, _c: unknown, fn: (sql: unknown) => unknown) => fn(async () => [{ outcome: "paid" }]));
   asSystem.mockImplementation(async (_e: unknown, fn: (sql: unknown) => unknown) => fn(async () => [{ ...cancelRow(mode, rappen), paid }]));
 }
 

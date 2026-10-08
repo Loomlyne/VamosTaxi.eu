@@ -4,6 +4,7 @@ import {
   APP_REFUND_PENDING_DELAY_SECONDS,
   handleChargeRefundedWithDeps,
   handleDisputeWithDeps,
+  handleRefundUpdateWithDeps,
   moneyEventKind,
   paymentIntentIdOfCharge,
   paymentIntentIdOfDispute,
@@ -94,7 +95,12 @@ function deps(patch: Partial<MoneyEventDeps> = {}): MoneyEventDeps & {
 }
 
 describe("moneyEventKind", () => {
-  it("maps charge.refunded and the three dispute events, nothing else", () => {
+  it("maps charge.refunded, the three dispute events and the three refund-update events, nothing else", () => {
+    // J7 W6-05: refund.failed, refund.updated and charge.refund.updated reach the handler.
+    expect(moneyEventKind("refund.failed")).toBe("refund_update");
+    expect(moneyEventKind("refund.updated")).toBe("refund_update");
+    expect(moneyEventKind("charge.refund.updated")).toBe("refund_update");
+    expect(moneyEventKind("refund.created")).toBeNull();
     expect(moneyEventKind("charge.refunded")).toBe("charge_refunded");
     expect(moneyEventKind("charge.dispute.created")).toBe("dispute");
     expect(moneyEventKind("charge.dispute.updated")).toBe("dispute");
@@ -274,16 +280,30 @@ describe("handleChargeRefundedWithDeps", () => {
     expect(d.eventSettle).not.toHaveBeenCalled();
   });
 
-  it("a refund in a currency other than CHF is never written as rappen", async () => {
+  it("a refund in a currency other than CHF is never written as rappen, and the event goes to the slow retry (J7 W6-19)", async () => {
     const d = deps();
     const result = await handleChargeRefundedWithDeps(
       message(),
       charge([refund({ currency: "eur" })]),
       d,
     );
-    expect(result).toEqual({ ack: true });
+    // Not acknowledged any more: the slow retry ends in the dead-letter mail, so a person looks at it.
+    expect(result).toEqual({ retry: true, delaySeconds: PAID_ERROR_RETRY_SECONDS });
     expect(d.recordChargeRefund).not.toHaveBeenCalled();
     expect(d.eventSettle).toHaveBeenCalledWith("evt_ch_1", "non_chf_refund");
+  });
+
+  it("J7 W6-19: a non-CHF refund does not skip the CHF refunds on the same charge", async () => {
+    const d = deps();
+    const result = await handleChargeRefundedWithDeps(
+      message(),
+      charge([refund({ id: "re_eur", currency: "eur" }), refund({ id: "re_chf", amount: 6 })]),
+      d,
+    );
+    expect(d.recordChargeRefund).toHaveBeenCalledTimes(1);
+    expect(d.recordChargeRefund).toHaveBeenCalledWith(expect.objectContaining({ stripeRefundId: "re_chf", refundRappen: 6 }));
+    expect(d.emit).toHaveBeenCalledWith("error", "charge_refund_non_chf", expect.anything());
+    expect(result).toEqual({ retry: true, delaySeconds: PAID_ERROR_RETRY_SECONDS });
   });
 });
 
@@ -408,5 +428,167 @@ describe("charge.refunded with more than ten refunds (26.2 audit U11-3)", () => 
     expect(result).toEqual({ retry: true });
     expect(d.recordChargeRefund).not.toHaveBeenCalled();
     expect(d.eventSettle).not.toHaveBeenCalled();
+  });
+});
+
+
+describe("handleDisputeWithDeps ops alert (J7 W6-07)", () => {
+  const disputeMessage = message({ eventId: "evt_du_2", type: "charge.dispute.created", objectId: "du_test_1" });
+  const stored = (alertPending: boolean) => ({ reference: "VT-26-0101", status: "needs_response", alertPending });
+
+  it("mails ops (ids and reference only) when the stored status has not been mailed, then closes the event", async () => {
+    const alertDispute = vi.fn(async () => undefined);
+    const d = deps({ upsertDispute: vi.fn(async () => stored(true)), alertDispute });
+    const result = await handleDisputeWithDeps(disputeMessage, dispute(), d);
+    expect(result).toEqual({ ack: true });
+    expect(alertDispute).toHaveBeenCalledTimes(1);
+    expect(alertDispute).toHaveBeenCalledWith({
+      eventId: "evt_du_2",
+      type: "charge.dispute.created",
+      objectId: "du_test_1",
+      reference: "VT-26-0101",
+      status: "needs_response",
+    });
+    expect(d.eventSettle).toHaveBeenLastCalledWith("evt_du_2", null);
+  });
+
+  it("does not mail again for a status ops was already told about", async () => {
+    const alertDispute = vi.fn(async () => undefined);
+    const d = deps({ upsertDispute: vi.fn(async () => stored(false)), alertDispute });
+    expect(await handleDisputeWithDeps(disputeMessage, dispute(), d)).toEqual({ ack: true });
+    expect(alertDispute).not.toHaveBeenCalled();
+  });
+
+  it("a mail that did not go out keeps the event open for the slow retry, never acknowledged", async () => {
+    const alertDispute = vi.fn(async () => {
+      throw new Error("Resend refused");
+    });
+    const d = deps({ upsertDispute: vi.fn(async () => stored(true)), alertDispute });
+    const result = await handleDisputeWithDeps(disputeMessage, dispute(), d);
+    expect(result).toEqual({ retry: true, delaySeconds: PAID_ERROR_RETRY_SECONDS });
+    expect(d.eventSettle).toHaveBeenCalledWith("evt_du_2", "dispute_alert_failed");
+    expect(d.eventSettle).not.toHaveBeenCalledWith("evt_du_2", null);
+    expect(d.emit).toHaveBeenCalledWith("error", "dispute_alert_failed", expect.anything());
+  });
+});
+
+describe("handleRefundUpdateWithDeps (J7 W6-05)", () => {
+  const refundMessage = message({ eventId: "evt_re_1", type: "refund.failed", objectId: "re_app_1" });
+  const failed = (patch: Partial<Stripe.Refund> = {}) =>
+    refund({ id: "re_app_1", status: "failed", failure_reason: "expired_or_canceled_card", metadata: { vamos_source: "app" }, ...patch });
+  const reversal = (patch: Partial<{ outcome: string; reference: string | null; alertPending: boolean }> = {}) => ({
+    outcome: "reversed",
+    reference: "VT-26-0101",
+    alertPending: true,
+    ...patch,
+  });
+  function withRefundDeps(patch: Partial<MoneyEventDeps> = {}) {
+    return deps({
+      retrieveRefund: vi.fn(async () => failed()),
+      recordRefundFailure: vi.fn(async () => reversal()),
+      alertRefundFailed: vi.fn(async () => undefined),
+      ...patch,
+    }) as ReturnType<typeof deps> & {
+      retrieveRefund: ReturnType<typeof vi.fn>;
+      recordRefundFailure: ReturnType<typeof vi.fn>;
+      alertRefundFailed: ReturnType<typeof vi.fn>;
+    };
+  }
+
+  it("a refund Stripe re-reads as failed is reversed, ops is mailed (ids only), the event is closed", async () => {
+    const d = withRefundDeps();
+    const result = await handleRefundUpdateWithDeps(refundMessage, d);
+    expect(result).toEqual({ ack: true });
+    expect(d.retrieveRefund).toHaveBeenCalledWith("re_app_1");
+    expect(d.recordRefundFailure).toHaveBeenCalledWith({
+      stripeRefundId: "re_app_1",
+      status: "failed",
+      failureReason: "expired_or_canceled_card",
+      created: new Date(1_725_000_100 * 1000),
+      appSource: true,
+    });
+    expect(d.alertRefundFailed).toHaveBeenCalledWith({
+      eventId: "evt_re_1",
+      type: "refund.failed",
+      objectId: "re_app_1",
+      reference: "VT-26-0101",
+    });
+    expect(d.eventSettle).toHaveBeenLastCalledWith("evt_re_1", null);
+  });
+
+  it("a canceled refund is reversed the same way", async () => {
+    const d = withRefundDeps({ retrieveRefund: vi.fn(async () => failed({ status: "canceled" })) });
+    await handleRefundUpdateWithDeps(refundMessage, d);
+    expect(d.recordRefundFailure).toHaveBeenCalledWith(expect.objectContaining({ status: "canceled" }));
+  });
+
+  it("the event body is never trusted: the status comes from the re-read refund (a pending one does nothing)", async () => {
+    const d = withRefundDeps({ retrieveRefund: vi.fn(async () => failed({ status: "pending" })) });
+    const result = await handleRefundUpdateWithDeps(refundMessage, d);
+    expect(result).toEqual({ ack: true });
+    expect(d.recordRefundFailure).not.toHaveBeenCalled();
+    expect(d.alertRefundFailed).not.toHaveBeenCalled();
+  });
+
+  it("a succeeded refund runs the charge.refunded path on its charge", async () => {
+    const d = withRefundDeps({
+      retrieveRefund: vi.fn(async () => refund({ id: "re_app_1", status: "succeeded", charge: "ch_test_1" })),
+    });
+    const result = await handleRefundUpdateWithDeps(
+      message({ eventId: "evt_re_2", type: "charge.refund.updated", objectId: "re_app_1" }),
+      d,
+    );
+    expect(result).toEqual({ ack: true });
+    expect(d.retrieveCharge).toHaveBeenCalledWith("ch_test_1");
+    expect(d.recordChargeRefund).toHaveBeenCalledWith(expect.objectContaining({ stripeRefundId: "re_dash_1" }));
+    expect(d.recordRefundFailure).not.toHaveBeenCalled();
+  });
+
+  it("no mail when the reversal was already mailed (a second event for the same failure)", async () => {
+    const d = withRefundDeps({ recordRefundFailure: vi.fn(async () => reversal({ outcome: "already", alertPending: false })) });
+    expect(await handleRefundUpdateWithDeps(refundMessage, d)).toEqual({ ack: true });
+    expect(d.alertRefundFailed).not.toHaveBeenCalled();
+  });
+
+  it("a mail that did not go out keeps the event open for the slow retry", async () => {
+    const d = withRefundDeps({
+      alertRefundFailed: vi.fn(async () => {
+        throw new Error("Resend refused");
+      }),
+    });
+    const result = await handleRefundUpdateWithDeps(refundMessage, d);
+    expect(result).toEqual({ retry: true, delaySeconds: PAID_ERROR_RETRY_SECONDS });
+    expect(d.eventSettle).not.toHaveBeenCalledWith("evt_re_1", null);
+  });
+
+  it("an app refund whose own row has not landed yet retries after the app-refund delay", async () => {
+    const d = withRefundDeps({
+      recordRefundFailure: vi.fn(async () => {
+        throw pgError("P0002", "app_refund_pending");
+      }),
+    });
+    expect(await handleRefundUpdateWithDeps(refundMessage, d)).toEqual({
+      retry: true,
+      delaySeconds: APP_REFUND_PENDING_DELAY_SECONDS,
+    });
+  });
+
+  it("a database refusal is written on the event and retried slowly, never acknowledged", async () => {
+    const d = withRefundDeps({
+      recordRefundFailure: vi.fn(async () => {
+        throw pgError("23514", "check constraint");
+      }),
+    });
+    expect(await handleRefundUpdateWithDeps(refundMessage, d)).toEqual({
+      retry: true,
+      delaySeconds: PAID_ERROR_RETRY_SECONDS,
+    });
+    expect(d.eventSettle).toHaveBeenCalledWith("evt_re_1", "23514");
+  });
+
+  it("a Stripe read failure retries", async () => {
+    const d = withRefundDeps({ retrieveRefund: vi.fn(async () => { throw new Error("stripe 500"); }) });
+    expect(await handleRefundUpdateWithDeps(refundMessage, d)).toEqual({ retry: true });
+    expect(d.recordRefundFailure).not.toHaveBeenCalled();
   });
 });

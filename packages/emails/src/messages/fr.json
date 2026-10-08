@@ -75,7 +75,11 @@
     "paidAfterCancelHeadline": "Payé après annulation — remboursé",
     "paidAfterCancelBody": "Un paiement est arrivé pour une réservation qui ne pouvait pas avoir lieu. Le montant a été remboursé automatiquement. Aucune action n'est nécessaire, sauf si le client écrit.",
     "differenceNotAppliedHeadline": "Différence payée, modification non appliquée",
-    "differenceNotAppliedBody": "Le client a payé la différence pour cette réservation, mais la modification n’a pas été appliquée : le trajet a été annulé, une modification plus récente l’a remplacée, ou elle ne convient plus. Le paiement est enregistré et apparaît comme remboursement dû. Renvoyez-le depuis le tableau de bord ou refaites la modification."
+    "differenceNotAppliedBody": "Le client a payé la différence pour cette réservation, mais la modification n’a pas été appliquée : le trajet a été annulé, une modification plus récente l’a remplacée, ou elle ne convient plus. Le paiement est enregistré et apparaît comme remboursement dû. Renvoyez-le depuis le tableau de bord ou refaites la modification.",
+    "refundFailedHeadline": "Un remboursement a été annulé par Stripe",
+    "refundFailedBody": "Stripe a signalé comme échoué un remboursement déjà enregistré. La réservation affiche à nouveau le remboursement comme dû. Ouvrez la réservation dans le tableau de bord et renvoyez le remboursement, ou vérifiez-le dans Stripe.",
+    "disputeHeadline": "Un litige de carte a été ouvert ou modifié",
+    "disputeBody": "Stripe a signalé un litige sur un paiement de cette réservation. Ouvrez-le dans Stripe pour voir son statut et la date limite des preuves. La réservation affiche le litige dans le tableau de bord."
   },
   "cancellation": {
     "subject": "Réservation {reference} annulée",

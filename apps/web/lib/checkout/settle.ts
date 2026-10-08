@@ -27,11 +27,13 @@ import {
   retrieveCharge,
   retrieveCheckoutSession,
   retrieveDispute,
+  retrieveRefund,
   stripeFromEnv,
 } from "./stripe";
 import {
   handleChargeRefundedWithDeps,
   handleDisputeWithDeps,
+  handleRefundUpdateWithDeps,
   moneyEventKind,
   paymentIntentIdOfCharge,
   paymentIntentIdOfDispute,
@@ -49,6 +51,7 @@ import {
   deliverStuckPaymentAlert,
   type StuckPaymentAlertInput,
 } from "../ops/must-fix-mail";
+import { deliverMoneyAlert } from "../ops/money-alert-mail";
 import { metaPurchaseDepsFromEnv, sendMetaPurchase, type MetaPurchaseInput } from "../meta/purchase";
 import { PAID_ERROR_RETRY_SECONDS, retryDelaySeconds, settleErrorKind, sqlStateOf } from "./settle-errors";
 
@@ -191,7 +194,7 @@ function paymentIntentIdOf(session: Stripe.Checkout.Session | null): string | nu
 function outcomeFor(
   type: string,
   session: Stripe.Checkout.Session | null,
-): "succeeded" | "failed" | "canceled" | "charge_refunded" | "dispute" | "ignore" {
+): "succeeded" | "failed" | "canceled" | "charge_refunded" | "dispute" | "refund_update" | "ignore" {
   // 26.1-08 D-07: "charge.refunded" and "charge.dispute.created|updated|closed"
   // reach the DB through money-events.ts instead of being ignored.
   const money = moneyEventKind(type);
@@ -352,6 +355,10 @@ export async function handleStripeMessageWithDeps(
   }
   if (outcome === "dispute" && dispute) {
     return handleDisputeWithDeps(message, dispute, deps);
+  }
+  // J7 W6-05: refund.failed / refund.updated / charge.refund.updated re-read the refund themselves.
+  if (outcome === "refund_update") {
+    return handleRefundUpdateWithDeps(message, deps);
   }
   if (outcome === "ignore" || outcome === "charge_refunded" || outcome === "dispute") {
     await deps.eventSettle(message.eventId, null);
@@ -787,9 +794,9 @@ export async function handleStripeMessage(
       return { outcome: String(rows[0]?.outcome ?? "unknown") };
     },
     upsertDispute: async (input) => {
-      await asSystem(env, async (sql) => {
-        await sql`
-          select public.stripe_dispute_upsert(
+      const rows = await asSystem(env, async (sql) => {
+        return sql`
+          select * from public.stripe_dispute_upsert(
             ${input.stripeDisputeId},
             ${input.paymentIntentId},
             ${input.sessionId},
@@ -799,6 +806,46 @@ export async function handleStripeMessage(
             ${input.stripeCreated.toISOString()}::timestamptz
           )
         `;
+      });
+      const row = rows[0];
+      return {
+        reference: row?.reference == null ? null : String(row.reference),
+        status: String(row?.status ?? input.status),
+        alertPending: row?.alert_pending === true,
+      };
+    },
+    // J7 W6-07: mail ops about the dispute status, then record that the mail went out. Throws when it did not.
+    alertDispute: async (input) => {
+      await deliverMoneyAlert(env, "dispute", input);
+      await asSystem(env, async (sql) => {
+        await sql`select public.stripe_dispute_alerted(${input.objectId}, ${input.status ?? ""})`;
+      });
+    },
+    // J7 W6-05: a recorded refund that Stripe later failed or canceled.
+    retrieveRefund: (id) => retrieveRefund(stripe, id),
+    recordRefundFailure: async (input) => {
+      const rows = await asSystem(env, async (sql) => {
+        return sql`
+          select * from public.stripe_refund_failed_record(
+            ${input.stripeRefundId},
+            ${input.status},
+            ${input.failureReason},
+            ${input.appSource},
+            ${input.created.toISOString()}::timestamptz
+          )
+        `;
+      });
+      const row = rows[0];
+      return {
+        outcome: String(row?.outcome ?? "unknown"),
+        reference: row?.reference == null ? null : String(row.reference),
+        alertPending: row?.alert_pending === true,
+      };
+    },
+    alertRefundFailed: async (input) => {
+      await deliverMoneyAlert(env, "refund-failed", input);
+      await asSystem(env, async (sql) => {
+        await sql`select public.stripe_refund_failure_alerted(${input.objectId})`;
       });
     },
     sendMetaPurchase: metaPurchaseDepFor(env, options, emit),

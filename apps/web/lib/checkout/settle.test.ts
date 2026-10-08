@@ -699,6 +699,27 @@ describe("handleStripeMessageWithDeps — charge.refunded and charge.dispute.* (
     expect(d.begin).not.toHaveBeenCalled();
   });
 
+  // J7 W6-05: the refund-update events are in the handled set. Their ordering window is the refund id alone, so a
+  // later charge.refunded of another refund on the same PaymentIntent can never supersede (and drop) a failure.
+  it.each(["refund.failed", "refund.updated", "charge.refund.updated"])(
+    "%s is handled: the refund is re-read and a failed one is reversed (not ignored)",
+    async (type) => {
+      const recordRefundFailure = vi.fn(async () => ({ outcome: "reversed", reference: "VT-26-0101", alertPending: false }));
+      const d = deps({
+        retrieveRefund: vi.fn(async () => ({ id: "re_app_1", status: "failed", metadata: { vamos_source: "app" } }) as unknown as Stripe.Refund),
+        recordRefundFailure,
+      });
+      const result = await handleStripeMessageWithDeps(
+        message({ eventId: "evt_re_1", type, objectId: "re_app_1" }),
+        d,
+      );
+      expect(result).toEqual({ ack: true });
+      expect(d.begin).toHaveBeenCalledWith("evt_re_1", ["re_app_1"], expect.any(Date));
+      expect(recordRefundFailure).toHaveBeenCalledWith(expect.objectContaining({ stripeRefundId: "re_app_1", status: "failed" }));
+      expect(d.settlePayment).not.toHaveBeenCalled();
+    },
+  );
+
   it("other event types are still ignored (settled, acked, nothing retrieved)", async () => {
     const d = deps();
     const result = await handleStripeMessageWithDeps(

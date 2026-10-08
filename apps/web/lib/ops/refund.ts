@@ -36,7 +36,6 @@ import { resolveStaffBookingId } from "./resolve-booking-id";
 export const dynamic = "force-dynamic";
 
 export type { RefundFail, RefundOk, RefundPart, RefundPartial, RefundResult } from "./refund-map";
-export { opsRefundAmount } from "./refund-map";
 
 export type RefundAmountInput = {
   /** One captured payment; absent = every captured payment. */
@@ -148,6 +147,7 @@ async function readRefundState(env: CloudflareEnv, claims: VamosClaims, bookingI
              ) as is_extra,
              coalesce((
                select sum(r.refund_rappen) from public.booking_refunds as r where r.payment_id = p.id
+                  and not exists (select 1 from public.booking_refund_reversals as x where x.refund_id = r.id)
              ), 0) as refunded,
              i.amount_rappen as open_amount,
              i.state::text as open_state
