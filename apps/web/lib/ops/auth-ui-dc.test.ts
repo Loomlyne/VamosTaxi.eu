@@ -93,21 +93,27 @@ describe("email code box on the sent step", () => {
   });
 });
 
-describe("dashboard sign-in offers the email link without a wrong password", () => {
+describe("dashboard sign-in is link-only, no password anywhere", () => {
   const html = FORMS.ops;
   const script = html.slice(html.indexOf('<script type="text/x-dc"'));
+  const login = read("app/ops/ops-login.dc.html");
 
-  it("shows 'Email me a link instead' on the ops password form", () => {
-    expect(html).toMatch(/<sc-if value="\{\{ linkSignInMagic \}\}"><button [^>]*onClick="\{\{ useMagic \}\}">Email me a link instead<\/button>/);
-    expect(script).toMatch(/linkSignInMagic: isForm && mode === 'signin' && !isMagic,/);
-    // The old flag hid the option in ops mode; it now only guards 'Forgot password?'.
-    expect(script).toMatch(/linkSignInPw: isForm && mode === 'signin' && !isMagic && !isOps,/);
-    expect(html).toMatch(/<sc-if value="\{\{ linkSignInPw \}\}"[^>]*><button [^>]*onClick="\{\{ goForgot \}\}">Forgot password\?/);
+  it("opens on the email link and never leaves it", () => {
+    expect(login).toMatch(/surface="ops" mode="signin" method="magic"/);
+    expect(script).toMatch(/method: this\.props\.surface === 'ops' \? 'magic'/);
+    expect(script).toMatch(/if \(this\.props\.surface === 'ops' && patch && patch\.method\) patch = Object\.assign\(\{\}, patch, \{ method: 'magic' \}\);/);
   });
 
-  it("keeps the passkey option and the way back to the password on the same form", () => {
+  it("offers no way to a password, forgot-password or switch back", () => {
+    expect(script).toMatch(/linkSignInMagic: isForm && mode === 'signin' && !isMagic && !isOps,/);
+    expect(script).toMatch(/linkSignInPw: isForm && mode === 'signin' && !isMagic && !isOps,/);
+    expect(script).toMatch(/isMagic: isForm && isMagic && !isOps,/);
+    expect(script).toMatch(/sentUsePw: isSent && mode !== 'forgot' && !isOps,/);
+    expect(html).not.toMatch(/Cancel and use a password/);
+  });
+
+  it("keeps the passkey option", () => {
     expect(script).toMatch(/showPasskey: isForm && mode === 'signin',/);
-    expect(html).toMatch(/onClick="\{\{ usePassword \}\}">Use a password instead/);
   });
 });
 

@@ -238,7 +238,7 @@ button,.vt-btn,.vt-iconbtn{box-shadow:none}
 <sc-if value="{{ resendLimited }}"><p data-af-err="1" role="alert"><x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Icon" name="circle-alert" size="{{ n16 }}" color="currentColor" hint-size="16px,16px"></x-import>Too many tries. Wait a minute and try again.</p></sc-if>
 <x-import component-from-global-scope="VamosTaxiDesignSystem_245af1.Button" variant="ghost" size="lg" block="{{ yes }}" icon="mail" onClick="{{ resend }}" hint-size="100%,54px">Send another link</x-import>
 <sc-if value="{{ sentForgot }}"><button type="button" data-af-link="1" onClick="{{ backToSignIn }}">Back to sign in</button></sc-if>
-<sc-if value="{{ sentMagicAny }}" hint-placeholder-val="{{ true }}"><button type="button" data-af-link="1" onClick="{{ usePassword }}">Use a password instead</button></sc-if>
+<sc-if value="{{ sentUsePw }}" hint-placeholder-val="{{ true }}"><button type="button" data-af-link="1" onClick="{{ usePassword }}">Use a password instead</button></sc-if>
 </div>
 </div>
 </sc-if>
@@ -251,7 +251,7 @@ button,.vt-btn,.vt-iconbtn{box-shadow:none}
 </div>
 <p data-af-st="1" style="font-size:var(--vt-body-md);max-width:38ch">Your device is asking for your face, fingerprint or PIN. Approve it and you are straight in — the passkey never leaves your device, and we never see it.</p>
 <div data-af-track="1"><div data-af-fill="1"></div></div>
-<button type="button" data-af-link="1" onClick="{{ cancelPasskey }}">Cancel and use a password</button>
+<button type="button" data-af-link="1" onClick="{{ cancelPasskey }}">Cancel</button>
 </div>
 </sc-if>
 
@@ -300,7 +300,7 @@ const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i;
 class Component extends DCLogic {
   state = {
     mode: this.props.mode || 'signin',
-    method: this.props.method || 'password',
+    method: this.props.surface === 'ops' ? 'magic' : (this.props.method || 'password'),
     stage: this.props.stage || 'form',
     banner: this.props.banner || null,
     email: this.props.email || '',
@@ -350,7 +350,7 @@ class Component extends DCLogic {
     if (keys.some((k) => prev[k] !== this.props[k])) {
       this.setState({
         mode: this.props.mode || 'signin',
-        method: this.props.method || 'password',
+        method: this.props.surface === 'ops' ? 'magic' : (this.props.method || 'password'),
         stage: this.props.stage || 'form',
         banner: this.props.banner || null,
         email: this.props.email || '',
@@ -448,6 +448,8 @@ class Component extends DCLogic {
   };
   cancelPasskey = () => { clearTimeout(this.pkTimer); this.go({ stage: 'form', method: 'password', banner: null }); };
   go(patch) {
+    /* The dashboard has no password: whatever asks for a method, ops stays on the email link. */
+    if (this.props.surface === 'ops' && patch && patch.method) patch = Object.assign({}, patch, { method: 'magic' });
     this.setState(Object.assign({ errors: {}, resent: false, code: '', codeError: '', codeBusy: false, resendLimited: false, confirmSent: false, confirmFailed: false }, patch), () => {
       const s = this.state;
       if (this.props.onState) this.props.onState({ mode: s.mode, method: s.method, stage: s.stage, banner: s.banner });
@@ -694,11 +696,11 @@ class Component extends DCLogic {
       ctaReset: isForm && mode === 'forgot',
       linkSignInPw: isForm && mode === 'signin' && !isMagic && !isOps,
       /* Password, email link, email code and passkey are separate ways in on the dashboard too. */
-      linkSignInMagic: isForm && mode === 'signin' && !isMagic,
+      linkSignInMagic: isForm && mode === 'signin' && !isMagic && !isOps,
       linkSignUpPw: isForm && mode === 'signup' && !isMagic,
-      isMagic: isForm && isMagic,
+      isMagic: isForm && isMagic && !isOps,
       sentSignIn: isSent && mode === 'signin', sentSignUp: isSent && mode === 'signup', sentForgot: isSent && mode === 'forgot',
-      sentMagicAny: isSent && mode !== 'forgot',
+      sentMagicAny: isSent && mode !== 'forgot', sentUsePw: isSent && mode !== 'forgot' && !isOps,
       emailEcho: email.trim() || 'your email address',
       email, password, firstName, lastName, resent,
       setEmail: (e) => this.setState({ email: e.target.value }),
