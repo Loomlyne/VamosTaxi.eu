@@ -50,7 +50,7 @@ describe("next.config headers()", () => {
 
   it("flag open: no row for a pay link, manage-booking, review or sign-in confirm", async () => {
     const sources = cspRows(await rows(true)).map((x) => x.source).join(" ");
-    for (const never of ["pay", "manage-booking", "review", "confirm", "ops", "dashboard", "reset-password"]) {
+    for (const never of ["pay", "manage-booking", "review", "sign-in", "ops", "dashboard", "reset-password"]) {
       expect(sources.includes(never), never).toBe(false);
     }
   });
