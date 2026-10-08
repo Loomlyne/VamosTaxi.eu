@@ -73,7 +73,7 @@
         // No Mapbox plan exists yet, so no ceiling in francs can be honest.
         "MAPBOX_DAILY_UNIT_SENTINEL": "5000",
         "STRIPE_PUBLISHABLE_KEY": "pk_live_51UIZmAQbJiSLxJfuw0YAE95fkqETwgzH71G5c0122QI2mDmCSvFHo9yRAOcjmJfFxtaVPWysPTw8u8UD8SC43wd900xHfwhwqO",
-        "STRIPE_CHECKOUT_TWINT": "on"
+        "STRIPE_CHECKOUT_TWINT": "off"
       },
       "kv_namespaces": [
         { "binding": "GEO_CACHE", "id": "48cd800d63e44c03aa1f49be83d39d7a" },
