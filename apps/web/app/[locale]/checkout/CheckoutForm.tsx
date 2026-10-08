@@ -22,6 +22,7 @@ import { extraLabel, type ExtraNames } from "@/lib/checkout/extra-label";
 import {
   buildIntentBody,
   checkoutReturnPath,
+  freshResume,
   isStripeCheckoutUrl,
   readReturnStash,
   sameSelectionAsResumed,
@@ -818,13 +819,13 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
     setPayStatus("loading");
     announce(t("openingPayment"));
 
-    // Back from Stripe with nothing changed: the same booking, the same Stripe page (D-24).
-    if (resume && resume.state === "open" && sameSelectionAsResumed(resume, selection, (q) => parseTripQuery(new URLSearchParams(q)).trip)) {
-      if (isStripeCheckoutUrl(resume.url)) {
-        window.location.assign(resume.url);
-        return;
-      }
-    }
+    // Back from Stripe with nothing changed: the same booking, the same Stripe page (D-24). J5 (W3-05):
+    // the stored page is asked about again at this press (it may have expired while the customer
+    // stayed on the form); a dead one is dropped and a new payment is opened below.
+    const resumed =
+      resume && resume.state === "open" && sameSelectionAsResumed(resume, selection, (q) => parseTripQuery(new URLSearchParams(q)).trip)
+        ? resume
+        : null;
 
     const sel = JSON.stringify([quote.quoteId, selectedClass, [...tickedValid].sort(), voucher, contact, company, note, trip.flight, resume?.booking_id ?? null]);
     idem.current = payIdemFor(idem.current, sel, () => crypto.randomUUID());
@@ -863,6 +864,19 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
         setPayError(text);
         announce(text);
       };
+      if (resumed) {
+        const fresh = await freshResume(fetch, resumed.quote_id);
+        if (fresh.kind === "open") {
+          window.location.assign(fresh.url);
+          return;
+        }
+        if (fresh.kind === "paid") {
+          window.location.assign(`/confirmation/${encodeURIComponent(fresh.reference)}`);
+          return;
+        }
+        const { url: _dead, ...rest } = resumed;
+        setResume({ ...rest, state: "expired" });
+      }
       try {
         const res = await fetch("/api/checkout/intent", {
           method: "POST",

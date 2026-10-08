@@ -200,10 +200,13 @@ export async function expireCheckoutSession(
 export async function retrieveCheckoutSession(
   stripe: Stripe,
   sessionId: string,
+  /** Per-call timeout and retries; the return route passes a short deadline (J5, W3-11). */
+  options?: Stripe.RequestOptions,
 ): Promise<Stripe.Checkout.Session> {
-  return stripe.checkout.sessions.retrieve(sessionId, {
-    expand: ["payment_intent"],
-  });
+  const params = { expand: ["payment_intent"] };
+  return options
+    ? stripe.checkout.sessions.retrieve(sessionId, params, options)
+    : stripe.checkout.sessions.retrieve(sessionId, params);
 }
 
 export async function createRefund(

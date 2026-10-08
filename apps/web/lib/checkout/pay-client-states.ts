@@ -18,10 +18,6 @@ export type PayState =
   | { kind: "expired" }
   | { kind: "alert"; key: PayAlertKey };
 
-/** Mirrors the confirmation page's poll (POLL_INTERVAL_MS / POLL_GIVE_UP_MS). */
-export const PAY_LINK_POLL_INTERVAL_MS = 1000;
-export const PAY_LINK_POLL_BUDGET_MS = 12_000;
-
 const SESSION_KEY_PREFIX = "vamos.payLink.session.";
 const SESSION_KEY_TOKEN_CHARS = 12;
 

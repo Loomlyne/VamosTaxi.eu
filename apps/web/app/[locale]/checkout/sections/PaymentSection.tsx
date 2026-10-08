@@ -1,9 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Alert } from "@/components/feedback/Alert";
 import { Button, Icon } from "@/components/core";
 import { Input } from "@/components/forms";
+import { payOutcomeNoticeKey } from "@/lib/checkout/pay-outcome-notice";
+import { useCheckoutFlow } from "../CheckoutPage";
 import { useCheckoutForm } from "../CheckoutForm";
 import { LegalLines, OrderSummary } from "./SummaryRail";
 import { SectionCard } from "./SectionCard";
@@ -92,12 +95,30 @@ export function PaymentSection({ desktop }: { desktop: boolean }) {
   );
 }
 
-/** UI-SPEC "Return and expiry states": an info Alert at the top of the page. */
+const SUPPORT_EMAIL = "info@vamostaxi.site";
+
+/**
+ * UI-SPEC "Return and expiry states": an info Alert at the top of the page.
+ * J5 (W3-01): also every `pay=` outcome the Stripe return route can send, read once from the
+ * URL the page opened with (a later trip edit rewrites the URL, the notice stays).
+ */
 export function TopNotice() {
   const t = useTranslations("checkout");
   const f = useCheckoutForm();
+  const flow = useCheckoutFlow();
+  const [outcome] = useState(flow.trip.pay);
   const expiredBooking = f.notice === "expired";
-  if (!expiredBooking && !f.quoteExpired) return null;
+  const outcomeKey = payOutcomeNoticeKey(outcome, f.notice === "back");
+  if (!expiredBooking && !f.quoteExpired) {
+    if (!outcomeKey) return null;
+    return (
+      <div className="vt-co__notice" data-co-top-notice data-kind="pay-outcome" data-pay-outcome={outcome}>
+        <Alert tone="info" role="status">
+          {t(outcomeKey, { email: SUPPORT_EMAIL })}
+        </Alert>
+      </div>
+    );
+  }
   return (
     <div className="vt-co__notice" data-co-top-notice data-kind={expiredBooking ? "expired-booking" : "quote-expired"}>
       <Alert tone="info" role="status">
