@@ -11,7 +11,7 @@ export type EditorFieldErrors = Partial<Record<TripField, "required" | "invalid"
 
 /**
  * Pure: the same gaps the home box reports, in the same order (UI-SPEC S2).
- * Flight (D-09): required only for an airport pickup; a filled value is always format-checked.
+ * Flight: never required (owner, 2026-10-08), airport pickup or not; a filled value is always format-checked.
  */
 export function validateEditor(input: {
   from: string;
@@ -26,11 +26,7 @@ export function validateEditor(input: {
 }): EditorFieldErrors {
   const errors: EditorFieldErrors = {};
   if (!input.from.trim()) errors.from = "required";
-  if (input.flight.trim()) {
-    if (!normaliseFlight(input.flight)) errors.flight = "invalid";
-  } else if (input.airport) {
-    errors.flight = "required";
-  }
+  if (input.flight.trim() && !normaliseFlight(input.flight)) errors.flight = "invalid";
   if (!input.to.trim()) errors.to = "required";
   else if (
     input.from.trim() &&

@@ -124,17 +124,15 @@ export function ContactSection() {
         </div>
 
         {f.airport || flow.trip.flight || f.flight ? (
-          <div className="vt-co__block" data-co-s2-flight data-co-flight-optional={f.airport ? "false" : "true"}>
+          <div className="vt-co__block" data-co-s2-flight data-co-flight-optional="true">
             <FlightField
               value={f.flight}
               onChange={f.setFlight}
               onBlur={f.flightBlur}
             />
-            {!f.airport ? (
-              <p className="vt-co__hint" data-co-flight-hint>
-                <span className="vt-co__optional">{t("tripFlightOptional")}</span> {t("tripFlightOptionalHint")}
-              </p>
-            ) : null}
+            <p className="vt-co__hint" data-co-flight-hint>
+              <span className="vt-co__optional">{t("tripFlightOptional")}</span> {t("tripFlightOptionalHint")}
+            </p>
             {msg("flight") || f.flightError ? (
               <p className="vt-co__field-error" role="alert">
                 {msg("flight") ?? f.flightError}

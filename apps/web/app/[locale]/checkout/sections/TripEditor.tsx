@@ -214,7 +214,7 @@ export function TripEditor({
     ? (refusal.i18nKey ? quoteLabel(refusal.i18nKey, refusal.params ?? undefined) : "") || t("quoteGeneric")
     : "";
   const when = joinWhen(date, time);
-  // D-09: an airport pickup needs the flight; any other pickup may add one, and a typed one stays.
+  // The flight is always optional; an airport pickup shows the field open, any other pickup may add one, and a typed one stays.
   const showFlight = airport || flightOpen || flight.trim() !== "";
   const canAddFlight = !showFlight && from.trim() !== "";
 
@@ -229,20 +229,16 @@ export function TripEditor({
       <fieldset className="vt-co__editor-set" disabled={busy}>
       <div className="vt-co__editor-grid" data-flight-row={showFlight || canAddFlight ? "true" : "false"}>
         {showFlight ? (
-          <div className="vt-co__editor-field" data-co-field="flight" data-co-flight data-co-flight-optional={airport ? "false" : "true"}>
+          <div className="vt-co__editor-field" data-co-field="flight" data-co-flight data-co-flight-optional="true">
             <Input
               label={
-                airport ? (
-                  t("tripFlight")
-                ) : (
-                  <>
-                    {t("tripFlight")} <span className="vt-co__optional">{t("tripFlightOptional")}</span>
-                  </>
-                )
+                <>
+                  {t("tripFlight")} <span className="vt-co__optional">{t("tripFlightOptional")}</span>
+                </>
               }
               value={flight}
               placeholder={t("tripFlightPlaceholder")}
-              hint={airport ? t("tripFlightHint") : t("tripFlightOptionalHint")}
+              hint={t("tripFlightOptionalHint")}
               error={fieldMessage("flight") ?? undefined}
               icon="plane"
               size="lg"

@@ -12,8 +12,8 @@ const base = {
 };
 
 describe("validateEditor flight rule (D-09)", () => {
-  it("airport pickup without a flight is required", () => {
-    expect(validateEditor({ ...base, airport: true, flight: "" }).flight).toBe("required");
+  it("airport pickup without a flight is allowed", () => {
+    expect(validateEditor({ ...base, airport: true, flight: "" }).flight).toBeUndefined();
   });
   it("airport pickup with a bad flight is invalid", () => {
     expect(validateEditor({ ...base, airport: true, flight: "??" }).flight).toBe("invalid");
