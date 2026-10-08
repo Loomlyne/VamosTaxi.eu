@@ -34,6 +34,8 @@
   /* Flipped by plan 28-07 only, one line each. */
   var GATE_OPEN = true;
   var SWITCHES_OFF = true;
+  /* The owner's wider wording (2026-10-09) is live: ViewContent, Lead and Contact. Closed until then. */
+  var EVENTS_ON = false;
 
   var PIXEL_ID = '1595596972063765';
   var SRC = 'https://connect.facebook.net/en_US/fbevents.js';
@@ -231,7 +233,7 @@
      Before the pixel has started the event waits (at most five); after a withdraw it is dropped. */
   function track(name, params) {
     try {
-      if (!GATE_OPEN || !SWITCHES_OFF || revokedHere) return false;
+      if (!GATE_OPEN || !SWITCHES_OFF || !EVENTS_ON || revokedHere) return false;
       var p = eventParams(name, params);
       if (p === null) return false;
       if (!allowed(location.href, document.referrer)) return false;

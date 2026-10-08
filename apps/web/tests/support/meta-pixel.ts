@@ -57,6 +57,8 @@ export function mockFor(pathname: string): string | null {
 export interface SiteOptions {
   /** Rewrite the two baked flags in /app/vamos-meta.js. */
   flagsOn: boolean;
+  /** Rewrite the wider-events flag too; defaults to `flagsOn`. */
+  eventsOn?: boolean;
   /** Content-Security-Policy to send on mock pages (the real specs pass the policy the Worker would send). */
   csp?: string;
 }
@@ -83,7 +85,8 @@ export async function routeSite(context: BrowserContext, opts: SiteOptions): Pro
     } else if (url.pathname === "/app/vamos-meta.js") {
       body = readFileSync(file, "utf8")
         .replace(/var GATE_OPEN = (true|false);/, `var GATE_OPEN = ${opts.flagsOn};`)
-        .replace(/var SWITCHES_OFF = (true|false);/, `var SWITCHES_OFF = ${opts.flagsOn};`);
+        .replace(/var SWITCHES_OFF = (true|false);/, `var SWITCHES_OFF = ${opts.flagsOn};`)
+        .replace(/var EVENTS_ON = (true|false);/, `var EVENTS_ON = ${opts.eventsOn ?? opts.flagsOn};`);
     } else {
       body = readFileSync(file);
     }

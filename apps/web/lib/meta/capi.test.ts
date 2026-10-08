@@ -1,7 +1,7 @@
 // apps/web/lib/meta/capi.test.ts
 // Phase 29 plan 29-03: payload contract (exact keys) and the single POST. Fake fetch only.
 import { describe, expect, it, vi } from "vitest";
-import { buildPurchaseEvent, postPurchase, GRAPH_VERSION, PURCHASE_EVENT_SOURCE_URL } from "./capi";
+import { buildFunnelEvent, buildPurchaseEvent, postPurchase, GRAPH_VERSION, PURCHASE_EVENT_SOURCE_URL } from "./capi";
 
 const FBP = "fb.1.1727771234567.1234567890";
 const FBC = "fb.1.1727771234567.AbCdEfGh";
@@ -21,7 +21,7 @@ function allKeys(v: unknown, out = new Set<string>()): Set<string> {
 
 const ALLOWED = new Set([
   "event_name", "event_time", "action_source", "event_source_url", "event_id",
-  "user_data", "custom_data", "fbp", "fbc", "currency", "value",
+  "user_data", "custom_data", "fbp", "fbc", "currency", "value", "order_id",
 ]);
 
 describe("buildPurchaseEvent", () => {
@@ -52,6 +52,49 @@ describe("buildPurchaseEvent", () => {
     for (const ids of [{ fbp: FBP, fbc: null }, { fbp: null, fbc: FBC }, { fbp: FBP, fbc: FBC }]) {
       const e = buildPurchaseEvent({ ...base, ...ids })!;
       for (const k of allKeys(e)) expect(ALLOWED.has(k)).toBe(true);
+    }
+  });
+});
+
+describe("order_id (owner decision 2026-10-09, D4)", () => {
+  it("the Purchase carries the booking reference as order_id and nothing else changes", () => {
+    const e = buildPurchaseEvent({ ...base, fbp: FBP, fbc: null, orderId: "VT-26-07331" })!;
+    expect(e.custom_data).toEqual({ currency: "CHF", value: 120, order_id: "VT-26-07331" });
+    expect(JSON.stringify(e)).toBe(JSON.stringify({ ...e, custom_data: { currency: "CHF", value: 120, order_id: "VT-26-07331" } }));
+  });
+  it("no reference, an empty one or one that is not a booking reference: no order_id key at all", () => {
+    for (const orderId of [undefined, null, "", "VT-26-1", "a@b.com", "VT-26-07331 ", "vt-26-07331"]) {
+      const e = buildPurchaseEvent({ ...base, fbp: FBP, fbc: null, orderId })!;
+      expect("order_id" in e.custom_data, String(orderId)).toBe(false);
+    }
+  });
+});
+
+describe("buildFunnelEvent (InitiateCheckout, AddPaymentInfo)", () => {
+  const ID = "0d9f3f9e-5a7b-4c2d-8e1f-0a1b2c3d4e5f";
+  const f = { name: "InitiateCheckout" as const, eventId: ID, eventTimeSeconds: 1727771234, valueRappen: 9979, fbp: FBP, fbc: null };
+  it("builds the locked event: the name, the amount, the cookie ids, the fixed address, no reference before a booking exists", () => {
+    const e = buildFunnelEvent(f)!;
+    expect(Object.keys(e).sort()).toEqual(["action_source", "custom_data", "event_id", "event_name", "event_source_url", "event_time", "user_data"]);
+    expect(e.event_name).toBe("InitiateCheckout");
+    expect(e.event_source_url).toBe("https://vamostaxi.site");
+    expect(e.user_data).toEqual({ fbp: FBP });
+    expect(e.custom_data).toEqual({ currency: "CHF", value: 99.79 });
+  });
+  it("AddPaymentInfo carries the reference as order_id", () => {
+    const e = buildFunnelEvent({ ...f, name: "AddPaymentInfo", orderId: "VT-26-07331" })!;
+    expect(e.event_name).toBe("AddPaymentInfo");
+    expect(e.custom_data).toEqual({ currency: "CHF", value: 99.79, order_id: "VT-26-07331" });
+  });
+  it("null for a bad amount, no ids, or an id that is not a UUID", () => {
+    for (const v of [0, -5, 1.5, NaN, 5_000_001]) expect(buildFunnelEvent({ ...f, valueRappen: v })).toBeNull();
+    expect(buildFunnelEvent({ ...f, fbp: null, fbc: null })).toBeNull();
+    for (const id of ["", "e1", "VT-26-07331", `${ID}x`]) expect(buildFunnelEvent({ ...f, eventId: id })).toBeNull();
+  });
+  it("walks every key: nothing outside the allowed set", () => {
+    for (const name of ["InitiateCheckout", "AddPaymentInfo"] as const) {
+      const e = buildFunnelEvent({ ...f, name, fbc: FBC, orderId: "VT-26-07331" })!;
+      for (const k of allKeys(e)) expect(ALLOWED.has(k), k).toBe(true);
     }
   });
 });

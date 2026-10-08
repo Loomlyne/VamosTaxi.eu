@@ -16,10 +16,12 @@ const SCRIPT_URL = "https://connect." + "facebook" + ".net/en_US/fb" + "events.j
 const PIXEL = "15955" + "96972063765";
 const FBQ = "fb" + "q";
 
-function withFlags(open: boolean): string {
+function withFlags(open: boolean, events?: boolean): string {
   const out = rawSrc
     .replace(/var GATE_OPEN = (true|false);/, `var GATE_OPEN = ${open};`)
-    .replace(/var SWITCHES_OFF = (true|false);/, `var SWITCHES_OFF = ${open};`);
+    .replace(/var SWITCHES_OFF = (true|false);/, `var SWITCHES_OFF = ${open};`)
+    .replace(/var EVENTS_ON = (true|false);/, `var EVENTS_ON = ${events ?? open};`);
+  expect(out).toContain(`var EVENTS_ON = ${events ?? open};`);
   expect(out).toContain(`var GATE_OPEN = ${open};`);
   expect(out).toContain(`var SWITCHES_OFF = ${open};`);
   return out;
@@ -30,6 +32,8 @@ const ACCEPTED: State = { ok: true, chosen: true, choice: { marketing: true } };
 
 interface Opts {
   open?: boolean;
+  /** The wider-events flag; defaults to `open`. */
+  events?: boolean;
   href?: string;
   referrer?: string;
   state?: State | (() => Promise<State>);
@@ -104,7 +108,7 @@ function load(o: Opts = {}) {
     },
   };
   vm.createContext(ctx);
-  vm.runInContext(withFlags(o.open === true), ctx);
+  vm.runInContext(withFlags(o.open === true, o.events), ctx);
 
   let ticks = 0;
   const api = {
@@ -475,6 +479,17 @@ describe("app/vamos-meta.js: ViewContent, Lead and Contact (owner events, 2026-1
     expect(h.api().track("Lead")).toBe(false);
     expect(h.api().pending()).toBe(0);
     expect(h.win[FBQ]).toBeUndefined();
+  });
+
+  it("events flag closed (the committed state until the wording ships): the page view runs, no event is accepted", async () => {
+    const h = load({ open: true, events: false });
+    await h.settle();
+    expect(h.calls().filter((c) => c[0] === "track")).toEqual([PIX]);
+    expect(h.api().track("Lead")).toBe(false);
+    expect(h.api().track("Contact", { content_category: "phone" })).toBe(false);
+    expect(h.api().pending()).toBe(0);
+    h.click(anchor("tel:+41796267082"));
+    expect(h.calls().filter((c) => c[0] === "track")).toEqual([PIX]);
   });
 
   it("an event asked for before the pixel started waits and goes out right after the PageView, once", async () => {

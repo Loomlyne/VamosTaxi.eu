@@ -11,7 +11,9 @@ import { describe, expect, it } from "vitest";
 import { SECURITY_HEADER_PAIRS } from "../security/headers";
 import {
   META_EVENTS_MANAGER_SWITCHES_OFF,
+  META_EVENTS_OPEN,
   META_LEGAL_GATE_OPEN,
+  metaEventsAllowed,
   metaMeasurementAllowed,
 } from "./legal-gate";
 
@@ -140,7 +142,7 @@ describe("meta legal gate", () => {
       "connect.facebook.net": [...LOADER, "apps/web/lib/security/headers.ts"],
       "facebook.com/tr": [],
       "graph.facebook.com": ["apps/web/lib/meta/capi.ts", "apps/web/lib/meta/capi.test.ts"],
-      META_CAPI_ACCESS_TOKEN: ["apps/web/lib/meta/purchase.ts", "apps/web/lib/env.d.ts"],
+      META_CAPI_ACCESS_TOKEN: ["apps/web/lib/meta/purchase.ts", "apps/web/lib/meta/funnel.ts", "apps/web/lib/env.d.ts"],
     };
     const hits: string[] = [];
     for (const rel of scannedFiles()) {
@@ -182,6 +184,20 @@ describe("meta legal gate", () => {
       }
       expect(count, name).toBe(1);
     }
+  }, 30_000);
+
+  it("the wider-events flag (owner wording 2026-10-09) is closed until the controller ships it, and the loader agrees", () => {
+    expect(META_EVENTS_OPEN).toBe(false);
+    expect(metaEventsAllowed()).toBe(false);
+    const js = repoSource("app/vamos-meta.js");
+    expect(/var EVENTS_ON = (true|false);/.exec(js)?.[1]).toBe(String(META_EVENTS_OPEN));
+    const assignment = /META_EVENTS_OPEN\s*=(?!=)/g;
+    let count = 0;
+    for (const rel of scannedFiles()) {
+      if (isThisTest(rel)) continue;
+      count += repoSource(rel).match(assignment)?.length ?? 0;
+    }
+    expect(count).toBe(1);
   }, 30_000);
 
   it("the loader's baked flags equal the TypeScript flags", () => {
