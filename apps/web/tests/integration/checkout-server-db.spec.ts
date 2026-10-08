@@ -373,6 +373,9 @@ async function buildHarness(tx: Tx) {
         eventSettle: async (eventId, error) => {
           await tx`select public.stripe_event_settle(${eventId}, ${error})`;
         },
+        eventClose: async (eventId, reason) => {
+          await tx`select public.stripe_event_close(${eventId}, ${reason})`;
+        },
         deliverConfirmation: async (row) => {
           await deliverConfirmationWithDeps(confirmationDeps(), row);
         },

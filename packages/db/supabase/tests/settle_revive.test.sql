@@ -591,8 +591,8 @@ select is(
   'requote: refund_reason is requote_superseded'
 );
 select ok(
-  (select processed_at is not null from public.stripe_events where id = 'evt_rt_requote'),
-  'requote: stripe_events.processed_at stamped'
+  (select processed_at is null and last_error = 'refund_required:requote_superseded' from public.stripe_events where id = 'evt_rt_requote'),
+  'requote: the event stays open with the refund_required marker until the Worker has refunded (W4-03)'
 );
 
 -- 8. Paid after cancel: pickup already passed, never revived (D-03 exception) ---
@@ -641,8 +641,8 @@ select is(
   'past: refund_reason is paid_after_cancel'
 );
 select ok(
-  (select processed_at is not null from public.stripe_events where id = 'evt_rt_past'),
-  'past: stripe_events.processed_at stamped'
+  (select processed_at is null and last_error = 'refund_required:paid_after_cancel' from public.stripe_events where id = 'evt_rt_past'),
+  'past: the event stays open with the refund_required marker until the Worker has refunded (W4-03)'
 );
 
 -- 9. is_test booking: money captured, booking untouched (D-03 exception) -------
@@ -679,8 +679,8 @@ select is(
   'succeeded', 'is_test: payment still captured'
 );
 select ok(
-  (select processed_at is not null from public.stripe_events where id = 'evt_rt_test'),
-  'is_test: stripe_events.processed_at stamped'
+  (select processed_at is null and last_error = 'refund_required:test_booking' from public.stripe_events where id = 'evt_rt_test'),
+  'is_test: the event stays open with the refund_required marker until the Worker has refunded (W4-03)'
 );
 
 -- 10. Duplicate: a second succeeded charge on an already-paid, staff-cancelled --
@@ -765,8 +765,8 @@ select is((select already_settled from rt_settle_dup2b), true, 'dup: already_set
 select is((select refund_required from rt_settle_dup2b), true, 'dup: refund_required true');
 select is((select refund_reason from rt_settle_dup2b), 'duplicate_charge', 'dup: refund_reason is duplicate_charge');
 select ok(
-  (select processed_at is not null from public.stripe_events where id = 'evt_rt_dup_2'),
-  'dup: stripe_events.processed_at stamped'
+  (select processed_at is null and last_error = 'refund_required:duplicate_charge' from public.stripe_events where id = 'evt_rt_dup_2'),
+  'dup: the event stays open with the refund_required marker until the Worker has refunded (W4-03)'
 );
 
 -- 11. checkout_duplicate_refund_record -------------------------------------------

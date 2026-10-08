@@ -23,6 +23,32 @@ export type StuckPaymentAlertInput = {
 
 export type { OpsMustFixKind, OpsMustFixTrip };
 
+/**
+ * J2 (W4-02): an ops must-fix mail that did not go out. `sendOpsMustFix` never throws; it answers
+ * `{ ok: false }` for every failure (no key, rejected by Resend, rate limit). Every deliver* function
+ * in this file turns that answer into this error, so no caller can read "resolved" as "sent". `code`
+ * is a fixed word, never provider text: it is safe to log. The error message carries no address or name.
+ */
+export class MustFixMailError extends Error {
+  readonly code: "no_api_key" | "send_failed" | "trip_not_found";
+  constructor(code: MustFixMailError["code"]) {
+    super(`ops must-fix mail not sent: ${code}`);
+    this.name = "MustFixMailError";
+    this.code = code;
+  }
+}
+
+/** The one place the result of `sendOpsMustFix` is read. Throws MustFixMailError when it is not ok. */
+async function sendMustFixOrThrow(
+  env: CloudflareEnv,
+  payload: OpsMustFixForEmail,
+): Promise<void> {
+  const key = env.RESEND_API_KEY ?? "";
+  if (!key) throw new MustFixMailError("no_api_key");
+  const outcome = await sendOpsMustFix({ RESEND_API_KEY: key }, payload, SUPPORT_EMAIL);
+  if (!outcome.ok) throw new MustFixMailError("send_failed");
+}
+
 type TripRow = {
   reference: string;
   locale: string | null;
@@ -52,10 +78,8 @@ export async function deliverOpsMustFix(
   locale: EmailLocale = "en",
 ): Promise<void> {
   if (trips.length === 0) return;
-  const key = env.RESEND_API_KEY ?? "";
-  if (!key) return;
   const payload: OpsMustFixForEmail = { locale, kind, trips };
-  await sendOpsMustFix({ RESEND_API_KEY: key }, payload, SUPPORT_EMAIL);
+  await sendMustFixOrThrow(env, payload);
 }
 
 export async function deliverOverlapMustFix(
@@ -65,7 +89,7 @@ export async function deliverOverlapMustFix(
   const key = bookingKey.trim();
   if (!key) return;
   const row = await loadMustFixTrip(env, key);
-  if (!row) return;
+  if (!row) throw new MustFixMailError("trip_not_found");
   await deliverOpsMustFix(env, "overlap", tripsFromRows([row]), emailLocale(row.locale));
 }
 
@@ -76,13 +100,14 @@ export async function deliverOverlapMustFix(
  * because the DLQ alert's whole purpose is to reach a human when the ordinary trip lookup has
  * nothing to show. Always builds one placeholder trip entry so `sendOpsMustFix`'s own
  * "no must-fix trips" guard never fires either.
+ *
+ * J2 (W4-02): throws MustFixMailError when the mail did not go out (no key, Resend refused it); the
+ * caller must treat that as "nobody was told".
  */
 export async function deliverStuckPaymentAlert(
   env: CloudflareEnv,
   input: StuckPaymentAlertInput,
 ): Promise<void> {
-  const key = env.RESEND_API_KEY ?? "";
-  if (!key) return;
   const trips: OpsMustFixTrip[] = [
     { reference: input.reference ?? "", pickupText: "", dropoffText: "", scheduledLocal: "" },
   ];
@@ -92,7 +117,7 @@ export async function deliverStuckPaymentAlert(
     trips,
     detail: { eventId: input.eventId, eventType: input.type, objectId: input.objectId },
   };
-  await sendOpsMustFix({ RESEND_API_KEY: key }, payload, SUPPORT_EMAIL);
+  await sendMustFixOrThrow(env, payload);
 }
 
 /** D-22/D-25a: a payment landed on a booking that cannot run; the charge was refunded. */
@@ -103,7 +128,7 @@ export async function deliverPaidAfterCancelAlert(
   const key = bookingKey.trim();
   if (!key) return;
   const row = await loadMustFixTrip(env, key);
-  if (!row) return;
+  if (!row) throw new MustFixMailError("trip_not_found");
   await deliverOpsMustFix(env, "paid-after-cancel", tripsFromRows([row]), emailLocale(row.locale));
 }
 
@@ -120,6 +145,6 @@ export async function deliverDifferenceNotAppliedAlert(
   const key = bookingKey.trim();
   if (!key) return;
   const row = await loadMustFixTrip(env, key);
-  if (!row) return;
+  if (!row) throw new MustFixMailError("trip_not_found");
   await deliverOpsMustFix(env, "difference-not-applied", tripsFromRows([row]), emailLocale(row.locale));
 }

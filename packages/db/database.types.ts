@@ -2424,36 +2424,48 @@ export type Database = {
       }
       stripe_events: {
         Row: {
+          abandoned_at: string | null
           attempts: number
           id: string
+          last_attempt_at: string | null
           last_error: string | null
           object_id: string | null
           payload: Json
           processed_at: string | null
           received_at: string
           stripe_created: string
+          sweep_count: number
+          sweep_last_at: string | null
           type: string
         }
         Insert: {
+          abandoned_at?: string | null
           attempts?: number
           id: string
+          last_attempt_at?: string | null
           last_error?: string | null
           object_id?: string | null
           payload: Json
           processed_at?: string | null
           received_at?: string
           stripe_created: string
+          sweep_count?: number
+          sweep_last_at?: string | null
           type: string
         }
         Update: {
+          abandoned_at?: string | null
           attempts?: number
           id?: string
+          last_attempt_at?: string | null
           last_error?: string | null
           object_id?: string | null
           payload?: Json
           processed_at?: string | null
           received_at?: string
           stripe_created?: string
+          sweep_count?: number
+          sweep_last_at?: string | null
           type?: string
         }
         Relationships: []
@@ -4102,6 +4114,10 @@ export type Database = {
           should_process: boolean
         }[]
       }
+      stripe_event_close: {
+        Args: { p_event_id: string; p_reason: string }
+        Returns: undefined
+      }
       stripe_event_record: {
         Args: {
           p_id: string
@@ -4115,6 +4131,27 @@ export type Database = {
       stripe_event_settle: {
         Args: { p_error: string; p_event_id: string }
         Returns: undefined
+      }
+      stripe_events_sweep_abandoned: {
+        Args: { p_event_ids: string[] }
+        Returns: number
+      }
+      stripe_events_sweep_claim: {
+        Args: {
+          p_horizon?: string
+          p_limit?: number
+          p_max_sweeps?: number
+          p_min_age?: string
+        }
+        Returns: {
+          action: string
+          attempts: number
+          event_id: string
+          event_type: string
+          last_error: string
+          object_id: string
+          stripe_created: string
+        }[]
       }
       submit_contact_message: {
         Args: {

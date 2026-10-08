@@ -22,6 +22,7 @@
 
 import type Stripe from "stripe";
 import type { ScalarValue } from "../logger";
+import type { StuckPaymentAlertInput } from "../ops/must-fix-mail";
 import type { HandleResult } from "./settle";
 import { PAID_ERROR_RETRY_SECONDS, retryDelaySeconds, settleErrorKind } from "./settle-errors";
 import type { StripeQueueMessage } from "./webhook";
@@ -66,6 +67,10 @@ export type MoneyEventDeps = {
   /** public.stripe_dispute_upsert -- one row per stripeDisputeId. */
   upsertDispute: (input: DisputeInput) => Promise<void>;
   eventSettle: (eventId: string, error: string | null) => Promise<void>;
+  /** J2 (W4-09): closes an event that needs no further work: processed_at set, the reason kept in last_error. */
+  eventClose: (eventId: string, reason: string) => Promise<void>;
+  /** J2 (W4-02): mails a human; rejects when the mail did not go out. */
+  alertStuckPayment: (input: StuckPaymentAlertInput) => Promise<void>;
   emit: (level: "debug" | "info" | "warn" | "error", type: string, fields?: Record<string, ScalarValue>) => void;
 };
 
@@ -103,21 +108,6 @@ function sqlState(err: unknown): string | undefined {
 
 function isAppRefundPending(err: unknown): boolean {
   return sqlState(err) === "P0002" && err instanceof Error && err.message.includes("app_refund_pending");
-}
-
-/** A refusal the app makes itself, before any SQL (non-CHF refund): stamp the event with the reason and ack. A settle failure itself retries. */
-async function settleWithError(
-  eventId: string,
-  err: unknown,
-  fallback: string,
-  deps: MoneyEventDeps,
-): Promise<HandleResult> {
-  try {
-    await deps.eventSettle(eventId, sqlState(err) ?? fallback);
-  } catch {
-    return { retry: true };
-  }
-  return { ack: true };
 }
 
 /**
@@ -165,7 +155,25 @@ export async function handleChargeRefundedWithDeps(
 
   if (refunds.some((refund) => refund.status === "succeeded" && refund.currency !== "chf")) {
     deps.emit("error", "charge_refund_non_chf", { eventId: message.eventId, chargeId: charge.id });
-    return settleWithError(message.eventId, null, "non_chf_refund", deps);
+    // J2 (W4-02, W4-09): a refund in a currency the app cannot record is money a human must reconcile.
+    // The mail must have gone out before the event is closed; a mail that failed retries.
+    try {
+      await deps.alertStuckPayment({
+        eventId: message.eventId,
+        type: message.type,
+        objectId: message.objectId,
+        reference: null,
+      });
+    } catch {
+      deps.emit("error", "stuck_payment_alert_failed", { eventId: message.eventId });
+      return { retry: true };
+    }
+    try {
+      await deps.eventClose(message.eventId, "non_chf_refund");
+    } catch {
+      return { retry: true };
+    }
+    return { ack: true };
   }
 
   let sessionId: string | null = null;

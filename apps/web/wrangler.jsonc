@@ -106,19 +106,29 @@
             // Cover the P0002 window (intent tx committing) then exhaust rather
             // than retry forever.
             "max_retries": 8,
+            // J2 (W4-06, W1-14): a retry that names no delay waits 30 seconds, never zero. The handler
+            // passes its own escalating delay (30, 60, 120, 240, then 300 s: about 27 minutes in all,
+            // longer than the 10 minutes a paid session must age before it is refunded for lack of a
+            // booking). Cloudflare's own default delay is 0.
+            "retry_delay": 30,
             // Exhausted messages must be inspectable, not silently dropped.
             "dead_letter_queue": "vamos-stripe-events-staging-dlq"
           },
           // D-06: consumer for the DLQ itself. worker.ts routes any batch.queue ending in
-          // "-dlq" to lib/checkout/dlq.ts, which alerts info@ once and always acks. No
-          // max_retries, no dead_letter_queue — end of the line; a DLQ message is never
-          // retried into itself (T-26.1-10). Confirmed on the account read-only via
+          // "-dlq" to lib/checkout/dlq.ts, which alerts info@ and acks only when the mail went out
+          // (J2). No dead_letter_queue — end of the line; a DLQ message is never retried into
+          // itself (T-26.1-10). Confirmed on the account read-only via
           // `wrangler queues list` 2026-09-28: this queue already exists
           // (id d9395539183a4449972c17d11f0fb7f5, created 2026-09-06), 0 consumers today.
           {
             "queue": "vamos-stripe-events-staging-dlq",
             "max_batch_size": 1,
-            "max_batch_timeout": 30
+            "max_batch_timeout": 30,
+            // J2 (W4-02): an alert that did not go out is delivered again every 10 minutes, five
+            // deliveries in all (lib/checkout/dlq.ts DLQ_MAX_ATTEMPTS), then dropped with an error log;
+            // the unprocessed-event sweep is the durable second line. Still no dead_letter_queue here.
+            "max_retries": 5,
+            "retry_delay": 600
           }
         ]
       },
@@ -309,6 +319,11 @@
             // Cover the P0002 window (intent tx committing) then exhaust rather
             // than retry forever.
             "max_retries": 8,
+            // J2 (W4-06, W1-14): a retry that names no delay waits 30 seconds, never zero. The handler
+            // passes its own escalating delay (30, 60, 120, 240, then 300 s: about 27 minutes in all,
+            // longer than the 10 minutes a paid session must age before it is refunded for lack of a
+            // booking). Cloudflare's own default delay is 0.
+            "retry_delay": 30,
             // Exhausted messages must be inspectable, not silently dropped.
             "dead_letter_queue": "vamos-stripe-events-production-dlq"
           },
@@ -319,7 +334,12 @@
           {
             "queue": "vamos-stripe-events-production-dlq",
             "max_batch_size": 1,
-            "max_batch_timeout": 30
+            "max_batch_timeout": 30,
+            // J2 (W4-02): an alert that did not go out is delivered again every 10 minutes, five
+            // deliveries in all (lib/checkout/dlq.ts DLQ_MAX_ATTEMPTS), then dropped with an error log;
+            // the unprocessed-event sweep is the durable second line. Still no dead_letter_queue here.
+            "max_retries": 5,
+            "retry_delay": 600
           }
         ]
       },

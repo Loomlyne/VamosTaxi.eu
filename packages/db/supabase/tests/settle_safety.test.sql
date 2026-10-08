@@ -15,9 +15,11 @@
 --   G  Accept: a second Accept after the amount moved is refused (price-changed), nothing written; the same
 --      amount still answers extra_required; the refusal order is unchanged.
 --   H  checkout_reference_for_session finds the booking of a difference page.
+--   I  J2 (20261009100000): a late failed event never touches a paid difference (W4-17, W5-04); a currency or
+--      FX tuple the row cannot hold never makes the settle raise after capture (W5-12).
 -- Rolled back. Synthetic integer rappen only, never a product CHF.
 begin;
-select plan(124);
+select plan(135);
 
 insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity)
 values ('ssf-eco', 4, 4), ('ssf-biz', 7, 7), ('ssf-gone', 7, 7);
@@ -673,5 +675,66 @@ select is(
   (select b.reference from public.bookings b where b.id = pg_temp.ssf_b('cc')),
   'reference: an ended request''s page still names its booking');
 
+-- ---------------------------------------------------------------------------
+-- I. J2 (20261009100000): late failure on a paid difference; FX the row cannot hold
+-- ---------------------------------------------------------------------------
+select pg_temp.ssf_mk('lt');
+create temporary table lt_w as select * from pg_temp.ssf_change('lt', 13);
+select pg_temp.ssf_page((select request_id from lt_w), 'cs_ssf_lt');
+insert into public.stripe_events (id, type, stripe_created, object_id, payload) values
+  ('evt_ssf_lt_paid', 'checkout.session.completed', now(), 'cs_ssf_lt', '{}'::jsonb),
+  ('evt_ssf_lt_fail', 'checkout.session.expired', now(), 'cs_ssf_lt', '{}'::jsonb);
+create temporary table lt_paid as select * from pg_temp.ssf_settle('cs_ssf_lt', 'evt_ssf_lt_paid');
+select is((select applied from lt_paid), true, 'late: the difference is paid and applied');
+create temporary table lt_before as
+  select (select count(*)::int from public.booking_events e where e.booking_id = pg_temp.ssf_b('lt')) as events;
+create temporary table lt_late as
+  select * from public.checkout_extra_payment_settle('evt_ssf_lt_fail', 'cs_ssf_lt', 'pi_x_lt', 'failed',
+                                                     'CHF', null, null, null, null);
+select is((select already_settled from lt_late), true, 'late: a failed event after the payment answers already-settled (W4-17)');
+select is((select count(*)::int from public.booking_events e where e.booking_id = pg_temp.ssf_b('lt')),
+  (select events from lt_before), 'late: no payment.failed event is written');
+select is((select r.status from public.booking_edit_requests r where r.id = (select request_id from lt_w)),
+  'accepted', 'late: the accepted request is not touched');
+select ok((select processed_at is not null from public.stripe_events where id = 'evt_ssf_lt_fail'),
+  'late: the late event is closed');
+select is((select p.status from public.booking_payments p where p.stripe_checkout_session_id = 'cs_ssf_lt'),
+  'succeeded', 'late: the payment stays succeeded');
+
+-- W5-12: an FX tuple the row cannot hold (GBP) still records the capture, as CHF without FX.
+select pg_temp.ssf_mk('fxg');
+create temporary table fxg_w as select * from pg_temp.ssf_change('fxg', 13);
+select pg_temp.ssf_page((select request_id from fxg_w), 'cs_ssf_fxg');
+create temporary table fxg_paid as
+  select * from public.checkout_extra_payment_settle('evt_ssf_fxg', 'cs_ssf_fxg', 'pi_x_fxg', 'succeeded',
+                                                     'GBP', 1.1, 'stripe_adaptive_pricing', now(), 800);
+select is((select applied from fxg_paid), true, 'fx: a GBP tuple does not stop the difference from settling (W5-12)');
+select ok((select p.status = 'succeeded' and p.charged_currency = 'CHF' and p.fx_rate is null and p.presentment_amount_minor is null
+             from public.booking_payments p where p.stripe_checkout_session_id = 'cs_ssf_fxg'),
+  'fx: the capture is recorded as CHF without FX detail');
+
+-- CHF with a rate (the legacy currency_conversion shape) also settles.
+select pg_temp.ssf_mk('fxc');
+create temporary table fxc_w as select * from pg_temp.ssf_change('fxc', 13);
+select pg_temp.ssf_page((select request_id from fxc_w), 'cs_ssf_fxc');
+create temporary table fxc_paid as
+  select * from public.checkout_extra_payment_settle('evt_ssf_fxc', 'cs_ssf_fxc', 'pi_x_fxc', 'succeeded',
+                                                     'CHF', 1.1, 'stripe_adaptive_pricing', now(), 800);
+select is((select applied from fxc_paid), true, 'fx: CHF with a rate does not stop the settle');
+select ok((select p.status = 'succeeded' and p.charged_currency = 'CHF' and p.fx_rate is null
+             from public.booking_payments p where p.stripe_checkout_session_id = 'cs_ssf_fxc'),
+  'fx: and is recorded without FX');
+
+-- A complete EUR tuple is kept.
+select pg_temp.ssf_mk('fxe');
+create temporary table fxe_w as select * from pg_temp.ssf_change('fxe', 13);
+select pg_temp.ssf_page((select request_id from fxe_w), 'cs_ssf_fxe');
+create temporary table fxe_paid as
+  select * from public.checkout_extra_payment_settle('evt_ssf_fxe', 'cs_ssf_fxe', 'pi_x_fxe', 'succeeded',
+                                                     'EUR', 1.05, 'stripe_adaptive_pricing', now(), 860);
+select ok((select p.charged_currency = 'EUR' and p.fx_rate = 1.05 and p.presentment_amount_minor = 860
+             from public.booking_payments p where p.stripe_checkout_session_id = 'cs_ssf_fxe'),
+  'fx: a complete EUR tuple is stored unchanged');
 select * from finish();
+
 rollback;

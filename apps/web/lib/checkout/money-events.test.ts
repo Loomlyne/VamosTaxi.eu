@@ -73,6 +73,8 @@ function deps(patch: Partial<MoneyEventDeps> = {}): MoneyEventDeps & {
   recordChargeRefund: ReturnType<typeof vi.fn>;
   upsertDispute: ReturnType<typeof vi.fn>;
   eventSettle: ReturnType<typeof vi.fn>;
+  eventClose: ReturnType<typeof vi.fn>;
+  alertStuckPayment: ReturnType<typeof vi.fn>;
   emit: ReturnType<typeof vi.fn>;
 } {
   return {
@@ -82,6 +84,8 @@ function deps(patch: Partial<MoneyEventDeps> = {}): MoneyEventDeps & {
     recordChargeRefund: vi.fn(async () => ({ outcome: "recorded" })),
     upsertDispute: vi.fn(async () => undefined),
     eventSettle: vi.fn(async () => undefined),
+    eventClose: vi.fn(async () => undefined),
+    alertStuckPayment: vi.fn(async () => undefined),
     emit: vi.fn(),
     ...patch,
   } as MoneyEventDeps & {
@@ -89,6 +93,8 @@ function deps(patch: Partial<MoneyEventDeps> = {}): MoneyEventDeps & {
     recordChargeRefund: ReturnType<typeof vi.fn>;
     upsertDispute: ReturnType<typeof vi.fn>;
     eventSettle: ReturnType<typeof vi.fn>;
+    eventClose: ReturnType<typeof vi.fn>;
+    alertStuckPayment: ReturnType<typeof vi.fn>;
     emit: ReturnType<typeof vi.fn>;
   };
 }
@@ -283,7 +289,28 @@ describe("handleChargeRefundedWithDeps", () => {
     );
     expect(result).toEqual({ ack: true });
     expect(d.recordChargeRefund).not.toHaveBeenCalled();
-    expect(d.eventSettle).toHaveBeenCalledWith("evt_ch_1", "non_chf_refund");
+    // J2 (W4-02, W4-09): ops is mailed first, then the event is closed (processed, reason kept) so the
+    // sweep never re-enqueues it.
+    expect(d.alertStuckPayment).toHaveBeenCalledWith({
+      eventId: "evt_ch_1",
+      type: "charge.refunded",
+      objectId: "ch_test_1",
+      reference: null,
+    });
+    expect(d.eventClose).toHaveBeenCalledWith("evt_ch_1", "non_chf_refund");
+    expect(d.eventSettle).not.toHaveBeenCalled();
+  });
+
+  it("W4-02: a non-CHF refund whose mail did not go out is not closed: it retries", async () => {
+    const d = deps({
+      alertStuckPayment: vi.fn(async () => {
+        throw new Error("resend down");
+      }),
+    });
+    const result = await handleChargeRefundedWithDeps(message(), charge([refund({ currency: "eur" })]), d);
+    expect(result).toEqual({ retry: true });
+    expect(d.eventClose).not.toHaveBeenCalled();
+    expect(d.emit).toHaveBeenCalledWith("error", "stuck_payment_alert_failed", expect.objectContaining({ eventId: "evt_ch_1" }));
   });
 });
 
