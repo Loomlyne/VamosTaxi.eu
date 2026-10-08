@@ -76,10 +76,13 @@ describe("S11: checkout Pay body caps", () => {
     const n = CHECKOUT_FIELD_MAX;
     expect(ok(withContact({ name: "a".repeat(n.name) }))).toBe(true);
     expect(ok(withContact({ name: "a".repeat(n.name + 1) }))).toBe(false);
-    expect(ok(withContact({ phone: "1".repeat(n.phone) }))).toBe(true);
-    expect(ok(withContact({ phone: "1".repeat(n.phone + 1) }))).toBe(false);
+    // J6 (W2-20): a mobile is 8 to 15 digits; the 40-character cap is reached with separators.
+    const phoneAt = (len: number) => `${"1".repeat(15)}${"-".repeat(len - 15)}`;
+    expect(ok(withContact({ phone: phoneAt(n.phone) }))).toBe(true);
+    expect(ok(withContact({ phone: phoneAt(n.phone + 1) }))).toBe(false);
     expect(ok({ ...body, coupon: "C".repeat(n.coupon) })).toBe(true);
     expect(ok({ ...body, coupon: "C".repeat(n.coupon + 1) })).toBe(false);
+    expect(n.idempotencyKey).toBe(128);
     expect(ok({ ...body, idempotency_key: "k".repeat(n.idempotencyKey) })).toBe(true);
     expect(ok({ ...body, idempotency_key: "k".repeat(n.idempotencyKey + 1) })).toBe(false);
     expect(ok({ ...body, lock: "l".repeat(n.lock) })).toBe(true);

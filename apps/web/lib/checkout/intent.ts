@@ -12,7 +12,7 @@ import type { QuoteErrorCode } from "../quote/errors";
 import { refusalForMissingClassId } from "./charge-gate";
 import { refuse, type CheckoutRefusalCode } from "./errors";
 import type { CheckoutIntentRequest, CheckoutWebIntentRequest } from "./intent-schema";
-import { checkoutCharge, type CheckoutChargeCoupon, type ExtraCatalogRow } from "./checkout-charge";
+import { MIN_CHARGE_RAPPEN, checkoutCharge, type CheckoutChargeCoupon, type ExtraCatalogRow } from "./checkout-charge";
 import { buildTripQuery } from "./trip-url";
 import { zurichLocalToUtcMs } from "../geo/serviceArea";
 import { checkoutLegsFromLock, snapshotFromLock } from "./lock-to-rpc";
@@ -67,6 +67,18 @@ export type CheckoutIntentDeps = {
    */
   accountGate?: () => Promise<Response | null>;
   lockSecrets: { current: string; previous?: string };
+  /**
+   * J6 (W2-14): "this quote was left with an unpaid booking". Asked only AFTER the signed lock verified, so
+   * a stranger holding just a quote id cannot tell a left quote (409) from an unknown one (404).
+   */
+  quoteWasLeft?: () => Promise<boolean>;
+  /**
+   * J6 (W2-05): the per-quote Pay-press cap (5 presses per price). Counted only here, after the lock has
+   * verified and after every refusal that needs no Stripe call (pickup in the past, too soon, total under
+   * CHF 0.50), so a stranger cannot lock the owner out and a refused press is not a used one. A Response
+   * is the 429 answer; null lets the press go on.
+   */
+  payPressGate?: () => Promise<Response | null>;
   workerNowIso: string;
   postgresNowIso: string;
   /**
@@ -215,6 +227,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
  * null and PAY refuses `pricing_not_live` — it never falls back to 8.1 %, which
  * could charge a different amount from the one the screen showed. A caller that
  * passes no loader at all (tests only; the route always passes one) gets 81.
+ *
+ * J6 (W2-04): that guarantee only holds when the loader THROWS. The display loader
+ * (`loadLaunchFlags`) never throws and answers 81 on any failure, so the route now passes
+ * `loadLaunchFlagsStrict`. Do not wire the display loader here.
  */
 async function vatRateBpsFromFlags(deps: CheckoutIntentDeps): Promise<number | null> {
   const load = deps.loadLaunchFlags;
@@ -279,6 +295,11 @@ function rpcFailed(): Response {
   });
 }
 
+/**
+ * `cookie` is non-null only for the request that owns the booking (its vt_manage cookie, or the request
+ * that just created it). J6 (W2-15): everyone else, who holds only quote + lock, gets the payable page and
+ * nothing that names someone else's booking: no booking id, no reference.
+ */
 function okWebResponse(
   row: { reference: string; booking_id: string },
   session: Stripe.Checkout.Session,
@@ -295,8 +316,7 @@ function okWebResponse(
   return new Response(
     JSON.stringify({
       ok: true,
-      reference: row.reference,
-      booking_id: row.booking_id,
+      ...(cookie ? { reference: row.reference, booking_id: row.booking_id } : {}),
       url,
       expires_at: expiresAt.toISOString(),
       amount_rappen: chargedRappen,
@@ -338,7 +358,13 @@ async function supersedeBooking(
  * depend on — quote, class, sorted extra codes with quantities, voucher, rate
  * and settings versions, the charged amount. Stored on the Stripe session
  * (metadata.selection) and compared on Pay again: equal totals do not make two
- * selections the same booking. Contact, company and note are not part of it.
+ * selections the same booking. Company and note are not part of it.
+ *
+ * J6 (W2-07): the CONTACT (name, e-mail, phone) is part of it. The reuse branches only rewrite
+ * company, note and trip, so a corrected e-mail after Back used to leave the booking, the Stripe
+ * page and the confirmation mail on the old address. A contact change now takes the supersede
+ * path (new booking, new session). Sessions opened before this change carry no contact in their
+ * fingerprint, so they take the same path once.
  */
 async function selectionFingerprint(parts: {
   quoteId: string;
@@ -348,6 +374,7 @@ async function selectionFingerprint(parts: {
   chargedRappen: number;
   rateVersionId: number | null;
   settingsVersionId: number;
+  contact: { name: string; email: string; phone: string };
 }): Promise<string> {
   const canonical = JSON.stringify({
     q: parts.quoteId,
@@ -357,6 +384,7 @@ async function selectionFingerprint(parts: {
     a: parts.chargedRappen,
     r: parts.rateVersionId,
     s: parts.settingsVersionId,
+    k: [parts.contact.name.trim(), parts.contact.email.trim().toLowerCase(), parts.contact.phone.trim()],
   });
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(canonical));
   return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0")).join("");
@@ -400,6 +428,9 @@ async function runWebIntent(
   if (!checked.ok) return refuse(mapQuoteCode(checked.code));
   const payload = checked.payload;
 
+  // J6 (W2-14): only a caller with a verified lock learns that the quote was left.
+  if (deps.quoteWasLeft && (await deps.quoteWasLeft())) return refuse("quote_already_booked");
+
   const gated = await deps.accountGate?.();
   if (gated) return gated;
 
@@ -417,6 +448,28 @@ async function runWebIntent(
   }
   if (body.flight_no !== undefined && flightKey(body.flight_no) !== flightKey(leg.flight_no)) {
     return refuse("price_changed");
+  }
+
+  // J6 (W2-01): the pickup is checked again at Pay. A lock lives 24 hours, so a quote for a pickup three
+  // hours ahead could be paid five hours later: a charge for a trip in the past. Postgres time, the same
+  // clock the lock expiry uses. Every leg must be ahead; the first leg must also respect the minimum advance
+  // the published settings name (a null rule is no rule, as in the quote pipeline).
+  const nowMs = Date.parse(deps.postgresNowIso);
+  if (!Number.isFinite(nowMs)) return refuse("invalid_request");
+  const minAdvance = deps.snapshotPolicy?.min_advance_minutes;
+  for (const [index, l] of payload.legs.entries()) {
+    const pickupMs = zurichLocalToUtcMs(l.scheduled_local);
+    if (pickupMs == null) return refuse("invalid_request");
+    if (pickupMs <= nowMs) return refuse("pickup_in_past");
+    if (
+      index === 0 &&
+      typeof minAdvance === "number" &&
+      Number.isFinite(minAdvance) &&
+      minAdvance > 0 &&
+      pickupMs - nowMs < minAdvance * 60_000
+    ) {
+      return refuse("pickup_too_soon");
+    }
   }
 
   const payGate = await deps.loadQuotePayGate?.(body.quote_id);
@@ -478,11 +531,18 @@ async function runWebIntent(
   });
   if (!charge.ok) return refuse("price_changed");
   const chargedRappen = charge.chargedRappen;
+  // J6 (W2-03, U19): under CHF 0.50, a coupon at or above the fare and a 100 % coupon all land here. Refused
+  // with a typed code before Stripe, so the customer gets a message instead of a bare 500 and no press is used.
+  if (chargedRappen < MIN_CHARGE_RAPPEN) return refuse("amount_below_minimum");
 
   if (!deps.vehicleClassId) return refuse(refusalForMissingClassId());
   if (!deps.snapshotPolicy) return refuse("invalid_request");
   if (deps.legacyUaeAccount === true) return legacyUaeAccountStop();
   if (!deps.origin) return refuse("invalid_request");
+
+  // J6 (W2-05): the per-quote press cap, counted here: lock verified, nothing refused above, Stripe not yet called.
+  const pressRefused = await deps.payPressGate?.();
+  if (pressRefused) return pressRefused;
 
   // D-36: the pickup wall clock is Europe/Zurich, so the manage link runs 30
   // days after the last leg's Zurich instant.
@@ -513,6 +573,7 @@ async function runWebIntent(
     chargedRappen,
     rateVersionId: payload.rate_version_id,
     settingsVersionId: payload.settings_version_id,
+    contact: body.contact,
   });
   const sameSelection = (session: Stripe.Checkout.Session) =>
     session.metadata?.selection === fingerprint;
@@ -586,6 +647,9 @@ async function runWebIntent(
     } else {
       // The selection (or the price) changed, or the session carries no
       // fingerprint: one unpaid row at a time.
+      // J6 (W2-02, T-26.3-10-03): only the browser whose vt_manage cookie owns that booking may replace it.
+      // Anyone else holding quote + lock must not expire the owner's Stripe sessions or purge their booking.
+      if (!ownsExisting) return refuse("quote_already_booked");
       const refused = await supersedeBooking(existingOpen.booking_id, deps);
       if (refused) return refused;
       replacedBookingId = existingOpen.booking_id;
@@ -708,6 +772,16 @@ async function runWebIntent(
       return refuse("payment_window_closed");
     }
     payable = stored;
+  }
+
+  if (row.replayed) {
+    // J6 (W2-06): a replay (same key, a retry or two presses in one second) minted a token that no booking
+    // holds: setting its cookie would overwrite the owner's working one with a dead one. Same F8/S15 rule as
+    // the other reuse paths: the request whose cookie already owns the booking stores the new hash, sets the
+    // cookie and writes details; anyone else gets the page and nothing that manages the booking.
+    const ownsReplay = deps.ownsBooking ? await deps.ownsBooking(row.booking_id).catch(() => false) : false;
+    if (!ownsReplay) return okWebResponse(row, payable, chargedRappen, expiresAt, null);
+    await deps.issueManageToken({ bookingId: row.booking_id, hash: token.hash, expiresAt: manageExpiresAt });
   }
 
   try {

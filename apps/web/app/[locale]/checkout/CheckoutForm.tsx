@@ -17,7 +17,7 @@ import { useVamosLocale } from "@/lib/locale-shim";
 import { airportByName } from "@/lib/checkout/trip-editor-rules";
 import { geoLocale } from "@/lib/checkout/geo-locale";
 import { tripIsQuotable, type QuoteResult } from "@/lib/checkout/checkout-quote";
-import type { ChargeLine } from "@/lib/checkout/checkout-charge";
+import { MIN_CHARGE_RAPPEN, type ChargeLine } from "@/lib/checkout/checkout-charge";
 import { extraLabel, type ExtraNames } from "@/lib/checkout/extra-label";
 import {
   buildIntentBody,
@@ -58,6 +58,8 @@ export type PriceState =
   | { kind: "error"; code: string };
 
 export type PayStatus = "idle" | "loading" | "error";
+
+const SUPPORT_EMAIL = "info@vamostaxi.site";
 
 type ResumeOpen = {
   state: "open";
@@ -799,6 +801,15 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
       announce(t("updatingPrice"));
       return;
     }
+    // J6 (W2-03, U19): say so before any request when the total is too small to charge (the server refuses it
+    // too, with the same words, before Stripe and without using a press).
+    if (price.chargedRappen < MIN_CHARGE_RAPPEN) {
+      const text = t("amountBelowMinimum", { email: SUPPORT_EMAIL });
+      setPayStatus("error");
+      setPayError(text);
+      announce(text);
+      return;
+    }
     // The lock that carries the voucher the price was made with (U11-1). None yet: still pricing.
     const payLock = lockForVoucher(quote.lock, voucher, voucherLock.current);
     if (payLock === null) {
@@ -943,6 +954,17 @@ export function CheckoutFormProvider({ children }: { children: ReactNode }) {
         }
         if (code === "quote_already_booked") {
           fail(t("quoteAlreadyBooked"));
+          return;
+        }
+        // J6 (W2-01): the pickup is checked again at Pay; the customer picks a new time.
+        if (code === "pickup_in_past" || code === "pickup_too_soon") {
+          fail(t(code === "pickup_in_past" ? "pickupPassed" : "pickupTooSoon"));
+          flow.openEditor();
+          return;
+        }
+        // J6 (W2-03, U19): a total under CHF 0.50 cannot be charged by card.
+        if (code === "amount_below_minimum") {
+          fail(t("amountBelowMinimum", { email: SUPPORT_EMAIL }));
           return;
         }
         fail(t("payStartFailed"));

@@ -163,7 +163,7 @@ describe("runCheckoutIntent mode web (26.3)", () => {
       company_vat: "",
       driver_note: "",
       trip: { ...TRIP },
-      idempotency_key: "idem-w1",
+      idempotency_key: "idem-w1-aa",
       ...patch,
     } as never;
   }
@@ -533,7 +533,10 @@ describe("runCheckoutIntent mode web (26.3)", () => {
     w.d.ownsBooking = async () => false;
     const res = await runCheckoutIntent(await webBody(p, { idempotency_key: "idem-w2" }), w.d as never);
     const again = (await res.json()) as Record<string, unknown>;
-    expect(again.booking_id).toBe(first.booking_id);
+    // J6 (W2-15): the page URL, never the booking id or reference of someone else's booking.
+    expect(again.url).toBe(first.url);
+    expect(again.booking_id).toBeUndefined();
+    expect(again.reference).toBeUndefined();
     expect(issued).toEqual([]);
     expect(w.details).toEqual([]);
     expect(res.headers.get("set-cookie")).toBeNull();
@@ -586,7 +589,8 @@ describe("runCheckoutIntent mode web (26.3)", () => {
     );
     expect(res.status).toBe(200);
     const body = (await res.json()) as Record<string, unknown>;
-    expect(body.reference).toBe(first.reference);
+    expect(body.reference).toBeUndefined();
+    expect(body.booking_id).toBeUndefined();
     expect(body.url).toBe(first.url);
     expect(issued).toEqual([]);
     expect(w.details).toEqual([]);
@@ -611,6 +615,7 @@ describe("runCheckoutIntent mode web (26.3)", () => {
     const w = world(p);
     const first = (await (await runCheckoutIntent(await webBody(p), w.d as never)).json()) as Record<string, unknown>;
     w.sessions.get("cs_1")!.status = "expired";
+    w.d.ownsBooking = async (id: string) => id === first.booking_id;
     const again = (await (await runCheckoutIntent(await webBody(p, { idempotency_key: "idem-w2" }), w.d as never)).json()) as Record<string, unknown>;
     expect(again.reference).toBe(first.reference);
     expect(again.url).not.toBe(first.url);
@@ -623,6 +628,8 @@ describe("runCheckoutIntent mode web (26.3)", () => {
     const w = world(p);
     const first = (await (await runCheckoutIntent(await webBody(p), w.d as never)).json()) as Record<string, unknown>;
     w.calls.length = 0;
+    // J6 (W2-02): only the browser whose vt_manage cookie owns the booking may replace it.
+    w.d.ownsBooking = async (id: string) => id === first.booking_id;
     const res = await runCheckoutIntent(
       await webBody(p, { extra_codes: ["child_seat"], idempotency_key: "idem-w2" }),
       w.d as never,
@@ -634,6 +641,22 @@ describe("runCheckoutIntent mode web (26.3)", () => {
     expect(order.indexOf("expire:cs_1")).toBeLessThan(order.indexOf(`purge:${first.booking_id}:superseded`));
     expect(order.indexOf(`purge:${first.booking_id}:superseded`)).toBeLessThan(order.indexOf("createBooking"));
     expect(w.bookings.size).toBe(1);
+  });
+
+  it("W2-02: a changed selection by a requester that does not own the booking expires nothing and purges nothing", async () => {
+    const p = payload();
+    const w = world(p);
+    const first = (await (await runCheckoutIntent(await webBody(p), w.d as never)).json()) as Record<string, unknown>;
+    w.calls.length = 0;
+    // The default world: ownsBooking is false for everyone (another device holding quote + lock).
+    const res = await runCheckoutIntent(
+      await webBody(p, { extra_codes: ["child_seat"], idempotency_key: "idem-w2" }),
+      w.d as never,
+    );
+    expect(((await res.json()) as { code: string }).code).toBe("quote_already_booked");
+    expect(w.calls.some((c) => c.startsWith("expire") || c.startsWith("purge") || c.startsWith("create"))).toBe(false);
+    expect(w.sessions.get("cs_1")!.status).toBe("open");
+    expect([...w.bookings.keys()]).toEqual([first.booking_id]);
   });
 
   it("an old session that is complete refuses quote_already_booked and never purges", async () => {
@@ -706,6 +729,7 @@ describe("runCheckoutIntent mode web (26.3)", () => {
     });
     const first = (await (await runCheckoutIntent(await webBody(p, { extra_codes: ["ext_a"] }), w.d as never)).json()) as Record<string, unknown>;
     w.calls.length = 0;
+    w.d.ownsBooking = async (id: string) => id === first.booking_id;
     const res = await runCheckoutIntent(await webBody(p, { extra_codes: ["ext_b"], idempotency_key: "idem-w2" }), w.d as never);
     const next = (await res.json()) as Record<string, unknown>;
     expect(next.amount_rappen).toBe(first.amount_rappen);
@@ -729,6 +753,7 @@ describe("runCheckoutIntent mode web (26.3)", () => {
     });
     const first = (await (await runCheckoutIntent(await webBody(p), w.d as never)).json()) as Record<string, unknown>;
     w.calls.length = 0;
+    w.d.ownsBooking = async (id: string) => id === first.booking_id;
     const res = await runCheckoutIntent(await webBody(p, { vehicle_class: "business", idempotency_key: "idem-w2" }), w.d as never);
     const next = (await res.json()) as Record<string, unknown>;
     expect(next.booking_id).not.toBe(first.booking_id);
@@ -956,6 +981,217 @@ describe("runCheckoutIntent mode web (26.3)", () => {
         // The hold comes from the database, never the request body (T-26.1-90).
         expect(src).not.toMatch(/body\.hold_until|json\.hold_until/);
       });
+    });
+  });
+  // ---- J6: intent abuse and ownership (payments review W2) ----
+  describe("J6", () => {
+    const code = async (res: Response) => ((await res.json()) as { code?: string }).code;
+    const policy = (min: number | null) => ({
+      cancellation_tiers: [], free_cancel_hours: null, airport_waiting_minutes: null, city_waiting_minutes: null,
+      settings_version_id: 1, modification_deadline_hours: null, min_advance_minutes: min, policy_doc: null,
+    });
+    // Zurich is UTC+2 on 2026-09-06 (CEST): scheduled_local 10:00 is 08:00Z.
+    const at = (isoZ: string) => ({ postgresNowIso: isoZ, workerNowIso: isoZ });
+
+    it("W2-01: a pickup already in the past is refused before the press cap and Stripe, though the 24 h lock is still open", async () => {
+      const p = payload({ exp: "2026-09-06T11:59:00.000Z" });
+      const gate = vi.fn(async () => null);
+      const w = world(p, { ...at("2026-09-06T08:30:00.000Z"), payPressGate: gate });
+      const res = await runCheckoutIntent(await webBody(p), w.d as never);
+      expect(res.status).toBe(409);
+      expect(await code(res)).toBe("pickup_in_past");
+      expect(gate).not.toHaveBeenCalled();
+      expect(w.created).toHaveLength(0);
+      expect(w.calls).toEqual([]);
+    });
+
+    it("W2-01: a pickup inside the published minimum advance is refused, one outside it is paid", async () => {
+      const p = payload({ exp: "2026-09-06T11:59:00.000Z" });
+      const soon = world(p, { ...at("2026-09-06T06:00:01.000Z"), snapshotPolicy: policy(180) });
+      const refused = await runCheckoutIntent(await webBody(p), soon.d as never);
+      expect(await code(refused)).toBe("pickup_too_soon");
+      expect(soon.created).toHaveLength(0);
+
+      const ok = world(p, { ...at("2026-09-06T05:00:00.000Z"), snapshotPolicy: policy(180) });
+      expect((await runCheckoutIntent(await webBody(p), ok.d as never)).status).toBe(200);
+    });
+
+    it("W2-01: no minimum-advance rule (null) means only the past is refused", async () => {
+      const p = payload({ exp: "2026-09-06T11:59:00.000Z" });
+      const w = world(p, { ...at("2026-09-06T07:59:00.000Z"), snapshotPolicy: policy(null) });
+      expect((await runCheckoutIntent(await webBody(p), w.d as never)).status).toBe(200);
+    });
+
+    it("W2-03 (U19): a total under 50 rappen is refused with a typed code before Stripe and before the press cap", async () => {
+      const p = payload({ class_totals: [{ slug: "economy", total_rappen: 40 }] });
+      const gate = vi.fn(async () => null);
+      const w = world(p, {
+        payPressGate: gate,
+        reprice: () => ({ pricing_live: true, engine_version: p.engine_version, classes: [{ slug: "economy", total_rappen: 40, eligible: true }] }),
+      });
+      const res = await runCheckoutIntent(await webBody(p), w.d as never);
+      expect(res.status).toBe(409);
+      expect(await code(res)).toBe("amount_below_minimum");
+      expect(gate).not.toHaveBeenCalled();
+      expect(w.created).toHaveLength(0);
+      expect(w.bookings.size).toBe(0);
+    });
+
+    it("W2-03 (U19): a fixed coupon at or above the fare, and a 100 percent coupon, are refused the same way", async () => {
+      for (const coupon of [
+        { ok: true, coupon_id: 7, kind: "amount", percent: null, amount_rappen: 9000 },
+        { ok: true, coupon_id: 7, kind: "amount", percent: null, amount_rappen: 10000 },
+        { ok: true, coupon_id: 7, kind: "percent", percent: "100.00", amount_rappen: null },
+      ]) {
+        const p = payload({ coupon: "FREE", class_totals: [{ slug: "economy", total_rappen: 0, pre_coupon_rappen: 9000 }] });
+        const gate = vi.fn(async () => null);
+        const w = world(p, {
+          payPressGate: gate,
+          reprice: () => ({ pricing_live: true, engine_version: p.engine_version, classes: [{ slug: "economy", total_rappen: 0, eligible: true }] }),
+          evaluateCoupon: async () => coupon,
+        });
+        const res = await runCheckoutIntent(await webBody(p, { coupon: "FREE" }), w.d as never);
+        expect(await code(res), JSON.stringify(coupon)).toBe("amount_below_minimum");
+        expect(gate).not.toHaveBeenCalled();
+        expect(w.created).toHaveLength(0);
+      }
+    });
+
+    it("W2-03: exactly 50 rappen is still charged", async () => {
+      // VAT 8.1 % on 46 rappen net: 46 + round(3.7) = 50.
+      const p = payload({ class_totals: [{ slug: "economy", total_rappen: 46 }] });
+      const w = world(p, {
+        reprice: () => ({ pricing_live: true, engine_version: p.engine_version, classes: [{ slug: "economy", total_rappen: 46, eligible: true }] }),
+      });
+      const res = await runCheckoutIntent(await webBody(p), w.d as never);
+      expect(res.status).toBe(200);
+      expect(((await res.json()) as { amount_rappen: number }).amount_rappen).toBe(50);
+    });
+
+    it("W2-05: the press cap is not asked for a forged lock, and quote-left is not asked either (W2-14)", async () => {
+      const p = payload();
+      const gate = vi.fn(async () => null);
+      const left = vi.fn(async () => true);
+      const w = world(p, { payPressGate: gate, quoteWasLeft: left });
+      const body = (await webBody(p)) as { lock: string };
+      body.lock = `${body.lock.slice(0, -2)}xx`;
+      const res = await runCheckoutIntent(body as never, w.d as never);
+      expect(res.status).toBe(404);
+      expect(await code(res)).toBe("quote_not_found");
+      expect(gate).not.toHaveBeenCalled();
+      expect(left).not.toHaveBeenCalled();
+    });
+
+    it("W2-05: with a verified lock the cap is asked once and its 429 stops the press before Stripe", async () => {
+      const p = payload();
+      const gate = vi.fn(async () => new Response(JSON.stringify({ ok: false, code: "pay_limit" }), { status: 429 }));
+      const w = world(p, { payPressGate: gate });
+      const res = await runCheckoutIntent(await webBody(p), w.d as never);
+      expect(res.status).toBe(429);
+      expect(gate).toHaveBeenCalledTimes(1);
+      expect(w.created).toHaveLength(0);
+    });
+
+    it("W2-14: a left quote answers quote_already_booked only after the lock verified", async () => {
+      const p = payload();
+      const w = world(p, { quoteWasLeft: async () => true });
+      const res = await runCheckoutIntent(await webBody(p), w.d as never);
+      expect(res.status).toBe(409);
+      expect(await code(res)).toBe("quote_already_booked");
+      expect(w.created).toHaveLength(0);
+    });
+
+    it("W2-04: a VAT read that throws refuses pricing_not_live; a missing loader is the only 8.1 % fallback", async () => {
+      const p = payload();
+      const w = world(p, { loadLaunchFlags: async () => { throw new Error("rate book down"); } });
+      const res = await runCheckoutIntent(await webBody(p), w.d as never);
+      expect(await code(res)).toBe("pricing_not_live");
+      expect(w.created).toHaveLength(0);
+    });
+
+    it("W2-04: the intent and price routes wire the STRICT launch-flag loader, not the display one", () => {
+      for (const file of ["../../app/api/checkout/intent/route.ts", "../../app/api/checkout/price/route.ts"]) {
+        const src = readFileSync(join(here, file), "utf8");
+        expect(src, file).toContain("loadLaunchFlagsStrict");
+        expect(src, file).not.toMatch(/\bloadLaunchFlags\(env\)/);
+      }
+    });
+
+    it("W2-06: a replayed booking by a requester that does not own it gets no token, no cookie and no detail write", async () => {
+      const p = payload();
+      const issued: string[] = [];
+      const w = world(p, {
+        issueManageToken: async (a) => { issued.push(a.bookingId); },
+        createBooking: async () => ({ booking_id: "booking-replayed", reference: "VT-20009", snapshot_id: 1, payment_id: 1, replayed: true }),
+      });
+      const res = await runCheckoutIntent(await webBody(p), w.d as never);
+      expect(res.status).toBe(200);
+      expect(issued).toEqual([]);
+      expect(w.details).toEqual([]);
+      expect(res.headers.get("set-cookie")).toBeNull();
+      const body = (await res.json()) as Record<string, unknown>;
+      expect(body.url).toBeTruthy();
+      expect(body.reference).toBeUndefined();
+      expect(body.booking_id).toBeUndefined();
+    });
+
+    it("W2-06: a replay by the owner stores the minted token hash before the cookie is set", async () => {
+      const p = payload();
+      const issued: Array<{ bookingId: string; hash: Uint8Array }> = [];
+      const w = world(p, {
+        ownsBooking: async (id) => id === "booking-replayed",
+        issueManageToken: async (a) => { issued.push({ bookingId: a.bookingId, hash: a.hash }); },
+        createBooking: async () => ({ booking_id: "booking-replayed", reference: "VT-20009", snapshot_id: 1, payment_id: 1, replayed: true }),
+      });
+      const res = await runCheckoutIntent(await webBody(p), w.d as never);
+      expect(res.status).toBe(200);
+      expect(issued.map((i) => i.bookingId)).toEqual(["booking-replayed"]);
+      expect(res.headers.get("set-cookie")).toMatch(/^vt_manage=/);
+      expect(w.details).toHaveLength(1);
+      expect(((await res.json()) as { reference: string }).reference).toBe("VT-20009");
+    });
+
+    it("W2-07: a corrected contact after Back is not the same selection: it replaces the booking instead of keeping the old address", async () => {
+      const p = payload();
+      const w = world(p);
+      const first = (await (await runCheckoutIntent(await webBody(p), w.d as never)).json()) as Record<string, unknown>;
+      w.calls.length = 0;
+      w.d.ownsBooking = async (id: string) => id === first.booking_id;
+      const res = await runCheckoutIntent(
+        await webBody(p, { idempotency_key: "idem-w2-aa", contact: { name: "Ada", email: "ada.fixed@example.test", phone: "+41790000000" } }),
+        w.d as never,
+      );
+      expect(res.status).toBe(200);
+      const next = (await res.json()) as Record<string, unknown>;
+      expect(next.booking_id).not.toBe(first.booking_id);
+      expect(w.calls).toContain(`purge:${first.booking_id}:superseded`);
+      expect(w.created.map((c) => c.customerEmail)).toEqual(["ada@example.test", "ada.fixed@example.test"]);
+      expect(w.bookings.size).toBe(1);
+    });
+
+    it("W2-07: the same contact (case and spacing aside) still reuses the open page", async () => {
+      const p = payload();
+      const w = world(p);
+      const first = (await (await runCheckoutIntent(await webBody(p), w.d as never)).json()) as Record<string, unknown>;
+      w.d.ownsBooking = async (id: string) => id === first.booking_id;
+      w.calls.length = 0;
+      const res = await runCheckoutIntent(
+        await webBody(p, { idempotency_key: "idem-w2-aa", contact: { name: " Ada ", email: "ADA@example.test ", phone: " +41790000000" } }),
+        w.d as never,
+      );
+      expect(((await res.json()) as Record<string, unknown>).booking_id).toBe(first.booking_id);
+      expect(w.calls.some((c) => c.startsWith("create") || c.startsWith("purge"))).toBe(false);
+    });
+
+    it("W2-15: nothing that names a booking leaves for a non-owner on any reuse path", async () => {
+      const p = payload();
+      const w = world(p);
+      await runCheckoutIntent(await webBody(p), w.d as never);
+      const res = await runCheckoutIntent(await webBody(p, { idempotency_key: "idem-w2-aa" }), w.d as never);
+      const text = await res.text();
+      expect(text).not.toMatch(/VT-\d+/);
+      expect(text).not.toContain("booking-");
+      expect(text).not.toContain("booking_id");
     });
   });
 });

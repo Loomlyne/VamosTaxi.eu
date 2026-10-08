@@ -62,7 +62,7 @@ async function body(account?: AccountBlock) {
     display_currency: "CHF" as const,
     company_name: "", company_address: "", company_vat: "", driver_note: "",
     trip: { ...TRIP },
-    idempotency_key: "idem-a1",
+    idempotency_key: "idem-a1-aaaa",
     ...(account ? { account } : {}),
   };
 }

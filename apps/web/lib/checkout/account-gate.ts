@@ -32,7 +32,17 @@ export type AccountDecision =
   | { kind: "refuse"; code: "account_consent_required" | "account_create_unavailable" }
   | { kind: "check"; record: AccountRecord };
 
-/** Pure decision. A guest block with the switch off is ignored (D-09). */
+/**
+ * Pure decision. A guest block with the switch off is ignored (D-09).
+ *
+ * J6 (W2-21) DECISION, recorded: the account gate is a UX step, not enforcement. A request with no `account`
+ * block (a direct API call, an older client) is the guest flow: no Turnstile, no e-mail limit, no "this
+ * e-mail has an account, sign in first", and the booking is paid as a guest. That is the product rule
+ * ("guest checkout stays open"); the gate only guides the browser that sends the block. Nothing here
+ * protects an existing account's data: the confirmation and manage pages still need the booking's own
+ * cookie or a signed-in session. If the owner wants enforcement, the block must become required whenever
+ * guest accounts are on; this file is the one place to change.
+ */
 export function decideAccount(input: {
   signedIn: boolean;
   account: AccountBlock | undefined;

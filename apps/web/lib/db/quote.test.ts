@@ -48,7 +48,7 @@ describe("quote.ts source shape", () => {
   it("calls asCheckout (no claims) once per wrapper, never asQuote or asAnon (261005 S6)", () => {
     const matches = source.match(/asCheckout\(env, null,/g);
     expect(matches).not.toBeNull();
-    expect(matches!.length).toBe(5);
+    expect(matches!.length).toBe(6); // J6 (W2-04): + loadLaunchFlagsStrict
     expect(source).not.toMatch(/\basQuote\(|\basAnon\(|import \{[^}]*\basQuote\b/);
   });
 
