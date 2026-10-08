@@ -142,6 +142,9 @@ describe("meta legal gate", () => {
       "connect.facebook.net": [...LOADER, "apps/web/lib/security/headers.ts"],
       "facebook.com/tr": [],
       "graph.facebook.com": ["apps/web/lib/meta/capi.ts", "apps/web/lib/meta/capi.test.ts"],
+      // Google (owner decision 2026-10-09): the tag id and Google's script host, only where the tag lives.
+      "googletagmanager.com": ["app/vamos-google.js", "apps/web/public/app/vamos-google.js", "apps/web/lib/security/headers.ts"],
+      "AW-368142830": ["app/vamos-google.js", "apps/web/public/app/vamos-google.js", "apps/web/lib/google/flag.ts"],
       META_CAPI_ACCESS_TOKEN: ["apps/web/lib/meta/purchase.ts", "apps/web/lib/meta/funnel.ts", "apps/web/lib/env.d.ts"],
     };
     const hits: string[] = [];
