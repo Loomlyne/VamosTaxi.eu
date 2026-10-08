@@ -20,12 +20,21 @@ export async function GET(request: Request): Promise<Response> {
   } else {
     const ip = request.headers.get("cf-connecting-ip")?.trim() || "unknown";
     const limited = await checkWriteRateLimit({ limiter: env.AUTH_RATE_LIMITER, kind: "auth", ip });
-    if (!limited.ok) return Response.json({ ok: false, code: "rate_limited" }, { status: 429, headers: NO_STORE });
+    if (!limited.ok) {
+      log("warn", "auth-confirm-preview", ctx, { reason: "rate-limited" });
+      return Response.json({ ok: false, code: "rate_limited" }, { status: 429, headers: NO_STORE });
+    }
   }
 
   const params = new URL(request.url).searchParams;
   const tokenHash = params.get("token_hash") ?? "";
   const email = await openAddress(params.get("e"), tokenHash, sealSecretFrom(env));
-  if (!email) return Response.json({ ok: false, code: "expired" }, { headers: NO_STORE });
+  if (!email) {
+    // Why the confirm page will say "expired": no seal, a seal for another token, or no secret on this Worker.
+    log("warn", "auth-confirm-preview", ctx, {
+      reason: !sealSecretFrom(env) ? "no-seal-secret" : !params.get("e") ? "no-seal" : !tokenHash ? "no-token" : "seal-refused",
+    });
+    return Response.json({ ok: false, code: "expired" }, { headers: NO_STORE });
+  }
   return Response.json({ ok: true, email }, { headers: NO_STORE });
 }

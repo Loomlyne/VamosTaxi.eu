@@ -205,21 +205,6 @@ button,.vt-btn,.vt-iconbtn{box-shadow:none}
 <span data-af-step-n="1">01</span>
 <span><span data-af-step-k="1">Sent to</span><span data-af-step-v="1">{{ emailEcho }}</span></span>
 </div>
-<div data-af-step="1">
-<span data-af-step-n="1">02</span>
-<span data-af-step-b="1">Open the link in your inbox. Use this device, so you land back here.</span>
-</div>
-<div data-af-step="1">
-<span data-af-step-n="1">03</span>
-<sc-if value="{{ sentSignIn }}" hint-placeholder-val="{{ true }}"><span data-af-step-b="1">You are signed in, and back where you left off.</span></sc-if>
-<sc-if value="{{ sentSignUp }}"><span data-af-step-b="1">Your account is created. We then look for transfers you booked as a guest with this address.</span></sc-if>
-<sc-if value="{{ sentForgot }}"><span data-af-step-b="1">Set a new password on the page it opens, and you are signed in.</span></sc-if>
-</div>
-</div>
-
-<div data-note="1">
-<span data-note-k="1">Awaiting client input</span>
-<p data-note-b="1">The link works once and expires after <span data-tok="1" title="Awaiting a confirmed value from Vamos Taxi">Link expiry</span>. Nothing there? Check spam, then send another.</p>
 </div>
 
 <sc-if value="{{ showCode }}">
