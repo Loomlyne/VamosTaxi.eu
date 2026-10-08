@@ -73,8 +73,11 @@ export const POST = withAdmin(async (claims, request) => {
           locale: emailLocale(result.locale),
           kind: "issued",
           to,
-          name: result.contactName || "there",
+          // J8 (W6-17): no English "there" in de/fr/ar; a blank name gets a thanks without one. The amount is what
+          // is refunded on this booking in total (the mail goes once, when nothing is owed any more).
+          name: result.contactName,
           reference: result.reference,
+          amountRappen: result.refundedRappen,
         },
       );
     }

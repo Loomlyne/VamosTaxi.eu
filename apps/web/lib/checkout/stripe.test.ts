@@ -45,7 +45,7 @@ describe("stripe module", () => {
     );
   });
 
-  it("creates a Checkout Session charged in chf with Adaptive Pricing", async () => {
+  it("creates a Checkout Session charged in chf with Adaptive Pricing switched off (J8)", async () => {
     const { client, create } = fakeStripe();
     const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
     await createCheckoutSession(client, {
@@ -69,7 +69,7 @@ describe("stripe module", () => {
     }>;
     expect(params.mode).toBe("payment");
     expect(params.ui_mode).toBe("hosted_page");
-    expect(params.adaptive_pricing).toEqual({ enabled: true });
+    expect(params.adaptive_pricing).toEqual({ enabled: false });
     expect(params.expand).toEqual(["payment_intent"]);
     expect(lineItems[0]?.price_data.currency).toBe(CHARGE_CURRENCY);
     expect(lineItems[0]?.price_data.unit_amount).toBe(8000);

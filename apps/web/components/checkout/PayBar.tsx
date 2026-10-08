@@ -27,6 +27,12 @@ export type PayBarProps = {
   /** One polite live region announces the first PAY error. */
   liveMessage?: string;
   reassurance?: string;
+  /**
+   * J8 (W3-07): "You are charged in Swiss francs (CHF)." Set only while the page shows a converted
+   * total (EUR, USD or AED): the card is always charged in CHF, so the figure beside Total and PAY is a
+   * display figure and the page says what the charge is.
+   */
+  chargeNote?: string | null;
   /** Turnstile sits directly above PAY when a challenge shows. */
   challenge?: ReactNode;
   onPay?: () => void;
@@ -51,6 +57,7 @@ export function PayBar({
   error,
   liveMessage = "",
   reassurance,
+  chargeNote,
   challenge,
   onPay,
   onTotal,
@@ -118,6 +125,11 @@ export function PayBar({
           )}
         </Button>
       </div>
+      {chargeNote ? (
+        <p className="vt-copay__reassure" data-co-charge-note>
+          {chargeNote}
+        </p>
+      ) : null}
       {reassurance ? <p className="vt-copay__reassure">{reassurance}</p> : null}
     </div>
   );

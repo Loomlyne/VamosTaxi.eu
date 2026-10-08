@@ -7,7 +7,11 @@ export type CheckoutSettings = {
   freeCancelHours: number | null;
   checkoutWindowMinutes: number | null;
   turnstileSiteKey: string | undefined;
-  publishableKey: string;
+  /**
+   * J8 (W3-08): the Stripe page offers TWINT only while `STRIPE_CHECKOUT_TWINT` is "on" (server flag,
+   * `checkoutPaymentMethodTypes`). The method note names TWINT only then.
+   */
+  twintOn: boolean;
   /** 26.5: server-decided booleans only (D-14). */
   guestAccountsOn: boolean;
   accountCreateAvailable: boolean;

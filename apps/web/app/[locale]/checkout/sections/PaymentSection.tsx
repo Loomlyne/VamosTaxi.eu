@@ -5,8 +5,10 @@ import { useTranslations } from "next-intl";
 import { Alert } from "@/components/feedback/Alert";
 import { Button, Icon } from "@/components/core";
 import { Input } from "@/components/forms";
+import { methodNoteKey } from "@/lib/checkout/payment-methods";
 import { payOutcomeNoticeKey } from "@/lib/checkout/pay-outcome-notice";
 import { useCheckoutFlow } from "../CheckoutPage";
+import { useCheckoutSettings } from "../CheckoutSettings";
 import { useCheckoutForm } from "../CheckoutForm";
 import { LegalLines, OrderSummary } from "./SummaryRail";
 import { SectionCard } from "./SectionCard";
@@ -19,6 +21,7 @@ import { SectionCard } from "./SectionCard";
 export function PaymentSection({ desktop }: { desktop: boolean }) {
   const t = useTranslations("checkout");
   const f = useCheckoutForm();
+  const settings = useCheckoutSettings();
 
   const voucherMessage = f.voucherError ? t(f.voucherError) : null;
 
@@ -39,7 +42,7 @@ export function PaymentSection({ desktop }: { desktop: boolean }) {
       <fieldset className="vt-co__fieldset" disabled={f.paying}>
         <p className="vt-co__method" data-co-method>
           <Icon name="lock" size={18} color="var(--vt-text-muted)" />
-          <span>{t("methodNote")}</span>
+          <span>{t(methodNoteKey(settings.twintOn))}</span>
         </p>
 
         <div className="vt-co__voucher" data-co-voucher data-state={f.voucherApplied ? "applied" : f.voucherOpen ? "open" : "closed"}>

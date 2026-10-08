@@ -163,6 +163,11 @@ function usePay(variant: "bar" | "rail") {
     totalNote: f.totalView.note,
     payLabel: t("pay"),
     payAmount: f.totalView.total,
+    // J8 (W3-07): a converted total is a display figure; the charge is CHF.
+    chargeNote:
+      f.totalView.total && f.displayAmount(100).currency !== "CHF"
+        ? t("chargeIn", { currency: `${t("chargeCurrencyName")} (CHF)` })
+        : null,
     loadingLabel: t("openingPayment"),
     error: f.payError,
     liveMessage: f.liveMessage,

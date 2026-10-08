@@ -2,7 +2,7 @@
 //
 // The only Stripe client in apps/web (T-07-20). Checkout Sessions, expire,
 // retrieve, refund. No PaymentIntent-cancel path. Payment methods are Stripe
-// Dashboard + Adaptive Pricing — never a hand-built card/TWINT map (D-09/D-10).
+// Dashboard, with Adaptive Pricing off (J8) — never a hand-built card/TWINT map (D-09/D-10).
 
 import Stripe from "stripe";
 import { CHARGE_CURRENCY, stripeLocale, type CheckoutLocale } from "./currency";
@@ -83,17 +83,9 @@ export function stripeSessionExpiresAtUnix(expiresAt: Date, nowMs = Date.now()):
 /** Stripe's 30-minute floor plus a 60 s skew buffer; web checkout sessions live this long (D-25). */
 export const WEB_CHECKOUT_MINUTES = 31;
 
-/**
- * Payment methods on the hosted page: card (Apple Pay and Google Pay come with
- * it) plus TWINT only once `STRIPE_CHECKOUT_TWINT` is "on" (D-20). Default off:
- * TWINT is not activated on the sandbox account, and listing it would make
- * session creation fail for everyone.
- */
-export function checkoutPaymentMethodTypes(env: {
-  STRIPE_CHECKOUT_TWINT?: string;
-}): Array<"card" | "twint"> {
-  return env.STRIPE_CHECKOUT_TWINT === "on" ? ["card", "twint"] : ["card"];
-}
+// Re-exported: the method list lives in payment-methods.ts so the page layout can read the TWINT
+// flag without loading the Stripe SDK (J8, W3-08).
+export { checkoutPaymentMethodTypes } from "./payment-methods";
 
 function assertHttpUrl(name: string, value: string | undefined): string {
   if (!value) throw new Error(`${name} is required for a hosted checkout session`);
@@ -149,10 +141,12 @@ export async function createCheckoutSession(
       customer_email: input.customerEmail,
       locale: stripeLocale(locale),
       expires_at: stripeSessionExpiresAtUnix(input.expiresAt),
-      adaptive_pricing: { enabled: true },
-      // Charge is always CHF. Stripe has no Checkout Session presentment pin
-      // for EUR/USD/AED — Adaptive Pricing may show another currency; our
-      // chrome converts with /api/fx. Do not invent a charge currency.
+      // J8 (W2-10, owner 2026-10-09): Adaptive Pricing OFF. The charge is always CHF, in the CHF figure
+      // the page showed. With it on, Stripe could present and charge EUR/USD/AED at its own rate and
+      // spread, a figure the site never showed. Display FX (our /api/fx) stays display only.
+      // `fxFromSession` still reads `presentment_details` / `currency_conversion` so sessions created
+      // before this change (Adaptive Pricing on) settle and record exactly as they did.
+      adaptive_pricing: { enabled: false },
       // Hosted sessions pin the method set (card + optional TWINT, Link off).
       // allow_promotion_codes is never set (D-19).
       expand: ["payment_intent"],
