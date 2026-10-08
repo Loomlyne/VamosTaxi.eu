@@ -149,6 +149,12 @@ export default async function CookiesPage({
               code: (chunks) => <code className="vt-dir-keep">{chunks}</code>,
             })}
           </p>
+          <p>
+            {tCookies.rich("google-row", {
+              b: (chunks) => <strong>{chunks}</strong>,
+              code: (chunks) => <code className="vt-dir-keep">{chunks}</code>,
+            })}
+          </p>
         </div>
       </section>
 

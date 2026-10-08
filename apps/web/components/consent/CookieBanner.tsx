@@ -368,10 +368,18 @@ export function CookieBanner({ siteKey }: { siteKey: string | undefined }) {
       key: "marketing",
       title: tCommon("marketing"),
       aria: t("marketing-cookies"),
-      body: t.rich("meta-row", {
-        b: (chunks) => <strong>{chunks}</strong>,
-        code: (chunks) => <code className="vt-dir-keep vt-ck-code">{chunks}</code>,
-      }),
+      body: (
+        <>
+          {t.rich("meta-row", {
+            b: (chunks) => <strong>{chunks}</strong>,
+            code: (chunks) => <code className="vt-dir-keep vt-ck-code">{chunks}</code>,
+          })}{" "}
+          {t.rich("google-row", {
+            b: (chunks) => <strong>{chunks}</strong>,
+            code: (chunks) => <code className="vt-dir-keep vt-ck-code">{chunks}</code>,
+          })}
+        </>
+      ),
       checked: cats.marketing,
       set: (v) => setCats((c) => ({ ...c, marketing: v })),
     },

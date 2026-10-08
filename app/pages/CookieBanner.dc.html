@@ -462,7 +462,7 @@ class Component extends DCLogic {
         desc: 'Tells us which step of a booking people abandon.',
         hasMeta: true, m1: 'Cloudflare Web Analytics (cookieless)', m2: 'No cookie',
         always: false, checked: o.a, off: off, aria: 'Analytics cookies', change: this.toggleAnalytics },
-      { title: 'Marketing', isText: false, isSeg: true, segs: this.segs('cookiesRow', o.lang),
+      { title: 'Marketing', isText: false, isSeg: true, segs: this.segs('cookiesRow', o.lang).concat([{ t: ' ', isText: true, isB: false, isCode: false }], this.segs('googleRow', o.lang)),
         desc: '', hasMeta: false, m1: '', m2: '',
         always: false, checked: o.m, off: off, aria: 'Marketing cookies', change: this.toggleMarketing },
     ];

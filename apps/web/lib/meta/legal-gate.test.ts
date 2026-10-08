@@ -255,16 +255,21 @@ describe("meta legal gate", () => {
         expect(src, rel).not.toContain(needle);
       }
     }
-    for (const [rel, cls, hook, key] of [
-      ["app/[locale]/cookies/page.tsx", "vt-legal-blank--row", "cookies", "meta-row"],
-      ["app/[locale]/privacy/page.tsx", "vt-legal-blank", "privacy", "meta-privacy-line"],
+    for (const [rel, cls, hook, keys] of [
+      ["app/[locale]/cookies/page.tsx", "vt-legal-blank--row", "cookies", ["meta-row", "google-row"]],
+      ["app/[locale]/privacy/page.tsx", "vt-legal-blank", "privacy", ["meta-privacy-line", "google-privacy-line"]],
     ] as const) {
       const body = slotBody(source(rel), cls, hook);
-      // Only the t.rich call: no literal prose in the slot.
+      // Only t.rich calls, one paragraph per owner text: no literal prose in the slot.
       const flat = body.replace(/\s+/g, " ");
-      expect(flat).toMatch(new RegExp(`^<p> \\{t(?:Cookies)?\\.rich\\("${key}", \\{ `));
-      expect(flat.endsWith(", })} </p>")).toBe(true);
-      expect(flat.match(/\.rich\(/g)).toHaveLength(1);
+      const paragraphs = flat.match(/<p>.*?<\/p>/g) ?? [];
+      expect(paragraphs, rel).toHaveLength(keys.length);
+      keys.forEach((key, i) => {
+        expect(paragraphs[i]).toMatch(new RegExp(`^<p> \\{t(?:Cookies)?\\.rich\\("${key}", \\{ `));
+        expect(paragraphs[i]!.endsWith(", })} </p>")).toBe(true);
+        expect(paragraphs[i]!.match(/\.rich\(/g)).toHaveLength(1);
+      });
+      expect(flat.match(/\.rich\(/g)).toHaveLength(keys.length);
     }
   });
 });
