@@ -45,9 +45,9 @@ describe("firstPayError", () => {
     expect(isMobileNumber("+41796267082")).toBe(true);
   });
 
-  it("asks for the flight only on airport pickups", () => {
+  it("never requires the flight, but checks one that is filled", () => {
     expect(firstPayError({ ...ok, airport: false, flight: "" })).toBeNull();
-    expect(firstPayError({ ...ok, airport: true, flight: "" })).toEqual({ field: "flight", messageKey: "errFlight" });
+    expect(firstPayError({ ...ok, airport: true, flight: "" })).toBeNull();
     expect(firstPayError({ ...ok, airport: true, flight: "??" })).toEqual({
       field: "flight",
       messageKey: "errFlightCheck",
@@ -56,7 +56,7 @@ describe("firstPayError", () => {
   });
 
   it("flight comes before the company name", () => {
-    const s: PayFormState = { ...ok, airport: true, flight: "", companyOpen: true, companyAddress: "Bahnhofstrasse 1" };
+    const s: PayFormState = { ...ok, airport: true, flight: "??", companyOpen: true, companyAddress: "Bahnhofstrasse 1" };
     expect(firstPayError(s)?.field).toBe("flight");
   });
 

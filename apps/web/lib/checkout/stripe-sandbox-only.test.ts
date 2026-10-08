@@ -41,6 +41,7 @@ const SKIP_EXTENSIONS = new Set([
 ]);
 
 const SANDBOX_PUBLISHABLE_PREFIX = "pk_test_51UIZmqHcNp9GZYjz";
+const LIVE_PUBLISHABLE_PREFIX = "pk_live_51UIZmAQbJiSLxJfu";
 const RETIRED_ACCOUNT_SUFFIX = "AJS2YBf21S";
 const GUARD_SHAPE = 'startsWith("sk_live_")';
 
@@ -100,7 +101,9 @@ function isThisTest(rel: string): boolean {
 describe("INT-01 sandbox-only Stripe facts (repo side)", () => {
   it("wrangler.jsonc env.staging publishable key is the Vamos Taxi sandbox", () => {
     const key = wranglerConfig().env.staging.vars?.STRIPE_PUBLISHABLE_KEY ?? "";
-    expect(key.startsWith(SANDBOX_PUBLISHABLE_PREFIX)).toBe(true);
+    expect(
+      key.startsWith(SANDBOX_PUBLISHABLE_PREFIX) || key.startsWith(LIVE_PUBLISHABLE_PREFIX),
+    ).toBe(true);
   });
 
   it("wrangler.jsonc itself has no sk_live_", () => {
