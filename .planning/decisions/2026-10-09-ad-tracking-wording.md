@@ -1,6 +1,6 @@
 # Owner decision: wording for Google and the wider Meta events (2026-10-09)
 
-**Status: ADOPTED by the owner on 2026-10-09**, through the question form: "I read it, adopt as written" (sections 1, 2b, 3a, 3b, 4 and 2a unchanged), and "Yes, ask everyone again" for the consent version. From this decision on these texts are his own, verbatim, never reworded. The gate for Google and the new Meta events still opens only in code, when all texts are live on the banner, the cookies page and the privacy page in four languages, and the consent version has moved to the ship day. Nothing is on the site yet.
+**Status: ADOPTED by the owner on 2026-10-09**, through the question form: "I read it, adopt as written" (sections 1, 2b, 3a, 3b, 4 and 2a unchanged), and "Yes, ask everyone again" for the consent version. From this decision on these texts are his own, verbatim, never reworded. The gate for Google and the new Meta events still opens only in code. The adopted texts are on https://vamostaxi.site since 2026-10-09 15:30 +04 (Worker `e5fd6581`, main `3c6808e5`), in four languages, on the banner, the cookies page and the privacy page. The consent version is `2026-10-09`. The Google tag and the new Meta events stay off until their switches are opened.
 
 Written by the agent as a draft at his request ("Yes, draft them", 2026-10-09), then read and adopted by him.
 

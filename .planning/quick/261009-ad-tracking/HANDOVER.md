@@ -29,6 +29,14 @@ Opening order: ship with both flags closed and the version unchanged is not enou
 
 Ship day is 2026-10-09. `CONSENT_POLICY_VERSION` is `"2026-10-09"`. The same string is re-pinned in `legal-gate.test.ts`, `banner-meta-clear.test.ts` (3 stubs), `meta-click-ids.e2e.mjs`, `packages/db/supabase/tests/meta_purchase.test.sql` (every consent-row and claim literal), and `packages/db/test/local/{refund-lock-order,meta-purchase-lock-order,meta-purchase}.test.ts`. No migration. `owner-texts.test.ts` unchanged. Flags stay closed.
 
+## Landed (controller, 2026-10-09 15:30 +04)
+
+Planning note after the live check. No second deploy.
+
+Main `3c6808e5` (squash of `ea564993`, tree `471274aa`). Tags `backup/main-2026-10-09-pre-ad-tracking` (`80c173e9`) and `archive/gsd-ad-tracking-ea564993`. Worker `vamos` staging version `e5fd6581` (created 2026-10-09 15:26 +04, was `b4e76a44`). Flags still false on the served files.
+
+Live, 15:30 +04: `/api/consent/state` returns `policyVersion` `2026-10-09`. Served `vamos-meta-texts.js`, `vamos-google.js` (`GOOGLE_ON = false`), `vamos-meta.js` (`EVENTS_ON = false`, `threads.net`) and both `CookieBanner.dc.html` files match the build byte for byte. The English banner sentence and the four-language privacy line are in the served texts file. The Fable review was interrupted and returned no verdict.
+
 ## Opening the flags (after the proof job, controller)
 
 - `legal-gate.ts`: `META_EVENTS_OPEN = true`; `app/vamos-meta.js`: `var EVENTS_ON = true;`; update the test "the wider-events flag ... is closed" to expect `true` (and the one-assignment scan stays).
