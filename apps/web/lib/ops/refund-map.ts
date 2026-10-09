@@ -247,6 +247,6 @@ export function refundFailStatus(code: string): number {
   ) {
     return 409;
   }
-  if (code === "stripe-failed" || code === "stripe-test-only") return 502;
+  if (code === "stripe-failed") return 502;
   return 400;
 }

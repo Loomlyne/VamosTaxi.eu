@@ -3,8 +3,10 @@
 // INT-01 repo-side pin (26.1-CONTEXT D-01/D-02), reworked in J1 (2026-10-09): Worker `vamos`
 // runs Stripe LIVE mode on the owner's word. What stays pinned: the publishable key is one of
 // the two known Vamos keys (sandbox or live), no secret or restricted key literal sits in
-// source or in wrangler.jsonc, no retired-account suffix, no vamostaxi.eu route. Test keys go
-// away in J10. Never reads a secret, `.dev.vars`, or `.env*` file — asserts prefixes and shapes only.
+// source or in wrangler.jsonc, no retired-account suffix, no vamostaxi.eu route. J10 removed the
+// product's test-only refusal; `sk_test_` fixtures stay in tests and the local lab, and the mode
+// guard still reads a test key so that lab can run. Never reads a secret, `.dev.vars`, or `.env*`
+// file — asserts prefixes and shapes only.
 // The webhook signing secret is owner-only and is checked in 26.1-13, not here.
 
 import { readdirSync, readFileSync } from "node:fs";

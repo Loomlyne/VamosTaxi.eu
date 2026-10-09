@@ -359,8 +359,9 @@ interface CloudflareEnv {
   /**
    * Stripe secret key. REQUIRED. `wrangler secret put STRIPE_SECRET_KEY`.
    * Never in wrangler.jsonc `vars`. Must be an `sk_` or `rk_` key (stripe-mode.ts); anything
-   * else is refused before a Stripe call. Worker `vamos` runs the LIVE key since 2026-10-09
-   * (owner's word); `sk_test_` is for local and sandbox proof only and goes away in J10.
+   * else is refused before a Stripe call. Worker `vamos` runs the LIVE key (owner's word,
+   * 2026-10-09). A test key is accepted only so the local lab and unit fixtures can run;
+   * it is not a production path.
    */
   STRIPE_SECRET_KEY: string;
 

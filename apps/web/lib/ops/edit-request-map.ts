@@ -106,7 +106,7 @@ export function failStatus(code: string): number {
   if (code === "price-changed") return 409;
   // 261004 lock order: a payment settled in the same instant; nothing was written, the owner presses Accept again.
   if (code === PAYMENT_CHANGED) return 409;
-  if (code === "stripe-failed" || code === "stripe-test-only") return 502;
+  if (code === "stripe-failed") return 502;
   if (code === "temporarily_unavailable") return 503;
   return 400;
 }

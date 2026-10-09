@@ -177,7 +177,7 @@ select is((select array_agg(p.proname::text order by p.proname)
               and has_function_privilege('service_role', p.oid, 'EXECUTE')),
           array['staff_digest_claim', 'staff_digest_legs', 'staff_digest_mark_failed', 'staff_digest_mark_sent', 'staff_digest_recipients'],
           'W5-08: service_role holds EXECUTE on exactly the five staff_digest_* functions in public');
-select ok(not has_function_privilege('service_role', 'public.checkout_payment_settle(text,text,text,text,text,numeric,text,timestamptz,int8,text)', 'EXECUTE')
+select ok(not has_function_privilege('service_role', 'public.checkout_payment_settle(text,text,text,text,text,numeric,text,timestamptz,int8,text,int8,text,int8,text)', 'EXECUTE')
       and not has_function_privilege('service_role', 'public.ops_refund_plan(uuid,uuid,int8,numeric,text,bool,int4)', 'EXECUTE')
       and not has_function_privilege('service_role', 'public.stripe_charge_refunded_record(text,text,text,public.rappen,timestamptz,bool)', 'EXECUTE')
       and not has_function_privilege('service_role', 'public.compute_cancellation_refund(uuid)', 'EXECUTE')
@@ -233,8 +233,8 @@ select ok(pg_catalog.cardinality(pg_temp.at(f.fn, 'pay')) = 1 and pg_catalog.car
           and (pg_temp.at(f.fn, 'pay'))[1] < (pg_temp.at(f.fn, 'booking'))[1],
           f.label || ': the payment rows are locked once, before the one booking lock (W5-18)')
   from lo f order by f.label;
-select ok((pg_temp.at('public.checkout_payment_settle(text,text,text,text,text,numeric,text,timestamptz,int8,text)', 'pay'))[1]
-          < (pg_temp.at('public.checkout_payment_settle(text,text,text,text,text,numeric,text,timestamptz,int8,text)', 'booking'))[1],
+select ok((pg_temp.at('public.checkout_payment_settle(text,text,text,text,text,numeric,text,timestamptz,int8,text,int8,text,int8,text)', 'pay'))[1]
+          < (pg_temp.at('public.checkout_payment_settle(text,text,text,text,text,numeric,text,timestamptz,int8,text,int8,text,int8,text)', 'booking'))[1],
           'settle: still payment before booking (the order these three now follow)');
 select ok(pg_catalog.pg_get_functiondef('public.checkout_abandon_unpaid(uuid)'::pg_catalog.regprocedure) ~* 'security definer'
       and pg_catalog.pg_get_functiondef('public.checkout_requote_cancel(uuid)'::pg_catalog.regprocedure) ~* 'security definer'
