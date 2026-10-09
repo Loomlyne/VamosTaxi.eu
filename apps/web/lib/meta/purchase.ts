@@ -8,7 +8,7 @@ import { asSystem } from "@/lib/db/identity";
 import { CONSENT_POLICY_VERSION } from "@/lib/consent/policy";
 import { sqlStateOf } from "@/lib/checkout/settle-errors";
 import type { ScalarValue } from "@/lib/logger";
-import { buildPurchaseEvent, postPurchase, type PostOutcome } from "./capi";
+import { buildPurchaseEvent, metaTestEventToSend, postPurchase, type PostOutcome } from "./capi";
 import { metaEventsAllowed, metaMeasurementAllowed } from "./legal-gate";
 
 type Emit = (level: "debug" | "info" | "warn" | "error", type: string, fields?: Record<string, ScalarValue>) => void;
@@ -110,13 +110,14 @@ async function runMetaPurchase(input: MetaPurchaseInput, deps: MetaPurchaseDeps)
   };
   try {
     const token = deps.token();
-    const testCode = deps.testEventCode();
-    const testEvent = !input.livemode;
+    const test = metaTestEventToSend(input.livemode, deps.testEventCode());
+    // A set code marks the row as a test event. The claim is once per booking, so that booking is not sent again as a real one.
+    const testEvent = !input.livemode || test.sendCode !== null;
     const workerSkip: WorkerSkip = !deps.measurementAllowed()
       ? "gate_closed"
       : !token
         ? "no_token"
-        : testEvent && !testCode
+        : test.skip
           ? "no_test_code"
           : null;
 
@@ -167,7 +168,7 @@ async function runMetaPurchase(input: MetaPurchaseInput, deps: MetaPurchaseDeps)
       outcome = await postPurchase(deps.fetch, {
         event,
         token,
-        testEventCode: testEvent ? testCode : null,
+        testEventCode: test.sendCode,
       });
     }
 

@@ -1,7 +1,7 @@
 // apps/web/lib/meta/capi.test.ts
 // Phase 29 plan 29-03: payload contract (exact keys) and the single POST. Fake fetch only.
 import { describe, expect, it, vi } from "vitest";
-import { buildFunnelEvent, buildPurchaseEvent, postPurchase, GRAPH_VERSION, PURCHASE_EVENT_SOURCE_URL } from "./capi";
+import { buildFunnelEvent, buildPurchaseEvent, metaTestEventToSend, postPurchase, GRAPH_VERSION, PURCHASE_EVENT_SOURCE_URL } from "./capi";
 
 const FBP = "fb.1.1727771234567.1234567890";
 const FBC = "fb.1.1727771234567.AbCdEfGh";
@@ -154,5 +154,16 @@ describe("postPurchase", () => {
       expect(out.state).toBe("failed");
       expect(f).toHaveBeenCalledTimes(1);
     }
+  });
+});
+
+describe("metaTestEventToSend", () => {
+  it("sends a set code on a live payment, and skips a test payment that has none", () => {
+    expect(metaTestEventToSend(true, "TEST123")).toEqual({ sendCode: "TEST123", skip: false });
+    expect(metaTestEventToSend(true, null)).toEqual({ sendCode: null, skip: false });
+    expect(metaTestEventToSend(true, "")).toEqual({ sendCode: null, skip: false });
+    expect(metaTestEventToSend(false, "TEST123")).toEqual({ sendCode: "TEST123", skip: false });
+    expect(metaTestEventToSend(false, null)).toEqual({ sendCode: null, skip: true });
+    expect(metaTestEventToSend(false, "")).toEqual({ sendCode: null, skip: true });
   });
 });

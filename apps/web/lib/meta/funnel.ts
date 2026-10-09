@@ -10,7 +10,7 @@
 // the booking id, so a second press of Pay for the same booking is one event; InitiateCheckout uses the id the
 // browser made for this page load. There is no claim table (no migration).
 import { metaClickIdsToSave, type BackgroundContext } from "./click-ids";
-import { buildFunnelEvent, postPurchase, type FunnelEventName } from "./capi";
+import { buildFunnelEvent, metaTestEventToSend, postPurchase, type FunnelEventName } from "./capi";
 import { metaEventsAllowed } from "./legal-gate";
 
 export type FunnelSend = {
@@ -57,12 +57,12 @@ export async function sendFunnelEvent(
       deps.log({ event: send.name, outcome: "skip", reason: "no_token" });
       return "skip";
     }
-    const testEvent = !deps.livemode();
-    const testCode = testEvent ? deps.testEventCode() : null;
-    if (testEvent && !testCode) {
+    const test = metaTestEventToSend(deps.livemode(), deps.testEventCode());
+    if (test.skip) {
       deps.log({ event: send.name, outcome: "skip", reason: "no_test_code" });
       return "skip";
     }
+    const testCode = test.sendCode;
     const event = buildFunnelEvent({
       name: send.name,
       eventId: send.eventId,

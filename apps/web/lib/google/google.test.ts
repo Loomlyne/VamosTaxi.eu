@@ -122,9 +122,9 @@ function load(o: Opts = {}) {
 const DENIED = { ad_storage: "denied", ad_user_data: "denied", ad_personalization: "denied", analytics_storage: "denied" };
 
 describe("flag", () => {
-  it("is closed in the committed state, in TypeScript and in the loader", () => {
-    expect(GOOGLE_TAG_OPEN).toBe(false);
-    expect(googleTagAllowed()).toBe(false);
+  it("is open in the committed state, in TypeScript and in the loader", () => {
+    expect(GOOGLE_TAG_OPEN).toBe(true);
+    expect(googleTagAllowed()).toBe(true);
     expect(/var GOOGLE_ON = (true|false);/.exec(rawSrc)?.[1]).toBe(String(GOOGLE_TAG_OPEN));
   });
   it("the ids are the agency's", () => {
@@ -486,9 +486,14 @@ describe("policy by address (metaPixelCspFor, Google flag mocked open)", () => {
     vi.resetModules();
   });
 
-  it("flag closed (committed): the policy is the old one on every address", async () => {
+  it("flag open (committed): Google's policy on the list, none on the other addresses", async () => {
     const { metaPixelCspFor } = await import("../meta/pixel-csp");
-    for (const c of GOOGLE_CASES) expect(metaPixelCspFor(new URL(c.href), false), c.href).toBeNull();
+    const G = "google" + "tagmanager.com";
+    for (const c of GOOGLE_CASES) {
+      const csp = metaPixelCspFor(new URL(c.href), false);
+      if (c.allowed) expect(csp, c.href).toContain(G);
+      else expect(csp, c.href).toBeNull();
+    }
   });
 });
 

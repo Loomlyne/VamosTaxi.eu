@@ -26,8 +26,8 @@
 (function () {
   if (window.VamosGoogle) return;
 
-  /* Flipped by the controller's proof job only, one line. */
-  var GOOGLE_ON = false;
+  /* Same value as apps/web/lib/google/flag.ts. Opened 2026-10-09. */
+  var GOOGLE_ON = true;
 
   var TAG_ID = 'AW-368142830';
   var SEND_TO = 'AW-368142830/liI8CIe79pUdEO7Txa8B';

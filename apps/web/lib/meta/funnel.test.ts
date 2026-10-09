@@ -73,10 +73,10 @@ describe("sendFunnelEvent", () => {
     expect(bodyOf(withCode.fetchFn).get("test_event_code")).toBe("TEST123");
   });
 
-  it("a live payment never uses the test code", async () => {
+  it("a set test code is sent on a live payment too", async () => {
     const { deps, fetchFn } = make({ testEventCode: () => "TEST123" });
-    await sendFunnelEvent(send, deps, () => true);
-    expect(bodyOf(fetchFn).get("test_event_code")).toBeNull();
+    expect(await sendFunnelEvent(send, deps, () => true)).toBe("sent");
+    expect(bodyOf(fetchFn).get("test_event_code")).toBe("TEST123");
   });
 
   it.each([null, ""])("no token %j: skip", async (t) => {

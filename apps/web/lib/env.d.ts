@@ -349,8 +349,9 @@ interface CloudflareEnv {
   META_CAPI_ACCESS_TOKEN?: string;
 
   /**
-   * Meta Events Manager test event code (Worker var, staging only, value from the owner, D-07).
-   * A test-mode Stripe payment sends nothing when it is missing; a live payment never uses it (D-04).
+   * Meta Events Manager test event code. Wrangler secret, set by the owner in his terminal. Never paste it into chat.
+   * When it is set, server events go to Test Events even on a live Stripe payment. When it is missing, a live
+   * payment is a real event and a test payment is not sent.
    */
   META_TEST_EVENT_CODE?: string;
 

@@ -24,7 +24,7 @@ const G = "google" + "tagmanager.com";
 const cspRows = (r: Row[]) => r.filter((x) => x.headers.some((h) => h.key === "Content-Security-Policy"));
 
 describe("next.config headers()", () => {
-  it("flag closed (committed): one policy row, the catch-all; no Google anywhere", async () => {
+  it("flag closed: one policy row, the catch-all; no Google anywhere", async () => {
     const r = await rows(false);
     expect(cspRows(r).map((x) => x.source)).toEqual(["/:path*"]);
     expect(JSON.stringify(r).includes(G)).toBe(false);

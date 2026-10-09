@@ -94,6 +94,14 @@ describe("POST /api/track", () => {
     expect(state.posts).toHaveLength(0);
   });
 
+  it("live mode with a test code sends the code", async () => {
+    state.live = true;
+    state.testCode = "TEST123";
+    expect((await POST(req(good))).status).toBe(204);
+    await Promise.all(state.waited);
+    expect(state.posts[0]!.body.get("test_event_code")).toBe("TEST123");
+  });
+
   it("test mode without a test code: nothing posted; with one it goes with the code", async () => {
     state.live = false;
     expect((await POST(req(good))).status).toBe(204);

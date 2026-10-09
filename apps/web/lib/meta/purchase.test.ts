@@ -102,8 +102,15 @@ describe("sendMetaPurchase test code by Stripe mode", () => {
     expect(bodyOf(deps.fetch as never).get("test_event_code")).toBe("TESTCODE");
   });
 
-  it("live never carries it", async () => {
+  it("a live payment with a test code sends it and is recorded as a test event", async () => {
     const { deps } = make({ testEventCode: () => "TESTCODE" });
+    await sendMetaPurchase(base, deps);
+    expect(vi.mocked(deps.claim).mock.calls[0]![3]).toBe(true);
+    expect(bodyOf(deps.fetch as never).get("test_event_code")).toBe("TESTCODE");
+  });
+
+  it("a live payment with no test code is a real event", async () => {
+    const { deps } = make();
     await sendMetaPurchase(base, deps);
     expect(vi.mocked(deps.claim).mock.calls[0]![3]).toBe(false);
     expect(bodyOf(deps.fetch as never).has("test_event_code")).toBe(false);

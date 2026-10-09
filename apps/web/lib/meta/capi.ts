@@ -117,6 +117,18 @@ function num(v: unknown): number | null {
 }
 
 /**
+ * The test-event code to attach, or a skip.
+ * A code the owner has set is sent even when Stripe is live: this public site uses the live key, so tying
+ * the code to test mode meant it was never sent. No code on a test payment: skip, so a test payment is
+ * never a real Meta event. No code on a live payment: a real event.
+ */
+export function metaTestEventToSend(livemode: boolean, code: string | null): { sendCode: string | null; skip: boolean } {
+  const sendCode = code && code.length > 0 ? code : null;
+  if (!livemode && !sendCode) return { sendCode: null, skip: true };
+  return { sendCode, skip: false };
+}
+
+/**
  * Sends one event (any ServerEvent; the name is kept for the Purchase callers). No retry. Never throws. The token goes in the body, never in the address.
  * Keeps only the HTTP status and the Graph error code and subcode of the answer.
  */
