@@ -25,11 +25,9 @@ The two things that are open and change live behaviour the moment this ships, wi
 
 Opening order: ship with both flags closed and the version unchanged is not enough on its own: the new texts are live and the consent version must move **in the same ship** (below). Then flip both flags (one line each plus the pinned test lines) as a second small commit after the proof.
 
-## Final commit for the controller (not made here: the ship day is the controller's)
+## Consent version (controller, 2026-10-09 14:55 +04)
 
-1. `apps/web/lib/consent/policy.ts`: `CONSENT_POLICY_VERSION = "2026-10-01"` to the ship day (owner: "ask everyone again").
-2. Re-pin every place that holds the old version: `apps/web/lib/meta/legal-gate.test.ts` (the test named "policy version is the consent version", `expect(version).toBe("2026-10-01")`), `apps/web/components/consent/banner-meta-clear.test.ts` (3 stub replies), `apps/web/tests/e2e-worker/meta-click-ids.e2e.mjs` (line 12), and the pgTAP / local DB tests that pass the version as a literal: `packages/db/supabase/tests/meta_purchase.test.sql:283`, `packages/db/test/local/{refund-lock-order,meta-purchase-lock-order,meta-purchase}.test.ts`. The version is only a string stored on `consent_log` rows; no migration.
-3. `owner-texts.test.ts` needs no change.
+Ship day is 2026-10-09. `CONSENT_POLICY_VERSION` is `"2026-10-09"`. The same string is re-pinned in `legal-gate.test.ts`, `banner-meta-clear.test.ts` (3 stubs), `meta-click-ids.e2e.mjs`, `packages/db/supabase/tests/meta_purchase.test.sql` (every consent-row and claim literal), and `packages/db/test/local/{refund-lock-order,meta-purchase-lock-order,meta-purchase}.test.ts`. No migration. `owner-texts.test.ts` unchanged. Flags stay closed.
 
 ## Opening the flags (after the proof job, controller)
 
