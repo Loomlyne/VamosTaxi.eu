@@ -50,6 +50,26 @@ function bodyOf(f: ReturnType<typeof vi.fn>): URLSearchParams {
   return (f.mock.calls[0] as unknown as [string, { body: URLSearchParams }])[1].body;
 }
 
+describe("order_id (owner decision 2026-10-09, D4)", () => {
+  const sentEvent = (f: ReturnType<typeof vi.fn>) => JSON.parse(bodyOf(f).get("data")!)[0] as { custom_data: Record<string, unknown> };
+
+  it("the reference rides along only while the wider wording is live", async () => {
+    const fetchFn = okFetch();
+    const { deps } = make({ fetch: fetchFn as unknown as typeof fetch, referenceAllowed: () => true });
+    await sendMetaPurchase({ ...base, reference: "VT-26-07331" }, deps);
+    expect(sentEvent(fetchFn).custom_data).toEqual({ currency: "CHF", value: 120, order_id: "VT-26-07331" });
+  });
+
+  it("not allowed, or no such dep: no order_id (the live text still says the reference is not sent)", async () => {
+    for (const over of [{ referenceAllowed: () => false }, {}]) {
+      const fetchFn = okFetch();
+      const { deps } = make({ fetch: fetchFn as unknown as typeof fetch, ...over });
+      await sendMetaPurchase({ ...base, reference: "VT-26-07331" }, deps);
+      expect("order_id" in sentEvent(fetchFn).custom_data).toBe(false);
+    }
+  });
+});
+
 describe("sendMetaPurchase refusals", () => {
   it("gate closed", async () => {
     const { deps } = make({ measurementAllowed: () => false });
@@ -82,8 +102,15 @@ describe("sendMetaPurchase test code by Stripe mode", () => {
     expect(bodyOf(deps.fetch as never).get("test_event_code")).toBe("TESTCODE");
   });
 
-  it("live never carries it", async () => {
+  it("a live payment ignores a test code and is recorded as a real event", async () => {
     const { deps } = make({ testEventCode: () => "TESTCODE" });
+    await sendMetaPurchase(base, deps);
+    expect(vi.mocked(deps.claim).mock.calls[0]![3]).toBe(false);
+    expect(bodyOf(deps.fetch as never).has("test_event_code")).toBe(false);
+  });
+
+  it("a live payment with no test code is a real event", async () => {
+    const { deps } = make();
     await sendMetaPurchase(base, deps);
     expect(vi.mocked(deps.claim).mock.calls[0]![3]).toBe(false);
     expect(bodyOf(deps.fetch as never).has("test_event_code")).toBe(false);

@@ -1483,6 +1483,7 @@ describe("meta purchase (Phase 29)", () => {
     paymentId: 1,
     livemode: false,
     refundRequired: false,
+    reference: "VT-1", // sent on to Meta as order_id only when the owner's 2026-10-09 wording is live
     ...patch,
   });
 

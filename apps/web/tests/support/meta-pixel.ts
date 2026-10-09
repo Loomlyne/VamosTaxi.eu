@@ -57,6 +57,12 @@ export function mockFor(pathname: string): string | null {
 export interface SiteOptions {
   /** Rewrite the two baked flags in /app/vamos-meta.js. */
   flagsOn: boolean;
+  /** Rewrite the wider-events flag too; defaults to `flagsOn`. */
+  eventsOn?: boolean;
+  /** Rewrite the Google tag flag in /app/vamos-google.js; defaults to closed. */
+  googleOn?: boolean;
+  /** Serve these public addresses (path only) with the mock page of another address, e.g. a confirmation as /about. */
+  alias?: Record<string, string>;
   /** Content-Security-Policy to send on mock pages (the real specs pass the policy the Worker would send). */
   csp?: string;
 }
@@ -71,7 +77,8 @@ export async function routeSite(context: BrowserContext, opts: SiteOptions): Pro
   await context.route(/^https:\/\/(dashboard\.)?vamostaxi\.site\//, async (route: Route) => {
     const url = new URL(route.request().url());
     if (url.pathname.startsWith("/api/")) return route.fulfill({ status: 404, contentType: "application/json", body: "{}" });
-    const mock = route.request().resourceType() === "document" ? mockFor(url.pathname) : null;
+    const aliased = opts.alias?.[url.pathname];
+    const mock = route.request().resourceType() === "document" ? mockFor(aliased ?? url.pathname) : null;
     const rel = mock ?? url.pathname;
     const file = normalize(join(PUBLIC_ROOT, decodeURIComponent(rel)));
     if (!file.startsWith(PUBLIC_ROOT) || !existsSync(file) || !statSync(file).isFile()) {
@@ -83,7 +90,10 @@ export async function routeSite(context: BrowserContext, opts: SiteOptions): Pro
     } else if (url.pathname === "/app/vamos-meta.js") {
       body = readFileSync(file, "utf8")
         .replace(/var GATE_OPEN = (true|false);/, `var GATE_OPEN = ${opts.flagsOn};`)
-        .replace(/var SWITCHES_OFF = (true|false);/, `var SWITCHES_OFF = ${opts.flagsOn};`);
+        .replace(/var SWITCHES_OFF = (true|false);/, `var SWITCHES_OFF = ${opts.flagsOn};`)
+        .replace(/var EVENTS_ON = (true|false);/, `var EVENTS_ON = ${opts.eventsOn ?? opts.flagsOn};`);
+    } else if (url.pathname === "/app/vamos-google.js") {
+      body = readFileSync(file, "utf8").replace(/var GOOGLE_ON = (true|false);/, `var GOOGLE_ON = ${opts.googleOn ?? false};`);
     } else {
       body = readFileSync(file);
     }

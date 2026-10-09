@@ -18,6 +18,18 @@ export const META_LEGAL_GATE_OPEN = true as const;
  */
 export const META_EVENTS_MANAGER_SWITCHES_OFF = true as const;
 
+/**
+ * The owner's wider Meta wording (decision 2026-10-09-ad-tracking-wording.md: the price button, the contact
+ * buttons, the contact form, vehicle chosen, go to payment) is live. Opened 2026-10-09: the site is live
+ * and these events are real. The loader (app/vamos-meta.js, EVENTS_ON) carries the same value.
+ */
+export const META_EVENTS_OPEN = true as const;
+
 export function metaMeasurementAllowed(): boolean {
   return META_LEGAL_GATE_OPEN === true && META_EVENTS_MANAGER_SWITCHES_OFF === true;
+}
+
+/** The page-view gate and the wider events flag, both: the only test the extra events use. */
+export function metaEventsAllowed(): boolean {
+  return metaMeasurementAllowed() && (META_EVENTS_OPEN as boolean) === true;
 }

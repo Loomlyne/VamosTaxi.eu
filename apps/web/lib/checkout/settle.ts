@@ -723,6 +723,7 @@ export async function handleStripeMessageWithDeps(
           paymentId: row.payment_id,
           livemode: session.livemode === true,
           refundRequired: row.refund_required === true,
+          reference: row.reference ?? null,
         });
       } catch {
         deps.emit("error", "meta_purchase_failed", { bookingId: row.booking_id });

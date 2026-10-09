@@ -349,8 +349,9 @@ interface CloudflareEnv {
   META_CAPI_ACCESS_TOKEN?: string;
 
   /**
-   * Meta Events Manager test event code (Worker var, staging only, value from the owner, D-07).
-   * A test-mode Stripe payment sends nothing when it is missing; a live payment never uses it (D-04).
+   * Meta Events Manager test event code. Not used on this live site.
+   * A live payment is always a real event. A test payment is not sent when this secret is missing.
+   * Wrangler secret. Never paste it into chat.
    */
   META_TEST_EVENT_CODE?: string;
 
@@ -375,6 +376,7 @@ interface CloudflareEnv {
    * Stripe publishable key. REQUIRED. wrangler.jsonc `vars` — not a secret.
    * Must name the same mode as STRIPE_SECRET_KEY: the hourly health probe reports payments
    * down when they differ. `pk_test_placeholder` names no mode (production until cutover).
+   * Staging uses the live publishable key (6a5f274e). The secret key is a wrangler secret, never this field.
    */
   STRIPE_PUBLISHABLE_KEY: string;
   /** "on" adds TWINT to the hosted Checkout page; anything else is card only (D-20). */

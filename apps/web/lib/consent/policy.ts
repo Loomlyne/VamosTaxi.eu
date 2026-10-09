@@ -6,4 +6,4 @@
 // display date: each legal page shows its own "Last updated" day from app/vamos-legal-updated.js
 // (owner, 2026-10-05), and nothing there reads or follows this constant.
 
-export const CONSENT_POLICY_VERSION = "2026-10-01";
+export const CONSENT_POLICY_VERSION = "2026-10-09";

@@ -13,18 +13,29 @@ const read = (rel: string) => readFileSync(join(repoRoot, rel), "utf8");
 
 const LANGS = ["en", "de", "fr", "ar"] as const;
 const SECTIONS = [
-  { head: "## 1. Cookie banner", mock: "banner", next: ["cookies", "meta-banner"] },
-  { head: "## 2. Cookies page, the Meta row", mock: "cookiesRow", next: ["cookies", "meta-row"] },
-  { head: "## 3. Privacy page, the Meta line", mock: "privacyLine", next: ["legal", "meta-privacy-line"] },
+  { file: "2026-10-09-ad-tracking-wording.md", head: "## 1. Cookie banner", mock: "banner", next: ["cookies", "meta-banner"] },
+  { file: "2026-09-30-meta-wording.md", head: "## 2. Cookies page, the Meta row", mock: "cookiesRow", next: ["cookies", "meta-row"] },
+  { file: "2026-10-09-ad-tracking-wording.md", head: "## 2b. Cookies page, the new Google row", mock: "googleRow", next: ["cookies", "google-row"] },
+  { file: "2026-10-09-ad-tracking-wording.md", head: "## 3a. Privacy page, the Meta line", mock: "privacyLine", next: ["legal", "meta-privacy-line"] },
+  { file: "2026-10-09-ad-tracking-wording.md", head: "## 3b. Privacy page, the new Google line", mock: "googlePrivacyLine", next: ["legal", "google-privacy-line"] },
+  { file: "2026-10-09-ad-tracking-wording.md", head: "## 4. Privacy page, processor table row", mock: "googleProcessor", next: ["legal", "google-processor"] },
 ] as const;
 
-const decision = read(".planning/decisions/2026-09-30-meta-wording.md");
+const decisions: Record<string, string> = {
+  "2026-10-09-ad-tracking-wording.md": read(".planning/decisions/2026-10-09-ad-tracking-wording.md"),
+  "2026-09-30-meta-wording.md": read(".planning/decisions/2026-09-30-meta-wording.md"),
+};
 
 function sectionText(n: number, lang: string): string {
-  const start = decision.indexOf(SECTIONS[n]!.head);
-  const end = n < 2 ? decision.indexOf(SECTIONS[n + 1]!.head) : decision.length;
-  const m = decision.slice(start, end).match(new RegExp(`^\\| ${lang} \\| (.+) \\|$`, "m"));
-  if (!m) throw new Error(`no ${lang} row in ${SECTIONS[n]!.head}`);
+  const sec = SECTIONS[n]!;
+  const decision = decisions[sec.file]!;
+  const start = decision.indexOf(sec.head);
+  if (start < 0) throw new Error(`no ${sec.head} in ${sec.file}`);
+  const rest = decision.slice(start + sec.head.length);
+  const next = rest.search(/^## /m);
+  const body = next < 0 ? rest : rest.slice(0, next);
+  const m = body.match(new RegExp(`^\\| ${lang} \\| (.+) \\|$`, "m"));
+  if (!m) throw new Error(`no ${lang} row in ${sec.head}`);
   return m[1]!;
 }
 
@@ -41,8 +52,8 @@ function loadMock(): { texts: Record<string, Record<string, Seg[]>>; segments: (
 }
 
 describe("owner Meta texts", () => {
-  it("the decision file holds 3 sections x 4 languages", () => {
-    for (let n = 0; n < 3; n++) for (const l of LANGS) expect(sectionText(n, l).length).toBeGreaterThan(20);
+  it("the decision files hold every section x 4 languages", () => {
+    for (let n = 0; n < SECTIONS.length; n++) for (const l of LANGS) expect(sectionText(n, l).length).toBeGreaterThan(20);
   });
 
   describe("mock source", () => {
@@ -77,8 +88,9 @@ describe("owner Meta texts", () => {
     const keys = [...src.matchAll(/^\s*'((?:[^'\\]|\\.)+)'\s*:\s*\{/gm)].map((m) => m[1]!.replace(/\\'/g, "'"));
     expect(keys.length).toBeGreaterThan(100);
     const plain = SECTIONS.flatMap((_, n) => LANGS.map((l) => sectionText(n, l).replace(/\*\*|`/g, "")));
-    // 'Cookie preferences' is the existing label of the banner link, not a piece of an owner sentence.
-    const LABELS = new Set(["Cookie preferences"]);
+    // 'Cookie preferences' is the existing label of the banner link, 'contact form' the existing label of
+    // the contact page form: neither is a piece of an owner sentence.
+    const LABELS = new Set(["Cookie preferences", "contact form"]);
     const offenders = keys.filter((k) => k.length >= 12 && !LABELS.has(k) && plain.some((p) => p.includes(k)));
     expect(offenders).toEqual([]);
   });

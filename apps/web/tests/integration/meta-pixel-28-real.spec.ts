@@ -166,3 +166,48 @@ test("c: after a withdraw nothing more is sent", async ({ context, page }) => {
   expect((await context.cookies()).filter((c) => c.name === "_fbp" || c.name === "_fbc")).toEqual([]);
   assertClean(seen, "/about");
 });
+
+// 2026-10-09: the owner's three browser events through Meta's real script. Contact carries only the kind, Lead
+// nothing, and the real script adds no automatic event (no button or form event) around them.
+test("d: Contact and Lead reach Meta's real script as exactly those events, with nothing else", async ({ context, page }) => {
+  const seen = await setup(context);
+  await stage(page, true);
+  await page.route("**/api/contact", (route) =>
+    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true }) }),
+  );
+  await page.goto(`${SITE}/contact`);
+  await expect.poll(() => trs(seen).length, { timeout: 20_000 }).toBeGreaterThan(0);
+  await page.waitForTimeout(1500);
+  for (const sel of ['a[href^="tel:"]', 'a[href^="mailto:"]', 'a[href*="wa.me/"]']) {
+    await page.evaluate((s) => {
+      window.addEventListener("click", (e) => e.preventDefault(), { once: true });
+      (document.querySelector(s) as HTMLAnchorElement).click();
+    }, sel);
+    await page.waitForTimeout(1700);
+  }
+  await page.fill("#ct-name", "Lena Test");
+  await page.fill("#ct-email", EMAIL);
+  await page.fill("#ct-msg", "One line about my airport transfer, thanks.");
+  await page.getByRole("button", { name: "Send message" }).click();
+  await page.waitForTimeout(5000);
+
+  const named = trs(seen).map((s) => {
+    const q = s.method === "GET" ? s.url.searchParams : new URLSearchParams(s.body);
+    return { ev: q.get("ev"), cd: [...q.entries()].filter(([k]) => k.startsWith("cd[")).map(([k, v]) => `${k}=${v}`) };
+  });
+  expect(named.map((n) => n.ev)).toEqual(["PageView", "Contact", "Contact", "Contact", "Lead"]);
+  expect(named[1]!.cd).toEqual(["cd[content_category]=phone"]);
+  expect(named[2]!.cd).toEqual(["cd[content_category]=email"]);
+  expect(named[3]!.cd).toEqual(["cd[content_category]=whatsapp"]);
+  expect(named[4]!.cd).toEqual([]);
+  const sha = createHash("sha256").update(EMAIL).digest("hex");
+  for (const s of seen) {
+    const text = `${decodeURIComponent(s.url.href)}\n${decodeURIComponent(s.body)}`;
+    for (const needle of ["ud[", "udff[", EMAIL, sha, "Lena", "41796267082", "info@", "airport transfer"]) {
+      expect(text.includes(needle), `${s.url.pathname} contains ${needle}`).toBe(false);
+    }
+  }
+  if (process.env["VAMOS_META_REAL_LOG"]) {
+    for (const s of trs(seen)) console.log(`${s.method} ${decodeURIComponent(s.url.search)} ${decodeURIComponent(s.body)}`.slice(0, 400));
+  }
+});

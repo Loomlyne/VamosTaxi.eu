@@ -13,7 +13,7 @@ const SUPER = `postgres://postgres:postgres@127.0.0.1:${PORT}/postgres`;
 const B1 = "c2905000-0000-4000-8000-000000000a01";
 const B2 = "c2905000-0000-4000-8000-000000000a02";
 const SUBJECT = "29a05000-0000-4000-8000-000000000001";
-const POLICY = "2026-10-01";
+const POLICY = "2026-10-09";
 const FBP = "fb.1.1727771234567.1234567890";
 const FBC = "fb.1.1727771234567.IwAR0abc_DEF-123";
 
