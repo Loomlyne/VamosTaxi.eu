@@ -189,9 +189,9 @@ describe("meta legal gate", () => {
     }
   }, 30_000);
 
-  it("the wider-events flag (owner wording 2026-10-09) is closed until the controller ships it, and the loader agrees", () => {
-    expect(META_EVENTS_OPEN).toBe(false);
-    expect(metaEventsAllowed()).toBe(false);
+  it("the wider-events flag (owner wording 2026-10-09) is open, and the loader agrees", () => {
+    expect(META_EVENTS_OPEN).toBe(true);
+    expect(metaEventsAllowed()).toBe(true);
     const js = repoSource("app/vamos-meta.js");
     expect(/var EVENTS_ON = (true|false);/.exec(js)?.[1]).toBe(String(META_EVENTS_OPEN));
     const assignment = /META_EVENTS_OPEN\s*=(?!=)/g;

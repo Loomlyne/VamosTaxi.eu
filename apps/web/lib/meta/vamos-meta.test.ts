@@ -481,7 +481,7 @@ describe("app/vamos-meta.js: ViewContent, Lead and Contact (owner events, 2026-1
     expect(h.win[FBQ]).toBeUndefined();
   });
 
-  it("events flag closed (the committed state until the wording ships): the page view runs, no event is accepted", async () => {
+  it("events flag closed while the page-view gate is open: the page view runs, no event is accepted", async () => {
     const h = load({ open: true, events: false });
     await h.settle();
     expect(h.calls().filter((c) => c[0] === "track")).toEqual([PIX]);

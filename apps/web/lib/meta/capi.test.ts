@@ -158,8 +158,8 @@ describe("postPurchase", () => {
 });
 
 describe("metaTestEventToSend", () => {
-  it("sends a set code on a live payment, and skips a test payment that has none", () => {
-    expect(metaTestEventToSend(true, "TEST123")).toEqual({ sendCode: "TEST123", skip: false });
+  it("ignores a code on a live payment, and skips a test payment that has none", () => {
+    expect(metaTestEventToSend(true, "TEST123")).toEqual({ sendCode: null, skip: false });
     expect(metaTestEventToSend(true, null)).toEqual({ sendCode: null, skip: false });
     expect(metaTestEventToSend(true, "")).toEqual({ sendCode: null, skip: false });
     expect(metaTestEventToSend(false, "TEST123")).toEqual({ sendCode: "TEST123", skip: false });

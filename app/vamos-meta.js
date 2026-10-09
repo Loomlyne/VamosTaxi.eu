@@ -34,8 +34,8 @@
   /* Flipped by plan 28-07 only, one line each. */
   var GATE_OPEN = true;
   var SWITCHES_OFF = true;
-  /* The owner's wider wording (2026-10-09) is live: ViewContent, Lead and Contact. Closed until then. */
-  var EVENTS_ON = false;
+  /* Opened 2026-10-09. Real events, after Marketing is accepted. Same value as the server flag. */
+  var EVENTS_ON = true;
 
   var PIXEL_ID = '1595596972063765';
   var SRC = 'https://connect.facebook.net/en_US/fbevents.js';

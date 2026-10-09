@@ -37,8 +37,8 @@ export type ClaimRow = {
 export type MetaPurchaseDeps = {
   measurementAllowed: () => boolean;
   /**
-   * May the booking reference ride along as order_id? Only once the owner's wording of 2026-10-09 is live
-   * (META_EVENTS_OPEN). Missing means no: the live text still says the reference is not sent.
+   * May the booking reference ride along as order_id? Production passes metaEventsAllowed.
+   * A caller that omits this sends no reference.
    */
   referenceAllowed?: () => boolean;
   token: () => string | null;
@@ -111,8 +111,8 @@ async function runMetaPurchase(input: MetaPurchaseInput, deps: MetaPurchaseDeps)
   try {
     const token = deps.token();
     const test = metaTestEventToSend(input.livemode, deps.testEventCode());
-    // A set code marks the row as a test event. The claim is once per booking, so that booking is not sent again as a real one.
-    const testEvent = !input.livemode || test.sendCode !== null;
+    // A live payment is a real event. Only a Stripe test-mode payment is stored as a test event.
+    const testEvent = !input.livemode;
     const workerSkip: WorkerSkip = !deps.measurementAllowed()
       ? "gate_closed"
       : !token

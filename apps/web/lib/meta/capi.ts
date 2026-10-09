@@ -118,13 +118,14 @@ function num(v: unknown): number | null {
 
 /**
  * The test-event code to attach, or a skip.
- * A code the owner has set is sent even when Stripe is live: this public site uses the live key, so tying
- * the code to test mode meant it was never sent. No code on a test payment: skip, so a test payment is
- * never a real Meta event. No code on a live payment: a real event.
+ * This site is live. A live payment is always a real event: any code is ignored.
+ * A test payment with no code is skipped, so it is never written as a real event.
+ * A test payment with a code still goes to Meta Test Events.
  */
 export function metaTestEventToSend(livemode: boolean, code: string | null): { sendCode: string | null; skip: boolean } {
+  if (livemode) return { sendCode: null, skip: false };
   const sendCode = code && code.length > 0 ? code : null;
-  if (!livemode && !sendCode) return { sendCode: null, skip: true };
+  if (!sendCode) return { sendCode: null, skip: true };
   return { sendCode, skip: false };
 }
 

@@ -349,9 +349,9 @@ interface CloudflareEnv {
   META_CAPI_ACCESS_TOKEN?: string;
 
   /**
-   * Meta Events Manager test event code. Wrangler secret, set by the owner in his terminal. Never paste it into chat.
-   * When it is set, server events go to Test Events even on a live Stripe payment. When it is missing, a live
-   * payment is a real event and a test payment is not sent.
+   * Meta Events Manager test event code. Not used on this live site.
+   * A live payment is always a real event. A test payment is not sent when this secret is missing.
+   * Wrangler secret. Never paste it into chat.
    */
   META_TEST_EVENT_CODE?: string;
 

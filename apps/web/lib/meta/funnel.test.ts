@@ -37,10 +37,11 @@ describe("sendFunnelEvent", () => {
     expect(deps.token).not.toHaveBeenCalled();
   });
 
-  it("the committed flags are closed: the default gate sends nothing", async () => {
+  it("the flags are open: the default gate sends one real event", async () => {
     const { deps, fetchFn } = make();
-    expect(await sendFunnelEvent(send, deps)).toBe("skip");
-    expect(fetchFn).not.toHaveBeenCalled();
+    expect(await sendFunnelEvent(send, deps)).toBe("sent");
+    expect(fetchFn).toHaveBeenCalledTimes(1);
+    expect(bodyOf(fetchFn).get("test_event_code")).toBeNull();
   });
 
   it("open, live mode: one POST with the exact event, no test code", async () => {
@@ -73,10 +74,10 @@ describe("sendFunnelEvent", () => {
     expect(bodyOf(withCode.fetchFn).get("test_event_code")).toBe("TEST123");
   });
 
-  it("a set test code is sent on a live payment too", async () => {
+  it("a set test code is ignored on a live payment", async () => {
     const { deps, fetchFn } = make({ testEventCode: () => "TEST123" });
     expect(await sendFunnelEvent(send, deps, () => true)).toBe("sent");
-    expect(bodyOf(fetchFn).get("test_event_code")).toBe("TEST123");
+    expect(bodyOf(fetchFn).get("test_event_code")).toBeNull();
   });
 
   it.each([null, ""])("no token %j: skip", async (t) => {
