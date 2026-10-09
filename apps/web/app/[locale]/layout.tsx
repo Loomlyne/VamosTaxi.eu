@@ -11,6 +11,7 @@ import { CookieBanner } from "@/components/consent/CookieBanner";
 import { SiteFooter, SiteHeader, SiteShell } from "@/components/shell";
 import { Providers } from "./providers";
 import { clientMessages } from "@/lib/i18n/client-messages";
+import { checkoutPaymentMethodTypes } from "@/lib/checkout/payment-methods";
 import "../globals.css";
 
 function turnstileSiteKey(): string | undefined {
@@ -19,6 +20,16 @@ function turnstileSiteKey(): string | undefined {
     return env.TURNSTILE_SITE_KEY ?? process.env.TURNSTILE_SITE_KEY;
   } catch {
     return process.env.TURNSTILE_SITE_KEY;
+  }
+}
+
+/** J8 (W3-08): the footer names TWINT only while the Stripe page offers it. Any doubt is "off". */
+function twintOffered(): boolean {
+  try {
+    const { env } = getCloudflareContext();
+    return checkoutPaymentMethodTypes(env).includes("twint");
+  } catch {
+    return false;
   }
 }
 
@@ -99,7 +110,7 @@ export default async function LocaleLayout({
               SiteShell still skips it on ops/dashboard/dev. */}
           <SiteShell
             header={<SiteHeader />}
-            footer={<SiteFooter />}
+            footer={<SiteFooter showTwint={twintOffered()} />}
             banner={showBanner ? <CookieBanner siteKey={siteKey} /> : null}
           >
             {children}

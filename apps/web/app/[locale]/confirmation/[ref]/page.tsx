@@ -13,6 +13,7 @@ import {
 import { customerClaims } from "@/lib/account/session";
 import { MANAGE_COOKIE_NAME } from "@/lib/checkout/manage-token";
 import { confirmationManageHref, type ConfirmationReadVia } from "@/lib/checkout/confirmation-manage-href";
+import { finishPaymentHref, readResumeQuoteId } from "@/lib/checkout/resume-quote";
 import { ConfirmationClient, type ConfirmationPhase } from "./ConfirmationClient";
 import "./confirmation.css";
 
@@ -131,6 +132,12 @@ export default async function ConfirmationPage({
     }
   }
 
+  // W3-06: an unpaid booking read through its own manage cookie names the quote FINISH PAYMENT resumes.
+  let finishHref: string | null = null;
+  if (env && raw && readVia === "cookie" && initialPhase === "processing") {
+    finishHref = finishPaymentHref(locale, await readResumeQuoteId(env, raw, ref));
+  }
+
   return (
     <ConfirmationClient
       locale={locale}
@@ -139,6 +146,7 @@ export default async function ConfirmationPage({
       booking={booking}
       freeCancelHours={freeCancelHours}
       manageHref={confirmationManageHref(locale, ref, readVia)}
+      finishHref={finishHref}
     />
   );
 }

@@ -4,6 +4,7 @@
 // amounts, T-26.3-19-01), the Stripe origin check (T-26.3-19-02), the sign-in
 // returnTo, and "did anything change since Back from Stripe" (D-24).
 
+import { BOOKING_REFERENCE_RE } from "./booking-status";
 import { buildTripQuery, type Trip } from "./trip-url";
 
 export const STRIPE_CHECKOUT_ORIGIN = "https://checkout.stripe.com";
@@ -17,6 +18,31 @@ export function isStripeCheckoutUrl(raw: unknown): raw is string {
   } catch {
     return false;
   }
+}
+
+/**
+ * J5 (W3-05): what the server says about a stored resume (Back from Stripe) right now.
+ * `open`: the hosted page is still payable (the resume route re-reads the Stripe session), go
+ * there. `paid`: the booking was paid meanwhile. `dead`: expired, purged, unreadable, or not a
+ * Stripe URL: open a new payment instead of sending the customer back to a dead Stripe page.
+ */
+export type FreshResume = { kind: "open"; url: string } | { kind: "paid"; reference: string } | { kind: "dead" };
+
+export async function freshResume(fetchFn: typeof fetch, quoteId: string): Promise<FreshResume> {
+  try {
+    const res = await fetchFn(`/api/checkout/resume?quote=${encodeURIComponent(quoteId)}`, {
+      credentials: "same-origin",
+      cache: "no-store",
+    });
+    const json = (await res.json()) as { state?: unknown; url?: unknown; reference?: unknown };
+    if (json.state === "open" && isStripeCheckoutUrl(json.url)) return { kind: "open", url: json.url };
+    if (json.state === "paid" && typeof json.reference === "string" && BOOKING_REFERENCE_RE.test(json.reference)) {
+      return { kind: "paid", reference: json.reference };
+    }
+  } catch {
+    // network or parse failure: do not trust the stored URL
+  }
+  return { kind: "dead" };
 }
 
 export type ContactInput = { firstName: string; lastName: string; email: string; mobile: string };

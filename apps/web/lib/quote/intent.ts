@@ -54,6 +54,17 @@ export const INTENT_LADDER = Object.freeze([
     // D-27: compare against the PIN (extras + coupon already inside the lock),
     // not against a fresh quote. A legitimate coupon applied at reprice must
     // not read as a price change.
+    //
+    // J6 (W2-08) WHAT THIS STEP DOES AND DOES NOT GUARANTEE. It compares the lock with the
+    // `recompute` the CALLER passes. The checkout's caller (`repriceFromLock`, lib/checkout/reprice.ts)
+    // builds that board FROM the lock, so the class-total and engine-version comparisons cannot fail
+    // there: they are not a second price check. The real guards for the charge are the HMAC on the
+    // lock (no browser can move an amount), the live rate-version check above (`quote_expired` when
+    // the book the quote was priced under is no longer live; a published rate version is immutable)
+    // and the pricing_live flag. A code deploy does NOT invalidate quotes already minted, on purpose:
+    // the engine version is the commit SHA, so making `engine_changed` real would void every open
+    // checkout at every deploy. A caller that does pass an independent recompute still gets both
+    // refusals (see the "engine_changed" test).
   }),
 ]);
 

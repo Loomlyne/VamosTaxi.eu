@@ -80,17 +80,35 @@ describe("D-20 answers and order", () => {
       expect(await res.json()).toEqual({ ok: false, code });
     }
   });
-  it("the route runs CSRF, IP limit, validation, quote cap, then everything else", () => {
+  it("the route runs CSRF, IP limit, validation, then everything else; the press cap is not counted by the route itself", () => {
     const route = readFileSync(join(here, "../../app/api/checkout/intent/route.ts"), "utf8");
     const at = (s: string) => route.indexOf(s);
     const order = [
       "const blocked = await csrfForbiddenPublicOrStaff(request",
       "intentIpAllowed(",
       "checkoutIntentSchema.safeParse",
-      "payPressAllowed(",
       "const { postgresNowIso, vehicleClassId }",
       "gateAccountForRequest({",
       "return runCheckoutIntent(",
+    ].map(at);
+    expect(order.every((n) => n > -1)).toBe(true);
+    expect([...order].sort((a, b) => a - b)).toEqual(order);
+    // J6 (W2-05): the cap is handed to runCheckoutIntent as `payPressGate`, never called before the lock is verified.
+    expect(at("payPressAllowed(")).toBeGreaterThan(at("const { postgresNowIso, vehicleClassId }"));
+    expect(route).toContain("payPressGate,");
+  });
+  it("J6 (W2-05, W2-14): in runCheckoutIntent the lock is verified before the quote-left answer and the press cap, and the cap is counted after the refusals that need no Stripe call and before any Stripe call", () => {
+    const src = readFileSync(join(here, "intent.ts"), "utf8");
+    const at = (s: string) => src.indexOf(s);
+    const order = [
+      "await checkIntentAgainstLock(",
+      "deps.quoteWasLeft",
+      "await deps.accountGate?.()",
+      'refuse("pickup_in_past")',
+      'refuse("amount_below_minimum")',
+      "await deps.payPressGate?.()",
+      "await deps.loadOpenPayment(body.quote_id)",
+      "await openSession(idempotencyKey)",
     ].map(at);
     expect(order.every((n) => n > -1)).toBe(true);
     expect([...order].sort((a, b) => a - b)).toEqual(order);

@@ -3579,6 +3579,10 @@ export type Database = {
         Args: { p_reference: string; p_token_hash: string }
         Returns: Json
       }
+      guest_resume_quote: {
+        Args: { p_reference: string; p_token_hash: string }
+        Returns: string
+      }
       manage_booking_cancel: {
         Args: { p_leg_seq?: number; p_token_hash: string }
         Returns: {

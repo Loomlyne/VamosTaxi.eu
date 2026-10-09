@@ -9,7 +9,7 @@ const valid = {
   contact: { name: "Ada", email: "ada@example.test", phone: "+41790000000" },
   locale: "en",
   display_currency: "CHF",
-  idempotency_key: "idem-1",
+  idempotency_key: "idem-1-aaaaaa",
 } as const;
 
 const validWeb = {
@@ -189,5 +189,56 @@ describe("checkoutIntentSchema web body (26.3 D-15, D-35)", () => {
     expect(
       checkoutIntentSchema.safeParse({ ...validWeb, trip: { ...validWeb.trip, pax: 0 } }).success,
     ).toBe(false);
+  });
+});
+
+
+// J6 (W2-18, W1-12, W2-20)
+describe("checkoutIntentSchema: idempotency key and server-side contact validation (J6)", () => {
+  const ok = (patch: Record<string, unknown>) => checkoutIntentSchema.safeParse({ ...validWeb, ...patch });
+  const contact = (patch: Record<string, unknown>) => ok({ contact: { ...validWeb.contact, ...patch } });
+
+  it("accepts a UUID, an underscore/hyphen token and the 8 and 128 character edges", () => {
+    for (const key of [
+      "3f2a1c9e-8b7d-4e6f-9a10-2b3c4d5e6f70",
+      "idem_ABC-123",
+      "a".repeat(8),
+      "a".repeat(128),
+    ]) {
+      expect(ok({ idempotency_key: key }).success, key).toBe(true);
+    }
+  });
+
+  it("refuses a short, long, spaced, blank, colon or non-ASCII key", () => {
+    for (const key of ["a".repeat(7), "a".repeat(129), "has space in it", "        ", "key:after:cs_test_1", "schlüssel-123", "a/b-12345678"]) {
+      expect(ok({ idempotency_key: key }).success, JSON.stringify(key)).toBe(false);
+    }
+  });
+
+  it("the Stripe key built from the longest key and the longest suffix stays under 255 characters", () => {
+    const key = "a".repeat(128);
+    const longestSessionId = `cs_live_${"A".repeat(100)}`;
+    expect(`${key}:after:${longestSessionId}`.length).toBeLessThan(255);
+  });
+
+  it("a blank or space-only name is refused; the stored name is trimmed", () => {
+    expect(contact({ name: "   " }).success).toBe(false);
+    const parsed = contact({ name: "  Ada Lovelace  " });
+    expect(parsed.success && parsed.data.contact.name).toBe("Ada Lovelace");
+  });
+
+  it("the e-mail is trimmed before it is stored", () => {
+    const parsed = contact({ email: "  ada@example.test " });
+    expect(parsed.success && parsed.data.contact.email).toBe("ada@example.test");
+    expect(contact({ email: "not-an-address" }).success).toBe(false);
+  });
+
+  it("the mobile needs 8 to 15 digits, as on the page", () => {
+    for (const phone of ["+41796267082", "+41 79 626 70 82", "0796267082"]) {
+      expect(contact({ phone }).success, phone).toBe(true);
+    }
+    for (const phone of ["1234567", "+1234567890123456", "call me", " ", "---"]) {
+      expect(contact({ phone }).success, phone).toBe(false);
+    }
   });
 });

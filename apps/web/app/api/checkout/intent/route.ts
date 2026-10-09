@@ -28,7 +28,7 @@ import {
   stripeFromEnv,
   stripePublishableKey,
 } from "@/lib/checkout/stripe";
-import { evaluateCoupon, loadLaunchFlags, loadSettingsVersion } from "@/lib/db/quote";
+import { evaluateCoupon, loadLaunchFlagsStrict, loadSettingsVersion } from "@/lib/db/quote";
 import { lookupVehicleClassId, snapshotPolicyFromSettings } from "@/lib/checkout/lock-to-rpc";
 import { policyHours } from "@/lib/checkout/policy-settings";
 import { loadCheckoutReprice, repriceFromLock } from "@/lib/checkout/reprice";
@@ -97,9 +97,8 @@ async function postIntent(request: Request) {
   const body = parsed.data;
 
   // D-20 (b): at most 5 Pay presses per price. A replay (same idempotency key) is not counted.
-  if (!(await payPressAllowed(notePayPressFromEnv(env), body.quote_id, body.idempotency_key))) {
-    return intentLimitResponse("pay_limit");
-  }
+  // J6 (W2-05): counted inside runCheckoutIntent (`payPressGate`), after the signed lock has verified and after
+  // every refusal that needs no Stripe call, not here: a stranger with only a quote id could burn the owner's 5.
 
   const { postgresNowIso, vehicleClassId } = await asQuote(env, async (sql) => {
     const rows = await sql`select now() as now`;
@@ -111,14 +110,6 @@ async function postIntent(request: Request) {
   });
   if (!vehicleClassId) {
     return refuse(refusalForMissingClassId());
-  }
-
-  try {
-    const left = await asCheckout(env, null, (sql) => quoteWasLeft(sql, body.quote_id));
-    if (left) return refuse("quote_already_booked");
-  } catch (err) {
-    const code = err && typeof err === "object" && "code" in err ? (err as { code?: unknown }).code : "";
-    if (code !== "42883") throw err;
   }
 
   // D-20/D-21 (26.1-29): a sent pay link holds the booking for 24 h; the
@@ -186,7 +177,23 @@ async function postIntent(request: Request) {
   const cookieHeader = request.headers.get("cookie");
   const requestOrigin = request.headers.get("origin");
 
+  // J6 (W2-14): asked inside runCheckoutIntent after the lock verified. A missing function (42883) reads as "not left".
+  const quoteLeft = async (): Promise<boolean> => {
+    try {
+      return await asCheckout(env, null, (sql) => quoteWasLeft(sql, body.quote_id));
+    } catch (err) {
+      const code = err && typeof err === "object" && "code" in err ? (err as { code?: unknown }).code : "";
+      if (code !== "42883") throw err;
+      return false;
+    }
+  };
+  const notePress = notePayPressFromEnv(env);
+  const payPressGate = async (): Promise<Response | null> =>
+    (await payPressAllowed(notePress, body.quote_id, body.idempotency_key)) ? null : intentLimitResponse("pay_limit");
+
   return runCheckoutIntent(body, {
+    quoteWasLeft: quoteLeft,
+    payPressGate,
     accountGate,
     // D-06/D-19: written after the booking exists; the DB copies the booking's e-mail (p_email is null).
     afterBooking: async (bookingId) => {
@@ -286,7 +293,8 @@ async function postIntent(request: Request) {
     actorCustomerId,
     vehicleClassId,
     snapshotPolicy,
-    loadLaunchFlags: () => loadLaunchFlags(env),
+    // J6 (W2-04): strict. The display loader answers 8.1 % on any failure; a charge must refuse instead.
+    loadLaunchFlags: () => loadLaunchFlagsStrict(env),
     evaluateCoupon: (code, ids) => evaluateCoupon(env, code, ids),
     loadQuotePayGate: async (quoteId) => {
       const rows = await asCheckout(env, null, (sql) => sql<{ is_test: boolean | null }[]>`

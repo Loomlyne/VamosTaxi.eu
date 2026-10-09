@@ -60,6 +60,10 @@ export async function loadCheckoutReprice(
 }
 
 /**
+ * J6 (W2-08): this board is built FROM the lock, so the `price_changed` / `engine_changed` comparisons in
+ * `checkIntentAgainstLock` cannot fire for it. They are not an independent price check; see the note on
+ * `recompute_pin` in lib/quote/intent.ts for what really guards the charge.
+ *
  * The payment step's reading of a signed lock (POST /api/checkout/intent): a class is bookable only
  * when the quote priced it. The engine leaves a class that cannot seat the party unpriced
  * (`priceQuote`: ineligible → total null), so a lock for 10 travellers can never pay for Economy
