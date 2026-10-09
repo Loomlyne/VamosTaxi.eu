@@ -8,6 +8,7 @@
 // Skipped unless VAMOS_LOCAL_DB_PORT names a DISPOSABLE local stack.
 import { describe, expect, it } from "vitest";
 import { asSystem } from "../db/identity";
+import { pgTextArrayLiteral } from "./pg-array";
 
 const PORT = process.env["VAMOS_LOCAL_DB_PORT"];
 
@@ -49,5 +50,16 @@ describe.skipIf(!PORT)("settle functions with the amount arguments through the r
         )`;
     }).catch((x: unknown) => x);
     expect((err as { code?: string }).code).toBe("P0002");
+  });
+
+  it("J4: checkout_payments_mark_dead takes the Worker's array literal and answers 0 for an unknown booking", async () => {
+    const rows = await asSystem(env, async (sql) =>
+      sql<{ n: number }[]>`
+        select public.checkout_payments_mark_dead(
+          ${"11111111-1111-4111-8111-111111111111"}::uuid,
+          ${pgTextArrayLiteral(["cs_test_bind_none"])}::text[]
+        ) as n`,
+    );
+    expect(Number(rows[0]?.n)).toBe(0);
   });
 });

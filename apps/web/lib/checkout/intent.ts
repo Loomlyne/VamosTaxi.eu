@@ -177,6 +177,12 @@ export type CheckoutIntentDeps = {
    * must stop the supersede.
    */
   purgeUnpaid?: (bookingId: string, reason: "superseded") => Promise<boolean | void>;
+  /**
+   * J4 (W5-11): checkout_payments_mark_dead. Called with the session ids that were just read back expired and
+   * unpaid, before the purge: purge_unpaid_booking refuses while a requires_payment row names a session that
+   * nobody proved dead. A failure here is not fatal (the database then refuses the purge).
+   */
+  markSessionsDead?: (bookingId: string, sessionIds: string[]) => Promise<void>;
   /** True only when this request's vt_manage cookie owns that booking. */
   ownsBooking?: (bookingId: string) => Promise<boolean>;
 };
@@ -323,6 +329,11 @@ async function supersedeBooking(
   }
   const dead = await allSessionsExpiredUnpaid(ids, deps.retrieveCheckoutSession);
   if (!dead) return refuse("quote_already_booked");
+  try {
+    await deps.markSessionsDead?.(bookingId, ids);
+  } catch {
+    // The database refuses the purge below while a session is unproved; the Pay is then refused.
+  }
   try {
     const purged = await deps.purgeUnpaid(bookingId, "superseded");
     // purge_unpaid_booking re-checks eligibility; false means not purgeable.

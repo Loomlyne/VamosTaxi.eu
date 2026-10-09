@@ -3338,6 +3338,10 @@ export type Database = {
           snapshot_id: number
         }[]
       }
+      checkout_payments_mark_dead: {
+        Args: { p_booking_id: string; p_session_ids: string[] }
+        Returns: number
+      }
       checkout_quote_left: { Args: { p_quote_id: string }; Returns: boolean }
       checkout_reference_for_session: {
         Args: { p_session_id: string }

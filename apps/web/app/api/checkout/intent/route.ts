@@ -6,6 +6,7 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { asCheckout, asQuote } from "@/lib/db/identity";
 import { checkoutIntentSchema } from "@/lib/checkout/intent-schema";
+import { pgTextArrayLiteral } from "@/lib/checkout/pg-array";
 import { refusalForMissingClassId } from "@/lib/checkout/charge-gate";
 import { refuse } from "@/lib/checkout/errors";
 import { runCheckoutIntent } from "@/lib/checkout/intent";
@@ -265,6 +266,13 @@ async function postIntent(request: Request) {
         `;
         return rows[0]?.ids ?? [];
       }),
+    markSessionsDead: async (bookingId, sessionIds) => {
+      await asCheckout(env, null, async (sql) => {
+        await sql`
+          select public.checkout_payments_mark_dead(${bookingId}::uuid, ${pgTextArrayLiteral(sessionIds)}::text[])
+        `;
+      });
+    },
     purgeUnpaid: (bookingId, reason) =>
       asCheckout(env, null, async (sql) => {
         const rows = await sql<{ purged: boolean | null }[]>`

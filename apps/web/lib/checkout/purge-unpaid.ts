@@ -1,5 +1,6 @@
 import type Stripe from "stripe";
 import { asSystem } from "../db/identity";
+import { pgTextArrayLiteral } from "./pg-array";
 import { allSessionsExpiredUnpaid, retrieveCheckoutSession, stripeFromEnv } from "./stripe";
 
 /**
@@ -23,6 +24,13 @@ export type PurgeSweepDeps = {
   candidates: () => Promise<PurgeSweepRow[]>;
   retrieve: (sessionId: string) => Promise<SessionView>;
   purge: (bookingId: string, reason: string) => Promise<boolean>;
+  /**
+   * J4 (W5-11): after every session of the booking was read back expired and unpaid, mark exactly those
+   * payment rows dead (checkout_payments_mark_dead). purge_unpaid_booking refuses while a requires_payment
+   * row still names a session nobody proved dead, so this is the proof the database asks for. A failure is
+   * logged and the purge is still asked: the database refuses it when the proof is missing.
+   */
+  markDead?: (bookingId: string, sessionIds: string[]) => Promise<void>;
   emit: (message: string, fields: Record<string, string | number>) => void;
 };
 
@@ -62,6 +70,11 @@ export async function purgeExpiredUnpaidWithDeps(deps: PurgeSweepDeps): Promise<
         }
         continue;
       }
+      try {
+        await deps.markDead?.(row.booking_id, ids);
+      } catch {
+        deps.emit("purge_mark_dead_failed", { bookingId: row.booking_id });
+      }
       if (await deps.purge(row.booking_id, PURGE_REASON)) result.purged += 1;
       else result.skipped += 1;
     } catch {
@@ -76,6 +89,8 @@ export type PurgeOnExpiredDeps = {
   sessionIdsFor: (bookingId: string) => Promise<string[]>;
   retrieve: (sessionId: string) => Promise<SessionView>;
   purge: (bookingId: string, reason: string) => Promise<boolean>;
+  /** J4 (W5-11): see PurgeSweepDeps.markDead. */
+  markDead?: (bookingId: string, sessionIds: string[]) => Promise<void>;
   /** Failure log. A failed purge must leave a trace; the webhook still acks (settle owns retries). */
   emit?: (message: string, fields: Record<string, string | number>) => void;
 };
@@ -98,6 +113,11 @@ export async function purgeOnSessionExpired(
     const ids = (await deps.sessionIdsFor(bookingId)).filter((id) => Boolean(id));
     if (ids.length === 0) return false;
     if (!(await allSessionsExpiredUnpaid(ids, deps.retrieve))) return false;
+    try {
+      await deps.markDead?.(bookingId, ids);
+    } catch {
+      deps.emit?.("purge_mark_dead_failed", { bookingId });
+    }
     return await deps.purge(bookingId, PURGE_REASON);
   } catch {
     deps.emit?.("purge_unpaid_failed", { bookingId });
@@ -127,6 +147,13 @@ export function purgeDepsFromEnv(env: CloudflareEnv): PurgeOnExpiredDeps {
         `;
         return rows[0]?.purged === true;
       }),
+    markDead: async (bookingId, sessionIds) => {
+      await asSystem(env, async (sql) => {
+        await sql`
+          select public.checkout_payments_mark_dead(${bookingId}::uuid, ${pgTextArrayLiteral(sessionIds)}::text[])
+        `;
+      });
+    },
   };
 }
 
@@ -143,6 +170,7 @@ export async function purgeExpiredUnpaid(env: CloudflareEnv): Promise<PurgeSweep
       }),
     retrieve: real.retrieve,
     purge: real.purge,
+    markDead: real.markDead,
     emit: (message, fields) => {
       console.error(message, JSON.stringify(fields));
     },

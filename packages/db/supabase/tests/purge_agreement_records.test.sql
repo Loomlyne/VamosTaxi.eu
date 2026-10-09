@@ -194,6 +194,16 @@ select r.id, r.booking_id, to_jsonb(r) - 'booking_id' as rest
  where r.booking_id in (select booking_id from par_sup union all select booking_id from par_exp
                         union all select booking_id from par_open union all select booking_id from par_paid);
 
+-- J4 (W5-11): the Worker proves every session of the booking dead and marks it before a purge; the sweep and
+-- the expired-page path purge only after the price lock has expired.
+select public.checkout_payments_mark_dead(booking_id, array[cs]) from (
+  values ((select booking_id from par_sup), 'cs_par_sup'), ((select booking_id from par_exp), 'cs_par_exp'),
+         ((select booking_id from par_open), 'cs_par_open')) as t(booking_id, cs);
+set local session_replication_role = replica;
+update public.price_snapshots set quote_lock_expires_at = now() - interval '1 minute'
+ where booking_id in (select booking_id from par_exp union all select booking_id from par_open);
+set local session_replication_role = origin;
+
 select is((select count(*)::int from par_before), 5, 'fixture: five records on four bookings');
 select ok(app.purge_eligible((select booking_id from par_sup)) and app.purge_eligible((select booking_id from par_exp))
           and app.purge_eligible((select booking_id from par_open)) and not app.purge_eligible((select booking_id from par_paid)),

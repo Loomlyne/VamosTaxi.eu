@@ -238,6 +238,9 @@ describe("runCheckoutIntent mode web (26.3)", () => {
         throw Object.assign(new Error("none"), { code: "P0002" });
       },
       listSessionIds: async (id) => [...(bookings.get(id)?.sessions ?? [])],
+      markSessionsDead: async (id, ids) => {
+        calls.push(`dead:${id}:${ids.join(",")}`);
+      },
       purgeUnpaid: async (id, reason) => {
         calls.push(`purge:${id}:${reason}`);
         bookings.delete(id);
@@ -634,6 +637,45 @@ describe("runCheckoutIntent mode web (26.3)", () => {
     expect(order.indexOf("expire:cs_1")).toBeLessThan(order.indexOf(`purge:${first.booking_id}:superseded`));
     expect(order.indexOf(`purge:${first.booking_id}:superseded`)).toBeLessThan(order.indexOf("createBooking"));
     expect(w.bookings.size).toBe(1);
+  });
+
+  it("W5-11: the verified sessions are marked dead BEFORE the purge, and only after every one was read back expired and unpaid", async () => {
+    const p = payload();
+    const w = world(p);
+    await runCheckoutIntent(await webBody(p), w.d as never);
+    w.calls.length = 0;
+    await runCheckoutIntent(await webBody(p, { extra_codes: ["ski_bag"], idempotency_key: "idem-w2" }), w.d as never);
+    const dead = w.calls.findIndex((c) => c.startsWith("dead:"));
+    const purge = w.calls.findIndex((c) => c.startsWith("purge:"));
+    expect(dead).toBeGreaterThanOrEqual(0);
+    expect(dead).toBeLessThan(purge);
+    expect(w.calls[dead]).toMatch(/^dead:[^:]+:cs_1$/);
+  });
+
+  it("W5-11: nothing is marked dead when a session is still paid (the Pay is refused)", async () => {
+    const p = payload();
+    const w = world(p);
+    await runCheckoutIntent(await webBody(p), w.d as never);
+    const s = w.sessions.get("cs_1")!;
+    s.status = "complete";
+    s.payment_status = "paid";
+    w.calls.length = 0;
+    await runCheckoutIntent(await webBody(p, { extra_codes: ["ski_bag"], idempotency_key: "idem-w2" }), w.d as never);
+    expect(w.calls.some((c) => c.startsWith("dead:"))).toBe(false);
+  });
+
+  it("W5-11: a failing mark-dead call does not stop the supersede (the database decides the purge)", async () => {
+    const p = payload();
+    const w = world(p, {
+      markSessionsDead: async () => {
+        throw new Error("rpc missing");
+      },
+    });
+    await runCheckoutIntent(await webBody(p), w.d as never);
+    w.calls.length = 0;
+    const res = await runCheckoutIntent(await webBody(p, { extra_codes: ["ski_bag"], idempotency_key: "idem-w2" }), w.d as never);
+    expect(res.status).toBe(200);
+    expect(w.calls.some((c) => c.startsWith("purge:"))).toBe(true);
   });
 
   it("an old session that is complete refuses quote_already_booked and never purges", async () => {

@@ -51,6 +51,7 @@ import {
   type StuckPaymentAlertInput,
 } from "../ops/must-fix-mail";
 import { metaPurchaseDepsFromEnv, sendMetaPurchase, type MetaPurchaseInput } from "../meta/purchase";
+import { pgTextArrayLiteral } from "./pg-array";
 import {
   PAID_ERROR_RETRY_SECONDS,
   retryDelayForAttempt,
@@ -196,10 +197,7 @@ export type SettleDeps = MoneyEventDeps & {
   emit: (level: "debug" | "info" | "warn" | "error", type: string, fields?: Record<string, ScalarValue>) => void;
 };
 
-/** Postgres `text[]` literal. A 1-element JS array binds as a scalar; `::text[]` then throws 22P02. */
-export function pgTextArrayLiteral(values: string[]): string {
-  return `{${values.map((value) => `"${value.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`).join(",")}}`;
-}
+export { pgTextArrayLiteral };
 
 function paymentIntentIdOf(session: Stripe.Checkout.Session | null): string | null {
   if (!session) return null;
