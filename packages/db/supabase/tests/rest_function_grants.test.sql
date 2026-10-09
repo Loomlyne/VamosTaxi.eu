@@ -1,5 +1,11 @@
 -- rest_function_grants.test.sql
 --
+-- EXPECTS MIGRATION 20261007320000 (REST function revoke) TO BE APPLIED. J9 W5-22: this file asserts the ACLs that
+-- migration leaves (anon, authenticated and PUBLIC hold none of the eight functions). The lab applies every
+-- migration, so it passes there; a green run of this file says NOTHING about the live database, where
+-- 20261007320000 stays unapplied until the owner's word (after about a day of the Worker and the 4242 payment).
+-- Test 1 states the migration it expects and fails loudly if it is missing from the local migration history.
+-- The J9 migration (20261009160000) does not depend on it and this file does not test J9.
 -- 261005 money hardening S6, migrations 20261007310000 (grant, coupon codes) and 20261007320000 (revoke). Eight SECURITY DEFINER functions were executable
 -- by anon (and some by authenticated), so anyone could call them through Supabase REST with the public
 -- key, past the Worker's rate limits. EXECUTE now sits with vamos_checkout (the Worker's public
@@ -7,7 +13,13 @@
 -- The customer functions the Worker calls AS authenticated keep that grant on purpose.
 -- Synthetic rappen integers only.
 begin;
-select plan(51);
+select plan(52);
+
+-- Which migration this file expects (J9 W5-22) ------------------------------------------------
+select ok(
+  exists (select 1 from supabase_migrations.schema_migrations where version = '20261007320000'),
+  'EXPECTS 20261007320000 (REST function revoke) in the applied migrations: a pass here is lab state, not live state'
+);
 
 -- Fixtures --------------------------------------------------------------------------------
 update public.rate_versions set status = 'retired' where status = 'live';

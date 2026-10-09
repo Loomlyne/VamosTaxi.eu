@@ -19,6 +19,16 @@
 // written on the event with its SQLSTATE and the event is still retried slowly, so after the
 // queue's last try the dead-letter queue mails info@ ("A Stripe payment event is stuck").
 // Neither is ever acknowledged.
+//
+// J7 (payments review 2026-10-09):
+//   W6-05  refund.failed / refund.updated / charge.refund.updated: a refund Stripe accepted that later turns
+//          failed or canceled is reversed in the database (stripe_refund_failed_record), the intent of an
+//          app refund is reopened for Retry, and ops is mailed. A succeeded refund event runs the
+//          charge.refunded path on its charge (a dashboard refund that was pending when first seen).
+//   W6-07  a dispute that is new or moved to another status mails ops (ids only) before the event is closed;
+//          a failed mail keeps the event open (retry), a sent one is never repeated (stripe_dispute_alerted).
+//   W6-19  a non-CHF succeeded refund no longer skips the CHF refunds of the same charge: the CHF ones are
+//          recorded, then the event goes to the slow retry that ends in the dead-letter mail.
 
 import type Stripe from "stripe";
 import type { ScalarValue } from "../logger";
@@ -58,14 +68,58 @@ export type DisputeInput = {
   stripeCreated: Date;
 };
 
+/** J7 W6-05: a recorded refund that Stripe now reports failed or canceled. */
+export type RefundFailureInput = {
+  stripeRefundId: string;
+  status: "failed" | "canceled";
+  failureReason: string | null;
+  created: Date;
+  /** metadata.vamos_source === "app": the app's own row may not have landed yet (app_refund_pending). */
+  appSource: boolean;
+};
+
+export type RefundFailureResult = {
+  /** reversed | already | unknown */
+  outcome: string;
+  reference: string | null;
+  /** true until the ops mail for this reversal went out. */
+  alertPending: boolean;
+};
+
+export type DisputeUpsertResult = {
+  reference: string | null;
+  status: string;
+  /** true while the stored status is not the one ops was last mailed about. */
+  alertPending: boolean;
+};
+
+/** What an ops money alert carries: ids and the booking reference only (D-06), never a name, e-mail or amount. */
+export type MoneyAlertInput = {
+  eventId: string;
+  type: string;
+  /** The Stripe object the alert is about: the re_ refund or du_ dispute id. */
+  objectId: string;
+  reference: string | null;
+  /** The dispute status the mail is about (dispute alerts only). */
+  status?: string;
+};
+
 export type MoneyEventDeps = {
   retrieveCharge: (chargeId: string) => Promise<Stripe.Charge>;
   retrieveDispute: (disputeId: string) => Promise<Stripe.Dispute>;
+  /** J7 W6-05: re-read a refund from Stripe (its current status, never the event body). */
+  retrieveRefund?: (refundId: string) => Promise<Stripe.Refund>;
+  /** J7 W6-05: public.stripe_refund_failed_record. */
+  recordRefundFailure?: (input: RefundFailureInput) => Promise<RefundFailureResult>;
+  /** J7 W6-05: mail ops that a refund was reversed, then record the mail. Throws when the mail did not go out. */
+  alertRefundFailed?: (input: MoneyAlertInput) => Promise<void>;
+  /** J7 W6-07: mail ops about a dispute status, then record the mail. Throws when the mail did not go out. */
+  alertDispute?: (input: MoneyAlertInput) => Promise<void>;
   findSessionIdForPaymentIntent: (paymentIntentId: string) => Promise<string | null>;
   /** public.stripe_charge_refunded_record -- idempotent on stripeRefundId. */
   recordChargeRefund: (input: ChargeRefundInput) => Promise<{ outcome: string }>;
   /** public.stripe_dispute_upsert -- one row per stripeDisputeId. */
-  upsertDispute: (input: DisputeInput) => Promise<void>;
+  upsertDispute: (input: DisputeInput) => Promise<DisputeUpsertResult | void>;
   eventSettle: (eventId: string, error: string | null) => Promise<void>;
   /** J2 (W4-09): closes an event that needs no further work: processed_at set, the reason kept in last_error. */
   eventClose: (eventId: string, reason: string) => Promise<void>;
@@ -74,10 +128,22 @@ export type MoneyEventDeps = {
   emit: (level: "debug" | "info" | "warn" | "error", type: string, fields?: Record<string, ScalarValue>) => void;
 };
 
+/**
+ * J7 W6-05: the event types whose object is a Refund (`re_...`). The Stripe webhook endpoint must be
+ * subscribed to them: refund.failed, refund.updated and charge.refund.updated (the same status change can
+ * arrive under more than one of them; the handling is idempotent).
+ */
+export const REFUND_EVENT_TYPES: readonly string[] = Object.freeze([
+  "refund.failed",
+  "refund.updated",
+  "charge.refund.updated",
+]);
+
 /** Which money event a Stripe event type is, or null when it is not one this module handles. */
-export function moneyEventKind(type: string): "charge_refunded" | "dispute" | null {
+export function moneyEventKind(type: string): "charge_refunded" | "dispute" | "refund_update" | null {
   if (type === "charge.refunded") return "charge_refunded";
   if (DISPUTE_EVENT_TYPES.includes(type)) return "dispute";
+  if (REFUND_EVENT_TYPES.includes(type)) return "refund_update";
   return null;
 }
 
@@ -153,27 +219,12 @@ export async function handleChargeRefundedWithDeps(
     return { retry: true };
   }
 
-  if (refunds.some((refund) => refund.status === "succeeded" && refund.currency !== "chf")) {
+  // J7 W6-19: a non-CHF refund can never be recorded (the books are CHF), but it must not take the CHF
+  // refunds of the same charge down with it: they are recorded below, the event is then handed to the
+  // slow retry that ends in the dead-letter mail (ids only) so a person looks at the odd one.
+  const nonChf = refunds.some((refund) => refund.status === "succeeded" && refund.currency !== "chf");
+  if (nonChf) {
     deps.emit("error", "charge_refund_non_chf", { eventId: message.eventId, chargeId: charge.id });
-    // J2 (W4-02, W4-09): a refund in a currency the app cannot record is money a human must reconcile.
-    // The mail must have gone out before the event is closed; a mail that failed retries.
-    try {
-      await deps.alertStuckPayment({
-        eventId: message.eventId,
-        type: message.type,
-        objectId: message.objectId,
-        reference: null,
-      });
-    } catch {
-      deps.emit("error", "stuck_payment_alert_failed", { eventId: message.eventId });
-      return { retry: true };
-    }
-    try {
-      await deps.eventClose(message.eventId, "non_chf_refund");
-    } catch {
-      return { retry: true };
-    }
-    return { ack: true };
   }
 
   let sessionId: string | null = null;
@@ -192,6 +243,7 @@ export async function handleChargeRefundedWithDeps(
       continue;
     }
     if (refund.status !== "succeeded") continue;
+    if (refund.currency !== "chf") continue;
     try {
       const { outcome } = await deps.recordChargeRefund({
         paymentIntentId,
@@ -217,8 +269,142 @@ export async function handleChargeRefundedWithDeps(
     }
   }
 
+  if (nonChf) {
+    // J2 (W4-02, W4-09) after J7 (W6-19): the CHF refunds on this charge are already recorded above.
+    // Mail ops before the event is closed. A mail that failed retries and does not close. The close
+    // keeps the reason and sets processed_at, so the hourly sweep does not re-enqueue it. The retry
+    // still runs once: a closed event answers already processed.
+    try {
+      await deps.alertStuckPayment({
+        eventId: message.eventId,
+        type: message.type,
+        objectId: message.objectId,
+        reference: null,
+      });
+    } catch {
+      deps.emit("error", "stuck_payment_alert_failed", { eventId: message.eventId });
+      return { retry: true };
+    }
+    try {
+      await deps.eventClose(message.eventId, "non_chf_refund");
+    } catch {
+      return { retry: true };
+    }
+    return { retry: true, delaySeconds: PAID_ERROR_RETRY_SECONDS };
+  }
+
   if (pending) {
     return { retry: true, delaySeconds: APP_REFUND_PENDING_DELAY_SECONDS };
+  }
+
+  try {
+    await deps.eventSettle(message.eventId, null);
+  } catch {
+    return { retry: true };
+  }
+  return { ack: true };
+}
+
+/**
+ * refund.failed | refund.updated | charge.refund.updated (J7 W6-05). The event only names a refund (`re_`);
+ * its current state is re-read from Stripe. failed / canceled: the refund the database recorded did not
+ * move the money, so it is reversed (stripe_refund_failed_record) and ops is mailed. succeeded: the
+ * refund's charge goes through the charge.refunded path (records a dashboard refund that was still pending
+ * when charge.refunded came; an app refund is already there). Anything else (pending, requires_action):
+ * nothing to do yet, a later event carries the final state.
+ */
+export async function handleRefundUpdateWithDeps(
+  message: StripeQueueMessage,
+  deps: MoneyEventDeps,
+): Promise<HandleResult> {
+  const { retrieveRefund, recordRefundFailure } = deps;
+  if (!message.objectId.startsWith("re_") || !retrieveRefund || !recordRefundFailure) {
+    // Not a refund object, or a caller that has no refund wiring: nothing was mirrored, say so on the event.
+    try {
+      await deps.eventSettle(message.eventId, null);
+    } catch {
+      return { retry: true };
+    }
+    return { ack: true };
+  }
+
+  let refund: Stripe.Refund;
+  try {
+    refund = await retrieveRefund(message.objectId);
+  } catch {
+    return { retry: true };
+  }
+
+  if (refund.status === "succeeded") {
+    const chargeId = idOf(refund.charge);
+    if (!chargeId) {
+      deps.emit("warn", "refund_event_without_charge", { eventId: message.eventId, refundId: refund.id });
+      try {
+        await deps.eventSettle(message.eventId, null);
+      } catch {
+        return { retry: true };
+      }
+      return { ack: true };
+    }
+    let charge: Stripe.Charge;
+    try {
+      charge = await deps.retrieveCharge(chargeId);
+    } catch {
+      return { retry: true };
+    }
+    return handleChargeRefundedWithDeps(message, charge, deps);
+  }
+
+  if (refund.status !== "failed" && refund.status !== "canceled") {
+    try {
+      await deps.eventSettle(message.eventId, null);
+    } catch {
+      return { retry: true };
+    }
+    return { ack: true };
+  }
+
+  let result: RefundFailureResult;
+  try {
+    result = await recordRefundFailure({
+      stripeRefundId: refund.id,
+      status: refund.status,
+      failureReason: refund.failure_reason ? String(refund.failure_reason) : null,
+      created: new Date(message.stripeCreated * 1000),
+      appSource: refund.metadata?.vamos_source === "app",
+    });
+  } catch (err) {
+    if (isAppRefundPending(err)) {
+      return { retry: true, delaySeconds: APP_REFUND_PENDING_DELAY_SECONDS };
+    }
+    if (sqlState(err) === "P0002") return { retry: true };
+    return retryMoneyError(message.eventId, err, "refund_failure_failed", deps);
+  }
+
+  deps.emit(result.outcome === "reversed" ? "error" : "info", "refund_failure_recorded", {
+    eventId: message.eventId,
+    refundId: refund.id,
+    outcome: result.outcome,
+  });
+
+  if (result.alertPending && deps.alertRefundFailed) {
+    try {
+      await deps.alertRefundFailed({
+        eventId: message.eventId,
+        type: message.type,
+        objectId: refund.id,
+        reference: result.reference,
+      });
+    } catch {
+      // The reversal is written; the mail is not. Keep the event open so the mail is tried again.
+      deps.emit("error", "refund_failed_alert_failed", { eventId: message.eventId, refundId: refund.id });
+      try {
+        await deps.eventSettle(message.eventId, "refund_failed_alert_failed");
+      } catch {
+        // Best effort: the retry below is the real handling.
+      }
+      return { retry: true, delaySeconds: PAID_ERROR_RETRY_SECONDS };
+    }
   }
 
   try {
@@ -250,8 +436,9 @@ export async function handleDisputeWithDeps(
     }
   }
 
+  let stored: DisputeUpsertResult | void;
   try {
-    await deps.upsertDispute({
+    stored = await deps.upsertDispute({
       stripeDisputeId: dispute.id,
       paymentIntentId,
       sessionId,
@@ -270,6 +457,28 @@ export async function handleDisputeWithDeps(
     disputeId: dispute.id,
     status: String(dispute.status),
   });
+
+  // J7 W6-07: a dispute that is new or moved to another status mails ops (ids only), once per status.
+  if (stored && stored.alertPending && deps.alertDispute) {
+    try {
+      await deps.alertDispute({
+        eventId: message.eventId,
+        type: message.type,
+        objectId: dispute.id,
+        reference: stored.reference,
+        status: stored.status,
+      });
+    } catch {
+      // The row is written; the mail is not. Keep the event open so the mail is tried again.
+      deps.emit("error", "dispute_alert_failed", { eventId: message.eventId, disputeId: dispute.id });
+      try {
+        await deps.eventSettle(message.eventId, "dispute_alert_failed");
+      } catch {
+        // Best effort: the retry below is the real handling.
+      }
+      return { retry: true, delaySeconds: PAID_ERROR_RETRY_SECONDS };
+    }
+  }
 
   try {
     await deps.eventSettle(message.eventId, null);

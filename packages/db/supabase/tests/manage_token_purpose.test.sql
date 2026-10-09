@@ -150,9 +150,13 @@ select is(
 reset role;
 
 set local role vamos_guest;
-select lives_ok(
+-- J7 W6-16: booking A is still pending and unpaid, so the manage token's cancel is refused the way the
+-- signed-in route refuses it (unpaid_use_hard_delete), not answered as an unknown token (P0002). The cancel
+-- of a paid booking by a manage token is proven in refund_ledger_mirroring.test.sql and manage_booking_mutation.
+select throws_ok(
   $$select * from public.manage_booking_cancel(extensions.digest('mtp-manage-a', 'sha256'))$$,
-  '(14) manage token: manage_booking_cancel works');
+  'P0001', 'unpaid_use_hard_delete',
+  '(14) manage token: manage_booking_cancel recognises the token and refuses an unpaid pending booking (W6-16)');
 reset role;
 
 -- Pay functions still answer to the pay token ---------------------------------------------------

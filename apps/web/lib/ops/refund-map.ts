@@ -119,28 +119,6 @@ export function stripeFeeRappen(refund: {
   return null;
 }
 
-/** D-12: remaining = captured minus refunded. already-refunded only when remaining is 0. */
-export function opsRefundAmount(input: {
-  capturedRappen: number;
-  refundedRappen: number;
-  percent?: number;
-  rappen?: number;
-}): { remaining: number; amount: number } {
-  const captured = Number.isFinite(input.capturedRappen) ? Math.trunc(input.capturedRappen) : 0;
-  const refunded = Number.isFinite(input.refundedRappen) ? Math.trunc(input.refundedRappen) : 0;
-  const remaining = Math.max(0, captured - Math.max(0, refunded));
-  if (remaining <= 0) return { remaining: 0, amount: 0 };
-  let amount = remaining;
-  if (typeof input.rappen === "number" && Number.isFinite(input.rappen)) {
-    amount = Math.trunc(input.rappen);
-  } else if (typeof input.percent === "number" && Number.isFinite(input.percent)) {
-    amount = Math.round((captured * input.percent) / 100);
-  }
-  if (amount > remaining) amount = remaining;
-  if (amount < 0) amount = 0;
-  return { remaining, amount };
-}
-
 export type RefundRequest = {
   /** One captured payment; absent = every captured payment. */
   paymentId?: number;
@@ -153,21 +131,43 @@ export type RefundRequest = {
   retry?: boolean;
 };
 
+/** The keys the refund route reads. Anything else is refused (J7 W6-04). */
+const REFUND_BODY_KEYS: readonly string[] = Object.freeze([
+  "all",
+  "percent",
+  "amountRappen",
+  "rappen",
+  "paymentId",
+  "postTrip",
+  "retry",
+]);
+
 export type ParsedRefundBody =
   | { ok: true; value: RefundRequest }
   | { ok: false; code: "invalid-percent" | "invalid-body" | "invalid-amount" };
 
 /**
- * 26.1-17 D-24/D-25 + 20-10 (T-26.1-54): the admin refund body. `{}` = every payment, all that is
- * left; `{ percent }` = an integer 0-100 of what was paid; `{ amountRappen }` (legacy `rappen`) =
+ * 26.1-17 D-24/D-25 + 20-10 (T-26.1-54): the admin refund body. `{}` or `{ all: true }` = every
+ * payment, all that is left (explicit: any non-object body or unknown key is invalid-body, J7 W6-04); `{ percent }` = an integer 0-100 of what was paid; `{ amountRappen }` (legacy `rappen`) =
  * an exact amount; never both. `{ paymentId }` limits it to one payment (an exact amount needs
  * one payment: the route checks that against the booking). `{ postTrip: true }` = the post-trip
  * accept and cannot be combined with an amount or a payment. `{ retry: true }` stands alone.
  * The amount itself is always computed server-side.
  */
 export function parseRefundBody(body: unknown): ParsedRefundBody {
-  if (!body || typeof body !== "object" || Array.isArray(body)) return { ok: true, value: {} };
+  // J7 W6-04: a refund cannot be undone, so a body that is not a JSON object (nothing, null, an array, a
+  // string) or that carries a key this route does not know (a typo such as `amount`) is refused, never
+  // read as "refund everything left". An explicit `{}` (or `{ all: true }`) still is that request.
+  if (!body || typeof body !== "object" || Array.isArray(body)) return { ok: false, code: "invalid-body" };
   const record = body as Record<string, unknown>;
+  for (const key of Object.keys(record)) {
+    if (!REFUND_BODY_KEYS.includes(key)) return { ok: false, code: "invalid-body" };
+  }
+  if ("all" in record && record.all !== undefined) {
+    if (record.all !== true) return { ok: false, code: "invalid-body" };
+    if (Object.keys(record).length > 1) return { ok: false, code: "invalid-body" };
+    return { ok: true, value: {} };
+  }
   const out: RefundRequest = {};
   if ("percent" in record && record.percent !== undefined) {
     const p = record.percent;

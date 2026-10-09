@@ -82,19 +82,13 @@ export async function cancelBooking(
     : await resolveStaffBookingId(env, claims, key);
   if (!bookingId) return { ok: false, code: "not-found" };
 
-  const captured = await asStaff(env, claims, async (sql) => {
-    const rows = await sql<{ id: number }[]>`
-      select 1 as id
-        from public.booking_payments as p
-       where p.booking_id = ${bookingId}::uuid
-         and p.captured_at is not null
-       limit 1
-    `;
-    return rows.length > 0;
-  });
+  // J7 W6-09: no separate "is it paid?" read. The erase itself looks under the payment and booking locks, in
+  // the same transaction, so a Stripe settle that lands in between can never leave a paid booking erased.
+  // "paid" means a payment is captured: nothing was erased, and the booking goes down the paid cancel below.
+  const eraseOutcome = await eraseBooking(env, claims, bookingId);
+  if (eraseOutcome === "not-found") return { ok: false, code: "not-found" };
+  const captured = eraseOutcome === "paid";
   if (!captured) {
-    const erased = await eraseBooking(env, claims, bookingId);
-    if (!erased) return { ok: false, code: "not-found" };
     // 26.2-bp B1: the erase leaves the booking pending, so a Stripe Checkout
     // Session the customer still has open stayed payable and settle would
     // confirm a booking the board no longer lists. Expire them here, same
@@ -351,22 +345,29 @@ export async function markArrival(
   });
 }
 
+/** J7 W6-09: erased | paid (a payment is captured; nothing was changed) | not-found. */
+export type EraseOutcome = "erased" | "paid" | "not-found";
+
+/**
+ * Soft-erases an UNPAID booking (by id or reference). One definer function re-checks "no captured
+ * payment" under the payment and booking locks in the same transaction as the erase (W6-09), so a payment
+ * that settles in between is seen and the booking stays.
+ */
 export async function eraseBooking(
   env: CloudflareEnv,
   claims: VamosClaims,
   id: string,
-): Promise<boolean> {
+): Promise<EraseOutcome> {
   const key = id.trim();
-  if (!key) return false;
+  if (!key) return "not-found";
   return asStaff(env, claims, async (sql) => {
-    const rows = await sql<{ id: string }[]>`
-      update public.bookings
-      set erased_at = now(), updated_at = now()
-      where erased_at is null
-        and (id::text = ${key} or reference = ${key})
-      returning id
+    const rows = await sql<{ outcome: string }[]>`
+      select outcome from public.staff_erase_unpaid_booking(${key})
     `;
-    return rows.length > 0;
+    const outcome = rows[0]?.outcome;
+    if (outcome === "erased") return "erased";
+    if (outcome === "paid") return "paid";
+    return "not-found";
   });
 }
 

@@ -225,7 +225,8 @@ async function defaultLoadContext(env: CloudflareEnv, claims: VamosClaims, booki
              (select coalesce(sum(p.charged_rappen), 0) from public.booking_payments as p
                where p.booking_id = b.id and p.captured_at is not null) as captured_rappen,
              (select coalesce(sum(r.refund_rappen), 0) from public.booking_refunds as r
-               where r.booking_id = b.id) as refunded_rappen,
+               where r.booking_id = b.id
+                 and not exists (select 1 from public.booking_refund_reversals as x where x.refund_id = r.id)) as refunded_rappen,
              exists (select 1 from public.booking_edit_requests as e
                       where e.booking_id = b.id and e.status = 'requested' and e.actor = 'customer') as customer_waiting
         from public.bookings as b

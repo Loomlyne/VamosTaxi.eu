@@ -24,6 +24,13 @@
 begin;
 select plan(85);
 
+-- J9 W5-23: checkout_cancel_unpaid trusts auth.users (a confirmed e-mail), not the JWT e-mail claim, so the
+-- two account identities used below are real, confirmed accounts.
+insert into auth.users (id, email, aud, role, email_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
+values
+  ('20000000-0000-4000-8000-000000000003', 'rt-account@example.test', 'authenticated', 'authenticated', now(), '{}'::jsonb, '{}'::jsonb, now(), now()),
+  ('20000000-0000-4000-8000-000000000007', 'rt-past@example.test', 'authenticated', 'authenticated', now(), '{}'::jsonb, '{}'::jsonb, now(), now());
+
 -- Fixtures --------------------------------------------------------------------------------
 insert into public.vehicle_classes (slug, passenger_capacity, luggage_capacity)
 values ('rt-first', 3, 3);

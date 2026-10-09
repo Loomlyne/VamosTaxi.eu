@@ -220,6 +220,56 @@ describe("OpsMustFixEmail amount-mismatch (J3, W4-07)", () => {
   });
 });
 
+// J7 (W6-05, W6-07): the two money alerts. Ids only: the booking reference, the Stripe event id and type, the
+// refund or dispute id. No name, e-mail, card or amount.
+describe("OpsMustFixEmail refund-failed and dispute (J7)", () => {
+  const WORDS: Record<"refund-failed" | "dispute", Record<EmailLocale, string>> = {
+    "refund-failed": {
+      en: "A refund was reversed by Stripe",
+      de: "Eine Rückerstattung wurde von Stripe rückgängig gemacht",
+      fr: "Un remboursement a été annulé par Stripe",
+      ar: "ألغت Stripe عملية استرداد",
+    },
+    dispute: {
+      en: "A card dispute was opened or changed",
+      de: "Eine Kartenstreitigkeit wurde eröffnet oder geändert",
+      fr: "Un litige de carte a été ouvert ou modifié",
+      ar: "فُتح نزاع على بطاقة أو تغيّرت حالته",
+    },
+  };
+
+  function alertPayload(locale: EmailLocale, kind: "refund-failed" | "dispute"): OpsMustFixForEmail {
+    return {
+      locale,
+      kind,
+      trips: [{ reference: "VT-40004", pickupText: "", dropoffText: "", scheduledLocal: "" }],
+      detail: {
+        eventId: "evt_money_1",
+        eventType: kind === "dispute" ? "charge.dispute.created" : "refund.failed",
+        objectId: kind === "dispute" ? "du_money_1" : "re_money_1",
+      },
+    };
+  }
+
+  for (const kind of ["refund-failed", "dispute"] as const) {
+    it.each(LOCALES)(`${kind}: %s plain text carries the headline, the reference and the three ids, no raw key`, (locale) => {
+      const text = opsMustFixPlainText(alertPayload(locale, kind));
+      expect(text).toContain(WORDS[kind][locale]);
+      expect(text).toContain("VT-40004");
+      expect(text).toContain("evt_money_1");
+      expect(text).not.toMatch(/opsMustFix\./);
+    });
+
+    it.each(LOCALES)(`${kind}: %s rendered mail has the ids and no customer data or amount`, async (locale) => {
+      const html = await render(OpsMustFixEmail({ payload: alertPayload(locale, kind) }));
+      expect(html).toContain("VT-40004");
+      expect(html).toContain(kind === "dispute" ? "du_money_1" : "re_money_1");
+      expect(html).not.toContain("CHF");
+      expect(html).not.toMatch(/contactEmail|contactName|customer@/i);
+    });
+  }
+});
+
 describe("send envelope", () => {
   it("uses noreply@vamostaxi.site and sendOpsMustFix", () => {
     const here = dirname(fileURLToPath(import.meta.url));

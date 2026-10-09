@@ -1,20 +1,22 @@
 // apps/web/lib/checkout/cancel-window.ts
 //
-// 26.1-18 (D-23/D-24): the customer cancel screens mirror SQL
-// compute_cancellation_refund v2 (26.1-17). The server decides the money; this
-// only picks the sheet copy and whether the confirm button shows.
+// 26.1-18 (D-23/D-24): the customer cancel screens show the answer of SQL compute_cancellation_refund. The
+// server decides the money; this only picks the sheet copy and whether the confirm button shows.
+//
+// J7 W6-01: the full-refund window is the published `free_cancel_hours` the booking was sold under, so the
+// screens no longer compute "more than 24 hours" themselves (the old TypeScript mirror of the literal 24 is
+// gone): they ask the same database function the cancel itself uses and map its refund_mode.
 
 export type CustomerCancelWindow = "auto_full" | "pending_ops";
 
 /**
- * Refund tier for a paid booking the customer cancels `hours` before pickup.
- * More than 24 h: automatic full refund (D-23). Anything later, including after
- * pickup: the admin reviews it and sets the percentage (D-24). There is no
- * time-based "no refund" zone any more. Callers only use this for paid bookings;
- * an unpaid booking never reaches the customer cancel sheet.
+ * Sheet copy for a paid booking, from compute_cancellation_refund's refund_mode. auto_full: the cancel
+ * refunds in full automatically. Anything else (pending_ops, none, an unreadable answer): the admin
+ * reviews it, which promises the customer nothing the cancel might not keep. Callers only use this for paid
+ * bookings; an unpaid booking never reaches the customer cancel sheet.
  */
-export function customerCancelWindow(hours: number): CustomerCancelWindow {
-  return Number.isFinite(hours) && hours > 24 ? "auto_full" : "pending_ops";
+export function cancelWindowFromMode(mode: string | null | undefined): CustomerCancelWindow {
+  return mode === "auto_full" ? "auto_full" : "pending_ops";
 }
 
 /** Statuses a customer can no longer cancel from: the trip ran, was cancelled, or was refunded. */

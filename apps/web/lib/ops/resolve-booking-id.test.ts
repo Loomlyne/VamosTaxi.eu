@@ -26,7 +26,8 @@ describe("ops booking id lookup", () => {
     expect(cancel).toMatch(/ops_cancel_booking/);
     expect(cancel).toMatch(/asSystem/);
     expect(cancel).toMatch(/eraseBooking/);
-    expect(cancel).toMatch(/booking_payments/);
+    // J7 W6-09: the paid check lives inside the erase (staff_erase_unpaid_booking), not in a read of its own.
+    expect(cancel).not.toMatch(/booking_payments/);
     expect(cancel).not.toMatch(/from public\.bookings/);
   });
 });

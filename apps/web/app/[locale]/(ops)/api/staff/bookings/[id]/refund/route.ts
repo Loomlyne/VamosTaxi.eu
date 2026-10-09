@@ -1,7 +1,7 @@
 // apps/web/app/[locale]/(ops)/api/staff/bookings/[id]/refund/route.ts
 //
 // POST /api/staff/bookings/:id/refund — the admin's refund, by hand (26.1-17, 20-10). Admin only.
-//   {}                          everything left on every payment
+//   {} | { all: true }          everything left on every payment (explicit; a body that is not a JSON object or has an unknown key is 400 invalid-body)
 //   { percent: 0-100 }          the percent of what was paid on each chosen payment (integer)
 //   { amountRappen }            an exact amount, one payment only (legacy name: rappen); never with percent
 //   { paymentId }               only that payment (with percent or amountRappen, or alone = all that is left)
@@ -39,11 +39,12 @@ function emailLocale(raw: string): EmailLocale {
 export const POST = withAdmin(async (claims, request) => {
   const id = bookingKey(request);
   if (!id) return jsonErr("not-found", 404);
-  let body: unknown = {};
+  // J7 W6-04: an unparseable body is a 400, never "refund everything left" (that is an explicit `{}`).
+  let body: unknown;
   try {
     body = await request.json();
   } catch {
-    body = {};
+    return jsonErr("invalid-body", 400);
   }
   // T-26.1-54: integer percent 0-100 ("invalid-percent"); the amount is computed server-side.
   const parsed = parseRefundBody(body);
