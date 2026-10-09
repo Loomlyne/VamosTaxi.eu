@@ -124,3 +124,7 @@ gaps; no dictionary edit is required for the swap itself.
   dictionary entry, unlike the four swaps above.
 - No edit is required in `app/vamos-i18n-dict.js` for the four `Vercel` → `Cloudflare` swaps —
   confirmed zero occurrences of "Vercel" in that file.
+
+## Addendum 2026-10-09: Google Ireland Ltd added
+
+Owner decision `.planning/decisions/2026-10-09-ad-tracking-wording.md`: Google Ireland Ltd (Google Ads advert measurement, only with the visitor's consent) is a processor row on the privacy page (section 04, after Cloudflare Web Analytics) with the owner's own four-language line. Meta stays as the owner's Meta line in section 08 of the privacy page, as decided on 2026-09-30. The cookies page gains the Google row (`_gcl_au`, `_gcl_aw`, up to 90 days, read from Google's cookie list on 2026-10-09).

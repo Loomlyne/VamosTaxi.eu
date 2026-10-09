@@ -68,7 +68,7 @@ afterEach(() => vi.unstubAllGlobals());
 
 describe("CookieBanner and Meta's browser state (review 2 item 1)", () => {
   it("no choice recorded (chosen: false): _fbp, _fbc and both storage keys are cleared", async () => {
-    stubBrowser(replying({ chosen: false, policyVersion: "2026-10-01" }));
+    stubBrowser(replying({ chosen: false, policyVersion: "2026-10-09" }));
     await mount();
     expect(clearedFbp()).toBe(true);
     expect(cookieWrites.some((w) => w.startsWith("_fbc=; Max-Age=0; path=/; domain=.vamostaxi.site"))).toBe(true);
@@ -77,7 +77,7 @@ describe("CookieBanner and Meta's browser state (review 2 item 1)", () => {
 
   it("a saved choice with Marketing off clears", async () => {
     stubBrowser(
-      replying({ chosen: true, policyVersion: "2026-10-01", choice: { functional: true, analytics: false, marketing: false } }),
+      replying({ chosen: true, policyVersion: "2026-10-09", choice: { functional: true, analytics: false, marketing: false } }),
     );
     await mount();
     expect(clearedFbp()).toBe(true);
@@ -85,7 +85,7 @@ describe("CookieBanner and Meta's browser state (review 2 item 1)", () => {
 
   it("a saved choice with Marketing on deletes nothing", async () => {
     stubBrowser(
-      replying({ chosen: true, policyVersion: "2026-10-01", choice: { functional: true, analytics: true, marketing: true } }),
+      replying({ chosen: true, policyVersion: "2026-10-09", choice: { functional: true, analytics: true, marketing: true } }),
     );
     await mount();
     expect(cookieWrites).toEqual([]);

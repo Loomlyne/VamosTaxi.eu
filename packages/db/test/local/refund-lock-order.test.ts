@@ -15,7 +15,7 @@ import { workerSql } from "../support/worker-client.js";
 
 const PORT = process.env["VAMOS_LOCAL_DB_PORT"] ?? "62322";
 const SUPER = `postgres://postgres:postgres@127.0.0.1:${PORT}/postgres`;
-const POLICY = "2026-10-01";
+const POLICY = "2026-10-09";
 const FBP = "fb.1.1727771234567.1234567890";
 const T = { timeout: 30_000 };
 

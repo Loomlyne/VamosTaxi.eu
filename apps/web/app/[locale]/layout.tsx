@@ -9,6 +9,7 @@ import { routing } from "@/i18n/routing";
 import { SEO_SITE_URL } from "@/lib/seo/head";
 import { CookieBanner } from "@/components/consent/CookieBanner";
 import { SiteFooter, SiteHeader, SiteShell } from "@/components/shell";
+import Script from "next/script";
 import { Providers } from "./providers";
 import { clientMessages } from "@/lib/i18n/client-messages";
 import "../globals.css";
@@ -105,6 +106,9 @@ export default async function LocaleLayout({
             {children}
           </SiteShell>
         </Providers>
+        {/* Google tag loader (owner decision 2026-10-09). It does nothing while its flag is closed, outside its
+            address list (pay links, the dashboard host) and until the server says Marketing is on. */}
+        {showBanner ? <Script src="/app/vamos-google.js" strategy="afterInteractive" /> : null}
       </body>
     </html>
   );

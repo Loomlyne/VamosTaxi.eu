@@ -35,6 +35,7 @@ import type { ReceiptRow } from "@/lib/checkout/confirmation-receipt";
 import type { BookingReceipt } from "@/lib/checkout/booking-read";
 import { formatAmount } from "@/lib/currency";
 import { voucherBadgeStatus, voucherNeedsPayment } from "@/lib/checkout/voucher-badge";
+import { confirmationConversion } from "@/lib/checkout/confirmation-conversion";
 
 /**
  * Where the server left the page. "processing" is the return path from Stripe
@@ -557,6 +558,30 @@ export function ConfirmationClient({
     refreshed.current = true;
     router.refresh();
   }, [returnPhase, booking, router]);
+
+  // Owner decisions 2026-10-09 (D4): the Google Ads conversion, once, when the booking is confirmed. The loader
+  // (app/vamos-google.js) does the once-only work (a key per reference in local storage, written before the send), holds the
+  // call until the server has confirmed Marketing consent, and drops it otherwise. It does nothing while its flag is closed.
+  const conversion = confirmationConversion({
+    status: liveStatus || booking?.status,
+    paymentStatus: livePayment ?? booking?.paymentStatus ?? null,
+    chargedRappen: booking?.receipt?.chargedRappen ?? null,
+    priceTotalRappen: booking?.priceTotalRappen ?? null,
+    onReturnPath,
+    returnPhase,
+    reference,
+    paidAt: booking?.paidAt ?? null,
+  });
+  const conversionValue = conversion?.value ?? null;
+  useEffect(() => {
+    if (conversionValue === null) return;
+    const google = (window as unknown as { VamosGoogle?: { conversion?: (i: { value: number; transactionId: string }) => boolean } }).VamosGoogle;
+    try {
+      google?.conversion?.({ value: conversionValue, transactionId: reference });
+    } catch {
+      // never blocks the booking page
+    }
+  }, [conversionValue, reference]);
 
   if (initialPhase === "hidden") {
     return (

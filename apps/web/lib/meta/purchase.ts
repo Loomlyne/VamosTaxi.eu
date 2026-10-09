@@ -9,11 +9,18 @@ import { CONSENT_POLICY_VERSION } from "@/lib/consent/policy";
 import { sqlStateOf } from "@/lib/checkout/settle-errors";
 import type { ScalarValue } from "@/lib/logger";
 import { buildPurchaseEvent, postPurchase, type PostOutcome } from "./capi";
-import { metaMeasurementAllowed } from "./legal-gate";
+import { metaEventsAllowed, metaMeasurementAllowed } from "./legal-gate";
 
 type Emit = (level: "debug" | "info" | "warn" | "error", type: string, fields?: Record<string, ScalarValue>) => void;
 
-export type MetaPurchaseInput = { bookingId: string; paymentId: number; livemode: boolean; refundRequired: boolean };
+export type MetaPurchaseInput = {
+  bookingId: string;
+  paymentId: number;
+  livemode: boolean;
+  refundRequired: boolean;
+  /** The booking reference, sent as order_id (owner decision 2026-10-09, D4). */
+  reference?: string | null;
+};
 
 export type WorkerSkip = "gate_closed" | "no_token" | "no_test_code" | null;
 
@@ -29,6 +36,11 @@ export type ClaimRow = {
 
 export type MetaPurchaseDeps = {
   measurementAllowed: () => boolean;
+  /**
+   * May the booking reference ride along as order_id? Only once the owner's wording of 2026-10-09 is live
+   * (META_EVENTS_OPEN). Missing means no: the live text still says the reference is not sent.
+   */
+  referenceAllowed?: () => boolean;
   token: () => string | null;
   testEventCode: () => string | null;
   claim: (
@@ -144,6 +156,7 @@ async function runMetaPurchase(input: MetaPurchaseInput, deps: MetaPurchaseDeps)
             chargedRappen: claim.chargedRappen,
             fbp: claim.fbp,
             fbc: claim.fbc,
+            orderId: deps.referenceAllowed?.() === true ? (input.reference ?? null) : null,
           })
         : null;
 
@@ -198,6 +211,7 @@ async function limits(sql: Parameters<Parameters<typeof asSystem>[1]>[0]): Promi
 export function metaPurchaseDepsFromEnv(env: CloudflareEnv, emit: Emit): MetaPurchaseDeps {
   return {
     measurementAllowed: metaMeasurementAllowed,
+    referenceAllowed: metaEventsAllowed,
     token: () => env.META_CAPI_ACCESS_TOKEN || null,
     testEventCode: () => env.META_TEST_EVENT_CODE || null,
     claim: async (bookingId, paymentId, policyVersion, testEvent, refundRequired, workerSkip) => {

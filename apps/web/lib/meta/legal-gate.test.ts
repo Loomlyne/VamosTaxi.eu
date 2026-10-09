@@ -11,7 +11,9 @@ import { describe, expect, it } from "vitest";
 import { SECURITY_HEADER_PAIRS } from "../security/headers";
 import {
   META_EVENTS_MANAGER_SWITCHES_OFF,
+  META_EVENTS_OPEN,
   META_LEGAL_GATE_OPEN,
+  metaEventsAllowed,
   metaMeasurementAllowed,
 } from "./legal-gate";
 
@@ -111,7 +113,7 @@ describe("meta legal gate", () => {
     }
   });
 
-  it("policy version is the consent version: set once, and 2026-10-01 until the owner moves it", () => {
+  it("policy version is the consent version: set once, and 2026-10-09 until the owner moves it", () => {
     const assignment = /CONSENT_POLICY_VERSION\s*=(?!=)\s*(["'])([^"']+)\1/g;
     const found: string[] = [];
     for (const rel of walk("")) {
@@ -128,7 +130,7 @@ describe("meta legal gate", () => {
     // Owner, 2026-10-05: the legal pages show their own "Last updated" day (app/vamos-legal-updated.js)
     // and that never moves this version. A new version asks every visitor for consent again, so
     // change this line only with the owner's word.
-    expect(version).toBe("2026-10-01");
+    expect(version).toBe("2026-10-09");
   }, 30_000);
 
   it("Meta strings only where allowed (Phase 28 per-needle allow map, Phase 29 server Purchase)", () => {
@@ -140,7 +142,10 @@ describe("meta legal gate", () => {
       "connect.facebook.net": [...LOADER, "apps/web/lib/security/headers.ts"],
       "facebook.com/tr": [],
       "graph.facebook.com": ["apps/web/lib/meta/capi.ts", "apps/web/lib/meta/capi.test.ts"],
-      META_CAPI_ACCESS_TOKEN: ["apps/web/lib/meta/purchase.ts", "apps/web/lib/env.d.ts"],
+      // Google (owner decision 2026-10-09): the tag id and Google's script host, only where the tag lives.
+      "googletagmanager.com": ["app/vamos-google.js", "apps/web/public/app/vamos-google.js", "apps/web/lib/security/headers.ts"],
+      "AW-368142830": ["app/vamos-google.js", "apps/web/public/app/vamos-google.js", "apps/web/lib/google/flag.ts"],
+      META_CAPI_ACCESS_TOKEN: ["apps/web/lib/meta/purchase.ts", "apps/web/lib/meta/funnel.ts", "apps/web/lib/env.d.ts"],
     };
     const hits: string[] = [];
     for (const rel of scannedFiles()) {
@@ -182,6 +187,20 @@ describe("meta legal gate", () => {
       }
       expect(count, name).toBe(1);
     }
+  }, 30_000);
+
+  it("the wider-events flag (owner wording 2026-10-09) is closed until the controller ships it, and the loader agrees", () => {
+    expect(META_EVENTS_OPEN).toBe(false);
+    expect(metaEventsAllowed()).toBe(false);
+    const js = repoSource("app/vamos-meta.js");
+    expect(/var EVENTS_ON = (true|false);/.exec(js)?.[1]).toBe(String(META_EVENTS_OPEN));
+    const assignment = /META_EVENTS_OPEN\s*=(?!=)/g;
+    let count = 0;
+    for (const rel of scannedFiles()) {
+      if (isThisTest(rel)) continue;
+      count += repoSource(rel).match(assignment)?.length ?? 0;
+    }
+    expect(count).toBe(1);
   }, 30_000);
 
   it("the loader's baked flags equal the TypeScript flags", () => {
@@ -255,16 +274,21 @@ describe("meta legal gate", () => {
         expect(src, rel).not.toContain(needle);
       }
     }
-    for (const [rel, cls, hook, key] of [
-      ["app/[locale]/cookies/page.tsx", "vt-legal-blank--row", "cookies", "meta-row"],
-      ["app/[locale]/privacy/page.tsx", "vt-legal-blank", "privacy", "meta-privacy-line"],
+    for (const [rel, cls, hook, keys] of [
+      ["app/[locale]/cookies/page.tsx", "vt-legal-blank--row", "cookies", ["meta-row", "google-row"]],
+      ["app/[locale]/privacy/page.tsx", "vt-legal-blank", "privacy", ["meta-privacy-line", "google-privacy-line"]],
     ] as const) {
       const body = slotBody(source(rel), cls, hook);
-      // Only the t.rich call: no literal prose in the slot.
+      // Only t.rich calls, one paragraph per owner text: no literal prose in the slot.
       const flat = body.replace(/\s+/g, " ");
-      expect(flat).toMatch(new RegExp(`^<p> \\{t(?:Cookies)?\\.rich\\("${key}", \\{ `));
-      expect(flat.endsWith(", })} </p>")).toBe(true);
-      expect(flat.match(/\.rich\(/g)).toHaveLength(1);
+      const paragraphs = flat.match(/<p>.*?<\/p>/g) ?? [];
+      expect(paragraphs, rel).toHaveLength(keys.length);
+      keys.forEach((key, i) => {
+        expect(paragraphs[i]).toMatch(new RegExp(`^<p> \\{t(?:Cookies)?\\.rich\\("${key}", \\{ `));
+        expect(paragraphs[i]!.endsWith(", })} </p>")).toBe(true);
+        expect(paragraphs[i]!.match(/\.rich\(/g)).toHaveLength(1);
+      });
+      expect(flat.match(/\.rich\(/g)).toHaveLength(keys.length);
     }
   });
 });
