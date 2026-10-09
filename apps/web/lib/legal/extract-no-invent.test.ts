@@ -3,7 +3,7 @@
 // Wave 0 (11-01): no-invent legal/host/mail lock (D-01 D-06 D-11 D-25 D-26 D-28).
 // UID stays PendingSlot / data-tok. Do not fill CHE-296.035.710.
 // No info@vamostaxi.eu. No partner route. wrangler does not bind .eu.
-// Stripe publishable stays pk_test_. No sk_live_. Do not extract .eu copy here.
+// Staging publishable is the Vamos sandbox or the live key (6a5f274e). No sk_live_. Do not extract .eu copy here.
 
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -81,10 +81,16 @@ describe("wrangler host and Stripe test (D-01 D-11)", () => {
     }
   });
 
-  it("env.staging publishable stays pk_test_; repo wrangler has no sk_live_", () => {
+  it("env.staging publishable is the Vamos sandbox or live key; repo wrangler has no sk_live_", () => {
     const wrangler = source("wrangler.jsonc");
     expect(wrangler).not.toMatch(/sk_live_/);
-    const staging = wrangler.slice(wrangler.indexOf('"staging"'));
-    expect(staging).toMatch(/"STRIPE_PUBLISHABLE_KEY":\s*"pk_test_/);
+    const stripped = wrangler.replace(/^\s*\/\/.*$/gm, "");
+    const cfg = JSON.parse(stripped) as {
+      env?: { staging?: { vars?: { STRIPE_PUBLISHABLE_KEY?: string } } };
+    };
+    const key = cfg.env?.staging?.vars?.STRIPE_PUBLISHABLE_KEY ?? "";
+    const sandbox = "pk_test_51UIZmqHcNp9GZYjz";
+    const live = "pk_live_51UIZmAQbJiSLxJfu";
+    expect(key.startsWith(sandbox) || key.startsWith(live)).toBe(true);
   });
 });

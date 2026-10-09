@@ -370,7 +370,7 @@ interface CloudflareEnv {
 
   /**
    * Stripe publishable key. REQUIRED. wrangler.jsonc `vars` — not a secret.
-   * `pk_test_` placeholder until the owner binds a real test key. Never `pk_live_`.
+   * Staging uses the live publishable key (6a5f274e). The secret key is a wrangler secret, never this field.
    */
   STRIPE_PUBLISHABLE_KEY: string;
   /** "on" adds TWINT to the hosted Checkout page; anything else is card only (D-20). */
