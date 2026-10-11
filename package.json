@@ -34,7 +34,8 @@
     "db:local-roles": "pnpm --filter @vamos/db run local-roles",
     "db:test:local": "pnpm --filter @vamos/db run test:local",
     "db:mutation-gate": "pnpm --filter @vamos/db run mutation-gate",
-    "db:probe:now": "pnpm --filter @vamos/db run probe:now"
+    "db:probe:now": "pnpm --filter @vamos/db run probe:now",
+    "gate:local": "pnpm check:public-env && pnpm typecheck && pnpm lint:css && pnpm lint && pnpm i18n:check && pnpm check:legal-claims && pnpm check:numbers && pnpm build && pnpm test:unit && pnpm test:db-lab"
   },
   "engines": {
     "node": ">=22"

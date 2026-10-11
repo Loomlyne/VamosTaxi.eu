@@ -1,20 +1,14 @@
 name: Deploy Staging
 
-# A push to main runs the cheap Ubuntu checks: the gate (typecheck, lint, the Law 04 and legal gates, build), the
+# Started by hand, this runs the cheap Ubuntu checks (no push trigger, see `on:`): the gate (typecheck, lint, the Law 04 and legal gates, build), the
 # unit tests and the database suite (reset from zero, pgTAP, seed and types drift, mutation gate). The repo is
 # private, so every minute bills and macOS bills 10x. The two expensive jobs run only when this workflow is started
 # by hand with their box ticked: `e2e` (the booking-funnel shards on Linux, about 109 billed minutes) and `visual`
 # (the macOS screenshot diffs). The deploy to https://vamostaxi.site is not done here at all (owner decision
 # 2026-09-29: Worker `vamos` ships from the owner's Mac). Never vamostaxi.eu. Never db:push the live bookings project.
 on:
-  push:
-    branches: [main]
-    # A docs- or planning-only merge changes nothing that deploys; skip every job so it spends no Actions minutes.
-    paths-ignore:
-      - "docs/**"
-      - ".planning/**"
-      - "deliverables/**"
-      - "**/*.md"
+  # No push trigger (owner, 2026-10-11): 86 pushes to main in ten days used the month's Actions minutes. The gate, unit
+  # and database checks run locally before a phase PR; this workflow is an independent re-check started by hand.
   # A hand-started run: the only way the `e2e` and `visual` jobs below run.
   workflow_dispatch:
     inputs:

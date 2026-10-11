@@ -5,8 +5,9 @@ name: Pull Request
 # build or upload step so a leaked credential never reaches a published artifact.
 on:
   pull_request:
+    # No `synchronize`: CI runs when the PR opens or is re-opened, marked ready, or labelled, not on every push (minutes).
     # `labeled` lets adding the `visual` label start the macOS job below.
-    types: [opened, synchronize, reopened, ready_for_review, labeled]
+    types: [opened, reopened, ready_for_review, labeled]
     # Docs and planning changes run no code; skip CI so they spend no Actions minutes.
     paths-ignore:
       - "docs/**"
@@ -136,13 +137,8 @@ jobs:
       - name: Visual + integration tests (screenshot diffs, D-25)
         run: pnpm test:visual
 
-  # 26.0 D-01 / e2e-linux-3: the booking-funnel specs on Linux. The jobs live in one reusable workflow
-  # (e2e-linux.yml) so a push to a ci/** branch can prove a change to them on GitHub before main sees it.
-  e2e-linux:
-    name: Booking funnel e2e on Linux (D-01)
-    uses: ./.github/workflows/e2e-linux.yml
-    permissions:
-      contents: read
+  # The booking-funnel e2e (e2e-linux.yml, about 109 billed minutes a run) is not part of PR CI: Actions minutes are
+  # scarce. It runs locally in the test lab before each phase PR (owner, 2026-10-11) and by hand from deploy-staging.yml.
 
   # 26.0 (main-green-3): the database job lives in schema.yml, so a push to a ci/** branch can prove it
   # on GitHub without a pull request. Same steps, same job name.
