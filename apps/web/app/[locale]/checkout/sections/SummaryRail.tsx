@@ -105,7 +105,8 @@ export function OrderSummary() {
             default: {
               const bps = Number((line.params as { vatRateBps?: number }).vatRateBps);
               const rate = vatPercentLabel(bps);
-              return { label: rate ? t("receiptVat", { rate }) : t("receiptVatPlain"), amount };
+              // VAT is inside the total the cards showed: an "included" row, not a line added on top.
+              return { label: rate ? t("vatIncluded", { rate }) : t("receiptVatPlain"), amount, muted: true as const };
             }
           }
         })

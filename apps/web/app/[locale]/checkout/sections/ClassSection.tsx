@@ -137,7 +137,7 @@ export function ClassSection({
               >
                 <VehicleCard
                   name={<span className="vt-dir-keep">{c.name}</span>}
-                  price={money(c.totalRappen)}
+                  price={money(c.cardRappen)}
                   priceNote={note(c)}
                   features={[
                     ...(c.pax ? [{ icon: "users" as const, label: t("classSeats", { n: c.pax }) }] : []),

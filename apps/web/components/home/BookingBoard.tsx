@@ -16,7 +16,9 @@ import type { PriceLine } from "@/components/transfer";
 import type { CurrencyCode } from "@/lib/currency";
 import { useCurrency } from "@/lib/currency-store";
 import { useBookingDraft } from "@/lib/booking-draft";
+import { classCardRappen, classCardVatRappen } from "@/lib/checkout/card-price";
 import { classIsSelectable } from "@/lib/checkout/charge-gate";
+import { vatPercentLabel } from "@/lib/checkout/vat";
 import { chfRappenToDisplay, formatChfRappen } from "@/lib/fx/format";
 import { useFx } from "@/lib/fx/use-fx";
 import type { ClassBoardEntry, VehicleClassSlug } from "@/lib/pricing/types";
@@ -158,6 +160,20 @@ function linesFor(
       muted: line.kind === "included",
     };
   });
+}
+
+/** The VAT row of the breakdown: the slice inside the total, not a line added on top. */
+function vatIncludedLines(
+  entry: ClassBoardEntry,
+  vatRateBps: number,
+  pricingLive: boolean,
+  label: (key: string, values?: Record<string, string | number>) => string,
+  display: (rappen: number | null) => { major: number | null; currency: CurrencyCode },
+): PriceLine[] {
+  const vat = pricingLive ? classCardVatRappen(entry.total_rappen, vatRateBps) : null;
+  const rate = vatPercentLabel(vatRateBps);
+  if (vat === null || !rate) return [];
+  return [{ label: label("checkout.vatIncluded", { rate }), amount: display(vat).major, muted: true }];
 }
 
 function remainingSeconds(expiresAt: string, nowMs: number): number {
@@ -395,7 +411,7 @@ export function BookingBoard() {
       quoteId: quote.quote_id,
       lock: quote.lock,
       vehicleClass: selectedEntry.slug,
-      chargedRappen: selectedEntry.total_rappen ?? undefined,
+      chargedRappen: classCardRappen(selectedEntry.total_rappen, quote.vat_rate_bps) ?? undefined,
     });
   }, [quote, selectedEntry, writeDraft]);
 
@@ -469,7 +485,7 @@ export function BookingBoard() {
       {(quote ? publicFleet(quote.classes) : idleClasses).map((entry) => {
             const eligible = !!quote && entry.eligible;
             const displayed = quote
-              ? publicRappen(quote.pricing_live, entry.total_rappen)
+              ? publicRappen(quote.pricing_live, classCardRappen(entry.total_rappen, quote.vat_rate_bps))
               : null;
             const selectable = eligible && classIsSelectable(displayed);
             const price = !quote
@@ -500,6 +516,16 @@ export function BookingBoard() {
     </div>
   );
 
+  // Card total == checkout total before extras/voucher: class net with VAT included, then FX.
+  const cardTotal = chfRappenToDisplay(
+    publicRappen(
+      quote?.pricing_live ?? false,
+      selectedEntry && quote ? classCardRappen(selectedEntry.total_rappen, quote.vat_rate_bps) : null,
+    ),
+    currency,
+    fxRates,
+  );
+
   const price = (
     <div data-bc-price-stack="">
       {priceRefusal}
@@ -508,27 +534,20 @@ export function BookingBoard() {
       ) : selectedEntry && quote && !refusal ? (
         <>
           <PriceSummary
-            lines={linesFor(selectedEntry, label, (rappen) =>
-              chfRappenToDisplay(
-                publicRappen(quote.pricing_live, rappen),
-                currency,
-                fxRates,
+            lines={[
+              ...linesFor(selectedEntry, label, (rappen) =>
+                chfRappenToDisplay(
+                  publicRappen(quote.pricing_live, rappen),
+                  currency,
+                  fxRates,
+                ),
               ),
-            )}
-            total={
-              chfRappenToDisplay(
-                publicRappen(quote.pricing_live, selectedEntry.total_rappen),
-                currency,
-                fxRates,
-              ).major
-            }
-            currency={
-              chfRappenToDisplay(
-                publicRappen(quote.pricing_live, selectedEntry.total_rappen),
-                currency,
-                fxRates,
-              ).currency
-            }
+              ...vatIncludedLines(selectedEntry, quote.vat_rate_bps, quote.pricing_live, label, (rappen) =>
+                chfRappenToDisplay(rappen, currency, fxRates),
+              ),
+            ]}
+            total={cardTotal.major}
+            currency={cardTotal.currency}
             totalLabel={label("price.line.total")}
             note={
               currency !== "CHF" && fxStatus === "down"

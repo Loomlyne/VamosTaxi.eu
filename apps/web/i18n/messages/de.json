@@ -598,6 +598,7 @@
     "receiptVoucher": "Gutschein {code}",
     "receiptVat": "MwSt. {rate} %",
     "receiptVatPlain": "MwSt.",
+    "vatIncluded": "inkl. MwSt. {rate} %",
     "receiptTotalPaid": "Total bezahlt",
     "receiptPresentment": "Sie haben <fig>{paid}</fig> in {currency} bezahlt. Vamos hat <fig>{received}</fig> erhalten.",
     "backAria": "Zurück",

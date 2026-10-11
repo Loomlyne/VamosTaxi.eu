@@ -56,6 +56,8 @@ export type QuoteResponseBody = {
   expires_at: string;
   engine_version: string;
   pricing_live: boolean;
+  /** Settings VAT rate, tenths of a percent. Display only (cards show class net + VAT). */
+  vat_rate_bps: number;
   display_currency: string;
   route: { legs: PublicQuoteRouteLeg[] };
   no_eligible_class: boolean;
@@ -106,6 +108,7 @@ export function publicQuoteBody(quote: QuotePipelineOk): QuoteResponseBody {
     expires_at: quote.expires_at,
     engine_version: quote.engine_version,
     pricing_live: quote.pricing_live,
+    vat_rate_bps: quote.vat_rate_bps,
     display_currency: quote.display_currency,
     route: {
       legs: quote.route.legs.map(({ origin_zone_id: _o, dest_zone_id: _d, ...leg }) => leg),

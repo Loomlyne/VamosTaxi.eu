@@ -598,6 +598,7 @@
     "receiptVoucher": "Bon {code}",
     "receiptVat": "TVA {rate} %",
     "receiptVatPlain": "TVA",
+    "vatIncluded": "TVA {rate} % comprise",
     "receiptTotalPaid": "Total payé",
     "receiptPresentment": "Vous avez payé <fig>{paid}</fig> en {currency}. Vamos a reçu <fig>{received}</fig>.",
     "backAria": "Retour",
