@@ -136,8 +136,10 @@ begin
        and x.released_at is not null
      order by x.id
   loop
-    -- Same lock the insert trigger takes, so two concurrent revives cannot both pass the cap.
-    select cp.* into c from public.coupons as cp where cp.id = r.coupon_id for update;
+    -- Same lock the insert trigger takes (FOR NO KEY UPDATE since 20261011100000), so two concurrent
+    -- revives, or a revive and a checkout, cannot both pass the cap. FOR UPDATE would conflict with the
+    -- FOR KEY SHARE a checkout's price snapshot holds on this row and bring back the 40P01 #72 removed.
+    select cp.* into c from public.coupons as cp where cp.id = r.coupon_id for no key update;
     v_ok := c.id is not null;
     if v_ok and c.global_limit is not null then
       v_ok := (select pg_catalog.count(*)

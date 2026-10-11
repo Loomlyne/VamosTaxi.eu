@@ -255,7 +255,7 @@ begin
   )
   returning id into v_payment_id;
 
-  -- 7. Coupon. FOR UPDATE serialisation already lives in tg_coupon_redemption_caps.
+  -- 7. Coupon. Serialisation (FOR NO KEY UPDATE since 20261011100000) lives in tg_coupon_redemption_caps.
   if p_coupon_id is not null then
     insert into public.coupon_redemptions (
       coupon_id,
