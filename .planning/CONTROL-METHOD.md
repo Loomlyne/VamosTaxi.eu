@@ -39,7 +39,7 @@ Done means all of this is true on live data, not on paper:
 - Deploy with `--env staging` (Worker `vamos`, live on vamostaxi.site). A deploy without it made the stray Worker `vamos-web` on 2026-10-01.
 - Types with the pinned CLI: `pnpm exec supabase` (2.115.0), then `db:types:check`.
 - After any seed change, re-pin `packages/db/supabase/tests/seed_idempotent.test.sql` to the counts in the seed header.
-- Next migration number: `20261007240000` (`200000` settle safety, `210000` policy settings, `220000` booking reference — all live; `230000` is reserved for the fare-lines job). Ask the controller first and check every remote branch for the file name.
+- Next migration number: `20261012100000` (owner, 2026-10-11 20:5x +04). Files reach `20261011100000` (live stamp `20261011145105`). Reserved: `20261012100000`–`20261012190000` for the ten J1–J10 payment migrations in their current order; Phase 30 starts at `20261012200000`. `20261007320000` (REST revoke) is on main and not applied. Each job still asks the controller before it takes a number and checks every remote branch for the file name.
 - Ship (owner, 2026-10-11 20:47 +04; replaces the standing order "coomit and deply all after verify dont ask me" of 2026-10-01): every Ship is the owner's own answer in the question form. The live Stripe key, the vamostaxi.eu cutover, price book row 18 Publish, deleting test bookings and wiping data need his word every time.
 
 | Session | Model, effort (read 2026-10-01) | Job |
