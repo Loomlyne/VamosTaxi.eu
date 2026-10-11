@@ -1,14 +1,16 @@
 # Control board
 
-**Retired 2026-10-11, 20:35 (+04). The new controller is named in CLAUDE.local.md.** (Claude Code session `1d72bf81-bf8b-4701-a3a1-d3fd79b5acc4`, "Vamos Taxi controller"; hand-off `.planning/handoff/2026-10-11-retired-controller-1d72bf81.md`.)
+**Controller since 2026-10-11 20:47 (+04): T3 Code thread `0fbbf0c1-980e-4de3-9345-e3c8fe69811b` ("VamosTaxi controller", Claude Opus 5.5), in this folder on `main`. It builds nothing itself: it starts one work thread per phase (own worktree and branch from `origin/main`), checks, lands, reads live and keeps this board. Every Ship is the owner's own answer in the question form (owner, 2026-10-11; replaces the 2026-10-01 standing order).**
 
-**Controller since 2026-10-09 14:55 (+04): T3 Code thread `c24bb69d-1096-4631-985c-588cdb7f872f` (Grok), in this folder on `main`. The owner in that chat: Claude usage is finished, this session takes control. Retired the same minute: the Claude desktop session "Vamos Taxi controller" (`local_8685dcc2-2474-4a07-9b0c-595e219c8d7b`, Claude Code id `1d72bf81-bf8b-4701-a3a1-d3fd79b5acc4`). A retired controller starts no work and ships nothing.**
+**Retired 2026-10-11, 20:35 (+04):** Claude Code session `1d72bf81-bf8b-4701-a3a1-d3fd79b5acc4` ("Vamos Taxi controller"); hand-off `.planning/handoff/2026-10-11-retired-controller-1d72bf81.md`.
+
+**Retired 2026-10-11.** **Controller since 2026-10-09 14:55 (+04): T3 Code thread `c24bb69d-1096-4631-985c-588cdb7f872f` (Grok), in this folder on `main`. The owner in that chat: Claude usage is finished, this session takes control. Retired the same minute: the Claude desktop session "Vamos Taxi controller" (`local_8685dcc2-2474-4a07-9b0c-595e219c8d7b`, Claude Code id `1d72bf81-bf8b-4701-a3a1-d3fd79b5acc4`). A retired controller starts no work and ships nothing.**
 
 **Controller 2026-10-03 17:41 to 2026-10-09 14:55 (+04): the Claude desktop session "Vamos Taxi controller" (app id `local_8685dcc2-2474-4a07-9b0c-595e219c8d7b`, Claude Code id `1d72bf81-bf8b-4701-a3a1-d3fd79b5acc4`). The owner in its chat, 2026-10-03 17:41 (+04), verbatim: "you ebcome teh session controller for vamos okay". Retired before it: `004ad4f0-a42f-453d-9991-85113f7d673f` (stopped 15:35 on an expired login; controller 2026-10-02 15:26 to 2026-10-03 15:35), `vamostaxi-eu-0b` (`e1cf20b1-cfca-47f7-8c6e-199fd5cd9a6d`, shipped in its place 15:35 to 19:01: contact button B, quote rate buckets, home sections), "VamosTaxi - session control" (`local_633b433a-13a1-4f99-bfe8-3d595717a4a1`), the claude.ai project thread "Vamos Taxi controller" (`local_f9f33973-c2fc-404c-95fe-22b3fb2dd7fa`) and the "Vamos Taxi control session" (`local_03cf7e47-1746-4ac2-a28b-8ee0d831f01b`). Hand-over of 2026-10-01: `.planning/HANDOVER-2026-10-01.md`.**
 
 **Control rule (owner, 2026-10-01 18:01 +04; replaces the 17:03 take-over line of `95ccece6` and the 17:12 strict rule of `150a2a20`):**
 - Vamos runs from plain Claude Code on the owner's Mac. Every job runs locally, never in the cloud.
-- One controller session: the session with id `004ad4f0-a42f-453d-9991-85113f7d673f` (owner's answer in the question form, 2026-10-02 15:26 +04; before it: "VamosTaxi - session control" `local_633b433a-13a1-4f99-bfe8-3d595717a4a1`, retired), in `/Users/koss/Developer/VamosTaxi.eu` on `main`. Only it commits and pushes main, applies live migrations, deploys Workers and cleans branches.
+- One controller session: the T3 Code thread `0fbbf0c1-980e-4de3-9345-e3c8fe69811b` (since 2026-10-11 20:47 +04; every earlier controller is retired, see the lines above), in `/Users/koss/Developer/VamosTaxi.eu` on `main`. Only it commits and pushes main, applies live migrations, deploys Workers and cleans branches.
 - Every other session is a job session. It runs GSD with the owner's `CLAUDE.local.md`, has its own app worktree under `.claude/worktrees/` in the main folder (the app makes it when the owner starts the session; `/Users/koss/Developer/vamos-wt` is gone, owner 2026-10-01 about 23:35 +04: "vamos-wt no more") and branch cut from `origin/main`, builds and tests, merges `origin/main` back in, writes a hand-over file for the controller and stops.
 - The claude.ai project coordinator and its threads are retired, the "Vamos Taxi controller" thread (`local_f9f33973-…`) included.
 - A fresh reviewer session, not the builder, reads every money, sign-in or database change before it ships. Opus plans and reviews; Sonnet builds.
@@ -19,14 +21,52 @@
 - Types with the pinned CLI: `pnpm exec supabase` (2.115.0), then `db:types:check`.
 - After any seed change, re-pin `packages/db/supabase/tests/seed_idempotent.test.sql` to the counts in the seed header.
 - Next migration number: `20261007270000` (`200000` settle safety, `210000` policy settings, `220000` booking reference, `240000` phase 28 — all live; `230000` fare lines and `250000` frozen price book restore on their branches; `260000` reserved for Phase 29). Ask the controller first and check every remote branch for the file name.
-- Standing order (owner, 2026-10-01 17:41 +04, verbatim): "coomit and deply all after verify dont ask me". It is never used for the live Stripe key, the vamostaxi.eu cutover, price book row 18 Publish, deleting test bookings, or wiping data. Those need his word every time.
+- Ship (owner, 2026-10-11): every Ship is his own answer in the question form; the 2026-10-01 standing order no longer applies. The live Stripe key, the vamostaxi.eu cutover, price book row 18 Publish, deleting test bookings and wiping data need his word every time.
 
 Kept by the control session. One page: what is live, what is being built, what waits for
 the owner, what comes next. Updated at every ship and every hand-over.
 `PHASE-CLOSURE-2026-09-29.md` still wins over the ROADMAP progress table.
 Rewritten short on 2026-09-30 14:25; the long version is in git history (`8230227c`).
 
-**Last update:** 2026-10-05 21:07 (+04)
+**Last update:** 2026-10-11 20:5x (+04), new controller take-over
+
+## Take-over read, 2026-10-11 20:47 (+04)
+
+main = origin/main `358a5ba6` (planning note). Last code commit `25f64c9b` (19:54). Worker `vamos` `c19ff672` (2026-10-11 19:56, rollback `72e71f62`); gateway `vamos-dashboard` `71a307da` (2026-10-01 08:04, rollback `58c6e541`). Wrangler: `koussayzayeni@gmail.com`, account `e64b47de…`. GitHub: branch `main` only, no open PR. Supabase newest applied: `20261011145105` (file `20261011100000`, per the hand-off; not re-read at take-over). GitHub Actions blocked on billing since 2026-10-04: `pnpm gate:local` plus a clean-clone check count as green and the PR says so.
+
+## Landed 2026-10-07 to 2026-10-11 (from `git log`; Worker version per ship not recorded unless named)
+
+| Date | main | What |
+|---|---|---|
+| 10-07 | `4156ee5a`…`4e5e4d64` | Destination photos (Zurich, Geneva, Basel), business photo, home hero Arrivals photo, photo versions, Business travel rules scoped |
+| 10-08 | `a5b95de7` (#68) | Booking bar: flight number always visible and optional |
+| 10-08 | `fef6e713` (#71) | Launch purge and new admin recorded (docs) |
+| 10-08 | `53bf66f7`, `856e844e` | Dashboard login: e-mail link only, no password; sign-in steps 02/03 dropped |
+| 10-08 | `1f4ba13a` (#69) | Design system: loading skeletons allowed |
+| 10-08 | `6a5f274e` (#70) | Live publishable key on the staging Worker |
+| 10-08 | `80c173e9` | Settle: a canceled intent with no payment row closes quietly |
+| 10-09 | `3c6808e5`…`0be0942f` | Ad tracking: adopted wording, Google tag on, Meta events on |
+| 10-11 | `b2b47ebd`, `999d7bb8`, `47c3a7ab` | CLAUDE.md trimmed; GSD health; adaptive model profile |
+| 10-11 | `77a1d8b1`, `df5c2447` | Three stale tests fixed; Actions minutes saved, `pnpm gate:local` |
+| 10-11 | `5e75b796` (#72) | Phase 04 test gaps: coupon race, pricing properties, coupon lock fix (migration `20261011100000`, live as `20261011145105`) |
+| 10-11 | `591765bc` (#73) | Checkout: coupon limit refusal says `coupon_no_longer_valid` |
+| 10-11 | `88f74c18` (quick 261011-qbc) | Tracking: Google conversion survives an early confirmation page; stable InitiateCheckout id |
+| 10-11 | `5350a410` (#74) | Class cards show the VAT-inclusive price |
+| 10-11 | `71b6218a`, `5794309e`, `39ac7b28` | Dead grain overlays removed; Turnstile script reused in consent and contact |
+| 10-11 | `25f64c9b` | A redirect that sets the language cookie is never cached. Live Worker `c19ff672` deployed 19:56; that it is this build is not proven |
+| 10-11 | `48e08ffe`, `a5ebb8ff` | Phase 30 vehicle class lifecycle: discuss decisions, ROADMAP entry |
+
+## Open work, 2026-10-11 (order is the owner's answer)
+
+| Item | State | Next | GSD skill |
+|---|---|---|---|
+| Phase 30, vehicle class lifecycle | Discussed (`decisions/2026-10-11-fleet-lifecycle.md`, `30-CONTEXT.md` untracked); worktree `phase-30-vehicle-class-lifecycle` at `a5ebb8ff`, not on GitHub | Plan, then his plan signature, then execute in its own thread | `/gsd-plan-phase 30` → `/gsd-execute-phase 30` → `/gsd-verify-work` → `/gsd-ship` |
+| Payment jobs J1–J10 | Tag `archive/pay-j10-drop-test-mode-9d874b9c` only: 18 ahead / 21 behind main, base `0be0942f`. Round-2 review of its 10-09 main merge was cancelled (thread "Review J10 main merge", interrupted) | Branch from the tag, merge main (coupon lock #72, `20261011100000`), renumber its ten `20261009*` migrations after the live one, `pnpm gate:local`, clean-clone check, different-model review, his Ship | `/gsd-code-review` on the merge, then `/gsd-ship` |
+| Held `20261007320000` REST revoke | Not applied. J9 `20261009160000_db_privilege_hardening` says it is independent and order-free; J9 also revokes functions from `service_role` | Controller compares both on a lab replay before either is applied; his 4242 + voucher quote + cookie choice first | `/gsd-secure-phase` (threat check) |
+| Single-leg refund on its own subtotal | Decision `decisions/2026-10-11-single-leg-refund-own-subtotal.md` | After J7/J10 land | `/gsd-quick` in its own thread, or a phase if the plan grows |
+| Stripe review findings (127) | `audits/2026-10-09-stripe-payments-REVIEW.md`, untracked, awaiting his signature per finding | His signatures; J1–J10 already cover part | `/gsd-review-backlog` |
+| Dependabot (9 open) | critical proxy-addr; high braces (no fix), source-map-js, sharp; medium next ×4, postcss-selector-parser | One dependency job in its own thread | `/gsd-quick` (deps) with `pnpm gate:local` |
+| Phase 26.2 found rows | Open for its found rows only | Later | `/gsd-progress` |
 
 ## Landing queue, 2026-10-03 00:45 (+04)
 

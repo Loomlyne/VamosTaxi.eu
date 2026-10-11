@@ -1,15 +1,13 @@
 # Rules every Vamos work session follows
 
 You are a job session, not the controller. The controller is the only one that commits on main,
-pushes main, applies live migrations and deploys. Since 2026-10-09 14:55 +04 it is the T3 Code thread
-`c24bb69d-1096-4631-985c-588cdb7f872f` (Grok). The owner in that chat: Claude usage is finished, this
-session takes control. The Claude desktop session "Vamos Taxi controller"
-(`local_8685dcc2-2474-4a07-9b0c-595e219c8d7b`) is retired, with `004ad4f0-…`, `vamostaxi-eu-0b` and
-"VamosTaxi - session control". A retired controller starts no work. Leave your hand-over file and tell the owner.
+pushes main, applies live migrations and deploys. Since 2026-10-11 20:47 +04 it is the T3 Code thread
+`0fbbf0c1-980e-4de3-9345-e3c8fe69811b` ("VamosTaxi controller"). Retired: Claude Code `1d72bf81-…` ("Vamos Taxi controller"),
+the T3 Code thread `c24bb69d-…` (Grok), `004ad4f0-…`, `vamostaxi-eu-0b` and "VamosTaxi - session control". A retired controller starts no work. Leave your hand-over file and tell the owner.
 
 **Control rule (owner, 2026-10-01 18:01 +04; replaces the 17:03 take-over line of `95ccece6` and the 17:12 strict rule of `150a2a20`):**
 - Vamos runs from plain Claude Code on the owner's Mac. Every job runs locally, never in the cloud.
-- One controller session: the T3 Code thread `c24bb69d-1096-4631-985c-588cdb7f872f` (Grok), since 2026-10-09 14:55 +04 (owner: Claude usage is finished, this session takes control), in `/Users/koss/Developer/VamosTaxi.eu` on `main`. Only it commits and pushes main, applies live migrations, deploys Workers and cleans branches. Retired: the Claude desktop session "Vamos Taxi controller" (`local_8685dcc2-2474-4a07-9b0c-595e219c8d7b`, Claude Code id `1d72bf81-bf8b-4701-a3a1-d3fd79b5acc4`), `004ad4f0-a42f-453d-9991-85113f7d673f`, `vamostaxi-eu-0b` `e1cf20b1-cfca-47f7-8c6e-199fd5cd9a6d` and "VamosTaxi - session control" `local_633b433a-13a1-4f99-bfe8-3d595717a4a1`.
+- One controller session: the T3 Code thread `0fbbf0c1-980e-4de3-9345-e3c8fe69811b` ("VamosTaxi controller", Claude Opus 5.5), since 2026-10-11 20:47 +04 (owner's take-over prompt in that thread), in `/Users/koss/Developer/VamosTaxi.eu` on `main`. Only it commits and pushes main, applies live migrations, deploys Workers and cleans branches. It builds nothing itself: it starts work threads, checks, lands, reads live and keeps the board. Retired: Claude Code `1d72bf81-bf8b-4701-a3a1-d3fd79b5acc4` ("Vamos Taxi controller", `local_8685dcc2-2474-4a07-9b0c-595e219c8d7b`, hand-off `.planning/handoff/2026-10-11-retired-controller-1d72bf81.md`), the T3 Code thread `c24bb69d-1096-4631-985c-588cdb7f872f` (Grok), `004ad4f0-a42f-453d-9991-85113f7d673f`, `vamostaxi-eu-0b` `e1cf20b1-cfca-47f7-8c6e-199fd5cd9a6d` and "VamosTaxi - session control" `local_633b433a-13a1-4f99-bfe8-3d595717a4a1`.
 - Every other session is a job session. It runs GSD with the owner's `CLAUDE.local.md`, has its own app worktree under `.claude/worktrees/` in the main folder (the app makes it when the owner starts the session; `/Users/koss/Developer/vamos-wt` is gone, owner 2026-10-01 about 23:35 +04: "vamos-wt no more") and branch cut from `origin/main`, builds and tests, merges `origin/main` back in, writes a hand-over file for the controller and stops.
 - The claude.ai project coordinator and its threads are retired, the "Vamos Taxi controller" thread (`local_f9f33973-…`) included.
 - A fresh reviewer session, not the builder, reads every money, sign-in or database change before it ships. Opus plans and reviews; Sonnet builds.
@@ -20,7 +18,7 @@ session takes control. The Claude desktop session "Vamos Taxi controller"
 - Types with the pinned CLI: `pnpm exec supabase` (2.115.0), then `db:types:check`.
 - After any seed change, re-pin `packages/db/supabase/tests/seed_idempotent.test.sql` to the counts in the seed header.
 - Next migration number: `20261007280000` (`270000` reserved for the phase 29 lock-order fix); before: (`200000` settle safety, `210000` policy settings, `220000` booking reference, `240000` phase 28 — all live; `230000` fare lines and `250000` frozen price book restore on their branches; `260000` reserved for Phase 29). Ask the controller first and check every remote branch for the file name.
-- Standing order (owner, 2026-10-01 17:41 +04, verbatim): "coomit and deply all after verify dont ask me". It is never used for the live Stripe key, the vamostaxi.eu cutover, price book row 18 Publish, deleting test bookings, or wiping data. Those need his word every time.
+- Ship (owner, 2026-10-11 20:47 +04; replaces the standing order "coomit and deply all after verify dont ask me" of 2026-10-01): every Ship is the owner's own answer in the question form. The live Stripe key, the vamostaxi.eu cutover, price book row 18 Publish, deleting test bookings and wiping data need his word every time.
 
 ## Read first, in this order
 1. `CLAUDE.local.md`, section "One job, one branch, one ship". Binding.
