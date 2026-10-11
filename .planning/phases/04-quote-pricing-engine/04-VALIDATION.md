@@ -63,7 +63,7 @@ Plan column = plans whose frontmatter lists the requirement. Status is "covered"
 - [x] `lib/pricing/round.test.ts`, `eligibility.test.ts`, `priceQuote.test.ts`, `lines.test.ts` exist; serviceArea lives at `lib/geo/serviceArea.test.ts`
 - [x] `packages/db/supabase/tests/quote_lock_clock.test.sql`, `snapshot_lines_reconcile.test.sql`, `charge_gate.test.sql`, `rate_version_publish.test.sql`
 - [x] Playwright `tests/visual/quote-flow.spec.ts` asserts `CHF 000`
-- [ ] `packages/db/supabase/tests/coupon_race.test.sql` was planned and does not exist (GAP-1)
+- [x] Coupon race: `packages/db/test/local/coupon-race.test.ts` (two real connections; GAP-1 closed 2026-10-11, found and fixed a deadlock via migration `20261011100000_coupon_cap_no_key_update.sql`)
 - [ ] `lib/pricing/determinism.test.ts`, `lib/pricing/extras.test.ts`, `tests/unit/{api-geo,api-flight,quote-lock,abuse}.test.ts` were planned under those names; coverage lives in the files mapped above instead
 
 ---
@@ -72,9 +72,9 @@ Plan column = plans whose frontmatter lists the requirement. Status is "covered"
 
 | ID | Requirement | Gap | Action |
 |----|-------------|-----|--------|
-| GAP-1 | QUOTE-06 | No test runs two parallel PaymentIntent creations on a `global_limit = 1` coupon and asserts one 200, one 409, one `coupon_redemptions` row (`FOR UPDATE` serialisation). `coupon_evaluate.test.sql` is sequential only. | Add `coupon_race.test.sql` (needs two sessions; may need a Vitest DB test against the lab) |
-| GAP-2 | QUOTE-03 | The research plan asks for property tests (percent-basis commutativity, pipeline order) with `fast-check`; no `fast-check` test was found under `lib/pricing`. Example-based cases exist. | Confirm with `grep -rn fast-check apps/web/lib`; add or accept example-based coverage |
-| GAP-3 | QUOTE-11 | "Single-leg cancellation reconstructs its amounts from the row alone" has no test named for it in the Phase 4 files; related behavior sits in Phase 7/10 refund tests (`packages/db/supabase/tests/cancellation_refund_d02.test.sql`, `fare_line_reads.test.sql`), not verified against this claim. | Read those tests; if they assert per-leg amounts, cite them, else add one |
+| GAP-1 (CLOSED 2026-10-11) | QUOTE-06 | No test runs two parallel PaymentIntent creations on a `global_limit = 1` coupon and asserts one 200, one 409, one `coupon_redemptions` row (`FOR UPDATE` serialisation). `coupon_evaluate.test.sql` is sequential only. | Add `coupon_race.test.sql` (needs two sessions; may need a Vitest DB test against the lab) |
+| GAP-2 (CLOSED 2026-10-11: `lib/pricing/priceQuote.property.test.ts`, 9 properties) | QUOTE-03 | The research plan asks for property tests (percent-basis commutativity, pipeline order) with `fast-check`; no `fast-check` test was found under `lib/pricing`. Example-based cases exist. | Confirm with `grep -rn fast-check apps/web/lib`; add or accept example-based coverage |
+| GAP-3 (OPEN: real bug, decision `.planning/decisions/2026-10-11-single-leg-refund-own-subtotal.md`, waits for jobs j7/j10) | QUOTE-11 | "Single-leg cancellation reconstructs its amounts from the row alone" has no test named for it in the Phase 4 files; related behavior sits in Phase 7/10 refund tests (`packages/db/supabase/tests/cancellation_refund_d02.test.sql`, `fare_line_reads.test.sql`), not verified against this claim. | Read those tests; if they assert per-leg amounts, cite them, else add one |
 
 Superseded, not a gap: QUOTE-08 (flight status lookup). Owner decision 2026-10-05 removed the provider and `/api/flight` ("we just need flight number not tracking"); `lib/flight/no-provider.test.ts` pins that it stays removed. The requirement text in REQUIREMENTS.md should be updated by the planner.
 
@@ -95,7 +95,7 @@ Superseded, not a gap: QUOTE-08 (flight status lookup). Owner decision 2026-10-0
 ## Validation Sign-Off
 
 - [x] Every requirement has an automated command or an explicit supersession
-- [ ] No gaps open (GAP-1, GAP-2, GAP-3)
+- [ ] No gaps open (GAP-3 still open; GAP-1 and GAP-2 closed)
 - [ ] Mapped commands re-run green in one session (not done when this file was written)
 - [ ] `nyquist_compliant: true` only after the gaps close
 
