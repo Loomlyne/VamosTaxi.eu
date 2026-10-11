@@ -1,4 +1,4 @@
-// packages/db/test/local/coupon-race.test.ts
+// apps/web/lib/checkout/coupon-race.local.test.ts
 //
 // Phase 4 QUOTE-06 / GAP-1 (04-VALIDATION.md): two payers race for the last use of a coupon with
 // global_limit = 1. Exactly one wins, the other gets the coupon refusal (restrict_violation 23001,
@@ -7,7 +7,8 @@
 //
 // Two levels, both with fresh coupons per round:
 //   1. The entry point the Worker calls: apps/web createBooking -> public.checkout_create_booking,
-//      as role vamos_checkout through withIdentity, on two connections with the Worker's options.
+//      as role vamos_checkout through the REAL asCheckout wrapper (login vamos_edge, the Worker's
+//      client options), one connection per call, so two calls are two connections.
 //      Note: every checkout_create_booking also upserts the per-year row of
 //      booking_reference_counters (next_booking_reference, step 3) and holds that row lock until
 //      commit, so two checkouts are already single-file before the coupon insert (step 7). That lock
@@ -21,20 +22,32 @@
 //
 // Committed fixtures (a rolled-back transaction is invisible to the other connection), not removed:
 // bookings are append-only; the lab or `pnpm test:db-lab` resets the stack before each run. Synthetic
-// integer rappen only (D-46), never a CHF figure. Local only: host 127.0.0.1, port
-// VAMOS_LOCAL_DB_PORT (a throwaway lab stack, never another session's).
+// integer rappen only (D-46), never a CHF figure.
+// Needs the lab's LIVE rate version, which the packages/db local suite must never have (D-21), so it lives
+// here: skipped unless VAMOS_LOCAL_DB_PORT names a DISPOSABLE local stack (the test lab:
+// scripts/test-lab/lab.sh, seeded with seed-live-like.sql; host 127.0.0.1, marker role required).
+// Test-only raw client to read and seed the disposable stack as the superuser and to open the two racing
+// sessions; named in scripts/db-access-fence-allowlist.json. Never bundled.
+// eslint-disable-next-line @typescript-eslint/no-restricted-imports
+import postgres from "postgres";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { withIdentity } from "../../src/identity.js";
-import { workerSql } from "../support/worker-client.js";
-import { createBooking } from "../../../../apps/web/lib/checkout/create-booking.js";
+import { asCheckout } from "../db/identity";
+import { createBooking } from "./create-booking";
 
-const PORT = process.env["VAMOS_LOCAL_DB_PORT"] ?? "62322";
-const SUPER = `postgres://postgres:postgres@127.0.0.1:${PORT}/postgres`;
+const PORT = process.env["VAMOS_LOCAL_DB_PORT"];
+const MARKER_ROLE = "vamos_throwaway_test_stack";
+const SUPER = `postgres://postgres:postgres@127.0.0.1:${PORT ?? "0"}/postgres`;
+const env = () => ({ HYPERDRIVE_NOCACHE: { connectionString: `postgres://vamos_edge:vamos_edge@127.0.0.1:${PORT}/postgres` } }) as unknown as CloudflareEnv;
 const ROUNDS = 6;
 const T = { timeout: 60_000 };
 const RUN = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 
-type Sql = ReturnType<typeof workerSql>;
+type Sql = postgres.Sql;
+
+/** A raw superuser session on the disposable stack (test-only; the checkout calls go through asCheckout). */
+function rawSql(): Sql {
+  return postgres(SUPER, { max: 1, onnotice: () => undefined });
+}
 type Failure = { error: string; message: string; detail?: string; where?: string };
 type Fx = { classId: string; rateVersionId: number; settingsVersionId: number };
 
@@ -194,18 +207,12 @@ function bookingArgs(tag: string, coupon: { id: number; code: string }): Booking
   };
 }
 
-/** One checkout write exactly as the Worker issues it: createBooking as vamos_checkout. */
-function checkout(client: Sql, tag: string, coupon: { id: number; code: string }, onOpen?: (pid: number) => Promise<void>) {
-  return withIdentity(
-    SUPER,
-    "checkout",
-    null,
-    async (tx) => {
-      if (onOpen) await onOpen(await backendPid(tx as never));
-      return createBooking(tx, bookingArgs(tag, coupon));
-    },
-    { client },
-  );
+/** One checkout write exactly as the Worker issues it: createBooking as vamos_checkout, on its own connection. */
+function checkout(tag: string, coupon: { id: number; code: string }, onOpen?: (pid: number) => Promise<void>) {
+  return asCheckout(env(), null, async (tx) => {
+    if (onOpen) await onOpen(await backendPid(tx as never));
+    return createBooking(tx, bookingArgs(tag, coupon));
+  });
 }
 
 /** A pending booking with a bound live snapshot and a requires_payment row (coupon_evaluate.test.sql shape). */
@@ -258,30 +265,32 @@ function expectCouponRefusal(v: unknown, label = ""): void {
   expect((v as Failure).message, label).toBe("coupon global limit reached");
 }
 
-beforeAll(async () => {
-  expect(new URL(SUPER).hostname).toBe("127.0.0.1");
-  admin = workerSql(SUPER, "identity");
-  const live = await admin<{ id: string }[]>`
-    select id::text as id from public.rate_versions where status = 'live' order by id desc limit 1`;
-  if (live.length !== 1) throw new Error("coupon-race: no live rate version on this stack (run on a seeded lab)");
-  const cls = await admin<{ id: string }[]>`select id::text as id from public.vehicle_classes order by slug limit 1`;
-  const sv = await admin<{ id: string }[]>`
-    select id::text as id from public.settings_versions where checkout_window_minutes is not null order by id desc limit 1`;
-  fx = { classId: cls[0]!.id, rateVersionId: Number(live[0]!.id), settingsVersionId: Number(sv[0]!.id) };
-});
+describe.skipIf(!PORT)("coupon global_limit = 1 under two parallel payers (QUOTE-06, GAP-1)", () => {
+  beforeAll(async () => {
+    expect(new URL(SUPER).hostname).toBe("127.0.0.1");
+    admin = rawSql();
+    const marker = await admin`select 1 from pg_roles where rolname = ${MARKER_ROLE}`;
+    if (marker.length === 0) throw new Error(`refusing: ${MARKER_ROLE} missing, not a throwaway test stack`);
+    const live = await admin<{ id: string }[]>`
+      select id::text as id from public.rate_versions where status = 'live' order by id desc limit 1`;
+    if (live.length !== 1) throw new Error("coupon-race: no live rate version on this stack (run on a seeded lab)");
+    const cls = await admin<{ id: string }[]>`select id::text as id from public.vehicle_classes order by slug limit 1`;
+    const sv = await admin<{ id: string }[]>`
+      select id::text as id from public.settings_versions where checkout_window_minutes is not null order by id desc limit 1`;
+    fx = { classId: cls[0]!.id, rateVersionId: Number(live[0]!.id), settingsVersionId: Number(sv[0]!.id) };
+  });
 
-afterAll(async () => {
-  await admin?.end({ timeout: 5 });
-});
+  afterAll(async () => {
+    await admin?.end({ timeout: 5 });
+  });
 
-describe("coupon global_limit = 1 under two parallel payers (QUOTE-06, GAP-1)", () => {
   it("refuses any host but 127.0.0.1", () => {
     expect(new URL(SUPER).hostname).toBe("127.0.0.1");
   });
 
   it("(a) trigger, deterministic: the second redemption waits on the coupons row, then is refused", T, async () => {
-    const a = workerSql(SUPER, "identity");
-    const b = workerSql(SUPER, "identity");
+    const a = rawSql();
+    const b = rawSql();
     try {
       const coupon = await newCoupon("det-trigger");
       const payA = await fixturePayment("det-a");
@@ -311,8 +320,8 @@ describe("coupon global_limit = 1 under two parallel payers (QUOTE-06, GAP-1)", 
   });
 
   it(`(b) trigger, ${ROUNDS} parallel rounds: one redemption, one coupon refusal, one row`, T, async () => {
-    const a = workerSql(SUPER, "identity");
-    const b = workerSql(SUPER, "identity");
+    const a = rawSql();
+    const b = rawSql();
     try {
       const payA = await fixturePayment("par-a");
       const payB = await fixturePayment("par-b");
@@ -338,68 +347,50 @@ describe("coupon global_limit = 1 under two parallel payers (QUOTE-06, GAP-1)", 
   });
 
   it("(c) checkout entry point, deterministic: the second payer waits, then gets the coupon refusal and no booking", T, async () => {
-    const a = workerSql(SUPER, "identity");
-    const b = workerSql(SUPER, "identity");
-    try {
-      const coupon = await newCoupon("det-checkout");
-      let bPid: number | undefined;
-      let bP: ReturnType<typeof checkout> | undefined;
-      let wait: { on: string; blockers: number[] } | undefined;
-      let aPid = 0;
-      const aRow = await withIdentity(
-        SUPER,
-        "checkout",
-        null,
-        async (tx) => {
-          aPid = await backendPid(tx as never);
-          const row = await createBooking(tx, bookingArgs("det-a", coupon));
-          bP = checkout(b, "det-b", coupon, async (pid) => {
-            bPid = pid;
-          });
-          wait = await waitingOn(() => bPid);
-          return row;
-        },
-        { client: a },
-      );
-      const bOut = await outcome(bP!);
-      // B is held by A's open checkout. Since 20261011100000 the coupon trigger locks FOR NO KEY
-      // UPDATE, which does not clash with the snapshot's FOR KEY SHARE, so B waits on A at the
-      // booking_reference_counters row instead of the coupons row (before the fix it deadlocked).
-      expect(wait!.blockers, `B waited on ${wait!.on}`).toEqual([aPid]);
-      expectCouponRefusal(bOut);
-      expect(await redemptions(coupon.id)).toEqual([{ booking_id: aRow.booking_id }]);
-      const loser = await admin<{ n: number }[]>`
-        select count(*)::int4 as n from public.bookings where idempotency_key = ${`race-${RUN}-det-b`}`;
-      expect(loser[0]!.n).toBe(0);
-    } finally {
-      await Promise.all([a.end({ timeout: 5 }), b.end({ timeout: 5 })]);
-    }
+    const coupon = await newCoupon("det-checkout");
+    let bPid: number | undefined;
+    let bP: ReturnType<typeof checkout> | undefined;
+    let wait: { on: string; blockers: number[] } | undefined;
+    let aPid = 0;
+    const aRow = await asCheckout(env(), null, async (tx) => {
+      aPid = await backendPid(tx as never);
+      const row = await createBooking(tx, bookingArgs("det-a", coupon));
+      bP = checkout("det-b", coupon, async (pid) => {
+        bPid = pid;
+      });
+      wait = await waitingOn(() => bPid);
+      return row;
+    });
+    const bOut = await outcome(bP!);
+    // B is held by A's open checkout. Since 20261011100000 the coupon trigger locks FOR NO KEY
+    // UPDATE, which does not clash with the snapshot's FOR KEY SHARE, so B waits on A at the
+    // booking_reference_counters row instead of the coupons row (before the fix it deadlocked).
+    expect(wait!.blockers, `B waited on ${wait!.on}`).toEqual([aPid]);
+    expectCouponRefusal(bOut);
+    expect(await redemptions(coupon.id)).toEqual([{ booking_id: aRow.booking_id }]);
+    const loser = await admin<{ n: number }[]>`
+      select count(*)::int4 as n from public.bookings where idempotency_key = ${`race-${RUN}-det-b`}`;
+    expect(loser[0]!.n).toBe(0);
   });
 
   it(`(d) checkout entry point, ${ROUNDS} parallel rounds: one booking with the coupon, one coupon refusal, one row`, T, async () => {
-    const a = workerSql(SUPER, "identity");
-    const b = workerSql(SUPER, "identity");
-    try {
-      for (let i = 0; i < ROUNDS; i++) {
-        const coupon = await newCoupon(`par-checkout-${i}`);
-        const go = barrier(2);
-        const results = await Promise.all([
-          outcome(checkout(a, `par-${i}-a`, coupon, () => go())),
-          outcome(checkout(b, `par-${i}-b`, coupon, () => go())),
-        ]);
-        const won = results.filter((r) => !isFailure(r)) as Awaited<ReturnType<typeof checkout>>[];
-        const lost = results.filter(isFailure);
-        expect(won, `round ${i}: ${JSON.stringify(results)}`).toHaveLength(1);
-        expect(lost).toHaveLength(1);
-        expectCouponRefusal(lost[0], `round ${i}`);
-        expect(await redemptions(coupon.id)).toEqual([{ booking_id: won[0]!.booking_id }]);
-        const bookings = await admin<{ n: number }[]>`
-          select count(*)::int4 as n from public.bookings
-           where idempotency_key in (${`race-${RUN}-par-${i}-a`}, ${`race-${RUN}-par-${i}-b`})`;
-        expect(bookings[0]!.n, `round ${i}: the loser's booking rolled back`).toBe(1);
-      }
-    } finally {
-      await Promise.all([a.end({ timeout: 5 }), b.end({ timeout: 5 })]);
+    for (let i = 0; i < ROUNDS; i++) {
+      const coupon = await newCoupon(`par-checkout-${i}`);
+      const go = barrier(2);
+      const results = await Promise.all([
+        outcome(checkout(`par-${i}-a`, coupon, () => go())),
+        outcome(checkout(`par-${i}-b`, coupon, () => go())),
+      ]);
+      const won = results.filter((r) => !isFailure(r)) as Awaited<ReturnType<typeof checkout>>[];
+      const lost = results.filter(isFailure);
+      expect(won, `round ${i}: ${JSON.stringify(results)}`).toHaveLength(1);
+      expect(lost).toHaveLength(1);
+      expectCouponRefusal(lost[0], `round ${i}`);
+      expect(await redemptions(coupon.id)).toEqual([{ booking_id: won[0]!.booking_id }]);
+      const bookings = await admin<{ n: number }[]>`
+        select count(*)::int4 as n from public.bookings
+         where idempotency_key in (${`race-${RUN}-par-${i}-a`}, ${`race-${RUN}-par-${i}-b`})`;
+      expect(bookings[0]!.n, `round ${i}: the loser's booking rolled back`).toBe(1);
     }
   });
 });
