@@ -69,10 +69,18 @@ function paidSession(cs: string, pi: string, created: number): Stripe.Checkout.S
 describe.skipIf(!PORT)("U15 both arrival orders through the real begin() (local, committed rows)", () => {
   // Opened in beforeAll: the describe body also runs when the suite is skipped.
   let owner!: ReturnType<typeof workerSql>;
-  beforeAll(() => {
+  beforeAll(async () => {
     owner = workerSql(`postgres://postgres:postgres@127.0.0.1:${PORT}/postgres`);
+    // The files before this one leave no live book (one live at a time), so this file makes its own.
+    await owner`update public.rate_versions set status = 'retired' where status = 'live'`;
+    const [rv] = await owner<{ id: string }[]>`insert into public.rate_versions (slug, label) values (${`u15-${tag}`}, 'U15 local') returning id`;
+    await owner`insert into public.distance_rates (rate_version_id, vehicle_class_id, max_pax, base_fare_rappen, per_km_rappen, min_fare_rappen)
+                select ${rv!.id}, vc.id, 8, 1000, 300, null from public.vehicle_classes vc`;
+    await owner`update public.rate_versions set status = 'live' where id = ${rv!.id}`;
   });
   afterAll(async () => {
+    // The other local suites publish their own live book: leave none live.
+    await owner`update public.rate_versions set status = 'retired' where slug = ${`u15-${tag}`} and status = 'live'`.catch(() => undefined);
     await owner?.end({ timeout: 5 });
   });
   beforeEach(() => {

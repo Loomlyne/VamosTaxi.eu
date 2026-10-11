@@ -56,8 +56,8 @@ describe.skipIf(!PORT)("system-role reads through the real asSystem (local, comm
         fixture = fixture.replaceAll(`decode(repeat('c${n}',32),'hex')`, `decode(md5('${tag}${n}') || md5('${tag}${n}'),'hex')`);
       }
       await su.begin(async (tx) => {
-        // One live rate version at a time: retire the previous run's fixture version.
-        await tx`update public.rate_versions set status = 'retired' where status = 'live' and slug like 'e%-rv'`;
+        // One live rate version at a time: retire whatever is live (an earlier file's book or a previous fixture).
+        await tx`update public.rate_versions set status = 'retired' where status = 'live'`;
         await tx.unsafe(fixture);
       });
 

@@ -129,7 +129,8 @@ describe("POST /api/checkout/intent and the Meta click-id save", () => {
     expect(await settledWithin(answer)).toBe(true);
     const res = await answer;
     expect(res.status).toBe(200);
-    expect(state.waited).toHaveLength(1);
+    // Two background jobs since 2026-10-09: the click-id save first, then the AddPaymentInfo send.
+    expect(state.waited).toHaveLength(2);
     expect(await settledWithin(state.waited[0]!)).toBe(false); // still waiting on the held write
 
     state.release!();
