@@ -1210,6 +1210,17 @@ Plans:
 - [x] 29-07-PLAN.md — owner's test event code, full gates, HANDOVER for the controller
 **UI hint**: no. One Purchase from the settle queue. Do not change quote, pay, or confirmation.
 
+### Phase 30: Vehicle class lifecycle
+
+**Goal:** A class is added as Draft, goes live only with seats, bags, photo and a price in the live price book, and is retired (never deleted) and can be brought back, all on the dashboard Pricing page. New price books skip retired classes. The word "fleet" leaves the dashboard (`/chauffeurs`). One-off: the 5 test classes and reviews rv-1…rv-5 are removed by a script Koss runs himself.
+**Decisions:** `.planning/decisions/2026-10-11-fleet-lifecycle.md` (signed 2026-10-11)
+**Requirements**: TBD
+**Depends on:** Phase 29
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 30 to break down)
+
 ## Progress
 
 **Execution Order:**
