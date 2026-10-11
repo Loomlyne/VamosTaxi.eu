@@ -205,6 +205,12 @@ function sqlState(err: unknown): string | undefined {
   return undefined;
 }
 
+// The coupon trigger (tg_coupon_redemption_caps) refuses with restrict_violation (23001) and a message
+// starting "coupon ": the loser of a race for a limited coupon. That is a requote, not "already booked".
+function isCouponRefusal(err: unknown): boolean {
+  return sqlState(err) === "23001" && err instanceof Error && err.message.startsWith("coupon ");
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
@@ -687,7 +693,7 @@ async function runWebIntent(
         await afterBooking(winner.booking_id, winner.reference);
         return okWebResponse(winner, stored, chargedRappen, expiresAt, cookie);
       }
-      return refuse("quote_already_booked");
+      return refuse(isCouponRefusal(err) ? "coupon_no_longer_valid" : "quote_already_booked");
     }
     await deps.expireCheckoutSession(created.id).catch(() => undefined);
     if (state === "23P01") return refuse("payment_window_closed");

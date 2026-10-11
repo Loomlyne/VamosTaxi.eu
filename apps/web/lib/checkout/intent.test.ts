@@ -858,6 +858,33 @@ describe("runCheckoutIntent mode web (26.3)", () => {
       expect(w.calls.some((c) => c.startsWith("expire:"))).toBe(true);
     });
 
+    it("a coupon limit refusal (23001, 'coupon ...') from createBooking is coupon_no_longer_valid, not quote_already_booked", async () => {
+      for (const message of [
+        "coupon global limit reached",
+        "coupon per-user limit reached",
+        "coupon unavailable",
+        "coupon outside its window",
+      ]) {
+        const { res, w } = await run(payload(), {
+          createBooking: async () => {
+            throw Object.assign(new Error(message), { code: "23001" });
+          },
+        });
+        expect(res.status).toBe(409);
+        expect(await code(res)).toBe("coupon_no_longer_valid");
+        expect(w.calls.some((c) => c.startsWith("expire:"))).toBe(true);
+      }
+    });
+
+    it("any other 23001 from createBooking stays quote_already_booked", async () => {
+      const { res } = await run(payload(), {
+        createBooking: async () => {
+          throw Object.assign(new Error("duplicate key"), { code: "23001" });
+        },
+      });
+      expect(await code(res)).toBe("quote_already_booked");
+    });
+
     it("P0002 or 23514 from createBooking is coupon_no_longer_valid and the new session is expired", async () => {
       for (const sqlstate of ["P0002", "23514"]) {
         const { res, w } = await run(payload(), {
