@@ -161,6 +161,8 @@
   function loadScript() {
     if (scriptRequested || (window.turnstile && typeof window.turnstile.render === 'function')) return;
     scriptRequested = true;
+    /* A page may already carry the tag (contact.dc.html) or the React widget may have added it; a second copy makes Turnstile warn. */
+    if (document.querySelector('script[src="' + API_SCRIPT + '"]')) return;
     var s = document.createElement('script');
     s.src = API_SCRIPT;
     document.head.appendChild(s);

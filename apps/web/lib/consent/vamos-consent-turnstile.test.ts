@@ -13,13 +13,13 @@ type Options = Record<string, unknown> & {
   "error-callback": () => void;
 };
 
-function load(siteKey: string | null) {
+function load(siteKey: string | null, page: { apiLoaded?: boolean; tag?: boolean } = {}) {
   const rendered: Options[] = [];
   const executed: string[] = [];
   const scripts: Array<{ src?: string }> = [];
   const win: Record<string, unknown> = {
     VamosLocale: { lang: () => "en" },
-    turnstile: {
+    turnstile: page.apiLoaded === false ? undefined : {
       render: (_box: unknown, o: Options) => {
         rendered.push(o);
         return `w${rendered.length}`;
@@ -35,8 +35,11 @@ function load(siteKey: string | null) {
     window: win,
     location: { hostname: "localhost" },
     document: {
-      querySelector: (sel: string) =>
-        sel.includes("vt-turnstile-site-key") && siteKey !== null ? { getAttribute: () => siteKey } : null,
+      querySelector: (sel: string) => {
+        if (sel.includes("vt-turnstile-site-key")) return siteKey !== null ? { getAttribute: () => siteKey } : null;
+        if (sel.includes("turnstile/v0/api.js")) return page.tag ? {} : null;
+        return null;
+      },
       createElement: () => ({}),
       head: { appendChild: (el: { src?: string }) => scripts.push(el) },
     },
@@ -50,7 +53,7 @@ function load(siteKey: string | null) {
     console,
   });
   vm.runInContext(src, ctx);
-  return { api: win.VamosConsent as { turnstile: (...a: unknown[]) => { execute(): void } }, rendered, executed };
+  return { api: win.VamosConsent as { turnstile: (...a: unknown[]) => { execute(): void; remove(): void } }, rendered, executed, scripts };
 }
 
 describe("VamosConsent.turnstile", () => {
@@ -90,5 +93,16 @@ describe("VamosConsent.turnstile", () => {
     w.execute();
     expect(onError).toHaveBeenCalledWith("no-site-key");
     expect(h.rendered).toHaveLength(0);
+  });
+
+  it("adds the Turnstile script once, and not at all when the page already carries the tag", () => {
+    const fresh = load("site-key", { apiLoaded: false });
+    fresh.api.turnstile({}, () => undefined, () => undefined).remove();
+    fresh.api.turnstile({}, () => undefined, () => undefined).remove();
+    expect(fresh.scripts).toHaveLength(1);
+
+    const tagged = load("site-key", { apiLoaded: false, tag: true });
+    tagged.api.turnstile({}, () => undefined, () => undefined).remove();
+    expect(tagged.scripts).toHaveLength(0);
   });
 });
